@@ -658,7 +658,7 @@ end
       (proj_lim_preimage_clopen p d n a) ⟩ }
 -/
 variables [fact (0 < d)]
-variable [algebra ℚ R]
+variable [semi_normed_algebra ℚ R]
 
 /-- The set of Bernoulli measures. -/
 def bernoulli_measure (hc : gcd c p = 1) :=
@@ -971,6 +971,22 @@ lemma proj_fst (n : ℕ) (x : zmod d × ℤ_[p]) (cop : d.coprime (p^n)) :
   ↑((zmod.chinese_remainder cop).inv_fun (x.fst, (to_zmod_pow n) x.snd)) = x.fst :=
   proj_fst' _ _ _ _ _
 
+example {α β : Type*} (x : α × β) : x = (x.fst, x.snd) := prod.ext rfl rfl
+
+--make `inv_fst`
+lemma inv_fst' (n : ℕ) (x : zmod (d * p^n)) (cop : d.coprime (p^n)) :
+  (((zmod.chinese_remainder cop).to_equiv) x).fst = (x : zmod d) :=
+begin
+  rw ←zmod.cast_hom_apply x,
+  swap 3, { apply zmod.char_p _, },
+  swap, { apply dvd_mul_right, },
+  { conv_rhs { rw ←(zmod.chinese_remainder cop).left_inv x, },
+    change _ = (zmod.cast_hom _ (zmod d)) ((zmod.chinese_remainder cop).inv_fun
+      (((zmod.chinese_remainder cop).to_fun x).fst, ((zmod.chinese_remainder cop).to_fun x).snd)),
+    rw proj_fst',
+    congr, },
+end
+
 lemma proj_snd' (m n : ℕ) (h : m.coprime n) (a : zmod m) (b : zmod n) :
   zmod.cast_hom (show n ∣ m * n, from dvd.intro_left m rfl) (zmod n)
     ((zmod.chinese_remainder h).inv_fun (a,b)) = b :=
@@ -989,6 +1005,20 @@ lemma proj_snd (n : ℕ) (x : zmod d × ℤ_[p]) (cop : d.coprime (p^n)) :
   ↑((zmod.chinese_remainder cop).inv_fun (x.fst, (to_zmod_pow n) x.snd)) =
   (to_zmod_pow n) x.snd :=
 proj_snd' _ _ _ _ _
+
+--make `inv_snd`
+lemma inv_snd' (n : ℕ) (x : zmod (d * p^n)) (cop : d.coprime (p^n)) :
+  (((zmod.chinese_remainder cop).to_equiv) x).snd = (x : zmod (p^n)) :=
+begin
+  rw ←zmod.cast_hom_apply x,
+  swap 3, { apply zmod.char_p _, },
+  swap, { apply dvd_mul_left, },
+  { conv_rhs { rw ←(zmod.chinese_remainder cop).left_inv x, },
+    change _ = (zmod.cast_hom _ (zmod (p^n))) ((zmod.chinese_remainder cop).inv_fun
+      (((zmod.chinese_remainder cop).to_fun x).fst, ((zmod.chinese_remainder cop).to_fun x).snd)),
+    rw proj_snd',
+    congr, },
+end
 
 lemma coprime_pow_spl (n : ℕ) (hd : gcd d p = 1) : d.coprime (p^n) :=
   nat.coprime.pow_right _ (nat.coprime_iff_gcd_eq_one.1 hd)
@@ -2461,86 +2491,458 @@ end -/
 
 --example {A B : Type*} [monoid A] [monoid B] : units (A × B) ≃ units A × units B :=
 
-example {α : Type*} [topological_space α] {x : α} : ∃ {s : set α}, is_open s ∧ x ∈ s :=
-begin
-  sorry,
-end
-
 example {A B : Type*} {U : set (A × B)} : set A := (prod.fst)'' U
 
-lemma embed_prod_open_range : is_open (set.range (embed_product ℤ_[p])) :=
+lemma comp_unop_op {α : Type*} : @opposite.unop α ∘ opposite.op = id :=
+by { ext, simp, }
+
+def inv_mul_hom {α : Type*} [topological_space α] [comm_monoid α] : units α →* α :=
+{
+  to_fun := λ u, (units.coe_hom α) u⁻¹,
+  map_one' := by simp only [one_inv, units.coe_hom_apply, units.coe_one],
+  map_mul' := λ x y, begin simp only [mul_inv_rev, units.coe_hom_apply, units.coe_mul],
+    rw mul_comm, end,
+}
+
+def op_mul_hom (α : Type*) [topological_space α] [comm_monoid α] : α →* αᵒᵖ :=
+{
+  to_fun := λ a, opposite.op a,
+  map_one' := by simp,
+  map_mul' := λ x y, by { simp, rw mul_comm, },
+}
+
+example {α β γ : Type*} {f : α → β} {g : α → γ} : α → α × α := λ a, (a, a)
+
+/-example {α : Type*} [topological_space α] [comm_monoid α] {U : set (units α)} (hU : is_open U)
+  (h : continuous (@units.inv α _)) : is_open ((embed_product α)'' U) :=
 begin
-  rw is_open_iff_forall_mem_open, rintros x hx, simp at hx, cases hx with y hy,
+  suffices : is_open_map (embed_product α),
+  { apply this U hU, },
+  { apply inducing.is_open_map,
+    { constructor, rw units.topological_space, },
+    { have f1 : (embed_product α) =
+        ((units.coe_hom α).prod (monoid_hom.comp (op_mul_hom α) inv_mul_hom)), sorry,
+      have f2 : (embed_product α).to_fun =
+        (monoid_hom.prod_map (units.coe_hom α) (monoid_hom.comp (op_mul_hom α) inv_mul_hom))
+          ∘ (λ a, (a, a)), sorry,
+      change is_open (set.range (embed_product α).to_fun), rw f2,
+      apply is_open_map.is_open_range, apply is_open_map.comp,
+      { simp, apply is_open_map.prod,
+        { rintros V hV, --have := h.is_open_preimage V hV,
+          sorry, },
+        { apply is_open_map.comp,
+          { change is_open_map opposite.op, apply is_open_map.of_inverse,
+            swap 4, exact opposite.unop,
+            refine continuous_unop,
+            sorry,
+            sorry, },
+          { change is_open_map units.inv,
+            --apply is_open_map.of_nhds_le, rintros a V hV, simp at hV,
+            rintros V hV,
+            have := preimage_interior_subset_interior_preimage h,
+            --swap, exact units.inv '' V,
+            rw set.preimage_image_eq _ at this,
+            { rw ←subset_interior_iff_open, rintros z hz, rw interior_eq_iff_open.2 hV at this,
+              simp only [set.mem_image, units.inv_eq_coe_inv] at hz,
+
+              rw mem_interior, by_contra, push_neg at h,  },
+          sorry, }, }, },
+      sorry, }, },
+
+  rw is_open_induced_iff at hU,
+  rcases hU with ⟨t, ot, ht⟩,
+--  rw is_open_prod_iff,
+  rw is_open_iff_forall_mem_open, rintros x hx, rw set.mem_image at hx,
+  rcases hx with ⟨y, memy, hy⟩,
   sorry,
+end -/
+
+--example {α : Type*} [comm_monoid α] [topological_space α] {s : set (units α)} [hs : is_open s] :
+
+example {α : Type*} [monoid α] [topological_space α] : continuous (@units.inv ℤ_[p] _) :=
+begin
+  convert_to continuous (coe ∘ units.has_inv.inv),
+  apply continuous.comp,
+  apply units.continuous_coe,
+  exact continuous_inv,
 end
+
+/-lemma prod_subset_singleton {α : Type*} [monoid α] [topological_space α] {s : set (units α)}
+  {u : set α} {v : set αᵒᵖ} {x : units α} (hx : x.val ∈ u)
+  (h : set.prod u v ⊆ (embed_product α)'' s) : u = {x} ∧ v = {(opposite.op ∘ units.inv) x} :=
+begin
+  have h1 : (x.val, (opposite.op ∘ units.inv) x) ∈ set.prod u v, sorry,
+  have h2 : (opposite.op ∘ units.inv) x ∈ v, sorry,
+  split,
+  { ext y, split, all_goals { rintros h', },
+    { rw set.mem_singleton_iff,
+      have : (y, (opposite.op ∘ units.inv) x) ∈ set.prod u v, sorry,
+      specialize h this, rw set.mem_image at h, cases h with z hz, rw embed_product at hz,
+      simp at hz, rcases hz with ⟨h3, h4, h5⟩, rw ←units.ext_iff at h5, rw ←h4, rw ←units.ext_iff,
+      refine inv_inj.mp h5, },
+    { rw set.mem_singleton_iff at h', rw h', convert hx, }, },
+  { ext y, split, all_goals { rintros h', },
+    { rw set.mem_singleton_iff,
+      have : (x.val, y) ∈ set.prod u v, sorry,
+      specialize h this, rw set.mem_image at h, cases h with z hz, rw embed_product at hz,
+      simp at hz, rcases hz with ⟨h3, h4, h5⟩, rw ←h5, simp [h4], rw ←units.ext_iff at h4, rw h4, },
+    { rw set.mem_singleton_iff at h', rw h', apply h2, }, },
+end-/
+
+/-example {α : Type*} [monoid α] [topological_space α] {U : set (units α)} (hU : is_open U) :
+  is_open ((units.val)'' U) :=
+begin
+  convert_to is_open ⋃ (x : units α) (hx : x ∈ U), {x.val},
+  sorry,
+  { apply is_open_Union, rintros x, apply is_open_Union, rintros hx,
+    rw is_open_induced_iff at hU, rcases hU with ⟨t, ht, hU⟩, rw is_open_prod_iff at ht,
+    obtain ⟨u, v, hu, hv, memu, memv, h⟩ := ht x.val ((opposite.op ∘ units.inv) x) _,
+    have := prod_subset_singleton memu h, },
+end-/
+
+lemma top_eq_if_cont_inv' {α : Type*} [topological_space α] [monoid α]
+ (h : @continuous _ _ (topological_space.induced (units.coe_hom α) infer_instance)
+  infer_instance (@units.inv α _)) :
+  topological_space.induced (units.coe_hom α) infer_instance ≤ units.topological_space :=
+begin
+  rw units.topological_space, rw ←continuous_iff_le_induced,
+  apply continuous.prod_mk,
+  { convert continuous_induced_dom, },
+  { change continuous (opposite.op ∘ units.inv),
+    apply continuous.comp,
+    { apply continuous_op, },
+    { convert h, }, },
+end
+
+/-lemma top_eq_if_cont_inv {α : Type*} [topological_space α] [monoid α]
+ (h : @continuous _ _ (topological_space.induced (units.coe_hom α) infer_instance)
+  infer_instance (@units.inv α _)) :
+  topological_space.induced (units.coe_hom α) infer_instance ≤ units.topological_space :=
+begin
+  rintros s hs, rw units.topological_space at hs,
+  rw is_open_induced_iff' at *, rcases hs with ⟨t, ht, hs⟩, rw preimage_embed_prod' at hs,
+  have : (topological_space.induced (units.coe_hom α) infer_instance).is_open
+    (opposite.op ∘ units.inv ⁻¹' (prod.snd '' t)),
+  { apply continuous.is_open_preimage,
+    { apply continuous.comp,
+      { apply continuous_op, },
+      { apply h, }, },
+    { apply is_open_map_snd, refine ht, }, },
+  rw is_open_induced_iff' at this, rcases this with ⟨t', ht', hs'⟩,
+  rw ←hs' at hs,
+  change _ ∩ (units.val)⁻¹' t' = _ at hs,
+  refine ⟨prod.fst '' t ∩ t', _, _⟩,
+  { apply is_open.inter,
+    { apply is_open_map_fst, refine ht, },
+    { refine ht', }, },
+  { rw ←hs, refine set.preimage_inter, },
+end -/
+
+lemma ball_mem_unit {x z : ℤ_[p]} (hx : is_unit x) {r : ℝ} (pos_r : 0 < r)
+  (memz : z ∈ metric.ball x r) (le_one : r ≤ 1) : is_unit z :=
+begin
+  rw metric.mem_ball at memz, rw dist_eq_norm at memz,
+  have f : z = z - x + x := eq_add_of_sub_eq rfl,
+  rw is_unit_iff at *,
+  rw ←hx, rw ←norm_neg x,
+  apply norm_eq_of_norm_add_lt_right,
+  rw norm_neg x,
+  ring_nf,
+  rw hx,
+  apply gt_of_ge_of_gt le_one memz,
+end
+
+lemma inv_mem_inv_ball {x z : units ℤ_[p]} {r : ℝ} (r_pos : 0 < r) (h : r ≤ 1)
+  (hz : z.val ∈ metric.ball x.val r) : z.inv ∈ metric.ball x.inv r :=
+begin
+  have f := ball_mem_unit p (units.is_unit _) r_pos hz h,
+  rw mem_ball_iff_norm at *,
+  suffices : ∥z.val * x.val∥ * ∥z.inv - x.inv∥ < r,
+  { rw norm_mul at this, change is_unit z.val at f, rw is_unit_iff.1 f at this,
+    rw units.val_eq_coe at this,
+    rw is_unit_iff.1 (units.is_unit x) at this, rw one_mul at this, rw one_mul at this,
+    exact this, },
+  { rw ←norm_mul, rw mul_sub, rw mul_right_comm,
+    rw mul_assoc _ x.val _, rw units.val_inv, rw units.val_inv,
+    rw one_mul, rw mul_one, change ∥z.val - x.val∥ < r at hz, rw norm_sub_rev, exact hz, },
+end
+
+lemma cont_inv : @continuous _ _ (topological_space.induced (units.coe_hom ℤ_[p]) infer_instance)
+  infer_instance (@units.inv ℤ_[p] _) :=
+begin
+  constructor, rintros s hs, rw is_open_iff_forall_mem_open,
+  rintros x hx,rw set.mem_preimage at hx,
+  rw metric.is_open_iff at hs,
+  obtain ⟨r, r_pos, hs⟩ := hs _ hx,
+  by_cases r ≤ 1,
+  { refine ⟨(units.inv)⁻¹' metric.ball x.inv r, _, _, _⟩,
+    { rintros z hz, rw set.mem_preimage at *, apply hs hz, },
+    { rw is_open_induced_iff,
+      refine ⟨metric.ball x.val r, _, _⟩,
+      { exact metric.is_open_ball, },
+      { ext z,
+        rw set.mem_preimage, rw set.mem_preimage,
+        split,
+        all_goals { rintros hz, },
+        { apply inv_mem_inv_ball p r_pos h,
+          convert hz, },
+        { repeat { rw units.inv_eq_coe_inv at hz, rw ←units.val_eq_coe at hz, },
+          convert inv_mem_inv_ball p r_pos h hz, }, }, },
+    { rw set.mem_preimage, apply metric.mem_ball_self r_pos, }, },
+  { push_neg at h,
+    refine ⟨(units.inv)⁻¹' metric.ball x.inv 1, _, _, _⟩,
+    { rintros z hz, rw set.mem_preimage at *,
+      apply hs (metric.ball_subset_ball (le_of_lt h) hz), },
+    { rw is_open_induced_iff,
+      refine ⟨metric.ball x.val 1, _, _⟩,
+      { exact metric.is_open_ball, },
+      { ext z,
+        rw set.mem_preimage, rw set.mem_preimage,
+        split,
+        all_goals { rintros hz, },
+        { apply inv_mem_inv_ball p (zero_lt_one) (rfl.ge),
+          convert hz, },
+        { repeat { rw units.inv_eq_coe_inv at hz, rw ←units.val_eq_coe at hz, },
+          convert inv_mem_inv_ball p (zero_lt_one) (rfl.ge) hz, }, }, },
+    { rw set.mem_preimage, apply metric.mem_ball_self (zero_lt_one), }, },
+end
+
+lemma top_eq_iff_cont_inv {α : Type*} [monoid α] [topological_space α] :
+  topological_space.induced (units.coe_hom α) infer_instance = units.topological_space ↔
+    @continuous _ _ (topological_space.induced (units.coe_hom α) infer_instance)
+      infer_instance (@units.inv α _) :=
+begin
+  split, all_goals { rintro h, },
+  { rw h,
+    have h1 : prod.snd ∘ (embed_product α) = opposite.op ∘ units.val ∘ units.has_inv.inv,
+    { ext, rw embed_product,
+      simp only [function.comp_app, units.val_eq_coe, monoid_hom.coe_mk], },
+    have h2 : continuous (prod.snd ∘ (embed_product α)),
+    { apply continuous.comp,
+      { refine continuous_snd, },
+      { refine continuous_induced_dom, }, },
+    rw h1 at h2,
+    convert_to continuous (units.val ∘ units.has_inv.inv),
+    have h3 := continuous.comp (@continuous_unop α _) h2,
+    rw ←function.comp.assoc at h3, rw comp_unop_op at h3,
+    simp only [function.comp.left_id] at h3, exact h3, },
+  { apply le_antisymm,
+    { apply top_eq_if_cont_inv', apply h, },
+    { rw ←continuous_iff_le_induced, apply units.continuous_coe, }, },
+end
+
+/-lemma preimage_embed_prod {α : Type*} [monoid α] {u : set α} {v : set αᵒᵖ} :
+  (embed_product α)⁻¹' u.prod v = units.val⁻¹' u ∩ (opposite.op ∘ units.inv)⁻¹' v := sorry-/
+
+/-example {a : ℤ_[p]} : is_unit a ↔ is_unit (to_zmod a) :=
+begin
+  split, all_goals { rintros h, },
+  { exact to_zmod.is_unit_map h, },
+  { rw is_unit_iff_exists_inv at *,
+    cases h with b h,
+
+    refine is_unit_iff_exists_inv.mpr _,
+    sorry, },
+end-/
 
 lemma is_open_coe : is_open_map (coe : units ℤ_[p] → ℤ_[p]) :=
 begin
-  change is_open_map (@units.val ℤ_[p] _), rintros U hU, rw is_open_induced_iff at hU,
-  rcases hU with ⟨t, ht, htU⟩, rw is_open_prod_iff at ht,
-  rw is_open_iff_forall_mem_open, rintros x hx, simp at hx,
-  rcases hx with ⟨y, hy, hyx⟩,
-  rcases ht (y : ℤ_[p]) (opposite.op ((y.inv) : ℤ_[p])) _ with ⟨u, v, hu, hv, memu, memv, h⟩,
-  { refine ⟨(units.val)'' ((embed_product ℤ_[p])⁻¹' u.prod v), _, _, _⟩,
-    { rw set.image_subset_image_iff _,
-      { rw ←htU, rw set.preimage_subset_preimage_iff _,
-        sorry,
-        sorry, },
-      sorry, },
-    sorry,
-    sorry, },
-  sorry,
-/-    refine ⟨u, _, hu, _⟩,
-    { rw ←htU, rintros z hz, simp,
-      sorry, },
-    sorry, },
-  sorry,
-
-  change is_open_map ((prod.fst ∘ (embed_product ℤ_[p]).to_fun)),
-  apply is_open_map.comp,
-  { exact is_open_map_fst, },
-  { apply inducing.is_open_map,
-    { exact {induced := _}, exact eq_of_nhds_eq_nhds (congr_fun rfl), },
-    { rw is_open_iff_forall_mem_open, rintros x hx,
-      rw set.mem_range at hx, cases hx with y hy,
-      set U' : set (units ℤ_[p]) := (units.coe_hom ℤ_[p])⁻¹'
-          ((padic_int.to_zmod_pow 0)⁻¹' {(y.val).appr 0}) with hU',
-      set V' : set (ℤ_[p] × ℤ_[p]ᵒᵖ) := (embed_product ℤ_[p])'' U' with hV',
-/-      set U : set (units ℤ_[p]) := (units.coe_hom ℤ_[p])⁻¹'
-        ((padic_int.to_zmod_pow 0)⁻¹' {(prod.fst x : ℤ_[p]).appr 0}) with hU,
-      set V : set (ℤ_[p] × ℤ_[p]ᵒᵖ) := (embed_product ℤ_[p])'' U with hV,-/
-      refine ⟨V', _, _, _⟩,
-      { rw hV', simp only [set.subset_univ, set.image_subset_iff, monoid_hom.to_fun_eq_coe,
-        set.preimage_range], },
-      { rw hV', rw hU', rw is_open_prod_iff, rintros a b hab,
-        simp only [set.mem_preimage, set.mem_image, units.coe_hom_apply,
-          set.mem_singleton_iff] at hab,
-        rcases hab with ⟨y, hy1, hy2⟩, rw embed_product at hy2, simp at hy2,
-        set U' : set (units ℤ_[p]) := (units.coe_hom ℤ_[p])⁻¹'
-          ((padic_int.to_zmod_pow 0)⁻¹' {(y.val).appr 0}) with hU',
-        set V' : set (ℤ_[p] × ℤ_[p]ᵒᵖ) := (embed_product ℤ_[p])'' U' with hV',
-        refine ⟨(prod.fst)'' V', (prod.snd)'' V', _, _, _, _, _⟩,
-        { rw hV', rw ←set.image_comp,
-          change is_open ((units.val)'' U'),
-          convert_to is_open ((to_zmod_pow 0) ⁻¹' {↑(y.val.appr 0)}),
-          { rw hU', apply set.image_preimage_eq_of_subset, intros z hz,
-            simp only [set.mem_preimage, set.mem_singleton_iff, units.val_eq_coe] at hz,
-            simp only [set.mem_range, units.val_eq_coe],
-            have uz : is_unit z,
-            { sorry, },
-            refine ⟨is_unit.unit uz, rfl⟩, },
-          { rw preimage_to_zmod_pow_eq_ball, apply metric.is_open_ball, }, },
-        sorry,
-        sorry,
-        sorry,
-        { convert_to V' ⊆ _, sorry,
-          rw hV',  rw hU', rw hU, rw ←hy1, convert set.subset.refl _, }, },
-      rw hV, simp, simp at hx, cases hx with y hy, refine ⟨y, _, hy⟩,
-      rw embed_product at hy, simp at hy, rw prod.ext_iff at hy, simp at hy, rw ←hy.1,
-      dsimp [to_zmod_pow, to_zmod_hom], refl, }, }, -/
+  change is_open_map (@units.val ℤ_[p] _),
+  rintros U hU,
+--  have hU' := top_eq_if_cont_inv
+  rw ←(top_eq_iff_cont_inv.2 _) at hU, -- need this!
+  { rw is_open_induced_iff at hU,
+    rcases hU with ⟨t, ht, htU⟩,
+    rw is_open_iff_forall_mem_open, rintros x hx, simp only [set.mem_image, units.val_eq_coe] at hx,
+    rcases hx with ⟨y, hy, hyx⟩,
+    have memt : x ∈ t,
+    { rw ←htU at hy,
+      rw set.mem_preimage at hy, simp only [units.coe_hom_apply] at hy, rw hyx at hy, apply hy, },
+    rw metric.is_open_iff at ht,
+    specialize ht x memt,
+    rcases ht with ⟨r, r_pos, ht⟩,
+    have is_unit_x : is_unit x,
+    { rw ←hyx, simp only [units.is_unit], },
+    by_cases r ≤ 1,
+    { refine ⟨metric.ball x r, _, _, _⟩,
+      { rintros z hz, rw set.mem_image,
+        suffices : is_unit z,
+        { refine ⟨is_unit.unit this, _, _⟩,
+          { rw ←htU, rw set.mem_preimage, apply ht, convert hz, },
+          { simp only [units.val_eq_coe], exact is_unit.unit_spec this, }, },
+        { apply ball_mem_unit p is_unit_x r_pos hz h, }, },
+      { exact metric.is_open_ball, },
+      { exact metric.mem_ball_self r_pos, }, },
+    { refine ⟨metric.ball x 1, _, _, _⟩,
+      { { rintros z hz, rw set.mem_image,
+        suffices : is_unit z,
+        { refine ⟨is_unit.unit this, _, _⟩,
+          { rw ←htU, rw set.mem_preimage, apply ht,
+            change z ∈ metric.ball x r,
+            push_neg at h,
+            apply metric.ball_subset_ball (le_of_lt h), apply hz, },
+          { simp only [units.val_eq_coe], exact is_unit.unit_spec this, }, },
+        { apply ball_mem_unit p is_unit_x zero_lt_one (by convert hz) (by simp only), }, }, },
+      { exact metric.is_open_ball, },
+      { apply metric.mem_ball_self zero_lt_one, }, }, },
+  { apply cont_inv, },
 end
-#exit
-lemma subspace_induces_locally_constant [has_zero A] (f : locally_constant (units (zmod d) × units ℤ_[p]) A) :
+
+lemma is_open_coe' : is_open_map (coe : units (zmod d) → zmod d) :=
+begin
+  refine inducing.is_open_map _ trivial,
+  constructor, symmetry, convert top_eq_iff_cont_inv.2 _,
+  convert continuous_of_discrete_topology, apply discrete_topology_induced,
+  change function.injective coe, exact units.ext,
+end
+
+lemma is_closed_coe : is_closed (set.range (coe : units ℤ_[p] → ℤ_[p])) :=
+begin
+  have : set.range (coe : units ℤ_[p] → ℤ_[p]) = set.preimage norm {1},
+  { ext x,
+    have : x ∈ set.range (coe : units ℤ_[p] → ℤ_[p]) ↔ is_unit x,
+    { rw set.mem_range, split, all_goals { rintros h, },
+      { cases h with y h, rw ←h, exact units.is_unit y, },
+      { refine ⟨is_unit.unit h, is_unit.unit_spec _⟩, }, },
+    rw set.mem_preimage, rw set.mem_singleton_iff, rw ←is_unit_iff, rw this, },
+  { rw this, refine continuous_iff_is_closed.mp _ {1} _,
+    { exact continuous_norm, },
+    { exact t1_space.t1 1, }, },
+end
+
+lemma emb_coe : embedding (coe : units ℤ_[p] → ℤ_[p]) :=
+begin
+  constructor,
+  { constructor, symmetry, convert top_eq_iff_cont_inv.2 _, apply cont_inv, },
+  { exact units.ext, },
+end
+
+noncomputable def ind_fn [has_zero A] (f : locally_constant (units (zmod d) × units ℤ_[p]) A) :=
+  λ x : (zmod d × ℤ_[p]), @dite _ (is_unit x.1 ∧ is_unit x.2)
+    (classical.dec (is_unit x.fst ∧ is_unit x.snd)) (λ h, f (is_unit.unit h.1, is_unit.unit h.2)) (λ h, 0)
+
+lemma ind_fn_eq_fun [has_zero A] (f : locally_constant (units (zmod d) × units ℤ_[p]) A) :
+  f.to_fun = (ind_fn A p d f) ∘ (prod.map (coe : units (zmod d) → zmod d) (coe : units ℤ_[p] → ℤ_[p])) :=
+begin
+  ext x, rw function.comp, simp only, rw ind_fn, simp only,
+  symmetry, convert dif_pos _,
+  { rw prod.ext_iff, simp only [prod_map], split,
+    all_goals { rw units.ext_iff,
+      rw is_unit.unit_spec (units.is_unit _), }, },
+  { simp only [units.is_unit, prod_map, and_self], },
+end
+
+noncomputable def loc_const_ind_fn [has_zero A] (f : locally_constant (units (zmod d) × units ℤ_[p]) A) :
+  locally_constant (zmod d × ℤ_[p]) A :=
+{
+  to_fun := ind_fn A p d f,
+  is_locally_constant := begin
+    haveI : ∀ (x : zmod d), decidable (is_unit x),
+    { intro x,
+      exact classical.dec (is_unit x), },
+    haveI : ∀ (x : ℤ_[p]), decidable (is_unit x),
+    { intro x,
+      exact classical.dec (is_unit x), },
+    have f4 : is_open_map (prod.map (coe : units (zmod d) → zmod d) (coe : units ℤ_[p] → ℤ_[p])),
+    { apply is_open_map.prod,
+      { apply is_open_coe', },
+      { apply is_open_coe, }, },
+    rw is_locally_constant,
+    rintros s,
+    have f1 := locally_constant.is_locally_constant f s,
+    rw ind_fn_eq_fun at f1,
+    rw set.preimage_comp at f1,
+    by_cases (0 : A) ∈ s,
+    { rw ←set.singleton_subset_iff at h,
+      rw ←set.diff_union_of_subset h, rw set.preimage_union,
+      apply is_open.union,
+      { --copied same proof from below, how to reverse this? making new lemma required too many defs
+        have f2 := locally_constant.is_locally_constant f (s \ {0}),
+        rw ind_fn_eq_fun at f2,
+        rw set.preimage_comp at f2,
+        rw ←open_embedding.open_iff_preimage_open _ at f2,
+        { exact f2, },
+        { intros z hz,
+          rw set.mem_preimage at hz,
+          by_cases h' : is_unit z.1 ∧ is_unit z.2,
+          { rw set.mem_range, refine ⟨(is_unit.unit h'.1, is_unit.unit h'.2), _⟩,
+            rw prod.ext_iff, simp only [prod.map_mk], split, all_goals { rw is_unit.unit_spec, }, },
+          { have : ind_fn A p d f z = 0,
+            { rw ind_fn, simp only, convert dif_neg h', },
+            exfalso, rw this at hz,
+            simp only [set.mem_singleton, set.mem_diff, not_true, and_false] at hz, apply hz, }, },
+        { constructor,
+          { apply embedding.prod_mk,
+            { constructor,
+              { constructor, symmetry, convert top_eq_iff_cont_inv.2 _,
+                convert continuous_of_discrete_topology, apply discrete_topology_induced,
+                change function.injective coe, exact units.ext, },
+              { exact units.ext, }, },
+            { apply emb_coe, }, },
+          { apply is_open_map.is_open_range,
+            exact f4, }, }, },
+      { have f3 : (ind_fn A p d f)⁻¹' {0} = (prod.map (coe : units (zmod d) → zmod d)
+          (coe : units ℤ_[p] → ℤ_[p]))''
+          (f⁻¹' {0}) ∪ (set.range (prod.map (coe : units (zmod d) → zmod d)
+            (coe : units ℤ_[p] → ℤ_[p])))ᶜ,
+        { ext y, rw set.mem_union, rw set.mem_preimage, rw set.mem_singleton_iff, split,
+          all_goals { rintros h', },
+          { rw ind_fn at h',
+            by_cases h'' : is_unit y.fst ∧ is_unit y.snd,
+            { left, rw set.mem_image,
+              refine ⟨(is_unit.unit h''.1, is_unit.unit h''.2), _, _⟩,
+              { rw set.mem_preimage, rw set.mem_singleton_iff, rw ←h', symmetry, simp only,
+                convert dif_pos h'', },
+              { simp only [prod.map_mk], symmetry, rw prod.ext_iff, simp only, split,
+                { rw is_unit.unit_spec h''.1, },
+                { rw is_unit.unit_spec h''.2, }, }, },
+            { right, contrapose h'', push_neg, rw ←set.mem_compl_iff at h'', rw compl_compl at h'',
+              rw set.mem_range at h'', cases h'' with z hz, simp only [prod_map] at hz,
+              rw prod.ext_iff at hz, simp only at hz, rw ←hz.1, rw ←hz.2,
+              refine ⟨units.is_unit z.fst, units.is_unit z.snd⟩, }, },
+          { rw ind_fn, simp only, cases h',
+            { rw set.mem_image at h', cases h' with z hz, convert dif_pos _,
+              swap, { rw ←hz.2, simp only [units.is_unit, prod_map, and_self], },
+              { symmetry, rw set.mem_preimage at hz, rw set.mem_singleton_iff at hz,
+                rw prod.ext_iff at hz, cases hz with h1 h2, convert h1,
+                symmetry, rw prod.ext_iff, rw units.ext_iff, simp only [prod_map] at h2,
+                simp only, rw units.ext_iff, split,
+                { convert h2.1, },
+                { convert h2.2, }, }, },
+            { convert dif_neg _, rw set.mem_compl_iff at h', contrapose h', push_neg at h',
+              push_neg, rw set.mem_range, refine ⟨(is_unit.unit h'.1, is_unit.unit h'.2), _⟩,
+              symmetry, rw prod.ext_iff, simp only [prod.map_mk], rw is_unit.unit_spec (h').1,
+              rw is_unit.unit_spec (h').2, refine ⟨rfl, rfl⟩, }, }, },
+        rw f3, apply is_open.union,
+        { apply f4 _, apply locally_constant.is_locally_constant f _, },
+        { rw is_open_compl_iff, rw set.range_prod_map, refine is_closed.prod _ _,
+          { exact is_closed_discrete (set.range coe), },
+          { apply is_closed_coe, }, }, }, },
+    { rw ←open_embedding.open_iff_preimage_open _ at f1,
+      { exact f1, },
+      { intros z hz,
+        rw set.mem_preimage at hz,
+        by_cases h' : is_unit z.1 ∧ is_unit z.2,
+        { rw set.mem_range, refine ⟨(is_unit.unit h'.1, is_unit.unit h'.2), _⟩,
+          rw prod.ext_iff, simp only [prod.map_mk], split, all_goals { rw is_unit.unit_spec, }, },
+        { have : (ind_fn A p d f) z = 0, { rw ind_fn, simp only, convert dif_neg h', },
+          exfalso, apply h, rw ←this, exact hz, }, },
+      { constructor,
+        { apply embedding.prod_mk,
+          { constructor,
+            { constructor, symmetry, convert top_eq_iff_cont_inv.2 _,
+              convert continuous_of_discrete_topology, apply discrete_topology_induced,
+              change function.injective coe, exact units.ext, },
+            { exact units.ext, }, },
+          { apply emb_coe, }, },
+        { apply is_open_map.is_open_range,
+          apply is_open_map.prod,
+          { apply is_open_coe', },
+          { apply is_open_coe, }, }, }, },
+  end,
+}
+
+/-lemma subspace_induces_locally_constant [has_zero A] (f : locally_constant (units (zmod d) × units ℤ_[p]) A) :
   ∃ (g : locally_constant (zmod d × ℤ_[p]) A),
     f.to_fun = g.to_fun ∘ (prod.map (coe : units (zmod d) → zmod d) (coe : units ℤ_[p] → ℤ_[p])) :=
 begin
@@ -2550,105 +2952,639 @@ begin
   haveI : ∀ (x : ℤ_[p]), decidable (is_unit x),
   { intro x,
     exact classical.dec (is_unit x), },
+  have f4 : is_open_map (prod.map (coe : units (zmod d) → zmod d) (coe : units ℤ_[p] → ℤ_[p])),
+  { apply is_open_map.prod,
+    { apply is_open_coe', },
+    { apply is_open_coe, }, },
   set g := λ x : (zmod d × ℤ_[p]),
     dite (is_unit x.1 ∧ is_unit x.2) (λ h, f (is_unit.unit h.1, is_unit.unit h.2)) (λ h, 0) with hg,
   have : f.to_fun = g ∘ (prod.map (coe : units (zmod d) → zmod d) (coe : units ℤ_[p] → ℤ_[p])),
-  sorry,
+  { ext x, rw function.comp, simp only, rw hg, simp only,
+    symmetry, convert dif_pos _,
+    { rw prod.ext_iff, simp only [prod_map], split,
+      all_goals { rw units.ext_iff,
+        rw is_unit.unit_spec (units.is_unit _), }, },
+    { simp only [units.is_unit, prod_map, and_self], }, },
   refine ⟨⟨g, _⟩, _⟩,
-  { --rw is_locally_constant.iff_exists_open,
-    rw is_locally_constant,
+  { rw is_locally_constant,
     rintros s,
+    have f1 := locally_constant.is_locally_constant f s,
+    rw this at f1,
+    rw set.preimage_comp at f1,
     by_cases (0 : A) ∈ s,
-    sorry,
-    { have h1 := f.is_locally_constant s,
-      rw this at h1,
-      have h2 := @mul_equiv.prod_units (zmod d) (ℤ_[p]) _ _,
-      rw set.preimage_comp at h1,
-      /-have h3 : prod.map (coe : units (zmod d) → zmod d) (coe : units ℤ_[p] → ℤ_[p]) =
-        units.coe_hom (zmod d × ℤ_[p]) ∘ h2.to_equiv.inv_fun, sorry,
-      rw h3 at h1, rw set.preimage_comp at h1,
-      have : is_open_map (units.coe_hom (zmod d × ℤ_[p])),
-      { intros U hU, sorry, }, -/
-      rw ←open_embedding.open_iff_preimage_open _ _ at h1,
-      { exact h1, },
-      { apply open_embedding.prod,
-        { refine open_embedding_of_continuous_injective_open _ _ _,
-          { exact units.continuous_coe, },
-          { exact units.ext, },
-          { rw is_open_map, rintros, exact is_open_discrete (coe '' U), }, },
-        { refine open_embedding_of_continuous_injective_open _ _ _,
-          { exact units.continuous_coe, },
-          { exact units.ext, },
-          { --change is_open_map ((prod.fst ∘ (embed_product ℤ_[p]).to_fun)),
-            rw is_open_map, rintros U hU, rw is_open_induced_iff at hU,
-            rcases hU with ⟨t, h3, h4⟩,
---            apply is_open_map.comp,
---            { exact is_open_map_fst, },
-            --rw embed_product, simp only,
---            change is_open ((prod.fst ∘ (embed_product ℤ_[p]).to_fun)'' U),
-            rw ←h4,
-            rw set.image_comp,
-            refine is_open_prod_iff.mpr _,
-            rintros a b h',
-            rw is_open_prod_iff at h3,
-            simp at h',
-            rcases h' with ⟨z, hz1, hz2⟩,
-            rw hz2 at hz1,
-            rcases h3 a b hz1 with ⟨u, v, hu, hv, au, bv, h5⟩,
-            refine ⟨u, v, hu, hv, au, bv, _⟩,
-            intros y hy, simp,
-            apply set.subset.trans,
-            { exact h5, },
+    { rw ←set.singleton_subset_iff at h,
+      rw ←set.diff_union_of_subset h, rw set.preimage_union,
+      apply is_open.union,
+      { --copied same proof from below, how to reverse this? making new lemma required too many defs
+        have f2 := locally_constant.is_locally_constant f (s \ {0}),
+        rw this at f2,
+        rw set.preimage_comp at f2,
+        rw ←open_embedding.open_iff_preimage_open _ at f2,
+        { exact f2, },
+        { intros z hz,
+          rw set.mem_preimage at hz,
+          by_cases h' : is_unit z.1 ∧ is_unit z.2,
+          { rw set.mem_range, refine ⟨(is_unit.unit h'.1, is_unit.unit h'.2), _⟩,
+            rw prod.ext_iff, simp only [prod.map_mk], split, all_goals { rw is_unit.unit_spec, }, },
+          { have : g z = 0,
+            { rw hg, convert dif_neg h', },
+            exfalso, rw this at hz,
+            simp only [set.mem_singleton, set.mem_diff, not_true, and_false] at hz, apply hz, }, },
+        { constructor,
+          { apply embedding.prod_mk,
+            { constructor,
+              { constructor, symmetry, convert top_eq_iff_cont_inv.2 _,
+                convert continuous_of_discrete_topology, apply discrete_topology_induced,
+                change function.injective coe, exact units.ext, },
+              { exact units.ext, }, },
+            { apply emb_coe, }, },
+          { apply is_open_map.is_open_range,
+            exact f4, }, }, },
+      { have f3 : g⁻¹' {0} = (prod.map (coe : units (zmod d) → zmod d) (coe : units ℤ_[p] → ℤ_[p]))''
+          (f⁻¹' {0}) ∪ (set.range (prod.map (coe : units (zmod d) → zmod d)
+            (coe : units ℤ_[p] → ℤ_[p])))ᶜ,
+        { ext y, rw set.mem_union, rw set.mem_preimage, rw set.mem_singleton_iff, split,
+          all_goals { rintros h', },
+          { rw hg at h',
+            by_cases h'' : is_unit y.fst ∧ is_unit y.snd,
+            { left, rw set.mem_image,
+              refine ⟨(is_unit.unit h''.1, is_unit.unit h''.2), _, _⟩,
+              { rw set.mem_preimage, rw set.mem_singleton_iff, rw ←h', symmetry, simp only,
+                convert dif_pos h'', },
+              { simp only [prod.map_mk], symmetry, rw prod.ext_iff, simp only, split,
+                { rw is_unit.unit_spec h''.1, },
+                { rw is_unit.unit_spec h''.2, }, }, },
+            { right, contrapose h'', push_neg, rw ←set.mem_compl_iff at h'', rw compl_compl at h'',
+              rw set.mem_range at h'', cases h'' with z hz, simp only [prod_map] at hz,
+              rw prod.ext_iff at hz, simp only at hz, rw ←hz.1, rw ←hz.2,
+              refine ⟨units.is_unit z.fst, units.is_unit z.snd⟩, }, },
+          { rw hg, simp only, cases h',
+            { rw set.mem_image at h', cases h' with z hz, convert dif_pos _,
+              swap, { rw ←hz.2, simp only [units.is_unit, prod_map, and_self], },
+              { symmetry, rw set.mem_preimage at hz, rw set.mem_singleton_iff at hz,
+                rw prod.ext_iff at hz, cases hz with h1 h2, convert h1,
+                symmetry, rw prod.ext_iff, rw units.ext_iff, simp only [prod_map] at h2,
+                simp only, rw units.ext_iff, split,
+                { convert h2.1, },
+                { convert h2.2, }, }, },
+            { convert dif_neg _, rw set.mem_compl_iff at h', contrapose h', push_neg at h',
+              push_neg, rw set.mem_range, refine ⟨(is_unit.unit h'.1, is_unit.unit h'.2), _⟩,
+              symmetry, rw prod.ext_iff, simp only [prod.map_mk], rw is_unit.unit_spec (h').1,
+              rw is_unit.unit_spec (h').2, refine ⟨rfl, rfl⟩, }, }, },
+        rw f3, apply is_open.union,
+        { apply f4 _, apply locally_constant.is_locally_constant f _, },
+        { rw is_open_compl_iff, rw set.range_prod_map, refine is_closed.prod _ _,
+          { exact is_closed_discrete (set.range coe), },
+          { apply is_closed_coe, }, }, }, },
+    { rw ←open_embedding.open_iff_preimage_open _ at f1,
+      { exact f1, },
+      { intros z hz,
+        rw set.mem_preimage at hz,
+        by_cases h' : is_unit z.1 ∧ is_unit z.2,
+        { rw set.mem_range, refine ⟨(is_unit.unit h'.1, is_unit.unit h'.2), _⟩,
+          rw prod.ext_iff, simp only [prod.map_mk], split, all_goals { rw is_unit.unit_spec, }, },
+        { have : g z = 0, { rw hg, convert dif_neg h', },
+          exfalso, apply h, rw ←this, exact hz, }, },
+      { constructor,
+        { apply embedding.prod_mk,
+          { constructor,
+            { constructor, symmetry, convert top_eq_iff_cont_inv.2 _,
+              convert continuous_of_discrete_topology, apply discrete_topology_induced,
+              change function.injective coe, exact units.ext, },
+            { exact units.ext, }, },
+          { apply emb_coe, }, },
+        { apply is_open_map.is_open_range,
+          apply is_open_map.prod,
+          { apply is_open_coe', },
+          { apply is_open_coe, }, }, }, }, },
+  { convert this, },
+end -/
 
-            convert h3,
-            convert set.image_preimage_eq_of_subset _,
-
-
-            conv { congr, rw set.image_preimage_eq_of_subset, },
-
-            apply is_open_map_fst,
-             sorry, }, }, },
-      sorry, }, },
-  { rw this, },
+--generalize to f : X → Y, Y compact, f cont and open, then X compact
+instance : compact_space (units ℤ_[p]) :=
+begin
+  constructor,
+  rw embedding.is_compact_iff_is_compact_image (emb_coe p),
+  apply compact_of_is_closed_subset,
+  swap 3, { apply set.subset_univ, },
+  { exact compact_univ, },
+  { convert is_closed_coe p, exact set.image_univ, },
 end
-#exit
---generalize to units X
-instance is_this_even_true : compact_space (units (zmod d) × units ℤ_[p]) := sorry
-instance why_is_it_not_recognized : t2_space (units (zmod d) × units ℤ_[p]) := sorry
+
+lemma embedding_coe : embedding (coe : units ℤ_[p] → ℤ_[p]) :=
+begin
+  constructor,
+  { rw (top_eq_iff_cont_inv.2 (cont_inv p)).symm,
+    constructor,
+    exact rfl, },
+  { refine units.ext, },
+end
+
+instance is_this_even_true : compact_space (units (zmod d) × units ℤ_[p]) :=
+  prod.compact_space
+
+lemma disc_top_units : discrete_topology (units (zmod d)) :=
+begin
+  convert @discrete_topology_induced _ _ _ _ _ _,
+  { apply @prod.discrete_topology _ _ _ _ (discrete_topology_bot (zmod d)) _,
+    refine discrete_topology_induced (opposite.unop_injective), },
+  { intros x y h, rw embed_product at h,
+    simp only [prod.mk.inj_iff, opposite.op_inj_iff, monoid_hom.coe_mk] at h,
+    rw units.ext_iff, rw h.1, },
+end
+
+lemma t2_space_units : t2_space (units (zmod d)) := @t2_space_discrete _ _ (disc_top_units d)
+
+lemma t2_space_units_padic : t2_space (units ℤ_[p]) :=
+begin
+  refine @embedding.t2_space _ _ _ _ _ ((units.coe_hom ℤ_[p]).to_fun) _,
+  change embedding coe,
+  apply embedding_coe,
+end
+
+--there are a LOT of lemmas in here, extract!
+instance why_is_it_not_recognized : t2_space (units (zmod d) × units ℤ_[p]) :=
+  @prod.t2_space _ _ _ (t2_space_units d) _ (t2_space_units_padic p)
+--converting to the top ind by coe does not work well because zmod d is not a group :(
+
 -- use injection of embed_product
-instance so_many_times : totally_disconnected_space (units (zmod d) × units ℤ_[p]) := sorry
+instance so_many_times : totally_disconnected_space (units (zmod d) × units ℤ_[p]) :=
+begin
+  apply @prod.totally_disconnected_space _ _ _ _ _ _,
+  { rw @compact_t2_tot_disc_iff_tot_sep _ _ (t2_space_units d) _,
+    apply @totally_separated_space.of_discrete _ _ _,
+    apply disc_top_units, },
+  { constructor,
+    apply embedding.is_totally_disconnected (embedding_coe p),
+    exact is_totally_disconnected_of_totally_disconnected_space (coe '' set.univ), },
+end
+
+example {α : Type*} {s : set α} {x : α} (hx : x ∈ s) : s := ⟨x, hx⟩
+
+@[to_additive] lemma prod_apply {B C : Type*} [topological_space B] [comm_monoid C] (n : ℕ)
+  (f : ℕ → (locally_constant B C)) {x : B} :
+  (∏ i in finset.range n, (f i)) x =
+  ∏ i in finset.range n, ((f i) x) :=
+begin
+  induction n with d hd,
+  { simp only [locally_constant.coe_one, finset.range_zero, finset.prod_empty, pi.one_apply], },
+  { rw finset.prod_range_succ,
+    rw locally_constant.mul_apply, rw hd,
+    rw finset.prod_range_succ, },
+end
+
+lemma loc_const_eq_sum_char_fn (f : locally_constant ((zmod d) × ℤ_[p]) R) (hd : gcd d p = 1) :
+  ∃ n : ℕ, f = ∑ a in (finset.range (d * p^n)), f(a) • char_fn _ (clopen_from p d n a) :=
+begin
+  set n := classical.some (factor_F _ _ _ hd f) with hn,
+  refine ⟨n, _⟩,
+  have := classical.some_spec (factor_F _ _ _ hd f),
+  ext x,
+  set x' := coe_padic_to_zmod p d n x hd with hx',
+  rw sum_apply,
+  /-convert_to _ = ∑ (a : ℕ) in finset.range (d * p ^ n), ((f a) • @char_fn (zmod d × ℤ_[p]) _ _ _ _
+    R _ _ _ (clopen_from p d n ↑a)) x,
+  {
+    rw locally_constant.add_apply,
+    sorry, },-/
+  { rw finset.sum_eq_single_of_mem,
+    swap 4, { exact x'.val, },
+    swap 2, { rw finset.mem_range, apply zmod.val_lt _, apply fact_iff.2, apply mul_prime_pow_pos, },
+    { simp,
+      --simp only [zmod.cast_id', algebra.id.smul_eq_mul, id.def, locally_constant.coe_smul,
+        --pi.smul_apply, zmod.nat_cast_val],
+      rw ←mul_one (f x),
+      convert @locally_constant.smul_apply (zmod d × ℤ_[p]) R infer_instance R infer_instance
+        (f x') (char_fn (zmod d × ℤ_[p]) (clopen_from p d n x')) x using 1,
+      rw locally_constant.smul_apply, rw smul_eq_mul,
+      apply congr_arg2,
+      { apply this, rw F_rel, simp only [prod.fst_zmod_cast],
+        refine ⟨_, proj_fst p d n _ _⟩, rw hx', rw coe_padic_to_zmod,
+        conv_rhs { rw ←proj_snd, skip,
+          apply_congr coprime_pow_spl p d n hd, },
+        simp,
+        have : ∀ x : zmod (d * p^n), to_zmod_pow n (x : ℤ_[p]) = (x : zmod (p^n)),
+        { rintros x, rw ←zmod.int_cast_cast x,
+          change (ring_hom.comp (to_zmod_pow n) (int.cast_ring_hom ℤ_[p])) (x : ℤ) = coe x,
+          rw ring_hom.eq_int_cast _ (x : ℤ),
+          rw zmod.int_cast_cast, },
+        rw this, },
+      { symmetry,
+        rw ←char_fn_one, rw mem_clopen_from', exact (F p d n).refl x, }, },
+    { rintros b hb h, rw ←smul_zero (f b),
+      rw locally_constant.smul_apply, congr,
+      rw char_fn, simp only [ite_eq_right_iff, one_ne_zero, locally_constant.coe_mk],
+      intro h', apply h,
+      --rw this at h',
+      --rw mem_clopen_from at h',
+      suffices : (b : zmod (d * p^n)) = x',
+      { rw ←zmod.nat_cast_zmod_val x' at this,
+        convert congr_arg (zmod.val) this,
+        { rw zmod.val_cast_of_lt _,
+          rw ←finset.mem_range, assumption, },
+        { rw zmod.nat_cast_zmod_val _,
+          apply fact_iff.2, apply mul_prime_pow_pos, }, },
+      { --rw h2 at h',
+        rw mem_clopen_from at h', rw eq_comm at h', --have h'' := this _ _ h',
+        --have h3 := discrete_quotient.eq_of_proj_eq (locally_constant.discrete_quotient f),
+        rw ←equiv.apply_eq_iff_eq (zmod.chinese_remainder (coprime_pow_spl p d n hd)).to_equiv,
+        rw prod.ext_iff, repeat { rw inv_fst', rw inv_snd', },
+        rw hx', rw coe_padic_to_zmod, rw proj_fst, rw proj_snd, assumption, }, }, },
+end
+
+noncomputable instance {α : Type*} [topological_space α] [monoid α] (x : α) : decidable (is_unit x) :=
+ classical.dec (is_unit x)
+
+example [has_zero A] {f : locally_constant (ℤ_[p]) A} {x : ℤ_[p]} (h : f = 0) : f x = 0 :=
+  by { rw h, simp only [locally_constant.coe_zero, pi.zero_apply], }
+
+/- -- For semi_normed_space
+example [semi_normed_space ℚ R] {x : ℚ} : ∥(algebra_map ℚ R) x∥ ≤ ∥x∥ :=
+begin
+  rw algebra.algebra_map_eq_smul_one, have := norm_smul x (1 : R),
+
+  have := (semi_normed_space.norm_smul_le x (1 : R)), -- has mul_action.to_has_scalar
+  convert le_trans this _ using 1,
+  { apply congr_arg,
+    sorry, },
+  { have : ∥x∥ * ∥(1 : R)∥ ≤ ∥x∥ * ∥(1 : ℚ)∥,
+    { apply mul_le_mul (le_refl _),
+      { rw ←one_smul ℚ (1 : R),
+        have := (semi_normed_space.norm_smul_le (1 : ℚ) (1 : R)),
+        apply le_trans this _,
+        sorry, },
+      sorry,
+      sorry, },
+    apply le_trans this _,
+    rw norm_one, rw mul_one,
+    sorry, },
+end -/
+
+lemma meas_E_c {n : ℕ} {a : zmod (d * p^n)} (hc : gcd c p = 1) (hc' : gcd c d = 1)
+  (h' : gcd d p = 1) : ∥ (classical.some (@set.nonempty_of_nonempty_subtype _ _
+  (bernoulli_measure_nonempty p d R hc hc' h'))) (char_fn (zmod d × ℤ_[p]) (clopen_from p d n a))∥ ≤
+  1 + ∥(c : ℚ)∥ + ∥((c : ℚ) - 1) / 2∥ :=
+begin
+  have := (classical.some_spec (@set.nonempty_of_nonempty_subtype _ _
+  (bernoulli_measure_nonempty p d R hc hc' h'))),
+  rw set.mem_def at this,
+  specialize this n a,
+  rw clopen_from, rw this,
+  convert_to ∥(E_c p d hc n a)∥ ≤ _,
+  { rw norm_algebra_map_eq _ _, },
+  rw E_c, simp only,
+  apply le_trans (norm_add_le _ _) _,
+  apply add_le_add_right _ _,
+  { apply_instance, },
+  { apply le_trans (norm_sub_le _ _) _,
+    have : ∀ (x : ℚ), ∥fract x∥ ≤ 1, --should be separate lemma
+    { intro x, convert_to ∥((fract x : ℚ) : ℝ)∥ ≤ 1, rw real.norm_of_nonneg _,
+      { norm_cast, apply le_of_lt, apply fract_lt_one, },
+      { norm_cast, apply fract_nonneg, }, },
+    apply add_le_add,
+    { apply this, },
+    { rw ←mul_one (∥(c : ℚ)∥), apply le_trans (norm_mul_le _ _) _,
+      apply mul_le_mul_of_nonneg_left,
+      { apply this _, },
+      { apply norm_nonneg, }, }, },
+end
+
+lemma smul_eq_mul' {α β : Type*} [topological_space α] [ring β] (f : locally_constant α β)
+  (b : β) : b • f = (locally_constant.const α b) * f :=
+begin
+  ext,
+  simp only [locally_constant.coe_const, locally_constant.coe_mul, pi.mul_apply,
+  locally_constant.coe_smul, smul_eq_mul, pi.smul_apply],
+end
+
+--noncomputable instance : semi_normed_ring (C((zmod d × ℤ_[p]), R)) := infer_instance
+
+noncomputable instance : normed_ring (locally_constant (zmod d × ℤ_[p]) R) :=
+begin
+  constructor,
+  { rintros x y, exact dist_eq_norm x y, },
+  { rintros a b,
+    convert_to ∥inclusion _ _ a * inclusion _ _ b∥ ≤ ∥inclusion _ _ a∥ * ∥inclusion _ _ b∥,
+    convert @norm_mul_le (C(zmod d × ℤ_[p], R)) (infer_instance) _ _, },
+end
+
+example {a b : ℝ} (ha : 0 ≤ a) (hb : 0 ≤ b) : 0 ≤ a * b := mul_nonneg ha hb
+
+lemma s_nonempty (n : ℕ) (f : locally_constant (units (zmod d) × units ℤ_[p]) R) (a : ℝ)
+  (hc : gcd c p = 1) (hc' : gcd c d = 1) (h' : gcd d p = 1)
+  (ha : a = ⨆ (i : zmod (d * p ^ n)),
+      ∥(classical.some (@set.nonempty_of_nonempty_subtype _ _
+      (bernoulli_measure_nonempty p d R hc hc' h')))
+      (((loc_const_ind_fn R p d f) ↑(i.val)) • char_fn (zmod d × ℤ_[p]) (clopen_from p d n (i.val)))∥) :
+  {i : zmod (d * p^n) | ∥(classical.some (@set.nonempty_of_nonempty_subtype _ _
+      (bernoulli_measure_nonempty p d R hc hc' h')))
+    ((loc_const_ind_fn R p d f) ↑(i.val) • char_fn (zmod d × ℤ_[p]) (clopen_from p d n ↑(i.val)))∥ = a }.nonempty :=
+begin
+  have := set.nonempty.cSup_mem,
+  swap 4, { refine set.range (λ (i : zmod (d * p^n)),
+    ∥(classical.some (@set.nonempty_of_nonempty_subtype _ _ (bernoulli_measure_nonempty p d R hc hc' h')))
+    ((loc_const_ind_fn R p d f) ↑i • char_fn (zmod d × ℤ_[p]) (clopen_from p d n i))∥), },
+  swap, { apply_instance, },
+  specialize this _ _,
+  { rw set.range_nonempty_iff_nonempty, apply_instance, },
+  { rw ←set.image_univ, apply set.finite.image, exact set.finite_univ, },
+  { suffices : a ∈ set.range (λ (i : zmod (d * p^n)),
+      ∥(classical.some (@set.nonempty_of_nonempty_subtype _ _ (bernoulli_measure_nonempty p d R hc hc' h')))
+      ((loc_const_ind_fn R p d f) ↑i • char_fn (zmod d × ℤ_[p]) (clopen_from p d n i))∥),
+    { cases this with y hy,
+      simp only [algebra.id.smul_eq_mul, linear_map.map_smul] at hy,
+      use y,
+      simp only [zmod.cast_id', algebra.id.smul_eq_mul, id.def, set.mem_set_of_eq,
+        finset.mem_range, linear_map.map_smul, zmod.nat_cast_val],
+      refine hy, },
+    { convert this using 1, rw ha,
+      convert_to Sup (set.range (λ (i :zmod (d * p ^ n)),
+        ∥(classical.some (@set.nonempty_of_nonempty_subtype _ _
+        (bernoulli_measure_nonempty p d R hc hc' h')))
+      (((loc_const_ind_fn R p d f) ↑(i.val)) • char_fn (zmod d × ℤ_[p]) (clopen_from p d n ↑(i.val)))∥)) = _,
+      apply congr_arg,
+      simp only [zmod.cast_id', id.def, zmod.nat_cast_val], }, },
+end
 
 /-- Constructs a measure from the Bernoulli measure `E_c`. -/
-noncomputable def bernoulli_measure_of_measure (hc : gcd c p = 1) (hc' : gcd c d = 1) (h' : gcd d p = 1) :
+noncomputable def bernoulli_measure_of_measure (hc : gcd c p = 1) (hc' : gcd c d = 1)
+  (h' : gcd d p = 1) (na : ∀ (n : ℕ) (f : ℕ → R),
+  ∥∑ i in finset.range n, f i∥ ≤ ⨆ (i : zmod n), ∥f (i.val)∥ ) :
   measures'' (units (zmod d) × units ℤ_[p]) R :=
 begin
   constructor, swap,
-  constructor,
-  constructor, swap 3, rintros f,
-  choose g hg using subspace_induces_locally_constant R p d f, --cases does not work as no prop
-  exact (classical.choice (bernoulli_measure_nonempty p d R hc hc' h')).val g, -- do you want nonempty or nonempty'?
-  { rintros f1 f2, simp, sorry, },
-  { rintros r f, simp, sorry, },
-  { sorry, },
+  { constructor,
+    constructor, swap 3,
+    { rintros f,
+      --choose g hg using subspace_induces_locally_constant R p d f, --cases does not work as no prop
+  --exact (classical.choice (bernoulli_measure_nonempty p d R hc hc' h')).val g,
+      exact (classical.some (@set.nonempty_of_nonempty_subtype _ _
+        (bernoulli_measure_nonempty p d R hc hc' h'))) (loc_const_ind_fn _ p d f), },
+    { have := classical.some_spec (@set.nonempty_of_nonempty_subtype _ _
+        (bernoulli_measure_nonempty p d R hc hc' h')),
+      rw set.mem_def at this,
+      --simp at this,
+      rintros f1 f2,
+      convert linear_map.map_add _ _ _,
+      ext y,
+      repeat { rw loc_const_ind_fn, },
+      simp only [pi.add_apply, locally_constant.coe_add, locally_constant.coe_mk],
+      repeat {rw ind_fn, },
+      simp only [pi.add_apply, locally_constant.coe_add],
+      by_cases pos : is_unit y.fst ∧ is_unit y.snd,
+      { convert dif_pos pos,
+        any_goals { convert dif_pos pos, }, },
+      { have : (0 : R) = 0 + 0, rw add_zero,
+        convert this,
+        any_goals { convert dif_neg pos, }, }, },
+    { rintros m f,
+      simp only [algebra.id.smul_eq_mul, locally_constant.coe_smul, locally_constant.to_fun_eq_coe],
+      convert linear_map.map_smul _ _ _,
+      ext y,
+      repeat { rw loc_const_ind_fn, },
+      simp only [algebra.id.smul_eq_mul, locally_constant.coe_smul, pi.smul_apply,
+        locally_constant.coe_mk],
+      repeat { rw ind_fn, },
+      simp only [algebra.id.smul_eq_mul, locally_constant.coe_smul, pi.smul_apply],
+      by_cases pos : is_unit y.fst ∧ is_unit y.snd,
+      { convert dif_pos pos, convert dif_pos pos, },
+      { convert (mul_zero m).symm,
+        any_goals { convert dif_neg pos, }, }, }, },
+  { simp only [linear_map.coe_mk, locally_constant.to_fun_eq_coe],
+    set K := 1 + ∥(c : ℚ)∥ + ∥((c : ℚ) - 1) / 2∥ with hK,
+    have Kpos : 0 < K,
+    { rw hK, rw add_comm, apply add_pos_of_nonneg_of_pos,
+      { apply norm_nonneg, },
+      { rw add_comm, apply add_pos_of_nonneg_of_pos,
+        { apply norm_nonneg, },
+        { apply zero_lt_one, }, }, },
+    refine ⟨K, _, λ f, _⟩,
+    { apply Kpos, },
+    obtain ⟨n, hn⟩ := loc_const_eq_sum_char_fn p d R (loc_const_ind_fn R p d f) h',
+    rw hn,
+    rw linear_map.map_sum,
+    convert le_trans (na (d * p^n) _) _,
+    set a := ⨆ (i : zmod (d * p ^ n)),
+      ∥(classical.some (@set.nonempty_of_nonempty_subtype _ _
+      (bernoulli_measure_nonempty p d R hc hc' h')))
+      (((loc_const_ind_fn R p d f) ↑(i.val)) • char_fn (zmod d × ℤ_[p]) (clopen_from p d n (i.val)))∥ with ha,
+    set s := {i : zmod (d * p^n) | ∥(classical.some (@set.nonempty_of_nonempty_subtype _ _
+      (bernoulli_measure_nonempty p d R hc hc' h')))
+    ((loc_const_ind_fn R p d f) ↑(i.val) • char_fn (zmod d × ℤ_[p]) (clopen_from p d n ↑(i.val)))∥ = a } with hs,
+    have nons : set.nonempty s,
+    { apply s_nonempty, rw ha, },
+    set i := classical.some nons with hi,
+    have hi' := classical.some_spec nons,
+    rw set.mem_def at hi',
+    change ∥(classical.some (@set.nonempty_of_nonempty_subtype _ _
+      (bernoulli_measure_nonempty p d R hc hc' h')))
+      ((loc_const_ind_fn R p d f) ↑(i.val) • char_fn (zmod d × ℤ_[p]) (clopen_from p d n ↑(i.val)))∥ = a at hi',
+    by_cases is_unit (i : zmod d) ∧ is_unit (i : ℤ_[p]),
+    { suffices : a ≤ K * ∥(loc_const_ind_fn R p d f) ↑i∥,
+      convert_to a ≤ _,
+      apply le_trans this _,
+      rw mul_le_mul_left _,
+      rw continuous_map.norm_eq_supr_norm,
+      apply le_cSup,
+      { apply set.finite.bdd_above,
+        change (set.range (λ (x : units (zmod d) × units ℤ_[p]), ∥f x∥)).finite,
+        refine is_locally_constant.range_finite _,
+        change is_locally_constant (norm ∘ f),
+        apply is_locally_constant.comp f.is_locally_constant _, },
+      { refine ⟨(is_unit.unit h.1, is_unit.unit h.2), _⟩,
+        change ∥f.to_fun _ ∥ = _,
+        rw ind_fn_eq_fun,
+        rw loc_const_ind_fn,
+        simp only [function.comp_app, locally_constant.coe_mk, prod.map_mk],
+        apply congr_arg _, apply congr_arg,
+        rw prod.ext_iff,
+        simp only [prod.snd_nat_cast, prod.fst_nat_cast, prod.map_mk],
+        repeat { rw is_unit.unit_spec, },
+        simp only [prod.fst_zmod_cast, prod.snd_zmod_cast, eq_self_iff_true, and_self], },
+      { apply Kpos, },
+      { rw ←hi',
+        rw linear_map.map_smul,
+        rw smul_eq_mul,
+        apply le_trans (norm_mul_le _ _) _,
+        rw mul_comm, apply mul_le_mul,
+        { apply meas_E_c, },
+        { simp only [zmod.nat_cast_val], },
+        { apply norm_nonneg, },
+        { apply le_of_lt, apply Kpos, }, }, },
+    { have zer : (loc_const_ind_fn R p d f) ↑(i.val) = 0,
+      { rw loc_const_ind_fn, simp only [locally_constant.coe_mk],
+        rw ind_fn, convert dif_neg _, convert h,
+        { simp only [prod.fst_zmod_cast, zmod.nat_cast_val], },
+        { simp only [prod.snd_zmod_cast, zmod.nat_cast_val], }, },
+      rw zer at hi', rw zero_smul at hi',
+      simp only [linear_map.map_zero, norm_zero, finset.mem_range] at hi',
+      rw hi'.symm at ha, rw ←ha,
+      apply mul_nonneg,
+      { apply le_of_lt, apply Kpos, },
+      apply norm_nonneg, }, },
 end
+--is it ok to take R to be a semi_normed ring?
 --function on clopen subsets of Z/dZ* x Z_p* or work in Z_p and restrict
 --(i,a + p^nZ_p) (i,d) = 1
 
-lemma cont_paLf [fact (0 < m)] (h : gcd d p = 1) : continuous (λ (a : (units (zmod d) × units ℤ_[p])),
-  ((pri_dir_char_extend p d R m h χ) a) * (inj (teichmuller_character p (a.snd)))^(p - 2)
-  * (w.to_fun a : R)) :=
-sorry
+lemma continuous_to_zmod : continuous (@padic_int.to_zmod p _) :=
+begin
+  constructor,
+  intros s hs,
+  set t : set (zmod (p^1)) := {x | (x : zmod p) ∈ s} with ht,
+  convert_to is_open ((to_zmod_pow 1) ⁻¹' t),
+  { ext x, rw set.mem_preimage, rw set.mem_preimage, rw ht,
+    simp only [set.mem_set_of_eq],
+    split,
+    any_goals { rintros h, convert h using 1, },
+    { sorry, },
+    sorry, },
+  { apply (continuous_to_zmod_pow p 1).is_open_preimage _ _,
+    exact is_open_discrete t, },
+end
+
+lemma units_prod_disc {m n : ℕ} : discrete_topology (units (zmod m × zmod n)) :=
+begin
+  apply @discrete_topology_induced _ _ _ _ _ _,
+  { apply @prod.discrete_topology _ _ _ _ _ _,
+    { exact prod.discrete_topology, },
+    { apply @discrete_topology_induced _ _ _ _ _ _,
+      { exact prod.discrete_topology, },
+      { exact opposite.unop_injective, }, }, },
+  { rintros x y h,
+    rw embed_product at h,
+    simp only [prod.mk.inj_iff, opposite.op_inj_iff, monoid_hom.coe_mk] at h,
+    rw units.ext_iff,
+    rw h.1, },
+end
+
+lemma cont_units_map {α β : Type*} [topological_space α] [monoid α] [topological_space β] [monoid β]
+  (ha : @continuous _ _ (topological_space.induced (units.coe_hom α) infer_instance)
+      infer_instance (@units.inv α _))
+  (hb : @continuous _ _ (topological_space.induced (units.coe_hom β) infer_instance)
+      infer_instance (@units.inv β _))
+  {f : α →* β} (hf : continuous f) : continuous (units.map f) :=
+begin
+  constructor,
+  rintros s hs,
+  rw (top_eq_iff_cont_inv.2 _).symm,
+  { rw (top_eq_iff_cont_inv.2 _).symm at hs,
+    { rw is_open_induced_iff at hs,
+      rcases hs with ⟨t, ht, hs⟩, rw ←hs,
+      convert_to is_open ((units.coe_hom α)⁻¹' (f⁻¹' t)),
+      { rw top_eq_iff_cont_inv, apply ha, },
+      { rw ←set.preimage_comp,
+        apply continuous.is_open_preimage _ t ht,
+        apply continuous.comp,
+        { apply hf, },
+        { apply units.continuous_coe, }, }, },
+    apply hb, },
+  apply ha,
+end
+
+lemma cont_paLf [fact (0 < m)] (h : gcd d p = 1) (cont : continuous inj) :
+  continuous (λ (a : (units (zmod d) × units ℤ_[p])), ((pri_dir_char_extend p d R m h χ) a) *
+  (inj (teichmuller_character p (a.snd)))^(p - 2) * (w.to_fun a : R)) :=
+begin
+  continuity,
+  { rw pri_dir_char_extend,
+    apply continuous.comp,
+    { apply continuous.comp,
+      { convert continuous_of_discrete_topology,
+        apply @disc_top_units _ _,
+        apply fact_iff.2, apply mul_prime_pow_pos, },
+      { apply continuous.comp _ continuous_id,
+        apply continuous.comp,
+        { convert continuous_of_discrete_topology, apply units_prod_disc, },
+        { apply continuous.comp _ continuous_id,
+          apply continuous.comp,
+          { convert continuous_of_discrete_topology,
+            apply @prod.discrete_topology _ _ _ _ _ _,
+            { exact disc_top_units d, },
+            { apply @disc_top_units _ _,
+              apply fact_iff.2, apply pow_pos _ _,
+              apply nat.prime.pos, apply fact.out, }, },
+          { apply continuous.comp _ continuous_id,
+            apply continuous.prod_mk,
+            { apply continuous.comp _ continuous_id,
+              apply continuous.comp,
+              { convert continuous_id, },
+              { convert continuous_fst, }, },
+            { apply continuous.comp _ continuous_id,
+              apply continuous.comp,
+              { apply cont_units_map,
+                { apply cont_inv, },
+                { apply @continuous_of_discrete_topology _ _ _ _ _,
+                  apply discrete_topology_induced,
+                  rintros x y hxy, rw units.ext_iff, convert hxy, },
+                  --refine @disc_top_units (p^m) (fact_iff.2 (pow_pos (nat.prime.pos (fact_iff.1 _)) m)), },
+                { change continuous ((to_zmod_pow m)),
+                  apply continuous_to_zmod_pow, }, },
+              { apply continuous.comp _ continuous_id,
+                convert continuous_snd, }, }, }, }, }, },
+    { apply continuous_id, }, },
+  { rw teichmuller_character,
+    simp only [monoid_hom.coe_mk],
+    --convert continuous.comp (continuous_pow (p - 2)) _,
+    --{ apply_instance, },
+    { --apply continuous.comp cont,
+      conv { congr, funext, rw ←function.comp_apply (witt_vector.equiv p) _, },
+      apply continuous.comp,
+      { exact continuous_bot, },
+      { apply continuous.comp (continuous_to_zmod p),
+        { apply continuous.comp,
+          { exact units.continuous_coe, },
+          { exact continuous_id, }, }, }, }, },
+{ change continuous w,
+  apply (weight_space.to_continuous_map w).continuous_to_fun, },
+end
+
+--lemma is_unit_mul_pow (hc : gcd c p = 1) (hc' : gcd c d = 1) : is_unit (c : zmod (d * p^m)) := sorry
+
+example {α β : Type*} [mul_one_class α] [mul_one_class β] (h : α ≃* β) : α →* β := by refine mul_equiv.to_monoid_hom h
+
+lemma is_unit_padic_of_is_unit_zmod {x : ℕ} (hx : is_unit (x : zmod p)) (h : x.coprime p) :
+  is_unit (x : ℤ_[p]) :=
+begin
+  contrapose h,
+  rw is_unit_iff at h,
+  have hx' := lt_of_le_of_ne (norm_le_one _) h,
+  change ∥((x : ℤ) : ℤ_[p])∥ < 1 at hx',
+  rw norm_int_lt_one_iff_dvd at hx',
+  norm_cast at hx',
+  rw nat.coprime_comm,
+  rw nat.prime.coprime_iff_not_dvd _,
+  { rw not_not, assumption, },
+  { apply fact.out, },
+end
 
 /-- Constant used in `p_adic_L_function`. -/
-def f : R := sorry
+noncomputable def f' (hd : gcd d p = 1) [fact (0 < m)] (hc : gcd c p = 1) (hc' : gcd c d = 1)
+  (χ : mul_hom (units (zmod (d*(p^m)))) R) (w : weight_space R p d) : R := -- why is χ not getting recognized
+begin
+    --convert is_unit.map (monoid_hom.comp ((((witt_vector.equiv p).to_mul_equiv)).to_monoid_hom)
+      --(witt_vector.teichmuller p)) _,
+    have f2 : is_unit (c : ℤ_[p]),
+    { apply is_unit_padic_of_is_unit_zmod, rw ←zmod.coe_unit_of_coprime _ hc,
+      apply units.is_unit, rw nat.coprime_iff_gcd_eq_one, apply hc, },
+  set c' := (zmod.unit_of_coprime c hc', is_unit.unit f2) with hc',
+  refine ((((pri_dir_char_extend p d R m hd χ) c') * (w.to_fun c') - 1)),
+end
+--  -((1 - ((pri_dir_char_extend p d R m hd χ) c) * (w.to_fun c)))⁻¹
+
+noncomputable def f (hd : gcd d p = 1) [fact (0 < m)] (hc : gcd c p = 1) (hc' : gcd c d = 1)
+  (hu : is_unit (f' p d R m hd hc hc' χ w)) : R :=
+  units.inv (is_unit.unit hu)
 
 --h wont go in the system if you put it in [], is this independent of c? is it accurate to say that ω⁻¹ = ω^(p - 2)? I think so
 /-- The `p_adic_L_function` defined in terms of the p-adic integral and the
   Bernoulli measure `E_c`. -/
-noncomputable def p_adic_L_function (hd : gcd d p = 1) [fact (0 < m)] (h : function.injective inj) (hc : gcd c p = 1) (hc' : gcd c d = 1) :=
- (f R) * (integral (units (zmod d) × units ℤ_[p]) R (bernoulli_measure_of_measure p d R hc hc' hd)
+noncomputable def p_adic_L_function (hd : gcd d p = 1) [fact (0 < m)] (h : function.injective inj)
+  (cont : continuous inj) (hc : gcd c p = 1) (hc' : gcd c d = 1) (na : ∀ (n : ℕ) (f : ℕ → R),
+     ∥∑ (i : ℕ) in finset.range n, f i∥ ≤ ⨆ (i : zmod n), ∥f i.val∥) (hu : is_unit (f' p d R m hd hc hc' χ w)) :=
+ (f p d R m χ w hd hc hc' hu) * (integral (units (zmod d) × units ℤ_[p]) R (bernoulli_measure_of_measure p d R hc hc' hd na)
 ⟨(λ (a : (units (zmod d) × units ℤ_[p])), ((pri_dir_char_extend p d R m hd χ) a) *
-  (inj (teichmuller_character p a.snd))^(p - 2) * (w.to_fun a : R)), cont_paLf p d R inj m χ w hd ⟩)
+  (inj (teichmuller_character p a.snd))^(p - 2) * (w.to_fun a : R)), cont_paLf p d R inj m χ w hd cont⟩)
 --independent of c, remove that!
 -- make R a ℚ_[p]-algebra or a ℚ-algebra?
 -- make χ and s explicit

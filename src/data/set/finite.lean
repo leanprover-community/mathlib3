@@ -638,6 +638,20 @@ begin
   exact or.inr ⟨i, finset.mem_univ i, le_rfl⟩
 end
 
+lemma Union_pi_of_monotone {ι ι' : Type*} [linear_order ι'] [nonempty ι'] {α : ι → Type*}
+  {I : set ι} {s : Π i, ι' → set (α i)} (hI : finite I) (hs : ∀ i ∈ I, monotone (s i)) :
+  (⋃ j : ι', I.pi (λ i, s i j)) = I.pi (λ i, ⋃ j, s i j) :=
+begin
+  simp only [pi_def, bInter_eq_Inter, preimage_Union],
+  haveI := hI.fintype,
+  exact Union_Inter_of_monotone (λ i j₁ j₂ h, preimage_mono $ hs i i.2 h)
+end
+
+lemma Union_univ_pi_of_monotone {ι ι' : Type*} [linear_order ι'] [nonempty ι'] [fintype ι]
+  {α : ι → Type*} {s : Π i, ι' → set (α i)} (hs : ∀ i, monotone (s i)) :
+  (⋃ j : ι', pi univ (λ i, s i j)) = pi univ (λ i, ⋃ j, s i j) :=
+Union_pi_of_monotone (finite.of_fintype _) (λ i _, hs i)
+
 instance nat.fintype_Iio (n : ℕ) : fintype (Iio n) :=
 fintype.of_finset (finset.range n) $ by simp
 

@@ -25,18 +25,19 @@ The dual is also given.
 
 noncomputable theory
 
-universes v u₁ u₂
+universes v₁ v₂ u₁ u₂
 
 open category_theory category_theory.category category_theory.limits
-
-variables {C : Type u₁} [category.{v} C]
-variables {D : Type u₂} [category.{v} D]
-variables (G : C ⥤ D)
 
 namespace category_theory.limits
 
 section pullback
 
+section
+
+variables {C : Type u₁} [category.{v₁} C]
+variables {D : Type u₂} [category.{v₂} D]
+variables (G : C ⥤ D)
 variables {W X Y Z : C} {f : X ⟶ Z} {g : Y ⟶ Z} {h : W ⟶ X} {k : W ⟶ Y} (comm : h ≫ f = k ≫ g)
 
 /-- The map of a pullback cone is a limit iff the fork consisting of the mapped morphisms is a
@@ -45,8 +46,10 @@ def is_limit_map_cone_pullback_cone_equiv :
   is_limit (G.map_cone (pullback_cone.mk h k comm)) ≃
     is_limit (pullback_cone.mk (G.map h) (G.map k) (by simp only [← G.map_comp, comm])
       : pullback_cone (G.map f) (G.map g)) :=
-(is_limit.postcompose_hom_equiv (diagram_iso_cospan.{v} _) _).symm.trans
-  (is_limit.equiv_iso_limit (cones.ext (iso.refl _) (by { rintro (_ | _ | _), tidy })))
+(is_limit.whisker_equivalence_equiv walking_cospan_equiv.{v₂ v₁}).trans $
+  (is_limit.postcompose_hom_equiv (diagram_iso_cospan.{u₂ v₂} _) _).symm.trans $
+  is_limit.equiv_iso_limit $ cones.ext (iso.refl _) $
+    (by rintro (_|_|_); dsimp; simpa only [category.comp_id, category.id_comp, ← G.map_comp])
 
 /-- The property of preserving pullbacks expressed in terms of binary fans. -/
 def is_limit_pullback_cone_map_of_is_limit [preserves_limit (cospan f g) G]
@@ -69,7 +72,13 @@ def is_limit_of_has_pullback_of_preserves_limit
   is_limit (pullback_cone.mk (G.map pullback.fst) (G.map pullback.snd) _) :=
 is_limit_pullback_cone_map_of_is_limit G _ (pullback_is_pullback f g)
 
-variables [has_pullback (G.map f) (G.map g)]
+end
+
+variables {C : Type u₁} [category.{v₁} C]
+variables {D : Type u₂} [category.{v₁} D]
+variables (G : C ⥤ D) {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z)
+
+variables [has_pullback f g] [has_pullback (G.map f) (G.map g)]
 
 /-- If the pullback comparison map for `G` at `(f,g)` is an isomorphism, then `G` preserves the
 pullback of `(f,g)`. -/
@@ -87,7 +96,7 @@ def preserves_pullback_symmetry {D : Type*} [category D] (F : C ⥤ D) {X Y Z : 
   (g : Y ⟶ Z) [preserves_limit (cospan f g) F] : preserves_limit (cospan g f) F :=
 { preserves := λ c hc,
   begin
-    apply (is_limit.postcompose_hom_equiv (diagram_iso_cospan.{v} _) _).to_fun,
+    apply (is_limit.postcompose_hom_equiv (diagram_iso_cospan.{u₁ v₁} _) _).to_fun,
     apply is_limit.of_iso_limit _ (pullback_cone.iso_mk _).symm,
     apply pullback_cone.flip_is_limit,
     apply (is_limit_map_cone_pullback_cone_equiv _ _).to_fun,
@@ -95,7 +104,7 @@ def preserves_pullback_symmetry {D : Type*} [category D] (F : C ⥤ D) {X Y Z : 
       { dsimp, apply_instance },
       apply pullback_cone.flip_is_limit,
       apply is_limit.of_iso_limit _ (pullback_cone.iso_mk _),
-      exact (is_limit.postcompose_hom_equiv (diagram_iso_cospan.{v} _) _).inv_fun hc },
+      exact (is_limit.postcompose_hom_equiv (diagram_iso_cospan.{v₁} _) _).inv_fun hc },
     { exact (c.π.naturality walking_cospan.hom.inr).symm.trans
       (c.π.naturality walking_cospan.hom.inl : _) }
   end }
@@ -138,6 +147,11 @@ end pullback
 
 section pushout
 
+section
+
+variables {C : Type u₁} [category.{v₁} C]
+variables {D : Type u₂} [category.{v₂} D]
+variables (G : C ⥤ D)
 variables {W X Y Z : C} {h : X ⟶ Z} {k : Y ⟶ Z} {f : W ⟶ X} {g : W ⟶ Y} (comm : f ≫ h = g ≫ k)
 
 /-- The map of a pushout cocone is a colimit iff the cofork consisting of the mapped morphisms is a
@@ -146,8 +160,12 @@ def is_colimit_map_cocone_pushout_cocone_equiv :
   is_colimit (G.map_cocone (pushout_cocone.mk h k comm)) ≃
     is_colimit (pushout_cocone.mk (G.map h) (G.map k) (by simp only [← G.map_comp, comm])
       : pushout_cocone (G.map f) (G.map g)) :=
-(is_colimit.precompose_hom_equiv (diagram_iso_span.{v} _).symm _).symm.trans
-  (is_colimit.equiv_iso_colimit (cocones.ext (iso.refl _) (by { rintro (_ | _ | _), tidy, })))
+(is_colimit.whisker_equivalence_equiv walking_span_equiv.{v₂ v₁}).trans $
+  (is_colimit.postcompose_hom_equiv (diagram_iso_span.{v₂} _) _).symm.trans $
+  is_colimit.equiv_iso_colimit $ cocones.ext (iso.refl _) $ _
+    -- (by rintro (_|_|_); dsimp; simpa only [category.comp_id, category.id_comp, ← G.map_comp])
+-- (is_colimit.precompose_hom_equiv (diagram_iso_span.{v} _).symm _).symm.trans
+--   (is_colimit.equiv_iso_colimit (cocones.ext (iso.refl _) (by { rintro (_ | _ | _), tidy, })))
 
 /-- The property of preserving pushouts expressed in terms of binary cofans. -/
 def is_colimit_pushout_cocone_map_of_is_colimit [preserves_colimit (span f g) G]

@@ -94,7 +94,9 @@ open walking_cospan
 /-- The functor between two `walking_cospan`s in different universes. -/
 def walking_cospan_functor : walking_cospan.{v₁} ⥤ walking_cospan.{v₂} :=
 { obj := by { rintro (_|_|_), exacts [one, left, right] },
-  map := by { rintro _ _ (_|_|_), exacts [hom.id _, hom.inl, hom.inr] } }
+  map := by { rintro _ _ (_|_|_), exacts [hom.id _, hom.inl, hom.inr] },
+  map_id' := λ X, rfl,
+  map_comp' := λ _ _ _ _ _, subsingleton.elim _ _ }
 
 @[simp] lemma walking_cospan_functor_one : walking_cospan_functor.obj one = one := rfl
 @[simp] lemma walking_cospan_functor_left : walking_cospan_functor.obj left = left := rfl
@@ -122,7 +124,9 @@ open walking_span
 /-- The functor between two `walking_span`s in different universes. -/
 def walking_span_functor : walking_span.{v₁} ⥤ walking_span.{v₂} :=
 { obj := by { rintro (_|_|_), exacts [zero, left, right] },
-  map := by { rintro _ _ (_|_|_), exacts [hom.id _, hom.fst, hom.snd] } }
+  map := by { rintro _ _ (_|_|_), exacts [hom.id _, hom.fst, hom.snd] },
+  map_id' := λ X, rfl,
+  map_comp' := λ _ _ _ _ _, subsingleton.elim _ _ }
 
 @[simp] lemma walking_span_functor_zero : walking_span_functor.obj zero = zero := rfl
 @[simp] lemma walking_span_functor_left : walking_span_functor.obj left = left := rfl

@@ -194,7 +194,7 @@ theorem bounded_le_iff_bounded_inter_lt [linear_order α] (a : α) :
   bounded (≤) s ↔ bounded (≤) (s ∩ {b | a < b}) :=
 by { convert bounded_le_iff_bounded_inter_not_le a, ext, exact lt_iff_not_ge' }
 
-theorem unbounded_le_unbounded_inter_lt [linear_order α] (a : α) :
+theorem unbounded_le_iff_unbounded_inter_lt [linear_order α] (a : α) :
   unbounded (≤) s ↔ unbounded (≤) (s ∩ {b | a < b}) :=
 by { convert unbounded_le_iff_unbounded_inter_not_le a, ext, exact lt_iff_not_ge' }
 
@@ -231,7 +231,7 @@ theorem bounded_lt_iff_bounded_inter_le [linear_order α] (a : α) :
   bounded (<) s ↔ bounded (<) (s ∩ {b | a ≤ b}) :=
 by { convert bounded_lt_iff_bounded_inter_not_lt a, ext, exact not_lt.symm }
 
-theorem unbounded_lt_unbounded_inter_le [linear_order α] (a : α) :
+theorem unbounded_lt_iff_unbounded_inter_le [linear_order α] (a : α) :
   unbounded (<) s ↔ unbounded (<) (s ∩ {b | a ≤ b}) :=
 by { convert unbounded_lt_iff_unbounded_inter_not_lt a, ext, exact not_lt.symm }
 
@@ -242,7 +242,7 @@ begin
   exact bounded_le_iff_bounded_inter_lt a
 end
 
-theorem unbounded_lt_unbounded_inter_lt [linear_order α] [no_top_order α] (a : α) :
+theorem unbounded_lt_iff_unbounded_inter_lt [linear_order α] [no_top_order α] (a : α) :
   unbounded (<) s ↔ unbounded (<) (s ∩ {b | a < b}) :=
 begin
   rw [←not_bounded_iff, ←not_bounded_iff, not_iff_not],
@@ -267,7 +267,7 @@ theorem bounded_ge_iff_bounded_inter_gt [linear_order α] (a : α) :
   bounded (≥) s ↔ bounded (≥) (s ∩ {b | b < a}) :=
 by { convert bounded_ge_iff_bounded_inter_not_ge a, ext, exact lt_iff_not_ge' }
 
-theorem unbounded_ge_unbounded_inter_gt [linear_order α] (a : α) :
+theorem unbounded_ge_iff_unbounded_inter_gt [linear_order α] (a : α) :
   unbounded (≥) s ↔ unbounded (≥) (s ∩ {b | b < a}) :=
 by { convert unbounded_ge_iff_unbounded_inter_not_ge a, ext, exact lt_iff_not_ge' }
 
@@ -304,7 +304,7 @@ theorem bounded_gt_iff_bounded_inter_ge [linear_order α] (a : α) :
   bounded (>) s ↔ bounded (>) (s ∩ {b | b ≤ a}) :=
 by { convert bounded_gt_iff_bounded_inter_not_gt a, ext, exact not_lt.symm }
 
-theorem unbounded_gt_unbounded_inter_ge [linear_order α] (a : α) :
+theorem unbounded_gt_iff_unbounded_inter_ge [linear_order α] (a : α) :
   unbounded (>) s ↔ unbounded (>) (s ∩ {b | b ≤ a}) :=
 by { convert unbounded_gt_iff_unbounded_inter_not_gt a, ext, exact not_lt.symm }
 
@@ -315,7 +315,7 @@ begin
   exact bounded_ge_iff_bounded_inter_gt a
 end
 
-theorem unbounded_gt_unbounded_inter_gt [linear_order α] [no_bot_order α] (a : α) :
+theorem unbounded_gt_iff_unbounded_inter_gt [linear_order α] [no_bot_order α] (a : α) :
   unbounded (>) s ↔ unbounded (>) (s ∩ {b | b < a}) :=
 begin
   rw [←not_bounded_iff, ←not_bounded_iff, not_iff_not],

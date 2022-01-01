@@ -221,56 +221,88 @@ begin
 end
 
 section mu
-variables [add_comm_monoid 𝕜] [has_one 𝕜] [preorder α] [locally_finite_order α] [decidable_eq α]
+variables [add_comm_group 𝕜] [has_one 𝕜] [preorder α] [locally_finite_order α] [decidable_eq α]
 
 def mu_aux (a : α) : α → 𝕜
 | b := if h : a = b then 1 else
-  ∑ x in (Ico a b).attach,
+  -∑ x in (Ico a b).attach,
     have (Icc a x).card < (Icc a b).card, from card_lt_card sorry,
     mu_aux x
 using_well_founded { rel_tac := λ _ _, `[exact ⟨_, measure_wf (λ b, (Icc a b).card)⟩] }
 
 lemma mu_aux_apply (a b : α) :
-  mu_aux 𝕜 α a b = if a = b then 1 else ∑ x in (Ico a b).attach, mu_aux 𝕜 α a x :=
+  mu_aux 𝕜 α a b = if a = b then 1 else -∑ x in (Ico a b).attach, mu_aux 𝕜 α a x :=
 by { convert has_well_founded.wf.fix_eq _ _, refl }
 
 def mu : incidence_algebra 𝕜 α := ⟨mu_aux 𝕜 α, λ a b, not_imp_comm.1 $ λ h, begin
   rw mu_aux_apply at h,
   split_ifs at h with hab hab,
   { exact hab.le },
-  { obtain ⟨⟨x, hx⟩, -⟩ := exists_ne_zero_of_sum_ne_zero h,
+  { rw neg_eq_zero at h,
+    obtain ⟨⟨x, hx⟩, -⟩ := exists_ne_zero_of_sum_ne_zero h,
     exact (nonempty_Ico.1 ⟨x, hx⟩).le }
 end⟩
 
 variables {𝕜 α}
 
-lemma mu_apply (a b : α) : mu 𝕜 α a b = if a = b then 1 else ∑ x in Ico a b, mu 𝕜 α a x :=
+lemma mu_apply (a b : α) : mu 𝕜 α a b = if a = b then 1 else -∑ x in Ico a b, mu 𝕜 α a x :=
 by rw [mu, coe_mk, mu_aux_apply, sum_attach]
+
+lemma mu_apply_of_eq {a b : α} (h : a = b) : mu 𝕜 α a b = 1 :=
+by rw [mu_apply, if_pos h]
+
+@[simp]
+lemma mu_apply_self (a : α) : mu 𝕜 α a a = 1 := mu_apply_of_eq rfl
+
+lemma mu_apply_of_ne {a b : α} (h : a ≠ b) : mu 𝕜 α a b = -∑ x in Ico a b, mu 𝕜 α a x :=
+by rw [mu_apply, if_neg h]
+
+lemma mu_spec_of_ne_right {a b : α} (h : a ≠ b) : ∑ (x : α) in Icc a b, (mu 𝕜 α) a x = 0 :=
+begin
+  have : mu 𝕜 α a b = _ := mu_apply_of_ne h,
+  sorry,
+end
+
+lemma mu_spec_of_ne_left {a b : α} (h : a ≠ b) : ∑ (x : α) in Icc a b, (mu 𝕜 α) x b = 0 :=
+begin
+  have : mu 𝕜 α a b = _ := mu_apply_of_ne h,
+  sorry,
+end
 
 end mu
 
 section mu_zeta
-variables [add_comm_monoid 𝕜] [mul_one_class 𝕜] [preorder α] [locally_finite_order α]
+variables [add_comm_group 𝕜] [mul_one_class 𝕜] [partial_order α] [locally_finite_order α]
   [decidable_eq α] [@decidable_rel α (≤)]
 
 lemma mu_mul_zeta : mu 𝕜 α * zeta 𝕜 α = 1 :=
 begin
   ext a b,
   rw [mul_apply, one_apply],
-  sorry
+  split_ifs with he,
+  { simp [he], },
+  { simp only [mul_one, zeta_apply, mul_ite],
+    conv in (ite _ _ _) {
+      rw [if_pos (mem_Icc.mp H).2], },
+    rw mu_spec_of_ne_right he, },
 end
 
 lemma zeta_mul_mu : zeta 𝕜 α * mu 𝕜 α = 1 :=
 begin
   ext a b,
   rw [mul_apply, one_apply],
-  sorry
+  split_ifs with he,
+  { simp [he], },
+  { simp [mul_one, zeta_apply, mul_ite],
+    conv in (ite _ _ _) {
+      rw [if_pos (mem_Icc.mp H).1], },
+  rw mu_spec_of_ne_left he, },
 end
 
 end mu_zeta
 
 section euler
-variables [add_comm_monoid 𝕜] [has_one 𝕜] [preorder α] [bounded_order α] [locally_finite_order α]
+variables [add_comm_group 𝕜] [has_one 𝕜] [preorder α] [bounded_order α] [locally_finite_order α]
   [decidable_eq α]
 
 /-- The Euler characteristic of a finite bounded order. -/

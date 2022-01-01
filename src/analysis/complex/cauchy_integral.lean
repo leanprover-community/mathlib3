@@ -18,32 +18,43 @@ second countable topology.
 
 ## Main statements
 
+In the following theorems, if the name ends with `off_countable`, then the actual theorem assumes
+differentiability at all but countably many points of the set mentioned below.
+
 * `complex.integral_boundary_rect_of_has_fderiv_within_at_real_off_countable`: If a function
-  `f : ℂ → E` is *real* differentiable on a rectangle, then its integral over the boundary of this
-  rectangle is equal to the integral of `I • f' (x + y * I) 1 - f' (x + y * I) I` over the
-  rectangle, where `f' z w : E` is the derivative of `f` at `z` in the direction `w` and
-  `I = complex.I` is the imaginary unit.
+  `f : ℂ → E` is continuous on a closed rectangle and *real* differentiable on its interior, then
+  its integral over the boundary of this rectangle is equal to the integral of
+  `I • f' (x + y * I) 1 - f' (x + y * I) I` over the rectangle, where `f' z w : E` is the derivative
+  of `f` at `z` in the direction `w` and `I = complex.I` is the imaginary unit.
 
 * `complex.integral_boundary_rect_eq_zero_of_differentiable_on_off_countable`: If a function
-  `f : ℂ → E` is *complex* differentiable on a rectangle, then its integral over the boundary of
-  this rectangle is equal to zero.
+  `f : ℂ → E` is continuous on a closed rectangle and is *complex* differentiable on its interior,
+  then its integral over the boundary of this rectangle is equal to zero.
 
-* `complex.circle_integral_sub_center_inv_smul_eq_of_differentiable_on_annulus_off_countable`:
-  If a function `f : ℂ → E` is complex differentiable on an annulus `{z | r ≤ |z - c| ≤ R}`,
-  then the integrals of `(z - c)⁻¹ • f z` over the outer boundary and over the inner boundary are
-  equal.
+* `complex.circle_integral_sub_center_inv_smul_eq_of_differentiable_on_annulus_off_countable`: If a
+  function `f : ℂ → E` is continuous on a closed annulus `{z | r ≤ |z - c| ≤ R}` and is complex
+  differentiable on its interior `{z | r < |z - c| < R}`, then the integrals of `(z - c)⁻¹ • f z`
+  over the outer boundary and over the inner boundary are equal.
 
 * `complex.circle_integral_sub_center_inv_smul_of_differentiable_on_off_countable_of_tendsto`,
   `complex.circle_integral_sub_center_inv_smul_of_differentiable_on_off_countable`:
-  If a function `f : ℂ → E` is complex differentiable on a punctured closed disc
-  `{z | |z - c| ≤ R ∧ z ≠ c}` and tends to `y` as `z → c`, `z ≠ c`, then the integral of
-  `(z - c)⁻¹ • f z` over the circle `|z - c| = R` is equal to `2πiy`. In particular, if `f`
-  is differentiable on the whole closed disc, then this integral is equal to `2πif(c)`.
+  If a function `f : ℂ → E` is continuous on a punctured closed disc `{z | |z - c| ≤ R ∧ z ≠ c}`, is
+  complex differentiable on the corresponding punctured open disc, and tends to `y` as `z → c`,
+  `z ≠ c`, then the integral of `(z - c)⁻¹ • f z` over the circle `|z - c| = R` is equal to
+  `2πiy`. In particular, if `f` is continuous on the whole closed disc and is complex differentiable
+  on the corresponding open disc, then this integral is equal to `2πif(c)`.
 
-* `complex.circle_integral_sub_inv_smul_of_differentiable_on`, **Cauchy integral formula**: if
-  `f : ℂ → E` is complex differentiable on a closed disc of radius `R`, then for any `w` in the
-  corresponding open disc the integral of `(z - w)⁻¹ • f z` over the boundary of the disc is equal
-  to `2πif(w)`.
+* `complex.circle_integral_sub_inv_smul_of_differentiable_on_off_countable`,
+  `complex.two_pi_I_inv_smul_circle_integral_sub_inv_smul_of_differentiable_on_off_countable`
+  **Cauchy integral formula**: if `f : ℂ → E` is continuous on a closed disc of radius `R` and is
+  complex differentiable on the corresponding open disc, then for any `w` in the corresponding open
+  disc the integral of `(z - w)⁻¹ • f z` over the boundary of the disc is equal to `2πif(w)`.
+  Two versions of the lemma put the multiplier `2πi` at the different sides of the equality.
+
+* `complex.has_fpower_series_on_ball_of_differentiable_off_countable`: If `f : ℂ → E` is continuous
+  on a closed disc of positive radius and is complex differentiable on the corresponding open disc,
+  then it is analytic on the corresponding open disc, and the coefficients of the power series are
+  given by Cauchy integral formulas.
 
 * `differentiable_on.has_fpower_series_on_ball`: If `f : ℂ → E` is complex differentiable on a
   closed disc of positive radius, then it is analytic on the corresponding open disc, and the
@@ -355,6 +366,9 @@ lemma circle_integral_div_sub_of_differentiable_on_off_countable {R : ℝ} {c w 
 by simpa only [smul_eq_mul, div_eq_inv_mul]
   using circle_integral_sub_inv_smul_of_differentiable_on_off_countable hs hw hc hd
 
+/-- If `f : ℂ → E` is continuous on a closed ball of positive radius and is differentiable at all
+but countably many points of the corresponding open ball, then it is analytic on the open ball with
+coefficients of the power series given by Cauchy integral formulas. -/
 lemma has_fpower_series_on_ball_of_differentiable_off_countable {R : ℝ≥0} {c : ℂ} {f : ℂ → E}
   {s : set ℂ} (hs : countable s) (hc : continuous_on f (closed_ball c R))
   (hd : ∀ z ∈ ball c R \ s, differentiable_at ℂ f z) (hR : 0 < R) :
@@ -374,7 +388,9 @@ lemma has_fpower_series_on_ball_of_differentiable_off_countable {R : ℝ≥0} {c
 
 /-- If `f : ℂ → E` is complex differentiable on a closed disc of positive radius, then it is
 analytic on the corresponding open disc, and the coefficients of the power series are given by
-Cauchy integral formulas. -/
+Cauchy integral formulas. See also
+`complex.has_fpower_series_on_ball_of_differentiable_off_countable` for a version of this lemma with
+weaker assumptions. -/
 protected lemma _root_.differentiable_on.has_fpower_series_on_ball {R : ℝ≥0} {c : ℂ} {f : ℂ → E}
   (hd : differentiable_on ℂ f (closed_ball c R)) (hR : 0 < R) :
   has_fpower_series_on_ball f (cauchy_power_series f c R) c R :=

@@ -251,6 +251,14 @@ begin
   rw [← prod_union (filter_inter_filter_neg_eq p s).le, filter_union_filter_neg_eq]
 end
 
+section to_list
+
+@[simp, to_additive]
+lemma prod_to_list (s : finset α) (f : α → β) : (s.to_list.map f).prod = s.prod f :=
+by rw [finset.prod, ← multiset.coe_prod, ← multiset.coe_map, finset.coe_to_list]
+
+end to_list
+
 end comm_monoid
 
 end finset
@@ -839,7 +847,7 @@ open multiset
   (s.map f).prod = ∏ m in s.to_finset, (f m) ^ (s.count m) :=
 begin
   induction s using multiset.induction_on with a s ih,
-  { simp only [prod_const_one, count_zero, prod_zero, pow_zero, map_zero] },
+  { simp only [prod_const_one, count_zero, prod_zero, pow_zero, multiset.map_zero] },
   simp only [multiset.prod_cons, map_cons, to_finset_cons, ih],
   by_cases has : a ∈ s.to_finset,
   { rw [insert_eq_of_mem has, ← insert_erase has, prod_insert (not_mem_erase _ _),

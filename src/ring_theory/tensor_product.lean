@@ -5,7 +5,7 @@ Authors: Scott Morrison, Johan Commelin
 -/
 
 import linear_algebra.tensor_product
-import algebra.algebra.tower
+import ring_theory.adjoin.basic
 
 /-!
 # The tensor product of R-algebras
@@ -166,9 +166,12 @@ linear_equiv.of_linear
   (lift $ tensor_product.uncurry A _ _ _ $ comp (lcurry R A _ _ _) $
     tensor_product.mk A M (P ⊗[R] N))
   (tensor_product.uncurry A _ _ _ $ comp (uncurry R A _ _ _) $
-    by apply tensor_product.curry; exact (mk R A _ _))
+    by { apply tensor_product.curry, exact (mk R A _ _) })
   (by { ext, refl, })
-  (by { ext, refl, })
+  (by { ext, simp only [curry_apply, tensor_product.curry_apply, mk_apply, tensor_product.mk_apply,
+              uncurry_apply, tensor_product.uncurry_apply, id_apply, lift_tmul, compr₂_apply,
+              restrict_scalars_apply, function.comp_app, to_fun_eq_coe, lcurry_apply,
+              linear_map.comp_apply] })
 
 end comm_semiring
 
@@ -509,25 +512,22 @@ def alg_hom_of_linear_map_tensor_product
   (w₁ : ∀ (a₁ a₂ : A) (b₁ b₂ : B), f ((a₁ * a₂) ⊗ₜ (b₁ * b₂)) = f (a₁ ⊗ₜ b₁) * f (a₂ ⊗ₜ b₂))
   (w₂ : ∀ r, f ((algebra_map R A) r ⊗ₜ[R] 1) = (algebra_map R C) r):
   A ⊗[R] B →ₐ[R] C :=
-{ map_one' := by simpa using w₂ 1,
-  map_zero' := by simp,
-  map_mul' := λ x y,
-  begin
+{ map_one' := by rw [←(algebra_map R C).map_one, ←w₂, (algebra_map R A).map_one]; refl,
+  map_zero' := by rw [linear_map.to_fun_eq_coe, map_zero],
+  map_mul' := λ x y, by
+  { rw linear_map.to_fun_eq_coe,
     apply tensor_product.induction_on x,
-    { simp, },
+    { rw [zero_mul, map_zero, zero_mul] },
     { intros a₁ b₁,
       apply tensor_product.induction_on y,
-      { simp, },
+      { rw [mul_zero, map_zero, mul_zero] },
       { intros a₂ b₂,
-        simp [w₁], },
+        rw [tmul_mul_tmul, w₁] },
       { intros x₁ x₂ h₁ h₂,
-        simp at h₁, simp at h₂,
-        simp [mul_add, add_mul, h₁, h₂], }, },
+        rw [mul_add, map_add, map_add, mul_add, h₁, h₂] } },
     { intros x₁ x₂ h₁ h₂,
-      simp at h₁, simp at h₂,
-      simp [mul_add, add_mul, h₁, h₂], }
-  end,
-  commutes' := λ r, by simp [w₂],
+      rw [add_mul, map_add, map_add, add_mul, h₁, h₂] } },
+  commutes' := λ r, by rw [linear_map.to_fun_eq_coe, algebra_map_apply, w₂],
   .. f }
 
 @[simp]
@@ -564,27 +564,27 @@ def alg_equiv_of_linear_equiv_triple_tensor_product
   map_mul' := λ x y,
   begin
     apply tensor_product.induction_on x,
-    { simp, },
+    { simp only [map_zero, zero_mul] },
     { intros ab₁ c₁,
       apply tensor_product.induction_on y,
-      { simp, },
+      { simp only [map_zero, mul_zero] },
       { intros ab₂ c₂,
         apply tensor_product.induction_on ab₁,
-        { simp, },
+        { simp only [zero_tmul, map_zero, zero_mul] },
         { intros a₁ b₁,
           apply tensor_product.induction_on ab₂,
-          { simp, },
-          { simp [w₁], },
+          { simp only [zero_tmul, map_zero, mul_zero] },
+          { intros, simp only [tmul_mul_tmul, w₁] },
           { intros x₁ x₂ h₁ h₂,
-            simp at h₁ h₂,
-            simp [mul_add, add_tmul, h₁, h₂], }, },
+            simp only [tmul_mul_tmul] at h₁ h₂,
+            simp only [tmul_mul_tmul, mul_add, add_tmul, map_add, h₁, h₂] } },
         { intros x₁ x₂ h₁ h₂,
-          simp at h₁ h₂,
-          simp [add_mul, add_tmul, h₁, h₂], }, },
+          simp only [tmul_mul_tmul] at h₁ h₂,
+          simp only [tmul_mul_tmul, add_mul, add_tmul, map_add, h₁, h₂] } },
       { intros x₁ x₂ h₁ h₂,
-        simp [mul_add, add_mul, h₁, h₂], }, },
+        simp only [tmul_mul_tmul, map_add, mul_add, add_mul, h₁, h₂], }, },
     { intros x₁ x₂ h₁ h₂,
-      simp [mul_add, add_mul, h₁, h₂], }
+      simp only [tmul_mul_tmul, map_add, mul_add, add_mul, h₁, h₂], }
   end,
   commutes' := λ r, by simp [w₂],
   .. f }
@@ -645,6 +645,9 @@ end)
 theorem comm_tmul (a : A) (b : B) :
   (tensor_product.comm R A B : (A ⊗[R] B → B ⊗[R] A)) (a ⊗ₜ b) = (b ⊗ₜ a) :=
 by simp [tensor_product.comm]
+
+lemma adjoin_tmul_eq_top : adjoin R {t : A ⊗[R] B | ∃ a b, a ⊗ₜ[R] b = t} = ⊤ :=
+top_le_iff.mp $ (top_le_iff.mpr $ span_tmul_eq_top R A B).trans (span_le_adjoin R _)
 
 end
 

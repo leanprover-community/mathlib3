@@ -50,7 +50,7 @@ lemma cycle_type_eq' {σ : perm α} (s : finset (perm α))
   (h1 : ∀ f : perm α, f ∈ s → f.is_cycle) (h2 : ∀ (a ∈ s) (b ∈ s), a ≠ b → disjoint a b)
   (h0 : s.noncomm_prod id
     (λ a ha b hb, (em (a = b)).by_cases (λ h, h ▸ commute.refl a)
-      (set.pairwise.mono' (λ _ _, disjoint.commute) h2 a ha b hb)) = σ) :
+      (set.pairwise.mono' (λ _ _, disjoint.commute) h2 ha hb)) = σ) :
   σ.cycle_type = s.1.map (finset.card ∘ support) :=
 begin
   rw cycle_type_def,
@@ -112,7 +112,7 @@ lemma disjoint.cycle_type {σ τ : perm α} (h : disjoint σ τ) :
   (σ * τ).cycle_type = σ.cycle_type + τ.cycle_type :=
 begin
   rw [cycle_type_def, cycle_type_def, cycle_type_def, h.cycle_factors_finset_mul_eq_union,
-      ←map_add, finset.union_val, multiset.add_eq_union_iff_disjoint.mpr _],
+      ←multiset.map_add, finset.union_val, multiset.add_eq_union_iff_disjoint.mpr _],
   rw [←finset.disjoint_val],
   exact h.disjoint_cycle_factors_finset
 end
@@ -148,10 +148,10 @@ cycle_induction_on (λ τ : perm α, τ.cycle_type.sum = τ.support.card) σ
 lemma sign_of_cycle_type (σ : perm α) :
   sign σ = (σ.cycle_type.map (λ n, -(-1 : units ℤ) ^ n)).prod :=
 cycle_induction_on (λ τ : perm α, sign τ = (τ.cycle_type.map (λ n, -(-1 : units ℤ) ^ n)).prod) σ
-  (by rw [sign_one, cycle_type_one, map_zero, prod_zero])
+  (by rw [sign_one, cycle_type_one, multiset.map_zero, prod_zero])
   (λ σ hσ, by rw [hσ.sign, hσ.cycle_type, coe_map, coe_prod,
     list.map_singleton, list.prod_singleton])
-  (λ σ τ hστ hc hσ hτ, by rw [sign_mul, hσ, hτ, hστ.cycle_type, map_add, prod_add])
+  (λ σ τ hστ hc hσ hτ, by rw [sign_mul, hσ, hτ, hστ.cycle_type, multiset.map_add, prod_add])
 
 lemma lcm_cycle_type (σ : perm α) : σ.cycle_type.lcm = order_of σ :=
 cycle_induction_on (λ τ : perm α, τ.cycle_type.lcm = order_of τ) σ

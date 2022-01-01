@@ -70,7 +70,7 @@ derivative, measurable function, Borel σ-algebra
 noncomputable theory
 
 open set metric asymptotics filter continuous_linear_map
-open topological_space (second_countable_topology)
+open topological_space (second_countable_topology) measure_theory
 open_locale topological_space
 
 namespace continuous_linear_map
@@ -174,7 +174,7 @@ lemma norm_sub_le_of_mem_A {c : 𝕜} (hc : 1 < ∥c∥)
 begin
   have : 0 ≤ 4 * ∥c∥ * ε :=
     mul_nonneg (mul_nonneg (by norm_num : (0 : ℝ) ≤ 4) (norm_nonneg _)) hε.le,
-  apply op_norm_le_of_shell (half_pos hr) this hc,
+  refine op_norm_le_of_shell (half_pos hr) this hc _,
   assume y ley ylt,
   rw [div_div_eq_div_mul,
       div_le_iff' (mul_pos (by norm_num : (0 : ℝ) < 2) (zero_lt_one.trans hc))] at ley,
@@ -409,3 +409,7 @@ variable {𝕜}
 lemma measurable_deriv [measurable_space 𝕜] [opens_measurable_space 𝕜] [measurable_space F]
   [borel_space F] (f : 𝕜 → F) : measurable (deriv f) :=
 by simpa only [fderiv_deriv] using measurable_fderiv_apply_const 𝕜 f 1
+
+lemma ae_measurable_deriv [measurable_space 𝕜] [opens_measurable_space 𝕜] [measurable_space F]
+  [borel_space F] (f : 𝕜 → F) (μ : measure 𝕜) : ae_measurable (deriv f) μ :=
+(measurable_deriv f).ae_measurable

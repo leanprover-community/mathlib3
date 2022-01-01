@@ -83,6 +83,15 @@ def ring_hom.to_opposite {R S : Type*} [semiring R] [semiring S] (f : R →+* S)
   .. ((op_add_equiv : S ≃+ Sᵐᵒᵖ).to_add_monoid_hom.comp ↑f : R →+ Sᵐᵒᵖ),
   .. f.to_monoid_hom.to_opposite hf }
 
+/-- A monoid homomorphism `f : R →* S` such that `f x` commutes with `f y` for all `x, y` defines
+a monoid homomorphism from `Rᵐᵒᵖ`. -/
+@[simps {fully_applied := ff}]
+def ring_hom.from_opposite {R S : Type*} [semiring R] [semiring S] (f : R →+* S)
+  (hf : ∀ x y, commute (f x) (f y)) : Rᵐᵒᵖ →+* S :=
+{ to_fun := f ∘ mul_opposite.unop,
+  .. (f.to_add_monoid_hom.comp (op_add_equiv : R ≃+ Rᵐᵒᵖ).symm.to_add_monoid_hom : Rᵐᵒᵖ →+ S),
+  .. f.to_monoid_hom.from_opposite hf }
+
 /-- A ring hom `α →+* β` can equivalently be viewed as a ring hom `αᵐᵒᵖ →+* βᵐᵒᵖ`. This is the
 action of the (fully faithful) `ᵐᵒᵖ`-functor on morphisms. -/
 @[simps]

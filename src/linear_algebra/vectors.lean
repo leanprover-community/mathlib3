@@ -25,7 +25,7 @@ The locale `vectors` gives the following notation:
 vectors
 -/
 
-variables {R : Type*} [comm_ring R]
+variable {R : Type*}
 
 lemma vec2_eq {a₀ a₁ b₀ b₁ : R} (h₀ : a₀ = b₀) (h₁ : a₁ = b₁) :
   ![a₀, a₁] = ![b₀, b₁] :=
@@ -34,6 +34,8 @@ by { ext x, fin_cases x; assumption }
 lemma vec3_eq {a₀ a₁ a₂ b₀ b₁ b₂ : R} (h₀ : a₀ = b₀) (h₁ : a₁ = b₁) (h₂ : a₂ = b₂) :
   ![a₀, a₁, a₂] = ![b₀, b₁, b₂] :=
 by { ext x, fin_cases x; assumption }
+
+variable [comm_ring R]
 
 lemma vec2_add {a₀ a₁ b₀ b₁ : R} :
   ![a₀, a₁] + ![b₀, b₁] = ![a₀ + b₀, a₁ + b₁] :=

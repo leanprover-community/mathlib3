@@ -693,7 +693,8 @@ protected def function.surjective.non_unital_non_assoc_ring
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
   (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y) :
   non_unital_non_assoc_ring β :=
-{ .. hf.add_comm_group f zero add neg sub, .. hf.mul_zero_class f zero mul, .. hf.distrib f add mul }
+{ .. hf.add_comm_group f zero add neg sub, .. hf.mul_zero_class f zero mul,
+  .. hf.distrib f add mul }
 
 
 /-- Pushforward a `ring` instance along a surjective function.

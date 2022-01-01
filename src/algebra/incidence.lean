@@ -207,16 +207,39 @@ by rw [mu_apply, if_neg h]
 lemma mu_spec_of_ne_right {a b : α} (h : a ≠ b) : ∑ (x : α) in Icc a b, (mu 𝕜 α) a x = 0 :=
 begin
   have : mu 𝕜 α a b = _ := mu_apply_of_ne h,
+  have hIcc : Icc a b = Ico a b ∪ {b},
   sorry,
+  rw [hIcc, sum_union, sum_singleton, this, add_neg_self],
+  simp,
 end
 
 lemma mu_spec_of_ne_left {a b : α} (h : a ≠ b) : ∑ (x : α) in Icc a b, (mu 𝕜 α) x b = 0 :=
 begin
   have : mu 𝕜 α a b = _ := mu_apply_of_ne h,
+  have hIcc : Icc a b = Ioc a b ∪ {a},
   sorry,
+  rw [hIcc, sum_union, sum_singleton, this, add_neg_self],
+  simp,
 end
 
 end mu
+
+section order_dual
+variables [add_comm_group 𝕜] [has_one 𝕜] [preorder α] [locally_finite_order α] [decidable_eq α]
+open order_dual
+lemma mu_dual (a b : α) : mu 𝕜 (order_dual α) (to_dual a) (to_dual b) = mu 𝕜 α b a :=
+begin
+  rw mu_apply,
+  split_ifs with h,
+  { rw [to_dual_inj] at h, simp [h], },
+  { rw [mu_apply_of_ne (ne.symm h : (b : order_dual α) ≠ a)],
+    simp,
+    simp at h,
+    rw Ico_to_dual,
+    -- squeeze_simp,
+     },
+end
+end order_dual
 
 section mu_zeta
 variables [add_comm_group 𝕜] [mul_one_class 𝕜] [partial_order α] [locally_finite_order α]

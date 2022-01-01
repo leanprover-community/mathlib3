@@ -200,8 +200,6 @@ protected def comm_semiring [comm_semiring β] : comm_semiring α :=
 let zero := e.has_zero, add := e.has_add, one := e.has_one, mul := e.has_mul in
 by resetI; apply e.injective.comm_semiring _; intros; exact e.apply_symm_apply _
 
-#check e.injective.non_unital_non_assoc_ring _
-
 /-- Transfer `non_unital_non_assoc_ring` across an `equiv` -/
 protected def non_unital_non_assoc_ring [non_unital_non_assoc_ring β] : non_unital_non_assoc_ring α
 := let zero := e.has_zero, add := e.has_add, mul := e.has_mul, neg := e.has_neg,

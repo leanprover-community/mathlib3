@@ -277,7 +277,7 @@ def unbounded (r : α → α → Prop) (s : set α) : Prop := ∀ a, ∃ b ∈ s
 /-- A bounded or final set -/
 def bounded (r : α → α → Prop) (s : set α) : Prop := ∃ a, ∀ b ∈ s, r b a
 
-lemma unbounded_of_forall_ex_lt [preorder α] (s : set α) (h : ∀ a, ∃ b ∈ s, a < b) :
+lemma unbounded_le_of_forall_ex_lt [preorder α] (s : set α) (h : ∀ a, ∃ b ∈ s, a < b) :
   unbounded (≤) s :=
 begin
   intro a,
@@ -285,11 +285,43 @@ begin
   exact ⟨b, hb, λ hba, not_lt_of_ge hba hb'⟩
 end
 
-lemma unbounded_iff [linear_order α] (s : set α) : unbounded (≤) s ↔ ∀ a, ∃ b ∈ s, a < b :=
+lemma unbounded_le_iff [linear_order α] (s : set α) : unbounded (≤) s ↔ ∀ a, ∃ b ∈ s, a < b :=
 begin
-  refine ⟨λ h a, _, unbounded_of_forall_ex_lt s⟩,
+  refine ⟨λ h a, _, unbounded_le_of_forall_ex_lt s⟩,
   rcases h a with ⟨b, hb, hba⟩,
   exact ⟨b, hb, lt_of_not_ge hba⟩
+end
+
+lemma unbounded_lt_of_forall_ex_le [preorder α] (s : set α) (h : ∀ a, ∃ b ∈ s, a ≤ b) :
+  unbounded (<) s :=
+begin
+  intro a,
+  rcases h a with ⟨b, hb, hb'⟩,
+  exact ⟨b, hb, λ hba, not_le_of_gt hba hb'⟩
+end
+
+lemma unbounded_lt_iff [linear_order α] (s : set α) : unbounded (<) s ↔ ∀ a, ∃ b ∈ s, a ≤ b :=
+begin
+  refine ⟨λ h a, _, unbounded_lt_of_forall_ex_le s⟩,
+  rcases h a with ⟨b, hb, hba⟩,
+  exact ⟨b, hb, le_of_not_gt hba⟩
+end
+
+lemma unbounded_le_of_unbounded_lt [preorder α] (s : set α) (h : unbounded (≤) s) :
+  unbounded (<) s :=
+begin
+  intro a,
+  rcases h a with ⟨b, hb, hba⟩,
+  exact ⟨b, hb, λ hba', hba (le_of_lt hba')⟩
+end
+
+lemma unbounded_le_iff_unbounded_lt [linear_order α] (s : set α)
+  (H : unbounded (≤) (set.univ : set α)) : unbounded (≤) s ↔ unbounded (<) s :=
+begin
+  refine ⟨unbounded_le_of_unbounded_lt s, λ h a, _⟩,
+  rcases H a with ⟨c, _, hc⟩,
+  rcases h c with ⟨b, hb, hbc⟩,
+  exact ⟨b, hb, λ hba, hbc (lt_of_le_of_lt hba (lt_of_not_ge hc))⟩
 end
 
 @[simp] lemma not_bounded_iff {r : α → α → Prop} (s : set α) : ¬bounded r s ↔ unbounded r s :=

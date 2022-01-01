@@ -661,6 +661,18 @@ instance ring.to_semiring : semiring α :=
     by rw [← mul_add, add_zero, add_zero],
   ..‹ring α› }
 
+/-- Pullback a `non_unital_non_assoc_ring` instance along an injective function.
+See note [reducible non-instances]. -/
+@[reducible]
+protected def function.injective.non_unital_non_assoc_ring
+  [has_zero β] [has_add β] [has_mul β] [has_neg β] [has_sub β]
+  (f : β → α) (hf : injective f) (zero : f 0 = 0)
+  (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
+  (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y) :
+  non_unital_non_assoc_ring β :=
+{ .. hf.add_comm_group f zero add neg sub, ..hf.mul_zero_class f zero mul, .. hf.distrib f add mul }
+
+
 /-- Pullback a `ring` instance along an injective function.
 See note [reducible non-instances]. -/
 @[reducible]
@@ -671,6 +683,18 @@ protected def function.injective.ring
   (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y) :
   ring β :=
 { .. hf.add_comm_group f zero add neg sub, .. hf.monoid f one mul, .. hf.distrib f add mul }
+
+/-- Pushforward a `non_unital_non_assoc_ring` instance along a surjective function.
+See note [reducible non-instances]. -/
+@[reducible]
+protected def function.surjective.non_unital_non_assoc_ring
+  [has_zero β] [has_add β] [has_mul β] [has_neg β] [has_sub β]
+  (f : α → β) (hf : surjective f) (zero : f 0 = 0)
+  (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
+  (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y) :
+  non_unital_non_assoc_ring β :=
+{ .. hf.add_comm_group f zero add neg sub, .. hf.mul_zero_class f zero mul, .. hf.distrib f add mul }
+
 
 /-- Pushforward a `ring` instance along a surjective function.
 See note [reducible non-instances]. -/

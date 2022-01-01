@@ -275,7 +275,22 @@ instance prod.lex.is_well_order [is_well_order α r] [is_well_order β s] :
 /-- An unbounded or cofinal set -/
 def unbounded (r : α → α → Prop) (s : set α) : Prop := ∀ a, ∃ b ∈ s, ¬ r b a
 /-- A bounded or final set -/
-def bounded (r : α → α → Prop) (s : set α) : Prop := ∃a, ∀ b ∈ s, r b a
+def bounded (r : α → α → Prop) (s : set α) : Prop := ∃ a, ∀ b ∈ s, r b a
+
+lemma unbounded_of_forall_ex_lt [preorder α] (s : set α) (h : ∀ a, ∃ b ∈ s, a < b) :
+  unbounded (≤) s :=
+begin
+  intro a,
+  rcases h a with ⟨b, hb, hb'⟩,
+  exact ⟨b, hb, λ hba, not_lt_of_ge hba hb'⟩
+end
+
+lemma unbounded_iff [linear_order α] (s : set α) : unbounded (≤) s ↔ ∀ a, ∃ b ∈ s, a < b :=
+begin
+  refine ⟨λ h a, _, unbounded_of_forall_ex_lt s⟩,
+  rcases h a with ⟨b, hb, hba⟩,
+  exact ⟨b, hb, lt_of_not_ge hba⟩
+end
 
 @[simp] lemma not_bounded_iff {r : α → α → Prop} (s : set α) : ¬bounded r s ↔ unbounded r s :=
 begin

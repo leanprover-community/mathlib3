@@ -630,6 +630,35 @@ end comm_semiring
 class non_unital_non_assoc_ring (α : Type u) extends
   add_comm_group α, non_unital_non_assoc_semiring α
 
+section non_unital_non_assoc_ring
+variables [non_unital_non_assoc_ring α]
+
+
+/-- Pullback a `non_unital_non_assoc_ring` instance along an injective function.
+See note [reducible non-instances]. -/
+@[reducible]
+protected def function.injective.non_unital_non_assoc_ring
+  [has_zero β] [has_add β] [has_mul β] [has_neg β] [has_sub β]
+  (f : β → α) (hf : injective f) (zero : f 0 = 0)
+  (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
+  (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y) :
+  non_unital_non_assoc_ring β :=
+{ .. hf.add_comm_group f zero add neg sub, ..hf.mul_zero_class f zero mul, .. hf.distrib f add mul }
+
+/-- Pushforward a `non_unital_non_assoc_ring` instance along a surjective function.
+See note [reducible non-instances]. -/
+@[reducible]
+protected def function.surjective.non_unital_non_assoc_ring
+  [has_zero β] [has_add β] [has_mul β] [has_neg β] [has_sub β]
+  (f : α → β) (hf : surjective f) (zero : f 0 = 0)
+  (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
+  (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y) :
+  non_unital_non_assoc_ring β :=
+{ .. hf.add_comm_group f zero add neg sub, .. hf.mul_zero_class f zero mul,
+  .. hf.distrib f add mul }
+
+end non_unital_non_assoc_ring
+
 /-- A ring is a type with the following structures: additive commutative group (`add_comm_group`),
 multiplicative monoid (`monoid`), and distributive laws (`distrib`).  Equivalently, a ring is a
 `semiring` with a negation operation making it an additive group.  -/
@@ -661,17 +690,6 @@ instance ring.to_semiring : semiring α :=
     by rw [← mul_add, add_zero, add_zero],
   ..‹ring α› }
 
-/-- Pullback a `non_unital_non_assoc_ring` instance along an injective function.
-See note [reducible non-instances]. -/
-@[reducible]
-protected def function.injective.non_unital_non_assoc_ring
-  [has_zero β] [has_add β] [has_mul β] [has_neg β] [has_sub β]
-  (f : β → α) (hf : injective f) (zero : f 0 = 0)
-  (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
-  (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y) :
-  non_unital_non_assoc_ring β :=
-{ .. hf.add_comm_group f zero add neg sub, ..hf.mul_zero_class f zero mul, .. hf.distrib f add mul }
-
 
 /-- Pullback a `ring` instance along an injective function.
 See note [reducible non-instances]. -/
@@ -683,19 +701,6 @@ protected def function.injective.ring
   (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y) :
   ring β :=
 { .. hf.add_comm_group f zero add neg sub, .. hf.monoid f one mul, .. hf.distrib f add mul }
-
-/-- Pushforward a `non_unital_non_assoc_ring` instance along a surjective function.
-See note [reducible non-instances]. -/
-@[reducible]
-protected def function.surjective.non_unital_non_assoc_ring
-  [has_zero β] [has_add β] [has_mul β] [has_neg β] [has_sub β]
-  (f : α → β) (hf : surjective f) (zero : f 0 = 0)
-  (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
-  (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y) :
-  non_unital_non_assoc_ring β :=
-{ .. hf.add_comm_group f zero add neg sub, .. hf.mul_zero_class f zero mul,
-  .. hf.distrib f add mul }
-
 
 /-- Pushforward a `ring` instance along a surjective function.
 See note [reducible non-instances]. -/

@@ -870,6 +870,14 @@ begin
   exact hao.not_le (sup_le.2 (λ i, lt_succ.1 ((lt_of_le_of_ne (le_sup _ _) (hf i)).trans_le hoa)))
 end
 
+theorem sup_eq_zero_iff {ι} {f : ι → ordinal} : sup f = 0 ↔ ∀ i, f i = 0 :=
+begin
+  refine ⟨λ h i, _, λ h, le_antisymm
+    (sup_le.2 (λ i, ordinal.le_zero.2 (h i))) (ordinal.zero_le _)⟩,
+  rw [←ordinal.le_zero, ←h],
+  exact le_sup f i
+end
+
 theorem is_normal.sup {f} (H : is_normal f)
   {ι} {g : ι → ordinal} (h : nonempty ι) : f (sup g) = sup (f ∘ g) :=
 eq_of_forall_ge_iff $ λ a,
@@ -949,6 +957,14 @@ theorem bsup_not_succ_of_ne_bsup {o} {f : Π a < o, ordinal}
   a < bsup o f → succ a < bsup o f :=
 by { rw bsup_eq_sup at *, exact sup_not_succ_of_ne_sup (λ i, hf _) }
 
+theorem bsup_eq_zero_iff {o} {f : Π a < o, ordinal} : bsup o f = 0 ↔ ∀ i hi, f i hi = 0 :=
+begin
+  refine ⟨λ h i hi, _, λ h, le_antisymm
+    (bsup_le.2 (λ i hi, ordinal.le_zero.2 (h i hi))) (ordinal.zero_le _)⟩,
+  rw [←ordinal.le_zero, ←h],
+  exact le_bsup f i hi,
+end
+
 theorem lt_bsup_of_limit {o : ordinal} {f : Π a < o, ordinal}
   (hf : ∀ {a a'} (ha : a < o) (ha' : a' < o), a < a' → f a ha < f a' ha')
   (ho : o.is_limit) (i h) : f i h < bsup o f :=
@@ -1011,14 +1027,12 @@ end
 
 theorem lsub_eq_zero_iff {ι} {f : ι → ordinal} : lsub f = 0 ↔ is_empty ι :=
 begin
-  refine ⟨λ h, _, λ hi, _⟩,
-  { split,
-    intro i,
-    have := lt_of_le_of_lt (ordinal.zero_le _) (lt_lsub _ i),
+  refine ⟨λ h, ⟨λ i, _⟩, λ h, _⟩,
+  { have := lt_lsub f i,
     rw h at this,
-    exact lt_irrefl 0 this },
+    exact @not_lt_bot _ _ _ (f i) this },
   rw [←ordinal.le_zero, lsub_le_iff_lt],
-  exact hi.elim,
+  exact h.elim
 end
 
 /-- The bounded least strict upper bound of a family of ordinals. -/
@@ -1067,6 +1081,9 @@ end
 theorem bsup_eq_blsub {o} (f : Π a < o, ordinal) :
   bsup o f = blsub o f ↔ ∀ a < blsub o f, succ a < blsub o f :=
 by { rw [bsup_eq_sup, blsub_eq_lsub], exact sup_eq_lsub _ }
+
+theorem blsub_eq_zero_iff {o} {f : Π a < o, ordinal} : blsub o f = 0 ↔ o = 0 :=
+by { rw [blsub_eq_lsub, lsub_eq_zero_iff], exact out_empty_iff_eq_zero }
 
 theorem blsub_type (r : α → α → Prop) [is_well_order α r] (f) :
   blsub (type r) f = lsub (λ a, f (typein r a) (typein_lt_type _ _)) :=

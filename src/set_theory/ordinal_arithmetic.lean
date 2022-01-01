@@ -1065,7 +1065,7 @@ begin
   { rw blsub_le_iff_lt,
     exact λ _, id },
   by_contra' h,
-  exact lt_irrefl (blsub.{u u} o (λ x _, x)) (lt_blsub _ _ h)
+  exact lt_irrefl _ (lt_blsub.{u u} (λ x _, x) _ h)
 end
 
 /-! ### Ordinal exponential -/

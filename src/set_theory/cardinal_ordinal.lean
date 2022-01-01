@@ -4,9 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Floris van Doorn
 -/
 
+import logic.small
 import set_theory.ordinal_arithmetic
 import tactic.linarith
-import logic.small
+import order.bounded
 
 /-!
 # Cardinals and ordinals
@@ -247,28 +248,17 @@ begin
 end
 
 /-- Infinite ordinals that are cardinals are unbounded. -/
-theorem ord_aleph_unbounded : unbounded (<) {b | ordinal.omega ≤ b ∧ b.card.ord = b} :=
-begin
-  rw unbounded_lt_iff,
-  intro a,
-  -- This could be golfed using `max`.
-  cases ord_aleph'_unbounded a with b hb,
-  by_cases h : ordinal.omega ≤ b,
-  { use b,
-    rw and.assoc,
-    use ⟨h, hb⟩ },
-  refine ⟨ordinal.omega, ⟨le_refl _, _⟩, le_of_lt (lt_of_le_of_lt hb.right (lt_of_not_ge h))⟩,
-  rw [card_omega, ord_omega],
-end
+theorem ord_aleph_unbounded : unbounded (<) {b : ordinal | b.card.ord = b ∧ ordinal.omega ≤ b} :=
+(unbounded_lt_iff_unbounded_inter_le ordinal.omega).1 ord_aleph'_unbounded
 
-theorem eq_aleph_of_eq_card_ord {o} (ho : (ordinal.omega ≤ o ∧ o.card.ord = o)) :
+theorem eq_aleph_of_eq_card_ord {o : ordinal} (ho : o.card.ord = o ∧ ordinal.omega ≤ o) :
   ∃ a, (aleph a).ord = o :=
 begin
   cases ho with hol hor,
-  cases eq_aleph'_of_eq_card_ord hor with a ha,
+  cases eq_aleph'_of_eq_card_ord hol with a ha,
   use a - ordinal.omega,
   unfold aleph,
-  rwa ordinal.add_sub_cancel_of_le,
+  rwa ordinal.add_sub_cancel_of_le ,
   rwa [←omega_le_aleph', ←ord_le_ord, ha, ord_omega],
 end
 
@@ -279,9 +269,9 @@ begin
   use aleph_is_normal.strict_mono,
   rw range_eq_iff,
   refine ⟨(λ a, ⟨_, _⟩), λ b hb, eq_aleph_of_eq_card_ord hb⟩,
+  { rw card_ord },
   { rw [←ord_omega, ord_le_ord],
-    exact omega_le_aleph _ },
-  rw card_ord
+    exact omega_le_aleph _ }
 end
 
 /-! ### Properties of `mul` -/

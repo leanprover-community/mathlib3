@@ -4,9 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Floris van Doorn
 -/
 
+import logic.small
 import set_theory.ordinal_arithmetic
 import tactic.linarith
-import logic.small
+import order.bounded
 
 /-!
 # Cardinals and ordinals
@@ -229,15 +230,12 @@ by rw [← aleph_zero, ← aleph_succ, ordinal.succ_zero]
 lemma countable_iff_lt_aleph_one {α : Type*} (s : set α) : countable s ↔ #s < aleph 1 :=
 by rw [← succ_omega, lt_succ, mk_set_le_omega]
 
+private lemma ord_mem {c : cardinal} : c.ord.card.ord = c.ord :=
+by rw card_ord
+
 /-- Ordinals that are cardinals are unbounded. -/
-theorem ord_aleph'_unbounded : ∀ a, ∃ b : ordinal, b.card.ord = b ∧ a ≤ b :=
-begin
-  intro a,
-  use a.card.succ.ord,
-  split,
-  rw card_ord,
-  exact le_of_lt (lt_ord_succ_card _)
-end
+theorem ord_aleph'_unbounded : unbounded (<) {b : ordinal | b.card.ord = b} :=
+by { rw unbounded_lt_iff, exact λ a, ⟨_, ⟨ord_mem, le_of_lt (lt_ord_succ_card a)⟩⟩ }
 
 theorem eq_aleph'_of_eq_card_ord {o : ordinal} (ho : o.card.ord = o) : ∃ a, (aleph' a).ord = o :=
 ⟨cardinal.aleph_idx.rel_iso o.card, by { simp, exact ho }⟩
@@ -245,35 +243,22 @@ theorem eq_aleph'_of_eq_card_ord {o : ordinal} (ho : o.card.ord = o) : ∃ a, (a
 /-- `ord ∘ aleph'` enumerates the ordinals that are cardinals. -/
 theorem ord_aleph'_eq_enum_card : ord ∘ aleph' = enum_ord ord_aleph'_unbounded :=
 begin
-  rw ←eq_enum_ord,
-  use aleph'_is_normal.strict_mono,
-  rw range_eq_iff,
-  refine ⟨(λ a, _), λ b hb, eq_aleph'_of_eq_card_ord hb⟩,
-  change (aleph' a).ord.card.ord = (aleph' a).ord,
-  rw card_ord
+  rw [←eq_enum_ord, range_eq_iff],
+  exact ⟨aleph'_is_normal.strict_mono, ⟨(λ a, ord_mem), λ b hb, eq_aleph'_of_eq_card_ord hb⟩⟩
 end
 
 /-- Infinite ordinals that are cardinals are unbounded. -/
-theorem ord_aleph_unbounded : ∀ a, ∃ b : ordinal, (ordinal.omega ≤ b ∧ b.card.ord = b) ∧ a ≤ b :=
-begin
-  intro a,
-  cases ord_aleph'_unbounded a with b hb,
-  by_cases h : ordinal.omega ≤ b,
-  { use b,
-    rw and.assoc,
-    use ⟨h, hb⟩ },
-  refine ⟨ordinal.omega, ⟨le_refl _, _⟩, le_of_lt (lt_of_le_of_lt hb.right (lt_of_not_ge h))⟩,
-  rw [card_omega, ord_omega],
-end
+theorem ord_aleph_unbounded : unbounded (<) {b : ordinal | b.card.ord = b ∧ ordinal.omega ≤ b} :=
+(unbounded_lt_iff_unbounded_inter_le ordinal.omega).1 ord_aleph'_unbounded
 
-theorem eq_aleph_of_eq_card_ord {o} (ho : (ordinal.omega ≤ o ∧ o.card.ord = o)) :
+theorem eq_aleph_of_eq_card_ord {o : ordinal} (ho : o.card.ord = o ∧ ordinal.omega ≤ o) :
   ∃ a, (aleph a).ord = o :=
 begin
   cases ho with hol hor,
-  cases eq_aleph'_of_eq_card_ord hor with a ha,
+  cases eq_aleph'_of_eq_card_ord hol with a ha,
   use a - ordinal.omega,
   unfold aleph,
-  rwa ordinal.add_sub_cancel_of_le,
+  rwa ordinal.add_sub_cancel_of_le ,
   rwa [←omega_le_aleph', ←ord_le_ord, ha, ord_omega],
 end
 
@@ -284,9 +269,9 @@ begin
   use aleph_is_normal.strict_mono,
   rw range_eq_iff,
   refine ⟨(λ a, ⟨_, _⟩), λ b hb, eq_aleph_of_eq_card_ord hb⟩,
+  { rw card_ord },
   { rw [←ord_omega, ord_le_ord],
-    exact omega_le_aleph _ },
-  rw card_ord
+    exact omega_le_aleph _ }
 end
 
 /-! ### Properties of `mul` -/

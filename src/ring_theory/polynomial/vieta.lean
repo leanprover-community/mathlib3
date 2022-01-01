@@ -65,7 +65,7 @@ begin
   simp only [eval_X, polynomial.map_add, polynomial.map_C, polynomial.map_X, eq_self_iff_true],
   funext,
   simp only [function.funext_iff, esymm, polynomial.map_C, map_sum, polynomial.C.map_sum,
-    polynomial.map_C, map_pow, polynomial.map_X, polynomial.map_mul],
+    polynomial.map_C, polynomial.map_pow, polynomial.map_X, polynomial.map_mul],
   congr,
   funext,
   simp only [eval_prod, eval_X, (polynomial.C : R →+* polynomial R).map_prod],

@@ -5,7 +5,6 @@ Authors: Johannes Hölzl, Johan Commelin, Mario Carneiro
 -/
 import algebra.big_operators.order
 import data.mv_polynomial.monad
-import data.set.pairwise
 
 /-!
 # Degrees and variables of polynomials
@@ -225,6 +224,15 @@ lemma degrees_map_of_injective [comm_semiring S] (p : mv_polynomial σ R)
   {f : R →+* S} (hf : injective f) : (map f p).degrees = p.degrees :=
 by simp only [degrees, mv_polynomial.support_map_of_injective _ hf]
 
+lemma degrees_rename_of_injective {p : mv_polynomial σ R} {f : σ → τ} (h : function.injective f) :
+  degrees (rename f p) = (degrees p).map f :=
+begin
+  simp only [degrees, multiset.map_finset_sup p.support finsupp.to_multiset f h,
+             support_rename_of_injective h, finset.sup_image],
+  refine finset.sup_congr rfl (λ x hx, _),
+  exact (finsupp.to_multiset_map _ _).symm,
+end
+
 end degrees
 
 section vars
@@ -429,6 +437,10 @@ lemma degree_of_lt_iff {n : σ} {f : mv_polynomial σ R} {d : ℕ} (h : 0 < d) :
   degree_of n f < d ↔ ∀ m : σ →₀ ℕ, m ∈ f.support → m n < d :=
 by rwa [degree_of_eq_sup n f, finset.sup_lt_iff]
 
+@[simp] lemma degree_of_zero (n : σ) :
+  degree_of n (0 : mv_polynomial σ R) = 0 :=
+by simp only [degree_of, degrees_zero, multiset.count_zero]
+
 @[simp] lemma degree_of_C (a : R) (x : σ):
   degree_of x (C a : mv_polynomial σ R) = 0 := by simp [degree_of, degrees_C]
 
@@ -488,6 +500,11 @@ begin
   convert multiset.count_le_of_le j (degrees_X' j),
   rw multiset.count_singleton_self,
 end
+
+lemma degree_of_rename_of_injective {p : mv_polynomial σ R} {f : σ → τ} (h : function.injective f)
+  (i : σ) : degree_of (f i) (rename f p) = degree_of i p :=
+by simp only [degree_of, degrees_rename_of_injective h,
+              multiset.count_map_eq_count' f (p.degrees) h]
 
 end degree_of
 

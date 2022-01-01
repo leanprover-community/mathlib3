@@ -338,8 +338,13 @@ by simpa [(hf'.has_sum.sigma hf).unique ha] using hf'.has_sum
 end has_sum
 
 section tsum
-variables [add_comm_monoid α] [topological_space α] [t2_space α]
-variables {f g : β → α} {a a₁ a₂ : α}
+variables [add_comm_monoid α] [topological_space α]
+
+lemma tsum_congr_subtype (f : β → α) {s t : set β} (h : s = t) :
+  ∑' (x : s), f x = ∑' (x : t), f x :=
+by rw h
+
+variables [t2_space α] {f g : β → α} {a a₁ a₂ : α}
 
 lemma has_sum.tsum_eq (ha : has_sum f a) : ∑'b, f b = a :=
 (summable.has_sum ⟨a, ha⟩).unique ha
@@ -968,6 +973,18 @@ let ⟨hle, i, hi⟩ := pi.lt_def.mp h in tsum_lt_tsum hle hi hf hg
 lemma tsum_pos (hsum : summable g) (hg : ∀ b, 0 ≤ g b) (i : β) (hi : 0 < g i) :
   0 < ∑' b, g b :=
 by { rw ← tsum_zero, exact tsum_lt_tsum hg hi summable_zero hsum }
+
+lemma has_sum_zero_iff_of_nonneg (hf : ∀ i, 0 ≤ f i) : has_sum f 0 ↔ f = 0 :=
+begin
+  split,
+  { intros hf',
+    ext i,
+    by_contra hi',
+    have hi : 0 < f i := lt_of_le_of_ne (hf i) (ne.symm hi'),
+    simpa using has_sum_lt hf hi has_sum_zero hf' },
+  { rintros rfl,
+    exact has_sum_zero },
+end
 
 end ordered_topological_group
 

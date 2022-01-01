@@ -48,28 +48,30 @@ is equivalent to `mul_action.orbit_rel`. -/
 def same_ray (v₁ v₂ : M) : Prop :=
 ∃ (r₁ r₂ : R), 0 < r₁ ∧ 0 < r₂ ∧ r₁ • v₁ = r₂ • v₂
 
-variables (M)
+variables {R}
+
+/-- `same_ray` is reflexive. -/
+@[refl] lemma same_ray.refl [nontrivial R] (x : M) : same_ray R x x :=
+⟨1, 1, zero_lt_one, zero_lt_one, rfl⟩
 
 /-- `same_ray` is symmetric. -/
-lemma symmetric_same_ray : symmetric (same_ray R : M → M → Prop) :=
-λ _ _ ⟨r₁, r₂, hr₁, hr₂, h⟩, ⟨r₂, r₁, hr₂, hr₁, h.symm⟩
+@[symm] lemma same_ray.symm {x y : M} : same_ray R x y → same_ray R y x :=
+λ ⟨r₁, r₂, hr₁, hr₂, h⟩, ⟨r₂, r₁, hr₂, hr₁, h.symm⟩
 
 /-- `same_ray` is transitive. -/
-lemma transitive_same_ray :
-  transitive (same_ray R : M → M → Prop) :=
-λ _ _ _ ⟨r₁, r₂, hr₁, hr₂, h₁⟩ ⟨r₃, r₄, hr₃, hr₄, h₂⟩,
+@[trans] lemma same_ray.trans {x y z : M} : same_ray R x y → same_ray R y z → same_ray R x z :=
+λ ⟨r₁, r₂, hr₁, hr₂, h₁⟩ ⟨r₃, r₄, hr₃, hr₄, h₂⟩,
   ⟨r₃ * r₁, r₂ * r₄, mul_pos hr₃ hr₁, mul_pos hr₂ hr₄,
    by rw [mul_smul, mul_smul, h₁, ←h₂, smul_comm]⟩
 
-/-- `same_ray` is reflexive. -/
-lemma reflexive_same_ray [nontrivial R] :
-  reflexive (same_ray R : M → M → Prop) :=
-λ _, ⟨1, 1, zero_lt_one, zero_lt_one, rfl⟩
+lemma same_ray_comm {x y : M} : same_ray R x y ↔ same_ray R y x :=
+⟨same_ray.symm, same_ray.symm⟩
+
+variables (R M)
 
 /-- `same_ray` is an equivalence relation. -/
-lemma equivalence_same_ray [nontrivial R] :
-  equivalence (same_ray R : M → M → Prop) :=
-⟨reflexive_same_ray R M, symmetric_same_ray R M, transitive_same_ray R M⟩
+lemma equivalence_same_ray [nontrivial R] : equivalence (same_ray R : M → M → Prop) :=
+⟨same_ray.refl, λ _ _, same_ray.symm, λ _ _ _, same_ray.trans⟩
 
 variables {R M}
 
@@ -80,7 +82,7 @@ lemma same_ray_pos_smul_right (v : M) {r : R} (h : 0 < r) : same_ray R v (r • 
 /-- A vector is in the same ray as a positive multiple of one it is in the same ray as. -/
 lemma same_ray.pos_smul_right {v₁ v₂ : M} {r : R} (h : same_ray R v₁ v₂) (hr : 0 < r) :
   same_ray R v₁ (r • v₂) :=
-transitive_same_ray R M h (same_ray_pos_smul_right v₂ hr)
+h.trans (same_ray_pos_smul_right v₂ hr)
 
 /-- A positive multiple of a vector is in the same ray as that vector. -/
 lemma same_ray_pos_smul_left (v : M) {r : R} (h : 0 < r) : same_ray R (r • v) v :=
@@ -89,7 +91,7 @@ lemma same_ray_pos_smul_left (v : M) {r : R} (h : 0 < r) : same_ray R (r • v) 
 /-- A positive multiple of a vector is in the same ray as one it is in the same ray as. -/
 lemma same_ray.pos_smul_left {v₁ v₂ : M} {r : R} (h : same_ray R v₁ v₂) (hr : 0 < r) :
   same_ray R (r • v₁) v₂ :=
-transitive_same_ray R M (same_ray_pos_smul_left v₁ hr) h
+(same_ray_pos_smul_left v₁ hr).trans h
 
 /-- If two vectors are on the same ray then they remain so after appling a linear map. -/
 lemma same_ray.map {v₁ v₂ : M} (f : M →ₗ[R] N)
@@ -113,7 +115,7 @@ variables (R M)
 
 /-- The setoid of the `same_ray` relation for elements of a module. -/
 def same_ray_setoid [nontrivial R] : setoid M :=
-{ r := λ v₁ v₂, same_ray R v₁ v₂, iseqv := equivalence_same_ray R M }
+{ r := same_ray R, iseqv := equivalence_same_ray R M }
 
 /-- Nonzero vectors, as used to define rays. -/
 @[reducible] def ray_vector := {v : M // v ≠ 0}
@@ -190,6 +192,22 @@ equiv.ext $ module.ray.ind R $ λ _ _, rfl
 @[simp] lemma module.ray.map_symm [nontrivial R] (e : M ≃ₗ[R] N) :
   (module.ray.map e).symm = module.ray.map e.symm := rfl
 
+/-- An equivalence between modules implies an equivalence between orientations. -/
+def orientation.map [nontrivial R] (e : M ≃ₗ[R] N) : orientation R M ι ≃ orientation R N ι :=
+module.ray.map $ alternating_map.dom_lcongr R R ι R e
+
+@[simp] lemma orientation.map_apply [nontrivial R] (e : M ≃ₗ[R] N) (v : alternating_map R M R ι)
+  (hv : v ≠ 0) :
+  orientation.map ι e (ray_of_ne_zero _ v hv) = ray_of_ne_zero _ (v.comp_linear_map e.symm)
+      (mt (v.comp_linear_equiv_eq_zero_iff e.symm).mp hv) := rfl
+
+@[simp] lemma orientation.map_refl [nontrivial R] :
+  (orientation.map ι $ linear_equiv.refl R M) = equiv.refl _ :=
+by rw [orientation.map, alternating_map.dom_lcongr_refl, module.ray.map_refl]
+
+@[simp] lemma orientation.map_symm [nontrivial R] (e : M ≃ₗ[R] N) :
+  (orientation.map ι e).symm = orientation.map ι e.symm := rfl
+
 section action
 variables {G : Type*} [group G] [nontrivial R] [distrib_mul_action G M] [smul_comm_class R G M]
 
@@ -258,7 +276,7 @@ section ordered_comm_ring
 local attribute [instance] ray_vector.same_ray_setoid
 
 variables {R : Type*} [ordered_comm_ring R]
-variables {M : Type*} [add_comm_group M] [module R M]
+variables {M N : Type*} [add_comm_group M] [add_comm_group N] [module R M] [module R N]
 
 /-- If two vectors are in the same ray, so are their negations. -/
 lemma same_ray.neg {v₁ v₂ : M} : same_ray R v₁ v₂ → same_ray R (-v₁) (-v₂) :=
@@ -349,7 +367,25 @@ variables {R} {ι : Type*} [fintype ι] [decidable_eq ι]
 protected def orientation [nontrivial R] (e : basis ι R M) : orientation R M ι :=
 ray_of_ne_zero R _ e.det_ne_zero
 
+lemma orientation_map [nontrivial R] (e : basis ι R M)
+  (f : M ≃ₗ[R] N) : (e.map f).orientation = orientation.map ι f e.orientation :=
+by simp_rw [basis.orientation, orientation.map_apply, basis.det_map']
+
+/-- The value of `orientation.map` when the index type has the cardinality of a basis, in terms
+of `f.det`. -/
+lemma map_orientation_eq_det_inv_smul [nontrivial R] [is_domain R] (e : basis ι R M)
+  (x : orientation R M ι) (f : M ≃ₗ[R] M) : orientation.map ι f x = (f.det)⁻¹ • x :=
+begin
+  induction x using module.ray.ind with g hg,
+  rw [orientation.map_apply, smul_ray_of_ne_zero, ray_eq_iff, units.smul_def,
+      (g.comp_linear_map ↑f.symm).eq_smul_basis_det e, g.eq_smul_basis_det e,
+      alternating_map.comp_linear_map_apply, alternating_map.smul_apply, basis.det_comp,
+      basis.det_self, mul_one, smul_eq_mul, mul_comm, mul_smul, linear_equiv.coe_inv_det],
+end
+
 end basis
+
+variables {R} {ι : Type*} [fintype ι] [decidable_eq ι]
 
 end ordered_comm_ring
 
@@ -365,6 +401,21 @@ lemma same_ray_of_mem_orbit {v₁ v₂ : M} (h : v₁ ∈ mul_action.orbit (unit
 begin
   rcases h with ⟨⟨r, hr⟩, (rfl : r • v₂ = v₁)⟩,
   exact same_ray_pos_smul_left _ hr,
+end
+
+/-- Scaling by an inverse unit is the same as scaling by itself. -/
+@[simp] lemma units_inv_smul (u : units R) (v : module.ray R M) :
+  u⁻¹ • v = u • v :=
+begin
+  induction v using module.ray.ind with v hv,
+  rw [smul_ray_of_ne_zero, smul_ray_of_ne_zero, ray_eq_iff],
+  have : ∀ {u : units R}, 0 < (u : R) → same_ray R (u⁻¹ • v) (u • v) :=
+    λ u h, ((same_ray.refl v).pos_smul_left $ units.inv_pos.mpr h).pos_smul_right h,
+  cases lt_or_lt_iff_ne.2 u.ne_zero,
+  { rw [←units.neg_neg u, units.neg_inv, (- u).neg_smul, units.neg_smul],
+    refine (this _).neg,
+    exact neg_pos_of_neg h },
+  { exact this h, },
 end
 
 section
@@ -391,7 +442,7 @@ is positive. -/
 @[simp] lemma same_ray_smul_left_iff {v : M} (hv : v ≠ 0) (r : R) :
   same_ray R (r • v) v ↔ 0 < r :=
 begin
-  rw (symmetric_same_ray R M).iff,
+  rw same_ray_comm,
   exact same_ray_smul_right_iff hv r
 end
 
@@ -458,6 +509,27 @@ begin
   exact hx
 end
 
+/-- Given a basis, an orientation equals the negation of that given by that basis if and only
+if it does not equal that given by that basis. -/
+lemma orientation_ne_iff_eq_neg (e : basis ι R M) (x : orientation R M ι) :
+  x ≠ e.orientation ↔ x = -e.orientation :=
+⟨λ h, (e.orientation_eq_or_eq_neg x).resolve_left h,
+ λ h, h.symm ▸ (module.ray.ne_neg_self e.orientation).symm⟩
+
+/-- Composing a basis with a linear equiv gives the same orientation if and only if the
+determinant is positive. -/
+lemma orientation_comp_linear_equiv_eq_iff_det_pos (e : basis ι R M) (f : M ≃ₗ[R] M) :
+  (e.map f).orientation = e.orientation ↔ 0 < (f : M →ₗ[R] M).det :=
+by rw [orientation_map, e.map_orientation_eq_det_inv_smul, units_inv_smul, units_smul_eq_self_iff,
+  linear_equiv.coe_det]
+
+/-- Composing a basis with a linear equiv gives the negation of that orientation if and only if
+the determinant is negative. -/
+lemma orientation_comp_linear_equiv_eq_neg_iff_det_neg (e : basis ι R M) (f : M ≃ₗ[R] M) :
+  (e.map f).orientation = -e.orientation ↔ (f : M →ₗ[R] M).det < 0 :=
+by rw [orientation_map, e.map_orientation_eq_det_inv_smul, units_inv_smul, units_smul_eq_neg_iff,
+  linear_equiv.coe_det]
+
 end basis
 
 end linear_ordered_comm_ring
@@ -507,6 +579,38 @@ begin
     rcases e.orientation_eq_or_eq_neg x₂ with h₂|h₂;
     simp [h₁, h₂]
 end
+
+/-- If the index type has cardinality equal to the finite dimension, an orientation equals the
+negation of another orientation if and only if they are not equal. -/
+lemma ne_iff_eq_neg (x₁ x₂ : orientation R M ι) (h : fintype.card ι = finrank R M) :
+  x₁ ≠ x₂ ↔ x₁ = -x₂ :=
+⟨λ hn, (eq_or_eq_neg x₁ x₂ h).resolve_left hn, λ he, he.symm ▸ (module.ray.ne_neg_self x₂).symm⟩
+
+/-- The value of `orientation.map` when the index type has cardinality equal to the finite
+dimension, in terms of `f.det`. -/
+lemma map_eq_det_inv_smul (x : orientation R M ι) (f : M ≃ₗ[R] M)
+  (h : fintype.card ι = finrank R M) :
+  orientation.map ι f x = (f.det)⁻¹ • x :=
+begin
+  have e := (fin_basis R M).reindex (fintype.equiv_fin_of_card_eq h).symm,
+  exact e.map_orientation_eq_det_inv_smul x f
+end
+
+/-- If the index type has cardinality equal to the finite dimension, composing an alternating
+map with the same linear equiv on each argument gives the same orientation if and only if the
+determinant is positive. -/
+lemma map_eq_iff_det_pos (x : orientation R M ι) (f : M ≃ₗ[R] M)
+  (h : fintype.card ι = finrank R M) :
+  orientation.map ι f x = x ↔  0 < (f : M →ₗ[R] M).det :=
+by rw [map_eq_det_inv_smul _ _ h, units_inv_smul, units_smul_eq_self_iff, linear_equiv.coe_det]
+
+/-- If the index type has cardinality equal to the finite dimension, composing an alternating
+map with the same linear equiv on each argument gives the negation of that orientation if and
+only if the determinant is negative. -/
+lemma map_eq_neg_iff_det_neg (x : orientation R M ι) (f : M ≃ₗ[R] M)
+  (h : fintype.card ι = finrank R M) :
+  orientation.map ι f x = -x ↔ (f : M →ₗ[R] M).det < 0 :=
+by rw [map_eq_det_inv_smul _ _ h, units_inv_smul, units_smul_eq_neg_iff, linear_equiv.coe_det]
 
 end orientation
 

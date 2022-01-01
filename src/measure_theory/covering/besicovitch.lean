@@ -915,7 +915,7 @@ begin
   `0`. Applying the other version of Besicovitch, one may cover it with at most `N` disjoint
   subfamilies. Making sure that they are all included in a neighborhood `v` of `s'` of measure at
   most `ε / (2 N)`, the sum of their measures is at most `ε / 2`, completing the proof. -/
-  obtain ⟨u, su, u_open, μu⟩  : ∃ U ⊇ s, is_open U ∧ μ U ≤ μ s + ε / 2 :=
+  obtain ⟨u, su, u_open, μu⟩ : ∃ U ⊇ s, is_open U ∧ μ U ≤ μ s + ε / 2 :=
     set.exists_is_open_le_add _ _ (by simpa only [or_false, ne.def, ennreal.div_zero_iff,
       ennreal.one_ne_top, ennreal.bit0_eq_top_iff] using hε),
   have : ∀ x ∈ s, ∃ R > 0, ball x R ⊆ u :=

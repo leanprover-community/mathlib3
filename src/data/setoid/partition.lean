@@ -172,7 +172,7 @@ eqv_classes_disjoint hc.2
 lemma is_partition.sUnion_eq_univ {c : set (set α)} (hc : is_partition c) :
   ⋃₀ c = set.univ :=
 set.eq_univ_of_forall $ λ x, set.mem_sUnion.2 $
-  let ⟨t, ht⟩ := hc.2 x in ⟨t, by clear_aux_decl; finish⟩
+  let ⟨t, ht⟩ := hc.2 x in ⟨t, by { simp only [exists_unique_iff_exists] at ht, tauto }⟩
 
 /-- All elements of a partition of α are the equivalence class of some y ∈ α. -/
 lemma exists_of_mem_partition {c : set (set α)} (hc : is_partition c) {s} (hs : s ∈ c) :

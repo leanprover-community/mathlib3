@@ -99,16 +99,28 @@ instance : complete_boolean_algebra (set α) :=
 lemma monotone_image {f : α → β} : monotone (image f) :=
 λ s t, image_subset _
 
-theorem monotone_inter [preorder β] {f g : β → set α}
+theorem _root_.monotone.inter [preorder β] {f g : β → set α}
   (hf : monotone f) (hg : monotone g) : monotone (λ x, f x ∩ g x) :=
-λ b₁ b₂ h, inter_subset_inter (hf h) (hg h)
+hf.inf hg
 
-theorem monotone_union [preorder β] {f g : β → set α}
+theorem _root_.antitone.inter [preorder β] {f g : β → set α}
+  (hf : antitone f) (hg : antitone g) : antitone (λ x, f x ∩ g x) :=
+hf.inf hg
+
+theorem _root_.monotone.union [preorder β] {f g : β → set α}
   (hf : monotone f) (hg : monotone g) : monotone (λ x, f x ∪ g x) :=
-λ b₁ b₂ h, union_subset_union (hf h) (hg h)
+hf.sup hg
+
+theorem _root_.antitone.union [preorder β] {f g : β → set α}
+  (hf : antitone f) (hg : antitone g) : antitone (λ x, f x ∪ g x) :=
+hf.sup hg
 
 theorem monotone_set_of [preorder α] {p : α → β → Prop}
   (hp : ∀ b, monotone (λ a, p a b)) : monotone (λ a, {b | p a b}) :=
+λ a a' h b, hp b h
+
+theorem antitone_set_of [preorder α] {p : α → β → Prop}
+  (hp : ∀ b, antitone (λ a, p a b)) : antitone (λ a, {b | p a b}) :=
 λ a a' h b, hp b h
 
 section galois_connection

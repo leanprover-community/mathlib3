@@ -3,7 +3,7 @@ Copyright (c) 2020 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Mario Carneiro, Yury G. Kudryashov
 -/
-import data.sum
+import data.sum.basic
 import order.basic
 
 /-!
@@ -275,7 +275,54 @@ instance prod.lex.is_well_order [is_well_order α r] [is_well_order β s] :
 /-- An unbounded or cofinal set -/
 def unbounded (r : α → α → Prop) (s : set α) : Prop := ∀ a, ∃ b ∈ s, ¬ r b a
 /-- A bounded or final set -/
-def bounded (r : α → α → Prop) (s : set α) : Prop := ∃a, ∀ b ∈ s, r b a
+def bounded (r : α → α → Prop) (s : set α) : Prop := ∃ a, ∀ b ∈ s, r b a
+
+lemma unbounded_le_of_forall_ex_lt [preorder α] (s : set α) (h : ∀ a, ∃ b ∈ s, a < b) :
+  unbounded (≤) s :=
+begin
+  intro a,
+  rcases h a with ⟨b, hb, hb'⟩,
+  exact ⟨b, hb, λ hba, not_lt_of_ge hba hb'⟩
+end
+
+lemma unbounded_le_iff [linear_order α] (s : set α) : unbounded (≤) s ↔ ∀ a, ∃ b ∈ s, a < b :=
+begin
+  refine ⟨λ h a, _, unbounded_le_of_forall_ex_lt s⟩,
+  rcases h a with ⟨b, hb, hba⟩,
+  exact ⟨b, hb, lt_of_not_ge hba⟩
+end
+
+lemma unbounded_lt_of_forall_ex_le [preorder α] (s : set α) (h : ∀ a, ∃ b ∈ s, a ≤ b) :
+  unbounded (<) s :=
+begin
+  intro a,
+  rcases h a with ⟨b, hb, hb'⟩,
+  exact ⟨b, hb, λ hba, not_le_of_gt hba hb'⟩
+end
+
+lemma unbounded_lt_iff [linear_order α] (s : set α) : unbounded (<) s ↔ ∀ a, ∃ b ∈ s, a ≤ b :=
+begin
+  refine ⟨λ h a, _, unbounded_lt_of_forall_ex_le s⟩,
+  rcases h a with ⟨b, hb, hba⟩,
+  exact ⟨b, hb, le_of_not_gt hba⟩
+end
+
+lemma unbounded_lt_of_unbounded_le [preorder α] (s : set α) (h : unbounded (≤) s) :
+  unbounded (<) s :=
+begin
+  intro a,
+  rcases h a with ⟨b, hb, hba⟩,
+  exact ⟨b, hb, λ hba', hba (le_of_lt hba')⟩
+end
+
+lemma unbounded_le_iff_unbounded_lt [linear_order α] (s : set α)
+  (H : unbounded (≤) (set.univ : set α)) : unbounded (≤) s ↔ unbounded (<) s :=
+begin
+  refine ⟨unbounded_lt_of_unbounded_le s, λ h a, _⟩,
+  rcases H a with ⟨c, _, hc⟩,
+  rcases h c with ⟨b, hb, hbc⟩,
+  exact ⟨b, hb, λ hba, hbc (lt_of_le_of_lt hba (lt_of_not_ge hc))⟩
+end
 
 @[simp] lemma not_bounded_iff {r : α → α → Prop} (s : set α) : ¬bounded r s ↔ unbounded r s :=
 begin

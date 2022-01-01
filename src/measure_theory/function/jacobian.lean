@@ -61,13 +61,14 @@ begin
   { assume x r xs r0,
     have K : f '' (s ∩ closed_ball x r) ⊆ A '' (closed_ball 0 r) + closed_ball (f x) (ε * r),
     { rintros y ⟨z, ⟨zs, zr⟩, rfl⟩,
-      apply set.mem_add.2 ⟨A (z - x), (f - A) z - (f - A) x + f x, _, _, _⟩,
+      apply set.mem_add.2 ⟨A (z - x), f z - f x - A (z - x) + f x, _, _, _⟩,
       { apply mem_image_of_mem,
-        simpa [dist_eq_norm] using zr },
-      { rw [mem_closed_ball_iff_norm, add_sub_cancel, ← dist_eq_norm],
-        calc dist ((f - A) z) ((f - A) x)
-            ≤ δ * dist z x : hf.lipschitz_on_with.dist_le_mul _ zs _ xs
-        ... ≤ ε * r : mul_le_mul (le_of_lt hδ) zr dist_nonneg εpos.le },
+        simpa only [dist_eq_norm, mem_closed_ball, mem_closed_ball_zero_iff] using zr },
+      { rw [mem_closed_ball_iff_norm, add_sub_cancel],
+        calc ∥f z - f x - A (z - x)∥
+            ≤ δ * ∥z - x∥ : hf _ zs _ xs
+        ... ≤ ε * r :
+          mul_le_mul (le_of_lt hδ) (mem_closed_ball_iff_norm.1 zr) (norm_nonneg _) εpos.le },
       { simp only [map_sub, pi.sub_apply],
         abel } },
     have : A '' (closed_ball 0 r) + closed_ball (f x) (ε * r)
@@ -136,12 +137,12 @@ begin
     simp only [forall_const, zero_mul, implies_true_iff, zero_le, ennreal.coe_zero] },
   have hA : (A : E →ₗ[ℝ] E).det ≠ 0,
   { assume h, simpa only [h, ennreal.not_lt_zero, ennreal.of_real_zero, abs_zero] using hm },
-  -- let `B` be the inverse of `A`.
+  -- let `B` be the continuous linear equiv version of `A`.
   let B := ((A : E →ₗ[ℝ] E).equiv_of_det_ne_zero hA).to_continuous_linear_equiv,
   have : (B : E →L[ℝ] E) = A,
   { ext x,
-    simp only [linear_equiv.of_is_unit_det_apply, linear_equiv.to_continuous_linear_equiv_apply,
-      continuous_linear_equiv.coe_coe, continuous_linear_map.coe_coe, linear_equiv.to_fun_eq_coe] },
+    simp only [linear_equiv.of_is_unit_det_apply, continuous_linear_equiv.coe_coe,
+      continuous_linear_map.coe_coe, linear_equiv.coe_to_continuous_linear_equiv'] },
   -- the determinant of `B.symm` is bounded by `m⁻¹`
   have I : ennreal.of_real (abs (B.symm : E →ₗ[ℝ] E).det) < (m⁻¹ : ℝ≥0),
   { simp only [linear_equiv.coe_to_continuous_linear_equiv_symm, linear_equiv.det_coe_symm, abs_inv,
@@ -187,6 +188,7 @@ begin
     { apply or.inl,
       simpa only [ennreal.coe_eq_zero, ne.def] using mpos.ne'},
     { simp only [ennreal.coe_ne_top, true_or, ne.def, not_false_iff] } },
-  -- as `f⁻¹` is well approximated by `B⁻¹`, the conclusion follows from our choice of `δ`.
+  -- as `f⁻¹` is well approximated by `B⁻¹`, the conclusion follows from `hδ₀`
+  -- and our choice of `δ`.
   exact hδ₀ _ _ ((hf'.to_inv h1δ).mono_num h2δ.le),
 end

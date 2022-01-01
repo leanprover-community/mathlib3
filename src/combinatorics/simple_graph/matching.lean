@@ -11,7 +11,7 @@ import combinatorics.simple_graph.subgraph
 A *matching* for a simple graph is a set of disjoint pairs of adjacent vertices, and the set of all
 the vertices in a matching is called its *support* (and sometimes the vertices in the support are
 said to be *saturated* by the matching). A *perfect matching* is a matching whose support contains
-every vertex of the graph.
+every vertex of the graph..
 
 In this module, we represent a matching as a subgraph whose vertices are each incident to at most
 one edge, and the edges of the subgraph represent the paired vertices.

@@ -45,8 +45,8 @@ of products.
 - `path.homotopic.prod` The product of two path classes.
 
 ## Lemmas
-- `path.homotopic.comp_pi_eq_pi_comp` If Pᵢ and Qᵢ are families of path classes, then (∏ Pᵢ) ⬝ (∏ Qᵢ) = ∏ (Pᵢ ⬝ Qᵢ)
-  where ⬝ denotes path composition.
+- `path.homotopic.comp_pi_eq_pi_comp` If Pᵢ and Qᵢ are families of path classes,
+    then (∏ Pᵢ) ⬝ (∏ Qᵢ) = ∏ (Pᵢ ⬝ Qᵢ), where ⬝ denotes path composition.
 
 - `path.homotopic.comp_prod_eq_prod_comp` Similarly, binary products commute with path composition
 -/

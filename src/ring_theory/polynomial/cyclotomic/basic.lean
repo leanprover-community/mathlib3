@@ -569,25 +569,24 @@ lemma cyclotomic_injective {R : Type*} [comm_ring R] [char_zero R] :
 begin
   intros n m hnm,
   simp only at hnm,
-  by_cases hzero : n = 0,
-  { rw [hzero] at hnm ⊢,
-    rw [cyclotomic_zero] at hnm,
+  rcases eq_or_ne n 0 with rfl | hzero,
+  { rw [cyclotomic_zero] at hnm,
     replace hnm := congr_arg nat_degree hnm,
     rw [nat_degree_one, nat_degree_cyclotomic] at hnm,
     by_contra,
     exact (nat.totient_pos (zero_lt_iff.2 (ne.symm h))).ne hnm },
-  { rw [← map_cyclotomic_int _ R, ← map_cyclotomic_int _ R] at hnm,
+  { haveI := ne_zero.mk hzero,
+    rw [← map_cyclotomic_int _ R, ← map_cyclotomic_int _ R] at hnm,
     replace hnm := map_injective (int.cast_ring_hom R) int.cast_injective hnm,
     replace hnm := congr_arg (map (int.cast_ring_hom ℂ)) hnm,
     rw [map_cyclotomic_int, map_cyclotomic_int] at hnm,
     have hprim := complex.is_primitive_root_exp _ hzero,
-    have hroot := (is_root_cyclotomic_iff (by exact_mod_cast hzero)).2 hprim,
-    rw [hnm] at hroot,
-    have hmzero : m ≠ 0 := λ h, by simpa [h] using hroot,
-    rw [is_root_cyclotomic_iff] at hroot,
-    { replace hprim := is_primitive_root.eq_order_of hprim,
-      rwa [← is_primitive_root.eq_order_of hroot] at hprim },
-    { exact nat.cast_ne_zero.mpr hmzero } }
+    have hroot := is_root_cyclotomic_iff.2 hprim,
+    rw hnm at hroot,
+    haveI hmzero : ne_zero m := ⟨λ h, by simpa [h] using hroot⟩,
+    rw is_root_cyclotomic_iff at hroot,
+    replace hprim := hprim.eq_order_of,
+    rwa [← is_primitive_root.eq_order_of hroot] at hprim}
 end
 
 lemma eq_cyclotomic_iff {R : Type*} [comm_ring R] {n : ℕ} (hpos: 0 < n)
@@ -791,8 +790,9 @@ section expand
   (R : Type*) [comm_ring R] :
   expand R p (cyclotomic n R) = (cyclotomic (n * p) R) * (cyclotomic n R) :=
 begin
-  cases nat.eq_zero_or_pos n with hzero hnpos,
-  { simp [hzero] },
+  rcases nat.eq_zero_or_pos n with rfl | hnpos,
+  { simp },
+  haveI := ne_zero.of_pos hnpos,
   suffices : expand ℤ p (cyclotomic n ℤ) = (cyclotomic (n * p) ℤ) * (cyclotomic n ℤ),
   { rw [← map_cyclotomic_int, ← map_expand, this, map_mul, map_cyclotomic_int] },
   refine eq_of_monic_of_dvd_of_nat_degree_le (monic_mul (cyclotomic.monic _ _)
@@ -810,16 +810,14 @@ begin
       refine @minpoly.dvd ℚ ℂ _ _ algebra_rat _ _ _,
       rw [aeval_def, ← eval_map, map_expand, map_cyclotomic, expand_eval, ← is_root.def,
         is_root_cyclotomic_iff],
-      { convert is_primitive_root.pow_of_dvd hprim hp.ne_zero (dvd_mul_left p n),
-        rw [nat.mul_div_cancel _ (nat.prime.pos hp)] },
-      { exact_mod_cast hnpos.ne' } },
+      convert is_primitive_root.pow_of_dvd hprim hp.ne_zero (dvd_mul_left p n),
+      rw [nat.mul_div_cancel _ (nat.prime.pos hp)] },
     { have hprim := complex.is_primitive_root_exp _ hnpos.ne.symm,
       rw [cyclotomic_eq_minpoly_rat hprim hnpos],
       refine @minpoly.dvd ℚ ℂ _ _ algebra_rat _ _ _,
       rw [aeval_def, ← eval_map, map_expand, expand_eval, ← is_root.def,
         ← cyclotomic_eq_minpoly_rat hprim hnpos, map_cyclotomic, is_root_cyclotomic_iff],
-      { exact is_primitive_root.pow_of_prime hprim hp hdiv },
-      { exact_mod_cast hnpos.ne' } } },
+      exact is_primitive_root.pow_of_prime hprim hp hdiv,} },
   { rw [nat_degree_expand, nat_degree_cyclotomic, nat_degree_mul (cyclotomic_ne_zero _ ℤ)
       (cyclotomic_ne_zero _ ℤ), nat_degree_cyclotomic, nat_degree_cyclotomic, mul_comm n,
       nat.totient_mul ((nat.prime.coprime_iff_not_dvd hp).2 hdiv),

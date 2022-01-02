@@ -3,6 +3,7 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Floris van Doorn
 -/
+import order.bounded
 import set_theory.ordinal
 import tactic.by_contra
 
@@ -1100,20 +1101,6 @@ begin
   exact lt_irrefl _ (lt_blsub.{u u} (λ x _, x) _ h)
 end
 
-theorem blsub_eq_zero_iff {o} (f : Π a < o, ordinal) : blsub o f = 0 ↔ o = 0 :=
-begin
-  refine ⟨λ h, _, λ hi, _⟩,
-  { by_contra ho,
-    have := lt_of_le_of_lt (ordinal.zero_le _)
-      (lt_blsub _ 0 (lt_of_le_of_ne (ordinal.zero_le o) (λ h, (ho h.symm)))),
-    rw h at this,
-    exact lt_irrefl 0 this },
-  rw [←ordinal.le_zero, blsub_le_iff_lt],
-  intros i hio,
-  rw hi at hio,
-  exact (not_lt_of_le (ordinal.zero_le _) hio).elim,
-end
-
 /-! ### Enumerating unbounded sets of ordinals with ordinals -/
 
 section
@@ -2030,8 +2017,8 @@ end
 
 /-! ### Fixed points of sums -/
 
-theorem mul_omega_unbounded (o) : ∀ a, ∃ b, (o * ordinal.omega ≤ b) ∧ a ≤ b :=
-λ a, ⟨_, le_sup_left, le_sup_right⟩
+theorem mul_omega_unbounded (o) : unbounded (<) (set.Ici (o * ordinal.omega)) :=
+unbounded_lt_Ici _
 
 theorem add_mul_omega {a} : a + a * omega = a * omega :=
 by { rw [←mul_one_add, one_add_omega] }
@@ -2072,7 +2059,7 @@ begin
     exact le_of_eq mul_omega_nfp },
   have := ordinal.add_sub_cancel_of_le h,
   nth_rewrite 0 ←this,
-  rw [←add_assoc, add_mul_omega, this],
+  rw [←add_assoc, add_mul_omega, this]
 end
 
 /-- `deriv ((+) a)` enumerates the ordinals larger or equal to `a * ω`. -/
@@ -2086,7 +2073,7 @@ begin
   { rw deriv_zero,
     exact mul_omega_nfp },
   rw ←(add_is_normal a).fp_iff_deriv',
-  exact add_absorp_iff'.2 hb,
+  exact add_absorp_iff'.2 hb
 end
 
 end ordinal

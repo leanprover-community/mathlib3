@@ -7,7 +7,6 @@ Authors: Johannes Hölzl, Mario Carneiro, Floris van Doorn
 import logic.small
 import set_theory.ordinal_arithmetic
 import tactic.linarith
-import order.bounded
 
 /-!
 # Cardinals and ordinals

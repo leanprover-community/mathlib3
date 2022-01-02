@@ -139,7 +139,7 @@ begin
   { apply ((Top.sheaf.pushforward β.base).obj X.sheaf).hom_ext _
       prime_spectrum.is_basis_basic_opens,
     intro r,
-    apply (to_basic_open_epi R r).1,
+    apply (structure_sheaf.to_basic_open_epi R r).1,
     simpa using h r },
   exact w,
 end

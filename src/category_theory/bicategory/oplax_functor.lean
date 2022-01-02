@@ -81,7 +81,6 @@ end
 end prepseudofunctor
 
 section
-variables (B : Type u₁) [bicategory.{w₁ v₁} B] (C : Type u₂) [bicategory.{w₂ v₂} C]
 
 /--
 An oplax functor `F` between bicategories `B` and `C` consists of functions between objects,
@@ -99,19 +98,19 @@ structure oplax_functor (B : Type u₁) [bicategory.{w₁ v₁} B] (C : Type u�
   extends prepseudofunctor B C : Type (max w₁ w₂ v₁ v₂ u₁ u₂) :=
 (map_id (a : B) : map (𝟙 a) ⟶ 𝟙 (obj a))
 (map_comp {a b c : B} (f : a ⟶ b) (g : b ⟶ c) : map (f ≫ g) ⟶ map f ≫ map g)
-(map_comp_naturality_left' : ∀ {a b c} {f f' : a ⟶ b} (η : f ⟶ f') (g : b ⟶ c),
+(map_comp_naturality_left' : ∀ {a b c : B} {f f' : a ⟶ b} (η : f ⟶ f') (g : b ⟶ c),
   map₂ (η ▷ g) ≫ map_comp f' g = map_comp f g ≫ (map₂ η ▷ map g) . obviously)
-(map_comp_naturality_right' : ∀ {a b c} (f : a ⟶ b) {g g' : b ⟶ c} (η : g ⟶ g'),
+(map_comp_naturality_right' : ∀ {a b c : B} (f : a ⟶ b) {g g' : b ⟶ c} (η : g ⟶ g'),
   map₂ (f ◁ η) ≫ map_comp f g' = map_comp f g ≫ (map f ◁ map₂ η) . obviously)
-(map₂_id' : ∀ {a b} (f : a ⟶ b), map₂ (𝟙 f) = 𝟙 (map f) . obviously)
-(map₂_comp' : ∀ {a b} {f g h : a ⟶ b} (η : f ⟶ g) (θ : g ⟶ h),
+(map₂_id' : ∀ {a b : B} (f : a ⟶ b), map₂ (𝟙 f) = 𝟙 (map f) . obviously)
+(map₂_comp' : ∀ {a b : B} {f g h : a ⟶ b} (η : f ⟶ g) (θ : g ⟶ h),
   map₂ (η ≫ θ) = map₂ η ≫ map₂ θ . obviously)
-(map₂_associator' : ∀ {a b c d} (f : a ⟶ b) (g : b ⟶ c) (h : c ⟶ d),
+(map₂_associator' : ∀ {a b c d : B} (f : a ⟶ b) (g : b ⟶ c) (h : c ⟶ d),
   map₂ (α_ f g h).hom ≫ map_comp f (g ≫ h) ≫ (map f ◁ map_comp g h) =
-    map_comp (f ≫ g) h ≫ (map_comp f g ▷ map h) ≫  (α_ (map f) (map g) (map h)).hom . obviously)
-(map₂_left_unitor' : ∀ {a b} (f : a ⟶ b),
+    map_comp (f ≫ g) h ≫ (map_comp f g ▷ map h) ≫ (α_ (map f) (map g) (map h)).hom . obviously)
+(map₂_left_unitor' : ∀ {a b : B} (f : a ⟶ b),
   map₂ (λ_ f).hom = map_comp (𝟙 a) f ≫ (map_id a ▷ map f) ≫ (λ_ (map f)).hom . obviously)
-(map₂_right_unitor' : ∀ {a b} (f : a ⟶ b),
+(map₂_right_unitor' : ∀ {a b : B} (f : a ⟶ b),
   map₂ (ρ_ f).hom = map_comp f (𝟙 b) ≫ (map f ◁ map_id b) ≫ (ρ_ (map f)).hom . obviously)
 
 restate_axiom oplax_functor.map_comp_naturality_left'
@@ -186,11 +185,13 @@ def comp : oplax_functor B D :=
     (G.map_functor _ _).map (F.map_comp f g) ≫ G.map_comp (F.map f) (F.map g),
   map_comp_naturality_left' := λ a b c f f' η g, by
   { dsimp,
-    slice_rhs 1 3 { rw [←map_comp_naturality_left, ←map₂_comp_assoc, ←map_comp_naturality_left] },
+    slice_rhs 1 3
+    { rw [←map_comp_naturality_left, ←map₂_comp_assoc, ←map_comp_naturality_left] },
     simp only [map₂_comp, assoc] },
   map_comp_naturality_right' := λ a b c f g g' η, by
   { dsimp,
-    slice_rhs 1 3 { rw [←map_comp_naturality_right, ←map₂_comp_assoc, ←map_comp_naturality_right] },
+    slice_rhs 1 3
+    { rw [←map_comp_naturality_right, ←map₂_comp_assoc, ←map_comp_naturality_right] },
     simp only [map₂_comp, assoc] },
   map₂_associator' := λ a b c d f g h, by
   { dsimp, simp only [whisker_right_comp, assoc, whisker_left_comp],

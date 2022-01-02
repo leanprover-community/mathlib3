@@ -97,7 +97,7 @@ calc 2 * ((univ.image (λ x : R, eval x f)) ∪ (univ.image (λ x : R, eval x (-
 
 end polynomial
 
-lemma prod_univ_units_id_eq_neg_one [field K] [fintype (units K)] :
+lemma prod_univ_units_id_eq_neg_one [comm_ring K] [is_domain K] [fintype (units K)] :
   (∏ x : units K, x) = (-1 : units K) :=
 begin
   classical,
@@ -276,14 +276,14 @@ instance : is_splitting_field (zmod p) K (X^q - X) :=
   begin
     have h : (X^q - X : polynomial K).nat_degree = q :=
       X_pow_card_sub_X_nat_degree_eq K fintype.one_lt_card,
-    rw [←splits_id_iff_splits, splits_iff_card_roots, map_sub, map_pow, map_X, h,
-      roots_X_pow_card_sub_X K, ←finset.card_def, finset.card_univ],
+    rw [←splits_id_iff_splits, splits_iff_card_roots, polynomial.map_sub, polynomial.map_pow,
+      map_X, h, roots_X_pow_card_sub_X K, ←finset.card_def, finset.card_univ],
   end,
   adjoin_roots :=
   begin
     classical,
     transitivity algebra.adjoin (zmod p) ((roots (X^q - X : polynomial K)).to_finset : set K),
-    { simp only [map_pow, map_X, map_sub], convert rfl },
+    { simp only [polynomial.map_pow, map_X, polynomial.map_sub], convert rfl },
     { rw [roots_X_pow_card_sub_X, val_to_finset, coe_univ, algebra.adjoin_univ], }
   end }
 
@@ -304,11 +304,12 @@ open polynomial
 lemma expand_card (f : polynomial K) :
   expand K q f = f ^ q :=
 begin
-  cases char_p.exists K with p hp, letI := hp,
-  rcases finite_field.card K p with ⟨⟨n, npos⟩, ⟨hp, hn⟩⟩, haveI : fact p.prime := ⟨hp⟩,
-  dsimp at hn, rw hn at *,
-  rw ← map_expand_pow_char,
-  rw [frobenius_pow hn, ring_hom.one_def, map_id],
+  cases char_p.exists K with p hp,
+  letI := hp,
+  rcases finite_field.card K p with ⟨⟨n, npos⟩, ⟨hp, hn⟩⟩,
+  haveI : fact p.prime := ⟨hp⟩,
+  dsimp at hn,
+  rw [hn, ← map_expand_pow_char, frobenius_pow hn, ring_hom.one_def, map_id]
 end
 
 end finite_field
@@ -423,3 +424,16 @@ lemma expand_card {p : ℕ} [fact p.prime] (f : polynomial (zmod p)) :
 by { have h := finite_field.expand_card f, rwa zmod.card p at h }
 
 end zmod
+
+/-- **Fermat's Little Theorem**: for all `a : ℤ` coprime to `p`, we have
+`a ^ (p - 1) ≡ 1 [ZMOD p]`. -/
+lemma int.modeq.pow_card_sub_one_eq_one {p : ℕ} (hp : nat.prime p) {n : ℤ} (hpn : is_coprime n p) :
+  n ^ (p - 1) ≡ 1 [ZMOD p] :=
+begin
+  haveI : fact p.prime := ⟨hp⟩,
+  have : ¬ (n : zmod p) = 0,
+  { rw [char_p.int_cast_eq_zero_iff _ p, ← (nat.prime_iff_prime_int.mp hp).coprime_iff_not_dvd],
+    { exact hpn.symm },
+    exact zmod.char_p p },
+  simpa [← zmod.int_coe_eq_int_coe_iff] using zmod.pow_card_sub_one_eq_one this
+end

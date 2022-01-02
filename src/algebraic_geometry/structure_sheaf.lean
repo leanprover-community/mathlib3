@@ -8,7 +8,7 @@ import algebra.category.CommRing.colimits
 import algebra.category.CommRing.limits
 import topology.sheaves.local_predicate
 import ring_theory.localization
-import ring_theory.subring
+import ring_theory.subring.basic
 
 /-!
 # The structure sheaf on `prime_spectrum R`.
@@ -527,6 +527,20 @@ corresponding to a prime ideal in `R` and the localization of `R` at `p`. -/
     by { ext f, simp only [ring_hom.comp_apply, ring_hom.id_apply, localization_to_stalk_of,
                            stalk_to_fiber_ring_hom_to_stalk] } }
 
+instance (x : prime_spectrum R) : is_iso (stalk_to_fiber_ring_hom R x) :=
+is_iso.of_iso (stalk_iso R x)
+
+instance (x : prime_spectrum R) : is_iso (localization_to_stalk R x) :=
+is_iso.of_iso (stalk_iso R x).symm
+
+@[simp, reassoc] lemma stalk_to_fiber_ring_hom_localization_to_stalk (x : prime_spectrum.Top R) :
+  stalk_to_fiber_ring_hom R x ≫ localization_to_stalk R x = 𝟙 _ :=
+(stalk_iso R x).hom_inv_id
+
+@[simp, reassoc] lemma localization_to_stalk_stalk_to_fiber_ring_hom (x : prime_spectrum.Top R) :
+  localization_to_stalk R x ≫ stalk_to_fiber_ring_hom R x = 𝟙 _ :=
+(stalk_iso R x).inv_hom_id
+
 /-- The canonical ring homomorphism interpreting `s ∈ R_f` as a section of the structure sheaf
 on the basic open defined by `f ∈ R`. -/
 def to_basic_open (f : R) : localization.away f →+*
@@ -841,6 +855,40 @@ as_iso (to_open R ⊤)
 @[simp] lemma global_sections_iso_hom (R : CommRing) :
   (global_sections_iso R).hom = to_open R ⊤ := rfl
 
+@[simp, reassoc, elementwise]
+lemma to_stalk_stalk_specializes {R : Type*} [comm_ring R]
+  {x y : prime_spectrum R} (h : x ⤳ y) :
+  to_stalk R y ≫ (structure_sheaf R).val.stalk_specializes h = to_stalk R x :=
+by { dsimp [ to_stalk], simpa }
+
+@[simp, reassoc, elementwise]
+lemma localization_to_stalk_stalk_specializes {R : Type*} [comm_ring R]
+  {x y : prime_spectrum R} (h : x ⤳ y) :
+  structure_sheaf.localization_to_stalk R y ≫ (structure_sheaf R).val.stalk_specializes h =
+    CommRing.of_hom (prime_spectrum.localization_map_of_specializes h) ≫
+      structure_sheaf.localization_to_stalk R x :=
+begin
+  apply is_localization.ring_hom_ext y.as_ideal.prime_compl,
+  any_goals { dsimp, apply_instance },
+  erw ring_hom.comp_assoc,
+  conv_rhs { erw ring_hom.comp_assoc },
+  dsimp [CommRing.of_hom, localization_to_stalk, prime_spectrum.localization_map_of_specializes],
+  rw [is_localization.lift_comp, is_localization.lift_comp, is_localization.lift_comp],
+  exact to_stalk_stalk_specializes h
+end
+
+@[simp, reassoc, elementwise]
+lemma stalk_specializes_stalk_to_fiber {R : Type*} [comm_ring R]
+  {x y : prime_spectrum R} (h : x ⤳ y) :
+  (structure_sheaf R).val.stalk_specializes h ≫ structure_sheaf.stalk_to_fiber_ring_hom R x =
+    structure_sheaf.stalk_to_fiber_ring_hom R y ≫
+      prime_spectrum.localization_map_of_specializes h :=
+begin
+  change _ ≫ (structure_sheaf.stalk_iso R x).hom = (structure_sheaf.stalk_iso R y).hom ≫ _,
+  rw [← iso.eq_comp_inv, category.assoc, ← iso.inv_comp_eq],
+  exact localization_to_stalk_stalk_specializes h,
+end
+
 section comap
 
 variables {R} {S : Type u} [comm_ring S] {P : Type u} [comm_ring P]
@@ -874,7 +922,7 @@ begin
   rcases hs ⟨prime_spectrum.comap f p, hUV hpV⟩ with ⟨W, m, iWU, a, b, h_frac⟩,
   -- We claim that we can write our new section as the fraction `f a / f b` on the neighborhood
   -- `(comap f) ⁻¹ W ⊓ V` of `p`.
-  refine ⟨opens.comap (comap_continuous f) W ⊓ V, ⟨m, hpV⟩, opens.inf_le_right _ _, f a, f b, _⟩,
+  refine ⟨opens.comap (comap f) W ⊓ V, ⟨m, hpV⟩, opens.inf_le_right _ _, f a, f b, _⟩,
   rintro ⟨q, ⟨hqW, hqV⟩⟩,
   specialize h_frac ⟨prime_spectrum.comap f q, hqW⟩,
   refine ⟨h_frac.1, _⟩,
@@ -907,8 +955,7 @@ def comap (f : R →+* S) (U : opens (prime_spectrum.Top R))
       pi.add_apply, ring_hom.map_add], refl },
   map_mul' := λ s t, subtype.ext $ funext $ λ p, by
     { rw [subtype.coe_mk, subtype.val_eq_coe, comap_fun, (sections_subring R (op U)).coe_mul,
-      pi.mul_apply, ring_hom.map_mul], refl }
-}
+      pi.mul_apply, ring_hom.map_mul], refl } }
 
 @[simp]
 lemma comap_apply (f : R →+* S) (U : opens (prime_spectrum.Top R))
@@ -990,7 +1037,7 @@ end
 
 @[elementwise, reassoc] lemma to_open_comp_comap (f : R →+* S)
   (U : opens (prime_spectrum.Top R)) :
-  to_open R U ≫ comap f U (opens.comap (comap_continuous f) U) (λ _, id) =
+  to_open R U ≫ comap f U (opens.comap (prime_spectrum.comap f) U) (λ _, id) =
   CommRing.of_hom f ≫ to_open S _ :=
 ring_hom.ext $ λ s, subtype.eq $ funext $ λ p,
 begin

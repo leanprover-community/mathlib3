@@ -4,10 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Thomas Browning, Patrick Lutz
 -/
 
+import group_theory.perm.cycle_type
 import analysis.complex.polynomial
 import field_theory.galois
-import group_theory.perm.cycle_type
-import ring_theory.eisenstein_criterion
 
 /-!
 # Galois Groups of Polynomials

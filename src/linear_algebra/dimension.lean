@@ -228,7 +228,7 @@ begin
 end
 
 theorem dim_quotient_le (p : submodule R M) :
-  module.rank R p.quotient ≤ module.rank R M :=
+  module.rank R (M ⧸ p) ≤ module.rank R M :=
 (mkq p).dim_le_of_surjective (surjective_quot_mk _)
 
 variables [nontrivial R]
@@ -549,14 +549,14 @@ lemma basis.le_span'' {ι : Type*} [fintype ι] (b : basis ι R M)
   {w : set M} [fintype w] (s : span R w = ⊤) :
   fintype.card ι ≤ fintype.card w :=
 begin
-   -- We construct an surjective linear map `(w → R) →ₗ[R] (ι → R)`,
-   -- by expressing a linear combination in `w` as a linear combination in `ι`.
-   fapply card_le_of_surjective' R,
-   { exact b.repr.to_linear_map.comp (finsupp.total w M R coe), },
-   { apply surjective.comp,
-    apply linear_equiv.surjective,
-    rw [←linear_map.range_eq_top, finsupp.range_total],
-    simpa using s, },
+  -- We construct an surjective linear map `(w → R) →ₗ[R] (ι → R)`,
+  -- by expressing a linear combination in `w` as a linear combination in `ι`.
+  fapply card_le_of_surjective' R,
+  { exact b.repr.to_linear_map.comp (finsupp.total w M R coe), },
+  { apply surjective.comp,
+   apply linear_equiv.surjective,
+   rw [←linear_map.range_eq_top, finsupp.range_total],
+   simpa using s, },
 end
 
 /--
@@ -1038,14 +1038,14 @@ variables [add_comm_group V'] [module K V']
 variables {K V}
 
 theorem dim_quotient_add_dim (p : submodule K V) :
-  module.rank K p.quotient + module.rank K p = module.rank K V :=
+  module.rank K (V ⧸ p) + module.rank K p = module.rank K V :=
 by classical; exact let ⟨f⟩ := quotient_prod_linear_equiv p in dim_prod.symm.trans f.dim_eq
 
 /-- rank-nullity theorem -/
 theorem dim_range_add_dim_ker (f : V →ₗ[K] V₁) :
   module.rank K f.range + module.rank K f.ker = module.rank K V :=
 begin
-  haveI := λ (p : submodule K V), classical.dec_eq p.quotient,
+  haveI := λ (p : submodule K V), classical.dec_eq (V ⧸ p),
   rw [← f.quot_ker_equiv_range.dim_eq, dim_quotient_add_dim]
 end
 

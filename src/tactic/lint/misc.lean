@@ -3,6 +3,8 @@ Copyright (c) 2020 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn, Robert Y. Lewis
 -/
+import data.bool.basic
+import meta.rb_map
 import tactic.lint.basic
 
 /-!
@@ -163,7 +165,7 @@ See also `check_unused_arguments`.
 This tactic additionally filters out all unused arguments of type `parse _`.
 We skip all declarations that contain `sorry` in their value. -/
 private meta def unused_arguments (d : declaration) : tactic (option string) := do
-  ff ← return d.value.contains_sorry | return none,
+  ff ← d.to_name.contains_sorry | return none,
   let ns := check_unused_arguments d,
   tt ← return ns.is_some | return none,
   let ns := ns.iget,
@@ -250,8 +252,6 @@ has been used. -/
   auto_decls := ff,
   no_errors_found := "All declarations correctly marked as def/lemma.",
   errors_found := "INCORRECT DEF/LEMMA:" }
-
-attribute [nolint def_lemma] classical.dec classical.dec_pred classical.dec_rel classical.dec_eq
 
 /-!
 ## Linter that checks whether declarations are well-typed

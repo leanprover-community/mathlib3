@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import topology.algebra.monoid
-import algebra.module.prod
+import group_theory.group_action.prod
+import group_theory.group_action.basic
 import topology.homeomorph
 
 /-!
@@ -32,7 +33,7 @@ Besides homeomorphisms mentioned above, in this file we provide lemmas like `con
 or `filter.tendsto.smul` that provide dot-syntax access to `continuous_smul`.
 -/
 
-open_locale topological_space
+open_locale topological_space pointwise
 open filter
 
 /-- Class `has_continuous_smul M α` says that the scalar multiplication `(•) : M → α → α`
@@ -122,6 +123,13 @@ lemma continuous.const_smul (hg : continuous g) (c : M) :
   continuous (λ x, c • g x) :=
 continuous_smul.comp (continuous_const.prod_mk hg)
 
+/-- If a scalar is central, then its right action is continuous when its left action is. -/
+instance has_continuous_smul.op [has_scalar Mᵐᵒᵖ α] [is_central_scalar M α] :
+  has_continuous_smul Mᵐᵒᵖ α :=
+⟨ suffices continuous (λ p : M × α, mul_opposite.op p.fst • p.snd),
+  from this.comp (continuous_unop.prod_map continuous_id),
+  by simpa only [op_smul_eq_smul] using (continuous_smul : continuous (λ p : M × α, _)) ⟩
+
 end has_scalar
 
 section monoid
@@ -132,6 +140,15 @@ instance units.has_continuous_smul : has_continuous_smul (units M) α :=
 { continuous_smul :=
     show continuous ((λ p : M × α, p.fst • p.snd) ∘ (λ p : units M × α, (p.1, p.2))),
     from continuous_smul.comp ((units.continuous_coe.comp continuous_fst).prod_mk continuous_snd) }
+
+@[to_additive]
+lemma smul_closure_subset (c : M) (s : set α) : c • closure s ⊆ closure (c • s) :=
+((set.maps_to_image _ _).closure $ continuous_id.const_smul c).image_subset
+
+@[to_additive]
+lemma smul_closure_orbit_subset (c : M) (x : α) :
+  c • closure (mul_action.orbit M x) ⊆ closure (mul_action.orbit M x) :=
+(smul_closure_subset c _).trans $ closure_mono $ mul_action.smul_orbit_subset _ _
 
 end monoid
 
@@ -189,9 +206,15 @@ attribute [to_additive] homeomorph.smul
 lemma is_open_map_smul (c : G) : is_open_map (λ x : α, c • x) :=
 (homeomorph.smul c).is_open_map
 
+@[to_additive] lemma is_open.smul {s : set α} (hs : is_open s) (c : G) : is_open (c • s) :=
+is_open_map_smul c s hs
+
 @[to_additive]
 lemma is_closed_map_smul (c : G) : is_closed_map (λ x : α, c • x) :=
 (homeomorph.smul c).is_closed_map
+
+@[to_additive] lemma is_closed.smul {s : set α} (hs : is_closed s) (c : G) : is_closed (c • s) :=
+is_closed_map_smul c s hs
 
 end group
 
@@ -300,7 +323,7 @@ instance [topological_space β] [has_scalar M α] [has_scalar M β] [has_continu
   (continuous_fst.smul (continuous_snd.comp continuous_snd))⟩
 
 @[to_additive]
-instance {ι : Type*} {γ : ι → Type}
+instance {ι : Type*} {γ : ι → Type*}
   [∀ i, topological_space (γ i)] [Π i, has_scalar M (γ i)] [∀ i, has_continuous_smul M (γ i)] :
   has_continuous_smul M (Π i, γ i) :=
 ⟨continuous_pi $ λ i,

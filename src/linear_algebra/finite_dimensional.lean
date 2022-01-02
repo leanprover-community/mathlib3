@@ -77,9 +77,8 @@ open_locale classical cardinal
 
 open cardinal submodule module function
 
-/-- `finite_dimensional` vector spaces are defined to be noetherian modules.
-Use `finite_dimensional.iff_fg` or `finite_dimensional.of_fintype_basis` to prove finite dimension
-from another definition. -/
+/-- `finite_dimensional` vector spaces are defined to be finite modules.
+Use `finite_dimensional.of_fintype_basis` to prove finite dimension from another definition. -/
 @[reducible] def finite_dimensional (K V : Type*) [division_ring K]
   [add_comm_group V] [module K V] := module.finite K V
 
@@ -94,8 +93,6 @@ variables (K : Type u) (V : Type v) [division_ring K] [add_comm_group V] [module
 
 variables (K V)
 
--- Without this apparently redundant instance we get typeclass search errors
--- in `analysis.normed_space.finite_dimension`.
 instance finite_dimensional_pi {ι} [fintype ι] : finite_dimensional K (ι → K) :=
 iff_fg.1 is_noetherian_pi
 
@@ -149,7 +146,7 @@ end
 
 /-- A quotient of a finite-dimensional space is also finite-dimensional. -/
 instance finite_dimensional_quotient [finite_dimensional K V] (S : submodule K V) :
-  finite_dimensional K (quotient S) :=
+  finite_dimensional K (V ⧸ S) :=
 finite.of_surjective (submodule.mkq S) $ surjective_quot_mk _
 
 /-- The rank of a module as a natural number.
@@ -411,11 +408,7 @@ end
 /-- Pushforwards of finite-dimensional submodules have a smaller finrank. -/
 lemma finrank_map_le (f : V →ₗ[K] V₂) (p : submodule K V) [finite_dimensional K p] :
   finrank K (p.map f) ≤ finrank K p :=
-begin
-  rw [← cardinal.nat_cast_le.{max v v'}, ← cardinal.lift_nat_cast.{v' v},
-    ← cardinal.lift_nat_cast.{v v'}, finrank_eq_dim K p, finrank_eq_dim K (p.map f)],
-  exact lift_dim_map_le f p
-end
+by simpa [← finrank_eq_dim] using lift_dim_map_le f p
 
 variable {K}
 
@@ -469,7 +462,7 @@ lemma exists_nontrivial_relation_of_dim_lt_card
   ∃ f : V → K, ∑ e in t, f e • e = 0 ∧ ∃ x ∈ t, f x ≠ 0 :=
 begin
   have := mt finset_card_le_finrank_of_linear_independent (by { simpa using h }),
-  rw linear_dependent_iff at this,
+  rw not_linear_independent_iff at this,
   obtain ⟨s, g, sum, z, zm, nonzero⟩ := this,
   -- Now we have to extend `g` to all of `t`, then to all of `V`.
   let f : V → K :=
@@ -737,7 +730,7 @@ end
 /-- In a finite-dimensional vector space, the dimensions of a submodule and of the corresponding
 quotient add up to the dimension of the space. -/
 theorem finrank_quotient_add_finrank [finite_dimensional K V] (s : submodule K V) :
-  finrank K s.quotient + finrank K s = finrank K V :=
+  finrank K (V ⧸ s) + finrank K s = finrank K V :=
 begin
   have := dim_quotient_add_dim s,
   rw [← finrank_eq_dim, ← finrank_eq_dim, ← finrank_eq_dim] at this,
@@ -759,7 +752,7 @@ end
 
 /-- The dimension of a quotient is bounded by the dimension of the ambient space. -/
 lemma finrank_quotient_le [finite_dimensional K V] (s : submodule K V) :
-  finrank K s.quotient ≤ finrank K V :=
+  finrank K (V ⧸ s) ≤ finrank K V :=
 by { rw ← s.finrank_quotient_add_finrank, exact nat.le_add_right _ _ }
 
 /-- The sum of the dimensions of s + t and s ∩ t is the sum of the dimensions of s and t -/
@@ -870,7 +863,7 @@ variables [finite_dimensional K V] [finite_dimensional K V₂]
   `p.quotient` is isomorphic to `q.quotient`. -/
 noncomputable def linear_equiv.quot_equiv_of_equiv
   {p : subspace K V} {q : subspace K V₂}
-  (f₁ : p ≃ₗ[K] q) (f₂ : V ≃ₗ[K] V₂) : p.quotient ≃ₗ[K] q.quotient :=
+  (f₁ : p ≃ₗ[K] q) (f₂ : V ≃ₗ[K] V₂) : (V ⧸ p) ≃ₗ[K] (V₂ ⧸ q) :=
 linear_equiv.of_finrank_eq _ _
 begin
   rw [← @add_right_cancel_iff _ _ (finrank K p), submodule.finrank_quotient_add_finrank,
@@ -880,7 +873,7 @@ end
 
 /-- Given the subspaces `p q`, if `p.quotient ≃ₗ[K] q`, then `q.quotient ≃ₗ[K] p` -/
 noncomputable def linear_equiv.quot_equiv_of_quot_equiv
-  {p q : subspace K V} (f : p.quotient ≃ₗ[K] q) : q.quotient ≃ₗ[K] p :=
+  {p q : subspace K V} (f : (V ⧸ p) ≃ₗ[K] q) : (V ⧸ q) ≃ₗ[K] p :=
 linear_equiv.of_finrank_eq _ _
 begin
   rw [← @add_right_cancel_iff _ _ (finrank K q), submodule.finrank_quotient_add_finrank,
@@ -981,7 +974,7 @@ end linear_equiv
 
 namespace linear_map
 
-lemma is_unit_iff [finite_dimensional K V] (f : V →ₗ[K] V): is_unit f ↔ f.ker = ⊥ :=
+lemma is_unit_iff_ker_eq_bot [finite_dimensional K V] (f : V →ₗ[K] V): is_unit f ↔ f.ker = ⊥ :=
 begin
   split,
   { rintro ⟨u, rfl⟩,
@@ -991,6 +984,9 @@ begin
       linear_equiv.of_injective_endo_right_inv f h_inj,
       linear_equiv.of_injective_endo_left_inv f h_inj⟩, rfl⟩ }
 end
+
+lemma is_unit_iff_range_eq_top [finite_dimensional K V] (f : V →ₗ[K] V): is_unit f ↔ f.range = ⊤ :=
+by rw [is_unit_iff_ker_eq_bot, ker_eq_bot_iff_range_eq_top]
 
 end linear_map
 

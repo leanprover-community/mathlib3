@@ -109,13 +109,24 @@ def trop_rec {F : Π (X : tropical R), Sort v} (h : Π X, F (trop X)) : Π X, F 
 
 section order
 
-instance [preorder R] : preorder (tropical R) :=
-{ le := λ x y, untrop x ≤ untrop y,
-  le_refl := λ _, le_refl _,
-  le_trans := λ _ _ _ h h', le_trans h h', }
+instance [has_le R] : has_le (tropical R) :=
+{ le := λ x y, untrop x ≤ untrop y }
 
-@[simp] lemma untrop_le_iff [preorder R] {x y : tropical R} :
+@[simp] lemma untrop_le_iff [has_le R] {x y : tropical R} :
   untrop x ≤ untrop y ↔ x ≤ y := iff.rfl
+
+instance [has_lt R] : has_lt (tropical R) :=
+{ lt := λ x y, untrop x < untrop y }
+
+@[simp] lemma untrop_lt_iff [has_lt R] {x y : tropical R} :
+  untrop x < untrop y ↔ x < y := iff.rfl
+
+instance [preorder R] : preorder (tropical R) :=
+{ le_refl := λ _, le_refl _,
+  le_trans := λ _ _ _ h h', le_trans h h',
+  lt_iff_le_not_le := λ _ _, lt_iff_le_not_le,
+  ..tropical.has_le,
+  ..tropical.has_lt }
 
 /-- Reinterpret `x : R` as an element of `tropical R`, preserving the order. -/
 def trop_order_iso [preorder R] : R ≃o tropical R :=
@@ -127,6 +138,9 @@ lemma trop_order_iso_coe_fn [preorder R] : (trop_order_iso : R → tropical R) =
 @[simp]
 lemma trop_order_iso_symm_coe_fn [preorder R] : (trop_order_iso.symm : tropical R → R) = untrop :=
 rfl
+
+lemma trop_monotone [preorder R] : monotone (trop : R → tropical R) := λ _ _, id
+lemma untrop_monotone [preorder R] : monotone (untrop : tropical R → R) := λ _ _, id
 
 instance [partial_order R] : partial_order (tropical R) :=
 { le_antisymm := λ _ _ h h', untrop_injective (le_antisymm h h'),
@@ -141,11 +155,10 @@ instance [has_top R] : has_top (tropical R) := ⟨0⟩
 @[simp] lemma trop_coe_ne_zero (x : R) : trop (x : with_top R) ≠ 0 .
 @[simp] lemma zero_ne_trop_coe (x : R) : (0 : tropical (with_top R)) ≠ trop x .
 
-@[simp] lemma le_zero [order_top R] (x : tropical R) : x ≤ 0 := le_top
+@[simp] lemma le_zero [has_le R] [order_top R] (x : tropical R) : x ≤ 0 := le_top
 
-instance [partial_order R] : order_top (tropical (with_top R)) :=
-{ le_top := λ a a' h, option.no_confusion h,
-  ..tropical.partial_order,
+instance [has_le R] [order_top R] : order_top (tropical R) :=
+{ le_top := λ _, le_top,
   ..tropical.has_top }
 
 variable [linear_order R]
@@ -165,6 +178,8 @@ instance : linear_order (tropical R) :=
   ..tropical.partial_order }
 
 @[simp] lemma untrop_add (x y : tropical R) : untrop (x + y) = min (untrop x) (untrop y) := rfl
+@[simp] lemma trop_min (x y : R) : trop (min x y) = trop x + trop y := rfl
+@[simp] lemma trop_inf (x y : R) : trop (x ⊓ y) = trop x + trop y := rfl
 
 lemma trop_add_def (x y : tropical R) : x + y = trop (min (untrop x) (untrop y)) := rfl
 
@@ -174,13 +189,19 @@ lemma trop_add_def (x y : tropical R) : x + y = trop (min (untrop x) (untrop y))
 @[simp] lemma add_eq_right ⦃x y : tropical R⦄ (h : y ≤ x) :
   x + y = y := untrop_injective (by simpa using h)
 
+lemma add_eq_left_iff {x y : tropical R} : x + y = x ↔ x ≤ y :=
+by rw [trop_add_def, trop_eq_iff_eq_untrop, ←untrop_le_iff, min_eq_left_iff]
+
+lemma add_eq_right_iff {x y : tropical R} : x + y = y ↔ y ≤ x :=
+by rw [trop_add_def, trop_eq_iff_eq_untrop, ←untrop_le_iff, min_eq_right_iff]
+
 @[simp] lemma add_self (x : tropical R) : x + x = x := untrop_injective (min_eq_right le_rfl)
 
 @[simp] lemma bit0 (x : tropical R) : bit0 x = x := add_self x
 
 lemma add_eq_iff {x y z : tropical R} :
   x + y = z ↔ x = z ∧ x ≤ y ∨ y = z ∧ y ≤ x :=
-by simp [trop_add_def, trop_eq_iff_eq_untrop, min_eq_iff]
+by { rw [trop_add_def, trop_eq_iff_eq_untrop], simp [min_eq_iff] }
 
 @[simp] lemma add_eq_zero_iff {a b : tropical (with_top R)} :
   a + b = 0 ↔ a = 0 ∧ b = 0 :=
@@ -194,8 +215,11 @@ begin
     simp }
 end
 
--- We cannot define `add_comm_monoid` here because there is no class that is solely
--- `[linear_order R] [order_top R]`
+instance [order_top R] : add_comm_monoid (tropical R) :=
+{ zero_add := λ _, untrop_injective (min_top_left _),
+  add_zero := λ _, untrop_injective (min_top_right _),
+  ..tropical.has_zero,
+  ..tropical.add_comm_semigroup }
 
 end order
 
@@ -206,6 +230,8 @@ protected def mul [has_add R] (x y : tropical R) : tropical R := trop (untrop x 
 
 instance [has_add R] : has_mul (tropical R) := ⟨tropical.mul⟩
 
+@[simp] lemma trop_add [has_add R] (x y : R) :
+  trop (x + y) = trop x * trop y := rfl
 @[simp] lemma untrop_mul [has_add R] (x y : tropical R) :
   untrop (x * y) = untrop x + untrop y := rfl
 
@@ -213,6 +239,10 @@ lemma trop_mul_def [has_add R] (x y : tropical R) :
   x * y = trop (untrop x + untrop y) := rfl
 
 instance [has_zero R] : has_one (tropical R) := ⟨trop 0⟩
+
+@[simp] lemma trop_zero [has_zero R] : trop (0 : R) = 1 := rfl
+@[simp] lemma untrop_one [has_zero R] : untrop (1 : tropical R) = 0 := rfl
+
 instance [has_zero R] : nontrivial (tropical (with_top R)) :=
 ⟨⟨0, 1, trop_injective.ne with_top.top_ne_coe⟩⟩
 
@@ -233,49 +263,101 @@ instance [add_comm_semigroup R] : comm_semigroup (tropical R) :=
 { mul_comm := λ _ _, untrop_injective (add_comm _ _),
   ..tropical.semigroup }
 
+instance {α : Type*} [has_scalar α R] : has_pow (tropical R) α :=
+{ pow := λ x n, trop $ n • untrop x }
+
+@[simp] lemma untrop_pow {α : Type*} [has_scalar α R] (x : tropical R) (n : α) :
+  untrop (x ^ n) = n • untrop x := rfl
+
+@[simp] lemma trop_smul {α : Type*} [has_scalar α R] (x : R) (n : α) :
+  trop (n • x) = trop x ^ n := rfl
+
+instance [add_zero_class R] : mul_one_class (tropical R) :=
+{ one := 1,
+  mul := (*),
+  one_mul := λ _, untrop_injective $ zero_add _,
+  mul_one := λ _, untrop_injective $ add_zero _ }
+
 instance [add_monoid R] : monoid (tropical R) :=
-{ one := trop 0,
-  one_mul := λ _, untrop_injective (zero_add _),
-  mul_one := λ _, untrop_injective (add_zero _),
+{ npow := λ n x, x ^ n,
+  npow_zero' := λ _, untrop_injective $ zero_smul _ _,
+  npow_succ' := λ _ _, untrop_injective $ succ_nsmul _ _,
+  ..tropical.mul_one_class,
   ..tropical.semigroup }
 
-@[simp] lemma untrop_one [add_monoid R] : untrop (1 : tropical R) = 0 := rfl
-
-@[simp] lemma untrop_pow [add_monoid R] (x : tropical R) (n : ℕ) :
-  untrop (x ^ n) = n • untrop x :=
-begin
-  induction n with n IH,
-  { simp, },
-  { rw [pow_succ, untrop_mul, IH, succ_nsmul] }
-end
-
 @[simp] lemma trop_nsmul [add_monoid R] (x : R) (n : ℕ) :
-  trop (n • x) = trop x ^ n :=
-by simp [trop_eq_iff_eq_untrop]
+  trop (n • x) = trop x ^ n := rfl
 
 instance [add_comm_monoid R] : comm_monoid (tropical R) :=
 { ..tropical.monoid, ..tropical.comm_semigroup }
 
 instance [add_group R] : group (tropical R) :=
-{ inv := λ x, trop (- untrop x),
-  mul_left_inv := λ _, untrop_injective (add_left_neg _),
+{ inv := has_inv.inv,
+  mul_left_inv := λ _, untrop_injective $ add_left_neg _,
+  zpow := λ n x, trop $ n • untrop x,
+  zpow_zero' := λ _, untrop_injective $ zero_zsmul _,
+  zpow_succ' := λ _ _, untrop_injective $ add_group.zsmul_succ' _ _,
+  zpow_neg' := λ _ _, untrop_injective $ add_group.zsmul_neg' _ _,
   ..tropical.monoid }
 
 instance [add_comm_group R] : comm_group (tropical R) :=
 { mul_comm := λ _ _, untrop_injective (add_comm _ _),
   ..tropical.group }
 
+@[simp] lemma untrop_zpow [add_group R] (x : tropical R) (n : ℤ) :
+  untrop (x ^ n) = n • untrop x := rfl
+
+@[simp] lemma trop_zsmul [add_group R] (x : R) (n : ℤ) :
+  trop (n • x) = trop x ^ n := rfl
+
 end monoid
 
 section distrib
 
-instance covariant_mul [preorder R] [has_add R] [covariant_class R R (+) (≤)] :
+instance covariant_mul [has_le R] [has_add R] [covariant_class R R (+) (≤)] :
   covariant_class (tropical R) (tropical R) (*) (≤) :=
 ⟨λ x y z h, add_le_add_left h _⟩
 
-instance covariant_swap_mul [preorder R] [has_add R] [covariant_class R R (function.swap (+)) (≤)] :
+instance covariant_swap_mul [has_le R] [has_add R] [covariant_class R R (function.swap (+)) (≤)] :
   covariant_class (tropical R) (tropical R) (function.swap (*)) (≤) :=
 ⟨λ x y z h, add_le_add_right h _⟩
+
+instance covariant_add [linear_order R] : covariant_class (tropical R) (tropical R) (+) (≤) :=
+⟨λ x y z h, begin
+  cases le_total x y with hx hy,
+  { rw [add_eq_left hx, add_eq_left (hx.trans h)] },
+  { rw [add_eq_right hy],
+    cases le_total x z with hx hx,
+    { rwa [add_eq_left hx] },
+    { rwa [add_eq_right hx] } }
+end⟩
+
+instance covariant_swap_add [linear_order R] :
+  covariant_class (tropical R) (tropical R) (function.swap (+)) (≤) :=
+⟨λ x y z h, by { convert add_le_add_left h x using 1; rw [add_comm] }⟩
+
+instance covariant_mul_lt [has_lt R] [has_add R] [covariant_class R R (+) (<)] :
+  covariant_class (tropical R) (tropical R) (*) (<) :=
+⟨λ x y z h, add_lt_add_left h _⟩
+
+instance covariant_swap_mul_lt [preorder R] [has_add R]
+  [covariant_class R R (function.swap (+)) (<)] :
+  covariant_class (tropical R) (tropical R) (function.swap (*)) (<) :=
+⟨λ x y z h, add_lt_add_right h _⟩
+
+instance covariant_add_lt [linear_order R] : covariant_class (tropical R) (tropical R) (+) (≤) :=
+⟨λ x y z h, begin
+  cases le_total x y with hx hy,
+  { rw [add_eq_left hx, add_eq_left (hx.trans h)] },
+  { rw [add_eq_right hy],
+    cases le_total x z with hx hx,
+    { rwa [add_eq_left hx] },
+    { rwa [add_eq_right hx] } }
+end⟩
+
+instance covariant_swap_add_lt [linear_order R] :
+  covariant_class (tropical R) (tropical R) (function.swap (+)) (≤) :=
+⟨λ x y z h, by { convert add_le_add_left h x using 1; rw [add_comm] }⟩
 
 instance [linear_order R] [has_add R]
   [covariant_class R R (+) (≤)] [covariant_class R R (function.swap (+)) (≤)] :
@@ -302,17 +384,14 @@ section semiring
 variable [linear_ordered_add_comm_monoid_with_top R]
 
 instance : comm_semiring (tropical R) :=
-{ zero_add := λ _, untrop_injective (min_top_left _),
-  add_zero := λ _, untrop_injective (min_top_right _),
-  zero_mul := λ _, untrop_injective (top_add _),
+{ zero_mul := λ _, untrop_injective (top_add _),
   mul_zero := λ _, untrop_injective (add_top _),
   ..tropical.has_zero,
   ..tropical.distrib,
-  ..tropical.add_comm_semigroup,
+  ..tropical.add_comm_monoid,
   ..tropical.comm_monoid  }
 
--- This could be stated on something like `linear_order_with_top α` if that existed
-@[simp] lemma succ_nsmul (x : tropical R) (n : ℕ) :
+@[simp] lemma succ_nsmul {R} [linear_order R] [order_top R] (x : tropical R) (n : ℕ) :
   (n + 1) • x = x :=
 begin
   induction n with n IH,

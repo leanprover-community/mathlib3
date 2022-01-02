@@ -3,13 +3,11 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import data.fintype.basic
-import data.finset.sort
-import data.nat.parity
 import group_theory.perm.support
+import data.fintype.basic
 import group_theory.order_of_element
 import tactic.norm_swap
-import group_theory.quotient_group
+import data.finset.sort
 
 /-!
 # Sign of a permutation
@@ -39,7 +37,7 @@ def mod_swap [decidable_eq α] (i j : α) : setoid (perm α) :=
 ⟨λ σ τ, σ = τ ∨ σ = swap i j * τ,
  λ σ, or.inl (refl σ),
  λ σ τ h, or.cases_on h (λ h, or.inl h.symm) (λ h, or.inr (by rw [h, swap_mul_self_mul])),
- λ σ τ υ hστ hτυ, by cases hστ; cases hτυ; try {rw [hστ, hτυ, swap_mul_self_mul]}; finish⟩
+ λ σ τ υ hστ hτυ, by cases hστ; cases hτυ; try {rw [hστ, hτυ, swap_mul_self_mul]}; simp [hστ, hτυ] ⟩
 
 instance {α : Type*} [fintype α] [decidable_eq α] (i j : α) : decidable_rel (mod_swap i j).r :=
 λ σ τ, or.decidable
@@ -93,8 +91,8 @@ lemma perm_maps_to_inl_iff_maps_to_inr {m n : Type*} [fintype m] [fintype n]
   set.maps_to σ (set.range sum.inl) (set.range sum.inl) ↔
   set.maps_to σ (set.range sum.inr) (set.range sum.inr) :=
 begin
-  split; id {
-    intros h,
+  split; id
+  { intros h,
     classical,
     rw ←perm_inv_maps_to_iff_maps_to at h,
     intro x,
@@ -405,7 +403,7 @@ lemma sign_aux_eq_sign_aux2 {n : ℕ} : ∀ (l : list α) (f : perm α) (e : α 
   (h : ∀ x, f x ≠ x → x ∈ l), sign_aux ((e.symm.trans f).trans e) = sign_aux2 l f
 | []     f e h := have f = 1, from equiv.ext $
   λ y, not_not.1 (mt (h y) (list.not_mem_nil _)),
-by rw [this, one_def, equiv.trans_refl, equiv.symm_trans, ← one_def,
+by rw [this, one_def, equiv.trans_refl, equiv.symm_trans_self, ← one_def,
   sign_aux_one, sign_aux2]
 | (x::l) f e h := begin
   rw sign_aux2,

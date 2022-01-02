@@ -30,7 +30,8 @@ product structure on `n → 𝕜` for `𝕜 = ℝ` or `ℂ`, see `euclidean_spac
 - We define the class `inner_product_space 𝕜 E` extending `normed_space 𝕜 E` with a number of basic
   properties, most notably the Cauchy-Schwarz inequality. Here `𝕜` is understood to be either `ℝ`
   or `ℂ`, through the `is_R_or_C` typeclass.
-- We show that the inner product is continuous, `continuous_inner`.
+- We show that the inner product is continuous, `continuous_inner`, and bundle it as the
+  the continuous sesquilinear map `innerSL` (see also `innerₛₗ` for the non-continuous version).
 - We define `orthonormal`, a predicate on a function `v : ι → E`, and prove the existence of a
   maximal orthonormal set, `exists_maximal_orthonormal`.  Bessel's inequality,
   `orthonormal.tsum_inner_products_le`, states that given an orthonormal set `v` and a vector `x`,
@@ -224,7 +225,7 @@ lemma inner_sub_right {x y z : F} : ⟪x, y - z⟫ = ⟪x, y⟫ - ⟪x, z⟫ :=
 by { simp [sub_eq_add_neg, inner_add_right, inner_neg_right] }
 
 lemma inner_mul_conj_re_abs {x y : F} : re (⟪x, y⟫ * ⟪y, x⟫) = abs (⟪x, y⟫ * ⟪y, x⟫) :=
-by { rw[←inner_conj_sym, mul_comm], exact re_eq_abs_of_mul_conj (inner y x), }
+by { rw [←inner_conj_sym, mul_comm], exact re_eq_abs_of_mul_conj (inner y x), }
 
 /-- Expand `inner (x + y) (x + y)` -/
 lemma inner_add_add_self {x y : F} : ⟪x + y, x + y⟫ = ⟪x, x⟫ + ⟪x, y⟫ + ⟪y, x⟫ + ⟪y, y⟫ :=
@@ -297,8 +298,8 @@ local attribute [instance] to_has_norm
 
 lemma norm_eq_sqrt_inner (x : F) : ∥x∥ = sqrt (re ⟪x, x⟫) := rfl
 
-lemma inner_self_eq_norm_sq (x : F) : re ⟪x, x⟫ = ∥x∥ * ∥x∥ :=
-by rw[norm_eq_sqrt_inner, ←sqrt_mul inner_self_nonneg (re ⟪x, x⟫),
+lemma inner_self_eq_norm_mul_norm (x : F) : re ⟪x, x⟫ = ∥x∥ * ∥x∥ :=
+by rw [norm_eq_sqrt_inner, ←sqrt_mul inner_self_nonneg (re ⟪x, x⟫),
   sqrt_mul_self inner_self_nonneg]
 
 lemma sqrt_norm_sq_eq_norm {x : F} : sqrt (norm_sqF x) = ∥x∥ := rfl
@@ -308,11 +309,11 @@ lemma abs_inner_le_norm (x y : F) : abs ⟪x, y⟫ ≤ ∥x∥ * ∥y∥ :=
 nonneg_le_nonneg_of_sq_le_sq (mul_nonneg (sqrt_nonneg _) (sqrt_nonneg _))
 begin
   have H : ∥x∥ * ∥y∥ * (∥x∥ * ∥y∥) = re ⟪y, y⟫ * re ⟪x, x⟫,
-  { simp only [inner_self_eq_norm_sq], ring, },
+  { simp only [inner_self_eq_norm_mul_norm], ring, },
   rw H,
   conv
   begin
-    to_lhs, congr, rw[inner_abs_conj_sym],
+    to_lhs, congr, rw [inner_abs_conj_sym],
   end,
   exact inner_mul_inner_self_le y x,
 end
@@ -340,7 +341,7 @@ normed_group.of_core F
     have h₃ : re ⟪x, y⟫ ≤ ∥x∥ * ∥y∥ := by linarith,
     have h₄ : re ⟪y, x⟫ ≤ ∥x∥ * ∥y∥ := by rwa [←inner_conj_sym, conj_re],
     have : ∥x + y∥ * ∥x + y∥ ≤ (∥x∥ + ∥y∥) * (∥x∥ + ∥y∥),
-    { simp [←inner_self_eq_norm_sq, inner_add_add_self, add_mul, mul_add, mul_comm],
+    { simp [←inner_self_eq_norm_mul_norm, inner_add_add_self, add_mul, mul_add, mul_comm],
       linarith },
     exact nonneg_le_nonneg_of_sq_le_sq (add_nonneg (sqrt_nonneg _) (sqrt_nonneg _)) this
   end,
@@ -429,12 +430,13 @@ by { rw [inner_smul_right, algebra.smul_def], refl }
 
 /-- The inner product as a sesquilinear form. -/
 @[simps]
-def sesq_form_of_inner : sesq_form 𝕜 E (conj_to_ring_equiv 𝕜) :=
-{ sesq := λ x y, ⟪y, x⟫,    -- Note that sesquilinear forms are linear in the first argument
-  sesq_add_left := λ x y z, inner_add_right,
-  sesq_add_right := λ x y z, inner_add_left,
-  sesq_smul_left := λ r x y, inner_smul_right,
-  sesq_smul_right := λ r x y, inner_smul_left }
+def sesq_form_of_inner : E →ₗ[𝕜] E →ₗ⋆[𝕜] 𝕜 :=
+linear_map.mk₂'ₛₗ (ring_hom.id 𝕜) (star_ring_aut.to_ring_hom)
+  (λ x y, ⟪y, x⟫)
+  (λ x y z, inner_add_right)
+  (λ r x y, inner_smul_right)
+  (λ x y z, inner_add_left)
+  (λ r x y, inner_smul_left)
 
 /-- The real inner product as a bilinear form. -/
 @[simps]
@@ -447,13 +449,11 @@ def bilin_form_of_real_inner : bilin_form ℝ F :=
 
 /-- An inner product with a sum on the left. -/
 lemma sum_inner {ι : Type*} (s : finset ι) (f : ι → E) (x : E) :
-  ⟪∑ i in s, f i, x⟫ = ∑ i in s, ⟪f i, x⟫ :=
-sesq_form.sum_right (sesq_form_of_inner) _ _ _
+  ⟪∑ i in s, f i, x⟫ = ∑ i in s, ⟪f i, x⟫ := (sesq_form_of_inner x).map_sum
 
 /-- An inner product with a sum on the right. -/
 lemma inner_sum {ι : Type*} (s : finset ι) (f : ι → E) (x : E) :
-  ⟪x, ∑ i in s, f i⟫ = ∑ i in s, ⟪x, f i⟫ :=
-sesq_form.sum_left (sesq_form_of_inner) _ _ _
+  ⟪x, ∑ i in s, f i⟫ = ∑ i in s, ⟪x, f i⟫ := (linear_map.flip sesq_form_of_inner x).map_sum
 
 /-- An inner product with a sum on the left, `finsupp` version. -/
 lemma finsupp.sum_inner {ι : Type*} (l : ι →₀ 𝕜) (v : ι → E) (x : E) :
@@ -528,7 +528,7 @@ begin
 end
 
 lemma inner_self_abs_to_K {x : E} : (absK ⟪x, x⟫ : 𝕜) = ⟪x, x⟫ :=
-by { rw[←inner_self_re_abs], exact inner_self_re_to_K }
+by { rw [←inner_self_re_abs], exact inner_self_re_to_K }
 
 lemma real_inner_self_abs {x : F} : absR ⟪x, x⟫_ℝ = ⟪x, x⟫_ℝ :=
 by { have h := @inner_self_abs_to_K ℝ F _ _ x, simpa using h }
@@ -554,7 +554,7 @@ lemma inner_sub_right {x y z : E} : ⟪x, y - z⟫ = ⟪x, y⟫ - ⟪x, z⟫ :=
 by { simp [sub_eq_add_neg, inner_add_right] }
 
 lemma inner_mul_conj_re_abs {x y : E} : re (⟪x, y⟫ * ⟪y, x⟫) = abs (⟪x, y⟫ * ⟪y, x⟫) :=
-by { rw[←inner_conj_sym, mul_comm], exact re_eq_abs_of_mul_conj (inner y x), }
+by { rw [←inner_conj_sym, mul_comm], exact re_eq_abs_of_mul_conj (inner y x), }
 
 /-- Expand `⟪x + y, x + y⟫` -/
 lemma inner_add_add_self {x y : E} : ⟪x + y, x + y⟫ = ⟪x, x⟫ + ⟪x, y⟫ + ⟪y, x⟫ + ⟪y, y⟫ :=
@@ -859,19 +859,24 @@ end
 lemma norm_eq_sqrt_real_inner (x : F) : ∥x∥ = sqrt ⟪x, x⟫_ℝ :=
 by { have h := @norm_eq_sqrt_inner ℝ F _ _ x, simpa using h }
 
-lemma inner_self_eq_norm_sq (x : E) : re ⟪x, x⟫ = ∥x∥ * ∥x∥ :=
-by rw[norm_eq_sqrt_inner, ←sqrt_mul inner_self_nonneg (re ⟪x, x⟫),
+lemma inner_self_eq_norm_mul_norm (x : E) : re ⟪x, x⟫ = ∥x∥ * ∥x∥ :=
+by rw [norm_eq_sqrt_inner, ←sqrt_mul inner_self_nonneg (re ⟪x, x⟫),
   sqrt_mul_self inner_self_nonneg]
 
-lemma real_inner_self_eq_norm_sq (x : F) : ⟪x, x⟫_ℝ = ∥x∥ * ∥x∥ :=
-by { have h := @inner_self_eq_norm_sq ℝ F _ _ x, simpa using h }
+lemma inner_self_eq_norm_sq (x : E) : re ⟪x, x⟫ = ∥x∥^2 :=
+by rw [pow_two, inner_self_eq_norm_mul_norm]
 
+lemma real_inner_self_eq_norm_mul_norm (x : F) : ⟪x, x⟫_ℝ = ∥x∥ * ∥x∥ :=
+by { have h := @inner_self_eq_norm_mul_norm ℝ F _ _ x, simpa using h }
+
+lemma real_inner_self_eq_norm_sq (x : F) : ⟪x, x⟫_ℝ = ∥x∥^2 :=
+by rw [pow_two, real_inner_self_eq_norm_mul_norm]
 
 /-- Expand the square -/
 lemma norm_add_sq {x y : E} : ∥x + y∥^2 = ∥x∥^2 + 2 * (re ⟪x, y⟫) + ∥y∥^2 :=
 begin
-  repeat {rw [sq, ←inner_self_eq_norm_sq]},
-  rw[inner_add_add_self, two_mul],
+  repeat {rw [sq, ←inner_self_eq_norm_mul_norm]},
+  rw [inner_add_add_self, two_mul],
   simp only [add_assoc, add_left_inj, add_right_inj, add_monoid_hom.map_add],
   rw [←inner_conj_sym, conj_re],
 end
@@ -895,14 +900,14 @@ by { have h := @norm_add_mul_self ℝ F _ _, simpa using h }
 /-- Expand the square -/
 lemma norm_sub_sq {x y : E} : ∥x - y∥^2 = ∥x∥^2 - 2 * (re ⟪x, y⟫) + ∥y∥^2 :=
 begin
-  repeat {rw [sq, ←inner_self_eq_norm_sq]},
-  rw[inner_sub_sub_self],
+  repeat {rw [sq, ←inner_self_eq_norm_mul_norm]},
+  rw [inner_sub_sub_self],
   calc
     re (⟪x, x⟫ - ⟪x, y⟫ - ⟪y, x⟫ + ⟪y, y⟫)
         = re ⟪x, x⟫ - re ⟪x, y⟫ - re ⟪y, x⟫ + re ⟪y, y⟫  : by simp
     ... = -re ⟪y, x⟫ - re ⟪x, y⟫ + re ⟪x, x⟫ + re ⟪y, y⟫  : by ring
-    ... = -re (⟪x, y⟫†) - re ⟪x, y⟫ + re ⟪x, x⟫ + re ⟪y, y⟫ : by rw[inner_conj_sym]
-    ... = -re ⟪x, y⟫ - re ⟪x, y⟫ + re ⟪x, x⟫ + re ⟪y, y⟫ : by rw[conj_re]
+    ... = -re (⟪x, y⟫†) - re ⟪x, y⟫ + re ⟪x, x⟫ + re ⟪y, y⟫ : by rw [inner_conj_sym]
+    ... = -re ⟪x, y⟫ - re ⟪x, y⟫ + re ⟪x, x⟫ + re ⟪y, y⟫ : by rw [conj_re]
     ... = re ⟪x, x⟫ - 2*re ⟪x, y⟫ + re ⟪y, y⟫ : by ring
 end
 
@@ -927,7 +932,7 @@ lemma abs_inner_le_norm (x y : E) : abs ⟪x, y⟫ ≤ ∥x∥ * ∥y∥ :=
 nonneg_le_nonneg_of_sq_le_sq (mul_nonneg (norm_nonneg _) (norm_nonneg _))
 begin
   have : ∥x∥ * ∥y∥ * (∥x∥ * ∥y∥) = (re ⟪x, x⟫) * (re ⟪y, y⟫),
-    simp only [inner_self_eq_norm_sq], ring,
+    simp only [inner_self_eq_norm_mul_norm], ring,
   rw this,
   conv_lhs { congr, skip, rw [inner_abs_conj_sym] },
   exact inner_mul_inner_self_le _ _
@@ -935,6 +940,9 @@ end
 
 lemma norm_inner_le_norm (x y : E) : ∥⟪x, y⟫∥ ≤ ∥x∥ * ∥y∥ :=
 (is_R_or_C.norm_eq_abs _).le.trans (abs_inner_le_norm x y)
+
+lemma re_inner_le_norm (x y : E) : re ⟪x, y⟫ ≤ ∥x∥ * ∥y∥ :=
+le_trans (re_le_abs (inner x y)) (abs_inner_le_norm x y)
 
 /-- Cauchy–Schwarz inequality with norm -/
 lemma abs_real_inner_le_norm (x y : F) : absR ⟪x, y⟫_ℝ ≤ ∥x∥ * ∥y∥ :=
@@ -948,8 +956,8 @@ include 𝕜
 lemma parallelogram_law_with_norm {x y : E} :
   ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ = 2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥) :=
 begin
-  simp only [← inner_self_eq_norm_sq],
-  rw[← re.map_add, parallelogram_law, two_mul, two_mul],
+  simp only [← inner_self_eq_norm_mul_norm],
+  rw [← re.map_add, parallelogram_law, two_mul, two_mul],
   simp only [re.map_add],
 end
 omit 𝕜
@@ -1079,7 +1087,7 @@ if they have the same norm. -/
 lemma real_inner_add_sub_eq_zero_iff (x y : F) : ⟪x + y, x - y⟫_ℝ = 0 ↔ ∥x∥ = ∥y∥ :=
 begin
   conv_rhs { rw ←mul_self_inj_of_nonneg (norm_nonneg _) (norm_nonneg _) },
-  simp only [←inner_self_eq_norm_sq, inner_add_left, inner_sub_right,
+  simp only [←inner_self_eq_norm_mul_norm, inner_add_left, inner_sub_right,
             real_inner_comm y x, sub_eq_zero, re_to_real],
   split,
   { intro h,
@@ -1093,7 +1101,7 @@ end
 lemma norm_sub_eq_norm_add {v w : E} (h : ⟪v, w⟫ = 0) : ∥w - v∥ = ∥w + v∥ :=
 begin
   rw ←mul_self_inj_of_nonneg (norm_nonneg _) (norm_nonneg _),
-  simp [h, ←inner_self_eq_norm_sq, inner_add_left, inner_add_right, inner_sub_left,
+  simp [h, ←inner_self_eq_norm_mul_norm, inner_add_left, inner_add_right, inner_sub_left,
     inner_sub_right, inner_re_symm]
 end
 
@@ -1114,11 +1122,11 @@ end
 
 /-- The inner product of a vector with a multiple of itself. -/
 lemma real_inner_smul_self_left (x : F) (r : ℝ) : ⟪r • x, x⟫_ℝ = r * (∥x∥ * ∥x∥) :=
-by rw [real_inner_smul_left, ←real_inner_self_eq_norm_sq]
+by rw [real_inner_smul_left, ←real_inner_self_eq_norm_mul_norm]
 
 /-- The inner product of a vector with a multiple of itself. -/
 lemma real_inner_smul_self_right (x : F) (r : ℝ) : ⟪x, r • x⟫_ℝ = r * (∥x∥ * ∥x∥) :=
-by rw [inner_smul_right, ←real_inner_self_eq_norm_sq]
+by rw [inner_smul_right, ←real_inner_self_eq_norm_mul_norm]
 
 /-- The inner product of a nonzero vector with a nonzero multiple of
 itself, divided by the product of their norms, has absolute value
@@ -1128,7 +1136,7 @@ lemma abs_inner_div_norm_mul_norm_eq_one_of_ne_zero_of_ne_zero_mul
 begin
   have hx' : ∥x∥ ≠ 0 := by simp [norm_eq_zero, hx],
   have hr' : abs r ≠ 0 := by simp [is_R_or_C.abs_eq_zero, hr],
-  rw [inner_smul_right, is_R_or_C.abs_mul, ←inner_self_re_abs, inner_self_eq_norm_sq,
+  rw [inner_smul_right, is_R_or_C.abs_mul, ←inner_self_re_abs, inner_self_eq_norm_mul_norm,
       norm_smul],
   rw [is_R_or_C.norm_eq_abs, ←mul_assoc, ←div_div_eq_div_mul, mul_div_cancel _ hx',
      ←div_div_eq_div_mul, mul_comm, mul_div_cancel _ hr', div_self hx'],
@@ -1185,12 +1193,12 @@ begin
     have ht0 : ⟪x, t⟫ = 0,
     { rw [ht, inner_sub_right, inner_smul_right, hr],
       norm_cast,
-      rw [←inner_self_eq_norm_sq, inner_self_re_to_K,
+      rw [←inner_self_eq_norm_mul_norm, inner_self_re_to_K,
           div_mul_cancel _ (λ h, hx0 (inner_self_eq_zero.1 h)), sub_self] },
     replace h : ∥r • x∥ / ∥t + r • x∥ = 1,
     { rw [←sub_add_cancel y (r • x), ←ht, inner_add_right, ht0, zero_add, inner_smul_right,
         is_R_or_C.abs_div, is_R_or_C.abs_mul, ←inner_self_re_abs,
-        inner_self_eq_norm_sq] at h,
+        inner_self_eq_norm_mul_norm] at h,
       norm_cast at h,
       rwa [_root_.abs_mul, abs_norm_eq_norm, abs_norm_eq_norm, ←mul_assoc, mul_comm,
         mul_div_mul_left _ _ (λ h, hx0 (norm_eq_zero.1 h)), ←is_R_or_C.norm_eq_abs,
@@ -1203,7 +1211,7 @@ begin
     have h2 : ∥r • x∥ ^ 2 = ∥t + r • x∥ ^ 2,
     { rw [eq_of_div_eq_one h] },
     replace h2 : ⟪r • x, r • x⟫ = ⟪t, t⟫ + ⟪t, r • x⟫ + ⟪r • x, t⟫ + ⟪r • x, r • x⟫,
-    { rw [sq, sq, ←inner_self_eq_norm_sq, ←inner_self_eq_norm_sq ] at h2,
+    { rw [sq, sq, ←inner_self_eq_norm_mul_norm, ←inner_self_eq_norm_mul_norm ] at h2,
       have h2' := congr_arg (λ z : ℝ, (z : 𝕜)) h2,
       simp_rw [inner_self_re_to_K, inner_add_add_self] at h2',
       exact h2' },
@@ -1377,20 +1385,74 @@ by simp_rw [sum_inner, inner_sum, real_inner_smul_left, real_inner_smul_right,
             h₁, h₂, zero_mul, mul_zero, finset.sum_const_zero, zero_add, zero_sub, finset.mul_sum,
             neg_div, finset.sum_div, mul_div_assoc, mul_assoc]
 
-/-- The inner product with a fixed left element, as a continuous linear map.  This can be upgraded
-to a continuous map which is jointly conjugate-linear in the left argument and linear in the right
-argument, once (TODO) conjugate-linear maps have been defined. -/
-def inner_right (v : E) : E →L[𝕜] 𝕜 :=
-linear_map.mk_continuous
-  { to_fun := λ w, ⟪v, w⟫,
-    map_add' := λ x y, inner_add_right,
-    map_smul' := λ c x, inner_smul_right }
-  ∥v∥
-  (by simpa using norm_inner_le_norm v)
+/-- The inner product as a sesquilinear map. -/
+def innerₛₗ : E →ₗ⋆[𝕜] E →ₗ[𝕜] 𝕜 :=
+linear_map.mk₂'ₛₗ _ _ (λ v w, ⟪v, w⟫) (λ _ _ _, inner_add_left) (λ _ _ _, inner_smul_left)
+(λ _ _ _, inner_add_right) (λ _ _ _, inner_smul_right)
 
-@[simp] lemma inner_right_coe (v : E) : (inner_right v : E → 𝕜) = λ w, ⟪v, w⟫ := rfl
+@[simp] lemma innerₛₗ_apply_coe (v : E) : (innerₛₗ v : E → 𝕜) = λ w, ⟪v, w⟫ := rfl
 
-@[simp] lemma inner_right_apply (v w : E) : inner_right v w = ⟪v, w⟫ := rfl
+@[simp] lemma innerₛₗ_apply (v w : E) : innerₛₗ v w = ⟪v, w⟫ := rfl
+
+/-- The inner product as a continuous sesquilinear map. Note that `to_dual_map` (resp. `to_dual`)
+in `inner_product_space.dual` is a version of this given as a linear isometry (resp. linear
+isometric equivalence). -/
+def innerSL : E →L⋆[𝕜] E →L[𝕜] 𝕜 :=
+linear_map.mk_continuous₂ innerₛₗ 1
+(λ x y, by simp only [norm_inner_le_norm, one_mul, innerₛₗ_apply])
+
+@[simp] lemma innerSL_apply_coe (v : E) : (innerSL v : E → 𝕜) = λ w, ⟪v, w⟫ := rfl
+
+@[simp] lemma innerSL_apply (v w : E) : innerSL v w = ⟪v, w⟫ := rfl
+
+/-- `innerSL` is an isometry. Note that the associated `linear_isometry` is defined in
+`inner_product_space.dual` as `to_dual_map`.  -/
+@[simp] lemma innerSL_apply_norm {x : E} : ∥(innerSL x : E →L[𝕜] 𝕜)∥ = ∥x∥ :=
+begin
+  refine le_antisymm ((innerSL x).op_norm_le_bound (norm_nonneg _) (λ y, norm_inner_le_norm _ _)) _,
+  cases eq_or_lt_of_le (norm_nonneg x) with h h,
+  { have : x = 0 := norm_eq_zero.mp (eq.symm h),
+    simp [this] },
+  { refine (mul_le_mul_right h).mp _,
+    calc ∥x∥ * ∥x∥ = ∥x∥ ^ 2 : by ring
+    ... = re ⟪x, x⟫ : norm_sq_eq_inner _
+    ... ≤ abs ⟪x, x⟫ : re_le_abs _
+    ... = ∥innerSL x x∥ : by { rw [←is_R_or_C.norm_eq_abs], refl }
+    ... ≤ ∥innerSL x∥ * ∥x∥ : (innerSL x).le_op_norm _ }
+end
+
+/-- The inner product as a continuous sesquilinear map, with the two arguments flipped. -/
+def innerSL_flip : E →L[𝕜] E →L⋆[𝕜] 𝕜 :=
+continuous_linear_map.flipₗᵢ' E E 𝕜 (ring_hom.id 𝕜) (↑star_ring_aut : 𝕜 →+* 𝕜) innerSL
+
+@[simp] lemma innerSL_flip_apply {x y : E} : innerSL_flip x y = ⟪y, x⟫ := rfl
+
+namespace continuous_linear_map
+
+variables  {E' : Type*} [inner_product_space 𝕜 E']
+
+/-- Given `f : E →L[𝕜] E'`, construct the continuous sesquilinear form `λ x y, ⟪x, A y⟫`, given
+as a continuous linear map. -/
+def to_sesq_form : (E →L[𝕜] E') →L[𝕜] E' →L⋆[𝕜] E →L[𝕜] 𝕜 :=
+↑((continuous_linear_map.flipₗᵢ' E E' 𝕜
+  (↑(star_ring_aut : 𝕜 ≃+* 𝕜) : 𝕜 →+* 𝕜) (ring_hom.id 𝕜)).to_continuous_linear_equiv) ∘L
+(continuous_linear_map.compSL E E' (E' →L⋆[𝕜] 𝕜) (ring_hom.id 𝕜) (ring_hom.id 𝕜) innerSL_flip)
+
+@[simp] lemma to_sesq_form_apply_coe (f : E →L[𝕜] E') (x : E') :
+  to_sesq_form f x = (innerSL x).comp f := rfl
+
+lemma to_sesq_form_apply_norm_le {f : E →L[𝕜] E'} {v : E'} : ∥to_sesq_form f v∥ ≤ ∥f∥ * ∥v∥ :=
+begin
+  refine op_norm_le_bound _ (mul_nonneg (norm_nonneg _) (norm_nonneg _)) _,
+  intro x,
+  have h₁ : ∥f x∥ ≤ ∥f∥ * ∥x∥ := le_op_norm _ _,
+  have h₂ := @norm_inner_le_norm 𝕜 E' _ _ v (f x),
+  calc ∥⟪v, f x⟫∥ ≤ ∥v∥ * ∥f x∥       :  h₂
+              ... ≤ ∥v∥ * (∥f∥ * ∥x∥)  : mul_le_mul_of_nonneg_left h₁ (norm_nonneg v)
+              ... = ∥f∥ * ∥v∥ * ∥x∥    : by ring,
+end
+
+end continuous_linear_map
 
 /-- When an inner product space `E` over `𝕜` is considered as a real normed space, its inner
 product satisfies `is_bounded_bilinear_map`.
@@ -1398,10 +1460,9 @@ product satisfies `is_bounded_bilinear_map`.
 In order to state these results, we need a `normed_space ℝ E` instance. We will later establish
 such an instance by restriction-of-scalars, `inner_product_space.is_R_or_C_to_real 𝕜 E`, but this
 instance may be not definitionally equal to some other “natural” instance. So, we assume
-`[normed_space ℝ E]` and `[is_scalar_tower ℝ 𝕜 E]`. In both interesting cases `𝕜 = ℝ` and `𝕜 = ℂ`
-we have these instances.
+`[normed_space ℝ E]`.
 -/
-lemma is_bounded_bilinear_map_inner [normed_space ℝ E] [is_scalar_tower ℝ 𝕜 E] :
+lemma is_bounded_bilinear_map_inner [normed_space ℝ E] :
   is_bounded_bilinear_map ℝ (λ p : E × E, ⟪p.1, p.2⟫) :=
 { add_left := λ _ _ _, inner_add_left,
   smul_left := λ r x y,
@@ -1411,6 +1472,7 @@ lemma is_bounded_bilinear_map_inner [normed_space ℝ E] [is_scalar_tower ℝ �
     by simp only [← algebra_map_smul 𝕜 r y, algebra_map_eq_of_real, inner_smul_real_right],
   bound := ⟨1, zero_lt_one, λ x y,
     by { rw [one_mul], exact norm_inner_le_norm x y, }⟩ }
+
 end norm
 
 section bessels_inequality
@@ -1423,7 +1485,7 @@ lemma orthonormal.sum_inner_products_le {s : finset ι} (hv : orthonormal 𝕜 v
 begin
   have h₂ : ∑ i in s, ∑ j in s, ⟪v i, x⟫ * ⟪x, v j⟫ * ⟪v j, v i⟫
     = (∑ k in s, (⟪v k, x⟫ * ⟪x, v k⟫) : 𝕜),
-   { exact hv.inner_left_right_finset },
+  { exact hv.inner_left_right_finset },
   have h₃ : ∀ z : 𝕜, re (z * conj (z)) = ∥z∥ ^ 2,
   { intro z,
     simp only [mul_conj, norm_sq_eq_def'],
@@ -1489,7 +1551,7 @@ instance submodule.inner_product_space (W : submodule 𝕜 E) : inner_product_sp
 /-! ### Families of mutually-orthogonal subspaces of an inner product space -/
 
 section orthogonal_family
-variables {ι : Type*} (𝕜)
+variables {ι : Type*} [dec_ι : decidable_eq ι] (𝕜)
 open_locale direct_sum
 
 /-- An indexed family of mutually-orthogonal subspaces of an inner product space `E`. -/
@@ -1498,6 +1560,7 @@ def orthogonal_family (V : ι → submodule 𝕜 E) : Prop :=
 
 variables {𝕜} {V : ι → submodule 𝕜 E}
 
+include dec_ι
 lemma orthogonal_family.eq_ite (hV : orthogonal_family 𝕜 V) {i j : ι} (v : V i) (w : V j) :
   ⟪(v:E), w⟫ = ite (i = j) ⟪(v:E), w⟫ 0 :=
 begin
@@ -1512,12 +1575,12 @@ lemma orthogonal_family.inner_right_dfinsupp (hV : orthogonal_family 𝕜 V)
 calc ⟪(v : E), dfinsupp.lsum ℕ (λ i, (V i).subtype) l⟫
     = l.sum (λ j, λ w, ⟪(v:E), w⟫) :
 begin
-  let F : E →+ 𝕜 := (@inner_right 𝕜 E _ _ v).to_linear_map.to_add_monoid_hom,
+  let F : E →+ 𝕜 := (@innerSL 𝕜 E _ _ v).to_linear_map.to_add_monoid_hom,
   have hF := congr_arg add_monoid_hom.to_fun
     (dfinsupp.comp_sum_add_hom F (λ j, (V j).subtype.to_add_monoid_hom)),
   convert congr_fun hF l using 1,
   simp only [dfinsupp.sum_add_hom_apply, continuous_linear_map.to_linear_map_eq_coe,
-    add_monoid_hom.coe_comp, inner_right_coe, add_monoid_hom.to_fun_eq_coe,
+    add_monoid_hom.coe_comp, innerSL_apply_coe, add_monoid_hom.to_fun_eq_coe,
     linear_map.to_add_monoid_hom_coe, continuous_linear_map.coe_coe],
   congr
 end
@@ -1530,6 +1593,7 @@ begin
   intros h,
   simp [h]
 end
+omit dec_ι
 
 lemma orthogonal_family.inner_right_fintype
   [fintype ι] (hV : orthogonal_family 𝕜 V) (l : Π i, V i) (i : ι) (v : V i) :
@@ -1558,6 +1622,36 @@ begin
     hV.inner_right_dfinsupp] using this,
 end
 
+/-- The composition of an orthogonal family of subspaces with an injective function is also an
+orthogonal family. -/
+lemma orthogonal_family.comp (hV : orthogonal_family 𝕜 V) {γ : Type*} {f : γ → ι}
+  (hf : function.injective f) :
+  orthogonal_family 𝕜 (V ∘ f) :=
+λ i j hij v hv w hw, hV (hf.ne hij) hv hw
+
+lemma orthogonal_family.orthonormal_sigma_orthonormal (hV : orthogonal_family 𝕜 V) {α : ι → Type*}
+  {v_family : Π i, (α i) → V i} (hv_family : ∀ i, orthonormal 𝕜 (v_family i)) :
+  orthonormal 𝕜 (λ a : Σ i, α i, (v_family a.1 a.2 : E)) :=
+begin
+  split,
+  { rintros ⟨i, vi⟩,
+    exact (hv_family i).1 vi },
+  rintros ⟨i, vi⟩ ⟨j, vj⟩ hvij,
+  by_cases hij : i = j,
+  { subst hij,
+    have : vi ≠ vj := by simpa using hvij,
+    exact (hv_family i).2 this },
+  { exact hV hij (v_family i vi : V i).prop (v_family j vj : V j).prop }
+end
+
+include dec_ι
+lemma direct_sum.submodule_is_internal.collected_basis_orthonormal (hV : orthogonal_family 𝕜 V)
+  (hV_sum : direct_sum.submodule_is_internal V) {α : ι → Type*}
+  {v_family : Π i, basis (α i) 𝕜 (V i)} (hv_family : ∀ i, orthonormal 𝕜 (v_family i)) :
+  orthonormal 𝕜 (hV_sum.collected_basis v_family) :=
+by simpa using hV.orthonormal_sigma_orthonormal hv_family
+omit dec_ι
+
 end orthogonal_family
 
 section is_R_or_C_to_real
@@ -1579,11 +1673,11 @@ structure. -/
 def inner_product_space.is_R_or_C_to_real : inner_product_space ℝ E :=
 { norm_sq_eq_inner := norm_sq_eq_inner,
   conj_sym := λ x y, inner_re_symm,
-  add_left := λ x y z, by {
-    change re ⟪x + y, z⟫ = re ⟪x, z⟫ + re ⟪y, z⟫,
+  add_left := λ x y z, by
+  { change re ⟪x + y, z⟫ = re ⟪x, z⟫ + re ⟪y, z⟫,
     simp [inner_add_left] },
-  smul_left := λ x y r, by {
-    change re ⟪(r : 𝕜) • x, y⟫ = r * re ⟪x, y⟫,
+  smul_left := λ x y r, by
+  { change re ⟪(r : 𝕜) • x, y⟫ = r * re ⟪x, y⟫,
     simp [inner_smul_left] },
   ..has_inner.is_R_or_C_to_real 𝕜 E,
   ..normed_space.restrict_scalars ℝ 𝕜 E }
@@ -1614,7 +1708,6 @@ section continuous
 lemma continuous_inner : continuous (λ p : E × E, ⟪p.1, p.2⟫) :=
 begin
   letI : inner_product_space ℝ E := inner_product_space.is_R_or_C_to_real 𝕜 E,
-  letI : is_scalar_tower ℝ 𝕜 E := restrict_scalars.is_scalar_tower _ _ _,
   exact is_bounded_bilinear_map_inner.continuous
 end
 
@@ -1708,6 +1801,19 @@ submodule.inner_right_of_mem_orthogonal (submodule.mem_span_singleton_self u) hv
 lemma inner_left_of_mem_orthogonal_singleton (u : E) {v : E} (hv : v ∈ (𝕜 ∙ u)ᗮ) : ⟪v, u⟫ = 0 :=
 submodule.inner_left_of_mem_orthogonal (submodule.mem_span_singleton_self u) hv
 
+/-- A vector orthogonal to `u` lies in `(𝕜 ∙ u)ᗮ`. -/
+lemma mem_orthogonal_singleton_of_inner_right (u : E) {v : E} (hv : ⟪u, v⟫ = 0) : v ∈ (𝕜 ∙ u)ᗮ :=
+begin
+  intros w hw,
+  rw submodule.mem_span_singleton at hw,
+  obtain ⟨c, rfl⟩ := hw,
+  simp [inner_smul_left, hv],
+end
+
+/-- A vector orthogonal to `u` lies in `(𝕜 ∙ u)ᗮ`. -/
+lemma mem_orthogonal_singleton_of_inner_left (u : E) {v : E} (hv : ⟪v, u⟫ = 0) : v ∈ (𝕜 ∙ u)ᗮ :=
+mem_orthogonal_singleton_of_inner_right u $ inner_eq_zero_sym.2 hv
+
 variables (K)
 
 /-- `K` and `Kᗮ` have trivial intersection. -/
@@ -1725,7 +1831,7 @@ by simp [disjoint_iff, K.inf_orthogonal_eq_bot]
 
 /-- `Kᗮ` can be characterized as the intersection of the kernels of the operations of
 inner product with each of the elements of `K`. -/
-lemma orthogonal_eq_inter : Kᗮ = ⨅ v : K, (inner_right (v:E)).ker :=
+lemma orthogonal_eq_inter : Kᗮ = ⨅ v : K, (innerSL (v:E)).ker :=
 begin
   apply le_antisymm,
   { rw le_infi_iff,
@@ -1740,7 +1846,7 @@ end
 lemma submodule.is_closed_orthogonal : is_closed (Kᗮ : set E) :=
 begin
   rw orthogonal_eq_inter K,
-  convert is_closed_Inter (λ v : K, (inner_right (v:E)).is_closed_ker),
+  convert is_closed_Inter (λ v : K, (innerSL (v:E)).is_closed_ker),
   simp
 end
 
@@ -1812,7 +1918,7 @@ end orthogonal
 
 /-! ### Self-adjoint operators -/
 
-section is_self_adjoint
+namespace inner_product_space
 
 /-- A (not necessarily bounded) operator on an inner product space is self-adjoint, if for all
 `x`, `y`, we have `⟪T x, y⟫ = ⟪x, T y⟫`. -/
@@ -1845,4 +1951,11 @@ begin
   exact hT.conj_inner_sym x x
 end
 
-end is_self_adjoint
+/-- If a self-adjoint operator preserves a submodule, its restriction to that submodule is
+self-adjoint. -/
+lemma is_self_adjoint.restrict_invariant {T : E →ₗ[𝕜] E} (hT : is_self_adjoint T)
+  {V : submodule 𝕜 E} (hV : ∀ v ∈ V, T v ∈ V) :
+  is_self_adjoint (T.restrict hV) :=
+λ v w, hT v w
+
+end inner_product_space

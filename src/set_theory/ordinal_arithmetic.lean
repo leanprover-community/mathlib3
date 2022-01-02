@@ -108,6 +108,9 @@ by rw [← succ_zero, succ_le]
 theorem one_le_iff_ne_zero {o : ordinal} : 1 ≤ o ↔ o ≠ 0 :=
 by rw [one_le_iff_pos, ordinal.pos_iff_ne_zero]
 
+theorem one_lt_of_two_le {b : ordinal} (hb : 2 ≤ b) : 1 < b :=
+by rwa ←succ_le
+
 theorem succ_pos (o : ordinal) : 0 < succ o :=
 lt_of_le_of_lt (ordinal.zero_le _) (lt_succ_self _)
 
@@ -183,6 +186,9 @@ instance : nontrivial ordinal.{u} :=
 
 theorem zero_lt_one : (0 : ordinal) < 1 :=
 lt_iff_le_and_ne.2 ⟨ordinal.zero_le _, ne.symm $ ordinal.one_ne_zero⟩
+
+theorem zero_lt_of_two_le {b : ordinal} (hb : 2 ≤ b) : 0 < b :=
+zero_lt_one.trans (one_lt_of_two_le hb)
 
 /-! ### The predecessor of an ordinal -/
 
@@ -1551,12 +1557,6 @@ begin
   exact log_not_one_lt hb 1
 end
 
-theorem one_lt_of_two_le {b : ordinal} (hb : 2 ≤ b) : 1 < b :=
-by rwa ←succ_le
-
-theorem zero_lt_of_two_le {b : ordinal} (hb : 2 ≤ b) : 0 < b :=
-zero_lt_one.trans (one_lt_of_two_le hb)
-
 lemma power_mul_add_pos {b v : ordinal} (u w : ordinal) (hb : 2 ≤ b) (hv : 1 ≤ v) :
   0 < b ^ u * v + w :=
 (power_pos u (zero_lt_of_two_le hb)).trans_le ((le_mul_left hv).trans (le_add_right _ _))
@@ -1587,7 +1587,7 @@ begin
   exact (not_lt_of_le h) (power_mul_add_lt_power_succ hb hv hvb hw)
 end
 
-theorem log_power (b x : ordinal) (hb : 2 ≤ b) : log b (b ^ x) = x :=
+theorem log_power {b : ordinal} (x : ordinal) (hb : 2 ≤ b) : log b (b ^ x) = x :=
 begin
   cases eq_or_ne x 0 with hx hx,
   { rw [hx, power_zero],
@@ -1819,6 +1819,13 @@ theorem omega_ne_zero : omega ≠ 0 := ne_of_gt omega_pos
 theorem one_lt_omega : 1 < omega := by simpa only [nat.cast_one] using nat_lt_omega 1
 
 theorem one_le_omega : 1 ≤ omega := le_of_lt one_lt_omega
+
+theorem two_le_omega : 2 ≤ omega :=
+begin
+  change succ 1 ≤ omega,
+  rw succ_le,
+  exact one_lt_omega
+end
 
 theorem omega_is_limit : is_limit omega :=
 ⟨omega_ne_zero, λ o h,

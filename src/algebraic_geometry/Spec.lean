@@ -130,14 +130,18 @@ lemma Spec.to_PresheafedSpace_obj_op (R : CommRing) :
 lemma Spec.to_PresheafedSpace_map_op (R S : CommRing) (f : R ⟶ S) :
   Spec.to_PresheafedSpace.map f.op = Spec.SheafedSpace_map f := rfl
 
-lemma Spec.hom_ext {X : RingedSpace} {R : CommRing} {α β : X ⟶ Spec.SheafedSpace_obj R}
+lemma Spec.basic_open_hom_ext {X : RingedSpace} {R : CommRing} {α β : X ⟶ Spec.SheafedSpace_obj R}
   (w : α.base = β.base) (h : ∀ r : R, let U := prime_spectrum.basic_open r in
     (to_open R U ≫ α.c.app (op U)) ≫ X.presheaf.map (eq_to_hom (by rw w)) =
      to_open R U ≫ β.c.app (op U)) : α = β :=
 begin
-  ext1, { apply Top.sheaf.hom_ext _ ((Top.sheaf.pushforward β.base).obj X.sheaf)
-    prime_spectrum.is_basis_basic_opens, intro r, apply (to_basic_open_epi R r).1,
-    erw ← category.assoc, convert h r, simpa }, exact w,
+  ext1,
+  { apply ((Top.sheaf.pushforward β.base).obj X.sheaf).hom_ext _
+      prime_spectrum.is_basis_basic_opens,
+    intro r,
+    apply (to_basic_open_epi R r).1,
+    simpa using h r },
+  exact w,
 end
 
 /--

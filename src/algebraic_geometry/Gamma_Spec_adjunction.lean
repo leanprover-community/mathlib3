@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Junyan Xu
 -/
 import algebraic_geometry.Spec
-import algebraic_geometry.ringed_space
 import category_theory.adjunction.limits
 import category_theory.adjunction.fully_faithful
 
@@ -63,7 +62,7 @@ by erw [local_ring.mem_maximal_ideal, not_not]
 lemma to_Γ_Spec_preim_basic_open_eq (r : Γ' X) :
   X.to_Γ_Spec_fun⁻¹' (basic_open r).1
   = (X.to_RingedSpace.basic_open r).1 :=
-by { ext, erw X.to_RingedSpace.mem_basic_open, apply not_mem_prime_iff_unit_in_stalk }
+by { ext, erw X.to_RingedSpace.mem_top_basic_open, apply not_mem_prime_iff_unit_in_stalk }
 
 /-- Unit is continuous. -/
 lemma to_Γ_Spec_continuous : continuous X.to_Γ_Spec_fun :=

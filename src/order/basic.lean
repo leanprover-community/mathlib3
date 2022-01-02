@@ -190,6 +190,15 @@ alias eq_or_lt_of_le ← has_le.le.eq_or_lt
 
 attribute [nolint decidable_classical] has_le.le.eq_or_lt_dec
 
+lemma eq_of_le_of_not_lt [partial_order α] {a b : α} (hab : a ≤ b) (hba : ¬ a < b) : a = b :=
+hab.eq_or_lt.resolve_right hba
+
+lemma eq_of_ge_of_not_gt [partial_order α] {a b : α} (hab : a ≤ b) (hba : ¬ a < b) : b = a :=
+(hab.eq_or_lt.resolve_right hba).symm
+
+alias eq_of_le_of_not_lt ← has_le.le.eq_of_not_lt
+alias eq_of_ge_of_not_gt ← has_le.le.eq_of_not_gt
+
 lemma ne.le_iff_lt [partial_order α] {a b : α} (h : a ≠ b) : a ≤ b ↔ a < b :=
 ⟨λ h', lt_of_le_of_ne h' h, λ h, h.le⟩
 

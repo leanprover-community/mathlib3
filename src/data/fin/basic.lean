@@ -260,6 +260,10 @@ by simp [lt_iff_coe_lt_coe]
 lemma eq_last_of_not_lt {i : fin (n+1)} (h : ¬ (i : ℕ) < n) : i = last n :=
 le_antisymm (le_last i) (not_lt.1 h)
 
+lemma top_eq_last (n : ℕ) : ⊤ = fin.last n := rfl
+
+lemma bot_eq_zero (n : ℕ) : ⊥ = (0 : fin (n + 1)) := rfl
+
 section
 
 variables {α : Type*} [preorder α]
@@ -1009,6 +1013,9 @@ forall_fin_succ.trans $ and_congr_right $ λ _, forall_fin_one
 
 lemma exists_fin_two {p : fin 2 → Prop} : (∃ i, p i) ↔ p 0 ∨ p 1 :=
 exists_fin_succ.trans $ or_congr_right exists_fin_one
+
+lemma fin_two_eq_of_eq_zero_iff {a b : fin 2} (h : a = 0 ↔ b = 0) : a = b :=
+by { revert a b, simp [forall_fin_two] }
 
 /--
 Define `C i` by reverse induction on `i : fin (n + 1)` via induction on the underlying `nat` value.

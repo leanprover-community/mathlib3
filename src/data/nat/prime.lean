@@ -3,7 +3,7 @@ Copyright (c) 2015 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
-import algebra.big_operators.associated
+import data.list.prime
 import data.list.sort
 import data.nat.gcd
 import data.nat.sqrt
@@ -538,15 +538,6 @@ theorem prime_iff {p : ℕ} : p.prime ↔ _root_.prime p :=
 theorem irreducible_iff_prime {p : ℕ} : irreducible p ↔ _root_.prime p :=
 by rw [←prime_iff, prime]
 
-/-- Prime `p` divides the product of `L : list ℕ` iff it divides some `a ∈ L` -/
-lemma prime.dvd_prod_iff {p : ℕ} {L : list ℕ} (pp : p.prime) :
-  p ∣ L.prod ↔ ∃ a ∈ L, p ∣ a :=
-_root_.prime.dvd_prod_iff $ prime_iff.mp pp
-
-lemma prime.not_dvd_prod {p : ℕ} {L : list ℕ} (pp : prime p) (hL : ∀ a ∈ L, ¬ p ∣ a) :
-  ¬ p ∣ L.prod :=
-mt (prime.dvd_prod_iff pp).mp (not_bex.mpr hL)
-
 theorem prime.dvd_of_dvd_pow {p m n : ℕ} (pp : prime p) (h : p ∣ m^n) : p ∣ m :=
 begin
   induction n with n IH,
@@ -710,17 +701,12 @@ by simpa using not_iff_not.mpr ne_one_iff_exists_prime_dvd
 section
 open list
 
-lemma mem_list_primes_of_dvd_prod {p : ℕ} (hp : prime p) :
-  ∀ {l : list ℕ}, (∀ p ∈ l, prime p) → p ∣ prod l → p ∈ l :=
-begin
-  intros L hL hpL,
-  rcases (prime.dvd_prod_iff hp).mp hpL with ⟨x, hx1, hx2⟩,
-  rwa ((prime_dvd_prime_iff_eq hp (hL x hx1)).mp hx2)
-end
-
 lemma mem_factors_iff_dvd {n p : ℕ} (hn : 0 < n) (hp : prime p) : p ∈ factors n ↔ p ∣ n :=
 ⟨λ h, prod_factors hn ▸ list.dvd_prod h,
- λ h, mem_list_primes_of_dvd_prod hp (@prime_of_mem_factors n) ((prod_factors hn).symm ▸ h)⟩
+  λ h, mem_list_primes_of_dvd_prod
+    (prime_iff.mp hp)
+    (λ p h, prime_iff.mp (prime_of_mem_factors h))
+    ((prod_factors hn).symm ▸ h)⟩
 
 lemma dvd_of_mem_factors {n p : ℕ} (h : p ∈ n.factors) : p ∣ n :=
 begin
@@ -751,36 +737,18 @@ begin
   exact factors_subset_right (right_ne_zero_of_mul h'),
 end
 
-lemma perm_of_prod_eq_prod : ∀ {l₁ l₂ : list ℕ}, prod l₁ = prod l₂ →
-  (∀ p ∈ l₁, prime p) → (∀ p ∈ l₂, prime p) → l₁ ~ l₂
-| []        []        _  _  _  := perm.nil
-| []        (a :: l)  h₁ h₂ h₃ :=
-  have ha : a ∣ 1 := @prod_nil ℕ _ ▸ h₁.symm ▸ (@prod_cons _ _ l a).symm ▸ dvd_mul_right _ _,
-  absurd ha (prime.not_dvd_one (h₃ a (mem_cons_self _ _)))
-| (a :: l)  []        h₁ h₂ h₃ :=
-  have ha : a ∣ 1 := @prod_nil ℕ _ ▸ h₁ ▸ (@prod_cons _ _ l a).symm ▸ dvd_mul_right _ _,
-  absurd ha (prime.not_dvd_one (h₂ a (mem_cons_self _ _)))
-| (a :: l₁) (b :: l₂) h hl₁ hl₂ :=
-  have hl₁' : ∀ p ∈ l₁, prime p := λ p hp, hl₁ p (mem_cons_of_mem _ hp),
-  have hl₂' : ∀ p ∈ (b :: l₂).erase a, prime p := λ p hp, hl₂ p (mem_of_mem_erase hp),
-  have ha : a ∈ (b :: l₂) := mem_list_primes_of_dvd_prod (hl₁ a (mem_cons_self _ _)) hl₂
-    (h ▸ by rw prod_cons; exact dvd_mul_right _ _),
-  have hb : b :: l₂ ~ a :: (b :: l₂).erase a := perm_cons_erase ha,
-  have hl : prod l₁ = prod ((b :: l₂).erase a) :=
-  (nat.mul_right_inj (prime.pos (hl₁ a (mem_cons_self _ _)))).1 $
-    by rwa [← prod_cons, ← prod_cons, ← hb.prod_eq],
-  perm.trans ((perm_of_prod_eq_prod hl hl₁' hl₂').cons _) hb.symm
-
 /-- **Fundamental theorem of arithmetic**-/
 lemma factors_unique {n : ℕ} {l : list ℕ} (h₁ : prod l = n) (h₂ : ∀ p ∈ l, prime p) :
   l ~ factors n :=
 begin
-  refine perm_of_prod_eq_prod _ h₂ (λ p, prime_of_mem_factors),
-  rw h₁,
-  refine (prod_factors (nat.pos_of_ne_zero _)).symm,
-  rintro rfl,
-  rw prod_eq_zero_iff at h₁,
-  exact prime.ne_zero (h₂ 0 h₁) rfl,
+  refine perm_of_prod_eq_prod _ _ _,
+  { rw h₁,
+    refine (prod_factors (nat.pos_of_ne_zero _)).symm,
+    rintro rfl,
+    rw prod_eq_zero_iff at h₁,
+    exact prime.ne_zero (h₂ 0 h₁) rfl },
+  { simp_rw ←prime_iff, exact h₂ },
+  { simp_rw ←prime_iff, exact (λ p, prime_of_mem_factors) },
 end
 
 lemma prime.factors_pow {p : ℕ} (hp : p.prime) (n : ℕ) :

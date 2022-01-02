@@ -473,6 +473,67 @@ end
 
 end inversion_bot
 
+section prod
+variables {β γ : Type*} [ring 𝕜] [partial_order β] [partial_order γ] [locally_finite_order β]
+  [locally_finite_order γ] [decidable_eq β] [decidable_eq γ]
+  [decidable_rel ((≤) : β → β → Prop)] [decidable_rel ((≤) : γ → γ → Prop)]
+  [decidable_rel ((≤) : β × γ → β × γ → Prop)]
+
+lemma zeta_prod_eq (x y : β) (u v : γ) :
+  zeta 𝕜 (β × γ) (x, u) (y, v) = zeta 𝕜 β x y * zeta 𝕜 γ u v :=
+by simp [ite_and]
+
+lemma zeta_prod_eq' (a b : β × γ) :
+  zeta 𝕜 (β × γ) a b = zeta 𝕜 β a.fst b.fst * zeta 𝕜 γ a.snd b.snd :=
+begin
+  cases a,
+  cases b,
+  rw zeta_prod_eq,
+end
+
+variables (β γ)
+/-- A description of `mu` in a product of incidence algebras -/
+def mu_prod : incidence_algebra 𝕜 (β × γ) :=
+{ to_fun := λ xu yv : β × γ, mu 𝕜 β xu.fst yv.fst * mu 𝕜 γ xu.snd yv.snd,
+  eq_zero_of_not_le' := begin
+    intros a b hab,
+    cases a,
+    cases b,
+    rw [prod.mk_le_mk, not_and_distrib] at hab,
+    cases hab; simp [eq_zero_of_not_le hab],
+end }
+
+variables {β γ}
+
+lemma mu_prod_apply (x y : β) (u v : γ) : mu_prod 𝕜 β γ (x, u) (y, v) = mu 𝕜 β x y * mu 𝕜 γ u v :=
+rfl
+lemma mu_prod_apply' (a b : β × γ) : mu_prod 𝕜 β γ a b = mu 𝕜 β a.fst b.fst * mu 𝕜 γ a.snd b.snd :=
+rfl
+lemma one_prod_apply (x y : β) (u v : γ) : (1 : incidence_algebra 𝕜 (β × γ)) (x, u) (y, v) =
+  (1 : incidence_algebra 𝕜 β) x y * (1 : incidence_algebra 𝕜 γ) u v :=
+by simp [ite_and]
+
+lemma prod_Icc (a b : β × γ) : Icc a b = (Icc a.fst b.fst).product (Icc a.snd b.snd) := rfl
+
+lemma mu_prod_eq (x y : β) (u v : γ) : mu 𝕜 (β × γ) (x, u) (y, v) = mu 𝕜 β x y * mu 𝕜 γ u v :=
+begin
+  suffices : mu_prod 𝕜 β γ * zeta 𝕜 (β × γ) = 1,
+  { sorry },
+  clear x y u v,
+  ext ⟨x, u⟩ ⟨y, v⟩,
+  simp_rw [mul_apply, zeta_prod_eq', mu_prod_apply', prod_Icc],
+  convert_to ∑ (x_1 : β × γ) in (Icc (x, u).fst (y, v).fst).product (Icc (x, u).snd (y, v).snd),
+    (mu 𝕜 β) x x_1.fst * (zeta 𝕜 β) x_1.fst y * ((mu 𝕜 γ) u x_1.snd * (zeta 𝕜 γ) x_1.snd v) = _,
+  { simp [mul_comm, mul_assoc], },
+  rw ← sum_mul_sum (Icc x y) (Icc u v)
+    (λ x_1f, (mu 𝕜 β) x x_1f * (zeta 𝕜 β) x_1f y)
+    (λ x_1s, (mu 𝕜 γ) u x_1s * (zeta 𝕜 γ) x_1s v),
+  rw one_prod_apply,
+  congr; rw [← mu_mul_zeta, mul_apply],
+end
+
+end prod
+
 section euler
 variables [add_comm_group 𝕜] [has_one 𝕜] [preorder α] [bounded_order α] [locally_finite_order α]
   [decidable_eq α]

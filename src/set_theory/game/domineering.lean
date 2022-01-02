@@ -95,7 +95,7 @@ lemma move_left_card {b : board} {m : ℤ × ℤ} (h : m ∈ left b) :
   finset.card (move_left b m) + 2 = finset.card b :=
 begin
   dsimp [move_left],
-  rw finset.card_erase_of_mem,
+  rw @finset.card_erase_of_mem _ (finset.erase b m) _ _,
   { rw finset.card_erase_of_mem,
     { exact tsub_add_cancel_of_le (card_of_mem_left h), },
     { exact finset.mem_of_mem_inter_left h, } },
@@ -113,7 +113,7 @@ lemma move_right_card {b : board} {m : ℤ × ℤ} (h : m ∈ right b) :
   finset.card (move_right b m) + 2 = finset.card b :=
 begin
   dsimp [move_right],
-  rw finset.card_erase_of_mem,
+  rw @finset.card_erase_of_mem _ (finset.erase b m) _ _,
   { rw finset.card_erase_of_mem,
     { exact tsub_add_cancel_of_le (card_of_mem_right h), },
     { exact finset.mem_of_mem_inter_left h, } },

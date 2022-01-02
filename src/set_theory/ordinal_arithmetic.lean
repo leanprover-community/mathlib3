@@ -147,11 +147,6 @@ by induction n with n ih; [rw [nat.cast_zero, add_zero, add_zero],
 theorem add_right_cancel {a b : ordinal} (n : ℕ) : a + n = b + n ↔ a = b :=
 by simp only [le_antisymm_iff, add_le_add_iff_right]
 
-theorem add_monotone {a : ordinal} : monotone ((+) a) := sorry
-
-theorem add_monotone' {a : ordinal} :
-  monotone ((function.swap ((+) : ordinal → ordinal → ordinal)) a) := sorry
-
 /-! ### The zero ordinal -/
 
 @[simp] theorem card_eq_zero {o} : card o = 0 ↔ o = 0 :=
@@ -411,6 +406,9 @@ theorem is_normal.is_limit {f} (H : is_normal f) {o} (l : is_limit o) :
 ⟨ne_of_gt $ lt_of_le_of_lt (ordinal.zero_le _) $ H.lt_iff.2 l.pos,
 λ a h, let ⟨b, h₁, h₂⟩ := (H.limit_lt l).1 h in
   lt_of_le_of_lt (succ_le.2 h₂) (H.lt_iff.2 h₁)⟩
+
+theorem is_normal.self_le_iff_eq {f} (H : is_normal f) {a} : f a ≤ a ↔ f a = a :=
+⟨λ h, le_antisymm h (H.le_self a), le_of_eq⟩
 
 theorem add_le_of_limit {a b c : ordinal.{u}}
   (h : is_limit b) : a + b ≤ c ↔ ∀ b' < b, a + b' ≤ c :=
@@ -1956,7 +1954,12 @@ theorem nfp_eq_self {f : ordinal → ordinal} {a} (h : f a = a) : nfp f a = a :=
 le_antisymm (sup_le.mpr $ λ i, by rw [iterate_fixed h]) (le_nfp_self f a)
 
 theorem nfp_monotone {f : ordinal → ordinal} (hf : monotone f) : monotone (nfp f) :=
-sorry
+begin
+  intros a b hab,
+  unfold nfp,
+  rw sup_le,
+  exact λ n, (monotone.iterate hf n hab).trans (le_sup (λ n, f^[n] b) n)
+end
 
 /-- Fixed point lemma for normal functions: the fixed points of a normal function are unbounded. -/
 theorem is_normal.nfp_unbounded {f} (H : is_normal f) : unbounded (<) (fixed_points f) :=
@@ -1991,7 +1994,7 @@ begin
   simp only [bsup_le, IH] {contextual:=tt}
 end
 
-theorem is_normal.fp_iff_deriv {f} (H : is_normal f) {a} : f a ≤ a ↔ ∃ o, deriv f o = a :=
+theorem is_normal.fp_iff_deriv' {f} (H : is_normal f) {a} : f a ≤ a ↔ ∃ o, deriv f o = a :=
 ⟨λ ha, begin
   suffices : ∀ o (_:a ≤ deriv f o), ∃ o, deriv f o = a,
   from this a ((deriv_is_normal _).le_self _),
@@ -2011,8 +2014,8 @@ theorem is_normal.fp_iff_deriv {f} (H : is_normal f) {a} : f a ≤ a ↔ ∃ o, 
     exact let ⟨o', h, hl⟩ := h in IH o' h (le_of_not_le hl) }
 end, λ ⟨o, e⟩, e ▸ le_of_eq (H.deriv_fp _)⟩
 
-theorem is_normal.fp_iff_deriv' {f} (H : is_normal f) {a} : f a = a ↔ ∃ o, deriv f o = a :=
-by { rw ←H.fp_iff_deriv, exact ⟨λ h, le_of_eq h, λ h, le_antisymm h (H.le_self _)⟩ }
+theorem is_normal.fp_iff_deriv {f} (H : is_normal f) {a} : f a = a ↔ ∃ o, deriv f o = a :=
+by rw [←H.fp_iff_deriv', H.self_le_iff_eq]
 
 /-- `deriv f` is the fixed point enumerator of `f`. -/
 theorem deriv_eq_enum_fp {f} (H : is_normal f) : deriv f = enum_ord H.nfp_unbounded :=
@@ -2020,7 +2023,7 @@ begin
   rw [←eq_enum_ord, range_eq_iff],
   use (deriv_is_normal f).strict_mono,
   refine ⟨λ a, H.deriv_fp a, λ _ _, _⟩,
-  rwa ←H.fp_iff_deriv'
+  rwa ←H.fp_iff_deriv
 end
 
 /-! ### Fixed points of sums -/
@@ -2054,30 +2057,34 @@ begin
   rw [iterate_succ_apply', hn, ←mul_one_add, (by simp : (1 : ordinal) + ↑n = ↑(1 + n)), add_comm]
 end
 
-theorem mul_omega_nfp_of_le_mul_omega {a b} (hba : b ≤ a * omega.{u}) :
-  a * omega.{u} = nfp ((+) a) b :=
-begin
-  apply le_antisymm,
-  {
-    rw mul_omega_nfp,
-    apply nfp_monotone (add_monotone a),
-  }
-end
-
 theorem add_fp_iff_mul_omega_le {a b : ordinal.{u}} : a + b = b ↔ a * omega.{u} ≤ b :=
 begin
   refine ⟨λ h, _, λ h, _⟩,
   { have : deriv ((+) a) 0 ≤ b := begin
-      cases (add_is_normal a).fp_iff_deriv'.1 h with c hc,
+      cases (add_is_normal a).fp_iff_deriv.1 h with c hc,
       rw ←hc,
       exact (deriv_is_normal _).strict_mono.monotone (ordinal.zero_le _),
     end,
     refine le_trans _ this,
     rw deriv_zero,
-    exact le_of_eq mul_omega_nfp },
+    exact le_of_eq mul_omega_nfp_zero },
   have := ordinal.add_sub_cancel_of_le h,
   nth_rewrite 0 ←this,
-  rw [←add_assoc, add_mul_omega, this]
+  rwa [←add_assoc, add_mul_omega]
+end
+
+theorem add_fp_iff_mul_omega_le' {a b : ordinal.{u}} : a + b ≤ b ↔ a * omega.{u} ≤ b :=
+by { rw ←add_fp_iff_mul_omega_le, exact (add_is_normal a).self_le_iff_eq }
+
+theorem mul_omega_nfp_of_le_mul_omega {a b} (hba : b ≤ a * omega.{u}) :
+  a * omega.{u} = nfp ((+) a) b :=
+begin
+  apply le_antisymm,
+  { rw mul_omega_nfp_zero,
+    apply nfp_monotone (add_is_normal a).strict_mono.monotone,
+    exact ordinal.zero_le b },
+  apply (add_is_normal a).nfp_le_fp hba,
+  rw add_fp_iff_mul_omega_le'
 end
 
 /-- `deriv ((+) a)` enumerates the ordinals larger or equal to `a * ω`. -/
@@ -2089,9 +2096,9 @@ begin
   refine ⟨λ b, le_trans (le_of_eq _)
     ((deriv_is_normal _).strict_mono.monotone (ordinal.zero_le b)), λ b hb, _⟩,
   { rw deriv_zero,
-    exact mul_omega_nfp },
+    exact mul_omega_nfp_zero },
   rw ←(add_is_normal a).fp_iff_deriv',
-  exact add_fp_iff_mul_omega_le.2 hb
+  exact add_fp_iff_mul_omega_le'.2 hb
 end
 
 end ordinal

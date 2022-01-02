@@ -598,6 +598,18 @@ quotient.induction_on₃ a b c $ λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨γ, t, _⟩
   { exact prod.lex.right _ (f.to_rel_embedding.map_rel_iff.2 h') }
 end
 
+theorem le_mul_left {a b : ordinal} (hb : 1 ≤ b) : a ≤ a * b :=
+begin
+  nth_rewrite 0 ←mul_one a,
+  exact mul_le_mul_left a hb
+end
+
+theorem le_mul_right {a b : ordinal} (hb : 1 ≤ b) : a ≤ b * a :=
+begin
+  nth_rewrite 0 ←one_mul a,
+  exact mul_le_mul_right a hb
+end
+
 theorem mul_le_mul {a b c d : ordinal} (h₁ : a ≤ c) (h₂ : b ≤ d) : a * b ≤ c * d :=
 le_trans (mul_le_mul_left _ h₂) (mul_le_mul_right _ h₁)
 
@@ -1710,6 +1722,8 @@ theorem omega_ne_zero : omega ≠ 0 := ne_of_gt omega_pos
 
 theorem one_lt_omega : 1 < omega := by simpa only [nat.cast_one] using nat_lt_omega 1
 
+theorem one_le_omega : 1 ≤ omega := le_of_lt one_lt_omega
+
 theorem omega_is_limit : is_limit omega :=
 ⟨omega_ne_zero, λ o h,
   let ⟨n, e⟩ := lt_omega.1 h in
@@ -2031,10 +2045,10 @@ end
 theorem mul_omega_unbounded (o) : unbounded (<) (set.Ici (o * ordinal.omega)) :=
 unbounded_lt_Ici _
 
-theorem add_mul_omega {a} : a + a * omega = a * omega :=
+theorem add_mul_omega (a) : a + a * omega = a * omega :=
 by { rw [←mul_one_add, one_add_omega] }
 
-theorem mul_omega_nfp_zero {a} : a * omega.{u} = nfp ((+) a) 0 :=
+theorem mul_omega_nfp_add_zero (a) : a * omega.{u} = nfp ((+) a) 0 :=
 begin
   cases eq_or_ne 0 a with ha ha,
   { rw [←ha, zero_mul],
@@ -2067,7 +2081,7 @@ begin
     end,
     refine le_trans _ this,
     rw deriv_zero,
-    exact le_of_eq mul_omega_nfp_zero },
+    exact le_of_eq (mul_omega_nfp_add_zero a) },
   have := ordinal.add_sub_cancel_of_le h,
   nth_rewrite 0 ←this,
   rwa [←add_assoc, add_mul_omega]
@@ -2076,16 +2090,18 @@ end
 theorem add_fp_iff_mul_omega_le' {a b : ordinal.{u}} : a + b ≤ b ↔ a * omega.{u} ≤ b :=
 by { rw ←add_fp_iff_mul_omega_le, exact (add_is_normal a).self_le_iff_eq }
 
-theorem mul_omega_nfp_of_le_mul_omega {a b} (hba : b ≤ a * omega.{u}) :
+theorem mul_omega_nfp_add_of_le_mul_omega {a b} (hba : b ≤ a * omega.{u}) :
   a * omega.{u} = nfp ((+) a) b :=
 begin
-  apply le_antisymm,
-  { rw mul_omega_nfp_zero,
+  refine le_antisymm _ ((add_is_normal a).nfp_le_fp hba _),
+  { rw mul_omega_nfp_add_zero,
     apply nfp_monotone (add_is_normal a).strict_mono.monotone,
     exact ordinal.zero_le b },
-  apply (add_is_normal a).nfp_le_fp hba,
   rw add_fp_iff_mul_omega_le'
 end
+
+theorem mul_omega_nfp_add_self (a) : a * omega.{u} = nfp ((+) a) a :=
+mul_omega_nfp_add_of_le_mul_omega (le_mul_left one_le_omega)
 
 /-- `deriv ((+) a)` enumerates the ordinals larger or equal to `a * ω`. -/
 theorem add_deriv_eq_enum_ge_mul_omega (a) : deriv ((+) a) = enum_ord (mul_omega_unbounded a) :=
@@ -2096,7 +2112,7 @@ begin
   refine ⟨λ b, le_trans (le_of_eq _)
     ((deriv_is_normal _).strict_mono.monotone (ordinal.zero_le b)), λ b hb, _⟩,
   { rw deriv_zero,
-    exact mul_omega_nfp_zero },
+    exact mul_omega_nfp_add_zero a },
   rw ←(add_is_normal a).fp_iff_deriv',
   exact add_fp_iff_mul_omega_le'.2 hb
 end

@@ -262,11 +262,7 @@ lemma prime.divisors {p : ℕ} (pp : p.prime) :
   divisors p = {1, p} :=
 begin
   ext,
-  simp only [pp.ne_zero, and_true, ne.def, not_false_iff, finset.mem_insert,
-    finset.mem_singleton, mem_divisors],
-  refine ⟨pp.2 a, λ h, _⟩,
-  rcases h; subst h,
-  apply one_dvd,
+  rw [mem_divisors, dvd_prime pp, and_iff_left pp.ne_zero, finset.mem_insert, finset.mem_singleton]
 end
 
 lemma prime.proper_divisors {p : ℕ} (pp : p.prime) :
@@ -334,14 +330,10 @@ lemma proper_divisors_eq_singleton_one_iff_prime :
 ⟨λ h, begin
   have h1 := mem_singleton.2 rfl,
   rw [← h, mem_proper_divisors] at h1,
-  refine ⟨h1.2, _⟩,
-  intros m hdvd,
+  refine nat.prime_def_lt''.mpr ⟨h1.2, λ m hdvd, _⟩,
   rw [← mem_singleton, ← h, mem_proper_divisors],
-  cases lt_or_eq_of_le (nat.le_of_dvd (lt_trans (nat.succ_pos _) h1.2) hdvd),
-  { left,
-    exact ⟨hdvd, h_1⟩ },
-  { right,
-    exact h_1 }
+  have hle := nat.le_of_dvd (lt_trans (nat.succ_pos _) h1.2) hdvd,
+  exact or.imp_left (λ hlt, ⟨hdvd, hlt⟩) hle.lt_or_eq
 end, prime.proper_divisors⟩
 
 lemma sum_proper_divisors_eq_one_iff_prime :

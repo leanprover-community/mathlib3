@@ -579,6 +579,10 @@ lemma comap_equiv_eq_map_symm (f : N ≃* M) (K : submonoid M) :
   K.comap f.to_monoid_hom = K.map f.symm.to_monoid_hom :=
 (map_equiv_eq_comap_symm f.symm K).symm
 
+@[simp, to_additive]
+lemma map_equiv_top (f : M ≃* N) : (⊤ : submonoid M).map f.to_monoid_hom = ⊤ :=
+set_like.coe_injective $ set.image_univ.trans f.surjective.range_eq
+
 end submonoid
 
 namespace monoid_hom

@@ -1,5 +1,5 @@
 import algebra.group.hom
-import data.sum
+import data.sum.basic
 import tactic.simps
 
 universes v u w

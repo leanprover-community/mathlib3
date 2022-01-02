@@ -1239,14 +1239,14 @@ lemma power_mul_add_pos {b v : ordinal} (u w : ordinal) (hb : 2 ≤ b) (hv : 1 �
   0 < b ^ u * v + w :=
 (power_pos u (zero_lt_of_two_le hb)).trans_le ((le_mul_left hv).trans (le_add_right _ _))
 
-lemma power_mul_add_lt_power_mul_succ {b u v w : ordinal} (hw : w < b ^ u) :
+lemma power_mul_add_lt_power_mul_succ {b u w : ordinal} (v : ordinal) (hw : w < b ^ u) :
   b ^ u * v + w < b ^ u * v.succ :=
 by rwa [mul_succ, add_lt_add_iff_left]
 
 lemma power_mul_add_lt_power_succ {b u v w : ordinal} (hb : 2 ≤ b) (hv : 1 ≤ v) (hvb : v < b)
   (hw : w < b ^ u) : b ^ u * v + w < b ^ u.succ :=
 begin
-  apply lt_of_lt_of_le (power_mul_add_lt_power_mul_succ hw),
+  apply lt_of_lt_of_le (power_mul_add_lt_power_mul_succ v hw),
   rw ←succ_le at hvb,
   rw power_succ,
   exact (mul_le_mul_left (b ^ u) hvb)
@@ -1265,7 +1265,7 @@ begin
   exact (not_lt_of_le h) (power_mul_add_lt_power_succ hb hv hvb hw)
 end
 
-theorem log_power (b x : ordinal) (hb : 2 ≤ b) : log b (b ^ x) = x :=
+theorem log_power {b : ordinal} (x : ordinal) (hb : 2 ≤ b) : log b (b ^ x) = x :=
 begin
   cases eq_or_ne x 0 with hx hx,
   { rw [hx, power_zero],

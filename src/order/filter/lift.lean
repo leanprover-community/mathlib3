@@ -416,7 +416,7 @@ calc _ ↔ ∃ s ∈ f, ∀ᶠ x in g, x ∈ s → p x :
   eventually_lift'_powerset' $ λ s t hst ht, ht.mono $ λ x hx hs, hx (hst hs)
 ... ↔ ∃ (s ∈ f) (t ∈ g), ∀ x, x ∈ t → x ∈ s → p x :
   by simp only [eventually_iff_exists_mem]
-... ↔ ∀ᶠ x in f ⊓ g, p x : by { rw eventually_inf, finish }
+... ↔ ∀ᶠ x in f ⊓ g, p x : by simp only [eventually_inf, and_comm, mem_inter_iff, ←and_imp]
 
 end lift'
 

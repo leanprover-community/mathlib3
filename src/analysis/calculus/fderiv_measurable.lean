@@ -70,7 +70,7 @@ derivative, measurable function, Borel σ-algebra
 noncomputable theory
 
 open set metric asymptotics filter continuous_linear_map
-open topological_space (second_countable_topology)
+open topological_space (second_countable_topology) measure_theory
 open_locale topological_space
 
 namespace continuous_linear_map
@@ -389,7 +389,7 @@ begin
   simp
 end
 
-lemma measurable_fderiv : measurable (fderiv 𝕜 f) :=
+@[measurability] lemma measurable_fderiv : measurable (fderiv 𝕜 f) :=
 begin
   refine measurable_of_is_closed (λ s hs, _),
   have : fderiv 𝕜 f ⁻¹' s = {x | differentiable_at 𝕜 f x ∧ fderiv 𝕜 f x ∈ s} ∪
@@ -400,12 +400,16 @@ begin
     ((measurable_set.const _).inter (measurable_set_of_differentiable_at _ _).compl)
 end
 
-lemma measurable_fderiv_apply_const [measurable_space F] [borel_space F] (y : E) :
+@[measurability] lemma measurable_fderiv_apply_const [measurable_space F] [borel_space F] (y : E) :
   measurable (λ x, fderiv 𝕜 f x y) :=
 (continuous_linear_map.measurable_apply y).comp (measurable_fderiv 𝕜 f)
 
 variable {𝕜}
 
-lemma measurable_deriv [measurable_space 𝕜] [opens_measurable_space 𝕜] [measurable_space F]
-  [borel_space F] (f : 𝕜 → F) : measurable (deriv f) :=
+@[measurability] lemma measurable_deriv [measurable_space 𝕜] [opens_measurable_space 𝕜]
+  [measurable_space F] [borel_space F] (f : 𝕜 → F) : measurable (deriv f) :=
 by simpa only [fderiv_deriv] using measurable_fderiv_apply_const 𝕜 f 1
+
+lemma ae_measurable_deriv [measurable_space 𝕜] [opens_measurable_space 𝕜] [measurable_space F]
+  [borel_space F] (f : 𝕜 → F) (μ : measure 𝕜) : ae_measurable (deriv f) μ :=
+(measurable_deriv f).ae_measurable

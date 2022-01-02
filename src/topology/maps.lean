@@ -127,6 +127,12 @@ structure embedding [tα : topological_space α] [tβ : topological_space β] (f
   extends inducing f : Prop :=
 (inj : function.injective f)
 
+lemma function.injective.embedding_induced [t : topological_space β]
+  {f : α → β} (hf : function.injective f) :
+  @embedding α β (t.induced f) t f :=
+{ induced := rfl,
+  inj := hf }
+
 variables [topological_space α] [topological_space β] [topological_space γ]
 
 lemma embedding.mk' (f : α → β) (inj : function.injective f)
@@ -505,5 +511,10 @@ lemma closed_embedding.comp {g : β → γ} {f : α → β}
   (hg : closed_embedding g) (hf : closed_embedding f) : closed_embedding (g ∘ f) :=
 ⟨hg.to_embedding.comp hf.to_embedding, show is_closed (range (g ∘ f)),
  by rw [range_comp, ←hg.closed_iff_image_closed]; exact hf.closed_range⟩
+
+lemma closed_embedding.closure_image_eq {f : α → β} (hf : closed_embedding f) (s : set α) :
+  closure (f '' s) = f '' closure s :=
+le_antisymm (is_closed_map_iff_closure_image.mp hf.is_closed_map _)
+  (image_closure_subset_closure_image hf.continuous)
 
 end closed_embedding

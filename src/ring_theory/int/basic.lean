@@ -14,8 +14,6 @@ their proofs or cases of ℕ and ℤ being examples of structures in abstract al
 
 ## Main statements
 
-* `nat.prime_iff`: `nat.prime` coincides with the general definition of `prime`
-* `nat.irreducible_iff_prime`: a non-unit natural number is only divisible by `1` iff it is prime
 * `nat.factors_eq`: the multiset of elements of `nat.factors` is equal to the factors
    given by the `unique_factorization_monoid` instance
 * ℤ is a `normalization_monoid`
@@ -27,41 +25,6 @@ prime, irreducible, natural numbers, integers, normalization monoid, gcd monoid,
 greatest common divisor, prime factorization, prime factors, unique factorization,
 unique factors
 -/
-
-theorem nat.prime_iff {p : ℕ} : p.prime ↔ prime p :=
-begin
-  split; intro h,
-  { refine ⟨h.ne_zero, ⟨_, λ a b, _⟩⟩,
-    { rw nat.is_unit_iff, apply h.ne_one },
-    { apply h.dvd_mul.1 } },
-  { refine ⟨_, λ m hm, _⟩,
-    { cases p, { exfalso, apply h.ne_zero rfl },
-      cases p, { exfalso, apply h.ne_one rfl },
-      exact (add_le_add_right (zero_le p) 2 : _ ) },
-    { cases hm with n hn,
-      cases h.2.2 m n (hn ▸ dvd_rfl) with hpm hpn,
-      { right, apply nat.dvd_antisymm (dvd.intro _ hn.symm) hpm },
-      { left,
-        cases n, { exfalso, rw [hn, mul_zero] at h, apply h.ne_zero rfl },
-        apply nat.eq_of_mul_eq_mul_right (nat.succ_pos _),
-        rw [← hn, one_mul],
-        apply nat.dvd_antisymm hpn (dvd.intro m _),
-        rw [mul_comm, hn], }, } }
-end
-
-theorem nat.irreducible_iff_prime {p : ℕ} : irreducible p ↔ prime p :=
-begin
-  refine ⟨λ h, _, prime.irreducible⟩,
-  rw ← nat.prime_iff,
-  refine ⟨_, λ m hm, _⟩,
-  { cases p, { exfalso, apply h.ne_zero rfl },
-    cases p, { exfalso, apply h.not_unit is_unit_one, },
-    exact (add_le_add_right (zero_le p) 2 : _ ) },
-  { cases hm with n hn,
-    cases h.is_unit_or_is_unit hn with um un,
-    { left, rw nat.is_unit_iff.1 um, },
-    { right, rw [hn, nat.is_unit_iff.1 un, mul_one], } }
-end
 
 namespace nat
 
@@ -237,23 +200,6 @@ begin
 end
 
 end int
-
-theorem irreducible_iff_nat_prime : ∀(a : ℕ), irreducible a ↔ nat.prime a
-| 0 := by simp [nat.not_prime_zero]
-| 1 := by simp [nat.prime, one_lt_two]
-| (n + 2) :=
-  have h₁ : ¬n + 2 = 1, from dec_trivial,
-  begin
-    simp [h₁, nat.prime, irreducible_iff, (≥), nat.le_add_left 2 n, (∣)],
-    refine forall_congr (assume a, forall_congr $ assume b, forall_congr $ assume hab, _),
-    by_cases a = 1; simp [h],
-    split,
-    { assume hb, simpa [hb] using hab.symm },
-    { assume ha, subst ha,
-      have : n + 2 > 0, from dec_trivial,
-      refine nat.eq_of_mul_eq_mul_left this _,
-      rw [← hab, mul_one] }
-  end
 
 lemma nat.prime_iff_prime_int {p : ℕ} : p.prime ↔ _root_.prime (p : ℤ) :=
 ⟨λ hp, ⟨int.coe_nat_ne_zero_iff_pos.2 hp.pos, mt int.is_unit_iff_nat_abs_eq.1 hp.ne_one,

@@ -1194,6 +1194,72 @@ if b1 : 1 < b then
   le_trans (le_power_self _ b1) (power_log_le b (ordinal.pos_iff_ne_zero.2 x0))
 else by simp only [log_not_one_lt b1, ordinal.zero_le]
 
+theorem log_one (b : ordinal) : log b 1 = 0 :=
+begin
+  by_cases hb : 1 < b,
+  { rw log_def hb,
+    suffices : omin {o | 1 < b^o} (log._proof_1 b 1 hb) = 1,
+    { rw [this, ←succ_zero, pred_succ] },
+    apply le_antisymm,
+    { apply omin_le,
+      change 1 < b ^ 1,
+      rwa power_one },
+    rw le_omin,
+    intros a ha,
+    by_contra' ha',
+    rw lt_one_iff_zero at ha',
+    rw ha' at ha,
+    change 1 < b ^ 0 at ha,
+    exact ne_of_lt ha (power_zero b).symm },
+  exact log_not_one_lt hb 1
+end
+
+theorem one_lt_of_two_le {b : ordinal} (hb : 2 ≤ b) : 1 < b :=
+by rwa ←succ_le
+
+theorem zero_lt_of_two_le {b : ordinal} (hb : 2 ≤ b) : 0 < b :=
+zero_lt_one.trans (one_lt_of_two_le hb)
+
+lemma power_mul_add_pos {b v : ordinal} (u w : ordinal) (hb : 2 ≤ b) (hv : 1 ≤ v) :
+  0 < b ^ u * v + w :=
+(power_pos u (zero_lt_of_two_le hb)).trans_le ((le_mul_left hv).trans (le_add_right _ _))
+
+lemma power_mul_add_lt_power_mul_succ {b u v w : ordinal} (hw : w < b ^ u) :
+  b ^ u * v + w < b ^ u * v.succ :=
+by rwa [mul_succ, add_lt_add_iff_left]
+
+lemma power_mul_add_lt_power_succ {b u v w : ordinal} (hb : 2 ≤ b) (hv : 1 ≤ v) (hvb : v < b)
+  (hw : w < b ^ u) : b ^ u * v + w < b ^ u.succ :=
+begin
+  apply lt_of_lt_of_le (power_mul_add_lt_power_mul_succ hw),
+  rw ←succ_le at hvb,
+  rw power_succ,
+  exact (mul_le_mul_left (b ^ u) hvb)
+end
+
+theorem log_power_mul_add {b u v w : ordinal} (hb : 2 ≤ b) (hv : 1 ≤ v) (hvb : v < b)
+  (hw : w < b ^ u) : log b (b ^ u * v + w) = u :=
+begin
+  have hpos := power_mul_add_pos u w hb hv,
+  by_contra' hne,
+  cases lt_or_gt_of_ne hne with h h,
+  { rw log_lt (one_lt_of_two_le hb) hpos at h,
+    exact not_le_of_lt h (le_trans (le_mul_left hv) (le_add_right _ _)) },
+  change _ < _ at h,
+  rw [←succ_le, le_log (one_lt_of_two_le hb) hpos] at h,
+  exact (not_lt_of_le h) (power_mul_add_lt_power_succ hb hv hvb hw)
+end
+
+theorem log_power (b x : ordinal) (hb : 2 ≤ b) : log b (b ^ x) = x :=
+begin
+  cases eq_or_ne x 0 with hx hx,
+  { rw [hx, power_zero],
+    exact log_one b },
+  have : b ^ x = b ^ x * 1 + 0 := by rw [add_zero, mul_one],
+  rw this,
+  exact log_power_mul_add hb (le_refl 1) (one_lt_of_two_le hb) (power_pos x (zero_lt_of_two_le hb))
+end
+
 /-! ### The Cantor normal form -/
 
 theorem CNF_aux {b o : ordinal} (b0 : b ≠ 0) (o0 : o ≠ 0) :

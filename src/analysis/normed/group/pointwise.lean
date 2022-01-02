@@ -78,7 +78,7 @@ begin
   apply subset.antisymm,
   { assume x hx,
     obtain ⟨y, ys, hy⟩ : ∃ y ∈ s, emetric.inf_edist x s = edist x y :=
-      hs.exists_inf_edist_eq_edist hne,
+      hs.exists_inf_edist_eq_edist hne _,
     have D1 : edist x y ≤ ennreal.of_real r := (le_of_eq hy.symm).trans hx,
     have D2 : dist x y ≤ r,
     { rw edist_dist at D1,

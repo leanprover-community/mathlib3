@@ -174,7 +174,24 @@ instance [semiring 𝕜] [decidable_eq α] [preorder α] [locally_finite_order �
   mul_assoc := λ f g h, begin
     ext a b,
     simp only [mul_apply, sum_mul, mul_sum],
-    sorry
+    rw finset.sum_sigma',
+    rw finset.sum_sigma',
+    dsimp,
+    apply' sum_bij (λ (x : Σ i : α, α) hx, (sigma.mk x.snd x.fst : Σ i : α, α)),
+    { rintro ⟨a_1_fst, a_1_snd⟩ ha,
+      simp only [mem_sigma, mem_Icc] at *,
+      tidy,
+      exact le_trans ha_right_right ha_left_right, },
+    { rintro ⟨a_1_fst, a_1_snd⟩ ha,
+      simp [mul_assoc], },
+    { rintro ⟨a₁_fst, a₁_snd⟩ ⟨a₂_fst, a₂_snd⟩ ha₁ ha₂ ⟨⟩,
+      refl, },
+    { rintro ⟨b_1_fst, b_1_snd⟩ H,
+      simp only [exists_prop, sigma.exists, mem_sigma, heq_iff_eq, sigma.mk.inj_iff, mem_Icc] at *,
+      use [b_1_snd, b_1_fst],
+      simp only [and_true, eq_self_iff_true],
+      tidy,
+      exact le_trans H_left_left H_right_left, },
   end,
   one := (1),
   one_mul := λ f, begin
@@ -268,11 +285,18 @@ end
 
 lemma mu_spec_of_ne_left {a b : α} (h : a ≠ b) : ∑ (x : α) in Icc a b, (mu 𝕜 α) x b = 0 :=
 begin
-  have : mu 𝕜 α a b = _ := mu_apply_of_ne h,
-  have hIcc : Icc a b = Ioc a b ∪ {a},
-  sorry,
-  rw [hIcc, sum_union, sum_singleton, this, add_neg_self],
-  simp,
+  -- I believe this is true but the proof could be annoying?
+  sorry
+  -- induction hi : (Icc a b).card generalizing a b,
+  -- { simp at hi,
+  --   rw Icc_eq_empty hi,
+  --   simp, },
+
+  -- have : mu 𝕜 α a b = _ := mu_apply_of_ne h,
+  -- have hIcc : Icc a b = Ioc a b ∪ {a},
+  -- sorry,
+  -- rw [hIcc, sum_union, sum_singleton, this, add_neg_self],
+  -- simp,
 end
 
 end mu
@@ -289,6 +313,9 @@ begin
     simp,
     simp at h,
     rw Ico_to_dual,
+    sorry,
+    -- I think this is probably also true and maybe helpful for
+    -- giving the other characterization of mu
     -- squeeze_simp,
      },
 end

@@ -1918,7 +1918,7 @@ end orthogonal
 
 /-! ### Self-adjoint operators -/
 
-section is_self_adjoint
+namespace inner_product_space
 
 /-- A (not necessarily bounded) operator on an inner product space is self-adjoint, if for all
 `x`, `y`, we have `⟪T x, y⟫ = ⟪x, T y⟫`. -/
@@ -1958,4 +1958,4 @@ lemma is_self_adjoint.restrict_invariant {T : E →ₗ[𝕜] E} (hT : is_self_ad
   is_self_adjoint (T.restrict hV) :=
 λ v w, hT v w
 
-end is_self_adjoint
+end inner_product_space

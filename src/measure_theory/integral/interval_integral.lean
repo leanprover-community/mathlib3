@@ -789,23 +789,6 @@ lemma interval_integrable_iff_integrable_Icc_of_le
   interval_integrable f μ a b ↔ integrable_on f (Icc a b) μ :=
 by rw [interval_integrable_iff_integrable_Ioc_of_le hab, integrable_on_Icc_iff_integrable_on_Ioc]
 
-lemma integral_Icc_eq_integral_Ioc' {f : α → E} {a b : α} (ha : μ {a} = 0) :
-  ∫ t in Icc a b, f t ∂μ = ∫ t in Ioc a b, f t ∂μ :=
-begin
-  cases le_or_lt a b with hab hab,
-  { have : μ.restrict (Icc a b) = μ.restrict (Ioc a b),
-    { rw [← Ioc_union_left hab,
-          measure_theory.measure.restrict_union _ measurable_set_Ioc (measurable_set_singleton a)],
-      { simp [measure_theory.measure.restrict_zero_set ha] },
-      { simp } },
-    rw this },
-  { simp [hab, hab.le] }
-end
-
-lemma integral_Icc_eq_integral_Ioc {f : α → E} {a b : α} [has_no_atoms μ] :
-  ∫ t in Icc a b, f t ∂μ = ∫ t in Ioc a b, f t ∂μ :=
-integral_Icc_eq_integral_Ioc' $ measure_singleton a
-
 /-- If two functions are equal in the relevant interval, their interval integrals are also equal. -/
 lemma integral_congr {a b : α} (h : eq_on f g (interval a b)) :
   ∫ x in a..b, f x ∂μ = ∫ x in a..b, g x ∂μ :=
@@ -1165,6 +1148,9 @@ begin
   { rw [integral_symm, neg_eq_zero, integral_eq_zero_iff_of_le_of_nonneg_ae hab hf hfi.symm] }
 end
 
+/-- If `f` is nonnegative and integrable on the unordered interval `set.interval_oc a b`, then its
+integral over `a..b` is positive if and only if `a < b` and the measure of
+`function.support f ∩ set.Ioc a b` is positive. -/
 lemma integral_pos_iff_support_of_nonneg_ae'
   (hf : 0 ≤ᵐ[μ.restrict (Ι a b)] f) (hfi : interval_integrable f μ a b) :
   0 < ∫ x in a..b, f x ∂μ ↔ a < b ∧ 0 < μ (support f ∩ Ioc a b) :=
@@ -1179,11 +1165,16 @@ begin
     exact integral_nonneg_of_ae hf }
 end
 
-lemma integral_pos_iff_support_of_nonneg_ae
-  (hf : 0 ≤ᵐ[μ] f) (hfi : interval_integrable f μ a b) :
+/-- If `f` is nonnegative a.e.-everywhere and it is integrable on the unordered interval
+`set.interval_oc a b`, then its integral over `a..b` is positive if and only if `a < b` and the
+measure of `function.support f ∩ set.Ioc a b` is positive. -/
+lemma integral_pos_iff_support_of_nonneg_ae (hf : 0 ≤ᵐ[μ] f) (hfi : interval_integrable f μ a b) :
   0 < ∫ x in a..b, f x ∂μ ↔ a < b ∧ 0 < μ (support f ∩ Ioc a b) :=
 integral_pos_iff_support_of_nonneg_ae' (ae_mono measure.restrict_le_self hf) hfi
 
+/-- If `f` and `g` are two functions that are interval integrable on `a..b`, `a ≤ b`,
+`f x ≤ g x` for a.e. `x ∈ set.Ioc a b`, and `f x < g x` on a subset of `set.Ioc a b`
+of nonzero measure, then `∫ x in a..b, f x ∂μ < ∫ x in a..b, g x ∂μ`. -/
 lemma integral_lt_integral_of_ae_le_of_measure_set_of_lt_ne_zero (hab : a ≤ b)
   (hfi : interval_integrable f μ a b) (hgi : interval_integrable g μ a b)
   (hle : f ≤ᵐ[μ.restrict (Ioc a b)] g) (hlt : μ.restrict (Ioc a b) {x | f x < g x} ≠ 0) :

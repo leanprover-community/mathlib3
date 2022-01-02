@@ -71,8 +71,8 @@ def Mon_to_Monad : Mon_ (C ⥤ C) ⥤ monad C :=
     end,
     app_μ' := begin
       intro X,
-      erw [←nat_trans.comp_app, f.mul_hom],
-      finish,
+      erw [←nat_trans.comp_app, f.mul_hom], -- `finish` closes this goal
+      simpa only [nat_trans.naturality, nat_trans.hcomp_app, assoc, nat_trans.comp_app, of_Mon_μ],
     end,
     ..f.hom } }
 

@@ -311,6 +311,18 @@ calc ∥∮ z in C(c, R), f z∥ ≤ 2 * π * |R| * C :
   norm_integral_le_of_norm_le_const' $ by rwa this
 ... = 2 * π * R * C : by rw this
 
+lemma norm_two_pi_I_inv_smul_integral_le_of_norm_le_const {f : ℂ → E} {c : ℂ} {R C : ℝ} (hR : 0 ≤ R)
+  (hf : ∀ z ∈ sphere c R, ∥f z∥ ≤ C) :
+  ∥(2 * π * I : ℂ)⁻¹ • ∮ z in C(c, R), f z∥ ≤ R * C :=
+begin
+  have : ∥(2 * π * I : ℂ)⁻¹∥ = (2 * π)⁻¹, by simp [real.pi_pos.le],
+  rw [norm_smul, this, ← div_eq_inv_mul, div_le_iff real.two_pi_pos, mul_comm (R * C), ← mul_assoc],
+  exact norm_integral_le_of_norm_le_const hR hf
+end
+
+/-- If `f` is continuous on the circle `|z - c| = R`, `R > 0`, the `∥f z∥` is less than or equal to
+`C : ℝ` on this circle, and this norm is strictly less than `C` at some point `z` of the circle,
+then `∥∮ z in C(c, R), f z∥ < 2 * π * R * C`. -/
 lemma norm_integral_lt_of_norm_le_const_of_lt {f : ℂ → E} {c : ℂ} {R C : ℝ} (hR : 0 < R)
   (hc : continuous_on f (sphere c R)) (hf : ∀ z ∈ sphere c R, ∥f z∥ ≤ C)
   (hlt : ∃ z ∈ sphere c R, ∥f z∥ < C) :
@@ -332,15 +344,6 @@ begin
       { exact (mul_lt_mul_left hR).2 hlt }
     end
   ... = 2 * π * R * C : by simp [mul_assoc]
-end
-
-lemma norm_two_pi_I_inv_smul_integral_le_of_norm_le_const {f : ℂ → E} {c : ℂ} {R C : ℝ} (hR : 0 ≤ R)
-  (hf : ∀ z ∈ sphere c R, ∥f z∥ ≤ C) :
-  ∥(2 * π * I : ℂ)⁻¹ • ∮ z in C(c, R), f z∥ ≤ R * C :=
-begin
-  have : ∥(2 * π * I : ℂ)⁻¹∥ = (2 * π)⁻¹, by simp [real.pi_pos.le],
-  rw [norm_smul, this, ← div_eq_inv_mul, div_le_iff real.two_pi_pos, mul_comm (R * C), ← mul_assoc],
-  exact norm_integral_le_of_norm_le_const hR hf
 end
 
 @[simp] lemma integral_smul {𝕜 : Type*} [is_R_or_C 𝕜] [normed_space 𝕜 E] [smul_comm_class 𝕜 ℂ E]

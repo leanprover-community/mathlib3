@@ -229,16 +229,16 @@ begin
     { rwa tendsto_nhds_unique h (hl'.comp hg) } }
 end
 
-/-! The next family of results, such as `is_lub_of_tendsto` and `supr_eq_of_tendsto`, are converses
-to the standard fact that bounded monotone functions converge. They state, that if a monotone
-function `f` tends to `a` along `at_top`, then that value `a` is a least upper bound for the range
-of `f`.
+/-! The next family of results, such as `is_lub_of_tendsto_at_top` and `supr_eq_of_tendsto`, are
+converses to the standard fact that bounded monotone functions converge. They state, that if a
+monotone function `f` tends to `a` along `filter.at_top`, then that value `a` is a least upper bound
+for the range of `f`.
 
 Related theorems above (`is_lub.is_lub_of_tendsto`, `is_glb.is_glb_of_tendsto` etc) cover the case
 when `f x` tends to `a` as `x` tends to some point `b` in the domain. -/
 
-lemma monotone.ge_of_tendsto {α β : Type*} [topological_space α] [preorder α]
-  [order_closed_topology α] [semilattice_sup β] {f : β → α} {a : α} (hf : monotone f)
+lemma monotone.ge_of_tendsto [topological_space α] [preorder α] [order_closed_topology α]
+  [semilattice_sup β] {f : β → α} {a : α} (hf : monotone f)
   (ha : tendsto f at_top (𝓝 a)) (b : β) :
   f b ≤ a :=
 begin
@@ -246,13 +246,13 @@ begin
   exact ge_of_tendsto ha ((eventually_ge_at_top b).mono (λ _ hxy, hf hxy))
 end
 
-lemma monotone.le_of_tendsto {α β : Type*} [topological_space α] [preorder α]
-  [order_closed_topology α] [semilattice_inf β] {f : β → α} {a : α} (hf : monotone f)
+lemma monotone.le_of_tendsto [topological_space α] [preorder α] [order_closed_topology α]
+  [semilattice_inf β] {f : β → α} {a : α} (hf : monotone f)
   (ha : tendsto f at_bot (𝓝 a)) (b : β) :
   a ≤ f b :=
 @monotone.ge_of_tendsto (order_dual α) (order_dual β) _ _ _ _ f _ hf.dual ha b
 
-lemma is_lub_of_tendsto {α β : Type*} [topological_space α] [preorder α] [order_closed_topology α]
+lemma is_lub_of_tendsto_at_top [topological_space α] [preorder α] [order_closed_topology α]
   [nonempty β] [semilattice_sup β] {f : β → α} {a : α} (hf : monotone f)
   (ha : tendsto f at_top (𝓝 a)) :
   is_lub (set.range f) a :=
@@ -263,11 +263,23 @@ begin
   { exact λ _ hb, le_of_tendsto' ha (λ x, hb (set.mem_range_self x)) }
 end
 
-lemma is_glb_of_tendsto {α β : Type*} [topological_space α] [preorder α] [order_closed_topology α]
+lemma is_glb_of_tendsto_at_bot [topological_space α] [preorder α] [order_closed_topology α]
   [nonempty β] [semilattice_inf β] {f : β → α} {a : α} (hf : monotone f)
   (ha : tendsto f at_bot (𝓝 a)) :
   is_glb (set.range f) a :=
-@is_lub_of_tendsto (order_dual α) (order_dual β) _ _ _ _ _ _ _ hf.dual ha
+@is_lub_of_tendsto_at_top (order_dual α) (order_dual β) _ _ _ _ _ _ _ hf.dual ha
+
+lemma is_lub_of_tendsto_at_bot [topological_space α] [preorder α] [order_closed_topology α]
+  [nonempty β] [semilattice_inf β] {f : β → α} {a : α} (hf : antitone f)
+  (ha : tendsto f at_bot (𝓝 a)) :
+  is_lub (set.range f) a :=
+@is_lub_of_tendsto_at_top α (order_dual β)  _ _ _ _ _ _ _ hf.dual_left ha
+
+lemma is_glb_of_tendsto_at_top [topological_space α] [preorder α] [order_closed_topology α]
+  [nonempty β] [semilattice_sup β] {f : β → α} {a : α} (hf : antitone f)
+  (ha : tendsto f at_top (𝓝 a)) :
+  is_glb (set.range f) a :=
+@is_glb_of_tendsto_at_bot α (order_dual β)  _ _ _ _ _ _ _ hf.dual_left ha
 
 lemma supr_eq_of_tendsto {α β} [topological_space α] [complete_linear_order α] [order_topology α]
   [nonempty β] [semilattice_sup β] {f : β → α} {a : α} (hf : monotone f) :

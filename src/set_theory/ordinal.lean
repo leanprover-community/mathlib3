@@ -585,9 +585,11 @@ begin
   cases quotient.out α, cases quotient.out β, exact classical.choice ∘ quotient.exact
 end
 
-theorem typein_lt_type (r : α → α → Prop) [is_well_order α r]
-  (a : α) : typein r a < type r :=
+theorem typein_lt_type (r : α → α → Prop) [is_well_order α r] (a : α) : typein r a < type r :=
 ⟨principal_seg.of_element _ _⟩
+
+theorem typein_lt_self {o : ordinal} (i : o.out.α) : typein o.out.r i < o :=
+by { simp_rw ←type_out o, apply typein_lt_type }
 
 @[simp] theorem typein_top {α β} {r : α → α → Prop} {s : β → β → Prop}
   [is_well_order α r] [is_well_order β s] (f : r ≺i s) :
@@ -754,6 +756,23 @@ by simp only [le_antisymm_iff, ordinal.zero_le, and_true]
 
 protected theorem pos_iff_ne_zero {o : ordinal} : 0 < o ↔ o ≠ 0 :=
 by simp only [lt_iff_le_and_ne, ordinal.zero_le, true_and, ne.def, eq_comm]
+
+protected theorem not_lt_zero (o : ordinal) : ¬ o < 0 :=
+not_lt_of_le (ordinal.zero_le _)
+
+theorem out_empty_iff_eq_zero {o : ordinal} : is_empty o.out.α ↔ o = 0 :=
+begin
+  refine ⟨λ h, _, _⟩,
+  { by_contra ho,
+    have : 0 < o := ordinal.pos_iff_ne_zero.2 ho,
+    rw ←type_out o at this,
+    have := enum o.out.r 0 this,
+    exact h.elim this },
+  intro h, refine ⟨λ i, _⟩,
+  have := typein_lt_self i,
+  simp_rw h at this,
+  exact ordinal.not_lt_zero _ this
+end
 
 instance : has_one ordinal :=
 ⟨⟦⟨punit, empty_relation, by apply_instance⟩⟧⟩
@@ -985,6 +1004,8 @@ induction_on o $ λ α r _, ⟨⟨⟨⟨λ x, sum.inl x, λ _ _, sum.inl.inj⟩,
 sum.inr punit.star, λ b, sum.rec_on b
   (λ x, ⟨λ _, ⟨x, rfl⟩, λ _, sum.lex.sep _ _⟩)
   (λ x, sum.lex_inr_inr.trans ⟨false.elim, λ ⟨x, H⟩, sum.inl_ne_inr H⟩)⟩⟩
+
+theorem succ_ne_self (o : ordinal.{u}) : succ o ≠ o := (lt_succ_self o).ne'
 
 theorem succ_le {a b : ordinal} : succ a ≤ b ↔ a < b :=
 ⟨lt_of_lt_of_le (lt_succ_self _),

@@ -379,7 +379,7 @@ begin
   ext a b,
   rw [mul_apply, one_apply],
   split_ifs with he,
-  { simp [he], },
+  { simp [he] },
   { simp only [mul_one, zeta_apply, mul_ite],
     conv in (ite _ _ _) {
       rw [if_pos (mem_Icc.mp H).2], },
@@ -421,6 +421,39 @@ lemma mu_spec_of_ne_left {a b : α} (h : a ≠ b) : ∑ (x : α) in Icc a b, (mu
 by rw [mu_eq_mu', mu'_spec_of_ne_left h]
 
 end mu_eq_mu'
+
+section inversion
+variables [ring 𝕜] [partial_order α] [order_top α] [locally_finite_order α]
+  [decidable_eq α]
+
+lemma Ici_eq_Ioi_union (x : α) : Ici x = Ioi x ∪ {x} := sorry
+
+lemma moebius_inversion (f g : α → 𝕜) (h : ∀ x, g x = ∑ y in Ici x, f y) (x : α) :
+  f x = ∑ y in Ici x, mu 𝕜 α x y * g y :=
+by letI : @decidable_rel α (≤) := classical.dec_rel _; symmetry; calc
+  ∑ y in Ici x, mu 𝕜 α x y * g y
+      = ∑ y in Ici x, mu 𝕜 α x y * ∑ z in Ici y, f z : by simp_rw [h]
+  ... = ∑ y in Ici x, mu 𝕜 α x y * ∑ z in Ici y, zeta 𝕜 α y z * f z : by {
+        simp_rw [zeta_apply],
+        conv in (ite _ _ _)
+        { rw if_pos (mem_Ici.mp H), },
+        simp, }
+  ... = ∑ y in Ici x, ∑ z in Ici y, mu 𝕜 α x y * zeta 𝕜 α y z * f z : by simp [mul_sum]
+  ... = ∑ z in Ici x, ∑ y in Icc x z, mu 𝕜 α x y * zeta 𝕜 α y z * f z : sorry
+  ... = ∑ z in Ici x, (mu 𝕜 α * zeta 𝕜 α) x z * f z : by {
+        conv in ((mu _ _ * zeta _ _) _ _) { rw [mul_apply] },
+        simp_rw [sum_mul], }
+  ... = ∑ y in Ici x, ∑ z in Ici y, (1 : incidence_algebra 𝕜 α) x z * f z : by {
+        simp [mu_mul_zeta 𝕜 α, Ici_eq_Ioi_union, sum_union],
+        conv in (ite _ _ _) { rw if_neg (not_lt_of_le $ (mem_Ioi.mp H).le) },
+        conv in (ite _ _ _) { rw if_neg (ne_of_lt $ mem_Ioi.mp H) },
+        simp, }
+  ... = f x : by { simp [one_apply, Ici_eq_Ioi_union, sum_union],
+        conv in (ite _ _ _) { rw if_neg (not_lt_of_le $ (mem_Ioi.mp H).le) },
+        conv in (ite _ _ _) { rw if_neg (ne_of_lt $ mem_Ioi.mp H) },
+        simp, }
+
+end inversion
 
 section euler
 variables [add_comm_group 𝕜] [has_one 𝕜] [preorder α] [bounded_order α] [locally_finite_order α]

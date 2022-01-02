@@ -287,28 +287,43 @@ begin
   exact (mul_is_normal ha).strict_mono hbo
 end
 
-theorem the_big'' {o : ordinal.{u}} (ho : principal (*) o) (ho₂ : 2 < o) :
+theorem add_principal_of_mul_principal {o : ordinal.{u}} (ho : principal (*) o) (ho₂ : o ≠ 2) :
+  principal (+) o :=
+begin
+  intros a b hao hbo,
+  refine lt_of_le_of_lt _ (ho a b hao hbo),
+end
+
+theorem mul_principal_power_omega {o : ordinal.{u}} (ho : principal (*) o) (ho₂ : 2 < o) :
   ∃ a : ordinal.{u}, o = omega.{u} ^ a :=
 begin
-  sorry
+  have := add_principal_of_mul_principal ho (ne_of_gt ho₂),
+  rw add_principal_iff_zero_or_omega_pow at this,
+  cases this with ho₀ h,
+  { rw ho₀ at ho₂,
+    exact (ordinal.not_lt_zero 2 ho₂).elim },
+  exact h
 end
 
 theorem the_big' {o : ordinal.{u}} (ho : principal (*) o) (ho₂ : 2 < o) :
   omega.{u} ^ (log omega.{u} o) = o :=
 begin
-  cases the_big'' ho ho₂ with a ha,
-  rw ha,
-  rw log_power
+  cases mul_principal_power_omega ho ho₂ with a ha,
+  rw [ha, log_power],
+  exact two_le_omega
 end
 
-theorem the_big {o : ordinal.{u}} (ho : principal (*) o) (ho₂ : 2 < o) :
-  o < omega.{u} ^ omega.{u} ^ (log omega.{u} (log omega.{u} o)).succ :=
+theorem lt_omega_power_power_log_log_succ_of_principal {o : ordinal.{u}} (ho : principal (*) o)
+  (ho₂ : 2 < o) : o < omega.{u} ^ omega.{u} ^ (log omega.{u} (log omega.{u} o)).succ :=
 begin
-  have : log omega.{u} o < omega.{u} ^ (log omega.{u} (log omega.{u} o)).succ := begin
-  apply lt_power_succ_log one_lt_omega,
-  end,
+  have : log omega.{u} o < omega.{u} ^ (log omega.{u} (log omega.{u} o)).succ :=
+    lt_power_succ_log one_lt_omega _,
   rw ← power_lt_power_iff_right one_lt_omega at this,
-  rwa the_big' ho ho₂ at this,
+  cases mul_principal_power_omega ho ho₂ with a ha,
+  nth_rewrite 0 ha at this,
+  rw log_power _ two_le_omega at this,
+  nth_rewrite 0 ha,
+  exact this
 end
 
 theorem mul_principal_eq_omega_power_power {o : ordinal.{u}} (ho : principal (*) o) (ho₂ : 2 < o) :
@@ -318,7 +333,7 @@ begin
   { by_contra' h,
     have := power_omega_le_mul_principal h ho,
     rw [←power_mul, ←power_succ] at this,
-    exact not_le_of_lt (the_big ho ho₂) this },
+    exact not_le_of_lt (lt_omega_power_power_log_log_succ_of_principal ho ho₂) this },
   have : omega.{u} ^ (log omega.{u} (log omega.{u} o)) ≤ log omega.{u} o := begin
     apply power_log_le,
     sorry,
@@ -326,7 +341,7 @@ begin
   rw ←power_le_power_iff_right one_lt_omega at this,
   apply this.trans,
   apply power_log_le,
-  sorry
+  apply zero_lt_of_two_le (le_of_lt ho₂)
 end
 
 theorem mul_principal_iff_le_two_or_omega_power_power (o : ordinal.{u}) :

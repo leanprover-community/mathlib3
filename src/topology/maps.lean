@@ -270,14 +270,18 @@ lemma of_nhds_le (hf : ∀ a, 𝓝 (f a) ≤ map f (𝓝 a)) : is_open_map f :=
 λ s hs, is_open_iff_mem_nhds.2 $ λ b ⟨a, has, hab⟩,
   hab ▸ hf _ (image_mem_map $ is_open.mem_nhds hs has)
 
+lemma of_sections {f : α → β}
+  (h : ∀ x, ∃ g : β → α, continuous_at g (f x) ∧ g (f x) = x ∧ right_inverse g f) :
+  is_open_map f :=
+of_nhds_le $ λ x, let ⟨g, hgc, hgx, hgf⟩ := h x in
+calc 𝓝 (f x) = map f (map g (𝓝 (f x))) : by rw [map_map, hgf.comp_eq_id, map_id]
+... ≤ map f (𝓝 (g (f x))) : map_mono hgc
+... = map f (𝓝 x) : by rw hgx
+
 lemma of_inverse {f : α → β} {f' : β → α}
   (h : continuous f') (l_inv : left_inverse f f') (r_inv : right_inverse f f') :
   is_open_map f :=
-begin
-  assume s hs,
-  rw [image_eq_preimage_of_inverse r_inv l_inv],
-  exact hs.preimage h
-end
+of_sections $ λ x, ⟨f', h.continuous_at, r_inv _, l_inv⟩
 
 /-- A continuous surjective open map is a quotient map. -/
 lemma to_quotient_map {f : α → β}

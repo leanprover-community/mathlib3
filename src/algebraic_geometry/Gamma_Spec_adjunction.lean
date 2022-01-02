@@ -242,6 +242,8 @@ def identity_to_Γ_Spec : 𝟭 LocallyRingedSpace.{u} ⟶ Γ.right_op ⋙ Spec.t
       symmetry,
       dsimp [Spec.Top_map, LocallyRingedSpace.to_Γ_Spec_fun],
       rw ← prime_spectrum.comap_comp_apply,
+      rw (local_ring.local_hom_iff_comap_closed_point
+        (PresheafedSpace.stalk_map f.val x)).mp infer_instance,
       have := (@local_ring.local_hom_iff_comap_closed_point
         _ _ (Y.2 _) _ _ (X.2 x) _).1 (f.2 x),
       -- convert congr_fun (congr_arg prime_spectrum.comap

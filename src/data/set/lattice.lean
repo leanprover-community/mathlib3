@@ -1341,40 +1341,6 @@ by { ext, simp }
 
 end seq
 
-/-! ### `set` as a monad -/
-
-instance : monad set :=
-{ pure       := λ (α : Type u) a, {a},
-  bind       := λ (α β : Type u) s f, ⋃ i ∈ s, f i,
-  seq        := λ (α β : Type u), set.seq,
-  map        := λ (α β : Type u), set.image }
-
-section monad
-variables {α' β' : Type u} {s : set α'} {f : α' → set β'} {g : set (α' → β')}
-
-@[simp] lemma bind_def : s >>= f = ⋃ i ∈ s, f i := rfl
-
-@[simp] lemma fmap_eq_image (f : α' → β') : f <$> s = f '' s := rfl
-
-@[simp] lemma seq_eq_set_seq {α β : Type*} (s : set (α → β)) (t : set α) : s <*> t = s.seq t := rfl
-
-@[simp] lemma pure_def (a : α) : (pure a : set α) = {a} := rfl
-
-end monad
-
-instance : is_lawful_monad set :=
-{ pure_bind             := λ α β x f, by simp,
-  bind_assoc            := λ α β γ s f g, set.ext $ λ a,
-    by simp [exists_and_distrib_right.symm, -exists_and_distrib_right,
-             exists_and_distrib_left.symm, -exists_and_distrib_left, and_assoc];
-       exact exists_swap,
-  id_map                := λ α, id_map,
-  bind_pure_comp_eq_map := λ α β f s, set.ext $ by simp [set.image, eq_comm],
-  bind_map_eq_seq       := λ α β s t, by simp [seq_def] }
-
-instance : is_comm_applicative (set : Type u → Type u) :=
-⟨ λ α β s t, prod_image_seq_comm s t ⟩
-
 section pi
 
 variables {π : α → Type*}

@@ -147,6 +147,11 @@ by induction n with n ih; [rw [nat.cast_zero, add_zero, add_zero],
 theorem add_right_cancel {a b : ordinal} (n : ℕ) : a + n = b + n ↔ a = b :=
 by simp only [le_antisymm_iff, add_le_add_iff_right]
 
+theorem add_monotone {a : ordinal} : monotone ((+) a) := sorry
+
+theorem add_monotone' {a : ordinal} :
+  monotone ((function.swap ((+) : ordinal → ordinal → ordinal)) a) := sorry
+
 /-! ### The zero ordinal -/
 
 @[simp] theorem card_eq_zero {o} : card o = 0 ↔ o = 0 :=
@@ -1950,6 +1955,9 @@ theorem is_normal.le_nfp {f} (H : is_normal f) {a b} : f b ≤ nfp f a ↔ b ≤
 theorem nfp_eq_self {f : ordinal → ordinal} {a} (h : f a = a) : nfp f a = a :=
 le_antisymm (sup_le.mpr $ λ i, by rw [iterate_fixed h]) (le_nfp_self f a)
 
+theorem nfp_monotone {f : ordinal → ordinal} (hf : monotone f) : monotone (nfp f) :=
+sorry
+
 /-- Fixed point lemma for normal functions: the fixed points of a normal function are unbounded. -/
 theorem is_normal.nfp_unbounded {f} (H : is_normal f) : unbounded (<) (fixed_points f) :=
 λ a, ⟨_, H.nfp_fp a, not_lt_of_ge (le_nfp_self f a)⟩
@@ -2023,9 +2031,9 @@ unbounded_lt_Ici _
 theorem add_mul_omega {a} : a + a * omega = a * omega :=
 by { rw [←mul_one_add, one_add_omega] }
 
-lemma mul_omega_nfp {a} : a * omega.{u} = nfp ((+) a) 0 :=
+theorem mul_omega_nfp_zero {a} : a * omega.{u} = nfp ((+) a) 0 :=
 begin
-  by_cases ha : 0 = a,
+  cases eq_or_ne 0 a with ha ha,
   { rw [←ha, zero_mul],
     unfold nfp,
     apply eq.symm,
@@ -2046,7 +2054,17 @@ begin
   rw [iterate_succ_apply', hn, ←mul_one_add, (by simp : (1 : ordinal) + ↑n = ↑(1 + n)), add_comm]
 end
 
-theorem add_absorp_iff' {a b : ordinal.{u}} : a + b = b ↔ a * omega.{u} ≤ b :=
+theorem mul_omega_nfp_of_le_mul_omega {a b} (hba : b ≤ a * omega.{u}) :
+  a * omega.{u} = nfp ((+) a) b :=
+begin
+  apply le_antisymm,
+  {
+    rw mul_omega_nfp,
+    apply nfp_monotone (add_monotone a),
+  }
+end
+
+theorem add_fp_iff_mul_omega_le {a b : ordinal.{u}} : a + b = b ↔ a * omega.{u} ≤ b :=
 begin
   refine ⟨λ h, _, λ h, _⟩,
   { have : deriv ((+) a) 0 ≤ b := begin
@@ -2073,7 +2091,7 @@ begin
   { rw deriv_zero,
     exact mul_omega_nfp },
   rw ←(add_is_normal a).fp_iff_deriv',
-  exact add_absorp_iff'.2 hb
+  exact add_fp_iff_mul_omega_le.2 hb
 end
 
 end ordinal

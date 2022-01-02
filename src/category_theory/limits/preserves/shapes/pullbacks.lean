@@ -61,7 +61,7 @@ def is_limit_of_is_limit_pullback_cone_map [reflects_limit (cospan f g) G]
   is_limit (pullback_cone.mk h k comm) :=
 reflects_limit.reflects ((is_limit_map_cone_pullback_cone_equiv G comm).symm l)
 
-variables (f g) [has_pullback f g]
+variables (f g) [has_pullback f g] [preserves_limit (cospan f g) G]
 
 /-- If `G` preserves pullbacks and `C` has them, then the pullback cone constructed of the mapped
 morphisms of the pullback cone is a limit. -/
@@ -70,19 +70,17 @@ def is_limit_of_has_pullback_of_preserves_limit
   is_limit (pullback_cone.mk (G.map pullback.fst) (G.map pullback.snd) _) :=
 is_limit_pullback_cone_map_of_is_limit G _ (pullback_is_pullback f g)
 
-variables [has_pullback (G.map f) (G.map g)]
-
 /-- If `F` preserves the pullback of `f, g`, it also preserves the pullback of `g, f`. -/
-def preserves_pullback_symmetry {D : Type*} [category D] (F : C ⥤ D) {X Y Z : C} (f : X ⟶ Z)
-  (g : Y ⟶ Z) [preserves_limit (cospan f g) F] : preserves_limit (cospan g f) F :=
+def preserves_pullback_symmetry : preserves_limit (cospan g f) G :=
 { preserves := λ c hc,
   begin
-    apply (is_limit.postcompose_hom_equiv (diagram_iso_cospan.{v₁} _) _).to_fun,
+    apply (is_limit.whisker_equivalence_equiv walking_cospan_equiv.{v₂ v₁}).symm.to_fun,
+    apply (is_limit.postcompose_hom_equiv (diagram_iso_cospan.{v₂} _) _).to_fun,
     apply is_limit.of_iso_limit _ (pullback_cone.iso_mk _).symm,
     apply pullback_cone.flip_is_limit,
     apply (is_limit_map_cone_pullback_cone_equiv _ _).to_fun,
     { apply_with preserves_limit.preserves { instances := ff },
-      { dsimp, apply_instance },
+      { dsimp [walking_cospan_equiv], apply_instance },
       apply pullback_cone.flip_is_limit,
       apply is_limit.of_iso_limit _ (pullback_cone.iso_mk _),
       exact (is_limit.postcompose_hom_equiv (diagram_iso_cospan.{v₁} _) _).inv_fun hc },
@@ -90,11 +88,11 @@ def preserves_pullback_symmetry {D : Type*} [category D] (F : C ⥤ D) {X Y Z : 
       (c.π.naturality walking_cospan.hom.inl : _) }
   end }
 
-variables [preserves_limit (cospan f g) G]
+variables [has_pullback (G.map f) (G.map g)]
 
 /-- If `G` preserves the pullback of `(f,g)`, then the pullback comparison map for `G` at `(f,g)` is
 an isomorphism. -/
-def preserves_pullback.iso [preserves_limit (cospan f g) G] :
+def preserves_pullback.iso :
   G.obj (pullback f g) ≅ pullback (G.map f) (G.map g) :=
 is_limit.cone_point_unique_up_to_iso
   (is_limit_of_has_pullback_of_preserves_limit G f g)
@@ -148,26 +146,25 @@ def is_colimit_of_is_colimit_pushout_cocone_map [reflects_colimit (span f g) G]
   is_colimit (pushout_cocone.mk h k comm) :=
 reflects_colimit.reflects ((is_colimit_map_cocone_pushout_cocone_equiv G comm).symm l)
 
-variables (f g) [has_pushout f g]
+variables (f g) [has_pushout f g] [preserves_colimit (span f g) G]
 
 /-- If `G` preserves pushouts and `C` has them, then the pushout cocone constructed of the mapped
 morphisms of the pushout cocone is a colimit. -/
-def is_colimit_of_has_pushout_of_preserves_colimit
-  [preserves_colimit (span f g) G] :
+def is_colimit_of_has_pushout_of_preserves_colimit:
   is_colimit (pushout_cocone.mk (G.map pushout.inl) (G.map pushout.inr) _) :=
 is_colimit_pushout_cocone_map_of_is_colimit G _ (pushout_is_pushout f g)
-
+set_option pp.universes true
 /-- If `F` preserves the pushout of `f, g`, it also preserves the pushout of `g, f`. -/
-def preserves_pushout_symmetry {D : Type*} [category D] (F : C ⥤ D) (f : X ⟶ Y)
-  (g : X ⟶ Z) [preserves_colimit (span f g) F] : preserves_colimit (span g f) F :=
+def preserves_pushout_symmetry : preserves_colimit (span g f) G :=
 { preserves := λ c hc,
   begin
-    apply (is_colimit.precompose_hom_equiv (diagram_iso_span.{v₁} _).symm _).to_fun,
+    apply (is_colimit.whisker_equivalence_equiv walking_span_equiv.{v₂ v₁}).symm.to_fun,
+    apply (is_colimit.precompose_hom_equiv (diagram_iso_span.{v₂} _).symm _).to_fun,
     apply is_colimit.of_iso_colimit _ (pushout_cocone.iso_mk _).symm,
     apply pushout_cocone.flip_is_colimit,
     apply (is_colimit_map_cocone_pushout_cocone_equiv _ _).to_fun,
     { apply_with preserves_colimit.preserves { instances := ff },
-      { dsimp, apply_instance },
+      { dsimp [walking_span_equiv], apply_instance },
       apply pushout_cocone.flip_is_colimit,
       apply is_colimit.of_iso_colimit _ (pushout_cocone.iso_mk _),
       exact (is_colimit.precompose_hom_equiv (diagram_iso_span.{v₁} _) _).inv_fun hc },
@@ -175,7 +172,7 @@ def preserves_pushout_symmetry {D : Type*} [category D] (F : C ⥤ D) (f : X ⟶
       (c.ι.naturality walking_span.hom.fst).symm }
   end }
 
-variables [has_pushout (G.map f) (G.map g)] [preserves_colimit (span f g) G]
+variables [has_pushout (G.map f) (G.map g)]
 
 /-- If `G` preserves the pushout of `(f,g)`, then the pushout comparison map for `G` at `(f,g)` is
 an isomorphism. -/

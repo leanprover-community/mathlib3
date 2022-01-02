@@ -61,12 +61,11 @@ def is_limit_of_is_limit_pullback_cone_map [reflects_limit (cospan f g) G]
   is_limit (pullback_cone.mk h k comm) :=
 reflects_limit.reflects ((is_limit_map_cone_pullback_cone_equiv G comm).symm l)
 
-variables (f g) [has_pullback f g] [preserves_limit (cospan f g) G]
+variables (f g) [preserves_limit (cospan f g) G]
 
 /-- If `G` preserves pullbacks and `C` has them, then the pullback cone constructed of the mapped
 morphisms of the pullback cone is a limit. -/
-def is_limit_of_has_pullback_of_preserves_limit
-  [preserves_limit (cospan f g) G] :
+def is_limit_of_has_pullback_of_preserves_limit [has_pullback f g] :
   is_limit (pullback_cone.mk (G.map pullback.fst) (G.map pullback.snd) _) :=
 is_limit_pullback_cone_map_of_is_limit G _ (pullback_is_pullback f g)
 
@@ -88,7 +87,7 @@ def preserves_pullback_symmetry : preserves_limit (cospan g f) G :=
       (c.π.naturality walking_cospan.hom.inl : _) }
   end }
 
-variables [has_pullback (G.map f) (G.map g)]
+variables [has_pullback f g] [has_pullback (G.map f) (G.map g)]
 
 /-- If `G` preserves the pullback of `(f,g)`, then the pullback comparison map for `G` at `(f,g)` is
 an isomorphism. -/
@@ -146,14 +145,14 @@ def is_colimit_of_is_colimit_pushout_cocone_map [reflects_colimit (span f g) G]
   is_colimit (pushout_cocone.mk h k comm) :=
 reflects_colimit.reflects ((is_colimit_map_cocone_pushout_cocone_equiv G comm).symm l)
 
-variables (f g) [has_pushout f g] [preserves_colimit (span f g) G]
+variables (f g) [preserves_colimit (span f g) G]
 
 /-- If `G` preserves pushouts and `C` has them, then the pushout cocone constructed of the mapped
 morphisms of the pushout cocone is a colimit. -/
-def is_colimit_of_has_pushout_of_preserves_colimit:
+def is_colimit_of_has_pushout_of_preserves_colimit [has_pushout f g] :
   is_colimit (pushout_cocone.mk (G.map pushout.inl) (G.map pushout.inr) _) :=
 is_colimit_pushout_cocone_map_of_is_colimit G _ (pushout_is_pushout f g)
-set_option pp.universes true
+
 /-- If `F` preserves the pushout of `f, g`, it also preserves the pushout of `g, f`. -/
 def preserves_pushout_symmetry : preserves_colimit (span g f) G :=
 { preserves := λ c hc,
@@ -172,7 +171,7 @@ def preserves_pushout_symmetry : preserves_colimit (span g f) G :=
       (c.ι.naturality walking_span.hom.fst).symm }
   end }
 
-variables [has_pushout (G.map f) (G.map g)]
+variables [has_pushout f g]  [has_pushout (G.map f) (G.map g)]
 
 /-- If `G` preserves the pushout of `(f,g)`, then the pushout comparison map for `G` at `(f,g)` is
 an isomorphism. -/

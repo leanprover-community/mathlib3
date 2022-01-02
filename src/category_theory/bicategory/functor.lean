@@ -82,7 +82,7 @@ end prepseudofunctor
 section
 
 /--
-The auxiliary definition that claims that pseudofunctors preserve the associators
+This auxiliary definition claims that pseudofunctors preserve the associators
 modulo some adjustments of domains and codomains of 2-morphisms. -/
 /-
 The reason for using this auxiliary definition instead of writing it directly in the definition
@@ -200,13 +200,13 @@ def comp : oplax_functor B D :=
   map_comp_naturality_left' := λ a b c f f' η g, by
   { dsimp,
     slice_rhs 1 3
-    { rw [←map_comp_naturality_left, ←map₂_comp_assoc, ←map_comp_naturality_left] },
-    simp only [map₂_comp, assoc] },
+    { rw [←map_comp_naturality_left, ←map₂_comp_assoc,
+          ←map_comp_naturality_left, map₂_comp_assoc] } },
   map_comp_naturality_right' := λ a b c f g g' η, by
   { dsimp,
     slice_rhs 1 3
-    { rw [←map_comp_naturality_right, ←map₂_comp_assoc, ←map_comp_naturality_right] },
-    simp only [map₂_comp, assoc] },
+    { rw [←map_comp_naturality_right, ←map₂_comp_assoc,
+          ←map_comp_naturality_right, map₂_comp_assoc] } },
   map₂_associator' := λ a b c d f g h, by
   { dsimp, simp only [whisker_right_comp, assoc, whisker_left_comp],
     rw [←map_comp_naturality_left_assoc, ←map_comp_naturality_right_assoc, ←map₂_associator],

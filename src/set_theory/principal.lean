@@ -88,34 +88,11 @@ begin
   exact ⟨m + n, (nat.cast_add m n).symm⟩
 end
 
--- Move to ordinal_arithmetic?
--- I proved basically this in another PR.
-theorem mul_omega_eq_nfp_add {a b : ordinal.{u}} (hba : b ≤ a * omega.{u}) :
-  a * omega.{u} = nfp ((+) a) b :=
-begin
-  unfold nfp,
-  apply le_antisymm, {
-  rw mul_omega_eq_sup_mul_nat,
-    rw sup_le,
-    sorry,
-  },
-  rw sup_le,
-  sorry,
-end
-
--- Move to ordinal_arithmetic?
-theorem mul_omega_eq_nfp_add_self {a : ordinal.{u}} : a * omega.{u} = nfp ((+) a) a :=
-mul_omega_eq_nfp_add (le_mul_left one_le_omega)
-
--- Move to ordinal_arithmetic?
-theorem mul_omega_eq_nfp_add_zero {a : ordinal.{u}} : a * omega.{u} = nfp ((+) a) 0 :=
-mul_omega_eq_nfp_add (ordinal.zero_le _)
-
 theorem mul_omega_le_add_principal {a o : ordinal.{u}} (hao : a < o) (ho : principal (+) o) :
   a * omega.{u} ≤ o :=
 begin
   convert nfp_le_of_principal hao ho,
-  exact mul_omega_eq_nfp_add_self
+  exact mul_omega_nfp_add_self a
 end
 
 theorem omega_power_add_principal (o : ordinal.{u}) : principal (+) (omega.{u} ^ o) :=
@@ -205,7 +182,7 @@ begin
 end
 
 -- Move to ordinal_arithmetic?
-theorem power_omega_eq_nfp_mul {a b : ordinal.{u}} (hb : 0 < b) (hba : b ≤ a ^ omega.{u}) :
+theorem power_omega_nfp_mul {a b : ordinal.{u}} (hb : 0 < b) (hba : b ≤ a ^ omega.{u}) :
   a ^ omega.{u} = nfp ((*) a) b :=
 begin
   sorry
@@ -226,19 +203,19 @@ begin
 end
 
 -- Move to ordinal_arithmetic?
-theorem power_omega_eq_nfp_mul_self (a : ordinal.{u}) : a ^ omega.{u} = nfp ((*) a) a :=
+theorem power_omega_nfp_mul_self (a : ordinal.{u}) : a ^ omega.{u} = nfp ((*) a) a :=
 begin
   cases eq_or_ne a 0 with ha ha,
   { rw [ha, zero_power omega_ne_zero],
     exact (nfp_mul_zero 0).symm },
   rw ←ordinal.pos_iff_ne_zero at ha,
-  exact power_omega_eq_nfp_mul ha (le_power_self_left a one_le_omega)
+  exact power_omega_nfp_mul ha (le_power_self_left a one_le_omega)
 end
 
 -- Move to ordinal_arithmetic?
-theorem power_omega_eq_nfp_mul_one {a : ordinal.{u}} (ha : 0 < a) : a ^ omega.{u} = nfp ((*) a) 1 :=
+theorem power_omega_nfp_mul_one {a : ordinal.{u}} (ha : 0 < a) : a ^ omega.{u} = nfp ((*) a) 1 :=
 begin
-  apply power_omega_eq_nfp_mul zero_lt_one,
+  apply power_omega_nfp_mul zero_lt_one,
   rw one_le_iff_pos,
   exact ordinal.power_pos _ ha
 end
@@ -247,7 +224,7 @@ theorem power_omega_le_mul_principal {a o : ordinal.{u}} (hao : a < o) (ho : pri
   a ^ omega.{u} ≤ o :=
 begin
   convert nfp_le_of_principal hao ho,
-  exact power_omega_eq_nfp_mul_self a
+  exact power_omega_nfp_mul_self a
 end
 
 theorem omega_power_power_is_normal : is_normal (λ a : ordinal.{u}, omega.{u} ^ omega.{u} ^ a) :=
@@ -310,23 +287,45 @@ begin
   exact (mul_is_normal ha).strict_mono hbo
 end
 
+theorem the_big'' {o : ordinal.{u}} (ho : principal (*) o) (ho₂ : 2 < o) :
+  ∃ a : ordinal.{u}, o = omega.{u} ^ a :=
+begin
+  sorry
+end
+
+theorem the_big' {o : ordinal.{u}} (ho : principal (*) o) (ho₂ : 2 < o) :
+  omega.{u} ^ (log omega.{u} o) = o :=
+begin
+  cases the_big'' ho ho₂ with a ha,
+  rw ha,
+  rw log_power
+end
+
+theorem the_big {o : ordinal.{u}} (ho : principal (*) o) (ho₂ : 2 < o) :
+  o < omega.{u} ^ omega.{u} ^ (log omega.{u} (log omega.{u} o)).succ :=
+begin
+  have : log omega.{u} o < omega.{u} ^ (log omega.{u} (log omega.{u} o)).succ := begin
+  apply lt_power_succ_log one_lt_omega,
+  end,
+  rw ← power_lt_power_iff_right one_lt_omega at this,
+  rwa the_big' ho ho₂ at this,
+end
+
 theorem mul_principal_eq_omega_power_power {o : ordinal.{u}} (ho : principal (*) o) (ho₂ : 2 < o) :
   o = omega.{u} ^ omega.{u} ^ (log omega.{u} (log omega.{u} o)) :=
 begin
-  apply le_antisymm,{
-    by_contra h,
-    push_neg at h,
+  apply le_antisymm,
+  { by_contra' h,
     have := power_omega_le_mul_principal h ho,
-    rw ←power_mul at this,
-    rw ←power_succ at this,
-    have : omega.log o < omega.{u} ^ (omega.log (omega.log o)).succ := begin
-      apply lt_power_succ_log one_lt_omega,
-    end,
-    rw ←@power_lt_power_iff_right omega _ _ one_lt_omega at this,
-    rw mul_principal_iff_fp at ho,
+    rw [←power_mul, ←power_succ] at this,
+    exact not_le_of_lt (the_big ho ho₂) this },
+  have : omega.{u} ^ (log omega.{u} (log omega.{u} o)) ≤ log omega.{u} o := begin
+    apply power_log_le,
     sorry,
-  },
-  --apply power_log_le,
+  end,
+  rw ←power_le_power_iff_right one_lt_omega at this,
+  apply this.trans,
+  apply power_log_le,
   sorry
 end
 

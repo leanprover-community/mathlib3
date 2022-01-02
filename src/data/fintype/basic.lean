@@ -1293,7 +1293,8 @@ by { ext, simp [finset.mem_powerset_len] }
   fintype.card {s : finset α // s.card = k} = nat.choose (fintype.card α) k :=
 by simp [fintype.subtype_card, finset.card_univ]
 
-/-- See note [implicit instance arguments]. Use `set.to_finset_univ` to rewrite in reverse. -/
+/-- See note [implicit instance arguments].
+Can use `set.to_finset_univ` when rewriting in reverse. -/
 @[simp] lemma set.to_finset_univ' {hu : fintype (set.univ : set α)} [fintype α] :
   @set.to_finset _ (set.univ : set α) hu = finset.univ :=
 by { ext, simp only [set.mem_univ, mem_univ, set.mem_to_finset] }

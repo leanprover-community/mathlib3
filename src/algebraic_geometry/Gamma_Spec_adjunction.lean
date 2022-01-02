@@ -40,26 +40,23 @@ namespace LocallyRingedSpace
 
 variable (X : LocallyRingedSpace.{u})
 
-/-- `Γ` (global sections) as a function from LocallyRingedSpace to CommRing. -/
-abbreviation Γ' := Γ.obj (op X)
-
 /-- Map from the global sections to a stalk. -/
-def Γ_to_stalk (x : X) : Γ' X ⟶ X.presheaf.stalk x :=
+def Γ_to_stalk (x : X) : Γ.obj (op X) ⟶ X.presheaf.stalk x :=
   X.presheaf.germ (⟨x,trivial⟩ : (⊤ : opens X))
 -- or @Top.presheaf.germ _ _ _ _ _ ⊤ ⟨x,trivial⟩
 
 /-- Unit on the underlying set. -/
-def to_Γ_Spec_fun : X → prime_spectrum (Γ' X) := λ x,
+def to_Γ_Spec_fun : X → prime_spectrum (Γ.obj (op X)) := λ x,
   comap (X.Γ_to_stalk x) (@local_ring.closed_point _ _ (X.local_ring x))
 -- or Spec.to_Top.map (X.Γ_to_stalk x).op (@local_ring.closed_point ...)
 
-lemma not_mem_prime_iff_unit_in_stalk (r : Γ' X) (x : X) :
+lemma not_mem_prime_iff_unit_in_stalk (r : Γ.obj (op X)) (x : X) :
   r ∉ (X.to_Γ_Spec_fun x).as_ideal ↔ is_unit (X.Γ_to_stalk x r) :=
 by erw [local_ring.mem_maximal_ideal, not_not]
 
 /-- Preimage of a basic open in `Spec Γ(X)` under the unit is the basic open in `X`
     defined by the same element (equal as sets). -/
-lemma to_Γ_Spec_preim_basic_open_eq (r : Γ' X) :
+lemma to_Γ_Spec_preim_basic_open_eq (r : Γ.obj (op X)) :
   X.to_Γ_Spec_fun⁻¹' (basic_open r).1
   = (X.to_RingedSpace.basic_open r).1 :=
 by { ext, erw X.to_RingedSpace.mem_top_basic_open, apply not_mem_prime_iff_unit_in_stalk }
@@ -73,109 +70,125 @@ begin
 end
 
 /-- Unit as a continuous map. -/
-def to_Γ_Spec_base : X.to_Top ⟶ Spec.Top_obj (Γ' X) :=
+@[simps]
+def to_Γ_Spec_base : X.to_Top ⟶ Spec.Top_obj (Γ.obj (op X)) :=
 { to_fun := X.to_Γ_Spec_fun,
   continuous_to_fun := X.to_Γ_Spec_continuous }
 
+variable (r : Γ.obj (op X))
+
 /-- The preimage in `X` of a basic open in `Spec Γ(X)` (as an open set). -/
-abbreviation to_Γ_Spec_map_basic_open (r : Γ' X) :=
+abbreviation to_Γ_Spec_map_basic_open : opens X :=
 (opens.map X.to_Γ_Spec_base).obj (basic_open r)
 
 /-- The preimage is the basic open in `X` defined by the same element `r`. -/
-lemma to_Γ_Spec_map_basic_open_eq (r : Γ' X) :
+lemma to_Γ_Spec_map_basic_open_eq :
   X.to_Γ_Spec_map_basic_open r = X.to_RingedSpace.basic_open r :=
 subtype.eq (X.to_Γ_Spec_preim_basic_open_eq r)
 
 /-- The map from the global sections `Γ(X)` to the sections on the (preimage of) a basic open. -/
-abbreviation to_to_Γ_Spec_map_basic_open (r : Γ' X) :=
+abbreviation to_to_Γ_Spec_map_basic_open :
+  X.presheaf.obj (op ⊤) ⟶ X.presheaf.obj (op $ X.to_Γ_Spec_map_basic_open r) :=
 X.presheaf.map (X.to_Γ_Spec_map_basic_open r).le_top.op
 
 /-- `r` is a unit as a section on the basic open defined by `r`. -/
-lemma is_unit_res_to_Γ_Spec_map_basic_open (r : Γ' X) :
+lemma is_unit_res_to_Γ_Spec_map_basic_open :
   is_unit (X.to_to_Γ_Spec_map_basic_open r r) :=
-by { have h := X.to_RingedSpace.is_unit_res_basic_open r,
-     rwa ← to_Γ_Spec_map_basic_open_eq at h }
+begin
+  convert (X.presheaf.map $ (eq_to_hom $ X.to_Γ_Spec_map_basic_open_eq r).op)
+    .is_unit_map (X.to_RingedSpace.is_unit_res_basic_open r),
+  rw ← comp_apply,
+  erw ← functor.map_comp,
+  congr
+end
 
 /-- Define the sheaf hom on individual basic opens for the unit. -/
-def to_Γ_Spec_c_app (r : Γ' X) := CommRing.of_hom $
+def to_Γ_Spec_c_app (r : Γ.obj (op X)) := CommRing.of_hom $
 by { refine is_localization.away.lift r (is_unit_res_to_Γ_Spec_map_basic_open _ r),
      swap 4, exact is_localization.to_basic_open _ r }
 
 /-- Characterization of the sheaf hom on basic opens,
     direction ← (next lemma) is used at various places, but → is not used in this file. -/
-lemma to_Γ_Spec_c_app_iff (r : Γ' X) :
-  ∀ f, to_open _ (basic_open r) ≫ f = X.to_to_Γ_Spec_map_basic_open r
-  ↔ f = X.to_Γ_Spec_c_app r :=
-λ f, begin
+lemma to_Γ_Spec_c_app_iff
+  (f : (structure_sheaf $ Γ.obj $ op X).val.obj (op $ basic_open r) ⟶
+    X.presheaf.obj (op $ X.to_Γ_Spec_map_basic_open r)) :
+  to_open _ (basic_open r) ≫ f = X.to_to_Γ_Spec_map_basic_open r ↔ f = X.to_Γ_Spec_c_app r :=
+begin
   rw ← (is_localization.away.away_map.lift_comp r
     (X.is_unit_res_to_Γ_Spec_map_basic_open r) : _ = X.to_to_Γ_Spec_map_basic_open r),
-  swap 5, exact is_localization.to_basic_open _ r, split,
+  swap 5, exact is_localization.to_basic_open _ r,
+  split,
   { intro h, refine is_localization.ring_hom_ext _ _,
     swap 5, exact is_localization.to_basic_open _ r, exact h },
   apply congr_arg,
 end
 
-lemma to_Γ_Spec_c_app_spec (r : Γ' X) :
+lemma to_Γ_Spec_c_app_spec :
   to_open _ (basic_open r) ≫ X.to_Γ_Spec_c_app r = X.to_to_Γ_Spec_map_basic_open r :=
 (X.to_Γ_Spec_c_app_iff r _).2 rfl
 
 /-- The sheaf hom on all basic opens, commuting with restrictions. -/
 def to_Γ_Spec_c_basic_opens :
-  (induced_functor basic_open).op ⋙ (structure_sheaf (Γ' X)).1 ⟶
+  (induced_functor basic_open).op ⋙ (structure_sheaf (Γ.obj (op X))).1 ⟶
   (induced_functor basic_open).op ⋙ ((Top.sheaf.pushforward X.to_Γ_Spec_base).obj X.𝒪).1 :=
 { app := λ r, X.to_Γ_Spec_c_app r.unop,
-  naturality' := λ r s f, by {
-    apply (to_basic_open_epi (Γ' X) r.unop).1,
-    simp only [←category.assoc],
+  naturality' := λ r s f,
+  begin
+    apply (structure_sheaf.to_basic_open_epi (Γ.obj (op X)) r.unop).1,
+    simp only [← category.assoc],
     erw X.to_Γ_Spec_c_app_spec r.unop,
     convert X.to_Γ_Spec_c_app_spec s.unop,
-    apply eq.symm, apply X.presheaf.map_comp } }
+    apply eq.symm, apply X.presheaf.map_comp
+  end }
 
 /-- Unit as a hom of sheafed spaces. -/
-def to_Γ_Spec_SheafedSpace : X.to_SheafedSpace ⟶ Spec.to_SheafedSpace.obj (op (Γ' X)) :=
+@[simps]
+def to_Γ_Spec_SheafedSpace : X.to_SheafedSpace ⟶ Spec.to_SheafedSpace.obj (op (Γ.obj (op X))) :=
 { base := X.to_Γ_Spec_base,
-  c := Top.sheaf.restrict_hom_equiv_hom (structure_sheaf (Γ' X)).1 _
-         is_basis_basic_opens X.to_Γ_Spec_c_basic_opens }
+  c := Top.sheaf.restrict_hom_equiv_hom (structure_sheaf (Γ.obj (op X))).1 _
+    is_basis_basic_opens X.to_Γ_Spec_c_basic_opens }
 
-lemma to_Γ_Spec_SheafedSpace_app_eq (r : Γ' X) :
+lemma to_Γ_Spec_SheafedSpace_app_eq :
   X.to_Γ_Spec_SheafedSpace.c.app (op (basic_open r)) = X.to_Γ_Spec_c_app r :=
-Top.sheaf.extend_hom_app _ _ _
+Top.sheaf.extend_hom_app _ _ _ _ _
 
-lemma to_Γ_Spec_SheafedSpace_app_spec (r : Γ' X) :
+lemma to_Γ_Spec_SheafedSpace_app_spec (r : Γ.obj (op X)) :
   to_open _ (basic_open r) ≫ X.to_Γ_Spec_SheafedSpace.c.app (op (basic_open r)) =
   X.to_to_Γ_Spec_map_basic_open r :=
 (X.to_Γ_Spec_SheafedSpace_app_eq r).symm ▸ X.to_Γ_Spec_c_app_spec r
 
 /-- The map on stalks induced by the unit commutes with maps from `Γ(X)` to
     stalks (in `Spec Γ(X)` and in `X`). -/
-lemma to_stalk_comm (x : X) : to_stalk _ _ ≫
+lemma to_stalk_stalk_map_to_Γ_Spec (x : X) : to_stalk _ _ ≫
   PresheafedSpace.stalk_map X.to_Γ_Spec_SheafedSpace x = X.Γ_to_stalk x :=
 begin
   rw PresheafedSpace.stalk_map,
-  erw ← to_open_germ _ (basic_open (1 : Γ' X)) ⟨X.to_Γ_Spec_fun x, by rw basic_open_one; triv⟩,
-  rw [←category.assoc, category.assoc (to_open _ _)],
+  erw ← to_open_germ _ (basic_open (1 : Γ.obj (op X))) ⟨X.to_Γ_Spec_fun x, by rw basic_open_one; triv⟩,
+  rw [← category.assoc, category.assoc (to_open _ _)],
   erw stalk_functor_map_germ,
-  rw [←category.assoc (to_open _ _), X.to_Γ_Spec_SheafedSpace_app_spec 1],
+  rw [← category.assoc (to_open _ _), X.to_Γ_Spec_SheafedSpace_app_spec 1],
   unfold Γ_to_stalk, rw ← stalk_pushforward_germ _ X.to_Γ_Spec_base X.presheaf ⊤,
   congr' 1, change (X.to_Γ_Spec_base _* X.presheaf).map le_top.hom.op ≫ _ = _,
   apply germ_res,
 end
 
 /-- Unit as a hom of locally ringed spaces. -/
-def to_Γ_Spec : X ⟶ Spec.LocallyRingedSpace_obj (Γ' X) :=
+@[simps coe_base]
+def to_Γ_Spec : X ⟶ Spec.LocallyRingedSpace_obj (Γ.obj (op X)) :=
 begin
   fsplit, exact X.to_Γ_Spec_SheafedSpace,
-  intro x, let p : prime_spectrum (Γ' X) := X.to_Γ_Spec_fun x,
+  intro x, let p : prime_spectrum (Γ.obj (op X)) := X.to_Γ_Spec_fun x,
   fsplit, /- show stalk map is local hom ↓ -/
-  have h := is_localization.to_stalk (Γ' X) p,
+  have h := is_localization.to_stalk (Γ.obj (op X)) p,
   letI := (to_stalk _ p).to_algebra, have he' := h.surj,
   intros t ht, rcases he' t with ⟨⟨r,s⟩,he⟩,
   have hu := h.map_units,
   let sm := PresheafedSpace.stalk_map X.to_Γ_Spec_SheafedSpace x,
   have hr : is_unit (X.Γ_to_stalk x r),
   { apply_fun sm at he,
-    rw [←to_stalk_comm, comp_apply],
-    erw ← he, rw ring_hom.map_mul,
+    rw [← to_stalk_stalk_map_to_Γ_Spec, comp_apply],
+    erw ← he,
+    rw ring_hom.map_mul,
     apply is_unit.mul ht,
     exact is_unit.map sm.to_monoid_hom (hu s) },
   rw ← not_mem_prime_iff_unit_in_stalk at hr,
@@ -184,14 +197,15 @@ begin
 end
 
 lemma comp_ring_hom_ext {X : LocallyRingedSpace} {R : CommRing}
-  {f : R ⟶ Γ' X} {β : X ⟶ Spec.LocallyRingedSpace_obj R}
-  (w : X.to_Γ_Spec.1.1 ≫ (Spec.LocallyRingedSpace_map f).1.1 = β.1.1)
-  (h : ∀ r : R, f ≫ X.presheaf.map (@le_top _ _ ((opens.map β.1.1).obj (basic_open r))).hom.op
-                        /- slower : by simp; exact le_top.hom.op -/
-              = to_open R (basic_open r) ≫ β.1.c.app (op (basic_open r))) :
+  {f : R ⟶ Γ.obj (op X)} {β : X ⟶ Spec.LocallyRingedSpace_obj R}
+  (w : X.to_Γ_Spec.1.base ≫ (Spec.LocallyRingedSpace_map f).1.base = β.1.base)
+  (h : ∀ r : R,
+    f ≫ X.presheaf.map (hom_of_le le_top : (opens.map β.1.base).obj (basic_open r) ⟶ _).op =
+      to_open R (basic_open r) ≫ β.1.c.app (op (basic_open r))) :
   X.to_Γ_Spec ≫ Spec.LocallyRingedSpace_map f = β :=
 begin
-  ext1, apply Spec.hom_ext,
+  ext1,
+  apply Spec.basic_open_hom_ext,
   { intros r _,
     rw LocallyRingedSpace.comp_val_c_app,
     erw to_open_comp_comap_assoc,
@@ -202,28 +216,41 @@ begin
 end
 
 /-- `to_Spec_Γ _` is iso so these are mutually two-sided inverses. -/
-lemma left_triangle : to_Spec_Γ (Γ' X) ≫ X.to_Γ_Spec.1.c.app (op ⊤) = 𝟙 (Γ' X) :=
+lemma left_triangle : to_Spec_Γ (Γ.obj (op X)) ≫ X.to_Γ_Spec.1.c.app (op ⊤) = 𝟙 (Γ.obj (op X)) :=
 begin
   unfold to_Spec_Γ,
-  rw ← to_open_res _ (basic_open (1 : Γ' X)) ⊤ (eq_to_hom basic_open_one.symm),
-  erw category.assoc, rw [nat_trans.naturality, ←category.assoc],
-  erw [X.to_Γ_Spec_SheafedSpace_app_spec 1, ←functor.map_comp],
+  rw ← to_open_res _ (basic_open (1 : Γ.obj (op X))) ⊤ (eq_to_hom basic_open_one.symm),
+  erw category.assoc,
+  rw [nat_trans.naturality, ← category.assoc],
+  erw [X.to_Γ_Spec_SheafedSpace_app_spec 1, ← functor.map_comp],
   convert eq_to_hom_map X.presheaf _, refl,
 end
 
 end LocallyRingedSpace
 
+@[simp] lemma _root_.prime_spectrum.comap_comp_apply {R S S': Type*} [comm_ring R] [comm_ring S] [comm_ring S'] (f : R →+* S) (g : S →+* S') (x : prime_spectrum S') :
+  prime_spectrum.comap (g.comp f) x = (prime_spectrum.comap f) (prime_spectrum.comap g x) :=
+rfl
+
 /-- Unit as a natural transformation. -/
 def identity_to_Γ_Spec : 𝟭 LocallyRingedSpace.{u} ⟶ Γ.right_op ⋙ Spec.to_LocallyRingedSpace :=
 { app := LocallyRingedSpace.to_Γ_Spec,
   naturality' := λ X Y f, begin
-    apply eq.symm, apply LocallyRingedSpace.comp_ring_hom_ext,
-    { ext1 x, apply eq.symm, convert congr_fun (congr_arg comap
-        (PresheafedSpace.stalk_map_germ f.1 ⊤ ⟨x,trivial⟩))
-        (@local_ring.closed_point _ _ (X.local_ring x)),
-      erw prime_spectrum.comap_comp, rw function.comp_apply,
-      erw (@local_ring.local_hom_iff_comap_closed_point
-        _ _ (Y.2 _) _ _ (X.2 x) _).1 (f.2 x), refl },
+    symmetry,
+    apply LocallyRingedSpace.comp_ring_hom_ext,
+    { ext1 x,
+      symmetry,
+      dsimp [Spec.Top_map, LocallyRingedSpace.to_Γ_Spec_fun],
+      rw ← prime_spectrum.comap_comp_apply,
+      have := (@local_ring.local_hom_iff_comap_closed_point
+        _ _ (Y.2 _) _ _ (X.2 x) _).1 (f.2 x),
+      -- convert congr_fun (congr_arg prime_spectrum.comap
+      --   (PresheafedSpace.stalk_map_germ f.1 ⊤ ⟨x,trivial⟩))
+      --   (@local_ring.closed_point _ _ (X.local_ring x)),
+      -- erw prime_spectrum.comap_comp, rw function.comp_apply,
+      -- erw (@local_ring.local_hom_iff_comap_closed_point
+      --   _ _ (Y.2 _) _ _ (X.2 x) _).1 (f.2 x), refl
+        },
     { intro r, rw [LocallyRingedSpace.comp_val_c_app, ←category.assoc],
       erw [Y.to_Γ_Spec_SheafedSpace_app_spec, f.1.c.naturality], refl },
   end }

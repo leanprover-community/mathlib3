@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Shing Tak Lam, Mario Carneiro
 -/
 import data.int.modeq
+import data.nat.log
 import data.list.indexes
 import tactic.interval_cases
 import tactic.linarith
@@ -290,7 +291,7 @@ end
 lemma digits_ne_nil_iff_ne_zero {b n : ℕ} : digits b n ≠ [] ↔ n ≠ 0 :=
 not_congr digits_eq_nil_iff_eq_zero
 
-private lemma digits_last_aux {b n : ℕ} (h : 2 ≤ b) (w : 0 < n) :
+lemma digits_eq_cons_digits_div {b n : ℕ} (h : 2 ≤ b) (w : 0 < n) :
   digits b n = ((n % b) :: digits b (n / b)) :=
 begin
   rcases b with _|_|b,
@@ -306,7 +307,7 @@ lemma digits_last {b : ℕ} (m : ℕ) (h : 2 ≤ b) (p q) :
 begin
   by_cases hm : m = 0,
   { simp [hm], },
-  simp only [digits_last_aux h (nat.pos_of_ne_zero hm)],
+  simp only [digits_eq_cons_digits_div h (nat.pos_of_ne_zero hm)],
   rw list.last_cons,
 end
 
@@ -316,6 +317,23 @@ function.left_inverse.injective (of_digits_digits b)
 @[simp] lemma digits_inj_iff {b n m : ℕ} :
   b.digits n = b.digits m ↔ n = m :=
 (digits.injective b).eq_iff
+
+lemma length_digits (b n : ℕ) (hb : 2 ≤ b) (hn : 0 < n) :
+  (b.digits n).length = b.log n + 1 :=
+begin
+  induction n using nat.strong_induction_on with n IH,
+  rw [digits_eq_cons_digits_div hb hn, list.length],
+  cases (n / b).zero_le.eq_or_lt with h h,
+  { have posb : 0 < b := zero_lt_two.trans_le hb,
+    simp [←h, log_eq_zero_iff, ←nat.div_eq_zero_iff posb] },
+  { have hb' : 1 < b := one_lt_two.trans_le hb,
+    have : n / b < n := div_lt_self hn hb',
+    rw [IH _ this h, log_div_base, tsub_add_cancel_of_le],
+    rw [succ_le_iff],
+    refine log_pos hb' _,
+    contrapose! h,
+    rw div_eq_of_lt h }
+end
 
 lemma last_digit_ne_zero (b : ℕ) {m : ℕ} (hm : m ≠ 0) :
   (digits b m).last (digits_ne_nil_iff_ne_zero.mpr hm) ≠ 0 :=

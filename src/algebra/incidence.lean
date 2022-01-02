@@ -274,6 +274,33 @@ lemma mu_apply_self (a : α) : mu 𝕜 α a a = 1 := mu_apply_of_eq rfl
 lemma mu_apply_of_ne {a b : α} (h : a ≠ b) : mu 𝕜 α a b = -∑ x in Ico a b, mu 𝕜 α a x :=
 by rw [mu_apply, if_neg h]
 
+-- lemma mu_apply_of_ne' {a b : α} (h : a ≠ b) : mu 𝕜 α a b = -∑ x in Ioc a b, mu 𝕜 α x b :=
+-- begin
+--   induction hi : (Icc a b).card generalizing a b,
+--   { simp only [card_eq_zero, Icc_eq_empty_iff] at hi,
+--     rw Ioc_eq_empty _,
+--     rw eq_zero_of_not_le hi,
+--     simp,
+--     intro hh,
+--     apply hi,
+--     exact le_of_lt hh, },
+--   -- intro hne,
+--   by_cases hab : a ≤ b,
+--   { conv in (mu _ _ _ _) { rw mu_apply, },
+--     rw sum_ite,
+--     rw filter_eq',
+--     simp [hab],
+--     have hIcc : Icc a b = Ioc a b ∪ {a},
+--     sorry,
+--     sorry,
+--     -- rw [hIcc, sum_union, sum_singleton, this, add_neg_self],
+--      },
+--   { have : ∀ x ∈ Icc a b, ¬ x ≤ b,
+--     { intros x hx hn, apply hab, rw [mem_Icc] at hx, exact le_trans hx.1 hn},
+--     conv in (mu _ _ _ _) { rw eq_zero_of_not_le (this x H), },
+--     simp, },
+-- end
+
 lemma mu_spec_of_ne_right {a b : α} (h : a ≠ b) : ∑ (x : α) in Icc a b, (mu 𝕜 α) a x = 0 :=
 begin
   have : mu 𝕜 α a b = _ := mu_apply_of_ne h,
@@ -282,42 +309,64 @@ begin
   rw [hIcc, sum_union, sum_singleton, this, add_neg_self],
   simp,
 end
+end mu
 
-lemma mu_spec_of_ne_left {a b : α} (h : a ≠ b) : ∑ (x : α) in Icc a b, (mu 𝕜 α) x b = 0 :=
+section mu'
+variables [add_comm_group 𝕜] [has_one 𝕜] [preorder α] [locally_finite_order α] [decidable_eq α]
+
+-- this is the reversed definition of mu, which is equal to mu but easiest to prove equal
+-- by showing that zeta * mu = 1 and mu' * zeta = 1
+-- therefore mu' should be an implementation detail and not used
+private def mu'_aux (b : α) : α → 𝕜
+| a := if h : a = b then 1 else
+  -∑ x in (Ioc a b).attach,
+    have (Icc ↑x b).card < (Icc a b).card, from card_lt_card sorry,
+    mu'_aux x
+using_well_founded { rel_tac := λ _ _, `[exact ⟨_, measure_wf (λ a, (Icc a b).card)⟩] }
+
+private lemma mu'_aux_apply (a b : α) :
+  mu'_aux 𝕜 α b a = if a = b then 1 else -∑ x in (Ioc a b).attach, mu'_aux 𝕜 α b x :=
+by { convert has_well_founded.wf.fix_eq _ _, refl }
+
+private def mu' : incidence_algebra 𝕜 α := ⟨λ a b, mu'_aux 𝕜 α b a, λ a b, not_imp_comm.1 $ λ h, begin
+  rw mu'_aux_apply at h,
+  split_ifs at h with hab hab,
+  { exact hab.le },
+  { rw neg_eq_zero at h,
+    obtain ⟨⟨x, hx⟩, -⟩ := exists_ne_zero_of_sum_ne_zero h,
+    exact (nonempty_Ioc.1 ⟨x, hx⟩).le }
+end⟩
+variables {𝕜 α}
+
+lemma mu'_apply (a b : α) : mu' 𝕜 α a b = if a = b then 1 else -∑ x in Ioc a b, mu' 𝕜 α x b :=
+by rw [mu', coe_mk, mu'_aux_apply, sum_attach]
+
+lemma mu'_apply_of_ne {a b : α} (h : a ≠ b) : mu' 𝕜 α a b = -∑ x in Ioc a b, mu' 𝕜 α x b :=
+by rw [mu'_apply, if_neg h]
+
+lemma mu'_spec_of_ne_left {a b : α} (h : a ≠ b) : ∑ (x : α) in Icc a b, (mu' 𝕜 α) x b = 0 :=
 begin
-  -- I believe this is true but the proof could be annoying?
-  sorry
-  -- induction hi : (Icc a b).card generalizing a b,
-  -- { simp at hi,
-  --   rw Icc_eq_empty hi,
-  --   simp, },
-
-  -- have : mu 𝕜 α a b = _ := mu_apply_of_ne h,
-  -- have hIcc : Icc a b = Ioc a b ∪ {a},
-  -- sorry,
-  -- rw [hIcc, sum_union, sum_singleton, this, add_neg_self],
-  -- simp,
+  have : mu' 𝕜 α a b = _ := mu'_apply_of_ne h,
+  have hIcc : Icc a b = Ioc a b ∪ {a},
+  sorry,
+  rw [hIcc, sum_union, sum_singleton, this, add_neg_self],
+  simp,
 end
 
-end mu
+lemma mu'_apply_of_eq {a b : α} (h : a = b) : mu' 𝕜 α a b = 1 :=
+by rw [mu'_apply, if_pos h]
+
+@[simp]
+lemma mu'_apply_self (a : α) : mu' 𝕜 α a a = 1 := mu'_apply_of_eq rfl
+end mu'
 
 section order_dual
 variables [add_comm_group 𝕜] [has_one 𝕜] [preorder α] [locally_finite_order α] [decidable_eq α]
 open order_dual
 lemma mu_dual (a b : α) : mu 𝕜 (order_dual α) (to_dual a) (to_dual b) = mu 𝕜 α b a :=
 begin
-  rw mu_apply,
-  split_ifs with h,
-  { rw [to_dual_inj] at h, simp [h], },
-  { rw [mu_apply_of_ne (ne.symm h : (b : order_dual α) ≠ a)],
-    simp,
-    simp at h,
-    rw Ico_to_dual,
-    sorry,
-    -- I think this is probably also true and maybe helpful for
-    -- giving the other characterization of mu
-    -- squeeze_simp,
-     },
+  -- I think this is probably also true and maybe helpful
+  sorry,
 end
 end order_dual
 
@@ -337,19 +386,41 @@ begin
     rw mu_spec_of_ne_right he, },
 end
 
-lemma zeta_mul_mu : zeta 𝕜 α * mu 𝕜 α = 1 :=
+lemma zeta_mul_mu' : zeta 𝕜 α * mu' 𝕜 α = 1 :=
 begin
   ext a b,
   rw [mul_apply, one_apply],
   split_ifs with he,
   { simp [he], },
-  { simp [mul_one, zeta_apply, mul_ite],
+  { simp only [zeta_apply, one_mul, ite_mul],
     conv in (ite _ _ _) {
       rw [if_pos (mem_Icc.mp H).1], },
-  rw mu_spec_of_ne_left he, },
+    rw mu'_spec_of_ne_left he, },
+end
+end mu_zeta
+
+section mu_eq_mu'
+variables [ring 𝕜] [partial_order α] [locally_finite_order α]
+  [decidable_eq α] [@decidable_rel α (≤)]
+
+lemma mu_eq_mu' : mu 𝕜 α = mu' 𝕜 α := left_inv_eq_right_inv (mu_mul_zeta 𝕜 α) (zeta_mul_mu' 𝕜 α)
+
+lemma mu_apply_of_ne' {a b : α} (h : a ≠ b) : mu 𝕜 α a b = -∑ x in Ioc a b, mu 𝕜 α x b :=
+begin
+  rw mu_eq_mu',
+  exact mu'_apply_of_ne h,
 end
 
-end mu_zeta
+lemma zeta_mul_mu : zeta 𝕜 α * mu 𝕜 α = 1 :=
+begin
+  rw mu_eq_mu',
+  exact zeta_mul_mu' 𝕜 α,
+end
+
+lemma mu_spec_of_ne_left {a b : α} (h : a ≠ b) : ∑ (x : α) in Icc a b, (mu 𝕜 α) x b = 0 :=
+by rw [mu_eq_mu', mu'_spec_of_ne_left h]
+
+end mu_eq_mu'
 
 section euler
 variables [add_comm_group 𝕜] [has_one 𝕜] [preorder α] [bounded_order α] [locally_finite_order α]

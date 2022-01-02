@@ -83,7 +83,8 @@ section
 
 /--
 This auxiliary definition claims that pseudofunctors preserve the associators
-modulo some adjustments of domains and codomains of 2-morphisms. -/
+modulo some adjustments of domains and codomains of 2-morphisms.
+-/
 /-
 The reason for using this auxiliary definition instead of writing it directly in the definition
 of pseudofunctors is that doing so will cause a timeout.

@@ -104,9 +104,9 @@ structure oplax_functor (B : Type u₁) [bicategory.{w₁ v₁} B] (C : Type u�
 (map₂_id' : ∀ {a b : B} (f : a ⟶ b), map₂ (𝟙 f) = 𝟙 (map f) . obviously)
 (map₂_comp' : ∀ {a b : B} {f g h : a ⟶ b} (η : f ⟶ g) (θ : g ⟶ h),
   map₂ (η ≫ θ) = map₂ η ≫ map₂ θ . obviously)
-(map₂_associator' : ∀ {a b c d : B} (f : a ⟶ b) (g : b ⟶ c) (h : c ⟶ d),
+(map₂_associator : ∀ {a b c d : B} (f : a ⟶ b) (g : b ⟶ c) (h : c ⟶ d),
   map₂ (α_ f g h).hom ≫ map_comp f (g ≫ h) ≫ (map f ◁ map_comp g h) =
-    map_comp (f ≫ g) h ≫ (map_comp f g ▷ map h) ≫ (α_ (map f) (map g) (map h)).hom . obviously)
+    map_comp (f ≫ g) h ≫ (map_comp f g ▷ map h) ≫ (α_ (map f) (map g) (map h)).hom)
 (map₂_left_unitor' : ∀ {a b : B} (f : a ⟶ b),
   map₂ (λ_ f).hom = map_comp (𝟙 a) f ≫ (map_id a ▷ map f) ≫ (λ_ (map f)).hom . obviously)
 (map₂_right_unitor' : ∀ {a b : B} (f : a ⟶ b),
@@ -116,7 +116,6 @@ restate_axiom oplax_functor.map_comp_naturality_left'
 restate_axiom oplax_functor.map_comp_naturality_right'
 restate_axiom oplax_functor.map₂_id'
 restate_axiom oplax_functor.map₂_comp'
-restate_axiom oplax_functor.map₂_associator'
 restate_axiom oplax_functor.map₂_left_unitor'
 restate_axiom oplax_functor.map₂_right_unitor'
 attribute [simp]
@@ -160,6 +159,7 @@ variables (B : Type u₁) [bicategory.{w₁ v₁} B]
 def id : oplax_functor B B :=
 { map_id := λ a,  𝟙 (𝟙 a),
   map_comp := λ a b c f g, 𝟙 (f ≫ g),
+  map₂_associator := by tidy,
   .. prepseudofunctor.id B }
 
 instance : inhabited (oplax_functor B B) := ⟨id B⟩
@@ -189,7 +189,7 @@ def comp : oplax_functor B D :=
     slice_rhs 1 3
     { rw [←map_comp_naturality_right, ←map₂_comp_assoc, ←map_comp_naturality_right] },
     simp only [map₂_comp, assoc] },
-  map₂_associator' := λ a b c d f g h, by
+  map₂_associator := λ a b c d f g h, by
   { dsimp, simp only [whisker_right_comp, assoc, whisker_left_comp],
     rw [←map_comp_naturality_left_assoc, ←map_comp_naturality_right_assoc, ←map₂_associator],
     simp only [←map₂_comp_assoc],

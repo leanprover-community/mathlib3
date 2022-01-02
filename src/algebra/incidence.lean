@@ -422,13 +422,15 @@ by rw [mu_eq_mu', mu'_spec_of_ne_left h]
 
 end mu_eq_mu'
 
-section inversion
+section inversion_top
 variables [ring 𝕜] [partial_order α] [order_top α] [locally_finite_order α]
   [decidable_eq α]
 
 lemma Ici_eq_Ioi_union (x : α) : Ici x = Ioi x ∪ {x} := sorry
 
-lemma moebius_inversion (f g : α → 𝕜) (h : ∀ x, g x = ∑ y in Ici x, f y) (x : α) :
+/-- A general form of Möbius inversion. Based on Theorem 2.1.2 of Incidence Algebras by Spiegel and
+O'Donnell.-/
+lemma moebius_inversion_top (f g : α → 𝕜) (h : ∀ x, g x = ∑ y in Ici x, f y) (x : α) :
   f x = ∑ y in Ici x, mu 𝕜 α x y * g y :=
 by letI : @decidable_rel α (≤) := classical.dec_rel _; symmetry; calc
   ∑ y in Ici x, mu 𝕜 α x y * g y
@@ -453,7 +455,23 @@ by letI : @decidable_rel α (≤) := classical.dec_rel _; symmetry; calc
         conv in (ite _ _ _) { rw if_neg (ne_of_lt $ mem_Ioi.mp H) },
         simp, }
 
-end inversion
+end inversion_top
+
+section inversion_bot
+variables [ring 𝕜] [partial_order α] [order_bot α] [locally_finite_order α]
+  [decidable_eq α]
+
+/-- A general form of Möbius inversion. Based on Theorem 2.1.3 of Incidence Algebras by Spiegel and
+O'Donnell. -/
+lemma moebius_inversion_bot (f g : α → 𝕜) (h : ∀ x, g x = ∑ y in Iic x, f y) (x : α) :
+  f x = ∑ y in Iic x, mu 𝕜 α y x * g y :=
+begin
+  convert @moebius_inversion_top 𝕜 (order_dual α) _ _ _ _ _ f g h x,
+  ext y,
+  erw mu_dual,
+end
+
+end inversion_bot
 
 section euler
 variables [add_comm_group 𝕜] [has_one 𝕜] [preorder α] [bounded_order α] [locally_finite_order α]

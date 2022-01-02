@@ -1941,7 +1941,7 @@ begin
   simp only [bsup_le, IH] {contextual:=tt}
 end
 
-theorem is_normal.fp_iff_deriv {f} (H : is_normal f) {a} : f a ≤ a ↔ ∃ o, deriv f o = a :=
+theorem is_normal.fp_iff_deriv' {f} (H : is_normal f) {a} : f a ≤ a ↔ ∃ o, deriv f o = a :=
 ⟨λ ha, begin
   suffices : ∀ o (_:a ≤ deriv f o), ∃ o, deriv f o = a,
   from this a ((deriv_is_normal _).le_self _),
@@ -1961,8 +1961,8 @@ theorem is_normal.fp_iff_deriv {f} (H : is_normal f) {a} : f a ≤ a ↔ ∃ o, 
     exact let ⟨o', h, hl⟩ := h in IH o' h (le_of_not_le hl) }
 end, λ ⟨o, e⟩, e ▸ le_of_eq (H.deriv_fp _)⟩
 
-theorem is_normal.fp_iff_deriv' {f} (H : is_normal f) {a} : f a = a ↔ ∃ o, deriv f o = a :=
-by { rw ←H.fp_iff_deriv, exact ⟨λ h, le_of_eq h, λ h, le_antisymm h (H.le_self _)⟩ }
+theorem is_normal.fp_iff_deriv {f} (H : is_normal f) {a} : f a = a ↔ ∃ o, deriv f o = a :=
+by { rw ←H.fp_iff_deriv', exact ⟨λ h, le_of_eq h, λ h, le_antisymm h (H.le_self _)⟩ }
 
 /-- `deriv f` is the fixed point enumerator of `f`. -/
 theorem deriv_eq_enum_fp {f} (H : is_normal f) : deriv f = enum_ord H.nfp_unbounded :=
@@ -1970,7 +1970,7 @@ begin
   rw [←eq_enum_ord, range_eq_iff],
   use (deriv_is_normal f).strict_mono,
   refine ⟨λ a, H.deriv_fp a, λ _ _, _⟩,
-  rwa ←H.fp_iff_deriv'
+  rwa ←H.fp_iff_deriv
 end
 
 end ordinal

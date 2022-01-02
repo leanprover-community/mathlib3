@@ -106,6 +106,9 @@ by rw [← succ_zero, succ_le]
 theorem one_le_iff_ne_zero {o : ordinal} : 1 ≤ o ↔ o ≠ 0 :=
 by rw [one_le_iff_pos, ordinal.pos_iff_ne_zero]
 
+theorem one_lt_of_two_le {b : ordinal} (hb : 2 ≤ b) : 1 < b :=
+by rwa ←succ_le
+
 theorem succ_pos (o : ordinal) : 0 < succ o :=
 lt_of_le_of_lt (ordinal.zero_le _) (lt_succ_self _)
 
@@ -122,6 +125,9 @@ by simp only [le_antisymm_iff, add_le_add_iff_left]
 
 theorem lt_succ {a b : ordinal} : a < succ b ↔ a ≤ b :=
 by rw [← not_le, succ_le, not_lt]
+
+theorem lt_one_iff_zero {a : ordinal} : a < 1 ↔ a = 0 :=
+by rw [←succ_zero, lt_succ, ordinal.le_zero]
 
 theorem add_lt_add_iff_left (a) {b c : ordinal} : a + b < a + c ↔ b < c :=
 by rw [← not_le, ← not_le, add_le_add_iff_left]
@@ -172,6 +178,9 @@ instance : nontrivial ordinal.{u} :=
 
 theorem zero_lt_one : (0 : ordinal) < 1 :=
 lt_iff_le_and_ne.2 ⟨ordinal.zero_le _, ne.symm $ ordinal.one_ne_zero⟩
+
+theorem zero_lt_of_two_le {b : ordinal} (hb : 2 ≤ b) : 0 < b :=
+zero_lt_one.trans (one_lt_of_two_le hb)
 
 /-! ### The predecessor of an ordinal -/
 
@@ -1225,12 +1234,6 @@ begin
     exact ne_of_lt ha (power_zero b).symm },
   exact log_not_one_lt hb 1
 end
-
-theorem one_lt_of_two_le {b : ordinal} (hb : 2 ≤ b) : 1 < b :=
-by rwa ←succ_le
-
-theorem zero_lt_of_two_le {b : ordinal} (hb : 2 ≤ b) : 0 < b :=
-zero_lt_one.trans (one_lt_of_two_le hb)
 
 lemma power_mul_add_pos {b v : ordinal} (u w : ordinal) (hb : 2 ≤ b) (hv : 1 ≤ v) :
   0 < b ^ u * v + w :=

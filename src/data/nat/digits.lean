@@ -325,7 +325,7 @@ begin
   rw [digits_eq_cons_digits_div hb hn, list.length],
   cases (n / b).eq_zero_or_pos with h h,
   { have posb : 0 < b := zero_lt_two.trans_le hb,
-    simp [←h, log_eq_zero_iff, ←nat.div_eq_zero_iff posb] },
+    simp [h, log_eq_zero_iff, ←nat.div_eq_zero_iff posb] },
   { have hb' : 1 < b := one_lt_two.trans_le hb,
     have : n / b < n := div_lt_self hn hb',
     rw [IH _ this h, log_div_base, tsub_add_cancel_of_le],

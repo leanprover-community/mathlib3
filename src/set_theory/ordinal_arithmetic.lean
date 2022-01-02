@@ -2026,7 +2026,7 @@ begin
   rwa ←H.fp_iff_deriv
 end
 
-/-! ### Fixed points of sums -/
+/-! ### Fixed points of addition -/
 
 theorem mul_omega_unbounded (o) : unbounded (<) (set.Ici (o * ordinal.omega)) :=
 unbounded_lt_Ici _

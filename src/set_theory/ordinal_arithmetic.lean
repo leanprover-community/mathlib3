@@ -1386,6 +1386,9 @@ begin
       (power_is_normal a1)).limit_le l).symm }
 end
 
+theorem power_one_add (a b : ordinal) : a ^ (1 + b) = a * a ^ b :=
+by rw [power_add, power_one]
+
 theorem power_dvd_power (a) {b c : ordinal}
   (h : b ≤ c) : a ^ b ∣ a ^ c :=
 by { rw [← ordinal.add_sub_cancel_of_le h, power_add], apply dvd_mul_right }
@@ -2046,7 +2049,7 @@ theorem mul_omega_unbounded (o) : unbounded (<) (set.Ici (o * ordinal.omega)) :=
 unbounded_lt_Ici _
 
 theorem add_mul_omega (a) : a + a * omega = a * omega :=
-by { rw [←mul_one_add, one_add_omega] }
+by rw [←mul_one_add, one_add_omega]
 
 theorem mul_omega_nfp_add_zero (a) : a * omega.{u} = nfp ((+) a) 0 :=
 begin
@@ -2062,7 +2065,9 @@ begin
     (mul_is_normal.{u} (lt_of_le_of_ne (ordinal.zero_le a) ha)) ℕ (λ n, ↑n) ⟨0⟩,
   rw ←omega_eq_sup_nat at hmul,
   suffices : (λ n, ((+) a)^[n] 0) = (*) a ∘ λ n, ↑n,
-  { rwa ←this at hmul },
+  { have hmul := @is_normal.sup.{0 u u} _
+      (mul_is_normal.{u} (lt_of_le_of_ne (ordinal.zero_le a) ha)) ℕ (λ n, ↑n) ⟨0⟩,
+    rw ←omega_eq_sup_nat at hmul,rwa ←this at hmul },
   refine funext (λ n, _),
   induction n with n hn,
   { rw iterate_zero,
@@ -2110,6 +2115,26 @@ begin
     exact mul_omega_nfp_add_zero a },
   rw ←(add_is_normal a).fp_iff_deriv',
   exact add_fp_iff_mul_omega_le'.2 hb
+end
+
+/-! ### Fixed points of multiplication -/
+
+theorem mul_power_omega_unbounded (o) : unbounded (<) (range ((*) (o ^ ordinal.omega))) :=
+sorry
+
+theorem mul_power_omega {a} : a * a ^ omega = a ^ omega :=
+by rw [←power_one_add, one_add_omega]
+
+theorem power_omega_nfp_zero {a} : a ^ omega.{u} = nfp ((*) a) 1 :=
+begin
+  sorry
+end
+
+/-- `deriv ((*) a)` enumerates the ordinals larger or equal to `a ^ ω`. -/
+theorem mul_deriv_eq_enum_ge_mul_omega (a) :
+  deriv ((*) a) = enum_ord (mul_power_omega_unbounded a) :=
+begin
+  sorry
 end
 
 end ordinal

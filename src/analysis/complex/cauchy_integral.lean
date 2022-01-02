@@ -64,6 +64,72 @@ differentiability at all but countably many points of the set mentioned below.
   on a neighborhood of a point, then it is analytic at this point. In particular, if `f : ℂ → E`
   is differentiable on the whole `ℂ`, then it is analytic at every point `z : ℂ`.
 
+## Implementation details
+
+The proof of the Cauchy integral formula in this file is based on a very general version of the
+divergence theorem, see `measure_theory.integral_divergence_of_has_fderiv_within_at_off_countable`
+(a version for functions defined on `fin (n + 1) → ℝ`),
+`measure_theory.integral_divergence_prod_Icc_of_has_fderiv_within_at_off_countable_of_le`, and
+`measure_theory.integral2_divergence_prod_of_has_fderiv_within_at_off_countable` (versions for
+functions defined on `ℝ × ℝ`).
+
+Usually, the divergence theorem is formulated for a $C^1$ smooth function. The theorems formulated
+above deal with a function that is
+
+* continuous on a closed box/rectangle;
+* differentiable at all but countably many points of its interior;
+* have divergence integrable over the closed box/rectangle.
+
+First, we reformulate the theorem for a *real*-differentiable map `ℂ → E`, and relate the integral
+of `f` over the boundary of a rectangle in `ℂ` to the integral of the derivative
+$\frac{\partial f}{\partial \bar z}$ over the interior of this box. In particular, for a *complex*
+differentiable function, the latter derivative is zero, hence the integral over the boundary of a
+rectangle is zero. Thus we get Cauchy theorem for a rectangle in `ℂ`.
+
+Next, we apply the this theorem to the function $F(z)=f(c+e^{z})$ on the rectangle
+$[\ln r, \ln R]\times [0, 2\pi]$ to prove that
+$$
+  \oint_{|z-c|=r}\frac{f(z)\,dz}{z-c}=\oint_{|z-c|=R}\frac{f(z)\,dz}{z-c}
+$$
+provided that `f` is continuous on the closed annulus `r ≤ |z - c| ≤ R` and is complex
+differentiable on its interior `r < |z - c| < R` (possibly, at all but countably many points).
+
+Here and below, we write $\frac{f(z)}{z-c}$ in the documentation while the actual lemmas use
+`(z - c)⁻¹ • f z` because `f z` belongs to some Banach space over `ℂ` and `f z / (z - c)` is
+undefined.
+
+Taking the limit of this equality as `r` tends to `𝓝[>] 0`, we prove
+$$
+  \oint_{|z-c|=R}\frac{f(z)\,dz}{z-c}=2\pi if(c)
+$$
+provided that `f` is continuous on the closed disc `|z - c| ≤ R` and is differentiable at all but
+countably many points of its interior. This is the Cauchy integral formula for the center of a
+circle. In particular, if we apply this function to `F z = (z - c) • f z`, then we get
+$$
+  \oint_{|z-c|=R} f(z)\,dz=0.
+$$
+
+In order to deduce the Cauchy integral formula for any point `w`, `|w - c| < R`, we consider the
+slope function `g : ℂ → E` given by `g z = (z - w)⁻¹ • (f z - f w)` if `z ≠ w` and `g w = f' w`.
+This function satisfies assumptions of the previous theorem, so we have
+$$
+  \oint_{|z-c|=R} \frac{f(z)\,dz}{z-w}=\oint_{|z-c|=R} \frac{f(w)\,dz}{z-w}=
+  \left(\oint_{|z-c|=R} \frac{dz}{z-w}\right)f(w).
+$$
+The latter integral was computed in `circle_integral.integral_sub_inv_of_mem_ball` and is equal to
+`2 * π * complex.I`.
+
+There is one more step in the actual proof. Since we allow `f` to be non-differentiable on a
+countable set `s`, we cannot immediately claim that `g` is continuous at `w` if `w ∈ s`. So, we use
+the proof outlined in the previous paragraph for `w ∉ s` (see
+`complex.circle_integral_sub_inv_smul_of_differentiable_on_off_countable_aux`), then use continuity
+of both sides of the formula and density of `sᶜ` to prove the formula for all points of the open
+ball, see `complex.circle_integral_sub_inv_smul_of_differentiable_on_off_countable`.
+
+Finally, we use the properties of the Cauchy integrals established elsewhere (see
+`has_fpower_series_on_cauchy_integral`) and Cauchy integral formula to prove that the original
+function is analytic on the open ball.
+
 ## Tags
 
 Cauchy theorem, Cauchy integral formula

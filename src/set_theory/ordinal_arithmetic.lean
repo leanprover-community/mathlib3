@@ -2057,8 +2057,7 @@ begin
     rw sup_eq_zero_iff,
     intro n,
     induction n with n hn, { refl },
-    rw [iterate_succ_apply, zero_add],
-    exact hn },
+    rwa [iterate_succ_apply, zero_add] },
   have hmul := @is_normal.sup.{0 u u} _
     (mul_is_normal.{u} (lt_of_le_of_ne (ordinal.zero_le a) ha)) ℕ (λ n, ↑n) ⟨0⟩,
   rw ←omega_eq_sup_nat at hmul,
@@ -2074,14 +2073,10 @@ end
 theorem add_fp_iff_mul_omega_le {a b : ordinal.{u}} : a + b = b ↔ a * omega.{u} ≤ b :=
 begin
   refine ⟨λ h, _, λ h, _⟩,
-  { have : deriv ((+) a) 0 ≤ b := begin
-      cases (add_is_normal a).fp_iff_deriv.1 h with c hc,
-      rw ←hc,
-      exact (deriv_is_normal _).strict_mono.monotone (ordinal.zero_le _),
-    end,
-    refine le_trans _ this,
-    rw deriv_zero,
-    exact le_of_eq (mul_omega_nfp_add_zero a) },
+  { rw [mul_omega_nfp_add_zero a, ←deriv_zero],
+    cases (add_is_normal a).fp_iff_deriv.1 h with c hc,
+    rw ←hc,
+    exact (deriv_is_normal _).strict_mono.monotone (ordinal.zero_le _) },
   have := ordinal.add_sub_cancel_of_le h,
   nth_rewrite 0 ←this,
   rwa [←add_assoc, add_mul_omega]

@@ -82,12 +82,29 @@ end prepseudofunctor
 section
 
 /--
+The auxiliary definition that claims that pseudofunctors preserve the associators
+modulo some adjustments of domains and codomains of 2-morphisms. -/
+/-
+The reason for using this auxiliary definition instead of writing it directly in the definition
+of pseudofunctors is that doing so will cause a timeout.
+-/
+@[simp]
+def oplax_functor.map₂_associator_aux
+  {B : Type u₁} [bicategory.{w₁ v₁} B] {C : Type u₂} [bicategory.{w₂ v₂} C]
+  (obj : B → C) (map : Π {X Y : B}, (X ⟶ Y) → (obj X ⟶ obj Y))
+  (map₂ : Π {a b : B} {f g : a ⟶ b}, (f ⟶ g) → (map f ⟶ map g))
+  (map_comp : Π {a b c : B} (f : a ⟶ b) (g : b ⟶ c),  map (f ≫ g) ⟶ map f ≫ map g)
+  {a b c d : B} (f : a ⟶ b) (g : b ⟶ c) (h : c ⟶ d) : Prop :=
+map₂ (α_ f g h).hom ≫ map_comp f (g ≫ h) ≫ (map f ◁ map_comp g h) =
+  map_comp (f ≫ g) h ≫ (map_comp f g ▷ map h) ≫ (α_ (map f) (map g) (map h)).hom
+
+/--
 An oplax functor `F` between bicategories `B` and `C` consists of functions between objects,
 1-morphisms, and 2-morphisms.
 
 Unlike functors between categories, functions between 1-morphisms do not need to strictly commute
 with compositions, and do not need to strictly preserve the identity. Instead, there are
-specified 2-morphisms `map (𝟙 a) ⟶ 𝟙 (obj a)` and `map (f ≫ g) ⟶ map f ≫ map g`.
+specified 2-morphisms `F.map (𝟙 a) ⟶ 𝟙 (F.obj a)` and `F.map (f ≫ g) ⟶ F.map f ≫ F.map g`.
 
 Functions between 2-morphisms strictly commute with compositions and preserve the identity.
 They also preserve the associator, the left unitor, and the right unitor modulo some adjustments
@@ -104,9 +121,9 @@ structure oplax_functor (B : Type u₁) [bicategory.{w₁ v₁} B] (C : Type u�
 (map₂_id' : ∀ {a b : B} (f : a ⟶ b), map₂ (𝟙 f) = 𝟙 (map f) . obviously)
 (map₂_comp' : ∀ {a b : B} {f g h : a ⟶ b} (η : f ⟶ g) (θ : g ⟶ h),
   map₂ (η ≫ θ) = map₂ η ≫ map₂ θ . obviously)
-(map₂_associator : ∀ {a b c d : B} (f : a ⟶ b) (g : b ⟶ c) (h : c ⟶ d),
-  map₂ (α_ f g h).hom ≫ map_comp f (g ≫ h) ≫ (map f ◁ map_comp g h) =
-    map_comp (f ≫ g) h ≫ (map_comp f g ▷ map h) ≫ (α_ (map f) (map g) (map h)).hom)
+(map₂_associator' : ∀ {a b c d : B} (f : a ⟶ b) (g : b ⟶ c) (h : c ⟶ d),
+  oplax_functor.map₂_associator_aux obj (λ a b, map) (λ a b f g, map₂) (λ a b c, map_comp) f g h
+    . obviously)
 (map₂_left_unitor' : ∀ {a b : B} (f : a ⟶ b),
   map₂ (λ_ f).hom = map_comp (𝟙 a) f ≫ (map_id a ▷ map f) ≫ (λ_ (map f)).hom . obviously)
 (map₂_right_unitor' : ∀ {a b : B} (f : a ⟶ b),
@@ -116,6 +133,7 @@ restate_axiom oplax_functor.map_comp_naturality_left'
 restate_axiom oplax_functor.map_comp_naturality_right'
 restate_axiom oplax_functor.map₂_id'
 restate_axiom oplax_functor.map₂_comp'
+restate_axiom oplax_functor.map₂_associator'
 restate_axiom oplax_functor.map₂_left_unitor'
 restate_axiom oplax_functor.map₂_right_unitor'
 attribute [simp]
@@ -159,7 +177,6 @@ variables (B : Type u₁) [bicategory.{w₁ v₁} B]
 def id : oplax_functor B B :=
 { map_id := λ a,  𝟙 (𝟙 a),
   map_comp := λ a b c f g, 𝟙 (f ≫ g),
-  map₂_associator := by tidy,
   .. prepseudofunctor.id B }
 
 instance : inhabited (oplax_functor B B) := ⟨id B⟩
@@ -167,10 +184,11 @@ instance : inhabited (oplax_functor B B) := ⟨id B⟩
 end
 
 section
-variables {B : Type u₁} [bicategory.{w₁ v₁} B]
-variables {C : Type u₂} [bicategory.{w₂ v₂} C]
-variables {D : Type u₃} [bicategory.{w₃ v₃} D]
-variables (F : oplax_functor B C) (G : oplax_functor C D)
+variables
+{B : Type u₁} [bicategory.{w₁ v₁} B]
+{C : Type u₂} [bicategory.{w₂ v₂} C]
+{D : Type u₃} [bicategory.{w₃ v₃} D]
+(F : oplax_functor B C) (G : oplax_functor C D)
 
 /-- Composition of oplax functor. -/
 @[simps]
@@ -189,7 +207,7 @@ def comp : oplax_functor B D :=
     slice_rhs 1 3
     { rw [←map_comp_naturality_right, ←map₂_comp_assoc, ←map_comp_naturality_right] },
     simp only [map₂_comp, assoc] },
-  map₂_associator := λ a b c d f g h, by
+  map₂_associator' := λ a b c d f g h, by
   { dsimp, simp only [whisker_right_comp, assoc, whisker_left_comp],
     rw [←map_comp_naturality_left_assoc, ←map_comp_naturality_right_assoc, ←map₂_associator],
     simp only [←map₂_comp_assoc],
@@ -204,7 +222,7 @@ def comp : oplax_functor B D :=
     rw [←map_comp_naturality_right_assoc, ←map₂_right_unitor],
     simp only [←map₂_comp],
     rw ←map₂_right_unitor },
-   .. F.to_prepseudofunctor.comp G.to_prepseudofunctor }
+  .. F.to_prepseudofunctor.comp G.to_prepseudofunctor }
 
 end
 

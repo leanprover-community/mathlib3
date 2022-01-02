@@ -233,7 +233,7 @@ Salem-Spencer subset. -/
 @[to_additive "The additive Roth number of a finset is the cardinality of its biggest additive
 Salem-Spencer subset. The usual Roth number corresponds to `roth_number (finset.range n)`, see
 `roth_number_nat`. "]
-def mul_roth_number : finset α →ₘ ℕ :=
+def mul_roth_number : finset α →o ℕ :=
 ⟨λ s, nat.find_greatest (λ m, ∃ t ⊆ s, t.card = m ∧ mul_salem_spencer (t : set α)) s.card,
 begin
   rintro t u htu,
@@ -352,7 +352,7 @@ Trivially, `roth_number N ≤ N`, but Roth's theorem (proved in 1953) shows that
 `N * exp(-C sqrt(log(N))) ≤ roth_number N`.
 A significant refinement of Roth's theorem by Bloom and Sisask announced in 2020 gives
 `roth_number N = O(N / (log N)^(1+c))` for an absolute constant `c`. -/
-def roth_number_nat : ℕ →ₘ ℕ :=
+def roth_number_nat : ℕ →o ℕ :=
 ⟨λ n, add_roth_number (range n), add_roth_number.mono.comp range_mono⟩
 
 lemma roth_number_nat_def (n : ℕ) : roth_number_nat n = add_roth_number (range n) := rfl

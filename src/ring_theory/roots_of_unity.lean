@@ -369,6 +369,14 @@ protected lemma not_iff : ¬ is_primitive_root ζ k ↔ order_of ζ ≠ k :=
 ⟨λ h hk, h $ hk ▸ is_primitive_root.order_of ζ,
  λ h hk, h.symm $ hk.unique $ is_primitive_root.order_of ζ⟩
 
+lemma pow_of_dvd (h : is_primitive_root ζ k) {p : ℕ} (hp : p ≠ 0) (hdiv : p ∣ k) :
+  is_primitive_root (ζ ^ p) (k / p) :=
+begin
+  suffices : order_of (ζ ^ p) = k / p,
+  { exact this ▸ is_primitive_root.order_of (ζ ^ p) },
+  rw [order_of_pow' _ hp, ← eq_order_of h, nat.gcd_eq_right hdiv]
+end
+
 end comm_monoid
 
 section comm_monoid_with_zero

@@ -909,6 +909,18 @@ theorem is_open_iff_ultrafilter {s : set α} :
   is_open s ↔ (∀ (x ∈ s) (l : ultrafilter α), ↑l ≤ 𝓝 x → s ∈ l) :=
 by simp_rw [is_open_iff_mem_nhds, ← mem_iff_ultrafilter]
 
+lemma is_open_singleton_iff_nhds_eq_pure {α : Type*} [topological_space α] (a : α) :
+  is_open ({a} : set α) ↔ 𝓝 a = pure a :=
+begin
+  split,
+  { intros h,
+    apply le_antisymm _ (pure_le_nhds a),
+    rw le_pure_iff,
+    exact h.mem_nhds (mem_singleton a) },
+  { intros h,
+    simp [is_open_iff_nhds, h] }
+end
+
 lemma mem_closure_iff_frequently {s : set α} {a : α} : a ∈ closure s ↔ ∃ᶠ x in 𝓝 a, x ∈ s :=
 by rw [filter.frequently, filter.eventually, ← mem_interior_iff_mem_nhds,
   closure_eq_compl_interior_compl]; refl

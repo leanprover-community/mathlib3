@@ -227,7 +227,7 @@ lemma tendsto_approx_on_Lp_snorm [opens_measurable_space E]
 begin
   by_cases hp_zero : p = 0,
   { simpa only [hp_zero, snorm_exponent_zero] using tendsto_const_nhds },
-  have hp : 0 < p.to_real := to_real_pos_iff.mpr ⟨bot_lt_iff_ne_bot.mpr hp_zero, hp_ne_top⟩,
+  have hp : 0 < p.to_real := to_real_pos hp_zero hp_ne_top,
   suffices : tendsto (λ n, ∫⁻ x, ∥approx_on f hf s y₀ h₀ n x - f x∥₊ ^ p.to_real ∂μ) at_top (𝓝 0),
   { simp only [snorm_eq_lintegral_rpow_nnnorm hp_zero hp_ne_top],
     convert continuous_rpow_const.continuous_at.tendsto.comp this;
@@ -379,13 +379,13 @@ protected lemma snorm'_eq {p : ℝ} (f : α →ₛ F) (μ : measure α) :
 have h_map : (λ a, (nnnorm (f a) : ℝ≥0∞) ^ p) = f.map (λ a : F, (nnnorm a : ℝ≥0∞) ^ p), by simp,
 by rw [snorm', h_map, lintegral_eq_lintegral, map_lintegral]
 
-lemma measure_preimage_lt_top_of_mem_ℒp  (hp_pos : 0 < p) (hp_ne_top : p ≠ ∞) (f : α →ₛ E)
+lemma measure_preimage_lt_top_of_mem_ℒp (hp_pos : p ≠ 0) (hp_ne_top : p ≠ ∞) (f : α →ₛ E)
   (hf : mem_ℒp f p μ) (y : E) (hy_ne : y ≠ 0) :
   μ (f ⁻¹' {y}) < ∞ :=
 begin
-  have hp_pos_real : 0 < p.to_real, from ennreal.to_real_pos_iff.mpr ⟨hp_pos, hp_ne_top⟩,
+  have hp_pos_real : 0 < p.to_real, from ennreal.to_real_pos hp_pos hp_ne_top,
   have hf_snorm := mem_ℒp.snorm_lt_top hf,
-  rw [snorm_eq_snorm' hp_pos.ne.symm hp_ne_top, f.snorm'_eq,
+  rw [snorm_eq_snorm' hp_pos hp_ne_top, f.snorm'_eq,
     ← @ennreal.lt_rpow_one_div_iff _ _ (1 / p.to_real) (by simp [hp_pos_real]),
     @ennreal.top_rpow_of_pos (1 / (1 / p.to_real)) (by simp [hp_pos_real]),
     ennreal.sum_lt_top_iff] at hf_snorm,
@@ -419,24 +419,24 @@ begin
   rw [snorm_eq_snorm' hp0 hp_top, f.snorm'_eq],
   refine ennreal.rpow_lt_top_of_nonneg (by simp) (ennreal.sum_lt_top_iff.mpr (λ y hy, _)).ne,
   by_cases hy0 : y = 0,
-  { simp [hy0, ennreal.to_real_pos_iff.mpr ⟨lt_of_le_of_ne (zero_le _) (ne.symm hp0), hp_top⟩], },
+  { simp [hy0, ennreal.to_real_pos hp0 hp_top], },
   { refine ennreal.mul_lt_top _ (hf y hy0).ne,
     exact (ennreal.rpow_lt_top_of_nonneg ennreal.to_real_nonneg ennreal.coe_ne_top).ne },
 end
 
-lemma mem_ℒp_iff {f : α →ₛ E} (hp_pos : 0 < p) (hp_ne_top : p ≠ ∞) :
+lemma mem_ℒp_iff {f : α →ₛ E} (hp_pos : p ≠ 0) (hp_ne_top : p ≠ ∞) :
   mem_ℒp f p μ ↔ ∀ y ≠ 0, μ (f ⁻¹' {y}) < ∞ :=
 ⟨λ h, measure_preimage_lt_top_of_mem_ℒp hp_pos hp_ne_top f h,
   λ h, mem_ℒp_of_finite_measure_preimage p h⟩
 
 lemma integrable_iff {f : α →ₛ E} : integrable f μ ↔ ∀ y ≠ 0, μ (f ⁻¹' {y}) < ∞ :=
-mem_ℒp_one_iff_integrable.symm.trans $ mem_ℒp_iff ennreal.zero_lt_one ennreal.coe_ne_top
+mem_ℒp_one_iff_integrable.symm.trans $ mem_ℒp_iff ennreal.zero_lt_one.ne' ennreal.coe_ne_top
 
-lemma mem_ℒp_iff_integrable {f : α →ₛ E} (hp_pos : 0 < p) (hp_ne_top : p ≠ ∞) :
+lemma mem_ℒp_iff_integrable {f : α →ₛ E} (hp_pos : p ≠ 0) (hp_ne_top : p ≠ ∞) :
   mem_ℒp f p μ ↔ integrable f μ :=
 (mem_ℒp_iff hp_pos hp_ne_top).trans integrable_iff.symm
 
-lemma mem_ℒp_iff_fin_meas_supp {f : α →ₛ E} (hp_pos : 0 < p) (hp_ne_top : p ≠ ∞) :
+lemma mem_ℒp_iff_fin_meas_supp {f : α →ₛ E} (hp_pos : p ≠ 0) (hp_ne_top : p ≠ ∞) :
   mem_ℒp f p μ ↔ f.fin_meas_supp μ :=
 (mem_ℒp_iff hp_pos hp_ne_top).trans fin_meas_supp_iff.symm
 
@@ -475,13 +475,13 @@ end
 lemma measure_support_lt_top_of_mem_ℒp (f : α →ₛ E) (hf : mem_ℒp f p μ) (hp_ne_zero : p ≠ 0)
   (hp_ne_top : p ≠ ∞) :
   μ (support f) < ∞ :=
-f.measure_support_lt_top ((mem_ℒp_iff (pos_iff_ne_zero.mpr hp_ne_zero) hp_ne_top).mp hf)
+f.measure_support_lt_top ((mem_ℒp_iff hp_ne_zero hp_ne_top).mp hf)
 
 lemma measure_support_lt_top_of_integrable (f : α →ₛ E) (hf : integrable f μ) :
   μ (support f) < ∞ :=
 f.measure_support_lt_top (integrable_iff.mp hf)
 
-lemma measure_lt_top_of_mem_ℒp_indicator (hp_pos : 0 < p) (hp_ne_top : p ≠ ∞) {c : E} (hc : c ≠ 0)
+lemma measure_lt_top_of_mem_ℒp_indicator (hp_pos : p ≠ 0) (hp_ne_top : p ≠ ∞) {c : E} (hc : c ≠ 0)
   {s : set α} (hs : measurable_set s)
   (hcs : mem_ℒp ((const α c).piecewise s hs (const α 0)) p μ) :
   μ s < ⊤ :=
@@ -726,7 +726,7 @@ Lp.simple_func.to_simple_func_to_Lp _ _
 that the property holds for (multiples of) characteristic functions of finite-measure measurable
 sets and is closed under addition (of functions with disjoint support). -/
 @[elab_as_eliminator]
-protected lemma induction (hp_pos : 0 < p) (hp_ne_top : p ≠ ∞) {P : Lp.simple_func E p μ → Prop}
+protected lemma induction (hp_pos : p ≠ 0) (hp_ne_top : p ≠ ∞) {P : Lp.simple_func E p μ → Prop}
   (h_ind : ∀ (c : E) {s : set α} (hs : measurable_set s) (hμs : μ s < ∞),
     P (Lp.simple_func.indicator_const p hs hμs.ne c))
   (h_add : ∀ ⦃f g : α →ₛ E⦄, ∀ hf : mem_ℒp f p μ, ∀ hg : mem_ℒp g p μ,
@@ -825,7 +825,7 @@ lemma Lp.induction [_i : fact (1 ≤ p)] (hp_ne_top : p ≠ ∞) (P : Lp E p μ 
   ∀ f : Lp E p μ, P f :=
 begin
   refine λ f, (Lp.simple_func.dense_range hp_ne_top).induction_on f h_closed _,
-  refine Lp.simple_func.induction (lt_of_lt_of_le ennreal.zero_lt_one _i.elim) hp_ne_top _ _,
+  refine Lp.simple_func.induction (lt_of_lt_of_le ennreal.zero_lt_one _i.elim).ne' hp_ne_top _ _,
   { exact λ c s, h_ind c },
   { exact λ f g hf hg, h_add hf hg },
 end
@@ -856,7 +856,7 @@ begin
     { intros c s hs h,
       by_cases hc : c = 0,
       { subst hc, convert h_ind 0 measurable_set.empty (by simp) using 1, ext, simp [const] },
-      have hp_pos : 0 < p := lt_of_lt_of_le ennreal.zero_lt_one _i.elim,
+      have hp_pos : p ≠ 0 := (lt_of_lt_of_le ennreal.zero_lt_one _i.elim).ne',
       exact h_ind c hs (simple_func.measure_lt_top_of_mem_ℒp_indicator hp_pos hp_ne_top hc hs h) },
     { intros f g hfg hf hg int_fg,
       rw [simple_func.coe_add, mem_ℒp_add_of_disjoint hfg f.measurable g.measurable] at int_fg,

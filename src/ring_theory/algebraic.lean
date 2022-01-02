@@ -272,8 +272,7 @@ variables {R} {S}
   [has_scalar S' T'] (p : polynomial R') (f : S' → T') (x : S') :
   (p • f) x = aeval x p • f x := rfl
 
-variables [comm_semiring R'] [comm_semiring S'] [comm_semiring T'] [algebra R' S'] [algebra R' T']
-  [algebra S' T']
+variables [comm_semiring R'] [comm_semiring S'] [comm_semiring T'] [algebra R' S'] [algebra S' T']
 
 noncomputable instance polynomial.algebra_pi :
   algebra (polynomial R') (S' → T') :=

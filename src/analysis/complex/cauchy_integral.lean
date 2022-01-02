@@ -422,6 +422,19 @@ lemma circle_integral_sub_inv_smul_of_differentiable_on_off_countable
 by { rw [← two_pi_I_inv_smul_circle_integral_sub_inv_smul_of_differentiable_on_off_countable
   hs hw hc hd, smul_inv_smul₀], simp [real.pi_ne_zero, I_ne_zero] }
 
+lemma circle_integral_sub_inv_smul_of_continuous_on_of_differentiable_on
+  {R : ℝ} {c w : ℂ} {f : ℂ → E} (hw : w ∈ ball c R)
+  (hc : continuous_on f (closed_ball c R)) (hd : differentiable_on ℂ f (ball c R)) :
+  ∮ z in C(c, R), (z - w)⁻¹ • f z = (2 * π * I : ℂ) • f w :=
+circle_integral_sub_inv_smul_of_differentiable_on_off_countable countable_empty hw hc $ λ z hz,
+  hd.differentiable_at (is_open_ball.mem_nhds hz.1)
+
+lemma circle_integral_sub_inv_smul_of_differentiable_on
+  {R : ℝ} {c w : ℂ} {f : ℂ → E} (hw : w ∈ ball c R) (hd : differentiable_on ℂ f (closed_ball c R)) :
+  ∮ z in C(c, R), (z - w)⁻¹ • f z = (2 * π * I : ℂ) • f w :=
+circle_integral_sub_inv_smul_of_continuous_on_of_differentiable_on hw hd.continuous_on $
+  hd.mono $ ball_subset_closed_ball
+
 /-- **Cauchy integral formula**: if `f : ℂ → ℂ` is complex differentiable on a closed disc of radius
 `R`, then for any `w` in the corresponding open disc we have
 $\oint_{|z-c|=R}\frac{f(z)}{z-w}dz=2\pi i\,f(w)$. -/
@@ -585,9 +598,9 @@ begin
     (hz.2.is_local_max hz.1)).mono (λ x hx y hy, le_trans (hz.2 hy) hx.ge)
 end
 
-/-- **Maximum principle**: if `f : ℂ → E` is complex differentiable on a nonempty compact set `s`,
-then there exists a point `z ∈ frontier s` such that `λ z, ∥f z∥` takes it maximum value on `s` at
-`z`. -/
+/-- **Maximum modulus principle**: if `f : ℂ → E` is complex differentiable on a nonempty compact
+set `s`, then there exists a point `z ∈ frontier s` such that `λ z, ∥f z∥` takes it maximum value on
+`s` at `z`. -/
 lemma exists_mem_frontier_is_max_on_norm {f : ℂ → E} {s : set ℂ} (hs : is_compact s)
   (hne : s.nonempty) (hd : differentiable_on ℂ f s) :
   ∃ z ∈ frontier s, is_max_on (norm ∘ f) s z :=
@@ -602,7 +615,7 @@ begin
   ... = s : hs.is_closed.closure_eq
 end
 
-/-- **Maximum principle**: if `f : ℂ → E` is complex differentiable on a compact set `s` and
+/-- **Maximum modulus principle**: if `f : ℂ → E` is complex differentiable on a compact set `s` and
 `∥f z∥ ≤ C` for any `z ∈ frontier s`, then the same is true for any `z ∈ s`. -/
 lemma norm_le_of_forall_mem_frontier_norm_le {f : ℂ → E} {s : set ℂ} (hs : is_compact s)
   (hd : differentiable_on ℂ f s) {C : ℝ} (hC : ∀ z ∈ frontier s, ∥f z∥ ≤ C) {z : ℂ} (hz : z ∈ s) :

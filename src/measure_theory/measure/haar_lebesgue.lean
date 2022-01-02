@@ -127,12 +127,8 @@ lemma add_haar_eq_zero_of_disjoint_translates
 begin
   suffices H : ∀ R, μ (s ∩ closed_ball 0 R) = 0,
   { apply le_antisymm _ (zero_le _),
-    have : s ⊆ ⋃ (n : ℕ), s ∩ closed_ball 0 n,
-    { assume x hx,
-      obtain ⟨n, hn⟩ : ∃ (n : ℕ), ∥x∥ ≤ n := exists_nat_ge (∥x∥),
-      exact mem_Union.2 ⟨n, ⟨hx, mem_closed_ball_zero_iff.2 hn⟩⟩ },
-    calc μ s ≤ μ (⋃ (n : ℕ), s ∩ closed_ball 0 n) : measure_mono this
-    ... ≤ ∑' (n : ℕ), μ (s ∩ closed_ball 0 n) : measure_Union_le _
+    calc μ s ≤ ∑' (n : ℕ), μ (s ∩ closed_ball 0 n) :
+      by { conv_lhs { rw ← Union_inter_closed_ball_nat s 0 }, exact measure_Union_le _ }
     ... = 0 : by simp only [H, tsum_zero] },
   assume R,
   apply add_haar_eq_zero_of_disjoint_translates_aux μ u

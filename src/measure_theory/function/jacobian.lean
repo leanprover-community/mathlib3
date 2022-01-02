@@ -21,9 +21,10 @@ variables {E : Type*} [normed_group E] [normed_space ℝ E] [finite_dimensional 
 map `A`. Then it expands the volume of any set by at most `m` for any `m > det A`. -/
 lemma measure_image_le_mul_of_det_lt
   (A : E →L[ℝ] E) {m : ℝ≥0} (hm : ennreal.of_real (abs (A : E →ₗ[ℝ] E).det) < m) :
-  ∀ᶠ δ in 𝓝 (0 : ℝ≥0), ∀ (s : set E) (f : E → E) (hf : approximates_linear_on f A s δ),
+  ∀ᶠ δ in 𝓝[>] (0 : ℝ≥0), ∀ (s : set E) (f : E → E) (hf : approximates_linear_on f A s δ),
   μ (f '' s) ≤ m * μ s :=
 begin
+  apply nhds_within_le_nhds,
   let d := ennreal.of_real (abs (A : E →ₗ[ℝ] E).det),
   -- construct a small neighborhood of `A '' (closed_ball 0 1)` with measure comparable to
   -- the determinant of `A`.
@@ -125,9 +126,10 @@ end
 map `A`. Then it expands the volume of any set by at least `m` for any `m < det A`. -/
 lemma mul_le_measure_image_of_lt_det
   (A : E →L[ℝ] E) {m : ℝ≥0} (hm : (m : ℝ≥0∞) < ennreal.of_real (abs (A : E →ₗ[ℝ] E).det)) :
-  ∀ᶠ δ in 𝓝 (0 : ℝ≥0), ∀ (s : set E) (f : E → E) (hf : approximates_linear_on f A s δ),
+  ∀ᶠ δ in 𝓝[>] (0 : ℝ≥0), ∀ (s : set E) (f : E → E) (hf : approximates_linear_on f A s δ),
   (m : ℝ≥0∞) * μ s ≤ μ (f '' s) :=
 begin
+  apply nhds_within_le_nhds,
   -- The assumption `hm` implies that `A` is invertible. If `f` is close enough to `A`, it is also
   -- invertible. One can then pass to the inverses, and deduce the estimate from
   -- `measure_image_le_mul_of_det_lt` applied to `f⁻¹` and `A⁻¹`.
@@ -152,11 +154,11 @@ begin
   -- therefore, we may apply `measure_image_le_mul_of_det_lt` to `B.symm` and `m⁻¹`.
   obtain ⟨δ₀, δ₀pos, hδ₀⟩ : ∃ (δ : ℝ≥0), 0 < δ ∧ ∀ (t : set E) (g : E → E),
     approximates_linear_on g (B.symm : E →L[ℝ] E) t δ → μ (g '' t) ≤ ↑m⁻¹ * μ t,
-  { have : ∀ᶠ (δ : ℝ≥0) in 𝓝 0, ∀ (t : set E) (g : E → E),
+  { have : ∀ᶠ (δ : ℝ≥0) in 𝓝[>] 0, ∀ (t : set E) (g : E → E),
       approximates_linear_on g (B.symm : E →L[ℝ] E) t δ → μ (g '' t) ≤ ↑m⁻¹ * μ t :=
         measure_image_le_mul_of_det_lt μ B.symm I,
-    rcases exists_Ico_subset_of_mem_nhds this ⟨1, zero_lt_one⟩ with ⟨δ₁, δ₁pos, h₁⟩,
-    exact ⟨δ₁/2, nnreal.half_pos δ₁pos, h₁ ⟨bot_le, nnreal.half_lt_self δ₁pos.ne'⟩⟩ },
+    rcases (this.and self_mem_nhds_within).exists with ⟨δ₀, h, h'⟩,
+    exact ⟨δ₀, h', h⟩, },
   -- record smallness conditions for `δ` that will be needed to apply `hδ₀` below.
   have L1 : ∀ᶠ δ in 𝓝 (0 : ℝ≥0), subsingleton E ∨ δ < ∥(B.symm : E →L[ℝ] E)∥₊⁻¹,
   { by_cases (subsingleton E),
@@ -191,4 +193,164 @@ begin
   -- as `f⁻¹` is well approximated by `B⁻¹`, the conclusion follows from `hδ₀`
   -- and our choice of `δ`.
   exact hδ₀ _ _ ((hf'.to_inv h1δ).mono_num h2δ.le),
+end
+
+lemma approximates_linear_on.norm_fderiv_sub_le {f : E → E} {A : E →L[ℝ] E} {s : set E} {δ : ℝ≥0}
+  (hf : approximates_linear_on f A s δ)
+  (f' : E → E →L[ℝ] E) (hf' : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x) :
+  ∀ᵐ x ∂ (μ.restrict s), ∥f' x - A∥₊ ≤ δ :=
+sorry
+
+lemma exists_partition_approximates_linear_on_of_has_fderiv_within_at
+  (f : E → E) (s : set E) (f' : E → E →L[ℝ] E)
+  (hf' : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x)
+  (r : (E →L[ℝ] E) → ℝ≥0) (rpos : ∀ A, r A ≠ 0) :
+  ∃ (t : ℕ → set E) (A : ℕ → (E →L[ℝ] E)), pairwise (disjoint on t)
+  ∧ (∀ n, measurable_set (t n)) ∧ (s ⊆ ⋃ n, t n)
+  ∧ (∀ n, approximates_linear_on f (A n) (s ∩ t n) (r (A n)))
+  ∧ (s.nonempty → ∀ n, ∃ y ∈ s, A n = f' y) :=
+sorry
+
+/-- A differentiable function maps sets of measure zero to sets of measure zero. -/
+lemma add_haar_image_zero_of_differentiable_on_of_add_haar_zero
+  (f : E → E) (s : set E) (hf : differentiable_on ℝ f s) (hs : μ s = 0) :
+  μ (f '' s) = 0 :=
+begin
+  refine le_antisymm _ (zero_le _),
+  have : ∀ (A : E →L[ℝ] E), ∃ (δ : ℝ≥0), 0 < δ ∧
+    ∀ (t : set E) (g : E → E) (hf : approximates_linear_on g A t δ),
+     μ (g '' t) ≤ (real.to_nnreal ((abs (A : E →ₗ[ℝ] E).det)) + 1 : ℝ≥0) * μ t,
+  { assume A,
+    let m : ℝ≥0 := real.to_nnreal ((abs (A : E →ₗ[ℝ] E).det)) + 1,
+    have I : ennreal.of_real (abs (A : E →ₗ[ℝ] E).det) < m,
+      by simp only [ennreal.of_real, m, lt_add_iff_pos_right, zero_lt_one, ennreal.coe_lt_coe],
+    rcases ((measure_image_le_mul_of_det_lt μ A I).and self_mem_nhds_within).exists with ⟨δ, h, h'⟩,
+    exact ⟨δ, h', h⟩ },
+  choose δ hδ using this,
+  obtain ⟨t, A, t_disj, t_meas, t_cover, ht, -⟩ : ∃ (t : ℕ → set E) (A : ℕ → (E →L[ℝ] E)),
+    pairwise (disjoint on t) ∧ (∀ (n : ℕ), measurable_set (t n)) ∧ (s ⊆ ⋃ (n : ℕ), t n)
+    ∧ (∀ (n : ℕ), approximates_linear_on f (A n) (s ∩ t n) (δ (A n)))
+    ∧ (s.nonempty → ∀ n, ∃ y ∈ s, A n = fderiv_within ℝ f s y) :=
+        exists_partition_approximates_linear_on_of_has_fderiv_within_at f s
+        (fderiv_within ℝ f s) (λ x xs, (hf x xs).has_fderiv_within_at) δ (λ A, (hδ A).1.ne'),
+  calc μ (f '' s)
+      ≤ μ (⋃ n, f '' (s ∩ (t n))) :
+    begin
+      apply measure_mono,
+      rw [← image_Union, ← inter_Union],
+      exact image_subset f (subset_inter subset.rfl t_cover)
+    end
+  ... ≤ ∑' n, μ (f '' (s ∩ (t n))) : measure_Union_le _
+  ... ≤ ∑' n, (real.to_nnreal ((abs (A n : E →ₗ[ℝ] E).det)) + 1 : ℝ≥0) * μ (s ∩ (t n)) :
+    begin
+      apply ennreal.tsum_le_tsum (λ n, _),
+      apply (hδ (A n)).2,
+      exact ht n,
+    end
+  ... ≤ ∑' n, (real.to_nnreal ((abs (A n : E →ₗ[ℝ] E).det)) + 1 : ℝ≥0) * 0 :
+    begin
+      refine ennreal.tsum_le_tsum (λ n, ennreal.mul_le_mul le_rfl _),
+      exact le_trans (measure_mono (inter_subset_left _ _)) (le_of_eq hs),
+    end
+  ... = 0 : by simp only [tsum_zero, mul_zero]
+end
+
+/-- A version of Sard lemma in fixed dimension: given a differentiable function from `E` to `E` and
+a set where the differential is not invertible, then the image of this set has zero measure.
+Here, we give an auxiliary statement towards this result. -/
+lemma add_haar_image_zero_of_fderiv_not_onto_aux
+  (f : E → E) (s : set E) (f' : E → (E →L[ℝ] E)) (hf' : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x)
+  (R : ℝ) (hs : s ⊆ closed_ball 0 R) (ε : ℝ≥0) (εpos : 0 < ε)
+  (h'f' : ∀ x ∈ s, (f' x : E →ₗ[ℝ] E).det = 0) :
+  μ (f '' s) ≤ ε * μ (closed_ball 0 R) :=
+begin
+  rcases eq_empty_or_nonempty s with rfl|h's, { simp only [measure_empty, zero_le, image_empty] },
+  have : ∀ (A : E →L[ℝ] E), ∃ (δ : ℝ≥0), 0 < δ ∧
+    ∀ (t : set E) (g : E → E) (hf : approximates_linear_on g A t δ),
+     μ (g '' t) ≤ (real.to_nnreal ((abs (A : E →ₗ[ℝ] E).det)) + ε : ℝ≥0) * μ t,
+  { assume A,
+    let m : ℝ≥0 := real.to_nnreal ((abs (A : E →ₗ[ℝ] E).det)) + ε,
+    have I : ennreal.of_real (abs (A : E →ₗ[ℝ] E).det) < m,
+      by simp only [ennreal.of_real, m, lt_add_iff_pos_right, εpos, ennreal.coe_lt_coe],
+    rcases ((measure_image_le_mul_of_det_lt μ A I).and self_mem_nhds_within).exists with ⟨δ, h, h'⟩,
+    exact ⟨δ, h', h⟩ },
+  choose δ hδ using this,
+  obtain ⟨t, A, t_disj, t_meas, t_cover, ht, Af'⟩ : ∃ (t : ℕ → set E) (A : ℕ → (E →L[ℝ] E)),
+    pairwise (disjoint on t) ∧ (∀ (n : ℕ), measurable_set (t n)) ∧ (s ⊆ ⋃ (n : ℕ), t n)
+    ∧ (∀ (n : ℕ), approximates_linear_on f (A n) (s ∩ t n) (δ (A n)))
+    ∧  (s.nonempty → ∀ n, ∃ y ∈ s, A n = f' y) :=
+      exists_partition_approximates_linear_on_of_has_fderiv_within_at f s
+      f' hf' δ (λ A, (hδ A).1.ne'),
+  calc μ (f '' s)
+      ≤ μ (⋃ n, f '' (s ∩ t n)) :
+    begin
+      apply measure_mono,
+      rw [← image_Union, ← inter_Union],
+      exact image_subset f (subset_inter subset.rfl t_cover)
+    end
+  ... ≤ ∑' n, μ (f '' (s ∩ t n)) : measure_Union_le _
+  ... ≤ ∑' n, (real.to_nnreal ((abs (A n : E →ₗ[ℝ] E).det)) + ε : ℝ≥0) * μ (s ∩ t n) :
+    begin
+      apply ennreal.tsum_le_tsum (λ n, _),
+      apply (hδ (A n)).2,
+      exact ht n,
+    end
+  ... = ∑' n, ε * μ (s ∩ t n) :
+    begin
+      congr,
+      ext1 n,
+      congr,
+      rcases Af' h's n with ⟨y, ys, hy⟩,
+      simp only [hy, h'f' y ys, real.to_nnreal_zero, abs_zero, zero_add]
+    end
+  ... ≤ ε * ∑' n, μ (closed_ball 0 R ∩ t n) :
+    begin
+      rw ennreal.tsum_mul_left,
+      refine ennreal.mul_le_mul le_rfl (ennreal.tsum_le_tsum (λ n, measure_mono _)),
+      exact inter_subset_inter_left _ hs,
+    end
+  ... = ε * μ (⋃ n, closed_ball 0 R ∩ t n) :
+    begin
+      rw measure_Union,
+      { rw ← pairwise_univ at ⊢ t_disj,
+        refine pairwise_disjoint.mono t_disj (λ n, inter_subset_right _ _) },
+      { assume n,
+        exact measurable_set_closed_ball.inter (t_meas n) }
+    end
+  ... ≤ ε * μ (closed_ball 0 R) :
+    begin
+      rw ← inter_Union,
+      exact ennreal.mul_le_mul le_rfl (measure_mono (inter_subset_left _ _)),
+    end
+end
+
+/-- A version of Sard lemma in fixed dimension: given a differentiable function from `E` to `E` and
+a set where the differential is not invertible, then the image of this set has zero measure. -/
+lemma add_haar_image_zero_of_fderiv_not_onto
+  (f : E → E) (s : set E) (f' : E → (E →L[ℝ] E)) (hf' : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x)
+  (h'f' : ∀ x ∈ s, (f' x : E →ₗ[ℝ] E).det = 0) :
+  μ (f '' s) = 0 :=
+begin
+  suffices H : ∀ R, μ (f '' (s ∩ closed_ball 0 R)) = 0,
+  { apply le_antisymm _ (zero_le _),
+    rw ← Union_inter_closed_ball_nat s 0,
+    calc μ (f '' ⋃ (n : ℕ), s ∩ closed_ball 0 n) ≤ ∑' (n : ℕ), μ (f '' (s ∩ closed_ball 0 n)) :
+      by { rw image_Union, exact measure_Union_le _ }
+    ... ≤ 0 : by simp only [H, tsum_zero, nonpos_iff_eq_zero] },
+  assume R,
+  have A : ∀ (ε : ℝ≥0) (εpos : 0 < ε), μ (f '' (s ∩ closed_ball 0 R)) ≤ ε * μ (closed_ball 0 R) :=
+    λ ε εpos, add_haar_image_zero_of_fderiv_not_onto_aux μ _ _ f'
+      (λ x hx, (hf' x hx.1).mono (inter_subset_left _ _)) R (inter_subset_right _ _) ε εpos
+      (λ x hx, h'f' x hx.1),
+  have B : tendsto (λ (ε : ℝ≥0), (ε : ℝ≥0∞) * μ (closed_ball 0 R)) (𝓝[>] 0) (𝓝 0),
+  { have : tendsto (λ (ε : ℝ≥0), (ε : ℝ≥0∞) * μ (closed_ball 0 R))
+      (𝓝 0) (𝓝 (((0 : ℝ≥0) : ℝ≥0∞) * μ (closed_ball 0 R))) :=
+        ennreal.tendsto.mul_const (ennreal.tendsto_coe.2 tendsto_id)
+          (or.inr ((measure_closed_ball_lt_top).ne)),
+    simp only [zero_mul, ennreal.coe_zero] at this,
+    exact tendsto.mono_left this nhds_within_le_nhds },
+  apply le_antisymm _ (zero_le _),
+  apply ge_of_tendsto B,
+  filter_upwards [self_mem_nhds_within],
+  exact A,
 end

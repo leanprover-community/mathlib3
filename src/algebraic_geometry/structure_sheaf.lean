@@ -831,9 +831,9 @@ begin
   exact (localization_to_basic_open R r).symm
 end
 
-lemma to_basic_open_epi (r : R) : epi (to_open R (basic_open r)) :=
-⟨ λ S f g h, by { refine is_localization.ring_hom_ext _ _,
-  swap 5, exact is_localization.to_basic_open R r, exact h } ⟩
+instance to_basic_open_epi (r : R) : epi (to_open R (basic_open r)) :=
+⟨λ S f g h, by { refine is_localization.ring_hom_ext _ _,
+  swap 5, exact is_localization.to_basic_open R r, exact h }⟩
 
 @[elementwise] lemma to_global_factors : to_open R ⊤ =
   (CommRing.of_hom (algebra_map R (localization.away (1 : R)))) ≫ (to_basic_open R (1 : R)) ≫

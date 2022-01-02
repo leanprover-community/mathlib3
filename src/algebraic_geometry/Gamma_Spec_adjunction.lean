@@ -344,13 +344,13 @@ instance Spec.preserves_limits : limits.preserves_limits Scheme.Spec :=
 /-- Spec is a full functor. -/
 instance : full Spec.to_LocallyRingedSpace :=
 R_full_of_counit_is_iso Γ_Spec.LocallyRingedSpace_adjunction
-instance : full Scheme.Spec :=
+instance Spec.full : full Scheme.Spec :=
 R_full_of_counit_is_iso Γ_Spec.adjunction
 
 /-- Spec is a faithful functor. -/
-instance Spec.faithful : faithful Spec.to_LocallyRingedSpace :=
+instance : faithful Spec.to_LocallyRingedSpace :=
 R_faithful_of_counit_is_iso Γ_Spec.LocallyRingedSpace_adjunction
-instance : faithful Scheme.Spec :=
+instance Spec.faithful : faithful Scheme.Spec :=
 R_faithful_of_counit_is_iso Γ_Spec.adjunction
 
 end algebraic_geometry

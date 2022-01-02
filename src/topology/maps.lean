@@ -254,9 +254,14 @@ lemma image_mem_nhds (hf : is_open_map f) {x : α} {s : set α} (hx : s ∈ 𝓝
 let ⟨t, hts, ht, hxt⟩ := mem_nhds_iff.1 hx in
 mem_of_superset (is_open.mem_nhds (hf t ht) (mem_image_of_mem _ hxt)) (image_subset _ hts)
 
+lemma maps_to_interior (hf : is_open_map f) {s : set α} {t : set β} (h : maps_to f s t) :
+  maps_to f (interior s) (interior t) :=
+maps_to'.2 $ interior_maximal (h.mono interior_subset subset.rfl).image_subset
+  (hf _ is_open_interior)
+
 lemma image_interior_subset (hf : is_open_map f) (s : set α) :
   f '' interior s ⊆ interior (f '' s) :=
-interior_maximal (image_subset _ interior_subset) (hf _ is_open_interior)
+(hf.maps_to_interior (maps_to_image f s)).image_subset
 
 lemma nhds_le (hf : is_open_map f) (a : α) : 𝓝 (f a) ≤ (𝓝 a).map f :=
 le_map $ λ s, hf.image_mem_nhds
@@ -280,21 +285,38 @@ lemma to_quotient_map {f : α → β}
   quotient_map f :=
 quotient_map_iff.2 ⟨surj, λ s, ⟨λ h, h.preimage cont, λ h, surj.image_preimage s ▸ open_map _ h⟩⟩
 
-lemma interior_preimage_subset_preimage_interior {s : set β} (hf : is_open_map f) :
+lemma interior_preimage_subset_preimage_interior (hf : is_open_map f) {s : set β} :
   interior (f⁻¹' s) ⊆ f⁻¹' (interior s) :=
-begin
-  rw ← set.image_subset_iff,
-  refine interior_maximal _ (hf _ is_open_interior),
-  rw set.image_subset_iff,
-  exact interior_subset,
-end
+hf.maps_to_interior (maps_to_preimage _ _)
 
-lemma preimage_interior_eq_interior_preimage {s : set β}
-  (hf₁ : continuous f) (hf₂ : is_open_map f) :
+lemma preimage_interior_eq_interior_preimage (hf₁ : is_open_map f) (hf₂ : continuous f)
+  (s : set β) :
   f⁻¹' (interior s) = interior (f⁻¹' s) :=
 subset.antisymm
-  (preimage_interior_subset_interior_preimage hf₁)
-  (interior_preimage_subset_preimage_interior hf₂)
+  (preimage_interior_subset_interior_preimage hf₂)
+  (interior_preimage_subset_preimage_interior hf₁)
+
+lemma preimage_closure_subset_closure_preimage (hf : is_open_map f) {s : set β} :
+  f ⁻¹' (closure s) ⊆ closure (f ⁻¹' s) :=
+begin
+  rw ← compl_subset_compl,
+  simp only [← interior_compl, ← preimage_compl, hf.interior_preimage_subset_preimage_interior]
+end
+
+lemma preimage_closure_eq_closure_preimage (hf : is_open_map f) (hfc : continuous f) (s : set β) :
+  f ⁻¹' (closure s) = closure (f ⁻¹' s) :=
+hf.preimage_closure_subset_closure_preimage.antisymm (hfc.closure_preimage_subset s)
+
+lemma preimage_frontier_subset_frontier_preimage (hf : is_open_map f) {s : set β} :
+  f ⁻¹' (frontier s) ⊆ frontier (f ⁻¹' s) :=
+by simpa only [frontier_eq_closure_inter_closure, preimage_inter]
+  using inter_subset_inter hf.preimage_closure_subset_closure_preimage
+    hf.preimage_closure_subset_closure_preimage
+
+lemma preimage_frontier_eq_frontier_preimage (hf : is_open_map f) (hfc : continuous f) (s : set β) :
+  f ⁻¹' (frontier s) = frontier (f ⁻¹' s) :=
+by simp only [frontier_eq_closure_inter_closure, preimage_inter, preimage_compl,
+  hf.preimage_closure_eq_closure_preimage hfc]
 
 end is_open_map
 

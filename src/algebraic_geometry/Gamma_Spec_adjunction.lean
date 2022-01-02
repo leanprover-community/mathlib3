@@ -3,7 +3,7 @@ Copyright (c) 2021 Junyan Xu. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Junyan Xu
 -/
-import algebraic_geometry.Spec
+import algebraic_geometry.Scheme
 import category_theory.adjunction.limits
 import category_theory.adjunction.fully_faithful
 
@@ -216,7 +216,7 @@ begin
 end
 
 /-- `to_Spec_Γ _` is iso so these are mutually two-sided inverses. -/
-lemma left_triangle : to_Spec_Γ (Γ.obj (op X)) ≫ X.to_Γ_Spec.1.c.app (op ⊤) = 𝟙 (Γ.obj (op X)) :=
+lemma Γ_Spec_left_triangle : to_Spec_Γ (Γ.obj (op X)) ≫ X.to_Γ_Spec.1.c.app (op ⊤) = 𝟙 _ :=
 begin
   unfold to_Spec_Γ,
   rw ← to_open_res _ (basic_open (1 : Γ.obj (op X))) ⊤ (eq_to_hom basic_open_one.symm),
@@ -232,6 +232,8 @@ end LocallyRingedSpace
   prime_spectrum.comap (g.comp f) x = (prime_spectrum.comap f) (prime_spectrum.comap g x) :=
 rfl
 
+local attribute [reducible] PresheafedSpace.stalk
+
 /-- Unit as a natural transformation. -/
 def identity_to_Γ_Spec : 𝟭 LocallyRingedSpace.{u} ⟶ Γ.right_op ⋙ Spec.to_LocallyRingedSpace :=
 { app := LocallyRingedSpace.to_Γ_Spec,
@@ -239,46 +241,49 @@ def identity_to_Γ_Spec : 𝟭 LocallyRingedSpace.{u} ⟶ Γ.right_op ⋙ Spec.t
     symmetry,
     apply LocallyRingedSpace.comp_ring_hom_ext,
     { ext1 x,
-      symmetry,
       dsimp [Spec.Top_map, LocallyRingedSpace.to_Γ_Spec_fun],
-      rw ← prime_spectrum.comap_comp_apply,
-      rw (local_ring.local_hom_iff_comap_closed_point
-        (PresheafedSpace.stalk_map f.val x)).mp infer_instance,
-      have := (@local_ring.local_hom_iff_comap_closed_point
-        _ _ (Y.2 _) _ _ (X.2 x) _).1 (f.2 x),
-      -- convert congr_fun (congr_arg prime_spectrum.comap
-      --   (PresheafedSpace.stalk_map_germ f.1 ⊤ ⟨x,trivial⟩))
-      --   (@local_ring.closed_point _ _ (X.local_ring x)),
-      -- erw prime_spectrum.comap_comp, rw function.comp_apply,
-      -- erw (@local_ring.local_hom_iff_comap_closed_point
-      --   _ _ (Y.2 _) _ _ (X.2 x) _).1 (f.2 x), refl
-        },
-    { intro r, rw [LocallyRingedSpace.comp_val_c_app, ←category.assoc],
-      erw [Y.to_Γ_Spec_SheafedSpace_app_spec, f.1.c.naturality], refl },
+      rw [← subtype.val_eq_coe, ← local_ring.comap_closed_point (PresheafedSpace.stalk_map _ x),
+        ← prime_spectrum.comap_comp_apply, ← prime_spectrum.comap_comp_apply],
+      congr' 2,
+      exact (PresheafedSpace.stalk_map_germ f.1 ⊤ ⟨x,trivial⟩).symm,
+      apply_instance },
+    { intro r,
+      rw [LocallyRingedSpace.comp_val_c_app, ← category.assoc],
+      erw [Y.to_Γ_Spec_SheafedSpace_app_spec, f.1.c.naturality],
+      refl },
   end }
 
 namespace Γ_Spec
 
+lemma left_triangle (X : LocallyRingedSpace) :
+  Spec_Γ_identity.inv.app (Γ.obj (op X)) ≫ (identity_to_Γ_Spec.app X).val.c.app (op ⊤) = 𝟙 _ :=
+X.Γ_Spec_left_triangle
+
+
 /-- `Spec_Γ_identity` is iso so these are mutually two-sided inverses. -/
 lemma right_triangle (R : CommRing) :
-  identity_to_Γ_Spec.app (Spec.LocallyRingedSpace_obj R) ≫
-  Spec.LocallyRingedSpace_map (Spec_Γ_identity.inv.app R) = 𝟙 _ :=
+  identity_to_Γ_Spec.app (Spec.to_LocallyRingedSpace.obj $ op R) ≫
+  Spec.to_LocallyRingedSpace.map (Spec_Γ_identity.inv.app R).op = 𝟙 _ :=
 begin
   apply LocallyRingedSpace.comp_ring_hom_ext,
-  { ext1 p, ext, erw ← @is_localization.at_prime.to_map_mem_maximal_iff _ _ _ _
-      (to_stalk R p).to_algebra p.1 _ (is_localization.to_stalk R p) x, refl },
+  { ext p x,
+    erw ← @is_localization.at_prime.to_map_mem_maximal_iff _ _ _ _
+      (to_stalk R p).to_algebra p.1 _ (is_localization.to_stalk R p) x,
+    refl },
   { intro r, apply to_open_res },
 end
+
+-- Removing this makes the following definition time out.
+local attribute [irreducible] Spec_Γ_identity identity_to_Γ_Spec Spec.to_LocallyRingedSpace
 
 /-- The adjunction `Γ ⊣ Spec`. -/
 def adjunction : Γ.right_op ⊣ Spec.to_LocallyRingedSpace := adjunction.mk_of_unit_counit
 { unit := identity_to_Γ_Spec,
   counit := (nat_iso.op Spec_Γ_identity).inv,
   left_triangle' := by { ext X, erw category.id_comp,
-    convert congr_arg quiver.hom.op X.left_triangle using 1 },
+    exact congr_arg quiver.hom.op (left_triangle X) },
   right_triangle' := by { ext1, ext1 R, erw category.id_comp,
     exact right_triangle R.unop } }
-/- left triangle takes 33s and right triangle takes 7s on my machine. -/
 
 end Γ_Spec
 

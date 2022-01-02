@@ -508,6 +508,10 @@ rfl
   comap (g.comp f) = (comap f).comp (comap g) :=
 rfl
 
+lemma comap_comp_apply (f : R →+* S) (g : S →+* S') (x : prime_spectrum S') :
+  prime_spectrum.comap (g.comp f) x = (prime_spectrum.comap f) (prime_spectrum.comap g x) :=
+rfl
+
 @[simp] lemma preimage_comap_zero_locus (s : set R) :
   (comap f) ⁻¹' (zero_locus s) = zero_locus (f '' s) :=
 preimage_comap_zero_locus_aux f s

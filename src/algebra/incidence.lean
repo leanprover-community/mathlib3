@@ -517,8 +517,13 @@ lemma prod_Icc (a b : β × γ) : Icc a b = (Icc a.fst b.fst).product (Icc a.snd
 
 lemma mu_prod_eq (x y : β) (u v : γ) : mu 𝕜 (β × γ) (x, u) (y, v) = mu 𝕜 β x y * mu 𝕜 γ u v :=
 begin
+  suffices : mu 𝕜 (β × γ) = mu_prod 𝕜 β γ,
+  { simp [this, mu_prod_apply], },
   suffices : mu_prod 𝕜 β γ * zeta 𝕜 (β × γ) = 1,
-  { sorry },
+  { rw ← mu_mul_zeta at this,
+    apply_fun (* (mu 𝕜 (β × γ))) at this,
+    symmetry,
+    simpa [mul_assoc, zeta_mul_mu] using this, },
   clear x y u v,
   ext ⟨x, u⟩ ⟨y, v⟩,
   simp_rw [mul_apply, zeta_prod_eq', mu_prod_apply', prod_Icc],

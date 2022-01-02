@@ -226,138 +226,158 @@ partial_summation_cont _ _ _ (λ i hi, hf _ hi.1) (hf'.mono Icc_subset_Ici_self)
 -- This version uses an integral over an infinite interval, which in mathlib is *not* defined
 -- as the limit of integrals over finite intervals, but there is a result saying they are equal:
 -- see measure_theory.integral.integral_eq_improper: `interval_integral_tendsto_integral_Ioi`
-def euler_mascheroni : ℝ := 1 - ∫ t in Ici 1, int.fract t / t^2
+def euler_mascheroni : ℝ := 1 - ∫ t in Ioi 1, int.fract t / t^2
 
 open filter asymptotics
 
 -- TODO (BM): Put this in mathlib
 lemma Ici_diff_Icc {a b : ℝ} (hab : a ≤ b) : Ici a \ Icc a b = Ioi b :=
 begin
-  rw [←Icc_union_Ioi_eq_Ici hab, union_diff_left, diff_eq_self],
+  rw [←Icc_union_Ioi_eq_Ici hab, union_diff_left, sdiff_eq_self_iff_disjoint],
   rintro x ⟨⟨_, hx⟩, hx'⟩,
   exact not_le_of_lt hx' hx,
 end
 
--- integrable_on_Ioi_of_interval_integral_norm_tendsto
-
--- lemma interval_integrable_zpow {n : ℤ} (h : 0 ≤ n ∨ (0 : ℝ) ∉ [a, b]) :
---   interval_integrable (λ x, x ^ n) μ a b :=
--- (continuous_on_id.zpow n $ λ x hx, h.symm.imp (ne_of_mem_of_not_mem hx) id).interval_integrable
-
--- lemma integral_rpow {r : ℝ} (h : 0 ≤ r ∨ r ≠ -1 ∧ (0 : ℝ) ∉ [a, b]) :
---   ∫ x in a..b, x ^ r = (b ^ (r + 1) - a ^ (r + 1)) / (r + 1) :=
-
-open filter
-open_locale nnreal
-
-example {a : ℝ} : tendsto (λ (x : ℝ≥0), a + x) at_top at_top :=
+lemma Ioi_diff_Icc {a b : ℝ} (hab : a ≤ b) : Ioi a \ Ioc a b = Ioi b :=
 begin
-  apply tendsto_at_top_add_const_left,
-  rw nnreal.tendsto_coe_at_top,
-  apply tendsto_id,
-  -- have := tendsto_coe_nat_at_top_at_top,
-  -- exact filter.tendsto_comp_coe_Ici_at_top.2 _,
-  -- suggest,
+  rw [←Ioc_union_Ioi_eq_Ioi hab, union_diff_left, diff_eq_self, subset_def],
+  simp,
 end
 
--- #exit
--- tendsto_at_top_add_const_right _ _ tendsto_id
+open_locale nnreal filter topological_space
 
-lemma integrable_on_rpow {a r : ℝ} (hr : r < -1) (ha : 0 < a) :
+lemma integral_Ioi_rpow_tendsto_aux {a r : ℝ} (hr : r < -1) (ha : 0 < a)
+  {ι : Type*} {b : ι → ℝ} {l : filter ι} (hb : tendsto b l at_top) :
+  tendsto (λ i, ∫ x in a..b i, x ^ r) l (nhds (-a ^ (r + 1) / (r + 1))) :=
+begin
+  suffices :
+    tendsto (λ i, ∫ x in a..b i, x ^ r) l (nhds (0 / (r + 1) - a ^ (r + 1) / (r + 1))),
+  { simpa [neg_div] using this },
+  have : ∀ᶠ i in l, ∫ x in a..b i, x ^ r = (b i) ^ (r + 1) / (r + 1) - a ^ (r + 1) / (r + 1),
+  { filter_upwards [hb.eventually (eventually_ge_at_top a)],
+    intros i hi,
+    rw [←sub_div, ←integral_rpow (or.inr ⟨hr.ne, not_mem_interval_of_lt ha (ha.trans_le hi)⟩)], },
+  rw tendsto_congr' this,
+  refine tendsto.sub_const _ (tendsto.div_const _),
+  rw ←neg_neg (r+1),
+  apply (tendsto_rpow_neg_at_top _).comp hb,
+  simpa using hr
+end
+
+lemma integrable_on_rpow_Ioi {a r : ℝ} (hr : r < -1) (ha : 0 < a) :
   integrable_on (λ x, x ^ r) (Ioi a) :=
 begin
-  have : tendsto (λ (x : ℝ≥0), a + x) at_top at_top,
-  { apply tendsto_at_top_add_const_left,
-    rw nnreal.tendsto_coe_at_top,
-    apply tendsto_id },
-  refine integrable_on_Ioi_of_interval_integral_norm_tendsto (- a ^ (r + 1) / (r + 1)) _
-    (λ i, _) this _,
-  { rw ←interval_integrable_iff_integrable_Ioc_of_le,
-    { apply interval_integral.interval_integrable_rpow,
-      right,
-      simp only [interval_of_le, le_add_iff_nonneg_right, nnreal.zero_le_coe, mem_Icc, not_and',
-        not_le, ha, implies_true_iff] },
-    simp only [le_add_iff_nonneg_right, nnreal.zero_le_coe] },
-  have : ∀ (i : ℝ≥0),  ∫ (x : ℝ) in a..a + ↑i, ∥x ^ r∥ =
-    (a + i) ^ (r + 1) / (r + 1) - a ^ (r + 1) / (r + 1),
-  { sorry },
-  rw tendsto_congr this,
-  -- suffices : tendsto
-  -- refine continuous_on_id.zpow _ (λ x hx, or.inl (zero_lt_one.trans_le hx.1).ne'),
-  -- have := integral_zpow,
+  have hb : tendsto (λ (x : ℝ≥0), a + x) at_top at_top :=
+    tendsto_at_top_add_const_left _ _ (nnreal.tendsto_coe_at_top.2 tendsto_id),
+  have : tendsto (λ (i : ℝ≥0), ∫ x in a..(a + i), ∥x ^ r∥) at_top (nhds (-a ^ (r + 1) / (r + 1))),
+  { refine (integral_Ioi_rpow_tendsto_aux hr ha hb).congr (λ x, _),
+    refine interval_integral.integral_congr (λ i hi, _),
+    apply (real.norm_of_nonneg (real.rpow_nonneg_of_nonneg _ _)).symm,
+    exact ha.le.trans ((by simp : _ ≤ _).trans hi.1) },
+  refine integrable_on_Ioi_of_interval_integral_norm_tendsto _ _ (λ i, _) hb this,
+  refine (continuous_on.integrable_on_Icc _).mono_set Ioc_subset_Icc_self,
+  exact continuous_on_id.rpow_const (λ x hx, or.inl (ha.trans_le hx.1).ne'),
 end
-
-#exit
-  -- ∫ x in Ioi a, x ^ r = - a ^ (r + 1) / (r + 1) :=
 
 lemma integral_rpow_Ioi {a r : ℝ} (hr : r < -1) (ha : 0 < a) :
   ∫ x in Ioi a, x ^ r = - a ^ (r + 1) / (r + 1) :=
-begin
+tendsto_nhds_unique
+  (interval_integral_tendsto_integral_Ioi _ (integrable_on_rpow_Ioi hr ha) tendsto_id)
+  (integral_Ioi_rpow_tendsto_aux hr ha tendsto_id)
 
-  -- have h' := λ x hx, ne_of_mem_of_not_mem hx h,
-  -- rw [integral_deriv_eq_sub' _ deriv_log' (λ x hx, differentiable_at_log (h' x hx))
-  --       (continuous_on_inv₀.mono $ subset_compl_singleton_iff.mpr h),
-  --     log_div (h' b right_mem_interval) (h' a left_mem_interval)],
+lemma integrable_on_rpow_inv_Ioi {a r : ℝ} (hr : 1 < r) (ha : 0 < a) :
+  integrable_on (λ x, (x ^ r)⁻¹) (Ioi a) :=
+(integrable_on_rpow_Ioi (neg_lt_neg hr) ha).congr_fun (λ x hx, rpow_neg (ha.trans hx).le _)
+  measurable_set_Ioi
+
+lemma integral_rpow_inv {a r : ℝ} (hr : 1 < r) (ha : 0 < a) :
+  ∫ x in Ioi a, (x ^ r)⁻¹ = a ^ (1 - r) / (r - 1) :=
+begin
+  rw [←set_integral_congr, integral_rpow_Ioi (neg_lt_neg hr) ha, neg_div, ←div_neg, neg_add',
+    neg_neg, neg_add_eq_sub],
+  { apply measurable_set_Ioi },
+  exact λ x hx, (rpow_neg (ha.trans hx).le _)
 end
 
--- lemma euler_mascheroni_tail (x : ℝ) (hx : 1 ≤ x) :
---   ∫ t in Ici x, int.fract t / t^2 ≤ (1:ℝ) / x :=
+lemma integrable_on_zpow_Ioi {a : ℝ} {n : ℤ} (hn : n < -1) (ha : 0 < a) :
+  integrable_on (λ x, x ^ n) (Ioi a) :=
+by exact_mod_cast integrable_on_rpow_Ioi (show (n : ℝ) < -1, by exact_mod_cast hn) ha
 
--- begin
---   calc ∫ (t : ℝ) in Ioi x, int.fract t / t ^ 2 ≤ ∫ (t : ℝ) in Ioi x, (1:ℝ) / t ^ 2 : _
---         ... ≤ (1:ℝ) / x : _,
---           { refine interval_integral.integral_mono_on hx _ _ _,
---             { sorry, },
---             { sorry, },
---             { intros t ht,
---               have non_neg : 0 ≤ (1:ℝ)/t^2 := one_div_nonneg.mpr (sq_nonneg t),
---               calc int.fract t / t ^ 2 = int.fract t * (1 / t ^ 2) : by field_simp
---                 ... ≤ 1 * (1 / t ^ 2) : _
---                 ... ≤ 1 / t ^ 2 : by simp,
---               exact mul_le_mul (le_of_lt (int.fract_lt_one t))
---                 (by simp: (1:ℝ)/t^2 ≤ (1:ℝ)/t^2) non_neg zero_le_one, }, },
---           { sorry, },
--- end
+lemma integral_zpow_Ioi {a : ℝ} {n : ℤ} (hn : n < -1) (ha : 0 < a) :
+  ∫ x in Ioi a, x ^ n = - a ^ (n + 1) / (n + 1) :=
+by exact_mod_cast integral_rpow_Ioi (show (n : ℝ) < -1, by exact_mod_cast hn) ha
 
-lemma integrable_on_pow :
-  integrable_on (λ (x : ℝ), x ^ (-2 : ℤ)) (Ioi 1) :=
+lemma integrable_on_zpow_inv_Ioi {a : ℝ} {n : ℤ} (hn : 1 < n) (ha : 0 < a) :
+  integrable_on (λ x, (x ^ n)⁻¹) (Ioi a) :=
+(integrable_on_zpow_Ioi (neg_lt_neg hn) ha).congr_fun (by simp) measurable_set_Ioi
+
+lemma integral_zpow_inv_Ioi {a : ℝ} {n : ℤ} (hn : 1 < n) (ha : 0 < a) :
+  ∫ x in Ioi a, (x ^ n)⁻¹ = a ^ (1 - n) / (n - 1) :=
 begin
-  refine integrable_on_Ioi_of_interval_integral_norm_tendsto 1 (1 : ℝ) (λ i, _) tendsto_id _,
-  refine (continuous_on.integrable_on_Icc _).mono_set Ioc_subset_Icc_self,
-  refine continuous_on_id.zpow _ (λ x hx, or.inl (zero_lt_one.trans_le hx.1).ne'),
-  have := integral_zpow,
+  simp_rw [←zpow_neg₀, integral_zpow_Ioi (neg_lt_neg hn) ha, neg_div, ←div_neg, neg_add',
+    int.cast_neg, neg_neg, neg_add_eq_sub],
 end
 
-lemma euler_mascheroni_convergence :
-  is_O (λ (x : ℝ), 1 - (∫ t in Icc 1 x, int.fract t / t^2) - euler_mascheroni) (λ x, x⁻¹) at_top :=
+lemma integrable_on_pow_inv_Ioi {a : ℝ} {n : ℕ} (hn : 1 < n) (ha : 0 < a) :
+  integrable_on (λ x, (x ^ n)⁻¹) (Ioi a) :=
+by exact_mod_cast integrable_on_zpow_inv_Ioi (show 1 < (n : ℤ), by exact_mod_cast hn) ha
+
+lemma integral_pow_inv_Ioi {a : ℝ} {n : ℕ} (hn : 1 < n) (ha : 0 < a) :
+  ∫ x in Ioi a, (x ^ n)⁻¹ = (a ^ (n - 1))⁻¹ / (n - 1) :=
+by simp_rw [←zpow_coe_nat, integral_zpow_inv_Ioi (show 1 < (n : ℤ), by exact_mod_cast hn) ha,
+  int.cast_coe_nat, ←zpow_neg₀, int.coe_nat_sub hn.le, neg_sub, int.coe_nat_one]
+
+lemma euler_mascheroni_convergence_rate :
+  is_O_with 1 (λ (x : ℝ), 1 - (∫ t in Ioc 1 x, int.fract t / t^2) - euler_mascheroni)
+    (λ x, x⁻¹) at_top :=
 begin
-  apply is_O.of_bound 1,
+  apply is_O_with.of_bound,
   rw eventually_at_top,
   refine ⟨1, λ x (hx : _ ≤ _), _⟩,
-  have : ∀ t ∈ Ici (1:ℝ), int.fract t / t^2 ≤ (t^2)⁻¹,
+  have : ∀ t ∈ Ioi (1:ℝ), int.fract t / t^2 ≤ (t^2)⁻¹,
   { intros t ht,
-    apply (div_le_div_of_le_of_nonneg (int.fract_lt_one t).le (sq_nonneg _)).trans,
-    simp },
-  have : integrable_on (λ (x : ℝ), (x^2)⁻¹) (Ici 1),
-  { have := has_deriv_at_zpow,
+    exact (div_le_div_of_le_of_nonneg (int.fract_lt_one t).le (sq_nonneg _)).trans (by simp) },
+  have h : integrable_on (λ (x : ℝ), int.fract x / x ^ 2) (Ioi 1),
+  { apply integrable.mono (integrable_on_pow_inv_Ioi one_lt_two zero_lt_one),
+    { measurability },
+    refine (ae_restrict_iff' measurable_set_Ioi).2 _,
+    apply eventually_of_forall,
+    intros t ht,
+    simpa only [normed_field.norm_div, normed_field.norm_inv, norm_of_nonneg, sq_nonneg,
+      int.fract_nonneg _] using this t ht },
+  rw [one_mul, euler_mascheroni, norm_of_nonneg (inv_nonneg.2 (zero_le_one.trans hx)),
+    sub_sub_sub_cancel_left, ←integral_diff measurable_set_Ioi measurable_set_Ioc h
+    (h.mono_set Ioc_subset_Ioi_self) Ioc_subset_Ioi_self, Ioi_diff_Icc hx,
+    norm_of_nonneg],
+  apply (set_integral_mono_on (h.mono_set (Ioi_subset_Ioi hx))
+    (integrable_on_pow_inv_Ioi one_lt_two (zero_lt_one.trans_le hx)) measurable_set_Ioi _).trans,
+  { rw integral_pow_inv_Ioi one_lt_two (zero_lt_one.trans_le hx),
+    norm_num },
+  { intros t ht,
+    apply this t (Ioi_subset_Ioi hx ht) },
+  exact set_integral_nonneg measurable_set_Ioi
+    (λ t ht, div_nonneg (int.fract_nonneg _) (sq_nonneg _)),
+end
 
-  },
-  have : integrable_on (λ (x : ℝ), int.fract x / x ^ 2) (Ici 1),
-  {
+lemma euler_mascheroni_integral_Ioc_convergence :
+  tendsto (λ (x : ℝ), 1 - ∫ t in Ioc 1 x, int.fract t / t^2) at_top (𝓝 euler_mascheroni) :=
+by simpa using
+  (euler_mascheroni_convergence_rate.is_O.trans_tendsto tendsto_inv_at_top_zero).add_const
+    euler_mascheroni
 
-  },
-  rw [one_mul, real.norm_eq_abs, real.norm_eq_abs, euler_mascheroni,
-    abs_of_nonneg (inv_nonneg.2 (zero_le_one.trans hx)), sub_sub_sub_cancel_left,
-    ←integral_diff (@measurable_set_Ici ℝ _ _ _ _ _ _) measurable_set_Icc _ _ Icc_subset_Ici_self,
-    Ici_diff_Icc hx],
-
+lemma euler_mascheroni_interval_integral_convergence :
+  tendsto (λ (x : ℝ), (1 : ℝ) - ∫ t in 1..x, int.fract t / t^2) at_top (𝓝 euler_mascheroni) :=
+begin
+  apply euler_mascheroni_integral_Ioc_convergence.congr' _,
+  rw [eventually_eq, eventually_at_top],
+  exact ⟨1, λ x hx, by rw interval_integral.integral_of_le hx⟩,
 end
 
 -- vinogradov notation to state things more nicely
 -- probably this should be generalised to not be just for ℝ, but I think this works for now
-def vinogradov (f : ℝ → ℝ) (g : ℝ → ℝ) : Prop := is_O f g at_top
+-- def vinogradov (f : ℝ → ℝ) (g : ℝ → ℝ) : Prop := is_O f g at_top
 
-infix ` ≪ `:50 := vinogradov
+-- infix ` ≪ `:50 := vinogradov
 -- BM: might want to localise this notation
 -- in the measure_theory locale it's used for absolute continuity of measures
 
@@ -392,31 +412,105 @@ infix ` ≪ `:50 := vinogradov
 -- -- begin
 -- -- end
 
-lemma harmonic_series_vinogradov :
-  is_O (λ x, summatory (λ i, (i : ℝ)⁻¹) x - log x - euler_mascheroni) (λ x, x⁻¹) at_top :=
-begin
-  -- suffices :
-  --   ∀ᶠ x in at_top, summatory (λ i, (i : ℝ)⁻¹) x - log x - euler_mascheroni = _,
+-- is_O_with 1 (λ (x : ℝ), 1 - (∫ t in Ioc 1 x, int.fract t / t^2) - euler_mascheroni)
+--     (λ x, x⁻¹) at_top :=
 
-  have floor_eq : ∀ x, summatory (λ _, (1 : ℝ)) x = ⌊x⌋₊,
-  { intro x,
-    rw [summatory, finset.sum_const, nat.card_Icc, nat.smul_one_eq_coe],
-    refl },
-  have diff : (∀ (i ∈ Ici (1:ℝ)), has_deriv_at (λ x, x⁻¹) (-(i ^ (2:ℤ))⁻¹) i),
+lemma nat_floor_eq_int_floor {α : Type*} [linear_ordered_ring α] [floor_ring α]
+  {y : α} (hy : 0 ≤ y) : (⌊y⌋₊ : ℤ) = ⌊y⌋ :=
+begin
+  rw [eq_comm, int.floor_eq_iff, int.cast_coe_nat],
+  exact ⟨nat.floor_le hy, nat.lt_floor_add_one y⟩,
+end
+
+example {y : ℝ} (hy : y ≠ 0) : y / y ^ 2 = y⁻¹ :=
+begin
+  rw sq,
+  simp only [div_self_mul_self'],
+end
+
+lemma harmonic_series_is_O_aux {x : ℝ} (hx : 1 ≤ x) :
+  summatory (λ i, (i : ℝ)⁻¹) x - log x - euler_mascheroni =
+    (1 - (∫ t in Ioc 1 x, int.fract t / t^2) - euler_mascheroni) - int.fract x / x :=
+begin
+  have floor_eq : ∀ (x : ℝ), 0 ≤ x → summatory (λ _, (1 : ℝ)) x = ((⌊x⌋ : ℤ) : ℝ),
+  { intros y hy,
+    rw [summatory, finset.sum_const, nat.card_Icc, nat.smul_one_eq_coe, nat.add_sub_cancel,
+      ←nat_floor_eq_int_floor hy, int.cast_coe_nat] },
+  have diff : (∀ (i ∈ Ici (1:ℝ)), has_deriv_at (λ x, x⁻¹) (-(i ^ 2)⁻¹) i),
   { rintro i (hi : (1:ℝ) ≤ _),
     apply has_deriv_at_inv (zero_lt_one.trans_le hi).ne' },
   have cont : continuous_on (λ (i : ℝ), -(i ^ 2)⁻¹) (Ici 1),
   { refine ((continuous_pow 2).continuous_on.inv₀ _).neg,
     rintro i (hi : _ ≤ _),
     exact (pow_ne_zero_iff nat.succ_pos').2 (zero_lt_one.trans_le hi).ne' },
-  have := partial_summation_cont' (λ _, (1 : ℝ)) _ _ diff cont,
-  dsimp at this,
-  simp only [one_mul, floor_eq] at this,
-  simp only [this],
-  sorry
+  have ps := partial_summation_cont' (λ _, (1 : ℝ)) _ _ diff cont x,
+  simp only [one_mul] at ps,
+  simp only [ps, integral_Icc_eq_integral_Ioc],
+  clear ps,
+  rw [floor_eq _ (zero_le_one.trans hx), ←int.self_sub_floor, sub_div,
+    div_self (zero_lt_one.trans_le hx).ne', div_eq_mul_inv, sub_sub (1 : ℝ),
+    sub_sub_sub_cancel_left, sub_sub, sub_sub, sub_right_inj, ←add_assoc, add_left_inj],
+  simp only [mul_neg_eq_neg_mul_symm, ←div_eq_mul_inv, integral_neg],
+  rw [neg_add_eq_sub, sub_eq_iff_eq_add, ←integral_add],
+  rotate,
+  { refine ((continuous_on_id.zpow (-2) _).integrable_on_Icc.mono_set Ioc_subset_Icc_self).mono'
+      (by measurability) (eventually_of_forall _),
+    { intros y hy,
+      exact or.inl (zero_lt_one.trans_le hy.1).ne' },
+    intro x,
+    simpa only [norm_of_nonneg, int.fract_nonneg, normed_field.norm_div, sq_nonneg, zpow_neg₀,
+      one_div] using div_le_div_of_le_of_nonneg (int.fract_lt_one x).le (sq_nonneg x) },
+  { refine ((continuous_on_id.zpow (-1) _).integrable_on_Icc.mono_set Ioc_subset_Icc_self).mono'
+      (by measurability) (eventually_of_forall _),
+
+  }
+  -- have : eq_on (λ (y : ℝ), summatory (λ _, (1 : ℝ)) y / y ^ 2) (λ (y:ℝ), ⌊y⌋ / y^2) (Ioc 1 x),
+  -- { intros y hy,
+  --   dsimp,
+  --   rw floor_eq _ (zero_lt_one.trans hy.1).le },
+  -- rw [set_integral_congr measurable_set_Ioc this, neg_add_eq_sub, integral_sub],
+  -- { congr' 1,
+  --   have : eq_on (λ y, y / y^2) (λ y, y⁻¹) (Ioc 1 x),
+  --   { intros y hy,
+  --     have : y ≠ 0 := (zero_lt_one.trans hy.1).ne',
+  --     dsimp,
+  --     rw [sq, div_self_mul_self'] },
+  -- rw [set_integral_congr measurable_set_Ioc this, ←interval_integral.integral_of_le hx,
+  --     integral_inv_of_pos zero_lt_one (zero_lt_one.trans_le hx), div_one] },
+  -- refine (continuous_on.integrable_on_Icc _).mono_set Ioc_subset_Icc_self,
+
+  -- squeeze_simp,
+  -- rw [integral_sub],
+end
+
+lemma harmonic_series_vinogradov :
+  is_O_with 2 (λ x, summatory (λ i, (i : ℝ)⁻¹) x - log x - euler_mascheroni) (λ x, x⁻¹) at_top :=
+begin
+
+  -- suffices :
+  --   ∀ᶠ x in at_top, summatory (λ i, (i : ℝ)⁻¹) x - log x - euler_mascheroni = _,
+
+  -- have floor_eq : ∀ x, summatory (λ _, (1 : ℝ)) x = ⌊x⌋₊,
+  -- { intro x,
+  --   rw [summatory, finset.sum_const, nat.card_Icc, nat.smul_one_eq_coe],
+  --   refl },
+  -- have diff : (∀ (i ∈ Ici (1:ℝ)), has_deriv_at (λ x, x⁻¹) (-(i ^ (2:ℤ))⁻¹) i),
+  -- { rintro i (hi : (1:ℝ) ≤ _),
+  --   apply has_deriv_at_inv (zero_lt_one.trans_le hi).ne' },
+  -- have cont : continuous_on (λ (i : ℝ), -(i ^ 2)⁻¹) (Ici 1),
+  -- { refine ((continuous_pow 2).continuous_on.inv₀ _).neg,
+  --   rintro i (hi : _ ≤ _),
+  --   exact (pow_ne_zero_iff nat.succ_pos').2 (zero_lt_one.trans_le hi).ne' },
+  -- have := partial_summation_cont' (λ _, (1 : ℝ)) _ _ diff cont,
+  -- dsimp at this,
+  -- simp only [one_mul, floor_eq] at this,
+  -- simp only [this],
+  -- sorry
   -- BM: I think there's a more efficient path rather than what I did
   -- have := partial_summation (λ _, 1) (λ x, x ^ (-1 : ℤ)) (λ x, - x ^ (-2 : ℤ)),
 end
+
+#exit
 
 lemma summatory_log :
   (λ x, summatory (λ i, log i) x - x * log x) ≪ (λ x, log x) :=

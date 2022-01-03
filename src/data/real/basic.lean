@@ -3,11 +3,12 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Floris van Doorn
 -/
-import order.conditionally_complete_lattice
-import data.real.cau_seq_completion
+import algebra.module.basic
 import algebra.bounds
 import algebra.order.archimedean
 import algebra.star.basic
+import data.real.cau_seq_completion
+import order.conditionally_complete_lattice
 
 /-!
 # Real numbers from Cauchy sequences
@@ -71,7 +72,7 @@ begin
                   sub   := λ a b, a + (-b),
                   npow  := @npow_rec ℝ ⟨1⟩ ⟨(*)⟩,
                   nsmul := @nsmul_rec ℝ ⟨0⟩ ⟨(+)⟩,
-                  gsmul := @gsmul_rec ℝ ⟨0⟩ ⟨(+)⟩ ⟨@has_neg.neg ℝ _⟩ };
+                  zsmul := @zsmul_rec ℝ ⟨0⟩ ⟨(+)⟩ ⟨@has_neg.neg ℝ _⟩ };
   repeat { rintro ⟨_⟩, };
   try { refl };
   simp [← zero_cauchy, ← one_cauchy, add_cauchy, neg_cauchy, mul_cauchy];
@@ -87,6 +88,8 @@ end
 instance : ring ℝ               := by apply_instance
 instance : comm_semiring ℝ      := by apply_instance
 instance : semiring ℝ           := by apply_instance
+instance : comm_monoid_with_zero ℝ := by apply_instance
+instance : monoid_with_zero ℝ   := by apply_instance
 instance : add_comm_group ℝ     := by apply_instance
 instance : add_group ℝ          := by apply_instance
 instance : add_comm_monoid ℝ    := by apply_instance
@@ -198,7 +201,7 @@ begin
   simpa only [mk_lt, mk_pos, ← mk_mul] using cau_seq.mul_pos
 end
 
-instance : ordered_ring ℝ :=
+instance : ordered_comm_ring ℝ :=
 { add_le_add_left :=
   begin
     simp only [le_iff_eq_or_lt],
@@ -210,6 +213,7 @@ instance : ordered_ring ℝ :=
   mul_pos     := @real.mul_pos,
   .. real.comm_ring, .. real.partial_order, .. real.semiring }
 
+instance : ordered_ring ℝ               := by apply_instance
 instance : ordered_semiring ℝ           := by apply_instance
 instance : ordered_add_comm_group ℝ     := by apply_instance
 instance : ordered_cancel_add_comm_monoid ℝ := by apply_instance
@@ -454,6 +458,21 @@ end
 
 @[simp] theorem Sup_empty : Sup (∅ : set ℝ) = 0 := dif_neg $ by simp
 
+lemma csupr_empty {α : Sort*} [is_empty α] (f : α → ℝ) : (⨆ i, f i) = 0 :=
+begin
+  dsimp [supr],
+  convert real.Sup_empty,
+  rw set.range_eq_empty_iff,
+  apply_instance
+end
+
+@[simp] lemma csupr_const_zero {α : Sort*} : (⨆ i : α, (0:ℝ)) = 0 :=
+begin
+  casesI is_empty_or_nonempty α,
+  { exact real.csupr_empty _ },
+  { exact csupr_const },
+end
+
 theorem Sup_of_not_bdd_above {s : set ℝ} (hs : ¬ bdd_above s) : Sup s = 0 :=
 dif_neg $ assume h, hs h.2
 
@@ -462,6 +481,21 @@ real.Sup_of_not_bdd_above $ λ ⟨x, h⟩, not_le_of_lt (lt_add_one _) $ h (set.
 
 @[simp] theorem Inf_empty : Inf (∅ : set ℝ) = 0 :=
 by simp [Inf_def, Sup_empty]
+
+lemma cinfi_empty {α : Sort*} [is_empty α] (f : α → ℝ) : (⨅ i, f i) = 0 :=
+begin
+  dsimp [infi],
+  convert real.Inf_empty,
+  rw set.range_eq_empty_iff,
+  apply_instance
+end
+
+@[simp] lemma cinfi_const_zero {α : Sort*} : (⨅ i : α, (0:ℝ)) = 0 :=
+begin
+  casesI is_empty_or_nonempty α,
+  { exact real.cinfi_empty _ },
+  { exact cinfi_const },
+end
 
 theorem Inf_of_not_bdd_below {s : set ℝ} (hs : ¬ bdd_below s) : Inf s = 0 :=
 neg_eq_zero.2 $ Sup_of_not_bdd_above $ mt bdd_above_neg.1 hs

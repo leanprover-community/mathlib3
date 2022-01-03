@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Yury Kudryashov
 -/
 import data.real.nnreal
-import data.set.intervals
 
 /-!
 # Extended non-negative reals
@@ -68,7 +67,6 @@ context, or if we have `(f : α → ℝ≥0∞) (hf : ∀ x, f x ≠ ∞)`.
 * `∞`: a localized notation in `ℝ≥0∞` for `⊤ : ℝ≥0∞`.
 
 -/
-noncomputable theory
 open classical set
 
 open_locale classical big_operators nnreal
@@ -76,16 +74,25 @@ variables {α : Type*} {β : Type*}
 
 /-- The extended nonnegative real numbers. This is usually denoted [0, ∞],
   and is relevant as the codomain of a measure. -/
-@[derive [canonically_ordered_comm_semiring, complete_linear_order, densely_ordered, nontrivial,
+@[derive [
+  has_zero, add_comm_monoid,
+  canonically_ordered_comm_semiring, complete_linear_order, densely_ordered, nontrivial,
   canonically_linear_ordered_add_monoid, has_sub, has_ordered_sub]]
 def ennreal := with_top ℝ≥0
 
 localized "notation `ℝ≥0∞` := ennreal" in ennreal
 localized "notation `∞` := (⊤ : ennreal)" in ennreal
 
-instance : linear_ordered_add_comm_monoid ℝ≥0∞ :=
+noncomputable instance : linear_ordered_add_comm_monoid ℝ≥0∞ :=
 { .. ennreal.canonically_ordered_comm_semiring,
   .. ennreal.complete_linear_order }
+
+-- TODO: why are the two covariant instances necessary? why aren't they inferred?
+instance covariant_class_mul : covariant_class ℝ≥0∞ ℝ≥0∞ (*) (≤) :=
+canonically_ordered_comm_semiring.to_covariant_mul_le
+
+instance covariant_class_add : covariant_class ℝ≥0∞ ℝ≥0∞ (+) (≤) :=
+ordered_add_comm_monoid.to_covariant_class_left ℝ≥0∞
 
 namespace ennreal
 variables {a b c d : ℝ≥0∞} {r p q : ℝ≥0}
@@ -111,7 +118,7 @@ protected def to_nnreal : ℝ≥0∞ → ℝ≥0
 protected def to_real (a : ℝ≥0∞) : real := coe (a.to_nnreal)
 
 /-- `of_real x` returns `x` if it is nonnegative, `0` otherwise. -/
-protected def of_real (r : real) : ℝ≥0∞ := coe (real.to_nnreal r)
+protected noncomputable def of_real (r : real) : ℝ≥0∞ := coe (real.to_nnreal r)
 
 @[simp, norm_cast] lemma to_nnreal_coe : (r : ℝ≥0∞).to_nnreal = r := rfl
 
@@ -224,6 +231,19 @@ coe_one ▸ coe_two ▸ by exact_mod_cast (@one_lt_two ℕ _ _)
 lemma two_ne_zero : (2:ℝ≥0∞) ≠ 0 := (ne_of_lt zero_lt_two).symm
 lemma two_ne_top : (2:ℝ≥0∞) ≠ ∞ := coe_two ▸ coe_ne_top
 
+/-- `(1 : ℝ≥0∞) ≤ 1`, recorded as a `fact` for use with `Lp` spaces, see note [fact non-instances].
+-/
+lemma _root_.fact_one_le_one_ennreal : fact ((1 : ℝ≥0∞) ≤ 1) := ⟨le_refl _⟩
+
+/-- `(1 : ℝ≥0∞) ≤ 2`, recorded as a `fact` for use with `Lp` spaces, see note [fact non-instances].
+-/
+lemma _root_.fact_one_le_two_ennreal : fact ((1 : ℝ≥0∞) ≤ 2) :=
+⟨ennreal.coe_le_coe.2 (show (1 : ℝ≥0) ≤ 2, by norm_num)⟩
+
+/-- `(1 : ℝ≥0∞) ≤ ∞`, recorded as a `fact` for use with `Lp` spaces, see note [fact non-instances].
+-/
+lemma _root_.fact_one_le_top_ennreal : fact ((1 : ℝ≥0∞) ≤ ∞) := ⟨le_top⟩
+
 /-- The set of numbers in `ℝ≥0∞` that are not equal to `∞` is equivalent to `ℝ≥0`. -/
 def ne_top_equiv_nnreal : {a | a ≠ ∞} ≃ ℝ≥0 :=
 { to_fun := λ x, ennreal.to_nnreal x,
@@ -257,7 +277,7 @@ lemma supr_ennreal {α : Type*} [complete_lattice α] {f : ℝ≥0∞ → α} :
 @[simp] lemma top_add : ∞ + a = ∞ := with_top.top_add
 
 /-- Coercion `ℝ≥0 → ℝ≥0∞` as a `ring_hom`. -/
-def of_nnreal_hom : ℝ≥0 →+* ℝ≥0∞ :=
+noncomputable def of_nnreal_hom : ℝ≥0 →+* ℝ≥0∞ :=
 ⟨coe, coe_one, λ _ _, coe_mul, coe_zero, λ _ _, coe_add⟩
 
 @[simp] lemma coe_of_nnreal_hom : ⇑of_nnreal_hom = coe := rfl
@@ -265,7 +285,7 @@ def of_nnreal_hom : ℝ≥0 →+* ℝ≥0∞ :=
 section actions
 
 /-- A `mul_action` over `ℝ≥0∞` restricts to a `mul_action` over `ℝ≥0`. -/
-instance {M : Type*} [mul_action ℝ≥0∞ M] : mul_action ℝ≥0 M :=
+noncomputable instance {M : Type*} [mul_action ℝ≥0∞ M] : mul_action ℝ≥0 M :=
 mul_action.comp_hom M of_nnreal_hom.to_monoid_hom
 
 lemma smul_def {M : Type*} [mul_action ℝ≥0∞ M] (c : ℝ≥0) (x : M) :
@@ -284,32 +304,30 @@ instance smul_comm_class_right {M N : Type*} [mul_action ℝ≥0∞ N] [has_scal
 { smul_comm := λ m r, (smul_comm m (r : ℝ≥0∞) : _)}
 
 /-- A `distrib_mul_action` over `ℝ≥0∞` restricts to a `distrib_mul_action` over `ℝ≥0`. -/
-instance {M : Type*} [add_monoid M] [distrib_mul_action ℝ≥0∞ M] : distrib_mul_action ℝ≥0 M :=
+noncomputable instance {M : Type*} [add_monoid M] [distrib_mul_action ℝ≥0∞ M] :
+  distrib_mul_action ℝ≥0 M :=
 distrib_mul_action.comp_hom M of_nnreal_hom.to_monoid_hom
 
 /-- A `module` over `ℝ≥0∞` restricts to a `module` over `ℝ≥0`. -/
-instance {M : Type*} [add_comm_monoid M] [module ℝ≥0∞ M] : module ℝ≥0 M :=
+noncomputable instance {M : Type*} [add_comm_monoid M] [module ℝ≥0∞ M] : module ℝ≥0 M :=
 module.comp_hom M of_nnreal_hom
 
 /-- An `algebra` over `ℝ≥0∞` restricts to an `algebra` over `ℝ≥0`. -/
-instance {A : Type*} [semiring A] [algebra ℝ≥0∞ A] : algebra ℝ≥0 A :=
+noncomputable instance {A : Type*} [semiring A] [algebra ℝ≥0∞ A] : algebra ℝ≥0 A :=
 { smul := (•),
   commutes' := λ r x, by simp [algebra.commutes],
   smul_def' := λ r x, by simp [←algebra.smul_def (r : ℝ≥0∞) x, smul_def],
   to_ring_hom := ((algebra_map ℝ≥0∞ A).comp (of_nnreal_hom : ℝ≥0 →+* ℝ≥0∞)) }
 
 -- verify that the above produces instances we might care about
-example : algebra ℝ≥0 ℝ≥0∞ := by apply_instance
-example : distrib_mul_action (units ℝ≥0) ℝ≥0∞ := by apply_instance
+noncomputable example : algebra ℝ≥0 ℝ≥0∞ := by apply_instance
+noncomputable example : distrib_mul_action (units ℝ≥0) ℝ≥0∞ := by apply_instance
 
-lemma coe_smul {R} [monoid R] (r : R) (s : ℝ≥0) [mul_action R ℝ≥0] [has_scalar R ℝ≥0∞]
+lemma coe_smul {R} (r : R) (s : ℝ≥0) [has_scalar R ℝ≥0] [has_scalar R ℝ≥0∞]
   [is_scalar_tower R ℝ≥0 ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ≥0∞] :
   (↑(r • s) : ℝ≥0∞) = r • ↑s :=
-begin
-  rw ←smul_one_smul ℝ≥0 r (s: ℝ≥0∞),
-  change ↑(r • s) = ↑(r • (1 : ℝ≥0)) * ↑s,
-  rw [←ennreal.coe_mul, smul_mul_assoc, one_mul],
-end
+by rw [←smul_one_smul ℝ≥0 r (s: ℝ≥0∞), smul_def, smul_eq_mul, ←ennreal.coe_mul, smul_mul_assoc,
+    one_mul]
 
 end actions
 
@@ -452,18 +470,20 @@ begin
     exact pow_le_pow (by simpa using ha) h }
 end
 
+lemma one_le_pow_of_one_le (ha : 1 ≤ a) (n : ℕ) : 1 ≤ a ^ n :=
+by simpa using pow_le_pow ha (zero_le n)
+
 @[simp] lemma max_eq_zero_iff : max a b = 0 ↔ a = 0 ∧ b = 0 :=
 by simp only [nonpos_iff_eq_zero.symm, max_le_iff]
 
 @[simp] lemma max_zero_left : max 0 a = a := max_eq_right (zero_le a)
 @[simp] lemma max_zero_right : max a 0 = a := max_eq_left (zero_le a)
 
--- TODO: why this is not a `rfl`? There is some hidden diamond here.
 @[simp] lemma sup_eq_max : a ⊔ b = max a b :=
-eq_of_forall_ge_iff $ λ c, sup_le_iff.trans max_le_iff.symm
+rfl
 
 protected lemma pow_pos : 0 < a → ∀ n : ℕ, 0 < a^n :=
-  canonically_ordered_comm_semiring.pow_pos
+canonically_ordered_comm_semiring.pow_pos
 
 protected lemma pow_ne_zero : a ≠ 0 → ∀ n : ℕ, a^n ≠ 0 :=
 by simpa only [pos_iff_ne_zero] using ennreal.pow_pos
@@ -731,22 +751,6 @@ by simp
 lemma sub_top : a - ∞ = 0 :=
 by simp
 
--- todo: make this a `@[simp]` lemma in general
-@[simp] lemma sub_eq_zero_of_le (h : a ≤ b) : a - b = 0 :=
-tsub_eq_zero_iff_le.mpr h
-
--- todo: make `add_tsub_cancel_of_le` a `@[simp]` lemma
-@[simp] protected lemma add_sub_cancel_of_le (h : b ≤ a) : b + (a - b) = a :=
-add_tsub_cancel_of_le h
-
--- todo: make `tsub_eq_zero_iff_le` a `@[simp]` lemma
-@[simp] protected lemma sub_eq_zero_iff_le : a - b = 0 ↔ a ≤ b :=
-tsub_eq_zero_iff_le
-
--- todo: make `tsub_pos_iff_lt` a `@[simp]` lemma
-@[simp] protected lemma sub_pos : 0 < a - b ↔ b < a :=
-tsub_pos_iff_lt
-
 lemma sub_eq_top_iff : a - b = ∞ ↔ a = ∞ ∧ b ≠ ∞ :=
 by { cases a; cases b; simp [← with_top.coe_sub] }
 
@@ -797,7 +801,7 @@ lemma sub_mul (h : 0 < b → b < a → c ≠ ∞) : (a - b) * c = a * c - b * c 
 begin
   cases le_or_lt a b with hab hab, { simp [hab, mul_right_mono hab] },
   rcases eq_or_lt_of_le (zero_le b) with rfl|hb, { simp },
-  exact (cancel_of_ne $ mul_ne_top hab.ne_top (h hb hab)).sub_mul
+  exact (cancel_of_ne $ mul_ne_top hab.ne_top (h hb hab)).tsub_mul
 end
 
 lemma mul_sub (h : 0 < c → c < b → a ≠ ∞) : a * (b - c) = a * b - a * c :=
@@ -928,6 +932,8 @@ by unfold bit1; rw add_eq_top; simp
 end bit
 
 section inv
+noncomputable theory
+
 instance : has_inv ℝ≥0∞ := ⟨λa, Inf {b | 1 ≤ a * b}⟩
 
 instance : div_inv_monoid ℝ≥0∞ :=
@@ -946,7 +952,7 @@ le_antisymm
     by rintros b rfl; rwa [← coe_mul, ← coe_one, coe_le_coe, ← nnreal.inv_le hr] at hb)
   (Inf_le $ by simp; rw [← coe_mul, mul_inv_cancel hr]; exact le_refl 1)
 
-lemma coe_inv_le :  (↑r⁻¹ : ℝ≥0∞) ≤ (↑r)⁻¹ :=
+lemma coe_inv_le : (↑r⁻¹ : ℝ≥0∞) ≤ (↑r)⁻¹ :=
 if hr : r = 0 then by simp only [hr, inv_zero, coe_zero, le_top]
 else by simp only [coe_inv hr, le_refl]
 
@@ -1008,10 +1014,9 @@ begin
   { simp only [lt_irrefl] },
   { exact inv_pos.trans lt_top_iff_ne_top.symm },
   { simp only [not_lt_zero, not_top_lt] },
-  { cases eq_or_lt_of_le (zero_le a) with ha ha;
-      cases eq_or_lt_of_le (zero_le b) with hb hb,
-    { subst a, subst b, simp },
+  { cases eq_or_lt_of_le (zero_le a) with ha ha,
     { subst a, simp },
+    cases eq_or_lt_of_le (zero_le b) with hb hb,
     { subst b, simp [pos_iff_ne_zero, lt_top_iff_ne_top, inv_ne_top] },
     { rw [← coe_inv (ne_of_gt ha), ← coe_inv (ne_of_gt hb), coe_lt_coe, coe_lt_coe],
       simp only [nnreal.coe_lt_coe.symm] at *,
@@ -1082,7 +1087,7 @@ begin
   by_cases hb : b ≠ 0,
   { have : (b : ℝ≥0∞) ≠ 0, by simp [hb],
     rw [← ennreal.mul_le_mul_left this coe_ne_top],
-    suffices : ↑b * a ≤ (↑b  * ↑b⁻¹) * c ↔ a * ↑b ≤ c,
+    suffices : ↑b * a ≤ (↑b * ↑b⁻¹) * c ↔ a * ↑b ≤ c,
     { simpa [some_eq_coe, div_eq_mul_inv, hb, mul_left_comm, mul_comm, mul_assoc] },
     rw [← coe_mul, mul_inv_cancel hb, coe_one, one_mul, mul_comm] },
   { simp at hb,
@@ -1179,6 +1184,9 @@ le_of_forall_nnreal_lt $ λ r hr, (zero_le r).eq_or_lt.elim (λ h, h ▸ zero_le
 
 lemma eq_top_of_forall_nnreal_le {x : ℝ≥0∞} (h : ∀ r : ℝ≥0, ↑r ≤ x) : x = ∞ :=
 top_unique $ le_of_forall_nnreal_lt $ λ r hr, h r
+
+lemma add_div {a b c : ℝ≥0∞} : (a + b) / c = a / c + b / c :=
+right_distrib a b (c⁻¹)
 
 lemma div_add_div_same {a b c : ℝ≥0∞} : a / c + b / c = (a + b) / c :=
 eq.symm $ right_distrib a b (c⁻¹)
@@ -1283,6 +1291,107 @@ begin
   exact n.lt_two_pow
 end
 
+@[simp, norm_cast] lemma coe_zpow (hr : r ≠ 0) (n : ℤ) : (↑(r^n) : ℝ≥0∞) = r^n :=
+begin
+  cases n,
+  { simp only [int.of_nat_eq_coe, coe_pow, zpow_coe_nat] },
+  { have : r ^ n.succ ≠ 0 := pow_ne_zero (n+1) hr,
+    simp only [zpow_neg_succ_of_nat, coe_inv this, coe_pow] }
+end
+
+lemma zpow_pos (ha : a ≠ 0) (h'a : a ≠ ∞) (n : ℤ) : 0 < a ^ n :=
+begin
+  cases n,
+  { exact ennreal.pow_pos ha.bot_lt n },
+  { simp only [h'a, pow_eq_top_iff, zpow_neg_succ_of_nat, ne.def, not_false_iff,
+               inv_pos, false_and] }
+end
+
+lemma zpow_lt_top (ha : a ≠ 0) (h'a : a ≠ ∞) (n : ℤ) : a ^ n < ∞ :=
+begin
+  cases n,
+  { exact ennreal.pow_lt_top h'a.lt_top _ },
+  { simp only [ennreal.pow_pos ha.bot_lt (n + 1), zpow_neg_succ_of_nat, inv_lt_top] }
+end
+
+lemma exists_mem_Ico_zpow
+  {x y : ℝ≥0∞} (hx : x ≠ 0) (h'x : x ≠ ∞) (hy : 1 < y) (h'y : y ≠ ⊤) :
+  ∃ n : ℤ, x ∈ Ico (y ^ n) (y ^ (n + 1)) :=
+begin
+  lift x to ℝ≥0 using h'x,
+  lift y to ℝ≥0 using h'y,
+  have A : y ≠ 0, by simpa only [ne.def, coe_eq_zero] using (ennreal.zero_lt_one.trans hy).ne',
+  obtain ⟨n, hn, h'n⟩ : ∃ n : ℤ, y ^ n ≤ x ∧ x < y ^ (n + 1),
+  { refine nnreal.exists_mem_Ico_zpow _ (one_lt_coe_iff.1 hy),
+    simpa only [ne.def, coe_eq_zero] using hx },
+  refine ⟨n, _, _⟩,
+  { rwa [← ennreal.coe_zpow A, ennreal.coe_le_coe] },
+  { rwa [← ennreal.coe_zpow A, ennreal.coe_lt_coe] }
+end
+
+lemma exists_mem_Ioc_zpow
+  {x y : ℝ≥0∞} (hx : x ≠ 0) (h'x : x ≠ ∞) (hy : 1 < y) (h'y : y ≠ ⊤) :
+  ∃ n : ℤ, x ∈ Ioc (y ^ n) (y ^ (n + 1)) :=
+begin
+  lift x to ℝ≥0 using h'x,
+  lift y to ℝ≥0 using h'y,
+  have A : y ≠ 0, by simpa only [ne.def, coe_eq_zero] using (ennreal.zero_lt_one.trans hy).ne',
+  obtain ⟨n, hn, h'n⟩ : ∃ n : ℤ, y ^ n < x ∧ x ≤ y ^ (n + 1),
+  { refine nnreal.exists_mem_Ioc_zpow _ (one_lt_coe_iff.1 hy),
+    simpa only [ne.def, coe_eq_zero] using hx },
+  refine ⟨n, _, _⟩,
+  { rwa [← ennreal.coe_zpow A, ennreal.coe_lt_coe] },
+  { rwa [← ennreal.coe_zpow A, ennreal.coe_le_coe] }
+end
+
+lemma Ioo_zero_top_eq_Union_Ico_zpow {y : ℝ≥0∞} (hy : 1 < y) (h'y : y ≠ ⊤) :
+  Ioo (0 : ℝ≥0∞) (∞ : ℝ≥0∞) = ⋃ (n : ℤ), Ico (y^n) (y^(n+1)) :=
+begin
+  ext x,
+  simp only [mem_Union, mem_Ioo, mem_Ico],
+  split,
+  { rintros ⟨hx, h'x⟩,
+    exact exists_mem_Ico_zpow hx.ne' h'x.ne hy h'y },
+  { rintros ⟨n, hn, h'n⟩,
+    split,
+    { apply lt_of_lt_of_le _ hn,
+      exact ennreal.zpow_pos (ennreal.zero_lt_one.trans hy).ne' h'y _ },
+    { apply lt_trans h'n _,
+      exact ennreal.zpow_lt_top (ennreal.zero_lt_one.trans hy).ne' h'y _ } }
+end
+
+lemma zpow_le_of_le {x : ℝ≥0∞} (hx : 1 ≤ x) {a b : ℤ} (h : a ≤ b) : x ^ a ≤ x ^ b :=
+begin
+  induction a with a a; induction b with b b,
+  { simp,
+    apply pow_le_pow hx,
+    apply int.le_of_coe_nat_le_coe_nat h },
+  { apply absurd h,
+    apply not_le_of_gt,
+    exact lt_of_lt_of_le (int.neg_succ_lt_zero _) (int.of_nat_nonneg _) },
+  { simp only [zpow_neg_succ_of_nat, int.of_nat_eq_coe, zpow_coe_nat],
+    refine le_trans (inv_le_one.2 _) _;
+    apply ennreal.one_le_pow_of_one_le hx, },
+  { simp only [zpow_neg_succ_of_nat],
+    apply inv_le_inv.2,
+    { apply pow_le_pow hx,
+      have : -(↑(a+1) : ℤ) ≤ -(↑(b+1) : ℤ), from h,
+      have h' := le_of_neg_le_neg this,
+      apply int.le_of_coe_nat_le_coe_nat h' },
+    repeat { apply pow_pos (lt_of_lt_of_le zero_lt_one hx) } }
+end
+
+lemma monotone_zpow {x : ℝ≥0∞} (hx : 1 ≤ x) : monotone ((^) x : ℤ → ℝ≥0∞) :=
+λ a b h, zpow_le_of_le hx h
+
+lemma zpow_add {x : ℝ≥0∞} (hx : x ≠ 0) (h'x : x ≠ ∞) (m n : ℤ) :
+  x ^ (m + n) = x ^ m * x ^ n :=
+begin
+  lift x to ℝ≥0 using h'x,
+  replace hx : x ≠ 0, by simpa only [ne.def, coe_eq_zero] using hx,
+  simp only [← coe_zpow hx, zpow_add₀ hx, coe_mul]
+end
+
 end inv
 
 section real
@@ -1305,7 +1414,10 @@ end
 lemma le_to_real_sub {a b : ℝ≥0∞} (hb : b ≠ ∞) : a.to_real - b.to_real ≤ (a - b).to_real :=
 begin
   lift b to ℝ≥0 using hb,
-  cases a; simp [none_eq_top, some_eq_coe, ← coe_sub, nnreal.sub_def] at *
+  cases a,
+  { simp },
+  { simp only [some_eq_coe, ←coe_sub, nnreal.sub_def, real.coe_to_nnreal', coe_to_real],
+    exact le_max_left _ _ }
 end
 
 lemma to_real_add_le : (a+b).to_real ≤ a.to_real + b.to_real :=
@@ -1341,21 +1453,51 @@ end
 lemma to_real_strict_mono (hb : b ≠ ∞) (h : a < b) : a.to_real < b.to_real :=
 (to_real_lt_to_real (h.trans (lt_top_iff_ne_top.2 hb)).ne hb).2 h
 
+lemma to_nnreal_mono (hb : b ≠ ∞) (h : a ≤ b) : a.to_nnreal ≤ b.to_nnreal :=
+by simpa [←ennreal.coe_le_coe, hb, (h.trans_lt hb.lt_top).ne]
+
+@[simp] lemma to_nnreal_le_to_nnreal (ha : a ≠ ∞) (hb : b ≠ ∞) :
+  a.to_nnreal ≤ b.to_nnreal ↔ a ≤ b :=
+begin
+  refine ⟨_, to_nnreal_mono hb⟩,
+  { intro h,
+    have key := ennreal.coe_le_coe.mpr h,
+    rwa [coe_to_nnreal ha, coe_to_nnreal hb] at key, },
+end
+
+lemma to_nnreal_strict_mono (hb : b ≠ ∞) (h : a < b) : a.to_nnreal < b.to_nnreal :=
+by simpa [←ennreal.coe_lt_coe, hb, (h.trans hb.lt_top).ne]
+
+@[simp] lemma to_nnreal_lt_to_nnreal (ha : a ≠ ∞) (hb : b ≠ ∞) :
+  a.to_nnreal < b.to_nnreal ↔ a < b :=
+begin
+  refine ⟨_, to_nnreal_strict_mono hb⟩,
+  { intro h,
+    have key := ennreal.coe_lt_coe.mpr h,
+    rwa [coe_to_nnreal ha, coe_to_nnreal hb] at key, },
+end
+
 lemma to_real_max (hr : a ≠ ∞) (hp : b ≠ ∞) :
   ennreal.to_real (max a b) = max (ennreal.to_real a) (ennreal.to_real b) :=
 (le_total a b).elim
   (λ h, by simp only [h, (ennreal.to_real_le_to_real hr hp).2 h, max_eq_right])
   (λ h, by simp only [h, (ennreal.to_real_le_to_real hp hr).2 h, max_eq_left])
 
-lemma to_nnreal_pos_iff : 0 < a.to_nnreal ↔ (0 < a ∧ a ≠ ∞) :=
+lemma to_nnreal_pos_iff : 0 < a.to_nnreal ↔ (0 < a ∧ a < ∞) :=
 begin
   cases a,
   { simp [none_eq_top] },
   { simp [some_eq_coe] }
 end
 
-lemma to_real_pos_iff : 0 < a.to_real ↔ (0 < a ∧ a ≠ ∞):=
+lemma to_nnreal_pos {a : ℝ≥0∞} (ha₀ : a ≠ 0) (ha_top : a ≠ ∞) : 0 < a.to_nnreal :=
+to_nnreal_pos_iff.mpr ⟨bot_lt_iff_ne_bot.mpr ha₀, lt_top_iff_ne_top.mpr ha_top⟩
+
+lemma to_real_pos_iff : 0 < a.to_real ↔ (0 < a ∧ a < ∞):=
 (nnreal.coe_pos).trans to_nnreal_pos_iff
+
+lemma to_real_pos {a : ℝ≥0∞} (ha₀ : a ≠ 0) (ha_top : a ≠ ∞) : 0 < a.to_real :=
+to_real_pos_iff.mpr ⟨bot_lt_iff_ne_bot.mpr ha₀, lt_top_iff_ne_top.mpr ha_top⟩
 
 lemma of_real_le_of_real {p q : ℝ} (h : p ≤ q) : ennreal.of_real p ≤ ennreal.of_real q :=
 by simp [ennreal.of_real, real.to_nnreal_le_to_nnreal h]
@@ -1481,6 +1623,37 @@ begin
     simp only [ennreal.to_real_mul_top, ennreal.top_to_real, smul_zero] },
   { rw [← coe_smul, ennreal.coe_to_real, ennreal.coe_to_real],
     refl }
+end
+
+protected lemma trichotomy (p : ℝ≥0∞) : p = 0 ∨ p = ∞ ∨ 0 < p.to_real :=
+begin
+  rcases eq_or_lt_of_le (bot_le : 0 ≤ p) with (rfl : 0 = p) | (hp : 0 < p),
+  { simp },
+  rcases eq_or_lt_of_le (le_top : p ≤ ⊤) with rfl | hp',
+  { simp },
+  simp [ennreal.to_real_pos_iff, hp, hp'],
+end
+
+protected lemma trichotomy₂ {p q : ℝ≥0∞} (hpq : p ≤ q) :
+  (p = 0 ∧ q = 0) ∨ (p = 0 ∧ q = ∞) ∨ (p = 0 ∧ 0 < q.to_real) ∨ (p = ∞ ∧ q = ∞)
+  ∨ (0 < p.to_real ∧ q = ∞) ∨ (0 < p.to_real ∧ 0 < q.to_real ∧ p.to_real ≤ q.to_real) :=
+begin
+  rcases eq_or_lt_of_le (bot_le : 0 ≤ p) with (rfl : 0 = p) | (hp : 0 < p),
+  { simpa using q.trichotomy },
+  rcases eq_or_lt_of_le (le_top : q ≤ ∞) with rfl | hq,
+  { simpa using p.trichotomy },
+  repeat { right },
+  have hq' : 0 < q := lt_of_lt_of_le hp hpq,
+  have hp' : p < ∞ := lt_of_le_of_lt hpq hq,
+  simp [ennreal.to_real_le_to_real hp'.ne hq.ne, ennreal.to_real_pos_iff, hpq, hp, hp', hq', hq],
+end
+
+protected lemma dichotomy (p : ℝ≥0∞) [fact (1 ≤ p)] : p = ∞ ∨ 1 ≤ p.to_real :=
+begin
+  tactic.unfreeze_local_instances,
+  have :  p = ⊤ ∨ 0 < p.to_real ∧ 1 ≤ p.to_real,
+  { simpa using ennreal.trichotomy₂ (fact.out _ : 1 ≤ p) },
+  exact this.imp_right (λ h, h.2)
 end
 
 /-- `ennreal.to_nnreal` as a `monoid_hom`. -/

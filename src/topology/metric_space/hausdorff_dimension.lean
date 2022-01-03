@@ -155,7 +155,12 @@ begin
 end
 
 lemma dimH_subsingleton {s : set X} (h : s.subsingleton) : dimH s = 0 :=
-by simp [dimH, h.measure_zero]
+begin
+  letI := borel X, haveI : borel_space X := ⟨rfl⟩,
+  apply le_antisymm _ (zero_le _),
+  refine dimH_le_of_hausdorff_measure_ne_top _,
+  exact ((hausdorff_measure_le_one_of_subsingleton h le_rfl).trans_lt ennreal.one_lt_top).ne,
+end
 
 alias dimH_subsingleton ← set.subsingleton.dimH_zero
 
@@ -454,7 +459,6 @@ by rw [dimH_univ_pi, fintype.card_fin]
 theorem dimH_of_mem_nhds {x : E} {s : set E} (h : s ∈ 𝓝 x) :
   dimH s = finrank ℝ E :=
 begin
-  haveI : finite_dimensional ℝ (fin (finrank ℝ E) → ℝ), from is_noetherian_pi',
   have e : E ≃L[ℝ] (fin (finrank ℝ E) → ℝ),
     from continuous_linear_equiv.of_finrank_eq (finite_dimensional.finrank_fin_fun ℝ).symm,
   rw ← e.dimH_image,

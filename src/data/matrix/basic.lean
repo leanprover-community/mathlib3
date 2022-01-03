@@ -3,15 +3,14 @@ Copyright (c) 2018 Ellen Arlt. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ellen Arlt, Blair Shi, Sean Leather, Mario Carneiro, Johan Commelin, Lu-Ming Zhang
 -/
-import algebra.big_operators.pi
-import algebra.module.pi
-import algebra.module.linear_map
-import algebra.big_operators.ring
-import algebra.star.pi
 import algebra.algebra.basic
+import algebra.big_operators.pi
+import algebra.big_operators.ring
+import algebra.module.linear_map
+import algebra.module.pi
+import algebra.star.pi
 import data.equiv.ring
 import data.fintype.card
-import data.matrix.dmatrix
 
 /-!
 # Matrices
@@ -26,7 +25,6 @@ These have not yet been implemented.
 universes u u' v w
 
 open_locale big_operators
-open dmatrix
 
 /-- `matrix m n` is the type of matrices whose rows are indexed by `m`
 and whose columns are indexed by `n`. -/
@@ -119,6 +117,8 @@ instance [has_scalar R α] [has_scalar S α] [smul_comm_class R S α] :
   smul_comm_class R S (matrix m n α) := pi.smul_comm_class
 instance [has_scalar R S] [has_scalar R α] [has_scalar S α] [is_scalar_tower R S α] :
   is_scalar_tower R S (matrix m n α) := pi.is_scalar_tower
+instance [has_scalar R α] [has_scalar Rᵐᵒᵖ α] [is_central_scalar R α] :
+  is_central_scalar R (matrix m n α) := pi.is_central_scalar
 instance [monoid R] [mul_action R α] :
   mul_action R (matrix m n α) := pi.mul_action _
 instance [monoid R] [add_monoid α] [distrib_mul_action R α] :
@@ -1137,6 +1137,43 @@ by ext i j; refl
 lemma transpose_map {f : α → β} {M : matrix m n α} : Mᵀ.map f = (M.map f)ᵀ :=
 by { ext, refl }
 
+/-- `matrix.transpose` as an `add_equiv` -/
+@[simps apply]
+def transpose_add_equiv [has_add α] : matrix m n α ≃+ matrix n m α :=
+{ to_fun := transpose,
+  inv_fun := transpose,
+  left_inv := transpose_transpose,
+  right_inv := transpose_transpose,
+  map_add' := transpose_add }
+
+@[simp] lemma transpose_add_equiv_symm [has_add α] :
+  (transpose_add_equiv : matrix m n α ≃+ matrix n m α).symm = transpose_add_equiv := rfl
+
+lemma transpose_list_sum [add_monoid α] (l : list (matrix m n α)) :
+  l.sumᵀ = (l.map transpose).sum :=
+(transpose_add_equiv : matrix m n α ≃+ matrix n m α).to_add_monoid_hom.map_list_sum l
+
+lemma transpose_multiset_sum [add_comm_monoid α] (s : multiset (matrix m n α)) :
+  s.sumᵀ = (s.map transpose).sum :=
+(transpose_add_equiv : matrix m n α ≃+ matrix n m α).to_add_monoid_hom.map_multiset_sum s
+
+lemma transpose_sum [add_comm_monoid α] {ι : Type*} (s : finset ι) (M : ι → matrix m n α) :
+  (∑ i in s, M i)ᵀ = ∑ i in s, (M i)ᵀ :=
+(transpose_add_equiv : matrix m n α ≃+ matrix n m α).to_add_monoid_hom.map_sum _ s
+
+/-- `matrix.transpose` as a `ring_equiv` to the opposite ring -/
+@[simps]
+def transpose_ring_equiv [comm_semiring α] [fintype m] : matrix m m α ≃+* (matrix m m α)ᵐᵒᵖ :=
+{ to_fun := λ M, mul_opposite.op (Mᵀ),
+  inv_fun := λ M, M.unopᵀ,
+  map_mul' := λ M N, (congr_arg mul_opposite.op (transpose_mul M N)).trans
+    (mul_opposite.op_mul _ _),
+  ..transpose_add_equiv.trans mul_opposite.op_add_equiv }
+
+lemma transpose_list_prod [comm_semiring α] [fintype m] [decidable_eq m] (l : list (matrix m m α)) :
+  l.prodᵀ = (l.map transpose).reverse.prod :=
+(transpose_ring_equiv : matrix m m α ≃+* (matrix m m α)ᵐᵒᵖ).unop_map_list_prod l
+
 end transpose
 
 section conj_transpose
@@ -1162,11 +1199,10 @@ by ext i j; simp
   (1 : matrix n n α)ᴴ = 1 :=
 by simp [conj_transpose]
 
-@[simp] lemma conj_transpose_add
-[semiring α] [star_ring α] (M : matrix m n α) (N : matrix m n α) :
+@[simp] lemma conj_transpose_add [add_monoid α] [star_add_monoid α] (M N : matrix m n α) :
   (M + N)ᴴ = Mᴴ + Nᴴ  := by ext i j; simp
 
-@[simp] lemma conj_transpose_sub [ring α] [star_ring α] (M : matrix m n α) (N : matrix m n α) :
+@[simp] lemma conj_transpose_sub [add_group α] [star_add_monoid α] (M N : matrix m n α) :
   (M - N)ᴴ = Mᴴ - Nᴴ  := by ext i j; simp
 
 @[simp] lemma conj_transpose_smul [comm_monoid α] [star_monoid α] (c : α) (M : matrix m n α) :
@@ -1178,6 +1214,47 @@ by ext i j; simp [mul_comm]
 
 @[simp] lemma conj_transpose_neg [ring α] [star_ring α] (M : matrix m n α) :
   (- M)ᴴ = - Mᴴ  := by ext i j; simp
+
+/-- `matrix.conj_transpose` as an `add_equiv` -/
+@[simps apply]
+def conj_transpose_add_equiv [add_monoid α] [star_add_monoid α] : matrix m n α ≃+ matrix n m α :=
+{ to_fun := conj_transpose,
+  inv_fun := conj_transpose,
+  left_inv := conj_transpose_conj_transpose,
+  right_inv := conj_transpose_conj_transpose,
+  map_add' := conj_transpose_add }
+
+@[simp] lemma conj_transpose_add_equiv_symm [add_monoid α] [star_add_monoid α] :
+  (conj_transpose_add_equiv : matrix m n α ≃+ matrix n m α).symm = conj_transpose_add_equiv := rfl
+
+lemma conj_transpose_list_sum [add_monoid α] [star_add_monoid α] (l : list (matrix m n α)) :
+  l.sumᴴ = (l.map conj_transpose).sum :=
+(conj_transpose_add_equiv : matrix m n α ≃+ matrix n m α).to_add_monoid_hom.map_list_sum l
+
+lemma conj_transpose_multiset_sum [add_comm_monoid α] [star_add_monoid α]
+  (s : multiset (matrix m n α)) :
+  s.sumᴴ = (s.map conj_transpose).sum :=
+(conj_transpose_add_equiv : matrix m n α ≃+ matrix n m α).to_add_monoid_hom.map_multiset_sum s
+
+lemma conj_transpose_sum [add_comm_monoid α] [star_add_monoid α] {ι : Type*} (s : finset ι)
+  (M : ι → matrix m n α) :
+  (∑ i in s, M i)ᴴ = ∑ i in s, (M i)ᴴ :=
+(conj_transpose_add_equiv : matrix m n α ≃+ matrix n m α).to_add_monoid_hom.map_sum _ s
+
+/-- `matrix.conj_transpose` as a `ring_equiv` to the opposite ring -/
+@[simps]
+def conj_transpose_ring_equiv [comm_semiring α] [star_ring α] [fintype m] :
+  matrix m m α ≃+* (matrix m m α)ᵐᵒᵖ :=
+{ to_fun := λ M, mul_opposite.op (Mᴴ),
+  inv_fun := λ M, M.unopᴴ,
+  map_mul' := λ M N, (congr_arg mul_opposite.op (conj_transpose_mul M N)).trans
+    (mul_opposite.op_mul _ _),
+  ..conj_transpose_add_equiv.trans mul_opposite.op_add_equiv }
+
+lemma conj_transpose_list_prod [comm_semiring α] [star_ring α] [fintype m] [decidable_eq m]
+  (l : list (matrix m m α)) :
+  l.prodᴴ = (l.map conj_transpose).reverse.prod :=
+(conj_transpose_ring_equiv : matrix m m α ≃+* (matrix m m α)ᵐᵒᵖ).unop_map_list_prod l
 
 end conj_transpose
 
@@ -1194,6 +1271,10 @@ lemma star_eq_conj_transpose [has_star α] (M : matrix m m α) : star M = Mᴴ :
 
 instance [has_involutive_star α] : has_involutive_star (matrix n n α) :=
 { star_involutive := conj_transpose_conj_transpose }
+
+/-- When `α` is a `*`-additive monoid, `matrix.has_star` is also a `*`-additive monoid. -/
+instance [add_monoid α] [star_add_monoid α] : star_add_monoid (matrix n n α) :=
+{ star_add := conj_transpose_add }
 
 /-- When `α` is a `*`-(semi)ring, `matrix.has_star` is also a `*`-(semi)ring. -/
 instance [fintype n] [decidable_eq n] [semiring α] [star_ring α] : star_ring (matrix n n α) :=
@@ -1303,10 +1384,11 @@ lemma minor_one_equiv [has_zero α] [has_one α] [decidable_eq m] [decidable_eq 
   (1 : matrix m m α).minor e e = 1 :=
 minor_one e e.injective
 
+@[simp]
 lemma minor_mul_equiv [fintype n] [fintype o] [semiring α] {p q : Type*}
   (M : matrix m n α) (N : matrix n p α) (e₁ : l → m) (e₂ : o ≃ n) (e₃ : q → p)  :
-  (M ⬝ N).minor e₁ e₃ = (M.minor e₁ e₂) ⬝ (N.minor e₂ e₃) :=
-minor_mul M N e₁ e₂ e₃ e₂.bijective
+  (M.minor e₁ e₂) ⬝ (N.minor e₂ e₃) = (M ⬝ N).minor e₁ e₃ :=
+(minor_mul M N e₁ e₂ e₃ e₂.bijective).symm
 
 lemma mul_minor_one [fintype n] [fintype o] [semiring α] [decidable_eq o] (e₁ : n ≃ o) (e₂ : l → o)
   (M : matrix m n α) : M ⬝ (1 : matrix o o α).minor e₁ e₂ = minor M id (e₁.symm ∘ e₂) :=
@@ -1314,7 +1396,7 @@ begin
   let A := M.minor id e₁.symm,
   have : M = A.minor id e₁,
   { simp only [minor_minor, function.comp.right_id, minor_id_id, equiv.symm_comp_self], },
-  rw [this, ←minor_mul_equiv],
+  rw [this, minor_mul_equiv],
   simp only [matrix.mul_one, minor_minor, function.comp.right_id, minor_id_id,
     equiv.symm_comp_self],
 end
@@ -1325,7 +1407,7 @@ begin
   let A := M.minor e₂.symm id,
   have : M = A.minor e₂ id,
   { simp only [minor_minor, function.comp.right_id, minor_id_id, equiv.symm_comp_self], },
-  rw [this, ←minor_mul_equiv],
+  rw [this, minor_mul_equiv],
   simp only [matrix.one_mul, minor_minor, function.comp.right_id, minor_id_id,
     equiv.symm_comp_self],
 end
@@ -1362,6 +1444,12 @@ rfl
 lemma conj_transpose_reindex [has_star α] (eₘ : m ≃ l) (eₙ : n ≃ o) (M : matrix m n α) :
   (reindex eₘ eₙ M)ᴴ = (reindex eₙ eₘ Mᴴ) :=
 rfl
+
+@[simp]
+lemma minor_mul_transpose_minor [fintype n] [fintype m] [semiring α]
+  (e : n ≃ m) (M : matrix n m α) :
+  (M.minor id e) ⬝ (Mᵀ).minor e id = M ⬝ Mᵀ :=
+by rw [minor_mul_equiv, minor_id_id]
 
 /-- The left `n × l` part of a `n × (l+r)` matrix. -/
 @[reducible]

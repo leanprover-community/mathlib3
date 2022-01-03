@@ -3,7 +3,8 @@ Copyright (c) 2019 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel, Yury Kudryashov
 -/
-import topology.metric_space.emetric_space
+import topology.uniform_space.basic
+import topology.separation
 
 /-!
 # `Gδ` sets
@@ -108,7 +109,7 @@ end
 lemma is_closed.is_Gδ {α} [uniform_space α] [is_countably_generated (𝓤 α)]
   {s : set α} (hs : is_closed s) : is_Gδ s :=
 begin
-  rcases (@uniformity_has_basis_open α _).exists_antitone_subbasis  with ⟨U, hUo, hU, -, -⟩,
+  rcases (@uniformity_has_basis_open α _).exists_antitone_subbasis  with ⟨U, hUo, hU, -⟩,
   rw [← hs.closure_eq, ← hU.bInter_bUnion_ball],
   refine is_Gδ_bInter (countable_encodable _) (λ n hn, is_open.is_Gδ _),
   exact is_open_bUnion (λ x hx, uniform_space.is_open_ball _ (hUo _).2)

@@ -6,7 +6,9 @@ Authors: Andreas Swerdlow, Kexing Ying
 
 import linear_algebra.dual
 import linear_algebra.matrix.basis
+import linear_algebra.matrix.nondegenerate
 import linear_algebra.matrix.nonsingular_inverse
+import linear_algebra.matrix.to_linear_equiv
 import linear_algebra.tensor_product
 
 /-!
@@ -461,7 +463,8 @@ end
 
 end comp
 
-variables {M₂' : Type*} [add_comm_monoid M₂'] [module R₂ M₂']
+variables {M₂' M₂'' : Type*}
+variables [add_comm_monoid M₂'] [add_comm_monoid M₂''] [module R₂ M₂'] [module R₂ M₂'']
 
 section congr
 
@@ -483,15 +486,22 @@ def congr (e : M₂ ≃ₗ[R₂] M₂') : bilin_form R₂ M₂ ≃ₗ[R₂] bili
   (congr e).symm = congr e.symm :=
 by { ext B x y, simp only [congr_apply, linear_equiv.symm_symm], refl }
 
-lemma congr_comp {M₂'' : Type*} [add_comm_monoid M₂''] [module R₂ M₂'']
-  (e : M₂ ≃ₗ[R₂] M₂') (B : bilin_form R₂ M₂) (l r : M₂'' →ₗ[R₂] M₂') :
+@[simp] lemma congr_refl : congr (linear_equiv.refl R₂ M₂) = linear_equiv.refl R₂ _ :=
+linear_equiv.ext $ λ B, ext $ λ x y, rfl
+
+lemma congr_trans (e : M₂ ≃ₗ[R₂] M₂') (f : M₂' ≃ₗ[R₂] M₂'') :
+  (congr e).trans (congr f) = congr (e.trans f) := rfl
+
+lemma congr_congr (e : M₂' ≃ₗ[R₂] M₂'') (f : M₂ ≃ₗ[R₂] M₂') (B : bilin_form R₂ M₂) :
+  congr e (congr f B) = congr (f.trans e) B := rfl
+
+lemma congr_comp (e : M₂ ≃ₗ[R₂] M₂') (B : bilin_form R₂ M₂) (l r : M₂'' →ₗ[R₂] M₂') :
   (congr e B).comp l r = B.comp
     (linear_map.comp (e.symm : M₂' →ₗ[R₂] M₂) l)
     (linear_map.comp (e.symm : M₂' →ₗ[R₂] M₂) r) :=
 rfl
 
-lemma comp_congr {M₂'' : Type*} [add_comm_monoid M₂''] [module R₂ M₂'']
-  (e : M₂' ≃ₗ[R₂] M₂'') (B : bilin_form R₂ M₂) (l r : M₂' →ₗ[R₂] M₂) :
+lemma comp_congr (e : M₂' ≃ₗ[R₂] M₂'') (B : bilin_form R₂ M₂) (l r : M₂' →ₗ[R₂] M₂) :
   congr e (B.comp l r) = B.comp
     (l.comp (e.symm : M₂'' →ₗ[R₂] M₂'))
     (r.comp (e.symm : M₂'' →ₗ[R₂] M₂')) :=
@@ -947,39 +957,39 @@ end to_matrix
 
 end matrix
 
-namespace refl_bilin_form
-
-open refl_bilin_form bilin_form
+namespace bilin_form
 
 /-- The proposition that a bilinear form is reflexive -/
 def is_refl (B : bilin_form R M) : Prop := ∀ (x y : M), B x y = 0 → B y x = 0
 
-variable (H : is_refl B)
+namespace is_refl
+
+variable (H : B.is_refl)
 
 lemma eq_zero : ∀ {x y : M}, B x y = 0 → B y x = 0 := λ x y, H x y
 
-lemma ortho_sym {x y : M} :
+lemma ortho_comm {x y : M} :
   is_ortho B x y ↔ is_ortho B y x := ⟨eq_zero H, eq_zero H⟩
 
-end refl_bilin_form
-
-namespace sym_bilin_form
-
-open sym_bilin_form bilin_form
+end is_refl
 
 /-- The proposition that a bilinear form is symmetric -/
-def is_sym (B : bilin_form R M) : Prop := ∀ (x y : M), B x y = B y x
+def is_symm (B : bilin_form R M) : Prop := ∀ (x y : M), B x y = B y x
 
-variable (H : is_sym B)
+namespace is_symm
 
-lemma sym (x y : M) : B x y = B y x := H x y
+variable (H : B.is_symm)
 
-lemma is_refl : refl_bilin_form.is_refl B := λ x y H1, H x y ▸ H1
+protected lemma eq (x y : M) : B x y = B y x := H x y
 
-lemma ortho_sym {x y : M} :
-  is_ortho B x y ↔ is_ortho B y x := refl_bilin_form.ortho_sym (is_refl H)
+lemma is_refl : B.is_refl := λ x y H1, H x y ▸ H1
 
-lemma is_sym_iff_flip' [algebra R₂ R] : is_sym B ↔ flip_hom R₂ B = B :=
+lemma ortho_comm {x y : M} :
+  is_ortho B x y ↔ is_ortho B y x := H.is_refl.ortho_comm
+
+end is_symm
+
+lemma is_symm_iff_flip' [algebra R₂ R] : B.is_symm ↔ flip_hom R₂ B = B :=
 begin
   split,
   { intros h,
@@ -990,21 +1000,14 @@ begin
     simp }
 end
 
-end sym_bilin_form
-
-namespace alt_bilin_form
-
-open alt_bilin_form bilin_form
-
 /-- The proposition that a bilinear form is alternating -/
 def is_alt (B : bilin_form R M) : Prop := ∀ (x : M), B x x = 0
 
-variable (H : is_alt B)
-include H
+namespace is_alt
 
-lemma self_eq_zero (x : M) : B x x = 0 := H x
+lemma self_eq_zero (H : B.is_alt) (x : M) : B x x = 0 := H x
 
-lemma neg (H : is_alt B₁) (x y : M₁) :
+lemma neg (H : B₁.is_alt) (x y : M₁) :
   - B₁ x y = B₁ y x :=
 begin
   have H1 : B₁ (x + y) (x + y) = 0,
@@ -1015,9 +1018,16 @@ begin
   exact H1,
 end
 
-end alt_bilin_form
+lemma is_refl (H : B₁.is_alt) : B₁.is_refl :=
+begin
+  intros x y h,
+  rw [←neg H, h, neg_zero],
+end
 
-namespace bilin_form
+lemma ortho_comm (H : B₁.is_alt) {x y : M₁} :
+  is_ortho B₁ x y ↔ is_ortho B₁ y x := H.is_refl.ortho_comm
+
+end is_alt
 
 section linear_adjoints
 
@@ -1294,7 +1304,7 @@ variables {N L : submodule R M}
 lemma orthogonal_le (h : N ≤ L) : B.orthogonal L ≤ B.orthogonal N :=
 λ _ hn l hl, hn l (h hl)
 
-lemma le_orthogonal_orthogonal (b : refl_bilin_form.is_refl B) :
+lemma le_orthogonal_orthogonal (b : B.is_refl) :
   N ≤ B.orthogonal (B.orthogonal N) :=
 λ n hn m hm, b _ _ (hm n hn)
 
@@ -1356,8 +1366,8 @@ def restrict (B : bilin_form R M) (W : submodule R M) : bilin_form R W :=
   bilin_smul_right := λ _ _ _, smul_right _ _ _}
 
 /-- The restriction of a symmetric bilinear form on a submodule is also symmetric. -/
-lemma restrict_sym (B : bilin_form R M) (b : sym_bilin_form.is_sym B)
-  (W : submodule R M) : sym_bilin_form.is_sym $ B.restrict W :=
+lemma restrict_symm (B : bilin_form R M) (b : B.is_symm)
+  (W : submodule R M) : (B.restrict W).is_symm :=
 λ x y, b x y
 
 /-- A nondegenerate bilinear form is a bilinear form such that the only element that is orthogonal
@@ -1378,8 +1388,23 @@ lemma not_nondegenerate_zero [nontrivial M] : ¬(0 : bilin_form R M).nondegenera
 let ⟨m, hm⟩ := exists_ne (0 : M) in λ h, hm (h m $ λ n, rfl)
 end
 
+variables {M₂' : Type*}
+variables [add_comm_monoid M₂'] [module R₂ M₂']
+
 lemma nondegenerate.ne_zero [nontrivial M] {B : bilin_form R M} (h : B.nondegenerate) : B ≠ 0 :=
 λ h0, not_nondegenerate_zero R M $ h0 ▸ h
+
+lemma nondegenerate.congr {B : bilin_form R₂ M₂} (e : M₂ ≃ₗ[R₂] M₂') (h : B.nondegenerate) :
+  (congr e B).nondegenerate :=
+λ m hm, (e.symm).map_eq_zero_iff.1 $ h (e.symm m) $
+  λ n, (congr_arg _ (e.symm_apply_apply n).symm).trans (hm (e n))
+
+@[simp] lemma nondegenerate_congr_iff {B : bilin_form R₂ M₂} (e : M₂ ≃ₗ[R₂] M₂') :
+  (congr e B).nondegenerate ↔ B.nondegenerate :=
+⟨λ h, begin
+  convert h.congr e.symm,
+  rw [congr_congr, e.self_trans_symm, congr_refl, linear_equiv.refl_apply],
+end, nondegenerate.congr e⟩
 
 /-- A bilinear form is nondegenerate if and only if it has a trivial kernel. -/
 theorem nondegenerate_iff_ker_eq_bot {B : bilin_form R₂ M₂} :
@@ -1399,7 +1424,7 @@ lemma nondegenerate.ker_eq_bot {B : bilin_form R₂ M₂} (h : B.nondegenerate) 
 /-- The restriction of a nondegenerate bilinear form `B` onto a submodule `W` is
 nondegenerate if `disjoint W (B.orthogonal W)`. -/
 lemma nondegenerate_restrict_of_disjoint_orthogonal
-  (B : bilin_form R₁ M₁) (b : sym_bilin_form.is_sym B)
+  (B : bilin_form R₁ M₁) (b : B.is_symm)
   {W : submodule R₁ M₁} (hW : disjoint W (B.orthogonal W)) :
   (B.restrict W).nondegenerate :=
 begin
@@ -1452,7 +1477,7 @@ end
 section
 
 lemma to_lin_restrict_ker_eq_inf_orthogonal
-  (B : bilin_form K V) (W : subspace K V) (b : sym_bilin_form.is_sym B) :
+  (B : bilin_form K V) (W : subspace K V) (b : B.is_symm) :
   (B.to_lin.dom_restrict W).ker.map W.subtype = (W ⊓ B.orthogonal ⊤ : subspace K V) :=
 begin
   ext x, split; intro hx,
@@ -1489,7 +1514,7 @@ variable [finite_dimensional K V]
 open finite_dimensional
 
 lemma finrank_add_finrank_orthogonal
-  {B : bilin_form K V} {W : subspace K V} (b₁ : sym_bilin_form.is_sym B) :
+  {B : bilin_form K V} {W : subspace K V} (b₁ : B.is_symm) :
   finrank K W + finrank K (B.orthogonal W) =
   finrank K V + finrank K (W ⊓ B.orthogonal ⊤ : subspace K V) :=
 begin
@@ -1506,7 +1531,7 @@ end
 bilinear form if that bilinear form restricted on to the subspace is nondegenerate. -/
 lemma restrict_nondegenerate_of_is_compl_orthogonal
   {B : bilin_form K V} {W : subspace K V}
-  (b₁ : sym_bilin_form.is_sym B) (b₂ : (B.restrict W).nondegenerate) :
+  (b₁ : B.is_symm) (b₂ : (B.restrict W).nondegenerate) :
   is_compl W (B.orthogonal W) :=
 begin
   have : W ⊓ B.orthogonal W = ⊥,
@@ -1530,7 +1555,7 @@ end
 /-- A subspace is complement to its orthogonal complement with respect to some bilinear form
 if and only if that bilinear form restricted on to the subspace is nondegenerate. -/
 theorem restrict_nondegenerate_iff_is_compl_orthogonal
-  {B : bilin_form K V} {W : subspace K V} (b₁ : sym_bilin_form.is_sym B) :
+  {B : bilin_form K V} {W : subspace K V} (b₁ : B.is_symm) :
   (B.restrict W).nondegenerate ↔ is_compl W (B.orthogonal W) :=
 ⟨λ b₂, restrict_nondegenerate_of_is_compl_orthogonal b₁ b₂,
  λ h, B.nondegenerate_restrict_of_disjoint_orthogonal b₁ h.1⟩
@@ -1569,7 +1594,7 @@ by rw [dual_basis, basis.map_apply, basis.coe_dual_basis, ← to_dual_def hB,
        finsupp.single_apply]
 
 lemma apply_dual_basis_right (B : bilin_form K V) (hB : B.nondegenerate)
-  (sym : sym_bilin_form.is_sym B) (b : basis ι K V)
+  (sym : B.is_symm) (b : basis ι K V)
   (i j) : B (b i) (B.dual_basis hB b j) = if i = j then 1 else 0 :=
 by rw [sym, apply_dual_basis_left]
 
@@ -1585,7 +1610,7 @@ on the whole space. -/
 /-- The restriction of a symmetric, non-degenerate bilinear form on the orthogonal complement of
 the span of a singleton is also non-degenerate. -/
 lemma restrict_orthogonal_span_singleton_nondegenerate (B : bilin_form K V)
-  (b₁ : nondegenerate B) (b₂ : sym_bilin_form.is_sym B) {x : V} (hx : ¬ B.is_ortho x x) :
+  (b₁ : B.nondegenerate) (b₂ : B.is_symm) {x : V} (hx : ¬ B.is_ortho x x) :
   nondegenerate $ B.restrict $ B.orthogonal (K ∙ x) :=
 begin
   refine λ m hm, submodule.coe_eq_zero.1 (b₁ m.1 (λ n, _)),
@@ -1665,24 +1690,64 @@ open matrix
 variables {A : Type*} [comm_ring A] [is_domain A] [module A M₃] (B₃ : bilin_form A M₃)
 variables {ι : Type*} [decidable_eq ι] [fintype ι]
 
-theorem _root_.matrix.nondegenerate.to_bilin' {M : matrix ι ι R₃} (h : M.nondegenerate) :
-  (to_bilin' M).nondegenerate :=
-λ x hx, h.eq_zero_of_ortho (λ y,
-  by simpa only [to_bilin'_apply, dot_product, mul_vec, finset.mul_sum, mul_assoc] using hx y)
+lemma _root_.matrix.nondegenerate_to_bilin'_iff_nondegenerate_to_bilin {M : matrix ι ι R₃}
+  (b : basis ι R₃ M₃) : M.to_bilin'.nondegenerate ↔ (matrix.to_bilin b M).nondegenerate :=
+(nondegenerate_congr_iff b.equiv_fun.symm).symm
 
-theorem nondegenerate_of_det_ne_zero' (M : matrix ι ι A) (h : M.det ≠ 0) :
-  (to_bilin' M).nondegenerate :=
-(matrix.nondegenerate_of_det_ne_zero h).to_bilin'
+-- Lemmas transferring nondegeneracy between a matrix and its associated bilinear form
+
+theorem _root_.matrix.nondegenerate.to_bilin' {M : matrix ι ι R₃} (h : M.nondegenerate) :
+  M.to_bilin'.nondegenerate :=
+λ x hx, h.eq_zero_of_ortho $ λ y, by simpa only [to_bilin'_apply'] using hx y
+
+@[simp] lemma _root_.matrix.nondegenerate_to_bilin'_iff {M : matrix ι ι R₃} :
+  M.to_bilin'.nondegenerate ↔ M.nondegenerate :=
+⟨λ h v hv, h v $ λ w, (M.to_bilin'_apply' _ _).trans $ hv w, matrix.nondegenerate.to_bilin'⟩
+
+theorem _root_.matrix.nondegenerate.to_bilin {M : matrix ι ι R₃} (h : M.nondegenerate)
+  (b : basis ι R₃ M₃) : (to_bilin b M).nondegenerate :=
+(matrix.nondegenerate_to_bilin'_iff_nondegenerate_to_bilin b).mp h.to_bilin'
+
+@[simp] lemma _root_.matrix.nondegenerate_to_bilin_iff {M : matrix ι ι R₃} (b : basis ι R₃ M₃) :
+  (to_bilin b M).nondegenerate ↔ M.nondegenerate :=
+by rw [←matrix.nondegenerate_to_bilin'_iff_nondegenerate_to_bilin,
+       matrix.nondegenerate_to_bilin'_iff]
+
+-- Lemmas transferring nondegeneracy between a bilinear form and its associated matrix
+
+@[simp] theorem nondegenerate_to_matrix'_iff {B : bilin_form R₃ (ι → R₃)} :
+  B.to_matrix'.nondegenerate ↔ B.nondegenerate :=
+matrix.nondegenerate_to_bilin'_iff.symm.trans $ (matrix.to_bilin'_to_matrix' B).symm ▸ iff.rfl
+
+theorem nondegenerate.to_matrix' {B : bilin_form R₃ (ι → R₃)} (h : B.nondegenerate) :
+  B.to_matrix'.nondegenerate :=
+nondegenerate_to_matrix'_iff.mpr h
+
+@[simp] theorem nondegenerate_to_matrix_iff {B : bilin_form R₃ M₃} (b : basis ι R₃ M₃) :
+  (to_matrix b B).nondegenerate ↔ B.nondegenerate :=
+(matrix.nondegenerate_to_bilin_iff b).symm.trans $ (matrix.to_bilin_to_matrix b B).symm ▸ iff.rfl
+
+theorem nondegenerate.to_matrix {B : bilin_form R₃ M₃} (h : B.nondegenerate)
+  (b : basis ι R₃ M₃) : (to_matrix b B).nondegenerate :=
+(nondegenerate_to_matrix_iff b).mpr h
+
+-- Some shorthands for combining the above with `matrix.nondegenerate_of_det_ne_zero`
+
+lemma nondegenerate_to_bilin'_iff_det_ne_zero {M : matrix ι ι A} :
+  M.to_bilin'.nondegenerate ↔ M.det ≠ 0 :=
+by rw [matrix.nondegenerate_to_bilin'_iff, matrix.nondegenerate_iff_det_ne_zero]
+
+theorem nondegenerate_to_bilin'_of_det_ne_zero' (M : matrix ι ι A) (h : M.det ≠ 0) :
+  M.to_bilin'.nondegenerate :=
+nondegenerate_to_bilin'_iff_det_ne_zero.mpr h
+
+lemma nondegenerate_iff_det_ne_zero {B : bilin_form A M₃}
+  (b : basis ι A M₃) : B.nondegenerate ↔ (to_matrix b B).det ≠ 0 :=
+by rw [←matrix.nondegenerate_iff_det_ne_zero, nondegenerate_to_matrix_iff]
 
 theorem nondegenerate_of_det_ne_zero (b : basis ι A M₃) (h : (to_matrix b B₃).det ≠ 0) :
   B₃.nondegenerate :=
-begin
-  intros x hx,
-  refine b.equiv_fun.map_eq_zero_iff.mp (nondegenerate_of_det_ne_zero' _ h _ (λ w, _)),
-  convert hx (b.equiv_fun.symm w),
-  rw [bilin_form.to_matrix, linear_equiv.trans_apply, to_bilin'_to_matrix', congr_apply,
-      linear_equiv.symm_apply_apply]
-end
+(nondegenerate_iff_det_ne_zero b).mpr h
 
 end det
 

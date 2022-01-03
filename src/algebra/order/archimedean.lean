@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import algebra.field_power
-import data.rat
 import data.int.least_greatest
+import data.rat.floor
 
 /-!
 # Archimedean groups and fields.
@@ -28,7 +28,7 @@ number `n` such that `x ≤ n • y`.
 * `ℕ`, `ℤ`, and `ℚ` are archimedean.
 -/
 
-open int
+open int set
 
 variables {α : Type*}
 
@@ -42,13 +42,13 @@ instance order_dual.archimedean [ordered_add_comm_group α] [archimedean α] :
 ⟨λ x y hy, let ⟨n, hn⟩ := archimedean.arch (-x : α) (neg_pos.2 hy) in
   ⟨n, by rwa [neg_nsmul, neg_le_neg_iff] at hn⟩⟩
 
-namespace linear_ordered_add_comm_group
+section linear_ordered_add_comm_group
 variables [linear_ordered_add_comm_group α] [archimedean α]
 
 /-- An archimedean decidable linearly ordered `add_comm_group` has a version of the floor: for
 `a > 0`, any `g` in the group lies between some two consecutive multiples of `a`. -/
-lemma exists_int_smul_near_of_pos {a : α} (ha : 0 < a) (g : α) :
-  ∃ (k : ℤ), k • a ≤ g ∧ g < (k + 1) • a :=
+lemma exists_unique_zsmul_near_of_pos {a : α} (ha : 0 < a) (g : α) :
+  ∃! k : ℤ, k • a ≤ g ∧ g < (k + 1) • a :=
 begin
   let s : set ℤ := {n : ℤ | n • a ≤ g},
   obtain ⟨k, hk : -g ≤ k • a⟩ := archimedean.arch (-g) ha,
@@ -56,23 +56,34 @@ begin
   obtain ⟨k, hk⟩ := archimedean.arch g ha,
   have h_bdd : ∀ n ∈ s, n ≤ (k : ℤ),
   { assume n hn,
-    apply (gsmul_le_gsmul_iff ha).mp,
-    rw ← gsmul_coe_nat at hk,
+    apply (zsmul_le_zsmul_iff ha).mp,
+    rw ← coe_nat_zsmul at hk,
     exact le_trans hn hk },
   obtain ⟨m, hm, hm'⟩ := int.exists_greatest_of_bdd ⟨k, h_bdd⟩ h_ne,
-  refine ⟨m, hm, _⟩,
-  by_contra H,
-  linarith [hm' _ $ not_lt.mp H]
+  have hm'' : g < (m + 1) • a,
+  { contrapose! hm', exact ⟨m + 1, hm', lt_add_one _⟩, },
+  refine ⟨m, ⟨hm, hm''⟩, λ n hn, (hm' n hn.1).antisymm $ int.le_of_lt_add_one _⟩,
+  rw ← zsmul_lt_zsmul_iff ha,
+  exact lt_of_le_of_lt hm hn.2
 end
 
-lemma exists_int_smul_near_of_pos' {a : α} (ha : 0 < a) (g : α) :
-  ∃ (k : ℤ), 0 ≤ g - k • a ∧ g - k • a < a :=
-begin
-  obtain ⟨k, h1, h2⟩ := exists_int_smul_near_of_pos ha g,
-  rw add_gsmul at h2,
-  refine ⟨k, sub_nonneg.mpr h1, _⟩,
-  simpa [sub_lt_iff_lt_add'] using h2
-end
+lemma exists_unique_zsmul_near_of_pos' {a : α} (ha : 0 < a) (g : α) :
+  ∃! k : ℤ, 0 ≤ g - k • a ∧ g - k • a < a :=
+by simpa only [sub_nonneg, add_zsmul, one_zsmul, sub_lt_iff_lt_add']
+  using exists_unique_zsmul_near_of_pos ha g
+
+lemma exists_unique_add_zsmul_mem_Ico {a : α} (ha : 0 < a) (b c : α) :
+  ∃! m : ℤ, b + m • a ∈ set.Ico c (c + a) :=
+(equiv.neg ℤ).bijective.exists_unique_iff.2 $
+  by simpa only [equiv.neg_apply, mem_Ico, neg_zsmul, ← sub_eq_add_neg, le_sub_iff_add_le, zero_add,
+    add_comm c, sub_lt_iff_lt_add', add_assoc] using exists_unique_zsmul_near_of_pos' ha (b - c)
+
+lemma exists_unique_add_zsmul_mem_Ioc {a : α} (ha : 0 < a) (b c : α) :
+  ∃! m : ℤ, b + m • a ∈ set.Ioc c (c + a) :=
+(equiv.add_right (1 : ℤ)).bijective.exists_unique_iff.2 $
+  by simpa only [add_zsmul, sub_lt_iff_lt_add', le_sub_iff_add_le', ← add_assoc, and.comm, mem_Ioc,
+    equiv.coe_add_right, one_zsmul, add_le_add_iff_right]
+    using exists_unique_zsmul_near_of_pos ha (c - b)
 
 end linear_ordered_add_comm_group
 
@@ -148,36 +159,36 @@ section linear_ordered_field
 variables [linear_ordered_field α]
 
 /-- Every positive `x` is between two successive integer powers of
-another `y` greater than one. This is the same as `exists_int_pow_near'`,
+another `y` greater than one. This is the same as `exists_mem_Ioc_zpow`,
 but with ≤ and < the other way around. -/
-lemma exists_int_pow_near [archimedean α]
+lemma exists_mem_Ico_zpow [archimedean α]
   {x : α} {y : α} (hx : 0 < x) (hy : 1 < y) :
-  ∃ n : ℤ, y ^ n ≤ x ∧ x < y ^ (n + 1) :=
+  ∃ n : ℤ, x ∈ set.Ico (y ^ n) (y ^ (n + 1)) :=
 by classical; exact
 let ⟨N, hN⟩ := pow_unbounded_of_one_lt x⁻¹ hy in
   have he: ∃ m : ℤ, y ^ m ≤ x, from
-    ⟨-N, le_of_lt (by { rw [fpow_neg y (↑N), gpow_coe_nat],
+    ⟨-N, le_of_lt (by { rw [zpow_neg₀ y (↑N), zpow_coe_nat],
     exact (inv_lt hx (lt_trans (inv_pos.2 hx) hN)).1 hN })⟩,
 let ⟨M, hM⟩ := pow_unbounded_of_one_lt x hy in
   have hb: ∃ b : ℤ, ∀ m, y ^ m ≤ x → m ≤ b, from
     ⟨M, λ m hm, le_of_not_lt (λ hlt, not_lt_of_ge
-  (fpow_le_of_le hy.le hlt.le)
-    (lt_of_le_of_lt hm (by rwa ← gpow_coe_nat at hM)))⟩,
+  (zpow_le_of_le hy.le hlt.le)
+    (lt_of_le_of_lt hm (by rwa ← zpow_coe_nat at hM)))⟩,
 let ⟨n, hn₁, hn₂⟩ := int.exists_greatest_of_bdd hb he in
   ⟨n, hn₁, lt_of_not_ge (λ hge, not_le_of_gt (int.lt_succ _) (hn₂ _ hge))⟩
 
 /-- Every positive `x` is between two successive integer powers of
-another `y` greater than one. This is the same as `exists_int_pow_near`,
+another `y` greater than one. This is the same as `exists_mem_Ico_zpow`,
 but with ≤ and < the other way around. -/
-lemma exists_int_pow_near' [archimedean α]
+lemma exists_mem_Ioc_zpow [archimedean α]
   {x : α} {y : α} (hx : 0 < x) (hy : 1 < y) :
-  ∃ n : ℤ, y ^ n < x ∧ x ≤ y ^ (n + 1) :=
-let ⟨m, hle, hlt⟩ := exists_int_pow_near (inv_pos.2 hx) hy in
+  ∃ n : ℤ, x ∈ set.Ioc (y ^ n) (y ^ (n + 1)) :=
+let ⟨m, hle, hlt⟩ := exists_mem_Ico_zpow (inv_pos.2 hx) hy in
 have hyp : 0 < y, from lt_trans zero_lt_one hy,
 ⟨-(m+1),
-by rwa [fpow_neg, inv_lt (fpow_pos_of_pos hyp _) hx],
-by rwa [neg_add, neg_add_cancel_right, fpow_neg,
-        le_inv hx (fpow_pos_of_pos hyp _)]⟩
+by rwa [zpow_neg₀, inv_lt (zpow_pos_of_pos hyp _) hx],
+by rwa [neg_add, neg_add_cancel_right, zpow_neg₀,
+        le_inv hx (zpow_pos_of_pos hyp _)]⟩
 
 /-- For any `y < 1` and any positive `x`, there exists `n : ℕ` with `y ^ n < x`. -/
 lemma exists_pow_lt_of_lt_one [archimedean α] {x y : α} (hx : 0 < x) (hy : y < 1) :
@@ -329,15 +340,18 @@ begin
   split; linarith
 end
 
-@[simp, norm_cast] theorem rat.cast_floor (x : ℚ) : ⌊(x:α)⌋ = ⌊x⌋ :=
+@[simp, norm_cast] theorem rat.floor_cast (x : ℚ) : ⌊(x:α)⌋ = ⌊x⌋ :=
 floor_eq_iff.2 (by exact_mod_cast floor_eq_iff.1 (eq.refl ⌊x⌋))
 
-@[simp, norm_cast] theorem rat.cast_ceil (x : ℚ) : ⌈(x:α)⌉ = ⌈x⌉ :=
-by rw [←neg_inj, ←floor_neg, ←floor_neg, ← rat.cast_neg, rat.cast_floor]
+@[simp, norm_cast] theorem rat.ceil_cast (x : ℚ) : ⌈(x:α)⌉ = ⌈x⌉ :=
+by rw [←neg_inj, ←floor_neg, ←floor_neg, ← rat.cast_neg, rat.floor_cast]
 
-@[simp, norm_cast] theorem rat.cast_round (x : ℚ) : round (x:α) = round x :=
+@[simp, norm_cast] theorem rat.round_cast (x : ℚ) : round (x:α) = round x :=
 have ((x + 1 / 2 : ℚ) : α) = x + 1 / 2, by simp,
-by rw [round, round, ← this, rat.cast_floor]
+by rw [round, round, ← this, rat.floor_cast]
+
+@[simp, norm_cast] theorem rat.cast_fract (x : ℚ) : (↑(fract x) : α) = fract x :=
+by { simp only [fract, rat.cast_sub], simp }
 
 end
 

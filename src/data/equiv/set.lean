@@ -205,7 +205,7 @@ protected def of_eq {α : Type u} {s t : set α} (h : s = t) : s ≃ t :=
 protected def insert {α} {s : set.{u} α} [decidable_pred (∈ s)] {a : α} (H : a ∉ s) :
   (insert a s : set α) ≃ s ⊕ punit.{u+1} :=
 calc (insert a s : set α) ≃ ↥(s ∪ {a}) : equiv.set.of_eq (by simp)
-... ≃ s ⊕ ({a} : set α) : equiv.set.union (by finish [set.subset_def])
+... ≃ s ⊕ ({a} : set α) : equiv.set.union (λ x ⟨hx, hx'⟩, by simp [*] at *)
 ... ≃ s ⊕ punit.{u+1} : sum_congr (equiv.refl _) (equiv.set.singleton _)
 
 @[simp] lemma insert_symm_apply_inl {α} {s : set.{u} α} [decidable_pred (∈ s)] {a : α} (H : a ∉ s)
@@ -447,6 +447,10 @@ begin
   simp [apply_of_injective_symm f hf],
 end
 
+lemma coe_of_injective_symm {α β} (f : α → β) (hf : injective f) :
+  ((of_injective f hf).symm : range f → α) = range_splitting f :=
+by { ext ⟨y, x, rfl⟩, apply hf, simp [apply_range_splitting f] }
+
 @[simp] lemma self_comp_of_injective_symm {α β} (f : α → β) (hf : injective f) :
   f ∘ ((of_injective f hf).symm) = coe :=
 funext (λ x, apply_of_injective_symm f hf x)
@@ -454,8 +458,8 @@ funext (λ x, apply_of_injective_symm f hf x)
 lemma of_left_inverse_eq_of_injective {α β : Type*}
   (f : α → β) (f_inv : nonempty α → β → α) (hf : Π h : nonempty α, left_inverse (f_inv h) f) :
   of_left_inverse f f_inv hf = of_injective f
-    ((em (nonempty α)).elim (λ h, (hf h).injective) (λ h _ _ _, by {
-      haveI : subsingleton α := subsingleton_of_not_nonempty h, simp })) :=
+    ((em (nonempty α)).elim (λ h, (hf h).injective) (λ h _ _ _, by
+    { haveI : subsingleton α := subsingleton_of_not_nonempty h, simp })) :=
 by { ext, simp }
 
 lemma of_left_inverse'_eq_of_injective {α β : Type*}

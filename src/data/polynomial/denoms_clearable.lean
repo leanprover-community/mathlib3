@@ -35,7 +35,7 @@ def denoms_clearable (a b : R) (N : ℕ) (f : polynomial R) (i : R →+* K) : Pr
 
 lemma denoms_clearable_zero (N : ℕ) (a : R) (bu : bi * i b = 1) :
   denoms_clearable a b N 0 i :=
-⟨0, bi, bu, by simp only [eval_zero, ring_hom.map_zero, mul_zero, map_zero]⟩
+⟨0, bi, bu, by simp only [eval_zero, ring_hom.map_zero, mul_zero, polynomial.map_zero]⟩
 
 lemma denoms_clearable_C_mul_X_pow {N : ℕ} (a : R) (bu : bi * i b = 1) {n : ℕ} (r : R)
   (nN : n ≤ N) : denoms_clearable a b N (C r * X ^ n) i :=
@@ -43,7 +43,7 @@ begin
   refine ⟨r * a ^ n * b ^ (N - n), bi, bu, _⟩,
   rw [C_mul_X_pow_eq_monomial, map_monomial, ← C_mul_X_pow_eq_monomial, eval_mul, eval_pow, eval_C],
   rw [ring_hom.map_mul, ring_hom.map_mul, ring_hom.map_pow, ring_hom.map_pow, eval_X, mul_comm],
-  rw [← nat.sub_add_cancel nN] {occs := occurrences.pos [2]},
+  rw [← tsub_add_cancel_of_le nN] {occs := occurrences.pos [2]},
   rw [pow_add, mul_assoc, mul_comm (i b ^ n), mul_pow, mul_assoc, mul_assoc (i a ^ n), ← mul_pow],
   rw [bu, one_pow, mul_one],
 end

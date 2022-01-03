@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kexing Ying
 -/
 import measure_theory.decomposition.signed_hahn
+import measure_theory.measure.mutually_singular
 
 /-!
 # Jordan decomposition
@@ -19,7 +20,7 @@ is useful for the Lebesgue decomposition theorem.
 
 * `measure_theory.jordan_decomposition`: a Jordan decomposition of a measurable space is a
   pair of mutually singular finite measures. We say `j` is a Jordan decomposition of a signed
-  meausre `s` if `s = j.pos_part - j.neg_part`.
+  measure `s` if `s = j.pos_part - j.neg_part`.
 * `measure_theory.signed_measure.to_jordan_decomposition`: the Jordan decomposition of a
   signed measure.
 * `measure_theory.signed_measure.to_jordan_decomposition_equiv`: is the `equiv` between
@@ -63,7 +64,7 @@ open measure vector_measure
 variable (j : jordan_decomposition α)
 
 instance : has_zero (jordan_decomposition α) :=
-{ zero := ⟨0, 0, mutually_singular.zero⟩ }
+{ zero := ⟨0, 0, mutually_singular.zero_right⟩ }
 
 instance : inhabited (jordan_decomposition α) :=
 { default := 0 }
@@ -556,7 +557,7 @@ end
 lemma total_variation_mutually_singular_iff (s : signed_measure α) (μ : measure α) :
   s.total_variation ⊥ₘ μ ↔
   s.to_jordan_decomposition.pos_part ⊥ₘ μ ∧ s.to_jordan_decomposition.neg_part ⊥ₘ μ :=
-measure.mutually_singular.add_iff
+measure.mutually_singular.add_left_iff
 
 end signed_measure
 

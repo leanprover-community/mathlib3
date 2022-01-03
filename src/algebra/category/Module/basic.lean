@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert A. Spencer, Markus Himmel
 -/
 import algebra.category.Group.basic
-import category_theory.concrete_category
 import category_theory.limits.shapes.kernels
 import category_theory.linear
 import linear_algebra.basic
@@ -88,6 +87,11 @@ instance has_forget_to_AddCommGroup : has_forget₂ (Module R) AddCommGroup :=
 { forget₂ :=
   { obj := λ M, AddCommGroup.of M,
     map := λ M₁ M₂ f, linear_map.to_add_monoid_hom f } }
+
+-- TODO: instantiate `linear_map_class` once that gets defined
+instance (M N : Module R) : add_monoid_hom_class (M ⟶ N) M N :=
+{ coe := λ f, f,
+  .. linear_map.add_monoid_hom_class }
 
 /-- The object in the category of R-modules associated to an R-module -/
 def of (X : Type v) [add_comm_group X] [module R X] : Module R := ⟨X⟩

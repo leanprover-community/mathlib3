@@ -12,26 +12,41 @@ import topology.compact_open
 /-!
 # Homotopy between functions
 
-In this file, we define a homotopy between two functions `f₀` and `f₁`. First we define `homotopy`
-between the two functions, with no restrictions on the intermediate maps. Then, as in the
-formalisation in HOL-Analysis, we define `homotopy_with f₀ f₁ P`, for homotopies between `f₀` and
-`f₁`, where the intermediate maps satisfy the predicate `P`. Finally, we define
-`homotopy_rel f₀ f₁ S`, for homotopies between `f₀` and `f₁` which are fixed on `S`.
+In this file, we define a homotopy between two functions `f₀` and `f₁`. First we define 
+`continuous_map.homotopy` between the two functions, with no restrictions on the intermediate 
+maps. Then, as in the formalisation in HOL-Analysis, we define 
+`continuous_map.homotopy_with f₀ f₁ P`, for homotopies between `f₀` and `f₁`, where the 
+intermediate maps satisfy the predicate `P`. Finally, we define 
+`continuous_map.homotopy_rel f₀ f₁ S`, for homotopies between `f₀` and `f₁` which are fixed 
+on `S`.
 
 ## Definitions
 
-* `homotopy f₀ f₁ P` is the type of homotopies between `f₀` and `f₁`.
-* `homotopy_with f₀ f₁ P` is the type of homotopies between `f₀` and `f₁`, where the intermediate
-  maps satisfy the predicate `P`.
-* `homotopy_rel f₀ f₁ S` is the type of homotopies between `f₀` and `f₁` which are fixed on `S`.
+* `continuous_map.homotopy f₀ f₁` is the type of homotopies between `f₀` and `f₁`.
+* `continuous_map.homotopy_with f₀ f₁ P` is the type of homotopies between `f₀` and `f₁`, where
+  the intermediate maps satisfy the predicate `P`.
+* `continuous_map.homotopy_rel f₀ f₁ S` is the type of homotopies between `f₀` and `f₁` which 
+  are fixed on `S`.
 
 For each of the above, we have
 
 * `refl f`, which is the constant homotopy from `f` to `f`.
-* `symm F`, which reverses the homotopy `F`. For example, if `F : homotopy f₀ f₁`, then
-  `F.symm : homotopy f₁ f₀`.
-* `trans F G`, which concatenates the homotopies `F` and `G`. For example, if `F : homotopy f₀ f₁`
-  and `G : homotopy f₁ f₂`, then `F.trans G : homotopy f₀ f₂`.
+* `symm F`, which reverses the homotopy `F`. For example, if `F : continuous_map.homotopy f₀ f₁`,
+  then `F.symm : continuous_map.homotopy f₁ f₀`.
+* `trans F G`, which concatenates the homotopies `F` and `G`. For example, if 
+  `F : continuous_map.homotopy f₀ f₁` and `G : continuous_map.homotopy f₁ f₂`, then 
+  `F.trans G : continuous_map.homotopy f₀ f₂`.
+
+We also define the relations
+
+* `continuous_map.homotopic f₀ f₁` is defined to be `nonempty (continuous_map.homotopy f₀ f₁)`
+* `continuous_map.homotopic_with f₀ f₁ P` is defined to be 
+  `nonempty (continuous_map.homotopy_with f₀ f₁ P)`
+* `continuous_map.homotopic_rel f₀ f₁ P` is defined to be 
+  `nonempty (continuous_map.homotopy_rel f₀ f₁ P)`
+
+and for `continuous_map.homotopic` and `continuous_map.homotopic_rel`, we also define the 
+`setoid` and `quotient` in `C(X, Y)` by these relations.
 
 ## References
 
@@ -40,9 +55,10 @@ For each of the above, we have
 
 noncomputable theory
 
-universes u v
+universes u v w
 
-variables {X : Type u} {Y : Type v} [topological_space X] [topological_space Y]
+variables {X : Type u} {Y : Type v} {Z : Type w}
+variables [topological_space X] [topological_space Y] [topological_space Z]
 
 open_locale unit_interval
 
@@ -141,7 +157,6 @@ Given a continuous function `f`, we can define a `homotopy f f` by `F (t, x) = f
 @[simps]
 def refl (f : C(X, Y)) : homotopy f f :=
 { to_fun := λ x, f x.2,
-  continuous_to_fun := by continuity,
   to_fun_zero := λ _, rfl,
   to_fun_one := λ _, rfl }
 
@@ -154,7 +169,6 @@ Given a `homotopy f₀ f₁`, we can define a `homotopy f₁ f₀` by reversing 
 @[simps]
 def symm {f₀ f₁ : C(X, Y)} (F : homotopy f₀ f₁) : homotopy f₁ f₀ :=
 { to_fun := λ x, F (σ x.1, x.2),
-  continuous_to_fun := by continuity,
   to_fun_zero := by norm_num,
   to_fun_one := by norm_num }
 
@@ -219,11 +233,48 @@ Casting a `homotopy f₀ f₁` to a `homotopy g₀ g₁` where `f₀ = g₀` and
 def cast {f₀ f₁ g₀ g₁ : C(X, Y)} (F : homotopy f₀ f₁) (h₀ : f₀ = g₀) (h₁ : f₁ = g₁) :
   homotopy g₀ g₁ :=
 { to_fun := F,
-  continuous_to_fun := by continuity,
   to_fun_zero := by simp [←h₀],
   to_fun_one := by simp [←h₁] }
 
+/--
+If we have a `homotopy f₀ f₁` and a `homotopy g₀ g₁`, then we can compose them and get a
+`homotopy (g₀.comp f₀) (g₁.comp f₁)`.
+-/
+@[simps]
+def hcomp {f₀ f₁ : C(X, Y)} {g₀ g₁ : C(Y, Z)} (F : homotopy f₀ f₁) (G : homotopy g₀ g₁) :
+  homotopy (g₀.comp f₀) (g₁.comp f₁) :=
+{ to_fun := λ x, G (x.1, F x),
+  to_fun_zero := by simp,
+  to_fun_one := by simp }
+
 end homotopy
+
+/--
+Given continuous maps `f₀` and `f₁`, we say `f₀` and `f₁` are homotopic if there exists a
+`homotopy f₀ f₁`.
+-/
+def homotopic (f₀ f₁ : C(X, Y)) : Prop :=
+nonempty (homotopy f₀ f₁)
+
+namespace homotopic
+
+@[refl]
+lemma refl (f : C(X, Y)) : homotopic f f := ⟨homotopy.refl f⟩
+
+@[symm]
+lemma symm ⦃f g : C(X, Y)⦄ (h : homotopic f g) : homotopic g f := h.map homotopy.symm
+
+@[trans]
+lemma trans ⦃f g h : C(X, Y)⦄ (h₀ : homotopic f g) (h₁ : homotopic g h) : homotopic f h :=
+h₀.map2 homotopy.trans h₁
+
+lemma hcomp {f₀ f₁ : C(X, Y)} {g₀ g₁ : C(Y, Z)} (h₀ : homotopic f₀ f₁) (h₁ : homotopic g₀ g₁) :
+  homotopic (g₀.comp f₀) (g₁.comp f₁) :=
+h₀.map2 homotopy.hcomp h₁
+
+lemma equivalence : equivalence (@homotopic X Y _ _) := ⟨refl, symm, trans⟩
+
+end homotopic
 
 /--
 The type of homotopies between `f₀ f₁ : C(X, Y)`, where the intermediate maps satisfy the predicate
@@ -359,6 +410,31 @@ def cast {f₀ f₁ g₀ g₁ : C(X, Y)} (F : homotopy_with f₀ f₁ P) (h₀ :
 end homotopy_with
 
 /--
+Given continuous maps `f₀` and `f₁`, we say `f₀` and `f₁` are homotopic with respect to the
+predicate `P` if there exists a `homotopy_with f₀ f₁ P`.
+-/
+def homotopic_with (f₀ f₁ : C(X, Y)) (P : C(X, Y) → Prop) : Prop :=
+nonempty (homotopy_with f₀ f₁ P)
+
+namespace homotopic_with
+
+variable {P : C(X, Y) → Prop}
+
+@[refl]
+lemma refl (f : C(X, Y)) (hf : P f) : homotopic_with f f P :=
+⟨homotopy_with.refl f hf⟩
+
+@[symm]
+lemma symm ⦃f g : C(X, Y)⦄ (h : homotopic_with f g P) : homotopic_with g f P := ⟨h.some.symm⟩
+
+@[trans]
+lemma trans ⦃f g h : C(X, Y)⦄ (h₀ : homotopic_with f g P) (h₁ : homotopic_with g h P) :
+  homotopic_with f h P :=
+⟨h₀.some.trans h₁.some⟩
+
+end homotopic_with
+
+/--
 A `homotopy_rel f₀ f₁ S` is a homotopy between `f₀` and `f₁` which is fixed on the points in `S`.
 -/
 abbreviation homotopy_rel (f₀ f₁ : C(X, Y)) (S : set X) :=
@@ -441,5 +517,33 @@ def cast {f₀ f₁ g₀ g₁ : C(X, Y)} (F : homotopy_rel f₀ f₁ S) (h₀ : 
   ..homotopy.cast F.to_homotopy h₀ h₁ }
 
 end homotopy_rel
+
+/--
+Given continuous maps `f₀` and `f₁`, we say `f₀` and `f₁` are homotopic relative to a set `S` if
+there exists a `homotopy_rel f₀ f₁ S`.
+-/
+def homotopic_rel (f₀ f₁ : C(X, Y)) (S : set X) : Prop :=
+nonempty (homotopy_rel f₀ f₁ S)
+
+namespace homotopic_rel
+
+variable {S : set X}
+
+@[refl]
+lemma refl (f : C(X, Y)) : homotopic_rel f f S := ⟨homotopy_rel.refl f S⟩
+
+@[symm]
+lemma symm ⦃f g : C(X, Y)⦄ (h : homotopic_rel f g S) : homotopic_rel g f S :=
+  h.map homotopy_rel.symm
+
+@[trans]
+lemma trans ⦃f g h : C(X, Y)⦄ (h₀ : homotopic_rel f g S) (h₁ : homotopic_rel g h S) :
+  homotopic_rel f h S :=
+h₀.map2 homotopy_rel.trans h₁
+
+lemma equivalence : equivalence (λ f g : C(X, Y), homotopic_rel f g S) :=
+⟨refl, symm, trans⟩
+
+end homotopic_rel
 
 end continuous_map

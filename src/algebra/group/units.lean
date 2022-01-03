@@ -261,10 +261,18 @@ a two-sided additive inverse. The actual definition says that `a` is equal to so
 `u : add_units M`, where `add_units M` is a bundled version of `is_add_unit`."]
 def is_unit [monoid M] (a : M) : Prop := ∃ u : units M, (u : M) = a
 
-@[nontriviality] lemma is_unit_of_subsingleton [monoid M] [subsingleton M] (a : M) : is_unit a :=
+@[nontriviality, to_additive is_add_unit_of_subsingleton]
+lemma is_unit_of_subsingleton [monoid M] [subsingleton M] (a : M) : is_unit a :=
 ⟨⟨a, a, subsingleton.elim _ _, subsingleton.elim _ _⟩, rfl⟩
 
-instance [monoid M] [subsingleton M] : unique (units M) :=
+attribute [nontriviality] is_add_unit_of_subsingleton
+
+@[to_additive] instance [monoid M] : can_lift M (units M) :=
+{ coe := coe,
+  cond := is_unit,
+  prf := λ _, id }
+
+@[to_additive] instance [monoid M] [subsingleton M] : unique (units M) :=
 { default := 1,
   uniq := λ a, units.coe_eq_one.mp $ subsingleton.elim (a : M) 1 }
 
@@ -331,7 +339,7 @@ is_unit_iff_exists_inv.2 ⟨y * z, by rwa ← mul_assoc⟩
   (hu : is_unit (x * y)) : is_unit y :=
 @is_unit_of_mul_is_unit_left _ _ y x $ by rwa mul_comm
 
-@[simp]
+@[simp, to_additive]
 lemma is_unit.mul_iff [comm_monoid M] {x y : M} : is_unit (x * y) ↔ is_unit x ∧ is_unit y :=
 ⟨λ h, ⟨is_unit_of_mul_is_unit_left h, is_unit_of_mul_is_unit_right h⟩,
   λ h, is_unit.mul h.1 h.2⟩
@@ -345,16 +353,21 @@ by cases ha with a ha; rw [←ha, units.mul_right_inj]
 by cases ha with a ha; rw [←ha, units.mul_left_inj]
 
 /-- The element of the group of units, corresponding to an element of a monoid which is a unit. -/
+@[to_additive "The element of the additive group of additive units, corresponding to an element of
+an additive monoid which is an additive unit."]
 noncomputable def is_unit.unit [monoid M] {a : M} (h : is_unit a) : units M :=
 (classical.some h).copy a (classical.some_spec h).symm _ rfl
 
+@[to_additive]
 lemma is_unit.unit_spec [monoid M] {a : M} (h : is_unit a) : ↑h.unit = a :=
 rfl
 
+@[to_additive]
 lemma is_unit.coe_inv_mul [monoid M] {a : M} (h : is_unit a) :
   ↑(h.unit)⁻¹ * a = 1 :=
 units.mul_inv _
 
+@[to_additive]
 lemma is_unit.mul_coe_inv [monoid M] {a : M} (h : is_unit a) :
   a * ↑(h.unit)⁻¹ = 1 :=
 begin
@@ -371,18 +384,18 @@ variables {M : Type*}
 /-- Constructs a `group` structure on a `monoid` consisting only of units. -/
 noncomputable def group_of_is_unit [hM : monoid M] (h : ∀ (a : M), is_unit a) : group M :=
 { inv := λ a, ↑((h a).unit)⁻¹,
-  mul_left_inv := λ a, by {
-    change ↑((h a).unit)⁻¹ * a = 1,
+  mul_left_inv := λ a, by
+  { change ↑((h a).unit)⁻¹ * a = 1,
     rw [units.inv_mul_eq_iff_eq_mul, (h a).unit_spec, mul_one] },
-.. hM }
+  .. hM }
 
 /-- Constructs a `comm_group` structure on a `comm_monoid` consisting only of units. -/
 noncomputable def comm_group_of_is_unit [hM : comm_monoid M] (h : ∀ (a : M), is_unit a) :
   comm_group M :=
 { inv := λ a, ↑((h a).unit)⁻¹,
-  mul_left_inv := λ a, by {
-    change ↑((h a).unit)⁻¹ * a = 1,
+  mul_left_inv := λ a, by
+  { change ↑((h a).unit)⁻¹ * a = 1,
     rw [units.inv_mul_eq_iff_eq_mul, (h a).unit_spec, mul_one] },
-.. hM }
+  .. hM }
 
 end noncomputable_defs

@@ -148,8 +148,8 @@ E.g. `prod.group` returns 1, and `pi.has_one` returns 2.
 meta def first_multiplicative_arg (nm : name) : tactic ℕ := do
   d ← get_decl nm,
   let (es, _) := d.type.pi_binders,
-  l ← es.mmap_with_index $ λ n bi, do {
-    let tgt := bi.type.pi_codomain,
+  l ← es.mmap_with_index $ λ n bi, do
+  { let tgt := bi.type.pi_codomain,
     let n_bi := bi.type.pi_binders.fst.length,
     tt ← has_attribute' `to_additive tgt.get_app_fn.const_name | return none,
     let n2 := tgt.get_app_args.head.get_app_fn.match_var.map $ λ m, n + n_bi - m,
@@ -212,7 +212,7 @@ meta def tr : bool → list string → list string
 | is_comm ("prod" :: s)               := add_comm_prefix is_comm "sum"       :: tr ff s
 | is_comm ("finprod" :: s)            := add_comm_prefix is_comm "finsum"    :: tr ff s
 | is_comm ("npow" :: s)               := add_comm_prefix is_comm "nsmul"     :: tr ff s
-| is_comm ("gpow" :: s)               := add_comm_prefix is_comm "gsmul"     :: tr ff s
+| is_comm ("zpow" :: s)               := add_comm_prefix is_comm "zsmul"     :: tr ff s
 | is_comm ("monoid" :: s)      := ("add_" ++ add_comm_prefix is_comm "monoid")    :: tr ff s
 | is_comm ("submonoid" :: s)   := ("add_" ++ add_comm_prefix is_comm "submonoid") :: tr ff s
 | is_comm ("group" :: s)       := ("add_" ++ add_comm_prefix is_comm "group")     :: tr ff s
@@ -326,12 +326,22 @@ copied to the additive version, then `to_additive` should come last:
 @[simp, to_additive] lemma mul_one' {G : Type*} [group G] (x : G) : x * 1 = x := mul_one x
 ```
 
+The following attributes are supported and should be applied correctly by `to_additive` to
+the new additivized declaration, if they were present on the original one:
+```
+reducible, _refl_lemma, simp, norm_cast, instance, refl, symm, trans, elab_as_eliminator, no_rsimp,
+continuity, ext, ematch, measurability, alias, _ext_core, _ext_lemma_core, nolint
+```
+
 The exception to this rule is the `simps` attribute, which should come after `to_additive`:
 
 ```
 @[to_additive, simps]
 instance {M N} [has_mul M] [has_mul N] : has_mul (M × N) := ⟨λ p q, ⟨p.1 * q.1, p.2 * q.2⟩⟩
 ```
+
+Additionally the `mono` attribute is not handled by `to_additive` and should be applied afterwards
+to both the original and additivized lemma.
 
 ## Implementation notes
 
@@ -442,8 +452,10 @@ scans its type and value for names starting with `src`, and transports
 them. This includes auxiliary definitions like `src._match_1`,
 `src._proof_1`.
 
-After transporting the “main” declaration, `to_additive` transports
-its equational lemmas.
+In addition to transporting the “main” declaration, `to_additive` transports
+its equational lemmas and tags them as equational lemmas for the new declaration,
+attributes present on the original equational lemmas are also transferred first (notably
+`_refl_lemma`).
 
 ### Structure fields and constructors
 

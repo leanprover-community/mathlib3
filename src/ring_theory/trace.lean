@@ -20,6 +20,27 @@ Suppose we have an `R`-algebra `S` with a finite basis. For each `s : S`,
 the trace of the linear map given by multiplying by `s` gives information about
 the roots of the minimal polynomial of `s` over `R`.
 
+## Main definitions
+
+ * `algebra.trace R S x`: the trace of an element `s` of an `R`-algebra `S`
+ * `algebra.trace_form R S`: bilinear form sending `x`, `y` to the trace of `x * y`
+ * `algebra.trace_matrix R b`: the matrix whose `(i j)`-th element is the trace of `b i * b j`.
+ * `algebra.embeddings_matrix A C b : matrix κ (B →ₐ[A] C) C` is the matrix whose
+   `(i, σ)` coefficient is `σ (b i)`.
+ * `algebra.embeddings_matrix_reindex A C b e : matrix κ κ C` is the matrix whose `(i, j)`
+   coefficient is `σⱼ (b i)`, where `σⱼ : B →ₐ[A] C` is the embedding corresponding to `j : κ`
+   given by a bijection `e : κ ≃ (B →ₐ[A] C)`.
+
+## Main results
+
+ * `trace_algebra_map_of_basis`, `trace_algebra_map`: if `x : K`, then `Tr_{L/K} x = [L : K] x`
+ * `trace_trace_of_basis`, `trace_trace`: `Tr_{L/K} (Tr_{F/L} x) = Tr_{F/K} x`
+ * `trace_eq_sum_roots`: the trace of `x : K(x)` is the sum of all conjugate roots of `x`
+ * `trace_eq_sum_embeddings`: the trace of `x : K(x)` is the sum of all embeddings of `x` into an
+   algebraically closed field
+ * `trace_form_nondegenerate`: the trace form over a separable extension is a nondegenerate
+   bilinear form
+
 ## Implementation notes
 
 Typically, the trace is defined specifically for finite field extensions.
@@ -36,12 +57,12 @@ For now, the definitions assume `S` is commutative, so the choice doesn't matter
 
 -/
 
-universes u v w
+universes u v w z
 
 variables {R S T : Type*} [comm_ring R] [comm_ring S] [comm_ring T]
 variables [algebra R S] [algebra R T]
 variables {K L : Type*} [field K] [field L] [algebra K L]
-variables {ι : Type w} [fintype ι]
+variables {ι κ : Type w} [fintype ι]
 
 open finite_dimensional
 open linear_map
@@ -152,7 +173,7 @@ variables {S}
 -- This is a nicer lemma than the one produced by `@[simps] def trace_form`.
 @[simp] lemma trace_form_apply (x y : S) : trace_form R S x y = trace R S (x * y) := rfl
 
-lemma trace_form_is_sym : sym_bilin_form.is_sym (trace_form R S) :=
+lemma trace_form_is_symm : (trace_form R S).is_symm :=
 λ x y, congr_arg (trace R S) (mul_comm _ _)
 
 lemma trace_form_to_matrix [decidable_eq ι] (i j) :
@@ -243,9 +264,7 @@ lemma trace_eq_trace_adjoin [finite_dimensional K L] (x : L) :
 begin
   rw ← @trace_trace _ _ K K⟮x⟯ _ _ _ _ _ _ _ _ x,
   conv in x { rw ← intermediate_field.adjoin_simple.algebra_map_gen K x },
-  rw [trace_algebra_map, ← is_scalar_tower.algebra_map_smul K, (algebra.trace K K⟮x⟯).map_smul,
-      smul_eq_mul, algebra.smul_def],
-  apply_instance
+  rw [trace_algebra_map, linear_map.map_smul_of_tower],
 end
 
 variables {K}
@@ -297,7 +316,8 @@ begin
   letI := classical.dec_eq E,
   rw [pb.trace_gen_eq_sum_roots hE, fintype.sum_equiv pb.lift_equiv', finset.sum_mem_multiset,
       finset.sum_eq_multiset_sum, multiset.to_finset_val,
-      multiset.erase_dup_eq_self.mpr (nodup_roots ((separable_map _).mpr hfx)), multiset.map_id],
+      multiset.erase_dup_eq_self.mpr _, multiset.map_id],
+  { exact nodup_roots ((separable_map _).mpr hfx) },
   { intro x, refl },
   { intro σ, rw [power_basis.lift_equiv'_apply_coe, id.def] }
 end
@@ -327,9 +347,9 @@ begin
 end
 
 lemma trace_eq_sum_embeddings [finite_dimensional K L] [is_separable K L]
-  {x : L} (hx : is_integral K x) :
-  algebra_map K E (algebra.trace K L x) = ∑ σ : L →ₐ[K] E, σ x :=
+  {x : L} : algebra_map K E (algebra.trace K L x) = ∑ σ : L →ₐ[K] E, σ x :=
 begin
+  have hx := is_separable.is_integral K x,
   rw [trace_eq_trace_adjoin K x, algebra.smul_def, ring_hom.map_mul, ← adjoin.power_basis_gen hx,
       trace_eq_sum_embeddings_gen E (adjoin.power_basis hx) (is_alg_closed.splits_codomain _),
       ← algebra.smul_def, algebra_map_smul],
@@ -342,37 +362,120 @@ end eq_sum_embeddings
 
 section det_ne_zero
 
+namespace algebra
+
+variables (A : Type u) {B : Type v} (C : Type z)
+variables [comm_ring A] [comm_ring B] [algebra A B] [comm_ring C] [algebra A C]
+
+open finset
+
+/-- Given an `A`-algebra `B` and `b`, an `κ`-indexed family of elements of `B`, we define
+`trace_matrix A b` as the matrix whose `(i j)`-th element is the trace of `b i * b j`. -/
+@[simp] noncomputable
+def trace_matrix (b : κ → B) : matrix κ κ A
+| i j := trace_form A B (b i) (b j)
+
+lemma trace_matrix_def (b : κ → B) : trace_matrix A b = λ i j, trace_form A B (b i) (b j) := rfl
+
+variables {A}
+
+lemma trace_matrix_of_matrix_vec_mul [fintype κ] (b : κ → B) (P : matrix κ κ A) :
+  trace_matrix A ((P.map (algebra_map A B)).vec_mul b) = Pᵀ ⬝ (trace_matrix A b) ⬝ P :=
+begin
+  ext α β,
+  rw [trace_matrix, vec_mul, dot_product, vec_mul, dot_product, matrix.mul_apply,
+    bilin_form.sum_left, fintype.sum_congr _ _ (λ (i : κ), @bilin_form.sum_right _ _ _ _ _ _ _ _
+    (b i * P.map (algebra_map A B) i α) (λ (y : κ), b y * P.map (algebra_map A B) y β)), sum_comm],
+  congr, ext x,
+  rw [matrix.mul_apply, sum_mul],
+  congr, ext y,
+  rw [map_apply, trace_form_apply, mul_comm (b y), ← smul_def],
+  simp only [id.smul_eq_mul, ring_hom.id_apply, map_apply, transpose_apply, linear_map.map_smulₛₗ,
+    trace_form_apply, algebra.smul_mul_assoc],
+  rw [mul_comm (b x), ← smul_def],
+  ring_nf,
+  simp,
+end
+
+lemma trace_matrix_of_matrix_mul_vec [fintype κ] (b : κ → B) (P : matrix κ κ A) :
+  trace_matrix A ((P.map (algebra_map A B)).mul_vec b) = P ⬝ (trace_matrix A b) ⬝ Pᵀ :=
+begin
+  refine add_equiv.injective transpose_add_equiv _,
+  rw [transpose_add_equiv_apply, transpose_add_equiv_apply, ← vec_mul_transpose,
+    ← transpose_map, trace_matrix_of_matrix_vec_mul, transpose_transpose, transpose_mul,
+    transpose_transpose, transpose_mul]
+end
+
+lemma trace_matrix_of_basis [fintype κ] [decidable_eq κ] (b : basis κ A B) :
+  trace_matrix A b = bilin_form.to_matrix b (trace_form A B) :=
+begin
+  ext i j,
+  rw [trace_matrix, trace_form_apply, trace_form_to_matrix]
+end
+
+variable (A)
+/-- `embeddings_matrix A C b : matrix κ (B →ₐ[A] C) C` is the matrix whose `(i, σ)` coefficient is
+  `σ (b i)`. It is mostly useful for fields when `fintype.card κ = finrank A B` and `C` is
+  algebraically closed. -/
+@[simp] def embeddings_matrix (b : κ → B) : matrix κ (B →ₐ[A] C) C
+| i σ := σ (b i)
+
+/-- `embeddings_matrix_reindex A C b e : matrix κ κ C` is the matrix whose `(i, j)` coefficient
+  is `σⱼ (b i)`, where `σⱼ : B →ₐ[A] C` is the embedding corresponding to `j : κ` given by a
+  bijection `e : κ ≃ (B →ₐ[A] C)`. It is mostly useful for fields and `C` is algebraically closed.
+  In this case, in presence of `h : fintype.card κ = finrank A B`, one can take
+  `e := equiv_of_card_eq ((alg_hom.card A B C).trans h.symm)`. -/
+def embeddings_matrix_reindex (b : κ → B) (e : κ ≃ (B →ₐ[A] C)) :=
+reindex (equiv.refl κ) e.symm (embeddings_matrix A C b)
+
+variable {A}
+
+lemma embeddings_matrix_reindex_eq_vandermonde (pb : power_basis A B)
+  (e : fin pb.dim ≃ (B →ₐ[A] C)) :
+  embeddings_matrix_reindex A C pb.basis e = (vandermonde (λ i, e i pb.gen))ᵀ :=
+by { ext i j, simp [embeddings_matrix_reindex, embeddings_matrix] }
+
+section field
+
+variables (K) {L} (E : Type z) [field E]
+variables [algebra K E]
+variables [module.finite K L] [is_separable K L] [is_alg_closed E]
+variables (b : κ → L) (pb : power_basis K L)
+
+lemma trace_matrix_eq_embeddings_matrix_mul_trans :
+  (trace_matrix K b).map (algebra_map K E) =
+  (embeddings_matrix K E b) ⬝ (embeddings_matrix K E b)ᵀ :=
+by { ext i j, simp [trace_eq_sum_embeddings, embeddings_matrix, matrix.mul_apply] }
+
+lemma trace_matrix_eq_embeddings_matrix_reindex_mul_trans [fintype κ]
+  (e : κ ≃ (L →ₐ[K] E)) : (trace_matrix K b).map (algebra_map K E) =
+  (embeddings_matrix_reindex K E b e) ⬝ (embeddings_matrix_reindex K E b e)ᵀ :=
+by rw [trace_matrix_eq_embeddings_matrix_mul_trans, embeddings_matrix_reindex, reindex_apply,
+  transpose_minor, ← minor_mul_transpose_minor, ← equiv.coe_refl, equiv.refl_symm]
+
+end field
+
+end algebra
+
 open algebra
 
 variables (pb : power_basis K L)
 
-lemma det_trace_form_ne_zero' [is_separable K L] :
-  det (bilin_form.to_matrix pb.basis (trace_form K L)) ≠ 0 :=
+lemma det_trace_matrix_ne_zero' [is_separable K L] :
+  det (trace_matrix K pb.basis) ≠ 0 :=
 begin
-  suffices : algebra_map K (algebraic_closure L)
-    (det (bilin_form.to_matrix pb.basis (trace_form K L))) ≠ 0,
+  suffices : algebra_map K (algebraic_closure L) (det (trace_matrix K pb.basis)) ≠ 0,
   { refine mt (λ ht, _) this,
     rw [ht, ring_hom.map_zero] },
   haveI : finite_dimensional K L := pb.finite_dimensional,
-  let e : (L →ₐ[K] algebraic_closure L) ≃ fin pb.dim := fintype.equiv_fin_of_card_eq _,
-  let M : matrix (fin pb.dim) (fin pb.dim) (algebraic_closure L) :=
-    vandermonde (λ i, e.symm i pb.gen),
-  calc algebra_map K (algebraic_closure _) (bilin_form.to_matrix pb.basis (trace_form K L)).det
-      = det ((algebra_map K _).map_matrix $
-              bilin_form.to_matrix pb.basis (trace_form K L)) : ring_hom.map_det _ _
-  ... = det (Mᵀ ⬝ M) : _
-  ... = det M * det M : by rw [det_mul, det_transpose]
-  ... ≠ 0 : mt mul_self_eq_zero.mp _,
-  { refine congr_arg det _, ext i j,
-    rw [vandermonde_transpose_mul_vandermonde, ring_hom.map_matrix_apply, matrix.map_apply,
-        bilin_form.to_matrix_apply, pb.basis_eq_pow, pb.basis_eq_pow, trace_form_apply,
-        ← pow_add, trace_eq_sum_embeddings (algebraic_closure L) (pb.is_integral_gen.pow _),
-        fintype.sum_equiv e],
-    intros σ,
-    rw [e.symm_apply_apply, σ.map_pow] },
+  let e : fin pb.dim ≃ (L →ₐ[K] algebraic_closure L) := (fintype.equiv_fin_of_card_eq _).symm,
+  rw [ring_hom.map_det, ring_hom.map_matrix_apply,
+      trace_matrix_eq_embeddings_matrix_reindex_mul_trans K _ _ e,
+      embeddings_matrix_reindex_eq_vandermonde, det_mul, det_transpose],
+  refine mt mul_self_eq_zero.mp _,
   { simp only [det_vandermonde, finset.prod_eq_zero_iff, not_exists, sub_eq_zero],
     intros i _ j hij h,
-    exact (finset.mem_filter.mp hij).2.ne' (e.symm.injective $ pb.alg_hom_ext h) },
+    exact (finset.mem_filter.mp hij).2.ne' (e.injective $ pb.alg_hom_ext h) },
   { rw [alg_hom.card, pb.finrank] }
 end
 
@@ -387,14 +490,15 @@ begin
   swap, { apply basis.to_matrix_mul_to_matrix_flip },
   refine mul_ne_zero
     (is_unit_of_mul_eq_one _ ((b.to_matrix pb.basis)ᵀ ⬝ b.to_matrix pb.basis).det _).ne_zero
-    (det_trace_form_ne_zero' pb),
-  calc (pb.basis.to_matrix b ⬝ (pb.basis.to_matrix b)ᵀ).det *
-      ((b.to_matrix pb.basis)ᵀ ⬝ b.to_matrix pb.basis).det
-      = (pb.basis.to_matrix b ⬝ (b.to_matrix pb.basis ⬝ pb.basis.to_matrix b)ᵀ ⬝
-        b.to_matrix pb.basis).det
-      : by simp only [← det_mul, matrix.mul_assoc, matrix.transpose_mul]
-  ... = 1 : by simp only [basis.to_matrix_mul_to_matrix_flip, matrix.transpose_one,
-                          matrix.mul_one, matrix.det_one]
+    _,
+  { calc (pb.basis.to_matrix b ⬝ (pb.basis.to_matrix b)ᵀ).det *
+        ((b.to_matrix pb.basis)ᵀ ⬝ b.to_matrix pb.basis).det
+        = (pb.basis.to_matrix b ⬝ (b.to_matrix pb.basis ⬝ pb.basis.to_matrix b)ᵀ ⬝
+          b.to_matrix pb.basis).det
+        : by simp only [← det_mul, matrix.mul_assoc, matrix.transpose_mul]
+    ... = 1 : by simp only [basis.to_matrix_mul_to_matrix_flip, matrix.transpose_one,
+                            matrix.mul_one, matrix.det_one] },
+  simpa only [trace_matrix_of_basis] using det_trace_matrix_ne_zero' pb
 end
 
 variables (K L)

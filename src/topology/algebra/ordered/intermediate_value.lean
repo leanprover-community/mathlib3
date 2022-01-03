@@ -375,14 +375,14 @@ on a closed subset, contains `a`, and for any `x ∈ s ∩ [a, b)` the set `s` i
 neighborhood of `x` within `(x, +∞)`, then `[a, b] ⊆ s`. -/
 lemma is_closed.Icc_subset_of_forall_mem_nhds_within {a b : α} {s : set α}
   (hs : is_closed (s ∩ Icc a b)) (ha : a ∈ s)
-  (hgt : ∀ x ∈ s ∩ Ico a b, s ∈ 𝓝[Ioi x] x) :
+  (hgt : ∀ x ∈ s ∩ Ico a b, s ∈ 𝓝[>] x) :
   Icc a b ⊆ s :=
 begin
   apply hs.Icc_subset_of_forall_exists_gt ha,
   rintros x ⟨hxs, hxab⟩ y hyxb,
-  have : s ∩ Ioc x y ∈ 𝓝[Ioi x] x,
+  have : s ∩ Ioc x y ∈ 𝓝[>] x,
     from inter_mem (hgt x ⟨hxs, hxab⟩) (Ioc_mem_nhds_within_Ioi ⟨le_refl _, hyxb⟩),
-  exact (nhds_within_Ioi_self_ne_bot' hxab.2).nonempty_of_mem this
+  exact (nhds_within_Ioi_self_ne_bot' ⟨b, hxab.2⟩).nonempty_of_mem this
 end
 
 /-- A closed interval in a densely ordered conditionally complete linear order is preconnected. -/
@@ -398,7 +398,7 @@ begin
   apply (is_closed.inter hs is_closed_Icc).Icc_subset_of_forall_mem_nhds_within hx.2,
   rintros z ⟨zs, hz⟩,
   have zt : z ∈ tᶜ, from λ zt, hst ⟨z, xyab $ Ico_subset_Icc_self hz, zs, zt⟩,
-  have : tᶜ ∩ Ioc z y ∈ 𝓝[Ioi z] z,
+  have : tᶜ ∩ Ioc z y ∈ 𝓝[>] z,
   { rw [← nhds_within_Ioc_eq_nhds_within_Ioi hz.2],
     exact mem_nhds_within.2 ⟨tᶜ, ht.is_open_compl, zt, subset.refl _⟩},
   apply mem_of_superset this,
@@ -519,6 +519,20 @@ or.elim (eq_or_lt_of_le hab) (λ he y h, absurd h.1 (not_lt_of_lt (he ▸ h.2)))
   inf_le_right inf_le_right _ (hf.mono Ioo_subset_Icc_self)
   _ _ ((hf.continuous_within_at ⟨hab, refl b⟩).mono Ioo_subset_Icc_self)
   ((hf.continuous_within_at ⟨refl a, hab⟩).mono Ioo_subset_Icc_self))
+
+/-- **Intermediate value theorem**: if `f` is continuous on an order-connected set `s` and `a`,
+`b` are two points of this set, then `f` sends `s` to a superset of `Icc (f x) (f y)`. -/
+lemma continuous_on.surj_on_Icc {s : set α} [hs : ord_connected s] {f : α → δ}
+  (hf : continuous_on f s) {a b : α} (ha : a ∈ s) (hb : b ∈ s) :
+  surj_on f s (Icc (f a) (f b)) :=
+hs.is_preconnected.intermediate_value ha hb hf
+
+/-- **Intermediate value theorem**: if `f` is continuous on an order-connected set `s` and `a`,
+`b` are two points of this set, then `f` sends `s` to a superset of `[f x, f y]`. -/
+lemma continuous_on.surj_on_interval {s : set α} [hs : ord_connected s] {f : α → δ}
+  (hf : continuous_on f s) {a b : α} (ha : a ∈ s) (hb : b ∈ s) :
+  surj_on f s (interval (f a) (f b)) :=
+by cases le_total (f a) (f b) with hab hab; simp [hf.surj_on_Icc, *]
 
 /-- A continuous function which tendsto `at_top` `at_top` and to `at_bot` `at_bot` is surjective. -/
 lemma continuous.surjective {f : α → δ} (hf : continuous f) (h_top : tendsto f at_top at_top)

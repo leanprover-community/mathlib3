@@ -4,12 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne, Yury Kudryashov
 -/
 import data.real.sqrt
-import data.rat.sqrt
-import ring_theory.int.basic
-import data.polynomial.eval
-import data.polynomial.degree
 import tactic.interval_cases
 import ring_theory.algebraic
+import data.rat.sqrt
+import data.polynomial.eval
+import ring_theory.int.basic
 /-!
 # Irrational real numbers
 
@@ -353,9 +352,9 @@ theorem of_pow : ∀ n : ℕ, irrational (x^n) → irrational x
 | 0 := λ h, by { rw pow_zero at h, exact (h ⟨1, cast_one⟩).elim }
 | (n+1) := λ h, by { rw pow_succ at h, exact h.mul_cases.elim id (of_pow n) }
 
-theorem of_fpow : ∀ m : ℤ, irrational (x^m) → irrational x
+theorem of_zpow : ∀ m : ℤ, irrational (x^m) → irrational x
 | (n:ℕ) := of_pow n
-| -[1+n] := λ h, by { rw gpow_neg_succ_of_nat at h, exact h.of_inv.of_pow _ }
+| -[1+n] := λ h, by { rw zpow_neg_succ_of_nat at h, exact h.of_inv.of_pow _ }
 
 end irrational
 

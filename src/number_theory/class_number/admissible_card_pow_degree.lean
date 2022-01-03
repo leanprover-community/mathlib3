@@ -3,9 +3,10 @@ Copyright (c) 2021 Anne Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen
 -/
-import data.polynomial.degree.card_pow_degree
-import field_theory.finite.basic
 import number_theory.class_number.admissible_absolute_value
+import analysis.special_functions.pow
+import ring_theory.ideal.local_ring
+import data.polynomial.degree.card_pow_degree
 
 /-!
 # Admissible absolute values on polynomials
@@ -89,7 +90,7 @@ begin
       have := lt_of_le_of_lt hj (nat.lt_succ_self j),
       rwa [tsub_lt_iff_tsub_lt hd hbj] at this } },
   have : j = b.nat_degree - (nat_degree b - j.succ).succ,
-  { rw [← nat.succ_sub hbj, nat.succ_sub_succ, nat.sub_sub_self hbj.le] },
+  { rw [← nat.succ_sub hbj, nat.succ_sub_succ, tsub_tsub_cancel_of_le hbj.le] },
   convert congr_fun i_eq.symm ⟨nat_degree b - j.succ, hj⟩
 end
 

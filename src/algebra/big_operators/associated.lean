@@ -136,13 +136,3 @@ lemma prime.dvd_finsupp_prod_iff  {f: α →₀ M} {g : α → M → ℕ} {p : �
 prime.dvd_finset_prod_iff pp _
 
 end comm_monoid_with_zero
-
--- todo use nat.prime
-lemma nat.prime.dvd_finset_prod_iff {α : Type*} {S : finset α} {p : ℕ}
-  (pp : prime p) (g : α → ℕ) : p ∣ S.prod g ↔ ∃ a ∈ S, p ∣ g a :=
-by apply prime.dvd_finset_prod_iff pp
-
-lemma nat.prime.dvd_finsupp_prod_iff {α M : Type*} [has_zero M] {f: α →₀ M}
-  {g : α → M → ℕ} {p : ℕ} (pp : prime p) :
-p ∣ f.prod g ↔ ∃ a ∈ f.support, p ∣ g a (f a) :=
-nat.prime.dvd_finset_prod_iff pp _

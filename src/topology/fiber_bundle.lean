@@ -206,6 +206,10 @@ lemma proj_symm_apply' {b : B} {x : F} (hx : b ∈ e.base_set) :
   proj (e.to_local_equiv.symm (b, x)) = b :=
 e.proj_symm_apply (e.mem_target.2 hx)
 
+lemma proj_surj_on_base_set [nonempty F] : set.surj_on proj e.source e.base_set :=
+λ b hb, let ⟨y⟩ := ‹nonempty F› in ⟨e.to_local_equiv.symm (b, y),
+  e.to_local_equiv.map_target $ e.mem_target.2 hb, e.proj_symm_apply' hb⟩
+
 lemma apply_symm_apply {x : B × F} (hx : x ∈ e.target) : e (e.to_local_equiv.symm x) = x :=
 e.to_local_equiv.right_inv hx
 
@@ -228,16 +232,11 @@ end
 @[simp, mfld_simps] lemma preimage_symm_proj_inter (s : set B) :
   (e.to_local_equiv.symm ⁻¹' (proj ⁻¹' s)) ∩ e.base_set.prod univ = (s ∩ e.base_set).prod univ :=
 begin
-  refine subset.antisymm_iff.mpr ⟨(λ x hx, _), (λ x hx, mem_inter _ _)⟩,
-  { rw [←e.target_eq] at hx,
-    simp only [mem_inter_iff, mem_preimage, e.proj_symm_apply hx.2] at hx,
-    simp only [mem_inter_eq, and_true, mem_univ, mem_prod],
-    exact ⟨hx.1, e.mem_target.mp hx.2⟩, },
-  { simp only [mem_inter_eq, and_true, mem_univ, mem_prod, e.mem_target.symm] at hx,
-    simp only [mem_preimage, e.proj_symm_apply hx.2],
-    exact hx.1, },
-  { rw [←inter_univ univ, ←prod_inter_prod, mem_inter_eq] at hx,
-    exact hx.2, }
+  ext ⟨x, y⟩,
+  suffices : x ∈ e.base_set → (proj (e.to_local_equiv.symm (x, y)) ∈ s ↔ x ∈ s),
+    by simpa only [prod_mk_mem_set_prod_eq, mem_inter_eq, and_true, mem_univ, and.congr_left_iff],
+  intro h,
+  rw [e.proj_symm_apply' h]
 end
 
 end topological_fiber_bundle.pretrivialization
@@ -300,6 +299,9 @@ lemma proj_symm_apply' {b : B} {x : F}
   (hx : b ∈ e.base_set) : proj (e.to_local_homeomorph.symm (b, x)) = b :=
 e.to_pretrivialization.proj_symm_apply' hx
 
+lemma proj_surj_on_base_set [nonempty F] : set.surj_on proj e.source e.base_set :=
+e.to_pretrivialization.proj_surj_on_base_set
+
 lemma apply_symm_apply {x : B × F} (hx : x ∈ e.target) : e (e.to_local_homeomorph.symm x) = x :=
 e.to_local_homeomorph.right_inv hx
 
@@ -359,26 +361,33 @@ lemma is_trivial_topological_fiber_bundle.is_topological_fiber_bundle
 let ⟨e, he⟩ := h in λ x,
 ⟨⟨e.to_local_homeomorph, univ, is_open_univ, rfl, univ_prod_univ.symm, λ x _, he x⟩, mem_univ x⟩
 
+lemma is_topological_fiber_bundle.map_proj_nhds (h : is_topological_fiber_bundle F proj) (x : Z) :
+  map proj (𝓝 x) = 𝓝 (proj x) :=
+let ⟨e, ex⟩ := h (proj x) in e.map_proj_nhds $ e.mem_source.2 ex
+
 /-- The projection from a topological fiber bundle to its base is continuous. -/
 lemma is_topological_fiber_bundle.continuous_proj (h : is_topological_fiber_bundle F proj) :
   continuous proj :=
-begin
-  rw continuous_iff_continuous_at,
-  assume x,
-  rcases h (proj x) with ⟨e, ex⟩,
-  apply e.continuous_at_proj,
-  rwa e.source_eq
-end
+continuous_iff_continuous_at.2 $ λ x, (h.map_proj_nhds _).le
 
 /-- The projection from a topological fiber bundle to its base is an open map. -/
 lemma is_topological_fiber_bundle.is_open_map_proj (h : is_topological_fiber_bundle F proj) :
   is_open_map proj :=
-begin
-  refine is_open_map_iff_nhds_le.2 (λ x, _),
-  rcases h (proj x) with ⟨e, ex⟩,
-  refine (e.map_proj_nhds _).ge,
-  rwa e.source_eq
-end
+is_open_map.of_nhds_le $ λ x, (h.map_proj_nhds x).ge
+
+/-- The projection from a topological fiber bundle with a nonempty fiber to its base is a surjective
+map. -/
+lemma is_topological_fiber_bundle.surjective_proj [nonempty F]
+  (h : is_topological_fiber_bundle F proj) :
+  function.surjective proj :=
+λ b, let ⟨e, eb⟩ := h b, ⟨x, _, hx⟩ := e.proj_surj_on_base_set eb in ⟨x, hx⟩
+
+/-- The projection from a topological fiber bundle with a nonempty fiber to its base is a quotient
+map. -/
+lemma is_topological_fiber_bundle.quotient_map_proj [nonempty F]
+  (h : is_topological_fiber_bundle F proj) :
+  quotient_map proj :=
+h.is_open_map_proj.to_quotient_map h.continuous_proj h.surjective_proj
 
 /-- The first projection in a product is a trivial topological fiber bundle. -/
 lemma is_trivial_topological_fiber_bundle_fst :

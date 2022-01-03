@@ -198,8 +198,6 @@ instance : star_ring ℂ :=
   star_mul := λ a b, by ext; simp [add_comm]; ring,
   star_add := λ a b, by ext; simp [add_comm] }
 
-@[simp] lemma star_eq_conj (z : ℂ) : star z = conj z := rfl
-
 @[simp] lemma conj_re (z : ℂ) : (conj z).re = z.re := rfl
 @[simp] lemma conj_im (z : ℂ) : (conj z).im = -z.im := rfl
 

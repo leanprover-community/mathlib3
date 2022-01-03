@@ -314,25 +314,33 @@ variables ⦃cb⦄
 @[simps]
 def fiber_cocone_map_comp : (fiber_cocone_prefunctor 𝒟).map (fb₀ ≫ fb) ⟶
   (fiber_cocone_prefunctor 𝒟).map fb₀ ⋙ (fiber_cocone_prefunctor 𝒟).map fb :=
-{ app := λ cf, { hom := (F.map_comp fb₀.hom fb.hom).app cf.X,
+{ app := λ cf,
+  { hom := (F.map_comp fb₀.hom fb.hom).app cf.X,
     w' := λ j, by { let fn := λ f, F.map_comp f fb.hom,
       have := eq_to_hom.family_congr fn (fb₀.w j).symm,
       dsimp [fiber_trans, fiber_push_naturality, fiber_diagram, fn] at this ⊢,
       simpa [this] } },
-  naturality' := λ _ _ ff, cocone_morphism.ext _ _ ((F.map_comp fb₀.hom fb.hom).naturality ff.hom) }
+  naturality' := λ _ _ ff,
+    cocone_morphism.ext _ _ ((F.map_comp fb₀.hom fb.hom).naturality ff.hom) }
 
-/-
 def fiber_cocone_functor : lax_functor_to_Cat (cocone (𝒟 ⋙ forget F)) :=
 { to_prefunctor := fiber_cocone_prefunctor 𝒟,
   map_id := fiber_cocone_map_id 𝒟,
   map_comp := fiber_cocone_map_comp 𝒟,
-  id_comp := λ _ _ _, by { ext, dsimp, simp, erw eq_to_hom_map, },
-  comp_id := ,
-  assoc :=  }
--/
+  id_comp := by { intros, ext, dsimp, simpa },
+  comp_id := by { intros, ext, dsimp, simpa },
+  assoc := by { intros, ext, dsimp, simpa } }
 
-variable (cf : cocone (fiber_diagram cb))
+def cocone_to_grothendieck : cocone 𝒟 ⥤ grothendieck (fiber_cocone_functor 𝒟) :=
+{ obj := λ c, { base := (forget F).map_cocone c, fiber := fiber_cocone c },
+  map := λ c₁ c₂ f,
+  { base := { hom := f.hom.base, w' := λ j, congr_arg hom.base (f.w j) } ,
+    fiber := { hom := f.hom.fiber,
+      w' := λ j, by { convert (congr (f.w j).symm).symm using 1,
+        dsimp [fiber_cocone_functor, fiber_trans, fiber_cocone,
+          fiber_push_over, fiber_push_naturality, fiber_push_map], simpa } } } }
 
+variables {𝒟} (cb) (cf : cocone (fiber_diagram cb))
 /-- From a cocone over the projected diagram in the base category and a cocone over its
     `fiber_diagram`, obtain a cocone over the diagram upstairs in the Grothendieck category. -/
 @[simps]
@@ -342,14 +350,10 @@ def total_cocone : cocone 𝒟 :=
     naturality' := λ j j' f, by { erw category.comp_id, ext,
     { erw ← category.assoc, exact cocone.w cf f }, exact cocone.w cb f } } }
 
-lemma fiber_push_total_cocone (j : J) :
-  fiber_push_map ((total_cocone cb cf).ι.app j) fb.hom =
-  eq_to_hom (by {erw fb.w, refl}) ≫ (fiber_trans c fb).app j ≫ (F.map fb.hom).map (cf.ι.app j) :=
-by { dsimp [fiber_trans], simpa }
-
-@[simp]
-def fiber_cocone_trans : cocone (fiber_diagram ((forget F).map_cocone c)) :=
-  (cocones.precompose (fiber_trans c fb)).obj ((F.map fb.hom).map_cocone cf)
+variable (𝒟)
+def grothendieck_to_cocone : grothendieck (fiber_cocone_functor 𝒟) ⥤ cocone 𝒟 :=
+{ obj := λ c, total_cocone c.base c.fiber,
+  map := λ c₁ c₂ f, }
 
 def total_cocone_hom (ff : fiber_cocone_trans c cf fb ⟶ fiber_cocone c) :
   total_cocone cb cf ⟶ c :=

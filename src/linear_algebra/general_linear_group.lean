@@ -3,10 +3,8 @@ Copyright (c) 2021 Chris Birkbeck. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Birkbeck
 -/
-import linear_algebra.matrix
 import linear_algebra.matrix.nonsingular_inverse
 import linear_algebra.special_linear_group
-import linear_algebra.determinant
 
 /-!
 # The General Linear group $GL(n, R)$
@@ -59,6 +57,11 @@ unit_of_det_invertible A
 noncomputable def mk'' (A : matrix n n R) (h : is_unit (matrix.det A)) : GL n R :=
 nonsing_inv_unit A h
 
+/--Given a matrix with non-zero determinant over a field, we get an element of `GL n K`-/
+def mk_of_det_ne_zero {K : Type*} [field K] (A : matrix n n K) (h : matrix.det A ≠ 0) :
+  GL n K :=
+mk' A (invertible_of_nonzero h)
+
 instance coe_fun : has_coe_to_fun (GL n R) (λ _, n → n → R) :=
 { coe := λ A, A.val }
 
@@ -83,8 +86,25 @@ variables (A B : GL n R)
 lemma coe_inv : ↑(A⁻¹) = (↑A : matrix n n R)⁻¹ :=
 begin
   letI := A.invertible,
-  exact inv_eq_nonsing_inv_of_invertible (↑A : matrix n n R),
+  exact inv_of_eq_nonsing_inv (↑A : matrix n n R),
 end
+
+/-- An element of the matrix general linear group on `(n) [fintype n]` can be considered as an
+element of the endomorphism general linear group on `n → R`. -/
+def to_linear : general_linear_group n R ≃* linear_map.general_linear_group R (n → R) :=
+units.map_equiv matrix.to_lin_alg_equiv'.to_ring_equiv.to_mul_equiv
+
+-- Note that without the `@` and `‹_›`, lean infers `λ a b, _inst_1 a b` instead of `_inst_1` as the
+-- decidability argument, which prevents `simp` from obtaining the instance by unification.
+-- These `λ a b, _inst a b` terms also appear in the type of `A`, but simp doesn't get confused by
+-- them so for now we do not care.
+@[simp] lemma coe_to_linear :
+  (@to_linear n ‹_› ‹_› _ _ A : (n → R) →ₗ[R] (n → R)) = matrix.mul_vec_lin A :=
+rfl
+
+@[simp] lemma to_linear_apply (v : n → R) :
+  (@to_linear n ‹_› ‹_› _ _ A) v = matrix.mul_vec_lin A v :=
+rfl
 
 end coe_lemmas
 
@@ -166,4 +186,21 @@ lemma to_GL_pos_injective :
  from subtype.coe_injective).of_comp
 
 end special_linear_group
+
+section examples
+
+/-- The matrix [a, b; -b, a] (inspired by multiplication by a complex number); it is an element of
+$GL_2(R)$ if `a ^ 2 + b ^ 2` is nonzero. -/
+@[simps coe {fully_applied := ff}]
+def plane_conformal_matrix {R} [field R] (a b : R) (hab : a ^ 2 + b ^ 2 ≠ 0) :
+  matrix.general_linear_group (fin 2) R :=
+general_linear_group.mk_of_det_ne_zero ![![a, b], ![-b, a]]
+  (by simpa [det_fin_two, sq] using hab)
+
+/- TODO: Add Iwasawa matrices `n_x=![![1,x],![0,1]]`, `a_t=![![exp(t/2),0],![0,exp(-t/2)]]` and
+  `k_θ==![![cos θ, sin θ],![-sin θ, cos θ]]`
+-/
+
+end examples
+
 end matrix

@@ -257,6 +257,11 @@ instance [monoid R] [monoid S] [semiring k] [distrib_mul_action R k] [distrib_mu
   smul_comm_class R S (monoid_algebra k G) :=
 finsupp.smul_comm_class G k
 
+instance [monoid R] [semiring k] [distrib_mul_action R k] [distrib_mul_action Rᵐᵒᵖ k]
+  [is_central_scalar R k] :
+  is_central_scalar R (monoid_algebra k G) :=
+finsupp.is_central_scalar G k
+
 instance comap_distrib_mul_action_self [group G] [semiring k] :
   distrib_mul_action G (monoid_algebra k G) :=
 finsupp.comap_distrib_mul_action_self
@@ -389,6 +394,19 @@ calc (single x r * f) y = sum f (λ a b, ite (x * a = y) (r * b) 0) :
 lemma single_one_mul_apply [mul_one_class G] (f : monoid_algebra k G) (r : k) (x : G) :
   (single 1 r * f) x = r * f x :=
 f.single_mul_apply_aux $ λ a, by rw [one_mul]
+
+lemma support_single_mul [left_cancel_semigroup G]
+  (f : monoid_algebra k G) (r : k) (hr : ∀ y, r * y = 0 ↔ y = 0) (x : G) :
+  (single x r * f).support = f.support.map (mul_left_embedding x) :=
+begin
+  ext y, simp only [mem_support_iff, mem_map, exists_prop, mul_left_embedding_apply],
+  by_cases H : ∃ a, x * a = y,
+  { rcases H with ⟨a, rfl⟩,
+    rw [single_mul_apply_aux f (λ _, mul_right_inj x)],
+    simp [hr] },
+  { push_neg at H,
+    simp [mul_apply, H] }
+end
 
 lemma lift_nc_smul [mul_one_class G] {R : Type*} [semiring R] (f : k →+* R) (g : G →* R) (c : k)
   (φ : monoid_algebra k G) :
@@ -739,28 +757,28 @@ end span
 
 section opposite
 
-open finsupp opposite
+open finsupp mul_opposite
 
 variables [semiring k]
 
 /-- The opposite of an `monoid_algebra R I` equivalent as a ring to
-the `monoid_algebra Rᵒᵖ Iᵒᵖ` over the opposite ring, taking elements to their opposite. -/
+the `monoid_algebra Rᵐᵒᵖ Iᵐᵒᵖ` over the opposite ring, taking elements to their opposite. -/
 @[simps {simp_rhs := tt}] protected noncomputable def op_ring_equiv [monoid G] :
-  (monoid_algebra k G)ᵒᵖ ≃+* monoid_algebra kᵒᵖ Gᵒᵖ :=
+  (monoid_algebra k G)ᵐᵒᵖ ≃+* monoid_algebra kᵐᵒᵖ Gᵐᵒᵖ :=
 { map_mul' := begin
     dsimp only [add_equiv.to_fun_eq_coe, ←add_equiv.coe_to_add_monoid_hom],
     rw add_monoid_hom.map_mul_iff,
     ext i₁ r₁ i₂ r₂ : 6,
     simp
   end,
-  ..op_add_equiv.symm.trans $ (finsupp.map_range.add_equiv (op_add_equiv : k ≃+ kᵒᵖ)).trans $
-    finsupp.dom_congr equiv_to_opposite }
+  ..op_add_equiv.symm.trans $ (finsupp.map_range.add_equiv (op_add_equiv : k ≃+ kᵐᵒᵖ)).trans $
+    finsupp.dom_congr op_equiv }
 
 @[simp] lemma op_ring_equiv_single [monoid G] (r : k) (x : G) :
   monoid_algebra.op_ring_equiv (op (single x r)) = single (op x) (op r) :=
 by simp
 
-@[simp] lemma op_ring_equiv_symm_single [monoid G] (r : kᵒᵖ) (x : Gᵒᵖ) :
+@[simp] lemma op_ring_equiv_symm_single [monoid G] (r : kᵐᵒᵖ) (x : Gᵐᵒᵖ) :
   monoid_algebra.op_ring_equiv.symm (single x r) = op (single x.unop r.unop) :=
 by simp
 
@@ -971,6 +989,11 @@ instance [monoid R] [monoid S] [semiring k] [distrib_mul_action R k] [distrib_mu
   smul_comm_class R S (add_monoid_algebra k G) :=
 finsupp.smul_comm_class G k
 
+instance [monoid R] [semiring k] [distrib_mul_action R k] [distrib_mul_action Rᵐᵒᵖ k]
+  [is_central_scalar R k] :
+  is_central_scalar R (add_monoid_algebra k G) :=
+finsupp.is_central_scalar G k
+
 /-! It is hard to state the equivalent of `distrib_mul_action G (add_monoid_algebra k G)`
 because we've never discussed actions of additive groups. -/
 
@@ -1085,6 +1108,11 @@ lemma support_mul_single [add_right_cancel_semigroup G]
   (f : add_monoid_algebra k G) (r : k) (hr : ∀ y, y * r = 0 ↔ y = 0) (x : G) :
   (f * single x r : add_monoid_algebra k G).support = f.support.map (add_right_embedding x) :=
 @monoid_algebra.support_mul_single k (multiplicative G) _ _ _ _ hr _
+
+lemma support_single_mul [add_left_cancel_semigroup G]
+  (f : add_monoid_algebra k G) (r : k) (hr : ∀ y, r * y = 0 ↔ y = 0) (x : G) :
+  (single x r * f : add_monoid_algebra k G).support = f.support.map (add_left_embedding x) :=
+@monoid_algebra.support_single_mul k (multiplicative G) _ _ _ _ hr _
 
 lemma lift_nc_smul {R : Type*} [add_zero_class G] [semiring R] (f : k →+* R)
   (g : multiplicative G →* R) (c : k) (φ : monoid_algebra k G) :
@@ -1242,14 +1270,14 @@ ring_hom_ext (ring_hom.congr_fun h₁) (monoid_hom.congr_fun h_of)
 
 section opposite
 
-open finsupp opposite
+open finsupp mul_opposite
 
 variables [semiring k]
 
 /-- The opposite of an `add_monoid_algebra R I` is ring equivalent to
-the `add_monoid_algebra Rᵒᵖ I` over the opposite ring, taking elements to their opposite. -/
+the `add_monoid_algebra Rᵐᵒᵖ I` over the opposite ring, taking elements to their opposite. -/
 @[simps {simp_rhs := tt}] protected noncomputable def op_ring_equiv [add_comm_monoid G] :
-  (add_monoid_algebra k G)ᵒᵖ ≃+* add_monoid_algebra kᵒᵖ G :=
+  (add_monoid_algebra k G)ᵐᵒᵖ ≃+* add_monoid_algebra kᵐᵒᵖ G :=
 { map_mul' := begin
     dsimp only [add_equiv.to_fun_eq_coe, ←add_equiv.coe_to_add_monoid_hom],
     rw add_monoid_hom.map_mul_iff,
@@ -1257,14 +1285,14 @@ the `add_monoid_algebra Rᵒᵖ I` over the opposite ring, taking elements to th
     dsimp,
     simp only [map_range_single, single_mul_single, ←op_mul, add_comm]
   end,
-  ..opposite.op_add_equiv.symm.trans
-    (finsupp.map_range.add_equiv (opposite.op_add_equiv : k ≃+ kᵒᵖ))}
+  ..mul_opposite.op_add_equiv.symm.trans
+    (finsupp.map_range.add_equiv (mul_opposite.op_add_equiv : k ≃+ kᵐᵒᵖ))}
 
 @[simp] lemma op_ring_equiv_single [add_comm_monoid G] (r : k) (x : G) :
   add_monoid_algebra.op_ring_equiv (op (single x r)) = single x (op r) :=
 by simp
 
-@[simp] lemma op_ring_equiv_symm_single [add_comm_monoid G] (r : kᵒᵖ) (x : Gᵒᵖ) :
+@[simp] lemma op_ring_equiv_symm_single [add_comm_monoid G] (r : kᵐᵒᵖ) (x : Gᵐᵒᵖ) :
   add_monoid_algebra.op_ring_equiv.symm (single x r) = op (single x r.unop) :=
 by simp
 
@@ -1325,8 +1353,8 @@ variables (k G A)
 `monoid_algebra k G →ₐ[k] A`. -/
 def lift : (multiplicative G →* A) ≃ (add_monoid_algebra k G →ₐ[k] A) :=
 { inv_fun := λ f, (f : add_monoid_algebra k G →* A).comp (of k G),
-  to_fun := λ F, {
-    to_fun := lift_nc_alg_hom (algebra.of_id k A) F $ λ _ _, algebra.commutes _ _,
+  to_fun := λ F,
+  { to_fun := lift_nc_alg_hom (algebra.of_id k A) F $ λ _ _, algebra.commutes _ _,
     .. @monoid_algebra.lift k (multiplicative G) _ _ A _ _ F},
   .. @monoid_algebra.lift k (multiplicative G) _ _ A _ _ }
 

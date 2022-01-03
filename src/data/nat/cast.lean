@@ -124,7 +124,7 @@ lemma cast_two {α : Type*} [add_monoid α] [has_one α] : ((2 : ℕ) : α) = 2 
 
 @[simp, norm_cast] theorem cast_sub [add_group α] [has_one α] {m n} (h : m ≤ n) :
   ((n - m : ℕ) : α) = n - m :=
-eq_sub_of_add_eq $ by rw [← cast_add, nat.sub_add_cancel h]
+eq_sub_of_add_eq $ by rw [← cast_add, tsub_add_cancel_of_le h]
 
 @[simp, norm_cast] theorem cast_mul [non_assoc_semiring α] (m) : ∀ n, ((m * n : ℕ) : α) = m * n
 | 0     := (mul_zero _).symm
@@ -222,6 +222,16 @@ alias coe_nat_dvd ← has_dvd.dvd.nat_cast
 
 section linear_ordered_field
 variables [linear_ordered_field α]
+
+/-- Natural division is always less than division in the field. -/
+lemma cast_div_le {m n : ℕ} : ((m / n : ℕ) : α) ≤ m / n :=
+begin
+  cases n,
+  { rw [cast_zero, div_zero, nat.div_zero, cast_zero] },
+  rwa [le_div_iff, ←nat.cast_mul],
+  exact nat.cast_le.2 (nat.div_mul_le_self m n.succ),
+  { exact nat.cast_pos.2 n.succ_pos }
+end
 
 lemma inv_pos_of_nat {n : ℕ} : 0 < ((n : α) + 1)⁻¹ :=
 inv_pos.2 $ add_pos_of_nonneg_of_pos n.cast_nonneg zero_lt_one
@@ -336,7 +346,7 @@ begin
 end
 
 lemma one_le_iff_pos {n : with_top ℕ} : 1 ≤ n ↔ 0 < n :=
-⟨λ h, (coe_lt_coe.2 zero_lt_one).trans_le h,
+⟨lt_of_lt_of_le (coe_lt_coe.mpr zero_lt_one),
   λ h, by simpa only [zero_add] using add_one_le_of_lt h⟩
 
 @[elab_as_eliminator]

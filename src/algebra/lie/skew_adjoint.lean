@@ -110,7 +110,7 @@ iff.rfl
 
 /-- An invertible matrix `P` gives a Lie algebra equivalence between those endomorphisms that are
 skew-adjoint with respect to a square matrix `J` and those with respect to `PᵀJP`. -/
-noncomputable def skew_adjoint_matrices_lie_subalgebra_equiv (P : matrix n n R) (h : is_unit P) :
+def skew_adjoint_matrices_lie_subalgebra_equiv (P : matrix n n R) (h : invertible P) :
   skew_adjoint_matrices_lie_subalgebra J ≃ₗ⁅R⁆ skew_adjoint_matrices_lie_subalgebra (Pᵀ ⬝ J ⬝ P) :=
 lie_equiv.of_subalgebras _ _ (P.lie_conj h).symm
 begin
@@ -119,11 +119,11 @@ begin
     A ∈ skew_adjoint_matrices_submodule (Pᵀ ⬝ J ⬝ P),
   { simp only [lie_subalgebra.mem_coe, submodule.mem_map_equiv, lie_subalgebra.mem_map_submodule,
       coe_coe], exact this, },
-  simp [matrix.is_skew_adjoint, J.is_adjoint_pair_equiv _ _ P h],
+  simp [matrix.is_skew_adjoint, J.is_adjoint_pair_equiv _ _ P (is_unit_of_invertible P)],
 end
 
 lemma skew_adjoint_matrices_lie_subalgebra_equiv_apply
-  (P : matrix n n R) (h : is_unit P) (A : skew_adjoint_matrices_lie_subalgebra J) :
+  (P : matrix n n R) (h : invertible P) (A : skew_adjoint_matrices_lie_subalgebra J) :
   ↑(skew_adjoint_matrices_lie_subalgebra_equiv J P h A) = P⁻¹ ⬝ ↑A ⬝ P :=
 by simp [skew_adjoint_matrices_lie_subalgebra_equiv]
 

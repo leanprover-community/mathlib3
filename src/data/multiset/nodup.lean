@@ -3,6 +3,7 @@ Copyright (c) 2015 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
+import data.multiset.bind
 import data.multiset.powerset
 import data.multiset.range
 
@@ -192,7 +193,7 @@ theorem range_le {m n : ℕ} : range m ≤ range n ↔ m ≤ n :=
 theorem mem_sub_of_nodup [decidable_eq α] {a : α} {s t : multiset α} (d : nodup s) :
   a ∈ s - t ↔ a ∈ s ∧ a ∉ t :=
 ⟨λ h, ⟨mem_of_le tsub_le_self h, λ h',
-  by refine count_eq_zero.1 _ h; rw [count_sub a s t, nat.sub_eq_zero_iff_le];
+  by refine count_eq_zero.1 _ h; rw [count_sub a s t, tsub_eq_zero_iff_le];
      exact le_trans (nodup_iff_count_le_one.1 d _) (count_pos.2 h')⟩,
  λ ⟨h₁, h₂⟩, or.resolve_right (mem_add.1 $ mem_of_le le_tsub_add h₁) h₂⟩
 

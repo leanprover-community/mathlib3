@@ -17,7 +17,7 @@ The main result in this file proves transitivity of algebraicity:
 a tower of algebraic field extensions is algebraic.
 -/
 
-universes u v
+universes u v w
 
 open_locale classical
 open polynomial
@@ -141,7 +141,7 @@ variables {R S K L}
 /-- A field extension is algebraic if it is finite. -/
 lemma is_algebraic_of_finite [finite : finite_dimensional K L] : is_algebraic K L :=
 λ x, (is_algebraic_iff_is_integral _).mpr (is_integral_of_submodule_noetherian ⊤
-  (is_noetherian_of_submodule_of_noetherian _ _ _ finite) x algebra.mem_top)
+  (is_noetherian.iff_fg.2 infer_instance) x algebra.mem_top)
 
 end algebra
 
@@ -248,3 +248,48 @@ lemma subalgebra.is_field_of_algebraic (hKL : algebra.is_algebraic K L) : is_fie
   .. subalgebra.to_comm_ring A }
 
 end field
+
+section pi
+
+variables (R' : Type u) (S' : Type v) (T' : Type w)
+
+instance polynomial.has_scalar_pi [semiring R'] [has_scalar R' S'] :
+  has_scalar (polynomial R') (R' → S') :=
+⟨λ p f x, eval x p • f x⟩
+
+noncomputable instance polynomial.has_scalar_pi' [comm_semiring R'] [semiring S'] [algebra R' S']
+  [has_scalar S' T'] :
+  has_scalar (polynomial R') (S' → T') :=
+⟨λ p f x, aeval x p • f x⟩
+
+variables {R} {S}
+
+@[simp] lemma polynomial_smul_apply [semiring R'] [has_scalar R' S']
+  (p : polynomial R') (f : R' → S') (x : R') :
+  (p • f) x = eval x p • f x := rfl
+
+@[simp] lemma polynomial_smul_apply' [comm_semiring R'] [semiring S'] [algebra R' S']
+  [has_scalar S' T'] (p : polynomial R') (f : S' → T') (x : S') :
+  (p • f) x = aeval x p • f x := rfl
+
+variables [comm_semiring R'] [comm_semiring S'] [comm_semiring T'] [algebra R' S'] [algebra S' T']
+
+noncomputable instance polynomial.algebra_pi :
+  algebra (polynomial R') (S' → T') :=
+{ to_fun := λ p z, algebra_map S' T' (aeval z p),
+  map_one' := funext $ λ z, by simp,
+  map_mul' := λ f g, funext $ λ z, by simp,
+  map_zero' := funext $ λ z, by simp,
+  map_add' := λ f g, funext $ λ z, by simp,
+  commutes' := λ p f, funext $ λ z, mul_comm _ _,
+  smul_def' := λ p f, funext $ λ z, by simp [algebra.algebra_map_eq_smul_one],
+  ..polynomial.has_scalar_pi' R' S' T' }
+
+@[simp] lemma polynomial.algebra_map_pi_eq_aeval :
+  (algebra_map (polynomial R') (S' → T') : polynomial R' → (S' → T')) =
+    λ p z, algebra_map _ _ (aeval z p) := rfl
+
+@[simp] lemma polynomial.algebra_map_pi_self_eq_eval :
+  (algebra_map (polynomial R') (R' → R') : polynomial R' → (R' → R')) = λ p z, eval z p := rfl
+
+end pi

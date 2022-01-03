@@ -158,7 +158,7 @@ instance [add_zero_class α] : mul_one_class (multiplicative α) :=
 instance [h : monoid α] : add_monoid (additive α) :=
 { zero     := 0,
   add      := (+),
-  nsmul    := @npow α h,
+  nsmul    := @monoid.npow α h,
   nsmul_zero' := monoid.npow_zero',
   nsmul_succ' := monoid.npow_succ',
   ..additive.add_zero_class,
@@ -167,7 +167,7 @@ instance [h : monoid α] : add_monoid (additive α) :=
 instance [h : add_monoid α] : monoid (multiplicative α) :=
 { one     := 1,
   mul     := (*),
-  npow   := @nsmul α h,
+  npow   := @add_monoid.nsmul α h,
   npow_zero' := add_monoid.nsmul_zero',
   npow_succ' := add_monoid.nsmul_succ',
   ..multiplicative.mul_one_class,
@@ -229,18 +229,18 @@ rfl
 
 instance [div_inv_monoid α] : sub_neg_monoid (additive α) :=
 { sub_eq_add_neg := @div_eq_mul_inv α _,
-  gsmul := @gpow α _,
-  gsmul_zero' := div_inv_monoid.gpow_zero',
-  gsmul_succ' := div_inv_monoid.gpow_succ',
-  gsmul_neg' := div_inv_monoid.gpow_neg',
+  zsmul := @div_inv_monoid.zpow α _,
+  zsmul_zero' := div_inv_monoid.zpow_zero',
+  zsmul_succ' := div_inv_monoid.zpow_succ',
+  zsmul_neg' := div_inv_monoid.zpow_neg',
   .. additive.has_neg, .. additive.has_sub, .. additive.add_monoid }
 
 instance [sub_neg_monoid α] : div_inv_monoid (multiplicative α) :=
 { div_eq_mul_inv := @sub_eq_add_neg α _,
-  gpow := @gsmul α _,
-  gpow_zero' := sub_neg_monoid.gsmul_zero',
-  gpow_succ' := sub_neg_monoid.gsmul_succ',
-  gpow_neg' := sub_neg_monoid.gsmul_neg',
+  zpow := @sub_neg_monoid.zsmul α _,
+  zpow_zero' := sub_neg_monoid.zsmul_zero',
+  zpow_succ' := sub_neg_monoid.zsmul_succ',
+  zpow_neg' := sub_neg_monoid.zsmul_neg',
   .. multiplicative.has_inv, .. multiplicative.has_div, .. multiplicative.monoid }
 
 instance [group α] : add_group (additive α) :=

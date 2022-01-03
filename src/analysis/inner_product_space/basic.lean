@@ -759,7 +759,6 @@ by classical; simp [orthonormal_iff_ite.mp hv, finset.sum_ite_of_true]
 lemma orthonormal.linear_independent {v : ι → E} (hv : orthonormal 𝕜 v) :
   linear_independent 𝕜 v :=
 begin
-  classical,
   rw linear_independent_iff,
   intros l hl,
   ext i,
@@ -787,7 +786,6 @@ lemma orthonormal.inner_finsupp_eq_zero
   (hl : l ∈ finsupp.supported 𝕜 𝕜 s) :
   ⟪finsupp.total ι E 𝕜 v l, v i⟫ = 0 :=
 begin
-  classical,
   rw finsupp.mem_supported' at hl,
   simp [hv.inner_left_finsupp, hl i hi],
 end
@@ -1494,7 +1492,7 @@ lemma orthonormal.sum_inner_products_le {s : finset ι} (hv : orthonormal 𝕜 v
 begin
   have h₂ : ∑ i in s, ∑ j in s, ⟪v i, x⟫ * ⟪x, v j⟫ * ⟪v j, v i⟫
     = (∑ k in s, (⟪v k, x⟫ * ⟪x, v k⟫) : 𝕜),
-  { classical; exact hv.inner_left_right_finset },
+  { exact hv.inner_left_right_finset },
   have h₃ : ∀ z : 𝕜, re (z * conj (z)) = ∥z∥ ^ 2,
   { intro z,
     simp only [mul_conj, norm_sq_eq_def'],

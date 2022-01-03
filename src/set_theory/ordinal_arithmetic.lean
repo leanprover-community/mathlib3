@@ -1393,7 +1393,7 @@ begin
       rw [a0, zero_power ordinal.one_ne_zero],
       exact ordinal.zero_le _ },
     rw [a1, one_power, one_power] },
-  rwa power_le_power_iff_right a1
+  rwa [power_le_power_iff_right a1, one_le_iff_pos]
 end
 
 theorem le_power_self_right {a : ordinal} (b) (a1 : 1 < a) : b ≤ a ^ b :=

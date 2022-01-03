@@ -35,11 +35,15 @@ radical of a homogeneous ideal is homogeneous. -/
 def ideal.homogeneous_core : ideal A :=
 ideal.span (coe '' ((coe : subtype (is_homogeneous 𝒜) → A) ⁻¹' I))
 
-lemma ideal.homogeneous_core_is_mono : monotone (ideal.homogeneous_core 𝒜) :=
+lemma ideal.homogeneous_core_mono : monotone (ideal.homogeneous_core 𝒜) :=
 λ I J I_le_J, ideal.span_mono $ set.image_subset _ $ λ x, @I_le_J _
 
 lemma ideal.homogeneous_core_le_ideal : ideal.homogeneous_core 𝒜 I ≤ I :=
 ideal.span_le.2 $ image_preimage_subset _ _
+
+lemma ideal.eq_homogeneous_core_self_iff_exists :
+  I = I.homogeneous_core 𝒜 ↔ ∃ S : set (subtype $ is_homogeneous 𝒜), I = ideal.span (coe '' S) :=
+((set.image_preimage.compose (submodule.gi _ _).gc).exists_eq_l _).symm
 
 end homogeneous_core
 
@@ -48,19 +52,6 @@ section is_homogeneous_ideal_defs
 variables {ι R A : Type*} [comm_ring R] [ring A] [algebra R A]
 variables (𝒜 : ι → submodule R A)
 variable (I : ideal A)
-
-lemma ideal.is_homogeneous.exists_subset_iff_eq_span :
-  (∃ s : set A, s ⊆ set_of (is_homogeneous 𝒜) ∧ I = ideal.span s) ↔
-    I = ideal.span (I ∩ set_of (is_homogeneous 𝒜)) :=
-begin
-  split,
-  { rintros ⟨s, hs, rfl⟩,
-    apply le_antisymm,
-    { exact ideal.span_mono (subset_inter ideal.subset_span hs) },
-    { exact ideal.span_le.2 (inter_subset_left _ _) } },
-  { intros hI,
-    exact ⟨_, inter_subset_right _ _, hI⟩, }
-end
 
 variables [decidable_eq ι] [add_comm_monoid ι]  [graded_algebra 𝒜]
 
@@ -76,11 +67,6 @@ iff.rfl
 lemma ideal.is_homogeneous_iff_subset_Inter :
   ideal.is_homogeneous 𝒜 I ↔ (I : set A) ⊆ ⋂ i, graded_algebra.proj 𝒜 i ⁻¹' ↑I :=
 subset_Inter_iff.symm
-
-lemma ideal.is_homogeneous.exists_iff_eq_span :
-  (∃ (S : set (homogeneous_submonoid 𝒜)), I = ideal.span (coe '' S)) ↔
-  I = ideal.span {x | x ∈ I ∧ is_homogeneous 𝒜 x} :=
-(subtype.exists_set_subtype _).trans (ideal.is_homogeneous.exists_subset_iff_eq_span _ _)
 
 lemma mul_homogeneous_element_mem_of_mem
   {I : ideal A} (r x : A) (hx₁ : is_homogeneous 𝒜 x) (hx₂ : x ∈ I) (j : ι) :
@@ -100,24 +86,66 @@ begin
   { exact I.zero_mem },
 end
 
-lemma ideal.is_homogeneous.iff_eq :
-  ideal.is_homogeneous 𝒜 I ↔ I = ideal.span {x | x ∈ I ∧ is_homogeneous 𝒜 x} :=
-⟨ λ hI, begin
+lemma ideal.is_homogeneous_homogeneous_core :
+  ideal.is_homogeneous 𝒜 (I.homogeneous_core 𝒜) :=
+begin
+  dunfold ideal.homogeneous_core,
+  intros i,
+  intros r hr,
+  apply submodule.span_induction hr,
+  { rintros _ ⟨⟨x, j, hj⟩, hx : x ∈ I, rfl⟩,
+    refine ideal.subset_span
+      ⟨⟨_, is_homogeneous_decompose 𝒜 _ _⟩, (_ : (graded_algebra.decompose 𝒜 x i : A) ∈ I), rfl⟩,
+    rw [graded_algebra.decompose_of_mem _ hj, coe_of_submodule_apply, subtype.coe_mk],
+    split_ifs,
+    { exact hx },
+    { exact I.zero_mem } },
+  { rw [alg_equiv.map_zero, direct_sum.zero_apply],
+    exact ideal.zero_mem _ },
+  { intros x y hx hy,
+    rw [alg_equiv.map_add, direct_sum.add_apply],
+    exact ideal.add_mem _ hx hy },
+  { intros x y hx,
+    rw smul_eq_mul,
+    refine mul_homogeneous_element_mem_of_mem _ _ _ _ _ i,
+    rw [alg_equiv.map_add, direct_sum.add_apply],
+    exact ideal.add_mem _ hx hy },
+  rw ←graded_algebra.proj_apply,
+  rw [ideal.span, finsupp.span_eq_range_total],
+  refine ⟨finsupp.single ⟨_, ⟨_, is_homogeneous_decompose 𝒜 r i⟩, _, rfl⟩ 1, _⟩,
+  rotate 2,
+  rw [finsupp.total_single, subtype.coe_mk, subtype.coe_mk, one_smul],
+  exact is_homogeneous_proj,
+  dsimp,
+  swap,
+  simp_rw [finsupp.total_apply, finsupp.sum, linear_map.map_sum, smul_eq_mul],
+
+end
+
+variables {𝒜 I}
+
+lemma ideal.is_homogeneous.eq_homogeneous_core_self (hI : ideal.is_homogeneous 𝒜 I) :
+  I = I.homogeneous_core 𝒜 :=
+begin
+  refine le_antisymm _ (ideal.homogeneous_core_le_ideal _ _),
   letI : Π (i : ι) (x : 𝒜 i), decidable (x ≠ 0) := λ _ _, classical.dec _,
-  ext, split; intro hx,
-  { rw ←graded_algebra.sum_support_decompose 𝒜 x,
-    refine ideal.sum_mem _ _,
-    intros j hj,
-    rw ideal.mem_span, intros J HJ,
-    refine HJ ⟨hI j hx, j, submodule.coe_mem _⟩, },
-  { rw [ideal.mem_span] at hx,
-    apply hx,
-    exact inter_subset_left _ _, },
-  end,
+  intros x hx,
+  rw ←graded_algebra.sum_support_decompose 𝒜 x,
+  refine ideal.sum_mem _ _,
+  intros j hj,
+  exact ideal.subset_span ⟨⟨_, is_homogeneous_decompose 𝒜 x j⟩, hI _ hx, rfl⟩,
+end
+
+variables (𝒜 I)
+
+lemma ideal.is_homogeneous.iff_eq :
+  ideal.is_homogeneous 𝒜 I ↔ I = I.homogeneous_core 𝒜 :=
+⟨ λ hI, hI.eq_homogeneous_core_self,
   λ hI, begin
+    rw hI,
     intros i r hr,
     rw ←graded_algebra.proj_apply,
-    rw [ideal.span, finsupp.span_eq_range_total] at hI,
+    rw [ideal.span, finsupp.span_eq_range_total],
     rw hI at hr,
     obtain ⟨s, rfl⟩ := hr,
     simp_rw [finsupp.total_apply, finsupp.sum, linear_map.map_sum, smul_eq_mul],
@@ -446,7 +474,7 @@ lemma ideal.homogeneous_core.gc :
     suffices : I.1 ≤ ideal.homogeneous_core 𝒜 J,
     exact this,
     rw ←ideal.is_homogeneous.homogeneous_core_eq_self 𝒜 I.1 I.2,
-    exact ideal.homogeneous_core_is_mono 𝒜 H,
+    exact ideal.homogeneous_core_mono 𝒜 H,
   end, λ H, begin
     refine le_trans H _,
     apply ideal.homogeneous_core_le_ideal,

@@ -187,15 +187,6 @@ instance : nontrivial ordinal.{u} :=
 theorem zero_lt_one : (0 : ordinal) < 1 :=
 lt_iff_le_and_ne.2 ⟨ordinal.zero_le _, ne.symm $ ordinal.one_ne_zero⟩
 
-theorem zero_lt_of_two_le {a : ordinal} (ha : 2 ≤ a) : 0 < a :=
-zero_lt_one.trans (one_lt_of_two_le ha)
-
-theorem zero_lt_of_two_lt {a : ordinal} (ha : 2 < a) : 0 < a :=
-zero_lt_of_two_le (le_of_lt ha)
-
-theorem eq_zero_or_pos (a : ordinal) : a = 0 ∨ 0 < a :=
-by { convert eq_or_ne a 0, exact propext (ordinal.pos_iff_ne_zero) }
-
 /-! ### The predecessor of an ordinal -/
 
 /-- The ordinal predecessor of `o` is `o'` if `o = succ o'`,
@@ -625,14 +616,16 @@ quotient.induction_on₃ a b c $ λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨γ, t, _⟩
   { exact prod.lex.right _ (f.to_rel_embedding.map_rel_iff.2 h') }
 end
 
-theorem le_mul_left {a b : ordinal} (hb : 1 ≤ b) : a ≤ a * b :=
+theorem le_mul_left {a b : ordinal} (hb : 0 < b) : a ≤ a * b :=
 begin
+  rw ←one_le_iff_pos at hb,
   nth_rewrite 0 ←mul_one a,
   exact mul_le_mul_left a hb
 end
 
-theorem le_mul_right {a b : ordinal} (hb : 1 ≤ b) : a ≤ b * a :=
+theorem le_mul_right {a b : ordinal} (hb : 0 < b) : a ≤ b * a :=
 begin
+  rw ←one_le_iff_pos at hb,
   nth_rewrite 0 ←one_mul a,
   exact mul_le_mul_right a hb
 end
@@ -1484,7 +1477,7 @@ end
 /-! ### Ordinal logarithm -/
 
 /-- The ordinal logarithm is the solution `u` to the equation
-  `x = b ^ u * v + w` where `v < b` and `w < b`. -/
+  `x = b ^ u * v + w` where `v < b` and `w < b ^ u`. -/
 def log (b : ordinal) (x : ordinal) : ordinal :=
 if h : 1 < b then pred $
   omin {o | x < b^o} ⟨succ x, succ_le.1 (le_power_self_right _ h)⟩
@@ -1585,44 +1578,44 @@ begin
   exact log_not_one_lt hb 1
 end
 
-lemma power_mul_add_pos {b v : ordinal} (u w : ordinal) (hb : 2 ≤ b) (hv : 1 ≤ v) :
+lemma power_mul_add_pos {b v : ordinal} (u w : ordinal) (hb : 1 < b) (hv : 0 < v) :
   0 < b ^ u * v + w :=
-(power_pos u (zero_lt_of_two_le hb)).trans_le ((le_mul_left hv).trans (le_add_right _ _))
+(power_pos u (zero_lt_one.trans hb)).trans_le ((le_mul_left hv).trans (le_add_right _ _))
 
-lemma power_mul_add_lt_power_mul_succ {b u v w : ordinal} (hw : w < b ^ u) :
+lemma power_mul_add_lt_power_mul_succ {b u w : ordinal} (v : ordinal) (hw : w < b ^ u) :
   b ^ u * v + w < b ^ u * v.succ :=
 by rwa [mul_succ, add_lt_add_iff_left]
 
-lemma power_mul_add_lt_power_succ {b u v w : ordinal} (hb : 2 ≤ b) (hv : 1 ≤ v) (hvb : v < b)
-  (hw : w < b ^ u) : b ^ u * v + w < b ^ u.succ :=
+lemma power_mul_add_lt_power_succ {b u v w : ordinal} (hvb : v < b) (hw : w < b ^ u) :
+  b ^ u * v + w < b ^ u.succ :=
 begin
-  apply lt_of_lt_of_le (power_mul_add_lt_power_mul_succ hw),
+  apply lt_of_lt_of_le (power_mul_add_lt_power_mul_succ v hw),
   rw ←succ_le at hvb,
   rw power_succ,
   exact (mul_le_mul_left (b ^ u) hvb)
 end
 
-theorem log_power_mul_add {b u v w : ordinal} (hb : 2 ≤ b) (hv : 1 ≤ v) (hvb : v < b)
+theorem log_power_mul_add {b u v w : ordinal} (hb : 1 < b) (hv : 0 < v) (hvb : v < b)
   (hw : w < b ^ u) : log b (b ^ u * v + w) = u :=
 begin
   have hpos := power_mul_add_pos u w hb hv,
   by_contra' hne,
   cases lt_or_gt_of_ne hne with h h,
-  { rw log_lt (one_lt_of_two_le hb) hpos at h,
-    exact not_le_of_lt h (le_trans (le_mul_left hv) (le_add_right _ _)) },
+  { rw log_lt hb hpos at h,
+    exact not_le_of_lt h ((le_mul_left hv).trans (le_add_right _ _)) },
   change _ < _ at h,
-  rw [←succ_le, le_log (one_lt_of_two_le hb) hpos] at h,
-  exact (not_lt_of_le h) (power_mul_add_lt_power_succ hb hv hvb hw)
+  rw [←succ_le, le_log hb hpos] at h,
+  exact (not_lt_of_le h) (power_mul_add_lt_power_succ hvb hw)
 end
 
-theorem log_power {b : ordinal} (x : ordinal) (hb : 2 ≤ b) : log b (b ^ x) = x :=
+theorem log_power {b : ordinal} (x : ordinal) (hb : 1 < b) : log b (b ^ x) = x :=
 begin
   cases eq_zero_or_pos x with hx hx,
   { rw [hx, power_zero],
     exact log_one b },
   have : b ^ x = b ^ x * 1 + 0 := by rw [add_zero, mul_one],
   rw this,
-  exact log_power_mul_add hb (le_refl 1) (one_lt_of_two_le hb) (power_pos x (zero_lt_of_two_le hb))
+  exact log_power_mul_add hb zero_lt_one hb (power_pos x (zero_lt_one.trans hb))
 end
 
 /-! ### The Cantor normal form -/

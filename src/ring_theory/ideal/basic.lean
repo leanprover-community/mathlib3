@@ -89,6 +89,8 @@ def span (s : set α) : ideal α := submodule.span α s
   submodule.span α s = ideal.span s :=
 rfl
 
+@[simp] lemma span_empty : span (∅ : set α) = ⊥ := submodule.span_empty
+
 lemma mem_span {s : set α} (x) : x ∈ span s ↔ ∀ p : ideal α, s ⊆ p → x ∈ p :=
 mem_bInter_iff
 

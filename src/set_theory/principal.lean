@@ -212,31 +212,6 @@ begin
   exact power_omega_le_mul_principal ho₂ ho
 end
 
-theorem omega_power_power_is_normal : is_normal (λ a : ordinal.{u}, omega.{u} ^ omega.{u} ^ a) :=
-by apply is_normal.trans; exact power_is_normal (one_lt_omega)
-
-theorem omega_power_power_mul_principal (o : ordinal.{u}) :
-  principal (*) (omega.{u} ^ omega.{u} ^ o) :=
-begin
-  apply o.limit_rec_on,
-  { rw [power_zero, power_one],
-    exact omega_mul_principal },
-  { intros a ha,
-    rw [power_succ, power_mul],
-    exact power_omega_mul_principal _ },
-  intros a ha h b c hba hca,
-  have : bsup.{u u} a (λ d hd, omega.{u} ^ omega.{u} ^ d) = omega.{u} ^ omega.{u} ^ a :=
-    is_normal.bsup_eq.{u u} omega_power_power_is_normal ha,
-  rw [←this, lt_bsup] at hba,
-  rw [←this, lt_bsup] at hca,
-  rcases hba with ⟨d, hd, hbd⟩,
-  rcases hca with ⟨e, he, hce⟩,
-  apply lt_of_le_of_lt (mul_le_mul (le_of_lt hbd) (le_of_lt hce)),
-  rw [←power_add, power_lt_power_iff_right one_lt_omega],
-  apply omega_power_add_principal;
-  rwa power_lt_power_iff_right one_lt_omega
-end
-
 theorem mul_principal_is_limit {o : ordinal.{u}} (ho₂ : 2 < o) (ho : principal (*) o) :
   o.is_limit :=
 begin
@@ -271,6 +246,13 @@ begin
   rw ←h a ha hao,
   exact (mul_is_normal ha).strict_mono hbo
 end
+
+theorem omega_power_power_is_normal : is_normal (λ a : ordinal.{u}, omega.{u} ^ omega.{u} ^ a) :=
+by apply is_normal.trans; exact power_is_normal (one_lt_omega)
+
+theorem omega_power_power_mul_principal (o : ordinal.{u}) :
+  principal (*) (omega.{u} ^ omega.{u} ^ o) :=
+by { rw mul_principal_iff_fp, exact λ a, mul_omega_power_power }
 
 theorem add_principal_of_mul_principal {o : ordinal.{u}} (ho : principal (*) o) (ho₂ : o ≠ 2) :
   principal (+) o :=
@@ -318,10 +300,7 @@ begin
     exact not_le_of_lt (lt_omega_power_power_log_log_succ_of_principal ho ho₂) this },
   have : omega.{u} ^ (log omega.{u} (log omega.{u} o)) ≤ log omega.{u} o := begin
     apply power_log_le,
-    rw ←succ_le,
-    rw le_log one_lt_omega (zero_lt_of_two_lt ho₂),
-    rw succ_zero,
-    rw power_one,
+    rw [←succ_le, le_log one_lt_omega (zero_lt_of_two_lt ho₂), succ_zero, power_one],
     exact omega_le_mul_principal ho ho₂
   end,
   rw ←power_le_power_iff_right one_lt_omega at this,

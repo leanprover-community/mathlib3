@@ -886,6 +886,28 @@ by simp only [mod_def, div_self a0, mul_one, sub_self]
 @[simp] theorem mod_one (a : ordinal) : a % 1 = 0 :=
 by simp only [mod_def, div_one, one_mul, sub_self]
 
+theorem dvd_of_mod_eq_zero {a b : ordinal} (H : a % b = 0) : has_dvd.dvd b a :=
+begin
+  use a / b,
+  nth_rewrite 0 ←div_add_mod a b,
+  rw [H, add_zero]
+end
+
+theorem mod_eq_zero_of_dvd {a b : ordinal} (H : has_dvd.dvd b a) : a % b = 0 :=
+begin
+  rw mod_def,
+  cases H with c hc,
+  cases eq_or_ne b 0 with hb hb,
+  { subst hb,
+    rw zero_mul at hc,
+    rw [hc, zero_mul, zero_sub] },
+  rw [hc, mul_div_cancel _ hb],
+  exact sub_self _
+end
+
+theorem dvd_iff_mod_eq_zero {a b : ordinal} : has_dvd.dvd a b ↔ a % b = 0 :=
+⟨dvd_of_mod_eq_zero, mod_eq_zero_of_dvd⟩
+
 /-! ### Supremum of a family of ordinals -/
 
 /-- The supremum of a family of ordinals -/
@@ -2004,6 +2026,9 @@ begin
   rw [← power_add, add_omega_power xb]
 end
 
+theorem mul_power_omega {a} : a * a ^ omega = a ^ omega :=
+by rw [←power_one_add, one_add_omega]
+
 theorem power_omega {a : ordinal} (a1 : 1 < a) (h : a < omega) : a ^ omega = omega :=
 le_antisymm
   ((power_le_of_limit (one_le_iff_ne_zero.1 $ le_of_lt a1) omega_is_limit).2
@@ -2215,6 +2240,20 @@ begin
   rw [mul_omega_eq_sup_mul_nat, funext (add_iterate a)]
 end
 
+-- Used in principal
+theorem mul_omega_nfp_add_of_le_mul_omega {a b} (hba : b ≤ a * omega.{u}) :
+  a * omega.{u} = nfp ((+) a) b :=
+begin
+  refine le_antisymm _ ((add_is_normal a).nfp_le_fp hba _),
+  { rw mul_omega_nfp_add_zero,
+    exact nfp_monotone (add_is_normal a).strict_mono.monotone (ordinal.zero_le b) },
+  rw add_mul_omega
+end
+
+-- Used in principal
+theorem mul_omega_nfp_add_self (a) : a * omega.{u} = nfp ((+) a) a :=
+mul_omega_nfp_add_of_le_mul_omega (le_mul_left one_le_omega)
+
 theorem add_fp_iff_mul_omega_le {a b : ordinal.{u}} : a + b = b ↔ a * omega.{u} ≤ b :=
 begin
   refine ⟨λ h, _, λ h, _⟩,
@@ -2230,19 +2269,6 @@ end
 theorem add_fp_iff_mul_omega_le' {a b : ordinal.{u}} : a + b ≤ b ↔ a * omega.{u} ≤ b :=
 by { rw ←add_fp_iff_mul_omega_le, exact (add_is_normal a).self_le_iff_eq }
 
-theorem mul_omega_nfp_add_of_le_mul_omega {a b} (hba : b ≤ a * omega.{u}) :
-  a * omega.{u} = nfp ((+) a) b :=
-begin
-  refine le_antisymm _ ((add_is_normal a).nfp_le_fp hba _),
-  { rw mul_omega_nfp_add_zero,
-    apply nfp_monotone (add_is_normal a).strict_mono.monotone,
-    exact ordinal.zero_le b },
-  rw add_fp_iff_mul_omega_le'
-end
-
-theorem mul_omega_nfp_add_self (a) : a * omega.{u} = nfp ((+) a) a :=
-mul_omega_nfp_add_of_le_mul_omega (le_mul_left one_le_omega)
-
 /-- `deriv ((+) a)` enumerates the ordinals larger or equal to `a * ω`. -/
 theorem add_deriv_eq_enum_ge_mul_omega (a) : deriv ((+) a) = enum_ord (mul_omega_unbounded a) :=
 begin
@@ -2253,13 +2279,12 @@ begin
     ((deriv_is_normal _).strict_mono.monotone (ordinal.zero_le b)), λ b hb, _⟩,
   { rw deriv_zero,
     exact mul_omega_nfp_add_zero a },
-  rw ←(add_is_normal a).fp_iff_deriv',
-  exact add_fp_iff_mul_omega_le'.2 hb
+  rwa [←(add_is_normal a).fp_iff_deriv', add_fp_iff_mul_omega_le']
 end
 
 /-! ### Fixed points of multiplication -/
 
-theorem mul_power_omega_unbounded (o) : unbounded (<) (range ((*) (o ^ ordinal.omega))) :=
+theorem div_power_omega_unbounded (o) : unbounded (<) (range ((*) (o ^ ordinal.omega))) :=
 sorry
 
 theorem mul_iterate (a : ordinal.{u}) (n : ℕ) : a ^ n = (((*) a)^[n]) 1 :=
@@ -2276,9 +2301,6 @@ begin
   rwa [power_omega_eq_sup_power_nat, funext (mul_iterate a)]
 end
 
-theorem mul_power_omega {a} : a * a ^ omega = a ^ omega :=
-by rw [←power_one_add, one_add_omega]
-
 theorem nfp_mul_zero (a : ordinal) : nfp ((*) 0) a = a :=
 begin
   unfold nfp,
@@ -2292,6 +2314,7 @@ begin
   exact ordinal.zero_le a
 end
 
+-- Used in principal
 theorem power_omega_nfp_mul {a b : ordinal.{u}} (hb : 0 < b) (hba : b ≤ a ^ omega.{u}) :
   a ^ omega.{u} = nfp ((*) a) b :=
 begin
@@ -2308,6 +2331,7 @@ begin
   rw mul_power_omega
 end
 
+-- Used in principal
 theorem power_omega_nfp_mul_self (a : ordinal.{u}) : a ^ omega.{u} = nfp ((*) a) a :=
 begin
   cases eq_zero_or_pos a with ha ha,
@@ -2316,11 +2340,38 @@ begin
   exact power_omega_nfp_mul ha (le_power_self_left a one_le_omega)
 end
 
-/-- `deriv ((*) a)` enumerates the ordinals larger or equal to `a ^ ω`. -/
-theorem mul_deriv_eq_enum_ge_mul_omega (a) :
-  deriv ((*) a) = enum_ord (mul_power_omega_unbounded a) :=
+theorem mul_fp_div_power_omega (a b : ordinal.{u}) :
+  a * ((a ^ omega.{u}) * b) = (a ^ omega.{u}) * b :=
+by rw [←mul_assoc, ←power_one_add, one_add_omega]
+
+theorem mul_fp_iff_div_power_omega {a b : ordinal.{u}} :
+  a * b = b ↔ (has_dvd.dvd (a ^ omega.{u}) b) :=
 begin
-  sorry
+  cases eq_zero_or_pos a with ha ha,
+  sorry,
+  refine ⟨λ h, _, λ h, _⟩,
+  { rw dvd_iff_mod_eq_zero,
+    have := div_add_mod b (a ^ omega.{u}),
+    rw ←this at h,
+    rw mul_add at h,
+    rw mul_fp_div_power_omega at h,
+    rw add_left_cancel at h,
+    sorry, },
+  cases h with c hc,
+  rw hc,
+  exact mul_fp_div_power_omega _ _
+end
+
+/-- `deriv ((*) a)` enumerates the multiples of `a ^ ω`. -/
+theorem mul_deriv_eq_enum_power_omega_div {a : ordinal} (ha : 0 < a) :
+  deriv ((*) a) = enum_ord (div_power_omega_unbounded a) :=
+begin
+  rw ←eq_enum_ord,
+  use (deriv_is_normal _).strict_mono,
+  rw range_eq_iff,
+  split, {
+
+  }
 end
 
 end ordinal

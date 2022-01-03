@@ -62,6 +62,10 @@ by rw [taylor_coeff, hasse_deriv_zero, linear_map.id_apply]
 @[simp] lemma taylor_coeff_one : (taylor r f).coeff 1 = f.derivative.eval r :=
 by rw [taylor_coeff, hasse_deriv_one]
 
+@[simp] lemma taylor_mul {R} [comm_semiring R] (r : R) (p q : polynomial R) :
+  taylor r (p * q) = taylor r p * taylor r q :=
+by simp only [taylor_apply, mul_comp]
+
 lemma taylor_eval {R} [comm_semiring R] (r : R) (f : polynomial R) (s : R) :
   (taylor r f).eval s = f.eval (s + r) :=
 by simp only [taylor_apply, eval_comp, eval_C, eval_X, eval_add]

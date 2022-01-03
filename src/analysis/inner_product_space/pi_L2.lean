@@ -159,6 +159,7 @@ def basis.isometry_euclidean_of_orthonormal
   E ≃ₗᵢ[𝕜] euclidean_space 𝕜 ι :=
 v.equiv_fun.isometry_of_inner
 begin
+  classical,
   intros x y,
   let p : euclidean_space 𝕜 ι := v.equiv_fun x,
   let q : euclidean_space 𝕜 ι := v.equiv_fun y,

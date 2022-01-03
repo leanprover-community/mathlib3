@@ -824,10 +824,8 @@ begin
 end
 
 variables (p μ G)
-lemma coe_fn_zero : (0 : Lp.simple_func G p μ) =ᵐ[μ] (0 : α → G) :=
-Lp.coe_fn_zero _ _ _
+lemma coe_fn_zero : (0 : Lp.simple_func G p μ) =ᵐ[μ] (0 : α → G) := Lp.coe_fn_zero _ _ _
 variables{p μ G}
-
 
 lemma coe_fn_nonneg (f : Lp.simple_func G p μ) : 0 ≤ᵐ[μ] f ↔ 0 ≤ f :=
 begin

@@ -848,13 +848,10 @@ end
 
 theorem mod_eq_zero_of_dvd {a b : ordinal} (H : b ∣ a) : a % b = 0 :=
 begin
-  rw mod_def,
-  cases H with c hc,
+  rcases H with ⟨c, rfl⟩,
   rcases eq_or_ne b 0 with rfl | hb,
-  { rw zero_mul at hc,
-    rw [hc, zero_mul, zero_sub] },
-  rw [hc, mul_div_cancel _ hb],
-  exact sub_self _
+  { simp },
+  { simp [mod_def, hb] }
 end
 
 theorem dvd_iff_mod_eq_zero {a b : ordinal} : b ∣ a ↔ a % b = 0 :=

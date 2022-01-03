@@ -9,6 +9,28 @@ import algebra.module.linear_map
 import algebra.monoid_algebra.basic
 import linear_algebra.trace
 
+/-!
+# Monoid representations
+
+This file introduces monoid representations and their characters and proves basic lemmas about them,
+including equivalences between different definitions of representations.
+
+## Main definitions
+
+  * `as_monoid_hom`
+  * `as_module`
+  * `rep_space`
+  * `character`
+
+## Implementation notes
+
+A representation of a monoid `G` over a commutative semiring `k` is implemented as a `k`-module `V`
+together with a `distrib_mul_action G V` instance and a `smul_comm_class G k V` instance.
+
+Alternatively, one can use a monoid homomorphism `G →* (V →ₗ[k] V)`. The definitions `as_monoid_hom`
+and `rep_space` allow to go back and forth between these two definitions.
+-/
+
 open monoid_algebra
 
 namespace representation

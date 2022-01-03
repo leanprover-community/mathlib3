@@ -5,6 +5,18 @@ Authors: Antoine Labelle.
 -/
 import representation_theory.basic
 
+/-!
+# Fixed space of a group representation
+
+This file introduce the subspace of fixed points of a group representation
+and proves basic result about it.
+The main tool used is the average of all elements of the group, seen as an element of
+`monoid_algebra k G`. Scalar multiplication by this special element gives a projection onto the
+subspace of fixed vectors.
+In order for the definition of the average element to make sense, we need to assume for most of the
+results that the order of `G` is invertible in `k` (e. g. `k` has characteristic `0`).
+-/
+
 open_locale big_operators
 open monoid_algebra
 open finset

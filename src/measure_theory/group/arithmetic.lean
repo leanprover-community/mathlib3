@@ -475,10 +475,14 @@ lemma ae_measurable.smul [has_measurable_smul₂ M β]
   ae_measurable (λ x, f x • g x) μ :=
 has_measurable_smul₂.measurable_smul.comp_ae_measurable (hf.prod_mk hg)
 
+omit m
+
 @[priority 100, to_additive]
 instance has_measurable_smul₂.to_has_measurable_smul [has_measurable_smul₂ M β] :
   has_measurable_smul M β :=
 ⟨λ c, measurable_const.smul measurable_id, λ y, measurable_id.smul measurable_const⟩
+
+include m
 
 variables [has_measurable_smul M β] {μ : measure α}
 

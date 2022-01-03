@@ -1410,8 +1410,8 @@ end
 theorem le_power_self_left (a : ordinal) {b : ordinal} (b1 : 0 < b) : a ≤ a ^ b :=
 begin
   nth_rewrite 0 ←power_one a,
-  cases le_or_gt a 1 with a1 a1, {
-    cases lt_or_eq_of_le a1 with a0 a1,
+  cases le_or_gt a 1 with a1 a1,
+  { cases lt_or_eq_of_le a1 with a0 a1,
     { rw lt_one_iff_zero at a0,
       rw [a0, zero_power ordinal.one_ne_zero],
       exact ordinal.zero_le _ },

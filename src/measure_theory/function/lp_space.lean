@@ -991,8 +991,7 @@ finset.le_sum_of_subadditive_on_pred (λ (f : α → E), snorm f p μ)
 lemma mem_ℒp.add {f g : α → E} (hf : mem_ℒp f p μ) (hg : mem_ℒp g p μ) : mem_ℒp (f + g) p μ :=
 ⟨ae_measurable.add hf.1 hg.1, snorm_add_lt_top hf hg⟩
 
-lemma mem_ℒp.sub {f g : α → E} (hf : mem_ℒp f p μ) (hg : mem_ℒp g p μ) :
-  mem_ℒp (f - g) p μ :=
+lemma mem_ℒp.sub {f g : α → E} (hf : mem_ℒp f p μ) (hg : mem_ℒp g p μ) : mem_ℒp (f - g) p μ :=
 by { rw sub_eq_add_neg, exact hf.add hg.neg }
 
 lemma mem_ℒp_finset_sum {ι} (s : finset ι) {f : ι → α → E} (hf : ∀ i ∈ s, mem_ℒp (f i) p μ) :

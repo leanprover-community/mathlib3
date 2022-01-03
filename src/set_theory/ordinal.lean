@@ -995,6 +995,9 @@ induction_on c $ λ β s hs, (@type_le' _ _ _ _
   { cases H; constructor; [rwa fo, assumption] }
 end⟩⟩
 
+theorem add_le_add {a b c d : ordinal} : a ≤ c → b ≤ d → a + b ≤ c + d :=
+λ hac hbd, le_trans (add_le_add_right hac b) (add_le_add_left hbd c)
+
 theorem le_add_left (a b : ordinal) : a ≤ b + a :=
 by simpa only [zero_add] using add_le_add_right (ordinal.zero_le b) a
 

@@ -870,7 +870,7 @@ begin
 end
 
 variables (p μ G)
-/-- Coercion form nonnegative simple functions of Lp to nonnegative functions of Lp. -/
+/-- Coercion from nonnegative simple functions of Lp to nonnegative functions of Lp. -/
 def coe_simple_func_nonneg_to_Lp_nonneg :
   {g : Lp.simple_func G p μ // 0 ≤ g} → {g : Lp G p μ // 0 ≤ g} :=
 λ g, ⟨g, g.2⟩

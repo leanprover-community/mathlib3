@@ -1610,7 +1610,7 @@ end
 
 theorem log_power {b : ordinal} (x : ordinal) (hb : 1 < b) : log b (b ^ x) = x :=
 begin
-  cases eq_zero_or_pos x with hx hx,
+  cases eq_or_ne x 0 with hx hx,
   { rw [hx, power_zero],
     exact log_one b },
   have : b ^ x = b ^ x * 1 + 0 := by rw [add_zero, mul_one],
@@ -1841,6 +1841,7 @@ theorem one_lt_omega : 1 < omega := by simpa only [nat.cast_one] using nat_lt_om
 
 theorem one_le_omega : 1 ≤ omega := le_of_lt one_lt_omega
 
+-- TODO do i actually need this
 theorem two_lt_omega : 2 < omega := by simpa only [nat.cast_two] using nat_lt_omega 2
 
 theorem two_le_omega : 2 ≤ omega := le_of_lt two_lt_omega
@@ -2245,7 +2246,7 @@ end
 
 -- Used in principal
 theorem mul_omega_nfp_add_self (a) : a * omega = nfp ((+) a) a :=
-mul_omega_nfp_add_of_le_mul_omega (le_mul_left one_le_omega)
+mul_omega_nfp_add_of_le_mul_omega (le_mul_left omega_pos)
 
 theorem add_fp_iff_mul_omega_le {a b : ordinal} : a + b = b ↔ a * omega.{u} ≤ b :=
 begin
@@ -2277,16 +2278,12 @@ end
 
 /-! ### Fixed points of multiplication -/
 
-theorem dvd_unbounded {a : ordinal} (ha : 1 ≤ a) : unbounded (<) {b | a ∣ b} :=
+theorem dvd_unbounded {a : ordinal} (ha : 0 < a) : unbounded (<) {b | a ∣ b} :=
 λ b, ⟨_, dvd_mul_right a b, not_lt_of_le (le_mul_right ha)⟩
 
-theorem dvd_power_omega_unbounded {a : ordinal} (ha : 1 ≤ a) :
+theorem dvd_power_omega_unbounded {a : ordinal} (ha : 0 < a) :
   unbounded (<) {b : ordinal | (a ^ ordinal.omega) ∣ b} :=
-begin
-  apply dvd_unbounded,
-  rw one_le_iff_pos at *,
-  exact power_pos _ ha,
-end
+dvd_unbounded (power_pos _ ha)
 
 theorem mul_iterate (a : ordinal) (n : ℕ) : a ^ n = (((*) a)^[n]) 1 :=
 begin

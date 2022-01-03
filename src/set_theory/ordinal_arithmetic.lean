@@ -1243,8 +1243,8 @@ lemma power_mul_add_lt_power_mul_succ {b u w : ordinal} (v : ordinal) (hw : w < 
   b ^ u * v + w < b ^ u * v.succ :=
 by rwa [mul_succ, add_lt_add_iff_left]
 
-lemma power_mul_add_lt_power_succ {b u v w : ordinal} (hb : 2 ≤ b) (hv : 1 ≤ v) (hvb : v < b)
-  (hw : w < b ^ u) : b ^ u * v + w < b ^ u.succ :=
+lemma power_mul_add_lt_power_succ {b u v w : ordinal} (hvb : v < b) (hw : w < b ^ u) :
+  b ^ u * v + w < b ^ u.succ :=
 begin
   apply lt_of_lt_of_le (power_mul_add_lt_power_mul_succ v hw),
   rw ←succ_le at hvb,
@@ -1262,7 +1262,7 @@ begin
     exact not_le_of_lt h (le_trans (le_mul_left hv) (le_add_right _ _)) },
   change _ < _ at h,
   rw [←succ_le, le_log (one_lt_of_two_le hb) hpos] at h,
-  exact (not_lt_of_le h) (power_mul_add_lt_power_succ hb hv hvb hw)
+  exact (not_lt_of_le h) (power_mul_add_lt_power_succ hvb hw)
 end
 
 theorem log_power {b : ordinal} (x : ordinal) (hb : 2 ≤ b) : log b (b ^ x) = x :=

@@ -138,9 +138,9 @@ forget_to_SheafedSpace ⋙ SheafedSpace.forget _
 @[simp] lemma comp_val_c {X Y Z : LocallyRingedSpace} (f : X ⟶ Y) (g : Y ⟶ Z) :
   (f ≫ g).val.c = g.val.c ≫ (presheaf.pushforward _ g.val.base).map f.val.c := rfl
 
-lemma comp_val_c_app {X Y Z : LocallyRingedSpace} (f : X ⟶ Y) (g : Y ⟶ Z) (U) :
-  (f ≫ g).val.c.app U = g.val.c.app U ≫ f.val.c.app (op $ (opens.map g.val.base).obj U.unop)
-:= rfl
+lemma comp_val_c_app {X Y Z : LocallyRingedSpace} (f : X ⟶ Y) (g : Y ⟶ Z) (U : (opens Z)ᵒᵖ) :
+  (f ≫ g).val.c.app U = g.val.c.app U ≫ f.val.c.app (op $ (opens.map g.val.base).obj U.unop) :=
+rfl
 
 /--
 Given two locally ringed spaces `X` and `Y`, an isomorphism between `X` and `Y` as _sheafed_

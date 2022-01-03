@@ -10,9 +10,8 @@ import category_theory.adjunction.fully_faithful
 /-!
 # Adjunction between `Γ` and `Spec`
 
-Define the adjunction `Γ_Spec.adjunction : Γ ⊣ Spec` (or more technically,
-`Γ.right_op ⊣ Spec.to_LocallyRingedSpace`) by defining the unit (done in Spec.lean) and
-counit (`to_Γ_Spec`, in multiple steps in this file) and checking that they satisfy
+We define the adjunction `Γ_Spec.adjunction : Γ ⊣ Spec` by defining the unit (`to_Γ_Spec`,
+in multiple steps in this file) and counit (done in Spec.lean) and checking that they satisfy
 the left and right triangle identities. The constructions and proofs make use of
 maps and lemmas defined and proved in structure_sheaf.lean extensively.
 
@@ -20,6 +19,15 @@ Notice that since the adjunction is between contravariant functors, you get to c
 one of the two categories to have arrows reversed, and it is equally valid to present
 the adjunction as `Spec ⊣ Γ` (`Spec.to_LocallyRingedSpace.right_op ⊣ Γ`), in which
 case the unit and the counit would switch to each other.
+
+## Main definition
+
+* `algebraic_geometry.identity_to_Γ_Spec` : The natural transformation `𝟭 _ ⟶ Γ ⋙ Spec`.
+* `algebraic_geometry.Γ_Spec.LocallyRingedSpace_adjunction` : The adjunction `Γ ⊣ Spec` from
+  `CommRingᵒᵖ` to `LocallyRingedSpace`.
+* `algebraic_geometry.Γ_Spec.adjunction` : The adjunction `Γ ⊣ Spec` from
+  `CommRingᵒᵖ` to `Scheme`.
+
 -/
 
 noncomputable theory
@@ -46,8 +54,8 @@ def Γ_to_stalk (x : X) : Γ.obj (op X) ⟶ X.presheaf.stalk x :=
 -- or @Top.presheaf.germ _ _ _ _ _ ⊤ ⟨x,trivial⟩
 
 /-- Unit on the underlying set. -/
-def to_Γ_Spec_fun : X → prime_spectrum (Γ.obj (op X)) := λ x,
-  comap (X.Γ_to_stalk x) (@local_ring.closed_point _ _ (X.local_ring x))
+def to_Γ_Spec_fun : X → prime_spectrum (Γ.obj (op X)) :=
+  λ x, comap (X.Γ_to_stalk x) (@local_ring.closed_point _ _ (X.local_ring x))
 -- or Spec.to_Top.map (X.Γ_to_stalk x).op (@local_ring.closed_point ...)
 
 lemma not_mem_prime_iff_unit_in_stalk (r : Γ.obj (op X)) (x : X) :
@@ -103,9 +111,11 @@ begin
 end
 
 /-- Define the sheaf hom on individual basic opens for the unit. -/
-def to_Γ_Spec_c_app (r : Γ.obj (op X)) := CommRing.of_hom $
-by { refine is_localization.away.lift r (is_unit_res_to_Γ_Spec_map_basic_open _ r),
-     swap 4, exact is_localization.to_basic_open _ r }
+def to_Γ_Spec_c_app (r : Γ.obj (op X)) :
+  (structure_sheaf $ Γ.obj $ op X).val.obj (op $ basic_open r) ⟶
+    X.presheaf.obj (op $ X.to_Γ_Spec_map_basic_open r) := CommRing.of_hom $
+@@is_localization.away.lift _ _ (to_open _ (basic_open r)).to_algebra _ r
+  (is_localization.to_basic_open _ r) (is_unit_res_to_Γ_Spec_map_basic_open _ r)
 
 /-- Characterization of the sheaf hom on basic opens,
     direction ← (next lemma) is used at various places, but → is not used in this file. -/
@@ -163,12 +173,15 @@ lemma to_stalk_stalk_map_to_Γ_Spec (x : X) : to_stalk _ _ ≫
   PresheafedSpace.stalk_map X.to_Γ_Spec_SheafedSpace x = X.Γ_to_stalk x :=
 begin
   rw PresheafedSpace.stalk_map,
-  erw ← to_open_germ _ (basic_open (1 : Γ.obj (op X))) ⟨X.to_Γ_Spec_fun x, by rw basic_open_one; triv⟩,
+  erw ← to_open_germ _ (basic_open (1 : Γ.obj (op X)))
+    ⟨X.to_Γ_Spec_fun x, by rw basic_open_one; triv⟩,
   rw [← category.assoc, category.assoc (to_open _ _)],
   erw stalk_functor_map_germ,
   rw [← category.assoc (to_open _ _), X.to_Γ_Spec_SheafedSpace_app_spec 1],
-  unfold Γ_to_stalk, rw ← stalk_pushforward_germ _ X.to_Γ_Spec_base X.presheaf ⊤,
-  congr' 1, change (X.to_Γ_Spec_base _* X.presheaf).map le_top.hom.op ≫ _ = _,
+  unfold Γ_to_stalk,
+  rw ← stalk_pushforward_germ _ X.to_Γ_Spec_base X.presheaf ⊤,
+  congr' 1,
+  change (X.to_Γ_Spec_base _* X.presheaf).map le_top.hom.op ≫ _ = _,
   apply germ_res,
 end
 
@@ -177,11 +190,14 @@ end
 def to_Γ_Spec : X ⟶ Spec.LocallyRingedSpace_obj (Γ.obj (op X)) :=
 begin
   fsplit, exact X.to_Γ_Spec_SheafedSpace,
-  intro x, let p : prime_spectrum (Γ.obj (op X)) := X.to_Γ_Spec_fun x,
-  fsplit, /- show stalk map is local hom ↓ -/
+  intro x,
+  let p : prime_spectrum (Γ.obj (op X)) := X.to_Γ_Spec_fun x,
+  constructor, /- show stalk map is local hom ↓ -/
   have h := is_localization.to_stalk (Γ.obj (op X)) p,
-  letI := (to_stalk _ p).to_algebra, have he' := h.surj,
-  intros t ht, rcases he' t with ⟨⟨r,s⟩,he⟩,
+  letI := (to_stalk _ p).to_algebra,
+  have he' := h.surj,
+  intros t ht,
+  rcases he' t with ⟨⟨r,s⟩,he⟩,
   have hu := h.map_units,
   let sm := PresheafedSpace.stalk_map X.to_Γ_Spec_SheafedSpace x,
   have hr : is_unit (X.Γ_to_stalk x r),
@@ -192,7 +208,8 @@ begin
     apply is_unit.mul ht,
     exact is_unit.map sm.to_monoid_hom (hu s) },
   rw ← not_mem_prime_iff_unit_in_stalk at hr,
-  have hr' := hu ⟨r,hr⟩, erw ← he at hr',
+  have hr' := hu ⟨r,hr⟩,
+  erw ← he at hr',
   exact is_unit_of_mul_is_unit_left hr',
 end
 
@@ -210,7 +227,7 @@ begin
     rw LocallyRingedSpace.comp_val_c_app,
     erw to_open_comp_comap_assoc,
     rw category.assoc,
-    erw [to_Γ_Spec_SheafedSpace_app_spec, ←X.presheaf.map_comp],
+    erw [to_Γ_Spec_SheafedSpace_app_spec, ← X.presheaf.map_comp],
     convert h r },
   exact w,
 end
@@ -227,8 +244,6 @@ begin
 end
 
 end LocallyRingedSpace
-
-local attribute [reducible] PresheafedSpace.stalk
 
 /-- Unit as a natural transformation. -/
 def identity_to_Γ_Spec : 𝟭 LocallyRingedSpace.{u} ⟶ Γ.right_op ⋙ Spec.to_LocallyRingedSpace :=
@@ -272,7 +287,7 @@ end
 -- Removing this makes the following definition time out.
 local attribute [irreducible] Spec_Γ_identity identity_to_Γ_Spec Spec.to_LocallyRingedSpace
 
-/-- The adjunction `Γ ⊣ Spec` between `CommRingᵒᵖ` and `LocallyRingedSpace`. -/
+/-- The adjunction `Γ ⊣ Spec` from `CommRingᵒᵖ` to `LocallyRingedSpace`. -/
 @[simps unit counit] def LocallyRingedSpace_adjunction : Γ.right_op ⊣ Spec.to_LocallyRingedSpace :=
 adjunction.mk_of_unit_counit
 { unit := identity_to_Γ_Spec,
@@ -284,7 +299,7 @@ adjunction.mk_of_unit_counit
 
 local attribute [semireducible] Spec.to_LocallyRingedSpace
 
-/-- The adjunction `Γ ⊣ Spec` between `CommRingᵒᵖ` and `Scheme`. -/
+/-- The adjunction `Γ ⊣ Spec` from `CommRingᵒᵖ` to `Scheme`. -/
 def adjunction : Scheme.Γ.right_op ⊣ Scheme.Spec :=
 LocallyRingedSpace_adjunction.restrict_fully_faithful
   Scheme.forget_to_LocallyRingedSpace (𝟭 _)
@@ -321,7 +336,8 @@ by { rw [← adjunction.hom_equiv_id, ← adjunction.hom_equiv_id, adjunction_ho
 local attribute [semireducible] LocallyRingedSpace_adjunction Γ_Spec.adjunction
 
 instance is_iso_LocallyRingedSpace_adjunction_counit :
-  is_iso LocallyRingedSpace_adjunction.counit := is_iso.of_iso_inv _
+  is_iso LocallyRingedSpace_adjunction.counit :=
+is_iso.of_iso_inv _
 
 instance is_iso_adjunction_counit : is_iso Γ_Spec.adjunction.counit :=
 begin

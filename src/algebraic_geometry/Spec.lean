@@ -25,9 +25,9 @@ We define $Spec$ in three consecutive steps, each with more structure than the l
 Additionally, we provide `Spec.to_PresheafedSpace` as a composition of `Spec.to_SheafedSpace` with
 a forgetful functor.
 
-The counit of the adjunction between `Γ` and `Spec` is proven to be a
-natural transformation in `Spec_Γ_naturality`, and realized as a natural isomorphism in
-`Spec_Γ_identity`. The unit and the adjunction are constructed in Gamma_Spec_adjunction.lean.
+## Related results
+
+The adjunction `Γ ⊣ Spec` is constructed in `algebraic_geometry/Gamma_Spec_adjunction.lean`.
 
 
 -/

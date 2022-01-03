@@ -101,7 +101,7 @@ lemma add [has_add β] [has_measurable_add₂ β] (hf : ae_measurable' m f μ)
 begin
   rcases hf with ⟨f', h_f'_meas, hff'⟩,
   rcases hg with ⟨g', h_g'_meas, hgg'⟩,
-  exact ⟨f' + g', @measurable.add _ _ _ _ m _ f' g' h_f'_meas h_g'_meas, hff'.add hgg'⟩,
+  exact ⟨f' + g', h_f'_meas.add h_g'_meas, hff'.add hgg'⟩,
 end
 
 lemma neg [has_neg β] [has_measurable_neg β] {f : α → β} (hfm : ae_measurable' m f μ) :
@@ -129,7 +129,7 @@ lemma const_smul [has_scalar 𝕜 β] [has_measurable_smul 𝕜 β] (c : 𝕜) (
   ae_measurable' m (c • f) μ :=
 begin
   rcases hf with ⟨f', h_f'_meas, hff'⟩,
-  refine ⟨c • f', @measurable.const_smul _ _ _ _ _ _ m _ f' h_f'_meas c, _⟩,
+  refine ⟨c • f', h_f'_meas.const_smul c, _⟩,
   exact eventually_eq.fun_comp hff' (λ x, c • x),
 end
 

@@ -45,22 +45,9 @@ end homogeneous_core
 
 section is_homogeneous_ideal_defs
 
-variables {ι R A : Type*} [comm_ring R] [ring A] [algebra R A] [decidable_eq ι] [add_comm_monoid ι]
-variables (𝒜 : ι → submodule R A) [graded_algebra 𝒜]
+variables {ι R A : Type*} [comm_ring R] [ring A] [algebra R A]
+variables (𝒜 : ι → submodule R A)
 variable (I : ideal A)
-
-/--An `I : ideal R` is homogeneous if for every `r ∈ I`, all homogeneous components
-  of `r` are in `I`.-/
-def ideal.is_homogeneous : Prop :=
-∀ (i : ι) ⦃r : A⦄, r ∈ I → (graded_algebra.decompose 𝒜 r i : A) ∈ I
-
-lemma ideal.is_homogeneous_iff_forall_subset :
-  ideal.is_homogeneous 𝒜 I ↔ ∀ i, (I : set A) ⊆ graded_algebra.proj 𝒜 i ⁻¹' I :=
-iff.rfl
-
-lemma ideal.is_homogeneous_iff_subset_Inter :
-  ideal.is_homogeneous 𝒜 I ↔ (I : set A) ⊆ ⋂ i, graded_algebra.proj 𝒜 i ⁻¹' ↑I :=
-subset_Inter_iff.symm
 
 lemma ideal.is_homogeneous.exists_subset_iff_eq_span :
   (∃ s : set A, s ⊆ set_of (is_homogeneous 𝒜) ∧ I = ideal.span s) ↔
@@ -74,6 +61,21 @@ begin
   { intros hI,
     exact ⟨_, inter_subset_right _ _, hI⟩, }
 end
+
+variables [decidable_eq ι] [add_comm_monoid ι]  [graded_algebra 𝒜]
+
+/--An `I : ideal R` is homogeneous if for every `r ∈ I`, all homogeneous components
+  of `r` are in `I`.-/
+def ideal.is_homogeneous : Prop :=
+∀ (i : ι) ⦃r : A⦄, r ∈ I → (graded_algebra.decompose 𝒜 r i : A) ∈ I
+
+lemma ideal.is_homogeneous_iff_forall_subset :
+  ideal.is_homogeneous 𝒜 I ↔ ∀ i, (I : set A) ⊆ graded_algebra.proj 𝒜 i ⁻¹' I :=
+iff.rfl
+
+lemma ideal.is_homogeneous_iff_subset_Inter :
+  ideal.is_homogeneous 𝒜 I ↔ (I : set A) ⊆ ⋂ i, graded_algebra.proj 𝒜 i ⁻¹' ↑I :=
+subset_Inter_iff.symm
 
 lemma ideal.is_homogeneous.exists_iff_eq_span :
   (∃ (S : set (homogeneous_submonoid 𝒜)), I = ideal.span (coe '' S)) ↔
@@ -140,7 +142,8 @@ end is_homogeneous_ideal_defs
 
 section operations
 
-variables {ι R A : Type*} [comm_ring R] [comm_ring A] [algebra R A] [decidable_eq ι] [add_comm_monoid ι]
+variables {ι R A : Type*} [comm_ring R] [comm_ring A] [algebra R A]
+variables [decidable_eq ι] [add_comm_monoid ι]
 variables (𝒜 : ι → submodule R A) [graded_algebra 𝒜]
 variable (I : ideal A)
 

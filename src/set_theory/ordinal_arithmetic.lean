@@ -2046,32 +2046,33 @@ end
 theorem mul_omega_unbounded (o) : unbounded (<) (set.Ici (o * ordinal.omega)) :=
 unbounded_lt_Ici _
 
-theorem add_mul_omega (a) : a + a * omega = a * omega :=
-by rw [←mul_one_add, one_add_omega]
-
-theorem mul_omega_nfp_add_zero (a) : a * omega.{u} = nfp ((+) a) 0 :=
+theorem add_iterate (a : ordinal) (n : ℕ) : a * n = (((+) a)^[n]) 0 :=
 begin
-  cases eq_or_ne 0 a with ha ha,
-  { rw [←ha, zero_mul],
-    unfold nfp,
-    apply eq.symm,
-    rw sup_eq_zero_iff,
-    intro n,
-    induction n with n hn, { refl },
-    rwa [iterate_succ_apply, zero_add] },
-  have hmul := @is_normal.sup.{0 u u} _
-    (mul_is_normal.{u} (lt_of_le_of_ne (ordinal.zero_le a) ha)) ℕ (λ n, ↑n) ⟨0⟩,
-  rw ←omega_eq_sup_nat at hmul,
-  suffices : (λ n, ((+) a)^[n] 0) = (*) a ∘ λ n, ↑n,
-  { rwa ←this at hmul },
-  refine funext (λ n, _),
   induction n with n hn,
-  { rw iterate_zero,
-    exact (mul_zero _).symm },
-  rw [iterate_succ_apply', hn, ←mul_one_add, (by simp : (1 : ordinal) + ↑n = ↑(1 + n)), add_comm]
+  { rw [nat.cast_zero, mul_zero, iterate_zero_apply] },
+  nth_rewrite 0 nat.succ_eq_one_add,
+  rw [nat.cast_add, nat.cast_one, mul_one_add, iterate_succ_apply', hn]
 end
 
-theorem add_fp_iff_mul_omega_le {a b : ordinal.{u}} : a + b = b ↔ a * omega.{u} ≤ b :=
+theorem mul_omega_nfp_add_zero (a) : a * omega = nfp ((+) a) 0 :=
+begin
+  unfold nfp,
+  rw [mul_omega_eq_sup_mul_nat, funext (add_iterate a)]
+end
+
+theorem mul_omega_nfp_add_of_le_mul_omega {a b} (hba : b ≤ a * omega) :
+  a * omega = nfp ((+) a) b :=
+begin
+  refine le_antisymm _ ((add_is_normal a).nfp_le_fp hba _),
+  { rw mul_omega_nfp_add_zero,
+    exact nfp_monotone (add_is_normal a).strict_mono.monotone (ordinal.zero_le b) },
+  rw add_mul_omega
+end
+
+theorem mul_omega_nfp_add_self (a) : a * omega = nfp ((+) a) a :=
+mul_omega_nfp_add_of_le_mul_omega (le_mul_left omega_pos)
+
+theorem add_fp_iff_mul_omega_le {a b : ordinal} : a + b = b ↔ a * omega.{u} ≤ b :=
 begin
   refine ⟨λ h, _, λ h, _⟩,
   { rw [mul_omega_nfp_add_zero a, ←deriv_zero],
@@ -2083,21 +2084,8 @@ begin
   rwa [←add_assoc, add_mul_omega]
 end
 
-theorem add_fp_iff_mul_omega_le' {a b : ordinal.{u}} : a + b ≤ b ↔ a * omega.{u} ≤ b :=
+theorem add_fp_iff_mul_omega_le' {a b : ordinal} : a + b ≤ b ↔ a * omega.{u} ≤ b :=
 by { rw ←add_fp_iff_mul_omega_le, exact (add_is_normal a).self_le_iff_eq }
-
-theorem mul_omega_nfp_add_of_le_mul_omega {a b} (hba : b ≤ a * omega.{u}) :
-  a * omega.{u} = nfp ((+) a) b :=
-begin
-  refine le_antisymm _ ((add_is_normal a).nfp_le_fp hba _),
-  { rw mul_omega_nfp_add_zero,
-    apply nfp_monotone (add_is_normal a).strict_mono.monotone,
-    exact ordinal.zero_le b },
-  rw add_fp_iff_mul_omega_le'
-end
-
-theorem mul_omega_nfp_add_self (a) : a * omega.{u} = nfp ((+) a) a :=
-mul_omega_nfp_add_of_le_mul_omega (le_mul_left omega_pos)
 
 /-- `deriv ((+) a)` enumerates the ordinals larger or equal to `a * ω`. -/
 theorem add_deriv_eq_enum_ge_mul_omega (a) : deriv ((+) a) = enum_ord (mul_omega_unbounded a) :=
@@ -2109,8 +2097,7 @@ begin
     ((deriv_is_normal _).strict_mono.monotone (ordinal.zero_le b)), λ b hb, _⟩,
   { rw deriv_zero,
     exact mul_omega_nfp_add_zero a },
-  rw ←(add_is_normal a).fp_iff_deriv',
-  exact add_fp_iff_mul_omega_le'.2 hb
+  rwa [←(add_is_normal a).fp_iff_deriv', add_fp_iff_mul_omega_le']
 end
 
 end ordinal

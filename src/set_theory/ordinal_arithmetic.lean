@@ -3,6 +3,7 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Floris van Doorn
 -/
+import order.bounded
 import set_theory.ordinal
 import tactic.by_contra
 
@@ -173,6 +174,9 @@ instance : nontrivial ordinal.{u} :=
 
 theorem zero_lt_one : (0 : ordinal) < 1 :=
 lt_iff_le_and_ne.2 ⟨ordinal.zero_le _, ne.symm $ ordinal.one_ne_zero⟩
+
+theorem eq_zero_or_pos (a : ordinal) : a = 0 ∨ 0 < a :=
+by { convert eq_or_ne a 0, exact propext ordinal.pos_iff_ne_zero }
 
 /-! ### The predecessor of an ordinal -/
 
@@ -406,6 +410,9 @@ theorem is_normal.is_limit {f} (H : is_normal f) {o} (l : is_limit o) :
 λ a h, let ⟨b, h₁, h₂⟩ := (H.limit_lt l).1 h in
   lt_of_le_of_lt (succ_le.2 h₂) (H.lt_iff.2 h₁)⟩
 
+theorem is_normal.self_le_iff_eq {f} (H : is_normal f) {a} : f a ≤ a ↔ f a = a :=
+⟨λ h, le_antisymm h (H.le_self a), le_of_eq⟩
+
 theorem add_le_of_limit {a b c : ordinal.{u}}
   (h : is_limit b) : a + b ≤ c ↔ ∀ b' < b, a + b' ≤ c :=
 ⟨λ h b' l, le_trans (add_le_add_left (le_of_lt l) _) h,
@@ -567,6 +574,9 @@ end⟩⟩
 @[simp] theorem mul_add_one (a b : ordinal) : a * (b + 1) = a * b + a :=
 by simp only [mul_add, mul_one]
 
+@[simp] theorem mul_one_add (a b : ordinal) : a * (1 + b) = a + a * b :=
+by simp only [mul_add, mul_one]
+
 @[simp] theorem mul_succ (a b : ordinal) : a * succ b = a * b + a := mul_add_one _ _
 
 theorem mul_le_mul_left {a b} (c : ordinal) : a ≤ b → c * a ≤ c * b :=
@@ -590,6 +600,12 @@ quotient.induction_on₃ a b c $ λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨γ, t, _⟩
   { exact prod.lex.left _ _ h' },
   { exact prod.lex.right _ (f.to_rel_embedding.map_rel_iff.2 h') }
 end
+
+theorem le_mul_left {a b : ordinal} (hb : 0 < b) : a ≤ a * b :=
+by { convert mul_le_mul_left a (one_le_iff_pos.2 hb), rw mul_one a }
+
+theorem le_mul_right {a b : ordinal} (hb : 0 < b) : a ≤ b * a :=
+by { convert mul_le_mul_right a (one_le_iff_pos.2 hb), rw one_mul a }
 
 theorem mul_le_mul {a b c d : ordinal} (h₁ : a ≤ c) (h₂ : b ≤ d) : a * b ≤ c * d :=
 le_trans (mul_le_mul_left _ h₂) (mul_le_mul_right _ h₁)
@@ -867,6 +883,14 @@ begin
   exact hao.not_le (sup_le.2 (λ i, lt_succ.1 ((lt_of_le_of_ne (le_sup _ _) (hf i)).trans_le hoa)))
 end
 
+theorem sup_eq_zero_iff {ι} {f : ι → ordinal} : sup f = 0 ↔ ∀ i, f i = 0 :=
+begin
+  refine ⟨λ h i, _, λ h, le_antisymm
+    (sup_le.2 (λ i, ordinal.le_zero.2 (h i))) (ordinal.zero_le _)⟩,
+  rw [←ordinal.le_zero, ←h],
+  exact le_sup f i
+end
+
 theorem is_normal.sup {f} (H : is_normal f)
   {ι} {g : ι → ordinal} (h : nonempty ι) : f (sup g) = sup (f ∘ g) :=
 eq_of_forall_ge_iff $ λ a,
@@ -946,6 +970,14 @@ theorem bsup_not_succ_of_ne_bsup {o} {f : Π a < o, ordinal}
   a < bsup o f → succ a < bsup o f :=
 by { rw bsup_eq_sup at *, exact sup_not_succ_of_ne_sup (λ i, hf _) }
 
+theorem bsup_eq_zero_iff {o} {f : Π a < o, ordinal} : bsup o f = 0 ↔ ∀ i hi, f i hi = 0 :=
+begin
+  refine ⟨λ h i hi, _, λ h, le_antisymm
+    (bsup_le.2 (λ i hi, ordinal.le_zero.2 (h i hi))) (ordinal.zero_le _)⟩,
+  rw [←ordinal.le_zero, ←h],
+  exact le_bsup f i hi,
+end
+
 theorem lt_bsup_of_limit {o : ordinal} {f : Π a < o, ordinal}
   (hf : ∀ {a a'} (ha : a < o) (ha' : a' < o), a < a' → f a ha < f a' ha')
   (ho : o.is_limit) (i h) : f i h < bsup o f :=
@@ -1006,6 +1038,16 @@ begin
   exact lt_irrefl _ this
 end
 
+theorem lsub_eq_zero_iff {ι} {f : ι → ordinal} : lsub f = 0 ↔ is_empty ι :=
+begin
+  refine ⟨λ h, ⟨λ i, _⟩, λ h, _⟩,
+  { have := lt_lsub f i,
+    rw h at this,
+    exact @not_lt_bot _ _ _ (f i) this },
+  rw [←ordinal.le_zero, lsub_le_iff_lt],
+  exact h.elim
+end
+
 /-- The bounded least strict upper bound of a family of ordinals. -/
 def blsub (o : ordinal.{u}) (f : Π a < o, ordinal.{max u v}) : ordinal.{max u v} :=
 o.bsup (λ a ha, (f a ha).succ)
@@ -1053,6 +1095,9 @@ theorem bsup_eq_blsub {o} (f : Π a < o, ordinal) :
   bsup o f = blsub o f ↔ ∀ a < blsub o f, succ a < blsub o f :=
 by { rw [bsup_eq_sup, blsub_eq_lsub], exact sup_eq_lsub _ }
 
+theorem blsub_eq_zero_iff {o} {f : Π a < o, ordinal} : blsub o f = 0 ↔ o = 0 :=
+by { rw [blsub_eq_lsub, lsub_eq_zero_iff], exact out_empty_iff_eq_zero }
+
 theorem blsub_type (r : α → α → Prop) [is_well_order α r] (f) :
   blsub (type r) f = lsub (λ a, f (typein r a) (typein_lt_type _ _)) :=
 eq_of_forall_ge_iff $ λ o,
@@ -1065,7 +1110,7 @@ begin
   { rw blsub_le_iff_lt,
     exact λ _, id },
   by_contra' h,
-  exact lt_irrefl (blsub.{u u} o (λ x _, x)) (lt_blsub _ _ h)
+  exact lt_irrefl _ (lt_blsub.{u u} (λ x _, x) _ h)
 end
 
 /-! ### Enumerating unbounded sets of ordinals with ordinals -/
@@ -1073,7 +1118,7 @@ end
 section
 variables {S : set ordinal.{u}} (hS : unbounded (<) S)
 
--- A more convenient characterization of unboundedness.
+-- A characterization of unboundedness that's more convenient to our purposes.
 private lemma unbounded_aux (hS : unbounded (<) S) (a) : ∃ b, b ∈ S ∧ a ≤ b :=
 by { rcases hS a with ⟨b, hb, hb'⟩, exact ⟨b, hb, le_of_not_gt hb'⟩ }
 
@@ -1151,8 +1196,8 @@ begin
   refine propext ⟨λ h s hs, _, λ h a, _⟩,
   { cases h ⟨s, hs⟩ with a ha,
     exact ⟨a, subtype.mk.inj ha⟩ },
-  cases h a.val a.prop with s hs,
-  exact ⟨s, subtype.eq hs⟩,
+  cases h a a.prop with s hs,
+  exact ⟨s, subtype.eq hs⟩
 end
 
 theorem enum_ord_range : range (enum_ord hS) = S :=
@@ -1337,6 +1382,9 @@ begin
     exact (((mul_is_normal $ power_pos b (ordinal.pos_iff_ne_zero.2 a0)).trans
       (power_is_normal a1)).limit_le l).symm }
 end
+
+theorem power_one_add (a b : ordinal) : a ^ (1 + b) = a * a ^ b :=
+by rw [power_add, power_one]
 
 theorem power_dvd_power (a) {b c : ordinal}
   (h : b ≤ c) : a ^ b ∣ a ^ c :=
@@ -1685,6 +1733,15 @@ theorem omega_le {o : ordinal.{u}} : omega ≤ o ↔ ∀ n : ℕ, (n : ordinal) 
    let ⟨n, e⟩ := lt_omega.1 h in
    by rw [e, ← succ_le]; exact H (n+1)⟩
 
+theorem omega_eq_sup_nat : ordinal.omega.{u} = sup (λ n : ℕ, n) :=
+begin
+  apply le_antisymm,
+  { rw omega_le,
+    exact le_sup _ },
+  rw sup_le,
+  exact λ n, le_of_lt (nat_lt_omega n),
+end
+
 theorem nat_lt_limit {o} (h : is_limit o) : ∀ n : ℕ, (n : ordinal) < o
 | 0     := lt_of_le_of_ne (ordinal.zero_le o) h.1.symm
 | (n+1) := h.2 _ (nat_lt_limit n)
@@ -1807,6 +1864,9 @@ theorem add_mul_limit {a b c : ordinal} (ba : b + a = a)
   (l : is_limit c) : (a + b) * c = a * c :=
 add_mul_limit_aux ba l (λ c' _, add_mul_succ c' ba)
 
+theorem add_mul_omega (a) : a + a * omega = a * omega :=
+by rw [←mul_one_add, one_add_omega]
+
 theorem mul_omega {a : ordinal} (a0 : 0 < a) (ha : a < omega) : a * omega = omega :=
 le_antisymm
   ((mul_le_of_limit omega_is_limit).2 $ λ b hb, le_of_lt (mul_lt_omega ha hb))
@@ -1850,6 +1910,26 @@ le_antisymm
   ((power_le_of_limit (one_le_iff_ne_zero.1 $ le_of_lt a1) omega_is_limit).2
     (λ b hb, le_of_lt (power_lt_omega h hb)))
   (le_power_self _ a1)
+
+theorem normal_omega {f : ordinal.{u} → ordinal.{u}} (hf : is_normal f) :
+  f omega.{u} = sup (λ n : ℕ, f n) :=
+by rw [omega_eq_sup_nat, is_normal.sup.{0 u u} hf ⟨0⟩]
+
+theorem add_omega_eq_sup_add_nat (o : ordinal.{u}) : o + omega.{u} = sup (λ n : ℕ, o + n) :=
+normal_omega (add_is_normal o)
+
+lemma lt_add_omega {a o : ordinal.{u}} (h : a < o + omega.{u}) : ∃ n : ℕ, a < o + n :=
+by rwa [add_omega_eq_sup_add_nat o, lt_sup] at h
+
+theorem mul_omega_eq_sup_mul_nat (o : ordinal.{u}) : o * omega.{u} = sup (λ n : ℕ, o * n) :=
+begin
+  cases eq_zero_or_pos o with ho ho,
+  { rw [ho, zero_mul],
+    apply eq.symm,
+    rw sup_eq_zero_iff,
+    exact λ n, zero_mul _ },
+  exact normal_omega (mul_is_normal ho)
+end
 
 /-! ### Fixed points of normal functions -/
 
@@ -1908,6 +1988,14 @@ theorem is_normal.le_nfp {f} (H : is_normal f) {a b} : f b ≤ nfp f a ↔ b ≤
 theorem nfp_eq_self {f : ordinal → ordinal} {a} (h : f a = a) : nfp f a = a :=
 le_antisymm (sup_le.mpr $ λ i, by rw [iterate_fixed h]) (le_nfp_self f a)
 
+theorem nfp_monotone {f : ordinal → ordinal} (hf : monotone f) : monotone (nfp f) :=
+begin
+  intros a b hab,
+  unfold nfp,
+  rw sup_le,
+  exact λ n, (monotone.iterate hf n hab).trans (le_sup (λ n, f^[n] b) n)
+end
+
 /-- Fixed point lemma for normal functions: the fixed points of a normal function are unbounded. -/
 theorem is_normal.nfp_unbounded {f} (H : is_normal f) : unbounded (<) (fixed_points f) :=
 λ a, ⟨_, H.nfp_fp a, not_lt_of_ge (le_nfp_self f a)⟩
@@ -1962,7 +2050,7 @@ theorem is_normal.fp_iff_deriv' {f} (H : is_normal f) {a} : f a ≤ a ↔ ∃ o,
 end, λ ⟨o, e⟩, e ▸ le_of_eq (H.deriv_fp _)⟩
 
 theorem is_normal.fp_iff_deriv {f} (H : is_normal f) {a} : f a = a ↔ ∃ o, deriv f o = a :=
-by { rw ←H.fp_iff_deriv', exact ⟨λ h, le_of_eq h, λ h, le_antisymm h (H.le_self _)⟩ }
+by rw [←H.fp_iff_deriv', H.self_le_iff_eq]
 
 /-- `deriv f` is the fixed point enumerator of `f`. -/
 theorem deriv_eq_enum_fp {f} (H : is_normal f) : deriv f = enum_ord H.nfp_unbounded :=
@@ -1971,6 +2059,65 @@ begin
   use (deriv_is_normal f).strict_mono,
   refine ⟨λ a, H.deriv_fp a, λ _ _, _⟩,
   rwa ←H.fp_iff_deriv
+end
+
+/-! ### Fixed points of addition -/
+
+theorem mul_omega_unbounded (o) : unbounded (<) (set.Ici (o * ordinal.omega)) :=
+unbounded_lt_Ici _
+
+theorem add_iterate (a : ordinal) (n : ℕ) : a * n = (((+) a)^[n]) 0 :=
+begin
+  induction n with n hn,
+  { rw [nat.cast_zero, mul_zero, iterate_zero_apply] },
+  nth_rewrite 0 nat.succ_eq_one_add,
+  rw [nat.cast_add, nat.cast_one, mul_one_add, iterate_succ_apply', hn]
+end
+
+theorem mul_omega_nfp_add_zero (a) : a * omega = nfp ((+) a) 0 :=
+begin
+  unfold nfp,
+  rw [mul_omega_eq_sup_mul_nat, funext (add_iterate a)]
+end
+
+theorem mul_omega_nfp_add_of_le_mul_omega {a b} (hba : b ≤ a * omega) :
+  a * omega = nfp ((+) a) b :=
+begin
+  refine le_antisymm _ ((add_is_normal a).nfp_le_fp hba _),
+  { rw mul_omega_nfp_add_zero,
+    exact nfp_monotone (add_is_normal a).strict_mono.monotone (ordinal.zero_le b) },
+  rw add_mul_omega
+end
+
+theorem mul_omega_nfp_add_self (a) : a * omega = nfp ((+) a) a :=
+mul_omega_nfp_add_of_le_mul_omega (le_mul_left omega_pos)
+
+theorem add_fp_iff_mul_omega_le {a b : ordinal} : a + b = b ↔ a * omega.{u} ≤ b :=
+begin
+  refine ⟨λ h, _, λ h, _⟩,
+  { rw [mul_omega_nfp_add_zero a, ←deriv_zero],
+    cases (add_is_normal a).fp_iff_deriv.1 h with c hc,
+    rw ←hc,
+    exact (deriv_is_normal _).strict_mono.monotone (ordinal.zero_le _) },
+  have := ordinal.add_sub_cancel_of_le h,
+  nth_rewrite 0 ←this,
+  rwa [←add_assoc, add_mul_omega]
+end
+
+theorem add_fp_iff_mul_omega_le' {a b : ordinal} : a + b ≤ b ↔ a * omega.{u} ≤ b :=
+by { rw ←add_fp_iff_mul_omega_le, exact (add_is_normal a).self_le_iff_eq }
+
+/-- `deriv ((+) a)` enumerates the ordinals larger or equal to `a * ω`. -/
+theorem add_deriv_eq_enum_ge_mul_omega (a) : deriv ((+) a) = enum_ord (mul_omega_unbounded a) :=
+begin
+  rw ←eq_enum_ord,
+  use (deriv_is_normal _).strict_mono,
+  rw range_eq_iff,
+  refine ⟨λ b, le_trans (le_of_eq _)
+    ((deriv_is_normal _).strict_mono.monotone (ordinal.zero_le b)), λ b hb, _⟩,
+  { rw deriv_zero,
+    exact mul_omega_nfp_add_zero a },
+  rwa [←(add_is_normal a).fp_iff_deriv', add_fp_iff_mul_omega_le']
 end
 
 end ordinal

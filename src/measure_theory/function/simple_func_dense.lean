@@ -837,7 +837,7 @@ begin
 end
 
 lemma exists_simple_func_nonneg_ae_eq {f : Lp.simple_func G p μ} (hf : 0 ≤ f) :
-  ∃ f' : α →ₛ G, 0 ≤ f' ∧ simple_func.to_simple_func f =ᵐ[μ] f' :=
+  ∃ f' : α →ₛ G, 0 ≤ f' ∧ f =ᵐ[μ] f' :=
 begin
   rw ← Lp.simple_func.coe_fn_nonneg at hf,
   have hf_ae : 0 ≤ᵐ[μ] (simple_func.to_simple_func f),
@@ -863,6 +863,7 @@ begin
     { rw ae_eq_set,
       simp only [true_and, measure_empty, eq_self_iff_true, diff_univ, ← compl_eq_univ_diff],
       exact hs_zero, },
+    refine eventually_eq.trans (to_simple_func_eq_to_fun f).symm _,
     refine eventually_eq.trans _ (piecewise_ae_eq_of_ae_eq_set this.symm),
     simp only [simple_func.const_zero, indicator_univ, piecewise_eq_indicator,
       simple_func.coe_zero], },

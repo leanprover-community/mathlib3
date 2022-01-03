@@ -598,14 +598,16 @@ quotient.induction_on₃ a b c $ λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨γ, t, _⟩
   { exact prod.lex.right _ (f.to_rel_embedding.map_rel_iff.2 h') }
 end
 
-theorem le_mul_left {a b : ordinal} (hb : 1 ≤ b) : a ≤ a * b :=
+theorem le_mul_left {a b : ordinal} (hb : 0 < b) : a ≤ a * b :=
 begin
+  rw ←one_le_iff_pos at hb,
   nth_rewrite 0 ←mul_one a,
   exact mul_le_mul_left a hb
 end
 
-theorem le_mul_right {a b : ordinal} (hb : 1 ≤ b) : a ≤ b * a :=
+theorem le_mul_right {a b : ordinal} (hb : 0 < b) : a ≤ b * a :=
 begin
+  rw ←one_le_iff_pos at hb,
   nth_rewrite 0 ←one_mul a,
   exact mul_le_mul_right a hb
 end

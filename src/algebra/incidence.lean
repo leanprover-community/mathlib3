@@ -564,10 +564,11 @@ end mu_eq_mu'
 
 section order_dual
 variables [ring 𝕜] [partial_order α] [locally_finite_order α] [decidable_eq α]
-  [decidable_rel ((≤) : (order_dual α) → (order_dual α) → Prop)]
+
 open order_dual
 lemma mu_dual (a b : α) : mu 𝕜 (order_dual α) (to_dual a) (to_dual b) = mu 𝕜 α b a :=
 begin
+  letI : @decidable_rel α (≤) := classical.dec_rel _,
   let mud : incidence_algebra 𝕜 (order_dual α) := { to_fun := λ a b, mu 𝕜 α b a,
     eq_zero_of_not_le' := λ a b hab, eq_zero_of_not_le hab (mu 𝕜 α) },
   suffices : mu 𝕜 (order_dual α) = mud,
@@ -624,8 +625,7 @@ by letI : @decidable_rel α (≤) := classical.dec_rel _; symmetry; calc
 end inversion_top
 
 section inversion_bot
-variables [ring 𝕜] [partial_order α] [order_bot α] [locally_finite_order α]
-  [decidable_eq α]
+variables [ring 𝕜] [partial_order α] [order_bot α] [locally_finite_order α] [decidable_eq α]
 
 /-- A general form of Möbius inversion. Based on Theorem 2.1.3 of Incidence Algebras by Spiegel and
 O'Donnell. -/

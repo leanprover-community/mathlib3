@@ -184,6 +184,17 @@ instance : nontrivial ordinal.{u} :=
 theorem zero_lt_one : (0 : ordinal) < 1 :=
 lt_iff_le_and_ne.2 ⟨ordinal.zero_le _, ne.symm $ ordinal.one_ne_zero⟩
 
+theorem one_lt_two : (1 : ordinal) < 2 :=
+begin
+  nth_rewrite 0 ←succ_zero,
+  change succ (0 : ordinal) < succ 1,
+  rw succ_lt_succ,
+  exact zero_lt_one
+end
+
+theorem zero_lt_two : (0 : ordinal) < 2 :=
+zero_lt_one.trans one_lt_two
+
 theorem eq_zero_or_pos (a : ordinal) : a = 0 ∨ 0 < a :=
 by { convert eq_or_ne a 0, exact propext ordinal.pos_iff_ne_zero }
 

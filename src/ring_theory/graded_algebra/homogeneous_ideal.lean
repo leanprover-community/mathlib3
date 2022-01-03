@@ -42,22 +42,23 @@ lemma ideal.is_homogeneous_iff_subset_Inter :
   ideal.is_homogeneous A I ↔ (I : set R) ⊆ ⋂ i, graded_algebra.proj A i ⁻¹' ↑I :=
 subset_Inter_iff.symm
 
-lemma ideal.is_homogeneous.exists_iff_eq_span :
-  (∃ (S : set (homogeneous_submonoid A)), I = ideal.span (coe '' S)) ↔
-  I = ideal.span {x | x ∈ I ∧ is_homogeneous A x} :=
--- get rid of the messy subtypes and set coercions
-suffices (∃ s : set R, s ⊆ set_of (is_homogeneous A) ∧ I = ideal.span s) ↔
-  I = ideal.span (I ∩ set_of (is_homogeneous A)),
-from (subtype.exists_set_subtype _).trans this,
+lemma ideal.is_homogeneous.exists_subset_iff_eq_span :
+  (∃ s : set R, s ⊆ set_of (is_homogeneous A) ∧ I = ideal.span s) ↔
+    I = ideal.span (I ∩ set_of (is_homogeneous A)) :=
 begin
   split,
   { rintros ⟨s, hs, rfl⟩,
     apply le_antisymm,
-    { exact ideal.span_mono (subset_inter (ideal.subset_span) hs) },
+    { exact ideal.span_mono (subset_inter ideal.subset_span hs) },
     { exact ideal.span_le.2 (inter_subset_left _ _) } },
   { intros hI,
-    exact ⟨(I : set R) ∩ set_of (is_homogeneous A), inter_subset_right _ _, hI⟩, }
+    exact ⟨_, inter_subset_right _ _, hI⟩, }
 end
+
+lemma ideal.is_homogeneous.exists_iff_eq_span :
+  (∃ (S : set (homogeneous_submonoid A)), I = ideal.span (coe '' S)) ↔
+  I = ideal.span {x | x ∈ I ∧ is_homogeneous A x} :=
+(subtype.exists_set_subtype _).trans (ideal.is_homogeneous.exists_subset_iff_eq_span _ _)
 
 lemma mul_homogeneous_element_mem_of_mem
   {I : ideal R} (r x : R) (hx₁ : is_homogeneous A x) (hx₂ : x ∈ I) (j : ι) :

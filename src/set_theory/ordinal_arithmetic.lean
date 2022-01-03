@@ -1211,12 +1211,9 @@ if b1 : 1 < b then
   le_trans (le_power_self _ b1) (power_log_le b (ordinal.pos_iff_ne_zero.2 x0))
 else by simp only [log_not_one_lt b1, ordinal.zero_le]
 
-theorem log_one (b : ordinal) : log b 1 = 0 :=
-begin
-  by_cases hb : 1 < b,
-  { rwa [←lt_one_iff_zero, log_lt hb zero_lt_one, power_one] },
-  { exact log_not_one_lt hb 1 }
-end
+@[simp] theorem log_one (b : ordinal) : log b 1 = 0 :=
+if hb : 1 < b then by rwa [←lt_one_iff_zero, log_lt hb zero_lt_one, power_one]
+else log_not_one_lt hb 1
 
 lemma power_mul_add_pos {b v : ordinal} (u w : ordinal) (hb : 0 < b) (hv : 0 < v) :
   0 < b ^ u * v + w :=
@@ -1229,10 +1226,8 @@ by rwa [mul_succ, add_lt_add_iff_left]
 lemma power_mul_add_lt_power_succ {b u v w : ordinal} (hvb : v < b) (hw : w < b ^ u) :
   b ^ u * v + w < b ^ u.succ :=
 begin
-  apply (power_mul_add_lt_power_mul_succ v hw).trans_le,
-  rw ←succ_le at hvb,
-  rw power_succ,
-  exact (mul_le_mul_left (b ^ u) hvb)
+  convert (power_mul_add_lt_power_mul_succ v hw).trans_le (mul_le_mul_left _ (succ_le.2 hvb)),
+  exact power_succ b u
 end
 
 theorem log_power_mul_add {b u v w : ordinal} (hb : 1 < b) (hv : 0 < v) (hvb : v < b)
@@ -1248,7 +1243,7 @@ begin
   exact (not_lt_of_le h) (power_mul_add_lt_power_succ hvb hw)
 end
 
-theorem log_power {b : ordinal} (x : ordinal) (hb : 1 < b) : log b (b ^ x) = x :=
+@[simp] theorem log_power {b : ordinal} (x : ordinal) (hb : 1 < b) : log b (b ^ x) = x :=
 begin
   convert log_power_mul_add hb zero_lt_one hb (power_pos x (zero_lt_one.trans hb)),
   rw [add_zero, mul_one]

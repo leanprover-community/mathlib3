@@ -594,18 +594,10 @@ quotient.induction_on₃ a b c $ λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨γ, t, _⟩
 end
 
 theorem le_mul_left {a b : ordinal} (hb : 0 < b) : a ≤ a * b :=
-begin
-  rw ←one_le_iff_pos at hb,
-  nth_rewrite 0 ←mul_one a,
-  exact mul_le_mul_left a hb
-end
+by { convert mul_le_mul_left a (one_le_iff_pos.2 hb), exact (mul_one a).symm }
 
 theorem le_mul_right {a b : ordinal} (hb : 0 < b) : a ≤ b * a :=
-begin
-  rw ←one_le_iff_pos at hb,
-  nth_rewrite 0 ←one_mul a,
-  exact mul_le_mul_right a hb
-end
+by { convert mul_le_mul_right a (one_le_iff_pos.2 hb), exact (one_mul a).symm }
 
 theorem mul_le_mul {a b c d : ordinal} (h₁ : a ≤ c) (h₂ : b ≤ d) : a * b ≤ c * d :=
 le_trans (mul_le_mul_left _ h₂) (mul_le_mul_right _ h₁)

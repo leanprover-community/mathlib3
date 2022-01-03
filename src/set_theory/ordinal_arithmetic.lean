@@ -1932,6 +1932,9 @@ begin
   rw [← power_add, add_omega_power xb]
 end
 
+theorem mul_power_omega {a} : a * a ^ omega = a ^ omega :=
+by rw [←power_one_add, one_add_omega]
+
 theorem power_omega {a : ordinal} (a1 : 1 < a) (h : a < omega) : a ^ omega = omega :=
 le_antisymm
   ((power_le_of_limit (one_le_iff_ne_zero.1 $ le_of_lt a1) omega_is_limit).2

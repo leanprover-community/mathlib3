@@ -1916,6 +1916,26 @@ le_antisymm
     (λ b hb, le_of_lt (power_lt_omega h hb)))
   (le_power_self _ a1)
 
+theorem normal_omega {f : ordinal.{u} → ordinal.{u}} (hf : is_normal f) :
+  f omega.{u} = sup (λ n : ℕ, f n) :=
+by rw [omega_eq_sup_nat, is_normal.sup.{0 u u} hf ⟨0⟩]
+
+theorem add_omega_eq_sup_add_nat (o : ordinal.{u}) : o + omega.{u} = sup (λ n : ℕ, o + n) :=
+normal_omega (add_is_normal o)
+
+lemma lt_add_omega {a o : ordinal.{u}} (h : a < o + omega.{u}) : ∃ n : ℕ, a < o + n :=
+by rwa [add_omega_eq_sup_add_nat o, lt_sup] at h
+
+theorem mul_omega_eq_sup_mul_nat (o : ordinal.{u}) : o * omega.{u} = sup (λ n : ℕ, o * n) :=
+begin
+  cases eq_zero_or_pos o with ho ho,
+  { rw [ho, zero_mul],
+    apply eq.symm,
+    rw sup_eq_zero_iff,
+    exact λ n, zero_mul _ },
+  exact normal_omega (mul_is_normal ho)
+end
+
 /-! ### Fixed points of normal functions -/
 
 /-- The next fixed point function, the least fixed point of the normal function `f` above `a`. -/

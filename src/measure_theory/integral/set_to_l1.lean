@@ -840,9 +840,8 @@ set_to_L1s_indicator_const h_zero h_add measurable_set.univ (measure_lt_top _ _)
 
 section order
 
-variables {G'' G' : Type*} [normed_lattice_add_comm_group G''] [measurable_space G'']
-  [borel_space G''] [second_countable_topology G''] [normed_space ℝ G'']
-  [normed_lattice_add_comm_group G'] [normed_space ℝ G']
+variables {G'' G' : Type*} [normed_lattice_add_comm_group G'] [normed_space ℝ G']
+  [normed_lattice_add_comm_group G'']  [normed_space ℝ G'']
   {T : set α → G'' →L[ℝ] G'}
 
 lemma set_to_L1s_mono_left {T T' : set α → E →L[ℝ] G''} (hTT' : ∀ s x, T s x ≤ T' s x)
@@ -854,6 +853,8 @@ lemma set_to_L1s_mono_left' {T T' : set α → E →L[ℝ] G''}
   (hTT' : ∀ s, measurable_set s → μ s < ∞ → ∀ x, T s x ≤ T' s x) (f : α →₁ₛ[μ] E) :
   set_to_L1s T f ≤ set_to_L1s T' f :=
 simple_func.set_to_simple_func_mono_left' T T' hTT' _ (simple_func.integrable f)
+
+variables [measurable_space G''] [borel_space G''] [second_countable_topology G'']
 
 lemma set_to_L1s_nonneg (h_zero : ∀ s, measurable_set s → μ s = 0 → T s = 0)
   (h_add : fin_meas_additive μ T)

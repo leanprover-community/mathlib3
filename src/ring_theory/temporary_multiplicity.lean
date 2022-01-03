@@ -69,30 +69,13 @@ lemma pow_prime_has_chain {p : associates M} (n : ℕ) (hn : 1 ≤ n) (hp : prim
   c ⟨1, finset.mem_range.2 (nat.lt_succ_of_le hn)⟩ = p ∧ strict_mono c ∧ ∀ {r : associates M},
   r ≤ p^n ↔ ∃ i ≤ n, r = c ⟨i, finset.mem_range.2 (nat.lt_succ_of_le H)⟩ :=
 begin
-  use λ i, p^(i : ℕ),
-  split,
-  { rw [subtype.coe_mk, pow_one p] },
-  split,
-  { intros n m h,
-    rw ← associates.dvd_not_unit_iff_lt,
-    split,
-    { exact pow_ne_zero n (prime.ne_zero hp) },
-    { use p^(m - n : ℕ),
-      split,
-      { exact not_is_unit_of_not_is_unit_dvd (prime.not_unit hp)
-        (dvd_pow (dvd_refl _) (ne_of_lt (nat.sub_pos_of_lt h)).symm) },
-      { exact (pow_mul_pow_sub p (le_of_lt h)).symm } } },
-  { intro y,
-    split,
-    { intro hy,
-      have := (dvd_prime_pow hp n).1 hy,
-      simp_rw associated_iff_eq at this,
-      exact this },
-    { intro hy,
-      obtain ⟨i, hy', hy''⟩ := hy,
-      use p^(n - i : ℕ),
-      rw [hy'', subtype.coe_mk, pow_mul_pow_sub],
-      exact hy' } }
+  refine ⟨λ i, p^(i : ℕ), by simp, λ n m h, _, λ y, ⟨_, _⟩⟩,
+  { exact associates.dvd_not_unit_iff_lt.mp ⟨pow_ne_zero n hp.ne_zero, p^(m - n : ℕ), 
+      not_is_unit_of_not_is_unit_dvd hp.not_unit (dvd_pow (dvd_refl _) (nat.sub_pos_of_lt h).ne'),
+      (pow_mul_pow_sub p h.le).symm⟩ },
+  { simpa [associated_iff_eq] using (dvd_prime_pow hp n).1 },
+  { rintro ⟨i, hy', rfl⟩,
+    exact ⟨p^(n - i : ℕ), by simpa using (pow_mul_pow_sub p hy').symm⟩ }
 end
 
 lemma second_of_chain_not_is_unit (n i : ℕ) (hi : 1 ≤ i ∧ i ≤ n)

@@ -293,53 +293,6 @@ begin
   exact continuous_linear_map.map_zero _,
 end
 
-lemma set_to_simple_func_mono_left {G} [normed_lattice_add_comm_group G] [normed_space ℝ G]
-  {m : measurable_space α} (T T' : set α → F →L[ℝ] G) (hTT' : ∀ s x, T s x ≤ T' s x) (f : α →ₛ F) :
-  set_to_simple_func T f ≤ set_to_simple_func T' f :=
-by { simp_rw set_to_simple_func, exact sum_le_sum (λ i hi, hTT' _ i), }
-
-lemma set_to_simple_func_mono_left' {G} [normed_lattice_add_comm_group G] [normed_space ℝ G]
-  (T T' : set α → E →L[ℝ] G) (hTT' : ∀ s, measurable_set s → μ s < ∞ → ∀ x, T s x ≤ T' s x)
-  (f : α →ₛ E) (hf : integrable f μ) :
-  set_to_simple_func T f ≤ set_to_simple_func T' f :=
-begin
-  refine sum_le_sum (λ i hi, _),
-  by_cases h0 : i = 0,
-  { simp [h0], },
-  { exact hTT' _ (measurable_set_fiber _ _) (measure_preimage_lt_top_of_integrable _ hf h0) i, }
-end
-
-lemma set_to_simple_func_nonneg {G G'} [normed_lattice_add_comm_group G] [normed_space ℝ G]
-  [normed_lattice_add_comm_group G'] [normed_space ℝ G']
-  {m : measurable_space α}
-  (T : set α → G →L[ℝ] G') (hT_nonneg : ∀ s x, 0 ≤ x → 0 ≤ T s x) (f : α →ₛ G) (hf : 0 ≤ f) :
-  0 ≤ set_to_simple_func T f :=
-begin
-  refine sum_nonneg (λ i hi, hT_nonneg _ i _),
-  rw mem_range at hi,
-  obtain ⟨y, hy⟩ := set.mem_range.mp hi,
-  rw ← hy,
-  refine le_trans _ (hf y),
-  simp,
-end
-
-lemma set_to_simple_func_nonneg' {G G'} [normed_lattice_add_comm_group G] [normed_space ℝ G]
-  [normed_lattice_add_comm_group G'] [normed_space ℝ G'] [measurable_space G]
-  (T : set α → G →L[ℝ] G') (hT_nonneg : ∀ s, measurable_set s → μ s < ∞ → ∀ x, 0 ≤ x → 0 ≤ T s x)
-  (f : α →ₛ G) (hf : 0 ≤ f) (hfi : integrable f μ) :
-  0 ≤ set_to_simple_func T f :=
-begin
-  refine sum_nonneg (λ i hi, _),
-  by_cases h0 : i = 0,
-  { simp [h0], },
-  refine hT_nonneg _ (measurable_set_fiber _ _)
-    (measure_preimage_lt_top_of_integrable _ hfi h0) i _,
-  rw mem_range at hi,
-  obtain ⟨y, hy⟩ := set.mem_range.mp hi,
-  rw ← hy,
-  convert (hf y),
-end
-
 lemma map_set_to_simple_func (T : set α → F →L[ℝ] F') (h_add : fin_meas_additive μ T)
   {f : α →ₛ G} (hf : integrable f μ) {g : G → F} (hg : g 0 = 0) :
   (f.map g).set_to_simple_func T = ∑ x in f.range, T (f ⁻¹' {x}) (g x) :=
@@ -546,11 +499,58 @@ calc set_to_simple_func T (c • f) = ∑ x in f.range, T (f ⁻¹' {x}) (c • 
 ... = ∑ x in f.range, c • (T (f ⁻¹' {x}) x) : finset.sum_congr rfl $ λ b hb, by { rw h_smul, }
 ... = c • set_to_simple_func T f : by simp only [set_to_simple_func, smul_sum, smul_smul, mul_comm]
 
-lemma set_to_simple_func_mono {G G'} [normed_lattice_add_comm_group G] [normed_space ℝ G]
-  [normed_lattice_add_comm_group G'] [normed_space ℝ G'] [measurable_space G] [borel_space G]
-  [second_countable_topology G]
-  {T : set α → G →L[ℝ] G'} (h_add : fin_meas_additive μ T)
-  (hT_nonneg : ∀ s, measurable_set s → μ s < ∞ → ∀ x, 0 ≤ x → 0 ≤ T s x) {f g : α →ₛ G}
+section order
+
+variables {G' G'' : Type*} [normed_lattice_add_comm_group G''] [normed_space ℝ G'']
+  [normed_lattice_add_comm_group G'] [normed_space ℝ G']
+
+lemma set_to_simple_func_mono_left {m : measurable_space α}
+  (T T' : set α → F →L[ℝ] G'') (hTT' : ∀ s x, T s x ≤ T' s x) (f : α →ₛ F) :
+  set_to_simple_func T f ≤ set_to_simple_func T' f :=
+by { simp_rw set_to_simple_func, exact sum_le_sum (λ i hi, hTT' _ i), }
+
+lemma set_to_simple_func_mono_left'
+  (T T' : set α → E →L[ℝ] G'') (hTT' : ∀ s, measurable_set s → μ s < ∞ → ∀ x, T s x ≤ T' s x)
+  (f : α →ₛ E) (hf : integrable f μ) :
+  set_to_simple_func T f ≤ set_to_simple_func T' f :=
+begin
+  refine sum_le_sum (λ i hi, _),
+  by_cases h0 : i = 0,
+  { simp [h0], },
+  { exact hTT' _ (measurable_set_fiber _ _) (measure_preimage_lt_top_of_integrable _ hf h0) i, }
+end
+
+lemma set_to_simple_func_nonneg {m : measurable_space α}
+  (T : set α → G' →L[ℝ] G'') (hT_nonneg : ∀ s x, 0 ≤ x → 0 ≤ T s x) (f : α →ₛ G') (hf : 0 ≤ f) :
+  0 ≤ set_to_simple_func T f :=
+begin
+  refine sum_nonneg (λ i hi, hT_nonneg _ i _),
+  rw mem_range at hi,
+  obtain ⟨y, hy⟩ := set.mem_range.mp hi,
+  rw ← hy,
+  refine le_trans _ (hf y),
+  simp,
+end
+
+lemma set_to_simple_func_nonneg' [measurable_space G'] (T : set α → G' →L[ℝ] G'')
+  (hT_nonneg : ∀ s, measurable_set s → μ s < ∞ → ∀ x, 0 ≤ x → 0 ≤ T s x)
+  (f : α →ₛ G') (hf : 0 ≤ f) (hfi : integrable f μ) :
+  0 ≤ set_to_simple_func T f :=
+begin
+  refine sum_nonneg (λ i hi, _),
+  by_cases h0 : i = 0,
+  { simp [h0], },
+  refine hT_nonneg _ (measurable_set_fiber _ _)
+    (measure_preimage_lt_top_of_integrable _ hfi h0) i _,
+  rw mem_range at hi,
+  obtain ⟨y, hy⟩ := set.mem_range.mp hi,
+  rw ← hy,
+  convert (hf y),
+end
+
+lemma set_to_simple_func_mono [measurable_space G'] [borel_space G'] [second_countable_topology G']
+  {T : set α → G' →L[ℝ] G''} (h_add : fin_meas_additive μ T)
+  (hT_nonneg : ∀ s, measurable_set s → μ s < ∞ → ∀ x, 0 ≤ x → 0 ≤ T s x) {f g : α →ₛ G'}
   (hfi : integrable f μ) (hgi : integrable g μ) (hfg : f ≤ g) :
   set_to_simple_func T f ≤ set_to_simple_func T g :=
 begin
@@ -560,6 +560,8 @@ begin
   simp only [coe_sub, sub_nonneg, coe_zero, pi.zero_apply, pi.sub_apply],
   exact hfg x,
 end
+
+end order
 
 lemma norm_set_to_simple_func_le_sum_op_norm {m : measurable_space α}
   (T : set α → F' →L[ℝ] F) (f : α →ₛ F') :
@@ -836,23 +838,22 @@ lemma set_to_L1s_const [is_finite_measure μ] {T : set α → E →L[ℝ] F}
     = T univ x :=
 set_to_L1s_indicator_const h_zero h_add measurable_set.univ (measure_lt_top _ _) x
 
-lemma set_to_L1s_mono_left {G} [normed_lattice_add_comm_group G] [normed_space ℝ G]
-  {T T' : set α → E →L[ℝ] G} (hTT' : ∀ s x, T s x ≤ T' s x) (f : α →₁ₛ[μ] E) :
-  set_to_L1s T f ≤ set_to_L1s T' f :=
-simple_func.set_to_simple_func_mono_left T T' hTT' _
-
-lemma set_to_L1s_mono_left' {G} [normed_lattice_add_comm_group G] [normed_space ℝ G]
-  {T T' : set α → E →L[ℝ] G}
-  (hTT' : ∀ s, measurable_set s → μ s < ∞ → ∀ x, T s x ≤ T' s x) (f : α →₁ₛ[μ] E) :
-  set_to_L1s T f ≤ set_to_L1s T' f :=
-simple_func.set_to_simple_func_mono_left' T T' hTT' _ (simple_func.integrable f)
-
 section order
 
 variables {G'' G' : Type*} [normed_lattice_add_comm_group G''] [measurable_space G'']
   [borel_space G''] [second_countable_topology G''] [normed_space ℝ G'']
   [normed_lattice_add_comm_group G'] [normed_space ℝ G']
   {T : set α → G'' →L[ℝ] G'}
+
+lemma set_to_L1s_mono_left {T T' : set α → E →L[ℝ] G''} (hTT' : ∀ s x, T s x ≤ T' s x)
+  (f : α →₁ₛ[μ] E) :
+  set_to_L1s T f ≤ set_to_L1s T' f :=
+simple_func.set_to_simple_func_mono_left T T' hTT' _
+
+lemma set_to_L1s_mono_left' {T T' : set α → E →L[ℝ] G''}
+  (hTT' : ∀ s, measurable_set s → μ s < ∞ → ∀ x, T s x ≤ T' s x) (f : α →₁ₛ[μ] E) :
+  set_to_L1s T f ≤ set_to_L1s T' f :=
+simple_func.set_to_simple_func_mono_left' T T' hTT' _ (simple_func.integrable f)
 
 lemma set_to_L1s_nonneg (h_zero : ∀ s, measurable_set s → μ s = 0 → T s = 0)
   (h_add : fin_meas_additive μ T)

@@ -229,37 +229,4 @@ begin
   exact ⟨l, finset.mem_univ l, rfl⟩,
 end
 
-lemma has_lines.line_count_eq_point_count [has_lines P L] [fintype P] [fintype L]
-  (hPL : fintype.card P = fintype.card L) {p : P} {l : L} (hpl : p ∉ l) :
-  line_count L p = point_count P l :=
-begin
-  classical,
-  obtain ⟨f, hf1, hf2⟩ := has_lines.exists_bijective_of_card_eq hPL,
-  let s : finset (P × L) := set.to_finset {i | i.1 ∈ i.2},
-  have step1 : ∑ i : P × L, line_count L i.1 = ∑ i : P × L, point_count P i.2,
-  { rw [←finset.univ_product_univ, finset.sum_product_right, finset.sum_product],
-    simp_rw [finset.sum_const, finset.card_univ, hPL, sum_line_count_eq_sum_point_count] },
-  have step2 : ∑ i in s, line_count L i.1 = ∑ i in s, point_count P i.2,
-  { rw [s.sum_finset_product finset.univ (λ p, set.to_finset {l | p ∈ l})],
-    rw [s.sum_finset_product_right finset.univ (λ l, set.to_finset {p | p ∈ l})],
-    refine (finset.sum_bij (λ l hl, f l) (λ l hl, finset.mem_univ (f l)) (λ l hl, _)
-      (λ _ _ _ _ h, hf1.1 h) (λ p hp, _)).symm,
-    { simp_rw [finset.sum_const, set.to_finset_card, ←nat.card_eq_fintype_card],
-      change (point_count P l) • (point_count P l) = (line_count L (f l)) • (line_count L (f l)),
-      rw hf2 },
-    { obtain ⟨l, hl⟩ := hf1.2 p,
-      exact ⟨l, finset.mem_univ l, hl.symm⟩ },
-    all_goals { simp_rw [finset.mem_univ, true_and, set.mem_to_finset], exact λ p, iff.rfl } },
-  have step3 : ∑ i in sᶜ, line_count L i.1 = ∑ i in sᶜ, point_count P i.2,
-  { rwa [←s.sum_add_sum_compl, ←s.sum_add_sum_compl, step2, add_left_cancel_iff] at step1 },
-  rw ← set.to_finset_compl at step3,
-  exact ((finset.sum_eq_sum_iff_of_le (by exact λ i hi, has_lines.point_count_le_line_count
-    (set.mem_to_finset.mp hi))).mp step3.symm (p, l) (set.mem_to_finset.mpr hpl)).symm,
-end
-
-lemma has_points.line_count_eq_point_count [has_points P L] [fintype P] [fintype L]
-  (hPL : fintype.card P = fintype.card L) {p : P} {l : L} (hpl : p ∉ l) :
-  line_count L p = point_count P l :=
-(@has_lines.line_count_eq_point_count (dual L) (dual P) _ _  _ _ hPL.symm l p hpl).symm
-
 end configuration

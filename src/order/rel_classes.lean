@@ -278,10 +278,13 @@ def unbounded (r : α → α → Prop) (s : set α) : Prop := ∀ a, ∃ b ∈ s
 def bounded (r : α → α → Prop) (s : set α) : Prop := ∃ a, ∀ b ∈ s, r b a
 
 @[simp] lemma not_bounded_iff {r : α → α → Prop} (s : set α) : ¬bounded r s ↔ unbounded r s :=
-by simp only [bounded, unbounded, not_forall, not_exists, exists_prop, not_and, not_not]
+begin
+  classical,
+  simp only [bounded, unbounded, not_forall, not_exists, exists_prop, not_and, not_not]
+end
 
 @[simp] lemma not_unbounded_iff {r : α → α → Prop} (s : set α) : ¬unbounded r s ↔ bounded r s :=
-by rw [not_iff_comm, not_bounded_iff]
+by { classical, rw [not_iff_comm, not_bounded_iff] }
 
 namespace prod
 

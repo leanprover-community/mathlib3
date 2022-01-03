@@ -71,16 +71,13 @@ end
 /-! ### Additive principal ordinals -/
 
 theorem one_add_principal : principal (+) 1 :=
-by { rw one_principal_iff, exact zero_add _ }
+by { rw one_principal_iff, exact zero_add 0 }
 
 theorem add_principal_of_le_one {o : ordinal.{u}} (ho : o ≤ 1) : principal (+) o :=
 begin
-  cases lt_or_eq_of_le ho with ho₀ ho₁,
-  { rw lt_one_iff_zero at ho₀,
-    rw ho₀,
-    exact zero_principal },
-  rw ho₁,
-  exact one_add_principal
+  rcases zero_or_one_of_le_one ho with rfl | rfl,
+  { exact zero_principal },
+  { exact one_add_principal }
 end
 
 theorem omega_add_principal : principal (+) omega.{u} :=
@@ -88,30 +85,24 @@ theorem omega_add_principal : principal (+) omega.{u} :=
 
 theorem mul_omega_add_principal (o : ordinal.{u}) : principal (+) (o * omega.{u}) :=
 begin
-  cases eq_or_ne o 0 with ho ho,
-  { rw [ho, zero_mul],
+  rcases eq_or_ne o 0 with rfl | ho,
+  { rw zero_mul,
     exact zero_principal },
   intros a b hao hbo,
   cases lt_mul_omega hao with m hm,
   cases lt_mul_omega hbo with n hn,
   apply lt_of_le_of_lt (add_le_add (le_of_lt hm) (le_of_lt hn)),
   rw [←mul_add, mul_lt_mul_iff_left (ordinal.pos_iff_ne_zero.2 ho), lt_omega],
-  exact ⟨m + n, (nat.cast_add m n).symm⟩
+  exact ⟨_, (nat.cast_add m n).symm⟩
 end
 
 theorem mul_omega_le_add_principal {a o : ordinal.{u}} (hao : a < o) (ho : principal (+) o) :
   a * omega.{u} ≤ o :=
-begin
-  convert nfp_le_of_principal hao ho,
-  exact mul_omega_nfp_add_self a
-end
+by { convert nfp_le_of_principal hao ho, exact mul_omega_nfp_add_self a }
 
 theorem omega_le_add_principal {o : ordinal.{u}} (ho : principal (+) o) (ho₁ : 1 < o) :
   omega.{u} ≤ o :=
-begin
-  rw ←one_mul omega.{u},
-  exact mul_omega_le_add_principal ho₁ ho
-end
+by { rw ←one_mul omega.{u}, exact mul_omega_le_add_principal ho₁ ho }
 
 theorem omega_power_add_principal (o : ordinal.{u}) : principal (+) (omega.{u} ^ o) :=
 @add_lt_omega_power o
@@ -134,15 +125,12 @@ begin
   refine ⟨λ ho a hao, _, λ h a b hao hbo, _⟩,
   { cases lt_or_le 1 o with ho₁ ho₁,
     { exact fp_of_principal hao (add_is_normal a) ho (add_principal_is_limit ho₁ ho) },
-    cases lt_or_eq_of_le ho₁ with ho₁ ho₁,
-    { rw lt_one_iff_zero at ho₁,
-      rw ho₁ at hao,
-      exact (ordinal.not_lt_zero a hao).elim },
-    rw [ho₁, lt_one_iff_zero] at hao,
-    rw hao,
-    exact zero_add o },
-  have : a + b < a + o := (add_is_normal a).strict_mono hbo,
-  rwa h a hao at this
+    rcases zero_or_one_of_le_one ho₁ with rfl | rfl,
+    { exact (ordinal.not_lt_zero a hao).elim },
+    rw lt_one_iff_zero at hao,
+    rw [hao, zero_add] },
+  rw ←h a hao,
+  exact (add_is_normal a).strict_mono hbo
 end
 
 theorem add_principal_iff_zero_or_omega_pow (o : ordinal.{u}) :
@@ -163,19 +151,17 @@ theorem two_mul_principal : principal (*) 2 :=
 begin
   intros a b ha hb,
   rw ←le_one_iff_lt_two at *,
-  rw ←mul_one (1 : ordinal),
-  exact mul_le_mul ha hb
+  convert mul_le_mul ha hb,
+  exact (mul_one 1).symm
 end
 
 theorem le_two_mul_principal {o : ordinal} (ho : o ≤ 2) : principal (*) o :=
 begin
-  cases lt_or_eq_of_le ho with ho ho,
-  { cases lt_or_eq_of_le (le_one_iff_lt_two.2 ho) with ho ho,
+  rcases lt_or_eq_of_le ho with ho | rfl,
+  { rcases lt_or_eq_of_le (le_one_iff_lt_two.2 ho) with ho | rfl,
     { rw lt_one_iff_zero.1 ho,
       exact zero_principal },
-    rw ho,
     exact one_mul_principal },
-  rw ho,
   exact two_mul_principal
 end
 
@@ -185,50 +171,42 @@ theorem omega_mul_principal : principal (*) omega.{u} :=
 theorem power_omega_mul_principal (o : ordinal.{u}) : principal (*) (o ^ omega.{u}) :=
 begin
   cases le_or_gt o 1 with ho ho,
-  { cases lt_or_eq_of_le ho with ho ho,
-    { rw lt_one_iff_zero at ho,
-      rw [ho, ordinal.zero_power omega_ne_zero],
+  { rcases zero_or_one_of_le_one ho with rfl | rfl,
+    { rw ordinal.zero_power omega_ne_zero,
       exact zero_principal },
-    rw [ho, one_power],
+    rw one_power,
     exact one_mul_principal },
   intros a b hao hbo,
   cases lt_power_omega hao with m hm,
   cases lt_power_omega hbo with n hn,
   apply lt_of_le_of_lt (mul_le_mul (le_of_lt hm) (le_of_lt hn)),
   rw [←power_add, power_lt_power_iff_right ho, lt_omega],
-  exact ⟨m + n, (nat.cast_add m n).symm⟩
+  exact ⟨_, (nat.cast_add m n).symm⟩
 end
 
 theorem power_omega_le_mul_principal {a o : ordinal.{u}} (hao : a < o) (ho : principal (*) o) :
   a ^ omega.{u} ≤ o :=
-begin
-  convert nfp_le_of_principal hao ho,
-  exact power_omega_nfp_mul_self a
-end
+by { convert nfp_le_of_principal hao ho, exact power_omega_nfp_mul_self a }
 
 theorem omega_le_mul_principal {o : ordinal.{u}} (ho : principal (*) o) (ho₂ : 2 < o) :
   omega.{u} ≤ o :=
+by { rw ←power_omega (lt_succ_self 1) two_lt_omega, exact power_omega_le_mul_principal ho₂ ho }
+
+theorem add_principal_of_mul_principal {o : ordinal.{u}} (ho : principal (*) o) (ho₂ : o ≠ 2) :
+  principal (+) o :=
 begin
-  rw ←power_omega (lt_succ_self 1) two_lt_omega,
-  exact power_omega_le_mul_principal ho₂ ho
+  cases lt_or_gt_of_ne ho₂ with ho₁ ho₂,
+  { change o < succ 1 at ho₁,
+    rw lt_succ at ho₁,
+    exact add_principal_of_le_one ho₁ },
+  refine λ a b hao hbo, lt_of_le_of_lt _ (ho _ 2 (max_lt hao hbo) ho₂),
+  rw mul_two,
+  exact add_le_add (le_max_left a b) (le_max_right a b)
 end
 
 theorem mul_principal_is_limit {o : ordinal.{u}} (ho₂ : 2 < o) (ho : principal (*) o) :
   o.is_limit :=
-begin
-  refine ⟨λ ho₀, _, λ a hao, _⟩,
-  { rw ho₀ at ho₂,
-    exact ordinal.not_lt_zero _ ho₂ },
-  cases eq_or_ne a 0 with ha ha,
-  { rw [ha, succ_zero],
-    exact lt_trans (lt_succ_self 1) ho₂ },
-  refine @lt_of_le_of_lt _ _ _ (a + a) _ _ _,
-  { rw succ_eq_add_one,
-    apply add_le_add_left,
-    rwa one_le_iff_ne_zero },
-  rw ←mul_two a,
-  exact ho a 2 hao ho₂
-end
+add_principal_is_limit (one_lt_two.trans ho₂) (add_principal_of_mul_principal ho (ne_of_gt ho₂))
 
 theorem mul_principal_iff_fp (o : ordinal.{u}) :
   principal (*) o ↔ ∀ a, 0 < a → a < o → a * o = o :=
@@ -241,8 +219,7 @@ begin
         rwa lt_succ at this },
       rwa [←succ_le, succ_zero] at ha₀ },
     exact fp_of_principal hao (mul_is_normal ha₀) h (mul_principal_is_limit ho h) },
-  cases eq_or_ne a 0 with ha ha,
-  { rwa [ha, zero_mul] at * },
+  rcases eq_or_ne a 0 with rfl | ha, { rwa zero_mul },
   rw ←ordinal.pos_iff_ne_zero at ha,
   rw ←h a ha hao,
   exact (mul_is_normal ha).strict_mono hbo
@@ -254,18 +231,6 @@ by apply is_normal.trans; exact power_is_normal one_lt_omega
 theorem omega_power_power_mul_principal (o : ordinal.{u}) :
   principal (*) (omega.{u} ^ omega.{u} ^ o) :=
 by { rw mul_principal_iff_fp, exact λ a, mul_omega_power_power }
-
-theorem add_principal_of_mul_principal {o : ordinal.{u}} (ho : principal (*) o) (ho₂ : o ≠ 2) :
-  principal (+) o :=
-begin
-  cases lt_or_gt_of_ne ho₂ with ho₁ ho₂,
-  { change o < succ 1 at ho₁,
-    rw lt_succ at ho₁,
-    exact add_principal_of_le_one ho₁ },
-  refine λ a b hao hbo, lt_of_le_of_lt _ (ho (max a b) 2 (max_lt hao hbo) ho₂),
-  rw mul_two,
-  exact add_le_add (le_max_left a b) (le_max_right a b)
-end
 
 theorem mul_principal_power_omega {o : ordinal.{u}} (ho : principal (*) o) (ho₂ : 2 < o) :
   ∃ a : ordinal.{u}, o = omega.{u} ^ a :=
@@ -282,12 +247,11 @@ theorem lt_omega_power_power_log_log_succ_of_principal {o : ordinal.{u}} (ho : p
   (ho₂ : 2 < o) : o < omega.{u} ^ omega.{u} ^ (log omega.{u} (log omega.{u} o)).succ :=
 begin
   have := lt_power_succ_log one_lt_omega (log omega.{u} o),
-  rw ← power_lt_power_iff_right one_lt_omega at this,
+  rw ←power_lt_power_iff_right one_lt_omega at this,
   cases mul_principal_power_omega ho ho₂ with a ha,
-  nth_rewrite 0 ha at this,
-  rw log_power _ one_lt_omega at this,
-  nth_rewrite 0 ha,
-  exact this
+  convert this,
+  nth_rewrite 1 ha,
+  rwa log_power _ one_lt_omega
 end
 
 theorem mul_principal_eq_omega_power_power {o : ordinal.{u}} (ho : principal (*) o) (ho₂ : 2 < o) :
@@ -295,9 +259,9 @@ theorem mul_principal_eq_omega_power_power {o : ordinal.{u}} (ho : principal (*)
 begin
   apply le_antisymm,
   { by_contra' h,
-    have := power_omega_le_mul_principal h ho,
-    rw [←power_mul, ←power_succ] at this,
-    exact not_le_of_lt (lt_omega_power_power_log_log_succ_of_principal ho ho₂) this },
+    apply not_le_of_lt (lt_omega_power_power_log_log_succ_of_principal ho ho₂),
+    rw [power_succ, power_mul],
+    exact power_omega_le_mul_principal h ho },
   have : omega.{u} ^ (log omega.{u} (log omega.{u} o)) ≤ log omega.{u} o := begin
     apply power_log_le,
     rw [←succ_le, le_log one_lt_omega (zero_lt_two.trans ho₂), succ_zero, power_one],
@@ -315,8 +279,7 @@ begin
     exact λ ho, ⟨_, mul_principal_eq_omega_power_power h (lt_of_not_ge ho)⟩ },
   cases h with ho ho,
   { exact le_two_mul_principal ho },
-  cases ho with a ha,
-  rw ha,
+  rcases ho with ⟨a, rfl⟩,
   exact omega_power_power_mul_principal _
 end
 

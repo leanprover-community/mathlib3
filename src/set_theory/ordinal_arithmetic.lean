@@ -198,6 +198,13 @@ zero_lt_one.trans one_lt_two
 theorem eq_zero_or_pos (a : ordinal) : a = 0 ∨ 0 < a :=
 by { convert eq_or_ne a 0, exact propext ordinal.pos_iff_ne_zero }
 
+theorem zero_or_one_of_le_one {a : ordinal} (ha : a ≤ 1) : a = 0 ∨ a = 1 :=
+begin
+  rcases eq_or_lt_of_le ha with rfl | ha,
+  { exact or.inr rfl },
+  { exact or.inl (lt_one_iff_zero.1 ha) }
+end
+
 /-! ### The predecessor of an ordinal -/
 
 /-- The ordinal predecessor of `o` is `o'` if `o = succ o'`,

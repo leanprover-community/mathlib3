@@ -175,6 +175,9 @@ instance : nontrivial ordinal.{u} :=
 theorem zero_lt_one : (0 : ordinal) < 1 :=
 lt_iff_le_and_ne.2 ⟨ordinal.zero_le _, ne.symm $ ordinal.one_ne_zero⟩
 
+theorem eq_zero_or_pos (a : ordinal) : a = 0 ∨ 0 < a :=
+by { convert eq_or_ne a 0, exact propext (ordinal.pos_iff_ne_zero) }
+
 /-! ### The predecessor of an ordinal -/
 
 /-- The ordinal predecessor of `o` is `o'` if `o = succ o'`,
@@ -1935,15 +1938,6 @@ le_antisymm
     (λ b hb, le_of_lt (power_lt_omega h hb)))
   (le_power_self _ a1)
 
-theorem omega_eq_sup_nat : omega.{u} = sup (λ n : ℕ, n) :=
-begin
-  apply le_antisymm,
-  { rw omega_le,
-    exact le_sup _ },
-  rw sup_le,
-  exact λ n, le_of_lt (nat_lt_omega n)
-end
-
 theorem normal_omega {f : ordinal.{u} → ordinal.{u}} (hf : is_normal f) :
   f omega.{u} = sup (λ n : ℕ, f n) :=
 by rw [omega_eq_sup_nat, is_normal.sup.{0 u u} hf ⟨0⟩]
@@ -2299,8 +2293,5 @@ begin
     rw [←mul_fp_iff_dvd_power_omega, (mul_is_normal ha).deriv_fp] },
   rwa [←(mul_is_normal ha).fp_iff_deriv, mul_fp_iff_dvd_power_omega]
 end
-
-end ordinal
-
 
 end ordinal

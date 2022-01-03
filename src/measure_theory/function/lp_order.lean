@@ -9,8 +9,14 @@ import analysis.normed_space.lattice_ordered_group
 /-!
 # Order related properties of Lp spaces
 
-TODO:
-- move definitions of `Lp.pos_part` and `Lp.neg_part` to this file.
+### Results
+
+- `Lp E p μ` is an `ordered_add_comm_group` when `E` is a `normed_lattice_add_comm_group`.
+
+### TODO
+
+- move definitions of `Lp.pos_part` and `Lp.neg_part` to this file, and define them as
+  `has_pos_part.pos` and `has_pos_part.neg` given by the lattice structure.
 - show that if `E` is a `normed_lattice_add_comm_group` then so is `Lp E p μ` for `1 ≤ p`. In
   particular, this shows `order_closed_topology` for `Lp`.
 
@@ -19,7 +25,7 @@ TODO:
 open topological_space measure_theory lattice_ordered_comm_group
 open_locale ennreal
 
-variables {α E : Type*} [measurable_space α] {μ : measure α} {p : ℝ≥0∞}
+variables {α E : Type*} {m : measurable_space α} {μ : measure α} {p : ℝ≥0∞}
 
 namespace measure_theory
 namespace Lp
@@ -40,7 +46,7 @@ begin
   { rwa ← h2, },
 end
 
-instance : covariant_class (Lp E p μ) (Lp E p μ) has_add.add has_le.le :=
+instance : covariant_class (Lp E p μ) (Lp E p μ) (+) (≤) :=
 begin
   refine ⟨λ f g₁ g₂ hg₁₂, _⟩,
   rw ← coe_fn_le at hg₁₂ ⊢,

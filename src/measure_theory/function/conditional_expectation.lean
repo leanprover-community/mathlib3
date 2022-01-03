@@ -85,7 +85,7 @@ function. This is similar to `ae_measurable`, but the `measurable_space` structu
 measurability statement and for the measure are different. -/
 def ae_measurable' {α β} [measurable_space β] (m : measurable_space α) {m0 : measurable_space α}
   (f : α → β) (μ : measure α) : Prop :=
-∃ g : α → β, @measurable α β m _ g ∧ f =ᵐ[μ] g
+∃ g : α → β, measurable[m] g ∧ f =ᵐ[μ] g
 
 namespace ae_measurable'
 
@@ -108,7 +108,7 @@ lemma neg [has_neg β] [has_measurable_neg β] {f : α → β} (hfm : ae_measura
   ae_measurable' m (-f) μ :=
 begin
   rcases hfm with ⟨f', hf'_meas, hf_ae⟩,
-  refine ⟨-f', @measurable.neg _ _ _ _ _ m _ hf'_meas, hf_ae.mono (λ x hx, _)⟩,
+  refine ⟨-f', hf'_meas.neg, hf_ae.mono (λ x hx, _)⟩,
   simp_rw pi.neg_apply,
   rw hx,
 end
@@ -119,8 +119,7 @@ lemma sub [has_sub β] [has_measurable_sub₂ β] {f g : α → β}
 begin
   rcases hfm with ⟨f', hf'_meas, hf_ae⟩,
   rcases hgm with ⟨g', hg'_meas, hg_ae⟩,
-  refine ⟨f'-g', @measurable.sub _ _ _ _ m _ _ _ hf'_meas hg'_meas,
-    hf_ae.mp (hg_ae.mono (λ x hx1 hx2, _))⟩,
+  refine ⟨f'-g', hf'_meas.sub hg'_meas, hf_ae.mp (hg_ae.mono (λ x hx1 hx2, _))⟩,
   simp_rw pi.sub_apply,
   rw [hx1, hx2],
 end
@@ -139,8 +138,7 @@ lemma const_inner {𝕜} [is_R_or_C 𝕜] [inner_product_space 𝕜 β]
   ae_measurable' m (λ x, (inner c (f x) : 𝕜)) μ :=
 begin
   rcases hfm with ⟨f', hf'_meas, hf_ae⟩,
-  refine ⟨λ x, (inner c (f' x) : 𝕜),
-    @measurable.inner _ _ _ _ _ m _ _ _ _ _ (@measurable_const _ _ _ m _) hf'_meas,
+  refine ⟨λ x, (inner c (f' x) : 𝕜), (@measurable_const _ _ _ m _).inner hf'_meas,
     hf_ae.mono (λ x hx, _)⟩,
   dsimp only,
   rw hx,
@@ -380,7 +378,7 @@ begin
   ext1,
   refine eventually_eq.trans _ (Lp.coe_fn_add _ _).symm,
   refine ae_eq_trim_of_measurable hm (Lp.measurable _) _ _,
-  { exact @measurable.add _ _ _ _ m _ _ _ (Lp.measurable _) (Lp.measurable _), },
+  { exact (Lp.measurable _).add (Lp.measurable _), },
   refine (Lp_meas_subgroup_to_Lp_trim_ae_eq hm _).trans _,
   refine eventually_eq.trans _
     (eventually_eq.add (Lp_meas_subgroup_to_Lp_trim_ae_eq hm f).symm
@@ -418,7 +416,7 @@ begin
   ext1,
   refine eventually_eq.trans _ (Lp.coe_fn_smul _ _).symm,
   refine ae_eq_trim_of_measurable hm (Lp.measurable _) _ _,
-  { exact @measurable.const_smul _ _ α _ _ _ m _ _ (Lp.measurable _) c, },
+  { exact (Lp.measurable _).const_smul c, },
   refine (Lp_meas_to_Lp_trim_ae_eq hm _).trans _,
   refine (Lp.coe_fn_smul _ _).trans _,
   refine (Lp_meas_to_Lp_trim_ae_eq hm f).mono (λ x hx, _),
@@ -967,7 +965,7 @@ end
 variables {𝕜}
 
 lemma set_lintegral_nnnorm_condexp_L2_indicator_le (hm : m ≤ m0) (hs : measurable_set s)
-  (hμs : μ s ≠ ∞) (x : E') {t : set α} (ht : @measurable_set _ m t) (hμt : μ t ≠ ∞) :
+  (hμs : μ s ≠ ∞) (x : E') {t : set α} (ht : measurable_set[m] t) (hμt : μ t ≠ ∞) :
   ∫⁻ a in t, ∥condexp_L2 𝕜 hm (indicator_const_Lp 2 hs hμs x) a∥₊ ∂μ ≤ μ (s ∩ t) * ∥x∥₊ :=
 calc ∫⁻ a in t, ∥condexp_L2 𝕜 hm (indicator_const_Lp 2 hs hμs x) a∥₊ ∂μ
     = ∫⁻ a in t, ∥(condexp_L2 ℝ hm (indicator_const_Lp 2 hs hμs (1 : ℝ)) a) • x∥₊ ∂μ :
@@ -1054,7 +1052,7 @@ lemma condexp_ind_smul_ae_eq_smul (hm : m ≤ m0) (hs : measurable_set s) (hμs 
 (to_span_singleton ℝ x).coe_fn_comp_LpL _
 
 lemma set_lintegral_nnnorm_condexp_ind_smul_le (hm : m ≤ m0) (hs : measurable_set s)
-  (hμs : μ s ≠ ∞) (x : G) {t : set α} (ht : @measurable_set _ m t) (hμt : μ t ≠ ∞) :
+  (hμs : μ s ≠ ∞) (x : G) {t : set α} (ht : measurable_set[m] t) (hμt : μ t ≠ ∞) :
   ∫⁻ a in t, ∥condexp_ind_smul hm hs hμs x a∥₊ ∂μ ≤ μ (s ∩ t) * ∥x∥₊ :=
 calc ∫⁻ a in t, ∥condexp_ind_smul hm hs hμs x a∥₊ ∂μ
     = ∫⁻ a in t, ∥condexp_L2 ℝ hm (indicator_const_Lp 2 hs hμs (1 : ℝ)) a • x∥₊ ∂μ :

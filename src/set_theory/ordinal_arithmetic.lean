@@ -2316,7 +2316,6 @@ begin
   exact ordinal.zero_le a
 end
 
--- Used in principal
 theorem power_omega_nfp_mul {a b : ordinal} (hb : 0 < b) (hba : b ≤ a ^ omega) :
   a ^ omega.{u} = nfp ((*) a) b :=
 begin
@@ -2333,7 +2332,6 @@ begin
   rw mul_power_omega
 end
 
--- Used in principal
 theorem power_omega_nfp_mul_self (a : ordinal) : a ^ omega = nfp ((*) a) a :=
 begin
   cases eq_zero_or_pos a with ha ha,

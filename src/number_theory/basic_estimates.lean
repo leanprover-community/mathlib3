@@ -327,6 +327,17 @@ lemma integral_pow_inv_Ioi {a : ℝ} {n : ℕ} (hn : 1 < n) (ha : 0 < a) :
 by simp_rw [←zpow_coe_nat, integral_zpow_inv_Ioi (show 1 < (n : ℤ), by exact_mod_cast hn) ha,
   int.cast_coe_nat, ←zpow_neg₀, int.coe_nat_sub hn.le, neg_sub, int.coe_nat_one]
 
+lemma fract_mul_integrable {f : ℝ → ℝ} (s : set ℝ)
+  (hf' : integrable_on f s) :
+  integrable_on (int.fract * f) s :=
+begin
+  refine integrable.mono hf' _ (eventually_of_forall _),
+  { exact measurable_id'.fract.ae_measurable.mul' hf'.1 },
+  intro x,
+  simp only [normed_field.norm_mul, pi.mul_apply, norm_of_nonneg (int.fract_nonneg _)],
+  exact mul_le_of_le_one_left (norm_nonneg _) (int.fract_lt_one _).le,
+end
+
 lemma euler_mascheroni_convergence_rate :
   is_O_with 1 (λ (x : ℝ), 1 - (∫ t in Ioc 1 x, int.fract t * (t^2)⁻¹) - euler_mascheroni)
     (λ x, x⁻¹) at_top :=
@@ -340,13 +351,8 @@ begin
     rw inv_pos,
     exact sq_pos_of_pos (zero_lt_one.trans ht) },
   have h : integrable_on (λ (x : ℝ), int.fract x * (x ^ 2)⁻¹) (Ioi 1),
-  { apply integrable.mono (integrable_on_pow_inv_Ioi one_lt_two zero_lt_one),
-    { measurability },
-    refine (ae_restrict_iff' measurable_set_Ioi).2 _,
-    apply eventually_of_forall,
-    intros t ht,
-    simpa only [normed_field.norm_mul, normed_field.norm_inv, norm_of_nonneg, sq_nonneg,
-      int.fract_nonneg _] using this t ht },
+  { apply fract_mul_integrable,
+    apply integrable_on_pow_inv_Ioi one_lt_two zero_lt_one },
   rw [one_mul, euler_mascheroni, norm_of_nonneg (inv_nonneg.2 (zero_le_one.trans hx)),
     sub_sub_sub_cancel_left, ←integral_diff measurable_set_Ioi measurable_set_Ioc h
     (h.mono_set Ioc_subset_Ioi_self) Ioc_subset_Ioi_self, Ioi_diff_Icc hx,
@@ -393,27 +399,21 @@ begin
   have diff : (∀ (i ∈ Ici (1:ℝ)), has_deriv_at (λ x, x⁻¹) (-(i ^ 2)⁻¹) i),
   { rintro i (hi : (1:ℝ) ≤ _),
     apply has_deriv_at_inv (zero_lt_one.trans_le hi).ne' },
-  have cont : continuous_on (λ (i : ℝ), -(i ^ 2)⁻¹) (Ici 1),
-  { refine ((continuous_pow 2).continuous_on.inv₀ _).neg,
+  have cont : continuous_on (λ (i : ℝ), (i ^ 2)⁻¹) (Ici 1),
+  { refine ((continuous_pow 2).continuous_on.inv₀ _),
     rintro i (hi : _ ≤ _),
     exact (pow_ne_zero_iff nat.succ_pos').2 (zero_lt_one.trans_le hi).ne' },
-  have ps := partial_summation_cont' (λ _, (1 : ℝ)) _ _ diff cont x,
+  have ps := partial_summation_cont' (λ _, (1 : ℝ)) _ _ diff cont.neg x,
   simp only [one_mul] at ps,
   simp only [ps, integral_Icc_eq_integral_Ioc],
   rw [floor_eq _ (zero_le_one.trans hx), ←int.self_sub_floor, sub_mul,
     mul_inv_cancel (zero_lt_one.trans_le hx).ne', sub_sub (1 : ℝ), sub_sub_sub_cancel_left, sub_sub,
     sub_sub, sub_right_inj, ←add_assoc, add_left_inj, ←eq_sub_iff_add_eq', ←integral_sub],
   rotate,
-  { refine ((continuous_on_id.zpow (-2) _).integrable_on_Icc.mono_set Ioc_subset_Icc_self).mono'
-      (by measurability) (eventually_of_forall _),
-    { intros y hy,
-      exact or.inl (zero_lt_one.trans_le hy.1).ne' },
-    intro y,
-    simp only [norm_of_nonneg, int.fract_nonneg, normed_field.norm_mul, sq_nonneg, zpow_neg₀,
-      id.def, normed_field.norm_inv],
-    exact mul_le_of_le_one_left (inv_nonneg.2 (sq_nonneg _)) (int.fract_lt_one y).le },
+  { apply fract_mul_integrable,
+    exact (cont.mono Icc_subset_Ici_self).integrable_on_Icc.mono_set Ioc_subset_Icc_self },
   { refine integrable_on.congr_set_ae _ Ioc_ae_eq_Icc,
-    exact partial_summation_integrable _ (cont.mono Icc_subset_Ici_self).integrable_on_Icc },
+    exact partial_summation_integrable _ (cont.neg.mono Icc_subset_Ici_self).integrable_on_Icc },
   have : eq_on (λ a : ℝ, int.fract a * (a ^ 2)⁻¹ - summatory (λ _, (1 : ℝ)) a * -(a ^ 2)⁻¹)
     (λ y : ℝ, y⁻¹) (Ioc 1 x),
   { intros y hy,
@@ -425,17 +425,24 @@ begin
     integral_inv_of_pos zero_lt_one (zero_lt_one.trans_le hx), div_one],
 end
 
+lemma fract_mul_norm_le (f : ℝ → ℝ) {x : ℝ} :
+  ∥int.fract x * f x∥ ≤ ∥f x∥ :=
+begin
+  simp only [normed_field.norm_mul],
+  apply mul_le_of_le_one_left (norm_nonneg _),
+  simp only [norm_of_nonneg, int.fract_nonneg _, (int.fract_lt_one x).le],
+end
+
 lemma is_O_with_one_fract_mul (f : ℝ → ℝ) :
   is_O_with 1 (λ (x : ℝ), int.fract x * f x) f at_top :=
 begin
   apply is_O_with.of_bound (eventually_of_forall _),
   intro x,
-  simp only [one_mul, normed_field.norm_mul],
-  apply mul_le_of_le_one_left (norm_nonneg _),
-  simp only [norm_of_nonneg, int.fract_nonneg _, (int.fract_lt_one x).le],
+  simp only [one_mul],
+  apply fract_mul_norm_le,
 end
 
-lemma harmonic_series_is_O :
+lemma harmonic_series_is_O_with :
   is_O_with 2 (λ x, summatory (λ i, (i : ℝ)⁻¹) x - log x - euler_mascheroni) (λ x, x⁻¹) at_top :=
 begin
   have : is_O_with 1 (λ (x : ℝ), int.fract x * x⁻¹) (λ x, x⁻¹) at_top := is_O_with_one_fract_mul _,
@@ -449,7 +456,7 @@ end
 lemma harmonic_series_real_limit :
   tendsto (λ x, (∑ i in finset.Icc 1 ⌊x⌋₊, (i : ℝ)⁻¹) - log x) at_top (𝓝 euler_mascheroni) :=
 by simpa using
-  (harmonic_series_is_O.is_O.trans_tendsto tendsto_inv_at_top_zero).add_const euler_mascheroni
+  (harmonic_series_is_O_with.is_O.trans_tendsto tendsto_inv_at_top_zero).add_const euler_mascheroni
 
 lemma harmonic_series_limit :
   tendsto (λ (n : ℕ), (∑ i in finset.Icc 1 n, (i : ℝ)⁻¹) - log n) at_top (𝓝 euler_mascheroni) :=
@@ -473,7 +480,19 @@ begin
   simp only [one_mul] at ps,
   simp only [ps, integral_Icc_eq_integral_Ioc],
   clear ps,
-
+  rw [floor_eq _ (zero_le_one.trans hx), ←int.self_sub_fract, sub_mul, sub_sub (x * log x),
+    sub_sub_sub_cancel_left, sub_eq_iff_eq_add, add_assoc, ←sub_eq_iff_eq_add', ←add_assoc,
+    sub_add_cancel, ←integral_add],
+  rotate,
+  { apply fract_mul_integrable,
+    exact (cont.mono Icc_subset_Ici_self).integrable_on_Icc.mono_set Ioc_subset_Icc_self },
+  { apply (partial_summation_integrable _ _).mono_set Ioc_subset_Icc_self,
+    exact (cont.mono Icc_subset_Ici_self).integrable_on_Icc },
+  rw [←integral_one, interval_integral.integral_of_le hx, set_integral_congr],
+  { apply measurable_set_Ioc },
+  intros y hy,
+  have hy' : 0 < y := zero_lt_one.trans hy.1,
+  rw [←add_mul, floor_eq _ hy'.le, int.fract_add_floor, mul_inv_cancel hy'.ne'],
 end
 
 lemma is_o_one_of_tendsto_at_top (f : ℝ → ℝ) (l : filter ℝ) (h : tendsto f l at_top) :
@@ -498,7 +517,6 @@ is_o_one_of_tendsto_at_top _ _ tendsto_log_at_top
 -- let H := λ x hx, h x $ Ioc_subset_Icc_self hx in
 -- by simpa only [integral_of_le hab] using set_integral_mono_on hf.1 hg.1 measurable_set_Ioc H
 
--- I think this works with any constant strictly bigger than 2?
 lemma summatory_log {c : ℝ} (hc : 2 < c) :
   is_O_with c (λ x, summatory (λ i, log i) x - (x * log x - x)) (λ x, log x) at_top :=
 begin
@@ -540,8 +558,6 @@ begin
   norm_num [hc]
 end
 
-#exit
-
 namespace nat.arithmetic_function
 open_locale arithmetic_function
 
@@ -567,6 +583,8 @@ end
 lemma sigma_zero_apply_eq_card_divisors {i : ℕ} :
   σ 0 i = i.divisors.card :=
  by rw [sigma_zero_apply_eq_sum_divisors, finset.card_eq_sum_ones]
+
+#exit
 
 -- BM: Bounds like these make me tempted to define a relation
 -- `equal_up_to p f g` to express that `f - g ≪ p` (probably stated `f - g = O(p)`) and show that

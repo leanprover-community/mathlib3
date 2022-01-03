@@ -1,7 +1,7 @@
 /-
-Copyright (c) 2021 Yaël Dillies. All rights reserved.
+Copyright (c) 2022 Alex J. Best, Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Yaël Dillies
+Authors: Alex J. Best, Yaël Dillies
 -/
 import algebra.big_operators.ring
 import algebra.smul_with_zero
@@ -15,7 +15,45 @@ import data.finset.locally_finite
 open finset
 open_locale big_operators
 
-variables (𝕄 𝕜 α : Type*)
+namespace finset
+variables {α : Type*} [partial_order α] [locally_finite_order α] [decidable_eq α] {a b : α}
+
+@[simp] lemma Ioc_insert_left (h : a ≤ b) : insert a (Ioc a b) = Icc a b :=
+@Ico_insert_right (order_dual α) _ _ _ _ _ h
+
+lemma Icc_eq_cons_Ioc (h : a ≤ b) : Icc a b = (Ioc a b).cons a left_not_mem_Ioc := sorry
+
+lemma Icc_eq_cons_Ico (h : a ≤ b) : Icc a b = (Ico a b).cons b right_not_mem_Ico := sorry
+
+section order_top
+variables [order_top α]
+
+@[simp] lemma Ioi_insert (a : α) : insert a (Ioi a) = Ici a := Ioc_insert_left le_top
+
+lemma Ici_eq_cons_Ioi (a : α) : Ici a  = (Ioi a).cons a left_not_mem_Ioc := sorry
+
+end order_top
+
+section sum
+variables {β : Type*} [add_comm_monoid β] {f : α → β}
+
+lemma sum_Icc_eq_add_sum_Ioc (h : a ≤ b) : ∑ x in Icc a b, f x = f a + ∑ x in Ioc a b, f x :=
+by rw [Icc_eq_cons_Ioc h, sum_cons]
+
+section order_top
+variables [order_top α]
+
+lemma sum_Ici_eq_add_sum_Ioi (a : α) : ∑ x in Ici a, f x = f a + ∑ x in Ioi a, f x :=
+sum_Icc_eq_add_sum_Ioc le_top
+
+end order_top
+end sum
+end finset
+
+open finset
+open_locale big_operators
+
+variables (𝕄 F 𝕜 α β : Type*)
 
 /-- The `𝕜`-incidence algebra over `α`. -/
 structure incidence_algebra [has_zero 𝕜] [has_le α] :=
@@ -174,24 +212,20 @@ instance [semiring 𝕜] [decidable_eq α] [preorder α] [locally_finite_order �
   mul_assoc := λ f g h, begin
     ext a b,
     simp only [mul_apply, sum_mul, mul_sum],
-    rw finset.sum_sigma',
-    rw finset.sum_sigma',
+    rw [sum_sigma', sum_sigma'],
     dsimp,
     apply' sum_bij (λ (x : Σ i : α, α) hx, (sigma.mk x.snd x.fst : Σ i : α, α)),
-    { rintro ⟨a_1_fst, a_1_snd⟩ ha,
-      simp only [mem_sigma, mem_Icc] at *,
-      tidy,
-      exact le_trans ha_right_right ha_left_right, },
-    { rintro ⟨a_1_fst, a_1_snd⟩ ha,
-      simp [mul_assoc], },
-    { rintro ⟨a₁_fst, a₁_snd⟩ ⟨a₂_fst, a₂_snd⟩ ha₁ ha₂ ⟨⟩,
-      refl, },
-    { rintro ⟨b_1_fst, b_1_snd⟩ H,
+    { rintro c hc,
+      simp only [mem_sigma, mem_Icc] at hc,
+      simp only [mem_sigma, mem_Icc],
+      exact ⟨⟨hc.2.1, hc.2.2.trans hc.1.2⟩, hc.2.2, hc.1.2⟩ },
+    { rintro c hc,
+      simp only [mul_assoc] },
+    { rintro ⟨c₁, c₂⟩ ⟨d₁, d₂⟩ hc hd ⟨⟩,
+      refl },
+    { rintro c hc,
       simp only [exists_prop, sigma.exists, mem_sigma, heq_iff_eq, sigma.mk.inj_iff, mem_Icc] at *,
-      use [b_1_snd, b_1_fst],
-      simp only [and_true, eq_self_iff_true],
-      tidy,
-      exact le_trans H_left_left H_right_left, },
+      exact ⟨c.2, c.1, ⟨⟨hc.1.1.trans hc.2.1, hc.2.2⟩, hc.1.1, hc.2.1⟩, c.eta.symm⟩ }
   end,
   one := (1),
   one_mul := λ f, begin
@@ -209,10 +243,14 @@ instance [semiring 𝕜] [decidable_eq α] [preorder α] [locally_finite_order �
   zero_mul := λ f, by { ext, exact sum_eq_zero (λ x _, zero_mul _) },
   mul_zero := λ f, by { ext, exact sum_eq_zero (λ x _, mul_zero _) },
   left_distrib := λ f g h,
-    by { ext, exact eq.trans (sum_congr rfl (λ x _, left_distrib _ _ _)) sum_add_distrib },
+    by { ext, exact eq.trans (sum_congr rfl $ λ x _, left_distrib _ _ _) sum_add_distrib },
   right_distrib := λ f g h,
-    by { ext, exact eq.trans (sum_congr rfl (λ x _, right_distrib _ _ _)) sum_add_distrib },
+    by { ext, exact eq.trans (sum_congr rfl $ λ x _, right_distrib _ _ _) sum_add_distrib },
   .. incidence_algebra.add_comm_monoid 𝕜 α }
+
+instance [ring 𝕜] [decidable_eq α] [preorder α] [locally_finite_order α] :
+  ring (incidence_algebra 𝕜 α) :=
+{ .. incidence_algebra.semiring 𝕜 α, .. incidence_algebra.add_group 𝕜 α }
 
 section zeta
 variables [has_zero 𝕜] [has_one 𝕜] [has_le α] [@decidable_rel α (≤)]
@@ -283,10 +321,10 @@ by rw [mu_apply, if_neg h]
 --     simp,
 --     intro hh,
 --     apply hi,
---     exact le_of_lt hh, },
+--     exact le_of_lt hh },
 --   -- intro hne,
 --   by_cases hab : a ≤ b,
---   { conv in (mu _ _ _ _) { rw mu_apply, },
+--   { conv in (mu _ _ _ _) { rw mu_apply },
 --     rw sum_ite,
 --     rw filter_eq',
 --     simp [hab],
@@ -297,8 +335,8 @@ by rw [mu_apply, if_neg h]
 --      },
 --   { have : ∀ x ∈ Icc a b, ¬ x ≤ b,
 --     { intros x hx hn, apply hab, rw [mem_Icc] at hx, exact le_trans hx.1 hn},
---     conv in (mu _ _ _ _) { rw eq_zero_of_not_le (this x H), },
---     simp, },
+--     conv in (mu _ _ _ _) { rw eq_zero_of_not_le (this x H) },
+--     simp },
 -- end
 
 lemma mu_spec_of_ne_right {a b : α} (h : a ≠ b) : ∑ (x : α) in Icc a b, (mu 𝕜 α) a x = 0 :=
@@ -382,8 +420,8 @@ begin
   { simp [he] },
   { simp only [mul_one, zeta_apply, mul_ite],
     conv in (ite _ _ _) {
-      rw [if_pos (mem_Icc.mp H).2], },
-    rw mu_spec_of_ne_right he, },
+      rw [if_pos (mem_Icc.mp H).2] },
+    rw mu_spec_of_ne_right he }
 end
 
 lemma zeta_mul_mu' : zeta 𝕜 α * mu' 𝕜 α = 1 :=
@@ -391,12 +429,13 @@ begin
   ext a b,
   rw [mul_apply, one_apply],
   split_ifs with he,
-  { simp [he], },
+  { simp [he] },
   { simp only [zeta_apply, one_mul, ite_mul],
     conv in (ite _ _ _) {
-      rw [if_pos (mem_Icc.mp H).1], },
-    rw mu'_spec_of_ne_left he, },
+      rw [if_pos (mem_Icc.mp H).1] },
+    rw mu'_spec_of_ne_left he }
 end
+
 end mu_zeta
 
 section mu_eq_mu'
@@ -423,10 +462,8 @@ by rw [mu_eq_mu', mu'_spec_of_ne_left h]
 end mu_eq_mu'
 
 section inversion_top
-variables [ring 𝕜] [partial_order α] [order_top α] [locally_finite_order α]
-  [decidable_eq α]
-
-lemma Ici_eq_Ioi_union (x : α) : Ici x = Ioi x ∪ {x} := sorry
+variables {α} [ring 𝕜] [partial_order α] [order_top α] [locally_finite_order α]
+  [decidable_eq α] {a b : α}
 
 /-- A general form of Möbius inversion. Based on Theorem 2.1.2 of Incidence Algebras by Spiegel and
 O'Donnell.-/
@@ -438,22 +475,22 @@ by letI : @decidable_rel α (≤) := classical.dec_rel _; symmetry; calc
   ... = ∑ y in Ici x, mu 𝕜 α x y * ∑ z in Ici y, zeta 𝕜 α y z * f z : by {
         simp_rw [zeta_apply],
         conv in (ite _ _ _)
-        { rw if_pos (mem_Ici.mp H), },
-        simp, }
+        { rw if_pos (mem_Ici.mp H) },
+        simp }
   ... = ∑ y in Ici x, ∑ z in Ici y, mu 𝕜 α x y * zeta 𝕜 α y z * f z : by simp [mul_sum]
   ... = ∑ z in Ici x, ∑ y in Icc x z, mu 𝕜 α x y * zeta 𝕜 α y z * f z : sorry
   ... = ∑ z in Ici x, (mu 𝕜 α * zeta 𝕜 α) x z * f z : by {
         conv in ((mu _ _ * zeta _ _) _ _) { rw [mul_apply] },
-        simp_rw [sum_mul], }
+        simp_rw [sum_mul] }
   ... = ∑ y in Ici x, ∑ z in Ici y, (1 : incidence_algebra 𝕜 α) x z * f z : by {
-        simp [mu_mul_zeta 𝕜 α, Ici_eq_Ioi_union, sum_union],
+        simp [mu_mul_zeta 𝕜 α, sum_Ici_eq_add_sum_Ioi],
         conv in (ite _ _ _) { rw if_neg (not_lt_of_le $ (mem_Ioi.mp H).le) },
         conv in (ite _ _ _) { rw if_neg (ne_of_lt $ mem_Ioi.mp H) },
-        simp, }
-  ... = f x : by { simp [one_apply, Ici_eq_Ioi_union, sum_union],
+        simp }
+  ... = f x : by { simp [one_apply, sum_Ici_eq_add_sum_Ioi],
         conv in (ite _ _ _) { rw if_neg (not_lt_of_le $ (mem_Ioi.mp H).le) },
         conv in (ite _ _ _) { rw if_neg (ne_of_lt $ mem_Ioi.mp H) },
-        simp, }
+        simp }
 
 end inversion_top
 
@@ -474,27 +511,23 @@ end
 end inversion_bot
 
 section prod
-variables {β γ : Type*} [ring 𝕜] [partial_order β] [partial_order γ] [locally_finite_order β]
-  [locally_finite_order γ] [decidable_eq β] [decidable_eq γ]
-  [decidable_rel ((≤) : β → β → Prop)] [decidable_rel ((≤) : γ → γ → Prop)]
-  [decidable_rel ((≤) : β × γ → β × γ → Prop)]
+section preorder
+variables {α β} [ring 𝕜] [preorder α] [preorder β] [locally_finite_order α]
+  [locally_finite_order β] [decidable_eq α] [decidable_eq β] [decidable_rel ((≤) : α → α → Prop)]
+  [decidable_rel ((≤) : β → β → Prop)]
 
-lemma zeta_prod_eq (x y : β) (u v : γ) :
-  zeta 𝕜 (β × γ) (x, u) (y, v) = zeta 𝕜 β x y * zeta 𝕜 γ u v :=
-by simp [ite_and]
+lemma zeta_prod_apply (a b : α × β) : zeta 𝕜 (α × β) a b = zeta 𝕜 α a.1 b.1 * zeta 𝕜 β a.2 b.2 :=
+by simp [ite_and, prod.le_def]
 
-lemma zeta_prod_eq' (a b : β × γ) :
-  zeta 𝕜 (β × γ) a b = zeta 𝕜 β a.fst b.fst * zeta 𝕜 γ a.snd b.snd :=
-begin
-  cases a,
-  cases b,
-  rw zeta_prod_eq,
-end
+lemma zeta_prod_mk (a₁ a₂ : α) (b₁ b₂ : β) :
+  zeta 𝕜 (α × β) (a₁, b₁) (a₂, b₂) = zeta 𝕜 α a₁ a₂ * zeta 𝕜 β b₁ b₂ :=
+zeta_prod_apply _ _ _
 
-variables (β γ)
+variables (α β)
+
 /-- A description of `mu` in a product of incidence algebras -/
-def mu_prod : incidence_algebra 𝕜 (β × γ) :=
-{ to_fun := λ xu yv : β × γ, mu 𝕜 β xu.fst yv.fst * mu 𝕜 γ xu.snd yv.snd,
+def mu_prod : incidence_algebra 𝕜 (α × β) :=
+{ to_fun := λ xu yv : α × β, mu 𝕜 α xu.fst yv.fst * mu 𝕜 β xu.snd yv.snd,
   eq_zero_of_not_le' := begin
     intros a b hab,
     cases a,
@@ -503,40 +536,54 @@ def mu_prod : incidence_algebra 𝕜 (β × γ) :=
     cases hab; simp [eq_zero_of_not_le hab],
 end }
 
-variables {β γ}
+variables {α β}
 
-lemma mu_prod_apply (x y : β) (u v : γ) : mu_prod 𝕜 β γ (x, u) (y, v) = mu 𝕜 β x y * mu 𝕜 γ u v :=
+lemma mu_prod_mk (x y : α) (u v : β) : mu_prod 𝕜 α β (x, u) (y, v) = mu 𝕜 α x y * mu 𝕜 β u v := rfl
+lemma mu_prod_apply (a b : α × β) : mu_prod 𝕜 α β a b = mu 𝕜 α a.fst b.fst * mu 𝕜 β a.snd b.snd :=
 rfl
-lemma mu_prod_apply' (a b : β × γ) : mu_prod 𝕜 β γ a b = mu 𝕜 β a.fst b.fst * mu 𝕜 γ a.snd b.snd :=
-rfl
-lemma one_prod_apply (x y : β) (u v : γ) : (1 : incidence_algebra 𝕜 (β × γ)) (x, u) (y, v) =
-  (1 : incidence_algebra 𝕜 β) x y * (1 : incidence_algebra 𝕜 γ) u v :=
-by simp [ite_and]
 
-lemma prod_Icc (a b : β × γ) : Icc a b = (Icc a.fst b.fst).product (Icc a.snd b.snd) := rfl
+lemma one_prod_apply (a b : α × β) :
+  (1 : incidence_algebra 𝕜 (α × β)) a b =
+  (1 : incidence_algebra 𝕜 α) a.1 b.1 * (1 : incidence_algebra 𝕜 β) a.2 b.2 :=
+by simp [ite_and, prod.ext_iff]
 
-lemma mu_prod_eq (x y : β) (u v : γ) : mu 𝕜 (β × γ) (x, u) (y, v) = mu 𝕜 β x y * mu 𝕜 γ u v :=
+lemma one_prod_mk (a₁ a₂ : α) (b₁ b₂ : β) :
+  (1 : incidence_algebra 𝕜 (α × β)) (a₁, b₁) (a₂, b₂) =
+    (1 : incidence_algebra 𝕜 α) a₁ a₂ * (1 : incidence_algebra 𝕜 β) b₁ b₂ :=
+one_prod_apply _ _ _
+
+lemma prod_Icc (a b : α × β) : Icc a b = (Icc a.fst b.fst).product (Icc a.snd b.snd) := rfl
+
+end preorder
+
+section partial_order
+variables {α β} [ring 𝕜] [partial_order α] [partial_order β] [locally_finite_order α]
+  [locally_finite_order β] [decidable_eq α] [decidable_eq β] [decidable_rel ((≤) : α → α → Prop)]
+  [decidable_rel ((≤) : β → β → Prop)]
+
+lemma mu_prod_eq (x y : α) (u v : β) : mu 𝕜 (α × β) (x, u) (y, v) = mu 𝕜 α x y * mu 𝕜 β u v :=
 begin
-  suffices : mu 𝕜 (β × γ) = mu_prod 𝕜 β γ,
-  { simp [this, mu_prod_apply], },
-  suffices : mu_prod 𝕜 β γ * zeta 𝕜 (β × γ) = 1,
+  suffices : mu 𝕜 (α × β) = mu_prod 𝕜 α β,
+  { simp [this, mu_prod_apply] },
+  suffices : mu_prod 𝕜 α β * zeta 𝕜 (α × β) = 1,
   { rw ← mu_mul_zeta at this,
-    apply_fun (* (mu 𝕜 (β × γ))) at this,
+    apply_fun (* (mu 𝕜 (α × β))) at this,
     symmetry,
-    simpa [mul_assoc, zeta_mul_mu] using this, },
+    simpa [mul_assoc, zeta_mul_mu] using this },
   clear x y u v,
   ext ⟨x, u⟩ ⟨y, v⟩,
-  simp_rw [mul_apply, zeta_prod_eq', mu_prod_apply', prod_Icc],
-  convert_to ∑ (x_1 : β × γ) in (Icc (x, u).fst (y, v).fst).product (Icc (x, u).snd (y, v).snd),
-    (mu 𝕜 β) x x_1.fst * (zeta 𝕜 β) x_1.fst y * ((mu 𝕜 γ) u x_1.snd * (zeta 𝕜 γ) x_1.snd v) = _,
-  { simp [mul_comm, mul_assoc], },
+  simp_rw [mul_apply, zeta_prod_apply, mu_prod_apply, prod_Icc],
+  convert_to ∑ (x_1 : α × β) in (Icc (x, u).fst (y, v).fst).product (Icc (x, u).snd (y, v).snd),
+    (mu 𝕜 α) x x_1.fst * (zeta 𝕜 α) x_1.fst y * ((mu 𝕜 β) u x_1.snd * (zeta 𝕜 β) x_1.snd v) = _,
+  { simp [mul_comm, mul_assoc] },
   rw ← sum_mul_sum (Icc x y) (Icc u v)
-    (λ x_1f, (mu 𝕜 β) x x_1f * (zeta 𝕜 β) x_1f y)
-    (λ x_1s, (mu 𝕜 γ) u x_1s * (zeta 𝕜 γ) x_1s v),
+    (λ x_1f, (mu 𝕜 α) x x_1f * (zeta 𝕜 α) x_1f y)
+    (λ x_1s, (mu 𝕜 β) u x_1s * (zeta 𝕜 β) x_1s v),
   rw one_prod_apply,
   congr; rw [← mu_mul_zeta, mul_apply],
 end
 
+end partial_order
 end prod
 
 section euler

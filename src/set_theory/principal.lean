@@ -12,10 +12,11 @@ ordinals.
 
 # Main definitions and results
 
-* `principal`: principal ordinals under some operation
-* `add_principal_iff_zero_or_omega_pow`: characterizes the additive principal ordinals
+* `principal`: principal ordinals under some operation.
+* `add_principal_iff_zero_or_omega_pow`: characterizes the additive principal ordinals as either 0
+or powers of `ω`.
 * `mul_principal_iff_le_two_or_omega_power_power`: characterizes the multiplicative principal
-ordinals
+ordinals as either two or powers of powers of `ω`.
 -/
 
 universe u

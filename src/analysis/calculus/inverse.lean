@@ -120,6 +120,10 @@ end
 alias approximates_linear_on_iff_lipschitz_on_with ↔
   approximates_linear_on.lipschitz_on_with lipschitz_on_with.approximates_linear_on
 
+@[simp] lemma approximates_linear_on_empty (f : E → F) (f' : E →L[𝕜] F) (c : ℝ≥0) :
+  approximates_linear_on f f' ∅ c :=
+by simp [approximates_linear_on]
+
 namespace approximates_linear_on
 
 variables [cs : complete_space E] {f : E → F}

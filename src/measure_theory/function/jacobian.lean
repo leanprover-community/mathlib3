@@ -201,6 +201,87 @@ lemma approximates_linear_on.norm_fderiv_sub_le {f : E → E} {A : E →L[ℝ] E
   ∀ᵐ x ∂ (μ.restrict s), ∥f' x - A∥₊ ≤ δ :=
 sorry
 
+open asymptotics
+
+lemma exists_closed_cover_approximates_linear_on_of_has_fderiv_within_at
+  (f : E → E) (s : set E) (f' : E → E →L[ℝ] E)
+  (hf' : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x)
+  (r : (E →L[ℝ] E) → ℝ≥0) (rpos : ∀ A, r A ≠ 0) :
+  ∃ (t : ℕ → set E) (A : ℕ → (E →L[ℝ] E)), (∀ n, is_closed (t n)) ∧ (s ⊆ ⋃ n, t n)
+  ∧ (∀ n, approximates_linear_on f (A n) (s ∩ t n) (r (A n)))
+  ∧ (s.nonempty → ∀ n, ∃ y ∈ s, A n = f' y) :=
+begin
+  rcases eq_empty_or_nonempty s with rfl|hs,
+  sorry; { refine ⟨λ n, ∅, λ n, 0, _, _, _, _, _⟩;
+    simp [pairwise, function.on_fun] },
+  obtain ⟨T, T_count, hT⟩ : ∃ T : set s, countable T ∧
+    (⋃ x ∈ T, ball (f' (x : E)) (r (f' x))) = ⋃ (x : s), ball (f' x) (r (f' x)) :=
+    topological_space.is_open_Union_countable _ (λ x, is_open_ball),
+  obtain ⟨u, u_anti, u_pos, u_lim⟩ :
+    ∃ (u : ℕ → ℝ), strict_anti u ∧ (∀ (n : ℕ), 0 < u n) ∧ tendsto u at_top (𝓝 0) :=
+      exists_seq_strict_anti_tendsto (0 : ℝ),
+  let M : ℕ × T → set E := λ p, {x | x ∈ s ∧
+    ∀ y ∈ ball x (u p.1) ∩ s, ∥f y - f x - f' p.2 (y - x)∥ ≤ r (f' p.2) * ∥y - x∥},
+  have : s ⊆ ⋃ p, M p,
+  sorry; { assume x xs,
+    obtain ⟨z, zT, hz⟩ : ∃ z ∈ T, f' x ∈ ball (f' (z : E)) (r (f' z)),
+    { have : f' x ∈ ⋃ (z ∈ T), ball (f' (z : E)) (r (f' z)),
+      { rw hT,
+        refine mem_Union.2 ⟨⟨x, xs⟩, _⟩,
+        simpa only [mem_ball, subtype.coe_mk, dist_self] using (rpos (f' x)).bot_lt },
+      rwa mem_bUnion_iff at this },
+    obtain ⟨ε, εpos, hε⟩ : ∃ (ε : ℝ), 0 < ε ∧ ∥f' x - f' z∥ + ε ≤ r (f' z),
+    { refine ⟨r (f' z) - ∥f' x - f' z∥, _, le_of_eq (by abel)⟩,
+      simpa only [sub_pos] using mem_ball_iff_norm.mp hz },
+    obtain ⟨δ, δpos, hδ⟩ : ∃ (δ : ℝ) (H : 0 < δ),
+      ball x δ ∩ s ⊆ {y | ∥f y - f x - (f' x) (y - x)∥ ≤ ε * ∥y - x∥} :=
+        metric.mem_nhds_within_iff.1 (is_o.def (hf' x xs) εpos),
+    obtain ⟨n, hn⟩ : ∃ n, u n < δ := ((tendsto_order.1 u_lim).2 _ δpos).exists,
+    refine mem_Union.2 ⟨(n, ⟨z, zT⟩), ⟨xs, _⟩⟩,
+    assume y hy,
+    calc ∥f y - f x - (f' z) (y - x)∥
+        = ∥(f y - f x - (f' x) (y - x)) + (f' x - f' z) (y - x)∥ :
+      begin
+        congr' 1,
+        simp only [continuous_linear_map.coe_sub', map_sub, pi.sub_apply],
+        abel,
+      end
+    ... ≤ ∥f y - f x - (f' x) (y - x)∥ + ∥(f' x - f' z) (y - x)∥ : norm_add_le _ _
+    ... ≤ ε * ∥y - x∥ + ∥f' x - f' z∥ * ∥y - x∥ :
+      begin
+        refine add_le_add (hδ _) (continuous_linear_map.le_op_norm _ _),
+        exact inter_subset_inter_left _ (ball_subset_ball hn.le) hy,
+      end
+    ... ≤ r (f' z) * ∥y - x∥ :
+      begin
+        rw [← add_mul, add_comm],
+        exact mul_le_mul_of_nonneg_right hε (norm_nonneg _),
+      end },
+  have : ∀ p, closure (M p) ∩ s ⊆ M p,
+  sorry; { rintros ⟨n, z⟩ x ⟨hx, xs⟩,
+    refine ⟨xs, λ y hy, _⟩,
+    obtain ⟨a, aM, a_lim⟩ : ∃ (a : ℕ → E), (∀ k, a k ∈ M (n, z)) ∧ tendsto a at_top (𝓝 x) :=
+      mem_closure_iff_seq_limit.1 hx,
+    have L1 : tendsto (λ (k : ℕ), ∥f y - f (a k) - (f' z) (y - a k)∥) at_top
+      (𝓝 ∥f y - f x - (f' z) (y - x)∥),
+    { apply tendsto.norm,
+      have L : tendsto (λ k, f (a k)) at_top (𝓝 (f x)),
+      { apply (hf' x xs).continuous_within_at.tendsto.comp,
+        apply tendsto_nhds_within_of_tendsto_nhds_of_eventually_within _ a_lim,
+        exact eventually_of_forall (λ k, (aM k).1) },
+      apply tendsto.sub (tendsto_const_nhds.sub L),
+      exact ((f' z).continuous.tendsto _).comp (tendsto_const_nhds.sub a_lim) },
+    have L2 : tendsto (λ (k : ℕ), (r (f' z) : ℝ) * ∥y - a k∥) at_top (𝓝 (r (f' z) * ∥y - x∥)) :=
+      (tendsto_const_nhds.sub a_lim).norm.const_mul _,
+    have I : ∀ᶠ k in at_top, ∥f y - f (a k) - (f' z) (y - a k)∥ ≤ r (f' z) * ∥y - a k∥,
+    { have L : tendsto (λ k, dist y (a k)) at_top (𝓝 (dist y x)) := tendsto_const_nhds.dist a_lim,
+      filter_upwards [(tendsto_order.1 L).2 _ hy.1],
+      assume k hk,
+      exact (aM k).2 y ⟨hk, hy.2⟩ },
+    apply le_of_tendsto_of_tendsto L1 L2 I }
+end
+
+
 lemma exists_partition_approximates_linear_on_of_has_fderiv_within_at
   (f : E → E) (s : set E) (f' : E → E →L[ℝ] E)
   (hf' : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x)
@@ -209,7 +290,12 @@ lemma exists_partition_approximates_linear_on_of_has_fderiv_within_at
   ∧ (∀ n, measurable_set (t n)) ∧ (s ⊆ ⋃ n, t n)
   ∧ (∀ n, approximates_linear_on f (A n) (s ∩ t n) (r (A n)))
   ∧ (s.nonempty → ∀ n, ∃ y ∈ s, A n = f' y) :=
-sorry
+
+#exit
+
+lemma is_open_Union_countable [second_countable_topology α]
+  {ι} (s : ι → set α) (H : ∀ i, is_open (s i)) :
+  ∃ T : set ι, countable T ∧ (⋃ i ∈ T, s i) = ⋃ i, s i :=
 
 /-- A differentiable function maps sets of measure zero to sets of measure zero. -/
 lemma add_haar_image_zero_of_differentiable_on_of_add_haar_zero

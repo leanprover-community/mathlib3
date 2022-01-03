@@ -142,7 +142,13 @@ set.ext $ λ x, mem_compl
 
 @[simp] lemma compl_empty : (∅ : finset α)ᶜ = univ := compl_bot
 
-@[simp] lemma union_compl (s : finset α) : s ∪ sᶜ = finset.univ := sup_compl_eq_top
+@[simp] lemma union_compl (s : finset α) : s ∪ sᶜ = univ := sup_compl_eq_top
+
+@[simp] lemma inter_compl (s : finset α) : s ∩ sᶜ = ∅ := inf_compl_eq_bot
+
+@[simp] lemma compl_union (s t : finset α) : (s ∪ t)ᶜ = sᶜ ∩ tᶜ := compl_sup
+
+@[simp] lemma compl_inter (s t : finset α) : (s ∩ t)ᶜ = sᶜ ∪ tᶜ := compl_inf
 
 @[simp] lemma compl_erase : (s.erase a)ᶜ = insert a sᶜ :=
 by { ext, simp only [or_iff_not_imp_left, mem_insert, not_and, mem_compl, mem_erase] }

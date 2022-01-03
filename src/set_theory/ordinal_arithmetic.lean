@@ -858,8 +858,8 @@ begin
   exact sub_self _
 end
 
-theorem dvd_iff_mod_eq_zero {a b : ordinal} : has_dvd.dvd a b ↔ a % b = 0 :=
-⟨dvd_of_mod_eq_zero, mod_eq_zero_of_dvd⟩
+theorem dvd_iff_mod_eq_zero {a b : ordinal} : has_dvd.dvd b a ↔ a % b = 0 :=
+⟨mod_eq_zero_of_dvd, dvd_of_mod_eq_zero⟩
 
 /-! ### Supremum of a family of ordinals -/
 

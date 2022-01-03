@@ -98,7 +98,7 @@ end adapted
 variable (β)
 
 lemma adapted_zero [has_zero β] (f : filtration ι m) : adapted f (0 : ι → α → β) :=
-λ i, @measurable_zero β α _ (f i) _
+λ i, @measurable_zero β α (f i) _ _
 
 variable {β}
 

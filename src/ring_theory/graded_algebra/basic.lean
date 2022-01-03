@@ -84,7 +84,7 @@ def graded_algebra.decompose : A ≃ₐ[R] ⨁ i, 𝒜 i := alg_equiv.symm
   (graded_algebra.decompose 𝒜).symm (direct_sum.of _ i x) = x :=
 direct_sum.submodule_coe_alg_hom_of 𝒜 _ _
 
-lemma is_homogeneous_decompose {i : ι} (x : A) :
+lemma is_homogeneous_decompose (x : A) (i : ι) :
   set_like.is_homogeneous 𝒜 (graded_algebra.decompose 𝒜 x i : A) :=
 ⟨i, (graded_algebra.decompose 𝒜 x i).prop⟩
 

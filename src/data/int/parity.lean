@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Benjamin Davidson
 -/
 import data.nat.parity
+import algebra.module.basic
 
 /-!
 # Parity of integers
@@ -227,5 +228,56 @@ by simp [*, (dec_trivial : ¬ 2 = 0)] with parity_simps
 
 example : ¬ even (25394535 : ℤ) :=
 by simp
+
+section neg_one_pow
+
+/-- The map `ℤ → ℤ` sending $n$ to $(-1) ^ n$. -/
+def neg_one_pow (n : ℤ) : ℤ := @has_pow.pow (units ℤ) ℤ _ (-1) n
+
+@[simp] lemma neg_one_pow_add (n m : ℤ) : neg_one_pow (n + m) = neg_one_pow n * neg_one_pow m :=
+by { delta neg_one_pow, rw zpow_add, simp }
+
+@[simp] lemma neg_one_pow_one : neg_one_pow 1 = -1 := rfl
+
+-- This lemma is provable by `neg_one_pow_neg`, but it is nice to have a rfl-lemma for this.
+-- The priority is thus higher to silence the linter.
+@[simp, priority 1100] lemma neg_one_pow_neg_one : neg_one_pow (-1) = -1 := rfl
+
+@[simp] lemma neg_one_pow_neg_zero : neg_one_pow 0 = 1 := rfl
+
+lemma neg_one_pow_ite (n : ℤ) : neg_one_pow n = if even n then 1 else -1 :=
+begin
+  induction n using int.induction_on with n h n h,
+  { simp [neg_one_pow] },
+  { simp [h, apply_ite has_neg.neg] with parity_simps },
+  { rw [sub_eq_add_neg, neg_one_pow_add],
+    simp [h, apply_ite has_neg.neg] with parity_simps }
+end
+
+lemma neg_one_pow_eq_pow_abs (n : ℤ) : neg_one_pow n = (-1) ^ n.nat_abs :=
+begin
+  rw neg_one_pow_ite,
+  convert (neg_one_pow_ite n.nat_abs).symm using 2,
+  { simp with parity_simps },
+  { delta neg_one_pow, simp }
+end
+
+lemma neg_one_pow_eq_neg_one_npow (n : ℕ) : neg_one_pow n = (-1) ^ n :=
+by { delta neg_one_pow, simp }
+
+@[simp] lemma neg_one_pow_neg (n : ℤ) : neg_one_pow (-n) = neg_one_pow n :=
+by simp [neg_one_pow_ite] with parity_simps
+
+@[simp] lemma neg_one_pow_sub (n m : ℤ) : neg_one_pow (n - m) = neg_one_pow n * neg_one_pow m :=
+by rw [sub_eq_neg_add, neg_one_pow_add, neg_one_pow_neg, mul_comm]
+
+@[simp] lemma neg_one_pow_mul_self (n : ℤ) : neg_one_pow n * neg_one_pow n = 1 :=
+by { delta neg_one_pow, simp }
+
+@[simp] lemma neg_one_pow_smul_self {α : Type*} [add_comm_group α] (n : ℤ) (X : α) :
+  neg_one_pow n • neg_one_pow n • X = X :=
+by simp [smul_smul]
+
+end neg_one_pow
 
 end int

@@ -3,7 +3,7 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Scott Morrison
 -/
-import algebraic_geometry.prime_spectrum_graded_ring
+import algebraic_geometry.projective_spectrum.topology
 import algebra.category.CommRing.colimits
 import algebra.category.CommRing.limits
 import topology.sheaves.local_predicate
@@ -63,45 +63,27 @@ namespace algebraic_geometry
 /--
 The prime spectrum, just as a topological space.
 -/
-def prime_spectrum_of_graded_ring.Top : Top := Top.of (prime_spectrum_of_graded_ring 𝒜)
+def projective_spectrum.Top : Top := Top.of (projective_spectrum 𝒜)
 
-namespace structure_sheaf
-
-def temp (P : prime_spectrum_of_graded_ring.Top 𝒜) : submonoid A :=
-{ carrier := {x : A | set_like.is_homogeneous 𝒜 x ∧  x ∉ P.1 ∧ x ∈ 𝒜 0 },
-  one_mem' := begin
-    split, refine ⟨0, set_like.has_graded_one.one_mem⟩, split, intro h,
-    have : (1 : A) ∈ P.1.1, exact h,
-    rw ←ideal.eq_top_iff_one P.1.1 at this,
-    apply P.is_prime.ne_top, exact this,
-    apply set_like.has_graded_one.one_mem,
-  end,
-  mul_mem' := λ a b ha hb, begin
-    split, apply set_like.is_homogeneous.mul, exact ha.1, exact hb.1, split, intro h,
-    have := P.is_prime.mem_or_mem h,
-    cases this, apply ha.2.1, exact this, apply hb.2.1, exact this,
-    suffices : a * b ∈ 𝒜 (0 + 0),
-    convert this, rw zero_add,
-    apply set_like.has_graded_mul.mul_mem, exact ha.2.2, exact hb.2.2,
-  end }
+namespace projective_spectrum.structure_sheaf
 
 /--
 The type family over `prime_spectrum R` consisting of the localization over each point.
 -/
 @[derive [comm_ring]]
-def localizations (P : prime_spectrum_of_graded_ring.Top 𝒜) :=
+def localizations (P : projective_spectrum.Top 𝒜) :=
 localization.at_prime P.as_homogeneous_ideal.1
 
-instance (P : prime_spectrum_of_graded_ring.Top 𝒜) : inhabited (localizations 𝒜 P) :=
+instance (P : projective_spectrum.Top 𝒜) : inhabited (localizations 𝒜 P) :=
 ⟨1⟩
 
-instance (U : opens (prime_spectrum_of_graded_ring.Top 𝒜)) (x : U) :
+instance (U : opens (projective_spectrum.Top 𝒜)) (x : U) :
   algebra A (localizations 𝒜 x) :=
 localization.algebra
 
-instance (U : opens (prime_spectrum_of_graded_ring.Top 𝒜)) (x : U) :
+instance (U : opens (projective_spectrum.Top 𝒜)) (x : U) :
   is_localization.at_prime (localizations 𝒜 x)
-  (x : prime_spectrum_of_graded_ring.Top 𝒜).as_homogeneous_ideal.1 :=
+  (x : projective_spectrum.Top 𝒜).as_homogeneous_ideal.1 :=
 localization.is_localization
 
 variables {𝒜}
@@ -110,18 +92,18 @@ variables {𝒜}
 The predicate saying that a dependent function on an open `U` is realised as a fixed fraction
 `r / s` in each of the stalks (which are localizations at various prime ideals).
 -/
-def is_fraction {U : opens (prime_spectrum_of_graded_ring.Top 𝒜)}
+def is_fraction {U : opens (projective_spectrum.Top 𝒜)}
   (f : Π x : U, localizations 𝒜 x) : Prop :=
 ∃ (r s : A) (r_s_deg_same : ∃ (i : ι), r ∈ 𝒜 i ∧ s ∈ 𝒜 i),
   ∀ x : U, ¬ (s ∈ x.1.as_homogeneous_ideal) ∧ f x * algebra_map _ _ s = algebra_map _ _ r
 
-lemma is_fraction.eq_mk' {U : opens (prime_spectrum_of_graded_ring.Top 𝒜)}
+lemma is_fraction.eq_mk' {U : opens (projective_spectrum.Top 𝒜)}
   {f : Π x : U, localizations 𝒜 x}
   (hf : is_fraction f) :
   ∃ (r s : A) (r_s_deg_same : ∃ (i : ι), r ∈ 𝒜 i ∧ s ∈ 𝒜 i),
     ∀ x : U, ∃ (hs : s ∉ x.1.as_homogeneous_ideal), f x =
     is_localization.mk' (localization.at_prime _) r
-      (⟨s, hs⟩ : (x : prime_spectrum_of_graded_ring.Top 𝒜).as_homogeneous_ideal.1.prime_compl) :=
+      (⟨s, hs⟩ : (x : projective_spectrum.Top 𝒜).as_homogeneous_ideal.1.prime_compl) :=
 begin
   rcases hf with ⟨r, s, r_s_deg_same, h⟩,
   refine ⟨r, s, r_s_deg_same,
@@ -162,15 +144,9 @@ so we replace his circumlocution about functions into a disjoint union with
 def is_locally_fraction : local_predicate (localizations 𝒜) :=
 (is_fraction_prelocal 𝒜).sheafify
 
-/-
-∃ (r s : A) (r_hom : set_like.is_homogeneous 𝒜 r) (s_hom : set_like.is_homogeneous 𝒜 s)
-  (r_s_deg_same : ∃ (i : ι), r ∈ 𝒜 i ∧ s ∈ 𝒜 i),
-  ∀ x : U, ¬ (s ∈ x.1.as_homogeneous_ideal) ∧ f x * algebra_map _ _ s = algebra_map _ _ r
--/
-
 @[simp]
 lemma is_locally_fraction_pred
-  {U : opens (prime_spectrum_of_graded_ring.Top 𝒜)} (f : Π x : U, localizations 𝒜 x) :
+  {U : opens (projective_spectrum.Top 𝒜)} (f : Π x : U, localizations 𝒜 x) :
   (is_locally_fraction 𝒜).pred f =
   ∀ x : U, ∃ (V) (m : x.1 ∈ V) (i : V ⟶ U),
   ∃ (r s : A)  (r_s_deg_same : ∃ (i : ι), r ∈ 𝒜 i ∧ s ∈ 𝒜 i), ∀ y : V,
@@ -181,14 +157,14 @@ rfl
 /--
 The functions satisfying `is_locally_fraction` form a subring.
 -/
-def sections_subring (U : (opens (prime_spectrum_of_graded_ring.Top 𝒜))ᵒᵖ) :
+def sections_subring (U : (opens (projective_spectrum.Top 𝒜))ᵒᵖ) :
   subring (Π x : unop U, localizations 𝒜 x) :=
 { carrier := { f | (is_locally_fraction 𝒜).pred f },
   zero_mem' :=
   begin
     refine λ x, ⟨unop U, x.2, 𝟙 _, 0, 1,
       ⟨0, submodule.zero_mem _, set_like.has_graded_one.one_mem⟩, λ y, ⟨_, _⟩⟩,
-    { erw ←ideal.ne_top_iff_one ((y : prime_spectrum_of_graded_ring.Top 𝒜).as_homogeneous_ideal.1),
+    { erw ←ideal.ne_top_iff_one ((y : projective_spectrum.Top 𝒜).as_homogeneous_ideal.1),
       exact y.1.is_prime.1, },
     { simp, },
   end,
@@ -196,7 +172,7 @@ def sections_subring (U : (opens (prime_spectrum_of_graded_ring.Top 𝒜))ᵒᵖ
   begin
     refine λ x, ⟨unop U, x.2, 𝟙 _, 1, 1,
       ⟨0, set_like.has_graded_one.one_mem, set_like.has_graded_one.one_mem⟩, λ y, ⟨_, _⟩⟩,
-    { erw ←ideal.ne_top_iff_one ((y : prime_spectrum_of_graded_ring.Top 𝒜).as_homogeneous_ideal.1),
+    { erw ←ideal.ne_top_iff_one ((y : projective_spectrum.Top 𝒜).as_homogeneous_ideal.1),
       exact y.1.is_prime.1, },
     { simp, },
   end,
@@ -212,7 +188,7 @@ def sections_subring (U : (opens (prime_spectrum_of_graded_ring.Top 𝒜))ᵒᵖ
       exact rb_sb_same_deg.2, },
     { rw add_comm, apply set_like.graded_monoid.mul_mem,
       exact rb_sb_same_deg.1, exact ra_sa_same_deg.2, },
-    { have := (y : prime_spectrum_of_graded_ring.Top 𝒜).is_prime.mem_or_mem h, cases this,
+    { have := (y : projective_spectrum.Top 𝒜).is_prime.mem_or_mem h, cases this,
       apply (wa ⟨y, _⟩).1, exact this,
       suffices : y.1 ∈ Va, exact this,
       exact (opens.inf_le_left Va Vb y).2,
@@ -243,7 +219,7 @@ def sections_subring (U : (opens (prime_spectrum_of_graded_ring.Top 𝒜))ᵒᵖ
     refine ⟨Va ⊓ Vb, ⟨ma, mb⟩, opens.inf_le_left _ _ ≫ ia, ra * rb, sa * sb,
       ⟨ja + jb, set_like.graded_monoid.mul_mem ra_hom_ja rb_hom_jb,
         set_like.graded_monoid.mul_mem sa_hom_ja sb_hom_jb⟩, λ y, ⟨λ h, _, _⟩⟩,
-    { have := (y : prime_spectrum_of_graded_ring.Top 𝒜).is_prime.mem_or_mem h, cases this,
+    { have := (y : projective_spectrum.Top 𝒜).is_prime.mem_or_mem h, cases this,
       apply (wa ⟨y, _⟩).1, exact this,
       suffices : y.1 ∈ Va, exact this,
       exact (opens.inf_le_left Va Vb y).2,
@@ -257,19 +233,15 @@ def sections_subring (U : (opens (prime_spectrum_of_graded_ring.Top 𝒜))ᵒᵖ
       refl, }
   end, }
 
-end structure_sheaf
-
-open structure_sheaf
-
 /--
 The structure sheaf (valued in `Type`, not yet `CommRing`) is the subsheaf consisting of
 functions satisfying `is_locally_fraction`.
 -/
-def structure_sheaf_in_Type : sheaf Type* (prime_spectrum_of_graded_ring.Top 𝒜):=
+def structure_sheaf_in_Type : sheaf Type* (projective_spectrum.Top 𝒜):=
 subsheaf_to_Types (is_locally_fraction 𝒜)
 
 instance comm_ring_structure_sheaf_in_Type_obj
-  (U : (opens (prime_spectrum_of_graded_ring.Top 𝒜))ᵒᵖ) :
+  (U : (opens (projective_spectrum.Top 𝒜))ᵒᵖ) :
   comm_ring ((structure_sheaf_in_Type 𝒜).1.obj U) :=
 (sections_subring 𝒜 U).to_comm_ring
 
@@ -278,7 +250,7 @@ The structure presheaf, valued in `CommRing`, constructed by dressing up the `Ty
 structure presheaf.
 -/
 @[simps]
-def structure_presheaf_in_CommRing : presheaf CommRing (prime_spectrum_of_graded_ring.Top 𝒜) :=
+def structure_presheaf_in_CommRing : presheaf CommRing (projective_spectrum.Top 𝒜) :=
 { obj := λ U, CommRing.of ((structure_sheaf_in_Type 𝒜).1.obj U),
   map := λ U V i,
   { to_fun := ((structure_sheaf_in_Type 𝒜).1.map i),
@@ -304,11 +276,13 @@ The structure sheaf on $Spec R$, valued in `CommRing`.
 
 This is provided as a bundled `SheafedSpace` as `Spec.SheafedSpace R` later.
 -/
-def structure_sheaf : sheaf CommRing (prime_spectrum_of_graded_ring.Top 𝒜) :=
+def structure_sheaf : sheaf CommRing (projective_spectrum.Top 𝒜) :=
 ⟨structure_presheaf_in_CommRing 𝒜,
   -- We check the sheaf condition under `forget CommRing`.
   (is_sheaf_iff_is_sheaf_comp _ _).mpr
     (is_sheaf_of_iso (structure_presheaf_comp_forget 𝒜).symm
       (structure_sheaf_in_Type 𝒜).property)⟩
+
+end projective_spectrum.structure_sheaf
 
 end algebraic_geometry

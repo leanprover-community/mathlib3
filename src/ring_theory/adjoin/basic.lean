@@ -3,24 +3,19 @@ Copyright (c) 2019 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
-import algebra.algebra.subalgebra
+import algebra.algebra.tower
 import linear_algebra.prod
+import linear_algebra.finsupp
 
 /-!
 # Adjoining elements to form subalgebras
 
 This file develops the basic theory of subalgebras of an R-algebra generated
-by a set of elements. A basic interface for `adjoin` is set up, and various
-results about finitely-generated subalgebras and submodules are proved.
-
-## Definitions
-
-* `fg (S : subalgebra R A)` : A predicate saying that the subalgebra is finitely-generated
-as an A-algebra
+by a set of elements. A basic interface for `adjoin` is set up.
 
 ## Tags
 
-adjoin, algebra, finitely-generated algebra
+adjoin, algebra
 
 -/
 
@@ -43,6 +38,9 @@ algebra.gc.le_u_l s
 theorem adjoin_le {S : subalgebra R A} (H : s ⊆ S) : adjoin R s ≤ S :=
 algebra.gc.l_le H
 
+lemma adjoin_eq_Inf : adjoin R s = Inf {p | s ⊆ p} :=
+le_antisymm (le_Inf (λ _ h, adjoin_le h)) (Inf_le subset_adjoin)
+
 theorem adjoin_le_iff {S : subalgebra R A} : adjoin R s ≤ S ↔ s ⊆ S:=
 algebra.gc _ _
 
@@ -55,7 +53,15 @@ le_antisymm (adjoin_le h₁) h₂
 theorem adjoin_eq (S : subalgebra R A) : adjoin R ↑S = S :=
 adjoin_eq_of_le _ (set.subset.refl _) subset_adjoin
 
-@[elab_as_eliminator] theorem adjoin_induction {p : A → Prop} {x : A} (h : x ∈ adjoin R s) 
+lemma adjoin_Union {α : Type*} (s : α → set A) :
+  adjoin R (set.Union s) = ⨆ (i : α), adjoin R (s i) :=
+(@algebra.gc R A _ _ _).l_supr
+
+lemma adjoin_attach_bUnion [decidable_eq A] {α : Type*} {s : finset α} (f : s → finset A) :
+  adjoin R (s.attach.bUnion f : set A) = ⨆ x, adjoin R (f x) :=
+by simpa [adjoin_Union]
+
+@[elab_as_eliminator] theorem adjoin_induction {p : A → Prop} {x : A} (h : x ∈ adjoin R s)
   (Hs : ∀ x ∈ s, p x)
   (Halg : ∀ r, p (algebra_map R A r))
   (Hadd : ∀ x y, p x → p y → p (x + y))
@@ -63,6 +69,29 @@ adjoin_eq_of_le _ (set.subset.refl _) subset_adjoin
 let S : subalgebra R A :=
 { carrier := p, mul_mem' := Hmul, add_mem' := Hadd, algebra_map_mem' := Halg } in
 adjoin_le (show s ≤ S, from Hs) h
+
+/-- The difference with `algebra.adjoin_induction` is that this acts on the subtype. -/
+lemma adjoin_induction' {p : adjoin R s → Prop} (Hs : ∀ x (h : x ∈ s), p ⟨x, subset_adjoin h⟩)
+  (Halg : ∀ r, p (algebra_map R _ r)) (Hadd : ∀ x y, p x → p y → p (x + y))
+  (Hmul : ∀ x y, p x → p y → p (x * y)) (x : adjoin R s) : p x :=
+subtype.rec_on x $ λ x hx, begin
+  refine exists.elim _ (λ (hx : x ∈ adjoin R s) (hc : p ⟨x, hx⟩), hc),
+  exact adjoin_induction hx (λ x hx, ⟨subset_adjoin hx, Hs x hx⟩)
+    (λ r, ⟨subalgebra.algebra_map_mem _ r, Halg r⟩)
+    (λ x y hx hy, exists.elim hx $ λ hx' hx, exists.elim hy $ λ hy' hy,
+    ⟨subalgebra.add_mem _ hx' hy', Hadd _ _ hx hy⟩) (λ x y hx hy, exists.elim hx $ λ hx' hx,
+    exists.elim hy $ λ hy' hy, ⟨subalgebra.mul_mem _ hx' hy', Hmul _ _ hx hy⟩),
+end
+
+@[simp] lemma adjoin_adjoin_coe_preimage {s : set A} :
+  adjoin R ((coe : adjoin R s → A) ⁻¹' s) = ⊤ :=
+begin
+  refine eq_top_iff.2 (λ x, adjoin_induction' (λ a ha, _) (λ r, _) (λ _ _, _) (λ _ _, _) x),
+  { exact subset_adjoin ha },
+  { exact subalgebra.algebra_map_mem _ r },
+  { exact subalgebra.add_mem _ },
+  { exact subalgebra.mul_mem _ }
+end
 
 lemma adjoin_union (s t : set A) : adjoin R (s ∪ t) = adjoin R s ⊔ adjoin R t :=
 (algebra.gc : galois_connection _ (coe : subalgebra R A → set A)).l_sup
@@ -172,7 +201,8 @@ variables [comm_semiring R] [comm_semiring A]
 variables [algebra R A] {s t : set A}
 
 variables (R s t)
-theorem adjoin_union_eq_under : adjoin R (s ∪ t) = (adjoin R s).under (adjoin (adjoin R s) t) :=
+theorem adjoin_union_eq_adjoin_adjoin :
+  adjoin R (s ∪ t) = (adjoin (adjoin R s) t).restrict_scalars R :=
 le_antisymm
   (closure_mono $ set.union_subset
     (set.range_subset_iff.2 $ λ r, or.inl ⟨algebra_map R (adjoin R s) r, rfl⟩)
@@ -189,6 +219,26 @@ theorem adjoin_union_coe_submodule : (adjoin R (s ∪ t)).to_submodule =
 begin
   rw [adjoin_eq_span, adjoin_eq_span, adjoin_eq_span, span_mul_span],
   congr' 1 with z, simp [submonoid.closure_union, submonoid.mem_sup, set.mem_mul]
+end
+
+lemma pow_smul_mem_adjoin_smul (r : R) (s : set A) {x : A} (hx : x ∈ adjoin R s) :
+  ∃ n₀ : ℕ, ∀ n ≥ n₀, r ^ n • x ∈ adjoin R (r • s) :=
+begin
+  change x ∈ (adjoin R s).to_submodule at hx,
+  rw [adjoin_eq_span, finsupp.mem_span_iff_total] at hx,
+  rcases hx with ⟨l, rfl : l.sum (λ (i : submonoid.closure s) (c : R), c • ↑i) = x⟩,
+  choose n₁ n₂ using (λ x : submonoid.closure s, submonoid.pow_smul_mem_closure_smul r s x.prop),
+  use l.support.sup n₁,
+  intros n hn,
+  rw finsupp.smul_sum,
+  refine (adjoin R (r • s)).to_submodule.sum_mem _,
+  intros a ha,
+  have : n ≥ n₁ a := le_trans (finset.le_sup ha) hn,
+  dsimp only,
+  rw [← tsub_add_cancel_of_le this, pow_add, ← smul_smul, smul_smul _ (l a), mul_comm,
+    ← smul_smul, adjoin_eq_span],
+  refine submodule.smul_mem _ _ _,
+  exact submodule.smul_mem _ _ (submodule.subset_span (n₂ a))
 end
 
 end comm_semiring
@@ -226,5 +276,13 @@ variables [comm_semiring R] [semiring A] [semiring B] [algebra R A] [algebra R B
 lemma map_adjoin (φ : A →ₐ[R] B) (s : set A) :
   (adjoin R s).map φ = adjoin R (φ '' s) :=
 (adjoin_image _ _ _).symm
+
+lemma adjoin_le_equalizer (φ₁ φ₂ : A →ₐ[R] B) {s : set A} (h : s.eq_on φ₁ φ₂) :
+  adjoin R s ≤ φ₁.equalizer φ₂ :=
+adjoin_le h
+
+lemma ext_of_adjoin_eq_top {s : set A} (h : adjoin R s = ⊤) ⦃φ₁ φ₂ : A →ₐ[R] B⦄
+  (hs : s.eq_on φ₁ φ₂) : φ₁ = φ₂ :=
+ext $ λ x, adjoin_le_equalizer φ₁ φ₂ hs $ h.symm ▸ trivial
 
 end alg_hom

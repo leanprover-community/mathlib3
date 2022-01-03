@@ -3,7 +3,7 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Bryan Gin-ge Chen
 -/
-import order.bounded_lattice
+import order.bounded_order
 /-!
 # (Generalized) Boolean algebras
 
@@ -84,7 +84,7 @@ operation `\` (called `sdiff`, after "set difference") satisfying `(a ⊓ b) ⊔
 
 This is a generalization of Boolean algebras which applies to `finset α` for arbitrary
 (not-necessarily-`fintype`) `α`. -/
-class generalized_boolean_algebra (α : Type u) extends distrib_lattice_bot α, has_sdiff α :=
+class generalized_boolean_algebra (α : Type u) extends distrib_lattice α, has_sdiff α, has_bot α :=
 (sup_inf_sdiff : ∀a b:α, (a ⊓ b) ⊔ (a \ b) = a)
 (inf_inf_sdiff : ∀a b:α, (a ⊓ b) ⊓ (a \ b) = ⊥)
 
@@ -103,6 +103,11 @@ generalized_boolean_algebra.inf_inf_sdiff _ _
 by rw [sup_comm, sup_inf_sdiff]
 @[simp] theorem inf_sdiff_inf (x y : α) : (x \ y) ⊓ (x ⊓ y) = ⊥ :=
 by rw [inf_comm, inf_inf_sdiff]
+
+@[priority 100]  -- see Note [lower instance priority]
+instance generalized_boolean_algebra.to_order_bot : order_bot α :=
+{ bot_le := λ a, by { rw [←inf_inf_sdiff a a, inf_assoc], exact inf_le_left },
+  ..generalized_boolean_algebra.to_has_bot α }
 
 theorem disjoint_inf_sdiff : disjoint (x ⊓ y) (x \ y) := (inf_inf_sdiff x y).le
 
@@ -159,8 +164,16 @@ by rw [sup_comm, sup_sdiff_self_right, sup_comm]
 lemma sup_sdiff_symm : x ⊔ (y \ x) = y ⊔ (x \ y) :=
 by rw [sup_sdiff_self_right, sup_sdiff_self_right, sup_comm]
 
-lemma sup_sdiff_of_le (h : x ≤ y) : x ⊔ (y \ x) = y :=
+lemma sup_sdiff_cancel_right (h : x ≤ y) : x ⊔ (y \ x) = y :=
 by conv_rhs { rw [←sup_inf_sdiff y x, inf_eq_right.2 h] }
+
+lemma sdiff_sup_cancel (h : y ≤ x) : x \ y ⊔ y = x := by rw [sup_comm, sup_sdiff_cancel_right h]
+
+lemma sup_le_of_le_sdiff_left (h : y ≤ z \ x) (hxz : x ≤ z) : x ⊔ y ≤ z :=
+(sup_le_sup_left h x).trans (sup_sdiff_cancel_right hxz).le
+
+lemma sup_le_of_le_sdiff_right (h : x ≤ z \ y) (hyz : y ≤ z) : x ⊔ y ≤ z :=
+(sup_le_sup_right h y).trans (sdiff_sup_cancel hyz).le
 
 @[simp] lemma sup_sdiff_left : x ⊔ (x \ y) = x := by { rw sup_eq_left, exact sdiff_le }
 lemma sup_sdiff_right : (x \ y) ⊔ x = x := by rw [sup_comm, sup_sdiff_left]
@@ -197,9 +210,8 @@ theorem disjoint_sdiff_self_right : disjoint x (y \ x) := inf_sdiff_self_right.l
 lemma disjoint.disjoint_sdiff_left (h : disjoint x y) : disjoint (x \ z) y := h.mono_left sdiff_le
 lemma disjoint.disjoint_sdiff_right (h : disjoint x y) : disjoint x (y \ z) := h.mono_right sdiff_le
 
-/- TODO: if we had a typeclass for distributive lattices with `⊥`, we could make an alternative
-constructor for `generalized_boolean_algebra` using `disjoint x (y \ x)` and `x ⊔ (y \ x) = y` as
-axioms. -/
+/- TODO: we could make an alternative constructor for `generalized_boolean_algebra` using
+`disjoint x (y \ x)` and `x ⊔ (y \ x) = y` as axioms. -/
 theorem disjoint.sdiff_eq_of_sup_eq (hi : disjoint x z) (hs : x ⊔ z = y) : y \ x = z :=
 have h : y ⊓ x = x := inf_eq_right.2 $ le_sup_left.trans hs.le,
 sdiff_unique (by rw [h, hs]) (by rw [h, hi.eq_bot])
@@ -224,7 +236,7 @@ lemma disjoint_sdiff_iff_le (hz : z ≤ y) (hx : x ≤ y) : disjoint z (y \ x) �
 ⟨λ H, le_of_inf_le_sup_le
     (le_trans H bot_le)
     (begin
-      rw sup_sdiff_of_le hx,
+      rw sup_sdiff_cancel_right hx,
       refine le_trans (sup_le_sup_left sdiff_le z) _,
       rw sup_eq_right.2 hz,
     end),
@@ -252,7 +264,7 @@ lemma le_iff_eq_sup_sdiff (hz : z ≤ y) (hx : x ≤ y) : x ≤ z ↔ y = z ⊔ 
   end,
  λ H,
   begin
-    conv_lhs at H { rw ←sup_sdiff_of_le hx, },
+    conv_lhs at H { rw ←sup_sdiff_cancel_right hx, },
     refine le_of_inf_le_sup_le _ H.le,
     rw inf_sdiff_self_right,
     exact bot_le,
@@ -331,7 +343,7 @@ begin
 end
 
 -- cf. `is_compl.antitone`
-lemma sdiff_le_sdiff_self (h : z ≤ x) : w \ x ≤ w \ z :=
+lemma sdiff_le_sdiff_left (h : z ≤ x) : w \ x ≤ w \ z :=
 le_of_inf_le_sup_le
   (calc (w \ x) ⊓ (w ⊓ z) ≤ (w \ x) ⊓ (w ⊓ x) : inf_le_inf le_rfl (inf_le_inf le_rfl h)
               ... = ⊥                         : by rw [inf_comm, inf_inf_sdiff]
@@ -358,13 +370,16 @@ lemma sdiff_le_iff : y \ x ≤ z ↔ y ≤ x ⊔ z :=
               ... ≤ (x ⊔ z) ⊔ x : sup_le_sup_right h x
               ... ≤ z ⊔ x       : by rw [sup_assoc, sup_comm, sup_assoc, sup_idem])⟩
 
-lemma sdiff_eq_bot_iff : y \ x = ⊥ ↔ y ≤ x :=
+@[simp] lemma le_sdiff_iff : x ≤ y \ x ↔ x = ⊥ :=
+⟨λ h, disjoint_self.1 (disjoint_sdiff_self_right.mono_right h), λ h, h.le.trans bot_le⟩
+
+@[simp] lemma sdiff_eq_bot_iff : y \ x = ⊥ ↔ y ≤ x :=
 by rw [←le_bot_iff, sdiff_le_iff, sup_bot_eq]
 
 lemma sdiff_le_comm : x \ y ≤ z ↔ x \ z ≤ y :=
 by rw [sdiff_le_iff, sup_comm, sdiff_le_iff]
 
-lemma sdiff_le_self_sdiff (h : w ≤ y) : w \ x ≤ y \ x :=
+lemma sdiff_le_sdiff_right (h : w ≤ y) : w \ x ≤ y \ x :=
 le_of_inf_le_sup_le
   (calc (w \ x) ⊓ (w ⊓ x) = ⊥                 : by rw [inf_comm, inf_inf_sdiff]
                       ... ≤ (y \ x) ⊓ (w ⊓ x) : bot_le)
@@ -379,8 +394,12 @@ le_of_inf_le_sup_le
                     ... = (y \ x) ⊔ (w ⊓ x)       : by rw inf_eq_left.2 h)
 
 theorem sdiff_le_sdiff (h₁ : w ≤ y) (h₂ : z ≤ x) : w \ x ≤ y \ z :=
-calc w \ x ≤ w \ z : sdiff_le_sdiff_self h₂
-       ... ≤ y \ z : sdiff_le_self_sdiff h₁
+calc w \ x ≤ w \ z : sdiff_le_sdiff_left h₂
+       ... ≤ y \ z : sdiff_le_sdiff_right h₁
+
+lemma sdiff_lt_sdiff_right (h : x < y) (hz : z ≤ x) : x \ z < y \ z :=
+(sdiff_le_sdiff_right h.le).lt_of_not_le $ λ h', h.not_le $
+  le_sdiff_sup.trans $ sup_le_of_le_sdiff_right h' hz
 
 lemma sup_inf_inf_sdiff : (x ⊓ y) ⊓ z ⊔ (y \ z) = (x ⊓ y) ⊔ (y \ z) :=
 calc (x ⊓ y) ⊓ z ⊔ (y \ z) = x ⊓ (y ⊓ z) ⊔ (y \ z) : by rw inf_assoc
@@ -515,6 +534,34 @@ eq.symm $
   ... = (x ⊔ (y \ x)) ⊓ ((x \ y) ⊔ y)                     : by rw [sup_sdiff_right, sup_sdiff_right]
   ... = x ⊔ y                          : by rw [sup_sdiff_self_right, sup_sdiff_self_left, inf_idem]
 
+lemma sdiff_le_sdiff_of_sup_le_sup_left (h : z ⊔ x ≤ z ⊔ y) : x \ z ≤ y \ z :=
+begin
+  rw [←sup_sdiff_left_self, ←@sup_sdiff_left_self _ _ y],
+  exact sdiff_le_sdiff_right h,
+end
+
+lemma sdiff_le_sdiff_of_sup_le_sup_right (h : x ⊔ z ≤ y ⊔ z) : x \ z ≤ y \ z :=
+begin
+  rw [←sup_sdiff_right_self, ←@sup_sdiff_right_self _ y],
+  exact sdiff_le_sdiff_right h,
+end
+
+lemma sup_lt_of_lt_sdiff_left (h : y < z \ x) (hxz : x ≤ z) : x ⊔ y < z :=
+begin
+  rw ←sup_sdiff_cancel_right hxz,
+  refine (sup_le_sup_left h.le _).lt_of_not_le (λ h', h.not_le _),
+  rw ←sdiff_idem,
+  exact (sdiff_le_sdiff_of_sup_le_sup_left h').trans sdiff_le,
+end
+
+lemma sup_lt_of_lt_sdiff_right (h : x < z \ y) (hyz : y ≤ z) : x ⊔ y < z :=
+begin
+  rw ←sdiff_sup_cancel hyz,
+  refine (sup_le_sup_right h.le _).lt_of_not_le (λ h', h.not_le _),
+  rw ←sdiff_idem,
+  exact (sdiff_le_sdiff_of_sup_le_sup_right h').trans sdiff_le,
+end
+
 instance pi.generalized_boolean_algebra {α : Type u} {β : Type v} [generalized_boolean_algebra β] :
   generalized_boolean_algebra (α → β) :=
 by pi_instance
@@ -534,10 +581,23 @@ export has_compl (compl)
 postfix `ᶜ`:(max+1) := compl
 
 /-- This class contains the core axioms of a Boolean algebra. The `boolean_algebra` class extends
-both this class and `generalized_boolean_algebra`, see Note [forgetful inheritance]. -/
-class boolean_algebra.core (α : Type u) extends bounded_distrib_lattice α, has_compl α :=
+both this class and `generalized_boolean_algebra`, see Note [forgetful inheritance].
+
+Since `bounded_order`, `order_bot`, and `order_top` are mixins that require `has_le`
+to be present at define-time, the `extends` mechanism does not work with them.
+Instead, we extend using the underlying `has_bot` and `has_top` data typeclasses, and replicate the
+order axioms of those classes here. A "forgetful" instance back to `bounded_order` is provided.
+-/
+class boolean_algebra.core (α : Type u) extends distrib_lattice α, has_compl α,
+  has_top α, has_bot α :=
 (inf_compl_le_bot : ∀x:α, x ⊓ xᶜ ≤ ⊥)
 (top_le_sup_compl : ∀x:α, ⊤ ≤ x ⊔ xᶜ)
+(le_top : ∀ a : α, a ≤ ⊤)
+(bot_le : ∀ a : α, ⊥ ≤ a)
+
+@[priority 100]  -- see Note [lower instance priority]
+instance boolean_algebra.core.to_bounded_order [h : boolean_algebra.core α] : bounded_order α :=
+{ ..h }
 
 section boolean_algebra_core
 variables [boolean_algebra.core α]
@@ -588,6 +648,9 @@ is_compl_compl.symm.compl_eq
 
 theorem compl_bijective : function.bijective (compl : α → α) :=
 compl_involutive.bijective
+
+theorem compl_surjective : function.surjective (compl : α → α) :=
+compl_involutive.surjective
 
 theorem compl_injective : function.injective (compl : α → α) :=
 compl_involutive.injective
@@ -652,6 +715,24 @@ class boolean_algebra (α : Type u) extends generalized_boolean_algebra α, bool
 -- everything in `boolean_algebra.core` and `sdiff_eq`? The following doesn't work:
 -- (sup_inf_sdiff := λ a b, by rw [sdiff_eq, ←inf_sup_left, sup_compl_eq_top, inf_top_eq])
 
+
+section of_core
+
+/-- Create a `has_sdiff` instance from a `boolean_algebra.core` instance, defining `x \ y` to
+be `x ⊓ yᶜ`.
+
+For some types, it may be more convenient to create the `boolean_algebra` instance by hand in order
+to have a simpler `sdiff` operation.
+
+See note [reducible non-instances]. -/
+@[reducible]
+def boolean_algebra.core.sdiff [boolean_algebra.core α] : has_sdiff α := ⟨λ x y, x ⊓ yᶜ⟩
+
+local attribute [instance] boolean_algebra.core.sdiff
+
+lemma boolean_algebra.core.sdiff_eq [boolean_algebra.core α] (a b : α) :
+  a \ b = a ⊓ bᶜ := rfl
+
 /-- Create a `boolean_algebra` instance from a `boolean_algebra.core` instance, defining `x \ y` to
 be `x ⊓ yᶜ`.
 
@@ -662,22 +743,27 @@ def boolean_algebra.of_core (B : boolean_algebra.core α) :
 { sdiff := λ x y, x ⊓ yᶜ,
   sdiff_eq := λ _ _, rfl,
   sup_inf_sdiff := λ a b, by rw [←inf_sup_left, sup_compl_eq_top, inf_top_eq],
-  inf_inf_sdiff := λ a b, by rw [inf_left_right_swap, @inf_assoc _ _ a, compl_inf_eq_bot,
-    inf_bot_eq, bot_inf_eq],
+  inf_inf_sdiff := λ a b, by { rw [inf_left_right_swap, boolean_algebra.core.sdiff_eq,
+    @inf_assoc _ _ _ _ b, compl_inf_eq_bot, inf_bot_eq, bot_inf_eq], congr },
   ..B }
+
+end of_core
 
 section boolean_algebra
 variables [boolean_algebra α]
 
 theorem sdiff_eq : x \ y = x ⊓ yᶜ := boolean_algebra.sdiff_eq x y
 
-theorem sdiff_compl : x \ yᶜ = x ⊓ y := by rw [sdiff_eq, compl_compl]
+@[simp] theorem sdiff_compl : x \ yᶜ = x ⊓ y := by rw [sdiff_eq, compl_compl]
 
-theorem top_sdiff : ⊤ \ x = xᶜ := by rw [sdiff_eq, top_inf_eq]
+@[simp] theorem top_sdiff : ⊤ \ x = xᶜ := by rw [sdiff_eq, top_inf_eq]
 @[simp] theorem sdiff_top : x \ ⊤ = ⊥ := by rw [sdiff_eq, compl_top, inf_bot_eq]
 
 @[simp] lemma sup_inf_inf_compl : (x ⊓ y) ⊔ (x ⊓ yᶜ) = x :=
 by rw [← sdiff_eq, sup_inf_sdiff _ _]
+
+@[simp] lemma compl_sdiff : (x \ y)ᶜ = xᶜ ⊔ y :=
+by rw [sdiff_eq, compl_inf, compl_compl]
 
 end boolean_algebra
 
@@ -686,9 +772,39 @@ boolean_algebra.of_core
 { compl := not,
   inf_compl_le_bot := λ p ⟨Hp, Hpc⟩, Hpc Hp,
   top_le_sup_compl := λ p H, classical.em p,
-  .. Prop.bounded_distrib_lattice }
+  .. Prop.distrib_lattice,
+  .. Prop.bounded_order }
+
+instance pi.has_sdiff {ι : Type u} {α : ι → Type v} [∀ i, has_sdiff (α i)] :
+  has_sdiff (Π i, α i) :=
+⟨λ x y i, x i \ y i⟩
+
+lemma pi.sdiff_def {ι : Type u} {α : ι → Type v} [∀ i, has_sdiff (α i)] (x y : Π i, α i) :
+  (x \ y) = λ i, x i \ y i := rfl
+
+@[simp]
+lemma pi.sdiff_apply {ι : Type u} {α : ι → Type v} [∀ i, has_sdiff (α i)] (x y : Π i, α i) (i : ι) :
+  (x \ y) i = x i \ y i := rfl
+
+instance pi.has_compl {ι : Type u} {α : ι → Type v} [∀ i, has_compl (α i)] :
+  has_compl (Π i, α i) :=
+⟨λ x i, (x i)ᶜ⟩
+
+lemma pi.compl_def {ι : Type u} {α : ι → Type v} [∀ i, has_compl (α i)] (x : Π i, α i) :
+  xᶜ = λ i, (x i)ᶜ := rfl
+
+@[simp]
+lemma pi.compl_apply {ι : Type u} {α : ι → Type v} [∀ i, has_compl (α i)] (x : Π i, α i) (i : ι)  :
+  xᶜ i = (x i)ᶜ := rfl
 
 instance pi.boolean_algebra {ι : Type u} {α : ι → Type v} [∀ i, boolean_algebra (α i)] :
   boolean_algebra (Π i, α i) :=
-by refine_struct { sdiff := λ x y i, x i \ y i, compl := λ x i, (x i)ᶜ, .. pi.bounded_lattice };
-  tactic.pi_instance_derive_field
+{ sdiff_eq := λ x y, funext $ λ i, sdiff_eq,
+  sup_inf_sdiff := λ x y, funext $ λ i, sup_inf_sdiff (x i) (y i),
+  inf_inf_sdiff := λ x y, funext $ λ i, inf_inf_sdiff (x i) (y i),
+  inf_compl_le_bot := λ _ _, boolean_algebra.inf_compl_le_bot _,
+  top_le_sup_compl := λ _ _, boolean_algebra.top_le_sup_compl _,
+  .. pi.has_sdiff,
+  .. pi.has_compl,
+  .. pi.bounded_order,
+  .. pi.distrib_lattice }

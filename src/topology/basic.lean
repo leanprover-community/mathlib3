@@ -28,7 +28,12 @@ partially defined functions.
 
 * `𝓝 x`: the filter of neighborhoods of a point `x`;
 * `𝓟 s`: the principal filter of a set `s`;
-* `𝓝[s] x`: the filter `nhds_within x s` of neighborhoods of a point `x` within a set `s`.
+* `𝓝[s] x`: the filter `nhds_within x s` of neighborhoods of a point `x` within a set `s`;
+* `𝓝[≤] x`: the filter `nhds_within x (set.Iic x)` of left-neighborhoods of `x`;
+* `𝓝[≥] x`: the filter `nhds_within x (set.Ici x)` of right-neighborhoods of `x`;
+* `𝓝[<] x`: the filter `nhds_within x (set.Iio x)` of punctured left-neighborhoods of `x`;
+* `𝓝[>] x`: the filter `nhds_within x (set.Ioi x)` of punctured right-neighborhoods of `x`;
+* `𝓝[≠] x`: the filter `nhds_within x {x}ᶜ` of punctured neighborhoods of `x`.
 
 ## Implementation notes
 
@@ -252,7 +257,7 @@ lemma subset_interior_iff_subset_of_open {s t : set α} (h₁ : is_open s) :
   s ⊆ interior t ↔ s ⊆ t :=
 ⟨assume h, subset.trans h interior_subset, assume h₂, interior_maximal h₂ h₁⟩
 
-lemma interior_mono {s t : set α} (h : s ⊆ t) : interior s ⊆ interior t :=
+@[mono] lemma interior_mono {s t : set α} (h : s ⊆ t) : interior s ⊆ interior t :=
 interior_maximal (subset.trans interior_subset h) is_open_interior
 
 @[simp] lemma interior_empty : interior (∅ : set α) = ∅ :=
@@ -303,8 +308,19 @@ subset.antisymm
 lemma is_open_iff_forall_mem_open : is_open s ↔ ∀ x ∈ s, ∃ t ⊆ s, is_open t ∧ x ∈ t :=
 by rw ← subset_interior_iff_open; simp only [subset_def, mem_interior]
 
+lemma interior_Inter_subset (s : ι → set α) : interior (⋂ i, s i) ⊆ ⋂ i, interior (s i) :=
+subset_Inter $ λ i, interior_mono $ Inter_subset _ _
+
+lemma interior_bInter_subset (p : ι → Sort*) (s : Π i, p i → set α) :
+  interior (⋂ i (hi : p i), s i hi) ⊆ ⋂ i (hi : p i), interior (s i hi) :=
+(interior_Inter_subset _).trans $ Inter_subset_Inter $ λ i, interior_Inter_subset _
+
+lemma interior_sInter_subset (S : set (set α)) : interior (⋂₀ S) ⊆ ⋂ s ∈ S, interior s :=
+calc interior (⋂₀ S) = interior (⋂ s ∈ S, s) : by rw sInter_eq_bInter
+                 ... ⊆ ⋂ s ∈ S, interior s  : interior_bInter_subset _ _
+
 /-!
-### Closure of a set
+### Closure of a set
 -/
 
 /-- The closure of `s` is the smallest closed set containing `s`. -/
@@ -331,6 +347,10 @@ closure_minimal (subset.refl _) hs
 lemma is_closed.closure_subset_iff {s t : set α} (h₁ : is_closed t) :
   closure s ⊆ t ↔ s ⊆ t :=
 ⟨subset.trans subset_closure, assume h, closure_minimal h h₁⟩
+
+lemma is_closed.mem_iff_closure_subset {α : Type*} [topological_space α] {U : set α}
+  (hU : is_closed U) {x : α} : x ∈ U ↔ closure ({x} : set α) ⊆ U :=
+(hU.closure_subset_iff.trans set.singleton_subset_iff).symm
 
 @[mono] lemma closure_mono {s t : set α} (h : s ⊆ t) : closure s ⊆ closure t :=
 closure_minimal (subset.trans h subset_closure) is_closed_closure
@@ -582,6 +602,11 @@ intersection of `s` and a neighborhood of `a`. -/
 def nhds_within (a : α) (s : set α) : filter α := 𝓝 a ⊓ 𝓟 s
 
 localized "notation `𝓝[` s `] ` x:100 := nhds_within x s" in topological_space
+localized "notation `𝓝[≠] ` x:100 := nhds_within x {x}ᶜ" in topological_space
+localized "notation `𝓝[≥] ` x:100 := nhds_within x (set.Ici x)" in topological_space
+localized "notation `𝓝[≤] ` x:100 := nhds_within x (set.Iic x)" in topological_space
+localized "notation `𝓝[>] ` x:100 := nhds_within x (set.Ioi x)" in topological_space
+localized "notation `𝓝[<] ` x:100 := nhds_within x (set.Iio x)" in topological_space
 
 lemma nhds_def (a : α) : 𝓝 a = (⨅ s ∈ {s : set α | a ∈ s ∧ is_open s}, 𝓟 s) := by rw nhds
 
@@ -758,8 +783,8 @@ lemma tendsto_pure_nhds {α : Type*} [topological_space β] (f : α → β) (a :
   tendsto f (pure a) (𝓝 (f a)) :=
 (tendsto_pure_pure f a).mono_right (pure_le_nhds _)
 
-lemma order_top.tendsto_at_top_nhds {α : Type*} [order_top α] [topological_space β] (f : α → β) :
-  tendsto f at_top (𝓝 $ f ⊤) :=
+lemma order_top.tendsto_at_top_nhds {α : Type*} [partial_order α] [order_top α]
+  [topological_space β] (f : α → β) : tendsto f at_top (𝓝 $ f ⊤) :=
 (tendsto_at_top_pure f).mono_right (pure_le_nhds _)
 
 @[simp] instance nhds_ne_bot {a : α} : ne_bot (𝓝 a) :=
@@ -884,6 +909,18 @@ theorem is_open_iff_ultrafilter {s : set α} :
   is_open s ↔ (∀ (x ∈ s) (l : ultrafilter α), ↑l ≤ 𝓝 x → s ∈ l) :=
 by simp_rw [is_open_iff_mem_nhds, ← mem_iff_ultrafilter]
 
+lemma is_open_singleton_iff_nhds_eq_pure {α : Type*} [topological_space α] (a : α) :
+  is_open ({a} : set α) ↔ 𝓝 a = pure a :=
+begin
+  split,
+  { intros h,
+    apply le_antisymm _ (pure_le_nhds a),
+    rw le_pure_iff,
+    exact h.mem_nhds (mem_singleton a) },
+  { intros h,
+    simp [is_open_iff_nhds, h] }
+end
+
 lemma mem_closure_iff_frequently {s : set α} {a : α} : a ∈ closure s ↔ ∃ᶠ x in 𝓝 a, x ∈ s :=
 by rw [filter.frequently, filter.eventually, ← mem_interior_iff_mem_nhds,
   closure_eq_compl_interior_compl]; refl
@@ -911,7 +948,7 @@ mem_closure_iff_cluster_pt
 
 /-- If `x` is not an isolated point of a topological space, then `{x}ᶜ` is dense in the whole
 space. -/
-lemma dense_compl_singleton (x : α) [ne_bot (𝓝[{x}ᶜ] x)] : dense ({x}ᶜ : set α) :=
+lemma dense_compl_singleton (x : α) [ne_bot (𝓝[≠] x)] : dense ({x}ᶜ : set α) :=
 begin
   intro y,
   unfreezingI { rcases eq_or_ne y x with rfl|hne },
@@ -921,12 +958,12 @@ end
 
 /-- If `x` is not an isolated point of a topological space, then the closure of `{x}ᶜ` is the whole
 space. -/
-@[simp] lemma closure_compl_singleton (x : α) [ne_bot (𝓝[{x}ᶜ] x)] :
+@[simp] lemma closure_compl_singleton (x : α) [ne_bot (𝓝[≠] x)] :
   closure {x}ᶜ = (univ : set α) :=
 (dense_compl_singleton x).closure_eq
 
-/-- If `x` is not an isolated point of a topological space, then the interior of `{x}ᶜ` is empty. -/
-@[simp] lemma interior_singleton (x : α) [ne_bot (𝓝[{x}ᶜ] x)] :
+/-- If `x` is not an isolated point of a topological space, then the interior of `{x}` is empty. -/
+@[simp] lemma interior_singleton (x : α) [ne_bot (𝓝[≠] x)] :
   interior {x} = (∅ : set α) :=
 interior_eq_empty_iff_dense_compl.2 (dense_compl_singleton x)
 
@@ -945,13 +982,13 @@ theorem mem_closure_iff_comap_ne_bot {A : set α} {x : α} :
   x ∈ closure A ↔ ne_bot (comap (coe : A → α) (𝓝 x)) :=
 by simp_rw [mem_closure_iff_nhds, comap_ne_bot_iff, set.nonempty_inter_iff_exists_right]
 
-theorem mem_closure_iff_nhds_basis' {a : α} {p : β → Prop} {s : β → set α} (h : (𝓝 a).has_basis p s)
+theorem mem_closure_iff_nhds_basis' {a : α} {p : ι → Prop} {s : ι → set α} (h : (𝓝 a).has_basis p s)
   {t : set α} :
   a ∈ closure t ↔ ∀ i, p i → (s i ∩ t).nonempty :=
 mem_closure_iff_cluster_pt.trans $ (h.cluster_pt_iff (has_basis_principal _)).trans $
   by simp only [exists_prop, forall_const]
 
-theorem mem_closure_iff_nhds_basis {a : α} {p : β → Prop} {s : β → set α} (h : (𝓝 a).has_basis p s)
+theorem mem_closure_iff_nhds_basis {a : α} {p : ι → Prop} {s : ι → set α} (h : (𝓝 a).has_basis p s)
   {t : set α} :
   a ∈ closure t ↔ ∀ i, p i → ∃ y ∈ t, y ∈ s i :=
 (mem_closure_iff_nhds_basis' h).trans $
@@ -1261,6 +1298,14 @@ tendsto_const_nhds
 lemma continuous_const {b : β} : continuous (λa:α, b) :=
 continuous_iff_continuous_at.mpr $ assume a, continuous_at_const
 
+lemma filter.eventually_eq.continuous_at {x : α} {f : α → β} {y : β} (h : f =ᶠ[𝓝 x] (λ _, y)) :
+  continuous_at f x :=
+(continuous_at_congr h).2 tendsto_const_nhds
+
+lemma continuous_of_const {f : α → β} (h : ∀ x y, f x = f y) : continuous f :=
+continuous_iff_continuous_at.mpr $ λ x, filter.eventually_eq.continuous_at $
+  eventually_of_forall (λ y, h y x)
+
 lemma continuous_at_id {x : α} : continuous_at id x :=
 continuous_id.continuous_at
 
@@ -1449,3 +1494,99 @@ end
 end dense_range
 
 end continuous
+
+/--
+The library contains many lemmas stating that functions/operations are continuous. There are many
+ways to formulate the continuity of operations. Some are more convenient than others.
+Note: for the most part this note also applies to other properties
+(`measurable`, `differentiable`, `continuous_on`, ...).
+
+### The traditional way
+As an example, let's look at addition `(+) : M → M → M`. We can state that this is continuous
+in different definitionally equal ways (omitting some typing information)
+* `continuous (λ p, p.1 + p.2)`;
+* `continuous (function.uncurry (+))`;
+* `continuous ↿(+)`. (`↿` is notation for recursively uncurrying a function)
+
+However, lemmas with this conclusion are not nice to use in practice because
+1. They confuse the elaborator. The following two examples fail, because of limitations in the
+  elaboration process.
+  ```
+  variables {M : Type*} [has_mul M] [topological_space M] [has_continuous_mul M]
+  example : continuous (λ x : M, x + x) :=
+  continuous_add.comp _
+
+  example : continuous (λ x : M, x + x) :=
+  continuous_add.comp (continuous_id.prod_mk continuous_id)
+  ```
+  The second is a valid proof, which is accepted if you write it as
+  `continuous_add.comp (continuous_id.prod_mk continuous_id : _)`
+
+2. If the operation has more than 2 arguments, they are impractical to use, because in your
+  application the arguments in the domain might be in a different order or associated differently.
+
+### The convenient way
+A much more convenient way to write continuity lemmas is like `continuous.add`:
+```
+continuous.add {f g : X → M} (hf : continuous f) (hg : continuous g) : continuous (λ x, f x + g x)
+```
+The conclusion can be `continuous (f + g)`, which is definitionally equal.
+This has the following advantages
+* It supports projection notation, so is shorter to write.
+* `continuous.add _ _` is recognized correctly by the elaborator and gives useful new goals.
+* It works generally, since the domain is a variable.
+
+As an example for an unary operation, we have `continuous.neg`.
+```
+continuous.neg {f : α → G} (hf : continuous f) : continuous (λ x, -f x)
+```
+For unary functions, the elaborator is not confused when applying the traditional lemma
+(like `continuous_neg`), but it's still convenient to have the short version available (compare
+`hf.neg.neg.neg` with `continuous_neg.comp $ continuous_neg.comp $ continuous_neg.comp hf`).
+
+As a harder example, consider an operation of the following type:
+```
+def strans {x : F} (γ γ' : path x x) (t₀ : I) : path x x
+```
+The precise definition is not important, only its type.
+The correct continuity principle for this operation is something like this:
+```
+{f : X → F} {γ γ' : ∀ x, path (f x) (f x)} {t₀ s : X → I}
+  (hγ : continuous ↿γ) (hγ' : continuous ↿γ')
+  (ht : continuous t₀) (hs : continuous s) :
+  continuous (λ x, strans (γ x) (γ' x) (t x) (s x))
+```
+Note that *all* arguments of `strans` are indexed over `X`, even the basepoint `x`, and the last
+argument `s` that arises since `path x x` has a coercion to `I → F`. The paths `γ` and `γ'` (which
+are unary functions from `I`) become binary functions in the continuity lemma.
+
+### Summary
+* Make sure that your continuity lemmas are stated in the most general way, and in a convenient
+  form. That means that:
+  - The conclusion has a variable `X` as domain (not something like `Y × Z`);
+  - Wherever possible, all point arguments `c : Y` are replaced by functions `c : X → Y`;
+  - All `n`-ary function arguments are replaced by `n+1`-ary functions
+    (`f : Y → Z` becomes `f : X → Y → Z`);
+  - All (relevant) arguments have continuity assumptions, and perhaps there are additional
+    assumptions needed to make the operation continuous;
+  - The function in the conclusion is fully applied.
+* These remarks are mostly about the format of the *conclusion* of a continuity lemma.
+  In assumptions it's fine to state that a function with more than 1 argument is continuous using
+  `↿` or `function.uncurry`.
+
+### Functions with discontinuities
+
+In some cases, you want to work with discontinuous functions, and in certain expressions they are
+still continuous. For example, consider the fractional part of a number, `fract : ℝ → ℝ`.
+In this case, you want to add conditions to when a function involving `fract` is continuous, so you
+get something like this: (assumption `hf` could be weakened, but the important thing is the shape
+of the conclusion)
+```
+lemma continuous_on.comp_fract {X Y : Type*} [topological_space X] [topological_space Y]
+  {f : X → ℝ → Y} {g : X → ℝ} (hf : continuous ↿f) (hg : continuous g) (h : ∀ s, f s 0 = f s 1) :
+  continuous (λ x, f x (fract (g x)))
+```
+With `continuous_at` you can be even more precise about what to prove in case of discontinuities,
+see e.g. `continuous_at.comp_div_cases`.
+-/
+library_note "continuity lemma statement"

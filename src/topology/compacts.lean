@@ -54,15 +54,21 @@ def positive_compacts_univ {α : Type*} [topological_space α] [compact_space α
   positive_compacts α :=
 ⟨set.univ, compact_univ, by simp⟩
 
+@[simp] lemma positive_compacts_univ_val (α : Type*) [topological_space α] [compact_space α]
+  [nonempty α] : (positive_compacts_univ : positive_compacts α).val = univ := rfl
+
 variables {α}
 
 namespace compacts
 
-instance : semilattice_sup_bot (compacts α) :=
-subtype.semilattice_sup_bot is_compact_empty (λ K₁ K₂, is_compact.union)
+instance : semilattice_sup (compacts α) :=
+subtype.semilattice_sup (λ K₁ K₂, is_compact.union)
 
-instance [t2_space α]: semilattice_inf_bot (compacts α) :=
-subtype.semilattice_inf_bot is_compact_empty (λ K₁ K₂, is_compact.inter)
+instance : order_bot (compacts α) :=
+subtype.order_bot is_compact_empty
+
+instance [t2_space α]: semilattice_inf (compacts α) :=
+subtype.semilattice_inf (λ K₁ K₂, is_compact.inter)
 
 instance [t2_space α] : lattice (compacts α) :=
 subtype.lattice (λ K₁ K₂, is_compact.union) (λ K₁ K₂, is_compact.inter)

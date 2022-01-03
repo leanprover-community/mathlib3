@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: David Wärn
 -/
 import order.ideal
-import data.finset
 
 /-!
 # The back and forth method and countable dense linear orders
@@ -156,7 +155,7 @@ def defined_at_right [densely_ordered α] [no_bot_order α] [no_top_order α] [n
       change (a, b) ∈ f'.val.image _,
       rwa [←finset.mem_coe, finset.coe_image, equiv.image_eq_preimage] },
     { change _ ⊆ f'.val.image _,
-      rw [←finset.coe_subset, finset.coe_image, equiv.subset_image],
+      rw [←finset.coe_subset, finset.coe_image, ← equiv.subset_image],
       change f.val.image _ ⊆ _ at hl,
       rwa [←finset.coe_subset, finset.coe_image] at hl }
   end }

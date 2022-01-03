@@ -4,8 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen
 -/
 
-import linear_algebra.matrix.charpoly.coeff
+import field_theory.primitive_element
 import linear_algebra.determinant
+import linear_algebra.matrix.charpoly.coeff
+import linear_algebra.matrix.to_linear_equiv
 import ring_theory.power_basis
 
 /-!
@@ -37,8 +39,8 @@ See also `algebra.trace`, which is defined similarly as the trace of
 
 universes u v w
 
-variables {R S T : Type*} [integral_domain R] [integral_domain S] [integral_domain T]
-variables [algebra R S] [algebra R T]
+variables {R S T : Type*} [comm_ring R] [is_domain R] [comm_ring S]
+variables [algebra R S]
 variables {K L F : Type*} [field K] [field L] [field F]
 variables [algebra K L] [algebra L F] [algebra K F]
 variables {ι : Type w} [fintype ι]
@@ -122,7 +124,7 @@ end eq_prod_roots
 
 section eq_zero_iff
 
-lemma norm_eq_zero_iff_of_basis (b : basis ι R S) {x : S} :
+lemma norm_eq_zero_iff_of_basis [is_domain S] (b : basis ι R S) {x : S} :
   algebra.norm R x = 0 ↔ x = 0 :=
 begin
   have hι : nonempty ι := b.index_nonempty,
@@ -142,7 +144,7 @@ begin
     rw [alg_hom.map_zero, matrix.det_zero hι] },
 end
 
-lemma norm_ne_zero_iff_of_basis (b : basis ι R S) {x : S} :
+lemma norm_ne_zero_iff_of_basis [is_domain S] (b : basis ι R S) {x : S} :
   algebra.norm R x ≠ 0 ↔ x ≠ 0 :=
 not_iff_not.mpr (algebra.norm_eq_zero_iff_of_basis b)
 
@@ -159,5 +161,86 @@ lemma norm_eq_zero_iff' [finite_dimensional K L] {x : L} :
 algebra.norm_eq_zero_iff_of_basis (basis.of_vector_space K L)
 
 end eq_zero_iff
+
+open intermediate_field
+
+variable (K)
+
+lemma norm_eq_norm_adjoin [finite_dimensional K L] [is_separable K L] (x : L) :
+  norm K x = norm K (adjoin_simple.gen K x) ^ finrank K⟮x⟯ L :=
+begin
+  letI := is_separable_tower_top_of_is_separable K K⟮x⟯ L,
+  let pbL := field.power_basis_of_finite_of_separable K⟮x⟯ L,
+  let pbx := intermediate_field.adjoin.power_basis (is_separable.is_integral K x),
+  rw [← adjoin_simple.algebra_map_gen K x, norm_eq_matrix_det (pbx.basis.smul pbL.basis) _,
+    smul_left_mul_matrix_algebra_map, det_block_diagonal, norm_eq_matrix_det pbx.basis],
+  simp only [finset.card_fin, finset.prod_const],
+  congr,
+  rw [← power_basis.finrank, adjoin_simple.algebra_map_gen K x]
+end
+
+section eq_prod_embeddings
+
+variable {K}
+
+open intermediate_field intermediate_field.adjoin_simple polynomial
+
+variables (E : Type*) [field E] [algebra K E] [is_scalar_tower K L F]
+
+lemma norm_eq_prod_embeddings_gen
+  (pb : power_basis K L)
+  (hE : (minpoly K pb.gen).splits (algebra_map K E)) (hfx : (minpoly K pb.gen).separable) :
+  algebra_map K E (norm K pb.gen) =
+    (@@finset.univ (power_basis.alg_hom.fintype pb)).prod (λ σ, σ pb.gen) :=
+begin
+  letI := classical.dec_eq E,
+  rw [norm_gen_eq_prod_roots pb hE, fintype.prod_equiv pb.lift_equiv', finset.prod_mem_multiset,
+    finset.prod_eq_multiset_prod, multiset.to_finset_val,
+    multiset.erase_dup_eq_self.mpr, multiset.map_id],
+  { exact nodup_roots ((separable_map _).mpr hfx) },
+  { intro x, refl },
+  { intro σ, rw [power_basis.lift_equiv'_apply_coe, id.def] }
+end
+
+variable (F)
+
+lemma prod_embeddings_eq_finrank_pow [is_alg_closed E] [is_separable K F] [finite_dimensional K F]
+  (pb : power_basis K L) : ∏ σ : F →ₐ[K] E, σ (algebra_map L F pb.gen) =
+  ((@@finset.univ (power_basis.alg_hom.fintype pb)).prod
+    (λ σ : L →ₐ[K] E, σ pb.gen)) ^ finrank L F :=
+begin
+  haveI : finite_dimensional L F := finite_dimensional.right K L F,
+  haveI : is_separable L F := is_separable_tower_top_of_is_separable K L F,
+  letI : fintype (L →ₐ[K] E) := power_basis.alg_hom.fintype pb,
+  letI : ∀ (f : L →ₐ[K] E), fintype (@@alg_hom L F E _ _ _ _ f.to_ring_hom.to_algebra) := _,
+  rw [fintype.prod_equiv alg_hom_equiv_sigma (λ (σ : F →ₐ[K] E), _) (λ σ, σ.1 pb.gen),
+     ← finset.univ_sigma_univ, finset.prod_sigma, ← finset.prod_pow],
+  refine finset.prod_congr rfl (λ σ _, _),
+  { letI : algebra L E := σ.to_ring_hom.to_algebra,
+    simp only [finset.prod_const, finset.card_univ],
+    congr,
+    rw alg_hom.card L F E },
+  { intros σ,
+    simp only [alg_hom_equiv_sigma, equiv.coe_fn_mk, alg_hom.restrict_domain, alg_hom.comp_apply,
+         is_scalar_tower.coe_to_alg_hom'] }
+end
+
+variable (K)
+
+/-- For `L/K` a finite separable extension of fields and `E` an algebraically closed extension
+of `K`, the norm (down to `K`) of an element `x` of `L` is equal to the product of the images
+of `x` over all the `K`-embeddings `σ`  of `L` into `E`. -/
+lemma norm_eq_prod_embeddings [finite_dimensional K L] [is_separable K L] [is_alg_closed E]
+  {x : L} : algebra_map K E (norm K x) = ∏ σ : L →ₐ[K] E, σ x :=
+begin
+  have hx := is_separable.is_integral K x,
+  rw [norm_eq_norm_adjoin K x, ring_hom.map_pow, ← adjoin.power_basis_gen hx,
+    norm_eq_prod_embeddings_gen E (adjoin.power_basis hx) (is_alg_closed.splits_codomain _)],
+  { exact (prod_embeddings_eq_finrank_pow L E (adjoin.power_basis hx)).symm },
+  { haveI := is_separable_tower_bot_of_is_separable K K⟮x⟯ L,
+    exact is_separable.separable K _ }
+end
+
+end eq_prod_embeddings
 
 end algebra

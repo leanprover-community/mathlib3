@@ -3,8 +3,9 @@ Copyright (c) 2019 Alexander Bentkamp. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alexander Bentkamp, Yury Kudriashov, Yaël Dillies
 -/
-import algebra.module.ordered
-import linear_algebra.affine_space.affine_map
+import algebra.order.module
+import linear_algebra.affine_space.midpoint
+import linear_algebra.affine_space.affine_subspace
 
 /-!
 # Convex sets and functions in vector spaces
@@ -182,6 +183,14 @@ lemma open_segment_eq_image' (x y : E) :
   open_segment 𝕜 x y = (λ (θ : 𝕜), x + θ • (y - x)) '' Ioo (0 : 𝕜) 1 :=
 by { convert open_segment_eq_image 𝕜 x y, ext θ, simp only [smul_sub, sub_smul, one_smul], abel }
 
+lemma segment_eq_image_line_map (x y : E) :
+  [x -[𝕜] y] = affine_map.line_map x y '' Icc (0 : 𝕜) 1 :=
+by { convert segment_eq_image 𝕜 x y, ext, exact affine_map.line_map_apply_module _ _ _ }
+
+lemma open_segment_eq_image_line_map (x y : E) :
+  open_segment 𝕜 x y = affine_map.line_map x y '' Ioo (0 : 𝕜) 1 :=
+by { convert open_segment_eq_image 𝕜 x y, ext, exact affine_map.line_map_apply_module _ _ _ }
+
 lemma segment_image (f : E →ₗ[𝕜] F) (a b : E) : f '' [a -[𝕜] b] = [f a -[𝕜] f b] :=
 set.ext (λ x, by simp_rw [segment_eq_image, mem_image, exists_exists_and_eq_and, map_add, map_smul])
 
@@ -221,6 +230,36 @@ open_segment_translate_preimage 𝕜 a b c ▸ image_preimage_eq _ $ add_left_su
 
 end add_comm_group
 end ordered_ring
+
+section linear_ordered_ring
+variables [linear_ordered_ring 𝕜]
+
+section add_comm_group
+variables [add_comm_group E] [add_comm_group F] [module 𝕜 E] [module 𝕜 F]
+
+lemma midpoint_mem_segment [invertible (2 : 𝕜)] (x y : E) :
+  midpoint 𝕜 x y ∈ [x -[𝕜] y] :=
+begin
+  rw segment_eq_image_line_map,
+  exact ⟨⅟2, ⟨inv_of_nonneg.mpr zero_le_two, inv_of_le_one one_le_two⟩, rfl⟩,
+end
+
+lemma mem_segment_sub_add [invertible (2 : 𝕜)] (x y : E) :
+  x ∈ [x-y -[𝕜] x+y] :=
+begin
+  convert @midpoint_mem_segment 𝕜 _ _ _ _ _ _ _,
+  rw midpoint_sub_add
+end
+
+lemma mem_segment_add_sub [invertible (2 : 𝕜)] (x y : E) :
+  x ∈ [x+y -[𝕜] x-y] :=
+begin
+  convert @midpoint_mem_segment 𝕜 _ _ _ _ _ _ _,
+  rw midpoint_add_sub
+end
+
+end add_comm_group
+end linear_ordered_ring
 
 section linear_ordered_field
 variables [linear_ordered_field 𝕜]
@@ -466,7 +505,9 @@ iff.intro
   (λ h x y hx hy a b ha hb hab,
     (h ha hb hab) (set.add_mem_add ⟨_, hx, rfl⟩ ⟨_, hy, rfl⟩))
 
-lemma convex_empty : convex 𝕜 (∅ : set E) := by finish
+lemma convex_empty : convex 𝕜 (∅ : set E) :=
+by simp only [convex_iff_pointwise_add_subset, add_empty, forall_const, empty_subset,
+  implies_true_iff, smul_set_empty]
 
 lemma convex_univ : convex 𝕜 (set.univ : set E) := λ _ _ _ _ _ _ _ _ _, trivial
 
@@ -490,6 +531,11 @@ begin
   exact ⟨hs (mem_prod.1 hx).1 (mem_prod.1 hy).1 ha hb hab,
         ht (mem_prod.1 hx).2 (mem_prod.1 hy).2 ha hb hab⟩
 end
+
+lemma convex_pi {ι : Type*} {E : ι → Type*} [Π i, add_comm_monoid (E i)]
+  [Π i, has_scalar 𝕜 (E i)] {s : set ι} {t : Π i, set (E i)} (ht : ∀ i, convex 𝕜 (t i)) :
+  convex 𝕜 (s.pi t) :=
+λ x y hx hy a b ha hb hab i hi, ht i (hx i hi) (hy i hi) ha hb hab
 
 lemma directed.convex_Union {ι : Sort*} {s : ι → set E} (hdir : directed (⊆) s)
   (hc : ∀ ⦃i : ι⦄, convex 𝕜 (s i)) :
@@ -529,8 +575,8 @@ begin
   exact h hx hy ha hb hab
 end
 
-lemma convex_iff_pairwise_on_pos :
-  convex 𝕜 s ↔ s.pairwise_on (λ x y, ∀ ⦃a b : 𝕜⦄, 0 < a → 0 < b → a + b = 1 → a • x + b • y ∈ s) :=
+lemma convex_iff_pairwise_pos :
+  convex 𝕜 s ↔ s.pairwise (λ x y, ∀ ⦃a b : 𝕜⦄, 0 < a → 0 < b → a + b = 1 → a • x + b • y ∈ s) :=
 begin
   refine ⟨λ h x hx y hy _ a b ha hb hab, h hx hy ha.le hb.le hab, _⟩,
   intros h x y hx hy a b ha hb hab,
@@ -540,7 +586,7 @@ begin
   { rw [add_zero] at hab, rwa [hab, zero_smul, one_smul, add_zero] },
   obtain rfl | hxy := eq_or_ne x y,
   { rwa convex.combo_self hab },
-  exact h _ hx _ hy hxy ha' hb' hab,
+  exact h hx hy hxy ha' hb' hab,
 end
 
 lemma convex_iff_open_segment_subset :
@@ -772,9 +818,8 @@ calc
   a • x + b • y = (b • y - b • x) + (a • x + b • x) : by abel
             ... = b • (y - x) + x                   : by rw [smul_sub, convex.combo_self h]
 
-lemma convex.sub (hs : convex 𝕜 s) (ht : convex 𝕜 t) :
-  convex 𝕜 ((λ x : E × E, x.1 - x.2) '' (s.prod t)) :=
-(hs.prod ht).is_linear_image is_linear_map.is_linear_map_sub
+lemma convex.sub {s : set (E × E)} (hs : convex 𝕜 s) : convex 𝕜 ((λ x : E × E, x.1 - x.2) '' s) :=
+hs.is_linear_image is_linear_map.is_linear_map_sub
 
 lemma convex_segment (x y : E) : convex 𝕜 [x -[𝕜] y] :=
 begin
@@ -848,6 +893,14 @@ begin
   apply h.segment_subset hx hy,
   rw segment_eq_image',
   exact mem_image_of_mem _ ht,
+end
+
+/-- Affine subspaces are convex. -/
+lemma affine_subspace.convex (Q : affine_subspace 𝕜 E) : convex 𝕜 (Q : set E) :=
+begin
+  intros x y hx hy a b ha hb hab,
+  rw [eq_sub_of_add_eq hab, ← affine_map.line_map_apply_module],
+  exact affine_map.line_map_mem b hx hy,
 end
 
 /--

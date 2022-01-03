@@ -69,7 +69,7 @@ We also add wrappers around structures which already exist. Here are the main on
 
 -/
 
-universe variable u
+universe u
 open category_theory filter ultrafilter topological_space category_theory.limits has_finite_inter
 open_locale classical topological_space
 
@@ -93,8 +93,8 @@ def adj : free ⊣ forget := monad.adj _
 
 -- Basic instances
 instance : concrete_category Compactum := { forget := forget }
-instance : has_coe_to_sort Compactum := ⟨Type*,forget.obj⟩
-instance {X Y : Compactum} : has_coe_to_fun (X ⟶ Y) := ⟨λ f, X → Y, λ f, f.f⟩
+instance : has_coe_to_sort Compactum Type* := ⟨forget.obj⟩
+instance {X Y : Compactum} : has_coe_to_fun (X ⟶ Y) (λ f, X → Y) := ⟨λ f, f.f⟩
 instance : has_limits Compactum := has_limits_of_has_limits_creates_limits forget
 
 /-- The structure map for a compactum, essentially sending an ultrafilter to its limit. -/
@@ -149,8 +149,7 @@ begin
     contradiction },
   { intros h1 F h2,
     specialize h1 F,
-    cases F.mem_or_compl_mem S;
-    finish }
+    cases F.mem_or_compl_mem S, exacts [absurd (h1 h) h2, h] }
 end
 
 instance {X : Compactum} : compact_space X :=
@@ -369,7 +368,7 @@ noncomputable def of_topological_space (X : Type*) [topological_space X]
   [compact_space X] [t2_space X] : Compactum :=
 { A := X,
   a := ultrafilter.Lim,
-  unit' := by {ext x, exact Lim_eq (by finish [le_nhds_iff]) },
+  unit' := by {ext x, exact Lim_eq (pure_le_nhds _) },
   assoc' := begin
     ext FF,
     change ultrafilter (ultrafilter X) at FF,

@@ -3,9 +3,9 @@ Copyright (c) 2021 Oliver Nash. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Oliver Nash
 -/
-import algebra.lie.ideal_operations
 import algebra.lie.abelian
-import order.preorder_hom
+import algebra.lie.ideal_operations
+import order.hom.basic
 
 /-!
 # Solvable Lie algebras
@@ -101,7 +101,7 @@ derived_series_of_ideal_le (le_refl I) h
 lemma derived_series_of_ideal_add_le_add (J : lie_ideal R L) (k l : ℕ) :
   D (k + l) (I + J) ≤ (D k I) + (D l J) :=
 begin
-  let D₁ : lie_ideal R L →ₘ lie_ideal R L :=
+  let D₁ : lie_ideal R L →o lie_ideal R L :=
   { to_fun    := λ I, ⁅I, I⁆,
     monotone' := λ I J h, lie_submodule.mono_lie I J I J h h, },
   have h₁ : ∀ (I J : lie_ideal R L), D₁ (I ⊔ J) ≤ (D₁ I) ⊔ J,

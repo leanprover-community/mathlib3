@@ -120,6 +120,7 @@ end real_deriv_of_complex
 section conformality
 /-! ### Conformality of real-differentiable complex maps -/
 open complex continuous_linear_map
+open_locale complex_conjugate
 
 variables
 
@@ -128,7 +129,7 @@ variables
     This is a version of the Cauchy-Riemann equations. -/
 lemma differentiable_at.conformal_at {E : Type*}
   [normed_group E] [normed_space ℝ E] [normed_space ℂ E]
-  [is_scalar_tower ℝ ℂ E] {z : ℂ} {f : ℂ → E}
+  {z : ℂ} {f : ℂ → E}
   (hf' : fderiv ℝ f z ≠ 0) (h : differentiable_at ℂ f z) :
   conformal_at f z :=
 begin

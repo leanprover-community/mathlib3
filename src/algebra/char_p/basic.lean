@@ -4,10 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Joey van Langen, Casper Putz
 -/
 
-import algebra.iterate_hom
 import data.int.modeq
-import data.nat.choose
+import algebra.iterate_hom
+import data.nat.choose.sum
 import group_theory.order_of_element
+import data.nat.choose.dvd
 /-!
 # Characteristic of semirings
 -/
@@ -117,10 +118,10 @@ theorem add_pow_char_of_commute [semiring R] {p : ℕ} [fact p.prime]
   [char_p R p] (x y : R) (h : commute x y) :
   (x + y)^p = x^p + y^p :=
 begin
-  rw [commute.add_pow h, finset.sum_range_succ_comm, nat.sub_self, pow_zero, nat.choose_self],
+  rw [commute.add_pow h, finset.sum_range_succ_comm, tsub_self, pow_zero, nat.choose_self],
   rw [nat.cast_one, mul_one, mul_one], congr' 1,
   convert finset.sum_eq_single 0 _ _,
-  { simp only [mul_one, one_mul, nat.choose_zero_right, nat.sub_zero, nat.cast_one, pow_zero] },
+  { simp only [mul_one, one_mul, nat.choose_zero_right, tsub_zero, nat.cast_one, pow_zero] },
   { intros b h1 h2,
     suffices : (p.choose b : R) = 0, { rw this, simp },
     rw char_p.cast_eq_zero_iff R p,
@@ -223,7 +224,7 @@ section frobenius
 section comm_semiring
 
 variables [comm_semiring R] {S : Type v} [comm_semiring S] (f : R →* S) (g : R →+* S)
-  (p : ℕ) [fact p.prime] [char_p R p]  [char_p S p] (x y : R)
+  (p : ℕ) [fact p.prime] [char_p R p] [char_p S p] (x y : R)
 
 /-- The frobenius map that sends x to x^p -/
 def frobenius : R →+* R :=
@@ -278,6 +279,19 @@ theorem frobenius_add : frobenius R p (x + y) = frobenius R p x + frobenius R p 
 (frobenius R p).map_add x y
 
 theorem frobenius_nat_cast (n : ℕ) : frobenius R p n = n := (frobenius R p).map_nat_cast n
+
+open_locale big_operators
+variables {R}
+
+lemma list_sum_pow_char (l : list R) : l.sum ^ p = (l.map (^ p)).sum :=
+(frobenius R p).map_list_sum _
+
+lemma multiset_sum_pow_char (s : multiset R) : s.sum ^ p = (s.map (^ p)).sum :=
+(frobenius R p).map_multiset_sum _
+
+lemma sum_pow_char {ι : Type*} (s : finset ι) (f : ι → R) :
+  (∑ i in s, f i) ^ p = ∑ i in s, f i ^ p :=
+(frobenius R p).map_sum _ _
 
 end comm_semiring
 
@@ -335,7 +349,7 @@ section no_zero_divisors
 variable [no_zero_divisors R]
 
 theorem char_is_prime_of_two_le (p : ℕ) [hc : char_p R p] (hp : 2 ≤ p) : nat.prime p :=
-suffices ∀d ∣ p, d = 1 ∨ d = p, from ⟨hp, this⟩,
+suffices ∀d ∣ p, d = 1 ∨ d = p, from nat.prime_def_lt''.mpr ⟨hp, this⟩,
 assume (d : ℕ) (hdvd : ∃ e, p = d * e),
 let ⟨e, hmul⟩ := hdvd in
 have (p : R) = 0, from (cast_eq_zero_iff R p p).mpr (dvd_refl p),

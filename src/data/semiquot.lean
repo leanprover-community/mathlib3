@@ -196,11 +196,6 @@ ext.2 $ by simp
 
 instance [inhabited α] : order_top (semiquot α) :=
 { top := univ,
-  le_top := λ s, set.subset_univ _,
-  ..semiquot.partial_order }
-
-instance [inhabited α] : semilattice_sup_top (semiquot α) :=
-{ ..semiquot.order_top,
-  ..semiquot.semilattice_sup }
+  le_top := λ s, set.subset_univ _ }
 
 end semiquot

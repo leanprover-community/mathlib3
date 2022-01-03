@@ -84,6 +84,10 @@ def graded_algebra.decompose : A ≃ₐ[R] ⨁ i, 𝒜 i := alg_equiv.symm
   (graded_algebra.decompose 𝒜).symm (direct_sum.of _ i x) = x :=
 direct_sum.submodule_coe_alg_hom_of 𝒜 _ _
 
+lemma is_homogeneous_decompose {i : ι} (x : 𝒜 i) :
+  set_like.is_homogeneous 𝒜 (graded_algebra.decompose 𝒜 x i) :=
+⟨i, (graded_algebra.decompose 𝒜 x i).prop⟩
+
 /-- The projection maps of graded algebra-/
 def graded_algebra.proj (𝒜 : ι → submodule R A) [graded_algebra 𝒜] (i : ι) : A →ₗ[R] A :=
 (𝒜 i).subtype.comp $

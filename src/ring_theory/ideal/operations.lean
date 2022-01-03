@@ -1106,17 +1106,8 @@ begin
 end
 
 theorem comap_le_comap_iff_of_surjective (I J : ideal S) : comap f I ≤ comap f J ↔ I ≤ J :=
-begin
-  split,
-  intro h,
-  replace h:= map_le_of_le_comap h,
-  rw map_comap_of_surjective f hf I at h,
-  exact h,
-  intro h,
-  rw ← map_comap_of_surjective f hf I at h,
-  replace h:= le_comap_of_map_le h,
-  exact h,
-end
+⟨λ h, (map_comap_of_surjective f hf I).symm.le.trans (map_le_of_le_comap h),
+  λ h, le_comap_of_map_le ((map_comap_of_surjective f hf I).le.trans h)⟩
 
 end surjective
 

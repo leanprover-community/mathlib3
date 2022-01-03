@@ -1733,7 +1733,7 @@ theorem omega_le {o : ordinal.{u}} : omega ≤ o ↔ ∀ n : ℕ, (n : ordinal) 
    let ⟨n, e⟩ := lt_omega.1 h in
    by rw [e, ← succ_le]; exact H (n+1)⟩
 
-theorem omega_eq_sup_nat : ordinal.omega.{u} = sup (λ n : ℕ, n) :=
+theorem omega_eq_sup_nat : omega.{u} = sup (λ n : ℕ, n) :=
 begin
   apply le_antisymm,
   { rw omega_le,

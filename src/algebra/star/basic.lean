@@ -288,6 +288,7 @@ namespace star_ordered_ring
 
 variables [ring R] [partial_order R] [star_ordered_ring R]
 
+@[priority 100] -- see note [lower instance priority]
 instance : ordered_add_comm_group R :=
 { ..show ring R, by apply_instance,
   ..show partial_order R, by apply_instance,

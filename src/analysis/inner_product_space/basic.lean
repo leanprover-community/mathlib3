@@ -1578,7 +1578,7 @@ end
 
 include dec_V
 lemma orthogonal_family.inner_right_dfinsupp (hV : orthogonal_family 𝕜 V)
-  (l : ⨁ i, V i) (i : ι) (v : V i) :
+  (l : Π₀ i, V i) (i : ι) (v : V i) :
   ⟪(v : E), dfinsupp.lsum ℕ (λ i, (V i).subtype) l⟫ = ⟪v, l i⟫ :=
 calc ⟪(v : E), dfinsupp.lsum ℕ (λ i, (V i).subtype) l⟫
     = l.sum (λ j, λ w, ⟪(v:E), w⟫) :

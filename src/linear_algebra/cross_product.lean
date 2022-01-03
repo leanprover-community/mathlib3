@@ -112,8 +112,5 @@ begin
   repeat {rw cross_product_apply},
   norm_num,
   ring_nf,
-  split,
-  refl,
-  split;
-  refl,
+  tauto,
 end

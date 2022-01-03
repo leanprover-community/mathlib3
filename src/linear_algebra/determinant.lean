@@ -6,6 +6,7 @@ Authors: Johannes Hölzl, Patrick Massot, Casper Putz, Anne Baanen
 import linear_algebra.multilinear.basis
 import linear_algebra.matrix.reindex
 import ring_theory.algebra_tower
+import tactic.field_simp
 import linear_algebra.matrix.nonsingular_inverse
 import linear_algebra.matrix.basis
 
@@ -243,7 +244,8 @@ by { haveI := classical.dec_eq ι,
      assumption }
 
 /-- In a finite-dimensional vector space, the zero map has determinant `1` in dimension `0`,
-and `0` otherwise. -/
+and `0` otherwise. We give a formula that also works in infinite dimension, where we define
+the determinant to be `1`. -/
 @[simp] lemma det_zero {𝕜 : Type*} [field 𝕜] {M : Type*} [add_comm_group M] [module 𝕜 M] :
   linear_map.det (0 : M →ₗ[𝕜] M) = (0 : 𝕜) ^ (finite_dimensional.finrank 𝕜 M) :=
 by simp only [← zero_smul 𝕜 (1 : M →ₗ[𝕜] M), det_smul, mul_one, monoid_hom.map_one]
@@ -267,6 +269,47 @@ begin
       rcases H with ⟨s, ⟨b⟩⟩,
       exact ⟨_, ⟨(b.map e.symm).reindex_finset_range⟩⟩ },
     simp only [coe_det, H, H', pi.one_apply, dif_neg, not_false_iff] }
+end
+
+/-- If a linear map is invertible, so is its determinant. -/
+lemma is_unit_det {A : Type*} [comm_ring A] [is_domain A] [module A M]
+  (f : M →ₗ[A] M) (hf : is_unit f) : is_unit f.det :=
+begin
+  obtain ⟨g, hg⟩ : ∃ g, f.comp g = 1 := hf.exists_right_inv,
+  have : linear_map.det f * linear_map.det g = 1,
+    by simp only [← linear_map.det_comp, hg, monoid_hom.map_one],
+  exact is_unit_of_mul_eq_one _ _ this,
+end
+
+/-- If a linear map has determinant different from `1`, then the space is finite-dimensional. -/
+lemma finite_dimensional_of_det_ne_one {𝕜 : Type*} [field 𝕜] [module 𝕜 M]
+  (f : M →ₗ[𝕜] M) (hf : f.det ≠ 1) : finite_dimensional 𝕜 M :=
+begin
+  by_cases H : ∃ (s : finset M), nonempty (basis s 𝕜 M),
+  { rcases H with ⟨s, ⟨hs⟩⟩, exact finite_dimensional.of_finset_basis hs },
+  { classical,
+    simp [linear_map.coe_det, H] at hf,
+    exact hf.elim }
+end
+
+/-- If the determinant of a map vanishes, then the map is not onto. -/
+lemma range_lt_top_of_det_eq_zero {𝕜 : Type*} [field 𝕜] [module 𝕜 M]
+  {f : M →ₗ[𝕜] M} (hf : f.det = 0) : f.range < ⊤ :=
+begin
+  haveI : finite_dimensional 𝕜 M, by simp [f.finite_dimensional_of_det_ne_one, hf],
+  contrapose hf,
+  simp only [lt_top_iff_ne_top, not_not, ← is_unit_iff_range_eq_top] at hf,
+  exact is_unit_iff_ne_zero.1 (f.is_unit_det hf)
+end
+
+/-- If the determinant of a map vanishes, then the map is not injective. -/
+lemma bot_lt_ker_of_det_eq_zero {𝕜 : Type*} [field 𝕜] [module 𝕜 M]
+  {f : M →ₗ[𝕜] M} (hf : f.det = 0) : ⊥ < f.ker :=
+begin
+  haveI : finite_dimensional 𝕜 M, by simp [f.finite_dimensional_of_det_ne_one, hf],
+  contrapose hf,
+  simp only [bot_lt_iff_ne_bot, not_not, ← is_unit_iff_ker_eq_bot] at hf,
+  exact is_unit_iff_ne_zero.1 (f.is_unit_det hf)
 end
 
 end linear_map
@@ -312,8 +355,12 @@ end
 /-- Specialization of `linear_equiv.is_unit_det` -/
 lemma linear_equiv.is_unit_det' {A : Type*} [comm_ring A] [is_domain A] [module A M]
   (f : M ≃ₗ[A] M) : is_unit (linear_map.det (f : M →ₗ[A] M)) :=
-by haveI := classical.dec_eq M; exact
-(f : M →ₗ[A] M).det_cases (λ s b, f.is_unit_det _ _) is_unit_one
+is_unit_of_mul_eq_one _ _ f.det_mul_det_symm
+
+/-- The determinant of `f.symm` is the inverse of that of `f` when `f` is a linear equiv. -/
+lemma linear_equiv.det_coe_symm {𝕜 : Type*} [field 𝕜] [module 𝕜 M]
+  (f : M ≃ₗ[𝕜] M) : (f.symm : M →ₗ[𝕜] M).det = (f : M →ₗ[𝕜] M).det ⁻¹ :=
+by field_simp [is_unit.ne_zero f.is_unit_det']
 
 /-- Builds a linear equivalence from a linear map whose determinant in some bases is a unit. -/
 @[simps]
@@ -438,6 +485,10 @@ by rw [basis.det_reindex, function.comp.assoc, e.self_comp_symm, function.comp.r
 lemma basis.det_map (b : basis ι R M) (f : M ≃ₗ[R] M') (v : ι → M') :
   (b.map f).det v = b.det (f.symm ∘ v) :=
 by { rw [basis.det_apply, basis.to_matrix_map, basis.det_apply] }
+
+lemma basis.det_map' (b : basis ι R M) (f : M ≃ₗ[R] M') :
+  (b.map f).det = b.det.comp_linear_map f.symm :=
+alternating_map.ext $ b.det_map f
 
 @[simp] lemma pi.basis_fun_det : (pi.basis_fun R ι).det = matrix.det_row_alternating :=
 begin

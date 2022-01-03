@@ -112,6 +112,13 @@ instance prod [hM : finite R M] [hN : finite R N] : finite R (M × N) :=
   exact submodule.fg_prod hM.1 hN.1
 end⟩
 
+instance pi {ι : Type*} {M : ι → Type*} [fintype ι] [Π i, add_comm_monoid (M i)]
+  [Π i, module R (M i)] [h : ∀ i, finite R (M i)] : finite R (Π i, M i) :=
+⟨begin
+  rw ← submodule.pi_top,
+  exact submodule.fg_pi (λ i, (h i).1),
+end⟩
+
 lemma equiv [hM : finite R M] (e : M ≃ₗ[R] N) : finite R N :=
 of_surjective (e : M →ₗ[R] N) e.surjective
 
@@ -914,3 +921,60 @@ by simpa [group.fg_iff_monoid.fg] using finite_type_iff_fg
 end monoid_algebra
 
 end monoid_algebra
+
+section vasconcelos
+variables {R : Type*} [comm_ring R] {M : Type*} [add_comm_group M] [module R M] (f : M →ₗ[R] M)
+
+noncomputable theory
+
+/-- The structure of a module `M` over a ring `R` as a module over `polynomial R` when given a
+choice of how `X` acts by choosing a linear map `f : M →ₗ[R] M` -/
+@[simps]
+def module_polynomial_of_endo : module (polynomial R) M :=
+module.comp_hom M (polynomial.aeval f).to_ring_hom
+
+include f
+lemma module_polynomial_of_endo.is_scalar_tower : @is_scalar_tower R (polynomial R) M _
+  (by { letI := module_polynomial_of_endo f, apply_instance }) _ :=
+begin
+  letI := module_polynomial_of_endo f,
+  constructor,
+  intros x y z,
+  simp,
+end
+
+open polynomial module
+
+/-- A theorem/proof by Vasconcelos, given a finite module `M` over a commutative ring, any
+surjective endomorphism of `M` is also injective. Based on,
+https://math.stackexchange.com/a/239419/31917,
+https://www.ams.org/journals/tran/1969-138-00/S0002-9947-1969-0238839-5/.
+This is similar to `is_noetherian.injective_of_surjective_endomorphism` but only applies in the
+commutative case, but does not use a Noetherian hypothesis. -/
+theorem module.finite.injective_of_surjective_endomorphism [hfg : finite R M]
+  (f_surj : function.surjective f) : function.injective f :=
+begin
+  letI := module_polynomial_of_endo f,
+  haveI : is_scalar_tower R (polynomial R) M := module_polynomial_of_endo.is_scalar_tower f,
+  have hfgpoly : finite (polynomial R) M, from finite.of_restrict_scalars_finite R _ _,
+  have X_mul : ∀ o, (X : polynomial R) • o = f o,
+  { intro,
+    simp, },
+  have : (⊤ : submodule (polynomial R) M) ≤ ideal.span {X} • ⊤,
+  { intros a ha,
+    obtain ⟨y, rfl⟩ := f_surj a,
+    rw [← X_mul y],
+    exact submodule.smul_mem_smul (ideal.mem_span_singleton.mpr (dvd_refl _)) trivial, },
+  obtain ⟨F, hFa, hFb⟩ := submodule.exists_sub_one_mem_and_smul_eq_zero_of_fg_of_le_smul _
+    (⊤ : submodule (polynomial R) M) (finite_def.mp hfgpoly) this,
+  rw [← linear_map.ker_eq_bot, linear_map.ker_eq_bot'],
+  intros m hm,
+  rw ideal.mem_span_singleton' at hFa,
+  obtain ⟨G, hG⟩ := hFa,
+  suffices : (F - 1) • m = 0,
+  { have Fmzero := hFb m (by simp),
+    rwa [← sub_add_cancel F 1, add_smul, one_smul, this, zero_add] at Fmzero, },
+  rw [← hG, mul_smul, X_mul m, hm, smul_zero],
+end
+
+end vasconcelos

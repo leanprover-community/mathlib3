@@ -32,18 +32,12 @@ so that that the restriction of `X` to `U` is isomorphic,
 as a locally ringed space, to `Spec.to_LocallyRingedSpace.obj (op R)`
 for some `R : CommRing`.
 -/
-structure Scheme extends X : LocallyRingedSpace :=
-(local_affine : ∀ x : X, ∃ (U : open_nhds x) (R : CommRing),
-  nonempty (X.restrict U.open_embedding ≅ Spec.to_LocallyRingedSpace.obj (op R)))
+structure Scheme extends to_LocallyRingedSpace : LocallyRingedSpace :=
+(local_affine : ∀ x : to_LocallyRingedSpace, ∃ (U : open_nhds x) (R : CommRing),
+  nonempty (to_LocallyRingedSpace.restrict U.open_embedding ≅
+    Spec.to_LocallyRingedSpace.obj (op R)))
 
 namespace Scheme
-
-/--
-Every `Scheme` is a `LocallyRingedSpace`.
--/
--- (This parent projection is apparently not automatically generated because
--- we used the `extends X : LocallyRingedSpace` syntax.)
-def to_LocallyRingedSpace (S : Scheme) : LocallyRingedSpace := { ..S }
 
 /--
 Schemes are a full subcategory of locally ringed spaces.
@@ -54,13 +48,23 @@ induced_category.category Scheme.to_LocallyRingedSpace
 /-- The structure sheaf of a Scheme. -/
 protected abbreviation sheaf (X : Scheme) := X.to_SheafedSpace.sheaf
 
+/-- The forgetful functor from `Scheme` to `LocallyRingedSpace`. -/
+@[simps, derive[full, faithful]]
+def forget_to_LocallyRingedSpace : Scheme ⥤ LocallyRingedSpace :=
+  induced_functor _
+
+/-- The forgetful functor from `Scheme` to `Top`. -/
+@[simps]
+def forget_to_Top : Scheme ⥤ Top :=
+  Scheme.forget_to_LocallyRingedSpace ⋙ LocallyRingedSpace.forget_to_Top
+
 /--
 The spectrum of a commutative ring, as a scheme.
 -/
 def Spec_obj (R : CommRing) : Scheme :=
 { local_affine := λ x,
   ⟨⟨⊤, trivial⟩, R, ⟨(Spec.to_LocallyRingedSpace.obj (op R)).restrict_top_iso⟩⟩,
-  .. Spec.LocallyRingedSpace_obj R }
+  to_LocallyRingedSpace := Spec.LocallyRingedSpace_obj R }
 
 @[simp] lemma Spec_obj_to_LocallyRingedSpace (R : CommRing) :
   (Spec_obj R).to_LocallyRingedSpace = Spec.LocallyRingedSpace_obj R := rfl

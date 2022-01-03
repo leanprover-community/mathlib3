@@ -17,7 +17,7 @@ defines the limit value of an eventually-constant sequence.
 ## Main declarations
 
 * `nat_lt`/`nat_gt`: Make an order embedding `ℕ ↪ α` from an increasing/decreasing function `ℕ → α`.
-* `monotonic_sequence_limit`: The limit of an eventually-constant monotone sequence `ℕ →ₘ α`.
+* `monotonic_sequence_limit`: The limit of an eventually-constant monotone sequence `ℕ →o α`.
 * `monotonic_sequence_limit_index`: The index of the first occurence of `monotonic_sequence_limit`
   in the sequence.
 -/
@@ -28,12 +28,7 @@ variables {α : Type*} {r : α → α → Prop} [is_strict_order α r]
 /-- If `f` is a strictly `r`-increasing sequence, then this returns `f` as an order embedding. -/
 def nat_lt (f : ℕ → α) (H : ∀ n : ℕ, r (f n) (f (n + 1))) :
   ((<) : ℕ → ℕ → Prop) ↪r r :=
-of_monotone f $ λ a b h, begin
-  induction b with b IH, {exact (nat.not_lt_zero _ h).elim},
-  cases nat.lt_succ_iff_lt_or_eq.1 h with h e,
-  { exact trans (IH h) (H _) },
-  { subst b, apply H }
-end
+of_monotone f $ nat.rel_of_forall_rel_succ_of_lt r H
 
 @[simp]
 lemma nat_lt_apply {f : ℕ → α} {H : ∀ n : ℕ, r (f n) (f (n + 1))} {n : ℕ} :
@@ -72,7 +67,8 @@ def order_embedding_of_set : ℕ ↪o ℕ :=
   (rel_embedding.nat_lt (nat.subtype.of_nat s) (λ n, nat.subtype.lt_succ_self _))).trans
   (order_embedding.subtype s)
 
-/-- `nat.subtype.of_nat` as an order isomorphism between `ℕ` and an infinite decidable subset. -/
+/-- `nat.subtype.of_nat` as an order isomorphism between `ℕ` and an infinite decidable subset.
+See also `nat.nth` for a version where the subset may be finite. -/
 noncomputable def subtype.order_iso_of_nat  :
   ℕ ≃o s :=
 rel_iso.of_surjective (rel_embedding.order_embedding_of_lt_embedding
@@ -158,7 +154,7 @@ end
 
 /-- The "monotone chain condition" below is sometimes a convenient form of well foundedness. -/
 lemma well_founded.monotone_chain_condition (α : Type*) [partial_order α] :
-  well_founded ((>) : α → α → Prop) ↔ ∀ (a : ℕ →ₘ α), ∃ n, ∀ m, n ≤ m → a n = a m :=
+  well_founded ((>) : α → α → Prop) ↔ ∀ (a : ℕ →o α), ∃ n, ∀ m, n ≤ m → a n = a m :=
 begin
   split; intros h,
   { rw well_founded.well_founded_iff_has_max' at h,
@@ -175,16 +171,16 @@ end
 type, `monotonic_sequence_limit_index a` is the least natural number `n` for which `aₙ` reaches the
 constant value. For sequences that are not eventually constant, `monotonic_sequence_limit_index a`
 is defined, but is a junk value. -/
-noncomputable def monotonic_sequence_limit_index {α : Type*} [partial_order α] (a : ℕ →ₘ α) : ℕ :=
+noncomputable def monotonic_sequence_limit_index {α : Type*} [partial_order α] (a : ℕ →o α) : ℕ :=
 Inf { n | ∀ m, n ≤ m → a n = a m }
 
 /-- The constant value of an eventually-constant monotone sequence `a₀ ≤ a₁ ≤ a₂ ≤ ...` in a
 partially-ordered type. -/
-noncomputable def monotonic_sequence_limit {α : Type*} [partial_order α] (a : ℕ →ₘ α) :=
+noncomputable def monotonic_sequence_limit {α : Type*} [partial_order α] (a : ℕ →o α) :=
 a (monotonic_sequence_limit_index a)
 
 lemma well_founded.supr_eq_monotonic_sequence_limit {α : Type*} [complete_lattice α]
-  (h : well_founded ((>) : α → α → Prop)) (a : ℕ →ₘ α) :
+  (h : well_founded ((>) : α → α → Prop)) (a : ℕ →o α) :
   (⨆ m, a m) = monotonic_sequence_limit a :=
 begin
   suffices : (⨆ (m : ℕ), a m) ≤ monotonic_sequence_limit a,

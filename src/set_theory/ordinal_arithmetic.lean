@@ -601,14 +601,16 @@ quotient.induction_on₃ a b c $ λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨γ, t, _⟩
   { exact prod.lex.right _ (f.to_rel_embedding.map_rel_iff.2 h') }
 end
 
-theorem le_mul_left {a b : ordinal} (hb : 1 ≤ b) : a ≤ a * b :=
+theorem le_mul_left {a b : ordinal} (hb : 0 < b) : a ≤ a * b :=
 begin
+  rw ←one_le_iff_pos at hb,
   nth_rewrite 0 ←mul_one a,
   exact mul_le_mul_left a hb
 end
 
-theorem le_mul_right {a b : ordinal} (hb : 1 ≤ b) : a ≤ b * a :=
+theorem le_mul_right {a b : ordinal} (hb : 0 < b) : a ≤ b * a :=
 begin
+  rw ←one_le_iff_pos at hb,
   nth_rewrite 0 ←one_mul a,
   exact mul_le_mul_right a hb
 end
@@ -1379,7 +1381,7 @@ begin
           (lt_of_lt_of_le (ordinal.pos_iff_ne_zero.2 a0) ab) (le_of_lt h))) } }
 end
 
-theorem le_power_self_left (a : ordinal) {b : ordinal} (b1 : 1 ≤ b) : a ≤ a ^ b :=
+theorem le_power_self_left (a : ordinal) {b : ordinal} (b1 : 0 < b) : a ≤ a ^ b :=
 begin
   nth_rewrite 0 ←power_one a,
   cases le_or_gt a 1 with a1 a1, {
@@ -2196,10 +2198,10 @@ end
 
 /-! ### Fixed points of multiplication -/
 
-theorem dvd_unbounded {a : ordinal} (ha : 1 ≤ a) : unbounded (<) {b | a ∣ b} :=
+theorem dvd_unbounded {a : ordinal} (ha : 0 < a) : unbounded (<) {b | a ∣ b} :=
 λ b, ⟨_, dvd_mul_right a b, not_lt_of_le (le_mul_right ha)⟩
 
-theorem dvd_power_omega_unbounded {a : ordinal} (ha : 1 ≤ a) :
+theorem dvd_power_omega_unbounded {a : ordinal} (ha : 0 < a) :
   unbounded (<) {b : ordinal | (a ^ ordinal.omega) ∣ b} :=
 begin
   apply dvd_unbounded,
@@ -2296,7 +2298,7 @@ begin
 end
 
 /-- `deriv ((*) a)` enumerates the multiples of `a ^ ω`. -/
-theorem mul_deriv_eq_enum_power_omega_div {a : ordinal} (ha : 1 ≤ a) :
+theorem mul_deriv_eq_enum_power_omega_div {a : ordinal} (ha : 0 < a) :
   deriv ((*) a) = enum_ord (dvd_power_omega_unbounded ha) :=
 begin
   rw ←eq_enum_ord,

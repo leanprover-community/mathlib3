@@ -60,7 +60,7 @@ measurable space, σ-algebra, measurable function, measurable equivalence, dynki
 -/
 
 open set encodable function equiv
-open_locale classical filter
+open_locale classical filter measure_theory
 
 
 variables {α β γ δ δ' : Type*} {ι : Sort*} {s t u : set α}
@@ -167,55 +167,26 @@ lemma measurable.mono {ma ma' : measurable_space α} {mb mb' : measurable_space 
 λ t ht, ha _ $ hf $ hb _ ht
 
 @[measurability]
-lemma measurable_from_top [measurable_space β] {f : α → β} : @measurable _ _ ⊤ _ f :=
+lemma measurable_from_top [measurable_space β] {f : α → β} : measurable[⊤] f :=
 λ s hs, trivial
 
 lemma measurable_generate_from [measurable_space α] {s : set (set β)} {f : α → β}
   (h : ∀ t ∈ s, measurable_set (f ⁻¹' t)) : @measurable _ _ _ (generate_from s) f :=
 measurable.of_le_map $ generate_from_le h
 
-variables [measurable_space α] [measurable_space β] [measurable_space γ]
+variables [measurable_space β] [measurable_space γ] {f g : α → β}
 
-@[measurability]
-lemma measurable_set_preimage {f : α → β} {t : set β} (hf : measurable f) (ht : measurable_set t) :
-  measurable_set (f ⁻¹' t) :=
-hf ht
-
-@[measurability] lemma measurable.iterate {f : α → α} (hf : measurable f) : ∀ n, measurable (f^[n])
-| 0 := measurable_id
-| (n+1) := (measurable.iterate n).comp hf
+section typeclass_measurable_space
+variable [measurable_space α]
 
 @[nontriviality, measurability]
-lemma subsingleton.measurable [subsingleton α] {f : α → β} : measurable f :=
+lemma subsingleton.measurable [subsingleton α] : measurable f :=
 λ s hs, @subsingleton.measurable_set α _ _ _
 
 @[nontriviality, measurability]
-lemma measurable_of_subsingleton_codomain [subsingleton β] (f : α → β) : measurable f :=
+lemma measurable_of_subsingleton_codomain [subsingleton β] (f : α → β) :
+  measurable f :=
 λ s hs, subsingleton.set_cases measurable_set.empty measurable_set.univ s
-
-@[measurability]
-lemma measurable.piecewise {s : set α} {_ : decidable_pred (∈ s)} {f g : α → β}
-  (hs : measurable_set s) (hf : measurable f) (hg : measurable g) :
-  measurable (piecewise s f g) :=
-begin
-  intros t ht,
-  rw piecewise_preimage,
-  exact hs.ite (hf ht) (hg ht)
-end
-
-/-- this is slightly different from `measurable.piecewise`. It can be used to show
-`measurable (ite (x=0) 0 1)` by
-`exact measurable.ite (measurable_set_singleton 0) measurable_const measurable_const`,
-but replacing `measurable.ite` by `measurable.piecewise` in that example proof does not work. -/
-lemma measurable.ite {p : α → Prop} {_ : decidable_pred p} {f g : α → β}
-  (hp : measurable_set {a : α | p a}) (hf : measurable f) (hg : measurable g) :
-  measurable (λ x, ite (p x) (f x) (g x)) :=
-measurable.piecewise hp hf hg
-
-@[measurability]
-lemma measurable.indicator [has_zero β] {s : set α} {f : α → β}
-  (hf : measurable f) (hs : measurable_set s) : measurable (s.indicator f) :=
-hf.piecewise hs measurable_const
 
 @[to_additive]
 lemma measurable_one [has_one α] : measurable (1 : β → α) := @measurable_const _ _ _ _ 1
@@ -235,8 +206,50 @@ begin
   { convert measurable_const, exact funext (λ x, hf x h.some) }
 end
 
+lemma measurable_of_fintype [fintype α] [measurable_singleton_class α] (f : α → β) :
+  measurable f :=
+λ s hs, (finite.of_fintype (f ⁻¹' s)).measurable_set
+
+end typeclass_measurable_space
+
+variable {m : measurable_space α}
+include m
+
+@[measurability]
+lemma measurable_set_preimage {t : set β} (hf : measurable f) (ht : measurable_set t) :
+  measurable_set (f ⁻¹' t) :=
+hf ht
+
+@[measurability] lemma measurable.iterate {f : α → α} (hf : measurable f) : ∀ n, measurable (f^[n])
+| 0 := measurable_id
+| (n+1) := (measurable.iterate n).comp hf
+
+@[measurability]
+lemma measurable.piecewise {_ : decidable_pred (∈ s)} (hs : measurable_set s)
+  (hf : measurable f) (hg : measurable g) :
+  measurable (piecewise s f g) :=
+begin
+  intros t ht,
+  rw piecewise_preimage,
+  exact hs.ite (hf ht) (hg ht)
+end
+
+/-- this is slightly different from `measurable.piecewise`. It can be used to show
+`measurable (ite (x=0) 0 1)` by
+`exact measurable.ite (measurable_set_singleton 0) measurable_const measurable_const`,
+but replacing `measurable.ite` by `measurable.piecewise` in that example proof does not work. -/
+lemma measurable.ite {p : α → Prop} {_ : decidable_pred p}
+  (hp : measurable_set {a : α | p a}) (hf : measurable f) (hg : measurable g) :
+  measurable (λ x, ite (p x) (f x) (g x)) :=
+measurable.piecewise hp hf hg
+
+@[measurability]
+lemma measurable.indicator [has_zero β] (hf : measurable f) (hs : measurable_set s) :
+  measurable (s.indicator f) :=
+hf.piecewise hs measurable_const
+
 @[to_additive, measurability] lemma measurable_set_mul_support [has_one β]
-  [measurable_singleton_class β] {f : α → β} (hf : measurable f) :
+  [measurable_singleton_class β] (hf : measurable f) :
   measurable_set (mul_support f) :=
 hf (measurable_set_singleton 1).compl
 
@@ -245,7 +258,7 @@ attribute [measurability] measurable_set_support
 /-- If a function coincides with a measurable function outside of a countable set, it is
 measurable. -/
 lemma measurable.measurable_of_countable_ne [measurable_singleton_class α]
-  {f g : α → β} (hf : measurable f) (h : countable {x | f x ≠ g x}) : measurable g :=
+  (hf : measurable f) (h : countable {x | f x ≠ g x}) : measurable g :=
 begin
   assume t ht,
   have : g ⁻¹' t = (g ⁻¹' t ∩ {x | f x = g x}ᶜ) ∪ (g ⁻¹' t ∩ {x | f x = g x}),
@@ -258,9 +271,7 @@ begin
   exact (hf ht).inter h.measurable_set.of_compl,
 end
 
-lemma measurable_of_fintype [fintype α] [measurable_singleton_class α] (f : α → β) :
-  measurable f :=
-λ s hs, (finite.of_fintype (f ⁻¹' s)).measurable_set
+omit m
 
 end measurable_functions
 

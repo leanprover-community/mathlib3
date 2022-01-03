@@ -164,14 +164,8 @@ instance homogeneous_ideal.has_top :
   has_top (homogeneous_ideal 𝒜) :=
 ⟨⟨⊤, λ _ _ _, by simp only [submodule.mem_top]⟩⟩
 
-@[simp] lemma homogeneous_ideal.eq_top_iff
-  (I : homogeneous_ideal 𝒜) : I = ⊤ ↔ I.1 = ⊤ :=
-⟨ λ h, by { rw h, refl },
-  λ h, begin
-    have h' : I.val = (⊤ : homogeneous_ideal 𝒜).val,
-    rw h, refl,
-    apply subtype.val_injective h',
-  end ⟩
+@[simp] lemma homogeneous_ideal.eq_top_iff (I : homogeneous_ideal 𝒜) : I = ⊤ ↔ I.1 = ⊤ :=
+subtype.ext_iff
 
 instance homogeneous_ideal.order : partial_order (homogeneous_ideal 𝒜) :=
 partial_order.lift _ subtype.coe_injective
@@ -186,7 +180,7 @@ lemma ideal.is_homogeneous.inf {I J : ideal A}
   ideal.is_homogeneous 𝒜 (I ⊓ J) :=
 λ i r hr, ⟨HI _ hr.1, HJ _ hr.2⟩
 
-lemma homogeneous_ideal.Inf {ℐ : set (ideal A)} (h : ∀ I ∈ ℐ, ideal.is_homogeneous 𝒜 I) :
+lemma ideal.is_homogeneous.Inf {ℐ : set (ideal A)} (h : ∀ I ∈ ℐ, ideal.is_homogeneous 𝒜 I) :
   ideal.is_homogeneous 𝒜 (Inf ℐ) :=
 begin
   intros i x Hx, simp only [ideal.mem_Inf] at Hx ⊢,
@@ -268,7 +262,7 @@ instance : has_inf (homogeneous_ideal 𝒜) :=
 { inf := λ I J, ⟨I ⊓ J, I.prop.inf J.prop⟩ }
 
 instance : has_Inf (homogeneous_ideal 𝒜) :=
-{ Inf := λ ℐ, ⟨Inf (coe '' ℐ), homogeneous_ideal.Inf $ λ _ ⟨I, _, hI⟩, hI ▸ I.prop⟩ }
+{ Inf := λ ℐ, ⟨Inf (coe '' ℐ), ideal.is_homogeneous.Inf $ λ _ ⟨I, _, hI⟩, hI ▸ I.prop⟩ }
 
 instance : has_sup (homogeneous_ideal 𝒜) :=
 { sup := λ I J, ⟨I ⊔ J, I.prop.sup J.prop⟩ }
@@ -437,20 +431,15 @@ lemma ideal.homgeneous_hull.gc :
 
 lemma ideal.homogeneous_core.gc :
   galois_connection
-    (λ I, I.1 : homogeneous_ideal 𝒜 → ideal A)
+    (subtype.val : homogeneous_ideal 𝒜 → ideal A)
     (λ I, ⟨ideal.homogeneous_core 𝒜 I, ideal.is_homogeneous.homogeneous_core 𝒜 I⟩ :
-      ideal A → homogeneous_ideal 𝒜)
-     := λ I J,
-⟨ λ H, begin
-    dsimp only at H,
-    suffices : I.1 ≤ ideal.homogeneous_core 𝒜 J,
-    exact this,
+      ideal A → homogeneous_ideal 𝒜) :=
+λ I J, ⟨
+  λ H, show I.1 ≤ ideal.homogeneous_core 𝒜 J, begin
     rw ←ideal.is_homogeneous.homogeneous_core_eq_self 𝒜 I.1 I.2,
     exact ideal.homogeneous_core_is_mono 𝒜 H,
-  end, λ H, begin
-    refine le_trans H _,
-    apply ideal.homogeneous_core_le_ideal,
-  end⟩
+  end,
+  λ H, le_trans H (ideal.homogeneous_core_le_ideal _ _)⟩
 
 /--There is a galois insertion between homogeneous ideals and ideals via
 `ideal.homgeneous_hull A` and `(λ I, I.1)`-/
@@ -458,7 +447,7 @@ def ideal.homogeneous_hull.gi :
   galois_insertion
     (λ I, ⟨ideal.homogeneous_hull 𝒜 I, ideal.is_homogeneous.homogeneous_hull 𝒜 I⟩ :
       ideal A → homogeneous_ideal 𝒜)
-    (λ I, I.1 : homogeneous_ideal 𝒜 → ideal A) :=
+    (subtype.val : homogeneous_ideal 𝒜 → ideal A) :=
 { choice := λ I H, ⟨I, begin
     have eq : I = ideal.homogeneous_hull 𝒜 I,
     have ineq1 : I ≤ ideal.homogeneous_hull 𝒜 I := ideal.ideal_le_homogeneous_hull 𝒜 I,
@@ -475,7 +464,7 @@ def ideal.homogeneous_hull.gi :
 `(λ I, I.1)` and `ideal.homogeneous_core`-/
 def ideal.homogeneous_core.gi :
   galois_coinsertion
-    (λ I, I.1 : homogeneous_ideal 𝒜 → ideal A)
+    (subtype.val : homogeneous_ideal 𝒜 → ideal A)
     (λ I, ⟨ideal.homogeneous_core 𝒜 I, ideal.is_homogeneous.homogeneous_core 𝒜 I⟩ :
       ideal A → homogeneous_ideal 𝒜) :=
 { choice := λ I HI, ⟨I, begin

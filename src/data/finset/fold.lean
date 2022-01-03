@@ -53,6 +53,18 @@ theorem fold_op_distrib {f g : α → β} {b₁ b₂ : β} :
   s.fold op (b₁ * b₂) (λx, f x * g x) = s.fold op b₁ f * s.fold op b₂ g :=
 by simp only [fold, fold_distrib]
 
+lemma fold_const [decidable (s = ∅)] (c : β) (h : op c (op b c) = op b c) :
+  finset.fold op b (λ _, c) s = if s = ∅ then b else op b c :=
+begin
+  classical,
+  unfreezingI { induction s using finset.induction_on with x s hx IH },
+  { simp },
+  { simp only [finset.fold_insert hx, IH, if_false, finset.insert_ne_empty],
+    split_ifs,
+    { rw hc.comm },
+    { exact h } }
+end
+
 theorem fold_hom {op' : γ → γ → γ} [is_commutative γ op'] [is_associative γ op']
   {m : β → γ} (hm : ∀x y, m (op x y) = op' (m x) (m y)) :
   s.fold op' (m b) (λx, m (f x)) = m (s.fold op b f) :=
@@ -80,6 +92,37 @@ begin
   { haveI := classical.dec_eq γ,
     rw [fold_cons, cons_eq_insert, image_insert, fold_insert_idem, ih], }
 end
+
+/-- A stronger version of `finset.fold_ite`, but relies on
+an explicit proof of idempotency on the seed element, rather
+than relying on typeclass idempotency over the whole type. -/
+lemma fold_ite' {g : α → β} (hb : op b b = b)
+  (p : α → Prop) [decidable_pred p] :
+  finset.fold op b (λ i, ite (p i) (f i) (g i)) s =
+  op (finset.fold op b f (s.filter p)) (finset.fold op b g (s.filter (λ i, ¬ p i))) :=
+begin
+  classical,
+  induction s using finset.induction_on with x s hx IH,
+  { simp [hb] },
+  { simp only [finset.filter_congr_decidable, finset.fold_insert hx],
+    split_ifs with h h,
+    { have : x ∉ finset.filter p s,
+      { simp [hx] },
+      simp [finset.filter_insert, h, finset.fold_insert this, ha.assoc, IH] },
+    { have : x ∉ finset.filter (λ i, ¬ p i) s,
+      { simp [hx] },
+      simp [finset.filter_insert, h, finset.fold_insert this, IH, ←ha.assoc, hc.comm] } }
+end
+
+/-- A weaker version of `finset.fold_ite'`,
+relying on typeclass idempotency over the whole type,
+instead of solely on the seed element.
+However, this is easier to use because it does not generate side goals. -/
+lemma fold_ite [is_idempotent β op] {g : α → β}
+  (p : α → Prop) [decidable_pred p] :
+  finset.fold op b (λ i, ite (p i) (f i) (g i)) s =
+  op (finset.fold op b f (s.filter p)) (finset.fold op b g (s.filter (λ i, ¬ p i))) :=
+fold_ite' (is_idempotent.idempotent _) _
 
 lemma fold_op_rel_iff_and
   {r : β → β → Prop} (hr : ∀ {x y z}, r x (op y z) ↔ (r x y ∧ r x z)) {c : β} :

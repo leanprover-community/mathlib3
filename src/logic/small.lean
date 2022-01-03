@@ -120,6 +120,10 @@ instance small_image {α : Type v} {β : Type w} (f : α → β) (S : set α) [s
   small.{u} (f '' S) :=
 small_of_surjective set.surjective_onto_image
 
+instance small_image {α : Type v} {β : Type w} (f : α → β) (S : set α) [small.{u} S] :
+  small.{u} (f '' S) :=
+small_of_surjective _ set.surjective_onto_image
+
 theorem not_small_type : ¬ small.{u} (Type (max u v))
 | ⟨⟨S, ⟨e⟩⟩⟩ := @function.cantor_injective (Σ α, e.symm α)
   (λ a, ⟨_, cast (e.3 _).symm a⟩)

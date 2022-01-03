@@ -91,8 +91,9 @@ begin
   ring,
 end
 
+/-- The triple product of `u`, `v`, and `w` is equal to the determinant of the matrix with those vectors as its rows -/
 theorem triple_product_eq_det (u v w : fin 3 → R) :
-  u ⬝ (v ×₃ w) = matrix.det ![ u, v, w ] :=
+  u ⬝ (v ×₃ w) = matrix.det ![u, v, w] :=
 begin
   simp only [vec3_dot_product, cross_product_def, matrix.det_fin_three,
     matrix.head_cons, matrix.cons_vec_bit0_eq_alt0, matrix.empty_vec_alt0, matrix.cons_vec_alt0,

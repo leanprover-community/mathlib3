@@ -20,10 +20,30 @@ them:
 * `radical` of a homogeneous ideal is homogeneous.
 -/
 
-section is_homogeneous_ideal_defs
-
 open set_like direct_sum set
 open_locale big_operators
+
+section homogeneous_core
+
+variables {ι R : Type*} [comm_ring R]
+variables (A : ι → ideal R)
+variable (I : ideal R)
+
+/-- For any `I : ideal R`, not necessarily homogeneous, there is a homogeneous ideal associated with
+`I` spanned by all homogeneous elements in `I`. This construction is used when proving that the
+radical of a homogeneous ideal is homogeneous. -/
+def ideal.homogeneous_core : ideal R :=
+ideal.span (coe '' ((coe : subtype (is_homogeneous A) → R) ⁻¹' I))
+
+lemma ideal.homogeneous_core_is_mono : monotone (ideal.homogeneous_core A) :=
+λ I J I_le_J, ideal.span_mono $ set.image_subset _ $ λ x, @I_le_J _
+
+lemma ideal.homogeneous_core_le_ideal : ideal.homogeneous_core A I ≤ I :=
+ideal.span_le.2 $ image_preimage_subset _ _
+
+end homogeneous_core
+
+section is_homogeneous_ideal_defs
 
 variables {ι R : Type*} [comm_ring R] [decidable_eq ι] [add_comm_monoid ι]
 variables (A : ι → ideal R) [graded_algebra A]
@@ -103,6 +123,14 @@ lemma ideal.is_homogeneous.iff_eq :
     rintros ⟨j, ⟨hj₁, hj₂⟩⟩ hj₃,
     exact mul_homogeneous_element_mem_of_mem _ _ _ hj₂ hj₁ _,
   end ⟩
+
+lemma ideal.is_homogeneous.iff_eq_homogeneous_core :
+  I.is_homogeneous A ↔ I = ideal.homogeneous_core A I :=
+begin
+  rw [ideal.homogeneous_core, image_preimage_eq_inter_range,
+    subtype.range_coe, ideal.is_homogeneous.iff_eq],
+  refl
+end
 
 lemma ideal.is_homogeneous.iff_exists :
   ideal.is_homogeneous A I ↔ ∃ (S : set (homogeneous_submonoid A)), I = ideal.span (coe '' S) :=
@@ -257,45 +285,16 @@ end operations
 
 section homogeneous_core
 
-open set_like direct_sum set
-
-variables {ι R : Type*} [comm_ring R]
-variables (A : ι → ideal R)
+variables {ι : Type*} [add_comm_monoid ι] [decidable_eq ι]
+variables {R : Type*} [comm_ring R]
+variables (A : ι → ideal R) [graded_algebra A]
 variable (I : ideal R)
-
-/-- For any `I : ideal R`, not necessarily homogeneous, there is a homogeneous ideal associated with
-`I` spanned by all homogeneous elements in `I`. This construction is used when proving that the
-radical of a homogeneous ideal is homogeneous. -/
-def ideal.homogeneous_core : ideal R := ideal.span (set_of (is_homogeneous A) ∩ I)
-
-lemma ideal.homogeneous_core_is_mono : monotone (ideal.homogeneous_core A) := λ I J I_le_J,
-begin
-  apply ideal.span_mono, rintros r ⟨hr1, hr2⟩,
-  refine ⟨hr1, I_le_J hr2⟩,
-end
-
-lemma ideal.homogeneous_core_le_ideal :
-  ideal.homogeneous_core A I ≤ I :=
-begin
-  rw ideal.homogeneous_core,
-  conv_rhs { rw ←ideal.span_eq I },
-  apply ideal.span_mono, exact (set_of (is_homogeneous A)).inter_subset_right ↑I,
-end
-
-variables [add_comm_monoid ι] [decidable_eq ι]
-variables [graded_algebra A]
 
 lemma ideal.is_homogeneous.homogeneous_core :
   ideal.is_homogeneous A (ideal.homogeneous_core A I) :=
 begin
   rw ideal.is_homogeneous.iff_exists,
-  use ({x | ↑x ∈ I}),
-  rw ideal.homogeneous_core, congr, ext, split; intro hx;
-  simp only [mem_inter_eq, mem_set_of_eq, set_like.mem_coe] at hx ⊢,
-  use x, exact hx.1, refine ⟨hx.2, rfl⟩,
-  obtain ⟨y, hy₁, hy₂⟩ := hx, simp only [mem_set_of_eq] at hy₁, split, rw ←hy₂,
-  rcases y with ⟨y, ⟨i, hy₃⟩⟩, use i, refine hy₃,
-  rw ←hy₂, refine hy₁,
+  exact ⟨_, rfl⟩,
 end
 
 lemma ideal.is_homogeneous.homogeneous_core_eq_self [Π (i : ι) (x : A i), decidable (x ≠ 0)]
@@ -306,8 +305,8 @@ begin
   { apply ideal.homogeneous_core_le_ideal, exact hx, },
   { rw ←graded_algebra.sum_support_decompose A x,
     refine ideal.sum_mem _ _,
-    intros i hi, apply ideal.subset_span, split,
-    use i, exact submodule.coe_mem _, apply h, exact hx },
+    intros i hi, rw ←(ideal.is_homogeneous.iff_eq_homogeneous_core A I).mp h,
+    apply h, exact hx, },
 end
 
 lemma ideal.homogeneous_core.eq_Sup [Π (i : ι) (x : A i), decidable (x ≠ 0)] :
@@ -318,13 +317,17 @@ begin
     obtain ⟨c, hc1, hc2⟩ := hx,
     rw ←hc2, refine ideal.sum_mem _ _,
     intros r hc, dsimp only, rw [smul_eq_mul], refine ideal.mul_mem_left _ _ _,
-    have hr1 : is_homogeneous A r := (hc1 hc).1,
+    have hr0 := hc1 hc, rw [mem_image] at hr0,
+    have hr1 : is_homogeneous A r,
+    { obtain ⟨⟨x, ⟨k, hx1⟩⟩, hx2, rfl⟩ := hr0,
+      use k, exact hx1, },
     obtain ⟨i, hi⟩ := hr1,
     have mem1 : ideal.span {r} ∈ {J : ideal R | ideal.is_homogeneous A J ∧ J ≤ I},
     { split, rw ideal.is_homogeneous.iff_exists,
       refine ⟨{(⟨r, ⟨i, hi⟩⟩ : homogeneous_submonoid A)}, _⟩,
       congr, simp only [image_singleton, subtype.coe_mk], rw ideal.span_le,
-      simp only [mem_coe, singleton_subset_iff], exact (hc1 hc).2 },
+      simp only [mem_coe, singleton_subset_iff],
+      { obtain ⟨⟨x, ⟨k, hx1⟩⟩, hx2, rfl⟩ := hr0,  rw mem_preimage at hx2, exact hx2, }, },
     apply ideal.mem_Sup_of_mem mem1, rw ideal.mem_span_singleton },
   { have hom1 := ideal.is_homogeneous.homogeneous_core A I,
     have hom2 : ideal.is_homogeneous A (Sup {J : ideal R | ideal.is_homogeneous A J ∧ J ≤ I}),
@@ -334,8 +337,10 @@ begin
     unfold complete_lattice.Sup at hx, rw ideal.mem_Inf at hx,
     intros J HJ, apply hx, rintro K ⟨HK1, HK2⟩, intros r hr,
     rw ←graded_algebra.sum_support_decompose A r, refine ideal.sum_mem _ _,
-    intros i hi, apply HJ, refine ⟨⟨i, submodule.coe_mem _⟩, _⟩,  apply HK2,
-    apply HK1, exact hr }
+    intros i hi, apply HJ,
+    rw mem_image, -- ⟨⟨x, ⟨k, hx1⟩⟩, hx2, rfl⟩
+    refine ⟨⟨graded_algebra.decompose A r i, ⟨i, submodule.coe_mem _⟩⟩, _, rfl⟩,
+    rw mem_preimage, apply HK2, apply HK1, exact hr, }
 end
 
 end homogeneous_core
@@ -346,9 +351,6 @@ variables {ι : Type*} [add_comm_monoid ι] [decidable_eq ι]
 variables {R : Type*} [comm_ring R]
 variables (A : ι → ideal R) [graded_algebra A]
 variable (I : ideal R)
-
-open set_like
-
 
 /--For any `I : ideal R`, not necessarily homogeneous, there is a homogeneous ideal associated with
 `I` spanned by all homogeneous components of elements in `I`. -/
@@ -450,7 +452,7 @@ lemma ideal.homogeneous_core.gc :
     apply ideal.homogeneous_core_le_ideal,
   end⟩
 
-/--There is a galois insertion between homogeneous ideals and ideals via 
+/--There is a galois insertion between homogeneous ideals and ideals via
 `ideal.homgeneous_hull A` and `(λ I, I.1)`-/
 def ideal.homogeneous_hull.gi :
   galois_insertion
@@ -469,7 +471,7 @@ def ideal.homogeneous_hull.gi :
     refine le_antisymm _ H, apply ideal.ideal_le_homogeneous_hull,
   end }
 
-/--There is a galois coinsertion between homogeneous ideals and ideals via 
+/--There is a galois coinsertion between homogeneous ideals and ideals via
 `(λ I, I.1)` and `ideal.homogeneous_core`-/
 def ideal.homogeneous_core.gi :
   galois_coinsertion

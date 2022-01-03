@@ -1231,9 +1231,9 @@ begin
   exact log_not_one_lt hb 1
 end
 
-lemma power_mul_add_pos {b v : ordinal} (u w : ordinal) (hb : 1 < b) (hv : 0 < v) :
+lemma power_mul_add_pos {b v : ordinal} (u w : ordinal) (hb : 0 < b) (hv : 0 < v) :
   0 < b ^ u * v + w :=
-(power_pos u (zero_lt_one.trans hb)).trans_le ((le_mul_left hv).trans (le_add_right _ _))
+(power_pos u hb).trans_le ((le_mul_left hv).trans (le_add_right _ _))
 
 lemma power_mul_add_lt_power_mul_succ {b u w : ordinal} (v : ordinal) (hw : w < b ^ u) :
   b ^ u * v + w < b ^ u * v.succ :=
@@ -1251,7 +1251,7 @@ end
 theorem log_power_mul_add {b u v w : ordinal} (hb : 1 < b) (hv : 0 < v) (hvb : v < b)
   (hw : w < b ^ u) : log b (b ^ u * v + w) = u :=
 begin
-  have hpos := power_mul_add_pos u w hb hv,
+  have hpos := power_mul_add_pos u w (zero_lt_one.trans hb) hv,
   by_contra' hne,
   cases lt_or_gt_of_ne hne with h h,
   { rw log_lt hb hpos at h,
@@ -1263,12 +1263,8 @@ end
 
 theorem log_power {b : ordinal} (x : ordinal) (hb : 1 < b) : log b (b ^ x) = x :=
 begin
-  cases eq_or_ne x 0 with hx hx,
-  { rw [hx, power_zero],
-    exact log_one b },
-  have : b ^ x = b ^ x * 1 + 0 := by rw [add_zero, mul_one],
-  rw this,
-  exact log_power_mul_add hb zero_lt_one hb (power_pos x (zero_lt_one.trans hb))
+  convert log_power_mul_add hb zero_lt_one hb (power_pos x (zero_lt_one.trans hb)),
+  rw [add_zero, mul_one]
 end
 
 /-! ### The Cantor normal form -/

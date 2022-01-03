@@ -239,8 +239,7 @@ begin
   rw mul_comm,
   congr' 1,
   rw [prod_sigma', prod_sigma'],
-  exact prod_bij' (λ i hi, ⟨i.2, i.1⟩) (by simp) (by simp) (λ i hi, ⟨i.2, i.1⟩)
-                  (by simp) (by simp) (by simp)
+  refine prod_bij' (λ i hi, ⟨i.2, i.1⟩) _ _ (λ i hi, ⟨i.2, i.1⟩) _ _ _; simp
 end
 
 end filter

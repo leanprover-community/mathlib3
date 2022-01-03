@@ -186,17 +186,17 @@ instance : partial_order (finpartition a) :=
   .. finpartition.has_le a }
 
 instance [decidable (a = ⊥)] : order_top (finpartition a) :=
-{ top := if ha : a = ⊥ then finpartition.empty α else indiscrete ha,
+{ top := if ha : a = ⊥ then (congr_arg _ ha).mpr (finpartition.empty α) else indiscrete ha,
   le_top := λ P, begin
     split_ifs,
     { sorry },
-    { exact λ b hb, ⟨a, P.le hb⟩ }
+    { exact λ b hb, ⟨a, mem_singleton_self _, P.le hb⟩ }
   end }
 
 instance [decidable_eq α] : has_inf (finpartition a) :=
 ⟨λ P Q, of_erase ((P.parts.product Q.parts).image $ λ bc, bc.1 ⊓ bc.2)
     begin
-      sorry
+      rw sup_indep
     end
     begin
       sorry

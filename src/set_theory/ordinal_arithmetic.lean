@@ -1368,7 +1368,19 @@ begin
           (lt_of_lt_of_le (ordinal.pos_iff_ne_zero.2 a0) ab) (le_of_lt h))) } }
 end
 
-theorem le_power_self {a : ordinal} (b) (a1 : 1 < a) : b ≤ a ^ b :=
+theorem le_power_self_left (a : ordinal) {b : ordinal} (b1 : 0 < b) : a ≤ a ^ b :=
+begin
+  nth_rewrite 0 ←power_one a,
+  cases le_or_gt a 1 with a1 a1,
+  { cases lt_or_eq_of_le a1 with a0 a1,
+    { rw lt_one_iff_zero at a0,
+      rw [a0, zero_power ordinal.one_ne_zero],
+      exact ordinal.zero_le _ },
+    rw [a1, one_power, one_power] },
+  rwa [power_le_power_iff_right a1, one_le_iff_pos]
+end
+
+theorem le_power_self_right {a : ordinal} (b) (a1 : 1 < a) : b ≤ a ^ b :=
 (power_is_normal a1).le_self _
 
 theorem power_lt_power_left_of_succ {a b c : ordinal}
@@ -1440,7 +1452,7 @@ end
   `x = b ^ u * v + w` where `v < b` and `w < b ^ u`. -/
 def log (b : ordinal) (x : ordinal) : ordinal :=
 if h : 1 < b then pred $
-  omin {o | x < b^o} ⟨succ x, succ_le.1 (le_power_self _ h)⟩
+  omin {o | x < b^o} ⟨succ x, succ_le.1 (le_power_self_right _ h)⟩
 else 0
 
 @[simp] theorem log_not_one_lt {b : ordinal} (b1 : ¬ 1 < b) (x : ordinal) : log b x = 0 :=
@@ -1515,7 +1527,7 @@ else by simp only [log_not_one_lt b1, ordinal.zero_le]
 theorem log_le_self (b x : ordinal) : log b x ≤ x :=
 if x0 : x = 0 then by simp only [x0, log_zero, ordinal.zero_le] else
 if b1 : 1 < b then
-  le_trans (le_power_self _ b1) (power_log_le b (ordinal.pos_iff_ne_zero.2 x0))
+  le_trans (le_power_self_right _ b1) (power_log_le b (ordinal.pos_iff_ne_zero.2 x0))
 else by simp only [log_not_one_lt b1, ordinal.zero_le]
 
 @[simp] theorem log_one (b : ordinal) : log b 1 = 0 :=
@@ -1788,13 +1800,13 @@ theorem omega_le {o : ordinal.{u}} : omega ≤ o ↔ ∀ n : ℕ, (n : ordinal) 
    let ⟨n, e⟩ := lt_omega.1 h in
    by rw [e, ← succ_le]; exact H (n+1)⟩
 
-theorem omega_eq_sup_nat : ordinal.omega.{u} = sup (λ n : ℕ, n) :=
+theorem omega_eq_sup_nat : omega.{u} = sup (λ n : ℕ, n) :=
 begin
   apply le_antisymm,
   { rw omega_le,
     exact le_sup _ },
   rw sup_le,
-  exact λ n, le_of_lt (nat_lt_omega n),
+  exact λ n, le_of_lt (nat_lt_omega n)
 end
 
 theorem nat_lt_limit {o} (h : is_limit o) : ∀ n : ℕ, (n : ordinal) < o
@@ -1960,11 +1972,14 @@ begin
   rw [← power_add, add_omega_power xb]
 end
 
+theorem mul_power_omega {a} : a * a ^ omega = a ^ omega :=
+by rw [←power_one_add, one_add_omega]
+
 theorem power_omega {a : ordinal} (a1 : 1 < a) (h : a < omega) : a ^ omega = omega :=
 le_antisymm
   ((power_le_of_limit (one_le_iff_ne_zero.1 $ le_of_lt a1) omega_is_limit).2
     (λ b hb, le_of_lt (power_lt_omega h hb)))
-  (le_power_self _ a1)
+  (le_power_self_right _ a1)
 
 theorem normal_omega {f : ordinal.{u} → ordinal.{u}} (hf : is_normal f) :
   f omega.{u} = sup (λ n : ℕ, f n) :=
@@ -1984,6 +1999,33 @@ begin
     rw sup_eq_zero_iff,
     exact λ n, zero_mul _ },
   exact normal_omega (mul_is_normal ho)
+end
+
+lemma lt_mul_omega {a o : ordinal.{u}} (h : a < o * omega.{u}) : ∃ n : ℕ, a < o * n :=
+by rwa [mul_omega_eq_sup_mul_nat o, lt_sup] at h
+
+theorem power_omega_eq_sup_power_nat {o : ordinal.{u}} (ho : 0 < o) :
+  o ^ omega.{u} = sup (λ n : ℕ, o ^ n) :=
+begin
+  rw ←one_le_iff_pos at ho,
+  cases lt_or_eq_of_le ho with ho₁ ho₁,
+  { exact normal_omega (power_is_normal ho₁) },
+  rw [←ho₁, one_power],
+  apply le_antisymm,
+  { nth_rewrite 0 ←power_zero 1,
+    rw ←nat.cast_zero,
+    exact le_sup _ 0 },
+  rw sup_le,
+  intro n,
+  rw one_power
+end
+
+lemma lt_power_omega {a o : ordinal.{u}} (h : a < o ^ omega.{u}) : ∃ n : ℕ, a < o ^ n :=
+begin
+  cases eq_zero_or_pos o with ho ho,
+  { rw [ho, zero_power omega_ne_zero] at h,
+    exact (ordinal.not_lt_zero a h).elim },
+  rwa [power_omega_eq_sup_power_nat ho, lt_sup] at h
 end
 
 /-! ### Fixed points of normal functions -/
@@ -2173,6 +2215,117 @@ begin
   { rw deriv_zero,
     exact mul_omega_nfp_add_zero a },
   rwa [←(add_is_normal a).fp_iff_deriv', add_fp_iff_mul_omega_le']
+end
+
+/-! ### Fixed points of multiplication -/
+
+theorem dvd_unbounded {a : ordinal} (ha : 0 < a) : unbounded (<) {b | a ∣ b} :=
+λ b, ⟨_, dvd_mul_right a b, not_lt_of_le (le_mul_right ha)⟩
+
+theorem dvd_power_omega_unbounded {a : ordinal} (ha : 0 < a) :
+  unbounded (<) {b : ordinal | (a ^ ordinal.omega) ∣ b} :=
+dvd_unbounded (power_pos _ ha)
+
+theorem mul_iterate (a : ordinal) (n : ℕ) : a ^ n = (((*) a)^[n]) 1 :=
+begin
+  induction n with n hn,
+  { rw [nat.cast_zero, power_zero, iterate_zero_apply] },
+  nth_rewrite 0 nat.succ_eq_one_add,
+  rw [nat.cast_add, nat.cast_one, power_one_add, iterate_succ_apply', hn]
+end
+
+theorem power_omega_nfp_mul_one {a : ordinal} (ha : 0 < a) : a ^ omega = nfp ((*) a) 1 :=
+begin
+  unfold nfp,
+  rwa [power_omega_eq_sup_power_nat, funext (mul_iterate a)]
+end
+
+theorem nfp_mul_zero (a : ordinal) : nfp ((*) 0) a = a :=
+begin
+  unfold nfp,
+  refine le_antisymm _ (le_sup (λ n, ((*) 0)^[n] a) 0),
+  rw sup_le,
+  intro n,
+  induction n with n hn, { refl },
+  rw function.iterate_succ',
+  change 0 * _ ≤ a,
+  rw zero_mul,
+  exact ordinal.zero_le a
+end
+
+theorem power_omega_nfp_mul {a b : ordinal} (hb : 0 < b) (hba : b ≤ a ^ omega) :
+  a ^ omega.{u} = nfp ((*) a) b :=
+begin
+  cases eq_zero_or_pos a with ha ha,
+  { rw [ha, zero_power omega_ne_zero] at *,
+    rw ordinal.le_zero at hba,
+    rw hba,
+    exact (nfp_mul_zero 0).symm },
+  apply le_antisymm,
+  { rw power_omega_nfp_mul_one ha,
+    rw ←one_le_iff_pos at hb,
+    exact nfp_monotone (mul_is_normal ha).strict_mono.monotone hb },
+  apply (mul_is_normal ha).nfp_le_fp hba,
+  rw mul_power_omega
+end
+
+theorem power_omega_nfp_mul_self (a : ordinal) : a ^ omega = nfp ((*) a) a :=
+begin
+  cases eq_zero_or_pos a with ha ha,
+  { rw [ha, zero_power omega_ne_zero],
+    exact (nfp_mul_zero 0).symm },
+  exact power_omega_nfp_mul ha (le_power_self_left a omega_pos)
+end
+
+theorem mul_fp_div_power_omega (a b : ordinal) :
+  a * ((a ^ omega.{u}) * b) = (a ^ omega.{u}) * b :=
+by rw [←mul_assoc, ←power_one_add, one_add_omega]
+
+theorem mul_fp_eq_zero_or_power_omega_le {a b : ordinal} (hab : a * b = b) :
+  b = 0 ∨ a ^ omega.{u} ≤ b :=
+begin
+  cases eq_zero_or_pos a with ha ha,
+  { rw [ha, zero_power omega_ne_zero],
+    exact or.inr (ordinal.zero_le b) },
+  rw or_iff_not_imp_left,
+  intro hb,
+  change b ≠ 0 at hb,
+  rw power_omega_nfp_mul_one ha,
+  rw ←one_le_iff_ne_zero at hb,
+  exact (mul_is_normal ha).nfp_le_fp hb (le_of_eq hab)
+end
+
+theorem mul_fp_iff_dvd_power_omega {a b : ordinal} : a * b = b ↔ (a ^ omega) ∣ b :=
+begin
+  cases eq_zero_or_pos a with ha ha,
+  { rw [ha, zero_mul, zero_power omega_ne_zero, zero_dvd],
+    exact eq_comm },
+  refine ⟨λ hab, _, λ h, _⟩,
+  { rw dvd_iff_mod_eq_zero,
+    rw [←div_add_mod b (a ^ omega), mul_add, mul_fp_div_power_omega, add_left_cancel] at hab,
+    cases mul_fp_eq_zero_or_power_omega_le hab with hab hab,
+    { exact hab },
+    refine (not_lt_of_le hab (mod_lt b (power_ne_zero omega _))).elim,
+    rwa ←ordinal.pos_iff_ne_zero },
+  cases h with c hc,
+  rw hc,
+  exact mul_fp_div_power_omega _ _
+end
+
+theorem mul_fp_iff_dvd_power_omega' {a b : ordinal} (ha : 0 < a) : a * b ≤ b ↔ (a ^ omega) ∣ b :=
+by { rw ←mul_fp_iff_dvd_power_omega, exact (mul_is_normal ha).self_le_iff_eq }
+
+/-- `deriv ((*) a)` enumerates the multiples of `a ^ ω`. -/
+theorem mul_deriv_eq_enum_dvd_power_omega {a : ordinal} (ha : 0 < a) :
+  deriv ((*) a) = enum_ord (dvd_power_omega_unbounded ha) :=
+begin
+  rw ←eq_enum_ord,
+  use (deriv_is_normal _).strict_mono,
+  rw range_eq_iff,
+  refine ⟨λ b, _, λ b hb, _⟩,
+  { change _ ∣ _,
+    rw [←mul_fp_iff_dvd_power_omega, (mul_is_normal ha).deriv_fp] },
+  rwa [←(mul_is_normal ha).fp_iff_deriv, mul_fp_iff_dvd_power_omega]
 end
 
 end ordinal

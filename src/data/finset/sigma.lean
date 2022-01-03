@@ -21,7 +21,7 @@ This file defines a few `finset` constructions on `Σ i, α i`.
 
 `finset.sigma_lift` can be generalized to any alternative functor. But to make the generalization
 worth it, we must first refactor the functor library so that the `alternative` instance for `finset`
-is computable.
+is computable and universe-polymorphic.
 -/
 
 open function multiset
@@ -96,6 +96,26 @@ begin
     rintro ⟨⟨⟩, ⟨⟩, _⟩,
     exact h rfl }
 end
+
+lemma mk_mem_sigma_lift (f : Π ⦃i⦄, α i → β i → finset (γ i)) (i : ι) (a : α i) (b : β i)
+  (x : γ i) :
+  (⟨i, x⟩ : sigma γ) ∈ sigma_lift f ⟨i, a⟩ ⟨i, b⟩ ↔ x ∈ f a b :=
+begin
+  rw [sigma_lift, dif_pos rfl, mem_map],
+  refine ⟨_, λ hx, ⟨_, hx, rfl⟩⟩,
+  rintro ⟨x, hx, _, rfl⟩,
+  exact hx,
+end
+
+lemma not_mem_sigma_lift_of_ne_left (f : Π ⦃i⦄, α i → β i → finset (γ i))
+  (a : sigma α) (b : sigma β) (x : sigma γ) (h : a.1 ≠ x.1) :
+  x ∉ sigma_lift f a b :=
+by { rw mem_sigma_lift, exact λ H, h H.fst }
+
+lemma not_mem_sigma_lift_of_ne_right (f : Π ⦃i⦄, α i → β i → finset (γ i))
+  {a : sigma α} (b : sigma β) {x : sigma γ} (h : b.1 ≠ x.1) :
+  x ∉ sigma_lift f a b :=
+by { rw mem_sigma_lift, exact λ H, h H.snd.fst }
 
 variables {f g : Π ⦃i⦄, α i → β i → finset (γ i)} {a : Σ i, α i} {b : Σ i, β i}
 

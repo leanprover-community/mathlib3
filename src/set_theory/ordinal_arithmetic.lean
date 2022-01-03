@@ -131,7 +131,7 @@ by rw [← not_le, succ_le, not_lt]
 theorem lt_one_iff_zero {a : ordinal} : a < 1 ↔ a = 0 :=
 by rw [←succ_zero, lt_succ, ordinal.le_zero]
 
-theorem le_one_iff_lt_two {o : ordinal} : o ≤ 1 ↔ o < 2 :=
+theorem le_one_iff_lt_two {a : ordinal} : a ≤ 1 ↔ a < 2 :=
 begin
   have : (2 : ordinal) = succ 1 := rfl,
   rw [this, lt_succ]

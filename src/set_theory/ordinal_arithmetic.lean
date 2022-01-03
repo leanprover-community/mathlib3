@@ -128,6 +128,12 @@ by rw [← not_le, succ_le, not_lt]
 theorem lt_one_iff_zero {a : ordinal} : a < 1 ↔ a = 0 :=
 by rw [←succ_zero, lt_succ, ordinal.le_zero]
 
+theorem le_one_iff_lt_two {a : ordinal} : a ≤ 1 ↔ a < 2 :=
+begin
+  have : (2 : ordinal) = succ 1 := rfl,
+  rw [this, lt_succ]
+end
+
 theorem add_lt_add_iff_left (a) {b c : ordinal} : a + b < a + c ↔ b < c :=
 by rw [← not_le, ← not_le, add_le_add_iff_left]
 
@@ -178,8 +184,19 @@ instance : nontrivial ordinal.{u} :=
 theorem zero_lt_one : (0 : ordinal) < 1 :=
 lt_iff_le_and_ne.2 ⟨ordinal.zero_le _, ne.symm $ ordinal.one_ne_zero⟩
 
+theorem one_lt_two : (1 : ordinal) < 2 :=
+begin
+  nth_rewrite 0 ←succ_zero,
+  change succ (0 : ordinal) < succ 1,
+  rw succ_lt_succ,
+  exact zero_lt_one
+end
+
+theorem zero_lt_two : (0 : ordinal) < 2 :=
+zero_lt_one.trans one_lt_two
+
 theorem eq_zero_or_pos (a : ordinal) : a = 0 ∨ 0 < a :=
-by { convert eq_or_ne a 0, exact propext (ordinal.pos_iff_ne_zero) }
+by { convert eq_or_ne a 0, exact propext ordinal.pos_iff_ne_zero }
 
 /-! ### The predecessor of an ordinal -/
 
@@ -581,6 +598,12 @@ by simp only [mul_add, mul_one]
 by simp only [mul_add, mul_one]
 
 @[simp] theorem mul_succ (a b : ordinal) : a * succ b = a * b + a := mul_add_one _ _
+
+theorem mul_two (a : ordinal) : a * 2 = a + a :=
+begin
+  change a * (succ 1) = a + a,
+  rw [mul_succ, mul_one]
+end
 
 theorem mul_le_mul_left {a b} (c : ordinal) : a ≤ b → c * a ≤ c * b :=
 quotient.induction_on₃ a b c $ λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨γ, t, _⟩ ⟨f⟩, begin
@@ -1465,7 +1488,7 @@ end
 /-! ### Ordinal logarithm -/
 
 /-- The ordinal logarithm is the solution `u` to the equation
-  `x = b ^ u * v + w` where `v < b` and `w < b`. -/
+  `x = b ^ u * v + w` where `v < b` and `w < b ^ u`. -/
 def log (b : ordinal) (x : ordinal) : ordinal :=
 if h : 1 < b then pred $
   omin {o | x < b^o} ⟨succ x, succ_le.1 (le_power_self_right _ h)⟩
@@ -1545,6 +1568,66 @@ if x0 : x = 0 then by simp only [x0, log_zero, ordinal.zero_le] else
 if b1 : 1 < b then
   le_trans (le_power_self_right _ b1) (power_log_le b (ordinal.pos_iff_ne_zero.2 x0))
 else by simp only [log_not_one_lt b1, ordinal.zero_le]
+
+theorem log_one (b : ordinal) : log b 1 = 0 :=
+begin
+  by_cases hb : 1 < b,
+  { rw log_def hb,
+    suffices : omin {o | 1 < b^o} (log._proof_1 b 1 hb) = 1,
+    { rw [this, ←succ_zero, pred_succ] },
+    apply le_antisymm,
+    { apply omin_le,
+      change 1 < b ^ 1,
+      rwa power_one },
+    rw le_omin,
+    intros a ha,
+    by_contra' ha',
+    rw lt_one_iff_zero at ha',
+    rw ha' at ha,
+    change 1 < b ^ 0 at ha,
+    exact ne_of_lt ha (power_zero b).symm },
+  exact log_not_one_lt hb 1
+end
+
+lemma power_mul_add_pos {b v : ordinal} (u w : ordinal) (hb : 1 < b) (hv : 0 < v) :
+  0 < b ^ u * v + w :=
+(power_pos u (zero_lt_one.trans hb)).trans_le ((le_mul_left hv).trans (le_add_right _ _))
+
+lemma power_mul_add_lt_power_mul_succ {b u w : ordinal} (v : ordinal) (hw : w < b ^ u) :
+  b ^ u * v + w < b ^ u * v.succ :=
+by rwa [mul_succ, add_lt_add_iff_left]
+
+lemma power_mul_add_lt_power_succ {b u v w : ordinal} (hvb : v < b) (hw : w < b ^ u) :
+  b ^ u * v + w < b ^ u.succ :=
+begin
+  apply lt_of_lt_of_le (power_mul_add_lt_power_mul_succ v hw),
+  rw ←succ_le at hvb,
+  rw power_succ,
+  exact (mul_le_mul_left (b ^ u) hvb)
+end
+
+theorem log_power_mul_add {b u v w : ordinal} (hb : 1 < b) (hv : 0 < v) (hvb : v < b)
+  (hw : w < b ^ u) : log b (b ^ u * v + w) = u :=
+begin
+  have hpos := power_mul_add_pos u w hb hv,
+  by_contra' hne,
+  cases lt_or_gt_of_ne hne with h h,
+  { rw log_lt hb hpos at h,
+    exact not_le_of_lt h ((le_mul_left hv).trans (le_add_right _ _)) },
+  change _ < _ at h,
+  rw [←succ_le, le_log hb hpos] at h,
+  exact (not_lt_of_le h) (power_mul_add_lt_power_succ hvb hw)
+end
+
+theorem log_power {b : ordinal} (x : ordinal) (hb : 1 < b) : log b (b ^ x) = x :=
+begin
+  cases eq_or_ne x 0 with hx hx,
+  { rw [hx, power_zero],
+    exact log_one b },
+  have : b ^ x = b ^ x * 1 + 0 := by rw [add_zero, mul_one],
+  rw this,
+  exact log_power_mul_add hb zero_lt_one hb (power_pos x (zero_lt_one.trans hb))
+end
 
 /-! ### The Cantor normal form -/
 
@@ -1767,6 +1850,8 @@ theorem omega_ne_zero : omega ≠ 0 := ne_of_gt omega_pos
 
 theorem one_lt_omega : 1 < omega := by simpa only [nat.cast_one] using nat_lt_omega 1
 
+theorem two_lt_omega : 2 < omega := by simpa only [nat.cast_two] using nat_lt_omega 2
+
 theorem omega_is_limit : is_limit omega :=
 ⟨omega_ne_zero, λ o h,
   let ⟨n, e⟩ := lt_omega.1 h in
@@ -1777,15 +1862,6 @@ theorem omega_le {o : ordinal.{u}} : omega ≤ o ↔ ∀ n : ℕ, (n : ordinal) 
  λ H, le_of_forall_lt $ λ a h,
    let ⟨n, e⟩ := lt_omega.1 h in
    by rw [e, ← succ_le]; exact H (n+1)⟩
-
-theorem omega_eq_sup_nat : ordinal.omega.{u} = sup (λ n : ℕ, n) :=
-begin
-  apply le_antisymm,
-  { rw omega_le,
-    exact le_sup _ },
-  rw sup_le,
-  exact λ n, le_of_lt (nat_lt_omega n),
-end
 
 theorem nat_lt_limit {o} (h : is_limit o) : ∀ n : ℕ, (n : ordinal) < o
 | 0     := lt_of_le_of_ne (ordinal.zero_le o) h.1.symm
@@ -1855,7 +1931,7 @@ begin
       (le_trans this (power_le_power_right omega_pos $ le_of_lt $ max_lt xb yb)) }
 end
 
-theorem add_lt_omega_power {a b c : ordinal} (h₁ : a < omega ^ c) (h₂ : b < omega ^ c) :
+theorem add_lt_omega_power {c a b : ordinal} (h₁ : a < omega ^ c) (h₂ : b < omega ^ c) :
   a + b < omega ^ c :=
 by rwa [← add_omega_power h₁, add_lt_add_iff_left]
 
@@ -1909,6 +1985,9 @@ theorem add_mul_limit {a b c : ordinal} (ba : b + a = a)
   (l : is_limit c) : (a + b) * c = a * c :=
 add_mul_limit_aux ba l (λ c' _, add_mul_succ c' ba)
 
+theorem add_mul_omega (a) : a + a * omega = a * omega :=
+by rw [←mul_one_add, one_add_omega]
+
 theorem mul_omega {a : ordinal} (a0 : 0 < a) (ha : a < omega) : a * omega = omega :=
 le_antisymm
   ((mul_le_of_limit omega_is_limit).2 $ λ b hb, le_of_lt (mul_lt_omega ha hb))
@@ -1956,6 +2035,15 @@ le_antisymm
     (λ b hb, le_of_lt (power_lt_omega h hb)))
   (le_power_self_right _ a1)
 
+theorem omega_eq_sup_nat : omega.{u} = sup (λ n : ℕ, n) :=
+begin
+  apply le_antisymm,
+  { rw omega_le,
+    exact le_sup _ },
+  rw sup_le,
+  exact λ n, le_of_lt (nat_lt_omega n)
+end
+
 theorem normal_omega {f : ordinal.{u} → ordinal.{u}} (hf : is_normal f) :
   f omega.{u} = sup (λ n : ℕ, f n) :=
 by rw [omega_eq_sup_nat, is_normal.sup.{0 u u} hf ⟨0⟩]
@@ -1993,6 +2081,14 @@ begin
   rw sup_le,
   intro n,
   rw one_power
+end
+
+lemma lt_power_omega {a o : ordinal.{u}} (h : a < o ^ omega.{u}) : ∃ n : ℕ, a < o ^ n :=
+begin
+  cases eq_zero_or_pos o with ho ho,
+  { rw [ho, zero_power omega_ne_zero] at h,
+    exact (ordinal.not_lt_zero a h).elim },
+  rwa [power_omega_eq_sup_power_nat ho, lt_sup] at h
 end
 
 /-! ### Fixed points of normal functions -/
@@ -2130,32 +2226,35 @@ end
 theorem mul_omega_unbounded (o) : unbounded (<) (set.Ici (o * ordinal.omega)) :=
 unbounded_lt_Ici _
 
-theorem add_mul_omega (a) : a + a * omega = a * omega :=
-by rw [←mul_one_add, one_add_omega]
-
-theorem mul_omega_nfp_add_zero (a) : a * omega.{u} = nfp ((+) a) 0 :=
+theorem add_iterate (a : ordinal) (n : ℕ) : a * n = (((+) a)^[n]) 0 :=
 begin
-  cases eq_or_ne 0 a with ha ha,
-  { rw [←ha, zero_mul],
-    unfold nfp,
-    apply eq.symm,
-    rw sup_eq_zero_iff,
-    intro n,
-    induction n with n hn, { refl },
-    rwa [iterate_succ_apply, zero_add] },
-  have hmul := @is_normal.sup.{0 u u} _
-    (mul_is_normal.{u} (lt_of_le_of_ne (ordinal.zero_le a) ha)) ℕ (λ n, ↑n) ⟨0⟩,
-  rw ←omega_eq_sup_nat at hmul,
-  suffices : (λ n, ((+) a)^[n] 0) = (*) a ∘ λ n, ↑n,
-  { rwa ←this at hmul },
-  refine funext (λ n, _),
   induction n with n hn,
-  { rw iterate_zero,
-    exact (mul_zero _).symm },
-  rw [iterate_succ_apply', hn, ←mul_one_add, (by simp : (1 : ordinal) + ↑n = ↑(1 + n)), add_comm]
+  { rw [nat.cast_zero, mul_zero, iterate_zero_apply] },
+  nth_rewrite 0 nat.succ_eq_one_add,
+  rw [nat.cast_add, nat.cast_one, mul_one_add, iterate_succ_apply', hn]
 end
 
-theorem add_fp_iff_mul_omega_le {a b : ordinal.{u}} : a + b = b ↔ a * omega.{u} ≤ b :=
+theorem mul_omega_nfp_add_zero (a) : a * omega = nfp ((+) a) 0 :=
+begin
+  unfold nfp,
+  rw [mul_omega_eq_sup_mul_nat, funext (add_iterate a)]
+end
+
+-- Used in principal
+theorem mul_omega_nfp_add_of_le_mul_omega {a b} (hba : b ≤ a * omega) :
+  a * omega = nfp ((+) a) b :=
+begin
+  refine le_antisymm _ ((add_is_normal a).nfp_le_fp hba _),
+  { rw mul_omega_nfp_add_zero,
+    exact nfp_monotone (add_is_normal a).strict_mono.monotone (ordinal.zero_le b) },
+  rw add_mul_omega
+end
+
+-- Used in principal
+theorem mul_omega_nfp_add_self (a) : a * omega = nfp ((+) a) a :=
+mul_omega_nfp_add_of_le_mul_omega (le_mul_left omega_pos)
+
+theorem add_fp_iff_mul_omega_le {a b : ordinal} : a + b = b ↔ a * omega.{u} ≤ b :=
 begin
   refine ⟨λ h, _, λ h, _⟩,
   { rw [mul_omega_nfp_add_zero a, ←deriv_zero],
@@ -2167,21 +2266,8 @@ begin
   rwa [←add_assoc, add_mul_omega]
 end
 
-theorem add_fp_iff_mul_omega_le' {a b : ordinal.{u}} : a + b ≤ b ↔ a * omega.{u} ≤ b :=
+theorem add_fp_iff_mul_omega_le' {a b : ordinal} : a + b ≤ b ↔ a * omega.{u} ≤ b :=
 by { rw ←add_fp_iff_mul_omega_le, exact (add_is_normal a).self_le_iff_eq }
-
-theorem mul_omega_nfp_add_of_le_mul_omega {a b} (hba : b ≤ a * omega.{u}) :
-  a * omega.{u} = nfp ((+) a) b :=
-begin
-  refine le_antisymm _ ((add_is_normal a).nfp_le_fp hba _),
-  { rw mul_omega_nfp_add_zero,
-    apply nfp_monotone (add_is_normal a).strict_mono.monotone,
-    exact ordinal.zero_le b },
-  rw add_fp_iff_mul_omega_le'
-end
-
-theorem mul_omega_nfp_add_self (a) : a * omega.{u} = nfp ((+) a) a :=
-mul_omega_nfp_add_of_le_mul_omega (le_mul_left omega_pos)
 
 /-- `deriv ((+) a)` enumerates the ordinals larger or equal to `a * ω`. -/
 theorem add_deriv_eq_enum_ge_mul_omega (a) : deriv ((+) a) = enum_ord (mul_omega_unbounded a) :=
@@ -2193,8 +2279,7 @@ begin
     ((deriv_is_normal _).strict_mono.monotone (ordinal.zero_le b)), λ b hb, _⟩,
   { rw deriv_zero,
     exact mul_omega_nfp_add_zero a },
-  rw ←(add_is_normal a).fp_iff_deriv',
-  exact add_fp_iff_mul_omega_le'.2 hb
+  rwa [←(add_is_normal a).fp_iff_deriv', add_fp_iff_mul_omega_le']
 end
 
 /-! ### Fixed points of multiplication -/

@@ -436,6 +436,12 @@ by rw [← mk_one, mk_one']
   ratfunc.mk p q = (algebra_map _ _ p / algebra_map _ _ q) :=
 by simp only [mk_eq_div', of_fraction_ring_div, of_fraction_ring_algebra_map]
 
+@[simp] lemma div_smul {R} [monoid R] [distrib_mul_action R (polynomial K)]
+  [is_scalar_tower R (polynomial K) (polynomial K)] (c : R) (p q : polynomial K) :
+  algebra_map _ (ratfunc K) (c • p) / (algebra_map _ _ q) =
+    c • (algebra_map _ _ p / algebra_map _ _ q) :=
+by rw [←mk_eq_div, mk_smul, mk_eq_div]
+
 variables (K)
 
 lemma of_fraction_ring_comp_algebra_map :

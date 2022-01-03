@@ -187,6 +187,20 @@ instance : nontrivial ordinal.{u} :=
 theorem zero_lt_one : (0 : ordinal) < 1 :=
 lt_iff_le_and_ne.2 ⟨ordinal.zero_le _, ne.symm $ ordinal.one_ne_zero⟩
 
+theorem one_lt_two : (1 : ordinal) < 2 :=
+begin
+  nth_rewrite 0 ←succ_zero,
+  change succ (0 : ordinal) < succ 1,
+  rw succ_lt_succ,
+  exact zero_lt_one
+end
+
+theorem zero_lt_two : (0 : ordinal) < 2 :=
+zero_lt_one.trans one_lt_two
+
+theorem eq_zero_or_pos (a : ordinal) : a = 0 ∨ 0 < a :=
+by { convert eq_or_ne a 0, exact propext ordinal.pos_iff_ne_zero }
+
 /-! ### The predecessor of an ordinal -/
 
 /-- The ordinal predecessor of `o` is `o'` if `o = succ o'`,
@@ -1396,7 +1410,7 @@ begin
           (lt_of_lt_of_le (ordinal.pos_iff_ne_zero.2 a0) ab) (le_of_lt h))) } }
 end
 
-theorem le_power_self_left (a : ordinal) {b : ordinal} (b1 : 1 ≤ b) : a ≤ a ^ b :=
+theorem le_power_self_left (a : ordinal) {b : ordinal} (b1 : 0 < b) : a ≤ a ^ b :=
 begin
   nth_rewrite 0 ←power_one a,
   cases le_or_gt a 1 with a1 a1, {
@@ -1405,7 +1419,7 @@ begin
       rw [a0, zero_power ordinal.one_ne_zero],
       exact ordinal.zero_le _ },
     rw [a1, one_power, one_power] },
-  rwa power_le_power_iff_right a1
+  rwa [power_le_power_iff_right a1, one_le_iff_pos]
 end
 
 theorem le_power_self_right {a : ordinal} (b) (a1 : 1 < a) : b ≤ a ^ b :=
@@ -1839,12 +1853,7 @@ theorem omega_ne_zero : omega ≠ 0 := ne_of_gt omega_pos
 
 theorem one_lt_omega : 1 < omega := by simpa only [nat.cast_one] using nat_lt_omega 1
 
-theorem one_le_omega : 1 ≤ omega := le_of_lt one_lt_omega
-
--- TODO do i actually need this
 theorem two_lt_omega : 2 < omega := by simpa only [nat.cast_two] using nat_lt_omega 2
-
-theorem two_le_omega : 2 ≤ omega := le_of_lt two_lt_omega
 
 theorem omega_is_limit : is_limit omega :=
 ⟨omega_ne_zero, λ o h,
@@ -2335,7 +2344,7 @@ begin
   cases eq_zero_or_pos a with ha ha,
   { rw [ha, zero_power omega_ne_zero],
     exact (nfp_mul_zero 0).symm },
-  exact power_omega_nfp_mul ha (le_power_self_left a one_le_omega)
+  exact power_omega_nfp_mul ha (le_power_self_left a omega_pos)
 end
 
 theorem mul_fp_div_power_omega (a b : ordinal) :
@@ -2374,13 +2383,12 @@ begin
 end
 
 /-- `deriv ((*) a)` enumerates the multiples of `a ^ ω`. -/
-theorem mul_deriv_eq_enum_power_omega_div {a : ordinal} (ha : 1 ≤ a) :
+theorem mul_deriv_eq_enum_power_omega_div {a : ordinal} (ha : 0 < a) :
   deriv ((*) a) = enum_ord (dvd_power_omega_unbounded ha) :=
 begin
   rw ←eq_enum_ord,
   use (deriv_is_normal _).strict_mono,
   rw range_eq_iff,
-  rw one_le_iff_pos at ha,
   refine ⟨λ b, _, λ b hb, _⟩,
   { change _ ∣ _,
     rw [←mul_fp_iff_dvd_power_omega, (mul_is_normal ha).deriv_fp] },

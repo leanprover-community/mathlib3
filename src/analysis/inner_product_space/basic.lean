@@ -721,19 +721,18 @@ begin
 end
 omit dec_E
 
-include dec_ι
 /-- The inner product of a linear combination of a set of orthonormal vectors with one of those
 vectors picks out the coefficient of that vector. -/
 lemma orthonormal.inner_right_finsupp {v : ι → E} (hv : orthonormal 𝕜 v) (l : ι →₀ 𝕜) (i : ι) :
   ⟪v i, finsupp.total ι E 𝕜 v l⟫ = l i :=
-by simp [finsupp.total_apply, finsupp.inner_sum, orthonormal_iff_ite.mp hv]
+by classical; simp [finsupp.total_apply, finsupp.inner_sum, orthonormal_iff_ite.mp hv]
 
 /-- The inner product of a linear combination of a set of orthonormal vectors with one of those
 vectors picks out the coefficient of that vector. -/
 lemma orthonormal.inner_right_fintype [fintype ι]
   {v : ι → E} (hv : orthonormal 𝕜 v) (l : ι → 𝕜) (i : ι) :
   ⟪v i, ∑ i : ι, (l i) • (v i)⟫ = l i :=
-by simp [inner_sum, inner_smul_right, orthonormal_iff_ite.mp hv]
+by classical; simp [inner_sum, inner_smul_right, orthonormal_iff_ite.mp hv]
 
 /-- The inner product of a linear combination of a set of orthonormal vectors with one of those
 vectors picks out the coefficient of that vector. -/
@@ -746,7 +745,7 @@ vectors picks out the coefficient of that vector. -/
 lemma orthonormal.inner_left_fintype [fintype ι]
   {v : ι → E} (hv : orthonormal 𝕜 v) (l : ι → 𝕜) (i : ι) :
   ⟪∑ i : ι, (l i) • (v i), v i⟫ = conj (l i) :=
-by simp [sum_inner, inner_smul_left, orthonormal_iff_ite.mp hv]
+by classical; simp [sum_inner, inner_smul_left, orthonormal_iff_ite.mp hv]
 
 /--
 The double sum of weighted inner products of pairs of vectors from an orthonormal sequence is the
@@ -754,8 +753,7 @@ sum of the weights.
 -/
 lemma orthonormal.inner_left_right_finset {s : finset ι}  {v : ι → E} (hv : orthonormal 𝕜 v)
   {a : ι → ι → 𝕜} : ∑ i in s, ∑ j in s, (a i j) • ⟪v j, v i⟫ = ∑ k in s, a k k :=
-by simp [orthonormal_iff_ite.mp hv, finset.sum_ite_of_true]
-omit dec_ι
+by classical; simp [orthonormal_iff_ite.mp hv, finset.sum_ite_of_true]
 
 /-- An orthonormal set is linearly independent. -/
 lemma orthonormal.linear_independent {v : ι → E} (hv : orthonormal 𝕜 v) :

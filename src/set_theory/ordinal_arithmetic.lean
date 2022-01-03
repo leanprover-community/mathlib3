@@ -1134,7 +1134,7 @@ end
 /-! ### Ordinal logarithm -/
 
 /-- The ordinal logarithm is the solution `u` to the equation
-  `x = b ^ u * v + w` where `v < b` and `w < b`. -/
+  `x = b ^ u * v + w` where `v < b` and `w < b ^ u`. -/
 def log (b : ordinal) (x : ordinal) : ordinal :=
 if h : 1 < b then pred $
   omin {o | x < b^o} ⟨succ x, succ_le.1 (le_power_self _ h)⟩

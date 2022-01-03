@@ -905,8 +905,8 @@ begin
   exact sub_self _
 end
 
-theorem dvd_iff_mod_eq_zero {a b : ordinal} : has_dvd.dvd a b ↔ a % b = 0 :=
-⟨dvd_of_mod_eq_zero, mod_eq_zero_of_dvd⟩
+theorem dvd_iff_mod_eq_zero {a b : ordinal} : has_dvd.dvd b a ↔ a % b = 0 :=
+⟨mod_eq_zero_of_dvd, dvd_of_mod_eq_zero⟩
 
 /-! ### Supremum of a family of ordinals -/
 
@@ -2226,7 +2226,7 @@ end
 theorem mul_omega_unbounded (o) : unbounded (<) (set.Ici (o * ordinal.omega)) :=
 unbounded_lt_Ici _
 
-theorem add_iterate (a : ordinal.{u}) (n : ℕ) : a * n = (((+) a)^[n]) 0 :=
+theorem add_iterate (a : ordinal) (n : ℕ) : a * n = (((+) a)^[n]) 0 :=
 begin
   induction n with n hn,
   { rw [nat.cast_zero, mul_zero, iterate_zero_apply] },
@@ -2234,15 +2234,15 @@ begin
   rw [nat.cast_add, nat.cast_one, mul_one_add, iterate_succ_apply', hn]
 end
 
-theorem mul_omega_nfp_add_zero (a) : a * omega.{u} = nfp ((+) a) 0 :=
+theorem mul_omega_nfp_add_zero (a) : a * omega = nfp ((+) a) 0 :=
 begin
   unfold nfp,
   rw [mul_omega_eq_sup_mul_nat, funext (add_iterate a)]
 end
 
 -- Used in principal
-theorem mul_omega_nfp_add_of_le_mul_omega {a b} (hba : b ≤ a * omega.{u}) :
-  a * omega.{u} = nfp ((+) a) b :=
+theorem mul_omega_nfp_add_of_le_mul_omega {a b} (hba : b ≤ a * omega) :
+  a * omega = nfp ((+) a) b :=
 begin
   refine le_antisymm _ ((add_is_normal a).nfp_le_fp hba _),
   { rw mul_omega_nfp_add_zero,
@@ -2251,10 +2251,10 @@ begin
 end
 
 -- Used in principal
-theorem mul_omega_nfp_add_self (a) : a * omega.{u} = nfp ((+) a) a :=
+theorem mul_omega_nfp_add_self (a) : a * omega = nfp ((+) a) a :=
 mul_omega_nfp_add_of_le_mul_omega (le_mul_left one_le_omega)
 
-theorem add_fp_iff_mul_omega_le {a b : ordinal.{u}} : a + b = b ↔ a * omega.{u} ≤ b :=
+theorem add_fp_iff_mul_omega_le {a b : ordinal} : a + b = b ↔ a * omega.{u} ≤ b :=
 begin
   refine ⟨λ h, _, λ h, _⟩,
   { rw [mul_omega_nfp_add_zero a, ←deriv_zero],
@@ -2266,7 +2266,7 @@ begin
   rwa [←add_assoc, add_mul_omega]
 end
 
-theorem add_fp_iff_mul_omega_le' {a b : ordinal.{u}} : a + b ≤ b ↔ a * omega.{u} ≤ b :=
+theorem add_fp_iff_mul_omega_le' {a b : ordinal} : a + b ≤ b ↔ a * omega.{u} ≤ b :=
 by { rw ←add_fp_iff_mul_omega_le, exact (add_is_normal a).self_le_iff_eq }
 
 /-- `deriv ((+) a)` enumerates the ordinals larger or equal to `a * ω`. -/
@@ -2284,10 +2284,18 @@ end
 
 /-! ### Fixed points of multiplication -/
 
-theorem div_power_omega_unbounded (o) : unbounded (<) (range ((*) (o ^ ordinal.omega))) :=
-sorry
+theorem dvd_unbounded {a : ordinal} (ho : 1 ≤ a) : unbounded (<) {b | a ∣ b} :=
+λ b, ⟨_, dvd_mul_right a b, not_lt_of_le (le_mul_right ho)⟩
 
-theorem mul_iterate (a : ordinal.{u}) (n : ℕ) : a ^ n = (((*) a)^[n]) 1 :=
+theorem dvd_power_omega_unbounded {a : ordinal} (ha : 1 ≤ a) :
+  unbounded (<) {b : ordinal | (a ^ ordinal.omega) ∣ b} :=
+begin
+  apply dvd_unbounded,
+  rw one_le_iff_pos at *,
+  exact power_pos _ ha,
+end
+
+theorem mul_iterate (a : ordinal) (n : ℕ) : a ^ n = (((*) a)^[n]) 1 :=
 begin
   induction n with n hn,
   { rw [nat.cast_zero, power_zero, iterate_zero_apply] },
@@ -2295,7 +2303,7 @@ begin
   rw [nat.cast_add, nat.cast_one, power_one_add, iterate_succ_apply', hn]
 end
 
-theorem power_omega_nfp_mul_one {a : ordinal.{u}} (ha : 0 < a) : a ^ omega.{u} = nfp ((*) a) 1 :=
+theorem power_omega_nfp_mul_one {a : ordinal} (ha : 0 < a) : a ^ omega = nfp ((*) a) 1 :=
 begin
   unfold nfp,
   rwa [power_omega_eq_sup_power_nat, funext (mul_iterate a)]
@@ -2315,7 +2323,7 @@ begin
 end
 
 -- Used in principal
-theorem power_omega_nfp_mul {a b : ordinal.{u}} (hb : 0 < b) (hba : b ≤ a ^ omega.{u}) :
+theorem power_omega_nfp_mul {a b : ordinal} (hb : 0 < b) (hba : b ≤ a ^ omega) :
   a ^ omega.{u} = nfp ((*) a) b :=
 begin
   cases eq_zero_or_pos a with ha ha,
@@ -2332,7 +2340,7 @@ begin
 end
 
 -- Used in principal
-theorem power_omega_nfp_mul_self (a : ordinal.{u}) : a ^ omega.{u} = nfp ((*) a) a :=
+theorem power_omega_nfp_mul_self (a : ordinal) : a ^ omega = nfp ((*) a) a :=
 begin
   cases eq_zero_or_pos a with ha ha,
   { rw [ha, zero_power omega_ne_zero],
@@ -2340,38 +2348,53 @@ begin
   exact power_omega_nfp_mul ha (le_power_self_left a one_le_omega)
 end
 
-theorem mul_fp_div_power_omega (a b : ordinal.{u}) :
+theorem mul_fp_div_power_omega (a b : ordinal) :
   a * ((a ^ omega.{u}) * b) = (a ^ omega.{u}) * b :=
 by rw [←mul_assoc, ←power_one_add, one_add_omega]
 
-theorem mul_fp_iff_div_power_omega {a b : ordinal.{u}} :
-  a * b = b ↔ (has_dvd.dvd (a ^ omega.{u}) b) :=
+theorem mul_fp_eq_zero_or_power_omega_le {a b : ordinal} (hab : a * b = b) :
+  b = 0 ∨ a ^ omega.{u} ≤ b :=
 begin
   cases eq_zero_or_pos a with ha ha,
-  sorry,
-  refine ⟨λ h, _, λ h, _⟩,
+  { rw [ha, zero_power omega_ne_zero],
+    exact or.inr (ordinal.zero_le b) },
+  rw or_iff_not_imp_left,
+  intro hb,
+  change b ≠ 0 at hb,
+  rw power_omega_nfp_mul_one ha,
+  rw ←one_le_iff_ne_zero at hb,
+  exact (mul_is_normal ha).nfp_le_fp hb (le_of_eq hab)
+end
+
+theorem mul_fp_iff_dvd_power_omega {a b : ordinal} : a * b = b ↔ (a ^ omega) ∣ b :=
+begin
+  cases eq_zero_or_pos a with ha ha,
+  { rw [ha, zero_mul, zero_power omega_ne_zero, zero_dvd],
+    exact eq_comm },
+  refine ⟨λ hab, _, λ h, _⟩,
   { rw dvd_iff_mod_eq_zero,
-    have := div_add_mod b (a ^ omega.{u}),
-    rw ←this at h,
-    rw mul_add at h,
-    rw mul_fp_div_power_omega at h,
-    rw add_left_cancel at h,
-    sorry, },
+    rw [←div_add_mod b (a ^ omega), mul_add, mul_fp_div_power_omega, add_left_cancel] at hab,
+    cases mul_fp_eq_zero_or_power_omega_le hab with hab hab,
+    { exact hab },
+    refine (not_lt_of_le hab (mod_lt b (power_ne_zero omega _))).elim,
+    rwa ←ordinal.pos_iff_ne_zero },
   cases h with c hc,
   rw hc,
   exact mul_fp_div_power_omega _ _
 end
 
 /-- `deriv ((*) a)` enumerates the multiples of `a ^ ω`. -/
-theorem mul_deriv_eq_enum_power_omega_div {a : ordinal} (ha : 0 < a) :
-  deriv ((*) a) = enum_ord (div_power_omega_unbounded a) :=
+theorem mul_deriv_eq_enum_power_omega_div {a : ordinal} (ha : 1 ≤ a) :
+  deriv ((*) a) = enum_ord (dvd_power_omega_unbounded ha) :=
 begin
   rw ←eq_enum_ord,
   use (deriv_is_normal _).strict_mono,
   rw range_eq_iff,
-  split, {
-
-  }
+  rw one_le_iff_pos at ha,
+  refine ⟨λ b, _, λ b hb, _⟩,
+  { change _ ∣ _,
+    rw [←mul_fp_iff_dvd_power_omega, (mul_is_normal ha).deriv_fp] },
+  rwa [←(mul_is_normal ha).fp_iff_deriv, mul_fp_iff_dvd_power_omega]
 end
 
 end ordinal

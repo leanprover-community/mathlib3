@@ -1379,7 +1379,19 @@ begin
           (lt_of_lt_of_le (ordinal.pos_iff_ne_zero.2 a0) ab) (le_of_lt h))) } }
 end
 
-theorem le_power_self {a : ordinal} (b) (a1 : 1 < a) : b ≤ a ^ b :=
+theorem le_power_self_left (a : ordinal) {b : ordinal} (b1 : 1 ≤ b) : a ≤ a ^ b :=
+begin
+  nth_rewrite 0 ←power_one a,
+  cases le_or_gt a 1 with a1 a1, {
+    cases lt_or_eq_of_le a1 with a0 a1,
+    { rw lt_one_iff_zero at a0,
+      rw [a0, zero_power ordinal.one_ne_zero],
+      exact ordinal.zero_le _ },
+    rw [a1, one_power, one_power] },
+  rwa power_le_power_iff_right a1
+end
+
+theorem le_power_self_right {a : ordinal} (b) (a1 : 1 < a) : b ≤ a ^ b :=
 (power_is_normal a1).le_self _
 
 theorem power_lt_power_left_of_succ {a b c : ordinal}
@@ -1451,7 +1463,7 @@ end
   `x = b ^ u * v + w` where `v < b` and `w < b`. -/
 def log (b : ordinal) (x : ordinal) : ordinal :=
 if h : 1 < b then pred $
-  omin {o | x < b^o} ⟨succ x, succ_le.1 (le_power_self _ h)⟩
+  omin {o | x < b^o} ⟨succ x, succ_le.1 (le_power_self_right _ h)⟩
 else 0
 
 @[simp] theorem log_not_one_lt {b : ordinal} (b1 : ¬ 1 < b) (x : ordinal) : log b x = 0 :=
@@ -1526,7 +1538,7 @@ else by simp only [log_not_one_lt b1, ordinal.zero_le]
 theorem log_le_self (b x : ordinal) : log b x ≤ x :=
 if x0 : x = 0 then by simp only [x0, log_zero, ordinal.zero_le] else
 if b1 : 1 < b then
-  le_trans (le_power_self _ b1) (power_log_le b (ordinal.pos_iff_ne_zero.2 x0))
+  le_trans (le_power_self_right _ b1) (power_log_le b (ordinal.pos_iff_ne_zero.2 x0))
 else by simp only [log_not_one_lt b1, ordinal.zero_le]
 
 /-! ### The Cantor normal form -/
@@ -1939,7 +1951,7 @@ theorem power_omega {a : ordinal} (a1 : 1 < a) (h : a < omega) : a ^ omega = ome
 le_antisymm
   ((power_le_of_limit (one_le_iff_ne_zero.1 $ le_of_lt a1) omega_is_limit).2
     (λ b hb, le_of_lt (power_lt_omega h hb)))
-  (le_power_self _ a1)
+  (le_power_self_right _ a1)
 
 theorem normal_omega {f : ordinal.{u} → ordinal.{u}} (hf : is_normal f) :
   f omega.{u} = sup (λ n : ℕ, f n) :=

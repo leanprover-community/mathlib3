@@ -128,6 +128,12 @@ by rw [← not_le, succ_le, not_lt]
 theorem lt_one_iff_zero {a : ordinal} : a < 1 ↔ a = 0 :=
 by rw [←succ_zero, lt_succ, ordinal.le_zero]
 
+theorem le_one_iff_lt_two {a : ordinal} : a ≤ 1 ↔ a < 2 :=
+begin
+  have : (2 : ordinal) = succ 1 := rfl,
+  rw [this, lt_succ]
+end
+
 theorem add_lt_add_iff_left (a) {b c : ordinal} : a + b < a + c ↔ b < c :=
 by rw [← not_le, ← not_le, add_le_add_iff_left]
 
@@ -178,8 +184,26 @@ instance : nontrivial ordinal.{u} :=
 theorem zero_lt_one : (0 : ordinal) < 1 :=
 lt_iff_le_and_ne.2 ⟨ordinal.zero_le _, ne.symm $ ordinal.one_ne_zero⟩
 
+theorem one_lt_two : (1 : ordinal) < 2 :=
+begin
+  nth_rewrite 0 ←succ_zero,
+  change succ (0 : ordinal) < succ 1,
+  rw succ_lt_succ,
+  exact zero_lt_one
+end
+
+theorem zero_lt_two : (0 : ordinal) < 2 :=
+zero_lt_one.trans one_lt_two
+
 theorem eq_zero_or_pos (a : ordinal) : a = 0 ∨ 0 < a :=
 by { convert eq_or_ne a 0, exact propext ordinal.pos_iff_ne_zero }
+
+theorem zero_or_one_of_le_one {a : ordinal} (ha : a ≤ 1) : a = 0 ∨ a = 1 :=
+begin
+  rcases eq_or_lt_of_le ha with rfl | ha,
+  { exact or.inr rfl },
+  { exact or.inl (lt_one_iff_zero.1 ha) }
+end
 
 /-! ### The predecessor of an ordinal -/
 
@@ -581,6 +605,12 @@ by simp only [mul_add, mul_one]
 by simp only [mul_add, mul_one]
 
 @[simp] theorem mul_succ (a b : ordinal) : a * succ b = a * b + a := mul_add_one _ _
+
+theorem mul_two (a : ordinal) : a * 2 = a + a :=
+begin
+  change a * (succ 1) = a + a,
+  rw [mul_succ, mul_one]
+end
 
 theorem mul_le_mul_left {a b} (c : ordinal) : a ≤ b → c * a ≤ c * b :=
 quotient.induction_on₃ a b c $ λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨γ, t, _⟩ ⟨f⟩, begin
@@ -1789,6 +1819,8 @@ theorem omega_ne_zero : omega ≠ 0 := ne_of_gt omega_pos
 
 theorem one_lt_omega : 1 < omega := by simpa only [nat.cast_one] using nat_lt_omega 1
 
+theorem two_lt_omega : 2 < omega := by simpa only [nat.cast_two] using nat_lt_omega 2
+
 theorem omega_is_limit : is_limit omega :=
 ⟨omega_ne_zero, λ o h,
   let ⟨n, e⟩ := lt_omega.1 h in
@@ -1877,7 +1909,7 @@ begin
       (le_trans this (power_le_power_right omega_pos $ le_of_lt $ max_lt xb yb)) }
 end
 
-theorem add_lt_omega_power {a b c : ordinal} (h₁ : a < omega ^ c) (h₂ : b < omega ^ c) :
+theorem add_lt_omega_power {c a b : ordinal} (h₁ : a < omega ^ c) (h₂ : b < omega ^ c) :
   a + b < omega ^ c :=
 by rwa [← add_omega_power h₁, add_lt_add_iff_left]
 

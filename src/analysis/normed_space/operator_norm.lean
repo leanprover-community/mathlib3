@@ -392,6 +392,10 @@ theorem le_op_nnnorm : ∥f x∥₊ ≤ ∥f∥₊ * ∥x∥₊ := f.le_op_norm 
 theorem lipschitz : lipschitz_with ∥f∥₊ f :=
 (f : E →ₛₗ[σ₁₂] F).lipschitz_of_bound_nnnorm _ f.le_op_nnnorm
 
+/-- Evaluation of a continuous linear map `f` at a point is Lipschitz continuous in `f`. -/
+theorem lipschitz_apply (x : E) : lipschitz_with ∥x∥₊ (λ f : E →SL[σ₁₂] F, f x) :=
+lipschitz_with_iff_norm_sub_le.2 $ λ f g, ((f - g).le_op_norm x).trans_eq (mul_comm _ _)
+
 end
 
 section
@@ -1073,6 +1077,26 @@ begin
   exact linear_map.bound_of_shell_semi_normed f ε_pos hc hf (ne_of_lt (norm_pos_iff.2 hx)).symm
 end
 
+/--
+`linear_map.bound_of_ball_bound'` is a version of this lemma over a field satisfying `is_R_or_C`
+that produces a concrete bound.
+-/
+lemma linear_map.bound_of_ball_bound {r : ℝ} (r_pos : 0 < r) (c : ℝ) (f : E →ₗ[𝕜] Fₗ)
+  (h : ∀ z ∈ metric.ball (0 : E) r, ∥f z∥ ≤ c) :
+  ∃ C, ∀ (z : E), ∥f z∥ ≤ C * ∥z∥ :=
+begin
+  cases @nondiscrete_normed_field.non_trivial 𝕜 _ with k hk,
+  use c * (∥k∥ / r),
+  intro z,
+  refine linear_map.bound_of_shell _ r_pos hk (λ x hko hxo, _) _,
+  calc ∥f x∥ ≤ c : h _ (mem_ball_zero_iff.mpr hxo)
+         ... ≤ c * ((∥x∥ * ∥k∥) / r) : le_mul_of_one_le_right _ _
+         ... = _ : by ring,
+  { exact le_trans (norm_nonneg _) (h 0 (by simp [r_pos])) },
+  { rw [div_le_iff (zero_lt_one.trans hk)] at hko,
+    exact (one_le_div r_pos).mpr hko }
+end
+
 namespace continuous_linear_map
 
 section op_norm
@@ -1179,61 +1203,82 @@ section completeness
 open_locale topological_space
 open filter
 
+variables {E' : Type*} [semi_normed_group E'] [semi_normed_space 𝕜 E']
+
+/-- Construct a bundled continuous (semi)linear map from a map `f : E → F` and a proof of the fact
+that it belongs to the closure of the image of a bounded set `s : set (E →SL[σ₁₂] F)` under coercion
+to function. Coercion to function of the result is definitionally equal to `f`. -/
+@[simps apply { fully_applied := ff }]
+def of_mem_closure_image_coe_bounded (f : E' → F) {s : set (E' →SL[σ₁₂] F)} (hs : bounded s)
+  (hf : f ∈ closure ((λ g x, g x : (E' →SL[σ₁₂] F) → E' → F) '' s)) :
+  E' →SL[σ₁₂] F :=
+begin
+  -- `f` is a linear map due to `linear_map_of_mem_closure_range_coe`
+  refine (linear_map_of_mem_closure_range_coe f _).mk_continuous_of_exists_bound _,
+  { refine closure_mono (image_subset_iff.2 $ λ g hg, _) hf, exact ⟨g, rfl⟩ },
+  { -- We need to show that `f` has bounded norm. Choose `C` such that `∥g∥ ≤ C` for all `g ∈ s`.
+    rcases bounded_iff_forall_norm_le.1 hs with ⟨C, hC⟩,
+    -- Then `∥g x∥ ≤ C * ∥x∥` for all `g ∈ s`, `x : E`, hence `∥f x∥ ≤ C * ∥x∥` for all `x`.
+    have : ∀ x, is_closed {g : E' → F | ∥g x∥ ≤ C * ∥x∥},
+      from λ x, is_closed_Iic.preimage (@continuous_apply E' (λ _, F) _ x).norm,
+    refine ⟨C, λ x, (this x).closure_subset_iff.2 (image_subset_iff.2 $ λ g hg, _) hf⟩,
+    exact g.le_of_op_norm_le (hC _ hg) _ }
+end
+
+/-- Let `f : E → F` be a map, let `g : α → E →SL[σ₁₂] F` be a family of continuous (semi)linear maps
+that takes values in a bounded set and converges to `f` pointwise along a nontrivial filter. Then
+`f` is a continuous (semi)linear map. -/
+@[simps apply { fully_applied := ff }]
+def of_tendsto_of_bounded_range {α : Type*} {l : filter α} [l.ne_bot] (f : E' → F)
+  (g : α → E' →SL[σ₁₂] F) (hf : tendsto (λ a x, g a x) l (𝓝 f)) (hg : bounded (set.range g)) :
+  E' →SL[σ₁₂] F :=
+of_mem_closure_image_coe_bounded f hg $ mem_closure_of_tendsto hf $
+  eventually_of_forall $ λ a, mem_image_of_mem _ $ set.mem_range_self _
+
+/-- If a Cauchy sequence of continuous linear map converges to a continuous linear map pointwise,
+then it converges to the same map in norm. This lemma is used to prove that the space of continuous
+linear maps is complete provided that the codomain is a complete space. -/
+lemma tendsto_of_tendsto_pointwise_of_cauchy_seq {f : ℕ → E' →SL[σ₁₂] F} {g : E' →SL[σ₁₂] F}
+  (hg : tendsto (λ n x, f n x) at_top (𝓝 g)) (hf : cauchy_seq f) :
+  tendsto f at_top (𝓝 g) :=
+begin
+  /- Since `f` is a Cauchy sequence, there exists `b → 0` such that `∥f n - f m∥ ≤ b N` for any
+  `m, n ≥ N`. -/
+  rcases cauchy_seq_iff_le_tendsto_0.1 hf with ⟨b, hb₀, hfb, hb_lim⟩,
+  -- Since `b → 0`, it suffices to show that `∥f n x - g x∥ ≤ b n * ∥x∥` for all `n` and `x`.
+  suffices : ∀ n x, ∥f n x - g x∥ ≤ b n * ∥x∥,
+    from tendsto_iff_norm_tendsto_zero.2 (squeeze_zero (λ n, norm_nonneg _)
+      (λ n, op_norm_le_bound _ (hb₀ n) (this n)) hb_lim),
+  intros n x,
+  -- Note that `f m x → g x`, hence `∥f n x - f m x∥ → ∥f n x - g x∥` as `m → ∞`
+  have : tendsto (λ m, ∥f n x - f m x∥) at_top (𝓝 (∥f n x - g x∥)),
+    from (tendsto_const_nhds.sub $ tendsto_pi_nhds.1 hg _).norm,
+  -- Thus it suffices to verify `∥f n x - f m x∥ ≤ b n * ∥x∥` for `m ≥ n`.
+  refine le_of_tendsto this (eventually_at_top.2 ⟨n, λ m hm, _⟩),
+  -- This inequality follows from `∥f n - f m∥ ≤ b n`.
+  exact (f n - f m).le_of_op_norm_le (hfb _ _ _ le_rfl hm) _
+end
+
 /-- If the target space is complete, the space of continuous linear maps with its norm is also
 complete. This works also if the source space is seminormed. -/
-instance {E : Type*} [semi_normed_group E] [semi_normed_space 𝕜 E] [complete_space F] :
-  complete_space (E →SL[σ₁₂] F) :=
+instance [complete_space F] : complete_space (E' →SL[σ₁₂] F) :=
 begin
   -- We show that every Cauchy sequence converges.
   refine metric.complete_of_cauchy_seq_tendsto (λ f hf, _),
-  -- We now expand out the definition of a Cauchy sequence,
-  rcases cauchy_seq_iff_le_tendsto_0.1 hf with ⟨b, b0, b_bound, b_lim⟩, clear hf,
-  -- and establish that the evaluation at any point `v : E` is Cauchy.
+  -- The evaluation at any point `v : E` is Cauchy.
   have cau : ∀ v, cauchy_seq (λ n, f n v),
-  { assume v,
-    apply cauchy_seq_iff_le_tendsto_0.2 ⟨λ n, b n * ∥v∥, λ n, _, _, _⟩,
-    { exact mul_nonneg (b0 n) (norm_nonneg _) },
-    { assume n m N hn hm,
-      rw dist_eq_norm,
-      apply le_trans ((f n - f m).le_op_norm v) _,
-      exact mul_le_mul_of_nonneg_right (b_bound n m N hn hm) (norm_nonneg v) },
-    { simpa using b_lim.mul tendsto_const_nhds } },
+    from λ v, hf.map (lipschitz_apply v).uniform_continuous,
   -- We assemble the limits points of those Cauchy sequences
   -- (which exist as `F` is complete)
   -- into a function which we call `G`.
   choose G hG using λv, cauchy_seq_tendsto_of_complete (cau v),
-  -- Next, we show that this `G` is linear,
-  let Glin : E →ₛₗ[σ₁₂] F := linear_map_of_tendsto _ (tendsto_pi_nhds.mpr hG),
-  -- and that `G` has norm at most `(b 0 + ∥f 0∥)`.
-  have Gnorm : ∀ v, ∥G v∥ ≤ (b 0 + ∥f 0∥) * ∥v∥,
-  { assume v,
-    have A : ∀ n, ∥f n v∥ ≤ (b 0 + ∥f 0∥) * ∥v∥,
-    { assume n,
-      apply le_trans ((f n).le_op_norm _) _,
-      apply mul_le_mul_of_nonneg_right _ (norm_nonneg v),
-      calc ∥f n∥ = ∥(f n - f 0) + f 0∥ : by { congr' 1, abel }
-      ... ≤ ∥f n - f 0∥ + ∥f 0∥ : norm_add_le _ _
-      ... ≤ b 0 + ∥f 0∥ : begin
-        apply add_le_add_right,
-        simpa [dist_eq_norm] using b_bound n 0 0 (zero_le _) (zero_le _)
-      end },
-    exact le_of_tendsto (hG v).norm (eventually_of_forall A) },
-  -- Thus `G` is continuous, and we propose that as the limit point of our original Cauchy sequence.
-  let Gcont := Glin.mk_continuous _ Gnorm,
-  use Gcont,
-  -- Our last task is to establish convergence to `G` in norm.
-  have : ∀ n, ∥f n - Gcont∥ ≤ b n,
-  { assume n,
-    apply op_norm_le_bound _ (b0 n) (λ v, _),
-    have A : ∀ᶠ m in at_top, ∥(f n - f m) v∥ ≤ b n * ∥v∥,
-    { refine eventually_at_top.2 ⟨n, λ m hm, _⟩,
-      apply le_trans ((f n - f m).le_op_norm _) _,
-      exact mul_le_mul_of_nonneg_right (b_bound n m n (le_refl _) hm) (norm_nonneg v) },
-    have B : tendsto (λ m, ∥(f n - f m) v∥) at_top (𝓝 (∥(f n - Gcont) v∥)) :=
-      tendsto.norm (tendsto_const_nhds.sub (hG v)),
-    exact le_of_tendsto B A },
-  erw tendsto_iff_norm_tendsto_zero,
-  exact squeeze_zero (λ n, norm_nonneg _) this b_lim,
+  -- Next, we show that this `G` is a continuous linear map.
+  -- This is done in `continuous_linear_map.of_tendsto_of_bounded_range`.
+  set Glin : E' →SL[σ₁₂] F :=
+    of_tendsto_of_bounded_range _ _ (tendsto_pi_nhds.mpr hG) hf.bounded_range,
+  -- Finally, `f n` converges to `Glin` in norm because of
+  -- `continuous_linear_map.tendsto_of_tendsto_pointwise_of_cauchy_seq`
+  exact ⟨Glin, tendsto_of_tendsto_pointwise_of_cauchy_seq (tendsto_pi_nhds.2 hG) hf⟩
 end
 
 end completeness

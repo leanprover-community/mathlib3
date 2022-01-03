@@ -256,18 +256,45 @@ variables
 {M₁ M₂ α R S : Type*}
 [topological_space M₂] [t2_space M₂] [semiring R] [semiring S]
 [add_comm_monoid M₁] [add_comm_monoid M₂] [module R M₁] [module S M₂]
-[topological_space S] [has_continuous_smul S M₂] [has_continuous_add M₂]
-{σ : R →+* S} {l : filter α} {f : M₁ → M₂}
+[topological_space S] [has_continuous_smul S M₂]
+
+section
+
+variables (M₁ M₂) (σ : R →+* S)
+
+lemma is_closed_set_of_map_smul : is_closed {f : M₁ → M₂ | ∀ c x, f (c • x) = σ c • f x} :=
+begin
+  simp only [set.set_of_forall],
+  exact is_closed_Inter (λ c, is_closed_Inter (λ x, is_closed_eq (continuous_apply _)
+    (continuous_const.smul (continuous_apply _))))
+end
+
+end
+
+variables [has_continuous_add M₂] {σ : R →+* S} {l : filter α}
+
+/-- Constructs a bundled linear map from a function and a proof that this function belongs to the
+closure of the set of linear maps. -/
+@[simps { fully_applied := ff }] def linear_map_of_mem_closure_range_coe (f : M₁ → M₂)
+  (hf : f ∈ closure (set.range (coe_fn : (M₁ →ₛₗ[σ] M₂) → (M₁ → M₂)))) :
+  M₁ →ₛₗ[σ] M₂ :=
+{ to_fun := f,
+  map_smul' := (is_closed_set_of_map_smul M₁ M₂ σ).closure_subset_iff.2
+    (set.range_subset_iff.2 linear_map.map_smulₛₗ) hf,
+  .. add_monoid_hom_of_mem_closure_range_coe f hf }
 
 /-- Construct a bundled linear map from a pointwise limit of linear maps -/
-@[simps] def linear_map_of_tendsto (g : α → M₁ →ₛₗ[σ] M₂) [l.ne_bot]
+@[simps { fully_applied := ff }]
+def linear_map_of_tendsto (f : M₁ → M₂) (g : α → M₁ →ₛₗ[σ] M₂) [l.ne_bot]
   (h : tendsto (λ a x, g a x) l (𝓝 f)) : M₁ →ₛₗ[σ] M₂ :=
-{ to_fun := f,
-  map_smul' := λ r x, by
-    { rw tendsto_pi_nhds at h,
-      refine tendsto_nhds_unique (h (r • x)) _,
-      simpa only [linear_map.map_smulₛₗ] using tendsto.smul tendsto_const_nhds (h x) },
-  .. add_monoid_hom_of_tendsto (λ a, (g a).to_add_monoid_hom) h }
+linear_map_of_mem_closure_range_coe f $ mem_closure_of_tendsto h $
+  eventually_of_forall $ λ a, set.mem_range_self _
+
+variables (M₁ M₂ σ)
+
+lemma linear_map.is_closed_range_coe :
+  is_closed (set.range (coe_fn : (M₁ →ₛₗ[σ] M₂) → (M₁ → M₂))) :=
+is_closed_of_closure_subset $ λ f hf, ⟨linear_map_of_mem_closure_range_coe f hf, rfl⟩
 
 end pointwise_limits
 

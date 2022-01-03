@@ -1408,6 +1408,9 @@ begin
       (power_is_normal a1)).limit_le l).symm }
 end
 
+theorem power_one_add (a b : ordinal) : a ^ (1 + b) = a * a ^ b :=
+by rw [power_add, power_one]
+
 theorem power_dvd_power (a) {b c : ordinal}
   (h : b ≤ c) : a ^ b ∣ a ^ c :=
 by { rw [← ordinal.add_sub_cancel_of_le h, power_add], apply dvd_mul_right }

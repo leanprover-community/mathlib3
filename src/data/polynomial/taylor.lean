@@ -39,6 +39,9 @@ by simp only [taylor_apply, X_comp]
 @[simp] lemma taylor_C (x : R) : taylor r (C x) = C x :=
 by simp only [taylor_apply, C_comp]
 
+@[simp] lemma taylor_at_zero (f : polynomial R) : taylor 0 f = f :=
+by simp only [taylor_apply, add_zero, comp_X, eq_self_iff_true, _root_.map_zero]
+
 @[simp] lemma taylor_one : taylor r (1 : polynomial R) = C 1 :=
 by rw [← C_1, taylor_C]
 
@@ -84,32 +87,36 @@ begin
   rw [taylor_apply, comp_eq_sum_left, nat_degree_le_iff_coeff_eq_zero, sum_def,
       nat_degree_sum_eq_of_disjoint],
   { rintros (_|y) hy,
-    { simpa using hy },
+    { simpa only [not_lt_zero'] using hy },
     rw finset.sup_lt_iff (nat.zero_lt_succ _) at hy,
     specialize hy (p.nat_degree) (nat_degree_mem_support_of_nonzero hp),
     rw [nat_degree_mul', nat_degree_pow', nat_degree_C, zero_add, nat_degree_X_add_C,
         mul_one] at hy,
     { exact coeff_eq_zero_of_nat_degree_lt hy },
-    { simp },
-    { simp [hp] } },
-  { intros x hx y hy h hxy,
-    simp only [set.mem_sep_eq, mem_support_iff, ne.def, finset.mem_coe,
-               finset.coe_filter] at hx hy,
+    { simp only [one_pow, leading_coeff_X_add_C, ne.def, not_false_iff, one_ne_zero] },
+    { simp only [hp, mul_one, coeff_nat_degree, leading_coeff_pow_X_add_C, leading_coeff_eq_zero,
+                 leading_coeff_C, ne.def, not_false_iff] } },
+  { rintro x ⟨hx, -⟩ y ⟨hy, -⟩ h hxy,
+    simp only [mem_support_iff] at hx hy,
     simp only [function.comp_app] at hxy,
     rw [nat_degree_C_mul_eq_of_mul_ne_zero, nat_degree_C_mul_eq_of_mul_ne_zero,
         nat_degree_pow', nat_degree_pow',
         nat_degree_add_eq_left_of_nat_degree_lt] at hxy,
-    { simpa [h] using hxy },
-    { simp },
-    { simp },
-    { simp },
-    { simpa using hy.left },
-    { simpa using hx.left } }
+    { simpa only [mul_one, nat_degree_X] using hxy },
+    { simp only [nat_degree_C, nat.lt_one_iff, nat_degree_X] },
+    { simp only [one_pow, leading_coeff_X_add_C, ne.def, not_false_iff, one_ne_zero] },
+    { simp only [one_pow, leading_coeff_X_add_C, ne.def, not_false_iff, one_ne_zero] },
+    { simpa only [mul_one, leading_coeff_pow_X_add_C] using hy },
+    { simpa only [mul_one, leading_coeff_pow_X_add_C] using hx } }
 end
 
 @[simp] lemma taylor_mul {R} [comm_semiring R] (r : R) (p q : polynomial R) :
   taylor r (p * q) = taylor r p * taylor r q :=
 by simp only [taylor_apply, mul_comp]
+
+lemma taylor_taylor {R} [comm_semiring R] (f : polynomial R) (r s : R) :
+  taylor r (taylor s f) = taylor (r + s) f :=
+by simp only [taylor_apply, comp_assoc, map_add, add_comp, X_comp, C_comp, C_add, add_assoc]
 
 lemma taylor_eval {R} [comm_semiring R] (r : R) (f : polynomial R) (s : R) :
   (taylor r f).eval s = f.eval (s + r) :=
@@ -137,37 +144,10 @@ begin
   simp only [taylor_coeff, h, coeff_zero],
 end
 
-lemma sum_taylor_X_pow {R} [comm_ring R] (r : R) (n : ℕ) :
-  (taylor r (X ^ n)).sum (λ i a, C a * (X - C r) ^ i) = X ^ n :=
-begin
-  nontriviality R,
-  rw sum_over_range,
-  { rw nat_degree_taylor,
-    nth_rewrite_rhs 0 ←sub_add_cancel X (C r),
-    rw add_pow,
-    refine finset.sum_congr _ _,
-    { simp },
-    { intros x hx,
-      rw taylor_coeff,
-      simp [X_pow_eq_monomial, mul_comm, mul_assoc, mul_left_comm] } },
-  { simp }
-end
-
 /-- Taylor's formula. -/
 lemma sum_taylor_eq {R} [comm_ring R] (f : polynomial R) (r : R) :
   (taylor r f).sum (λ i a, C a * (X - C r) ^ i) = f :=
-begin
-  -- we induct over the polynomial because juggling sums via the linearity of the functions
-  -- requires constructing and destructing over lsum, lcoeff, which is too much work
-  induction f using polynomial.induction_on with k f g hf hg n k IH,
-  { simp },
-  { rw [linear_map.map_add, sum_add_index, hf, hg];
-    simp [add_mul] },
-  { rw [←smul_eq_C_mul, linear_map.map_smul, sum_smul_index],
-    { nth_rewrite_rhs 0 ←sum_taylor_X_pow r,
-      rw [sum_def, sum_def, finset.smul_sum],
-      simp [smul_eq_C_mul, mul_assoc] },
-    { simp } }
-end
+by rw [←comp_eq_sum_left, sub_eq_add_neg, ←C_neg, ←taylor_apply, taylor_taylor, neg_add_self,
+       taylor_at_zero]
 
 end polynomial

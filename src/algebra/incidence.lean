@@ -157,6 +157,17 @@ instance : has_one (incidence_algebra 𝕜 α) :=
 
 end one
 
+section co_union_lemmas
+variables {α}
+variables [partial_order α] [locally_finite_order α] [decidable_eq α]
+-- TODO fix names of these lemmas
+-- TODO copy more API from data.set.intervals.basic to finset
+lemma Ici_eq_Ioi_union [order_top α] (x : α) : Ici x = Ioi x ∪ {x} := finset.coe_inj.mp (by simp)
+lemma Iic_eq_Iio_union [order_bot α] (x : α) : Iic x = Iio x ∪ {x} := finset.coe_inj.mp (by simp)
+lemma Icc_eq_Ico_union {x y : α} (hxy : x ≤ y) : Icc x y = Ico x y ∪ {y} := finset.coe_inj.mp (by simp [hxy, set.Ico_union_right])
+lemma Icc_eq_Ioc_union {x y : α} (hxy : x ≤ y) : Icc x y = Ioc x y ∪ {x} := finset.coe_inj.mp (by simp [hxy, set.Ioc_union_left])
+end co_union_lemmas
+
 section mul
 variables [preorder α] [locally_finite_order α] [add_comm_monoid 𝕜] [has_mul 𝕜]
 
@@ -300,16 +311,24 @@ by rw [mu_apply, if_neg h]
 --     conv in (mu _ _ _ _) { rw eq_zero_of_not_le (this x H), },
 --     simp, },
 -- end
+end mu
+section mu_spec
+-- we need partial order for this
+variables [add_comm_group 𝕜] [has_one 𝕜] [partial_order α] [locally_finite_order α] [decidable_eq α]
+variables {𝕜 α}
 
 lemma mu_spec_of_ne_right {a b : α} (h : a ≠ b) : ∑ (x : α) in Icc a b, (mu 𝕜 α) a x = 0 :=
 begin
   have : mu 𝕜 α a b = _ := mu_apply_of_ne h,
-  have hIcc : Icc a b = Ico a b ∪ {b},
-  sorry,
-  rw [hIcc, sum_union, sum_singleton, this, add_neg_self],
-  simp,
+  by_cases hab : a ≤ b,
+  { rw [Icc_eq_Ico_union hab, sum_union, sum_singleton, this, add_neg_self],
+    simp, },
+  { have : ∀ x ∈ Icc a b, ¬ a ≤ x,
+    { intros x hx hn, apply hab, rw [mem_Icc] at hx, exact le_trans hn hx.2 },
+    conv in (mu _ _ _ _) { rw eq_zero_of_not_le (this x H), },
+    exact sum_const_zero, },
 end
-end mu
+end mu_spec
 
 section mu'
 variables [add_comm_group 𝕜] [has_one 𝕜] [preorder α] [locally_finite_order α] [decidable_eq α]
@@ -344,21 +363,31 @@ by rw [mu', coe_mk, mu'_aux_apply, sum_attach]
 lemma mu'_apply_of_ne {a b : α} (h : a ≠ b) : mu' 𝕜 α a b = -∑ x in Ioc a b, mu' 𝕜 α x b :=
 by rw [mu'_apply, if_neg h]
 
-lemma mu'_spec_of_ne_left {a b : α} (h : a ≠ b) : ∑ (x : α) in Icc a b, (mu' 𝕜 α) x b = 0 :=
-begin
-  have : mu' 𝕜 α a b = _ := mu'_apply_of_ne h,
-  have hIcc : Icc a b = Ioc a b ∪ {a},
-  sorry,
-  rw [hIcc, sum_union, sum_singleton, this, add_neg_self],
-  simp,
-end
-
 lemma mu'_apply_of_eq {a b : α} (h : a = b) : mu' 𝕜 α a b = 1 :=
 by rw [mu'_apply, if_pos h]
 
 @[simp]
 lemma mu'_apply_self (a : α) : mu' 𝕜 α a a = 1 := mu'_apply_of_eq rfl
 end mu'
+
+section mu'_spec
+-- we need partial order for this
+variables [add_comm_group 𝕜] [has_one 𝕜] [partial_order α] [locally_finite_order α] [decidable_eq α]
+variables {𝕜 α}
+
+
+lemma mu'_spec_of_ne_left {a b : α} (h : a ≠ b) : ∑ (x : α) in Icc a b, (mu' 𝕜 α) x b = 0 :=
+begin
+  have : mu' 𝕜 α a b = _ := mu'_apply_of_ne h,
+  by_cases hab : a ≤ b,
+  { rw [Icc_eq_Ioc_union hab, sum_union, sum_singleton, this, add_right_neg],
+    simp, },
+  { have : ∀ x ∈ Icc a b, ¬ x ≤ b,
+    { intros x hx hn, apply hab, rw [mem_Icc] at hx, exact le_trans hx.1 hn },
+    conv in (mu' _ _ _ _) { rw eq_zero_of_not_le (this x H), },
+    exact sum_const_zero, },
+end
+end mu'_spec
 
 section order_dual
 variables [add_comm_group 𝕜] [has_one 𝕜] [preorder α] [locally_finite_order α] [decidable_eq α]
@@ -423,13 +452,12 @@ by rw [mu_eq_mu', mu'_spec_of_ne_left h]
 end mu_eq_mu'
 
 section inversion_top
+
 variables [ring 𝕜] [partial_order α] [order_top α] [locally_finite_order α]
   [decidable_eq α]
 
-lemma Ici_eq_Ioi_union (x : α) : Ici x = Ioi x ∪ {x} := sorry
-
 /-- A general form of Möbius inversion. Based on Theorem 2.1.2 of Incidence Algebras by Spiegel and
-O'Donnell.-/
+O'Donnell. -/
 lemma moebius_inversion_top (f g : α → 𝕜) (h : ∀ x, g x = ∑ y in Ici x, f y) (x : α) :
   f x = ∑ y in Ici x, mu 𝕜 α x y * g y :=
 by letI : @decidable_rel α (≤) := classical.dec_rel _; symmetry; calc
@@ -515,6 +543,8 @@ by simp [ite_and]
 
 lemma prod_Icc (a b : β × γ) : Icc a b = (Icc a.fst b.fst).product (Icc a.snd b.snd) := rfl
 
+/-- The Möbius function on a product order. Based on Theorem 2.1.13 of Incidence Algebras
+by Spiegel and O'Donnell. -/
 lemma mu_prod_eq (x y : β) (u v : γ) : mu 𝕜 (β × γ) (x, u) (y, v) = mu 𝕜 β x y * mu 𝕜 γ u v :=
 begin
   suffices : mu 𝕜 (β × γ) = mu_prod 𝕜 β γ,

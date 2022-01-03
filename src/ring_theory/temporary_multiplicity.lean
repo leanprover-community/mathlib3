@@ -117,21 +117,13 @@ lemma second_of_chain_is_irreducible {q : associates M} (n : ℕ) (hn : 1 ≤ n)
   (h₂ : ∀ {r}, r ≤ q ↔ ∃ i ≤ n, r = c ⟨i, finset.mem_range.2 (nat.lt_succ_of_le H)⟩)
   (hq : q ≠ 0) : irreducible (c ⟨1, finset.mem_range.2 (nat.lt_succ_of_le hn)⟩) :=
 begin
-  refine (associates.is_atom_iff _).mp _,
-  apply ne_zero_of_dvd_ne_zero hq (h₂.2 (exists.intro 1 (exists.intro hn rfl) )),
-
-  split,
-  { refine ne_bot_of_gt (h₁ (show (⟨0, finset.mem_range.2 (nat.zero_lt_succ n)⟩ : finset.range
-    (n + 1)) < ⟨1, finset.mem_range.2 (nat.lt_succ_of_le hn) ⟩, from _ )),
-    rw [← subtype.coe_lt_coe, subtype.coe_mk, subtype.coe_mk],
-    exact zero_lt_one },
-
-  intros b hb,
-  have h : b ∣ q := (hb.le).trans (h₂.2 ⟨1, hn, rfl⟩),
+  refine (associates.is_atom_iff (ne_zero_of_dvd_ne_zero hq (h₂.2 ⟨1, hn, rfl⟩))).mp ⟨_, λ b hb, _⟩,
+  { exact ne_bot_of_gt (h₁ (show (⟨0, finset.mem_range.2 (nat.zero_lt_succ n)⟩ : finset.range
+    (n + 1)) < ⟨1, finset.mem_range.2 (nat.lt_succ_of_le hn) ⟩, by simp)) },
+  have h : b ∣ q := hb.le.trans (h₂.2 ⟨1, hn, rfl⟩),
   obtain ⟨i, hi, rfl⟩ := h₂.1 h,
-  have H : i < 1 := h₁.lt_iff_lt.mp hb,
-  simp_rw [nat.lt_one_iff.mp H, associates.bot_eq_one, ← associates.is_unit_iff_eq_one],
-  exact first_of_chain_is_unit n c h₁ @h₂,
+  cases nat.lt_one_iff.mp (h₁.lt_iff_lt.mp hb),
+  exact (associates.is_unit_iff_eq_one _).mp (first_of_chain_is_unit n c h₁ @h₂),
 end
 
 lemma prime_dvd_eq_second_of_chain {p q r : associates M} (n : ℕ) (hn : 1 ≤ n)

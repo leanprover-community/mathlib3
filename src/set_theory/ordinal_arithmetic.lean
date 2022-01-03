@@ -1214,21 +1214,8 @@ else by simp only [log_not_one_lt b1, ordinal.zero_le]
 theorem log_one (b : ordinal) : log b 1 = 0 :=
 begin
   by_cases hb : 1 < b,
-  { rw log_def hb,
-    suffices : omin {o | 1 < b^o} (log._proof_1 b 1 hb) = 1,
-    { rw [this, ←succ_zero, pred_succ] },
-    apply le_antisymm,
-    { apply omin_le,
-      change 1 < b ^ 1,
-      rwa power_one },
-    rw le_omin,
-    intros a ha,
-    by_contra' ha',
-    rw lt_one_iff_zero at ha',
-    rw ha' at ha,
-    change 1 < b ^ 0 at ha,
-    exact ne_of_lt ha (power_zero b).symm },
-  exact log_not_one_lt hb 1
+  { rwa [←lt_one_iff_zero, log_lt hb zero_lt_one, power_one] },
+  { exact log_not_one_lt hb 1 }
 end
 
 lemma power_mul_add_pos {b v : ordinal} (u w : ordinal) (hb : 0 < b) (hv : 0 < v) :
@@ -1242,7 +1229,7 @@ by rwa [mul_succ, add_lt_add_iff_left]
 lemma power_mul_add_lt_power_succ {b u v w : ordinal} (hvb : v < b) (hw : w < b ^ u) :
   b ^ u * v + w < b ^ u.succ :=
 begin
-  apply lt_of_lt_of_le (power_mul_add_lt_power_mul_succ v hw),
+  apply (power_mul_add_lt_power_mul_succ v hw).trans_le,
   rw ←succ_le at hvb,
   rw power_succ,
   exact (mul_le_mul_left (b ^ u) hvb)

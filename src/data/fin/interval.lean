@@ -225,7 +225,7 @@ begin
   { rw [filter_le_le_eq_Icc, card_Icc] }
 end
 
-lemma prod_filter_gt_mul_neg_eq_prod_off_diag {R : Type*} [comm_monoid R] {n : ℕ}
+lemma prod_filter_lt_mul_neg_eq_prod_off_diag {R : Type*} [comm_monoid R] {n : ℕ}
   {f : fin n → fin n → R} :
   ∏ i, (∏ j in univ.filter (λ j, i < j), (f j i) * (f i j)) =
   ∏ i, (∏ j in univ.filter (λ j, i ≠ j), (f j i)) :=

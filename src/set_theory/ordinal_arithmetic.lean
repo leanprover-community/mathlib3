@@ -1767,8 +1767,6 @@ theorem omega_ne_zero : omega ≠ 0 := ne_of_gt omega_pos
 
 theorem one_lt_omega : 1 < omega := by simpa only [nat.cast_one] using nat_lt_omega 1
 
-theorem one_le_omega : 1 ≤ omega := le_of_lt one_lt_omega
-
 theorem omega_is_limit : is_limit omega :=
 ⟨omega_ne_zero, λ o h,
   let ⟨n, e⟩ := lt_omega.1 h in
@@ -2133,7 +2131,7 @@ theorem mul_omega_unbounded (o) : unbounded (<) (set.Ici (o * ordinal.omega)) :=
 unbounded_lt_Ici _
 
 theorem add_mul_omega (a) : a + a * omega = a * omega :=
-by { rw [←mul_one_add, one_add_omega] }
+by rw [←mul_one_add, one_add_omega]
 
 theorem mul_omega_nfp_add_zero (a) : a * omega.{u} = nfp ((+) a) 0 :=
 begin

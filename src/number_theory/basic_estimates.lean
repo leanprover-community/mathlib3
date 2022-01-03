@@ -332,14 +332,14 @@ lemma fract_mul_integrable {f : ℝ → ℝ} (s : set ℝ)
   integrable_on (int.fract * f) s :=
 begin
   refine integrable.mono hf' _ (eventually_of_forall _),
-  { exact measurable_id'.fract.ae_measurable.mul' hf'.1 },
+  { exact measurable_fract.ae_measurable.mul' hf'.1 },
   intro x,
   simp only [normed_field.norm_mul, pi.mul_apply, norm_of_nonneg (int.fract_nonneg _)],
   exact mul_le_of_le_one_left (norm_nonneg _) (int.fract_lt_one _).le,
 end
 
 lemma euler_mascheroni_convergence_rate :
-  is_O_with 1 (λ (x : ℝ), 1 - (∫ t in Ioc 1 x, int.fract t * (t^2)⁻¹) - euler_mascheroni)
+  is_O_with 1 (λ x : ℝ, 1 - (∫ t in Ioc 1 x, int.fract t * (t^2)⁻¹) - euler_mascheroni)
     (λ x, x⁻¹) at_top :=
 begin
   apply is_O_with.of_bound,
@@ -368,13 +368,13 @@ begin
 end
 
 lemma euler_mascheroni_integral_Ioc_convergence :
-  tendsto (λ (x : ℝ), 1 - ∫ t in Ioc 1 x, int.fract t * (t^2)⁻¹) at_top (𝓝 euler_mascheroni) :=
+  tendsto (λ x : ℝ, 1 - ∫ t in Ioc 1 x, int.fract t * (t^2)⁻¹) at_top (𝓝 euler_mascheroni) :=
 by simpa using
   (euler_mascheroni_convergence_rate.is_O.trans_tendsto tendsto_inv_at_top_zero).add_const
     euler_mascheroni
 
 lemma euler_mascheroni_interval_integral_convergence :
-  tendsto (λ (x : ℝ), (1 : ℝ) - ∫ t in 1..x, int.fract t * (t^2)⁻¹) at_top (𝓝 euler_mascheroni) :=
+  tendsto (λ x : ℝ, (1 : ℝ) - ∫ t in 1..x, int.fract t * (t^2)⁻¹) at_top (𝓝 euler_mascheroni) :=
 begin
   apply euler_mascheroni_integral_Ioc_convergence.congr' _,
   rw [eventually_eq, eventually_at_top],
@@ -584,8 +584,6 @@ lemma sigma_zero_apply_eq_card_divisors {i : ℕ} :
   σ 0 i = i.divisors.card :=
  by rw [sigma_zero_apply_eq_sum_divisors, finset.card_eq_sum_ones]
 
-#exit
-
 -- BM: Bounds like these make me tempted to define a relation
 -- `equal_up_to p f g` to express that `f - g ≪ p` (probably stated `f - g = O(p)`) and show that
 -- (for fixed p) this is an equivalence relation, and that it is increasing in `p`
@@ -596,12 +594,13 @@ lemma sigma_zero_apply_eq_card_divisors {i : ℕ} :
 --    = f₄ + O(p)
 -- since this is essentially using transitivity of `equal_up_to p` three times
 lemma hyperbola :
-  (λ x, summatory (λ i, σ 0 i) x - x * log x - (2 * euler_mascheroni - 1) * x) ≪ sqrt :=
+  is_O (λ x : ℝ, summatory (λ i, (σ 0 i : ℝ)) x - x * log x - (2 * euler_mascheroni - 1) * x)
+    sqrt at_top :=
 sorry
 
 -- BM: This might need a lower bound on `n`, maybe just `1 ≤ n` is good enough?
 lemma divisor_bound :
-  ∃ (g : ℝ → ℝ), g ≪ (λ i, 1 / log (log i)) ∧
+  ∃ (g : ℝ → ℝ), is_O g (λ i, 1 / log (log i)) at_top ∧
     ∀ (n : ℕ), (σ 0 n : ℝ) ≤ n ^ g n :=
 sorry
 
@@ -611,7 +610,7 @@ lemma weak_divisor_bound (ε : ℝ) (hε : 0 < ε) :
 sorry
 
 lemma big_O_divisor_bound (ε : ℝ) (hε : 0 < ε) :
-  asymptotics.is_O (λ n, (σ 0 n : ℝ)) (λ n, (n : ℝ)^ε) filter.at_top :=
+  is_O (λ n, (σ 0 n : ℝ)) (λ n, (n : ℝ)^ε) filter.at_top :=
 sorry
 
 -- BM: I have this defined in another branch, coming to mathlib soon
@@ -628,12 +627,12 @@ localized "notation `Λ` := von_mangoldt" in arithmetic_function
 --    x ≤ log 2 * summatory Λ x :=
 -- which could be helpful
 lemma chebyshev_lower :
-  (λ x, x) ≪ summatory Λ :=
+  is_O (λ x, x) (summatory Λ) at_top :=
 sorry
 
 -- BM: As above, with c = 2 log 2?
 lemma chebyshev_upper :
-  summatory Λ ≪ (λ x, x) :=
+  is_O (summatory Λ) (λ x, x) at_top :=
 sorry
 
 /--
@@ -645,20 +644,22 @@ def prime_summatory {M : Type*} [add_comm_monoid M] (a : ℕ → M) (x : ℝ) : 
 -- BM: equivalently could say it's `summatory (λ n, if (a n).prime then a n else 0) x`
 
 lemma log_reciprocal :
-  (λ x, prime_summatory (λ p, log p / p) x - log x) ≪ (λ _, 1) :=
+  is_O (λ x, prime_summatory (λ p, log p / p) x - log x) (λ _, (1 : ℝ)) at_top :=
 sorry
 
 lemma prime_counting_asymptotic :
-  (λ x, prime_summatory (λ _, 1) x - summatory Λ x / log x) ≪ (λ x, x / (log x)^2) :=
+  is_O (λ x, prime_summatory (λ _, (1 : ℝ)) x - summatory Λ x / log x)
+    (λ x, x / (log x)^2) at_top :=
 sorry
 
 lemma prime_reciprocal : ∃ b,
-  (λ x, prime_summatory (λ p, 1 / p) x - log (log x) - b) ≪ (λ x, 1 / log x) :=
+  is_O (λ x, prime_summatory (λ p, (p : ℝ)⁻¹) x - log (log x) - b) (λ x, 1 / log x) at_top :=
 sorry
 
 -- BM: I expect there's a nicer way of stating this but this should be good enough for now
 lemma mertens_third :
-  ∃ c, (λ x, ∏ p in (finset.Icc 1 ⌊x⌋₊), (1 - 1/p)⁻¹ - c * log x) ≪ (λ _, 1) :=
+  ∃ c, is_O (λ x, ∏ p in (finset.Icc 1 ⌊x⌋₊), (1 - (p : ℝ)⁻¹)⁻¹ - c * log x)
+        (λ _, (1 : ℝ)) at_top :=
 sorry
 
 end nat.arithmetic_function

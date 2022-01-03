@@ -356,9 +356,8 @@ meta def frac_tac : tactic unit :=
 
 /-- Solve equations for `ratfunc K` by applying `ratfunc.induction_on`. -/
 meta def smul_tac : tactic unit :=
-`[repeat { rintro (x : ratfunc _) <|> intro },
-  refine x.induction_on' (λ p q hq, _),
-  simp_rw [← mk_smul, mk_eq_localization_mk _ hq],
+`[repeat { rintro (⟨⟩ : ratfunc _) <|> intro },
+  simp_rw [←of_fraction_ring_smul],
   simp only [add_comm, mul_comm, zero_smul, succ_nsmul, zsmul_eq_mul, mul_add, mul_one, mul_zero,
     neg_add, ← neg_mul_eq_mul_neg,
     int.of_nat_eq_coe, int.coe_nat_succ, int.cast_zero, int.cast_add, int.cast_one,
@@ -366,9 +365,9 @@ meta def smul_tac : tactic unit :=
     localization.mk_zero, localization.add_mk_self, localization.neg_mk,
     of_fraction_ring_zero, ← of_fraction_ring_add, ← of_fraction_ring_neg]]
 
-include hring hdomain
+include hring
 
-instance : field (ratfunc K) :=
+instance : comm_ring (ratfunc K) :=
 { add := (+),
   add_assoc := by frac_tac,
   add_comm := by frac_tac,
@@ -387,20 +386,25 @@ instance : field (ratfunc K) :=
   one := 1,
   one_mul := by frac_tac,
   mul_one := by frac_tac,
-  inv := has_inv.inv,
+  nsmul := (•),
+  nsmul_zero' := by smul_tac,
+  nsmul_succ' := λ _, by smul_tac,
+  zsmul := (•),
+  zsmul_zero' := by smul_tac,
+  zsmul_succ' := λ _, by smul_tac,
+  zsmul_neg' := λ _, by smul_tac,
+  npow := npow_rec }
+
+include hdomain
+
+instance : field (ratfunc K) :=
+{ inv := has_inv.inv,
   inv_zero := by frac_tac,
   div := (/),
   div_eq_mul_inv := by frac_tac,
   mul_inv_cancel := λ _, mul_inv_cancel,
-  nsmul := (•),
-  nsmul_zero' := by smul_tac,
-  nsmul_succ' := by smul_tac,
-  zsmul := (•),
-  zsmul_zero' := by smul_tac,
-  zsmul_succ' := by smul_tac,
-  zsmul_neg' := by smul_tac,
-  npow := npow_rec,
   zpow := zpow_rec,
+  .. ratfunc.comm_ring K,
   .. ratfunc.nontrivial K }
 
 end field

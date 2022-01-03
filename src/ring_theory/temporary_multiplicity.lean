@@ -81,13 +81,9 @@ end
 lemma second_of_chain_not_is_unit (n i : ℕ) (hi : 1 ≤ i ∧ i ≤ n)
   (c : finset.range (n + 1) → associates M) (h₁ : strict_mono c) :
   ¬ is_unit (c ⟨i, finset.mem_range.2 (nat.lt_succ_of_le hi.right)⟩) :=
-begin
-  refine dvd_not_unit.not_unit (associates.dvd_not_unit_iff_lt.2
-    (h₁ (show (⟨0, finset.mem_range.2 (nat.zero_lt_succ n)⟩ : finset.range (n + 1))
-      < ⟨i, finset.mem_range.2 (nat.lt_succ_of_le hi.right )⟩, from _))),
-  rw [← subtype.coe_lt_coe, subtype.coe_mk, subtype.coe_mk],
-  exact nat.lt_of_lt_of_le zero_lt_one hi.left,
-end
+dvd_not_unit.not_unit (associates.dvd_not_unit_iff_lt.2
+  (h₁ $ show (⟨0, finset.mem_range.2 n.zero_lt_succ⟩ : finset.range (n + 1))
+    < ⟨i, finset.mem_range.2 (nat.lt_succ_of_le hi.right )⟩, by simp [zero_lt_one.trans_le hi.1]))
 
 lemma first_of_chain_is_unit {q : associates M} (n : ℕ) (c : finset.range (n + 1) → associates M)
   (h₁ : strict_mono c)

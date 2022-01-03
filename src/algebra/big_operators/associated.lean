@@ -137,6 +137,7 @@ prime.dvd_finset_prod_iff pp _
 
 end comm_monoid_with_zero
 
+-- todo use nat.prime
 lemma nat.prime.dvd_finset_prod_iff {α : Type*} {S : finset α} {p : ℕ}
   (pp : prime p) (g : α → ℕ) : p ∣ S.prod g ↔ ∃ a ∈ S, p ∣ g a :=
 by apply prime.dvd_finset_prod_iff pp

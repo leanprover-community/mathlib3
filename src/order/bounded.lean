@@ -5,7 +5,7 @@ Authors: Violeta Hernández Palacios
 -/
 import .min_max
 import .rel_classes
-import data.set.basic
+import data.set.intervals.basic
 
 /-!
 # Bounded and unbounded sets
@@ -109,7 +109,7 @@ begin
   exact ⟨b, hb, λ hba', hba (le_of_lt hba')⟩
 end
 
-lemma bounded_le_iff_bounded_lt [linear_order α] [no_top_order α] : bounded (≤) s ↔ bounded (<) s :=
+lemma bounded_le_iff_bounded_lt [preorder α] [no_top_order α] : bounded (≤) s ↔ bounded (<) s :=
 begin
   refine ⟨λ h, _, bounded_le_of_bounded_lt⟩,
   cases h with a ha,
@@ -117,7 +117,7 @@ begin
   exact ⟨b, λ c hc, lt_of_le_of_lt (ha c hc) hb⟩
 end
 
-lemma unbounded_lt_iff_unbounded_le [linear_order α] [no_top_order α] :
+lemma unbounded_lt_iff_unbounded_le [preorder α] [no_top_order α] :
   unbounded (<) s ↔ unbounded (≤) s :=
 begin
   refine ⟨λ h a, _, unbounded_lt_of_unbounded_le⟩,
@@ -141,7 +141,7 @@ begin
   exact ⟨b, hb, λ hba', hba (le_of_lt hba')⟩
 end
 
-lemma bounded_ge_iff_bounded_gt [linear_order α] [no_bot_order α] : bounded (≥) s ↔ bounded (>) s :=
+lemma bounded_ge_iff_bounded_gt [preorder α] [no_bot_order α] : bounded (≥) s ↔ bounded (>) s :=
 begin
   refine ⟨λ h, _, bounded_ge_of_bounded_gt⟩,
   cases h with a ha,
@@ -149,7 +149,7 @@ begin
   exact ⟨b, λ c hc, lt_of_lt_of_le hb (ha c hc)⟩
 end
 
-lemma unbounded_ge_iff_unbounded_gt [linear_order α] [no_bot_order α] :
+lemma unbounded_ge_iff_unbounded_gt [preorder α] [no_bot_order α] :
   unbounded (≥) s ↔ unbounded (>) s :=
 begin
   refine ⟨unbounded_gt_of_unbounded_ge, λ h a, _⟩,
@@ -157,6 +157,111 @@ begin
   rcases h c with ⟨b, hb, hbc⟩,
   exact ⟨b, hb, λ hba, hbc (lt_of_lt_of_le hc hba)⟩
 end
+
+/-! ### Bounded and unbounded intervals -/
+
+theorem bounded_r_r (a : α) : bounded r {b | r b a} :=
+⟨a, λ x, id⟩
+
+/-! #### Half-open bounded intervals -/
+
+theorem bounded_lt_Iio [preorder α] (a : α) : bounded (<) (set.Iio a) :=
+bounded_r_r a
+
+theorem bounded_lt_Iic [preorder α] [no_top_order α] (a : α) : bounded (<) (set.Iic a) :=
+begin
+  cases no_top a with b hab,
+  exact ⟨b, λ c hca, lt_of_le_of_lt hca hab⟩
+end
+
+theorem bounded_le_Iio [preorder α] (a : α) : bounded (≤) (set.Iio a) :=
+bounded_le_of_bounded_lt (bounded_lt_Iio a)
+
+theorem bounded_le_Iic [preorder α] (a : α) : bounded (≤) (set.Iic a) :=
+bounded_r_r a
+
+theorem bounded_gt_Ioi [preorder α] (a : α) : bounded (>) (set.Ioi a) :=
+bounded_r_r a
+
+theorem bounded_gt_Ici [preorder α] [no_bot_order α] (a : α) : bounded (>) (set.Ici a) :=
+begin
+  cases no_bot a with b hab,
+  exact ⟨b, λ c hca, lt_of_lt_of_le hab hca⟩
+end
+
+theorem bounded_ge_Ioi [preorder α] (a : α) : bounded (≥) (set.Ioi a) :=
+bounded_ge_of_bounded_gt (bounded_gt_Ioi a)
+
+theorem bounded_ge_Ici [preorder α] (a : α) : bounded (≥) (set.Ici a) :=
+bounded_r_r a
+
+/-! #### Other bounded intervals -/
+
+theorem bounded_lt_Ioo [preorder α] (a b : α) : bounded (<) (set.Ioo a b) :=
+bounded_of_subset_bounded set.Ioo_subset_Iio_self (bounded_lt_Iio b)
+
+theorem bounded_lt_Ico [preorder α] (a b : α) : bounded (<) (set.Ico a b) :=
+bounded_of_subset_bounded set.Ico_subset_Iio_self (bounded_lt_Iio b)
+
+theorem bounded_lt_Ioc [preorder α] [no_top_order α] (a b : α) : bounded (<) (set.Ioc a b) :=
+bounded_of_subset_bounded set.Ioc_subset_Iic_self (bounded_lt_Iic b)
+
+theorem bounded_lt_Icc [preorder α] [no_top_order α] (a b : α) : bounded (<) (set.Icc a b) :=
+bounded_of_subset_bounded set.Icc_subset_Iic_self (bounded_lt_Iic b)
+
+theorem bounded_le_Ioo [preorder α] (a b : α) : bounded (≤) (set.Ioo a b) :=
+bounded_of_subset_bounded set.Ioo_subset_Iio_self (bounded_le_Iio b)
+
+theorem bounded_le_Ico [preorder α] (a b : α) : bounded (≤) (set.Ico a b) :=
+bounded_of_subset_bounded set.Ico_subset_Iio_self (bounded_le_Iio b)
+
+theorem bounded_le_Ioc [preorder α] (a b : α) : bounded (≤) (set.Ioc a b) :=
+bounded_of_subset_bounded set.Ioc_subset_Iic_self (bounded_le_Iic b)
+
+theorem bounded_le_Icc [preorder α] (a b : α) : bounded (≤) (set.Icc a b) :=
+bounded_of_subset_bounded set.Icc_subset_Iic_self (bounded_le_Iic b)
+
+theorem bounded_gt_Ioo [preorder α] (a b : α) : bounded (>) (set.Ioo a b) :=
+bounded_of_subset_bounded set.Ioo_subset_Ioi_self (bounded_gt_Ioi a)
+
+theorem bounded_gt_Ioc [preorder α] (a b : α) : bounded (>) (set.Ioc a b) :=
+bounded_of_subset_bounded set.Ioc_subset_Ioi_self (bounded_gt_Ioi a)
+
+theorem bounded_gt_Ico [preorder α] [no_bot_order α] (a b : α) : bounded (>) (set.Ico a b) :=
+bounded_of_subset_bounded set.Ico_subset_Ici_self (bounded_gt_Ici a)
+
+theorem bounded_gt_Icc [preorder α] [no_bot_order α] (a b : α) : bounded (>) (set.Icc a b) :=
+bounded_of_subset_bounded set.Icc_subset_Ici_self (bounded_gt_Ici a)
+
+theorem bounded_ge_Ioo [preorder α] (a b : α) : bounded (≥) (set.Ioo a b) :=
+bounded_of_subset_bounded set.Ioo_subset_Ioi_self (bounded_ge_Ioi a)
+
+theorem bounded_ge_Ioc [preorder α] (a b : α) : bounded (≥) (set.Ioc a b) :=
+bounded_of_subset_bounded set.Ioc_subset_Ioi_self (bounded_ge_Ioi a)
+
+theorem bounded_ge_Ico [preorder α] (a b : α) : bounded (≥) (set.Ico a b) :=
+bounded_of_subset_bounded set.Ico_subset_Ici_self (bounded_ge_Ici a)
+
+theorem bounded_ge_Icc [preorder α] (a b : α) : bounded (≥) (set.Icc a b) :=
+bounded_of_subset_bounded set.Icc_subset_Ici_self (bounded_ge_Ici a)
+
+/-! #### Unbounded intervals -/
+
+theorem unbounded_le_Ioi [semilattice_sup α] [no_top_order α] (a : α) : unbounded (≤) (set.Ioi a) :=
+begin
+  intro b,
+  cases no_top (a ⊔ b) with c hc,
+  exact ⟨c, le_sup_left.trans_lt hc, not_le_of_gt (le_sup_right.trans_lt hc)⟩
+end
+
+theorem unbounded_le_Ici [semilattice_sup α] [no_top_order α] (a : α) : unbounded (≤) (set.Ici a) :=
+unbounded_of_unbounded_subset set.Ioi_subset_Ici_self (unbounded_le_Ioi a)
+
+theorem unbounded_lt_Ioi [semilattice_sup α] [no_top_order α] (a : α) : unbounded (<) (set.Ioi a) :=
+unbounded_lt_of_unbounded_le (unbounded_le_Ioi a)
+
+theorem unbounded_lt_Ici [semilattice_sup α] (a : α) : unbounded (<) (set.Ici a) :=
+λ b, ⟨a ⊔ b, le_sup_left, not_lt_of_ge le_sup_right⟩
 
 /-! ### Bounded initial segments -/
 

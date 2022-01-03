@@ -2240,7 +2240,6 @@ begin
   rw [mul_omega_eq_sup_mul_nat, funext (add_iterate a)]
 end
 
--- Used in principal
 theorem mul_omega_nfp_add_of_le_mul_omega {a b} (hba : b ≤ a * omega) :
   a * omega = nfp ((+) a) b :=
 begin
@@ -2250,7 +2249,6 @@ begin
   rw add_mul_omega
 end
 
--- Used in principal
 theorem mul_omega_nfp_add_self (a) : a * omega = nfp ((+) a) a :=
 mul_omega_nfp_add_of_le_mul_omega (le_mul_left omega_pos)
 
@@ -2318,7 +2316,6 @@ begin
   exact ordinal.zero_le a
 end
 
--- Used in principal
 theorem power_omega_nfp_mul {a b : ordinal} (hb : 0 < b) (hba : b ≤ a ^ omega) :
   a ^ omega.{u} = nfp ((*) a) b :=
 begin
@@ -2335,7 +2332,6 @@ begin
   rw mul_power_omega
 end
 
--- Used in principal
 theorem power_omega_nfp_mul_self (a : ordinal) : a ^ omega = nfp ((*) a) a :=
 begin
   cases eq_zero_or_pos a with ha ha,

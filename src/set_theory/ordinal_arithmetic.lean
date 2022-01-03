@@ -859,6 +859,28 @@ by simp only [mod_def, div_self a0, mul_one, sub_self]
 @[simp] theorem mod_one (a : ordinal) : a % 1 = 0 :=
 by simp only [mod_def, div_one, one_mul, sub_self]
 
+theorem dvd_of_mod_eq_zero {a b : ordinal} (H : a % b = 0) : has_dvd.dvd b a :=
+begin
+  use a / b,
+  nth_rewrite 0 ←div_add_mod a b,
+  rw [H, add_zero]
+end
+
+theorem mod_eq_zero_of_dvd {a b : ordinal} (H : has_dvd.dvd b a) : a % b = 0 :=
+begin
+  rw mod_def,
+  cases H with c hc,
+  cases eq_or_ne b 0 with hb hb,
+  { subst hb,
+    rw zero_mul at hc,
+    rw [hc, zero_mul, zero_sub] },
+  rw [hc, mul_div_cancel _ hb],
+  exact sub_self _
+end
+
+theorem dvd_iff_mod_eq_zero {a b : ordinal} : has_dvd.dvd b a ↔ a % b = 0 :=
+⟨mod_eq_zero_of_dvd, dvd_of_mod_eq_zero⟩
+
 /-! ### Supremum of a family of ordinals -/
 
 /-- The supremum of a family of ordinals -/

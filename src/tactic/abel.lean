@@ -311,6 +311,9 @@ meta def eval (c : context) : expr → tactic (normal_expr × expr)
 | `(@has_scalar.smul int _ sub_neg_monoid.has_scalar_int %%e₁ %%e₂) := eval_smul' c eval tt e₁ e₂
 | `(smul %%e₁ %%e₂) := eval_smul' c eval ff e₁ e₂
 | `(smulg %%e₁ %%e₂) := eval_smul' c eval tt e₁ e₂
+| e@`(@has_zero.zero _ _) := mcond (succeeds (is_def_eq e c.α0))
+  (mk_eq_refl c.α0 >>= λ p, pure (zero' c, p))
+  (eval_atom c e)
 | e := eval_atom c e
 
 meta def eval' (c : context) (e : expr) : tactic (expr × expr) :=

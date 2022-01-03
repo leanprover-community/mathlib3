@@ -1180,10 +1180,15 @@ lemma set_to_L1_const [is_finite_measure μ] (hT : dominated_fin_meas_additive �
   set_to_L1 hT (indicator_const_Lp 1 measurable_set.univ (measure_ne_top _ _) x) = T univ x :=
 set_to_L1_indicator_const_Lp hT measurable_set.univ (measure_ne_top _ _) x
 
-lemma set_to_L1_mono_left' {G} [normed_lattice_add_comm_group G] [normed_space ℝ G]
-  [complete_space G]
-  {T T' : set α → E →L[ℝ] G} {C C' : ℝ} (hT : dominated_fin_meas_additive μ T C)
-  (hT' : dominated_fin_meas_additive μ T' C')
+section order
+
+variables {G' G'' : Type*} [normed_lattice_add_comm_group G''] [normed_space ℝ G'']
+  [complete_space G'']
+  [normed_lattice_add_comm_group G'] [normed_space ℝ G']
+  [measurable_space G'] [borel_space G'] [second_countable_topology G']
+
+lemma set_to_L1_mono_left' {T T' : set α → E →L[ℝ] G''} {C C' : ℝ}
+  (hT : dominated_fin_meas_additive μ T C) (hT' : dominated_fin_meas_additive μ T' C')
   (hTT' : ∀ s, measurable_set s → μ s < ∞ → ∀ x, T s x ≤ T' s x) (f : α →₁[μ] E) :
   set_to_L1 hT f ≤ set_to_L1 hT' f :=
 begin
@@ -1198,44 +1203,39 @@ begin
   { exact is_closed_le (set_to_L1 hT).continuous (set_to_L1 hT').continuous, },
 end
 
-lemma set_to_L1_mono_left {G} [normed_lattice_add_comm_group G] [normed_space ℝ G]
-  [complete_space G]
-  {T T' : set α → E →L[ℝ] G} {C C' : ℝ} (hT : dominated_fin_meas_additive μ T C)
-  (hT' : dominated_fin_meas_additive μ T' C') (hTT' : ∀ s x, T s x ≤ T' s x) (f : α →₁[μ] E) :
+lemma set_to_L1_mono_left {T T' : set α → E →L[ℝ] G''} {C C' : ℝ}
+  (hT : dominated_fin_meas_additive μ T C) (hT' : dominated_fin_meas_additive μ T' C')
+  (hTT' : ∀ s x, T s x ≤ T' s x) (f : α →₁[μ] E) :
   set_to_L1 hT f ≤ set_to_L1 hT' f :=
 set_to_L1_mono_left' hT hT' (λ s _ _ x, hTT' s x) f
 
-lemma set_to_L1_nonneg {G G'} [normed_lattice_add_comm_group G] [normed_space ℝ G]
-  [normed_lattice_add_comm_group G'] [normed_space ℝ G'] [measurable_space G] [borel_space G]
-  [second_countable_topology G] [complete_space G']
-  {T : set α → G →L[ℝ] G'} {C : ℝ} (hT : dominated_fin_meas_additive μ T C)
+lemma set_to_L1_nonneg {T : set α → G' →L[ℝ] G''} {C : ℝ} (hT : dominated_fin_meas_additive μ T C)
   (hT_nonneg : ∀ s, measurable_set s → μ s < ∞ → ∀ x, 0 ≤ x → 0 ≤ T s x)
-  {f : α →₁[μ] G} (hf : 0 ≤ f) :
+  {f : α →₁[μ] G'} (hf : 0 ≤ f) :
   0 ≤ set_to_L1 hT f :=
 begin
-  suffices : ∀ f : {g : α →₁[μ] G // 0 ≤ g}, 0 ≤ set_to_L1 hT f,
-    from this (⟨f, hf⟩ : {g : α →₁[μ] G // 0 ≤ g}),
-  refine λ g, @is_closed_property {g : α →₁ₛ[μ] G // 0 ≤ g} {g : α →₁[μ] G // 0 ≤ g} _ _ _
-    (dense_range_coe_simple_func_nonneg_to_Lp_nonneg 1 μ G one_ne_top) _ _ g,
+  suffices : ∀ f : {g : α →₁[μ] G' // 0 ≤ g}, 0 ≤ set_to_L1 hT f,
+    from this (⟨f, hf⟩ : {g : α →₁[μ] G' // 0 ≤ g}),
+  refine λ g, @is_closed_property {g : α →₁ₛ[μ] G' // 0 ≤ g} {g : α →₁[μ] G' // 0 ≤ g} _ _ _
+    (dense_range_coe_simple_func_nonneg_to_Lp_nonneg 1 μ G' one_ne_top) _ _ g,
   { exact is_closed_le continuous_zero ((set_to_L1 hT).continuous.comp continuous_induced_dom), },
   { intros g,
-    have : (coe_simple_func_nonneg_to_Lp_nonneg 1 μ G g : α →₁[μ] G) = (g : α →₁ₛ[μ] G), by refl,
+    have : (coe_simple_func_nonneg_to_Lp_nonneg 1 μ G' g : α →₁[μ] G') = (g : α →₁ₛ[μ] G') := rfl,
     rw [this, set_to_L1_eq_set_to_L1s_clm],
     exact set_to_L1s_nonneg (λ s, hT.eq_zero_of_measure_zero) hT.1 hT_nonneg g.2, },
 end
 
-lemma set_to_L1_mono {G G'} [normed_lattice_add_comm_group G] [normed_space ℝ G]
-  [normed_lattice_add_comm_group G'] [normed_space ℝ G'] [measurable_space G] [borel_space G]
-  [second_countable_topology G] [complete_space G']
-  {T : set α → G →L[ℝ] G'} {C : ℝ} (hT : dominated_fin_meas_additive μ T C)
+lemma set_to_L1_mono {T : set α → G' →L[ℝ] G''} {C : ℝ} (hT : dominated_fin_meas_additive μ T C)
   (hT_nonneg : ∀ s, measurable_set s → μ s < ∞ → ∀ x, 0 ≤ x → 0 ≤ T s x)
-  {f g : α →₁[μ] G} (hfg : f ≤ g) :
+  {f g : α →₁[μ] G'} (hfg : f ≤ g) :
   set_to_L1 hT f ≤ set_to_L1 hT g :=
 begin
   rw ← sub_nonneg at hfg ⊢,
   rw ← (set_to_L1 hT).map_sub,
   exact set_to_L1_nonneg hT hT_nonneg hfg,
 end
+
+end order
 
 lemma norm_set_to_L1_le_norm_set_to_L1s_clm (hT : dominated_fin_meas_additive μ T C) :
   ∥set_to_L1 hT∥ ≤ ∥set_to_L1s_clm α E μ hT∥ :=
@@ -1397,25 +1397,6 @@ begin
   { exact set_to_fun_undef hT hf, },
 end
 
-lemma set_to_fun_mono_left' {G} [normed_lattice_add_comm_group G] [normed_space ℝ G]
-  [complete_space G]
-  {T T' : set α → E →L[ℝ] G} {C C' : ℝ} (hT : dominated_fin_meas_additive μ T C)
-  (hT' : dominated_fin_meas_additive μ T' C')
-  (hTT' : ∀ s, measurable_set s → μ s < ∞ → ∀ x, T s x ≤ T' s x) (f : α → E) :
-  set_to_fun μ T hT f ≤ set_to_fun μ T' hT' f :=
-begin
-  by_cases hf : integrable f μ,
-  { simp_rw set_to_fun_eq _ hf, exact L1.set_to_L1_mono_left' hT hT' hTT' _, },
-  { simp_rw set_to_fun_undef _ hf, },
-end
-
-lemma set_to_fun_mono_left {G} [normed_lattice_add_comm_group G] [normed_space ℝ G]
-  [complete_space G]
-  {T T' : set α → E →L[ℝ] G} {C C' : ℝ} (hT : dominated_fin_meas_additive μ T C)
-  (hT' : dominated_fin_meas_additive μ T' C') (hTT' : ∀ s x, T s x ≤ T' s x) (f : α →₁[μ] E) :
-  set_to_fun μ T hT f ≤ set_to_fun μ T' hT' f :=
-set_to_fun_mono_left' hT hT' (λ s _ _ x, hTT' s x) f
-
 lemma set_to_fun_add (hT : dominated_fin_meas_additive μ T C)
   (hf : integrable f μ) (hg : integrable g μ) :
   set_to_fun μ T hT (f + g) = set_to_fun μ T hT f + set_to_fun μ T hT g :=
@@ -1515,19 +1496,39 @@ begin
   exact set_to_fun_indicator_const hT measurable_set.univ (measure_ne_top _ _) x,
 end
 
-lemma set_to_fun_nonneg {G G'} [normed_lattice_add_comm_group G] [normed_space ℝ G]
-  [normed_lattice_add_comm_group G'] [normed_space ℝ G'] [measurable_space G] [borel_space G]
-  [second_countable_topology G] [complete_space G']
-  {T : set α → G →L[ℝ] G'} {C : ℝ} (hT : dominated_fin_meas_additive μ T C)
+section order
+
+variables {G' G'' : Type*} [normed_lattice_add_comm_group G''] [normed_space ℝ G'']
+  [complete_space G'']
+  [normed_lattice_add_comm_group G'] [normed_space ℝ G']
+  [measurable_space G'] [borel_space G'] [second_countable_topology G']
+
+lemma set_to_fun_mono_left' {T T' : set α → E →L[ℝ] G''} {C C' : ℝ}
+  (hT : dominated_fin_meas_additive μ T C) (hT' : dominated_fin_meas_additive μ T' C')
+  (hTT' : ∀ s, measurable_set s → μ s < ∞ → ∀ x, T s x ≤ T' s x) (f : α → E) :
+  set_to_fun μ T hT f ≤ set_to_fun μ T' hT' f :=
+begin
+  by_cases hf : integrable f μ,
+  { simp_rw set_to_fun_eq _ hf, exact L1.set_to_L1_mono_left' hT hT' hTT' _, },
+  { simp_rw set_to_fun_undef _ hf, },
+end
+
+lemma set_to_fun_mono_left {T T' : set α → E →L[ℝ] G''} {C C' : ℝ}
+  (hT : dominated_fin_meas_additive μ T C) (hT' : dominated_fin_meas_additive μ T' C')
+  (hTT' : ∀ s x, T s x ≤ T' s x) (f : α →₁[μ] E) :
+  set_to_fun μ T hT f ≤ set_to_fun μ T' hT' f :=
+set_to_fun_mono_left' hT hT' (λ s _ _ x, hTT' s x) f
+
+lemma set_to_fun_nonneg {T : set α → G' →L[ℝ] G''} {C : ℝ} (hT : dominated_fin_meas_additive μ T C)
   (hT_nonneg : ∀ s, measurable_set s → μ s < ∞ → ∀ x, 0 ≤ x → 0 ≤ T s x)
-  {f : α → G} (hf : 0 ≤ᵐ[μ] f) :
+  {f : α → G'} (hf : 0 ≤ᵐ[μ] f) :
   0 ≤ set_to_fun μ T hT f :=
 begin
   by_cases hfi : integrable f μ,
   { simp_rw set_to_fun_eq _ hfi,
     refine L1.set_to_L1_nonneg hT hT_nonneg _,
     rw ← Lp.coe_fn_le,
-    have h0 := Lp.coe_fn_zero G 1 μ,
+    have h0 := Lp.coe_fn_zero G' 1 μ,
     have h := integrable.coe_fn_to_L1 hfi,
     filter_upwards [h0, h, hf],
     intros a h0a ha hfa,
@@ -1536,12 +1537,9 @@ begin
   { simp_rw set_to_fun_undef _ hfi, },
 end
 
-lemma set_to_fun_mono {G G'} [normed_lattice_add_comm_group G] [normed_space ℝ G]
-  [normed_lattice_add_comm_group G'] [normed_space ℝ G'] [measurable_space G] [borel_space G]
-  [second_countable_topology G] [complete_space G']
-  {T : set α → G →L[ℝ] G'} {C : ℝ} (hT : dominated_fin_meas_additive μ T C)
+lemma set_to_fun_mono {T : set α → G' →L[ℝ] G''} {C : ℝ} (hT : dominated_fin_meas_additive μ T C)
   (hT_nonneg : ∀ s, measurable_set s → μ s < ∞ → ∀ x, 0 ≤ x → 0 ≤ T s x)
-  {f g : α → G} (hf : integrable f μ) (hg : integrable g μ) (hfg : f ≤ᵐ[μ] g) :
+  {f g : α → G'} (hf : integrable f μ) (hg : integrable g μ) (hfg : f ≤ᵐ[μ] g) :
   set_to_fun μ T hT f ≤ set_to_fun μ T hT g :=
 begin
   rw [← sub_nonneg, ← set_to_fun_sub hT hg hf],
@@ -1549,6 +1547,8 @@ begin
   rw [pi.sub_apply, pi.zero_apply, sub_nonneg],
   exact ha,
 end
+
+end order
 
 @[continuity]
 lemma continuous_set_to_fun (hT : dominated_fin_meas_additive μ T C) :

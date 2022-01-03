@@ -1,5 +1,5 @@
 import number_theory.mod_forms.Eisenstein_series
-import measure_theory.integral.uniform_lim_of_holo
+import measure_theory.integral.unform_limits_of_holomorphic
 import .mod_forms2
 
 
@@ -143,7 +143,6 @@ begin
   ring_nf,
   nlinarith,
   split,
-  have hb2 := complex.half_ball_sub ε hε x,
   intros w hw,
   have hwa : w ∈ ℍ'.1,
   by { apply hball2, simp, simp at hw, apply le_trans hw.le, field_simp, linarith,},
@@ -157,7 +156,11 @@ begin
   simp_rw F,
   apply this.mono,
   apply hball2,},
-  apply unif_of_diff_is_diff F (extend_by_zero (Eisenstein_series_of_weight_ k)) x ε hε hdiff hunif,
+  apply unif_of_diff_is_diff F (extend_by_zero (Eisenstein_series_of_weight_ k)) x ε (2⁻¹*ε) hε _ _
+  hdiff hunif,
+  ring_nf,
+  linarith,
+  simp [hε.le],
 end
 
 def my_vadd : ℤ → ℍ → ℍ :=
@@ -388,8 +391,8 @@ end
 
 lemma Eisenstein_series_is_modular_form  (k: ℕ) (hk : 3 ≤ k) :
  modular_forms.is_modular_form_of_lvl_and_weight (⊤ : subgroup SL2Z) k
- (λ z : ℍ, Eisenstein_series_of_weight_ k z) :={
- hol:= by {simp_rw modular_forms.hol_extn, apply Eisenstein_is_holomorphic k hk, },
+ (λ z : ℍ, Eisenstein_series_of_weight_ k z) :=
+ {hol:= by {simp_rw modular_forms.hol_extn, apply Eisenstein_is_holomorphic k hk, },
  transf := by {simp only, apply Eisenstein_is_modular (⊤ : subgroup SL2Z) k, },
  infinity := by {intros A,
  have := (modular_forms.modular_mem k (⊤ : subgroup SL2Z)

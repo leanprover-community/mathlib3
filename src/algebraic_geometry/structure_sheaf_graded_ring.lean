@@ -8,7 +8,6 @@ import algebra.category.CommRing.colimits
 import algebra.category.CommRing.limits
 import topology.sheaves.local_predicate
 import ring_theory.localization
-import ring_theory.subring
 
 /-!
 # The structure sheaf on `prime_spectrum R`.
@@ -48,10 +47,11 @@ and the localization of `R` at the submonoid of powers of `f`.
 noncomputable theory
 
 open_locale classical direct_sum big_operators pointwise
-open direct_sum
+open direct_sum set_like
 
-variables {ι : Type*} [linear_ordered_cancel_add_comm_monoid ι]
-variables (A : ι → Type*) [Π i, add_comm_group (A i)] [gcomm_semiring A]
+variables {ι R A: Type*} [linear_ordered_cancel_add_comm_monoid ι]
+variables [comm_ring R] [comm_ring A] [algebra R A]
+variables (𝒜 : ι → submodule R A) [graded_algebra 𝒜]
 
 open Top
 open topological_space
@@ -63,59 +63,82 @@ namespace algebraic_geometry
 /--
 The prime spectrum, just as a topological space.
 -/
-def prime_spectrum_of_graded_ring.Top : Top := Top.of (prime_spectrum_of_graded_ring A)
+def prime_spectrum_of_graded_ring.Top : Top := Top.of (prime_spectrum_of_graded_ring 𝒜)
 
 namespace structure_sheaf
+
+def temp (P : prime_spectrum_of_graded_ring.Top 𝒜) : submonoid A :=
+{ carrier := {x : A | set_like.is_homogeneous 𝒜 x ∧  x ∉ P.1 ∧ x ∈ 𝒜 0 },
+  one_mem' := begin
+    split, refine ⟨0, set_like.has_graded_one.one_mem⟩, split, intro h,
+    have : (1 : A) ∈ P.1.1, exact h,
+    rw ←ideal.eq_top_iff_one P.1.1 at this,
+    apply P.is_prime.ne_top, exact this,
+    apply set_like.has_graded_one.one_mem,
+  end,
+  mul_mem' := λ a b ha hb, begin
+    split, apply set_like.is_homogeneous.mul, exact ha.1, exact hb.1, split, intro h,
+    have := P.is_prime.mem_or_mem h,
+    cases this, apply ha.2.1, exact this, apply hb.2.1, exact this,
+    suffices : a * b ∈ 𝒜 (0 + 0),
+    convert this, rw zero_add,
+    apply set_like.has_graded_mul.mul_mem, exact ha.2.2, exact hb.2.2,
+  end }
 
 /--
 The type family over `prime_spectrum R` consisting of the localization over each point.
 -/
-@[derive [comm_ring, local_ring]]
-def localizations (P : prime_spectrum_of_graded_ring.Top A) := localization.at_prime P.as_ideal
+@[derive [comm_ring]]
+def localizations (P : prime_spectrum_of_graded_ring.Top 𝒜) :=
+localization.at_prime P.as_homogeneous_ideal.1
 
-instance (P : prime_spectrum_of_graded_ring.Top A) : inhabited (localizations A P) :=
+instance (P : prime_spectrum_of_graded_ring.Top 𝒜) : inhabited (localizations 𝒜 P) :=
 ⟨1⟩
 
-instance (U : opens (prime_spectrum_of_graded_ring.Top A)) (x : U) :
-  algebra (⨁ i, A i) (localizations A x) :=
+instance (U : opens (prime_spectrum_of_graded_ring.Top 𝒜)) (x : U) :
+  algebra A (localizations 𝒜 x) :=
 localization.algebra
 
-instance (U : opens (prime_spectrum_of_graded_ring.Top A)) (x : U) :
-  is_localization.at_prime (localizations A x) (x : prime_spectrum_of_graded_ring.Top A).as_ideal :=
+instance (U : opens (prime_spectrum_of_graded_ring.Top 𝒜)) (x : U) :
+  is_localization.at_prime (localizations 𝒜 x)
+  (x : prime_spectrum_of_graded_ring.Top 𝒜).as_homogeneous_ideal.1 :=
 localization.is_localization
 
-variables {A}
+variables {𝒜}
 
 /--
 The predicate saying that a dependent function on an open `U` is realised as a fixed fraction
 `r / s` in each of the stalks (which are localizations at various prime ideals).
 -/
-def is_fraction {U : opens (prime_spectrum_of_graded_ring.Top A)}
-  (f : Π x : U, localizations A x) : Prop :=
-∃ (r s : (⨁ i, A i)), ∀ x : U,
-  ¬ (s ∈ x.1.as_ideal) ∧ f x * algebra_map _ _ s = algebra_map _ _ r
+def is_fraction {U : opens (prime_spectrum_of_graded_ring.Top 𝒜)}
+  (f : Π x : U, localizations 𝒜 x) : Prop :=
+∃ (r s : A) (r_s_deg_same : ∃ (i : ι), r ∈ 𝒜 i ∧ s ∈ 𝒜 i),
+  ∀ x : U, ¬ (s ∈ x.1.as_homogeneous_ideal) ∧ f x * algebra_map _ _ s = algebra_map _ _ r
 
-lemma is_fraction.eq_mk' {U : opens (prime_spectrum_of_graded_ring.Top A)}
-  {f : Π x : U, localizations A x}
+lemma is_fraction.eq_mk' {U : opens (prime_spectrum_of_graded_ring.Top 𝒜)}
+  {f : Π x : U, localizations 𝒜 x}
   (hf : is_fraction f) :
-  ∃ (r s : (⨁ i, A i)) , ∀ x : U, ∃ (hs : s ∉ x.1.as_ideal), f x =
+  ∃ (r s : A) (r_s_deg_same : ∃ (i : ι), r ∈ 𝒜 i ∧ s ∈ 𝒜 i),
+    ∀ x : U, ∃ (hs : s ∉ x.1.as_homogeneous_ideal), f x =
     is_localization.mk' (localization.at_prime _) r
-      (⟨s, hs⟩ : (x : prime_spectrum_of_graded_ring.Top A).as_ideal.prime_compl) :=
+      (⟨s, hs⟩ : (x : prime_spectrum_of_graded_ring.Top 𝒜).as_homogeneous_ideal.1.prime_compl) :=
 begin
-  rcases hf with ⟨r, s, h⟩,
-  refine ⟨r, s, λ x, ⟨(h x).1, (is_localization.mk'_eq_iff_eq_mul.mpr _).symm⟩⟩,
+  rcases hf with ⟨r, s, r_s_deg_same, h⟩,
+  refine ⟨r, s, r_s_deg_same,
+    λ x, ⟨(h x).1, (is_localization.mk'_eq_iff_eq_mul.mpr _).symm⟩⟩,
   exact (h x).2.symm,
 end
 
-variables (A)
+variables (𝒜)
 
 /--
 The predicate `is_fraction` is "prelocal",
 in the sense that if it holds on `U` it holds on any open subset `V` of `U`.
 -/
-def is_fraction_prelocal : prelocal_predicate (localizations A) :=
+def is_fraction_prelocal : prelocal_predicate (localizations 𝒜) :=
 { pred := λ U f, is_fraction f,
-  res := by { rintro V U i f ⟨r, s, w⟩, exact ⟨r, s, λ x, w (i x)⟩ } }
+  res := by { rintro V U i f ⟨r, s, r_s_deg_same, w⟩,
+    exact ⟨r, s, r_s_deg_same, λ x, ⟨(w (i x)).1, (w (i x)).2⟩⟩ } }
 
 /--
 We will define the structure sheaf as
@@ -136,50 +159,69 @@ Now Hartshorne had the disadvantage of not knowing about dependent functions,
 so we replace his circumlocution about functions into a disjoint union with
 `Π x : U, localizations x`.
 -/
-def is_locally_fraction : local_predicate (localizations A) :=
-(is_fraction_prelocal A).sheafify
+def is_locally_fraction : local_predicate (localizations 𝒜) :=
+(is_fraction_prelocal 𝒜).sheafify
+
+/-
+∃ (r s : A) (r_hom : set_like.is_homogeneous 𝒜 r) (s_hom : set_like.is_homogeneous 𝒜 s)
+  (r_s_deg_same : ∃ (i : ι), r ∈ 𝒜 i ∧ s ∈ 𝒜 i),
+  ∀ x : U, ¬ (s ∈ x.1.as_homogeneous_ideal) ∧ f x * algebra_map _ _ s = algebra_map _ _ r
+-/
 
 @[simp]
 lemma is_locally_fraction_pred
-  {U : opens (prime_spectrum_of_graded_ring.Top A)} (f : Π x : U, localizations A x) :
-  (is_locally_fraction A).pred f =
+  {U : opens (prime_spectrum_of_graded_ring.Top 𝒜)} (f : Π x : U, localizations 𝒜 x) :
+  (is_locally_fraction 𝒜).pred f =
   ∀ x : U, ∃ (V) (m : x.1 ∈ V) (i : V ⟶ U),
-  ∃ (r s : (⨁ i, A i)), ∀ y : V,
-  ¬ (s ∈ y.1.as_ideal) ∧
+  ∃ (r s : A)  (r_s_deg_same : ∃ (i : ι), r ∈ 𝒜 i ∧ s ∈ 𝒜 i), ∀ y : V,
+  ¬ (s ∈ y.1.as_homogeneous_ideal) ∧
     f (i y : U) * algebra_map _ _ s = algebra_map _ _ r :=
 rfl
 
 /--
 The functions satisfying `is_locally_fraction` form a subring.
 -/
-def sections_subring (U : (opens (prime_spectrum_of_graded_ring.Top A))ᵒᵖ) :
-  subring (Π x : unop U, localizations A x) :=
-{ carrier := { f | (is_locally_fraction A).pred f },
+def sections_subring (U : (opens (prime_spectrum_of_graded_ring.Top 𝒜))ᵒᵖ) :
+  subring (Π x : unop U, localizations 𝒜 x) :=
+{ carrier := { f | (is_locally_fraction 𝒜).pred f },
   zero_mem' :=
   begin
-    refine λ x, ⟨unop U, x.2, 𝟙 _, 0, 1, λ y, ⟨_, _⟩⟩,
-    { rw ←ideal.ne_top_iff_one, exact y.1.is_prime.1, },
+    refine λ x, ⟨unop U, x.2, 𝟙 _, 0, 1,
+      ⟨0, submodule.zero_mem _, set_like.has_graded_one.one_mem⟩, λ y, ⟨_, _⟩⟩,
+    { erw ←ideal.ne_top_iff_one ((y : prime_spectrum_of_graded_ring.Top 𝒜).as_homogeneous_ideal.1),
+      exact y.1.is_prime.1, },
     { simp, },
   end,
   one_mem' :=
   begin
-    refine λ x, ⟨unop U, x.2, 𝟙 _, 1, 1, λ y, ⟨_, _⟩⟩,
-    { rw ←ideal.ne_top_iff_one, exact y.1.is_prime.1, },
+    refine λ x, ⟨unop U, x.2, 𝟙 _, 1, 1,
+      ⟨0, set_like.has_graded_one.one_mem, set_like.has_graded_one.one_mem⟩, λ y, ⟨_, _⟩⟩,
+    { erw ←ideal.ne_top_iff_one ((y : prime_spectrum_of_graded_ring.Top 𝒜).as_homogeneous_ideal.1),
+      exact y.1.is_prime.1, },
     { simp, },
   end,
   add_mem' :=
   begin
     intros a b ha hb x,
-    rcases ha x with ⟨Va, ma, ia, ra, sa, wa⟩,
-    rcases hb x with ⟨Vb, mb, ib, rb, sb, wb⟩,
-    refine ⟨Va ⊓ Vb, ⟨ma, mb⟩, opens.inf_le_left _ _ ≫ ia, ra * sb + rb * sa, sa * sb, _⟩,
-    intro y,
-    rcases wa (opens.inf_le_left _ _ y) with ⟨nma, wa⟩,
-    rcases wb (opens.inf_le_right _ _ y) with ⟨nmb, wb⟩,
-    fsplit,
-    { intro H, cases y.1.is_prime.mem_or_mem H; contradiction, },
+    rcases ha x with ⟨Va, ma, ia, ra, sa, ⟨ja, ra_sa_same_deg⟩, wa⟩,
+    rcases hb x with ⟨Vb, mb, ib, rb, sb, ⟨jb, rb_sb_same_deg⟩, wb⟩,
+    refine ⟨Va ⊓ Vb, ⟨ma, mb⟩, opens.inf_le_left _ _ ≫ ia, ra * sb + rb * sa, sa * sb,
+      ⟨ja + jb, submodule.add_mem _ _ _,
+        set_like.graded_monoid.mul_mem ra_sa_same_deg.2 rb_sb_same_deg.2⟩, λ y, ⟨λ h, _, _⟩⟩,
+    { apply set_like.graded_monoid.mul_mem, exact ra_sa_same_deg.1,
+      exact rb_sb_same_deg.2, },
+    { rw add_comm, apply set_like.graded_monoid.mul_mem,
+      exact rb_sb_same_deg.1, exact ra_sa_same_deg.2, },
+    { have := (y : prime_spectrum_of_graded_ring.Top 𝒜).is_prime.mem_or_mem h, cases this,
+      apply (wa ⟨y, _⟩).1, exact this,
+      suffices : y.1 ∈ Va, exact this,
+      exact (opens.inf_le_left Va Vb y).2,
+      apply (wb ⟨y, _⟩).1, exact this,
+      suffices : y.1 ∈ Vb, exact this,
+      exact (opens.inf_le_right Va Vb y).2, },
     { simp only [add_mul, ring_hom.map_add, pi.add_apply, ring_hom.map_mul],
-      erw [←wa, ←wb],
+      erw ←(wa (opens.inf_le_left Va Vb y)).2,
+      erw ←(wb (opens.inf_le_right Va Vb y)).2,
       simp only [mul_assoc],
       congr' 2,
       rw [mul_comm], refl, }
@@ -187,29 +229,30 @@ def sections_subring (U : (opens (prime_spectrum_of_graded_ring.Top A))ᵒᵖ) :
   neg_mem' :=
   begin
     intros a ha x,
-    rcases ha x with ⟨V, m, i, r, s, w⟩,
-    refine ⟨V, m, i, -r, s, _⟩,
-    intro y,
-    rcases w y with ⟨nm, w⟩,
-    fsplit,
-    { exact nm, },
-    { simp only [ring_hom.map_neg, pi.neg_apply],
-      erw [←w],
-      simp only [neg_mul_eq_neg_mul_symm], }
+    rcases ha x with ⟨V, m, i, r, s, ⟨j, r_hom_j, s_hom_j⟩, w⟩,
+    refine ⟨V, m, i, -r, s, ⟨j, submodule.neg_mem _ r_hom_j, s_hom_j⟩, λ y, ⟨(w _).1, _⟩⟩,
+    simp only [ring_hom.map_neg, pi.neg_apply],
+      erw [←(w _).2],
+      simp only [neg_mul_eq_neg_mul_symm],
   end,
   mul_mem' :=
   begin
     intros a b ha hb x,
-    rcases ha x with ⟨Va, ma, ia, ra, sa, wa⟩,
-    rcases hb x with ⟨Vb, mb, ib, rb, sb, wb⟩,
-    refine ⟨Va ⊓ Vb, ⟨ma, mb⟩, opens.inf_le_left _ _ ≫ ia, ra * rb, sa * sb, _⟩,
-    intro y,
-    rcases wa (opens.inf_le_left _ _ y) with ⟨nma, wa⟩,
-    rcases wb (opens.inf_le_right _ _ y) with ⟨nmb, wb⟩,
-    fsplit,
-    { intro H, cases y.1.is_prime.mem_or_mem H; contradiction, },
+    rcases ha x with ⟨Va, ma, ia, ra, sa, ⟨ja, ra_hom_ja, sa_hom_ja⟩, wa⟩,
+    rcases hb x with ⟨Vb, mb, ib, rb, sb, ⟨jb, rb_hom_jb, sb_hom_jb⟩, wb⟩,
+    refine ⟨Va ⊓ Vb, ⟨ma, mb⟩, opens.inf_le_left _ _ ≫ ia, ra * rb, sa * sb,
+      ⟨ja + jb, set_like.graded_monoid.mul_mem ra_hom_ja rb_hom_jb,
+        set_like.graded_monoid.mul_mem sa_hom_ja sb_hom_jb⟩, λ y, ⟨λ h, _, _⟩⟩,
+    { have := (y : prime_spectrum_of_graded_ring.Top 𝒜).is_prime.mem_or_mem h, cases this,
+      apply (wa ⟨y, _⟩).1, exact this,
+      suffices : y.1 ∈ Va, exact this,
+      exact (opens.inf_le_left Va Vb y).2,
+      apply (wb ⟨y, _⟩).1, exact this,
+      suffices : y.1 ∈ Vb, exact this,
+      exact (opens.inf_le_right Va Vb y).2, },
     { simp only [pi.mul_apply, ring_hom.map_mul],
-      erw [←wa, ←wb],
+      erw ←(wa (opens.inf_le_left Va Vb y)).2,
+      erw ←(wb (opens.inf_le_right Va Vb y)).2,
       simp only [mul_left_comm, mul_assoc, mul_comm],
       refl, }
   end, }
@@ -222,25 +265,23 @@ open structure_sheaf
 The structure sheaf (valued in `Type`, not yet `CommRing`) is the subsheaf consisting of
 functions satisfying `is_locally_fraction`.
 -/
-def structure_sheaf_in_Type : sheaf Type* (prime_spectrum_of_graded_ring.Top A):=
-subsheaf_to_Types (is_locally_fraction A)
+def structure_sheaf_in_Type : sheaf Type* (prime_spectrum_of_graded_ring.Top 𝒜):=
+subsheaf_to_Types (is_locally_fraction 𝒜)
 
 instance comm_ring_structure_sheaf_in_Type_obj
-  (U : (opens (prime_spectrum_of_graded_ring.Top A))ᵒᵖ) :
-  comm_ring ((structure_sheaf_in_Type A).1.obj U) :=
-(sections_subring A U).to_comm_ring
-
-open _root_.prime_spectrum
+  (U : (opens (prime_spectrum_of_graded_ring.Top 𝒜))ᵒᵖ) :
+  comm_ring ((structure_sheaf_in_Type 𝒜).1.obj U) :=
+(sections_subring 𝒜 U).to_comm_ring
 
 /--
 The structure presheaf, valued in `CommRing`, constructed by dressing up the `Type` valued
 structure presheaf.
 -/
 @[simps]
-def structure_presheaf_in_CommRing : presheaf CommRing (prime_spectrum_of_graded_ring.Top A) :=
-{ obj := λ U, CommRing.of ((structure_sheaf_in_Type A).1.obj U),
+def structure_presheaf_in_CommRing : presheaf CommRing (prime_spectrum_of_graded_ring.Top 𝒜) :=
+{ obj := λ U, CommRing.of ((structure_sheaf_in_Type 𝒜).1.obj U),
   map := λ U V i,
-  { to_fun := ((structure_sheaf_in_Type A).1.map i),
+  { to_fun := ((structure_sheaf_in_Type 𝒜).1.map i),
     map_zero' := rfl,
     map_add' := λ x y, rfl,
     map_one' := rfl,
@@ -251,7 +292,7 @@ Some glue, verifying that that structure presheaf valued in `CommRing` agrees
 with the `Type` valued structure presheaf.
 -/
 def structure_presheaf_comp_forget :
-  structure_presheaf_in_CommRing A ⋙ (forget CommRing) ≅ (structure_sheaf_in_Type A).1 :=
+  structure_presheaf_in_CommRing 𝒜 ⋙ (forget CommRing) ≅ (structure_sheaf_in_Type 𝒜).1 :=
 nat_iso.of_components
   (λ U, iso.refl _)
   (by tidy)
@@ -263,11 +304,11 @@ The structure sheaf on $Spec R$, valued in `CommRing`.
 
 This is provided as a bundled `SheafedSpace` as `Spec.SheafedSpace R` later.
 -/
-def structure_sheaf : sheaf CommRing (prime_spectrum_of_graded_ring.Top A) :=
-⟨structure_presheaf_in_CommRing A,
+def structure_sheaf : sheaf CommRing (prime_spectrum_of_graded_ring.Top 𝒜) :=
+⟨structure_presheaf_in_CommRing 𝒜,
   -- We check the sheaf condition under `forget CommRing`.
   (is_sheaf_iff_is_sheaf_comp _ _).mpr
-    (is_sheaf_of_iso (structure_presheaf_comp_forget A).symm
-      (structure_sheaf_in_Type A).property)⟩
+    (is_sheaf_of_iso (structure_presheaf_comp_forget 𝒜).symm
+      (structure_sheaf_in_Type 𝒜).property)⟩
 
 end algebraic_geometry

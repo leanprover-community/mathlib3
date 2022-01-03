@@ -32,6 +32,8 @@ def support [has_zero A] (f : α → A) : set α := {x | f x ≠ 0}
 /-- `mul_support` of a function is the set of points `x` such that `f x ≠ 1`. -/
 @[to_additive] def mul_support (f : α → M) : set α := {x | f x ≠ 1}
 
+@[to_additive] lemma mul_support_eq_preimage (f : α → M) : mul_support f = f ⁻¹' {1}ᶜ := rfl
+
 @[to_additive] lemma nmem_mul_support {f : α → M} {x : α} :
   x ∉ mul_support f ↔ f x = 1 :=
 not_not
@@ -150,13 +152,13 @@ mul_support_binop_subset (*) (one_mul _) f g
   mul_support (λ x, (f x)⁻¹) = mul_support f :=
 set.ext $ λ x, not_congr inv_eq_one
 
-@[simp, to_additive support_neg'] lemma mul_support_inv'' [group G] (f : α → G) :
+@[simp, to_additive] lemma mul_support_inv' [group G] (f : α → G) :
   mul_support (f⁻¹) = mul_support f :=
 mul_support_inv f
 
-@[simp] lemma mul_support_inv' [group_with_zero G₀] (f : α → G₀) :
+@[simp] lemma mul_support_inv₀ [group_with_zero G₀] (f : α → G₀) :
   mul_support (λ x, (f x)⁻¹) = mul_support f :=
-set.ext $ λ x, not_congr inv_eq_one'
+set.ext $ λ x, not_congr inv_eq_one₀
 
 @[to_additive] lemma mul_support_mul_inv [group G] (f g : α → G) :
   mul_support (λ x, f x * (g x)⁻¹) ⊆ mul_support f ∪ mul_support g :=
@@ -283,6 +285,6 @@ end
 
 lemma support_single_disjoint {b' : B} (hb : b ≠ 0) (hb' : b' ≠ 0) {i j : A} :
   disjoint (function.support (single i b)) (function.support (single j b')) ↔ i ≠ j :=
-by simpa [support_single, hb, hb'] using ne_comm
+by rw [support_single_of_ne hb, support_single_of_ne hb', disjoint_singleton]
 
 end pi

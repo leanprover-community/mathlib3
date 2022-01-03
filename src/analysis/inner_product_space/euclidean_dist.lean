@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import analysis.inner_product_space.calculus
-import analysis.normed_space.pi_Lp
+import analysis.inner_product_space.pi_L2
 
 /-!
 # Euclidean distance on a finite dimensional space
@@ -65,7 +65,7 @@ by rw [to_euclidean.image_symm_eq_preimage, closed_ball_eq_preimage]
 lemma is_compact_closed_ball {x : E} {r : ℝ} : is_compact (closed_ball x r) :=
 begin
   rw closed_ball_eq_image,
-  exact (proper_space.is_compact_closed_ball _ _).image to_euclidean.symm.continuous
+  exact (is_compact_closed_ball _ _).image to_euclidean.symm.continuous
 end
 
 lemma is_closed_closed_ball {x : E} {r : ℝ} : is_closed (closed_ball x r) :=

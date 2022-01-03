@@ -89,7 +89,7 @@ local infix ` ≼i `:25 := initial_seg
 namespace initial_seg
 
 instance : has_coe (r ≼i s) (r ↪r s) := ⟨initial_seg.to_rel_embedding⟩
-instance : has_coe_to_fun (r ≼i s) := ⟨λ _, α → β, λ f x, (f : r ↪r s) x⟩
+instance : has_coe_to_fun (r ≼i s) (λ _, α → β) := ⟨λ f x, (f : r ↪r s) x⟩
 
 @[simp] theorem coe_fn_mk (f : r ↪r s) (o) :
   (@initial_seg.mk _ _ r s f o : α → β) = f := rfl
@@ -209,7 +209,7 @@ local infix ` ≺i `:25 := principal_seg
 namespace principal_seg
 
 instance : has_coe (r ≺i s) (r ↪r s) := ⟨principal_seg.to_rel_embedding⟩
-instance : has_coe_to_fun (r ≺i s) := ⟨λ _, α → β, λ f, f⟩
+instance : has_coe_to_fun (r ≺i s) (λ _, α → β) := ⟨λ f, f⟩
 
 @[simp] theorem coe_fn_mk (f : r ↪r s) (t o) :
   (@principal_seg.mk _ _ r s f t o : α → β) = f := rfl
@@ -653,8 +653,8 @@ theorem enum_type {α β} {r : α → α → Prop} {s : β → β → Prop}
   {h : type s < type r} : enum r (type s) h = f.top :=
 principal_seg.top_eq (rel_iso.refl _) _ _
 
-@[simp] theorem enum_typein (r : α → α → Prop) [is_well_order α r] (a : α)
-  {h : typein r a < type r} : enum r (typein r a) h = a :=
+@[simp] theorem enum_typein (r : α → α → Prop) [is_well_order α r] (a : α) :
+  enum r (typein r a) (typein_lt_type r a) = a :=
 enum_type (principal_seg.of_element r a)
 
 @[simp] theorem typein_enum (r : α → α → Prop) [is_well_order α r]
@@ -852,9 +852,9 @@ induction_on a $ λ α r _, rfl
 theorem lift_down' {a : cardinal.{u}} {b : ordinal.{max u v}}
   (h : card b ≤ a.lift) : ∃ a', lift a' = b :=
 let ⟨c, e⟩ := cardinal.lift_down h in
-quotient.induction_on c (λ α, induction_on b $ λ β s _ e', begin
+cardinal.induction_on c (λ α, induction_on b $ λ β s _ e', begin
   resetI,
-  rw [mk_def, card_type, ← cardinal.lift_id'.{(max u v) u} (#β),
+  rw [card_type, ← cardinal.lift_id'.{(max u v) u} (#β),
       ← cardinal.lift_umax.{u v}, lift_mk_eq.{u (max u v) (max u v)}] at e',
   cases e' with f,
   have g := rel_iso.preimage f s,
@@ -1036,6 +1036,7 @@ by rw [←@not_lt _ _ o' o, enum_lt ho']
 
 /-- `univ.{u v}` is the order type of the ordinals of `Type u` as a member
   of `ordinal.{v}` (when `u < v`). It is an inaccessible cardinal. -/
+@[nolint check_univs] -- intended to be used with explicit universe parameters
 def univ : ordinal.{max (u + 1) v} := lift.{v (u+1)} (@type ordinal.{u} (<) _)
 
 theorem univ_id : univ.{u (u+1)} = @type ordinal.{u} (<) _ := lift_id _
@@ -1177,9 +1178,9 @@ theorem ord_le_type (r : α → α → Prop) [is_well_order α r] : ord (#α) �
   (λ i:{r // is_well_order α r}, ⟦⟨α, i.1, i.2⟩⟧) ⟨r, _⟩
 
 theorem ord_le {c o} : ord c ≤ o ↔ c ≤ o.card :=
-quotient.induction_on c $ λ α, induction_on o $ λ β s _,
+induction_on c $ λ α, ordinal.induction_on o $ λ β s _,
 let ⟨r, _, e⟩ := ord_eq α in begin
-  resetI, simp only [mk_def, card_type], split; intro h,
+  resetI, simp only [card_type], split; intro h,
   { rw e at h, exact let ⟨f⟩ := h in ⟨f.to_embedding⟩ },
   { cases h with f,
     have g := rel_embedding.preimage f s,
@@ -1254,6 +1255,7 @@ rel_embedding.order_embedding_of_lt_embedding
 /-- The cardinal `univ` is the cardinality of ordinal `univ`, or
   equivalently the cardinal of `ordinal.{u}`, or `cardinal.{u}`,
   as an element of `cardinal.{v}` (when `u < v`). -/
+@[nolint check_univs] -- intended to be used with explicit universe parameters
 def univ := lift.{v (u+1)} (#ordinal)
 
 theorem univ_id : univ.{u (u+1)} = #ordinal := lift_id _

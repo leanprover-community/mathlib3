@@ -2,18 +2,18 @@
 Copyright (c) 2018 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Reid Barton, Simon Hudon
-
-"The Following Are Equivalent" (tfae) :
-Tactic for proving the equivalence of a set of proposition
-using various implications between them.
 -/
 import data.list.tfae
 import tactic.scc
 
-open expr tactic lean lean.parser
+/-!
+# The Following Are Equivalent (TFAE)
+
+This file provides the tactics `tfae_have` and `tfae_finish` for proving the pairwise equivalence of
+propositions in a set using various implications between them.
+-/
 
 namespace tactic
-open interactive interactive.types expr
 
 export list (tfae)
 
@@ -39,6 +39,7 @@ end tfae
 
 namespace interactive
 
+setup_tactic_parser
 open tactic.tfae list
 
 meta def parse_list : expr → option (list expr)

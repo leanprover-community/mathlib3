@@ -34,7 +34,7 @@ variables {α : Type*} {β : Type*} {γ : Type*} {ι : Type*}
 
 section Baire_theorem
 open emetric ennreal
-variables [emetric_space α] [complete_space α]
+variables [pseudo_emetric_space α] [complete_space α]
 
 /-- Baire theorem: a countable intersection of dense open sets is dense. Formulated here when
 the source space is ℕ (and subsumed below by `dense_Inter_of_open` working with any
@@ -228,6 +228,9 @@ calc (∀ᶠ x in residual α, p x) ↔
 lemma mem_residual {s : set α} : s ∈ residual α ↔ ∃ t ⊆ s, is_Gδ t ∧ dense t :=
 (@eventually_residual α _ _ (λ x, x ∈ s)).trans $ exists_congr $
 λ t, by rw [exists_prop, and_comm (t ⊆ s), subset_def, and_assoc]
+
+lemma dense_of_mem_residual {s : set α} (hs : s ∈ residual α) : dense s :=
+let ⟨t, hts, _, hd⟩ := mem_residual.1 hs in hd.mono hts
 
 instance : countable_Inter_filter (residual α) :=
 ⟨begin

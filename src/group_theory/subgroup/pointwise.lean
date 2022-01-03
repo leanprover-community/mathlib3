@@ -42,6 +42,9 @@ protected def pointwise_mul_action : mul_action α (subgroup G) :=
 localized "attribute [instance] subgroup.pointwise_mul_action" in pointwise
 open_locale pointwise
 
+lemma pointwise_smul_def {a : α} (S : subgroup G) :
+  a • S = S.map (mul_distrib_mul_action.to_monoid_End _ _ a) := rfl
+
 @[simp] lemma coe_pointwise_smul (a : α) (S : subgroup G) : ↑(a • S) = a • (S : set G) := rfl
 
 @[simp] lemma pointwise_smul_to_submonoid (a : α) (S : subgroup G) :
@@ -49,6 +52,14 @@ open_locale pointwise
 
 lemma smul_mem_pointwise_smul (m : G) (a : α) (S : subgroup G) : m ∈ S → a • m ∈ a • S :=
 (set.smul_mem_smul_set : _ → _ ∈ a • (S : set G))
+
+lemma mem_smul_pointwise_iff_exists (m : G) (a : α) (S : subgroup G) :
+  m ∈ a • S ↔ ∃ (s : G), s ∈ S ∧ a • s = m :=
+(set.mem_smul_set : m ∈ a • (S : set G) ↔ _)
+
+instance pointwise_central_scalar [mul_distrib_mul_action αᵐᵒᵖ G] [is_central_scalar α G] :
+  is_central_scalar α (subgroup G) :=
+⟨λ a S, congr_arg (λ f, S.map f) $ monoid_hom.ext $ by exact op_smul_eq_smul _⟩
 
 end monoid
 
@@ -78,6 +89,10 @@ set_smul_subset_iff
 lemma subset_pointwise_smul_iff {a : α} {S T : subgroup G} : S ≤ a • T ↔ a⁻¹ • S ≤ T :=
 subset_set_smul_iff
 
+/-- Applying a `mul_distrib_mul_action` results in an isomorphic subgroup -/
+@[simps] def equiv_smul (a : α) (H : subgroup G) : H ≃* (a • H : subgroup G) :=
+(mul_distrib_mul_action.to_mul_equiv G a).subgroup_equiv_map H
+
 end group
 
 section group_with_zero
@@ -85,27 +100,27 @@ variables [group_with_zero α] [mul_distrib_mul_action α G]
 
 open_locale pointwise
 
-@[simp] lemma smul_mem_pointwise_smul_iff' {a : α} (ha : a ≠ 0) (S : subgroup G)
+@[simp] lemma smul_mem_pointwise_smul_iff₀ {a : α} (ha : a ≠ 0) (S : subgroup G)
   (x : G) : a • x ∈ a • S ↔ x ∈ S :=
-smul_mem_smul_set_iff' ha (S : set G) x
+smul_mem_smul_set_iff₀ ha (S : set G) x
 
-lemma mem_pointwise_smul_iff_inv_smul_mem' {a : α} (ha : a ≠ 0) (S : subgroup G) (x : G) :
+lemma mem_pointwise_smul_iff_inv_smul_mem₀ {a : α} (ha : a ≠ 0) (S : subgroup G) (x : G) :
   x ∈ a • S ↔ a⁻¹ • x ∈ S :=
-mem_smul_set_iff_inv_smul_mem' ha (S : set G) x
+mem_smul_set_iff_inv_smul_mem₀ ha (S : set G) x
 
-lemma mem_inv_pointwise_smul_iff' {a : α} (ha : a ≠ 0) (S : subgroup G) (x : G) :
+lemma mem_inv_pointwise_smul_iff₀ {a : α} (ha : a ≠ 0) (S : subgroup G) (x : G) :
   x ∈ a⁻¹ • S ↔ a • x ∈ S :=
-mem_inv_smul_set_iff' ha (S : set G) x
+mem_inv_smul_set_iff₀ ha (S : set G) x
 
-@[simp] lemma pointwise_smul_le_pointwise_smul_iff' {a : α} (ha : a ≠ 0) {S T : subgroup G} :
+@[simp] lemma pointwise_smul_le_pointwise_smul_iff₀ {a : α} (ha : a ≠ 0) {S T : subgroup G} :
   a • S ≤ a • T ↔ S ≤ T :=
-set_smul_subset_set_smul_iff' ha
+set_smul_subset_set_smul_iff₀ ha
 
-lemma pointwise_smul_le_iff' {a : α} (ha : a ≠ 0) {S T : subgroup G} : a • S ≤ T ↔ S ≤ a⁻¹ • T :=
-set_smul_subset_iff' ha
+lemma pointwise_smul_le_iff₀ {a : α} (ha : a ≠ 0) {S T : subgroup G} : a • S ≤ T ↔ S ≤ a⁻¹ • T :=
+set_smul_subset_iff₀ ha
 
-lemma le_pointwise_smul_iff' {a : α} (ha : a ≠ 0) {S T : subgroup G} : S ≤ a • T ↔ a⁻¹ • S ≤ T :=
-subset_set_smul_iff' ha
+lemma le_pointwise_smul_iff₀ {a : α} (ha : a ≠ 0) {S T : subgroup G} : S ≤ a • T ↔ a⁻¹ • S ≤ T :=
+subset_set_smul_iff₀ ha
 
 end group_with_zero
 
@@ -135,6 +150,14 @@ open_locale pointwise
 
 lemma smul_mem_pointwise_smul (m : A) (a : α) (S : add_subgroup A) : m ∈ S → a • m ∈ a • S :=
 (set.smul_mem_smul_set : _ → _ ∈ a • (S : set A))
+
+lemma mem_smul_pointwise_iff_exists (m : A) (a : α) (S : add_subgroup A) :
+  m ∈ a • S ↔ ∃ (s : A), s ∈ S ∧ a • s = m :=
+(set.mem_smul_set : m ∈ a • (S : set A) ↔ _)
+
+instance pointwise_central_scalar [distrib_mul_action αᵐᵒᵖ A] [is_central_scalar α A] :
+  is_central_scalar α (add_subgroup A) :=
+⟨λ a S, congr_arg (λ f, S.map f) $ add_monoid_hom.ext $ by exact op_smul_eq_smul _⟩
 
 end monoid
 
@@ -171,29 +194,29 @@ variables [group_with_zero α] [distrib_mul_action α A]
 
 open_locale pointwise
 
-@[simp] lemma smul_mem_pointwise_smul_iff' {a : α} (ha : a ≠ 0) (S : add_subgroup A)
+@[simp] lemma smul_mem_pointwise_smul_iff₀ {a : α} (ha : a ≠ 0) (S : add_subgroup A)
   (x : A) : a • x ∈ a • S ↔ x ∈ S :=
-smul_mem_smul_set_iff' ha (S : set A) x
+smul_mem_smul_set_iff₀ ha (S : set A) x
 
-lemma mem_pointwise_smul_iff_inv_smul_mem' {a : α} (ha : a ≠ 0) (S : add_subgroup A) (x : A) :
+lemma mem_pointwise_smul_iff_inv_smul_mem₀ {a : α} (ha : a ≠ 0) (S : add_subgroup A) (x : A) :
   x ∈ a • S ↔ a⁻¹ • x ∈ S :=
-mem_smul_set_iff_inv_smul_mem' ha (S : set A) x
+mem_smul_set_iff_inv_smul_mem₀ ha (S : set A) x
 
-lemma mem_inv_pointwise_smul_iff' {a : α} (ha : a ≠ 0) (S : add_subgroup A) (x : A) :
+lemma mem_inv_pointwise_smul_iff₀ {a : α} (ha : a ≠ 0) (S : add_subgroup A) (x : A) :
   x ∈ a⁻¹ • S ↔ a • x ∈ S :=
-mem_inv_smul_set_iff' ha (S : set A) x
+mem_inv_smul_set_iff₀ ha (S : set A) x
 
-@[simp] lemma pointwise_smul_le_pointwise_smul_iff' {a : α} (ha : a ≠ 0) {S T : add_subgroup A} :
+@[simp] lemma pointwise_smul_le_pointwise_smul_iff₀ {a : α} (ha : a ≠ 0) {S T : add_subgroup A} :
   a • S ≤ a • T ↔ S ≤ T :=
-set_smul_subset_set_smul_iff' ha
+set_smul_subset_set_smul_iff₀ ha
 
-lemma pointwise_smul_le_iff' {a : α} (ha : a ≠ 0) {S T : add_subgroup A} :
+lemma pointwise_smul_le_iff₀ {a : α} (ha : a ≠ 0) {S T : add_subgroup A} :
   a • S ≤ T ↔ S ≤ a⁻¹ • T :=
-set_smul_subset_iff' ha
+set_smul_subset_iff₀ ha
 
-lemma le_pointwise_smul_iff' {a : α} (ha : a ≠ 0) {S T : add_subgroup A} :
+lemma le_pointwise_smul_iff₀ {a : α} (ha : a ≠ 0) {S T : add_subgroup A} :
   S ≤ a • T ↔ a⁻¹ • S ≤ T :=
-subset_set_smul_iff' ha
+subset_set_smul_iff₀ ha
 
 end group_with_zero
 

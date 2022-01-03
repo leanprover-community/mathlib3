@@ -5,7 +5,7 @@ Authors: Johan Commelin
 -/
 
 import data.multiset.sort
-import data.pnat.basic
+import data.pnat.interval
 import data.rat.order
 
 import tactic.norm_num

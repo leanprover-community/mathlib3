@@ -2,13 +2,11 @@
 Copyright (c) 2018 Reid Barton. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Reid Barton
-
-Type of continuous maps and the compact-open topology on them.
 -/
-import topology.subset_properties
+import tactic.tidy
 import topology.continuous_function.basic
 import topology.homeomorph
-import tactic.tidy
+import topology.subset_properties
 
 /-!
 # The compact-open topology
@@ -52,7 +50,7 @@ instance compact_open : topological_space C(α, β) :=
 topological_space.generate_from
   {m | ∃ (s : set α) (hs : is_compact s) (u : set β) (hu : is_open u), m = compact_open.gen s u}
 
-private lemma is_open_gen {s : set α} (hs : is_compact s) {u : set β} (hu : is_open u) :
+protected lemma is_open_gen {s : set α} (hs : is_compact s) {u : set β} (hu : is_open u) :
   is_open (compact_open.gen s u) :=
 topological_space.generate_open.basic _ (by dsimp [mem_set_of_eq]; tauto)
 
@@ -71,7 +69,7 @@ end
 /-- C(α, -) is a functor. -/
 lemma continuous_comp : continuous (continuous_map.comp g : C(α, β) → C(α, γ)) :=
 continuous_generated_from $ assume m ⟨s, hs, u, hu, hm⟩,
-  by rw [hm, preimage_gen g hs hu]; exact is_open_gen hs (hu.preimage g.2)
+  by rw [hm, preimage_gen g hs hu]; exact continuous_map.is_open_gen hs (hu.preimage g.2)
 
 end functorial
 
@@ -99,7 +97,7 @@ continuous_iff_continuous_at.mpr $ assume ⟨f, x⟩ n hn,
     f' x' ∈ f' '' s  : mem_image_of_mem f' (us hx')
     ...       ⊆ v            : hf'
     ...       ⊆ n            : vn,
-  have is_open w, from (is_open_gen sc vo).prod uo,
+  have is_open w, from (continuous_map.is_open_gen sc vo).prod uo,
   have (f, x) ∈ w, from ⟨image_subset_iff.mpr sv, xu⟩,
   mem_nhds_iff.mpr ⟨w, by assumption, by assumption, by assumption⟩
 

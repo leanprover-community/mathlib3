@@ -6,6 +6,7 @@ Authors: Eric Wieser
 import algebra.quaternion_basis
 import data.complex.module
 import linear_algebra.clifford_algebra.conjugation
+import linear_algebra.quadratic_form.prod
 
 /-!
 # Other constructions isomorphic to Clifford Algebras
@@ -53,6 +54,7 @@ open clifford_algebra
 
 /-! ### The clifford algebra isomorphic to a ring -/
 namespace clifford_algebra_ring
+open_locale complex_conjugate
 
 variables {R : Type*} [comm_ring R]
 
@@ -101,9 +103,10 @@ end clifford_algebra_ring
 
 /-! ### The clifford algebra isomorphic to the complex numbers -/
 namespace clifford_algebra_complex
+open_locale complex_conjugate
 
 /-- The quadratic form sending elements to the negation of their square. -/
-def Q : quadratic_form ℝ ℝ := -quadratic_form.lin_mul_lin linear_map.id linear_map.id
+def Q : quadratic_form ℝ ℝ := -quadratic_form.sq
 
 @[simp]
 lemma Q_apply (r : ℝ) : Q r = - (r * r) := rfl
@@ -123,9 +126,9 @@ clifford_algebra.lift_ι_apply _ _ r
 
 /-- `clifford_algebra.involute` is analogous to `complex.conj`. -/
 @[simp] lemma to_complex_involute (c : clifford_algebra Q) :
-  to_complex (c.involute) = (to_complex c).conj :=
+  to_complex (c.involute) = conj (to_complex c) :=
 begin
-  have : to_complex (involute (ι Q 1)) = complex.conj (to_complex (ι Q 1)),
+  have : to_complex (involute (ι Q 1)) = conj (to_complex (ι Q 1)),
   { simp only [involute_ι, to_complex_ι, alg_hom.map_neg, one_smul, complex.conj_I] },
   suffices : to_complex.comp involute = complex.conj_ae.to_alg_hom.comp to_complex,
   { exact alg_hom.congr_fun this c },
@@ -195,7 +198,7 @@ lemma reverse_eq_id : (reverse : clifford_algebra Q →ₗ[ℝ] _) = linear_map.
 linear_map.ext reverse_apply
 
 /-- `complex.conj` is analogous to `clifford_algebra.involute`. -/
-@[simp] lemma of_complex_conj (c : ℂ) : of_complex (c.conj) = (of_complex c).involute :=
+@[simp] lemma of_complex_conj (c : ℂ) : of_complex (conj c) = (of_complex c).involute :=
 clifford_algebra_complex.equiv.injective $
   by rw [equiv_apply, equiv_apply, to_complex_involute, to_complex_of_complex,
     to_complex_of_complex]
@@ -216,8 +219,7 @@ variables {R : Type*} [comm_ring R] (c₁ c₂ : R)
 /-- `Q c₁ c₂` is a quadratic form over `R × R` such that `clifford_algebra (Q c₁ c₂)` is isomorphic
 as an `R`-algebra to `ℍ[R,c₁,c₂]`. -/
 def Q : quadratic_form R (R × R) :=
-c₁ • quadratic_form.lin_mul_lin (linear_map.fst _ _ _) (linear_map.fst _ _ _) +
-c₂ • quadratic_form.lin_mul_lin (linear_map.snd _ _ _) (linear_map.snd _ _ _)
+(c₁ • quadratic_form.sq).prod (c₂ • quadratic_form.sq)
 
 @[simp]
 lemma Q_apply (v : R × R) : Q c₁ c₂ v = c₁ * (v.1 * v.1) + c₂ * (v.2 * v.2) := rfl
@@ -268,16 +270,16 @@ lemma to_quaternion_involute_reverse (c : clifford_algebra (Q c₁ c₂)) :
   to_quaternion (involute (reverse c)) = quaternion_algebra.conj (to_quaternion c) :=
 begin
   induction c using clifford_algebra.induction,
-  case h_grade0 : r {
-    simp only [reverse.commutes, alg_hom.commutes, quaternion_algebra.coe_algebra_map,
+  case h_grade0 : r
+  { simp only [reverse.commutes, alg_hom.commutes, quaternion_algebra.coe_algebra_map,
       quaternion_algebra.conj_coe], },
-  case h_grade1 : x {
-    rw [reverse_ι, involute_ι, to_quaternion_ι, alg_hom.map_neg, to_quaternion_ι,
+  case h_grade1 : x
+  { rw [reverse_ι, involute_ι, to_quaternion_ι, alg_hom.map_neg, to_quaternion_ι,
       quaternion_algebra.neg_mk, conj_mk, neg_zero], },
-  case h_mul : x₁ x₂ hx₁ hx₂ {
-    simp only [reverse.map_mul, alg_hom.map_mul, hx₁, hx₂, quaternion_algebra.conj_mul] },
-  case h_add : x₁ x₂ hx₁ hx₂ {
-    simp only [reverse.map_add, alg_hom.map_add, hx₁, hx₂, quaternion_algebra.conj_add] },
+  case h_mul : x₁ x₂ hx₁ hx₂
+  { simp only [reverse.map_mul, alg_hom.map_mul, hx₁, hx₂, quaternion_algebra.conj_mul] },
+  case h_add : x₁ x₂ hx₁ hx₂
+  { simp only [reverse.map_add, alg_hom.map_add, hx₁, hx₂, quaternion_algebra.conj_add] },
 end
 
 /-- Map a quaternion into the clifford algebra. -/
@@ -298,8 +300,8 @@ begin
   ext : 1,
   dsimp, -- before we end up with two goals and have to do this twice
   ext,
-  all_goals {
-    dsimp,
+  all_goals
+  { dsimp,
     rw to_quaternion_ι,
     dsimp,
     simp only [to_quaternion_ι, zero_smul, one_smul, zero_add, add_zero, ring_hom.map_zero], },

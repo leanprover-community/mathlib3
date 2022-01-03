@@ -5,7 +5,6 @@ Authors: David Wärn
 -/
 import data.fintype.basic
 import algebra.big_operators.basic
-import data.equiv.fin
 
 /-!
 # The Hales-Jewett theorem
@@ -80,8 +79,8 @@ structure line (α ι : Type*) :=
 namespace line
 
 /- This lets us treat a line `l : line α ι` as a function `α → ι → α`. -/
-instance (α ι) : has_coe_to_fun (line α ι) :=
-⟨λ _, α → ι → α, λ l x i, (l.idx_fun i).get_or_else x⟩
+instance (α ι) : has_coe_to_fun (line α ι) (λ _, α → ι → α) :=
+⟨λ l x i, (l.idx_fun i).get_or_else x⟩
 
 /-- A line is monochromatic if all its points are the same color. -/
 def is_mono {α ι κ} (C : (ι → α) → κ) (l : line α ι) : Prop :=

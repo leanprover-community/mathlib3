@@ -37,7 +37,7 @@ structure stieltjes_function :=
 
 namespace stieltjes_function
 
-instance : has_coe_to_fun stieltjes_function := ⟨_, to_fun⟩
+instance : has_coe_to_fun stieltjes_function (λ _, ℝ → ℝ) := ⟨to_fun⟩
 
 initialize_simps_projections stieltjes_function (to_fun → apply)
 
@@ -51,7 +51,7 @@ lemma right_continuous (x : ℝ) : continuous_within_at f (Ici x) x := f.right_c
 it is indeed a left limit is asserted in `tendsto_left_lim` -/
 @[irreducible] def left_lim (x : ℝ) := Sup (f '' (Iio x))
 
-lemma tendsto_left_lim (x : ℝ) : tendsto f (𝓝[Iio x] x) (𝓝 (f.left_lim x)) :=
+lemma tendsto_left_lim (x : ℝ) : tendsto f (𝓝[<] x) (𝓝 (f.left_lim x)) :=
 by { rw left_lim, exact f.mono.tendsto_nhds_within_Iio x }
 
 lemma left_lim_le {x y : ℝ} (h : x ≤ y) : f.left_lim x ≤ f y :=
@@ -91,8 +91,8 @@ instance : inhabited stieltjes_function := ⟨stieltjes_function.id⟩
 
 /-! ### The outer measure associated to a Stieltjes function -/
 
-/-- Length of an interval. This is the largest monotonic function which correctly
-  measures all intervals. -/
+/-- Length of an interval. This is the largest monotone function which correctly measures all
+intervals. -/
 def length (s : set ℝ) : ℝ≥0∞ := ⨅a b (h : s ⊆ Ioc a b), of_real (f b - f a)
 
 @[simp] lemma length_empty : f.length ∅ = 0 :=
@@ -266,7 +266,7 @@ end
 
 lemma borel_le_measurable : borel ℝ ≤ f.outer.caratheodory :=
 begin
-  rw borel_eq_generate_Ioi,
+  rw borel_eq_generate_from_Ioi,
   refine measurable_space.generate_from_le _,
   simp [f.measurable_set_Ioi] { contextual := tt }
 end

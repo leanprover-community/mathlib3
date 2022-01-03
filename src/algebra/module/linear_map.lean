@@ -6,6 +6,7 @@ Authors: Nathaniel Thomas, Jeremy Avigad, Johannes Hölzl, Mario Carneiro, Anne 
 -/
 import algebra.group.hom
 import algebra.module.basic
+import algebra.module.pi
 import algebra.group_action_hom
 import algebra.ring.comp_typeclasses
 
@@ -17,10 +18,19 @@ In this file we define
 * `linear_map σ M M₂`, `M →ₛₗ[σ] M₂` : a semilinear map between two `module`s. Here,
   `σ` is a `ring_hom` from `R` to `R₂` and an `f : M →ₛₗ[σ] M₂` satisfies
   `f (c • x) = (σ c) • (f x)`. We recover plain linear maps by choosing `σ` to be `ring_hom.id R`.
-  This is denoted by `M →ₗ[R] M₂`.
+  This is denoted by `M →ₗ[R] M₂`. We also add the notation `M →ₗ⋆[R] M₂` for star-linear maps.
 
 * `is_linear_map R f` : predicate saying that `f : M → M₂` is a linear map. (Note that this
   was not generalized to semilinear maps.)
+
+We then provide `linear_map` with the following instances:
+
+* `linear_map.add_comm_monoid` and `linear_map.add_comm_group`: the elementwise addition structures
+  corresponding to addition in the codomain
+* `linear_map.distrib_mul_action` and `linear_map.module`: the elementwise scalar action structures
+  corresponding to applying the action in the codomain.
+* `module.End.semiring` and `module.End.ring`: the (semi)ring of endomorphisms formed by taking the
+  additive structure above with composition as multiplication.
 
 ## Implementation notes
 
@@ -47,8 +57,9 @@ open_locale big_operators
 
 universes u u' v w x y z
 variables {R : Type*} {R₁ : Type*} {R₂ : Type*} {R₃ : Type*}
-variables {k : Type*} {S : Type*} {M : Type*} {M₁ : Type*} {M₂ : Type*} {M₃ : Type*}
-variables {N₁ : Type*} {N₂ : Type*} {N₃ : Type*} {N₄ : Type*} {ι : Type*}
+variables {k : Type*} {S : Type*} {S₃ : Type*} {T : Type*}
+variables {M : Type*} {M₁ : Type*} {M₂ : Type*} {M₃ : Type*}
+variables {N₁ : Type*} {N₂ : Type*} {N₃ : Type*} {ι : Type*}
 
 /-- A map `f` between modules over a semiring is linear if it satisfies the two properties
 `f (x + y) = f x + f y` and `f (c • x) = c • f x`. The predicate `is_linear_map R f` asserts this
@@ -83,6 +94,7 @@ add_decl_doc linear_map.to_add_hom
 
 notation M ` →ₛₗ[`:25 σ:25 `] `:0 M₂:0 := linear_map σ M M₂
 notation M ` →ₗ[`:25 R:25 `] `:0 M₂:0 := linear_map (ring_hom.id R) M M₂
+notation M ` →ₗ⋆[`:25 R:25 `] `:0 M₂:0 := linear_map (@star_ring_aut R _ _ : R →+* R) M M₂
 
 namespace linear_map
 
@@ -94,18 +106,37 @@ section
 variables [add_comm_monoid M] [add_comm_monoid M₁] [add_comm_monoid M₂] [add_comm_monoid M₃]
 variables [add_comm_monoid N₁] [add_comm_monoid N₂] [add_comm_monoid N₃]
 variables [module R M] [module R M₂] [module S M₃]
+variables {σ : R →+* S}
+
+instance : add_monoid_hom_class (M →ₛₗ[σ] M₃) M M₃ :=
+{ coe := linear_map.to_fun,
+  coe_injective' := λ f g h, by cases f; cases g; congr',
+  map_add := linear_map.map_add',
+  map_zero := λ f, show f.to_fun 0 = 0, by { rw [← zero_smul R (0 : M), f.map_smul'], simp } }
 
 /-- The `distrib_mul_action_hom` underlying a `linear_map`. -/
 def to_distrib_mul_action_hom (f : M →ₗ[R] M₂) : distrib_mul_action_hom R M M₂ :=
-{ map_zero' := zero_smul R (0 : M) ▸ zero_smul R (f.to_fun 0) ▸ f.map_smul' 0 0, ..f }
+{ map_zero' := show f 0 = 0, from map_zero f, ..f }
 
-instance {σ : R →+* S} : has_coe_to_fun (M →ₛₗ[σ] M₃) := ⟨_, to_fun⟩
+/-- Helper instance for when there's too many metavariables to apply `to_fun.to_coe_fn` directly.
+-/
+instance : has_coe_to_fun (M →ₛₗ[σ] M₃) (λ _, M → M₃) := ⟨linear_map.to_fun⟩
+
+@[simp] lemma to_fun_eq_coe {f : M →ₛₗ[σ] M₃} : f.to_fun = (f : M → M₃) := rfl
+
+@[ext] theorem ext {f g : M →ₛₗ[σ] M₃} (h : ∀ x, f x = g x) : f = g := fun_like.ext f g h
+
+/-- Copy of a `linear_map` with a new `to_fun` equal to the old one. Useful to fix definitional
+equalities. -/
+protected def copy (f : M →ₛₗ[σ] M₃) (f' : M → M₃) (h : f' = ⇑f) : M →ₛₗ[σ] M₃ :=
+{ to_fun := f',
+  map_add' := h.symm ▸ f.map_add',
+  map_smul' := h.symm ▸ f.map_smul' }
 
 initialize_simps_projections linear_map (to_fun → apply)
 
-@[simp] lemma coe_mk (f : M → M₂) (h₁ h₂) :
-  ((linear_map.mk f h₁ h₂ : M →ₗ[R] M₂) : M → M₂) = f := rfl
-
+@[simp] lemma coe_mk {σ : R →+* S} (f : M → M₃) (h₁ h₂) :
+  ((linear_map.mk f h₁ h₂ : M →ₛₗ[σ] M₃) : M → M₃) = f := rfl
 
 /-- Identity map as a `linear_map` -/
 def id : M →ₗ[R] M :=
@@ -126,33 +157,29 @@ variables [module R M] [module R M₂] [module S M₃]
 variables (σ : R →+* S)
 variables (fₗ gₗ : M →ₗ[R] M₂) (f g : M →ₛₗ[σ] M₃)
 
-@[simp] lemma to_fun_eq_coe : f.to_fun = ⇑f := rfl
-
 theorem is_linear : is_linear_map R fₗ := ⟨fₗ.map_add', fₗ.map_smul'⟩
 
 variables {fₗ gₗ f g σ}
 
 theorem coe_injective : @injective (M →ₛₗ[σ] M₃) (M → M₃) coe_fn :=
-by rintro ⟨f, _⟩ ⟨g, _⟩ ⟨h⟩; congr
+fun_like.coe_injective
 
-@[ext] theorem ext (H : ∀ x, f x = g x) : f = g :=
-coe_injective $ funext H
-
-protected lemma congr_arg : Π {x x' : M}, x = x' → f x = f x'
-| _ _ rfl := rfl
+protected lemma congr_arg {x x' : M} : x = x' → f x = f x' :=
+fun_like.congr_arg f
 
 /-- If two linear maps are equal, they are equal at each point. -/
-protected lemma congr_fun (h : f = g) (x : M) : f x = g x := h ▸ rfl
+protected lemma congr_fun (h : f = g) (x : M) : f x = g x :=
+fun_like.congr_fun h x
 
 theorem ext_iff : f = g ↔ ∀ x, f x = g x :=
-⟨by { rintro rfl x, refl }, ext⟩
+fun_like.ext_iff
 
 @[simp] lemma mk_coe (f : M →ₛₗ[σ] M₃) (h₁ h₂) :
   (linear_map.mk f h₁ h₂ : M →ₛₗ[σ] M₃) = f := ext $ λ _, rfl
 
 variables (fₗ gₗ f g)
 
-@[simp] lemma map_add (x y : M) : f (x + y) = f x + f y := f.map_add' x y
+protected lemma map_add (x y : M) : f (x + y) = f x + f y := map_add f x y
 
 @[simp] lemma map_smulₛₗ (c : R) (x : M) : f (c • x) = (σ c) • f x := f.map_smul' c x
 
@@ -162,11 +189,47 @@ lemma map_smul_inv {σ' : S →+* R} [ring_hom_inv_pair σ σ'] (c : S) (x : M) 
   c • f x = f (σ' c • x) :=
 by simp
 
-@[simp] lemma map_zero : f 0 = 0 :=
-by { rw [←zero_smul R (0 : M), map_smulₛₗ], simp }
+protected lemma map_zero : f 0 = 0 := map_zero f
 
+-- TODO: generalize to `zero_hom_class`
 @[simp] lemma map_eq_zero_iff (h : function.injective f) {x : M} : f x = 0 ↔ x = 0 :=
 ⟨λ w, by { apply h, simp [w], }, λ w, by { subst w, simp, }⟩
+
+section pointwise
+open_locale pointwise
+
+@[simp] lemma image_smul_setₛₗ (c : R) (s : set M) :
+  f '' (c • s) = (σ c) • f '' s :=
+begin
+  apply set.subset.antisymm,
+  { rintros x ⟨y, ⟨z, zs, rfl⟩, rfl⟩,
+    exact ⟨f z, set.mem_image_of_mem _ zs, (f.map_smulₛₗ _ _).symm ⟩ },
+  { rintros x ⟨y, ⟨z, hz, rfl⟩, rfl⟩,
+    exact (set.mem_image _ _ _).2 ⟨c • z, set.smul_mem_smul_set hz, f.map_smulₛₗ _ _⟩ }
+end
+
+lemma image_smul_set (c : R) (s : set M) :
+  fₗ '' (c • s) = c • fₗ '' s :=
+by simp
+
+lemma preimage_smul_setₛₗ {c : R} (hc : is_unit c) (s : set M₃) :
+  f ⁻¹' (σ c • s) = c • f ⁻¹' s :=
+begin
+  apply set.subset.antisymm,
+  { rintros x ⟨y, ys, hy⟩,
+    refine ⟨(hc.unit.inv : R) • x, _, _⟩,
+    { simp only [←hy, smul_smul, set.mem_preimage, units.inv_eq_coe_inv, map_smulₛₗ, ← σ.map_mul,
+        is_unit.coe_inv_mul, one_smul, ring_hom.map_one, ys] },
+    { simp only [smul_smul, is_unit.mul_coe_inv, one_smul, units.inv_eq_coe_inv] } },
+  { rintros x ⟨y, hy, rfl⟩,
+    refine ⟨f y, hy, by simp only [ring_hom.id_apply, linear_map.map_smulₛₗ]⟩ }
+end
+
+lemma preimage_smul_set {c : R} (hc : is_unit c) (s : set M₂) :
+  fₗ ⁻¹' (c • s) = c • fₗ ⁻¹' s :=
+fₗ.preimage_smul_setₛₗ hc s
+
+end pointwise
 
 variables (M M₂)
 /--
@@ -247,6 +310,13 @@ theorem ext_ring_iff {σ : R →+* R} {f g : R →ₛₗ[σ] M} : f = g ↔ f 1 
 
 end
 
+/-- Interpret a `ring_hom` `f` as an `f`-semilinear map. -/
+@[simps]
+def _root_.ring_hom.to_semilinear_map (f : R →+* S) : R →ₛₗ[f] S :=
+{ to_fun := f,
+  map_smul' := f.map_mul,
+  .. f}
+
 section
 
 variables [semiring R₁] [semiring R₂] [semiring R₃]
@@ -302,11 +372,9 @@ variables [semiring R] [semiring S] [add_comm_group M] [add_comm_group M₂]
 variables {module_M : module R M} {module_M₂ : module S M₂} {σ : R →+* S}
 variables (f : M →ₛₗ[σ] M₂)
 
-@[simp] lemma map_neg (x : M) : f (- x) = - f x :=
-f.to_add_monoid_hom.map_neg x
+protected lemma map_neg (x : M) : f (- x) = - f x := map_neg f x
 
-@[simp] lemma map_sub (x y : M) : f (x - y) = f x - f y :=
-f.to_add_monoid_hom.map_sub x y
+protected lemma map_sub (x y : M) : f (x - y) = f x - f y := map_sub f x y
 
 instance compatible_smul.int_module
   {S : Type*} [semiring S] [module S M] [module S M₂] : compatible_smul M M₂ ℤ S :=
@@ -333,8 +401,8 @@ namespace module
 @[simps]
 def comp_hom.to_linear_map {R S : Type*} [semiring R] [semiring S] (g : R →+* S) :
   (by haveI := comp_hom S g; exact (R →ₗ[R] S)) :=
-by exact {
-  to_fun := (g : R → S),
+by exact
+{ to_fun := (g : R → S),
   map_add' := g.map_add,
   map_smul' := g.map_mul }
 
@@ -459,3 +527,317 @@ by { intros f g h, ext, exact linear_map.congr_fun h x }
 @[simp] lemma add_monoid_hom.coe_to_rat_linear_map [add_comm_group M] [module ℚ M]
   [add_comm_group M₂] [module ℚ M₂] (f : M →+ M₂) :
   ⇑f.to_rat_linear_map = f := rfl
+
+namespace linear_map
+
+/-! ### Arithmetic on the codomain -/
+section arithmetic
+
+variables [semiring R₁] [semiring R₂] [semiring R₃]
+variables [add_comm_monoid M] [add_comm_monoid M₂] [add_comm_monoid M₃]
+variables [add_comm_group N₁] [add_comm_group N₂] [add_comm_group N₃]
+variables [module R₁ M] [module R₂ M₂] [module R₃ M₃]
+variables [module R₁ N₁] [module R₂ N₂] [module R₃ N₃]
+variables {σ₁₂ : R₁ →+* R₂} {σ₂₃ : R₂ →+* R₃} {σ₁₃ : R₁ →+* R₃} [ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃]
+
+/-- The constant 0 map is linear. -/
+instance : has_zero (M →ₛₗ[σ₁₂] M₂) :=
+⟨{ to_fun := 0, map_add' := by simp, map_smul' := by simp }⟩
+
+@[simp] lemma zero_apply (x : M) : (0 : M →ₛₗ[σ₁₂] M₂) x = 0 := rfl
+
+@[simp] theorem comp_zero (g : M₂ →ₛₗ[σ₂₃] M₃) : (g.comp (0 : M →ₛₗ[σ₁₂] M₂) : M →ₛₗ[σ₁₃] M₃) = 0 :=
+ext $ assume c, by rw [comp_apply, zero_apply, zero_apply, g.map_zero]
+
+@[simp] theorem zero_comp (f : M →ₛₗ[σ₁₂] M₂) : ((0 : M₂ →ₛₗ[σ₂₃] M₃).comp f : M →ₛₗ[σ₁₃] M₃) = 0 :=
+rfl
+
+instance : inhabited (M →ₛₗ[σ₁₂] M₂) := ⟨0⟩
+
+@[simp] lemma default_def : default (M →ₛₗ[σ₁₂] M₂) = 0 := rfl
+
+/-- The sum of two linear maps is linear. -/
+instance : has_add (M →ₛₗ[σ₁₂] M₂) :=
+⟨λ f g, { to_fun := f + g,
+          map_add' := by simp [add_comm, add_left_comm], map_smul' := by simp [smul_add] }⟩
+
+@[simp] lemma add_apply (f g : M →ₛₗ[σ₁₂] M₂) (x : M) : (f + g) x = f x + g x := rfl
+
+lemma add_comp (f : M →ₛₗ[σ₁₂] M₂) (g h : M₂ →ₛₗ[σ₂₃] M₃) :
+  ((h + g).comp f : M →ₛₗ[σ₁₃] M₃) = h.comp f + g.comp f := rfl
+
+lemma comp_add (f g : M →ₛₗ[σ₁₂] M₂) (h : M₂ →ₛₗ[σ₂₃] M₃) :
+  (h.comp (f + g) : M →ₛₗ[σ₁₃] M₃) = h.comp f + h.comp g :=
+ext $ λ _, h.map_add _ _
+
+/-- The type of linear maps is an additive monoid. -/
+instance : add_comm_monoid (M →ₛₗ[σ₁₂] M₂) :=
+{ zero := 0,
+  add := (+),
+  add_assoc := λ f g h, linear_map.ext $ λ x, add_assoc _ _ _,
+  zero_add := λ f, linear_map.ext $ λ x, zero_add _,
+  add_zero := λ f, linear_map.ext $ λ x, add_zero _,
+  add_comm := λ f g, linear_map.ext $ λ x, add_comm _ _,
+  nsmul := λ n f,
+  { to_fun := λ x, n • (f x),
+    map_add' := λ x y, by rw [f.map_add, smul_add],
+    map_smul' := λ c x,
+    begin
+      rw [f.map_smulₛₗ],
+      simp [smul_comm n (σ₁₂ c) (f x)],
+    end },
+  nsmul_zero' := λ f, linear_map.ext $ λ x, add_comm_monoid.nsmul_zero' _,
+  nsmul_succ' := λ n f, linear_map.ext $ λ x, add_comm_monoid.nsmul_succ' _ _ }
+
+/-- The negation of a linear map is linear. -/
+instance : has_neg (M →ₛₗ[σ₁₂] N₂) :=
+⟨λ f, { to_fun := -f, map_add' := by simp [add_comm], map_smul' := by simp }⟩
+
+@[simp] lemma neg_apply (f : M →ₛₗ[σ₁₂] N₂) (x : M) : (- f) x = - f x := rfl
+
+include σ₁₃
+@[simp] lemma neg_comp (f : M →ₛₗ[σ₁₂] M₂) (g : M₂ →ₛₗ[σ₂₃] N₃) : (- g).comp f = - g.comp f := rfl
+
+@[simp] lemma comp_neg (f : M →ₛₗ[σ₁₂] N₂) (g : N₂ →ₛₗ[σ₂₃] N₃) : g.comp (- f) = - g.comp f :=
+ext $ λ _, g.map_neg _
+omit σ₁₃
+
+/-- The negation of a linear map is linear. -/
+instance : has_sub (M →ₛₗ[σ₁₂] N₂) :=
+⟨λ f g, { to_fun := f - g,
+          map_add' := λ x y, by simp only [pi.sub_apply, map_add, add_sub_comm],
+          map_smul' := λ r x, by simp [pi.sub_apply, map_smul, smul_sub] }⟩
+
+@[simp] lemma sub_apply (f g : M →ₛₗ[σ₁₂] N₂) (x : M) : (f - g) x = f x - g x := rfl
+
+include σ₁₃
+lemma sub_comp (f : M →ₛₗ[σ₁₂] M₂) (g h : M₂ →ₛₗ[σ₂₃] N₃) :
+  (g - h).comp f = g.comp f - h.comp f := rfl
+
+lemma comp_sub (f g : M →ₛₗ[σ₁₂] N₂) (h : N₂ →ₛₗ[σ₂₃] N₃) :
+  h.comp (g - f) = h.comp g - h.comp f :=
+ext $ λ _, h.map_sub _ _
+omit σ₁₃
+
+/-- The type of linear maps is an additive group. -/
+instance : add_comm_group (M →ₛₗ[σ₁₂] N₂) :=
+{ zero := 0,
+  add := (+),
+  neg := has_neg.neg,
+  sub := has_sub.sub,
+  sub_eq_add_neg := λ f g, linear_map.ext $ λ m, sub_eq_add_neg _ _,
+  add_left_neg := λ f, linear_map.ext $ λ m, add_left_neg _,
+  nsmul := λ n f,
+  { to_fun := λ x, n • (f x),
+    map_add' := λ x y, by rw [f.map_add, smul_add],
+    map_smul' := λ c x, by rw [f.map_smulₛₗ, smul_comm n (σ₁₂ c) (f x)] },
+  zsmul := λ n f,
+  { to_fun := λ x, n • (f x),
+    map_add' := λ x y, by rw [f.map_add, smul_add],
+    map_smul' := λ c x, by rw [f.map_smulₛₗ, smul_comm n (σ₁₂ c) (f x)] },
+  zsmul_zero' := λ a, linear_map.ext $ λ m, zero_smul _ _,
+  zsmul_succ' := λ n a, linear_map.ext $ λ m, add_comm_group.zsmul_succ' n _,
+  zsmul_neg' := λ n a, linear_map.ext $ λ m, add_comm_group.zsmul_neg' n _,
+  .. linear_map.add_comm_monoid }
+
+end arithmetic
+
+section actions
+
+variables [semiring R] [semiring R₂] [semiring R₃]
+variables [add_comm_monoid M] [add_comm_monoid M₂] [add_comm_monoid M₃]
+variables [module R M] [module R₂ M₂] [module R₃ M₃]
+variables {σ₁₂ : R →+* R₂} {σ₂₃ : R₂ →+* R₃} {σ₁₃ : R →+* R₃} [ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃]
+
+section has_scalar
+variables [monoid S] [distrib_mul_action S M₂] [smul_comm_class R₂ S M₂]
+variables [monoid S₃] [distrib_mul_action S₃ M₃] [smul_comm_class R₃ S₃ M₃]
+variables [monoid T] [distrib_mul_action T M₂] [smul_comm_class R₂ T M₂]
+
+instance : has_scalar S (M →ₛₗ[σ₁₂] M₂) :=
+⟨λ a f, { to_fun := a • f,
+          map_add' := λ x y, by simp only [pi.smul_apply, f.map_add, smul_add],
+          map_smul' := λ c x, by simp [pi.smul_apply, smul_comm (σ₁₂ c)] }⟩
+
+@[simp] lemma smul_apply (a : S) (f : M →ₛₗ[σ₁₂] M₂) (x : M) : (a • f) x = a • f x := rfl
+
+lemma coe_smul (a : S) (f : M →ₛₗ[σ₁₂] M₂) : ⇑(a • f) = a • f := rfl
+
+instance [smul_comm_class S T M₂] : smul_comm_class S T (M →ₛₗ[σ₁₂] M₂) :=
+⟨λ a b f, ext $ λ x, smul_comm _ _ _⟩
+
+-- example application of this instance: if S -> T -> R are homomorphisms of commutative rings and
+-- M and M₂ are R-modules then the S-module and T-module structures on Hom_R(M,M₂) are compatible.
+instance [has_scalar S T] [is_scalar_tower S T M₂] : is_scalar_tower S T (M →ₛₗ[σ₁₂] M₂) :=
+{ smul_assoc := λ _ _ _, ext $ λ _, smul_assoc _ _ _ }
+
+instance [distrib_mul_action Sᵐᵒᵖ M₂] [smul_comm_class R₂ Sᵐᵒᵖ M₂] [is_central_scalar S M₂] :
+  is_central_scalar S (M →ₛₗ[σ₁₂] M₂) :=
+{ op_smul_eq_smul := λ a b, ext $ λ x, op_smul_eq_smul _ _ }
+
+instance : distrib_mul_action S (M →ₛₗ[σ₁₂] M₂) :=
+{ one_smul := λ f, ext $ λ _, one_smul _ _,
+  mul_smul := λ c c' f, ext $ λ _, mul_smul _ _ _,
+  smul_add := λ c f g, ext $ λ x, smul_add _ _ _,
+  smul_zero := λ c, ext $ λ x, smul_zero _ }
+
+include σ₁₃
+theorem smul_comp (a : S₃) (g : M₂ →ₛₗ[σ₂₃] M₃) (f : M →ₛₗ[σ₁₂] M₂) :
+  (a • g).comp f = a • (g.comp f) := rfl
+omit σ₁₃
+
+-- TODO: generalize this to semilinear maps
+theorem comp_smul [module R M₂] [module R M₃] [smul_comm_class R S M₂] [distrib_mul_action S M₃]
+  [smul_comm_class R S M₃] [compatible_smul M₃ M₂ S R]
+  (g : M₃ →ₗ[R] M₂) (a : S) (f : M →ₗ[R] M₃) : g.comp (a • f) = a • (g.comp f) :=
+ext $ λ x, g.map_smul_of_tower _ _
+
+end has_scalar
+
+section module
+variables [semiring S] [module S M₂] [smul_comm_class R₂ S M₂]
+
+instance : module S (M →ₛₗ[σ₁₂] M₂) :=
+{ add_smul := λ a b f, ext $ λ x, add_smul _ _ _,
+  zero_smul := λ f, ext $ λ x, zero_smul _ _ }
+
+instance [no_zero_smul_divisors S M₂] : no_zero_smul_divisors S (M →ₛₗ[σ₁₂] M₂) :=
+coe_injective.no_zero_smul_divisors _ rfl coe_smul
+
+end module
+
+end actions
+
+/-!
+### Monoid structure of endomorphisms
+
+Lemmas about `pow` such as `linear_map.pow_apply` appear in later files.
+-/
+section endomorphisms
+
+variables [semiring R] [add_comm_monoid M] [add_comm_group N₁] [module R M] [module R N₁]
+
+instance : has_one (module.End R M) := ⟨linear_map.id⟩
+instance : has_mul (module.End R M) := ⟨linear_map.comp⟩
+
+lemma one_eq_id : (1 : module.End R M) = id := rfl
+lemma mul_eq_comp (f g : module.End R M) : f * g = f.comp g := rfl
+
+@[simp] lemma one_apply (x : M) : (1 : module.End R M) x = x := rfl
+@[simp] lemma mul_apply (f g : module.End R M) (x : M) : (f * g) x = f (g x) := rfl
+
+lemma coe_one : ⇑(1 : module.End R M) = _root_.id := rfl
+lemma coe_mul (f g : module.End R M) : ⇑(f * g) = f ∘ g := rfl
+
+instance _root_.module.End.monoid : monoid (module.End R M) :=
+{ mul := (*),
+  one := (1 : M →ₗ[R] M),
+  mul_assoc := λ f g h, linear_map.ext $ λ x, rfl,
+  mul_one := comp_id,
+  one_mul := id_comp }
+
+instance _root_.module.End.semiring : semiring (module.End R M) :=
+{ mul := (*),
+  one := (1 : M →ₗ[R] M),
+  zero := 0,
+  add := (+),
+  npow := @npow_rec _ ⟨(1 : M →ₗ[R] M)⟩ ⟨(*)⟩,
+  mul_zero := comp_zero,
+  zero_mul := zero_comp,
+  left_distrib := λ f g h, comp_add _ _ _,
+  right_distrib := λ f g h, add_comp _ _ _,
+  .. _root_.module.End.monoid,
+  .. linear_map.add_comm_monoid }
+
+instance _root_.module.End.ring : ring (module.End R N₁) :=
+{ ..module.End.semiring, ..linear_map.add_comm_group }
+
+section
+variables [monoid S] [distrib_mul_action S M] [smul_comm_class R S M]
+
+instance _root_.module.End.is_scalar_tower :
+  is_scalar_tower S (module.End R M) (module.End R M) := ⟨smul_comp⟩
+
+instance _root_.module.End.smul_comm_class [has_scalar S R] [is_scalar_tower S R M] :
+  smul_comm_class S (module.End R M) (module.End R M) :=
+⟨λ s _ _, (comp_smul _ s _).symm⟩
+
+instance _root_.module.End.smul_comm_class' [has_scalar S R] [is_scalar_tower S R M] :
+  smul_comm_class (module.End R M) S (module.End R M) :=
+smul_comm_class.symm _ _ _
+
+end
+
+/-! ### Action by a module endomorphism. -/
+
+/-- The tautological action by `module.End R M` (aka `M →ₗ[R] M`) on `M`.
+
+This generalizes `function.End.apply_mul_action`. -/
+instance apply_module : module (module.End R M) M :=
+{ smul := ($),
+  smul_zero := linear_map.map_zero,
+  smul_add := linear_map.map_add,
+  add_smul := linear_map.add_apply,
+  zero_smul := (linear_map.zero_apply : ∀ m, (0 : M →ₗ[R] M) m = 0),
+  one_smul := λ _, rfl,
+  mul_smul := λ _ _ _, rfl }
+
+@[simp] protected lemma smul_def (f : module.End R M) (a : M) : f • a = f a := rfl
+
+/-- `linear_map.apply_module` is faithful. -/
+instance apply_has_faithful_scalar : has_faithful_scalar (module.End R M) M :=
+⟨λ _ _, linear_map.ext⟩
+
+instance apply_smul_comm_class : smul_comm_class R (module.End R M) M :=
+{ smul_comm := λ r e m, (e.map_smul r m).symm }
+
+instance apply_smul_comm_class' : smul_comm_class (module.End R M) R M :=
+{ smul_comm := linear_map.map_smul }
+
+end endomorphisms
+
+end linear_map
+
+/-! ### Actions as module endomorphisms -/
+
+namespace distrib_mul_action
+
+variables (R M) [semiring R] [add_comm_monoid M] [module R M]
+variables [monoid S] [distrib_mul_action S M] [smul_comm_class S R M]
+
+/-- Each element of the monoid defines a linear map.
+
+This is a stronger version of `distrib_mul_action.to_add_monoid_hom`. -/
+@[simps]
+def to_linear_map (s : S) : M →ₗ[R] M :=
+{ to_fun := has_scalar.smul s,
+  map_add' := smul_add s,
+  map_smul' := λ a b, smul_comm _ _ _ }
+
+/-- Each element of the monoid defines a module endomorphism.
+
+This is a stronger version of `distrib_mul_action.to_add_monoid_End`. -/
+@[simps]
+def to_module_End : S →* module.End R M :=
+{ to_fun := to_linear_map R M,
+  map_one' := linear_map.ext $ one_smul _,
+  map_mul' := λ a b, linear_map.ext $ mul_smul _ _ }
+
+end distrib_mul_action
+
+namespace module
+
+variables (R M) [semiring R] [add_comm_monoid M] [module R M]
+variables [semiring S] [module S M] [smul_comm_class S R M]
+
+/-- Each element of the monoid defines a module endomorphism.
+
+This is a stronger version of `distrib_mul_action.to_module_End`. -/
+@[simps]
+def to_module_End : S →+* module.End R M :=
+{ to_fun := distrib_mul_action.to_linear_map R M,
+  map_zero' := linear_map.ext $ zero_smul _,
+  map_add' := λ f g, linear_map.ext $ add_smul _ _,
+  ..distrib_mul_action.to_module_End R M }
+
+end module

@@ -990,28 +990,43 @@ variables {C : Type u₁} [category.{v₁} C]
 variables (J : grothendieck_topology C)
 
 /-- The category of sheaves on a grothendieck topology. -/
-@[derive category]
-def SheafOfTypes (J : grothendieck_topology C) : Type (max u₁ v₁ (w+1)) :=
-{P : Cᵒᵖ ⥤ Type w // presieve.is_sheaf J P}
+structure SheafOfTypes (J : grothendieck_topology C) : Type (max u₁ v₁ (w+1)) :=
+(val : Cᵒᵖ ⥤ Type w)
+(cond : presieve.is_sheaf J val)
 
 namespace SheafOfTypes
 
-@[simp] lemma id_app (X : SheafOfTypes J) (B : Cᵒᵖ) : (𝟙 X : X ⟶ X).app B = 𝟙 _ := rfl
-@[simp] lemma comp_app {X Y Z : SheafOfTypes J} (f : X ⟶ Y) (g : Y ⟶ Z) (B : Cᵒᵖ) :
-  (f ≫ g).app B = f.app B ≫ g.app B := rfl
+variable {J}
 
-instance : has_coe (SheafOfTypes.{w} J) (Cᵒᵖ ⥤ Type w) := ⟨λ P, P.val⟩
+/-- Morphisms between sheaves of types are just morphisms between the underlying presheaves. -/
+@[ext]
+structure hom (X Y : SheafOfTypes J) :=
+(val : X.val ⟶ Y.val)
+
+@[simps]
+instance : category (SheafOfTypes J) :=
+{ hom := hom,
+  id := λ X, ⟨𝟙 _⟩,
+  comp := λ X Y Z f g, ⟨f.val ≫ g.val⟩,
+  id_comp' := λ X Y f, hom.ext _ _ $ id_comp _,
+  comp_id' := λ X Y f, hom.ext _ _ $ comp_id _,
+  assoc' := λ X Y Z W f g h, hom.ext _ _ $ assoc _ _ _ }
+
+-- Let's make the inhabited linter happy...
+instance (X : SheafOfTypes J) : inhabited (hom X X) := ⟨𝟙 X⟩
 
 end SheafOfTypes
 
 /-- The inclusion functor from sheaves to presheaves. -/
-@[simps map {rhs_md := semireducible}, derive [full, faithful]]
+@[simps]
 def SheafOfTypes_to_presheaf : SheafOfTypes J ⥤ (Cᵒᵖ ⥤ Type w) :=
-full_subcategory_inclusion (presieve.is_sheaf J)
+{ obj := SheafOfTypes.val,
+  map := λ X Y f, f.val,
+  map_id' := λ X, rfl,
+  map_comp' := λ X Y Z f g, rfl }
 
-@[simp]
-lemma SheafOfTypes_to_presheaf_obj (P : SheafOfTypes J) :
-  (SheafOfTypes_to_presheaf J).obj P = P := rfl
+instance : full (SheafOfTypes_to_presheaf J) := { preimage := λ X Y f, ⟨f⟩ }
+instance : faithful (SheafOfTypes_to_presheaf J) := {}
 
 /--
 The category of sheaves on the bottom (trivial) grothendieck topology is equivalent to the category
@@ -1024,8 +1039,8 @@ def SheafOfTypes_bot_equiv : SheafOfTypes (⊥ : grothendieck_topology C) ≌ (C
   { obj := λ P, ⟨P, presieve.is_sheaf_bot⟩,
     map := λ P₁ P₂ f, (SheafOfTypes_to_presheaf _).preimage f },
   unit_iso :=
-  { hom := { app := λ _, 𝟙 _ },
-    inv := { app := λ _, 𝟙 _ } },
+  { hom := { app := λ _, ⟨𝟙 _⟩ },
+    inv := { app := λ _, ⟨𝟙 _⟩ } },
   counit_iso := iso.refl _ }
 
 instance : inhabited (SheafOfTypes (⊥ : grothendieck_topology C)) :=

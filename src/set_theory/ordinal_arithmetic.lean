@@ -2376,7 +2376,7 @@ begin
 end
 
 /-- `deriv ((*) a)` enumerates the multiples of `a ^ ω`. -/
-theorem mul_deriv_eq_enum_power_omega_div {a : ordinal} (ha : 0 < a) :
+theorem mul_deriv_eq_enum_dvd_power_omega {a : ordinal} (ha : 0 < a) :
   deriv ((*) a) = enum_ord (dvd_power_omega_unbounded ha) :=
 begin
   rw ←eq_enum_ord,

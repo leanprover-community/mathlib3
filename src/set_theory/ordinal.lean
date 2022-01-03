@@ -998,6 +998,9 @@ end⟩⟩
 theorem le_add_left (a b : ordinal) : a ≤ b + a :=
 by simpa only [zero_add] using add_le_add_right (ordinal.zero_le b) a
 
+theorem add_le_add {a b c d : ordinal} : a ≤ b → c ≤ d → a + c ≤ b + d :=
+λ hab hcd, (add_le_add_right hab c).trans (add_le_add_left hcd b)
+
 theorem lt_succ_self (o : ordinal.{u}) : o < succ o :=
 induction_on o $ λ α r _, ⟨⟨⟨⟨λ x, sum.inl x, λ _ _, sum.inl.inj⟩,
   λ _ _, sum.lex_inl_inl⟩,

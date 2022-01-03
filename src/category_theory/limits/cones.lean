@@ -270,6 +270,9 @@ variable (F)
 def forget : cone F ⥤ C :=
 { obj := λ t, t.X, map := λ s t f, f.hom }
 
+@[simp] lemma eq_to_hom_hom {c d : cone F} (h : c = d) :
+  cone_morphism.hom (eq_to_hom h) = eq_to_hom (by rw h) := eq_to_hom_map (forget F) h
+
 variables (G : C ⥤ D)
 
 /-- A functor `G : C ⥤ D` sends cones over `F` to cones over `F ⋙ G` functorially. -/
@@ -427,6 +430,9 @@ variable (F)
 @[simps]
 def forget : cocone F ⥤ C :=
 { obj := λ t, t.X, map := λ s t f, f.hom }
+
+@[simp] lemma eq_to_hom_hom {c d : cocone F} (h : c = d) :
+  cocone_morphism.hom (eq_to_hom h) = eq_to_hom (by rw h) := eq_to_hom_map (forget F) h
 
 variables (G : C ⥤ D)
 

@@ -30,13 +30,13 @@ namespace category_theory
 variables (C : Type u) [category.{v} C]
 
 structure lax_functor_to_Cat extends prefunctor C Cat.{v' u'} :=
-(map_id : ∀ (X : C), map (𝟙 X) ⟶ 𝟭 (obj X))
-(map_comp : ∀ {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z), map (f ≫ g) ⟶ map f ⋙ map g)
-(id_comp : ∀ {X Y : C} (f : X ⟶ Y), map_comp (𝟙 X) f ≫ whisker_right (map_id X) (map f) =
+(map_id (X : C) : map (𝟙 X) ⟶ 𝟭 (obj X))
+(map_comp ⦃X Y Z : C⦄ (f : X ⟶ Y) (g : Y ⟶ Z) : map (f ≫ g) ⟶ map f ⋙ map g)
+(id_comp : ∀ ⦃X Y : C⦄ (f : X ⟶ Y), map_comp (𝟙 X) f ≫ whisker_right (map_id X) (map f) =
   eq_to_hom (by {rw category.id_comp, cases map f, refl}) . obviously)
-(comp_id : ∀ {X Y : C} (f : X ⟶ Y), map_comp f (𝟙 Y) ≫ whisker_left (map f) (map_id Y) =
+(comp_id : ∀ ⦃X Y : C⦄ (f : X ⟶ Y), map_comp f (𝟙 Y) ≫ whisker_left (map f) (map_id Y) =
   eq_to_hom (by {rw category.comp_id, cases map f, refl}) . obviously)
-(assoc : ∀ {X Y Z W : C} (f : X ⟶ Y) (g : Y ⟶ Z) (h : Z ⟶ W),
+(assoc : ∀ ⦃X Y Z W : C⦄ (f : X ⟶ Y) (g : Y ⟶ Z) (h : Z ⟶ W),
   map_comp (f ≫ g) h ≫ whisker_right (map_comp f g) (map h) = eq_to_hom (by rw category.assoc) ≫
   map_comp f (g ≫ h) ≫ whisker_left (map f) (map_comp g h) . obviously)
 
@@ -44,7 +44,7 @@ variables {C} (F : lax_functor_to_Cat C)
 
 namespace lax_functor_to_Cat
 
-variables {X Y Z W : C} (f : X ⟶ Y) (g : Y ⟶ Z) (h : Z ⟶ W) (𝒳 : (F.obj X).1)
+variables ⦃X Y Z W : C⦄ (f : X ⟶ Y) (g : Y ⟶ Z) (h : Z ⟶ W) (𝒳 : (F.obj X).1)
 
 @[simp, reassoc]
 lemma id_comp_components :

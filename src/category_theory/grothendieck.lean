@@ -238,12 +238,26 @@ def fiber_push_over (X : grothendieck F) : over X ⥤ over X.fiber :=
 
 /-- `fiber_push X` is natural in `X`: it is a 2-natural transformation between two lax
     functors `costructured_arrow` and `F` from the base category to `Cat`. -/
-def fiber_push_comp {X Y : C} (f : X ⟶ Y) :
+def fiber_push_naturality {X Y : C} (f : X ⟶ Y) :
   costructured_arrow.map f ⋙ fiber_push F Y ⟶ fiber_push F X ⋙ F.map f :=
-{ app := λ _, (F.map_comp _ _).app _, -- λ e, (F.map_comp e.hom f).app e.left.fiber,
+{ app := λ e, (F.map_comp e.hom f).app e.left.fiber,
   naturality' := λ f₁ f₂ g, by { let fn := λ g, F.map_comp g f,
     have := eq_to_hom.family_congr fn (costructured_arrow.w g).symm,
     dsimp [fn, fiber_push] at ⊢ this, simp [this] } }
+
+/-
+def costructured_arrow_map_comp {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) :
+  costructured_arrow.map (f ≫ g) ⟶ costructured_arrow.map f ⋙ costructured_arrow.map g :=
+{ app :=
+
+}
+
+def fiber_push_comp {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) :
+  fiber_push_naturality F (f ≫ g) ≫ whisker_left (fiber_push F X) (F.map_comp f g) =
+  eq_to_hom (by { apply functor.hext, intro, simp, intros, dsimp, congr' 1,apply comma_morphism.ext,  ext, simp, intros, simp, ext,  }) ≫
+  whisker_left (costructured_arrow.map f) (fiber_push_naturality F g) ≫
+  whisker_right (fiber_push_naturality F f) (F.map g)
+-/
 
 /- what about the functor from `(F.obj X).1` to `grothendieck F`'s fiber over `X` ?
     the "fiber category" is indeed isomorphic to the fiber over a point in the base category ...
@@ -256,7 +270,7 @@ section colimit
 open limits
 
 variables {J : Type u} [category.{v} J] {𝒟 : J ⥤ grothendieck F}
-(cb : cocone (𝒟 ⋙ forget F)) (c : cocone 𝒟)
+(cb cb₁ cb₂ : cocone (𝒟 ⋙ forget F)) (c : cocone 𝒟)
 
 /-- From a diagram `𝒟` in the Grothendieck category, `𝒟 ⋙ forget F` is its "projection"
     to the base category. Given and a cocone over the projection, obtain a diagram in the
@@ -276,6 +290,47 @@ def fiber_cocone : cocone (fiber_diagram ((forget F).map_cocone c)) :=
   ι := { app := λ j, ((fiber_push_over F c.X).obj (over.mk (c.ι.app j))).hom,
     naturality' := λ j j' f, by { dsimp [fiber_diagram_map], simp } } }
 
+variables ⦃cb₁ cb₂⦄ (fb₀ : cb ⟶ cb₁) (fb : cb₁ ⟶ cb₂)
+
+def fiber_trans : fiber_diagram cb₂ ⟶ fiber_diagram cb₁ ⋙ F.map fb.hom :=
+{ app := λ j, eq_to_hom (by {dsimp, erw fb.w, refl}) ≫ (fiber_push_naturality F fb.hom).app _,
+  naturality' := λ j j' f, by { rw category.assoc,
+    erw ← nat_trans.naturality, dsimp [fiber_diagram, fiber_push],
+    erw eq_to_hom.family_congr (fiber_push_map _) (fb.w j'), simpa } }
+
+variable (𝒟)
+
+@[simps]
+def fiber_cocone_prefunctor : prefunctor (cocone (𝒟 ⋙ forget F)) Cat :=
+{ obj := λ cb, ⟨cocone (fiber_diagram cb)⟩,
+  map := λ _ _ fb, cocones.functoriality _ (F.map fb.hom) ⋙ cocones.precompose (fiber_trans fb) }
+
+@[simps]
+def fiber_cocone_map_id : (fiber_cocone_prefunctor 𝒟).map (𝟙 cb) ⟶ 𝟭 _ :=
+{ app := λ cf, { hom := (F.map_id cb.X).app cf.X,
+    w' := λ j, by { dsimp [fiber_trans, fiber_push_naturality, fiber_diagram], simpa } } }
+
+variables ⦃cb⦄
+@[simps]
+def fiber_cocone_map_comp : (fiber_cocone_prefunctor 𝒟).map (fb₀ ≫ fb) ⟶
+  (fiber_cocone_prefunctor 𝒟).map fb₀ ⋙ (fiber_cocone_prefunctor 𝒟).map fb :=
+{ app := λ cf, { hom := (F.map_comp fb₀.hom fb.hom).app cf.X,
+    w' := λ j, by { let fn := λ f, F.map_comp f fb.hom,
+      have := eq_to_hom.family_congr fn (fb₀.w j).symm,
+      dsimp [fiber_trans, fiber_push_naturality, fiber_diagram, fn] at this ⊢,
+      simpa [this] } },
+  naturality' := λ _ _ ff, cocone_morphism.ext _ _ ((F.map_comp fb₀.hom fb.hom).naturality ff.hom) }
+
+/-
+def fiber_cocone_functor : lax_functor_to_Cat (cocone (𝒟 ⋙ forget F)) :=
+{ to_prefunctor := fiber_cocone_prefunctor 𝒟,
+  map_id := fiber_cocone_map_id 𝒟,
+  map_comp := fiber_cocone_map_comp 𝒟,
+  id_comp := λ _ _ _, by { ext, dsimp, simp, erw eq_to_hom_map, },
+  comp_id := ,
+  assoc :=  }
+-/
+
 variable (cf : cocone (fiber_diagram cb))
 
 /-- From a cocone over the projected diagram in the base category and a cocone over its
@@ -287,26 +342,67 @@ def total_cocone : cocone 𝒟 :=
     naturality' := λ j j' f, by { erw category.comp_id, ext,
     { erw ← category.assoc, exact cocone.w cf f }, exact cocone.w cb f } } }
 
+lemma fiber_push_total_cocone (j : J) :
+  fiber_push_map ((total_cocone cb cf).ι.app j) fb.hom =
+  eq_to_hom (by {erw fb.w, refl}) ≫ (fiber_trans c fb).app j ≫ (F.map fb.hom).map (cf.ι.app j) :=
+by { dsimp [fiber_trans], simpa }
+
+@[simp]
+def fiber_cocone_trans : cocone (fiber_diagram ((forget F).map_cocone c)) :=
+  (cocones.precompose (fiber_trans c fb)).obj ((F.map fb.hom).map_cocone cf)
+
+def total_cocone_hom (ff : fiber_cocone_trans c cf fb ⟶ fiber_cocone c) :
+  total_cocone cb cf ⟶ c :=
+{ hom := { base := fb.hom, fiber := ff.hom },
+  w' := λ j, by { ext, swap, exact fb.w j,
+    { convert ff.w j using 1, dsimp, simp [fiber_push_total_cocone] } } }
+
+def id_cocone_hom {cf} (ff : cf ⟶ fiber_cocone c) :
+  total_cocone ((forget F).map_cocone c) cf ⟶ c :=
+total_cocone_hom c cf
+{ hom := 𝟙 _, w' := λ j, by erw category.comp_id }
+{ hom := (F.map_id _).app _ ≫ ff.hom,
+  w' := λ j, by { dsimp [fiber_trans, fiber_push_comp, fiber_diagram], simp } }
+
+lemma id_cocone_hom_base (h : is_colimit c) {cf}
+  (f : c ⟶ total_cocone ((forget F).map_cocone c) cf) : f.hom.base = 𝟙 _ :=
+by { have := h.uniq_cocone_morphism, swap 3, exact id_cocone_hom}
+
+
+def id_cocone_iso (h : is_colimit c) {cf} (hf : is_colimit cf) :
+  total_cocone ((forget F).map_cocone c) cf ≅ c :=
+{ hom := id_cocone_hom c (hf.desc_cocone_morphism _),
+  inv := h.desc_cocone_morphism _,
+  hom_inv_id' := by { ext, dsimp, exact hf.uniq_cocone_morphism, },
+  inv_hom_id' := h.uniq_cocone_morphism }
+
 /-- If the a cocone in the Grothendieck category is a colimit, then its `fiber_cocone`
     is also a colimit, provided that the underlying diagram has a colimit. -/
 def is_colimit_fiber_of_is_colimit (h : is_colimit c)
   (hf : has_colimit (fiber_diagram ((forget F).map_cocone c))) :
   is_colimit (fiber_cocone c) :=
-{ desc := λ cf, by { let := (h.desc (total_cocone _ cf)).fiber, dsimp at this ⊢, },
+is_colimit.of_iso_colimit (colimit.is_colimit _)
+{ hom := (colimit.is_colimit _).desc_cocone_morphism (fiber_cocone c),
+  inv := }
+/-(cocones.ext
+{ hom := (colimit.is_colimit _).desc (fiber_cocone c),
+  inv := by { let := (h.desc (total_cocone ((forget F).map_cocone c) (colimit.cocone _))).fiber,
+  dsimp at this ⊢ ,
+    --(h.desc (total_cocone ((forget F).map_cocone c) (colimit.cocone _))).fiber
+    },
+  hom_inv_id' := _,
+  inv_hom_id' := _ }
+(by { }))-/
+
+/-{ desc := λ cf, by { let := (h.desc (total_cocone _ cf)).fiber, dsimp at this ⊢, },
   fac' := _,
-  uniq' := _ }
+  uniq' := _ }-/
 
 variables {cb} (lb : is_colimit cb)
 
 def desc_base : cb.X ⟶ c.X.base := lb.desc ((forget F).map_cocone c)
 
-def fiber_trans :
-  fiber_diagram ((forget F).map_cocone c) ⟶
-  fiber_diagram cb ⋙ F.map (desc_base c lb) :=
-{ app := λ j, eq_to_hom (by {dsimp, erw lb.fac, refl}) ≫ (fiber_push_comp F _).app _,
-  naturality' := λ j j' f, by { rw category.assoc,
-    erw ← nat_trans.naturality, dsimp [fiber_diagram, fiber_push],
-    erw eq_to_hom.family_congr (fiber_push_map _) (lb.fac _ j'), simpa } }
+
 
 variable [∀ {X Y Z} (f : X ⟶ Y) (g : Y ⟶ Z), is_iso (F.map_comp f g)]
 
@@ -316,11 +412,6 @@ by { fapply nat_iso.is_iso_of_is_iso_app _, dsimp [fiber_push_comp], apply_insta
 instance : is_iso (fiber_trans c lb) :=
 by { fapply nat_iso.is_iso_of_is_iso_app _, dsimp [fiber_trans], apply_instance }
 
-lemma fiber_push_total_cocone (j : J) :
-  fiber_push_map ((total_cocone cb cf).ι.app j) (desc_base c lb) =
-  eq_to_hom (by {erw lb.fac, refl}) ≫
-  (fiber_trans c lb).app j ≫ (F.map (desc_base c lb)).map (cf.ι.app j) :=
-by { dsimp [fiber_trans], simpa }
 
 variables {cf} (lf : ∀ {c : C} (f : cb.X ⟶ c), is_colimit (functor.map_cocone (F.map f) cf))
 

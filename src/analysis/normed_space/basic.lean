@@ -801,6 +801,46 @@ instance submodule.normed_space {𝕜 R : Type*} [has_scalar 𝕜 R] [normed_fie
 
 end normed_space
 
+section normed_space_nondiscrete
+
+variables (𝕜 E : Type*) [nondiscrete_normed_field 𝕜] [normed_group E] [normed_space 𝕜 E]
+  [nontrivial E]
+
+include 𝕜
+
+/-- If `E` is a nontrivial normed space over a nondiscrete normed field `𝕜`, then `E` is unbounded:
+for any `c : ℝ`, there exists a vector `x : E` with norm strictly greater than `c`. -/
+lemma normed_space.exists_lt_norm (c : ℝ) : ∃ x : E, c < ∥x∥ :=
+begin
+  rcases exists_ne (0 : E) with ⟨x, hx⟩,
+  rcases normed_field.exists_lt_norm 𝕜 (c / ∥x∥) with ⟨r, hr⟩,
+  use r • x,
+  rwa [norm_smul, ← div_lt_iff],
+  rwa norm_pos_iff
+end
+
+protected lemma normed_space.unbounded_univ : ¬bounded (set.univ : set E) :=
+λ h, let ⟨R, hR⟩ := bounded_iff_forall_norm_le.1 h, ⟨x, hx⟩ := normed_space.exists_lt_norm 𝕜 E R
+in hx.not_le (hR x trivial)
+
+/-- A normed vector space over a nondiscrete normed field is a noncompact space. This cannot be
+an instance because in order to apply it, Lean would have to search for `normed_space 𝕜 E` with
+unknown `𝕜`. We register this as an instance in two cases: `𝕜 = E` and `𝕜 = ℝ`. -/
+protected lemma normed_space.noncompact_space : noncompact_space E :=
+⟨λ h, normed_space.unbounded_univ 𝕜 _ h.bounded⟩
+
+@[priority 100]
+instance nondiscrete_normed_field.noncompact_space : noncompact_space 𝕜 :=
+normed_space.noncompact_space 𝕜 𝕜
+
+omit 𝕜
+
+@[priority 100]
+instance real_normed_space.noncompact_space [normed_space ℝ E] : noncompact_space E :=
+normed_space.noncompact_space ℝ E
+
+end normed_space_nondiscrete
+
 section normed_algebra
 
 /-- A seminormed algebra `𝕜'` over `𝕜` is an algebra endowed with a seminorm for which the

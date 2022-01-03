@@ -517,12 +517,12 @@ by letI : @decidable_rel α (≤) := classical.dec_rel _; symmetry; calc
         simp_rw [sum_mul] }
   ... = ∑ y in Ici x, ∑ z in Ici y, (1 : incidence_algebra 𝕜 α) x z * f z : by {
         simp [mu_mul_zeta 𝕜 α, sum_Ici_eq_add_sum_Ioi],
-        conv in (ite _ _ _) { rw if_neg (not_lt_of_le $ (mem_Ioi.mp H).le) },
         conv in (ite _ _ _) { rw if_neg (ne_of_lt $ mem_Ioi.mp H) },
+        conv in (ite _ _ _) { rw if_neg (not_lt_of_le $ (mem_Ioi.mp H).le) },
         simp }
   ... = f x : by { simp [one_apply, sum_Ici_eq_add_sum_Ioi],
-        conv in (ite _ _ _) { rw if_neg (not_lt_of_le $ (mem_Ioi.mp H).le) },
         conv in (ite _ _ _) { rw if_neg (ne_of_lt $ mem_Ioi.mp H) },
+        conv in (ite _ _ _) { rw if_neg (not_lt_of_le $ (mem_Ioi.mp H).le) },
         simp }
 
 end inversion_top

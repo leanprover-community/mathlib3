@@ -121,8 +121,6 @@ lemma adapted_natural {u : ι → α → β} (hum : ∀ i, measurable[m] (u i)) 
 
 end filtration
 
-variables {μ : measure α} {f : filtration ι m}
-
 /-- A stopping time with respect to some filtration `f` is a function
 `τ` such that for all `i`, the preimage of `{j | j ≤ i}` along `τ` is measurable
 with respect to `f i`.
@@ -132,9 +130,14 @@ Intuitively, the stopping time `τ` describes some stopping rule such that at ti
 def is_stopping_time (f : filtration ι m) (τ : α → ι) :=
 ∀ i : ι, measurable_set[f i] $ {x | τ x ≤ i}
 
-lemma is_stopping_time.measurable_set_eq
-  {f : filtration ℕ m} {τ : α → ℕ} (hτ : is_stopping_time f τ) (i : ℕ) :
-  measurable_set[f i] $ {x | τ x = i} :=
+variables {f : filtration ℕ m} {τ : α → ℕ}
+
+lemma is_stopping_time.measurable_set_le (hτ : is_stopping_time f τ) (i : ℕ) :
+  measurable_set[f i] {x | τ x ≤ i} :=
+hτ i
+
+lemma is_stopping_time.measurable_set_eq (hτ : is_stopping_time f τ) (i : ℕ) :
+  measurable_set[f i] {x | τ x = i} :=
 begin
   cases i,
   { convert (hτ 0),
@@ -149,13 +152,29 @@ begin
         linarith } } }
 end
 
+lemma is_stopping_time.measurable_set_ge (hτ : is_stopping_time f τ) (i : ℕ) :
+  measurable_set[f i] {x | i ≤ τ x} :=
+begin
+  have : {a : α | i ≤ τ a} = (set.univ \ {a | τ a ≤ i}) ∪ {a | τ a = i},
+  { ext1 a,
+    simp only [true_and, set.mem_univ, set.mem_diff, not_le, set.mem_union_eq,
+      set.mem_set_of_eq],
+    rw le_iff_lt_or_eq,
+    by_cases h : τ a = i,
+    { simp [h], },
+    { simp only [h, ne.symm h, or_false, or_iff_left_iff_imp], }, },
+  rw this,
+  refine @measurable_set.union _ (f.seq i) _ _ _ (hτ.measurable_set_eq i),
+  exact @measurable_set.diff _ (f.seq i) _ _ (@measurable_set.univ _ (f.seq i)) (hτ i),
+end
+
 lemma is_stopping_time.measurable_set_eq_le
   {f : filtration ℕ m} {τ : α → ℕ} (hτ : is_stopping_time f τ) {i j : ℕ} (hle : i ≤ j) :
-  measurable_set[f j] $ {x | τ x = i} :=
+  measurable_set[f j] {x | τ x = i} :=
 f.mono hle _ $ hτ.measurable_set_eq i
 
 lemma is_stopping_time_of_measurable_set_eq
-  {f : filtration ℕ m} {τ : α → ℕ} (hτ : ∀ i, measurable_set[f i] $ {x | τ x = i}) :
+  {f : filtration ℕ m} {τ : α → ℕ} (hτ : ∀ i, measurable_set[f i] {x | τ x = i}) :
   is_stopping_time f τ :=
 begin
   intro i,
@@ -395,8 +414,7 @@ section normed_group
 
 variables [measurable_space β] [normed_group β] [has_measurable_add₂ β]
 
-lemma stopped_process_measurable
-  (hτ : is_stopping_time f τ) (hu₁ : adapted f u) (n : ℕ) :
+lemma measurable_stopped_process (hτ : is_stopping_time f τ) (hu₁ : adapted f u) (n : ℕ) :
   measurable (stopped_process u τ n) :=
 (hu₁.stopped_process_adapted hτ n).le (f.le _)
 
@@ -406,26 +424,14 @@ lemma mem_ℒp_stopped_process {p : ℝ≥0∞} [borel_space β] {μ : measure �
 begin
   rw stopped_process_eq,
   refine mem_ℒp.add _ _,
-  { refine mem_ℒp.indicator _ (hu₂ n),
-    refine f.le n {a : α | n ≤ τ a} _,
-    have : {a : α | n ≤ τ a} = (set.univ \ {a | τ a ≤ n}) ∪ {a | τ a = n},
-    { ext1 a,
-      simp only [true_and, set.mem_univ, set.mem_diff, not_le, set.mem_union_eq,
-        set.mem_set_of_eq],
-      rw le_iff_lt_or_eq,
-      by_cases h : τ a = n,
-      { simp [h], },
-      { simp only [h, ne.symm h, or_false, or_iff_left_iff_imp], }, },
-    rw this,
-    refine @measurable_set.union _ (f.seq n) _ _ _ (hτ.measurable_set_eq n),
-    refine @measurable_set.diff _ (f.seq n) _ _ (@measurable_set.univ _ (f.seq n)) (hτ n), },
+  { exact mem_ℒp.indicator (f.le n {a : α | n ≤ τ a} (hτ.measurable_set_ge n)) (hu₂ n), },
   { suffices : mem_ℒp (λ x, ∑ (i : ℕ) in finset.range n, {a : α | τ a = i}.indicator (u i) x) p μ,
       by { convert this, ext1 x, simp only [finset.sum_apply], },
     refine mem_ℒp_finset_sum _ (λ i hi, mem_ℒp.indicator _ (hu₂ i)),
     exact f.le i {a : α | τ a = i} (hτ.measurable_set_eq i) },
 end
 
-lemma stopped_process_integrable [borel_space β] {μ : measure α} (hτ : is_stopping_time f τ)
+lemma integrable_stopped_process [borel_space β] {μ : measure α} (hτ : is_stopping_time f τ)
   (hu₁ : adapted f u) (hu₂ : ∀ n, integrable (u n) μ) (n : ℕ) :
   integrable (stopped_process u τ n) μ :=
 begin

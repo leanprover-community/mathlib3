@@ -79,8 +79,8 @@ subset_Inter_iff.symm
 
 lemma ideal.is_homogeneous.exists_iff_eq_span :
   (∃ (S : set (homogeneous_submonoid 𝒜)), I = ideal.span (coe '' S)) ↔
-  I = ideal.span {x | x ∈ I ∧ is_homogeneous 𝒜 x} :=
-(subtype.exists_set_subtype _).trans (ideal.is_homogeneous.exists_subset_iff_eq_span _ _)
+    I = ideal.homogeneous_core 𝒜 I :=
+(set.image_preimage.compose (submodule.gi _ _).gc).exists_eq_l _
 
 lemma mul_homogeneous_element_mem_of_mem
   {I : ideal A} (r x : A) (hx₁ : is_homogeneous 𝒜 x) (hx₂ : x ∈ I) (j : ι) :

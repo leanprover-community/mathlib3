@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Julian Kuelshammer
 -/
 import data.zmod.basic
-import group_theory.order_of_element
 import data.nat.basic
 import tactic.interval_cases
 import group_theory.specific_groups.dihedral
@@ -235,16 +234,23 @@ end
 /--
 If `0 < n`, then `a 1` has order `2 * n`.
 -/
-@[simp] lemma order_of_a_one [hn : fact (0 < n)] : order_of (a 1 : quaternion_group n) = 2 * n :=
+@[simp] lemma order_of_a_one : order_of (a 1 : quaternion_group n) = 2 * n :=
 begin
-  cases (nat.le_of_dvd (nat.succ_mul_pos _ hn.1)
-    (order_of_dvd_of_pow_eq_one (@a_one_pow_n n))).lt_or_eq with h h,
-  { have h1 : (a 1 : quaternion_group n)^(order_of (a 1)) = 1 := pow_order_of_eq_one _,
-    rw a_one_pow at h1,
-    injection h1 with h2,
-    rw [← zmod.val_eq_zero, zmod.val_nat_cast, nat.mod_eq_of_lt h] at h2,
-    exact absurd h2.symm (order_of_pos _).ne },
-  { exact h }
+  rcases n.eq_zero_or_pos with rfl | hn,
+  { simp_rw [mul_zero, order_of_eq_zero_iff'],
+    intros n hn,
+    rw [one_def, a_one_pow],
+    apply mt a.inj,
+    simpa using hn.ne' },
+  haveI := fact.mk hn,
+  apply (nat.le_of_dvd (nat.succ_mul_pos _ hn)
+                       (order_of_dvd_of_pow_eq_one (@a_one_pow_n n))).lt_or_eq.resolve_left,
+  intro h,
+  have h1 : (a 1 : quaternion_group n)^(order_of (a 1)) = 1 := pow_order_of_eq_one _,
+  rw a_one_pow at h1,
+  injection h1 with h2,
+  rw [← zmod.val_eq_zero, zmod.val_nat_cast, nat.mod_eq_of_lt h] at h2,
+  exact absurd h2.symm (order_of_pos _).ne
 end
 
 /--
@@ -255,6 +261,29 @@ lemma order_of_a [fact (0 < n)] (i : zmod (2 * n)) :
 begin
   conv_lhs { rw ← zmod.nat_cast_zmod_val i },
   rw [← a_one_pow, order_of_pow, order_of_a_one]
+end
+
+lemma exponent : monoid.exponent (quaternion_group n) = 2 * lcm n 2 :=
+begin
+  rw [←normalize_eq 2, ←lcm_mul_left, normalize_eq],
+  norm_num,
+  rcases n.eq_zero_or_pos with rfl | hn,
+  { simp only [lcm_zero_left, mul_zero],
+    exact monoid.exponent_eq_zero_of_order_zero order_of_a_one },
+  haveI := fact.mk hn,
+  apply nat.dvd_antisymm,
+  { apply monoid.exponent_dvd_of_forall_pow_eq_one,
+    rintro (m | m),
+    { rw [←order_of_dvd_iff_pow_eq_one, order_of_a],
+      refine nat.dvd_trans ⟨gcd (2 * n) m.val, _⟩ (dvd_lcm_left (2 * n) 4),
+      exact (nat.div_mul_cancel (nat.gcd_dvd_left (2 * n) (m.val))).symm },
+    { rw [←order_of_dvd_iff_pow_eq_one, order_of_xa],
+      exact dvd_lcm_right (2 * n) 4 } },
+  { apply lcm_dvd,
+    { convert monoid.order_dvd_exponent (a 1),
+      exact order_of_a_one.symm },
+    { convert monoid.order_dvd_exponent (xa 0),
+      exact (order_of_xa 0).symm } }
 end
 
 end quaternion_group

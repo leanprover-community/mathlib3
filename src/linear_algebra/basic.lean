@@ -8,7 +8,7 @@ import algebra.big_operators.pi
 import algebra.module.hom
 import algebra.module.prod
 import algebra.module.submodule_lattice
-import data.dfinsupp
+import data.dfinsupp.basic
 import data.finsupp.basic
 import order.compactly_generated
 import order.omega_complete_partial_order

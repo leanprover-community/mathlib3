@@ -49,19 +49,6 @@ lemma choose_eq_zero_of_lt : ∀ {n k}, n < k → choose n k = 0
   have hnk1 : n < k + 1, from lt_of_succ_lt hk,
   by rw [choose_succ_succ, choose_eq_zero_of_lt hnk, choose_eq_zero_of_lt hnk1]
 
-lemma choose_eq_zero_iff {n k : ℕ} : n.choose k = 0 ↔ n < k :=
-begin
-  refine ⟨_, nat.choose_eq_zero_of_lt⟩,
-  induction n with n hn generalizing k,
-  { cases k;
-    simp },
-  cases k,
-  { simp },
-  simp only [nat.choose_succ_succ, and_imp, add_eq_zero_iff],
-  intros h _,
-  exact nat.succ_lt_succ (hn h)
-end
-
 @[simp] lemma choose_self (n : ℕ) : choose n n = 1 :=
 by induction n; simp [*, choose, choose_eq_zero_of_lt (lt_succ_self _)]
 
@@ -91,6 +78,9 @@ lemma choose_pos : ∀ {n k}, k ≤ n → 0 < choose n k
 | (n + 1)       0 hk := by simp; exact dec_trivial
 | (n + 1) (k + 1) hk := by rw choose_succ_succ;
     exact add_pos_of_pos_of_nonneg (choose_pos (le_of_succ_le_succ hk)) (nat.zero_le _)
+
+lemma choose_eq_zero_iff {n k : ℕ} : n.choose k = 0 ↔ n < k :=
+⟨λ h, lt_of_not_ge (mt nat.choose_pos h.symm.not_lt), nat.choose_eq_zero_of_lt⟩
 
 lemma succ_mul_choose_eq : ∀ n k, succ n * choose n k = choose (succ n) (succ k) * succ k
 | 0             0 := dec_trivial

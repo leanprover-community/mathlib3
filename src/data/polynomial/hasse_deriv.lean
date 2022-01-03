@@ -7,6 +7,7 @@ Authors: Johan Commelin
 import algebra.polynomial.big_operators
 import data.nat.choose.cast
 import data.nat.choose.vandermonde
+import data.polynomial.degree.lemmas
 import data.polynomial.derivative
 
 /-!
@@ -228,15 +229,14 @@ begin
     { simpa using hn } },
   { refine λ x hx y hy hxy H, hxy _,
     dsimp at H,
-    simp only [monomial_eq_zero_iff, mem_support_iff, ne.def, finset.mem_filter,
+    simp only [set.mem_set_of_eq, monomial_eq_zero_iff, mem_support_iff, ne.def, finset.mem_filter,
                 finset.mem_coe] at hx hy,
-    rw nat_degree_monomial _ _ hx.right at H,
-    rw nat_degree_monomial _ _ hy.right at H,
+    simp only [nat_degree_monomial, hx.right, hy.right, if_false] at H,
     refine tsub_inj_left _ _ H,
     { contrapose! hx,
       simp [nat.choose_eq_zero_of_lt hx] },
     { contrapose! hy,
-      simp [nat.choose_eq_zero_of_lt hy] } }
+      simp [nat.choose_eq_zero_of_lt hy] }  }
 end
 
 section

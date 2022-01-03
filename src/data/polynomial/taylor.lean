@@ -5,7 +5,6 @@ Authors: Johan Commelin
 -/
 
 import data.polynomial.hasse_deriv
-import data.polynomial.degree.lemmas
 
 /-!
 # Taylor expansions of polynomials
@@ -42,6 +41,9 @@ by simp only [taylor_apply, C_comp]
 
 @[simp] lemma taylor_one : taylor r (1 : polynomial R) = C 1 :=
 by rw [← C_1, taylor_C]
+
+@[simp] lemma taylor_monomial (i : ℕ) (k : R) : taylor r (monomial i k) = C k * (X + C r) ^ i :=
+by simp [taylor_apply]
 
 /-- The `k`th coefficient of `polynomial.taylor r f` is `(polynomial.hasse_deriv k f).eval r`. -/
 lemma taylor_coeff (n : ℕ) : (taylor r f).coeff n = (hasse_deriv n f).eval r :=
@@ -129,6 +131,39 @@ begin
   rw linear_map.map_zero,
   ext k,
   simp only [taylor_coeff, h, coeff_zero],
+end
+
+lemma sum_taylor_X_pow {R} [comm_ring R] (r : R) (n : ℕ) :
+  (taylor r (X ^ n)).sum (λ i a, C a * (X - C r) ^ i) = X ^ n :=
+begin
+  nontriviality R,
+  rw sum_over_range,
+  { rw nat_degree_taylor,
+    nth_rewrite_rhs 0 ←sub_add_cancel X (C r),
+    rw add_pow,
+    refine finset.sum_congr _ _,
+    { simp },
+    { intros x hx,
+      rw taylor_coeff,
+      simp [X_pow_eq_monomial, mul_comm, mul_assoc, mul_left_comm] } },
+  { simp }
+end
+
+/-- Taylor's formula. -/
+lemma sum_taylor_eq {R} [comm_ring R] (f : polynomial R) (r : R) :
+  (taylor r f).sum (λ i a, C a * (X - C r) ^ i) = f :=
+begin
+  -- we induct over the polynomial because juggling sums via the linearity of the functions
+  -- requires constructing and destructing over lsum, lcoeff, which is too much work
+  induction f using polynomial.induction_on with k f g hf hg n k IH,
+  { simp },
+  { rw [linear_map.map_add, sum_add_index, hf, hg];
+    simp [add_mul] },
+  { rw [←smul_eq_C_mul, linear_map.map_smul, sum_smul_index],
+    { nth_rewrite_rhs 0 ←sum_taylor_X_pow r,
+      rw [sum_def, sum_def, finset.smul_sum],
+      simp [smul_eq_C_mul, mul_assoc] },
+    { simp } }
 end
 
 end polynomial

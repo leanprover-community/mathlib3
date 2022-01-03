@@ -127,6 +127,12 @@ structure embedding [tα : topological_space α] [tβ : topological_space β] (f
   extends inducing f : Prop :=
 (inj : function.injective f)
 
+lemma function.injective.embedding_induced [t : topological_space β]
+  {f : α → β} (hf : function.injective f) :
+  @embedding α β (t.induced f) t f :=
+{ induced := rfl,
+  inj := hf }
+
 variables [topological_space α] [topological_space β] [topological_space γ]
 
 lemma embedding.mk' (f : α → β) (inj : function.injective f)

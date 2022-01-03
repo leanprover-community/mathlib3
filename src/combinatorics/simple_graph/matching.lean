@@ -3,8 +3,8 @@ Copyright (c) 2020 Alena Gusakov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alena Gusakov, Arthur Paulino, Kyle Miller
 -/
-import combinatorics.simple_graph.subgraph
 import combinatorics.simple_graph.degree_sum
+import combinatorics.simple_graph.subgraph
 
 /-!
 # Matchings
@@ -118,7 +118,7 @@ by simp [degree_eq_one_iff_unique_adj, is_perfect_matching_iff]
 
 lemma is_perfect_matching.even_card {M : subgraph G} [fintype V] (h : M.is_perfect_matching) :
   even (fintype.card V) :=
-by { classical, simpa [card_verts_eq_of_spanning h.2] using is_matching.even_card h.1 }
+by { classical, simpa [h.2.card_verts] using is_matching.even_card h.1 }
 
 end subgraph
 

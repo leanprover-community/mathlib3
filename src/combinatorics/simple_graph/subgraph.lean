@@ -361,7 +361,7 @@ instance coe_finite_at {G' : subgraph G} (v : G'.verts) [fintype (G'.neighbor_se
   fintype (G'.coe.neighbor_set v) :=
 fintype.of_equiv _ (coe_neighbor_set_equiv v).symm
 
-lemma card_verts_eq_of_spanning [fintype V] {G' : subgraph G} [fintype G'.verts]
+lemma is_spanning.card_verts [fintype V] {G' : subgraph G} [fintype G'.verts]
   (h : G'.is_spanning) : G'.verts.to_finset.card = fintype.card V :=
 by { rw is_spanning_iff at h, congr, convert set.to_finset_univ }
 
@@ -393,8 +393,8 @@ begin
   exact fintype.card_congr (coe_neighbor_set_equiv v),
 end
 
-@[simp] lemma spanning_coe_degree {G' : G.subgraph} (v : V)
-  [fintype (G'.neighbor_set v)] [fintype (G'.spanning_coe.neighbor_set v)] :
+@[simp] lemma degree_spanning_coe {G' : G.subgraph} (v : V) [fintype (G'.neighbor_set v)]
+  [fintype (G'.spanning_coe.neighbor_set v)] :
   G'.spanning_coe.degree v = G'.degree v :=
 by { rw [← card_neighbor_set_eq_degree, subgraph.degree], congr }
 

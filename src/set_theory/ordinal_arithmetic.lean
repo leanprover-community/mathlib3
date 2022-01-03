@@ -840,11 +840,7 @@ by simp only [mod_def, div_self a0, mul_one, sub_self]
 by simp only [mod_def, div_one, one_mul, sub_self]
 
 theorem dvd_of_mod_eq_zero {a b : ordinal} (H : a % b = 0) : b ∣ a :=
-begin
-  use a / b,
-  nth_rewrite 0 ←div_add_mod a b,
-  rw [H, add_zero]
-end
+⟨a / b, by simpa [H] using (div_add_mod a b).symm⟩
 
 theorem mod_eq_zero_of_dvd {a b : ordinal} (H : b ∣ a) : a % b = 0 :=
 begin

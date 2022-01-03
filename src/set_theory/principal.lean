@@ -72,6 +72,16 @@ end
 theorem one_add_principal : principal (+) 1 :=
 by { rw one_principal_iff, exact zero_add _ }
 
+theorem add_principal_of_le_one {o : ordinal.{u}} (ho : o ≤ 1) : principal (+) o :=
+begin
+  cases lt_or_eq_of_le ho with ho₀ ho₁,
+  { rw lt_one_iff_zero at ho₀,
+    rw ho₀,
+    exact zero_principal },
+  rw ho₁,
+  exact one_add_principal
+end
+
 theorem omega_add_principal : principal (+) omega.{u} :=
 @add_lt_omega
 
@@ -93,6 +103,13 @@ theorem mul_omega_le_add_principal {a o : ordinal.{u}} (hao : a < o) (ho : princ
 begin
   convert nfp_le_of_principal hao ho,
   exact mul_omega_nfp_add_self a
+end
+
+theorem omega_le_add_principal {o : ordinal.{u}} (ho : principal (+) o) (ho₁ : 1 < o) :
+  omega.{u} ≤ o :=
+begin
+  rw ←one_mul omega.{u},
+  exact mul_omega_le_add_principal ho₁ ho
 end
 
 theorem omega_power_add_principal (o : ordinal.{u}) : principal (+) (omega.{u} ^ o) :=
@@ -181,50 +198,18 @@ begin
   exact ⟨m + n, (nat.cast_add m n).symm⟩
 end
 
--- Move to ordinal_arithmetic?
-theorem power_omega_nfp_mul {a b : ordinal.{u}} (hb : 0 < b) (hba : b ≤ a ^ omega.{u}) :
-  a ^ omega.{u} = nfp ((*) a) b :=
-begin
-  sorry
-end
-
--- Move to ordinal_arithmetic?
-theorem nfp_mul_zero (a : ordinal) : nfp ((*) 0) a = a :=
-begin
-  unfold nfp,
-  refine le_antisymm _ (le_sup (λ n, ((*) 0)^[n] a) 0),
-  rw sup_le,
-  intro n,
-  induction n with n hn, { refl },
-  rw function.iterate_succ',
-  change 0 * _ ≤ a,
-  rw zero_mul,
-  exact ordinal.zero_le a
-end
-
--- Move to ordinal_arithmetic?
-theorem power_omega_nfp_mul_self (a : ordinal.{u}) : a ^ omega.{u} = nfp ((*) a) a :=
-begin
-  cases eq_or_ne a 0 with ha ha,
-  { rw [ha, zero_power omega_ne_zero],
-    exact (nfp_mul_zero 0).symm },
-  rw ←ordinal.pos_iff_ne_zero at ha,
-  exact power_omega_nfp_mul ha (le_power_self_left a one_le_omega)
-end
-
--- Move to ordinal_arithmetic?
-theorem power_omega_nfp_mul_one {a : ordinal.{u}} (ha : 0 < a) : a ^ omega.{u} = nfp ((*) a) 1 :=
-begin
-  apply power_omega_nfp_mul zero_lt_one,
-  rw one_le_iff_pos,
-  exact ordinal.power_pos _ ha
-end
-
 theorem power_omega_le_mul_principal {a o : ordinal.{u}} (hao : a < o) (ho : principal (*) o) :
   a ^ omega.{u} ≤ o :=
 begin
   convert nfp_le_of_principal hao ho,
   exact power_omega_nfp_mul_self a
+end
+
+theorem omega_le_mul_principal {o : ordinal.{u}} (ho : principal (*) o) (ho₂ : 2 < o) :
+  omega.{u} ≤ o :=
+begin
+  rw ←power_omega (lt_succ_self 1) two_lt_omega,
+  exact power_omega_le_mul_principal ho₂ ho
 end
 
 theorem omega_power_power_is_normal : is_normal (λ a : ordinal.{u}, omega.{u} ^ omega.{u} ^ a) :=
@@ -290,8 +275,13 @@ end
 theorem add_principal_of_mul_principal {o : ordinal.{u}} (ho : principal (*) o) (ho₂ : o ≠ 2) :
   principal (+) o :=
 begin
-  intros a b hao hbo,
-  refine lt_of_le_of_lt _ (ho a b hao hbo),
+  cases lt_or_gt_of_ne ho₂ with ho₁ ho₂,
+  { change o < succ 1 at ho₁,
+    rw lt_succ at ho₁,
+    exact add_principal_of_le_one ho₁ },
+  refine λ a b hao hbo, lt_of_le_of_lt _ (ho (max a b) 2 (max_lt hao hbo) ho₂),
+  rw mul_two,
+  exact add_le_add (le_max_left a b) (le_max_right a b)
 end
 
 theorem mul_principal_power_omega {o : ordinal.{u}} (ho : principal (*) o) (ho₂ : 2 < o) :
@@ -303,14 +293,6 @@ begin
   { rw ho₀ at ho₂,
     exact (ordinal.not_lt_zero 2 ho₂).elim },
   exact h
-end
-
-theorem the_big' {o : ordinal.{u}} (ho : principal (*) o) (ho₂ : 2 < o) :
-  omega.{u} ^ (log omega.{u} o) = o :=
-begin
-  cases mul_principal_power_omega ho ho₂ with a ha,
-  rw [ha, log_power],
-  exact two_le_omega
 end
 
 theorem lt_omega_power_power_log_log_succ_of_principal {o : ordinal.{u}} (ho : principal (*) o)
@@ -336,12 +318,14 @@ begin
     exact not_le_of_lt (lt_omega_power_power_log_log_succ_of_principal ho ho₂) this },
   have : omega.{u} ^ (log omega.{u} (log omega.{u} o)) ≤ log omega.{u} o := begin
     apply power_log_le,
-    sorry,
+    rw ←succ_le,
+    rw le_log one_lt_omega (zero_lt_of_two_lt ho₂),
+    rw succ_zero,
+    rw power_one,
+    exact omega_le_mul_principal ho ho₂
   end,
   rw ←power_le_power_iff_right one_lt_omega at this,
-  apply this.trans,
-  apply power_log_le,
-  apply zero_lt_of_two_le (le_of_lt ho₂)
+  exact this.trans (power_log_le _ (zero_lt_of_two_lt ho₂))
 end
 
 theorem mul_principal_iff_le_two_or_omega_power_power (o : ordinal.{u}) :

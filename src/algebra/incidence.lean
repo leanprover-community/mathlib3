@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alex J. Best, Yaël Dillies
 -/
 import algebra.big_operators.ring
-import algebra.smul_with_zero
+import algebra.module.basic
+import group_theory.group_action.basic
 import group_theory.group_action.pi
 import data.finset.locally_finite
 
@@ -53,7 +54,7 @@ end finset
 open finset
 open_locale big_operators
 
-variables (𝕄 F 𝕜 α β : Type*)
+variables (𝕄 F 𝕜 𝕝 𝕞 α β : Type*)
 
 /-- The `𝕜`-incidence algebra over `α`. -/
 structure incidence_algebra [has_zero 𝕜] [has_le α] :=
@@ -114,6 +115,8 @@ lemma ext_iff {f g : incidence_algebra 𝕜 α} : f = g ↔ ∀ a b, f a b = g a
 
 end coes
 
+/-! ### Additive and multiplicative structure -/
+
 variables {𝕜 α}
 
 instance : has_zero (incidence_algebra 𝕜 α) := ⟨⟨λ _ _, 0, λ _ _ _, rfl⟩⟩
@@ -169,21 +172,21 @@ end add_group
 instance [add_comm_group 𝕜] [has_le α] : add_comm_group (incidence_algebra 𝕜 α) :=
 { .. incidence_algebra.add_group 𝕜 α, .. incidence_algebra.add_comm_monoid 𝕜 α }
 
-section smul_with_zero
-variables [has_zero 𝕄] [has_zero 𝕜] [smul_with_zero 𝕄 𝕜] [has_le α]
+-- section smul_with_zero
+-- variables [has_zero 𝕄] [has_zero 𝕜] [smul_with_zero 𝕄 𝕜] [has_le α]
 
-instance : has_scalar 𝕄 (incidence_algebra 𝕜 α) :=
-⟨λ c f, ⟨c • f, λ a b h, by rw [pi.smul_apply, pi.smul_apply, eq_zero_of_not_le h, smul_zero']⟩⟩
+-- instance : has_scalar 𝕄 (incidence_algebra 𝕜 α) :=
+-- ⟨λ c f, ⟨c • f, λ a b h, by rw [pi.smul_apply, pi.smul_apply, eq_zero_of_not_le h, smul_zero']⟩⟩
 
-@[simp] lemma smul_apply (c : 𝕄) (f : incidence_algebra 𝕜 α) (a b : α) : (c • f) a b = c • f a b :=
-rfl
+-- @[simp] lemma smul_apply (c : 𝕄) (f : incidence_algebra 𝕜 α) (a b : α) : (c • f) a b = c • f a b :=
+-- rfl
 
-instance : smul_with_zero 𝕄 (incidence_algebra 𝕜 α) :=
-{ smul := (•),
-  smul_zero := λ m, by { ext, exact smul_zero' _ _ },
-  zero_smul := λ m, by { ext, exact zero_smul _ _ } }
+-- instance : smul_with_zero 𝕄 (incidence_algebra 𝕜 α) :=
+-- { smul := (•),
+--   smul_zero := λ m, by { ext, exact smul_zero' _ _ },
+--   zero_smul := λ m, by { ext, exact zero_smul _ _ } }
 
-end smul_with_zero
+-- end smul_with_zero
 
 section one
 variables [preorder α] [decidable_eq α] [has_zero 𝕜] [has_one 𝕜]
@@ -217,7 +220,37 @@ instance : has_mul (incidence_algebra 𝕜 α) :=
 
 end mul
 
-instance [semiring 𝕜] [decidable_eq α] [preorder α] [locally_finite_order α] :
+instance [preorder α] [locally_finite_order α] [decidable_eq α] [non_unital_non_assoc_semiring 𝕜] :
+  non_unital_non_assoc_semiring (incidence_algebra 𝕜 α) :=
+{ mul := (*),
+  zero := 0,
+  zero_mul := λ f, by { ext, exact sum_eq_zero (λ x _, zero_mul _) },
+  mul_zero := λ f, by { ext, exact sum_eq_zero (λ x _, mul_zero _) },
+  left_distrib := λ f g h,
+    by { ext, exact eq.trans (sum_congr rfl $ λ x _, left_distrib _ _ _) sum_add_distrib },
+  right_distrib := λ f g h,
+    by { ext, exact eq.trans (sum_congr rfl $ λ x _, right_distrib _ _ _) sum_add_distrib },
+  .. incidence_algebra.add_comm_monoid 𝕜 α }
+
+instance [preorder α] [locally_finite_order α] [decidable_eq α] [non_assoc_semiring 𝕜] :
+  non_assoc_semiring (incidence_algebra 𝕜 α) :=
+{ mul := (*),
+  zero := 0,
+  one := 1,
+  one_mul := λ f, begin
+    ext a b,
+    simp_rw [mul_apply, one_apply, sum_boole_mul],
+    exact ite_eq_left_iff.2 (not_imp_comm.1 $ λ h, left_mem_Icc.2 $ le_of_ne_zero $ ne.symm h),
+  end,
+  mul_one := λ f, begin
+    ext a b,
+    simp_rw [mul_apply, one_apply, eq_comm, sum_mul_boole],
+    convert (ite_eq_left_iff.2 $ not_imp_comm.1 $
+      λ h, right_mem_Icc.2 $ le_of_ne_zero $ ne.symm h).symm,
+  end,
+  .. incidence_algebra.non_unital_non_assoc_semiring 𝕜 α }
+
+instance [preorder α] [locally_finite_order α] [decidable_eq α] [semiring 𝕜] :
   semiring (incidence_algebra 𝕜 α) :=
 { mul := (*),
   mul_assoc := λ f g h, begin
@@ -238,30 +271,75 @@ instance [semiring 𝕜] [decidable_eq α] [preorder α] [locally_finite_order �
       simp only [exists_prop, sigma.exists, mem_sigma, heq_iff_eq, sigma.mk.inj_iff, mem_Icc] at *,
       exact ⟨c.2, c.1, ⟨⟨hc.1.1.trans hc.2.1, hc.2.2⟩, hc.1.1, hc.2.1⟩, c.eta.symm⟩ }
   end,
-  one := (1),
-  one_mul := λ f, begin
-    ext a b,
-    simp_rw [mul_apply, one_apply, sum_boole_mul],
-    exact ite_eq_left_iff.2 (not_imp_comm.1 $ λ h, left_mem_Icc.2 $ le_of_ne_zero $ ne.symm h),
-  end,
-  mul_one := λ f, begin
-    ext a b,
-    simp_rw [mul_apply, one_apply, eq_comm, sum_mul_boole],
-    convert (ite_eq_left_iff.2 $ not_imp_comm.1 $
-      λ h, right_mem_Icc.2 $ le_of_ne_zero $ ne.symm h).symm,
-  end,
+  one := 1,
   zero := 0,
-  zero_mul := λ f, by { ext, exact sum_eq_zero (λ x _, zero_mul _) },
-  mul_zero := λ f, by { ext, exact sum_eq_zero (λ x _, mul_zero _) },
-  left_distrib := λ f g h,
-    by { ext, exact eq.trans (sum_congr rfl $ λ x _, left_distrib _ _ _) sum_add_distrib },
-  right_distrib := λ f g h,
-    by { ext, exact eq.trans (sum_congr rfl $ λ x _, right_distrib _ _ _) sum_add_distrib },
-  .. incidence_algebra.add_comm_monoid 𝕜 α }
+  .. incidence_algebra.non_assoc_semiring 𝕜 α }
 
-instance [ring 𝕜] [decidable_eq α] [preorder α] [locally_finite_order α] :
+instance [preorder α] [locally_finite_order α] [decidable_eq α] [ring 𝕜] :
   ring (incidence_algebra 𝕜 α) :=
 { .. incidence_algebra.semiring 𝕜 α, .. incidence_algebra.add_group 𝕜 α }
+
+/-! ### Scalar multiplication -/
+
+section smul
+variables [preorder α] [locally_finite_order α] [add_comm_monoid 𝕜] [add_comm_monoid 𝕝]
+  [has_scalar 𝕜 𝕝]
+
+instance : has_scalar (incidence_algebra 𝕜 α) (incidence_algebra 𝕝 α) :=
+⟨λ f g, ⟨λ a b, ∑ x in Icc a b, f a x • g x b, λ a b h, by rw [Icc_eq_empty h, sum_empty]⟩⟩
+
+@[simp] lemma smul_apply (f : incidence_algebra 𝕜 α) (g : incidence_algebra 𝕝 α) (a b : α) :
+  (f • g) a b = ∑ x in Icc a b, f a x • g x b := rfl
+
+end smul
+
+instance [preorder α] [locally_finite_order α] [add_comm_monoid 𝕜] [monoid 𝕜] [semiring 𝕝]
+  [add_comm_monoid 𝕞] [has_scalar 𝕜 𝕝] [module 𝕝 𝕞] [distrib_mul_action 𝕜 𝕞]
+  [is_scalar_tower 𝕜 𝕝 𝕞] :
+  is_scalar_tower (incidence_algebra 𝕜 α) (incidence_algebra 𝕝 α) (incidence_algebra 𝕞 α) :=
+⟨λ f g h, begin
+  ext a b,
+  simp only [smul_apply, sum_smul, smul_sum],
+  rw [sum_sigma', sum_sigma'],
+  dsimp,
+  apply' sum_bij (λ (x : Σ i : α, α) hx, (sigma.mk x.snd x.fst : Σ i : α, α)),
+  { rintro c hc,
+    simp only [mem_sigma, mem_Icc] at hc,
+    simp only [mem_sigma, mem_Icc],
+    exact ⟨⟨hc.2.1, hc.2.2.trans hc.1.2⟩, hc.2.2, hc.1.2⟩ },
+  { rintro c hc,
+    simp only [smul_assoc] },
+  { rintro ⟨c₁, c₂⟩ ⟨d₁, d₂⟩ hc hd ⟨⟩,
+    refl },
+  { rintro c hc,
+    simp only [exists_prop, sigma.exists, mem_sigma, heq_iff_eq, sigma.mk.inj_iff, mem_Icc] at *,
+    exact ⟨c.2, c.1, ⟨⟨hc.1.1.trans hc.2.1, hc.2.2⟩, hc.1.1, hc.2.1⟩, c.eta.symm⟩ }
+end⟩
+
+instance [preorder α] [locally_finite_order α] [decidable_eq α] [semiring 𝕜] [semiring 𝕝]
+  [module 𝕜 𝕝] :
+  module (incidence_algebra 𝕜 α) (incidence_algebra 𝕝 α) :=
+{ smul := (•),
+  one_smul := λ f, begin
+    ext a b,
+    sorry
+    -- simp_rw [smul_apply, one_apply, sum_boole_smul],
+    -- exact ite_eq_left_iff.2 (not_imp_comm.1 $ λ h, left_mem_Icc.2 $ le_of_ne_zero $ ne.symm h),
+  end,
+  mul_smul := λ f g h, begin
+    convert smul_assoc _ _ _,
+    ext a b,
+    refl,
+    apply_instance,
+  end,
+  smul_add := λ f g h,
+    by { ext, exact eq.trans (sum_congr rfl $ λ x _, smul_add _ _ _) sum_add_distrib },
+  add_smul := λ f g h,
+    by { ext, exact eq.trans (sum_congr rfl $ λ x _, add_smul _ _ _) sum_add_distrib },
+  zero_smul := λ f, by { ext, exact sum_eq_zero (λ x _, zero_smul _ _) },
+  smul_zero := λ f, by { ext, exact sum_eq_zero (λ x _, smul_zero _) } }
+
+/-! ### The Zeta and Möbius functions -/
 
 section zeta
 variables [has_zero 𝕜] [has_one 𝕜] [has_le α] [@decidable_rel α (≤)]

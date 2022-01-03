@@ -248,7 +248,7 @@ begin
 end
 
 theorem omega_power_power_is_normal : is_normal (λ a : ordinal.{u}, omega.{u} ^ omega.{u} ^ a) :=
-by apply is_normal.trans; exact power_is_normal (one_lt_omega)
+by apply is_normal.trans; exact power_is_normal one_lt_omega
 
 theorem omega_power_power_mul_principal (o : ordinal.{u}) :
   principal (*) (omega.{u} ^ omega.{u} ^ o) :=
@@ -257,7 +257,7 @@ by { rw mul_principal_iff_fp, exact λ a, mul_omega_power_power }
 theorem add_principal_of_mul_principal {o : ordinal.{u}} (ho : principal (*) o) (ho₂ : o ≠ 2) :
   principal (+) o :=
 begin
-  cases lt_or_gt_of_ne ho₂ with ho₁ ho₂, 
+  cases lt_or_gt_of_ne ho₂ with ho₁ ho₂,
   { change o < succ 1 at ho₁,
     rw lt_succ at ho₁,
     exact add_principal_of_le_one ho₁ },

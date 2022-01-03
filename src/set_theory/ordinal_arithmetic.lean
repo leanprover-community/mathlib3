@@ -108,9 +108,6 @@ by rw [← succ_zero, succ_le]
 theorem one_le_iff_ne_zero {o : ordinal} : 1 ≤ o ↔ o ≠ 0 :=
 by rw [one_le_iff_pos, ordinal.pos_iff_ne_zero]
 
-theorem one_lt_of_two_le {b : ordinal} (hb : 2 ≤ b) : 1 < b :=
-by rwa ←succ_le
-
 theorem succ_pos (o : ordinal) : 0 < succ o :=
 lt_of_le_of_lt (ordinal.zero_le _) (lt_succ_self _)
 

@@ -3,8 +3,8 @@ Copyright (c) 2021 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
-import data.sum.basic
 import order.bounded_order
+import order.lexicographic
 
 /-!
 # Orders on a sum type
@@ -88,11 +88,41 @@ end lex
 section disjoint
 
 instance [has_le α] [has_le β] : has_le (α ⊕ β) := ⟨lift_rel (≤) (≤)⟩
+instance [has_lt α] [has_lt β] : has_lt (α ⊕ β) := ⟨lift_rel (<) (<)⟩
+
+lemma le_def [has_le α] [has_le β] {a b : α ⊕ β} : a ≤ b ↔ lift_rel (≤) (≤) a b := iff.rfl
+lemma lt_def [has_lt α] [has_lt β] {a b : α ⊕ β} : a < b ↔ lift_rel (<) (<) a b := iff.rfl
+
+lemma inl_le_inl_iff [has_le α] [has_le β] {a b : α} : (inl a : α ⊕ β) ≤ inl b ↔ a ≤ b :=
+lift_rel_inl_inl
+
+lemma inr_le_inr_iff [has_le α] [has_le β] {a b : β} : (inr a : α ⊕ β) ≤ inr b ↔ a ≤ b :=
+lift_rel_inr_inr
+
+lemma inl_lt_inl_iff [has_lt α] [has_lt β] {a b : α} : (inl a : α ⊕ β) < inl b ↔ a < b :=
+lift_rel_inl_inl
+
+lemma inr_lt_inr_iff [has_lt α] [has_lt β] {a b : β} : (inr a : α ⊕ β) < inr b ↔ a < b :=
+lift_rel_inr_inr
+
+lemma not_inl_le_inr [has_le α] [has_le β] {a : α} {b : β} : ¬ inr b ≤ inl a := lift_rel_inr_inl
+lemma not_inl_lt_inr [has_lt α] [has_lt β] {a : α} {b : β} : ¬ inr b < inl a := lift_rel_inr_inl
+lemma not_inr_le_inl [has_le α] [has_le β] {a : α} {b : β} : ¬ inr b ≤ inl a := lift_rel_inr_inl
+lemma not_inr_lt_inl [has_lt α] [has_lt β] {a : α} {b : β} : ¬ inr b < inl a := lift_rel_inr_inl
 
 instance [preorder α] [preorder β] : preorder (α ⊕ β) :=
 { le_refl := λ _, refl _,
   le_trans := λ _ _ _, trans,
-  .. sum.has_le }
+  lt_iff_le_not_le := λ a b, begin
+    refine ⟨λ hab, ⟨hab.mono (λ _ _, le_of_lt) (λ _ _, le_of_lt), _⟩, _⟩,
+    { rintro (⟨b, a, hba⟩ | ⟨b, a, hba⟩),
+      { exact hba.not_lt (inl_lt_inl_iff.1 hab) },
+      { exact hba.not_lt (inr_lt_inr_iff.1 hab) } },
+    { rintro ⟨⟨a, b, hab⟩ | ⟨a, b, hab⟩, hba⟩,
+      { exact lift_rel.inl (hab.lt_of_not_le $ λ h, hba $ lift_rel.inl h) },
+      { exact lift_rel.inr (hab.lt_of_not_le $ λ h, hba $ lift_rel.inr h) } }
+  end,
+  .. sum.has_le, .. sum.has_lt }
 
 instance [partial_order α] [partial_order β] : partial_order (α ⊕ β) :=
 { le_antisymm := λ _ _, antisymm,
@@ -104,41 +134,42 @@ end disjoint
 
 namespace lex
 
-localized "attribute [-instance] sum.has_le" in lex
-localized "attribute [-instance] sum.preorder" in lex
-localized "attribute [-instance] sum.partial_order" in le
+notation α ` ⊕ₗ `:30 β:29 := _root_.lex (α ⊕ β)
 
-/-- The linear/lexicographical `≤` on a sum. Turn this on by opening locale `lex`. -/
-protected def has_le [has_le α] [has_le β] : has_le (α ⊕ β) := ⟨lex (≤) (≤)⟩
+/-- The linear/lexicographical `≤` on a sum. -/
+instance has_le [has_le α] [has_le β] : has_le (α ⊕ₗ β) := ⟨lex (≤) (≤)⟩
 
-/-- The linear/lexicographical `<` on a sum. Turn this on by opening locale `lex`. -/
-protected def has_lt [has_lt α] [has_lt β] : has_lt (α ⊕ β) := ⟨lex (<) (<)⟩
+/-- The linear/lexicographical `<` on a sum. -/
+instance has_lt [has_lt α] [has_lt β] : has_lt (α ⊕ₗ β) := ⟨lex (<) (<)⟩
 
-localized "attribute [instance] sum.lex.has_le" in lex
-localized "attribute [instance] sum.lex.has_lt" in lex
+lemma le_def [has_le α] [has_le β] {a b : α ⊕ₗ β} : a ≤ b ↔ lex (≤) (≤) a b := iff.rfl
+lemma lt_def [has_lt α] [has_lt β] {a b : α ⊕ₗ β} : a < b ↔ lex (<) (<) a b := iff.rfl
 
-lemma le_def [has_le α] [has_le β] {a b : α ⊕ β} : a ≤ b ↔ lex (≤) (≤) a b := iff.rfl
-lemma lt_def [has_lt α] [has_lt β] {a b : α ⊕ β} : a < b ↔ lex (<) (<) a b := iff.rfl
-
-lemma inl_le_inl_iff [has_le α] [has_le β] {a b : α} : (inl a : α ⊕ β) ≤ inl b ↔ a ≤ b :=
+lemma inl_le_inl_iff [has_le α] [has_le β] {a b : α} :
+  to_lex (inl a : α ⊕ β) ≤ to_lex (inl b) ↔ a ≤ b :=
 lex_inl_inl
 
-lemma inr_le_inr_iff [has_le α] [has_le β] {a b : β} : (inr a : α ⊕ β) ≤ inr b ↔ a ≤ b :=
+lemma inr_le_inr_iff [has_le α] [has_le β] {a b : β} :
+  to_lex (inr a : α ⊕ β) ≤ to_lex (inr b) ↔ a ≤ b :=
 lex_inr_inr
 
-lemma inl_lt_inl_iff [has_lt α] [has_lt β] {a b : α} : (inl a : α ⊕ β) < inl b ↔ a < b :=
+lemma inl_lt_inl_iff [has_lt α] [has_lt β] {a b : α} :
+  to_lex (inl a : α ⊕ β) < to_lex (inl b) ↔ a < b :=
 lex_inl_inl
 
-lemma inr_lt_inr_iff [has_lt α] [has_lt β] {a b : β} : (inr a : α ⊕ β) < inr b ↔ a < b :=
+lemma inr_lt_inr_iff [has_lt α] [has_lt β] {a b : β} :
+  to_lex (inr a : α ⊕ₗ β) < to_lex (inr b) ↔ a < b :=
 lex_inr_inr
 
-lemma not_inr_le_inl [has_le α] [has_le β] {a : α} {b : β} : ¬ inr b ≤ inl a := lex_inr_inl
-lemma not_inr_lt_inl [has_lt α] [has_lt β] {a : α} {b : β} : ¬ inr b < inl a := lex_inr_inl
+lemma not_inr_le_inl [has_le α] [has_le β] {a : α} {b : β} : ¬ to_lex (inr b) ≤ to_lex (inl a) :=
+lex_inr_inl
 
-/-- The linear/lexicographical preorder on a sum. Turn this on by opening locale `lex`. -/
-protected def preorder [preorder α] [preorder β] : preorder (α ⊕ β) :=
-{ le_refl := λ _, refl _,
-  le_trans := λ _ _ _, trans,
+lemma not_inr_lt_inl [has_lt α] [has_lt β] {a : α} {b : β} : ¬ to_lex (inr b) < to_lex (inl a) :=
+lex_inr_inl
+
+instance preorder [preorder α] [preorder β] : preorder (α ⊕ₗ β) :=
+{ le_refl := refl_of (lex (≤) (≤)),
+  le_trans := λ _ _ _, trans_of (lex (≤) (≤)),
   lt_iff_le_not_le := λ a b, begin
     refine ⟨λ hab, ⟨hab.mono (λ _ _, le_of_lt) (λ _ _, le_of_lt), _⟩, _⟩,
     { rintro (⟨b, a, hba⟩ | ⟨b, a, hba⟩ | ⟨b, a⟩),
@@ -152,26 +183,23 @@ protected def preorder [preorder α] [preorder β] : preorder (α ⊕ β) :=
   end,
   .. lex.has_le, .. lex.has_lt }
 
-localized "attribute [instance] sum.lex.preorder" in lex
+lemma to_lex_mono [preorder α] [preorder β] : monotone (@to_lex (α ⊕ β)) := λ a b h, h.lex
 
-/-- The linear/lexicographical partial order on a sum. Turn this on by opening locale `lex`. -/
-protected def partial_order [partial_order α] [partial_order β] : partial_order (α ⊕ β) :=
-{ le_antisymm := λ _ _, antisymm,
+lemma to_lex_strict_mono [preorder α] [preorder β] : strict_mono (@to_lex (α ⊕ β)) :=
+λ a b h, h.lex
+
+instance partial_order [partial_order α] [partial_order β] : partial_order (α ⊕ₗ β) :=
+{ le_antisymm := λ _ _, antisymm_of (lex (≤) (≤)),
   .. lex.preorder }
 
-localized "attribute [instance] sum.lex.partial_order" in lex
-
-/-- The linear order on a sum. Turn this on by opening locale `lex`. -/
-protected def linear_order [linear_order α] [linear_order β] : linear_order (α ⊕ β) :=
-{ le_total := total_of _,
+instance linear_order [linear_order α] [linear_order β] : linear_order (α ⊕ₗ β) :=
+{ le_total := total_of (lex (≤) (≤)),
   decidable_le := lex.decidable_rel,
   decidable_eq := sum.decidable_eq _ _,
   .. lex.partial_order }
 
-localized "attribute [instance] sum.lex.linear_order" in lex
-
-/-- The lexicographical bottom of a sum. Turn this on by opening locale `lex`. -/
-protected def order_bot [has_le α] [order_bot α] [has_le β] : order_bot (α ⊕ β) :=
+/-- The lexicographical bottom of a sum is the bottom of the left component. -/
+instance order_bot [has_le α] [order_bot α] [has_le β] : order_bot (α ⊕ₗ β) :=
 { bot := inl ⊥,
   bot_le := begin
     rintro (a | b),
@@ -179,12 +207,10 @@ protected def order_bot [has_le α] [order_bot α] [has_le β] : order_bot (α �
     { exact lex.sep _ _ }
   end }
 
-localized "attribute [instance] sum.lex.order_bot" in lex
+@[simp] lemma inl_bot [has_le α] [order_bot α] [has_le β]: to_lex (inl ⊥ : α ⊕ β) = ⊥ := rfl
 
-@[simp] lemma inl_bot [has_le α] [order_bot α] [has_le β]: (inl ⊥ : α ⊕ β) = ⊥ := rfl
-
-/-- The lexicographical top of a sum. Turn this on by opening locale `lex`. -/
-protected def order_top [has_le α] [has_le β] [order_top β] : order_top (α ⊕ β) :=
+/-- The lexicographical top of a sum is the top of the right component. -/
+instance order_top [has_le α] [has_le β] [order_top β] : order_top (α ⊕ₗ β) :=
 { top := inr ⊤,
   le_top := begin
     rintro (a | b),
@@ -192,16 +218,11 @@ protected def order_top [has_le α] [has_le β] [order_top β] : order_top (α �
     { exact lex.inr le_top }
   end }
 
-localized "attribute [instance] sum.lex.order_top" in lex
+@[simp] lemma inr_top [has_le α] [has_le β] [order_top β] : to_lex (inr ⊤ : α ⊕ β) = ⊤ := rfl
 
-@[simp] lemma inr_top [has_le α] [has_le β] [order_top β] : (inr ⊤ : α ⊕ β) = ⊤ := rfl
-
-/-- The lexicographical bounded order on a sum. Turn this on by opening locale `lex`. -/
-protected def bounded_order [has_le α] [has_le β] [order_bot α] [order_top β] :
-  bounded_order (α ⊕ β) :=
+instance bounded_order [has_le α] [has_le β] [order_bot α] [order_top β] :
+  bounded_order (α ⊕ₗ β) :=
 { .. lex.order_bot, .. lex.order_top }
-
-localized "attribute [instance] sum.lex.bounded_order" in lex
 
 end lex
 end sum

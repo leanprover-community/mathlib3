@@ -658,9 +658,7 @@ variables (α β)
 def mu_prod : incidence_algebra 𝕜 (α × β) :=
 { to_fun := λ xu yv : α × β, mu 𝕜 α xu.fst yv.fst * mu 𝕜 β xu.snd yv.snd,
   eq_zero_of_not_le' := begin
-    intros a b hab,
-    cases a,
-    cases b,
+    rintros ⟨a⟩ ⟨b⟩ hab,
     rw [prod.mk_le_mk, not_and_distrib] at hab,
     cases hab; simp [eq_zero_of_not_le hab],
 end }

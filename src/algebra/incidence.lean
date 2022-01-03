@@ -21,17 +21,21 @@ variables {α : Type*} [partial_order α] [locally_finite_order α] [decidable_e
 
 @[simp] lemma Ioc_insert_left (h : a ≤ b) : insert a (Ioc a b) = Icc a b :=
 @Ico_insert_right (order_dual α) _ _ _ _ _ h
+local attribute [simp] Ico_insert_right
 
-lemma Icc_eq_cons_Ioc (h : a ≤ b) : Icc a b = (Ioc a b).cons a left_not_mem_Ioc := sorry
+lemma Icc_eq_cons_Ioc (h : a ≤ b) : Icc a b = (Ioc a b).cons a left_not_mem_Ioc :=
+finset.coe_inj.mp (by simp [h])
 
-lemma Icc_eq_cons_Ico (h : a ≤ b) : Icc a b = (Ico a b).cons b right_not_mem_Ico := sorry
+lemma Icc_eq_cons_Ico (h : a ≤ b) : Icc a b = (Ico a b).cons b right_not_mem_Ico :=
+finset.coe_inj.mp (by simp [h])
 
 section order_top
 variables [order_top α]
 
 @[simp] lemma Ioi_insert (a : α) : insert a (Ioi a) = Ici a := Ioc_insert_left le_top
 
-lemma Ici_eq_cons_Ioi (a : α) : Ici a  = (Ioi a).cons a left_not_mem_Ioc := sorry
+lemma Ici_eq_cons_Ioi (a : α) : Ici a  = (Ioi a).cons a left_not_mem_Ioc :=
+finset.coe_inj.mp (by simp)
 
 end order_top
 
@@ -591,12 +595,12 @@ by letI : @decidable_rel α (≤) := classical.dec_rel _; symmetry; calc
         simp_rw [sum_mul] }
   ... = ∑ y in Ici x, ∑ z in Ici y, (1 : incidence_algebra 𝕜 α) x z * f z : by {
         simp [mu_mul_zeta 𝕜 α, sum_Ici_eq_add_sum_Ioi],
-        conv in (ite _ _ _) { rw if_neg (not_lt_of_le $ (mem_Ioi.mp H).le) },
         conv in (ite _ _ _) { rw if_neg (ne_of_lt $ mem_Ioi.mp H) },
+        conv in (ite _ _ _) { rw if_neg (not_lt_of_le $ (mem_Ioi.mp H).le) },
         simp }
   ... = f x : by { simp [one_apply, sum_Ici_eq_add_sum_Ioi],
-        conv in (ite _ _ _) { rw if_neg (not_lt_of_le $ (mem_Ioi.mp H).le) },
         conv in (ite _ _ _) { rw if_neg (ne_of_lt $ mem_Ioi.mp H) },
+        conv in (ite _ _ _) { rw if_neg (not_lt_of_le $ (mem_Ioi.mp H).le) },
         simp }
 
 end inversion_top

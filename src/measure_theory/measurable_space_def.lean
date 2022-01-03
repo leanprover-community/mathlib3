@@ -58,15 +58,18 @@ attribute [class] measurable_space
 instance [h : measurable_space α] : measurable_space (order_dual α) := h
 
 section
-variable [measurable_space α]
 
 /-- `measurable_set s` means that `s` is measurable (in the ambient measure space on `α`) -/
-def measurable_set : set α → Prop := ‹measurable_space α›.measurable_set'
+def measurable_set [measurable_space α] : set α → Prop := ‹measurable_space α›.measurable_set'
 
 localized "notation `measurable_set[` m `]` := @measurable_set _ m" in measure_theory
 
-@[simp] lemma measurable_set.empty : measurable_set (∅ : set α) :=
+@[simp] lemma measurable_set.empty [measurable_space α] : measurable_set (∅ : set α) :=
 ‹measurable_space α›.measurable_set_empty
+
+variable {m : measurable_space α}
+
+include m
 
 lemma measurable_set.compl : measurable_set s → measurable_set sᶜ :=
 ‹measurable_space α›.measurable_set_compl s
@@ -213,6 +216,8 @@ by { by_cases p; simp [h, measurable_set.empty]; apply measurable_set.univ }
 /-- Every set has a measurable superset. Declare this as local instance as needed. -/
 lemma nonempty_measurable_superset (s : set α) : nonempty { t // s ⊆ t ∧ measurable_set t} :=
 ⟨⟨univ, subset_univ s, measurable_set.univ⟩⟩
+
+omit m
 
 end
 

@@ -254,6 +254,18 @@ begin
     simp [h, apply_ite has_neg.neg] with parity_simps }
 end
 
+lemma neg_one_pow_even {n : ℤ} (h : even n) : neg_one_pow n = 1 :=
+by rw [neg_one_pow_ite, if_pos h]
+
+lemma neg_one_pow_odd {n : ℤ} (h : odd n) : neg_one_pow n = -1 :=
+by rw [neg_one_pow_ite, if_neg (odd_iff_not_even.mp h)]
+
+@[simp] lemma neg_one_pow_bit0 (n : ℤ) : neg_one_pow (bit0 n) = 1 :=
+neg_one_pow_even (even_bit0 n)
+
+@[simp] lemma neg_one_pow_bit1 (n : ℤ) : neg_one_pow (bit1 n) = -1 :=
+neg_one_pow_odd (odd_bit1 n)
+
 lemma neg_one_pow_eq_pow_abs (n : ℤ) : neg_one_pow n = (-1) ^ n.nat_abs :=
 begin
   rw neg_one_pow_ite,

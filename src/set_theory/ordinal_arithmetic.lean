@@ -2284,8 +2284,8 @@ end
 
 /-! ### Fixed points of multiplication -/
 
-theorem dvd_unbounded {a : ordinal} (ho : 1 ≤ a) : unbounded (<) {b | a ∣ b} :=
-λ b, ⟨_, dvd_mul_right a b, not_lt_of_le (le_mul_right ho)⟩
+theorem dvd_unbounded {a : ordinal} (ha : 1 ≤ a) : unbounded (<) {b | a ∣ b} :=
+λ b, ⟨_, dvd_mul_right a b, not_lt_of_le (le_mul_right ha)⟩
 
 theorem dvd_power_omega_unbounded {a : ordinal} (ha : 1 ≤ a) :
   unbounded (<) {b : ordinal | (a ^ ordinal.omega) ∣ b} :=

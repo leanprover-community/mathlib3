@@ -13,7 +13,7 @@ ordinals.
 # Main definitions and results
 
 * `principal`: principal ordinals under some operation.
-* `add_principal_iff_zero_or_omega_pow`: characterizes the additive principal ordinals as either 0
+* `add_principal_iff_zero_or_omega_power`: characterizes the additive principal ordinals as either 0
 or powers of `ω`.
 * `mul_principal_iff_le_two_or_omega_power_power`: characterizes the multiplicative principal
 ordinals as either two or powers of powers of `ω`.
@@ -133,7 +133,7 @@ begin
   exact (add_is_normal a).strict_mono hbo
 end
 
-theorem add_principal_iff_zero_or_omega_pow (o : ordinal.{u}) :
+theorem add_principal_iff_zero_or_omega_power (o : ordinal.{u}) :
   principal (+) o ↔ o = 0 ∨ ∃ a : ordinal.{u}, o = omega.{u} ^ a :=
 begin
   cases eq_or_ne o 0 with ho ho,
@@ -236,7 +236,7 @@ theorem mul_principal_power_omega {o : ordinal.{u}} (ho : principal (*) o) (ho�
   ∃ a : ordinal.{u}, o = omega.{u} ^ a :=
 begin
   have := add_principal_of_mul_principal ho (ne_of_gt ho₂),
-  rw add_principal_iff_zero_or_omega_pow at this,
+  rw add_principal_iff_zero_or_omega_power at this,
   cases this with ho₀ h,
   { rw ho₀ at ho₂,
     exact (ordinal.not_lt_zero 2 ho₂).elim },

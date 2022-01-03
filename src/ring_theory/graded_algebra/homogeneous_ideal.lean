@@ -26,7 +26,7 @@ open_locale big_operators
 section homogeneous_core
 
 variables {ι R : Type*} [comm_ring R]
-variables (A : ι → ideal R)
+variables (A : ι → submodule ℤ R)
 variable (I : ideal R)
 
 /-- For any `I : ideal R`, not necessarily homogeneous, there is a homogeneous ideal associated with
@@ -46,7 +46,7 @@ end homogeneous_core
 section is_homogeneous_ideal_defs
 
 variables {ι R : Type*} [comm_ring R] [decidable_eq ι] [add_comm_monoid ι]
-variables (A : ι → ideal R) [graded_algebra A]
+variables (A : ι → submodule ℤ R) [graded_algebra A]
 variable (I : ideal R)
 
 /--An `I : ideal R` is homogeneous if for every `r ∈ I`, all homogeneous components
@@ -144,7 +144,7 @@ open set_like direct_sum set
 open_locale big_operators pointwise
 
 variables {ι R : Type*} [comm_ring R] [decidable_eq ι] [add_comm_monoid ι]
-variables (A : ι → ideal R) [graded_algebra A]
+variables (A : ι → submodule ℤ R) [graded_algebra A]
 variable (I : ideal R)
 
 /--For any `comm_ring R`, we collect the homogeneous ideals of `R` into a type.-/
@@ -287,7 +287,7 @@ section homogeneous_core
 
 variables {ι : Type*} [add_comm_monoid ι] [decidable_eq ι]
 variables {R : Type*} [comm_ring R]
-variables (A : ι → ideal R) [graded_algebra A]
+variables (A : ι → submodule ℤ R) [graded_algebra A]
 variable (I : ideal R)
 
 lemma ideal.is_homogeneous.homogeneous_core :
@@ -349,7 +349,7 @@ section homogeneous_hull
 
 variables {ι : Type*} [add_comm_monoid ι] [decidable_eq ι]
 variables {R : Type*} [comm_ring R]
-variables (A : ι → ideal R) [graded_algebra A]
+variables (A : ι → submodule ℤ R) [graded_algebra A]
 variable (I : ideal R)
 
 /--For any `I : ideal R`, not necessarily homogeneous, there is a homogeneous ideal associated with
@@ -414,7 +414,7 @@ section galois_connection
 
 variables {ι : Type*} [add_comm_monoid ι] [decidable_eq ι]
 variables {R : Type*} [comm_ring R]
-variables (A : ι → ideal R) [graded_algebra A]
+variables (A : ι → submodule ℤ R) [graded_algebra A]
 variable [Π (i : ι) (x : A i), decidable (x ≠ 0)]
 
 lemma ideal.homgeneous_hull.gc :

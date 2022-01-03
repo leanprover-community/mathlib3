@@ -32,8 +32,8 @@ def non_zero_divisors (R : Type*) [monoid_with_zero R] : submonoid R :=
 
 localized "notation R`⁰`:9000 := non_zero_divisors R" in non_zero_divisors
 
-variables {M M' M₁ R R' : Type*} [monoid_with_zero M] [monoid_with_zero M'] [comm_monoid_with_zero M₁]
-  [ring R] [comm_ring R']
+variables {M M' M₁ R R' : Type*} [monoid_with_zero M] [monoid_with_zero M']
+  [comm_monoid_with_zero M₁] [ring R] [comm_ring R']
 
 lemma mem_non_zero_divisors_iff {r : M} : r ∈ M⁰ ↔ ∀ x, x * r = 0 → x = 0 := iff.rfl
 

@@ -533,6 +533,14 @@ is_iso.of_iso (stalk_iso R x)
 instance (x : prime_spectrum R) : is_iso (localization_to_stalk R x) :=
 is_iso.of_iso (stalk_iso R x).symm
 
+@[simp, reassoc] lemma stalk_to_fiber_ring_hom_localization_to_stalk (x : prime_spectrum.Top R) :
+  stalk_to_fiber_ring_hom R x ≫ localization_to_stalk R x = 𝟙 _ :=
+(stalk_iso R x).hom_inv_id
+
+@[simp, reassoc] lemma localization_to_stalk_stalk_to_fiber_ring_hom (x : prime_spectrum.Top R) :
+  localization_to_stalk R x ≫ stalk_to_fiber_ring_hom R x = 𝟙 _ :=
+(stalk_iso R x).inv_hom_id
+
 /-- The canonical ring homomorphism interpreting `s ∈ R_f` as a section of the structure sheaf
 on the basic open defined by `f ∈ R`. -/
 def to_basic_open (f : R) : localization.away f →+*
@@ -828,6 +836,40 @@ as_iso (to_open R ⊤)
 
 @[simp] lemma global_sections_iso_hom (R : CommRing) :
   (global_sections_iso R).hom = to_open R ⊤ := rfl
+
+@[simp, reassoc, elementwise]
+lemma to_stalk_stalk_specializes {R : Type*} [comm_ring R]
+  {x y : prime_spectrum R} (h : x ⤳ y) :
+  to_stalk R y ≫ (structure_sheaf R).val.stalk_specializes h = to_stalk R x :=
+by { dsimp [ to_stalk], simpa }
+
+@[simp, reassoc, elementwise]
+lemma localization_to_stalk_stalk_specializes {R : Type*} [comm_ring R]
+  {x y : prime_spectrum R} (h : x ⤳ y) :
+  structure_sheaf.localization_to_stalk R y ≫ (structure_sheaf R).val.stalk_specializes h =
+    CommRing.of_hom (prime_spectrum.localization_map_of_specializes h) ≫
+      structure_sheaf.localization_to_stalk R x :=
+begin
+  apply is_localization.ring_hom_ext y.as_ideal.prime_compl,
+  any_goals { dsimp, apply_instance },
+  erw ring_hom.comp_assoc,
+  conv_rhs { erw ring_hom.comp_assoc },
+  dsimp [CommRing.of_hom, localization_to_stalk, prime_spectrum.localization_map_of_specializes],
+  rw [is_localization.lift_comp, is_localization.lift_comp, is_localization.lift_comp],
+  exact to_stalk_stalk_specializes h
+end
+
+@[simp, reassoc, elementwise]
+lemma stalk_specializes_stalk_to_fiber {R : Type*} [comm_ring R]
+  {x y : prime_spectrum R} (h : x ⤳ y) :
+  (structure_sheaf R).val.stalk_specializes h ≫ structure_sheaf.stalk_to_fiber_ring_hom R x =
+    structure_sheaf.stalk_to_fiber_ring_hom R y ≫
+      prime_spectrum.localization_map_of_specializes h :=
+begin
+  change _ ≫ (structure_sheaf.stalk_iso R x).hom = (structure_sheaf.stalk_iso R y).hom ≫ _,
+  rw [← iso.eq_comp_inv, category.assoc, ← iso.inv_comp_eq],
+  exact localization_to_stalk_stalk_specializes h,
+end
 
 section comap
 

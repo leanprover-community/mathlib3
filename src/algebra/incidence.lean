@@ -509,16 +509,6 @@ begin
 end
 end mu'_spec
 
-section order_dual
-variables [add_comm_group 𝕜] [has_one 𝕜] [preorder α] [locally_finite_order α] [decidable_eq α]
-open order_dual
-lemma mu_dual (a b : α) : mu 𝕜 (order_dual α) (to_dual a) (to_dual b) = mu 𝕜 α b a :=
-begin
-  -- I think this is probably also true and maybe helpful
-  sorry,
-end
-end order_dual
-
 section mu_zeta
 variables [add_comm_group 𝕜] [mul_one_class 𝕜] [partial_order α] [locally_finite_order α]
   [decidable_eq α] [@decidable_rel α (≤)]
@@ -571,6 +561,34 @@ lemma mu_spec_of_ne_left {a b : α} (h : a ≠ b) : ∑ (x : α) in Icc a b, (mu
 by rw [mu_eq_mu', mu'_spec_of_ne_left h]
 
 end mu_eq_mu'
+
+section order_dual
+variables [ring 𝕜] [partial_order α] [locally_finite_order α] [decidable_eq α]
+  [decidable_rel ((≤) : (order_dual α) → (order_dual α) → Prop)]
+open order_dual
+lemma mu_dual (a b : α) : mu 𝕜 (order_dual α) (to_dual a) (to_dual b) = mu 𝕜 α b a :=
+begin
+  let mud : incidence_algebra 𝕜 (order_dual α) := { to_fun := λ a b, mu 𝕜 α b a,
+    eq_zero_of_not_le' := λ a b hab, eq_zero_of_not_le hab (mu 𝕜 α) },
+  suffices : mu 𝕜 (order_dual α) = mud,
+  { rw [this], refl, },
+  suffices : mud * zeta 𝕜 (order_dual α) = 1,
+  { rw ← mu_mul_zeta at this,
+    apply_fun (* (mu 𝕜 (order_dual α))) at this,
+    symmetry,
+    simpa [mul_assoc, zeta_mul_mu] using this, },
+  clear a b,
+  ext a b,
+  simp only [mul_boole, one_apply, mul_apply, coe_mk, zeta_apply],
+  by_cases h : a = b,
+  { simp [h], },
+  { simp only [h, if_false],
+    conv in (ite _ _ _)
+    { rw if_pos (mem_Icc.mp H).2 },
+    change ∑ (x : α) in (Icc b a : finset α), (mu 𝕜 α) x a = 0,
+    exact mu_spec_of_ne_left _ _ (ne.symm h), },
+end
+end order_dual
 
 section inversion_top
 variables {α} [ring 𝕜] [partial_order α] [order_top α] [locally_finite_order α]

@@ -2180,7 +2180,7 @@ begin
 end
 
 theorem mul_omega_nfp_add_self (a) : a * omega.{u} = nfp ((+) a) a :=
-mul_omega_nfp_add_of_le_mul_omega (le_mul_left one_le_omega)
+mul_omega_nfp_add_of_le_mul_omega (le_mul_left omega_pos)
 
 /-- `deriv ((+) a)` enumerates the ordinals larger or equal to `a * ω`. -/
 theorem add_deriv_eq_enum_ge_mul_omega (a) : deriv ((+) a) = enum_ord (mul_omega_unbounded a) :=
@@ -2203,11 +2203,7 @@ theorem dvd_unbounded {a : ordinal} (ha : 0 < a) : unbounded (<) {b | a ∣ b} :
 
 theorem dvd_power_omega_unbounded {a : ordinal} (ha : 0 < a) :
   unbounded (<) {b : ordinal | (a ^ ordinal.omega) ∣ b} :=
-begin
-  apply dvd_unbounded,
-  rw one_le_iff_pos at *,
-  exact power_pos _ ha,
-end
+dvd_unbounded (power_pos _ ha)
 
 theorem mul_iterate (a : ordinal) (n : ℕ) : a ^ n = (((*) a)^[n]) 1 :=
 begin
@@ -2259,7 +2255,7 @@ begin
   cases eq_zero_or_pos a with ha ha,
   { rw [ha, zero_power omega_ne_zero],
     exact (nfp_mul_zero 0).symm },
-  exact power_omega_nfp_mul ha (le_power_self_left a one_le_omega)
+  exact power_omega_nfp_mul ha (le_power_self_left a omega_pos)
 end
 
 theorem mul_fp_div_power_omega (a b : ordinal) :
@@ -2304,7 +2300,6 @@ begin
   rw ←eq_enum_ord,
   use (deriv_is_normal _).strict_mono,
   rw range_eq_iff,
-  rw one_le_iff_pos at ha,
   refine ⟨λ b, _, λ b hb, _⟩,
   { change _ ∣ _,
     rw [←mul_fp_iff_dvd_power_omega, (mul_is_normal ha).deriv_fp] },

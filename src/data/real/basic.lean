@@ -458,6 +458,21 @@ end
 
 @[simp] theorem Sup_empty : Sup (∅ : set ℝ) = 0 := dif_neg $ by simp
 
+lemma csupr_empty {α : Sort*} [is_empty α] (f : α → ℝ) : (⨆ i, f i) = 0 :=
+begin
+  dsimp [supr],
+  convert real.Sup_empty,
+  rw set.range_eq_empty_iff,
+  apply_instance
+end
+
+@[simp] lemma csupr_const_zero {α : Sort*} : (⨆ i : α, (0:ℝ)) = 0 :=
+begin
+  casesI is_empty_or_nonempty α,
+  { exact real.csupr_empty _ },
+  { exact csupr_const },
+end
+
 theorem Sup_of_not_bdd_above {s : set ℝ} (hs : ¬ bdd_above s) : Sup s = 0 :=
 dif_neg $ assume h, hs h.2
 
@@ -466,6 +481,21 @@ real.Sup_of_not_bdd_above $ λ ⟨x, h⟩, not_le_of_lt (lt_add_one _) $ h (set.
 
 @[simp] theorem Inf_empty : Inf (∅ : set ℝ) = 0 :=
 by simp [Inf_def, Sup_empty]
+
+lemma cinfi_empty {α : Sort*} [is_empty α] (f : α → ℝ) : (⨅ i, f i) = 0 :=
+begin
+  dsimp [infi],
+  convert real.Inf_empty,
+  rw set.range_eq_empty_iff,
+  apply_instance
+end
+
+@[simp] lemma cinfi_const_zero {α : Sort*} : (⨅ i : α, (0:ℝ)) = 0 :=
+begin
+  casesI is_empty_or_nonempty α,
+  { exact real.cinfi_empty _ },
+  { exact cinfi_const },
+end
 
 theorem Inf_of_not_bdd_below {s : set ℝ} (hs : ¬ bdd_below s) : Inf s = 0 :=
 neg_eq_zero.2 $ Sup_of_not_bdd_above $ mt bdd_above_neg.1 hs

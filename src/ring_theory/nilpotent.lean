@@ -72,6 +72,17 @@ is_reduced.eq_zero x h
   is_nilpotent x ↔ x = 0 :=
 ⟨λ h, h.eq_zero, λ h, h.symm ▸ is_nilpotent.zero⟩
 
+lemma is_reduced_of_injective [monoid_with_zero R] [monoid_with_zero S]
+  {F : Type*} [monoid_with_zero_hom_class F R S] (f : F)
+  (hf : function.injective f) [_root_.is_reduced S] : _root_.is_reduced R :=
+begin
+  constructor,
+  intros x hx,
+  apply hf,
+  rw map_zero,
+  exact (hx.map f).eq_zero,
+end
+
 namespace commute
 
 section semiring

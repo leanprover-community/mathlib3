@@ -941,6 +941,9 @@ end
 lemma norm_inner_le_norm (x y : E) : ∥⟪x, y⟫∥ ≤ ∥x∥ * ∥y∥ :=
 (is_R_or_C.norm_eq_abs _).le.trans (abs_inner_le_norm x y)
 
+lemma re_inner_le_norm (x y : E) : re ⟪x, y⟫ ≤ ∥x∥ * ∥y∥ :=
+le_trans (re_le_abs (inner x y)) (abs_inner_le_norm x y)
+
 /-- Cauchy–Schwarz inequality with norm -/
 lemma abs_real_inner_le_norm (x y : F) : absR ⟪x, y⟫_ℝ ≤ ∥x∥ * ∥y∥ :=
 by { have h := @abs_inner_le_norm ℝ F _ _ x y, simpa using h }
@@ -1418,6 +1421,39 @@ begin
     ... ≤ ∥innerSL x∥ * ∥x∥ : (innerSL x).le_op_norm _ }
 end
 
+/-- The inner product as a continuous sesquilinear map, with the two arguments flipped. -/
+def innerSL_flip : E →L[𝕜] E →L⋆[𝕜] 𝕜 :=
+continuous_linear_map.flipₗᵢ' E E 𝕜 (ring_hom.id 𝕜) (↑star_ring_aut : 𝕜 →+* 𝕜) innerSL
+
+@[simp] lemma innerSL_flip_apply {x y : E} : innerSL_flip x y = ⟪y, x⟫ := rfl
+
+namespace continuous_linear_map
+
+variables  {E' : Type*} [inner_product_space 𝕜 E']
+
+/-- Given `f : E →L[𝕜] E'`, construct the continuous sesquilinear form `λ x y, ⟪x, A y⟫`, given
+as a continuous linear map. -/
+def to_sesq_form : (E →L[𝕜] E') →L[𝕜] E' →L⋆[𝕜] E →L[𝕜] 𝕜 :=
+↑((continuous_linear_map.flipₗᵢ' E E' 𝕜
+  (↑(star_ring_aut : 𝕜 ≃+* 𝕜) : 𝕜 →+* 𝕜) (ring_hom.id 𝕜)).to_continuous_linear_equiv) ∘L
+(continuous_linear_map.compSL E E' (E' →L⋆[𝕜] 𝕜) (ring_hom.id 𝕜) (ring_hom.id 𝕜) innerSL_flip)
+
+@[simp] lemma to_sesq_form_apply_coe (f : E →L[𝕜] E') (x : E') :
+  to_sesq_form f x = (innerSL x).comp f := rfl
+
+lemma to_sesq_form_apply_norm_le {f : E →L[𝕜] E'} {v : E'} : ∥to_sesq_form f v∥ ≤ ∥f∥ * ∥v∥ :=
+begin
+  refine op_norm_le_bound _ (mul_nonneg (norm_nonneg _) (norm_nonneg _)) _,
+  intro x,
+  have h₁ : ∥f x∥ ≤ ∥f∥ * ∥x∥ := le_op_norm _ _,
+  have h₂ := @norm_inner_le_norm 𝕜 E' _ _ v (f x),
+  calc ∥⟪v, f x⟫∥ ≤ ∥v∥ * ∥f x∥       :  h₂
+              ... ≤ ∥v∥ * (∥f∥ * ∥x∥)  : mul_le_mul_of_nonneg_left h₁ (norm_nonneg v)
+              ... = ∥f∥ * ∥v∥ * ∥x∥    : by ring,
+end
+
+end continuous_linear_map
+
 /-- When an inner product space `E` over `𝕜` is considered as a real normed space, its inner
 product satisfies `is_bounded_bilinear_map`.
 
@@ -1436,6 +1472,7 @@ lemma is_bounded_bilinear_map_inner [normed_space ℝ E] :
     by simp only [← algebra_map_smul 𝕜 r y, algebra_map_eq_of_real, inner_smul_real_right],
   bound := ⟨1, zero_lt_one, λ x y,
     by { rw [one_mul], exact norm_inner_le_norm x y, }⟩ }
+
 end norm
 
 section bessels_inequality
@@ -1881,7 +1918,7 @@ end orthogonal
 
 /-! ### Self-adjoint operators -/
 
-section is_self_adjoint
+namespace inner_product_space
 
 /-- A (not necessarily bounded) operator on an inner product space is self-adjoint, if for all
 `x`, `y`, we have `⟪T x, y⟫ = ⟪x, T y⟫`. -/
@@ -1921,4 +1958,4 @@ lemma is_self_adjoint.restrict_invariant {T : E →ₗ[𝕜] E} (hT : is_self_ad
   is_self_adjoint (T.restrict hV) :=
 λ v w, hT v w
 
-end is_self_adjoint
+end inner_product_space

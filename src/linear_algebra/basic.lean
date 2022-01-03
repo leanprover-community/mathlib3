@@ -8,7 +8,7 @@ import algebra.big_operators.pi
 import algebra.module.hom
 import algebra.module.prod
 import algebra.module.submodule_lattice
-import data.dfinsupp
+import data.dfinsupp.basic
 import data.finsupp.basic
 import order.compactly_generated
 import order.omega_complete_partial_order
@@ -1058,10 +1058,7 @@ lemma le_span_singleton_iff {s : submodule R M} {v₀ : M} :
 by simp_rw [set_like.le_def, mem_span_singleton]
 
 lemma span_singleton_eq_top_iff (x : M) : (R ∙ x) = ⊤ ↔ ∀ v, ∃ r : R, r • x = v :=
-begin
-  rw [eq_top_iff, le_span_singleton_iff],
-  finish,
-end
+by { rw [eq_top_iff, le_span_singleton_iff], tauto }
 
 @[simp] lemma span_zero_singleton : (R ∙ (0:M)) = ⊥ :=
 by { ext, simp [mem_span_singleton, eq_comm] }

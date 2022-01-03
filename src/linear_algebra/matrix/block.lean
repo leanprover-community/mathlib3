@@ -103,7 +103,7 @@ begin
   { simp },
   set mk1 := (sum.elim (λ i, (0 : fin 2)) (λ j, 1)) k1 with hmk1,
   set mk2 := (sum.elim (λ i, (0 : fin 2)) (λ j, 1)) k2 with hmk2,
-  fin_cases mk1; fin_cases mk2; rw [h, h_1] at hk12,
+  fin_cases mk1 using h; fin_cases mk2 using h_1; rw [h, h_1] at hk12,
   { exact absurd hk12 (nat.not_lt_zero 0) },
   { exact absurd hk12 (by norm_num) },
   { rw hmk1 at h,

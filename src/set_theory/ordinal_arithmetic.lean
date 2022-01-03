@@ -1935,6 +1935,54 @@ le_antisymm
     (λ b hb, le_of_lt (power_lt_omega h hb)))
   (le_power_self _ a1)
 
+theorem omega_eq_sup_nat : omega.{u} = sup (λ n : ℕ, n) :=
+begin
+  apply le_antisymm,
+  { rw omega_le,
+    exact le_sup _ },
+  rw sup_le,
+  exact λ n, le_of_lt (nat_lt_omega n)
+end
+
+theorem normal_omega {f : ordinal.{u} → ordinal.{u}} (hf : is_normal f) :
+  f omega.{u} = sup (λ n : ℕ, f n) :=
+by rw [omega_eq_sup_nat, is_normal.sup.{0 u u} hf ⟨0⟩]
+
+theorem add_omega_eq_sup_add_nat (o : ordinal.{u}) : o + omega.{u} = sup (λ n : ℕ, o + n) :=
+normal_omega (add_is_normal o)
+
+lemma lt_add_omega {a o : ordinal.{u}} (h : a < o + omega.{u}) : ∃ n : ℕ, a < o + n :=
+by rwa [add_omega_eq_sup_add_nat o, lt_sup] at h
+
+theorem mul_omega_eq_sup_mul_nat (o : ordinal.{u}) : o * omega.{u} = sup (λ n : ℕ, o * n) :=
+begin
+  cases eq_zero_or_pos o with ho ho,
+  { rw [ho, zero_mul],
+    apply eq.symm,
+    rw sup_eq_zero_iff,
+    exact λ n, zero_mul _ },
+  exact normal_omega (mul_is_normal ho)
+end
+
+lemma lt_mul_omega {a o : ordinal.{u}} (h : a < o * omega.{u}) : ∃ n : ℕ, a < o * n :=
+by rwa [mul_omega_eq_sup_mul_nat o, lt_sup] at h
+
+theorem power_omega_eq_sup_power_nat {o : ordinal.{u}} (ho : 0 < o) :
+  o ^ omega.{u} = sup (λ n : ℕ, o ^ n) :=
+begin
+  rw ←one_le_iff_pos at ho,
+  cases lt_or_eq_of_le ho with ho₁ ho₁,
+  { exact normal_omega (power_is_normal ho₁) },
+  rw [←ho₁, one_power],
+  apply le_antisymm,
+  { nth_rewrite 0 ←power_zero 1,
+    rw ←nat.cast_zero,
+    exact le_sup _ 0 },
+  rw sup_le,
+  intro n,
+  rw one_power
+end
+
 /-! ### Fixed points of normal functions -/
 
 /-- The next fixed point function, the least fixed point of the normal function `f` above `a`. -/

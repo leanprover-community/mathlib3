@@ -425,23 +425,23 @@ lemma norm_lt_one_mul {z1 z2 : ℤ_[p]} (hz2 : ∥z2∥ < 1) : ∥z1 * z2∥ < 1
 calc  ∥z1 * z2∥ = ∥z1∥ * ∥z2∥ : by simp
            ... < 1 : mul_lt_one_of_nonneg_of_lt_one_right (norm_le_one _) (norm_nonneg _) hz2
 
-@[simp] lemma mem_nonunits {z : ℤ_[p]} : z ∈ nonunits ℤ_[p] ↔ ∥z∥ < 1 :=
+@[simp] lemma mem_nonunits {z : ℤ_[p]} : z ∈ nonℤˣ_[p] ↔ ∥z∥ < 1 :=
 by rw lt_iff_le_and_ne; simp [norm_le_one z, nonunits, is_unit_iff]
 
 /-- A `p`-adic number `u` with `∥u∥ = 1` is a unit of `ℤ_[p]`. -/
-def mk_units {u : ℚ_[p]} (h : ∥u∥ = 1) : units ℤ_[p] :=
+def mk_units {u : ℚ_[p]} (h : ∥u∥ = 1) : ℤˣ_[p] :=
 let z : ℤ_[p] := ⟨u, le_of_eq h⟩ in ⟨z, z.inv, mul_inv h, inv_mul h⟩
 
 @[simp]
 lemma mk_units_eq {u : ℚ_[p]} (h : ∥u∥ = 1) : ((mk_units h : ℤ_[p]) : ℚ_[p]) = u :=
 rfl
 
-@[simp] lemma norm_units (u : units ℤ_[p]) : ∥(u : ℤ_[p])∥ = 1 :=
+@[simp] lemma norm_units (u : ℤˣ_[p]) : ∥(u : ℤ_[p])∥ = 1 :=
 is_unit_iff.mp $ by simp
 
 /-- `unit_coeff hx` is the unit `u` in the unique representation `x = u * p ^ n`.
 See `unit_coeff_spec`. -/
-def unit_coeff {x : ℤ_[p]} (hx : x ≠ 0) : units ℤ_[p] :=
+def unit_coeff {x : ℤ_[p]} (hx : x ≠ 0) : ℤˣ_[p] :=
 let u : ℚ_[p] := x*p^(-x.valuation) in
 have hu : ∥u∥ = 1,
 by simp [hx, nat.zpow_ne_zero_of_pos (by exact_mod_cast hp_prime.1.pos) x.valuation,
@@ -539,7 +539,7 @@ section dvr
 instance : local_ring ℤ_[p] :=
 local_of_nonunits_ideal zero_ne_one $ λ x y, by simp; exact norm_lt_one_add
 
-lemma p_nonnunit : (p : ℤ_[p]) ∈ nonunits ℤ_[p] :=
+lemma p_nonnunit : (p : ℤ_[p]) ∈ nonℤˣ_[p] :=
 have (p : ℝ)⁻¹ < 1, from inv_lt_one $ by exact_mod_cast hp_prime.1.one_lt,
 by simp [this]
 

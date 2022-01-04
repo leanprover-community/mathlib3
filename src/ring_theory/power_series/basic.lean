@@ -597,20 +597,20 @@ begin
 end
 
 /-- A multivariate formal power series is invertible if the constant coefficient is invertible.-/
-def inv_of_unit (φ : mv_power_series σ R) (u : units R) : mv_power_series σ R :=
+def inv_of_unit (φ : mv_power_series σ R) (u : Rˣ) : mv_power_series σ R :=
 inv.aux (↑u⁻¹) φ
 
-lemma coeff_inv_of_unit [decidable_eq σ] (n : σ →₀ ℕ) (φ : mv_power_series σ R) (u : units R) :
+lemma coeff_inv_of_unit [decidable_eq σ] (n : σ →₀ ℕ) (φ : mv_power_series σ R) (u : Rˣ) :
   coeff R n (inv_of_unit φ u) = if n = 0 then ↑u⁻¹ else
   - ↑u⁻¹ * ∑ x in n.antidiagonal,
     if x.2 < n then coeff R x.1 φ * coeff R x.2 (inv_of_unit φ u) else 0 :=
 coeff_inv_aux n (↑u⁻¹) φ
 
-@[simp] lemma constant_coeff_inv_of_unit (φ : mv_power_series σ R) (u : units R) :
+@[simp] lemma constant_coeff_inv_of_unit (φ : mv_power_series σ R) (u : Rˣ) :
   constant_coeff σ R (inv_of_unit φ u) = ↑u⁻¹ :=
 by rw [← coeff_zero_eq_constant_coeff_apply, coeff_inv_of_unit, if_pos rfl]
 
-lemma mul_inv_of_unit (φ : mv_power_series σ R) (u : units R) (h : constant_coeff σ R φ = u) :
+lemma mul_inv_of_unit (φ : mv_power_series σ R) (u : Rˣ) (h : constant_coeff σ R φ = u) :
   φ * inv_of_unit φ u = 1 :=
 ext $ λ n, if H : n = 0 then by { rw H, simp [coeff_mul, support_single_ne_zero, h], }
 else
@@ -1247,20 +1247,20 @@ begin
 end
 
 /-- A formal power series is invertible if the constant coefficient is invertible.-/
-def inv_of_unit (φ : power_series R) (u : units R) : power_series R :=
+def inv_of_unit (φ : power_series R) (u : Rˣ) : power_series R :=
 mv_power_series.inv_of_unit φ u
 
-lemma coeff_inv_of_unit (n : ℕ) (φ : power_series R) (u : units R) :
+lemma coeff_inv_of_unit (n : ℕ) (φ : power_series R) (u : Rˣ) :
   coeff R n (inv_of_unit φ u) = if n = 0 then ↑u⁻¹ else
   - ↑u⁻¹ * ∑ x in finset.nat.antidiagonal n,
     if x.2 < n then coeff R x.1 φ * coeff R x.2 (inv_of_unit φ u) else 0 :=
 coeff_inv_aux n ↑u⁻¹ φ
 
-@[simp] lemma constant_coeff_inv_of_unit (φ : power_series R) (u : units R) :
+@[simp] lemma constant_coeff_inv_of_unit (φ : power_series R) (u : Rˣ) :
   constant_coeff R (inv_of_unit φ u) = ↑u⁻¹ :=
 by rw [← coeff_zero_eq_constant_coeff_apply, coeff_inv_of_unit, if_pos rfl]
 
-lemma mul_inv_of_unit (φ : power_series R) (u : units R) (h : constant_coeff R φ = u) :
+lemma mul_inv_of_unit (φ : power_series R) (u : Rˣ) (h : constant_coeff R φ = u) :
   φ * inv_of_unit φ u = 1 :=
 mv_power_series.mul_inv_of_unit φ u $ h
 

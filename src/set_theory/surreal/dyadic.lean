@@ -192,7 +192,7 @@ def dyadic_map : localization.away (2 : ℤ) →+ surreal :=
       obtain ⟨a₂, ha₂⟩ := n₂.prop,
       have hn₁ : n₁ = submonoid.pow 2 a₁ := subtype.ext ha₁.symm,
       have hn₂ : n₂ = submonoid.pow 2 a₂ := subtype.ext ha₂.symm,
-      have h₂ : 1 < (2 : ℤ).nat_abs, from dec_trivial,
+      have h₂ : 1 < (2 : ℤ).nat_abs, from one_lt_two,
       rw [hn₁, hn₂, submonoid.log_pow_int_eq_self h₂, submonoid.log_pow_int_eq_self h₂],
       apply dyadic_aux,
       rwa [ha₁, ha₂] },
@@ -207,10 +207,8 @@ def dyadic_map : localization.away (2 : ℤ) →+ surreal :=
   end,
   map_add' := λ x y, localization.induction_on₂ x y $
   begin
-    rintros ⟨a, ⟨b, ⟨b' , hb⟩⟩⟩ ⟨c, ⟨d, ⟨d', hd⟩⟩⟩,
-    subst hb,
-    subst hd,
-    have h₂ : 1 < (2 : ℤ).nat_abs, from dec_trivial,
+    rintro ⟨a, ⟨b, ⟨b', rfl⟩⟩⟩ ⟨c, ⟨d, ⟨d', rfl⟩⟩⟩,
+    have h₂ : 1 < (2 : ℤ).nat_abs, from one_lt_two,
     have hpow₂ := submonoid.log_pow_int_eq_self h₂,
     simp_rw submonoid.pow_apply at hpow₂,
     simp_rw [localization.add_mk, localization.lift_on_mk, subtype.coe_mk,

@@ -174,46 +174,34 @@ rfl
         mul_one] at h,
       exact h } end) }
 
--- TODO: @kbuzzard: "The conceptual argument would be to show that power_series K is a
--- discrete valuation ring and then to prove that inverting a uniformiser in a
--- discrete valuation ring gives you the full field of fractions.
--- if we're very lucky we have both of those facts, and the fact that X is a uniformiser"
-instance {K : Type u} [field K] : is_fraction_ring (power_series K) (laurent_series K) :=
-{ map_units := begin
-    rintro ⟨y, hy⟩,
-    rw [coe_algebra_map, subtype.coe_mk],
-    refine is_unit_of_mem_non_zero_divisors _,
-    have : function.injective (hahn_series.of_power_series ℤ K) :=
-      hahn_series.of_power_series_injective,
-    exact ring_hom.map_mem_non_zero_divisors (hahn_series.of_power_series ℤ K) this hy,
-  end,
-  surj := λ z, begin
-    by_cases h : 0 ≤ z.order,
-    { refine ⟨⟨power_series.X ^ (int.nat_abs z.order) * z.power_series_part, 1⟩, _⟩,
-      simp only [ring_hom.map_one, mul_one, ring_hom.map_mul, coe_algebra_map,
-        of_power_series_X_pow, submonoid.coe_one],
-      rw [int.nat_abs_of_nonneg h, ←coe_power_series, single_order_mul_power_series_part] },
-    { refine ⟨⟨power_series_part z, ⟨power_series.X ^ (int.nat_abs z.order), _⟩⟩, _⟩,
-      { have : (power_series.X : power_series K) ≠ 0,
-        { intro H,
-          suffices : (0 : K) = 1,
-          { exact absurd this zero_ne_one },
-          rw [←power_series.coeff_one_X, H, map_zero] },
-        refine powers_le_non_zero_divisors_of_no_zero_divisors this _,
-        simp [submonoid.mem_powers_iff] },
-      simp only [coe_algebra_map, of_power_series_power_series_part],
-      rw [mul_comm _ z],
-      refine congr rfl _,
-      rw [subtype.coe_mk, of_power_series_X_pow, int.of_nat_nat_abs_of_nonpos],
-      exact le_of_not_ge h }
-  end,
+section foo
+
+variables {S : Type*} [comm_ring R] [comm_ring S] [algebra R S]
+
+lemma is_localization_of_le (M N : submonoid R) [is_localization M S]
+  (h₁ : M ≤ N) (h₂ : ∀ r ∈ N, is_unit (algebra_map R S r)) :
+  is_localization N S :=
+{ map_units := λ r, h₂ r r.2,
+  surj := λ s, by { obtain ⟨⟨x, y, hy⟩, H⟩ := is_localization.surj M s, exact ⟨⟨x, y, h₁ hy⟩, H⟩ },
   eq_iff_exists := λ x y, begin
-    rw [coe_algebra_map, hahn_series.of_power_series_injective.eq_iff],
     split,
-    { rintro rfl,
-      exact ⟨1, rfl⟩ },
-    { rintro ⟨c, h⟩,
-      exact mul_right_cancel₀ (non_zero_divisors.coe_ne_zero c) h },
+    { rw is_localization.eq_iff_exists M,
+      rintro ⟨c, hc⟩, exact ⟨⟨c, h₁ c.2⟩, hc⟩ },
+    { rintro ⟨⟨c, hcn⟩, h⟩,
+      apply_fun algebra_map R S at h,
+      simpa only [set_like.coe_mk, map_mul, (h₂ c hcn).mul_left_inj] using h, }
   end }
+
+end foo
+
+instance {K : Type u} [field K] : is_fraction_ring (power_series K) (laurent_series K) :=
+is_localization_of_le (submonoid.powers (power_series.X : power_series K)) _
+  (submonoid.powers_subset begin
+    rw mem_non_zero_divisors_iff_ne_zero,
+    refine mt (congr_arg $ power_series.coeff K 1) _,
+    simp only [power_series.coeff_one_X, not_false_iff, one_ne_zero, map_zero],
+  end)
+  (λ f hf, is_unit_of_mem_non_zero_divisors $ ring_hom.map_mem_non_zero_divisors _
+    hahn_series.of_power_series_injective hf)
 
 end laurent_series

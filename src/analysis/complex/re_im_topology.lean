@@ -7,10 +7,28 @@ import analysis.complex.basic
 import topology.fiber_bundle
 
 /-!
-# Real and imaginary part maps as trivial topological fiber bundles
+# Closure, interior, and frontier of preimages under `re` and `im`
 
-In this file we prove that both `complex.re` and `complex.im` turn `ℂ` into a trivial topological
-fiber bundle over `ℝ` and deduce some corolaries from these facts.
+In this fact we use the fact that `ℂ` is naturally homeomorphic to `ℝ × ℝ` to deduce some
+topological properties of `complex.re` and `complex.im`.
+
+## Main statements
+
+Each statement about `complex.re` listed below has a counterpart about `complex.im`.
+
+* `complex.is_trivial_topological_fiber_bundle_re`: `complex.re` turns `ℂ` into a trivial
+  topological fiber bundle over `ℝ`;
+* `complex.is_open_map_re`, `complex.quotient_map_re`: in particular, `complex.re` is an open map
+  and is a quotient map;
+* `complex.interior_preimage_re`, `complex.closure_preimage_re`, `complex.frontier_preimage_re`:
+  formulas for `interior (complex.re ⁻¹' s)` etc;
+* `complex.interior_set_of_re_le` etc: particular cases of the above formulas in the cases when `s`
+  is one of the infinite intervals `set.Ioi a`, `set.Ici a`, `set.Iio a`, and `set.Iic a`,
+  formulated as `interior {z : ℂ | z.re ≤ a} = {z | z.re < a}` etc.
+
+## Tags
+
+complex, real part, imaginary part, closure, interior, frontier
 -/
 
 open topological_fiber_bundle set

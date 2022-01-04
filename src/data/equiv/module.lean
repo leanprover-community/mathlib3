@@ -5,6 +5,8 @@ Authors: Nathaniel Thomas, Jeremy Avigad, Johannes Hölzl, Mario Carneiro, Anne 
   Frédéric Dupuis, Heather Macbeth
 -/
 import algebra.module.linear_map
+import data.fun_like
+
 
 /-!
 # (Semi)linear equivalences
@@ -235,17 +237,43 @@ lemma symm_apply_eq {x y} : e.symm x = y ↔ x = e y := e.to_equiv.symm_apply_eq
 lemma eq_symm_apply {x y} : y = e.symm x ↔ e y = x := e.to_equiv.eq_symm_apply
 omit σ'
 
+variables [ring_hom_comp_triple σ₂₁ σ₁₃ σ₂₃] [ring_hom_comp_triple σ₃₁ σ₁₂ σ₃₂]
+
+include module_M₃
+
 lemma eq_comp_symm (f : M₂ →ₛₗ[σ₂₃] M₃) (g : M₁ →ₛₗ[σ₁₃] M₃) :
-  f = g.comp ↑e₁₂.symm ↔ f.comp ↑e₁₂ = g := e₁₂.to_equiv.eq_comp_symm f g
+  f = g.comp e₁₂.symm.to_linear_map ↔ f.comp e₁₂.to_linear_map = g :=
+begin
+  split; intro H; ext,
+  simp [H, e₁₂.to_equiv.eq_comp_symm f g],
+  simp [←H, ←e₁₂.to_equiv.eq_comp_symm f g],
+end
 
 lemma comp_symm_eq (f : M₂ →ₛₗ[σ₂₃] M₃) (g : M₁ →ₛₗ[σ₁₃] M₃) :
-  g.comp ↑e₁₂.symm = f ↔ g= f.comp ↑e₁₂ := e₁₂.to_equiv.comp_symm_eq f g
+  g.comp e₁₂.symm.to_linear_map = f ↔ g = f.comp e₁₂.to_linear_map :=
+begin
+  split; intro H; ext,
+  simp [←H, ←e₁₂.to_equiv.comp_symm_eq f g],
+  simp [H, e₁₂.to_equiv.comp_symm_eq f g],
+end
 
 lemma eq_symm_comp (f : M₃ →ₛₗ[σ₃₁] M₁) (g : M₃ →ₛₗ[σ₃₂] M₂) :
-  f = ↑e₁₂.symm.comp g ↔ ↑e₁₂.comp f = g := e₁₂.to_equiv.eq_symm_comp f g
+  f = e₁₂.symm.to_linear_map.comp g ↔ e₁₂.to_linear_map.comp f = g :=
+begin
+  split; intro H; ext,
+  simp [H, e₁₂.to_equiv.eq_symm_comp f g],
+  simp [←H, ←e₁₂.to_equiv.eq_symm_comp f g],
+end
 
 lemma symm_comp_eq (f : M₃ →ₛₗ[σ₃₁] M₁) (g : M₃ →ₛₗ[σ₃₂] M₂) :
-  ↑e₁₂.symm.comp g = f ↔ g = ↑e₁₂.comp f := e₁₂.to_equiv.symm_comp_eq f g
+  e₁₂.symm.to_linear_map.comp g = f ↔ g = e₁₂.to_linear_map.comp f :=
+begin
+  split; intro H; ext,
+  simp [←H, ←e₁₂.to_equiv.symm_comp_eq f g],
+  simp [H, e₁₂.to_equiv.symm_comp_eq f g],
+end
+
+omit module_M₃
 
 @[simp] lemma refl_symm [module R M] : (refl R M).symm = linear_equiv.refl R M := rfl
 

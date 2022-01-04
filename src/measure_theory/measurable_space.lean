@@ -804,7 +804,8 @@ structure measurable_embedding {α β : Type*} [measurable_space α] [measurable
 
 namespace measurable_embedding
 
-variables {mα : measurable_space α} [measurable_space β] [measurable_space γ] {f : α → β} {g : β → γ}
+variables {mα : measurable_space α} [measurable_space β] [measurable_space γ]
+  {f : α → β} {g : β → γ}
 
 include mα
 

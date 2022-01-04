@@ -13,4 +13,4 @@ open_locale classical
 
 lemma card_units_lt (M₀ : Type*) [monoid_with_zero M₀] [nontrivial M₀] [fintype M₀] :
   fintype.card M₀ˣ < fintype.card M₀ :=
-fintype.card_lt_of_injective_of_not_mem (coe : Mˣ₀ → M₀) units.ext not_is_unit_zero
+fintype.card_lt_of_injective_of_not_mem (coe : M₀ˣ → M₀) units.ext not_is_unit_zero

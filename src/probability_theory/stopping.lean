@@ -74,6 +74,10 @@ instance sigma_finite_of_sigma_finite_filtration (μ : measure α) (f : filtrati
   sigma_finite (μ.trim (f.le i)) :=
 by apply hf.sigma_finite -- can't exact here
 
+section adapted_process
+
+variables {u v : ι → α → β} {f : filtration ι m}
+
 /-- A sequence of functions `u` is adapted to a filtration `f` if for all `i`,
 `u i` is `f i`-measurable. -/
 def adapted (f : filtration ι m) (u : ι → α → β) : Prop :=
@@ -81,26 +85,50 @@ def adapted (f : filtration ι m) (u : ι → α → β) : Prop :=
 
 namespace adapted
 
-lemma add [has_add β] [has_measurable_add₂ β] {u v : ι → α → β} {f : filtration ι m}
-  (hu : adapted f u) (hv : adapted f v) : adapted f (u + v):=
+lemma add [has_add β] [has_measurable_add₂ β] (hu : adapted f u) (hv : adapted f v) :
+  adapted f (u + v) :=
 λ i, @measurable.add _ _ _ _ (f i) _ _ _ (hu i) (hv i)
 
-lemma neg [has_neg β] [has_measurable_neg β] {u : ι → α → β} {f : filtration ι m}
-  (hu : adapted f u) : adapted f (-u) :=
+lemma neg [has_neg β] [has_measurable_neg β] (hu : adapted f u) : adapted f (-u) :=
 λ i, @measurable.neg _ α _ _ _ (f i) _ (hu i)
 
-lemma smul [has_scalar ℝ β] [has_measurable_smul ℝ β] {u : ι → α → β} {f : filtration ι m}
-  (c : ℝ) (hu : adapted f u) : adapted f (c • u) :=
+lemma smul [has_scalar ℝ β] [has_measurable_smul ℝ β] (c : ℝ) (hu : adapted f u) :
+  adapted f (c • u) :=
 λ i, @measurable.const_smul ℝ β α _ _ _ (f i) _ _ (hu i) c
 
 end adapted
 
 variable (β)
-
 lemma adapted_zero [has_zero β] (f : filtration ι m) : adapted f (0 : ι → α → β) :=
 λ i, @measurable_zero β α _ (f i) _
-
 variable {β}
+
+/-- Progressively measurable process. The usual definition uses the interval `[0,i]`, which we
+replace by `set.Iic i`. We recover the usual definition for `ι = ℝ≥0` or `ι = ℕ`. -/
+def prog_measurable [measurable_space ι] (f : filtration ι m) (u : ι → α → β) : Prop :=
+∀ i, measurable[@prod.measurable_space (set.Iic i) α _ (f i)] (λ p : set.Iic i × α, u p.1 p.2)
+
+def continuous_process [topological_space ι] [topological_space β] (u : ι → α → β) : Prop :=
+∀ x, continuous (λ i, u i x)
+
+namespace prog_measurable
+
+variables [measurable_space ι]
+
+protected lemma adapted (h : prog_measurable f u) : adapted f u :=
+begin
+  intro i,
+  have : u i = (λ p : set.Iic i × α, u p.1 p.2) ∘ (λ x, (⟨i, set.mem_Iic.mpr le_rfl⟩, x)) := rfl,
+  rw this,
+  refine @measurable.comp _ (set.Iic i × α) β (f i) (@prod.measurable_space (set.Iic i) α _ (f i))
+    _ _ _ (h i) _,
+  exact @measurable.prod_mk _ _ _ (f i) _ (f i) _ _
+    (@measurable_const _ _ _ (f i) _) (@measurable_id _ (f i)),
+end
+
+end prog_measurable
+
+end adapted_process
 
 namespace filtration
 

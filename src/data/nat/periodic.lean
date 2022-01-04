@@ -125,8 +125,8 @@ end multiset
 section finset
 open finset
 
-/-- An interval of length `a` filtered over a periodic predicate of period `a` has the
-same cardinality as `range a` filtered over that predicate. -/
+/-- An interval of length `a` filtered over a periodic predicate of period `a` has cardinality
+equal to the number naturals below `a` for which `p a` is true. -/
 lemma filter_Ico_card_eq_of_periodic' (n a : ℕ) (p : ℕ → Prop) [decidable_pred p]
   (pp : periodic p a) :
   (multiset.filter p (multiset.Ico n (n+a))).card = a.count p :=
@@ -137,8 +137,8 @@ begin
   simp only [pp.map_mod_nat],
 end
 
-/-- An interval of length `a` filtered over a periodic predicate of period `a` has the
-same cardinality as `range a` filtered over that predicate. -/
+/-- An interval of length `a` filtered over a periodic predicate of period `a` has cardinality
+equal to the number naturals below `a` for which `p a` is true. -/
 lemma filter_Ico_card_eq_of_periodic (n a : ℕ) (p : ℕ → Prop) [decidable_pred p]
   (pp : periodic p a) :
   (finset.filter p (finset.Ico n (n+a))).card = a.count p :=

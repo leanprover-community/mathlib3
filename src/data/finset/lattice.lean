@@ -86,6 +86,11 @@ begin
   { exact sup_const hs _ }
 end
 
+lemma sup_ite (p : β → Prop) [decidable_pred p] :
+  s.sup (λ i, ite (p i) (f i) (g i)) =
+    (s.filter p).sup f ⊔ (s.filter (λ i, ¬ p i)).sup g :=
+fold_ite _
+
 lemma sup_le {a : α} : (∀b ∈ s, f b ≤ a) → s.sup f ≤ a :=
 sup_le_iff.2
 

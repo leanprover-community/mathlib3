@@ -660,10 +660,7 @@ by rw [← rpow_nat_cast, ← rpow_mul hx, inv_mul_cancel hn0, rpow_one]
 lemma log_base_of_rpow (a b c : ℝ) (a_pos : 0 < a) (a_ne_one : a ≠ 1) (h : a ^ b = c) :
   log_base a c = b :=
 begin
-  rw log_base,
-  rw div_eq_iff,
-  rw <-h,
-  rw log_rpow a_pos,
+  rw [log_base, div_eq_iff, ←h, log_rpow a_pos],
   have a_ne_zero : a ≠ 0, linarith,
   have a_ne_minus_one : a ≠ -1, linarith,
   simp [a_ne_one, a_ne_zero, a_ne_minus_one],

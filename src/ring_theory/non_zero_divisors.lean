@@ -32,7 +32,45 @@ def non_zero_divisors (R : Type*) [monoid_with_zero R] : submonoid R :=
 
 localized "notation R`⁰`:9000 := non_zero_divisors R" in non_zero_divisors
 
-variables {M M' M₁ : Type*} [monoid_with_zero M] [monoid_with_zero M'] [comm_monoid_with_zero M₁]
+variables {M M' M₁ R R' : Type*} [monoid_with_zero M] [monoid_with_zero M']
+  [comm_monoid_with_zero M₁] [ring R] [comm_ring R']
+
+lemma mem_non_zero_divisors_iff {r : M} : r ∈ M⁰ ↔ ∀ x, x * r = 0 → x = 0 := iff.rfl
+
+@[simp] lemma mul_right_mem_non_zero_divisors_eq_zero_iff {x r : M} (hr : r ∈ M⁰) :
+  x * r = 0 ↔ x = 0 :=
+⟨hr _, by simp {contextual := tt}⟩
+
+@[simp] lemma mul_right_coe_non_zero_divisors_eq_zero_iff {x : M} {c : M⁰} :
+  x * c = 0 ↔ x = 0 :=
+mul_right_mem_non_zero_divisors_eq_zero_iff c.prop
+
+@[simp] lemma mul_left_mem_non_zero_divisors_eq_zero_iff {r x : M₁} (hr : r ∈ M₁⁰) :
+  r * x = 0 ↔ x = 0 :=
+by rw [mul_comm, mul_right_mem_non_zero_divisors_eq_zero_iff hr]
+
+@[simp] lemma mul_left_coe_non_zero_divisors_eq_zero_iff {c : M₁⁰} {x : M₁} :
+  (c : M₁) * x = 0 ↔ x = 0 :=
+mul_left_mem_non_zero_divisors_eq_zero_iff c.prop
+
+@[simp] lemma mul_cancel_right_mem_non_zero_divisor {x y r : R} (hr : r ∈ R⁰) :
+  x * r = y * r ↔ x = y :=
+begin
+  refine ⟨λ h, _, congr_arg _⟩,
+  rw [←sub_eq_zero, ←mul_right_mem_non_zero_divisors_eq_zero_iff hr, sub_mul, h, sub_self]
+end
+
+@[simp] lemma mul_cancel_right_coe_non_zero_divisor {x y : R} {c : R⁰} :
+  x * c = y * c ↔ x = y :=
+mul_cancel_right_mem_non_zero_divisor c.prop
+
+@[simp] lemma mul_cancel_left_mem_non_zero_divisor {x y r : R'} (hr : r ∈ R'⁰) :
+  r * x = r * y ↔ x = y :=
+by simp_rw [mul_comm r, mul_cancel_right_mem_non_zero_divisor hr]
+
+@[simp] lemma mul_cancel_left_coe_non_zero_divisor {x y : R'} {c : R'⁰} :
+  (c : R') * x = c * y ↔ x = y :=
+mul_cancel_left_mem_non_zero_divisor c.prop
 
 lemma non_zero_divisors.ne_zero [nontrivial M] {x} (hx : x ∈ M⁰) : x ≠ 0 :=
 λ h, one_ne_zero (hx _ $ (one_mul _).trans h)

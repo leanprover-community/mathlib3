@@ -271,7 +271,6 @@ begin
   exact (hf ht).inter h.measurable_set.of_compl,
 end
 
-omit m
 
 end measurable_functions
 
@@ -463,7 +462,6 @@ lemma measurable_of_measurable_on_compl_singleton [measurable_singleton_class α
   measurable f :=
 measurable_of_measurable_on_compl_finite {a} (finite_singleton a) hf
 
-omit m
 
 end subtype
 
@@ -572,8 +570,6 @@ begin
   rw this,
   exact measurable_set.Union (λ y, (hf y hs).prod (measurable_set_singleton y))
 end
-
-omit m
 
 end prod
 
@@ -864,8 +860,6 @@ begin
     by rwa [(right_inverse_range_splitting hg.injective).comp_eq_id] at this,
   exact hg.measurable_range_splitting.comp H.subtype_mk
 end
-
-omit mα
 
 end measurable_embedding
 

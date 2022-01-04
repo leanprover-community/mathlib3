@@ -217,8 +217,6 @@ by { by_cases p; simp [h, measurable_set.empty]; apply measurable_set.univ }
 lemma nonempty_measurable_superset (s : set α) : nonempty { t // s ⊆ t ∧ measurable_set t} :=
 ⟨⟨univ, subset_univ s, measurable_set.univ⟩⟩
 
-omit m
-
 end
 
 @[ext] lemma measurable_space.ext : ∀ {m₁ m₂ : measurable_space α},

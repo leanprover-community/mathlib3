@@ -432,12 +432,12 @@ lemma summable_of_locally_summable_norm {ι : Type*} {F : ι → C(X, E)}
   summable F :=
 begin
   classical,
-  change ∃ _, tendsto _ _ _,
+  simp only [summable, has_sum] at ⊢ hF,
   rw continuous_map.exists_tendsto_compact_open_iff_forall,
   intros K hK,
   rw is_compact_iff_compact_space at hK,
   resetI,
-  obtain ⟨f, (hf : tendsto _ _ _)⟩ := summable_of_summable_norm (hF K hK),
+  obtain ⟨f, hf⟩ := summable_of_summable_norm (hF K hK),
   use f,
   convert hf,
   ext s,

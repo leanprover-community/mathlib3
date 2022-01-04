@@ -255,7 +255,7 @@ lemma subst_into_smul_upcast {α} [add_comm_group α]
   (prt : @smulg α _ zl tr = t) : smul l r = t :=
 by simp [← prt, prl₁, ← prl₂, prr, smul, smulg]
 
-/-- Normalize a term of the form `smul e₁ e₂` or `smulg e₁ e₂`.
+/-- Normalize a term `orig` of the form `smul e₁ e₂` or `smulg e₁ e₂`.
   Normalized terms use `smul` for monoids and `smulg` for groups,
   so there are actually four cases to handle:
   * Using `smul` in a monoid just simplifies the pieces using `subst_into_smul`

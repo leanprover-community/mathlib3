@@ -51,11 +51,19 @@ def subgroup.opposite {G : Type*} [group G] (H : subgroup G) : subgroup Gᵐᵒ�
     simp [H.inv_mem ha],
   end}
 
--- ASK ON ZULIP
+-- Thanks to ZULIP
+def subgroup.opposite_equiv {G : Type*} [group G] (H : subgroup G) :
+  H ≃ H.opposite :=
+{ to_fun := λ h, ⟨mul_opposite.op h.1, h, h.2, rfl⟩,
+  inv_fun := λ h, ⟨h.1.unop, by { obtain ⟨h1,h2,h3⟩ := h.2, rw ← h3, exact h2 }⟩,
+  left_inv := by tidy,
+  right_inv := by tidy }
+
 instance {G : Type*} [group G] (H : subgroup G) [encodable H] : encodable H.opposite :=
-{ encode := sorry,
-  decode := sorry,
-  encodek := sorry }
+encodable.of_equiv H H.opposite_equiv.symm
+
+-- Eric Wieser: I'm surprised we don't have docs#subgroup.op or docs#subgroup.opposite
+-- I would recommend defining it via the preimage instead
 
 theorem measure_theory.is_mul_right_invariant.measure_preimage_mul {G : Type u_1}
 [measurable_space G] [topological_space G] [group G] [topological_group G] [borel_space G]
@@ -171,33 +179,48 @@ instance quotient_group.has_measurable_smul : has_measurable_smul G (G ⧸ Γ) :
 
 end
 
+lemma left_right_mul (x g: G) (γ : ↥(Γ.opposite)) : γ • (g * x) = g * (γ • x) :=
+begin
+  obtain ⟨_, γ', hγ', rfl⟩ := γ,
+  simp [(•), mul_assoc],
+end
+
+lemma left_right_mem_preimage (x g: G) (γ : ↥(Γ.opposite)) (s : set G) :
+  x ∈ (λ y, γ • y) '' (has_mul.mul g ⁻¹' s) ↔ g * x ∈ (λ y, γ • y) '' s:=
+begin
+  obtain ⟨_, γ', hγ', rfl⟩ := γ,
+  simp [(•), mul_assoc],
+end
+
+
 include h𝓕
 variables [encodable Γ]
 
-lemma measure_theory.is_fundamental_domain.smul (g : G) :
+
+lemma measure_theory.is_fundamental_domain.smul (g : G)
+  (hμL : measure_theory.is_mul_left_invariant μ):
   is_fundamental_domain ↥Γ.opposite (has_mul.mul g ⁻¹' 𝓕) μ :=
 { measurable_set := measurable_set_preimage (measurable_const_mul g) (h𝓕.measurable_set),
   ae_covers := begin
-    have := h𝓕.2,
-    convert this,
-    -- not really what we want... how to deal with these ae filters... ???
-    sorry,
-/-    ext x,
-    split,
-    {
-      rintros ⟨⟨_, h, h_in_Γ, rfl⟩, hh⟩,
-      rw mem_preimage at hh,
-      dsimp only [(•)] at hh,
-      simp at hh,
-      use g * h,
-    },
-  -/
+    let s := {x : G | ¬∃ (γ : ↥(Γ.opposite)), γ • x ∈ 𝓕},
+    have μs_eq_zero : μ s = 0 := h𝓕.2,
+    change μ {x : G | ¬∃ (γ : ↥(Γ.opposite)), g * γ • x ∈ 𝓕} = 0,
+    have : {x : G | ¬∃ (γ : ↥(Γ.opposite)), g * γ • x ∈ 𝓕} = has_mul.mul g ⁻¹' s,
+    { ext,
+      simp [s, left_right_mul], },
+    rw [this, hμL.measure_preimage_mul g s, μs_eq_zero],
   end,
   ae_disjoint := begin
-    rintros ⟨_, γ, γ_in_Γ, rfl⟩ hγ,
-    have := h𝓕.3 ⟨_, γ, γ_in_Γ, _⟩ hγ,
-    sorry,
-
+    intros γ γ_ne_one,
+    have μs_eq_zero : μ (((λ x, γ • x) '' 𝓕) ∩ 𝓕) = 0 := h𝓕.3 γ γ_ne_one,
+    change μ (((λ x, γ • x) '' (has_mul.mul g ⁻¹' 𝓕)) ∩ (has_mul.mul g ⁻¹' 𝓕)) = 0,
+    have : ((λ x, γ • x) '' (has_mul.mul g ⁻¹' 𝓕)) ∩ (has_mul.mul g ⁻¹' 𝓕) =
+      has_mul.mul g ⁻¹' (((λ x, γ • x) '' 𝓕) ∩ 𝓕),
+    { ext,
+      simp only [mem_inter_eq, image_smul, and.congr_left_iff, mem_preimage],
+      intros gx,
+      convert left_right_mem_preimage x g γ 𝓕, },
+    rw [this, hμL.measure_preimage_mul g _, μs_eq_zero],
   end }
 
 /-- The pushforward to the coset space `G ⧸ Γ` of the restriction of Haar measure on `G` to a
@@ -230,7 +253,7 @@ lemma measure_theory.is_fundamental_domain.smul_invariant_measure_map
       rw hμL.measure_preimage_mul, },
     rw this,
     have h𝓕_translate_fundom : is_fundamental_domain Γ.opposite (has_mul.mul g⁻¹ ⁻¹' 𝓕) μ :=
-      h𝓕.smul (g⁻¹),
+      h𝓕.smul (g⁻¹) hμL,
     haveI : smul_invariant_measure ↥(Γ.opposite) G μ := subgroup.smul_invariant_measure hμR,
     rw h𝓕.measure_set_eq h𝓕_translate_fundom meas_πA,
     rintros ⟨_, γ, γ_in_Γ, rfl⟩,

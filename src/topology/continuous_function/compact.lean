@@ -5,6 +5,7 @@ Authors: Scott Morrison
 -/
 import topology.continuous_function.bounded
 import topology.uniform_space.compact_separated
+import topology.uniform_space.compact_convergence
 import tactic.equiv_rw
 
 /-!
@@ -45,6 +46,37 @@ equivalent to `C(α, β)`.
 def equiv_bounded_of_compact : C(α, β) ≃ (α →ᵇ β) :=
 ⟨mk_of_compact, to_continuous_map, λ f, by { ext, refl, }, λ f, by { ext, refl, }⟩
 
+lemma uniform_inducing_equiv_bounded_of_compact :
+  uniform_inducing (equiv_bounded_of_compact α β) :=
+uniform_inducing.mk'
+begin
+  intros S,
+  simp [mem_compact_convergence_entourage_iff, metric.uniformity_basis_dist_le.mem_uniformity_iff],
+  split,
+  { rintros ⟨K, hK, s, ⟨ε, hε, hεs⟩, H⟩,
+    refine ⟨{p | ∀ x, (p.1 x, p.2 x) ∈ s}, ⟨ε, hε, _⟩, _⟩,
+    { intros f g hfg x,
+      apply hεs,
+      exact (dist_coe_le_dist x).trans hfg },
+    { intros f g hfg,
+      apply H,
+      intros x hx,
+      exact hfg x } },
+  { rintros ⟨S', ⟨ε, hε, hεS'⟩, H⟩,
+    refine ⟨set.univ, compact_univ, {p | dist p.1 p.2 ≤ ε}, ⟨⟨ε, hε, (λ a b h, h)⟩, _⟩⟩,
+    rintros ⟨f, g⟩ hfg,
+    apply H,
+    apply hεS',
+    rw dist_le hε.le,
+    intros x,
+    exact hfg x (mem_univ _) },
+end
+
+lemma uniform_embedding_equiv_bounded_of_compact :
+  uniform_embedding (equiv_bounded_of_compact α β) :=
+{ inj := (equiv_bounded_of_compact α β).injective,
+  .. uniform_inducing_equiv_bounded_of_compact α β }
+
 /--
 When `α` is compact, the bounded continuous maps `α →ᵇ 𝕜` are
 additively equivalent to `C(α, 𝕜)`.
@@ -56,10 +88,7 @@ def add_equiv_bounded_of_compact [add_monoid β] [has_lipschitz_add β] :
    .. (equiv_bounded_of_compact α β).symm, } : (α →ᵇ β) ≃+ C(α, β)).symm
 
 instance : metric_space C(α, β) :=
-metric_space.induced
-  (equiv_bounded_of_compact α β)
-  (equiv_bounded_of_compact α β).injective
-  (by apply_instance)
+(uniform_embedding_equiv_bounded_of_compact α β).comap_metric_space _
 
 /--
 When `α` is compact, and `β` is a metric space, the bounded continuous maps `α →ᵇ β` are

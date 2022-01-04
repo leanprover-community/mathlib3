@@ -25,31 +25,54 @@ variables [∀ (P : Cᵒᵖ ⥤ D) (X : C) (S : J.cover X), has_multiequalizer (
 
 noncomputable theory
 
-instance (X : C) (K : Type (max v u)) [small_category K] [has_limits_of_shape K D]
-  (F : K ⥤ Cᵒᵖ ⥤ D) : preserves_limit F (J.diagram_functor D X) :=
-preserves_limit_of_evaluation _ _ $ λ W,
-preserves_limit_of_preserves_limit_cone (limit.is_limit _)
-{ lift := λ E, multiequalizer.lift _ _ (λ i,
-    (is_limit_of_preserves ((evaluation _ _).obj (op i.Y)) (limit.is_limit F)).lift
-    ⟨_,λ k, E.π.app k ≫ multiequalizer.ι _ i, begin
+/-- An auxiliary definition to be used in the proof of the fact that
+`J.diagram_functor D X` preserves limits. -/
+@[simps]
+def cone_comp_evaluation_of_cone_comp_diagram_functor_comp_evaluation
+  {X : C} {K : Type (max v u)} [small_category K]
+  {F : K ⥤ Cᵒᵖ ⥤ D} {W : J.cover X} (i : W.arrow)
+  (E : cone (F ⋙ J.diagram_functor D X ⋙ (evaluation (J.cover X)ᵒᵖ D).obj (op W))) :
+  cone (F ⋙ (evaluation _ _).obj (op i.Y)) :=
+{ X := E.X,
+  π :=
+  { app := λ k, E.π.app k ≫ multiequalizer.ι (W.index (F.obj k)) i,
+    naturality' := begin
       intros a b f,
       dsimp,
       rw [category.id_comp, category.assoc, ← E.w f],
       dsimp [diagram_nat_trans],
       simp only [multiequalizer.lift_ι, category.assoc],
-    end⟩) begin
-      intros i,
-      change (_ ≫ _) ≫ _ = (_ ≫ _) ≫ _,
-      dsimp [evaluate_combined_cones],
-      erw [category.comp_id, category.comp_id, category.assoc,
-        category.assoc, ← (limit.lift F _).naturality, ← (limit.lift F _).naturality,
-        ← category.assoc, ← category.assoc],
-      congr' 1, ext1,
-      erw [category.assoc, category.assoc, limit.lift_π, limit.lift_π,
-        limit.lift_π_assoc, limit.lift_π_assoc, category.assoc,
-        category.assoc, multiequalizer.condition],
-      refl,
-    end,
+    end } }
+
+/-- An auxiliary definition to be used in the proof of the fact that
+`J.diagram_functor D X` preserves limits. -/
+abbreviation lift_to_diagram_limit_obj
+  {X : C} {K : Type (max v u)} [small_category K] [has_limits_of_shape K D]
+  {W : (J.cover X)ᵒᵖ} (F : K ⥤ Cᵒᵖ ⥤ D)
+  (E : cone (F ⋙ J.diagram_functor D X ⋙ (evaluation (J.cover X)ᵒᵖ D).obj W)) :
+  E.X ⟶ (J.diagram (limit F) X).obj W :=
+multiequalizer.lift _ _ (λ i,
+  (is_limit_of_preserves ((evaluation _ _).obj (op i.Y)) (limit.is_limit _)).lift
+  (cone_comp_evaluation_of_cone_comp_diagram_functor_comp_evaluation i E))
+begin
+  intros i,
+  change (_ ≫ _) ≫ _ = (_ ≫ _) ≫ _,
+  dsimp [evaluate_combined_cones],
+  erw [category.comp_id, category.comp_id, category.assoc,
+    category.assoc, ← (limit.lift F _).naturality, ← (limit.lift F _).naturality,
+    ← category.assoc, ← category.assoc],
+  congr' 1, ext1,
+  erw [category.assoc, category.assoc, limit.lift_π, limit.lift_π,
+    limit.lift_π_assoc, limit.lift_π_assoc, category.assoc,
+    category.assoc, multiequalizer.condition],
+  refl,
+end
+
+instance (X : C) (K : Type (max v u)) [small_category K] [has_limits_of_shape K D]
+  (F : K ⥤ Cᵒᵖ ⥤ D) : preserves_limit F (J.diagram_functor D X) :=
+preserves_limit_of_evaluation _ _ $ λ W,
+preserves_limit_of_preserves_limit_cone (limit.is_limit _)
+{ lift := λ E, lift_to_diagram_limit_obj F E,
   fac' := begin
     intros E k,
     dsimp [diagram_nat_trans],
@@ -58,11 +81,13 @@ preserves_limit_of_preserves_limit_cone (limit.is_limit _)
     change (_ ≫ _) ≫ _ = _,
     dsimp [evaluate_combined_cones],
     erw [category.comp_id, category.assoc, ← nat_trans.comp_app, limit.lift_π, limit.lift_π],
+    refl,
   end,
   uniq' := begin
     intros E m hm,
     ext,
-    simp only [category.assoc, multiequalizer.lift_ι],
+    delta lift_to_diagram_limit_obj,
+    erw [multiequalizer.lift_ι, category.assoc],
     change _ = (_ ≫ _) ≫ _,
     dsimp [evaluate_combined_cones],
     erw [category.comp_id, category.assoc, ← nat_trans.comp_app, limit.lift_π, limit.lift_π],

@@ -174,33 +174,9 @@ rfl
         mul_one] at h,
       exact h } end) }
 
-section foo
-
-variables {S : Type*} [comm_ring R] [comm_ring S] [algebra R S]
-
-lemma is_localization_of_le (M N : submonoid R) [is_localization M S]
-  (h₁ : M ≤ N) (h₂ : ∀ r ∈ N, is_unit (algebra_map R S r)) :
-  is_localization N S :=
-{ map_units := λ r, h₂ r r.2,
-  surj := λ s, by { obtain ⟨⟨x, y, hy⟩, H⟩ := is_localization.surj M s, exact ⟨⟨x, y, h₁ hy⟩, H⟩ },
-  eq_iff_exists := λ x y, begin
-    split,
-    { rw is_localization.eq_iff_exists M,
-      rintro ⟨c, hc⟩, exact ⟨⟨c, h₁ c.2⟩, hc⟩ },
-    { rintro ⟨⟨c, hcn⟩, h⟩,
-      apply_fun algebra_map R S at h,
-      simpa only [set_like.coe_mk, map_mul, (h₂ c hcn).mul_left_inj] using h, }
-  end }
-
-end foo
-
 instance {K : Type u} [field K] : is_fraction_ring (power_series K) (laurent_series K) :=
-is_localization_of_le (submonoid.powers (power_series.X : power_series K)) _
-  (submonoid.powers_subset begin
-    rw mem_non_zero_divisors_iff_ne_zero,
-    refine mt (congr_arg $ power_series.coeff K 1) _,
-    simp only [power_series.coeff_one_X, not_false_iff, one_ne_zero, map_zero],
-  end)
+is_localization.of_le (submonoid.powers (power_series.X : power_series K)) _
+  (powers_le_non_zero_divisors_of_no_zero_divisors power_series.X_ne_zero)
   (λ f hf, is_unit_of_mem_non_zero_divisors $ ring_hom.map_mem_non_zero_divisors _
     hahn_series.of_power_series_injective hf)
 

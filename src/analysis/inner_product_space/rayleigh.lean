@@ -85,6 +85,7 @@ by simp only [@cinfi_set _ _ _ _ rayleigh_quotient, T.image_rayleigh_eq_image_ra
 
 end continuous_linear_map
 
+namespace inner_product_space
 namespace is_self_adjoint
 
 section real
@@ -279,3 +280,4 @@ lemma subsingleton_of_no_eigenvalue_finite_dimensional
 end finite_dimensional
 
 end is_self_adjoint
+end inner_product_space

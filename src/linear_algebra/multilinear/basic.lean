@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 import linear_algebra.basic
+import linear_algebra.matrix.to_lin
 import algebra.algebra.basic
 import algebra.big_operators.order
 import algebra.big_operators.ring
@@ -713,6 +714,45 @@ def dom_dom_congr_linear_equiv {ι₁ ι₂} [decidable_eq ι₁] [decidable_eq 
   .. (dom_dom_congr_equiv σ : multilinear_map A (λ i : ι₁, M₂) M₃ ≃+
         multilinear_map A (λ i : ι₂, M₂) M₃) }
 
+variables (R M₁)
+
+/-- The dependent version of `multilinear_map.dom_dom_congr_linear_equiv`. -/
+@[simps apply symm_apply]
+def dom_dom_congr_linear_equiv' {ι' : Type*} [decidable_eq ι'] (σ : ι ≃ ι') :
+  multilinear_map R M₁ M₂ ≃ₗ[R] multilinear_map R (λ i, M₁ (σ.symm i)) M₂ :=
+{ to_fun    := λ f,
+  { to_fun    := f ∘ (σ.Pi_congr_left' M₁).symm,
+    map_add'  := λ m i,
+      begin
+        rw ← σ.apply_symm_apply i,
+        intros x y,
+        simp only [comp_app, Pi_congr_left'_symm_update, f.map_add],
+      end,
+    map_smul' := λ m i c,
+      begin
+        rw ← σ.apply_symm_apply i,
+        intros x,
+        simp only [comp_app, Pi_congr_left'_symm_update, f.map_smul],
+      end, },
+  inv_fun   := λ f,
+  { to_fun    := f ∘ (σ.Pi_congr_left' M₁),
+    map_add'  := λ m i,
+    begin
+      rw ← σ.symm_apply_apply i,
+      intros x y,
+      simp only [comp_app, Pi_congr_left'_update, f.map_add],
+    end,
+    map_smul' := λ m i c,
+    begin
+      rw ← σ.symm_apply_apply i,
+      intros x,
+      simp only [comp_app, Pi_congr_left'_update, f.map_smul],
+    end, },
+  map_add'  := λ f₁ f₂, by { ext, simp only [comp_app, coe_mk, add_apply], },
+  map_smul' := λ c f, by { ext, simp only [comp_app, coe_mk, smul_apply, ring_hom.id_apply], },
+  left_inv  := λ f, by { ext, simp only [comp_app, coe_mk, equiv.symm_apply_apply], },
+  right_inv := λ f, by { ext, simp only [comp_app, coe_mk, equiv.apply_symm_apply], }, }
+
 /-- The space of constant maps is equivalent to the space of maps that are multilinear with respect
 to an empty family. -/
 @[simps] def const_linear_equiv_of_is_empty [is_empty ι] : M₂ ≃ₗ[R] multilinear_map R M₁ M₂ :=
@@ -1219,13 +1259,13 @@ end multilinear_map
 
 end currying
 
+namespace multilinear_map
+
 section submodule
 
 variables {R M M₂}
 [ring R] [∀i, add_comm_monoid (M₁ i)] [add_comm_monoid M'] [add_comm_monoid M₂]
 [∀i, module R (M₁ i)] [module R M'] [module R M₂]
-
-namespace multilinear_map
 
 /-- The pushforward of an indexed collection of submodule `p i ⊆ M₁ i` by `f : M₁ → M₂`.
 
@@ -1248,6 +1288,30 @@ lemma map_nonempty [nonempty ι] (f : multilinear_map R M₁ M₂) (p : Π i, su
 def range [nonempty ι] (f : multilinear_map R M₁ M₂) : sub_mul_action R M₂ :=
 f.map (λ i, ⊤)
 
-end multilinear_map
-
 end submodule
+
+section finite_dimensional
+
+variables [fintype ι] [field R] [add_comm_group M₂] [module R M₂] [finite_dimensional R M₂]
+variables [∀ i, add_comm_group (M₁ i)] [∀ i, module R (M₁ i)] [∀ i, finite_dimensional R (M₁ i)]
+
+instance : finite_dimensional R (multilinear_map R M₁ M₂) :=
+begin
+  suffices : ∀ n (N : fin n → Type*) [∀ i, add_comm_group (N i)],
+    by exactI ∀ [∀ i, module R (N i)], by exactI ∀ [∀ i, finite_dimensional R (N i)],
+    finite_dimensional R (multilinear_map R N M₂),
+  { haveI := this _ (M₁ ∘ (fintype.equiv_fin ι).symm),
+    have e := dom_dom_congr_linear_equiv' R M₁ M₂ (fintype.equiv_fin ι),
+    exact e.symm.finite_dimensional, },
+  intros,
+  tactic.unfreeze_local_instances,
+  induction n with n ih,
+  { exact (const_linear_equiv_of_is_empty R N M₂ : _).finite_dimensional, },
+  { suffices : finite_dimensional R (N 0 →ₗ[R] multilinear_map R (λ (i : fin n), N i.succ) M₂),
+    { exact (multilinear_curry_left_equiv R N M₂).finite_dimensional, },
+    apply linear_map.finite_dimensional, },
+end
+
+end finite_dimensional
+
+end multilinear_map

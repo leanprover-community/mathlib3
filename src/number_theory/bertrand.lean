@@ -1245,9 +1245,9 @@ example (a b c : ℝ) (hc : 0 < c) : a ≤ b ↔ a / c ≤ b / c := (div_le_div_
 lemma one_lt_four : (1 : ℝ) < 4 := by linarith
 
 
-lemma inequality1 {x : ℝ} (n_large : 1003 < x) : log (2 * x + 1) / (x * log 4) ≤ 1/8 :=
+lemma inequality1 {x : ℝ} (n_large : 1003 < x) : log (2 * x + 1) / (x * log 4) ≤ 1/30 :=
 begin
-  suffices : log (4 * x) / (x * log 4) ≤ 1 / 8,
+  suffices : log (4 * x) / (x * log 4) ≤ 1 / 30,
   apply trans _ this,
   rw div_le_div_right,
   rw log_le_log,
@@ -1298,7 +1298,7 @@ begin
   linarith,
 end
 
-lemma inequality3 {x : ℝ} (n_large : 1003 < x) : sqrt 2 * sqrt x * log x / (x * log 4) ≤ 1/8 :=
+lemma inequality3 {x : ℝ} (n_large : 1003 < x) : sqrt 2 * sqrt x * log x / (x * log 4) ≤ 1/4 :=
 begin
   rw [inequality3' n_large],
   -- Get the log x in the second term to be 2 log sqrt x. and split the 1/x i n that term to

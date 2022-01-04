@@ -549,8 +549,7 @@ by simpa only [div_eq_mul_inv] using mul_pos hr (inv_pos.2 hp)
 
 protected lemma mul_inv {r p : ℝ≥0} : (r * p)⁻¹ = p⁻¹ * r⁻¹ := nnreal.eq $ mul_inv_rev₀ _ _
 
-lemma div_self_le (r : ℝ≥0) : r / r ≤ 1 :=
-if h : r = 0 then by simp [h] else by rw [div_self h]
+lemma div_self_le (r : ℝ≥0) : r / r ≤ 1 := div_self_le_one (r : ℝ)
 
 @[simp] lemma inv_le {r p : ℝ≥0} (h : r ≠ 0) : r⁻¹ ≤ p ↔ 1 ≤ r * p :=
 by rw [← mul_le_mul_left (pos_iff_ne_zero.2 h), mul_inv_cancel h]

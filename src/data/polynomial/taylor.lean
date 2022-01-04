@@ -39,6 +39,9 @@ by simp only [taylor_apply, X_comp]
 @[simp] lemma taylor_C (x : R) : taylor r (C x) = C x :=
 by simp only [taylor_apply, C_comp]
 
+@[simp] lemma taylor_at_zero (f : polynomial R) : taylor 0 f = f :=
+by simp only [taylor_apply, add_zero, comp_X, eq_self_iff_true, _root_.map_zero]
+
 @[simp] lemma taylor_one : taylor r (1 : polynomial R) = C 1 :=
 by rw [← C_1, taylor_C]
 
@@ -65,6 +68,10 @@ by rw [taylor_coeff, hasse_deriv_one]
 @[simp] lemma taylor_mul {R} [comm_semiring R] (r : R) (p q : polynomial R) :
   taylor r (p * q) = taylor r p * taylor r q :=
 by simp only [taylor_apply, mul_comp]
+
+lemma taylor_taylor {R} [comm_semiring R] (f : polynomial R) (r s : R) :
+  taylor r (taylor s f) = taylor (r + s) f :=
+by simp only [taylor_apply, comp_assoc, map_add, add_comp, X_comp, C_comp, C_add, add_assoc]
 
 lemma taylor_eval {R} [comm_semiring R] (r : R) (f : polynomial R) (s : R) :
   (taylor r f).eval s = f.eval (s + r) :=

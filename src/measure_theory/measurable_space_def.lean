@@ -421,7 +421,8 @@ lemma measurable_id : measurable (@id α) := λ t, id
 
 lemma measurable_id' : measurable (λ a : α, a) := measurable_id
 
-lemma measurable.comp {g : β → γ} {f : α → β} (hg : measurable g) (hf : measurable f) :
+lemma measurable.comp {α β γ} {mα : measurable_space α} {mβ : measurable_space β}
+  {mγ : measurable_space γ} {g : β → γ} {f : α → β} (hg : measurable g) (hf : measurable f) :
   measurable (g ∘ f) :=
 λ t ht, hf (hg ht)
 

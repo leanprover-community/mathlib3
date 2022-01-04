@@ -1000,13 +1000,6 @@ begin
   exact (pow_dvd_pow p hk).trans (pow_factors_count (prime_of_mem_factors hp)),
 end
 
-lemma prime_power_min_fac {p k : ℕ} (hp : p.prime) (hk : 0 < k) : (p^k).min_fac = p :=
-begin
-  have pk : p ^ k ≠ 1 := λ hk', hp.one_lt.ne' ((pow_eq_one_iff hk.ne').1 hk'),
-  rw ←dvd_prime_two_le hp (min_fac_prime pk).two_le,
-  apply prime.dvd_of_dvd_pow (min_fac_prime pk) (p^k).min_fac_dvd,
-end
-
 lemma multiset.sum_eq {α β : Type*} [decidable_eq α] [add_comm_monoid β]
   (m : finset α) (f : α → multiset β) :
   ∑ i in m, f i = m.val.bind f :=
@@ -1022,23 +1015,13 @@ begin
   refl
 end
 
-lemma log_prod_eq_sum_log {α : Type*} (s : finset α) (f : α → ℝ) (hf : ∀ x ∈ s, f x ≠ 0):
-  ∑ i in s, real.log (f i) = real.log (∏ i in s, f i) :=
-begin
-  classical,
-  induction s using finset.induction_on with a s ha ih,
-  { simp },
-  simp only [mem_insert, forall_eq_or_imp, ne.def] at hf,
-  simp [ha, ih hf.2, real.log_mul hf.1 (prod_ne_zero_iff.2 hf.2)],
-end
-
 lemma thing {n : ℕ} :
   ∑ p in n.factors.to_finset, n.factors.count p • real.log p = real.log n :=
 begin
   rcases n.eq_zero_or_pos with rfl | hn,
   { simp },
   conv_rhs { rw ←prod_powers hn.ne' },
-  rw [nat.cast_prod, ←log_prod_eq_sum_log],
+  rw [nat.cast_prod, real.log_prod],
   { apply sum_congr rfl,
     intros p hp,
     rw [nat.cast_pow, ←real.rpow_nat_cast, real.log_rpow, _root_.nsmul_eq_mul],
@@ -1050,12 +1033,12 @@ begin
   exact (prime_of_mem_factors (list.mem_to_finset.1 hp)).pos.ne',
 end
 
-lemma von_mangoldt_mul_zeta {n : ℕ} :
-  (Λ * ζ) n = real.log n :=
+lemma von_mangoldt_sum {n : ℕ} :
+  ∑ i in n.divisors, Λ i = real.log n :=
 begin
   rcases nat.eq_zero_or_pos n with rfl | hn,
   { simp },
-  simp only [coe_mul_zeta_apply, von_mangoldt_apply],
+  simp only [von_mangoldt_apply],
   rw [←sum_filter, divisors_filter_prime_power, sum_bUnion],
   { have :
       ∑ p in n.factors.to_finset,
@@ -1066,7 +1049,7 @@ begin
       rw sum_congr rfl (λ pk hpk, _),
       simp only [mem_image, exists_prop, mem_filter, mem_Ioc] at hpk,
       obtain ⟨k, ⟨hk, -⟩, rfl⟩ := hpk,
-      rw prime_power_min_fac (prime_of_mem_factors (list.mem_to_finset.1 hp)) hk },
+      rw prime.pow_min_fac (prime_of_mem_factors (list.mem_to_finset.1 hp)) hk.ne' },
     rw this,
     simp_rw sum_const,
     have :
@@ -1084,6 +1067,10 @@ begin
   rintro p₁ hp₁ - p₂ hp₂ - hp - k₁ hk₁ - h k₂ - - rfl,
   exact hp (unique_prime_power hp₁ hp₂ hk₁ h),
 end
+
+lemma von_mangoldt_mul_zeta {n : ℕ} :
+  (Λ * ζ) n = real.log n :=
+by rw [coe_mul_zeta_apply, von_mangoldt_sum]
 
 end arithmetic_function
 end nat

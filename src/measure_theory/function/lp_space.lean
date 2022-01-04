@@ -603,6 +603,25 @@ begin
   simp [hc, hc0],
 end
 
+lemma mem_ℒp.smul_measure {f : α → E} {c : ℝ≥0∞} (hf : mem_ℒp f p μ) (hc : c ≠ ∞) :
+  mem_ℒp f p (c • μ) :=
+hf.of_measure_le_smul c hc le_rfl
+
+lemma snorm_one_add_measure {f : α → F} : snorm f 1 (μ + ν) = snorm f 1 μ + snorm f 1 ν :=
+by { simp_rw snorm_one_eq_lintegral_nnnorm, rw lintegral_add_measure _ μ ν, }
+
+lemma snorm_le_add_measure_right {f : α → F} {p : ℝ≥0∞} : snorm f p μ ≤ snorm f p (μ + ν) :=
+snorm_mono_measure f $ measure.le_add_right $ le_refl _
+
+lemma snorm_le_add_measure_left {f : α → F} {p : ℝ≥0∞} : snorm f p ν ≤ snorm f p (μ + ν) :=
+snorm_mono_measure f $ measure.le_add_left $ le_refl _
+
+lemma mem_ℒp.left_of_add_measure {f : α → E} (h : mem_ℒp f p (μ + ν)) : mem_ℒp f p μ :=
+h.mono_measure $ measure.le_add_right $ le_refl _
+
+lemma mem_ℒp.right_of_add_measure {f : α → E} (h : mem_ℒp f p (μ + ν)) : mem_ℒp f p ν :=
+h.mono_measure $ measure.le_add_left $ le_refl _
+
 section opens_measurable_space
 variable [opens_measurable_space E]
 
@@ -753,6 +772,56 @@ begin
   rw [mem_ℒp, snorm_eq_snorm' h0 hp_top] at hf hg,
   exact snorm'_add_lt_top_of_le_one hf.1 hg.1 hf.2 hg.2 hp_pos hp1_real,
 end
+
+section map_measure
+
+variables {β : Type*} {mβ : measurable_space β} {f : α → β} {g : β → E}
+
+include mβ
+
+lemma snorm_ess_sup_map_measure (hg : ae_measurable g (measure.map f μ)) (hf : measurable f) :
+  snorm_ess_sup g (measure.map f μ) = snorm_ess_sup (g ∘ f) μ :=
+ess_sup_map_measure hg.ennnorm hf
+
+lemma snorm_map_measure (hg : ae_measurable g (measure.map f μ)) (hf : measurable f) :
+  snorm g p (measure.map f μ) = snorm (g ∘ f) p μ :=
+begin
+  by_cases hp_zero : p = 0,
+  { simp only [hp_zero, snorm_exponent_zero], },
+  by_cases hp_top : p = ∞,
+  { simp_rw [hp_top, snorm_exponent_top],
+    exact snorm_ess_sup_map_measure hg hf, },
+  simp_rw snorm_eq_lintegral_rpow_nnnorm hp_zero hp_top,
+  rw lintegral_map' (hg.ennnorm.pow_const p.to_real) hf,
+end
+
+lemma mem_ℒp_map_measure_iff (hg : ae_measurable g (measure.map f μ)) (hf : measurable f) :
+  mem_ℒp g p (measure.map f μ) ↔ mem_ℒp (g ∘ f) p μ :=
+by simp [mem_ℒp, snorm_map_measure hg hf, hg.comp_measurable hf, hg]
+
+lemma _root_.measurable_embedding.snorm_map_measure_of_ne_top {g : β → F}
+  (hf : measurable_embedding f) (hp : p ≠ ∞) :
+  snorm g p (measure.map f μ) = snorm (g ∘ f) p μ :=
+begin
+  by_cases hp_zero : p = 0,
+  { simp only [hp_zero, snorm_exponent_zero], },
+  simp_rw snorm_eq_lintegral_rpow_nnnorm hp_zero hp,
+  rw hf.lintegral_map,
+end
+
+lemma _root_.measurable_embedding.mem_ℒp_map_measure_iff_of_ne_top [measurable_space F] {g : β → F}
+  (hf : measurable_embedding f) (hp : p ≠ ∞) :
+  mem_ℒp g p (measure.map f μ) ↔ mem_ℒp (g ∘ f) p μ :=
+by simp_rw [mem_ℒp, hf.ae_measurable_map_iff, hf.snorm_map_measure_of_ne_top hp]
+
+lemma _root_.measurable_equiv.mem_ℒp_map_measure_iff_of_ne_top [measurable_space F] (f : α ≃ᵐ β)
+  {g : β → F} (hp : p ≠ ∞) :
+  mem_ℒp g p (measure.map f μ) ↔ mem_ℒp (g ∘ f) p μ :=
+f.measurable_embedding.mem_ℒp_map_measure_iff_of_ne_top hp
+
+omit mβ
+
+end map_measure
 
 section trim
 

@@ -1779,6 +1779,31 @@ begin
     linarith },
 end
 
+omit hV
+
+lemma orthonormal.orthogonal_family_span_singleton {v : ι → E} (hv : orthonormal 𝕜 v) :
+  orthogonal_family 𝕜 (λ i, 𝕜 ∙ v i) :=
+begin
+  intros i j hij,
+  simp only [submodule.mem_span_singleton, forall_apply_eq_imp_iff', forall_exists_index],
+  intros a b,
+  simp [inner_smul_left, inner_smul_right, hv.2 hij],
+end
+
+/-- A family `f` of mutually-orthogonal elements of `E` is summable, if and only if
+`(λ i, ∥f i∥ ^ 2)` is summable. -/
+lemma orthonormal.summable_smul_iff_sq_summable [complete_space E] {v : ι → E}
+  (hv : orthonormal 𝕜 v) (a : ι → 𝕜) :
+  summable (λ i, a i • v i) ↔ summable (λ i, ∥a i∥ ^ 2) :=
+begin
+  have ha : ∀ i, a i • v i ∈ 𝕜 ∙ v i :=
+    λ i, submodule.smul_mem _ (a i) (submodule.mem_span_singleton_self _),
+  let f : Π i, 𝕜 ∙ v i := λ i, ⟨a i • v i, ha i⟩,
+  convert hv.orthogonal_family_span_singleton.summable_iff_norm_sq_summable f,
+  ext i,
+  simp [f, norm_smul, hv.1],
+end
+
 end orthogonal_family
 
 section is_R_or_C_to_real

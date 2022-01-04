@@ -136,8 +136,7 @@ section finsupp
 variables [has_zero β]
 /-- Map a total_function to one whose default value is zero so that it represents a finsupp. -/
 @[simp]
-def zero_default : total_function α β →
-                   total_function α β
+def zero_default : total_function α β → total_function α β
 | (with_default A y) := with_default A 0
 
 variables [decidable_eq α] [decidable_eq β]
@@ -178,7 +177,7 @@ instance finsupp.sampleable_ext [has_repr α] [has_repr β] : sampleable_ext (α
 { proxy_repr := total_function α β,
   interp := total_function.apply_finsupp,
   sample := (do
-    xs ← (sampleable.sample (list (α × β)) : gen ((list (α × β)))),
+    xs ← (sampleable.sample (list (α × β)) : gen (list (α × β))),
     ⟨x⟩ ← (uliftable.up $ sample β : gen (ulift.{max u v} β)),
     pure $ total_function.with_default (list.to_finmap' xs) x),
   shrink := total_function.shrink }
@@ -188,7 +187,7 @@ instance dfinsupp.sampleable_ext [has_repr α] [has_repr β] : sampleable_ext (�
 { proxy_repr := total_function α β,
   interp := finsupp.to_dfinsupp ∘ total_function.apply_finsupp,
   sample := (do
-    xs ← (sampleable.sample (list (α × β)) : gen ((list (α × β)))),
+    xs ← (sampleable.sample (list (α × β)) : gen (list (α × β))),
     ⟨x⟩ ← (uliftable.up $ sample β : gen (ulift.{max u v} β)),
     pure $ total_function.with_default (list.to_finmap' xs) x),
   shrink := total_function.shrink }

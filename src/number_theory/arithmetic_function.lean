@@ -886,12 +886,7 @@ begin
       units.coe_hom_apply, units.coe_zpow₀, units.coe_mk0] }
 end
 
-example {α : Type*} [decidable_eq α] {l₁ l₂ : list α} (h : l₁ ~ l₂) :
-  l₁.to_finset = l₂.to_finset :=
-begin
-  apply list.to_finset_eq_of_perm _ _ h,
-end
-
+-- TODO: This will be replaced by a fancier version, in PR #11167
 lemma is_multiplicative.eq_prod_prime_powers
   {n : ℕ} [comm_monoid_with_zero R] {f : arithmetic_function R} (hf : f.is_multiplicative) :
   n ≠ 0 → f n = ∏ p in n.factors.to_finset, f (p ^ n.factors.count p) :=
@@ -958,16 +953,6 @@ localized "notation `Λ` := nat.arithmetic_function.von_mangoldt" in arithmetic_
 
 lemma von_mangoldt_apply {n : ℕ} :
   Λ n = if is_prime_power n then real.log (min_fac n) else 0 := rfl
-
-lemma repeat_pairwise {α : Type*} {r : α → α → Prop} {x : α} (hx : r x x) :
-  ∀ (n : ℕ), list.pairwise r (list.repeat x n)
-| 0 := by simp
-| (n+1) :=
-  begin
-    simp only [repeat_pairwise n, list.repeat_succ, and_true, list.pairwise_cons],
-    intros y hy,
-    rwa list.eq_of_mem_repeat hy,
-  end
 
 lemma pow_factors_count {n p : ℕ} (hp : p.prime) :
   p ^ n.factors.count p ∣ n :=

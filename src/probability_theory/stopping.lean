@@ -414,29 +414,29 @@ section normed_group
 
 variables [measurable_space β] [normed_group β] [has_measurable_add₂ β]
 
-lemma measurable_stopped_process (hτ : is_stopping_time f τ) (hu₁ : adapted f u) (n : ℕ) :
+lemma measurable_stopped_process (hτ : is_stopping_time f τ) (hu : adapted f u) (n : ℕ) :
   measurable (stopped_process u τ n) :=
-(hu₁.stopped_process_adapted hτ n).le (f.le _)
+(hu.stopped_process_adapted hτ n).le (f.le _)
 
 lemma mem_ℒp_stopped_process {p : ℝ≥0∞} [borel_space β] {μ : measure α} (hτ : is_stopping_time f τ)
-  (hu₁ : adapted f u) (hu₂ : ∀ n, mem_ℒp (u n) p μ) (n : ℕ) :
+  (hu : ∀ n, mem_ℒp (u n) p μ) (n : ℕ) :
   mem_ℒp (stopped_process u τ n) p μ :=
 begin
   rw stopped_process_eq,
   refine mem_ℒp.add _ _,
-  { exact mem_ℒp.indicator (f.le n {a : α | n ≤ τ a} (hτ.measurable_set_ge n)) (hu₂ n), },
+  { exact mem_ℒp.indicator (f.le n {a : α | n ≤ τ a} (hτ.measurable_set_ge n)) (hu n), },
   { suffices : mem_ℒp (λ x, ∑ (i : ℕ) in finset.range n, {a : α | τ a = i}.indicator (u i) x) p μ,
       by { convert this, ext1 x, simp only [finset.sum_apply], },
-    refine mem_ℒp_finset_sum _ (λ i hi, mem_ℒp.indicator _ (hu₂ i)),
+    refine mem_ℒp_finset_sum _ (λ i hi, mem_ℒp.indicator _ (hu i)),
     exact f.le i {a : α | τ a = i} (hτ.measurable_set_eq i) },
 end
 
 lemma integrable_stopped_process [borel_space β] {μ : measure α} (hτ : is_stopping_time f τ)
-  (hu₁ : adapted f u) (hu₂ : ∀ n, integrable (u n) μ) (n : ℕ) :
+  (hu : ∀ n, integrable (u n) μ) (n : ℕ) :
   integrable (stopped_process u τ n) μ :=
 begin
-  simp_rw ← mem_ℒp_one_iff_integrable at hu₂ ⊢,
-  exact mem_ℒp_stopped_process hτ hu₁ hu₂ n,
+  simp_rw ← mem_ℒp_one_iff_integrable at hu ⊢,
+  exact mem_ℒp_stopped_process hτ hu n,
 end
 
 end normed_group

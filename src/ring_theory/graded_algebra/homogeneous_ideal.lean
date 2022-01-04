@@ -113,7 +113,7 @@ begin
   refine ideal.sum_mem _ _,
   intros j hj, apply ideal.subset_span,
   rw [set.mem_image],
-  refine ⟨⟨(graded_algebra.decompose 𝒜 x j : A), ⟨j, submodule.coe_mem _⟩⟩, _, rfl⟩,
+  refine ⟨⟨_, is_homogeneous_coe _⟩, _, rfl⟩,
   rw [set.mem_preimage], apply h, exact hx,
 end
 
@@ -331,8 +331,7 @@ begin
   use {x : homogeneous_submonoid 𝒜 | ∃ (i : ι) (r : I), (graded_algebra.decompose 𝒜 r i : A) = x},
   rw [ideal.homogeneous_hull], congr, ext r, split; intros h,
   { obtain ⟨i, ⟨x, hx1⟩, hx2⟩ := h,
-    exact ⟨⟨(graded_algebra.decompose 𝒜 x i),
-      ⟨i, submodule.coe_mem _⟩⟩, ⟨⟨i, ⟨⟨x, hx1⟩, rfl⟩⟩, hx2⟩⟩,},
+    exact ⟨⟨_, is_homogeneous_coe _⟩, ⟨⟨i, ⟨⟨x, hx1⟩, rfl⟩⟩, hx2⟩⟩,},
   { obtain ⟨_, ⟨⟨i, ⟨⟨r, hr⟩, h⟩⟩, rfl⟩⟩ := h,
     use i, use ⟨r, hr⟩, exact h }
 end

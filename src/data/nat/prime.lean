@@ -863,6 +863,20 @@ begin
       nat.prod_factors hb]
 end
 
+lemma pow_factors_count_dvd {n p : ℕ} (hp : p ≠ 0) :
+  p ^ n.factors.count p ∣ n :=
+begin
+  apply dvd_of_factors_subperm,
+  { apply pow_ne_zero _ hp },
+  by_cases hp' : p.prime,
+  { rw [hp'.factors_pow, list.subperm_ext_iff],
+    intros q hq,
+    simp [list.eq_of_mem_repeat hq] },
+  rw [count_eq_zero_of_not_mem, pow_zero, factors_one],
+  { exact nil_subperm },
+  apply mt prime_of_mem_factors hp',
+end
+
 end
 
 lemma succ_dvd_or_succ_dvd_of_succ_sum_dvd_mul {p : ℕ} (p_prime : prime p) {m n k l : ℕ}

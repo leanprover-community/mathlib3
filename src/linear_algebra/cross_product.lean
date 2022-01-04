@@ -7,6 +7,7 @@ Authors: Martin Dvorak, Kyle Miller, Eric Wieser
 import linear_algebra.bilinear_map
 import linear_algebra.matrix.determinant
 import linear_algebra.vectors
+import algebra.lie.basic
 
 /-!
 # Cross products
@@ -104,13 +105,30 @@ begin
   ring,
 end
 
+/-- The cross product satisfies the Leibniz lie property
+    `∀ (x y z : L) : ⁅x, ⁅y, z⁆⁆ = ⁅⁅x, y⁆, z⁆ + ⁅y, ⁅x, z⁆⁆` from `algebra.lie.basic.lie_ring`.
+    It is equivalent to the Jacobi identity in the presence of the other Lie ring axioms. -/
+lemma leibniz_cross (u v w : fin 3 → R) :
+  u ×₃ (v ×₃ w) = (u ×₃ v) ×₃ w + v ×₃ (u ×₃ w) :=
+begin
+  dsimp only [has_bracket.bracket, cross_product_apply],
+  ext i,
+  fin_cases i; norm_num; ring,
+end
+
+/-- The three-dimensional vectors together with the operations + and ×₃ form a Lie ring. -/
+def cross_product.lie_ring : lie_ring (fin 3 → R) :=
+{ bracket := λ u v, u ×₃ v,
+  add_lie := linear_map.map_add₂ _,
+  lie_add := λ u, linear_map.map_add _,
+  lie_self := cross_product_self,
+  leibniz_lie := leibniz_cross,
+  ..pi.add_comm_group }
+
+local attribute [instance] cross_product.lie_ring
+
 /-- For a cross product of three vectors, their sum over the three even permutations is equal
     to the zero vector. -/
 theorem jacobi_identity (u v w : fin 3 → R) :
   u ×₃ (v ×₃ w) + v ×₃ (w ×₃ u) + w ×₃ (u ×₃ v) = 0 :=
-begin
-  repeat {rw cross_product_apply},
-  norm_num,
-  ring_nf,
-  tauto,
-end
+lie_jacobi u v w

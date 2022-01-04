@@ -16,7 +16,7 @@ ordinals.
 * `add_principal_iff_zero_or_omega_power`: characterizes the additive principal ordinals as either 0
 or powers of `ω`.
 * `mul_principal_iff_le_two_or_omega_power_power`: characterizes the multiplicative principal
-ordinals as either two or powers of powers of `ω`.
+ordinals as either less or equal to 2 or powers of powers of `ω`.
 -/
 
 universe u
@@ -133,6 +133,12 @@ begin
   exact (add_is_normal a).strict_mono hbo
 end
 
+theorem add_principal_iff_fp' (o : ordinal.{u}) : principal (+) o ↔ ∀ a < o, a + o ≤ o :=
+begin
+  rw add_principal_iff_fp,
+  exact ⟨λ h a hao, le_of_eq (h a hao), λ h a hao, (add_is_normal a).self_le_iff_eq.1 (h a hao)⟩
+end
+
 theorem add_principal_iff_zero_or_omega_power (o : ordinal.{u}) :
   principal (+) o ↔ o = 0 ∨ ∃ a : ordinal.{u}, o = omega.{u} ^ a :=
 begin
@@ -225,6 +231,17 @@ begin
   exact (mul_is_normal ha).strict_mono hbo
 end
 
+theorem mul_principal_iff_fp' (o : ordinal.{u}) :
+  principal (*) o ↔ ∀ a < o, a * o ≤ o :=
+begin
+  rw mul_principal_iff_fp,
+  refine ⟨λ h a hao, _, λ h a ha hao, (mul_is_normal ha).self_le_iff_eq.1 (h a hao)⟩,
+  rcases eq_zero_or_pos a with rfl | ha,
+  { rw zero_mul,
+    exact ordinal.zero_le o },
+  exact le_of_eq (h a ha hao)
+end
+
 theorem omega_power_power_is_normal : is_normal (λ a : ordinal.{u}, omega.{u} ^ omega.{u} ^ a) :=
 by apply is_normal.trans; exact power_is_normal one_lt_omega
 
@@ -251,7 +268,7 @@ begin
   cases mul_principal_power_omega ho ho₂ with a ha,
   convert this,
   nth_rewrite 1 ha,
-  rwa log_power _ one_lt_omega
+  rwa log_power one_lt_omega
 end
 
 theorem mul_principal_eq_omega_power_power {o : ordinal.{u}} (ho : principal (*) o) (ho₂ : 2 < o) :
@@ -281,6 +298,69 @@ begin
   { exact le_two_mul_principal ho },
   rcases ho with ⟨a, rfl⟩,
   exact omega_power_power_mul_principal _
+end
+
+/-! ### Further properties of logarithms -/
+
+private theorem log_aux {b : ordinal.{u}} (hb : b.is_limit) (u) :
+  ∃ x < b, u < b ^ (b.log u) * x :=
+begin
+  have hb₁ : 1 < b := one_lt_omega.trans_le (omega_le_of_is_limit hb),
+  have hu := lt_power_succ_log (one_lt_omega.trans_le (omega_le_of_is_limit hb)) u,
+  rw [power_succ,
+    ←is_normal.bsup_eq.{u u} (mul_is_normal (power_pos _ (zero_lt_one.trans hb₁))) hb] at hu,
+  exact (lt_bsup _).1 hu
+end
+
+theorem log_mul {b u v : ordinal} (hb : principal (*) b) (hb₂ : b ≠ 2) (hu : 0 < u) (hv : 0 < v) :
+  log b (u * v) = log b u + log b v :=
+begin
+  have huv := (mul_pos hu hv),
+  by_cases hb₁ : 1 < b, {
+    have hb₂' : 2 < b := begin
+      rw ←succ_le at hb₁,
+      exact lt_of_le_of_ne hb₁ hb₂.symm
+    end,
+    refine le_antisymm _ (add_log_le_log_mul b hu hv),
+    rw [←lt_succ, log_lt hb₁ huv],
+    have hb' := mul_principal_is_limit hb₂' hb,
+    rcases log_aux hb' u with ⟨x, hx, hx'⟩,
+    rcases log_aux hb' v with ⟨y, hy, hy'⟩,
+    apply (mul_le_mul (le_of_lt hx') (le_of_lt hy')).trans_lt,
+    cases eq_zero_or_pos (log b v) with hv' hv',
+    { rw [hv', power_zero, add_zero, one_mul, power_succ, mul_assoc,
+        mul_lt_mul_iff_left (power_pos _ (zero_lt_two.trans hb₂'))],
+      exact hb x y hx hy },
+    suffices : b ^ b.log u * (x * b) * (b ^ (b.log v - 1) * y) < b ^ (b.log u + b.log v).succ, {
+      sorry,
+    },
+    have : b ^ b.log u * (x * b) * (b ^ (b.log v - 1) * y) ≤ b ^ b.log u * b * (b ^ (b.log v - 1) * y) :=
+    begin
+      rw mul_assoc,
+      rw mul_assoc,
+      rw mul_assoc,
+      apply mul_le_mul_left,
+      rw ←mul_assoc,
+      rw ←mul_assoc,
+      apply mul_le_mul_right,
+      sorry,
+    end
+  },
+  simp only [log_not_one_lt hb₁, zero_add]
+end
+
+theorem log_omega_mul {u v : ordinal} :
+  0 < u → 0 < v → log omega (u * v) = log omega u + log omega v :=
+log_mul omega_mul_principal (ne_of_gt two_lt_omega)
+
+theorem mul_eq_power_log_succ {b : ordinal.{u}} (a : ordinal) (hb : principal (*) b) :
+  a * b = b ^ (log b a).succ :=
+begin
+  --have : a ≤ b ^ (log b a) * (a / b ^ (log b a))
+
+  -- Take u < b with a < b ^ (log b a) * u. For any v < b, a * v = b ^ (log b a) * (u * v) <
+  -- b ^ (log b a).succ.
+  sorry
 end
 
 end ordinal

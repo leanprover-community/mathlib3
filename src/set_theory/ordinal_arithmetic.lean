@@ -1522,6 +1522,14 @@ begin
   { subst x, apply power_pos _ (lt_trans zero_lt_one b1) }
 end
 
+theorem div_power_log_lt {b : ordinal} (b1 : 1 < b) (x : ordinal) :
+  x / b ^ (log b x) < b :=
+begin
+  have b0 : b ≠ 0 := by { rintro rfl, exact not_lt_of_gt b1 zero_lt_one },
+  rw [div_lt (power_ne_zero _ b0), ←power_succ],
+  exact lt_power_succ_log b1 x
+end
+
 theorem power_log_le (b) {x : ordinal} (x0 : 0 < x) :
   b ^ log b x ≤ x :=
 begin

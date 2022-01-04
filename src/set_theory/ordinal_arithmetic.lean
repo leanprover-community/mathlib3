@@ -596,7 +596,7 @@ end
 theorem le_mul_left {a b : ordinal} (hb : 0 < b) : a ≤ a * b :=
 by { convert mul_le_mul_left a (one_le_iff_pos.2 hb), rw mul_one a }
 
-theorem le_mul_right {a b : ordinal} (hb : 0 < b) : a ≤ b * a :=
+theorem le_mul_right (a : ordinal) {b : ordinal} (hb : 0 < b) : a ≤ b * a :=
 by { convert mul_le_mul_right a (one_le_iff_pos.2 hb), rw one_mul a }
 
 theorem mul_le_mul {a b c d : ordinal} (h₁ : a ≤ c) (h₂ : b ≤ d) : a * b ≤ c * d :=

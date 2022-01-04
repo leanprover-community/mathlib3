@@ -145,6 +145,9 @@ protected lemma adj.ne {G : simple_graph V} {a b : V} (h : G.adj a b) : a ≠ b 
 
 protected lemma adj.ne' {G : simple_graph V} {a b : V} (h : G.adj a b) : b ≠ a := h.ne.symm
 
+lemma ne_of_adj_of_not_adj {v w x : V} (h : G.adj v x) (hn : ¬ G.adj w x) : v ≠ w :=
+λ h', hn (h' ▸ h)
+
 section order
 
 /-- The relation that one `simple_graph` is a subgraph of another.
@@ -278,7 +281,7 @@ def edge_set : set (sym2 V) := sym2.from_rel G.symm
 @[simp] lemma mem_edge_set : ⟦(v, w)⟧ ∈ G.edge_set ↔ G.adj v w := iff.rfl
 
 /--
-Two vertices are adjacent iff there is an edge between them.  The
+Two vertices are adjacent iff there is an edge between them. The
 condition `v ≠ w` ensures they are different endpoints of the edge,
 which is necessary since when `v = w` the existential
 `∃ (e ∈ G.edge_set), v ∈ e ∧ w ∈ e` is satisfied by every edge
@@ -403,6 +406,20 @@ begin
   tauto,
 end
 
+-- TODO find out why TC inference has `h` failing a defeq check for `to_finset`
+lemma card_neighbor_set_union_compl_neighbor_set [fintype V] (G : simple_graph V)
+  (v : V) [h : fintype (G.neighbor_set v ∪ Gᶜ.neighbor_set v : set V)] :
+  (@set.to_finset _ (G.neighbor_set v ∪ Gᶜ.neighbor_set v) h).card = fintype.card V - 1 :=
+begin
+  classical,
+  simp_rw [neighbor_set_union_compl_neighbor_set_eq, set.to_finset_compl, finset.card_compl,
+    set.to_finset_card, set.card_singleton],
+end
+
+lemma neighbor_set_compl (G : simple_graph V) (v : V) :
+  Gᶜ.neighbor_set v = (G.neighbor_set v)ᶜ \ {v} :=
+by { ext w, simp [and_comm, eq_comm] }
+
 /--
 The set of common neighbors between two vertices `v` and `w` in a graph `G` is the
 intersection of the neighbor sets of `v` and `w`.
@@ -435,6 +452,10 @@ set.inter_subset_right _ _
 instance decidable_mem_common_neighbors [decidable_rel G.adj] (v w : V) :
   decidable_pred (∈ G.common_neighbors v w) :=
 λ a, and.decidable
+
+lemma common_neighbors_top_eq {v w : V} :
+  (⊤ : simple_graph V).common_neighbors v w = set.univ \ {v, w} :=
+by { ext u, simp [common_neighbors, eq_comm, not_or_distrib.symm] }
 
 section incidence
 variable [decidable_eq V]
@@ -469,6 +490,49 @@ vertex and the set of vertices adjacent to the vertex.
 
 end incidence
 
+/-! ## Edge deletion -/
+
+/-- Given a set of vertex pairs, remove all of the corresponding edges from the edge set.
+It is fine to delete edges outside the edge set. -/
+def delete_edges (s : set (sym2 V)) : simple_graph V :=
+{ adj := G.adj \ sym2.to_rel s,
+  symm := λ a b, by simp [adj_comm, sym2.eq_swap] }
+
+@[simp] lemma delete_edges_adj (s : set (sym2 V)) (v w : V) :
+  (G.delete_edges s).adj v w ↔ G.adj v w ∧ ¬ ⟦(v, w)⟧ ∈ s := iff.rfl
+
+lemma sdiff_eq_delete_edges (G G' : simple_graph V) :
+  G \ G' = G.delete_edges G'.edge_set :=
+by { ext, simp }
+
+lemma compl_eq_delete_edges :
+  Gᶜ = (⊤ : simple_graph V).delete_edges G.edge_set :=
+by { ext, simp }
+
+@[simp] lemma delete_edges_delete_edges (s s' : set (sym2 V)) :
+  (G.delete_edges s).delete_edges s' = G.delete_edges (s ∪ s') :=
+by { ext, simp [and_assoc, not_or_distrib] }
+
+@[simp] lemma delete_edges_empty_eq : G.delete_edges ∅ = G :=
+by { ext, simp }
+
+@[simp] lemma delete_edges_univ_eq : G.delete_edges set.univ = ⊥ :=
+by { ext, simp }
+
+lemma delete_edges_le (s : set (sym2 V)) : G.delete_edges s ≤ G :=
+by { intro, simp { contextual := tt } }
+
+lemma delete_edges_le_of_le {s s' : set (sym2 V)} (h : s ⊆ s') :
+  G.delete_edges s' ≤ G.delete_edges s :=
+λ v w, begin
+  simp only [delete_edges_adj, and_imp, true_and] { contextual := tt },
+  exact λ ha hn hs, hn (h hs),
+end
+
+lemma delete_edges_eq_inter_edge_set (s : set (sym2 V)) :
+  G.delete_edges s = G.delete_edges (s ∩ G.edge_set) :=
+by { ext, simp [imp_false] { contextual := tt } }
+
 section finite_at
 
 /-!
@@ -489,6 +553,8 @@ locally finite at `v`.
 -/
 def neighbor_finset : finset V := (G.neighbor_set v).to_finset
 
+lemma neighbor_finset_def : G.neighbor_finset v = (G.neighbor_set v).to_finset := rfl
+
 @[simp] lemma mem_neighbor_finset (w : V) :
   w ∈ G.neighbor_finset v ↔ G.adj v w :=
 set.mem_to_finset
@@ -504,6 +570,14 @@ lemma card_neighbor_set_eq_degree : fintype.card (G.neighbor_set v) = G.degree v
 
 lemma degree_pos_iff_exists_adj : 0 < G.degree v ↔ ∃ w, G.adj v w :=
 by simp only [degree, card_pos, finset.nonempty, mem_neighbor_finset]
+
+lemma degree_compl [fintype (Gᶜ.neighbor_set v)] [fintype V] :
+  Gᶜ.degree v = fintype.card V - 1 - G.degree v :=
+begin
+  classical,
+  rw [← card_neighbor_set_union_compl_neighbor_set G v, set.to_finset_union],
+  simp [card_disjoint_union (set.to_finset_disjoint_iff.mpr (compl_neighbor_set_disjoint G v))],
+end
 
 instance incidence_set_fintype [decidable_eq V] : fintype (G.incidence_set v) :=
 fintype.of_equiv (G.neighbor_set v) (G.incidence_set_equiv_neighbor_set v).symm
@@ -540,7 +614,16 @@ A locally finite simple graph is regular of degree `d` if every vertex has degre
 -/
 def is_regular_of_degree (d : ℕ) : Prop := ∀ (v : V), G.degree v = d
 
-lemma is_regular_of_degree_eq {d : ℕ} (h : G.is_regular_of_degree d) (v : V) : G.degree v = d := h v
+variables {G}
+
+lemma is_regular_of_degree.degree_eq {d : ℕ} (h : G.is_regular_of_degree d) (v : V) :
+  G.degree v = d := h v
+
+lemma is_regular_of_degree.compl [fintype V] [decidable_eq V]
+  {G : simple_graph V} [decidable_rel G.adj]
+  {k : ℕ} (h : G.is_regular_of_degree k) :
+  Gᶜ.is_regular_of_degree (fintype.card V - 1 - k) :=
+by { intro v, rw [degree_compl, h v] }
 
 end locally_finite
 
@@ -555,6 +638,11 @@ lemma neighbor_finset_eq_filter {v : V} [decidable_rel G.adj] :
   G.neighbor_finset v = finset.univ.filter (G.adj v) :=
 by { ext, simp }
 
+lemma neighbor_finset_compl [decidable_eq V] [decidable_rel G.adj] (v : V) :
+  Gᶜ.neighbor_finset v = (G.neighbor_finset v)ᶜ \ {v} :=
+by simp only [neighbor_finset, neighbor_set_compl, set.to_finset_sdiff, set.to_finset_compl,
+    set.to_finset_singleton]
+
 @[simp]
 lemma complete_graph_degree [decidable_eq V] (v : V) :
   (⊤ : simple_graph V).degree v = fintype.card V - 1 :=
@@ -563,7 +651,13 @@ begin
   erw [degree, neighbor_finset_eq_filter, filter_ne, card_erase_of_mem (mem_univ v)],
 end
 
-lemma complete_graph_is_regular [decidable_eq V] :
+lemma bot_degree (v : V) : (⊥ : simple_graph V).degree v = 0 :=
+begin
+  erw [degree, neighbor_finset_eq_filter, filter_false],
+  exact finset.card_empty,
+end
+
+lemma is_regular_of_degree.top [decidable_eq V] :
   (⊤ : simple_graph V).is_regular_of_degree (fintype.card V - 1) :=
 by { intro v, simp }
 
@@ -604,11 +698,7 @@ defined to be a natural.
 lemma le_min_degree_of_forall_le_degree [decidable_rel G.adj] [nonempty V] (k : ℕ)
   (h : ∀ v, k ≤ G.degree v) :
   k ≤ G.min_degree :=
-begin
-  rcases G.exists_minimal_degree_vertex with ⟨v, hv⟩,
-  rw hv,
-  apply h
-end
+by { rcases G.exists_minimal_degree_vertex with ⟨v, hv⟩, rw hv, apply h }
 
 /--
 The maximum degree of all vertices (and `0` if there are no vertices).
@@ -720,6 +810,18 @@ begin
     { simpa, },
     { rw [neighbor_finset, ← set.subset_iff_to_finset_subset],
       exact G.common_neighbors_subset_neighbor_set_left _ _ } }
+end
+
+lemma card_common_neighbors_top [decidable_eq V] {v w : V} (h : v ≠ w) :
+  fintype.card ((⊤ : simple_graph V).common_neighbors v w) = fintype.card V - 2 :=
+begin
+  simp only [common_neighbors_top_eq, ← set.to_finset_card, set.to_finset_sdiff],
+  rw finset.card_sdiff,
+  { congr' 1,
+    { simp_rw [← finset.card_univ, ← set.to_finset_univ],
+      congr, },
+    { simp [h], } },
+  { simp only [←set.subset_iff_to_finset_subset, set.subset_univ] },
 end
 
 end finite

@@ -810,6 +810,12 @@ begin
   exact factors_sublist_right (right_ne_zero_of_mul h'),
 end
 
+lemma factors_subset_right {n k : ℕ} (h : k ≠ 0) : n.factors ⊆ (n * k).factors :=
+(factors_sublist_right h).subset
+
+lemma factors_subset_of_dvd {n k : ℕ} (h : n ∣ k) (h' : k ≠ 0) : n.factors ⊆ k.factors :=
+(factors_sublist_of_dvd h h').subset
+
 /-- For any `p`, the power of `p` in `n^k` is `k` times the power in `n` -/
 lemma factors_count_pow {n k p : ℕ} : count p (n ^ k).factors = k * count p n.factors :=
 begin

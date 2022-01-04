@@ -1,5 +1,5 @@
 /-
-Copyright (c) 2021 Praneeth Kolichala. All rights reserved.
+Copyright (c) 2022 Praneeth Kolichala. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Praneeth Kolichala
 -/
@@ -122,7 +122,7 @@ end continuous_map
 
 namespace path.homotopic
 local attribute [instance] path.homotopic.setoid
-local notation p₁ ` ⬝ ` p₂ := p₁.comp p₂
+local infix ` ⬝ `:70 := quotient.comp
 
 section pi
 
@@ -138,22 +138,23 @@ def pi_homotopy
 /-- The product of a family of path homotopy classes -/
 def pi (paths : Π i, path.homotopic.quotient (as i) (bs i)) :
   path.homotopic.quotient as bs :=
-  (quotient.map path.pi
-    (λ x y hxy, nonempty.map (pi_homotopy x y) (classical.nonempty_pi.mpr hxy)))
-    (quotient.choice paths)
+(quotient.map path.pi
+  (λ x y hxy, nonempty.map (pi_homotopy x y) (classical.nonempty_pi.mpr hxy)))
+  (quotient.choice paths)
 
 lemma pi_lift (paths : Π i, path (as i) (bs i)) :
   path.homotopic.pi (λ i, ⟦paths i⟧) = ⟦path.pi paths⟧ := by { unfold pi, simp, }
 
 /-- Composition and products commute.
   This is `path.trans_pi_eq_pi_trans` descended to path homotopy classes -/
-lemma comp_pi_eq_pi_comp (paths₀ : Π i, path.homotopic.quotient (as i) (bs i))
-                         (paths₁ : Π i, path.homotopic.quotient (bs i) (cs i)) :
-                         ((pi paths₀) ⬝ (pi paths₁)) = pi (λ i, (paths₀ i) ⬝ (paths₁ i)) :=
+lemma comp_pi_eq_pi_comp
+  (γ₀ : Π i, path.homotopic.quotient (as i) (bs i))
+  (γ₁ : Π i, path.homotopic.quotient (bs i) (cs i)) :
+  pi γ₀ ⬝ pi γ₁ = pi (λ i, γ₀ i ⬝ γ₁ i) :=
 begin
-  apply quotient.induction_on_pi paths₁,
-  apply quotient.induction_on_pi paths₀,
-  intros path₀_rep path₁_rep,
+  apply quotient.induction_on_pi γ₁,
+  apply quotient.induction_on_pi γ₀,
+  intros,
   simp only [pi_lift],
   rw [← path.homotopic.comp_lift,
       path.trans_pi_eq_pi_trans,
@@ -164,7 +165,7 @@ end
 /-- Abbreviation for projection onto the ith coordinate -/
 @[reducible]
 def proj (i : ι) (p : path.homotopic.quotient as bs) : path.homotopic.quotient (as i) (bs i) :=
-  p.map_fn ⟨_, continuous_apply i⟩
+p.map_fn ⟨_, continuous_apply i⟩
 
 /-- Lemmas showing projection is the inverse of pi -/
 @[simp] lemma proj_of_pi (i : ι) (paths : Π i, path.homotopic.quotient (as i) (bs i)) :
@@ -202,7 +203,7 @@ def prod_homotopy (h₁ : path.homotopy p₁ p₁') (h₂ : path.homotopy p₂ p
 /-- The product of path classes q₁ and q₂. This is `path.prod` descended to the quotient -/
 def prod (q₁ : path.homotopic.quotient a₁ a₂) (q₂ : path.homotopic.quotient b₁ b₂) :
   path.homotopic.quotient (a₁, b₁) (a₂, b₂) :=
-  quotient.map₂ path.prod (λ p₁ p₁' h₁ p₂ p₂' h₂, nonempty.map2 prod_homotopy h₁ h₂) q₁ q₂
+quotient.map₂ path.prod (λ p₁ p₁' h₁ p₂ p₂' h₂, nonempty.map2 prod_homotopy h₁ h₂) q₁ q₂
 
 variables (p₁ p₁' p₂ p₂')
 lemma prod_lift : prod ⟦p₁⟧ ⟦p₂⟧ = ⟦p₁.prod p₂⟧ := rfl
@@ -223,12 +224,12 @@ variables {c₁ c₂ : α × β}
 /-- Abbreviation for projection onto the left coordinate of a path class -/
 @[reducible]
 def proj_left (p : path.homotopic.quotient c₁ c₂) : path.homotopic.quotient c₁.1 c₂.1 :=
-  p.map_fn ⟨_, continuous_fst⟩
+p.map_fn ⟨_, continuous_fst⟩
 
 /-- Abbreviation for projection onto the right coordinate of a path class -/
 @[reducible]
 def proj_right (p : path.homotopic.quotient c₁ c₂) : path.homotopic.quotient c₁.2 c₂.2 :=
-  p.map_fn ⟨_, continuous_snd⟩
+p.map_fn ⟨_, continuous_snd⟩
 
 /-- Lemmas showing projection is the inverse of product -/
 @[simp] lemma proj_left_of_prod : proj_left (prod q₁ q₂) = q₁ :=

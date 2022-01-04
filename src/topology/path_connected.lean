@@ -392,9 +392,9 @@ lemma trans_prod_eq_prod_trans (γ₁ : path a₁ a₂) (δ₁ : path a₂ a₃)
                                (γ₁.prod γ₂).trans (δ₁.prod δ₂) = (γ₁.trans δ₁).prod (γ₂.trans δ₂) :=
 begin
   ext t;
-    unfold path.trans;
-    simp only [path.coe_mk, path.prod_coe_fn, function.comp_app];
-    split_ifs; refl,
+  unfold path.trans;
+  simp only [path.coe_mk, path.prod_coe_fn, function.comp_app];
+  split_ifs; refl,
 end
 
 end prod

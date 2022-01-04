@@ -161,7 +161,7 @@ lemma sign_of_cycle_type' (σ : perm α) :
 begin
   have aux : ∀ n : ℕ, n ∈ σ.cycle_type → -(-1 : units ℤ) ^ n = (-1) * (-1) ^ n :=
     λ n h, units.neg_eq_neg_one_mul _,
-  rw [equiv.perm.sign_of_cycle_type, multiset.map_congr aux, multiset.prod_map_mul,
+  rw [sign_of_cycle_type, multiset.map_congr aux, multiset.prod_map_mul,
     add_comm, pow_add, multiset.map_const, multiset.prod_repeat, mul_right_inj],
   refine multiset.prod_map_pow,
 end
@@ -573,7 +573,7 @@ by rw [←card_cycle_type_eq_one, h.cycle_type, card_singleton]
 
 lemma sign (h : is_three_cycle σ) : sign σ = 1 :=
 begin
-  rw [sign_of_cycle_type, h.cycle_type],
+  rw [sign_of_cycle_type', h.cycle_type],
   refl,
 end
 

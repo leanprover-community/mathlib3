@@ -1555,6 +1555,13 @@ instance submodule.inner_product_space (W : submodule 𝕜 E) : inner_product_sp
 /-- The inner product on submodules is the same as on the ambient space. -/
 @[simp] lemma submodule.coe_inner (W : submodule 𝕜 E) (x y : W) : ⟪x, y⟫ = ⟪(x:E), ↑y⟫ := rfl
 
+
+@[simp]
+lemma linear_isometry.map_neg {R : Type*} {E : Type*} {E₂ : Type*} [semiring R]
+  [semi_normed_group E] [semi_normed_group E₂] [module R E] [module R E₂] (f : E →ₗᵢ[R] E₂) (x : E) :
+  f (- x) = - f x :=
+f.to_linear_map.map_neg x
+
 /-! ### Families of mutually-orthogonal subspaces of an inner product space -/
 
 section orthogonal_family
@@ -1562,64 +1569,74 @@ variables {ι : Type*} [dec_ι : decidable_eq ι] (𝕜)
 open_locale direct_sum
 
 /-- An indexed family of mutually-orthogonal subspaces of an inner product space `E`. -/
-def orthogonal_family (V : ι → submodule 𝕜 E) : Prop :=
-∀ ⦃i j⦄, i ≠ j → ∀ {v : E} (hv : v ∈ V i) {w : E} (hw : w ∈ V j), ⟪v, w⟫ = 0
+def orthogonal_family {G : ι → Type*} [Π i, inner_product_space 𝕜 (G i)] (V : Π i, G i →ₗᵢ[𝕜] E) :
+  Prop :=
+∀ ⦃i j⦄, i ≠ j → ∀ v : G i, ∀ w : G j, ⟪V i v, V j w⟫ = 0
 
-variables {𝕜} {V : ι → submodule 𝕜 E} (hV : orthogonal_family 𝕜 V)
-  [dec_V : Π i (x : V i), decidable (x ≠ 0)]
+variables (𝕜 E)
+def linear_isometry.to_span_singleton {v : E} (hv : ∥v∥ = 1) : 𝕜 →ₗᵢ[𝕜] E :=
+{ norm_map' := _,
+  .. linear_map.to_span_singleton 𝕜 E v }
+variables {𝕜 E}
+
+@[simp] lemma linear_isometry.to_span_singleton_apply {v : E} (hv : ∥v∥ = 1) (a : 𝕜) :
+  linear_isometry.to_span_singleton 𝕜 E hv a = a • v :=
+rfl
+
+lemma orthonormal.orthogonal_family {v : ι → E} (hv : orthonormal 𝕜 v) :
+  @orthogonal_family 𝕜 _ _ _ _ (λ i : ι, 𝕜) _
+    (λ i, linear_isometry.to_span_singleton 𝕜 E (hv.1 i)) :=
+λ i j hij a b, by simp [inner_smul_left, inner_smul_right, hv.2 hij]
+
+variables {𝕜} {G : ι → Type*} [Π i, inner_product_space 𝕜 (G i)] {V : Π i, G i →ₗᵢ[𝕜] E}
+  (hV : orthogonal_family 𝕜 V) [dec_V : Π i (x : G i), decidable (x ≠ 0)]
 
 include hV
 
 include dec_ι
-lemma orthogonal_family.eq_ite  {i j : ι} (v : V i) (w : V j) :
-  ⟪(v:E), w⟫ = ite (i = j) ⟪(v:E), w⟫ 0 :=
+lemma orthogonal_family.eq_ite {i j : ι} (v : G i) (w : G j) :
+  ⟪V i v, V j w⟫ = ite (i = j) ⟪V i v, V j w⟫ 0 :=
 begin
   split_ifs,
   { refl },
-  { exact hV h v.prop w.prop }
+  { exact hV h v w }
 end
 
 include dec_V
-lemma orthogonal_family.inner_right_dfinsupp (l : ⨁ i, V i) (i : ι) (v : V i) :
-  ⟪(v : E), dfinsupp.lsum ℕ (λ i, (V i).subtype) l⟫ = ⟪v, l i⟫ :=
-calc ⟪(v : E), dfinsupp.lsum ℕ (λ i, (V i).subtype) l⟫
-    = l.sum (λ j, λ w, ⟪(v:E), w⟫) :
+lemma orthogonal_family.inner_right_dfinsupp (l : ⨁ i, G i) (i : ι) (v : G i) :
+  ⟪V i v, l.sum (λ j, V j)⟫ = ⟪v, l i⟫ :=
+calc ⟪V i v, l.sum (λ j, V j)⟫
+    = l.sum (λ j, λ w, ⟪V i v, V j w⟫) :
 begin
-  let F : E →+ 𝕜 := (@innerSL 𝕜 E _ _ v).to_linear_map.to_add_monoid_hom,
-  have hF := congr_arg add_monoid_hom.to_fun
-    (dfinsupp.comp_sum_add_hom F (λ j, (V j).subtype.to_add_monoid_hom)),
-  convert congr_fun hF l using 1,
-  simp only [dfinsupp.sum_add_hom_apply, continuous_linear_map.to_linear_map_eq_coe,
-    add_monoid_hom.coe_comp, innerSL_apply_coe, add_monoid_hom.to_fun_eq_coe,
-    linear_map.to_add_monoid_hom_coe, continuous_linear_map.coe_coe],
-  congr
+  sorry
 end
-... = l.sum (λ j, λ w, ite (i=j) ⟪(v:E), w⟫ 0) :
+... = l.sum (λ j, λ w, ite (i=j) ⟪V i v, V j w⟫ 0) :
   congr_arg l.sum $ funext $ λ j, funext $ hV.eq_ite v
 ... = ⟪v, l i⟫ :
 begin
   simp only [dfinsupp.sum, submodule.coe_inner, finset.sum_ite_eq, ite_eq_left_iff,
     dfinsupp.mem_support_to_fun, not_not],
-  intros h,
-  simp [h]
+  sorry
+  -- intros h,
+  -- simp [h]
 end
 omit dec_ι dec_V
 
-lemma orthogonal_family.inner_right_fintype [fintype ι] (l : Π i, V i) (i : ι) (v : V i) :
-  ⟪(v : E), ∑ j : ι, l j⟫ = ⟪v, l i⟫ :=
+lemma orthogonal_family.inner_right_fintype [fintype ι] (l : Π i, G i) (i : ι) (v : G i) :
+  ⟪V i v, ∑ j : ι, V j (l j)⟫ = ⟪v, l i⟫ :=
 by classical;
-calc ⟪(v : E), ∑ j : ι, l j⟫
-    = ∑ j : ι, ⟪(v : E), l j⟫: by rw inner_sum
-... = ∑ j, ite (i = j) ⟪(v : E), l j⟫ 0 :
+calc ⟪V i v, ∑ j : ι, V j (l j)⟫
+    = ∑ j : ι, ⟪V i v, V j (l j)⟫: by rw inner_sum
+... = ∑ j, ite (i = j) ⟪V i v, V j (l j)⟫ 0 :
   congr_arg (finset.sum finset.univ) $ funext $ λ j, (hV.eq_ite v (l j))
 ... = ⟪v, l i⟫ : by simp
 
-lemma orthogonal_family.inner_sum (l₁ l₂ : Π i, V i) (s : finset ι) :
-  ⟪∑ i in s, (l₁ i : E), ∑ j in s, (l₂ j : E)⟫ = ∑ i in s, ⟪l₁ i, l₂ i⟫ :=
+lemma orthogonal_family.inner_sum (l₁ l₂ : Π i, G i) (s : finset ι) :
+  ⟪∑ i in s, V i (l₁ i), ∑ j in s, V j (l₂ j)⟫ = ∑ i in s, ⟪l₁ i, l₂ i⟫ :=
 by classical;
-calc ⟪∑ i in s, (l₁ i : E), ∑ j in s, (l₂ j : E)⟫
-    = ∑ j in s, ∑ i in s, ⟪(l₁ i : E), l₂ j⟫ :  by { simp [sum_inner, inner_sum], }
-... = ∑ j in s, ∑ i in s, ite (i = j) ⟪(l₁ i : E), l₂ j⟫ 0 :
+calc ⟪∑ i in s, V i (l₁ i), ∑ j in s, V j (l₂ j)⟫
+    = ∑ j in s, ∑ i in s, ⟪V i (l₁ i), V j (l₂ j)⟫ :  by { simp [sum_inner, inner_sum], }
+... = ∑ j in s, ∑ i in s, ite (i = j) ⟪V i (l₁ i), V j (l₂ j)⟫ 0 :
 begin
   congr,
   ext i,
@@ -1629,10 +1646,10 @@ begin
 end
 ... = ∑ i in s, ⟪l₁ i, l₂ i⟫ : by simp [finset.sum_ite_of_true]
 
-lemma orthogonal_family.norm_sum (l : Π i, V i) (s : finset ι) :
-  ∥∑ i in s, (l i : E)∥ ^ 2 = ∑ i in s, ∥l i∥ ^ 2 :=
+lemma orthogonal_family.norm_sum (l : Π i, G i) (s : finset ι) :
+  ∥∑ i in s, V i (l i)∥ ^ 2 = ∑ i in s, ∥l i∥ ^ 2 :=
 begin
-  have : (∥∑ i in s, (l i : E)∥ ^ 2 : 𝕜) = ∑ i in s, ∥l i∥ ^ 2,
+  have : (∥∑ i in s, V i (l i)∥ ^ 2 : 𝕜) = ∑ i in s, ∥l i∥ ^ 2,
   { simp [← inner_self_eq_norm_sq_to_K, hV.inner_sum] },
   exact_mod_cast this,
 end
@@ -1640,7 +1657,8 @@ end
 /-- An orthogonal family forms an independent family of subspaces; that is, any collection of
 elements each from a different subspace in the family is linearly independent. In particular, the
 pairwise intersections of elements of the family are 0. -/
-lemma orthogonal_family.independent : complete_lattice.independent V :=
+lemma orthogonal_family.independent :
+  complete_lattice.independent (λ i, (V i).to_linear_map.range) :=
 begin
   classical,
   apply complete_lattice.independent_of_dfinsupp_lsum_injective,
@@ -1658,12 +1676,12 @@ end
 /-- The composition of an orthogonal family of subspaces with an injective function is also an
 orthogonal family. -/
 lemma orthogonal_family.comp {γ : Type*} {f : γ → ι} (hf : function.injective f) :
-  orthogonal_family 𝕜 (V ∘ f) :=
-λ i j hij v hv w hw, hV (hf.ne hij) hv hw
+  orthogonal_family 𝕜 (λ g : γ, (V (f g) : G (f g) →ₗᵢ[𝕜] E)) :=
+λ i j hij v w, hV (hf.ne hij) v w
 
-lemma orthogonal_family.orthonormal_sigma_orthonormal {α : ι → Type*} {v_family : Π i, (α i) → V i}
+lemma orthogonal_family.orthonormal_sigma_orthonormal {α : ι → Type*} {v_family : Π i, (α i) → G i}
   (hv_family : ∀ i, orthonormal 𝕜 (v_family i)) :
-  orthonormal 𝕜 (λ a : Σ i, α i, (v_family a.1 a.2 : E)) :=
+  orthonormal 𝕜 (λ a : Σ i, α i, V a.1 (v_family a.1 a.2)) :=
 begin
   split,
   { rintros ⟨i, vi⟩,
@@ -1678,17 +1696,18 @@ end
 
 include dec_ι
 lemma direct_sum.submodule_is_internal.collected_basis_orthonormal
-  (hV_sum : direct_sum.submodule_is_internal V) {α : ι → Type*}
-  {v_family : Π i, basis (α i) 𝕜 (V i)} (hv_family : ∀ i, orthonormal 𝕜 (v_family i)) :
+  (hV_sum : function.bijective (direct_sum.to_module 𝕜 ι E (λ i, (V i).to_linear_map)))
+  {α : ι → Type*}
+  {v_family : Π i, basis (α i) 𝕜 (G i)} (hv_family : ∀ i, orthonormal 𝕜 (v_family i)) :
   orthonormal 𝕜 (hV_sum.collected_basis v_family) :=
 by simpa using hV.orthonormal_sigma_orthonormal hv_family
 
-lemma orthogonal_family.norm_sq_diff_sum (f : Π i, V i) (s₁ s₂ : finset ι) :
-  ∥∑ i in s₁, (f i : E) - ∑ i in s₂, f i∥ ^ 2
+lemma orthogonal_family.norm_sq_diff_sum (f : Π i, G i) (s₁ s₂ : finset ι) :
+  ∥∑ i in s₁, V i (f i) - ∑ i in s₂, V i (f i)∥ ^ 2
   = ∑ i in s₁ \ s₂, ∥f i∥ ^ 2 + ∑ i in s₂ \ s₁, ∥f i∥ ^ 2 :=
 begin
   rw [finset.sum_sub_sum, sub_eq_add_neg, ← finset.sum_neg_distrib],
-  let F : Π i, V i := λ i, if i ∈ s₁ then f i else - (f i),
+  let F : Π i, G i := λ i, if i ∈ s₁ then f i else - (f i),
   have hF₁ : ∀ i ∈ s₁ \ s₂, F i = f i := λ i hi, if_pos (finset.sdiff_subset _ _ hi),
   have hF₂ : ∀ i ∈ s₂ \ s₁, F i = - f i := λ i hi, if_neg (finset.mem_sdiff.mp hi).2,
   have hF : ∀ i, ∥F i∥ = ∥f i∥,
@@ -1696,7 +1715,7 @@ begin
     dsimp [F],
     split_ifs;
     simp, },
-  have : ∥∑ i in s₁ \ s₂, (F i : E) + ∑ i in s₂ \ s₁, F i∥ ^ 2 =
+  have : ∥∑ i in s₁ \ s₂, V i (F i) + ∑ i in s₂ \ s₁, V i (F i)∥ ^ 2 =
     ∑ i in s₁ \ s₂, ∥F i∥ ^ 2 + ∑ i in s₂ \ s₁, ∥F i∥ ^ 2,
   { have hs : disjoint (s₁ \ s₂) (s₂ \ s₁) := disjoint_sdiff_sdiff,
     simpa only [finset.sum_union hs] using hV.norm_sum F (s₁ \ s₂ ∪ s₂ \ s₁) },
@@ -1738,8 +1757,8 @@ omit dec_ι
 
 /-- A family `f` of mutually-orthogonal elements of `E` is summable, if and only if
 `(λ i, ∥f i∥ ^ 2)` is summable. -/
-lemma orthogonal_family.summable_iff_norm_sq_summable [complete_space E] (f : Π i, V i) :
-  summable (λ i, (f i : E)) ↔ summable (λ i, ∥f i∥ ^ 2) :=
+lemma orthogonal_family.summable_iff_norm_sq_summable [complete_space E] (f : Π i, G i) :
+  summable (λ i, V i (f i)) ↔ summable (λ i, ∥f i∥ ^ 2) :=
 begin
   classical,
   simp only [summable_iff_cauchy_seq_finset, normed_group.cauchy_seq_iff, real.norm_eq_abs],

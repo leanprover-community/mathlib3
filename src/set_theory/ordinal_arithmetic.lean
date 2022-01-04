@@ -98,10 +98,10 @@ theorem add_le_add_iff_left (a) {b c : ordinal} : a + b ≤ a + c ↔ b ≤ c :=
 theorem add_succ (o₁ o₂ : ordinal) : o₁ + succ o₂ = succ (o₁ + o₂) :=
 (add_assoc _ _ _).symm
 
-@[simp] theorem succ_zero : succ 0 = 1 := zero_add _
+@[simp] theorem one_succ_zero : (1 : ordinal) = succ 0 := (zero_add _).symm
 
-theorem one_le_iff_pos {o : ordinal} : 1 ≤ o ↔ 0 < o :=
-by rw [← succ_zero, succ_le]
+theorem pos_iff_one_le {o : ordinal} : 0 < o ↔ 1 ≤ o :=
+by rw [one_succ_zero, succ_le]
 
 theorem one_le_iff_ne_zero {o : ordinal} : 1 ≤ o ↔ o ≠ 0 :=
 by rw [one_le_iff_pos, ordinal.pos_iff_ne_zero]

@@ -5,8 +5,6 @@ Authors: Nathaniel Thomas, Jeremy Avigad, Johannes Hölzl, Mario Carneiro, Anne 
   Frédéric Dupuis, Heather Macbeth
 -/
 import algebra.module.linear_map
-import data.fun_like
-
 
 /-!
 # (Semi)linear equivalences

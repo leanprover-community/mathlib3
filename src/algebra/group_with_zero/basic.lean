@@ -310,17 +310,17 @@ namespace units
 
 /-- An element of the unit group of a nonzero monoid with zero represented as an element
     of the monoid is nonzero. -/
-@[simp] lemma ne_zero [nontrivial M₀] (u : Mˣ₀) :
+@[simp] lemma ne_zero [nontrivial M₀] (u : M₀ˣ) :
   (u : M₀) ≠ 0 :=
 left_ne_zero_of_mul_eq_one u.mul_inv
 
 -- We can't use `mul_eq_zero` + `units.ne_zero` in the next two lemmas because we don't assume
 -- `nonzero M₀`.
 
-@[simp] lemma mul_left_eq_zero (u : Mˣ₀) {a : M₀} : a * u = 0 ↔ a = 0 :=
+@[simp] lemma mul_left_eq_zero (u : M₀ˣ) {a : M₀} : a * u = 0 ↔ a = 0 :=
 ⟨λ h, by simpa using mul_eq_zero_of_left h ↑u⁻¹, λ h, mul_eq_zero_of_left h u⟩
 
-@[simp] lemma mul_right_eq_zero (u : Mˣ₀) {a : M₀} : ↑u * a = 0 ↔ a = 0 :=
+@[simp] lemma mul_right_eq_zero (u : M₀ˣ) {a : M₀} : ↑u * a = 0 ↔ a = 0 :=
 ⟨λ h, by simpa using mul_eq_zero_of_right ↑u⁻¹ h, mul_eq_zero_of_right u⟩
 
 end units
@@ -355,10 +355,10 @@ than partially) defined inverse function for some purposes, including for calcul
 Note that while this is in the `ring` namespace for brevity, it requires the weaker assumption
 `monoid_with_zero M₀` instead of `ring M₀`. -/
 noncomputable def inverse : M₀ → M₀ :=
-λ x, if h : is_unit x then ((h.unit⁻¹ : Mˣ₀) : M₀) else 0
+λ x, if h : is_unit x then ((h.unit⁻¹ : M₀ˣ) : M₀) else 0
 
 /-- By definition, if `x` is invertible then `inverse x = x⁻¹`. -/
-@[simp] lemma inverse_unit (u : Mˣ₀) : inverse (u : M₀) = (u⁻¹ : Mˣ₀) :=
+@[simp] lemma inverse_unit (u : M₀ˣ) : inverse (u : M₀) = (u⁻¹ : M₀ˣ) :=
 begin
   simp only [units.is_unit, inverse, dif_pos],
   exact units.inv_unique rfl

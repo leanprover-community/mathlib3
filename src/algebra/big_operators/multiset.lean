@@ -40,15 +40,15 @@ def mul_monoid_with_zero_hom [comm_monoid_with_zero α] : monoid_with_zero_hom (
 { map_zero' := mul_zero _,
   .. mul_monoid_hom }
 
-/-- Multiplication as a monoid homomorphism. -/
-@[to_additive "Addition as an additive monoid homomorphism.", simps]
-def div_group_hom [comm_group α] : α × α →* α :=
+/-- Division as a monoid homomorphism. -/
+@[to_additive "Subtraction as an additive monoid homomorphism.", simps]
+def div_monoid_hom [comm_group α] : α × α →* α :=
 { to_fun := λ a, a.1 / a.2,
   map_one' := div_one' _,
   map_mul' := λ a b, mul_div_comm' _ _ _ _ }
 
-/-- Multiplication as a multiplicative homomorphism with zero. -/
-def div_group_with_zero_hom [comm_group_with_zero α] : monoid_with_zero_hom (α × α) α :=
+/-- Division as a multiplicative homomorphism with zero. -/
+def div_monoid_with_zero_hom [comm_group_with_zero α] : monoid_with_zero_hom (α × α) α :=
 { to_fun := λ a, a.1 / a.2,
   map_zero' := zero_div _,
   map_one' := div_one _,

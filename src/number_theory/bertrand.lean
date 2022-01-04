@@ -1275,10 +1275,26 @@ begin
   -- field_simp,
 end
 
+example (a b c : ℝ) : a / (b * c) = a / b / c :=
+begin
+  library_search,
+end
 
 lemma inequality2 {x : ℝ} (n_large : 1003 < x) : sqrt 2 * sqrt x * log 2 / (x * log 4) ≤ 0.04 :=
 begin
-  sorry
+  rw div_le_iff,
+  rw <-mul_assoc,
+  have h : (4 : ℝ) = 2 ^ (2 : ℝ), sorry,
+  rw h,
+  rw log_rpow,
+  rw <-mul_assoc,
+  rw mul_le_mul_right,
+  rw <-le_div_iff,
+  rw mul_comm _ x,
+  rw mul_assoc,
+  rw mul_comm x,
+  rw mul_div_assoc,
+  rw div_sqrt,
 end
 
 lemma inequality3' {x : ℝ} (n_large : 1003 < x) : sqrt 2 * sqrt x * log x / (x * log 4) = (sqrt 2 / log 4) * log x / sqrt x :=

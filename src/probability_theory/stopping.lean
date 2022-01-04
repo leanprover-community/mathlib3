@@ -386,7 +386,7 @@ begin
       exact hneq.symm } },
 end
 
-lemma adapted.stopped_process_adapted [measurable_space β] [has_measurable_add₂ β]
+lemma adapted.stopped_process [measurable_space β] [has_measurable_add₂ β]
   (hu : adapted f u) (hτ : is_stopping_time f τ) :
   adapted f (stopped_process u τ) :=
 begin

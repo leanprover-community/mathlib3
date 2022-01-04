@@ -151,8 +151,17 @@ begin
     intro h, rw h, rw units.neg_neg,
 end
 
+lemma mem_alternating_group_of_cycle_iff {f : perm α} (hf : f.is_cycle) :
+  f ∈ alternating_group α ↔ odd f.support.card :=
+begin
+  rw ← sign_one_of_cycle_iff hf,
+  exact equiv.perm.mem_alternating_group ,
+end
+
+/- It is simpler to prove it using equiv.perm.sign_of_cycle_type
+The other option would be to remove equiv.perm.sign_of_cycle_type and replace
+it by this one. -/
 /-- Read the sign of a permutation on its cycle type, without powers of -1 -/
--- It might be simpler to prove it using equiv.perm.sign_of_cycle_type
 lemma is_cycle_type_of_even {f : perm α} :
   f.sign = 1 ↔ even (f.cycle_type.sum + f.cycle_type.card) :=
 begin
@@ -195,15 +204,28 @@ begin
     simp, }
 end
 
-
-
-lemma mem_alternating_group_of_cycle_iff {f : perm α} (hf : f.is_cycle) :
-  f ∈ alternating_group α ↔ odd f.support.card :=
+lemma is_cycle_type_of_even' {f : perm α} :
+  f.sign = 1 ↔ even (f.cycle_type.sum + f.cycle_type.card) :=
 begin
-  rw ← sign_one_of_cycle_iff hf,
-  exact equiv.perm.mem_alternating_group ,
+  rw int.units.pow_of_neg_one_is_one_of_even_iff,
+  suffices : (-1)^(f.cycle_type.sum + f.cycle_type.card) = f.sign,
+  rw this,
+  rw equiv.perm.sign_of_cycle_type,
+  rw multiset.map_congr _,
+    swap,  exact λn,  (-1) * (-1)^n,
+    swap, { intros n h, rw units.neg_eq_neg_one_mul , },
+  rw multiset.prod_map_mul,
+  rw add_comm,
+  rw pow_add,
+  apply congr_arg2,
+  { rw ← multiset.prod_repeat ,
+    apply congr_arg,
+    rw multiset.map_const  },
+  generalize : f.cycle_type = m,
+  apply multiset.induction_on m,
+    simp,
+    intros n m h, simp [h,pow_add],
 end
-
 
 
 lemma nodup_powers_of_cycle_of {f : perm α} {x : α}
@@ -229,8 +251,6 @@ begin
     rw perm.mem_support, rw equiv.perm.cycle_of_apply_self,
     exact hx,
 end
-
-
 
 
 open_locale classical

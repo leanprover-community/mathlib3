@@ -80,40 +80,5 @@ begin
     intros n m h, simp [h,pow_add],
 end
 
-#check equiv.perm.sign_of_cycle_type
-#check multiset.prod_map_mul
-#check multiset.prod_map_inv
-
-
-lemma test {u : units ℤ} : -u = (-1) * u :=
-begin
-   rw units.neg_eq_neg_one_mul ,
-end
-
-lemma test2 {m : multiset ℕ} {a : M} :
-  a^(m.card) = (multiset.map (λ n, a) m).prod :=
-begin
-  rw ← multiset.prod_repeat ,
-  apply congr_arg,
-  rw multiset.map_const ,
-end
-
-variables {A : Type*} [add_monoid A]
-
-lemma test3 {m : multiset ℕ} {f : ℕ →* multiplicative A} :
-  (multiset.map f m).sum = f.to_fun (m.sum) :=
-begin
-  rw multiset.prod_hom ,
-
-sorry,
-end
-
-
-lemma test4 {m : multiset ℕ} {a : M} : (multiset.map (λ n, a^n) m).prod = a ^ (m.sum) :=
-multiset.induction_on m
-  (by simp)
-  (λ n m h, by rw [multiset.map_cons, multiset.prod_cons, h, multiset.sum_cons, pow_add])
-
-
 lemma test4' {m : multiset ℕ} {a : M} : (multiset.map (λ n, a^n) m).prod = a ^ (m.sum) :=
 multiset.induction_on m (by simp) (λ n m h, by simp [h,pow_add])

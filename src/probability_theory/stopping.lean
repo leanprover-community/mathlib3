@@ -416,7 +416,7 @@ variables [measurable_space β] [normed_group β] [has_measurable_add₂ β]
 
 lemma measurable_stopped_process (hτ : is_stopping_time f τ) (hu : adapted f u) (n : ℕ) :
   measurable (stopped_process u τ n) :=
-(hu.stopped_process_adapted hτ n).le (f.le _)
+(hu.stopped_process hτ n).le (f.le _)
 
 lemma mem_ℒp_stopped_process {p : ℝ≥0∞} [borel_space β] {μ : measure α} (hτ : is_stopping_time f τ)
   (hu : ∀ n, mem_ℒp (u n) p μ) (n : ℕ) :

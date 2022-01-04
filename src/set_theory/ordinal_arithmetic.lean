@@ -1598,12 +1598,12 @@ begin
   rw [add_zero, mul_one]
 end
 
-theorem add_log_le_log_mul {b u v : ordinal} (hu : 0 < u) (hv : 0 < v) :
-  log b u + log b v ≤ log b (u * v) :=
+theorem add_log_le_log_mul {x y : ordinal} (b : ordinal) (x0 : 0 < x) (y0 : 0 < y) :
+  log b x + log b y ≤ log b (x * y) :=
 begin
   by_cases hb : 1 < b,
-  { rw [le_log hb (mul_pos hu hv), power_add],
-    exact mul_le_mul (power_log_le b hu) (power_log_le b hv) },
+  { rw [le_log hb (mul_pos x0 y0), power_add],
+    exact mul_le_mul (power_log_le b x0) (power_log_le b y0) },
   simp only [log_not_one_lt hb, zero_add]
 end
 

@@ -21,7 +21,7 @@ For both declarations, there is an additive counterpart: `add_units` and `is_add
 ## Notation
 
 We provide `Mˣ` as notation for `units M`,
-resembling the notation `Rˣ` for the units of a ring, which is common in mathematics.
+resembling the notation $R^{\times}$ for the units of a ring, which is common in mathematics.
 
 -/
 

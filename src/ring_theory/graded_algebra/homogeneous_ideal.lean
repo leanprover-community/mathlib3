@@ -47,9 +47,8 @@ section is_homogeneous_ideal_defs
 
 variables {ι R A : Type*} [comm_ring R] [comm_ring A] [algebra R A]
 variables (𝒜 : ι → submodule R A)
-variable (I : ideal A)
-
 variables [decidable_eq ι] [add_comm_monoid ι]  [graded_algebra 𝒜]
+variable (I : ideal A)
 
 /--An `I : ideal R` is homogeneous if for every `r ∈ I`, all homogeneous components
   of `r` are in `I`.-/
@@ -167,12 +166,11 @@ instance homogeneous_ideal.has_mem : has_mem A (homogeneous_ideal 𝒜) :=
 variables {𝒜}
 
 lemma ideal.is_homogeneous.inf {I J : ideal A}
-  (HI : I.is_homogeneous 𝒜) (HJ : ideal.is_homogeneous 𝒜 J) :
-  ideal.is_homogeneous 𝒜 (I ⊓ J) :=
+  (HI : I.is_homogeneous 𝒜) (HJ : J.is_homogeneous 𝒜) : (I ⊓ J).is_homogeneous 𝒜 :=
 λ i r hr, ⟨HI _ hr.1, HJ _ hr.2⟩
 
 lemma ideal.is_homogeneous.Inf {ℐ : set (ideal A)} (h : ∀ I ∈ ℐ, ideal.is_homogeneous 𝒜 I) :
-  ideal.is_homogeneous 𝒜 (Inf ℐ) :=
+  (Inf ℐ).is_homogeneous 𝒜 :=
 begin
   intros i x Hx, simp only [ideal.mem_Inf] at Hx ⊢,
   intros J HJ,
@@ -180,8 +178,7 @@ begin
 end
 
 lemma ideal.is_homogeneous.mul {I J : ideal A}
-  (HI : I.is_homogeneous 𝒜) (HJ : ideal.is_homogeneous 𝒜 J) :
-  ideal.is_homogeneous 𝒜 (I * J) :=
+  (HI : I.is_homogeneous 𝒜) (HJ : J.is_homogeneous 𝒜) : (I * J).is_homogeneous 𝒜 :=
 begin
   rw ideal.is_homogeneous.iff_exists at HI HJ ⊢,
   obtain ⟨⟨s₁, rfl⟩, ⟨s₂, rfl⟩⟩ := ⟨HI, HJ⟩,
@@ -211,8 +208,7 @@ begin
 end
 
 lemma ideal.is_homogeneous.sup {I J : ideal A}
-  (HI : I.is_homogeneous 𝒜) (HJ : ideal.is_homogeneous 𝒜 J) :
-  ideal.is_homogeneous 𝒜 (I ⊔ J) :=
+  (HI : I.is_homogeneous 𝒜) (HJ : J.is_homogeneous 𝒜) : (I ⊔ J).is_homogeneous 𝒜 :=
 begin
   rw ideal.is_homogeneous.iff_exists at HI HJ ⊢,
   obtain ⟨⟨s₁, rfl⟩, ⟨s₂, rfl⟩⟩ := ⟨HI, HJ⟩,
@@ -223,7 +219,7 @@ end
 
 lemma ideal.is_homogeneous.Sup
   {ℐ : set (ideal A)} (Hℐ : ∀ (I ∈ ℐ), ideal.is_homogeneous 𝒜 I) :
-  ideal.is_homogeneous 𝒜 (Sup ℐ) :=
+  (Sup ℐ).is_homogeneous 𝒜 :=
 begin
   simp_rw [ideal.is_homogeneous.iff_exists] at Hℐ,
   set 𝓈 : ℐ → set (homogeneous_submonoid 𝒜) := λ I : ℐ, Exists.some (Hℐ I _) with 𝓈_eq,
@@ -329,8 +325,7 @@ variable (I : ideal A)
 def ideal.homogeneous_hull : ideal A :=
   ideal.span {r : A | ∃ (i : ι) (x : I), (graded_algebra.decompose 𝒜 x i : A) = r}
 
-lemma ideal.is_homogeneous.homogeneous_hull :
-  ideal.is_homogeneous 𝒜 (ideal.homogeneous_hull 𝒜 I) :=
+lemma ideal.is_homogeneous.homogeneous_hull : (I.homogeneous_hull 𝒜).is_homogeneous 𝒜 :=
 begin
   rw ideal.is_homogeneous.iff_exists,
   use {x : homogeneous_submonoid 𝒜 | ∃ (i : ι) (r : I), (graded_algebra.decompose 𝒜 r i : A) = x},
@@ -359,7 +354,7 @@ begin
 end
 
 lemma ideal.homogeneous_hull.eq_Inf :
-  ideal.homogeneous_hull 𝒜 I = Inf { J : ideal A | ideal.is_homogeneous 𝒜 J ∧ I ≤ J } :=
+  ideal.homogeneous_hull 𝒜 I = Inf { J : ideal A | J.is_homogeneous 𝒜 ∧ I ≤ J } :=
 begin
   ext, split; intros hx,
   { rw ideal.mem_Inf, rintros K ⟨HK1, HK2⟩,

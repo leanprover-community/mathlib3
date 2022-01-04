@@ -1315,21 +1315,21 @@ begin
   ring,
 end
 
-lemma inequality5 {x : ℝ} (n_large : 1003 < x) : log 4 / (x * log 4) ≤ 0.001 :=
-begin
-  have h : x ≠ 0,
-  { apply ne_of_gt,
-    linarith, },
-  have : log 4 ≠ 0 := real.log_ne_zero_of_pos_of_ne_one (by norm_num) (by norm_num),
-  have : log 4 / (x * log 4) = 1 / x,
-  {field_simp,
-  ring,},
-  rw this,
-  rw one_div,
-  rw one_div,
-  rw inv_le_inv;
-  linarith,
-end
+-- lemma inequality5 {x : ℝ} (n_large : 1003 < x) : log 4 / (x * log 4) ≤ 0.001 :=
+-- begin
+--   have h : x ≠ 0,
+--   { apply ne_of_gt,
+--     linarith, },
+--   have : log 4 ≠ 0 := real.log_ne_zero_of_pos_of_ne_one (by norm_num) (by norm_num),
+--   have : log 4 / (x * log 4) = 1 / x,
+--   {field_simp,
+--   ring,},
+--   rw this,
+--   rw one_div,
+--   rw one_div,
+--   rw inv_le_inv;
+--   linarith,
+-- end
 
 
 lemma real_false_inequality_is_false {x : ℝ} (n_large : (1003 : ℝ) < x)
@@ -1342,9 +1342,15 @@ begin
   simp,
   {
     rw [equality4 n_large],
-    linarith only [inequality1 n_large, inequality2 n_large, inequality3 n_large, inequality5 n_large],
+    linarith only [inequality1 n_large, inequality2 n_large, inequality3 n_large], -- inequality5 n_large],
   },
-  repeat {sorry,},
+  repeat {apply ne_of_gt},
+  repeat {apply mul_pos},
+  repeat {apply rpow_pos_of_pos},
+  repeat {norm_num,},
+  repeat {linarith,},
+  apply log_pos,
+  norm_num,
 
 end
 

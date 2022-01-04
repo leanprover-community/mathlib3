@@ -774,7 +774,7 @@ namespace units
 variables [monoid α] [topological_space α] [has_continuous_mul α] [monoid β] [topological_space β]
   [has_continuous_mul β]
 
-instance : topological_group (αˣ) :=
+instance : topological_group αˣ :=
 { continuous_inv := continuous_induced_rng ((continuous_unop.comp (continuous_snd.comp
     (@continuous_embed_product α _ _))).prod_mk (continuous_op.comp continuous_coe)) }
 

@@ -39,7 +39,7 @@ structure units (α : Type u) [monoid α] :=
 (val_inv : val * inv = 1)
 (inv_val : inv * val = 1)
 
-postfix `ˣ`:1000 := units
+postfix `ˣ`:1025 := units
 -- We don't provide notation for the additive version, because its use is somewhat rare.
 
 /-- Units of an `add_monoid`, bundled version.
@@ -67,9 +67,9 @@ namespace units
 
 variables [monoid α]
 
-@[to_additive] instance : has_coe (αˣ) α := ⟨val⟩
+@[to_additive] instance : has_coe αˣ α := ⟨val⟩
 
-@[to_additive] instance : has_inv (αˣ) := ⟨λ u, ⟨u.2, u.1, u.4, u.3⟩⟩
+@[to_additive] instance : has_inv αˣ := ⟨λ u, ⟨u.2, u.1, u.4, u.3⟩⟩
 
 /-- See Note [custom simps projection] -/
 @[to_additive /-" See Note [custom simps projection] "-/]
@@ -96,7 +96,7 @@ initialize_simps_projections add_units (val → coe as_prefix, neg → coe_neg a
 @[to_additive] theorem ext_iff {a b : αˣ} :
   a = b ↔ (a : α) = b := eq_iff.symm
 
-@[to_additive] instance [decidable_eq α] : decidable_eq (αˣ) :=
+@[to_additive] instance [decidable_eq α] : decidable_eq αˣ :=
 λ a b, decidable_of_iff' _ ext_iff
 
 @[simp, to_additive] theorem mk_coe (u : αˣ) (y h₁ h₂) :
@@ -115,7 +115,7 @@ lemma copy_eq (u : αˣ) (val hv inv hi) :
 ext hv
 
 /-- Units of a monoid form a group. -/
-@[to_additive] instance : group (αˣ) :=
+@[to_additive] instance : group αˣ :=
 { mul := λ u₁ u₂, ⟨u₁.val * u₂.val, u₂.inv * u₁.inv,
     by rw [mul_assoc, ← mul_assoc u₂.val, val_inv, one_mul, val_inv],
     by rw [mul_assoc, ← mul_assoc u₁.inv, inv_val, one_mul, inv_val]⟩,
@@ -161,12 +161,12 @@ by rw [mul_assoc, mul_inv, mul_one]
 @[simp, to_additive] lemma inv_mul_cancel_right (a : α) (b : αˣ) : a * ↑b⁻¹ * b = a :=
 by rw [mul_assoc, inv_mul, mul_one]
 
-@[to_additive] instance : inhabited (αˣ) := ⟨1⟩
+@[to_additive] instance : inhabited αˣ := ⟨1⟩
 
-@[to_additive] instance {α} [comm_monoid α] : comm_group (αˣ) :=
+@[to_additive] instance {α} [comm_monoid α] : comm_group αˣ :=
 { mul_comm := λ u₁ u₂, ext $ mul_comm _ _, ..units.group }
 
-@[to_additive] instance [has_repr α] : has_repr (αˣ) := ⟨repr ∘ val⟩
+@[to_additive] instance [has_repr α] : has_repr αˣ := ⟨repr ∘ val⟩
 
 @[simp, to_additive] theorem mul_right_inj (a : αˣ) {b c : α} : (a:α) * b = a * c ↔ b = c :=
 ⟨λ h, by simpa only [inv_mul_cancel_left] using congr_arg ((*) ↑(a⁻¹ : αˣ)) h, congr_arg _⟩
@@ -289,12 +289,12 @@ lemma is_unit_of_subsingleton [monoid M] [subsingleton M] (a : M) : is_unit a :=
 
 attribute [nontriviality] is_add_unit_of_subsingleton
 
-@[to_additive] instance [monoid M] : can_lift M (Mˣ) :=
+@[to_additive] instance [monoid M] : can_lift M Mˣ :=
 { coe := coe,
   cond := is_unit,
   prf := λ _, id }
 
-@[to_additive] instance [monoid M] [subsingleton M] : unique (Mˣ) :=
+@[to_additive] instance [monoid M] [subsingleton M] : unique Mˣ :=
 { default := 1,
   uniq := λ a, units.coe_eq_one.mp $ subsingleton.elim (a : M) 1 }
 

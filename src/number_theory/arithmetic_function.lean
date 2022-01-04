@@ -858,7 +858,7 @@ theorem prod_eq_iff_prod_pow_moebius_eq_of_nonzero [comm_group_with_zero R] {f g
   (∀ (n : ℕ), 0 < n → ∏ i in (n.divisors), f i = g n) ↔
     ∀ (n : ℕ), 0 < n → ∏ (x : ℕ × ℕ) in n.divisors_antidiagonal, g x.snd ^ (μ x.fst) = f n :=
 begin
-  refine iff.trans (iff.trans (forall_congr (λ n, _)) (@prod_eq_iff_prod_pow_moebius_eq (Rˣ) _
+  refine iff.trans (iff.trans (forall_congr (λ n, _)) (@prod_eq_iff_prod_pow_moebius_eq Rˣ _
     (λ n, if h : 0 < n then units.mk0 (f n) (hf n h) else 1)
     (λ n, if h : 0 < n then units.mk0 (g n) (hg n h) else 1))) (forall_congr (λ n, _));
   refine imp_congr_right (λ hn, _),

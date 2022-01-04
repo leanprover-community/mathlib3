@@ -798,16 +798,16 @@ instance : fintype bool := ⟨⟨tt ::ₘ ff ::ₘ 0, by simp⟩, λ x, by cases
 
 @[simp] theorem fintype.univ_bool : @univ bool _ = {tt, ff} := rfl
 
-instance units_int.fintype : fintype (ℤˣ) :=
+instance units_int.fintype : fintype ℤˣ :=
 ⟨{1, -1}, λ x, by cases int.units_eq_one_or x; simp *⟩
 
-@[simp] lemma units_int.univ : (finset.univ : finset (ℤˣ)) = {1, -1} := rfl
+@[simp] lemma units_int.univ : (finset.univ : finset ℤˣ) = {1, -1} := rfl
 
 instance additive.fintype : Π [fintype α], fintype (additive α) := id
 
 instance multiplicative.fintype : Π [fintype α], fintype (multiplicative α) := id
 
-@[simp] theorem fintype.card_units_int : fintype.card (ℤˣ) = 2 := rfl
+@[simp] theorem fintype.card_units_int : fintype.card ℤˣ = 2 := rfl
 
 @[simp] theorem fintype.card_bool : fintype.card bool = 2 := rfl
 
@@ -1141,11 +1141,11 @@ def _root_.units_equiv_ne_zero [group_with_zero α] : αˣ ≃ {a : α // a ≠ 
 
 end
 
-instance [monoid α] [fintype α] [decidable_eq α] : fintype (αˣ) :=
+instance [monoid α] [fintype α] [decidable_eq α] : fintype αˣ :=
 fintype.of_equiv _ (units_equiv_prod_subtype α).symm
 
-lemma fintype.card_units [group_with_zero α] [fintype α] [fintype (αˣ)] :
-  fintype.card (αˣ) = fintype.card α - 1 :=
+lemma fintype.card_units [group_with_zero α] [fintype α] [fintype αˣ] :
+  fintype.card αˣ = fintype.card α - 1 :=
 begin
   classical,
   rw [eq_comm, nat.sub_eq_iff_eq_add (fintype.card_pos_iff.2 ⟨(0 : α)⟩),

@@ -151,7 +151,7 @@ add_pos h h
 namespace units
 
 @[to_additive]
-instance [monoid α] [preorder α] : preorder (αˣ) :=
+instance [monoid α] [preorder α] : preorder αˣ :=
 preorder.lift (coe : αˣ → α)
 
 @[simp, norm_cast, to_additive]
@@ -163,11 +163,11 @@ theorem coe_lt_coe [monoid α] [preorder α] {a b : αˣ} :
   (a : α) < b ↔ a < b := iff.rfl
 
 @[to_additive]
-instance [monoid α] [partial_order α] : partial_order (αˣ) :=
+instance [monoid α] [partial_order α] : partial_order αˣ :=
 partial_order.lift coe units.ext
 
 @[to_additive]
-instance [monoid α] [linear_order α] : linear_order (αˣ) :=
+instance [monoid α] [linear_order α] : linear_order αˣ :=
 linear_order.lift coe units.ext
 
 @[simp, norm_cast, to_additive]

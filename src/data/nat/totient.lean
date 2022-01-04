@@ -231,7 +231,7 @@ begin
   { substI hp,
     simp only [zmod, not_prime_zero, false_iff, zero_tsub],
     -- the substI created an non-defeq but subsingleton instance diamond; resolve it
-    suffices : fintype.card (ℤˣ) ≠ 0, { convert this },
+    suffices : fintype.card ℤˣ ≠ 0, { convert this },
     simp },
   haveI : fact (0 < p) := ⟨nat.pos_of_ne_zero hp⟩,
   rw [zmod.card_units_eq_totient, nat.totient_eq_iff_prime (fact.out (0 < p))],

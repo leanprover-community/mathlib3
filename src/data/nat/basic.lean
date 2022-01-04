@@ -198,7 +198,7 @@ iff.intro
   (λ ⟨u, hu⟩, match n, u, hu, nat.units_eq_one u with _, _, rfl, rfl := rfl end)
   (λ h, h.symm ▸ ⟨1, rfl⟩)
 
-instance unique_units : unique (ℕˣ) :=
+instance unique_units : unique ℕˣ :=
 { default := 1, uniq := nat.units_eq_one }
 
 instance unique_add_units : unique (add_units ℕ) :=

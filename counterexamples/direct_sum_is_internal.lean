@@ -75,7 +75,7 @@ end
 
 /-- But there is no embedding into `ℤ` from the direct sum. -/
 lemma with_sign.not_injective :
-  ¬function.injective (direct_sum.to_module ℕ (ℤˣ) ℤ (λ i, (with_sign i).subtype)) :=
+  ¬function.injective (direct_sum.to_module ℕ ℤˣ ℤ (λ i, (with_sign i).subtype)) :=
 begin
   intro hinj,
   let p1 : ℤ≥0 := ⟨1, mem_with_sign_one.2 zero_le_one⟩,

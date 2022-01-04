@@ -32,7 +32,7 @@ rfl
 lemma map_comp (f : M →* N) (g : N →* P) : map (g.comp f) = (map g).comp (map f) := rfl
 
 variables (M)
-@[simp, to_additive] lemma map_id : map (monoid_hom.id M) = monoid_hom.id (Mˣ) :=
+@[simp, to_additive] lemma map_id : map (monoid_hom.id M) = monoid_hom.id Mˣ :=
 by ext; refl
 
 /-- Coercion `Mˣ → M` as a monoid homomorphism. -/

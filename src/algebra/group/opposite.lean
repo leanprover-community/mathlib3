@@ -202,7 +202,7 @@ def monoid_hom.from_opposite {R S : Type*} [mul_one_class R] [mul_one_class S] (
   map_mul' := λ x y, (f.map_mul _ _).trans (hf _ _).eq }
 
 /-- The units of the opposites are equivalent to the opposites of the units. -/
-def units.op_equiv {R} [monoid R] : (Rᵐᵒᵖ)ˣ ≃* (Rˣ)ᵐᵒᵖ :=
+def units.op_equiv {R} [monoid R] : (Rᵐᵒᵖ)ˣ ≃* Rˣᵐᵒᵖ :=
 { to_fun := λ u, op ⟨unop u, unop ↑(u⁻¹), op_injective u.4, op_injective u.3⟩,
   inv_fun := mul_opposite.rec $ λ u, ⟨op ↑(u), op ↑(u⁻¹), unop_injective $ u.4, unop_injective u.3⟩,
   map_mul' := λ x y, unop_injective $ units.ext $ rfl,
@@ -215,7 +215,7 @@ lemma units.coe_unop_op_equiv {R} [monoid R] (u : (Rᵐᵒᵖ)ˣ) :
 rfl
 
 @[simp]
-lemma units.coe_op_equiv_symm {R} [monoid R] (u : (Rˣ)ᵐᵒᵖ) :
+lemma units.coe_op_equiv_symm {R} [monoid R] (u : Rˣᵐᵒᵖ) :
   (units.op_equiv.symm u : Rᵐᵒᵖ) = op (u.unop : R) :=
 rfl
 

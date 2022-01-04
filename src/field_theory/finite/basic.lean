@@ -38,8 +38,8 @@ and `q` is notation for the cardinality of `K`.
 
 ## Implementation notes
 
-While `fintype (Kˣ)` can be inferred from `fintype K` in the presence of `decidable_eq K`,
-in this file we take the `fintype (Kˣ)` argument directly to reduce the chance of typeclass
+While `fintype Kˣ` can be inferred from `fintype K` in the presence of `decidable_eq K`,
+in this file we take the `fintype Kˣ` argument directly to reduce the chance of typeclass
 diamonds, as `fintype` carries data.
 
 -/
@@ -97,11 +97,11 @@ calc 2 * ((univ.image (λ x : R, eval x f)) ∪ (univ.image (λ x : R, eval x (-
 
 end polynomial
 
-lemma prod_univ_units_id_eq_neg_one [comm_ring K] [is_domain K] [fintype (Kˣ)] :
+lemma prod_univ_units_id_eq_neg_one [comm_ring K] [is_domain K] [fintype Kˣ] :
   (∏ x : Kˣ, x) = (-1 : Kˣ) :=
 begin
   classical,
-  have : (∏ x in (@univ (Kˣ) _).erase (-1), x) = 1,
+  have : (∏ x in (@univ Kˣ _).erase (-1), x) = 1,
   from prod_involution (λ x _, x⁻¹) (by simp)
     (λ a, by simp [units.inv_eq_self_iff] {contextual := tt})
     (λ a, by simp [@inv_eq_iff_inv_eq _ _ a, eq_comm] {contextual := tt})
@@ -168,7 +168,7 @@ lemma forall_pow_eq_one_iff (i : ℕ) :
   (∀ x : Kˣ, x ^ i = 1) ↔ q - 1 ∣ i :=
 begin
   classical,
-  obtain ⟨x, hx⟩ := is_cyclic.exists_generator (Kˣ),
+  obtain ⟨x, hx⟩ := is_cyclic.exists_generator Kˣ,
   rw [←fintype.card_units, ←order_of_eq_card_of_forall_mem_zpowers hx, order_of_dvd_iff_pow_eq_one],
   split,
   { intro h, apply h },
@@ -180,7 +180,7 @@ end
 
 /-- The sum of `x ^ i` as `x` ranges over the units of a finite field of cardinality `q`
 is equal to `0` unless `(q - 1) ∣ i`, in which case the sum is `q - 1`. -/
-lemma sum_pow_units [fintype (Kˣ)] (i : ℕ) :
+lemma sum_pow_units [fintype Kˣ] (i : ℕ) :
   ∑ x : Kˣ, (x ^ i : K) = if (q - 1) ∣ i then -1 else 0 :=
 begin
   let φ : Kˣ →* K :=
@@ -188,7 +188,7 @@ begin
     map_one' := by rw [units.coe_one, one_pow],
     map_mul' := by { intros, rw [units.coe_mul, mul_pow] } },
   haveI : decidable (φ = 1), { classical, apply_instance },
-  calc ∑ x : Kˣ, φ x = if φ = 1 then fintype.card (Kˣ) else 0 : sum_hom_units φ
+  calc ∑ x : Kˣ, φ x = if φ = 1 then fintype.card Kˣ else 0 : sum_hom_units φ
                       ... = if (q - 1) ∣ i then -1 else 0 : _,
   suffices : (q - 1) ∣ i ↔ φ = 1,
   { simp only [this],

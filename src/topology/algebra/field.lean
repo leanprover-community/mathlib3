@@ -24,7 +24,7 @@ variables  [topological_space R]
 /-- The induced topology on units of a topological ring.
 This is not a global instance since other topologies could be relevant. Instead there is a class
 `induced_units` asserting that something equivalent to this construction holds. -/
-def topological_space_units : topological_space (Rˣ) := induced (coe : Rˣ → R) ‹_›
+def topological_space_units : topological_space Rˣ := induced (coe : Rˣ → R) ‹_›
 
 /-- Asserts the topology on units is the induced topology.
 
@@ -38,7 +38,7 @@ class induced_units [t : topological_space $ Rˣ] : Prop :=
 variables [topological_space $ Rˣ]
 
 lemma units_topology_eq [induced_units R] :
-  ‹topological_space (Rˣ)› = induced (coe : Rˣ → R) ‹_› :=
+  ‹topological_space Rˣ› = induced (coe : Rˣ → R) ‹_› :=
 induced_units.top_eq
 
 lemma induced_units.continuous_coe [induced_units R] : continuous (coe : Rˣ → R) :=
@@ -50,7 +50,7 @@ lemma units_embedding [induced_units R] :
   inj := λ x y h, units.ext h }
 
 instance top_monoid_units [topological_ring R] [induced_units R] :
-  has_continuous_mul (Rˣ) :=
+  has_continuous_mul Rˣ :=
 ⟨begin
   let mulR := (λ (p : R × R), p.1*p.2),
   let mulRx := (λ (p : Rˣ × Rˣ), p.1*p.2),
@@ -89,7 +89,7 @@ local attribute [instance] topological_ring.topological_space_units
 
 variables [topological_division_ring K]
 
-lemma units_top_group : topological_group (Kˣ) :=
+lemma units_top_group : topological_group Kˣ :=
 { continuous_inv := begin
      have : (coe : Kˣ → K) ∘ (λ x, x⁻¹ : Kˣ → Kˣ) =
             (λ x, x⁻¹ : K → K) ∘ (coe : Kˣ → K), from funext units.coe_inv',

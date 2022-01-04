@@ -519,7 +519,7 @@ begin
   rw [units.coe_mk_of_mul_eq_one, ha']
 end
 
-theorem exists_eq_pow_of_mul_eq_pow [gcd_monoid α] [unique (αˣ)] {a b c : α}
+theorem exists_eq_pow_of_mul_eq_pow [gcd_monoid α] [unique αˣ] {a b c : α}
   (hab : is_unit (gcd a b)) {k : ℕ}
   (h : a * b = c ^ k) : ∃ (d : α), a = d ^ k :=
 let ⟨d, hd⟩ := exists_associated_pow_of_mul_eq_pow hab h in ⟨d, (associated_iff_eq.mp hd).symm⟩
@@ -716,7 +716,7 @@ end gcd_monoid
 
 section unique_unit
 
-variables [cancel_comm_monoid_with_zero α] [unique (αˣ)]
+variables [cancel_comm_monoid_with_zero α] [unique αˣ]
 
 @[priority 100] -- see Note [lower instance priority]
 instance normalization_monoid_of_unique_units : normalization_monoid α :=

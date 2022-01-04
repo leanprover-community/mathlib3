@@ -732,7 +732,7 @@ namespace units
 variables [ring α] {a b : α}
 
 /-- Each element of the group of units of a ring has an additive inverse. -/
-instance : has_neg (αˣ) := ⟨λu, ⟨-↑u, -↑u⁻¹, by simp, by simp⟩ ⟩
+instance : has_neg αˣ := ⟨λu, ⟨-↑u, -↑u⁻¹, by simp, by simp⟩ ⟩
 
 /-- Representing an element of a ring's unit group as an element of the ring commutes with
     mapping this element to its additive inverse. -/

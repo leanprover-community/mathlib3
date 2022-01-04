@@ -376,7 +376,7 @@ lemma associated.of_mul_right [cancel_comm_monoid_with_zero α] {a b c d : α} :
 by rw [mul_comm a, mul_comm c]; exact associated.of_mul_left
 
 section unique_units
-variables [monoid α] [unique (αˣ)]
+variables [monoid α] [unique αˣ]
 
 lemma units_eq_one (u : αˣ) : u = 1 := subsingleton.elim u 1
 

@@ -73,7 +73,7 @@ section roots_of_unity
 variables {k l : ℕ+}
 
 /-- `roots_of_unity k M` is the subgroup of elements `m : Mˣ` that satisfy `m ^ k = 1` -/
-def roots_of_unity (k : ℕ+) (M : Type*) [comm_monoid M] : subgroup (Mˣ) :=
+def roots_of_unity (k : ℕ+) (M : Type*) [comm_monoid M] : subgroup Mˣ :=
 { carrier := { ζ | ζ ^ (k : ℕ) = 1 },
   one_mem' := one_pow _,
   mul_mem' := λ ζ ξ hζ hξ, by simp only [*, set.mem_set_of_eq, mul_pow, one_mul] at *,
@@ -647,7 +647,7 @@ begin
   apply set_like.coe_injective,
   haveI : fact (0 < (k : ℕ)) := ⟨k.pos⟩,
   haveI F : fintype (subgroup.zpowers ζ) := fintype.of_equiv _ (h.zmod_equiv_zpowers).to_equiv,
-  refine @set.eq_of_subset_of_card_le (Rˣ) (subgroup.zpowers ζ) (roots_of_unity k R)
+  refine @set.eq_of_subset_of_card_le Rˣ (subgroup.zpowers ζ) (roots_of_unity k R)
     F (roots_of_unity.fintype R k)
     (subgroup.zpowers_subset $ show ζ ∈ roots_of_unity k R, from h.pow_eq_one) _,
   calc fintype.card (roots_of_unity k R)

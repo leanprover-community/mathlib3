@@ -95,8 +95,8 @@ end
 /-- The unit group of a finite integral domain is cyclic.
 
 To support `ℤˣ` and other infinite monoids with finite groups of units, this requires only
-`fintype (Rˣ)` rather than deducing it from `fintype R`. -/
-instance [fintype (Rˣ)] : is_cyclic (Rˣ) :=
+`fintype Rˣ` rather than deducing it from `fintype R`. -/
+instance [fintype Rˣ] : is_cyclic Rˣ :=
 is_cyclic_of_subgroup_is_domain (units.coe_hom R) $ units.ext
 
 /-- Every finite integral domain is a field. -/
@@ -105,7 +105,7 @@ def field_of_is_domain [decidable_eq R] [fintype R] : field R :=
 
 section
 
-variables (S : subgroup (Rˣ)) [fintype S]
+variables (S : subgroup Rˣ) [fintype S]
 
 /-- A finite subgroup of the units of an integral domain is cyclic. -/
 instance subgroup_units_cyclic : is_cyclic S :=

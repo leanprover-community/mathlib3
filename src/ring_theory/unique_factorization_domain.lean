@@ -1385,7 +1385,7 @@ namespace unique_factorization_monoid
 /-- If `y` is a nonzero element of a unique factorization monoid with finitely
 many units (e.g. `ℤ`, `ideal (ring_of_integers K)`), it has finitely many divisors. -/
 noncomputable def fintype_subtype_dvd {M : Type*} [cancel_comm_monoid_with_zero M]
-  [unique_factorization_monoid M] [fintype (Mˣ)]
+  [unique_factorization_monoid M] [fintype Mˣ]
   (y : M) (hy : y ≠ 0) :
   fintype {x // x ∣ y} :=
 begin
@@ -1396,7 +1396,7 @@ begin
   -- We'll show `λ (u : Mˣ) (f ⊆ factors y) → u * Π f` is injective
   -- and has image exactly the divisors of `y`.
   refine fintype.of_finset
-    (((normalized_factors y).powerset.to_finset.product (finset.univ : finset (Mˣ))).image
+    (((normalized_factors y).powerset.to_finset.product (finset.univ : finset Mˣ)).image
       (λ s, (s.snd : M) * s.fst.prod))
     (λ x, _),
   simp only [exists_prop, finset.mem_image, finset.mem_product, finset.mem_univ, and_true,

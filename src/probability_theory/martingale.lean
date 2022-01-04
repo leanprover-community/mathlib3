@@ -530,10 +530,10 @@ end
 
 /-- The `t`-th upcrossing of a random process on the interval `[a, b]` is the ℕ-valued random
 variable corresponding to the maximum number of times the random process crossed above `b` before
-(not including) time `t`. -/
+(not including) time `t`. -/ -- ** Upcrossing is actually 1 more **
 noncomputable
 def upcrossing (f : ℕ → α → ℝ) (a b : ℝ) (N : ℕ) : α → ℕ :=
-λ x, Sup {n | upper_crossing f a b N n x < N}
+λ x, if h : ∃ n, n < N ∧ upper_crossing f a b N n x = N then nat.find h else 0
 
 lemma upcrossing_le {f : ℕ → α → ℝ} {a b : ℝ} {N : ℕ} {x : α} :
   ↑(upcrossing f a b N x) * (b - a) ≤
@@ -542,14 +542,8 @@ lemma upcrossing_le {f : ℕ → α → ℝ} {a b : ℝ} {N : ℕ} {x : α} :
   (stopped_value f (upper_crossing f a b N i) x -
    stopped_value f (lower_crossing f a b N i) x) :=
 begin
-  set k := if h : ∃ n, n < N ∧ upper_crossing f a b N n x = N then nat.find h else 0 with hk,
-  split_ifs at hk,
-  { sorry
-
-  },
-  { sorry
-
-   }
+  set k := upcrossing f a b N x,
+  sorry
   -- rw ← @finset.sum_range_add_sum_Ico _ _ _ k,
   -- { have : ∑ k in finset.Ico k N, (stopped_value f (upper_crossing f a b N k) x -
   --     stopped_value f (lower_crossing f a b N k) x) = 0,

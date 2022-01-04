@@ -13,7 +13,7 @@ import logic.nontrivial
 universe u
 variable {α : Type u}
 
-/-- Units of a `monoid`, bundled version. Notation: `Mˣ`.
+/-- Units of a `monoid`, bundled version. Notation: `αˣ`.
 
 An element of a `monoid` is a unit if it has a two-sided inverse.
 This version bundles the inverse element so that it can be computed.
@@ -25,7 +25,7 @@ structure units (α : Type u) [monoid α] :=
 (inv_val : inv * val = 1)
 
 postfix `ˣ`:1000 := units
--- We don't provide notation for the additive version, because it's use is somewhat rare.
+-- We don't provide notation for the additive version, because its use is somewhat rare.
 
 /-- Units of an `add_monoid`, bundled version.
 

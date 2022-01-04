@@ -1208,6 +1208,15 @@ if b1 : 1 < b then
   le_trans (le_power_self _ b1) (power_log_le b (ordinal.pos_iff_ne_zero.2 x0))
 else by simp only [log_not_one_lt b1, ordinal.zero_le]
 
+theorem add_log_le_log_mul {x y : ordinal} (b : ordinal) (x0 : 0 < x) (y0 : 0 < y) :
+  log b x + log b y ≤ log b (x * y) :=
+begin
+  by_cases hb : 1 < b,
+  { rw [le_log hb (mul_pos x0 y0), power_add],
+    exact mul_le_mul (power_log_le b x0) (power_log_le b y0) },
+  simp only [log_not_one_lt hb, zero_add]
+end
+
 /-! ### The Cantor normal form -/
 
 theorem CNF_aux {b o : ordinal} (b0 : b ≠ 0) (o0 : o ≠ 0) :

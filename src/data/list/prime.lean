@@ -22,22 +22,23 @@ section comm_monoid_with_zero
 variables {M : Type*} [comm_monoid_with_zero M]
 
 /-- Prime `p` divides the product of a list `L` iff it divides some `a ∈ L` -/
-lemma prime.dvd_prod_iff {p : M} {L : list M} (pp : prime p) :
-p ∣ L.prod ↔ ∃ a ∈ L, p ∣ a :=
+lemma prime.dvd_prod_iff {p : M} {L : list M} (pp : prime p) : p ∣ L.prod ↔ ∃ a ∈ L, p ∣ a :=
 begin
   split,
   { intros h,
-    induction L,
-    { simp only [list.prod_nil] at h, exact absurd h (prime.not_dvd_one pp) },
-    { rw list.prod_cons at h,
-      cases (prime.dvd_or_dvd pp) h, { use L_hd, simp [h_1] },
-      { rcases L_ih h_1 with ⟨x, hx1, hx2⟩, use x, simp [list.mem_cons_iff, hx1, hx2] } } },
-  { exact λ ⟨a, ha1, ha2⟩, dvd_trans ha2 (list.dvd_prod ha1) },
+    induction L with L_hd L_tl L_ih,
+    { rw prod_nil at h, exact absurd h pp.not_dvd_one },
+    { rw prod_cons at h,
+      cases pp.dvd_or_dvd h with hd hd,
+      { exact ⟨L_hd, mem_cons_self L_hd L_tl, hd⟩ },
+      { obtain ⟨x, hx1, hx2⟩ := L_ih hd,
+        exact ⟨x, mem_cons_of_mem L_hd hx1, hx2⟩ } } },
+  { exact λ ⟨a, ha1, ha2⟩, dvd_trans ha2 (dvd_prod ha1) },
 end
 
 lemma prime.not_dvd_prod {p : M} {L : list M} (pp : prime p) (hL : ∀ a ∈ L, ¬ p ∣ a) :
   ¬ p ∣ L.prod :=
-mt (prime.dvd_prod_iff pp).mp (not_bex.mpr hL)
+mt (prime.dvd_prod_iff pp).mp $ not_bex.mpr hL
 
 end comm_monoid_with_zero
 
@@ -45,15 +46,13 @@ section cancel_comm_monoid_with_zero
 
 variables {M : Type*} [cancel_comm_monoid_with_zero M] [unique (units M)]
 
-lemma prime_dvd_prime_iff_eq
-  {p q : M} (pp : prime p) (qp : prime q) : p ∣ q ↔ p = q :=
+lemma prime_dvd_prime_iff_eq {p q : M} (pp : prime p) (qp : prime q) : p ∣ q ↔ p = q :=
 by rw [pp.dvd_prime_iff_associated qp, ←associated_eq_eq]
 
-lemma mem_list_primes_of_dvd_prod {p : M} (hp : prime p) :
-  ∀ {l : list M}, (∀ p ∈ l, prime p) → p ∣ l.prod → p ∈ l :=
+lemma mem_list_primes_of_dvd_prod {p : M} (hp : prime p) {L : list M} (hL : ∀ q ∈ L, prime q)
+  (hpL : p ∣ L.prod) : p ∈ L :=
 begin
-  intros L hL hpL,
-  rcases hp.dvd_prod_iff.mp hpL with ⟨x, hx1, hx2⟩,
+  obtain ⟨x, hx1, hx2⟩ := hp.dvd_prod_iff.mp hpL,
   rwa (prime_dvd_prime_iff_eq hp (hL x hx1)).mp hx2
 end
 

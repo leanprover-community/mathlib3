@@ -366,6 +366,8 @@ begin
     exact ⟨ideal.is_homogeneous.homogeneous_hull _ _, ideal.ideal_le_homogeneous_hull _ _⟩, }
 end
 
+variables {𝒜 I}
+
 lemma ideal.is_homogeneous.homogeneous_hull_eq_self (h : I.is_homogeneous 𝒜) :
   ideal.homogeneous_hull 𝒜 I = I :=
 begin
@@ -374,8 +376,9 @@ begin
   rw ideal.mem_Inf, rintros J ⟨HJ1, HJ2⟩, apply HJ2, exact hx,
 end
 
-end homogeneous_hull
+variables (𝒜 I)
 
+end homogeneous_hull
 
 section galois_connection
 
@@ -390,14 +393,12 @@ lemma ideal.homgeneous_hull.gc :
     (λ I, I.1 : homogeneous_ideal 𝒜 → ideal A)
    := λ I J,
 ⟨ λ H, begin
-    dsimp only at H,
     refine le_trans _ H,
     apply ideal.ideal_le_homogeneous_hull,
   end,
   λ H, begin
-    suffices : ideal.homogeneous_hull 𝒜 I ≤ J.val,
-    exact this,
-    rw ←ideal.is_homogeneous.homogeneous_hull_eq_self 𝒜 J.1 J.2,
+    show ideal.homogeneous_hull 𝒜 I ≤ J.val,
+    rw ←J.2.homogeneous_hull_eq_self,
     exact ideal.homogeneous_hull_is_mono 𝒜 H,
   end ⟩
 
@@ -447,8 +448,6 @@ def ideal.homogeneous_core.gi :
   end⟩,
   gc := ideal.homogeneous_core.gc 𝒜,
   u_l_le := λ I, by apply ideal.homogeneous_core_le_ideal,
-  choice_eq := λ I H, begin
-    apply le_antisymm, exact H, apply ideal.homogeneous_core_le_ideal,
-  end, }
+  choice_eq := λ I H, le_antisymm H (I.homogeneous_core_le_ideal _) }
 
 end galois_connection

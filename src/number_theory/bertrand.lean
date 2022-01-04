@@ -1298,7 +1298,7 @@ end
 
 lemma inequality3 {x : ℝ} (n_large : 1003 < x) : sqrt 2 * sqrt x * log x / (x * log 4) ≤ 1/8 :=
 begin
-  rw [inequality3'],
+  rw [inequality3' n_large],
   -- Get the log x in the second term to be 2 log sqrt x. and split the 1/x i n that term to
   sorry
 end

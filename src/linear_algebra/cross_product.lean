@@ -105,9 +105,7 @@ begin
   ring,
 end
 
-/-- The cross product satisfies the Leibniz lie property
-    `∀ (x y z : L) : ⁅x, ⁅y, z⁆⁆ = ⁅⁅x, y⁆, z⁆ + ⁅y, ⁅x, z⁆⁆` from `algebra.lie.basic.lie_ring`.
-    It is equivalent to the Jacobi identity in the presence of the other Lie ring axioms. -/
+/-- The cross product satisfies the Leibniz lie property. -/
 lemma leibniz_cross (u v w : fin 3 → R) :
   u ×₃ (v ×₃ w) = (u ×₃ v) ×₃ w + v ×₃ (u ×₃ w) :=
 begin
@@ -116,7 +114,9 @@ begin
   fin_cases i; norm_num; ring,
 end
 
-/-- The three-dimensional vectors together with the operations + and ×₃ form a Lie ring. -/
+/-- The three-dimensional vectors together with the operations + and ×₃ form a Lie ring.
+    Note we do not make this an instance as a conflicting one already exists
+    via `lie_ring.of_associative_ring`. -/
 def cross_product.lie_ring : lie_ring (fin 3 → R) :=
 { bracket := λ u v, u ×₃ v,
   add_lie := linear_map.map_add₂ _,

@@ -15,7 +15,7 @@ using the following format:
 - [ ] depends on: #xyz [optional extra text]
 
 To indicate co-authors, include lines at the bottom of the commit message 
-using the format:
+(that is, before the `---`) using the format:
 
 Co-authored-by: Author Name <author@email.com>
 -->

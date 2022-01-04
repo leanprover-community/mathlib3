@@ -1242,7 +1242,7 @@ begin
 end
 
 @[simp] lemma nnreal.nndist_zero_eq_val (z : ℝ≥0) : nndist 0 z = z :=
-by { simp only [nnreal.nndist_eq, max_eq_right, tsub_zero, zero_tsub, zero_le'], }
+by simp only [nnreal.nndist_eq, max_eq_right, tsub_zero, zero_tsub, zero_le']
 
 @[simp] lemma nnreal.nndist_zero_eq_val' (z : ℝ≥0) : nndist z 0 = z :=
 by { rw nndist_comm, exact nnreal.nndist_zero_eq_val z, }

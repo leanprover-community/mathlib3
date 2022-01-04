@@ -334,7 +334,7 @@ variables [topological_space α]
 function is obtained by (Lebesgue) integrating the (test) function against the measure. This
 is `probability_measure.test_against_nn`. -/
 def test_against_nn
-  (μ : probability_measure α) (f : α →ᵇ nnreal) : ℝ≥0 :=
+  (μ : probability_measure α) (f : α →ᵇ ℝ≥0) : ℝ≥0 :=
 (lintegral (μ : measure α) ((coe : ℝ≥0 → ℝ≥0∞) ∘ f)).to_nnreal
 
 lemma lintegral_lt_top_of_bounded_continuous_to_nnreal (μ : probability_measure α) (f : α →ᵇ ℝ≥0) :
@@ -356,10 +356,7 @@ by simp [← ennreal.coe_eq_coe, (measure_theory.is_probability_measure μ).meas
 lemma test_against_nn_mono (μ : probability_measure α)
   {f g : α →ᵇ ℝ≥0} (f_le_g : (f : α → ℝ≥0) ≤ g) :
   μ.test_against_nn f ≤ μ.test_against_nn g :=
-begin
-  have key := μ.to_finite_measure.test_against_nn_mono f_le_g,
-  simpa using key
-end
+by simpa using μ.to_finite_measure.test_against_nn_mono f_le_g
 
 variables [opens_measurable_space α]
 

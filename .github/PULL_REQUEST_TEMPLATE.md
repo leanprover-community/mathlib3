@@ -13,6 +13,11 @@ If this PR depends on other PRs, please list them below this comment,
 using the following format:
 - [ ] depends on: #abc [optional extra text]
 - [ ] depends on: #xyz [optional extra text]
+
+To indicate co-authors, include lines at the bottom of the commit message 
+using the format:
+
+Co-authored-by: Author Name <author@email.com>
 -->
 
 [![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/from-referrer/)

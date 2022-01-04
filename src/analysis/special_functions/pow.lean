@@ -657,7 +657,8 @@ lemma rpow_nat_inv_pow_nat {x : ℝ} (hx : 0 ≤ x) {n : ℕ} (hn : 0 < n) :
 have hn0 : (n : ℝ) ≠ 0, by simpa [pos_iff_ne_zero] using hn,
 by rw [← rpow_nat_cast, ← rpow_mul hx, inv_mul_cancel hn0, rpow_one]
 
-lemma log_base_of_rpow (a b c : ℝ) (a_pos : 0 < a) (a_ne_one : a ≠ 1) (h : a ^ b = c) : log_base a c = b :=
+lemma log_base_of_rpow (a b c : ℝ) (a_pos : 0 < a) (a_ne_one : a ≠ 1) (h : a ^ b = c) :
+  log_base a c = b :=
 begin
   rw log_base,
   rw div_eq_iff,

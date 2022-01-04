@@ -217,8 +217,8 @@ variables {r r₁ r₂ : α → γ → Prop} {s s₁ s₂ : β → δ → Prop} 
 @[simp] lemma lift_rel_inl_inl : lift_rel r s (inl a) (inl c) ↔ r a c :=
 ⟨λ h, by { cases h, assumption }, lift_rel.inl⟩
 
-@[simp] lemma lift_rel_inl_inr : ¬ lift_rel r s (inl a) (inr d) .
-@[simp] lemma lift_rel_inr_inl : ¬ lift_rel r s (inr b) (inl c) .
+@[simp] lemma not_lift_rel_inl_inr : ¬ lift_rel r s (inl a) (inr d) .
+@[simp] lemma not_lift_rel_inr_inl : ¬ lift_rel r s (inr b) (inl c) .
 
 @[simp] lemma lift_rel_inr_inr : lift_rel r s (inr b) (inr d) ↔ s b d :=
 ⟨λ h, by { cases h, assumption }, lift_rel.inr⟩
@@ -226,8 +226,8 @@ variables {r r₁ r₂ : α → γ → Prop} {s s₁ s₂ : β → δ → Prop} 
 instance [Π a c, decidable (r a c)] [Π b d, decidable (s b d)] :
   Π (ab : α ⊕ β) (cd : γ ⊕ δ), decidable (lift_rel r s ab cd)
 | (inl a) (inl c) := decidable_of_iff' _ lift_rel_inl_inl
-| (inl a) (inr d) := decidable.is_false lift_rel_inl_inr
-| (inr b) (inl c) := decidable.is_false lift_rel_inr_inl
+| (inl a) (inr d) := decidable.is_false not_lift_rel_inl_inr
+| (inr b) (inl c) := decidable.is_false not_lift_rel_inr_inl
 | (inr b) (inr d) := decidable_of_iff' _ lift_rel_inr_inr
 
 lemma lift_rel.mono (hr : ∀ a b, r₁ a b → r₂ a b) (hs : ∀ a b, s₁ a b → s₂ a b)

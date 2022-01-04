@@ -273,10 +273,8 @@ variable [monoid_with_zero α]
 theorem ne_zero_of_dvd_ne_zero {p q : α} (h₁ : q ≠ 0)
   (h₂ : p ∣ q) : p ≠ 0 :=
 begin
-  by_contra hcontra,
-  obtain ⟨u, hu⟩ := h₂,
-  apply h₁,
-  simp only [hcontra, hu, zero_mul],
+  rcases h₂ with ⟨u, rfl⟩,
+  exact left_ne_zero_of_mul h₁,
 end
 
 end monoid_with_zero

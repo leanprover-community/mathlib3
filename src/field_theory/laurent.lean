@@ -44,7 +44,7 @@ begin
        linear_map.map_eq_zero_iff _ (taylor_injective _)] at hx,
 end
 
-/-- The Laurent expansion of rational functions about a root.
+/-- The Laurent expansion of rational functions about a value.
 Auxiliary definition, usage should prefer `ratfunc.laurent`. -/
 def laurent_aux : ratfunc K → ratfunc K :=
 λ f, ratfunc.lift_on f

@@ -1564,7 +1564,7 @@ else by simp only [log_not_one_lt b1, ordinal.zero_le]
 if hb : 1 < b then by rwa [←lt_one_iff_zero, log_lt hb zero_lt_one, power_one]
 else log_not_one_lt hb 1
 
-lemma power_mul_add_pos {b v : ordinal} (u w : ordinal) (hb : 0 < b) (hv : 0 < v) :
+lemma power_mul_add_pos {b v : ordinal} (hb : 0 < b) (u) (hv : 0 < v) (w) :
   0 < b ^ u * v + w :=
 (power_pos u hb).trans_le ((le_mul_left hv).trans (le_add_right _ _))
 
@@ -1582,7 +1582,7 @@ end
 theorem log_power_mul_add {b u v w : ordinal} (hb : 1 < b) (hv : 0 < v) (hvb : v < b)
   (hw : w < b ^ u) : log b (b ^ u * v + w) = u :=
 begin
-  have hpos := power_mul_add_pos u w (zero_lt_one.trans hb) hv,
+  have hpos := power_mul_add_pos (zero_lt_one.trans hb) u hv w,
   by_contra' hne,
   cases lt_or_gt_of_ne hne with h h,
   { rw log_lt hb hpos at h,
@@ -1592,7 +1592,7 @@ begin
   exact (not_lt_of_le h) (power_mul_add_lt_power_succ hvb hw)
 end
 
-@[simp] theorem log_power {b : ordinal} (x : ordinal) (hb : 1 < b) : log b (b ^ x) = x :=
+@[simp] theorem log_power {b : ordinal} (hb : 1 < b) (x : ordinal) : log b (b ^ x) = x :=
 begin
   convert log_power_mul_add hb zero_lt_one hb (power_pos x (zero_lt_one.trans hb)),
   rw [add_zero, mul_one]

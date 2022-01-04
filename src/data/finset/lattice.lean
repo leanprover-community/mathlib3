@@ -79,6 +79,13 @@ eq_of_forall_ge_iff $ λ c, by simp [@forall_swap _ β]
 lemma sup_const {s : finset β} (h : s.nonempty) (c : α) : s.sup (λ _, c) = c :=
 eq_of_forall_ge_iff $ λ b, sup_le_iff.trans h.forall_const
 
+@[simp] lemma sup_bot (s : finset β) : s.sup (λ _, ⊥) = (⊥ : α) :=
+begin
+  obtain rfl | hs := s.eq_empty_or_nonempty,
+  { exact sup_empty },
+  { exact sup_const hs _ }
+end
+
 lemma sup_le {a : α} : (∀b ∈ s, f b ≤ a) → s.sup f ≤ a :=
 sup_le_iff.2
 
@@ -298,6 +305,8 @@ by subst hs; exact finset.fold_congr hfg
 
 lemma inf_const {s : finset β} (h : s.nonempty) (c : α) : s.inf (λ _, c) = c :=
 @sup_const (order_dual α) _ _ _ _ h _
+
+@[simp] lemma inf_top (s : finset β) : s.inf (λ _, ⊤) = (⊤ : α) := @sup_bot (order_dual α) _ _ _ _
 
 lemma le_inf_iff {a : α} : a ≤ s.inf f ↔ ∀ b ∈ s, a ≤ f b :=
 @sup_le_iff (order_dual α) _ _ _ _ _ _
@@ -1020,11 +1029,12 @@ lemma sup_eq_bUnion {α β} [decidable_eq β] (s : finset α) (t : α → finset
   s.sup t = s.bUnion t :=
 by { ext, rw [mem_sup, mem_bUnion], }
 
+@[simp] lemma sup_singleton'' [decidable_eq α] (s : finset β) (f : β → α) :
+  s.sup (λ b, {f b}) = s.image f :=
+by { ext a, rw [mem_sup, mem_image], simp only [mem_singleton, eq_comm] }
+
 @[simp] lemma sup_singleton' [decidable_eq α] (s : finset α) : s.sup singleton = s :=
-begin
-  refine (finset.sup_le $ λ a, _).antisymm (λ a ha, mem_sup.2 ⟨a, ha, mem_singleton_self a⟩),
-  exact singleton_subset_iff.2,
-end
+(s.sup_singleton'' _).trans image_id
 
 end finset
 

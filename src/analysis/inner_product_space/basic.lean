@@ -1577,9 +1577,10 @@ open_locale direct_sum
 def orthogonal_family (V : ι → submodule 𝕜 E) : Prop :=
 ∀ ⦃i j⦄, i ≠ j → ∀ {v : E} (hv : v ∈ V i) {w : E} (hw : w ∈ V j), ⟪v, w⟫ = 0
 
-variables {𝕜} {V : ι → submodule 𝕜 E} [dec_V : Π i (x : V i), decidable (x ≠ 0)]
+variables {𝕜} {V : ι → submodule 𝕜 E} (hV : orthogonal_family 𝕜 V)
+  [dec_V : Π i (x : V i), decidable (x ≠ 0)]
 
-include dec_ι
+include hV dec_ι
 lemma orthogonal_family.eq_ite  {i j : ι} (v : V i) (w : V j) :
   ⟪(v:E), w⟫ = ite (i = j) ⟪(v:E), w⟫ 0 :=
 begin

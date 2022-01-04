@@ -4,39 +4,33 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Bhavik Mehta
 -/
 import combinatorics.simplicial_complex.basic
-import order.well_founded_set
+import data.finset.slice
 
 /-!
 # Pure simplicial complexes
 -/
 
 open geometry set
-open_locale classical
 
 variables {𝕜 E : Type*}
 
 namespace geometry.simplicial_complex
 section ordered_ring
-variables [ordered_ring 𝕜] [add_comm_group E] [module 𝕜 E] {a b n : ℕ}
+variables [ordered_ring 𝕜] [add_comm_group E] [module 𝕜 E] {a b n k : ℕ}
   {K : simplicial_complex 𝕜 E} {s : finset E}
 
 /-- A simplicial complex is pure of dimension `n` iff all its faces have dimension less `n` and its
 facets have dimension `n`. -/
 def pure (K : simplicial_complex 𝕜 E) (n : ℕ) : Prop :=
-(∀ ⦃s : finset E⦄, s ∈ K → s.card ≤ n + 1) ∧ ∀ ⦃s : finset E⦄, s ∈ K.facets → s.card = n + 1
+(∀ ⦃s : finset E⦄, s ∈ K → s.card ≤ n + 1) ∧ K.facets.sized (n + 1)
 
 -- def full_dimensional (S : simplicial_complex 𝕜 E) : Prop := K.pure (S.dim + 1) hK,
 
-lemma bot_pure (n : ℕ) : (⊥ : simplicial_complex 𝕜 E).pure n := ⟨λ s hs, hs.elim, λ s hs, hs.1.elim⟩
 
 lemma pure.card_le (hK : K.pure n) (hs : s ∈ K) : s.card ≤ n + 1 := hK.1 hs
+lemma pure.sized_facets (hK : K.pure n) : K.facets.sized (n + 1) := hK.2
 
-lemma pure.is_wf (hK : K.pure n) : K.faces.is_wf :=
-begin
-  rw set.is_wf_iff_no_descending_seq,
-  rintro f hf,
-  sorry
-end
+lemma bot_pure (n : ℕ) : (⊥ : simplicial_complex 𝕜 E).pure n := ⟨λ s hs, hs.elim, λ s hs, hs.1.elim⟩
 
 lemma pure.exists_facet (hK : K.pure n) (hs : s ∈ K) : ∃ t ∈ K.facets, s ⊆ t :=
 begin
@@ -48,7 +42,7 @@ lemma pure.exists_face_of_card_le (hK : K.pure n) (h : k ≤ n + 1) (hs : s ∈ 
   ∃ t ∈ K, s ⊆ t ∧ t.card = k :=
 begin
   by_cases H : s ∈ K.facets,
-  { exact ⟨s, hs, subset.refl _, hcard.antisymm $ h.trans (hK.2 H).ge⟩ },
+  { exact ⟨s, hs, subset.rfl, hcard.antisymm $ h.trans (hK.2 H).ge⟩ },
   {
     unfold facets at H,
     simp at H,
@@ -84,7 +78,7 @@ lemma facets_mono {K₁ K₂ : simplicial_complex 𝕜 E} (h : K₁ ≤ K₂) (h
   K₁.facets ⊆ K₂.facets :=
 begin
   refine λ s hs, ⟨h hs.1, λ t ht hst, finset.eq_of_subset_of_card_le hst _⟩,
-  rw hK₁ hs,
+  rw hK₁.2 hs,
   exact hK₂.card_le ht,
 end
 

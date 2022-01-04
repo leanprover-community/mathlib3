@@ -37,6 +37,7 @@ variables {A B : set (finset α)} {r : ℕ}
 /-- `sized r A` means that every finset in `A` has size `r`. -/
 def sized (r : ℕ) (A : set (finset α)) : Prop := ∀ ⦃x⦄, x ∈ A → card x = r
 
+lemma sized_empty (r : ℕ) : (∅ : set (finset α)).sized r := λ s hs, hs.elim
 lemma sized.mono (h : A ⊆ B) (hB : B.sized r) : A.sized r := λ x hx, hB $ h hx
 
 lemma sized_union : (A ∪ B).sized r ↔ A.sized r ∧ B.sized r :=

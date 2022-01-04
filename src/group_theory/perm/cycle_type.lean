@@ -153,6 +153,26 @@ cycle_induction_on (λ τ : perm α, sign τ = (τ.cycle_type.map (λ n, -(-1 : 
     list.map_singleton, list.prod_singleton])
   (λ σ τ hστ hc hσ hτ, by rw [sign_mul, hσ, hτ, hστ.cycle_type, map_add, prod_add])
 
+lemma sign_of_cycle_type' (σ : perm α) :
+  σ.sign = (-1)^(σ.cycle_type.sum + σ.cycle_type.card) :=
+begin
+  rw equiv.perm.sign_of_cycle_type,
+  rw multiset.map_congr _,
+    swap,  exact λn,  (-1) * (-1)^n,
+    swap, { intros n h, rw units.neg_eq_neg_one_mul , },
+  rw multiset.prod_map_mul,
+  rw add_comm,
+  rw pow_add,
+  apply congr_arg2,
+  { rw ← multiset.prod_repeat ,
+    apply congr_arg,
+    rw multiset.map_const  },
+  generalize : σ.cycle_type = m,
+  apply multiset.induction_on m,
+    simp,
+    intros n m h, simp [h,pow_add],
+end
+
 lemma lcm_cycle_type (σ : perm α) : σ.cycle_type.lcm = order_of σ :=
 cycle_induction_on (λ τ : perm α, τ.cycle_type.lcm = order_of τ) σ
   (by rw [cycle_type_one, lcm_zero, order_of_one])

@@ -1230,9 +1230,9 @@ begin
   cases lt_or_gt_of_ne hne with h h,
   { rw log_lt hb hpos at h,
     exact not_le_of_lt h ((le_mul_left hv).trans (le_add_right _ _)) },
-  change _ < _ at h,
-  rw [←succ_le, le_log hb hpos] at h,
-  exact (not_lt_of_le h) (power_mul_add_lt_power_succ hvb hw)
+  { change _ < _ at h,
+    rw [←succ_le, le_log hb hpos] at h,
+    exact (not_lt_of_le h) (power_mul_add_lt_power_succ hvb hw) }
 end
 
 @[simp] theorem log_power {b : ordinal} (hb : 1 < b) (x : ordinal) : log b (b ^ x) = x :=

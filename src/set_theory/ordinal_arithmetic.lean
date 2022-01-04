@@ -1223,7 +1223,7 @@ else log_not_one_lt hb 1
 
 lemma power_mul_add_pos {b v : ordinal} (hb : 0 < b) (u) (hv : 0 < v) (w) :
   0 < b ^ u * v + w :=
-(power_pos u hb).trans_le ((le_mul_left hv).trans (le_add_right _ _))
+(power_pos u hb).trans_le ((le_mul_left _ hv).trans (le_add_right _ _))
 
 lemma power_mul_add_lt_power_mul_succ {b u w : ordinal} (v : ordinal) (hw : w < b ^ u) :
   b ^ u * v + w < b ^ u * v.succ :=
@@ -1243,7 +1243,7 @@ begin
   by_contra' hne,
   cases lt_or_gt_of_ne hne with h h,
   { rw log_lt hb hpos at h,
-    exact not_le_of_lt h ((le_mul_left hv).trans (le_add_right _ _)) },
+    exact not_le_of_lt h ((le_mul_left _ hv).trans (le_add_right _ _)) },
   { change _ < _ at h,
     rw [←succ_le, le_log hb hpos] at h,
     exact (not_lt_of_le h) (power_mul_add_lt_power_succ hvb hw) }

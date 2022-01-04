@@ -166,6 +166,9 @@ by rw [mul_comm, inv_mul_le_iff h]
 lemma mul_inv_le_iff' (h : 0 < b) : a * b⁻¹ ≤ c ↔ a ≤ c * b :=
 by rw [mul_comm, inv_mul_le_iff' h]
 
+lemma div_self_le_one (a : α) : a / a ≤ 1 :=
+if h : a = 0 then by simp [h] else by simp [h]
+
 lemma inv_mul_lt_iff (h : 0 < b) : b⁻¹ * a < c ↔ a < b * c :=
 begin
   rw [inv_eq_one_div, mul_comm, ← div_eq_mul_one_div],

@@ -145,6 +145,9 @@ protected lemma adj.ne {G : simple_graph V} {a b : V} (h : G.adj a b) : a ≠ b 
 
 protected lemma adj.ne' {G : simple_graph V} {a b : V} (h : G.adj a b) : b ≠ a := h.ne.symm
 
+lemma ne_of_adj_of_not_adj {v w x : V} (h : G.adj v x) (hn : ¬ G.adj w x) : v ≠ w :=
+λ h', hn (h' ▸ h)
+
 section order
 
 /-- The relation that one `simple_graph` is a subgraph of another.
@@ -278,7 +281,7 @@ def edge_set : set (sym2 V) := sym2.from_rel G.symm
 @[simp] lemma mem_edge_set : ⟦(v, w)⟧ ∈ G.edge_set ↔ G.adj v w := iff.rfl
 
 /--
-Two vertices are adjacent iff there is an edge between them.  The
+Two vertices are adjacent iff there is an edge between them. The
 condition `v ≠ w` ensures they are different endpoints of the edge,
 which is necessary since when `v = w` the existential
 `∃ (e ∈ G.edge_set), v ∈ e ∧ w ∈ e` is satisfied by every edge
@@ -450,6 +453,10 @@ instance decidable_mem_common_neighbors [decidable_rel G.adj] (v w : V) :
   decidable_pred (∈ G.common_neighbors v w) :=
 λ a, and.decidable
 
+lemma common_neighbors_top_eq {v w : V} :
+  (⊤ : simple_graph V).common_neighbors v w = set.univ \ {v, w} :=
+by { ext u, simp [common_neighbors, eq_comm, not_or_distrib.symm] }
+
 section incidence
 variable [decidable_eq V]
 
@@ -546,6 +553,8 @@ locally finite at `v`.
 -/
 def neighbor_finset : finset V := (G.neighbor_set v).to_finset
 
+lemma neighbor_finset_def : G.neighbor_finset v = (G.neighbor_set v).to_finset := rfl
+
 @[simp] lemma mem_neighbor_finset (w : V) :
   w ∈ G.neighbor_finset v ↔ G.adj v w :=
 set.mem_to_finset
@@ -605,11 +614,14 @@ A locally finite simple graph is regular of degree `d` if every vertex has degre
 -/
 def is_regular_of_degree (d : ℕ) : Prop := ∀ (v : V), G.degree v = d
 
-lemma is_regular_of_degree_eq {d : ℕ} (h : G.is_regular_of_degree d) (v : V) : G.degree v = d := h v
+variables {G}
 
-lemma is_regular_compl_of_is_regular [fintype V] [decidable_eq V]
-  (G : simple_graph V) [decidable_rel G.adj]
-  (k : ℕ) (h : G.is_regular_of_degree k) :
+lemma is_regular_of_degree.degree_eq {d : ℕ} (h : G.is_regular_of_degree d) (v : V) :
+  G.degree v = d := h v
+
+lemma is_regular_of_degree.compl [fintype V] [decidable_eq V]
+  {G : simple_graph V} [decidable_rel G.adj]
+  {k : ℕ} (h : G.is_regular_of_degree k) :
   Gᶜ.is_regular_of_degree (fintype.card V - 1 - k) :=
 by { intro v, rw [degree_compl, h v] }
 
@@ -626,6 +638,11 @@ lemma neighbor_finset_eq_filter {v : V} [decidable_rel G.adj] :
   G.neighbor_finset v = finset.univ.filter (G.adj v) :=
 by { ext, simp }
 
+lemma neighbor_finset_compl [decidable_eq V] [decidable_rel G.adj] (v : V) :
+  Gᶜ.neighbor_finset v = (G.neighbor_finset v)ᶜ \ {v} :=
+by simp only [neighbor_finset, neighbor_set_compl, set.to_finset_sdiff, set.to_finset_compl,
+    set.to_finset_singleton]
+
 @[simp]
 lemma complete_graph_degree [decidable_eq V] (v : V) :
   (⊤ : simple_graph V).degree v = fintype.card V - 1 :=
@@ -634,7 +651,13 @@ begin
   erw [degree, neighbor_finset_eq_filter, filter_ne, card_erase_of_mem (mem_univ v)],
 end
 
-lemma complete_graph_is_regular [decidable_eq V] :
+lemma bot_degree (v : V) : (⊥ : simple_graph V).degree v = 0 :=
+begin
+  erw [degree, neighbor_finset_eq_filter, filter_false],
+  exact finset.card_empty,
+end
+
+lemma is_regular_of_degree.top [decidable_eq V] :
   (⊤ : simple_graph V).is_regular_of_degree (fintype.card V - 1) :=
 by { intro v, simp }
 
@@ -675,11 +698,7 @@ defined to be a natural.
 lemma le_min_degree_of_forall_le_degree [decidable_rel G.adj] [nonempty V] (k : ℕ)
   (h : ∀ v, k ≤ G.degree v) :
   k ≤ G.min_degree :=
-begin
-  rcases G.exists_minimal_degree_vertex with ⟨v, hv⟩,
-  rw hv,
-  apply h
-end
+by { rcases G.exists_minimal_degree_vertex with ⟨v, hv⟩, rw hv, apply h }
 
 /--
 The maximum degree of all vertices (and `0` if there are no vertices).
@@ -791,6 +810,18 @@ begin
     { simpa, },
     { rw [neighbor_finset, ← set.subset_iff_to_finset_subset],
       exact G.common_neighbors_subset_neighbor_set_left _ _ } }
+end
+
+lemma card_common_neighbors_top [decidable_eq V] {v w : V} (h : v ≠ w) :
+  fintype.card ((⊤ : simple_graph V).common_neighbors v w) = fintype.card V - 2 :=
+begin
+  simp only [common_neighbors_top_eq, ← set.to_finset_card, set.to_finset_sdiff],
+  rw finset.card_sdiff,
+  { congr' 1,
+    { simp_rw [← finset.card_univ, ← set.to_finset_univ],
+      congr, },
+    { simp [h], } },
+  { simp only [←set.subset_iff_to_finset_subset, set.subset_univ] },
 end
 
 end finite

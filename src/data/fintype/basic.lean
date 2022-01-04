@@ -1299,8 +1299,9 @@ by { ext, simp [finset.mem_powerset_len] }
   fintype.card {s : finset α // s.card = k} = nat.choose (fintype.card α) k :=
 by simp [fintype.subtype_card, finset.card_univ]
 
-@[simp] lemma set.to_finset_univ [hu : fintype (set.univ : set α)] [fintype α] :
-  @set.to_finset _ (set.univ : set α) hu = finset.univ :=
+/- TODO Removing the explicit universe variable results in an elaboration bug. -/
+@[simp] lemma set.to_finset_univ {α : Type u} [fintype.{u} (set.univ : set α)] [fintype α] :
+  (set.univ : set α).to_finset = finset.univ :=
 by { ext, simp only [set.mem_univ, mem_univ, set.mem_to_finset] }
 
 @[simp] lemma set.to_finset_eq_empty_iff {s : set α} [fintype s] :

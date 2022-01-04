@@ -83,7 +83,9 @@ class is_directed (α : Type*) (r : α → α → Prop) : Prop :=
 (directed (a b : α) : ∃ c, r a c ∧ r b c)
 
 lemma directed_of (r : α → α → Prop) [is_directed α r] (a b : α) : ∃ c, r a c ∧ r b c :=
-lemma directed_id [is_directed α r] : directed r id := directed_of r
+is_directed.directed _ _
+
+lemma directed_id [is_directed α r] : directed r id := by convert directed_of r
 lemma directed_id_iff_is_directed : directed r id ↔ is_directed α r := ⟨λ h, ⟨h⟩, @directed_id _ _⟩
 
 @[priority 100]  -- see Note [lower instance priority]

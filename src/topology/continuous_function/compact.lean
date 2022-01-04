@@ -431,7 +431,6 @@ lemma summable_of_locally_summable_norm {ι : Type*} {F : ι → C(X, E)}
   (hF : ∀ K : set X, compact_space K → by exactI summable (λ i, ∥(F i).restrict K∥)) :
   summable F :=
 begin
-  classical,
   simp only [summable, has_sum] at ⊢ hF,
   rw continuous_map.exists_tendsto_compact_open_iff_forall,
   intros K hK,

@@ -42,9 +42,9 @@ variables {R : Type*} [comm_ring R]
 def cross_product : (fin 3 → R) →ₗ[R] (fin 3 → R) →ₗ[R] (fin 3 → R) :=
 begin
   apply linear_map.mk₂ R (λ (a b : fin 3 → R),
-    ![ (a 1)*(b 2) - (a 2)*(b 1) ,
-       (a 2)*(b 0) - (a 0)*(b 2) ,
-       (a 0)*(b 1) - (a 1)*(b 0) ]);
+    ![a 1 * b 2 - a 2 * b 1,
+      a 2 * b 0 - a 0 * b 2,
+      a 0 * b 1 - a 1 * b 0]);
   intros;
   simp only [vec3_add,
     pi.add_apply, smul_eq_mul, matrix.smul_cons, matrix.smul_empty, pi.smul_apply];
@@ -55,10 +55,9 @@ end
 localized "infixl ` ×₃ `: 68 := cross_product" in vectors
 
 lemma cross_product_apply (a b : fin 3 → R) :
-  a ×₃ b =
-    ![ (a 1)*(b 2) - (a 2)*(b 1) ,
-       (a 2)*(b 0) - (a 0)*(b 2) ,
-       (a 0)*(b 1) - (a 1)*(b 0) ] :=
+  a ×₃ b = ![a 1 * b 2 - a 2 * b 1,
+             a 2 * b 0 - a 0 * b 2,
+             a 0 * b 1 - a 1 * b 0] :=
 rfl
 
 lemma cross_product_anticomm (v w : fin 3 → R) :

@@ -26,6 +26,7 @@ In this file we define the cycle type of a permutation.
 - `lcm_cycle_type` : The lcm of `σ.cycle_type` equals `order_of σ`
 - `is_conj_iff_cycle_type_eq` : Two permutations are conjugate if and only if they have the same
   cycle type.
+- `sign_of_cycle_type` : Computes the signature of a permutation from its cycle type
 * `exists_prime_order_of_dvd_card`: For every prime `p` dividing the order of a finite group `G`
   there exists an element of order `p` in `G`. This is known as Cauchy`s theorem.
 -/
@@ -145,6 +146,7 @@ cycle_induction_on (λ τ : perm α, τ.cycle_type.sum = τ.support.card) σ
   (λ σ hσ, by rw [hσ.cycle_type, coe_sum, list.sum_singleton])
   (λ σ τ hστ hc hσ hτ, by rw [hστ.cycle_type, sum_add, hσ, hτ, hστ.card_support_mul])
 
+/-- Signature of a permutation, from its cycle type -/
 lemma sign_of_cycle_type (σ : perm α) :
   sign σ = (σ.cycle_type.map (λ n, -(-1 : units ℤ) ^ n)).prod :=
 cycle_induction_on (λ τ : perm α, sign τ = (τ.cycle_type.map (λ n, -(-1 : units ℤ) ^ n)).prod) σ

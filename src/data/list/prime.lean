@@ -57,7 +57,7 @@ begin
 end
 
 lemma perm_of_prod_eq_prod : ∀ {l₁ l₂ : list M}, l₁.prod = l₂.prod →
-  (∀ p ∈ l₁, prime p) → (∀ p ∈ l₂, prime p) → list.perm l₁ l₂
+  (∀ p ∈ l₁, prime p) → (∀ p ∈ l₂, prime p) → perm l₁ l₂
 | []        []        _  _  _  := perm.nil
 | []        (a :: l)  h₁ h₂ h₃ :=
   have ha : a ∣ 1 := @prod_nil M _ ▸ h₁.symm ▸ (@prod_cons _ _ l a).symm ▸ dvd_mul_right _ _,

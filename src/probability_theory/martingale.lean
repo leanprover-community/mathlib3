@@ -319,10 +319,10 @@ variables {𝒢 : filtration ℕ m0} [sigma_finite_filtration μ 𝒢]
 
 namespace submartingale
 
-lemma stopped_value_integrable {f : ℕ → α → ℝ} (hf : submartingale f 𝒢 μ) {τ : α → ℕ}
+lemma integrable_stopped_value {f : ℕ → α → ℝ} (hf : submartingale f 𝒢 μ) {τ : α → ℕ}
   (hτ : is_stopping_time 𝒢 τ) {N : ℕ} (hbdd : ∀ x, τ x ≤ N) :
   integrable (stopped_value f τ) μ :=
-stopped_value_integrable hf.integrable hτ hbdd
+integrable_stopped_value hτ hf.integrable hbdd
 
 /-- Given a submartingale `f` and bounded stopping times `τ` and `π` such that `τ ≤ π`, the
 expectation of `stopped_value f τ` is less or equal to the expectation of `stopped_value f π`.
@@ -350,8 +350,8 @@ begin
     intros i hi,
     exact integrable.indicator (integrable.sub (hf.integrable _) (hf.integrable _))
       (𝒢.le _ _ (this _)) },
-  { exact hf.stopped_value_integrable hπ hbdd },
-  { exact hf.stopped_value_integrable hτ (λ x, le_trans (hle x) (hbdd x)) }
+  { exact hf.integrable_stopped_value hπ hbdd },
+  { exact hf.integrable_stopped_value hτ (λ x, le_trans (hle x) (hbdd x)) }
 end
 
 end submartingale

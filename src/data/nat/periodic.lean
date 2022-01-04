@@ -88,9 +88,6 @@ begin
       { rw [nat.add_mul_mod_self_left, nat.mod_eq_of_lt hia], } } }
 end
 
--- move this (and generalize)
-@[simp] lemma finset.Ico_val (a b : ℕ) : (Ico a b).val = multiset.Ico a b := rfl
-
 end finset
 
 section multiset

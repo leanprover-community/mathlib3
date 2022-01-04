@@ -44,7 +44,7 @@ Additionally, let `f` be a function from `E` to `F`.
   `f (x + y) = ∑'_n pₙ yⁿ`.
 * `has_fpower_series_at f p x`: on some ball of center `x` with positive radius, holds
   `has_fpower_series_on_ball f p x r`.
-* `_at 𝕜 f x`: there exists a power series `p` such that holds
+* `analytic_at 𝕜 f x`: there exists a power series `p` such that holds
   `has_fpower_series_at f p x`.
 
 We develop the basic properties of these notions, notably:

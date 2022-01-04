@@ -83,9 +83,9 @@ lemma prod_map_mul {m : multiset ι} {f g : ι → α} :
 multiset.induction_on m (by simp) (λ a m ih, by simp [ih]; cc)
 
 @[simp]
-lemma prod_pow_eq_pow_sum {m : multiset ℕ} {a : α} :
-  (multiset.map (λ n, a^n) m).prod = a ^ (m.sum) :=
-multiset.induction_on m (by simp) (λ n m h, by simp [h,pow_add])
+lemma prod_map_pow {m : multiset ι} {f : ι → ℕ} {a : α} :
+  (multiset.map (λ i, a ^ (f i)) m).prod = a ^ ((multiset.map f m).sum) :=
+multiset.induction_on m (by simp) (λ n m ih, by simp [ih, pow_add])
 
 @[to_additive]
 lemma prod_map_prod_map (m : multiset β) (n : multiset γ) {f : β → γ → α} :
@@ -181,6 +181,11 @@ variables [comm_group α]
 @[simp, to_additive]
 lemma prod_map_inv (m : multiset α) : (m.map has_inv.inv).prod = m.prod⁻¹ :=
 m.prod_hom comm_group.inv_monoid_hom
+
+@[simp]
+lemma prod_map_zpow {m : multiset ι} {f : ι → ℤ} {a : α} :
+  (multiset.map (λ i, a ^ (f i)) m).prod = a ^ ((multiset.map f m).sum) :=
+multiset.induction_on m (by simp) (λ n m ih, by simp [ih, pow_add])
 
 end comm_group
 

@@ -163,7 +163,7 @@ begin
     λ n h, units.neg_eq_neg_one_mul _,
   rw [equiv.perm.sign_of_cycle_type, multiset.map_congr aux, multiset.prod_map_mul,
     add_comm, pow_add, multiset.map_const, multiset.prod_repeat, mul_right_inj],
-  refine multiset.prod_pow_eq_pow_sum,
+  refine multiset.prod_map_pow,
 end
 
 lemma lcm_cycle_type (σ : perm α) : σ.cycle_type.lcm = order_of σ :=

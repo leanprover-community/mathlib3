@@ -926,8 +926,7 @@ basis.mk (linear_independent_span hli) $
 begin
   rw eq_top_iff,
   intros x _,
-  have h₁ : (coe : {x // x ∈ span R (range v)} → M) '' set.range (λ i, subtype.mk (v i) _)
-    = range v,
+  have h₁ : (coe : span R (range v) → M) '' set.range (λ i, subtype.mk (v i) _) = range v,
   { rw ← set.range_comp,
     refl },
   have h₂ : map (submodule.subtype _) (span R (set.range (λ i, subtype.mk (v i) _)))

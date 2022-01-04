@@ -356,7 +356,8 @@ begin
   from set.eq_of_subset_of_card_le (this.subset_extend _)
     (by rw [set.card_image_of_injective _ subtype.coe_injective, ← finrank_eq_card_basis bS,
          ← finrank_eq_card_basis b, h]; apply_instance),
-  rw [← b.span_eq, b_eq, basis.coe_extend, subtype.range_coe, ← this, ← coe_subtype, span_image],
+  rw [← b.span_eq, b_eq, basis.coe_extend, subtype.range_coe, ← this, ← submodule.coe_subtype,
+    span_image],
   have := bS.span_eq,
   rw [bS_eq, basis.coe_of_vector_space, subtype.range_coe] at this,
   rw [this, map_top (submodule.subtype S), range_subtype],

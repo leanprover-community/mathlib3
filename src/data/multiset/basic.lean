@@ -1744,6 +1744,20 @@ end
 lemma filter_eq (s : multiset α) (b : α) : s.filter (eq b) = repeat b (count b s) :=
 by { simp_rw [←filter_eq', eq_comm], congr }
 
+lemma card_filter_eq_count (s : multiset α) (p : α → Prop) [decidable_pred p] :
+  (s.filter p).card = (s.map p).count true :=
+begin
+  apply s.induction_on; clear s,
+  { simp only [filter_zero, card_zero, count_zero, map_zero], },
+  intros a s ih,
+  simp only [filter_cons, map_cons, count_cons],
+  by_cases hpa : p a,
+  { rw [if_pos hpa, card_add, card_singleton, ih, add_comm, if_pos],
+    simp only [hpa], },
+  { rw [if_neg hpa, zero_add, ih, if_neg, add_zero],
+    simp only [hpa, eq_iff_iff, iff_false, not_not], },
+end
+
 end
 
 /-! ### Lift a relation to `multiset`s -/

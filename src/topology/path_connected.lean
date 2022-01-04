@@ -884,6 +884,13 @@ begin
   exact (by simpa using hx : path_component x = univ) ▸ path_component_subset_component x
 end
 
+lemma is_path_connected.is_connected (hF : is_path_connected F) : is_connected F :=
+begin
+  rw is_connected_iff_connected_space,
+  rw is_path_connected_iff_path_connected_space at hF,
+  exact @path_connected_space.connected_space _ _ hF
+end
+
 namespace path_connected_space
 variables [path_connected_space X]
 

@@ -83,7 +83,7 @@ example :
     multiplicative.mul_one_class :=
 rfl
 
--- `dunfold` can still cbreak unification, but it's better to have `dunfold` break it than have the
+-- `dunfold` can still break unification, but it's better to have `dunfold` break it than have the
 -- above example fail.
 example :
   @monoid.to_mul_one_class (multiplicative ℕ) (comm_monoid.to_monoid _) =
@@ -91,7 +91,8 @@ example :
 begin
   dunfold has_one.one multiplicative.mul_one_class,
   success_if_fail { refl, },
-  sorry
+  ext,
+  refl
 end
 
 end multiplicative

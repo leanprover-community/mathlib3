@@ -276,38 +276,43 @@ variables [algebra R A] [decidable_eq ι] [add_comm_monoid ι]
 variables (𝒜 : ι → submodule R A) [graded_algebra 𝒜]
 variable (I : ideal A)
 
-lemma ideal.homogeneous_core.eq_Sup [Π (i : ι) (x : 𝒜 i), decidable (x ≠ 0)] :
-  I.homogeneous_core 𝒜 = Sup { J : ideal A | J.is_homogeneous 𝒜 ∧ J ≤ I } :=
+lemma ideal.homogeneous_core.gc :
+  galois_connection
+    (subtype.val : homogeneous_ideal 𝒜 → ideal A)
+    (λ I, ⟨I.homogeneous_core 𝒜, I.is_homogeneous_homogeneous_core 𝒜⟩ :
+      ideal A → homogeneous_ideal 𝒜) :=
+λ I J, ⟨
+  λ H, show I.1 ≤ ideal.homogeneous_core 𝒜 J, begin
+    rw I.2.homogeneous_core_eq_self,
+    exact ideal.homogeneous_core_is_mono 𝒜 H,
+  end,
+  λ H, le_trans H (ideal.homogeneous_core_le_ideal _ _)⟩
+
+/--There is a galois coinsertion between homogeneous ideals and ideals via
+`(λ I, I.1)` and `ideal.homogeneous_core`-/
+def ideal.homogeneous_core.gi :
+  galois_coinsertion
+    (subtype.val : homogeneous_ideal 𝒜 → ideal A)
+    (λ I, ⟨I.homogeneous_core 𝒜, I.is_homogeneous_homogeneous_core 𝒜⟩ :
+      ideal A → homogeneous_ideal 𝒜) :=
+{ choice := λ I HI, ⟨I, begin
+    have eq : I = I.homogeneous_core 𝒜,
+    refine le_antisymm HI _,
+    apply (ideal.homogeneous_core_le_ideal 𝒜 I),
+    rw eq, apply ideal.is_homogeneous_homogeneous_core,
+  end⟩,
+  gc := ideal.homogeneous_core.gc 𝒜,
+  u_l_le := λ I, by apply ideal.homogeneous_core_le_ideal,
+  choice_eq := λ I H, le_antisymm H (I.homogeneous_core_le_ideal _) }
+
+lemma ideal.homogeneous_core_eq_Sup :
+  I.homogeneous_core 𝒜 = Sup {J : ideal A | J.is_homogeneous 𝒜 ∧ J ≤ I} :=
 begin
-  ext, split; intros hx,
-  { rw [ideal.homogeneous_core, ideal.span, mem_span_set] at hx,
-    obtain ⟨c, hc1, hc2⟩ := hx,
-    rw ←hc2, refine ideal.sum_mem _ _,
-    intros r hc, dsimp only, rw [smul_eq_mul], refine ideal.mul_mem_left _ _ _,
-    have hr0 := hc1 hc, rw [mem_image] at hr0,
-    have hr1 : is_homogeneous 𝒜 r,
-    { obtain ⟨⟨x, ⟨k, hx1⟩⟩, hx2, rfl⟩ := hr0,
-      use k, exact hx1, },
-    obtain ⟨i, hi⟩ := hr1,
-    have mem1 : ideal.span {r} ∈ {J : ideal A | ideal.is_homogeneous 𝒜 J ∧ J ≤ I},
-    { split, rw ideal.is_homogeneous.iff_exists,
-      refine ⟨{(⟨r, ⟨i, hi⟩⟩ : homogeneous_submonoid 𝒜)}, _⟩,
-      congr, simp only [image_singleton, subtype.coe_mk], rw ideal.span_le,
-      simp only [mem_coe, singleton_subset_iff],
-      { obtain ⟨⟨x, ⟨k, hx1⟩⟩, hx2, rfl⟩ := hr0,  rw mem_preimage at hx2, exact hx2, }, },
-    apply ideal.mem_Sup_of_mem mem1, rw ideal.mem_span_singleton },
-  { have hom1 := I.is_homogeneous_homogeneous_core 𝒜,
-    have hom2 : ideal.is_homogeneous 𝒜 (Sup {J : ideal A | ideal.is_homogeneous 𝒜 J ∧ J ≤ I}),
-    { apply ideal.is_homogeneous.Sup, rintros J ⟨HJ1, HJ2⟩, exact HJ1, },
-    rw [ideal.homogeneous_core, ideal.mem_span],
-    unfold has_Sup.Sup at hx, unfold conditionally_complete_lattice.Sup at hx,
-    unfold complete_lattice.Sup at hx, rw ideal.mem_Inf at hx,
-    intros J HJ, apply hx, rintro K ⟨HK1, HK2⟩, intros r hr,
-    rw ←graded_algebra.sum_support_decompose 𝒜 r, refine ideal.sum_mem _ _,
-    intros i hi, apply HJ,
-    rw mem_image,
-    refine ⟨⟨graded_algebra.decompose 𝒜 r i, ⟨i, submodule.coe_mem _⟩⟩, _, rfl⟩,
-    rw mem_preimage, apply HK2, apply HK1, exact hr, }
+  refine (is_lub.Sup_eq _).symm,
+  apply is_greatest.is_lub,
+  have coe_mono : monotone (coe : {I : ideal A // I.is_homogeneous 𝒜} → ideal A) := λ _ _, id,
+  convert coe_mono.map_is_greatest (ideal.homogeneous_core.gc 𝒜).is_greatest_u using 1,
+  simp only [subtype.coe_image, exists_prop, mem_set_of_eq, subtype.coe_mk],
 end
 
 end homogeneous_core
@@ -402,17 +407,6 @@ lemma ideal.homgeneous_hull.gc :
     exact ideal.homogeneous_hull_is_mono 𝒜 H,
   end ⟩
 
-lemma ideal.homogeneous_core.gc :
-  galois_connection
-    (subtype.val : homogeneous_ideal 𝒜 → ideal A)
-    (λ I, ⟨I.homogeneous_core 𝒜, I.is_homogeneous_homogeneous_core 𝒜⟩ :
-      ideal A → homogeneous_ideal 𝒜) :=
-λ I J, ⟨
-  λ H, show I.1 ≤ ideal.homogeneous_core 𝒜 J, begin
-    rw I.2.homogeneous_core_eq_self,
-    exact ideal.homogeneous_core_is_mono 𝒜 H,
-  end,
-  λ H, le_trans H (ideal.homogeneous_core_le_ideal _ _)⟩
 
 /--There is a galois insertion between homogeneous ideals and ideals via
 `ideal.homgeneous_hull A` and `(λ I, I.1)`-/
@@ -432,22 +426,5 @@ def ideal.homogeneous_hull.gi :
   choice_eq := λ I H, begin
     refine le_antisymm _ H, apply ideal.ideal_le_homogeneous_hull,
   end }
-
-/--There is a galois coinsertion between homogeneous ideals and ideals via
-`(λ I, I.1)` and `ideal.homogeneous_core`-/
-def ideal.homogeneous_core.gi :
-  galois_coinsertion
-    (subtype.val : homogeneous_ideal 𝒜 → ideal A)
-    (λ I, ⟨I.homogeneous_core 𝒜, I.is_homogeneous_homogeneous_core 𝒜⟩ :
-      ideal A → homogeneous_ideal 𝒜) :=
-{ choice := λ I HI, ⟨I, begin
-    have eq : I = I.homogeneous_core 𝒜,
-    refine le_antisymm HI _,
-    apply (ideal.homogeneous_core_le_ideal 𝒜 I),
-    rw eq, apply ideal.is_homogeneous_homogeneous_core,
-  end⟩,
-  gc := ideal.homogeneous_core.gc 𝒜,
-  u_l_le := λ I, by apply ideal.homogeneous_core_le_ideal,
-  choice_eq := λ I H, le_antisymm H (I.homogeneous_core_le_ideal _) }
 
 end galois_connection

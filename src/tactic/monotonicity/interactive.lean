@@ -62,7 +62,7 @@ do fn  ← pp ctx.function,
    l   ← pp ctx.left,
    r   ← pp ctx.right,
    rel ← pp ctx.rel_def,
-   return format!"{{ function := {fn}\n, left  := {l}\n, right := {r}\n, rel_def := {rel} }"
+   return format!"{{ function := {fn}\n, left  := {l}\n, right := {r}\n, rel_def := {rel} }}"
 
 meta instance has_to_tactic_format_mono_ctx : has_to_tactic_format ac_mono_ctx :=
 { to_tactic_format := ac_mono_ctx.to_tactic_format }

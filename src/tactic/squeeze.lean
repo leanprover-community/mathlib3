@@ -50,7 +50,7 @@ do r ← e.get_structure_instance_info,
      r.field_names r.field_values,
    let ss := r.sources.map (λ s, format!" .. {s}"),
    let x : format := format.join $ list.intersperse ", " (fs ++ ss),
-   pure format!" {{{x}}"
+   pure format!" {{{x}}}"
 
 /-- Attribute containing a table that accumulates multiple `squeeze_simp` suggestions -/
 @[user_attribute]

@@ -1728,11 +1728,7 @@ end
 lemma diff_sum_subset_of_nonneg {f : ι → ℝ} (hf : ∀ i, 0 ≤ f i) {s₁ s₂ : finset ι} (hs : s₂ ⊆ s₁) :
   |∑ i in s₁, f i - ∑ i in s₂, f i| = ∑ i in s₁ \ s₂, f i :=
 begin
-  rw [finset.sum_sub_sum],
-  have : ∑ i in s₂ \ s₁, f i = 0,
-  { have : s₂ \ s₁ = ∅ := by rwa finset.sdiff_eq_empty_iff_subset,
-    simp [this] },
-  rw [this, sub_zero, _root_.abs_of_nonneg],
+  rw [← finset.sum_sdiff hs, add_tsub_cancel_right, _root_.abs_of_nonneg],
   apply finset.sum_nonneg,
   exact λ _ _, hf _
 end

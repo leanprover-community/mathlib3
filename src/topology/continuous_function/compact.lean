@@ -423,4 +423,28 @@ end
 
 end comp_right
 
+section weierstrass
+variables {X : Type*} [topological_space X] [t2_space X] [locally_compact_space X]
+variables {E : Type*} [normed_group E] [complete_space E]
+
+/-- **Weierstrass M-test** -/
+lemma summable_of_locally_summable_norm {ι : Type*} {F : ι → C(X, E)}
+  (hF : ∀ K : set X, compact_space K → by exactI summable (λ i, ∥(F i).restrict K∥)) :
+  summable F :=
+begin
+  classical,
+  change ∃ _, tendsto _ _ _,
+  rw continuous_map.exists_tendsto_compact_open_iff_forall,
+  intros K hK,
+  rw is_compact_iff_compact_space at hK,
+  resetI,
+  obtain ⟨f, (hf : tendsto _ _ _)⟩ := summable_of_summable_norm (hF K hK),
+  use f,
+  convert hf,
+  ext s,
+  simp,
+end
+
+end weierstrass
+
 end continuous_map

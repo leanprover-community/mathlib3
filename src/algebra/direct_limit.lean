@@ -33,7 +33,7 @@ open submodule
 
 variables {R : Type u} [ring R]
 variables {ι : Type v}
-variables [dec_ι : decidable_eq ι] [is_directed ι (≤)]
+variables [dec_ι : decidable_eq ι] [preorder ι] [is_directed ι (≤)]
 variables (G : ι → Type w)
 
 /-- A directed system is a functor from a category (directed poset) to another category. -/

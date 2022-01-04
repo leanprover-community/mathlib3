@@ -101,11 +101,13 @@ directed_of (≤) a b
 lemma exists_le_le [has_le α] [is_directed α (swap (≤))] (a b : α) : ∃ c, c ≤ a ∧ c ≤ b :=
 directed_of (swap (≤)) a b
 
-instance order_dual.is_directed_ge [has_le α] [is_directed α (≤)] : is_directed α (swap (≤)) :=
-‹is_directed α (≤)›
+instance order_dual.is_directed_ge [has_le α] [is_directed α (≤)] :
+  is_directed (order_dual α) (swap (≤)) :=
+by assumption
 
-instance order_dual.is_directed_le [has_le α] [is_directed α (swap (≤))] : is_directed α (≤) :=
-‹is_directed α (swap (≤))›
+instance order_dual.is_directed_le [has_le α] [is_directed α (swap (≤))] :
+  is_directed (order_dual α) (≤) :=
+by assumption
 
 @[priority 100]  -- see Note [lower instance priority]
 instance semilattice_sup.to_is_directed_le [semilattice_sup α] : is_directed α (≤) :=

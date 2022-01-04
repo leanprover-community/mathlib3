@@ -23,5 +23,6 @@ multiset.induction_on s.1 (let ⟨z⟩ := hι in ⟨z, λ _, false.elim⟩) $
   (λ h, h.symm ▸ h₁)
   (λ h, trans (H _ h) h₂)⟩
 
-lemma finset.exists_le [nonempty α] [is_directed α (≤)] (s : finset α) : ∃ M, ∀ i ∈ s, i ≤ M :=
+lemma finset.exists_le [nonempty α] [preorder α] [is_directed α (≤)] (s : finset α) :
+  ∃ M, ∀ i ∈ s, i ≤ M :=
 directed_id.finset_le

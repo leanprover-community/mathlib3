@@ -1146,7 +1146,7 @@ open set
 --           end,
 -- end
 
--- lemma power_conversion_2 (n : ℕ) (n_large : 1003 < n) : (2 * n) ^ nat.sqrt (2 * n) ≤ 4 ^ (n / 4) :=
+-- lemma power_conversion_2 (n : ℕ) (n_large : 1024 < n) : (2 * n) ^ nat.sqrt (2 * n) ≤ 4 ^ (n / 4) :=
 -- begin
 --   have : 250 ≤ n / 4,
 --     { cases le_or_gt 250 (n / 4),
@@ -1209,7 +1209,7 @@ open set
 -- end
 
 
--- lemma false_inequality_is_false {n : ℕ} (n_large : 1003 < n)
+-- lemma false_inequality_is_false {n : ℕ} (n_large : 1024 < n)
 --   : 4 ^ n < (2 * n + 1) * (2 * n) ^ (nat.sqrt (2 * n)) * 4 ^ (2 * n / 3 + 1) → false :=
 -- begin
 --   rw imp_false,
@@ -1242,10 +1242,14 @@ open set
 
 example (a b c : ℝ) (hc : 0 < c) : a ≤ b ↔ a / c ≤ b / c := (div_le_div_right hc).symm
 
+example (a b c : ℝ) (hc : 0 < c) : a / b / c = a / (b * c) := div_div_eq_div_mul a b c
+
 lemma one_lt_four : (1 : ℝ) < 4 := by linarith
 
+lemma log_four_pos : 0 < log 4 := log_pos one_lt_four
 
-lemma inequality1 {x : ℝ} (n_large : 1003 < x) : log (2 * x + 1) / (x * log 4) ≤ 1/30 :=
+
+lemma inequality1 {x : ℝ} (n_large : 1024 < x) : log (2 * x + 1) / (x * log 4) ≤ 1/30 :=
 begin
   suffices : log (4 * x) / (x * log 4) ≤ 1 / 30,
   apply trans _ this,
@@ -1259,7 +1263,7 @@ begin
   rw log_mul,
   rw add_div,
   have h4 : 0 < x,
-    linarith,
+    linarith only [n_large],
   have x_ne_zero : x ≠ 0, exact ne_of_gt h4,
   have h1: log 4 ≠ 0 := real.log_ne_zero_of_pos_of_ne_one (by norm_num) (by norm_num),
   have h2: log 4 * sqrt x ≠ 0, apply mul_ne_zero h1, exact sqrt_ne_zero'.mpr h4,
@@ -1268,7 +1272,35 @@ begin
     field_simp,
   ring,
   rw h3,
-  sorry,
+  calc 1 / x + log x / x / log 4 ≤ 1 / 1024 + log x / x / log 4 :
+          begin
+            simp,
+            rw inv_le,
+            simp,
+            apply le_of_lt,
+            assumption,
+            exact h4,
+            norm_num,
+          end
+  ... ≤ 1 / 1024 + log 1024 / 1024 / log 4 :
+          begin
+            simp,
+            rw div_le_div_right,
+            apply log_div_self_antitone_on,
+            simp,
+            linarith only [exp_one_lt_d9],
+            simp,
+            linarith only [exp_one_lt_d9, n_large],
+            exact le_of_lt n_large,
+            exact log_four_pos,
+          end
+  ... ≤ 1 / 30 :
+          begin
+            rw div_div_eq_div_mul,
+            rw mul_comm,
+            rw <-div_div_eq_div_mul,
+            -- TODO log_base
+          end,
   norm_num1,
   linarith,
 
@@ -1289,7 +1321,7 @@ calc (4 : ℝ) = 2 ^ (2 : ℕ) : by {norm_num,}
 --   library_search,
 -- end
 
-lemma inequality2 {x : ℝ} (n_large : 1003 < x) : sqrt 2 * sqrt x * log 2 / (x * log 4) ≤ 0.04 :=
+lemma inequality2 {x : ℝ} (n_large : 1024 < x) : sqrt 2 * sqrt x * log 2 / (x * log 4) ≤ 0.04 :=
 begin
   rw div_le_iff,
   rw <-mul_assoc,
@@ -1326,7 +1358,7 @@ begin
 
 end
 
-lemma inequality3' {x : ℝ} (n_large : 1003 < x) : sqrt 2 * sqrt x * log x / (x * log 4) = (sqrt 2 / log 4) * log x / sqrt x :=
+lemma inequality3' {x : ℝ} (n_large : 1024 < x) : sqrt 2 * sqrt x * log x / (x * log 4) = (sqrt 2 / log 4) * log x / sqrt x :=
 begin
   have h : x ≠ 0,
   { apply ne_of_gt,
@@ -1343,14 +1375,14 @@ begin
   linarith,
 end
 
-lemma inequality3 {x : ℝ} (n_large : 1003 < x) : sqrt 2 * sqrt x * log x / (x * log 4) ≤ 1/4 :=
+lemma inequality3 {x : ℝ} (n_large : 1024 < x) : sqrt 2 * sqrt x * log x / (x * log 4) ≤ 1/4 :=
 begin
   rw [inequality3' n_large],
   -- Get the log x in the second term to be 2 log sqrt x. and split the 1/x i n that term to
   sorry
 end
 
-lemma equality4 {x : ℝ} (n_large : 1003 < x) : 2 * x / 3 * log 4 / (x * log 4) = 2 / 3 :=
+lemma equality4 {x : ℝ} (n_large : 1024 < x) : 2 * x / 3 * log 4 / (x * log 4) = 2 / 3 :=
 begin
   have h : x ≠ 0,
   { apply ne_of_gt,
@@ -1360,7 +1392,7 @@ begin
   ring,
 end
 
--- lemma inequality5 {x : ℝ} (n_large : 1003 < x) : log 4 / (x * log 4) ≤ 0.001 :=
+-- lemma inequality5 {x : ℝ} (n_large : 1024 < x) : log 4 / (x * log 4) ≤ 0.001 :=
 -- begin
 --   have h : x ≠ 0,
 --   { apply ne_of_gt,
@@ -1377,7 +1409,7 @@ end
 -- end
 
 
-lemma real_false_inequality_is_false {x : ℝ} (n_large : (1003 : ℝ) < x)
+lemma real_false_inequality_is_false {x : ℝ} (n_large : (1024 : ℝ) < x)
   : (2 * x + 1) * (2 * x) ^ (real.sqrt (2 * x)) * 4 ^ (2 * x / 3) < 4 ^ x :=
 begin
   apply (log_lt_log_iff _ _).1,
@@ -1401,7 +1433,7 @@ end
 
 
 -- Take the approach of immediately reifying
-lemma false_inequality_is_false {n : ℕ} (n_large : 1003 < n)
+lemma false_inequality_is_false {n : ℕ} (n_large : 1024 < n)
   : 4 ^ n ≤ (2 * n + 1) * (2 * n) ^ (nat.sqrt (2 * n)) * 4 ^ (2 * n / 3) → false :=
 begin
   rw imp_false,
@@ -1441,7 +1473,7 @@ begin
             rw mul_le_mul_left,
             apply rpow_le_rpow_of_exponent_le,
             rw <-@nat.cast_lt ℝ at n_large,
-            have h : (1003) < (n : ℝ), convert n_large, simp,
+            have h : (1024) < (n : ℝ), convert n_large, simp,
             linarith,
             rw le_sqrt,
             -- have two_is_two : (2 : ℝ) = ((2 : ℕ) : ℝ),
@@ -1487,7 +1519,7 @@ begin
           begin
             apply real_false_inequality_is_false,
             rw <-@nat.cast_lt ℝ at n_large,
-            have h : (1003) < (n : ℝ), convert n_large, simp,
+            have h : (1024) < (n : ℝ), convert n_large, simp,
             linarith,
           end,
 end
@@ -1607,7 +1639,7 @@ begin
 
 end
 
-lemma bertrand_eventually (n : nat) (n_big : 1003 < n) : ∃ p, nat.prime p ∧ n < p ∧ p ≤ 2 * n :=
+lemma bertrand_eventually (n : nat) (n_big : 1024 < n) : ∃ p, nat.prime p ∧ n < p ∧ p ≤ 2 * n :=
 begin
   by_contradiction no_prime,
 
@@ -1872,11 +1904,11 @@ end
 /-- Bertrand's Postulate: For any positive natural number, there is a prime which is greater than it, but no more than twice as large. -/
 theorem bertrand (n : nat) (n_pos : 0 < n) : ∃ p, nat.prime p ∧ n < p ∧ p ≤ 2 * n :=
 begin
-  cases lt_or_le 1003 n,
+  cases lt_or_le 1024 n,
   { exact bertrand_eventually n h },
   have h' := nat.lt_succ_of_le h,
   -- Supply a list of primes to cover the initial cases
-  apply bertrand_initial n n_pos [1009, 547, 277, 139, 73, 37, 19, 11, 7, 5, 3],
+  apply bertrand_initial n n_pos [1031, 547, 277, 139, 73, 37, 19, 11, 7, 5, 3],
   -- Prove the list has the properties needed:
   { -- Prove the list consists of primes
     intros p hp,

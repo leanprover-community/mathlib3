@@ -438,8 +438,8 @@ def mk (s : finset ι) (x : Π i : (↑s : set ι), β (i : ι)) : Π₀ i, β i
 variables {s : finset ι} {x : Π i : (↑s : set ι), β i} {i : ι}
 
 @[simp] lemma mk_apply : (mk s x : Π i, β i) i = if H : i ∈ s then x ⟨i, H⟩ else 0 := rfl
-@[simp] lemma mk_of_mem (hi : i ∈ s) : (mk s x : Π i, β i) i = x ⟨i, hi⟩ := dif_pos hi
-@[simp] lemma mk_of_not_mem (hi : i ∉ s) : (mk s x : Π i, β i) i = 0 := dif_neg hi
+lemma mk_of_mem (hi : i ∈ s) : (mk s x : Π i, β i) i = x ⟨i, hi⟩ := dif_pos hi
+lemma mk_of_not_mem (hi : i ∉ s) : (mk s x : Π i, β i) i = 0 := dif_neg hi
 
 theorem mk_injective (s : finset ι) : function.injective (@mk ι β _ _ s) :=
 begin

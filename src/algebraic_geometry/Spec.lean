@@ -29,7 +29,6 @@ a forgetful functor.
 
 The adjunction `Γ ⊣ Spec` is constructed in `algebraic_geometry/Gamma_Spec_adjunction.lean`.
 
-
 -/
 
 noncomputable theory

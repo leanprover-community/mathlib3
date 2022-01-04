@@ -774,12 +774,12 @@ def closed_point : prime_spectrum R :=
 
 variable {R}
 
-lemma local_hom_iff_comap_closed_point {S : Type v} [comm_ring S] [local_ring S] (f : R →+* S) :
-  is_local_ring_hom f ↔ prime_spectrum.comap f (closed_point S) = closed_point R :=
+lemma is_local_ring_hom_iff_comap_closed_point {S : Type v} [comm_ring S] [local_ring S]
+  (f : R →+* S) : is_local_ring_hom f ↔ prime_spectrum.comap f (closed_point S) = closed_point R :=
 by { rw [(local_hom_tfae f).out 0 4, subtype.ext_iff], refl }
 
 @[simp] lemma comap_closed_point {S : Type v} [comm_ring S] [local_ring S] (f : R →+* S)
   [is_local_ring_hom f] : prime_spectrum.comap f (closed_point S) = closed_point R :=
-(local_hom_iff_comap_closed_point f).mp infer_instance
+(is_local_ring_hom_iff_comap_closed_point f).mp infer_instance
 
 end local_ring

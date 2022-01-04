@@ -1278,6 +1278,13 @@ lemma prod_zpow (f : α → β) (s : finset α) (n : ℤ) :
   (∏ a in s, f a) ^ n = ∏ a in s, (f a) ^ n :=
 (zpow_group_hom n : β →* β).map_prod f s
 
+@[to_additive]
+lemma finset.prod_div_prod [decidable_eq α] :
+  (∏ (x : α) in s₂, f x) / (∏ (x : α) in s₁, f x)
+  = (∏ (x : α) in s₂ \ s₁, f x) / (∏ (x : α) in s₁ \ s₂, f x) :=
+by simp [← finset.prod_sdiff (@inf_le_left _ _ s₁ s₂),
+  ← finset.prod_sdiff (@inf_le_right _ _ s₁ s₂)]
+
 end comm_group
 
 @[simp] theorem card_sigma {σ : α → Type*} (s : finset α) (t : Π a, finset (σ a)) :

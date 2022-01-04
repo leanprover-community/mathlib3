@@ -1614,6 +1614,29 @@ calc ⟪(v : E), ∑ j : ι, l j⟫
   congr_arg (finset.sum finset.univ) $ funext $ λ j, (hV.eq_ite v (l j))
 ... = ⟪v, l i⟫ : by simp
 
+lemma orthogonal_family.inner_sum (l₁ l₂ : Π i, V i) (s : finset ι) :
+  ⟪∑ i in s, (l₁ i : E), ∑ j in s, (l₂ j : E)⟫ = ∑ i in s, ⟪l₁ i, l₂ i⟫ :=
+by classical;
+calc ⟪∑ i in s, (l₁ i : E), ∑ j in s, (l₂ j : E)⟫
+    = ∑ j in s, ∑ i in s, ⟪(l₁ i : E), l₂ j⟫ :  by { simp [sum_inner, inner_sum], }
+... = ∑ j in s, ∑ i in s, ite (i = j) ⟪(l₁ i : E), l₂ j⟫ 0 :
+begin
+  congr,
+  ext i,
+  congr,
+  ext j,
+  apply hV.eq_ite,
+end
+... = ∑ i in s, ⟪l₁ i, l₂ i⟫ : by simp [finset.sum_ite_of_true]
+
+lemma orthogonal_family.norm_sum (l : Π i, V i) (s : finset ι) :
+  ∥∑ i in s, (l i : E)∥ ^ 2 = ∑ i in s, ∥l i∥ ^ 2 :=
+begin
+  have : (∥∑ i in s, (l i : E)∥ ^ 2 : 𝕜) = ∑ i in s, ∥l i∥ ^ 2,
+  { simp [← inner_self_eq_norm_sq_to_K, hV.inner_sum] },
+  exact_mod_cast this,
+end
+
 /-- An orthogonal family forms an independent family of subspaces; that is, any collection of
 elements each from a different subspace in the family is linearly independent. In particular, the
 pairwise intersections of elements of the family are 0. -/
@@ -1659,7 +1682,100 @@ lemma direct_sum.submodule_is_internal.collected_basis_orthonormal
   {v_family : Π i, basis (α i) 𝕜 (V i)} (hv_family : ∀ i, orthonormal 𝕜 (v_family i)) :
   orthonormal 𝕜 (hV_sum.collected_basis v_family) :=
 by simpa using hV.orthonormal_sigma_orthonormal hv_family
+
+lemma orthogonal_family.norm_sq_diff_sum (f : Π i, V i) (s₁ s₂ : finset ι) :
+  ∥∑ i in s₁, (f i : E) - ∑ i in s₂, f i∥ ^ 2
+  = ∑ i in s₁ \ s₂, ∥f i∥ ^ 2 + ∑ i in s₂ \ s₁, ∥f i∥ ^ 2 :=
+begin
+  rw [finset.sum_sub_sum, sub_eq_add_neg, ← finset.sum_neg_distrib],
+  let F : Π i, V i := λ i, if i ∈ s₁ then f i else - (f i),
+  have hF₁ : ∀ i ∈ s₁ \ s₂, F i = f i := λ i hi, if_pos (finset.sdiff_subset _ _ hi),
+  have hF₂ : ∀ i ∈ s₂ \ s₁, F i = - f i := λ i hi, if_neg (finset.mem_sdiff.mp hi).2,
+  have hF : ∀ i, ∥F i∥ = ∥f i∥,
+  { intros i,
+    dsimp [F],
+    split_ifs;
+    simp, },
+  have : ∥∑ i in s₁ \ s₂, (F i : E) + ∑ i in s₂ \ s₁, F i∥ ^ 2 =
+    ∑ i in s₁ \ s₂, ∥F i∥ ^ 2 + ∑ i in s₂ \ s₁, ∥F i∥ ^ 2,
+  { have hs : disjoint (s₁ \ s₂) (s₂ \ s₁) := disjoint_sdiff_sdiff,
+    simpa only [finset.sum_union hs] using hV.norm_sum F (s₁ \ s₂ ∪ s₂ \ s₁) },
+  convert this using 4,
+  { refine finset.sum_congr rfl (λ i hi, _),
+    simp [hF₁ i hi] },
+  { refine finset.sum_congr rfl (λ i hi, _),
+    simp [hF₂ i hi] },
+  { simp [hF] },
+  { simp [hF] },
+end
+
+lemma orthogonal_family.diff_sum_norm_sq_le (f : Π i, V i) (s₁ s₂ : finset ι) :
+  |∑ i in s₁, ∥f i∥ ^ 2 - ∑ i in s₂, ∥f i∥ ^ 2|
+  ≤ ∑ i in s₁ \ s₂, ∥f i∥ ^ 2 + ∑ i in s₂ \ s₁, ∥f i∥ ^ 2 :=
+calc |∑ i in s₁, ∥f i∥ ^ 2 - ∑ i in s₂, ∥f i∥ ^ 2|
+    = |∑ i in s₁ \ s₂, ∥f i∥ ^ 2 - ∑ i in s₂ \ s₁, ∥f i∥ ^ 2| : by rw finset.sum_sub_sum
+... ≤ |∑ i in s₁ \ s₂, ∥f i∥ ^ 2| + |∑ i in s₂ \ s₁, ∥f i∥ ^ 2| : abs_sub _ _
+... = ∑ i in s₁ \ s₂, ∥f i∥ ^ 2 + ∑ i in s₂ \ s₁, ∥f i∥ ^ 2 : by congr;
+begin
+  rw _root_.abs_of_nonneg,
+  apply finset.sum_nonneg,
+  exact λ _ _, sq_nonneg _
+end
+
+lemma orthogonal_family.diff_sum_norm_sq_subset (f : Π i, V i) {s₁ s₂ : finset ι} (hs : s₂ ⊆ s₁) :
+  |∑ i in s₁, ∥f i∥ ^ 2 - ∑ i in s₂, ∥f i∥ ^ 2| = ∑ i in s₁ \ s₂, ∥f i∥ ^ 2 :=
+begin
+  rw [finset.sum_sub_sum],
+  have : ∑ i in s₂ \ s₁, ∥f i∥ ^ 2 = 0,
+  { have : s₂ \ s₁ = ∅ := by rwa finset.sdiff_eq_empty_iff_subset,
+    simp [this] },
+  rw [this, sub_zero, _root_.abs_of_nonneg],
+  apply finset.sum_nonneg,
+  exact λ _ _, sq_nonneg _
+end
+
 omit dec_ι
+
+/-- A family `f` of mutually-orthogonal elements of `E` is summable, if and only if
+`(λ i, ∥f i∥ ^ 2)` is summable. -/
+lemma orthogonal_family.summable_iff_norm_sq_summable [complete_space E] (f : Π i, V i) :
+  summable (λ i, (f i : E)) ↔ summable (λ i, ∥f i∥ ^ 2) :=
+begin
+  classical,
+  simp only [summable_iff_cauchy_seq_finset, normed_group.cauchy_seq_iff, real.norm_eq_abs],
+  split,
+  { intros hf ε hε,
+    obtain ⟨a, H⟩ := hf _ (sqrt_pos.mpr hε),
+    use a,
+    intros s₁ s₂ hs₁ hs₂,
+    have : ∑ i in s₁ \ s₂, ∥f i∥ ^ 2 + ∑ i in s₂ \ s₁, ∥f i∥ ^ 2 < (sqrt ε) ^ 2,
+    { rw ← hV.norm_sq_diff_sum,
+      apply sq_lt_sq,
+      rw _root_.abs_of_nonneg (norm_nonneg _),
+      exact H s₁ s₂ hs₁ hs₂ },
+    have := hV.diff_sum_norm_sq_le f s₁ s₂,
+    have hη := sq_sqrt (le_of_lt hε),
+    linarith },
+  { intros hf ε hε,
+    have hε' : 0 < ε ^ 2 / 2 := half_pos (sq_pos_of_pos hε),
+    obtain ⟨a, H⟩ := hf _ hε',
+    use a,
+    intros s₁ s₂ hs₁ hs₂,
+    refine (abs_lt_of_sq_lt_sq' _ (le_of_lt hε)).2,
+    have has : a ≤ s₁ ⊓ s₂ := le_inf hs₁ hs₂,
+    rw hV.norm_sq_diff_sum,
+    have Hs₁ : ∑ (x : ι) in s₁ \ s₂, ∥f x∥ ^ 2 < ε ^ 2 / 2,
+    { convert H _ _ hs₁ has,
+      rw hV.diff_sum_norm_sq_subset,
+      { simp },
+      { exact finset.inter_subset_left _ _ } },
+    have Hs₂ : ∑ (x : ι) in s₂ \ s₁, ∥f x∥ ^ 2 < ε ^ 2 /2,
+    { convert H _ _ hs₂ has,
+      rw hV.diff_sum_norm_sq_subset,
+      { simp },
+      { exact finset.inter_subset_right _ _ } },
+    linarith },
+end
 
 end orthogonal_family
 

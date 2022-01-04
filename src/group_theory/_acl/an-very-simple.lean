@@ -52,64 +52,49 @@ begin
   exact list.mem_to_finset.mpr ha'
 end
 
+section general_ring
+variables {R : Type*} [ring R]
+
+lemma odd_pow_of_neg_one {n : ℕ} (hn : odd n) :
+  (-1 : units R)^n = -1 :=
+units.eq_iff.mp (by simpa using nat.neg_one_pow_of_odd hn)
+
+lemma even_pow_of_neg_one {n : ℕ} (hn : even n) :
+  (-1 : units R)^n = 1 :=
+units.eq_iff.mp (by simpa using nat.neg_one_pow_of_even hn)
+
+end general_ring
+
 /- Boring lemmas for powers of (-1 : units ℤ) -/
 namespace int.units
 
 lemma neg_one_ne_one : (-1 : units ℤ) ≠ 1 :=
 begin
-  intro h,
-  rw ← units.eq_iff at h,
-  simpa only using h,
+  dec_trivial
 end
 
-lemma even_pow_of_neg_one (n : ℕ) (hn : even n) :
-  (-1 : units ℤ)^n = 1 :=
+lemma neq_one_is_neg_one {u : units ℤ} (hu : u ≠ 1) : u = -1 :=
 begin
-  rw ← units.eq_iff,
-  rw [units.coe_pow, units.coe_neg_one, units.coe_one],
-  exact nat.neg_one_pow_of_even hn,
+    dec_trivial!
 end
 
-lemma odd_pow_of_neg_one (n : ℕ) (hn : odd n) :
-  (-1 : units ℤ)^n = -1 :=
-begin
-  rw ← units.eq_iff,
-  simp only [units.coe_one, units.coe_neg_one, units.coe_pow],
-  exact nat.neg_one_pow_of_odd hn,
-end
-
-lemma pow_of_neg_one_is_one_of_even_iff (n : ℕ) :
+lemma pow_of_neg_one_is_one_of_even_iff {n : ℕ} :
   even n ↔ (-1 : units ℤ)^n = 1  :=
 begin
-  split,
-  exact even_pow_of_neg_one n,
-
-  intro h,
-  rw  nat.even_iff_not_odd,
-  intro h',
-  apply neg_one_ne_one,
-  rw ← odd_pow_of_neg_one n h', exact h,
+  split, exact even_pow_of_neg_one,
+  intro h, rw  nat.even_iff_not_odd,
+  intro h', rw odd_pow_of_neg_one h' at h,
+  revert h, dec_trivial,
 end
 
-lemma pow_of_neg_one_is_neg_one_of_odd_iff (n : ℕ) :
+lemma pow_of_neg_one_is_neg_one_of_odd_iff {n : ℕ} :
   odd n ↔ (-1 : units ℤ)^n = -1  :=
 begin
-  split,
-  exact odd_pow_of_neg_one n,
-
-  intro h,
-  rw  nat.odd_iff_not_even,
-  intro h',
-  rw even_pow_of_neg_one n h' at h,
-  apply neg_one_ne_one,
-  exact h.symm,
+  split, exact odd_pow_of_neg_one,
+  intro h, rw nat.odd_iff_not_even,
+  intro h', rw even_pow_of_neg_one h' at h,
+  revert h, dec_trivial,
  end
-
-lemma neq_one_is_neg_one (u : units ℤ) (hu : u ≠ 1) : u = -1 :=
-begin
-    rw ← finset.mem_singleton,
-    exact finset.mem_of_mem_insert_of_ne (finset.mem_univ u) hu,
-end
 
 end int.units
 
@@ -205,8 +190,8 @@ begin
 
     cases dec_em (f.sign = 1) with hsf hsf,
     { rw [hsf,  hsfsg.mp hsf], simp, },
-    rw int.units.neq_one_is_neg_one _ hsf,
-    rw int.units.neq_one_is_neg_one _ ((not_iff_not.mpr hsfsg).mp hsf),
+    rw int.units.neq_one_is_neg_one hsf,
+    rw int.units.neq_one_is_neg_one ((not_iff_not.mpr hsfsg).mp hsf),
     simp, }
 end
 

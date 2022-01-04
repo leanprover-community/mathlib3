@@ -19,6 +19,9 @@ universes u v
 
 variables {α : Type u} {β : Type v} {r : α → α → Prop} {s : β → β → Prop}
 
+@[elab_simple]
+lemma antisymm_of (r : α → α → Prop) [is_antisymm α r] {a b : α} : r a b → r b a → a = b := antisymm
+
 open function
 
 theorem is_refl.swap (r) [is_refl α r] : is_refl α (swap r) := ⟨refl_of r⟩

@@ -147,7 +147,7 @@ cycle_induction_on (λ τ : perm α, τ.cycle_type.sum = τ.support.card) σ
   (λ σ hσ, by rw [hσ.cycle_type, coe_sum, list.sum_singleton])
   (λ σ τ hστ hc hσ hτ, by rw [hστ.cycle_type, sum_add, hσ, hτ, hστ.card_support_mul])
 
-/-- Compute signature from cycle type -/
+/-- Expresses signature from cycle type -/
 lemma sign_of_cycle_type (σ : perm α) :
   sign σ = (σ.cycle_type.map (λ n, -(-1 : units ℤ) ^ n)).prod :=
 cycle_induction_on (λ τ : perm α, sign τ = (τ.cycle_type.map (λ n, -(-1 : units ℤ) ^ n)).prod) σ
@@ -163,10 +163,7 @@ begin
     λ n h, units.neg_eq_neg_one_mul _,
   rw [equiv.perm.sign_of_cycle_type, multiset.map_congr aux, multiset.prod_map_mul,
     add_comm, pow_add, multiset.map_const, multiset.prod_repeat, mul_right_inj],
-  generalize : σ.cycle_type = m,
-  apply multiset.induction_on m,
-  { simp },
-  { intros n m h, simp [h, pow_add] },
+  refine multiset.prod_pow_eq_pow_sum,
 end
 
 lemma lcm_cycle_type (σ : perm α) : σ.cycle_type.lcm = order_of σ :=

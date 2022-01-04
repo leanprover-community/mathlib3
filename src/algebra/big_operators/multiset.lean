@@ -82,6 +82,11 @@ lemma prod_map_mul {m : multiset ι} {f g : ι → α} :
   prod (m.map $ λ a, f a * g a) = prod (m.map f) * prod (m.map g) :=
 multiset.induction_on m (by simp) (λ a m ih, by simp [ih]; cc)
 
+@[simp]
+lemma prod_pow_eq_pow_sum {m : multiset ℕ} {a : α} :
+  (multiset.map (λ n, a^n) m).prod = a ^ (m.sum) :=
+multiset.induction_on m (by simp) (λ n m h, by simp [h,pow_add])
+
 @[to_additive]
 lemma prod_map_prod_map (m : multiset β) (n : multiset γ) {f : β → γ → α} :
   prod (m.map $ λ a, prod $ n.map $ λ b, f a b) = prod (n.map $ λ b, prod $ m.map $ λ a, f a b) :=

@@ -276,14 +276,14 @@ instance : is_splitting_field (zmod p) K (X^q - X) :=
   begin
     have h : (X^q - X : polynomial K).nat_degree = q :=
       X_pow_card_sub_X_nat_degree_eq K fintype.one_lt_card,
-    rw [←splits_id_iff_splits, splits_iff_card_roots, polynomial.map_sub, map_pow, map_X, h,
-      roots_X_pow_card_sub_X K, ←finset.card_def, finset.card_univ],
+    rw [←splits_id_iff_splits, splits_iff_card_roots, polynomial.map_sub, polynomial.map_pow,
+      map_X, h, roots_X_pow_card_sub_X K, ←finset.card_def, finset.card_univ],
   end,
   adjoin_roots :=
   begin
     classical,
     transitivity algebra.adjoin (zmod p) ((roots (X^q - X : polynomial K)).to_finset : set K),
-    { simp only [map_pow, map_X, polynomial.map_sub], convert rfl },
+    { simp only [polynomial.map_pow, map_X, polynomial.map_sub], convert rfl },
     { rw [roots_X_pow_card_sub_X, val_to_finset, coe_univ, algebra.adjoin_univ], }
   end }
 

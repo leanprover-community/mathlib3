@@ -25,4 +25,4 @@ multiset.induction_on s.1 (let ⟨z⟩ := hι in ⟨z, λ _, false.elim⟩) $
 
 lemma finset.exists_le [nonempty α] [preorder α] [is_directed α (≤)] (s : finset α) :
   ∃ M, ∀ i ∈ s, i ≤ M :=
-directed_id.finset_le
+directed_id.finset_le _

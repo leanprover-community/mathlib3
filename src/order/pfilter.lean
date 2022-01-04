@@ -124,7 +124,7 @@ variables [semilattice_inf P] {x y : P} {F : pfilter P}
 
 /-- A specific witness of `pfilter.directed` when `P` has meets. -/
 lemma inf_mem (x y ∈ F) : x ⊓ y ∈ F :=
-ideal.sup_mem x y ‹x ∈ F› ‹y ∈ F›
+ideal.sup_mem x ‹x ∈ F› y ‹y ∈ F›
 
 @[simp] lemma inf_mem_iff : x ⊓ y ∈ F ↔ x ∈ F ∧ y ∈ F :=
 ideal.sup_mem_iff

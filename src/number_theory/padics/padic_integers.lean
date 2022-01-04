@@ -425,7 +425,7 @@ lemma norm_lt_one_mul {z1 z2 : ℤ_[p]} (hz2 : ∥z2∥ < 1) : ∥z1 * z2∥ < 1
 calc  ∥z1 * z2∥ = ∥z1∥ * ∥z2∥ : by simp
            ... < 1 : mul_lt_one_of_nonneg_of_lt_one_right (norm_le_one _) (norm_nonneg _) hz2
 
-@[simp] lemma mem_nonunits {z : ℤ_[p]} : z ∈ nonℤˣ_[p] ↔ ∥z∥ < 1 :=
+@[simp] lemma mem_nonunits {z : ℤ_[p]} : z ∈ nonunits ℤ_[p] ↔ ∥z∥ < 1 :=
 by rw lt_iff_le_and_ne; simp [norm_le_one z, nonunits, is_unit_iff]
 
 /-- A `p`-adic number `u` with `∥u∥ = 1` is a unit of `ℤ_[p]`. -/
@@ -539,7 +539,7 @@ section dvr
 instance : local_ring ℤ_[p] :=
 local_of_nonunits_ideal zero_ne_one $ λ x y, by simp; exact norm_lt_one_add
 
-lemma p_nonnunit : (p : ℤ_[p]) ∈ nonℤˣ_[p] :=
+lemma p_nonnunit : (p : ℤ_[p]) ∈ nonunits ℤ_[p] :=
 have (p : ℝ)⁻¹ < 1, from inv_lt_one $ by exact_mod_cast hp_prime.1.one_lt,
 by simp [this]
 

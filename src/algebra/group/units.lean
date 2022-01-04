@@ -7,7 +7,22 @@ import algebra.group.basic
 import logic.nontrivial
 
 /-!
-# Units (i.e., invertible elements) of a multiplicative monoid
+# Units (i.e., invertible elements) of a monoid
+
+An element of a `monoid` is a unit if it has a two-sided inverse.
+
+## Main declarations
+
+* `units M`: the group of units (i.e., invertible elements) of a monoid.
+* `is_unit x`: a predicate asserting that `x` is a unit (i.e., invertible element) of a monoid.
+
+For both declarations, there is an additive counterpart: `add_units` and `is_add_unit`.
+
+## Notation
+
+We provide `Mˣ` as notation for `units M`,
+resembling the notation `Rˣ` for the units of a ring, which is common in mathematics.
+
 -/
 
 universe u

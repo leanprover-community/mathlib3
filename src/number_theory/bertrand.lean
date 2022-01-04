@@ -1729,6 +1729,7 @@ lemma bertrand_initial (n : ℕ) (hn0 : 0 < n) (plist : list ℕ)
    (hn : n < (plist ++ [2]).head) :
   ∃ p, nat.prime p ∧ n < p ∧ p ≤ 2 * n :=
 begin
+  tactic.unfreeze_local_instances,
   induction plist,
   { simp * at *,
     interval_cases n,

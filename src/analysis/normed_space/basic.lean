@@ -7,7 +7,7 @@ import algebra.algebra.restrict_scalars
 import algebra.algebra.subalgebra
 import analysis.normed.group.infinite_sum
 import data.matrix.basic
-import topology.algebra.module
+import topology.algebra.module.basic
 import topology.instances.ennreal
 import topology.sequences
 

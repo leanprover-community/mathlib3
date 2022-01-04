@@ -305,13 +305,21 @@ mem_of_superset (Ioo_mem_nhds ha hb) Ioo_subset_Ico_self
 lemma Icc_mem_nhds {a b x : α} (ha : a < x) (hb : x < b) : Icc a b ∈ 𝓝 x :=
 mem_of_superset (Ioo_mem_nhds ha hb) Ioo_subset_Icc_self
 
+lemma eventually_lt_of_tendsto_lt {l : filter γ} {f : γ → α} {u v : α} (hv : v < u)
+  (h : filter.tendsto f l (𝓝 v)) : ∀ᶠ a in l, f a < u :=
+tendsto_nhds.1 h (< u) is_open_Iio hv
+
+lemma eventually_gt_of_tendsto_gt {l : filter γ} {f : γ → α} {u v : α} (hv : u < v)
+  (h : filter.tendsto f l (𝓝 v)) : ∀ᶠ a in l, u < f a :=
+tendsto_nhds.1 h (> u) is_open_Ioi hv
+
 lemma eventually_le_of_tendsto_lt {l : filter γ} {f : γ → α} {u v : α} (hv : v < u)
   (h : tendsto f l (𝓝 v)) : ∀ᶠ a in l, f a ≤ u :=
-eventually.mono (tendsto_nhds.1 h (< u) is_open_Iio hv) (λ v, le_of_lt)
+(eventually_lt_of_tendsto_lt hv h).mono (λ v, le_of_lt)
 
 lemma eventually_ge_of_tendsto_gt {l : filter γ} {f : γ → α} {u v : α} (hv : u < v)
   (h : tendsto f l (𝓝 v)) : ∀ᶠ a in l, u ≤ f a :=
-eventually.mono (tendsto_nhds.1 h (> u) is_open_Ioi hv) (λ v, le_of_lt)
+(eventually_gt_of_tendsto_gt hv h).mono (λ v, le_of_lt)
 
 variables [topological_space γ]
 /-!
@@ -1960,9 +1968,8 @@ begin
   exact mem_of_superset self_mem_nhds_within (λ y hy, hf hx hy.1 hy.2)
 end
 
--- For a version of this theorem in which the convergence considered on the domain `α` is as
--- `x : α` tends to infinity, rather than tending to a point `x` in `α`, see `is_lub_of_tendsto`,
--- below
+-- For a version of this theorem in which the convergence considered on the domain `α` is as `x : α`
+-- tends to infinity, rather than tending to a point `x` in `α`, see `is_lub_of_tendsto_at_top`
 lemma is_lub.is_lub_of_tendsto [preorder γ] [topological_space γ]
   [order_closed_topology γ] {f : α → γ} {s : set α} {a : α} {b : γ}
   (hf : monotone_on f s) (ha : is_lub s a) (hs : s.nonempty)
@@ -1981,7 +1988,7 @@ lemma is_glb.mem_lower_bounds_of_tendsto [preorder γ] [topological_space γ]
 
 -- For a version of this theorem in which the convergence considered on the domain `α` is as
 -- `x : α` tends to negative infinity, rather than tending to a point `x` in `α`, see
--- `is_glb_of_tendsto`, below
+-- `is_glb_of_tendsto_at_bot`
 lemma is_glb.is_glb_of_tendsto [preorder γ] [topological_space γ]
   [order_closed_topology γ] {f : α → γ} {s : set α} {a : α} {b : γ}
   (hf : monotone_on f s) : is_glb s a → s.nonempty →
@@ -2078,20 +2085,21 @@ end
 lemma exists_seq_strict_mono_tendsto' {α : Type*} [linear_order α] [topological_space α]
   [densely_ordered α] [order_topology α]
   [first_countable_topology α] {x y : α} (hy : y < x) :
-  ∃ u : ℕ → α, strict_mono u ∧ (∀ n, u n < x) ∧ tendsto u at_top (𝓝 x) :=
+  ∃ u : ℕ → α, strict_mono u ∧ (∀ n, u n ∈ Ioo y x) ∧ tendsto u at_top (𝓝 x) :=
 begin
-  have hx : x ∉ Iio x := λ h, (lt_irrefl x h).elim,
-  have ht : set.nonempty (Iio x) := ⟨y, hy⟩,
-  rcases is_lub_Iio.exists_seq_strict_mono_tendsto_of_not_mem hx ht with ⟨u, hu⟩,
-  exact ⟨u, hu.1, hu.2.1, hu.2.2.1⟩,
+  have hx : x ∉ Ioo y x := λ h, (lt_irrefl x h.2).elim,
+  have ht : set.nonempty (Ioo y x) := nonempty_Ioo.2 hy,
+  rcases (is_lub_Ioo hy).exists_seq_strict_mono_tendsto_of_not_mem hx ht with ⟨u, hu⟩,
+  exact ⟨u, hu.1, hu.2.2.symm⟩
 end
 
 lemma exists_seq_strict_mono_tendsto [densely_ordered α] [no_bot_order α]
   [first_countable_topology α] (x : α) :
   ∃ u : ℕ → α, strict_mono u ∧ (∀ n, u n < x) ∧ tendsto u at_top (𝓝 x) :=
 begin
-  obtain ⟨y, hy⟩ : ∃ y, y < x := no_bot _,
-  exact exists_seq_strict_mono_tendsto' hy
+  obtain ⟨y, hy⟩ : ∃ y, y < x := no_bot x,
+  rcases exists_seq_strict_mono_tendsto' hy with ⟨u, hu_mono, hu_mem, hux⟩,
+  exact ⟨u, hu_mono, λ n, (hu_mem n).2, hux⟩
 end
 
 lemma exists_seq_tendsto_Sup {α : Type*} [conditionally_complete_linear_order α]
@@ -2117,13 +2125,24 @@ lemma is_glb.exists_seq_antitone_tendsto {t : set α} {x : α} [is_countably_gen
 
 lemma exists_seq_strict_anti_tendsto' [densely_ordered α]
   [first_countable_topology α] {x y : α} (hy : x < y) :
-  ∃ u : ℕ → α, strict_anti u ∧ (∀ n, x < u n) ∧ tendsto u at_top (𝓝 x) :=
-@exists_seq_strict_mono_tendsto' (order_dual α) _ _ _ _ _ x y hy
+  ∃ u : ℕ → α, strict_anti u ∧ (∀ n, u n ∈ Ioo x y) ∧ tendsto u at_top (𝓝 x) :=
+by simpa only [dual_Ioo] using exists_seq_strict_mono_tendsto' (order_dual.to_dual_lt_to_dual.2 hy)
 
 lemma exists_seq_strict_anti_tendsto [densely_ordered α] [no_top_order α]
   [first_countable_topology α] (x : α) :
   ∃ u : ℕ → α, strict_anti u ∧ (∀ n, x < u n) ∧ tendsto u at_top (𝓝 x) :=
 @exists_seq_strict_mono_tendsto (order_dual α) _ _ _ _ _ _ x
+
+lemma exists_seq_strict_anti_strict_mono_tendsto [densely_ordered α] [first_countable_topology α]
+  {x y : α} (h : x < y) :
+  ∃ (u v : ℕ → α), strict_anti u ∧ strict_mono v ∧ (∀ k, u k ∈ Ioo x y) ∧ (∀ l, v l ∈ Ioo x y) ∧
+    (∀ k l, u k < v l) ∧ tendsto u at_top (𝓝 x) ∧ tendsto v at_top (𝓝 y) :=
+begin
+  rcases exists_seq_strict_anti_tendsto' h with ⟨u, hu_anti, hu_mem, hux⟩,
+  rcases exists_seq_strict_mono_tendsto' (hu_mem 0).2 with ⟨v, hv_mono, hv_mem, hvy⟩,
+  exact ⟨u, v, hu_anti, hv_mono, hu_mem, λ l, ⟨(hu_mem 0).1.trans (hv_mem l).1, (hv_mem l).2⟩,
+    λ k l, (hu_anti.antitone (zero_le k)).trans_lt (hv_mem l).1, hux, hvy⟩
+end
 
 lemma exists_seq_tendsto_Inf {α : Type*} [conditionally_complete_linear_order α]
   [topological_space α] [order_topology α] [first_countable_topology α]

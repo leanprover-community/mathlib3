@@ -358,7 +358,7 @@ variables [lattice α] [bounded_order α] [is_simple_order α]
 This is not an instance to prevent loops -/
 protected def lattice {α} [decidable_eq α] [partial_order α] [bounded_order α]
   [is_simple_order α] : lattice α :=
-@lattice_of_linear_order α (is_simple_order.linear_order)
+@linear_order.to_lattice α (is_simple_order.linear_order)
 
 /-- A lattice that is a `bounded_order` is a distributive lattice.
 This is not an instance to prevent loops -/

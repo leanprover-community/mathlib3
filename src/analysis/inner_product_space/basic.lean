@@ -784,6 +784,17 @@ begin
   simp [hv.inner_left_finsupp, hl i hi],
 end
 
+/-- Given an orthonormal family, a second family of vectors is orthonormal if every vector equals
+the corresponding vector in the original family or its negation. -/
+lemma orthonormal.orthonormal_of_forall_eq_or_eq_neg {v w : ι → E} (hv : orthonormal 𝕜 v)
+  (hw : ∀ i, w i = v i ∨ w i = -(v i)) : orthonormal 𝕜 w :=
+begin
+  rw orthonormal_iff_ite at *,
+  intros i j,
+  cases hw i with hi hi; cases hw j with hj hj; split_ifs with h;
+    simpa [hi, hj, h] using hv i j
+end
+
 /- The material that follows, culminating in the existence of a maximal orthonormal subset, is
 adapted from the corresponding development of the theory of linearly independents sets.  See
 `exists_linear_independent` in particular. -/
@@ -940,6 +951,9 @@ end
 
 lemma norm_inner_le_norm (x y : E) : ∥⟪x, y⟫∥ ≤ ∥x∥ * ∥y∥ :=
 (is_R_or_C.norm_eq_abs _).le.trans (abs_inner_le_norm x y)
+
+lemma re_inner_le_norm (x y : E) : re ⟪x, y⟫ ≤ ∥x∥ * ∥y∥ :=
+le_trans (re_le_abs (inner x y)) (abs_inner_le_norm x y)
 
 /-- Cauchy–Schwarz inequality with norm -/
 lemma abs_real_inner_le_norm (x y : F) : absR ⟪x, y⟫_ℝ ≤ ∥x∥ * ∥y∥ :=
@@ -1915,7 +1929,7 @@ end orthogonal
 
 /-! ### Self-adjoint operators -/
 
-section is_self_adjoint
+namespace inner_product_space
 
 /-- A (not necessarily bounded) operator on an inner product space is self-adjoint, if for all
 `x`, `y`, we have `⟪T x, y⟫ = ⟪x, T y⟫`. -/
@@ -1955,4 +1969,4 @@ lemma is_self_adjoint.restrict_invariant {T : E →ₗ[𝕜] E} (hT : is_self_ad
   is_self_adjoint (T.restrict hV) :=
 λ v w, hT v w
 
-end is_self_adjoint
+end inner_product_space

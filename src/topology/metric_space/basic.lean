@@ -729,10 +729,14 @@ theorem is_open_ball : is_open (ball x ε) :=
 is_open_iff.2 $ λ y, exists_ball_subset_ball
 
 theorem ball_mem_nhds (x : α) {ε : ℝ} (ε0 : 0 < ε) : ball x ε ∈ 𝓝 x :=
-is_open.mem_nhds is_open_ball (mem_ball_self ε0)
+is_open_ball.mem_nhds (mem_ball_self ε0)
 
 theorem closed_ball_mem_nhds (x : α) {ε : ℝ} (ε0 : 0 < ε) : closed_ball x ε ∈ 𝓝 x :=
 mem_of_superset (ball_mem_nhds x ε0) ball_subset_closed_ball
+
+theorem closed_ball_mem_nhds_of_mem {x c : α} {ε : ℝ} (h : x ∈ ball c ε) :
+  closed_ball c ε ∈ 𝓝 x :=
+mem_of_superset (is_open_ball.mem_nhds h) ball_subset_closed_ball
 
 theorem nhds_within_basis_ball {s : set α} :
   (𝓝[s] x).has_basis (λ ε:ℝ, 0 < ε) (λ ε, ball x ε ∩ s) :=
@@ -1425,6 +1429,10 @@ by simpa only [dist_edist] using congr_arg ennreal.to_real (edist_pi_const a b)
 @[simp] lemma nndist_pi_const [nonempty β] (a b : α) :
   nndist (λ x : β, a) (λ _, b) = nndist a b := nnreal.eq $ dist_pi_const a b
 
+lemma nndist_pi_le_iff {f g : Πb, π b} {r : ℝ≥0} :
+  nndist f g ≤ r ↔ ∀b, nndist (f b) (g b) ≤ r :=
+by simp [nndist_pi_def]
+
 lemma dist_pi_lt_iff {f g : Πb, π b} {r : ℝ} (hr : 0 < r) :
   dist f g < r ↔ ∀b, dist (f b) (g b) < r :=
 begin
@@ -1436,7 +1444,7 @@ lemma dist_pi_le_iff {f g : Πb, π b} {r : ℝ} (hr : 0 ≤ r) :
   dist f g ≤ r ↔ ∀b, dist (f b) (g b) ≤ r :=
 begin
   lift r to ℝ≥0 using hr,
-  simp [nndist_pi_def]
+  exact nndist_pi_le_iff
 end
 
 lemma nndist_le_pi_nndist (f g : Πb, π b) (b : β) : nndist (f b) (g b) ≤ nndist f g :=
@@ -1468,6 +1476,16 @@ for a version assuming `0 ≤ r` instead of `nonempty β`. -/
 lemma closed_ball_pi' [nonempty β] (x : Π b, π b) (r : ℝ) :
   closed_ball x r = set.pi univ (λ b, closed_ball (x b) r) :=
 (le_or_lt 0 r).elim (closed_ball_pi x) $ λ hr, by simp [closed_ball_eq_empty.2 hr]
+
+@[simp] lemma fin.nndist_insert_nth_insert_nth {n : ℕ} {α : fin (n + 1) → Type*}
+  [Π i, pseudo_metric_space (α i)] (i : fin (n + 1)) (x y : α i) (f g : Π j, α (i.succ_above j)) :
+  nndist (i.insert_nth x f) (i.insert_nth y g) = max (nndist x y) (nndist f g) :=
+eq_of_forall_ge_iff $ λ c, by simp [nndist_pi_le_iff, i.forall_iff_succ_above]
+
+@[simp] lemma fin.dist_insert_nth_insert_nth {n : ℕ} {α : fin (n + 1) → Type*}
+  [Π i, pseudo_metric_space (α i)] (i : fin (n + 1)) (x y : α i) (f g : Π j, α (i.succ_above j)) :
+  dist (i.insert_nth x f) (i.insert_nth y g) = max (dist x y) (dist f g) :=
+by simp only [dist_nndist, fin.nndist_insert_nth_insert_nth, nnreal.coe_max]
 
 lemma real.dist_le_of_mem_pi_Icc {x y x' y' : β → ℝ} (hx : x ∈ Icc x' y') (hy : y ∈ Icc x' y') :
   dist x y ≤ dist x' y' :=
@@ -1794,6 +1812,9 @@ lemma bounded_range_of_cauchy_map_cofinite {f : β → α} (hf : cauchy (map f c
   bounded (range f) :=
 bounded_range_of_tendsto_cofinite_uniformity $ (cauchy_map_iff.1 hf).2
 
+lemma _root_.cauchy_seq.bounded_range {f : ℕ → α} (hf : cauchy_seq f) : bounded (range f) :=
+bounded_range_of_cauchy_map_cofinite $ by rwa nat.cofinite_eq_at_top
+
 lemma bounded_range_of_tendsto_cofinite {f : β → α} {a : α} (hf : tendsto f cofinite (𝓝 a)) :
   bounded (range f) :=
 bounded_range_of_tendsto_cofinite_uniformity $
@@ -1806,20 +1827,9 @@ compact_univ.bounded.mono (subset_univ _)
 lemma bounded_range_of_tendsto {α : Type*} [pseudo_metric_space α] (u : ℕ → α) {x : α}
   (hu : tendsto u at_top (𝓝 x)) :
   bounded (range u) :=
-begin
-  classical,
-  obtain ⟨N, hN⟩ : ∃ (N : ℕ), ∀ (n : ℕ), n ≥ N → dist (u n) x < 1 :=
-    metric.tendsto_at_top.1 hu 1 zero_lt_one,
-  have : range u ⊆ (finset.range N).image u ∪ ball x 1,
-  { refine range_subset_iff.2 (λ n, _),
-    rcases lt_or_le n N with h|h,
-    { left,
-      simp only [mem_image, finset.mem_range, finset.mem_coe, finset.coe_image],
-      exact ⟨n, h, rfl⟩ },
-    { exact or.inr (mem_ball.2 (hN n h)) } },
-  exact bounded.mono this ((finset.finite_to_set _).bounded.union bounded_ball)
-end
+hu.cauchy_seq.bounded_range
 
+/-- The **Heine–Borel theorem**: In a proper space, a closed bounded set is compact. -/
 lemma is_compact_of_is_closed_bounded [proper_space α] (hc : is_closed s) (hb : bounded s) :
   is_compact s :=
 begin
@@ -1829,8 +1839,13 @@ begin
     exact compact_of_is_closed_subset (is_compact_closed_ball x r) hc hr }
 end
 
-/-- The Heine–Borel theorem:
-In a proper space, a set is compact if and only if it is closed and bounded -/
+/-- The **Heine–Borel theorem**: In a proper space, the closure of a bounded set is compact. -/
+lemma bounded.is_compact_closure [proper_space α] (h : bounded s) :
+  is_compact (closure s) :=
+is_compact_of_is_closed_bounded is_closed_closure h.closure
+
+/-- The **Heine–Borel theorem**:
+In a proper Hausdorff space, a set is compact if and only if it is closed and bounded. -/
 lemma compact_iff_closed_bounded [t2_space α] [proper_space α] :
   is_compact s ↔ is_closed s ∧ bounded s :=
 ⟨λ h, ⟨h.is_closed, h.bounded⟩, λ h, is_compact_of_is_closed_bounded h.1 h.2⟩

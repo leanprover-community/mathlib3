@@ -344,7 +344,7 @@ lemma tendsto_nhds_within_congr {f g : α → β} {s : set α} {a : α} {l : fil
   (hfg : ∀ x ∈ s, f x = g x) (hf : tendsto f (𝓝[s] a) l) : tendsto g (𝓝[s] a) l :=
 (tendsto_congr' $ eventually_eq_nhds_within_of_eq_on hfg).1 hf
 
-lemma eventually_nhds_with_of_forall {s : set α} {a : α} {p : α → Prop} (h : ∀ x ∈ s, p x) :
+lemma eventually_nhds_within_of_forall {s : set α} {a : α} {p : α → Prop} (h : ∀ x ∈ s, p x) :
   ∀ᶠ x in 𝓝[s] a, p x :=
 mem_inf_of_right h
 

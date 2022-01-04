@@ -271,3 +271,14 @@ lemma continuous_on.log (hf : continuous_on f s) (h₀ : ∀ x ∈ s, f x ≠ 0)
 λ x hx, (hf x hx).log (h₀ x hx)
 
 end continuity
+
+
+section log_base
+
+open real
+
+noncomputable def log_base (b x : ℝ) : ℝ := log x / log b
+
+@[simp] lemma log_div_log {b x : ℝ} : log x / log b = log_base b x := rfl
+
+end log_base

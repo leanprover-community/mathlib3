@@ -5,6 +5,7 @@ Authors: Thomas Browning
 -/
 
 import algebra.gcd_monoid.multiset
+import algebra.big_operators.multiset
 import combinatorics.partition
 import group_theory.perm.cycles
 import ring_theory.int.basic

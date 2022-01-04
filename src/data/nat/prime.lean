@@ -719,24 +719,6 @@ lemma mem_factors {n p} (hn : 0 < n) : p ∈ factors n ↔ prime p ∧ p ∣ n :
 ⟨λ h, ⟨prime_of_mem_factors h, (mem_factors_iff_dvd hn $ prime_of_mem_factors h).mp h⟩,
  λ ⟨hprime, hdvd⟩, (mem_factors_iff_dvd hn hprime).mpr hdvd⟩
 
-lemma factors_subset_right {n k : ℕ} (h : k ≠ 0) : n.factors ⊆ (n * k).factors :=
-begin
-  cases n,
-  { rw zero_mul, refl },
-  cases n,
-  { rw factors_one, apply list.nil_subset },
-  intros p hp,
-  rw mem_factors succ_pos' at hp,
-  rw mem_factors (nat.mul_pos succ_pos' (nat.pos_of_ne_zero h)),
-  exact ⟨hp.1, hp.2.mul_right k⟩,
-end
-
-lemma factors_subset_of_dvd {n k : ℕ} (h : n ∣ k) (h' : k ≠ 0) : n.factors ⊆ k.factors :=
-begin
-  obtain ⟨a, rfl⟩ := h,
-  exact factors_subset_right (right_ne_zero_of_mul h'),
-end
-
 /-- **Fundamental theorem of arithmetic**-/
 lemma factors_unique {n : ℕ} {l : list ℕ} (h₁ : prod l = n) (h₂ : ∀ p ∈ l, prime p) :
   l ~ factors n :=
@@ -793,6 +775,27 @@ by rw [perm_iff_count.mp (perm_factors_mul_of_pos ha hb) p, count_append]
 lemma count_factors_mul_of_coprime {p a b : ℕ} (hab : coprime a b)  :
   list.count p (a * b).factors = list.count p a.factors + list.count p b.factors :=
 by rw [perm_iff_count.mp (perm_factors_mul_of_coprime hab) p, count_append]
+
+lemma factors_sublist_right {n k : ℕ} (h : k ≠ 0) : n.factors <+ (n * k).factors :=
+begin
+  cases n,
+  { rw zero_mul },
+  apply list.sublist_of_subperm_of_sorted _ (factors_sorted _) (factors_sorted _),
+  rw (perm_factors_mul_of_pos nat.succ_pos' (nat.pos_of_ne_zero h)).subperm_left,
+  exact (list.sublist_append_left _ _).subperm,
+end
+
+lemma factors_sublist_of_dvd {n k : ℕ} (h : n ∣ k) (h' : k ≠ 0) : n.factors <+ k.factors :=
+begin
+  obtain ⟨a, rfl⟩ := h,
+  exact factors_sublist_right (right_ne_zero_of_mul h'),
+end
+
+lemma factors_subset_right {n k : ℕ} (h : k ≠ 0) : n.factors ⊆ (n * k).factors :=
+(factors_sublist_right h).subset
+
+lemma factors_subset_of_dvd {n k : ℕ} (h : n ∣ k) (h' : k ≠ 0) : n.factors ⊆ k.factors :=
+(factors_sublist_of_dvd h h').subset
 
 /-- For any `p`, the power of `p` in `n^k` is `k` times the power in `n` -/
 lemma factors_count_pow {n k p : ℕ} : count p (n ^ k).factors = k * count p n.factors :=

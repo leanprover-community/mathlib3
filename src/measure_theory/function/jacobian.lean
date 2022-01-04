@@ -220,9 +220,9 @@ begin
   obtain ⟨u, u_anti, u_pos, u_lim⟩ :
     ∃ (u : ℕ → ℝ), strict_anti u ∧ (∀ (n : ℕ), 0 < u n) ∧ tendsto u at_top (𝓝 0) :=
       exists_seq_strict_anti_tendsto (0 : ℝ),
-  let M : ℕ × T → set E := λ p, {x | x ∈ s ∧
-    ∀ y ∈ ball x (u p.1) ∩ s, ∥f y - f x - f' p.2 (y - x)∥ ≤ r (f' p.2) * ∥y - x∥},
-  have : s ⊆ ⋃ p, M p,
+  let M : ℕ → T → set E := λ n z, {x | x ∈ s ∧
+    ∀ y ∈ ball x (u n) ∩ s, ∥f y - f x - f' z (y - x)∥ ≤ r (f' z) * ∥y - x∥},
+  have : s ⊆ ⋃ n z, M n z,
   sorry; { assume x xs,
     obtain ⟨z, zT, hz⟩ : ∃ z ∈ T, f' x ∈ ball (f' (z : E)) (r (f' z)),
     { have : f' x ∈ ⋃ (z ∈ T), ball (f' (z : E)) (r (f' z)),
@@ -237,7 +237,7 @@ begin
       ball x δ ∩ s ⊆ {y | ∥f y - f x - (f' x) (y - x)∥ ≤ ε * ∥y - x∥} :=
         metric.mem_nhds_within_iff.1 (is_o.def (hf' x xs) εpos),
     obtain ⟨n, hn⟩ : ∃ n, u n < δ := ((tendsto_order.1 u_lim).2 _ δpos).exists,
-    refine mem_Union.2 ⟨(n, ⟨z, zT⟩), ⟨xs, _⟩⟩,
+    refine mem_Union.2 ⟨n, mem_Union.2 ⟨⟨z, zT⟩, ⟨xs, _⟩⟩⟩,
     assume y hy,
     calc ∥f y - f x - (f' z) (y - x)∥
         = ∥(f y - f x - (f' x) (y - x)) + (f' x - f' z) (y - x)∥ :
@@ -257,10 +257,10 @@ begin
         rw [← add_mul, add_comm],
         exact mul_le_mul_of_nonneg_right hε (norm_nonneg _),
       end },
-  have : ∀ p, closure (M p) ∩ s ⊆ M p,
-  sorry; { rintros ⟨n, z⟩ x ⟨hx, xs⟩,
+  have : ∀ n z, closure (M n z) ∩ s ⊆ M n z,
+  sorry; { rintros n z x ⟨hx, xs⟩,
     refine ⟨xs, λ y hy, _⟩,
-    obtain ⟨a, aM, a_lim⟩ : ∃ (a : ℕ → E), (∀ k, a k ∈ M (n, z)) ∧ tendsto a at_top (𝓝 x) :=
+    obtain ⟨a, aM, a_lim⟩ : ∃ (a : ℕ → E), (∀ k, a k ∈ M n z) ∧ tendsto a at_top (𝓝 x) :=
       mem_closure_iff_seq_limit.1 hx,
     have L1 : tendsto (λ (k : ℕ), ∥f y - f (a k) - (f' z) (y - a k)∥) at_top
       (𝓝 ∥f y - f x - (f' z) (y - x)∥),
@@ -290,12 +290,9 @@ lemma exists_partition_approximates_linear_on_of_has_fderiv_within_at
   ∧ (∀ n, measurable_set (t n)) ∧ (s ⊆ ⋃ n, t n)
   ∧ (∀ n, approximates_linear_on f (A n) (s ∩ t n) (r (A n)))
   ∧ (s.nonempty → ∀ n, ∃ y ∈ s, A n = f' y) :=
+sorry
 
 #exit
-
-lemma is_open_Union_countable [second_countable_topology α]
-  {ι} (s : ι → set α) (H : ∀ i, is_open (s i)) :
-  ∃ T : set ι, countable T ∧ (⋃ i ∈ T, s i) = ⋃ i, s i :=
 
 /-- A differentiable function maps sets of measure zero to sets of measure zero. -/
 lemma add_haar_image_zero_of_differentiable_on_of_add_haar_zero

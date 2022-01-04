@@ -74,6 +74,9 @@ as an ideal of that ring. -/
 abbreviation as_homogeneous_ideal (x : projective_spectrum 𝒜) :
   homogeneous_ideal 𝒜 := x.val
 
+lemma as_homogeneous_ideal.explicit (x : projective_spectrum 𝒜) :
+  x.as_homogeneous_ideal = x.1 := rfl
+
 instance is_prime (x : projective_spectrum 𝒜) :
   x.as_homogeneous_ideal.1.is_prime := x.2.1
 

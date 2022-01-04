@@ -1113,16 +1113,14 @@ instance Prop.fintype : fintype Prop :=
 instance subtype.fintype (p : α → Prop) [decidable_pred p] [fintype α] : fintype {x // p x} :=
 fintype.subtype (univ.filter p) (by simp)
 
-@[simp] lemma set.to_finset_univ [fintype α] :
-  (set.univ : set α).to_finset = finset.univ :=
+@[simp] lemma set.to_finset_univ [hu : fintype (set.univ : set α)] [fintype α] :
+  @set.to_finset _ (set.univ : set α) hu = finset.univ :=
 by { ext, simp only [set.mem_univ, mem_univ, set.mem_to_finset] }
 
-@[simp] lemma set.to_finset_eq_empty_iff {s : set α} [fintype s] :
-  s.to_finset = ∅ ↔ s = ∅ :=
+@[simp] lemma set.to_finset_eq_empty_iff {s : set α} [fintype s] : s.to_finset = ∅ ↔ s = ∅ :=
 by simp [ext_iff, set.ext_iff]
 
-@[simp] lemma set.to_finset_empty :
-  (∅ : set α).to_finset = ∅ :=
+@[simp] lemma set.to_finset_empty : (∅ : set α).to_finset = ∅ :=
 set.to_finset_eq_empty_iff.mpr rfl
 
 @[simp] lemma set.to_finset_range [decidable_eq α] [fintype β] (f : β → α) [fintype (set.range f)] :
@@ -1130,14 +1128,14 @@ set.to_finset_eq_empty_iff.mpr rfl
 by simp [ext_iff]
 
 /-- A set on a fintype, when coerced to a type, is a fintype. -/
-def set_fintype {α} [fintype α] (s : set α) [decidable_pred (∈ s)] : fintype s :=
+def set_fintype [fintype α] (s : set α) [decidable_pred (∈ s)] : fintype s :=
 subtype.fintype (λ x, x ∈ s)
 
-lemma set_fintype_card_le_univ {α : Type*} [fintype α] (s : set α) [fintype ↥s] :
+lemma set_fintype_card_le_univ [fintype α] (s : set α) [fintype ↥s] :
   fintype.card ↥s ≤ fintype.card α :=
 fintype.card_le_of_embedding (function.embedding.subtype s)
 
-lemma set_fintype_card_eq_univ_iff {α : Type*} [fintype α] (s : set α) [fintype ↥s] :
+lemma set_fintype_card_eq_univ_iff [fintype α] (s : set α) [fintype ↥s] :
   fintype.card s = fintype.card α ↔ s = set.univ :=
 by rw [←set.to_finset_card, finset.card_eq_iff_eq_univ, ←set.to_finset_univ, set.to_finset_inj]
 

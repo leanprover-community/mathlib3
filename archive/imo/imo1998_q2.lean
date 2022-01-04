@@ -142,7 +142,7 @@ begin
   have h' : (x + y) * (x + y) = 4*z*z + 4*z + 1, { rw h, ring, },
   rw [← add_sq_add_sq_sub, h', add_le_add_iff_left],
   suffices : 0 < (x - y) * (x - y), { apply int.add_one_le_of_lt this, },
-  apply mul_self_pos, rw sub_ne_zero, apply int.ne_of_odd_add ⟨z, h⟩,
+  rw [mul_self_pos, sub_ne_zero], apply int.ne_of_odd_add ⟨z, h⟩,
 end
 
 section

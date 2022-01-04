@@ -198,30 +198,32 @@ begin
   exact f.mono (sub_le_self j hi) _ (hτ (j - i)),
 end
 
+section preorder
+
 variables [preorder ι] {f : filtration ι m}
 
 /-- The associated σ-algebra with a stopping time. -/
-def measurable_space
+protected def measurable_space
   {τ : α → ι} (hτ : is_stopping_time f τ) : measurable_space α :=
 { measurable_set' := λ s, ∀ i : ι, measurable_set[f i] (s ∩ {x | τ x ≤ i}),
-    measurable_set_empty :=
-      λ i, (set.empty_inter {x | τ x ≤ i}).symm ▸ @measurable_set.empty _ (f i),
-    measurable_set_compl := λ s hs i,
-      begin
-        rw (_ : sᶜ ∩ {x | τ x ≤ i} = (sᶜ ∪ {x | τ x ≤ i}ᶜ) ∩ {x | τ x ≤ i}),
-        { refine @measurable_set.inter _ (f i) _ _ _ _,
-          { rw ← set.compl_inter,
-            exact @measurable_set.compl _ _ (f i) (hs i) },
-          { exact hτ i} },
-        { rw set.union_inter_distrib_right,
-          simp only [set.compl_inter_self, set.union_empty] }
-      end,
-    measurable_set_Union := λ s hs i,
-      begin
-        rw forall_swap at hs,
-        rw set.Union_inter,
-        exact @measurable_set.Union _ _ (f i) _ _ (hs i),
-      end }
+  measurable_set_empty :=
+    λ i, (set.empty_inter {x | τ x ≤ i}).symm ▸ @measurable_set.empty _ (f i),
+  measurable_set_compl := λ s hs i,
+    begin
+      rw (_ : sᶜ ∩ {x | τ x ≤ i} = (sᶜ ∪ {x | τ x ≤ i}ᶜ) ∩ {x | τ x ≤ i}),
+      { refine @measurable_set.inter _ (f i) _ _ _ _,
+        { rw ← set.compl_inter,
+          exact @measurable_set.compl _ _ (f i) (hs i) },
+        { exact hτ i} },
+      { rw set.union_inter_distrib_right,
+        simp only [set.compl_inter_self, set.union_empty] }
+    end,
+  measurable_set_Union := λ s hs i,
+    begin
+      rw forall_swap at hs,
+      rw set.Union_inter,
+      exact @measurable_set.Union _ _ (f i) _ _ (hs i),
+    end }
 
 @[protected]
 lemma measurable_set {τ : α → ι} (hτ : is_stopping_time f τ) (s : set α) :
@@ -278,16 +280,29 @@ begin
       rwa not_le at h } }
 end
 
-lemma measurable {f : filtration ℕ m} {τ : α → ℕ} (hτ : is_stopping_time f τ) :
+end nat
+
+end preorder
+
+section linear_order
+
+variable [linear_order ι]
+
+lemma measurable [topological_space ι] [measurable_space ι]
+  [borel_space ι] [order_topology ι] [second_countable_topology ι]
+  {f : filtration ι m} {τ : α → ι} (hτ : is_stopping_time f τ) :
   measurable[hτ.measurable_space] τ :=
 begin
-  refine @measurable_to_encodable ℕ α ⊤ hτ.measurable_space _ τ _,
-  intro y,
-  simp_rw [set.preimage, set.mem_singleton_iff],
-  exact is_stopping_time.measurable_set_eq_const _ _,
+  refine @measurable_of_Iic ι α _ _ _ hτ.measurable_space _ _ _ _ _,
+  simp_rw [hτ.measurable_set, set.preimage, set.mem_Iic],
+  intros i j,
+  rw (_ : {x | τ x ≤ i} ∩ {x | τ x ≤ j} = {x | τ x ≤ linear_order.min i j}),
+  { exact f.mono (min_le_right i j) _ (hτ (linear_order.min i j)) },
+  { ext,
+    simp only [set.mem_inter_eq, iff_self, le_min_iff, set.mem_set_of_eq] }
 end
 
-end nat
+end linear_order
 
 end is_stopping_time
 

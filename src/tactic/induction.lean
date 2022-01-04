@@ -1325,8 +1325,6 @@ meta def generalisation_mode_parser : lean.parser generalization_mode :=
   <|>
   pure (generalization_mode.generalize_all_except [])
 
-precedence `fixing`:0
-
 /--
 A variant of `tactic.interactive.induction`, with the following differences:
 

@@ -926,11 +926,12 @@ basis.mk (linear_independent_span hli) $
 begin
   rw eq_top_iff,
   intros x _,
-  have h₁ : subtype.val '' set.range (λ i, subtype.mk (v i) _) = range v,
-  { rw ← set.range_comp },
+  have h₁ : (coe : span R (range v) → M) '' set.range (λ i, subtype.mk (v i) _) = range v,
+  { rw ← set.range_comp,
+    refl },
   have h₂ : map (submodule.subtype _) (span R (set.range (λ i, subtype.mk (v i) _)))
     = span R (range v),
-  { rw [← span_image, submodule.subtype_eq_val, h₁] },
+  { rw [← span_image, submodule.coe_subtype, h₁] },
   have h₃ : (x : M) ∈ map (submodule.subtype _) (span R (set.range (λ i, subtype.mk (v i) _))),
   { rw h₂, apply subtype.mem x },
   rcases mem_map.1 h₃ with ⟨y, hy₁, hy₂⟩,
@@ -1254,7 +1255,7 @@ begin
 end
 
 theorem quotient_prod_linear_equiv (p : submodule K V) :
-  nonempty ((p.quotient × p) ≃ₗ[K] V) :=
+  nonempty (((V ⧸ p) × p) ≃ₗ[K] V) :=
 let ⟨q, hq⟩ := p.exists_is_compl in nonempty.intro $
 ((quotient_equiv_of_is_compl p q hq).prod (linear_equiv.refl _ _)).trans
   (prod_equiv_of_is_compl q p hq.symm)

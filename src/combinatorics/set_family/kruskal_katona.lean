@@ -21,34 +21,34 @@ The key results proved here are:
   In particular, this shows that the minimum shadow size is achieved by initial
   segments of colex.
 
-theorem kruskal_katona {r : ℕ} {𝒜 𝒞 : finset (finset X)} (h₁ : sized 𝒜 r)
+theorem kruskal_katona {r : ℕ} {𝒜 𝒞 : finset (finset X)} (h₁ : (𝒜 : set (finset α)).sized r)
   (h₂ : 𝒜.card = 𝒞.card) (h₃ : is_init_seg_of_colex 𝒞 r) :
   (∂𝒞).card ≤ (∂𝒜).card :=
 
 * A strengthened form, giving the same result under a weaker constraint.
 
-theorem strengthened_kk {r : ℕ} {𝒜 𝒞 : finset (finset X)} (h₁ : sized 𝒜 r)
+theorem strengthened_kk {r : ℕ} {𝒜 𝒞 : finset (finset X)} (h₁ : (𝒜 : set (finset α)).sized r)
   (h₂ : 𝒞.card ≤ 𝒜.card) (h₃ : is_init_seg_of_colex 𝒞 r) :
   (∂𝒞).card ≤ (∂𝒜).card :=
 
 * An iterated form, giving that the minimum iterated shadow size is given
   by initial segments of colex.
 
-theorem iterated_kk {r k : ℕ} {𝒜 𝒞 : finset (finset X)} (h₁ : sized 𝒜 r)
+theorem iterated_kk {r k : ℕ} {𝒜 𝒞 : finset (finset X)} (h₁ : (𝒜 : set (finset α)).sized r)
   (h₂ : 𝒞.card ≤ 𝒜.card) (h₃ : is_init_seg_of_colex 𝒞 r) :
   (shadow^[k] 𝒞).card ≤ (shadow^[k] 𝒜).card :=
 
 * A special case of iterated_kk which is often more practical to use.
 
 theorem lovasz_form {r k i : ℕ} {𝒜 : finset (finset X)} (hir : i ≤ r)
-  (hrk : r ≤ k) (hkn : k ≤ n) (h₁ : sized 𝒜 r) (h₂ : choose k r ≤ 𝒜.card) :
+  (hrk : r ≤ k) (hkn : k ≤ n) (h₁ : (𝒜 : set (finset α)).sized r) (h₂ : choose k r ≤ 𝒜.card) :
   choose k (r-i) ≤ (shadow^[i] 𝒜).card :=
 
 * Erdos-Ko-Rado theorem, giving the upper bound on the size of an intersecting
   family of `r`-sets
 
 theorem EKR {𝒜 : finset (finset X)} {r : ℕ}
-  (h₁ : intersecting 𝒜) (h₂ : sized 𝒜 r) (h₃ : r ≤ n/2) :
+  (h₁ : intersecting 𝒜) (h₂ : (𝒜 : set (finset α)).sized r) (h₃ : r ≤ n/2) :
   𝒜.card ≤ choose (n-1) (r-1) :=
 
 ## References
@@ -76,7 +76,8 @@ variables {n : ℕ}
 `A` in colex where `B` has size `r` and `A` is in `𝒜`, then `B` is also in `𝒜`. In effect, `𝒜` is
 downwards closed with respect to colex among sets of size `r`. -/
 def is_init_seg_of_colex [has_lt α] (𝒜 : finset (finset α)) (r : ℕ) : Prop :=
-sized 𝒜 r ∧ ∀ ⦃A B : finset α⦄, A ∈ 𝒜 → B.to_colex < A.to_colex ∧ B.card = r → B ∈ 𝒜
+(𝒜 : set (finset α)).sized r ∧
+  ∀ ⦃A B : finset α⦄, A ∈ 𝒜 → B.to_colex < A.to_colex ∧ B.card = r → B ∈ 𝒜
 
 /-- Initial segments are nested in some way. In particular, if they're the same size they're equal.
 -/
@@ -221,9 +222,10 @@ by { rw useful_compression, apply_instance }
 /-- The main Kruskal-Katona helper: use induction with our measure to keep compressing until
 we can't any more, which gives a set family which is fully compressed and has the nice properties we
 want. -/
-lemma kruskal_katona_helper {r : ℕ} (𝒜 : finset (finset (fin n))) (h : sized 𝒜 r) :
+lemma kruskal_katona_helper {r : ℕ} (𝒜 : finset (finset (fin n)))
+  (h : (𝒜 : set (finset (fin n))).sized r) :
   ∃ (ℬ : finset (finset (fin n))),
-    (∂ℬ).card ≤ (∂𝒜).card ∧ 𝒜.card = ℬ.card ∧ sized ℬ r
+    (∂ℬ).card ≤ (∂𝒜).card ∧ 𝒜.card = ℬ.card ∧ (ℬ  : set (finset (fin n))).sized r
   ∧ (∀ U V, useful_compression U V → is_compressed U V ℬ) :=
 begin
   classical,
@@ -260,7 +262,7 @@ end
 /-- If we're compressed by all useful compressions, then we're an initial segment. This is the other
 key Kruskal-Katona part. -/
 lemma init_seg_of_compressed [linear_order α]
-  {ℬ : finset (finset α)} {r : ℕ} (h₁ : sized ℬ r)
+  {ℬ : finset (finset α)} {r : ℕ} (h₁ : (ℬ  : set (finset α)).sized r)
   (h₂ : ∀ U V, useful_compression U V → is_compressed U V ℬ):
   is_init_seg_of_colex ℬ r :=
 begin
@@ -549,7 +551,7 @@ begin
       exact h₁.1 hA },
     have := shadow_monotone this,
     simp only [shadow, subset_empty, sup_singleton, image_empty] at this,
-    simp [shadow, this, is_init_seg_of_colex, sized],
+    simp [shadow, this, is_init_seg_of_colex, set.sized],
   obtain rfl | h𝒜 := 𝒜.eq_empty_or_nonempty,
   { rw sup_empty, simp },
   replace h₁ := and.intro h𝒜 h₁, rw IS_iff_le_max at h₁,
@@ -575,7 +577,7 @@ colex.
 
 Proof notes: Most of the work was done in Kruskal-Katona helper; it gives a `ℬ` which is fully
 compressed, and so we know it's an initial segment, which by uniqueness is the same as `𝒞`. -/
-theorem kruskal_katona {r : ℕ} {𝒜 𝒞 : finset (finset X)} (h₁ : sized 𝒜 r)
+theorem kruskal_katona {r : ℕ} {𝒜 𝒞 : finset (finset X)} (h₁ : (𝒜 : set (finset (fin n))).sized r)
   (h₂ : 𝒜.card = 𝒞.card) (h₃ : is_init_seg_of_colex 𝒞 r) :
   (∂𝒞).card ≤ (∂𝒜).card :=
 begin
@@ -590,7 +592,7 @@ end
 
 /--  We can strengthen Kruskal-Katona slightly: note the middle and has been relaxed to a `≤`.
 This shows that the minimum possible shadow size is attained by initial segments. -/
-theorem strengthened_kk {r : ℕ} {𝒜 𝒞 : finset (finset X)} (h₁ : sized 𝒜 r)
+theorem strengthened_kk {r : ℕ} {𝒜 𝒞 : finset (finset X)} (h₁ : (𝒜 : set (finset (fin n))).sized r)
   (h₂ : 𝒞.card ≤ 𝒜.card) (h₃ : is_init_seg_of_colex 𝒞 r) :
   (∂𝒞).card ≤ (∂𝒜).card :=
 begin
@@ -602,7 +604,7 @@ end
 
 /--An iterated form of the Kruskal-Katona theorem. In particular, the minimum possible iterated
 shadow size is attained by initial segments. -/
-theorem iterated_kk {r k : ℕ} {𝒜 𝒞 : finset (finset X)} (h₁ : sized 𝒜 r)
+theorem iterated_kk {r k : ℕ} {𝒜 𝒞 : finset (finset X)} (h₁ : (𝒜 : set (finset (fin n))).sized r)
   (h₂ : 𝒞.card ≤ 𝒜.card) (h₃ : is_init_seg_of_colex 𝒞 r) :
   (shadow^[k] 𝒞).card ≤ (shadow^[k] 𝒜).card :=
 begin
@@ -616,7 +618,7 @@ is just all the subsets of `{0, ..., k - 1}` of size `r`. The `i`-th iterated sh
 the subsets of `{0, ..., k - 1}` of size `r - i`, so the `i`-th iterated shadow of `𝒜` has at least
 `k.choose (r - i)` elements. -/
 theorem lovasz_form {r k i : ℕ} {𝒜 : finset (finset X)} (hir : i ≤ r)
-  (hrk : r ≤ k) (hkn : k ≤ n) (h₁ : sized 𝒜 r) (h₂ : choose k r ≤ 𝒜.card) :
+  (hrk : r ≤ k) (hkn : k ≤ n) (h₁ : (𝒜 : set (finset X)).sized r) (h₂ : choose k r ≤ 𝒜.card) :
   choose k (r-i) ≤ (shadow^[i] 𝒜).card :=
 begin
   set range'k : finset X := attach_fin (range k)
@@ -624,11 +626,11 @@ begin
   set 𝒞 : finset (finset X) := powerset_len r range'k,
   have Ccard: 𝒞.card = nat.choose k r,
     rw [card_powerset_len, card_attach_fin, card_range],
-  have : sized 𝒞 r,
+  have : (𝒞 : set (finset X)).sized r,
   { intros A HA,
-    rw mem_powerset_len at HA,
+    rw [mem_coe, mem_powerset_len] at HA,
     exact HA.2 },
-  suffices this: (shadow^[i] 𝒞).card = nat.choose k (r-i),
+  suffices this : (shadow^[i] 𝒞).card = nat.choose k (r-i),
   { rw ← this,
     apply iterated_kk h₁ _ _,
     rwa Ccard,
@@ -737,7 +739,7 @@ What's the maximum size of an intersecting family, if all sets have size r?
 It gives the bound (n-1) choose (r-1). (This maximum is also attainable).
 -/
 theorem EKR {𝒜 : finset (finset X)} {r : ℕ}
-  (h₁ : intersecting 𝒜) (h₂ : sized 𝒜 r) (h₃ : r ≤ n/2) :
+  (h₁ : intersecting 𝒜) (h₂ : (𝒜 : set (finset X)).sized r) (h₃ : r ≤ n/2) :
 𝒜.card ≤ choose (n-1) (r-1) :=
 begin
   -- Take care of the r=0 case first: it's not very interesting.
@@ -772,7 +774,7 @@ begin
       replace k : ⊤ ⊓ A = ⊤ ⊓ B := sdiff_eq_sdiff_iff_inf_eq_inf.1 k,
       rwa [top_inf_eq, top_inf_eq] at k } },
   -- and everything in 𝒜bar has size n-r.
-  have : sized 𝒜bar (n - r),
+  have : (𝒜bar : set (finset X)).sized (n - r),
   { intro A,
     rw mem_image,
     rintro ⟨B, Bz, rfl⟩,

@@ -67,11 +67,11 @@ ennreal.eq_top_of_forall_nnreal_le $ λ r,
 
 @[simp] lemma volume_ball (a r : ℝ) :
   volume (metric.ball a r) = of_real (2 * r) :=
-by rw [ball_eq, volume_Ioo, ← sub_add, add_sub_cancel', two_mul]
+by rw [ball_eq_Ioo, volume_Ioo, ← sub_add, add_sub_cancel', two_mul]
 
 @[simp] lemma volume_closed_ball (a r : ℝ) :
   volume (metric.closed_ball a r) = of_real (2 * r) :=
-by rw [closed_ball_eq, volume_Icc, ← sub_add, add_sub_cancel', two_mul]
+by rw [closed_ball_eq_Icc, volume_Icc, ← sub_add, add_sub_cancel', two_mul]
 
 @[simp] lemma volume_emetric_ball (a : ℝ) (r : ℝ≥0∞) :
   volume (emetric.ball a r) = 2 * r :=

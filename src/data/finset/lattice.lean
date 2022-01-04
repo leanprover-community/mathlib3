@@ -79,6 +79,13 @@ eq_of_forall_ge_iff $ λ c, by simp [@forall_swap _ β]
 lemma sup_const {s : finset β} (h : s.nonempty) (c : α) : s.sup (λ _, c) = c :=
 eq_of_forall_ge_iff $ λ b, sup_le_iff.trans h.forall_const
 
+@[simp] lemma sup_bot (s : finset β) : s.sup (λ _, ⊥) = (⊥ : α) :=
+begin
+  obtain rfl | hs := s.eq_empty_or_nonempty,
+  { exact sup_empty },
+  { exact sup_const hs _ }
+end
+
 lemma sup_le {a : α} : (∀b ∈ s, f b ≤ a) → s.sup f ≤ a :=
 sup_le_iff.2
 
@@ -117,17 +124,6 @@ end
 
 @[simp] lemma sup_attach (s : finset β) (f : β → α) : s.attach.sup (λ x, f x) = s.sup f :=
 (s.attach.sup_map (function.embedding.subtype _) f).symm.trans $ congr_arg _ attach_map_val
-
-lemma sup_sigma {γ : β → Type*} (s : finset β) (t : Π i, finset (γ i)) (f : sigma γ → α) :
-  (s.sigma t).sup f = s.sup (λ i, (t i).sup $ λ b, f ⟨i, b⟩) :=
-begin
-  refine le_antisymm _ (sup_le (λ i hi, sup_le $ λ b hb, le_sup $ mem_sigma.2 ⟨hi, hb⟩)),
-  refine sup_le _,
-  rintro ⟨i, b⟩ hb,
-  rw mem_sigma at hb,
-  refine le_trans _ (le_sup hb.1),
-  convert le_sup hb.2,
-end
 
 /-- See also `finset.product_bUnion`. -/
 lemma sup_product_left (s : finset β) (t : finset γ) (f : β × γ → α) :
@@ -229,6 +225,15 @@ lemma sup_mem
   t.sup p ∈ s :=
 @sup_induction _ _ _ _ _ _ (∈ s) w₁ w₂ h
 
+@[simp]
+lemma sup_eq_bot_iff (f : β → α)
+  (S : finset β) : S.sup f = ⊥ ↔ ∀ s ∈ S, f s = ⊥ :=
+begin
+  classical,
+  induction S using finset.induction with a S haS hi;
+  simp [*],
+end
+
 end sup
 
 lemma disjoint_sup_right [distrib_lattice α] [order_bot α] {a : α} {s : finset β} {f : β → α} :
@@ -301,6 +306,8 @@ by subst hs; exact finset.fold_congr hfg
 lemma inf_const {s : finset β} (h : s.nonempty) (c : α) : s.inf (λ _, c) = c :=
 @sup_const (order_dual α) _ _ _ _ h _
 
+@[simp] lemma inf_top (s : finset β) : s.inf (λ _, ⊤) = (⊤ : α) := @sup_bot (order_dual α) _ _ _ _
+
 lemma le_inf_iff {a : α} : a ≤ s.inf f ↔ ∀ b ∈ s, a ≤ f b :=
 @sup_le_iff (order_dual α) _ _ _ _ _ _
 
@@ -331,10 +338,6 @@ lemma inf_attach (s : finset β) (f : β → α) : s.attach.inf (λ x, f x) = s.
 lemma inf_comm (s : finset β) (t : finset γ) (f : β → γ → α) :
   s.inf (λ b, t.inf (f b)) = t.inf (λ c, s.inf (λ b, f b c)) :=
 @sup_comm (order_dual α) _ _ _ _ _ _ _
-
-lemma inf_sigma {γ : β → Type*} (s : finset β) (t : Π i, finset (γ i)) (f : sigma γ → α) :
-  (s.sigma t).inf f = s.inf (λ i, (t i).inf $ λ b, f ⟨i, b⟩) :=
-@sup_sigma (order_dual α) _ _ _ _ _ _ _
 
 lemma inf_product_left (s : finset β) (t : finset γ) (f : β × γ → α) :
   (s.product t).inf f = s.inf (λ i, t.inf $ λ i', f ⟨i, i'⟩) :=
@@ -398,6 +401,11 @@ lemma inf_mem
   {ι : Type*} (t : finset ι) (p : ι → α) (h : ∀ i ∈ t, p i ∈ s) :
   t.inf p ∈ s :=
 @inf_induction _ _ _ _ _ _ (∈ s) w₁ w₂ h
+
+@[simp]
+lemma inf_eq_top_iff (f : β → α)
+  (S : finset β) : S.inf f = ⊤ ↔ ∀ s ∈ S, f s = ⊤ :=
+@finset.sup_eq_bot_iff (order_dual α) _ _ _ _ _
 
 end inf
 
@@ -966,7 +974,12 @@ end finset
 
 namespace multiset
 
-lemma count_sup [decidable_eq β] (s : finset α) (f : α → multiset β) (b : β) :
+lemma map_finset_sup [decidable_eq α] [decidable_eq β]
+  (s : finset γ) (f : γ → multiset β) (g : β → α) (hg : function.injective g) :
+  map g (s.sup f) = s.sup (map g ∘ f) :=
+finset.comp_sup_eq_sup_comp _ (λ _ _, map_union hg) (map_zero _)
+
+lemma count_finset_sup [decidable_eq β] (s : finset α) (f : α → multiset β) (b : β) :
   count b (s.sup f) = s.sup (λa, count b (f a)) :=
 begin
   letI := classical.dec_eq α,
@@ -1016,11 +1029,12 @@ lemma sup_eq_bUnion {α β} [decidable_eq β] (s : finset α) (t : α → finset
   s.sup t = s.bUnion t :=
 by { ext, rw [mem_sup, mem_bUnion], }
 
+@[simp] lemma sup_singleton'' [decidable_eq α] (s : finset β) (f : β → α) :
+  s.sup (λ b, {f b}) = s.image f :=
+by { ext a, rw [mem_sup, mem_image], simp only [mem_singleton, eq_comm] }
+
 @[simp] lemma sup_singleton' [decidable_eq α] (s : finset α) : s.sup singleton = s :=
-begin
-  refine (finset.sup_le $ λ a, _).antisymm (λ a ha, mem_sup.2 ⟨a, ha, mem_singleton_self a⟩),
-  exact singleton_subset_iff.2,
-end
+(s.sup_singleton'' _).trans image_id
 
 end finset
 

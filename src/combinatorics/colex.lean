@@ -32,6 +32,14 @@ fixed size. If the size is 3, colex on ℕ starts
 * `sum_two_pow_le_iff_lt`: colex for α = ℕ is the same as binary
   (this also proves binary expansions are unique)
 
+## See also
+
+Related files are:
+* `data.list.lex`: Lexicographic order on lists.
+* `data.psigma.order`: Lexicographic order on `Σ' i, α i`.
+* `data.sigma.order`: Lexicographic order on `Σ i, α i`.
+* `order.lexicographic`: Lexicographic order on `α × β`.
+
 ## References
 
 * https://github.com/b-mehta/maths-notes/blob/master/iii/mich/combinatorics.pdf

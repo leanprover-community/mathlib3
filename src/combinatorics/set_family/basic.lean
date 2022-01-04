@@ -5,6 +5,7 @@ Authors: Bhavik Mehta, Alena Gusakov
 -/
 import combinatorics.set_family.shadow
 import data.fintype.basic
+import data.finset.slice
 
 /-!
 # Basic definitions for finite sets which are useful for combinatorics
@@ -19,79 +20,6 @@ variables {α : Type*}
 
 namespace finset
 
-section sized
-variables {A B : finset (finset α)} {r : ℕ}
-
-/-! ### Sized -/
-
-/-- `sized A r` states that every set in A has size r. -/
-def sized (A : finset (finset α)) (r : ℕ) : Prop := ∀ ⦃x⦄, x ∈ A → card x = r
-
-lemma sized.mono (h : A ⊆ B) (hB : B.sized r) : A.sized r := λ x hx, hB $ h hx
-
-/-- All sets in the union have size `r` iff both sets individually have this property. -/
-lemma sized_union [decidable_eq α] : sized (A ∪ B) r ↔ sized A r ∧ sized B r :=
-begin
-  refine ⟨λ hA, ⟨hA.mono $ subset_union_left _ _, hA.mono $ subset_union_right _ _⟩, λ hA x hx, _⟩,
-  rw mem_union at hx,
-  exact hx.elim (λ h, hA.1 h) (λ h, hA.2 h),
-end
-
-variables [fintype α] {𝒜 : finset (finset α)} {s : finset α}
-
-lemma mem_powerset_len_univ_iff : s ∈ powerset_len r (univ : finset α) ↔ card s = r :=
-mem_powerset_len.trans $ and_iff_right (subset_univ _)
-
-lemma subset_powerset_len_univ_iff : 𝒜 ⊆ powerset_len r univ ↔ sized 𝒜 r :=
-by rw sized; apply forall_congr _; intro A; rw mem_powerset_len_univ_iff
-
-alias subset_powerset_len_univ_iff  ↔ _ finset.sized.subset_powerset_len_univ
-
-lemma sized.card_le (h𝒜 : sized 𝒜 r) : card 𝒜 ≤ (fintype.card α).choose r :=
-begin
-  rw [fintype.card, ←card_powerset_len],
-  exact card_le_of_subset h𝒜.subset_powerset_len_univ,
-end
-
-end sized
-
-/-!
-### Slices
-
-The `r`th slice of a set family the subset of its elements which have
-cardinality `r`.
-A few basic facts about slices.
--/
-section slice
-variables {𝒜 : finset (finset α)} {A : finset α} {r : ℕ}
-
-/-- The `r`th slice of a set family the subset of its elements which have cardinality `r`. -/
-def slice (𝒜 : finset (finset α)) (r : ℕ) : finset (finset α) := 𝒜.filter (λ i, i.card = r)
-
-localized "infix ` # `:90 := finset.slice" in finset_family
-
-/-- `A` is in the `r`th slice of `𝒜` iff it's in `𝒜` and has cardinality `r`. -/
-lemma mem_slice : A ∈ 𝒜 # r ↔ A ∈ 𝒜 ∧ A.card = r := mem_filter
-
-/-- The `r`th slice of `𝒜` is a subset of `𝒜`. -/
-lemma slice_subset : 𝒜#r ⊆ 𝒜 := filter_subset _ _
-
-/-- Everything in the `r`th slice of `𝒜` has size `r`. -/
-lemma sized_slice : sized (𝒜#r) r := λ _, and.right ∘ mem_slice.mp
-
-/-- Elements in distinct slices must be distinct. -/
-lemma ne_of_diff_slice {𝒜 : finset (finset α)} {r₁ r₂ : ℕ}
-  {A₁ A₂ : finset α} (h₁ : A₁ ∈ 𝒜#r₁) (h₂ : A₂ ∈ 𝒜#r₂) :
-  r₁ ≠ r₂ → A₁ ≠ A₂ :=
-mt $ λ h, (sized_slice h₁).symm.trans ((congr_arg card h).trans (sized_slice h₂))
-
-variables [decidable_eq α]
-
-lemma pairwise_disjoint_slice : (set.univ : set ℕ).pairwise_disjoint (slice 𝒜) :=
-λ m _ n _ hmn, disjoint_filter.2 $ λ s hs hm hn, hmn $ hm.symm.trans hn
-
-end slice
-
 variables [decidable_eq α] {𝒜 : finset (finset α)} {A B : finset α} {r k : ℕ}
 
 /-- Iterated shadow of the empty set is empty. -/
@@ -100,15 +28,6 @@ begin
   induction k with k ih,
   { refl },
   { rwa [iterate, shadow_empty] }
-end
-
-/-- Everything in the shadow is one smaller than things in the original. -/
-lemma sized.shadow (h𝒜 : sized 𝒜 r) : sized (∂𝒜) (r - 1) :=
-begin
-  intros A h,
-  obtain ⟨A, hA, i, hi, rfl⟩ := mem_shadow_iff.1 h,
-  rw [card_erase_of_mem hi, h𝒜 hA],
-  refl,
 end
 
 /-- `B ∈ ∂𝒜` iff `B` is exactly one element less than something from `𝒜` -/
@@ -182,10 +101,11 @@ begin
 end
 
 /-- Everything in the `k`-th shadow is `k` smaller than things in the original. -/
-lemma sized.shadow_iter (h𝒜 : sized 𝒜 r) : sized (shadow^[k] 𝒜) (r-k) :=
+lemma _root_.set.sized.shadow_iter (h𝒜 : (𝒜 : set (finset α)).sized r) :
+  ((∂^[k] 𝒜 : finset (finset α)) : set (finset α)).sized (r - k) :=
 begin
   intro B,
-  rw sub_iff_shadow_iter,
+  rw [mem_coe, sub_iff_shadow_iter],
   rintro ⟨A, hA, hBA, card⟩,
   rw [card_sdiff hBA, h𝒜 hA] at card,
   rw [←card, ←h𝒜 hA, nat.sub_sub_self (card_le_of_subset hBA)],

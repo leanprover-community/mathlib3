@@ -252,24 +252,28 @@ variable (A)
 def sites.copullback {G : C ⥤ D} (hG : cover_lifting J K G) :
   Sheaf J A ⥤ Sheaf K A :=
 { obj := λ ℱ, ⟨(Ran G.op).obj ℱ.val, Ran_is_sheaf_of_cover_lifting hG ℱ⟩,
-  map := λ _ _ f, (Ran G.op).map f,
-  map_id' := λ ℱ, (Ran G.op).map_id ℱ.val,
-  map_comp' := λ _ _ _ f g, (Ran G.op).map_comp f g }
+  map := λ _ _ f, ⟨(Ran G.op).map f.val⟩,
+  map_id' := λ ℱ, Sheaf.hom.ext _ _ $ (Ran G.op).map_id ℱ.val,
+  map_comp' := λ _ _ _ f g, Sheaf.hom.ext _ _ $ (Ran G.op).map_comp f.val g.val }
 
 /--
 Given a functor between sites that is cover-preserving, cover-lifting, and compatible-preserving,
 the pullback and copullback along `G` are adjoint to each other
 -/
-@[simps] noncomputable
+@[simps unit_app_val counit_app_val] noncomputable
 def sites.pullback_copullback_adjunction {G : C ⥤ D} (Hp : cover_preserving J K G)
   (Hl : cover_lifting J K G) (Hc : compatible_preserving K G) :
   sites.pullback A Hc Hp ⊣ sites.copullback A Hl :=
-{ hom_equiv := λ X Y, (Ran.adjunction A G.op).hom_equiv X.val Y.val,
-  unit := { app := λ X, (Ran.adjunction A G.op).unit.app X.val,
-    naturality' := λ _ _ f, (Ran.adjunction A G.op).unit.naturality f },
-  counit := { app := λ X, (Ran.adjunction A G.op).counit.app X.val,
-    naturality' := λ _ _ f, (Ran.adjunction A G.op).counit.naturality f },
-  hom_equiv_unit' := λ X Y f, (Ran.adjunction A G.op).hom_equiv_unit,
-  hom_equiv_counit' := λ X Y f, (Ran.adjunction A G.op).hom_equiv_counit }
+{ hom_equiv := λ X Y,
+  { to_fun := λ f, ⟨(Ran.adjunction A G.op).hom_equiv X.val Y.val f.val⟩,
+    inv_fun := λ f, ⟨((Ran.adjunction A G.op).hom_equiv X.val Y.val).symm f.val⟩,
+    left_inv := λ f, by { ext1, dsimp, rw [equiv.symm_apply_apply] },
+    right_inv := λ f, by { ext1, dsimp, rw [equiv.apply_symm_apply] } },
+  unit := { app := λ X, ⟨(Ran.adjunction A G.op).unit.app X.val⟩,
+    naturality' := λ _ _ f, Sheaf.hom.ext _ _ $ (Ran.adjunction A G.op).unit.naturality f.val },
+  counit := { app := λ X, ⟨(Ran.adjunction A G.op).counit.app X.val⟩,
+    naturality' := λ _ _ f, Sheaf.hom.ext _ _ $ (Ran.adjunction A G.op).counit.naturality f.val },
+  hom_equiv_unit' := λ X Y f, by { ext1, apply (Ran.adjunction A G.op).hom_equiv_unit },
+  hom_equiv_counit' := λ X Y f, by { ext1, apply (Ran.adjunction A G.op).hom_equiv_counit } }
 
 end category_theory

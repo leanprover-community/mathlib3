@@ -86,7 +86,8 @@ def from_above (𝒜 : finset (finset α)) : finset (finset α × finset α) :=
 
 /-- Find how big `from_above` is: for each `A ∈ 𝒜` there are `r` possible `B`, giving the
 exact cardinality. -/
-lemma sized.card_from_above (h𝒜 : sized 𝒜 r) : (from_above 𝒜).card = 𝒜.card * r :=
+lemma _root_.set.sized.card_from_above (h𝒜 : (𝒜 : set (finset α)).sized r) :
+  (from_above 𝒜).card = 𝒜.card * r :=
 begin
   rw [from_above, sup_eq_bUnion, card_bUnion],
   { convert sum_const_nat _,
@@ -116,7 +117,7 @@ end
 
 /-- We can also find how big the second set is: for each `B` there are `|α| - r + 1` choices for
 what to put into it. -/
-lemma sized.card_from_below (h𝒜 : sized 𝒜 r) :
+lemma _root_.set.sized.card_from_below (h𝒜 : (𝒜 : set (finset α)).sized r) :
   (from_below 𝒜).card = (∂𝒜).card * (fintype.card α - (r - 1)) :=
 begin
   rw [from_below, sup_eq_bUnion, card_bUnion],
@@ -139,7 +140,7 @@ end
 
 /-- The local LYM inequality says `𝒜` 'takes up less' of `α^(r)` than `∂𝒜` takes up of `α^(r - 1)`.
 In particular, `|𝒜| / choose |α| r ≤ |∂𝒜| / choose |α| (r-1)`. -/
-theorem local_lym (hr : 1 ≤ r) (h𝒜 : sized 𝒜 r) :
+theorem local_lym (hr : 1 ≤ r) (h𝒜 : (𝒜 : set (finset α)).sized r) :
   (𝒜.card : ℚ) / (fintype.card α).choose r ≤ (∂𝒜).card / (fintype.card α).choose (r-1) :=
 begin
   cases lt_or_le (fintype.card α) r with z hr',
@@ -178,11 +179,12 @@ def falling [decidable_eq α] (𝒜 : finset (finset α)) : Π (k : ℕ), finset
 Everything in the kth fallen has size `n-k`
 -/
 lemma falling_sized [decidable_eq α] (𝒜 : finset (finset α)) (k : ℕ) :
-  sized (falling 𝒜 k) (fintype.card α - k) :=
+  (falling 𝒜 k : set (finset α)).sized (fintype.card α - k) :=
 begin
   induction k with k ih,
   { exact sized_slice },
-  { exact sized_union.2 ⟨sized_slice, ih.shadow⟩ }
+  { rw [falling, coe_union],
+    exact set.sized_union.2 ⟨sized_slice, ih.shadow⟩ }
 end
 
 /--
@@ -200,8 +202,8 @@ begin
   induction r with r ih generalizing A C;
   rw falling at HC,
   any_goals { rw mem_union at HC, cases HC },
-  any_goals { refine H A (mem_slice.1 HA).1 C (mem_slice.1 HC).1 _ ‹A ⊆ C›,
-              apply ne_of_diff_slice HA HC _,
+  any_goals { refine H (mem_slice.1 HA).1 (mem_slice.1 HC).1 _ ‹A ⊆ C›,
+              apply ne_of_mem_slice HA HC _,
               apply ne_of_lt },
   { apply nat.sub_lt_of_pos_le _ _ hr hk },
   { mono },
@@ -228,7 +230,7 @@ begin
   induction k with k ih,
   { simp [falling] },
   rw [sum_range_succ, falling, union_comm, card_disjoint_union (H.disjoint_falling_slice hk),
-    cast_add, add_div],
+    cast_add, _root_.add_div],
   exact add_le_add_right
     ((ih $ k.le_succ.trans hk).trans $ local_lym (le_tsub_of_add_le_left hk) $ falling_sized _ _) _,
 end
@@ -298,7 +300,7 @@ begin
     intros x _ y _ ne,
     rw disjoint_left,
     intros a Ha k,
-    exact ne_of_diff_slice Ha k ne rfl },
+    exact ne_of_mem_slice Ha k ne rfl },
   norm_cast,
   apply choose_pos,
   apply nat.div_le_self,

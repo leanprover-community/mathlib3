@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Bhavik Mehta
 -/
 import combinatorics.set_family.shadow
+import data.finset.card
 
 /-!
 # UV-compressions

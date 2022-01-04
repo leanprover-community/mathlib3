@@ -1323,22 +1323,6 @@ by { ext, simp [finset.mem_powerset_len] }
   fintype.card {s : finset α // s.card = k} = nat.choose (fintype.card α) k :=
 by simp [fintype.subtype_card, finset.card_univ]
 
-@[simp] lemma set.to_finset_univ [hu : fintype (set.univ : set α)] [fintype α] :
-  @set.to_finset _ (set.univ : set α) hu = finset.univ :=
-by { ext, simp only [set.mem_univ, mem_univ, set.mem_to_finset] }
-
-@[simp] lemma set.to_finset_eq_empty_iff {s : set α} [fintype s] :
-  s.to_finset = ∅ ↔ s = ∅ :=
-by simp [ext_iff, set.ext_iff]
-
-@[simp] lemma set.to_finset_empty :
-  (∅ : set α).to_finset = ∅ :=
-set.to_finset_eq_empty_iff.mpr rfl
-
-@[simp] lemma set.to_finset_range [decidable_eq α] [fintype β] (f : β → α) [fintype (set.range f)] :
-  (set.range f).to_finset = finset.univ.image f :=
-by simp [ext_iff]
-
 theorem fintype.card_subtype_le [fintype α] (p : α → Prop) [decidable_pred p] :
   fintype.card {x // p x} ≤ fintype.card α :=
 fintype.card_le_of_embedding (function.embedding.subtype _)

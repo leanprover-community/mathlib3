@@ -5,6 +5,7 @@ Authors: Mario Carneiro
 -/
 import data.list.prod_monoid
 import data.multiset.basic
+import data.int.basic
 
 /-!
 # Sums and products over multisets

@@ -185,8 +185,8 @@ open mul_opposite
 @[simps]
 protected def op {α β} [has_add α] [has_mul α] [has_add β] [has_mul β] :
   (α ≃+* β) ≃ (αᵐᵒᵖ ≃+* βᵐᵒᵖ) :=
-{ to_fun    := λ f, { ..f.to_add_equiv.op, ..f.to_mul_equiv.op},
-  inv_fun   := λ f, { ..(add_equiv.op.symm f.to_add_equiv), ..(mul_equiv.op.symm f.to_mul_equiv) },
+{ to_fun    := λ f, { ..f.to_add_equiv.mul_op, ..f.to_mul_equiv.op},
+  inv_fun   := λ f, { ..add_equiv.mul_op.symm f.to_add_equiv, ..mul_equiv.op.symm f.to_mul_equiv },
   left_inv  := λ f, by { ext, refl },
   right_inv := λ f, by { ext, refl } }
 

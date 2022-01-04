@@ -1275,17 +1275,25 @@ begin
   -- field_simp,
 end
 
-example (a b c : ℝ) : a / (b * c) = a / b / c :=
+example (a : ℝ) (c : ℕ) : a ^ c = a ^ (c : ℝ) :=
 begin
-  library_search,
+  simp only [rpow_nat_cast],
 end
+
+lemma four_eq_two_rpow_two : (4 : ℝ) = 2 ^ (2 : ℝ) :=
+calc (4 : ℝ) = 2 ^ (2 : ℕ) : by {norm_num,}
+... = 2 ^ (2 : ℝ) : by {rw <-real.rpow_nat_cast, congr, exact nat.cast_two,}
+
+-- example (a b c : ℝ) : a / (b * c) = a / b / c :=
+-- begin
+--   library_search,
+-- end
 
 lemma inequality2 {x : ℝ} (n_large : 1003 < x) : sqrt 2 * sqrt x * log 2 / (x * log 4) ≤ 0.04 :=
 begin
   rw div_le_iff,
   rw <-mul_assoc,
-  have h : (4 : ℝ) = 2 ^ (2 : ℝ), sorry,
-  rw h,
+  rw four_eq_two_rpow_two,
   rw log_rpow,
   rw <-mul_assoc,
   rw mul_le_mul_right,
@@ -1298,7 +1306,8 @@ begin
   rw mul_comm,
   rw <-div_le_iff,
   rw le_sqrt,
-  simp only [one_div, div_pow],
+  rw div_pow,
+  -- simp only [one_div, div_pow],
   rw real.sq_sqrt,
   field_simp,
   -- repeat {apply ne_of_gt},
@@ -1398,7 +1407,31 @@ begin
   rw imp_false,
   rw not_le,
   rw <-@nat.cast_lt ℝ,
-  rw <-@nat.cast_lt ℝ at n_large,
+  have fact1 : 0 < 2 * (n : ℝ) + 1,
+  {
+
+    rw <-nat.cast_zero,
+    conv
+    begin
+      to_rhs,
+      congr,
+      skip,
+      rw <-nat.cast_one,
+    end,
+    rw <-nat.cast_two,
+    rw <-nat.cast_mul,
+    rw <-nat.cast_add,
+    rw nat.cast_lt,
+    linarith,
+  },
+  have fact2 : 0 < 2 * (n : ℝ),
+  {
+    rw <-nat.cast_zero,
+    rw <-nat.cast_two,
+    rw <-nat.cast_mul,
+    rw nat.cast_lt,
+    linarith,
+  },
   simp only [nat.cast_bit0, nat.cast_add, nat.cast_one, nat.cast_mul, nat.cast_pow],
   simp only [<-rpow_nat_cast],
   calc (2 * (n : ℝ) + 1) * (2 * (n : ℝ)) ^ (nat.sqrt (2 * n) : ℝ) * 4 ^ (((2 * n / 3) : ℕ) : ℝ)
@@ -1407,10 +1440,29 @@ begin
             rw mul_le_mul_right,
             rw mul_le_mul_left,
             apply rpow_le_rpow_of_exponent_le,
-            sorry,
-            sorry,
-            sorry,
-            sorry,
+            rw <-@nat.cast_lt ℝ at n_large,
+            have h : (1003) < (n : ℝ), convert n_large, simp,
+            linarith,
+            rw le_sqrt,
+            -- have two_is_two : (2 : ℝ) = ((2 : ℕ) : ℝ),
+            -- unfold_coes,
+            rw <-nat.cast_pow,
+            conv
+            begin
+              to_rhs,
+              rw <-nat.cast_two,
+            end,
+            -- rw <-nat.cast_two,
+            rw <-nat.cast_mul,
+            rw nat.cast_le,
+            exact (2 * n).sqrt_le',
+            exact (nat.sqrt (2 * n)).cast_nonneg,
+            rw <-nat.cast_two,
+            rw <-nat.cast_mul,
+            exact (2 * n).cast_nonneg,
+            exact fact1,
+            apply rpow_pos_of_pos,
+            norm_num,
           end
      ... ≤ (2 * (n : ℝ) + 1) * (2 * n : ℝ) ^ (real.sqrt (2 * (n : ℝ))) * 4 ^ (2 * (n : ℝ) / 3) :
           begin
@@ -1426,12 +1478,17 @@ begin
             simp,
             simp,
             exact is_trans.swap (λ (x y : ℝ), y ≤ x),
-            sorry,
+            apply mul_pos,
+            exact fact1,
+            apply rpow_pos_of_pos,
+            exact fact2,
           end
     ... < 4 ^ (n : ℝ) :
           begin
             apply real_false_inequality_is_false,
-            sorry,
+            rw <-@nat.cast_lt ℝ at n_large,
+            have h : (1003) < (n : ℝ), convert n_large, simp,
+            linarith,
           end,
 end
 

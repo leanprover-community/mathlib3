@@ -1269,6 +1269,8 @@ begin
   ring,
   rw h3,
   sorry,
+  norm_num1,
+  linarith,
 
   -- field_simp,
 end
@@ -1331,11 +1333,11 @@ end
 
 
 lemma real_false_inequality_is_false {x : ℝ} (n_large : (1003 : ℝ) < x)
-  : (2 * x + 1) * (2 * x) ^ (real.sqrt (2 * x)) * 4 ^ (2 * x / 3 + 1) ≤ 4 ^ x :=
+  : (2 * x + 1) * (2 * x) ^ (real.sqrt (2 * x)) * 4 ^ (2 * x / 3) < 4 ^ x :=
 begin
-  apply (log_le_log _ _).1,
+  apply (log_lt_log_iff _ _).1,
   rw [log_mul, log_mul, log_rpow, log_rpow, log_rpow, log_mul],
-  rw <-div_le_one,
+  rw <-div_lt_one,
   simp only [add_div, mul_add, add_mul, add_div, <-add_assoc],
   simp,
   {
@@ -1349,16 +1351,16 @@ end
 
 -- Take the approach of immediately reifying
 lemma false_inequality_is_false {n : ℕ} (n_large : 1003 < n)
-  : 4 ^ n < (2 * n + 1) * (2 * n) ^ (nat.sqrt (2 * n)) * 4 ^ (2 * n / 3 + 1) → false :=
+  : 4 ^ n ≤ (2 * n + 1) * (2 * n) ^ (nat.sqrt (2 * n)) * 4 ^ (2 * n / 3) → false :=
 begin
   rw imp_false,
-  rw not_lt,
-  rw <-@nat.cast_le ℝ,
+  rw not_le,
+  rw <-@nat.cast_lt ℝ,
   rw <-@nat.cast_lt ℝ at n_large,
   simp only [nat.cast_bit0, nat.cast_add, nat.cast_one, nat.cast_mul, nat.cast_pow],
   simp only [<-rpow_nat_cast],
-  calc (2 * (n : ℝ) + 1) * (2 * (n : ℝ)) ^ (nat.sqrt (2 * n) : ℝ) * 4 ^ (((2 * n / 3 + 1) : ℕ) : ℝ)
-        ≤ (2 * (n : ℝ) + 1) * (2 * n : ℝ) ^ (real.sqrt (2 * (n : ℝ))) * 4 ^ (((2 * n / 3 + 1) : ℕ) : ℝ) :
+  calc (2 * (n : ℝ) + 1) * (2 * (n : ℝ)) ^ (nat.sqrt (2 * n) : ℝ) * 4 ^ (((2 * n / 3) : ℕ) : ℝ)
+        ≤ (2 * (n : ℝ) + 1) * (2 * n : ℝ) ^ (real.sqrt (2 * (n : ℝ))) * 4 ^ (((2 * n / 3) : ℕ) : ℝ) :
           begin
             rw mul_le_mul_right,
             rw mul_le_mul_left,
@@ -1368,14 +1370,14 @@ begin
             sorry,
             sorry,
           end
-     ... ≤ (2 * (n : ℝ) + 1) * (2 * n : ℝ) ^ (real.sqrt (2 * (n : ℝ))) * 4 ^ (2 * (n : ℝ) / 3 + 1) :
+     ... ≤ (2 * (n : ℝ) + 1) * (2 * n : ℝ) ^ (real.sqrt (2 * (n : ℝ))) * 4 ^ (2 * (n : ℝ) / 3) :
           begin
             -- sorry
             rw mul_le_mul_left,
             -- rw mul_le_mul_left,
             apply rpow_le_rpow_of_exponent_le,
             linarith,
-            simp,
+            -- simp,
             apply trans nat.cast_div_le,
             apply le_of_eq,
             congr,
@@ -1384,7 +1386,7 @@ begin
             exact is_trans.swap (λ (x y : ℝ), y ≤ x),
             sorry,
           end
-    ... ≤ 4 ^ (n : ℝ) :
+    ... < 4 ^ (n : ℝ) :
           begin
             apply real_false_inequality_is_false,
             sorry,
@@ -1557,7 +1559,7 @@ begin
     { intros _, exact pow_pos (by linarith) _ },
 
     have binom_inequality
-      : (2 * n).choose n < (2 * n) ^ (nat.sqrt (2 * n)) * 4 ^ (2 * n / 3 + 1), by
+      : (2 * n).choose n ≤ (2 * n) ^ (nat.sqrt (2 * n)) * 4 ^ (2 * n / 3), by
       calc (2 * n).choose n
               = (∏ p in finset.filter nat.prime (finset.range ((2 * n).choose n + 1)),
                    p ^ (padic_val_nat p ((2 * n).choose n)))
@@ -1696,23 +1698,29 @@ begin
       ...     ≤ (2 * n) ^ (nat.sqrt (2 * n))
                  *
                 4 ^ (2 * n / 3)
-                     : nat.mul_le_mul_left _ (primorial_le_4_pow (2 * n / 3))
-      ...     < (2 * n) ^ (nat.sqrt (2 * n))
-                 *
-                4 ^ (2 * n / 3 + 1)
-                : (mul_lt_mul_left
-                    (pow_pos (by linarith) _)).mpr
-                    (pow_lt_pow (by simp only [nat.succ_pos', nat.one_lt_bit0_iff,
-                                                nat.one_le_bit0_iff])
-                    (by simp only [nat.succ_pos', lt_add_iff_pos_right])),
+                     : nat.mul_le_mul_left _ (primorial_le_4_pow (2 * n / 3)),
+      -- ...     < (2 * n) ^ (nat.sqrt (2 * n))
+      --            *
+      --           4 ^ (2 * n / 3)
+      --           : (mul_lt_mul_left
+      --               (pow_pos (by linarith) _)).mpr
+      --               (pow_lt_pow (by simp only [nat.succ_pos', nat.one_lt_bit0_iff,
+      --                                           nat.one_le_bit0_iff])
+      --               (by simp only [nat.succ_pos', lt_add_iff_pos_right])),
 
     have false_inequality
-      : 4 ^ n < (2 * n + 1) * (2 * n) ^ (nat.sqrt (2 * n)) * 4 ^ (2 * n / 3 + 1), by
+      : 4 ^ n ≤ (2 * n + 1) * (2 * n) ^ (nat.sqrt (2 * n)) * 4 ^ (2 * n / 3), by
       calc 4 ^ n ≤ (2 * n + 1) * (2 * n).choose n
                     :  nat.four_pow_le_two_mul_add_one_mul_central_binom n
-        ...      < (2 * n + 1) * ((2 * n) ^ (nat.sqrt (2 * n)) * 4 ^ (2 * n / 3 + 1))
-                    : nat.mul_lt_mul_of_pos_left binom_inequality (by linarith)
-        ...      = (2 * n + 1) * (2 * n) ^ (nat.sqrt (2 * n)) * 4 ^ (2 * n / 3 + 1) : by ring,
+        ...      ≤ (2 * n + 1) * ((2 * n) ^ (nat.sqrt (2 * n)) * 4 ^ (2 * n / 3))
+                    :
+                    begin
+                      apply mul_le_mul_of_nonneg_left,
+                      exact binom_inequality,
+                      linarith,
+                      -- (mul_le_mul_of_nonneg_left binom_inequality (by linarith))
+                    end
+        ...      = (2 * n + 1) * (2 * n) ^ (nat.sqrt (2 * n)) * 4 ^ (2 * n / 3) : by ring,
 
     exfalso,
     exact false_inequality_is_false n_big false_inequality,

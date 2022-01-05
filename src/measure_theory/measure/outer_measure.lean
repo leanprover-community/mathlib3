@@ -702,7 +702,7 @@ lemma is_caratheodory_Union_lt {s : ℕ → set α} :
 
 lemma is_caratheodory_inter (h₁ : is_caratheodory s₁) (h₂ : is_caratheodory s₂) :
   is_caratheodory (s₁ ∩ s₂) :=
-by { rw [← is_caratheodory_compl_iff, compl_inter],
+by { rw [← is_caratheodory_compl_iff, set.compl_inter],
   exact is_caratheodory_union _ (is_caratheodory_compl _ h₁) (is_caratheodory_compl _ h₂) }
 
 lemma is_caratheodory_sum {s : ℕ → set α} (h : ∀i, is_caratheodory (s i))

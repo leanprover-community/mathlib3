@@ -5,7 +5,7 @@ Authors: Grayson Burton, Yaël Dillies, Violeta Hernández Palacios
 -/
 import category_theory.category.basic
 import data.finsupp.order
-import data.dfinsupp
+import data.dfinsupp.basic
 import data.nat.interval
 import data.set.intervals.ord_connected
 import data.sigma.order
@@ -214,7 +214,7 @@ noncomputable def grade_order.to_locally_finite_order : locally_finite_order α 
 
 /-- The set of grades in a linear order has no gaps. -/
 private lemma grade_ioo_lin {a b : α} {m n r : ℕ} (ha : grade a = m) (hb : grade b = n)
-  (hrl : m < r) (hrr : r < n) : ∃ s ∈ set.Ioo m n, (∃ c : α, grade c = s) :=
+  (hrl : m < r) (hrr : r < n) : ∃ (s ∈ set.Ioo m n) (c : α), grade c = s :=
 begin
   rw ←ha at *, rw ←hb at *,
   obtain ⟨_, hac, hcb⟩ := exists_lt_lt_of_not_covers (λ h, (λ ⟨_, hmn⟩, hmn hrl hrr : ¬ _ ⋖ _)
@@ -236,7 +236,15 @@ def order_embedding.grade_fin : α ↪o fin (grade ⊤ + 1) :=
 /-- A graded linear order has an element of grade `j` when `j ≤ grade ⊤`. This is generalized to a
 partial order in `ex_of_grade`. -/
 lemma ex_of_grade_lin {j : ℕ} (hj : j ≤ grade (⊤ : α)) : (∃ a : α, grade a = j) :=
-(nat.all_icc_of_ex_ioo grade_ioo_lin) _ _ ⟨⊥, grade_bot⟩ ⟨⊤, rfl⟩ _ ⟨zero_le _, hj⟩
+have hj' : grade (⊥ : α) ≤ j := by simp [grade_bot],
+let S := {g | ∃ a : α, grade a = g} in
+suffices h : _,
+from @nat.all_icc_of_ex_ioo S h (grade (⊥ : α)) (grade (⊤ : α)) _ ⟨⊥, rfl⟩ ⟨⊤, rfl⟩ hj' hj,
+begin
+  rintros _ _ _ ⟨_, ha⟩ ⟨_, hb⟩ hac hcb,
+  rcases grade_ioo_lin ha hb hac hcb with ⟨_, hw, hw'⟩,
+  exact ⟨_, hw', hw⟩
+end
 
 /-- A graded linear order has a unique element of grade `j` when `j ≤ grade ⊤`. -/
 lemma ex_unique_of_grade {j : ℕ} (hj : j ≤ grade (⊤ : α)) : ∃! a : α, grade a = j :=
@@ -345,7 +353,14 @@ end
 lemma covers.image_covers_of_ord_connected (h : (set.range f).ord_connected) (hab : a ⋖ b) :
   f a ⋖ f b :=
 begin
-  sorry
+  rcases hab with ⟨habl, habr⟩,
+  rw set.ord_connected_def at h,
+  refine ⟨f.lt_iff_lt.mpr habl, _⟩,
+  intros c hac hcb,
+  have := @h (f a) ⟨_, rfl⟩ (f b) ⟨_, rfl⟩,
+  cases this ⟨le_of_lt hac, le_of_lt hcb⟩ with w hw,
+  rw [←hw, f.lt_iff_lt] at hac hcb,
+  exact habr hac hcb
 end
 
 lemma image_covers_iff (h : (set.range f).ord_connected) : f a ⋖ f b ↔ a ⋖ b :=
@@ -356,11 +371,32 @@ def grade_order.lift (hbot : f ⊥ = ⊥) (h : (set.range f).ord_connected) : gr
 { grade := λ a, grade (f a),
   grade_bot := by rw [hbot, grade_bot],
   strict_mono := grade_strict_mono.comp f.strict_mono,
-  grade_of_covers := λ a b h, begin
-    sorry
-  end }
+  grade_of_covers := λ a b hab, grade_order.grade_of_covers (f a) (f b)
+    (by rwa image_covers_iff h) }
 
 end lift
+
+/-! #### List -/
+
+namespace list
+
+lemma sublist.singleton : Π {l : list α} {a : α}, l <+ [a] → l = nil ∨ l = [a]
+| _ _ (sublist.cons  _ _  _ _ ) := by apply or.inl; rwa ←sublist_nil_iff_eq_nil
+| _ _ (sublist.cons2 a [] _ hl) := begin
+  rw sublist_nil_iff_eq_nil at hl,
+  rw hl,
+  exact or.inr rfl
+end
+
+lemma sublist.singleton_iff (l : list α) (a : α) : l <+ [a] ↔ l = nil ∨ l = [a] :=
+⟨sublist.singleton, begin
+  rintros (h | h),
+  all_goals { induction h },
+    { exact sublist.cons _ _ _ (sublist.refl _) },
+    { exact sublist.refl _ }
+end⟩
+
+end list
 
 /-! #### Multiset -/
 
@@ -372,39 +408,44 @@ lt_iff_lt_of_le_iff_le' (cons_le_cons_iff _) (cons_le_cons_iff _)
 
 lemma cons_lt_cons (a : α) (h : s < t) : a ::ₘ s < a ::ₘ t := cons_lt_cons_iff.2 h
 
-lemma covers_cons (m : multiset α) (a : α) : m ⋖ a ::ₘ m := ⟨lt_cons_self _ _, begin
-  sorry
-end⟩
-
-lemma exists_cons_le_of_lt (h : s < t) : ∃ a, a ::ₘ s ≤ t :=
+lemma lt_singleton : s < a ::ₘ 0 ↔ s = 0 :=
 begin
-  sorry
+  rcases s with ⟨s⟩,
+  change (↑s < ↑[a]) ↔ ↑s = _,
+  simp_rw [coe_eq_zero, lt_iff_cons_le, cons_coe, coe_le],
+  refine ⟨λ h, _, λ h, _⟩,
+    { rcases h with ⟨w, w', hw'w, hw'a⟩,
+      rw list.sublist.singleton_iff at hw'a,
+      rcases hw'a with ⟨rfl⟩ | ⟨rfl⟩,
+        { rw list.nil_perm at hw'w, contradiction },
+        { rw [list.singleton_perm, list.cons.inj_eq] at hw'w,
+          rw hw'w.right } },
+    { use a,
+      induction h,
+      refl }
 end
+
+lemma covers_cons (m : multiset α) (a : α) : m ⋖ a ::ₘ m := ⟨lt_cons_self _ _, begin
+  simp_rw lt_iff_cons_le,
+  rintros m' ⟨b, hbm'⟩ ⟨c, hcm'⟩,
+  apply @irrefl _ (<) _ m,
+  have h := lt_of_le_of_lt hbm' (lt_cons_self _ c),
+  replace h := lt_of_lt_of_le h hcm',
+  clear hbm' hcm',
+  induction m using multiset.induction with d m hm,
+    { rw lt_singleton at h,
+      exact (cons_ne_zero h).elim },
+    { simp_rw cons_swap _ d at h,
+      rw cons_lt_cons_iff at h ⊢,
+      exact hm h },
+end⟩
 
 lemma _root_.covers.exists_cons_multiset (h : s ⋖ t) : ∃ a, t = a ::ₘ s :=
 begin
-  obtain ⟨a, ha⟩ := exists_cons_le_of_lt h.lt,
+  obtain ⟨a, ha⟩ := lt_iff_cons_le.mp h.lt,
   refine ⟨a, ha.eq_of_not_gt _⟩,
-  sorry
-  -- cases hcovers with hlt no_intermediate,
-  -- rcases hdiff : (t - s) with ⟨diff⟩,
-  -- cases diff,
-  -- { exfalso,
-  --   simp at hdiff,
-  --   exact hlt.2 hdiff },
-  -- cases diff_tl,
-  -- { use diff_hd,
-  --   rw [←(eq_union_left hlt.1), union_def, hdiff],
-  --   refl },
-  -- { exfalso,
-  --   apply @no_intermediate (diff_hd ::ₘ s),
-  --   { apply lt_cons_self },
-  --   { rw [←(eq_union_left hlt.1), union_def, hdiff],
-  --     simp,
-  --     rw [←cons_coe, ←cons_coe, cons_add, cons_add],
-  --     apply cons_lt_cons,
-  --     apply lt_cons_of_le,
-  --     exact le_add_self } }
+  cases h with hlt no_intermediate,
+  exact no_intermediate (lt_cons_self _ _)
 end
 
 lemma covers_iff_exists_cons : s ⋖ t ↔ ∃ a, t = a ::ₘ s :=
@@ -422,8 +463,7 @@ instance (α : Type*) : grade_order (multiset α) :=
     have ab_cons : ∃ x, b = x ::ₘ a := hab.exists_cons_multiset,
     cases ab_cons with _ hcons,
     have hcard := congr_arg card hcons,
-    rwa card_cons at hcard,
-    sorry,
+    rwa [card_cons, @symmetric.iff _ eq (λ _ _, eq.symm) _ _] at hcard,
   end }
 
 @[simp] protected lemma grade (m : multiset α) : grade m = m.card := rfl

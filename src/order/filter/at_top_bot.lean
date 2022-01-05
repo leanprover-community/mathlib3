@@ -980,6 +980,19 @@ begin
   tauto,
 end
 
+lemma eventually_at_top_curry [semilattice_sup α] [semilattice_sup β] {p : α × β → Prop}
+  (hp : ∀ᶠ (x : α × β) in filter.at_top, p x) :
+  ∀ᶠ k in at_top, ∀ᶠ l in at_top, p (k, l) :=
+begin
+  rw ← prod_at_top_at_top_eq at hp,
+  exact hp.curry,
+end
+
+lemma eventually_at_bot_curry [semilattice_inf α] [semilattice_inf β] {p : α × β → Prop}
+  (hp : ∀ᶠ (x : α × β) in filter.at_bot, p x) :
+  ∀ᶠ k in at_bot, ∀ᶠ l in at_bot, p (k, l) :=
+@eventually_at_top_curry (order_dual α) (order_dual β) _ _ _ hp
+
 /-- A function `f` maps upwards closed sets (at_top sets) to upwards closed sets when it is a
 Galois insertion. The Galois "insertion" and "connection" is weakened to only require it to be an
 insertion and a connetion above `b'`. -/

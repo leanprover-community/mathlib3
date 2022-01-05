@@ -40,7 +40,7 @@ lemma euler_criterion_units (x : (zmod p)ˣ) :
 begin
   cases nat.prime.eq_two_or_odd (fact.out p.prime) with hp2 hp_odd,
   { substI p, refine iff_of_true ⟨1, _⟩ _; apply subsingleton.elim },
-  obtain ⟨g, hg⟩ := is_cyclic.exists_generator ((zmod p)ˣ),
+  obtain ⟨g, hg⟩ := is_cyclic.exists_generator (zmod p)ˣ,
   obtain ⟨n, hn⟩ : x ∈ submonoid.powers g, { rw mem_powers_iff_mem_zpowers, apply hg },
   split,
   { rintro ⟨y, rfl⟩, rw [← pow_mul, two_mul_odd_div_two hp_odd, units_pow_card_sub_one_eq_one], },

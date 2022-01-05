@@ -780,7 +780,7 @@ instance : topological_group αˣ :=
 
 /-- The topological group isomorphism between the units of a product of two monoids, and the product
     of the units of each monoid. -/
-def homeomorph.prod_units : homeomorph ((α × β)ˣ) (αˣ × βˣ) :=
+def homeomorph.prod_units : homeomorph (α × β)ˣ (αˣ × βˣ) :=
 { continuous_to_fun  :=
   begin
     apply continuous.prod_mk,

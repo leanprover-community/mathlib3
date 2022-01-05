@@ -55,5 +55,5 @@ begin
   let a' : (zmod p)ˣ := units.mk_of_mul_eq_one a (a ^ (p-2)) (by rw [←pow_succ, hp', ha]),
   calc p - 1 = order_of a : order_of_a.symm
   ... = order_of a' : order_of_injective (units.coe_hom (zmod p)) units.ext a'
-  ... ≤ fintype.card ((zmod p)ˣ) : order_of_le_card_univ,
+  ... ≤ fintype.card (zmod p)ˣ : order_of_le_card_univ,
 end

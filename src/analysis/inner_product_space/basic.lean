@@ -1611,8 +1611,8 @@ variables {𝕜} {G : ι → Type*} [Π i, inner_product_space 𝕜 (G i)] {V : 
   (hV : orthogonal_family 𝕜 V) [dec_V : Π i (x : G i), decidable (x ≠ 0)]
 
 include hV dec_ι
-lemma orthogonal_family.eq_ite {i j : ι} (v : V i) (w : V j) :
-  ⟪(v:E), w⟫ = ite (i = j) ⟪(v:E), w⟫ 0 :=
+lemma orthogonal_family.eq_ite {i j : ι} (v : G i) (w : G j) :
+  ⟪V i v, V j w⟫ = ite (i = j) ⟪V i v, V j w⟫ 0 :=
 begin
   split_ifs,
   { refl },

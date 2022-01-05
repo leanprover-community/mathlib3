@@ -188,7 +188,7 @@ begin
     ring }
 end
 
-lemma nat_degree_pow_X_add_C [nontrivial R] (n : ℕ) (r : R) :
+@[simp] lemma nat_degree_pow_X_add_C [nontrivial R] (n : ℕ) (r : R) :
   ((X + C r) ^ n).nat_degree = n :=
 by rw [(monic_X_add_C r).nat_degree_pow, nat_degree_X_add_C, mul_one]
 

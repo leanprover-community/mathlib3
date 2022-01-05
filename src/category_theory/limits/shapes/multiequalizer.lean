@@ -647,7 +647,11 @@ begin
     ← category.assoc, h],
 end
 
-variables [has_product I.left] [has_product I.right] [has_equalizer I.fst_pi_map I.snd_pi_map]
+variables [has_product I.left] [has_product I.right]
+
+instance : has_equalizer I.fst_pi_map I.snd_pi_map :=
+⟨⟨⟨_,is_limit.of_preserves_cone_terminal
+  I.multifork_equiv_pi_fork.functor (limit.is_limit _)⟩⟩⟩
 
 /-- The multiequalizer is isomorphic to the equalizer of `∏ I.left ⇉ ∏ I.right`. -/
 def iso_equalizer : multiequalizer I ≅ equalizer I.fst_pi_map I.snd_pi_map :=
@@ -718,7 +722,10 @@ begin
 end
 
 variables [has_coproduct I.left] [has_coproduct I.right]
-variables [has_coequalizer I.fst_sigma_map I.snd_sigma_map]
+
+instance : has_coequalizer I.fst_sigma_map I.snd_sigma_map :=
+⟨⟨⟨_,is_colimit.of_preserves_cocone_initial
+  I.multicofork_equiv_sigma_cofork.functor (colimit.is_colimit _)⟩⟩⟩
 
 /-- The multicoequalizer is isomorphic to the coequalizer of `∐ I.left ⇉ ∐ I.right`. -/
 def iso_coequalizer : multicoequalizer I ≅ coequalizer I.fst_sigma_map I.snd_sigma_map :=

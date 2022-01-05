@@ -199,6 +199,9 @@ eq_comm.trans arcsin_eq_neg_pi_div_two
 @[simp] lemma arcsin_le_neg_pi_div_two {x} : arcsin x ≤ -(π / 2) ↔ x ≤ -1 :=
 (neg_pi_div_two_le_arcsin x).le_iff_eq.trans arcsin_eq_neg_pi_div_two
 
+@[simp] lemma pi_div_four_le_arcsin {x} : π / 4 ≤ arcsin x ↔ sqrt 2 / 2 ≤ x :=
+by { rw [← sin_pi_div_four, le_arcsin_iff_sin_le'], have := pi_pos, split; linarith }
+
 lemma maps_to_sin_Ioo : maps_to sin (Ioo (-(π / 2)) (π / 2)) (Ioo (-1) 1) :=
 λ x h, by rwa [mem_Ioo, ← arcsin_lt_pi_div_two, ← neg_pi_div_two_lt_arcsin,
   arcsin_sin h.1.le h.2.le]
@@ -270,7 +273,7 @@ arccos_inj_on.eq_iff ⟨hx₁, hx₂⟩ ⟨hy₁, hy₂⟩
 by simp [arccos, sub_eq_zero]
 
 @[simp] lemma arccos_eq_pi_div_two {x} : arccos x = π / 2 ↔ x = 0 :=
-by simp [arccos, sub_eq_iff_eq_add]
+by simp [arccos]
 
 @[simp] lemma arccos_eq_pi {x} : arccos x = π ↔ x ≤ -1 :=
 by rw [arccos, sub_eq_iff_eq_add, ← sub_eq_iff_eq_add', div_two_sub_self, neg_pi_div_two_eq_arcsin]
@@ -280,6 +283,11 @@ by rw [← add_halves π, arccos, arcsin_neg, arccos, add_sub_assoc, sub_sub_sel
 
 lemma sin_arccos {x : ℝ} (hx₁ : -1 ≤ x) (hx₂ : x ≤ 1) : sin (arccos x) = sqrt (1 - x ^ 2) :=
 by rw [arccos_eq_pi_div_two_sub_arcsin, sin_pi_div_two_sub, cos_arcsin hx₁ hx₂]
+
+@[simp] lemma arccos_le_pi_div_two {x} : arccos x ≤ π / 2 ↔ 0 ≤ x := by simp [arccos]
+
+@[simp] lemma arccos_le_pi_div_four {x} : arccos x ≤ π / 4 ↔ sqrt 2 / 2 ≤ x :=
+by { rw [arccos, ← pi_div_four_le_arcsin], split; { intro, linarith } }
 
 @[continuity]
 lemma continuous_arccos : continuous arccos := continuous_const.sub continuous_arcsin

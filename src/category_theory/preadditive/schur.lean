@@ -7,7 +7,7 @@ import algebra.group.ext
 import category_theory.simple
 import category_theory.linear
 import category_theory.endomorphism
-import field_theory.is_alg_closed.basic
+import algebra.algebra.spectrum
 
 /-!
 # Schur's lemma
@@ -109,11 +109,11 @@ begin
   { exact id_nonzero, },
   { intro f,
     haveI : nontrivial (End X) := nontrivial_of_ne _ _ id_nonzero,
-    obtain ⟨c, nu⟩ := @exists_spectrum_of_is_alg_closed_of_finite_dimensional 𝕜 _ _ (End X) _ _ _
+    obtain ⟨c, nu⟩ := @spectrum.nonempty_of_is_alg_closed_of_finite_dimensional 𝕜 (End X) _ _ _ _ _
       (by { convert I, ext, refl, ext, refl, }) (End.of f),
     use c,
-    rw [is_unit_iff_is_iso, is_iso_iff_nonzero, ne.def, not_not, sub_eq_zero,
-      algebra.algebra_map_eq_smul_one] at nu,
+    rw [spectrum.mem_iff, is_unit.sub_iff, is_unit_iff_is_iso, is_iso_iff_nonzero, ne.def,
+      not_not, sub_eq_zero, algebra.algebra_map_eq_smul_one] at nu,
     exact nu.symm, },
 end
 

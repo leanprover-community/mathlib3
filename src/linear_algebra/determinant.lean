@@ -486,6 +486,10 @@ lemma basis.det_map (b : basis ι R M) (f : M ≃ₗ[R] M') (v : ι → M') :
   (b.map f).det v = b.det (f.symm ∘ v) :=
 by { rw [basis.det_apply, basis.to_matrix_map, basis.det_apply] }
 
+lemma basis.det_map' (b : basis ι R M) (f : M ≃ₗ[R] M') :
+  (b.map f).det = b.det.comp_linear_map f.symm :=
+alternating_map.ext $ b.det_map f
+
 @[simp] lemma pi.basis_fun_det : (pi.basis_fun R ι).det = matrix.det_row_alternating :=
 begin
   ext M,
@@ -507,3 +511,12 @@ begin
   { rw [basis.mk_coord_apply_ne hik, mul_zero, eq_comm],
     exact e.det.map_eq_zero_of_eq _ (by simp [hik, function.update_apply]) hik, },
 end
+
+/-- The determinant of a basis constructed by `units_smul` is the product of the given units. -/
+@[simp] lemma basis.det_units_smul (w : ι → units R) : e.det (e.units_smul w) = ∏ i, w i :=
+by simp [basis.det_apply]
+
+/-- The determinant of a basis constructed by `is_unit_smul` is the product of the given units. -/
+@[simp] lemma basis.det_is_unit_smul {w : ι → R} (hw : ∀ i, is_unit (w i)) :
+  e.det (e.is_unit_smul hw) = ∏ i, w i :=
+e.det_units_smul _

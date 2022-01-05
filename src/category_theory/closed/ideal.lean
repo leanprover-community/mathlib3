@@ -163,7 +163,8 @@ def cartesian_closed_of_reflective : cartesian_closed D :=
         { symmetry,
           apply nat_iso.of_components _ _,
           { intro X,
-            haveI := adjunction.right_adjoint_preserves_limits (adjunction.of_right_adjoint i),
+            haveI :=
+              adjunction.right_adjoint_preserves_limits.{v₁ v₁} (adjunction.of_right_adjoint i),
             apply as_iso (prod_comparison i B X) },
           { intros X Y f,
             dsimp,
@@ -277,8 +278,8 @@ noncomputable def preserves_finite_products_of_exponential_ideal (J : Type*) [fi
   preserves_limits_of_shape (discrete J) (left_adjoint i) :=
 begin
   letI := preserves_binary_products_of_exponential_ideal i,
-  letI := left_adjoint_preserves_terminal_of_reflective i,
-  apply preserves_finite_products_of_preserves_binary_and_terminal (left_adjoint i) J
+  letI := left_adjoint_preserves_terminal_of_reflective.{v₁} i,
+  apply preserves_finite_products_of_preserves_binary_and_terminal (left_adjoint i) J,
 end
 
 end

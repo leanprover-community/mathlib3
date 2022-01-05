@@ -6,6 +6,7 @@ Authors: Andrew Yang
 import category_theory.sites.limits
 import category_theory.flat_functors
 import category_theory.limits.preserves.filtered
+import category_theory.sites.left_exact
 
 /-!
 # Cover-preserving functors between sites.
@@ -20,9 +21,13 @@ sheaves on `D` back to sheaves on `C` via `G.op ⋙ -`.
 pushes covering sieves to covering sieves
 * `category_theory.compatible_preserving`: a functor between sites is compatible-preserving
 if it pushes compatible families of elements to compatible families.
-* `category_theory.pullback_sheaf` : the pullback of a sheaf along a cover-preserving and
+* `category_theory.pullback_sheaf`: the pullback of a sheaf along a cover-preserving and
 compatible-preserving functor.
-* `category_theory.sites.pullback` : the induced functor `Sheaf K A ⥤ Sheaf J A` for a
+* `category_theory.sites.pullback`: the induced functor `Sheaf K A ⥤ Sheaf J A` for a
+cover-preserving and compatible-preserving functor `G : (C, J) ⥤ (D, K)`.
+* `category_theory.sites.pushforward`: the induced functor `Sheaf J A ⥤ Sheaf K A` for a
+cover-preserving and compatible-preserving functor `G : (C, J) ⥤ (D, K)`.
+* `category_theory.sites.pushforward`: the induced functor `Sheaf J A ⥤ Sheaf K A` for a
 cover-preserving and compatible-preserving functor `G : (C, J) ⥤ (D, K)`.
 
 ## Main results
@@ -228,6 +233,8 @@ local attribute [instance] reflects_limits_of_reflects_isomorphisms
 
 instance {X : C} : is_cofiltered (J.cover X) := infer_instance
 
+/-- The pushforward functor `Sheaf J A ⥤ Sheaf K A` associated to a functor `G : C ⥤ D` in the
+same direction as `G`. -/
 @[simps] def sites.pushforward (G : C ⥤ D) : Sheaf J A ⥤ Sheaf K A :=
   Sheaf_to_presheaf J A ⋙ Lan G.op ⋙ presheaf_to_Sheaf K A
 
@@ -238,14 +245,18 @@ begin
   apply_instance,
   apply_with comp_preserves_finite_limits { instances := ff },
   apply category_theory.Lan_preserves_finite_limits_of_flat,
-  apply_instance,
-  -- suffices : preserves_finite_limits (Lan G.op : _),
-  -- { resetI, apply_instance },
+  apply category_theory.presheaf_to_Sheaf.limits.preserves_finite_limits.{u₂ v₁ v₁},
+  apply_instance
 end
 
+/-- The pushforward functor is left adjoint to the pullback functor. -/
 def sites.pullback_pushforward_adjunction {G : C ⥤ D} (hG₁ : compatible_preserving K G)
-  (hG₂ : cover_preserving J K G) :=
-
-
+  (hG₂ : cover_preserving J K G) : sites.pushforward A J K G ⊣ sites.pullback A hG₁ hG₂ :=
+((Lan.adjunction A G.op).comp _ _ (sheafification_adjunction K A)).restrict_fully_faithful
+  (Sheaf_to_presheaf J A) (𝟭 _)
+  (nat_iso.of_components (λ _, iso.refl _)
+    (λ _ _ _,(category.comp_id _).trans (category.id_comp _).symm))
+  (nat_iso.of_components (λ _, iso.refl _)
+    (λ _ _ _,(category.comp_id _).trans (category.id_comp _).symm))
 
 end category_theory

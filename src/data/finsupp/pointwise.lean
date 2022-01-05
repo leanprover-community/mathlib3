@@ -70,4 +70,11 @@ instance [non_unital_semiring β] : non_unital_semiring (α →₀ β) :=
 { ..(infer_instance : semigroup (α →₀ β)),
   ..(infer_instance : non_unital_non_assoc_semiring (α →₀ β)) }
 
+instance [non_unital_non_assoc_ring β] : non_unital_non_assoc_ring (α →₀ β) :=
+{ left_distrib := λ f g h, by { ext, simp only [mul_apply, add_apply, left_distrib] {proj := ff} },
+  right_distrib := λ f g h,
+    by { ext, simp only [mul_apply, add_apply, right_distrib] {proj := ff} },
+  ..(infer_instance : mul_zero_class (α →₀ β)),
+  ..(infer_instance : add_comm_group (α →₀ β)) }
+
 end finsupp

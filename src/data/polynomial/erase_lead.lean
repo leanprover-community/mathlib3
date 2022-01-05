@@ -195,7 +195,7 @@ begin
       exact nat.succ_ne_zero _ } }
 end
 
-lemma nat_degree_eq_of_zero_add_monomial (F : polynomial R → polynomial R) (p)
+lemma map_nat_degree_eq_nat_degree (F : polynomial R → polynomial R) (p)
   (F0 : F 0 = 0)
   (F_add : ∀ p q, F (p + q) = F p + F q)
   (F_mon_nat : ∀ n c, c ≠ 0 → (F (monomial n c)).nat_degree = n) :

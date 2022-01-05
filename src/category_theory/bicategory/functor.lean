@@ -16,7 +16,10 @@ An oplax functor `F` between bicategories `B` and `C` consists of
 * a family of 2-morphisms `F.map_comp f g : F.map (f ≫ g) ⟶ F.map f ≫ F.map g`, and
 * certain consistency conditions on them.
 
-We define the composition of oplax functors.
+## Main definitions
+
+* `oplax_functor B C` : a oplax functor between bicategories `B` and `C`
+* `oplax_functor.comp F G` : the composition of oplax functors
 
 ## Future work
 
@@ -26,7 +29,7 @@ now we only define oplax functors.
 
 In addition, if we require `map_id` and `map_comp` to be isomorphisms, we obtain the definition
 of pseudofunctors. There are several possible design choices to implement pseudofunctors,
-but this is left to future development.
+but the choice is left to future development.
 -/
 
 set_option old_structure_cmd true

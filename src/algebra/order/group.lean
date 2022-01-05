@@ -1020,7 +1020,7 @@ theorem abs_le_abs (h₀ : a ≤ b) (h₁ : -a ≤ b) : |a| ≤ |b| :=
 (abs_le'.2 ⟨h₀, h₁⟩).trans (le_abs_self b)
 
 lemma abs_by_cases (P : α → Prop) {a : α} (h1 : P a) (h2 : P (-a)) : P (|a|) :=
-sup_ind _ _ h1 h2
+max_rec' P h1 h2
 
 end has_neg
 

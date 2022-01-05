@@ -80,7 +80,7 @@ variables {α : Type*} {ι ι' : Sort*} [linear_order α]
 lemma is_pi_system_image_Iio (s : set α) : is_pi_system (Iio '' s) :=
 begin
   rintro _ _ ⟨a, ha, rfl⟩ ⟨b, hb, rfl⟩ -,
-  exact ⟨a ⊓ b, inf_ind a b ha hb, Iio_inter_Iio.symm⟩
+  exact ⟨min a b, min_rec' (λ x, x ∈ s) ha hb, Iio_inter_Iio.symm⟩
 end
 
 lemma is_pi_system_Iio : is_pi_system (range Iio : set (set α)) :=
@@ -99,7 +99,8 @@ lemma is_pi_system_Ixx_mem {Ixx : α → α → set α} {p : α → α → Prop}
 begin
   rintro _ _ ⟨l₁, hls₁, u₁, hut₁, hlu₁, rfl⟩ ⟨l₂, hls₂, u₂, hut₂, hlu₂, rfl⟩,
   simp only [Hi, ← sup_eq_max, ← inf_eq_min],
-  exact λ H, ⟨l₁ ⊔ l₂, sup_ind l₁ l₂ hls₁ hls₂, u₁ ⊓ u₂, inf_ind u₁ u₂ hut₁ hut₂, Hne H, rfl⟩
+  exact λ H, ⟨max l₁ l₂, max_rec' (λ l, l ∈ s) hls₁ hls₂, u₁ ⊓ u₂,
+    min_rec' (λ l, l ∈ t) hut₁ hut₂, Hne H, rfl⟩
 end
 
 lemma is_pi_system_Ixx {Ixx : α → α → set α} {p : α → α → Prop}

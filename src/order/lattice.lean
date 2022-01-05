@@ -180,24 +180,6 @@ sup_le_sup h₁ (le_refl _)
 theorem le_of_sup_eq (h : a ⊔ b = b) : a ≤ b :=
 by { rw ← h, simp }
 
-lemma sup_ind [is_total α (≤)] (a b : α) {p : α → Prop} (ha : p a) (hb : p b) : p (a ⊔ b) :=
-(is_total.total a b).elim (λ h : a ≤ b, by rwa sup_eq_right.2 h) (λ h, by rwa sup_eq_left.2 h)
-
-@[simp] lemma sup_lt_iff [is_total α (≤)] {a b c : α} : b ⊔ c < a ↔ b < a ∧ c < a :=
-⟨λ h, ⟨le_sup_left.trans_lt h, le_sup_right.trans_lt h⟩, λ h, sup_ind b c h.1 h.2⟩
-
-@[simp] lemma le_sup_iff [is_total α (≤)] {a b c : α} : a ≤ b ⊔ c ↔ a ≤ b ∨ a ≤ c :=
-⟨λ h, (total_of (≤) c b).imp
-  (λ bc, by rwa sup_eq_left.2 bc at h)
-  (λ bc, by rwa sup_eq_right.2 bc at h),
- λ h, h.elim le_sup_of_le_left le_sup_of_le_right⟩
-
-@[simp] lemma lt_sup_iff [is_total α (≤)] {a b c : α} : a < b ⊔ c ↔ a < b ∨ a < c :=
-⟨λ h, (total_of (≤) c b).imp
-  (λ bc, by rwa sup_eq_left.2 bc at h)
-  (λ bc, by rwa sup_eq_right.2 bc at h),
- λ h, h.elim (λ h, h.trans_le le_sup_left) (λ h, h.trans_le le_sup_right)⟩
-
 @[simp] theorem sup_idem : a ⊔ a = a :=
 by apply le_antisymm; simp
 
@@ -362,15 +344,6 @@ inf_le_inf (le_refl _) h
 
 theorem le_of_inf_eq (h : a ⊓ b = a) : a ≤ b :=
 by { rw ← h, simp }
-
-lemma inf_ind [is_total α (≤)] (a b : α) {p : α → Prop} (ha : p a) (hb : p b) : p (a ⊓ b) :=
-@sup_ind (order_dual α) _ _ _ _ _ ha hb
-
-@[simp] lemma lt_inf_iff [is_total α (≤)] {a b c : α} : a < b ⊓ c ↔ a < b ∧ a < c :=
-@sup_lt_iff (order_dual α) _ _ _ _ _
-
-@[simp] lemma inf_le_iff [is_total α (≤)] {a b c : α} : b ⊓ c ≤ a ↔ b ≤ a ∨ c ≤ a :=
-@le_sup_iff (order_dual α) _ _ _ _ _
 
 @[simp] theorem inf_idem : a ⊓ a = a :=
 @sup_idem (order_dual α) _ _
@@ -628,23 +601,6 @@ end distrib_lattice
 ### Lattices derived from linear orders
 -/
 
-@[priority 100] -- see Note [lower instance priority]
-instance lattice_of_linear_order {α : Type u} [o : linear_order α] :
-  lattice α :=
-{ sup          := max,
-  le_sup_left  := le_max_left,
-  le_sup_right := le_max_right,
-  sup_le       := assume a b c, max_le,
-
-  inf          := min,
-  inf_le_left  := min_le_left,
-  inf_le_right := min_le_right,
-  le_inf       := assume a b c, le_min,
-  ..o }
-
-theorem sup_eq_max [linear_order α] {x y : α} : x ⊔ y = max x y := rfl
-theorem inf_eq_min [linear_order α] {x y : α} : x ⊓ y = min x y := rfl
-
 /-- A lattice with total order is a linear order.
 
 See note [reducible non-instances]. -/
@@ -664,18 +620,38 @@ See note [reducible non-instances]. -/
     split_ifs with h', exacts [inf_of_le_left h', inf_of_le_right $ (h x y).resolve_left h'] },
   .. ‹lattice α› }
 
+section linear_order
+
+variables [linear_order α]
+
 @[priority 100] -- see Note [lower instance priority]
-instance distrib_lattice_of_linear_order {α : Type u} [o : linear_order α] :
-  distrib_lattice α :=
+instance lattice_of_linear_order : lattice α :=
+{ sup          := max,
+  le_sup_left  := le_max_left,
+  le_sup_right := le_max_right,
+  sup_le       := assume a b c, max_le,
+  inf          := min,
+  inf_le_left  := min_le_left,
+  inf_le_right := min_le_right,
+  le_inf       := assume a b c, le_min,
+  .. ‹linear_order α› }
+
+@[simp] theorem sup_eq_max [linear_order α] {x y : α} : x ⊔ y = max x y := rfl
+@[simp] theorem inf_eq_min [linear_order α] {x y : α} : x ⊓ y = min x y := rfl
+
+@[priority 100] -- see Note [lower instance priority]
+instance distrib_lattice_of_linear_order : distrib_lattice α :=
 { le_sup_inf := assume a b c,
     match le_total b c with
     | or.inl h := inf_le_of_left_le $ sup_le_sup_left (le_inf (le_refl b) h) _
     | or.inr h := inf_le_of_right_le $ sup_le_sup_left (le_inf h (le_refl c)) _
     end,
-  ..lattice_of_linear_order }
+  .. lattice_of_linear_order }
 
 instance nat.distrib_lattice : distrib_lattice ℕ :=
 by apply_instance
+
+end linear_order
 
 /-! ### Function lattices -/
 
@@ -740,22 +716,10 @@ lemma le_map_sup [semilattice_sup α] [semilattice_sup β]
   f x ⊔ f y ≤ f (x ⊔ y) :=
 sup_le (h le_sup_left) (h le_sup_right)
 
-lemma map_sup [semilattice_sup α] [is_total α (≤)] [semilattice_sup β] {f : α → β}
-  (hf : monotone f) (x y : α) :
-  f (x ⊔ y) = f x ⊔ f y :=
-(is_total.total x y).elim
-  (λ h : x ≤ y, by simp only [h, hf h, sup_of_le_right])
-  (λ h, by simp only [h, hf h, sup_of_le_left])
-
 lemma map_inf_le [semilattice_inf α] [semilattice_inf β]
   {f : α → β} (h : monotone f) (x y : α) :
   f (x ⊓ y) ≤ f x ⊓ f y :=
 le_inf (h inf_le_left) (h inf_le_right)
-
-lemma map_inf [semilattice_inf α] [is_total α (≤)] [semilattice_inf β] {f : α → β}
-  (hf : monotone f) (x y : α) :
-  f (x ⊓ y) = f x ⊓ f y :=
-@monotone.map_sup (order_dual α) _ _ _ _ _ hf.dual x y
 
 end monotone
 
@@ -786,20 +750,10 @@ lemma map_sup_le [semilattice_sup α] [semilattice_inf β]
   f (x ⊔ y) ≤ f x ⊓ f y :=
 h.dual_right.le_map_sup x y
 
-lemma map_sup [semilattice_sup α] [is_total α (≤)] [semilattice_inf β] {f : α → β}
-  (hf : antitone f) (x y : α) :
-  f (x ⊔ y) = f x ⊓ f y :=
-hf.dual_right.map_sup x y
-
 lemma le_map_inf [semilattice_inf α] [semilattice_sup β]
   {f : α → β} (h : antitone f) (x y : α) :
   f x ⊔ f y ≤ f (x ⊓ y) :=
 h.dual_right.map_inf_le x y
-
-lemma map_inf [semilattice_inf α] [is_total α (≤)] [semilattice_sup β] {f : α → β}
-  (hf : antitone f) (x y : α) :
-  f (x ⊓ y) = f x ⊔ f y :=
-hf.dual_right.map_inf x y
 
 end antitone
 

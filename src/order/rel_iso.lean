@@ -8,6 +8,7 @@ import data.equiv.set
 import data.fun_like
 import logic.embedding
 import order.rel_classes
+import order.min_max
 
 /-!
 # Relation homomorphisms, embeddings, isomorphisms
@@ -66,14 +67,14 @@ namespace rel_hom_class
 
 variables {F : Type*}
 
-lemma map_inf [semilattice_inf α] [linear_order β]
-  [rel_hom_class F ((<) : β → β → Prop) ((<) : α → α → Prop)]
-  (a : F) (m n : β) : a (m ⊓ n) = a m ⊓ a n :=
-(strict_mono.monotone $ λ x y, map_rel a).map_inf m n
+lemma map_inf [linear_order α] [semilattice_inf β]
+  [rel_hom_class F ((<) : α → α → Prop) ((<) : β → β → Prop)]
+  (a : F) (m n : α) : a (m ⊓ n) = a m ⊓ a n :=
+(strict_mono.monotone $ λ x y, map_rel a).map_min_eq_inf m n
 
-lemma map_sup [semilattice_sup α] [linear_order β]
-  [rel_hom_class F ((>) : β → β → Prop) ((>) : α → α → Prop)]
-  (a : F) (m n : β) : a (m ⊔ n) = a m ⊔ a n :=
+lemma map_sup [linear_order α] [semilattice_sup β]
+  [rel_hom_class F ((>) : α → α → Prop) ((>) : β → β → Prop)]
+  (a : F) (m n : α) : a (m ⊔ n) = a m ⊔ a n :=
 @map_inf (order_dual α) (order_dual β) _ _ _ _ _ _ _
 
 protected theorem is_irrefl [rel_hom_class F r s] (f : F) : ∀ [is_irrefl β s], is_irrefl α r

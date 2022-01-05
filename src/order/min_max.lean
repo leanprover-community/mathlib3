@@ -15,12 +15,11 @@ This file proves basic properties about maxima and minima on a `linear_order`.
 min, max
 -/
 
-universes u v
-variables {α : Type u} {β : Type v}
+universes u v w x
+variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type x}
 
 attribute [simp] max_eq_left max_eq_right min_eq_left min_eq_right
 
-section
 variables [linear_order α] [linear_order β] {f : α → β} {s : set α} {a b c d : α}
 
 -- translate from lattices to linear orders (sup → max, inf → min)
@@ -65,6 +64,25 @@ end
 lemma max_cases (a b : α) : max a b = a ∧ b ≤ a ∨ max a b = b ∧ a < b :=
 @min_cases (order_dual α) _ a b
 
+lemma min_rec {p : α → Prop} {x y : α} (hx : x ≤ y → p x) (hy : y ≤ x → p y) : p (min x y) :=
+(le_total x y).rec (λ h, (min_eq_left h).symm.subst (hx h))
+  (λ h, (min_eq_right h).symm.subst (hy h))
+
+lemma max_rec {p : α → Prop} {x y : α} (hx : y ≤ x → p x) (hy : x ≤ y → p y) : p (max x y) :=
+@min_rec (order_dual α) _ _ _ _ hx hy
+
+lemma min_rec' (p : α → Prop) {x y : α} (hx : p x) (hy : p y) : p (min x y) :=
+min_rec (λ _, hx) (λ _, hy)
+
+lemma max_rec' (p : α → Prop) {x y : α} (hx : p x) (hy : p y) : p (max x y) :=
+max_rec (λ _, hx) (λ _, hy)
+
+theorem min_choice (a b : α) : min a b = a ∨ min a b = b :=
+by cases le_total a b; simp *
+
+theorem max_choice (a b : α) : max a b = a ∨ max a b = b :=
+@min_choice (order_dual α) _ a b
+
 lemma min_eq_iff : min a b = c ↔ a = c ∧ a ≤ b ∨ b = c ∧ b ≤ a :=
 begin
   split,
@@ -85,22 +103,30 @@ instance max_idem : is_idempotent α max := by apply_instance -- short-circuit t
 instance min_idem : is_idempotent α min := by apply_instance -- short-circuit type class inference
 
 @[simp] lemma max_lt_iff : max a b < c ↔ (a < c ∧ b < c) :=
-sup_lt_iff
+⟨λ h, ⟨(le_max_left _ _).trans_lt h, (le_max_right _ _).trans_lt h⟩, and_imp.2 max_lt⟩
 
 @[simp] lemma lt_min_iff : a < min b c ↔ (a < b ∧ a < c) :=
-lt_inf_iff
+@max_lt_iff (order_dual α) _ _ _ _
 
 @[simp] lemma lt_max_iff : a < max b c ↔ a < b ∨ a < c :=
-lt_sup_iff
+begin
+  symmetry, cases le_total b c with hbc hbc,
+  { simpa only [max_eq_right hbc, or_iff_right_iff_imp] using flip lt_of_lt_of_le hbc },
+  { simpa only [max_eq_left hbc, or_iff_left_iff_imp] using flip lt_of_lt_of_le hbc }
+end
 
 @[simp] lemma min_lt_iff : min a b < c ↔ a < c ∨ b < c :=
 @lt_max_iff (order_dual α) _ _ _ _
 
-@[simp] lemma min_le_iff : min a b ≤ c ↔ a ≤ c ∨ b ≤ c :=
-inf_le_iff
-
 @[simp] lemma le_max_iff : a ≤ max b c ↔ a ≤ b ∨ a ≤ c :=
-@min_le_iff (order_dual α) _ _ _ _
+begin
+  symmetry, cases le_total b c with hbc hbc,
+  { simpa only [max_eq_right hbc, or_iff_right_iff_imp] using flip le_trans hbc },
+  { simpa only [max_eq_left hbc, or_iff_left_iff_imp] using flip le_trans hbc }
+end
+
+@[simp] lemma min_le_iff : min a b ≤ c ↔ a ≤ c ∨ b ≤ c :=
+@le_max_iff (order_dual α) _ _ _ _
 
 lemma min_lt_max : min a b < max a b ↔ a ≠ b := inf_lt_sup
 
@@ -111,60 +137,73 @@ lemma min_lt_min (h₁ : a < c) (h₂ : b < d) : min a b < min c d :=
 @max_lt_max (order_dual α) _ _ _ _ _ h₁ h₂
 
 theorem min_right_comm (a b c : α) : min (min a b) c = min (min a c) b :=
-right_comm min min_comm min_assoc a b c
+inf_right_comm a b c
 
-theorem max.left_comm (a b c : α) : max a (max b c) = max b (max a c) :=
-left_comm max max_comm max_assoc a b c
+theorem max_right_comm (a b c : α) : max (max a b) c = max (max a c) b :=
+sup_right_comm a b c
 
-theorem max.right_comm (a b c : α) : max (max a b) c = max (max a c) b :=
-right_comm max max_comm max_assoc a b c
+section
+
+variables [semilattice_sup γ] [semilattice_inf δ]
+
+lemma monotone_on.map_max_eq_sup {f : α → γ} (hf : monotone_on f s) (ha : a ∈ s) (hb : b ∈ s) :
+  f (max a b) = f a ⊔ f b :=
+by cases le_total a b;
+  simp only [max_eq_right, max_eq_left, sup_of_le_left, sup_of_le_right, hf ha hb, hf hb ha, h]
 
 lemma monotone_on.map_max (hf : monotone_on f s) (ha : a ∈ s) (hb : b ∈ s) :
   f (max a b) = max (f a) (f b) :=
-by cases le_total a b; simp only [max_eq_right, max_eq_left, hf ha hb, hf hb ha, h]
+hf.map_max_eq_sup ha hb
+
+lemma monotone_on.map_min_eq_inf {f : α → δ} (hf : monotone_on f s) (ha : a ∈ s) (hb : b ∈ s) :
+  f (min a b) = f a ⊓ f b :=
+hf.dual.map_max_eq_sup ha hb
 
 lemma monotone_on.map_min (hf : monotone_on f s) (ha : a ∈ s) (hb : b ∈ s) :
   f (min a b) = min (f a) (f b) :=
 hf.dual.map_max ha hb
 
+lemma antitone_on.map_max_eq_inf {f : α → δ} (hf : antitone_on f s) (ha : a ∈ s) (hb : b ∈ s) :
+  f (max a b) = f a ⊓ f b :=
+hf.dual_right.map_max_eq_sup ha hb
+
 lemma antitone_on.map_max (hf : antitone_on f s) (ha : a ∈ s) (hb : b ∈ s) :
   f (max a b) = min (f a) (f b) :=
-hf.dual_right.map_max ha hb
+hf.map_max_eq_inf ha hb
+
+lemma antitone_on.map_min_eq_sup {f : α → γ} (hf : antitone_on f s) (ha : a ∈ s) (hb : b ∈ s) :
+  f (min a b) = f a ⊔ f b :=
+hf.dual.map_max_eq_inf ha hb
 
 lemma antitone_on.map_min (hf : antitone_on f s) (ha : a ∈ s) (hb : b ∈ s) :
   f (min a b) = max (f a) (f b) :=
 hf.dual.map_max ha hb
 
-lemma monotone.map_max (hf : monotone f) : f (max a b) = max (f a) (f b) :=
-by cases le_total a b; simp [h, hf h]
+lemma monotone.map_max_eq_sup {f : α → γ} (hf : monotone f) (a b : α) : f (max a b) = f a ⊔ f b :=
+(hf.monotone_on set.univ).map_max_eq_sup trivial trivial
 
-lemma monotone.map_min (hf : monotone f) : f (min a b) = min (f a) (f b) :=
-hf.dual.map_max
+lemma monotone.map_max (hf : monotone f) (a b : α) : f (max a b) = max (f a) (f b) :=
+hf.map_max_eq_sup a b
 
-lemma antitone.map_max (hf : antitone f) : f (max a b) = min (f a) (f b) :=
-by cases le_total a b; simp [h, hf h]
+lemma monotone.map_min_eq_inf {f : α → δ} (hf : monotone f) (a b : α) : f (min a b) = f a ⊓ f b :=
+hf.dual.map_max_eq_sup a b
 
-lemma antitone.map_min (hf : antitone f) : f (min a b) = max (f a) (f b) :=
-hf.dual.map_max
+lemma monotone.map_min (hf : monotone f) (a b : α) : f (min a b) = min (f a) (f b) :=
+hf.dual.map_max a b
 
-lemma min_rec {p : α → Prop} {x y : α} (hx : x ≤ y → p x) (hy : y ≤ x → p y) : p (min x y) :=
-(le_total x y).rec (λ h, (min_eq_left h).symm.subst (hx h))
-  (λ h, (min_eq_right h).symm.subst (hy h))
+lemma antitone.map_max_eq_inf {f : α → δ} (hf : antitone f) (a b : α) : f (max a b) = f a ⊓ f b :=
+hf.dual_right.map_max_eq_sup a b
 
-lemma max_rec {p : α → Prop} {x y : α} (hx : y ≤ x → p x) (hy : x ≤ y → p y) : p (max x y) :=
-@min_rec (order_dual α) _ _ _ _ hx hy
+lemma antitone.map_max (hf : antitone f) (a b : α) : f (max a b) = min (f a) (f b) :=
+hf.map_max_eq_inf a b
 
-lemma min_rec' (p : α → Prop) {x y : α} (hx : p x) (hy : p y) : p (min x y) :=
-min_rec (λ _, hx) (λ _, hy)
+lemma antitone.map_min_eq_sup {f : α → γ} (hf : antitone f) (a b : α) : f (min a b) = f a ⊔ f b :=
+hf.dual.map_max_eq_inf a b
 
-lemma max_rec' (p : α → Prop) {x y : α} (hx : p x) (hy : p y) : p (max x y) :=
-max_rec (λ _, hx) (λ _, hy)
+lemma antitone.map_min (hf : antitone f) (a b : α) : f (min a b) = max (f a) (f b) :=
+hf.dual.map_max a b
 
-theorem min_choice (a b : α) : min a b = a ∨ min a b = b :=
-by cases le_total a b; simp *
-
-theorem max_choice (a b : α) : max a b = a ∨ max a b = b :=
-@min_choice (order_dual α) _ a b
+end
 
 lemma le_of_max_le_left {a b c : α} (h : max a b ≤ c) : a ≤ c :=
 le_trans (le_max_left _ _) h
@@ -189,5 +228,3 @@ min_assoc
 
 lemma min_left_commutative : left_commutative (min : α → α → α) :=
 min_left_comm
-
-end

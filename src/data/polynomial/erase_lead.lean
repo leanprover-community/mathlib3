@@ -160,10 +160,11 @@ end erase_lead
 required to be at least as big as the `nat_degree` of the polynomial.  This is useful to prove
 results where you want to change each term in a polynomial to something else depending on the
 `nat_degree` of the polynomial itself and not on the specific `nat_degree` of each term. -/
-lemma induction_with_nat_degree_le {R : Type*} [semiring R] {P : polynomial R → Prop} (N : ℕ)
+lemma induction_with_nat_degree_le {R : Type*} [semiring R] (P : polynomial R → Prop) (N : ℕ)
   (P_0 : P 0)
   (P_C_mul_pow : ∀ n : ℕ, ∀ r : R, r ≠ 0 → n ≤ N → P (C r * X ^ n))
-  (P_C_add : ∀ f g : polynomial R, f.nat_degree ≤ N → g.nat_degree ≤ N → P f → P g → P (f + g)) :
+  (P_C_add : ∀ f g : polynomial R, f.nat_degree < g.nat_degree →
+    f.nat_degree ≤ N → g.nat_degree ≤ N → P f → P g → P (f + g)) :
   ∀ f : polynomial R, f.nat_degree ≤ N → P f :=
 begin
   intros f df,
@@ -172,18 +173,43 @@ begin
   induction c with c hc,
   { assume f df f0,
     convert P_0,
-    simpa only [support_eq_empty, card_eq_zero] using f0},
-
- --   exact λ f df f0, by rwa (finsupp.support_eq_empty.mp (card_eq_zero.mp f0)) },
+    simpa only [support_eq_empty, card_eq_zero] using f0 },
   { intros f df f0,
-    rw ← erase_lead_add_C_mul_X_pow f,
-    refine P_C_add f.erase_lead _ (erase_lead_nat_degree_le.trans df) _ _ _,
+    rw [← erase_lead_add_C_mul_X_pow f],
+    cases c,
+    { convert P_C_mul_pow f.nat_degree f.leading_coeff _ df,
+      { convert zero_add _,
+        rw [← card_support_eq_zero, erase_lead_card_support f0] },
+      { rw [leading_coeff_ne_zero, ne.def, ← card_support_eq_zero, f0],
+        exact zero_ne_one.symm } },
+    refine P_C_add f.erase_lead _ _ (erase_lead_nat_degree_le.trans df) _ _ _,
+    { refine (erase_lead_nat_degree_lt _).trans_le (le_of_eq _),
+      { exact (nat.succ_le_succ (nat.succ_le_succ (nat.zero_le _))).trans f0.ge },
+      { rw [nat_degree_C_mul_X_pow _ _ (leading_coeff_ne_zero.mpr _)],
+        rintro rfl,
+        simpa using f0 } },
     { exact (nat_degree_C_mul_X_pow_le f.leading_coeff f.nat_degree).trans df },
     { exact hc _ (erase_lead_nat_degree_le.trans df) (erase_lead_card_support f0) },
     { refine P_C_mul_pow _ _ _ df,
-      rw [ne.def, leading_coeff_eq_zero],
-      rintro rfl,
-      exact not_le.mpr c.succ_pos f0.ge } }
+      rw [ne.def, leading_coeff_eq_zero, ← card_support_eq_zero, f0],
+      exact nat.succ_ne_zero _ } }
+end
+
+lemma map_nat_degree_eq_nat_degree (F : polynomial R → polynomial R) (p)
+  (F0 : F 0 = 0)
+  (F_add : ∀ p q, F (p + q) = F p + F q)
+  (F_mon_nat : ∀ n c, c ≠ 0 → (F (monomial n c)).nat_degree = n) :
+  (F p).nat_degree = p.nat_degree :=
+begin
+  apply induction_with_nat_degree_le (λ p, (F p).nat_degree = p.nat_degree) p.nat_degree,
+  { simp [F0] },
+  { intros n r r0 np,
+    rw [nat_degree_C_mul_X_pow _ _ r0, ← monomial_eq_C_mul_X, F_mon_nat _ _ r0] },
+  { intros f g fg fp gp hf hg,
+    rw F_add,
+    rw [nat_degree_add_eq_right_of_nat_degree_lt, nat_degree_add_eq_right_of_nat_degree_lt fg, hg],
+    rwa [hf, hg] },
+  { exact rfl.le }
 end
 
 end polynomial

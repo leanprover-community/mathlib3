@@ -69,7 +69,7 @@ class my_embedding_class (F : Type*) (A B : out_param $ Type*) [my_class A] [my_
   (f : F) (x y : A) : f (my_class.op x y) = my_class.op (f x) (f y) :=
 my_embedding_class.map_op
 
--- You can replace `my_embedding.embedding_like` with the below instance, or keep both:
+-- You can replace `my_embedding.embedding_like` with the below instance:
 instance : my_embedding_class (my_embedding A B) A B :=
 { coe := my_embedding.to_fun,
   coe_injective' := λ f g h, by cases f; cases g; congr',

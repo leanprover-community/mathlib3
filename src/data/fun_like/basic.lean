@@ -66,7 +66,7 @@ class my_hom_class (F : Type*) (A B : out_param $ Type*) [my_class A] [my_class 
   (f : F) (x y : A) : f (my_class.op x y) = my_class.op (f x) (f y) :=
 my_hom_class.map_op
 
--- You can replace `my_hom.fun_like` with the below instance, or keep both:
+-- You can replace `my_hom.fun_like` with the below instance:
 instance : my_hom_class (my_hom A B) A B :=
 { coe := my_hom.to_fun,
   coe_injective' := λ f g h, by cases f; cases g; congr',

@@ -6,6 +6,7 @@ Authors: Yakov Pechersky
 
 import data.polynomial.taylor
 import field_theory.ratfunc
+import ring_theory.laurent_series
 
 /-!
 # Laurent expansions of rational functions
@@ -22,16 +23,17 @@ An auxiliary definition is provided first to make the construction of the `alg_h
   which works on `comm_ring` which are not necessarily domains.
 -/
 
+universe u
 namespace ratfunc
 noncomputable theory
 open polynomial
 open_locale classical
 
-variables {K : Type*} [comm_ring K] [hdomain : is_domain K]
-  (r s : K) (p q : polynomial K) (f : ratfunc K)
+variables {R : Type u} [comm_ring R] [hdomain : is_domain R]
+  (r s : R) (p q : polynomial R) (f : ratfunc R)
 
-lemma taylor_non_zero_divisors (hp : p ∈ non_zero_divisors (polynomial K)) :
-  taylor r p ∈ non_zero_divisors (polynomial K) :=
+lemma taylor_non_zero_divisors (hp : p ∈ non_zero_divisors (polynomial R)) :
+  taylor r p ∈ non_zero_divisors (polynomial R) :=
 begin
   rw mem_non_zero_divisors_iff,
   intros x hx,
@@ -46,9 +48,9 @@ end
 
 /-- The Laurent expansion of rational functions about a value.
 Auxiliary definition, usage should prefer `ratfunc.laurent`. -/
-def laurent_aux : ratfunc K → ratfunc K :=
+def laurent_aux : ratfunc R → ratfunc R :=
 λ f, ratfunc.lift_on f
-  (λ p q, if hq : q ∈ non_zero_divisors (polynomial K) then
+  (λ p q, if hq : q ∈ non_zero_divisors (polynomial R) then
     of_fraction_ring (localization.mk (taylor r p)
       ⟨(taylor r q), taylor_non_zero_divisors _ _ hq⟩) else 0)
   begin
@@ -57,7 +59,7 @@ def laurent_aux : ratfunc K → ratfunc K :=
                subtype.coe_mk, h, ←taylor_mul]
   end
 
-lemma laurent_aux_of_fraction_ring_mk (q : non_zero_divisors (polynomial K)) :
+lemma laurent_aux_of_fraction_ring_mk (q : non_zero_divisors (polynomial R)) :
   laurent_aux r (of_fraction_ring (localization.mk p q)) =
     of_fraction_ring (localization.mk (taylor r p)
       ⟨taylor r q, taylor_non_zero_divisors r q q.prop⟩) :=
@@ -93,7 +95,7 @@ end
 by rw [←mk_one, ←mk_one, mk_eq_div, laurent_aux_div, mk_eq_div, taylor_one, _root_.map_one]
 
 /-- The Laurent expansion of rational functions about a value. -/
-def laurent : ratfunc K →ₐ[K] ratfunc K :=
+def laurent : ratfunc R →ₐ[R] ratfunc R :=
 { to_fun := laurent_aux r,
   map_add' := begin
     intros x y,
@@ -115,11 +117,11 @@ def laurent : ratfunc K →ₐ[K] ratfunc K :=
     simp only [div_mul_div, ←_root_.map_mul, laurent_aux_div, taylor_mul]
   end,
   map_one' := begin
-    have : algebra_map (polynomial K) (ratfunc K) 1 = 1 := _root_.map_one _,
+    have : algebra_map (polynomial R) (ratfunc R) 1 = 1 := _root_.map_one _,
     rw [←this, laurent_aux_algebra_map, taylor_one, _root_.map_one]
   end,
   map_zero' := begin
-    have : algebra_map (polynomial K) (ratfunc K) 0 = 0 := _root_.map_zero _,
+    have : algebra_map (polynomial R) (ratfunc R) 0 = 0 := _root_.map_zero _,
     rw [←this, laurent_aux_algebra_map, linear_map.map_zero, _root_.map_zero]
   end,
   commutes' := λ _, by rw [algebra_map_eq_C, ←algebra_map_C,
@@ -137,7 +139,7 @@ laurent_aux_algebra_map _ _
 @[simp] lemma laurent_X : laurent r X = X + C r :=
 by rw [←algebra_map_X, laurent_algebra_map, taylor_X, _root_.map_add, algebra_map_C]
 
-@[simp] lemma laurent_C (x : K) : laurent r (C x) = C x :=
+@[simp] lemma laurent_C (x : R) : laurent r (C x) = C x :=
 by rw [←algebra_map_C, laurent_algebra_map, taylor_C]
 
 @[simp] lemma laurent_at_zero : laurent 0 f = f :=
@@ -152,5 +154,35 @@ end
 
 lemma laurent_injective : function.injective (laurent r) :=
 λ _ _ h, by simpa [laurent_laurent] using congr_arg (laurent (-r)) h
+
+omit hdomain
+
+variables {K : Type u} [field K] (F : ratfunc K) (P Q : polynomial K)
+
+instance : has_inv (polynomial K) := ⟨λ f, 1 / f⟩
+
+open laurent_series
+
+instance coe_to_laurent_series : has_coe (ratfunc K) (laurent_series K) :=
+⟨λ f, (f.num : power_series K) / f.denom⟩
+
+lemma coe_def : (F : laurent_series K) = (F.num : power_series K) / F.denom := rfl
+
+@[simp] lemma polynomial.coe_coe : (P : laurent_series K) = hahn_series.of_power_series ℤ K P := rfl
+
+@[simp] lemma coe_div : (((algebra_map (polynomial K) (ratfunc K) P /
+  algebra_map (polynomial K) (ratfunc K) Q) : ratfunc K) : laurent_series K) =
+  (P : power_series K) / (Q : power_series K) :=
+begin
+  simp_rw [coe_def, coe_power_series],
+  by_cases hQ : Q = 0,
+  { simp only [div_zero, polynomial.coe_zero, ratfunc.num_zero, hahn_series.emb_domain_zero,
+               zero_div, polynomial.coe_one, eq_self_iff_true, hahn_series.of_power_series_apply,
+               ratfunc.denom_zero, ring_equiv.map_zero, _root_.map_zero, coe_coe, hQ] },
+  rw [num_div _ hQ, denom_div _ hQ, polynomial.coe_mul, polynomial.coe_coe, polynomial.coe_mul,
+      _root_.map_mul, _root_.map_mul, mul_div_mul_left],
+  sorry,
+  rw [ne.def, coe_C, of_power_series_C, hahn_series.single_eq_zero_iff],
+end
 
 end ratfunc

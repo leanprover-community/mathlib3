@@ -99,17 +99,17 @@ instance [add_comm_group α] : add_comm_group (αˢʸᵐ) :=
 @[simp] lemma unsym_eq_zero_iff {α} [has_zero α] (a : αˢʸᵐ) : a.unsym = (0 : α) ↔ a = (0 : αˢʸᵐ) :=
 unsym_injective.eq_iff' rfl
 
-lemma zero_zero [ring α] : unsym add_comm_group.zero = (0:α) := rfl
+lemma zero_zero [ring α] : unsym add_comm_group.zero = (0 : α) := rfl
 
 instance {R : Type*} [semiring R] [add_comm_monoid α] [module R α] : module R αˢʸᵐ :=
 function.injective.module R ⟨unsym, rfl, λ _ _, rfl⟩ (λ _ _, id) (λ _ _, rfl)
 
 /- Introduce the symmetrised multiplication-/
 instance [has_add α] [has_mul α] [has_one α] [invertible (2 : α)] : has_mul(αˢʸᵐ) :=
-{ mul := λ a b, sym ((⅟2)*(unsym(a)*unsym(b) + unsym(b)*unsym(a))) }
+{ mul := λ a b, sym (⅟2 * (unsym a * unsym b + unsym b * unsym a)) }
 
-lemma mul_def [ring α] [invertible (2 : α)] (a b: αˢʸᵐ) :
-  a*b = sym ((⅟2)*(unsym(a)*unsym(b)+unsym(b)*unsym(a))) := by refl
+lemma mul_def [ring α] [invertible (2 : α)] (a b : αˢʸᵐ) :
+  a * b = sym (⅟2*(unsym a * unsym b + unsym b * unsym a)) := by refl
 
 /- The symmetrisation of a real (unital, associative) algebra is a non-associative ring -/
 instance [ring α] [invertible (2 : α)] : non_unital_non_assoc_ring (αˢʸᵐ) :=
@@ -143,7 +143,7 @@ instance [ring α] [invertible (2 : α)] : non_unital_non_assoc_ring (αˢʸᵐ)
   ..sym_alg.add_comm_group, }
 
 /- The squaring operation coincides for both multiplications -/
-lemma sym_squares [ring α] [invertible (2 : α)] (a: αˢʸᵐ) : unsym(a*a) = unsym a * unsym a :=
+lemma sym_squares [ring α] [invertible (2 : α)] (a : αˢʸᵐ) : unsym(a*a) = unsym a * unsym a :=
 begin
   rw [mul_def, unsym_sym],
   abel,
@@ -168,7 +168,8 @@ instance (α : Type u) [ring α] [invertible (2 : α)] : comm_jordan (αˢʸᵐ)
 { comm := λ a,
   begin
     ext b,
-    change (⅟2)*(unsym(b)*unsym(a)+unsym(a)*unsym(b)) = (⅟2)*(unsym(a)*unsym(b)+unsym(b)*unsym(a)),
+    change ⅟2 * (unsym b * unsym a + unsym a * unsym b) =
+      ⅟2 * (unsym a * unsym b + unsym b * unsym a),
     rw add_comm,
   end,
   jordan := λ a,
@@ -183,7 +184,7 @@ instance (α : Type u) [ring α] [invertible (2 : α)] : comm_jordan (αˢʸᵐ)
     rw [← mul_sub, ← mul_assoc, ← commute.eq (half_commute (unsym a)), mul_assoc,
       mul_assoc, ← mul_add, ← mul_assoc, ← commute.eq (half_commute (unsym(a*a))),
       mul_assoc, mul_assoc, ← mul_add, ← mul_sub, ← mul_assoc],
-    convert mul_zero (⅟ (2:α)*⅟ (2:α)),
+    convert mul_zero (⅟(2:α) * ⅟(2:α)),
     rw [mul_add, add_mul, mul_add, add_mul, ← add_assoc, ← add_assoc, sym_squares,
       ← mul_assoc, ← mul_assoc, ← mul_assoc, ← mul_assoc, ← mul_assoc,
       ← mul_assoc (unsym a * unsym a) (unsym a) (unsym b),

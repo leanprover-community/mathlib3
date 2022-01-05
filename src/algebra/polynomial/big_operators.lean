@@ -129,7 +129,7 @@ lemma degree_multiset_prod_le :
 quotient.induction_on t (by simpa using degree_list_prod_le)
 
 lemma degree_prod_le : (∏ i in s, f i).degree ≤ ∑ i in s, (f i).degree :=
-by simpa using degree_multiset_prod_le (s.1.map f)
+by simpa only [multiset.map_map] using degree_multiset_prod_le (s.1.map f)
 
 /--
 The leading coefficient of a product of polynomials is equal to

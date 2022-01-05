@@ -190,6 +190,15 @@ alias eq_or_lt_of_le ← has_le.le.eq_or_lt
 
 attribute [nolint decidable_classical] has_le.le.eq_or_lt_dec
 
+lemma eq_of_le_of_not_lt [partial_order α] {a b : α} (hab : a ≤ b) (hba : ¬ a < b) : a = b :=
+hab.eq_or_lt.resolve_right hba
+
+lemma eq_of_ge_of_not_gt [partial_order α] {a b : α} (hab : a ≤ b) (hba : ¬ a < b) : b = a :=
+(hab.eq_or_lt.resolve_right hba).symm
+
+alias eq_of_le_of_not_lt ← has_le.le.eq_of_not_lt
+alias eq_of_ge_of_not_gt ← has_le.le.eq_of_not_gt
+
 lemma ne.le_iff_lt [partial_order α] {a b : α} (h : a ≠ b) : a ≤ b ↔ a < b :=
 ⟨λ h', lt_of_le_of_ne h' h, λ h, h.le⟩
 
@@ -486,15 +495,21 @@ instance subtype.linear_order {α} [linear_order α] (p : α → Prop) : linear_
 { decidable_eq := subtype.decidable_eq,
   .. linear_order.lift coe subtype.coe_injective }
 
+/-!
+### Pointwise order on `α × β`
+
+The lexicographic order is defined in `order.lexicographic`, and the instances are available via the
+type synonym `α ×ₗ β = α × β`.
+-/
+
 namespace prod
 
 instance (α : Type u) (β : Type v) [has_le α] [has_le β] : has_le (α × β) :=
 ⟨λ p q, p.1 ≤ q.1 ∧ p.2 ≤ q.2⟩
 
-lemma le_def {α β : Type*} [has_le α] [has_le β] {x y : α × β} :
-  x ≤ y ↔ x.1 ≤ y.1 ∧ x.2 ≤ y.2 := iff.rfl
+lemma le_def [has_le α] [has_le β] {x y : α × β} : x ≤ y ↔ x.1 ≤ y.1 ∧ x.2 ≤ y.2 := iff.rfl
 
-@[simp] lemma mk_le_mk {α β : Type*} [has_le α] [has_le β] {x₁ x₂ : α} {y₁ y₂ : β} :
+@[simp] lemma mk_le_mk [has_le α] [has_le β] {x₁ x₂ : α} {y₁ y₂ : β} :
   (x₁, y₁) ≤ (x₂, y₂) ↔ x₁ ≤ x₂ ∧ y₁ ≤ y₂ :=
 iff.rfl
 
@@ -504,9 +519,25 @@ instance (α : Type u) (β : Type v) [preorder α] [preorder β] : preorder (α 
     ⟨le_trans hac hce, le_trans hbd hdf⟩,
   .. prod.has_le α β }
 
+lemma lt_iff [preorder α] [preorder β] {a b : α × β} :
+  a < b ↔ a.1 < b.1 ∧ a.2 ≤ b.2 ∨ a.1 ≤ b.1 ∧ a.2 < b.2 :=
+begin
+  refine ⟨λ h, _, _⟩,
+  { by_cases h₁ : b.1 ≤ a.1,
+    { exact or.inr ⟨h.1.1, h.1.2.lt_of_not_le $ λ h₂, h.2 ⟨h₁, h₂⟩⟩ },
+    { exact or.inl ⟨h.1.1.lt_of_not_le h₁, h.1.2⟩ } },
+  { rintro (⟨h₁, h₂⟩ | ⟨h₁, h₂⟩),
+    { exact ⟨⟨h₁.le, h₂⟩, λ h, h₁.not_le h.1⟩ },
+    { exact ⟨⟨h₁, h₂.le⟩, λ h, h₂.not_le h.2⟩ } }
+end
+
+@[simp] lemma mk_lt_mk [preorder α] [preorder β] {x₁ x₂ : α} {y₁ y₂ : β} :
+  (x₁, y₁) < (x₂, y₂) ↔ x₁ < x₂ ∧ y₁ ≤ y₂ ∨ x₁ ≤ x₂ ∧ y₁ < y₂ :=
+lt_iff
+
 /-- The pointwise partial order on a product.
     (The lexicographic ordering is defined in order/lexicographic.lean, and the instances are
-    available via the type synonym `lex α β = α × β`.) -/
+    available via the type synonym `α ×ₗ β = α × β`.) -/
 instance (α : Type u) (β : Type v) [partial_order α] [partial_order β] :
   partial_order (α × β) :=
 { le_antisymm := λ ⟨a, b⟩ ⟨c, d⟩ ⟨hac, hbd⟩ ⟨hca, hdb⟩,

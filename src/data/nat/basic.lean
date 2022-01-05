@@ -111,7 +111,7 @@ instance nat.subtype.order_bot (s : set ℕ) [decidable_pred (∈ s)] [h : nonem
 instance nat.subtype.semilattice_sup (s : set ℕ) :
   semilattice_sup s :=
 { ..subtype.linear_order s,
-  ..lattice_of_linear_order }
+  ..linear_order.to_lattice }
 
 lemma nat.subtype.coe_bot {s : set ℕ} [decidable_pred (∈ s)]
   [h : nonempty s] : ((⊥ : s) : ℕ) = nat.find (nonempty_subtype.1 h) := rfl
@@ -1511,5 +1511,9 @@ instance decidable_exists_lt {P : ℕ → Prop} [h : decidable_pred P] :
 | 0 := is_false (by simp)
 | (n + 1) := decidable_of_decidable_of_iff (@or.decidable _ _ (decidable_exists_lt n) (h n))
   (by simp only [lt_succ_iff_lt_or_eq, or_and_distrib_right, exists_or_distrib, exists_eq_left])
+
+instance decidable_exists_le {P : ℕ → Prop} [h : decidable_pred P] :
+  decidable_pred (λ n, ∃ (m : ℕ), m ≤ n ∧ P m) :=
+λ n, decidable_of_iff (∃ m, m < n + 1 ∧ P m) (exists_congr (λ x, and_congr_left' lt_succ_iff))
 
 end nat

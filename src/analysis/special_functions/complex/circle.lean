@@ -20,7 +20,7 @@ open_locale real
 namespace circle
 
 lemma injective_arg : injective (λ z : circle, arg z) :=
-λ z w h, subtype.ext $ ext_abs_arg ((abs_eq_of_mem_circle z).trans (abs_eq_of_mem_circle w).symm) h
+λ z w h, subtype.ext $ ext_abs_arg ((abs_coe_circle z).trans (abs_coe_circle w).symm) h
 
 @[simp] lemma arg_eq_arg {z w : circle} : arg z = arg w ↔ z = w := injective_arg.eq_iff
 

@@ -3,8 +3,8 @@ Copyright (c) 2018 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Jens Wagemaker
 -/
-import algebra.big_operators.basic
 import algebra.divisibility
+import algebra.group_power.basic
 import algebra.invertible
 
 /-!
@@ -88,25 +88,6 @@ begin
   exact ih dvd_pow
 end
 
-lemma exists_mem_multiset_dvd {s : multiset α} :
-  p ∣ s.prod → ∃ a ∈ s, p ∣ a :=
-multiset.induction_on s (λ h, (hp.not_dvd_one h).elim) $
-λ a s ih h,
-  have p ∣ a * s.prod, by simpa using h,
-  match hp.dvd_or_dvd this with
-  | or.inl h := ⟨a, multiset.mem_cons_self a s, h⟩
-  | or.inr h := let ⟨a, has, h⟩ := ih h in ⟨a, multiset.mem_cons_of_mem has, h⟩
-  end
-
-lemma exists_mem_multiset_map_dvd {s : multiset β} {f : β → α} :
-  p ∣ (s.map f).prod → ∃ a ∈ s, p ∣ f a :=
-λ h, by simpa only [exists_prop, multiset.mem_map, exists_exists_and_eq_and]
-  using hp.exists_mem_multiset_dvd h
-
-lemma exists_mem_finset_dvd {s : finset β} {f : β → α} :
-  p ∣ s.prod f → ∃ i ∈ s, p ∣ f i :=
-hp.exists_mem_multiset_map_dvd
-
 end prime
 
 @[simp] lemma not_prime_zero : ¬ prime (0 : α) :=
@@ -153,6 +134,9 @@ lemma irreducible_iff [monoid α] {p : α} :
 
 @[simp] theorem not_irreducible_one [monoid α] : ¬ irreducible (1 : α) :=
 by simp [irreducible_iff]
+
+theorem irreducible.ne_one [monoid α] : ∀ {p:α}, irreducible p → p ≠ 1
+| _ hp rfl := not_irreducible_one hp
 
 @[simp] theorem not_irreducible_zero [monoid_with_zero α] : ¬ irreducible (0 : α)
 | ⟨hn0, h⟩ := have is_unit (0:α) ∨ is_unit (0:α), from h 0 0 ((mul_zero 0).symm),
@@ -317,21 +301,6 @@ end
 
 theorem dvd_dvd_iff_associated [cancel_monoid_with_zero α] {a b : α} : a ∣ b ∧ b ∣ a ↔ a ~ᵤ b :=
 ⟨λ ⟨h1, h2⟩, associated_of_dvd_dvd h1 h2, associated.dvd_dvd⟩
-
-lemma exists_associated_mem_of_dvd_prod [cancel_comm_monoid_with_zero α] {p : α}
-  (hp : prime p) {s : multiset α} : (∀ r ∈ s, prime r) → p ∣ s.prod → ∃ q ∈ s, p ~ᵤ q :=
-multiset.induction_on s (by simp [mt is_unit_iff_dvd_one.2 hp.not_unit])
-  (λ a s ih hs hps, begin
-    rw [multiset.prod_cons] at hps,
-    cases hp.dvd_or_dvd hps with h h,
-    { use [a, by simp],
-      cases h with u hu,
-      cases (((hs a (multiset.mem_cons.2 (or.inl rfl))).irreducible)
-        .is_unit_or_is_unit hu).resolve_left hp.not_unit with v hv,
-      exact ⟨v, by simp [hu, hv]⟩ },
-    { rcases ih (λ r hr, hs _ (multiset.mem_cons.2 (or.inr hr))) h with ⟨q, hq₁, hq₂⟩,
-      exact ⟨q, multiset.mem_cons.2 (or.inr hq₁), hq₂⟩ }
-  end)
 
 lemma associated.dvd_iff_dvd_left [monoid α] {a b c : α} (h : a ~ᵤ b) : a ∣ c ↔ b ∣ c :=
 let ⟨u, hu⟩ := h in hu ▸ units.mul_right_dvd.symm
@@ -513,13 +482,6 @@ by induction n; simp [*, pow_succ, associates.mk_mul_mk.symm]
 
 lemma dvd_eq_le : ((∣) : associates α → associates α → Prop) = (≤) := rfl
 
-theorem prod_mk {p : multiset α} : (p.map associates.mk).prod = associates.mk p.prod :=
-multiset.induction_on p (by simp; refl) $ assume a s ih, by simp [ih]; refl
-
-theorem rel_associated_iff_map_eq_map {p q : multiset α} :
-  multiset.rel associated p q ↔ p.map associates.mk = q.map associates.mk :=
-by { rw [← multiset.rel_eq, multiset.rel_map], simp only [mk_eq_mk_iff_associated] }
-
 theorem mul_eq_one_iff {x y : associates α} : x * y = 1 ↔ (x = 1 ∧ y = 1) :=
 iff.intro
   (quotient.induction_on₂ x y $ assume a b h,
@@ -527,12 +489,6 @@ iff.intro
     ⟨quotient.sound $ associated_one_of_associated_mul_one this,
       quotient.sound $ associated_one_of_associated_mul_one $ by rwa [mul_comm] at this⟩)
   (by simp {contextual := tt})
-
-theorem prod_eq_one_iff {p : multiset (associates α)} :
-  p.prod = 1 ↔ (∀a ∈ p, (a:associates α) = 1) :=
-multiset.induction_on p
-  (by simp)
-  (by simp [mul_eq_one_iff, or_imp_distrib, forall_and_distrib] {contextual := tt})
 
 theorem units_eq_one (u : units (associates α)) : u = 1 :=
 units.ext (mul_eq_one_iff.1 u.val_inv).1
@@ -562,15 +518,6 @@ let ⟨x, hx⟩ := h₁, ⟨y, hy⟩ := h₂ in
 
 theorem one_le {a : associates α} : 1 ≤ a :=
 dvd.intro _ (one_mul a)
-
-theorem prod_le_prod {p q : multiset (associates α)} (h : p ≤ q) : p.prod ≤ q.prod :=
-begin
-  haveI := classical.dec_eq (associates α),
-  haveI := classical.dec_eq α,
-  suffices : p.prod ≤ (p + (q - p)).prod, { rwa [add_tsub_cancel_of_le h] at this },
-  suffices : p.prod * 1 ≤ p.prod * (q - p).prod, { simpa },
-  exact mul_mono (le_refl p.prod) one_le
-end
 
 theorem le_mul_right {a b : associates α} : a ≤ a * b := ⟨b, rfl⟩
 
@@ -640,17 +587,6 @@ iff.intro dvd_of_mk_le_mk mk_le_mk_of_dvd
 lemma prime.le_or_le {p : associates α} (hp : prime p) {a b : associates α} (h : p ≤ a * b) :
   p ≤ a ∨ p ≤ b :=
 hp.2.2 a b h
-
-lemma exists_mem_multiset_le_of_prime {s : multiset (associates α)} {p : associates α}
-  (hp : prime p) :
-  p ≤ s.prod → ∃a∈s, p ≤ a :=
-multiset.induction_on s (assume ⟨d, eq⟩, (hp.ne_one (mul_eq_one_iff.1 eq.symm).1).elim) $
-assume a s ih h,
-  have p ≤ a * s.prod, by simpa using h,
-  match prime.le_or_le hp this with
-  | or.inl h := ⟨a, multiset.mem_cons_self a s, h⟩
-  | or.inr h := let ⟨a, has, h⟩ := ih h in ⟨a, multiset.mem_cons_of_mem has, h⟩
-  end
 
 lemma prime_mk (p : α) : prime (associates.mk p) ↔ _root_.prime p :=
 begin
@@ -786,11 +722,3 @@ dvd_and_not_dvd_iff.symm
 end cancel_comm_monoid_with_zero
 
 end associates
-
-namespace multiset
-
-lemma prod_ne_zero_of_prime [cancel_comm_monoid_with_zero α] [nontrivial α]
- (s : multiset α) (h : ∀ x ∈ s, prime x) : s.prod ≠ 0 :=
-multiset.prod_ne_zero (λ h0, prime.ne_zero (h 0 h0) rfl)
-
-end multiset

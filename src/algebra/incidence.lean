@@ -607,7 +607,6 @@ section inversion_top
 variables {α} [ring 𝕜] [partial_order α] [order_top α] [locally_finite_order α]
   [decidable_eq α] {a b : α}
 
-#check finset.product
 /-- A general form of Möbius inversion. Based on Theorem 2.1.2 of Incidence Algebras by Spiegel and
 O'Donnell. -/
 lemma moebius_inversion_top (f g : α → 𝕜) (h : ∀ x, g x = ∑ y in Ici x, f y) (x : α) :

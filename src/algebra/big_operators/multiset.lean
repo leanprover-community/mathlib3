@@ -6,6 +6,7 @@ Authors: Mario Carneiro
 import data.list.prod_monoid
 import data.multiset.basic
 import data.int.basic
+import algebra.group_power.lemmas
 
 /-!
 # Sums and products over multisets
@@ -186,7 +187,7 @@ m.prod_hom comm_group.inv_monoid_hom
 @[simp]
 lemma prod_map_zpow {m : multiset ι} {f : ι → ℤ} {a : α} :
   (multiset.map (λ i, a ^ (f i)) m).prod = a ^ ((multiset.map f m).sum) :=
-multiset.induction_on m (by simp) (λ n m ih, by simp [ih, pow_add])
+multiset.induction_on m (by simp) (λ n m ih, by simp [ih, zpow_add] )
 
 end comm_group
 

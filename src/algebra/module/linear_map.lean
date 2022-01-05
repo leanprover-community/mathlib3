@@ -243,7 +243,7 @@ protected lemma map_smulₛₗ (c : R) (x : M) : f (c • x) = (σ c) • f x :=
 protected lemma map_smul (c : R) (x : M) : fₗ (c • x) = c • fₗ x := map_smul fₗ c x
 protected lemma map_smul_inv {σ' : S →+* R} [ring_hom_inv_pair σ σ'] (c : S) (x : M) :
   c • f x = f (σ' c • x) :=
-semilinear_map_class.map_smul_inv f c x
+by simp [map_smulₛₗ f]
 
 -- TODO: generalize to `zero_hom_class`
 @[simp] lemma map_eq_zero_iff (h : function.injective f) {x : M} : f x = 0 ↔ x = 0 :=

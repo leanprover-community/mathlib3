@@ -1697,7 +1697,7 @@ lemma orthogonal_family.norm_sq_diff_sum (f : Π i, V i) (s₁ s₂ : finset ι)
   ∥∑ i in s₁, (f i : E) - ∑ i in s₂, f i∥ ^ 2
   = ∑ i in s₁ \ s₂, ∥f i∥ ^ 2 + ∑ i in s₂ \ s₁, ∥f i∥ ^ 2 :=
 begin
-  rw [finset.sum_sub_sum, sub_eq_add_neg, ← finset.sum_neg_distrib],
+  rw [← finset.sum_sdiff_sub_sum_sdiff, sub_eq_add_neg, ← finset.sum_neg_distrib],
   let F : Π i, V i := λ i, if i ∈ s₁ then f i else - (f i),
   have hF₁ : ∀ i ∈ s₁ \ s₂, F i = f i := λ i hi, if_pos (finset.sdiff_subset _ _ hi),
   have hF₂ : ∀ i ∈ s₂ \ s₁, F i = - f i := λ i hi, if_neg (finset.mem_sdiff.mp hi).2,
@@ -1719,31 +1719,6 @@ begin
   { simp [hF] },
 end
 
-omit hV
--- move this
-lemma diff_sum_le_of_nonneg (f : ι → ℝ) (hf : ∀ i, 0 ≤ f i) (s₁ s₂ : finset ι) :
-  |∑ i in s₁, f i - ∑ i in s₂, f i|
-  ≤ ∑ i in s₁ \ s₂, f i + ∑ i in s₂ \ s₁, f i :=
-calc |∑ i in s₁, f i - ∑ i in s₂, f i|
-    = |∑ i in s₁ \ s₂, f i - ∑ i in s₂ \ s₁, f i| : by rw finset.sum_sub_sum
-... ≤ |∑ i in s₁ \ s₂, f i| + |∑ i in s₂ \ s₁, f i| : abs_sub _ _
-... = ∑ i in s₁ \ s₂, f i + ∑ i in s₂ \ s₁, f i : by congr;
-begin
-  rw _root_.abs_of_nonneg,
-  apply finset.sum_nonneg,
-  exact λ _ _, hf _
-end
-
--- move this
-lemma diff_sum_subset_of_nonneg {f : ι → ℝ} (hf : ∀ i, 0 ≤ f i) {s₁ s₂ : finset ι} (hs : s₂ ⊆ s₁) :
-  |∑ i in s₁, f i - ∑ i in s₂, f i| = ∑ i in s₁ \ s₂, f i :=
-begin
-  rw [← finset.sum_sdiff hs, add_tsub_cancel_right, _root_.abs_of_nonneg],
-  apply finset.sum_nonneg,
-  exact λ _ _, hf _
-end
-include hV
-
 omit dec_ι
 
 /-- A family `f` of mutually-orthogonal elements of `E` is summable, if and only if
@@ -1758,12 +1733,15 @@ begin
     obtain ⟨a, H⟩ := hf _ (sqrt_pos.mpr hε),
     use a,
     intros s₁ s₂ hs₁ hs₂,
+    rw ← finset.sum_sdiff_sub_sum_sdiff,
+    refine (_root_.abs_sub _ _).trans_lt _,
+    have : ∀ i, 0 ≤ ∥f i∥ ^ 2 := λ i : ι, sq_nonneg _,
+    simp only [finset.abs_sum_of_nonneg' this],
     have : ∑ i in s₁ \ s₂, ∥f i∥ ^ 2 + ∑ i in s₂ \ s₁, ∥f i∥ ^ 2 < (sqrt ε) ^ 2,
     { rw ← hV.norm_sq_diff_sum,
       apply sq_lt_sq,
       rw _root_.abs_of_nonneg (norm_nonneg _),
       exact H s₁ s₂ hs₁ hs₂ },
-    have := diff_sum_le_of_nonneg (λ i, ∥f i∥ ^ 2) (λ i, sq_nonneg _) s₁ s₂,
     have hη := sq_sqrt (le_of_lt hε),
     linarith },
   { intros hf ε hε,
@@ -1776,16 +1754,16 @@ begin
     rw hV.norm_sq_diff_sum,
     have Hs₁ : ∑ (x : ι) in s₁ \ s₂, ∥f x∥ ^ 2 < ε ^ 2 / 2,
     { convert H _ _ hs₁ has,
-      rw diff_sum_subset_of_nonneg,
+      have : s₁ ⊓ s₂ ⊆ s₁ := finset.inter_subset_left _ _,
+      rw [← finset.sum_sdiff this, add_tsub_cancel_right, finset.abs_sum_of_nonneg'],
       { simp },
-      { exact λ i, sq_nonneg _ },
-      { exact finset.inter_subset_left _ _ } },
+      { exact λ i, sq_nonneg _ } },
     have Hs₂ : ∑ (x : ι) in s₂ \ s₁, ∥f x∥ ^ 2 < ε ^ 2 /2,
     { convert H _ _ hs₂ has,
-      rw diff_sum_subset_of_nonneg,
+      have : s₁ ⊓ s₂ ⊆ s₂ := finset.inter_subset_right _ _,
+      rw [← finset.sum_sdiff this, add_tsub_cancel_right, finset.abs_sum_of_nonneg'],
       { simp },
-      { exact λ i, sq_nonneg _ },
-      { exact finset.inter_subset_right _ _ } },
+      { exact λ i, sq_nonneg _ } },
     linarith },
 end
 

@@ -1279,9 +1279,9 @@ lemma prod_zpow (f : α → β) (s : finset α) (n : ℤ) :
 (zpow_group_hom n : β →* β).map_prod f s
 
 @[to_additive]
-lemma prod_div_prod [decidable_eq α] :
-  (∏ (x : α) in s₂, f x) / (∏ (x : α) in s₁, f x)
-  = (∏ (x : α) in s₂ \ s₁, f x) / (∏ (x : α) in s₁ \ s₂, f x) :=
+lemma prod_sdiff_div_prod_sdiff [decidable_eq α] :
+  (∏ (x : α) in s₂ \ s₁, f x) / (∏ (x : α) in s₁ \ s₂, f x)
+  = (∏ (x : α) in s₂, f x) / (∏ (x : α) in s₁, f x) :=
 by simp [← finset.prod_sdiff (@inf_le_left _ _ s₁ s₂),
   ← finset.prod_sdiff (@inf_le_right _ _ s₁ s₂)]
 

@@ -109,7 +109,7 @@ def oplax_functor.map₂_associator_aux
   {B : Type u₁} [bicategory.{w₁ v₁} B] {C : Type u₂} [bicategory.{w₂ v₂} C]
   (obj : B → C) (map : Π {X Y : B}, (X ⟶ Y) → (obj X ⟶ obj Y))
   (map₂ : Π {a b : B} {f g : a ⟶ b}, (f ⟶ g) → (map f ⟶ map g))
-  (map_comp : Π {a b c : B} (f : a ⟶ b) (g : b ⟶ c),  map (f ≫ g) ⟶ map f ≫ map g)
+  (map_comp : Π {a b c : B} (f : a ⟶ b) (g : b ⟶ c), map (f ≫ g) ⟶ map f ≫ map g)
   {a b c d : B} (f : a ⟶ b) (g : b ⟶ c) (h : c ⟶ d) : Prop :=
 map₂ (α_ f g h).hom ≫ map_comp f (g ≫ h) ≫ (map f ◁ map_comp g h) =
   map_comp (f ≫ g) h ≫ (map_comp f g ▷ map h) ≫ (α_ (map f) (map g) (map h)).hom
@@ -191,7 +191,7 @@ variables (B : Type u₁) [bicategory.{w₁ v₁} B]
 /-- The identity oplax functor. -/
 @[simps]
 def id : oplax_functor B B :=
-{ map_id := λ a,  𝟙 (𝟙 a),
+{ map_id := λ a, 𝟙 (𝟙 a),
   map_comp := λ a b c f g, 𝟙 (f ≫ g),
   .. prelax_functor.id B }
 

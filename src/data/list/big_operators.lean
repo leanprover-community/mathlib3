@@ -122,17 +122,17 @@ lemma prod_update_nth : ∀ (L : list α) (n : ℕ) (a : α),
 | (x :: xs) (i+1) a := by simp [update_nth, prod_update_nth xs i a, mul_assoc]
 | []      _     _ := by simp [update_nth, (nat.zero_le _).not_lt]
 
-open opposite
+open mul_opposite
 
-lemma _root_.opposite.op_list_prod : ∀ (l : list α), op (l.prod) = (l.map op).reverse.prod
+lemma _root_.mul_opposite.op_list_prod : ∀ (l : list α), op (l.prod) = (l.map op).reverse.prod
 | [] := rfl
 | (x :: xs) := by rw [list.prod_cons, list.map_cons, list.reverse_cons', list.prod_concat, op_mul,
-                      _root_.opposite.op_list_prod]
+                      _root_.mul_opposite.op_list_prod]
 
-lemma _root_.opposite.unop_list_prod : ∀ (l : list αᵒᵖ), (l.prod).unop = (l.map unop).reverse.prod
-| [] := rfl
-| (x :: xs) := by rw [list.prod_cons, list.map_cons, list.reverse_cons', list.prod_concat, unop_mul,
-                      _root_.opposite.unop_list_prod]
+lemma _root_.mul_opposite.unop_list_prod (l : list αᵐᵒᵖ) :
+  (l.prod).unop = (l.map unop).reverse.prod :=
+by rw [← op_inj, op_unop, mul_opposite.op_list_prod, map_reverse, map_map, reverse_reverse,
+  op_comp_unop, map_id]
 
 end monoid
 
@@ -215,6 +215,18 @@ begin
   exact one_le_mul (hl₁ hd (mem_cons_self hd tl)) (ih (λ x h, hl₁ x (mem_cons_of_mem hd h))),
 end
 
+@[to_additive sum_pos]
+lemma one_lt_prod_of_one_lt [ordered_comm_monoid α] :
+  ∀ (l : list α) (hl : ∀ x ∈ l, (1 : α) < x) (hl₂ : l ≠ []), 1 < l.prod
+| [] _ h := (h rfl).elim
+| [b] h _ := by simpa using h
+| (a :: b :: l) hl₁ hl₂ :=
+begin
+  simp only [forall_eq_or_imp, list.mem_cons_iff _ a] at hl₁,
+  rw list.prod_cons,
+  apply one_lt_mul_of_lt_of_le' hl₁.1,
+  apply le_of_lt ((b :: l).one_lt_prod_of_one_lt hl₁.2 (l.cons_ne_nil b)),
+end
 @[to_additive]
 lemma single_le_prod [ordered_comm_monoid α] {l : list α} (hl₁ : ∀ x ∈ l, (1 : α) ≤ x) :
   ∀ x ∈ l, x ≤ l.prod :=
@@ -394,14 +406,13 @@ lemma _root_.monoid_hom.map_list_prod [monoid α] [monoid β] (f : α →* β) (
   f l.prod = (l.map f).prod :=
 (l.prod_hom f).symm
 
-open opposite
+open mul_opposite
 
 /-- A morphism into the opposite monoid acts on the product by acting on the reversed elements -/
-lemma _root_.monoid_hom.unop_map_list_prod [monoid α] [monoid β] (f : α →* βᵒᵖ) (l : list α) :
+lemma _root_.monoid_hom.unop_map_list_prod {α β : Type*} [monoid α] [monoid β] (f : α →* βᵐᵒᵖ)
+  (l : list α) :
   unop (f l.prod) = (l.map (unop ∘ f)).reverse.prod :=
-begin
-  rw [f.map_list_prod l, opposite.unop_list_prod, list.map_map],
-end
+by rw [f.map_list_prod l, unop_list_prod, list.map_map]
 
 @[to_additive]
 lemma prod_map_hom [monoid β] [monoid γ] (L : list α) (f : α → β) (g : β →* γ) :

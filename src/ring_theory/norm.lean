@@ -5,8 +5,9 @@ Authors: Anne Baanen
 -/
 
 import field_theory.primitive_element
-import linear_algebra.matrix.charpoly.coeff
 import linear_algebra.determinant
+import linear_algebra.matrix.charpoly.coeff
+import linear_algebra.matrix.to_linear_equiv
 import ring_theory.power_basis
 
 /-!
@@ -173,9 +174,9 @@ begin
   let pbx := intermediate_field.adjoin.power_basis (is_separable.is_integral K x),
   rw [← adjoin_simple.algebra_map_gen K x, norm_eq_matrix_det (pbx.basis.smul pbL.basis) _,
     smul_left_mul_matrix_algebra_map, det_block_diagonal, norm_eq_matrix_det pbx.basis],
-  simp only [finset.card_fin, finset.prod_const, adjoin.power_basis_basis],
+  simp only [finset.card_fin, finset.prod_const],
   congr,
-  rw [← power_basis.finrank, adjoin_simple.algebra_map_gen K x],
+  rw [← power_basis.finrank, adjoin_simple.algebra_map_gen K x]
 end
 
 section eq_prod_embeddings
@@ -195,7 +196,8 @@ begin
   letI := classical.dec_eq E,
   rw [norm_gen_eq_prod_roots pb hE, fintype.prod_equiv pb.lift_equiv', finset.prod_mem_multiset,
     finset.prod_eq_multiset_prod, multiset.to_finset_val,
-    multiset.erase_dup_eq_self.mpr (nodup_roots ((separable_map _).mpr hfx)), multiset.map_id],
+    multiset.erase_dup_eq_self.mpr, multiset.map_id],
+  { exact nodup_roots ((separable_map _).mpr hfx) },
   { intro x, refl },
   { intro σ, rw [power_basis.lift_equiv'_apply_coe, id.def] }
 end

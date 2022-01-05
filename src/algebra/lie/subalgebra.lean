@@ -233,8 +233,8 @@ by { rw ← coe_to_submodule_eq_iff, exact (K : submodule R L).range_subtype, }
 /-- The image of a Lie subalgebra under a Lie algebra morphism is a Lie subalgebra of the
 codomain. -/
 def map : lie_subalgebra R L₂ :=
-{ lie_mem' := λ x y hx hy, by {
-    erw submodule.mem_map at hx, rcases hx with ⟨x', hx', hx⟩, rw ←hx,
+{ lie_mem' := λ x y hx hy, by
+  { erw submodule.mem_map at hx, rcases hx with ⟨x', hx', hx⟩, rw ←hx,
     erw submodule.mem_map at hy, rcases hy with ⟨y', hy', hy⟩, rw ←hy,
     erw submodule.mem_map,
     exact ⟨⁅x', y'⁆, K.lie_mem hx' hy', f.map_lie x' y'⟩, },
@@ -366,13 +366,11 @@ variables (R L)
 
 lemma well_founded_of_noetherian [is_noetherian R L] :
   well_founded ((>) : lie_subalgebra R L → lie_subalgebra R L → Prop) :=
-begin
   let f : ((>) : lie_subalgebra R L → lie_subalgebra R L → Prop) →r
           ((>) : submodule R L → submodule R L → Prop) :=
   { to_fun       := coe,
-    map_rel' := λ N N' h, h, },
-  apply f.well_founded, rw ← is_noetherian_iff_well_founded, apply_instance,
-end
+    map_rel' := λ N N' h, h, }
+in rel_hom_class.well_founded f (is_noetherian_iff_well_founded.mp infer_instance)
 
 variables {R L K K' f}
 
@@ -515,11 +513,11 @@ variables (e : L₁ ≃ₗ⁅R⁆ L₂)
 
 /-- An equivalence of Lie algebras restricts to an equivalence from any Lie subalgebra onto its
 image. -/
-def of_subalgebra : L₁'' ≃ₗ⁅R⁆ (L₁''.map e : lie_subalgebra R L₂) :=
+def lie_subalgebra_map : L₁'' ≃ₗ⁅R⁆ (L₁''.map e : lie_subalgebra R L₂) :=
 { map_lie' := λ x y, by { apply set_coe.ext, exact lie_hom.map_lie (↑e : L₁ →ₗ⁅R⁆ L₂) ↑x ↑y, }
-  ..(linear_equiv.of_submodule (e : L₁ ≃ₗ[R] L₂) ↑L₁'') }
+  ..(linear_equiv.submodule_map (e : L₁ ≃ₗ[R] L₂) ↑L₁'') }
 
-@[simp] lemma of_subalgebra_apply (x : L₁'') : ↑(e.of_subalgebra _  x) = e x := rfl
+@[simp] lemma lie_subalgebra_map_apply (x : L₁'') : ↑(e.lie_subalgebra_map _  x) = e x := rfl
 
 /-- An equivalence of Lie algebras restricts to an equivalence from any Lie subalgebra onto its
 image. -/

@@ -1705,25 +1705,82 @@ begin
   simp only [bsup_le, IH] {contextual:=tt}
 end
 
-theorem is_normal.fp_iff_deriv {f} (H : is_normal f)
-  {a} : f a ≤ a ↔ ∃ o, a = deriv f o :=
+theorem is_normal.fp_iff_deriv' {f} (H : is_normal f) {a} : f a ≤ a ↔ ∃ o, deriv f o = a :=
 ⟨λ ha, begin
-  suffices : ∀ o (_:a ≤ deriv f o), ∃ o, a = deriv f o,
+  suffices : ∀ o (_:a ≤ deriv f o), ∃ o, deriv f o = a,
   from this a ((deriv_is_normal _).le_self _),
   intro o, apply limit_rec_on o,
   { intros h₁,
-    refine ⟨0, le_antisymm h₁ _⟩,
+    refine ⟨0, le_antisymm _ h₁⟩,
     rw deriv_zero,
     exact H.nfp_le_fp (ordinal.zero_le _) ha },
   { intros o IH h₁,
     cases le_or_lt a (deriv f o), {exact IH h},
-    refine ⟨succ o, le_antisymm h₁ _⟩,
+    refine ⟨succ o, le_antisymm _ h₁⟩,
     rw deriv_succ,
     exact H.nfp_le_fp (succ_le.2 h) ha },
   { intros o l IH h₁,
-    cases eq_or_lt_of_le h₁, {exact ⟨_, h⟩},
+    cases eq_or_lt_of_le h₁, {exact ⟨_, h.symm⟩},
     rw [deriv_limit _ l, ← not_le, bsup_le, not_ball] at h,
     exact let ⟨o', h, hl⟩ := h in IH o' h (le_of_not_le hl) }
-end, λ ⟨o, e⟩, e.symm ▸ le_of_eq (H.deriv_fp _)⟩
+end, λ ⟨o, e⟩, e ▸ le_of_eq (H.deriv_fp _)⟩
+
+theorem is_normal.fp_iff_deriv {f} (H : is_normal f) {a} : f a = a ↔ ∃ o, deriv f o = a :=
+by rw [←H.fp_iff_deriv', H.self_le_iff_eq]
+
+/-! ### Fixed points of addition -/
+
+theorem add_iterate (a : ordinal) (n : ℕ) : a * n = (((+) a)^[n]) 0 :=
+begin
+  induction n with n hn,
+  { rw [nat.cast_zero, mul_zero, iterate_zero_apply] },
+  nth_rewrite 0 nat.succ_eq_one_add,
+  rw [nat.cast_add, nat.cast_one, mul_one_add, iterate_succ_apply', hn]
+end
+
+theorem mul_omega_nfp_add_zero (a) : a * omega = nfp ((+) a) 0 :=
+begin
+  unfold nfp,
+  rw [mul_omega_eq_sup_mul_nat, funext (add_iterate a)]
+end
+
+theorem mul_omega_nfp_add_of_le_mul_omega {a b} (hba : b ≤ a * omega) :
+  a * omega = nfp ((+) a) b :=
+begin
+  refine le_antisymm _ ((add_is_normal a).nfp_le_fp hba _),
+  { rw mul_omega_nfp_add_zero,
+    exact nfp_monotone (add_is_normal a).strict_mono.monotone (ordinal.zero_le b) },
+  rw add_mul_omega
+end
+
+theorem mul_omega_nfp_add_self (a) : a * omega = nfp ((+) a) a :=
+mul_omega_nfp_add_of_le_mul_omega (le_mul_left omega_pos)
+
+theorem add_fp_iff_mul_omega_le {a b : ordinal} : a + b = b ↔ a * omega.{u} ≤ b :=
+begin
+  refine ⟨λ h, _, λ h, _⟩,
+  { rw [mul_omega_nfp_add_zero a, ←deriv_zero],
+    cases (add_is_normal a).fp_iff_deriv.1 h with c hc,
+    rw ←hc,
+    exact (deriv_is_normal _).strict_mono.monotone (ordinal.zero_le _) },
+  have := ordinal.add_sub_cancel_of_le h,
+  nth_rewrite 0 ←this,
+  rwa [←add_assoc, add_mul_omega]
+end
+
+theorem add_fp_iff_mul_omega_le' {a b : ordinal} : a + b ≤ b ↔ a * omega.{u} ≤ b :=
+by { rw ←add_fp_iff_mul_omega_le, exact (add_is_normal a).self_le_iff_eq }
+
+theorem add_deriv_mul_omega_add (a b) : deriv ((+) a) b = a * omega + b :=
+begin
+  rw ←eq_enum_ord,
+  use (deriv_is_normal _).strict_mono,
+  rw range_eq_iff,
+  refine ⟨λ b, le_trans (le_of_eq _)
+    ((deriv_is_normal _).strict_mono.monotone (ordinal.zero_le b)), λ b hb, _⟩,
+  { rw deriv_zero,
+    exact mul_omega_nfp_add_zero a },
+  rwa [←(add_is_normal a).fp_iff_deriv', add_fp_iff_mul_omega_le']
+end
 
 end ordinal

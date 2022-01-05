@@ -3,7 +3,7 @@ Copyright (c) 2021 Bhavik Mehta, Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta, Alena Gusakov, Yaël Dillies
 -/
-import data.fintype.basic
+import algebra.big_operators.basic
 import order.antichain
 
 /-!
@@ -26,6 +26,7 @@ the set family made of its `r`-sets.
 -/
 
 open finset nat
+open_locale big_operators
 
 variables {α : Type*}
 
@@ -98,6 +99,18 @@ variables [decidable_eq α]
 
 lemma pairwise_disjoint_slice : (set.univ : set ℕ).pairwise_disjoint (slice 𝒜) :=
 λ m _ n _ hmn, disjoint_filter.2 $ λ s hs hm hn, hmn $ hm.symm.trans hn
+
+variables [fintype α]
+
+@[simp] lemma bUnion_slice (𝒜 : finset (finset α)) :
+  (range $ fintype.card α + 1).bUnion 𝒜.slice = 𝒜 :=
+subset.antisymm (bUnion_subset.2 $ λ r _, slice_subset) $ λ s hs,
+  mem_bUnion.2 ⟨s.card, mem_range.2 $ lt_succ_iff.2 $ s.card_le_univ, mem_slice.2 $ ⟨hs, rfl⟩⟩
+
+@[simp] lemma sum_card_slice (𝒜 : finset (finset α)) :
+  ∑ r in range (fintype.card α + 1), (𝒜 # r).card = 𝒜.card :=
+by { rw [←card_bUnion (finset.pairwise_disjoint_slice.subset (set.subset_univ _)), bUnion_slice],
+  apply_instance }
 
 end slice
 end finset

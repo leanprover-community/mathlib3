@@ -179,7 +179,7 @@ Linear algebra:
     polar form of a quadratic: 'quadratic_form.polar'
   Finite-dimensional inner product spaces (see also Hilbert spaces, below):
     existence of orthonormal basis: 'orthonormal_basis'
-    diagonalization of self-adjoint endomorphisms: 'is_self_adjoint.diagonalization_basis_apply_self_apply'
+    diagonalization of self-adjoint endomorphisms: 'inner_product_space.is_self_adjoint.diagonalization_basis_apply_self_apply'
 
 Topology:
   General topology:
@@ -258,12 +258,12 @@ Analysis:
   Hilbert spaces:
     Inner product space, over $R$ or $C$: 'inner_product_space'
     Cauchy-Schwarz inequality: 'inner_mul_inner_self_le'
-    self-adjoint endomorphism: 'is_self_adjoint'
+    self-adjoint endomorphism: 'inner_product_space.is_self_adjoint'
     orthogonal projection: 'orthogonal_projection'
     reflection: 'reflection'
     orthogonal complement: 'submodule.orthogonal'
     existence of Hilbert basis: 'exists_is_orthonormal_dense_span'
-    eigenvalues from Rayleigh quotient: 'is_self_adjoint.has_eigenvector_of_is_local_extr_on'
+    eigenvalues from Rayleigh quotient: 'inner_product_space.is_self_adjoint.has_eigenvector_of_is_local_extr_on'
     Fréchet-Riesz representation of the dual of a Hilbert space: 'inner_product_space.to_dual'
 
   Differentiability:

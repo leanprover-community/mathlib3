@@ -58,7 +58,12 @@ begin
     { intros k' n,
       simp only [finsupp_tensor_finsupp_single],
       simp only [finsupp.single, finsupp.coe_mk],
-      split_ifs; finish, } }
+      -- split_ifs; finish can close the goal from here
+      by_cases h1 : (i', k') = (i, k),
+      { simp only [prod.mk.inj_iff] at h1, simp [h1] },
+      { simp only [h1, if_false],
+        simp only [prod.mk.inj_iff, not_and_distrib] at h1,
+        cases h1; simp [h1] } } }
 end
 
 @[simp] theorem finsupp_tensor_finsupp_symm_single (R M N ι κ : Sort*) [comm_ring R]
@@ -84,6 +89,6 @@ by simp [finsupp_tensor_finsupp']
 @[simp] lemma finsupp_tensor_finsupp'_single_tmul_single (a : α) (b : β) (r₁ r₂ : S) :
   finsupp_tensor_finsupp' S α β (finsupp.single a r₁ ⊗ₜ[S] finsupp.single b r₂) =
     finsupp.single (a, b) (r₁ * r₂) :=
-by { ext ⟨a', b'⟩, simp [finsupp.single], split_ifs; finish }
+by { ext ⟨a', b'⟩, simp [finsupp.single, ite_and] }
 
 end tensor_product

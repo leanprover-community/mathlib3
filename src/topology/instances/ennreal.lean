@@ -737,6 +737,50 @@ begin
   rw h₄ at h₃, apply h₃,
 end
 
+lemma tsum_mono_subtype (f : α → ℝ≥0∞) {s t : set α} (h : s ⊆ t) :
+  ∑' (x : s), f x ≤ ∑' (x : t), f x :=
+begin
+  simp only [tsum_subtype],
+  apply ennreal.tsum_le_tsum,
+  assume x,
+  split_ifs,
+  { exact le_rfl },
+  { exact (h_2 (h h_1)).elim },
+  { exact zero_le _ },
+  { exact le_rfl }
+end
+
+lemma tsum_union_le (f : α → ℝ≥0∞) (s t : set α) :
+  ∑' (x : s ∪ t), f x ≤ ∑' (x : s), f x + ∑' (x : t), f x :=
+calc ∑' (x : s ∪ t), f x = ∑' (x : s ∪ (t \ s)), f x :
+  by { apply tsum_congr_subtype, rw union_diff_self }
+... = ∑' (x : s), f x + ∑' (x : t \ s), f x :
+  tsum_union_disjoint disjoint_diff ennreal.summable ennreal.summable
+... ≤ ∑' (x : s), f x + ∑' (x : t), f x :
+  add_le_add le_rfl (tsum_mono_subtype _ (diff_subset _ _))
+
+lemma tsum_bUnion_le {ι : Type*} (f : α → ℝ≥0∞) (s : finset ι) (t : ι → set α) :
+  ∑' (x : ⋃ (i ∈ s), t i), f x ≤ ∑ i in s, ∑' (x : t i), f x :=
+begin
+  classical,
+  induction s using finset.induction_on with i s hi ihs h, { simp },
+  have : (⋃ (j ∈ insert i s), t j) = t i ∪ (⋃ (j ∈ s), t j), by simp,
+  rw tsum_congr_subtype f this,
+  calc ∑' (x : (t i ∪ (⋃ (j ∈ s), t j))), f x ≤
+  ∑' (x : t i), f x + ∑' (x : ⋃ (j ∈ s), t j), f x : tsum_union_le _ _ _
+  ... ≤ ∑' (x : t i), f x + ∑ i in s, ∑' (x : t i), f x : add_le_add le_rfl ihs
+  ... = ∑ j in insert i s, ∑' (x : t j), f x : (finset.sum_insert hi).symm
+end
+
+lemma tsum_Union_le {ι : Type*} [fintype ι] (f : α → ℝ≥0∞) (t : ι → set α) :
+  ∑' (x : ⋃ i, t i), f x ≤ ∑ i, ∑' (x : t i), f x :=
+begin
+  classical,
+  have : (⋃ i, t i) = (⋃ (i ∈ (finset.univ : finset ι)), t i), by simp,
+  rw tsum_congr_subtype f this,
+  exact tsum_bUnion_le _ _ _
+end
+
 end tsum
 
 lemma tendsto_to_real_iff {ι} {fi : filter ι} {f : ι → ℝ≥0∞} (hf : ∀ i, f i ≠ ∞) {x : ℝ≥0∞}

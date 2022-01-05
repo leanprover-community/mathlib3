@@ -11,6 +11,18 @@ import data.finset.locally_finite
 
 /-!
 # Incidence algebras
+
+
+## TODOs
+Here are some additions to this file that could be made in the future
+
+- Generalize the construction of `mu` to invert any element of the incidence algebra `f` which has
+  `f x x` a unit for all `x`.
+- Give formulae for higher powers of zeta.
+- A formula for the möbius function on a pi type similar to the one for products
+- More examples / applications to different posets.
+- Connection with Galois insertions
+- Finsum version of Möbius inversion that holds even when an order doesn't have top/bot?
 -/
 
 open finset
@@ -595,6 +607,7 @@ section inversion_top
 variables {α} [ring 𝕜] [partial_order α] [order_top α] [locally_finite_order α]
   [decidable_eq α] {a b : α}
 
+#check finset.product
 /-- A general form of Möbius inversion. Based on Theorem 2.1.2 of Incidence Algebras by Spiegel and
 O'Donnell. -/
 lemma moebius_inversion_top (f g : α → 𝕜) (h : ∀ x, g x = ∑ y in Ici x, f y) (x : α) :
@@ -608,7 +621,23 @@ by letI : @decidable_rel α (≤) := classical.dec_rel _; symmetry; calc
         { rw if_pos (mem_Ici.mp H) },
         simp }
   ... = ∑ y in Ici x, ∑ z in Ici y, mu 𝕜 α x y * zeta 𝕜 α y z * f z : by simp [mul_sum]
-  ... = ∑ z in Ici x, ∑ y in Icc x z, mu 𝕜 α x y * zeta 𝕜 α y z * f z : sorry
+  ... = ∑ z in Ici x, ∑ y in Icc x z, mu 𝕜 α x y * zeta 𝕜 α y z * f z : by {
+        erw sum_sigma' (Ici x) (λ y, Ici y),
+        erw sum_sigma' (Ici x) (λ z, Icc x z),
+        simp only [mul_boole, zero_mul, ite_mul, zeta_apply],
+        refine sum_bij (λ X hX, ⟨X.snd, X.fst⟩) _ _ _ _,
+        { intros X hX,
+          simp only [mem_Ici, mem_sigma, mem_Icc] at *,
+          exact ⟨hX.1.trans hX.2, hX⟩, },
+        { intros X hX,
+          simp only at *, },
+        { intros X Y ha hb h,
+          simp [sigma.ext_iff] at *,
+          rwa and_comm, },
+        { intros X hX,
+          use [⟨X.snd, X.fst⟩],
+          simp only [and_true, mem_Ici, eq_self_iff_true, sigma.eta, mem_sigma, mem_Icc] at *,
+          exact hX.2, }, }
   ... = ∑ z in Ici x, (mu 𝕜 α * zeta 𝕜 α) x z * f z : by {
         conv in ((mu _ _ * zeta _ _) _ _) { rw [mul_apply] },
         simp_rw [sum_mul] }

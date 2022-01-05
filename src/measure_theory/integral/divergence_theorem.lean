@@ -194,7 +194,7 @@ begin
     from λ J, (prod_pos $ λ j hj, sub_pos.2 $ J.lower_lt_upper _),
   /- Choose `δ > 0` such that for any `x y ∈ I.Icc` at distance at most `δ`, the distance between
   `f x` and `f y` is at most `ε / volume (I.face i).Icc`, then the distance between the integrals
-  is at most `(ε / volume (I.face i).Icc) * volume ((J k).face i).Icc < ε`. -/
+  is at most `(ε / volume (I.face i).Icc) * volume ((J k).face i).Icc ≤ ε`. -/
   rcases metric.uniform_continuous_on_iff_le.1
     (I.is_compact_Icc.uniform_continuous_on_of_continuous Hc)
     (ε / ∏ j, ((I.face i).upper j - (I.face i).lower j)) (div_pos εpos (hvol_pos (I.face i)))

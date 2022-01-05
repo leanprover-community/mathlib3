@@ -943,15 +943,8 @@ lemma filter.has_basis.uniform_continuous_on_iff [uniform_space β] {p : γ → 
   (hb : (𝓤 β).has_basis q t) {f : α → β} {S : set α} :
   uniform_continuous_on f S ↔
     ∀ i (hi : q i), ∃ j (hj : p j), ∀ x y ∈ S, (x, y) ∈ s j → (f x, f y) ∈ t i :=
-((ha.inf_principal (S.prod S)).tendsto_iff hb).trans
-begin
-  refine ⟨λ h i hi, _, λ h i hi, _⟩,
-  all_goals
-  { obtain ⟨k, hk, h⟩ := h i hi,
-    use [k, hk],
-    rw prod.forall <|> rw prod.forall at h,
-    simp [h, set.inter_comm (s _)] {contextual := tt} }
-end
+((ha.inf_principal (S.prod S)).tendsto_iff hb).trans $
+by simp [prod.forall, set.inter_comm (s _), BINDER_UPDATE_LEMMA]
 
 end uniform_space
 

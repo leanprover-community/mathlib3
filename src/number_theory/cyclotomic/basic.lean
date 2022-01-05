@@ -32,6 +32,10 @@ roots of unity, for all `n ∈ S`.
   `B` is a finite `A`-algebra.
 * `is_cyclotomic_extension.number_field` : a finite cyclotomic extension of a number field is a
   number field.
+* `is_cyclotomic_extension.splitting_field_X_pow_sub_one` : if `is_cyclotomic_extension {n} K L`
+  and `ne_zero ((n : ℕ) : K)`, then `L` is the splitting field of `X ^ n - 1`.
+* `is_cyclotomic_extension.splitting_field_cyclotomic` : if `is_cyclotomic_extension {n} K L`
+  and `ne_zero ((n : ℕ) : K)`, then `L` is the splitting field of `cyclotomic n K`.
 
 ## Implementation details
 
@@ -39,8 +43,9 @@ Our definition of `is_cyclotomic_extension` is very general, to allow rings of a
 and infinite extensions, but it will mainly be used in the case `S = {n}` with `(n : A) ≠ 0` (and
 for integral domains).
 All results are in the `is_cyclotomic_extension` namespace.
-Note that some results, `is_cyclotomic_extension.trans`, `is_cyclotomic_extension.finite` and
-`is_cyclotomic_extension.number_field` are lemmas, but they can be made local instances.
+Note that some results, `is_cyclotomic_extension.trans`, `is_cyclotomic_extension.finite`,
+`is_cyclotomic_extension.number_field` and `is_cyclotomic_extension.finite_dimensional` are lemmas,
+but they can be made local instances.
 
 -/
 

@@ -795,6 +795,7 @@ the corresponding vector in the original family or its negation. -/
 lemma orthonormal.orthonormal_of_forall_eq_or_eq_neg {v w : ι → E} (hv : orthonormal 𝕜 v)
   (hw : ∀ i, w i = v i ∨ w i = -(v i)) : orthonormal 𝕜 w :=
 begin
+  classical,
   rw orthonormal_iff_ite at *,
   intros i j,
   cases hw i with hi hi; cases hw j with hj hj; split_ifs with h;
@@ -1579,10 +1580,8 @@ def orthogonal_family (V : ι → submodule 𝕜 E) : Prop :=
 variables {𝕜} {V : ι → submodule 𝕜 E} (hV : orthogonal_family 𝕜 V)
   [dec_V : Π i (x : V i), decidable (x ≠ 0)]
 
-include hV
-
-include dec_ι
-lemma orthogonal_family.eq_ite  {i j : ι} (v : V i) (w : V j) :
+include hV dec_ι
+lemma orthogonal_family.eq_ite {i j : ι} (v : V i) (w : V j) :
   ⟪(v:E), w⟫ = ite (i = j) ⟪(v:E), w⟫ 0 :=
 begin
   split_ifs,

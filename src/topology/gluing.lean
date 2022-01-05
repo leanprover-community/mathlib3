@@ -5,6 +5,7 @@ Authors: Andrew Yang
 -/
 import topology.category.Top
 import category_theory.glue_data
+import data.sym.sym2
 
 /-!
 # Gluing Topological spaces
@@ -23,6 +24,11 @@ provided.
 * `category_theory.glue_data.ι`: The immersion `ι i : U i ⟶ glued` for each `i : ι`.
 * `Top.glue_data.rel`: A relation on `Σ i, D.U i` defined by `⟨i, x⟩ ~ ⟨j, y⟩` iff
     `⟨i, x⟩ = ⟨j, y⟩` or `t i j x = y`. See `Top.glue_data.ι_eq_iff_rel`.
+* `Top.glue_data.mk`: A constructor of `glue_data` whose conditions are stated in terms of
+  elements rather than subobjects and pullbacks.
+* `Top.glue_data.of_open_subsets`: Given a family of open sets, we may glue them into a new
+  topological space. This new space embeds into the original space, and is homeomorphic to it if
+  the given family is an open cover (`Top.glue_data.open_cover_glue_homeo`).
 
 ## Main results
 
@@ -50,17 +56,26 @@ namespace Top
 
 /--
 A family of gluing data consists of
-1. An index type `ι`
-2. An object `U i` for each `i : ι`.
-3. An object `V i j` for each `i j : ι`.
-4. A open embedding `f i j : V i j ⟶ U i` for each `i j : ι`.
+1. An index type `J`
+2. An object `U i` for each `i : J`.
+3. An object `V i j` for each `i j : J`.
+  (Note that this is `J × J → Top` rather than `J → J → Top` to connect to the
+  limits library easier.)
+4. An open embedding `f i j : V i j ⟶ U i` for each `i j : ι`.
 5. A transition map `t i j : V i j ⟶ V j i` for each `i j : ι`.
 such that
 6. `f i i` is an isomorphism.
 7. `t i i` is the identity.
 8. `V i j ×[U i] V i k ⟶ V i j ⟶ V j i` factors through `V j k ×[U j] V j i ⟶ V j i` via some
     `t' : V i j ×[U i] V i k ⟶ V j k ×[U j] V j i`.
+    (This merely means that `V i j ∩ V i k ⊆ t i j ⁻¹' (V j i ∩ V j k)`.)
 9. `t' i j k ≫ t' j k i ≫ t' k i j = 𝟙 _`.
+
+We can then glue the topological spaces `U i` together by identifying `V i j` with `V j i`, such
+that the `U i`'s are open subspaces of the glued space.
+
+Most of the times it would be easier to use the constructor `Top.glue_data.mk'` where the conditions
+are stated in a less categorical way.
 -/
 @[nolint has_inhabited_instance]
 structure glue_data extends glue_data Top :=
@@ -249,6 +264,181 @@ end
 lemma ι_open_embedding (i : D.J) : open_embedding (𝖣 .ι i) :=
 open_embedding_of_continuous_injective_open
   (𝖣 .ι i).continuous_to_fun (D.ι_injective i) (λ U h, D.open_image_open i ⟨U, h⟩)
+
+/--
+A family of gluing data consists of
+1. An index type `J`
+2. A bundled topological space `U i` for each `i : J`.
+3. An open set `V i j ⊆ U i` for each `i j : J`.
+4. A transition map `t i j : V i j ⟶ V j i` for each `i j : ι`.
+such that
+6. `V i i = U i`.
+7. `t i i` is the identity.
+8. For each `x ∈ V i j ∩ V i k`, `t i j x ∈ V j k`.
+9. `t j k (t i j x) = t i k x`.
+
+We can then glue the topological spaces `U i` together by identifying `V i j` with `V j i`.
+-/
+structure mk_core :=
+{J : Type u}
+(U : J → Top.{u})
+(V : Π i, J → opens (U i))
+(t : Π i j, (opens.to_Top _).obj (V i j) ⟶ (opens.to_Top _).obj (V j i))
+(V_id : ∀ i, V i i = ⊤)
+(t_id : ∀ i, ⇑(t i i) = id)
+(t_inter : ∀ ⦃i j⦄ k (x : V i j), ↑x ∈ V i k → @coe (V j i) (U j) _ (t i j x) ∈ V j k)
+(cocycle : ∀ i j k (x : V i j) (h : ↑x ∈ V i k),
+  @coe (V k j) (U k) _ (t j k ⟨↑(t i j x), t_inter k x h⟩) = @coe (V k i) (U k) _ (t i k ⟨x, h⟩))
+
+lemma mk_core.t_inv (h : mk_core) (i j : h.J) (x : h.V j i) : h.t i j ((h.t j i) x) = x :=
+begin
+  have := h.cocycle j i j x _,
+  rw h.t_id at this,
+  convert subtype.eq this,
+  { ext, refl },
+  all_goals { rw h.V_id, trivial }
+end
+
+instance (h : mk_core) (i j : h.J) : is_iso (h.t i j) :=
+by { use h.t j i, split; ext1, exacts [h.t_inv _ _ _, h.t_inv _ _ _] }
+
+/-- (Implementation) the restricted transition map to be fed into `glue_data`. -/
+def mk_core.t' (h : mk_core) (i j k : h.J) : pullback (h.V i j).inclusion (h.V i k).inclusion ⟶
+  pullback (h.V j k).inclusion (h.V j i).inclusion :=
+begin
+  refine (pullback_iso_prod_subtype _ _).hom ≫ ⟨_, _⟩ ≫ (pullback_iso_prod_subtype _ _).inv,
+  { intro x,
+    refine ⟨⟨⟨(h.t i j x.1.1).1, _⟩, h.t i j x.1.1⟩, rfl⟩,
+    rcases x with ⟨⟨⟨x, hx⟩, ⟨x', hx'⟩⟩, (rfl : x = x')⟩,
+    exact h.t_inter _ ⟨x, hx⟩ hx' },
+  continuity,
+end
+
+/-- This is a constructor of `Top.glue_data` whose arguments are in terms of elements and
+intersections rather than subobjects and pullbacks. Please refer to `Top.glue_data.mk_core` for
+details. -/
+def mk' (h : mk_core) : Top.glue_data :=
+{ J := h.J,
+  U := h.U,
+  V := λ i, (opens.to_Top _).obj (h.V i.1 i.2),
+  f := λ i j, (h.V i j).inclusion ,
+  f_id := λ i, (h.V_id i).symm ▸ is_iso.of_iso (opens.inclusion_top_iso (h.U i)),
+  f_open := λ (i j : h.J), (h.V i j).open_embedding,
+  t := h.t,
+  t_id := λ i, by { ext, rw h.t_id, refl },
+  t' := h.t',
+  t_fac := λ i j k,
+  begin
+    delta mk_core.t',
+    rw [category.assoc, category.assoc, pullback_iso_prod_subtype_inv_snd, ← iso.eq_inv_comp,
+      pullback_iso_prod_subtype_inv_fst_assoc],
+    ext ⟨⟨⟨x, hx⟩, ⟨x', hx'⟩⟩, (rfl : x = x')⟩,
+    refl,
+  end,
+  cocycle := λ i j k,
+  begin
+    delta mk_core.t',
+    simp_rw ← category.assoc,
+    rw iso.comp_inv_eq,
+    simp only [iso.inv_hom_id_assoc, category.assoc, category.id_comp],
+    rw [← iso.eq_inv_comp, iso.inv_hom_id],
+    ext1 ⟨⟨⟨x, hx⟩, ⟨x', hx'⟩⟩, (rfl : x = x')⟩,
+    simp only [Top.comp_app, continuous_map.coe_mk, prod.mk.inj_iff,
+      Top.id_app, subtype.mk_eq_mk, subtype.coe_mk],
+    rw [← subtype.coe_injective.eq_iff, subtype.val_eq_coe, subtype.coe_mk, and_self],
+    convert congr_arg coe (h.t_inv k i ⟨x, hx'⟩) using 3,
+    ext,
+    exact h.cocycle i j k ⟨x, hx⟩ hx',
+  end }
+.
+
+variables {α : Type u} [topological_space α] {J : Type u} (U : J → opens α)
+
+include U
+
+/-- We may construct a glue data from a family of open sets. -/
+@[simps to_glue_data_J to_glue_data_U to_glue_data_V to_glue_data_t to_glue_data_f]
+def of_open_subsets : Top.glue_data.{u} := mk'.{u u}
+{ J := J,
+  U := λ i, (opens.to_Top $ Top.of α).obj (U i),
+  V := λ i j, (opens.map $ opens.inclusion _).obj (U j),
+  t := λ i j, ⟨λ x, ⟨⟨x.1.1, x.2⟩, x.1.2⟩, by continuity⟩,
+  V_id := λ i, by { ext, cases U i, simp },
+  t_id := λ i, by { ext, refl },
+  t_inter := λ i j k x hx, hx,
+  cocycle := λ i j k x h, rfl }
+
+/--
+The canonical map from the glue of a family of open subsets `α` into `α`.
+This map is an open embedding (`from_open_subsets_glue_open_embedding`),
+and its range is `⋃ i, (U i : set α)` (`range_from_open_subsets_glue`).
+-/
+def from_open_subsets_glue : (of_open_subsets U).to_glue_data.glued ⟶ Top.of α :=
+multicoequalizer.desc _ _ (λ x, opens.inclusion _) (by { rintro ⟨i, j⟩, ext x, refl })
+
+@[simp, elementwise]
+lemma ι_from_open_subsets_glue (i : J) :
+  (of_open_subsets U).to_glue_data.ι i ≫ from_open_subsets_glue U = opens.inclusion _ :=
+multicoequalizer.π_desc _ _ _ _ _
+
+lemma from_open_subsets_glue_injective : function.injective (from_open_subsets_glue U) :=
+begin
+  intros x y e,
+  obtain ⟨i, ⟨x, hx⟩, rfl⟩ := (of_open_subsets U).ι_jointly_surjective x,
+  obtain ⟨j, ⟨y, hy⟩, rfl⟩ := (of_open_subsets U).ι_jointly_surjective y,
+  rw [ι_from_open_subsets_glue_apply, ι_from_open_subsets_glue_apply] at e,
+  change x = y at e,
+  subst e,
+  rw (of_open_subsets U).ι_eq_iff_rel,
+  right,
+  exact ⟨⟨⟨x, hx⟩, hy⟩, rfl, rfl⟩,
+end
+
+lemma from_open_subsets_glue_is_open_map : is_open_map (from_open_subsets_glue U) :=
+begin
+  intros s hs,
+  rw (of_open_subsets U).is_open_iff at hs,
+  rw is_open_iff_forall_mem_open,
+  rintros _ ⟨x, hx, rfl⟩,
+  obtain ⟨i, ⟨x, hx'⟩, rfl⟩ := (of_open_subsets U).ι_jointly_surjective x,
+  use from_open_subsets_glue U '' s ∩ set.range (@opens.inclusion (Top.of α) (U i)),
+  use set.inter_subset_left _ _,
+  split,
+  { erw ← set.image_preimage_eq_inter_range,
+    apply (@opens.open_embedding (Top.of α) (U i)).is_open_map,
+    convert hs i using 1,
+    rw [← ι_from_open_subsets_glue, coe_comp, set.preimage_comp],
+    congr' 1,
+    refine set.preimage_image_eq _ (from_open_subsets_glue_injective U) },
+  { refine ⟨set.mem_image_of_mem _ hx, _⟩,
+    rw ι_from_open_subsets_glue_apply,
+    exact set.mem_range_self _ },
+end
+
+lemma from_open_subsets_glue_open_embedding : open_embedding (from_open_subsets_glue U) :=
+open_embedding_of_continuous_injective_open (continuous_map.continuous_to_fun _)
+  (from_open_subsets_glue_injective U) (from_open_subsets_glue_is_open_map U)
+
+lemma range_from_open_subsets_glue : set.range (from_open_subsets_glue U) = ⋃ i, (U i : set α) :=
+begin
+  ext,
+  split,
+  { rintro ⟨x, rfl⟩,
+    obtain ⟨i, ⟨x, hx'⟩, rfl⟩ := (of_open_subsets U).ι_jointly_surjective x,
+    rw ι_from_open_subsets_glue_apply,
+    exact set.subset_Union _ i hx' },
+  { rintro ⟨_, ⟨i, rfl⟩, hx⟩,
+    refine ⟨(of_open_subsets U).to_glue_data.ι i ⟨x, hx⟩, ι_from_open_subsets_glue_apply _ _ _⟩ }
+end
+
+/-- The gluing of an open cover is homeomomorphic to the original space. -/
+def open_cover_glue_homeo (h : (⋃ i, (U i : set α)) = ⊤) :
+  (of_open_subsets U).to_glue_data.glued ≃ₜ α :=
+homeomorph.homeomorph_of_continuous_open
+  (equiv.of_bijective (from_open_subsets_glue U)
+    ⟨from_open_subsets_glue_injective U,
+      set.range_iff_surjective.mp ((range_from_open_subsets_glue U).symm ▸ h)⟩)
+  (from_open_subsets_glue U).2 (from_open_subsets_glue_is_open_map U)
 
 end glue_data
 

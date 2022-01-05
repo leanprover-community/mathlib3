@@ -239,7 +239,7 @@ variables [ring_hom_comp_triple σ₂₁ σ₁₃ σ₂₃] [ring_hom_comp_tripl
 
 include module_M₃
 
-lemma eq_comp_symm (f : M₂ →ₛₗ[σ₂₃] M₃) (g : M₁ →ₛₗ[σ₁₃] M₃) :
+lemma eq_comp_to_linear_map_symm (f : M₂ →ₛₗ[σ₂₃] M₃) (g : M₁ →ₛₗ[σ₁₃] M₃) :
   f = g.comp e₁₂.symm.to_linear_map ↔ f.comp e₁₂.to_linear_map = g :=
 begin
   split; intro H; ext,
@@ -247,7 +247,7 @@ begin
   simp [←H, ←e₁₂.to_equiv.eq_comp_symm f g],
 end
 
-lemma comp_symm_eq (f : M₂ →ₛₗ[σ₂₃] M₃) (g : M₁ →ₛₗ[σ₁₃] M₃) :
+lemma comp_to_linear_map_symm_eq (f : M₂ →ₛₗ[σ₂₃] M₃) (g : M₁ →ₛₗ[σ₁₃] M₃) :
   g.comp e₁₂.symm.to_linear_map = f ↔ g = f.comp e₁₂.to_linear_map :=
 begin
   split; intro H; ext,
@@ -255,7 +255,7 @@ begin
   simp [H, e₁₂.to_equiv.comp_symm_eq f g],
 end
 
-lemma eq_symm_comp (f : M₃ →ₛₗ[σ₃₁] M₁) (g : M₃ →ₛₗ[σ₃₂] M₂) :
+lemma eq_to_linear_map_symm_comp (f : M₃ →ₛₗ[σ₃₁] M₁) (g : M₃ →ₛₗ[σ₃₂] M₂) :
   f = e₁₂.symm.to_linear_map.comp g ↔ e₁₂.to_linear_map.comp f = g :=
 begin
   split; intro H; ext,
@@ -263,7 +263,7 @@ begin
   simp [←H, ←e₁₂.to_equiv.eq_symm_comp f g],
 end
 
-lemma symm_comp_eq (f : M₃ →ₛₗ[σ₃₁] M₁) (g : M₃ →ₛₗ[σ₃₂] M₂) :
+lemma to_linear_map_symm_comp_eq (f : M₃ →ₛₗ[σ₃₁] M₁) (g : M₃ →ₛₗ[σ₃₂] M₂) :
   e₁₂.symm.to_linear_map.comp g = f ↔ g = e₁₂.to_linear_map.comp f :=
 begin
   split; intro H; ext,

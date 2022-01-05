@@ -572,6 +572,9 @@ end⟩⟩
 @[simp] theorem mul_add_one (a b : ordinal) : a * (b + 1) = a * b + a :=
 by simp only [mul_add, mul_one]
 
+@[simp] theorem mul_one_add (a b : ordinal) : a * (1 + b) = a + a * b :=
+by simp only [mul_add, mul_one]
+
 @[simp] theorem mul_succ (a b : ordinal) : a * succ b = a * b + a := mul_add_one _ _
 
 theorem mul_le_mul_left {a b} (c : ordinal) : a ≤ b → c * a ≤ c * b :=

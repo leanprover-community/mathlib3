@@ -1676,6 +1676,9 @@ theorem omega_le {o : ordinal.{u}} : omega ≤ o ↔ ∀ n : ℕ, (n : ordinal) 
    let ⟨n, e⟩ := lt_omega.1 h in
    by rw [e, ← succ_le]; exact H (n+1)⟩
 
+theorem omega_eq_sup_nat : omega.{u} = sup (λ n : ℕ, n) :=
+le_antisymm (omega_le.2 (le_sup _)) (sup_le.2 (λ n, le_of_lt (nat_lt_omega n)))
+
 theorem nat_lt_limit {o} (h : is_limit o) : ∀ n : ℕ, (n : ordinal) < o
 | 0     := lt_of_le_of_ne (ordinal.zero_le o) h.1.symm
 | (n+1) := h.2 _ (nat_lt_limit n)
@@ -1989,10 +1992,7 @@ begin
 end
 
 theorem mul_omega_nfp_add_zero (a) : a * omega = nfp ((+) a) 0 :=
-begin
-  unfold nfp,
-  rw [mul_omega_eq_sup_mul_nat, funext (add_iterate a)]
-end
+by { unfold nfp, rw [mul_omega_eq_sup_mul_nat, funext (add_iterate a)] }
 
 theorem mul_omega_nfp_add_of_le_mul_omega {a b} (hba : b ≤ a * omega) :
   a * omega = nfp ((+) a) b :=
@@ -2002,9 +2002,6 @@ begin
     exact nfp_monotone (add_is_normal a).strict_mono.monotone (ordinal.zero_le b) },
   rw add_mul_omega
 end
-
-theorem mul_omega_nfp_add_self (a) : a * omega = nfp ((+) a) a :=
-mul_omega_nfp_add_of_le_mul_omega (le_mul_left a omega_pos)
 
 theorem add_fp_iff_mul_omega_le {a b : ordinal} : a + b = b ↔ a * omega.{u} ≤ b :=
 begin
@@ -2021,16 +2018,19 @@ end
 theorem add_le_iff_mul_omega_le {a b : ordinal} : a + b ≤ b ↔ a * omega.{u} ≤ b :=
 by { rw ←add_fp_iff_mul_omega_le, exact (add_is_normal a).self_le_iff_eq }
 
-theorem add_deriv_mul_omega_add (a b) : deriv ((+) a) b = a * omega + b :=
+theorem add_deriv_mul_omega_add (a b : ordinal.{u}) : deriv ((+) a) b = a * omega + b :=
 begin
-  rw ←eq_enum_ord,
-  use (deriv_is_normal _).strict_mono,
-  rw range_eq_iff,
-  refine ⟨λ b, le_trans (le_of_eq _)
-    ((deriv_is_normal _).strict_mono.monotone (ordinal.zero_le b)), λ b hb, _⟩,
-  { rw deriv_zero,
-    exact mul_omega_nfp_add_zero a },
-  rwa [←(add_is_normal a).fp_iff_deriv', add_fp_iff_mul_omega_le']
+  refine b.limit_rec_on _ (λ o h, _) (λ o ho h, _),
+  { rw [deriv_zero, add_zero],
+    exact (mul_omega_nfp_add_zero a).symm },
+  { rw [deriv_succ, h, add_succ],
+    apply nfp_eq_self,
+    rw add_fp_iff_mul_omega_le,
+    exact (le_trans (le_add_right _ _) (le_of_lt (lt_succ_self _))) },
+  { rw [←is_normal.bsup_eq.{u u} (add_is_normal _) ho,
+      ←is_normal.bsup_eq.{u u} (deriv_is_normal _) ho],
+    convert rfl,
+    exact funext (λ a, funext (λ hao, (h a hao).symm)) }
 end
 
 end ordinal

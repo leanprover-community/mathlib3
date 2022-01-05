@@ -1109,7 +1109,7 @@ lemma emetric.cauchy_seq_iff_le_tendsto_0 [nonempty β] [semilattice_sup β] {s 
       simp only [and_imp, set.mem_image, set.mem_set_of_eq, exists_imp_distrib, prod.exists],
       intros d p q hp hq hd,
       rw ← hd,
-      exact le_of_lt (hN p q (le_trans hn hp) (le_trans hn hq))
+      exact le_of_lt (hN p (le_trans hn hp) q (le_trans hn hq))
     end,
     simpa using lt_of_le_of_lt this δlt },
   -- Conclude
@@ -1122,7 +1122,7 @@ begin
   refine emetric.cauchy_seq_iff.2 (λε εpos, _),
   have : ∀ᶠ n in at_top, b n < ε := (tendsto_order.1 b_lim ).2 _ εpos,
   rcases filter.mem_at_top_sets.1 this with ⟨N, hN⟩,
-  exact ⟨N, λm n hm hn, calc
+  exact ⟨N, λ m hm n hn, calc
     edist (s m) (s n) ≤ b N : b_bound m n N hm hn
     ... < ε : (hN _ (le_refl N)) ⟩
 end⟩

@@ -167,7 +167,7 @@ end
 protected lemma is_extreme (hAB : is_exposed 𝕜 A B) :
   is_extreme 𝕜 A B :=
 begin
-  refine ⟨hAB.subset, λ x₁ x₂ hx₁A hx₂A x hxB hx, _⟩,
+  refine ⟨hAB.subset, λ x₁ hx₁A x₂ hx₂A x hxB hx, _⟩,
   obtain ⟨l, rfl⟩ := hAB ⟨x, hxB⟩,
   have hl : convex_on 𝕜 univ l := l.to_linear_map.convex_on convex_univ,
   have hlx₁ := hxB.2 x₁ hx₁A,

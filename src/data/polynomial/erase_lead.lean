@@ -196,8 +196,7 @@ begin
 end
 
 lemma map_nat_degree_eq_nat_degree {S F : Type*} [semiring S]
-  [add_monoid_hom_class F (polynomial R) (polynomial S)]
-   {φ : F} (p)
+  [add_monoid_hom_class F (polynomial R) (polynomial S)] {φ : F} (p)
   (φ_mon_nat : ∀ n c, c ≠ 0 → (φ (monomial n c)).nat_degree = n) :
   (φ p).nat_degree = p.nat_degree :=
 begin

@@ -715,7 +715,7 @@ of_normed_group f continuous_of_discrete_topology C H
 /-- Taking the pointwise norm of a bounded continuous function with values in a `normed_group`,
 yields a bounded continuous function with values in ℝ. -/
 def norm_comp : α →ᵇ ℝ :=
-of_normed_group (norm ∘ f) (by continuity) ∥f∥ (λ x, by simp only [f.norm_coe_le_norm, norm_norm])
+f.comp norm lipschitz_with_one_norm
 
 @[simp] lemma coe_norm_comp : (f.norm_comp : α → ℝ) = norm ∘ f := rfl
 
@@ -771,6 +771,11 @@ by { rw dist_eq_norm, exact (f - g).norm_coe_le_norm x }
 
 lemma coe_le_coe_add_dist {f g : α →ᵇ ℝ} : f x ≤ g x + dist f g :=
 sub_le_iff_le_add'.1 $ (abs_le.1 $ @dist_coe_le_dist _ _ _ _ f g x).2
+
+lemma norm_comp_continuous_le [topological_space γ] (f : α →ᵇ β) (g : C(γ, α)) :
+  ∥f.comp_continuous g∥ ≤ ∥f∥ :=
+((lipschitz_comp_continuous g).dist_le_mul f 0).trans $
+  by rw [nnreal.coe_one, one_mul, dist_zero_right]
 
 end normed_group
 
@@ -1020,6 +1025,15 @@ module over the algebra of bounded continuous functions from `α` to `𝕜`. -/
 
 end normed_algebra
 
+lemma nnreal.upper_bound {α : Type*} [topological_space α]
+  (f : α →ᵇ ℝ≥0) (x : α) : f x ≤ nndist f 0 :=
+begin
+  have key : nndist (f x) ((0 : α →ᵇ ℝ≥0) x) ≤ nndist f 0,
+  { exact @dist_coe_le_dist α ℝ≥0 _ _ f 0 x, },
+  simp only [coe_zero, pi.zero_apply] at key,
+  rwa nnreal.nndist_zero_eq_val' (f x) at key,
+end
+
 /-!
 ### Star structures
 
@@ -1066,9 +1080,9 @@ end normed_group
 section cstar_ring
 
 variables [topological_space α]
-variables [normed_ring β] [star_ring β] [normed_star_monoid β]
+variables [normed_ring β] [star_ring β]
 
-instance : star_ring (α →ᵇ β) :=
+instance [normed_star_monoid β] : star_ring (α →ᵇ β) :=
 { star_mul := λ f g, ext $ λ x, star_mul (f x) (g x),
   ..bounded_continuous_function.star_add_monoid }
 

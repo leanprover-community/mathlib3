@@ -217,7 +217,7 @@ variables (F)
 def Lp_meas_subgroup (m : measurable_space α) [measurable_space α] (p : ℝ≥0∞) (μ : measure α) :
   add_subgroup (Lp F p μ) :=
 { carrier   := {f : (Lp F p μ) | ae_measurable' m f μ} ,
-  zero_mem' := ⟨(0 : α → F), @measurable_zero _ α _ m _, Lp.coe_fn_zero _ _ _⟩,
+  zero_mem' := ⟨(0 : α → F), @measurable_zero _ α m _ _, Lp.coe_fn_zero _ _ _⟩,
   add_mem'  := λ f g hf hg, (hf.add hg).congr (Lp.coe_fn_add f g).symm,
   neg_mem' := λ f hf, ae_measurable'.congr hf.neg (Lp.coe_fn_neg f).symm, }
 
@@ -228,7 +228,7 @@ def Lp_meas [opens_measurable_space 𝕜] (m : measurable_space α) [measurable_
   (μ : measure α) :
   submodule 𝕜 (Lp F p μ) :=
 { carrier   := {f : (Lp F p μ) | ae_measurable' m f μ} ,
-  zero_mem' := ⟨(0 : α → F), @measurable_zero _ α _ m _, Lp.coe_fn_zero _ _ _⟩,
+  zero_mem' := ⟨(0 : α → F), @measurable_zero _ α m _ _, Lp.coe_fn_zero _ _ _⟩,
   add_mem'  := λ f g hf hg, (hf.add hg).congr (Lp.coe_fn_add f g).symm,
   smul_mem' := λ c f hf, (hf.const_smul c).congr (Lp.coe_fn_smul c f).symm, }
 variables {F 𝕜}
@@ -264,9 +264,7 @@ coe_fn_coe_base f
 lemma mem_Lp_meas_indicator_const_Lp {m m0 : measurable_space α} (hm : m ≤ m0)
   {μ : measure α} {s : set α} (hs : measurable_set[m] s) (hμs : μ s ≠ ∞) {c : F} :
   indicator_const_Lp p (hm s hs) hμs c ∈ Lp_meas F 𝕜 m p μ :=
-⟨s.indicator (λ x : α, c),
-  @measurable.indicator α _ m _ _ s (λ x, c) (@measurable_const _ α _ m _) hs,
-  indicator_const_Lp_coe_fn⟩
+⟨s.indicator (λ x : α, c), (@measurable_const _ α _ m _).indicator hs, indicator_const_Lp_coe_fn⟩
 
 section complete_subspace
 
@@ -1585,7 +1583,7 @@ begin
     exact ae_measurable'_condexp_L1_clm _, },
   { rw condexp_L1_undef hf,
     refine ae_measurable'.congr _ (coe_fn_zero _ _ _).symm,
-    exact measurable.ae_measurable' (@measurable_zero _ _ _ m _), },
+    exact measurable.ae_measurable' (@measurable_zero _ _ m _ _), },
 end
 
 lemma integrable_condexp_L1 (f : α → F') : integrable (condexp_L1 hm μ f) μ :=
@@ -1688,7 +1686,7 @@ begin
 end
 
 @[simp] lemma condexp_zero : μ[(0 : α → F')|m,hm] = 0 :=
-condexp_of_measurable (@measurable_zero _ _ _ m _) (integrable_zero _ _ _)
+condexp_of_measurable (@measurable_zero _ _ m _ _) (integrable_zero _ _ _)
 
 lemma measurable_condexp : measurable[m] (μ[f|m,hm]) :=
 begin
@@ -1705,6 +1703,8 @@ end
 lemma integrable_condexp : integrable (μ[f|m,hm]) μ :=
 (integrable_condexp_L1 f).congr (condexp_ae_eq_condexp_L1 f).symm
 
+variable (hm)
+
 /-- The integral of the conditional expectation `μ[f|hm]` over an `m`-measurable set is equal to
 the integral of `f` on that set. -/
 lemma set_integral_condexp (hf : integrable f μ) (hs : measurable_set[m] s) :
@@ -1714,11 +1714,13 @@ begin
   exact set_integral_condexp_L1 hf hs,
 end
 
+variable {hm}
+
 lemma integral_condexp (hf : integrable f μ) : ∫ x, μ[f|m,hm] x ∂μ = ∫ x, f x ∂μ :=
 begin
   suffices : ∫ x in set.univ, μ[f|m,hm] x ∂μ = ∫ x in set.univ, f x ∂μ,
     by { simp_rw integral_univ at this, exact this, },
-  exact set_integral_condexp hf (@measurable_set.univ _ m),
+  exact set_integral_condexp hm hf (@measurable_set.univ _ m),
 end
 
 /-- **Uniqueness of the conditional expectation**
@@ -1734,7 +1736,7 @@ begin
   refine ae_eq_of_forall_set_integral_eq_of_sigma_finite' hm hg_int_finite
     (λ s hs hμs, integrable_condexp.integrable_on) (λ s hs hμs, _) hgm
     (measurable.ae_measurable' measurable_condexp),
-  rw [hg_eq s hs hμs, set_integral_condexp hf hs],
+  rw [hg_eq s hs hμs, set_integral_condexp hm hf hs],
 end
 
 lemma condexp_add (hf : integrable f μ) (hg : integrable g μ) :
@@ -1777,9 +1779,9 @@ begin
     (λ s hs hμs, integrable_condexp.integrable_on) (λ s hs hμs, integrable_condexp.integrable_on)
     _ (measurable.ae_measurable' measurable_condexp) (measurable.ae_measurable' measurable_condexp),
   intros s hs hμs,
-  rw set_integral_condexp integrable_condexp hs,
+  rw set_integral_condexp _ integrable_condexp hs,
   by_cases hf : integrable f μ,
-  { rw [set_integral_condexp hf hs, set_integral_condexp hf (hm₁₂ s hs)], },
+  { rw [set_integral_condexp _ hf hs, set_integral_condexp _ hf (hm₁₂ s hs)], },
   { simp_rw integral_congr_ae (ae_restrict_of_ae (condexp_undef hf)), },
 end
 

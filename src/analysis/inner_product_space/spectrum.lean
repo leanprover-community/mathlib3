@@ -52,6 +52,7 @@ local attribute [instance] fact_one_le_two_real
 open_locale big_operators complex_conjugate
 open module.End
 
+namespace inner_product_space
 namespace is_self_adjoint
 
 variables {T : E →ₗ[𝕜] E} (hT : is_self_adjoint T)
@@ -240,3 +241,4 @@ end
 end version2
 
 end is_self_adjoint
+end inner_product_space

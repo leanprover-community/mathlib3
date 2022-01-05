@@ -136,15 +136,14 @@ namespace equiv_like
 variables {E F α β γ : Sort*} [iE : equiv_like E α β] [iF : equiv_like F β γ]
 include iE
 
-lemma coe_injective : function.injective (equiv_like.coe : E → (α → β)) :=
-λ e g h, coe_injective' e g h ((left_inv e).eq_right_inverse (h.symm ▸ right_inv g))
-
 lemma inv_injective : function.injective (equiv_like.inv : E → (β → α)) :=
 λ e g h, coe_injective' e g ((right_inv e).eq_right_inverse (h.symm ▸ left_inv g)) h
 
 @[priority 100]
 instance to_embedding_like : embedding_like E α β :=
-{ coe := coe, coe_injective' := coe_injective,
+{ coe := coe,
+  coe_injective' := λ e g h, coe_injective' e g h
+    ((left_inv e).eq_right_inverse (h.symm ▸ right_inv g)),
   injective' := λ e, (left_inv e).injective }
 
 lemma injective (e : E) : function.injective e := embedding_like.injective e

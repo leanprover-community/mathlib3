@@ -95,14 +95,12 @@ lemma eq_of_mem_slice (h₁ : A ∈ 𝒜 # r₁) (h₂ : A ∈ 𝒜 # r₂) : r�
 lemma ne_of_mem_slice (h₁ : A₁ ∈ 𝒜 # r₁) (h₂ : A₂ ∈ 𝒜 # r₂) : r₁ ≠ r₂ → A₁ ≠ A₂ :=
 mt $ λ h, (sized_slice h₁).symm.trans ((congr_arg card h).trans (sized_slice h₂))
 
-variables [decidable_eq α]
-
-lemma pairwise_disjoint_slice : (set.univ : set ℕ).pairwise_disjoint (slice 𝒜) :=
+lemma pairwise_disjoint_slice [decidable_eq α] : (set.univ : set ℕ).pairwise_disjoint (slice 𝒜) :=
 λ m _ n _ hmn, disjoint_filter.2 $ λ s hs hm hn, hmn $ hm.symm.trans hn
 
 variables [fintype α]
 
-@[simp] lemma bUnion_slice (𝒜 : finset (finset α)) :
+@[simp] lemma bUnion_slice [decidable_eq α] (𝒜 : finset (finset α)) :
   (range $ fintype.card α + 1).bUnion 𝒜.slice = 𝒜 :=
 subset.antisymm (bUnion_subset.2 $ λ r _, slice_subset) $ λ s hs,
   mem_bUnion.2 ⟨s.card, mem_range.2 $ lt_succ_iff.2 $ s.card_le_univ, mem_slice.2 $ ⟨hs, rfl⟩⟩
@@ -110,7 +108,7 @@ subset.antisymm (bUnion_subset.2 $ λ r _, slice_subset) $ λ s hs,
 @[simp] lemma sum_card_slice (𝒜 : finset (finset α)) :
   ∑ r in range (fintype.card α + 1), (𝒜 # r).card = 𝒜.card :=
 by { rw [←card_bUnion (finset.pairwise_disjoint_slice.subset (set.subset_univ _)), bUnion_slice],
-  apply_instance }
+  exact classical.dec_eq _ }
 
 end slice
 end finset

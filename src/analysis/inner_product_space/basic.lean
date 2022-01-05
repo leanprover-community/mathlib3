@@ -814,6 +814,18 @@ begin
   simp [hv.inner_left_finsupp, hl i hi],
 end
 
+/-- Given an orthonormal family, a second family of vectors is orthonormal if every vector equals
+the corresponding vector in the original family or its negation. -/
+lemma orthonormal.orthonormal_of_forall_eq_or_eq_neg {v w : ι → E} (hv : orthonormal 𝕜 v)
+  (hw : ∀ i, w i = v i ∨ w i = -(v i)) : orthonormal 𝕜 w :=
+begin
+  classical,
+  rw orthonormal_iff_ite at *,
+  intros i j,
+  cases hw i with hi hi; cases hw j with hj hj; split_ifs with h;
+    simpa [hi, hj, h] using hv i j
+end
+
 /- The material that follows, culminating in the existence of a maximal orthonormal subset, is
 adapted from the corresponding development of the theory of linearly independents sets.  See
 `exists_linear_independent` in particular. -/
@@ -1604,11 +1616,9 @@ lemma orthonormal.orthogonal_family {v : ι → E} (hv : orthonormal 𝕜 v) :
 variables {𝕜} {G : ι → Type*} [Π i, inner_product_space 𝕜 (G i)] {V : Π i, G i →ₗᵢ[𝕜] E}
   (hV : orthogonal_family 𝕜 V) [dec_V : Π i (x : G i), decidable (x ≠ 0)]
 
-include hV
-
-include dec_ι
-lemma orthogonal_family.eq_ite {i j : ι} (v : G i) (w : G j) :
-  ⟪V i v, V j w⟫ = ite (i = j) ⟪V i v, V j w⟫ 0 :=
+include hV dec_ι
+lemma orthogonal_family.eq_ite {i j : ι} (v : V i) (w : V j) :
+  ⟪(v:E), w⟫ = ite (i = j) ⟪(v:E), w⟫ 0 :=
 begin
   split_ifs,
   { refl },

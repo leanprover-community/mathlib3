@@ -21,7 +21,9 @@ variables {α : Type u} {β : Type v} {r : α → α → Prop} {s : β → β �
 
 open function
 
-/-- A version of `antisymm` with `r` explicit. -/
+/-- A version of `antisymm` with `r` explicit.
+
+This lemma matches the lemmas from lean core in `init.algebra.classes`, but is missing there.  -/
 @[elab_simple]
 lemma antisymm_of (r : α → α → Prop) [is_antisymm α r] {a b : α} : r a b → r b a → a = b := antisymm
 

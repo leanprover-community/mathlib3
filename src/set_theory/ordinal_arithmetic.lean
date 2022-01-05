@@ -408,6 +408,9 @@ theorem is_normal.is_limit {f} (H : is_normal f) {o} (l : is_limit o) :
 λ a h, let ⟨b, h₁, h₂⟩ := (H.limit_lt l).1 h in
   lt_of_le_of_lt (succ_le.2 h₂) (H.lt_iff.2 h₁)⟩
 
+theorem is_normal.self_le_iff_eq {f} (H : is_normal f) {a} : f a ≤ a ↔ f a = a :=
+⟨λ h, le_antisymm h (H.le_self a), le_of_eq⟩
+
 theorem add_le_of_limit {a b c : ordinal.{u}}
   (h : is_limit b) : a + b ≤ c ↔ ∀ b' < b, a + b' ≤ c :=
 ⟨λ h b' l, le_trans (add_le_add_left (le_of_lt l) _) h,
@@ -1752,7 +1755,7 @@ begin
   simp only [bsup_le, IH] {contextual:=tt}
 end
 
-theorem is_normal.fp_iff_deriv' {f} (H : is_normal f) {a} : f a ≤ a ↔ ∃ o, deriv f o = a :=
+theorem is_normal.le_iff_deriv {f} (H : is_normal f) {a} : f a ≤ a ↔ ∃ o, deriv f o = a :=
 ⟨λ ha, begin
   suffices : ∀ o (_:a ≤ deriv f o), ∃ o, deriv f o = a,
   from this a ((deriv_is_normal _).le_self _),
@@ -1773,7 +1776,7 @@ theorem is_normal.fp_iff_deriv' {f} (H : is_normal f) {a} : f a ≤ a ↔ ∃ o,
 end, λ ⟨o, e⟩, e ▸ le_of_eq (H.deriv_fp _)⟩
 
 theorem is_normal.fp_iff_deriv {f} (H : is_normal f) {a} : f a = a ↔ ∃ o, deriv f o = a :=
-by rw [←H.fp_iff_deriv', H.self_le_iff_eq]
+by rw [←H.le_iff_deriv, H.self_le_iff_eq]
 
 /-! ### Fixed points of addition -/
 
@@ -1801,7 +1804,7 @@ begin
 end
 
 theorem mul_omega_nfp_add_self (a) : a * omega = nfp ((+) a) a :=
-mul_omega_nfp_add_of_le_mul_omega (le_mul_left omega_pos)
+mul_omega_nfp_add_of_le_mul_omega (le_mul_left a omega_pos)
 
 theorem add_fp_iff_mul_omega_le {a b : ordinal} : a + b = b ↔ a * omega.{u} ≤ b :=
 begin

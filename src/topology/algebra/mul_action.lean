@@ -23,9 +23,9 @@ In this file we define class `has_continuous_smul`. We say `has_continuous_smul 
   is a nonzero element of `G₀`, then scalar multiplication by `c` is a homeomorphism of `α`;
 * `homeomorph.smul`: scalar multiplication by an element of a group `G` acting on `α`
   is a homeomorphism of `α`.
-* `units.has_continuous_smul`: scalar multiplication by `units M` is continuous when scalar
+* `units.has_continuous_smul`: scalar multiplication by `Mˣ` is continuous when scalar
   multiplication by `M` is continuous. This allows `homeomorph.smul` to be used with on monoids
-  with `G = units M`.
+  with `G = Mˣ`.
 
 ## Main results
 
@@ -136,9 +136,9 @@ section monoid
 
 variables [monoid M] [mul_action M α] [has_continuous_smul M α]
 
-instance units.has_continuous_smul : has_continuous_smul (units M) α :=
+instance units.has_continuous_smul : has_continuous_smul Mˣ α :=
 { continuous_smul :=
-    show continuous ((λ p : M × α, p.fst • p.snd) ∘ (λ p : units M × α, (p.1, p.2))),
+    show continuous ((λ p : M × α, p.fst • p.snd) ∘ (λ p : Mˣ × α, (p.1, p.2))),
     from continuous_smul.comp ((units.continuous_coe.comp continuous_fst).prod_mk continuous_snd) }
 
 @[to_additive]

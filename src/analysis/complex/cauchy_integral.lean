@@ -340,10 +340,9 @@ begin
   ... = 0 : by rw [sub_self, zero_smul, smul_zero]
 end
 
-/-- **Cauchy integral formula**: if `f : ℂ → E` is complex differentiable on a closed disc of radius
-`R`, then for any `w` in the corresponding open disc we have
-$\oint_{|z-c|=R}(z-w)^{-1}f(z)\,dz=2\pi i\,f(w)$.
--/
+/-- An auxiliary lemma for
+`complex.circle_integral_sub_inv_smul_of_differentiable_on_off_countable`. This lemma assumes
+`w ∉ s` while the main lemma drops this assumption. -/
 lemma circle_integral_sub_inv_smul_of_differentiable_on_off_countable_aux {R : ℝ} {c w : ℂ}
   {f : ℂ → E} {s : set ℂ} (hs : countable s) (hw : w ∈ ball c R \ s)
   (hc : continuous_on f (closed_ball c R)) (hd : ∀ x ∈ ball c R \ s, differentiable_at ℂ f x) :
@@ -380,6 +379,10 @@ begin
     (hc'.smul continuous_on_const).circle_integrable hR.le]
 end
 
+/-- **Cauchy integral formula**: if `f : ℂ → E` is complex differentiable on a closed disc of radius
+`R`, then for any `w` in the corresponding open disc we have
+$\frac{1}{2πi}\oint_{|z-c|=R}(z-w)^{-1}f(z)\,dz=f(w)$.
+-/
 lemma two_pi_I_inv_smul_circle_integral_sub_inv_smul_of_differentiable_on_off_countable
   {R : ℝ} {c w : ℂ} {f : ℂ → E} {s : set ℂ} (hs : countable s) (hw : w ∈ ball c R)
   (hc : continuous_on f (closed_ball c R)) (hd : ∀ x ∈ ball c R \ s, differentiable_at ℂ f x) :
@@ -415,6 +418,10 @@ begin
   exact ⟨g x, (hlu_sub hx.1).1, (hlu_sub hx.1).2, hx.2⟩
 end
 
+/-- **Cauchy integral formula**: if `f : ℂ → E` is complex differentiable on a closed disc of radius
+`R`, then for any `w` in the corresponding open disc we have
+$\oint_{|z-c|=R}(z-w)^{-1}f(z)\,dz=2\pi i\,f(w)$.
+-/
 lemma circle_integral_sub_inv_smul_of_differentiable_on_off_countable
   {R : ℝ} {c w : ℂ} {f : ℂ → E} {s : set ℂ} (hs : countable s) (hw : w ∈ ball c R)
   (hc : continuous_on f (closed_ball c R)) (hd : ∀ x ∈ ball c R \ s, differentiable_at ℂ f x) :

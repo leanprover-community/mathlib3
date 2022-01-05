@@ -1233,6 +1233,22 @@ calc summable (λ x, |f x|) ↔
 
 alias summable_abs_iff ↔ summable.of_abs summable.abs
 
+lemma finite_of_summable_const [linear_ordered_add_comm_group β] [archimedean β]
+  [topological_space β] [order_closed_topology β] {b : β} (hb : 0 < b)
+  (hf : summable (λ a : α, b)) :
+  set.finite (set.univ : set α) :=
+begin
+  have H : ∀ s : finset α, s.card • b ≤ ∑' a : α, b,
+  { intros s,
+    simpa using sum_le_has_sum s (λ a ha, hb.le) hf.has_sum },
+  obtain ⟨n, hn⟩ := archimedean.arch (∑' a : α, b) hb,
+  have : ∀ s : finset α, s.card ≤ n,
+  { intros s,
+    simpa [nsmul_le_nsmul_iff hb] using (H s).trans hn },
+  haveI : fintype α := fintype_of_finset_card_le n this,
+  exact set.finite_univ
+end
+
 end linear_order
 
 section cauchy_seq

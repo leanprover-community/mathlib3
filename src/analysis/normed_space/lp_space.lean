@@ -92,23 +92,6 @@ begin
   rw [if_neg hp.1.ne', if_neg hp.2.ne],
 end
 
--- move this
-lemma finite_of_summable_const {α : Type*} {β : Type*} [linear_ordered_add_comm_monoid α]
-  [archimedean α] [topological_space α] [order_closed_topology α] {a : α} (ha : 0 < a)
-  (hf : summable (λ b : β, a)) :
-  set.finite (set.univ : set β) :=
-begin
-  have H : ∀ s : finset β, s.card • a ≤ ∑' b : β, a,
-  { intros s,
-    simpa using sum_le_has_sum s (λ b hb, ha.le) hf.has_sum },
-  obtain ⟨n, hn⟩ := archimedean.arch (∑' b : β, a) ha,
-  have : ∀ s : finset β, s.card ≤ n,
-  { intros s,
-    have := (H s).trans hn,
-    sorry },
-  sorry
-end
-
 lemma mem_ℓp_gen {f : Π i, E i} (hf : summable (λ i, ∥f i∥ ^ p.to_real)) :
   mem_ℓp f p :=
 begin

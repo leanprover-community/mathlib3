@@ -416,7 +416,8 @@ variables [topological_space R] [has_continuous_smul R A] [has_continuous_smul R
 instance continuous_map.algebra : algebra R C(α, A) :=
 { to_ring_hom := continuous_map.C,
   commutes' := λ c f, by ext x; exact algebra.commutes' _ _,
-  smul_def' := λ c f, by ext x; exact algebra.smul_def' _ _, }
+  smul_def' := λ c f, by ext x; exact algebra.smul_def' _ _,
+  op_smul_def' := λ c f, by ext x; exact algebra.op_smul_def' _ _, }
 
 variables (R)
 

@@ -979,6 +979,7 @@ instance : algebra 𝕜 (α →ᵇ γ) :=
 { to_ring_hom := C,
   commutes' := λ c f, ext $ λ x, algebra.commutes' _ _,
   smul_def' := λ c f, ext $ λ x, algebra.smul_def' _ _,
+  op_smul_def' := λ c f, ext $ λ x, algebra.op_smul_def' _ _,
   ..bounded_continuous_function.module,
   ..bounded_continuous_function.ring }
 

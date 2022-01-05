@@ -35,6 +35,8 @@ that index type is a `fintype` and there exists a basis of the same cardinality.
 
 noncomputable theory
 
+open_locale big_operators
+
 section ordered_comm_semiring
 
 variables (R : Type*) [ordered_comm_semiring R]
@@ -383,9 +385,18 @@ begin
       basis.det_self, mul_one, smul_eq_mul, mul_comm, mul_smul, linear_equiv.coe_inv_det],
 end
 
-end basis
+/-- The orientation given by a basis derived using `units_smul`, in terms of the product of those
+units. -/
+lemma orientation_units_smul [nontrivial R] (e : basis ι R M) (w : ι → units R) :
+  (e.units_smul w).orientation = (∏ i, w i)⁻¹ • e.orientation :=
+begin
+  rw [basis.orientation, basis.orientation, smul_ray_of_ne_zero, ray_eq_iff,
+      e.det.eq_smul_basis_det (e.units_smul w), det_units_smul, units.smul_def, smul_smul],
+  norm_cast,
+  simp
+end
 
-variables {R} {ι : Type*} [fintype ι] [decidable_eq ι]
+end basis
 
 end ordered_comm_ring
 
@@ -530,6 +541,46 @@ lemma orientation_comp_linear_equiv_eq_neg_iff_det_neg (e : basis ι R M) (f : M
 by rw [orientation_map, e.map_orientation_eq_det_inv_smul, units_inv_smul, units_smul_eq_neg_iff,
   linear_equiv.coe_det]
 
+/-- Negating a single basis vector (represented using `units_smul`) negates the corresponding
+orientation. -/
+@[simp] lemma orientation_neg_single [nontrivial R] (e : basis ι R M) (i : ι) :
+  (e.units_smul (function.update 1 i (-1))).orientation = -e.orientation :=
+begin
+  rw [orientation_units_smul, finset.prod_update_of_mem (finset.mem_univ _)],
+  simp
+end
+
+/-- Given a basis and an orientation, return a basis giving that orientation: either the original
+basis, or one constructed by negating a single (arbitrary) basis vector. -/
+def adjust_to_orientation [nontrivial R] [nonempty ι] (e : basis ι R M) (x : orientation R M ι) :
+  basis ι R M :=
+by haveI := classical.dec_eq (orientation R M ι); exact if e.orientation = x then e else
+  (e.units_smul (function.update 1 (classical.arbitrary ι) (-1)))
+
+/-- `adjust_to_orientation` gives a basis with the required orientation. -/
+@[simp] lemma orientation_adjust_to_orientation [nontrivial R] [nonempty ι] (e : basis ι R M)
+  (x : orientation R M ι) : (e.adjust_to_orientation x).orientation = x :=
+begin
+  rw adjust_to_orientation,
+  split_ifs with h,
+  { exact h },
+  { rw [orientation_neg_single, eq_comm, ←orientation_ne_iff_eq_neg, ne_comm],
+    exact h }
+end
+
+/-- Every basis vector from `adjust_to_orientation` is either that from the original basis or its
+negation. -/
+lemma adjust_to_orientation_apply_eq_or_eq_neg [nontrivial R] [nonempty ι] (e : basis ι R M)
+  (x : orientation R M ι) (i : ι) :
+  e.adjust_to_orientation x i = e i ∨ e.adjust_to_orientation x i = -(e i) :=
+begin
+  rw adjust_to_orientation,
+  split_ifs with h,
+  { simp },
+  { by_cases hi : i = classical.arbitrary ι;
+      simp [units_smul_apply, hi] }
+end
+
 end basis
 
 end linear_ordered_comm_ring
@@ -611,6 +662,17 @@ lemma map_eq_neg_iff_det_neg (x : orientation R M ι) (f : M ≃ₗ[R] M)
   (h : fintype.card ι = finrank R M) :
   orientation.map ι f x = -x ↔ (f : M →ₗ[R] M).det < 0 :=
 by rw [map_eq_det_inv_smul _ _ h, units_inv_smul, units_smul_eq_neg_iff, linear_equiv.coe_det]
+
+/-- If the index type has cardinality equal to the finite dimension, a basis with the given
+orientation. -/
+def some_basis [nonempty ι] (x : orientation R M ι) (h : fintype.card ι = finrank R M) :
+  basis ι R M :=
+((fin_basis R M).reindex (fintype.equiv_fin_of_card_eq h).symm).adjust_to_orientation x
+
+/-- `some_basis` gives a basis with the required orientation. -/
+@[simp] lemma some_basis_orientation [nonempty ι] (x : orientation R M ι)
+  (h : fintype.card ι = finrank R M) : (x.some_basis h).orientation = x :=
+basis.orientation_adjust_to_orientation _ _
 
 end orientation
 

@@ -223,6 +223,20 @@ lemma to_span_singleton_smul (c : 𝕜) (x : E) :
   to_span_singleton 𝕜 (c • x) = c • to_span_singleton 𝕜 x :=
 to_span_singleton_smul' 𝕜 𝕜 c x
 
+variables (𝕜 E)
+def _root_.linear_isometry.to_span_singleton {v : E} (hv : ∥v∥ = 1) : 𝕜 →ₗᵢ[𝕜] E :=
+{ norm_map' := λ x, by simp [norm_smul, hv],
+  .. linear_map.to_span_singleton 𝕜 E v }
+variables {𝕜 E}
+
+@[simp] lemma _root_.linear_isometry.to_span_singleton_apply {v : E} (hv : ∥v∥ = 1) (a : 𝕜) :
+  linear_isometry.to_span_singleton 𝕜 E hv a = a • v :=
+rfl
+
+@[simp] lemma _root_.linear_isometry.coe_to_span_singleton {v : E} (hv : ∥v∥ = 1) :
+  (linear_isometry.to_span_singleton 𝕜 E hv).to_linear_map = linear_map.to_span_singleton 𝕜 E v :=
+rfl
+
 end
 
 section op_norm

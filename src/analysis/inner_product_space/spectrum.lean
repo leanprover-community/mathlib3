@@ -78,7 +78,7 @@ end
 
 /-- The eigenspaces of a self-adjoint operator are mutually orthogonal. -/
 lemma orthogonal_family_eigenspaces :
-  @orthogonal_family 𝕜 _ _ _ _ (λ μ, eigenspace T μ) _ (λ μ, (eigenspace T μ).subtype_li) :=
+  @orthogonal_family 𝕜 _ _ _ _ (λ μ, eigenspace T μ) _ (λ μ, (eigenspace T μ).subtypeₗᵢ) :=
 begin
   rintros μ ν hμν ⟨v, hv⟩ ⟨w, hw⟩,
   by_cases hv' : v = 0,
@@ -91,7 +91,7 @@ end
 
 lemma orthogonal_family_eigenspaces' :
   @orthogonal_family 𝕜 _ _ _ _ (λ μ : eigenvalues T, eigenspace T μ) _
-    (λ μ, (eigenspace T μ).subtype_li) :=
+    (λ μ, (eigenspace T μ).subtypeₗᵢ) :=
 hT.orthogonal_family_eigenspaces.comp subtype.coe_injective
 
 /-- The mutual orthogonal complement of the eigenspaces of a self-adjoint operator on an inner

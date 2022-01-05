@@ -15,6 +15,18 @@ An oplax functor `F` between bicategories `B` and `C` consists of
 * a family of 2-morphisms `F.map_id a : F.map (𝟙 a) ⟶ 𝟙 (F.obj a)`,
 * a family of 2-morphisms `F.map_comp f g : F.map (f ≫ g) ⟶ F.map f ≫ F.map g`, and
 * certain consistency conditions on them.
+
+We define the composition of oplax functors.
+
+## Future work
+
+There are two types of functors between bicategories, called lax and oplax functors, depending on
+the directions of `map_id` and `map_comp`. We may need both in mathlib in the future, but for
+now we only define oplax functors.
+
+In addition, if we require `map_id` and `map_comp` to be isomorphisms, we obtain the definition
+of pseudofunctors. There are several possible design choices to implement pseudofunctors,
+but this is left to future development.
 -/
 
 set_option old_structure_cmd true
@@ -82,12 +94,12 @@ end prepseudofunctor
 section
 
 /--
-This auxiliary definition claims that pseudofunctors preserve the associators
+This auxiliary definition states that oplax functors preserve the associators
 modulo some adjustments of domains and codomains of 2-morphisms.
 -/
 /-
-The reason for using this auxiliary definition instead of writing it directly in the definition
-of pseudofunctors is that doing so will cause a timeout.
+We use this auxiliary definition instead of writing it directly in the definition
+of oplax functors because doing so will cause a timeout.
 -/
 @[simp]
 def oplax_functor.map₂_associator_aux
@@ -112,7 +124,7 @@ They also preserve the associator, the left unitor, and the right unitor modulo 
 of domains and codomains of 2-morphisms.
 -/
 structure oplax_functor (B : Type u₁) [bicategory.{w₁ v₁} B] (C : Type u₂) [bicategory.{w₂ v₂} C]
-  extends prepseudofunctor B C : Type (max w₁ w₂ v₁ v₂ u₁ u₂) :=
+  extends prelax_functor B C : Type (max w₁ w₂ v₁ v₂ u₁ u₂) :=
 (map_id (a : B) : map (𝟙 a) ⟶ 𝟙 (obj a))
 (map_comp {a b c : B} (f : a ⟶ b) (g : b ⟶ c) : map (f ≫ g) ⟶ map f ≫ map g)
 (map_comp_naturality_left' : ∀ {a b c : B} {f f' : a ⟶ b} (η : f ⟶ f') (g : b ⟶ c),
@@ -164,9 +176,9 @@ def map_functor (a b : B) : (a ⟶ b) ⥤ (F.obj a ⟶ F.obj b) :=
 /-- The prepseudofunctor between the underlying quivers. -/
 add_decl_doc oplax_functor.to_prepseudofunctor
 
-@[simp] lemma to_prepseudofunctor_map₂ : F.to_prepseudofunctor.map₂ = F.map₂ := rfl
-@[simp] lemma to_prepseudofunctor_map : F.to_prepseudofunctor.map = F.map := rfl
 @[simp] lemma to_prepseudofunctor_obj : F.to_prepseudofunctor.obj = F.obj := rfl
+@[simp] lemma to_prepseudofunctor_map : F.to_prepseudofunctor.map = F.map := rfl
+@[simp] lemma to_prepseudofunctor_map₂ : F.to_prepseudofunctor.map₂ = F.map₂ := rfl
 
 end
 
@@ -191,7 +203,7 @@ variables
 {D : Type u₃} [bicategory.{w₃ v₃} D]
 (F : oplax_functor B C) (G : oplax_functor C D)
 
-/-- Composition of oplax functor. -/
+/-- Composition of oplax functors. -/
 @[simps]
 def comp : oplax_functor B D :=
 { map_id := λ a,

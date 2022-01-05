@@ -279,6 +279,7 @@ such that
 
 We can then glue the topological spaces `U i` together by identifying `V i j` with `V j i`.
 -/
+@[nolint has_inhabited_instance]
 structure mk_core :=
 {J : Type u}
 (U : J → Top.{u})
@@ -299,11 +300,11 @@ begin
   all_goals { rw h.V_id, trivial }
 end
 
-instance (h : mk_core) (i j : h.J) : is_iso (h.t i j) :=
+instance (h : mk_core.{u}) (i j : h.J) : is_iso (h.t i j) :=
 by { use h.t j i, split; ext1, exacts [h.t_inv _ _ _, h.t_inv _ _ _] }
 
 /-- (Implementation) the restricted transition map to be fed into `glue_data`. -/
-def mk_core.t' (h : mk_core) (i j k : h.J) : pullback (h.V i j).inclusion (h.V i k).inclusion ⟶
+def mk_core.t' (h : mk_core.{u}) (i j k : h.J) : pullback (h.V i j).inclusion (h.V i k).inclusion ⟶
   pullback (h.V j k).inclusion (h.V j i).inclusion :=
 begin
   refine (pullback_iso_prod_subtype _ _).hom ≫ ⟨_, _⟩ ≫ (pullback_iso_prod_subtype _ _).inv,
@@ -317,7 +318,7 @@ end
 /-- This is a constructor of `Top.glue_data` whose arguments are in terms of elements and
 intersections rather than subobjects and pullbacks. Please refer to `Top.glue_data.mk_core` for
 details. -/
-def mk' (h : mk_core) : Top.glue_data :=
+def mk' (h : mk_core.{u}) : Top.glue_data :=
 { J := h.J,
   U := h.U,
   V := λ i, (opens.to_Top _).obj (h.V i.1 i.2),
@@ -358,7 +359,7 @@ include U
 
 /-- We may construct a glue data from a family of open sets. -/
 @[simps to_glue_data_J to_glue_data_U to_glue_data_V to_glue_data_t to_glue_data_f]
-def of_open_subsets : Top.glue_data.{u} := mk'.{u u}
+def of_open_subsets : Top.glue_data.{u} := mk'.{u}
 { J := J,
   U := λ i, (opens.to_Top $ Top.of α).obj (U i),
   V := λ i j, (opens.map $ opens.inclusion _).obj (U j),
@@ -432,7 +433,7 @@ begin
 end
 
 /-- The gluing of an open cover is homeomomorphic to the original space. -/
-def open_cover_glue_homeo (h : (⋃ i, (U i : set α)) = ⊤) :
+def open_cover_glue_homeo (h : (⋃ i, (U i : set α)) = set.univ) :
   (of_open_subsets U).to_glue_data.glued ≃ₜ α :=
 homeomorph.homeomorph_of_continuous_open
   (equiv.of_bijective (from_open_subsets_glue U)

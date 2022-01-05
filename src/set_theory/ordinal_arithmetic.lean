@@ -1681,6 +1681,9 @@ le_sup _ n
 theorem le_nfp_self (f a) : a ≤ nfp f a :=
 iterate_le_nfp f a 0
 
+theorem nfp_le_iff_iterate_le {f a b} : nfp f a ≤ b ↔ ∀ n, f^[n] a ≤ b :=
+sup_le
+
 theorem is_normal.lt_nfp {f} (H : is_normal f) {a b} :
   f b < nfp f a ↔ b < nfp f a :=
 lt_sup.trans $ iff.trans
@@ -1726,6 +1729,9 @@ theorem is_normal.le_nfp {f} (H : is_normal f) {a b} :
 
 theorem nfp_eq_self {f : ordinal → ordinal} {a} (h : f a = a) : nfp f a = a :=
 le_antisymm (sup_le.mpr $ λ i, by rw [iterate_fixed h]) (le_nfp_self f a)
+
+theorem nfp_monotone {f : ordinal → ordinal} (hf : monotone f) : monotone (nfp f) :=
+λ a b h, nfp_le_iff_iterate_le.2 (λ n, (hf.iterate n h).trans (le_sup _ n))
 
 /-- The derivative of a normal function `f` is
   the sequence of fixed points of `f`. -/

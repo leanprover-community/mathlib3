@@ -118,10 +118,10 @@ instead of linearly increasing the work per `my_iso`-related declaration.
 -/
 
 /-- The class `equiv_like E α β` expresses that terms of type `E` have an
-injective coercion to functions from `α` to `β`.
+injective coercion to bijections between `α` and `β`.
 
 This typeclass is used in the definition of the homomorphism typeclasses,
-such as `zero_hom_class`, `mul_hom_class`, `monoid_hom_class`, ....
+such as `zero_equiv_class`, `mul_equiv_class`, `monoid_equiv_class`, ....
 -/
 class equiv_like (E : Sort*) (α β : out_param Sort*) :=
 (coe : E → α → β)
@@ -129,7 +129,7 @@ class equiv_like (E : Sort*) (α β : out_param Sort*) :=
 (left_inv  : ∀ e, function.left_inverse (inv e) (coe e))
 (right_inv : ∀ e, function.right_inverse (inv e) (coe e))
 -- The `inv` hypothesis makes this easier to prove with `congr'`
-(coe_injective' : ∀ e g, coe e = coe g → inv e = inv g → e = g) 
+(coe_injective' : ∀ e g, coe e = coe g → inv e = inv g → e = g)
 
 namespace equiv_like
 

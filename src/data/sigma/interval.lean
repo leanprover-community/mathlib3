@@ -56,20 +56,16 @@ instance : locally_finite_order (Σ i, α i) :=
 section
 variables (a b : Σ i, α i)
 
-@[simp] lemma card_Icc :
-  (Icc a b).card = dite (a.1 = b.1) (λ h, (Icc (h.rec a.2) b.2).card) (λ _, 0) :=
+lemma card_Icc : (Icc a b).card = dite (a.1 = b.1) (λ h, (Icc (h.rec a.2) b.2).card) (λ _, 0) :=
 card_sigma_lift _ _ _
 
-@[simp] lemma card_Ico :
-  (Ico a b).card = dite (a.1 = b.1) (λ h, (Ico (h.rec a.2) b.2).card) (λ _, 0) :=
+lemma card_Ico : (Ico a b).card = dite (a.1 = b.1) (λ h, (Ico (h.rec a.2) b.2).card) (λ _, 0) :=
 card_sigma_lift _ _ _
 
-@[simp] lemma card_Ioc :
-  (Ioc a b).card = dite (a.1 = b.1) (λ h, (Ioc (h.rec a.2) b.2).card) (λ _, 0) :=
+lemma card_Ioc : (Ioc a b).card = dite (a.1 = b.1) (λ h, (Ioc (h.rec a.2) b.2).card) (λ _, 0) :=
 card_sigma_lift _ _ _
 
-@[simp] lemma card_Ioo :
-  (Ioo a b).card = dite (a.1 = b.1) (λ h, (Ioo (h.rec a.2) b.2).card) (λ _, 0) :=
+lemma card_Ioo : (Ioo a b).card = dite (a.1 = b.1) (λ h, (Ioo (h.rec a.2) b.2).card) (λ _, 0) :=
 card_sigma_lift _ _ _
 
 end

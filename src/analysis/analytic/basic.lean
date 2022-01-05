@@ -564,16 +564,9 @@ lemma has_fpower_series_on_ball.image_sub_sub_deriv_le
   (hf : has_fpower_series_on_ball f p x r) (hr : r' < r) :
   ∃ C, ∀ (y z ∈ emetric.ball x r'),
     ∥f y - f z - (p 1 (λ _, y - z))∥ ≤ C * (max ∥y - x∥ ∥z - x∥) * ∥y - z∥ :=
-let ⟨C, hC⟩ := is_O_principal.mp $ hf.is_O_image_sub_image_sub_deriv_principal hr in
-⟨C, λ y hy z hz,
-begin
-  sorry --originally, this whole proof was:
-  /-
-  by simpa only [is_O_principal, mul_assoc, normed_field.norm_mul, norm_norm, prod.forall,
-  emetric.mem_ball, prod.edist_eq, max_lt_iff, and_imp]
+by simpa only [is_O_principal, mul_assoc, normed_field.norm_mul, norm_norm, prod.forall,
+  emetric.mem_ball, prod.edist_eq, max_lt_iff, and_imp, @forall_swap (_ < _) E]
   using hf.is_O_image_sub_image_sub_deriv_principal hr
-  -/
-end⟩
 
 /-- If `f` has formal power series `∑ n, pₙ` at `x`, then
 `f y - f z - p 1 (λ _, y - z) = O(∥(y, z) - (x, x)∥ * ∥y - z∥)` as `(y, z) → (x, x)`.

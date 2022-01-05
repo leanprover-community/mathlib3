@@ -225,7 +225,7 @@ begin
   have claim4 := finite_inter_closure_has_finite_inter C1,
   -- C0 is closed under finite intersections by claim1.
   have claim5 : has_finite_inter C0 :=
-    ⟨⟨_, univ_mem, set.preimage_univ⟩, BINDER_UPDATE_LEMMA.mp claim1⟩,
+    ⟨⟨_, univ_mem, set.preimage_univ⟩, claim1⟩,
   -- Every element of C2 is nonempty.
   have claim6 : ∀ P ∈ C2, (P : set (ultrafilter X)).nonempty,
   { suffices : ∀ P ∈ C2, P ∈ C0 ∨ ∃ Q ∈ C0, P = AA ∩ Q,
@@ -306,7 +306,7 @@ begin
         refine ⟨_, by tauto⟩,
         { intro,
           apply filter.univ_sets, } },
-      { exact BINDER_UPDATE_LEMMA.mp claim3 } },
+      { exact claim3 } },
     { exact hS} },
   -- It suffices to show that the intersection of any finite subset of T1 is nonempty.
   suffices : ∀ (F : fsu), ↑F ⊆ T1 → (⋂₀ ι F).nonempty,

@@ -185,7 +185,7 @@ theorem subset_range_sup_succ (s : finset ℕ) : s ⊆ range (s.sup id).succ :=
 theorem exists_nat_subset_range (s : finset ℕ) : ∃n : ℕ, s ⊆ range n :=
 ⟨_, s.subset_range_sup_succ⟩
 
-lemma sup_induction {p : α → Prop} (hb : p ⊥) (hp : ∀ (a₁ a₂ : α), p a₁ → p a₂ → p (a₁ ⊔ a₂))
+lemma sup_induction {p : α → Prop} (hb : p ⊥) (hp : ∀ a₁, p a₁ → ∀ a₂, p a₂ → p (a₁ ⊔ a₂))
   (hs : ∀ b ∈ s, p (f b)) : p (s.sup f) :=
 begin
   induction s using finset.cons_induction with c s hc ih,
@@ -223,7 +223,7 @@ lemma sup_mem
   (s : set α) (w₁ : ⊥ ∈ s) (w₂ : ∀ x y ∈ s, x ⊔ y ∈ s)
   {ι : Type*} (t : finset ι) (p : ι → α) (h : ∀ i ∈ t, p i ∈ s) :
   t.sup p ∈ s :=
-@sup_induction _ _ _ _ _ _ (∈ s) w₁ (λ a b ha hb, w₂ a ha b hb) h
+@sup_induction _ _ _ _ _ _ (∈ s) w₁ w₂ h
 
 @[simp]
 lemma sup_eq_bot_iff (f : β → α)
@@ -392,7 +392,7 @@ lemma inf_coe {P : α → Prop}
   (@inf _ _ (subtype.semilattice_inf Pinf) (subtype.order_top Ptop) t f : α) = t.inf (λ x, f x) :=
 @sup_coe (order_dual α) _ _ _ _ Ptop Pinf t f
 
-lemma inf_induction {p : α → Prop} (ht : p ⊤) (hp : ∀ (a₁ a₂ : α), p a₁ → p a₂ → p (a₁ ⊓ a₂))
+lemma inf_induction {p : α → Prop} (ht : p ⊤) (hp : ∀ a₁, p a₁ → ∀ a₂, p a₂ → p (a₁ ⊓ a₂))
   (hs : ∀ b ∈ s, p (f b)) : p (s.inf f) :=
 @sup_induction (order_dual α) _ _ _ _ _ _ ht hp hs
 
@@ -400,7 +400,7 @@ lemma inf_mem
   (s : set α) (w₁ : ⊤ ∈ s) (w₂ : ∀ x y ∈ s, x ⊓ y ∈ s)
   {ι : Type*} (t : finset ι) (p : ι → α) (h : ∀ i ∈ t, p i ∈ s) :
   t.inf p ∈ s :=
-@inf_induction _ _ _ _ _ _ (∈ s) w₁ (λ a b ha hb, w₂ a ha b hb) h
+@inf_induction _ _ _ _ _ _ (∈ s) w₁ w₂ h
 
 @[simp]
 lemma inf_eq_top_iff (f : β → α)

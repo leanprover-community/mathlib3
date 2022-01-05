@@ -657,15 +657,6 @@ lemma rpow_nat_inv_pow_nat {x : ℝ} (hx : 0 ≤ x) {n : ℕ} (hn : 0 < n) :
 have hn0 : (n : ℝ) ≠ 0, by simpa [pos_iff_ne_zero] using hn,
 by rw [← rpow_nat_cast, ← rpow_mul hx, inv_mul_cancel hn0, rpow_one]
 
-lemma log_base_rpow (a b : ℝ) (a_pos : 0 < a) (a_ne_one : a ≠ 1) :
-  log_base a (a ^ b) = b :=
-begin
-  rw [log_base, div_eq_iff, ←h, log_rpow a_pos],
-  have a_ne_zero : a ≠ 0, linarith,
-  have a_ne_minus_one : a ≠ -1, linarith,
-  simp [a_ne_one, a_ne_zero, a_ne_minus_one],
-end
-
 lemma continuous_at_const_rpow {a b : ℝ} (h : a ≠ 0) : continuous_at (rpow a) b :=
 begin
   have : rpow a = λ x : ℝ, ((a : ℂ) ^ (x : ℂ)).re, by { ext1 x, rw [rpow_eq_pow, rpow_def], },

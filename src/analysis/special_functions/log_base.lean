@@ -1,12 +1,13 @@
 /-
-Copyright (c) 2018 Chris Hughes. All rights reserved.
+Copyright (c) 2018 Bolton Bailey. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne
+Authors: Bolton Bailey, Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne
 -/
-import analysis.special_functions.exp
+import analysis.special_functions.log
+import analysis.special_functions.pow
 
 /-!
-# Real logarithm
+# Real logarithm base `b`
 
 In this file we define `real.log` to be the logarithm of a real number. As usual, we extend it from
 its domain `(0, +∞)` to a globally defined function. We choose to do it so that `log 0 = 0` and
@@ -25,81 +26,100 @@ noncomputable theory
 
 namespace real
 
-variables {x y : ℝ}
+variables {b x y : ℝ}
 
-/-- The real logarithm function, equal to the inverse of the exponential for `x > 0`,
-to `log |x|` for `x < 0`, and to `0` for `0`. We use this unconventional extension to
-`(-∞, 0]` as it gives the formula `log (x * y) = log x + log y` for all nonzero `x` and `y`, and
-the derivative of `log` is `1/x` away from `0`. -/
-@[pp_nodot] noncomputable def log (x : ℝ) : ℝ :=
-if hx : x = 0 then 0 else exp_order_iso.symm ⟨|x|, abs_pos.2 hx⟩
+/-- The real logarithm in a given base. As with the natural logarithm, we define `logb b x` to
+be `logb b |x|` for `x < 0`, and to `0` for `x = 0`.-/
+@[pp_nodot] noncomputable def logb (b x : ℝ) : ℝ := log x / log b
 
-lemma log_of_ne_zero (hx : x ≠ 0) : log x = exp_order_iso.symm ⟨|x|, abs_pos.2 hx⟩ := dif_neg hx
+lemma log_div_log : log x / log b = logb b x := rfl
 
-lemma log_of_pos (hx : 0 < x) : log x = exp_order_iso.symm ⟨x, hx⟩ :=
-by { rw [log_of_ne_zero hx.ne'], congr, exact abs_of_pos hx }
+-- lemma log_of_ne_zero (hx : x ≠ 0) : log x = exp_order_iso.symm ⟨|x|, abs_pos.2 hx⟩ := dif_neg hx
 
-lemma exp_log_eq_abs (hx : x ≠ 0) : exp (log x) = |x| :=
-by rw [log_of_ne_zero hx, ← coe_exp_order_iso_apply, order_iso.apply_symm_apply, subtype.coe_mk]
+-- lemma log_of_pos (hx : 0 < x) : log x = exp_order_iso.symm ⟨x, hx⟩ :=
+-- by { rw [log_of_ne_zero hx.ne'], congr, exact abs_of_pos hx }
 
-lemma exp_log (hx : 0 < x) : exp (log x) = x :=
-by { rw exp_log_eq_abs hx.ne', exact abs_of_pos hx }
-
-lemma exp_log_of_neg (hx : x < 0) : exp (log x) = -x :=
-by { rw exp_log_eq_abs (ne_of_lt hx), exact abs_of_neg hx }
-
-@[simp] lemma log_exp (x : ℝ) : log (exp x) = x :=
-exp_injective $ exp_log (exp_pos x)
-
-lemma surj_on_log : surj_on log (Ioi 0) univ :=
-λ x _, ⟨exp x, exp_pos x, log_exp x⟩
-
-lemma log_surjective : surjective log :=
-λ x, ⟨exp x, log_exp x⟩
-
-@[simp] lemma range_log : range log = univ :=
-log_surjective.range_eq
-
-@[simp] lemma log_zero : log 0 = 0 := dif_pos rfl
-
-@[simp] lemma log_one : log 1 = 0 :=
-exp_injective $ by rw [exp_log zero_lt_one, exp_zero]
-
-@[simp] lemma log_abs (x : ℝ) : log (|x|) = log x :=
+@[simp] lemma logb_rpow (b_pos : 0 < b) (b_ne_one : b ≠ 1) :
+  logb b (b ^ x) = x :=
 begin
-  by_cases h : x = 0,
-  { simp [h] },
-  { rw [← exp_eq_exp, exp_log_eq_abs h, exp_log_eq_abs (abs_pos.2 h).ne', abs_abs] }
+  rw [logb, div_eq_iff, log_rpow b_pos],
+  have b_ne_zero : b ≠ 0, linarith,
+  have b_ne_minus_one : b ≠ -1, linarith,
+  simp [b_ne_one, b_ne_zero, b_ne_minus_one],
 end
 
-@[simp] lemma log_neg_eq_log (x : ℝ) : log (-x) = log x :=
-by rw [← log_abs x, ← log_abs (-x), abs_neg]
-
-lemma surj_on_log' : surj_on log (Iio 0) univ :=
-λ x _, ⟨-exp x, neg_lt_zero.2 $ exp_pos x, by rw [log_neg_eq_log, log_exp]⟩
-
-lemma log_mul (hx : x ≠ 0) (hy : y ≠ 0) : log (x * y) = log x + log y :=
-exp_injective $
-by rw [exp_log_eq_abs (mul_ne_zero hx hy), exp_add, exp_log_eq_abs hx, exp_log_eq_abs hy, abs_mul]
-
-lemma log_div (hx : x ≠ 0) (hy : y ≠ 0) : log (x / y) = log x - log y :=
-exp_injective $
-by rw [exp_log_eq_abs (div_ne_zero hx hy), exp_sub, exp_log_eq_abs hx, exp_log_eq_abs hy, abs_div]
-
-@[simp] lemma log_inv (x : ℝ) : log (x⁻¹) = -log x :=
+lemma rpow_logb_eq_abs (b_pos : 0 < b) (b_ne_one : b ≠ 1) (hx : x ≠ 0) : b ^ (logb b x) = |x| :=
 begin
-  by_cases hx : x = 0, { simp [hx] },
-  rw [← exp_eq_exp, exp_log_eq_abs (inv_ne_zero hx), exp_neg, exp_log_eq_abs hx, abs_inv]
+  apply log_inj_on_pos,
+  simp only [set.mem_Ioi],
+  apply rpow_pos_of_pos b_pos,
+  simp only [abs_pos, set.mem_Ioi, ne.def, hx],
+  exact not_false,
+  rw log_rpow b_pos,
+  rw logb,
+  rw log_abs,
+  have b_ne_zero : b ≠ 0, linarith,
+  have b_ne_minus_one : b ≠ -1, linarith,
+  have log_b_ne_zero : log b ≠ 0, simp [b_ne_one, b_ne_zero, b_ne_minus_one],
+  field_simp [ne_of_lt b_pos],
 end
 
-lemma log_le_log (h : 0 < x) (h₁ : 0 < y) : log x ≤ log y ↔ x ≤ y :=
-by rw [← exp_le_exp, exp_log h, exp_log h₁]
+lemma rpow_logb (b_pos : 0 < b) (b_ne_one : b ≠ 1) (hx : 0 < x) : b ^ (logb b x) = x :=
+by { rw rpow_logb_eq_abs b_pos b_ne_one (hx.ne'), exact abs_of_pos hx, }
 
-lemma log_lt_log (hx : 0 < x) : x < y → log x < log y :=
-by { intro h, rwa [← exp_lt_exp, exp_log hx, exp_log (lt_trans hx h)] }
+lemma rpow_logb_of_neg (b_pos : 0 < b) (b_ne_one : b ≠ 1) (hx : x < 0) : b ^ (logb b x) = -x :=
+by { rw rpow_logb_eq_abs b_pos b_ne_one (ne_of_lt hx), exact abs_of_neg hx }
 
-lemma log_lt_log_iff (hx : 0 < x) (hy : 0 < y) : log x < log y ↔ x < y :=
-by { rw [← exp_lt_exp, exp_log hx, exp_log hy] }
+-- @[simp] lemma log_exp (x : ℝ) : log (exp x) = x :=
+-- exp_injective $ exp_log (exp_pos x)
+
+lemma surj_on_logb (b_pos : 0 < b) (b_ne_one : b ≠ 1) : surj_on (logb b) (Ioi 0) univ :=
+λ x _, ⟨rpow b x, rpow_pos_of_pos b_pos x, logb_rpow b_pos b_ne_one⟩
+
+lemma logb_surjective (b_pos : 0 < b) (b_ne_one : b ≠ 1) : surjective (logb b) :=
+λ x, ⟨b ^ x, logb_rpow b_pos b_ne_one⟩
+
+@[simp] lemma range_logb (b_pos : 0 < b) (b_ne_one : b ≠ 1) : range (logb b) = univ :=
+(logb_surjective b_pos b_ne_one).range_eq
+
+@[simp] lemma logb_zero : logb b 0 = 0 := by simp [logb]
+
+@[simp] lemma logb_one : logb b 1 = 0 := by simp [logb]
+
+@[simp] lemma logb_abs (x : ℝ) : logb b (|x|) = logb b x := by rw [logb, logb, log_abs]
+
+@[simp] lemma logb_neg_eq_logb (x : ℝ) : logb b (-x) = logb b x :=
+by rw [← logb_abs x, ← logb_abs (-x), abs_neg]
+
+lemma surj_on_logb' (b_pos : 0 < b) (b_ne_one : b ≠ 1) : surj_on (logb b) (Iio 0) univ :=
+begin
+  intros x x_in_univ,
+  use -b ^ x,
+  split,
+  { simp only [right.neg_neg_iff, set.mem_Iio], apply rpow_pos_of_pos b_pos, },
+  { rw [logb_neg_eq_logb, logb_rpow b_pos b_ne_one], },
+end
+
+lemma logb_mul (hx : x ≠ 0) (hy : y ≠ 0) : logb b (x * y) = logb b x + logb b y :=
+by simp_rw [logb, log_mul hx hy, add_div]
+
+lemma logb_div (hx : x ≠ 0) (hy : y ≠ 0) : logb b (x / y) = logb b x - logb b y :=
+by simp_rw [logb, log_div hx hy, sub_div]
+
+@[simp] lemma logb_inv (x : ℝ) : logb b (x⁻¹) = -logb b x := by simp [logb, neg_div]
+
+lemma logb_le_logb (one_le_b : 1 < b) (h : 0 < x) (h₁ : 0 < y) : logb b x ≤ logb b y ↔ x ≤ y :=
+by {rw [logb, logb, div_le_div_right (log_pos one_le_b), log_le_log h h₁], }
+
+lemma logb_lt_logb (one_le_b : 1 < b) (hx : 0 < x) (hxy : x < y) : logb b x < logb b y :=
+by {rw [logb, logb, div_lt_div_right (log_pos one_le_b)], exact log_lt_log hx hxy, }
+
+lemma logb_lt_logb_iff (one_le_b : 1 < b) (hx : 0 < x) (hy : 0 < y) : logb b x < logb b y ↔ x < y :=
+by {rw [logb, logb, div_lt_div_right (log_pos one_le_b)], exact log_lt_log_iff hx hy, }
+
+-- TODO finish converting below this line
+-- log -> logb b
+-- exp -> b ^
 
 lemma log_le_iff_le_exp (hx : 0 < x) : log x ≤ y ↔ x ≤ exp y := by rw [←exp_le_exp, exp_log hx]
 
@@ -194,6 +214,11 @@ begin
     ...           ≤ log x * (y / x - 1)   : le_mul_of_one_le_left hyx hlogx
     ...           = log x / x * y - log x : by ring,
 end
+
+/-- The real logarithm in a given base. -/
+noncomputable def logb (b x : ℝ) : ℝ := log x / log b
+
+@[simp] lemma log_div_log {b x : ℝ} : log x / log b = logb b x := rfl
 
 /-- The real logarithm function tends to `+∞` at `+∞`. -/
 lemma tendsto_log_at_top : tendsto log at_top at_top :=

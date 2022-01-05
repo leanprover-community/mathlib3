@@ -1668,6 +1668,16 @@ le_antisymm
     (λ b hb, le_of_lt (power_lt_omega h hb)))
   (le_power_self _ a1)
 
+theorem mul_omega_eq_sup_mul_nat (o : ordinal.{u}) : o * omega.{u} = sup (λ n : ℕ, o * n) :=
+begin
+  cases eq_zero_or_pos o with ho ho,
+  { rw [ho, zero_mul],
+    apply eq.symm,
+    rw sup_eq_zero_iff,
+    exact λ n, zero_mul _ },
+  exact normal_omega (mul_is_normal ho)
+end
+
 /-! ### Fixed points of normal functions -/
 
 /-- The next fixed point function, the least fixed point of the

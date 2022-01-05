@@ -1585,29 +1585,6 @@ lemma submodule.coe_subtype {R : Type*} {M : Type*} [semiring R] [add_comm_monoi
   ⇑(p.subtype) = coe :=
 rfl
 
--- move
-@[simp]
-lemma linear_isometry.map_neg {R : Type*} {E : Type*} {E₂ : Type*} [semiring R]
-  [semi_normed_group E] [semi_normed_group E₂] [module R E] [module R E₂] (f : E →ₗᵢ[R] E₂) (x : E) :
-  f (- x) = - f x :=
-f.to_linear_map.map_neg x
-
-section -- move
-local attribute [instance] submodule.semi_normed_space
-
-def submodule.subtype_li {R : Type*} {E : Type*} [normed_field R] [semi_normed_group E]
-  [semi_normed_space R E] (V : submodule R E) :
-  V →ₗᵢ[R] E :=
-{ norm_map' := λ x, by simp,
-  .. submodule.subtype V }
-
-@[simp] lemma submodule.coe_subtype_li {R : Type*} {E : Type*} [normed_field R]
-  [semi_normed_group E] [semi_normed_space R E] (V : submodule R E) :
-  ⇑V.subtype_li = (coe : V → E) :=
-rfl
-
-end
-
 /-! ### Families of mutually-orthogonal subspaces of an inner product space -/
 
 section orthogonal_family
@@ -1618,23 +1595,6 @@ open_locale direct_sum
 def orthogonal_family {G : ι → Type*} [Π i, inner_product_space 𝕜 (G i)] (V : Π i, G i →ₗᵢ[𝕜] E) :
   Prop :=
 ∀ ⦃i j⦄, i ≠ j → ∀ v : G i, ∀ w : G j, ⟪V i v, V j w⟫ = 0
-
-variables (𝕜 E) -- move this
-def linear_isometry.to_span_singleton {v : E} (hv : ∥v∥ = 1) : 𝕜 →ₗᵢ[𝕜] E :=
-{ norm_map' := λ x, by simp [norm_smul, hv],
-  .. linear_map.to_span_singleton 𝕜 E v }
-variables {𝕜 E}
-
--- move this
-@[simp] lemma linear_isometry.to_span_singleton_apply {v : E} (hv : ∥v∥ = 1) (a : 𝕜) :
-  linear_isometry.to_span_singleton 𝕜 E hv a = a • v :=
-rfl
-
--- move this
-@[simp] lemma linear_isometry.coe_to_span_singleton {v : E} (hv : ∥v∥ = 1) :
-  (linear_isometry.to_span_singleton 𝕜 E hv).to_linear_map = linear_map.to_span_singleton 𝕜 E v :=
-rfl
-
 
 lemma orthonormal.orthogonal_family {v : ι → E} (hv : orthonormal 𝕜 v) :
   @orthogonal_family 𝕜 _ _ _ _ (λ i : ι, 𝕜) _
@@ -1828,7 +1788,7 @@ omit hV
 elements each from a different subspace in the family is linearly independent. In particular, the
 pairwise intersections of elements of the family are 0. -/
 lemma orthogonal_family.independent {V : ι → submodule 𝕜 E}
-  (hV : @orthogonal_family 𝕜 _ _ _ _ (λ i, V i) _ (λ i, (V i).subtype_li)) :
+  (hV : @orthogonal_family 𝕜 _ _ _ _ (λ i, V i) _ (λ i, (V i).subtypeₗᵢ)) :
   complete_lattice.independent V :=
 begin
   classical,
@@ -1848,7 +1808,7 @@ end
 
 include dec_ι
 lemma direct_sum.submodule_is_internal.collected_basis_orthonormal {V : ι → submodule 𝕜 E}
-  (hV : @orthogonal_family 𝕜 _ _ _ _ (λ i, V i) _ (λ i, (V i).subtype_li))
+  (hV : @orthogonal_family 𝕜 _ _ _ _ (λ i, V i) _ (λ i, (V i).subtypeₗᵢ))
   (hV_sum : direct_sum.submodule_is_internal (λ i, V i))
   {α : ι → Type*}
   {v_family : Π i, basis (α i) 𝕜 (V i)} (hv_family : ∀ i, orthonormal 𝕜 (v_family i)) :

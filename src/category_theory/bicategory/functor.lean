@@ -41,38 +41,38 @@ universes w₁ w₂ w₃ v₁ v₂ v₃ u₁ u₂ u₃
 section
 
 /--
-A prepseudofunctor between bicategories consists of functions between objects,
+A prelax_functor between bicategories consists of functions between objects,
 1-morphisms, and 2-morphisms. This structure will be extended to define `oplax_functor`.
 -/
-structure prepseudofunctor
+structure prelax_functor
   (B : Type u₁) [quiver.{v₁+1} B] [∀ a b : B, quiver.{w₁+1} (a ⟶ b)]
   (C : Type u₂) [quiver.{v₂+1} C] [∀ a b : C, quiver.{w₂+1} (a ⟶ b)]
   extends prefunctor B C : Type (max w₁ w₂ v₁ v₂ u₁ u₂) :=
 (map₂ {a b : B} {f g : a ⟶ b} : (f ⟶ g) → (map f ⟶ map g))
 
 /-- The prefunctor between the underlying quivers. -/
-add_decl_doc prepseudofunctor.to_prefunctor
+add_decl_doc prelax_functor.to_prefunctor
 
 variables {B : Type u₁} [quiver.{v₁+1} B] [∀ a b : B, quiver.{w₁+1} (a ⟶ b)]
 variables {C : Type u₂} [quiver.{v₂+1} C] [∀ a b : C, quiver.{w₂+1} (a ⟶ b)]
-variables (F : prepseudofunctor B C)
+variables (F : prelax_functor B C)
 
-@[simp] lemma prepseudofunctor.to_prefunctor_obj : F.to_prefunctor.obj = F.obj := rfl
-@[simp] lemma prepseudofunctor.to_prefunctor_map : F.to_prefunctor.map = F.map := rfl
+@[simp] lemma prelax_functor.to_prefunctor_obj : F.to_prefunctor.obj = F.obj := rfl
+@[simp] lemma prelax_functor.to_prefunctor_map : F.to_prefunctor.map = F.map := rfl
 
 end
 
-namespace prepseudofunctor
+namespace prelax_functor
 
 section
 variables (B : Type u₁) [quiver.{v₁+1} B] [∀ a b : B, quiver.{w₁+1} (a ⟶ b)]
 
-/-- The identity prepseudofunctor. -/
+/-- The identity prelax_functor. -/
 @[simps]
-def id : prepseudofunctor B B :=
+def id : prelax_functor B B :=
 { map₂ := λ a b f g η, η, .. prefunctor.id B }
 
-instance : inhabited (prepseudofunctor B B) := ⟨prepseudofunctor.id B⟩
+instance : inhabited (prelax_functor B B) := ⟨prelax_functor.id B⟩
 
 end
 
@@ -80,16 +80,16 @@ section
 variables {B : Type u₁} [quiver.{v₁+1} B] [∀ a b : B, quiver.{w₁+1} (a ⟶ b)]
 variables {C : Type u₂} [quiver.{v₂+1} C] [∀ a b : C, quiver.{w₂+1} (a ⟶ b)]
 variables {D : Type u₃} [quiver.{v₃+1} D] [∀ a b : D, quiver.{w₃+1} (a ⟶ b)]
-variables (F : prepseudofunctor B C) (G : prepseudofunctor C D)
+variables (F : prelax_functor B C) (G : prelax_functor C D)
 
-/-- Composition of prepseudofunctors. -/
+/-- Composition of prelax_functors. -/
 @[simps]
-def comp : prepseudofunctor B D :=
+def comp : prelax_functor B D :=
 { map₂ := λ a b f g η, G.map₂ (F.map₂ η), .. F.to_prefunctor.comp G.to_prefunctor }
 
 end
 
-end prepseudofunctor
+end prelax_functor
 
 section
 
@@ -173,12 +173,12 @@ def map_functor (a b : B) : (a ⟶ b) ⥤ (F.obj a ⟶ F.obj b) :=
 { obj := λ f, F.map f,
   map := λ f g η, F.map₂ η }
 
-/-- The prepseudofunctor between the underlying quivers. -/
-add_decl_doc oplax_functor.to_prepseudofunctor
+/-- The prelax_functor between the underlying quivers. -/
+add_decl_doc oplax_functor.to_prelax_functor
 
-@[simp] lemma to_prepseudofunctor_obj : F.to_prepseudofunctor.obj = F.obj := rfl
-@[simp] lemma to_prepseudofunctor_map : F.to_prepseudofunctor.map = F.map := rfl
-@[simp] lemma to_prepseudofunctor_map₂ : F.to_prepseudofunctor.map₂ = F.map₂ := rfl
+@[simp] lemma to_prelax_functor_obj : F.to_prelax_functor.obj = F.obj := rfl
+@[simp] lemma to_prelax_functor_map : F.to_prelax_functor.map = F.map := rfl
+@[simp] lemma to_prelax_functor_map₂ : F.to_prelax_functor.map₂ = F.map₂ := rfl
 
 end
 
@@ -190,7 +190,7 @@ variables (B : Type u₁) [bicategory.{w₁ v₁} B]
 def id : oplax_functor B B :=
 { map_id := λ a,  𝟙 (𝟙 a),
   map_comp := λ a b c f g, 𝟙 (f ≫ g),
-  .. prepseudofunctor.id B }
+  .. prelax_functor.id B }
 
 instance : inhabited (oplax_functor B B) := ⟨id B⟩
 
@@ -235,7 +235,7 @@ def comp : oplax_functor B D :=
     rw [←map_comp_naturality_right_assoc, ←map₂_right_unitor],
     simp only [←map₂_comp],
     rw ←map₂_right_unitor },
-  .. F.to_prepseudofunctor.comp G.to_prepseudofunctor }
+  .. F.to_prelax_functor.comp G.to_prelax_functor }
 
 end
 

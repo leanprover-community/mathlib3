@@ -195,6 +195,7 @@ begin
     ...           = log x / x * y - log x : by ring,
 end
 
+/-- The real logarithm for in a given base. -/
 noncomputable def log_base (b x : ℝ) : ℝ := log x / log b
 
 @[simp] lemma log_div_log {b x : ℝ} : log x / log b = log_base b x := rfl

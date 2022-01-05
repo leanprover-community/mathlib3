@@ -214,7 +214,7 @@ include dec_ι
 
 /-- The direct limit of a directed system is the abelian groups glued together along the maps. -/
 def direct_limit (f : Π i j, i ≤ j → G i →+ G j) : Type* :=
-@module.direct_limit ℤ _ ι _ _ G _ _
+@module.direct_limit ℤ _ ι _ _ _ G _ _
   (λ i j hij, (f i j hij).to_int_linear_map)
 
 namespace direct_limit

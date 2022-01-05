@@ -1,5 +1,5 @@
 /-
-Copyright (c) 2021 Yaël Dillies. All rights reserved.
+Copyright (c) 2022 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
@@ -56,33 +56,33 @@ instance : locally_finite_order (Σ i, α i) :=
 section
 variables (a b : Σ i, α i)
 
-lemma card_Icc : (Icc a b).card = dite (a.1 = b.1) (λ h, (Icc (h.rec a.2) b.2).card) (λ _, 0) :=
+lemma card_Icc : (Icc a b).card = if h : a.1 = b.1 then (Icc (h.rec a.2) b.2).card else 0 :=
 card_sigma_lift _ _ _
 
-lemma card_Ico : (Ico a b).card = dite (a.1 = b.1) (λ h, (Ico (h.rec a.2) b.2).card) (λ _, 0) :=
+lemma card_Ico : (Ico a b).card = if h : a.1 = b.1 then (Ico (h.rec a.2) b.2).card else 0 :=
 card_sigma_lift _ _ _
 
-lemma card_Ioc : (Ioc a b).card = dite (a.1 = b.1) (λ h, (Ioc (h.rec a.2) b.2).card) (λ _, 0) :=
+lemma card_Ioc : (Ioc a b).card = if h : a.1 = b.1 then (Ioc (h.rec a.2) b.2).card else 0 :=
 card_sigma_lift _ _ _
 
-lemma card_Ioo : (Ioo a b).card = dite (a.1 = b.1) (λ h, (Ioo (h.rec a.2) b.2).card) (λ _, 0) :=
+lemma card_Ioo : (Ioo a b).card = if h : a.1 = b.1 then (Ioo (h.rec a.2) b.2).card else 0 :=
 card_sigma_lift _ _ _
 
 end
 
 variables (i : ι) (a b : α i)
 
-@[simp] lemma card_Icc_mk_mk : (Icc (⟨i, a⟩ : sigma α) ⟨i, b⟩).card = (Icc a b).card :=
-by rw [card_Icc, dif_pos rfl]
+@[simp] lemma Icc_mk_mk : Icc (⟨i, a⟩ : sigma α) ⟨i, b⟩ = (Icc a b).map (embedding.sigma_mk i) :=
+dif_pos rfl
 
-@[simp] lemma card_Ico_mk_mk : (Ico (⟨i, a⟩ : sigma α) ⟨i, b⟩).card = (Ico a b).card :=
-by rw [card_Ico, dif_pos rfl]
+@[simp] lemma Ico_mk_mk : Ico (⟨i, a⟩ : sigma α) ⟨i, b⟩ = (Ico a b).map (embedding.sigma_mk i) :=
+dif_pos rfl
 
-@[simp] lemma card_Ioc_mk_mk : (Ioc (⟨i, a⟩ : sigma α) ⟨i, b⟩).card = (Ioc a b).card :=
-by rw [card_Ioc, dif_pos rfl]
+@[simp] lemma Ioc_mk_mk : Ioc (⟨i, a⟩ : sigma α) ⟨i, b⟩ = (Ioc a b).map (embedding.sigma_mk i) :=
+dif_pos rfl
 
-@[simp] lemma card_Ioo_mk_mk : (Ioo (⟨i, a⟩ : sigma α) ⟨i, b⟩).card = (Ioo a b).card :=
-by rw [card_Ioo, dif_pos rfl]
+@[simp] lemma Ioo_mk_mk : Ioo (⟨i, a⟩ : sigma α) ⟨i, b⟩ = (Ioo a b).map (embedding.sigma_mk i) :=
+dif_pos rfl
 
 end disjoint
 end sigma

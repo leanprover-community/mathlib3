@@ -194,7 +194,8 @@ instance [add_comm_group 𝕜] [has_le α] : add_comm_group (incidence_algebra �
 -- instance : has_scalar 𝕄 (incidence_algebra 𝕜 α) :=
 -- ⟨λ c f, ⟨c • f, λ a b h, by rw [pi.smul_apply, pi.smul_apply, eq_zero_of_not_le h, smul_zero']⟩⟩
 
--- @[simp] lemma smul_apply (c : 𝕄) (f : incidence_algebra 𝕜 α) (a b : α) : (c • f) a b = c • f a b :=
+-- @[simp] lemma smul_apply (c : 𝕄) (f : incidence_algebra 𝕜 α) (a b : α) : (c • f) a b
+-- = c • f a b :=
 -- rfl
 
 -- instance : smul_with_zero 𝕄 (incidence_algebra 𝕜 α) :=
@@ -221,8 +222,10 @@ variables [partial_order α] [locally_finite_order α] [decidable_eq α]
 -- TODO copy more API from data.set.intervals.basic to finset
 lemma Ici_eq_Ioi_union [order_top α] (x : α) : Ici x = Ioi x ∪ {x} := finset.coe_inj.mp (by simp)
 lemma Iic_eq_Iio_union [order_bot α] (x : α) : Iic x = Iio x ∪ {x} := finset.coe_inj.mp (by simp)
-lemma Icc_eq_Ico_union {x y : α} (hxy : x ≤ y) : Icc x y = Ico x y ∪ {y} := finset.coe_inj.mp (by simp [hxy, set.Ico_union_right])
-lemma Icc_eq_Ioc_union {x y : α} (hxy : x ≤ y) : Icc x y = Ioc x y ∪ {x} := finset.coe_inj.mp (by simp [hxy, set.Ioc_union_left])
+lemma Icc_eq_Ico_union {x y : α} (hxy : x ≤ y) : Icc x y = Ico x y ∪ {y} :=
+finset.coe_inj.mp (by simp [hxy, set.Ico_union_right])
+lemma Icc_eq_Ioc_union {x y : α} (hxy : x ≤ y) : Icc x y = Ioc x y ∪ {x} :=
+finset.coe_inj.mp (by simp [hxy, set.Ioc_union_left])
 end co_union_lemmas
 
 section mul
@@ -479,7 +482,8 @@ private lemma mu'_aux_apply (a b : α) :
   mu'_aux 𝕜 α b a = if a = b then 1 else -∑ x in (Ioc a b).attach, mu'_aux 𝕜 α b x :=
 by { convert has_well_founded.wf.fix_eq _ _, refl }
 
-private def mu' : incidence_algebra 𝕜 α := ⟨λ a b, mu'_aux 𝕜 α b a, λ a b, not_imp_comm.1 $ λ h, begin
+private def mu' : incidence_algebra 𝕜 α :=
+⟨λ a b, mu'_aux 𝕜 α b a, λ a b, not_imp_comm.1 $ λ h, begin
   rw mu'_aux_apply at h,
   split_ifs at h with hab hab,
   { exact hab.le },
@@ -532,8 +536,7 @@ begin
   split_ifs with he,
   { simp [he] },
   { simp only [mul_one, zeta_apply, mul_ite],
-    conv in (ite _ _ _) {
-      rw [if_pos (mem_Icc.mp H).2] },
+    conv in (ite _ _ _) { rw [if_pos (mem_Icc.mp H).2] },
     rw mu_spec_of_ne_right he }
 end
 
@@ -544,8 +547,7 @@ begin
   split_ifs with he,
   { simp [he] },
   { simp only [zeta_apply, one_mul, ite_mul],
-    conv in (ite _ _ _) {
-      rw [if_pos (mem_Icc.mp H).1] },
+    conv in (ite _ _ _) { rw [if_pos (mem_Icc.mp H).1] },
     rw mu'_spec_of_ne_left he }
 end
 
@@ -614,14 +616,14 @@ lemma moebius_inversion_top (f g : α → 𝕜) (h : ∀ x, g x = ∑ y in Ici x
 by letI : @decidable_rel α (≤) := classical.dec_rel _; symmetry; calc
   ∑ y in Ici x, mu 𝕜 α x y * g y
       = ∑ y in Ici x, mu 𝕜 α x y * ∑ z in Ici y, f z : by simp_rw [h]
-  ... = ∑ y in Ici x, mu 𝕜 α x y * ∑ z in Ici y, zeta 𝕜 α y z * f z : by {
-        simp_rw [zeta_apply],
+  ... = ∑ y in Ici x, mu 𝕜 α x y * ∑ z in Ici y, zeta 𝕜 α y z * f z : by
+      { simp_rw [zeta_apply],
         conv in (ite _ _ _)
         { rw if_pos (mem_Ici.mp H) },
         simp }
   ... = ∑ y in Ici x, ∑ z in Ici y, mu 𝕜 α x y * zeta 𝕜 α y z * f z : by simp [mul_sum]
-  ... = ∑ z in Ici x, ∑ y in Icc x z, mu 𝕜 α x y * zeta 𝕜 α y z * f z : by {
-        erw sum_sigma' (Ici x) (λ y, Ici y),
+  ... = ∑ z in Ici x, ∑ y in Icc x z, mu 𝕜 α x y * zeta 𝕜 α y z * f z : by
+      { erw sum_sigma' (Ici x) (λ y, Ici y),
         erw sum_sigma' (Ici x) (λ z, Icc x z),
         simp only [mul_boole, zero_mul, ite_mul, zeta_apply],
         refine sum_bij (λ X hX, ⟨X.snd, X.fst⟩) _ _ _ _,
@@ -637,11 +639,11 @@ by letI : @decidable_rel α (≤) := classical.dec_rel _; symmetry; calc
           use [⟨X.snd, X.fst⟩],
           simp only [and_true, mem_Ici, eq_self_iff_true, sigma.eta, mem_sigma, mem_Icc] at *,
           exact hX.2, }, }
-  ... = ∑ z in Ici x, (mu 𝕜 α * zeta 𝕜 α) x z * f z : by {
-        conv in ((mu _ _ * zeta _ _) _ _) { rw [mul_apply] },
+  ... = ∑ z in Ici x, (mu 𝕜 α * zeta 𝕜 α) x z * f z : by
+      { conv in ((mu _ _ * zeta _ _) _ _) { rw [mul_apply] },
         simp_rw [sum_mul] }
-  ... = ∑ y in Ici x, ∑ z in Ici y, (1 : incidence_algebra 𝕜 α) x z * f z : by {
-        simp [mu_mul_zeta 𝕜 α, sum_Ici_eq_add_sum_Ioi],
+  ... = ∑ y in Ici x, ∑ z in Ici y, (1 : incidence_algebra 𝕜 α) x z * f z : by
+      { simp [mu_mul_zeta 𝕜 α, sum_Ici_eq_add_sum_Ioi],
         conv in (ite _ _ _) { rw if_neg (ne_of_lt $ mem_Ioi.mp H) },
         conv in (ite _ _ _) { rw if_neg (not_lt_of_le $ (mem_Ioi.mp H).le) },
         simp }

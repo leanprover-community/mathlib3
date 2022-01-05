@@ -1580,7 +1580,7 @@ equivalence relation `~`. Let `p₂` be a predicate on the quotient type `α/~`,
 of this predicate to `α`: `p₁ a ↔ p₂ ⟦a⟧`. Let `~₂` be the restriction of `~` to `{x // p₁ x}`.
 Then `{x // p₂ x}` is equivalent to the quotient of `{x // p₁ x}` by `~₂`. -/
 def subtype_quotient_equiv_quotient_subtype (p₁ : α → Prop) [s₁ : setoid α]
-  [s₂ : setoid (subtype p₁)] (p₂ : quotient s₁ → Prop) (hp₂ :  ∀ a, p₁ a ↔ p₂ ⟦a⟧)
+  [s₂ : setoid (subtype p₁)] (p₂ : quotient s₁ → Prop) (hp₂ : ∀ a, p₁ a ↔ p₂ ⟦a⟧)
   (h : ∀ x y : subtype p₁, @setoid.r _ s₂ x y ↔ (x : α) ≈ y) :
   {x // p₂ x} ≃ quotient s₂ :=
 { to_fun := λ a, quotient.hrec_on a.1 (λ a h, ⟦⟨a, (hp₂ _).2 h⟩⟧)
@@ -1590,6 +1590,16 @@ def subtype_quotient_equiv_quotient_subtype (p₁ : α → Prop) [s₁ : setoid 
     (λ a b hab, subtype.ext_val (quotient.sound ((h _ _).1 hab))),
   left_inv := λ ⟨a, ha⟩, quotient.induction_on a (λ a ha, rfl) ha,
   right_inv := λ a, quotient.induction_on a (λ ⟨a, ha⟩, rfl) }
+
+@[simp] lemma subtype_quotient_equiv_quotient_subtype_mk (p₁ : α → Prop) [s₁ : setoid α]
+  [s₂ : setoid (subtype p₁)] (p₂ : quotient s₁ → Prop) (hp₂ : ∀ a, p₁ a ↔ p₂ ⟦a⟧)
+  (h : ∀ x y : subtype p₁, @setoid.r _ s₂ x y ↔ (x : α) ≈ y) (x hx) :
+  subtype_quotient_equiv_quotient_subtype p₁ p₂ hp₂ h ⟨⟦x⟧, hx⟩ = ⟦⟨x, (hp₂ _).2 hx⟩⟧ := rfl
+
+@[simp] lemma subtype_quotient_equiv_quotient_subtype_symm_mk (p₁ : α → Prop) [s₁ : setoid α]
+  [s₂ : setoid (subtype p₁)] (p₂ : quotient s₁ → Prop) (hp₂ : ∀ a, p₁ a ↔ p₂ ⟦a⟧)
+  (h : ∀ x y : subtype p₁, @setoid.r _ s₂ x y ↔ (x : α) ≈ y) (x) :
+  (subtype_quotient_equiv_quotient_subtype p₁ p₂ hp₂ h).symm ⟦x⟧ = ⟨⟦x⟧, (hp₂ _).1 x.prop⟩ := rfl
 
 section swap
 variable [decidable_eq α]
@@ -2043,5 +2053,20 @@ lemma update_apply_equiv_apply {α β α' : Sort*} [decidable_eq α'] [decidable
   (f : α → β) (g : α' ≃ α) (a : α) (v : β) (a' : α') :
   update f a v (g a') = update (f ∘ g) (g.symm a) v a' :=
 congr_fun (update_comp_equiv f g a v) a'
+
+lemma Pi_congr_left'_update [decidable_eq α] [decidable_eq β]
+  (P : α → Sort*) (e : α ≃ β) (f : Π a, P a) (b : β) (x : P (e.symm b)) :
+  e.Pi_congr_left' P (update f (e.symm b) x) = update (e.Pi_congr_left' P f) b x :=
+begin
+  ext b',
+  rcases eq_or_ne b' b with rfl | h,
+  { simp, },
+  { simp [h], },
+end
+
+lemma Pi_congr_left'_symm_update [decidable_eq α] [decidable_eq β]
+  (P : α → Sort*) (e : α ≃ β) (f : Π b, P (e.symm b)) (b : β) (x : P (e.symm b)) :
+  (e.Pi_congr_left' P).symm (update f b x) = update ((e.Pi_congr_left' P).symm f) (e.symm b) x :=
+by simp [(e.Pi_congr_left' P).symm_apply_eq, Pi_congr_left'_update]
 
 end function

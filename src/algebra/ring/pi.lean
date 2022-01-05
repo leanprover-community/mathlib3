@@ -47,6 +47,12 @@ by refine_struct { zero := (0 : Π i, f i), one := 1, add := (+), mul := (*),
   nsmul := add_monoid.nsmul, npow := monoid.npow };
 tactic.pi_instance_derive_field
 
+instance non_unital_non_assoc_ring [∀ i, non_unital_non_assoc_ring $ f i] :
+  non_unital_non_assoc_ring (Π i : I, f i) :=
+by refine_struct { zero := (0 : Π i, f i), add := (+), mul := (*),
+  neg := has_neg.neg, nsmul := add_monoid.nsmul, zsmul := sub_neg_monoid.zsmul };
+tactic.pi_instance_derive_field
+
 instance ring [∀ i, ring $ f i] : ring (Π i : I, f i) :=
 by refine_struct { zero := (0 : Π i, f i), one := 1, add := (+), mul := (*),
   neg := has_neg.neg, nsmul := add_monoid.nsmul, zsmul := sub_neg_monoid.zsmul,

@@ -55,8 +55,7 @@ begin
 end
 
 lemma is_unit_of_mem_non_zero_divisors {G₀ : Type*} [group_with_zero G₀]
-  {x : G₀} (hx : x ∈ non_zero_divisors G₀) :
-  is_unit x :=
+  {x : G₀} (hx : x ∈ non_zero_divisors G₀) : is_unit x :=
 ⟨⟨x, x⁻¹, mul_inv_cancel (non_zero_divisors.ne_zero hx),
   inv_mul_cancel (non_zero_divisors.ne_zero hx)⟩, rfl⟩
 

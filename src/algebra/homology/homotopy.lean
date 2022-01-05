@@ -375,7 +375,8 @@ def add {f₁ g₁ f₂ g₂: C ⟶ D}
     abel,
   end }
 
-/-- the difference of two homotopies is a homotopy between the differences of the respective morphisms. -/
+/-- the difference of two homotopies is a homotopy between the differences
+of the respective morphisms. -/
 @[simps]
 def sub {f₁ g₁ f₂ g₂: C ⟶ D}
   (h₁ : homotopy f₁ g₁) (h₂ : homotopy f₂ g₂) : homotopy (f₁-f₂) (g₁-g₂) :=

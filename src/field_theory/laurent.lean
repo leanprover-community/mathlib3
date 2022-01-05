@@ -180,9 +180,18 @@ begin
                zero_div, polynomial.coe_one, eq_self_iff_true, hahn_series.of_power_series_apply,
                ratfunc.denom_zero, ring_equiv.map_zero, _root_.map_zero, coe_coe, hQ] },
   rw [num_div _ hQ, denom_div _ hQ, polynomial.coe_mul, polynomial.coe_coe, polynomial.coe_mul,
-      _root_.map_mul, _root_.map_mul, mul_div_mul_left],
-  sorry,
-  rw [ne.def, coe_C, of_power_series_C, hahn_series.single_eq_zero_iff],
+      _root_.map_mul, _root_.map_mul, mul_div_mul_left, div_eq_div_iff, ←_root_.map_mul,
+      ←_root_.map_mul, ←polynomial.coe_mul, ←polynomial.coe_mul, ←euclidean_domain.mul_div_assoc,
+      mul_comm, ←euclidean_domain.mul_div_assoc, mul_comm],
+  { exact gcd_dvd_left _ _ },
+  { exact gcd_dvd_right _ _ },
+  { rw [ne.def, ←(hahn_series.of_power_series ℤ K).map_zero,
+        (hahn_series.of_power_series_injective).eq_iff, ←coe_zero] },
+  { sorry },
+  { rw [ne.def, coe_C, of_power_series_C, hahn_series.single_eq_zero_iff, inv_eq_zero,
+        leading_coeff_eq_zero, polynomial.div_eq_zero_iff],
+    { simpa using degree_gcd_le_right _ hQ },
+    { simp [hQ] } }
 end
 
 end ratfunc

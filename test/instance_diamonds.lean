@@ -74,3 +74,25 @@ example (R : Type*) [h : ordered_semiring R] :
 rfl
 
 end with_top
+
+/-! ## `multiplicative` instances -/
+section multiplicative
+
+example :
+  @monoid.to_mul_one_class (multiplicative ℕ) (comm_monoid.to_monoid _) =
+    multiplicative.mul_one_class :=
+rfl
+
+-- `dunfold` can still break unification, but it's better to have `dunfold` break it than have the
+-- above example fail.
+example :
+  @monoid.to_mul_one_class (multiplicative ℕ) (comm_monoid.to_monoid _) =
+    multiplicative.mul_one_class :=
+begin
+  dunfold has_one.one multiplicative.mul_one_class,
+  success_if_fail { refl, },
+  ext,
+  refl
+end
+
+end multiplicative

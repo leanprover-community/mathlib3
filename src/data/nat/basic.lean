@@ -111,7 +111,7 @@ instance nat.subtype.order_bot (s : set ℕ) [decidable_pred (∈ s)] [h : nonem
 instance nat.subtype.semilattice_sup (s : set ℕ) :
   semilattice_sup s :=
 { ..subtype.linear_order s,
-  ..lattice_of_linear_order }
+  ..linear_order.to_lattice }
 
 lemma nat.subtype.coe_bot {s : set ℕ} [decidable_pred (∈ s)]
   [h : nonempty s] : ((⊥ : s) : ℕ) = nat.find (nonempty_subtype.1 h) := rfl

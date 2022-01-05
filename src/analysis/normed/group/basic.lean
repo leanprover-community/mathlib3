@@ -33,8 +33,9 @@ variables {α ι E F : Type*}
 open filter metric
 open_locale topological_space big_operators nnreal ennreal uniformity pointwise
 
-/-- Auxiliary class, endowing a type `E` with a function `norm : E → ℝ`. This class is designed to
-be extended in more interesting classes specifying the properties of the norm. -/
+/-- Auxiliary class, endowing a type `E` with a function `norm : E → ℝ` with notation `∥x∥`. This
+class is designed to be extended in more interesting classes specifying the properties of the norm.
+-/
 class has_norm (E : Type*) := (norm : E → ℝ)
 
 export has_norm (norm)
@@ -531,7 +532,7 @@ end
 
 section nnnorm
 
-/-- Auxiliary class, endowing a type `α` with a function `nnnorm : α → ℝ≥0`. -/
+/-- Auxiliary class, endowing a type `α` with a function `nnnorm : α → ℝ≥0` with notation `∥x∥₊`. -/
 class has_nnnorm (E : Type*) := (nnnorm : E → ℝ≥0)
 
 export has_nnnorm (nnnorm)

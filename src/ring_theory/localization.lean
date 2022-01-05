@@ -1423,12 +1423,10 @@ localization_algebra_of_submonoid_le _ _ x.prime_compl (non_zero_divisors R)
 
 /-- If `M ≤ N` are submonoids of `R`, then `N⁻¹S` is also the localization of `M⁻¹S` at `N`. -/
 lemma is_localization_of_submonoid_le
-  (M N : submonoid R) (h : M ≤ N) [is_localization M S] [is_localization N T] :
-  @@is_localization _ (N.map (algebra_map R S).to_monoid_hom) T _
-    (localization_algebra_of_submonoid_le S T M N h) :=
+  (M N : submonoid R) (h : M ≤ N) [is_localization M S] [is_localization N T]
+  [algebra S T] [is_scalar_tower R S T] :
+  is_localization (N.map (algebra_map R S).to_monoid_hom) T :=
 begin
-  letI := localization_algebra_of_submonoid_le S T M N h,
-  letI := localization_is_scalar_tower_of_submonoid_le S T M N h,
   constructor,
   { rintro ⟨_, ⟨y, hy, rfl⟩⟩,
     convert is_localization.map_units T ⟨y, hy⟩,
@@ -1441,22 +1439,23 @@ begin
     obtain ⟨⟨y₁, s₁⟩, e₁⟩ := is_localization.surj M x₁,
     obtain ⟨⟨y₂, s₂⟩, e₂⟩ := is_localization.surj M x₂,
     refine iff.trans _ (set.exist_image_iff (algebra_map R S) N (λ c, x₁ * c = x₂ * c)).symm,
-    rw [← (is_localization.map_units T ⟨_, h s₁.prop⟩).mul_left_inj,
-        ← (is_localization.map_units T ⟨_, h s₂.prop⟩).mul_right_inj],
-    simp_rw [is_scalar_tower.algebra_map_apply R S T, ← map_mul],
-    dsimp only [subtype.coe_mk] at e₁ e₂ ⊢,
-    rw [e₁, ← mul_assoc, mul_comm _ x₂, e₂],
-    simp_rw [← map_mul, ← is_scalar_tower.algebra_map_apply R S T],
-    rw is_localization.eq_iff_exists N T,
-    simp only [← (is_localization.map_units S s₁).mul_right_inj] { single_pass := tt },
-    simp only [← @is_unit.mul_right_inj _ _ _ _ (_ * (x₂ * _)) (is_localization.map_units S s₂)]
-      { single_pass := tt },
-    simp only [← mul_assoc] { single_pass := tt },
-    simp only [mul_comm _ x₁, mul_comm _ x₂, ← mul_assoc _ x₂, e₁, e₂, ← map_mul,
-      is_localization.eq_iff_exists M S],
+    dsimp only at e₁ e₂ ⊢,
+    suffices : algebra_map R T (y₁ * s₂) = algebra_map R T (y₂ * s₁) ↔
+      ∃ (a : N), algebra_map R S (a * (y₁ * s₂)) = algebra_map R S (a * (y₂ * s₁)),
+    { have h₁ := λ x y, @is_unit.mul_left_inj _ _ _ x y (is_localization.map_units T ⟨_, h s₁.prop⟩),
+      have h₁' := λ x y, @is_unit.mul_left_inj _ _ _ x y (is_localization.map_units S s₁),
+      have h₂ := λ x y, @is_unit.mul_left_inj _ _ _ x y (is_localization.map_units T ⟨_, h s₂.prop⟩),
+      have h₂' := λ x y, @is_unit.mul_left_inj _ _ _ x y (is_localization.map_units S s₂),
+      simp only [is_scalar_tower.algebra_map_apply R S T, subtype.coe_mk] at h₁ h₂,
+      simp only [is_scalar_tower.algebra_map_apply R S T, map_mul, ← e₁, ← e₂, ← mul_assoc,
+        mul_right_comm _ (algebra_map R S s₂),
+        mul_right_comm _ (algebra_map S T (algebra_map R S s₂)),
+        h₂, h₁, h₂', h₁'] at this,
+      simpa only [mul_comm] using this },
+    simp_rw [is_localization.eq_iff_exists N T, is_localization.eq_iff_exists M S],
     split,
-    { rintro ⟨a, e⟩, exact ⟨a, 1, by simpa using e⟩ },
-    { rintro ⟨a, b, e⟩, exact ⟨a * (⟨_, h b.prop⟩ : N), by simpa [mul_assoc] using e⟩ } }
+    { rintro ⟨a, e⟩, exact ⟨a, 1, by { convert e using 1; simp; ring }⟩ },
+    { rintro ⟨a, b, e⟩, exact ⟨a * (⟨_, h b.prop⟩ : N), by { convert e using 1; simp; ring }⟩ } }
 end
 
 /-- If `M ≤ N` are submonoids of `R` such that `∀ x : N, ∃ m : R, m * x ∈ M`, then the

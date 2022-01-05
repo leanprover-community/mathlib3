@@ -5,6 +5,8 @@ Authors: Simon Hudon
 -/
 import data.list.sigma
 import data.int.range
+import data.finsupp.basic
+import data.finsupp.to_dfinsupp
 import tactic.pretty_cases
 import testing.slim_check.sampleable
 import testing.slim_check.testable
@@ -128,6 +130,69 @@ instance pi.sampleable_ext : sampleable_ext (α → β) :=
   shrink := total_function.shrink }
 
 end
+
+section finsupp
+
+variables [has_zero β]
+/-- Map a total_function to one whose default value is zero so that it represents a finsupp. -/
+@[simp]
+def zero_default : total_function α β → total_function α β
+| (with_default A y) := with_default A 0
+
+variables [decidable_eq α] [decidable_eq β]
+/-- The support of a zero default `total_function`. -/
+@[simp]
+def zero_default_supp : total_function α β → finset α
+| (with_default A y) :=
+  list.to_finset $ (A.erase_dupkeys.filter (λ ab, sigma.snd ab ≠ 0)).map sigma.fst
+
+/-- Create a finitely supported function from a total function by taking the default value to
+zero. -/
+def apply_finsupp (tf : total_function α β) : α →₀ β :=
+{ support := zero_default_supp tf,
+  to_fun := tf.zero_default.apply,
+  mem_support_to_fun := begin
+    intro a,
+    rcases tf with ⟨A, y⟩,
+    simp only [apply, zero_default_supp, list.mem_map, list.mem_filter, exists_and_distrib_right,
+      list.mem_to_finset, exists_eq_right, sigma.exists, ne.def, zero_default],
+    split,
+    { rintro ⟨od, hval, hod⟩,
+      have := list.mem_lookup (list.nodupkeys_erase_dupkeys A) hval,
+      rw (_ : list.lookup a A = od),
+      { simpa, },
+      { simpa [list.lookup_erase_dupkeys, with_top.some_eq_coe], }, },
+    { intro h,
+      use (A.lookup a).get_or_else (0 : β),
+      rw ← list.lookup_erase_dupkeys at h ⊢,
+      simp only [h, ←list.mem_lookup_iff A.nodupkeys_erase_dupkeys,
+        and_true, not_false_iff, option.mem_def],
+      cases list.lookup a A.erase_dupkeys,
+      { simpa using h, },
+      { simp, }, }
+  end }
+
+variables [sampleable α] [sampleable β]
+instance finsupp.sampleable_ext [has_repr α] [has_repr β] : sampleable_ext (α →₀ β) :=
+{ proxy_repr := total_function α β,
+  interp := total_function.apply_finsupp,
+  sample := (do
+    xs ← (sampleable.sample (list (α × β)) : gen (list (α × β))),
+    ⟨x⟩ ← (uliftable.up $ sample β : gen (ulift.{max u v} β)),
+    pure $ total_function.with_default (list.to_finmap' xs) x),
+  shrink := total_function.shrink }
+
+-- TODO: support a non-constant codomain type
+instance dfinsupp.sampleable_ext [has_repr α] [has_repr β] : sampleable_ext (Π₀ a : α, β) :=
+{ proxy_repr := total_function α β,
+  interp := finsupp.to_dfinsupp ∘ total_function.apply_finsupp,
+  sample := (do
+    xs ← (sampleable.sample (list (α × β)) : gen (list (α × β))),
+    ⟨x⟩ ← (uliftable.up $ sample β : gen (ulift.{max u v} β)),
+    pure $ total_function.with_default (list.to_finmap' xs) x),
+  shrink := total_function.shrink }
+
+end finsupp
 
 section sampleable_ext
 open sampleable_ext

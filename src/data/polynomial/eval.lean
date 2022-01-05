@@ -596,7 +596,7 @@ ring_hom.ext $ λ x, map_id
 
 @[simp] lemma map_ring_hom_comp [semiring T] (f : S →+* T) (g : R →+* S) :
   (map_ring_hom f).comp (map_ring_hom g) = map_ring_hom (f.comp g) :=
-ring_hom.ext $ map_map g f
+ring_hom.ext $ polynomial.map_map g f
 
 lemma map_list_prod (L : list (polynomial R)) : L.prod.map f = (L.map $ map f).prod :=
 eq.symm $ list.prod_hom _ (map_ring_hom f).to_monoid_hom

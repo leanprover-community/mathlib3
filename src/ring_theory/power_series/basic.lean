@@ -924,6 +924,9 @@ by rw [coeff, finsupp.single_zero, X, mv_power_series.coeff_zero_X]
 @[simp] lemma coeff_one_X : coeff R 1 (X : power_series R) = 1 :=
 by rw [coeff_X, if_pos rfl]
 
+@[simp] lemma X_ne_zero [nontrivial R] : (X : power_series R) ≠ 0 :=
+λ H, by simpa only [coeff_one_X, one_ne_zero, map_zero] using congr_arg (coeff R 1) H
+
 lemma X_pow_eq (n : ℕ) : (X : power_series R)^n = monomial R n 1 :=
 mv_power_series.X_pow_eq _ n
 

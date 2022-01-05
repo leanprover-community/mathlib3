@@ -8,6 +8,8 @@ import topology.sheaves.presheaf
 import topology.sheaves.sheaf_condition.unique_gluing
 import category_theory.limits.types
 import category_theory.limits.preserves.filtered
+import category_theory.limits.final
+import topology.sober
 import tactic.elementwise
 
 /-!
@@ -183,7 +185,32 @@ begin
   refl,
 end
 
+lemma stalk_pushforward_iso_of_open_embedding {f : X ⟶ Y} (hf : open_embedding f)
+   (F : X.presheaf C) (x : X) : is_iso (F.stalk_pushforward _ f x) :=
+ begin
+   haveI := functor.initial_of_adjunction (hf.is_open_map.adjunction_nhds x),
+   convert is_iso.of_iso ((functor.final.colimit_iso (hf.is_open_map.functor_nhds x).op
+     ((open_nhds.inclusion (f x)).op ⋙ f _* F) : _).symm ≪≫ colim.map_iso _),
+   swap,
+   { fapply nat_iso.of_components,
+     { intro U,
+       refine F.map_iso (eq_to_iso _),
+       dsimp only [functor.op],
+       exact congr_arg op (subtype.eq $ set.preimage_image_eq (unop U).1.1 hf.inj) },
+     { intros U V i, erw [← F.map_comp, ← F.map_comp], congr } },
+   { ext U,
+     rw ← iso.comp_inv_eq,
+     erw colimit.ι_map_assoc,
+     rw [colimit.ι_pre, category.assoc],
+     erw [colimit.ι_map_assoc, colimit.ι_pre, ← F.map_comp_assoc],
+     apply colimit.w ((open_nhds.inclusion (f x)).op ⋙ f _* F) _,
+     dsimp only [functor.op],
+     refine ((hom_of_le _).op : op (unop U) ⟶ _),
+     exact set.image_preimage_subset _ _ },
+ end
+
 end stalk_pushforward
+
 section stalk_pullback
 
 /-- The morphism `ℱ_{f x} ⟶ (f⁻¹ℱ)ₓ` that factors through `(f_*f⁻¹ℱ)_{f x}`. -/
@@ -252,6 +279,49 @@ def stalk_pullback_iso (f : X ⟶ Y) (F : Y.presheaf C) (x : X) :
   end }
 
 end stalk_pullback
+
+section stalk_specializes
+
+variables {C}
+
+/-- If `x` specializes to `y`, then there is a natural map `F.stalk y ⟶ F.stalk x`. -/
+noncomputable
+def stalk_specializes (F : X.presheaf C) {x y : X} (h : x ⤳ y) : F.stalk y ⟶ F.stalk x :=
+begin
+  refine colimit.desc _ ⟨_,λ U, _,_⟩,
+  { exact colimit.ι ((open_nhds.inclusion x).op ⋙ F)
+      (op ⟨(unop U).1, (specializes_iff_forall_open.mp h _ (unop U).1.2 (unop U).2 : _)⟩) },
+  { intros U V i,
+    dsimp,
+    rw category.comp_id,
+    let U' : open_nhds x := ⟨_, (specializes_iff_forall_open.mp h _ (unop U).1.2 (unop U).2 : _)⟩,
+    let V' : open_nhds x := ⟨_, (specializes_iff_forall_open.mp h _ (unop V).1.2 (unop V).2 : _)⟩,
+    exact colimit.w ((open_nhds.inclusion x).op ⋙ F) (show V' ⟶ U', from i.unop).op }
+end
+
+@[simp, reassoc, elementwise]
+lemma germ_stalk_specializes (F : X.presheaf C) {U : opens X} {y : U} {x : X} (h : x ⤳ y) :
+  F.germ y ≫ F.stalk_specializes h =
+    F.germ ⟨x, specializes_iff_forall_open.mp h _ U.2 y.prop⟩ := colimit.ι_desc _ _
+
+@[simp, reassoc, elementwise]
+lemma germ_stalk_specializes' (F : X.presheaf C) {U : opens X} {x y : X} (h : x ⤳ y) (hy : y ∈ U) :
+  F.germ ⟨y, hy⟩ ≫ F.stalk_specializes h =
+    F.germ ⟨x, specializes_iff_forall_open.mp h _ U.2 hy⟩ := colimit.ι_desc _ _
+
+@[simp, reassoc, elementwise]
+lemma stalk_specializes_stalk_functor_map {F G : X.presheaf C} (f : F ⟶ G) {x y : X} (h : x ⤳ y) :
+  F.stalk_specializes h ≫ (stalk_functor C x).map f =
+    (stalk_functor C y).map f ≫ G.stalk_specializes h :=
+by { ext, delta stalk_functor, simpa [stalk_specializes] }
+
+@[simp, reassoc, elementwise]
+lemma stalk_specializes_stalk_pushforward (f : X ⟶ Y) (F : X.presheaf C) {x y : X} (h : x ⤳ y) :
+  (f _* F).stalk_specializes (f.map_specialization h) ≫ F.stalk_pushforward _ f x =
+    F.stalk_pushforward _ f y ≫ F.stalk_specializes h :=
+by { ext, delta stalk_pushforward, simpa [stalk_specializes] }
+
+end stalk_specializes
 
 section concrete
 

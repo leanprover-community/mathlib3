@@ -110,6 +110,15 @@ lemma integrable_on.congr_set_ae (h : integrable_on f t μ) (hst : s =ᵐ[μ] t)
   integrable_on f s μ :=
 h.mono_set_ae hst.le
 
+lemma integrable_on.congr_fun' (h : integrable_on f s μ) (hst : f =ᵐ[μ.restrict s] g) :
+  integrable_on g s μ :=
+integrable.congr h hst
+
+lemma integrable_on.congr_fun (h : integrable_on f s μ) (hst : eq_on f g s)
+  (hs : measurable_set s) :
+  integrable_on g s μ :=
+h.congr_fun' ((ae_restrict_iff' hs).2 (eventually_of_forall hst))
+
 lemma integrable.integrable_on (h : integrable f μ) : integrable_on f s μ :=
 h.mono_measure $ measure.restrict_le_self
 
@@ -362,7 +371,7 @@ lemma continuous_on.integrable_on_compact
 hs.integrable_on_of_nhds_within $ λ x hx, hf.integrable_at_nhds_within hs.measurable_set hx
 
 lemma continuous_on.integrable_on_Icc [borel_space E]
-  [conditionally_complete_linear_order β] [topological_space β] [order_topology β]
+  [preorder β] [topological_space β] [t2_space β] [compact_Icc_space β]
   [measurable_space β] [opens_measurable_space β] {μ : measure β} [is_locally_finite_measure μ]
   {a b : β} {f : β → E} (hf : continuous_on f (Icc a b)) :
   integrable_on f (Icc a b) μ :=
@@ -385,7 +394,7 @@ lemma continuous.integrable_on_compact
 hf.continuous_on.integrable_on_compact hs
 
 lemma continuous.integrable_on_Icc [borel_space E]
-  [conditionally_complete_linear_order β] [topological_space β] [order_topology β]
+  [preorder β] [topological_space β] [t2_space β] [compact_Icc_space β]
   [measurable_space β] [opens_measurable_space β] {μ : measure β} [is_locally_finite_measure μ]
   {a b : β} {f : β → E} (hf : continuous f) :
   integrable_on f (Icc a b) μ :=

@@ -42,7 +42,7 @@ already expounds the theory of multilinear maps, but the `2`-variables case is s
 to currently deserve its own treatment.
 
 `is_bounded_linear_map` is effectively an unbundled version of `continuous_linear_map` (defined
-in `topology.algebra.module`, theory over normed spaces developed in
+in `topology.algebra.module.basic`, theory over normed spaces developed in
 `analysis.normed_space.operator_norm`), albeit the name disparity. A bundled
 `continuous_linear_map` is to be preferred over a `is_bounded_linear_map` hypothesis. Historical
 artifact, really.
@@ -88,7 +88,7 @@ def to_linear_map (f : E → F) (h : is_bounded_linear_map 𝕜 f) : E →ₗ[�
 
 /-- Construct a continuous linear map from is_bounded_linear_map -/
 def to_continuous_linear_map {f : E → F} (hf : is_bounded_linear_map 𝕜 f) : E →L[𝕜] F :=
-{ cont := let ⟨C, Cpos, hC⟩ := hf.bound in linear_map.continuous_of_bound _ C hC,
+{ cont := let ⟨C, Cpos, hC⟩ := hf.bound in (to_linear_map f hf).continuous_of_bound C hC,
   ..to_linear_map f hf}
 
 lemma zero : is_bounded_linear_map 𝕜 (λ (x:E), (0:F)) :=

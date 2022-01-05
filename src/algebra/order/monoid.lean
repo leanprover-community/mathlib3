@@ -9,7 +9,7 @@ import algebra.group.prod
 import algebra.order.monoid_lemmas
 import order.bounded_order
 import order.min_max
-import order.rel_iso
+import order.hom.basic
 
 /-!
 # Ordered monoids
@@ -626,7 +626,7 @@ variables [canonically_linear_ordered_monoid α]
 
 @[priority 100, to_additive]  -- see Note [lower instance priority]
 instance canonically_linear_ordered_monoid.semilattice_sup : semilattice_sup α :=
-{ ..lattice_of_linear_order }
+{ ..linear_order.to_lattice }
 
 instance with_top.canonically_linear_ordered_add_monoid
   (α : Type*) [canonically_linear_ordered_add_monoid α] :

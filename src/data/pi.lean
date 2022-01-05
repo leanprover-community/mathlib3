@@ -55,6 +55,10 @@ instance has_mul [∀ i, has_mul $ f i] :
 @[to_additive] lemma mul_comp [has_mul γ] (x y : β → γ) (z : α → β) :
   (x * y) ∘ z = x ∘ z * y ∘ z := rfl
 
+@[simp] lemma bit0_apply [Π i, has_add $ f i] : (bit0 x) i = bit0 (x i) := rfl
+
+@[simp] lemma bit1_apply [Π i, has_add $ f i] [Π i, has_one $ f i] : (bit1 x) i = bit1 (x i) := rfl
+
 @[to_additive] instance has_inv [∀ i, has_inv $ f i] :
   has_inv (Π i : I, f i) :=
   ⟨λ f i, (f i)⁻¹⟩
@@ -136,6 +140,9 @@ variables (f)
 
 lemma single_injective (i : I) : function.injective (single i : f i → Π i, f i) :=
 function.update_injective _ i
+
+@[simp] lemma single_inj (i : I) {x y : f i} : pi.single i x = pi.single i y ↔ x = y :=
+(pi.single_injective _ _).eq_iff
 
 end
 end pi

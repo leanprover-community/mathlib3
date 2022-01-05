@@ -31,7 +31,7 @@ not hard but quite a pain to go about as there are many cases to consider.
 * https://en.wikipedia.org/wiki/Quasiconvex_function
 -/
 
-open set
+open function set
 
 variables {𝕜 E F β : Type*}
 
@@ -84,7 +84,7 @@ lemma convex.quasiconcave_on_of_convex_ge (hs : convex 𝕜 s) (h : ∀ r, conve
 
 lemma quasiconvex_on.convex [is_directed β (≤)] (hf : quasiconvex_on 𝕜 s f) : convex 𝕜 s :=
 λ x y hx hy a b ha hb hab,
-  let ⟨z, hxz, hyz⟩ := exists_ge_ge x y in (hf _ ⟨hx, hxz⟩ ⟨hy, hyz⟩ ha hb hab).1
+  let ⟨z, hxz, hyz⟩ := exists_ge_ge (f x) (f y) in (hf _ ⟨hx, hxz⟩ ⟨hy, hyz⟩ ha hb hab).1
 
 lemma quasiconcave_on.convex [is_directed β (swap (≤))] (hf : quasiconcave_on 𝕜 s f) : convex 𝕜 s :=
 hf.dual.convex

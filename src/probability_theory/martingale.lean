@@ -75,8 +75,10 @@ variables {E}
 
 namespace martingale
 
+@[protected]
 lemma adapted (hf : martingale f ℱ μ) : adapted ℱ f := hf.1
 
+@[protected]
 lemma measurable (hf : martingale f ℱ μ) (i : ι) : measurable[ℱ i] (f i) := hf.adapted i
 
 lemma condexp_ae_eq (hf : martingale f ℱ μ) {i j : ι} (hij : i ≤ j) :
@@ -138,8 +140,10 @@ lemma martingale_condexp (f : α → E) (ℱ : filtration ι m0) (μ : measure �
 
 namespace supermartingale
 
+@[protected]
 lemma adapted [has_le E] (hf : supermartingale f ℱ μ) : adapted ℱ f := hf.1
 
+@[protected]
 lemma measurable [has_le E] (hf : supermartingale f ℱ μ) (i : ι) : measurable[ℱ i] (f i) :=
 hf.adapted i
 
@@ -189,8 +193,10 @@ end supermartingale
 
 namespace submartingale
 
+@[protected]
 lemma adapted [has_le E] (hf : submartingale f ℱ μ) : adapted ℱ f := hf.1
 
+@[protected]
 lemma measurable [has_le E] (hf : submartingale f ℱ μ) (i : ι) : measurable[ℱ i] (f i) :=
 hf.adapted i
 

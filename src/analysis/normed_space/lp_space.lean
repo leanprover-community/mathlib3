@@ -3,7 +3,6 @@ Copyright (c) 2021 Heather Macbeth. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Heather Macbeth
 -/
-import algebra.direct_sum.basic
 import analysis.mean_inequalities
 import analysis.mean_inequalities_pow
 import topology.algebra.ordered.liminf_limsup
@@ -48,10 +47,9 @@ say that `∥-f∥ = ∥f∥`, instead of the non-working `f.norm_neg`.
 -/
 
 noncomputable theory
-open_locale nnreal ennreal big_operators direct_sum
+open_locale nnreal ennreal big_operators
 
 variables {α : Type*} {E : α → Type*} {p q : ℝ≥0∞} [Π i, normed_group (E i)]
-variables {F : Type*} [normed_group F]
 
 /-!
 ### `mem_ℓp` predicate
@@ -172,14 +170,6 @@ begin
       contrapose! hi,
       exact real.rpow_le_rpow_of_exponent_ge' (norm_nonneg _) hi.le hq.le hpq' } }
 end
-
-/-- A finitely-supported element of `Π i, E i` is `mem_ℓp` for every `p`. -/
-lemma _root_.direct_sum.mem_ℓp (f : ⨁ i, E i) : mem_ℓp f p :=
-(mem_ℓp_zero f.finite_support).of_exponent_ge (zero_le p)
-
-/-- A finitely-supported element of `α → F` is `mem_ℓp` for every `p`. -/
-lemma _root_.finsupp.mem_ℓp (f : α →₀ F) : mem_ℓp f p :=
-(mem_ℓp_zero f.finite_support).of_exponent_ge (zero_le p)
 
 lemma add {f g : Π i, E i} (hf : mem_ℓp f p) (hg : mem_ℓp g p) : mem_ℓp (f + g) p :=
 begin
@@ -307,25 +297,6 @@ variables {E p}
 @[simp] lemma coe_fn_add (f g : lp E p) : ⇑(f + g) = f + g := rfl
 
 @[simp] lemma coe_fn_sub (f g : lp E p) : ⇑(f - g) = f - g := rfl
-
-def _root_.direct_sum.mk_lp (f : ⨁ i, E i) (p) : lp E p :=
-⟨f, f.mem_ℓp⟩
-
-@[simp] lemma _root_.direct_sum.coe_mk_lp (f : ⨁ i, E i) : (f.mk_lp p : Π i, E i) = f := rfl
-
-@[simp] lemma _root_.direct_sum.coe_fn_mk_lp (f : ⨁ i, E i) : ⇑(f.mk_lp p) = f := rfl
-
-def _root_.finsupp.mk_lp (f : α →₀ F) (p) : lp (λ i, F) p :=
-⟨f, f.mem_ℓp⟩
-
-@[simp] lemma _root_.finsupp.coe_mk_lp (f : α →₀ F) : (f.mk_lp p : Π i, F) = f := rfl
-
-@[simp] lemma _root_.finsupp.coe_fn_mk_lp (f : α →₀ F) : ⇑(f.mk_lp p) = f := rfl
-
-lemma _root_.direct_sum.to_finsupp_mk_lp [decidable_eq α] [Π a : F, decidable (a ≠ 0)]
-  (f : ⨁ i : α, F) :
-  f.mk_lp p = (dfinsupp.to_finsupp f : α →₀ F).mk_lp p :=
-by ext; simp
 
 instance : has_norm (lp E p) :=
 { norm := λ f, if hp : p = 0 then by subst hp; exact (lp.mem_ℓp f).finite_dsupport.to_finset.card

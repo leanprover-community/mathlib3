@@ -223,14 +223,6 @@ end add_comm_group
 
 variables [normed_group E] [normed_space ℝ E]
 
-lemma affine_basis.interior_coord_pos [fintype ι] {o : E} {T : affine_basis ι ℝ E}
-  (h : o ∈ interior (convex_hull ℝ (set.range T.points))) {i : ι} :
-  0 < T.coord i o :=
-begin
-  rw interior_convex_hull_aff_basis T at h,
-  exact h i,
-end
-
 lemma affine_basis.fin3_interior_coord_mul_dist_eq [fintype ι]
   (σ : perm ι) {o d : E} (S T : affine_basis ι ℝ E) {i j : ι} (hperm : T.points = S.points ∘ σ)
   (h : (T.coord i) o • (d -ᵥ T.points i) + (T.coord j) o • (d -ᵥ T.points j) = (0 : E))

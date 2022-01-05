@@ -23,9 +23,11 @@ This file contains results about bases in normed affine spaces.
  * `interior_convex_hull_nonempty_iff_aff_span_eq_top`
 -/
 
+variables {ι 𝕜 E V P : Type*}
+
 section barycentric
 
-variables {ι 𝕜 E P : Type*} [nondiscrete_normed_field 𝕜] [complete_space 𝕜]
+variables [nondiscrete_normed_field 𝕜] [complete_space 𝕜]
 variables [normed_group E] [normed_space 𝕜 E] [finite_dimensional 𝕜 E]
 variables [metric_space P] [normed_add_torsor E P]
 variables (b : affine_basis ι 𝕜 P)
@@ -50,7 +52,7 @@ to this basis.
 
 TODO Restate this result for affine spaces (instead of vector spaces) once the definition of
 convexity is generalised to this setting. -/
-lemma interior_convex_hull_aff_basis {ι E : Type*} [fintype ι] [normed_group E] [normed_space ℝ E]
+lemma interior_convex_hull_aff_basis [fintype ι] [normed_group E] [normed_space ℝ E]
   (b : affine_basis ι ℝ E) :
   interior (convex_hull ℝ (range b.points)) = { x | ∀ i, 0 < b.coord i x } :=
 begin
@@ -74,7 +76,16 @@ begin
       interior_Ici, mem_Inter, mem_set_of_eq, mem_Ioi, mem_preimage], },
 end
 
-variables {V P : Type*} [normed_group V] [normed_space ℝ V] [metric_space P] [normed_add_torsor V P]
+lemma affine_basis.interior_coord_pos [fintype ι] [normed_group E] [normed_space ℝ E] {o : E}
+  {T : affine_basis ι ℝ E}
+  (h : o ∈ interior (convex_hull ℝ (set.range T.points))) {i : ι} :
+  0 < T.coord i o :=
+begin
+  rw interior_convex_hull_aff_basis T at h,
+  exact h i,
+end
+
+variables [normed_group V] [normed_space ℝ V] [metric_space P] [normed_add_torsor V P]
 include V
 
 open affine_map

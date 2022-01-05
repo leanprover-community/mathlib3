@@ -34,7 +34,7 @@ halting problem. Instead, this requirement is limited to only functions that are
 sense of `ω`-complete partial orders, which excludes the example because it is not monotone
 (making the input argument less defined can make `f` more defined). -/
 class lawful_fix (α : Type*) [omega_complete_partial_order α] extends has_fix α :=
-(fix_eq : ∀ {f : α →ₘ α}, continuous f → has_fix.fix f = f (has_fix.fix f))
+(fix_eq : ∀ {f : α →o α}, continuous f → has_fix.fix f = f (has_fix.fix f))
 
 lemma lawful_fix.fix_eq' {α} [omega_complete_partial_order α] [lawful_fix α]
   {f : α → α} (hf : continuous' f) :
@@ -47,7 +47,7 @@ open part nat nat.upto
 
 namespace fix
 
-variables (f : (Π a, part $ β a) →ₘ (Π a, part $ β a))
+variables (f : (Π a, part $ β a) →o (Π a, part $ β a))
 
 lemma approx_mono' {i : ℕ} : fix.approx f i ≤ fix.approx f (succ i) :=
 begin
@@ -122,7 +122,7 @@ end fix
 open fix
 
 variables {α}
-variables (f : (Π a, part $ β a) →ₘ (Π a, part $ β a))
+variables (f : (Π a, part $ β a) →o (Π a, part $ β a))
 
 open omega_complete_partial_order
 
@@ -173,11 +173,11 @@ namespace part
 
 /-- `to_unit` as a monotone function -/
 @[simps]
-def to_unit_mono (f : part α →ₘ part α) : (unit → part α) →ₘ (unit → part α) :=
+def to_unit_mono (f : part α →o part α) : (unit → part α) →o (unit → part α) :=
 { to_fun := λ x u, f (x u),
   monotone' := λ x y (h : x ≤ y) u, f.monotone $ h u }
 
-lemma to_unit_cont (f : part α →ₘ part α) (hc : continuous f) : continuous (to_unit_mono f)
+lemma to_unit_cont (f : part α →o part α) (hc : continuous f) : continuous (to_unit_mono f)
 | c := begin
   ext ⟨⟩ : 1,
   dsimp [omega_complete_partial_order.ωSup],
@@ -204,14 +204,14 @@ variables (α β γ)
 /-- `sigma.curry` as a monotone function. -/
 @[simps]
 def monotone_curry [∀ x y, preorder $ γ x y] :
-  (Π x : Σ a, β a, γ x.1 x.2) →ₘ (Π a (b : β a), γ a b) :=
+  (Π x : Σ a, β a, γ x.1 x.2) →o (Π a (b : β a), γ a b) :=
 { to_fun := curry,
   monotone' := λ x y h a b, h ⟨a,b⟩ }
 
 /-- `sigma.uncurry` as a monotone function. -/
 @[simps]
 def monotone_uncurry [∀ x y, preorder $ γ x y] :
-  (Π a (b : β a), γ a b) →ₘ (Π x : Σ a, β a, γ x.1 x.2) :=
+  (Π a (b : β a), γ a b) →o (Π x : Σ a, β a, γ x.1 x.2) :=
 { to_fun := uncurry,
   monotone' := λ x y h a, h a.1 a.2 }
 
@@ -236,7 +236,7 @@ variables [∀ x y, omega_complete_partial_order $ γ x y]
 
 section curry
 
-variables {f : (Π x (y : β x), γ x y) →ₘ (Π x (y : β x), γ x y)}
+variables {f : (Π x (y : β x), γ x y) →o (Π x (y : β x), γ x y)}
 variables (hc : continuous f)
 
 lemma uncurry_curry_continuous :

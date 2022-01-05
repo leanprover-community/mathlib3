@@ -46,7 +46,7 @@ by rw [interval, min_eq_left h, max_eq_right h]
 by { rw [interval, min_eq_right h, max_eq_left h] }
 
 lemma interval_swap (a b : α) : [a, b] = [b, a] :=
-or.elim (le_total a b) (by simp {contextual := tt}) (by simp {contextual := tt})
+by rw [interval, interval, min_comm, max_comm]
 
 lemma interval_of_lt (h : a < b) : [a, b] = Icc a b :=
 interval_of_le (le_of_lt h)
@@ -148,6 +148,13 @@ by simp [interval_oc, le_of_lt h]
 lemma forall_interval_oc_iff  {P : α → Prop} :
   (∀ x ∈ Ι a b, P x) ↔ (∀ x ∈ Ioc a b, P x) ∧ (∀ x ∈ Ioc b a, P x) :=
 by { dsimp [interval_oc], cases le_total a b with hab hab ; simp [hab] }
+
+lemma interval_oc_subset_interval_oc_of_interval_subset_interval {a b c d : α}
+  (h : [a, b] ⊆ [c, d]) : Ι a b ⊆ Ι c d :=
+Ioc_subset_Ioc (interval_subset_interval_iff_le.1 h).1 (interval_subset_interval_iff_le.1 h).2
+
+lemma interval_oc_swap (a b : α) : Ι a b = Ι b a :=
+by simp only [interval_oc, min_comm a b, max_comm a b]
 
 end linear_order
 

@@ -817,10 +817,7 @@ lemma card_common_neighbors_top [decidable_eq V] {v w : V} (h : v ≠ w) :
 begin
   simp only [common_neighbors_top_eq, ← set.to_finset_card, set.to_finset_sdiff],
   rw finset.card_sdiff,
-  { congr' 1,
-    { simp_rw [← finset.card_univ, ← set.to_finset_univ],
-      congr, },
-    { simp [h], } },
+  { simp [finset.card_univ, h], },
   { simp only [←set.subset_iff_to_finset_subset, set.subset_univ] },
 end
 

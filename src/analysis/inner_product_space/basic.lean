@@ -1591,12 +1591,6 @@ instance submodule.inner_product_space (W : submodule 𝕜 E) : inner_product_sp
 /-- The inner product on submodules is the same as on the ambient space. -/
 @[simp] lemma submodule.coe_inner (W : submodule 𝕜 E) (x y : W) : ⟪x, y⟫ = ⟪(x:E), ↑y⟫ := rfl
 
--- in another branch
-lemma submodule.coe_subtype {R : Type*} {M : Type*} [semiring R] [add_comm_monoid M]
-  {module_M : module R M} (p : submodule R M) :
-  ⇑(p.subtype) = coe :=
-rfl
-
 /-! ### Families of mutually-orthogonal subspaces of an inner product space -/
 
 section orthogonal_family

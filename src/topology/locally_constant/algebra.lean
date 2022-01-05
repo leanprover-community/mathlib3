@@ -171,8 +171,9 @@ variables [comm_semiring R] [semiring Y] [algebra R Y]
 
 instance : algebra R (locally_constant X Y) :=
 { to_ring_hom := const_ring_hom.comp $ algebra_map R Y,
-  commutes'   := by { intros, ext, exact algebra.commutes' _ _, },
-  smul_def'   := by { intros, ext, exact algebra.smul_def' _ _, }, }
+  commutes'    := by { intros, ext, exact algebra.commutes' _ _, },
+  smul_def'    := by { intros, ext, exact algebra.smul_def' _ _, },
+  op_smul_def' := by { intros, ext, exact algebra.op_smul_def' _ _, }, }
 
 @[simp] lemma coe_algebra_map (r : R) :
   ⇑(algebra_map R (locally_constant X Y) r) = algebra_map R (X → Y) r :=

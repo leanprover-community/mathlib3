@@ -201,7 +201,6 @@ lemma map_nat_degree_eq_nat_degree (F : polynomial R → polynomial R) (p)
   (F_mon_nat : ∀ n c, c ≠ 0 → (F (monomial n c)).nat_degree = n) :
   (F p).nat_degree = p.nat_degree :=
 begin
-  classical,
   apply induction_with_nat_degree_le (λ p, (F p).nat_degree = p.nat_degree) p.nat_degree,
   { simp [F0] },
   { intros n r r0 np,

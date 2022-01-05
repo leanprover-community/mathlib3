@@ -239,7 +239,7 @@ instance : has_mul (incidence_algebra 𝕜 α) :=
 
 end mul
 
-instance [preorder α] [locally_finite_order α] [decidable_eq α] [non_unital_non_assoc_semiring 𝕜] :
+instance [preorder α] [locally_finite_order α] [non_unital_non_assoc_semiring 𝕜] :
   non_unital_non_assoc_semiring (incidence_algebra 𝕜 α) :=
 { mul := (*),
   zero := 0,
@@ -363,6 +363,8 @@ instance [preorder α] [locally_finite_order α] [decidable_eq α] [semiring �
 section zeta
 variables [has_zero 𝕜] [has_one 𝕜] [has_le α] [@decidable_rel α (≤)]
 
+/-- The zeta function of the incidence algebra is the function that assigns 1 to every nonempty
+interval, convolution with this function sums functions over intervals. -/
 def zeta : incidence_algebra 𝕜 α := ⟨λ a b, if a ≤ b then 1 else 0, λ a b h, if_neg h⟩
 
 variables {𝕜 α}
@@ -386,6 +388,7 @@ end
 section mu
 variables [add_comm_group 𝕜] [has_one 𝕜] [preorder α] [locally_finite_order α] [decidable_eq α]
 
+/-- The moebius function of the incidence algebra as a bare function defined recursively. -/
 def mu_aux (a : α) : α → 𝕜
 | b := if h : a = b then 1 else
   -∑ x in (Ico a b).attach,
@@ -397,6 +400,7 @@ lemma mu_aux_apply (a b : α) :
   mu_aux 𝕜 α a b = if a = b then 1 else -∑ x in (Ico a b).attach, mu_aux 𝕜 α a x :=
 by { convert has_well_founded.wf.fix_eq _ _, refl }
 
+/-- The moebius function which inverts `zeta` as an element of the incidence algebra. -/
 def mu : incidence_algebra 𝕜 α := ⟨mu_aux 𝕜 α, λ a b, not_imp_comm.1 $ λ h, begin
   rw mu_aux_apply at h,
   split_ifs at h with hab hab,
@@ -671,9 +675,10 @@ end inversion_bot
 
 section prod
 section preorder
-variables {α β} [ring 𝕜] [preorder α] [preorder β] [locally_finite_order α]
-  [locally_finite_order β] [decidable_eq α] [decidable_eq β] [decidable_rel ((≤) : α → α → Prop)]
-  [decidable_rel ((≤) : β → β → Prop)]
+variables {α β} [ring 𝕜] [preorder α] [preorder β]
+
+section decidable_le
+variables [decidable_rel ((≤) : α → α → Prop)] [decidable_rel ((≤) : β → β → Prop)]
 
 lemma zeta_prod_apply (a b : α × β) : zeta 𝕜 (α × β) a b = zeta 𝕜 α a.1 b.1 * zeta 𝕜 β a.2 b.2 :=
 by simp [ite_and, prod.le_def]
@@ -681,8 +686,10 @@ by simp [ite_and, prod.le_def]
 lemma zeta_prod_mk (a₁ a₂ : α) (b₁ b₂ : β) :
   zeta 𝕜 (α × β) (a₁, b₁) (a₂, b₂) = zeta 𝕜 α a₁ a₂ * zeta 𝕜 β b₁ b₂ :=
 zeta_prod_apply _ _ _
+end decidable_le
 
 variables (α β)
+variables [locally_finite_order α] [locally_finite_order β] [decidable_eq α] [decidable_eq β]
 
 /-- A description of `mu` in a product of incidence algebras -/
 def mu_prod : incidence_algebra 𝕜 (α × β) :=
@@ -709,6 +716,7 @@ lemma one_prod_mk (a₁ a₂ : α) (b₁ b₂ : β) :
     (1 : incidence_algebra 𝕜 α) a₁ a₂ * (1 : incidence_algebra 𝕜 β) b₁ b₂ :=
 one_prod_apply _ _ _
 
+variables [decidable_rel ((≤) : α → α → Prop)] [decidable_rel ((≤) : β → β → Prop)]
 lemma prod_Icc (a b : α × β) : Icc a b = (Icc a.fst b.fst).product (Icc a.snd b.snd) := rfl
 
 end preorder

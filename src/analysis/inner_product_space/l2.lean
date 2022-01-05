@@ -27,11 +27,6 @@ namespace orthogonal_family
 variables {G : ι → Type*} [Π i, inner_product_space 𝕜 (G i)] {V : Π i, G i →ₗᵢ[𝕜] E}
   (hV : orthogonal_family 𝕜 V) [dec_V : Π i (x : G i), decidable (x ≠ 0)]
 
--- in other branch
-include 𝕜
-instance [Π i, complete_space (G i)] : complete_space (lp G 2) := sorry
-omit 𝕜
-
 include hV
 
 protected lemma summable_of_lp [complete_space E] (f : lp G 2) : summable (λ i, V i (f i)) :=

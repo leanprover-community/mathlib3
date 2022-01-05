@@ -21,6 +21,9 @@ variables {α : Type u} {β : Type v} {r : α → α → Prop} {s : β → β �
 
 open function
 
+lemma comm [is_symm α r] {a b : α} : r a b ↔ r b a := ⟨symm, symm⟩
+lemma comm_of (r : α → α → Prop) [is_symm α r] {a b : α} : r a b ↔ r b a := comm
+
 theorem is_refl.swap (r) [is_refl α r] : is_refl α (swap r) := ⟨refl_of r⟩
 theorem is_irrefl.swap (r) [is_irrefl α r] : is_irrefl α (swap r) := ⟨irrefl_of r⟩
 theorem is_trans.swap (r) [is_trans α r] : is_trans α (swap r) :=

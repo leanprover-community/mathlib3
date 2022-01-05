@@ -48,10 +48,6 @@ provide many aliases to dot notation-less lemmas. For example, `le_trans` is ali
 - expand module docs
 - automatic construction of dual definitions / theorems
 
-## See also
-
-- `algebra.order.basic` for basic lemmas about orders, and projection notation for orders
-
 ## Tags
 
 preorder, order, partial order, poset, linear order, chain
@@ -62,12 +58,16 @@ open function
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w} {r : α → α → Prop}
 
+lemma ge_antisymm [partial_order α] {a b : α} (hab : a ≤ b) (hba : b ≤ a) : b = a :=
+le_antisymm hba hab
+
 attribute [simp] le_refl
 attribute [ext] has_le
 
 alias le_trans        ← has_le.le.trans
 alias lt_of_le_of_lt  ← has_le.le.trans_lt
 alias le_antisymm     ← has_le.le.antisymm
+alias ge_antisymm     ← has_le.le.antisymm'
 alias lt_of_le_of_ne  ← has_le.le.lt_of_ne
 alias lt_of_le_not_le ← has_le.le.lt_of_not_le
 alias lt_or_eq_of_le  ← has_le.le.lt_or_eq

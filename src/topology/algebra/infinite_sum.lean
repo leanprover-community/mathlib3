@@ -891,7 +891,7 @@ ge_of_tendsto hf (eventually_at_top.2 ⟨s, λ t hst,
 
 lemma is_lub_has_sum (h : ∀ b, 0 ≤ f b) (hf : has_sum f a) :
   is_lub (set.range (λ s : finset β, ∑ b in s, f b)) a :=
-is_lub_of_tendsto (finset.sum_mono_set_of_nonneg h) hf
+is_lub_of_tendsto_at_top (finset.sum_mono_set_of_nonneg h) hf
 
 lemma le_has_sum (hf : has_sum f a) (b : β) (hb : ∀ b' ≠ b, 0 ≤ f b') : f b ≤ a :=
 calc f b = ∑ b in {b}, f b : finset.sum_singleton.symm
@@ -1014,7 +1014,7 @@ lemma tsum_ne_zero_iff (hf : summable f) : ∑' i, f i ≠ 0 ↔ ∃ x, f x ≠ 
 by rw [ne.def, tsum_eq_zero_iff hf, not_forall]
 
 lemma is_lub_has_sum' (hf : has_sum f a) : is_lub (set.range (λ s : finset β, ∑ b in s, f b)) a :=
-is_lub_of_tendsto (finset.sum_mono_set f) hf
+is_lub_of_tendsto_at_top (finset.sum_mono_set f) hf
 
 end canonically_ordered
 

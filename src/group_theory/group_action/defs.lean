@@ -222,11 +222,12 @@ instance is_scalar_tower.op_right [has_scalar M α] [has_scalar M N]
                  smul_assoc]⟩
 
 namespace has_scalar
+variables [has_scalar M α]
 
 /-- Auxiliary definition for `has_scalar.comp`, `mul_action.comp_hom`,
 `distrib_mul_action.comp_hom`, `module.comp_hom`, etc. -/
 @[simp, to_additive  /-" Auxiliary definition for `has_vadd.comp`, `add_action.comp_hom`, etc. "-/]
-def comp.smul [has_scalar M α] (g : N → M) (n : N) (a : α) : α :=
+def comp.smul (g : N → M) (n : N) (a : α) : α :=
 g n • a
 
 variables (α)
@@ -237,7 +238,7 @@ See note [reducible non-instances]. Since this is reducible, we make sure to go 
 `has_scalar.comp.smul` to prevent typeclass inference unfolding too far. -/
 @[reducible, to_additive /-" An additive action of `M` on `α` and a function `N → M` induces
   an additive action of `N` on `α` "-/]
-def comp [has_scalar M α] (g : N → M) : has_scalar N α :=
+def comp (g : N → M) : has_scalar N α :=
 { smul := has_scalar.comp.smul g }
 
 variables {α}
@@ -245,23 +246,31 @@ variables {α}
 /-- Given a tower of scalar actions `M → α → β`, if we use `has_scalar.comp`
 to pull back both of `M`'s actions by a map `g : N → M`, then we obtain a new
 tower of scalar actions `N → α → β`.
+
+This cannot be an instance because it can cause infinite loops whenever the `has_scalar` arguments
+are still metavariables.
 -/
 @[priority 100]
-instance comp.is_scalar_tower {_ : has_scalar M α} {_ : has_scalar M β}
-  [has_scalar α β] [is_scalar_tower M α β]
+lemma comp.is_scalar_tower [has_scalar M β] [has_scalar α β] [is_scalar_tower M α β]
   (g : N → M) :
   (by haveI := comp α g; haveI := comp β g; exact is_scalar_tower N α β) :=
 by exact {smul_assoc := λ n, @smul_assoc _ _ _ _ _ _ _ (g n) }
 
+/--
+This cannot be an instance because it can cause infinite loops whenever the `has_scalar` arguments
+are still metavariables.
+-/
 @[priority 100]
-instance comp.smul_comm_class  {_ : has_scalar M α} {_ : has_scalar M β}
-  [has_scalar β α] [smul_comm_class M β α] (g : N → M) :
+lemma comp.smul_comm_class [has_scalar β α] [smul_comm_class M β α] (g : N → M) :
   (by haveI := comp α g; exact smul_comm_class N β α) :=
 by exact {smul_comm := λ n, @smul_comm _ _ _ _ _ _ (g n) }
 
+/--
+This cannot be an instance because it can cause infinite loops whenever the `has_scalar` arguments
+are still metavariables.
+-/
 @[priority 100]
-instance comp.smul_comm_class' {_ : has_scalar M α} {_ : has_scalar M β}
-  [has_scalar β α] [smul_comm_class β M α] (g : N → M) :
+lemma comp.smul_comm_class' [has_scalar β α] [smul_comm_class β M α] (g : N → M) :
   (by haveI := comp α g; exact smul_comm_class β N α) :=
 by exact {smul_comm := λ _ n, @smul_comm _ _ _ _ _ _ _ (g n) }
 

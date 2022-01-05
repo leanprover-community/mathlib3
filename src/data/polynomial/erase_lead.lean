@@ -212,4 +212,31 @@ begin
   { exact rfl.le }
 end
 
+lemma map_nat_degree_eq_sub (F : polynomial R → polynomial R) {p : polynomial R} {k : ℕ}
+  (pk : k ≤ p.nat_degree)
+  (F0 : F 0 = 0)
+  (Fk : ∀ f : polynomial R, f.nat_degree < k → F f = 0)
+  (F_add : ∀ p q, F (p + q) = F p + F q)
+  (F_mon_nat : ∀ n c, c ≠ 0 → (F (monomial n c)).nat_degree = n - k) :
+  (F p).nat_degree = p.nat_degree - k :=
+begin
+  revert pk,
+  refine induction_with_nat_degree_le
+    (λ p, k ≤ p.nat_degree → (F p).nat_degree = p.nat_degree - k) p.nat_degree _ _ _ _ rfl.le,
+  { simp [F0] },
+  { intros n r r0 np kd,
+    rw [nat_degree_C_mul_X_pow _ _ r0, ← monomial_eq_C_mul_X, F_mon_nat _ _ r0] },
+  { intros f g fg fp gp kf kg kfg,
+    rw [nat_degree_add_eq_right_of_nat_degree_lt fg, F_add],
+    by_cases FG : k ≤ f.nat_degree,
+    { rw [nat_degree_add_eq_right_of_nat_degree_lt, kg],
+      { exact kfg.trans (nat_degree_add_eq_right_of_nat_degree_lt fg).le },
+      { rw [kf FG, kg],exact (tsub_lt_tsub_iff_right FG).mpr fg,
+        exact FG.trans fg.le } },
+    { rw [Fk f (not_le.mp FG), zero_add],
+      by_cases KG : k ≤ g.nat_degree,
+      { exact kg KG },
+      { simpa [Fk g (not_le.mp KG)] using (nat.sub_eq_zero_of_le (not_le.mp KG).le).symm } } }
+end
+
 end polynomial

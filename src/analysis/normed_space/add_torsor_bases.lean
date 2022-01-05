@@ -32,13 +32,13 @@ variables (b : affine_basis ι 𝕜 P)
 
 @[continuity]
 lemma continuous_barycentric_coord (i : ι) : continuous (b.coord i) :=
-affine_map.continuous_of_finite_dimensional _
+(b.coord i).continuous_of_finite_dimensional
 
 local attribute [instance] finite_dimensional.complete
 
 lemma is_open_map_barycentric_coord [nontrivial ι] (i : ι) :
   is_open_map (b.coord i) :=
-open_mapping_affine (continuous_barycentric_coord b i) (b.surjective_coord i)
+(b.coord i).is_open_map (continuous_barycentric_coord b i) (b.surjective_coord i)
 
 end barycentric
 

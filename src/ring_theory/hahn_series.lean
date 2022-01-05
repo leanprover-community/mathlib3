@@ -908,6 +908,7 @@ variables [comm_semiring R] {A : Type*} [semiring A] [algebra R A]
 instance : algebra R (hahn_series Γ A) :=
 { to_ring_hom := C.comp (algebra_map R A),
   smul_def' := λ r x, by { ext, simp },
+  op_smul_def' := λ r x, by { ext, simp [algebra.op_smul_def] },
   commutes' := λ r x, by { ext, simp only [smul_coeff, single_zero_mul_eq_smul, ring_hom.coe_comp,
     ring_hom.to_fun_eq_coe, C_apply, function.comp_app, algebra_map_smul, mul_single_zero_coeff],
     rw [← algebra.commutes, algebra.smul_def], }, }

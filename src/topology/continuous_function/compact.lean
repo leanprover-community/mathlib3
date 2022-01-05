@@ -188,6 +188,28 @@ instance : normed_ring C(α,R) :=
 { norm_mul := λ f g, norm_mul_le (mk_of_compact f) (mk_of_compact g),
   ..(infer_instance : normed_group C(α,R)) }
 
+lemma continuous_const [nonempty α] : continuous (continuous_map.const : R → C(α, R)) :=
+begin
+  rw metric.continuous_iff,
+  intros a ε hε,
+  refine ⟨ε/2, (show 0<ε/2, by linarith), λ b hb, _⟩,
+  rw dist_eq_norm at hb ⊢,
+  refine lt_of_le_of_lt _ (show ε/2 < ε, by linarith),
+  rw continuous_map.norm_eq_supr_norm,
+  apply csupr_le,
+  intro x,
+  apply le_of_lt,
+  simp [hb],
+end
+
+instance [nonempty α] : has_continuous_smul R C(α, R) :=
+⟨begin
+  change continuous ((λ p, p.1 * p.2 : C(α, R) × C(α, R) → C(α, R)) ∘
+    (λ p, ((continuous_map.const p.fst), p.2) : R × C(α, R) → C(α, R) × C(α, R))),
+  have h := @continuous_const α _ _ R _ _,
+  continuity,
+end⟩
+
 end
 
 section

@@ -601,11 +601,13 @@ begin
   exact this.trans_lt hfg,
 end
 
-lemma norm_apply_le_of_tendsto {C : ℝ} {F : ℕ → lp E ∞} (hCF : ∀ᶠ k in at_top, ∥F k∥ ≤ C)
-  {f : Π a, E a} (hf : tendsto (id (λ i, F i) : ℕ → Π a, E a) at_top (𝓝 f)) (a : α) :
+variables {ι : Type*} {l : filter ι} [filter.ne_bot l]
+
+lemma norm_apply_le_of_tendsto {C : ℝ} {F : ι → lp E ∞} (hCF : ∀ᶠ k in l, ∥F k∥ ≤ C)
+  {f : Π a, E a} (hf : tendsto (id (λ i, F i) : ι → Π a, E a) l (𝓝 f)) (a : α) :
   ∥f a∥ ≤ C :=
 begin
-  have : tendsto (λ k, ∥F k a∥) at_top (𝓝 ∥f a∥) :=
+  have : tendsto (λ k, ∥F k a∥) l (𝓝 ∥f a∥) :=
     (tendsto.comp (continuous_apply a).continuous_at hf).norm,
   refine le_of_tendsto this (hCF.mono _),
   intros k hCFk,
@@ -616,8 +618,8 @@ variables [_i : fact (1 ≤ p)]
 
 include _i
 
-lemma sum_rpow_le_of_tendsto (hp : p ≠ ⊤) {C : ℝ} {F : ℕ → lp E p} (hCF : ∀ᶠ k in at_top, ∥F k∥ ≤ C)
-  {f : Π a, E a} (hf : tendsto (id (λ i, F i) : ℕ → Π a, E a) at_top (𝓝 f)) (s : finset α) :
+lemma sum_rpow_le_of_tendsto (hp : p ≠ ⊤) {C : ℝ} {F : ι → lp E p} (hCF : ∀ᶠ k in l, ∥F k∥ ≤ C)
+  {f : Π a, E a} (hf : tendsto (id (λ i, F i) : ι → Π a, E a) l (𝓝 f)) (s : finset α) :
   ∑ (i : α) in s, ∥f i∥ ^ p.to_real ≤ C ^ p.to_real :=
 begin
   have hp' : p ≠ 0 := (ennreal.zero_lt_one.trans_le _i.elim).ne',
@@ -637,9 +639,9 @@ end
 
 /-- "Semicontinuity of the `lp` norm": If all sufficiently large elements of a sequence in `lp E p`
  have `lp` norm `≤ C`, then the pointwise limit, if it exists, also has `lp` norm `≤ C`. -/
-lemma norm_le_of_tendsto {C : ℝ} (hC : 0 ≤ C) {F : ℕ → lp E p}
-  (hCF : ∀ᶠ k in at_top, ∥F k∥ ≤ C) {f : lp E p}
-  (hf : tendsto (id (λ i, F i) : ℕ → Π a, E a) at_top (𝓝 f)) :
+lemma norm_le_of_tendsto {C : ℝ} (hC : 0 ≤ C) {F : ι → lp E p}
+  (hCF : ∀ᶠ k in l, ∥F k∥ ≤ C) {f : lp E p}
+  (hf : tendsto (id (λ i, F i) : ι → Π a, E a) l (𝓝 f)) :
   ∥f∥ ≤ C :=
 begin
   tactic.unfreeze_local_instances,
@@ -653,8 +655,8 @@ begin
 end
 
 /-- If `f` is the pointwise limit of a bounded sequence in `lp E p`, then `f` is in `lp E p`. -/
-lemma mem_ℓp_of_tendsto {F : ℕ → lp E p} (hF : metric.bounded (set.range F)) {f : Π a, E a}
-  (hf : tendsto (id (λ i, F i) : ℕ → Π a, E a) at_top (𝓝 f)) :
+lemma mem_ℓp_of_tendsto {F : ι → lp E p} (hF : metric.bounded (set.range F)) {f : Π a, E a}
+  (hf : tendsto (id (λ i, F i) : ι → Π a, E a) l (𝓝 f)) :
   mem_ℓp f p :=
 begin
   obtain ⟨C, hC, hCF'⟩ := hF.exists_norm_le',

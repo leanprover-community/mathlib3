@@ -65,7 +65,7 @@ by refine_struct { zero := (0 : ulift α), one := 1, add := (+), mul := (*),
 tactic.pi_instance_derive_field
 
 instance non_unital_non_assoc_ring [non_unital_non_assoc_ring α] :
-non_unital_non_assoc_ring (ulift α) :=
+  non_unital_non_assoc_ring (ulift α) :=
 by refine_struct { zero := (0 : ulift α), add := (+), mul := (*), sub := has_sub.sub,
   neg := has_neg.neg, nsmul := add_monoid.nsmul, zsmul := sub_neg_monoid.zsmul };
 tactic.pi_instance_derive_field

@@ -125,10 +125,7 @@ lemma is_greatest.mem_maximals (h : is_greatest s a) : a ∈ maximals (≤) s :=
 ⟨h.1, λ b hb, (h.2 hb).antisymm'⟩
 
 lemma is_least.minimals_eq (h : is_least s a) : minimals (≤) s = {a} :=
-eq_singleton_iff_unique_mem.2 ⟨h.mem_minimals, λ b hb, sorry⟩
+eq_singleton_iff_unique_mem.2 ⟨h.mem_minimals, λ b hb, hb.2 h.1 $ h.2 hb.1⟩
 
-lemma is_greatest.maximals_eq (h : is_greatest s a) : maximals (≤) s = {a}
-
-@[simp] lemma minimals_eq_singleton_iff : minimals (≤) s = {a} ↔ is_least s a :=
-
-@[simp] lemma maximals_eq_singleton_iff : maximals (≤) s = {a} ↔ is_greatest s a :=
+lemma is_greatest.maximals_eq (h : is_greatest s a) : maximals (≤) s = {a} :=
+eq_singleton_iff_unique_mem.2 ⟨h.mem_maximals, λ b hb, hb.2 h.1 $ h.2 hb.1⟩

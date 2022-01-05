@@ -199,12 +199,7 @@ def dyadic_map : localization.away (2 : ℤ) →+ surreal :=
     { have := nat.one_le_pow y₃ 2 nat.succ_pos',
       linarith }
     end,
-  map_zero' :=
-  begin
-    rw ← localization.mk_zero 1,
-    apply localization.lift_on_mk,
-    apply_instance,
-  end,
+  map_zero' := localization.lift_on_zero _ _,
   map_add' := λ x y, localization.induction_on₂ x y $
   begin
     rintro ⟨a, ⟨b, ⟨b', rfl⟩⟩⟩ ⟨c, ⟨d, ⟨d', rfl⟩⟩⟩,

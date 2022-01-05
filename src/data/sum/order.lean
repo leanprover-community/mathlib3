@@ -15,6 +15,11 @@ relation instances for `sum.lift_rel` and `sum.lex`.
 We declare the disjoint sum of orders as the default set of instances. The linear order goes on a
 type synonym.
 
+## Main declarations
+
+* `sum.has_le`, `sum.has_lt`: Disjoint sum of orders.
+* `sum.lex.has_le`, `sum.lex.has_lt`: Lexicographic/linear sum of orders.
+
 ## Notation
 
 * `α ⊕ₗ β`:  The linear sum of `α` and `β`.
@@ -158,56 +163,48 @@ end⟩
 
 @[simp] lemma no_bot_order_iff [has_lt α] [has_lt β] :
   no_bot_order (α ⊕ β) ↔ no_bot_order α ∧ no_bot_order β :=
-⟨by { introI, exact ⟨⟨λ a, begin
-  obtain ⟨b, h⟩ := no_bot (inl a : α ⊕ β),
-  cases b,
+⟨λ _, by exactI ⟨⟨λ a, begin
+  obtain ⟨b | b, h⟩ := no_bot (inl a : α ⊕ β),
   { exact ⟨b, inl_lt_inl_iff.1 h⟩ },
   { exact (not_inr_lt_inl h).elim }
 end⟩, ⟨λ a, begin
-  obtain ⟨b, h⟩ := no_bot (inr a : α ⊕ β),
-  cases b,
+  obtain ⟨b | b, h⟩ := no_bot (inr a : α ⊕ β),
   { exact (not_inl_lt_inr h).elim },
   { exact ⟨b, inr_lt_inr_iff.1 h⟩ }
-end⟩⟩ }, λ h, @sum.no_bot_order _ _ _ _ h.1 h.2⟩
+end⟩⟩, λ h, @sum.no_bot_order _ _ _ _ h.1 h.2⟩
 
 @[simp] lemma no_top_order_iff [has_lt α] [has_lt β] :
   no_top_order (α ⊕ β) ↔ no_top_order α ∧ no_top_order β :=
-⟨by { introI, exact ⟨⟨λ a, begin
-  obtain ⟨b, h⟩ := no_top (inl a : α ⊕ β),
-  cases b,
+⟨λ _, by exactI ⟨⟨λ a, begin
+  obtain ⟨b | b, h⟩ := no_top (inl a : α ⊕ β),
   { exact ⟨b, inl_lt_inl_iff.1 h⟩ },
   { exact (not_inl_lt_inr h).elim }
 end⟩, ⟨λ a, begin
-  obtain ⟨b, h⟩ := no_top (inr a : α ⊕ β),
-  cases b,
+  obtain ⟨b | b, h⟩ := no_top (inr a : α ⊕ β),
   { exact (not_inr_lt_inl h).elim },
   { exact ⟨b, inr_lt_inr_iff.1 h⟩ }
-end⟩⟩ }, λ h, @sum.no_top_order _ _ _ _ h.1 h.2⟩
+end⟩⟩, λ h, @sum.no_top_order _ _ _ _ h.1 h.2⟩
 
 instance densely_ordered [has_lt α] [has_lt β] [densely_ordered α] [densely_ordered β] :
   densely_ordered (α ⊕ β) :=
-⟨λ a b, match a, b with
-| inl a, inl b := λ h, let ⟨c, ha, hb⟩ := exists_between (inl_lt_inl_iff.1 h) in
-                    ⟨to_lex (inl c), inl_lt_inl_iff.2 ha, inl_lt_inl_iff.2 hb⟩
-| inl a, inr b := λ h, (not_inl_lt_inr h).elim
-| inr a, inl b := λ h, (not_inr_lt_inl h).elim
-| inr a, inr b := λ h, let ⟨c, ha, hb⟩ := exists_between (inr_lt_inr_iff.1 h) in
-                    ⟨to_lex (inr c), inr_lt_inr_iff.2 ha, inr_lt_inr_iff.2 hb⟩
+⟨λ a b h, match a, b, h with
+| inl a, inl b, lift_rel.inl h := let ⟨c, ha, hb⟩ := exists_between h in
+                    ⟨to_lex (inl c), lift_rel.inl ha, lift_rel.inl hb⟩
+| inr a, inr b, lift_rel.inr h := let ⟨c, ha, hb⟩ := exists_between h in
+                    ⟨to_lex (inr c), lift_rel.inr ha, lift_rel.inr hb⟩
 end⟩
 
 @[simp] lemma densely_ordered_iff [has_lt α] [has_lt β] :
   densely_ordered (α ⊕ β) ↔ densely_ordered α ∧ densely_ordered β :=
-⟨by { introI, exact ⟨⟨λ a b h, begin
-  obtain ⟨c, ha, hb⟩ := @exists_between (α ⊕ β) _ _ _ _ (inl_lt_inl_iff.2 h),
-  cases c,
+⟨λ _, by exactI ⟨⟨λ a b h, begin
+  obtain ⟨c | c, ha, hb⟩ := @exists_between (α ⊕ β) _ _ _ _ (inl_lt_inl_iff.2 h),
   { exact ⟨c, inl_lt_inl_iff.1 ha, inl_lt_inl_iff.1 hb⟩ },
   { exact (not_inl_lt_inr ha).elim }
 end⟩, ⟨λ a b h, begin
-  obtain ⟨c, ha, hb⟩ := @exists_between (α ⊕ β) _ _ _ _ (inr_lt_inr_iff.2 h),
-  cases c,
+  obtain ⟨c | c, ha, hb⟩ := @exists_between (α ⊕ β) _ _ _ _ (inr_lt_inr_iff.2 h),
   { exact (not_inl_lt_inr hb).elim },
   { exact ⟨c, inr_lt_inr_iff.1 ha, inr_lt_inr_iff.1 hb⟩ }
-end⟩⟩}, λ h, @sum.densely_ordered _ _ _ _ h.1 h.2⟩
+end⟩⟩, λ h, @sum.densely_ordered _ _ _ _ h.1 h.2⟩
 
 @[simp] lemma swap_le_swap_iff [has_le α] [has_le β] {a b : α ⊕ β} : a.swap ≤ b.swap ↔ a ≤ b :=
 by cases a; cases b;
@@ -364,26 +361,24 @@ end⟩
 instance densely_ordered_of_no_top_order [has_lt α] [has_lt β] [densely_ordered α]
   [densely_ordered β] [no_top_order α] :
   densely_ordered (α ⊕ₗ β) :=
-⟨λ a b, match a, b with
-| inl a, inl b := λ h, let ⟨c, ha, hb⟩ := exists_between (inl_lt_inl_iff.1 h) in
+⟨λ a b h, match a, b, h with
+| inl a, inl b, lex.inl h := let ⟨c, ha, hb⟩ := exists_between h in
                     ⟨to_lex (inl c), inl_lt_inl_iff.2 ha, inl_lt_inl_iff.2 hb⟩
-| inl a, inr b := λ _, let ⟨c, h⟩ := no_top a in
+| inl a, inr b, lex.sep _ _ := let ⟨c, h⟩ := no_top a in
                     ⟨to_lex (inl c), inl_lt_inl_iff.2 h, inl_lt_inr _ _⟩
-| inr a, inl b := λ h, (not_inr_lt_inl h).elim
-| inr a, inr b := λ h, let ⟨c, ha, hb⟩ := exists_between (inr_lt_inr_iff.1 h) in
+| inr a, inr b, lex.inr h := let ⟨c, ha, hb⟩ := exists_between h in
                     ⟨to_lex (inr c), inr_lt_inr_iff.2 ha, inr_lt_inr_iff.2 hb⟩
 end⟩
 
 instance densely_ordered_of_no_bot_order [has_lt α] [has_lt β] [densely_ordered α]
   [densely_ordered β] [no_bot_order β] :
   densely_ordered (α ⊕ₗ β) :=
-⟨λ a b, match a, b with
-| inl a, inl b := λ h, let ⟨c, ha, hb⟩ := exists_between (inl_lt_inl_iff.1 h) in
+⟨λ a b h, match a, b, h with
+| inl a, inl b, lex.inl h := let ⟨c, ha, hb⟩ := exists_between h in
                     ⟨to_lex (inl c), inl_lt_inl_iff.2 ha, inl_lt_inl_iff.2 hb⟩
-| inl a, inr b := λ _, let ⟨c, h⟩ := no_bot b in
+| inl a, inr b, lex.sep _ _ := let ⟨c, h⟩ := no_bot b in
                     ⟨to_lex (inr c), inl_lt_inr _ _, inr_lt_inr_iff.2 h⟩
-| inr a, inl b := λ h, (not_inr_lt_inl h).elim
-| inr a, inr b := λ h, let ⟨c, ha, hb⟩ := exists_between (inr_lt_inr_iff.1 h) in
+| inr a, inr b, lex.inr h := let ⟨c, ha, hb⟩ := exists_between h in
                     ⟨to_lex (inr c), inr_lt_inr_iff.2 ha, inr_lt_inr_iff.2 hb⟩
 end⟩
 
@@ -410,9 +405,9 @@ def sum_assoc (α β γ : Type*) [has_le α] [has_le β] [has_le γ] : (α ⊕ �
 { map_rel_iff' := by { rintro ((a | a) | a) ((b | b) | b); simp },
   ..equiv.sum_assoc α β γ }
 
-@[simp] lemma sum_assoc_apply_in1 (a : α) : sum_assoc α β γ (inl (inl a)) = inl a := rfl
-@[simp] lemma sum_assoc_apply_in2 (b : β) : sum_assoc α β γ (inl (inr b)) = inr (inl b) := rfl
-@[simp] lemma sum_assoc_apply_in3 (c : γ) : sum_assoc α β γ (inr c) = inr (inr c) := rfl
+@[simp] lemma sum_assoc_apply_inl_inl (a : α) : sum_assoc α β γ (inl (inl a)) = inl a := rfl
+@[simp] lemma sum_assoc_apply_inl_inr (b : β) : sum_assoc α β γ (inl (inr b)) = inr (inl b) := rfl
+@[simp] lemma sum_assoc_apply_inr (c : γ) : sum_assoc α β γ (inr c) = inr (inr c) := rfl
 
 /-- `order_dual` is distributive over `⊕` up to an order isomorphism. -/
 def sum_dual_distrib (α β : Type*) [has_le α] [has_le β] :
@@ -457,13 +452,13 @@ def sum_lex_assoc (α β γ : Type*) [has_le α] [has_le β] [has_le γ] :
   end,
   ..equiv.sum_assoc α β γ }
 
-@[simp] lemma sum_lex_assoc_apply_in1 (a : α) :
+@[simp] lemma sum_lex_assoc_apply_inl_inl (a : α) :
   sum_lex_assoc α β γ (to_lex $ inl $ to_lex $ inl a) = to_lex (inl a) := rfl
 
-@[simp] lemma sum_lex_assoc_apply_in2 (b : β) :
+@[simp] lemma sum_lex_assoc_apply_inl_inr (b : β) :
   sum_lex_assoc α β γ (to_lex $ inl $ to_lex $ inr b) = to_lex (inr $ to_lex $ inl b) := rfl
 
-@[simp] lemma sum_lex_assoc_apply_in3 (c : γ) :
+@[simp] lemma sum_lex_assoc_apply_inr (c : γ) :
   sum_lex_assoc α β γ (to_lex $ inr c) = to_lex (inr $ to_lex $ inr c) := rfl
 
 /-- `order_dual` is antidistributive over `⊕ₗ` up to an order isomorphism. -/
@@ -482,7 +477,7 @@ def sum_lex_dual_antidistrib (α β : Type*) [has_le α] [has_le β] :
 end,
   ..equiv.sum_comm α β }
 
-@[simp] lemma sum_sum_lex_dual_antidistrib_inl (a : α) :
+@[simp] lemma sum_lex_dual_antidistrib_inl (a : α) :
   sum_lex_dual_antidistrib α β (to_dual (inl a)) = inr (to_dual a) := rfl
 
 @[simp] lemma sum_lex_dual_antidistrib_inr (b : β) :

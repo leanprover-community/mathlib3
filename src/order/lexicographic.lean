@@ -51,6 +51,9 @@ def of_lex : lex α ≃ α := to_lex.symm
 @[simp] lemma to_lex_inj {a b : α} : to_lex a = to_lex b ↔ a = b := iff.rfl
 @[simp] lemma of_lex_inj {a b : lex α} :  of_lex a = of_lex b ↔ a = b := iff.rfl
 
+/-- A recursor for `lex`. Use as `induction x using lex.rec`. -/
+protected def lex.rec {β : lex α → Sort*} (h : Π a, β (to_lex a)) : Π a, β a := λ a, h (of_lex a)
+
 namespace prod.lex
 
 notation α ` ×ₗ `:35 β:34 := lex (prod α β)

@@ -18,10 +18,13 @@ universes u v
 
 variables {α : Type u} {β : Type v} {r : α → α → Prop} {s : β → β → Prop}
 
+open function
+
+/-- A version of `antisymm` with `r` explicit.
+
+This lemma matches the lemmas from lean core in `init.algebra.classes`, but is missing there.  -/
 @[elab_simple]
 lemma antisymm_of (r : α → α → Prop) [is_antisymm α r] {a b : α} : r a b → r b a → a = b := antisymm
-
-open function
 
 theorem is_refl.swap (r) [is_refl α r] : is_refl α (swap r) := ⟨refl_of r⟩
 theorem is_irrefl.swap (r) [is_irrefl α r] : is_irrefl α (swap r) := ⟨irrefl_of r⟩

@@ -684,7 +684,7 @@ lemma mem_ℓp_of_tendsto {F : ι → lp E p} (hF : metric.bounded (set.range F)
   (hf : tendsto (id (λ i, F i) : ι → Π a, E a) l (𝓝 f)) :
   mem_ℓp f p :=
 begin
-  obtain ⟨C, hC, hCF'⟩ := hF.exists_nonneg_norm_le,
+  obtain ⟨C, hC, hCF'⟩ := hF.exists_pos_norm_le,
   have hCF : ∀ k, ∥F k∥ ≤ C := λ k, hCF' _ ⟨k, rfl⟩,
   tactic.unfreeze_local_instances,
   rcases eq_top_or_lt_top p with rfl | hp,

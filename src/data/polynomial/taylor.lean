@@ -75,46 +75,15 @@ by rw [taylor_coeff, hasse_deriv_zero, linear_map.id_apply]
 @[simp] lemma taylor_coeff_one : (taylor r f).coeff 1 = f.derivative.eval r :=
 by rw [taylor_coeff, hasse_deriv_one]
 
-lemma nat_degree_taylor_le (p : polynomial R) (r : R) :
-  nat_degree (taylor r p) ≤ nat_degree p :=
-begin
-  rw nat_degree_le_iff_coeff_eq_zero,
-  intros y hy,
-  rw [taylor_coeff, hasse_deriv_eq_zero_of_lt_nat_degree _ _ hy, eval_zero]
-end
-
 @[simp] lemma nat_degree_taylor (p : polynomial R) (r : R) :
   nat_degree (taylor r p) = nat_degree p :=
 begin
-  refine le_antisymm (nat_degree_taylor_le _ _) _,
-  rcases eq_or_ne p 0 with rfl|hp,
-  { simp },
-  nontriviality R,
-  classical,
-  rw [taylor_apply, comp_eq_sum_left, nat_degree_le_iff_coeff_eq_zero, sum_def,
-      nat_degree_sum_eq_of_disjoint],
-  { rintros (_|y) hy,
-    { simpa only [not_lt_zero'] using hy },
-    rw finset.sup_lt_iff (nat.zero_lt_succ _) at hy,
-    specialize hy (p.nat_degree) (nat_degree_mem_support_of_nonzero hp),
-    rw [nat_degree_mul', nat_degree_pow', nat_degree_C, zero_add, nat_degree_X_add_C,
-        mul_one] at hy,
-    { exact coeff_eq_zero_of_nat_degree_lt hy },
-    { simp only [one_pow, leading_coeff_X_add_C, ne.def, not_false_iff, one_ne_zero] },
-    { simp only [hp, mul_one, coeff_nat_degree, leading_coeff_pow_X_add_C, leading_coeff_eq_zero,
-                 leading_coeff_C, ne.def, not_false_iff] } },
-  { rintro x ⟨hx, -⟩ y ⟨hy, -⟩ h hxy,
-    simp only [mem_support_iff] at hx hy,
-    simp only [function.comp_app] at hxy,
-    rw [nat_degree_C_mul_eq_of_mul_ne_zero, nat_degree_C_mul_eq_of_mul_ne_zero,
-        nat_degree_pow', nat_degree_pow',
-        nat_degree_add_eq_left_of_nat_degree_lt] at hxy,
-    { simpa only [mul_one, nat_degree_X] using hxy },
-    { simp only [nat_degree_C, nat.lt_one_iff, nat_degree_X] },
-    { simp only [one_pow, leading_coeff_X_add_C, ne.def, not_false_iff, one_ne_zero] },
-    { simp only [one_pow, leading_coeff_X_add_C, ne.def, not_false_iff, one_ne_zero] },
-    { simpa only [mul_one, leading_coeff_pow_X_add_C] using hy },
-    { simpa only [mul_one, leading_coeff_pow_X_add_C] using hx } }
+  refine map_nat_degree_eq_nat_degree (taylor r) p _ _ _,
+  { simp [map_zero] },
+  { simp [map_add] },
+  { nontriviality R,
+    intros n c c0,
+    simp [taylor_monomial, nat_degree_C_mul_eq_of_mul_ne_zero, nat_degree_pow_X_add_C, c0] }
 end
 
 @[simp] lemma taylor_mul {R} [comm_semiring R] (r : R) (p q : polynomial R) :

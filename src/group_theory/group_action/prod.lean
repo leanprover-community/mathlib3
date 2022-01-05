@@ -10,7 +10,7 @@ import group_theory.group_action.defs
 # Prod instances for additive and multiplicative actions
 
 This file defines instances for binary product of additive and multiplicative actions and provides
-scalar multiplication as a homomorphism from `α × β` to `β`.v
+scalar multiplication as a homomorphism from `α × β` to `β`.
 
 ## Main declarations
 

@@ -23,58 +23,6 @@ and sums indexed by finite sets.
 
 variables {ι α β γ : Type*}
 
-/-- Multiplication as a multiplicative homomorphism. -/
-@[to_additive "Addition as an additive homomorphism.", simps]
-def mul_mul_hom [comm_semigroup α] : mul_hom (α × α) α :=
-{ to_fun := λ a, a.1 * a.2,
-  map_mul' := λ a b, mul_mul_mul_comm _ _ _ _ }
-
-/-- Multiplication as a monoid homomorphism. -/
-@[to_additive "Addition as an additive monoid homomorphism.", simps]
-def mul_monoid_hom [comm_monoid α] : α × α →* α :=
-{ map_one' := mul_one _,
-  .. mul_mul_hom }
-
-/-- Multiplication as a multiplicative homomorphism with zero. -/
-def mul_monoid_with_zero_hom [comm_monoid_with_zero α] : monoid_with_zero_hom (α × α) α :=
-{ map_zero' := mul_zero _,
-  .. mul_monoid_hom }
-
-/-- Division as a monoid homomorphism. -/
-@[to_additive "Subtraction as an additive monoid homomorphism.", simps]
-def div_monoid_hom [comm_group α] : α × α →* α :=
-{ to_fun := λ a, a.1 / a.2,
-  map_one' := div_one' _,
-  map_mul' := λ a b, mul_div_comm' _ _ _ _ }
-
-/-- Division as a multiplicative homomorphism with zero. -/
-def div_monoid_with_zero_hom [comm_group_with_zero α] : monoid_with_zero_hom (α × α) α :=
-{ to_fun := λ a, a.1 / a.2,
-  map_zero' := zero_div _,
-  map_one' := div_one _,
-  map_mul' := λ a b, (div_mul_div _ _ _ _).symm }
-
-/-- Scalar multiplication as a multiplicative homomorphism. -/
-def smul_mul_hom [monoid α] [has_mul β] [mul_action α β] [is_scalar_tower α β β]
-  [smul_comm_class α β β] :
-  mul_hom (α × β) β :=
-{ to_fun := λ a, a.1 • a.2,
-  map_mul' := λ a b, (smul_mul_smul _ _ _ _).symm }
-
-/-- Scalar multiplication as a monoid homomorphism. -/
-def smul_monoid_hom [monoid α] [mul_one_class β] [mul_action α β] [is_scalar_tower α β β]
-  [smul_comm_class α β β] :
-  α × β →* β :=
-{ map_one' := one_smul _ _,
-  .. smul_mul_hom }
-
-/-- Scalar multiplication as a monoid homomorphism with zero. -/
-def smul_monoid_with_zero_hom [monoid_with_zero α] [mul_zero_one_class β] [mul_action_with_zero α β]
-  [is_scalar_tower α β β] [smul_comm_class α β β] :
-  monoid_with_zero_hom (α × β) β :=
-{ map_zero' := smul_zero' _ _,
-  .. smul_monoid_hom }
-
 namespace multiset
 section comm_monoid
 variables [comm_monoid α] {s t : multiset α} {a : α} {m : multiset ι} {f g : ι → α}

@@ -24,7 +24,7 @@ trivial `simp` lemmas, and define the following operations on `monoid_hom`s:
 
 * `mul_mul_hom`/`mul_monoid_hom`/`mul_monoid_with_zero_hom`: Multiplication bundled as a
   multiplicative/monoid/monoid with zero homomorphism.
-* `div_monoid_hom`/`div_monoid_with_zero_hom`: Division bundled as a   monoid/monoid with zero
+* `div_monoid_hom`/`div_monoid_with_zero_hom`: Division bundled as a monoid/monoid with zero
   homomorphism.
 -/
 

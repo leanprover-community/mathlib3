@@ -197,11 +197,10 @@ instance : inhabited (oplax_functor B B) := ⟨id B⟩
 end
 
 section
-variables
-{B : Type u₁} [bicategory.{w₁ v₁} B]
-{C : Type u₂} [bicategory.{w₂ v₂} C]
-{D : Type u₃} [bicategory.{w₃ v₃} D]
-(F : oplax_functor B C) (G : oplax_functor C D)
+variables {B : Type u₁} [bicategory.{w₁ v₁} B]
+variables {C : Type u₂} [bicategory.{w₂ v₂} C]
+variables {D : Type u₃} [bicategory.{w₃ v₃} D]
+variables (F : oplax_functor B C) (G : oplax_functor C D)
 
 /-- Composition of oplax functors. -/
 @[simps]
@@ -212,29 +211,26 @@ def comp : oplax_functor B D :=
     (G.map_functor _ _).map (F.map_comp f g) ≫ G.map_comp (F.map f) (F.map g),
   map_comp_naturality_left' := λ a b c f f' η g, by
   { dsimp,
-    slice_rhs 1 3
-    { rw [←map_comp_naturality_left, ←map₂_comp_assoc,
-          ←map_comp_naturality_left, map₂_comp_assoc] } },
+    rw [←map₂_comp_assoc, map_comp_naturality_left, map₂_comp_assoc, map_comp_naturality_left],
+    rw assoc },
   map_comp_naturality_right' := λ a b c f g g' η, by
   { dsimp,
-    slice_rhs 1 3
-    { rw [←map_comp_naturality_right, ←map₂_comp_assoc,
-          ←map_comp_naturality_right, map₂_comp_assoc] } },
+    rw [←map₂_comp_assoc, map_comp_naturality_right, map₂_comp_assoc, map_comp_naturality_right],
+    rw assoc },
   map₂_associator' := λ a b c d f g h, by
-  { dsimp, simp only [whisker_right_comp, assoc, whisker_left_comp],
-    rw [←map_comp_naturality_left_assoc, ←map_comp_naturality_right_assoc, ←map₂_associator],
-    simp only [←map₂_comp_assoc],
-    rw ←map₂_associator },
+  { dsimp,
+    simp only [map₂_associator, ←map₂_comp_assoc, ←map_comp_naturality_right_assoc,
+      whisker_left_comp, assoc],
+    simp only [map₂_associator, map₂_comp, map_comp_naturality_left_assoc,
+      whisker_right_comp, assoc] },
   map₂_left_unitor' := λ a b f, by
-  { dsimp, simp only [whisker_right_comp, assoc],
-    rw [←map_comp_naturality_left_assoc, ←map₂_left_unitor],
-    simp only [←map₂_comp],
-    rw ←map₂_left_unitor },
+  { dsimp,
+    simp only [map₂_left_unitor, map₂_comp, map₂_left_unitor, map_comp_naturality_left_assoc,
+      whisker_right_comp, assoc] },
   map₂_right_unitor' := λ a b f, by
-  { dsimp, simp only [whisker_left_comp, assoc],
-    rw [←map_comp_naturality_right_assoc, ←map₂_right_unitor],
-    simp only [←map₂_comp],
-    rw ←map₂_right_unitor },
+  { dsimp,
+    simp only [map₂_right_unitor, map₂_comp, map₂_right_unitor, map_comp_naturality_right_assoc,
+      whisker_left_comp, assoc] },
   .. F.to_prelax_functor.comp G.to_prelax_functor }
 
 end

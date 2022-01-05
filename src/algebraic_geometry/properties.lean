@@ -173,15 +173,13 @@ lemma exist_image_iff {α β : Type*} (f : α → β) (x : set α) (P : β → P
 ⟨λ h, ⟨⟨_, h.some.prop.some_spec.1⟩, h.some.prop.some_spec.2.symm ▸ h.some_spec⟩,
   λ h, ⟨⟨_, _, h.some.prop, rfl⟩, h.some_spec⟩⟩
 
+variables (S T)
+
 lemma is_localization_of_submonoid_le
-  {R : Type*} [comm_ring R] (M N : submonoid R) (h : M ≤ N) (S T : Type*)
-    [comm_ring S] [comm_ring T] [algebra R S] [algebra R T]
-   [is_localization M S] [is_localization N T] :
-  @@is_localization _ (N.map (algebra_map R S).to_monoid_hom) T _
-    (localization_algebra_of_submonoid_le M N h) :=
+  (M N : submonoid R) (h : M ≤ N) [is_localization M S] [algebra R T] [is_localization N T]
+  [algebra S T] [is_scalar_tower R S T] :
+  is_localization (N.map (algebra_map R S).to_monoid_hom) T :=
 begin
-  letI : algebra S T := localization_algebra_of_submonoid_le M N h,
-  letI : is_scalar_tower R S T := localization_is_scalar_tower_of_submonoid_le M N h,
   constructor,
   { rintro ⟨_, ⟨y, hy, rfl⟩⟩,
     convert is_localization.map_units T ⟨y, hy⟩,
@@ -800,9 +798,14 @@ begin
   have e : x.as_ideal.prime_compl ≤ non_zero_divisors R,
   { intros a ha, rw mem_non_zero_divisors_iff_ne_zero,
     exact λ h, ha (h.symm ▸ x.as_ideal.zero_mem) },
-  have := is_localization.is_localization_of_submonoid_le x.as_ideal.prime_compl
-    (non_zero_divisors R) e (localization.at_prime x.as_ideal)
-    ((Scheme.Spec.obj (op R)).function_field),
+  letI : algebra (localization.at_prime x.as_ideal) ((Scheme.Spec.obj (op R)).function_field) :=
+    is_localization.localization_algebra_of_submonoid_le _ _ e,
+  letI : is_scalar_tower R (localization.at_prime x.as_ideal)
+    ((Scheme.Spec.obj (op R)).function_field) :=
+    is_localization.localization_is_scalar_tower_of_submonoid_le _ _ e,
+  have := is_localization.is_localization_of_submonoid_le (localization.at_prime x.as_ideal)
+    ((Scheme.Spec.obj (op R)).function_field) x.as_ideal.prime_compl
+    (non_zero_divisors R) e,
   apply_with (is_localization.is_localization_of_is_exists_mul_mem _ _ _
     (ring_hom.map_le_non_zero_divisors_of_injective _
       (is_localization.injective _ e) (le_of_eq rfl))) { instances := ff },

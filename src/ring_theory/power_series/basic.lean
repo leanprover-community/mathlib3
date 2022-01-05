@@ -449,6 +449,7 @@ variables {A : Type*} [comm_semiring R] [semiring A] [algebra R A]
 instance : algebra R (mv_power_series σ A) :=
 { commutes' := λ a φ, by { ext n, simp [algebra.commutes] },
   smul_def' := λ a σ, by { ext n, simp [(coeff A n).map_smul_of_tower a, algebra.smul_def] },
+  op_smul_def' := λ σ a, by { ext n, simp [(coeff A n).map_smul_of_tower a, algebra.op_smul_def] },
   to_ring_hom := (mv_power_series.map σ (algebra_map R A)).comp (C σ R),
   .. mv_power_series.module }
 

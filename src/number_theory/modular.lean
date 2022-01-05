@@ -206,8 +206,7 @@ begin
     tendsto (λ m : matrix (fin 2) (fin 2) ℤ, matrix.map m (coe : ℤ → ℝ)) cofinite (cocompact _),
   { convert tendsto.pi_map_Coprod (λ i, tendsto.pi_map_Coprod (λ j, int.tendsto_coe_cofinite)),
     { simp [Coprod_cofinite] },
-    { simp only [Coprod_cocompact],
-      refl } },
+    { simpa only [Coprod_cocompact] } },
   have hf₁ : tendsto f₁ cofinite (cocompact _) :=
     cocompact_ℝ_to_cofinite_ℤ_matrix.comp subtype.coe_injective.tendsto_cofinite,
   have hf₂ : closed_embedding (lc_row0_extend hcd) :=
@@ -221,8 +220,14 @@ begin
     fin_cases i,
     { simp [mB, f₁, matrix.mul_vec, matrix.dot_product, fin.sum_univ_succ] },
     { convert congr_arg (λ n : ℤ, (-n:ℝ)) g.det_coe.symm using 1,
-      simp [f₁, ← hg, matrix.mul_vec, matrix.dot_product, fin.sum_univ_succ, matrix.det_fin_two,
-        -special_linear_group.det_coe],
+      simp only [det_fin_two, linear_map.general_linear_group.coe_fn_general_linear_equiv,
+        lc_row0_extend_apply, general_linear_group.to_linear_apply, int.cast_mul,
+        coe_plane_conformal_matrix, function.comp_app, neg_sub, mul_vec_lin_apply, int.cast_sub,
+        cons_val_zero, subtype.val_eq_coe, general_linear_group.coe_fn_eq_coe, mul_vec,
+        cons_val_one, head_cons, neg_mul_eq_neg_mul_symm, ←hg, fin.mk_zero, nat.nat_zero_eq_zero,
+        dot_product, map_apply, special_linear_group.coe_fn_eq_coe, f₁, cons_val_fin_one,
+        fin.succ_zero_eq_one, cons_val_succ, fin.mk_eq_subtype_mk, fin.sum_univ_succ,
+        finset.sum_singleton, finset.sum_congr, cons_val_zero, fintype.univ_of_subsingleton],
       ring } },
   { exact congr_arg (λ p, (coe : ℤ → ℝ) ∘ p) hg.symm }
 end

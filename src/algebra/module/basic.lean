@@ -159,6 +159,16 @@ lemma finset.sum_smul {f : ι → R} {s : finset ι} {x : M} :
   (∑ i in s, f i) • x = (∑ i in s, (f i) • x) :=
 ((smul_add_hom R M).flip x).map_sum f s
 
+/-- Note that this instance forms non-defeq diamonds with other module instances, as unlike
+`add_comm_monoid.nat_module`, it does not reuse an existing `has_scalar` instance. Fixing this
+will require adding even more fields to `add_comm_monoid`. We defer doing this until these diamonds
+start to cause problems. -/
+instance add_comm_monoid.nat_op_module : module ℕᵐᵒᵖ M :=
+module.comp_hom M $ (ring_hom.id ℕ).from_opposite mul_comm
+
+instance add_comm_monoid.nat_is_central_scalar : is_central_scalar ℕ M :=
+{ op_smul_eq_smul := λ _ _, rfl }
+
 end add_comm_monoid
 
 variables (R)
@@ -188,6 +198,16 @@ instance add_comm_group.int_module : module ℤ M :=
   smul_zero := zsmul_zero,
   zero_smul := zero_zsmul,
   add_smul := λ r s x, add_zsmul x r s }
+
+/-- Note that this instance forms non-defeq diamonds with other module instances, as unlike
+`add_comm_group.int_module`, it does not reuse an existing `has_scalar` instance. Fixing this
+will require adding even more fields to `add_comm_group`. We defer doing this until these diamonds
+start to cause problems. -/
+instance add_comm_group.int_op_module : module ℤᵐᵒᵖ M :=
+module.comp_hom M $ (ring_hom.id ℤ).from_opposite mul_comm
+
+instance add_comm_group.int_is_central_scalar : is_central_scalar ℤ M :=
+{ op_smul_eq_smul := λ _ _, rfl }
 
 /-- A structure containing most informations as in a module, except the fields `zero_smul`
 and `smul_zero`. As these fields can be deduced from the other ones when `M` is an `add_comm_group`,

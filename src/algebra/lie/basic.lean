@@ -60,7 +60,12 @@ Jacobi identity. -/
 identity. Forgetting the scalar multiplication, every Lie algebra is a Lie ring. -/
 @[protect_proj] class lie_algebra (R : Type u) (L : Type v) [comm_ring R] [lie_ring L]
   extends module R L :=
+[to_opposite_module : module Rᵐᵒᵖ L]
+[to_is_central_scalar : is_central_scalar R L]
 (lie_smul : ∀ (t : R) (x y : L), ⁅x, t • y⁆ = t • ⁅x, y⁆)
+
+attribute [instance, priority 100] lie_algebra.to_opposite_module
+attribute [instance, priority 100] lie_algebra.to_is_central_scalar
 
 /-- A Lie ring module is an additive group, together with an additive action of a
 Lie ring on this group, such that the Lie bracket acts as the commutator of endomorphisms.

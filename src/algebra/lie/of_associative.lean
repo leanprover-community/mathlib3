@@ -115,7 +115,8 @@ end of_associative
 section adjoint_action
 
 variables (R : Type u) (L : Type v) (M : Type w)
-variables [comm_ring R] [lie_ring L] [lie_algebra R L] [add_comm_group M] [module R M]
+variables [comm_ring R] [lie_ring L] [lie_algebra R L] [add_comm_group M]
+variables [module R M] [module Rᵐᵒᵖ M] [is_central_scalar R M]
 variables [lie_ring_module L M] [lie_module R L M]
 
 /-- A Lie module yields a Lie algebra morphism into the linear endomorphisms of the module.
@@ -167,7 +168,9 @@ def lie_subalgebra_of_subalgebra (R : Type u) [comm_ring R] (A : Type v) [ring A
 namespace linear_equiv
 
 variables {R : Type u} {M₁ : Type v} {M₂ : Type w}
-variables [comm_ring R] [add_comm_group M₁] [module R M₁] [add_comm_group M₂] [module R M₂]
+variables [comm_ring R] [add_comm_group M₁] [add_comm_group M₂]
+variables [module R M₁] [module Rᵐᵒᵖ M₁] [is_central_scalar R M₁]
+variables [module R M₂] [module Rᵐᵒᵖ M₂] [is_central_scalar R M₂]
 variables (e : M₁ ≃ₗ[R] M₂)
 
 /-- A linear equivalence of two modules induces a Lie algebra equivalence of their endomorphisms. -/

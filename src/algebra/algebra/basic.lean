@@ -1283,7 +1283,6 @@ variables {R : Type*} [semiring R]
 @[priority 99] instance algebra_nat : algebra ℕ R :=
 { commutes' := nat.cast_commute,
   smul_def' := λ _ _, nsmul_eq_mul _ _,
-  to_has_opposite_scalar := { smul := λ n r, n.unop • r }, -- TODO: provide `module ℕᵐᵒᵖ R` earlier
   op_smul_def' := λ r n, (nsmul_eq_mul n r).trans (nat.cast_commute _ _),
   to_ring_hom := nat.cast_ring_hom R }
 
@@ -1361,7 +1360,6 @@ variables (R : Type*) [ring R]
 @[priority 99] instance algebra_int : algebra ℤ R :=
 { commutes' := int.cast_commute,
   smul_def' := λ _ _, zsmul_eq_mul _ _,
-  to_has_opposite_scalar := { smul := λ n r, n.unop • r }, -- TODO: provide `module ℤᵐᵒᵖ R` earlier
   op_smul_def' := λ _ _, (zsmul_eq_mul _ _).trans (int.cast_commute _ _),
   to_ring_hom := int.cast_ring_hom R }
 

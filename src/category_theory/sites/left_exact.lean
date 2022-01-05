@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Topaz
 -/
 import category_theory.sites.sheafification
+import category_theory.sites.limits
 import category_theory.limits.functor_category
 import category_theory.limits.filtered_colimit_commutes_finite_limit
 
@@ -11,7 +12,6 @@ import category_theory.limits.filtered_colimit_commutes_finite_limit
 # Left exactness of sheafification
 In this file we show that sheafification commutes with finite limits.
 -/
-namespace category_theory.grothendieck_topology
 
 open category_theory
 open category_theory.limits
@@ -20,10 +20,11 @@ open opposite
 universes w v u
 variables {C : Type (max v u)} [category.{v} C] {J : grothendieck_topology C}
 variables {D : Type w} [category.{max v u} D]
-variables {K : Type (max v u)} [small_category K]
 variables [∀ (P : Cᵒᵖ ⥤ D) (X : C) (S : J.cover X), has_multiequalizer (S.index P)]
 
 noncomputable theory
+
+namespace category_theory.grothendieck_topology
 
 /-- An auxiliary definition to be used in the proof of the fact that
 `J.diagram_functor D X` preserves limits. -/
@@ -103,28 +104,72 @@ instance (X : C) (K : Type (max v u)) [small_category K] [has_limits_of_shape K 
 instance (X : C) [has_limits D] : preserves_limits (J.diagram_functor D X) := ⟨⟩
 
 variables [∀ (X : C), has_colimits_of_shape (J.cover X)ᵒᵖ D]
-
-@[simps]
-def colimit_limit_diagram_iso {K : Type (max v u)} [small_category K]
-  (F : K ⥤ Cᵒᵖ ⥤ D) (X : C) : colimit (F ⋙ J.diagram_functor D X).flip ≅
-  F ⋙ J.plus_functor D ⋙ (evaluation _ _).obj (op X) :=
-nat_iso.of_components (λ k,
-  let h := is_colimit_of_preserves ((evaluation _ _).obj k)
-    (colimit.is_colimit ((F ⋙ J.diagram_functor D X).flip)) in
-  h.cocone_point_unique_up_to_iso (colimit.is_colimit _))
-begin
-  intros a b f,
-  ext1,
-  dsimp [is_colimit.cocone_point_unique_up_to_iso, colim_map, is_colimit.map],
-  rw ← (colimit.ι (F ⋙ J.diagram_functor D X).flip j).naturality_assoc,
-  erw [colimit_obj_iso_colimit_comp_evaluation_ι_app_hom,
-    colimit_obj_iso_colimit_comp_evaluation_ι_app_hom_assoc,
-    colimit.ι_desc],
-  refl,
-end
-
 variables [concrete_category.{max v u} D]
 variables [∀ (X : C), preserves_colimits_of_shape (J.cover X)ᵒᵖ (forget D)]
+
+/-- An auxiliary definition to be used in the proof that `J.plus_functor D` commutes
+with finite limits. -/
+def lift_to_plus_obj_limit_obj {K : Type (max v u)} [small_category K] [fin_category K]
+  [has_limits_of_shape K D] [preserves_limits_of_shape K (forget D)]
+  [reflects_limits_of_shape K (forget D)] (F : K ⥤ Cᵒᵖ ⥤ D) (X : C)
+  (S : cone (F ⋙ J.plus_functor D ⋙ (evaluation Cᵒᵖ D).obj (op X))) :
+  S.X ⟶ (J.plus_obj (limit F)).obj (op X) :=
+let
+  e := colimit_limit_iso (F ⋙ J.diagram_functor D X),
+  t : J.diagram (limit F) X ≅ limit (F ⋙ J.diagram_functor D X) :=
+    (is_limit_of_preserves (J.diagram_functor D X) (limit.is_limit _)).cone_point_unique_up_to_iso
+    (limit.is_limit _),
+  p : (J.plus_obj (limit F)).obj (op X) ≅ colimit (limit (F ⋙ J.diagram_functor D X)) :=
+    has_colimit.iso_of_nat_iso t,
+  s : colimit (F ⋙ J.diagram_functor D X).flip ≅
+    F ⋙ J.plus_functor D ⋙ (evaluation Cᵒᵖ D).obj (op X) :=
+      nat_iso.of_components (λ k, colimit_obj_iso_colimit_comp_evaluation _ k) begin
+        intros i j f,
+        rw [← iso.eq_comp_inv, category.assoc, ← iso.inv_comp_eq],
+        ext w,
+        dsimp [plus_map],
+        erw [colimit.ι_map_assoc, colimit_obj_iso_colimit_comp_evaluation_ι_inv
+        ((F ⋙ J.diagram_functor D X).flip) w j,
+        colimit_obj_iso_colimit_comp_evaluation_ι_inv_assoc
+        ((F ⋙ J.diagram_functor D X).flip) w i],
+      rw ← (colimit.ι (F ⋙ J.diagram_functor D X).flip w).naturality,
+      refl
+    end in
+limit.lift _ S ≫ (has_limit.iso_of_nat_iso s.symm).hom ≫ e.inv ≫ p.inv
+
+-- This lemma should not be used directly. Instead, one should use the fact that
+-- `J.plus_functor D` preserves finite limits, along with the fact that
+-- evaluation preserves limits.
+lemma lift_to_plus_obj_limit_obj_fac {K : Type (max v u)} [small_category K] [fin_category K]
+  [has_limits_of_shape K D] [preserves_limits_of_shape K (forget D)]
+  [reflects_limits_of_shape K (forget D)] (F : K ⥤ Cᵒᵖ ⥤ D) (X : C)
+  (S : cone (F ⋙ J.plus_functor D ⋙ (evaluation Cᵒᵖ D).obj (op X))) (k) :
+  lift_to_plus_obj_limit_obj F X S ≫ (J.plus_map (limit.π F k)).app (op X) = S.π.app k :=
+begin
+  dsimp only [lift_to_plus_obj_limit_obj],
+  rw [← (limit.is_limit (F ⋙ J.plus_functor D ⋙ (evaluation Cᵒᵖ D).obj (op X))).fac S k,
+    category.assoc],
+  congr' 1,
+  dsimp,
+  simp only [category.assoc],
+  rw [← iso.eq_inv_comp, iso.inv_comp_eq, iso.inv_comp_eq],
+  ext,
+  dsimp [plus_map],
+  simp only [has_colimit.iso_of_nat_iso_ι_hom_assoc, ι_colim_map],
+  dsimp [is_limit.cone_point_unique_up_to_iso, has_limit.iso_of_nat_iso,
+    is_limit.map],
+  rw limit.lift_π,
+  dsimp,
+  rw ι_colimit_limit_iso_limit_π_assoc,
+  simp_rw [← nat_trans.comp_app, ← category.assoc, ← nat_trans.comp_app],
+  rw limit.lift_π,
+  dsimp,
+  rw category.assoc,
+  congr' 1,
+  rw ← iso.comp_inv_eq,
+  erw colimit.ι_desc,
+  refl,
+end
 
 instance (K : Type (max v u))
   [small_category K] [fin_category K] [has_limits_of_shape K D]
@@ -134,56 +179,11 @@ instance (K : Type (max v u))
 begin
   constructor, intros F, apply preserves_limit_of_evaluation, intros X,
   apply preserves_limit_of_preserves_limit_cone (limit.is_limit F),
-  refine ⟨λ S, _, _, _⟩,
-  { dsimp [plus_obj],
-    let e := colimit_limit_iso (F ⋙ J.diagram_functor D X.unop),
-    let t : J.diagram (limit F) (unop X) ≅ limit (F ⋙ J.diagram_functor D X.unop) :=
-      (is_limit_of_preserves (J.diagram_functor D X.unop)
-      (limit.is_limit _)).cone_point_unique_up_to_iso (limit.is_limit _),
-    let p : (J.plus_obj (limit F)).obj X ≅ colimit (limit (F ⋙ J.diagram_functor D X.unop)) :=
-      has_colimit.iso_of_nat_iso t,
-    refine limit.lift _ S ≫ (has_limit.iso_of_nat_iso _).hom ≫ e.inv ≫ p.inv,
-    refine nat_iso.of_components (λ k, _) _,
-    { dsimp [plus_obj],
-      let w : (colimit (F ⋙ J.diagram_functor D (unop X)).flip).obj k ≅
-        colimit ((F ⋙ J.diagram_functor D X.unop).flip ⋙ (evaluation _ _).obj k) :=
-        colimit_obj_iso_colimit_comp_evaluation _ _,
-      refine w.symm },
-    { intros i j f,
-      ext w,
-      dsimp [plus_map],
-      erw [colimit.ι_map_assoc, colimit_obj_iso_colimit_comp_evaluation_ι_inv
-        ((F ⋙ J.diagram_functor D (unop X)).flip) w j,
-        colimit_obj_iso_colimit_comp_evaluation_ι_inv_assoc
-        ((F ⋙ J.diagram_functor D (unop X)).flip) w i],
-      rw ← (colimit.ι (F ⋙ J.diagram_functor D (unop X)).flip w).naturality,
-      refl } },
+  refine ⟨λ S, lift_to_plus_obj_limit_obj F X.unop S, _, _⟩,
   { intros S k,
-    dsimp,
-    rw [← (limit.is_limit (F ⋙ J.plus_functor D ⋙ (evaluation Cᵒᵖ D).obj X)).fac S k,
-      category.assoc],
-    congr' 1,
-    dsimp,
-    simp only [category.assoc],
-    rw [← iso.eq_inv_comp, iso.inv_comp_eq, iso.inv_comp_eq],
-    ext,
-    dsimp [plus_map],
-    simp only [has_colimit.iso_of_nat_iso_ι_hom_assoc, ι_colim_map],
-    dsimp [is_limit.cone_point_unique_up_to_iso, has_limit.iso_of_nat_iso,
-      is_limit.map],
-    rw limit.lift_π,
-    dsimp,
-    rw ι_colimit_limit_iso_limit_π_assoc,
-    simp_rw [← nat_trans.comp_app, ← category.assoc, ← nat_trans.comp_app],
-    rw limit.lift_π,
-    dsimp,
-    congr' 1,
-    rw ← nat_trans.comp_app,
-    dsimp [-nat_trans.comp_app, nat_iso.of_components],
-    dsimp,
-    simpa },
+    apply lift_to_plus_obj_limit_obj_fac },
   { intros S m hm,
-    dsimp,
+    dsimp [lift_to_plus_obj_limit_obj],
     simp_rw ← category.assoc,
     simp_rw iso.eq_comp_inv,
     rw ← iso.comp_inv_eq,
@@ -228,3 +228,27 @@ instance [has_finite_limits D] [preserves_finite_limits (forget D)]
 limits.comp_preserves_finite_limits _ _
 
 end category_theory.grothendieck_topology
+
+namespace category_theory
+
+variables [∀ (X : C), has_colimits_of_shape (J.cover X)ᵒᵖ D]
+variables [concrete_category.{max v u} D]
+variables [∀ (X : C), preserves_colimits_of_shape (J.cover X)ᵒᵖ (forget D)]
+variables [preserves_limits (forget D)]
+variables [reflects_isomorphisms (forget D)]
+variables (K : Type (max v u))
+variables [small_category K] [fin_category K] [has_limits_of_shape K D]
+
+instance : preserves_limits_of_shape K (presheaf_to_Sheaf J D) :=
+begin
+  constructor, intros F, constructor, intros S hS,
+  apply is_limit_of_reflects (Sheaf_to_presheaf J D),
+  haveI : reflects_limits_of_shape K (forget D) :=
+    reflects_limits_of_shape_of_reflects_isomorphisms,
+  apply is_limit_of_preserves (J.sheafification D) hS,
+end
+
+instance [has_finite_limits D] : preserves_finite_limits (presheaf_to_Sheaf J D) :=
+⟨λ K _ _, by { resetI, apply_instance }⟩
+
+end category_theory

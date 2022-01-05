@@ -298,8 +298,8 @@ begin
     ⟨(1 : C(X, ℝ)), A.subalgebra_topological_closure A.one_mem⟩,
   convert sublattice_closure_eq_top
     (L : set C(X, ℝ)) n
-    (λ f g fm gm, inf_mem_closed_subalgebra L A.is_closed_topological_closure ⟨f, fm⟩ ⟨g, gm⟩)
-    (λ f g fm gm, sup_mem_closed_subalgebra L A.is_closed_topological_closure ⟨f, fm⟩ ⟨g, gm⟩)
+    (λ f fm g gm, inf_mem_closed_subalgebra L A.is_closed_topological_closure ⟨f, fm⟩ ⟨g, gm⟩)
+    (λ f fm g gm, sup_mem_closed_subalgebra L A.is_closed_topological_closure ⟨f, fm⟩ ⟨g, gm⟩)
     (subalgebra.separates_points.strongly
       (subalgebra.separates_points_monotone (A.subalgebra_topological_closure) w)),
   { simp, },

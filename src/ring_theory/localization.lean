@@ -814,7 +814,7 @@ end away
 
 section inv_submonoid
 
-variables (M S) 
+variables (M S)
 
 /-- The submonoid of `S = M⁻¹R` consisting of `{ 1 / x | x ∈ M }`. -/
 def inv_submonoid : submonoid S := (M.map (algebra_map R S : R →* S)).left_inv
@@ -1150,7 +1150,7 @@ local_of_nonunits_ideal
         htz.symm ▸ I.zero_mem))
     end)
   (begin
-    intros x y hx hy hu,
+    intros x hx y hy hu,
     cases is_unit_iff_exists_inv.1 hu with z hxyz,
     have : ∀ {r : R} {s : I.prime_compl}, mk' S r s ∈ nonunits S → r ∈ I, from
       λ (r : R) (s : I.prime_compl), not_imp_comm.1

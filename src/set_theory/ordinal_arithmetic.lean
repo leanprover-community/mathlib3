@@ -1818,7 +1818,7 @@ begin
   rwa [←add_assoc, add_mul_omega]
 end
 
-theorem add_fp_iff_mul_omega_le' {a b : ordinal} : a + b ≤ b ↔ a * omega.{u} ≤ b :=
+theorem add_le_iff_mul_omega_le {a b : ordinal} : a + b ≤ b ↔ a * omega.{u} ≤ b :=
 by { rw ←add_fp_iff_mul_omega_le, exact (add_is_normal a).self_le_iff_eq }
 
 theorem add_deriv_mul_omega_add (a b) : deriv ((+) a) b = a * omega + b :=

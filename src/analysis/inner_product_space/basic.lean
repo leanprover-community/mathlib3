@@ -1630,6 +1630,12 @@ variables {𝕜 E}
   linear_isometry.to_span_singleton 𝕜 E hv a = a • v :=
 rfl
 
+-- move this
+@[simp] lemma linear_isometry.coe_to_span_singleton {v : E} (hv : ∥v∥ = 1) :
+  (linear_isometry.to_span_singleton 𝕜 E hv).to_linear_map = linear_map.to_span_singleton 𝕜 E v :=
+rfl
+
+
 lemma orthonormal.orthogonal_family {v : ι → E} (hv : orthonormal 𝕜 v) :
   @orthogonal_family 𝕜 _ _ _ _ (λ i : ι, 𝕜) _
     (λ i, linear_isometry.to_span_singleton 𝕜 E (hv.1 i)) :=

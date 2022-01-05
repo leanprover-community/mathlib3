@@ -66,7 +66,7 @@ variables [add_comm_monoid M] [module R M] [module A M] [is_scalar_tower R A M]
 variables [add_comm_monoid N] [module R N]
 variables [add_comm_monoid P] [module R P] [module A P] [is_scalar_tower R A P]
 
-lemma smul_eq_lsmul_rtensor [module Rᵐᵒᵖ M] [is_central_scalar R M] [smul_comm_class R Rᵐᵒᵖ M]
+lemma smul_eq_lsmul_rtensor [module Rᵐᵒᵖ M] [is_central_scalar R M]
   (a : A) (x : M ⊗[R] N) :
   a • x = (lsmul R M a).rtensor N x := rfl
 

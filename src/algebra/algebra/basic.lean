@@ -284,22 +284,6 @@ instance _root_.is_scalar_tower.right : is_scalar_tower R A A :=
 instance to_is_central_scalar : is_central_scalar R A :=
 ⟨λ r a, by rw [op_smul_def, smul_def, commutes]⟩
 
-instance to_op_smul_comm_class : smul_comm_class R Rᵐᵒᵖ A :=
-⟨λ r, mul_opposite.rec $ λ r' a, by simp only [op_smul_def, smul_def, mul_assoc]⟩
-
-instance to_op_is_scalar_tower : is_scalar_tower R Rᵐᵒᵖ A :=
-⟨λ r, mul_opposite.rec $ λ r' a, by
-  rw [←mul_opposite.op_smul, op_smul_def, op_smul_def, smul_def, smul_eq_mul, ring_hom.map_mul,
-      ←mul_assoc, ←mul_assoc, commutes]⟩
-
-instance to_op_is_scalar_tower' : is_scalar_tower Rᵐᵒᵖ R A :=
-⟨mul_opposite.rec $ λ r' r a, by
-  rw [op_smul_eq_mul, ←smul_comm, mul_smul, op_smul_def, smul_def, smul_def, smul_def,
-      commutes r']⟩
-
-instance _root_.is_scalar_tower.op_right : is_scalar_tower Rᵐᵒᵖ A A :=
-⟨mul_opposite.rec $ λ x y z, by rw [op_smul_eq_smul, op_smul_eq_smul, smul_assoc]⟩
-
 /-- This is just a special case of the global `mul_smul_comm` lemma that requires less typeclass
 search (and was here first). -/
 @[simp] protected lemma mul_smul_comm (s : R) (x y : A) :
@@ -520,7 +504,7 @@ end mul_opposite
 
 namespace module
 variables (R : Type u) (M : Type v) [comm_semiring R] [add_comm_monoid M]
-variables [module R M] [module Rᵐᵒᵖ M] [smul_comm_class R Rᵐᵒᵖ M] [is_central_scalar R M]
+variables [module R M] [module Rᵐᵒᵖ M] [is_central_scalar R M]
 
 instance : algebra R (module.End R M) :=
 algebra.of_module smul_mul_assoc (λ r f g, (smul_comm r f g).symm)

@@ -402,8 +402,7 @@ theorem not_is_unit_X_sub_C [nontrivial R] (r : R) : ¬ is_unit (X - C r) :=
 end ring
 
 lemma aeval_endomorphism {M : Type*}
-  [comm_ring R] [add_comm_group M]
-  [module R M] [module Rᵐᵒᵖ M] [smul_comm_class R Rᵐᵒᵖ M] [is_central_scalar R M]
+  [comm_ring R] [add_comm_group M] [module R M] [module Rᵐᵒᵖ M] [is_central_scalar R M]
   (f : M →ₗ[R] M) (v : M) (p : polynomial R) :
   aeval f p v = p.sum (λ n b, b • (f ^ n) v) :=
 begin

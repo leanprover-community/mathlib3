@@ -28,7 +28,6 @@ namespace algebra
 
 variables [comm_semiring R] [semiring A] [algebra R A]
 variables [add_comm_monoid M] [module Rᵐᵒᵖ M] [module R M] [is_central_scalar R M]
-variables [smul_comm_class R Rᵐᵒᵖ M]
 variables [module A M] [is_scalar_tower R A M]
 
 variables {A}
@@ -319,7 +318,6 @@ namespace algebra
 
 variables [comm_semiring R] [ring A] [algebra R A]
 variables [add_comm_group M] [module Rᵐᵒᵖ M] [module R M] [is_central_scalar R M]
-variables [smul_comm_class R Rᵐᵒᵖ M]
 variables [module A M] [is_scalar_tower R A M]
 
 lemma lsmul_injective [no_zero_smul_divisors A M] {x : A} (hx : x ≠ 0) :

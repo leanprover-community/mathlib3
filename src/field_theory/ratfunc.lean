@@ -52,6 +52,12 @@ namely `ratfunc.of_fraction_ring`, `ratfunc.to_fraction_ring`, `ratfunc.mk` and
 All these maps get `simp`ed to bundled morphisms like `algebra_map (polynomial K) (ratfunc K)`
 and `is_localization.alg_equiv`.
 
+## References
+
+* [Kleiman, *Misconceptions about $K_X$*][kleiman1979]
+* https://freedommathdance.blogspot.com/2012/11/misconceptions-about-kx.html
+* https://stacks.math.columbia.edu/tag/01X1
+
 -/
 
 noncomputable theory

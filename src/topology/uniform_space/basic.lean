@@ -944,7 +944,7 @@ lemma filter.has_basis.uniform_continuous_on_iff [uniform_space β] {p : γ → 
   uniform_continuous_on f S ↔
     ∀ i (hi : q i), ∃ j (hj : p j), ∀ x y ∈ S, (x, y) ∈ s j → (f x, f y) ∈ t i :=
 ((ha.inf_principal (S.prod S)).tendsto_iff hb).trans $
-by simp [prod.forall, set.inter_comm (s _), BINDER_UPDATE_LEMMA]
+by simp [prod.forall, set.inter_comm (s _), ball_mem_comm]
 
 end uniform_space
 

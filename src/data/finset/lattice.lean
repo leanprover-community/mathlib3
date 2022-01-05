@@ -238,7 +238,8 @@ end sup
 
 lemma disjoint_sup_right [distrib_lattice α] [order_bot α] {a : α} {s : finset β} {f : β → α} :
   disjoint a (s.sup f) ↔ ∀ i ∈ s, disjoint a (f i) :=
-⟨λ h i hi, h.mono_right (le_sup hi), sup_induction disjoint_bot_right (λ b c, disjoint.sup_right)⟩
+⟨λ h i hi, h.mono_right (le_sup hi), sup_induction
+  (disjoint_bot_right) $ ball_cond_comm.mpr $ @disjoint.sup_right _ _ _ _⟩
 
 lemma disjoint_sup_left [distrib_lattice α] [order_bot α] {a : α} {s : finset β} {f : β → α} :
   disjoint (s.sup f) a ↔ ∀ i ∈ s, disjoint (f i) a :=
@@ -508,10 +509,10 @@ begin
   show @with_bot.rec_bot_coe α (λ _, Prop) true p ↑(s.sup' H f),
   rw coe_sup',
   refine sup_induction trivial _ hs,
-  intros a₁ a₂ h₁ h₂,
-  cases a₁,
-  { rw [with_bot.none_eq_bot, bot_sup_eq], exact h₂, },
-  { cases a₂, exact h₁, exact hp a₁ a₂ h₁ h₂, },
+  rintro (_|a₁) h₁ a₂ h₂,
+  { rw [with_bot.none_eq_bot, bot_sup_eq], exact h₂ },
+  cases a₂,
+  exacts [h₁, hp a₁ a₂ h₁ h₂]
 end
 
 lemma exists_mem_eq_sup' [is_total α (≤)] : ∃ b, b ∈ s ∧ s.sup' H f = f b :=

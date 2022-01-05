@@ -29,7 +29,7 @@ lemma filter.has_basis.cauchy_iff {ι} {p : ι → Prop} {s : ι → set (α × 
   {f : filter α} :
   cauchy f ↔ (ne_bot f ∧ (∀ i, p i → ∃ t ∈ f, ∀ x y ∈ t, (x, y) ∈ s i)) :=
 and_congr iff.rfl $ (f.basis_sets.prod_self.le_basis_iff h).trans $
-  by simp only [subset_def, prod.forall, mem_prod_eq, and_imp, id, BINDER_UPDATE_LEMMA]
+  by simp only [subset_def, prod.forall, mem_prod_eq, and_imp, id, ball_mem_comm]
 
 lemma cauchy_iff' {f : filter α} :
   cauchy f ↔ (ne_bot f ∧ (∀ s ∈ 𝓤 α, ∃t∈f, ∀ x y ∈ t, (x, y) ∈ s)) :=
@@ -38,7 +38,7 @@ lemma cauchy_iff' {f : filter α} :
 lemma cauchy_iff {f : filter α} :
   cauchy f ↔ (ne_bot f ∧ (∀ s ∈ 𝓤 α, ∃t∈f, (set.prod t t) ⊆ s)) :=
 cauchy_iff'.trans $ by simp only [subset_def, prod.forall, mem_prod_eq,
-                                  and_imp, id, BINDER_UPDATE_LEMMA]
+                                  and_imp, id, ball_mem_comm]
 
 lemma cauchy_map_iff {l : filter β} {f : β → α} :
   cauchy (l.map f) ↔ (ne_bot l ∧ tendsto (λp:β×β, (f p.1, f p.2)) (l ×ᶠ l) (𝓤 α)) :=

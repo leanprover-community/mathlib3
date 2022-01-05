@@ -335,7 +335,7 @@ begin
   have lim2 : tendsto Φ (𝓝 (0, y₁)) (𝓝 0), by simpa using hφ.tendsto (0, y₁),
   have lim := lim2.comp lim1,
   rw tendsto_prod_self_iff at lim,
-  simp_rw BINDER_UPDATE_LEMMA,
+  simp_rw ball_mem_comm,
   exact lim W' W'_nhd
 end
 

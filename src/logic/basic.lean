@@ -730,9 +730,13 @@ theorem ne_of_mem_of_not_mem {α β} [has_mem α β] {s : β} {a b : α}
 mt $ λ e, e ▸ h
 
 -- todo: change name
-lemma BINDER_UPDATE_LEMMA {α β} [has_mem α β] {s : β} {p : α → α → Prop} :
-  (∀ a b ∈ s, p a b) ↔ (∀ a b, a ∈ s → b ∈ s → p a b) :=
+lemma ball_cond_comm {α} {s : α → Prop} {p : α → α → Prop} :
+  (∀ a, s a → ∀ b, s b → p a b) ↔ (∀ a b, s a → s b → p a b) :=
 ⟨λ h a b ha hb, h a ha b hb, λ h a ha b hb, h a b ha hb⟩
+
+lemma ball_mem_comm {α β} [has_mem α β] {s : β} {p : α → α → Prop} :
+  (∀ a b ∈ s, p a b) ↔ (∀ a b, a ∈ s → b ∈ s → p a b) :=
+ball_cond_comm
 
 lemma ne_of_apply_ne {α β : Sort*} (f : α → β) {x y : α} (h : f x ≠ f y) : x ≠ y :=
 λ (w : x = y), h (congr_arg f w)

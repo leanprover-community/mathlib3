@@ -1741,7 +1741,7 @@ end
 lemma bounded_closure_of_bounded (h : bounded s) : bounded (closure s) :=
 let ⟨C, h⟩ := h in
 ⟨C, λ a ha b hb, (is_closed_le' C).closure_subset $ map_mem_closure2 continuous_dist ha hb
-$ BINDER_UPDATE_LEMMA.mp h⟩
+$ ball_mem_comm.mp h⟩
 
 alias bounded_closure_of_bounded ← metric.bounded.closure
 

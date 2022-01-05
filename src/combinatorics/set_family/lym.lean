@@ -208,7 +208,8 @@ begin
     local_lym (tsub_pos_iff_lt.2 $nat.succ_le_iff.1 hk).ne' $ sized_falling _ _) _,
 end
 
-/-- The **Lubell-Yamamoto-Meshalkin inequality**. If `𝒜` is an antichain, then the sum of the proportion of elements it takes from each layer is less than `1`. -/
+/-- The **Lubell-Yamamoto-Meshalkin inequality**. If `𝒜` is an antichain, then the sum of the
+proportion of elements it takes from each layer is less than `1`. -/
 lemma lubell_yamamoto_meshalkin {𝒜 : finset (finset α)}
   (h𝒜 : is_antichain (⊆) (𝒜 : set (finset α))) :
   ∑ r in range (fintype.card α + 1), ((𝒜 # r).card : 𝕜) / (fintype.card α).choose r ≤ 1 :=

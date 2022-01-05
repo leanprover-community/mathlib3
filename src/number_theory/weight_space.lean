@@ -3427,20 +3427,25 @@ end
 --function on clopen subsets of Z/dZ* x Z_p* or work in Z_p and restrict
 --(i,a + p^nZ_p) (i,d) = 1
 
+lemma preimage_to_zmod (x : zmod (p)) : (to_zmod) ⁻¹' {x} =
+ {(x : ℤ_[p])} + (((to_zmod).ker : ideal ℤ_[p]) : set ℤ_[p]) :=
+begin
+ ext y,
+    simp only [set.image_add_left, set.mem_preimage, set.singleton_add,
+      set.mem_singleton_iff, set_like.mem_coe],
+    split,
+    { intro h, rw ring_hom.mem_ker, simp [h], },
+    { intro h, rw ring_hom.mem_ker at h, simp at *, rw neg_add_eq_zero at h, exact h.symm, },
+end
+
 lemma continuous_to_zmod : continuous (@padic_int.to_zmod p _) :=
 begin
-  constructor,
-  intros s hs,
-  set t : set (zmod (p^1)) := {x | (x : zmod p) ∈ s} with ht,
-  convert_to is_open ((to_zmod_pow 1) ⁻¹' t),
-  { ext x, rw set.mem_preimage, rw set.mem_preimage, rw ht,
-    simp only [set.mem_set_of_eq],
-    split,
-    any_goals { rintros h, convert h using 1, },
-    { sorry, },
-    sorry, },
-  { apply (continuous_to_zmod_pow p 1).is_open_preimage _ _,
-    exact is_open_discrete t, },
+  refine continuous_of_topological_basis _ discrete_topology.is_topological_basis _,
+  rintros s hs, simp only [set.mem_range] at hs, cases hs with x hx,
+  change {x} = s at hx, rw ←hx,
+  rw [preimage_to_zmod, ker_to_zmod],
+  refine is_open.add_left _, convert is_open_span p 1,
+  rw pow_one, rw maximal_ideal_eq_span_p,
 end
 
 lemma units_prod_disc {m n : ℕ} : discrete_topology (units (zmod m × zmod n)) :=

@@ -390,7 +390,7 @@ end sum
 open order_dual sum
 
 namespace order_iso
-variables {α β γ : Type*} [has_le α] [has_le β] [has_le γ]
+variables {α β γ : Type*} [has_le α] [has_le β] [has_le γ] (a : α) (b : β) (c : γ)
 
 /-- `equiv.sum_comm` promoted to an order isomorphism. -/
 @[simps apply] def sum_comm (α β : Type*) [has_le α] [has_le β] : α ⊕ β ≃o β ⊕ α :=
@@ -405,9 +405,13 @@ def sum_assoc (α β γ : Type*) [has_le α] [has_le β] [has_le γ] : (α ⊕ �
 { map_rel_iff' := by { rintro ((a | a) | a) ((b | b) | b); simp },
   ..equiv.sum_assoc α β γ }
 
-@[simp] lemma sum_assoc_apply_inl_inl (a : α) : sum_assoc α β γ (inl (inl a)) = inl a := rfl
-@[simp] lemma sum_assoc_apply_inl_inr (b : β) : sum_assoc α β γ (inl (inr b)) = inr (inl b) := rfl
-@[simp] lemma sum_assoc_apply_inr (c : γ) : sum_assoc α β γ (inr c) = inr (inr c) := rfl
+@[simp] lemma sum_assoc_apply_inl_inl : sum_assoc α β γ (inl (inl a)) = inl a := rfl
+@[simp] lemma sum_assoc_apply_inl_inr : sum_assoc α β γ (inl (inr b)) = inr (inl b) := rfl
+@[simp] lemma sum_assoc_apply_inr : sum_assoc α β γ (inr c) = inr (inr c) := rfl
+@[simp] lemma sum_assoc_symm_apply_inl : (sum_assoc α β γ).symm (inl a) = inl (inl a) := rfl
+@[simp] lemma sum_assoc_symm_apply_inr_inl : (sum_assoc α β γ).symm (inr (inl b)) = inl (inr b) :=
+rfl
+@[simp] lemma sum_assoc_symm_apply_inr_inr : (sum_assoc α β γ).symm (inr (inr c)) = inr c := rfl
 
 /-- `order_dual` is distributive over `⊕` up to an order isomorphism. -/
 def sum_dual_distrib (α β : Type*) [has_le α] [has_le β] :
@@ -423,11 +427,17 @@ def sum_dual_distrib (α β : Type*) [has_le α] [has_le β] :
 end,
   ..equiv.refl _ }
 
-@[simp] lemma sum_dual_distrib_inl (a : α) :
+@[simp] lemma sum_dual_distrib_inl :
   sum_dual_distrib α β (to_dual (inl a)) = inl (to_dual a) := rfl
 
-@[simp] lemma sum_dual_distrib_inr (b : β) :
+@[simp] lemma sum_dual_distrib_inr :
   sum_dual_distrib α β (to_dual (inr b)) = inr (to_dual b) := rfl
+
+@[simp] lemma sum_dual_distrib_symm_inl :
+  (sum_dual_distrib α β).symm (inl (to_dual a)) = to_dual (inl a) := rfl
+
+@[simp] lemma sum_dual_distrib_symm_inr  :
+  (sum_dual_distrib α β).symm (inr (to_dual b)) = to_dual (inr b) := rfl
 
 /-- `equiv.sum_assoc` promoted to an order isomorphism. -/
 def sum_lex_assoc (α β γ : Type*) [has_le α] [has_le β] [has_le γ] :
@@ -452,14 +462,23 @@ def sum_lex_assoc (α β γ : Type*) [has_le α] [has_le β] [has_le γ] :
   end,
   ..equiv.sum_assoc α β γ }
 
-@[simp] lemma sum_lex_assoc_apply_inl_inl (a : α) :
+@[simp] lemma sum_lex_assoc_apply_inl_inl :
   sum_lex_assoc α β γ (to_lex $ inl $ to_lex $ inl a) = to_lex (inl a) := rfl
 
-@[simp] lemma sum_lex_assoc_apply_inl_inr (b : β) :
+@[simp] lemma sum_lex_assoc_apply_inl_inr :
   sum_lex_assoc α β γ (to_lex $ inl $ to_lex $ inr b) = to_lex (inr $ to_lex $ inl b) := rfl
 
-@[simp] lemma sum_lex_assoc_apply_inr (c : γ) :
+@[simp] lemma sum_lex_assoc_apply_inr :
   sum_lex_assoc α β γ (to_lex $ inr c) = to_lex (inr $ to_lex $ inr c) := rfl
+
+@[simp] lemma sum_lex_assoc_symm_apply_inl :
+  (sum_lex_assoc α β γ).symm (inl a) = inl (inl a) := rfl
+
+@[simp] lemma sum_lex_assoc_symm_apply_inr_inl :
+  (sum_lex_assoc α β γ).symm (inr (inl b)) = inl (inr b) := rfl
+
+@[simp] lemma sum_lex_assoc_symm_apply_inr_inr :
+  (sum_lex_assoc α β γ).symm (inr (inr c)) = inr c := rfl
 
 /-- `order_dual` is antidistributive over `⊕ₗ` up to an order isomorphism. -/
 def sum_lex_dual_antidistrib (α β : Type*) [has_le α] [has_le β] :
@@ -477,10 +496,16 @@ def sum_lex_dual_antidistrib (α β : Type*) [has_le α] [has_le β] :
 end,
   ..equiv.sum_comm α β }
 
-@[simp] lemma sum_lex_dual_antidistrib_inl (a : α) :
+@[simp] lemma sum_lex_dual_antidistrib_inl :
   sum_lex_dual_antidistrib α β (to_dual (inl a)) = inr (to_dual a) := rfl
 
-@[simp] lemma sum_lex_dual_antidistrib_inr (b : β) :
+@[simp] lemma sum_lex_dual_antidistrib_inr :
   sum_lex_dual_antidistrib α β (to_dual (inr b)) = inl (to_dual b) := rfl
+
+@[simp] lemma sum_lex_dual_antidistrib_symm_inl :
+  (sum_lex_dual_antidistrib α β).symm (inl (to_dual b)) = to_dual (inr b) := rfl
+
+@[simp] lemma sum_lex_dual_antidistrib_symm_inr :
+  (sum_lex_dual_antidistrib α β).symm (inr (to_dual a)) = to_dual (inl a) := rfl
 
 end order_iso

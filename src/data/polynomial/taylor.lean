@@ -39,8 +39,15 @@ by simp only [taylor_apply, X_comp]
 @[simp] lemma taylor_C (x : R) : taylor r (C x) = C x :=
 by simp only [taylor_apply, C_comp]
 
-@[simp] lemma taylor_at_zero (f : polynomial R) : taylor 0 f = f :=
-by simp only [taylor_apply, add_zero, comp_X, eq_self_iff_true, _root_.map_zero]
+@[simp] lemma taylor_zero' : taylor (0 : R) = linear_map.id :=
+begin
+  ext,
+  simp only [taylor_apply, add_zero, comp_X, _root_.map_zero, linear_map.id_comp, function.comp_app,
+             linear_map.coe_comp]
+end
+
+lemma taylor_zero (f : polynomial R) : taylor 0 f = f :=
+by rw [taylor_zero', linear_map.id_apply]
 
 @[simp] lemma taylor_one : taylor r (1 : polynomial R) = C 1 :=
 by rw [← C_1, taylor_C]
@@ -148,6 +155,6 @@ end
 lemma sum_taylor_eq {R} [comm_ring R] (f : polynomial R) (r : R) :
   (taylor r f).sum (λ i a, C a * (X - C r) ^ i) = f :=
 by rw [←comp_eq_sum_left, sub_eq_add_neg, ←C_neg, ←taylor_apply, taylor_taylor, neg_add_self,
-       taylor_at_zero]
+       taylor_zero]
 
 end polynomial

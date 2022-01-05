@@ -6,6 +6,7 @@ Authors: Damiano Testa
 import algebra.group_power.basic
 import algebra.ring.opposite
 import group_theory.group_action.opposite
+import group_theory.group_action.prod
 
 /-!
 # Introduce `smul_with_zero`

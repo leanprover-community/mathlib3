@@ -505,8 +505,7 @@ lemma norm_le_of_tsum_le (hp : 0 < p.to_real) {C : ℝ} (hC : 0 ≤ C) {f : lp E
   (hf : ∑' i, ∥f i∥ ^ p.to_real ≤ C ^ p.to_real) :
   ∥f∥ ≤ C :=
 begin
-  rw ← real.rpow_le_rpow_iff (norm_nonneg' _) hC hp,
-  rw norm_rpow_eq_tsum hp,
+  rw [← real.rpow_le_rpow_iff (norm_nonneg' _) hC hp, norm_rpow_eq_tsum hp],
   exact hf,
 end
 

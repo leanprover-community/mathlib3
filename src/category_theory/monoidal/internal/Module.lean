@@ -67,6 +67,9 @@ instance (A : Mon_ (Module.{u} R)) : algebra R A.X :=
     exact h₁.trans h₂.symm,
   end,
   smul_def' := λ r a, by { convert (linear_map.congr_fun A.one_mul (r ⊗ₜ a)).symm, simp, },
+  -- note: `Module` doesn't carry a right-module structure, so we just construct the obvious one
+  to_has_opposite_scalar := { smul := λ r a, r.unop • a },
+  op_smul_def' := λ a r, by { convert (linear_map.congr_fun A.mul_one (a ⊗ₜ r)).symm, simp, },
   ..A.one }
 
 @[simp] lemma algebra_map (A : Mon_ (Module.{u} R)) (r : R) : algebra_map R A.X r = A.one r := rfl

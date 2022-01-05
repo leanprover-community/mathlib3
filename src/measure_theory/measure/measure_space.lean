@@ -366,7 +366,9 @@ begin
     exact hl.trans_le (measure_mono (bInter_subset_of_mem hr)) },
   obtain ⟨u, u_anti, u_pos, u_lim⟩ : ∃ (u : ℕ → ι), strict_anti u ∧ (∀ (n : ℕ), a < u n)
     ∧ tendsto u at_top (𝓝 a),
-  { rcases hf with ⟨r, ar, hr⟩, exact exists_seq_strict_anti_tendsto' ar },
+  { rcases hf with ⟨r, ar, hr⟩,
+    rcases exists_seq_strict_anti_tendsto' ar with ⟨w, w_anti, w_mem, w_lim⟩,
+    exact ⟨w, w_anti, λ n, (w_mem n).1, w_lim⟩ },
   have A : tendsto (μ ∘ (s ∘ u)) at_top (𝓝(μ (⋂ n, s (u n)))),
   { refine tendsto_measure_Inter (λ n, hs _ (u_pos n)) _ _,
     { assume m n hmn,

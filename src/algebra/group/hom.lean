@@ -181,6 +181,14 @@ instance one_hom.one_hom_class : one_hom_class (one_hom M N) M N :=
 @[simp, to_additive] lemma map_one [one_hom_class F M N] (f : F) : f 1 = 1 :=
 one_hom_class.map_one f
 
+@[to_additive] lemma one_hom_class.map_eq_one_iff [one_hom_class F M N] (f : F)
+  (hf : function.injective f) {x : M} : f x = 1 ↔ x = 1 :=
+⟨λ h, hf $ by simp [h], λ h, by simpa using congr_arg f h⟩
+
+@[to_additive] lemma one_hom.map_eq_one_iff (f : one_hom M N) (hf : function.injective f) {x : M} :
+  f x = 1 ↔ x = 1 :=
+one_hom_class.map_eq_one_iff f hf
+
 end one
 
 section mul
@@ -300,6 +308,10 @@ theorem map_zpow [group G] [group H] [monoid_hom_class F G H] (f : F) (g : G) (n
   f (g ^ n) = (f g) ^ n :=
 map_zpow' f (map_inv f) g n
 
+@[to_additive] lemma monoid_hom.map_eq_one_iff (f : M →* N) (hf : function.injective f) {x : M} :
+  f x = 1 ↔ x = 1 :=
+one_hom_class.map_eq_one_iff f hf
+
 end mul_one
 
 section mul_zero_one
@@ -339,6 +351,14 @@ instance monoid_with_zero_hom.monoid_with_zero_hom_class :
   map_mul := monoid_with_zero_hom.map_mul',
   map_one := monoid_with_zero_hom.map_one',
   map_zero := monoid_with_zero_hom.map_zero' }
+
+lemma monoid_with_zero_hom.map_eq_one_iff (f : monoid_with_zero_hom M N)
+  (hf : function.injective f) {x : M} : f x = 1 ↔ x = 1 :=
+one_hom_class.map_eq_one_iff f hf
+
+lemma monoid_with_zero_hom.map_eq_zero_iff (f : monoid_with_zero_hom M N)
+  (hf : function.injective f) {x : M} : f x = 0 ↔ x = 0 :=
+zero_hom_class.map_eq_zero_iff f hf
 
 end mul_zero_one
 
@@ -967,7 +987,7 @@ its kernel is trivial. For the iff statement on the triviality of the kernel,
 see `add_monoid_hom.injective_iff'`. "-/]
 lemma injective_iff {G H} [group G] [mul_one_class H] (f : G →* H) :
   function.injective f ↔ (∀ a, f a = 1 → a = 1) :=
-⟨λ h x hfx, h $ hfx.trans f.map_one.symm,
+⟨λ h x, (f.map_eq_one_iff h).mp,
  λ h x y hxy, mul_inv_eq_one.1 $ h _ $ by rw [f.map_mul, hxy, ← f.map_mul, mul_inv_self, f.map_one]⟩
 
 /-- A homomorphism from a group to a monoid is injective iff its kernel is trivial,

@@ -808,7 +808,7 @@ nat.cast_injective
 @[simp, norm_cast, priority 900] theorem nat_succ (n : ℕ) : (n.succ : cardinal) = succ n :=
 le_antisymm (add_one_le_succ _) (succ_le.2 $ nat_cast_lt.2 $ nat.lt_succ_self _)
 
-@[simp] theorem succ_zero : succ 0 = (1 : cardinal):=
+@[simp] theorem succ_zero : succ 0 = 1 :=
 by norm_cast
 
 theorem card_le_of {α : Type u} {n : ℕ} (H : ∀ s : finset α, s.card ≤ n) :

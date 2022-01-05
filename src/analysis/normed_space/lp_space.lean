@@ -617,7 +617,7 @@ variables [_i : fact (1 ≤ p)]
 
 include _i
 
-lemma sum_rpow_le_of_tendsto (hp : p ≠ ⊤) {C : ℝ} {F : ι → lp E p} (hCF : ∀ᶠ k in l, ∥F k∥ ≤ C)
+lemma sum_rpow_le_of_tendsto (hp : p ≠ ∞) {C : ℝ} {F : ι → lp E p} (hCF : ∀ᶠ k in l, ∥F k∥ ≤ C)
   {f : Π a, E a} (hf : tendsto (id (λ i, F i) : ι → Π a, E a) l (𝓝 f)) (s : finset α) :
   ∑ (i : α) in s, ∥f i∥ ^ p.to_real ≤ C ^ p.to_real :=
 begin

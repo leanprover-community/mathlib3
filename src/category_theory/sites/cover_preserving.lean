@@ -220,8 +220,6 @@ variables {C : Type v₁} [small_category C] {D : Type v₁} [small_category D]
 variables (A : Type u₂) [category.{v₁} A]
 variables (J : grothendieck_topology C) (K : grothendieck_topology D)
 
-set_option pp.universes true
-
 instance [has_limits A] : creates_limits (Sheaf_to_presheaf J A) :=
 category_theory.Sheaf.category_theory.Sheaf_to_presheaf.category_theory.creates_limits.{u₂ v₁ v₁}
 

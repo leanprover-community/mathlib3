@@ -25,7 +25,7 @@ namespace my_hom
 
 variables (A B : Type*) [my_class A] [my_class B]
 
--- This instance is optional if you follow the "Hom class" design below:
+-- This instance is optional if you follow the "morphism class" design below:
 instance : fun_like (my_hom A B) A (λ _, B) :=
 { coe := my_hom.to_fun, coe_injective' := λ f g h, by cases f; cases g; congr' }
 
@@ -48,7 +48,7 @@ end my_hom
 This file will then provide a `has_coe_to_fun` instance and various
 extensionality and simp lemmas.
 
-## Hom classes extending `fun_like`
+## Morphism classes extending `fun_like`
 
 The `fun_like` design provides further benefits if you put in a bit more work.
 The first step is to extend `fun_like` to create a class of those types satisfying

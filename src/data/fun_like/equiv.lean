@@ -23,7 +23,7 @@ namespace my_iso
 
 variables (A B : Type*) [my_class A] [my_class B]
 
--- This instance is optional if you follow the "Hom class" design below:
+-- This instance is optional if you follow the "Isomorphism class" design below:
 instance : equiv_like (my_iso A B) A (λ _, B) :=
 { coe := my_iso.to_equiv.to_fun,
   inv := my_iso.to_equiv.inv_fun,

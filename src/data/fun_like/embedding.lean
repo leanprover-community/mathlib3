@@ -24,7 +24,7 @@ namespace my_embedding
 
 variables (A B : Type*) [my_class A] [my_class B]
 
--- This instance is optional if you follow the "Hom class" design below:
+-- This instance is optional if you follow the "Embedding class" design below:
 instance : embedding_like (my_embedding A B) A B :=
 { coe := my_embedding.to_fun,
   coe_injective' := λ f g h, by cases f; cases g; congr',
@@ -51,7 +51,7 @@ end my_embedding
 This file will then provide a `has_coe_to_fun` instance and various
 extensionality and simp lemmas.
 
-## Hom classes extending `embedding_like`
+## Embedding classes extending `embedding_like`
 
 The `embedding_like` design provides further benefits if you put in a bit more work.
 The first step is to extend `embedding_like` to create a class of those types satisfying

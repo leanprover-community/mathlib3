@@ -70,7 +70,7 @@ begin
     { rw convex_hull_affine_basis_eq_nonneg_barycentric b, ext, simp, },
     ext,
     simp only [this, interior_Inter_of_fintype, ← is_open_map.preimage_interior_eq_interior_preimage
-      (continuous_barycentric_coord b _) (is_open_map_barycentric_coord b _),
+      (is_open_map_barycentric_coord b _) (continuous_barycentric_coord b _),
       interior_Ici, mem_Inter, mem_set_of_eq, mem_Ioi, mem_preimage], },
 end
 

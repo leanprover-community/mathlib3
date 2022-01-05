@@ -47,11 +47,11 @@ protected def linear_isometry : lp G 2 →ₗᵢ[𝕜] E :=
   map_smul' := λ c f, by simpa using tsum_const_smul (hV.summable_of_lp f),
   norm_map' := λ f, begin
     classical, -- needed for lattice instance on `finset ι`, for `filter.at_top_ne_bot`
-    have H : 0 ≤ (2:ℝ≥0∞).to_real := ennreal.to_real_nonneg,
+    have H : 0 < (2:ℝ≥0∞).to_real := by norm_num,
     suffices : ∥∑' (i : ι), V i (f i)∥ ^ ((2:ℝ≥0∞).to_real) = ∥f∥ ^ ((2:ℝ≥0∞).to_real),
-    { exact real.rpow_left_inj_on (by norm_num) (norm_nonneg _) (norm_nonneg _) this },
-    refine tendsto_nhds_unique  _ (lp.has_sum_norm (by norm_num) f),
-    convert (hV.summable_of_lp f).has_sum.norm.rpow_const (or.inr H),
+    { exact real.rpow_left_inj_on H.ne' (norm_nonneg _) (norm_nonneg _) this },
+    refine tendsto_nhds_unique  _ (lp.has_sum_norm H f),
+    convert (hV.summable_of_lp f).has_sum.norm.rpow_const (or.inr H.le),
     ext s,
     exact_mod_cast (hV.norm_sum f s).symm,
   end }

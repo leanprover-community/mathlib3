@@ -26,7 +26,7 @@ by simp [subset_def, bounded_iff_subset_ball (0 : E)]
 
 alias bounded_iff_exists_norm_le ↔ metric.bounded.exists_norm_le _
 
-lemma metric.bounded.exists_norm_le' {s : set E} (hs : metric.bounded s) :
+lemma metric.bounded.exists_nonneg_norm_le {s : set E} (hs : metric.bounded s) :
   ∃ R ≥ 0, ∀ x ∈ s, ∥x∥ ≤ R :=
 begin
   obtain ⟨R₀, hR₀⟩ := hs.exists_norm_le,

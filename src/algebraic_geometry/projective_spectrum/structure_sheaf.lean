@@ -71,6 +71,7 @@ The prime spectrum, just as a topological space.
 def projective_spectrum.Top : Top := Top.of (projective_spectrum 𝒜)
 
 namespace projective_spectrum.structure_sheaf
+-- set_option formatter.hide_full_terms false
 
 /--
 The type family over `prime_spectrum R` consisting of the localization over each point.
@@ -79,55 +80,65 @@ The type family over `prime_spectrum R` consisting of the localization over each
 -- def localizations (P : projective_spectrum.Top 𝒜) :=
 -- localization.at_prime P.as_homogeneous_ideal.1
 
+structure hl.condition (x : projective_spectrum.Top 𝒜) :=
+(a b : A)
+(b_nin : b ∉ x.as_homogeneous_ideal)
+(i : ι) (a_hom : a ∈ 𝒜 i) (b_hom : b ∈ 𝒜 i)
+
 @[derive [comm_ring]]
 def hartshorne_localisation (x : projective_spectrum.Top 𝒜) : Type* :=
 (subring.mk
   {y : (localization.at_prime x.as_homogeneous_ideal.1) |
-    ∃ (a b : A) (i : ι) (a_hom : a ∈ 𝒜 i) (b_hom : b ∈ 𝒜 i) (b_nin : b ∉ x.as_homogeneous_ideal),
-    y = (localization.mk a ⟨b, b_nin⟩ : (localization.at_prime x.as_homogeneous_ideal.1))}
+    ∃ (c : hl.condition _ x),
+    y = (localization.mk c.a ⟨c.b, c.b_nin⟩ : (localization.at_prime x.as_homogeneous_ideal.1))}
   begin
-    refine ⟨1, 1, 0, set_like.has_graded_one.one_mem, set_like.has_graded_one.one_mem, _, _⟩,
+    refine
+      ⟨hl.condition.mk 1 1 _ 0 set_like.has_graded_one.one_mem set_like.has_graded_one.one_mem, _⟩,
     erw ←ideal.ne_top_iff_one, exact x.is_prime.ne_top,
     simp only [is_localization.mk'_self, localization.mk_eq_mk'],
   end begin
-    rintros y1 y2 ⟨a1, b1, i1, a1_hom, b1_hom, b1_nin, hy1⟩
-      ⟨a2, b2, i2, a2_hom, b2_hom, b2_nin, hy2⟩,
+    rintros y1 y2 ⟨⟨a1, b1, b1_nin, i1, a1_hom, b1_hom⟩, hy1⟩
+      ⟨⟨a2, b2, b2_nin, i2, a2_hom, b2_hom⟩, hy2⟩,
     rw [hy1, hy2, localization.mk_mul],
-    refine ⟨a1 * a2, b1 * b2, i1 + i2, set_like.graded_monoid.mul_mem a1_hom a2_hom,
-      set_like.graded_monoid.mul_mem b1_hom b2_hom, _, rfl⟩,
+    refine ⟨hl.condition.mk (a1 * a2) (b1 * b2) _ (i1 + i2)
+      (set_like.graded_monoid.mul_mem a1_hom a2_hom)
+      (set_like.graded_monoid.mul_mem b1_hom b2_hom), rfl⟩,
   end begin
-    refine ⟨0, 1, 0, submodule.zero_mem _, set_like.has_graded_one.one_mem, _, _⟩,
+    refine ⟨hl.condition.mk 0 1 _ 0 (submodule.zero_mem _) set_like.has_graded_one.one_mem, _⟩,
     erw ←ideal.ne_top_iff_one, exact x.is_prime.ne_top,
     rw localization.mk_zero,
   end begin
-    rintros y1 y2 ⟨a1, b1, i1, a1_hom, b1_hom, b1_nin, hy1⟩
-      ⟨a2, b2, i2, a2_hom, b2_hom, b2_nin, hy2⟩,
-    refine ⟨a1 * b2 + a2 * b1, b1 * b2, i1 + i2,
-      submodule.add_mem _ (set_like.graded_monoid.mul_mem a1_hom b2_hom) _,
-      set_like.graded_monoid.mul_mem b1_hom b2_hom, λ h, _, _⟩,
-    { rw add_comm, refine set_like.graded_monoid.mul_mem a2_hom b1_hom, },
+    rintros y1 y2 ⟨⟨a1, b1, b1_nin, i1, a1_hom, b1_hom⟩, hy1⟩
+      ⟨⟨a2, b2, b2_nin, i2, a2_hom, b2_hom⟩, hy2⟩,
+    refine ⟨hl.condition.mk (a1 * b2 + a2 * b1) (b1 * b2) (λ h, _) (i1 + i2)
+      (submodule.add_mem _ (set_like.graded_monoid.mul_mem a1_hom b2_hom) _)
+      (set_like.graded_monoid.mul_mem b1_hom b2_hom), _⟩,
     { cases ideal.is_prime.mem_or_mem x.is_prime h with h' h',
       apply b1_nin, exact h', apply b2_nin, exact h', },
+    { rw add_comm, refine set_like.graded_monoid.mul_mem a2_hom b1_hom, },
     { rw [hy1, hy2, localization.add_mk],
       simp only [subtype.coe_mk, localization.mk_eq_mk'],
       congr' 1, ring, },
   end begin
-    rintro y ⟨a, b, i, a_hom, b_hom, b_nin, hy⟩,
-    refine ⟨-a, b, i, submodule.neg_mem _ a_hom, b_hom, b_nin, _⟩,
+    rintro y ⟨⟨a, b, b_nin, i, a_hom, b_hom⟩, hy⟩,
+    refine ⟨hl.condition.mk (-a) b b_nin i (submodule.neg_mem _ a_hom) b_hom, _⟩,
     rw [hy, localization.neg_mk],
   end)
 
--- instance (P : projective_spectrum.Top 𝒜) : inhabited (localizations 𝒜 P) :=
--- ⟨1⟩
+variable {𝒜}
+def hartshorne_localisation.num {x : projective_spectrum.Top 𝒜}
+  (f : hartshorne_localisation 𝒜 x) : A := (classical.some f.2).a
 
--- instance (U : opens (projective_spectrum.Top 𝒜)) (x : U) :
---   algebra A (localizations 𝒜 x) :=
--- localization.algebra
+def hartshorne_localisation.denom {x : projective_spectrum.Top 𝒜}
+  (f : hartshorne_localisation 𝒜 x) : A := (classical.some f.2).b
 
--- instance (U : opens (projective_spectrum.Top 𝒜)) (x : U) :
---   is_localization.at_prime (localizations 𝒜 x)
---   (x : projective_spectrum.Top 𝒜).as_homogeneous_ideal.1 :=
--- localization.is_localization
+lemma hartshorne_localisation.denom_not_mem {x : projective_spectrum.Top 𝒜}
+  (f : hartshorne_localisation 𝒜 x) : f.denom ∉ x.as_homogeneous_ideal :=
+(classical.some f.2).b_nin
+
+def hartshorne_localisation.eq_num_div_denom {x : projective_spectrum.Top 𝒜}
+  (f : hartshorne_localisation 𝒜 x) : f.1 = localization.mk f.num ⟨f.denom, f.denom_not_mem⟩ :=
+(classical.some_spec f.2)
 
 lemma hartshorne_localisation.val_add (x : projective_spectrum.Top 𝒜)
   (f g : hartshorne_localisation 𝒜 x) : (f + g).val = f.val + g.val := rfl
@@ -153,26 +164,22 @@ begin
   rw localization.mk_one, refl
 end
 
-lemma hartshorne_localisation.ext (x y : projective_spectrum.Top 𝒜)
-   (hxy : y.as_homogeneous_ideal ≤ x.as_homogeneous_ideal)
-  (a a' b b' : A) (i i' : ι) (a_hom : a ∈ 𝒜 i) (b_hom : b ∈ 𝒜 i)
-  (a_hom' : a' ∈ 𝒜 i') (b_hom' : b' ∈ 𝒜 i')
-  (b_ninx : b ∉ x.as_homogeneous_ideal) (b_ninx' : b' ∉ x.as_homogeneous_ideal)
-  (b_niny : b ∉ y.as_homogeneous_ideal) (b_niny' : b' ∉ y.as_homogeneous_ideal)
-  (eq1 :
-    (⟨localization.mk a ⟨b, b_ninx⟩, ⟨a, b, i, a_hom, b_hom, b_ninx, rfl⟩⟩ :
-      hartshorne_localisation 𝒜 x) =
-    (⟨localization.mk a' ⟨b', b_ninx'⟩, ⟨a', b', i', a_hom', b_hom', b_ninx', rfl⟩⟩ :
-      hartshorne_localisation 𝒜 x)) :
-  (⟨localization.mk a ⟨b, b_niny⟩, ⟨a, b, i, a_hom, b_hom, b_niny, rfl⟩⟩ :
-      hartshorne_localisation 𝒜 y) =
-    (⟨localization.mk a' ⟨b', b_niny'⟩, ⟨a', b', i', a_hom', b_hom', b_niny', rfl⟩⟩ :
-      hartshorne_localisation 𝒜 y) :=
+lemma hartshorne_localisation.ext (x : projective_spectrum.Top 𝒜)
+  -- (hxy : y.as_homogeneous_ideal ≤ x.as_homogeneous_ideal)
+  (a b : A) (i : ι) (a_hom : a ∈ 𝒜 i) (b_hom : b ∈ 𝒜 i)
+  (b_nin b_nin' : b ∉ x.as_homogeneous_ideal)
+  -- (eq1 :
+  --   (⟨localization.mk a ⟨b, b_ninx⟩, ⟨a, b, i, a_hom, b_hom, b_ninx, rfl⟩⟩ :
+  --     hartshorne_localisation 𝒜 x) =
+  --   (⟨localization.mk a' ⟨b', b_ninx'⟩, ⟨a', b', i', a_hom', b_hom', b_ninx', rfl⟩⟩ :
+  --     hartshorne_localisation 𝒜 x))
+       :
+  (⟨localization.mk a ⟨b, b_nin⟩, ⟨hl.condition.mk a b b_nin i a_hom b_hom, rfl⟩⟩ :
+    hartshorne_localisation 𝒜 x) =
+  (⟨localization.mk a ⟨b, b_nin'⟩, ⟨hl.condition.mk a b b_nin' i a_hom b_hom, rfl⟩⟩ :
+    hartshorne_localisation 𝒜 x) :=
 begin
-  rw [subtype.ext_iff_val] at eq1 ⊢, dsimp only at eq1 ⊢,
-  simp only [localization.mk_eq_mk', is_localization.eq] at eq1 ⊢,
-  obtain ⟨⟨c, hc⟩, eq1⟩ := eq1, use c, intro h, apply hc, apply hxy, exact h,
-  erw eq1, refl,
+  rw [subtype.ext_iff_val],
 end
 
 variables {𝒜}
@@ -185,15 +192,14 @@ def is_fraction {U : opens (projective_spectrum.Top 𝒜)}
   (f : Π x : U, hartshorne_localisation 𝒜 x) : Prop :=
 ∃ (r s : A) (i : ι) (r_hom : r ∈ 𝒜 i) (s_hom : s ∈ 𝒜 i),
   ∀ x : U, ∃ (s_nin : ¬ (s ∈ x.1.as_homogeneous_ideal)),
-  f x = ⟨localization.mk r ⟨s, s_nin⟩, ⟨r, s, i, r_hom, s_hom, s_nin, rfl⟩⟩
+  (f x).1 = localization.mk r ⟨s, s_nin⟩
 
 lemma is_fraction.eq_mk' {U : opens (projective_spectrum.Top 𝒜)}
   {f : Π x : U, hartshorne_localisation 𝒜 x}
   (hf : is_fraction f) :
   ∃ (r s : A) (i : ι) (r_hom : r ∈ 𝒜 i) (s_hom : s ∈ 𝒜 i),
     ∀ x : U, ∃ (s_nin : s ∉ x.1.as_homogeneous_ideal),
-    f x =
-    ⟨localization.mk r ⟨s, s_nin⟩, ⟨r, s, i, r_hom, s_hom, s_nin, rfl⟩⟩ :=
+    (f x).1 = localization.mk r ⟨s, s_nin⟩ :=
 begin
   rcases hf with ⟨r, s, i, r_hom, s_hom, h⟩,
   refine ⟨r, s, i, r_hom, s_hom, h⟩,
@@ -245,8 +251,7 @@ def sections_subring (U : (opens (projective_spectrum.Top 𝒜))ᵒᵖ) :
       set_like.has_graded_one.one_mem, λ y, ⟨_, _⟩⟩,
     { erw ←ideal.ne_top_iff_one ((y : projective_spectrum.Top 𝒜).as_homogeneous_ideal.1),
       exact y.1.is_prime.1, },
-    { simp only [pi.zero_apply],
-      rw subtype.ext_iff_val, dsimp only,
+    { simp only [pi.zero_apply], dsimp only,
       rw localization.mk_zero, refl,},
   end,
   one_mem' :=
@@ -255,8 +260,7 @@ def sections_subring (U : (opens (projective_spectrum.Top 𝒜))ᵒᵖ) :
       set_like.has_graded_one.one_mem, set_like.has_graded_one.one_mem, λ y, ⟨_, _⟩⟩,
     { erw ←ideal.ne_top_iff_one ((y : projective_spectrum.Top 𝒜).as_homogeneous_ideal.1),
       exact y.1.is_prime.1, },
-    { simp only [pi.one_apply],
-      rw subtype.ext_iff_val, dsimp only,
+    { simp only [pi.one_apply], dsimp only,
       erw localization.mk_one, refl, },
   end,
   add_mem' :=
@@ -278,11 +282,13 @@ def sections_subring (U : (opens (projective_spectrum.Top 𝒜))ᵒᵖ) :
       suffices : y.1 ∈ Vb, exact this,
       exact (opens.inf_le_right Va Vb y).2, },
     { simp only [add_mul, ring_hom.map_add, pi.add_apply, ring_hom.map_mul],
-      choose nin hy using (wa (opens.inf_le_left Va Vb y)),
-      erw hy,
-      choose nin hy using (wb (opens.inf_le_right Va Vb y)),
-      erw hy, rw subtype.ext_iff_val, dsimp only,
-      rw [hartshorne_localisation.val_add], dsimp only,
+      rw hartshorne_localisation.val_add,
+      choose nin1 hy1 using (wa (opens.inf_le_left Va Vb y)),
+      choose nin2 hy2 using (wb (opens.inf_le_right Va Vb y)),
+      have : (a ((Va.inf_le_left Vb ≫ ia) y)).val = localization.mk ra ⟨sa, _⟩ := hy1, rw this,
+      have : (b ((Va.inf_le_right Vb ≫ ib) y)).val = localization.mk rb ⟨sb, _⟩ := hy2,
+      have : (b ((Va.inf_le_left Vb ≫ ia) y)).val = localization.mk rb ⟨sb, _⟩,
+      rw ←this, erw hy2, rw this,
       rw [localization.add_mk],
       congr' 1, rw [add_comm], congr' 1,
       rw [mul_comm], refl,
@@ -295,9 +301,9 @@ def sections_subring (U : (opens (projective_spectrum.Top 𝒜))ᵒᵖ) :
     refine ⟨V, m, i, -r, s, j, submodule.neg_mem _ r_hom_j, s_hom_j, λ y, ⟨_, _⟩⟩,
     choose nin hy using w y, exact nin,
     choose nin hy using w y,
-    simp only [ring_hom.map_neg, pi.neg_apply],
-    erw hy, rw [subtype.ext_iff_val, hartshorne_localisation.val_neg], dsimp only,
-    rw localization.neg_mk,
+    simp only [ring_hom.map_neg, pi.neg_apply], rw hartshorne_localisation.val_neg,
+    rw ←localization.neg_mk,
+    erw ←hy,
   end,
   mul_mem' :=
   begin
@@ -313,10 +319,13 @@ def sections_subring (U : (opens (projective_spectrum.Top 𝒜))ᵒᵖ) :
       choose nin hy using wb ⟨y, (opens.inf_le_right Va Vb y).2⟩,
       apply nin, exact this, },
     { simp only [pi.mul_apply, ring_hom.map_mul],
-      choose nin hy1 using wa (opens.inf_le_left Va Vb y),
-      choose nin hy2 using wb (opens.inf_le_right Va Vb y),
-      erw [hy1, hy2], rw [subtype.ext_iff_val, hartshorne_localisation.val_mul],
-      dsimp only, rw [localization.mk_mul], refl, }
+      choose nin1 hy1 using wa (opens.inf_le_left Va Vb y),
+      choose nin2 hy2 using wb (opens.inf_le_right Va Vb y),
+      rw [hartshorne_localisation.val_mul],
+      have : (a ((Va.inf_le_left Vb ≫ ia) y)).val = localization.mk ra ⟨sa, _⟩ := hy1, rw this,
+      have : (b ((Va.inf_le_right Vb ≫ ib) y)).val = localization.mk rb ⟨sb, _⟩ := hy2,
+      have : (b ((Va.inf_le_left Vb ≫ ia) y)).val = localization.mk rb ⟨sb, _⟩,
+      rw ←this, erw hy2, rw this, rw [localization.mk_mul], refl, }
   end, }
 
 /--
@@ -379,21 +388,6 @@ def Proj.to_SheafedSpace : SheafedSpace CommRing :=
   presheaf := (structure_sheaf 𝒜).1,
   is_sheaf := (structure_sheaf 𝒜).2 }
 
--- CommRing.of (localization
---   { carrier := {r : A | r ∈ 𝒜 0 ∧ r ∉ x.as_homogeneous_ideal },
---     one_mem' := ⟨set_like.has_graded_one.one_mem, begin
---       erw ←ideal.ne_top_iff_one x.as_homogeneous_ideal.1,
---       exact x.is_prime.ne_top,
---     end⟩,
---     mul_mem' := λ a b ha hb, ⟨begin
---       suffices : a * b ∈ 𝒜 (0 + 0),
---       convert this, rw zero_add,
---       apply set_like.graded_monoid.mul_mem, exact ha.1, exact hb.1,
---     end, λ h, begin
---       have := ideal.is_prime.mem_or_mem (x.is_prime) h, cases this,
---       apply ha.2, exact this, apply hb.2, exact this,
---     end⟩ })
-
 def open_to_localization (U : opens (projective_spectrum.Top 𝒜)) (x : projective_spectrum.Top 𝒜)
   (hx : x ∈ U) :
   (structure_sheaf 𝒜).1.obj (op U) ⟶ CommRing.of (hartshorne_localisation 𝒜 x) :=
@@ -425,9 +419,217 @@ ring_hom.ext_iff.1 (germ_comp_stalk_to_fiber_ring_hom 𝒜 U ⟨x, hx⟩ : _) s
   stalk_to_fiber_ring_hom 𝒜 x ((structure_sheaf 𝒜).1.germ x s) = s.1 x :=
 by { cases x, exact stalk_to_fiber_ring_hom_germ' 𝒜 U _ _ _ }
 
-def stalk_iso (x : projective_spectrum.Top 𝒜) :
-  (structure_sheaf 𝒜).1.stalk x ≃+* CommRing.of (hartshorne_localisation 𝒜 x)  :=
-sorry
+lemma hartshorne_localisation.mem_basic_open (x) (f : hartshorne_localisation 𝒜 x) :
+  x ∈ projective_spectrum.basic_open 𝒜 f.denom :=
+begin
+  rw projective_spectrum.mem_basic_open,
+  exact hartshorne_localisation.denom_not_mem _,
+end
+
+variables {𝒜} -- [is_domain A]
+
+def hartshorne_localisation.i {x} (f : hartshorne_localisation 𝒜 x) : ι := (classical.some f.2).i
+def hartshorne_localisation.num_hom {x} (f : hartshorne_localisation 𝒜 x) : f.num ∈ 𝒜 f.i :=
+(classical.some f.2).a_hom
+
+def hartshorne_localisation.denom_hom {x} (f : hartshorne_localisation 𝒜 x) : f.denom ∈ 𝒜 f.i :=
+(classical.some f.2).b_hom
+
+variable (𝒜)
+def test.section (x : projective_spectrum.Top 𝒜) :
+  Π (f : hartshorne_localisation 𝒜 x),
+    (structure_sheaf 𝒜).1.obj (op (projective_spectrum.basic_open 𝒜 f.denom)) := λ f,
+⟨λ y, ⟨localization.mk f.num ⟨f.denom, y.2⟩,
+  ⟨hl.condition.mk f.num f.denom y.2 f.i f.num_hom f.denom_hom, rfl⟩⟩, λ y,
+  ⟨projective_spectrum.basic_open 𝒜 f.denom, ⟨y.2, begin
+  use 𝟙 _, use f.num, use f.denom, use f.i, split,
+  use f.num_hom, use f.denom_hom, intros z, use z.2, refl,
+end⟩⟩⟩
+
+lemma test.section_restrict (x : projective_spectrum.Top 𝒜) (f g : hartshorne_localisation _ x) :
+  ((structure_sheaf 𝒜).1.map
+    ((eq_to_hom (projective_spectrum.basic_open_mul 𝒜 f.denom g.denom))
+    ≫ (@opens.inf_le_left (projective_spectrum.Top 𝒜)
+    (projective_spectrum.basic_open _ f.denom) (projective_spectrum.basic_open _ g.denom))).op
+  (test.section 𝒜 x f)).val = λ y, ⟨localization.mk f.num
+    ⟨f.denom, projective_spectrum.basic_open_mul_le_left 𝒜 f.denom g.denom y.2⟩,
+    ⟨hl.condition.mk f.num f.denom _ f.i f.num_hom f.denom_hom, rfl⟩⟩ :=
+begin
+  ext y, rw res_apply, rw test.section, dsimp only, refl,
+end
+
+def test.def (x : projective_spectrum.Top 𝒜) :
+  (hartshorne_localisation 𝒜 x) → (structure_sheaf 𝒜).1.stalk x :=
+λ f, (structure_sheaf 𝒜).1.germ
+  (⟨x, hartshorne_localisation.mem_basic_open _ x f⟩ : projective_spectrum.basic_open _ f.denom)
+  (test.section _ x f)
+
+
+-- lemma test.eq_apply_stalk (u : opens (projective_spectrum.Top 𝒜)) (x : u)
+--   (s : (structure_sheaf 𝒜).1.obj (op u)) (f : hartshorne_localisation 𝒜 x.1)
+--   (hf : (structure_sheaf 𝒜).1.germ x s = test.def _ x.1 f) :
+--   f.val = localization.mk (s.1 x).num ⟨(s.1 x).denom, (s.1 x).denom_not_mem⟩ :=
+-- begin
+--   obtain ⟨v1, mem1, i1, a, b, i, a_hom, b_hom, hs⟩ := s.2 x,
+--   rw [test.def, test.section] at hf,
+--   obtain ⟨v2, mem2, il, ir, eq1⟩ := (structure_sheaf 𝒜).1.germ_eq _ x.2 _ _ _ hf,
+
+--   rw subtype.ext_iff_val at eq1,
+--   have eq2 := congr_fun eq1 ⟨x, mem2⟩,
+--   rw [res_apply, res_apply, subtype.ext_iff_val] at eq2, dsimp only at eq2,
+--   rw f.eq_num_div_denom,
+--   obtain ⟨b_nin, eq3⟩ := hs ⟨x, mem1⟩,
+--   dsimp only at eq3, erw [←eq2, eq3],
+--   sorry,
+-- end
+
+-- def test.map_one (x) :
+--   test.def 𝒜 x 1 = 1 :=
+-- begin
+--   rw test.def, rw test.section, dsimp only,
+--   convert map_one _, ext z, rw pi.one_apply,
+--   unfold_coes, dsimp only, rw hartshorne_localisation.val_one,
+--   sorry
+-- end
+
+-- def test.map_zero (x) :
+--   test.def 𝒜 x 0 = 0 :=
+-- begin
+--   rw test.def, rw test.section, dsimp only,
+--   convert map_zero _, ext z, rw pi.zero_apply,
+--   unfold_coes, dsimp only, rw hartshorne_localisation.val_zero,
+--   sorry
+-- end
+
+-- lemma test.map_mul (x) (f g) :
+--   test.def 𝒜 x (f * g) = test.def 𝒜 x f * test.def 𝒜 x g :=
+-- begin
+--   rw test.def, rw test.section, dsimp only,
+--   -- dsimp only,
+--   -- -- type_check test.section_restrict,
+--   -- set ar1 := (eq_to_hom (projective_spectrum.basic_open_mul 𝒜 f.denom g.denom)) with ar1_eq,
+--   -- set ar2 := (@opens.inf_le_left (projective_spectrum.Top 𝒜)
+--   --   (projective_spectrum.basic_open _ f.denom) (projective_spectrum.basic_open _ g.denom)) with
+--   --   ar2_eq,
+--   -- set ar3 := (@opens.inf_le_right (projective_spectrum.Top 𝒜)
+--   --   (projective_spectrum.basic_open _ f.denom) (projective_spectrum.basic_open _ g.denom)) with
+--   --   ar3_eq,
+--   -- have := @presheaf.germ_res _ _ _ (projective_spectrum.Top 𝒜) (structure_sheaf 𝒜).1
+--   --   (projective_spectrum.basic_open 𝒜 (f.denom * g.denom))
+--   --   (projective_spectrum.basic_open 𝒜 f.denom)
+--   --   (ar1 ≫ ar2) ⟨x, _⟩, erw ←this,
+--   -- have := @presheaf.germ_res _ _ _ (projective_spectrum.Top 𝒜) (structure_sheaf 𝒜).1
+--   --   (projective_spectrum.basic_open 𝒜 (f.denom * g.denom))
+--   --   (projective_spectrum.basic_open 𝒜 g.denom)
+--   --   (ar1 ≫ ar3) ⟨x, _⟩, erw ←this,
+--   -- erw [ar1_eq, ar2_eq, ar3_eq],
+--   -- erw test.section_restrict,
+
+--   all_goals { sorry },
+
+--   -- simp only [op_comp, functor.map_comp, category.assoc],
+
+-- end
+
+-- lemma test.map_add (x) (f g) :
+--   test.def 𝒜 x (f + g) = test.def 𝒜 x f + test.def 𝒜 x g := sorry
+
+-- def test (x : projective_spectrum.Top _) :
+--   (hartshorne_localisation 𝒜 x) →+* (structure_sheaf 𝒜).1.stalk x :=
+-- { to_fun := test.def _ _,
+--   map_one' := test.map_one _ _,
+--   map_mul' := test.map_mul _ _,
+--   map_add' := sorry,
+--   map_zero' := test.map_zero _ _ }
+
+-- lemma test.def_prop (x) (f : hartshorne_localisation 𝒜 x) :
+--   test _ x f = (structure_sheaf 𝒜).1.germ
+--   (⟨x, hartshorne_localisation.mem_basic_open _ x f⟩ : projective_spectrum.basic_open _ f.denom)
+--   ⟨λ y, ⟨localization.mk f.num ⟨f.denom, y.2⟩,
+--     ⟨hl.condition.mk f.num f.denom y.2 f.i f.num_hom f.denom_hom, rfl⟩⟩, λ y,
+--     ⟨projective_spectrum.basic_open 𝒜 f.denom, ⟨y.2, begin
+--     use 𝟙 _, use f.num, use f.denom, use f.i, split,
+--     use f.num_hom, use f.denom_hom, intros z, use z.2, refl,
+--   end⟩⟩⟩ := rfl
+
+def stalk_iso' (x : projective_spectrum.Top 𝒜) :
+  (structure_sheaf 𝒜).1.stalk x ≅ CommRing.of (hartshorne_localisation 𝒜 x)  :=
+ring_equiv.of_bijective (stalk_to_fiber_ring_hom _ x)
+begin
+  rw function.bijective_iff_has_inverse,
+  use test.def 𝒜 x, split,
+  { intros z, rw test.def, rw test.section,
+    obtain ⟨u1, mem1, s1, eq1⟩ := (structure_sheaf 𝒜).1.germ_exist x z,
+    rw ←eq1,
+    have eq2 := stalk_to_fiber_ring_hom_germ 𝒜 u1 ⟨x, mem1⟩ s1,
+    erw eq2, dsimp only,
+    refine germ_ext (structure_sheaf 𝒜).1
+      (u1 ⊓ projective_spectrum.basic_open 𝒜 (s1.1 ⟨x, mem1⟩).denom)
+      ⟨mem1, (s1.1 ⟨x, mem1⟩).denom_not_mem⟩
+      (opens.inf_le_right _ _) (opens.inf_le_left _ _) _,
+      dsimp only, rw subtype.ext_iff_val, ext1 y, erw res_apply,
+      set s1_res :=
+        ((structure_sheaf 𝒜).val.map
+        (u1.inf_le_left (projective_spectrum.basic_open 𝒜 (s1.val ⟨x, mem1⟩).denom)).op) s1
+        with s1_res_eq,
+      dsimp only, erw ←s1_res_eq,
+      obtain ⟨v1, mem2, i, a, b, j, a_hom, b_hom, hs⟩ := s1_res.2
+        ⟨x, ⟨mem1, (s1.1 _).denom_not_mem⟩⟩,
+
+      -- specialize hs2 ⟨x, sorry⟩,
+
+    sorry },
+  { intros f, rw test.def, dsimp only,
+    have eq1 := stalk_to_fiber_ring_hom_germ 𝒜
+      (projective_spectrum.basic_open 𝒜 f.denom) ⟨x, _⟩ (test.section _ x f),
+    erw eq1, rw test.section, dsimp only, rw subtype.ext_iff_val,
+    dsimp only, rw f.eq_num_div_denom, refl, }
+end
+
+-- def stalk_iso (x : projective_spectrum.Top 𝒜) :
+--   (hartshorne_localisation 𝒜 x) ≃+* (structure_sheaf 𝒜).1.stalk x  :=
+-- ring_equiv.of_bijective (test 𝒜 x)
+-- ⟨begin
+--   intros f1 f2 eq1,
+--   obtain ⟨u1, mem1, s1, eq21⟩ := (structure_sheaf 𝒜).1.germ_exist x (test _ x f1),
+--   obtain ⟨u2, mem2, s2, eq22⟩ := (structure_sheaf 𝒜).1.germ_exist x (test _ x f2),
+--   have eq31 := test.eq_apply_stalk 𝒜 _ _ _ _ eq21,
+--   have eq32 := test.eq_apply_stalk 𝒜 _ _ _ _ eq22,
+--   rw [←eq21, ←eq22] at eq1, rw subtype.ext_iff_val, rw [eq31, eq32],
+--   obtain ⟨w, mem3, i1, i2, eq3⟩ := (structure_sheaf 𝒜).1.germ_eq x mem1 mem2 _ _ eq1,
+--   have eq3 : (((structure_sheaf 𝒜).val.map i1.op) s1).1 = (((structure_sheaf 𝒜).val.map i2.op) s2).1,
+--   rw eq3,
+--   replace eq3 := congr_fun eq3 ⟨x, mem3⟩,
+--   rw [res_apply, res_apply]at eq3,
+--   erw [eq3], refl,
+-- end, begin
+--   intro stalk,
+--   obtain ⟨u1, mem1, s, hu1⟩ := (structure_sheaf 𝒜).1.germ_exist _ stalk,
+--   obtain ⟨u2, mem2, i, ⟨a, b, j, a_hom, b_hom, h1⟩⟩ := s.2 ⟨x, mem1⟩,
+--   obtain ⟨b_nin, h2⟩ := h1 ⟨x, mem2⟩, dsimp only at h2,
+--   refine ⟨⟨localization.mk a ⟨b, b_nin⟩, ⟨hl.condition.mk a b b_nin j a_hom b_hom, rfl⟩⟩, _⟩,
+--   rw ←hu1, erw test.def_prop,
+--   apply (structure_sheaf 𝒜).1.germ_ext
+--     (u2 ⊓ projective_spectrum.basic_open 𝒜
+--       (hartshorne_localisation.denom ⟨localization.mk a ⟨b, b_nin⟩,
+--         ⟨hl.condition.mk a b b_nin j a_hom b_hom, rfl⟩⟩))
+--       ⟨mem2, hartshorne_localisation.denom_not_mem _⟩
+--     (opens.inf_le_right _ _) (opens.inf_le_left _ _ ≫ i),
+--   rw subtype.ext_iff_val, ext1 z,
+--   rw [res_apply, res_apply], dsimp only, rw subtype.ext_iff_val, dsimp only,
+--   obtain ⟨_, hz⟩ := (h1 ⟨z.1, _⟩), dsimp only at hz, erw hz,
+--   have := hartshorne_localisation.eq_num_div_denom
+--     ⟨localization.mk a ⟨b, w⟩, ⟨hl.condition.mk a b w j a_hom b_hom, rfl⟩⟩,
+--   dsimp only at this,
+
+--   simp only [localization.mk_eq_mk'],
+--   erw is_localization.eq, use 1,
+--   erw [mul_one, mul_one], unfold_coes, dsimp only,
+
+--   sorry,
+--   apply le_of_hom (opens.inf_le_left _ _),
+--   exact z.2,
+-- end⟩
 
 def hartshorne_localisation.is_local (x : projective_spectrum.Top 𝒜) :
   local_ring (hartshorne_localisation 𝒜 x) :=
@@ -440,15 +642,15 @@ def hartshorne_localisation.is_local (x : projective_spectrum.Top 𝒜) :
   end⟩,
   is_local := λ ⟨a, ha⟩, begin
   induction a with r s,
-  rcases ha with ⟨r', s', i, r'_hom, s'_hom, s'_nin, eq1⟩,
+  rcases ha with ⟨⟨r', s', s'_nin, i, r'_hom, s'_hom⟩, eq1⟩,
   by_cases mem1 : r' ∈ x.as_homogeneous_ideal.1,
   { right,
     have : s' - r' ∉ x.as_homogeneous_ideal.1,
     { intro h, apply s'_nin,
       convert submodule.add_mem' _ h mem1, rw sub_add_cancel, },
     apply is_unit_of_mul_eq_one, swap,
-    refine ⟨(localization.mk s' ⟨s' - r', this⟩), s', s' - r', i, s'_hom,
-      submodule.sub_mem _ s'_hom r'_hom, this, rfl⟩,
+    refine ⟨(localization.mk s' ⟨s' - r', this⟩),
+      ⟨hl.condition.mk s' (s' - r') this i s'_hom (submodule.sub_mem _ s'_hom r'_hom), rfl⟩⟩,
     rw [sub_mul, subtype.ext_iff_val, hartshorne_localisation.val_sub,
       hartshorne_localisation.val_mul, hartshorne_localisation.val_mul],
     dsimp only, erw [eq1, localization.mk_mul, one_mul, sub_eq_add_neg, localization.neg_mk,
@@ -460,7 +662,7 @@ def hartshorne_localisation.is_local (x : projective_spectrum.Top 𝒜) :
     convert localization.mk_self _,
     ring_nf, },
   { left, apply is_unit_of_mul_eq_one, swap,
-    refine ⟨localization.mk s' ⟨r', mem1⟩, s', r', i, s'_hom, r'_hom, mem1, rfl⟩,
+    refine ⟨localization.mk s' ⟨r', mem1⟩, ⟨hl.condition.mk s' r' mem1 i s'_hom r'_hom, rfl⟩⟩,
     rw [subtype.ext_iff_val, hartshorne_localisation.val_mul], dsimp only,
     rw [eq1, localization.mk_mul],
     convert localization.mk_self _, rw mul_comm, refl, },
@@ -470,7 +672,7 @@ end}
 def Proj.to_LocallyRingedSpace : LocallyRingedSpace :=
 { local_ring := λ x, @@ring_equiv.local_ring _
     (show local_ring (hartshorne_localisation 𝒜 x), from hartshorne_localisation.is_local 𝒜 x) _
-    (stalk_iso 𝒜 x).symm,
+    (stalk_iso' 𝒜 x).symm,
   ..(Proj.to_SheafedSpace 𝒜) }
 
 

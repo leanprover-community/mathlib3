@@ -113,12 +113,12 @@ lemma mul_def [ring α] [invertible (2 : α)] (a b : αˢʸᵐ) :
 instance [ring α] [invertible (2 : α)] : non_unital_non_assoc_ring (αˢʸᵐ) :=
 { zero_mul := λ _,
   begin
-    simp only [mul_def,zero_zero, add_zero, sym_zero, zero_mul, mul_zero, smul_zero],
+    rw [mul_def, unsym_zero, zero_mul, mul_zero, add_zero, mul_zero, sym_zero],
     exact rfl,
   end,
   mul_zero :=  λ _,
   begin
-    simp only [mul_def,zero_zero, add_zero, sym_zero, zero_mul, mul_zero, smul_zero],
+    rw [mul_def, unsym_zero, zero_mul, mul_zero, add_zero, mul_zero, sym_zero],
     exact rfl,
   end,
   left_distrib := λ a b c, begin

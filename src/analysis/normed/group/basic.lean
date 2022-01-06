@@ -33,8 +33,9 @@ variables {α ι E F : Type*}
 open filter metric
 open_locale topological_space big_operators nnreal ennreal uniformity pointwise
 
-/-- Auxiliary class, endowing a type `E` with a function `norm : E → ℝ`. This class is designed to
-be extended in more interesting classes specifying the properties of the norm. -/
+/-- Auxiliary class, endowing a type `E` with a function `norm : E → ℝ` with notation `∥x∥`. This
+class is designed to be extended in more interesting classes specifying the properties of the norm.
+-/
 class has_norm (E : Type*) := (norm : E → ℝ)
 
 export has_norm (norm)
@@ -419,6 +420,13 @@ lemma normed_group.cauchy_seq_iff [nonempty α] [semilattice_sup α] {u : α →
   cauchy_seq u ↔ ∀ ε > 0, ∃ N, ∀ m n, N ≤ m → N ≤ n → ∥u m - u n∥ < ε :=
 by simp [metric.cauchy_seq_iff, dist_eq_norm]
 
+lemma normed_group.uniformity_basis_dist :
+  (𝓤 E).has_basis (λ (ε : ℝ), 0 < ε) (λ ε, {p : E × E | ∥p.fst - p.snd∥ < ε}) :=
+begin
+  convert metric.uniformity_basis_dist,
+  simp [dist_eq_norm]
+end
+
 open finset
 
 /-- A homomorphism `f` of seminormed groups is Lipschitz, if there exists a constant `C` such that
@@ -531,7 +539,7 @@ end
 
 section nnnorm
 
-/-- Auxiliary class, endowing a type `α` with a function `nnnorm : α → ℝ≥0`. -/
+/-- Auxiliary class, endowing a type `α` with a function `nnnorm : α → ℝ≥0` with notation `∥x∥₊`. -/
 class has_nnnorm (E : Type*) := (nnnorm : E → ℝ≥0)
 
 export has_nnnorm (nnnorm)

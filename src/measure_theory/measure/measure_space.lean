@@ -352,18 +352,23 @@ begin
 end
 
 /-- The measure of the intersection of a decreasing sequence of measurable
-sets indexed by positive reals is the limit of the measures. -/
-lemma tendsto_measure_bInter_pos {s : ℝ → set α}
-  (hs : ∀ r > 0, measurable_set (s r)) (hm : ∀ i j, 0 < i → i ≤ j → s i ⊆ s j)
-  (hf : ∃ r > 0, μ (s r) ≠ ∞) :
-  tendsto (μ ∘ s) (𝓝[Ioi 0] 0) (𝓝 (μ (⋂ r > 0, s r))) :=
+sets indexed by a linear order with first countable topology is the limit of the measures. -/
+lemma tendsto_measure_bInter_gt {ι : Type*} [linear_order ι] [topological_space ι]
+  [order_topology ι] [densely_ordered ι] [topological_space.first_countable_topology ι]
+  {s : ι → set α} {a : ι}
+  (hs : ∀ r > a, measurable_set (s r)) (hm : ∀ i j, a < i → i ≤ j → s i ⊆ s j)
+  (hf : ∃ r > a, μ (s r) ≠ ∞) :
+  tendsto (μ ∘ s) (𝓝[Ioi a] a) (𝓝 (μ (⋂ r > a, s r))) :=
 begin
   refine tendsto_order.2 ⟨λ l hl, _, λ L hL, _⟩,
   { filter_upwards [self_mem_nhds_within],
     assume r hr,
     exact hl.trans_le (measure_mono (bInter_subset_of_mem hr)) },
-  obtain ⟨u, u_anti, u_pos, u_lim⟩ : ∃ (u : ℕ → ℝ), strict_anti u ∧ (∀ (n : ℕ), 0 < u n)
-    ∧ tendsto u at_top (𝓝 0) := exists_seq_strict_anti_tendsto (0 : ℝ),
+  obtain ⟨u, u_anti, u_pos, u_lim⟩ : ∃ (u : ℕ → ι), strict_anti u ∧ (∀ (n : ℕ), a < u n)
+    ∧ tendsto u at_top (𝓝 a),
+  { rcases hf with ⟨r, ar, hr⟩,
+    rcases exists_seq_strict_anti_tendsto' ar with ⟨w, w_anti, w_mem, w_lim⟩,
+    exact ⟨w, w_anti, λ n, (w_mem n).1, w_lim⟩ },
   have A : tendsto (μ ∘ (s ∘ u)) at_top (𝓝(μ (⋂ n, s (u n)))),
   { refine tendsto_measure_Inter (λ n, hs _ (u_pos n)) _ _,
     { assume m n hmn,
@@ -372,7 +377,7 @@ begin
       obtain ⟨n, hn⟩ : ∃ (n : ℕ), u n < r := ((tendsto_order.1 u_lim).2 r rpos).exists,
       refine ⟨n, ne_of_lt (lt_of_le_of_lt _ hr.lt_top)⟩,
       exact measure_mono (hm _ _ (u_pos n) hn.le) } },
-  have B : (⋂ n, s (u n)) = (⋂ r > 0, s r),
+  have B : (⋂ n, s (u n)) = (⋂ r > a, s r),
   { apply subset.antisymm,
     { simp only [subset_Inter_iff, gt_iff_lt],
       assume r rpos,
@@ -384,7 +389,7 @@ begin
       exact u_pos n } },
   rw B at A,
   obtain ⟨n, hn⟩ : ∃ n, μ (s (u n)) < L := ((tendsto_order.1 A).2 _ hL).exists,
-  have : Ioc 0 (u n) ∈ 𝓝[Ioi (0 : ℝ)] 0 := Ioc_mem_nhds_within_Ioi ⟨le_rfl, u_pos n⟩,
+  have : Ioc a (u n) ∈ 𝓝[>] a := Ioc_mem_nhds_within_Ioi ⟨le_rfl, u_pos n⟩,
   filter_upwards [this],
   assume r hr,
   exact lt_of_le_of_lt (measure_mono (hm _ _ hr.1 hr.2)) hn,

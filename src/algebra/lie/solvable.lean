@@ -269,11 +269,7 @@ end
 /-- The `→` direction of this lemma is actually true without the `is_noetherian` assumption. -/
 lemma lie_ideal.solvable_iff_le_radical [is_noetherian R L] (I : lie_ideal R L) :
   is_solvable R I ↔ I ≤ radical R L :=
-begin
-  split; intros h,
-  { exact le_Sup h, },
-  { apply le_solvable_ideal_solvable h, apply_instance, },
-end
+⟨λ h, le_Sup h, λ h, le_solvable_ideal_solvable h infer_instance⟩
 
 lemma center_le_radical : center R L ≤ radical R L :=
 have h : is_solvable R (center R L), { apply_instance, }, le_Sup h

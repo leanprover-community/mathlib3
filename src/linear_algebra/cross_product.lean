@@ -109,7 +109,7 @@ end
 lemma leibniz_cross (u v w : fin 3 → R) :
   u ×₃ (v ×₃ w) = (u ×₃ v) ×₃ w + v ×₃ (u ×₃ w) :=
 begin
-  dsimp only [has_bracket.bracket, cross_product_apply],
+  dsimp only [cross_product_apply],
   ext i,
   fin_cases i; norm_num; ring,
 end

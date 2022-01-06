@@ -1143,7 +1143,7 @@ open submodule
 
 variable (K)
 
-noncomputable def set.finrank (s: set V) : ℕ := finrank K (span K s)
+protected noncomputable def set.finrank (s: set V) : ℕ := finrank K (span K s)
 
 variable {K}
 

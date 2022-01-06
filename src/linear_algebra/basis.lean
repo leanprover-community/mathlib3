@@ -926,11 +926,12 @@ basis.mk (linear_independent_span hli) $
 begin
   rw eq_top_iff,
   intros x _,
-  have h₁ : subtype.val '' set.range (λ i, subtype.mk (v i) _) = range v,
-  { rw ← set.range_comp },
+  have h₁ : (coe : span R (range v) → M) '' set.range (λ i, subtype.mk (v i) _) = range v,
+  { rw ← set.range_comp,
+    refl },
   have h₂ : map (submodule.subtype _) (span R (set.range (λ i, subtype.mk (v i) _)))
     = span R (range v),
-  { rw [← span_image, submodule.subtype_eq_val, h₁] },
+  { rw [← span_image, submodule.coe_subtype, h₁] },
   have h₃ : (x : M) ∈ map (submodule.subtype _) (span R (set.range (λ i, subtype.mk (v i) _))),
   { rw h₂, apply subtype.mem x },
   rcases mem_map.1 h₃ with ⟨y, hy₁, hy₂⟩,
@@ -971,17 +972,17 @@ mk_apply
   (v.linear_independent.group_smul w) (group_smul_span_eq_top v.span_eq) i
 
 lemma units_smul_span_eq_top {v : ι → M} (hv : submodule.span R (set.range v) = ⊤)
-  {w : ι → units R} : submodule.span R (set.range (w • v)) = ⊤ :=
+  {w : ι → Rˣ} : submodule.span R (set.range (w • v)) = ⊤ :=
 group_smul_span_eq_top hv
 
 /-- Given a basis `v` and a map `w` such that for all `i`, `w i` is a unit, `smul_of_is_unit`
 provides the basis corresponding to `w • v`. -/
-def units_smul (v : basis ι R M) (w : ι → units R) :
+def units_smul (v : basis ι R M) (w : ι → Rˣ) :
   basis ι R M :=
 @basis.mk ι R M (w • v) _ _ _
   (v.linear_independent.units_smul w) (units_smul_span_eq_top v.span_eq)
 
-lemma units_smul_apply {v : basis ι R M} {w : ι → units R} (i : ι) :
+lemma units_smul_apply {v : basis ι R M} {w : ι → Rˣ} (i : ι) :
   v.units_smul w i = w i • v i :=
 mk_apply
   (v.linear_independent.units_smul w) (units_smul_span_eq_top v.span_eq) i

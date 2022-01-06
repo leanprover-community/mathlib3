@@ -205,6 +205,24 @@ begin
   simpa using H
 end
 
+/-- Given `s`, a generating set of `R`, to check that an `x : M` falls in a
+submodule `M'` of `x`, we only need to show that `r ^ n • x ∈ M'` for some `n` for each `r : s`. -/
+lemma mem_of_span_eq_top_of_smul_pow_mem (M' : submodule R M)
+  (s : set R) (hs : ideal.span s = ⊤) (x : M)
+  (H : ∀ r : s, ∃ (n : ℕ), (r ^ n : R) • x ∈ M') : x ∈ M' :=
+begin
+  obtain ⟨s', hs₁, hs₂⟩ := (ideal.span_eq_top_iff_finite _).mp hs,
+  replace H : ∀ r : s', ∃ (n : ℕ), (r ^ n : R) • x ∈ M' := λ r, H ⟨_, hs₁ r.prop⟩,
+  choose n₁ n₂ using H,
+  let N := s'.attach.sup n₁,
+  have hs' := ideal.span_pow_eq_top (s' : set R) hs₂ N,
+  apply M'.mem_of_span_top_of_smul_mem _ hs',
+  rintro ⟨_, r, hr, rfl⟩,
+  convert M'.smul_mem (r ^ (N - n₁ ⟨r, hr⟩)) (n₂ ⟨r, hr⟩) using 1,
+  simp only [subtype.coe_mk, smul_smul, ← pow_add],
+  rw tsub_add_cancel_of_le (finset.le_sup (s'.mem_attach _) : n₁ ⟨r, hr⟩ ≤ N),
+end
+
 variables {M' : Type w} [add_comm_monoid M'] [module R M']
 
 theorem map_smul'' (f : M →ₗ[R] M') : (I • N).map f = I • N.map f :=
@@ -788,7 +806,7 @@ lemma is_unit_iff {I : ideal R} :
 is_unit_iff_dvd_one.trans ((@one_eq_top R _).symm ▸
  ⟨λ h, eq_top_iff.mpr (ideal.le_of_dvd h), λ h, ⟨⊤, by rw [mul_top, h]⟩⟩)
 
-instance unique_units : unique (units (ideal R)) :=
+instance unique_units : unique ((ideal R)ˣ) :=
 { default := 1,
   uniq := λ u, units.ext
     (show (u : ideal R) = 1, by rw [is_unit_iff.mp u.is_unit, one_eq_top]) }

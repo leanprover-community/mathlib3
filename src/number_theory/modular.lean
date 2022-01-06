@@ -320,7 +320,7 @@ def S : SL(2,ℤ) := ⟨![![0, -1], ![1, 0]], by norm_num [matrix.det_fin_two]�
 def fundamental_domain : set ℍ :=
 {z | 1 ≤ (complex.norm_sq z) ∧ |z.re| ≤ (1 : ℝ) / 2}
 
-localized "notation `𝒟` := fundamental_domain" in modular
+localized "notation `𝒟` := modular_group.fundamental_domain" in modular
 
 /-- If `|z|<1`, then applying `S` strictly decreases `im` -/
 lemma im_lt_im_S_smul {z : ℍ} (h: norm_sq z < 1) : z.im < (S • z).im :=

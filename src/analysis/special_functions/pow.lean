@@ -603,6 +603,23 @@ begin
   { simp [one_lt_rpow_iff_of_pos hx, hx] }
 end
 
+lemma rpow_le_rpow_of_exponent_ge' (hx0 : 0 ≤ x) (hx1 : x ≤ 1) (hz : 0 ≤ z) (hyz : z ≤ y) :
+  x^y ≤ x^z :=
+begin
+  rcases eq_or_lt_of_le hx0 with rfl | hx0',
+  { rcases eq_or_lt_of_le hz with rfl | hz',
+    { exact (rpow_zero 0).symm ▸ (rpow_le_one hx0 hx1 hyz), },
+    rw [zero_rpow, zero_rpow]; linarith, },
+  { exact rpow_le_rpow_of_exponent_ge hx0' hx1 hyz, },
+end
+
+lemma rpow_left_inj_on {x : ℝ} (hx : x ≠ 0) :
+  set.inj_on (λ y : ℝ, y^x) {y : ℝ | 0 ≤ y} :=
+begin
+  rintros y hy z hz (hyz : y ^ x = z ^ x),
+  rw [←rpow_one y, ←rpow_one z, ←_root_.mul_inv_cancel hx, rpow_mul hy, rpow_mul hz, hyz]
+end
+
 lemma le_rpow_iff_log_le (hx : 0 < x) (hy : 0 < y) :
   x ≤ y^z ↔ real.log x ≤ z * real.log y :=
 by rw [←real.log_le_log hx (real.rpow_pos_of_pos hy z), real.log_rpow hy]
@@ -889,6 +906,12 @@ lemma rpow_sub' (x : ℝ≥0) {y z : ℝ} (h : y - z ≠ 0) :
   x ^ (y - z) = x ^ y / x ^ z :=
 nnreal.eq $ real.rpow_sub' x.2 h
 
+lemma rpow_inv_rpow_self {y : ℝ} (hy : y ≠ 0) (x : ℝ≥0) : (x ^ y) ^ (1 / y) = x :=
+by field_simp [← rpow_mul]
+
+lemma rpow_self_rpow_inv {y : ℝ} (hy : y ≠ 0) (x : ℝ≥0) : (x ^ (1 / y)) ^ y = x :=
+by field_simp [← rpow_mul]
+
 lemma inv_rpow (x : ℝ≥0) (y : ℝ) : (x⁻¹) ^ y = (x ^ y)⁻¹ :=
 nnreal.eq $ real.inv_rpow x.2 y
 
@@ -921,11 +944,10 @@ lemma rpow_le_rpow_iff {x y : ℝ≥0} {z : ℝ} (hz : 0 < z) : x ^ z ≤ y ^ z 
 real.rpow_le_rpow_iff x.2 y.2 hz
 
 lemma le_rpow_one_div_iff {x y : ℝ≥0} {z : ℝ} (hz : 0 < z) :  x ≤ y ^ (1 / z) ↔ x ^ z ≤ y :=
-begin
-  nth_rewrite 0 ←rpow_one x,
-  nth_rewrite 0 ←@_root_.mul_inv_cancel _ _ z  hz.ne',
-  rw [rpow_mul, ←one_div, @rpow_le_rpow_iff _ _ (1/z) (by simp [hz])],
-end
+by rw [← rpow_le_rpow_iff hz, rpow_self_rpow_inv hz.ne']
+
+lemma rpow_one_div_le_iff {x y : ℝ≥0} {z : ℝ} (hz : 0 < z) :  x ^ (1 / z) ≤ y ↔ x ≤ y ^ z :=
+by rw [← rpow_le_rpow_iff hz, rpow_self_rpow_inv hz.ne']
 
 lemma rpow_lt_rpow_of_exponent_lt {x : ℝ≥0} {y z : ℝ} (hx : 1 < x) (hyz : y < z) : x^y < x^z :=
 real.rpow_lt_rpow_of_exponent_lt hx hyz
@@ -975,6 +997,24 @@ begin
   nth_rewrite 1 ←nnreal.rpow_one x,
   exact nnreal.rpow_le_rpow_of_exponent_ge h hx h_one_le,
 end
+
+lemma rpow_left_injective {x : ℝ} (hx : x ≠ 0) : function.injective (λ y : ℝ≥0, y^x) :=
+λ y z hyz, by simpa only [rpow_inv_rpow_self hx] using congr_arg (λ y, y ^ (1 / x)) hyz
+
+lemma rpow_eq_rpow_iff {x y : ℝ≥0} {z : ℝ} (hz : z ≠ 0) : x ^ z = y ^ z ↔ x = y :=
+(rpow_left_injective hz).eq_iff
+
+lemma rpow_left_surjective {x : ℝ} (hx : x ≠ 0) : function.surjective (λ y : ℝ≥0, y^x) :=
+λ y, ⟨y ^ x⁻¹, by simp_rw [←rpow_mul, _root_.inv_mul_cancel hx, rpow_one]⟩
+
+lemma rpow_left_bijective {x : ℝ} (hx : x ≠ 0) : function.bijective (λ y : ℝ≥0, y^x) :=
+⟨rpow_left_injective hx, rpow_left_surjective hx⟩
+
+lemma eq_rpow_one_div_iff {x y : ℝ≥0} {z : ℝ} (hz : z ≠ 0) :  x = y ^ (1 / z) ↔ x ^ z = y :=
+by rw [← rpow_eq_rpow_iff hz, rpow_self_rpow_inv hz]
+
+lemma rpow_one_div_eq_iff {x y : ℝ≥0} {z : ℝ} (hz : z ≠ 0) :  x ^ (1 / z) = y ↔ x = y ^ z :=
+by rw [← rpow_eq_rpow_iff hz, rpow_self_rpow_inv hz]
 
 lemma pow_nat_rpow_nat_inv (x : ℝ≥0) {n : ℕ} (hn : 0 < n) :
   (x ^ n) ^ (n⁻¹ : ℝ) = x :=
@@ -1271,6 +1311,16 @@ end
 lemma monotone_rpow_of_nonneg {z : ℝ} (h : 0 ≤ z) : monotone (λ x : ℝ≥0∞, x ^ z) :=
 h.eq_or_lt.elim (λ h0, h0 ▸ by simp only [rpow_zero, monotone_const])
   (λ h0, (strict_mono_rpow_of_pos h0).monotone)
+
+/-- Bundles `λ x : ℝ≥0∞, x ^ y` into an order isomorphism when `y : ℝ` is positive,
+where the inverse is `λ x : ℝ≥0∞, x ^ (1 / y)`. -/
+@[simps apply] def order_iso_rpow (y : ℝ) (hy : 0 < y) : ℝ≥0∞ ≃o ℝ≥0∞ :=
+(strict_mono_rpow_of_pos hy).order_iso_of_right_inverse (λ x, x ^ y) (λ x, x ^ (1 / y))
+  (λ x, by { dsimp, rw [←rpow_mul, one_div_mul_cancel hy.ne.symm, rpow_one] })
+
+lemma order_iso_rpow_symm_apply (y : ℝ) (hy : 0 < y) :
+  (order_iso_rpow y hy).symm = order_iso_rpow (1 / y) (one_div_pos.2 hy) :=
+by { simp only [order_iso_rpow, one_div_one_div], refl }
 
 lemma rpow_le_rpow {x y : ℝ≥0∞} {z : ℝ} (h₁ : x ≤ y) (h₂ : 0 ≤ z) : x^z ≤ y^z :=
 monotone_rpow_of_nonneg h₂ h₁

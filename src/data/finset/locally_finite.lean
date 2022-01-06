@@ -119,12 +119,45 @@ lemma _root_.bdd_below.finite_of_bdd_above {s : set α} (h₀ : bdd_below s) (h�
   s.finite :=
 let ⟨a, ha⟩ := h₀, ⟨b, hb⟩ := h₁ in by { classical, exact ⟨set.fintype_of_mem_bounds ha hb⟩ }
 
+section filter
+
+variables (a b) [fintype α]
+
+lemma filter_lt_lt_eq_Ioo [decidable_pred (λ (j : α), a < j ∧ j < b)] :
+  finset.univ.filter (λ j, a < j ∧ j < b) = Ioo a b := by { ext, simp }
+
+lemma filter_lt_le_eq_Ioc [decidable_pred (λ (j : α), a < j ∧ j ≤ b)] :
+  finset.univ.filter (λ j, a < j ∧ j ≤ b) = Ioc a b := by { ext, simp }
+
+lemma filter_le_lt_eq_Ico [decidable_pred (λ (j : α), a ≤ j ∧ j < b)] :
+  finset.univ.filter (λ j, a ≤ j ∧ j < b) = Ico a b := by { ext, simp }
+
+lemma filter_le_le_eq_Icc [decidable_pred (λ (j : α), a ≤ j ∧ j ≤ b)] :
+  finset.univ.filter (λ j, a ≤ j ∧ j ≤ b) = Icc a b := by { ext, simp }
+
+lemma filter_lt_eq_Ioi [order_top α] [decidable_pred ((<) a)] :
+  finset.univ.filter (λ j, a < j) = Ioi a := by { ext, simp }
+
+lemma filter_le_eq_Ici [order_top α] [decidable_pred ((≤) a)] :
+  finset.univ.filter (λ j, a ≤ j) = Ici a := by { ext, simp }
+
+lemma filter_gt_eq_Iio [order_bot α] [decidable_pred (< a)] :
+  finset.univ.filter (λ j, j < a) = Iio a := by { ext, simp }
+
+lemma filter_ge_eq_Iic [order_bot α] [decidable_pred (≤ a)] :
+  finset.univ.filter (λ j, j ≤ a) = Iic a := by { ext, simp }
+
+end filter
+
 end preorder
 
 section partial_order
-variables [partial_order α] [locally_finite_order α] {a b : α}
+variables [partial_order α] [locally_finite_order α] {a b c : α}
 
 @[simp] lemma Icc_self (a : α) : Icc a a = {a} := by rw [←coe_eq_singleton, coe_Icc, set.Icc_self]
+
+@[simp] lemma Icc_eq_singleton_iff : Icc a b = {c} ↔ a = c ∧ b = c :=
+by rw [←coe_eq_singleton, coe_Icc, set.Icc_eq_singleton_iff]
 
 section decidable_eq
 variables [decidable_eq α]
@@ -161,27 +194,31 @@ begin
   exact and_iff_left_of_imp (λ h, h.le.trans_lt hab),
 end
 
-lemma card_Ico_eq_card_Icc_sub_one (h : a ≤ b) : (Ico a b).card = (Icc a b).card - 1 :=
+lemma card_Ico_eq_card_Icc_sub_one (a b : α) : (Ico a b).card = (Icc a b).card - 1 :=
 begin
   classical,
-  rw [←Ico_insert_right h, card_insert_of_not_mem right_not_mem_Ico],
-  exact (nat.add_sub_cancel _ _).symm,
+  by_cases h : a ≤ b,
+  { rw [←Ico_insert_right h, card_insert_of_not_mem right_not_mem_Ico],
+    exact (nat.add_sub_cancel _ _).symm },
+  { rw [Ico_eq_empty (λ h', h h'.le), Icc_eq_empty h, card_empty, zero_tsub] }
 end
 
-lemma card_Ioc_eq_card_Icc_sub_one (h : a ≤ b) : (Ioc a b).card = (Icc a b).card - 1 :=
-@card_Ico_eq_card_Icc_sub_one (order_dual α) _ _ _ _ h
+lemma card_Ioc_eq_card_Icc_sub_one (a b : α) : (Ioc a b).card = (Icc a b).card - 1 :=
+@card_Ico_eq_card_Icc_sub_one (order_dual α) _ _ _ _
 
-lemma card_Ioo_eq_card_Ico_sub_one (h : a ≤ b) : (Ioo a b).card = (Ico a b).card - 1 :=
+lemma card_Ioo_eq_card_Ico_sub_one (a b : α) : (Ioo a b).card = (Ico a b).card - 1 :=
 begin
-  obtain rfl | h' := h.eq_or_lt,
-  { rw [Ioo_self, Ico_self, card_empty] },
   classical,
-  rw [←Ioo_insert_left h', card_insert_of_not_mem left_not_mem_Ioo],
-  exact (nat.add_sub_cancel _ _).symm,
+  by_cases h : a ≤ b,
+  { obtain rfl | h' := h.eq_or_lt,
+    { rw [Ioo_self, Ico_self, card_empty] },
+    rw [←Ioo_insert_left h', card_insert_of_not_mem left_not_mem_Ioo],
+    exact (nat.add_sub_cancel _ _).symm },
+  { rw [Ioo_eq_empty (λ h', h h'.le), Ico_eq_empty (λ h', h h'.le), card_empty, zero_tsub] }
 end
 
-lemma card_Ioo_eq_card_Icc_sub_two (h : a ≤ b) : (Ioo a b).card = (Icc a b).card - 2 :=
-by { rw [card_Ioo_eq_card_Ico_sub_one h, card_Ico_eq_card_Icc_sub_one h], refl }
+lemma card_Ioo_eq_card_Icc_sub_two (a b : α) : (Ioo a b).card = (Icc a b).card - 2 :=
+by { rw [card_Ioo_eq_card_Ico_sub_one, card_Ico_eq_card_Icc_sub_one], refl }
 
 end partial_order
 

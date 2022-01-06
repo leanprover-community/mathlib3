@@ -172,6 +172,29 @@ begin
   { rintro (rfl|rfl|rfl); simp only [log_one, log_zero, log_neg_eq_log], }
 end
 
+lemma log_le_sub_one_of_pos {x : ℝ} (hx : 0 < x) : log x ≤ x - 1 :=
+begin
+  rw le_sub_iff_add_le,
+  convert add_one_le_exp (log x),
+  rw exp_log hx,
+end
+
+lemma log_div_self_antitone_on : antitone_on (λ x : ℝ, log x / x) {x | exp 1 ≤ x} :=
+begin
+  simp only [antitone_on, mem_set_of_eq],
+  intros x hex y hey hxy,
+  have x_pos : 0 < x := (exp_pos 1).trans_le hex,
+  have y_pos : 0 < y := (exp_pos 1).trans_le hey,
+  have hlogx : 1 ≤ log x := by rwa le_log_iff_exp_le x_pos,
+  have hyx : 0 ≤ y / x - 1 := by rwa [le_sub_iff_add_le, le_div_iff x_pos, zero_add, one_mul],
+  rw [div_le_iff y_pos, ←sub_le_sub_iff_right (log x)],
+  calc
+    log y - log x = log (y / x)           : by rw [log_div (y_pos.ne') (x_pos.ne')]
+    ...           ≤ (y / x) - 1           : log_le_sub_one_of_pos (div_pos y_pos x_pos)
+    ...           ≤ log x * (y / x - 1)   : le_mul_of_one_le_left hyx hlogx
+    ...           = log x / x * y - log x : by ring,
+end
+
 /-- The real logarithm function tends to `+∞` at `+∞`. -/
 lemma tendsto_log_at_top : tendsto log at_top at_top :=
 tendsto_comp_exp_at_top.1 $ by simpa only [log_exp] using tendsto_id
@@ -205,6 +228,18 @@ begin
   rintros h rfl,
   exact not_tendsto_nhds_of_tendsto_at_bot tendsto_log_nhds_within_zero _
     (h.tendsto.mono_left inf_le_left)
+end
+
+open_locale big_operators
+
+lemma log_prod {α : Type*} (s : finset α) (f : α → ℝ) (hf : ∀ x ∈ s, f x ≠ 0):
+  log (∏ i in s, f i) = ∑ i in s, log (f i) :=
+begin
+  classical,
+  induction s using finset.induction_on with a s ha ih,
+  { simp },
+  simp only [finset.mem_insert, forall_eq_or_imp] at hf,
+  simp [ha, ih hf.2, log_mul hf.1 (finset.prod_ne_zero_iff.2 hf.2)],
 end
 
 end real

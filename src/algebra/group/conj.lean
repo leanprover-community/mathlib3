@@ -23,7 +23,7 @@ section monoid
 variables [monoid α] [monoid β]
 
 /-- We say that `a` is conjugate to `b` if for some unit `c` we have `c * a * c⁻¹ = b`. -/
-def is_conj (a b : α) := ∃ c : units α, semiconj_by ↑c a b
+def is_conj (a b : α) := ∃ c : αˣ, semiconj_by ↑c a b
 
 @[refl] lemma is_conj.refl (a : α) : is_conj a a :=
 ⟨1, semiconj_by.one_left a⟩

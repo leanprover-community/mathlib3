@@ -3,7 +3,7 @@ Copyright (c) 2021 Kalle Kytölä. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kalle Kytölä
 -/
-import topology.algebra.weak_dual_topology
+import topology.algebra.module.weak_dual
 import analysis.normed_space.dual
 import analysis.normed_space.operator_norm
 
@@ -42,7 +42,7 @@ TODOs:
 * Add that in finite dimensions, the weak-* topology and the dual norm topology coincide.
 * Add that in infinite dimensions, the weak-* topology is strictly coarser than the dual norm
   topology.
-* Add Banach-Alaoglu theorem (general version maybe in `topology.algebra.weak_dual_topology`).
+* Add Banach-Alaoglu theorem (general version maybe in `topology.algebra.module.weak_dual`).
 * Add metrizability of the dual unit ball (more generally bounded subsets) of `weak_dual 𝕜 E`
   under the assumption of separability of `E`. Sequential Banach-Alaoglu theorem would then follow
   from the general one.
@@ -53,7 +53,7 @@ No new notation is introduced.
 
 ## Implementation notes
 
-Weak-* topology is defined generally in the file `topology.algebra.weak_dual_topology`.
+Weak-* topology is defined generally in the file `topology.algebra.module.weak_dual`.
 
 When `E` is a normed space, the duals `dual 𝕜 E` and `weak_dual 𝕜 E` are type synonyms with
 different topology instances.

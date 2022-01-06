@@ -375,10 +375,20 @@ by rw [←not_nonempty_iff_eq_empty, not_iff_not, nonempty_Ioo]
 end intervals
 
 section partial_order
-variables {α : Type u} [partial_order α] {a b : α}
+variables {α : Type u} [partial_order α] {a b c : α}
 
 @[simp] lemma Icc_self (a : α) : Icc a a = {a} :=
 set.ext $ by simp [Icc, le_antisymm_iff, and_comm]
+
+@[simp] lemma Icc_eq_singleton_iff : Icc a b = {c} ↔ a = c ∧ b = c :=
+begin
+  refine ⟨λ h, _, _⟩,
+  { have hab : a ≤ b := nonempty_Icc.1 (h.symm.subst $ singleton_nonempty c),
+    exact ⟨eq_of_mem_singleton $ h.subst $ left_mem_Icc.2 hab,
+      eq_of_mem_singleton $ h.subst $ right_mem_Icc.2 hab⟩ },
+  { rintro ⟨rfl, rfl⟩,
+    exact Icc_self _ }
+end
 
 @[simp] lemma Icc_diff_left : Icc a b \ {a} = Ioc a b :=
 ext $ λ x, by simp [lt_iff_le_and_ne, eq_comm, and.right_comm]

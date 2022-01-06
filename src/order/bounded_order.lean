@@ -407,6 +407,9 @@ meta instance {α} [has_to_format α] : has_to_format (with_bot α) :=
   | (some x) := to_fmt x
   end }
 
+instance {α : Type u} [has_repr α] : has_repr (with_bot α) :=
+⟨λ o, match o with | none := "⊥" | (some a) := "(some " ++ repr a ++ ")" end⟩
+
 instance : has_coe_t α (with_bot α) := ⟨some⟩
 instance has_bot : has_bot (with_bot α) := ⟨none⟩
 
@@ -653,6 +656,9 @@ meta instance {α} [has_to_format α] : has_to_format (with_top α) :=
   | none := "⊤"
   | (some x) := to_fmt x
   end }
+
+instance [has_repr α] : has_repr (with_top α) :=
+⟨λ o, match o with | none := "⊤" | (some a) := "(some " ++ repr a ++ ")" end⟩
 
 instance : has_coe_t α (with_top α) := ⟨some⟩
 instance has_top : has_top (with_top α) := ⟨none⟩

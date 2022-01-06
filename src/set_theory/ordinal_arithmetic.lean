@@ -863,6 +863,54 @@ end
 theorem dvd_iff_mod_eq_zero {a b : ordinal} : b ∣ a ↔ a % b = 0 :=
 ⟨mod_eq_zero_of_dvd, dvd_of_mod_eq_zero⟩
 
+/-! ### Families of ordinals -/
+
+/-- Converts a family indexed by a `Type u` to one indexed by an `ordinal.{u}` using a specified
+well-ordering. -/
+@[simp]
+def bfamily_of_family' {ι : Type u} (r : ι → ι → Prop) [is_well_order ι r] (f : ι → β) :
+  Π o < type r, β :=
+λ o ho, f (enum r o ho)
+
+/-- Converts a family indexed by a `Type u` to one indexed by an `ordinal.{u}` using a well-ordering
+given by the axiom of choice. -/
+@[simp]
+def bfamily_of_family {ι : Type u} : (ι → β) → Π o < type (@well_ordering_rel ι), β :=
+bfamily_of_family' well_ordering_rel
+
+/-- Converts a family indexed by an `ordinal.{u}` to one indexed by an `Type u` using a specified
+well-ordering. -/
+@[simp]
+def family_of_bfamily' {ι : Type u} (r : ι → ι → Prop) [is_well_order ι r] (f : Π b < type r, β) :
+  ι → β :=
+λ i, f (typein r i) (typein_lt_type r i)
+
+lemma lt_type_out_of_lt {a b : ordinal.{u}} (h : a < b) : a < type b.out.r :=
+by { convert h, exact type_out b }
+
+/-- Converts a family indexed by an `ordinal.{u}` to one indexed by a `Type u` using a well-ordering
+given by the axiom of choice. -/
+@[simp]
+def family_of_bfamily (o : ordinal.{u}) (f : Π b < o, β) : o.out.α → β :=
+family_of_bfamily' o.out.r (λ b hb, f b (by rwa type_out o at hb))
+
+theorem bfamily_of_family'_typein {ι} (r : ι → ι → Prop) [is_well_order ι r] (f : ι → β) (i) :
+  f i = bfamily_of_family' r f (typein r i) (typein_lt_type r i) :=
+by simp
+
+theorem bfamily_of_family_typein {ι} (f : ι → β) (i) :
+  f i = bfamily_of_family f (typein _ i) (typein_lt_type _ i) :=
+bfamily_of_family'_typein  _ f i
+
+theorem family_of_bfamily'_enum {ι : Type u} (r : ι → ι → Prop) [is_well_order ι r]
+  (f : Π b < type r, β) (i hi) :
+  f i hi = family_of_bfamily' r f (enum r i hi) :=
+by simp
+
+theorem family_of_bfamily_enum (o : ordinal.{u}) (f : Π b < o, β) (i hi) :
+  f i hi = family_of_bfamily o f (enum o.out.r i (lt_type_out_of_lt hi)) :=
+family_of_bfamily'_enum _ (λ b hb, f b (by rwa type_out o at hb)) _ _
+
 /-! ### Supremum of a family of ordinals -/
 
 /-- The supremum of a family of ordinals -/
@@ -931,34 +979,37 @@ bsup_le.1 (le_refl _) _ _
 theorem lt_bsup {o} (f : Π a < o, ordinal) {a} : a < bsup o f ↔ ∃ i hi, a < f i hi :=
 by simpa only [not_forall, not_le] using not_congr (@bsup_le _ f a)
 
-theorem bsup_type (r : α → α → Prop) [is_well_order α r] (f) :
-  bsup (type r) f = sup (λ a, f (typein r a) (typein_lt_type _ _)) :=
+theorem bsup_eq_sup' {ι} (r : ι → ι → Prop) [is_well_order ι r] (f) :
+  bsup (type r) f = sup (family_of_bfamily' r f) :=
 eq_of_forall_ge_iff $ λ o,
 by rw [bsup_le, sup_le]; exact
-  ⟨λ H b, H _ _, λ H i h, by simpa only [typein_enum] using H (enum r i h)⟩
+  ⟨λ H b, H _ _, λ H i h, by simpa only [family_of_bfamily', typein_enum] using H (enum r i h)⟩
 
-theorem sup_eq_bsup {ι} (f : ι → ordinal) :
-  sup f = bsup (type well_ordering_rel) (λ a ha, f (enum well_ordering_rel a ha)) :=
-by simp [bsup_type]
-
-theorem bsup_eq_sup {o} (f : Π a < o, ordinal) : bsup o f = sup (λ i, f _ (typein_lt_self i)) :=
+theorem bsup_eq_sup {o} (f : Π a < o, ordinal) : bsup o f = sup (family_of_bfamily o f) :=
 begin
-  apply le_antisymm,
-  { rw bsup_le,
-    intros a hao,
-    rw ←type_out o at hao,
-    cases typein_surj _ hao with i hi,
-    simp_rw ←hi,
-    exact le_sup _ _ },
-  rw sup_le,
-  exact λ i, le_bsup _ _ _
+  convert bsup_eq_sup' o.out.r (λ b hb, f b (by rwa type_out o at hb)), { exact (type_out o).symm },
+  ext, { exact rfl },
+  intros a a' ha,
+  ext;
+  rw eq_of_heq ha;
+  simp
 end
+
+theorem sup_eq_bsup' {ι} (r : ι → ι → Prop) [is_well_order ι r] (f : ι → ordinal) :
+  sup f = bsup _ (bfamily_of_family' r f) :=
+by simp [bsup_eq_sup']
+
+theorem sup_eq_bsup {ι} (f : ι → ordinal) : sup f = bsup _ (bfamily_of_family f) :=
+sup_eq_bsup' _ f
 
 theorem is_normal.bsup {f} (H : is_normal f) {o} :
   ∀ (g : Π a < o, ordinal) (h : o ≠ 0), f (bsup o g) = bsup o (λ a h, f (g a h)) :=
 induction_on o $ λ α r _ g h,
-by resetI; rw [bsup_type,
-     H.sup (type_ne_zero_iff_nonempty.1 h), bsup_type]
+begin
+  resetI,
+  rw [bsup_eq_sup', H.sup (type_ne_zero_iff_nonempty.1 h), bsup_eq_sup'],
+  refl
+end
 
 theorem lt_bsup_of_ne_bsup {o : ordinal} {f : Π a < o, ordinal} :
   (∀ i h, f i h ≠ o.bsup f) ↔ ∀ i h, f i h < o.bsup f :=
@@ -1033,9 +1084,17 @@ end
 def blsub (o : ordinal.{u}) (f : Π a < o, ordinal.{max u v}) : ordinal.{max u v} :=
 o.bsup (λ a ha, (f a ha).succ)
 
+theorem lsub_eq_blsub' {ι} (r : ι → ι → Prop) [is_well_order ι r] (f : ι → ordinal) :
+  sup f = bsup _ (bfamily_of_family' r f) :=
+sup_eq_bsup' r _
+
 theorem lsub_eq_blsub {ι} (f : ι → ordinal) :
   lsub f = blsub (type well_ordering_rel) (λ a ha, f (enum well_ordering_rel a ha)) :=
 sup_eq_bsup _
+
+theorem blsub_eq_lsub' {ι} (r : ι → ι → Prop) [is_well_order ι r] (f) :
+  blsub (type r) f = lsub (family_of_bfamily' r f) :=
+bsup_eq_sup' r _
 
 theorem blsub_eq_lsub {o} (f : Π a < o, ordinal) :
   blsub o f = lsub (λ i, f _ (typein_lt_self i)) :=
@@ -1075,12 +1134,6 @@ end
 theorem bsup_eq_blsub {o} (f : Π a < o, ordinal) :
   bsup o f = blsub o f ↔ ∀ a < blsub o f, succ a < blsub o f :=
 by { rw [bsup_eq_sup, blsub_eq_lsub], exact sup_eq_lsub _ }
-
-theorem blsub_type (r : α → α → Prop) [is_well_order α r] (f) :
-  blsub (type r) f = lsub (λ a, f (typein r a) (typein_lt_type _ _)) :=
-eq_of_forall_ge_iff $ λ o,
-by rw [blsub_le_iff_lt, lsub_le_iff_lt]; exact
-  ⟨λ H b, H _ _, λ H i h, by simpa only [typein_enum] using H (enum r i h)⟩
 
 theorem blsub_id {o} : blsub.{u u} o (λ x _, x) = o :=
 begin

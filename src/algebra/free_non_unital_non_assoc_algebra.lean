@@ -41,6 +41,7 @@ noncomputable theory
 
 variables (R : Type u) (X : Type v) [semiring R]
 
+/-- The free non-unital, non-associative algebra on the type `X` with coefficients in `R`. -/
 abbreviation free_non_unital_non_assoc_algebra := monoid_algebra R (free_magma X)
 
 namespace free_non_unital_non_assoc_algebra

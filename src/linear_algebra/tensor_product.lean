@@ -932,7 +932,7 @@ instance compatible_smul.int [module ℤ M] [module ℤ N] : compatible_smul R �
 
 instance compatible_smul.unit {S} [monoid S] [distrib_mul_action S M] [distrib_mul_action S N]
   [compatible_smul R S M N] :
-  compatible_smul R (units S) M N :=
+  compatible_smul R Sˣ M N :=
 ⟨λ s m n, (compatible_smul.smul_tmul (s : S) m n : _)⟩
 
 end tensor_product

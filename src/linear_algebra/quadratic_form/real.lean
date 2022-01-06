@@ -32,7 +32,7 @@ noncomputable def isometry_sign_weighted_sum_squares
   [decidable_eq ι] (w : ι → ℝ) :
   isometry (weighted_sum_squares ℝ w) (weighted_sum_squares ℝ (sign ∘ w)) :=
 begin
-  let u := λ i, if h : w i = 0 then (1 : units ℝ) else units.mk0 (w i) h,
+  let u := λ i, if h : w i = 0 then (1 : ℝˣ) else units.mk0 (w i) h,
   have hu' : ∀ i : ι, (sign (u i) * u i) ^ - (1 / 2 : ℝ) ≠ 0,
   { intro i, refine (ne_of_lt (real.rpow_pos_of_pos
       (sign_mul_pos_of_ne_zero _ $ units.ne_zero _) _)).symm},

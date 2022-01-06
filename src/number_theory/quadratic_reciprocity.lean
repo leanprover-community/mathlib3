@@ -35,12 +35,12 @@ namespace zmod
 variables (p q : ℕ) [fact p.prime] [fact q.prime]
 
 /-- Euler's Criterion: A unit `x` of `zmod p` is a square if and only if `x ^ (p / 2) = 1`. -/
-lemma euler_criterion_units (x : units (zmod p)) :
-  (∃ y : units (zmod p), y ^ 2 = x) ↔ x ^ (p / 2) = 1 :=
+lemma euler_criterion_units (x : (zmod p)ˣ) :
+  (∃ y : (zmod p)ˣ, y ^ 2 = x) ↔ x ^ (p / 2) = 1 :=
 begin
   cases nat.prime.eq_two_or_odd (fact.out p.prime) with hp2 hp_odd,
   { substI p, refine iff_of_true ⟨1, _⟩ _; apply subsingleton.elim },
-  obtain ⟨g, hg⟩ := is_cyclic.exists_generator (units (zmod p)),
+  obtain ⟨g, hg⟩ := is_cyclic.exists_generator (zmod p)ˣ,
   obtain ⟨n, hn⟩ : x ∈ submonoid.powers g, { rw mem_powers_iff_mem_zpowers, apply hg },
   split,
   { rintro ⟨y, rfl⟩, rw [← pow_mul, two_mul_odd_div_two hp_odd, units_pow_card_sub_one_eq_one], },
@@ -104,7 +104,7 @@ begin
   refine
   calc ((p - 1)! : zmod p) = (∏ x in Ico 1 (succ (p - 1)), x) :
     by rw [← finset.prod_Ico_id_eq_factorial, prod_nat_cast]
-                               ... = (∏ x : units (zmod p), x) : _
+                               ... = (∏ x : (zmod p)ˣ, x) : _
                                ... = -1 : by simp_rw [← units.coe_hom_apply,
     ← (units.coe_hom (zmod p)).map_prod, prod_univ_units_id_eq_neg_one, units.coe_hom_apply,
     units.coe_neg, units.coe_one],
@@ -285,7 +285,7 @@ else
       div_eq_filter_card (nat.pos_of_ne_zero hp0)
         (calc x * q / p ≤ (p / 2) * q / p :
             nat.div_le_div_right (mul_le_mul_of_nonneg_right
-              (le_of_lt_succ $ by finish)
+              (le_of_lt_succ $ (mem_Ico.mp hx).2)
               (nat.zero_le _))
           ... ≤ _ : nat.div_mul_div_le_div _ _ _)
   ... = _ : by rw [← card_sigma];
@@ -413,7 +413,7 @@ begin
   rw [euler_criterion p ha0, legendre_sym, if_neg ha0],
   split_ifs,
   { simp only [h, eq_self_iff_true] },
-  finish -- this is quite slow. I'm actually surprised that it can close the goal at all!
+  { simp only [h, iff_false], tauto }
 end
 
 lemma eisenstein_lemma [fact (p % 2 = 1)] {a : ℕ} (ha1 : a % 2 = 1) (ha0 : (a : zmod p) ≠ 0) :
@@ -439,7 +439,7 @@ have hcard : (Ico 1 (p / 2).succ).card = p / 2, by simp,
 have hx2 : ∀ x ∈ Ico 1 (p / 2).succ, (2 * x : zmod p).val = 2 * x,
   from λ x hx, have h2xp : 2 * x < p,
       from calc 2 * x ≤ 2 * (p / 2) : mul_le_mul_of_nonneg_left
-        (le_of_lt_succ $ by finish) dec_trivial
+        (le_of_lt_succ $ (mem_Ico.mp hx).2) dec_trivial
       ... < _ : by conv_rhs {rw [← div_add_mod p 2, hp1.1]}; exact lt_succ_self _,
     by rw [← nat.cast_two, ← nat.cast_mul, val_cast_of_lt h2xp],
 have hdisj : disjoint

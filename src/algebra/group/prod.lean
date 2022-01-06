@@ -324,7 +324,7 @@ variables {M N} [monoid M] [monoid N]
     units of each monoid. -/
 @[to_additive prod_add_units "The additive monoid equivalence between additive units of a product
 of two additive monoids, and the product of the additive units of each additive monoid."]
-def prod_units : units (M × N) ≃* units M × units N :=
+def prod_units : (M × N)ˣ ≃* Mˣ × Nˣ :=
 { to_fun := (units.map (monoid_hom.fst M N)).prod (units.map (monoid_hom.snd M N)),
   inv_fun := λ u, ⟨(u.1, u.2), (↑u.1⁻¹, ↑u.2⁻¹), by simp, by simp⟩,
   left_inv := λ u, by simp,
@@ -339,9 +339,9 @@ section units
 
 open mul_opposite
 
-/-- Canonical homomorphism of monoids from `units α` into `α × αᵐᵒᵖ`.
-Used mainly to define the natural topology of `units α`. -/
-def embed_product (α : Type*) [monoid α] : units α →* α × αᵐᵒᵖ :=
+/-- Canonical homomorphism of monoids from `αˣ` into `α × αᵐᵒᵖ`.
+Used mainly to define the natural topology of `αˣ`. -/
+def embed_product (α : Type*) [monoid α] : αˣ →* α × αᵐᵒᵖ :=
 { to_fun := λ x, ⟨x, op ↑x⁻¹⟩,
   map_one' := by simp only [one_inv, eq_self_iff_true, units.coe_one, op_one, prod.mk_eq_one,
     and_self],

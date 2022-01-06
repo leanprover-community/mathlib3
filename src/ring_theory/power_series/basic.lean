@@ -597,20 +597,20 @@ begin
 end
 
 /-- A multivariate formal power series is invertible if the constant coefficient is invertible.-/
-def inv_of_unit (φ : mv_power_series σ R) (u : units R) : mv_power_series σ R :=
+def inv_of_unit (φ : mv_power_series σ R) (u : Rˣ) : mv_power_series σ R :=
 inv.aux (↑u⁻¹) φ
 
-lemma coeff_inv_of_unit [decidable_eq σ] (n : σ →₀ ℕ) (φ : mv_power_series σ R) (u : units R) :
+lemma coeff_inv_of_unit [decidable_eq σ] (n : σ →₀ ℕ) (φ : mv_power_series σ R) (u : Rˣ) :
   coeff R n (inv_of_unit φ u) = if n = 0 then ↑u⁻¹ else
   - ↑u⁻¹ * ∑ x in n.antidiagonal,
     if x.2 < n then coeff R x.1 φ * coeff R x.2 (inv_of_unit φ u) else 0 :=
 coeff_inv_aux n (↑u⁻¹) φ
 
-@[simp] lemma constant_coeff_inv_of_unit (φ : mv_power_series σ R) (u : units R) :
+@[simp] lemma constant_coeff_inv_of_unit (φ : mv_power_series σ R) (u : Rˣ) :
   constant_coeff σ R (inv_of_unit φ u) = ↑u⁻¹ :=
 by rw [← coeff_zero_eq_constant_coeff_apply, coeff_inv_of_unit, if_pos rfl]
 
-lemma mul_inv_of_unit (φ : mv_power_series σ R) (u : units R) (h : constant_coeff σ R φ = u) :
+lemma mul_inv_of_unit (φ : mv_power_series σ R) (u : Rˣ) (h : constant_coeff σ R φ = u) :
   φ * inv_of_unit φ u = 1 :=
 ext $ λ n, if H : n = 0 then by { rw H, simp [coeff_mul, support_single_ne_zero, h], }
 else
@@ -924,6 +924,9 @@ by rw [coeff, finsupp.single_zero, X, mv_power_series.coeff_zero_X]
 @[simp] lemma coeff_one_X : coeff R 1 (X : power_series R) = 1 :=
 by rw [coeff_X, if_pos rfl]
 
+@[simp] lemma X_ne_zero [nontrivial R] : (X : power_series R) ≠ 0 :=
+λ H, by simpa only [coeff_one_X, one_ne_zero, map_zero] using congr_arg (coeff R 1) H
+
 lemma X_pow_eq (n : ℕ) : (X : power_series R)^n = monomial R n 1 :=
 mv_power_series.X_pow_eq _ n
 
@@ -999,6 +1002,60 @@ end
 lemma coeff_zero_mul_X (φ : power_series R) : coeff R 0 (φ * X) = 0 := by simp
 
 lemma coeff_zero_X_mul (φ : power_series R) : coeff R 0 (X * φ) = 0 := by simp
+
+-- The following section duplicates the api of `data.polynomial.coeff` and should attempt to keep
+-- up to date with that
+section
+lemma coeff_C_mul_X (x : R) (k n : ℕ) :
+  coeff R n (C R x * X ^ k : power_series R) = if n = k then x else 0 :=
+by simp [X_pow_eq, coeff_monomial]
+
+@[simp]
+theorem coeff_mul_X_pow (p : power_series R) (n d : ℕ) :
+  coeff R (d + n) (p * X ^ n) = coeff R d p :=
+begin
+  rw [coeff_mul, finset.sum_eq_single (d, n), coeff_X_pow, if_pos rfl, mul_one],
+  { rintros ⟨i,j⟩ h1 h2, rw [coeff_X_pow, if_neg, mul_zero], rintro rfl, apply h2,
+    rw [finset.nat.mem_antidiagonal, add_right_cancel_iff] at h1, subst h1 },
+  { exact λ h1, (h1 (finset.nat.mem_antidiagonal.2 rfl)).elim }
+end
+
+@[simp]
+theorem coeff_X_pow_mul (p : power_series R) (n d : ℕ) :
+  coeff R (d + n) (X ^ n * p) = coeff R d p :=
+begin
+  rw [coeff_mul, finset.sum_eq_single (n,d), coeff_X_pow, if_pos rfl, one_mul],
+  { rintros ⟨i,j⟩ h1 h2, rw [coeff_X_pow, if_neg, zero_mul], rintro rfl, apply h2,
+    rw [finset.nat.mem_antidiagonal, add_comm, add_right_cancel_iff] at h1, subst h1 },
+  { rw add_comm,
+    exact λ h1, (h1 (finset.nat.mem_antidiagonal.2 rfl)).elim }
+end
+
+lemma coeff_mul_X_pow' (p : power_series R) (n d : ℕ) :
+  coeff R d (p * X ^ n) = ite (n ≤ d) (coeff R (d - n) p) 0 :=
+begin
+  split_ifs,
+  { rw [← tsub_add_cancel_of_le h, coeff_mul_X_pow, add_tsub_cancel_right] },
+  { refine (coeff_mul _ _ _).trans (finset.sum_eq_zero (λ x hx, _)),
+    rw [coeff_X_pow, if_neg, mul_zero],
+    exact ne_of_lt (lt_of_le_of_lt (nat.le_of_add_le_right
+      (le_of_eq (finset.nat.mem_antidiagonal.mp hx))) (not_le.mp h)) },
+end
+
+lemma coeff_X_pow_mul' (p : power_series R) (n d : ℕ) :
+  coeff R d (X ^ n * p) = ite (n ≤ d) (coeff R (d - n) p) 0 :=
+begin
+  split_ifs,
+  { rw [← tsub_add_cancel_of_le h, coeff_X_pow_mul], simp, },
+  { refine (coeff_mul _ _ _).trans (finset.sum_eq_zero (λ x hx, _)),
+    rw [coeff_X_pow, if_neg, zero_mul],
+    have := finset.nat.mem_antidiagonal.mp hx,
+    rw add_comm at this,
+    exact ne_of_lt (lt_of_le_of_lt (nat.le_of_add_le_right
+      (le_of_eq this)) (not_le.mp h)) },
+end
+
+end
 
 /-- If a formal power series is invertible, then so is its constant coefficient.-/
 lemma is_unit_constant_coeff (φ : power_series R) (h : is_unit φ) :
@@ -1193,20 +1250,20 @@ begin
 end
 
 /-- A formal power series is invertible if the constant coefficient is invertible.-/
-def inv_of_unit (φ : power_series R) (u : units R) : power_series R :=
+def inv_of_unit (φ : power_series R) (u : Rˣ) : power_series R :=
 mv_power_series.inv_of_unit φ u
 
-lemma coeff_inv_of_unit (n : ℕ) (φ : power_series R) (u : units R) :
+lemma coeff_inv_of_unit (n : ℕ) (φ : power_series R) (u : Rˣ) :
   coeff R n (inv_of_unit φ u) = if n = 0 then ↑u⁻¹ else
   - ↑u⁻¹ * ∑ x in finset.nat.antidiagonal n,
     if x.2 < n then coeff R x.1 φ * coeff R x.2 (inv_of_unit φ u) else 0 :=
 coeff_inv_aux n ↑u⁻¹ φ
 
-@[simp] lemma constant_coeff_inv_of_unit (φ : power_series R) (u : units R) :
+@[simp] lemma constant_coeff_inv_of_unit (φ : power_series R) (u : Rˣ) :
   constant_coeff R (inv_of_unit φ u) = ↑u⁻¹ :=
 by rw [← coeff_zero_eq_constant_coeff_apply, coeff_inv_of_unit, if_pos rfl]
 
-lemma mul_inv_of_unit (φ : power_series R) (u : units R) (h : constant_coeff R φ = u) :
+lemma mul_inv_of_unit (φ : power_series R) (u : Rˣ) (h : constant_coeff R φ = u) :
   φ * inv_of_unit φ u = 1 :=
 mv_power_series.mul_inv_of_unit φ u $ h
 

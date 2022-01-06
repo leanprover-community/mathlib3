@@ -5,7 +5,7 @@ Authors: Nicolò Cavalleri, Sebastien Gouezel
 -/
 
 import topology.fiber_bundle
-import topology.algebra.module
+import topology.algebra.module.basic
 
 /-!
 # Topological vector bundles

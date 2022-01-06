@@ -26,7 +26,7 @@ open linear_map
 /-- `GL n R` is the group of `n` by `n` `R`-matrices with unit determinant.
 Defined as a subtype of matrices-/
 abbreviation general_linear_group (n : Type u) (R : Type v)
-  [decidable_eq n] [fintype n] [comm_ring R] : Type* := units (matrix n n R)
+  [decidable_eq n] [fintype n] [comm_ring R] : Type* := (matrix n n R)ˣ
 
 notation `GL` := general_linear_group
 
@@ -36,7 +36,7 @@ variables {n : Type u} [decidable_eq n] [fintype n] {R : Type v} [comm_ring R]
 
 /-- The determinant of a unit matrix is itself a unit. -/
 @[simps]
-def det : GL n R →* units R :=
+def det : GL n R →* Rˣ :=
 { to_fun := λ A,
   { val := (↑A : matrix n n R).det,
     inv := (↑(A⁻¹) : matrix n n R).det,

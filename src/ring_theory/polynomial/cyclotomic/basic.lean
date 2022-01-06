@@ -566,9 +566,9 @@ end
 /-- If `R` is of characterist zero, then `ζ` is a root of `cyclotomic n R` if and only if it is a
 primitive `n`-th root of unity. -/
 lemma is_root_cyclotomic_iff_char_zero {n : ℕ} {R : Type*} [comm_ring R] [is_domain R]
-  [char_zero R] {μ : R} [hn : ne_zero n] :
+  [char_zero R] {μ : R} (hn : 0 < n) :
   (polynomial.cyclotomic n R).is_root μ ↔ is_primitive_root μ n :=
-by exactI ⟨λ h, is_root_cyclotomic_iff.1 h, λ h, is_root_cyclotomic hn.out.bot_lt h⟩
+by { letI := ne_zero.of_gt hn, exact is_root_cyclotomic_iff }
 
 /-- Over a ring `R` of characteristic zero, `λ n, cyclotomic n R` is injective. -/
 lemma cyclotomic_injective {R : Type*} [comm_ring R] [char_zero R] :

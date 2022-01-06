@@ -25,6 +25,8 @@ The locale `vectors` gives the following notation:
 vectors
 -/
 
+open matrix
+
 variable {R : Type*}
 
 lemma vec2_eq {a₀ a₁ b₀ b₁ : R} (h₀ : a₀ = b₀) (h₁ : a₁ = b₁) :
@@ -39,11 +41,11 @@ variable [comm_ring R]
 
 lemma vec2_add {a₀ a₁ b₀ b₁ : R} :
   ![a₀, a₁] + ![b₀, b₁] = ![a₀ + b₀, a₁ + b₁] :=
-by { ext x, fin_cases x; refl }
+by rw [cons_add_cons, cons_add_cons, empty_add_empty]
 
 lemma vec3_add {a₀ a₁ a₂ b₀ b₁ b₂ : R} :
   ![a₀, a₁, a₂] + ![b₀, b₁, b₂] = ![a₀ + b₀, a₁ + b₁, a₂ + b₂] :=
-by { ext x, fin_cases x; refl }
+by rw [cons_add_cons, cons_add_cons, cons_add_cons, empty_add_empty]
 
 localized "infix  ` ⬝ ` : 67 := matrix.dot_product" in vectors
 
@@ -51,6 +53,15 @@ lemma vec2_dot_product (v w : fin 2 → R) :
   v ⬝ w = v 0 * w 0 + v 1 * w 1 :=
 by simp [matrix.dot_product, add_assoc, fin.sum_univ_succ]
 
+lemma vec2_dot_product' {a₀ a₁ b₀ b₁ : R} :
+  ![a₀, a₁] ⬝ ![b₀, b₁] = a₀ * b₀ + a₁ * b₁ :=
+by rw [cons_dot_product_cons, cons_dot_product_cons, dot_product_empty, add_zero]
+
 lemma vec3_dot_product (v w : fin 3 → R) :
   v ⬝ w = v 0 * w 0 + v 1 * w 1 + v 2 * w 2 :=
 by simp [matrix.dot_product, add_assoc, fin.sum_univ_succ]
+
+lemma vec3_dot_product' {a₀ a₁ a₂ b₀ b₁ b₂ : R} :
+  ![a₀, a₁, a₂] ⬝ ![b₀, b₁, b₂] = a₀ * b₀ + a₁ * b₁ + a₂ * b₂ :=
+by rw [cons_dot_product_cons, cons_dot_product_cons, cons_dot_product_cons,
+       dot_product_empty, add_zero, add_assoc]

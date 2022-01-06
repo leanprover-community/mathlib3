@@ -21,8 +21,6 @@ begin
 apply  model_with_corners_self,
 end
 
-#check I.to_fun
-
 instance : charted_space ℂ ℂ := infer_instance
 
 instance : charted_space ℂ ℍ' := infer_instance

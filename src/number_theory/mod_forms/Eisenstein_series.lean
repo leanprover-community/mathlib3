@@ -1007,7 +1007,9 @@ begin
   have nz: (y.1 : ℂ)*z.1 + y.2 ≠ 0 , by {apply hy,},
   have hdd:= dd2 y.1 y.2 (-k) z nz,
   rw ein at hdd,
-  have H := has_deriv_at.has_deriv_within_at' upper_half_space hdd,
+  have H' := has_deriv_at.has_deriv_within_at hdd,
+  have H : has_deriv_within_at (λ (x : ℂ), (↑(y.fst) * x + ↑(y.snd)) ^ -k)
+  (↑-k * (↑(y.fst) * ↑z + ↑(y.snd)) ^ (-k - 1) * ↑(y.fst)) upper_half_space ↑z, by {apply H'},
   simp at H,
   let fx:=(-k*((y.1:ℂ)*z.1+y.2)^(-k-1)*(y.1) : ℂ),
   use fx,

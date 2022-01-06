@@ -1212,12 +1212,12 @@ lemma to_nat_of_nonpos : ∀ {z : ℤ}, z ≤ 0 → z.to_nat = 0
 
 /-! ### units -/
 
-@[simp] theorem units_nat_abs (u : units ℤ) : nat_abs u = 1 :=
+@[simp] theorem units_nat_abs (u : ℤˣ) : nat_abs u = 1 :=
 units.ext_iff.1 $ nat.units_eq_one ⟨nat_abs u, nat_abs ↑u⁻¹,
   by rw [← nat_abs_mul, units.mul_inv]; refl,
   by rw [← nat_abs_mul, units.inv_mul]; refl⟩
 
-theorem units_eq_one_or (u : units ℤ) : u = 1 ∨ u = -1 :=
+theorem units_eq_one_or (u : ℤˣ) : u = 1 ∨ u = -1 :=
 by simpa only [units.ext_iff, units_nat_abs] using nat_abs_eq u
 
 lemma is_unit_eq_one_or {a : ℤ} : is_unit a → a = 1 ∨ a = -1
@@ -1241,14 +1241,14 @@ by rw [is_unit_iff_nat_abs_eq, abs_eq_nat_abs, ←int.coe_nat_one, coe_nat_inj']
 lemma of_nat_is_unit {n : ℕ} : is_unit (n : ℤ) ↔ is_unit n :=
 by rw [nat.is_unit_iff, is_unit_iff_nat_abs_eq, nat_abs_of_nat]
 
-lemma units_inv_eq_self (u : units ℤ) : u⁻¹ = u :=
+lemma units_inv_eq_self (u : ℤˣ) : u⁻¹ = u :=
 (units_eq_one_or u).elim (λ h, h.symm ▸ rfl) (λ h, h.symm ▸ rfl)
 
-@[simp] lemma units_mul_self (u : units ℤ) : u * u = 1 :=
+@[simp] lemma units_mul_self (u : ℤˣ) : u * u = 1 :=
 (units_eq_one_or u).elim (λ h, h.symm ▸ rfl) (λ h, h.symm ▸ rfl)
 
 -- `units.coe_mul` is a "wrong turn" for the simplifier, this undoes it and simplifies further
-@[simp] lemma units_coe_mul_self (u : units ℤ) : (u * u : ℤ) = 1 :=
+@[simp] lemma units_coe_mul_self (u : ℤˣ) : (u * u : ℤ) = 1 :=
 by rw [←units.coe_mul, units_mul_self, units.coe_one]
 
 @[simp] lemma neg_one_pow_ne_zero {n : ℕ} : (-1 : ℤ)^n ≠ 0 :=

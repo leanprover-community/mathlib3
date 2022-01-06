@@ -36,7 +36,7 @@ namespace units
 /-- In a complete normed ring, a perturbation of `1` by an element `t` of distance less than `1`
 from `1` is a unit.  Here we construct its `units` structure.  -/
 @[simps coe]
-def one_sub (t : R) (h : ∥t∥ < 1) : units R :=
+def one_sub (t : R) (h : ∥t∥ < 1) : Rˣ :=
 { val := 1 - t,
   inv := ∑' n : ℕ, t ^ n,
   val_inv := mul_neg_geom_series t h,
@@ -45,7 +45,7 @@ def one_sub (t : R) (h : ∥t∥ < 1) : units R :=
 /-- In a complete normed ring, a perturbation of a unit `x` by an element `t` of distance less than
 `∥x⁻¹∥⁻¹` from `x` is a unit.  Here we construct its `units` structure. -/
 @[simps coe]
-def add (x : units R) (t : R) (h : ∥t∥ < ∥(↑x⁻¹ : R)∥⁻¹) : units R :=
+def add (x : Rˣ) (t : R) (h : ∥t∥ < ∥(↑x⁻¹ : R)∥⁻¹) : Rˣ :=
 units.copy  -- to make `coe_add` true definitionally, for convenience
   (x * (units.one_sub (-(↑x⁻¹ * t)) begin
       nontriviality R using [zero_lt_one],
@@ -61,7 +61,7 @@ units.copy  -- to make `coe_add` true definitionally, for convenience
 /-- In a complete normed ring, an element `y` of distance less than `∥x⁻¹∥⁻¹` from `x` is a unit.
 Here we construct its `units` structure. -/
 @[simps coe]
-def unit_of_nearby (x : units R) (y : R) (h : ∥y - x∥ < ∥(↑x⁻¹ : R)∥⁻¹) : units R :=
+def unit_of_nearby (x : Rˣ) (y : R) (h : ∥y - x∥ < ∥(↑x⁻¹ : R)∥⁻¹) : Rˣ :=
 units.copy (x.add (y - x : R) h) y (by simp) _ rfl
 
 /-- The group of units of a complete normed ring is an open subset of the ring. -/
@@ -76,7 +76,7 @@ begin
   exact (x.unit_of_nearby y hy).is_unit
 end
 
-protected lemma nhds (x : units R) : {x : R | is_unit x} ∈ 𝓝 (x : R) :=
+protected lemma nhds (x : Rˣ) : {x : R | is_unit x} ∈ 𝓝 (x : R) :=
 is_open.mem_nhds units.is_open x.is_unit
 
 end units
@@ -89,7 +89,7 @@ lemma inverse_one_sub (t : R) (h : ∥t∥ < 1) : inverse (1 - t) = ↑(units.on
 by rw [← inverse_unit (units.one_sub t h), units.coe_one_sub]
 
 /-- The formula `inverse (x + t) = inverse (1 + x⁻¹ * t) * x⁻¹` holds for `t` sufficiently small. -/
-lemma inverse_add (x : units R) :
+lemma inverse_add (x : Rˣ) :
   ∀ᶠ t in (𝓝 0), inverse ((x : R) + t) = inverse (1 + ↑x⁻¹ * t) * ↑x⁻¹ :=
 begin
   nontriviality R,
@@ -134,7 +134,7 @@ end
 /-- The formula
 `inverse (x + t) = (∑ i in range n, (- x⁻¹ * t) ^ i) * x⁻¹ + (- x⁻¹ * t) ^ n * inverse (x + t)`
 holds for `t` sufficiently small. -/
-lemma inverse_add_nth_order (x : units R) (n : ℕ) :
+lemma inverse_add_nth_order (x : Rˣ) (n : ℕ) :
   ∀ᶠ t in (𝓝 0), inverse ((x : R) + t)
   = (∑ i in range n, (- ↑x⁻¹ * t) ^ i) * ↑x⁻¹ + (- ↑x⁻¹ * t) ^ n * inverse (x + t) :=
 begin
@@ -173,11 +173,11 @@ begin
 end
 
 /-- The function `λ t, inverse (x + t)` is O(1) as `t → 0`. -/
-lemma inverse_add_norm (x : units R) : is_O (λ t, inverse (↑x + t)) (λ t, (1:ℝ)) (𝓝 (0:R)) :=
+lemma inverse_add_norm (x : Rˣ) : is_O (λ t, inverse (↑x + t)) (λ t, (1:ℝ)) (𝓝 (0:R)) :=
 begin
   simp only [is_O_iff, norm_one, mul_one],
   cases is_O_iff.mp (@inverse_one_sub_norm R _ _) with C hC,
-  use C * ∥((x⁻¹:units R):R)∥,
+  use C * ∥((x⁻¹:Rˣ):R)∥,
   have hzero : tendsto (λ t, - (↑x⁻¹ : R) * t) (𝓝 0) (𝓝 0),
   { convert ((mul_left_continuous (-↑x⁻¹ : R)).tendsto 0).comp tendsto_id,
     simp },
@@ -192,7 +192,7 @@ end
 /-- The function
 `λ t, inverse (x + t) - (∑ i in range n, (- x⁻¹ * t) ^ i) * x⁻¹`
 is `O(t ^ n)` as `t → 0`. -/
-lemma inverse_add_norm_diff_nth_order (x : units R) (n : ℕ) :
+lemma inverse_add_norm_diff_nth_order (x : Rˣ) (n : ℕ) :
   is_O (λ (t : R), inverse (↑x + t) - (∑ i in range n, (- ↑x⁻¹ * t) ^ i) * ↑x⁻¹)
   (λ t, ∥t∥ ^ n) (𝓝 (0:R)) :=
 begin
@@ -227,14 +227,14 @@ begin
 end
 
 /-- The function `λ t, inverse (x + t) - x⁻¹` is `O(t)` as `t → 0`. -/
-lemma inverse_add_norm_diff_first_order (x : units R) :
+lemma inverse_add_norm_diff_first_order (x : Rˣ) :
   is_O (λ t, inverse (↑x + t) - ↑x⁻¹) (λ t, ∥t∥) (𝓝 (0:R)) :=
 by { convert inverse_add_norm_diff_nth_order x 1; simp }
 
 /-- The function
 `λ t, inverse (x + t) - x⁻¹ + x⁻¹ * t * x⁻¹`
 is `O(t ^ 2)` as `t → 0`. -/
-lemma inverse_add_norm_diff_second_order (x : units R) :
+lemma inverse_add_norm_diff_second_order (x : Rˣ) :
   is_O (λ t, inverse (↑x + t) - ↑x⁻¹ + ↑x⁻¹ * t * ↑x⁻¹) (λ t, ∥t∥ ^ 2) (𝓝 (0:R)) :=
 begin
   convert inverse_add_norm_diff_nth_order x 2,
@@ -245,7 +245,7 @@ begin
 end
 
 /-- The function `inverse` is continuous at each unit of `R`. -/
-lemma inverse_continuous_at (x : units R) : continuous_at inverse (x : R) :=
+lemma inverse_continuous_at (x : Rˣ) : continuous_at inverse (x : R) :=
 begin
   have h_is_o : is_o (λ (t : R), ∥inverse (↑x + t) - ↑x⁻¹∥) (λ (t : R), (1:ℝ)) (𝓝 0),
   { refine is_o_norm_left.mpr ((inverse_add_norm_diff_first_order x).trans_is_o _),
@@ -264,9 +264,9 @@ end normed_ring
 namespace units
 open mul_opposite filter normed_ring
 
-/-- In a normed ring, the coercion from `units R` (equipped with the induced topology from the
+/-- In a normed ring, the coercion from `Rˣ` (equipped with the induced topology from the
 embedding in `R × R`) to `R` is an open map. -/
-lemma is_open_map_coe : is_open_map (coe : units R → R) :=
+lemma is_open_map_coe : is_open_map (coe : Rˣ → R) :=
 begin
   rw is_open_map_iff_nhds_le,
   intros x s,
@@ -275,7 +275,7 @@ begin
   obtain ⟨u, hu, v, hv, huvt⟩ :
     ∃ (u : set R), u ∈ 𝓝 ↑x ∧ ∃ (v : set Rᵐᵒᵖ), v ∈ 𝓝 (op ↑x⁻¹) ∧ u.prod v ⊆ t,
   { simpa [embed_product, mem_nhds_prod_iff] using ht },
-  have : u ∩ (op ∘ ring.inverse) ⁻¹' v ∩ (set.range (coe : units R → R)) ∈ 𝓝 ↑x,
+  have : u ∩ (op ∘ ring.inverse) ⁻¹' v ∩ (set.range (coe : Rˣ → R)) ∈ 𝓝 ↑x,
   { refine inter_mem (inter_mem hu _) (units.nhds x),
     refine (continuous_op.continuous_at.comp (inverse_continuous_at x)).preimage_mem_nhds _,
     simpa using hv },
@@ -285,9 +285,9 @@ begin
   simpa using hts (huvt this)
 end
 
-/-- In a normed ring, the coercion from `units R` (equipped with the induced topology from the
+/-- In a normed ring, the coercion from `Rˣ` (equipped with the induced topology from the
 embedding in `R × R`) to `R` is an open embedding. -/
-lemma open_embedding_coe : open_embedding (coe : units R → R) :=
+lemma open_embedding_coe : open_embedding (coe : Rˣ → R) :=
 open_embedding_of_continuous_injective_open continuous_coe ext is_open_map_coe
 
 end units

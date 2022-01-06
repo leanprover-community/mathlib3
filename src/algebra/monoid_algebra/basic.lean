@@ -423,7 +423,7 @@ end misc_theorems
 /-! #### Non-unital, non-associative algebra structure -/
 section non_unital_non_assoc_algebra
 
-variables {R : Type*} (k) [semiring R] [semiring k] [distrib_mul_action R k] [has_mul G]
+variables {R : Type*} (k) [monoid R] [semiring k] [distrib_mul_action R k] [has_mul G]
 
 instance is_scalar_tower_self [is_scalar_tower R k k] :
   is_scalar_tower R (monoid_algebra k G) (monoid_algebra k G) :=
@@ -1195,7 +1195,7 @@ variables {k G}
 
 section non_unital_non_assoc_algebra
 
-variables {R : Type*} (k) [semiring R] [semiring k] [distrib_mul_action R k] [has_add G]
+variables {R : Type*} (k) [monoid R] [semiring k] [distrib_mul_action R k] [has_add G]
 
 instance is_scalar_tower_self [is_scalar_tower R k k] :
   is_scalar_tower R (add_monoid_algebra k G) (add_monoid_algebra k G) :=

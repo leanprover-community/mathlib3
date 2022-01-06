@@ -42,7 +42,7 @@ noncomputable theory
 variables (R : Type u) (X : Type v) [semiring R]
 
 /-- The free non-unital, non-associative algebra on the type `X` with coefficients in `R`. -/
-@[derive [inhabited, non_unital_non_assoc_semiring, module R]]
+@[derive [inhabited, non_unital_non_assoc_semiring]]
 def free_non_unital_non_assoc_algebra := monoid_algebra R (free_magma X)
 
 namespace free_non_unital_non_assoc_algebra
@@ -53,15 +53,36 @@ variables {X}
 def of : X → free_non_unital_non_assoc_algebra R X :=
 (monoid_algebra.of_magma R _) ∘ free_magma.of
 
-instance : is_scalar_tower R
-  (free_non_unital_non_assoc_algebra R X) (free_non_unital_non_assoc_algebra R X) :=
+instance {S : Type*} [monoid S] [distrib_mul_action S R] :
+  distrib_mul_action S (free_non_unital_non_assoc_algebra R X) :=
+monoid_algebra.distrib_mul_action
+
+instance {S₁ S₂ : Type*} [monoid S₁] [monoid S₂] [distrib_mul_action S₁ R] [distrib_mul_action S₂ R]
+  [has_scalar S₁ S₂] [is_scalar_tower S₁ S₂ R] :
+  is_scalar_tower S₁ S₂ (free_non_unital_non_assoc_algebra R X) :=
+monoid_algebra.is_scalar_tower
+
+instance {S₁ S₂ : Type*} [monoid S₁] [monoid S₂] [distrib_mul_action S₁ R] [distrib_mul_action S₂ R]
+  [smul_comm_class S₁ S₂ R] :
+  smul_comm_class S₁ S₂ (free_non_unital_non_assoc_algebra R X) :=
+monoid_algebra.smul_comm_class
+
+instance {S : Type*} [monoid S] [distrib_mul_action S R] [distrib_mul_action Sᵐᵒᵖ R]
+  [is_central_scalar S R] : is_central_scalar S (free_non_unital_non_assoc_algebra R X) :=
+monoid_algebra.is_central_scalar
+
+instance is_scalar_tower_self {S : Type*} [monoid S] [distrib_mul_action S R]
+  [is_scalar_tower S R R] : is_scalar_tower S
+    (free_non_unital_non_assoc_algebra R X) (free_non_unital_non_assoc_algebra R X) :=
 monoid_algebra.is_scalar_tower_self R
 
-/-- If the coefficients are commutative amongst themselves, they also commute with the algebra
-multiplication. -/
-instance (R : Type u) [comm_semiring R] : smul_comm_class R
-  (free_non_unital_non_assoc_algebra R X) (free_non_unital_non_assoc_algebra R X) :=
+instance smul_comm_class_self {S : Type*} [monoid S] [distrib_mul_action S R]
+  [smul_comm_class S R R] : smul_comm_class S
+    (free_non_unital_non_assoc_algebra R X) (free_non_unital_non_assoc_algebra R X) :=
 monoid_algebra.smul_comm_class_self R
+
+instance {S : Type*} [semiring S] [module S R] : module S (free_non_unital_non_assoc_algebra R X) :=
+monoid_algebra.module
 
 instance (R : Type u) [ring R] : add_comm_group (free_non_unital_non_assoc_algebra R X) :=
 module.add_comm_monoid_to_add_comm_group R

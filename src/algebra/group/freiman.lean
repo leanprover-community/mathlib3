@@ -3,8 +3,8 @@ Copyright (c) 2022 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
+import algebra.big_operators.multiset
 import data.fun_like
-import data.multiset.basic
 
 /-!
 # Freiman homomorphisms
@@ -258,7 +258,7 @@ instance : comm_monoid (A →*[n] β) :=
   npow := λ m f,
   { to_fun := λ x, f x ^ m,
     map_prod_eq_map_prod' := λ s t hsA htA hs ht h,
-      by rw [prod_map_pow_right, prod_map_pow_right, map_prod_eq_map_prod f hsA htA hs ht h] },
+      by rw [prod_map_pow, prod_map_pow, map_prod_eq_map_prod f hsA htA hs ht h] },
   npow_zero' := λ f, by { ext x, exact pow_zero _ },
   npow_succ' := λ n f, by { ext x, exact pow_succ _ _ } }
 
@@ -272,7 +272,7 @@ instance {β} [comm_group β] : comm_group (A →*[n] β) :=
   mul_left_inv := by { intros, ext, apply mul_left_inv },
   zpow := λ n f, { to_fun := λ x, (f x) ^ n,
     map_prod_eq_map_prod' := λ s t hsA htA hs ht h,
-      by rw [prod_map_zpow_right, prod_map_zpow_right, map_prod_eq_map_prod f hsA htA hs ht h] },
+      by rw [prod_map_zpow, prod_map_zpow, map_prod_eq_map_prod f hsA htA hs ht h] },
   zpow_zero' := λ f, by { ext x, exact zpow_zero _ },
   zpow_succ' := λ n f, by { ext x, simp_rw [zpow_of_nat, pow_succ, mul_apply, coe_mk] },
   zpow_neg'  := λ n f, by { ext x, simp_rw [zpow_neg_succ_of_nat, zpow_coe_nat], refl },

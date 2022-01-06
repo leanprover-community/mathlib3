@@ -1,5 +1,5 @@
 /-
-Copyright (c) 2018 Bolton Bailey. All rights reserved.
+Copyright (c) 2022 Bolton Bailey. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bolton Bailey, Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne
 -/
@@ -9,11 +9,12 @@ import analysis.special_functions.pow
 /-!
 # Real logarithm base `b`
 
-In this file we define `real.log` to be the logarithm of a real number. As usual, we extend it from
-its domain `(0, +∞)` to a globally defined function. We choose to do it so that `log 0 = 0` and
-`log (-x) = log x`.
+In this file we define `real.logb` to be the logarithm of a real number in a given base `b`. We
+define this as the division of the natural logarithms of the argument and the base, so that we have
+a globally defined function with `logb b 0 = 0`, `logb b (-x) = logb b x` `logb 0 x = 0` and
+`logb (-b) x = logb b x`.
 
-We prove some basic properties of this function and show that it is continuous.
+We prove some basic properties of this function and it's relation to `rpow`.
 
 ## Tags
 
@@ -29,7 +30,7 @@ namespace real
 variables {b x y : ℝ}
 
 /-- The real logarithm in a given base. As with the natural logarithm, we define `logb b x` to
-be `logb b |x|` for `x < 0`, and to `0` for `x = 0`.-/
+be `logb b |x|` for `x < 0`, and `0` for `x = 0`.-/
 @[pp_nodot] noncomputable def logb (b x : ℝ) : ℝ := log x / log b
 
 lemma log_div_log : log x / log b = logb b x := rfl
@@ -108,7 +109,8 @@ by simp_rw [logb, log_div hx hy, sub_div]
 
 @[simp] lemma logb_inv (x : ℝ) : logb b (x⁻¹) = -logb b x := by simp [logb, neg_div]
 
-@[simp] lemma logb_le_logb (one_lt_b : 1 < b) (h : 0 < x) (h₁ : 0 < y) : logb b x ≤ logb b y ↔ x ≤ y :=
+@[simp] lemma logb_le_logb (one_lt_b : 1 < b) (h : 0 < x) (h₁ : 0 < y) :
+  logb b x ≤ logb b y ↔ x ≤ y :=
 by {rw [logb, logb, div_le_div_right (log_pos one_lt_b), log_le_log h h₁], }
 
 lemma logb_lt_logb (one_lt_b : 1 < b) (hx : 0 < x) (hxy : x < y) : logb b x < logb b y :=
@@ -180,7 +182,8 @@ x = 1 :=
 logb_inj_on_pos one_lt_b (set.mem_Ioi.2 h₁) (set.mem_Ioi.2 zero_lt_one)
   (h₂.trans real.logb_one.symm)
 
-lemma logb_ne_zero_of_pos_of_ne_one (one_lt_b : 1 < b) (hx_pos : 0 < x) (hx : x ≠ 1) : logb b x ≠ 0 :=
+lemma logb_ne_zero_of_pos_of_ne_one (one_lt_b : 1 < b) (hx_pos : 0 < x) (hx : x ≠ 1) :
+  logb b x ≠ 0 :=
 mt (eq_one_of_pos_of_logb_eq_zero one_lt_b hx_pos) hx
 
 @[simp] lemma logb_eq_zero :

@@ -33,7 +33,7 @@ A morphism of locally ringed spaces is a morphism of ringed spaces
 such that the morphisms induced on stalks are local ring homomorphisms. -/
 @[nolint has_inhabited_instance]
 structure LocallyRingedSpace extends SheafedSpace CommRing :=
-(local_ring : ∀ x, local_ring (presheaf.stalk x))
+(local_ring : ∀ x, local_ring (to_PresheafedSpace.stalk x))
 
 attribute [instance] LocallyRingedSpace.local_ring
 
@@ -78,7 +78,7 @@ The stalk of a locally ringed space, just as a `CommRing`.
 -- TODO perhaps we should make a bundled `LocalRing` and return one here?
 -- TODO define `sheaf.stalk` so we can write `X.𝒪.stalk` here?
 noncomputable
-def stalk (X : LocallyRingedSpace) (x : X) : CommRing := X.presheaf.stalk x
+abbreviation stalk (X : LocallyRingedSpace) (x : X) : CommRing := X.presheaf.stalk x
 
 /--
 A morphism of locally ringed spaces `f : X ⟶ Y` induces
@@ -134,6 +134,13 @@ forget_to_SheafedSpace ⋙ SheafedSpace.forget _
 
 @[simp] lemma comp_val {X Y Z : LocallyRingedSpace} (f : X ⟶ Y) (g : Y ⟶ Z) :
   (f ≫ g).val = f.val ≫ g.val := rfl
+
+@[simp] lemma comp_val_c {X Y Z : LocallyRingedSpace} (f : X ⟶ Y) (g : Y ⟶ Z) :
+  (f ≫ g).val.c = g.val.c ≫ (presheaf.pushforward _ g.val.base).map f.val.c := rfl
+
+lemma comp_val_c_app {X Y Z : LocallyRingedSpace} (f : X ⟶ Y) (g : Y ⟶ Z) (U : (opens Z)ᵒᵖ) :
+  (f ≫ g).val.c.app U = g.val.c.app U ≫ f.val.c.app (op $ (opens.map g.val.base).obj U.unop) :=
+rfl
 
 /--
 Given two locally ringed spaces `X` and `Y`, an isomorphism between `X` and `Y` as _sheafed_

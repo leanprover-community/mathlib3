@@ -53,6 +53,9 @@ protected abbreviation sheaf (X : Scheme) := X.to_SheafedSpace.sheaf
 def forget_to_LocallyRingedSpace : Scheme ⥤ LocallyRingedSpace :=
   induced_functor _
 
+@[simp] lemma forget_to_LocallyRingedSpace_preimage {X Y : Scheme} (f : X ⟶ Y) :
+  Scheme.forget_to_LocallyRingedSpace.preimage f = f := rfl
+
 /-- The forgetful functor from `Scheme` to `Top`. -/
 @[simps]
 def forget_to_Top : Scheme ⥤ Top :=
@@ -92,6 +95,25 @@ The spectrum, as a contravariant functor from commutative rings to schemes.
   map := λ R S f, Spec_map f.unop,
   map_id' := λ R, by rw [unop_id, Spec_map_id],
   map_comp' := λ R S T f g, by rw [unop_comp, Spec_map_comp] }
+
+def cover (S : Scheme) (x : S.carrier) : costructured_arrow Spec S :=
+{ left := op (S.local_affine x).some_spec.some,
+  hom := ((S.local_affine x).some_spec.some_spec.some.inv ≫
+    S.to_LocallyRingedSpace.of_restrict _ : _) }
+
+lemma mem_cover (S : Scheme) (x : S.carrier) : x ∈ set.range (S.cover x).hom.1.base :=
+begin
+  erw coe_comp,
+  rw [set.range_comp, set.range_iff_surjective.mpr, set.image_univ],
+  erw subtype.range_coe_subtype,
+  exact (S.local_affine x).some.2,
+  rw ← Top.epi_iff_surjective,
+  change epi ((SheafedSpace.forget _).map (LocallyRingedSpace.forget_to_SheafedSpace.map _)),
+  apply_instance
+end
+
+@[simps, derive [full, faithful]]
+def forget : Scheme ⥤ LocallyRingedSpace := induced_functor _
 
 /--
 The empty scheme, as `Spec 0`.

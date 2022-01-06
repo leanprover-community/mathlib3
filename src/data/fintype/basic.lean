@@ -798,16 +798,16 @@ instance : fintype bool := ⟨⟨tt ::ₘ ff ::ₘ 0, by simp⟩, λ x, by cases
 
 @[simp] theorem fintype.univ_bool : @univ bool _ = {tt, ff} := rfl
 
-instance units_int.fintype : fintype (units ℤ) :=
+instance units_int.fintype : fintype ℤˣ :=
 ⟨{1, -1}, λ x, by cases int.units_eq_one_or x; simp *⟩
 
-@[simp] lemma units_int.univ : (finset.univ : finset (units ℤ)) = {1, -1} := rfl
+@[simp] lemma units_int.univ : (finset.univ : finset ℤˣ) = {1, -1} := rfl
 
 instance additive.fintype : Π [fintype α], fintype (additive α) := id
 
 instance multiplicative.fintype : Π [fintype α], fintype (multiplicative α) := id
 
-@[simp] theorem fintype.card_units_int : fintype.card (units ℤ) = 2 := rfl
+@[simp] theorem fintype.card_units_int : fintype.card ℤˣ = 2 := rfl
 
 @[simp] theorem fintype.card_bool : fintype.card bool = 2 := rfl
 
@@ -1113,39 +1113,57 @@ instance Prop.fintype : fintype Prop :=
 instance subtype.fintype (p : α → Prop) [decidable_pred p] [fintype α] : fintype {x // p x} :=
 fintype.subtype (univ.filter p) (by simp)
 
+@[simp] lemma set.to_finset_univ [hu : fintype (set.univ : set α)] [fintype α] :
+  @set.to_finset _ (set.univ : set α) hu = finset.univ :=
+by { ext, simp only [set.mem_univ, mem_univ, set.mem_to_finset] }
+
+@[simp] lemma set.to_finset_eq_empty_iff {s : set α} [fintype s] : s.to_finset = ∅ ↔ s = ∅ :=
+by simp [ext_iff, set.ext_iff]
+
+@[simp] lemma set.to_finset_empty : (∅ : set α).to_finset = ∅ :=
+set.to_finset_eq_empty_iff.mpr rfl
+
+@[simp] lemma set.to_finset_range [decidable_eq α] [fintype β] (f : β → α) [fintype (set.range f)] :
+  (set.range f).to_finset = finset.univ.image f :=
+by simp [ext_iff]
+
 /-- A set on a fintype, when coerced to a type, is a fintype. -/
-def set_fintype {α} [fintype α] (s : set α) [decidable_pred (∈ s)] : fintype s :=
+def set_fintype [fintype α] (s : set α) [decidable_pred (∈ s)] : fintype s :=
 subtype.fintype (λ x, x ∈ s)
 
-lemma set_fintype_card_le_univ {α : Type*} [fintype α] (s : set α) [fintype ↥s] :
+lemma set_fintype_card_le_univ [fintype α] (s : set α) [fintype ↥s] :
   fintype.card ↥s ≤ fintype.card α :=
 fintype.card_le_of_embedding (function.embedding.subtype s)
+
+lemma set_fintype_card_eq_univ_iff [fintype α] (s : set α) [fintype ↥s] :
+  fintype.card s = fintype.card α ↔ s = set.univ :=
+by rw [←set.to_finset_card, finset.card_eq_iff_eq_univ, ←set.to_finset_univ, set.to_finset_inj]
 
 section
 variables (α)
 
-/-- The `units α` type is equivalent to a subtype of `α × α`. -/
+/-- The `αˣ` type is equivalent to a subtype of `α × α`. -/
 @[simps]
 def _root_.units_equiv_prod_subtype [monoid α] :
-  units α ≃ {p : α × α // p.1 * p.2 = 1 ∧ p.2 * p.1 = 1} :=
+  αˣ ≃ {p : α × α // p.1 * p.2 = 1 ∧ p.2 * p.1 = 1} :=
 { to_fun := λ u, ⟨(u, ↑u⁻¹), u.val_inv, u.inv_val⟩,
   inv_fun := λ p, units.mk (p : α × α).1 (p : α × α).2 p.prop.1 p.prop.2,
   left_inv := λ u, units.ext rfl,
   right_inv := λ p, subtype.ext $ prod.ext rfl rfl}
 
-/-- In a `group_with_zero` `α`, the unit group `units α` is equivalent to the subtype of nonzero
+/-- In a `group_with_zero` `α`, the unit group `αˣ` is equivalent to the subtype of nonzero
 elements. -/
 @[simps]
-def _root_.units_equiv_ne_zero [group_with_zero α] : units α ≃ {a : α // a ≠ 0} :=
+def _root_.units_equiv_ne_zero [group_with_zero α] : αˣ ≃ {a : α // a ≠ 0} :=
 ⟨λ a, ⟨a, a.ne_zero⟩, λ a, units.mk0 _ a.prop, λ _, units.ext rfl, λ _, subtype.ext rfl⟩
 
 end
 
-instance [monoid α] [fintype α] [decidable_eq α] : fintype (units α) :=
+instance [monoid α] [fintype α] [decidable_eq α] : fintype αˣ :=
 fintype.of_equiv _ (units_equiv_prod_subtype α).symm
 
-lemma fintype.card_units [group_with_zero α] [fintype α] [fintype (units α)] :
-  fintype.card (units α) = fintype.card α - 1 :=
+lemma fintype.card_units [group_with_zero α] [fintype α] [fintype αˣ] :
+  fintype.card αˣ = fintype.card α - 1 :=
 begin
   classical,
   rw [eq_comm, nat.sub_eq_iff_eq_add (fintype.card_pos_iff.2 ⟨(0 : α)⟩),
@@ -1291,6 +1309,10 @@ fintype.of_equiv _ sym.sym_equiv_sym'.symm
   fintype.card (finset α) = 2 ^ (fintype.card α) :=
 finset.card_powerset finset.univ
 
+lemma finset.mem_powerset_len_univ_iff [fintype α] {s : finset α} {k : ℕ} :
+  s ∈ powerset_len k (univ : finset α) ↔ card s = k :=
+mem_powerset_len.trans $ and_iff_right $ subset_univ _
+
 @[simp] lemma finset.univ_filter_card_eq (α : Type*) [fintype α] (k : ℕ) :
   (finset.univ : finset (finset α)).filter (λ s, s.card = k) = finset.univ.powerset_len k :=
 by { ext, simp [finset.mem_powerset_len] }
@@ -1298,22 +1320,6 @@ by { ext, simp [finset.mem_powerset_len] }
 @[simp] lemma fintype.card_finset_len [fintype α] (k : ℕ) :
   fintype.card {s : finset α // s.card = k} = nat.choose (fintype.card α) k :=
 by simp [fintype.subtype_card, finset.card_univ]
-
-@[simp] lemma set.to_finset_univ [fintype α] :
-  (set.univ : set α).to_finset = finset.univ :=
-by { ext, simp only [set.mem_univ, mem_univ, set.mem_to_finset] }
-
-@[simp] lemma set.to_finset_eq_empty_iff {s : set α} [fintype s] :
-  s.to_finset = ∅ ↔ s = ∅ :=
-by simp [ext_iff, set.ext_iff]
-
-@[simp] lemma set.to_finset_empty :
-  (∅ : set α).to_finset = ∅ :=
-set.to_finset_eq_empty_iff.mpr rfl
-
-@[simp] lemma set.to_finset_range [decidable_eq α] [fintype β] (f : β → α) [fintype (set.range f)] :
-  (set.range f).to_finset = finset.univ.image f :=
-by simp [ext_iff]
 
 theorem fintype.card_subtype_le [fintype α] (p : α → Prop) [decidable_pred p] :
   fintype.card {x // p x} ≤ fintype.card α :=

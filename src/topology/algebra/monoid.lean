@@ -397,13 +397,13 @@ open mul_opposite
 variables [topological_space α] [monoid α]
 
 /-- The units of a monoid are equipped with a topology, via the embedding into `α × α`. -/
-instance : topological_space (units α) :=
+instance : topological_space αˣ :=
 topological_space.induced (embed_product α) (by apply_instance)
 
 lemma continuous_embed_product : continuous (embed_product α) :=
 continuous_induced_dom
 
-lemma continuous_coe : continuous (coe : units α → α) :=
+lemma continuous_coe : continuous (coe : αˣ → α) :=
 by convert continuous_fst.comp continuous_induced_dom
 
 variables [has_continuous_mul α]
@@ -413,7 +413,7 @@ with respect to the induced topology, is continuous.
 
 Inversion is also continuous, but we register this in a later file, `topology.algebra.group`,
 because the predicate `has_continuous_inv` has not yet been defined. -/
-instance : has_continuous_mul (units α) :=
+instance : has_continuous_mul αˣ :=
 ⟨ let h := @continuous_mul (α × αᵐᵒᵖ) _ _ _ in
   continuous_induced_rng $ h.comp $ continuous_embed_product.prod_map continuous_embed_product ⟩
 

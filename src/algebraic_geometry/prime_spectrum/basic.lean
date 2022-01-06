@@ -508,6 +508,10 @@ rfl
   comap (g.comp f) = (comap f).comp (comap g) :=
 rfl
 
+lemma comap_comp_apply (f : R →+* S) (g : S →+* S') (x : prime_spectrum S') :
+  prime_spectrum.comap (g.comp f) x = (prime_spectrum.comap f) (prime_spectrum.comap g x) :=
+rfl
+
 @[simp] lemma preimage_comap_zero_locus (s : set R) :
   (comap f) ⁻¹' (zero_locus s) = zero_locus (f '' s) :=
 preimage_comap_zero_locus_aux f s
@@ -770,8 +774,12 @@ def closed_point : prime_spectrum R :=
 
 variable {R}
 
-lemma local_hom_iff_comap_closed_point {S : Type v} [comm_ring S] [local_ring S]
-  {f : R →+* S} : is_local_ring_hom f ↔ prime_spectrum.comap f (closed_point S) = closed_point R :=
+lemma is_local_ring_hom_iff_comap_closed_point {S : Type v} [comm_ring S] [local_ring S]
+  (f : R →+* S) : is_local_ring_hom f ↔ prime_spectrum.comap f (closed_point S) = closed_point R :=
 by { rw [(local_hom_tfae f).out 0 4, subtype.ext_iff], refl }
+
+@[simp] lemma comap_closed_point {S : Type v} [comm_ring S] [local_ring S] (f : R →+* S)
+  [is_local_ring_hom f] : prime_spectrum.comap f (closed_point S) = closed_point R :=
+(is_local_ring_hom_iff_comap_closed_point f).mp infer_instance
 
 end local_ring

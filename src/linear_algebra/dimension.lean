@@ -198,7 +198,7 @@ lemma dim_eq_of_injective (f : M →ₗ[R] M₁) (h : injective f) :
 /-- Pushforwards of submodules along a `linear_equiv` have the same dimension. -/
 lemma linear_equiv.dim_map_eq (f : M ≃ₗ[R] M₁) (p : submodule R M) :
   module.rank R (p.map (f : M →ₗ[R] M₁)) = module.rank R p :=
-(f.of_submodule p).dim_eq.symm
+(f.submodule_map p).dim_eq.symm
 
 variables (R M)
 

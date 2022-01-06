@@ -497,9 +497,9 @@ begin
 end
 
 -- This lemma cannot be proved with `linear_independent.group_smul` since the action of
--- `units R` on `R` is not commutative.
+-- `Rˣ` on `R` is not commutative.
 lemma linear_independent.units_smul {v : ι → M} (hv : linear_independent R v)
-  (w : ι → units R) : linear_independent R (w • v) :=
+  (w : ι → Rˣ) : linear_independent R (w • v) :=
 begin
   rw linear_independent_iff'' at hv ⊢,
   intros s g hgs hsum i,

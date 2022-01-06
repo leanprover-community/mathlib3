@@ -76,6 +76,14 @@ begin
   { simpa using nat_degree_mul_le.trans (add_le_add_left IH _) }
 end
 
+lemma degree_list_prod_le (l : list (polynomial α)) :
+  degree l.prod ≤ (l.map degree).sum :=
+begin
+  induction l with hd tl IH,
+  { simp },
+  { simpa using (degree_mul_le _ _).trans (add_le_add_left IH _) }
+end
+
 lemma coeff_list_prod_of_nat_degree_le (l : list (polynomial α)) (n : ℕ)
   (hl : ∀ p ∈ l, nat_degree p ≤ n) :
   coeff (list.prod l) (l.length * n) = (l.map (λ p, coeff p n)).prod :=
@@ -111,6 +119,17 @@ quotient.induction_on t (by simpa using nat_degree_list_prod_le)
 
 lemma nat_degree_prod_le : (∏ i in s, f i).nat_degree ≤ ∑ i in s, (f i).nat_degree :=
 by simpa using nat_degree_multiset_prod_le (s.1.map f)
+
+/--
+The degree of a product of polynomials is at most the sum of the degrees,
+where the degree of the zero polynomial is ⊥.
+-/
+lemma degree_multiset_prod_le :
+  t.prod.degree ≤ (t.map polynomial.degree).sum :=
+quotient.induction_on t (by simpa using degree_list_prod_le)
+
+lemma degree_prod_le : (∏ i in s, f i).degree ≤ ∑ i in s, (f i).degree :=
+by simpa only [multiset.map_map] using degree_multiset_prod_le (s.1.map f)
 
 /--
 The leading coefficient of a product of polynomials is equal to

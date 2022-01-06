@@ -334,8 +334,7 @@ instance is_simple_group_five : is_simple_group (alternating_group (fin 5)) :=
     have con := mem_alternating_group.1 gA,
     contrapose! con,
     rw [sign_of_cycle_type', cycle_type_of_card_le_mem_cycle_type_add_two dec_trivial ng],
-    /- dec_trivial,
-    rw [sign_of_cycle_type, cycle_type_of_card_le_mem_cycle_type_add_two dec_trivial ng,
+    /- rw [sign_of_cycle_type, cycle_type_of_card_le_mem_cycle_type_add_two dec_trivial ng,
       multiset.map_singleton, multiset.prod_singleton], -/
     dec_trivial },
   { -- If `n = 5`, then `g` is itself a 5-cycle, conjugate to `fin_rotate 5`.

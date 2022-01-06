@@ -303,8 +303,8 @@ variable [fintype m]
 def dot_product [has_mul α] [add_comm_monoid α] (v w : m → α) : α :=
 ∑ i, v i * w i
 
-/- the precedence of ` ⬝ᵥ ` for `matrix.dot_product` is set as to come
-   immediately after ` • ` for `has_scalar.smul` -/
+/- The precedence of 72 comes immediately after ` • ` for `has_scalar.smul`,
+   so that `r₁ • a ⬝ᵥ r₂ • b` is parsed as `(r₁ • a) ⬝ᵥ (r₂ • b)` here. -/
 localized "infix  ` ⬝ᵥ `:72 := matrix.dot_product" in matrix
 
 lemma dot_product_assoc [fintype n] [non_unital_semiring α] (u : m → α) (w : n → α)
@@ -371,7 +371,7 @@ variables [ring α] (u v w : m → α)
 
 @[simp] lemma dot_product_neg : v ⬝ᵥ (-w) = - (v ⬝ᵥ w) := by simp [dot_product]
 
-@[simp] lemma sub_dot_product : (u - v) ⬝ᵥ w = u ⬝ᵥ w - (v ⬝ᵥ w) :=
+@[simp] lemma sub_dot_product : (u - v) ⬝ᵥ w = u ⬝ᵥ w - v ⬝ᵥ w :=
 by simp [sub_eq_add_neg]
 
 @[simp] lemma dot_product_sub : u ⬝ᵥ (v - w) = u ⬝ᵥ v - u ⬝ᵥ w :=
@@ -398,10 +398,10 @@ variables [semiring α] [star_ring α] (v w : m → α)
 lemma star_dot_product_star : star v ⬝ᵥ star w = star (w ⬝ᵥ v) :=
 by simp [dot_product]
 
-lemma star_dot_product : (star v) ⬝ᵥ w = star ((star w) ⬝ᵥ v) :=
+lemma star_dot_product : star v ⬝ᵥ w = star (star w ⬝ᵥ v) :=
 by simp [dot_product]
 
-lemma dot_product_star : v ⬝ᵥ (star w) = star (w ⬝ᵥ (star v)) :=
+lemma dot_product_star : v ⬝ᵥ star w = star (w ⬝ᵥ star v) :=
 by simp [dot_product]
 
 end star_ring

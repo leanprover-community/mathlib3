@@ -758,7 +758,7 @@ protected theorem pos_iff_ne_zero {o : ordinal} : 0 < o ↔ o ≠ 0 :=
 by simp only [lt_iff_le_and_ne, ordinal.zero_le, true_and, ne.def, eq_comm]
 
 protected theorem not_lt_zero (o : ordinal) : ¬ o < 0 :=
-not_lt_of_le (ordinal.zero_le _)
+not_lt_of_le (ordinal.zero_le o)
 
 theorem out_empty_iff_eq_zero {o : ordinal} : is_empty o.out.α ↔ o = 0 :=
 begin

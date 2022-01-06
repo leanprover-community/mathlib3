@@ -11,7 +11,7 @@ import analysis.normed_space.pointwise
 # Change of variables in higher-dimensional integrals
 -/
 
-open measure_theory measure_theory.measure metric filter set finite_dimensional
+open measure_theory measure_theory.measure metric filter set finite_dimensional asymptotics
 open_locale nnreal ennreal topological_space pointwise
 
 variables {E : Type*} [normed_group E] [normed_space ℝ E] [finite_dimensional ℝ E]
@@ -195,14 +195,8 @@ begin
   exact hδ₀ _ _ ((hf'.to_inv h1δ).mono_num h2δ.le),
 end
 
-lemma approximates_linear_on.norm_fderiv_sub_le {f : E → E} {A : E →L[ℝ] E} {s : set E} {δ : ℝ≥0}
-  (hf : approximates_linear_on f A s δ)
-  (f' : E → E →L[ℝ] E) (hf' : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x) :
-  ∀ᵐ x ∂ (μ.restrict s), ∥f' x - A∥₊ ≤ δ :=
-sorry
-
-open asymptotics
-
+/-- Assume that a function `f` has a derivative at every point of a set `s`. Then one may cover `s`
+with countably many closed sets `t n` on which `f` is well approximated by linear maps `A n`. -/
 lemma exists_closed_cover_approximates_linear_on_of_has_fderiv_within_at
   (f : E → E) (s : set E) (f' : E → E →L[ℝ] E)
   (hf' : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x)
@@ -211,19 +205,34 @@ lemma exists_closed_cover_approximates_linear_on_of_has_fderiv_within_at
   ∧ (∀ n, approximates_linear_on f (A n) (s ∩ t n) (r (A n)))
   ∧ (s.nonempty → ∀ n, ∃ y ∈ s, A n = f' y) :=
 begin
+  /- Choose countably many linear maps `f' z`. For every such map, if `f` has a derivative at `x`
+  close enough to `f' z`, then `f y - f x` is well approximated by `f' z (y - x)` for `y` close
+  enough to `x`, say on a ball of radius `r` (or even `u n` for some sequence `u` tending to `0`).
+  Let `M n z` be the points where this happends. Then this set is relatively closed inside `s`,
+  and moreover in every closed ball of radius `u n / 3` inside it the map is well approximated by
+  `f' z`. Using countably many closed balls to split `M n z` into small diameter subsets `K n z p`,
+  one obtains the desired sets `t q` after reindexing.
+  -/
+  -- exclude the trivial case where `s` is empty
   rcases eq_empty_or_nonempty s with rfl|hs,
-  sorry; { refine ⟨λ n, ∅, λ n, 0, _, _, _, _, _⟩;
-    simp [pairwise, function.on_fun] },
+  { refine ⟨λ n, ∅, λ n, 0, _, _, _, _⟩;
+    simp },
+  -- we will use countably many linear maps. Select these from all the derivatives since the
+  -- space of linear maps is second-countable
   obtain ⟨T, T_count, hT⟩ : ∃ T : set s, countable T ∧
     (⋃ x ∈ T, ball (f' (x : E)) (r (f' x))) = ⋃ (x : s), ball (f' x) (r (f' x)) :=
     topological_space.is_open_Union_countable _ (λ x, is_open_ball),
+  -- fix a sequence `u` of positive reals tending to zero.
   obtain ⟨u, u_anti, u_pos, u_lim⟩ :
     ∃ (u : ℕ → ℝ), strict_anti u ∧ (∀ (n : ℕ), 0 < u n) ∧ tendsto u at_top (𝓝 0) :=
       exists_seq_strict_anti_tendsto (0 : ℝ),
+  -- `M n z` is the set of points `x` such that `f y - f x` is close to `f' z (y - x)` for `y`
+  -- in the ball of radius `u n` around `x`.
   let M : ℕ → T → set E := λ n z, {x | x ∈ s ∧
-    ∀ y ∈ ball x (u n) ∩ s, ∥f y - f x - f' z (y - x)∥ ≤ r (f' z) * ∥y - x∥},
-  have : s ⊆ ⋃ n z, M n z,
-  sorry; { assume x xs,
+    ∀ y ∈ s ∩ ball x (u n), ∥f y - f x - f' z (y - x)∥ ≤ r (f' z) * ∥y - x∥},
+  -- As `f` is differentiable everywhere on `s`, the sets `M n z` cover `s` by design.
+  have s_subset : ∀ x ∈ s, ∃ (n : ℕ) (z : T), x ∈ M n z,
+  { assume x xs,
     obtain ⟨z, zT, hz⟩ : ∃ z ∈ T, f' x ∈ ball (f' (z : E)) (r (f' z)),
     { have : f' x ∈ ⋃ (z ∈ T), ball (f' (z : E)) (r (f' z)),
       { rw hT,
@@ -237,7 +246,7 @@ begin
       ball x δ ∩ s ⊆ {y | ∥f y - f x - (f' x) (y - x)∥ ≤ ε * ∥y - x∥} :=
         metric.mem_nhds_within_iff.1 (is_o.def (hf' x xs) εpos),
     obtain ⟨n, hn⟩ : ∃ n, u n < δ := ((tendsto_order.1 u_lim).2 _ δpos).exists,
-    refine mem_Union.2 ⟨n, mem_Union.2 ⟨⟨z, zT⟩, ⟨xs, _⟩⟩⟩,
+    refine ⟨n, ⟨z, zT⟩, ⟨xs, _⟩⟩,
     assume y hy,
     calc ∥f y - f x - (f' z) (y - x)∥
         = ∥(f y - f x - (f' x) (y - x)) + (f' x - f' z) (y - x)∥ :
@@ -250,15 +259,18 @@ begin
     ... ≤ ε * ∥y - x∥ + ∥f' x - f' z∥ * ∥y - x∥ :
       begin
         refine add_le_add (hδ _) (continuous_linear_map.le_op_norm _ _),
-        exact inter_subset_inter_left _ (ball_subset_ball hn.le) hy,
+        rw inter_comm,
+        exact inter_subset_inter_right _ (ball_subset_ball hn.le) hy,
       end
     ... ≤ r (f' z) * ∥y - x∥ :
       begin
         rw [← add_mul, add_comm],
         exact mul_le_mul_of_nonneg_right hε (norm_nonneg _),
       end },
-  have : ∀ n z, closure (M n z) ∩ s ⊆ M n z,
-  sorry; { rintros n z x ⟨hx, xs⟩,
+  -- the sets `M n z` are relatively closed in `s`, as all the conditions defining it are clearly
+  -- closed
+  have closure_M_subset : ∀ n z, s ∩ closure (M n z) ⊆ M n z,
+  { rintros n z x ⟨xs, hx⟩,
     refine ⟨xs, λ y hy, _⟩,
     obtain ⟨a, aM, a_lim⟩ : ∃ (a : ℕ → E), (∀ k, a k ∈ M n z) ∧ tendsto a at_top (𝓝 x) :=
       mem_closure_iff_seq_limit.1 hx,
@@ -275,13 +287,59 @@ begin
       (tendsto_const_nhds.sub a_lim).norm.const_mul _,
     have I : ∀ᶠ k in at_top, ∥f y - f (a k) - (f' z) (y - a k)∥ ≤ r (f' z) * ∥y - a k∥,
     { have L : tendsto (λ k, dist y (a k)) at_top (𝓝 (dist y x)) := tendsto_const_nhds.dist a_lim,
-      filter_upwards [(tendsto_order.1 L).2 _ hy.1],
+      filter_upwards [(tendsto_order.1 L).2 _ hy.2],
       assume k hk,
-      exact (aM k).2 y ⟨hk, hy.2⟩ },
-    apply le_of_tendsto_of_tendsto L1 L2 I }
+      exact (aM k).2 y ⟨hy.1, hk⟩ },
+    apply le_of_tendsto_of_tendsto L1 L2 I },
+  -- choose a dense sequence `d p`
+  rcases topological_space.exists_dense_seq E with ⟨d, hd⟩,
+  -- split `M n z` into subsets `K n z p` of small diameters by intersecting with the ball
+  -- `closed_ball (d p) (u n / 3)`.
+  let K : ℕ → T → ℕ → set E := λ n z p, closure (M n z) ∩ closed_ball (d p) (u n / 3),
+  -- on the sets `K n z p`, the map `f` is well approximated by `f' z` by design.
+  have K_approx : ∀ n (z : T) p, approximates_linear_on f (f' z) (s ∩ K n z p) (r (f' z)),
+  { assume n z p x hx y hy,
+    have yM : y ∈ M n z := closure_M_subset _ _ ⟨hy.1, hy.2.1⟩,
+    refine yM.2 _ ⟨hx.1, _⟩,
+    calc dist x y ≤ dist x (d p) + dist y (d p) : dist_triangle_right _ _ _
+    ... ≤ u n / 3 + u n / 3 : add_le_add hx.2.2 hy.2.2
+    ... < u n : by linarith [u_pos n] },
+  -- the sets `K n z p` are also closed, again by design.
+  have K_closed : ∀ n (z : T) p, is_closed (K n z p) :=
+    λ n z p, is_closed_closure.inter is_closed_ball,
+  -- reindex the sets `K n z p`, to let them only depend on an integer parameter `q`.
+  obtain ⟨F, hF⟩ : ∃ F : ℕ → ℕ × T × ℕ, function.surjective F,
+  { haveI : encodable T := T_count.to_encodable,
+    haveI : nonempty T,
+    { unfreezingI { rcases eq_empty_or_nonempty T with rfl|hT },
+      { rcases hs with ⟨x, xs⟩,
+        rcases s_subset x xs with ⟨n, z, hnz⟩,
+        exact false.elim z.2 },
+      { exact (nonempty_coe_sort _).2 hT } },
+    inhabit (ℕ × T × ℕ),
+    exact ⟨_, encodable.surjective_decode_iget _⟩ },
+  -- these sets `t q = K n z p` will do
+  refine ⟨λ q, K (F q).1 (F q).2.1 (F q).2.2, λ q, f' (F q).2.1, λ n, K_closed _ _ _, λ x xs, _,
+    λ q, K_approx _ _ _, λ h's q, ⟨(F q).2.1, (F q).2.1.1.2, rfl⟩⟩,
+  -- the only fact that needs further checking is that they cover `s`.
+  -- we already know that any point `x ∈ s` belongs to a set `M n z`.
+  obtain ⟨n, z, hnz⟩ : ∃ (n : ℕ) (z : T), x ∈ M n z := s_subset x xs,
+  -- by density, it also belongs to a ball `closed_ball (d p) (u n / 3)`.
+  obtain ⟨p, hp⟩ : ∃ (p : ℕ), x ∈ closed_ball (d p) (u n / 3),
+  { have : set.nonempty (ball x (u n / 3)),
+    { simp only [nonempty_ball], linarith [u_pos n] },
+    obtain ⟨p, hp⟩ : ∃ (p : ℕ), d p ∈ ball x (u n / 3) := hd.exists_mem_open is_open_ball this,
+    exact ⟨p, (mem_ball'.1 hp).le⟩ },
+  -- choose `q` for which `t q = K n z p`.
+  obtain ⟨q, hq⟩ : ∃ q, F q = (n, z, p) := hF _,
+  -- then `x` belongs to `t q`.
+  apply mem_Union.2 ⟨q, _⟩,
+  simp only [hq, subset_closure hnz, hp, mem_inter_eq, and_self],
 end
 
-
+/-- Assume that a function `f` has a derivative at every point of a set `s`. Then one may
+partition `s` into countably many relatively measurable sets `t n` on which `f` is well
+approximated by linear maps `A n`. -/
 lemma exists_partition_approximates_linear_on_of_has_fderiv_within_at
   (f : E → E) (s : set E) (f' : E → E →L[ℝ] E)
   (hf' : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x)
@@ -290,9 +348,14 @@ lemma exists_partition_approximates_linear_on_of_has_fderiv_within_at
   ∧ (∀ n, measurable_set (t n)) ∧ (s ⊆ ⋃ n, t n)
   ∧ (∀ n, approximates_linear_on f (A n) (s ∩ t n) (r (A n)))
   ∧ (s.nonempty → ∀ n, ∃ y ∈ s, A n = f' y) :=
-sorry
-
-#exit
+begin
+  rcases exists_closed_cover_approximates_linear_on_of_has_fderiv_within_at f s f' hf' r rpos
+    with ⟨t, A, t_closed, st, t_approx, ht⟩,
+  refine ⟨disjointed t, A, disjoint_disjointed _,
+          measurable_set.disjointed (λ n, (t_closed n).measurable_set), _, _, ht⟩,
+  { rw Union_disjointed, exact st },
+  { assume n, exact (t_approx n).mono_set (inter_subset_inter_right _ (disjointed_subset _ _)) },
+end
 
 /-- A differentiable function maps sets of measure zero to sets of measure zero. -/
 lemma add_haar_image_zero_of_differentiable_on_of_add_haar_zero
@@ -437,3 +500,11 @@ begin
   filter_upwards [self_mem_nhds_within],
   exact A,
 end
+
+/-
+lemma approximates_linear_on.norm_fderiv_sub_le {f : E → E} {A : E →L[ℝ] E} {s : set E} {δ : ℝ≥0}
+  (hf : approximates_linear_on f A s δ)
+  (f' : E → E →L[ℝ] E) (hf' : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x) :
+  ∀ᵐ x ∂ (μ.restrict s), ∥f' x - A∥₊ ≤ δ :=
+sorry
+-/

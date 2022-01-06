@@ -292,6 +292,7 @@ end
 end
 
 section pullback
+
 noncomputable theory
 
 variables {X Y Z : PresheafedSpace C} (f : X ⟶ Z) [hf : is_open_immersion f] (g : Y ⟶ Z)
@@ -835,7 +836,7 @@ instance sigma_ι_is_open_immersion [has_strict_terminal_objects C] :
     dsimp,
     convert (F.obj j).sheaf.is_terminal_of_empty,
     convert image_preimage_is_empty F i j (λ h, hj (congr_arg op h.symm)) U,
-    exact (congr_arg PresheafedSpace.hom.base e).symm,
+    exact (congr_arg PresheafedSpace.hom.base e).symm
   end }
 
 end prod
@@ -929,7 +930,7 @@ end
 
 /-- Open immersions are stable under base-change. -/
 instance pullback_fst_of_right :
-  LocallyRingedSpace.is_open_immersion (pullback.fst : pullback g f ⟶ _) :=
+LocallyRingedSpace.is_open_immersion (pullback.fst : pullback g f ⟶ _) :=
 begin
   rw ← pullback_symmetry_hom_comp_snd,
   apply_instance

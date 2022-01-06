@@ -60,10 +60,8 @@ of the uniform space structure on `C(α, β)` definitionally equal to the compac
 
 ## TODO
 
- * When `α` is compact, the compact-convergence topology (and thus also the compact-open topology)
-   is just the uniform-convergence topology.
  * When `β` is a metric space, there is natural basis for the compact-convergence topology
-   parameterised by triples `(K, V, ε)` for a real number `ε > 0`.
+   parameterised by triples `(K, ε, f)` for a real number `ε > 0`.
  * When `α` is compact and `β` is a metric space, the compact-convergence topology (and thus also
    the compact-open topology) is metrisable.
  * Results about uniformly continuous functions `γ → C(α, β)` and uniform limits of sequences
@@ -349,5 +347,28 @@ lemma tendsto_iff_forall_compact_tendsto_uniformly_on
   {ι : Type u₃} {p : filter ι} {F : ι → C(α, β)} :
   filter.tendsto F p (𝓝 f) ↔ ∀ K, is_compact K → tendsto_uniformly_on (λ i a, F i a) f p K :=
 by rw [compact_open_eq_compact_convergence, tendsto_iff_forall_compact_tendsto_uniformly_on']
+
+section compact_domain
+
+variables [compact_space α]
+
+lemma has_basis_compact_convergence_uniformity_of_compact :
+  has_basis (𝓤 C(α, β)) (λ V : set (β × β), V ∈ 𝓤 β)
+            (λ V, { fg : C(α, β) × C(α, β) | ∀ x, (fg.1 x, fg.2 x) ∈ V }) :=
+has_basis_compact_convergence_uniformity.to_has_basis
+  (λ p hp, ⟨p.2, hp.2, λ fg hfg x hx, hfg x⟩)
+  (λ V hV, ⟨⟨univ, V⟩, ⟨compact_univ, hV⟩, λ fg hfg x, hfg x (mem_univ x)⟩)
+
+/-- Convergence in the compact-open topology is the same as uniform convergence for sequences of
+continuous functions on a compact space. -/
+lemma tendsto_iff_tendsto_uniformly
+  {ι : Type u₃} {p : filter ι} {F : ι → C(α, β)} :
+  filter.tendsto F p (𝓝 f) ↔ tendsto_uniformly (λ i a, F i a) f p :=
+begin
+  rw [tendsto_iff_forall_compact_tendsto_uniformly_on, ← tendsto_uniformly_on_univ],
+  exact ⟨λ h, h univ compact_univ, λ h K hK, h.mono (subset_univ K)⟩,
+end
+
+end compact_domain
 
 end continuous_map

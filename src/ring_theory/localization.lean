@@ -1039,6 +1039,11 @@ instance {S : Type*} [comm_semiring S] [algebra S R] : algebra S (localization M
     dsimp,
     simp only [←mk_one_eq_monoid_of_mk, mk_mul, localization.smul_mk, one_mul, algebra.smul_def],
   end,
+  op_smul_def' := localization.ind $ prod.rec $ begin
+    intros r x s,
+    dsimp,
+    simp only [←mk_one_eq_monoid_of_mk, mk_mul, localization.smul_mk, mul_one, algebra.op_smul_def],
+  end,
   commutes' := λ s, localization.ind $ prod.rec $ begin
     intros r x,
     dsimp,

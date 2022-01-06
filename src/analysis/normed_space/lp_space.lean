@@ -3,7 +3,6 @@ Copyright (c) 2021 Heather Macbeth. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Heather Macbeth
 -/
-import algebra.direct_sum.basic
 import analysis.normed.group.pointwise
 import analysis.mean_inequalities
 import analysis.mean_inequalities_pow
@@ -94,9 +93,32 @@ begin
   rw [if_neg hp.1.ne', if_neg hp.2.ne],
 end
 
-lemma mem_ℓp_gen (hp : 0 < p.to_real) {f : Π i, E i} (hf : summable (λ i, ∥f i∥ ^ p.to_real)) :
+lemma mem_ℓp_gen {f : Π i, E i} (hf : summable (λ i, ∥f i∥ ^ p.to_real)) :
   mem_ℓp f p :=
-(mem_ℓp_gen_iff hp).2 hf
+begin
+  rcases p.trichotomy with rfl | rfl | hp,
+  { apply mem_ℓp_zero,
+    have H : summable (λ i : α, (1:ℝ)) := by simpa using hf,
+    exact (finite_of_summable_const (by norm_num) H).subset (set.subset_univ _) },
+  { apply mem_ℓp_infty,
+    have H : summable (λ i : α, (1:ℝ)) := by simpa using hf,
+    simpa using ((finite_of_summable_const (by norm_num) H).image (λ i, ∥f i∥)).bdd_above },
+  exact (mem_ℓp_gen_iff hp).2 hf
+end
+
+lemma mem_ℓp_gen' {C : ℝ} {f : Π i, E i} (hf : ∀ s : finset α, ∑ i in s, ∥f i∥ ^ p.to_real ≤ C) :
+  mem_ℓp f p :=
+begin
+  apply mem_ℓp_gen,
+  use ⨆ s : finset α, ∑ i in s, ∥f i∥ ^ p.to_real,
+  apply has_sum_of_is_lub_of_nonneg,
+  { intros b,
+    exact real.rpow_nonneg_of_nonneg (norm_nonneg _) _ },
+  apply is_lub_csupr,
+  use C,
+  rintros - ⟨s, rfl⟩,
+  exact hf s
+end
 
 lemma mem_ℓp_gen' (hp : 0 < p.to_real) {C : ℝ} {f : Π i, E i}
   (hf : ∀ s : finset α, ∑ i in s, ∥f i∥ ^ p.to_real ≤ C) :
@@ -121,7 +143,7 @@ begin
   { apply mem_ℓp_infty,
     simp only [norm_zero, pi.zero_apply],
     exact bdd_above_singleton.mono set.range_const_subset, },
-  { apply mem_ℓp_gen hp,
+  { apply mem_ℓp_gen,
     simp [real.zero_rpow hp.ne', summable_zero], }
 end
 
@@ -146,7 +168,7 @@ begin
     simp [hf.finite_dsupport] },
   { apply mem_ℓp_infty,
     simpa using hf.bdd_above },
-  { apply mem_ℓp_gen hp,
+  { apply mem_ℓp_gen,
     simpa using hf.summable hp },
 end
 
@@ -167,7 +189,7 @@ begin
     by_cases hi : f i = 0,
     { simp [hi] },
     { exact (hC ⟨i, hi, rfl⟩).trans (le_max_right _ _) } },
-  { apply mem_ℓp_gen hp,
+  { apply mem_ℓp_gen,
     have : ∀ i ∉ hfq.finite_dsupport.to_finset, ∥f i∥ ^ p.to_real = 0,
     { intros i hi,
       have : f i = 0 := by simpa using hi,
@@ -181,7 +203,7 @@ begin
     have : 0 ≤ ∥f i∥ ^ q.to_real := real.rpow_nonneg_of_nonneg (norm_nonneg _) _,
     simpa [← real.rpow_mul, mul_inv_cancel hq.ne'] using
       real.rpow_le_rpow this (hA ⟨i, rfl⟩) (inv_nonneg.mpr hq.le) },
-  { apply mem_ℓp_gen hp,
+  { apply mem_ℓp_gen,
     have hf' := hfq.summable hq,
     refine summable_of_norm_bounded_eventually _ hf' (@set.finite.subset _ {i | 1 ≤ ∥f i∥} _ _ _),
     { have H : {x : α | 1 ≤ ∥f x∥ ^ q.to_real}.finite,
@@ -219,7 +241,7 @@ begin
     refine ⟨A + B, _⟩,
     rintros a ⟨i, rfl⟩,
     exact le_trans (norm_add_le _ _) (add_le_add (hA ⟨i, rfl⟩) (hB ⟨i, rfl⟩)) },
-  apply mem_ℓp_gen hp,
+  apply mem_ℓp_gen,
   let C : ℝ := if p.to_real < 1 then 1 else 2 ^ (p.to_real - 1),
   refine summable_of_nonneg_of_le _ (λ i, _) (((hf.summable hp).add (hg.summable hp)).mul_left C),
   { exact λ b, real.rpow_nonneg_of_nonneg (norm_nonneg (f b + g b)) p.to_real },
@@ -264,7 +286,7 @@ begin
     refine mem_ℓp_infty ⟨∥c∥ * A, _⟩,
     rintros a ⟨i, rfl⟩,
     simpa [norm_smul] using mul_le_mul_of_nonneg_left (hA ⟨i, rfl⟩) (norm_nonneg c) },
-  { apply mem_ℓp_gen hp,
+  { apply mem_ℓp_gen,
     convert (hf.summable hp).mul_left (∥c∥ ^ p.to_real),
     ext i,
     simp [norm_smul, real.mul_rpow (norm_nonneg c) (norm_nonneg (f i))] },
@@ -534,8 +556,7 @@ lemma norm_le_of_tsum_le (hp : 0 < p.to_real) {C : ℝ} (hC : 0 ≤ C) {f : lp E
   (hf : ∑' i, ∥f i∥ ^ p.to_real ≤ C ^ p.to_real) :
   ∥f∥ ≤ C :=
 begin
-  rw ← real.rpow_le_rpow_iff (norm_nonneg' _) hC hp,
-  rw norm_rpow_eq_tsum hp,
+  rw [← real.rpow_le_rpow_iff (norm_nonneg' _) hC hp, norm_rpow_eq_tsum hp],
   exact hf,
 end
 
@@ -630,11 +651,13 @@ begin
   exact this.trans_lt hfg,
 end
 
-lemma norm_apply_le_of_tendsto {C : ℝ} {F : ℕ → lp E ∞} (hCF : ∀ᶠ k in at_top, ∥F k∥ ≤ C)
-  {f : Π a, E a} (hf : tendsto (id (λ i, F i) : ℕ → Π a, E a) at_top (𝓝 f)) (a : α) :
+variables {ι : Type*} {l : filter ι} [filter.ne_bot l]
+
+lemma norm_apply_le_of_tendsto {C : ℝ} {F : ι → lp E ∞} (hCF : ∀ᶠ k in l, ∥F k∥ ≤ C)
+  {f : Π a, E a} (hf : tendsto (id (λ i, F i) : ι → Π a, E a) l (𝓝 f)) (a : α) :
   ∥f a∥ ≤ C :=
 begin
-  have : tendsto (λ k, ∥F k a∥) at_top (𝓝 ∥f a∥) :=
+  have : tendsto (λ k, ∥F k a∥) l (𝓝 ∥f a∥) :=
     (tendsto.comp (continuous_apply a).continuous_at hf).norm,
   refine le_of_tendsto this (hCF.mono _),
   intros k hCFk,
@@ -645,8 +668,8 @@ variables [_i : fact (1 ≤ p)]
 
 include _i
 
-lemma sum_rpow_le_of_tendsto (hp : p ≠ ⊤) {C : ℝ} {F : ℕ → lp E p} (hCF : ∀ᶠ k in at_top, ∥F k∥ ≤ C)
-  {f : Π a, E a} (hf : tendsto (id (λ i, F i) : ℕ → Π a, E a) at_top (𝓝 f)) (s : finset α) :
+lemma sum_rpow_le_of_tendsto (hp : p ≠ ∞) {C : ℝ} {F : ι → lp E p} (hCF : ∀ᶠ k in l, ∥F k∥ ≤ C)
+  {f : Π a, E a} (hf : tendsto (id (λ i, F i) : ι → Π a, E a) l (𝓝 f)) (s : finset α) :
   ∑ (i : α) in s, ∥f i∥ ^ p.to_real ≤ C ^ p.to_real :=
 begin
   have hp' : p ≠ 0 := (ennreal.zero_lt_one.trans_le _i.elim).ne',
@@ -666,11 +689,12 @@ end
 
 /-- "Semicontinuity of the `lp` norm": If all sufficiently large elements of a sequence in `lp E p`
  have `lp` norm `≤ C`, then the pointwise limit, if it exists, also has `lp` norm `≤ C`. -/
-lemma norm_le_of_tendsto {C : ℝ} (hC : 0 ≤ C) {F : ℕ → lp E p}
-  (hCF : ∀ᶠ k in at_top, ∥F k∥ ≤ C) {f : lp E p}
-  (hf : tendsto (id (λ i, F i) : ℕ → Π a, E a) at_top (𝓝 f)) :
+lemma norm_le_of_tendsto {C : ℝ} {F : ι → lp E p} (hCF : ∀ᶠ k in l, ∥F k∥ ≤ C) {f : lp E p}
+  (hf : tendsto (id (λ i, F i) : ι → Π a, E a) l (𝓝 f)) :
   ∥f∥ ≤ C :=
 begin
+  obtain ⟨i, hi⟩ := hCF.exists,
+  have hC : 0 ≤ C := (norm_nonneg _).trans hi,
   tactic.unfreeze_local_instances,
   rcases eq_top_or_lt_top p with rfl | hp,
   { apply norm_le_of_forall_le hC,
@@ -682,11 +706,11 @@ begin
 end
 
 /-- If `f` is the pointwise limit of a bounded sequence in `lp E p`, then `f` is in `lp E p`. -/
-lemma mem_ℓp_of_tendsto {F : ℕ → lp E p} (hF : metric.bounded (set.range F)) {f : Π a, E a}
-  (hf : tendsto (id (λ i, F i) : ℕ → Π a, E a) at_top (𝓝 f)) :
+lemma mem_ℓp_of_tendsto {F : ι → lp E p} (hF : metric.bounded (set.range F)) {f : Π a, E a}
+  (hf : tendsto (id (λ i, F i) : ι → Π a, E a) l (𝓝 f)) :
   mem_ℓp f p :=
 begin
-  obtain ⟨C, hC, hCF'⟩ := hF.exists_norm_le',
+  obtain ⟨C, hC, hCF'⟩ := hF.exists_pos_norm_le,
   have hCF : ∀ k, ∥F k∥ ≤ C := λ k, hCF' _ ⟨k, rfl⟩,
   tactic.unfreeze_local_instances,
   rcases eq_top_or_lt_top p with rfl | hp,
@@ -694,9 +718,7 @@ begin
     use C,
     rintros _ ⟨a, rfl⟩,
     refine norm_apply_le_of_tendsto (eventually_of_forall hCF) hf a, },
-  { have : 0 < p := ennreal.zero_lt_one.trans_le _i.elim,
-    have hp' : 0 < p.to_real := ennreal.to_real_pos this.ne' hp.ne,
-    apply mem_ℓp_gen' hp',
+  { apply mem_ℓp_gen',
     exact sum_rpow_le_of_tendsto hp.ne (eventually_of_forall hCF) hf },
 end
 
@@ -712,7 +734,7 @@ begin
   { exact normed_group.uniformity_basis_dist.mem_of_mem hε },
   refine (hF.eventually_eventually hε').mono _,
   rintros n (hn : ∀ᶠ l in at_top, ∥(λ f, F n - f) (F l)∥ < ε),
-  refine norm_le_of_tendsto hε.le (hn.mono (λ k hk, hk.le)) _,
+  refine norm_le_of_tendsto (hn.mono (λ k hk, hk.le)) _,
   rw tendsto_pi_nhds,
   intros a,
   exact (hf.apply a).const_sub (F n a),

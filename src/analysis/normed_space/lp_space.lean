@@ -3,6 +3,7 @@ Copyright (c) 2021 Heather Macbeth. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Heather Macbeth
 -/
+import algebra.direct_sum.basic
 import analysis.normed.group.pointwise
 import analysis.mean_inequalities
 import analysis.mean_inequalities_pow
@@ -110,21 +111,6 @@ lemma mem_ℓp_gen' {C : ℝ} {f : Π i, E i} (hf : ∀ s : finset α, ∑ i in 
   mem_ℓp f p :=
 begin
   apply mem_ℓp_gen,
-  use ⨆ s : finset α, ∑ i in s, ∥f i∥ ^ p.to_real,
-  apply has_sum_of_is_lub_of_nonneg,
-  { intros b,
-    exact real.rpow_nonneg_of_nonneg (norm_nonneg _) _ },
-  apply is_lub_csupr,
-  use C,
-  rintros - ⟨s, rfl⟩,
-  exact hf s
-end
-
-lemma mem_ℓp_gen' (hp : 0 < p.to_real) {C : ℝ} {f : Π i, E i}
-  (hf : ∀ s : finset α, ∑ i in s, ∥f i∥ ^ p.to_real ≤ C) :
-  mem_ℓp f p :=
-begin
-  apply mem_ℓp_gen hp,
   use ⨆ s : finset α, ∑ i in s, ∥f i∥ ^ p.to_real,
   apply has_sum_of_is_lub_of_nonneg,
   { intros b,

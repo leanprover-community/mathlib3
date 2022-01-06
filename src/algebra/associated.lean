@@ -734,13 +734,16 @@ end associates
 
 section cancel_comm_monoid_with_zero
 
+lemma dvd_not_unit.is_unit_of_irreducible_right [cancel_comm_monoid_with_zero α] {p q : α}
+  (h : dvd_not_unit p q) (hq : irreducible q) : is_unit p :=
+begin
+  obtain ⟨hp', x, hx, hx'⟩ := h,
+  exact or.resolve_right ((irreducible_iff.1 hq).right p x hx') hx
+end
+
 lemma not_irreducible_of_not_unit_dvd_not_unit [cancel_comm_monoid_with_zero α] {p q : α}
   (hp : ¬is_unit p) (h : dvd_not_unit p q) : ¬ irreducible q :=
-begin
-  by_contra hcontra,
-  obtain ⟨hp', x, hx, hx'⟩ := h,
-  exact hp (or.resolve_right ((irreducible_iff.1 hcontra).right p x hx') hx),
-end
+mt h.is_unit_of_irreducible_right hp
 
 lemma dvd_not_unit.not_unit [cancel_comm_monoid_with_zero α] {p q : α}
   (hp : dvd_not_unit p q) : ¬ is_unit q :=

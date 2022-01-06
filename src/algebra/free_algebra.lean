@@ -337,10 +337,10 @@ lemma algebra_map_left_inverse :
 algebra_map_left_inverse.injective.eq_iff
 
 @[simp] lemma algebra_map_eq_zero_iff (x : R) : algebra_map R (free_algebra R X) x = 0 ↔ x = 0 :=
-(algebra_map _ _).map_eq_zero_iff algebra_map_left_inverse.injective
+map_eq_zero_iff (algebra_map _ _) algebra_map_left_inverse.injective
 
 @[simp] lemma algebra_map_eq_one_iff (x : R) : algebra_map R (free_algebra R X) x = 1 ↔ x = 1 :=
-(algebra_map _ _).map_eq_one_iff algebra_map_left_inverse.injective
+map_eq_one_iff (algebra_map _ _) algebra_map_left_inverse.injective
 
 -- this proof is copied from the approach in `free_abelian_group.of_injective`
 lemma ι_injective [nontrivial R] : function.injective (ι R : X → free_algebra R X) :=

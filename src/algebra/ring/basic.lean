@@ -471,12 +471,6 @@ protected lemma map_bit0 (f : α →+* β) (a : α) : f (bit0 a) = bit0 (f a) :=
 protected lemma map_bit1 (f : α →+* β) (a : α) : f (bit1 a) = bit1 (f a) :=
 by simp [bit1]
 
-lemma map_eq_one_iff (f : α →+* β) (hf : function.injective f) {x : α} : f x = 1 ↔ x = 1 :=
-one_hom_class.map_eq_one_iff f hf
-
-lemma map_eq_zero_iff (f : α →+* β) (hf : function.injective f) {x : α} : f x = 0 ↔ x = 0 :=
-zero_hom_class.map_eq_zero_iff f hf
-
 /-- `f : R →+* S` has a trivial codomain iff `f 1 = 0`. -/
 lemma codomain_trivial_iff_map_one_eq_zero : (0 : β) = 1 ↔ f 1 = 0 :=
 by rw [map_one, eq_comm]

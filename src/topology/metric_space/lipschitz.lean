@@ -376,7 +376,7 @@ lemma continuous_on_prod_of_continuous_on_lipschitz_on [pseudo_emetric_space α]
   [topological_space β] [pseudo_emetric_space γ] (f : α × β → γ) {s : set α} {t : set β}
   (K : ℝ≥0) (ha : ∀ a ∈ s, continuous_on (λ y, f (a, y)) t)
   (hb : ∀ b ∈ t, lipschitz_on_with K (λ x, f (x, b)) s) :
-  continuous_on f (s.prod t) :=
+  continuous_on f (s ×ˢ t) :=
 begin
   rintro ⟨x, y⟩ ⟨hx : x ∈ s, hy : y ∈ t⟩,
   refine emetric.tendsto_nhds.2 (λ ε (ε0 : 0 < ε), _),

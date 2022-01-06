@@ -38,7 +38,7 @@ protected def product (s : finset α) (t : finset β) : finset (α × β) := ⟨
 @[simp] lemma mem_product {p : α × β} : p ∈ s.product t ↔ p.1 ∈ s ∧ p.2 ∈ t := mem_product
 
 @[simp, norm_cast] lemma coe_product (s : finset α) (t : finset β) :
-  (s.product t : set (α × β)) = (s : set α).prod t :=
+  (s.product t : set (α × β)) = (s : set α) ×ˢ (t : set β) :=
 set.ext $ λ x, finset.mem_product
 
 lemma subset_product [decidable_eq α] [decidable_eq β] {s : finset (α × β)} :

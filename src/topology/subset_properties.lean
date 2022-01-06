@@ -483,8 +483,8 @@ variables [topological_space β]
 /-- `nhds_contain_boxes s t` means that any open neighborhood of `s × t` in `α × β` includes
 a product of an open neighborhood of `s` by an open neighborhood of `t`. -/
 def nhds_contain_boxes (s : set α) (t : set β) : Prop :=
-∀ (n : set (α × β)) (hn : is_open n) (hp : set.prod s t ⊆ n),
-∃ (u : set α) (v : set β), is_open u ∧ is_open v ∧ s ⊆ u ∧ t ⊆ v ∧ set.prod u v ⊆ n
+∀ (n : set (α × β)) (hn : is_open n) (hp : s ×ˢ t ⊆ n),
+∃ (u : set α) (v : set β), is_open u ∧ is_open v ∧ s ⊆ u ∧ t ⊆ v ∧ u ×ˢ v ⊆ n
 
 lemma nhds_contain_boxes.symm {s : set α} {t : set β} :
   nhds_contain_boxes s t → nhds_contain_boxes t s :=
@@ -510,11 +510,11 @@ assume n hn hp,
 lemma nhds_contain_boxes_of_compact {s : set α} (hs : is_compact s) (t : set β)
   (H : ∀ x ∈ s, nhds_contain_boxes ({x} : set α) t) : nhds_contain_boxes s t :=
 assume n hn hp,
-have ∀x : subtype s, ∃uv : set α × set β,
-     is_open uv.1 ∧ is_open uv.2 ∧ {↑x} ⊆ uv.1 ∧ t ⊆ uv.2 ∧ set.prod uv.1 uv.2 ⊆ n,
+have ∀x : s, ∃uv : set α × set β,
+     is_open uv.1 ∧ is_open uv.2 ∧ {↑x} ⊆ uv.1 ∧ t ⊆ uv.2 ∧ uv.1 ×ˢ uv.2 ⊆ n,
   from assume ⟨x, hx⟩,
-    have set.prod {x} t ⊆ n, from
-      subset.trans (prod_mono (by simpa) (subset.refl _)) hp,
+    have ({x} : set α) ×ˢ t ⊆ n, from
+      subset.trans (prod_mono (by simpa) subset.rfl) hp,
     let ⟨ux,vx,H1⟩ := H x hx n hn this in ⟨⟨ux,vx⟩,H1⟩,
 let ⟨uvs, h⟩ := classical.axiom_of_choice this in
 have us_cover : s ⊆ ⋃i, (uvs i).1, from
@@ -526,17 +526,17 @@ let v := ⋂(i ∈ s0), (uvs i).2 in
 have is_open u, from is_open_bUnion (λi _, (h i).1),
 have is_open v, from is_open_bInter s0.finite_to_set (λi _, (h i).2.1),
 have t ⊆ v, from subset_bInter (λi _, (h i).2.2.2.1),
-have set.prod u v ⊆ n, from assume ⟨x',y'⟩ ⟨hx',hy'⟩,
+have u ×ˢ v ⊆ n, from assume ⟨x',y'⟩ ⟨hx',hy'⟩,
   have ∃i ∈ s0, x' ∈ (uvs i).1, by simpa using hx',
   let ⟨i,is0,hi⟩ := this in
   (h i).2.2.2.2 ⟨hi, (bInter_subset_of_mem is0 : v ⊆ (uvs i).2) hy'⟩,
-⟨u, v, ‹is_open u›, ‹is_open v›, s0_cover, ‹t ⊆ v›, ‹set.prod u v ⊆ n›⟩
+⟨u, v, ‹is_open u›, ‹is_open v›, s0_cover, ‹t ⊆ v›, ‹u ×ˢ v ⊆ n›⟩
 
 /-- If `s` and `t` are compact sets and `n` is an open neighborhood of `s × t`, then there exist
 open neighborhoods `u ⊇ s` and `v ⊇ t` such that `u × v ⊆ n`. -/
 lemma generalized_tube_lemma {s : set α} (hs : is_compact s) {t : set β} (ht : is_compact t)
-  {n : set (α × β)} (hn : is_open n) (hp : set.prod s t ⊆ n) :
-  ∃ (u : set α) (v : set β), is_open u ∧ is_open v ∧ s ⊆ u ∧ t ⊆ v ∧ set.prod u v ⊆ n :=
+  {n : set (α × β)} (hn : is_open n) (hp : s ×ˢ t ⊆ n) :
+  ∃ (u : set α) (v : set β), is_open u ∧ is_open v ∧ s ⊆ u ∧ t ⊆ v ∧ u ×ˢ v ⊆ n :=
 have _, from
   nhds_contain_boxes_of_compact hs t $ assume x _, nhds_contain_boxes.symm $
     nhds_contain_boxes_of_compact ht {x} $ assume y _, nhds_contain_boxes_of_singleton,
@@ -781,7 +781,7 @@ protected lemma closed_embedding.compact_space [h : compact_space β] {f : α �
 by { unfreezingI { contrapose! h, rw not_compact_space_iff at h ⊢ }, exact hf.noncompact_space }
 
 lemma is_compact.prod {s : set α} {t : set β} (hs : is_compact s) (ht : is_compact t) :
-  is_compact (set.prod s t) :=
+  is_compact (s ×ˢ t) :=
 begin
   rw is_compact_iff_ultrafilter_le_nhds at hs ht ⊢,
   intros f hfs,
@@ -828,7 +828,7 @@ begin
   simp only [mem_coprod_iff, exists_prop, mem_comap, filter.mem_cocompact],
   split,
   { rintro ⟨⟨A, ⟨t, ht, hAt⟩, hAS⟩, B, ⟨t', ht', hBt'⟩, hBS⟩,
-    refine ⟨t.prod t', ht.prod ht', _⟩,
+    refine ⟨t ×ˢ t', ht.prod ht', _⟩,
     refine subset.trans _ (union_subset hAS hBS),
     rw compl_subset_comm at ⊢ hAt hBt',
     refine subset.trans _ (set.prod_mono hAt hBt'),

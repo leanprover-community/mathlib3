@@ -141,7 +141,7 @@ calc tendsto ↿F (p ×ᶠ ⊤) (𝓝 c)
 
 lemma uniform_continuous_on.tendsto_uniformly [uniform_space α] [uniform_space γ]
   {x : α} {U : set α} (hU : U ∈ 𝓝 x)
-  {F : α → β → γ} (hF : uniform_continuous_on ↿F (U.prod univ)) :
+  {F : α → β → γ} (hF : uniform_continuous_on ↿F (U ×ˢ (univ : set β))) :
   tendsto_uniformly F (F x) (𝓝 x) :=
 begin
   let φ := (λ q : α × β, ((x, q.2), q)),

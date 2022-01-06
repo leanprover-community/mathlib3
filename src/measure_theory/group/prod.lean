@@ -132,8 +132,8 @@ end
 lemma measurable_measure_mul_right {E : set G} (hE : measurable_set E) :
   measurable (λ x, μ ((λ y, y * x) ⁻¹' E)) :=
 begin
-  suffices :
-    measurable (λ y, μ ((λ x, (x, y)) ⁻¹' ((λ z : G × G, (1, z.1 * z.2)) ⁻¹' set.prod univ E))),
+  suffices : measurable (λ y,
+    μ ((λ x, (x, y)) ⁻¹' ((λ z : G × G, (1, z.1 * z.2)) ⁻¹' ((univ : set G) ×ˢ E)))),
   { convert this, ext1 x, congr' 1 with y : 1, simp },
   apply measurable_measure_prod_mk_right,
   exact measurable_const.prod_mk (measurable_fst.mul measurable_snd) (measurable_set.univ.prod hE)

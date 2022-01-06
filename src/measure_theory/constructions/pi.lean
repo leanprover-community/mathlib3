@@ -124,7 +124,7 @@ lemma generate_from_eq_pi [h : Π i, measurable_space (α i)]
   generate_from (pi univ '' pi univ C) = measurable_space.pi :=
 by rw [← funext hC, generate_from_pi_eq h2C]
 
-/-- The product σ-algebra is generated from boxes, i.e. `s.prod t` for sets `s : set α` and
+/-- The product σ-algebra is generated from boxes, i.e. `s ×ˢ t` for sets `s : set α` and
   `t : set β`. -/
 lemma generate_from_pi [Π i, measurable_space (α i)] :
   generate_from (pi univ '' pi univ (λ i, { s : set (α i) | measurable_set s})) =
@@ -509,7 +509,7 @@ lemma map_pi_equiv_pi_subtype_prod_symm (p : ι → Prop) [decidable_pred p] :
 begin
   refine (measure.pi_eq (λ s hs, _)).symm,
   have A : (equiv.pi_equiv_pi_subtype_prod p α).symm ⁻¹' (set.pi set.univ (λ (i : ι), s i)) =
-    set.prod (set.pi set.univ (λ i, s i)) (set.pi set.univ (λ i, s i)),
+    (set.pi set.univ (λ i : {i // p i}, s i)) ×ˢ (set.pi set.univ (λ i : {i // ¬p i}, s i)),
   { ext x,
     simp only [equiv.pi_equiv_pi_subtype_prod_symm_apply, mem_prod, mem_univ_pi, mem_preimage,
       subtype.forall],

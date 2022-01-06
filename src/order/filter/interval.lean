@@ -215,7 +215,7 @@ instance tendsto_interval_of_Icc {l : filter α} [tendsto_Ixx_class Icc l l] :
   tendsto_Ixx_class interval l l :=
 begin
   refine ⟨λ s hs, mem_map.2 $ mem_prod_self_iff.2 _⟩,
-  obtain ⟨t, htl, hts⟩ : ∃ t ∈ l, ∀ p ∈ (t : set α).prod t, Icc (p : α × α).1 p.2 ∈ s,
+  obtain ⟨t, htl, hts⟩ : ∃ t ∈ l, ∀ p ∈ (t : set α) ×ˢ t, Icc (p : α × α).1 p.2 ∈ s,
     from mem_prod_self_iff.1 (mem_map.1 (tendsto_fst.Icc tendsto_snd hs)),
   refine ⟨t, htl, λ p hp, _⟩,
   cases le_total p.1 p.2,

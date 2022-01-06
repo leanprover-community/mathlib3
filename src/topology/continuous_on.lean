@@ -223,13 +223,13 @@ by rw [← nhds_within_singleton, ← nhds_within_union, compl_union_self, nhds_
 
 lemma nhds_within_prod_eq {α : Type*} [topological_space α] {β : Type*} [topological_space β]
   (a : α) (b : β) (s : set α) (t : set β) :
-  𝓝[s.prod t] (a, b) = 𝓝[s] a ×ᶠ 𝓝[t] b :=
+  𝓝[s ×ˢ t] (a, b) = 𝓝[s] a ×ᶠ 𝓝[t] b :=
 by { delta nhds_within, rw [nhds_prod_eq, ←filter.prod_inf_prod, filter.prod_principal_principal] }
 
 lemma nhds_within_prod {α : Type*} [topological_space α] {β : Type*} [topological_space β]
   {s u : set α} {t v : set β} {a : α} {b : β}
   (hu : u ∈ 𝓝[s] a) (hv : v ∈ 𝓝[t] b) :
-  (u.prod v) ∈ 𝓝[s.prod t] (a, b) :=
+  (u ×ˢ v) ∈ 𝓝[s ×ˢ t] (a, b) :=
 by { rw nhds_within_prod_eq, exact prod_mem_prod hu hv, }
 
 lemma nhds_within_pi_eq' {ι : Type*} {α : ι → Type*} [Π i, topological_space (α i)]
@@ -441,7 +441,7 @@ h.tendsto_nhds_within (maps_to_image _ _)
 lemma continuous_within_at.prod_map {f : α → γ} {g : β → δ} {s : set α} {t : set β}
   {x : α} {y : β}
   (hf : continuous_within_at f s x) (hg : continuous_within_at g t y) :
-  continuous_within_at (prod.map f g) (s.prod t) (x, y) :=
+  continuous_within_at (prod.map f g) (s ×ˢ t) (x, y) :=
 begin
   unfold continuous_within_at at *,
   rw [nhds_within_prod_eq, prod.map, nhds_prod_eq],
@@ -509,7 +509,7 @@ by rw [continuous_on_iff_continuous_restrict, continuous_iff_is_closed]; simp on
 
 lemma continuous_on.prod_map {f : α → γ} {g : β → δ} {s : set α} {t : set β}
   (hf : continuous_on f s) (hg : continuous_on g t) :
-  continuous_on (prod.map f g) (s.prod t) :=
+  continuous_on (prod.map f g) (s ×ˢ t) :=
 λ ⟨x, y⟩ ⟨hx, hy⟩, continuous_within_at.prod_map (hf x hx) (hg y hy)
 
 lemma continuous_on_empty (f : α → β) : continuous_on f ∅ :=

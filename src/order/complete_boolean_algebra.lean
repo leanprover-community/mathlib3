@@ -90,15 +90,15 @@ instance pi.complete_distrib_lattice {ι : Type*} {π : ι → Type*}
       ← supr_subtype''],
   .. pi.complete_lattice }
 
-theorem Inf_sup_Inf : Inf s ⊔ Inf t = (⨅ p ∈ set.prod s t, (p : α × α).1 ⊔ p.2) :=
+theorem Inf_sup_Inf : Inf s ⊔ Inf t = (⨅ p ∈ s ×ˢ t, (p : α × α).1 ⊔ p.2) :=
 begin
   apply le_antisymm,
   { simp only [and_imp, prod.forall, le_infi_iff, set.mem_prod],
     intros a b ha hb,
     exact sup_le_sup (Inf_le ha) (Inf_le hb) },
-  { have : ∀ a ∈ s, (⨅ p ∈ set.prod s t, (p : α × α).1 ⊔ p.2) ≤ a ⊔ Inf t,
+  { have : ∀ a ∈ s, (⨅ p ∈ s ×ˢ t, (p : α × α).1 ⊔ p.2) ≤ a ⊔ Inf t,
     { rintro a ha,
-      have : (⨅ p ∈ set.prod s t, ((p : α × α).1 : α) ⊔ p.2) ≤
+      have : (⨅ p ∈ s ×ˢ t, ((p : α × α).1 : α) ⊔ p.2) ≤
              (⨅ p ∈ prod.mk a '' t, (p : α × α).1 ⊔ p.2),
       { apply infi_le_infi_of_subset,
         rintro ⟨x, y⟩,
@@ -110,11 +110,11 @@ begin
       rw [infi_image] at this,
       simp only at this,
       rwa ← sup_Inf_eq at this },
-    calc (⨅ p ∈ set.prod s t, (p : α × α).1 ⊔ p.2) ≤ (⨅ a ∈ s, a ⊔ Inf t) : by simp; exact this
+    calc (⨅ p ∈ s ×ˢ t, (p : α × α).1 ⊔ p.2) ≤ (⨅ a ∈ s, a ⊔ Inf t) : by simp; exact this
        ... = Inf s ⊔ Inf t : Inf_sup_eq.symm }
 end
 
-theorem Sup_inf_Sup : Sup s ⊓ Sup t = (⨆ p ∈ set.prod s t, (p : α × α).1 ⊓ p.2) :=
+theorem Sup_inf_Sup : Sup s ⊓ Sup t = (⨆ p ∈ s ×ˢ t, (p : α × α).1 ⊓ p.2) :=
 @Inf_sup_Inf (order_dual α) _ _ _
 
 lemma supr_disjoint_iff {f : ι → α} : disjoint (⨆ i, f i) a ↔ ∀ i, disjoint (f i) a :=

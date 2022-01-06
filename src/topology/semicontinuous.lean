@@ -334,7 +334,7 @@ lemma lower_semicontinuous_within_at.add' {f g : α → γ}
 begin
   assume y hy,
   obtain ⟨u, v, u_open, xu, v_open, xv, h⟩ : ∃ (u v : set γ), is_open u ∧ f x ∈ u ∧ is_open v ∧
-    g x ∈ v ∧ u.prod v ⊆ {p : γ × γ | y < p.fst + p.snd} :=
+    g x ∈ v ∧ u ×ˢ v ⊆ {p : γ × γ | y < p.fst + p.snd} :=
   mem_nhds_prod_iff'.1 (hcont (is_open_Ioi.mem_nhds hy)),
   by_cases hx₁ : ∃ l, l < f x,
   { obtain ⟨z₁, z₁lt, h₁⟩ : ∃ z₁ < f x, Ioc z₁ (f x) ⊆ u :=
@@ -352,7 +352,7 @@ begin
       { by_cases H : g z ≤ g x,
         { simp [H], exact h₂ ⟨h₂z, H⟩ },
         { simp [le_of_not_le H], exact h₂ ⟨z₂lt, le_refl _⟩, } },
-      have : (min (f z) (f x), min (g z) (g x)) ∈ u.prod v := ⟨A1, A2⟩,
+      have : (min (f z) (f x), min (g z) (g x)) ∈ u ×ˢ v := ⟨A1, A2⟩,
       calc y < min (f z) (f x) + min (g z) (g x) : h this
       ... ≤ f z + g z : add_le_add (min_le_left _ _) (min_le_left _ _) },
     { simp only [not_exists, not_lt] at hx₂,
@@ -362,7 +362,7 @@ begin
       { by_cases H : f z ≤ f x,
         { simp [H], exact h₁ ⟨h₁z, H⟩ },
         { simp [le_of_not_le H], exact h₁ ⟨z₁lt, le_refl _⟩, } },
-      have : (min (f z) (f x), g x) ∈ u.prod v := ⟨A1, xv⟩,
+      have : (min (f z) (f x), g x) ∈ u ×ˢ v := ⟨A1, xv⟩,
       calc y < min (f z) (f x) + g x : h this
       ... ≤ f z + g z : add_le_add (min_le_left _ _) (hx₂ (g z)) } },
   { simp only [not_exists, not_lt] at hx₁,
@@ -375,13 +375,13 @@ begin
       { by_cases H : g z ≤ g x,
         { simp [H], exact h₂ ⟨h₂z, H⟩ },
         { simp [le_of_not_le H], exact h₂ ⟨z₂lt, le_refl _⟩, } },
-      have : (f x, min (g z) (g x)) ∈ u.prod v := ⟨xu, A2⟩,
+      have : (f x, min (g z) (g x)) ∈ u ×ˢ v := ⟨xu, A2⟩,
       calc y < f x + min (g z) (g x) : h this
       ... ≤ f z + g z : add_le_add (hx₁ (f z)) (min_le_left _ _) },
     { simp only [not_exists, not_lt] at hx₁ hx₂,
       apply filter.eventually_of_forall,
       assume z,
-      have : (f x, g x) ∈ u.prod v := ⟨xu, xv⟩,
+      have : (f x, g x) ∈ u ×ˢ v := ⟨xu, xv⟩,
       calc y < f x + g x : h this
       ... ≤ f z + g z : add_le_add (hx₁ (f z)) (hx₂ (g z)) } },
 end

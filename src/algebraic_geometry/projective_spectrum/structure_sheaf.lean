@@ -426,7 +426,7 @@ begin
   exact hartshorne_localisation.denom_not_mem _,
 end
 
-variables {𝒜} -- [is_domain A]
+variables {𝒜}
 
 def hartshorne_localisation.i {x} (f : hartshorne_localisation 𝒜 x) : ι := (classical.some f.2).i
 def hartshorne_localisation.num_hom {x} (f : hartshorne_localisation 𝒜 x) : f.num ∈ 𝒜 f.i :=
@@ -436,15 +436,18 @@ def hartshorne_localisation.denom_hom {x} (f : hartshorne_localisation 𝒜 x) :
 (classical.some f.2).b_hom
 
 variable (𝒜)
+
 def test.section (x : projective_spectrum.Top 𝒜) :
   Π (f : hartshorne_localisation 𝒜 x),
     (structure_sheaf 𝒜).1.obj (op (projective_spectrum.basic_open 𝒜 f.denom)) := λ f,
 ⟨λ y, ⟨localization.mk f.num ⟨f.denom, y.2⟩,
-  ⟨hl.condition.mk f.num f.denom y.2 f.i f.num_hom f.denom_hom, rfl⟩⟩, λ y,
-  ⟨projective_spectrum.basic_open 𝒜 f.denom, ⟨y.2, begin
-  use 𝟙 _, use f.num, use f.denom, use f.i, split,
-  use f.num_hom, use f.denom_hom, intros z, use z.2, refl,
-end⟩⟩⟩
+  ⟨hl.condition.mk f.num f.denom y.2 f.i f.num_hom f.denom_hom, rfl⟩⟩,
+ λ y, ⟨projective_spectrum.basic_open 𝒜 f.denom, y.2, 𝟙 _, f.num, f.denom, f.i, f.num_hom,
+  f.denom_hom, λ z, ⟨z.2, rfl⟩⟩⟩
+
+def test.section_apply (x : projective_spectrum.Top 𝒜) (f) (y) :
+  (test.section 𝒜 x f).1 y = ⟨localization.mk f.num ⟨f.denom, y.2⟩,
+  ⟨hl.condition.mk f.num f.denom y.2 f.i f.num_hom f.denom_hom, rfl⟩⟩ := rfl
 
 lemma test.section_restrict (x : projective_spectrum.Top 𝒜) (f g : hartshorne_localisation _ x) :
   ((structure_sheaf 𝒜).1.map
@@ -464,172 +467,50 @@ def test.def (x : projective_spectrum.Top 𝒜) :
   (⟨x, hartshorne_localisation.mem_basic_open _ x f⟩ : projective_spectrum.basic_open _ f.denom)
   (test.section _ x f)
 
-
--- lemma test.eq_apply_stalk (u : opens (projective_spectrum.Top 𝒜)) (x : u)
---   (s : (structure_sheaf 𝒜).1.obj (op u)) (f : hartshorne_localisation 𝒜 x.1)
---   (hf : (structure_sheaf 𝒜).1.germ x s = test.def _ x.1 f) :
---   f.val = localization.mk (s.1 x).num ⟨(s.1 x).denom, (s.1 x).denom_not_mem⟩ :=
--- begin
---   obtain ⟨v1, mem1, i1, a, b, i, a_hom, b_hom, hs⟩ := s.2 x,
---   rw [test.def, test.section] at hf,
---   obtain ⟨v2, mem2, il, ir, eq1⟩ := (structure_sheaf 𝒜).1.germ_eq _ x.2 _ _ _ hf,
-
---   rw subtype.ext_iff_val at eq1,
---   have eq2 := congr_fun eq1 ⟨x, mem2⟩,
---   rw [res_apply, res_apply, subtype.ext_iff_val] at eq2, dsimp only at eq2,
---   rw f.eq_num_div_denom,
---   obtain ⟨b_nin, eq3⟩ := hs ⟨x, mem1⟩,
---   dsimp only at eq3, erw [←eq2, eq3],
---   sorry,
--- end
-
--- def test.map_one (x) :
---   test.def 𝒜 x 1 = 1 :=
--- begin
---   rw test.def, rw test.section, dsimp only,
---   convert map_one _, ext z, rw pi.one_apply,
---   unfold_coes, dsimp only, rw hartshorne_localisation.val_one,
---   sorry
--- end
-
--- def test.map_zero (x) :
---   test.def 𝒜 x 0 = 0 :=
--- begin
---   rw test.def, rw test.section, dsimp only,
---   convert map_zero _, ext z, rw pi.zero_apply,
---   unfold_coes, dsimp only, rw hartshorne_localisation.val_zero,
---   sorry
--- end
-
--- lemma test.map_mul (x) (f g) :
---   test.def 𝒜 x (f * g) = test.def 𝒜 x f * test.def 𝒜 x g :=
--- begin
---   rw test.def, rw test.section, dsimp only,
---   -- dsimp only,
---   -- -- type_check test.section_restrict,
---   -- set ar1 := (eq_to_hom (projective_spectrum.basic_open_mul 𝒜 f.denom g.denom)) with ar1_eq,
---   -- set ar2 := (@opens.inf_le_left (projective_spectrum.Top 𝒜)
---   --   (projective_spectrum.basic_open _ f.denom) (projective_spectrum.basic_open _ g.denom)) with
---   --   ar2_eq,
---   -- set ar3 := (@opens.inf_le_right (projective_spectrum.Top 𝒜)
---   --   (projective_spectrum.basic_open _ f.denom) (projective_spectrum.basic_open _ g.denom)) with
---   --   ar3_eq,
---   -- have := @presheaf.germ_res _ _ _ (projective_spectrum.Top 𝒜) (structure_sheaf 𝒜).1
---   --   (projective_spectrum.basic_open 𝒜 (f.denom * g.denom))
---   --   (projective_spectrum.basic_open 𝒜 f.denom)
---   --   (ar1 ≫ ar2) ⟨x, _⟩, erw ←this,
---   -- have := @presheaf.germ_res _ _ _ (projective_spectrum.Top 𝒜) (structure_sheaf 𝒜).1
---   --   (projective_spectrum.basic_open 𝒜 (f.denom * g.denom))
---   --   (projective_spectrum.basic_open 𝒜 g.denom)
---   --   (ar1 ≫ ar3) ⟨x, _⟩, erw ←this,
---   -- erw [ar1_eq, ar2_eq, ar3_eq],
---   -- erw test.section_restrict,
-
---   all_goals { sorry },
-
---   -- simp only [op_comp, functor.map_comp, category.assoc],
-
--- end
-
--- lemma test.map_add (x) (f g) :
---   test.def 𝒜 x (f + g) = test.def 𝒜 x f + test.def 𝒜 x g := sorry
-
--- def test (x : projective_spectrum.Top _) :
---   (hartshorne_localisation 𝒜 x) →+* (structure_sheaf 𝒜).1.stalk x :=
--- { to_fun := test.def _ _,
---   map_one' := test.map_one _ _,
---   map_mul' := test.map_mul _ _,
---   map_add' := sorry,
---   map_zero' := test.map_zero _ _ }
-
--- lemma test.def_prop (x) (f : hartshorne_localisation 𝒜 x) :
---   test _ x f = (structure_sheaf 𝒜).1.germ
---   (⟨x, hartshorne_localisation.mem_basic_open _ x f⟩ : projective_spectrum.basic_open _ f.denom)
---   ⟨λ y, ⟨localization.mk f.num ⟨f.denom, y.2⟩,
---     ⟨hl.condition.mk f.num f.denom y.2 f.i f.num_hom f.denom_hom, rfl⟩⟩, λ y,
---     ⟨projective_spectrum.basic_open 𝒜 f.denom, ⟨y.2, begin
---     use 𝟙 _, use f.num, use f.denom, use f.i, split,
---     use f.num_hom, use f.denom_hom, intros z, use z.2, refl,
---   end⟩⟩⟩ := rfl
-
 def stalk_iso' (x : projective_spectrum.Top 𝒜) :
-  (structure_sheaf 𝒜).1.stalk x ≅ CommRing.of (hartshorne_localisation 𝒜 x)  :=
+  (structure_sheaf 𝒜).1.stalk x ≃+* CommRing.of (hartshorne_localisation 𝒜 x)  :=
 ring_equiv.of_bijective (stalk_to_fiber_ring_hom _ x)
 begin
   rw function.bijective_iff_has_inverse,
   use test.def 𝒜 x, split,
-  { intros z, rw test.def, rw test.section,
+  { intros z, rw test.def, rw test.section, dsimp only,
     obtain ⟨u1, mem1, s1, eq1⟩ := (structure_sheaf 𝒜).1.germ_exist x z,
     rw ←eq1,
     have eq2 := stalk_to_fiber_ring_hom_germ 𝒜 u1 ⟨x, mem1⟩ s1,
     erw eq2, dsimp only,
+    obtain ⟨v2, memv2, i2, a2, b2, j2, a2_hom, b2_hom, hsv2⟩ := s1.2
+      ⟨x, mem1⟩,
+    obtain ⟨b2_nin, eq4⟩ := hsv2 ⟨x, memv2⟩,
     refine germ_ext (structure_sheaf 𝒜).1
-      (u1 ⊓ projective_spectrum.basic_open 𝒜 (s1.1 ⟨x, mem1⟩).denom)
-      ⟨mem1, (s1.1 ⟨x, mem1⟩).denom_not_mem⟩
-      (opens.inf_le_right _ _) (opens.inf_le_left _ _) _,
-      dsimp only, rw subtype.ext_iff_val, ext1 y, erw res_apply,
-      set s1_res :=
-        ((structure_sheaf 𝒜).val.map
-        (u1.inf_le_left (projective_spectrum.basic_open 𝒜 (s1.val ⟨x, mem1⟩).denom)).op) s1
-        with s1_res_eq,
-      dsimp only, erw ←s1_res_eq,
-      obtain ⟨v1, mem2, i, a, b, j, a_hom, b_hom, hs⟩ := s1_res.2
-        ⟨x, ⟨mem1, (s1.1 _).denom_not_mem⟩⟩,
+      (v2 ⊓ projective_spectrum.basic_open 𝒜 (s1.1 ⟨x, mem1⟩).denom)
+      ⟨memv2, (s1.1 ⟨x, mem1⟩).denom_not_mem⟩
+      (opens.inf_le_right _ _) (opens.inf_le_left _ _ ≫ i2) _,
+    rw subtype.ext_iff_val, ext1 y, erw [res_apply, res_apply],
+    dsimp only,
 
-      -- specialize hs2 ⟨x, sorry⟩,
+    obtain ⟨v1, memv1, i1, a1, b1, j1, a1_hom, b1_hom, hsv1⟩ := s1.2
+      ⟨y, le_of_hom ((opens.inf_le_left _ _ ≫ i2)) y.2⟩,
+    obtain ⟨b1_nin, eq3⟩ := hsv1 ⟨y, memv1⟩,
+    obtain ⟨b2_nin', eq5⟩ := hsv2 ⟨y, le_of_hom (opens.inf_le_left _ _) y.2⟩,
+    dsimp only at eq3 eq4 eq5,
+    erw eq3 at eq5,
+
+
+    rw subtype.ext_iff_val, dsimp only,
+    erw eq3,
+    have eq6 := (s1.1 ⟨x, mem1⟩).eq_num_div_denom.symm,
+    erw ←eq6 at eq4,
+    simp only [localization.mk_eq_mk', subtype.val_eq_coe] at eq4 ⊢,
+    erw [is_localization.eq] at eq4 ⊢,
 
     sorry },
-  { intros f, rw test.def, dsimp only,
+  { -- surjectivity
+    intros f, rw test.def, dsimp only,
     have eq1 := stalk_to_fiber_ring_hom_germ 𝒜
       (projective_spectrum.basic_open 𝒜 f.denom) ⟨x, _⟩ (test.section _ x f),
     erw eq1, rw test.section, dsimp only, rw subtype.ext_iff_val,
     dsimp only, rw f.eq_num_div_denom, refl, }
 end
-
--- def stalk_iso (x : projective_spectrum.Top 𝒜) :
---   (hartshorne_localisation 𝒜 x) ≃+* (structure_sheaf 𝒜).1.stalk x  :=
--- ring_equiv.of_bijective (test 𝒜 x)
--- ⟨begin
---   intros f1 f2 eq1,
---   obtain ⟨u1, mem1, s1, eq21⟩ := (structure_sheaf 𝒜).1.germ_exist x (test _ x f1),
---   obtain ⟨u2, mem2, s2, eq22⟩ := (structure_sheaf 𝒜).1.germ_exist x (test _ x f2),
---   have eq31 := test.eq_apply_stalk 𝒜 _ _ _ _ eq21,
---   have eq32 := test.eq_apply_stalk 𝒜 _ _ _ _ eq22,
---   rw [←eq21, ←eq22] at eq1, rw subtype.ext_iff_val, rw [eq31, eq32],
---   obtain ⟨w, mem3, i1, i2, eq3⟩ := (structure_sheaf 𝒜).1.germ_eq x mem1 mem2 _ _ eq1,
---   have eq3 : (((structure_sheaf 𝒜).val.map i1.op) s1).1 = (((structure_sheaf 𝒜).val.map i2.op) s2).1,
---   rw eq3,
---   replace eq3 := congr_fun eq3 ⟨x, mem3⟩,
---   rw [res_apply, res_apply]at eq3,
---   erw [eq3], refl,
--- end, begin
---   intro stalk,
---   obtain ⟨u1, mem1, s, hu1⟩ := (structure_sheaf 𝒜).1.germ_exist _ stalk,
---   obtain ⟨u2, mem2, i, ⟨a, b, j, a_hom, b_hom, h1⟩⟩ := s.2 ⟨x, mem1⟩,
---   obtain ⟨b_nin, h2⟩ := h1 ⟨x, mem2⟩, dsimp only at h2,
---   refine ⟨⟨localization.mk a ⟨b, b_nin⟩, ⟨hl.condition.mk a b b_nin j a_hom b_hom, rfl⟩⟩, _⟩,
---   rw ←hu1, erw test.def_prop,
---   apply (structure_sheaf 𝒜).1.germ_ext
---     (u2 ⊓ projective_spectrum.basic_open 𝒜
---       (hartshorne_localisation.denom ⟨localization.mk a ⟨b, b_nin⟩,
---         ⟨hl.condition.mk a b b_nin j a_hom b_hom, rfl⟩⟩))
---       ⟨mem2, hartshorne_localisation.denom_not_mem _⟩
---     (opens.inf_le_right _ _) (opens.inf_le_left _ _ ≫ i),
---   rw subtype.ext_iff_val, ext1 z,
---   rw [res_apply, res_apply], dsimp only, rw subtype.ext_iff_val, dsimp only,
---   obtain ⟨_, hz⟩ := (h1 ⟨z.1, _⟩), dsimp only at hz, erw hz,
---   have := hartshorne_localisation.eq_num_div_denom
---     ⟨localization.mk a ⟨b, w⟩, ⟨hl.condition.mk a b w j a_hom b_hom, rfl⟩⟩,
---   dsimp only at this,
-
---   simp only [localization.mk_eq_mk'],
---   erw is_localization.eq, use 1,
---   erw [mul_one, mul_one], unfold_coes, dsimp only,
-
---   sorry,
---   apply le_of_hom (opens.inf_le_left _ _),
---   exact z.2,
--- end⟩
 
 def hartshorne_localisation.is_local (x : projective_spectrum.Top 𝒜) :
   local_ring (hartshorne_localisation 𝒜 x) :=

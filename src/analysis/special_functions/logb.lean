@@ -183,17 +183,11 @@ logb_inj_on_pos one_lt_b (set.mem_Ioi.2 h₁) (set.mem_Ioi.2 zero_lt_one)
 lemma logb_ne_zero_of_pos_of_ne_one  (one_lt_b : 1 < b) {x : ℝ} (hx_pos : 0 < x) (hx : x ≠ 1) : log x ≠ 0 :=
 mt (eq_one_of_pos_of_log_eq_zero hx_pos) hx
 
-@[simp] lemma logb_eq_zero (one_lt_b : 1 < b) {x : ℝ} : logb b x = 0 ↔ x = 0 ∨ x = 1 ∨ x = -1 :=
+@[simp] lemma logb_eq_zero {x : ℝ} :
+  logb b x = 0 ↔ b = 0 ∨ b = 1 ∨ b = -1 ∨ x = 0 ∨ x = 1 ∨ x = -1 :=
 begin
-  split,
-  { intros h,
-    rcases lt_trichotomy x 0 with x_lt_zero | rfl | x_gt_zero,
-    { refine or.inr (or.inr (eq_neg_iff_eq_neg.mp _)),
-      rw [←logb_neg_eq_logb x] at h,
-      exact (eq_one_of_pos_of_logb_eq_zero one_lt_b (neg_pos.mpr x_lt_zero) h).symm, },
-    { exact or.inl rfl },
-    { exact or.inr (or.inl (eq_one_of_pos_of_logb_eq_zero one_lt_b x_gt_zero h)), }, },
-  { rintro (rfl|rfl|rfl); simp only [logb_one, logb_zero, logb_neg_eq_logb], }
+  simp_rw [logb, div_eq_zero_iff, log_eq_zero],
+  tauto,
 end
 
 lemma tendsto_logb_at_top (one_lt_b : 1 < b) : tendsto (logb b) at_top at_top :=

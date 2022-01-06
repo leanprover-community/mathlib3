@@ -25,7 +25,7 @@ variables {ι : Type*} [fintype ι] [decidable_eq ι]
 
 open finite_dimensional
 
-/-- `adjust_to_orientation`, applied to an orthonormal basis, produces an orthonormal basis. -/
+/-- `basis.adjust_to_orientation`, applied to an orthonormal basis, produces an orthonormal basis. -/
 lemma orthonormal.orthonormal_adjust_to_orientation [nonempty ι] {e : basis ι ℝ E}
   (h : orthonormal ℝ e) (x : orientation ℝ E ι) : orthonormal ℝ (e.adjust_to_orientation x) :=
 h.orthonormal_of_forall_eq_or_eq_neg (e.adjust_to_orientation_apply_eq_or_eq_neg x)

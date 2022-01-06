@@ -1426,22 +1426,17 @@ lemma is_localization_of_submonoid_le
   (M N : submonoid R) (h : M ≤ N) [is_localization M S] [is_localization N T]
   [algebra S T] [is_scalar_tower R S T] :
   is_localization (N.map (algebra_map R S).to_monoid_hom) T :=
-{ map_units :=
-  begin
+{ map_units := begin
     rintro ⟨_, ⟨y, hy, rfl⟩⟩,
     convert is_localization.map_units T ⟨y, hy⟩,
     exact (is_scalar_tower.algebra_map_apply _ _ _ _).symm
   end,
-  surj :=
-  begin
-    intro y,
+  surj := λ y, begin
     obtain ⟨⟨x, s⟩, e⟩ := is_localization.surj N y,
     refine ⟨⟨algebra_map _ _ x, _, _, s.prop, rfl⟩, _⟩,
     simpa [← is_scalar_tower.algebra_map_apply] using e
   end,
-  eq_iff_exists :=
-  begin
-    intros x₁ x₂,
+  eq_iff_exists := λ x₁ x₂, begin
     obtain ⟨⟨y₁, s₁⟩, e₁⟩ := is_localization.surj M x₁,
     obtain ⟨⟨y₂, s₂⟩, e₂⟩ := is_localization.surj M x₂,
     refine iff.trans _ (set.exists_image_iff (algebra_map R S) N (λ c, x₁ * c = x₂ * c)).symm,
@@ -1468,19 +1463,14 @@ lemma is_localization_of_submonoid_le
 localization at `N` is equal to the localizaton of `M`. -/
 lemma is_localization_of_is_exists_mul_mem (M N : submonoid R) [is_localization M S] (h : M ≤ N)
     (h' : ∀ x : N, ∃ m : R, m * x ∈ M) : is_localization N S :=
-{ map_units :=
-  begin
-    intro y,
+{ map_units := λ y, begin
     obtain ⟨m, hm⟩ := h' y,
     have := is_localization.map_units S ⟨_, hm⟩,
     erw map_mul at this,
     exact (is_unit.mul_iff.mp this).2
   end,
-  surj :=
-    by { intro z, obtain ⟨⟨y, s⟩, e⟩ := is_localization.surj M z, exact ⟨⟨y, _, h s.prop⟩, e⟩ },
-  eq_iff_exists :=
-  begin
-    intros x₁ x₂,
+  surj := λ z, by { obtain ⟨⟨y, s⟩, e⟩ := is_localization.surj M z, exact ⟨⟨y, _, h s.prop⟩, e⟩ },
+  eq_iff_exists := λ x₁ x₂, begin
     rw is_localization.eq_iff_exists M,
     refine ⟨λ ⟨x, hx⟩, ⟨⟨_, h x.prop⟩, hx⟩, _⟩,
     rintros ⟨x, h⟩,

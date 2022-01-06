@@ -303,7 +303,9 @@ variable [fintype m]
 def dot_product [has_mul α] [add_comm_monoid α] (v w : m → α) : α :=
 ∑ i, v i * w i
 
-localized "infix  ` ⬝ᵥ `:67 := matrix.dot_product" in matrix
+/- the precedence of ` ⬝ᵥ ` for `matrix.dot_product` is set to come immediately after
+    ` • ` for `has_scalar.smul` -/
+localized "infix  ` ⬝ᵥ `:72 := matrix.dot_product" in matrix
 
 lemma dot_product_assoc [fintype n] [non_unital_semiring α] (u : m → α) (w : n → α)
   (v : matrix m n α) :

@@ -1630,7 +1630,7 @@ variables [topological_add_group M]
 
 /-- An invertible continuous linear map `f` determines a continuous equivalence from `M` to itself.
 -/
-def of_unit (f : units (M →L[R] M)) : (M ≃L[R] M) :=
+def of_unit (f : (M →L[R] M)ˣ) : (M ≃L[R] M) :=
 { to_linear_equiv :=
   { to_fun    := f.val,
     map_add'  := by simp,
@@ -1642,7 +1642,7 @@ def of_unit (f : units (M →L[R] M)) : (M ≃L[R] M) :=
   continuous_inv_fun := f.inv.continuous }
 
 /-- A continuous equivalence from `M` to itself determines an invertible continuous linear map. -/
-def to_unit (f : (M ≃L[R] M)) : units (M →L[R] M) :=
+def to_unit (f : (M ≃L[R] M)) : (M →L[R] M)ˣ :=
 { val     := f,
   inv     := f.symm,
   val_inv := by {ext, simp},
@@ -1652,14 +1652,14 @@ variables (R M)
 
 /-- The units of the algebra of continuous `R`-linear endomorphisms of `M` is multiplicatively
 equivalent to the type of continuous linear equivalences between `M` and itself. -/
-def units_equiv : units (M →L[R] M) ≃* (M ≃L[R] M) :=
+def units_equiv : (M →L[R] M)ˣ ≃* (M ≃L[R] M) :=
 { to_fun    := of_unit,
   inv_fun   := to_unit,
   left_inv  := λ f, by {ext, refl},
   right_inv := λ f, by {ext, refl},
   map_mul'  := λ x y, by {ext, refl} }
 
-@[simp] lemma units_equiv_apply (f : units (M →L[R] M)) (x : M) :
+@[simp] lemma units_equiv_apply (f : (M →L[R] M)ˣ) (x : M) :
   units_equiv R M f x = f x := rfl
 
 end
@@ -1667,8 +1667,8 @@ end
 section
 variables (R) [topological_space R] [has_continuous_mul R]
 
-/-- Continuous linear equivalences `R ≃L[R] R` are enumerated by `units R`. -/
-def units_equiv_aut : units R ≃ (R ≃L[R] R) :=
+/-- Continuous linear equivalences `R ≃L[R] R` are enumerated by `Rˣ`. -/
+def units_equiv_aut : Rˣ ≃ (R ≃L[R] R) :=
 { to_fun := λ u, equiv_of_inverse
     (continuous_linear_map.smul_right (1 : R →L[R] R) ↑u)
     (continuous_linear_map.smul_right (1 : R →L[R] R) ↑u⁻¹)
@@ -1681,9 +1681,9 @@ def units_equiv_aut : units R ≃ (R ≃L[R] R) :=
 
 variable {R}
 
-@[simp] lemma units_equiv_aut_apply (u : units R) (x : R) : units_equiv_aut R u x = x * u := rfl
+@[simp] lemma units_equiv_aut_apply (u : Rˣ) (x : R) : units_equiv_aut R u x = x * u := rfl
 
-@[simp] lemma units_equiv_aut_apply_symm (u : units R) (x : R) :
+@[simp] lemma units_equiv_aut_apply_symm (u : Rˣ) (x : R) :
   (units_equiv_aut R u).symm x = x * ↑u⁻¹ := rfl
 
 @[simp] lemma units_equiv_aut_symm_apply (e : R ≃L[R] R) :

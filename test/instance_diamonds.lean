@@ -34,13 +34,13 @@ example (α : Type*) (β : α → Type*) [Π a, sub_neg_monoid (β a)] :
 section units
 
 example (α : Type*) [monoid α] :
-  (units.mul_action : mul_action (units α) (α × α)) = prod.mul_action := rfl
+  (units.mul_action : mul_action αˣ (α × α)) = prod.mul_action := rfl
 
 example (R α : Type*) (β : α → Type*) [monoid R] [Π i, mul_action R (β i)] :
-  (units.mul_action : mul_action (units R) (Π i, β i)) = pi.mul_action _ := rfl
+  (units.mul_action : mul_action Rˣ (Π i, β i)) = pi.mul_action _ := rfl
 
 example (R α : Type*) (β : α → Type*) [monoid R] [semiring α] [distrib_mul_action R α] :
-  (units.distrib_mul_action : distrib_mul_action (units R) (polynomial α)) =
+  (units.distrib_mul_action : distrib_mul_action Rˣ (polynomial α)) =
     polynomial.distrib_mul_action :=
 rfl
 
@@ -48,7 +48,7 @@ rfl
 TODO: https://leanprover.zulipchat.com/#narrow/stream/113488-general/topic/units.2Emul_action'.20diamond/near/246402813
 ```lean
 example {α : Type*} [comm_monoid α] :
-  (units.mul_action' : mul_action (units α) (units α)) = monoid.to_mul_action _ :=
+  (units.mul_action' : mul_action αˣ αˣ) = monoid.to_mul_action _ :=
 rfl -- fails
 ```
 -/

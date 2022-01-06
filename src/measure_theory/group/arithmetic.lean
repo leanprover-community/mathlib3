@@ -522,10 +522,10 @@ lemma ae_measurable_const_smul_iff (c : G) :
 ⟨λ h, by simpa only [inv_smul_smul] using h.const_smul' c⁻¹, λ h, h.const_smul c⟩
 
 @[to_additive]
-instance : measurable_space (units M) := measurable_space.comap (coe : units M → M) ‹_›
+instance : measurable_space Mˣ := measurable_space.comap (coe : Mˣ → M) ‹_›
 
 @[to_additive]
-instance units.has_measurable_smul : has_measurable_smul (units M) β :=
+instance units.has_measurable_smul : has_measurable_smul Mˣ β :=
 { measurable_const_smul := λ c, (measurable_const_smul (c : M) : _),
   measurable_smul_const := λ x,
     (measurable_smul_const x : measurable (λ c : M, c • x)).comp measurable_space.le_map_comap, }

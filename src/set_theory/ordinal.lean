@@ -585,9 +585,11 @@ begin
   cases quotient.out α, cases quotient.out β, exact classical.choice ∘ quotient.exact
 end
 
-theorem typein_lt_type (r : α → α → Prop) [is_well_order α r]
-  (a : α) : typein r a < type r :=
+theorem typein_lt_type (r : α → α → Prop) [is_well_order α r] (a : α) : typein r a < type r :=
 ⟨principal_seg.of_element _ _⟩
+
+theorem typein_lt_self {o : ordinal} (i : o.out.α) : typein o.out.r i < o :=
+by { simp_rw ←type_out o, apply typein_lt_type }
 
 @[simp] theorem typein_top {α β} {r : α → α → Prop} {s : β → β → Prop}
   [is_well_order α r] [is_well_order β s] (f : r ≺i s) :
@@ -985,6 +987,8 @@ induction_on o $ λ α r _, ⟨⟨⟨⟨λ x, sum.inl x, λ _ _, sum.inl.inj⟩,
 sum.inr punit.star, λ b, sum.rec_on b
   (λ x, ⟨λ _, ⟨x, rfl⟩, λ _, sum.lex.sep _ _⟩)
   (λ x, sum.lex_inr_inr.trans ⟨false.elim, λ ⟨x, H⟩, sum.inl_ne_inr H⟩)⟩⟩
+
+theorem succ_ne_self (o : ordinal.{u}) : succ o ≠ o := (lt_succ_self o).ne'
 
 theorem succ_le {a b : ordinal} : succ a ≤ b ↔ a < b :=
 ⟨lt_of_lt_of_le (lt_succ_self _),

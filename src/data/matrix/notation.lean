@@ -236,45 +236,51 @@ end minor
 
 section vec2_and_vec3
 
-variable {R : Type*}
+variable [comm_ring α]  -- TODO get rid of
 
-lemma vec2_eq {a₀ a₁ b₀ b₁ : R} (h₀ : a₀ = b₀) (h₁ : a₁ = b₁) :
+lemma vec2_eq {a₀ a₁ b₀ b₁ : α} (h₀ : a₀ = b₀) (h₁ : a₁ = b₁) :
   ![a₀, a₁] = ![b₀, b₁] :=
 by { ext x, fin_cases x; assumption }
 
-lemma vec3_eq {a₀ a₁ a₂ b₀ b₁ b₂ : R} (h₀ : a₀ = b₀) (h₁ : a₁ = b₁) (h₂ : a₂ = b₂) :
+lemma vec3_eq {a₀ a₁ a₂ b₀ b₁ b₂ : α} (h₀ : a₀ = b₀) (h₁ : a₁ = b₁) (h₂ : a₂ = b₂) :
   ![a₀, a₁, a₂] = ![b₀, b₁, b₂] :=
 by { ext x, fin_cases x; assumption }
 
-variable [comm_ring R]
+--variable [has_add α]
 
-lemma vec2_add {a₀ a₁ b₀ b₁ : R} :
+lemma vec2_add {a₀ a₁ b₀ b₁ : α} :
   ![a₀, a₁] + ![b₀, b₁] = ![a₀ + b₀, a₁ + b₁] :=
 by rw [cons_add_cons, cons_add_cons, empty_add_empty]
 
-lemma vec3_add {a₀ a₁ a₂ b₀ b₁ b₂ : R} :
+lemma vec3_add {a₀ a₁ a₂ b₀ b₁ b₂ : α} :
   ![a₀, a₁, a₂] + ![b₀, b₁, b₂] = ![a₀ + b₀, a₁ + b₁, a₂ + b₂] :=
 by rw [cons_add_cons, cons_add_cons, cons_add_cons, empty_add_empty]
 
+end vec2_and_vec3
+
+section vec2_and_vec3_dot
+
 localized "infix  ` • ` : 67 := matrix.dot_product" in matrix
 
-lemma vec2_dot_product' {a₀ a₁ b₀ b₁ : R} :
+variable [semiring α]
+
+lemma vec2_dot_product' {a₀ a₁ b₀ b₁ : α} :
   ![a₀, a₁] • ![b₀, b₁] = a₀ * b₀ + a₁ * b₁ :=
 by rw [cons_dot_product_cons, cons_dot_product_cons, dot_product_empty, add_zero]
 
-lemma vec2_dot_product (v w : fin 2 → R) :
+lemma vec2_dot_product (v w : fin 2 → α) :
   v • w = v 0 * w 0 + v 1 * w 1 :=
 vec2_dot_product'
 
-lemma vec3_dot_product' {a₀ a₁ a₂ b₀ b₁ b₂ : R} :
+lemma vec3_dot_product' {a₀ a₁ a₂ b₀ b₁ b₂ : α} :
   ![a₀, a₁, a₂] • ![b₀, b₁, b₂] = a₀ * b₀ + a₁ * b₁ + a₂ * b₂ :=
 by rw [cons_dot_product_cons, cons_dot_product_cons, cons_dot_product_cons,
        dot_product_empty, add_zero, add_assoc]
 
-lemma vec3_dot_product (v w : fin 3 → R) :
+lemma vec3_dot_product (v w : fin 3 → α) :
   v • w = v 0 * w 0 + v 1 * w 1 + v 2 * w 2 :=
 vec3_dot_product'
 
-end vec2_and_vec3
+end vec2_and_vec3_dot
 
 end matrix

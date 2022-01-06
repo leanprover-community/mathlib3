@@ -63,7 +63,7 @@ variables [algebra R S] [algebra P Q] (M : submonoid R) (T : submonoid P)
    complement of a prime ideal is a local ring
  * `is_fraction_ring.field`: a definition (not an instance) stating the localization of an integral
    domain `R` at `R \ {0}` is a field
- * `rat.is_fraction_ring_int` is an instance stating `ℚ` is the field of fractions of `ℤ`
+ * `rat.is_fraction_ring` is an instance stating `ℚ` is the field of fractions of `ℤ`
 
 ## Implementation notes
 
@@ -119,7 +119,23 @@ variables [is_localization M S]
 
 section
 
-variables (M S)
+variables (M)
+
+lemma of_le (N : submonoid R) (h₁ : M ≤ N)
+  (h₂ : ∀ r ∈ N, is_unit (algebra_map R S r)) : is_localization N S :=
+{ map_units := λ r, h₂ r r.2,
+  surj := λ s, by { obtain ⟨⟨x, y, hy⟩, H⟩ := is_localization.surj M s, exact ⟨⟨x, y, h₁ hy⟩, H⟩ },
+  eq_iff_exists := λ x y, begin
+    split,
+    { rw is_localization.eq_iff_exists M,
+      rintro ⟨c, hc⟩,
+      exact ⟨⟨c, h₁ c.2⟩, hc⟩ },
+    { rintro ⟨c, h⟩,
+      simpa only [set_like.coe_mk, map_mul, (h₂ c c.2).mul_left_inj] using
+        congr_arg (algebra_map R S) h }
+  end }
+
+variables (S)
 
 /-- `is_localization.to_localization_map M S` shows `S` is the monoid localization of `R` at `M`. -/
 @[simps]
@@ -814,7 +830,7 @@ end away
 
 section inv_submonoid
 
-variables (M S) 
+variables (M S)
 
 /-- The submonoid of `S = M⁻¹R` consisting of `{ 1 / x | x ∈ M }`. -/
 def inv_submonoid : submonoid S := (M.map (algebra_map R S : R →* S)).left_inv

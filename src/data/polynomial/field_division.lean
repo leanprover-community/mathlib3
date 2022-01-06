@@ -347,7 +347,7 @@ lemma exists_root_of_degree_eq_one (h : degree p = 1) : ∃ x, is_root p x :=
   by conv in p { rw [eq_X_add_C_of_degree_le_one (show degree p ≤ 1, by rw h; exact le_refl _)] };
     simp [is_root, mul_div_cancel' _ this]⟩
 
-lemma coeff_inv_units (u : units (polynomial R)) (n : ℕ) :
+lemma coeff_inv_units (u : (polynomial R)ˣ) (n : ℕ) :
   ((↑u : polynomial R).coeff n)⁻¹ = ((↑u⁻¹ : polynomial R).coeff n) :=
 begin
   rw [eq_C_of_degree_eq_zero (degree_coe_units u), eq_C_of_degree_eq_zero (degree_coe_units u⁻¹),

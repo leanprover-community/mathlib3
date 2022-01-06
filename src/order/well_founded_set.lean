@@ -3,10 +3,11 @@ Copyright (c) 2021 Aaron Anderson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson
 -/
-import data.set.finite
-import order.well_founded
-import order.order_iso_nat
 import algebra.pointwise
+import data.set.finite
+import order.antichain
+import order.order_iso_nat
+import order.well_founded
 
 /-!
 # Well-founded sets
@@ -200,6 +201,39 @@ theorem partially_well_ordered_on.image_of_monotone_on {s : set α}
     exact hf _ _ (classical.some_spec (h m)).1 (classical.some_spec (h n)).1 hmn },
   { rintros _ ⟨n, rfl⟩,
     exact (classical.some_spec (h n)).1 }
+end
+
+lemma _root_.is_antichain.finite {s : set α} {r : α → α → Prop} (ha : is_antichain r s)
+  (hp : s.partially_well_ordered_on r) :
+  s.finite :=
+begin
+  refine finite_or_infinite.resolve_right (λ hi, _),
+  obtain ⟨m, n, hmn, h⟩ := hp (λ n, hi.nat_embedding _ n) (range_subset_iff.2 $
+    λ n, (hi.nat_embedding _ n).2),
+  exact hmn.ne ((hi.nat_embedding _).injective $ subtype.val_injective $
+    ha.eq_of_related (hi.nat_embedding _ m).2 (hi.nat_embedding _ n).2 h),
+end
+
+lemma partially_well_ordered_on_iff_finite_antichains {s : set α} {r : α → α → Prop} [is_refl α r]
+  [is_symm α r] :
+  s.partially_well_ordered_on r ↔ ∀ t ⊆ s, is_antichain r t → t.finite :=
+begin
+  refine ⟨λ h t ht hrt, hrt.finite (h.mono ht), _⟩,
+  rintro hs f hf,
+  by_contra' H,
+  refine set.infinite_range_of_injective (λ m n hmn, _) (hs _ hf _),
+  { obtain h | h | h := lt_trichotomy m n,
+    { refine (H _ _ h _).elim,
+      rw hmn,
+      exact refl _ },
+    { exact h },
+    { refine (H _ _ h _).elim,
+      rw hmn,
+      exact refl _ } },
+  rintro _ ⟨m, hm, rfl⟩ _ ⟨n, hn, rfl⟩ hmn,
+  obtain h | h  := (ne_of_apply_ne _ hmn).lt_or_lt,
+  { exact H _ _ h },
+  { exact mt symm (H _ _ h) }
 end
 
 section partial_order

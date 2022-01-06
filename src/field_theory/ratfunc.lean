@@ -5,6 +5,7 @@ Authors: Anne Baanen
 -/
 
 import ring_theory.euclidean_domain
+import ring_theory.laurent_series
 import ring_theory.localization
 
 /-!
@@ -32,6 +33,9 @@ You can use `is_fraction_ring` API to treat `ratfunc` as the field of fractions 
 Working with rational functions as fractions:
  - `ratfunc.num` and `ratfunc.denom` give the numerator and denominator.
    These values are chosen to be coprime and such that `ratfunc.denom` is monic.
+
+Embedding rational functions over fields into Laurent series
+ - `ratfunc.coe_def` and `ratfunc.coe_div` provide the implementation.
 
 We also have a set of recursion and induction principles:
  - `ratfunc.lift_on`: define a function by mapping a fraction of polynomials `p/q` to `f p q`,
@@ -903,5 +907,58 @@ begin
 end
 
 end eval
+
+section laurent_series
+
+omit hring
+variables {K' : Type u} [field K'] (f : ratfunc K') (p q : polynomial K')
+
+open polynomial laurent_series
+
+instance coe_to_laurent_series : has_coe (ratfunc K') (laurent_series K') :=
+⟨λ f, (f.num : power_series K') / f.denom⟩
+
+lemma coe_def : (f : laurent_series K') = (f.num : power_series K') / f.denom := rfl
+
+@[simp] lemma _root_.polynomial.coe_coe :
+  (p : laurent_series K') = hahn_series.of_power_series ℤ K' p := rfl
+
+@[simp] lemma coe_div : (((algebra_map (polynomial K') (ratfunc K') p /
+  algebra_map (polynomial K') (ratfunc K') q) : ratfunc K') : laurent_series K') =
+  (p : power_series K') / (q : power_series K') :=
+begin
+  classical,
+  simp_rw [coe_def, coe_power_series],
+  by_cases hp : p = 0,
+  { simp only [hp, polynomial.coe_zero, num_zero, zero_div, _root_.map_zero] },
+  by_cases hq : q = 0,
+  { simp only [div_zero, polynomial.coe_zero, ratfunc.num_zero, hahn_series.emb_domain_zero,
+               zero_div, polynomial.coe_one, eq_self_iff_true, hahn_series.of_power_series_apply,
+               ratfunc.denom_zero, ring_equiv.map_zero, _root_.map_zero, coe_coe, hq] },
+  have : ¬ q / gcd p q = 0,
+  { rw [polynomial.div_eq_zero_iff],
+    { rw [not_lt], convert polynomial.degree_gcd_le_right p hq },
+    { simp [gcd_eq_zero_iff, hp, hq] } },
+  rw [num_div _ hq, denom_div _ hq, polynomial.coe_mul, polynomial.coe_coe, polynomial.coe_mul,
+      _root_.map_mul, _root_.map_mul, mul_div_mul_left, div_eq_div_iff, ←_root_.map_mul,
+      ←_root_.map_mul, ←polynomial.coe_mul, ←polynomial.coe_mul, ←euclidean_domain.mul_div_assoc,
+      mul_comm, ←euclidean_domain.mul_div_assoc, mul_comm],
+  { apply gcd_dvd_left },
+  { apply gcd_dvd_right },
+  { rw [ne.def,
+        (hahn_series.of_power_series ℤ K').map_eq_zero_iff hahn_series.of_power_series_injective,
+        polynomial.coe_eq_zero_iff],
+    convert this },
+  { rwa [ne.def,
+         (hahn_series.of_power_series ℤ K').map_eq_zero_iff hahn_series.of_power_series_injective,
+         polynomial.coe_eq_zero_iff] },
+  { rw [ne.def,
+        (hahn_series.of_power_series ℤ K').map_eq_zero_iff hahn_series.of_power_series_injective,
+        polynomial.coe_eq_zero_iff, polynomial.C_eq_zero,
+        inv_eq_zero, polynomial.leading_coeff_eq_zero],
+    convert this }
+end
+
+end laurent_series
 
 end ratfunc

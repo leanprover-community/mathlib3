@@ -395,7 +395,7 @@ end distrib_mul_action
 section star_ring
 variables [semiring α] [star_ring α] (v w : m → α)
 
-lemma star_dot_product_star : (star v) ⬝ᵥ (star w) = star (w ⬝ᵥ v) :=
+lemma star_dot_product_star : star v ⬝ᵥ star w = star (w ⬝ᵥ v) :=
 by simp [dot_product]
 
 lemma star_dot_product : (star v) ⬝ᵥ w = star ((star w) ⬝ᵥ v) :=

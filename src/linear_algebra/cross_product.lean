@@ -114,10 +114,6 @@ begin
   fin_cases i; norm_num; ring,
 end
 
-lemma lie_lie_cross  (u v w : fin 3 → R) :
-  (u ×₃ v) ×₃ w = u ×₃ (v ×₃ w) - v ×₃ (u ×₃ w) :=
-by rw [leibniz_cross, add_sub_cancel]
-
 /-- The three-dimensional vectors together with the operations + and ×₃ form a Lie ring.
     Note we do not make this an instance as a conflicting one already exists
     via `lie_ring.of_associative_ring`. -/
@@ -130,6 +126,10 @@ def cross_product.lie_ring : lie_ring (fin 3 → R) :=
   ..pi.add_comm_group }
 
 local attribute [instance] cross_product.lie_ring
+
+lemma cross_cross  (u v w : fin 3 → R) :
+  (u ×₃ v) ×₃ w = u ×₃ (v ×₃ w) - v ×₃ (u ×₃ w) :=
+lie_lie u v w
 
 /-- For a cross product of three vectors, their sum over the three even permutations is equal
     to the zero vector. -/

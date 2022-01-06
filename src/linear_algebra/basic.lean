@@ -594,7 +594,8 @@ end
 
 include σ₂₁
 /-- The pushforward of a submodule by an injective linear map is
-linearly equivalent to the original submodule. -/
+linearly equivalent to the original submodule. See also `linear_equiv.submodule_map` for a
+computable version when `f` has an explicit inverse. -/
 noncomputable def equiv_map_of_injective (f : M →ₛₗ[σ₁₂] M₂) (i : injective f)
   (p : submodule R M) : p ≃ₛₗ[σ₁₂] p.map f :=
 { map_add' := by { intros, simp, refl, },
@@ -1978,8 +1979,11 @@ set_like.coe_injective $ by simp [e.image_eq_preimage]
 /-- A linear equivalence of two modules restricts to a linear equivalence from any submodule
 `p` of the domain onto the image of that submodule.
 
+This is the linear version of `add_equiv.submonoid_map` and `add_equiv.subgroup_map`.
+
 This is `linear_equiv.of_submodule'` but with `map` on the right instead of `comap` on the left. -/
-def of_submodule (p : submodule R M) : p ≃ₛₗ[σ₁₂] ↥(p.map (e : M →ₛₗ[σ₁₂] M₂) : submodule R₂ M₂) :=
+def submodule_map (p : submodule R M) :
+  p ≃ₛₗ[σ₁₂] ↥(p.map (e : M →ₛₗ[σ₁₂] M₂) : submodule R₂ M₂) :=
 { inv_fun   := λ y, ⟨(e.symm : M₂ →ₛₗ[σ₂₁] M) y, by
   { rcases y with ⟨y', hy⟩, rw submodule.mem_map at hy, rcases hy with ⟨x, hx, hxy⟩, subst hxy,
     simp only [symm_apply_apply, submodule.coe_mk, coe_coe, hx], }⟩,
@@ -1989,11 +1993,12 @@ def of_submodule (p : submodule R M) : p ≃ₛₗ[σ₁₂] ↥(p.map (e : M �
   (λ x, ⟨x, by simp⟩) }
 
 include σ₂₁
-@[simp] lemma of_submodule_apply (p : submodule R M) (x : p) :
-  ↑(e.of_submodule p x) = e x := rfl
+@[simp] lemma submodule_map_apply (p : submodule R M) (x : p) :
+  ↑(e.submodule_map p x) = e x := rfl
 
-@[simp] lemma of_submodule_symm_apply (p : submodule R M)
-  (x : (p.map (e : M →ₛₗ[σ₁₂] M₂) : submodule R₂ M₂)) : ↑((e.of_submodule p).symm x) = e.symm x :=
+@[simp] lemma submodule_map_symm_apply (p : submodule R M)
+  (x : (p.map (e : M →ₛₗ[σ₁₂] M₂) : submodule R₂ M₂)) :
+  ↑((e.submodule_map p).symm x) = e.symm x :=
 rfl
 
 omit σ₂₁
@@ -2085,7 +2090,7 @@ include σ₂₁
 /-- A linear equivalence which maps a submodule of one module onto another, restricts to a linear
 equivalence of the two submodules. -/
 def of_submodules (p : submodule R M) (q : submodule R₂ M₂) (h : p.map (e : M →ₛₗ[σ₁₂] M₂) = q) :
-p ≃ₛₗ[σ₁₂] q := (e.of_submodule p).trans (linear_equiv.of_eq _ _ h)
+p ≃ₛₗ[σ₁₂] q := (e.submodule_map p).trans (linear_equiv.of_eq _ _ h)
 
 
 @[simp] lemma of_submodules_apply {p : submodule R M} {q : submodule R₂ M₂}
@@ -2274,8 +2279,8 @@ variables [module R M] [module R M₂] [module R M₃]
 open _root_.linear_map
 
 /-- Multiplying by a unit `a` of the ring `R` is a linear equivalence. -/
-def smul_of_unit (a : units R) : M ≃ₗ[R] M :=
-of_linear ((a:R) • 1 : M →ₗ[R] M) (((a⁻¹ : units R) : R) • 1 : M →ₗ[R] M)
+def smul_of_unit (a : Rˣ) : M ≃ₗ[R] M :=
+of_linear ((a:R) • 1 : M →ₗ[R] M) (((a⁻¹ : Rˣ) : R) • 1 : M →ₗ[R] M)
   (by rw [smul_comp, comp_smul, smul_smul, units.mul_inv, one_smul]; refl)
   (by rw [smul_comp, comp_smul, smul_smul, units.inv_mul, one_smul]; refl)
 
@@ -2632,7 +2637,7 @@ variables [semiring R] [add_comm_monoid M] [module R M]
 variables (R M)
 
 /-- The group of invertible linear maps from `M` to itself -/
-@[reducible] def general_linear_group := units (M →ₗ[R] M)
+@[reducible] def general_linear_group := (M →ₗ[R] M)ˣ
 
 namespace general_linear_group
 variables {R M}

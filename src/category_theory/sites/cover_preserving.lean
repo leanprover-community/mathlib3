@@ -128,8 +128,7 @@ omit h hG
 open limits.walking_cospan
 
 lemma compatible_preserving_of_flat {C : Type u₁} [category.{v₁} C] {D : Type u₁} [category.{v₁} D]
-  (K : grothendieck_topology D) (G : C ⥤ D)
-[representably_flat G] : compatible_preserving K G :=
+  (K : grothendieck_topology D) (G : C ⥤ D) [representably_flat G] : compatible_preserving K G :=
 begin
   constructor,
   intros ℱ Z T x hx Y₁ Y₂ X f₁ f₂ g₁ g₂ hg₁ hg₂ e,
@@ -234,7 +233,7 @@ instance {X : C} : is_cofiltered (J.cover X) := infer_instance
 /-- The pushforward functor `Sheaf J A ⥤ Sheaf K A` associated to a functor `G : C ⥤ D` in the
 same direction as `G`. -/
 @[simps] def sites.pushforward (G : C ⥤ D) : Sheaf J A ⥤ Sheaf K A :=
-  Sheaf_to_presheaf J A ⋙ Lan G.op ⋙ presheaf_to_Sheaf K A
+Sheaf_to_presheaf J A ⋙ Lan G.op ⋙ presheaf_to_Sheaf K A
 
 instance (G : C ⥤ D) [representably_flat G] :
   preserves_finite_limits (sites.pushforward A J K G) :=

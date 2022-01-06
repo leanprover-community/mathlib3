@@ -26,22 +26,29 @@ open nat fintype
 variables (M : Type*) [fintype M] [has_mul M]
 
 /-- The commuting probability of a finite type with a multiplication operation -/
-def comm_prob : ℚ := card {p : M × M // p.1 * p.2 = p.2 * p.1} / card (M × M)
+def comm_prob : ℚ := card {p : M × M // p.1 * p.2 = p.2 * p.1} / card M ^ 2
 
-lemma comm_prob_def : comm_prob M = card {p : M × M // p.1 * p.2 = p.2 * p.1} / card (M × M) := rfl
+lemma comm_prob_def : comm_prob M = card {p : M × M // p.1 * p.2 = p.2 * p.1} / card M ^ 2 :=
+rfl
 
 lemma comm_prob_pos [h : nonempty M] : 0 < comm_prob M :=
-h.elim (λ x, div_pos (cast_pos.mpr (card_pos_iff.mpr ⟨⟨(x, x), rfl⟩⟩)) (cast_pos.mpr card_pos))
+h.elim (λ x, div_pos (cast_pos.mpr (card_pos_iff.mpr ⟨⟨(x, x), rfl⟩⟩))
+  (pow_pos (cast_pos.mpr card_pos) 2))
 
 lemma comm_prob_le_one : comm_prob M ≤ 1 :=
-div_le_one_of_le (cast_le.mpr (set_fintype_card_le_univ _)) (cast_nonneg _)
+begin
+  refine div_le_one_of_le _ (sq_nonneg (card M)),
+  rw [←cast_pow, cast_le, sq, ←card_prod],
+  apply set_fintype_card_le_univ,
+end
 
 lemma comm_prob_eq_one_iff [h : nonempty M] : comm_prob M = 1 ↔ commutative ((*) : M → M → M) :=
 begin
   change (card {p : M × M | p.1 * p.2 = p.2 * p.1} : ℚ) / _ = 1 ↔ _,
-  rw [div_eq_one_iff_eq, nat.cast_inj, set_fintype_card_eq_univ_iff, set.eq_univ_iff_forall],
+  rw [div_eq_one_iff_eq, ←cast_pow, nat.cast_inj, sq, ←card_prod,
+      set_fintype_card_eq_univ_iff, set.eq_univ_iff_forall],
   { exact ⟨λ h x y, h (x, y), λ h x, h x.1 x.2⟩ },
-  { exact cast_ne_zero.mpr card_ne_zero },
+  { exact pow_ne_zero 2 (cast_ne_zero.mpr card_ne_zero) },
 end
 
 variables (G : Type*) [group G] [fintype G]
@@ -60,6 +67,6 @@ calc card {p : G × G // p.1 * p.2 = p.2 * p.1} = card (Σ g, {h // g * h = h * 
 
 lemma comm_prob.def' : comm_prob G = card (conj_classes G) / card G :=
 begin
-  rw [comm_prob, card_comm_eq_card_conj_classes_mul_card, card_prod, cast_mul, cast_mul],
+  rw [comm_prob, card_comm_eq_card_conj_classes_mul_card, cast_mul, sq],
   exact mul_div_mul_right (card (conj_classes G)) (card G) (cast_ne_zero.mpr card_ne_zero),
 end

@@ -5,6 +5,7 @@ Authors: Mario Carneiro, Floris van Doorn
 -/
 import set_theory.cardinal
 import order.conditionally_complete_lattice
+import order.succ_pred
 
 /-!
 # Ordinals
@@ -1029,6 +1030,8 @@ instance : linear_order ordinal :=
   ..ordinal.partial_order }
 
 instance : is_well_order ordinal (<) := ⟨wf⟩
+
+instance : succ_order ordinal := succ_order.of_succ_le_iff succ (λ _ _, succ_le)
 
 @[simp] lemma typein_le_typein (r : α → α → Prop) [is_well_order α r] {x x' : α} :
   typein r x ≤ typein r x' ↔ ¬r x' x :=

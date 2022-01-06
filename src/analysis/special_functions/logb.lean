@@ -210,7 +210,7 @@ end
 
 open_locale big_operators
 
-lemma logb_prod {α : Type*} (one_lt_b : 1 < b) (s : finset α) (f : α → ℝ) (hf : ∀ x ∈ s, f x ≠ 0):
+lemma logb_prod {α : Type*} (s : finset α) (f : α → ℝ) (hf : ∀ x ∈ s, f x ≠ 0):
   logb b (∏ i in s, f i) = ∑ i in s, logb b (f i) :=
 begin
   classical,

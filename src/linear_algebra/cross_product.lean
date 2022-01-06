@@ -4,9 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Martin Dvorak, Kyle Miller, Eric Wieser
 -/
 
+import data.matrix.notation
 import linear_algebra.bilinear_map
 import linear_algebra.matrix.determinant
-import linear_algebra.vectors
 import algebra.lie.basic
 
 /-!
@@ -25,7 +25,7 @@ This module defines the cross product of vectors in $R^3$ for $R$ a commutative 
 
 ## Notation
 
-The locale `vectors` gives the following notation:
+The locale `matrix` gives the following notation:
 
 * `×₃` for the cross product
 
@@ -34,7 +34,8 @@ The locale `vectors` gives the following notation:
 crossproduct
 -/
 
-open_locale vectors
+open matrix
+open_locale matrix
 
 variables {R : Type*} [comm_ring R]
 
@@ -52,7 +53,7 @@ begin
   ring,
 end
 
-localized "infixl ` ×₃ `: 68 := cross_product" in vectors
+localized "infixl ` ×₃ `: 68 := cross_product" in matrix
 
 lemma cross_product_apply (a b : fin 3 → R) :
   a ×₃ b = ![a 1 * b 2 - a 2 * b 1,
@@ -74,17 +75,17 @@ by simp [cross_product_apply, mul_comm]
 
 /-- The cross product of two vectors is perpendicular to the first vector. -/
 lemma dot_self_cross_product (v w : fin 3 → R) :
-  v ⬝ (v ×₃ w) = 0 :=
+  v • (v ×₃ w) = 0 :=
 by simp [cross_product_apply, vec3_dot_product, mul_sub, mul_assoc, mul_left_comm]
 
 /-- The cross product of two vectors is perpendicular to the second vector. -/
 lemma dot_cross_product_self (v w : fin 3 → R) :
-  w ⬝ (v ×₃ w) = 0 :=
+  w • (v ×₃ w) = 0 :=
 by rw [← cross_product_anticomm, matrix.dot_product_neg, dot_self_cross_product, neg_zero]
 
 /-- Cyclic permutations preserve the triple product. See also `triple_product_eq_det`. -/
 lemma triple_product_permutation (u v w : fin 3 → R) :
-  u ⬝ (v ×₃ w) = v ⬝ (w ×₃ u) :=
+  u • (v ×₃ w) = v • (w ×₃ u) :=
 begin
   simp only [cross_product_apply, vec3_dot_product,
     matrix.head_cons, matrix.cons_vec_bit0_eq_alt0, matrix.empty_append, matrix.cons_val_one,
@@ -95,7 +96,7 @@ end
 /-- The triple product of `u`, `v`, and `w` is equal to the determinant of the matrix
     with those vectors as its rows. -/
 theorem triple_product_eq_det (u v w : fin 3 → R) :
-  u ⬝ (v ×₃ w) = matrix.det ![u, v, w] :=
+  u • (v ×₃ w) = matrix.det ![u, v, w] :=
 begin
   simp only [vec3_dot_product, cross_product_apply, matrix.det_fin_three,
     matrix.head_cons, matrix.cons_vec_bit0_eq_alt0, matrix.empty_vec_alt0, matrix.cons_vec_alt0,

@@ -5,6 +5,7 @@ Authors: Anne Baanen
 -/
 import data.matrix.basic
 import data.fin.vec_notation
+import tactic.fin_cases
 
 /-!
 # Matrix and vector notation
@@ -24,6 +25,8 @@ already appears in the input.
 
 We reuse notation `![a, b]` for `vec_cons a (vec_cons b vec_empty)`. It is a localized notation in
 the `matrix` locale.
+
+The locale `matrix` further provides `•` for the dot product of explicit vectors.
 
 ## Examples
 
@@ -230,5 +233,48 @@ empty_eq _
 by { ext i j, refine fin.cases _ _ i; simp [minor] }
 
 end minor
+
+section vec2_and_vec3
+
+variable {R : Type*}
+
+lemma vec2_eq {a₀ a₁ b₀ b₁ : R} (h₀ : a₀ = b₀) (h₁ : a₁ = b₁) :
+  ![a₀, a₁] = ![b₀, b₁] :=
+by { ext x, fin_cases x; assumption }
+
+lemma vec3_eq {a₀ a₁ a₂ b₀ b₁ b₂ : R} (h₀ : a₀ = b₀) (h₁ : a₁ = b₁) (h₂ : a₂ = b₂) :
+  ![a₀, a₁, a₂] = ![b₀, b₁, b₂] :=
+by { ext x, fin_cases x; assumption }
+
+variable [comm_ring R]
+
+lemma vec2_add {a₀ a₁ b₀ b₁ : R} :
+  ![a₀, a₁] + ![b₀, b₁] = ![a₀ + b₀, a₁ + b₁] :=
+by rw [cons_add_cons, cons_add_cons, empty_add_empty]
+
+lemma vec3_add {a₀ a₁ a₂ b₀ b₁ b₂ : R} :
+  ![a₀, a₁, a₂] + ![b₀, b₁, b₂] = ![a₀ + b₀, a₁ + b₁, a₂ + b₂] :=
+by rw [cons_add_cons, cons_add_cons, cons_add_cons, empty_add_empty]
+
+localized "infix  ` • ` : 67 := matrix.dot_product" in matrix
+
+lemma vec2_dot_product' {a₀ a₁ b₀ b₁ : R} :
+  ![a₀, a₁] • ![b₀, b₁] = a₀ * b₀ + a₁ * b₁ :=
+by rw [cons_dot_product_cons, cons_dot_product_cons, dot_product_empty, add_zero]
+
+lemma vec2_dot_product (v w : fin 2 → R) :
+  v • w = v 0 * w 0 + v 1 * w 1 :=
+vec2_dot_product'
+
+lemma vec3_dot_product' {a₀ a₁ a₂ b₀ b₁ b₂ : R} :
+  ![a₀, a₁, a₂] • ![b₀, b₁, b₂] = a₀ * b₀ + a₁ * b₁ + a₂ * b₂ :=
+by rw [cons_dot_product_cons, cons_dot_product_cons, cons_dot_product_cons,
+       dot_product_empty, add_zero, add_assoc]
+
+lemma vec3_dot_product (v w : fin 3 → R) :
+  v • w = v 0 * w 0 + v 1 * w 1 + v 2 * w 2 :=
+vec3_dot_product'
+
+end vec2_and_vec3
 
 end matrix

@@ -82,6 +82,14 @@ by { rw [add_comm _ b, add_comm _ c], exact rel.add_right _ _ _ h, }
 lemma rel.neg (a b : lib R X) (h : rel R X a b) : rel R X (-a) (-b) :=
 h.smul (-1) _ _
 
+lemma rel.smul_of_tower {S : Type*} [monoid S] [distrib_mul_action S R] [is_scalar_tower S R R]
+  (t : S) (a b : lib R X)
+  (h : rel R X a b) : rel R X (t • a) (t • b) :=
+begin
+  rw [←smul_one_smul R t a, ←smul_one_smul R t b],
+  exact h.smul _ _ _,
+end
+
 end free_lie_algebra
 
 /-- The free Lie algebra on the type `X` with coefficients in the commutative ring `R`. -/
@@ -89,6 +97,15 @@ end free_lie_algebra
 def free_lie_algebra := quot (free_lie_algebra.rel R X)
 
 namespace free_lie_algebra
+
+instance {S : Type*} [monoid S] [distrib_mul_action S R] [is_scalar_tower S R R] :
+  has_scalar S (free_lie_algebra R X) :=
+{ smul := λ t, quot.map ((•) t) (rel.smul_of_tower t) }
+
+instance {S : Type*} [monoid S] [distrib_mul_action S R] [distrib_mul_action Sᵐᵒᵖ R]
+  [is_scalar_tower S R R] [is_central_scalar S R] :
+  is_central_scalar S (free_lie_algebra R X) :=
+{ op_smul_eq_smul := λ t, quot.ind $ by exact λ a, congr_arg (quot.mk _) (op_smul_eq_smul t a) }
 
 instance : add_comm_group (free_lie_algebra R X) :=
 { add            := quot.map₂ (+) rel.add_left rel.add_right,
@@ -100,9 +117,9 @@ instance : add_comm_group (free_lie_algebra R X) :=
   neg            := quot.map has_neg.neg rel.neg,
   add_left_neg   := by { rintros ⟨a⟩, change quot.mk _ _ = quot.mk _ _ , rw add_left_neg, } }
 
-instance : module R (free_lie_algebra R X) :=
-{ smul      := λ t, quot.map ((•) t) (rel.smul t),
-  one_smul  := by { rintros ⟨a⟩, change quot.mk _ _ = quot.mk _ _, rw one_smul, },
+instance {S : Type*} [semiring S] [module S R] [is_scalar_tower S R R] :
+  module S (free_lie_algebra R X) :=
+{ one_smul  := by { rintros ⟨a⟩, change quot.mk _ _ = quot.mk _ _, rw one_smul, },
   mul_smul  := by { rintros t₁ t₂ ⟨a⟩, change quot.mk _ _ = quot.mk _ _, rw mul_smul, },
   add_smul  := by { rintros t₁ t₂ ⟨a⟩, change quot.mk _ _ = quot.mk _ _, rw add_smul, },
   smul_add  := by { rintros t ⟨a⟩ ⟨b⟩, change quot.mk _ _ = quot.mk _ _, rw smul_add, },

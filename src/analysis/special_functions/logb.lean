@@ -175,15 +175,15 @@ end
 lemma logb_inj_on_pos (one_lt_b : 1 < b) : set.inj_on (logb b) (set.Ioi 0) :=
 (strict_mono_on_logb one_lt_b).inj_on
 
-lemma eq_one_of_pos_of_logb_eq_zero (one_lt_b : 1 < b) {x : ℝ} (h₁ : 0 < x) (h₂ : logb b x = 0) :
+lemma eq_one_of_pos_of_logb_eq_zero (one_lt_b : 1 < b) (h₁ : 0 < x) (h₂ : logb b x = 0) :
 x = 1 :=
 logb_inj_on_pos one_lt_b (set.mem_Ioi.2 h₁) (set.mem_Ioi.2 zero_lt_one)
   (h₂.trans real.logb_one.symm)
 
-lemma logb_ne_zero_of_pos_of_ne_one (one_lt_b : 1 < b) {x : ℝ} (hx_pos : 0 < x) (hx : x ≠ 1) : logb b x ≠ 0 :=
+lemma logb_ne_zero_of_pos_of_ne_one (one_lt_b : 1 < b) (hx_pos : 0 < x) (hx : x ≠ 1) : logb b x ≠ 0 :=
 mt (eq_one_of_pos_of_logb_eq_zero one_lt_b hx_pos) hx
 
-@[simp] lemma logb_eq_zero {x : ℝ} :
+@[simp] lemma logb_eq_zero :
   logb b x = 0 ↔ b = 0 ∨ b = 1 ∨ b = -1 ∨ x = 0 ∨ x = 1 ∨ x = -1 :=
 begin
   simp_rw [logb, div_eq_zero_iff, log_eq_zero],

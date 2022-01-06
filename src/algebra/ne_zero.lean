@@ -71,7 +71,7 @@ lemma of_ne_zero_coe [has_zero R] [has_one R] [has_add R] [h : ne_zero (n : R)] 
 ⟨by {casesI h, rintro rfl, contradiction}⟩
 
 lemma not_dvd_char (R) [add_monoid R] [has_one R]
-  {p : ℕ} [char_p R p] (k : ℕ) [h : ne_zero (k : R)] : ¬ p ∣ k :=
+  (p : ℕ) [char_p R p] (k : ℕ) [h : ne_zero (k : R)] : ¬ p ∣ k :=
 by rwa [←not_iff_not.mpr $ char_p.cast_eq_zero_iff R p k, ←ne.def, ←ne_zero_iff]
 
 end ne_zero

@@ -1,5 +1,5 @@
 /-
-Copyright (c) 2021 Yaël Dillies. All rights reserved.
+Copyright (c) 2022 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
@@ -9,9 +9,10 @@ import data.multiset.basic
 /-!
 # Freiman homomorphisms
 
-In this file, we define Freiman homomorphisms. A `n`-Freiman homomorphism is a function `f : α → β`
-such that `f (x₁) * ... * f (xₙ) = f (y₁) * ... * f (yₙ)` for all `x₁, ..., xₙ, y₁, ..., yₙ` such
-that `x₁ * ... * xₙ = y₁ * ... * yₙ`. In particular, any `mul_hom` is a Freiman homomorphism.
+In this file, we define Freiman homomorphisms. A `n`-Freiman homomorphism on `A` is a function
+`f : α → β` such that `f (x₁) * ... * f (xₙ) = f (y₁) * ... * f (yₙ)` for all
+`x₁, ..., xₙ, y₁, ..., yₙ ∈ A` such that `x₁ * ... * xₙ = y₁ * ... * yₙ`. In particular, any
+`mul_hom` is a Freiman homomorphism.
 
 They are of interest in additive combinatorics.
 
@@ -161,13 +162,6 @@ lemma comp_assoc (f : A →*[n] β) (g : B →*[n] γ) (h : C →*[n] δ) {hf hh
 lemma cancel_right {g₁ g₂ : B →*[n] γ} {f : A →*[n] β} (hf : function.surjective f) {hg₁ hg₂} :
   g₁.comp f hg₁ = g₂.comp f hg₂ ↔ g₁ = g₂ :=
 ⟨λ h, ext $ hf.forall.2 $ fun_like.ext_iff.1 h, λ h, h ▸ rfl⟩
-
--- @[to_additive]
--- lemma cancel_left {g : B →*[n] γ} {f₁ f₂ : A →*[n] β} (hg : function.injective g)
---   {hf₁ : set.maps_to f₁ A B} {hf₂ : set.maps_to f₂ A B} :
---   g.comp f₁ hf₁ = g.comp f₂ hf₂ ↔ f₁ = f₂ :=
--- ⟨λ h, ext $ λ x, hg $ by rw [← comp_apply, h, comp_apply],
---   λ h, h ▸ rfl⟩
 
 @[to_additive]
 lemma cancel_right_on {g₁ g₂ : B →*[n] γ} {f : A →*[n] β} (hf : A.surj_on f B) {hf'} :
@@ -347,8 +341,8 @@ begin
   { rw [prod_add, prod_add, hst] }
 end
 
-/-- `α →*[m] β` is naturally included in  `A →*[n] β` for any `m ≤ n`. -/
-@[to_additive add_freiman_hom.to_add_freiman_hom "`α →+[m] β` is naturally included in  `α →+[n] β`
+/-- `α →*[n] β` is naturally included in  `A →*[m] β` for any `m ≤ n`. -/
+@[to_additive add_freiman_hom.to_add_freiman_hom "`α →+[n] β` is naturally included in  `α →+[m] β`
 for any `m ≤ n`"]
 def freiman_hom.to_freiman_hom (h : m ≤ n) (f : A →*[n] β) : A →*[m] β :=
 { to_fun := f,

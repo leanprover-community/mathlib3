@@ -183,7 +183,7 @@ one_hom_class.map_one f
 
 @[to_additive] lemma one_hom_class.map_eq_one_iff [one_hom_class F M N] (f : F)
   (hf : function.injective f) {x : M} : f x = 1 ↔ x = 1 :=
-⟨λ h, hf $ by simp [h], λ h, by simpa using congr_arg f h⟩
+hf.eq_iff' (map_one f)
 
 @[to_additive] lemma one_hom.map_eq_one_iff (f : one_hom M N) (hf : function.injective f) {x : M} :
   f x = 1 ↔ x = 1 :=

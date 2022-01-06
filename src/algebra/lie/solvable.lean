@@ -261,9 +261,9 @@ instance radical_is_solvable [is_noetherian R L] : is_solvable R (radical R L) :
 begin
   have hwf := lie_submodule.well_founded_of_noetherian R L L,
   rw ← complete_lattice.is_sup_closed_compact_iff_well_founded at hwf,
-  refine hwf { I : lie_ideal R L | is_solvable R I } _ _,
-  { use ⊥, exact lie_algebra.is_solvable_bot R L, },
-  { intros I J hI hJ, apply lie_algebra.is_solvable_add R L; [exact hI, exact hJ], },
+  refine hwf { I : lie_ideal R L | is_solvable R I } ⟨⊥, _⟩ (λ I hI J hJ, _),
+  { exact lie_algebra.is_solvable_bot R L, },
+  { apply lie_algebra.is_solvable_add R L; exacts [hI, hJ] },
 end
 
 /-- The `→` direction of this lemma is actually true without the `is_noetherian` assumption. -/

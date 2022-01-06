@@ -503,7 +503,7 @@ begin
     exact congr_arg coe (g_sup f₁ f₂), },
 end
 
-lemma sup'_induction {p : α → Prop} (hp : ∀ (a₁ a₂ : α), p a₁ → p a₂ → p (a₁ ⊔ a₂))
+lemma sup'_induction {p : α → Prop} (hp : ∀ a₁, p a₁ → ∀ a₂, p a₂ → p (a₁ ⊔ a₂))
   (hs : ∀ b ∈ s, p (f b)) : p (s.sup' H f) :=
 begin
   show @with_bot.rec_bot_coe α (λ _, Prop) true p ↑(s.sup' H f),
@@ -512,7 +512,7 @@ begin
   rintro (_|a₁) h₁ a₂ h₂,
   { rw [with_bot.none_eq_bot, bot_sup_eq], exact h₂ },
   cases a₂,
-  exacts [h₁, hp a₁ a₂ h₁ h₂]
+  exacts [h₁, hp a₁ h₁ a₂ h₂]
 end
 
 lemma exists_mem_eq_sup' [is_total α (≤)] : ∃ b, b ∈ s ∧ s.sup' H f = f b :=
@@ -531,8 +531,7 @@ end
 lemma sup'_mem
   (s : set α) (w : ∀ x y ∈ s, x ⊔ y ∈ s)
   {ι : Type*} (t : finset ι) (H : t.nonempty) (p : ι → α) (h : ∀ i ∈ t, p i ∈ s) :
-  t.sup' H p ∈ s :=
-sup'_induction H p (λ a b ha hb, w a ha b hb) h
+  t.sup' H p ∈ s := sup'_induction H p w h
 
 @[congr] lemma sup'_congr {t : finset β} {f g : β → α} (h₁ : s = t) (h₂ : ∀ x ∈ s, f x = g x) :
   s.sup' H f = t.sup' (h₁ ▸ H) g :=
@@ -604,7 +603,7 @@ lemma comp_inf'_eq_inf'_comp [semilattice_inf γ] {s : finset β} (H : s.nonempt
   g (s.inf' H f) = s.inf' H (g ∘ f) :=
 @comp_sup'_eq_sup'_comp (order_dual α) _ (order_dual γ) _ _ _ H f g g_inf
 
-lemma inf'_induction {p : α → Prop} (hp : ∀ (a₁ a₂ : α), p a₁ → p a₂ → p (a₁ ⊓ a₂))
+lemma inf'_induction {p : α → Prop} (hp : ∀ a₁, p a₁ → ∀ a₂, p a₂ → p (a₁ ⊓ a₂))
   (hs : ∀ b ∈ s, p (f b)) : p (s.inf' H f) :=
 @sup'_induction (order_dual α) _ _ _ H f _ hp hs
 
@@ -613,8 +612,7 @@ lemma exists_mem_eq_inf' [is_total α (≤)] : ∃ b, b ∈ s ∧ s.inf' H f = f
 
 lemma inf'_mem (s : set α) (w : ∀ x y ∈ s, x ⊓ y ∈ s)
   {ι : Type*} (t : finset ι) (H : t.nonempty) (p : ι → α) (h : ∀ i ∈ t, p i ∈ s) :
-  t.inf' H p ∈ s :=
-inf'_induction H p (λ a b ha hb, w a ha b hb) h
+  t.inf' H p ∈ s := inf'_induction H p w h
 
 @[congr] lemma inf'_congr {t : finset β} {f g : β → α} (h₁ : s = t) (h₂ : ∀ x ∈ s, f x = g x) :
   s.inf' H f = t.inf' (h₁ ▸ H) g :=
@@ -629,7 +627,7 @@ lemma sup'_eq_sup {s : finset β} (H : s.nonempty) (f : β → α) : s.sup' H f 
 le_antisymm (sup'_le H f (λ b, le_sup)) (sup_le (λ b, le_sup' f))
 
 lemma sup_closed_of_sup_closed {s : set α} (t : finset α) (htne : t.nonempty) (h_subset : ↑t ⊆ s)
-  (h : ∀⦃a b⦄, a ∈ s → b ∈ s → a ⊔ b ∈ s) : t.sup id ∈ s :=
+  (h : ∀ a b ∈ s, a ⊔ b ∈ s) : t.sup id ∈ s :=
 sup'_eq_sup htne id ▸ sup'_induction _ _ h h_subset
 
 lemma exists_mem_eq_sup [is_total α (≤)] (s : finset β) (h : s.nonempty) (f : β → α) :
@@ -649,7 +647,7 @@ lemma inf'_eq_inf {s : finset β} (H : s.nonempty) (f : β → α) : s.inf' H f 
 @sup'_eq_sup (order_dual α) _ _ _ _ H f
 
 lemma inf_closed_of_inf_closed {s : set α} (t : finset α) (htne : t.nonempty) (h_subset : ↑t ⊆ s)
-  (h : ∀⦃a b⦄, a ∈ s → b ∈ s → a ⊓ b ∈ s) : t.inf id ∈ s :=
+  (h : ∀ a b ∈ s, a ⊓ b ∈ s) : t.inf id ∈ s :=
 @sup_closed_of_sup_closed (order_dual α) _ _ _ t htne h_subset h
 
 lemma exists_mem_eq_inf [is_total α (≤)] (s : finset β) (h : s.nonempty) (f : β → α) :

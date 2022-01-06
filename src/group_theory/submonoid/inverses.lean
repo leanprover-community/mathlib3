@@ -64,7 +64,7 @@ begin
 end
 
 @[to_additive]
-lemma unit_mem_left_inv (x : units M) (hx : (x : M) ∈ S) : ((x⁻¹ : _) : M) ∈ S.left_inv :=
+lemma unit_mem_left_inv (x : Mˣ) (hx : (x : M) ∈ S) : ((x⁻¹ : _) : M) ∈ S.left_inv :=
 ⟨⟨x, hx⟩, x.inv_val⟩
 
 @[to_additive]
@@ -72,7 +72,7 @@ lemma left_inv_left_inv_eq (hS : S ≤ is_unit.submonoid M) : S.left_inv.left_in
 begin
   refine le_antisymm S.left_inv_left_inv_le _,
   intros x hx,
-  have : x = ((hS hx).unit⁻¹⁻¹ : units M) := by { rw [inv_inv (hS hx).unit], refl },
+  have : x = ((hS hx).unit⁻¹⁻¹ : Mˣ) := by { rw [inv_inv (hS hx).unit], refl },
   rw this,
   exact S.left_inv.unit_mem_left_inv _ (S.unit_mem_left_inv _ hx)
 end

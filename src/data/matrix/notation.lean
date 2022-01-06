@@ -71,6 +71,10 @@ by simp [dot_product, fin.sum_univ_succ, vec_head, vec_tail]
   dot_product v (vec_cons x w) = vec_head v * x + dot_product (vec_tail v) w :=
 by simp [dot_product, fin.sum_univ_succ, vec_head, vec_tail]
 
+@[simp] lemma cons_dot_product_cons (x : α) (v : fin n → α) (y : α) (w : fin n → α) :
+  dot_product (vec_cons x v) (vec_cons y w) = x * y + dot_product v w :=
+by simp
+
 end dot_product
 
 section col_row

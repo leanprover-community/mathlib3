@@ -102,10 +102,10 @@ have 2 * dist x y ≥ 0,
     ... ≥ 0 : by rw ← dist_self x; apply dist_triangle,
 nonneg_of_mul_nonneg_left this zero_lt_two
 
-/-- This tactic is used to populate `pseudo_metric_space.edist_dist` when the default `edist` is
+/-- This tactic is used to populate `pseudo_metric_space.of_real_dist` when the default `edist` is
 used. -/
-protected meta def pseudo_metric_space.edist_dist_tac : tactic unit :=
-tactic.intros >> `[exact (ennreal.of_real_eq_coe_nnreal _).symm <|> control_laws_tac]
+protected meta def pseudo_metric_space.of_real_dist_tac : tactic unit :=
+tactic.intros >> `[exact ennreal.of_real_eq_coe_nnreal _ <|> control_laws_tac]
 
 /-- Metric space
 
@@ -121,8 +121,8 @@ class pseudo_metric_space (α : Type u) extends has_dist α : Type u :=
 (dist_triangle : ∀ x y z : α, dist x z ≤ dist x y + dist y z)
 (edist : α → α → ℝ≥0∞ := λ x y,
   @coe (ℝ≥0) _ _ ⟨dist x y, pseudo_metric_space.dist_nonneg' _ ‹_› ‹_› ‹_›⟩)
-(edist_dist : ∀ x y : α,
-  edist x y = ennreal.of_real (dist x y) . pseudo_metric_space.edist_dist_tac)
+(of_real_dist : ∀ x y : α, ennreal.of_real (dist x y) = edist x y .
+  pseudo_metric_space.of_real_dist_tac)
 (to_uniform_space : uniform_space α := uniform_space_of_dist dist dist_self dist_comm dist_triangle)
 (uniformity_dist : 𝓤 α = ⨅ ε>0, 𝓟 {p:α×α | dist p.1 p.2 < ε} . control_laws_tac)
 
@@ -176,8 +176,8 @@ pseudo_metric_space α :=
 
 theorem dist_comm (x y : α) : dist x y = dist y x := pseudo_metric_space.dist_comm x y
 
-theorem edist_dist (x y : α) : edist x y = ennreal.of_real (dist x y) :=
-pseudo_metric_space.edist_dist x y
+theorem of_real_dist (x y : α) : ennreal.of_real (dist x y) = edist x y :=
+pseudo_metric_space.of_real_dist x y
 
 theorem dist_triangle (x y z : α) : dist x z ≤ dist x y + dist y z :=
 pseudo_metric_space.dist_triangle x y z
@@ -259,8 +259,8 @@ export has_nndist (nndist)
 instance pseudo_metric_space.to_has_nndist : has_nndist α := ⟨λ a b, ⟨dist a b, dist_nonneg⟩⟩
 
 /--Express `nndist` in terms of `edist`-/
-lemma nndist_edist (x y : α) : nndist x y = (edist x y).to_nnreal :=
-by simp [nndist, edist_dist, real.to_nnreal, max_eq_left dist_nonneg, ennreal.of_real]
+lemma to_nnreal_edist (x y : α) : (edist x y).to_nnreal = nndist x y :=
+by simp [nndist, ← of_real_dist, real.to_nnreal, max_eq_left dist_nonneg, ennreal.of_real]
 
 /--Express `edist` in terms of `nndist`-/
 lemma edist_nndist (x y : α) : edist x y = ↑(nndist x y) :=

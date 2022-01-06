@@ -75,17 +75,17 @@ by simp [cross_product_apply, mul_comm]
 
 /-- The cross product of two vectors is perpendicular to the first vector. -/
 lemma dot_self_cross_product (v w : fin 3 → R) :
-  v • (v ×₃ w) = 0 :=
+  v ⬝ᵥ (v ×₃ w) = 0 :=
 by simp [cross_product_apply, vec3_dot_product, mul_sub, mul_assoc, mul_left_comm]
 
 /-- The cross product of two vectors is perpendicular to the second vector. -/
 lemma dot_cross_product_self (v w : fin 3 → R) :
-  w • (v ×₃ w) = 0 :=
+  w ⬝ᵥ (v ×₃ w) = 0 :=
 by rw [← cross_product_anticomm, matrix.dot_product_neg, dot_self_cross_product, neg_zero]
 
 /-- Cyclic permutations preserve the triple product. See also `triple_product_eq_det`. -/
 lemma triple_product_permutation (u v w : fin 3 → R) :
-  u • (v ×₃ w) = v • (w ×₃ u) :=
+  u ⬝ᵥ (v ×₃ w) = v ⬝ᵥ (w ×₃ u) :=
 begin
   simp only [cross_product_apply, vec3_dot_product,
     matrix.head_cons, matrix.cons_vec_bit0_eq_alt0, matrix.empty_append, matrix.cons_val_one,
@@ -96,7 +96,7 @@ end
 /-- The triple product of `u`, `v`, and `w` is equal to the determinant of the matrix
     with those vectors as its rows. -/
 theorem triple_product_eq_det (u v w : fin 3 → R) :
-  u • (v ×₃ w) = matrix.det ![u, v, w] :=
+  u ⬝ᵥ (v ×₃ w) = matrix.det ![u, v, w] :=
 begin
   simp only [vec3_dot_product, cross_product_apply, matrix.det_fin_three,
     matrix.head_cons, matrix.cons_vec_bit0_eq_alt0, matrix.empty_vec_alt0, matrix.cons_vec_alt0,

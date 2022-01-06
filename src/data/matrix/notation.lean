@@ -260,25 +260,25 @@ end vec2_and_vec3
 
 section vec2_and_vec3_dot
 
-localized "infix  ` • ` : 67 := matrix.dot_product" in matrix
+localized "infix  ` ⬝ᵥ ` : 67 := matrix.dot_product" in matrix
 
 variable [semiring α]
 
 lemma vec2_dot_product' {a₀ a₁ b₀ b₁ : α} :
-  ![a₀, a₁] • ![b₀, b₁] = a₀ * b₀ + a₁ * b₁ :=
+  ![a₀, a₁] ⬝ᵥ ![b₀, b₁] = a₀ * b₀ + a₁ * b₁ :=
 by rw [cons_dot_product_cons, cons_dot_product_cons, dot_product_empty, add_zero]
 
 lemma vec2_dot_product (v w : fin 2 → α) :
-  v • w = v 0 * w 0 + v 1 * w 1 :=
+  v ⬝ᵥ w = v 0 * w 0 + v 1 * w 1 :=
 vec2_dot_product'
 
 lemma vec3_dot_product' {a₀ a₁ a₂ b₀ b₁ b₂ : α} :
-  ![a₀, a₁, a₂] • ![b₀, b₁, b₂] = a₀ * b₀ + a₁ * b₁ + a₂ * b₂ :=
+  ![a₀, a₁, a₂] ⬝ᵥ ![b₀, b₁, b₂] = a₀ * b₀ + a₁ * b₁ + a₂ * b₂ :=
 by rw [cons_dot_product_cons, cons_dot_product_cons, cons_dot_product_cons,
        dot_product_empty, add_zero, add_assoc]
 
 lemma vec3_dot_product (v w : fin 3 → α) :
-  v • w = v 0 * w 0 + v 1 * w 1 + v 2 * w 2 :=
+  v ⬝ᵥ w = v 0 * w 0 + v 1 * w 1 + v 2 * w 2 :=
 vec3_dot_product'
 
 end vec2_and_vec3_dot

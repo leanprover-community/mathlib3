@@ -5,7 +5,7 @@ Authors: Grayson Burton, Yaël Dillies, Violeta Hernández Palacios
 -/
 import category_theory.category.basic
 import data.finsupp.order
-import data.dfinsupp.basic
+import data.finsupp.basic
 import data.nat.interval
 import data.set.intervals.ord_connected
 import data.sigma.order

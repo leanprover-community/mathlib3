@@ -226,6 +226,6 @@ lemma map_nat_degree_eq_nat_degree {S F : Type*} [semiring S]
   [add_monoid_hom_class F (polynomial R) (polynomial S)] {φ : F} (p)
   (φ_mon_nat : ∀ n c, c ≠ 0 → (φ (monomial n c)).nat_degree = n) :
   (φ p).nat_degree = p.nat_degree :=
-by refine (map_nat_degree_eq_sub _ _ (by simpa)).trans (nat.sub_zero p.nat_degree); simp
+by refine (map_nat_degree_eq_sub _ _ (by simpa)).trans p.nat_degree.sub_zero; simp
 
 end polynomial

@@ -103,5 +103,3 @@ lemma coe_pointwise_module [semiring β] (f : α → β) (g : α →₀ β) :
   ⇑(f • g) = f • g := rfl
 
 end finsupp
-
-#lint

@@ -160,7 +160,7 @@ end erase_lead
 required to be at least as big as the `nat_degree` of the polynomial.  This is useful to prove
 results where you want to change each term in a polynomial to something else depending on the
 `nat_degree` of the polynomial itself and not on the specific `nat_degree` of each term. -/
-lemma induction_with_nat_degree_le {R : Type*} [semiring R] (P : polynomial R → Prop) (N : ℕ)
+lemma induction_with_nat_degree_le (P : polynomial R → Prop) (N : ℕ)
   (P_0 : P 0)
   (P_C_mul_pow : ∀ n : ℕ, ∀ r : R, r ≠ 0 → n ≤ N → P (C r * X ^ n))
   (P_C_add : ∀ f g : polynomial R, f.nat_degree < g.nat_degree →
@@ -226,10 +226,6 @@ lemma map_nat_degree_eq_nat_degree {S F : Type*} [semiring S]
   [add_monoid_hom_class F (polynomial R) (polynomial S)] {φ : F} (p)
   (φ_mon_nat : ∀ n c, c ≠ 0 → (φ (monomial n c)).nat_degree = n) :
   (φ p).nat_degree = p.nat_degree :=
-begin
-  rw ← nat.sub_zero p.nat_degree,
-  exact map_nat_degree_eq_sub (by simp) (by simp) (by simpa),
-end
-
+by refine (map_nat_degree_eq_sub _ _ (by simpa)).trans (nat.sub_zero p.nat_degree); simp
 
 end polynomial

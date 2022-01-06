@@ -262,10 +262,19 @@ begin
   rw [← multiset.eq_repeat'] at h2,
   have h56 : 5 ≤ 3 * 2 := nat.le_succ 5,
   have h := le_of_mul_le_mul_right (le_trans h h56) dec_trivial,
-  rw [mem_alternating_group, sign_of_cycle_type, h2, multiset.map_repeat, multiset.prod_repeat,
+  have ha' : even (multiset.card g.cycle_type),
+  { /-
+    rw [mem_alternating_group, sign_of_cycle_type, h2] at ha,
+    rw [multiset.map_repeat, multiset.prod_repeat,
     int.units_pow_two, units.ext_iff, units.coe_one, units.coe_pow, units.coe_neg_one,
       nat.neg_one_pow_eq_one_iff_even _] at ha,
+    swap, { dec_trivial }, -/
+  rw [mem_alternating_group, sign_of_cycle_type', h2, units.ext_iff, units.coe_one,
+    units.coe_pow, units.coe_neg_one, nat.neg_one_pow_eq_one_iff_even _] at ha,
   swap, { dec_trivial },
+  rw [multiset.sum_repeat, algebra.id.smul_eq_mul, multiset.card_repeat] at ha,
+  refine (nat.even_add.mp ha).mp _,
+  apply nat.even.mul_right _, dec_trivial },
   rw [is_conj_iff_cycle_type_eq, h2],
   interval_cases multiset.card g.cycle_type,
   { exact (h1 (card_cycle_type_eq_zero.1 h_1)).elim },
@@ -322,10 +331,12 @@ instance is_simple_group_five : is_simple_group (alternating_group (fin 5)) :=
   { -- The case `n = 4` leads to contradiction, as no element of $A_5$ includes a 4-cycle.
     have con := mem_alternating_group.1 gA,
     contrapose! con,
+    /-
     rw [sign_of_cycle_type, cycle_type_of_card_le_mem_cycle_type_add_two dec_trivial ng,
-      multiset.map_singleton, multiset.prod_singleton],
+      multiset.map_singleton, multiset.prod_singleton], -/
+    rw [sign_of_cycle_type', cycle_type_of_card_le_mem_cycle_type_add_two dec_trivial ng],
     dec_trivial },
-  { -- If `n = 5`, then `g` is itself a 5-cycle, conjugate to `fin_rotate 5`.
+   { -- If `n = 5`, then `g` is itself a 5-cycle, conjugate to `fin_rotate 5`.
     refine (is_conj_iff_cycle_type_eq.2 _).normal_closure_eq_top_of
       normal_closure_fin_rotate_five,
     rw [cycle_type_of_card_le_mem_cycle_type_add_two dec_trivial ng, cycle_type_fin_rotate] }

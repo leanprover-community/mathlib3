@@ -1,4 +1,4 @@
-import measure_theory.integral.complex
+import analysis.complex.cauchy_integral
 import analysis.analytic.basic
 import analysis.calculus.parametric_interval_integral
 import data.complex.basic
@@ -15,12 +15,24 @@ variables {E : Type u} [normed_group E] [normed_space ℂ E] [measurable_space E
 
 namespace complex
 
-lemma has_cauchy_integral_form {R : ℝ} {z w : ℂ} (hw : w ∈ ball z R)
+lemma has_cauchy_integral_form {R : ℝ} {z w : ℂ} (hR : 0 < R ) (hw : w ∈ ball z R)
   {f : ℂ → E} (hd : differentiable_on ℂ f (closed_ball z R)) :
   f w  = (1/(2 • π • I)) • ∫ (θ : ℝ) in 0..2 * π,
   ((R * exp (θ * I) * I) / (z + R * exp (θ * I) - w) : ℂ) • f (z + R * exp (θ * I)) :=
 begin
-  have := integral_circle_div_sub_of_differentiable_on hw hd,
+  set s : set ℂ := ⊥,
+  have hs: s.countable, by {simp_rw s, simp, },
+
+  have := circle_integral_sub_inv_smul_of_differentiable_on_off_countable hs hw hd.continuous_on _,
+  simp_rw circle_integral at this,
+  simp_rw deriv_circle_map at this,
+  simp_rw circle_map at this,
+  simp at this,
+
+  have rel2 : ∀ (θ : ℝ), (↑R * exp (↑θ * I) * I) • (z + ↑R * exp (↑θ * I) - w)⁻¹ =
+  (↑R * exp (↑θ * I) * I)/(z + ↑R * exp (↑θ * I) - w), by {simp, intro θ, field_simp,},
+    simp_rw ← smul_assoc at this,
+  simp_rw rel2 at this,
   simp only [this, one_div, nat.cast_bit0, real_smul, nsmul_eq_mul, nat.cast_one],
   simp_rw ← smul_assoc,
   simp only [algebra.id.smul_eq_mul, nat.cast_bit0, real_smul, nsmul_eq_mul, of_real_mul,
@@ -32,6 +44,19 @@ begin
   have tt := inv_mul_cancel hn,
   simp_rw ← mul_assoc at tt,
   simp only [tt,one_smul],
+  intros x hx,
+  simp at hx,
+  apply hd.differentiable_at,
+  simp_rw metric.mem_nhds_iff,
+  have hxx : x ∈ ball z R, by {simp [hx]},
+  have := exists_ball_subset_ball hxx,
+  obtain ⟨ε, hε, hB⟩ := this,
+  refine ⟨ε, hε, _ ⟩,
+  intros y hy,
+  have hbb : ball z R ⊆ closed_ball z R, by {exact ball_subset_closed_ball},
+  apply hbb,
+  apply hB,
+  apply hy,
 end
 
 def cauchy_disk_function (R : ℝ) (z : ℂ) (f : ℂ → E) (w : ℂ) : (ℝ → E) := λ θ,
@@ -1076,7 +1101,7 @@ begin
   have F_alt : ∀ (n : ℕ) (c : ball z r), F n c = (cauchy_disk_form R z (F n)) c,
   by {intros n c,
   have hc : c.1 ∈ ball z R, by { apply ball_subset_ball hr.le, apply c.property,},
-  have ht := has_cauchy_integral_form hc (hdiff n),
+  have ht := has_cauchy_integral_form hR hc (hdiff n),
   simp only [one_div, mem_ball, algebra.id.smul_eq_mul,
   nat.cast_bit0, real_smul, nsmul_eq_mul, nat.cast_one, subtype.val_eq_coe] at *,
   rw ht,

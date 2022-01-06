@@ -97,8 +97,10 @@ begin
   rintros z hz1,
   rw [smul_eq_mul],
   refine mul_homogeneous_element_mem_of_mem 𝒜 (s z) z _ _ i,
-  rcases z with ⟨z, hz2⟩, rw subtype.image_preimage_coe at hz2, exact hz2.2,
-  apply ideal.subset_span, exact z.2,
+  { rcases z with ⟨z, hz2⟩,
+    rw subtype.image_preimage_coe at hz2,
+    exact hz2.2, },
+  { exact ideal.subset_span z.2 },
 end
 
 variables {𝒜 I}
@@ -111,10 +113,9 @@ begin
   letI : Π (i : ι) (x : 𝒜 i), decidable (x ≠ 0) := λ _ _, classical.dec _,
   rw ←graded_algebra.sum_support_decompose 𝒜 x,
   refine ideal.sum_mem _ _,
-  intros j hj, apply ideal.subset_span,
-  rw [set.mem_image],
-  refine ⟨⟨_, is_homogeneous_coe _⟩, _, rfl⟩,
-  rw [set.mem_preimage], apply h, exact hx,
+  intros j hj,
+  apply ideal.subset_span,
+  exact ⟨⟨_, is_homogeneous_coe _⟩, h _ hx, rfl⟩,
 end
 
 variables (𝒜 I)
@@ -183,28 +184,12 @@ begin
   rw ideal.is_homogeneous.iff_exists at HI HJ ⊢,
   obtain ⟨⟨s₁, rfl⟩, ⟨s₂, rfl⟩⟩ := ⟨HI, HJ⟩,
   rw [ideal.span_mul_span'],
-  refine ⟨s₁ * s₂, _⟩,
-  apply congr_arg,
-  ext, split; intro hx,
-  { rw set.mem_mul at hx,
-    obtain ⟨y1, y2, h1, h2, h3⟩ := hx,
-    rw set.mem_image at h1, obtain ⟨z1, h1⟩ := h1,
-    have hy1 : y1 ∈ set_like.homogeneous_submonoid 𝒜,
-    rw ←h1.2, exact z1.2,
-    rw set.mem_image at h2, obtain ⟨z2, h2⟩ := h2,
-    have hy2 : y2 ∈ set_like.homogeneous_submonoid 𝒜,
-    rw ←h2.2, exact z2.2,
-
-    use y1 * y2, apply submonoid.mul_mem,
-    exact hy1, exact hy2,
-    refine ⟨_, h3⟩, rw set.mem_mul, use y1, assumption,
-    use y2, assumption, tidy, },
-  { rw set.mem_image at hx,
-    obtain ⟨y, hy1, hy⟩ := hx,
-    rw set.mem_mul at hy1 ⊢,
-    obtain ⟨z1, z2, hz1, hz2, hz3⟩ := hy1,
-    use z1, use z2, split, rw set.mem_image, use z1, refine ⟨hz1, rfl⟩,
-    split, rw set.mem_image, use z2, refine ⟨hz2, rfl⟩, tidy, }
+  refine ⟨s₁ * s₂, congr_arg _ _⟩,
+  ext, split,
+  { rintro ⟨y1, y2, ⟨z1, h1, rfl⟩, ⟨z2, h2, rfl⟩, rfl⟩,
+    exact ⟨z1 * z2, set.mul_mem_mul h1 h2, rfl⟩, },
+  { rintro ⟨y, ⟨z1, z2, hz1, hz2, rfl⟩, rfl⟩,
+    refine set.mul_mem_mul ⟨_, hz1, rfl⟩ ⟨_, hz2, rfl⟩, }
 end
 
 lemma ideal.is_homogeneous.sup {I J : ideal A}

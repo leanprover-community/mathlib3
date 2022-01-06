@@ -72,14 +72,14 @@ section roots_of_unity
 
 variables {k l : ℕ+}
 
-/-- `roots_of_unity k M` is the subgroup of elements `m : units M` that satisfy `m ^ k = 1` -/
-def roots_of_unity (k : ℕ+) (M : Type*) [comm_monoid M] : subgroup (units M) :=
+/-- `roots_of_unity k M` is the subgroup of elements `m : Mˣ` that satisfy `m ^ k = 1` -/
+def roots_of_unity (k : ℕ+) (M : Type*) [comm_monoid M] : subgroup Mˣ :=
 { carrier := { ζ | ζ ^ (k : ℕ) = 1 },
   one_mem' := one_pow _,
   mul_mem' := λ ζ ξ hζ hξ, by simp only [*, set.mem_set_of_eq, mul_pow, one_mul] at *,
   inv_mem' := λ ζ hζ, by simp only [*, set.mem_set_of_eq, inv_pow, one_inv] at * }
 
-@[simp] lemma mem_roots_of_unity (k : ℕ+) (ζ : units M) :
+@[simp] lemma mem_roots_of_unity (k : ℕ+) (ζ : Mˣ) :
   ζ ∈ roots_of_unity k M ↔ ζ ^ (k : ℕ) = 1 := iff.rfl
 
 lemma roots_of_unity_le_of_dvd (h : k ∣ l) : roots_of_unity k M ≤ roots_of_unity l M :=
@@ -89,7 +89,7 @@ begin
   simp only [mem_roots_of_unity, pnat.mul_coe, pow_mul, one_pow, *] at *,
 end
 
-lemma map_roots_of_unity (f : units M →* units N) (k : ℕ+) :
+lemma map_roots_of_unity (f : Mˣ →* Nˣ) (k : ℕ+) :
   (roots_of_unity k M).map f ≤ roots_of_unity k N :=
 begin
   rintros _ ⟨ζ, h, rfl⟩,
@@ -101,7 +101,7 @@ variables [comm_ring R]
 @[norm_cast]
 lemma roots_of_unity.coe_pow (ζ : roots_of_unity k R) (m : ℕ) : ↑(ζ ^ m) = (ζ ^ m : R) :=
 begin
-  change ↑(↑(ζ ^ m) : units R) = ↑(ζ : units R) ^ m,
+  change ↑(↑(ζ ^ m) : Rˣ) = ↑(ζ : Rˣ) ^ m,
   rw [subgroup.coe_pow, units.coe_pow],
 end
 
@@ -111,8 +111,8 @@ variables [comm_ring S]
 def ring_hom.restrict_roots_of_unity (σ : R →+* S) (n : ℕ+) :
   roots_of_unity n R →* roots_of_unity n S :=
 let h : ∀ ξ : roots_of_unity n R, (σ ξ) ^ (n : ℕ) = 1 := λ ξ, by
-{ change (σ (ξ : units R)) ^ (n : ℕ) = 1,
-  rw [←σ.map_pow, ←units.coe_pow, show ((ξ : units R) ^ (n : ℕ) = 1), from ξ.2,
+{ change (σ (ξ : Rˣ)) ^ (n : ℕ) = 1,
+  rw [←σ.map_pow, ←units.coe_pow, show ((ξ : Rˣ) ^ (n : ℕ) = 1), from ξ.2,
       units.coe_one, σ.map_one] } in
 { to_fun := λ ξ, ⟨@unit_of_invertible _ _ _ (invertible_of_pow_eq_one _ _ (h ξ) n.2),
     by { ext, rw units.coe_pow, exact h ξ }⟩,
@@ -142,7 +142,7 @@ rfl
 
 variables [is_domain R]
 
-lemma mem_roots_of_unity_iff_mem_nth_roots {ζ : units R} :
+lemma mem_roots_of_unity_iff_mem_nth_roots {ζ : Rˣ} :
   ζ ∈ roots_of_unity k R ↔ (ζ : R) ∈ nth_roots k (1 : R) :=
 by simp only [mem_roots_of_unity, mem_nth_roots k.pos, units.ext_iff, units.coe_one, units.coe_pow]
 
@@ -167,7 +167,7 @@ begin
   { rcases x with ⟨x, hx⟩, rw [mem_nth_roots k.pos] at hx,
     simp only [subtype.coe_mk, ← pow_succ, ← pow_succ', hx,
       tsub_add_cancel_of_le (show 1 ≤ (k : ℕ), from k.one_le)] },
-  { show (_ : units R) ^ (k : ℕ) = 1,
+  { show (_ : Rˣ) ^ (k : ℕ) = 1,
     simp only [units.ext_iff, hx, units.coe_mk, units.coe_one, subtype.coe_mk, units.coe_pow] }
 end
 
@@ -301,7 +301,7 @@ begin
   { rintro rfl, exact one }
 end
 
-@[simp] lemma coe_units_iff {ζ : units M} :
+@[simp] lemma coe_units_iff {ζ : Mˣ} :
   is_primitive_root (ζ : M) k ↔ is_primitive_root ζ k :=
 by simp only [iff_def, units.ext_iff, units.coe_pow, units.coe_one]
 
@@ -554,7 +554,7 @@ end is_domain
 section is_domain
 
 variables [comm_ring R]
-variables {ζ : units R} (h : is_primitive_root ζ k)
+variables {ζ : Rˣ} (h : is_primitive_root ζ k)
 
 lemma neg_one (p : ℕ) [nontrivial R] [h : char_p R p] (hp : p ≠ 2) : is_primitive_root (-1 : R) 2 :=
 begin
@@ -641,13 +641,13 @@ end
 
 variables [is_domain R]
 
-lemma zpowers_eq {k : ℕ+} {ζ : units R} (h : is_primitive_root ζ k) :
+lemma zpowers_eq {k : ℕ+} {ζ : Rˣ} (h : is_primitive_root ζ k) :
   subgroup.zpowers ζ = roots_of_unity k R :=
 begin
   apply set_like.coe_injective,
   haveI : fact (0 < (k : ℕ)) := ⟨k.pos⟩,
   haveI F : fintype (subgroup.zpowers ζ) := fintype.of_equiv _ (h.zmod_equiv_zpowers).to_equiv,
-  refine @set.eq_of_subset_of_card_le (units R) (subgroup.zpowers ζ) (roots_of_unity k R)
+  refine @set.eq_of_subset_of_card_le Rˣ (subgroup.zpowers ζ) (roots_of_unity k R)
     F (roots_of_unity.fintype R k)
     (subgroup.zpowers_subset $ show ζ ∈ roots_of_unity k R, from h.pow_eq_one) _,
   calc fintype.card (roots_of_unity k R)
@@ -656,7 +656,7 @@ begin
   ... = fintype.card (subgroup.zpowers ζ) : fintype.card_congr (h.zmod_equiv_zpowers).to_equiv
 end
 
-lemma eq_pow_of_mem_roots_of_unity {k : ℕ+} {ζ ξ : units R}
+lemma eq_pow_of_mem_roots_of_unity {k : ℕ+} {ζ ξ : Rˣ}
   (h : is_primitive_root ζ k) (hξ : ξ ∈ roots_of_unity k R) :
   ∃ (i : ℕ) (hi : i < k), ζ ^ i = ξ :=
 begin
@@ -685,7 +685,7 @@ begin
   rw [mem_roots_of_unity, units.ext_iff, units.coe_pow, hξ, units.coe_one]
 end
 
-lemma is_primitive_root_iff' {k : ℕ+} {ζ ξ : units R} (h : is_primitive_root ζ k) :
+lemma is_primitive_root_iff' {k : ℕ+} {ζ ξ : Rˣ} (h : is_primitive_root ζ k) :
   is_primitive_root ξ k ↔ ∃ (i < (k : ℕ)) (hi : i.coprime k), ζ ^ i = ξ :=
 begin
   split,

@@ -336,7 +336,7 @@ else
           exact irreducible_of_degree_eq_one (degree_X_sub_C _),
         end)
       (associated.symm $ calc _ ~ᵤ f.map i :
-        ⟨(units.map C.to_monoid_hom : units L →* units (polynomial L))
+        ⟨(units.map C.to_monoid_hom : Lˣ →* (polynomial L)ˣ)
           (units.mk0 (f.map i).leading_coeff
             (mt leading_coeff_eq_zero.1 (map_ne_zero hf0))),
           by conv_rhs { rw [hs, ← leading_coeff_map i, mul_comm] }; refl⟩

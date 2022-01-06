@@ -47,7 +47,7 @@ simp,
 have :=  (local_homeomorph.subtype_restr_coe  (local_homeomorph.refl ℂ) ℍ').symm,
 
 congr,
-
+sorry,
 
 end
 
@@ -68,5 +68,5 @@ convert hfx,
 funext y,
 simp,
 sorry,
-
+sorry,
 end

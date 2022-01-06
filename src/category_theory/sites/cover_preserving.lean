@@ -134,7 +134,7 @@ begin
   constructor,
   intros ℱ Z T x hx Y₁ Y₂ X f₁ f₂ g₁ g₂ hg₁ hg₂ e,
 
-  /- First, `f₁` and `f₂` forms a cone over `cospan g₁ g₂ ⋙ u`. -/
+  /- First, `f₁` and `f₂` form a cone over `cospan g₁ g₂ ⋙ u`. -/
   let c : cone (cospan g₁ g₂ ⋙ G) :=
     (cones.postcompose (diagram_iso_cospan (cospan g₁ g₂ ⋙ G)).inv).obj
       (pullback_cone.mk f₁ f₂ e),
@@ -155,7 +155,7 @@ begin
   congr' 1,
 
   /-
-  Now, since everything now falls in the image of `u`,
+  Since everything now falls in the image of `u`,
   the result follows from the compatibility of `x` in the image of `u`.
   -/
   injection c'.π.naturality walking_cospan.hom.inl with _ e₁,
@@ -240,11 +240,11 @@ instance (G : C ⥤ D) [representably_flat G] :
   preserves_finite_limits (sites.pushforward A J K G) :=
 begin
   apply_with comp_preserves_finite_limits { instances := ff },
-  apply_instance,
+  { apply_instance },
   apply_with comp_preserves_finite_limits { instances := ff },
-  apply category_theory.Lan_preserves_finite_limits_of_flat,
-  apply category_theory.presheaf_to_Sheaf.limits.preserves_finite_limits.{u₂ v₁ v₁},
-  apply_instance
+  { apply category_theory.Lan_preserves_finite_limits_of_flat },
+  { apply category_theory.presheaf_to_Sheaf.limits.preserves_finite_limits.{u₂ v₁ v₁},
+    apply_instance }
 end
 
 /-- The pushforward functor is left adjoint to the pullback functor. -/

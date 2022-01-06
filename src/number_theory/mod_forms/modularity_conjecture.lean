@@ -14,7 +14,7 @@ def map_to_upper (x : ℝ) : ℍ := ⟨(x + I),
   by {simp only [complex.add_im, complex.of_real_im, complex.I_im, zero_add, zero_lt_one],} ⟩
 
 def modular_form_an (N  n : ℕ) (k : ℤ) (f : space_of_mod_forms_of_level_and_weight (Gamma0_N N) k)
-: ℂ := (1/N) * ∫ (x : ℝ) in 0..N, ( exp (-2 * π * I * n *(x + I))/ N ) * f.1 (map_to_upper x)
+: ℂ := ∫ (x : ℝ) in 0..1, ( exp (-2 * π * I * n *(x + I))) * f.1 (map_to_upper x)
 
 def rat_red (q : ℚ) ( p : ℕ) : (zmod p) := (q.num : zmod p) * (q.denom : zmod p)⁻¹
 

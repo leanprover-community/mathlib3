@@ -57,9 +57,6 @@ end
 
 variables (G : Type*) (α  : Type*) (β : Type*) [group G] [mul_action G α] [mul_action G β]
 
-def my_smul (k : ℤ) : G → (α → β) → (α → β):=
-λ g f, (λ (x : α), g^k • f (g⁻¹ • x)    )
-
 def slash_k (k : ℤ) : GL2P → (ℍ → ℂ) → (ℍ → ℂ ) :=
 λ M f,
 (λ (x : ℍ), f (M  •   x) * ((matrix.general_linear_group.det M.1 ) * ((M 1 0 )*x + M 1 1)^k)⁻¹)

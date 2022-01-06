@@ -69,9 +69,9 @@ nonpos_iff_eq_zero.1 $ @edist_self _ _ x ▸ inf_edist_le_edist_of_mem h
 lemma inf_edist_le_inf_edist_of_subset (h : s ⊆ t) : inf_edist x t ≤ inf_edist x s :=
 infi_le_infi_of_subset h
 
-/-- If the edist to a set is `< r`, there exists a point in the set at edistance `< r` -/
+/-- The edist to a set is `< r` iff there exists a point in the set at edistance `< r` -/
 lemma inf_edist_lt_iff {r : ℝ≥0∞} : inf_edist x s < r ↔ ∃ y ∈ s, edist x y < r :=
-by simp only [inf_edist, infi_lt_iff]
+by simp_rw [inf_edist, infi_lt_iff]
 
 /-- The edist of `x` to `s` is bounded by the sum of the edist of `y` to `s` and
 the edist from `x` to `y` -/
@@ -425,18 +425,11 @@ begin
   exact inf_edist_le_inf_edist_of_subset h
 end
 
-/-- If the minimal distance to a set is `<r`, there exists a point in this set at distance `<r` -/
-lemma exists_dist_lt_of_inf_dist_lt {r : real} (h : inf_dist x s < r) (hs : s.nonempty) :
-  ∃y∈s, dist x y < r :=
-begin
-  have rpos : 0 < r := lt_of_le_of_lt inf_dist_nonneg h,
-  have : inf_edist x s < ennreal.of_real r,
-  { rwa [inf_dist, ← ennreal.to_real_of_real (le_of_lt rpos),
-      ennreal.to_real_lt_to_real (inf_edist_ne_top hs) ennreal.of_real_ne_top] at h, },
-  rcases inf_edist_lt_iff.mp this with ⟨y, ys, hy⟩,
-  rw [edist_dist, ennreal.of_real_lt_of_real_iff rpos] at hy,
-  exact ⟨y, ys, hy⟩,
-end
+/-- The minimal distance to a set is `< r` iff there exists a point in this set at distance `< r` -/
+lemma inf_dist_lt_iff {r : real} (hs : s.nonempty) :
+  inf_dist x s < r ↔ ∃ y ∈ s, dist x y < r :=
+by simp_rw [inf_dist, ← ennreal.lt_of_real_iff_to_real_lt (inf_edist_ne_top hs), inf_edist_lt_iff,
+    ennreal.lt_of_real_iff_to_real_lt (edist_ne_top _ _), ← dist_edist]
 
 /-- The minimal distance from `x` to `s` is bounded by the distance from `y` to `s`, modulo
 the distance between `x` and `y` -/
@@ -514,7 +507,7 @@ begin
   replace h : y ∈ s ∩ closed_ball x (dist y x) := ⟨h, mem_closed_ball.2 le_rfl⟩,
   refine le_antisymm _ (inf_dist_le_inf_dist_of_subset (inter_subset_left _ _) ⟨y, h⟩),
   refine not_lt.1 (λ hlt, _),
-  rcases exists_dist_lt_of_inf_dist_lt hlt ⟨y, h.1⟩ with ⟨z, hzs, hz⟩,
+  rcases (inf_dist_lt_iff ⟨y, h.1⟩).mp hlt with ⟨z, hzs, hz⟩,
   cases le_or_lt (dist z x) (dist y x) with hle hlt,
   { exact hz.not_le (inf_dist_le_dist_of_mem ⟨hzs, hle⟩) },
   { rw [dist_comm z, dist_comm y] at hlt,

@@ -58,7 +58,7 @@ a1^3)*a3^3 + (-16*a2^3 - 8*a1^2*a2^2 - a1^4*a2)*a3^2))
 correct for certain rings, for example if `R` is a field or a PID). -/
 structure EllipticCurve (R : Type*) [comm_ring R] :=
 (a1 a2 a3 a4 a6 : R)
-(disc_unit : units R)
+(disc_unit : Rˣ)
 (disc_unit_eq : (disc_unit : R) = EllipticCurve.disc_aux a1 a2 a3 a4 a6)
 
 namespace EllipticCurve
@@ -82,6 +82,6 @@ end
 
 /-- The j-invariant of an elliptic curve. -/
 def j := (-48*E.a4 + (-24*E.a1*E.a3 + (16*E.a2^2 + 8*E.a1^2*E.a2 + E.a1^4)))^3 *
-  (E.disc_unit⁻¹ : units R)
+  (E.disc_unit⁻¹ : Rˣ)
 
 end EllipticCurve

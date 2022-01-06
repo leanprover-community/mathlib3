@@ -76,7 +76,7 @@ end defs
 
 
 lemma is_unit.smul_sub_iff_sub_inv_smul {R : Type u} {A : Type v}
-  [comm_ring R] [ring A] [algebra R A] {r : units R} {a : A} :
+  [comm_ring R] [ring A] [algebra R A] {r : Rˣ} {a : A} :
   is_unit (r • 1 - a) ↔ is_unit (1 - r⁻¹ • a) :=
 begin
   have a_eq : a = r•r⁻¹•a, by simp,
@@ -125,7 +125,7 @@ begin
   rw h_eq,
 end
 
-lemma smul_mem_smul_iff {a : A} {s : R} {r : units R} :
+lemma smul_mem_smul_iff {a : A} {s : R} {r : Rˣ} :
   r • s ∈ σ (r • a) ↔ s ∈ σ a :=
 begin
   apply not_iff_not.mpr,
@@ -136,7 +136,7 @@ end
 
 open_locale pointwise
 
-theorem unit_smul_eq_smul (a : A) (r : units R) :
+theorem unit_smul_eq_smul (a : A) (r : Rˣ) :
   σ (r • a) = r • σ a :=
 begin
   ext,
@@ -153,8 +153,8 @@ theorem left_add_coset_eq (a : A) (r : R) :
 by { ext, rw [mem_left_add_coset_iff, neg_add_eq_sub, add_mem_iff],
      nth_rewrite 1 ←sub_add_cancel x r, }
 
--- `r ∈ σ(a*b) ↔ r ∈ σ(b*a)` for any `r : units R`
-theorem unit_mem_mul_iff_mem_swap_mul {a b : A} {r : units R} :
+-- `r ∈ σ(a*b) ↔ r ∈ σ(b*a)` for any `r : Rˣ`
+theorem unit_mem_mul_iff_mem_swap_mul {a b : A} {r : Rˣ} :
   ↑r ∈ σ (a * b) ↔ ↑r ∈ σ (b * a) :=
 begin
   apply not_iff_not.mpr,
@@ -182,7 +182,7 @@ begin
 end
 
 theorem preimage_units_mul_eq_swap_mul {a b : A} :
-  (coe : units R → R) ⁻¹' σ (a * b) = coe ⁻¹'  σ (b * a) :=
+  (coe : Rˣ → R) ⁻¹' σ (a * b) = coe ⁻¹'  σ (b * a) :=
 by { ext, exact unit_mem_mul_iff_mem_swap_mul, }
 
 end scalar_ring

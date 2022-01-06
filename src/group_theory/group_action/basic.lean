@@ -212,7 +212,7 @@ let g : α := classical.some h in
 have hg : g • y = x := classical.some_spec h,
 have this : stabilizer α x = (stabilizer α y).map (mul_aut.conj g).to_monoid_hom,
   by rw [← hg, stabilizer_smul_eq_stabilizer_map_conj],
-(mul_equiv.subgroup_congr this).trans ((mul_aut.conj g).subgroup_equiv_map $ stabilizer α y).symm
+(mul_equiv.subgroup_congr this).trans ((mul_aut.conj g).subgroup_map $ stabilizer α y).symm
 
 end mul_action
 
@@ -239,7 +239,7 @@ have hg : g +ᵥ y = x := classical.some_spec h,
 have this : stabilizer α x = (stabilizer α y).map (add_aut.conj g).to_add_monoid_hom,
   by rw [← hg, stabilizer_vadd_eq_stabilizer_map_conj],
 (add_equiv.add_subgroup_congr this).trans
-  ((add_aut.conj g).add_subgroup_equiv_map $ stabilizer α y).symm
+  ((add_aut.conj g).add_subgroup_map $ stabilizer α y).symm
 
 end add_action
 

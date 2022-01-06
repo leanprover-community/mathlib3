@@ -1602,13 +1602,13 @@ def orthogonal_family {G : ι → Type*} [Π i, inner_product_space 𝕜 (G i)] 
   Prop :=
 ∀ ⦃i j⦄, i ≠ j → ∀ v : G i, ∀ w : G j, ⟪V i v, V j w⟫ = 0
 
+variables {𝕜} {G : ι → Type*} [Π i, inner_product_space 𝕜 (G i)] {V : Π i, G i →ₗᵢ[𝕜] E}
+  (hV : orthogonal_family 𝕜 V) [dec_V : Π i (x : G i), decidable (x ≠ 0)]
+
 lemma orthonormal.orthogonal_family {v : ι → E} (hv : orthonormal 𝕜 v) :
   @orthogonal_family 𝕜 _ _ _ _ (λ i : ι, 𝕜) _
     (λ i, linear_isometry.to_span_singleton 𝕜 E (hv.1 i)) :=
 λ i j hij a b, by simp [inner_smul_left, inner_smul_right, hv.2 hij]
-
-variables {𝕜} {G : ι → Type*} [Π i, inner_product_space 𝕜 (G i)] {V : Π i, G i →ₗᵢ[𝕜] E}
-  (hV : orthogonal_family 𝕜 V) [dec_V : Π i (x : G i), decidable (x ≠ 0)]
 
 include hV dec_ι
 lemma orthogonal_family.eq_ite {i j : ι} (v : G i) (w : G j) :

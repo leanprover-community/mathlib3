@@ -236,8 +236,6 @@ end minor
 
 section vec2_and_vec3
 
-variable [comm_ring α]  -- TODO get rid of
-
 lemma vec2_eq {a₀ a₁ b₀ b₁ : α} (h₀ : a₀ = b₀) (h₁ : a₁ = b₁) :
   ![a₀, a₁] = ![b₀, b₁] :=
 by { ext x, fin_cases x; assumption }
@@ -246,7 +244,9 @@ lemma vec3_eq {a₀ a₁ a₂ b₀ b₁ b₂ : α} (h₀ : a₀ = b₀) (h₁ : 
   ![a₀, a₁, a₂] = ![b₀, b₁, b₂] :=
 by { ext x, fin_cases x; assumption }
 
---variable [has_add α]
+variable [add_semigroup α]
+/-- TODO: understand why `[has_add α]` is not enough for `pi.add_apply` correctly work
+          in `linear_algebra/cross_product` on line 51 -/
 
 lemma vec2_add {a₀ a₁ b₀ b₁ : α} :
   ![a₀, a₁] + ![b₀, b₁] = ![a₀ + b₀, a₁ + b₁] :=

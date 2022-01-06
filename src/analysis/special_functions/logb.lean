@@ -108,7 +108,7 @@ by simp_rw [logb, log_div hx hy, sub_div]
 
 @[simp] lemma logb_inv (x : ℝ) : logb b (x⁻¹) = -logb b x := by simp [logb, neg_div]
 
-lemma logb_le_logb (one_lt_b : 1 < b) (h : 0 < x) (h₁ : 0 < y) : logb b x ≤ logb b y ↔ x ≤ y :=
+@[simp] lemma logb_le_logb (one_lt_b : 1 < b) (h : 0 < x) (h₁ : 0 < y) : logb b x ≤ logb b y ↔ x ≤ y :=
 by {rw [logb, logb, div_le_div_right (log_pos one_lt_b), log_le_log h h₁], }
 
 lemma logb_lt_logb (one_lt_b : 1 < b) (hx : 0 < x) (hxy : x < y) : logb b x < logb b y :=
@@ -207,7 +207,7 @@ end
 
 open_locale big_operators
 
-lemma logb_prod {α : Type*}  (one_lt_b : 1 < b) (s : finset α) (f : α → ℝ) (hf : ∀ x ∈ s, f x ≠ 0):
+lemma logb_prod {α : Type*} (one_lt_b : 1 < b) (s : finset α) (f : α → ℝ) (hf : ∀ x ∈ s, f x ≠ 0):
   logb b (∏ i in s, f i) = ∑ i in s, logb b (f i) :=
 begin
   classical,

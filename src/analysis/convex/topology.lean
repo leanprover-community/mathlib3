@@ -177,7 +177,7 @@ lemma convex.is_path_connected {s : set E} (hconv : convex ℝ s) (hne : s.nonem
   is_path_connected s :=
 begin
   refine is_path_connected_iff.mpr ⟨hne, _⟩,
-  intros x y x_in y_in,
+  intros x x_in y y_in,
   have H := hconv.segment_subset x_in y_in,
   rw segment_eq_image_line_map at H,
   exact joined_in.of_line affine_map.line_map_continuous.continuous_on (line_map_apply_zero _ _)

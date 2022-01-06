@@ -50,6 +50,7 @@ namespace geometry
 Note that the textbook meaning of "glue nicely" is given in
 `geometry.simplicial_complex.disjoint_or_exists_inter_eq_convex_hull`. It is mostly useless, as
 `geometry.simplicial_complex.convex_hull_inter_convex_hull` is enough for all purposes. -/
+-- TODO: update to new binder order? not sure what binder order is correct for `down_closed`.
 @[ext] structure simplicial_complex :=
 (faces : set (finset E))
 (not_empty_mem : ∅ ∉ faces)
@@ -108,7 +109,7 @@ end
   not_empty_mem := λ h, h.2 (mem_singleton _),
   indep := λ s hs, indep _ hs.1,
   down_closed := λ s t hs hts ht, ⟨down_closed _ hs.1 _ hts, ht⟩,
-  inter_subset_convex_hull := λ s t hs ht, inter_subset_convex_hull _ _ hs.1 ht.1 }
+  inter_subset_convex_hull := λ s t hs ht, inter_subset_convex_hull _ hs.1 _ ht.1 }
 
 /-- Construct a simplicial complex as a subset of a given simplicial complex. -/
 @[simps] def of_subcomplex (K : simplicial_complex 𝕜 E)

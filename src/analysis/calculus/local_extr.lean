@@ -368,7 +368,7 @@ begin
   { rw eq_C_of_nat_degree_eq_zero (nat_degree_eq_zero_of_derivative_eq_zero hp'),
     simp_rw [root_set_C, set.empty_card', zero_le] },
   simp_rw [root_set_def, finset.coe_sort_coe, fintype.card_coe],
-  refine finset.card_le_of_interleaved (λ x y hx hy hxy, _),
+  refine finset.card_le_of_interleaved (λ x hx y hy hxy, _),
   rw [←finset.mem_coe, ←root_set_def, mem_root_set hp] at hx hy,
   obtain ⟨z, hz1, hz2⟩ := exists_deriv_eq_zero (λ x : ℝ, aeval x p) hxy
     p.continuous_aeval.continuous_on (hx.trans hy.symm),

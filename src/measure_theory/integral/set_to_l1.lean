@@ -138,8 +138,8 @@ begin
   intros a s has h hps h_disj,
   rw [finset.sum_insert has, ← h],
   swap, { exact λ i hi, hps i (finset.mem_insert_of_mem hi), },
-  swap, { exact λ i j hi hj hij,
-    h_disj i j (finset.mem_insert_of_mem hi) (finset.mem_insert_of_mem hj) hij, },
+  swap, { exact λ i hi j hj hij,
+    h_disj i (finset.mem_insert_of_mem hi) j (finset.mem_insert_of_mem hj) hij, },
   rw ← h_add (S a) (⋃ i ∈ s, S i) (hS_meas a) (measurable_set_bUnion _ (λ i _, hS_meas i))
     (hps a (finset.mem_insert_self a s)),
   { congr, convert finset.supr_insert a s S, },
@@ -148,7 +148,7 @@ begin
   { simp_rw set.inter_Union,
     refine Union_eq_empty.mpr (λ i, Union_eq_empty.mpr (λ hi, _)),
     rw ← set.disjoint_iff_inter_eq_empty,
-    refine h_disj a i (finset.mem_insert_self a s) (finset.mem_insert_of_mem hi) (λ hai, _),
+    refine h_disj a (finset.mem_insert_self a s) i (finset.mem_insert_of_mem hi) (λ hai, _),
     rw ← hai at hi,
     exact has hi, },
 end

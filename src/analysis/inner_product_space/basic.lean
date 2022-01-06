@@ -1695,7 +1695,7 @@ lemma orthogonal_family.norm_sq_diff_sum (f : Π i, G i) (s₁ s₂ : finset ι)
   = ∑ i in s₁ \ s₂, ∥f i∥ ^ 2 + ∑ i in s₂ \ s₁, ∥f i∥ ^ 2 :=
 begin
   rw [← finset.sum_sdiff_sub_sum_sdiff, sub_eq_add_neg, ← finset.sum_neg_distrib],
-  let F : Π i, V i := λ i, if i ∈ s₁ then f i else - (f i),
+  let F : Π i, G i := λ i, if i ∈ s₁ then f i else - (f i),
   have hF₁ : ∀ i ∈ s₁ \ s₂, F i = f i := λ i hi, if_pos (finset.sdiff_subset _ _ hi),
   have hF₂ : ∀ i ∈ s₂ \ s₁, F i = - f i := λ i hi, if_neg (finset.mem_sdiff.mp hi).2,
   have hF : ∀ i, ∥F i∥ = ∥f i∥,

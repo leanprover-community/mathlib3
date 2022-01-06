@@ -164,7 +164,7 @@ lemma induction_with_nat_degree_le {R : Type*} [semiring R] (P : polynomial R �
   (P_0 : P 0)
   (P_C_mul_pow : ∀ n : ℕ, ∀ r : R, r ≠ 0 → n ≤ N → P (C r * X ^ n))
   (P_C_add : ∀ f g : polynomial R, f.nat_degree < g.nat_degree →
-    f.nat_degree ≤ N → g.nat_degree ≤ N → P f → P g → P (f + g)) :
+    g.nat_degree ≤ N → P f → P g → P (f + g)) :
   ∀ f : polynomial R, f.nat_degree ≤ N → P f :=
 begin
   intros f df,
@@ -182,7 +182,7 @@ begin
         rw [← card_support_eq_zero, erase_lead_card_support f0] },
       { rw [leading_coeff_ne_zero, ne.def, ← card_support_eq_zero, f0],
         exact zero_ne_one.symm } },
-    refine P_C_add f.erase_lead _ _ (erase_lead_nat_degree_le.trans df) _ _ _,
+    refine P_C_add f.erase_lead _ _ _ _ _,
     { refine (erase_lead_nat_degree_lt _).trans_le (le_of_eq _),
       { exact (nat.succ_le_succ (nat.succ_le_succ (nat.zero_le _))).trans f0.ge },
       { rw [nat_degree_C_mul_X_pow _ _ (leading_coeff_ne_zero.mpr _)],
@@ -204,7 +204,7 @@ begin
   { simp },
   { intros n r r0 np,
     rw [nat_degree_C_mul_X_pow _ _ r0, ← monomial_eq_C_mul_X, φ_mon_nat _ _ r0] },
-  { intros f g fg fp gp hf hg,
+  { intros f g fg gp hf hg,
     rw [map_add],
     rw [nat_degree_add_eq_right_of_nat_degree_lt, nat_degree_add_eq_right_of_nat_degree_lt fg, hg],
     rwa [hf, hg] },

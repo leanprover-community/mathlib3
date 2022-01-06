@@ -183,13 +183,9 @@ lemma ideal.is_homogeneous.mul {I J : ideal A}
 begin
   rw ideal.is_homogeneous.iff_exists at HI HJ ⊢,
   obtain ⟨⟨s₁, rfl⟩, ⟨s₂, rfl⟩⟩ := ⟨HI, HJ⟩,
-  rw [ideal.span_mul_span'],
+  rw ideal.span_mul_span',
   refine ⟨s₁ * s₂, congr_arg _ _⟩,
-  ext, split,
-  { rintro ⟨y1, y2, ⟨z1, h1, rfl⟩, ⟨z2, h2, rfl⟩, rfl⟩,
-    exact ⟨z1 * z2, set.mul_mem_mul h1 h2, rfl⟩, },
-  { rintro ⟨y, ⟨z1, z2, hz1, hz2, rfl⟩, rfl⟩,
-    refine set.mul_mem_mul ⟨_, hz1, rfl⟩ ⟨_, hz2, rfl⟩, }
+  exact (set.image_mul (submonoid.subtype _).to_mul_hom).symm,
 end
 
 lemma ideal.is_homogeneous.sup {I J : ideal A}

@@ -26,7 +26,7 @@ already appears in the input.
 We reuse notation `![a, b]` for `vec_cons a (vec_cons b vec_empty)`. It is a localized notation in
 the `matrix` locale.
 
-The locale `matrix` further provides `•` for the dot product of explicit vectors.
+The locale `matrix` further provides notation `⬝ᵥ` for `matrix.dot_product`.
 
 ## Examples
 

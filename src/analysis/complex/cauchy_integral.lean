@@ -7,6 +7,7 @@ import measure_theory.measure.complex_lebesgue
 import measure_theory.integral.divergence_theorem
 import measure_theory.integral.circle_integral
 import analysis.calculus.fderiv_analytic
+import analysis.complex.re_im_topology
 import data.real.cardinality
 
 /-!
@@ -147,15 +148,13 @@ variables {E : Type u} [normed_group E] [normed_space ℂ E] [measurable_space E
 
 namespace complex
 
-/-- Suppose that a function `f : ℂ → E` is real differentiable on a rectangle with vertices
-`z w : ℂ` and $\frac{\partial f}{\partial \bar z}$ is integrable on this rectangle. Then
-the integral of `f` over the boundary of the rectangle is equal to the integral of
+/-- Suppose that a function `f : ℂ → E` is continuous on a closed rectangle with vertices `z w : ℂ`,
+is *real* differentiable at all but countably many points of the corresponding open rectangle, and
+$\frac{\partial f}{\partial \bar z}$ is integrable on this rectangle. Then the integral of `f` over
+the boundary of the rectangle is equal to the integral of
 $2i\frac{\partial f}{\partial \bar z}=i\frac{\partial f}{\partial x}-\frac{\partial f}{\partial y}$
-over the rectangle.
-
-Moreover, the same is true if `f` is only differentiable at points outside of a countable set `s`
-and is continuous at the points of this set. -/
-lemma integral_boundary_rect_of_has_fderiv_within_at_real_off_countable (f : ℂ → E)
+over the rectangle. -/
+lemma integral_boundary_rect_of_has_fderiv_at_real_off_countable (f : ℂ → E)
   (f' : ℂ → ℂ →L[ℝ] E) (z w : ℂ) (s : set ℂ) (hs : countable s)
   (Hc : continuous_on f (re ⁻¹' [z.re, w.re] ∩ im ⁻¹' [z.im, w.im]))
   (Hd : ∀ x ∈ (re ⁻¹' (Ioo (min z.re w.re) (max z.re w.re)) ∩
@@ -191,11 +190,46 @@ begin
   simpa only [hF'] using Hi.neg
 end
 
-/-- **Cauchy theorem**: the integral of a complex differentiable function over the boundary of a
-rectangle equals zero.
+/-- Suppose that a function `f : ℂ → E` is continuous on a closed rectangle with vertices `z w : ℂ`,
+is *real* differentiable on the corresponding open rectangle, and
+$\frac{\partial f}{\partial \bar z}$ is integrable on this rectangle. Then the integral of `f` over
+the boundary of the rectangle is equal to the integral of
+$2i\frac{\partial f}{\partial \bar z}=i\frac{\partial f}{\partial x}-\frac{\partial f}{\partial y}$
+over the rectangle. -/
+lemma integral_boundary_rect_of_continuous_on_of_has_fderiv_at_real (f : ℂ → E)
+  (f' : ℂ → ℂ →L[ℝ] E) (z w : ℂ)
+  (Hc : continuous_on f (re ⁻¹' [z.re, w.re] ∩ im ⁻¹' [z.im, w.im]))
+  (Hd : ∀ x ∈ (re ⁻¹' (Ioo (min z.re w.re) (max z.re w.re)) ∩
+    im ⁻¹' (Ioo (min z.im w.im) (max z.im w.im))), has_fderiv_at f (f' x) x)
+  (Hi : integrable_on (λ z, I • f' z 1 - f' z I) (re ⁻¹' [z.re, w.re] ∩ im ⁻¹' [z.im, w.im])) :
+  (∫ x : ℝ in z.re..w.re, f (x + z.im * I)) - (∫ x : ℝ in z.re..w.re, f (x + w.im * I)) +
+    (I • ∫ y : ℝ in z.im..w.im, f (re w + y * I)) - I • ∫ y : ℝ in z.im..w.im, f (re z + y * I) =
+    ∫ x : ℝ in z.re..w.re, ∫ y : ℝ in z.im..w.im, I • f' (x + y * I) 1 - f' (x + y * I) I :=
+integral_boundary_rect_of_has_fderiv_at_real_off_countable f f' z w ∅ countable_empty Hc
+  (λ x hx, Hd x hx.1) Hi
 
-Moreover, the same is true if `f` is only differentiable at points outside of a countable set `s`
-and is continuous at the points of this set. -/
+/-- Suppose that a function `f : ℂ → E` is *real* differentiable on a closed rectangle with vertices
+`z w : ℂ` and $\frac{\partial f}{\partial \bar z}$ is integrable on this rectangle. Then the
+integral of `f` over the boundary of the rectangle is equal to the integral of
+$2i\frac{\partial f}{\partial \bar z}=i\frac{\partial f}{\partial x}-\frac{\partial f}{\partial y}$
+over the rectangle. -/
+lemma integral_boundary_rect_of_differentiable_on_real (f : ℂ → E) (z w : ℂ)
+  (Hd : differentiable_on ℝ f (re ⁻¹' [z.re, w.re] ∩ im ⁻¹' [z.im, w.im]))
+  (Hi : integrable_on (λ z, I • fderiv ℝ f z 1 - fderiv ℝ f z I)
+    (re ⁻¹' [z.re, w.re] ∩ im ⁻¹' [z.im, w.im])) :
+  (∫ x : ℝ in z.re..w.re, f (x + z.im * I)) - (∫ x : ℝ in z.re..w.re, f (x + w.im * I)) +
+    (I • ∫ y : ℝ in z.im..w.im, f (re w + y * I)) - I • ∫ y : ℝ in z.im..w.im, f (re z + y * I) =
+    ∫ x : ℝ in z.re..w.re, ∫ y : ℝ in z.im..w.im,
+      I • fderiv ℝ f (x + y * I) 1 - fderiv ℝ f (x + y * I) I :=
+integral_boundary_rect_of_has_fderiv_at_real_off_countable f (fderiv ℝ f) z w ∅ countable_empty
+  Hd.continuous_on
+  (λ x hx, Hd.has_fderiv_at $ by simpa only [← mem_interior_iff_mem_nhds,
+    interior_preimage_re_inter_preimage_im, interval, interior_Icc] using hx.1) Hi
+
+/-- **Cauchy theorem**: the integral of a complex differentiable function over the boundary of a
+rectangle equals zero. More precisely, if `f` is continuous on a closed rectangle and is complex
+differentiable at all but countably many points of the corresponding open rectangle, then its
+integral over the boundary of the rectangle equals zero. -/
 lemma integral_boundary_rect_eq_zero_of_differentiable_on_off_countable (f : ℂ → E)
   (z w : ℂ) (s : set ℂ) (hs : countable s)
   (Hc : continuous_on f (re ⁻¹' [z.re, w.re] ∩ im ⁻¹' [z.im, w.im]))
@@ -204,10 +238,37 @@ lemma integral_boundary_rect_eq_zero_of_differentiable_on_off_countable (f : ℂ
   (∫ x : ℝ in z.re..w.re, f (x + z.im * I)) - (∫ x : ℝ in z.re..w.re, f (x + w.im * I)) +
     (I • ∫ y : ℝ in z.im..w.im, f (re w + y * I)) -
       I • ∫ y : ℝ in z.im..w.im, f (re z + y * I) = 0 :=
-by refine (integral_boundary_rect_of_has_fderiv_within_at_real_off_countable f
+by refine (integral_boundary_rect_of_has_fderiv_at_real_off_countable f
   (λ z, (fderiv ℂ f z).restrict_scalars ℝ) z w s hs Hc
   (λ x hx, (Hd x hx).has_fderiv_at.restrict_scalars ℝ) _).trans _;
     simp [← continuous_linear_map.map_smul]
+
+/-- **Cauchy theorem**: the integral of a complex differentiable function over the boundary of a
+rectangle equals zero. More precisely, if `f` is continuous on a closed rectangle and is complex
+differentiable at all but countably many points of the corresponding open rectangle, then its
+integral over the boundary of the rectangle equals zero. -/
+lemma integral_boundary_rect_eq_zero_of_continuous_on_of_differentiable_on (f : ℂ → E) (z w : ℂ)
+  (Hc : continuous_on f (re ⁻¹' [z.re, w.re] ∩ im ⁻¹' [z.im, w.im]))
+  (Hd : differentiable_on ℂ f (re ⁻¹' (Ioo (min z.re w.re) (max z.re w.re)) ∩
+    im ⁻¹' (Ioo (min z.im w.im) (max z.im w.im)))) :
+  (∫ x : ℝ in z.re..w.re, f (x + z.im * I)) - (∫ x : ℝ in z.re..w.re, f (x + w.im * I)) +
+    (I • ∫ y : ℝ in z.im..w.im, f (re w + y * I)) -
+      I • ∫ y : ℝ in z.im..w.im, f (re z + y * I) = 0 :=
+integral_boundary_rect_eq_zero_of_differentiable_on_off_countable f z w ∅ countable_empty
+  Hc $ λ x hx, Hd.differentiable_at $ (is_open_Ioo.re_prod_im is_open_Ioo).mem_nhds hx.1
+
+/-- **Cauchy theorem**: the integral of a complex differentiable function over the boundary of a
+rectangle equals zero. More precisely, if `f` is continuous on a closed rectangle and is complex
+differentiable at all but countably many points of the corresponding open rectangle, then its
+integral over the boundary of the rectangle equals zero. -/
+lemma integral_boundary_rect_eq_zero_of_differentiable_on (f : ℂ → E) (z w : ℂ)
+  (H : differentiable_on ℂ f (re ⁻¹' [z.re, w.re] ∩ im ⁻¹' [z.im, w.im])) :
+  (∫ x : ℝ in z.re..w.re, f (x + z.im * I)) - (∫ x : ℝ in z.re..w.re, f (x + w.im * I)) +
+    (I • ∫ y : ℝ in z.im..w.im, f (re w + y * I)) -
+      I • ∫ y : ℝ in z.im..w.im, f (re z + y * I) = 0 :=
+integral_boundary_rect_eq_zero_of_continuous_on_of_differentiable_on f z w H.continuous_on $
+  H.mono $
+    inter_subset_inter (preimage_mono Ioo_subset_Icc_self) (preimage_mono Ioo_subset_Icc_self)
 
 /-- If `f : ℂ → E` is complex differentiable on the closed annulus `r ≤ ∥z - c∥ ≤ R`, `0 < r ≤ R`,
 then the integrals of `f z / (z - c)` (formally, `(z - c)⁻¹ • f z`) over the circles

@@ -79,12 +79,13 @@ open_locale big_operators
 
 /-- **Rearrangement Inequality** : statement for a pair of functions that given a finset `s`,
 `movary_on f g s` holds with the permutation applied on the right.-/
-theorem monovary_on.sum_smul_comp_perm_le_sum_smul [decidable_eq ι] [linear_ordered_ring α]
+theorem monovary_on.sum_smul_comp_perm_le_sum_smul [linear_ordered_ring α]
   [linear_ordered_add_comm_group β] [module α β] [ordered_smul α β]
   {s : finset ι} {f : ι → α} {g : ι → β} (hfg : monovary_on f g s) {σ : perm ι}
   (hσ : {x | σ x ≠ x} ⊆ s) :
   ∑ i in s, f i • g (σ i) ≤ ∑ i in s, f i • g i :=
 begin
+  classical,
   revert hσ σ hfg,
   apply finset.induction_on_max_value₂ g f s,
   { simp only [le_refl, finset.sum_empty, implies_true_iff] },
@@ -216,7 +217,7 @@ end
 
 /-- **Rearrangement Inequality** : statement for a pair of functions that given a finset `s`,
 `movary_on f g s` holds with the permutation applied on the left.-/
-theorem monovary_on.sum_comp_perm_smul_le_sum_smul [decidable_eq ι] [linear_ordered_ring α]
+theorem monovary_on.sum_comp_perm_smul_le_sum_smul [linear_ordered_ring α]
   [linear_ordered_add_comm_group β] [module α β] [ordered_smul α β]
   {s : finset ι} {f : ι → α} {g : ι → β} (hfg : monovary_on f g s) {σ : perm ι}
   (hσ : {x | σ x ≠ x} ⊆ s) :
@@ -229,7 +230,7 @@ end
 
 /-- **Rearrangement Inequality** : statement for a pair of functions that given a finset `s`,
 `antivary_on f g s` holds with the permutation applied on the right.-/
-theorem antivary_on.sum_smul_le_sum_smul_comp_perm [decidable_eq ι]
+theorem antivary_on.sum_smul_le_sum_smul_comp_perm
   [linear_ordered_ring α] [linear_ordered_add_comm_group β] [module α β] [ordered_smul α β]
   {s : finset ι} {f : ι → α} {g : ι → β} (hfg : antivary_on f g s) {σ : perm ι}
   (hσ : {x | σ x ≠ x} ⊆ s) :
@@ -238,7 +239,7 @@ hfg.dual_right.sum_smul_comp_perm_le_sum_smul hσ
 
 /-- **Rearrangement Inequality** : statement for a pair of functions that given a finset `s`,
 `antivary_on f g s` holds with the permutation applied on the left.-/
-theorem antivary_on.sum_smul_le_sum_comp_perm_smul [decidable_eq ι] [linear_ordered_ring α]
+theorem antivary_on.sum_smul_le_sum_comp_perm_smul [linear_ordered_ring α]
   [linear_ordered_add_comm_group β] [module α β] [ordered_smul α β]
   {s : finset ι} {f : ι → α} {g : ι → β} (hfg : antivary_on f g s) {σ : perm ι}
   (hσ : {x | σ x ≠ x} ⊆ s) :

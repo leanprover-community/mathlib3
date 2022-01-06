@@ -185,11 +185,11 @@ lemma det_mul_right_comm (M N P : matrix m m R) :
   det (M ⬝ N ⬝ P) = det (M ⬝ P ⬝ N) :=
 by rw [matrix.mul_assoc, matrix.mul_assoc, det_mul, det_mul_comm N P, ←det_mul]
 
-lemma det_units_conj (M : units (matrix m m R)) (N : matrix m m R) :
+lemma det_units_conj (M : (matrix m m R)ˣ) (N : matrix m m R) :
   det (↑M ⬝ N ⬝ ↑M⁻¹ : matrix m m R) = det N :=
 by rw [det_mul_right_comm, ←mul_eq_mul, ←mul_eq_mul, units.mul_inv, one_mul]
 
-lemma det_units_conj' (M : units (matrix m m R)) (N : matrix m m R) :
+lemma det_units_conj' (M : (matrix m m R)ˣ) (N : matrix m m R) :
   det (↑M⁻¹ ⬝ N ⬝ ↑M : matrix m m R) = det N := det_units_conj M⁻¹ N
 
 /-- Transposing a matrix preserves the determinant. -/
@@ -666,7 +666,7 @@ lemma det_succ_row {n : ℕ} (A : matrix (fin n.succ) (fin n.succ) R) (i : fin n
 begin
   simp_rw [pow_add, mul_assoc, ← mul_sum],
   have : det A = (-1 : R) ^ (i : ℕ) * (i.cycle_range⁻¹).sign * det A,
-  { calc det A = ↑((-1 : units ℤ) ^ (i : ℕ) * (-1 : units ℤ) ^ (i : ℕ) : units ℤ) * det A :
+  { calc det A = ↑((-1 : ℤˣ) ^ (i : ℕ) * (-1 : ℤˣ) ^ (i : ℕ) : ℤˣ) * det A :
              by simp
            ... = (-1 : R) ^ (i : ℕ) * (i.cycle_range⁻¹).sign * det A :
              by simp [-int.units_mul_self] },

@@ -453,6 +453,10 @@ lemma pi_Ioo_ae_eq_pi_Icc {s : set ι} {f g : Π i, α i} :
   pi s (λ i, Ioo (f i) (g i)) =ᵐ[measure.pi μ] pi s (λ i, Icc (f i) (g i)) :=
 ae_eq_set_pi $ λ i hi, Ioo_ae_eq_Icc
 
+lemma pi_Ioo_ae_eq_pi_Ioc {s : set ι} {f g : Π i, α i} :
+  pi s (λ i, Ioo (f i) (g i)) =ᵐ[measure.pi μ] pi s (λ i, Ioc (f i) (g i)) :=
+ae_eq_set_pi $ λ i hi, Ioo_ae_eq_Ioc
+
 lemma univ_pi_Ioo_ae_eq_Icc {f g : Π i, α i} :
   pi univ (λ i, Ioo (f i) (g i)) =ᵐ[measure.pi μ] Icc f g :=
 by { rw ← pi_univ_Icc, exact pi_Ioo_ae_eq_pi_Icc }

@@ -1539,7 +1539,7 @@ end multiset
   (↑∏ i in s, f i : R) = ∏ i in s, f i :=
 (int.cast_ring_hom R).map_prod _ _
 
-@[simp, norm_cast] lemma units.coe_prod {M : Type*} [comm_monoid M] (f : α → units M)
+@[simp, norm_cast] lemma units.coe_prod {M : Type*} [comm_monoid M] (f : α → Mˣ)
   (s : finset α) : (↑∏ i in s, f i : M) = ∏ i in s, f i :=
 (units.coe_hom M).map_prod _ _
 

@@ -5,6 +5,7 @@ Authors: Johan Commelin, Kenny Lau
 -/
 import algebra.big_operators.nat_antidiagonal
 import data.mv_polynomial.basic
+import data.polynomial.algebra_map
 import data.polynomial.coeff
 import linear_algebra.std_basis
 import ring_theory.ideal.local_ring
@@ -597,20 +598,20 @@ begin
 end
 
 /-- A multivariate formal power series is invertible if the constant coefficient is invertible.-/
-def inv_of_unit (φ : mv_power_series σ R) (u : units R) : mv_power_series σ R :=
+def inv_of_unit (φ : mv_power_series σ R) (u : Rˣ) : mv_power_series σ R :=
 inv.aux (↑u⁻¹) φ
 
-lemma coeff_inv_of_unit [decidable_eq σ] (n : σ →₀ ℕ) (φ : mv_power_series σ R) (u : units R) :
+lemma coeff_inv_of_unit [decidable_eq σ] (n : σ →₀ ℕ) (φ : mv_power_series σ R) (u : Rˣ) :
   coeff R n (inv_of_unit φ u) = if n = 0 then ↑u⁻¹ else
   - ↑u⁻¹ * ∑ x in n.antidiagonal,
     if x.2 < n then coeff R x.1 φ * coeff R x.2 (inv_of_unit φ u) else 0 :=
 coeff_inv_aux n (↑u⁻¹) φ
 
-@[simp] lemma constant_coeff_inv_of_unit (φ : mv_power_series σ R) (u : units R) :
+@[simp] lemma constant_coeff_inv_of_unit (φ : mv_power_series σ R) (u : Rˣ) :
   constant_coeff σ R (inv_of_unit φ u) = ↑u⁻¹ :=
 by rw [← coeff_zero_eq_constant_coeff_apply, coeff_inv_of_unit, if_pos rfl]
 
-lemma mul_inv_of_unit (φ : mv_power_series σ R) (u : units R) (h : constant_coeff σ R φ = u) :
+lemma mul_inv_of_unit (φ : mv_power_series σ R) (u : Rˣ) (h : constant_coeff σ R φ = u) :
   φ * inv_of_unit φ u = 1 :=
 ext $ λ n, if H : n = 0 then by { rw H, simp [coeff_mul, support_single_ne_zero, h], }
 else
@@ -743,13 +744,15 @@ end mv_power_series
 
 namespace mv_polynomial
 open finsupp
-variables {σ : Type*} {R : Type*} [comm_semiring R]
+variables {σ : Type*} {R : Type*} [comm_semiring R] (φ ψ : mv_polynomial σ R)
 
 /-- The natural inclusion from multivariate polynomials into multivariate formal power series.-/
 instance coe_to_mv_power_series : has_coe (mv_polynomial σ R) (mv_power_series σ R) :=
 ⟨λ φ n, coeff n φ⟩
 
-@[simp, norm_cast] lemma coeff_coe (φ : mv_polynomial σ R) (n : σ →₀ ℕ) :
+lemma coe_def : (φ : mv_power_series σ R) = λ n, coeff n φ := rfl
+
+@[simp, norm_cast] lemma coeff_coe (n : σ →₀ ℕ) :
 mv_power_series.coeff R n ↑φ = coeff n φ := rfl
 
 @[simp, norm_cast] lemma coe_monomial (n : σ →₀ ℕ) (a : R) :
@@ -765,10 +768,10 @@ end
 @[simp, norm_cast] lemma coe_one : ((1 : mv_polynomial σ R) : mv_power_series σ R) = 1 :=
 coe_monomial _ _
 
-@[simp, norm_cast] lemma coe_add (φ ψ : mv_polynomial σ R) :
+@[simp, norm_cast] lemma coe_add :
   ((φ + ψ : mv_polynomial σ R) : mv_power_series σ R) = φ + ψ := rfl
 
-@[simp, norm_cast] lemma coe_mul (φ ψ : mv_polynomial σ R) :
+@[simp, norm_cast] lemma coe_mul :
   ((φ * ψ : mv_polynomial σ R) : mv_power_series σ R) = φ * ψ :=
 mv_power_series.ext $ λ n,
 by simp only [coeff_coe, mv_power_series.coeff_mul, coeff_mul]
@@ -781,11 +784,26 @@ coe_monomial _ _
   ((X s : mv_polynomial σ R) : mv_power_series σ R) = mv_power_series.X s :=
 coe_monomial _ _
 
+variables (σ R)
+
+lemma coe_injective : function.injective (coe : mv_polynomial σ R → mv_power_series σ R) :=
+λ x y h, by { ext, simp_rw [←coeff_coe, h] }
+
+variables {σ R φ ψ}
+
+@[simp, norm_cast] lemma coe_inj : (φ : mv_power_series σ R) = ψ ↔ φ = ψ :=
+(coe_injective σ R).eq_iff
+
+@[simp] lemma coe_eq_zero_iff : (φ : mv_power_series σ R) = 0 ↔ φ = 0 :=
+by rw [←coe_zero, coe_inj]
+
+@[simp] lemma coe_eq_one_iff : (φ : mv_power_series σ R) = 1 ↔ φ = 1 :=
+by rw [←coe_one, coe_inj]
+
 /--
 The coercion from multivariable polynomials to multivariable power series
 as a ring homomorphism.
 -/
--- TODO as an algebra homomorphism?
 def coe_to_mv_power_series.ring_hom : mv_polynomial σ R →+* mv_power_series σ R :=
 { to_fun := (coe : mv_polynomial σ R → mv_power_series σ R),
   map_zero' := coe_zero,
@@ -793,7 +811,51 @@ def coe_to_mv_power_series.ring_hom : mv_polynomial σ R →+* mv_power_series �
   map_add' := coe_add,
   map_mul' := coe_mul }
 
+variables (φ ψ)
+
+@[simp] lemma coe_to_mv_power_series.ring_hom_apply : coe_to_mv_power_series.ring_hom φ = φ := rfl
+
+section algebra
+
+variables (A : Type*) [comm_semiring A] [algebra R A]
+
+lemma algebra_map_apply (r : R) : algebra_map R (mv_polynomial σ A) r = C (algebra_map R A r) := rfl
+
+/--
+The coercion from multivariable polynomials to multivariable power series
+as an algebra homomorphism.
+-/
+def coe_to_mv_power_series.alg_hom : mv_polynomial σ R →ₐ[R] mv_power_series σ A :=
+{ commutes' := λ r, by simp [algebra_map_apply, mv_power_series.algebra_map_apply],
+  ..(mv_power_series.map σ (algebra_map R A)).comp coe_to_mv_power_series.ring_hom}
+
+@[simp] lemma coe_to_mv_power_series.alg_hom_apply : (coe_to_mv_power_series.alg_hom A φ) =
+  mv_power_series.map σ (algebra_map R A) ↑φ := rfl
+
+end algebra
+
 end mv_polynomial
+
+namespace mv_power_series
+
+variables {σ R A : Type*} [comm_semiring R] [comm_semiring A] [algebra R A]
+  (f : mv_power_series σ R)
+
+instance algebra_mv_polynomial : algebra (mv_polynomial σ R) (mv_power_series σ A) :=
+ring_hom.to_algebra (mv_polynomial.coe_to_mv_power_series.alg_hom A).to_ring_hom
+
+instance algebra_mv_power_series : algebra (mv_power_series σ R) (mv_power_series σ A) :=
+(map σ (algebra_map R A)).to_algebra
+
+variables (A)
+
+lemma algebra_map_apply' (p : mv_polynomial σ R):
+  algebra_map (mv_polynomial σ R) (mv_power_series σ A) p = map σ (algebra_map R A) p := rfl
+
+lemma algebra_map_apply'' :
+  algebra_map (mv_power_series σ R) (mv_power_series σ A) f = map σ (algebra_map R A) f := rfl
+
+end mv_power_series
 
 /-- Formal power series over the coefficient ring `R`.-/
 def power_series (R : Type*) := mv_power_series unit R
@@ -923,6 +985,9 @@ by rw [coeff, finsupp.single_zero, X, mv_power_series.coeff_zero_X]
 
 @[simp] lemma coeff_one_X : coeff R 1 (X : power_series R) = 1 :=
 by rw [coeff_X, if_pos rfl]
+
+@[simp] lemma X_ne_zero [nontrivial R] : (X : power_series R) ≠ 0 :=
+λ H, by simpa only [coeff_one_X, one_ne_zero, map_zero] using congr_arg (coeff R 1) H
 
 lemma X_pow_eq (n : ℕ) : (X : power_series R)^n = monomial R n 1 :=
 mv_power_series.X_pow_eq _ n
@@ -1097,6 +1162,12 @@ lemma map_comp : map (g.comp f) = (map g).comp (map f) := rfl
 @[simp] lemma coeff_map (n : ℕ) (φ : power_series R) :
   coeff S n (map f φ) = f (coeff R n φ) := rfl
 
+@[simp] lemma map_C (r : R) : map f (C _ r) = C _ (f r) :=
+by { ext, simp [coeff_C, apply_ite f] }
+
+@[simp] lemma map_X : map f X = X :=
+by { ext, simp [coeff_X, apply_ite f] }
+
 end map
 
 end semiring
@@ -1247,20 +1318,20 @@ begin
 end
 
 /-- A formal power series is invertible if the constant coefficient is invertible.-/
-def inv_of_unit (φ : power_series R) (u : units R) : power_series R :=
+def inv_of_unit (φ : power_series R) (u : Rˣ) : power_series R :=
 mv_power_series.inv_of_unit φ u
 
-lemma coeff_inv_of_unit (n : ℕ) (φ : power_series R) (u : units R) :
+lemma coeff_inv_of_unit (n : ℕ) (φ : power_series R) (u : Rˣ) :
   coeff R n (inv_of_unit φ u) = if n = 0 then ↑u⁻¹ else
   - ↑u⁻¹ * ∑ x in finset.nat.antidiagonal n,
     if x.2 < n then coeff R x.1 φ * coeff R x.2 (inv_of_unit φ u) else 0 :=
 coeff_inv_aux n ↑u⁻¹ φ
 
-@[simp] lemma constant_coeff_inv_of_unit (φ : power_series R) (u : units R) :
+@[simp] lemma constant_coeff_inv_of_unit (φ : power_series R) (u : Rˣ) :
   constant_coeff R (inv_of_unit φ u) = ↑u⁻¹ :=
 by rw [← coeff_zero_eq_constant_coeff_apply, coeff_inv_of_unit, if_pos rfl]
 
-lemma mul_inv_of_unit (φ : power_series R) (u : units R) (h : constant_coeff R φ = u) :
+lemma mul_inv_of_unit (φ : power_series R) (u : Rˣ) (h : constant_coeff R φ = u) :
   φ * inv_of_unit φ u = 1 :=
 mv_power_series.mul_inv_of_unit φ u $ h
 
@@ -1700,13 +1771,15 @@ end power_series
 
 namespace polynomial
 open finsupp
-variables {σ : Type*} {R : Type*} [comm_semiring R]
+variables {σ : Type*} {R : Type*} [comm_semiring R] (φ ψ : polynomial R)
 
 /-- The natural inclusion from polynomials into formal power series.-/
 instance coe_to_power_series : has_coe (polynomial R) (power_series R) :=
 ⟨λ φ, power_series.mk $ λ n, coeff φ n⟩
 
-@[simp, norm_cast] lemma coeff_coe (φ : polynomial R) (n) :
+lemma coe_def : (φ : power_series R) = power_series.mk (coeff φ) := rfl
+
+@[simp, norm_cast] lemma coeff_coe (n) :
   power_series.coeff R n φ = coeff φ n :=
 congr_arg (coeff φ) (finsupp.single_eq_same)
 
@@ -1722,11 +1795,11 @@ begin
   rwa power_series.monomial_zero_eq_C_apply at this,
 end
 
-@[simp, norm_cast] lemma coe_add (φ ψ : polynomial R) :
+@[simp, norm_cast] lemma coe_add :
   ((φ + ψ : polynomial R) : power_series R) = φ + ψ :=
 by { ext, simp }
 
-@[simp, norm_cast] lemma coe_mul (φ ψ : polynomial R) :
+@[simp, norm_cast] lemma coe_mul :
   ((φ * ψ : polynomial R) : power_series R) = φ * ψ :=
 power_series.ext $ λ n,
 by simp only [coeff_coe, power_series.coeff_mul, coeff_mul]
@@ -1742,16 +1815,68 @@ end
   ((X : polynomial R) : power_series R) = power_series.X :=
 coe_monomial _ _
 
+variables (R)
+
+lemma coe_injective : function.injective (coe : polynomial R → power_series R) :=
+λ x y h, by { ext, simp_rw [←coeff_coe, h] }
+
+variables {R φ ψ}
+
+@[simp, norm_cast] lemma coe_inj : (φ : power_series R) = ψ ↔ φ = ψ :=
+(coe_injective R).eq_iff
+
+@[simp] lemma coe_eq_zero_iff : (φ : power_series R) = 0 ↔ φ = 0 :=
+by rw [←coe_zero, coe_inj]
+
+@[simp] lemma coe_eq_one_iff : (φ : power_series R) = 1 ↔ φ = 1 :=
+by rw [←coe_one, coe_inj]
+
+variables (φ ψ)
+
 /--
 The coercion from polynomials to power series
 as a ring homomorphism.
 -/
--- TODO as an algebra homomorphism?
-def coe_to_power_series.ring_hom : polynomial R →+* power_series R  :=
+def coe_to_power_series.ring_hom : polynomial R →+* power_series R :=
 { to_fun := (coe : polynomial R → power_series R),
   map_zero' := coe_zero,
   map_one' := coe_one,
   map_add' := coe_add,
   map_mul' := coe_mul }
 
+@[simp] lemma coe_to_power_series.ring_hom_apply : coe_to_power_series.ring_hom φ = φ := rfl
+
+variables (A : Type*) [semiring A] [algebra R A]
+
+/--
+The coercion from polynomials to power series
+as an algebra homomorphism.
+-/
+def coe_to_power_series.alg_hom : polynomial R →ₐ[R] power_series A :=
+{ commutes' := λ r, by simp [algebra_map_apply, power_series.algebra_map_apply],
+  ..(power_series.map (algebra_map R A)).comp coe_to_power_series.ring_hom }
+
+@[simp] lemma coe_to_power_series.alg_hom_apply : (coe_to_power_series.alg_hom A φ) =
+  power_series.map (algebra_map R A) ↑φ := rfl
+
 end polynomial
+
+namespace power_series
+
+variables {R A : Type*} [comm_semiring R] [comm_semiring A] [algebra R A] (f : power_series R)
+
+instance algebra_polynomial : algebra (polynomial R) (power_series A) :=
+ring_hom.to_algebra (polynomial.coe_to_power_series.alg_hom A).to_ring_hom
+
+instance algebra_power_series : algebra (power_series R) (power_series A) :=
+(map (algebra_map R A)).to_algebra
+
+variables (A)
+
+lemma algebra_map_apply' (p : polynomial R) :
+  algebra_map (polynomial R) (power_series A) p = map (algebra_map R A) p := rfl
+
+lemma algebra_map_apply'' :
+  algebra_map (power_series R) (power_series A) f = map (algebra_map R A) f := rfl
+
+end power_series

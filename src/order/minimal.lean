@@ -41,8 +41,8 @@ lemma minimals_subset : minimals r s ⊆ s := sep_subset _ _
 
 @[simp] lemma minimals_singleton : minimals r {a} = {a} := maximals_singleton _ _
 
-@[simp] lemma maximals_swap : maximals (swap r) s = minimals r s := rfl
-@[simp] lemma minimals_swap : minimals (swap r) s = maximals r s := rfl
+lemma maximals_swap : maximals (swap r) s = minimals r s := rfl
+lemma minimals_swap : minimals (swap r) s = maximals r s := rfl
 
 lemma maximals_antichain : is_antichain r (maximals r s) := λ a ha b hb hab h, hab $ ha.2 hb.1 h
 lemma minimals_antichain : is_antichain r (minimals r s) := (maximals_antichain _ _).swap

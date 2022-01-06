@@ -885,9 +885,6 @@ def family_of_bfamily' {ι : Type u} (r : ι → ι → Prop) [is_well_order ι 
   ι → β :=
 λ i, f (typein r i) (typein_lt_type r i)
 
-lemma lt_type_out_of_lt {a b : ordinal.{u}} (h : a < b) : a < type b.out.r :=
-by { convert h, exact type_out b }
-
 /-- Converts a family indexed by an `ordinal.{u}` to one indexed by a `Type u` using a well-ordering
 given by the axiom of choice. -/
 @[simp]
@@ -896,7 +893,7 @@ family_of_bfamily' o.out.r (λ b hb, f b (by rwa type_out o at hb))
 
 theorem bfamily_of_family'_typein {ι} (r : ι → ι → Prop) [is_well_order ι r] (f : ι → β) (i) :
   f i = bfamily_of_family' r f (typein r i) (typein_lt_type r i) :=
-by simp
+by simp only [bfamily_of_family', enum_typein]
 
 theorem bfamily_of_family_typein {ι} (f : ι → β) (i) :
   f i = bfamily_of_family f (typein _ i) (typein_lt_type _ i) :=
@@ -905,7 +902,10 @@ bfamily_of_family'_typein  _ f i
 theorem family_of_bfamily'_enum {ι : Type u} (r : ι → ι → Prop) [is_well_order ι r]
   (f : Π b < type r, β) (i hi) :
   f i hi = family_of_bfamily' r f (enum r i hi) :=
-by simp
+by simp only [family_of_bfamily', typein_enum]
+
+lemma lt_type_out_of_lt {a b : ordinal.{u}} (h : a < b) : a < type b.out.r :=
+by { convert h, exact type_out b }
 
 theorem family_of_bfamily_enum (o : ordinal.{u}) (f : Π b < o, β) (i hi) :
   f i hi = family_of_bfamily o f (enum o.out.r i (lt_type_out_of_lt hi)) :=

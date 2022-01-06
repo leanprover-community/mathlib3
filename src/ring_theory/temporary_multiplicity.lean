@@ -180,8 +180,8 @@ begin
   exact le_trans (finset.card_le_of_subset sorry_2) (finset.card_image_le),
 end
 
-lemma multiplicity.finite_prime_left [wf_dvd_monoid M] --[decidable_rel ((∣) : M → M → Prop)]
-  {a b : M} (ha : prime a) (hb : b ≠ 0) : multiplicity.finite a b :=
+lemma multiplicity.finite_prime_left [wf_dvd_monoid M] {a b : M} (ha : prime a) (hb : b ≠ 0) :
+  multiplicity.finite a b :=
 begin
   revert hb,
   refine wf_dvd_monoid.induction_on_irreducible b _ _ _,
@@ -339,19 +339,18 @@ begin
       apply monotone.strict_mono_of_injective hd (equiv.injective d),
       rw [subtype.mk_lt_mk, strict_mono.lt_iff_lt hc₁'],
       exact h },
-    { intro r,
-      split,
+    { refine λ r, ⟨_, _⟩,
       { intro hr,
         have : r ≤ n,
           apply le_trans hr
             (show ↑(d ⟨c₁ ⟨1, _⟩ ^ s, _⟩) ≤ n, from subtype.prop (d ⟨c₁ ⟨1, _⟩ ^ s, _⟩)),
-        have temp_r : d.symm ⟨r, this⟩ ≤ ⟨p^s, hs'⟩,
-          conv_rhs {rw ← equiv.symm_apply_apply d ⟨p^s, hs'⟩},
-          apply hd',
-          simpa [hc₁, hr, subtype.coe_le_coe] using hr,
-        obtain ⟨i, hi, hi'⟩ := hc₁''.1 temp_r,
-        exact exists.intro i (exists.intro hi (by simp only [c₂.def, ← hi', equiv.apply_symm_apply,
-          subtype.coe_eta, subtype.coe_mk] )) },
+        suffices : d.symm ⟨r, this⟩ ≤ ⟨p^s, hs'⟩,
+        { obtain ⟨i, hi, hi'⟩ := hc₁''.1 this,
+          exact exists.intro i (exists.intro hi (by simp only [c₂.def, ← hi',
+            equiv.apply_symm_apply, subtype.coe_eta, subtype.coe_mk] )) },
+        conv_rhs {rw ← equiv.symm_apply_apply d ⟨p^s, hs'⟩},
+        apply hd',
+        simpa [hc₁, hr, subtype.coe_le_coe] using hr },
       { intro H,
         obtain ⟨i, hi, hr⟩ := H,
         rw [hr, c₂.def, subtype.coe_le_coe],

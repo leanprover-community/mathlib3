@@ -114,6 +114,10 @@ begin
   fin_cases i; norm_num; ring,
 end
 
+lemma lie_lie_cross  (u v w : fin 3 → R) :
+  (u ×₃ v) ×₃ w = u ×₃ (v ×₃ w) - v ×₃ (u ×₃ w) :=
+by rw [leibniz_cross, add_sub_cancel]
+
 /-- The three-dimensional vectors together with the operations + and ×₃ form a Lie ring.
     Note we do not make this an instance as a conflicting one already exists
     via `lie_ring.of_associative_ring`. -/

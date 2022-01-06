@@ -341,7 +341,7 @@ begin
 end
 
 lemma eq_unit_mul_pow_irreducible {x : R} (hx : x ≠ 0) {ϖ : R} (hirr : irreducible ϖ) :
-  ∃ (n : ℕ) (u : units R), x = u * ϖ ^ n :=
+  ∃ (n : ℕ) (u : Rˣ), x = u * ϖ ^ n :=
 begin
   obtain ⟨n, hn⟩ := associated_pow_irreducible hx hirr,
   obtain ⟨u, rfl⟩ := hn.symm,
@@ -364,7 +364,7 @@ begin
 end
 
 lemma unit_mul_pow_congr_pow {p q : R} (hp : irreducible p) (hq : irreducible q)
-  (u v : units R) (m n : ℕ) (h : ↑u * p ^ m = v * q ^ n) :
+  (u v : Rˣ) (m n : ℕ) (h : ↑u * p ^ m = v * q ^ n) :
   m = n :=
 begin
   have key : associated (multiset.repeat p m).prod (multiset.repeat q n).prod,
@@ -379,7 +379,7 @@ begin
     unfreezingI { subst hx, assumption } },
 end
 
-lemma unit_mul_pow_congr_unit {ϖ : R} (hirr : irreducible ϖ) (u v : units R) (m n : ℕ)
+lemma unit_mul_pow_congr_unit {ϖ : R} (hirr : irreducible ϖ) (u v : Rˣ) (m n : ℕ)
   (h : ↑u * ϖ ^ m = v * ϖ ^ n) :
   u = v :=
 begin
@@ -403,7 +403,7 @@ noncomputable def add_val
   add_valuation R enat :=
 add_valuation (classical.some_spec (exists_prime R))
 
-lemma add_val_def (r : R) (u : units R) {ϖ : R} (hϖ : irreducible ϖ) (n : ℕ) (hr : r = u * ϖ ^ n) :
+lemma add_val_def (r : R) (u : Rˣ) {ϖ : R} (hϖ : irreducible ϖ) (n : ℕ) (hr : r = u * ϖ ^ n) :
   add_val R r = n :=
 by rw [add_val, add_valuation_apply, hr,
     eq_of_associated_left (associated_of_irreducible R hϖ
@@ -411,7 +411,7 @@ by rw [add_val, add_valuation_apply, hr,
     eq_of_associated_right (associated.symm ⟨u, mul_comm _ _⟩),
     multiplicity_pow_self_of_prime (principal_ideal_ring.irreducible_iff_prime.1 hϖ)]
 
-lemma add_val_def' (u : units R) {ϖ : R} (hϖ : irreducible ϖ) (n : ℕ) :
+lemma add_val_def' (u : Rˣ) {ϖ : R} (hϖ : irreducible ϖ) (n : ℕ) :
   add_val R ((u : R) * ϖ ^ n) = n :=
 add_val_def _ u hϖ n rfl
 

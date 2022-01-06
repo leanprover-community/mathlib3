@@ -225,7 +225,7 @@ begin
   { simp },
   { intros n r r0 np kd,
     rw [nat_degree_C_mul_X_pow _ _ r0, ← monomial_eq_C_mul_X, φ_mon_nat _ _ r0] },
-  { intros f g fg fp gp kf kg kfg,
+  { intros f g fg gp kf kg kfg,
     rw [nat_degree_add_eq_right_of_nat_degree_lt fg, map_add],
     by_cases FG : k ≤ f.nat_degree,
     { rw [nat_degree_add_eq_right_of_nat_degree_lt, kg],

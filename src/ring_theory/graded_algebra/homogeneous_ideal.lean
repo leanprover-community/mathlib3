@@ -333,7 +333,7 @@ end
 lemma homogeneous_hull_eq_supr :
   I.homogeneous_hull 𝒜 = ⨆ i, ideal.span (graded_algebra.proj 𝒜 i '' I) :=
 begin
-  refine eq.trans _ (submodule.span_Union _), -- todo: `ideal.span_Union` so that we can use `rw`
+  rw ←ideal.span_Union,
   apply congr_arg ideal.span _,
   ext1, simp only [set.mem_Union, set.mem_image, mem_set_of_eq, graded_algebra.proj_apply,
     set_like.exists, exists_prop, subtype.coe_mk, set_like.mem_coe],

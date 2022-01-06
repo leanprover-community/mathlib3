@@ -100,3 +100,45 @@ begin
   guard_hyp h : n % 3 = 0, trivial,
   guard_hyp h : n % 3 = 1, trivial,
 end
+
+/-
+In some circumstances involving `let`,
+the temporary hypothesis that `fin_cases` creates does not get deleted.
+We test that this is correctly named and that the name can be changed.
+
+Note: after `fin_cases`, we have `this : (a : fin 3) = (0 : fin (2 + 1))`
+for some reason. I don't know why, and it complicates the test.
+-/
+example (f : ℕ → fin 3) : true :=
+begin
+  let a := f 3,
+  fin_cases a,
+  guard_hyp a := f 3,
+  guard_hyp this : a = (0 : fin (2 + 1)),
+  trivial, trivial,
+
+  let b := f 2,
+  fin_cases b using what,
+  guard_hyp what : b = (0 : fin (2 + 1)),
+
+  all_goals {trivial}
+end
+
+/-
+The behavior above can be worked around with `fin_cases with`.
+-/
+example (f : ℕ → fin 3) : true :=
+begin
+  let a := f 3,
+  fin_cases a with [0, 1, 2],
+  guard_hyp a := f 3,
+  guard_hyp this : a = 0,
+  trivial,
+  guard_hyp this : a = 1,
+  trivial,
+  guard_hyp this : a = 2,
+  let b := f 2,
+  fin_cases b with [0, 1, 2] using what,
+  guard_hyp what : b = 0,
+  all_goals {trivial}
+end

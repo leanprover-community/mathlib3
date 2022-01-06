@@ -53,6 +53,9 @@ protected abbreviation sheaf (X : Scheme) := X.to_SheafedSpace.sheaf
 def forget_to_LocallyRingedSpace : Scheme ⥤ LocallyRingedSpace :=
   induced_functor _
 
+@[simp] lemma forget_to_LocallyRingedSpace_preimage {X Y : Scheme} (f : X ⟶ Y) :
+  Scheme.forget_to_LocallyRingedSpace.preimage f = f := rfl
+
 /-- The forgetful functor from `Scheme` to `Top`. -/
 @[simps]
 def forget_to_Top : Scheme ⥤ Top :=

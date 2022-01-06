@@ -92,7 +92,7 @@ end
 
 /-- This instance is necessary, otherwise the lattice operations would be derived via
 conditionally_complete_linear_order_bot and marked as noncomputable. -/
-instance : lattice ℕ := lattice_of_linear_order
+instance : lattice ℕ := linear_order.to_lattice
 
 noncomputable instance : conditionally_complete_linear_order_bot ℕ :=
 { Sup := Sup, Inf := Inf,
@@ -108,7 +108,7 @@ noncomputable instance : conditionally_complete_linear_order_bot ℕ :=
     apply bot_unique (nat.find_min' _ _),
     trivial
   end,
-  .. (infer_instance : order_bot ℕ), .. (lattice_of_linear_order : lattice ℕ),
+  .. (infer_instance : order_bot ℕ), .. (linear_order.to_lattice : lattice ℕ),
   .. (infer_instance : linear_order ℕ) }
 
 lemma Inf_add {n : ℕ} {p : ℕ → Prop} (hn : n ≤ Inf {m | p m}) :

@@ -40,6 +40,10 @@ A well-founded subset of an ordered type is one on which the relation `<` is wel
  * `set.is_wf.union` shows that the union of two well-founded subsets is well-founded.
  * `finset.is_wf` shows that all `finset`s are well-founded.
 
+## TODO
+
+Prove that `s` is partial well ordered iff it has no infinite descending chain or antichain.
+
 ## References
  * [Higman, *Ordering by Divisibility in Abstract Algebras*][Higman52]
  * [Nash-Williams, *On Well-Quasi-Ordering Finite Trees*][Nash-Williams63]

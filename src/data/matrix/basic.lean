@@ -17,6 +17,15 @@ import data.fintype.card
 
 This file defines basic properties of matrices.
 
+## Notation
+
+The locale `matrix` gives the following notation:
+
+* `⬝ᵥ` for `matrix.dot_product`
+* `⬝` for `matrix.mul`
+* `ᵀ` for `matrix.transpose`
+* `ᴴ` for `matrix.conj_transpose`
+
 ## TODO
 
 Under various conditions, multiplication of infinite matrices makes sense.

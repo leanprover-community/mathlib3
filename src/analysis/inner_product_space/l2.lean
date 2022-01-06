@@ -128,7 +128,6 @@ end
 
 end orthonormal
 
-
 section
 variables (ι) (𝕜) (E)
 
@@ -146,6 +145,46 @@ end
   ⇑(linear_isometry_equiv.of_surjective f hfr) = f :=
 by ext; refl
 
+-- move this
+@[simp] lemma _root_.finsupp.norm_mk_lp {F : Type*} [normed_group F] {p : ℝ≥0∞} (hp : 0 < p.to_real)
+  {ι : Type*} (f : ι →₀ F) :
+  ∥f.mk_lp p∥ = (f.sum (λ i a, ∥a∥ ^ p.to_real)) ^ (1 / p.to_real) :=
+begin
+  rw lp.norm_eq_tsum_rpow hp,
+  congr,
+  dsimp [finsupp.sum],
+  apply tsum_eq_sum,
+  intros i hi,
+  simp [finsupp.not_mem_support_iff.1 hi, real.zero_rpow hp.ne']
+end
+
+-- move this
+lemma _root_.has_sum_finsupp_single_mk_lp {F : Type*} [normed_group F] {p : ℝ≥0∞}
+  [fact (1 ≤ p)] (hp : p ≠ ⊤) {ι : Type*} (f : lp (λ i : ι, F) p) :
+  has_sum (λ i, finsupp.mk_lp (finsupp.single i (f i)) p) f :=
+begin
+  have hp' : 0 < p.to_real := sorry,
+  have := lp.has_sum_norm hp' f,
+  dsimp [has_sum] at this ⊢,
+  rw metric.tendsto_nhds at this ⊢,
+  intros ε hε,
+  refine (this ε hε).mono _,
+  intros s hs,
+  refine lt_of_le_of_lt _ hs,
+  simp [dist_eq_norm],
+  rw lp.norm_rpow_eq_tsum hp',
+  sorry
+end
+
+
+-- move this
+@[simp] lemma _root_.finsupp.norm_mk_lp_infty {F : Type*} [normed_group F] [decidable_eq F]
+  {ι : Type*} (f : ι →₀ F) :
+  ∥f.mk_lp ∞∥ = (insert (0:ℝ) (f.frange.image (λ a, ∥a∥))).max' (finset.insert_nonempty _ _) :=
+begin
+  sorry,
+end
+
 
 namespace hilbert_basis
 
@@ -156,15 +195,71 @@ instance : has_coe_to_fun (hilbert_basis ι 𝕜 E) (λ _, ι → E) :=
     exact b.repr.symm (direct_sum.mk_lp (dfinsupp.single i (1:𝕜) : ⨁ i : ι, 𝕜) 2)
   end }
 
-@[simp] protected lemma repr_self (b : hilbert_basis ι 𝕜 E) (i : ι) :
-  b.repr (b i) = (by convert finsupp.mk_lp (finsupp.single i (1:𝕜)) 2 : ℓ²(ι, 𝕜)) :=
+@[simp] protected lemma repr_symm_single (b : hilbert_basis ι 𝕜 E) (i : ι) :
+  b.repr.symm (by convert finsupp.mk_lp (finsupp.single i (1:𝕜)) 2 : ℓ²(ι, 𝕜)) = b i :=
 begin
   classical,
-  show b.repr (b.repr.symm _) = _,
-  simp only [direct_sum.to_finsupp_mk_lp, linear_isometry_equiv.apply_symm_apply, set_like.eta,
-    set_coe_cast, eq_mpr_eq_cast, subtype.val_eq_coe],
+  change _ = b.repr.symm _,
+  simp [direct_sum.to_finsupp_mk_lp],
   congr,
+  symmetry,
   convert dfinsupp.to_finsupp_single i (1:𝕜),
+end
+
+@[simp] protected lemma repr_self (b : hilbert_basis ι 𝕜 E) (i : ι) :
+  b.repr (b i) = (by convert finsupp.mk_lp (finsupp.single i (1:𝕜)) 2 : ℓ²(ι, 𝕜)) :=
+by simp [← b.repr_symm_single]
+
+-- protected lemma repr_apply_apply (b : hilbert_basis ι 𝕜 E) (v : E) (i : ι) :
+--   b.repr v i = ⟪b i, v⟫ :=
+-- begin
+--   set w := b.repr v,
+--   have hw : v = b.repr.symm w := by simp [w],
+--   rw [hw, ← b.repr_symm_single],
+--   sorry -- need inner product space structure
+-- end
+
+-- @[simp] protected lemma orthonormal (b : hilbert_basis ι 𝕜 E) : orthonormal 𝕜 b :=
+-- begin
+--   classical,
+--   rw orthonormal_iff_ite,
+--   intros i j,
+--   simp [← b.repr_symm_single],
+--   sorry -- need inner product space structure
+-- end
+
+-- why does this proof show as timing out?
+protected lemma has_sum_repr_symm (b : hilbert_basis ι 𝕜 E) (f : ℓ²(ι, 𝕜)) :
+  has_sum (λ i, f i • b i) (b.repr.symm f) :=
+begin
+  simp only [← b.repr_symm_single],
+  have := @has_sum_finsupp_single_mk_lp 𝕜 _ 2 _ (by norm_num) _ f,
+  convert (↑b.repr.symm.to_continuous_linear_equiv : ℓ²(ι, 𝕜) →L[𝕜] E).has_sum this,
+  ext i,
+  have := (finsupp.mk_lp_smul (finsupp.single i (1:𝕜)) 2 (f i)).symm,
+  simpa only [linear_isometry_equiv.map_smul, finsupp.smul_single', mul_one, eq_mpr_eq_cast,
+    eq_self_iff_true, set_coe_cast, subtype.val_eq_coe, set_like.eta,
+    continuous_linear_equiv.coe_coe, linear_isometry_equiv.coe_to_continuous_linear_equiv]
+    using congr_arg (⇑b.repr.symm) this
+end
+
+protected lemma has_sum_repr_symm' (b : hilbert_basis ι 𝕜 E) (x : E) :
+  has_sum (λ i, b.repr x i • b i) x :=
+by simpa using b.has_sum_repr_symm (b.repr x)
+
+@[simp] protected lemma dense_span (b : hilbert_basis ι 𝕜 E) :
+  (span 𝕜 (set.range b)).topological_closure = ⊤ :=
+begin
+  classical,
+  rw eq_top_iff,
+  rintros x -,
+  refine mem_closure_of_tendsto (b.has_sum_repr_symm' x) (eventually_of_forall _),
+  intros s,
+  simp only [set_like.mem_coe],
+  refine sum_mem _ _,
+  rintros i -,
+  refine smul_mem _ _ _,
+  exact subset_span ⟨i, rfl⟩
 end
 
 variables {v : ι → E} (hv : orthonormal 𝕜 v)

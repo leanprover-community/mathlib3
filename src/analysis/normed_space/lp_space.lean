@@ -555,7 +555,7 @@ end compare_pointwise
 
 section normed_space
 
-variables {𝕜 : Type*} [normed_field 𝕜] [Π i, normed_space 𝕜 (E i)]
+variables {𝕜 : Type*} [normed_field 𝕜] [Π i, normed_space 𝕜 (E i)] [normed_space 𝕜 F]
 
 instance : module 𝕜 (pre_lp E) := pi.module α E 𝕜
 
@@ -615,6 +615,9 @@ begin
   ext1,
   exact (lp.coe_fn_smul _ _).trans (smul_assoc _ _ _)
 end
+
+@[simp] lemma _root_.finsupp.mk_lp_smul (f : α →₀ F) (p) (a : 𝕜) : (a • f).mk_lp p = a • f.mk_lp p :=
+by ext; refl
 
 end normed_space
 

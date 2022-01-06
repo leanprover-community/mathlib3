@@ -5,7 +5,7 @@ Authors: Andrew Yang
 -/
 import topology.category.Top
 import category_theory.glue_data
-import data.sym.sym2
+import category_theory.concrete_category.elementwise
 
 /-!
 # Gluing Topological spaces
@@ -201,8 +201,6 @@ end
 
 instance ι_mono (i : D.J) : mono (𝖣 .ι i) :=
 (Top.mono_iff_injective _).mpr (D.ι_injective _)
-
-local attribute [elementwise] is_iso.hom_inv_id is_iso.inv_hom_id
 
 lemma image_inter (i j : D.J) :
   set.range (𝖣 .ι i) ∩ set.range (𝖣 .ι j) = set.range (D.f i j ≫ 𝖣 .ι _) :=

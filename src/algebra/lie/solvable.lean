@@ -263,7 +263,7 @@ begin
   rw ← complete_lattice.is_sup_closed_compact_iff_well_founded at hwf,
   refine hwf { I : lie_ideal R L | is_solvable R I } ⟨⊥, _⟩ (λ I hI J hJ, _),
   { exact lie_algebra.is_solvable_bot R L, },
-  { apply lie_algebra.is_solvable_add R L; exacts [hI, hJ] },
+  { apply lie_algebra.is_solvable_add R L, exacts [hI, hJ] },
 end
 
 /-- The `→` direction of this lemma is actually true without the `is_noetherian` assumption. -/

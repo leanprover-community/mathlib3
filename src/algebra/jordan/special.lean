@@ -64,6 +64,8 @@ instance [has_add α] : has_add αˢʸᵐ :=
 @[simp] lemma sym_add [has_add α] (a b : α) : sym (a + b) = sym a + sym b := rfl
 @[simp] lemma unsym_add [has_add α] (x y : αˢʸᵐ) : unsym (x + y) = unsym x + unsym y := rfl
 
+@[simp] lemma sym_sub [has_sub α] (x y : α) : sym (x - y) = sym x - sym y := rfl
+@[simp] lemma unsym_sub [has_sub α] (x y : αᵐᵒᵖ) : unsym (x - y) = unsym x - unsym y := rfl
 
 instance [has_neg α] : has_neg αˢʸᵐ :=
 { neg := λ a, sym (-unsym a) }

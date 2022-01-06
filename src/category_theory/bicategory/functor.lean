@@ -18,7 +18,7 @@ An oplax functor `F` between bicategories `B` and `C` consists of
 
 ## Main definitions
 
-* `oplax_functor B C` : a oplax functor between bicategories `B` and `C`
+* `oplax_functor B C` : an oplax functor between bicategories `B` and `C`
 * `oplax_functor.comp F G` : the composition of oplax functors
 
 ## Future work
@@ -44,7 +44,7 @@ universes w₁ w₂ w₃ v₁ v₂ v₃ u₁ u₂ u₃
 section
 
 /--
-A prelax_functor between bicategories consists of functions between objects,
+A prelax functor between bicategories consists of functions between objects,
 1-morphisms, and 2-morphisms. This structure will be extended to define `oplax_functor`.
 -/
 structure prelax_functor
@@ -70,7 +70,7 @@ namespace prelax_functor
 section
 variables (B : Type u₁) [quiver.{v₁+1} B] [∀ a b : B, quiver.{w₁+1} (a ⟶ b)]
 
-/-- The identity prelax_functor. -/
+/-- The identity prelax functor. -/
 @[simps]
 def id : prelax_functor B B :=
 { map₂ := λ a b f g η, η, .. prefunctor.id B }
@@ -85,7 +85,7 @@ variables {C : Type u₂} [quiver.{v₂+1} C] [∀ a b : C, quiver.{w₂+1} (a �
 variables {D : Type u₃} [quiver.{v₃+1} D] [∀ a b : D, quiver.{w₃+1} (a ⟶ b)]
 variables (F : prelax_functor B C) (G : prelax_functor C D)
 
-/-- Composition of prelax_functors. -/
+/-- Composition of prelax functors. -/
 @[simps]
 def comp : prelax_functor B D :=
 { map₂ := λ a b f g η, G.map₂ (F.map₂ η), .. F.to_prefunctor.comp G.to_prefunctor }
@@ -170,13 +170,13 @@ section
 variables {B : Type u₁} [bicategory.{w₁ v₁} B] {C : Type u₂} [bicategory.{w₂ v₂} C]
 variables (F : oplax_functor B C)
 
-/-- Function on 1-morphisms as a functor. -/
+/-- Function between 1-morphisms as a functor. -/
 @[simps]
 def map_functor (a b : B) : (a ⟶ b) ⥤ (F.obj a ⟶ F.obj b) :=
 { obj := λ f, F.map f,
   map := λ f g η, F.map₂ η }
 
-/-- The prelax_functor between the underlying quivers. -/
+/-- The prelax functor between the underlying quivers. -/
 add_decl_doc oplax_functor.to_prelax_functor
 
 @[simp] lemma to_prelax_functor_obj : F.to_prelax_functor.obj = F.obj := rfl

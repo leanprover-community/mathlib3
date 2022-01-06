@@ -30,9 +30,11 @@ include hv
 open polynomial
 
 lemma mem_of_integral {x : R} (hx : is_integral O x) : x ∈ v.integer :=
-let ⟨p, hpm, hpx⟩ := hx in le_of_not_lt $ λ hvx, begin
+begin
+  obtain ⟨p, hpm, hpx⟩ := hx,
   rw [hpm.as_sum, eval₂_add, eval₂_pow, eval₂_X, eval₂_finset_sum, add_eq_zero_iff_eq_neg] at hpx,
-  replace hpx := congr_arg v hpx, refine ne_of_gt _ hpx,
+  change v x ≤ 1,
+  refine le_of_not_lt (λ hvx, ne_of_gt _ $ congr_arg v hpx),
   rw [v.map_neg, v.map_pow],
   refine v.map_sum_lt' (zero_lt_one₀.trans_le (one_le_pow_of_one_le' hvx.le _)) (λ i hi, _),
   rw [eval₂_mul, eval₂_pow, eval₂_C, eval₂_X, v.map_mul, v.map_pow, ← one_mul (v x ^ p.nat_degree)],

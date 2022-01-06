@@ -1093,7 +1093,10 @@ end
 
 /-! ### Ordinal exponential -/
 
-/-- The ordinal exponential, defined by transfinite recursion. -/
+/-- The ordinal exponential, defined by transfinite recursion.
+
+Note that we use the name `power` instead of `pow`, since `pow` clashes with the default exponential
+defined in a monoid. -/
 def power (a b : ordinal) : ordinal :=
 if a = 0 then 1 - b else
 limit_rec_on b 1 (λ _ IH, IH * a) (λ b _, bsup.{u u} b)

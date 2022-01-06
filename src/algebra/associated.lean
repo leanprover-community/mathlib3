@@ -780,7 +780,7 @@ lemma dvd_not_unit.ne [cancel_comm_monoid_with_zero α] {p q : α}
 begin
   by_contra hcontra,
   obtain ⟨hp, x, hx', hx''⟩ := h,
-  conv_lhs at hx'' {rw [← hcontra,← mul_one p]},
+  conv_lhs at hx'' {rw [← hcontra, ← mul_one p]},
   rw (mul_left_cancel₀ hp hx'').symm at hx',
   exact hx' is_unit_one,
 end

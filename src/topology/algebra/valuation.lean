@@ -35,7 +35,7 @@ namespace valued
 variables {R : Type*} [ring R] [valued R]
 
 /-- The basis of open subgroups for the topology on a valued ring.-/
-lemma subgroups_basis : ring_subgroups_basis (λ γ : units (Γ₀ R), valued.v.lt_add_subgroup γ) :=
+lemma subgroups_basis : ring_subgroups_basis (λ γ : (Γ₀ R)ˣ, valued.v.lt_add_subgroup γ) :=
 { inter := begin
     rintros γ₀ γ₁,
     use min γ₀ γ₁,
@@ -86,11 +86,11 @@ lemma subgroups_basis : ring_subgroups_basis (λ γ : units (Γ₀ R), valued.v.
 instance : topological_space R := subgroups_basis.topology
 
 lemma mem_nhds {s : set R} {x : R} :
-  (s ∈ 𝓝 x) ↔ ∃ γ : units (valued.Γ₀ R), {y | v (y - x) < γ } ⊆ s :=
+  (s ∈ 𝓝 x) ↔ ∃ γ : (valued.Γ₀ R)ˣ, {y | v (y - x) < γ } ⊆ s :=
 by simpa [(subgroups_basis.has_basis_nhds x).mem_iff]
 
 lemma mem_nhds_zero {s : set R} :
-  (s ∈ 𝓝 (0 : R)) ↔ ∃ γ : units (Γ₀ R), {x | v x < (γ : Γ₀ R) } ⊆ s :=
+  (s ∈ 𝓝 (0 : R)) ↔ ∃ γ : (Γ₀ R)ˣ, {x | v x < (γ : Γ₀ R) } ⊆ s :=
 by simp [valued.mem_nhds, sub_zero]
 
 lemma loc_const {x : R} (h : v x ≠ 0) : {y : R | v y = v x} ∈ 𝓝 x :=
@@ -112,7 +112,7 @@ instance uniform_space : uniform_space R := topological_add_group.to_uniform_spa
 instance uniform_add_group : uniform_add_group R := topological_add_group_is_uniform
 
 lemma cauchy_iff {F : filter R} :
-  cauchy F ↔ F.ne_bot ∧ ∀ γ : units (Γ₀ R), ∃ M ∈ F, ∀ x y, x ∈ M → y ∈ M → v (y - x) < γ :=
+  cauchy F ↔ F.ne_bot ∧ ∀ γ : (Γ₀ R)ˣ, ∃ M ∈ F, ∀ x y, x ∈ M → y ∈ M → v (y - x) < γ :=
 begin
   rw add_group_filter_basis.cauchy_iff,
   apply and_congr iff.rfl,

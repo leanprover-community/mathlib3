@@ -513,11 +513,11 @@ variables (e : L₁ ≃ₗ⁅R⁆ L₂)
 
 /-- An equivalence of Lie algebras restricts to an equivalence from any Lie subalgebra onto its
 image. -/
-def of_subalgebra : L₁'' ≃ₗ⁅R⁆ (L₁''.map e : lie_subalgebra R L₂) :=
+def lie_subalgebra_map : L₁'' ≃ₗ⁅R⁆ (L₁''.map e : lie_subalgebra R L₂) :=
 { map_lie' := λ x y, by { apply set_coe.ext, exact lie_hom.map_lie (↑e : L₁ →ₗ⁅R⁆ L₂) ↑x ↑y, }
-  ..(linear_equiv.of_submodule (e : L₁ ≃ₗ[R] L₂) ↑L₁'') }
+  ..(linear_equiv.submodule_map (e : L₁ ≃ₗ[R] L₂) ↑L₁'') }
 
-@[simp] lemma of_subalgebra_apply (x : L₁'') : ↑(e.of_subalgebra _  x) = e x := rfl
+@[simp] lemma lie_subalgebra_map_apply (x : L₁'') : ↑(e.lie_subalgebra_map _  x) = e x := rfl
 
 /-- An equivalence of Lie algebras restricts to an equivalence from any Lie subalgebra onto its
 image. -/

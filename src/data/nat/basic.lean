@@ -111,7 +111,7 @@ instance nat.subtype.order_bot (s : set ℕ) [decidable_pred (∈ s)] [h : nonem
 instance nat.subtype.semilattice_sup (s : set ℕ) :
   semilattice_sup s :=
 { ..subtype.linear_order s,
-  ..lattice_of_linear_order }
+  ..linear_order.to_lattice }
 
 lemma nat.subtype.coe_bot {s : set ℕ} [decidable_pred (∈ s)]
   [h : nonempty s] : ((⊥ : s) : ℕ) = nat.find (nonempty_subtype.1 h) := rfl
@@ -187,7 +187,7 @@ end set
 
 /-! ### The units of the natural numbers as a `monoid` and `add_monoid` -/
 
-theorem units_eq_one (u : units ℕ) : u = 1 :=
+theorem units_eq_one (u : ℕˣ) : u = 1 :=
 units.ext $ nat.eq_one_of_dvd_one ⟨u.inv, u.val_inv.symm⟩
 
 theorem add_units_eq_zero (u : add_units ℕ) : u = 0 :=
@@ -198,7 +198,7 @@ iff.intro
   (λ ⟨u, hu⟩, match n, u, hu, nat.units_eq_one u with _, _, rfl, rfl := rfl end)
   (λ h, h.symm ▸ ⟨1, rfl⟩)
 
-instance unique_units : unique (units ℕ) :=
+instance unique_units : unique ℕˣ :=
 { default := 1, uniq := nat.units_eq_one }
 
 instance unique_add_units : unique (add_units ℕ) :=

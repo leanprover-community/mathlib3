@@ -66,10 +66,10 @@ instance [has_add α] : has_add αˢʸᵐ :=
 
 
 instance [has_neg α] : has_neg αˢʸᵐ :=
-{ neg := λ a, sym ( -(unsym a)) }
+{ neg := λ a, sym (-unsym a) }
 
 instance {R : Type*} [has_scalar R α] : has_scalar R αˢʸᵐ :=
-{ smul := λ r a, sym (r•(unsym a)) }
+{ smul := λ r a, sym (r • unsym a) }
 
 @[simp] lemma sym_smul {R : Type*} [has_scalar R α] (c : R) (a : α) : sym (c • a) = c • sym a := rfl
 

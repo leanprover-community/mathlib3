@@ -70,7 +70,7 @@ lemma pow_prime_has_chain {p : associates M} (n : ℕ) (hn : 1 ≤ n) (hp : prim
   r ≤ p^n ↔ ∃ i ≤ n, r = c ⟨i, finset.mem_range.2 (nat.lt_succ_of_le H)⟩ :=
 begin
   refine ⟨λ i, p^(i : ℕ), by simp, λ n m h, _, λ y, ⟨_, _⟩⟩,
-  { exact associates.dvd_not_unit_iff_lt.mp ⟨pow_ne_zero n hp.ne_zero, p^(m - n : ℕ), 
+  { exact associates.dvd_not_unit_iff_lt.mp ⟨pow_ne_zero n hp.ne_zero, p^(m - n : ℕ),
       not_is_unit_of_not_is_unit_dvd hp.not_unit (dvd_pow (dvd_refl _) (nat.sub_pos_of_lt h).ne'),
       (pow_mul_pow_sub p h.le).symm⟩ },
   { simpa [associated_iff_eq] using (dvd_prime_pow hp n).1 },
@@ -180,7 +180,7 @@ begin
   exact le_trans (finset.card_le_of_subset sorry_2) (finset.card_image_le),
 end
 
-lemma multiplicity.finite_prime_left [wf_dvd_monoid M] [decidable_rel ((∣) : M → M → Prop)]
+lemma multiplicity.finite_prime_left [wf_dvd_monoid M] --[decidable_rel ((∣) : M → M → Prop)]
   {a b : M} (ha : prime a) (hb : b ≠ 0) : multiplicity.finite a b :=
 begin
   revert hb,

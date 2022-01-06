@@ -195,22 +195,6 @@ begin
       exact nat.succ_ne_zero _ } }
 end
 
-lemma map_nat_degree_eq_nat_degree {S F : Type*} [semiring S]
-  [add_monoid_hom_class F (polynomial R) (polynomial S)] {φ : F} (p)
-  (φ_mon_nat : ∀ n c, c ≠ 0 → (φ (monomial n c)).nat_degree = n) :
-  (φ p).nat_degree = p.nat_degree :=
-begin
-  apply induction_with_nat_degree_le (λ p, (φ p).nat_degree = p.nat_degree) p.nat_degree,
-  { simp },
-  { intros n r r0 np,
-    rw [nat_degree_C_mul_X_pow _ _ r0, ← monomial_eq_C_mul_X, φ_mon_nat _ _ r0] },
-  { intros f g fg gp hf hg,
-    rw [map_add],
-    rw [nat_degree_add_eq_right_of_nat_degree_lt, nat_degree_add_eq_right_of_nat_degree_lt fg, hg],
-    rwa [hf, hg] },
-  { exact rfl.le }
-end
-
 lemma map_nat_degree_eq_sub {S F : Type*} [semiring S]
   [add_monoid_hom_class F (polynomial R) (polynomial S)] {φ : F}
   {p : polynomial R} {k : ℕ}
@@ -237,5 +221,15 @@ begin
       { exact kg KG },
       { simpa [φ_k g (not_le.mp KG)] using (nat.sub_eq_zero_of_le (not_le.mp KG).le).symm } } }
 end
+
+lemma map_nat_degree_eq_nat_degree {S F : Type*} [semiring S]
+  [add_monoid_hom_class F (polynomial R) (polynomial S)] {φ : F} (p)
+  (φ_mon_nat : ∀ n c, c ≠ 0 → (φ (monomial n c)).nat_degree = n) :
+  (φ p).nat_degree = p.nat_degree :=
+begin
+  rw ← nat.sub_zero p.nat_degree,
+  exact map_nat_degree_eq_sub (by simp) (by simp) (by simpa),
+end
+
 
 end polynomial

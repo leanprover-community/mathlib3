@@ -120,6 +120,17 @@ by { rw ←pow_le_iff_le_log hb (pow_pos (zero_lt_one.trans hb) _),
 lemma log_pos {b n : ℕ} (hb : 1 < b) (hn : b ≤ n) : 0 < log b n :=
 by { rwa [←succ_le_iff, ←pow_le_iff_le_log hb (hb.le.trans hn), pow_one] }
 
+lemma log_mul_base (b n : ℕ) (hb : 1 < b) (hn : 0 < n) : log b (n * b) = log b n + 1 :=
+eq_of_forall_le_iff $ λ z,
+begin
+  cases z,
+  { simp },
+  have : 0 < b := zero_lt_one.trans hb,
+  rw [←pow_le_iff_le_log hb, pow_succ', (strict_mono_mul_right_of_pos this).le_iff_le,
+      pow_le_iff_le_log hb hn, nat.succ_le_succ_iff],
+  simp [hn, this]
+end
+
 lemma lt_pow_succ_log_self {b : ℕ} (hb : 1 < b) {x : ℕ} (hx : 0 < x) :
   x < b ^ (log b x).succ :=
 begin
@@ -156,6 +167,45 @@ lemma log_monotone {b : ℕ} : monotone (λ n : ℕ, log b n) :=
 
 lemma log_antitone_left {n : ℕ} : antitone_on (λ b, log b n) (set.Ioi 1) :=
 λ _ hc _ _ hb, log_le_log_of_left_ge (set.mem_Iio.1 hc) hb
+
+@[simp] lemma log_div_mul_self (b n : ℕ) : log b (n / b * b) = log b n :=
+begin
+  refine eq_of_forall_le_iff (λ z, _),
+  split,
+  { intro h,
+    exact h.trans (log_monotone (div_mul_le_self _ _)) },
+  { intro h,
+    rcases b with _|_|b,
+    { simpa using h },
+    { simpa using h },
+    rcases n.zero_le.eq_or_lt with rfl|hn,
+    { simpa using h },
+    cases le_or_lt b.succ.succ n with hb hb,
+    { cases z,
+      { simp },
+      have : 0 < b.succ.succ := nat.succ_pos',
+      rw [←pow_le_iff_le_log, pow_succ'] at h ⊢,
+      { rwa [(strict_mono_mul_right_of_pos this).le_iff_le,
+             nat.le_div_iff_mul_le _ _ nat.succ_pos'] },
+      all_goals { simp [hn, nat.div_pos hb nat.succ_pos'] } },
+    { simpa [div_eq_of_lt, hb, log_eq_zero] using h } }
+end
+
+@[simp] lemma log_div_base (b n : ℕ) : log b (n / b) = log b n - 1 :=
+begin
+  cases lt_or_le n b with h h,
+  { simp [div_eq_of_lt, h, log_eq_zero] },
+  rcases n.zero_le.eq_or_lt with rfl|hn,
+  { simp },
+  rcases b with _|_|b,
+  { simp },
+  { simp },
+  rw [←succ_inj', ←succ_inj'],
+  simp_rw succ_eq_add_one,
+  rw [nat.sub_add_cancel, ←log_mul_base];
+  { simp [succ_le_iff, log_pos, h, nat.div_pos] },
+end
+
 
 private lemma add_pred_div_lt {b n : ℕ} (hb : 1 < b) (hn : 2 ≤ n) : (n + b - 1)/b < n :=
 begin

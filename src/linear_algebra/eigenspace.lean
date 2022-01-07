@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alexander Bentkamp
 -/
 
-import field_theory.is_alg_closed.basic
 import linear_algebra.charpoly.basic
 import linear_algebra.finsupp
 import linear_algebra.matrix.to_lin
@@ -202,9 +201,9 @@ end minpoly
 lemma exists_eigenvalue [is_alg_closed K] [finite_dimensional K V] [nontrivial V] (f : End K V) :
   ∃ (c : K), f.has_eigenvalue c :=
 begin
-  obtain ⟨c, nu⟩ := exists_spectrum_of_is_alg_closed_of_finite_dimensional K f,
+  obtain ⟨c, nu⟩ := spectrum.nonempty_of_is_alg_closed_of_finite_dimensional K f,
   use c,
-  rw linear_map.is_unit_iff_ker_eq_bot at nu,
+  rw [spectrum.mem_iff, is_unit.sub_iff, linear_map.is_unit_iff_ker_eq_bot] at nu,
   exact has_eigenvalue_of_has_eigenvector (submodule.exists_mem_ne_zero_of_ne_bot nu).some_spec,
 end
 

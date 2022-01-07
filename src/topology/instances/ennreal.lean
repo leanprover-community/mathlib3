@@ -186,10 +186,10 @@ lemma nhds_zero_basis : (𝓝 (0 : ℝ≥0∞)).has_basis (λ a : ℝ≥0∞, 0 
 
 lemma nhds_zero_basis_Iic : (𝓝 (0 : ℝ≥0∞)).has_basis (λ a : ℝ≥0∞, 0 < a) Iic := nhds_bot_basis_Iic
 
-@[instance] lemma nhds_within_Ioi_coe_ne_bot {r : ℝ≥0} : (𝓝[Ioi r] (r : ℝ≥0∞)).ne_bot :=
-nhds_within_Ioi_self_ne_bot' ennreal.coe_lt_top
+@[instance] lemma nhds_within_Ioi_coe_ne_bot {r : ℝ≥0} : (𝓝[>] (r : ℝ≥0∞)).ne_bot :=
+nhds_within_Ioi_self_ne_bot' ⟨⊤, ennreal.coe_lt_top⟩
 
-@[instance] lemma nhds_within_Ioi_zero_ne_bot : (𝓝[Ioi 0] (0 : ℝ≥0∞)).ne_bot :=
+@[instance] lemma nhds_within_Ioi_zero_ne_bot : (𝓝[>] (0 : ℝ≥0∞)).ne_bot :=
 nhds_within_Ioi_coe_ne_bot
 
 -- using Icc because
@@ -347,10 +347,10 @@ protected lemma tendsto.pow {f : filter α} {m : α → ℝ≥0∞} {a : ℝ≥0
 
 lemma le_of_forall_lt_one_mul_le {x y : ℝ≥0∞} (h : ∀ a < 1, a * x ≤ y) : x ≤ y :=
 begin
-  have : tendsto (* x) (𝓝[Iio 1] 1) (𝓝 (1 * x)) :=
+  have : tendsto (* x) (𝓝[<] 1) (𝓝 (1 * x)) :=
     (ennreal.continuous_at_mul_const (or.inr one_ne_zero)).mono_left inf_le_left,
   rw one_mul at this,
-  haveI : (𝓝[Iio 1] (1 : ℝ≥0∞)).ne_bot := nhds_within_Iio_self_ne_bot' ennreal.zero_lt_one,
+  haveI : (𝓝[<] (1 : ℝ≥0∞)).ne_bot := nhds_within_Iio_self_ne_bot' ⟨0, ennreal.zero_lt_one⟩,
   exact le_of_tendsto this (eventually_nhds_within_iff.2 $ eventually_of_forall h)
 end
 
@@ -735,6 +735,50 @@ begin
   have h₄:(λ i, (f i - g i) + (g i)) = f,
   { ext n, rw tsub_add_cancel_of_le (h₂ n)},
   rw h₄ at h₃, apply h₃,
+end
+
+lemma tsum_mono_subtype (f : α → ℝ≥0∞) {s t : set α} (h : s ⊆ t) :
+  ∑' (x : s), f x ≤ ∑' (x : t), f x :=
+begin
+  simp only [tsum_subtype],
+  apply ennreal.tsum_le_tsum,
+  assume x,
+  split_ifs,
+  { exact le_rfl },
+  { exact (h_2 (h h_1)).elim },
+  { exact zero_le _ },
+  { exact le_rfl }
+end
+
+lemma tsum_union_le (f : α → ℝ≥0∞) (s t : set α) :
+  ∑' (x : s ∪ t), f x ≤ ∑' (x : s), f x + ∑' (x : t), f x :=
+calc ∑' (x : s ∪ t), f x = ∑' (x : s ∪ (t \ s)), f x :
+  by { apply tsum_congr_subtype, rw union_diff_self }
+... = ∑' (x : s), f x + ∑' (x : t \ s), f x :
+  tsum_union_disjoint disjoint_diff ennreal.summable ennreal.summable
+... ≤ ∑' (x : s), f x + ∑' (x : t), f x :
+  add_le_add le_rfl (tsum_mono_subtype _ (diff_subset _ _))
+
+lemma tsum_bUnion_le {ι : Type*} (f : α → ℝ≥0∞) (s : finset ι) (t : ι → set α) :
+  ∑' (x : ⋃ (i ∈ s), t i), f x ≤ ∑ i in s, ∑' (x : t i), f x :=
+begin
+  classical,
+  induction s using finset.induction_on with i s hi ihs h, { simp },
+  have : (⋃ (j ∈ insert i s), t j) = t i ∪ (⋃ (j ∈ s), t j), by simp,
+  rw tsum_congr_subtype f this,
+  calc ∑' (x : (t i ∪ (⋃ (j ∈ s), t j))), f x ≤
+  ∑' (x : t i), f x + ∑' (x : ⋃ (j ∈ s), t j), f x : tsum_union_le _ _ _
+  ... ≤ ∑' (x : t i), f x + ∑ i in s, ∑' (x : t i), f x : add_le_add le_rfl ihs
+  ... = ∑ j in insert i s, ∑' (x : t j), f x : (finset.sum_insert hi).symm
+end
+
+lemma tsum_Union_le {ι : Type*} [fintype ι] (f : α → ℝ≥0∞) (t : ι → set α) :
+  ∑' (x : ⋃ i, t i), f x ≤ ∑ i, ∑' (x : t i), f x :=
+begin
+  classical,
+  have : (⋃ i, t i) = (⋃ (i ∈ (finset.univ : finset ι)), t i), by simp,
+  rw tsum_congr_subtype f this,
+  exact tsum_bUnion_le _ _ _
 end
 
 end tsum

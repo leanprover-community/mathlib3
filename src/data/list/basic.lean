@@ -13,7 +13,7 @@ open function nat
 
 namespace list
 universes u v w x
-variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type x}
+variables {ι : Type*} {α : Type u} {β : Type v} {γ : Type w} {δ : Type x}
 
 attribute [inline] list.head
 
@@ -2139,6 +2139,16 @@ theorem foldr_hom (l : list γ) (f : α → β) (op : γ → α → α) (op' : �
   (h : ∀x a, f (op x a) = op' x (f a)) : foldr op' (f a) l = f (foldr op a l) :=
 by { revert a, induction l; intros; [refl, simp only [*, foldr]] }
 
+lemma foldl_hom₂ (l : list ι) (f : α → β → γ) (op₁ : α → ι → α) (op₂ : β → ι → β) (op₃ : γ → ι → γ)
+  (a : α) (b : β) (h : ∀ a b i, f (op₁ a i) (op₂ b i) = op₃ (f a b) i) :
+  foldl op₃ (f a b) l = f (foldl op₁ a l) (foldl op₂ b l) :=
+eq.symm $ by { revert a b, induction l; intros; [refl, simp only [*, foldl]] }
+
+lemma foldr_hom₂ (l : list ι) (f : α → β → γ) (op₁ : ι → α → α) (op₂ : ι → β → β) (op₃ : ι → γ → γ)
+  (a : α) (b : β) (h : ∀ a b i, f (op₁ i a) (op₂ i b) = op₃ i (f a b)) :
+  foldr op₃ (f a b) l = f (foldr op₁ a l) (foldr op₂ b l) :=
+by { revert a, induction l; intros; [refl, simp only [*, foldr]] }
+
 lemma injective_foldl_comp {α : Type*} {l : list (α → α)} {f : α → α}
   (hl : ∀ f ∈ l, function.injective f) (hf : function.injective f):
   function.injective (@list.foldl (α → α) (α → α) function.comp f l) :=
@@ -2449,51 +2459,6 @@ begin
   induction as; intro; simp! only [split_on_p_aux', append_nil],
   split_ifs; simp [zip_with, join, *],
 end
-
-/-! ### all & any -/
-
-@[simp] theorem all_nil (p : α → bool) : all [] p = tt := rfl
-
-@[simp] theorem all_cons (p : α → bool) (a : α) (l : list α) :
-  all (a::l) p = (p a && all l p) := rfl
-
-theorem all_iff_forall {p : α → bool} {l : list α} : all l p ↔ ∀ a ∈ l, p a :=
-begin
-  induction l with a l ih,
-  { exact iff_of_true rfl (forall_mem_nil _) },
-  simp only [all_cons, band_coe_iff, ih, forall_mem_cons]
-end
-
-theorem all_iff_forall_prop {p : α → Prop} [decidable_pred p]
-  {l : list α} : all l (λ a, p a) ↔ ∀ a ∈ l, p a :=
-by simp only [all_iff_forall, bool.of_to_bool_iff]
-
-@[simp] theorem any_nil (p : α → bool) : any [] p = ff := rfl
-
-@[simp] theorem any_cons (p : α → bool) (a : α) (l : list α) :
-  any (a::l) p = (p a || any l p) := rfl
-
-theorem any_iff_exists {p : α → bool} {l : list α} : any l p ↔ ∃ a ∈ l, p a :=
-begin
-  induction l with a l ih,
-  { exact iff_of_false bool.not_ff (not_exists_mem_nil _) },
-  simp only [any_cons, bor_coe_iff, ih, exists_mem_cons_iff]
-end
-
-theorem any_iff_exists_prop {p : α → Prop} [decidable_pred p]
-  {l : list α} : any l (λ a, p a) ↔ ∃ a ∈ l, p a :=
-by simp [any_iff_exists]
-
-theorem any_of_mem {p : α → bool} {a : α} {l : list α} (h₁ : a ∈ l) (h₂ : p a) : any l p :=
-any_iff_exists.2 ⟨_, h₁, h₂⟩
-
-@[priority 500] instance decidable_forall_mem {p : α → Prop} [decidable_pred p] (l : list α) :
-  decidable (∀ x ∈ l, p x) :=
-decidable_of_iff _ all_iff_forall_prop
-
-instance decidable_exists_mem {p : α → Prop} [decidable_pred p] (l : list α) :
-  decidable (∃ x ∈ l, p x) :=
-decidable_of_iff _ any_iff_exists_prop
 
 /-! ### map for partial functions -/
 
@@ -3011,471 +2976,6 @@ by convert filter_eq_nil.2 (λ _ _, id)
 
 end filter
 
-/-! ### prefix, suffix, infix -/
-
-@[simp] theorem prefix_append (l₁ l₂ : list α) : l₁ <+: l₁ ++ l₂ := ⟨l₂, rfl⟩
-
-@[simp] theorem suffix_append (l₁ l₂ : list α) : l₂ <:+ l₁ ++ l₂ := ⟨l₁, rfl⟩
-
-theorem infix_append (l₁ l₂ l₃ : list α) : l₂ <:+: l₁ ++ l₂ ++ l₃ := ⟨l₁, l₃, rfl⟩
-
-@[simp] theorem infix_append' (l₁ l₂ l₃ : list α) : l₂ <:+: l₁ ++ (l₂ ++ l₃) :=
-by rw ← list.append_assoc; apply infix_append
-
-theorem nil_prefix (l : list α) : [] <+: l := ⟨l, rfl⟩
-
-theorem nil_suffix (l : list α) : [] <:+ l := ⟨l, append_nil _⟩
-
-@[refl] theorem prefix_refl (l : list α) : l <+: l := ⟨[], append_nil _⟩
-
-@[refl] theorem suffix_refl (l : list α) : l <:+ l := ⟨[], rfl⟩
-
-@[simp] theorem suffix_cons (a : α) : ∀ l, l <:+ a :: l := suffix_append [a]
-
-theorem prefix_concat (a : α) (l) : l <+: concat l a := by simp
-
-theorem is_prefix.is_infix {l₁ l₂ : list α} : l₁ <+: l₂ → l₁ <:+: l₂ :=
-λ⟨t, h⟩, ⟨[], t, h⟩
-
-theorem is_suffix.is_infix {l₁ l₂ : list α} : l₁ <:+ l₂ → l₁ <:+: l₂ :=
-λ⟨t, h⟩, ⟨t, [], by simp only [h, append_nil]⟩
-
-@[refl] theorem infix_refl (l : list α) : l <:+: l := (prefix_refl l).is_infix
-
-theorem nil_infix (l : list α) : [] <:+: l := (nil_prefix l).is_infix
-
-theorem infix_cons {L₁ L₂ : list α} {x : α} : L₁ <:+: L₂ → L₁ <:+: x :: L₂ :=
-λ⟨LP, LS, H⟩, ⟨x :: LP, LS, H ▸ rfl⟩
-
-@[trans] theorem is_prefix.trans : ∀ {l₁ l₂ l₃ : list α}, l₁ <+: l₂ → l₂ <+: l₃ → l₁ <+: l₃
-| l ._ ._ ⟨r₁, rfl⟩ ⟨r₂, rfl⟩ := ⟨r₁ ++ r₂, (append_assoc _ _ _).symm⟩
-
-@[trans] theorem is_suffix.trans : ∀ {l₁ l₂ l₃ : list α}, l₁ <:+ l₂ → l₂ <:+ l₃ → l₁ <:+ l₃
-| l ._ ._ ⟨l₁, rfl⟩ ⟨l₂, rfl⟩ := ⟨l₂ ++ l₁, append_assoc _ _ _⟩
-
-@[trans] theorem is_infix.trans : ∀ {l₁ l₂ l₃ : list α}, l₁ <:+: l₂ → l₂ <:+: l₃ → l₁ <:+: l₃
-| l ._ ._ ⟨l₁, r₁, rfl⟩ ⟨l₂, r₂, rfl⟩ := ⟨l₂ ++ l₁, r₁ ++ r₂, by simp only [append_assoc]⟩
-
-protected theorem is_infix.sublist {l₁ l₂ : list α} : l₁ <:+: l₂ → l₁ <+ l₂ :=
-λ ⟨s, t, h⟩, by rw [← h]; exact (sublist_append_right _ _).trans (sublist_append_left _ _)
-
-protected theorem is_prefix.sublist {l₁ l₂ : list α} (h : l₁ <+: l₂) : l₁ <+ l₂ :=
-h.is_infix.sublist
-
-protected theorem is_suffix.sublist {l₁ l₂ : list α} (h : l₁ <:+ l₂) : l₁ <+ l₂ :=
-h.is_infix.sublist
-
-@[simp] theorem reverse_suffix {l₁ l₂ : list α} : reverse l₁ <:+ reverse l₂ ↔ l₁ <+: l₂ :=
-⟨λ ⟨r, e⟩, ⟨reverse r,
-  by rw [← reverse_reverse l₁, ← reverse_append, e, reverse_reverse]⟩,
- λ ⟨r, e⟩, ⟨reverse r, by rw [← reverse_append, e]⟩⟩
-
-@[simp] theorem reverse_prefix {l₁ l₂ : list α} : reverse l₁ <+: reverse l₂ ↔ l₁ <:+ l₂ :=
-by rw ← reverse_suffix; simp only [reverse_reverse]
-
-theorem infix.length_le {l₁ l₂ : list α} (s : l₁ <:+: l₂) : length l₁ ≤ length l₂ :=
-length_le_of_sublist s.sublist
-
-theorem eq_nil_of_infix_nil {l : list α} (s : l <:+: []) : l = [] :=
-eq_nil_of_sublist_nil s.sublist
-
-@[simp] theorem eq_nil_iff_infix_nil {l : list α} : l <:+: [] ↔ l = [] :=
-⟨eq_nil_of_infix_nil, λ h, h ▸ infix_refl _⟩
-
-theorem eq_nil_of_prefix_nil {l : list α} (s : l <+: []) : l = [] :=
-eq_nil_of_infix_nil s.is_infix
-
-@[simp] theorem eq_nil_iff_prefix_nil {l : list α} : l <+: [] ↔ l = [] :=
-⟨eq_nil_of_prefix_nil, λ h, h ▸ prefix_refl _⟩
-
-theorem eq_nil_of_suffix_nil {l : list α} (s : l <:+ []) : l = [] :=
-eq_nil_of_infix_nil s.is_infix
-
-@[simp] theorem eq_nil_iff_suffix_nil {l : list α} : l <:+ [] ↔ l = [] :=
-⟨eq_nil_of_suffix_nil, λ h, h ▸ suffix_refl _⟩
-
-theorem infix_iff_prefix_suffix (l₁ l₂ : list α) : l₁ <:+: l₂ ↔ ∃ t, l₁ <+: t ∧ t <:+ l₂ :=
-⟨λ⟨s, t, e⟩, ⟨l₁ ++ t, ⟨_, rfl⟩, by rw [← e, append_assoc]; exact ⟨_, rfl⟩⟩,
-λ⟨._, ⟨t, rfl⟩, ⟨s, e⟩⟩, ⟨s, t, by rw append_assoc; exact e⟩⟩
-
-theorem eq_of_infix_of_length_eq {l₁ l₂ : list α} (s : l₁ <:+: l₂) :
-  length l₁ = length l₂ → l₁ = l₂ :=
-eq_of_sublist_of_length_eq s.sublist
-
-theorem eq_of_prefix_of_length_eq {l₁ l₂ : list α} (s : l₁ <+: l₂) :
-  length l₁ = length l₂ → l₁ = l₂ :=
-eq_of_sublist_of_length_eq s.sublist
-
-theorem eq_of_suffix_of_length_eq {l₁ l₂ : list α} (s : l₁ <:+ l₂) :
-  length l₁ = length l₂ → l₁ = l₂ :=
-eq_of_sublist_of_length_eq s.sublist
-
-theorem prefix_of_prefix_length_le : ∀ {l₁ l₂ l₃ : list α},
-  l₁ <+: l₃ → l₂ <+: l₃ → length l₁ ≤ length l₂ → l₁ <+: l₂
-| []      l₂ l₃ h₁ h₂ _ := nil_prefix _
-| (a::l₁) (b::l₂) _ ⟨r₁, rfl⟩ ⟨r₂, e⟩ ll := begin
-  injection e with _ e', subst b,
-  rcases prefix_of_prefix_length_le ⟨_, rfl⟩ ⟨_, e'⟩
-    (le_of_succ_le_succ ll) with ⟨r₃, rfl⟩,
-  exact ⟨r₃, rfl⟩
-end
-
-theorem prefix_or_prefix_of_prefix {l₁ l₂ l₃ : list α}
- (h₁ : l₁ <+: l₃) (h₂ : l₂ <+: l₃) : l₁ <+: l₂ ∨ l₂ <+: l₁ :=
-(le_total (length l₁) (length l₂)).imp
-  (prefix_of_prefix_length_le h₁ h₂)
-  (prefix_of_prefix_length_le h₂ h₁)
-
-theorem suffix_of_suffix_length_le {l₁ l₂ l₃ : list α}
- (h₁ : l₁ <:+ l₃) (h₂ : l₂ <:+ l₃) (ll : length l₁ ≤ length l₂) : l₁ <:+ l₂ :=
-reverse_prefix.1 $ prefix_of_prefix_length_le
-  (reverse_prefix.2 h₁) (reverse_prefix.2 h₂) (by simp [ll])
-
-theorem suffix_or_suffix_of_suffix {l₁ l₂ l₃ : list α}
- (h₁ : l₁ <:+ l₃) (h₂ : l₂ <:+ l₃) : l₁ <:+ l₂ ∨ l₂ <:+ l₁ :=
-(prefix_or_prefix_of_prefix (reverse_prefix.2 h₁) (reverse_prefix.2 h₂)).imp
-  reverse_prefix.1 reverse_prefix.1
-
-theorem suffix_cons_iff {x : α} {l₁ l₂ : list α} :
-  l₁ <:+ x :: l₂ ↔ l₁ = x :: l₂ ∨ l₁ <:+ l₂ :=
-begin
-  split,
-  { rintro ⟨⟨hd, tl⟩, hl₃⟩,
-    { exact or.inl hl₃ },
-    { simp only [cons_append] at hl₃,
-      exact or.inr ⟨_, hl₃.2⟩ } },
-  { rintro (rfl | hl₁),
-    { exact (x :: l₂).suffix_refl },
-    { exact hl₁.trans (l₂.suffix_cons _) } }
-end
-
-theorem infix_of_mem_join : ∀ {L : list (list α)} {l}, l ∈ L → l <:+: join L
-| (_  :: L) l (or.inl rfl) := infix_append [] _ _
-| (l' :: L) l (or.inr h)   :=
-  is_infix.trans (infix_of_mem_join h) $ (suffix_append _ _).is_infix
-
-theorem prefix_append_right_inj {l₁ l₂ : list α} (l) : l ++ l₁ <+: l ++ l₂ ↔ l₁ <+: l₂ :=
-exists_congr $ λ r, by rw [append_assoc, append_right_inj]
-
-theorem prefix_cons_inj {l₁ l₂ : list α} (a) : a :: l₁ <+: a :: l₂ ↔ l₁ <+: l₂ :=
-prefix_append_right_inj [a]
-
-theorem take_prefix (n) (l : list α) : take n l <+: l := ⟨_, take_append_drop _ _⟩
-
-theorem take_sublist (n) (l : list α) : take n l <+ l := (take_prefix n l).sublist
-
-theorem take_subset (n) (l : list α) : take n l ⊆ l := (take_sublist n l).subset
-
-theorem mem_of_mem_take {n} {l : list α} {x : α} (h : x ∈ l.take n) : x ∈ l := take_subset n l h
-
-theorem drop_suffix (n) (l : list α) : drop n l <:+ l := ⟨_, take_append_drop _ _⟩
-
-theorem drop_sublist (n) (l : list α) : drop n l <+ l := (drop_suffix n l).sublist
-
-theorem drop_subset (n) (l : list α) : drop n l ⊆ l := (drop_sublist n l).subset
-
-theorem mem_of_mem_drop {n} {l : list α} {x : α} (h : x ∈ l.drop n) : x ∈ l := drop_subset n l h
-
-theorem init_prefix : ∀ (l : list α), l.init <+: l
-| [] := ⟨nil, by rw [init, list.append_nil]⟩
-| (a :: l) := ⟨_, init_append_last (cons_ne_nil a l)⟩
-
-theorem init_sublist (l : list α) : l.init <+ l := (init_prefix l).sublist
-
-theorem init_subset (l : list α) : l.init ⊆ l := (init_sublist l).subset
-
-theorem mem_of_mem_init {l : list α} {a : α} (h : a ∈ l.init) : a ∈ l := init_subset l h
-
-theorem tail_suffix (l : list α) : tail l <:+ l := by rw ← drop_one; apply drop_suffix
-
-theorem tail_sublist (l : list α) : l.tail <+ l := (tail_suffix l).sublist
-
-theorem tail_subset (l : list α) : tail l ⊆ l := (tail_sublist l).subset
-
-theorem mem_of_mem_tail {l : list α} {a : α} (h : a ∈ l.tail) : a ∈ l := tail_subset l h
-
-theorem prefix_iff_eq_append {l₁ l₂ : list α} : l₁ <+: l₂ ↔ l₁ ++ drop (length l₁) l₂ = l₂ :=
-⟨by rintros ⟨r, rfl⟩; rw drop_left, λ e, ⟨_, e⟩⟩
-
-theorem suffix_iff_eq_append {l₁ l₂ : list α} :
-  l₁ <:+ l₂ ↔ take (length l₂ - length l₁) l₂ ++ l₁ = l₂ :=
-⟨by rintros ⟨r, rfl⟩; simp only [length_append, add_tsub_cancel_right, take_left], λ e, ⟨_, e⟩⟩
-
-theorem prefix_iff_eq_take {l₁ l₂ : list α} : l₁ <+: l₂ ↔ l₁ = take (length l₁) l₂ :=
-⟨λ h, append_right_cancel $
-  (prefix_iff_eq_append.1 h).trans (take_append_drop _ _).symm,
- λ e, e.symm ▸ take_prefix _ _⟩
-
-theorem suffix_iff_eq_drop {l₁ l₂ : list α} : l₁ <:+ l₂ ↔ l₁ = drop (length l₂ - length l₁) l₂ :=
-⟨λ h, append_left_cancel $
-  (suffix_iff_eq_append.1 h).trans (take_append_drop _ _).symm,
- λ e, e.symm ▸ drop_suffix _ _⟩
-
-instance decidable_prefix [decidable_eq α] : ∀ (l₁ l₂ : list α), decidable (l₁ <+: l₂)
-| []      l₂ := is_true ⟨l₂, rfl⟩
-| (a::l₁) [] := is_false $ λ ⟨t, te⟩, list.no_confusion te
-| (a::l₁) (b::l₂) :=
-  if h : a = b then
-    @decidable_of_iff _ _ (by rw [← h, prefix_cons_inj])
-      (decidable_prefix l₁ l₂)
-  else
-    is_false $ λ ⟨t, te⟩, h $ by injection te
-
--- Alternatively, use mem_tails
-instance decidable_suffix [decidable_eq α] : ∀ (l₁ l₂ : list α), decidable (l₁ <:+ l₂)
-| []      l₂ := is_true ⟨l₂, append_nil _⟩
-| (a::l₁) [] := is_false $ mt (length_le_of_sublist ∘ is_suffix.sublist) dec_trivial
-| l₁      l₂ := let len1 := length l₁, len2 := length l₂ in
-  if hl : len1 ≤ len2 then
-    decidable_of_iff' (l₁ = drop (len2-len1) l₂) suffix_iff_eq_drop
-  else is_false $ λ h, hl $ length_le_of_sublist $ h.sublist
-
-lemma prefix_take_le_iff {L : list (list (option α))} {m n : ℕ} (hm : m < L.length) :
-  (take m L) <+: (take n L) ↔ m ≤ n :=
-begin
-  simp only [prefix_iff_eq_take, length_take],
-  induction m with m IH generalizing L n,
-  { simp only [min_eq_left, eq_self_iff_true, nat.zero_le, take] },
-  { cases n,
-    { simp only [nat.nat_zero_eq_zero, nonpos_iff_eq_zero, take, take_nil],
-      split,
-      { cases L,
-        { exact absurd hm (not_lt_of_le m.succ.zero_le) },
-        { simp only [forall_prop_of_false, not_false_iff, take] } },
-      { intro h,
-        contradiction } },
-    { cases L with l ls,
-      { exact absurd hm (not_lt_of_le m.succ.zero_le) },
-      { simp only [length] at hm,
-        specialize @IH ls n (nat.lt_of_succ_lt_succ hm),
-        simp only [le_of_lt (nat.lt_of_succ_lt_succ hm), min_eq_left] at IH,
-        simp only [le_of_lt hm, IH, true_and, min_eq_left, eq_self_iff_true, length, take],
-        exact ⟨nat.succ_le_succ, nat.le_of_succ_le_succ⟩ } } },
-end
-
-lemma cons_prefix_iff {l l' : list α} {x y : α} :
-  x :: l <+: y :: l' ↔ x = y ∧ l <+: l' :=
-begin
-  split,
-  { rintro ⟨L, hL⟩,
-    simp only [cons_append] at hL,
-    exact ⟨hL.left, ⟨L, hL.right⟩⟩ },
-  { rintro ⟨rfl, h⟩,
-    rwa [prefix_cons_inj] },
-end
-
-lemma map_prefix {l l' : list α} (f : α → β) (h : l <+: l') :
-  l.map f <+: l'.map f :=
-begin
-  induction l with hd tl hl generalizing l',
-  { simp only [nil_prefix, map_nil] },
-  { cases l' with hd' tl',
-    { simpa only using eq_nil_of_prefix_nil h },
-    { rw cons_prefix_iff at h,
-      simp only [h, prefix_cons_inj, hl, map] } },
-end
-
-lemma is_prefix.filter_map {l l' : list α} (h : l <+: l') (f : α → option β) :
-  l.filter_map f <+: l'.filter_map f :=
-begin
-  induction l with hd tl hl generalizing l',
-  { simp only [nil_prefix, filter_map_nil] },
-  { cases l' with hd' tl',
-    { simpa only using eq_nil_of_prefix_nil h },
-    { rw cons_prefix_iff at h,
-      rw [←@singleton_append _ hd _, ←@singleton_append _ hd' _, filter_map_append,
-         filter_map_append, h.left, prefix_append_right_inj],
-      exact hl h.right } },
-end
-
-lemma is_prefix.reduce_option {l l' : list (option α)} (h : l <+: l') :
-  l.reduce_option <+: l'.reduce_option :=
-h.filter_map id
-
-lemma is_prefix.filter (p : α → Prop) [decidable_pred p]
-  ⦃l l' : list α⦄ (h : l <+: l') : filter p l <+: filter p l' :=
-begin
-  obtain ⟨xs, rfl⟩ := h,
-  rw filter_append,
-  exact prefix_append _ _
-end
-
-lemma is_suffix.filter (p : α → Prop) [decidable_pred p]
-  ⦃l l' : list α⦄ (h : l <:+ l') : filter p l <:+ filter p l' :=
-begin
-  obtain ⟨xs, rfl⟩ := h,
-  rw filter_append,
-  exact suffix_append _ _
-end
-
-lemma is_infix.filter (p : α → Prop) [decidable_pred p]
-  ⦃l l' : list α⦄ (h : l <:+: l') : filter p l <:+: filter p l' :=
-begin
-  obtain ⟨xs, ys, rfl⟩ := h,
-  rw [filter_append, filter_append],
-  exact infix_append _ _ _
-end
-
-@[simp] theorem mem_inits : ∀ (s t : list α), s ∈ inits t ↔ s <+: t
-| s []     := suffices s = nil ↔ s <+: nil, by simpa only [inits, mem_singleton],
-  ⟨λh, h.symm ▸ prefix_refl [], eq_nil_of_prefix_nil⟩
-| s (a::t) :=
-  suffices (s = nil ∨ ∃ l ∈ inits t, a :: l = s) ↔ s <+: a :: t, by simpa,
-  ⟨λo, match s, o with
-  | ._, or.inl rfl := ⟨_, rfl⟩
-  | s, or.inr ⟨r, hr, hs⟩ := let ⟨s, ht⟩ := (mem_inits _ _).1 hr in
-    by rw [← hs, ← ht]; exact ⟨s, rfl⟩
-  end, λmi, match s, mi with
-  | [], ⟨._, rfl⟩ := or.inl rfl
-  | (b::s), ⟨r, hr⟩ := list.no_confusion hr $ λba (st : s++r = t), or.inr $
-    by rw ba; exact ⟨_, (mem_inits _ _).2 ⟨_, st⟩, rfl⟩
-  end⟩
-
-@[simp] theorem mem_tails : ∀ (s t : list α), s ∈ tails t ↔ s <:+ t
-| s []     := by simp only [tails, mem_singleton];
-  exact ⟨λh, by rw h; exact suffix_refl [], eq_nil_of_suffix_nil⟩
-| s (a::t) := by simp only [tails, mem_cons_iff, mem_tails s t];
-  exact show s = a :: t ∨ s <:+ t ↔ s <:+ a :: t, from
-  ⟨λo, match s, t, o with
-  | ._, t, or.inl rfl := suffix_refl _
-  | s, ._, or.inr ⟨l, rfl⟩ := ⟨a::l, rfl⟩
-  end, λe, match s, t, e with
-  | ._, t, ⟨[], rfl⟩ := or.inl rfl
-  | s, t, ⟨b::l, he⟩ := list.no_confusion he (λab lt, or.inr ⟨l, lt⟩)
-  end⟩
-
-lemma inits_cons (a : α) (l : list α) : inits (a :: l) = [] :: l.inits.map (λ t, a :: t) :=
-by simp
-
-lemma tails_cons (a : α) (l : list α) : tails (a :: l) = (a :: l) :: l.tails :=
-by simp
-
-@[simp]
-lemma inits_append : ∀ (s t : list α), inits (s ++ t) = s.inits ++ t.inits.tail.map (λ l, s ++ l)
-| [] [] := by simp
-| [] (a::t) := by simp
-| (a::s) t := by simp [inits_append s t]
-
-@[simp]
-lemma tails_append : ∀ (s t : list α), tails (s ++ t) = s.tails.map (λ l, l ++ t) ++ t.tails.tail
-| [] [] := by simp
-| [] (a::t) := by simp
-| (a::s) t := by simp [tails_append s t]
-
--- the lemma names `inits_eq_tails` and `tails_eq_inits` are like `sublists_eq_sublists'`
-lemma inits_eq_tails :
-  ∀ (l : list α), l.inits = (reverse $ map reverse $ tails $ reverse l)
-| [] := by simp
-| (a :: l) := by simp [inits_eq_tails l, map_eq_map_iff]
-
-lemma tails_eq_inits :
-  ∀ (l : list α), l.tails = (reverse $ map reverse $ inits $ reverse l)
-| [] := by simp
-| (a :: l) := by simp [tails_eq_inits l, append_left_inj]
-
-lemma inits_reverse (l : list α) : inits (reverse l) = reverse (map reverse l.tails) :=
-by { rw tails_eq_inits l, simp [reverse_involutive.comp_self], }
-
-lemma tails_reverse (l : list α) : tails (reverse l) = reverse (map reverse l.inits) :=
-by { rw inits_eq_tails l, simp [reverse_involutive.comp_self], }
-
-lemma map_reverse_inits (l : list α) : map reverse l.inits = (reverse $ tails $ reverse l) :=
-by { rw inits_eq_tails l, simp [reverse_involutive.comp_self], }
-
-lemma map_reverse_tails (l : list α) : map reverse l.tails = (reverse $ inits $ reverse l) :=
-by { rw tails_eq_inits l, simp [reverse_involutive.comp_self], }
-
-@[simp] lemma length_tails (l : list α) : length (tails l) = length l + 1 :=
-begin
-  induction l with x l IH,
-  { simp },
-  { simpa using IH }
-end
-
-@[simp] lemma length_inits (l : list α) : length (inits l) = length l + 1 :=
-by simp [inits_eq_tails]
-
-@[simp] lemma nth_le_tails (l : list α) (n : ℕ) (hn : n < length (tails l)) :
-  nth_le (tails l) n hn = l.drop n :=
-begin
-  induction l with x l IH generalizing n,
-  { simp },
-  { cases n,
-    { simp },
-    { simpa using IH n _ } },
-end
-
-@[simp] lemma nth_le_inits (l : list α) (n : ℕ) (hn : n < length (inits l)) :
-  nth_le (inits l) n hn = l.take n :=
-begin
-  induction l with x l IH generalizing n,
-  { simp },
-  { cases n,
-    { simp },
-    { simpa using IH n _ } }
-end
-
-instance decidable_infix [decidable_eq α] : ∀ (l₁ l₂ : list α), decidable (l₁ <:+: l₂)
-| []      l₂ := is_true ⟨[], l₂, rfl⟩
-| (a::l₁) [] := is_false $ λ⟨s, t, te⟩, absurd te $ append_ne_nil_of_ne_nil_left _ _ $
-                append_ne_nil_of_ne_nil_right _ _ $ λh, list.no_confusion h
-| l₁      l₂ := decidable_of_decidable_of_iff (list.decidable_bex (λt, l₁ <+: t) (tails l₂)) $
-  by refine (exists_congr (λt, _)).trans (infix_iff_prefix_suffix _ _).symm;
-     exact ⟨λ⟨h1, h2⟩, ⟨h2, (mem_tails _ _).1 h1⟩, λ⟨h2, h1⟩, ⟨(mem_tails _ _).2 h1, h2⟩⟩
-
-/-! ### insert -/
-section insert
-variable [decidable_eq α]
-
-@[simp] theorem insert_nil (a : α) : insert a nil = [a] := rfl
-
-theorem insert.def (a : α) (l : list α) : insert a l = if a ∈ l then l else a :: l := rfl
-
-@[simp, priority 980]
-theorem insert_of_mem {a : α} {l : list α} (h : a ∈ l) : insert a l = l :=
-by simp only [insert.def, if_pos h]
-
-@[simp, priority 970]
-theorem insert_of_not_mem {a : α} {l : list α} (h : a ∉ l) : insert a l = a :: l :=
-by simp only [insert.def, if_neg h]; split; refl
-
-@[simp] theorem mem_insert_iff {a b : α} {l : list α} : a ∈ insert b l ↔ a = b ∨ a ∈ l :=
-begin
-  by_cases h' : b ∈ l,
-  { simp only [insert_of_mem h'],
-    apply (or_iff_right_of_imp _).symm,
-    exact λ e, e.symm ▸ h' },
-  simp only [insert_of_not_mem h', mem_cons_iff]
-end
-
-@[simp] theorem suffix_insert (a : α) (l : list α) : l <:+ insert a l :=
-by by_cases a ∈ l; [simp only [insert_of_mem h], simp only [insert_of_not_mem h, suffix_cons]]
-
-theorem infix_insert (a : α) (l : list α) : l <:+: insert a l := (suffix_insert a l).is_infix
-
-theorem sublist_insert (a : α) (l : list α) : l <+ insert a l := (suffix_insert a l).sublist
-
-theorem subset_insert (a : α) (l : list α) : l ⊆ insert a l := (sublist_insert a l).subset
-
-@[simp] theorem mem_insert_self (a : α) (l : list α) : a ∈ insert a l :=
-mem_insert_iff.2 (or.inl rfl)
-
-theorem mem_insert_of_mem {a b : α} {l : list α} (h : a ∈ l) : a ∈ insert b l :=
-mem_insert_iff.2 (or.inr h)
-
-theorem eq_or_mem_of_mem_insert {a b : α} {l : list α} (h : a ∈ insert b l) : a = b ∨ a ∈ l :=
-mem_insert_iff.1 h
-
-@[simp] theorem length_insert_of_mem {a : α} {l : list α} (h : a ∈ l) :
-  length (insert a l) = length l :=
-by rw insert_of_mem h
-
-@[simp] theorem length_insert_of_not_mem {a : α} {l : list α} (h : a ∉ l) :
-  length (insert a l) = length l + 1 :=
-by rw insert_of_not_mem h; refl
-
-end insert
-
 /-! ### erasep -/
 section erasep
 variables {p : α → Prop} [decidable_pred p]
@@ -3522,6 +3022,11 @@ end
  length (l.erasep p) = pred (length l) :=
 by rcases exists_of_erasep al pa with ⟨_, l₁, l₂, _, _, e₁, e₂⟩;
    rw e₂; simp [-add_comm, e₁]; refl
+
+@[simp] lemma length_erasep_add_one {l : list α} {a} (al : a ∈ l) (pa : p a) :
+  (l.erasep p).length + 1 = l.length :=
+let ⟨_, l₁, l₂, _, _, h₁, h₂⟩ := exists_of_erasep al pa in
+by { rw [h₂, h₁, length_append, length_append], refl }
 
 theorem erasep_append_left {a : α} (pa : p a) :
   ∀ {l₁ : list α} (l₂), a ∈ l₁ → (l₁++l₂).erasep p = l₁.erasep p ++ l₂
@@ -3612,6 +3117,10 @@ by rcases exists_of_erasep h rfl with ⟨_, l₁, l₂, h₁, rfl, h₂, h₃⟩
 @[simp] theorem length_erase_of_mem {a : α} {l : list α} (h : a ∈ l) :
   length (l.erase a) = pred (length l) :=
 by rw erase_eq_erasep; exact length_erasep_of_mem h rfl
+
+@[simp] lemma length_erase_add_one {a : α} {l : list α} (h : a ∈ l) :
+  (l.erase a).length + 1 = l.length :=
+by rw [erase_eq_erasep, length_erasep_add_one h rfl]
 
 theorem erase_append_left {a : α} {l₁ : list α} (l₂) (h : a ∈ l₁) :
   (l₁++l₂).erase a = l₁.erase a ++ l₂ :=

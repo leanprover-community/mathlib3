@@ -71,7 +71,7 @@ instance ordered_comm_group.to_covariant_class_left_le (α : Type u) [ordered_co
 
 /--The units of an ordered commutative monoid form an ordered commutative group. -/
 @[to_additive]
-instance units.ordered_comm_group [ordered_comm_monoid α] : ordered_comm_group (units α) :=
+instance units.ordered_comm_group [ordered_comm_monoid α] : ordered_comm_group αˣ :=
 { mul_le_mul_left := λ a b h c, (mul_le_mul_left' (h : (a : α) ≤ b) _ :  (c : α) * a ≤ c * b),
   .. units.partial_order,
   .. units.comm_group }
@@ -995,7 +995,8 @@ section has_neg
 @[to_additive, priority 100] -- see Note [lower instance priority]
 instance has_inv_lattice_has_abs [has_inv α] [lattice α] : has_abs (α)  := ⟨λa, a ⊔ (a⁻¹)⟩
 
-lemma abs_eq_sup_neg {α : Type*} [has_neg α] [lattice α] (a : α) : abs a = a ⊔ (-a) :=
+@[to_additive]
+lemma abs_eq_sup_inv [has_inv α] [lattice α] (a : α) : |a| = a ⊔ a⁻¹ :=
 rfl
 
 variables [has_neg α] [linear_order α] {a b: α}
@@ -1124,8 +1125,9 @@ section linear_ordered_add_comm_group
 
 variables [linear_ordered_add_comm_group α] {a b c d : α}
 
-lemma abs_le : |a| ≤ b ↔ - b ≤ a ∧ a ≤ b :=
-by rw [abs_le', and.comm, neg_le]
+lemma abs_le : |a| ≤ b ↔ - b ≤ a ∧ a ≤ b := by rw [abs_le', and.comm, neg_le]
+
+lemma le_abs' : a ≤ |b| ↔ b ≤ -a ∨ a ≤ b := by rw [le_abs, or.comm, le_neg]
 
 lemma neg_le_of_abs_le (h : |a| ≤ b) : -b ≤ a := (abs_le.mp h).1
 

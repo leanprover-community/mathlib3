@@ -218,12 +218,15 @@ section derived_instances
 instance [semiring k] [subsingleton k] : unique (monoid_algebra k G) :=
 finsupp.unique_of_right
 
-instance [ring k] : add_group (monoid_algebra k G) :=
-finsupp.add_group
+instance [ring k] : add_comm_group (monoid_algebra k G) :=
+finsupp.add_comm_group
+
+instance [ring k] [has_mul G] : non_unital_non_assoc_ring (monoid_algebra k G) :=
+{ .. monoid_algebra.add_comm_group,
+  .. monoid_algebra.non_unital_non_assoc_semiring }
 
 instance [ring k] [monoid G] : ring (monoid_algebra k G) :=
-{ neg := has_neg.neg,
-  add_left_neg := add_left_neg,
+{ .. monoid_algebra.non_unital_non_assoc_ring,
   .. monoid_algebra.semiring }
 
 instance [comm_ring k] [comm_monoid G] : comm_ring (monoid_algebra k G) :=
@@ -256,6 +259,11 @@ instance [monoid R] [monoid S] [semiring k] [distrib_mul_action R k] [distrib_mu
   [smul_comm_class R S k] :
   smul_comm_class R S (monoid_algebra k G) :=
 finsupp.smul_comm_class G k
+
+instance [monoid R] [semiring k] [distrib_mul_action R k] [distrib_mul_action Rᵐᵒᵖ k]
+  [is_central_scalar R k] :
+  is_central_scalar R (monoid_algebra k G) :=
+finsupp.is_central_scalar G k
 
 instance comap_distrib_mul_action_self [group G] [semiring k] :
   distrib_mul_action G (monoid_algebra k G) :=
@@ -390,6 +398,19 @@ lemma single_one_mul_apply [mul_one_class G] (f : monoid_algebra k G) (r : k) (x
   (single 1 r * f) x = r * f x :=
 f.single_mul_apply_aux $ λ a, by rw [one_mul]
 
+lemma support_single_mul [left_cancel_semigroup G]
+  (f : monoid_algebra k G) (r : k) (hr : ∀ y, r * y = 0 ↔ y = 0) (x : G) :
+  (single x r * f).support = f.support.map (mul_left_embedding x) :=
+begin
+  ext y, simp only [mem_support_iff, mem_map, exists_prop, mul_left_embedding_apply],
+  by_cases H : ∃ a, x * a = y,
+  { rcases H with ⟨a, rfl⟩,
+    rw [single_mul_apply_aux f (λ _, mul_right_inj x)],
+    simp [hr] },
+  { push_neg at H,
+    simp [mul_apply, H] }
+end
+
 lemma lift_nc_smul [mul_one_class G] {R : Type*} [semiring R] (f : k →+* R) (g : G →* R) (c : k)
   (φ : monoid_algebra k G) :
   lift_nc (f : k →+ R) g (c • φ) = f c * lift_nc (f : k →+ R) g φ :=
@@ -405,7 +426,7 @@ end misc_theorems
 /-! #### Non-unital, non-associative algebra structure -/
 section non_unital_non_assoc_algebra
 
-variables {R : Type*} (k) [semiring R] [semiring k] [distrib_mul_action R k] [has_mul G]
+variables {R : Type*} (k) [monoid R] [semiring k] [distrib_mul_action R k] [has_mul G]
 
 instance is_scalar_tower_self [is_scalar_tower R k k] :
   is_scalar_tower R (monoid_algebra k G) (monoid_algebra k G) :=
@@ -935,14 +956,15 @@ section derived_instances
 instance [semiring k] [subsingleton k] : unique (add_monoid_algebra k G) :=
 finsupp.unique_of_right
 
-instance [ring k] : add_group (add_monoid_algebra k G) :=
-finsupp.add_group
+instance [ring k] : add_comm_group (add_monoid_algebra k G) :=
+finsupp.add_comm_group
+
+instance [ring k] [has_add G] : non_unital_non_assoc_ring (add_monoid_algebra k G) :=
+{ .. add_monoid_algebra.add_comm_group,
+  .. add_monoid_algebra.non_unital_non_assoc_semiring }
 
 instance [ring k] [add_monoid G] : ring (add_monoid_algebra k G) :=
-{ neg := has_neg.neg,
-  add_left_neg := add_left_neg,
-  sub := has_sub.sub,
-  sub_eq_add_neg := finsupp.add_group.sub_eq_add_neg,
+{ .. add_monoid_algebra.non_unital_non_assoc_ring,
   .. add_monoid_algebra.semiring }
 
 instance [comm_ring k] [add_comm_monoid G] : comm_ring (add_monoid_algebra k G) :=
@@ -970,6 +992,11 @@ instance [monoid R] [monoid S] [semiring k] [distrib_mul_action R k] [distrib_mu
   [smul_comm_class R S k] :
   smul_comm_class R S (add_monoid_algebra k G) :=
 finsupp.smul_comm_class G k
+
+instance [monoid R] [semiring k] [distrib_mul_action R k] [distrib_mul_action Rᵐᵒᵖ k]
+  [is_central_scalar R k] :
+  is_central_scalar R (add_monoid_algebra k G) :=
+finsupp.is_central_scalar G k
 
 /-! It is hard to state the equivalent of `distrib_mul_action G (add_monoid_algebra k G)`
 because we've never discussed actions of additive groups. -/
@@ -1086,6 +1113,11 @@ lemma support_mul_single [add_right_cancel_semigroup G]
   (f * single x r : add_monoid_algebra k G).support = f.support.map (add_right_embedding x) :=
 @monoid_algebra.support_mul_single k (multiplicative G) _ _ _ _ hr _
 
+lemma support_single_mul [add_left_cancel_semigroup G]
+  (f : add_monoid_algebra k G) (r : k) (hr : ∀ y, r * y = 0 ↔ y = 0) (x : G) :
+  (single x r * f : add_monoid_algebra k G).support = f.support.map (add_left_embedding x) :=
+@monoid_algebra.support_single_mul k (multiplicative G) _ _ _ _ hr _
+
 lemma lift_nc_smul {R : Type*} [add_zero_class G] [semiring R] (f : k →+* R)
   (g : multiplicative G →* R) (c : k) (φ : monoid_algebra k G) :
   lift_nc (f : k →+ R) g (c • φ) = f c * lift_nc (f : k →+ R) g φ :=
@@ -1165,7 +1197,7 @@ variables {k G}
 
 section non_unital_non_assoc_algebra
 
-variables {R : Type*} (k) [semiring R] [semiring k] [distrib_mul_action R k] [has_add G]
+variables {R : Type*} (k) [monoid R] [semiring k] [distrib_mul_action R k] [has_add G]
 
 instance is_scalar_tower_self [is_scalar_tower R k k] :
   is_scalar_tower R (add_monoid_algebra k G) (add_monoid_algebra k G) :=

@@ -150,6 +150,10 @@ instance {S₁ S₂} [has_scalar S₁ S₂] [monoid S₁] [monoid S₂] [distrib
   [distrib_mul_action S₂ R] [is_scalar_tower S₁ S₂ R] : is_scalar_tower S₁ S₂ (polynomial R) :=
 ⟨by { rintros _ _ ⟨⟩, simp [smul_to_finsupp] }⟩
 
+instance {S} [monoid S] [distrib_mul_action S R] [distrib_mul_action Sᵐᵒᵖ R]
+  [is_central_scalar S R] : is_central_scalar S (polynomial R) :=
+⟨by { rintros _ ⟨⟩, simp [smul_to_finsupp, op_smul_eq_smul] }⟩
+
 instance [subsingleton R] : unique (polynomial R) :=
 { uniq := by { rintros ⟨x⟩, change (⟨x⟩ : polynomial R) = 0, rw [← zero_to_finsupp], simp },
 .. polynomial.inhabited }
@@ -202,14 +206,15 @@ def monomial (n : ℕ) : R →ₗ[R] polynomial R :=
 @[simp]
 lemma monomial_zero_right (n : ℕ) :
   monomial n (0 : R) = 0 :=
-by simp [monomial, monomial_fun]
+(monomial n).map_zero
 
 -- This is not a `simp` lemma as `monomial_zero_left` is more general.
 lemma monomial_zero_one : monomial 0 (1 : R) = 1 := rfl
 
+-- TODO: can't we just delete this one?
 lemma monomial_add (n : ℕ) (r s : R) :
   monomial n (r + s) = monomial n r + monomial n s :=
-by simp [monomial, monomial_fun]
+(monomial n).map_add _ _
 
 lemma monomial_mul_monomial (n m : ℕ) (r s : R) :
   monomial n r * monomial m s = monomial (n + m) (r * s) :=
@@ -328,6 +333,8 @@ by rw [mul_assoc, X_pow_mul, ←mul_assoc]
 
 lemma commute_X (p : polynomial R) : commute X p := X_mul
 
+lemma commute_X_pow (p : polynomial R) (n : ℕ) : commute (X ^ n) p := X_pow_mul
+
 @[simp]
 lemma monomial_mul_X (n : ℕ) (r : R) : monomial n r * X = monomial (n+1) r :=
 by erw [monomial_mul_monomial, mul_one]
@@ -410,22 +417,23 @@ by { rcases p, rcases q, simp [coeff, finsupp.ext_iff] }
 @[ext] lemma ext {p q : polynomial R} : (∀ n, coeff p n = coeff q n) → p = q :=
 ext_iff.2
 
+/-- Monomials generate the additive monoid of polynomials. -/
+lemma add_submonoid_closure_set_of_eq_monomial :
+  add_submonoid.closure {p : polynomial R | ∃ n a, p = monomial n a} = ⊤ :=
+begin
+  apply top_unique,
+  rw [← add_submonoid.map_equiv_top (to_finsupp_iso R).symm.to_add_equiv,
+    ← finsupp.add_closure_set_of_eq_single, add_monoid_hom.map_mclosure],
+  refine add_submonoid.closure_mono (set.image_subset_iff.2 _),
+  rintro _ ⟨n, a, rfl⟩,
+  exact ⟨n, a, polynomial.to_finsupp_iso_symm_single⟩,
+end
+
 lemma add_hom_ext {M : Type*} [add_monoid M] {f g : polynomial R →+ M}
   (h : ∀ n a, f (monomial n a) = g (monomial n a)) :
   f = g :=
-begin
-  set f' : add_monoid_algebra R ℕ →+ M := f.comp (to_finsupp_iso R).symm with hf',
-  set g' : add_monoid_algebra R ℕ →+ M := g.comp (to_finsupp_iso R).symm with hg',
-  have : ∀ n a, f' (single n a) = g' (single n a) := λ n, by simp [hf', hg', h n],
-  have A : f' = g' := finsupp.add_hom_ext this,
-  have B : f = f'.comp (to_finsupp_iso R), by { rw [hf', add_monoid_hom.comp_assoc], ext x,
-  simp only [ring_equiv.symm_apply_apply, add_monoid_hom.coe_comp, function.comp_app,
-    ring_hom.coe_add_monoid_hom, ring_equiv.coe_to_ring_hom, coe_coe]},
-  have C : g = g'.comp (to_finsupp_iso R), by { rw [hg', add_monoid_hom.comp_assoc], ext x,
-  simp only [ring_equiv.symm_apply_apply, add_monoid_hom.coe_comp, function.comp_app,
-    ring_hom.coe_add_monoid_hom, ring_equiv.coe_to_ring_hom, coe_coe]},
-  rw [B, C, A],
-end
+add_monoid_hom.eq_of_eq_on_mdense add_submonoid_closure_set_of_eq_monomial $
+  by { rintro p ⟨n, a, rfl⟩, exact h n a }
 
 @[ext] lemma add_hom_ext' {M : Type*} [add_monoid M] {f g : polynomial R →+ M}
   (h : ∀ n, f.comp (monomial n).to_add_monoid_hom = g.comp (monomial n).to_add_monoid_hom) :
@@ -561,7 +569,7 @@ end
 
 @[simp] lemma support_erase (p : polynomial R) (n : ℕ) :
   support (p.erase n) = (support p).erase n :=
-by { rcases p, simp only [support, erase, support_erase], congr }
+by { rcases p, simp only [support, erase, support_erase] }
 
 lemma monomial_add_erase (p : polynomial R) (n : ℕ) : monomial n (coeff p n) + p.erase n = p :=
 begin
@@ -606,7 +614,6 @@ begin
   ext,
   cases p,
   simp only [coeff, update, function.update_apply, coe_update],
-  congr
 end
 
 lemma coeff_update_apply (p : polynomial R) (n : ℕ) (a : R) (i : ℕ) :

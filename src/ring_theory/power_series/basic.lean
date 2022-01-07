@@ -792,10 +792,6 @@ by rw [bit1, bit1, coe_add, coe_one, coe_bit0]
   ((X s : mv_polynomial σ R) : mv_power_series σ R) = mv_power_series.X s :=
 coe_monomial _ _
 
-@[simp, norm_cast] lemma coe_X_pow (n : ℕ) (i : σ) :
-  ((X i ^ n : mv_polynomial σ R) : mv_power_series σ R) = mv_power_series.X i ^ n :=
-by { rw [X_pow_eq_monomial, mv_power_series.X_pow_eq], exact coe_monomial _ 1 }
-
 variables (σ R)
 
 lemma coe_injective : function.injective (coe : mv_polynomial σ R → mv_power_series σ R) :=
@@ -822,6 +818,10 @@ def coe_to_mv_power_series.ring_hom : mv_polynomial σ R →+* mv_power_series �
   map_one' := coe_one,
   map_add' := coe_add,
   map_mul' := coe_mul }
+
+@[simp, norm_cast] lemma coe_pow (n : ℕ) :
+  ((φ ^ n : mv_polynomial σ R) : mv_power_series σ R) = (φ : mv_power_series σ R) ^ n :=
+coe_to_mv_power_series.ring_hom.map_pow _ _
 
 variables (φ ψ)
 
@@ -1835,10 +1835,6 @@ by rw [bit1, bit1, coe_add, coe_one, coe_bit0]
   ((X : polynomial R) : power_series R) = power_series.X :=
 coe_monomial _ _
 
-@[simp, norm_cast] lemma coe_X_pow (n : ℕ) :
-  ((X ^ n : polynomial R) : power_series R) = power_series.X ^ n :=
-by { rw [X_pow_eq_monomial, power_series.X_pow_eq], exact coe_monomial n 1 }
-
 variables (R)
 
 lemma coe_injective : function.injective (coe : polynomial R → power_series R) :=
@@ -1869,6 +1865,10 @@ def coe_to_power_series.ring_hom : polynomial R →+* power_series R :=
   map_mul' := coe_mul }
 
 @[simp] lemma coe_to_power_series.ring_hom_apply : coe_to_power_series.ring_hom φ = φ := rfl
+
+@[simp, norm_cast] lemma coe_pow (n : ℕ):
+  ((φ ^ n : polynomial R) : power_series R) = (φ : power_series R) ^ n :=
+coe_to_power_series.ring_hom.map_pow _ _
 
 variables (A : Type*) [semiring A] [algebra R A]
 

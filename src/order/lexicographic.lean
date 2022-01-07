@@ -115,13 +115,10 @@ instance preorder (α β : Type*) [preorder α] [preorder β] : preorder (α ×�
 
 /-- Dictionary / lexicographic partial_order for pairs. -/
 instance partial_order (α β : Type*) [partial_order α] [partial_order β] : partial_order (α ×ₗ β) :=
-{ le_antisymm := λ x₁ x₂ h₁₂ h₂₁, match x₁, x₂, h₁₂, h₂₁ with
-  | to_lex (a₁, b₁), to_lex (a₂, b₂), left _ _ hlt₁, left _ _ hlt₂ :=
-    false.elim $ lt_irrefl a₁ (lt_trans hlt₁ hlt₂)
-  | to_lex (a₁, b₁), to_lex (a₂, b₂), left _ _ hlt₁, right _ _ := (lt_irrefl a₁ hlt₁).elim
-  | to_lex (a₁, b₁), to_lex (a₂, b₂), right _ _, left _ _ hlt₂ := (lt_irrefl a₁ hlt₂).elim
-  | to_lex (a₁, b₁), to_lex (a₂, b₂), right _ hle₁, right _ hle₂ := le_antisymm hle₁ hle₂ ▸ rfl
-  end,
+{ le_antisymm := by
+  { haveI : is_strict_order α (<) := { irrefl := lt_irrefl, trans := λ _ _ _, lt_trans },
+    haveI : is_antisymm β (≤) := ⟨λ _ _, le_antisymm⟩,
+    exact @antisymm _ (prod.lex _ _) _, },
   .. prod.lex.preorder α β }
 
 /-- Dictionary / lexicographic linear_order for pairs. -/

@@ -182,6 +182,15 @@ instance {r : α → α → Prop} {s : β → β → Prop} [is_trans α r] [is_t
   is_trans (α × β) (lex r s) :=
 ⟨λ _ _ _, lex.trans⟩
 
+instance {r : α → α → Prop} {s : β → β → Prop} [is_strict_order α r] [is_antisymm β s] :
+  is_antisymm (α × β) (lex r s) :=
+⟨λ x₁ x₂ h₁₂ h₂₁, match x₁, x₂, h₁₂, h₂₁ with
+  | (a₁, b₁), (a₂, b₂), lex.left _ _ hr₁, lex.left _ _ hr₂ := (irrefl a₁ (trans hr₁ hr₂)).elim
+  | (a₁, b₁), (a₂, b₂), lex.left _ _ hr₁, lex.right _ _ := (irrefl _ hr₁).elim
+  | (a₁, b₁), (a₂, b₂), lex.right _ _, lex.left _ _ hr₂ := (irrefl _ hr₂).elim
+  | (a₁, b₁), (a₂, b₂), lex.right _ hs₁, lex.right _ hs₂ := antisymm hs₁ hs₂ ▸ rfl
+end⟩
+
 end prod
 
 open function

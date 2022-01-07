@@ -198,6 +198,28 @@ begin
       .resolve_right ha.not_unit) }
 end
 
+lemma multiplicity_eq_multiplicity_associates_mk [wf_dvd_monoid M] {p q : M} (hp : prime p)
+  (hq : q ≠ 0) : multiplicity p q = multiplicity (associates.mk p) (associates.mk q) :=
+begin
+  have finite₁ := multiplicity.finite_prime_left hp hq,
+  have finite₂ := multiplicity.finite_prime_left ((associates.prime_mk p).2 hp)
+    (associates.mk_ne_zero.2 hq),
+  apply le_antisymm,
+  suffices : ↑((multiplicity p q).get finite₁) ≤ multiplicity (associates.mk p) (associates.mk q),
+  { rw enat.coe_le_iff at this,
+    exact enat.get_le_get.1 (this finite₂) },
+  apply multiplicity.le_multiplicity_of_pow_dvd,
+  rw [← associates.mk_pow, associates.mk_dvd_mk],
+  exact multiplicity.pow_multiplicity_dvd finite₁,
+
+  suffices : ↑((multiplicity (associates.mk p) (associates.mk q)).get finite₂) ≤ multiplicity p q,
+  { rw enat.coe_le_iff at this,
+    exact enat.get_le_get.1 (this finite₁) },
+  apply multiplicity.le_multiplicity_of_pow_dvd,
+  rw [← associates.mk_dvd_mk, associates.mk_pow],
+  exact multiplicity.pow_multiplicity_dvd finite₂,
+end
+
 variable [unique_factorization_monoid M]
 
 --this should go in `ring_theory/unique_factorization_monoid.lean`
@@ -376,28 +398,6 @@ begin
   { rw [← enat.ne_top_iff_dom, not_not] at hcases,
     rw hcases,
     exact le_top },
-end
-
-lemma multiplicity_eq_multiplicity_associates_mk [wf_dvd_monoid M] {p q : M} (hp : prime p)
-  (hq : q ≠ 0) : multiplicity p q = multiplicity (associates.mk p) (associates.mk q) :=
-begin
-  have finite₁ := multiplicity.finite_prime_left hp hq,
-  have finite₂ := multiplicity.finite_prime_left ((associates.prime_mk p).2 hp)
-    (associates.mk_ne_zero.2 hq),
-  apply le_antisymm,
-  suffices : ↑((multiplicity p q).get finite₁) ≤ multiplicity (associates.mk p) (associates.mk q),
-  { rw enat.coe_le_iff at this,
-    exact enat.get_le_get.1 (this finite₂) },
-  apply multiplicity.le_multiplicity_of_pow_dvd,
-  rw [← associates.mk_pow, associates.mk_dvd_mk],
-  exact multiplicity.pow_multiplicity_dvd finite₁,
-
-  suffices : ↑((multiplicity (associates.mk p) (associates.mk q)).get finite₂) ≤ multiplicity p q,
-  { rw enat.coe_le_iff at this,
-    exact enat.get_le_get.1 (this finite₁) },
-  apply multiplicity.le_multiplicity_of_pow_dvd,
-  rw [← associates.mk_dvd_mk, associates.mk_pow],
-  exact multiplicity.pow_multiplicity_dvd finite₂,
 end
 
 end factorisations_same_shape

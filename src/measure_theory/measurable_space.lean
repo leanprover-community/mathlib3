@@ -285,6 +285,13 @@ instance : measurable_space ℕ := ⊤
 instance : measurable_space ℤ := ⊤
 instance : measurable_space ℚ := ⊤
 
+instance : measurable_singleton_class empty := ⟨λ _, trivial⟩
+instance : measurable_singleton_class punit := ⟨λ _, trivial⟩
+instance : measurable_singleton_class bool := ⟨λ _, trivial⟩
+instance : measurable_singleton_class ℕ := ⟨λ _, trivial⟩
+instance : measurable_singleton_class ℤ := ⟨λ _, trivial⟩
+instance : measurable_singleton_class ℚ := ⟨λ _, trivial⟩
+
 lemma measurable_to_encodable [measurable_space α] [encodable α] {f : β → α}
   (h : ∀ y, measurable_set (f ⁻¹' {f y})) :
   measurable f :=
@@ -569,6 +576,15 @@ begin
     simp [and_assoc, and.left_comm] },
   rw this,
   exact measurable_set.Union (λ y, (hf y hs).prod (measurable_set_singleton y))
+end
+
+/-- A piecewise function on countably many pieces is measurable if all the data is measurable. -/
+lemma measurable.find {f : ℕ → α → β} {p : ℕ → α → Prop}
+  (hf : ∀ n, measurable (f n)) (hp : ∀ n, measurable_set {x | p n x}) (h : ∀ x, ∃ n, p n x) :
+  measurable (λ x, f (nat.find (h x)) x) :=
+begin
+  have : measurable (λ (p : α × ℕ), f p.2 p.1) := measurable_from_prod_encodable (λ n, hf n),
+  exact this.comp (measurable.prod_mk measurable_id (measurable_find h hp)),
 end
 
 end prod

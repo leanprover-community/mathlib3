@@ -304,9 +304,10 @@ end
 
 lemma ae_cover.integrable_of_lintegral_nnnorm_bounded' [l.ne_bot] [l.is_countably_generated]
   {φ : ι → set α} (hφ : ae_cover μ l φ) {f : α → E} (I : ℝ≥0) (hfm : ae_measurable f μ)
-  (hbounded : ∀ᶠ i in l, ∫⁻ x in φ i, nnnorm (f x) ∂μ ≤ ennreal.of_real I) :
+  (hbounded : ∀ᶠ i in l, ∫⁻ x in φ i, nnnorm (f x) ∂μ ≤ I) :
   integrable f μ :=
-hφ.integrable_of_lintegral_nnnorm_bounded I hfm hbounded
+hφ.integrable_of_lintegral_nnnorm_bounded I hfm
+  (by simpa only [ennreal.of_real_coe_nnreal] using hbounded)
 
 lemma ae_cover.integrable_of_lintegral_nnnorm_tendsto' [l.ne_bot] [l.is_countably_generated]
   {φ : ι → set α} (hφ : ae_cover μ l φ) {f : α → E} (I : ℝ≥0)

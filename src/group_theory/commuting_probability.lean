@@ -65,7 +65,7 @@ calc card {p : G × G // p.1 * p.2 = p.2 * p.1} = card (Σ g, {h // g * h = h * 
 ... = card (quotient (is_conj.setoid G)) * card G : by congr;
   exact setoid.ext (λ g h, (setoid.comm' _).trans is_conj_iff.symm)
 
-lemma comm_prob.def' : comm_prob G = card (conj_classes G) / card G :=
+lemma comm_prob_def' : comm_prob G = card (conj_classes G) / card G :=
 begin
   rw [comm_prob, card_comm_eq_card_conj_classes_mul_card, cast_mul, sq],
   exact mul_div_mul_right (card (conj_classes G)) (card G) (cast_ne_zero.mpr card_ne_zero),

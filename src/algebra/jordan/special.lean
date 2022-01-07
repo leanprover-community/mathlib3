@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christopher Hoskin
 -/
 import algebra.jordan.basic
+--import data.equiv.basic
+--import logic.nontrivial
 
 /-!
 # Special Jordan algebras
@@ -31,6 +33,8 @@ The approach taken here is inspired by algebra.opposites.
 * [Hanche-Olsen and Størmer, Jordan Operator Algebras][hancheolsenstormer1984]
 -/
 
+open function
+
 /--
 The symmetrised algebra has the same underlying space as the original algebra.
 -/
@@ -55,6 +59,23 @@ instance [inhabited α] : inhabited αˢʸᵐ := ⟨sym (default α)⟩
 @[simp] lemma unsym_sym (x : α) : unsym (sym x) = x := rfl
 @[simp] lemma sym_unsym (x : α) : sym (unsym x) = x := rfl
 
+@[simp] lemma sym_comp_unsym : (sym : α → αˢʸᵐ) ∘ unsym = id := rfl
+@[simp] lemma unsym_comp_sym : (unsym : αˢʸᵐ → α) ∘ sym = id := rfl
+
+/-- The canonical bijection between `α` and `αˢʸᵐ`. -/
+@[simps apply symm_apply { fully_applied := ff }]
+def sym_equiv : α ≃ αˢʸᵐ := ⟨sym, unsym, unsym_sym, sym_unsym⟩
+
+lemma sym_bijective : bijective (sym : α → αˢʸᵐ) := sym_equiv.bijective
+lemma unsym_bijective : bijective (unsym : αˢʸᵐ → α) := sym_equiv.symm.bijective
+lemma sym_injective : injective (sym : α → αˢʸᵐ) := sym_bijective.injective
+lemma sym_surjective : surjective (sym : α → αˢʸᵐ) := sym_bijective.surjective
+lemma unsym_injective : injective (unsym : αˢʸᵐ → α) := unsym_bijective.injective
+lemma unsym_surjective : surjective (unsym : αˢʸᵐ → α) := unsym_bijective.surjective
+
+@[simp] lemma sym_inj {x y : α} : sym x = sym y ↔ x = y := sym_injective.eq_iff
+@[simp] lemma unsym_inj {x y : αˢʸᵐ} : unsym x = unsym y ↔ x = y := unsym_injective.eq_iff
+
 instance [has_zero α] : has_zero (αˢʸᵐ) := { zero := sym 0 }
 instance [has_sub α] : has_sub αˢʸᵐ := { sub := λ a b, sym (unsym a - unsym b) }
 
@@ -74,8 +95,6 @@ instance {R : Type*} [has_scalar R α] : has_scalar R αˢʸᵐ :=
 { smul := λ r a, sym (r • unsym a) }
 
 @[simp] lemma sym_smul {R : Type*} [has_scalar R α] (c : R) (a : α) : sym (c • a) = c • sym a := rfl
-
-lemma unsym_injective : function.injective (@unsym α) := λ _ _, id
 
 instance [add_comm_semigroup α] : add_comm_semigroup (αˢʸᵐ) :=
 unsym_injective.add_comm_semigroup _ (λ _ _, rfl)
@@ -152,7 +171,8 @@ end
 
 /- 2 commutes with every element of a ring -/
 lemma two_commute [ring α] (a : α) : commute 2 a := begin
-  unfold commute,
+  --convert commute.semiconj_by 2 a,
+  unfold _root_.commute,
   rw [semiconj_by, mul_two, two_mul],
 end
 

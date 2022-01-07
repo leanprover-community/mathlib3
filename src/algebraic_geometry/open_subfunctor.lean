@@ -16,9 +16,9 @@ variables {C : Type u} [category.{v} C]
 variables {X Y Z : Scheme.{u}} (𝒰 : open_cover.{u} X) (f : X ⟶ Z) (g : Y ⟶ Z)
 variables [∀ x, has_pullback (𝒰.map x ≫ f) g]
 
-include 𝒰
-
 namespace open_cover
+
+include 𝒰
 
 @[simps]
 def pullback_cover (𝒰 : open_cover X) {W : Scheme} (f : W ⟶ X) : open_cover W :=
@@ -114,8 +114,6 @@ begin
   apply glued_cover_cocycle_fst,
   apply glued_cover_cocycle_snd,
 end
-
-omit 𝒰
 
 @[simps]
 def glued_cover : Scheme.glue_data.{u} :=

@@ -388,7 +388,7 @@ end⟩
 instance compatible_smul.units {R S : Type*}
   [monoid R] [mul_action R M] [mul_action R M₂] [semiring S] [module S M] [module S M₂]
   [compatible_smul M M₂ R S] :
-  compatible_smul M M₂ (units R) S :=
+  compatible_smul M M₂ Rˣ S :=
 ⟨λ fₗ c x, (compatible_smul.map_smul fₗ (c : R) x : _)⟩
 
 end add_comm_group

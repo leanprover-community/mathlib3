@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sangwoo Jo (aka Jason), Guy Leroy, Johannes Hölzl, Mario Carneiro
 -/
 import data.nat.prime
+import data.int.order
+
 /-!
 # Extended GCD and divisibility over ℤ
 
@@ -302,6 +304,18 @@ begin
   exact int.nat_abs_dvd_iff_dvd.mpr h
 end
 
+lemma gcd_dvd_iff {a b : ℤ} {n : ℕ} : gcd a b ∣ n ↔ ∃ x y : ℤ, ↑n = a * x + b * y :=
+begin
+  split,
+  { intro h,
+    rw [← nat.mul_div_cancel' h, int.coe_nat_mul, gcd_eq_gcd_ab, add_mul, mul_assoc, mul_assoc],
+    refine ⟨_, _, rfl⟩, },
+  { rintro ⟨x, y, h⟩,
+    rw [←int.coe_nat_dvd, h],
+    exact dvd_add (dvd_mul_of_dvd_left (gcd_dvd_left a b) _)
+      (dvd_mul_of_dvd_left (gcd_dvd_right a b) y) }
+end
+
 lemma gcd_greatest {a b d : ℤ} (hd_pos : 0 ≤ d) (hda : d ∣ a) (hdb : d ∣ b)
   (hd : ∀ e : ℤ, e ∣ a → e ∣ b → e ∣ d) : d = gcd a b :=
 (nat_abs_inj_of_nonneg_of_nonneg hd_pos (coe_zero_le (gcd a b))).mp
@@ -324,6 +338,18 @@ Compare with `is_coprime.dvd_of_dvd_mul_right` and
 `unique_factorization_monoid.dvd_of_dvd_mul_right_of_no_prime_factors` -/
 lemma dvd_of_dvd_mul_right_of_gcd_one {a b c : ℤ} (habc : a ∣ b * c) (hab : gcd a b = 1) : a ∣ c :=
 by { rw mul_comm at habc, exact dvd_of_dvd_mul_left_of_gcd_one habc hab }
+
+/-- For nonzero integers `a` and `b`, `gcd a b` is the smallest positive natural number that can be
+written in the form `a * x + b * y` for some pair of integers `x` and `y` -/
+theorem gcd_least_linear {a b : ℤ} (ha : a ≠ 0) :
+  is_least { n : ℕ | 0 < n ∧ ∃ x y : ℤ, ↑n = a * x + b * y } (a.gcd b) :=
+begin
+  simp_rw ←gcd_dvd_iff,
+  split,
+  { simpa [and_true, dvd_refl, set.mem_set_of_eq] using gcd_pos_of_non_zero_left b ha },
+  { simp only [lower_bounds, and_imp, set.mem_set_of_eq],
+    exact λ n hn_pos hn, nat.le_of_dvd hn_pos hn },
+end
 
 /-! ### lcm -/
 

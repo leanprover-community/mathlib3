@@ -9,7 +9,13 @@ import group_theory.group_action.defs
 /-!
 # Prod instances for additive and multiplicative actions
 
-This file defines instances for binary product of additive and multiplicative actions
+This file defines instances for binary product of additive and multiplicative actions and provides
+scalar multiplication as a homomorphism from `α × β` to `β`.
+
+## Main declarations
+
+* `smul_mul_hom`/`smul_monoid_hom`: Scalar multiplication bundled as a multiplicative/monoid
+  homomorphism.
 -/
 
 variables {M N P α β : Type*}
@@ -77,3 +83,25 @@ instance {R M N : Type*} {r : monoid R} [monoid M] [monoid N]
   smul_one := λ a, mk.inj_iff.mpr ⟨smul_one _, smul_one _⟩ }
 
 end prod
+
+/-! ### Scalar multiplication as a homomorphism -/
+
+section bundled_smul
+
+/-- Scalar multiplication as a multiplicative homomorphism. -/
+@[simps]
+def smul_mul_hom [monoid α] [has_mul β] [mul_action α β] [is_scalar_tower α β β]
+  [smul_comm_class α β β] :
+  mul_hom (α × β) β :=
+{ to_fun := λ a, a.1 • a.2,
+  map_mul' := λ a b, (smul_mul_smul _ _ _ _).symm }
+
+/-- Scalar multiplication as a monoid homomorphism. -/
+@[simps]
+def smul_monoid_hom [monoid α] [mul_one_class β] [mul_action α β] [is_scalar_tower α β β]
+  [smul_comm_class α β β] :
+  α × β →* β :=
+{ map_one' := one_smul _ _,
+  .. smul_mul_hom }
+
+end bundled_smul

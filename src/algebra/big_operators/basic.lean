@@ -1270,13 +1270,12 @@ section comm_group
 variables [comm_group β]
 
 @[simp, to_additive]
-lemma prod_inv_distrib : (∏ x in s, (f x)⁻¹) = (∏ x in s, f x)⁻¹ :=
-(monoid_hom.map_prod (comm_group.inv_monoid_hom : β →* β) f s).symm
+lemma prod_inv_distrib : (∏ x in s, (f x)⁻¹) = (∏ x in s, f x)⁻¹ := multiset.prod_map_inv'
 
 @[to_additive zsmul_sum]
 lemma prod_zpow (f : α → β) (s : finset α) (n : ℤ) :
   (∏ a in s, f a) ^ n = ∏ a in s, (f a) ^ n :=
-(zpow_group_hom n : β →* β).map_prod f s
+multiset.prod_map_zpow.symm
 
 end comm_group
 

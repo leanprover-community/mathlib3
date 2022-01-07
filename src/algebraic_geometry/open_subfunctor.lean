@@ -115,6 +115,8 @@ begin
   apply glued_cover_cocycle_snd,
 end
 
+omit 𝒰
+
 @[simps]
 def glued_cover : Scheme.glue_data.{u} :=
 { J := 𝒰.J,
@@ -153,8 +155,7 @@ begin
   simp_rw [← comp_apply, ← SheafedSpace.comp_base, ← LocallyRingedSpace.comp_val] at h,
   erw [ι_from_glued, ι_from_glued] at h,
   let e := (Top.pullback_cone_is_limit _ _).cone_point_unique_up_to_iso
-    (is_limit_of_has_pullback_of_preserves_limit (Scheme.forget ⋙
-      LocallyRingedSpace.forget_to_SheafedSpace ⋙ SheafedSpace.forget _)
+    (is_limit_of_has_pullback_of_preserves_limit Scheme.forget_to_Top
       (𝒰.map i) (𝒰.map j)),
   rw 𝒰.glued_cover.ι_eq_iff,
   right,
@@ -218,8 +219,8 @@ SheafedSpace.is_open_immersion.of_stalk_iso _ 𝒰.from_glued_open_embedding
 
 instance : is_iso 𝒰.from_glued :=
 begin
-  apply is_iso_of_reflects_iso _ (forget ⋙ LocallyRingedSpace.forget_to_SheafedSpace ⋙
-    SheafedSpace.forget_to_PresheafedSpace),
+  apply is_iso_of_reflects_iso _ (Scheme.forget_to_LocallyRingedSpace ⋙
+    LocallyRingedSpace.forget_to_SheafedSpace ⋙ SheafedSpace.forget_to_PresheafedSpace),
   change @is_iso (PresheafedSpace _) _ _ _ 𝒰.from_glued.val,
   apply PresheafedSpace.is_open_immersion.to_iso,
 end
@@ -679,7 +680,7 @@ lemma has_pullback_of_cover : has_pullback f g := ⟨⟨⟨_, glued_is_limit �
 
 instance Spec.preserves_limits : preserves_limits Spec := sorry
 instance Spec.full : full Spec := sorry
-instance Spec.faithful : faithful Spec.to_LocallyRingedSpace := sorry
+instance Spec.faithful : faithful Spec := sorry
 instance : has_colimits CommRing := infer_instance
 instance : has_limits CommRingᵒᵖ := has_limits_op_of_has_colimits
 

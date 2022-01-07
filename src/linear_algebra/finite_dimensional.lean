@@ -1151,7 +1151,7 @@ lemma set.finrank_mono [finite_dimensional K V] {s t : set V} (h : s ⊆ t) :
   s.finrank K ≤ t.finrank K := finrank_mono (span_mono h)
 
 lemma finrank_span_le_card (s : set V) [fin : fintype s] :
-  s.finrank K ≤ s.to_finset.card :=
+  finrank K (span K s) ≤ s.to_finset.card :=
 begin
   haveI := span_of_finite K ⟨fin⟩,
   have : module.rank K (span K s) ≤ #s := dim_span_le s,
@@ -1176,7 +1176,7 @@ end
 
 lemma finrank_span_set_eq_card (s : set V) [fin : fintype s]
   (hs : linear_independent K (coe : s → V)) :
-  s.finrank K = s.to_finset.card :=
+  finrank K (span K s) = s.to_finset.card :=
 begin
   haveI := span_of_finite K ⟨fin⟩,
   have : module.rank K (span K s) = #s := dim_span_set hs,

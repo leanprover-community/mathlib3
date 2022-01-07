@@ -237,7 +237,7 @@ begin
     refine ⟨g 0, g 1, g.lt_iff_lt.2 zero_lt_one, gmon _ _ zero_le_one⟩, }
 end
 
-lemma partially_well_ordered_on.well_founded_on' [is_preorder α r]
+lemma partially_well_ordered_on.well_founded_on [is_preorder α r]
   (h : s.partially_well_ordered_on r) :
   s.well_founded_on (λ a b, r a b ∧ ¬r b a) :=
 begin
@@ -247,15 +247,6 @@ begin
   intros f hf,
   obtain ⟨m, n, hlt, hle⟩ := h f hf,
   exact (f.map_rel_iff.2 hlt).not_le hle,
-end
-
-lemma partially_well_ordered_on.well_founded_on [is_partial_order α r]
-  (h : s.partially_well_ordered_on r) :
-  s.well_founded_on (λ a b, r a b ∧ a ≠ b) :=
-begin
-  letI : partial_order α := { le := r, le_refl := refl_of r, le_trans := λ _ _ _, trans_of r,
-    le_antisymm := λ a b, antisymm },
-  convert h.well_founded_on', ext a b, exact (@lt_iff_le_and_ne _ _ a b).symm
 end
 
 theorem finite.partially_well_ordered_on [is_refl α r] {s : set α} (hs : finite s) :
@@ -300,7 +291,7 @@ theorem is_pwo_iff_exists_monotone_subseq :
 partially_well_ordered_on_iff_exists_monotone_subseq
 
 lemma is_pwo.is_wf (h : s.is_pwo) : s.is_wf :=
-by simpa only [← lt_iff_le_not_le] using h.well_founded_on'
+by simpa only [← lt_iff_le_not_le] using h.well_founded_on
 
 lemma is_pwo.prod {β : Type*} [preorder β] {t : set β} (hs : s.is_pwo) (ht : t.is_pwo) :
   (s.prod t).is_pwo :=
@@ -350,6 +341,32 @@ by simp only [← singleton_union, is_wf_union, is_wf_singleton, true_and]
 theorem is_wf.insert (h : is_wf s) (a : α) : is_wf (insert a s) := is_wf_insert.2 h
 
 end preorder
+
+section well_founded_on
+
+variables {r : α → α → Prop} [is_strict_order α r] {s : set α} {a : α}
+
+theorem finite.well_founded_on (hs : finite s) :
+  set.well_founded_on s r :=
+by { letI := partial_order_of_SO r, exact hs.is_wf }
+
+@[simp] theorem well_founded_on_empty : well_founded_on (∅ : set α) r :=
+finite_empty.well_founded_on
+
+@[simp] theorem well_founded_on_singleton : well_founded_on ({a} : set α) r :=
+(finite_singleton a).well_founded_on
+
+theorem subsingleton.well_founded_on (hs : s.subsingleton) :
+  well_founded_on s r :=
+hs.induction_on well_founded_on_empty (λ x, well_founded_on_singleton)
+
+@[simp] theorem well_founded_on_insert : well_founded_on (insert a s) r ↔ well_founded_on s r :=
+by simp only [← singleton_union, well_founded_on_union, well_founded_on_singleton, true_and]
+
+theorem well_founded_on.insert (h : well_founded_on s r) (a : α) : well_founded_on (insert a s) r :=
+well_founded_on_insert.2 h
+
+end well_founded_on
 
 theorem is_wf.is_pwo [linear_order α] {s : set α} (hs : s.is_wf) : s.is_pwo :=
 begin

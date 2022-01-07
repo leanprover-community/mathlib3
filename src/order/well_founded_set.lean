@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson
 -/
 import algebra.pointwise
-import data.set.finite
 import order.antichain
 import order.order_iso_nat
 import order.well_founded
@@ -218,6 +217,20 @@ begin
     ha.eq_of_related (hi.nat_embedding _ m).2 (hi.nat_embedding _ n).2 h),
 end
 
+lemma finite.partially_well_ordered_on {s : set α} {r : α → α → Prop} [is_refl α r]
+  (hs : s.finite) :
+  s.partially_well_ordered_on r :=
+begin
+  intros f hf,
+  obtain ⟨m, n, hmn, h⟩ := hs.exists_lt_map_eq_of_range_subset hf,
+  exact ⟨m, n, hmn, h.subst $ refl (f m)⟩,
+end
+
+lemma _root_.is_antichain.partially_well_ordered_on_iff {s : set α} {r : α → α → Prop} [is_refl α r]
+  (hs : is_antichain r s) :
+  s.partially_well_ordered_on r ↔ s.finite :=
+⟨hs.finite, finite.partially_well_ordered_on⟩
+
 lemma partially_well_ordered_on_iff_finite_antichains {s : set α} {r : α → α → Prop} [is_refl α r]
   [is_symm α r] :
   s.partially_well_ordered_on r ↔ ∀ t ⊆ s, is_antichain r t → t.finite :=
@@ -388,22 +401,9 @@ end set
 
 namespace finset
 
-@[simp]
-theorem partially_well_ordered_on {r : α → α → Prop} [is_refl α r] (f : finset α) :
-  set.partially_well_ordered_on (↑f : set α) r :=
-begin
-  intros g hg,
-  by_cases hinj : function.injective g,
-  { exact (set.infinite_of_injective_forall_mem hinj (set.range_subset_iff.1 hg)
-      f.finite_to_set).elim },
-  { rw [function.injective] at hinj,
-    push_neg at hinj,
-    obtain ⟨m, n, gmgn, hne⟩ := hinj,
-    cases lt_or_gt_of_ne hne with hlt hlt;
-    { refine ⟨_, _, hlt, _⟩,
-      rw gmgn,
-      exact refl_of r _, } }
-end
+@[simp] lemma partially_well_ordered_on {r : α → α → Prop} [is_refl α r] (s : finset α) :
+  set.partially_well_ordered_on (s : set α) r :=
+s.finite_to_set.partially_well_ordered_on
 
 @[simp]
 theorem is_pwo [partial_order α] (f : finset α) :

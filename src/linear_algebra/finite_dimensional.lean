@@ -1156,7 +1156,7 @@ begin
   haveI := span_of_finite K ⟨fin⟩,
   have : module.rank K (span K s) ≤ #s := dim_span_le s,
   rw [←finrank_eq_dim, cardinal.mk_fintype, ←set.to_finset_card] at this,
-  exact_mod_cast this
+  exact_mod_cast this,
 end
 
 lemma finrank_span_finset_le_card (s : finset V)  :
@@ -1181,7 +1181,7 @@ begin
   haveI := span_of_finite K ⟨fin⟩,
   have : module.rank K (span K s) = #s := dim_span_set hs,
   rw [←finrank_eq_dim, cardinal.mk_fintype, ←set.to_finset_card] at this,
-  exact_mod_cast this
+  exact_mod_cast this,
 end
 
 lemma finrank_span_finset_eq_card (s : finset V)
@@ -1190,7 +1190,7 @@ lemma finrank_span_finset_eq_card (s : finset V)
 begin
   convert finrank_span_set_eq_card ↑s hs,
   ext,
-  simp
+  simp,
 end
 
 lemma span_lt_of_subset_of_card_lt_finrank {s : set V} [fintype s] {t : submodule K V}

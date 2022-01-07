@@ -54,8 +54,6 @@ def sym : α → αˢʸᵐ := id
 @[pp_nodot]
 def unsym : αˢʸᵐ → α := id
 
-instance [inhabited α] : inhabited αˢʸᵐ := ⟨sym (default α)⟩
-
 @[simp] lemma unsym_sym (x : α) : unsym (sym x) = x := rfl
 @[simp] lemma sym_unsym (x : α) : sym (unsym x) = x := rfl
 
@@ -76,11 +74,24 @@ lemma unsym_surjective : surjective (unsym : αˢʸᵐ → α) := unsym_bijectiv
 @[simp] lemma sym_inj {x y : α} : sym x = sym y ↔ x = y := sym_injective.eq_iff
 @[simp] lemma unsym_inj {x y : αˢʸᵐ} : unsym x = unsym y ↔ x = y := unsym_injective.eq_iff
 
+instance [nontrivial α] : nontrivial αˢʸᵐ := sym_injective.nontrivial
+instance [inhabited α] : inhabited αˢʸᵐ := ⟨sym (default α)⟩
+instance [subsingleton α] : subsingleton αˢʸᵐ := unsym_injective.subsingleton
+instance [unique α] : unique αˢʸᵐ := unique.mk' _
+instance [is_empty α] : is_empty αˢʸᵐ := function.is_empty unsym
+
+
 instance [has_zero α] : has_zero (αˢʸᵐ) := { zero := sym 0 }
-instance [has_sub α] : has_sub αˢʸᵐ := { sub := λ a b, sym (unsym a - unsym b) }
+
+instance [has_one α] : has_one αᵐᵒᵖ := { one := sym 1 }
 
 instance [has_add α] : has_add αˢʸᵐ :=
 { add := λ a b, sym (unsym a + unsym b) }
+
+instance [has_sub α] : has_sub αˢʸᵐ := { sub := λ a b, sym (unsym a - unsym b) }
+
+instance [has_neg α] : has_neg αˢʸᵐ :=
+{ neg := λ a, sym (-unsym a) }
 
 @[simp] lemma sym_add [has_add α] (a b : α) : sym (a + b) = sym a + sym b := rfl
 @[simp] lemma unsym_add [has_add α] (x y : αˢʸᵐ) : unsym (x + y) = unsym x + unsym y := rfl
@@ -88,8 +99,7 @@ instance [has_add α] : has_add αˢʸᵐ :=
 @[simp] lemma sym_sub [has_sub α] (x y : α) : sym (x - y) = sym x - sym y := rfl
 @[simp] lemma unsym_sub [has_sub α] (x y : αᵐᵒᵖ) : unsym (x - y) = unsym x - unsym y := rfl
 
-instance [has_neg α] : has_neg αˢʸᵐ :=
-{ neg := λ a, sym (-unsym a) }
+
 
 instance {R : Type*} [has_scalar R α] : has_scalar R αˢʸᵐ :=
 { smul := λ r a, sym (r • unsym a) }

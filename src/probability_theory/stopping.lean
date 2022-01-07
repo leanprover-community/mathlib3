@@ -389,12 +389,12 @@ lemma stopped_value_sub_eq_sum' [add_comm_group β] {u : ℕ → α → β}
     set.indicator {x | τ x ≤ i ∧ i < π x} (u (i + 1) - u i)) x :=
 begin
   rw stopped_value_sub_eq_sum hle,
-  { ext x,
-    simp only [finset.sum_apply, finset.sum_indicator_eq_sum_filter],
-    refine finset.sum_congr _ (λ _ _, rfl),
-    ext i,
-    simp only [finset.mem_filter, set.mem_set_of_eq, finset.mem_range, finset.mem_Ico],
-    exact ⟨λ h, ⟨lt_trans h.2 (nat.lt_succ_iff.2 $ hbdd _), h⟩, λ h, h.2⟩ },
+  ext x,
+  simp only [finset.sum_apply, finset.sum_indicator_eq_sum_filter],
+  refine finset.sum_congr _ (λ _ _, rfl),
+  ext i,
+  simp only [finset.mem_filter, set.mem_set_of_eq, finset.mem_range, finset.mem_Ico],
+  exact ⟨λ h, ⟨lt_trans h.2 (nat.lt_succ_iff.2 $ hbdd _), h⟩, λ h, h.2⟩
 end
 
 section add_comm_monoid

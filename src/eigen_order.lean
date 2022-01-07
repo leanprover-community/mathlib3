@@ -135,10 +135,15 @@ open filter
 
 open_locale topological_space
 
+
 variables {α : Type*} [conditionally_complete_linear_order α] [topological_space α] [order_topology α]
 
 variables {s : set α} (h_wf : s.is_wf) (h_inf : s.infinite) (h_cpct : is_compact s) {r : α} -- (hr : r ∈ s)
-variable (h_cf : ∀ n, tendsto (enum' h_wf h_inf) (cofinite : filter ℕ) (𝓝 (enum' h_wf h_inf n)) → enum' h_wf h_inf n = r)
+
+def iso_set (s : set α) (r : α) : Prop := ∀ x ∈ s, x ≠ r → ∃ nhd ∈ 𝓝 x, nhd ∩ s = {x}
+
+variable h_cf : iso_set s r
+-- variable (h_cf : ∀ n, tendsto (enum' h_wf h_inf) (cofinite : filter ℕ) (𝓝 (enum' h_wf h_inf n)) → enum' h_wf h_inf n = r)
 include h_wf h_inf h_cpct --hr
  h_cf
 
@@ -165,7 +170,6 @@ begin
   { apply is_closed.closure_subset h_cpct.is_closed,
     apply closure_mono ht,
     apply cSup_mem_closure ⟨_, set.mem_range_self 0⟩ t_bdd, },
-  ---
   have h_sup_gt : ∀ n, (enum h_wf h_inf n).val < Sup t,
   { intro n,
     apply lt_of_not_ge,
@@ -173,9 +177,32 @@ begin
     exact lt_irrefl _ (lt_of_le_of_lt
       (le_cSup t_bdd (set.mem_range_self (n+1)))
       (lt_of_le_of_lt hge (enum_lt h_wf h_inf _))) },
-  sorry
-  -- the values of enum are bounded, compact, and isolated -- contradiction?
+  rcases h_cf _ ht_sup (ne_of_lt sup_lt_r) with ⟨nhd', nhd'_mem, nhd'_inter⟩,
+  have ex_lt : ∃ nhd : set α, nhd ⊆ nhd' ∧ Sup t ∈ nhd ∧ is_open nhd ∧ ∃ v ∈ nhd, v < Sup t := sorry,
+  rcases ex_lt with ⟨nhd, nhd_sub_nhd', nhd_mem, nhd_open, v, v_mem, v_lt⟩,
+  have nhd_inter : nhd ∩ s = {Sup t},
+  { ext y,
+    split,
+    { rw ← nhd'_inter, rintro ⟨hl, hr⟩, exact ⟨nhd_sub_nhd' hl, hr⟩ },
+    { rw set.mem_singleton_iff, rintro rfl, exact set.mem_inter nhd_mem ht_sup } },
+  apply not_le_of_lt v_lt,
+  apply cSup_le ⟨_, set.mem_range_self 0⟩,
+  intros b bmem,
+  rw set.mem_range at bmem,
+  rcases bmem with ⟨y, rfl⟩,
+  apply le_of_not_lt,
+  intro hvt,
+  have bsup : ↑(enum h_wf h_inf y) < Sup t := h_sup_gt _,
+  have bnhd : ↑(enum h_wf h_inf y) ∈ nhd := sorry, -- order topology fact?
+  have beq : ↑(enum h_wf h_inf y) = Sup t,
+  { apply set.mem_singleton_iff.mp,
+    rw ← nhd_inter,
+    exact ⟨bnhd, (enum _ _ _).property⟩ },
+  rw beq at bsup,
+  exact lt_irrefl _ bsup
 end
+
+
 
 lemma enum_surj {x : α} (hxs : x ∈ s) (hxr : x < r) (hlt : ∀ y ∈ s, y ≤ r) :
   ∃ n, enum' h_wf h_inf n = x :=

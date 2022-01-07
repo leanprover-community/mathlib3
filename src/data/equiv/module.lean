@@ -94,12 +94,22 @@ lemma to_equiv_injective : function.injective (to_equiv : (M ≃ₛₗ[σ] M₂)
 to_equiv_injective.eq_iff
 
 lemma to_linear_map_injective :
-  function.injective (coe : (M ≃ₛₗ[σ] M₂) → (M →ₛₗ[σ] M₂)) :=
+  injective (coe : (M ≃ₛₗ[σ] M₂) → (M →ₛₗ[σ] M₂)) :=
 λ e₁ e₂ H, to_equiv_injective $ equiv.ext $ linear_map.congr_fun H
 
 @[simp, norm_cast] lemma to_linear_map_inj {e₁ e₂ : M ≃ₛₗ[σ] M₂} :
   (e₁ : M →ₛₗ[σ] M₂) = e₂ ↔ e₁ = e₂ :=
 to_linear_map_injective.eq_iff
+
+instance : add_monoid_hom_class (M ≃ₛₗ[σ] M₂) M M₂ :=
+{ coe := linear_equiv.to_fun,
+  coe_injective' := λ f g h, to_linear_map_injective (fun_like.coe_injective h),
+  map_add := linear_equiv.map_add',
+  map_zero := λ f, f.to_linear_map.map_zero }
+
+lemma coe_injective :
+  @injective (M ≃ₛₗ[σ] M₂) (M → M₂) coe_fn :=
+fun_like.coe_injective
 
 end
 
@@ -124,16 +134,13 @@ lemma to_linear_map_eq_coe : e.to_linear_map = (e : M →ₛₗ[σ] M₂) := rfl
 
 section
 variables {e e'}
-@[ext] lemma ext (h : ∀ x, e x = e' x) : e = e' :=
-to_equiv_injective (equiv.ext h)
+@[ext] lemma ext (h : ∀ x, e x = e' x) : e = e' := fun_like.ext _ _ h
 
-protected lemma congr_arg : Π {x x' : M}, x = x' → e x = e x'
-| _ _ rfl := rfl
+lemma ext_iff : e = e' ↔ ∀ x, e x = e' x := fun_like.ext_iff
 
-protected lemma congr_fun (h : e = e') (x : M) : e x = e' x := h ▸ rfl
+protected lemma congr_arg {x x'} : x = x' → e x = e x' := fun_like.congr_arg e
 
-lemma ext_iff : e = e' ↔ ∀ x, e x = e' x :=
-⟨λ h x, h ▸ rfl, ext⟩
+protected lemma congr_fun (h : e = e') (x : M) : e x = e' x := fun_like.congr_fun h x
 
 end
 
@@ -233,11 +240,11 @@ omit σ'
 
 @[simp] lemma refl_symm [module R M] : (refl R M).symm = linear_equiv.refl R M := rfl
 
-@[simp] lemma trans_symm [module R M] [module R M₂] (f : M ≃ₗ[R] M₂) :
+@[simp] lemma self_trans_symm [module R M] [module R M₂] (f : M ≃ₗ[R] M₂) :
   f.trans f.symm = linear_equiv.refl R M :=
 by { ext x, simp }
 
-@[simp] lemma symm_trans [module R M] [module R M₂] (f : M ≃ₗ[R] M₂) :
+@[simp] lemma symm_trans_self [module R M] [module R M₂] (f : M ≃ₗ[R] M₂) :
   f.symm.trans f = linear_equiv.refl R M₂ :=
 by { ext x, simp }
 
@@ -253,8 +260,8 @@ rfl
 @[simp] lemma mk_coe (h₁ h₂ f h₃ h₄) :
   (linear_equiv.mk e h₁ h₂ f h₃ h₄ : M ≃ₛₗ[σ] M₂) = e := ext $ λ _, rfl
 
-@[simp] theorem map_add (a b : M) : e (a + b) = e a + e b := e.map_add' a b
-@[simp] theorem map_zero : e 0 = 0 := e.to_linear_map.map_zero
+protected theorem map_add (a b : M) : e (a + b) = e a + e b := map_add e a b
+protected theorem map_zero : e 0 = 0 := map_zero e
 @[simp] theorem map_smulₛₗ (c : R) (x : M) : e (c • x) = (σ c) • e x := e.map_smul' c x
 
 include module_N₁ module_N₂
@@ -284,12 +291,10 @@ equiv.bijective ⟨(symm : (M ≃ₛₗ[σ] M₂) →
   M₂ ≃ₛₗ[σ'] M) = e.symm :=
 symm_bijective.injective $ ext $ λ x, rfl
 
-include σ'
 @[simp] theorem symm_mk (f h₁ h₂ h₃ h₄) :
   (⟨e, h₁, h₂, f, h₃, h₄⟩ : M ≃ₛₗ[σ] M₂).symm =
   { to_fun := f, inv_fun := e,
     ..(⟨e, h₁, h₂, f, h₃, h₄⟩ : M ≃ₛₗ[σ] M₂).symm } := rfl
-omit σ'
 
 @[simp] lemma coe_symm_mk [module R M] [module R M₂]
   {to_fun inv_fun map_add map_smul left_inv right_inv} :
@@ -300,12 +305,48 @@ protected lemma bijective : function.bijective e := e.to_equiv.bijective
 protected lemma injective : function.injective e := e.to_equiv.injective
 protected lemma surjective : function.surjective e := e.to_equiv.surjective
 
-include σ'
 protected lemma image_eq_preimage (s : set M) : e '' s = e.symm ⁻¹' s :=
 e.to_equiv.image_eq_preimage s
-omit σ'
+
+protected lemma image_symm_eq_preimage (s : set M₂) : e.symm '' s = e ⁻¹' s :=
+e.to_equiv.symm.image_eq_preimage s
+
+section pointwise
+open_locale pointwise
+
+@[simp] lemma image_smul_setₛₗ (c : R) (s : set M) :
+  e '' (c • s) = (σ c) • e '' s :=
+linear_map.image_smul_setₛₗ e.to_linear_map c s
+
+@[simp] lemma preimage_smul_setₛₗ (c : S) (s : set M₂) :
+  e ⁻¹' (c • s) = σ' c • e ⁻¹' s :=
+by rw [← linear_equiv.image_symm_eq_preimage, ← linear_equiv.image_symm_eq_preimage,
+  image_smul_setₛₗ]
+
+include module_M₁ module_N₁
+
+@[simp] lemma image_smul_set (e : M₁ ≃ₗ[R₁] N₁) (c : R₁) (s : set M₁) :
+  e '' (c • s) = c • e '' s :=
+linear_map.image_smul_set e.to_linear_map c s
+
+@[simp] lemma preimage_smul_set (e : M₁ ≃ₗ[R₁] N₁) (c : R₁) (s : set N₁) :
+  e ⁻¹' (c • s) = c • e ⁻¹' s :=
+e.preimage_smul_setₛₗ c s
+
+end pointwise
 
 end
+
+/-- Interpret a `ring_equiv` `f` as an `f`-semilinear equiv. -/
+@[simps]
+def _root_.ring_equiv.to_semilinear_equiv (f : R ≃+* S) :
+  by haveI := ring_hom_inv_pair.of_ring_equiv f;
+     haveI := ring_hom_inv_pair.symm (↑f : R →+* S) (f.symm : S →+* R);
+     exact (R ≃ₛₗ[(↑f : R →+* S)] S) :=
+by exact
+{ to_fun := f,
+  map_smul' := f.map_mul,
+  .. f}
 
 variables [semiring R₁] [semiring R₂] [semiring R₃]
 variables [add_comm_monoid M] [add_comm_monoid M₁] [add_comm_monoid M₂]
@@ -350,6 +391,51 @@ lemma restrict_scalars_inj (f g : M ≃ₗ[S] M₂) :
 
 end restrict_scalars
 
+section automorphisms
+variables [module R M]
+
+instance automorphism_group : group (M ≃ₗ[R] M) :=
+{ mul := λ f g, g.trans f,
+  one := linear_equiv.refl R M,
+  inv := λ f, f.symm,
+  mul_assoc := λ f g h, rfl,
+  mul_one := λ f, ext $ λ x, rfl,
+  one_mul := λ f, ext $ λ x, rfl,
+  mul_left_inv := λ f, ext $ f.left_inv }
+
+/-- Restriction from `R`-linear automorphisms of `M` to `R`-linear endomorphisms of `M`,
+promoted to a monoid hom. -/
+@[simps]
+def automorphism_group.to_linear_map_monoid_hom : (M ≃ₗ[R] M) →* (M →ₗ[R] M) :=
+{ to_fun := coe,
+  map_one' := rfl,
+  map_mul' := λ _ _, rfl }
+
+/-- The tautological action by `M ≃ₗ[R] M` on `M`.
+
+This generalizes `function.End.apply_mul_action`. -/
+instance apply_distrib_mul_action : distrib_mul_action (M ≃ₗ[R] M) M :=
+{ smul := ($),
+  smul_zero := linear_equiv.map_zero,
+  smul_add := linear_equiv.map_add,
+  one_smul := λ _, rfl,
+  mul_smul := λ _ _ _, rfl }
+
+@[simp] protected lemma smul_def (f : M ≃ₗ[R] M) (a : M) :
+  f • a = f a := rfl
+
+/-- `linear_equiv.apply_distrib_mul_action` is faithful. -/
+instance apply_has_faithful_scalar : has_faithful_scalar (M ≃ₗ[R] M) M :=
+⟨λ _ _, linear_equiv.ext⟩
+
+instance apply_smul_comm_class : smul_comm_class R (M ≃ₗ[R] M) M :=
+{ smul_comm := λ r e m, (e.map_smul r m).symm }
+
+instance apply_smul_comm_class' : smul_comm_class (M ≃ₗ[R] M) R M :=
+{ smul_comm := linear_equiv.map_smul }
+
+end automorphisms
+
 end add_comm_monoid
 
 end linear_equiv
@@ -360,8 +446,8 @@ namespace module
 @[simps]
 def comp_hom.to_linear_equiv {R S : Type*} [semiring R] [semiring S] (g : R ≃+* S) :
   (by haveI := comp_hom S (↑g : R →+* S); exact (R ≃ₗ[R] S)) :=
-by exact {
-  to_fun := (g : R → S),
+by exact
+{ to_fun := (g : R → S),
   inv_fun := (g.symm : S → R),
   map_smul' := g.map_mul,
   ..g }
@@ -371,22 +457,6 @@ end module
 namespace distrib_mul_action
 
 variables (R M) [semiring R] [add_comm_monoid M] [module R M]
-
-section
-variables [monoid S] [distrib_mul_action S M] [smul_comm_class S R M]
-
-/-- Each element of the monoid defines a linear map.
-
-This is a stronger version of `distrib_mul_action.to_add_monoid_hom`. -/
-@[simps]
-def to_linear_map (s : S) : M →ₗ[R] M :=
-{ to_fun := has_scalar.smul s,
-  map_add' := smul_add s,
-  map_smul' := λ a b, smul_comm _ _ _ }
-
-end
-
-section
 variables [group S] [distrib_mul_action S M] [smul_comm_class S R M]
 
 /-- Each element of the group defines a linear equivalence.
@@ -397,6 +467,13 @@ def to_linear_equiv (s : S) : M ≃ₗ[R] M :=
 { ..to_add_equiv M s,
   ..to_linear_map R M s }
 
-end
+/-- Each element of the group defines a module automorphism.
+
+This is a stronger version of `distrib_mul_action.to_add_aut`. -/
+@[simps]
+def to_module_aut : S →* M ≃ₗ[R] M :=
+{ to_fun := to_linear_equiv R M,
+  map_one' := linear_equiv.ext $ one_smul _,
+  map_mul' := λ a b, linear_equiv.ext $ mul_smul _ _ }
 
 end distrib_mul_action

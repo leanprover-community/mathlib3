@@ -48,7 +48,7 @@ coe_lt_coe
 @[simp, norm_cast] lemma coe_abs (x : ℝ) : ((|x| : ℝ) : ℝ*) = |x| :=
 begin
   convert const_abs x,
-  apply lattice_of_linear_order_eq_filter_germ_lattice,
+  apply linear_order.to_lattice_eq_filter_germ_lattice,
 end
 @[simp, norm_cast] lemma coe_max (x y : ℝ) : ((max x y : ℝ) : ℝ*) = max x y := germ.const_max _ _
 @[simp, norm_cast] lemma coe_min (x y : ℝ) : ((min x y : ℝ) : ℝ*) = min x y := germ.const_min _ _

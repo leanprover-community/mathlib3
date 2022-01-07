@@ -137,7 +137,7 @@ begin
   have A : tendsto (λx:ℝ, x + 1) at_top at_top :=
     tendsto_at_top_add_const_right at_top 1 tendsto_id,
   have B : ∀ᶠ x in at_top, x + 1 ≤ exp x :=
-    eventually_at_top.2 ⟨0, λx hx, add_one_le_exp_of_nonneg hx⟩,
+    eventually_at_top.2 ⟨0, λx hx, add_one_le_exp x⟩,
   exact tendsto_at_top_mono' at_top B A
 end
 
@@ -154,7 +154,7 @@ lemma tendsto_exp_at_bot : tendsto exp at_bot (𝓝 0) :=
 (tendsto_exp_neg_at_top_nhds_0.comp tendsto_neg_at_bot_at_top).congr $
   λ x, congr_arg exp $ neg_neg x
 
-lemma tendsto_exp_at_bot_nhds_within : tendsto exp at_bot (𝓝[Ioi 0] 0) :=
+lemma tendsto_exp_at_bot_nhds_within : tendsto exp at_bot (𝓝[>] 0) :=
 tendsto_inf.2 ⟨tendsto_exp_at_bot, tendsto_principal.2 $ eventually_of_forall exp_pos⟩
 
 /-- The function `exp(x)/x^n` tends to `+∞` at `+∞`, for any natural number `n` -/
@@ -191,7 +191,7 @@ begin
     (((tendsto_exp_div_pow_at_top n).const_mul_at_top hb).at_top_add
       ((tendsto_pow_neg_at_top hn).mul (@tendsto_const_nhds _ _ _ c _))),
   intros x hx,
-  simp only [fpow_neg x n],
+  simp only [zpow_neg₀ x n],
   ring,
 end
 
@@ -242,14 +242,14 @@ lemma tendsto_comp_exp_at_top {α : Type*} {l : filter α} {f : ℝ → α} :
   tendsto (λ x, f (exp x)) at_top l ↔ tendsto f at_top l :=
 by rw [← tendsto_map'_iff, map_exp_at_top]
 
-@[simp] lemma map_exp_at_bot : map exp at_bot = 𝓝[Ioi 0] 0 :=
+@[simp] lemma map_exp_at_bot : map exp at_bot = 𝓝[>] 0 :=
 by rw [← coe_comp_exp_order_iso, ← filter.map_map, exp_order_iso.map_at_bot, ← map_coe_Ioi_at_bot]
 
-lemma comap_exp_nhds_within_Ioi_zero : comap exp (𝓝[Ioi 0] 0) = at_bot :=
+lemma comap_exp_nhds_within_Ioi_zero : comap exp (𝓝[>] 0) = at_bot :=
 by rw [← map_exp_at_bot, comap_map exp_injective]
 
 lemma tendsto_comp_exp_at_bot {α : Type*} {l : filter α} {f : ℝ → α} :
-  tendsto (λ x, f (exp x)) at_bot l ↔ tendsto f (𝓝[Ioi 0] 0) l :=
+  tendsto (λ x, f (exp x)) at_bot l ↔ tendsto f (𝓝[>] 0) l :=
 by rw [← map_exp_at_bot, tendsto_map'_iff]
 
 end real

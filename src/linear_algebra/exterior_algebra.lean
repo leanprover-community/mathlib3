@@ -109,8 +109,8 @@ from `exterior_algebra R M` to `A`.
 def lift : {f : M →ₗ[R] A // ∀ m, f m * f m = 0} ≃ (exterior_algebra R M →ₐ[R] A) :=
 { to_fun := λ f,
   ring_quot.lift_alg_hom R ⟨tensor_algebra.lift R (f : M →ₗ[R] A),
-    λ x y (h : rel R M x y), by {
-      induction h,
+    λ x y (h : rel R M x y), by
+    { induction h,
       rw [alg_hom.map_zero, alg_hom.map_mul, tensor_algebra.lift_ι_apply, f.prop] }⟩,
   inv_fun := λ F, ⟨F.to_linear_map.comp (ι R), λ m, by rw [
     linear_map.comp_apply, alg_hom.to_linear_map_apply, comp_ι_sq_zero]⟩,
@@ -176,8 +176,8 @@ lemma induction {C : exterior_algebra R M → Prop}
   C a :=
 begin
   -- the arguments are enough to construct a subalgebra, and a mapping into it from M
-  let s : subalgebra R (exterior_algebra R M) := {
-    carrier := C,
+  let s : subalgebra R (exterior_algebra R M) :=
+  { carrier := C,
     mul_mem' := h_mul,
     add_mem' := h_add,
     algebra_map_mem' := h_grade0, },
@@ -197,20 +197,79 @@ end
 def algebra_map_inv : exterior_algebra R M →ₐ[R] R :=
 exterior_algebra.lift R ⟨(0 : M →ₗ[R] R), λ m, by simp⟩
 
+variables (M)
+
 lemma algebra_map_left_inverse :
   function.left_inverse algebra_map_inv (algebra_map R $ exterior_algebra R M) :=
 λ x, by simp [algebra_map_inv]
+
+@[simp] lemma algebra_map_inj (x y : R) :
+  algebra_map R (exterior_algebra R M) x = algebra_map R (exterior_algebra R M) y ↔ x = y :=
+(algebra_map_left_inverse M).injective.eq_iff
+
+@[simp] lemma algebra_map_eq_zero_iff (x : R) :
+  algebra_map R (exterior_algebra R M) x = 0 ↔ x = 0 :=
+by rw [←algebra_map_inj M x 0, ring_hom.map_zero]
+
+@[simp] lemma algebra_map_eq_one_iff (x : R) : algebra_map R (exterior_algebra R M) x = 1 ↔ x = 1 :=
+by rw [←algebra_map_inj M x 1, ring_hom.map_one]
+
+variables {M}
+
+/-- The canonical map from `exterior_algebra R M` into `triv_sq_zero_ext R M` that sends
+`exterior_algebra.ι` to `triv_sq_zero_ext.inr`. -/
+def to_triv_sq_zero_ext : exterior_algebra R M →ₐ[R] triv_sq_zero_ext R M :=
+lift R ⟨triv_sq_zero_ext.inr_hom R M, λ m, triv_sq_zero_ext.inr_mul_inr R m m⟩
+
+@[simp] lemma to_triv_sq_zero_ext_ι (x : M) :
+  to_triv_sq_zero_ext (ι R x) = triv_sq_zero_ext.inr x :=
+lift_ι_apply _ _ _ _
 
 /-- The left-inverse of `ι`.
 
 As an implementation detail, we implement this using `triv_sq_zero_ext` which has a suitable
 algebra structure. -/
 def ι_inv : exterior_algebra R M →ₗ[R] M :=
-(triv_sq_zero_ext.snd_hom R M).comp
-  (lift R ⟨triv_sq_zero_ext.inr_hom R M, λ m, triv_sq_zero_ext.inr_mul_inr R _ m m⟩).to_linear_map
+(triv_sq_zero_ext.snd_hom R M).comp to_triv_sq_zero_ext.to_linear_map
 
 lemma ι_left_inverse : function.left_inverse ι_inv (ι R : M → exterior_algebra R M) :=
 λ x, by simp [ι_inv]
+
+variables (R)
+
+@[simp] lemma ι_inj (x y : M) : ι R x = ι R y ↔ x = y :=
+ι_left_inverse.injective.eq_iff
+
+variables {R}
+
+@[simp] lemma ι_eq_zero_iff (x : M) : ι R x = 0 ↔ x = 0 :=
+by rw [←ι_inj R x 0, linear_map.map_zero]
+
+@[simp] lemma ι_eq_algebra_map_iff (x : M) (r : R) : ι R x = algebra_map R _ r ↔ x = 0 ∧ r = 0 :=
+begin
+  refine ⟨λ h, _, _⟩,
+  { have hf0 : to_triv_sq_zero_ext (ι R x) = (0, x), from to_triv_sq_zero_ext_ι _,
+    rw [h, alg_hom.commutes] at hf0,
+    have : r = 0 ∧ 0 = x := prod.ext_iff.1 hf0,
+    exact this.symm.imp_left eq.symm, },
+  { rintro ⟨rfl, rfl⟩,
+    rw [linear_map.map_zero, ring_hom.map_zero] }
+end
+
+@[simp] lemma ι_ne_one [nontrivial R] (x : M) : ι R x ≠ 1 :=
+begin
+  rw [←(algebra_map R (exterior_algebra R M)).map_one, ne.def, ι_eq_algebra_map_iff],
+  exact one_ne_zero ∘ and.right,
+end
+
+/-- The generators of the exterior algebra are disjoint from its scalars. -/
+lemma ι_range_disjoint_one : disjoint (ι R).range (1 : submodule R (exterior_algebra R M)) :=
+begin
+  rw submodule.disjoint_def,
+  rintros _ ⟨x, hx⟩ ⟨r, (rfl : algebra_map _ _ _ = _)⟩,
+  rw ι_eq_algebra_map_iff x at hx,
+  rw [hx.2, ring_hom.map_zero]
+end
 
 @[simp]
 lemma ι_add_mul_swap (x y : M) : ι R x * ι R y + ι R y * ι R x = 0 :=

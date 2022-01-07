@@ -228,7 +228,7 @@ begin
 end
 
 theorem dim_quotient_le (p : submodule R M) :
-  module.rank R p.quotient ≤ module.rank R M :=
+  module.rank R (M ⧸ p) ≤ module.rank R M :=
 (mkq p).dim_le_of_surjective (surjective_quot_mk _)
 
 variables [nontrivial R]
@@ -496,7 +496,7 @@ begin
     haveI : fintype (range v) := set.fintype_range ⇑v,
     haveI := basis_fintype_of_finite_spans _ v.span_eq v',
     -- We clean up a little:
-    rw [cardinal.fintype_card, cardinal.fintype_card],
+    rw [cardinal.mk_fintype, cardinal.mk_fintype],
     simp only [cardinal.lift_nat_cast, cardinal.nat_cast_inj],
     -- Now we can use invariant basis number to show they have the same cardinality.
     apply card_eq_of_lequiv R,
@@ -549,14 +549,14 @@ lemma basis.le_span'' {ι : Type*} [fintype ι] (b : basis ι R M)
   {w : set M} [fintype w] (s : span R w = ⊤) :
   fintype.card ι ≤ fintype.card w :=
 begin
-   -- We construct an surjective linear map `(w → R) →ₗ[R] (ι → R)`,
-   -- by expressing a linear combination in `w` as a linear combination in `ι`.
-   fapply card_le_of_surjective' R,
-   { exact b.repr.to_linear_map.comp (finsupp.total w M R coe), },
-   { apply surjective.comp,
-    apply linear_equiv.surjective,
-    rw [←linear_map.range_eq_top, finsupp.range_total],
-    simpa using s, },
+  -- We construct an surjective linear map `(w → R) →ₗ[R] (ι → R)`,
+  -- by expressing a linear combination in `w` as a linear combination in `ι`.
+  fapply card_le_of_surjective' R,
+  { exact b.repr.to_linear_map.comp (finsupp.total w M R coe), },
+  { apply surjective.comp,
+   apply linear_equiv.surjective,
+   rw [←linear_map.range_eq_top, finsupp.range_total],
+   simpa using s, },
 end
 
 /--
@@ -569,7 +569,7 @@ lemma basis_le_span' {ι : Type*} (b : basis ι R M)
 begin
   haveI := nontrivial_of_invariant_basis_number R,
   haveI := basis_fintype_of_finite_spans w s b,
-  rw cardinal.fintype_card ι,
+  rw cardinal.mk_fintype ι,
   simp only [cardinal.nat_cast_le],
   exact basis.le_span'' b s,
 end
@@ -584,7 +584,10 @@ theorem basis.le_span {J : set M} (v : basis ι R M)
    (hJ : span R J = ⊤) : #(range v) ≤ #J :=
 begin
   haveI := nontrivial_of_invariant_basis_number R,
-  cases le_or_lt ω (#J) with oJ oJ,
+  casesI fintype_or_infinite J,
+  { rw [←cardinal.lift_le, cardinal.mk_range_eq_of_injective v.injective, cardinal.mk_fintype J],
+    convert cardinal.lift_le.{w v}.2 (basis_le_span' v hJ),
+    simp, },
   { have := cardinal.mk_range_eq_of_injective v.injective,
     let S : J → set ι := λ j, ↑(v.repr j).support,
     let S' : J → set M := λ j, v '' S j,
@@ -605,13 +608,9 @@ begin
     suffices : #(⋃ j, S' j) < #(range v),
     { exact not_le_of_lt this ⟨set.embedding_of_subset _ _ hs⟩ },
     refine lt_of_le_of_lt (le_trans cardinal.mk_Union_le_sum_mk
-      (cardinal.sum_le_sum _ (λ _, cardinal.omega) _)) _,
+      (cardinal.sum_le_sum _ (λ _, ω) _)) _,
     { exact λ j, le_of_lt (cardinal.lt_omega_iff_finite.2 $ (finset.finite_to_set _).image _) },
-    { rwa [cardinal.sum_const, cardinal.mul_eq_max oJ (le_refl _), max_eq_left oJ] } },
-  { haveI : fintype J := (cardinal.lt_omega_iff_fintype.mp oJ).some,
-    rw [←cardinal.lift_le, cardinal.mk_range_eq_of_injective v.injective, cardinal.fintype_card J],
-    convert cardinal.lift_le.{w v}.2 (basis_le_span' v hJ),
-    simp, },
+    { simpa } },
 end
 
 end rank_condition
@@ -671,7 +670,7 @@ lemma linear_independent_le_span' {ι : Type*} (v : ι → M) (i : linear_indepe
   #ι ≤ fintype.card w :=
 begin
   haveI : fintype ι := linear_independent_fintype_of_le_span_fintype v i w s,
-  rw cardinal.fintype_card,
+  rw cardinal.mk_fintype,
   simp only [cardinal.nat_cast_le],
   exact linear_independent_le_span_aux' v i w s,
 end
@@ -721,13 +720,9 @@ lemma linear_independent_le_infinite_basis
   #κ ≤ #ι :=
 begin
   by_contradiction,
-  simp only [not_le] at h,
-  have w : #(finset ι) = #ι :=
-    cardinal.mk_finset_eq_mk (cardinal.infinite_iff.mp ‹infinite ι›),
-  rw ←w at h,
+  rw [not_le, ← cardinal.mk_finset_eq_mk ι] at h,
   let Φ := λ k : κ, (b.repr (v k)).support,
-  obtain ⟨s, w : infinite ↥(Φ ⁻¹' {s})⟩ := cardinal.exists_infinite_fiber Φ h
-    (by { rw [cardinal.infinite_iff, w], exact (cardinal.infinite_iff.mp ‹infinite ι›), }),
+  obtain ⟨s, w : infinite ↥(Φ ⁻¹' {s})⟩ := cardinal.exists_infinite_fiber Φ h (by apply_instance),
   let v' := λ k : Φ ⁻¹' {s}, v k,
   have i' : linear_independent R v' := i.comp _ subtype.val_injective,
   have w' : fintype (Φ ⁻¹' {s}),
@@ -752,7 +747,7 @@ begin
   -- We split into cases depending on whether `ι` is infinite.
   cases fintype_or_infinite ι; resetI,
   { -- When `ι` is finite, we have `linear_independent_le_span`,
-    rw cardinal.fintype_card ι,
+    rw cardinal.mk_fintype ι,
     haveI : nontrivial R := nontrivial_of_invariant_basis_number R,
     rw fintype.card_congr (equiv.of_injective b b.injective),
     exact linear_independent_le_span v i (range b) b.span_eq, },
@@ -815,14 +810,14 @@ cardinality of the basis. -/
 lemma dim_eq_card_basis {ι : Type w} [fintype ι] (h : basis ι R M) :
   module.rank R M = fintype.card ι :=
 by {haveI := nontrivial_of_invariant_basis_number R,
-  rw [←h.mk_range_eq_dim, cardinal.fintype_card, set.card_range_of_injective h.injective] }
+  rw [←h.mk_range_eq_dim, cardinal.mk_fintype, set.card_range_of_injective h.injective] }
 
 lemma basis.card_le_card_of_linear_independent {ι : Type*} [fintype ι]
   (b : basis ι R M) {ι' : Type*} [fintype ι'] {v : ι' → M} (hv : linear_independent R v) :
   fintype.card ι' ≤ fintype.card ι :=
 begin
   letI := nontrivial_of_invariant_basis_number R,
-  simpa [dim_eq_card_basis b, cardinal.fintype_card] using
+  simpa [dim_eq_card_basis b, cardinal.mk_fintype] using
     cardinal_lift_le_dim_of_linear_independent' hv
 end
 
@@ -849,7 +844,7 @@ by simpa using v.mk_eq_dim
 
 /-- If a module has a finite dimension, all bases are indexed by a finite type. -/
 lemma basis.nonempty_fintype_index_of_dim_lt_omega {ι : Type*}
-  (b : basis ι R M) (h : module.rank R M < cardinal.omega) :
+  (b : basis ι R M) (h : module.rank R M < ω) :
   nonempty (fintype ι) :=
 by rwa [← cardinal.lift_lt, ← b.mk_eq_dim,
         -- ensure `omega` has the correct universe
@@ -858,13 +853,13 @@ by rwa [← cardinal.lift_lt, ← b.mk_eq_dim,
 
 /-- If a module has a finite dimension, all bases are indexed by a finite type. -/
 noncomputable def basis.fintype_index_of_dim_lt_omega {ι : Type*}
-  (b : basis ι R M) (h : module.rank R M < cardinal.omega) :
+  (b : basis ι R M) (h : module.rank R M < ω) :
   fintype ι :=
 classical.choice (b.nonempty_fintype_index_of_dim_lt_omega h)
 
 /-- If a module has a finite dimension, all bases are indexed by a finite set. -/
 lemma basis.finite_index_of_dim_lt_omega {ι : Type*} {s : set ι}
-  (b : basis s R M) (h : module.rank R M < cardinal.omega) :
+  (b : basis s R M) (h : module.rank R M < ω) :
   s.finite :=
 finite_def.2 (b.nonempty_fintype_index_of_dim_lt_omega h)
 
@@ -914,7 +909,7 @@ end
 
 variables (R)
 
-lemma dim_self : module.rank R R = 1 :=
+@[simp] lemma dim_self : module.rank R R = 1 :=
 by rw [←cardinal.lift_inj, ← (basis.singleton punit R).mk_eq_dim, cardinal.mk_punit]
 
 end strong_rank_condition
@@ -924,7 +919,7 @@ variables [division_ring K] [add_comm_group V] [module K V] [add_comm_group V₁
 variables {K V}
 
 /-- If a vector space has a finite dimension, the index set of `basis.of_vector_space` is finite. -/
-lemma basis.finite_of_vector_space_index_of_dim_lt_omega (h : module.rank K V < cardinal.omega) :
+lemma basis.finite_of_vector_space_index_of_dim_lt_omega (h : module.rank K V < ω) :
   (basis.of_vector_space_index K V).finite :=
 finite_def.2 $ (basis.of_vector_space K V).nonempty_fintype_index_of_dim_lt_omega h
 
@@ -985,10 +980,10 @@ begin
 end
 
 lemma dim_span_of_finset (s : finset V) :
-  module.rank K (span K (↑s : set V)) < cardinal.omega :=
+  module.rank K (span K (↑s : set V)) < ω :=
 calc module.rank K (span K (↑s : set V)) ≤ #(↑s : set V) : dim_span_le ↑s
-                             ... = s.card : by rw [cardinal.finset_card, finset.coe_sort_coe]
-                             ... < cardinal.omega : cardinal.nat_lt_omega _
+                             ... = s.card : by rw [finset.coe_sort_coe, cardinal.mk_finset]
+                             ... < ω : cardinal.nat_lt_omega _
 
 theorem dim_prod : module.rank K (V × V₁) = module.rank K V + module.rank K V₁ :=
 begin
@@ -1014,18 +1009,18 @@ lemma dim_pi : module.rank K (Πi, φ i) = cardinal.sum (λi, module.rank K (φ 
 begin
   let b := assume i, basis.of_vector_space K (φ i),
   let this : basis (Σ j, _) K (Π j, φ j) := pi.basis b,
-  rw [←cardinal.lift_inj, ← this.mk_eq_dim],
-  simp [λ i, (b i).mk_range_eq_dim.symm, cardinal.sum_mk]
+  rw [← cardinal.lift_inj, ← this.mk_eq_dim],
+  simp [← (b _).mk_range_eq_dim]
 end
 
 lemma dim_fun {V η : Type u} [fintype η] [add_comm_group V] [module K V] :
   module.rank K (η → V) = fintype.card η * module.rank K V :=
-by rw [dim_pi, cardinal.sum_const, cardinal.fintype_card]
+by rw [dim_pi, cardinal.sum_const', cardinal.mk_fintype]
 
 lemma dim_fun_eq_lift_mul :
   module.rank K (η → V) = (fintype.card η : cardinal.{max u₁' v}) *
     cardinal.lift.{u₁'} (module.rank K V) :=
-by rw [dim_pi, cardinal.sum_const_eq_lift_mul, cardinal.fintype_card, cardinal.lift_nat_cast]
+by rw [dim_pi, cardinal.sum_const, cardinal.mk_fintype, cardinal.lift_nat_cast]
 
 lemma dim_fun' : module.rank K (η → K) = fintype.card η :=
 by rw [dim_fun_eq_lift_mul, dim_self, cardinal.lift_one, mul_one, cardinal.nat_cast_inj]
@@ -1043,14 +1038,14 @@ variables [add_comm_group V'] [module K V']
 variables {K V}
 
 theorem dim_quotient_add_dim (p : submodule K V) :
-  module.rank K p.quotient + module.rank K p = module.rank K V :=
+  module.rank K (V ⧸ p) + module.rank K p = module.rank K V :=
 by classical; exact let ⟨f⟩ := quotient_prod_linear_equiv p in dim_prod.symm.trans f.dim_eq
 
 /-- rank-nullity theorem -/
 theorem dim_range_add_dim_ker (f : V →ₗ[K] V₁) :
   module.rank K f.range + module.rank K f.ker = module.rank K V :=
 begin
-  haveI := λ (p : submodule K V), classical.dec_eq p.quotient,
+  haveI := λ (p : submodule K V), classical.dec_eq (V ⧸ p),
   rw [← f.quot_ker_equiv_range.dim_eq, dim_quotient_add_dim]
 end
 
@@ -1122,14 +1117,6 @@ lemma dim_add_le_dim_add_dim (s t : submodule K V) :
   module.rank K (s ⊔ t : submodule K V) ≤ module.rank K s + module.rank K t :=
 by { rw [← dim_sup_add_dim_inf_eq], exact self_le_add_right _ _ }
 
-end
-
-lemma exists_mem_ne_zero_of_ne_bot {s : submodule K V} (h : s ≠ ⊥) : ∃ b : V, b ∈ s ∧ b ≠ 0 :=
-begin
-  classical,
-  by_contradiction hex,
-  have : ∀x∈s, (x:V) = 0, { simpa only [not_exists, not_and, not_not, ne.def] using hex },
-  exact (h $ bot_unique $ assume s hs, (submodule.mem_bot K).2 $ this s hs)
 end
 
 lemma exists_mem_ne_zero_of_dim_pos {s : submodule K V} (h : 0 < module.rank K s) :

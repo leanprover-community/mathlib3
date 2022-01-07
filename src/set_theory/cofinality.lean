@@ -208,7 +208,7 @@ begin
     rw [← (_ : #_ = 1)], apply cof_type_le,
     { refine λ a, ⟨sum.inr punit.star, set.mem_singleton _, _⟩,
       rcases a with a|⟨⟨⟨⟩⟩⟩; simp [empty_relation] },
-    { rw [cardinal.fintype_card, set.card_singleton], simp } },
+    { rw [cardinal.mk_fintype, set.card_singleton], simp } },
   { rw [← cardinal.succ_zero, cardinal.succ_le],
     simpa [lt_iff_le_and_ne, cardinal.zero_le] using
       λ h, succ_ne_zero o (cof_eq_zero.1 (eq.symm h)) }
@@ -490,9 +490,9 @@ theorem succ_is_regular {c : cardinal.{u}} (h : ω ≤ c) : is_regular (succ c) 
   rw [← Se],
   apply lt_imp_lt_of_le_imp_le
     (λ (h : #S ≤ c), mul_le_mul_right' h c),
-  rw [mul_eq_self h, ← succ_le, ← αe, ← sum_const],
+  rw [mul_eq_self h, ← succ_le, ← αe, ← sum_const'],
   refine le_trans _ (sum_le_sum (λ x:S, card (typein r x)) _ _),
-  { simp [typein, sum_mk (λ x:S, {a//r a x})],
+  { simp only [← card_typein, ← mk_sigma],
     refine ⟨embedding.of_surjective _ _⟩,
     { exact λ x, x.2.1 },
     { exact λ a, let ⟨b, h, ab⟩ := H a in ⟨⟨⟨_, h⟩, _, ab⟩, rfl⟩ } },
@@ -599,7 +599,7 @@ quotient.induction_on c $ λ α h, begin
   rw [mk_def, re] at this ⊢,
   rcases cof_eq' r this with ⟨S, H, Se⟩,
   have := sum_lt_prod (λ a:S, #{x // r x a}) (λ _, #α) (λ i, _),
-  { simp [Se.symm] at this ⊢,
+  { simp only [cardinal.prod_const, cardinal.lift_id, ← Se, ← mk_sigma, power_def] at this ⊢,
     refine lt_of_le_of_lt _ this,
     refine ⟨embedding.of_surjective _ _⟩,
     { exact λ x, x.2.1 },

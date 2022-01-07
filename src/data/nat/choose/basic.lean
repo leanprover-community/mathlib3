@@ -79,6 +79,9 @@ lemma choose_pos : ∀ {n k}, k ≤ n → 0 < choose n k
 | (n + 1) (k + 1) hk := by rw choose_succ_succ;
     exact add_pos_of_pos_of_nonneg (choose_pos (le_of_succ_le_succ hk)) (nat.zero_le _)
 
+lemma choose_eq_zero_iff {n k : ℕ} : n.choose k = 0 ↔ n < k :=
+⟨λ h, lt_of_not_ge (mt nat.choose_pos h.symm.not_lt), nat.choose_eq_zero_of_lt⟩
+
 lemma succ_mul_choose_eq : ∀ n k, succ n * choose n k = choose (succ n) (succ k) * succ k
 | 0             0 := dec_trivial
 | 0       (k + 1) := by simp [choose]
@@ -266,5 +269,22 @@ begin
   { rw choose_eq_zero_of_lt b,
     apply zero_le }
 end
+
+/-! #### Inequalities about increasing the first argument -/
+
+lemma choose_le_succ (a c : ℕ) : choose a c ≤ choose a.succ c :=
+by cases c; simp [nat.choose_succ_succ]
+
+lemma choose_le_add (a b c : ℕ) : choose a c ≤ choose (a + b) c :=
+begin
+  induction b with b_n b_ih,
+  { simp, },
+  exact le_trans b_ih (choose_le_succ (a + b_n) c),
+end
+
+lemma choose_le_choose {a b : ℕ} (c : ℕ) (h : a ≤ b) : choose a c ≤ choose b c :=
+(add_tsub_cancel_of_le h) ▸ choose_le_add a (b - a) c
+
+lemma choose_mono (b : ℕ) : monotone (λ a, choose a b) := λ _ _, choose_le_choose b
 
 end nat

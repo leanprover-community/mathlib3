@@ -62,7 +62,7 @@ begin
         form_perm_apply_mem_eq_self_iff _ hl' _ hx'] at h,
     rcases h with hl | hl'; linarith },
   { intros h x,
-    by_cases hx : x ∈ l; by_cases hx' : x ∈ l',
+    by_cases hx : x ∈ l, by_cases hx' : x ∈ l',
     { exact (h hx hx').elim },
     all_goals { have := form_perm_eq_self_of_not_mem _ _ ‹_›, tauto } }
 end
@@ -81,7 +81,7 @@ begin
       have : w ∈ (x :: y :: l) := mem_of_form_perm_ne_self _ _ hw,
       obtain ⟨k, hk, rfl⟩ := nth_le_of_mem this,
       use k,
-      simp only [gpow_coe_nat, form_perm_pow_apply_head _ _ hl k, nat.mod_eq_of_lt hk] } }
+      simp only [zpow_coe_nat, form_perm_pow_apply_head _ _ hl k, nat.mod_eq_of_lt hk] } }
 end
 
 lemma pairwise_same_cycle_form_perm (hl : nodup l) (hn : 2 ≤ l.length) :
@@ -487,12 +487,12 @@ def iso_cycle : {f : perm α // is_cycle f} ≃ {s : cycle α // s.nodup ∧ s.n
     nontrivial_to_cycle _ f.prop⟩,
   inv_fun := λ s, ⟨(s : cycle α).form_perm s.prop.left,
     (s : cycle α).is_cycle_form_perm _ s.prop.right⟩,
-  left_inv := λ f, by {
-    obtain ⟨x, hx, -⟩ := id f.prop,
+  left_inv := λ f, by
+  { obtain ⟨x, hx, -⟩ := id f.prop,
     simpa [to_cycle_eq_to_list (f : perm α) f.prop x hx, form_perm_to_list, subtype.ext_iff]
       using f.prop.cycle_of_eq hx },
-  right_inv := λ s, by {
-    rcases s with ⟨⟨s⟩, hn, ht⟩,
+  right_inv := λ s, by
+  { rcases s with ⟨⟨s⟩, hn, ht⟩,
     obtain ⟨x, -, -, hx, -⟩ := id ht,
     have hl : 2 ≤ s.length := by simpa using cycle.length_nontrivial ht,
     simp only [cycle.mk_eq_coe, cycle.nodup_coe_iff, cycle.mem_coe_iff, subtype.coe_mk,
@@ -516,8 +516,8 @@ def iso_cycle' : {f : perm α // is_cycle f} ≃ {s : cycle α // s.nodup ∧ s.
     (s : cycle α).is_cycle_form_perm _ s.prop.right⟩,
   left_inv := λ f, by simpa [subtype.ext_iff]
     using fintype.choose_spec _ f.prop.exists_unique_cycle_nontrivial_subtype,
-  right_inv := λ ⟨s, hs, ht⟩, by {
-    simp [subtype.coe_mk],
+  right_inv := λ ⟨s, hs, ht⟩, by
+  { simp [subtype.coe_mk],
     convert fintype.choose_subtype_eq (λ (s' : cycle α), s'.nodup ∧ s'.nontrivial) _,
     ext ⟨s', hs', ht'⟩,
     simp [cycle.form_perm_eq_form_perm_iff, (iff_not_comm.mp hs.nontrivial_iff),

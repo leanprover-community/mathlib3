@@ -210,12 +210,12 @@ This definition implies the same equality for any (not necessarily measurable) s
   - it is outer regular: `μ(A) = inf {μ(U) | A ⊆ U open}` for `A` measurable;
   - it is inner regular for open sets, using compact sets:
     `μ(U) = sup {μ(K) | K ⊆ U compact}` for `U` open. -/
-@[protect_proj] class regular (μ : measure α) extends outer_regular μ : Prop :=
-(lt_top_of_is_compact : ∀ ⦃K : set α⦄, is_compact K → μ K < ∞)
+@[protect_proj] class regular (μ : measure α)
+  extends is_finite_measure_on_compacts μ, outer_regular μ : Prop :=
 (inner_regular : inner_regular μ is_compact is_open)
 
 /-- A measure `μ` is weakly regular if
-  - it is outer regular: `μ(A) = inf { μ(U) | A ⊆ U open }` for `A` measurable;
+  - it is outer regular: `μ(A) = inf {μ(U) | A ⊆ U open}` for `A` measurable;
   - it is inner regular for open sets, using closed sets:
     `μ(U) = sup {μ(F) | F ⊆ U compact}` for `U` open. -/
 @[protect_proj] class weakly_regular (μ : measure α) extends outer_regular μ : Prop :=
@@ -256,6 +256,17 @@ lemma _root_.set.exists_is_open_lt_add [outer_regular μ] (A : set α) (hA : μ 
   {ε : ℝ≥0∞} (hε : ε ≠ 0) :
   ∃ U ⊇ A, is_open U ∧ μ U < μ A + ε :=
 A.exists_is_open_lt_of_lt _ (ennreal.lt_add_right hA hε)
+
+lemma _root_.set.exists_is_open_le_add (A : set α) (μ : measure α) [outer_regular μ]
+  {ε : ℝ≥0∞} (hε : ε ≠ 0) :
+  ∃ U ⊇ A, is_open U ∧ μ U ≤ μ A + ε :=
+begin
+  rcases le_or_lt ∞ (μ A) with H|H,
+  { exact ⟨univ, subset_univ _, is_open_univ,
+      by simp only [top_le_iff.mp H, ennreal.top_add, le_top]⟩ },
+  { rcases A.exists_is_open_lt_add H.ne hε with ⟨U, AU, U_open, hU⟩,
+    exact ⟨U, AU, U_open, hU.le⟩ }
+end
 
 lemma _root_.measurable_set.exists_is_open_diff_lt [opens_measurable_space α]
   [outer_regular μ] {A : set α} (hA : measurable_set A)
@@ -445,7 +456,7 @@ end inner_regular
 namespace regular
 
 instance zero : regular (0 : measure α) :=
-⟨λ K hK, ennreal.coe_lt_top, λ U hU r hr, ⟨∅, empty_subset _, is_compact_empty, hr⟩⟩
+⟨λ U hU r hr, ⟨∅, empty_subset _, is_compact_empty, hr⟩⟩
 
 /-- If `μ` is a regular measure, then any open set can be approximated by a compact subset. -/
 lemma _root_.is_open.exists_lt_is_compact [regular μ] ⦃U : set α⦄ (hU : is_open U)
@@ -510,20 +521,17 @@ protected lemma map [opens_measurable_space α] [measurable_space β] [topologic
   (measure.map f μ).regular :=
 begin
   haveI := outer_regular.map f μ,
-  split,
-  { intros K hK, rw [map_apply f.measurable hK.measurable_set],
-    apply regular.lt_top_of_is_compact,
-    rwa f.compact_preimage },
-  { exact regular.inner_regular.map f.to_equiv f.measurable (λ U hU, hU.preimage f.continuous)
-      (λ K hK, hK.image f.continuous) (λ K hK, hK.measurable_set) (λ U hU, hU.measurable_set) }
+  haveI := is_finite_measure_on_compacts.map μ f,
+  exact ⟨regular.inner_regular.map f.to_equiv f.measurable (λ U hU, hU.preimage f.continuous)
+      (λ K hK, hK.image f.continuous) (λ K hK, hK.measurable_set) (λ U hU, hU.measurable_set)⟩
 end
 
 protected lemma smul [regular μ] {x : ℝ≥0∞} (hx : x ≠ ∞) :
   (x • μ).regular :=
 begin
   haveI := outer_regular.smul μ hx,
-  exact ⟨λ K hK, ennreal.mul_lt_top hx (regular.lt_top_of_is_compact hK).ne,
-    regular.inner_regular.smul x⟩
+  haveI := is_finite_measure_on_compacts.smul μ hx,
+  exact ⟨regular.inner_regular.smul x⟩
 end
 
 /-- A regular measure in a σ-compact space is σ-finite. -/
@@ -531,7 +539,7 @@ end
 instance sigma_finite [sigma_compact_space α] [regular μ] : sigma_finite μ :=
 ⟨⟨{ set := compact_covering α,
   set_mem := λ n, trivial,
-  finite := λ n, regular.lt_top_of_is_compact $ is_compact_compact_covering α n,
+  finite := λ n, (is_compact_compact_covering α n).measure_lt_top,
   spanning := Union_compact_covering α }⟩⟩
 
 end regular

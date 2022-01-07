@@ -35,7 +35,7 @@ https://math.stackexchange.com/questions/3974485/does-right-translation-preserve
 
 noncomputable theory
 open topological_space set (hiding prod_eq) function
-open_locale classical ennreal
+open_locale classical ennreal pointwise
 
 namespace measure_theory
 
@@ -105,28 +105,27 @@ begin
     map_prod_inv_mul_eq_swap hν]
 end
 
-@[to_additive]
-lemma measure_null_of_measure_inv_null (hμ : is_mul_left_invariant μ)
-  {E : set G} (hE : measurable_set E) (h2E : μ ((λ x, x⁻¹) ⁻¹' E) = 0) : μ E = 0 :=
+@[to_additive] lemma quasi_measure_preserving_inv (hμ : is_mul_left_invariant μ) :
+  quasi_measure_preserving (has_inv.inv : G → G) μ μ :=
 begin
+  refine ⟨measurable_inv, absolutely_continuous.mk $ λ s hsm hμs, _⟩,
+  rw [map_apply measurable_inv hsm, inv_preimage],
   have hf : measurable (λ z : G × G, (z.2 * z.1, z.1⁻¹)) :=
-  (measurable_snd.mul measurable_fst).prod_mk measurable_fst.inv,
-  suffices : map (λ z : G × G, (z.2 * z.1, z.1⁻¹)) (μ.prod μ) (E.prod E) = 0,
-  { simpa only [map_prod_mul_inv_eq hμ hμ, prod_prod hE hE, mul_eq_zero, or_self] using this },
-  simp_rw [map_apply hf (hE.prod hE), prod_apply_symm (hf (hE.prod hE)), preimage_preimage,
-    mk_preimage_prod],
-  convert lintegral_zero, ext1 x, refine measure_mono_null (inter_subset_right _ _) h2E
+    (measurable_snd.mul measurable_fst).prod_mk measurable_fst.inv,
+  suffices : map (λ z : G × G, (z.2 * z.1, z.1⁻¹)) (μ.prod μ) ((s⁻¹).prod s⁻¹) = 0,
+  { simpa only [map_prod_mul_inv_eq hμ hμ, prod_prod, mul_eq_zero, or_self] using this },
+  have hsm' : measurable_set (s⁻¹.prod s⁻¹) := hsm.inv.prod hsm.inv,
+  simp_rw [map_apply hf hsm', prod_apply_symm (hf hsm'), preimage_preimage, mk_preimage_prod,
+    inv_preimage, set.inv_inv, measure_mono_null (inter_subset_right _ _) hμs, lintegral_zero]
 end
 
 @[to_additive]
-lemma measure_inv_null (hμ : is_mul_left_invariant μ) {E : set G} (hE : measurable_set E) :
+lemma measure_inv_null (hμ : is_mul_left_invariant μ) {E : set G} :
   μ ((λ x, x⁻¹) ⁻¹' E) = 0 ↔ μ E = 0 :=
 begin
-  refine ⟨measure_null_of_measure_inv_null hμ hE, _⟩,
-  intro h2E,
-  apply measure_null_of_measure_inv_null hμ (measurable_inv hE),
-  convert h2E using 2,
-  exact set.inv_inv
+  refine ⟨λ hE, _, (quasi_measure_preserving_inv hμ).preimage_null⟩,
+  convert (quasi_measure_preserving_inv hμ).preimage_null hE,
+  exact set.inv_inv.symm
 end
 
 @[to_additive]
@@ -156,18 +155,16 @@ begin
 end
 
 @[to_additive]
-lemma measure_mul_right_null (hμ : is_mul_left_invariant μ) {E : set G} (hE : measurable_set E)
-  (y : G) : μ ((λ x, x * y) ⁻¹' E) = 0 ↔ μ E = 0 :=
-begin
-  rw [← measure_inv_null hμ hE, ← hμ y⁻¹ (measurable_inv hE),
-    ← measure_inv_null hμ (measurable_mul_const y hE)],
-  convert iff.rfl using 3, ext x, simp,
-end
+lemma measure_mul_right_null (hμ : is_mul_left_invariant μ) {E : set G} (y : G) :
+  μ ((λ x, x * y) ⁻¹' E) = 0 ↔ μ E = 0 :=
+calc μ ((λ x, x * y) ⁻¹' E) = 0 ↔ μ (has_inv.inv ⁻¹' ((λ x, y⁻¹ * x) ⁻¹' (has_inv.inv ⁻¹' E))) = 0 :
+  by simp only [preimage_preimage, mul_inv_rev, inv_inv]
+... ↔ μ E = 0 : by simp only [measure_inv_null hμ, hμ.measure_preimage_mul]
 
 @[to_additive]
-lemma measure_mul_right_ne_zero (hμ : is_mul_left_invariant μ) {E : set G} (hE : measurable_set E)
+lemma measure_mul_right_ne_zero (hμ : is_mul_left_invariant μ) {E : set G}
   (h2E : μ E ≠ 0) (y : G) : μ ((λ x, x * y) ⁻¹' E) ≠ 0 :=
-(not_iff_not_of_iff (measure_mul_right_null hμ hE y)).mpr h2E
+(not_iff_not_of_iff (measure_mul_right_null hμ y)).mpr h2E
 
 /-- A technical lemma relating two different measures. This is basically [Halmos, §60 Th. A].
   Note that if `f` is the characteristic function of a measurable set `F` this states that
@@ -200,10 +197,10 @@ begin
     ((λ z, z * x) ⁻¹' E).indicator (λ (b : G), 1) y,
   { intros x y, symmetry, convert indicator_comp_right (λ y, y * x), ext1 z, refl },
   have h3E : ∀ y, ν ((λ x, x * y) ⁻¹' E) ≠ ∞ :=
-    λ y, (regular.lt_top_of_is_compact $ (homeomorph.mul_right _).compact_preimage.mpr hE).ne,
+    λ y, (is_compact.measure_lt_top $ (homeomorph.mul_right _).compact_preimage.mpr hE).ne,
   simp_rw [this, lintegral_mul_const _ (mE _), lintegral_indicator _ (measurable_mul_const _ Em),
     set_lintegral_one, g, inv_inv,
-    ennreal.mul_div_cancel' (measure_mul_right_ne_zero hν Em h2E _) (h3E _)]
+    ennreal.mul_div_cancel' (measure_mul_right_ne_zero hν h2E _) (h3E _)]
 end
 
 /-- This is roughly the uniqueness (up to a scalar) of left invariant Borel measures on a second

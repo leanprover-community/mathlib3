@@ -217,8 +217,7 @@ begin
     squeeze_simp [this]
     -- `squeeze_simp` is run only once
     -- prints:
-    -- > Try this: simp only [this]
-  },
+    -- > Try this: simp only [this] },
 end
 ```
 

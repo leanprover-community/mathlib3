@@ -69,37 +69,37 @@ tsub_add_cancel_of_le (le_of_lt h) ▸
   tendsto_add_one_pow_at_top_at_top_of_pos (tsub_pos_of_lt h)
 
 lemma tendsto_norm_zero' {𝕜 : Type*} [normed_group 𝕜] :
-  tendsto (norm : 𝕜 → ℝ) (𝓝[{0}ᶜ] 0) (𝓝[set.Ioi 0] 0) :=
+  tendsto (norm : 𝕜 → ℝ) (𝓝[≠] 0) (𝓝[>] 0) :=
 tendsto_norm_zero.inf $ tendsto_principal_principal.2 $ λ x hx, norm_pos_iff.2 hx
 
 namespace normed_field
 
 lemma tendsto_norm_inverse_nhds_within_0_at_top {𝕜 : Type*} [normed_field 𝕜] :
-  tendsto (λ x:𝕜, ∥x⁻¹∥) (𝓝[{0}ᶜ] 0) at_top :=
+  tendsto (λ x:𝕜, ∥x⁻¹∥) (𝓝[≠] 0) at_top :=
 (tendsto_inv_zero_at_top.comp tendsto_norm_zero').congr $ λ x, (normed_field.norm_inv x).symm
 
-lemma tendsto_norm_fpow_nhds_within_0_at_top {𝕜 : Type*} [normed_field 𝕜] {m : ℤ}
+lemma tendsto_norm_zpow_nhds_within_0_at_top {𝕜 : Type*} [normed_field 𝕜] {m : ℤ}
   (hm : m < 0) :
-  tendsto (λ x : 𝕜, ∥x ^ m∥) (𝓝[{0}ᶜ] 0) at_top :=
+  tendsto (λ x : 𝕜, ∥x ^ m∥) (𝓝[≠] 0) at_top :=
 begin
   rcases neg_surjective m with ⟨m, rfl⟩,
   rw neg_lt_zero at hm, lift m to ℕ using hm.le, rw int.coe_nat_pos at hm,
-  simp only [normed_field.norm_pow, fpow_neg, gpow_coe_nat, ← inv_pow₀],
+  simp only [normed_field.norm_pow, zpow_neg₀, zpow_coe_nat, ← inv_pow₀],
   exact (tendsto_pow_at_top hm).comp normed_field.tendsto_norm_inverse_nhds_within_0_at_top
 end
 
-@[simp] lemma continuous_at_fpow {𝕜 : Type*} [nondiscrete_normed_field 𝕜] {m : ℤ} {x : 𝕜} :
+@[simp] lemma continuous_at_zpow {𝕜 : Type*} [nondiscrete_normed_field 𝕜] {m : ℤ} {x : 𝕜} :
   continuous_at (λ x, x ^ m) x ↔ x ≠ 0 ∨ 0 ≤ m :=
 begin
-  refine ⟨_, continuous_at_fpow _ _⟩,
+  refine ⟨_, continuous_at_zpow _ _⟩,
   contrapose!, rintro ⟨rfl, hm⟩ hc,
   exact not_tendsto_at_top_of_tendsto_nhds (hc.tendsto.mono_left nhds_within_le_nhds).norm
-      (tendsto_norm_fpow_nhds_within_0_at_top hm)
+      (tendsto_norm_zpow_nhds_within_0_at_top hm)
 end
 
 @[simp] lemma continuous_at_inv {𝕜 : Type*} [nondiscrete_normed_field 𝕜] {x : 𝕜} :
   continuous_at has_inv.inv x ↔ x ≠ 0 :=
-by simpa [(@zero_lt_one ℤ _ _).not_le] using @continuous_at_fpow _ _ (-1) x
+by simpa [(@zero_lt_one ℤ _ _).not_le] using @continuous_at_zpow _ _ (-1) x
 
 end normed_field
 
@@ -117,7 +117,7 @@ h₁.eq_or_lt.elim
 
 lemma tendsto_pow_at_top_nhds_within_0_of_lt_1 {𝕜 : Type*} [linear_ordered_field 𝕜] [archimedean 𝕜]
   [topological_space 𝕜] [order_topology 𝕜] {r : 𝕜} (h₁ : 0 < r) (h₂ : r < 1) :
-  tendsto (λn:ℕ, r^n) at_top (𝓝[Ioi 0] 0) :=
+  tendsto (λn:ℕ, r^n) at_top (𝓝[>] 0) :=
 tendsto_inf.2 ⟨tendsto_pow_at_top_nhds_0_of_lt_1 h₁.le h₂,
   tendsto_principal.2 $ eventually_of_forall $ λ n, pow_pos h₁ _⟩
 
@@ -242,7 +242,7 @@ by refine (monotone_mul_left_of_nonneg hc).seq_le_seq n _ h _; simp [pow_succ, m
 lemma is_o_pow_const_const_pow_of_one_lt {R : Type*} [normed_ring R] (k : ℕ) {r : ℝ} (hr : 1 < r) :
   is_o (λ n, n ^ k : ℕ → R) (λ n, r ^ n) at_top :=
 begin
-  have : tendsto (λ x : ℝ, x ^ k) (𝓝[Ioi 1] 1) (𝓝 1),
+  have : tendsto (λ x : ℝ, x ^ k) (𝓝[>] 1) (𝓝 1),
     from ((continuous_id.pow k).tendsto' (1 : ℝ) 1 (one_pow _)).mono_left inf_le_left,
   obtain ⟨r' : ℝ, hr' : r' ^ k < r, h1 : 1 < r'⟩ :=
     ((this.eventually (gt_mem_nhds hr)).and self_mem_nhds_within).exists,
@@ -928,7 +928,7 @@ theorem exists_pos_sum_of_encodable {ε : ℝ≥0} (hε : ε ≠ 0) (ι) [encoda
   ∃ ε' : ι → ℝ≥0, (∀ i, 0 < ε' i) ∧ ∃c, has_sum ε' c ∧ c < ε :=
 let ⟨a, a0, aε⟩ := exists_between (pos_iff_ne_zero.2 hε) in
 let ⟨ε', hε', c, hc, hcε⟩ := pos_sum_of_encodable a0 ι in
-⟨ λi, ⟨ε' i, le_of_lt $ hε' i⟩, assume i, nnreal.coe_lt_coe.2 $ hε' i,
+⟨ λi, ⟨ε' i, le_of_lt $ hε' i⟩, assume i, nnreal.coe_lt_coe.1 $ hε' i,
   ⟨c, has_sum_le (assume i, le_of_lt $ hε' i) has_sum_zero hc ⟩, nnreal.has_sum_coe.1 hc,
    lt_of_le_of_lt (nnreal.coe_le_coe.1 hcε) aε ⟩
 

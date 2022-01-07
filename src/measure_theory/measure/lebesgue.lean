@@ -3,11 +3,12 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Yury Kudryashov
 -/
-import measure_theory.constructions.pi
-import measure_theory.measure.stieltjes
-import linear_algebra.matrix.transvection
 import dynamics.ergodic.measure_preserving
 import linear_algebra.determinant
+import linear_algebra.matrix.diagonal
+import linear_algebra.matrix.transvection
+import measure_theory.constructions.pi
+import measure_theory.measure.stieltjes
 
 /-!
 # Lebesgue measure on the real line and on `ℝⁿ`
@@ -66,11 +67,11 @@ ennreal.eq_top_of_forall_nnreal_le $ λ r,
 
 @[simp] lemma volume_ball (a r : ℝ) :
   volume (metric.ball a r) = of_real (2 * r) :=
-by rw [ball_eq, volume_Ioo, ← sub_add, add_sub_cancel', two_mul]
+by rw [ball_eq_Ioo, volume_Ioo, ← sub_add, add_sub_cancel', two_mul]
 
 @[simp] lemma volume_closed_ball (a r : ℝ) :
   volume (metric.closed_ball a r) = of_real (2 * r) :=
-by rw [closed_ball_eq, volume_Icc, ← sub_add, add_sub_cancel', two_mul]
+by rw [closed_ball_eq_Icc, volume_Icc, ← sub_add, add_sub_cancel', two_mul]
 
 @[simp] lemma volume_emetric_ball (a : ℝ) (r : ℝ≥0∞) :
   volume (emetric.ball a r) = 2 * r :=
@@ -138,8 +139,7 @@ instance is_finite_measure_restrict_Ioo (x y : ℝ) : is_finite_measure (volume.
 lemma volume_Icc_pi {a b : ι → ℝ} : volume (Icc a b) = ∏ i, ennreal.of_real (b i - a i) :=
 begin
   rw [← pi_univ_Icc, volume_pi_pi],
-  { simp only [real.volume_Icc] },
-  { exact λ i, measurable_set_Icc }
+  simp only [real.volume_Icc]
 end
 
 @[simp] lemma volume_Icc_pi_to_real {a b : ι → ℝ} (h : a ≤ b) :
@@ -197,7 +197,7 @@ lemma volume_pi_le_prod_diam (s : set (ι → ℝ)) :
 calc volume s ≤ volume (pi univ (λ i, closure (function.eval i '' s))) :
   volume.mono $ subset.trans (subset_pi_eval_image univ s) $ pi_mono $ λ i hi, subset_closure
           ... = ∏ i, volume (closure $ function.eval i '' s) :
-  volume_pi_pi _ $ λ i, measurable_set_closure
+  volume_pi_pi _
           ... ≤ ∏ i : ι, emetric.diam (function.eval i '' s) :
   finset.prod_le_prod' $ λ i hi, (volume_le_diam _).trans_eq (emetric.diam_closure _)
 
@@ -286,8 +286,7 @@ begin
     = set.pi univ (λ (i : ι), ((+) (a i)) ⁻¹' (s i)), by { ext, simp },
   rw [measure.map_apply (measurable_const_add a) (measurable_set.univ_pi_fintype hs), A,
       volume_pi_pi],
-  { simp only [volume_preimage_add_left] },
-  { exact λ i, measurable_const_add (a i) (hs i) }
+  simp only [volume_preimage_add_left]
 end
 
 @[simp] lemma volume_pi_preimage_add_left (a : ι → ℝ) (s : set (ι → ℝ)) :
@@ -322,8 +321,7 @@ begin
       mul_inv_cancel A, abs_one, ennreal.of_real_one, one_mul] },
   rw [this, volume_pi_pi, finset.abs_prod,
     ennreal.of_real_prod_of_nonneg (λ i hi, abs_nonneg (D i)), ← finset.prod_mul_distrib],
-  { simp only [B] },
-  { exact λ i, measurable_const_mul _ (hs i) },
+  simp only [B]
 end
 
 /-- A transvection preserves Lebesgue measure. -/
@@ -493,11 +491,11 @@ begin
       ← volume_region_between_eq_lintegral' hf.measurable_mk hg.measurable_mk hs],
   convert h₂ using 1,
   { rw measure.restrict_prod_eq_prod_univ,
-    exacts [ (measure.restrict_eq_self_of_subset_of_measurable (hs.prod measurable_set.univ)
-      (region_between_subset f g s)).symm, hs], },
+    exact (measure.restrict_eq_self' (hs.prod measurable_set.univ)
+      (region_between_subset f g s)).symm, },
   { rw measure.restrict_prod_eq_prod_univ,
-    exacts [(measure.restrict_eq_self_of_subset_of_measurable (hs.prod measurable_set.univ)
-      (region_between_subset (ae_measurable.mk f hf) (ae_measurable.mk g hg) s)).symm, hs] },
+    exact (measure.restrict_eq_self' (hs.prod measurable_set.univ)
+      (region_between_subset (ae_measurable.mk f hf) (ae_measurable.mk g hg) s)).symm },
 end
 
 

@@ -6,6 +6,7 @@ Authors: Frédéric Dupuis
 import data.real.sqrt
 import field_theory.tower
 import analysis.normed_space.finite_dimension
+import analysis.normed_space.star
 
 /-!
 # `is_R_or_C`: a typeclass for ℝ or ℂ
@@ -212,7 +213,7 @@ end
 variables (K)
 /-- Conjugation as a ring equivalence. This is used to convert the inner product into a
 sesquilinear product. -/
-abbreviation conj_to_ring_equiv : K ≃+* Kᵒᵖ := star_ring_equiv
+abbreviation conj_to_ring_equiv : K ≃+* Kᵐᵒᵖ := star_ring_equiv
 
 variables {K}
 
@@ -330,8 +331,8 @@ begin
     simp [norm_sq, div_mul_eq_div_mul_one_div, div_self h] }
 end
 
-@[simp, norm_cast, priority 900] lemma of_real_fpow (r : ℝ) (n : ℤ) : ((r ^ n : ℝ) : K) = r ^ n :=
-(@is_R_or_C.coe_hom K _).map_fpow r n
+@[simp, norm_cast, priority 900] lemma of_real_zpow (r : ℝ) (n : ℤ) : ((r ^ n : ℝ) : K) = r ^ n :=
+(@is_R_or_C.coe_hom K _).map_zpow r n
 
 lemma I_mul_I_of_nonzero : (I : K) ≠ 0 → (I : K) * I = -1 :=
 by { have := I_mul_I_ax, tauto }
@@ -344,7 +345,7 @@ begin
 end
 
 @[simp] lemma inv_I : (I : K)⁻¹ = -I :=
-by { by_cases h : (I : K) = 0; field_simp [h] }
+by field_simp
 
 @[simp] lemma norm_sq_inv (z : K) : norm_sq z⁻¹ = (norm_sq z)⁻¹ :=
 (@norm_sq K _).map_inv z
@@ -354,6 +355,9 @@ by { by_cases h : (I : K) = 0; field_simp [h] }
 
 lemma norm_conj {z : K} : ∥conj z∥ = ∥z∥ :=
 by simp only [←sqrt_norm_sq_eq_norm, norm_sq_conj]
+
+@[priority 100] instance : cstar_ring K :=
+{ norm_star_mul_self := λ x, (normed_field.norm_mul _ _).trans $ congr_arg (* ∥x∥) norm_conj }
 
 /-! ### Cast lemmas -/
 
@@ -428,6 +432,9 @@ by { rw [is_R_or_C.norm_eq_abs, is_R_or_C.abs_of_real, real.norm_eq_abs] }
 
 lemma abs_of_nonneg {r : ℝ} (h : 0 ≤ r) : absK r = r :=
 (abs_of_real _).trans (abs_of_nonneg h)
+
+lemma norm_of_nonneg {r : ℝ} (r_nn : 0 ≤ r) : ∥(r : K)∥ = r :=
+by { rw norm_of_real, exact abs_eq_self.mpr r_nn, }
 
 lemma abs_of_nat (n : ℕ) : absK n = n :=
 by { rw [← of_real_nat_cast], exact abs_of_nonneg (nat.cast_nonneg n) }
@@ -623,17 +630,23 @@ library_note "is_R_or_C instance"
     simp [re_add_im a, algebra.smul_def, algebra_map_eq_of_real]
   end⟩⟩
 
-/-- Over an `is_R_or_C` field, we can register the properness of finite-dimensional normed spaces as
-an instance. -/
-@[priority 900, nolint dangerous_instance] instance proper_is_R_or_C -- note [is_R_or_C instance]
-  {E : Type*} [normed_group E] [normed_space K E] [finite_dimensional K E] :
-  proper_space E :=
+variables (K) (E : Type*) [normed_group E] [normed_space K E]
+
+/-- A finite dimensional vector space Over an `is_R_or_C` is a proper metric space.
+
+This is not an instance because it would cause a search for `finite_dimensional ?x E` before
+`is_R_or_C ?x`. -/
+lemma proper_is_R_or_C [finite_dimensional K E] : proper_space E :=
 begin
   letI : normed_space ℝ E := restrict_scalars.normed_space ℝ K E,
-  letI : is_scalar_tower ℝ K E := restrict_scalars.is_scalar_tower _ _ _,
   letI : finite_dimensional ℝ E := finite_dimensional.trans ℝ K E,
   apply_instance
 end
+
+variable {E}
+
+instance is_R_or_C.proper_space_span_singleton (x : E) : proper_space (K ∙ x) :=
+proper_is_R_or_C K (K ∙ x)
 
 end finite_dimensional
 
@@ -645,7 +658,7 @@ noncomputable instance real.is_R_or_C : is_R_or_C ℝ :=
   I := 0,
   I_re_ax := by simp only [add_monoid_hom.map_zero],
   I_mul_I_ax := or.intro_left _ rfl,
-  re_add_im_ax := λ z, by unfold_coes; simp [add_zero, id.def, mul_zero],
+  re_add_im_ax := λ z, by simp [add_zero, id.def, mul_zero],
   of_real_re_ax := λ r, by simp only [add_monoid_hom.id_apply, algebra.id.map_eq_self],
   of_real_im_ax := λ r, by simp only [add_monoid_hom.zero_apply],
   mul_re_ax := λ z w,
@@ -707,7 +720,8 @@ linear_map.mk_continuous re_lm 1 $ by
 begin
   apply le_antisymm (linear_map.mk_continuous_norm_le _ zero_le_one _),
   convert continuous_linear_map.ratio_le_op_norm _ (1 : K),
-  simp,
+  { simp },
+  { apply_instance }
 end
 
 @[simp, norm_cast] lemma re_clm_coe : ((re_clm : K →L[ℝ] ℝ) : K →ₗ[ℝ] ℝ) = re_lm := rfl
@@ -783,24 +797,3 @@ linear_isometry.norm_to_continuous_linear_map of_real_li
 end linear_maps
 
 end is_R_or_C
-
-section normalization
-variables {K : Type*} [is_R_or_C K]
-variables {E : Type*} [normed_group E] [normed_space K E]
-
-open is_R_or_C
-
-/- Note: one might think the following lemma belongs in `analysis.normed_space.basic`.  But it
-can't be placed there, because that file is an import of `data.complex.is_R_or_C`! -/
-
-/-- Lemma to normalize a vector in a normed space `E` over either `ℂ` or `ℝ` to unit length. -/
-@[simp] lemma norm_smul_inv_norm {x : E} (hx : x ≠ 0) : ∥(∥x∥⁻¹ : K) • x∥ = 1 :=
-begin
-  have h : ∥(∥x∥ : K)∥ = ∥x∥,
-  { rw norm_eq_abs,
-    exact abs_of_nonneg (norm_nonneg _) },
-  have : ∥x∥ ≠ 0 := by simp [hx],
-  field_simp [norm_smul, h]
-end
-
-end normalization

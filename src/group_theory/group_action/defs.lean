@@ -6,26 +6,29 @@ Authors: Chris Hughes, Yury Kudryashov
 import algebra.group.defs
 import algebra.group.hom
 import algebra.group.type_tags
+import algebra.opposites
 import logic.embedding
 
 /-!
 # Definitions of group actions
 
-This file defines a hierarchy of group action type-classes:
+This file defines a hierarchy of group action type-classes on top of the previously defined
+notation classes `has_scalar` and its additive version `has_vadd`:
 
-* `has_scalar M α` and its additive version `has_vadd G P` are notation typeclasses for
-  `•` and `+ᵥ`, respectively;
 * `mul_action M α` and its additive version `add_action G P` are typeclasses used for
-  actions of multiplicative and additive monoids and groups;
+  actions of multiplicative and additive monoids and groups; they extend notation classes
+  `has_scalar` and `has_vadd` that are defined in `algebra.group.defs`;
 * `distrib_mul_action M A` is a typeclass for an action of a multiplicative monoid on
   an additive monoid such that `a • (b + c) = a • b + a • c` and `a • 0 = 0`.
 
 The hierarchy is extended further by `module`, defined elsewhere.
 
-Also provided are type-classes regarding the interaction of different group actions,
+Also provided are typeclasses for faithful and transitive actions, and typeclasses regarding the
+interaction of different group actions,
 
 * `smul_comm_class M N α` and its additive version `vadd_comm_class M N α`;
 * `is_scalar_tower M N α` (no additive version).
+* `is_central_scalar M α` (no additive version).
 
 ## Notation
 
@@ -46,15 +49,9 @@ variables {M N G A B α β γ : Type*}
 
 open function
 
-/-- Type class for the `+ᵥ` notation. -/
-class has_vadd (G : Type*) (P : Type*) := (vadd : G → P → P)
-
-/-- Typeclass for types with a scalar multiplication operation, denoted `•` (`\bu`) -/
-@[to_additive has_vadd]
-class has_scalar (M : Type*) (α : Type*) := (smul : M → α → α)
-
-infix ` +ᵥ `:65 := has_vadd.vadd
-infixr ` • `:73 := has_scalar.smul
+/-!
+### Faithful actions
+-/
 
 /-- Typeclass for faithful actions. -/
 class has_faithful_vadd (G : Type*) (P : Type*) [has_vadd G P] : Prop :=
@@ -89,6 +86,47 @@ class mul_action (α : Type*) (β : Type*) [monoid α] extends has_scalar α β 
 (one_smul : ∀ b : β, (1 : α) • b = b)
 (mul_smul : ∀ (x y : α) (b : β), (x * y) • b = x • y • b)
 
+/-!
+### (Pre)transitive action
+
+`M` acts pretransitively on `α` if for any `x y` there is `g` such that `g • x = y` (or `g +ᵥ x = y`
+for an additive action). A transitive action should furthermore have `α` nonempty.
+
+In this section we define typeclasses `mul_action.is_pretransitive` and
+`add_action.is_pretransitive` and provide `mul_action.exists_smul_eq`/`add_action.exists_vadd_eq`,
+`mul_action.surjective_smul`/`add_action.surjective_vadd` as public interface to access this
+property. We do not provide typeclasses `*_action.is_transitive`; users should assume
+`[mul_action.is_pretransitive M α] [nonempty α]` instead. -/
+
+/-- `M` acts pretransitively on `α` if for any `x y` there is `g` such that `g +ᵥ x = y`.
+  A transitive action should furthermore have `α` nonempty. -/
+class add_action.is_pretransitive (M α : Type*) [has_vadd M α] : Prop :=
+(exists_vadd_eq : ∀ x y : α, ∃ g : M, g +ᵥ x = y)
+
+/-- `M` acts pretransitively on `α` if for any `x y` there is `g` such that `g • x = y`.
+  A transitive action should furthermore have `α` nonempty. -/
+@[to_additive] class mul_action.is_pretransitive (M α : Type*) [has_scalar M α] : Prop :=
+(exists_smul_eq : ∀ x y : α, ∃ g : M, g • x = y)
+
+namespace mul_action
+
+variables (M) {α} [has_scalar M α] [is_pretransitive M α]
+
+@[to_additive] lemma exists_smul_eq (x y : α) : ∃ m : M, m • x = y :=
+is_pretransitive.exists_smul_eq x y
+
+@[to_additive] lemma surjective_smul (x : α) : surjective (λ c : M, c • x) := exists_smul_eq M x
+
+/-- The regular action of a group on itself is transitive. -/
+@[to_additive] instance regular.is_pretransitive [group G] : is_pretransitive G G :=
+⟨λ x y, ⟨y * x⁻¹, inv_mul_cancel_right _ _⟩⟩
+
+end mul_action
+
+/-!
+### Scalar tower and commuting actions
+-/
+
 /-- A typeclass mixin saying that two additive actions on the same space commute. -/
 class vadd_comm_class (M N α : Type*) [has_vadd M α] [has_vadd N α] : Prop :=
 (vadd_comm : ∀ (m : M) (n : N) (a : α), m +ᵥ (n +ᵥ a) = n +ᵥ (m +ᵥ a))
@@ -99,11 +137,6 @@ class vadd_comm_class (M N α : Type*) [has_vadd M α] [has_vadd N α] : Prop :=
 
 export mul_action (mul_smul) add_action (add_vadd) smul_comm_class (smul_comm)
   vadd_comm_class (vadd_comm)
-
-attribute [to_additive_reorder 1] has_pow
-attribute [to_additive_reorder 1 4] has_pow.pow
-attribute [to_additive has_scalar] has_pow
-attribute [to_additive has_scalar.smul] has_pow.pow
 
 /--
 Frequently, we find ourselves wanting to express a bilinear map `M →ₗ[R] N →ₗ[R] P` or an
@@ -150,6 +183,18 @@ is_scalar_tower.smul_assoc x y z
 
 instance semigroup.is_scalar_tower [semigroup α] : is_scalar_tower α α α := ⟨mul_assoc⟩
 
+/-- A typeclass indicating that the right (aka `mul_opposite`) and left actions by `M` on `α` are
+equal, that is that `M` acts centrally on `α`. This can be thought of as a version of commutativity
+for `•`. -/
+class is_central_scalar (M α : Type*) [has_scalar M α] [has_scalar Mᵐᵒᵖ α] : Prop :=
+(op_smul_eq_smul : ∀ (m : M) (a : α), mul_opposite.op m • a = m • a)
+
+lemma is_central_scalar.unop_smul_eq_smul {M α : Type*} [has_scalar M α] [has_scalar Mᵐᵒᵖ α]
+  [is_central_scalar M α] (m : Mᵐᵒᵖ) (a : α) : (mul_opposite.unop m) • a = m • a :=
+mul_opposite.rec (by exact λ m, (is_central_scalar.op_smul_eq_smul _ _).symm) m
+
+export is_central_scalar (op_smul_eq_smul unop_smul_eq_smul)
+
 namespace has_scalar
 variables [has_scalar M α]
 
@@ -161,11 +206,11 @@ g n • a
 
 variables (α)
 
-/-- An action of `M` on `α` and a funcion `N → M` induces an action of `N` on `α`.
+/-- An action of `M` on `α` and a function `N → M` induces an action of `N` on `α`.
 
 See note [reducible non-instances]. Since this is reducible, we make sure to go via
 `has_scalar.comp.smul` to prevent typeclass inference unfolding too far. -/
-@[reducible, to_additive /-" An additive action of `M` on `α` and a funcion `N → M` induces
+@[reducible, to_additive /-" An additive action of `M` on `α` and a function `N → M` induces
   an additive action of `N` on `α` "-/]
 def comp (g : N → M) : has_scalar N α :=
 { smul := has_scalar.comp.smul g }
@@ -238,6 +283,20 @@ protected def function.surjective.mul_action [has_scalar M β] (f : α → β) (
 { smul := (•),
   one_smul := λ y, by { rcases hf y with ⟨x, rfl⟩, rw [← smul, one_smul] },
   mul_smul := λ c₁ c₂ y, by { rcases hf y with ⟨x, rfl⟩, simp only [← smul, mul_smul] } }
+
+/-- Push forward the action of `R` on `M` along a compatible surjective map `f : R →* S`.
+
+See also `function.surjective.distrib_mul_action_left` and `function.surjective.module_left`.
+-/
+@[reducible, to_additive "Push forward the action of `R` on `M` along a compatible
+surjective map `f : R →+ S`."]
+def function.surjective.mul_action_left {R S M : Type*} [monoid R] [mul_action R M]
+  [monoid S] [has_scalar S M]
+  (f : R →* S) (hf : function.surjective f) (hsmul : ∀ c (x : M), f c • x = c • x) :
+  mul_action S M :=
+{ smul := (•),
+  one_smul := λ b, by rw [← f.map_one, hsmul, one_smul],
+  mul_smul := hf.forall₂.mpr $ λ a b x, by simp only [← f.map_mul, hsmul, mul_smul] }
 
 section
 
@@ -388,6 +447,20 @@ protected def function.surjective.distrib_mul_action [add_monoid B] [has_scalar 
     simp only [smul_add, ← smul, ← f.map_add] },
   smul_zero := λ c, by simp only [← f.map_zero, ← smul, smul_zero],
   .. hf.mul_action f smul }
+
+/-- Push forward the action of `R` on `M` along a compatible surjective map `f : R →* S`.
+
+See also `function.surjective.mul_action_left` and `function.surjective.module_left`.
+-/
+@[reducible]
+def function.surjective.distrib_mul_action_left {R S M : Type*} [monoid R] [add_monoid M]
+  [distrib_mul_action R M] [monoid S] [has_scalar S M]
+  (f : R →* S) (hf : function.surjective f) (hsmul : ∀ c (x : M), f c • x = c • x) :
+  distrib_mul_action S M :=
+{ smul := (•),
+  smul_zero := hf.forall.mpr $ λ c, by rw [hsmul, smul_zero],
+  smul_add := hf.forall.mpr $ λ c x y, by simp only [hsmul, smul_add],
+  .. hf.mul_action_left f hsmul }
 
 variable (A)
 

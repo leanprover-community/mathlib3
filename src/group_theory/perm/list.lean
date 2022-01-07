@@ -228,22 +228,14 @@ lemma form_perm_rotate_one (l : list α) (h : nodup l) :
 begin
   have h' : nodup (l.rotate 1),
   { simpa using h },
-  by_cases hl : ∀ (x : α), l ≠ [x],
-  { have hl' : ∀ (x : α), l.rotate 1 ≠ [x],
-    { intro,
-      rw [ne.def, rotate_eq_iff],
-      simpa using hl _ },
-    ext x,
-    by_cases hx : x ∈ l.rotate 1,
-    { obtain ⟨k, hk, rfl⟩ := nth_le_of_mem hx,
-      rw [form_perm_apply_nth_le _ h', nth_le_rotate l, nth_le_rotate l,
-        form_perm_apply_nth_le _ h],
-      simp },
-    { rw [form_perm_apply_of_not_mem _ _ hx, form_perm_apply_of_not_mem],
-      simpa using hx } },
-  { push_neg at hl,
-    obtain ⟨x, rfl⟩ := hl,
-    simp }
+  ext x,
+  by_cases hx : x ∈ l.rotate 1,
+  { obtain ⟨k, hk, rfl⟩ := nth_le_of_mem hx,
+    rw [form_perm_apply_nth_le _ h', nth_le_rotate l, nth_le_rotate l,
+      form_perm_apply_nth_le _ h],
+    simp },
+  { rw [form_perm_apply_of_not_mem _ _ hx, form_perm_apply_of_not_mem],
+    simpa using hx }
 end
 
 lemma form_perm_rotate (l : list α) (h : nodup l) (n : ℕ) :
@@ -315,12 +307,12 @@ begin
   refine ⟨λ h, _, λ hr, form_perm_eq_of_is_rotated hd hr⟩,
   rw equiv.perm.ext_iff at h,
   have hx : x' ∈ (x :: y :: l),
-    { have : x' ∈ {z | form_perm (x :: y :: l) z ≠ z},
-      { rw [set.mem_set_of_eq, h x', form_perm_apply_head _ _ _ hd'],
-        simp only [mem_cons_iff, nodup_cons] at hd',
-        push_neg at hd',
-        exact hd'.left.left.symm },
-      simpa using support_form_perm_le' _ this },
+  { have : x' ∈ {z | form_perm (x :: y :: l) z ≠ z},
+    { rw [set.mem_set_of_eq, h x', form_perm_apply_head _ _ _ hd'],
+      simp only [mem_cons_iff, nodup_cons] at hd',
+      push_neg at hd',
+      exact hd'.left.left.symm },
+    simpa using support_form_perm_le' _ this },
   obtain ⟨n, hn, hx'⟩ := nth_le_of_mem hx,
   have hl : (x :: y :: l).length = (x' :: y' :: l').length,
   { rw [←erase_dup_eq_self.mpr hd, ←erase_dup_eq_self.mpr hd',
@@ -420,14 +412,14 @@ begin
     { simp [-form_perm_cons_cons, form_perm_ext_iff hl hl'] } }
 end
 
-lemma form_perm_gpow_apply_mem_imp_mem (l : list α) (x : α) (hx : x ∈ l) (n : ℤ) :
+lemma form_perm_zpow_apply_mem_imp_mem (l : list α) (x : α) (hx : x ∈ l) (n : ℤ) :
   ((form_perm l) ^ n) x ∈ l :=
 begin
   by_cases h : (l.form_perm ^ n) x = x,
   { simpa [h] using hx },
   { have : x ∈ {x | (l.form_perm ^ n) x ≠ x} := h,
     rw ←set_support_apply_mem at this,
-    replace this := set_support_gpow_subset _ _ this,
+    replace this := set_support_zpow_subset _ _ this,
     simpa using support_form_perm_le' _ this }
 end
 
@@ -441,7 +433,7 @@ begin
   { have : x ∉ {x | (l.form_perm ^ l.length) x ≠ x},
     { intros H,
       refine hx _,
-      replace H := set_support_gpow_subset l.form_perm l.length H,
+      replace H := set_support_zpow_subset l.form_perm l.length H,
       simpa using support_form_perm_le' _ H },
     simpa }
 end

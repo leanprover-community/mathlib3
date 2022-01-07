@@ -6,9 +6,10 @@ Authors: Johannes Hölzl, Mario Carneiro
 import topology.metric_space.basic
 import topology.algebra.uniform_group
 import topology.algebra.ring
-import ring_theory.subring
+import ring_theory.subring.basic
 import group_theory.archimedean
 import algebra.periodic
+import order.filter.archimedean
 
 /-!
 # Topological properties of ℝ
@@ -85,26 +86,25 @@ theorem preimage_ball (x : ℤ) (r : ℝ) : coe ⁻¹' (ball (x : ℝ) r) = ball
 theorem preimage_closed_ball (x : ℤ) (r : ℝ) :
   coe ⁻¹' (closed_ball (x : ℝ) r) = closed_ball x r := rfl
 
-theorem ball_eq (x : ℤ) (r : ℝ) : ball x r = Ioo ⌊↑x - r⌋ ⌈↑x + r⌉ :=
-by rw [← preimage_ball, real.ball_eq, preimage_Ioo]
+theorem ball_eq_Ioo (x : ℤ) (r : ℝ) : ball x r = Ioo ⌊↑x - r⌋ ⌈↑x + r⌉ :=
+by rw [← preimage_ball, real.ball_eq_Ioo, preimage_Ioo]
 
-theorem closed_ball_eq (x : ℤ) (r : ℝ) : closed_ball x r = Icc ⌈↑x - r⌉ ⌊↑x + r⌋ :=
-by rw [← preimage_closed_ball, real.closed_ball_eq, preimage_Icc]
+theorem closed_ball_eq_Icc (x : ℤ) (r : ℝ) : closed_ball x r = Icc ⌈↑x - r⌉ ⌊↑x + r⌋ :=
+by rw [← preimage_closed_ball, real.closed_ball_eq_Icc, preimage_Icc]
 
 instance : proper_space ℤ :=
 ⟨ begin
     intros x r,
-    rw closed_ball_eq,
+    rw closed_ball_eq_Icc,
     exact (set.finite_Icc _ _).is_compact,
   end ⟩
 
+@[simp] lemma cocompact_eq : cocompact ℤ = at_bot ⊔ at_top :=
+by simp only [← comap_dist_right_at_top_eq_cocompact (0 : ℤ), dist_eq, sub_zero, cast_zero,
+  ← cast_abs, ← @comap_comap _ _ _ _ abs, int.comap_coe_at_top, comap_abs_at_top]
+
 instance : noncompact_space ℤ :=
-begin
-  rw [← not_compact_space_iff, metric.compact_space_iff_bounded_univ],
-  rintro ⟨r, hr⟩,
-  refine (hr (⌊r⌋ + 1) 0 trivial trivial).not_lt _,
-  simpa [dist_eq] using (lt_floor_add_one r).trans_le (le_abs_self _)
-end
+noncompact_space_of_ne_bot $ by simp [at_top_ne_bot]
 
 end int
 
@@ -144,7 +144,7 @@ instance : order_topology ℚ :=
 induced_order_topology _ (λ x y, rat.cast_lt) (@exists_rat_btwn _ _ _)
 
 instance : proper_space ℝ :=
-{ is_compact_closed_ball := λx r, by { rw real.closed_ball_eq, apply is_compact_Icc } }
+{ is_compact_closed_ball := λx r, by { rw real.closed_ball_eq_Icc, apply is_compact_Icc } }
 
 instance : second_countable_topology ℝ := second_countable_of_proper
 
@@ -159,6 +159,10 @@ is_topological_basis_of_open_of_nhds
     ⟨Ioo q p,
       by { simp only [mem_Union], exact ⟨q, p, rat.cast_lt.1 $ hqa.trans hap, rfl⟩ },
       ⟨hqa, hap⟩, assume a' ⟨hqa', ha'p⟩, h ⟨hlq.trans hqa', ha'p.trans hpu⟩⟩)
+
+@[simp] lemma real.cocompact_eq : cocompact ℝ = at_bot ⊔ at_top :=
+by simp only [← comap_dist_right_at_top_eq_cocompact (0 : ℝ), real.dist_eq, sub_zero,
+  comap_abs_at_top]
 
 /- TODO(Mario): Prove that these are uniform isomorphisms instead of uniform embeddings
 lemma uniform_embedding_add_rat {r : ℚ} : uniform_embedding (λp:ℚ, p + r) :=
@@ -239,15 +243,6 @@ real.continuous_mul.comp ((rat.continuous_coe_real.prod_map rat.continuous_coe_r
 instance : topological_ring ℚ :=
 { continuous_mul := rat.continuous_mul, ..rat.topological_add_group }
 
-theorem real.ball_eq_Ioo (x ε : ℝ) : ball x ε = Ioo (x - ε) (x + ε) :=
-set.ext $ λ y, by rw [mem_ball, real.dist_eq,
-  abs_sub_lt_iff, sub_lt_iff_lt_add', and_comm, sub_lt]; refl
-
-theorem real.Ioo_eq_ball (x y : ℝ) : Ioo x y = ball ((x + y) / 2) ((y - x) / 2) :=
-by rw [real.ball_eq_Ioo, ← sub_div, add_comm, ← sub_add,
-  add_sub_cancel', add_self_div_two, ← add_div,
-  add_assoc, add_sub_cancel'_right, add_self_div_two]
-
 instance : complete_space ℝ :=
 begin
   apply complete_of_cauchy_seq_tendsto,
@@ -294,14 +289,10 @@ lemma real.bounded_iff_bdd_below_bdd_above {s : set ℝ} : bounded s ↔ bdd_bel
 ⟨begin
   assume bdd,
   rcases (bounded_iff_subset_ball 0).1 bdd with ⟨r, hr⟩, -- hr : s ⊆ closed_ball 0 r
-  rw real.closed_ball_eq at hr, -- hr : s ⊆ Icc (0 - r) (0 + r)
+  rw real.closed_ball_eq_Icc at hr, -- hr : s ⊆ Icc (0 - r) (0 + r)
   exact ⟨bdd_below_Icc.mono hr, bdd_above_Icc.mono hr⟩
 end,
-begin
-  intro h,
-  rcases bdd_below_bdd_above_iff_subset_Icc.1 h with ⟨m, M, I : s ⊆ Icc m M⟩,
-  exact (bounded_Icc m M).mono I
-end⟩
+λ h, bounded_of_bdd_above_of_bdd_below h.2 h.1⟩
 
 lemma real.subset_Icc_Inf_Sup_of_bounded {s : set ℝ} (h : bounded s) :
   s ⊆ Icc (Inf s) (Sup s) :=
@@ -322,7 +313,7 @@ begin
   ext x,
   refine ⟨_, mem_range_of_mem_image f (Icc 0 c)⟩,
   rintros ⟨y, h1⟩,
-  obtain ⟨z, hz, h2⟩ := hp.exists_mem_Ico hc y,
+  obtain ⟨z, hz, h2⟩ := hp.exists_mem_Ico₀ hc y,
   exact ⟨z, mem_Icc_of_Ico hz, h2.symm.trans h1⟩,
 end
 

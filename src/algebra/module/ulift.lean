@@ -3,8 +3,8 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import linear_algebra.basic
 import algebra.ring.ulift
+import data.equiv.module
 
 /-!
 # `ulift` instances for module and multiplicative actions
@@ -23,15 +23,11 @@ variable {R : Type u}
 variable {M : Type v}
 variable {N : Type w}
 
-instance has_scalar [has_scalar R M] :
+instance has_scalar_left [has_scalar R M] :
   has_scalar (ulift R) M :=
 ⟨λ s x, s.down • x⟩
 
 @[simp] lemma smul_down [has_scalar R M] (s : ulift R) (x : M) : (s • x) = s.down • x := rfl
-
-instance has_scalar' [has_scalar R M] :
-  has_scalar R (ulift M) :=
-⟨λ s x, ⟨s • x.down⟩⟩
 
 @[simp]
 lemma smul_down' [has_scalar R M] (s : R) (x : ulift M) :
@@ -49,6 +45,10 @@ instance is_scalar_tower' [has_scalar R M] [has_scalar M N] [has_scalar R N]
 instance is_scalar_tower'' [has_scalar R M] [has_scalar M N] [has_scalar R N]
   [is_scalar_tower R M N] : is_scalar_tower R M (ulift N) :=
 ⟨λ x y z, show up ((x • y) • z.down) = ⟨x • y • z.down⟩, by rw smul_assoc⟩
+
+instance [has_scalar R M] [has_scalar Rᵐᵒᵖ M] [is_central_scalar R M] :
+  is_central_scalar R (ulift M) :=
+⟨λ r m, congr_arg up $ op_smul_eq_smul r m.down⟩
 
 instance mul_action [monoid R] [mul_action R M] :
   mul_action (ulift R) M :=

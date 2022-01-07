@@ -4,9 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import tactic.apply_fun
+import algebra.field.opposite
 import algebra.field_power
 import data.equiv.ring_aut
 import group_theory.group_action.units
+import group_theory.group_action.opposite
 import algebra.ring.comp_typeclasses
 
 /-!
@@ -30,7 +32,7 @@ Our star rings are actually star semirings, but of course we can prove
 
 universes u v
 
-open opposite
+open mul_opposite
 
 /--
 Notation typeclass (with no default notation!) for an algebraic structure with a star operation.
@@ -77,12 +79,12 @@ attribute [simp] star_mul
   star (x * y) = star x * star y :=
 (star_mul x y).trans (mul_comm _ _)
 
-/-- `star` as an `mul_equiv` from `R` to `Rᵒᵖ` -/
+/-- `star` as an `mul_equiv` from `R` to `Rᵐᵒᵖ` -/
 @[simps apply]
-def star_mul_equiv [monoid R] [star_monoid R] : R ≃* Rᵒᵖ :=
-{ to_fun := λ x, opposite.op (star x),
-  map_mul' := λ x y, (star_mul x y).symm ▸ (opposite.op_mul _ _),
-  ..(has_involutive_star.star_involutive.to_equiv star).trans opposite.equiv_to_opposite}
+def star_mul_equiv [monoid R] [star_monoid R] : R ≃* Rᵐᵒᵖ :=
+{ to_fun := λ x, mul_opposite.op (star x),
+  map_mul' := λ x y, (star_mul x y).symm ▸ (mul_opposite.op_mul _ _),
+  ..(has_involutive_star.star_involutive.to_equiv star).trans op_equiv}
 
 /-- `star` as a `mul_aut` for commutative `R`. -/
 @[simps apply]
@@ -94,21 +96,21 @@ def star_mul_aut [comm_monoid R] [star_monoid R] : mul_aut R :=
 variables (R)
 
 @[simp] lemma star_one [monoid R] [star_monoid R] : star (1 : R) = 1 :=
-op_injective $ (star_mul_equiv : R ≃* Rᵒᵖ).map_one.trans (op_one _).symm
+op_injective $ (star_mul_equiv : R ≃* Rᵐᵒᵖ).map_one.trans (op_one _).symm
 
 variables {R}
 
 @[simp] lemma star_pow [monoid R] [star_monoid R] (x : R) (n : ℕ) : star (x ^ n) = star x ^ n :=
 op_injective $
-  ((star_mul_equiv : R ≃* Rᵒᵖ).to_monoid_hom.map_pow x n).trans (op_pow (star x) n).symm
+  ((star_mul_equiv : R ≃* Rᵐᵒᵖ).to_monoid_hom.map_pow x n).trans (op_pow (star x) n).symm
 
 @[simp] lemma star_inv [group R] [star_monoid R] (x : R) : star (x⁻¹) = (star x)⁻¹ :=
 op_injective $
-  ((star_mul_equiv : R ≃* Rᵒᵖ).to_monoid_hom.map_inv x).trans (op_inv (star x)).symm
+  ((star_mul_equiv : R ≃* Rᵐᵒᵖ).to_monoid_hom.map_inv x).trans (op_inv (star x)).symm
 
-@[simp] lemma star_gpow [group R] [star_monoid R] (x : R) (z : ℤ) : star (x ^ z) = star x ^ z :=
+@[simp] lemma star_zpow [group R] [star_monoid R] (x : R) (z : ℤ) : star (x ^ z) = star x ^ z :=
 op_injective $
-  ((star_mul_equiv : R ≃* Rᵒᵖ).to_monoid_hom.map_gpow x z).trans (op_gpow (star x) z).symm
+  ((star_mul_equiv : R ≃* Rᵐᵒᵖ).to_monoid_hom.map_zpow x z).trans (op_zpow (star x) z).symm
 
 /-- When multiplication is commutative, `star` preserves division. -/
 @[simp] lemma star_div [comm_group R] [star_monoid R] (x y : R) : star (x / y) = star x / star y :=
@@ -178,9 +180,9 @@ variables {R}
   star (n • x) = n • star x :=
 (star_add_equiv : R ≃+ R).to_add_monoid_hom.map_nsmul _ _
 
-@[simp] lemma star_gsmul [add_comm_group R] [star_add_monoid R] (x : R) (n : ℤ) :
+@[simp] lemma star_zsmul [add_comm_group R] [star_add_monoid R] (x : R) (n : ℤ) :
   star (n • x) = n • star x :=
-(star_add_equiv : R ≃+ R).to_add_monoid_hom.map_gsmul _ _
+(star_add_equiv : R ≃+ R).to_add_monoid_hom.map_zsmul _ _
 
 section
 open_locale big_operators
@@ -204,11 +206,11 @@ class star_ring (R : Type u) [semiring R] extends star_monoid R :=
 instance star_ring.to_star_add_monoid [semiring R] [star_ring R] : star_add_monoid R :=
 { star_add := star_ring.star_add }
 
-/-- `star` as an `ring_equiv` from `R` to `Rᵒᵖ` -/
+/-- `star` as an `ring_equiv` from `R` to `Rᵐᵒᵖ` -/
 @[simps apply]
-def star_ring_equiv [semiring R] [star_ring R] : R ≃+* Rᵒᵖ :=
-{ to_fun := λ x, opposite.op (star x),
-  ..star_add_equiv.trans (opposite.op_add_equiv : R ≃+ Rᵒᵖ),
+def star_ring_equiv [semiring R] [star_ring R] : R ≃+* Rᵐᵒᵖ :=
+{ to_fun := λ x, mul_opposite.op (star x),
+  ..star_add_equiv.trans (mul_opposite.op_add_equiv : R ≃+ Rᵐᵒᵖ),
   ..star_mul_equiv}
 
 /-- `star` as a `ring_aut` for commutative `R`. This is used to denote complex
@@ -235,12 +237,12 @@ alias star_ring_aut_self_apply ← is_R_or_C.conj_conj
 
 @[simp] lemma star_inv' [division_ring R] [star_ring R] (x : R) : star (x⁻¹) = (star x)⁻¹ :=
 op_injective $
-  ((star_ring_equiv : R ≃+* Rᵒᵖ).to_ring_hom.map_inv x).trans (op_inv (star x)).symm
+  ((star_ring_equiv : R ≃+* Rᵐᵒᵖ).to_ring_hom.map_inv x).trans (op_inv (star x)).symm
 
-@[simp] lemma star_fpow [division_ring R] [star_ring R] (x : R) (z : ℤ) :
+@[simp] lemma star_zpow₀ [division_ring R] [star_ring R] (x : R) (z : ℤ) :
   star (x ^ z) = star x ^ z :=
 op_injective $
-  ((star_ring_equiv : R ≃+* Rᵒᵖ).to_ring_hom.map_fpow x z).trans (op_gpow (star x) z).symm
+  ((star_ring_equiv : R ≃+* Rᵐᵒᵖ).to_ring_hom.map_zpow x z).trans (op_zpow (star x) z).symm
 
 /-- When multiplication is commutative, `star` preserves division. -/
 @[simp] lemma star_div' [field R] [star_ring R] (x y : R) : star (x / y) = star x / star y :=
@@ -333,30 +335,45 @@ instance {A : Type*} [has_star A] [has_scalar R A] [star_module R A] : star_modu
 
 end units
 
-namespace opposite
+lemma is_unit.star [monoid R] [star_monoid R] {a : R} : is_unit a → is_unit (star a)
+| ⟨u, hu⟩ := ⟨star u, hu ▸ rfl⟩
+
+@[simp] lemma is_unit_star [monoid R] [star_monoid R] {a : R} : is_unit (star a) ↔ is_unit a :=
+⟨λ h, star_star a ▸ h.star, is_unit.star⟩
+
+lemma ring.inverse_star [semiring R] [star_ring R] (a : R) :
+  ring.inverse (star a) = star (ring.inverse a) :=
+begin
+  by_cases ha : is_unit a,
+  { obtain ⟨u, rfl⟩ := ha,
+    rw [ring.inverse_unit, ←units.coe_star, ring.inverse_unit, ←units.coe_star_inv], },
+  rw [ring.inverse_non_unit _ ha, ring.inverse_non_unit _ (mt is_unit_star.mp ha), star_zero],
+end
+
+namespace mul_opposite
 
 /-- The opposite type carries the same star operation. -/
-instance [has_star R] : has_star (Rᵒᵖ) :=
+instance [has_star R] : has_star (Rᵐᵒᵖ) :=
 { star := λ r, op (star (r.unop)) }
 
-@[simp] lemma unop_star [has_star R] (r : Rᵒᵖ) : unop (star r) = star (unop r) := rfl
+@[simp] lemma unop_star [has_star R] (r : Rᵐᵒᵖ) : unop (star r) = star (unop r) := rfl
 @[simp] lemma op_star [has_star R] (r : R) : op (star r) = star (op r) := rfl
 
-instance [has_involutive_star R] : has_involutive_star (Rᵒᵖ) :=
+instance [has_involutive_star R] : has_involutive_star (Rᵐᵒᵖ) :=
 { star_involutive := λ r, unop_injective (star_star r.unop) }
 
-instance [monoid R] [star_monoid R] : star_monoid (Rᵒᵖ) :=
+instance [monoid R] [star_monoid R] : star_monoid (Rᵐᵒᵖ) :=
 { star_mul := λ x y, unop_injective (star_mul y.unop x.unop) }
 
-instance [add_monoid R] [star_add_monoid R] : star_add_monoid (Rᵒᵖ) :=
+instance [add_monoid R] [star_add_monoid R] : star_add_monoid (Rᵐᵒᵖ) :=
 { star_add := λ x y, unop_injective (star_add x.unop y.unop) }
 
-instance [semiring R] [star_ring R] : star_ring (Rᵒᵖ) :=
-{ .. opposite.star_add_monoid }
+instance [semiring R] [star_ring R] : star_ring (Rᵐᵒᵖ) :=
+{ .. mul_opposite.star_add_monoid }
 
-end opposite
+end mul_opposite
 
 /-- A commutative star monoid is a star module over its opposite via
 `monoid.to_opposite_mul_action`. -/
-instance star_monoid.to_opposite_star_module [comm_monoid R] [star_monoid R] : star_module Rᵒᵖ R :=
+instance star_monoid.to_opposite_star_module [comm_monoid R] [star_monoid R] : star_module Rᵐᵒᵖ R :=
 ⟨λ r s, star_mul' s r.unop⟩

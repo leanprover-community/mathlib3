@@ -271,8 +271,7 @@ end
 by simp only [← singleton_union, partially_well_ordered_on_union,
   partially_well_ordered_on_singleton, true_and]
 
-@[simp] theorem partially_well_ordered_on.insert [is_refl α r] (h : partially_well_ordered_on s r)
-  (a : α) :
+theorem partially_well_ordered_on.insert [is_refl α r] (h : partially_well_ordered_on s r) (a : α) :
   partially_well_ordered_on (insert a s) r :=
 partially_well_ordered_on_insert.2 h
 

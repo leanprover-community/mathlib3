@@ -160,19 +160,35 @@ instance [add_comm_monoid α] : add_comm_monoid (αˢʸᵐ) :=
 instance [add_comm_group α] : add_comm_group (αˢʸᵐ) :=
 { ..sym_alg.add_comm_monoid, ..sym_alg.add_group }
 
-
-
-
-
-
-
 instance {R : Type*} [semiring R] [add_comm_monoid α] [module R α] : module R αˢʸᵐ :=
 function.injective.module R ⟨unsym, rfl, λ _ _, rfl⟩ (λ _ _, id) (λ _ _, rfl)
 
-
-
 lemma mul_def [ring α] [invertible (2 : α)] (a b : αˢʸᵐ) :
   a * b = sym (⅟2*(unsym a * unsym b + unsym b * unsym a)) := by refl
+
+instance [has_mul α] [has_add α] [has_one α] [invertible (2 : α)] (r : α) [invertible r] :
+  invertible (sym r) :=
+{ inv_of := sym ⅟r,
+  inv_of_mul_self := begin
+    change ⅟2 * (⅟r * r + r * ⅟r) = 1,
+    rw [mul_inv_of_self, inv_of_mul_self],
+    exact mul_inv_of_self (⅟ 2),
+  end,
+  mul_inv_of_self := begin
+    change ⅟2 * (r * ⅟r + ⅟r * r)=1,
+    rw [mul_inv_of_self, inv_of_mul_self],
+    exact mul_inv_of_self (⅟ 2),
+  end }
+
+lemma unsym_mul [has_mul α] [has_add α] [has_one α] [invertible (2 : α)] (a b : αˢʸᵐ) :
+  unsym (a * b) = ⅟2*(unsym a * unsym b + unsym b * unsym a) := by refl
+
+lemma sym_mul_sym [has_mul α] [has_add α] [has_one α] [invertible (2 : α)] (a b : α) : sym a * sym b
+  = sym (⅟2*(a * b + b * a)) :=
+begin
+  change sym ⅟(2)*(a * b + b * a) = sym ⅟(2)*(a * b + b * a),
+  refl,
+end
 
 /- The symmetrisation of a real (unital, associative) algebra is a non-associative ring -/
 instance [ring α] [invertible (2 : α)] : non_unital_non_assoc_ring (αˢʸᵐ) :=

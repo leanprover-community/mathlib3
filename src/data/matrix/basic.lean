@@ -351,11 +351,11 @@ end non_unital_non_assoc_semiring
 section non_unital_non_assoc_semiring_decidable
 variables [decidable_eq m] [non_unital_non_assoc_semiring α] (u v w : m → α)
 
-@[simp] lemma diagonal_dot_product (i : m) : (diagonal v i) ⬝ᵥ w = v i * w i :=
+@[simp] lemma diagonal_dot_product (i : m) : diagonal v i ⬝ᵥ w = v i * w i :=
 have ∀ j ≠ i, diagonal v i j * w j = 0 := λ j hij, by simp [diagonal_apply_ne' hij],
 by convert finset.sum_eq_single i (λ j _, this j) _ using 1; simp
 
-@[simp] lemma dot_product_diagonal (i : m) : v ⬝ᵥ (diagonal w i) = v i * w i :=
+@[simp] lemma dot_product_diagonal (i : m) : v ⬝ᵥ diagonal w i = v i * w i :=
 have ∀ j ≠ i, v j * diagonal w i j = 0 := λ j hij, by simp [diagonal_apply_ne' hij],
 by convert finset.sum_eq_single i (λ j _, this j) _ using 1; simp
 
@@ -363,11 +363,11 @@ by convert finset.sum_eq_single i (λ j _, this j) _ using 1; simp
 have ∀ j ≠ i, v j * diagonal w j i = 0 := λ j hij, by simp [diagonal_apply_ne hij],
 by convert finset.sum_eq_single i (λ j _, this j) _ using 1; simp
 
-@[simp] lemma single_dot_product (x : α) (i : m) : (pi.single i x) ⬝ᵥ v = x * v i :=
+@[simp] lemma single_dot_product (x : α) (i : m) : pi.single i x ⬝ᵥ v = x * v i :=
 have ∀ j ≠ i, pi.single i x j * v j = 0 := λ j hij, by simp [pi.single_eq_of_ne hij],
 by convert finset.sum_eq_single i (λ j _, this j) _ using 1; simp
 
-@[simp] lemma dot_product_single (x : α) (i : m) : v ⬝ᵥ (pi.single i x) = v i * x :=
+@[simp] lemma dot_product_single (x : α) (i : m) : v ⬝ᵥ pi.single i x = v i * x :=
 have ∀ j ≠ i, v j * pi.single i x j = 0 := λ j hij, by simp [pi.single_eq_of_ne hij],
 by convert finset.sum_eq_single i (λ j _, this j) _ using 1; simp
 
@@ -376,9 +376,9 @@ end non_unital_non_assoc_semiring_decidable
 section ring
 variables [ring α] (u v w : m → α)
 
-@[simp] lemma neg_dot_product : (-v) ⬝ᵥ w = - (v ⬝ᵥ w) := by simp [dot_product]
+@[simp] lemma neg_dot_product : -v ⬝ᵥ w = - (v ⬝ᵥ w) := by simp [dot_product]
 
-@[simp] lemma dot_product_neg : v ⬝ᵥ (-w) = - (v ⬝ᵥ w) := by simp [dot_product]
+@[simp] lemma dot_product_neg : v ⬝ᵥ -w = - (v ⬝ᵥ w) := by simp [dot_product]
 
 @[simp] lemma sub_dot_product : (u - v) ⬝ᵥ w = u ⬝ᵥ w - v ⬝ᵥ w :=
 by simp [sub_eq_add_neg]
@@ -986,7 +986,7 @@ dot_product_diagonal' v w x
 /-- Associate the dot product of `mul_vec` to the left. -/
 lemma dot_product_mul_vec [fintype n] [fintype m] [non_unital_semiring R]
   (v : m → R) (A : matrix m n R) (w : n → R) :
-  v ⬝ᵥ (mul_vec A w) = (vec_mul v A) ⬝ᵥ w :=
+  v ⬝ᵥ mul_vec A w = vec_mul v A ⬝ᵥ w :=
 by simp only [dot_product, vec_mul, mul_vec, finset.mul_sum, finset.sum_mul, mul_assoc];
    exact finset.sum_comm
 

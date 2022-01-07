@@ -1013,10 +1013,9 @@ lemma induction_on_max_value₂ [decidable_eq ι] (f : ι → α) (g : ι → β
   (s : finset ι) (h0 : p ∅)
   (step : ∀ a s, a ∉ s → (∀ x ∈ s, f x < f a ∨ (f x = f a ∧ g x ≤ g a)) → p s → p (insert a s)) :
   p s :=
-begin
-  revert h0 step,
-  convert @induction_on_max_value (lex α β) ι _ _ (λ i, (prod.map f g) (i, i)) p s,
-  simp_rw [lex_le_iff, eq_iff_iff, prod.map_mk]
+induction_on_max_value (λ i, to_lex (f i, g i)) s h0 begin
+  simp_rw prod.lex.le_iff,
+  exact step,
 end
 
 /-- Induction principle for `finset`s in any type from which a given functions `f` and `g` map to a
@@ -1030,10 +1029,9 @@ lemma induction_on_min_value₂ [decidable_eq ι] (f : ι → α)
   (g : ι → β) {p : finset ι → Prop} (s : finset ι) (h0 : p ∅)
   (step : ∀ a s, a ∉ s → (∀ x ∈ s, f a < f x ∨ (f a = f x ∧ g a ≤ g x)) → p s → p (insert a s)) :
   p s :=
-begin
-  revert h0 step,
-  convert @induction_on_min_value (lex α β) ι _ _ (λ i, (prod.map f g) (i, i)) p s,
-  simp_rw [lex_le_iff, eq_iff_iff, prod.map_mk]
+induction_on_min_value (λ i, to_lex (f i, g i)) s h0 begin
+  simp_rw prod.lex.le_iff,
+  exact step,
 end
 
 end max_min_induction_value

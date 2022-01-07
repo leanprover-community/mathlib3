@@ -1147,11 +1147,8 @@ protected noncomputable def set.finrank (s: set V) : ℕ := finrank K (span K s)
 
 variable {K}
 
-lemma set.finrank_mono (s t: set V) [finite_dimensional K V] : s ⊆ t → s.finrank K ≤ t.finrank K :=
-begin
-  intro h,
-  exact finrank_mono (span_mono h),
-end
+lemma set.finrank_mono [finite_dimensional K V] {s t : set V} (h : s ⊆ t) : s.finrank K ≤ t.finrank K :=
+finrank_mono (span_mono h)
 
 lemma finrank_span_le_card (s : set V) [fin : fintype s] :
   s.finrank K ≤ s.to_finset.card :=

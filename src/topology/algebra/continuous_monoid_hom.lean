@@ -1,0 +1,109 @@
+/-
+Copyright (c) 2022 Thomas Browning. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Thomas Browning
+-/
+import topology.algebra.group
+import topology.continuous_function.basic
+
+/-!
+
+# Continuous Monoid Homs
+
+This file defines the space of continuous homomorphisms between two topological groups.
+
+## Main definitions
+
+* `continuous_monoid_hom A B`: The continuous homomorphisms `A →* B`.
+
+-/
+
+variables (A B C D E : Type*)
+  [monoid A] [monoid B] [monoid C] [monoid D] [comm_group E]
+  [topological_space A] [topological_space B] [topological_space C] [topological_space D]
+  [topological_space E] [topological_group E]
+
+set_option old_structure_cmd true
+
+/-- Continuous homomorphisms between two topological groups. -/
+structure continuous_monoid_hom extends A →* B, continuous_map A B
+
+namespace continuous_monoid_hom
+
+variables {A B C D E}
+
+instance : has_coe_to_fun (continuous_monoid_hom A B) (λ _, A → B) :=
+⟨continuous_monoid_hom.to_fun⟩
+
+lemma ext {f g : continuous_monoid_hom A B} (h : ∀ x, f x = g x) : f = g :=
+by cases f; cases g; congr; exact funext h
+
+/-- Construct a `continuous_monoid_hom` from a `continuous` `monoid_hom`. -/
+def mk' (f : A →* B) (hf : continuous f) : continuous_monoid_hom A B := { .. f }
+
+/-- Composition of two continuous homomorphisms. -/
+def comp (g : continuous_monoid_hom B C) (f : continuous_monoid_hom A B) :
+  continuous_monoid_hom A C :=
+mk' (g.to_monoid_hom.comp f.to_monoid_hom) (g.continuous_to_fun.comp f.continuous_to_fun)
+
+/-- Product of two continuous homomorphisms on the same space. -/
+def prod (f : continuous_monoid_hom A B) (g : continuous_monoid_hom A C) :
+  continuous_monoid_hom A (B × C) :=
+mk' (f.to_monoid_hom.prod g.to_monoid_hom) (f.continuous_to_fun.prod_mk g.continuous_to_fun)
+
+/-- Product of two continuous homomorphisms on different spaces. -/
+def prod_map (f : continuous_monoid_hom A C) (g : continuous_monoid_hom B D) :
+  continuous_monoid_hom (A × B) (C × D) :=
+mk' (f.to_monoid_hom.prod_map g.to_monoid_hom) (f.continuous_to_fun.prod_map g.continuous_to_fun)
+
+variables (A B C D E)
+
+/-- The trivial continuous homomorphism. -/
+def one : continuous_monoid_hom A B := mk' 1 continuous_const
+
+instance : inhabited (continuous_monoid_hom A B) := ⟨one A B⟩
+
+/-- The identity continuous homomorphism. -/
+def id : continuous_monoid_hom A A := mk' (monoid_hom.id A) continuous_id
+
+/-- The continuous homomorphism given by projection onto the first factor. -/
+def fst : continuous_monoid_hom (A × B) A := mk' (monoid_hom.fst A B) continuous_fst
+
+/-- The continuous homomorphism given by projection onto the second factor. -/
+def snd : continuous_monoid_hom (A × B) B := mk' (monoid_hom.snd A B) continuous_snd
+
+/-- The continuous homomorphism given by inclusion of the first factor. -/
+def inl : continuous_monoid_hom A (A × B) := prod (id A) (one A B)
+
+/-- The continuous homomorphism given by inclusion of the second factor. -/
+def inr : continuous_monoid_hom B (A × B) := prod (one B A) (id B)
+
+/-- The continuous homomorphism given by the diagonal embedding. -/
+def diag : continuous_monoid_hom A (A × A) := prod (id A) (id A)
+
+/-- The continuous homomorphism given by multiplication. -/
+def prod_mul : continuous_monoid_hom (E × E) E :=
+mk' mul_monoid_hom continuous_mul
+
+/-- The continuous homomorphism given by inversion. -/
+def inv : continuous_monoid_hom E E :=
+mk' comm_group.inv_monoid_hom continuous_inv
+
+variables {A B C D E}
+
+/-- Coproduct of two continuous homomorphisms to the same space. -/
+def coprod (f : continuous_monoid_hom A E) (g : continuous_monoid_hom B E) :
+  continuous_monoid_hom (A × B) E :=
+(prod_mul E).comp (f.prod_map g)
+
+instance : comm_group (continuous_monoid_hom A E) :=
+{ mul := λ f g, (prod_mul E).comp (f.prod g),
+  mul_comm := λ f g, ext (λ x, mul_comm (f x) (g x)),
+  mul_assoc := λ f g h, ext (λ x, mul_assoc (f x) (g x) (h x)),
+  one := one A E,
+  one_mul := λ f, ext (λ x, one_mul (f x)),
+  mul_one := λ f, ext (λ x, mul_one (f x)),
+  inv := λ f, (inv E).comp f,
+  mul_left_inv := λ f, ext (λ x, mul_left_inv (f x)) }
+
+end continuous_monoid_hom

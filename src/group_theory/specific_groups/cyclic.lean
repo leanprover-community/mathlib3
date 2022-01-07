@@ -257,8 +257,7 @@ lemma is_cyclic.image_range_order_of (ha : ∀ x : α, x ∈ zpowers a) :
   finset.image (λ i, a ^ i) (range (order_of a)) = univ :=
 begin
   simp_rw [←set_like.mem_coe] at ha,
-  simp only [image_range_order_of, set.eq_univ_iff_forall.mpr ha],
-  convert set.to_finset_univ
+  simp only [image_range_order_of, set.eq_univ_iff_forall.mpr ha, set.to_finset_univ],
 end
 
 @[to_additive]

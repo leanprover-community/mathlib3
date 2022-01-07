@@ -499,7 +499,7 @@ instance subtype.linear_order {α} [linear_order α] (p : α → Prop) : linear_
 ### Pointwise order on `α × β`
 
 The lexicographic order is defined in `order.lexicographic`, and the instances are available via the
-type synonym `lex α β = α × β`.
+type synonym `α ×ₗ β = α × β`.
 -/
 
 namespace prod
@@ -537,7 +537,7 @@ lt_iff
 
 /-- The pointwise partial order on a product.
     (The lexicographic ordering is defined in order/lexicographic.lean, and the instances are
-    available via the type synonym `lex α β = α × β`.) -/
+    available via the type synonym `α ×ₗ β = α × β`.) -/
 instance (α : Type u) (β : Type v) [partial_order α] [partial_order β] :
   partial_order (α × β) :=
 { le_antisymm := λ ⟨a, b⟩ ⟨c, d⟩ ⟨hac, hbd⟩ ⟨hca, hdb⟩,

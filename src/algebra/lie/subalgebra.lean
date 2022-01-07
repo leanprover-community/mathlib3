@@ -51,19 +51,39 @@ instance : inhabited (lie_subalgebra R L) := ⟨0⟩
 instance : has_coe (lie_subalgebra R L) (submodule R L) := ⟨lie_subalgebra.to_submodule⟩
 instance : has_mem L (lie_subalgebra R L) := ⟨λ x L', x ∈ (L' : set L)⟩
 
+namespace lie_subalgebra
+
 /-- A Lie subalgebra forms a new Lie ring. -/
-instance lie_subalgebra_lie_ring (L' : lie_subalgebra R L) : lie_ring L' :=
+instance (L' : lie_subalgebra R L) : lie_ring L' :=
 { bracket      := λ x y, ⟨⁅x.val, y.val⁆, L'.lie_mem' x.property y.property⟩,
   lie_add      := by { intros, apply set_coe.ext, apply lie_add, },
   add_lie      := by { intros, apply set_coe.ext, apply add_lie, },
   lie_self     := by { intros, apply set_coe.ext, apply lie_self, },
   leibniz_lie  := by { intros, apply set_coe.ext, apply leibniz_lie, } }
 
-/-- A Lie subalgebra forms a new Lie algebra. -/
-instance lie_subalgebra_lie_algebra (L' : lie_subalgebra R L) : lie_algebra R L' :=
-{ lie_smul := by { intros, apply set_coe.ext, apply lie_smul } }
+section
 
-namespace lie_subalgebra
+variables {R₁ : Type*} [semiring R₁]
+
+/-- A Lie subalgebra inherits module structures from `L`. -/
+instance [has_scalar R₁ R] [module R₁ L] [is_scalar_tower R₁ R L]
+  (L' : lie_subalgebra R L) : module R₁ L' :=
+L'.to_submodule.module'
+
+instance [has_scalar R₁ R] [has_scalar R₁ᵐᵒᵖ R] [module R₁ L] [module R₁ᵐᵒᵖ L]
+  [is_scalar_tower R₁ R L] [is_scalar_tower R₁ᵐᵒᵖ R L] [is_central_scalar R₁ L]
+  (L' : lie_subalgebra R L) : is_central_scalar R₁ L' :=
+L'.to_submodule.is_central_scalar
+
+instance [has_scalar R₁ R] [module R₁ L] [is_scalar_tower R₁ R L]
+  (L' : lie_subalgebra R L) : is_scalar_tower R₁ R L' :=
+L'.to_submodule.is_scalar_tower
+
+end
+
+/-- A Lie subalgebra forms a new Lie algebra. -/
+instance (L' : lie_subalgebra R L) : lie_algebra R L' :=
+{ lie_smul := by { intros, apply set_coe.ext, apply lie_smul } }
 
 variables {R L} (L' : lie_subalgebra R L)
 

@@ -7,7 +7,7 @@ import algebra.algebra.restrict_scalars
 import algebra.algebra.subalgebra
 import analysis.normed.group.infinite_sum
 import data.matrix.basic
-import topology.algebra.module
+import topology.algebra.module.basic
 import topology.instances.ennreal
 import topology.sequences
 
@@ -201,7 +201,7 @@ section normed_ring
 
 variables [normed_ring α]
 
-lemma units.norm_pos [nontrivial α] (x : units α) : 0 < ∥(x:α)∥ :=
+lemma units.norm_pos [nontrivial α] (x : αˣ) : 0 < ∥(x:α)∥ :=
 norm_pos_iff.mpr (units.ne_zero x)
 
 /-- Normed ring structure on the product of two normed rings, using the sup norm. -/
@@ -819,16 +819,15 @@ begin
   rwa norm_pos_iff
 end
 
+protected lemma normed_space.unbounded_univ : ¬bounded (set.univ : set E) :=
+λ h, let ⟨R, hR⟩ := bounded_iff_forall_norm_le.1 h, ⟨x, hx⟩ := normed_space.exists_lt_norm 𝕜 E R
+in hx.not_le (hR x trivial)
+
 /-- A normed vector space over a nondiscrete normed field is a noncompact space. This cannot be
 an instance because in order to apply it, Lean would have to search for `normed_space 𝕜 E` with
 unknown `𝕜`. We register this as an instance in two cases: `𝕜 = E` and `𝕜 = ℝ`. -/
 protected lemma normed_space.noncompact_space : noncompact_space E :=
-begin
-  refine ⟨λ h, _⟩,
-  rcases bounded_iff_forall_norm_le.1 h.bounded with ⟨R, hR⟩,
-  rcases normed_space.exists_lt_norm 𝕜 E R with ⟨x, hx⟩,
-  exact hx.not_le (hR _ trivial)
-end
+⟨λ h, normed_space.unbounded_univ 𝕜 _ h.bounded⟩
 
 @[priority 100]
 instance nondiscrete_normed_field.noncompact_space : noncompact_space 𝕜 :=

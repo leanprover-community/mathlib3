@@ -169,15 +169,15 @@ def bind (f : ultrafilter α) (m : α → ultrafilter β) : ultrafilter β :=
 of_compl_not_mem_iff (bind ↑f (λ x, ↑(m x))) $ λ s,
   by simp only [mem_bind', mem_coe, ← compl_mem_iff_not_mem, compl_set_of, compl_compl]
 
-instance ultrafilter.has_bind : has_bind ultrafilter := ⟨@ultrafilter.bind⟩
-instance ultrafilter.functor : functor ultrafilter := { map := @ultrafilter.map }
-instance ultrafilter.monad : monad ultrafilter := { map := @ultrafilter.map }
+instance has_bind : has_bind ultrafilter := ⟨@ultrafilter.bind⟩
+instance functor : functor ultrafilter := { map := @ultrafilter.map }
+instance monad : monad ultrafilter := { map := @ultrafilter.map }
 
 section
 
 local attribute [instance] filter.monad filter.is_lawful_monad
 
-instance ultrafilter.is_lawful_monad : is_lawful_monad ultrafilter :=
+instance is_lawful_monad : is_lawful_monad ultrafilter :=
 { id_map := assume α f, coe_injective (id_map f.1),
   pure_bind := assume α β a f, coe_injective (pure_bind a (coe ∘ f)),
   bind_assoc := assume α β γ f m₁ m₂, coe_injective (filter_eq rfl),

@@ -6,6 +6,8 @@ Authors: Scott Morrison, Justus Springer
 import algebraic_geometry.locally_ringed_space
 import algebraic_geometry.structure_sheaf
 import data.equiv.transfer_instance
+import topology.sheaves.sheaf_condition.sites
+import topology.sheaves.functors
 
 /-!
 # $Spec$ as a functor to locally ringed spaces.
@@ -30,7 +32,6 @@ natural transformation in `Spec_Γ_naturality`, and realized as a natural isomor
 `Spec_Γ_identity`.
 
 TODO: provide the unit, and prove the triangle identities.
-
 
 -/
 
@@ -132,6 +133,20 @@ lemma Spec.to_PresheafedSpace_obj_op (R : CommRing) :
 lemma Spec.to_PresheafedSpace_map_op (R S : CommRing) (f : R ⟶ S) :
   Spec.to_PresheafedSpace.map f.op = Spec.SheafedSpace_map f := rfl
 
+lemma Spec.basic_open_hom_ext {X : RingedSpace} {R : CommRing} {α β : X ⟶ Spec.SheafedSpace_obj R}
+  (w : α.base = β.base) (h : ∀ r : R, let U := prime_spectrum.basic_open r in
+    (to_open R U ≫ α.c.app (op U)) ≫ X.presheaf.map (eq_to_hom (by rw w)) =
+     to_open R U ≫ β.c.app (op U)) : α = β :=
+begin
+  ext1,
+  { apply ((Top.sheaf.pushforward β.base).obj X.sheaf).hom_ext _
+      prime_spectrum.is_basis_basic_opens,
+    intro r,
+    apply (structure_sheaf.to_basic_open_epi R r).1,
+    simpa using h r },
+  exact w,
+end
+
 /--
 The spectrum of a commutative ring, as a `LocallyRingedSpace`.
 -/
@@ -209,7 +224,7 @@ Spec, as a contravariant functor from commutative rings to locally ringed spaces
 section Spec_Γ
 open algebraic_geometry.LocallyRingedSpace
 
-/-- The morphism `R ⟶ Γ(Spec R)` given by `algebraic_geometry.structure_sheaf.to_open`.  -/
+/-- The counit morphism `R ⟶ Γ(Spec R)` given by `algebraic_geometry.structure_sheaf.to_open`.  -/
 @[simps] def to_Spec_Γ (R : CommRing) : R ⟶ Γ.obj (op (Spec.to_LocallyRingedSpace.obj (op R))) :=
 structure_sheaf.to_open R ⊤
 
@@ -220,7 +235,7 @@ lemma Spec_Γ_naturality {R S : CommRing} (f : R ⟶ S) :
   f ≫ to_Spec_Γ S = to_Spec_Γ R ≫ Γ.map (Spec.to_LocallyRingedSpace.map f.op).op :=
 by { ext, symmetry, apply localization.local_ring_hom_to_map }
 
-/-- The counit of the adjunction `Γ ⊣ Spec` is an isomorphism. -/
+/-- The counit (`Spec_Γ_identity.inv.op`) of the adjunction `Γ ⊣ Spec` is an isomorphism. -/
 @[simps] def Spec_Γ_identity : Spec.to_LocallyRingedSpace.right_op ⋙ Γ ≅ 𝟭 _ :=
 iso.symm $ nat_iso.of_components (λ R, as_iso (to_Spec_Γ R) : _) (λ _ _, Spec_Γ_naturality)
 

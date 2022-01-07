@@ -435,7 +435,27 @@ begin
       .CommRing_iso_to_ring_equiv.injective
 end
 
-local attribute [elementwise] category_theory.is_iso.hom_inv_id
+instance {R : CommRing} [H : _root_.is_reduced R] : is_reduced (Scheme.Spec.obj $ op R) :=
+begin
+  apply_with is_reduced_of_stalk_is_reduced { instances := ff },
+  intro x, dsimp,
+  haveI : _root_.is_reduced (CommRing.of $ localization.at_prime (prime_spectrum.as_ideal x)),
+  { dsimp, apply_instance },
+  exact is_reduced_of_injective (structure_sheaf.stalk_iso R x).hom
+    (structure_sheaf.stalk_iso R x).CommRing_iso_to_ring_equiv.injective,
+end
+
+lemma affine_is_reduced_iff (R : CommRing) :
+  is_reduced (Scheme.Spec.obj $ op R) ↔ _root_.is_reduced R :=
+begin
+  refine ⟨_, λ h, by exactI infer_instance⟩,
+  intro h,
+  resetI,
+  haveI : _root_.is_reduced (LocallyRingedSpace.Γ.obj (op $ Spec.to_LocallyRingedSpace.obj $ op R)),
+  { change _root_.is_reduced ((Scheme.Spec.obj $ op R).presheaf.obj $ op ⊤), apply_instance },
+  exact is_reduced_of_injective (to_Spec_Γ R)
+    ((as_iso $ to_Spec_Γ R).CommRing_iso_to_ring_equiv.injective)
+end
 
 lemma basic_open_eq_of_affine {R : CommRing} (f : R) :
   RingedSpace.basic_open (Spec.to_SheafedSpace.obj (op R)) ((Spec_Γ_identity.app R).inv f) =
@@ -462,6 +482,12 @@ begin
   exact (coe_hom_inv_id _ _).symm
 end
 
+/-- To show that a statement `P` holds for all open subsets of all schemes, it suffices to show that
+1. In any scheme `X`, if `P` holds for an open cover of `U`, then `P` holds for `U`.
+2. For an open immerison `f : X ⟶ Y`, if `P` holds for the entire space of `X`, then `P` holds for
+  the image of `f`.
+3. `P` holds for the entire space of an affine scheme.
+-/
 lemma reduce_to_affine_global (P : ∀ (X : Scheme) (U : opens X.carrier), Prop)
   (h₁ : ∀ (X : Scheme) (U : opens X.carrier),
     (∀ (x : U), ∃ {V} (h : x.1 ∈ V) (i : V ⟶ U), P X V) → P X U)
@@ -621,6 +647,11 @@ begin
   exact (@@LocallyRingedSpace.component_nontrivial X.to_LocallyRingedSpace U hU).1,
 end
 
+lemma is_integral_iff_is_irreducible_and_is_reduced :
+  is_integral X ↔ irreducible_space X.carrier ∧ is_reduced X :=
+⟨λ _, by exactI ⟨infer_instance, infer_instance⟩,
+  λ ⟨_, _⟩, by exactI is_integral_of_is_irreducible_is_reduced X⟩
+
 lemma is_integral_of_open_immersion {X Y : Scheme} (f : X ⟶ Y) [H : is_open_immersion f]
   [is_integral Y] [nonempty X.carrier] : is_integral X :=
 begin
@@ -637,38 +668,18 @@ begin
     Y.presheaf.obj _ ≅ _).symm.CommRing_iso_to_ring_equiv.is_domain _
 end
 
-
-universes u v
-
-/-- The function field of an integral scheme is the local ring at its generic point. -/
-noncomputable
-abbreviation Scheme.function_field [is_integral X] : CommRing :=
-X.presheaf.stalk (generic_point X.carrier)
-
-noncomputable
-abbreviation Scheme.germ_to_function_field [is_integral X] (U : opens X.carrier) [h : nonempty U] :
-  X.presheaf.obj (op U) ⟶ X.function_field :=
-X.presheaf.germ ⟨generic_point X.carrier,
-  ((generic_point_spec X.carrier).mem_open_set_iff U.prop).mpr (by simpa using h)⟩
-
-noncomputable
-instance [is_integral X] : field X.function_field :=
+instance {R : CommRing} [H : is_domain R] : is_integral (Scheme.Spec.obj $ op R) :=
 begin
-  apply field_of_is_unit_or_eq_zero,
-  intro a,
-  obtain ⟨U, m, s, rfl⟩ := Top.presheaf.germ_exist _ _ a,
-  rw [or_iff_not_imp_right, ← (X.presheaf.germ ⟨_, m⟩).map_zero],
-  intro ha,
-  replace ha := ne_of_apply_ne _ ha,
-  have hs : generic_point X.carrier ∈ RingedSpace.basic_open _ s,
-  { rw [← opens.mem_coe, (generic_point_spec X.carrier).mem_open_set_iff, set.top_eq_univ,
-      set.univ_inter, ← set.ne_empty_iff_nonempty, ne.def, ← opens.coe_bot,
-      subtype.coe_injective.eq_iff, ← opens.empty_eq],
-    erw basic_open_eq_bot_iff,
-    exacts [ha, (RingedSpace.basic_open _ _).prop] },
-  have := (X.presheaf.germ ⟨_, hs⟩).is_unit_map (RingedSpace.is_unit_res_basic_open _ s),
-  rwa Top.presheaf.germ_res_apply at this
+  apply_with is_integral_of_is_irreducible_is_reduced { instances := ff },
+  { apply_instance },
+  { dsimp [Spec.Top_obj],
+    apply_instance },
 end
+
+lemma affine_is_integral_iff (R : CommRing) :
+  is_integral (Scheme.Spec.obj $ op R) ↔ is_domain R :=
+⟨λ h, by exactI ring_equiv.is_domain ((Scheme.Spec.obj $ op R).presheaf.obj _)
+  (as_iso $ to_Spec_Γ R).CommRing_iso_to_ring_equiv, λ h, by exactI infer_instance⟩
 
 lemma map_injective_of_is_integral [is_integral X] {U V : opens X.carrier} (i : U ⟶ V)
   [H : nonempty U] :

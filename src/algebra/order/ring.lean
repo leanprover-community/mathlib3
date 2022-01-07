@@ -760,13 +760,13 @@ def function.injective.linear_ordered_semiring {β : Type*}
   .. pullback_nonzero f zero one,
   .. hf.ordered_semiring f zero one add mul }
 
-@[simp] lemma units.inv_pos {u : units α} : (0 : α) < ↑u⁻¹ ↔ (0 : α) < u :=
-have ∀ {u : units α}, (0 : α) < u → (0 : α) < ↑u⁻¹ := λ u h,
+@[simp] lemma units.inv_pos {u : αˣ} : (0 : α) < ↑u⁻¹ ↔ (0 : α) < u :=
+have ∀ {u : αˣ}, (0 : α) < u → (0 : α) < ↑u⁻¹ := λ u h,
   (zero_lt_mul_left h).mp $ u.mul_inv.symm ▸ zero_lt_one,
 ⟨this, this⟩
 
-@[simp] lemma units.inv_neg {u : units α} : ↑u⁻¹ < (0 : α) ↔ ↑u < (0 : α) :=
-have ∀ {u : units α}, ↑u < (0 : α) → ↑u⁻¹ < (0 : α) := λ u h,
+@[simp] lemma units.inv_neg {u : αˣ} : ↑u⁻¹ < (0 : α) ↔ ↑u < (0 : α) :=
+have ∀ {u : αˣ}, ↑u < (0 : α) → ↑u⁻¹ < (0 : α) := λ u h,
   neg_of_mul_pos_left (by exact (u.mul_inv.symm ▸ zero_lt_one)) h.le,
 ⟨this, this⟩
 
@@ -1174,9 +1174,14 @@ lt_iff_lt_of_le_iff_le (mul_le_mul_right_of_neg h)
 lemma sub_one_lt (a : α) : a - 1 < a :=
 sub_lt_iff_lt_add.2 (lt_add_one a)
 
-lemma mul_self_pos {a : α} (ha : a ≠ 0) : 0 < a * a :=
-by rcases lt_trichotomy a 0 with h|h|h;
-   [exact mul_pos_of_neg_of_neg h h, exact (ha h).elim, exact mul_pos h h]
+@[simp] lemma mul_self_pos {a : α} : 0 < a * a ↔ a ≠ 0 :=
+begin
+  split,
+  { rintro h rfl, rw mul_zero at h, exact h.false },
+  { intro h,
+    cases h.lt_or_lt with h h,
+    exacts [mul_pos_of_neg_of_neg h h, mul_pos h h] }
+end
 
 lemma mul_self_le_mul_self_of_le_of_neg_le {x y : α} (h₁ : x ≤ y) (h₂ : -x ≤ y) : x * x ≤ y * y :=
 begin

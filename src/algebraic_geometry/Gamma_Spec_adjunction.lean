@@ -48,27 +48,26 @@ namespace LocallyRingedSpace
 
 variable (X : LocallyRingedSpace.{u})
 
-/-- Map from the global sections to a stalk. -/
+/-- The map from the global sections to a stalk. -/
 def Γ_to_stalk (x : X) : Γ.obj (op X) ⟶ X.presheaf.stalk x :=
   X.presheaf.germ (⟨x,trivial⟩ : (⊤ : opens X))
 -- or @Top.presheaf.germ _ _ _ _ _ ⊤ ⟨x,trivial⟩
 
-/-- Unit on the underlying set. -/
+/-- The canonical map from the underlying set to the prime spectrum of `Γ(X)`. -/
 def to_Γ_Spec_fun : X → prime_spectrum (Γ.obj (op X)) :=
-  λ x, comap (X.Γ_to_stalk x) (@local_ring.closed_point _ _ (X.local_ring x))
--- or Spec.to_Top.map (X.Γ_to_stalk x).op (@local_ring.closed_point ...)
+  λ x, comap (X.Γ_to_stalk x) (local_ring.closed_point (X.presheaf.stalk x))
 
 lemma not_mem_prime_iff_unit_in_stalk (r : Γ.obj (op X)) (x : X) :
   r ∉ (X.to_Γ_Spec_fun x).as_ideal ↔ is_unit (X.Γ_to_stalk x r) :=
 by erw [local_ring.mem_maximal_ideal, not_not]
 
-/-- The preimage of a basic open in `Spec Γ(X)` under the unit is the basic 
+/-- The preimage of a basic open in `Spec Γ(X)` under the unit is the basic
 open in `X` defined by the same element (they are equal as sets). -/
 lemma to_Γ_Spec_preim_basic_open_eq (r : Γ.obj (op X)) :
   X.to_Γ_Spec_fun⁻¹' (basic_open r).1 = (X.to_RingedSpace.basic_open r).1 :=
 by { ext, erw X.to_RingedSpace.mem_top_basic_open, apply not_mem_prime_iff_unit_in_stalk }
 
-/-- `to_\Gamma_Spec_fun` is continuous. -/
+/-- `to_Γ_Spec_fun` is continuous. -/
 lemma to_Γ_Spec_continuous : continuous X.to_Γ_Spec_fun :=
 begin
   apply is_topological_basis_basic_opens.continuous,
@@ -77,7 +76,7 @@ begin
   exact (X.to_RingedSpace.basic_open r).2,
 end
 
-/-- The canonical (bundled) continuous map from the underlying topological 
+/-- The canonical (bundled) continuous map from the underlying topological
 space of `X` to the prime spectrum of its global sections. -/
 @[simps]
 def to_Γ_Spec_base : X.to_Top ⟶ Spec.Top_obj (Γ.obj (op X)) :=
@@ -243,7 +242,7 @@ end
 
 end LocallyRingedSpace
 
-/-- Unit as a natural transformation. -/
+/-- The unit as a natural transformation. -/
 def identity_to_Γ_Spec : 𝟭 LocallyRingedSpace.{u} ⟶ Γ.right_op ⋙ Spec.to_LocallyRingedSpace :=
 { app := LocallyRingedSpace.to_Γ_Spec,
   naturality' := λ X Y f, begin
@@ -322,12 +321,12 @@ lemma adjunction_hom_equiv_symm_apply {X : Scheme} {R : CommRingᵒᵖ}
     (LocallyRingedSpace_adjunction.hom_equiv X.1 R).symm f :=
 by { congr' 2, exact adjunction_hom_equiv _ _ }
 
-lemma adjunction_counit_app {R : CommRingᵒᵖ} :
+@[simp] lemma adjunction_counit_app {R : CommRingᵒᵖ} :
   Γ_Spec.adjunction.counit.app R = LocallyRingedSpace_adjunction.counit.app R :=
 by { rw [← adjunction.hom_equiv_symm_id, ← adjunction.hom_equiv_symm_id,
   adjunction_hom_equiv_symm_apply], refl }
 
-lemma adjunction_unit_app {X : Scheme} :
+@[simp] lemma adjunction_unit_app {X : Scheme} :
   Γ_Spec.adjunction.unit.app X = LocallyRingedSpace_adjunction.unit.app X.1 :=
 by { rw [← adjunction.hom_equiv_id, ← adjunction.hom_equiv_id, adjunction_hom_equiv_apply], refl }
 

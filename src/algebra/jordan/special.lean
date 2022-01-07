@@ -54,8 +54,8 @@ def sym : α → αˢʸᵐ := id
 @[pp_nodot]
 def unsym : αˢʸᵐ → α := id
 
-@[simp] lemma unsym_sym (x : α) : unsym (sym x) = x := rfl
-@[simp] lemma sym_unsym (x : α) : sym (unsym x) = x := rfl
+@[simp] lemma unsym_sym (a : α) : unsym (sym a) = a := rfl
+@[simp] lemma sym_unsym (a : α) : sym (unsym a) = a := rfl
 
 @[simp] lemma sym_comp_unsym : (sym : α → αˢʸᵐ) ∘ unsym = id := rfl
 @[simp] lemma unsym_comp_sym : (unsym : αˢʸᵐ → α) ∘ sym = id := rfl
@@ -71,8 +71,8 @@ lemma sym_surjective : surjective (sym : α → αˢʸᵐ) := sym_bijective.surj
 lemma unsym_injective : injective (unsym : αˢʸᵐ → α) := unsym_bijective.injective
 lemma unsym_surjective : surjective (unsym : αˢʸᵐ → α) := unsym_bijective.surjective
 
-@[simp] lemma sym_inj {x y : α} : sym x = sym y ↔ x = y := sym_injective.eq_iff
-@[simp] lemma unsym_inj {x y : αˢʸᵐ} : unsym x = unsym y ↔ x = y := unsym_injective.eq_iff
+@[simp] lemma sym_inj {a b : α} : sym a = sym b ↔ a = b := sym_injective.eq_iff
+@[simp] lemma unsym_inj {a b : αˢʸᵐ} : unsym a = unsym b ↔ a = b := unsym_injective.eq_iff
 
 instance [nontrivial α] : nontrivial αˢʸᵐ := sym_injective.nontrivial
 instance [inhabited α] : inhabited αˢʸᵐ := ⟨sym (default α)⟩
@@ -98,10 +98,10 @@ instance [has_add α] [has_mul α] [has_one α] [invertible (2 : α)] : has_mul(
 { mul := λ a b, sym (⅟2 * (unsym a * unsym b + unsym b * unsym a)) }
 
 @[to_additive] instance [has_inv α] : has_inv αˢʸᵐ :=
-{ inv := λ x, sym $ (unsym x)⁻¹ }
+{ inv := λ a, sym $ (unsym a)⁻¹ }
 
 instance (R : Type*) [has_scalar R α] : has_scalar R αˢʸᵐ :=
-{ smul := λ c x, sym (c • unsym x) }
+{ smul := λ r a, sym (r • unsym a) }
 
 @[simp] lemma sym_zero [has_zero α] : sym (0 : α) = 0 := rfl
 @[simp] lemma unsym_zero [has_zero α] : unsym (0 : αˢʸᵐ) = 0 := rfl

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Bhavik Mehta
 -/
 import algebra.big_operators.basic
-import data.sym.sym2
+import data.finset.sym
 
 /-!
 # Stars and bars
@@ -42,8 +42,7 @@ namespace sym2
 variables {α : Type*} [decidable_eq α]
 
 /-- The `diag` of `s : finset α` is sent on a finset of `sym2 α` of card `s.card`. -/
-lemma card_image_diag (s : finset α) :
-  (s.diag.image quotient.mk).card = s.card :=
+lemma card_image_diag (s : finset α) : (s.diag.image quotient.mk).card = s.card :=
 begin
   rw [card_image_of_inj_on, diag_card],
   rintro ⟨x₀, x₁⟩ hx _ _ h,
@@ -105,10 +104,21 @@ begin
   exact and_iff_right ⟨a, mem_univ _, ha⟩,
 end
 
-protected lemma card [fintype α] :
-  card (sym2 α) = card α * (card α + 1) / 2 :=
-by rw [←fintype.card_congr (@equiv.sum_compl _ is_diag (sym2.is_diag.decidable_pred α)),
-  fintype.card_sum, card_subtype_diag, card_subtype_not_diag, nat.choose_two_right, add_comm,
-  ←nat.triangle_succ, nat.succ_sub_one, mul_comm]
+/-- Finset **stars and bars** for the case `n = 2`. -/
+lemma _root_.finset.card_sym2 (s : finset α) : s.sym2.card = s.card * (s.card + 1) / 2 :=
+begin
+  rw [←image_diag_union_image_off_diag, card_union_eq, sym2.card_image_diag,
+    sym2.card_image_off_diag, nat.choose_two_right, add_comm, ←nat.triangle_succ, nat.succ_sub_one,
+    mul_comm],
+  rintro m he,
+  rw [inf_eq_inter, mem_inter, mem_image, mem_image] at he,
+  obtain ⟨⟨a, ha, rfl⟩, b, hb, hab⟩ := he,
+  refine not_is_diag_mk_of_mem_off_diag hb _,
+  rw hab,
+  exact is_diag_mk_of_mem_diag ha,
+end
+
+/-- Type **stars and bars** for the case `n = 2`. -/
+protected lemma card [fintype α] : card (sym2 α) = card α * (card α + 1) / 2 := finset.card_sym2 _
 
 end sym2

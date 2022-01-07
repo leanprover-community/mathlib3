@@ -38,6 +38,8 @@ show these are equivalent in `sym.sym_equiv_sym'`.
 -/
 def sym (α : Type u) (n : ℕ) := {s : multiset α // s.card = n}
 
+instance sym.has_coe (α : Type*) (n : ℕ) : has_coe (sym α n) (multiset α) := coe_subtype
+
 /--
 This is the `list.perm` setoid lifted to `vector`.
 
@@ -51,7 +53,7 @@ local attribute [instance] vector.perm.is_setoid
 
 namespace sym
 
-variables {α : Type u} {n : ℕ}
+variables {α : Type u} {n : ℕ} {s : sym α n} {a b : α}
 
 /--
 The unique element in `sym α 0`.
@@ -156,6 +158,17 @@ instance unique_zero : unique (sym α 0) :=
 def repeat (a : α) (n : ℕ) : sym α n := ⟨multiset.repeat a n, multiset.card_repeat _ _⟩
 
 lemma repeat_succ {a : α} {n : ℕ} : repeat a n.succ = a :: repeat a n := rfl
+
+lemma coe_repeat : (repeat a n : multiset α) = multiset.repeat a n := rfl
+
+@[simp] lemma mem_repeat : b ∈ repeat a n ↔ n ≠ 0 ∧ b = a := multiset.mem_repeat
+
+lemma eq_repeat_iff : s = repeat a n ↔ ∀ b ∈ s, b = a :=
+begin
+  rw [subtype.ext_iff, coe_repeat],
+  convert multiset.eq_repeat',
+  exact s.2.symm,
+end
 
 lemma exists_mem (s : sym α n.succ) : ∃ a, a ∈ s :=
 multiset.card_pos_iff_exists_mem.1 $ s.2.symm ▸ n.succ_pos

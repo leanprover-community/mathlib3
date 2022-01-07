@@ -83,7 +83,7 @@ instance [is_empty α] : is_empty αˢʸᵐ := function.is_empty unsym
 
 instance [has_zero α] : has_zero (αˢʸᵐ) := { zero := sym 0 }
 
-instance [has_one α] : has_one αᵐᵒᵖ := { one := sym 1 }
+instance [has_one α] : has_one αˢʸᵐ := { one := sym 1 }
 
 instance [has_add α] : has_add αˢʸᵐ :=
 { add := λ a b, sym (unsym a + unsym b) }
@@ -93,18 +93,56 @@ instance [has_sub α] : has_sub αˢʸᵐ := { sub := λ a b, sym (unsym a - uns
 instance [has_neg α] : has_neg αˢʸᵐ :=
 { neg := λ a, sym (-unsym a) }
 
+/- Introduce the symmetrised multiplication-/
+instance [has_add α] [has_mul α] [has_one α] [invertible (2 : α)] : has_mul(αˢʸᵐ) :=
+{ mul := λ a b, sym (⅟2 * (unsym a * unsym b + unsym b * unsym a)) }
+
+@[to_additive] instance [has_inv α] : has_inv αˢʸᵐ :=
+{ inv := λ x, sym $ (unsym x)⁻¹ }
+
+instance (R : Type*) [has_scalar R α] : has_scalar R αˢʸᵐ :=
+{ smul := λ c x, sym (c • unsym x) }
+
+@[simp] lemma sym_zero [has_zero α] : sym (0 : α) = 0 := rfl
+@[simp] lemma unsym_zero [has_zero α] : unsym (0 : αˢʸᵐ) = 0 := rfl
+
+@[simp, to_additive] lemma sym_one [has_one α] : sym (1 : α) = 1 := rfl
+@[simp, to_additive] lemma unsym_one [has_one α] : unsym (1 : αˢʸᵐ) = 1 := rfl
+
 @[simp] lemma sym_add [has_add α] (a b : α) : sym (a + b) = sym a + sym b := rfl
-@[simp] lemma unsym_add [has_add α] (x y : αˢʸᵐ) : unsym (x + y) = unsym x + unsym y := rfl
+@[simp] lemma unsym_add [has_add α] (a b : αˢʸᵐ) : unsym (a + b) = unsym a + unsym b := rfl
 
-@[simp] lemma sym_sub [has_sub α] (x y : α) : sym (x - y) = sym x - sym y := rfl
-@[simp] lemma unsym_sub [has_sub α] (x y : αᵐᵒᵖ) : unsym (x - y) = unsym x - unsym y := rfl
+@[simp] lemma sym_neg [has_neg α] (a : α) : sym (-a) = -sym a := rfl
+@[simp] lemma unsym_neg [has_neg α] (a : αˢʸᵐ) : unsym (-a) = -unsym a := rfl
 
+@[simp, to_additive] lemma sym_inv [has_inv α] (a : α) : sym (a⁻¹) = (sym a)⁻¹ := rfl
+@[simp, to_additive] lemma unsym_inv [has_inv α] (a : αˢʸᵐ) : unsym (a⁻¹) = (unsym a)⁻¹ := rfl
 
-
-instance {R : Type*} [has_scalar R α] : has_scalar R αˢʸᵐ :=
-{ smul := λ r a, sym (r • unsym a) }
+@[simp] lemma sym_sub [has_sub α] (a b : α) : sym (a - b) = sym a - sym b := rfl
+@[simp] lemma unsym_sub [has_sub α] (a b : αˢʸᵐ) : unsym (a - b) = unsym a - unsym b := rfl
 
 @[simp] lemma sym_smul {R : Type*} [has_scalar R α] (c : R) (a : α) : sym (c • a) = c • sym a := rfl
+@[simp] lemma unsym_smul {R : Type*} [has_scalar R α] (c : R) (a : αˢʸᵐ) :
+  unsym (c • a) = c • unsym a := rfl
+
+
+@[simp] lemma unsym_eq_zero_iff {α} [has_zero α] (a : αˢʸᵐ) : a.unsym = (0 : α) ↔ a = (0 : αˢʸᵐ) :=
+unsym_injective.eq_iff' rfl
+
+@[simp] lemma sym_eq_zero_iff [has_zero α] (a : α) : sym a = (0 : αˢʸᵐ) ↔ a = (0 : α) :=
+sym_injective.eq_iff' rfl
+
+lemma unsym_ne_zero_iff [has_zero α] (a : αˢʸᵐ) : a.unsym ≠ (0 : α) ↔ a ≠ (0 : αˢʸᵐ) :=
+not_congr $ unsym_eq_zero_iff a
+
+lemma sym_ne_zero_iff [has_zero α] (a : α) : sym a ≠ (0 : αˢʸᵐ) ↔ a ≠ (0 : α) :=
+not_congr $ sym_eq_zero_iff a
+
+@[simp] lemma unsym_eq_one_iff [has_one α] (a : αˢʸᵐ) : a.unsym = 1 ↔ a = 1 :=
+unsym_injective.eq_iff' rfl
+
+@[simp] lemma sym_eq_one_iff [has_one α] (a : α) : sym a = 1 ↔ a = 1 :=
+sym_injective.eq_iff' rfl
 
 instance [add_comm_semigroup α] : add_comm_semigroup (αˢʸᵐ) :=
 unsym_injective.add_comm_semigroup _ (λ _ _, rfl)
@@ -124,18 +162,14 @@ instance [add_comm_group α] : add_comm_group (αˢʸᵐ) :=
 
 
 
-@[simp] lemma sym_zero [has_zero α] : sym (0 : α) = 0 := rfl
-@[simp] lemma unsym_zero [has_zero α] : unsym (0 : αˢʸᵐ) = 0 := rfl
 
-@[simp] lemma unsym_eq_zero_iff {α} [has_zero α] (a : αˢʸᵐ) : a.unsym = (0 : α) ↔ a = (0 : αˢʸᵐ) :=
-unsym_injective.eq_iff' rfl
+
+
 
 instance {R : Type*} [semiring R] [add_comm_monoid α] [module R α] : module R αˢʸᵐ :=
 function.injective.module R ⟨unsym, rfl, λ _ _, rfl⟩ (λ _ _, id) (λ _ _, rfl)
 
-/- Introduce the symmetrised multiplication-/
-instance [has_add α] [has_mul α] [has_one α] [invertible (2 : α)] : has_mul(αˢʸᵐ) :=
-{ mul := λ a b, sym (⅟2 * (unsym a * unsym b + unsym b * unsym a)) }
+
 
 lemma mul_def [ring α] [invertible (2 : α)] (a b : αˢʸᵐ) :
   a * b = sym (⅟2*(unsym a * unsym b + unsym b * unsym a)) := by refl

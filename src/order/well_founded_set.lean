@@ -384,13 +384,21 @@ s.finite_to_set.is_wf
   set.well_founded_on (↑s : set α) r :=
 by { letI := partial_order_of_SO r, exact s.is_wf }
 
-@[simp] theorem is_wf_sup {ι : Type*} [partial_order α] {s : finset ι} {f : ι → set α} :
+@[simp] theorem is_wf_sup {ι : Type*} [partial_order α] (s : finset ι) {f : ι → set α} :
   (s.sup f).is_wf ↔ ∀ i ∈ s, (f i).is_wf :=
 finset.cons_induction_on s (by simp) (λ a s ha hs, by simp [hs])
 
-@[simp] theorem is_pwo_sup {ι : Type*} [partial_order α] {s : finset ι} {f : ι → set α} :
+@[simp] theorem is_pwo_sup {ι : Type*} [partial_order α] (s : finset ι) {f : ι → set α} :
   (s.sup f).is_pwo ↔ ∀ i ∈ s, (f i).is_pwo :=
 finset.cons_induction_on s (by simp) (λ a s ha hs, by simp [hs])
+
+@[simp] theorem is_wf_bUnion {ι : Type*} [partial_order α] (s : finset ι) {f : ι → set α} :
+  (⋃ i ∈ s, f i).is_wf ↔ ∀ i ∈ s, (f i).is_wf :=
+by simpa only [finset.sup_eq_supr] using s.is_wf_sup
+
+@[simp] theorem is_pwo_bUnion {ι : Type*} [partial_order α] (s : finset ι) {f : ι → set α} :
+  (⋃ i ∈ s, f i).is_pwo ↔ ∀ i ∈ s, (f i).is_pwo :=
+by simpa only [finset.sup_eq_supr] using s.is_pwo_sup
 
 end finset
 

@@ -1329,16 +1329,12 @@ def of_finsupp (f : α →₀ (hahn_series Γ R)) :
   summable_family Γ R α :=
 { to_fun := f,
   is_pwo_Union_support' := begin
-      apply (f.support.is_pwo_sup (λ a, (f a).support) (λ a ha, (f a).is_pwo_support)).mono,
-      intros g hg,
-      obtain ⟨a, ha⟩ := set.mem_Union.1 hg,
+      apply (f.support.is_pwo_bUnion.2 $ λ a ha, (f a).is_pwo_support).mono,
+      refine set.Union_subset_iff.2 (λ a g hg, _),
       have haf : a ∈ f.support,
-      { rw finsupp.mem_support_iff,
-        contrapose! ha,
-        rw [ha, support_zero],
-        exact set.not_mem_empty _ },
-      have h : (λ i, (f i).support) a ≤ _ := le_sup haf,
-      exact h ha,
+      { rw [finsupp.mem_support_iff, ← support_nonempty_iff],
+        exact ⟨g, hg⟩ },
+      exact set.mem_bUnion haf hg
     end,
   finite_co_support' := λ g, begin
     refine f.support.finite_to_set.subset (λ a ha, _),

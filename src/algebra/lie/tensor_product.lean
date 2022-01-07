@@ -35,6 +35,8 @@ variables [add_comm_group P] [module R P] [lie_ring_module L P] [lie_module R L 
 variables [add_comm_group Q] [module R Q] [lie_ring_module L Q] [lie_module R L Q]
 local attribute [ext] tensor_product.ext
 
+variables [module Rᵐᵒᵖ M] [is_central_scalar R M] [module Rᵐᵒᵖ N] [is_central_scalar R N]
+
 /-- It is useful to define the bracket via this auxiliary function so that we have a type-theoretic
 expression of the fact that `L` acts by linear endomorphisms. It simplifies the proofs in
 `lie_ring_module` below. -/
@@ -115,6 +117,8 @@ by simp only [coe_lift_lie_eq_lift_coe, lie_module_hom.coe_to_linear_map, lift_a
 
 variables {R L M N P Q}
 
+variables [module Rᵐᵒᵖ P] [is_central_scalar R P] [module Rᵐᵒᵖ Q] [is_central_scalar R Q]
+
 /-- A pair of Lie module morphisms `f : M → P` and `g : N → Q`, induce a Lie module morphism:
 `M ⊗ N → P ⊗ Q`. -/
 def map (f : M →ₗ⁅R,L⁆ P) (g : N →ₗ⁅R,L⁆ Q) : M ⊗[R] N →ₗ⁅R,L⁆ P ⊗[R] Q :=
@@ -154,7 +158,8 @@ open_locale tensor_product
 
 variables (R) (L : Type v) (M : Type w)
 variables [lie_ring L] [lie_algebra R L]
-variables [add_comm_group M] [module R M] [lie_ring_module L M] [lie_module R L M]
+variables [add_comm_group M] [module R M] [module Rᵐᵒᵖ M] [is_central_scalar R M]
+variables [lie_ring_module L M] [lie_module R L M]
 
 /-- The action of the Lie algebra on one of its modules, regarded as a morphism of Lie modules. -/
 def to_module_hom : L ⊗[R] M →ₗ⁅R,L⁆ M :=
@@ -178,7 +183,8 @@ open lie_module
 
 variables {L : Type v} {M : Type w}
 variables [lie_ring L] [lie_algebra R L]
-variables [add_comm_group M] [module R M] [lie_ring_module L M] [lie_module R L M]
+variables [add_comm_group M] [module R M] [module Rᵐᵒᵖ M] [is_central_scalar R M]
+variables [lie_ring_module L M] [lie_module R L M]
 variables (I : lie_ideal R L) (N : lie_submodule R L M)
 
 /-- A useful alternative characterisation of Lie ideal operations on Lie submodules.

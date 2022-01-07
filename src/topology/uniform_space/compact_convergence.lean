@@ -355,7 +355,7 @@ lemma tendsto_iff_forall_compact_tendsto_uniformly_on :
   tendsto F p (𝓝 f) ↔ ∀ K, is_compact K → tendsto_uniformly_on (λ i a, F i a) f p K :=
 by rw [compact_open_eq_compact_convergence, tendsto_iff_forall_compact_tendsto_uniformly_on']
 
-/-- locally uniform convergence implies convergence in the compact-open topology. -/
+/-- Locally uniform convergence implies convergence in the compact-open topology. -/
 lemma tendsto_of_tendsto_locally_uniformly
   (h : tendsto_locally_uniformly (λ i a, F i a) f p) : tendsto F p (𝓝 f) :=
 begin
@@ -368,8 +368,8 @@ end
 /-- If every point has a compact neighbourhood, then convergence in the compact-open topology
 implies locally uniform convergence.
 
-See also `tendsto_locally_uniformly_of_tendsto`, especially for T2 spaces. -/
-lemma tendsto_locally_uniformly_of_tendsto'
+See also `tendsto_iff_tendsto_locally_uniformly`, especially for T2 spaces. -/
+lemma tendsto_locally_uniformly_of_tendsto
   (hα : ∀ x : α, ∃ n, is_compact n ∧ n ∈ 𝓝 x) (h : tendsto F p (𝓝 f)) :
   tendsto_locally_uniformly (λ i a, F i a) f p :=
 begin
@@ -379,20 +379,15 @@ begin
   exact ⟨n, hn₂, h n hn₁ V hV⟩,
 end
 
-/-- For locally compact spaces, convergence in the compact-open topology implies locally uniform
-convergence.
-
-For non-T2 spaces, the assumption `locally_compact_space α` is stronger than we need. See
-`tendsto_locally_uniformly_of_tendsto'` for a version requiring a weaker hypothesis. -/
-lemma tendsto_locally_uniformly_of_tendsto [locally_compact_space α] (h : tendsto F p (𝓝 f)) :
-  tendsto_locally_uniformly (λ i a, F i a) f p :=
-tendsto_locally_uniformly_of_tendsto' exists_compact_mem_nhds h
-
 /-- Convergence in the compact-open topology is the same as locally uniform convergence on a locally
-compact space. -/
+compact space.
+
+For non-T2 spaces, the assumption `locally_compact_space α` is stronger than we need and in fact
+the `←` direction is true unconditionally. See `tendsto_locally_uniformly_of_tendsto` and
+`tendsto_of_tendsto_locally_uniformly` for versions requiring weaker hypotheses. -/
 lemma tendsto_iff_tendsto_locally_uniformly [locally_compact_space α] :
   tendsto F p (𝓝 f) ↔ tendsto_locally_uniformly (λ i a, F i a) f p :=
-⟨tendsto_locally_uniformly_of_tendsto, tendsto_of_tendsto_locally_uniformly⟩
+⟨tendsto_locally_uniformly_of_tendsto exists_compact_mem_nhds, tendsto_of_tendsto_locally_uniformly⟩
 
 section compact_domain
 

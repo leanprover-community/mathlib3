@@ -49,6 +49,20 @@ alias sized_union ↔ _ set.sized.union
 protected lemma sized.is_antichain (hA : A.sized r) : is_antichain (⊆) A :=
 λ s hs t ht h hst, h $ eq_of_subset_of_card_le hst ((hA ht).trans (hA hs).symm).le
 
+lemma subsingleton_of_forall_eq {s : set α} (a : α) (h : ∀ b ∈ s, b = a) : s.subsingleton :=
+λ b hb c hc, (h _ hb).trans (h _ hc).symm
+
+protected lemma sized.subsingleton (hA : A.sized 0) : A.subsingleton :=
+subsingleton_of_forall_eq ∅ $ λ s hs, card_eq_zero.1 $ hA hs
+
+lemma sized.subsingleton' [fintype α] (hA : A.sized (fintype.card α)) : A.subsingleton :=
+subsingleton_of_forall_eq finset.univ $ λ s hs, s.card_eq_iff_eq_univ.1 $ hA hs
+
+lemma sized.empty_mem_iff (hA : A.sized r) : ∅ ∈ A ↔ A = {∅} := hA.is_antichain.bot_mem_iff
+
+lemma sized.univ_mem_iff [fintype α] (hA : A.sized r) : finset.univ ∈ A ↔ A = {finset.univ} :=
+hA.is_antichain.top_mem_iff
+
 end set
 
 namespace finset

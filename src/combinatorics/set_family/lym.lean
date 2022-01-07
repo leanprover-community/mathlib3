@@ -3,11 +3,10 @@ Copyright (c) 2022 Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta, Alena Gusakov
 -/
-import algebra.big_operators.order
 import algebra.big_operators.ring
+import combinatorics.double_counting
 import combinatorics.set_family.shadow
 import data.rat.order
-import order.antichain
 
 /-!
 # Lubell-Yamamoto-Meshalkin inequality and Sperner's theorem
@@ -48,86 +47,97 @@ open_locale big_operators finset_family
 
 variables {𝕜 α : Type*} [linear_ordered_field 𝕜]
 
+-- generalize `tsub_le_tsub_left` to `preorder`
+-- generalize `tsub_le_iff_left` to `add_comm_semigroup`
+
+lemma tsub_tsub_le_tsub_add [preorder α] [add_comm_monoid α] [has_sub α] [has_ordered_sub α]
+  [covariant_class α α (+) (≤)] {a b c : α} :
+  a - (b - c) ≤ a - b + c :=
+tsub_le_iff_right.2 $ calc
+    a ≤ a - b + b : le_tsub_add
+  ... ≤ a - b + (c + (b - c)) : add_le_add_left le_add_tsub _
+  ... = a - b + c + (b - c) : (add_assoc _ _ _).symm
+
+-- lemma tsub_tsub_le_tsub_add' [preorder α] [add_comm_monoid α] [has_sub α] [has_ordered_sub α]
+--   [covariant_class α α (+) (≤)] {a b c : α} :
+--   a - (b - c) ≤ a - b + c :=
+-- by { rw [←tsub_le_iff_right], have := tsub_tsub,
+--     sorry,
+--  exact tsub_le_tsub_left le_tsub_add _ }
+
 namespace finset
+
+/-- The only element of `insert a s` that is not an element of `s` is `a`. -/
+lemma eq_of_not_mem_of_mem_insert [decidable_eq α] {a b : α} {s : finset α} (hb : b ∉ s)
+  (ha : b ∈ insert a s) :
+  b = a :=
+(mem_insert.1 ha).resolve_right hb
+
+lemma insert_inj [decidable_eq α] {a b : α} {s : finset α} (ha : a ∉ s) :
+  insert a s = insert b s ↔ a = b :=
+begin
+  refine ⟨λ h, eq_of_not_mem_of_mem_insert ha _, congr_arg _⟩,
+  rw ←h,
+  exact mem_insert_self _ _,
+end
+
+lemma insert_inj_on' [decidable_eq α] (s : finset α) : set.inj_on (λ a, insert a s) sᶜ :=
+λ a ha b _, (insert_inj ha).1
+
+lemma insert_inj_on [decidable_eq α] [fintype α] (s : finset α) :
+  set.inj_on (λ a, insert a s) (sᶜ : finset α) :=
+by { rw coe_compl, exact s.insert_inj_on' }
+
+@[simp]
+lemma card_erase_of_mem' [decidable_eq α] {a : α} {s : finset α} (ha : a ∈ s) :
+  (s.erase a).card = s.card - 1 :=
+card_erase_of_mem ha
+
+lemma sdiff_nonempty [decidable_eq α] {s t : finset α} : (s \ t).nonempty ↔ ¬ s ⊆ t :=
+by rw [nonempty_iff_ne_empty, ne.def, sdiff_eq_empty_iff_subset]
+
+lemma exists_eq_insert_iff [decidable_eq α] {s t : finset α} :
+  (∃ a ∉ s, insert a s = t) ↔ s ⊆ t ∧ s.card + 1 = t.card :=
+begin
+  refine ⟨_, _⟩,
+  { rintro ⟨a, ha, rfl⟩,
+    exact ⟨subset_insert _ _, (card_insert_of_not_mem ha).symm⟩ },
+  { rintro ⟨hst, h⟩,
+    obtain ⟨a, ha⟩ : ∃ a, t \ s = {a},
+    { exact card_eq_one.1 (by rw [card_sdiff hst, ←h, add_tsub_cancel_left]) },
+    refine ⟨a, λ hs, (_ : a ∉ {a}) $ mem_singleton_self _,
+      by rw [insert_eq, ←ha, sdiff_union_of_subset hst]⟩,
+    rw ←ha,
+    exact not_mem_sdiff_of_mem_right hs }
+end
 
 /-! ### Local LYM inequality -/
 
 section local_lym
-variables [decidable_eq α]
+variables [decidable_eq α] [fintype α] {𝒜 : finset (finset α)} {r : ℕ}
 
-private lemma lym_aux {s t n r : ℕ} (hr : r ≠ 0) (hrn : r ≤ n)
-  (h : s * r ≤ t * (n - r + 1)) :
-  (s : 𝕜) / nat.choose n r ≤ t / nat.choose n (r-1) :=
+/-- The downward **local LYM inequality**, with cancelled denominators. `𝒜` takes up less of `α^(r)`
+(the finsets of card `r`) than `∂𝒜` takes up of `α^(r - 1)`. -/
+lemma local_lym' (h𝒜 : (𝒜 : set (finset α)).sized r) :
+  𝒜.card * r ≤ (∂𝒜).card * (fintype.card α - r + 1) :=
 begin
-  rw div_le_div_iff; norm_cast,
-  { cases r,
-    { exact (hr rfl).elim },
-    rw nat.succ_eq_add_one at *,
-    rw [tsub_add_eq_add_tsub hrn, add_tsub_add_eq_tsub_right] at h,
-    apply le_of_mul_le_mul_right _ (pos_iff_ne_zero.2 hr),
-    convert nat.mul_le_mul_right (n.choose r) h using 1,
-    { simp [mul_assoc, nat.choose_succ_right_eq],
-      exact or.inl (mul_comm _ _) },
-    { simp only [mul_assoc, choose_succ_right_eq, mul_eq_mul_left_iff],
-      exact or.inl (mul_comm _ _) } },
-  { exact nat.choose_pos hrn },
-  { exact nat.choose_pos (r.pred_le.trans hrn) }
-end
-
-variables {𝒜 : finset (finset α)} {r : ℕ}
-
-/-- First set of the double counting. Effectively `{(s, t) | s ∈ 𝒜, t ∈ s.image (erase s)}`. -/
-def lym_above (𝒜 : finset (finset α)) : finset (finset α × finset α) :=
-𝒜.sup $ λ s, s.image $ λ x, (s, erase s x)
-
-/-- For each `s ∈ 𝒜` there are `r` possible `t` to make an element of `lym_above`. -/
-lemma _root_.set.sized.card_lym_above (h𝒜 : (𝒜 : set (finset α)).sized r) :
-  (lym_above 𝒜).card = 𝒜.card * r :=
-begin
-  rw [lym_above, sup_eq_bUnion, card_bUnion],
-  { convert sum_const_nat _,
-    refine λ x hx, (card_image_of_inj_on $ λ a ha b hb h, _).trans (h𝒜 hx),
-    exact x.erase_inj_on ha hb (prod.mk.inj h).2 },
-  { simp only [disjoint_left, mem_image],
-    rintro _ _ _ _ h a ⟨_, _, rfl⟩ ⟨_, _, a₂⟩,
-    exact h (prod.mk.inj a₂.symm).1 }
-end
-
-variables [fintype α]
-
-/-- Second set of the double counting. We're trying to get the same set, but we count `t` first, so
-we overestimate a bit. It's pretty much `{(s, t) | t ∈ ∂𝒜, ∃ a ∉ t, s = t ∪ {a}}` -/
-def lym_below (𝒜 : finset (finset α)) : finset (finset α × finset α) :=
-(∂𝒜).sup $ λ t, tᶜ.image $ λ a, (insert a t, t)
-
-/-- For each `t ∈ ∂𝒜`, there are `card α - r + 1` choices for what to add to it to make an element
-of `lym_below`. -/
-lemma _root_.set.sized.card_lym_below (h𝒜 : (𝒜 : set (finset α)).sized r) :
-  (lym_below 𝒜).card = (∂𝒜).card * (fintype.card α - (r - 1)) :=
-begin
-  rw [lym_below, sup_eq_bUnion, card_bUnion],
-  { refine sum_const_nat (λ s hs, _),
-    rw [card_image_of_inj_on, card_compl, h𝒜.shadow hs],
-    intros a ha b hb h,
-    injection h with hab,
-    have q := mem_insert_self a s,
-    rw [hab, mem_insert] at q,
-    exact q.resolve_right (mem_sdiff.1 ha).2 },
-  intros s hs t ht hst,
-  rw disjoint_left,
-  simp_rw [mem_image, not_exists, exists_prop, mem_compl, exists_imp_distrib, prod.forall,
-    prod.mk.inj_iff, and_imp, not_and],
-  rintro _ b i hi rfl rfl j hj k,
-  exact hst.symm,
-end
-
-lemma lym_above_subset_lym_below : lym_above 𝒜 ⊆ lym_below 𝒜 :=
-begin
-  rintro ⟨s, t⟩,
-  simp only [lym_above, lym_below, mem_sup, mem_shadow_iff, true_and, and_imp,
-    exists_prop, mem_sdiff, mem_image, prod.mk.inj_iff, mem_univ, exists_imp_distrib],
-  rintro s hs a hx rfl rfl,
-  exact ⟨s.erase a, ⟨s, hs, a, hx, rfl⟩, a, mem_compl.2 $ not_mem_erase _ _, insert_erase hx, rfl⟩,
+  refine card_mul_le_card_mul' (⊆) (λ s hs, _) (λ s hs, _),
+  { rw [←h𝒜 hs, ←card_image_of_inj_on s.erase_inj_on],
+    refine card_le_of_subset _,
+    simp_rw [image_subset_iff, mem_bipartite_below],
+    exact λ a ha, ⟨erase_mem_shadow hs ha, erase_subset _ _⟩ },
+  refine le_trans _ tsub_tsub_le_tsub_add,
+  rw [←h𝒜.shadow hs, ←card_compl, ←card_image_of_inj_on (insert_inj_on _)],
+  refine card_le_of_subset (λ t ht, _),
+  apply_instance,
+  rw mem_bipartite_above at ht,
+  have : ∅ ∉ 𝒜,
+  { rw [←mem_coe, h𝒜.empty_mem_iff, coe_eq_singleton],
+    rintro rfl,
+    rwa shadow_singleton_empty at hs },
+  obtain ⟨a, ha, rfl⟩ :=
+    exists_eq_insert_iff.2 ⟨ht.2, by rw [(sized_shadow_iff this).1 h𝒜.shadow ht.1, h𝒜.shadow hs]⟩,
+  exact mem_image_of_mem _ (mem_compl.2 ha),
 end
 
 /-- The downward **local LYM inequality**. `𝒜` takes up less of `α^(r)` (the finsets of card `r`)
@@ -138,9 +148,20 @@ begin
   obtain hr' | hr' := lt_or_le (fintype.card α) r,
   { rw [choose_eq_zero_of_lt hr', cast_zero, div_zero],
     exact div_nonneg (cast_nonneg _) (cast_nonneg _) },
-  { apply lym_aux hr hr',
-    rw [←h𝒜.card_lym_above, ←tsub_tsub_assoc hr' (pos_iff_ne_zero.2 hr), ←h𝒜.card_lym_below],
-    exact card_le_of_subset lym_above_subset_lym_below }
+  replace h𝒜 := local_lym' h𝒜,
+  rw div_le_div_iff; norm_cast,
+  { cases r,
+    { exact (hr rfl).elim },
+    rw nat.succ_eq_add_one at *,
+    rw [tsub_add_eq_add_tsub hr', add_tsub_add_eq_tsub_right] at h𝒜,
+    apply le_of_mul_le_mul_right _ (pos_iff_ne_zero.2 hr),
+    convert nat.mul_le_mul_right ((fintype.card α).choose r) h𝒜 using 1,
+    { simp [mul_assoc, nat.choose_succ_right_eq],
+      exact or.inl (mul_comm _ _) },
+    { simp only [mul_assoc, choose_succ_right_eq, mul_eq_mul_left_iff],
+      exact or.inl (mul_comm _ _) } },
+  { exact nat.choose_pos hr' },
+  { exact nat.choose_pos (r.pred_le.trans hr') }
 end
 
 end local_lym

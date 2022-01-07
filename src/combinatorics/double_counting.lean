@@ -1,0 +1,60 @@
+/-
+Copyright (c) 2022 Yaël Dillies. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Yaël Dillies
+-/
+import algebra.big_operators.order
+
+/-!
+# Double countings
+
+This file gathers a few double counting arguments.
+-/
+
+open finset function
+open_locale big_operators
+
+/-! ### Bipartite graph -/
+
+namespace finset
+section bipartite
+variables {α β : Type*} (r : α → β → Prop) (s : finset α) (t : finset β) (a a' : α) (b b' : β)
+  [decidable_pred (r a)] [Π a, decidable (r a b)]
+
+def bipartite_below : finset α := s.filter (λ a, r a b)
+
+/---/
+def bipartite_above : finset β := t.filter (r a)
+
+lemma bipartite_below_swap : t.bipartite_below (swap r) a = t.bipartite_above r a := rfl
+lemma bipartite_above_swap : s.bipartite_above (swap r) b = s.bipartite_below r b := rfl
+
+variables {s t a a' b b'}
+
+@[simp] lemma mem_bipartite_below {a : α} : a ∈ s.bipartite_below r b ↔ a ∈ s ∧ r a b := mem_filter
+@[simp] lemma mem_bipartite_above {b : β} : b ∈ t.bipartite_above r a ↔ b ∈ t ∧ r a b := mem_filter
+
+lemma sum_card_bipartite_above_eq_sum_card_bipartite_below [Π a b, decidable (r a b)] :
+  ∑ a in s, (t.bipartite_above r a).card = ∑ b in t, (s.bipartite_below r b).card :=
+by { simp_rw [card_eq_sum_ones, bipartite_above, bipartite_below, sum_filter], exact sum_comm }
+
+/-- Double counting argument. Considering `r` as a bipartite graph, the LHS is a lower bound on the
+number of edges while the RHS is an upper bound. -/
+lemma card_mul_le_card_mul [Π a b, decidable (r a b)] {m n : ℕ}
+  (hm : ∀ a ∈ s, m ≤ (t.bipartite_above r a).card)
+  (hn : ∀ b ∈ t, (s.bipartite_below r b).card ≤ n) :
+  s.card * m ≤ t.card * n :=
+calc
+    _ ≤ ∑ a in s, (t.bipartite_above r a).card : s.le_sum_of_forall_le _ _ hm
+  ... = ∑ b in t, (s.bipartite_below r b).card
+      : sum_card_bipartite_above_eq_sum_card_bipartite_below _
+  ... ≤ _ : t.sum_le_of_forall_le _ _ hn
+
+lemma card_mul_le_card_mul' [Π a b, decidable (r a b)] {m n : ℕ}
+  (hn : ∀ b ∈ t, n ≤ (s.bipartite_below r b).card)
+  (hm : ∀ a ∈ s, (t.bipartite_above r a).card ≤ m) :
+  t.card * n ≤ s.card * m :=
+card_mul_le_card_mul (swap r) hn hm
+
+end bipartite
+end finset

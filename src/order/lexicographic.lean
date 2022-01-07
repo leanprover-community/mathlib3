@@ -39,10 +39,10 @@ def lex (α : Type u) := α
 variables {α : Type u} {β : Type v} {γ : Type*}
 
 /-- `to_lex` is the identity function to the `lex` of a type.  -/
-def to_lex : α ≃ lex α := ⟨id, id, λ h, rfl, λ h, rfl⟩
+@[pattern] def to_lex : α ≃ lex α := ⟨id, id, λ h, rfl, λ h, rfl⟩
 
 /-- `of_lex` is the identity function from the `lex` of a type.  -/
-def of_lex : lex α ≃ α := to_lex.symm
+@[pattern] def of_lex : lex α ≃ α := to_lex.symm
 
 @[simp] lemma to_lex_symm_eq : (@to_lex α).symm = of_lex := rfl
 @[simp] lemma of_lex_symm_eq : (@of_lex α).symm = to_lex := rfl

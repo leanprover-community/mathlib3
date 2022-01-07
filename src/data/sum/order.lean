@@ -33,15 +33,22 @@ variables {α β γ δ : Type*}
 section lift_rel
 variables (r : α → α → Prop) (s : β → β → Prop)
 
-instance [is_refl α r] [is_refl β s] : is_refl (α ⊕ β) (lift_rel r s) :=
-⟨by { rintro (a | a), exacts [lift_rel.inl (refl _), lift_rel.inr (refl _)] }⟩
+@[refl] lemma lift_rel.refl [is_refl α r] [is_refl β s] : ∀ x, lift_rel r s x x
+| (inl a) := lift_rel.inl (refl _)
+| (inr a) := lift_rel.inr (refl _)
+
+instance [is_refl α r] [is_refl β s] : is_refl (α ⊕ β) (lift_rel r s) := ⟨lift_rel.refl _ _⟩
 
 instance [is_irrefl α r] [is_irrefl β s] : is_irrefl (α ⊕ β) (lift_rel r s) :=
 ⟨by { rintro _ (⟨a, _, h⟩ | ⟨a, _, h⟩); exact irrefl _ h }⟩
 
+@[trans] lemma lift_rel.trans [is_trans α r] [is_trans β s] :
+  ∀ {a b c}, lift_rel r s a b → lift_rel r s b c → lift_rel r s a c
+| (inl a) (inl b) (inl c) (lift_rel.inl hab) (lift_rel.inl hbc) := lift_rel.inl (trans hab hbc)
+| (inr a) (inr b) (inr c) (lift_rel.inr hab) (lift_rel.inr hbc) := lift_rel.inr (trans hab hbc)
+
 instance [is_trans α r] [is_trans β s] : is_trans (α ⊕ β) (lift_rel r s) :=
-⟨by { rintro _ _ _ (⟨a, b, hab⟩ | ⟨a, b, hab⟩) (⟨_, c, hbc⟩ | ⟨_, c, hbc⟩),
-  exacts [lift_rel.inl (trans hab hbc), lift_rel.inr (trans hab hbc)] }⟩
+⟨λ _ _ _, lift_rel.trans _ _⟩
 
 instance [is_antisymm α r] [is_antisymm β s] : is_antisymm (α ⊕ β) (lift_rel r s) :=
 ⟨by { rintro _ _ (⟨a, b, hab⟩ | ⟨a, b, hab⟩) (⟨_, _, hba⟩ | ⟨_, _, hba⟩); rw antisymm hab hba }⟩
@@ -439,27 +446,27 @@ end,
 @[simp] lemma sum_dual_distrib_symm_inr  :
   (sum_dual_distrib α β).symm (inr (to_dual b)) = to_dual (inr b) := rfl
 
+@[pattern] abbreviation inlₗ (x : α) : α ⊕ₗ β := to_lex (sum.inl x)
+@[pattern] abbreviation inrₗ (x : β) : α ⊕ₗ β := to_lex (sum.inr x)
+
 /-- `equiv.sum_assoc` promoted to an order isomorphism. -/
 def sum_lex_assoc (α β γ : Type*) [has_le α] [has_le β] [has_le γ] :
   (α ⊕ₗ β) ⊕ₗ γ ≃o α ⊕ₗ β ⊕ₗ γ :=
-{ map_rel_iff' := begin
-    rintro ((a | a) | a) ((b | b) | b),
-    { change to_lex (inl a) ≤ to_lex (inl b) ↔
-        to_lex (inl $ to_lex $ inl a) ≤ to_lex (inl $ to_lex $ inl b),
-      simp only [lex.inl_le_inl_iff] },
-    { exact iff_of_true (lex.inl_le_inr _ _) (lex.inl_le_inl_iff.2 $ lex.inl_le_inr _ _) },
-    { exact iff_of_true (lex.inl_le_inr _ _) (lex.inl_le_inr _ _) },
-    { exact iff_of_false lex.not_inr_le_inl (λ h, lex.not_inr_le_inl $ lex.inl_le_inl_iff.1 h) },
-    { change to_lex (inr $ to_lex $ inl a) ≤ to_lex (inr $ to_lex $ inl b) ↔
-        to_lex (inl $ to_lex $ inr a) ≤ to_lex (inl $ to_lex $ inr b),
-      simp only [lex.inl_le_inl_iff, lex.inr_le_inr_iff] },
-    { exact iff_of_true (lex.inr_le_inr_iff.2 $ lex.inl_le_inr _ _) (lex.inl_le_inr _ _) },
-    { exact iff_of_false lex.not_inr_le_inl lex.not_inr_le_inl },
-    { exact iff_of_false (λ h, lex.not_inr_le_inl $ lex.inr_le_inr_iff.1 h) lex.not_inr_le_inl },
-    { change to_lex (inr $ to_lex $ inr a) ≤ to_lex (inr $ to_lex $ inr b) ↔
-        to_lex (inr a) ≤ to_lex (inr b),
-      simp only [lex.inr_le_inr_iff] }
-  end,
+{ map_rel_iff' := λ a b, ⟨λ h, match a, b, h with
+    | inlₗ (inlₗ a), inlₗ (inlₗ b), lex.inl h := lex.inl $ lex.inl h
+    | inlₗ (inlₗ a), inlₗ (inrₗ b), lex.sep _ _ := lex.inl $ lex.sep _ _
+    | inlₗ (inlₗ a),        inrₗ b, lex.sep _ _ := lex.sep _ _
+    | inlₗ (inrₗ a), inlₗ (inrₗ b), lex.inr (lex.inl h) := lex.inl $ lex.inr h
+    | inlₗ (inrₗ a),        inrₗ b, lex.inr (lex.sep _ _) := lex.sep _ _
+    |       inrₗ a,        inrₗ b, lex.inr (lex.inr h) := lex.inr h
+    end, λ h, match a, b, h with
+    | inlₗ (inlₗ a), inlₗ (inlₗ b), lex.inl (lex.inl h) := lex.inl h
+    | inlₗ (inlₗ a), inlₗ (inrₗ b), lex.inl (lex.sep _ _) := lex.sep _ _
+    | inlₗ (inlₗ a),        inrₗ b, lex.sep _ _ := lex.sep _ _
+    | inlₗ (inrₗ a), inlₗ (inrₗ b), lex.inl (lex.inr h) := lex.inr $ lex.inl h
+    | inlₗ (inrₗ a),        inrₗ b, lex.sep _ _ := lex.inr $ lex.sep _ _
+    |       inrₗ a,        inrₗ b, lex.inr h  := lex.inr $ lex.inr h
+    end⟩,
   ..equiv.sum_assoc α β γ }
 
 @[simp] lemma sum_lex_assoc_apply_inl_inl :

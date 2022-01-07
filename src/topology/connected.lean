@@ -169,13 +169,13 @@ begin
     ∃ (t : set ι), i ∈ t ∧ j ∈ t ∧ is_preconnected (⋃ j ∈ t, s j),
   { intros i j h,
     induction h,
-    case single : j h {
-      use {i, j},
+    case single : j h
+    { use {i, j},
       refine ⟨mem_insert i {j}, mem_insert_of_mem i (mem_singleton j), _⟩,
       rw [bUnion_pair],
       exact (H i).union' h (H j) },
-    case tail : j k hij hjk ih {
-      obtain ⟨t, hit, hjt, ht⟩ := ih,
+    case tail : j k hij hjk ih
+    { obtain ⟨t, hit, hjt, ht⟩ := ih,
       use insert k t,
       refine ⟨mem_insert_of_mem k hit, mem_insert k t, _⟩,
       rw [bUnion_insert],

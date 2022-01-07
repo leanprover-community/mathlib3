@@ -499,8 +499,8 @@ lemma measure_union_add_inter' (hs : measurable_set s) (t : set α) :
 by rw [union_comm, inter_comm, measure_union_add_inter t hs, add_comm]
 namespace measure
 
-/-- If `u` is a superset of `t` with the same measure (both sets possibly non-measurable), then
-for any measurable set `s` one also has `μ (t ∩ s) = μ (u ∩ s)`. -/
+/-- If `u` is a superset of `t` with the same (finite) measure (both sets possibly non-measurable),
+then for any measurable set `s` one also has `μ (t ∩ s) = μ (u ∩ s)`. -/
 lemma measure_inter_eq_of_measure_eq {s t u : set α} (hs : measurable_set s)
   (h : μ t = μ u) (htu : t ⊆ u) (ht_ne_top : μ t ≠ ∞) :
   μ (t ∩ s) = μ (u ∩ s) :=
@@ -517,6 +517,10 @@ begin
   exact ennreal.le_of_add_le_add_right B A
 end
 
+/-- The measurable superset `to_measurable μ t` of `t` (which has the same measure as `t`)
+satisfies, for any measurable set `s`, the equality `μ (to_measurable μ t ∩ s) = μ (u ∩ s)`.
+Here, we require that the measure of `t` is finite. The conclusion holds without this assumption
+when the measure is sigma_finite, see `measure_to_measurable_inter_of_sigma_finite`. -/
 lemma measure_to_measurable_inter {s t : set α} (hs : measurable_set s) (ht : μ t ≠ ∞) :
   μ (to_measurable μ t ∩ s) = μ (t ∩ s) :=
 (measure_inter_eq_of_measure_eq hs (measure_to_measurable t).symm
@@ -2122,11 +2126,19 @@ begin
   { exact directed_of_sup (monotone_spanning_sets μ) }
 end
 
+/-- The measurable superset `to_measurable μ t` of `t` (which has the same measure as `t`)
+satisfies, for any measurable set `s`, the equality `μ (to_measurable μ t ∩ s) = μ (u ∩ s)`.
+Here, we require that `μ` is sigma-finite. For a version without this assumption (but requiring
+that `t` has finite measure), see `measure_to_measurable_inter`. -/
 lemma measure_to_measurable_inter_of_sigma_finite
-  [sigma_finite μ] {s t : set α} (hs : measurable_set s) :
+  [sigma_finite μ] {s : set α} (hs : measurable_set s) (t : set α) :
   μ (to_measurable μ t ∩ s) = μ (t ∩ s) :=
 begin
-  have : ∃ t' ⊇ t, measurable_set t' ∧ (∀ u, measurable_set u → μ (t' ∩ u) = μ (t ∩ u)),
+  -- we show that there is a measurable superset of `t` satisfying the conclusion for any
+  -- measurable set `s`. It is built on each member of a spanning family using `to_measurable`
+  -- (which is well behaved for finite measure sets thanks to `measure_to_measurable_inter`), and
+  -- the desired property passes to the union.
+  have A : ∃ t' ⊇ t, measurable_set t' ∧ (∀ u, measurable_set u → μ (t' ∩ u) = μ (t ∩ u)),
   { set t' := ⋃ n, to_measurable μ (t ∩ disjointed (spanning_sets μ) n) with ht',
     have tt' : t ⊆ t' := calc
       t ⊆ ⋃ n, t ∩ disjointed (spanning_sets μ) n :
@@ -2135,26 +2147,43 @@ begin
         Union_subset_Union (λ n, subset_to_measurable _ _),
     refine ⟨t', tt', measurable_set.Union (λ n, measurable_set_to_measurable μ _), λ u hu, _⟩,
     apply le_antisymm _ (measure_mono (inter_subset_inter tt' subset.rfl)),
-    calc μ (t' ∩ u) = ∑' n, μ (to_measurable μ (t ∩ disjointed (spanning_sets μ) n) ∩ u) :
+    calc μ (t' ∩ u) ≤ ∑' n, μ (to_measurable μ (t ∩ disjointed (spanning_sets μ) n) ∩ u) :
+      by { rw [ht', Union_inter], exact measure_Union_le _ }
+    ... = ∑' n, μ ((t ∩ disjointed (spanning_sets μ) n) ∩ u) :
       begin
-        rw [ht', Union_inter, measure_Union],
-        rw ← pairwise_univ,
-
+        congr' 1,
+        ext1 n,
+        apply measure_to_measurable_inter hu,
+        apply ne_of_lt,
+        calc μ (t ∩ disjointed (spanning_sets μ) n)
+            ≤ μ (disjointed (spanning_sets μ) n) : measure_mono (inter_subset_right _ _)
+        ... ≤ μ (spanning_sets μ n) : measure_mono (disjointed_le (spanning_sets μ) n)
+        ... < ∞ : measure_spanning_sets_lt_top _ _
       end
-    ... ≤ μ (t ∩ u) : sorry
-
-  },
+    ... = ∑' n, μ.restrict (t ∩ u) (disjointed (spanning_sets μ) n) :
+      begin
+        congr' 1,
+        ext1 n,
+        rw [restrict_apply, inter_comm t _, inter_assoc],
+        exact measurable_set.disjointed (measurable_spanning_sets _) _
+      end
+    ... = μ.restrict (t ∩ u) (⋃ n, disjointed (spanning_sets μ) n) :
+      begin
+        rw measure_Union,
+        { exact disjoint_disjointed _ },
+        { assume i, exact measurable_set.disjointed (measurable_spanning_sets _) _ }
+      end
+    ... = μ (t ∩ u) :
+      by rw [Union_disjointed, Union_spanning_sets, restrict_apply measurable_set.univ,
+             univ_inter] },
+  -- thanks to the definition of `to_measurable`, the previous property will also be shared
+  -- by `to_measurable μ t`, which is enough to conclude the proof.
+  rw [to_measurable],
+  split_ifs with ht,
+  { apply measure_congr,
+    exact ae_eq_set_inter ht.some_spec.snd.2 (ae_eq_refl _) },
+  { exact A.some_spec.snd.2 s hs },
 end
-
-#exit
-
-utiliser measure_inter_add_diff
-
-(measure_inter_eq_of_measure_eq hs (measure_to_measurable t).symm
-  (subset_to_measurable μ t) ht).symm
-
-
-#exit
 
 namespace finite_spanning_sets_in
 

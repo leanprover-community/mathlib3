@@ -127,23 +127,20 @@ local infix ` ⬝ `:70 := quotient.comp
 section pi
 
 variables {ι : Type*} {X : ι → Type*} [∀ i, topological_space (X i)]
-          {as bs cs : Π i, X i}
+  {as bs cs : Π i, X i}
 
 /-- The product of a family of path homotopies. This is just a specialization of `homotopy_rel` -/
-def pi_homotopy
-  (paths₀ paths₁ : Π i, path (as i) (bs i))
-  (homotopies : ∀ i, path.homotopy (paths₀ i) (paths₁ i)) :
-  path.homotopy (path.pi paths₀) (path.pi paths₁) := continuous_map.homotopy_rel.pi homotopies
+def pi_homotopy (γ₀ γ₁ : Π i, path (as i) (bs i)) (H : ∀ i, path.homotopy (γ₀ i) (γ₁ i)) :
+  path.homotopy (path.pi γ₀) (path.pi γ₁) := continuous_map.homotopy_rel.pi H
 
 /-- The product of a family of path homotopy classes -/
-def pi (paths : Π i, path.homotopic.quotient (as i) (bs i)) :
-  path.homotopic.quotient as bs :=
+def pi (γ : Π i, path.homotopic.quotient (as i) (bs i)) : path.homotopic.quotient as bs :=
 (quotient.map path.pi
   (λ x y hxy, nonempty.map (pi_homotopy x y) (classical.nonempty_pi.mpr hxy)))
-  (quotient.choice paths)
+  (quotient.choice γ)
 
-lemma pi_lift (paths : Π i, path (as i) (bs i)) :
-  path.homotopic.pi (λ i, ⟦paths i⟧) = ⟦path.pi paths⟧ := by { unfold pi, simp, }
+lemma pi_lift (γ : Π i, path (as i) (bs i)) : path.homotopic.pi (λ i, ⟦γ i⟧) = ⟦path.pi γ⟧ :=
+by { unfold pi, simp, }
 
 /-- Composition and products commute.
   This is `path.trans_pi_eq_pi_trans` descended to path homotopy classes -/
@@ -191,9 +188,9 @@ end pi
 section prod
 
 variables {α β : Type*} [topological_space α] [topological_space β]
-          {a₁ a₂ a₃ : α} {b₁ b₂ b₃ : β}
-          {p₁ p₁' : path a₁ a₂} {p₂ p₂' : path b₁ b₂}
-          (q₁ : path.homotopic.quotient a₁ a₂) (q₂ : path.homotopic.quotient b₁ b₂)
+  {a₁ a₂ a₃ : α} {b₁ b₂ b₃ : β}
+  {p₁ p₁' : path a₁ a₂} {p₂ p₂' : path b₁ b₂}
+  (q₁ : path.homotopic.quotient a₁ a₂) (q₂ : path.homotopic.quotient b₁ b₂)
 
 /-- The product of homotopies h₁ and h₂.
     This is `homotopy_rel.prod` specialized for path homotopies. -/
@@ -211,7 +208,7 @@ lemma prod_lift : prod ⟦p₁⟧ ⟦p₂⟧ = ⟦p₁.prod p₂⟧ := rfl
 variables (r₁ : path.homotopic.quotient a₂ a₃) (r₂ : path.homotopic.quotient b₂ b₃)
 /-- Products commute with path composition.
     This is `trans_prod_eq_prod_trans` descended to the quotient.-/
-lemma comp_prod_eq_prod_comp : ((prod q₁ q₂) ⬝ (prod r₁ r₂)) = prod (q₁ ⬝ r₁) (q₂ ⬝ r₂) :=
+lemma comp_prod_eq_prod_comp : (prod q₁ q₂) ⬝ (prod r₁ r₂) = prod (q₁ ⬝ r₁) (q₂ ⬝ r₂) :=
 begin
   apply quotient.induction_on₂ q₁ q₂,
   apply quotient.induction_on₂ r₁ r₂,

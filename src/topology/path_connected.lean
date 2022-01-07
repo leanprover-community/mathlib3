@@ -387,9 +387,9 @@ protected def prod (γ₁ : path a₁ a₂) (γ₂ : path b₁ b₂) :
   (coe_fn (γ₁.prod γ₂)) = λ t, (γ₁ t, γ₂ t) := rfl
 
 /-- Path composition commutes with products -/
-lemma trans_prod_eq_prod_trans (γ₁ : path a₁ a₂) (δ₁ : path a₂ a₃)
-                               (γ₂ : path b₁ b₂) (δ₂ : path b₂ b₃) :
-                               (γ₁.prod γ₂).trans (δ₁.prod δ₂) = (γ₁.trans δ₁).prod (γ₂.trans δ₂) :=
+lemma trans_prod_eq_prod_trans
+  (γ₁ : path a₁ a₂) (δ₁ : path a₂ a₃) (γ₂ : path b₁ b₂) (δ₂ : path b₂ b₃) :
+  (γ₁.prod γ₂).trans (δ₁.prod δ₂) = (γ₁.trans δ₁).prod (γ₂.trans δ₂) :=
 begin
   ext t;
   unfold path.trans;
@@ -400,23 +400,19 @@ end
 end prod
 
 section pi
-variables {χ : ι → Type*} [∀ i, topological_space (χ i)]
-          {as bs cs : Π i, χ i}
+variables {χ : ι → Type*} [∀ i, topological_space (χ i)] {as bs cs : Π i, χ i}
 /-- Given a family of paths, one in each Xᵢ, we take their pointwise product to get a path in
 Π i, Xᵢ. -/
-protected def pi (paths : Π i, path (as i) (bs i)) :
-                  path as bs :=
-{ to_continuous_map := continuous_map.pi (λ i, (paths i).to_continuous_map),
+protected def pi (γ : Π i, path (as i) (bs i)) : path as bs :=
+{ to_continuous_map := continuous_map.pi (λ i, (γ i).to_continuous_map),
   source' := by simp,
   target' := by simp, }
 
-@[simp] lemma pi_coe_fn (paths : Π i, path (as i) (bs i)) :
-  (coe_fn (path.pi paths)) = λ t i, paths i t := rfl
+@[simp] lemma pi_coe_fn (γ : Π i, path (as i) (bs i)) : (coe_fn (path.pi γ)) = λ t i, γ i t := rfl
 
 /-- Path composition commutes with products -/
-lemma trans_pi_eq_pi_trans (paths₀ : Π i, path (as i) (bs i))
-                           (paths₁ : Π i, path (bs i) (cs i)) :
-  ((path.pi paths₀).trans (path.pi paths₁)) = path.pi (λ i, (paths₀ i).trans (paths₁ i)) :=
+lemma trans_pi_eq_pi_trans (γ₀ : Π i, path (as i) (bs i)) (γ₁ : Π i, path (bs i) (cs i)) :
+  (path.pi γ₀).trans (path.pi γ₁) = path.pi (λ i, (γ₀ i).trans (γ₁ i)) :=
 begin
   ext t i,
   unfold path.trans,

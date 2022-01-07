@@ -123,8 +123,6 @@ begin
     ((as_iso $ to_Spec_Γ R).CommRing_iso_to_ring_equiv.injective)
 end
 
-local attribute [elementwise] category_theory.is_iso.hom_inv_id
-
 lemma basic_open_eq_of_affine {R : CommRing} (f : R) :
   RingedSpace.basic_open (Spec.to_SheafedSpace.obj (op R)) ((Spec_Γ_identity.app R).inv f) =
     prime_spectrum.basic_open f :=

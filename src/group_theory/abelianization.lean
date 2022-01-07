@@ -51,6 +51,10 @@ instance : comm_group (abelianization G) :=
 
 instance : inhabited (abelianization G) := ⟨1⟩
 
+instance [fintype G] [decidable_rel (quotient_group.left_rel (commutator G)).r] :
+  fintype (abelianization G) :=
+quotient_group.fintype (commutator G)
+
 variable {G}
 
 /-- `of` is the canonical projection from G to its abelianization. -/

@@ -121,7 +121,7 @@ calc
      : by { congr, apply (eq_X_add_C_of_degree_eq_one hq).symm }
 
 lemma ker_aeval_ring_hom'_unit_polynomial
-  (f : End K V) (c : units (polynomial K)) :
+  (f : End K V) (c : (polynomial K)ˣ) :
   (aeval f (c : polynomial K)).ker = ⊥ :=
 begin
   rw polynomial.eq_C_of_degree_eq_zero (degree_coe_units c),

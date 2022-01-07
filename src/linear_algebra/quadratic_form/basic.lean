@@ -979,7 +979,7 @@ let ⟨v, hv₁⟩ := exists_orthogonal_basis (associated_is_symm _ Q) in
 
 lemma equivalent_weighted_sum_squares_units_of_nondegenerate'
   (Q : quadratic_form K V) (hQ : (associated Q).nondegenerate) :
-  ∃ w : fin (finite_dimensional.finrank K V) → units K,
+  ∃ w : fin (finite_dimensional.finrank K V) → Kˣ,
     equivalent Q (weighted_sum_squares K w) :=
 begin
   obtain ⟨v, hv₁⟩ := exists_orthogonal_basis (associated_is_symm _ Q),

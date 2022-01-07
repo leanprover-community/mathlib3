@@ -110,11 +110,10 @@ begin
 end
 
 /-- Define the sheaf hom on individual basic opens for the unit. -/
-def to_Γ_Spec_c_app (r : Γ.obj (op X)) :
+def to_Γ_Spec_c_app :
   (structure_sheaf $ Γ.obj $ op X).val.obj (op $ basic_open r) ⟶
-    X.presheaf.obj (op $ X.to_Γ_Spec_map_basic_open r) := CommRing.of_hom $
-@@is_localization.away.lift _ _ (to_open _ (basic_open r)).to_algebra _ r
-  (is_localization.to_basic_open _ r) (is_unit_res_to_Γ_Spec_map_basic_open _ r)
+    X.presheaf.obj (op $ X.to_Γ_Spec_map_basic_open r) :=
+is_localization.away.lift r (is_unit_res_to_Γ_Spec_map_basic_open _ r)
 
 /-- Characterization of the sheaf hom on basic opens,
     direction ← (next lemma) is used at various places, but → is not used in this file. -/

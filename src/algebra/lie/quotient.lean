@@ -46,12 +46,13 @@ variables {N I}
 instance add_comm_group : add_comm_group (M ⧸ N) := submodule.quotient.add_comm_group _
 instance module' {S : Type*} [semiring S] [has_scalar S R] [module S M] [is_scalar_tower S R M] :
   module S (M ⧸ N) := submodule.quotient.module' _
-instance : module R (M ⧸ N) := submodule.quotient.module _
+instance module : module R (M ⧸ N) := submodule.quotient.module _
 instance {S : Type*} [semiring S]
   [has_scalar S R] [module S M] [is_scalar_tower S R M]
-  [has_scalar Sᵐᵒᵖ R] [module Sᵐᵒᵖ M] [is_scalar_tower Sᵐᵒᵖ R M] :
+  [has_scalar Sᵐᵒᵖ R] [module Sᵐᵒᵖ M] [is_scalar_tower Sᵐᵒᵖ R M]
   [is_central_scalar S M] : is_central_scalar S (M ⧸ N) :=
 submodule.quotient.is_central_scalar _
+
 instance inhabited : inhabited (M ⧸ N) := ⟨0⟩
 
 /-- Map sending an element of `M` to the corresponding element of `M/N`, when `N` is a
@@ -61,31 +62,27 @@ abbreviation mk : M → M ⧸ N := submodule.quotient.mk
 lemma is_quotient_mk (m : M) :
   quotient.mk' m = (mk m : M ⧸ N) := rfl
 
+variables [module Rᵐᵒᵖ M] [is_central_scalar R M]
+
 /-- Given a Lie module `M` over a Lie algebra `L`, together with a Lie submodule `N ⊆ M`, there
 is a natural linear map from `L` to the endomorphisms of `M` leaving `N` invariant. -/
-def lie_submodule_invariant [module Rᵐᵒᵖ M] [is_central_scalar R M] :
-  L →ₗ[R] submodule.compatible_maps N.to_submodule N.to_submodule :=
+def lie_submodule_invariant : L →ₗ[R] submodule.compatible_maps N.to_submodule N.to_submodule :=
 linear_map.cod_restrict _ (lie_module.to_endomorphism R L M) N.lie_mem
 
 variables (N)
 
-example [module Rᵐᵒᵖ M] [is_central_scalar R M] : is_central_scalar R (M ⧸ N) :=
-module.End.algebra _ _
-
-example [module Rᵐᵒᵖ M] [is_central_scalar R M] : algebra R (module.End R (M ⧸ N)) :=
-module.End.algebra _ _
-
 /-- Given a Lie module `M` over a Lie algebra `L`, together with a Lie submodule `N ⊆ M`, there
 is a natural Lie algebra morphism from `L` to the linear endomorphism of the quotient `M/N`. -/
-def action_as_endo_map [module Rᵐᵒᵖ M] [is_central_scalar R M] : L →ₗ⁅R⁆ module.End R (M ⧸ N) :=
+def action_as_endo_map : L →ₗ⁅R⁆ module.End R (M ⧸ N) :=
 { map_lie' := λ x y, by { ext m,
                           change mk ⁅⁅x, y⁆, m⁆ = mk (⁅x, ⁅y, m⁆⁆ - ⁅y, ⁅x, m⁆⁆),
                           congr, apply lie_lie, },
-  ..linear_map.comp (submodule.mapq_linear (N : submodule R M) ↑N) lie_submodule_invariant }
+  .. ((N : submodule R M).mapq_linear ↑N).comp lie_submodule_invariant }
 
 /-- Given a Lie module `M` over a Lie algebra `L`, together with a Lie submodule `N ⊆ M`, there is
 a natural bracket action of `L` on the quotient `M/N`. -/
-def action_as_endo_map_bracket : has_bracket L (M ⧸ N) := ⟨λ x n, action_as_endo_map N x n⟩
+instance action_as_endo_map_bracket : has_bracket L (M ⧸ N) :=
+⟨λ x n, action_as_endo_map N x n⟩
 
 instance lie_quotient_lie_ring_module : lie_ring_module L (M ⧸ N) :=
 { bracket     := λ x n, (action_as_endo_map N : L →ₗ[R] module.End R (M ⧸ N)) x n,

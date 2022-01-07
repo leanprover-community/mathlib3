@@ -138,7 +138,7 @@ end
 
 lemma star_convex.prod {y : F} {s : set E} {t : set F} (hs : star_convex 𝕜 x s)
   (ht : star_convex 𝕜 y t) :
-  star_convex 𝕜 (x, y) (s.prod t) :=
+  star_convex 𝕜 (x, y) (s ×ˢ t) :=
 λ y hy a b ha hb hab, ⟨hs hy.1 ha hb hab, ht hy.2 ha hb hab⟩
 
 lemma star_convex_pi {ι : Type*} {E : ι → Type*} [Π i, add_comm_monoid (E i)]

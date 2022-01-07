@@ -69,8 +69,8 @@ protected lemma lipschitz_on_with {t} (ht : t ∈ Icc v.t_min v.t_max) :
 v.lipschitz' t ht
 
 protected lemma continuous_on :
-  continuous_on (uncurry v) ((Icc v.t_min v.t_max).prod (closed_ball v.x₀ v.R)) :=
-have continuous_on (uncurry (flip v)) ((closed_ball v.x₀ v.R).prod (Icc v.t_min v.t_max)),
+  continuous_on (uncurry v) (Icc v.t_min v.t_max ×ˢ closed_ball v.x₀ v.R) :=
+have continuous_on (uncurry (flip v)) (closed_ball v.x₀ v.R ×ˢ Icc v.t_min v.t_max),
   from continuous_on_prod_of_continuous_on_lipschitz_on _ v.L v.cont v.lipschitz',
 this.comp continuous_swap.continuous_on preimage_swap_prod.symm.subset
 

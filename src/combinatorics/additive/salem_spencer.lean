@@ -75,7 +75,7 @@ set.subsingleton_singleton.mul_salem_spencer
 
 @[to_additive]
 lemma mul_salem_spencer.prod {t : set β} (hs : mul_salem_spencer s) (ht : mul_salem_spencer t) :
-  mul_salem_spencer (s.prod t) :=
+  mul_salem_spencer (s ×ˢ t) :=
 λ a b c ha hb hc h,
   prod.ext (hs ha.1 hb.1 hc.1 (prod.ext_iff.1 h).1) (ht ha.2 hb.2 hc.2 (prod.ext_iff.1 h).2)
 

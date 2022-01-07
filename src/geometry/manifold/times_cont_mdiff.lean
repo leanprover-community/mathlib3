@@ -1762,13 +1762,13 @@ within the product set at the product point. -/
 lemma times_cont_mdiff_within_at.prod_map' {p : M × N}
   (hf : times_cont_mdiff_within_at I I' n f s p.1)
   (hg : times_cont_mdiff_within_at J J' n g r p.2) :
-  times_cont_mdiff_within_at (I.prod J) (I'.prod J') n (prod.map f g) (s.prod r) p :=
+  times_cont_mdiff_within_at (I.prod J) (I'.prod J') n (prod.map f g) (s ×ˢ r) p :=
 (hf.comp p times_cont_mdiff_within_at_fst (prod_subset_preimage_fst _ _)).prod_mk $
 hg.comp p times_cont_mdiff_within_at_snd (prod_subset_preimage_snd _ _)
 
 lemma times_cont_mdiff_within_at.prod_map
   (hf : times_cont_mdiff_within_at I I' n f s x) (hg : times_cont_mdiff_within_at J J' n g r y) :
-  times_cont_mdiff_within_at (I.prod J) (I'.prod J') n (prod.map f g) (s.prod r) (x, y) :=
+  times_cont_mdiff_within_at (I.prod J) (I'.prod J') n (prod.map f g) (s ×ˢ r) (x, y) :=
 times_cont_mdiff_within_at.prod_map' hf hg
 
 lemma times_cont_mdiff_at.prod_map
@@ -1790,7 +1790,7 @@ end
 
 lemma times_cont_mdiff_on.prod_map
   (hf : times_cont_mdiff_on I I' n f s) (hg : times_cont_mdiff_on J J' n g r) :
-  times_cont_mdiff_on (I.prod J) (I'.prod J') n (prod.map f g) (s.prod r) :=
+  times_cont_mdiff_on (I.prod J) (I'.prod J') n (prod.map f g) (s ×ˢ r) :=
 (hf.comp times_cont_mdiff_on_fst (prod_subset_preimage_fst _ _)).prod_mk $
 hg.comp (times_cont_mdiff_on_snd) (prod_subset_preimage_snd _ _)
 
@@ -1804,7 +1804,7 @@ end
 
 lemma smooth_within_at.prod_map
   (hf : smooth_within_at I I' f s x) (hg : smooth_within_at J J' g r y) :
-  smooth_within_at (I.prod J) (I'.prod J') (prod.map f g) (s.prod r) (x, y) :=
+  smooth_within_at (I.prod J) (I'.prod J') (prod.map f g) (s ×ˢ r) (x, y) :=
 hf.prod_map hg
 
 lemma smooth_at.prod_map
@@ -1814,7 +1814,7 @@ hf.prod_map hg
 
 lemma smooth_on.prod_map
   (hf : smooth_on I I' f s) (hg : smooth_on J J' g r) :
-  smooth_on (I.prod J) (I'.prod J') (prod.map f g) (s.prod r) :=
+  smooth_on (I.prod J) (I'.prod J') (prod.map f g) (s ×ˢ r) :=
 hf.prod_map hg
 
 lemma smooth.prod_map

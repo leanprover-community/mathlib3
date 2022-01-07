@@ -517,7 +517,7 @@ begin
   have hL : ∀ y ∈ emetric.ball (x, x) r',
     ∥f y.1 - f y.2 - (p 1 (λ _, y.1 - y.2))∥ ≤ L y,
   { intros y hy',
-    have hy : y ∈ (emetric.ball x r).prod (emetric.ball x r),
+    have hy : y ∈ emetric.ball x r ×ˢ emetric.ball x r,
     { rw [emetric.ball_prod_same], exact emetric.ball_subset_ball hr.le hy' },
     set A : ℕ → F := λ n, p n (λ _, y.1 - x) - p n (λ _, y.2 - x),
     have hA : has_sum (λ n, A (n + 2)) (f y.1 - f y.2 - (p 1 (λ _, y.1 - y.2))),

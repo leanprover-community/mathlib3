@@ -44,8 +44,8 @@ instance [is_irrefl α r] [is_irrefl β s] : is_irrefl (α ⊕ β) (lift_rel r s
 
 @[trans] lemma lift_rel.trans [is_trans α r] [is_trans β s] :
   ∀ {a b c}, lift_rel r s a b → lift_rel r s b c → lift_rel r s a c
-| (inl a) (inl b) (inl c) (lift_rel.inl hab) (lift_rel.inl hbc) := lift_rel.inl (trans hab hbc)
-| (inr a) (inr b) (inr c) (lift_rel.inr hab) (lift_rel.inr hbc) := lift_rel.inr (trans hab hbc)
+| _ _ _ (lift_rel.inl hab) (lift_rel.inl hbc) := lift_rel.inl $ trans hab hbc
+| _ _ _ (lift_rel.inr hab) (lift_rel.inr hbc) := lift_rel.inr $ trans hab hbc
 
 instance [is_trans α r] [is_trans β s] : is_trans (α ⊕ β) (lift_rel r s) :=
 ⟨λ _ _ _, lift_rel.trans _ _⟩

@@ -19,7 +19,7 @@ In case all component functors have right adjoints, we can transfer the
 lax functor structure of `F` across the adjunctions to obtain a lax functor
 `G` from `Cᵒᵖ` to `Cat` with component functors opposites (`functor.op`) of
 the right adjoints.
-
+-- change name to oplax functor
 
 -/
 
@@ -29,6 +29,7 @@ namespace category_theory
 
 variables (C : Type u) [category.{v} C]
 
+-- change name to oplax functor
 structure lax_functor_to_Cat extends prefunctor C Cat.{v' u'} :=
 (map_id (X : C) : map (𝟙 X) ⟶ 𝟭 (obj X))
 (map_comp ⦃X Y Z : C⦄ (f : X ⟶ Y) (g : Y ⟶ Z) : map (f ≫ g) ⟶ map f ⋙ map g)

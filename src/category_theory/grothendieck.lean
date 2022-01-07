@@ -331,14 +331,15 @@ def fiber_cocone_functor : lax_functor_to_Cat (cocone (𝒟 ⋙ forget F)) :=
   comp_id := by { intros, ext, dsimp, simpa },
   assoc := by { intros, ext, dsimp, simpa } }
 
+@[simps]
 def cocone_to_grothendieck : cocone 𝒟 ⥤ grothendieck (fiber_cocone_functor 𝒟) :=
 { obj := λ c, { base := (forget F).map_cocone c, fiber := fiber_cocone c },
   map := λ c₁ c₂ f,
   { base := { hom := f.hom.base, w' := λ j, congr_arg hom.base (f.w j) } ,
     fiber := { hom := f.hom.fiber,
       w' := λ j, by { convert (congr (f.w j).symm).symm using 1,
-        dsimp [fiber_cocone_functor, fiber_trans, fiber_cocone,
-          fiber_push_over, fiber_push_naturality, fiber_push_map], simpa } } } }
+        dsimp [fiber_cocone_functor, fiber_trans, fiber_push_naturality, fiber_push_map],
+        simpa } } } }
 
 variables {𝒟} (cb) (cf : cocone (fiber_diagram cb))
 /-- From a cocone over the projected diagram in the base category and a cocone over its
@@ -351,9 +352,57 @@ def total_cocone : cocone 𝒟 :=
     { erw ← category.assoc, exact cocone.w cf f }, exact cocone.w cb f } } }
 
 variable (𝒟)
+@[simps]
 def grothendieck_to_cocone : grothendieck (fiber_cocone_functor 𝒟) ⥤ cocone 𝒟 :=
 { obj := λ c, total_cocone c.base c.fiber,
-  map := λ c₁ c₂ f, }
+  map := λ c₁ c₂ f,
+  { hom := { base := f.base.hom, fiber := f.fiber.hom },
+    w' := λ j, by { ext, { convert f.fiber.w j using 1,
+      dsimp [fiber_cocone_functor, fiber_trans, fiber_push_naturality, fiber_push_map],
+      simpa }, simp } } }
+
+def cocone_grothendieck_counit : grothendieck_to_cocone 𝒟 ⋙ cocone_to_grothendieck 𝒟 ⟶ 𝟭 _ :=
+{ app := λ c,
+  { base := { hom := 𝟙 _, w' := λ j, by { dsimp, simp } },
+    fiber := { hom := (F.map_id c.base.X).app c.fiber.X,
+      w' := λ j, by {dsimp [fiber_cocone_functor, fiber_cocone, fiber_trans,
+        fiber_push_over, fiber_push_naturality, fiber_diagram], simpa } } },
+  naturality' := λ c₁ c₂ f, by { ext, dsimp [fiber_push_map], simp, },
+}
+
+
+def cocone_grothendieck_adjunction : cocone_to_grothendieck 𝒟 ⊣ grothendieck_to_cocone 𝒟 :=
+adjunction.mk_of_unit_counit
+{ unit :=
+  { app := λ c,
+    { hom := { base := 𝟙 _, fiber := (F.map_id c.X.base).app c.X.fiber },
+      w' := λ j, by { ext,
+        exact (congr (category.comp_id (c.ι.app j)).symm).symm, { dsimp, simp } } },
+    naturality' := λ _ _ _, by { ext, { dsimp [fiber_push_map], simpa }, simp } },
+  counit :=
+  { app := λ c,
+    { base := { hom := 𝟙 _, w' := λ j, by { dsimp, simp } },
+      fiber := { hom := (F.map_id c.base.X).app c.fiber.X,
+        w' := λ j, by { dsimp [fiber_cocone_functor, fiber_cocone, fiber_trans,
+          fiber_push_over, fiber_push_naturality, fiber_diagram], simpa } } },
+    naturality' := λ c₁ c₂ f, by { ext, { dsimp [fiber_push_map], simpa} , simp } },
+}
+
+-- first construct adjunction! may not use inverse of map_id, map_comp
+-- what does adjunction say about initial object/preserve colimits?
+-- !! isomorphism in grothendieck F in terms of base and fiber!
+-- maybe over X and under X are also fibered categories? and costructured_arrow category?
+def cocone_grothendieck_equivalence : cocone 𝒟 ≌ grothendieck (fiber_cocone_functor 𝒟) :=
+{ functor := cocone_to_grothendieck 𝒟,
+  inverse := grothendieck_to_cocone 𝒟,
+  unit_iso :=
+  { hom :=
+    { app := λ c, { hom := { base := 𝟙 _, fiber := (F.map_id c.X.base).app c.X.fiber },
+        w' := λ j, by { ext, exact (congr (category.comp_id (c.ι.app j)).symm).symm,
+          { dsimp, simp } } },
+      naturality' := λ c₁ c₂ f, by { ext, { dsimp [fiber_push_map], simpa }, simp } },
+    inv := , }
+}
 
 def total_cocone_hom (ff : fiber_cocone_trans c cf fb ⟶ fiber_cocone c) :
   total_cocone cb cf ⟶ c :=

@@ -229,14 +229,31 @@ namespace lex
 
 notation α ` ⊕ₗ `:30 β:29 := _root_.lex (α ⊕ β)
 
+--TODO: Can we make `inlₗ`, `inrₗ` `local notation`?
+
+/-- Lexicographical `sum.inl`. Only used for pattern matching. -/
+@[pattern] abbreviation _root_.sum.inlₗ (x : α) : α ⊕ₗ β := to_lex (sum.inl x)
+
+/-- Lexicographical `sum.inr`. Only used for pattern matching. -/
+@[pattern] abbreviation _root_.sum.inrₗ (x : β) : α ⊕ₗ β := to_lex (sum.inr x)
+
 /-- The linear/lexicographical `≤` on a sum. -/
 instance has_le [has_le α] [has_le β] : has_le (α ⊕ₗ β) := ⟨lex (≤) (≤)⟩
 
 /-- The linear/lexicographical `<` on a sum. -/
 instance has_lt [has_lt α] [has_lt β] : has_lt (α ⊕ₗ β) := ⟨lex (<) (<)⟩
 
-lemma le_def [has_le α] [has_le β] {a b : α ⊕ₗ β} : a ≤ b ↔ lex (≤) (≤) a b := iff.rfl
-lemma lt_def [has_lt α] [has_lt β] {a b : α ⊕ₗ β} : a < b ↔ lex (<) (<) a b := iff.rfl
+@[simp] lemma to_lex_le_to_lex [has_le α] [has_le β] {a b : α ⊕ β} :
+  to_lex a ≤ to_lex b ↔ lex (≤) (≤) a b := iff.rfl
+
+@[simp] lemma to_lex_lt_to_lex [has_lt α] [has_lt β] {a b : α ⊕ β} :
+  to_lex a < to_lex b ↔ lex (<) (<) a b := iff.rfl
+
+lemma le_def [has_le α] [has_le β] {a b : α ⊕ₗ β} : a ≤ b ↔ lex (≤) (≤) (of_lex a) (of_lex b) :=
+iff.rfl
+
+lemma lt_def [has_lt α] [has_lt β] {a b : α ⊕ₗ β} : a < b ↔ lex (<) (<) (of_lex a) (of_lex b) :=
+iff.rfl
 
 @[simp] lemma inl_le_inl_iff [has_le α] [has_le β] {a b : α} :
   to_lex (inl a : α ⊕ β) ≤ to_lex (inl b) ↔ a ≤ b :=
@@ -446,12 +463,8 @@ end,
 @[simp] lemma sum_dual_distrib_symm_inr  :
   (sum_dual_distrib α β).symm (inr (to_dual b)) = to_dual (inr b) := rfl
 
-@[pattern] abbreviation inlₗ (x : α) : α ⊕ₗ β := to_lex (sum.inl x)
-@[pattern] abbreviation inrₗ (x : β) : α ⊕ₗ β := to_lex (sum.inr x)
-
 /-- `equiv.sum_assoc` promoted to an order isomorphism. -/
-def sum_lex_assoc (α β γ : Type*) [has_le α] [has_le β] [has_le γ] :
-  (α ⊕ₗ β) ⊕ₗ γ ≃o α ⊕ₗ β ⊕ₗ γ :=
+def sum_lex_assoc (α β γ : Type*) [has_le α] [has_le β] [has_le γ] : (α ⊕ₗ β) ⊕ₗ γ ≃o α ⊕ₗ β ⊕ₗ γ :=
 { map_rel_iff' := λ a b, ⟨λ h, match a, b, h with
     | inlₗ (inlₗ a), inlₗ (inlₗ b), lex.inl h := lex.inl $ lex.inl h
     | inlₗ (inlₗ a), inlₗ (inrₗ b), lex.sep _ _ := lex.inl $ lex.sep _ _

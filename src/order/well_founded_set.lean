@@ -87,7 +87,7 @@ instance is_strict_order.subset {s : set α} {r : α → α → Prop} [is_strict
   to_is_trans := ⟨λ a b c ab bc, ⟨trans_of r ab.1 bc.1, ab.2.1, bc.2.2⟩ ⟩ }
 
 theorem well_founded_on_iff_no_descending_seq {s : set α} {r : α → α → Prop} [is_strict_order α r] :
-  s.well_founded_on r ↔ ∀ (f : ((<) : order_dual ℕ → order_dual ℕ → Prop) ↪r r), ¬∀ n, f n ∈ s :=
+  s.well_founded_on r ↔ ∀ (f : ((>) : ℕ → ℕ → Prop) ↪r r), ¬∀ n, f n ∈ s :=
 begin
   simp only [well_founded_on_iff, rel_embedding.well_founded_iff_no_descending_seq, ← not_exists,
     ← not_nonempty_iff, not_iff_not],
@@ -154,9 +154,9 @@ section partial_order
 variables [partial_order α] {s t : set α} {a : α}
 
 theorem is_wf_iff_no_descending_seq :
-  is_wf s ↔ ∀ (f : (order_dual ℕ) ↪o α), ¬(∀ n, f (order_dual.to_dual n) ∈ s) :=
+  is_wf s ↔ ∀ f : ℕ → α, strict_anti f → ¬(∀ n, f (order_dual.to_dual n) ∈ s) :=
 well_founded_on_iff_no_descending_seq.trans
-  ⟨λ H f, H f.lt_embedding, λ H f, H f.order_embedding_of_lt_embedding⟩
+  ⟨λ H f hf, H ⟨⟨f, hf.injective⟩, λ a b, hf.lt_iff_lt⟩, λ H f, H f (λ _ _, f.map_rel_iff.2)⟩
 
 end partial_order
 

@@ -51,7 +51,6 @@ variable (X : LocallyRingedSpace.{u})
 /-- The map from the global sections to a stalk. -/
 def Γ_to_stalk (x : X) : Γ.obj (op X) ⟶ X.presheaf.stalk x :=
   X.presheaf.germ (⟨x,trivial⟩ : (⊤ : opens X))
--- or @Top.presheaf.germ _ _ _ _ _ ⊤ ⟨x,trivial⟩
 
 /-- The canonical map from the underlying set to the prime spectrum of `Γ(X)`. -/
 def to_Γ_Spec_fun : X → prime_spectrum (Γ.obj (op X)) :=
@@ -123,7 +122,7 @@ lemma to_Γ_Spec_c_app_iff
   to_open _ (basic_open r) ≫ f = X.to_to_Γ_Spec_map_basic_open r ↔ f = X.to_Γ_Spec_c_app r :=
 begin
   rw ← (is_localization.away.away_map.lift_comp r
-    (X.is_unit_res_to_Γ_Spec_map_basic_open r) : _ = X.to_to_Γ_Spec_map_basic_open r),
+    (X.is_unit_res_to_Γ_Spec_map_basic_open r)),
   swap 5, exact is_localization.to_basic_open _ r,
   split,
   { intro h, refine is_localization.ring_hom_ext _ _,
@@ -193,8 +192,6 @@ def to_Γ_Spec : X ⟶ Spec.LocallyRingedSpace_obj (Γ.obj (op X)) :=
     let p : prime_spectrum (Γ.obj (op X)) := X.to_Γ_Spec_fun x,
     constructor, /- show stalk map is local hom ↓ -/
     let S := (structure_sheaf _).val.stalk p,
-    letI : algebra (Γ.obj (op X)) S := (to_stalk _ p).to_algebra,
-    haveI := is_localization.to_stalk (Γ.obj (op X)) p,
     rintros (t : S) ht,
     obtain ⟨⟨r, s⟩, he⟩ := is_localization.surj p.as_ideal.prime_compl t,
     dsimp at he,
@@ -273,9 +270,9 @@ lemma right_triangle (R : CommRing) :
   Spec.to_LocallyRingedSpace.map (Spec_Γ_identity.inv.app R).op = 𝟙 _ :=
 begin
   apply LocallyRingedSpace.comp_ring_hom_ext,
-  { ext p x,
-    erw ← @is_localization.at_prime.to_map_mem_maximal_iff _ _ _ _
-      (to_stalk R p).to_algebra p.1 _ (is_localization.to_stalk R p) x,
+  { ext (p : prime_spectrum R) x,
+    erw ← is_localization.at_prime.to_map_mem_maximal_iff
+      ((structure_sheaf R).val.stalk p) p.as_ideal x,
     refl },
   { intro r, apply to_open_res },
 end

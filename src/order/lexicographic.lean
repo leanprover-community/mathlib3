@@ -84,11 +84,11 @@ lemma lt_iff [has_lt α] [has_lt β] (a b : α × β) :
 instance preorder (α β : Type*) [preorder α] [preorder β] : preorder (α ×ₗ β) :=
 { le_refl := by
   { haveI : is_refl β (≤) := ⟨le_refl⟩,
-    exact prod.lex.refl_right _ _, },
+    exact refl_of (prod.lex _ _), },
   le_trans := λ _ _ _, by
   { haveI : is_trans α (<) := ⟨λ _ _ _, lt_trans⟩,
     haveI : is_trans β (≤) := ⟨λ _ _ _, le_trans⟩,
-    exact prod.lex.trans },
+    exact trans_of (prod.lex _ _) },
   lt_iff_le_not_le := λ x₁ x₂, match x₁, x₂ with
   | to_lex (a₁, b₁), to_lex (a₂, b₂) := begin
       split,
@@ -123,22 +123,7 @@ instance partial_order (α β : Type*) [partial_order α] [partial_order β] : p
 
 /-- Dictionary / lexicographic linear_order for pairs. -/
 instance linear_order (α β : Type*) [linear_order α] [linear_order β] : linear_order (α ×ₗ β) :=
-{ le_total := λ x₁ x₂, match x₁, x₂ with
-  | to_lex (a₁, b₁), to_lex (a₂, b₂) := begin
-      obtain ha | ha := le_total a₁ a₂;
-        cases lt_or_eq_of_le ha with a_lt a_eq,
-      -- Deal with the two goals with a₁ ≠ a₂
-      { left, left, exact a_lt },
-      swap,
-      { right, left, exact a_lt },
-      -- Now deal with the two goals with a₁ = a₂
-      all_goals { subst a_eq, obtain hb | hb := le_total b₁ b₂ },
-      { left, right, exact hb },
-      { right, right, exact hb },
-      { left, right, exact hb },
-      { right, right, exact hb },
-    end
-  end,
+{ le_total := total_of (prod.lex _ _),
   decidable_le := prod.lex.decidable _ _,
   decidable_lt := prod.lex.decidable _ _,
   decidable_eq := lex.decidable_eq _ _,

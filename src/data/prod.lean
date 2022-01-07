@@ -191,6 +191,19 @@ instance {r : α → α → Prop} {s : β → β → Prop} [is_strict_order α r
   | (a₁, b₁), (a₂, b₂), lex.right _ hs₁, lex.right _ hs₂ := antisymm hs₁ hs₂ ▸ rfl
 end⟩
 
+instance is_total_left {r : α → α → Prop} {s : β → β → Prop} [is_total α r] :
+  is_total (α × β) (lex r s) :=
+⟨λ ⟨a₁, b₁⟩ ⟨a₂, b₂⟩, (is_total.total a₁ a₂).imp (lex.left _ _) (lex.left _ _)⟩
+
+instance is_total_right {r : α → α → Prop} {s : β → β → Prop} [is_trichotomous α r] [is_total β s] :
+  is_total (α × β) (lex r s) :=
+⟨λ ⟨i, a⟩ ⟨j, b⟩, begin
+  obtain hij | rfl | hji := trichotomous_of r i j,
+  { exact or.inl (lex.left _ _ hij) },
+  { exact (total_of (s) a b).imp (lex.right _) (lex.right _), },
+  { exact or.inr (lex.left _ _ hji) }
+end⟩
+
 end prod
 
 open function

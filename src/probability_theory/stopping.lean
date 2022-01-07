@@ -478,7 +478,7 @@ begin
   refine mem_ℒp.add _ _,
   { exact mem_ℒp.indicator (f.le n {a : α | n ≤ τ a} (hτ.measurable_set_ge n)) (hu n) },
   { suffices : mem_ℒp (λ x, ∑ (i : ℕ) in finset.range n, {a : α | τ a = i}.indicator (u i) x) p μ,
-      by { convert this, ext1 x, simp only [finset.sum_apply] },
+    { convert this, ext1 x, simp only [finset.sum_apply] },
     refine mem_ℒp_finset_sum _ (λ i hi, mem_ℒp.indicator _ (hu i)),
     exact f.le i {a : α | τ a = i} (hτ.measurable_set_eq i) },
 end
@@ -498,7 +498,7 @@ begin
   rw stopped_value_eq hbdd,
   suffices : mem_ℒp (λ x, ∑ (i : ℕ) in finset.range (N + 1),
     {a : α | τ a = i}.indicator (u i) x) p μ,
-    by { convert this, ext1 x, simp only [finset.sum_apply] },
+  { convert this, ext1 x, simp only [finset.sum_apply] },
   refine mem_ℒp_finset_sum _ (λ i hi, mem_ℒp.indicator _ (hu i)),
   exact f.le i {a : α | τ a = i} (hτ.measurable_set_eq i)
 end

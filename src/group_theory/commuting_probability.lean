@@ -21,7 +21,7 @@ noncomputable theory
 open_locale classical
 open_locale big_operators
 
-open nat fintype
+open fintype
 
 variables (M : Type*) [fintype M] [has_mul M]
 
@@ -32,23 +32,23 @@ lemma comm_prob_def : comm_prob M = card {p : M × M // p.1 * p.2 = p.2 * p.1} /
 rfl
 
 lemma comm_prob_pos [h : nonempty M] : 0 < comm_prob M :=
-h.elim (λ x, div_pos (cast_pos.mpr (card_pos_iff.mpr ⟨⟨(x, x), rfl⟩⟩))
-  (pow_pos (cast_pos.mpr card_pos) 2))
+h.elim (λ x, div_pos (nat.cast_pos.mpr (card_pos_iff.mpr ⟨⟨(x, x), rfl⟩⟩))
+  (pow_pos (nat.cast_pos.mpr card_pos) 2))
 
 lemma comm_prob_le_one : comm_prob M ≤ 1 :=
 begin
   refine div_le_one_of_le _ (sq_nonneg (card M)),
-  rw [←cast_pow, cast_le, sq, ←card_prod],
+  rw [←nat.cast_pow, nat.cast_le, sq, ←card_prod],
   apply set_fintype_card_le_univ,
 end
 
 lemma comm_prob_eq_one_iff [h : nonempty M] : comm_prob M = 1 ↔ commutative ((*) : M → M → M) :=
 begin
   change (card {p : M × M | p.1 * p.2 = p.2 * p.1} : ℚ) / _ = 1 ↔ _,
-  rw [div_eq_one_iff_eq, ←cast_pow, nat.cast_inj, sq, ←card_prod,
+  rw [div_eq_one_iff_eq, ←nat.cast_pow, nat.cast_inj, sq, ←card_prod,
       set_fintype_card_eq_univ_iff, set.eq_univ_iff_forall],
   { exact ⟨λ h x y, h (x, y), λ h x, h x.1 x.2⟩ },
-  { exact pow_ne_zero 2 (cast_ne_zero.mpr card_ne_zero) },
+  { exact pow_ne_zero 2 (nat.cast_ne_zero.mpr card_ne_zero) },
 end
 
 variables (G : Type*) [group G] [fintype G]
@@ -67,6 +67,6 @@ calc card {p : G × G // p.1 * p.2 = p.2 * p.1} = card (Σ g, {h // g * h = h * 
 
 lemma comm_prob_def' : comm_prob G = card (conj_classes G) / card G :=
 begin
-  rw [comm_prob, card_comm_eq_card_conj_classes_mul_card, cast_mul, sq],
-  exact mul_div_mul_right (card (conj_classes G)) (card G) (cast_ne_zero.mpr card_ne_zero),
+  rw [comm_prob, card_comm_eq_card_conj_classes_mul_card, nat.cast_mul, sq],
+  exact mul_div_mul_right (card (conj_classes G)) (card G) (nat.cast_ne_zero.mpr card_ne_zero),
 end

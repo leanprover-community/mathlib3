@@ -66,7 +66,8 @@ variables [partial_order Γ] [has_zero R]
 
 lemma coeff_injective : injective (coeff : hahn_series Γ R → (Γ → R)) := ext
 
-@[simp] lemma coeff_inj {x y : hahn_series Γ R} : x.coeff = y.coeff ↔ x = y := coeff_injective.eq_iff
+@[simp] lemma coeff_inj {x y : hahn_series Γ R} : x.coeff = y.coeff ↔ x = y :=
+coeff_injective.eq_iff
 
 /-- The support of a Hahn series is just the set of indices whose coefficients are nonzero.
   Notably, it is well-founded. -/

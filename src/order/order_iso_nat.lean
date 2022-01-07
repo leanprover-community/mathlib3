@@ -89,9 +89,8 @@ by { simp [subtype.order_iso_of_nat] }
 
 variable (s)
 
-@[simp] lemma order_embedding_of_set_range : set.range (nat.order_embedding_of_set s) = s :=
-by simp only [coe_order_embedding_of_set, set.range_comp coe, subtype.of_nat_surjective.range_eq,
-  set.image_univ, subtype.range_coe]
+lemma order_embedding_of_set_range : set.range (nat.order_embedding_of_set s) = s :=
+subtype.coe_comp_of_nat_range
 
 theorem exists_subseq_of_forall_mem_union {α : Type*} {s t : set α} (e : ℕ → α)
   (he : ∀ n, e n ∈ s ∪ t) :

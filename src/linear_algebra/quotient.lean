@@ -27,8 +27,8 @@ open linear_map
 /-- The equivalence relation associated to a submodule `p`, defined by `x ≈ y` iff `y - x ∈ p`. -/
 def quotient_rel : setoid M :=
 ⟨λ x y, x - y ∈ p, λ x, by simp,
- λ x y h, by simpa using neg_mem _ h,
- λ x y z h₁ h₂, by simpa [sub_eq_add_neg, add_left_comm, add_assoc] using add_mem _ h₁ h₂⟩
+ λ x y h, by simpa using neg_mem h,
+ λ x y z h₁ h₂, by simpa [sub_eq_add_neg, add_left_comm, add_assoc] using add_mem h₁ h₂⟩
 
 /-- The quotient of a module `M` by a submodule `p ⊆ M`. -/
 instance has_quotient : has_quotient M (submodule R M) := ⟨λ p, quotient (quotient_rel p)⟩
@@ -57,20 +57,20 @@ by simpa using (quotient.eq p : mk x = 0 ↔ _)
 instance : has_add (M ⧸ p) :=
 ⟨λ a b, quotient.lift_on₂' a b (λ a b, mk (a + b)) $
   λ a₁ a₂ b₁ b₂ h₁ h₂, (quotient.eq p).2 $
-    by simpa [sub_eq_add_neg, add_left_comm, add_comm] using add_mem p h₁ h₂⟩
+    by simpa [sub_eq_add_neg, add_left_comm, add_comm] using add_mem h₁ h₂⟩
 
 @[simp] theorem mk_add : (mk (x + y) : M ⧸ p) = mk x + mk y := rfl
 
 instance : has_neg (M ⧸ p) :=
 ⟨λ a, quotient.lift_on' a (λ a, mk (-a)) $
- λ a b h, (quotient.eq p).2 $ by simpa using neg_mem p h⟩
+ λ a b h, (quotient.eq p).2 $ by simpa using neg_mem h⟩
 
 @[simp] theorem mk_neg : (mk (-x) : M ⧸ p) = -mk x := rfl
 
 instance : has_sub (M ⧸ p) :=
 ⟨λ a b, quotient.lift_on₂' a b (λ a b, mk (a - b)) $
   λ a₁ a₂ b₁ b₂ h₁ h₂, (quotient.eq p).2 $
-  by simpa [sub_eq_add_neg, add_left_comm, add_comm] using add_mem p h₁ (neg_mem p h₂)⟩
+  by simpa [sub_eq_add_neg, add_left_comm, add_comm] using add_mem h₁ (neg_mem h₂)⟩
 
 @[simp] theorem mk_sub : (mk (x - y) : M ⧸ p) = mk x - mk y := rfl
 

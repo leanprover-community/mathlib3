@@ -192,12 +192,12 @@ def comp : oplax_functor B D :=
     (G.map_functor _ _).map (F.map_comp f g) ≫ G.map_comp (F.map f) (F.map g),
   map_comp_naturality_left' := λ a b c f f' η g, by
   { dsimp,
-    rw [←map₂_comp_assoc, map_comp_naturality_left, map₂_comp_assoc, map_comp_naturality_left],
-    rw assoc },
+    rw [←map₂_comp_assoc, map_comp_naturality_left, map₂_comp_assoc, map_comp_naturality_left,
+      assoc] },
   map_comp_naturality_right' := λ a b c f g g' η, by
   { dsimp,
-    rw [←map₂_comp_assoc, map_comp_naturality_right, map₂_comp_assoc, map_comp_naturality_right],
-    rw assoc },
+    rw [←map₂_comp_assoc, map_comp_naturality_right, map₂_comp_assoc, map_comp_naturality_right,
+      assoc] },
   map₂_associator' := λ a b c d f g h, by
   { dsimp,
     simp only [map₂_associator, ←map₂_comp_assoc, ←map_comp_naturality_right_assoc,

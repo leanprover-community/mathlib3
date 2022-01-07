@@ -269,8 +269,7 @@ def map (f : L →ₐ[K] L') : intermediate_field K L' :=
 /-- Given an equivalence `e : L ≃ₐ[K] M` of `K`-field extensions and an intermediate
 field `E` of `L/K`, `intermediate_field_equiv_map e E` is the induced equivalence
 between `E` and `E.map e` -/
-def intermediate_field_equiv_map {K L M : Type*} [field K] [field L] [field M]
-  [algebra K L] [algebra K M] (e : L ≃ₐ[K] M) (E : intermediate_field K L) :
+def intermediate_field_equiv_map (e : L ≃ₐ[K] L') (E : intermediate_field K L) :
   E ≃ₐ[K] (E.map e.to_alg_hom) :=
 e.subalgebra_equiv_map E.to_subalgebra
 

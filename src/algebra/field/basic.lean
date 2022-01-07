@@ -274,7 +274,7 @@ section
 
 variables {R : Type*} [semiring R] [division_ring K] (f : R →+* K)
 
-@[simp] lemma map_units_inv (u : units R) :
+@[simp] lemma map_units_inv (u : Rˣ) :
   f ↑u⁻¹ = (f ↑u)⁻¹ :=
 (f : R →* K).map_units_inv u
 

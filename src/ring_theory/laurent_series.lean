@@ -23,10 +23,12 @@ open hahn_series
 open_locale big_operators classical
 noncomputable theory
 
+universe u
+
 /-- A `laurent_series` is implemented as a `hahn_series` with value group `ℤ`. -/
 abbreviation laurent_series (R : Type*) [has_zero R] := hahn_series ℤ R
 
-variables {R : Type*}
+variables {R : Type u}
 
 namespace laurent_series
 
@@ -184,6 +186,12 @@ rfl
         mul_one] at h,
       exact h } end) }
 
+instance {K : Type u} [field K] : is_fraction_ring (power_series K) (laurent_series K) :=
+is_localization.of_le (submonoid.powers (power_series.X : power_series K)) _
+  (powers_le_non_zero_divisors_of_no_zero_divisors power_series.X_ne_zero)
+  (λ f hf, is_unit_of_mem_non_zero_divisors $ ring_hom.map_mem_non_zero_divisors _
+    hahn_series.of_power_series_injective hf)
+
 end laurent_series
 
 namespace polynomial
@@ -196,7 +204,7 @@ open polynomial laurent_series hahn_series
 
 lemma coe_laurent : (p : laurent_series R) = of_power_series ℤ R p := rfl
 
-@[simp] lemma coe_coe : ((p : power_series R) : laurent_series R) = p := rfl
+@[norm_cast] lemma coe_coe : ((p : power_series R) : laurent_series R) = p := rfl
 
 @[simp] lemma coe_laurent_zero : ((0 : polynomial R) : laurent_series R) = 0 :=
 by rw [coe_laurent, coe_zero, _root_.map_zero]
@@ -204,13 +212,13 @@ by rw [coe_laurent, coe_zero, _root_.map_zero]
 @[simp] lemma coe_laurent_one : ((1 : polynomial R) : laurent_series R) = 1 :=
 by rw [coe_laurent, coe_one, _root_.map_one]
 
-@[simp] lemma coe_laurent_add : ((p + q : polynomial R) : laurent_series R) = p + q :=
+@[norm_cast] lemma coe_laurent_add : ((p + q : polynomial R) : laurent_series R) = p + q :=
 by rw [coe_laurent, coe_add, _root_.map_add, ←coe_laurent, ←coe_laurent]
 
-@[simp] lemma coe_laurent_mul : ((p * q : polynomial R) : laurent_series R) = p * q :=
+@[norm_cast] lemma coe_laurent_mul : ((p * q : polynomial R) : laurent_series R) = p * q :=
 by rw [coe_laurent, coe_mul, _root_.map_mul, ←coe_laurent, ←coe_laurent]
 
-@[simp] lemma coeff_coe_laurent_coe (i : ℕ) :
+@[norm_cast] lemma coeff_coe_laurent_coe (i : ℕ) :
   ((p : polynomial R) : laurent_series R).coeff i = p.coeff i :=
 by rw [←coe_coe, coeff_coe_power_series, coeff_coe]
 
@@ -233,7 +241,7 @@ by rw [coe_laurent, coe_C, of_power_series_C]
 @[simp] lemma coe_laurent_X : ((X : polynomial R) : laurent_series R) = single 1 1 :=
 by rw [coe_laurent, coe_X, of_power_series_X]
 
-@[simp] lemma coe_laurent_smul (r : R) :
+@[norm_cast] lemma coe_laurent_smul (r : R) :
   ((r • p : polynomial R) : laurent_series R) = r • p :=
 by rw [smul_eq_C_mul, coe_laurent_mul, coe_laurent_C, C_mul_eq_smul]
 

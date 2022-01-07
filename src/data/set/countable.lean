@@ -225,11 +225,7 @@ protected lemma countable.prod {s : set α} {t : set β} (hs : countable s) (ht 
 begin
   haveI : encodable s := hs.to_encodable,
   haveI : encodable t := ht.to_encodable,
-  haveI : encodable (s × t), { apply_instance },
-  have : range (prod.map coe coe : s × t → α × β) = set.prod s t,
-    by rw [range_prod_map, subtype.range_coe, subtype.range_coe],
-  rw ← this,
-  exact countable_range _
+  exact ⟨of_equiv (s × t) (equiv.set.prod _ _)⟩
 end
 
 lemma countable.image2 {s : set α} {t : set β} (hs : countable s) (ht : countable t)

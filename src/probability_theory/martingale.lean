@@ -318,9 +318,6 @@ end submartingale
 
 section nat
 
-variables {F : Type*} [measurable_space F] [normed_lattice_add_comm_group F]
-  [normed_space ℝ F] [complete_space F] [borel_space F] [second_countable_topology F]
-  [ordered_smul ℝ F]
 variables {𝒢 : filtration ℕ m0} [sigma_finite_filtration μ 𝒢]
 
 namespace submartingale

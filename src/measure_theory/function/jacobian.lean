@@ -6,6 +6,7 @@ Authors: Sébastien Gouëzel
 import measure_theory.covering.besicovitch_vector_space
 import measure_theory.measure.haar_lebesgue
 import analysis.normed_space.pointwise
+import measure_theory.covering.differentiation
 
 /-!
 # Change of variables in higher-dimensional integrals
@@ -501,6 +502,19 @@ begin
   exact A,
 end
 
+lemma glou (s : set E) (hs : measurable_set s) :
+  ∀ᵐ x ∂(μ.restrict s), tendsto (λ r, μ (s ∩ closed_ball x r) / μ (closed_ball x r))
+    (𝓝[>] 0) (𝓝 1) :=
+begin
+  have : ∀ᵐ x ∂(μ.restrict s), rn_deriv (μ.restrict s) μ x = 1,
+  {
+
+  }
+end
+
+
+#exit
+
 lemma approximates_linear_on.norm_fderiv_sub_le {f : E → E} {A : E →L[ℝ] E} {s : set E} {δ : ℝ≥0}
   (hf : approximates_linear_on f A s δ)
   (f' : E → E →L[ℝ] E) (hf' : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x) :
@@ -512,19 +526,56 @@ lemma ae_measurable_fderiv_within
   (hf' : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x) :
   ae_measurable f' (μ.restrict s) :=
 begin
+  /- It suffices to show that `f'` can be uniformly approximated by a measurable function.
+  Fix `ε > 0`. Thanks to `exists_partition_approximates_linear_on_of_has_fderiv_within_at`, one
+  can find a countable measurable partition of `s` into sets `s ∩ t n` on which `f` is well
+  approximated by linear maps `A n`. On almost all of `s ∩ t n`, it follows from
+  `approximates_linear_on.norm_fderiv_sub_le` that `f'` is uniformly approximated by `A n`, which
+  gives the conclusion. -/
+  -- fix a precision `ε`
   refine ae_measurable_of_unif_approx (λ ε εpos, _),
   let δ : ℝ≥0 := ⟨ε, le_of_lt εpos⟩,
   have δpos : 0 < δ := εpos,
+  -- partition `s` into sets `s ∩ t n` on which `f` is approximated by linear maps `A n`.
   obtain ⟨t, A, t_disj, t_meas, t_cover, ht, Af'⟩ : ∃ (t : ℕ → set E) (A : ℕ → (E →L[ℝ] E)),
     pairwise (disjoint on t) ∧ (∀ (n : ℕ), measurable_set (t n)) ∧ (s ⊆ ⋃ (n : ℕ), t n)
     ∧ (∀ (n : ℕ), approximates_linear_on f (A n) (s ∩ t n) δ)
     ∧ (s.nonempty → ∀ n, ∃ y ∈ s, A n = f' y) :=
       exists_partition_approximates_linear_on_of_has_fderiv_within_at f s
       f' hf' (λ A, δ) (λ A, δpos.ne'),
-  have Z :=
+  -- define a measurable function `g` which coincides with `A n` on `t n`.
+  obtain ⟨g, g_meas, hg⟩ : ∃ g : E → (E →L[ℝ] E), measurable g ∧
+    ∀ (n : ℕ) (x : E), x ∈ t n → g x = A n :=
+      exists_measurable_piecewise_nat t t_meas t_disj (λ n x, A n) (λ n, measurable_const),
+  refine ⟨g, g_meas.ae_measurable, _⟩,
+  -- reduce to checking that `f'` and `g` are close on almost all of `s ∩ t n`, for all `n`.
+  suffices H : ∀ᵐ (x : E) ∂(sum (λ n, μ.restrict (s ∩ t n))), dist (g x) (f' x) ≤ ε,
+  { have : μ.restrict s ≤ sum (λ n, μ.restrict (s ∩ t n)),
+    { have : s = ⋃ n, s ∩ t n,
+      { rw ← inter_Union,
+        exact subset.antisymm (subset_inter subset.rfl t_cover) (inter_subset_left _ _) },
+      conv_lhs { rw this },
+      exact restrict_Union_le },
+    exact ae_mono this H },
+  -- fix such an `n`.
+  refine ae_sum_iff.2 (λ n, _),
+  -- on almost all `s ∩ t n`, `f' x` is close to `A n` thanks to
+  -- `approximates_linear_on.norm_fderiv_sub_le`.
+  have E₁ : ∀ᵐ (x : E) ∂μ.restrict (s ∩ t n), ∥f' x - A n∥₊ ≤ δ :=
+    (ht n).norm_fderiv_sub_le μ f' (λ x hx, (hf' x hx.1).mono (inter_subset_left _ _)),
+  -- moreover, `g x` is equal to `A n` there.
+  have E₂ : ∀ᵐ (x : E) ∂μ.restrict (s ∩ t n), g x = A n,
+  { suffices H : ∀ᵐ (x : E) ∂μ.restrict (t n), g x = A n,
+      from ae_mono (restrict_mono (inter_subset_right _ _) le_rfl) H,
+    filter_upwards [ae_restrict_mem (t_meas n)],
+    exact hg n },
+  -- putting these two properties together gives the conclusion.
+  filter_upwards [E₁, E₂],
+  assume x hx1 hx2,
+  rw ← nndist_eq_nnnorm at hx1,
+  rw [hx2, dist_comm],
+  exact hx1,
 end
-
-#exit
 
 lemma add_haar_image_le_of_fderiv (f : E → E) (s : set E) (f' : E → (E →L[ℝ] E))
   (hf' : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x)

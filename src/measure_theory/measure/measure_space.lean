@@ -2122,6 +2122,40 @@ begin
   { exact directed_of_sup (monotone_spanning_sets μ) }
 end
 
+lemma measure_to_measurable_inter_of_sigma_finite
+  [sigma_finite μ] {s t : set α} (hs : measurable_set s) :
+  μ (to_measurable μ t ∩ s) = μ (t ∩ s) :=
+begin
+  have : ∃ t' ⊇ t, measurable_set t' ∧ (∀ u, measurable_set u → μ (t' ∩ u) = μ (t ∩ u)),
+  { set t' := ⋃ n, to_measurable μ (t ∩ disjointed (spanning_sets μ) n) with ht',
+    have tt' : t ⊆ t' := calc
+      t ⊆ ⋃ n, t ∩ disjointed (spanning_sets μ) n :
+        by rw [← inter_Union, Union_disjointed, Union_spanning_sets, inter_univ]
+      ... ⊆ ⋃ n, to_measurable μ (t ∩ disjointed (spanning_sets μ) n) :
+        Union_subset_Union (λ n, subset_to_measurable _ _),
+    refine ⟨t', tt', measurable_set.Union (λ n, measurable_set_to_measurable μ _), λ u hu, _⟩,
+    apply le_antisymm _ (measure_mono (inter_subset_inter tt' subset.rfl)),
+    calc μ (t' ∩ u) = ∑' n, μ (to_measurable μ (t ∩ disjointed (spanning_sets μ) n) ∩ u) :
+      begin
+        rw [ht', Union_inter, measure_Union],
+        rw ← pairwise_univ,
+
+      end
+    ... ≤ μ (t ∩ u) : sorry
+
+  },
+end
+
+#exit
+
+utiliser measure_inter_add_diff
+
+(measure_inter_eq_of_measure_eq hs (measure_to_measurable t).symm
+  (subset_to_measurable μ t) ht).symm
+
+
+#exit
+
 namespace finite_spanning_sets_in
 
 variables {C D : set (set α)}
@@ -2316,6 +2350,21 @@ begin
     by { rw ← inter_bUnion, exact subset_inter (subset.refl _) ht },
   apply measure_mono_null ht,
   exact (measure_bUnion_null_iff t_count).2 (λ x hx, (hu x (ts hx)).2),
+end
+
+/-- If a property is locally almost surely true, then it holds almost surely. -/
+lemma ae_of_locally_ae [topological_space α] [topological_space.second_countable_topology α]
+  (p : α → Prop) (h : ∀ (x : α), ∃ u ∈ 𝓝 x, ∀ᵐ y ∂μ, y ∈ u → p y) :
+  ∀ᵐ y ∂μ, p y :=
+begin
+  apply null_of_locally_null,
+  assume x hx,
+  rcases h x with ⟨u, u_nhds, hu⟩,
+  refine ⟨u, nhds_within_le_nhds u_nhds, _⟩,
+  convert hu,
+  ext y,
+  simp only [and_comm, exists_prop, mem_inter_eq, iff_self, mem_set_of_eq, mem_compl_eq,
+             not_forall],
 end
 
 /-- If two finite measures give the same mass to the whole space and coincide on a π-system made

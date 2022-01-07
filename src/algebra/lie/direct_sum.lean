@@ -89,6 +89,13 @@ instance lie_ring : lie_ring (⨁ i, L i) :=
 @[simp] lemma bracket_apply (x y : ⨁ i, L i) (i : ι) :
   ⁅x, y⁆ i = ⁅x i, y i⁆ := zip_with_apply _ _ x y i
 
+/-! Lean can't find these instances when it needs them without these aliases -/
+instance lie_algebra_module : module R (⨁ i, L i) := direct_sum.module
+instance lie_algebra_op_module : module Rᵐᵒᵖ (⨁ i, L i) :=
+@direct_sum.module Rᵐᵒᵖ _ _ _ _ (λ i : ι, @lie_algebra.to_opposite_module R (L i) _ _ _)
+instance lie_algebra_central_scalar : is_central_scalar R (⨁ i, L i) :=
+@direct_sum.is_central_scalar _ _ _ _ (λ _, _) (λ _, _) (λ _, _) _
+
 instance lie_algebra : lie_algebra R (⨁ i, L i) :=
 { lie_smul := λ c x y, by { ext, simp only [
     zip_with_apply, smul_apply, bracket_apply, lie_smul] },

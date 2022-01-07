@@ -47,12 +47,11 @@ instance add_comm_group : add_comm_group (M ⧸ N) := submodule.quotient.add_com
 instance module' {S : Type*} [semiring S] [has_scalar S R] [module S M] [is_scalar_tower S R M] :
   module S (M ⧸ N) := submodule.quotient.module' _
 instance module : module R (M ⧸ N) := submodule.quotient.module _
-instance {S : Type*} [semiring S]
+instance is_central_scalar {S : Type*} [semiring S]
   [has_scalar S R] [module S M] [is_scalar_tower S R M]
   [has_scalar Sᵐᵒᵖ R] [module Sᵐᵒᵖ M] [is_scalar_tower Sᵐᵒᵖ R M]
   [is_central_scalar S M] : is_central_scalar S (M ⧸ N) :=
 submodule.quotient.is_central_scalar _
-
 instance inhabited : inhabited (M ⧸ N) := ⟨0⟩
 
 /-- Map sending an element of `M` to the corresponding element of `M/N`, when `N` is a

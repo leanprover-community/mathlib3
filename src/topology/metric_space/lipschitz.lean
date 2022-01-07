@@ -279,15 +279,16 @@ lemma nndist_le {f : α → β} (hf : lipschitz_with K f) (x y : α) :
   nndist (f x) (f y) ≤ K * nndist x y :=
 hf.dist_le_mul x y
 
+lemma bounded_image {f : α → β} (hf : lipschitz_with K f) {s : set α} (hs : metric.bounded s) :
+  metric.bounded (f '' s) :=
+metric.bounded_iff_ediam_ne_top.2 $ ne_top_of_le_ne_top
+  (ennreal.mul_ne_top ennreal.coe_ne_top hs.ediam_ne_top) (hf.ediam_image_le s)
+
 lemma diam_image_le {f : α → β} (hf : lipschitz_with K f) (s : set α) (hs : metric.bounded s) :
   metric.diam (f '' s) ≤ K * metric.diam s :=
-begin
-  apply metric.diam_le_of_forall_dist_le (mul_nonneg K.coe_nonneg metric.diam_nonneg),
-  rintros _ ⟨x, hx, rfl⟩ _ ⟨y, hy, rfl⟩,
-  calc dist (f x) (f y) ≤ ↑K * dist x y      : hf.dist_le_mul x y
-                    ... ≤ ↑K * metric.diam s :
-    mul_le_mul_of_nonneg_left (metric.dist_le_diam_of_mem hs hx hy) K.2
-end
+by simpa only [ennreal.to_real_mul, ennreal.coe_to_real]
+  using (ennreal.to_real_le_to_real (hf.bounded_image hs).ediam_ne_top
+    (ennreal.mul_ne_top ennreal.coe_ne_top hs.ediam_ne_top)).2 (hf.ediam_image_le s)
 
 protected lemma dist_left (y : α) : lipschitz_with 1 (λ x, dist x y) :=
 lipschitz_with.of_le_add $ assume x z, by { rw [add_comm], apply dist_triangle }

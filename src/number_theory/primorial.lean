@@ -25,12 +25,12 @@ open_locale big_operators nat
 
 /-- The primorial `n#` of `n` is the product of the primes less than or equal to `n`.
 -/
-def primorial (n : ℕ) : ℕ := ∏ p in (filter prime (range (n + 1))), p
+def primorial (n : ℕ) : ℕ := ∏ p in (filter nat.prime (range (n + 1))), p
 local notation x`#` := primorial x
 
 lemma primorial_succ {n : ℕ} (n_big : 1 < n) (r : n % 2 = 1) : (n + 1)# = n# :=
 begin
-  have not_prime : ¬prime (n + 1),
+  have not_prime : ¬nat.prime (n + 1),
   { intros is_prime,
     cases (prime.eq_two_or_odd is_prime) with _ n_even,
     { linarith, },
@@ -41,7 +41,7 @@ begin
   { exact λ _ _, rfl, },
 end
 
-lemma dvd_choose_of_middling_prime (p : ℕ) (is_prime : prime p) (m : ℕ)
+lemma dvd_choose_of_middling_prime (p : ℕ) (is_prime : nat.prime p) (m : ℕ)
   (p_big : m + 1 < p) (p_small : p ≤ 2 * m + 1) : p ∣ choose (2 * m + 1) (m + 1) :=
 begin
   have m_size : m + 1 ≤ 2 * m + 1 := le_of_lt (lt_of_lt_of_le p_big p_small),
@@ -65,7 +65,7 @@ begin
   cc, cc,
 end
 
-lemma prod_primes_dvd {s : finset ℕ} : ∀ (n : ℕ) (h : ∀ a ∈ s, prime a) (div : ∀ a ∈ s, a ∣ n),
+lemma prod_primes_dvd {s : finset ℕ} : ∀ (n : ℕ) (h : ∀ a ∈ s, nat.prime a) (div : ∀ a ∈ s, a ∣ n),
   (∏ p in s, p) ∣ n :=
 begin
   apply finset.induction_on s,
@@ -97,19 +97,19 @@ lemma primorial_le_4_pow : ∀ (n : ℕ), n# ≤ 4 ^ n
       let recurse : m + 1 < n + 2 := by linarith in
       begin
         calc (n + 2)#
-            = ∏ i in filter prime (range (2 * m + 2)), i : by simpa [←twice_m]
-        ... = ∏ i in filter prime (finset.Ico (m + 2) (2 * m + 2) ∪ range (m + 2)), i :
+            = ∏ i in filter nat.prime (range (2 * m + 2)), i : by simpa [←twice_m]
+        ... = ∏ i in filter nat.prime (finset.Ico (m + 2) (2 * m + 2) ∪ range (m + 2)), i :
               begin
                 rw [range_eq_Ico, finset.union_comm, finset.Ico_union_Ico_eq_Ico],
                 exact bot_le,
                 simp only [add_le_add_iff_right],
                 linarith,
               end
-        ... = ∏ i in (filter prime (finset.Ico (m + 2) (2 * m + 2))
-              ∪ (filter prime (range (m + 2)))), i :
+        ... = ∏ i in (filter nat.prime (finset.Ico (m + 2) (2 * m + 2))
+              ∪ (filter nat.prime (range (m + 2)))), i :
               by rw filter_union
-        ... = (∏ i in filter prime (finset.Ico (m + 2) (2 * m + 2)), i)
-              * (∏ i in filter prime (range (m + 2)), i) :
+        ... = (∏ i in filter nat.prime (finset.Ico (m + 2) (2 * m + 2)), i)
+              * (∏ i in filter nat.prime (range (m + 2)), i) :
               begin
                 apply finset.prod_union,
                 have disj : disjoint (finset.Ico (m + 2) (2 * m + 2)) (range (m + 2)),
@@ -118,11 +118,11 @@ lemma primorial_le_4_pow : ∀ (n : ℕ), n# ≤ 4 ^ n
                   intros _ pr _, exact pr, },
                 exact finset.disjoint_filter_filter disj,
               end
-        ... ≤ (∏ i in filter prime (finset.Ico (m + 2) (2 * m + 2)), i) * 4 ^ (m + 1) :
-              by exact nat.mul_le_mul_left _ (primorial_le_4_pow (m + 1))
+        ... ≤ (∏ i in filter nat.prime (finset.Ico (m + 2) (2 * m + 2)), i) * 4 ^ (m + 1) :
+              nat.mul_le_mul_left _ (primorial_le_4_pow (m + 1))
         ... ≤ (choose (2 * m + 1) (m + 1)) * 4 ^ (m + 1) :
               begin
-                have s : ∏ i in filter prime (finset.Ico (m + 2) (2 * m + 2)),
+                have s : ∏ i in filter nat.prime (finset.Ico (m + 2) (2 * m + 2)),
                   i ∣ choose (2 * m + 1) (m + 1),
                 { refine prod_primes_dvd  (choose (2 * m + 1) (m + 1)) _ _,
                   { intros a, rw finset.mem_filter, cc, },
@@ -133,7 +133,7 @@ lemma primorial_le_4_pow : ∀ (n : ℕ), n# ≤ 4 ^ n
                     rcases size with ⟨ a_big , a_small ⟩,
                     exact dvd_choose_of_middling_prime a is_prime m a_big
                       (nat.lt_succ_iff.mp a_small), }, },
-                have r : ∏ i in filter prime (finset.Ico (m + 2) (2 * m + 2)),
+                have r : ∏ i in filter nat.prime (finset.Ico (m + 2) (2 * m + 2)),
                   i ≤ choose (2 * m + 1) (m + 1),
                 { refine @nat.le_of_dvd _ _ _ s,
                   exact @choose_pos (2 * m + 1) (m + 1) (by linarith), },
@@ -153,7 +153,7 @@ lemma primorial_le_4_pow : ∀ (n : ℕ), n# ≤ 4 ^ n
               ≤ 4 ^ n.succ : primorial_le_4_pow (n + 1)
           ... ≤ 4 ^ (n + 2) : pow_le_pow (by norm_num) (nat.le_succ _), },
       { have n_zero : n = 0 := eq_bot_iff.2 (succ_le_succ_iff.1 n_le_one),
-        norm_num [n_zero, primorial, range_succ, prod_filter, not_prime_zero, prime_two] },
+        norm_num [n_zero, primorial, range_succ, prod_filter, nat.not_prime_zero, nat.prime_two] },
     end
 
 end

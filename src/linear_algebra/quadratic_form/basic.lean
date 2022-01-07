@@ -675,7 +675,7 @@ lemma pos_def.add (Q Q' : quadratic_form R₂ M) (hQ : pos_def Q) (hQ' : pos_def
 lemma lin_mul_lin_self_pos_def {R} [linear_ordered_comm_ring R] [module R M]
   (f : M →ₗ[R] R) (hf : linear_map.ker f = ⊥) :
   pos_def (lin_mul_lin f f) :=
-λ x hx, mul_self_pos (λ h, hx (linear_map.ker_eq_bot.mp hf (by rw [h, linear_map.map_zero])))
+λ x hx, mul_self_pos.2 (λ h, hx (linear_map.ker_eq_bot.mp hf (by rw [h, linear_map.map_zero])))
 
 end pos_def
 end quadratic_form

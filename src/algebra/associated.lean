@@ -135,6 +135,9 @@ lemma irreducible_iff [monoid α] {p : α} :
 @[simp] theorem not_irreducible_one [monoid α] : ¬ irreducible (1 : α) :=
 by simp [irreducible_iff]
 
+theorem irreducible.ne_one [monoid α] : ∀ {p:α}, irreducible p → p ≠ 1
+| _ hp rfl := not_irreducible_one hp
+
 @[simp] theorem not_irreducible_zero [monoid_with_zero α] : ¬ irreducible (0 : α)
 | ⟨hn0, h⟩ := have is_unit (0:α) ∨ is_unit (0:α), from h 0 0 ((mul_zero 0).symm),
   this.elim hn0 hn0

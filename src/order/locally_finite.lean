@@ -64,7 +64,7 @@ Along, you will find lemmas about the cardinality of those finite intervals.
 
 ## TODO
 
-Provide the `locally_finite_order` instance for `lex α β` where `locally_finite_order α` and
+Provide the `locally_finite_order` instance for `α ×ₗ β` where `locally_finite_order α` and
 `fintype β`.
 
 Provide the `locally_finite_order` instance for `α →₀ β` where `β` is locally finite. Provide the

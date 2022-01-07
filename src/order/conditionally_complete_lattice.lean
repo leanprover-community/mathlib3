@@ -308,12 +308,12 @@ theorem cSup_eq_of_forall_le_of_forall_lt_exists_gt (_ : s.nonempty)
   (_ : ∀a∈s, a ≤ b) (H : ∀w, w < b → (∃a∈s, w < a)) : Sup s = b :=
 have bdd_above s := ⟨b, by assumption⟩,
 have (Sup s < b) ∨ (Sup s = b) := lt_or_eq_of_le (cSup_le ‹_› ‹∀a∈s, a ≤ b›),
-have ¬(Sup s < b) :=
+have h : ¬(Sup s < b) :=
   assume: Sup s < b,
   let ⟨a, _, _⟩ := (H (Sup s) ‹Sup s < b›) in  /- a ∈ s, Sup s < a-/
   have Sup s < Sup s := lt_of_lt_of_le ‹Sup s < a› (le_cSup ‹bdd_above s› ‹a ∈ s›),
-  show false, by finish [lt_irrefl (Sup s)],
-show Sup s = b, by finish
+  show false, by { exact lt_irrefl (Sup s) this },
+show Sup s = b, by { cases this with h1, { cases h h1 }, { assumption } }
 
 /--Introduction rule to prove that `b` is the infimum of `s`: it suffices to check that `b`
 is smaller than all elements of `s`, and that this is not the case of any `w>b`.

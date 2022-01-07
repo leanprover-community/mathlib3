@@ -543,6 +543,9 @@ instance semi_normed_group.to_has_nnnorm : has_nnnorm E := ⟨λ a, ⟨norm a, n
 
 @[simp, norm_cast] lemma coe_nnnorm (a : E) : (∥a∥₊ : ℝ) = norm a := rfl
 
+lemma norm_to_nnreal {a : E} : ∥a∥.to_nnreal = ∥a∥₊ :=
+@real.to_nnreal_coe ∥a∥₊
+
 lemma nndist_eq_nnnorm (a b : E) : nndist a b = ∥a - b∥₊ := nnreal.eq $ dist_eq_norm _ _
 
 @[simp] lemma nnnorm_zero : ∥(0 : E)∥₊ = 0 :=

@@ -653,8 +653,8 @@ theorem enum_type {α β} {r : α → α → Prop} {s : β → β → Prop}
   {h : type s < type r} : enum r (type s) h = f.top :=
 principal_seg.top_eq (rel_iso.refl _) _ _
 
-@[simp] theorem enum_typein (r : α → α → Prop) [is_well_order α r] (a : α)
-  {h : typein r a < type r} : enum r (typein r a) h = a :=
+@[simp] theorem enum_typein (r : α → α → Prop) [is_well_order α r] (a : α) :
+  enum r (typein r a) (typein_lt_type r a) = a :=
 enum_type (principal_seg.of_element r a)
 
 @[simp] theorem typein_enum (r : α → α → Prop) [is_well_order α r]

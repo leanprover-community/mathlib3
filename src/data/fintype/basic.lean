@@ -142,7 +142,13 @@ set.ext $ λ x, mem_compl
 
 @[simp] lemma compl_empty : (∅ : finset α)ᶜ = univ := compl_bot
 
-@[simp] lemma union_compl (s : finset α) : s ∪ sᶜ = finset.univ := sup_compl_eq_top
+@[simp] lemma union_compl (s : finset α) : s ∪ sᶜ = univ := sup_compl_eq_top
+
+@[simp] lemma inter_compl (s : finset α) : s ∩ sᶜ = ∅ := inf_compl_eq_bot
+
+@[simp] lemma compl_union (s t : finset α) : (s ∪ t)ᶜ = sᶜ ∩ tᶜ := compl_sup
+
+@[simp] lemma compl_inter (s t : finset α) : (s ∩ t)ᶜ = sᶜ ∪ tᶜ := compl_inf
 
 @[simp] lemma compl_erase : (s.erase a)ᶜ = insert a sᶜ :=
 by { ext, simp only [or_iff_not_imp_left, mem_insert, not_and, mem_compl, mem_erase] }
@@ -1284,6 +1290,10 @@ fintype.of_equiv _ sym.sym_equiv_sym'.symm
 @[simp] lemma fintype.card_finset [fintype α] :
   fintype.card (finset α) = 2 ^ (fintype.card α) :=
 finset.card_powerset finset.univ
+
+lemma finset.mem_powerset_len_univ_iff [fintype α] {s : finset α} {k : ℕ} :
+  s ∈ powerset_len k (univ : finset α) ↔ card s = k :=
+mem_powerset_len.trans $ and_iff_right $ subset_univ _
 
 @[simp] lemma finset.univ_filter_card_eq (α : Type*) [fintype α] (k : ℕ) :
   (finset.univ : finset (finset α)).filter (λ s, s.card = k) = finset.univ.powerset_len k :=

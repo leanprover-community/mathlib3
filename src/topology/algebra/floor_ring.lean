@@ -68,7 +68,7 @@ lemma tendsto_floor_right [order_closed_topology α] (n : ℤ) :
   tendsto (λ x, floor x : α → α) (𝓝[≥] n) (𝓝[≥] n) :=
 tendsto_nhds_within_of_tendsto_nhds_of_eventually_within _ (tendsto_floor_right' _)
 begin
-  refine (eventually_nhds_with_of_forall $ λ x (hx : (n : α) ≤ x), _),
+  refine (eventually_nhds_within_of_forall $ λ x (hx : (n : α) ≤ x), _),
   change _ ≤ _,
   norm_cast,
   convert ← floor_mono hx,
@@ -80,7 +80,7 @@ lemma tendsto_ceil_left [order_closed_topology α] (n : ℤ) :
   tendsto (λ x, ceil x : α → α) (𝓝[≤] n) (𝓝[≤] n) :=
 tendsto_nhds_within_of_tendsto_nhds_of_eventually_within _ (tendsto_ceil_left' _)
 begin
-  refine (eventually_nhds_with_of_forall $ λ x (hx : x ≤ (n : α)), _),
+  refine (eventually_nhds_within_of_forall $ λ x (hx : x ≤ (n : α)), _),
   change _ ≤ _,
   norm_cast,
   convert ← ceil_mono hx,

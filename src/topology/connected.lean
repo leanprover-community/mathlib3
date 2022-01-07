@@ -142,19 +142,19 @@ begin
 end
 
 /-- The directed sUnion of a set S of preconnected subsets is preconnected. -/
-	theorem is_preconnected.sUnion_directed {S : set (set α)}
-	  (K : directed_on (⊆) S)
-	  (H : ∀ s ∈ S, is_preconnected s) : is_preconnected (⋃₀ S) :=
-	begin
-	  rintros u v hu hv Huv ⟨a, ⟨s, hsS, has⟩, hau⟩ ⟨b, ⟨t, htS, hbt⟩, hbv⟩,
-	  obtain ⟨r, hrS, hsr, htr⟩ : ∃ r ∈ S, s ⊆ r ∧ t ⊆ r := K s hsS t htS,
-	  have Hnuv : (r ∩ (u ∩ v)).nonempty,
-	  from H _ hrS u v hu hv ((subset_sUnion_of_mem hrS).trans Huv)
-      ⟨a, hsr has, hau⟩ ⟨b, htr hbt, hbv⟩,
-	  have Kruv : r ∩ (u ∩ v) ⊆ ⋃₀ S ∩ (u ∩ v),
-	  from inter_subset_inter_left _ (subset_sUnion_of_mem hrS),
-	  exact Hnuv.mono Kruv
-	end
+theorem is_preconnected.sUnion_directed {S : set (set α)}
+  (K : directed_on (⊆) S)
+  (H : ∀ s ∈ S, is_preconnected s) : is_preconnected (⋃₀ S) :=
+begin
+  rintros u v hu hv Huv ⟨a, ⟨s, hsS, has⟩, hau⟩ ⟨b, ⟨t, htS, hbt⟩, hbv⟩,
+  obtain ⟨r, hrS, hsr, htr⟩ : ∃ r ∈ S, s ⊆ r ∧ t ⊆ r := K s hsS t htS,
+  have Hnuv : (r ∩ (u ∩ v)).nonempty,
+  from H _ hrS u v hu hv ((subset_sUnion_of_mem hrS).trans Huv)
+    ⟨a, hsr has, hau⟩ ⟨b, htr hbt, hbv⟩,
+  have Kruv : r ∩ (u ∩ v) ⊆ ⋃₀ S ∩ (u ∩ v),
+  from inter_subset_inter_left _ (subset_sUnion_of_mem hrS),
+  exact Hnuv.mono Kruv
+end
 
 /-- Preconnectedness of the Union of a family of preconnected sets
 indexed by the vertices of a preconnected graph,

@@ -70,7 +70,7 @@ lemma is_unit_of_one {x : O} (hx : is_unit (algebra_map O R x)) (hvx : v (algebr
   is_unit x :=
 let ⟨u, hu⟩ := hx in
 have h1 : v u ≤ 1, from hu.symm ▸ hv.2 x,
-have h2 : v (u⁻¹ : units R) ≤ 1,
+have h2 : v (u⁻¹ : Rˣ) ≤ 1,
   by rw [← one_mul (v _), ← hvx, ← v.map_mul, ← hu, u.mul_inv, hu, hvx, v.map_one],
 let ⟨r1, hr1⟩ := hv.3 h1, ⟨r2, hr2⟩ := hv.3 h2 in
 ⟨⟨r1, r2, hv.1 $ by rw [ring_hom.map_mul, ring_hom.map_one, hr1, hr2, units.mul_inv],

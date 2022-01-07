@@ -252,7 +252,7 @@ instance : bounded_order (fin (n + 1)) :=
   bot := 0,
   bot_le := zero_le }
 
-instance : lattice (fin (n + 1)) := lattice_of_linear_order
+instance : lattice (fin (n + 1)) := linear_order.to_lattice
 
 lemma last_pos : (0 : fin (n + 2)) < last (n + 1) :=
 by simp [lt_iff_coe_lt_coe]

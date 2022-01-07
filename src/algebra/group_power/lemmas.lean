@@ -29,7 +29,7 @@ add_monoid_hom.eq_nat_cast
   (one_nsmul _)
 
 @[simp, norm_cast, to_additive]
-lemma units.coe_pow (u : units M) (n : ℕ) : ((u ^ n : units M) : M) = u ^ n :=
+lemma units.coe_pow (u : Mˣ) (n : ℕ) : ((u ^ n : Mˣ) : M) = u ^ n :=
 (units.coe_hom M).map_pow u n
 
 instance invertible_pow (m : M) [invertible m] (n : ℕ) : invertible (m ^ n) :=
@@ -168,7 +168,7 @@ theorem zpow_bit1 (a : G) (n : ℤ) : a ^ bit1 n = a ^ n * a ^ n * a :=
 by rw [bit1, zpow_add, zpow_bit0, zpow_one]
 
 @[simp, norm_cast, to_additive]
-lemma units.coe_zpow (u : units G) (n : ℤ) : ((u ^ n : units G) : G) = u ^ n :=
+lemma units.coe_zpow (u : Gˣ) (n : ℤ) : ((u ^ n : Gˣ) : G) = u ^ n :=
 (units.coe_hom G).map_zpow u n
 
 end group
@@ -557,12 +557,12 @@ theorem nat.cast_le_pow_div_sub {K : Type*} [linear_ordered_field K] {a : K} (H 
 
 namespace int
 
-lemma units_sq (u : units ℤ) : u ^ 2 = 1 :=
+lemma units_sq (u : ℤˣ) : u ^ 2 = 1 :=
 (sq u).symm ▸ units_mul_self u
 
 alias int.units_sq ← int.units_pow_two
 
-lemma units_pow_eq_pow_mod_two (u : units ℤ) (n : ℕ) : u ^ n = u ^ (n % 2) :=
+lemma units_pow_eq_pow_mod_two (u : ℤˣ) (n : ℕ) : u ^ n = u ^ (n % 2) :=
 by conv {to_lhs, rw ← nat.mod_add_div n 2}; rw [pow_add, pow_mul, units_sq, one_pow, mul_one]
 
 @[simp] lemma nat_abs_sq (x : ℤ) : (x.nat_abs ^ 2 : ℤ) = x ^ 2 :=
@@ -764,7 +764,7 @@ end
 
 variables [monoid M] [group G] [ring R]
 
-@[simp, to_additive] lemma units_zpow_right {a : M} {x y : units M} (h : semiconj_by a x y) :
+@[simp, to_additive] lemma units_zpow_right {a : M} {x y : Mˣ} (h : semiconj_by a x y) :
   ∀ m : ℤ, semiconj_by a (↑(x^m)) (↑(y^m))
 | (n : ℕ) := by simp only [zpow_coe_nat, units.coe_pow, h, pow_right]
 | -[1+n] := by simp only [zpow_neg_succ_of_nat, units.coe_pow, units_inv_right, h, pow_right]
@@ -813,11 +813,11 @@ end
 
 variables [monoid M] [group G] [ring R]
 
-@[simp, to_additive] lemma units_zpow_right {a : M} {u : units M} (h : commute a u) (m : ℤ) :
+@[simp, to_additive] lemma units_zpow_right {a : M} {u : Mˣ} (h : commute a u) (m : ℤ) :
   commute a (↑(u^m)) :=
 h.units_zpow_right m
 
-@[simp, to_additive] lemma units_zpow_left {u : units M} {a : M} (h : commute ↑u a) (m : ℤ) :
+@[simp, to_additive] lemma units_zpow_left {u : Mˣ} {a : M} (h : commute ↑u a) (m : ℤ) :
   commute (↑(u^m)) a :=
 (h.symm.units_zpow_right m).symm
 
@@ -880,10 +880,10 @@ namespace units
 
 variables [monoid M]
 
-lemma conj_pow (u : units M) (x : M) (n : ℕ) : (↑u * x * ↑(u⁻¹))^n = u * x^n * ↑(u⁻¹) :=
+lemma conj_pow (u : Mˣ) (x : M) (n : ℕ) : (↑u * x * ↑(u⁻¹))^n = u * x^n * ↑(u⁻¹) :=
 (divp_eq_iff_mul_eq.2 ((u.mk_semiconj_by x).pow_right n).eq.symm).symm
 
-lemma conj_pow' (u : units M) (x : M) (n : ℕ) : (↑(u⁻¹) * x * u)^n = ↑(u⁻¹) * x^n * u:=
+lemma conj_pow' (u : Mˣ) (x : M) (n : ℕ) : (↑(u⁻¹) * x * u)^n = ↑(u⁻¹) * x^n * u:=
 (u⁻¹).conj_pow x n
 
 end units

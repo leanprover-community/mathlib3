@@ -122,6 +122,11 @@ begin
   { intro h, exact ⟨x, h, rfl⟩ },
 end
 
+@[simp]
+lemma mem_top_basic_open (f : X.presheaf.obj (op ⊤)) (x : X) :
+  x ∈ X.basic_open f ↔ is_unit (X.presheaf.germ ⟨x, show x ∈ (⊤ : opens X), by trivial⟩ f) :=
+mem_basic_open X f ⟨x, _⟩
+
 lemma basic_open_subset {U : opens X} (f : X.presheaf.obj (op U)) : X.basic_open f ⊆ U :=
 by { rintros _ ⟨x, hx, rfl⟩, exact x.2 }
 

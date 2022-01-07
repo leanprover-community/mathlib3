@@ -5,7 +5,7 @@ Authors: Jireh Loreaux
 -/
 import analysis.normed_space.operator_norm
 import topology.metric_space.baire
-import topology.algebra.module
+import topology.algebra.module.basic
 /-!
 # The Banach-Steinhaus theorem: Uniform Boundedness Principle
 

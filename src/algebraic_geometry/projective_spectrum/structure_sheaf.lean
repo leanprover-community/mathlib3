@@ -449,44 +449,17 @@ def test.section_apply (x : projective_spectrum.Top 𝒜) (f) (y) :
   (test.section 𝒜 x f).1 y = ⟨localization.mk f.num ⟨f.denom, y.2⟩,
   ⟨hl.condition.mk f.num f.denom y.2 f.i f.num_hom f.denom_hom, rfl⟩⟩ := rfl
 
--- lemma test.section_restrict (x : projective_spectrum.Top 𝒜) (f g : hartshorne_localisation _ x) :
---   ((structure_sheaf 𝒜).1.map
---     ((eq_to_hom (projective_spectrum.basic_open_mul 𝒜 f.denom g.denom))
---     ≫ (@opens.inf_le_left (projective_spectrum.Top 𝒜)
---     (projective_spectrum.basic_open _ f.denom) (projective_spectrum.basic_open _ g.denom))).op
---   (test.section 𝒜 x f)).val = λ y, ⟨localization.mk f.num
---     ⟨f.denom, projective_spectrum.basic_open_mul_le_left 𝒜 f.denom g.denom y.2⟩,
---     ⟨hl.condition.mk f.num f.denom _ f.i f.num_hom f.denom_hom, rfl⟩⟩ :=
--- begin
---   ext y, rw res_apply, rw test.section, dsimp only, refl,
--- end
-
 def test.def (x : projective_spectrum.Top 𝒜) :
   (hartshorne_localisation 𝒜 x) → (structure_sheaf 𝒜).1.stalk x :=
 λ f, (structure_sheaf 𝒜).1.germ
   (⟨x, hartshorne_localisation.mem_basic_open _ x f⟩ : projective_spectrum.basic_open _ f.denom)
   (test.section _ x f)
 
--- -- this is wrong in general!
--- lemma aux1 (x y : projective_spectrum.Top 𝒜) (f : hartshorne_localisation _ x)
---   (h1 : f.denom ∉ y.as_homogeneous_ideal.1)
---   (a1 b1 a2 b2 : A) (b1_ninx : b1 ∉ x.as_homogeneous_ideal.1)
---   (b1_niny : b1 ∉ y.as_homogeneous_ideal) (b2_niny : b2 ∉ y.as_homogeneous_ideal)
---   (eq1 : f.1 = localization.mk a1 ⟨b1, b1_ninx⟩)
---   (eq2 : (localization.mk a1 ⟨b1, b1_niny⟩ : localization.at_prime y.as_homogeneous_ideal.1)
---     = localization.mk a2 ⟨b2, b2_niny⟩) :
---   (localization.mk f.num ⟨f.denom, h1⟩ : localization.at_prime y.as_homogeneous_ideal.1) =
---   localization.mk a2 ⟨b2, b2_niny⟩ :=
--- begin
---   erw f.eq_num_div_denom at eq1,
--- end
-
 def stalk_iso' (x : projective_spectrum.Top 𝒜) :
   (structure_sheaf 𝒜).1.stalk x ≃+* CommRing.of (hartshorne_localisation 𝒜 x)  :=
 ring_equiv.of_bijective (stalk_to_fiber_ring_hom _ x)
 begin
   split,
-  -- rw function.bijective_iff_has_inverse,
   { intros z1 z2 eq1,
     obtain ⟨u1, memu1, s1, rfl⟩ := (structure_sheaf 𝒜).1.germ_exist x z1,
     obtain ⟨u2, memu2, s2, rfl⟩ := (structure_sheaf 𝒜).1.germ_exist x z2,

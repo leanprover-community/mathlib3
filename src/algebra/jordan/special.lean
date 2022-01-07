@@ -164,16 +164,16 @@ function.injective.module R ⟨unsym, rfl, λ _ _, rfl⟩ (λ _ _, id) (λ _ _, 
 lemma mul_def [ring α] [invertible (2 : α)] (a b : αˢʸᵐ) :
   a * b = sym (⅟2*(unsym a * unsym b + unsym b * unsym a)) := by refl
 
-instance [has_mul α] [has_add α] [has_one α] [invertible (2 : α)] (r : α) [invertible r] :
-  invertible (sym r) :=
-{ inv_of := sym ⅟r,
+instance [has_mul α] [has_add α] [has_one α] [invertible (2 : α)] (a : α) [invertible a] :
+  invertible (sym a) :=
+{ inv_of := sym ⅟a,
   inv_of_mul_self := begin
-    change ⅟2 * (⅟r * r + r * ⅟r) = 1,
+    change ⅟2 * (⅟a * a + a * ⅟a) = 1,
     rw [mul_inv_of_self, inv_of_mul_self],
     exact mul_inv_of_self (⅟ 2),
   end,
   mul_inv_of_self := begin
-    change ⅟2 * (r * ⅟r + ⅟r * r)=1,
+    change ⅟2 * (a* ⅟a + ⅟a * a)=1,
     rw [mul_inv_of_self, inv_of_mul_self],
     exact mul_inv_of_self (⅟ 2),
   end }

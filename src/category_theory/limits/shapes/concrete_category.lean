@@ -5,7 +5,7 @@ Authors: Scott Morrison
 -/
 import category_theory.limits.shapes.kernels
 import category_theory.concrete_category.basic
-import tactic.elementwise
+import category_theory.concrete_category.elementwise
 
 /-!
 # Facts about limits of functors into concrete categories
@@ -18,10 +18,3 @@ while comparing categorical limits with existing constructions in concrete categ
 universes u
 
 open category_theory
-
-
-namespace category_theory.limits
-
-attribute [elementwise] kernel.condition cokernel.condition
-
-end category_theory.limits

@@ -46,7 +46,7 @@ in the file `ring_theory/laurent_series`.
 
 -/
 
-open finset
+open finset function
 open_locale big_operators classical pointwise
 noncomputable theory
 
@@ -55,7 +55,7 @@ noncomputable theory
 @[ext]
 structure hahn_series (Γ : Type*) (R : Type*) [partial_order Γ] [has_zero R] :=
 (coeff : Γ → R)
-(is_pwo_support' : (function.support coeff).is_pwo)
+(is_pwo_support' : (support coeff).is_pwo)
 
 variables {Γ : Type*} {R : Type*}
 
@@ -64,9 +64,14 @@ namespace hahn_series
 section zero
 variables [partial_order Γ] [has_zero R]
 
+lemma coeff_injective : injective (coeff : hahn_series Γ R → (Γ → R)) := ext
+
+@[simp] lemma coeff_inj {x y : hahn_series Γ R} : x.coeff = y.coeff ↔ x = y :=
+coeff_injective.eq_iff
+
 /-- The support of a Hahn series is just the set of indices whose coefficients are nonzero.
   Notably, it is well-founded. -/
-def support (x : hahn_series Γ R) : set Γ := function.support x.coeff
+def support (x : hahn_series Γ R) : set Γ := support x.coeff
 
 @[simp]
 lemma is_pwo_support (x : hahn_series Γ R) : x.support.is_pwo := x.is_pwo_support'
@@ -86,31 +91,22 @@ instance : inhabited (hahn_series Γ R) := ⟨0⟩
 instance [subsingleton R] : subsingleton (hahn_series Γ R) :=
 ⟨λ a b, a.ext b (subsingleton.elim _ _)⟩
 
-@[simp]
-lemma zero_coeff {a : Γ} : (0 : hahn_series Γ R).coeff a = 0 := rfl
+@[simp] lemma zero_coeff {a : Γ} : (0 : hahn_series Γ R).coeff a = 0 := rfl
+
+@[simp] lemma coeff_fun_eq_zero_iff {x : hahn_series Γ R} : x.coeff = 0 ↔ x = 0 :=
+coeff_injective.eq_iff' rfl
 
 lemma ne_zero_of_coeff_ne_zero {x : hahn_series Γ R} {g : Γ} (h : x.coeff g ≠ 0) :
   x ≠ 0 :=
 mt (λ x0, (x0.symm ▸ zero_coeff : x.coeff g = 0)) h
 
-@[simp]
-lemma support_zero : support (0 : hahn_series Γ R) = ∅ := function.support_zero
+@[simp] lemma support_zero : support (0 : hahn_series Γ R) = ∅ := function.support_zero
 
-@[simp]
-lemma support_nonempty_iff {x : hahn_series Γ R} :
-  x.support.nonempty ↔ x ≠ 0 :=
-begin
-  split,
-  { rintro ⟨a, ha⟩ rfl,
-    apply ha zero_coeff },
-  { contrapose!,
-    rw set.not_nonempty_iff_eq_empty,
-    intro h,
-    ext a,
-    have ha := set.not_mem_empty a,
-    rw [← h, mem_support, not_not] at ha,
-    rw [ha, zero_coeff] }
-end
+@[simp] lemma support_nonempty_iff {x : hahn_series Γ R} : x.support.nonempty ↔ x ≠ 0 :=
+by rw [support, support_nonempty_iff, ne.def, coeff_fun_eq_zero_iff]
+
+@[simp] lemma support_eq_empty_iff {x : hahn_series Γ R} : x.support = ∅ ↔ x = 0 :=
+support_eq_empty_iff.trans coeff_fun_eq_zero_iff
 
 /-- `single a r` is the Hahn series which has coefficient `r` at `a` and zero otherwise. -/
 def single (a : Γ) : zero_hom R (hahn_series Γ R) :=

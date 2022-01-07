@@ -153,13 +153,7 @@ eq_univ_iff_forall.2 $ λ s, mem_sym_iff.2 $ λ a _, mem_univ _
 by { ext m, simp only [mem_inter, mem_sym_iff, imp_and_distrib, forall_and_distrib] }
 
 @[simp] lemma sym_union (s t : finset α) (n : ℕ) : s.sym n ∪ t.sym n ⊆ (s ∪ t).sym n :=
-begin
-  refine λ m hm, mem_sym_iff.2 (λ a ha, mem_union.2 _),
-  rw [mem_union, mem_sym_iff, mem_sym_iff] at hm,
-  cases hm,
-  { exact or.inl (hm _ ha) },
-  { exact or.inr (hm _ ha) }
-end
+union_subset (sym_mono (subset_union_left s t) n) (sym_mono (subset_union_right s t) n)
 
 end sym
 end finset

@@ -53,7 +53,7 @@ local attribute [instance] vector.perm.is_setoid
 
 namespace sym
 
-variables {α : Type u} {n : ℕ} {s: sym α n} {a b : α}
+variables {α : Type u} {n : ℕ} {s : sym α n} {a b : α}
 
 /--
 The unique element in `sym α 0`.

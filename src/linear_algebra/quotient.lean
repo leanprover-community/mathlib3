@@ -121,6 +121,10 @@ instance (T : Type*) [has_scalar T R] [has_scalar T M] [is_scalar_tower T R M] [
   [is_scalar_tower S T M] : is_scalar_tower S T (M ⧸ P) :=
 { smul_assoc := λ x y, quotient.ind' $ by exact λ z, congr_arg mk (smul_assoc _ _ _) }
 
+instance [has_scalar Sᵐᵒᵖ R] [has_scalar Sᵐᵒᵖ M] [is_scalar_tower Sᵐᵒᵖ R M]
+  [is_central_scalar S M] : is_central_scalar S (M ⧸ P) :=
+{ op_smul_eq_smul := λ x, quotient.ind' $ by exact λ z, congr_arg mk $ op_smul_eq_smul _ _ }
+
 end has_scalar
 
 section module

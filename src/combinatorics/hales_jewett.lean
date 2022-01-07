@@ -28,6 +28,7 @@ to `∑ i : ι, v i`, which sends a combinatorial line to a homothetic copy of `
 ## Main results
 
 - `combinatorics.line.exists_mono_in_high_dimension`: the Hales-Jewett theorem.
+- `combinatorics.subspace.exists_mono_in_high_dimension`: the extended Hales-Jewett theorem.
 - `combinatorics.exists_mono_homothetic_copy`: a generalization of Van der Waerden's theorem.
 
 ## Implementation details
@@ -58,7 +59,7 @@ combinatorial line, Ramsey theory, arithmetic progession
 open_locale classical
 open_locale big_operators
 
-universes u v
+universes u v w
 
 namespace combinatorics
 
@@ -140,18 +141,17 @@ def prod {α ι ι'} (l : line α ι) (l' : line α ι') : line α (ι ⊕ ι') 
 { idx_fun := sum.elim l.idx_fun l'.idx_fun,
   proper  := ⟨sum.inl l.proper.some, l.proper.some_spec⟩ }
 
-lemma apply {α ι} (l : line α ι) (x : α) : l x = λ i, (l.idx_fun i).get_or_else x := rfl
+lemma apply_def {α ι} (l : line α ι) (x : α) : l x = λ i, (l.idx_fun i).get_or_else x := rfl
 
 lemma apply_none {α ι} (l : line α ι) (x : α) (i : ι) (h : l.idx_fun i = none) : l x i = x :=
-by simp only [option.get_or_else_none, h, l.apply]
+by simp only [option.get_or_else_none, h, l.apply_def]
 
-lemma apply_of_ne_none {α ι} (l : line α ι) (x : α) (i : ι) (h : l.idx_fun i ≠ none) :
-  some (l x i) = l.idx_fun i :=
-by rw [l.apply, option.get_or_else_of_ne_none h]
+lemma apply_some {α ι} (l : line α ι) {x a : α} {i : ι} (h : l.idx_fun i = some a) : l x i = a :=
+by simp_rw [l.apply_def, option.mem_def.mp h, option.get_or_else_some]
 
 @[simp] lemma map_apply {α α' ι} (f : α → α') (l : line α ι) (x : α) :
   l.map f (f x) = f ∘ l x :=
-by simp only [line.apply, line.map, option.get_or_else_map]
+by simp only [line.apply_def, line.map, option.get_or_else_map]
 
 @[simp] lemma vertical_apply {α ι ι'} (v : ι → α) (l : line α ι') (x : α) :
   l.vertical v x = sum.elim v (l x) :=
@@ -167,7 +167,7 @@ by { funext i, cases i; refl }
 
 @[simp] lemma diagonal_apply {α ι} [nonempty ι] (x : α) :
   line.diagonal α ι x = λ i, x :=
-by simp_rw [line.apply, line.diagonal, option.get_or_else_none]
+by simp_rw [line.apply_def, line.diagonal, option.get_or_else_none]
 
 /-- The Hales-Jewett theorem. This version has a restriction on universe levels which is necessary
 for the proof. See `exists_mono_in_high_dimension` for a fully universe-polymorphic version. -/
@@ -265,8 +265,9 @@ begin -- Now we have to show that the theorem holds for `option α` if it holds 
   { rw [multiset.card_cons, multiset.card_map, sr], },
 end
 
-/-- The Hales-Jewett theorem: for any finite types `α` and `κ`, there exists a finite type `ι` such
-that whenever the hypercube `ι → α` is `κ`-colored, there is a monochromatic combinatorial line. -/
+/-- The **Hales-Jewett theorem**: for any finite types `α` and `κ`, there exists a finite type `ι`
+such that whenever the hypercube `ι → α` is `κ`-colored, there is a monochromatic combinatorial
+line. -/
 theorem exists_mono_in_high_dimension (α : Type u) [fintype α] (κ : Type v) [fintype κ] :
   ∃ (ι : Type) [fintype ι], ∀ C : (ι → α) → κ, ∃ l : line α ι, l.is_mono C :=
 let ⟨ι, ιfin, hι⟩ := exists_mono_in_high_dimension' α (ulift κ)
@@ -274,7 +275,7 @@ in ⟨ι, ιfin, λ C, let ⟨l, c, hc⟩ := hι (ulift.up ∘ C) in ⟨l, c.dow
 
 end line
 
-/-- A generalization of Van der Waerden's theorem: if `M` is a finitely colored commutative
+/-- A generalization of **Van der Waerden's theorem**: if `M` is a finitely colored commutative
 monoid, and `S` is a finite subset, then there exists a monochromatic homothetic copy of `S`. -/
 theorem exists_mono_homothetic_copy
   {M κ} [add_comm_monoid M] (S : finset M) [fintype κ] (C : M → κ) :
@@ -302,7 +303,79 @@ begin
     intros i hi,
     rw [hs, finset.sep_def, finset.compl_filter, finset.mem_filter] at hi,
     obtain ⟨y, hy⟩ := option.ne_none_iff_exists.mp hi.right,
-    simp_rw [line.apply, ←hy, option.map_some', option.get_or_else_some], },
+    rw [l.apply_some hy.symm, ←hy, option.map_some', option.get_or_else_some] }
 end
 
+/-- `subspace η α ι` is the type of `η`-dimensional *combinatorial subspaces* of `ι → α`. We do not
+allow degenerate subspaces. -/
+structure subspace (η α ι : Type*) :=
+(idx_fun : ι → α ⊕ η)
+(proper : ∀ e, ∃ i, idx_fun i = sum.inr e)
+
+namespace subspace
+
+/-- The combinatorial subspace corresponding to the indentity embedding `(ι → α) → (ι → α)`. -/
+instance {α ι} : inhabited (subspace ι α ι) := ⟨⟨sum.inr, λ i, ⟨i, rfl⟩⟩⟩
+
+instance (η α ι) : has_coe_to_fun (subspace η α ι) (λ _, (η → α) → ι → α) :=
+⟨λ l x i, (l.idx_fun i).elim id x⟩
+
+lemma apply_def {η α ι} (l : subspace η α ι) (x : η → α) (i : ι) :
+  l x i = (l.idx_fun i).elim id x := rfl
+
+lemma apply_inl {η α ι} {l : subspace η α ι} {x : η → α} {i : ι} {y : α}
+  (h : l.idx_fun i = sum.inl y) : l x i = y :=
+by rw [l.apply_def, h, sum.elim_inl, id.def]
+
+lemma apply_inr {η α ι} {l : subspace η α ι} {x : η → α} {i : ι} {j : η}
+  (h : l.idx_fun i = sum.inr j) : l x i = x j :=
+by rw [l.apply_def, h, sum.elim_inr]
+
+/-- Given a coloring `C` of `ι → α` and a combinatorial subspace `l` of `ι → α`, `l.is_mono C` means
+that `l` is monochromatic with regard to `C`. -/
+def is_mono {η α ι κ} (C : (ι → α) → κ) (l : subspace η α ι) : Prop :=
+∃ c, ∀ x, C (l x) = c
+
+/-- The **extended Hales-Jewett theorem**. We deduce it from the ordinary Hales-Jewett theorem. -/
+theorem exists_mono_in_high_dimension (α κ) (η : Type u) [fintype α] [fintype κ] [fintype η] :
+  ∃ (ι : Type u) (_ : fintype ι), ∀ C : (ι → α) → κ, ∃ l : subspace η α ι, l.is_mono C :=
+begin
+  obtain ⟨ι, ιfin, hι⟩ := line.exists_mono_in_high_dimension (η → α) κ,
+  resetI,
+  refine ⟨ι × η, infer_instance, _⟩,
+  intro C,
+  specialize hι (C ∘ function.uncurry),
+  obtain ⟨l, c, lC⟩ := hι,
+  refine ⟨⟨λ p, (l.idx_fun p.fst).elim (sum.inr p.snd) (λ x, sum.inl (x p.snd)), _⟩, c, _⟩,
+  { intro e, obtain ⟨i, hi⟩ := l.proper, use (i, e), rw [hi, option.elim] },
+  intro x,
+  specialize lC x,
+  convert lC,
+  funext,
+  cases i with i e,
+  dsimp only [function.uncurry_apply_pair, line.apply_def, subspace.apply_def],
+  cases l.idx_fun i with o,
+  { simp only [option.elim, option.get_or_else_none, sum.elim_inr], },
+  { simp only [option.get_or_else_some, option.elim, sum.elim_inl, id.def], }
+end
+
+/-- A variant of the extended Hales-Jewett theorem `exists_mono_in_high_dimension` where the
+returned type is some `fin n` instead of a general fintype. -/
+theorem exists_mono_in_high_dimension_fin (α) [fintype α] (κ) [fintype κ] (η) [fintype η] :
+  ∃ n : ℕ, ∀ C : (fin n → α) → κ, ∃ l : subspace η α (fin n), l.is_mono C :=
+begin
+  obtain ⟨ι, ιfin, hι⟩ := exists_mono_in_high_dimension α κ η,
+  resetI,
+  use fintype.card ι,
+  intro C,
+  specialize hι (λ v, C (v ∘ (fintype.equiv_fin _).symm)),
+  obtain ⟨l, c, cl⟩ := hι,
+  refine ⟨⟨l.idx_fun ∘ (fintype.equiv_fin _).symm, _⟩, c, cl⟩,
+  intro e,
+  obtain ⟨i, hi⟩ := l.proper e,
+  use fintype.equiv_fin _ i,
+  simpa only [equiv.symm_apply_apply, function.comp_app] using hi,
+end
+
+end subspace
 end combinatorics

@@ -42,33 +42,28 @@ open_locale bicategory
 universes w₁ w₂ w₃ v₁ v₂ v₃ u₁ u₂ u₃
 
 section
+variables (B : Type u₁) [quiver.{v₁+1} B] [∀ a b : B, quiver.{w₁+1} (a ⟶ b)]
+variables (C : Type u₂) [quiver.{v₂+1} C] [∀ a b : C, quiver.{w₂+1} (a ⟶ b)]
 
 /--
 A prelax functor between bicategories consists of functions between objects,
 1-morphisms, and 2-morphisms. This structure will be extended to define `oplax_functor`.
 -/
-structure prelax_functor
-  (B : Type u₁) [quiver.{v₁+1} B] [∀ a b : B, quiver.{w₁+1} (a ⟶ b)]
-  (C : Type u₂) [quiver.{v₂+1} C] [∀ a b : C, quiver.{w₂+1} (a ⟶ b)]
-  extends prefunctor B C : Type (max w₁ w₂ v₁ v₂ u₁ u₂) :=
+structure prelax_functor extends prefunctor B C : Type (max w₁ w₂ v₁ v₂ u₁ u₂) :=
 (map₂ {a b : B} {f g : a ⟶ b} : (f ⟶ g) → (map f ⟶ map g))
 
 /-- The prefunctor between the underlying quivers. -/
 add_decl_doc prelax_functor.to_prefunctor
 
-variables {B : Type u₁} [quiver.{v₁+1} B] [∀ a b : B, quiver.{w₁+1} (a ⟶ b)]
-variables {C : Type u₂} [quiver.{v₂+1} C] [∀ a b : C, quiver.{w₂+1} (a ⟶ b)]
-variables (F : prelax_functor B C)
-
-@[simp] lemma prelax_functor.to_prefunctor_obj : F.to_prefunctor.obj = F.obj := rfl
-@[simp] lemma prelax_functor.to_prefunctor_map : F.to_prefunctor.map = F.map := rfl
-
-end
-
 namespace prelax_functor
 
-section
-variables (B : Type u₁) [quiver.{v₁+1} B] [∀ a b : B, quiver.{w₁+1} (a ⟶ b)]
+variables {B C} {D : Type u₃} [quiver.{v₃+1} D] [∀ a b : D, quiver.{w₃+1} (a ⟶ b)]
+variables (F : prelax_functor B C) (G : prelax_functor C D)
+
+@[simp] lemma to_prefunctor_obj : F.to_prefunctor.obj = F.obj := rfl
+@[simp] lemma to_prefunctor_map : F.to_prefunctor.map = F.map := rfl
+
+variables (B)
 
 /-- The identity prelax functor. -/
 @[simps]
@@ -77,24 +72,19 @@ def id : prelax_functor B B :=
 
 instance : inhabited (prelax_functor B B) := ⟨prelax_functor.id B⟩
 
-end
-
-section
-variables {B : Type u₁} [quiver.{v₁+1} B] [∀ a b : B, quiver.{w₁+1} (a ⟶ b)]
-variables {C : Type u₂} [quiver.{v₂+1} C] [∀ a b : C, quiver.{w₂+1} (a ⟶ b)]
-variables {D : Type u₃} [quiver.{v₃+1} D] [∀ a b : D, quiver.{w₃+1} (a ⟶ b)]
-variables (F : prelax_functor B C) (G : prelax_functor C D)
+variables {B}
 
 /-- Composition of prelax functors. -/
 @[simps]
 def comp : prelax_functor B D :=
 { map₂ := λ a b f g η, G.map₂ (F.map₂ η), .. F.to_prefunctor.comp G.to_prefunctor }
 
-end
-
 end prelax_functor
 
+end
+
 section
+variables {B : Type u₁} [bicategory.{w₁ v₁} B] {C : Type u₂} [bicategory.{w₂ v₂} C]
 
 /--
 This auxiliary definition states that oplax functors preserve the associators
@@ -106,13 +96,14 @@ of oplax functors because doing so will cause a timeout.
 -/
 @[simp]
 def oplax_functor.map₂_associator_aux
-  {B : Type u₁} [bicategory.{w₁ v₁} B] {C : Type u₂} [bicategory.{w₂ v₂} C]
   (obj : B → C) (map : Π {X Y : B}, (X ⟶ Y) → (obj X ⟶ obj Y))
   (map₂ : Π {a b : B} {f g : a ⟶ b}, (f ⟶ g) → (map f ⟶ map g))
   (map_comp : Π {a b c : B} (f : a ⟶ b) (g : b ⟶ c), map (f ≫ g) ⟶ map f ≫ map g)
   {a b c d : B} (f : a ⟶ b) (g : b ⟶ c) (h : c ⟶ d) : Prop :=
 map₂ (α_ f g h).hom ≫ map_comp f (g ≫ h) ≫ (map f ◁ map_comp g h) =
   map_comp (f ≫ g) h ≫ (map_comp f g ▷ map h) ≫ (α_ (map f) (map g) (map h)).hom
+
+variables (B C)
 
 /--
 An oplax functor `F` between bicategories `B` and `C` consists of functions between objects,
@@ -126,8 +117,7 @@ Functions between 2-morphisms strictly commute with compositions and preserve th
 They also preserve the associator, the left unitor, and the right unitor modulo some adjustments
 of domains and codomains of 2-morphisms.
 -/
-structure oplax_functor (B : Type u₁) [bicategory.{w₁ v₁} B] (C : Type u₂) [bicategory.{w₂ v₂} C]
-  extends prelax_functor B C : Type (max w₁ w₂ v₁ v₂ u₁ u₂) :=
+structure oplax_functor extends prelax_functor B C : Type (max w₁ w₂ v₁ v₂ u₁ u₂) :=
 (map_id (a : B) : map (𝟙 a) ⟶ 𝟙 (obj a))
 (map_comp {a b c : B} (f : a ⟶ b) (g : b ⟶ c) : map (f ≫ g) ⟶ map f ≫ map g)
 (map_comp_naturality_left' : ∀ {a b c : B} {f f' : a ⟶ b} (η : f ⟶ f') (g : b ⟶ c),
@@ -162,13 +152,10 @@ attribute [reassoc]
 attribute [simp]
   oplax_functor.map₂_comp oplax_functor.map₂_left_unitor oplax_functor.map₂_right_unitor
 
-end
-
 namespace oplax_functor
 
-section
-variables {B : Type u₁} [bicategory.{w₁ v₁} B] {C : Type u₂} [bicategory.{w₂ v₂} C]
-variables (F : oplax_functor B C)
+variables {B} {C} {D : Type u₃} [bicategory.{w₃ v₃} D]
+variables (F : oplax_functor B C) (G : oplax_functor C D)
 
 /-- Function between 1-morphisms as a functor. -/
 @[simps]
@@ -183,10 +170,7 @@ add_decl_doc oplax_functor.to_prelax_functor
 @[simp] lemma to_prelax_functor_map : F.to_prelax_functor.map = F.map := rfl
 @[simp] lemma to_prelax_functor_map₂ : F.to_prelax_functor.map₂ = F.map₂ := rfl
 
-end
-
-section
-variables (B : Type u₁) [bicategory.{w₁ v₁} B]
+variables (B)
 
 /-- The identity oplax functor. -/
 @[simps]
@@ -197,13 +181,7 @@ def id : oplax_functor B B :=
 
 instance : inhabited (oplax_functor B B) := ⟨id B⟩
 
-end
-
-section
-variables {B : Type u₁} [bicategory.{w₁ v₁} B]
-variables {C : Type u₂} [bicategory.{w₂ v₂} C]
-variables {D : Type u₃} [bicategory.{w₃ v₃} D]
-variables (F : oplax_functor B C) (G : oplax_functor C D)
+variables {B}
 
 /-- Composition of oplax functors. -/
 @[simps]
@@ -236,8 +214,8 @@ def comp : oplax_functor B D :=
       whisker_left_comp, assoc] },
   .. F.to_prelax_functor.comp G.to_prelax_functor }
 
-end
-
 end oplax_functor
+
+end
 
 end category_theory

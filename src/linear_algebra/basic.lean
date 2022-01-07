@@ -871,7 +871,7 @@ begin
   refine exists.elim _ (λ (hx : x ∈ span R s) (hc : p x hx), hc),
   refine span_induction hx (λ m hm, ⟨subset_span hm, Hs m hm⟩) ⟨zero_mem _, H0⟩
     (λ x y hx hy, exists.elim hx $ λ hx' hx, exists.elim hy $ λ hy' hy,
-    ⟨add_mem _ hx' hy', H1 _ _ _ _ hx hy⟩) (λ r x hx, exists.elim hx $ λ hx' hx,
+    ⟨add_mem hx' hy', H1 _ _ _ _ hx hy⟩) (λ r x hx, exists.elim hx $ λ hx' hx,
     ⟨smul_mem _ _ hx', H2 r _ _ hx⟩)
 end
 
@@ -975,7 +975,7 @@ begin
   { exact hι.elim (λ i, ⟨i, (S i).zero_mem⟩) },
   { intros x y i hi j hj,
     rcases H i j with ⟨k, ik, jk⟩,
-    exact ⟨k, add_mem _ (ik hi) (jk hj)⟩ },
+    exact ⟨k, add_mem (ik hi) (jk hj)⟩ },
   { exact λ a x i hi, ⟨i, smul_mem _ a hi⟩ },
 end
 
@@ -1019,11 +1019,11 @@ lemma mem_sup : x ∈ p ⊔ p' ↔ ∃ (y ∈ p) (z ∈ p'), y + z = x :=
     { exact ⟨0, by simp, y, h, by simp⟩ } },
   { exact ⟨0, by simp, 0, by simp⟩ },
   { rintro _ _ ⟨y₁, hy₁, z₁, hz₁, rfl⟩ ⟨y₂, hy₂, z₂, hz₂, rfl⟩,
-    exact ⟨_, add_mem _ hy₁ hy₂, _, add_mem _ hz₁ hz₂, by simp [add_assoc]; cc⟩ },
+    exact ⟨_, add_mem hy₁ hy₂, _, add_mem hz₁ hz₂, by simp [add_assoc]; cc⟩ },
   { rintro a _ ⟨y, hy, z, hz, rfl⟩,
     exact ⟨_, smul_mem _ a hy, _, smul_mem _ a hz, by simp [smul_add]⟩ }
 end,
-by rintro ⟨y, hy, z, hz, rfl⟩; exact add_mem _
+by rintro ⟨y, hy, z, hz, rfl⟩; exact add_mem
   ((le_sup_left : p ≤ p ⊔ p') hy)
   ((le_sup_right : p' ≤ p ⊔ p') hz)⟩
 
@@ -1378,8 +1378,8 @@ open set
 @[simp] lemma neg_coe : -(p : set M) = p := set.ext $ λ x, p.neg_mem_iff
 
 @[simp] protected lemma map_neg (f : M →ₗ[R] M₂) : map (-f) p = map f p :=
-ext $ λ y, ⟨λ ⟨x, hx, hy⟩, hy ▸ ⟨-x, neg_mem _ hx, f.map_neg x⟩,
-  λ ⟨x, hx, hy⟩, hy ▸ ⟨-x, neg_mem _ hx, ((-f).map_neg _).trans (neg_neg (f x))⟩⟩
+ext $ λ y, ⟨λ ⟨x, hx, hy⟩, hy ▸ ⟨-x, show -x ∈ p, from neg_mem hx, map_neg f x⟩, -- TODO: should be fixed in lean 3.36
+  λ ⟨x, hx, hy⟩, hy ▸ ⟨-x, show -x ∈ p, from neg_mem hx, (map_neg (-f) _).trans (neg_neg (f x))⟩⟩
 
 @[simp] lemma span_neg (s : set M) : span R (-s) = span R s :=
 calc span R (-s) = span R ((-linear_map.id : M →ₗ[R] M) '' s) : by simp
@@ -1774,7 +1774,7 @@ by rw [mem_ker, map_sub, sub_eq_zero]
 theorem disjoint_ker' {p : submodule R M} :
   disjoint p (ker f) ↔ ∀ x y ∈ p, f x = f y → x = y :=
 disjoint_ker.trans
-⟨λ H x hx y hy h, eq_of_sub_eq_zero $ H _ (sub_mem _ hx hy) (by simp [h]),
+⟨λ H x hx y hy h, eq_of_sub_eq_zero $ H _ (sub_mem hx hy) (by simp [h]),
  λ H x h₁ h₂, H x h₁ 0 (zero_mem _) (by simpa using h₂)⟩
 
 theorem inj_of_disjoint_ker {p : submodule R M}
@@ -2064,10 +2064,14 @@ def submodule_map (p : submodule R M) :
 { inv_fun   := λ y, ⟨(e.symm : M₂ →ₛₗ[σ₂₁] M) y, by
   { rcases y with ⟨y', hy⟩, rw submodule.mem_map at hy, rcases hy with ⟨x, hx, hxy⟩, subst hxy,
     simp only [symm_apply_apply, submodule.coe_mk, coe_coe, hx], }⟩,
-  left_inv  := λ x, by simp,
-  right_inv := λ y, by { apply set_coe.ext, simp, },
+  left_inv  := λ x, by simp only [linear_map.dom_restrict_apply, linear_map.cod_restrict_apply,
+    linear_map.to_fun_eq_coe, linear_equiv.coe_coe, linear_equiv.symm_apply_apply, set_like.eta],
+  right_inv := λ y, by { apply set_coe.ext, simp only [linear_map.dom_restrict_apply,
+    linear_map.cod_restrict_apply, linear_map.to_fun_eq_coe, linear_equiv.coe_coe, set_like.coe_mk,
+    linear_equiv.apply_symm_apply] },
   ..((e : M →ₛₗ[σ₁₂] M₂).dom_restrict p).cod_restrict (p.map (e : M →ₛₗ[σ₁₂] M₂))
-  (λ x, ⟨x, by simp⟩) }
+  (λ x, ⟨x, by simp only [linear_map.dom_restrict_apply, eq_self_iff_true, and_true,
+                          set_like.coe_mem, set_like.mem_coe]⟩) }
 
 include σ₂₁
 @[simp] lemma submodule_map_apply (p : submodule R M) (x : p) :

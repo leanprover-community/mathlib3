@@ -1103,6 +1103,9 @@ variables [has_continuous_add M₂] [has_continuous_add M₃] [has_continuous_ad
 instance : module S₃ (M →SL[σ₁₃] M₃) :=
 { zero_smul := λ _, ext $ λ _, zero_smul _ _,
   add_smul  := λ _ _ _, ext $ λ _, add_smul _ _ _ }
+  
+instance [module S₃ᵐᵒᵖ M₃] [is_central_scalar S₃ M₃] : is_central_scalar S₃ (M →SL[σ₁₃] M₃) :=
+{ op_smul_eq_smul := λ _ _, ext $ λ _, op_smul_eq_smul _ _ }
 
 variables (S) [has_continuous_add N₃]
 

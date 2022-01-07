@@ -312,9 +312,10 @@ hφ.integrable_of_lintegral_nnnorm_bounded I hfm
 lemma ae_cover.integrable_of_lintegral_nnnorm_tendsto' [l.ne_bot] [l.is_countably_generated]
   {φ : ι → set α} (hφ : ae_cover μ l φ) {f : α → E} (I : ℝ≥0)
   (hfm : ae_measurable f μ)
-  (htendsto : tendsto (λ i, ∫⁻ x in φ i, nnnorm (f x) ∂μ) l (𝓝 $ ennreal.of_real I)) :
+  (htendsto : tendsto (λ i, ∫⁻ x in φ i, nnnorm (f x) ∂μ) l (𝓝 I)) :
   integrable f μ :=
-hφ.integrable_of_lintegral_nnnorm_tendsto I hfm htendsto
+hφ.integrable_of_lintegral_nnnorm_tendsto I hfm
+  (by simpa only [ennreal.of_real_coe_nnreal] using htendsto)
 
 lemma ae_cover.integrable_of_integral_norm_bounded [l.ne_bot] [l.is_countably_generated]
   {φ : ι → set α} (hφ : ae_cover μ l φ) {f : α → E}

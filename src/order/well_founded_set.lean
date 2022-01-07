@@ -358,7 +358,7 @@ finite_empty.well_founded_on
 
 theorem subsingleton.well_founded_on (hs : s.subsingleton) :
   well_founded_on s r :=
-hs.induction_on well_founded_on_empty (λ x, well_founded_on_singleton)
+hs.finite.well_founded_on
 
 @[simp] theorem well_founded_on_insert : well_founded_on (insert a s) r ↔ well_founded_on s r :=
 by simp only [← singleton_union, well_founded_on_union, well_founded_on_singleton, true_and]

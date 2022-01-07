@@ -544,44 +544,41 @@ lemma upcrossing_le {f : ℕ → α → ℝ} {a b : ℝ} {N : ℕ} {x : α} :
   (stopped_value f (upper_crossing f a b N i) x -
    stopped_value f (lower_crossing f a b N i) x) :=
 begin
-  set k := upcrossing f a b N x,
-  sorry
-  -- rw ← @finset.sum_range_add_sum_Ico _ _ _ k,
-  -- { have : ∑ k in finset.Ico k N, (stopped_value f (upper_crossing f a b N k) x -
-  --     stopped_value f (lower_crossing f a b N k) x) = 0,
-  --   { sorry },
-  --   rw [this, add_zero],
-  --   have h' : ∑ i in finset.range k,
-  --     (stopped_value f (upper_crossing f a b N i) x - stopped_value f (lower_crossing f a b N i) x)
-  --   = stopped_value f (upper_crossing f a b N 1) x - stopped_value f (lower_crossing f a b N 1) x +
-  --     ∑ i in finset.Ico 2 k,
-  --     (stopped_value f (upper_crossing f a b N i) x - stopped_value f (lower_crossing f a b N i) x),
-  --   { sorry },
-  --   rw h',
-  --   clear h',
-  --   have h'' : ∑ i in finset.Ico 2 k, (b - a) ≤ ∑ i in finset.Ico 2 k,
-  --     (stopped_value f (upper_crossing f a b N i) x - stopped_value f (lower_crossing f a b N i) x),
-  --   { refine finset.sum_le_sum (λ i hi, _),
-  --     rw finset.mem_Ico at hi,
-  --     cases hi with hi₁ hi₂,
-  --     have hnonneg : i ≠ 0,
-  --     { linarith },
-  --     rcases nat.exists_eq_succ_of_ne_zero hnonneg with ⟨j, rfl⟩,
-  --     refine upper_crossing_sub_lower_crossing (λ hu, _),
-  --     split_ifs at hk,
-  --     { rw hk at hi₂,
-  --       exact nat.find_min h hi₂ ⟨lt_trans hi₂ (nat.find_spec h).1, hu⟩ },
-  --     { exact nat.not_lt_zero (j + 1) (hk ▸ hi₂) } },
-  --   ring_nf,
-  --   rw ← add_assoc,
-  --   refine le_trans _ (add_le_add le_rfl h''),
-  --   rw finset.sum_const,
-  -- },
-  -- { split_ifs at hk,
-  --   { rw hk,
-  --     exact (nat.find_spec h).1.le },
-  --   { rw hk,
-  --     exact zero_le _ } }
+  set k := if h : ∃ n, n < N ∧ upper_crossing f a b N n x = N then nat.find h else 0 with hk,
+  split_ifs at hk,
+  { rw ← finset.sum_range_add_sum_Ico _ (nat.find_spec h).1.le,
+    have : ∑ k in finset.Ico k N, (stopped_value f (upper_crossing f a b N k) x -
+      stopped_value f (lower_crossing f a b N k) x) = 0,
+    { sorry },
+    rw [← hk, this, add_zero],
+    have h' : ∑ i in finset.range k,
+      (stopped_value f (upper_crossing f a b N i) x - stopped_value f (lower_crossing f a b N i) x)
+    = stopped_value f (upper_crossing f a b N 1) x - stopped_value f (lower_crossing f a b N 1) x +
+      ∑ i in finset.Ico 2 k,
+      (stopped_value f (upper_crossing f a b N i) x - stopped_value f (lower_crossing f a b N i) x),
+    { sorry },
+    rw h',
+    clear h',
+    have h'' : ∑ i in finset.Ico 2 k, (b - a) ≤ ∑ i in finset.Ico 2 k,
+      (stopped_value f (upper_crossing f a b N i) x - stopped_value f (lower_crossing f a b N i) x),
+    { refine finset.sum_le_sum (λ i hi, _),
+      rw finset.mem_Ico at hi,
+      cases hi with hi₁ hi₂,
+      have hnonneg : i ≠ 0,
+      { linarith },
+      rcases nat.exists_eq_succ_of_ne_zero hnonneg with ⟨j, rfl⟩,
+      refine upper_crossing_sub_lower_crossing (λ hu, _),
+      rw hk at hi₂,
+      exact nat.find_min h hi₂ ⟨lt_trans hi₂ (nat.find_spec h).1, hu⟩ },
+    ring_nf,
+    rw ← add_assoc,
+    refine le_trans _ (add_le_add le_rfl h''),
+    rw finset.sum_const,
+    sorry
+  },
+  { simp only [upcrossing],
+    rw [dif_neg h, nat.cast_zero, zero_mul],
+    sorry }
 end
 
 end upcrossing

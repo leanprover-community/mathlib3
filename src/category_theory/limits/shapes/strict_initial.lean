@@ -156,6 +156,7 @@ lemma has_strict_initial_objects_of_initial_is_strict [has_initial C]
   end }
 
 end strict_initial
+
 section strict_terminal
 
 /--

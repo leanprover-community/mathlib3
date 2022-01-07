@@ -306,6 +306,12 @@ instance : monoid (P1 →ᵃ[k] P1) :=
 @[simp] lemma coe_mul (f g : P1 →ᵃ[k] P1) : ⇑(f * g) = f ∘ g := rfl
 @[simp] lemma coe_one : ⇑(1 : P1 →ᵃ[k] P1) = _root_.id := rfl
 
+/-- `affine_map.linear` on endomorphisms is a `monoid_hom`. -/
+@[simps] def linear_hom : (P1 →ᵃ[k] P1) →* (V1 →ₗ[k] V1) :=
+{ to_fun := linear,
+  map_one' := rfl,
+  map_mul' := λ _ _, rfl }
+
 include V2
 
 @[simp] lemma injective_iff_linear_injective (f : P1 →ᵃ[k] P2) :

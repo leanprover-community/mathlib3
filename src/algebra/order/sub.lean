@@ -118,6 +118,10 @@ by rw [tsub_le_iff_left, tsub_le_iff_right]
 lemma tsub_tsub_le : b - (b - a) ≤ a :=
 tsub_le_iff_right.mpr le_add_tsub
 
+lemma tsub_nonpos : a - b ≤ 0 ↔ a ≤ b := by rw [tsub_le_iff_left, add_zero]
+
+alias tsub_nonpos ↔ _ tsub_nonpos_of_le
+
 lemma add_monoid_hom.le_map_tsub [preorder β] [add_comm_monoid β] [has_sub β]
   [has_ordered_sub β] (f : α →+ β) (hf : monotone f) (a b : α) :
   f a - f b ≤ f (a - b) :=

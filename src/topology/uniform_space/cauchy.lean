@@ -197,6 +197,11 @@ begin
   exact (hu.prod hv).mono (tendsto.prod_mk le_rfl le_rfl)
 end
 
+lemma cauchy_seq.eventually_eventually [semilattice_sup β] {u : β → α} (hu : cauchy_seq u)
+  {V : set (α × α)} (hV : V ∈ 𝓤 α) :
+  ∀ᶠ k in at_top, ∀ᶠ l in at_top, (u k, u l) ∈ V :=
+eventually_at_top_curry $ hu.tendsto_uniformity hV
+
 lemma uniform_continuous.comp_cauchy_seq {γ} [uniform_space β] [semilattice_sup γ]
   {f : α → β} (hf : uniform_continuous f) {u : γ → α} (hu : cauchy_seq u) :
   cauchy_seq (f ∘ u) :=
@@ -614,21 +619,22 @@ begin
   rcases exists_countable_dense α with ⟨s, hsc, hsd⟩,
   obtain ⟨t : ℕ → set (α × α),
     hto : ∀ (i : ℕ), t i ∈ (𝓤 α).sets ∧ is_open (t i) ∧ symmetric_rel (t i),
-    h_basis : (𝓤 α).has_antitone_basis (λ _, true) t⟩ :=
+      h_basis : (𝓤 α).has_antitone_basis t⟩ :=
     (@uniformity_has_basis_open_symmetric α _).exists_antitone_subbasis,
+  choose ht_mem hto hts using hto,
   refine ⟨⟨⋃ (x ∈ s), range (λ k, ball x (t k)), hsc.bUnion (λ x hx, countable_range _), _⟩⟩,
   refine (is_topological_basis_of_open_of_nhds _ _).eq_generate_from,
   { simp only [mem_bUnion_iff, mem_range],
     rintros _ ⟨x, hxs, k, rfl⟩,
-    exact is_open_ball x (hto k).2.1 },
+    exact is_open_ball x (hto k) },
   { intros x V hxV hVo,
     simp only [mem_bUnion_iff, mem_range, exists_prop],
     rcases uniform_space.mem_nhds_iff.1 (is_open.mem_nhds hVo hxV) with ⟨U, hU, hUV⟩,
     rcases comp_symm_of_uniformity hU with ⟨U', hU', hsymm, hUU'⟩,
     rcases h_basis.to_has_basis.mem_iff.1 hU' with ⟨k, -, hk⟩,
-    rcases hsd.inter_open_nonempty (ball x $ t k) (uniform_space.is_open_ball x (hto k).2.1)
-      ⟨x, uniform_space.mem_ball_self _ (hto k).1⟩ with ⟨y, hxy, hys⟩,
-    refine ⟨_, ⟨y, hys, k, rfl⟩, (hto k).2.2.subset hxy, λ z hz, _⟩,
+    rcases hsd.inter_open_nonempty (ball x $ t k) (is_open_ball x (hto k))
+      ⟨x, uniform_space.mem_ball_self _ (ht_mem k)⟩ with ⟨y, hxy, hys⟩,
+    refine ⟨_, ⟨y, hys, k, rfl⟩, (hts k).subset hxy, λ z hz, _⟩,
     exact hUV (ball_subset_of_comp_subset (hk hxy) hUU' (hk hz)) }
 end
 

@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Amelia Livingston, Bryan Gin-ge Chen, Patrick Massot
 -/
 
+import data.fintype.basic
+import data.set.finite
 import data.setoid.basic
-import data.set.pairwise
 
 /-!
 # Equivalence relations: partitions
@@ -51,6 +52,22 @@ def classes (r : setoid α) : set (set α) :=
 {s | ∃ y, s = {x | r.rel x y}}
 
 lemma mem_classes (r : setoid α) (y) : {x | r.rel x y} ∈ r.classes := ⟨y, rfl⟩
+
+lemma classes_ker_subset_fiber_set {β : Type*} (f : α → β) :
+  (setoid.ker f).classes ⊆ set.range (λ y, {x | f x = y}) :=
+by { rintro s ⟨x, rfl⟩, rw set.mem_range, exact ⟨f x, rfl⟩ }
+
+lemma nonempty_fintype_classes_ker {α β : Type*} [fintype β] (f : α → β) :
+  nonempty (fintype (setoid.ker f).classes) :=
+by { classical, exact ⟨set.fintype_subset _ (classes_ker_subset_fiber_set f)⟩ }
+
+lemma card_classes_ker_le {α β : Type*} [fintype β]
+  (f : α → β) [fintype (setoid.ker f).classes] :
+  fintype.card (setoid.ker f).classes ≤ fintype.card β :=
+begin
+  classical,
+  exact le_trans (set.card_le_of_subset (classes_ker_subset_fiber_set f)) (fintype.card_range_le _)
+end
 
 /-- Two equivalence relations are equal iff all their equivalence classes are equal. -/
 lemma eq_iff_classes_eq {r₁ r₂ : setoid α} :
@@ -155,7 +172,7 @@ eqv_classes_disjoint hc.2
 lemma is_partition.sUnion_eq_univ {c : set (set α)} (hc : is_partition c) :
   ⋃₀ c = set.univ :=
 set.eq_univ_of_forall $ λ x, set.mem_sUnion.2 $
-  let ⟨t, ht⟩ := hc.2 x in ⟨t, by clear_aux_decl; finish⟩
+  let ⟨t, ht⟩ := hc.2 x in ⟨t, by { simp only [exists_unique_iff_exists] at ht, tauto }⟩
 
 /-- All elements of a partition of α are the equivalence class of some y ∈ α. -/
 lemma exists_of_mem_partition {c : set (set α)} (hc : is_partition c) {s} (hs : s ∈ c) :

@@ -277,12 +277,68 @@ lift_rel_iff_coe_fn.symm
 instance [partial_order β] : partial_order (α →ₘ[μ] β) :=
 partial_order.lift to_germ to_germ_injective
 
-/- TODO: Prove `L⁰` space is a lattice if β is linear order.
-         What if β is only a lattice? -/
+section lattice
 
--- instance [linear_order β] : semilattice_sup (α →ₘ β) :=
--- { sup := comp₂ (⊔) (_),
---    .. ae_eq_fun.partial_order }
+section sup
+variables [semilattice_sup β] [has_measurable_sup₂ β]
+
+instance : has_sup (α →ₘ[μ] β) := { sup := λ f g, ae_eq_fun.comp₂ (⊔) measurable_sup f g }
+
+lemma coe_fn_sup (f g : α →ₘ[μ] β) : ⇑(f ⊔ g) =ᵐ[μ] λ x, f x ⊔ g x := coe_fn_comp₂ _ _ _ _
+
+protected lemma le_sup_left (f g : α →ₘ[μ] β) : f ≤ f ⊔ g :=
+by { rw ← coe_fn_le, filter_upwards [coe_fn_sup f g], intros a ha,  rw ha, exact le_sup_left, }
+
+protected lemma le_sup_right (f g : α →ₘ[μ] β) : g ≤ f ⊔ g :=
+by { rw ← coe_fn_le, filter_upwards [coe_fn_sup f g], intros a ha,  rw ha, exact le_sup_right, }
+
+protected lemma sup_le (f g f' : α →ₘ[μ] β) (hf : f ≤ f') (hg : g ≤ f') : f ⊔ g ≤ f' :=
+begin
+  rw ← coe_fn_le at hf hg ⊢,
+  filter_upwards [hf, hg, coe_fn_sup f g],
+  intros a haf hag ha_sup,
+  rw ha_sup,
+  exact sup_le haf hag,
+end
+
+end sup
+
+section inf
+variables [semilattice_inf β] [has_measurable_inf₂ β]
+
+instance : has_inf (α →ₘ[μ] β) := { inf := λ f g, ae_eq_fun.comp₂ (⊓) measurable_inf f g }
+
+lemma coe_fn_inf (f g : α →ₘ[μ] β) : ⇑(f ⊓ g) =ᵐ[μ] λ x, f x ⊓ g x := coe_fn_comp₂ _ _ _ _
+
+protected lemma inf_le_left (f g : α →ₘ[μ] β) : f ⊓ g ≤ f :=
+by { rw ← coe_fn_le, filter_upwards [coe_fn_inf f g], intros a ha,  rw ha, exact inf_le_left, }
+
+protected lemma inf_le_right (f g : α →ₘ[μ] β) : f ⊓ g ≤ g :=
+by { rw ← coe_fn_le, filter_upwards [coe_fn_inf f g], intros a ha,  rw ha, exact inf_le_right, }
+
+protected lemma le_inf (f' f g : α →ₘ[μ] β) (hf : f' ≤ f) (hg : f' ≤ g) : f' ≤ f ⊓ g :=
+begin
+  rw ← coe_fn_le at hf hg ⊢,
+  filter_upwards [hf, hg, coe_fn_inf f g],
+  intros a haf hag ha_inf,
+  rw ha_inf,
+  exact le_inf haf hag,
+end
+
+end inf
+
+instance [lattice β] [has_measurable_sup₂ β] [has_measurable_inf₂ β] : lattice (α →ₘ[μ] β) :=
+{ sup           := has_sup.sup,
+  le_sup_left   := ae_eq_fun.le_sup_left,
+  le_sup_right  := ae_eq_fun.le_sup_right,
+  sup_le        := ae_eq_fun.sup_le,
+  inf           := has_inf.inf,
+  inf_le_left   := ae_eq_fun.inf_le_left,
+  inf_le_right  := ae_eq_fun.inf_le_right,
+  le_inf        := ae_eq_fun.le_inf,
+  ..ae_eq_fun.partial_order}
+
+end lattice
 
 end order
 

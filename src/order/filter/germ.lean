@@ -43,7 +43,7 @@ For each of the following structures we prove that if `β` has this structure, t
 * one-operation algebraic structures up to `comm_group`;
 * `mul_zero_class`, `distrib`, `semiring`, `comm_semiring`, `ring`, `comm_ring`;
 * `mul_action`, `distrib_mul_action`, `module`;
-* `preorder`, `partial_order`, and `lattice` structures up to `bounded_order`;
+* `preorder`, `partial_order`, and `lattice` structures, as well as `bounded_order`;
 * `ordered_cancel_comm_monoid` and `ordered_cancel_add_comm_monoid`.
 
 ## Tags

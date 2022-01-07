@@ -5,8 +5,8 @@ Authors: Mario Carneiro
 -/
 import data.finset.fold
 import data.finset.option
+import data.finset.prod
 import data.multiset.lattice
-import order.order_dual
 import order.complete_lattice
 
 /-!
@@ -79,11 +79,18 @@ eq_of_forall_ge_iff $ λ c, by simp [@forall_swap _ β]
 lemma sup_const {s : finset β} (h : s.nonempty) (c : α) : s.sup (λ _, c) = c :=
 eq_of_forall_ge_iff $ λ b, sup_le_iff.trans h.forall_const
 
+@[simp] lemma sup_bot (s : finset β) : s.sup (λ _, ⊥) = (⊥ : α) :=
+begin
+  obtain rfl | hs := s.eq_empty_or_nonempty,
+  { exact sup_empty },
+  { exact sup_const hs _ }
+end
+
 lemma sup_le {a : α} : (∀b ∈ s, f b ≤ a) → s.sup f ≤ a :=
 sup_le_iff.2
 
 lemma le_sup {b : β} (hb : b ∈ s) : f b ≤ s.sup f :=
-sup_le_iff.1 (le_refl _) _ hb
+sup_le_iff.1 le_rfl _ hb
 
 lemma sup_mono_fun {g : β → α} (h : ∀b∈s, f b ≤ g b) : s.sup f ≤ s.sup g :=
 sup_le (λ b hb, le_trans (h b hb) (le_sup hb))
@@ -107,8 +114,32 @@ sup_le $ assume b hb, le_sup (h hb)
     (λ h, ⟨c, or.inl rfl, h⟩) (λ h, let ⟨b, hb, hlt⟩ := ih h in ⟨b, or.inr hb, hlt⟩)),
 (λ ⟨b, hb, hlt⟩, lt_of_lt_of_le hlt (le_sup hb))⟩
 
+lemma sup_comm (s : finset β) (t : finset γ) (f : β → γ → α) :
+  s.sup (λ b, t.sup (f b)) = t.sup (λ c, s.sup (λ b, f b c)) :=
+begin
+  refine eq_of_forall_ge_iff (λ a, _),
+  simp_rw sup_le_iff,
+  exact ⟨λ h c hc b hb, h b hb c hc, λ h b hb c hc, h c hc b hb⟩,
+end
+
 @[simp] lemma sup_attach (s : finset β) (f : β → α) : s.attach.sup (λ x, f x) = s.sup f :=
 (s.attach.sup_map (function.embedding.subtype _) f).symm.trans $ congr_arg _ attach_map_val
+
+/-- See also `finset.product_bUnion`. -/
+lemma sup_product_left (s : finset β) (t : finset γ) (f : β × γ → α) :
+  (s.product t).sup f = s.sup (λ i, t.sup $ λ i', f ⟨i, i'⟩) :=
+begin
+  refine le_antisymm _ (sup_le (λ i hi, sup_le $ λ i' hi', le_sup $ mem_product.2 ⟨hi, hi'⟩)),
+  refine sup_le _,
+  rintro ⟨i, i'⟩ hi,
+  rw mem_product at hi,
+  refine le_trans _ (le_sup hi.1),
+  convert le_sup hi.2,
+end
+
+lemma sup_product_right (s : finset β) (t : finset γ) (f : β × γ → α) :
+  (s.product t).sup f = t.sup (λ i', s.sup $ λ i, f ⟨i, i'⟩) :=
+by rw [sup_product_left, sup_comm]
 
 @[simp] lemma sup_erase_bot [decidable_eq α] (s : finset α) : (s.erase ⊥).sup id = s.sup id :=
 begin
@@ -194,6 +225,15 @@ lemma sup_mem
   t.sup p ∈ s :=
 @sup_induction _ _ _ _ _ _ (∈ s) w₁ w₂ h
 
+@[simp]
+lemma sup_eq_bot_iff (f : β → α)
+  (S : finset β) : S.sup f = ⊥ ↔ ∀ s ∈ S, f s = ⊥ :=
+begin
+  classical,
+  induction S using finset.induction with a S haS hi;
+  simp [*],
+end
+
 end sup
 
 lemma disjoint_sup_right [distrib_lattice α] [order_bot α] {a : α} {s : finset β} {f : β → α} :
@@ -266,11 +306,13 @@ by subst hs; exact finset.fold_congr hfg
 lemma inf_const {s : finset β} (h : s.nonempty) (c : α) : s.inf (λ _, c) = c :=
 @sup_const (order_dual α) _ _ _ _ h _
 
+@[simp] lemma inf_top (s : finset β) : s.inf (λ _, ⊤) = (⊤ : α) := @sup_bot (order_dual α) _ _ _ _
+
 lemma le_inf_iff {a : α} : a ≤ s.inf f ↔ ∀ b ∈ s, a ≤ f b :=
 @sup_le_iff (order_dual α) _ _ _ _ _ _
 
 lemma inf_le {b : β} (hb : b ∈ s) : s.inf f ≤ f b :=
-le_inf_iff.1 (le_refl _) _ hb
+le_inf_iff.1 le_rfl _ hb
 
 lemma le_inf {a : α} : (∀b ∈ s, a ≤ f b) → a ≤ s.inf f :=
 le_inf_iff.2
@@ -292,6 +334,18 @@ le_inf $ assume b hb, inf_le (h hb)
 
 lemma inf_attach (s : finset β) (f : β → α) : s.attach.inf (λ x, f x) = s.inf f :=
 @sup_attach (order_dual α) _ _ _ _ _
+
+lemma inf_comm (s : finset β) (t : finset γ) (f : β → γ → α) :
+  s.inf (λ b, t.inf (f b)) = t.inf (λ c, s.inf (λ b, f b c)) :=
+@sup_comm (order_dual α) _ _ _ _ _ _ _
+
+lemma inf_product_left (s : finset β) (t : finset γ) (f : β × γ → α) :
+  (s.product t).inf f = s.inf (λ i, t.inf $ λ i', f ⟨i, i'⟩) :=
+@sup_product_left (order_dual α) _ _ _ _ _ _ _
+
+lemma inf_product_right (s : finset β) (t : finset γ) (f : β × γ → α) :
+  (s.product t).inf f = t.inf (λ i', s.inf $ λ i, f ⟨i, i'⟩) :=
+@sup_product_right (order_dual α) _ _ _ _ _ _ _
 
 @[simp] lemma inf_erase_top [decidable_eq α] (s : finset α) : (s.erase ⊤).inf id = s.inf id :=
 @sup_erase_bot (order_dual α) _ _ _ _
@@ -347,6 +401,11 @@ lemma inf_mem
   {ι : Type*} (t : finset ι) (p : ι → α) (h : ∀ i ∈ t, p i ∈ s) :
   t.inf p ∈ s :=
 @inf_induction _ _ _ _ _ _ (∈ s) w₁ w₂ h
+
+@[simp]
+lemma inf_eq_top_iff (f : β → α)
+  (S : finset β) : S.inf f = ⊤ ↔ ∀ s ∈ S, f s = ⊤ :=
+@finset.sup_eq_bot_iff (order_dual α) _ _ _ _ _
 
 end inf
 
@@ -576,6 +635,10 @@ lemma exists_mem_eq_sup [is_total α (≤)] (s : finset β) (h : s.nonempty) (f 
   ∃ b, b ∈ s ∧ s.sup f = f b :=
 sup'_eq_sup h f ▸ exists_mem_eq_sup' h f
 
+lemma coe_sup_of_nonempty {s : finset β} (h : s.nonempty) (f : β → α) :
+  (↑(s.sup f) : with_bot α) = s.sup (coe ∘ f) :=
+by simp only [←sup'_eq_sup h, coe_sup' h]
+
 end sup
 
 section inf
@@ -591,6 +654,10 @@ lemma inf_closed_of_inf_closed {s : set α} (t : finset α) (htne : t.nonempty) 
 lemma exists_mem_eq_inf [is_total α (≤)] (s : finset β) (h : s.nonempty) (f : β → α) :
   ∃ a, a ∈ s ∧ s.inf f = f a :=
 @exists_mem_eq_sup (order_dual α) _ _ _ _ _ h f
+
+lemma coe_inf_of_nonempty {s : finset β} (h : s.nonempty) (f : β → α):
+  (↑(s.inf f) : with_top α) = s.inf (λ i, f i) :=
+@coe_sup_of_nonempty (order_dual α) _ _ _ _ h f
 
 end inf
 
@@ -915,7 +982,12 @@ end finset
 
 namespace multiset
 
-lemma count_sup [decidable_eq β] (s : finset α) (f : α → multiset β) (b : β) :
+lemma map_finset_sup [decidable_eq α] [decidable_eq β]
+  (s : finset γ) (f : γ → multiset β) (g : β → α) (hg : function.injective g) :
+  map g (s.sup f) = s.sup (map g ∘ f) :=
+finset.comp_sup_eq_sup_comp _ (λ _ _, map_union hg) (map_zero _)
+
+lemma count_finset_sup [decidable_eq β] (s : finset α) (f : α → multiset β) (b : β) :
   count b (s.sup f) = s.sup (λa, count b (f a)) :=
 begin
   letI := classical.dec_eq α,
@@ -965,11 +1037,12 @@ lemma sup_eq_bUnion {α β} [decidable_eq β] (s : finset α) (t : α → finset
   s.sup t = s.bUnion t :=
 by { ext, rw [mem_sup, mem_bUnion], }
 
+@[simp] lemma sup_singleton'' [decidable_eq α] (s : finset β) (f : β → α) :
+  s.sup (λ b, {f b}) = s.image f :=
+by { ext a, rw [mem_sup, mem_image], simp only [mem_singleton, eq_comm] }
+
 @[simp] lemma sup_singleton' [decidable_eq α] (s : finset α) : s.sup singleton = s :=
-begin
-  refine (finset.sup_le $ λ a, _).antisymm (λ a ha, mem_sup.2 ⟨a, ha, mem_singleton_self a⟩),
-  exact singleton_subset_iff.2,
-end
+(s.sup_singleton'' _).trans image_id
 
 end finset
 

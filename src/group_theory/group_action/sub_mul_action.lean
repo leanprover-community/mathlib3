@@ -124,6 +124,10 @@ instance : is_scalar_tower S R p :=
   g • x ∈ p ↔ x ∈ p :=
 ⟨λ h, inv_smul_smul g x ▸ p.smul_of_tower_mem g⁻¹ h, p.smul_of_tower_mem g⟩
 
+instance [has_scalar Sᵐᵒᵖ R] [has_scalar Sᵐᵒᵖ M] [is_scalar_tower Sᵐᵒᵖ R M]
+  [is_central_scalar S M] : is_central_scalar S p :=
+{ op_smul_eq_smul := λ r x, subtype.ext $ op_smul_eq_smul r x }
+
 end
 
 section

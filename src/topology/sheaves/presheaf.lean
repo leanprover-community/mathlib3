@@ -76,6 +76,11 @@ by rw h
     ℱ.map (begin dsimp [functor.op], apply quiver.hom.op, apply eq_to_hom, rw h, end) :=
 by simp [pushforward_eq]
 
+lemma pushforward_eq'_hom_app
+  {X Y : Top.{v}} {f g : X ⟶ Y} (h : f = g) (ℱ : X.presheaf C) (U) :
+  nat_trans.app (eq_to_hom (pushforward_eq' h ℱ)) U = ℱ.map (eq_to_hom (by rw h)) :=
+by simpa
+
 @[simp]
 lemma pushforward_eq_rfl {X Y : Top.{v}} (f : X ⟶ Y) (ℱ : X.presheaf C) (U) :
   (pushforward_eq (rfl : f = f) ℱ).hom.app (op U) = 𝟙 _ :=
@@ -185,8 +190,6 @@ end
 namespace pullback
 variables {X Y : Top.{v}} (ℱ : Y.presheaf C)
 
-local attribute [reassoc] colimit.pre_desc
-
 /-- The pullback along the identity is isomorphic to the original presheaf. -/
 def id : pullback_obj (𝟙 _) ℱ ≅ ℱ :=
 nat_iso.of_components
@@ -194,8 +197,8 @@ nat_iso.of_components
     ℱ.map_iso (eq_to_iso (by simp)))
   (λ U V i,
   begin
-      ext, simp[-eq_to_hom_map,-eq_to_iso_map],
-      erw category_theory.limits.colimit.pre_desc_assoc,
+      ext, simp [-eq_to_hom_map,-eq_to_iso_map],
+      erw colimit.pre_desc_assoc,
       erw colimit.ι_desc_assoc,
       erw colimit.ι_desc_assoc,
       dsimp, simp only [←ℱ.map_comp], congr
@@ -225,11 +228,15 @@ def pushforward {X Y : Top.{v}} (f : X ⟶ Y) : X.presheaf C ⥤ Y.presheaf C :=
 { obj := pushforward_obj f,
   map := @pushforward_map _ _ X Y f }
 
+@[simp]
+lemma pushforward_map_app' {X Y : Top.{v}} (f : X ⟶ Y)
+  {ℱ 𝒢 : X.presheaf C} (α : ℱ ⟶ 𝒢) {U : (opens Y)ᵒᵖ} :
+  ((pushforward C f).map α).app U = α.app (op $ (opens.map f).obj U.unop) := rfl
+
 lemma id_pushforward {X : Top.{v}} : pushforward C (𝟙 X) = 𝟭 (X.presheaf C) :=
 begin
   apply category_theory.functor.ext,
-  { intros, ext U, have h := f.congr,
-    erw h (opens.op_map_id_obj U), simpa },
+  { intros, ext U, have h := f.congr, erw h (opens.op_map_id_obj U), simpa },
   { intros, apply pushforward.id_eq },
 end
 
@@ -254,7 +261,7 @@ def to_pushforward_of_iso {X Y : Top} (H : X ≅ Y) {ℱ : X.presheaf C} {𝒢 :
 lemma to_pushforward_of_iso_app {X Y : Top} (H₁ : X ≅ Y) {ℱ : X.presheaf C} {𝒢 : Y.presheaf C}
   (H₂ : H₁.hom _* ℱ ⟶ 𝒢) (U : (opens X)ᵒᵖ) :
 (to_pushforward_of_iso H₁ H₂).app U =
-  ℱ.map (eq_to_hom (by simp[opens.map, set.preimage_preimage])) ≫
+  ℱ.map (eq_to_hom (by simp [opens.map, set.preimage_preimage])) ≫
   H₂.app (op ((opens.map H₁.inv).obj (unop U))) :=
 begin
   delta to_pushforward_of_iso,
@@ -278,7 +285,7 @@ lemma pushforward_to_of_iso_app {X Y : Top} (H₁ : X ≅ Y) {ℱ : Y.presheaf C
   (H₂ : ℱ ⟶ H₁.hom _* 𝒢) (U : (opens X)ᵒᵖ) :
 (pushforward_to_of_iso H₁ H₂).app U =
   H₂.app (op ((opens.map H₁.inv).obj (unop U))) ≫
-  𝒢.map (eq_to_hom (by simp[opens.map, set.preimage_preimage])) :=
+  𝒢.map (eq_to_hom (by simp [opens.map, set.preimage_preimage])) :=
 by simpa [pushforward_to_of_iso, equivalence.to_adjunction]
 
 end iso

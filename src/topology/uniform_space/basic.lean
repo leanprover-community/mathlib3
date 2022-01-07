@@ -272,6 +272,16 @@ lemma uniform_space.of_core_eq_to_core
   uniform_space.of_core_eq u.to_core t h = u :=
 uniform_space_eq rfl
 
+/-- Replace topology in a `uniform_space` instance with a propositionally (but possibly not
+definitionally) equal one. -/
+def uniform_space.replace_topology {α : Type*} [i : topological_space α] (u : uniform_space α)
+  (h : i = u.to_topological_space) : uniform_space α :=
+uniform_space.of_core_eq u.to_core i $ h.trans u.to_core_to_topological_space.symm
+
+lemma uniform_space.replace_topology_eq {α : Type*} [i : topological_space α] (u : uniform_space α)
+  (h : i = u.to_topological_space) : u.replace_topology h = u :=
+u.of_core_eq_to_core _ _
+
 section uniform_space
 variables [uniform_space α]
 
@@ -761,7 +771,7 @@ calc (a, b) ∈ closure t ↔ (𝓝 (a, b) ⊓ 𝓟 t ≠ ⊥) : mem_closure_iff
   ... ↔ (∀s ∈ 𝓤 α, (set.prod {y : α | (a, y) ∈ s} {x : α | (x, b) ∈ s} ∩ t).nonempty) :
   begin
     rw [lift'_inf_principal_eq, ← ne_bot_iff, lift'_ne_bot_iff],
-    exact monotone_inter (monotone_prod monotone_preimage monotone_preimage) monotone_const
+    exact (monotone_prod monotone_preimage monotone_preimage).inter monotone_const
   end
   ... ↔ (∀ s ∈ 𝓤 α, (a, b) ∈ s ○ (t ○ s)) :
     forall_congr $ assume s, forall_congr $ assume hs,
@@ -865,7 +875,7 @@ section
 variable (α)
 
 lemma uniform_space.has_seq_basis [is_countably_generated $ 𝓤 α] :
-  ∃ V : ℕ → set (α × α), has_antitone_basis (𝓤 α) (λ _, true) V ∧ ∀ n, symmetric_rel (V n) :=
+  ∃ V : ℕ → set (α × α), has_antitone_basis (𝓤 α) V ∧ ∀ n, symmetric_rel (V n) :=
 let ⟨U, hsym, hbasis⟩ :=  uniform_space.has_basis_symmetric.exists_antitone_subbasis
 in ⟨U, hbasis, λ n, (hsym n).2⟩
 
@@ -933,7 +943,8 @@ lemma filter.has_basis.uniform_continuous_on_iff [uniform_space β] {p : γ → 
   (hb : (𝓤 β).has_basis q t) {f : α → β} {S : set α} :
   uniform_continuous_on f S ↔
     ∀ i (hi : q i), ∃ j (hj : p j), ∀ x y ∈ S, (x, y) ∈ s j → (f x, f y) ∈ t i :=
-((ha.inf_principal (S.prod S)).tendsto_iff hb).trans $ by finish [prod.forall]
+((ha.inf_principal (S.prod S)).tendsto_iff hb).trans $ by -- `finish [prod.forall]` solves this
+  simp [prod.forall, set.inter_comm (s _)]
 
 end uniform_space
 

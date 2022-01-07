@@ -6,6 +6,7 @@ Authors: Johannes Hölzl, Mario Carneiro
 import data.equiv.basic
 import data.set.basic
 import data.sigma.basic
+import data.pprod
 
 /-!
 # Injective functions
@@ -90,7 +91,7 @@ by { ext, simp }
 
 protected theorem injective {α β} (f : α ↪ β) : injective f := f.inj'
 
-@[simp] lemma apply_eq_iff_eq {α β : Type*} (f : α ↪ β) (x y : α) : f x = f y ↔ x = y :=
+@[simp] lemma apply_eq_iff_eq {α β} (f : α ↪ β) (x y : α) : f x = f y ↔ x = y :=
 f.injective.eq_iff
 
 /-- The identity map as a `function.embedding`. -/
@@ -148,9 +149,17 @@ theorem set_value_eq {α β} (f : α ↪ β) (a : α) (b : β) [∀ a', decidabl
   [∀ a', decidable (f a' = b)] : set_value f a b a = b :=
 by simp [set_value]
 
-/-- Embedding into `option` -/
+/-- Embedding into `option α` using `some`. -/
 @[simps { fully_applied := ff }] protected def some {α} : α ↪ option α :=
 ⟨some, option.some_injective α⟩
+
+/-- Embedding into `option α` using `coe`. Usually the correct synctatical form for `simp`. -/
+@[simps { fully_applied := ff }]
+def coe_option {α} : α ↪ option α := ⟨coe, option.some_injective α⟩
+
+/-- Embedding into `with_top α`. -/
+@[simps]
+def coe_with_top {α} : α ↪ with_top α := { to_fun := coe, ..embedding.some}
 
 /-- Given an embedding `f : α ↪ β` and a point outside of `set.range f`, construct an embedding
 `option α ↪ β`. -/
@@ -190,6 +199,10 @@ def prod_map {α β γ δ : Type*} (e₁ : α ↪ β) (e₂ : γ ↪ δ) : α ×
 @[simp] lemma coe_prod_map {α β γ δ : Type*} (e₁ : α ↪ β) (e₂ : γ ↪ δ) :
   ⇑(e₁.prod_map e₂) = prod.map e₁ e₂ :=
 rfl
+
+/-- If `e₁` and `e₂` are embeddings, then so is `λ ⟨a, b⟩, ⟨e₁ a, e₂ b⟩ : pprod α γ → pprod β δ`. -/
+def pprod_map {α β γ δ : Sort*} (e₁ : α ↪ β) (e₂ : γ ↪ δ) : pprod α γ ↪ pprod β δ :=
+⟨λ x, ⟨e₁ x.1, e₂ x.2⟩, e₁.injective.pprod_map e₂.injective⟩
 
 section sum
 open sum

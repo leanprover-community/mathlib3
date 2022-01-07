@@ -20,7 +20,7 @@ namespace real
 
 /-- The type of angles -/
 def angle : Type :=
-quotient_add_group.quotient (add_subgroup.zmultiples (2 * π))
+ℝ ⧸ (add_subgroup.zmultiples (2 * π))
 
 namespace angle
 

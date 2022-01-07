@@ -68,6 +68,11 @@ open_locale pointwise
 lemma smul_mem_pointwise_smul (m : M) (a : α) (S : submodule R M) : m ∈ S → a • m ∈ a • S :=
 (set.smul_mem_smul_set : _ → _ ∈ a • (S : set M))
 
+instance pointwise_central_scalar [distrib_mul_action αᵐᵒᵖ M] [smul_comm_class αᵐᵒᵖ R M]
+  [is_central_scalar α M] :
+  is_central_scalar α (submodule R M) :=
+⟨λ a S, congr_arg (λ f, S.map f) $ linear_map.ext $ by exact op_smul_eq_smul _⟩
+
 @[simp] lemma smul_le_self_of_tower {α : Type*}
   [semiring α] [module α R] [module α M] [smul_comm_class α R M] [is_scalar_tower α R M]
   (a : α) (S : submodule R M) : a • S ≤ S :=

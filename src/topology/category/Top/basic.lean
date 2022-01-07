@@ -79,4 +79,20 @@ by { ext, refl }
 @[simp] lemma of_homeo_of_iso {X Y : Top.{u}} (f : X ≅ Y) : iso_of_homeo (homeo_of_iso f) = f :=
 by { ext, refl }
 
+@[simp]
+lemma open_embedding_iff_comp_is_iso {X Y Z : Top} (f : X ⟶ Y) (g : Y ⟶ Z) [is_iso g] :
+  open_embedding (f ≫ g) ↔ open_embedding f :=
+open_embedding_iff_open_embedding_compose f (Top.homeo_of_iso (as_iso g)).open_embedding
+
+@[simp]
+lemma open_embedding_iff_is_iso_comp {X Y Z : Top} (f : X ⟶ Y) (g : Y ⟶ Z) [is_iso f] :
+  open_embedding (f ≫ g) ↔ open_embedding g :=
+begin
+  split,
+  { intro h,
+    convert h.comp (Top.homeo_of_iso (as_iso f).symm).open_embedding,
+    exact congr_arg _ (is_iso.inv_hom_id_assoc f g).symm },
+  { exact λ h, h.comp (Top.homeo_of_iso (as_iso f)).open_embedding }
+end
+
 end Top

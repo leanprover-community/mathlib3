@@ -61,35 +61,33 @@ theorem small_type : small.{max (u+1) v} (Type u) := small_max.{max (u+1) v} _
 section
 open_locale classical
 
-theorem small_congr {α : Type*} {β : Type*} (e : α ≃ β) : small.{w} α ↔ small.{w} β :=
+theorem small_map {α : Type*} {β : Type*} [hβ : small.{w} β] (e : α ≃ β) : small.{w} α :=
 begin
-  fsplit,
-  { rintro ⟨S, ⟨f⟩⟩,
-    exact small.mk' (e.symm.trans f), },
-  { rintro ⟨S, ⟨f⟩⟩,
-    exact small.mk' (e.trans f), },
+  tactic.unfreeze_local_instances,
+  rcases hβ with ⟨γ, ⟨f⟩⟩,
+  exact small.mk' (e.trans f)
 end
+
+theorem small_congr {α : Type*} {β : Type*} (e : α ≃ β) : small.{w} α ↔ small.{w} β :=
+⟨λ h, @small_map _ _ h e.symm, λ h, @small_map _ _ h e⟩
 
 instance small_subtype (α : Type v) [small.{w} α] (P : α → Prop) : small.{w} { x // P x } :=
-begin
-  rw small_congr (equiv_shrink α).subtype_equiv_of_subtype',
-  apply_instance,
-end
+small_map (equiv_shrink α).subtype_equiv_of_subtype'
 
-theorem small_of_injective {α : Type*} {β : Type*} [small.{w} β]
-  (f : α → β) (hf : function.injective f) : small.{w} α :=
-begin
-  rw small_congr (equiv.of_injective f hf),
-  apply_instance,
-end
+theorem small_of_injective {α : Type v} {β : Type w} [small.{u} β]
+  (f : α → β) (hf : function.injective f) : small.{u} α :=
+small_map (equiv.of_injective f hf)
+
+theorem small_of_surjective {α : Type v} {β : Type w} [small.{u} α] (f : α → β)
+  (hf : function.surjective f) : small.{u} β :=
+small_of_injective _ (function.injective_surj_inv hf)
 
 @[priority 100]
 instance small_subsingleton (α : Type v) [subsingleton α] : small.{w} α :=
 begin
   rcases is_empty_or_nonempty α; resetI,
-  { rw small_congr (equiv.equiv_pempty α), apply small_self, },
-  { rw small_congr equiv.punit_of_nonempty_of_subsingleton,
-    apply small_self, assumption, assumption, },
+  { apply small_map (equiv.equiv_pempty α) },
+  { apply small_map equiv.punit_of_nonempty_of_subsingleton, assumption' },
 end
 
 /-!
@@ -117,6 +115,14 @@ instance small_sum {α β} [small.{w} α] [small.{w} β] : small.{w} (α ⊕ β)
 
 instance small_set {α} [small.{w} α] : small.{w} (set α) :=
 ⟨⟨set (shrink α), ⟨equiv.set.congr (equiv_shrink α)⟩⟩⟩
+
+instance small_range {α : Type v} {β : Type w} (f : α → β) [small.{u} α] :
+  small.{u} (set.range f) :=
+small_of_surjective _ set.surjective_onto_range
+
+instance small_image {α : Type v} {β : Type w} (f : α → β) (S : set α) [small.{u} S] :
+  small.{u} (f '' S) :=
+small_of_surjective _ set.surjective_onto_image
 
 theorem not_small_type : ¬ small.{u} (Type (max u v))
 | ⟨⟨S, ⟨e⟩⟩⟩ := @function.cantor_injective (Σ α, e.symm α)

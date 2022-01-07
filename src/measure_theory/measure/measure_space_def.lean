@@ -221,13 +221,17 @@ lemma measure_Union_null [encodable β] {s : β → set α} :
   (∀ i, μ (s i) = 0) → μ (⋃ i, s i) = 0 :=
 μ.to_outer_measure.Union_null
 
-lemma measure_Union_null_iff [encodable ι] {s : ι → set α} :
+@[simp] lemma measure_Union_null_iff [encodable ι] {s : ι → set α} :
   μ (⋃ i, s i) = 0 ↔ ∀ i, μ (s i) = 0 :=
 ⟨λ h i, measure_mono_null (subset_Union _ _) h, measure_Union_null⟩
 
 lemma measure_bUnion_null_iff {s : set ι} (hs : countable s) {t : ι → set α} :
   μ (⋃ i ∈ s, t i) = 0 ↔ ∀ i ∈ s, μ (t i) = 0 :=
 by { haveI := hs.to_encodable, rw [bUnion_eq_Union, measure_Union_null_iff, set_coe.forall], refl }
+
+lemma measure_sUnion_null_iff {S : set (set α)} (hS : countable S) :
+  μ (⋃₀ S) = 0 ↔ ∀ s ∈ S, μ s = 0 :=
+by rw [sUnion_eq_bUnion, measure_bUnion_null_iff hS]
 
 theorem measure_union_le (s₁ s₂ : set α) : μ (s₁ ∪ s₂) ≤ μ s₁ + μ s₂ :=
 μ.to_outer_measure.union _ _

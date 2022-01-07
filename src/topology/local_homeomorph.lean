@@ -169,7 +169,7 @@ lemma eventually_right_inverse' (e : local_homeomorph α β) {x} (hx : x ∈ e.s
 e.eventually_right_inverse (e.map_source hx)
 
 lemma eventually_ne_nhds_within (e : local_homeomorph α β) {x} (hx : x ∈ e.source) :
-  ∀ᶠ x' in 𝓝[{x}ᶜ] x, e x' ≠ e x :=
+  ∀ᶠ x' in 𝓝[≠] x, e x' ≠ e x :=
 eventually_nhds_within_iff.2 $ (e.eventually_left_inverse hx).mono $
   λ x' hx', mt $ λ h, by rw [mem_singleton_iff, ← e.left_inv hx, ← h, hx']
 

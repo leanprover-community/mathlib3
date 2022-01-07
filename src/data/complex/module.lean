@@ -62,6 +62,10 @@ instance [has_scalar R S] [has_scalar R ℝ] [has_scalar S ℝ] [is_scalar_tower
   is_scalar_tower R S ℂ :=
 { smul_assoc := λ r s x, by ext; simp [smul_re, smul_im, smul_assoc] }
 
+instance [has_scalar R ℝ] [has_scalar Rᵐᵒᵖ ℝ] [is_central_scalar R ℝ] :
+  is_central_scalar R ℂ :=
+{ op_smul_eq_smul := λ r x, by ext; simp [smul_re, smul_im, op_smul_eq_smul] }
+
 instance [monoid R] [mul_action R ℝ] : mul_action R ℂ :=
 { one_smul := λ x, by ext; simp [smul_re, smul_im, one_smul],
   mul_smul := λ r s x, by ext; simp [smul_re, smul_im, mul_smul] }

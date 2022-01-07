@@ -383,8 +383,6 @@ Proof follows from "The trace Cayley-Hamilton theorem" by Darij Grinberg, Sectio
 -/
 lemma adjugate_mul_distrib (A B : matrix n n α) : adjugate (A ⬝ B) = adjugate B ⬝ adjugate A :=
 begin
-  casesI subsingleton_or_nontrivial α,
-  { simp },
   let g : matrix n n α → matrix n n (polynomial α) :=
     λ M, M.map polynomial.C + (polynomial.X : polynomial α) • 1,
   let f' : matrix n n (polynomial α) →+* matrix n n α := (polynomial.eval_ring_hom 0).map_matrix,

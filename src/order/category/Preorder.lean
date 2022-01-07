@@ -5,7 +5,7 @@ Authors: Johan Commelin
 -/
 import category_theory.concrete_category.bundled_hom
 import algebra.punit_instances
-import order.preorder_hom
+import order.hom.basic
 
 /-! # Category of preorders -/
 
@@ -16,11 +16,11 @@ def Preorder := bundled preorder
 
 namespace Preorder
 
-instance : bundled_hom @preorder_hom :=
-{ to_fun := @preorder_hom.to_fun,
-  id := @preorder_hom.id,
-  comp := @preorder_hom.comp,
-  hom_ext := @preorder_hom.ext }
+instance : bundled_hom @order_hom :=
+{ to_fun := @order_hom.to_fun,
+  id := @order_hom.id,
+  comp := @order_hom.comp,
+  hom_ext := @order_hom.ext }
 
 attribute [derive [large_category, concrete_category]] Preorder
 

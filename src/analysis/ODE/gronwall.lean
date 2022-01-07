@@ -106,7 +106,7 @@ See also `norm_le_gronwall_bound_of_norm_deriv_right_le` for a version bounding 
 theorem le_gronwall_bound_of_liminf_deriv_right_le {f f' : ℝ → ℝ} {δ K ε : ℝ} {a b : ℝ}
   (hf : continuous_on f (Icc a b))
   (hf' : ∀ x ∈ Ico a b, ∀ r, f' x < r →
-    ∃ᶠ z in 𝓝[Ioi x] x, (z - x)⁻¹ * (f z - f x) < r)
+    ∃ᶠ z in 𝓝[>] x, (z - x)⁻¹ * (f z - f x) < r)
   (ha : f a ≤ δ) (bound : ∀ x ∈ Ico a b, f' x ≤ K * f x + ε) :
   ∀ x ∈ Icc a b, f x ≤ gronwall_bound δ K ε (x - a) :=
 begin

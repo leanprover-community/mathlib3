@@ -126,11 +126,14 @@ instance forget_preserves_colimits : preserves_colimits (forget : Top.{u} ⥤ Ty
     by exactI preserves_colimit_of_preserves_colimit_cocone
       (colimit_cocone_is_colimit F) (types.colimit_cocone_is_colimit (F ⋙ forget)) } }
 
+/-- The projection from the product as a bundled continous map. -/
+abbreviation pi_π {ι : Type u} (α : ι → Top.{u}) (i : ι) : Top.of (Π i, α i) ⟶ α i :=
+⟨λ f, f i, continuous_apply i⟩
 
 /-- The explicit fan of a family of topological spaces given by the pi type. -/
 @[simps X π_app]
 def pi_fan {ι : Type u} (α : ι → Top.{u}) : fan α :=
-@fan.mk _ _ _ α (Top.of (Π i, α i)) (λ i, ⟨λ f, f i, continuous_apply i⟩)
+fan.mk (Top.of (Π i, α i)) (pi_π α)
 
 /-- The constructed fan is indeed a limit -/
 def pi_fan_is_limit {ι : Type u} (α : ι → Top.{u}) : is_limit (pi_fan α) :=
@@ -146,8 +149,8 @@ def pi_iso_pi {ι : Type u} (α : ι → Top.{u}) : ∏ α ≅ Top.of (Π i, α 
 
 @[simp, reassoc]
 lemma pi_iso_pi_inv_π {ι : Type u} (α : ι → Top) (i : ι) :
-  (pi_iso_pi α).inv ≫ pi.π α i = ⟨λ f, f i, continuous_apply i⟩ :=
-by simpa [pi_iso_pi]
+  (pi_iso_pi α).inv ≫ pi.π α i = pi_π α i :=
+by simp [pi_iso_pi]
 
 @[simp]
 lemma pi_iso_pi_inv_π_apply {ι : Type u} (α : ι → Top.{u}) (i : ι) (x : Π i, α i) :
@@ -163,10 +166,14 @@ begin
   exact concrete_category.congr_hom this x
 end
 
+/-- The inclusion to the coproduct as a bundled continous map. -/
+abbreviation sigma_ι {ι : Type u} (α : ι → Top.{u}) (i : ι) : α i ⟶ Top.of (Σ i, α i) :=
+⟨sigma.mk i⟩
+
 /-- The explicit cofan of a family of topological spaces given by the sigma type. -/
 @[simps X ι_app]
 def sigma_cofan {ι : Type u} (α : ι → Top.{u}) : cofan α :=
-@cofan.mk _ _ _ α (Top.of (Σ i, α i)) (λ b, ⟨sigma.mk b⟩)
+cofan.mk (Top.of (Σ i, α i)) (sigma_ι α)
 
 /-- The constructed cofan is indeed a colimit -/
 def sigma_cofan_is_colimit {ι : Type u} (α : ι → Top.{u}) : is_colimit (sigma_cofan α) :=
@@ -182,7 +189,7 @@ def sigma_iso_sigma {ι : Type u} (α : ι → Top.{u}) : ∐ α ≅ Top.of (Σ 
 
 @[simp, reassoc]
 lemma sigma_iso_sigma_hom_ι {ι : Type u} (α : ι → Top) (i : ι) :
-  sigma.ι α i ≫ (sigma_iso_sigma α).hom = ⟨sigma.mk i⟩ :=
+  sigma.ι α i ≫ (sigma_iso_sigma α).hom = sigma_ι α i :=
 by simp [sigma_iso_sigma]
 
 @[simp]
@@ -210,9 +217,15 @@ induced_of_is_limit _ (limit.is_limit F)
 
 section prod
 
+/-- The first projection from the product. -/
+abbreviation prod_fst {X Y : Top.{u}} : Top.of (X × Y) ⟶ X := ⟨prod.fst⟩
+
+/-- The second projection from the product. -/
+abbreviation prod_snd {X Y : Top.{u}} : Top.of (X × Y) ⟶ Y := ⟨prod.snd⟩
+
 /-- The explicit binary cofan of `X, Y` given by `X × Y`. -/
 def prod_binary_fan (X Y : Top.{u}) : binary_fan X Y :=
-@binary_fan.mk _ _ X Y (Top.of $ X × Y) ⟨prod.fst⟩ ⟨prod.snd⟩
+binary_fan.mk prod_fst prod_snd
 
 /-- The constructed binary fan is indeed a limit -/
 def prod_binary_fan_is_limit (X Y : Top.{u}) : is_limit (prod_binary_fan X Y) :=
@@ -240,11 +253,11 @@ def prod_iso_prod (X Y : Top.{u}) : X ⨯ Y ≅ Top.of (X × Y) :=
 (limit.is_limit _).cone_point_unique_up_to_iso (prod_binary_fan_is_limit X Y)
 
 @[simp, reassoc] lemma prod_iso_prod_hom_fst (X Y : Top.{u}) :
-  (prod_iso_prod X Y).hom ≫ ⟨prod.fst⟩ = limits.prod.fst :=
+  (prod_iso_prod X Y).hom ≫ prod_fst = limits.prod.fst :=
 by simpa [← iso.eq_inv_comp, prod_iso_prod]
 
 @[simp, reassoc] lemma prod_iso_prod_hom_snd (X Y : Top.{u}) :
-  (prod_iso_prod X Y).hom ≫ ⟨prod.snd⟩ = limits.prod.snd :=
+  (prod_iso_prod X Y).hom ≫ prod_snd = limits.prod.snd :=
 by simpa [← iso.eq_inv_comp, prod_iso_prod]
 
 @[simp] lemma prod_iso_prod_hom_apply {X Y : Top.{u}} (x : X ⨯ Y) :
@@ -257,11 +270,11 @@ begin
 end
 
 @[simp, reassoc, elementwise] lemma prod_iso_prod_inv_fst (X Y : Top.{u}) :
-  (prod_iso_prod X Y).inv ≫ limits.prod.fst = ⟨prod.fst⟩ :=
+  (prod_iso_prod X Y).inv ≫ limits.prod.fst = prod_fst :=
 by simp [iso.inv_comp_eq]
 
 @[simp, reassoc, elementwise] lemma prod_iso_prod_inv_snd (X Y : Top.{u}) :
-  (prod_iso_prod X Y).inv ≫ limits.prod.snd = ⟨prod.snd⟩ :=
+  (prod_iso_prod X Y).inv ≫ limits.prod.snd = prod_snd :=
 by simp [iso.inv_comp_eq]
 
 lemma prod_topology {X Y : Top} :
@@ -319,10 +332,17 @@ section pullback
 
 variables {X Y Z : Top.{u}}
 
+/-- The first projection from the pullback. -/
+abbreviation pullback_fst (f : X ⟶ Z) (g : Y ⟶ Z) : Top.of { p : X × Y // f p.1 = g p.2 } ⟶ X :=
+⟨prod.fst ∘ subtype.val⟩
+
+/-- The second projection from the pullback. -/
+abbreviation pullback_snd (f : X ⟶ Z) (g : Y ⟶ Z) : Top.of { p : X × Y // f p.1 = g p.2 } ⟶ Y :=
+⟨prod.snd ∘ subtype.val⟩
+
 /-- The explicit pullback cone of `X, Y` given by `{ p : X × Y // f p.1 = g p.2 }`. -/
 def pullback_cone (f : X ⟶ Z) (g : Y ⟶ Z) : pullback_cone f g :=
-@pullback_cone.mk _ _ _ _ _ _ _ (Top.of { p : X × Y // f p.1 = g p.2 })
-  ⟨prod.fst ∘ subtype.val⟩ ⟨prod.snd ∘ subtype.val⟩ (by { ext ⟨x, h⟩, simp [h] })
+pullback_cone.mk (pullback_fst f g) (pullback_snd f g) (by { ext ⟨x, h⟩, simp [h] })
 
 /-- The constructed cone is a limit. -/
 def pullback_cone_is_limit (f : X ⟶ Z) (g : Y ⟶ Z) :
@@ -332,7 +352,6 @@ begin
   split, swap,
   exact { to_fun := λ x, ⟨⟨s.fst x, s.snd x⟩,
     by simpa using concrete_category.congr_hom s.condition x⟩ },
-  dsimp [pullback_cone],
   refine ⟨_,_,_⟩,
   { ext, delta pullback_cone, simp },
   { ext, delta pullback_cone, simp },
@@ -348,7 +367,7 @@ def pullback_iso_prod_subtype (f : X ⟶ Z) (g : Y ⟶ Z) :
 (limit.is_limit _).cone_point_unique_up_to_iso (pullback_cone_is_limit f g)
 
 @[simp, reassoc] lemma pullback_iso_prod_subtype_inv_fst (f : X ⟶ Z) (g : Y ⟶ Z) :
-  (pullback_iso_prod_subtype f g).inv ≫ pullback.fst = ⟨prod.fst ∘ subtype.val⟩ :=
+  (pullback_iso_prod_subtype f g).inv ≫ pullback.fst = pullback_fst f g :=
 by simpa [pullback_iso_prod_subtype]
 
 @[simp] lemma pullback_iso_prod_subtype_inv_fst_apply (f : X ⟶ Z) (g : Y ⟶ Z)
@@ -357,7 +376,7 @@ by simpa [pullback_iso_prod_subtype]
 concrete_category.congr_hom (pullback_iso_prod_subtype_inv_fst f g) x
 
 @[simp, reassoc] lemma pullback_iso_prod_subtype_inv_snd (f : X ⟶ Z) (g : Y ⟶ Z) :
-  (pullback_iso_prod_subtype f g).inv ≫ pullback.snd = ⟨prod.snd ∘ subtype.val⟩ :=
+  (pullback_iso_prod_subtype f g).inv ≫ pullback.snd = pullback_snd f g :=
 by simpa [pullback_iso_prod_subtype]
 
 @[simp] lemma pullback_iso_prod_subtype_inv_snd_apply (f : X ⟶ Z) (g : Y ⟶ Z)
@@ -366,11 +385,11 @@ by simpa [pullback_iso_prod_subtype]
 concrete_category.congr_hom (pullback_iso_prod_subtype_inv_snd f g) x
 
 lemma pullback_iso_prod_subtype_hom_fst (f : X ⟶ Z) (g : Y ⟶ Z) :
-  (pullback_iso_prod_subtype f g).hom ≫ ⟨prod.fst ∘ subtype.val⟩ = pullback.fst :=
+  (pullback_iso_prod_subtype f g).hom ≫ pullback_fst f g = pullback.fst :=
 by rw [←iso.eq_inv_comp, pullback_iso_prod_subtype_inv_fst]
 
 lemma pullback_iso_prod_subtype_hom_snd (f : X ⟶ Z) (g : Y ⟶ Z) :
-  (pullback_iso_prod_subtype f g).hom ≫ ⟨prod.snd ∘ subtype.val⟩ = pullback.snd :=
+  (pullback_iso_prod_subtype f g).hom ≫ pullback_snd f g = pullback.snd :=
 by rw [←iso.eq_inv_comp, pullback_iso_prod_subtype_inv_snd]
 
 @[simp] lemma pullback_iso_prod_subtype_hom_apply {f : X ⟶ Z} {g : Y ⟶ Z}
@@ -621,6 +640,8 @@ end
 
 end pullback
 
+--TODO: Add analogous constructions for `coprod` and `pushout`.
+
 lemma coinduced_of_is_colimit {F : J ⥤ Top.{u}} (c : cocone F) (hc : is_colimit c) :
   c.X.topological_space = ⨆ j, (F.obj j).topological_space.coinduced (c.ι.app j) :=
 begin
@@ -641,7 +662,7 @@ begin
   exact is_open_supr_iff
 end
 
-lemma coequalizer_is_open_iff (F : walking_parallel_pair ⥤ Top.{u})
+lemma coequalizer_is_open_iff (F : walking_parallel_pair.{u} ⥤ Top.{u})
   (U : set ((colimit F : _) : Type u)) :
   is_open U ↔ is_open (colimit.ι F walking_parallel_pair.one ⁻¹' U) :=
 begin

@@ -535,15 +535,15 @@ begin
   rw [mul_inv_eq_gcd, val_nat_cast, h, nat.cast_one],
 end
 
-/-- `unit_of_coprime` makes an element of `units (zmod n)` given
+/-- `unit_of_coprime` makes an element of `(zmod n)ˣ` given
   a natural number `x` and a proof that `x` is coprime to `n`  -/
-def unit_of_coprime {n : ℕ} (x : ℕ) (h : nat.coprime x n) : units (zmod n) :=
+def unit_of_coprime {n : ℕ} (x : ℕ) (h : nat.coprime x n) : (zmod n)ˣ :=
 ⟨x, x⁻¹, coe_mul_inv_eq_one x h, by rw [mul_comm, coe_mul_inv_eq_one x h]⟩
 
 @[simp] lemma coe_unit_of_coprime {n : ℕ} (x : ℕ) (h : nat.coprime x n) :
   (unit_of_coprime x h : zmod n) = x := rfl
 
-lemma val_coe_unit_coprime {n : ℕ} (u : units (zmod n)) :
+lemma val_coe_unit_coprime {n : ℕ} (u : (zmod n)ˣ) :
   nat.coprime (u : zmod n).val n :=
 begin
   cases n,
@@ -556,12 +556,12 @@ begin
   rw [units.coe_mul, val_mul, nat_cast_mod],
 end
 
-@[simp] lemma inv_coe_unit {n : ℕ} (u : units (zmod n)) :
-  (u : zmod n)⁻¹ = (u⁻¹ : units (zmod n)) :=
+@[simp] lemma inv_coe_unit {n : ℕ} (u : (zmod n)ˣ) :
+  (u : zmod n)⁻¹ = (u⁻¹ : (zmod n)ˣ) :=
 begin
   have := congr_arg (coe : ℕ → zmod n) (val_coe_unit_coprime u),
   rw [← mul_inv_eq_gcd, nat.cast_one] at this,
-  let u' : units (zmod n) := ⟨u, (u : zmod n)⁻¹, this, by rwa mul_comm⟩,
+  let u' : (zmod n)ˣ := ⟨u, (u : zmod n)⁻¹, this, by rwa mul_comm⟩,
   have h : u = u', { apply units.ext, refl },
   rw h,
   refl
@@ -581,7 +581,7 @@ by rw [mul_comm, mul_inv_of_unit a h]
 /-- Equivalence between the units of `zmod n` and
 the subtype of terms `x : zmod n` for which `x.val` is comprime to `n` -/
 def units_equiv_coprime {n : ℕ} [fact (0 < n)] :
-  units (zmod n) ≃ {x : zmod n // nat.coprime x.val n} :=
+  (zmod n)ˣ ≃ {x : zmod n // nat.coprime x.val n} :=
 { to_fun := λ x, ⟨x, val_coe_unit_coprime x⟩,
   inv_fun := λ x, unit_of_coprime x.1.val x.2,
   left_inv := λ ⟨_, _, _, _⟩, units.ext (nat_cast_zmod_val _),
@@ -635,7 +635,7 @@ have inv : function.left_inverse inv_fun to_fun ∧ function.right_inverse inv_f
   left_inv := inv.1,
   right_inv := inv.2 }
 
-instance subsingleton_units : subsingleton (units (zmod 2)) :=
+instance subsingleton_units : subsingleton ((zmod 2)ˣ) :=
 ⟨λ x y, begin
   ext1,
   cases x with x xi hx1 hx2,

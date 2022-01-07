@@ -321,7 +321,7 @@ noncomputable instance {A : Type*} [semiring A] [algebra ℝ≥0∞ A] : algebra
 
 -- verify that the above produces instances we might care about
 noncomputable example : algebra ℝ≥0 ℝ≥0∞ := by apply_instance
-noncomputable example : distrib_mul_action (units ℝ≥0) ℝ≥0∞ := by apply_instance
+noncomputable example : distrib_mul_action ℝ≥0ˣ ℝ≥0∞ := by apply_instance
 
 lemma coe_smul {R} (r : R) (s : ℝ≥0) [has_scalar R ℝ≥0] [has_scalar R ℝ≥0∞]
   [is_scalar_tower R ℝ≥0 ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ≥0∞] :

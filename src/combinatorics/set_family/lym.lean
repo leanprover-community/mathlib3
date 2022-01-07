@@ -17,10 +17,10 @@ This file proves the local LYM and LYM inequalities as well as Sperner's theorem
 
 * `local_lym`: Local Lubell-Yamamoto-Meshalkin inequality. The shadow of a set `𝒜` in a layer takes
   a greater proportion of its layer than `𝒜` does.
-* `lubell_yamamoto_meshalkin`: Lubell-Yamamoto-Meshalkin inequality. The sum of the proportion of
-  elements of each layers `𝒜` takes is less than `1`.
-* `is_antichain.sperner`: Sperner's theorem. An antichain in `finset α` has at most the size of the
-  maximal layer of `finset α` elements. It is a corollary of `lubell_yamamoto_meshalkin`.
+* `lubell_yamamoto_meshalkin`: Lubell-Yamamoto-Meshalkin inequality. The sum of densities of `𝒜`
+  in each layer is at most `1` for any antichain `𝒜`.
+* `is_antichain.sperner`: Sperner's theorem. The size of any antichain in `finset α` is at most
+  the size of the maximal layer of `finset α`. It is a corollary of `lubell_yamamoto_meshalkin`.
 
 ## TODO
 

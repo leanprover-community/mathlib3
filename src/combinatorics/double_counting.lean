@@ -9,6 +9,10 @@ import algebra.big_operators.order
 # Double countings
 
 This file gathers a few double counting arguments.
+
+## Main declarations
+
+* `card_mul_le_card_mul`: Double counting the edges of a bipartite graph from below and from above.
 -/
 
 open finset function
@@ -19,11 +23,12 @@ open_locale big_operators
 namespace finset
 section bipartite
 variables {α β : Type*} (r : α → β → Prop) (s : finset α) (t : finset β) (a a' : α) (b b' : β)
-  [decidable_pred (r a)] [Π a, decidable (r a b)]
+  [decidable_pred (r a)] [Π a, decidable (r a b)] {m n : ℕ}
 
+/-- Elements of `s` which are "below" `b` according to relation `r`. -/
 def bipartite_below : finset α := s.filter (λ a, r a b)
 
-/---/
+/-- Elements of `t` which are "above" `a` according to relation `r`. -/
 def bipartite_above : finset β := t.filter (r a)
 
 lemma bipartite_below_swap : t.bipartite_below (swap r) a = t.bipartite_above r a := rfl
@@ -40,7 +45,7 @@ by { simp_rw [card_eq_sum_ones, bipartite_above, bipartite_below, sum_filter], e
 
 /-- Double counting argument. Considering `r` as a bipartite graph, the LHS is a lower bound on the
 number of edges while the RHS is an upper bound. -/
-lemma card_mul_le_card_mul [Π a b, decidable (r a b)] {m n : ℕ}
+lemma card_mul_le_card_mul [Π a b, decidable (r a b)]
   (hm : ∀ a ∈ s, m ≤ (t.bipartite_above r a).card)
   (hn : ∀ b ∈ t, (s.bipartite_below r b).card ≤ n) :
   s.card * m ≤ t.card * n :=
@@ -50,11 +55,18 @@ calc
       : sum_card_bipartite_above_eq_sum_card_bipartite_below _
   ... ≤ _ : t.sum_le_of_forall_le _ _ hn
 
-lemma card_mul_le_card_mul' [Π a b, decidable (r a b)] {m n : ℕ}
+lemma card_mul_le_card_mul' [Π a b, decidable (r a b)]
   (hn : ∀ b ∈ t, n ≤ (s.bipartite_below r b).card)
   (hm : ∀ a ∈ s, (t.bipartite_above r a).card ≤ m) :
   t.card * n ≤ s.card * m :=
 card_mul_le_card_mul (swap r) hn hm
+
+lemma card_mul_eq_card_mul [Π a b, decidable (r a b)]
+  (hm : ∀ a ∈ s, (t.bipartite_above r a).card = m)
+  (hn : ∀ b ∈ t, (s.bipartite_below r b).card = n) :
+  s.card * m = t.card * n :=
+(card_mul_le_card_mul _ (λ a ha, (hm a ha).ge) $ λ b hb, (hn b hb).le).antisymm $
+  card_mul_le_card_mul' _ (λ a ha, (hn a ha).ge) $ λ b hb, (hm b hb).le
 
 end bipartite
 end finset

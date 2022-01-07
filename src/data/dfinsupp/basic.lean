@@ -1167,7 +1167,7 @@ lemma _root_.submonoid.dfinsupp_prod_mem [Π i, has_zero (β i)] [Π i (x : β i
 S.prod_mem $ λ i hi, h _ $ mem_support_iff.1 hi
 
 @[simp, to_additive] lemma prod_eq_prod_fintype [fintype ι] [Π i, has_zero (β i)]
-  [Π (i : ι) (x : β i), decidable (x ≠ 0)] [comm_monoid γ] (v : Π₀ i, β i) {f : Π i, β i → γ}
+  [Π (i : ι) (x : β i), decidable (x ≠ 0)] [comm_monoid γ] (v : Π₀ i, β i) [f : Π i, β i → γ]
   (hf : ∀ i, f i 0 = 1) :
   v.prod f = ∏ i, f i (dfinsupp.equiv_fun_on_fintype v i) :=
 begin
@@ -1244,13 +1244,14 @@ begin
   rw [(not_not.mp h), add_monoid_hom.map_zero],
 end
 
-lemma _root_.add_submonoid.dfinsupp_sum_add_hom_mem [Π i, add_zero_class (β i)] [add_comm_monoid γ]
-  (S : add_submonoid γ) (f : Π₀ i, β i) (g : Π i, β i →+ γ) (h : ∀ c, f c ≠ 0 → g c (f c) ∈ S) :
-  dfinsupp.sum_add_hom g f ∈ S :=
+lemma _root_.dfinsupp_sum_add_hom_mem [Π i, add_zero_class (β i)] [add_comm_monoid γ] {S : Type*}
+  [set_like S γ] [add_submonoid_class S γ] (s : S) (f : Π₀ i, β i) (g : Π i, β i →+ γ)
+  (h : ∀ c, f c ≠ 0 → g c (f c) ∈ s) : dfinsupp.sum_add_hom g f ∈ s :=
 begin
   classical,
   rw dfinsupp.sum_add_hom_apply,
-  convert S.dfinsupp_sum_mem _ _ _,
+  convert dfinsupp_sum_mem _ _ _ _,
+  { apply_instance },
   exact h
 end
 
@@ -1265,7 +1266,7 @@ begin
     intros i y hy,
     exact ⟨dfinsupp.single i ⟨y, hy⟩, dfinsupp.sum_add_hom_single _ _ _⟩, },
   { rintros x ⟨v, rfl⟩,
-    exact add_submonoid.dfinsupp_sum_add_hom_mem _ v _ (λ i _, (le_supr S i : S i ≤ _) (v i).prop) }
+    exact dfinsupp_sum_add_hom_mem _ v _ (λ i _, (le_supr S i : S i ≤ _) (v i).prop) }
 end
 
 /-- The bounded supremum of a family of commutative additive submonoids is equal to the range of
@@ -1282,7 +1283,7 @@ begin
     rw [add_monoid_hom.comp_apply, filter_add_monoid_hom_apply, filter_single_pos _ _ hi],
     exact sum_add_hom_single _ _ _, },
   { rintros x ⟨v, rfl⟩,
-    refine add_submonoid.dfinsupp_sum_add_hom_mem _ _ _ (λ i hi, _),
+    refine dfinsupp_sum_add_hom_mem _ _ _ (λ i hi, _),
     refine add_submonoid.mem_supr_of_mem i _,
     by_cases hp : p i,
     { simp [hp], },

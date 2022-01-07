@@ -15,7 +15,7 @@ import data.nat.mul_ind
   * `factorization 2000 5` is 3
   * `factorization 2000 k` is 0 for all other `k : ℕ`.
 
-## TODO:
+## TODO
 
 * As discussed in this Zulip thread:
 https://leanprover.zulipchat.com/#narrow/stream/217875/topic/Multiplicity.20in.20the.20naturals

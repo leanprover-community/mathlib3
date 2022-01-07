@@ -154,6 +154,34 @@ instance lex.decidable [decidable_eq α]
   decidable_rel (prod.lex r s) :=
 λ p q, decidable_of_decidable_of_iff (by apply_instance) (lex_def r s).symm
 
+@[refl] lemma lex.refl_left (r : α → α → Prop) (s : β → β → Prop) [is_refl α r] :
+  ∀ x, prod.lex r s x x
+| (x₁, x₂) := lex.left _ _ (refl _)
+
+instance is_refl_left {r : α → α → Prop} {s : β → β → Prop} [is_refl α r] :
+  is_refl (α × β) (lex r s) :=
+⟨lex.refl_left _ _⟩
+
+@[refl] lemma lex.refl_right (r : α → α → Prop) (s : β → β → Prop) [is_refl β s] :
+  ∀ x, prod.lex r s x x
+| (x₁, x₂) := lex.right _ (refl _)
+
+instance is_refl_right {r : α → α → Prop} {s : β → β → Prop} [is_refl β s] :
+  is_refl (α × β) (lex r s) :=
+⟨lex.refl_right _ _⟩
+
+@[trans] lemma lex.trans {r : α → α → Prop} {s : β → β → Prop} [is_trans α r] [is_trans β s] :
+  ∀ {x y z : α × β}, prod.lex r s x y → prod.lex r s y z → prod.lex r s x z
+| (x₁, x₂) (y₁, y₂) (z₁, z₂) (lex.left _ _ hxy₁) (lex.left _ _ hyz₁) :=
+    lex.left _ _ (trans hxy₁ hyz₁)
+| (x₁, x₂) (y₁, y₂) (z₁, z₂) (lex.left _ _ hxy₁) (lex.right _ hyz₂) := lex.left _ _ hxy₁
+| (x₁, x₂) (y₁, y₂) (z₁, z₂) (lex.right _ _) (lex.left _ _ hyz₁) := lex.left _ _ hyz₁
+| (x₁, x₂) (y₁, y₂) (z₁, z₂) (lex.right _ hxy₂) (lex.right _ hyz₂) := lex.right _ (trans hxy₂ hyz₂)
+
+instance {r : α → α → Prop} {s : β → β → Prop} [is_trans α r] [is_trans β s] :
+  is_trans (α × β) (lex r s) :=
+⟨λ _ _ _, lex.trans⟩
+
 end prod
 
 open function

@@ -302,6 +302,16 @@ lemma to_fraction_ring_smul [has_scalar R (fraction_ring (polynomial K))]
   to_fraction_ring (c • p) = c • to_fraction_ring p :=
 by { cases p, rw ←of_fraction_ring_smul }
 
+lemma smul_eq_C_smul (x : ratfunc K) (r : K) :
+  r • x = polynomial.C r • x :=
+begin
+  cases x,
+  induction x,
+  { rw [←of_fraction_ring_smul, ←of_fraction_ring_smul, localization.smul_mk, localization.smul_mk,
+        smul_eq_mul, polynomial.smul_eq_C_mul] },
+  { simp only }
+end
+
 include hdomain
 variables [monoid R] [distrib_mul_action R (polynomial K)]
 variables [htower : is_scalar_tower R (polynomial K) (polynomial K)]
@@ -440,6 +450,11 @@ by rw [← mk_one, mk_one']
 @[simp] lemma mk_eq_div (p q : polynomial K) :
   ratfunc.mk p q = (algebra_map _ _ p / algebra_map _ _ q) :=
 by simp only [mk_eq_div', of_fraction_ring_div, of_fraction_ring_algebra_map]
+
+@[simp] lemma div_smul (p q : polynomial K) (r : K) :
+  (algebra_map (polynomial K) (ratfunc K) (r • p) / algebra_map _ _ q) =
+    r • (algebra_map _ _ p / algebra_map _ _ q):=
+by rw [←mk_eq_div, mk_smul, mk_eq_div]
 
 variables (K)
 
@@ -772,6 +787,10 @@ algebra_map _ _
 @[simp] lemma algebra_map_comp_C :
   (algebra_map (polynomial K) (ratfunc K)).comp polynomial.C = C := rfl
 
+lemma smul_eq_C_mul (r : K) (x : ratfunc K) :
+  r • x = C r * x :=
+by rw [algebra.smul_def, algebra_map_eq_C]
+
 /-- `ratfunc.X` is the polynomial variable (aka indeterminate). -/
 def X : ratfunc K := algebra_map (polynomial K) (ratfunc K) polynomial.X
 
@@ -872,54 +891,87 @@ end eval
 
 section laurent_series
 
-omit hring
-variables {F : Type u} [field F] (f : ratfunc F) (p q : polynomial F)
+open polynomial laurent_series hahn_series
 
-open polynomial laurent_series
+omit hring
+variables {F : Type u} [field F] (p q : polynomial F) (f g : ratfunc F)
 
 instance coe_to_laurent_series : has_coe (ratfunc F) (laurent_series F) :=
 ⟨λ f, (f.num : power_series F) / f.denom⟩
 
-lemma coe_def : (f : laurent_series F) = (f.num : power_series F) / f.denom := rfl
-
-@[simp] lemma _root_.polynomial.coe_coe :
-  (p : laurent_series F) = hahn_series.of_power_series ℤ F p := rfl
+lemma coe_def : (f : laurent_series F) = f.num / f.denom := rfl
 
 @[simp] lemma coe_div : (((algebra_map (polynomial F) (ratfunc F) p /
   algebra_map (polynomial F) (ratfunc F) q) : ratfunc F) : laurent_series F) =
-  (p : power_series F) / (q : power_series F) :=
+  (p : laurent_series F) / (q : laurent_series F) :=
 begin
   classical,
-  simp_rw [coe_def, coe_power_series],
+  rw [coe_def],
   by_cases hp : p = 0,
-  { simp only [hp, polynomial.coe_zero, num_zero, zero_div, _root_.map_zero] },
+  { simp only [hp, num_zero, zero_div, _root_.map_zero, coe_laurent_zero], },
   by_cases hq : q = 0,
-  { simp only [div_zero, polynomial.coe_zero, ratfunc.num_zero, hahn_series.emb_domain_zero,
-               zero_div, polynomial.coe_one, eq_self_iff_true, hahn_series.of_power_series_apply,
-               ratfunc.denom_zero, ring_equiv.map_zero, _root_.map_zero, coe_coe, hq] },
+  { simp only [hq, _root_.map_zero, div_zero, num_zero, coe_laurent_zero, zero_div] } ,
   have : ¬ q / gcd p q = 0,
   { rw [polynomial.div_eq_zero_iff],
     { rw [not_lt], convert polynomial.degree_gcd_le_right p hq },
     { simp [gcd_eq_zero_iff, hp, hq] } },
-  rw [num_div _ hq, denom_div _ hq, polynomial.coe_mul, polynomial.coe_coe, polynomial.coe_mul,
-      _root_.map_mul, _root_.map_mul, mul_div_mul_left, div_eq_div_iff, ←_root_.map_mul,
-      ←_root_.map_mul, ←polynomial.coe_mul, ←polynomial.coe_mul, ←euclidean_domain.mul_div_assoc,
-      mul_comm, ←euclidean_domain.mul_div_assoc, mul_comm],
+  rw [num_div _ hq, denom_div _ hq, coe_laurent_mul, coe_laurent_mul,
+      mul_div_mul_left, div_eq_div_iff, ←coe_laurent_mul, ←coe_laurent_mul,
+      ←euclidean_domain.mul_div_assoc, mul_comm, ←euclidean_domain.mul_div_assoc, mul_comm],
   { apply gcd_dvd_left },
   { apply gcd_dvd_right },
-  { rw [ne.def,
-        (hahn_series.of_power_series ℤ F).map_eq_zero_iff hahn_series.of_power_series_injective,
+  { rw [ne.def, coe_laurent,
+        zero_hom_class.map_eq_zero_iff (of_power_series ℤ F) of_power_series_injective,
         polynomial.coe_eq_zero_iff],
     convert this },
-  { rwa [ne.def,
-         (hahn_series.of_power_series ℤ F).map_eq_zero_iff hahn_series.of_power_series_injective,
+  { rwa [ne.def, coe_laurent,
+         zero_hom_class.map_eq_zero_iff (of_power_series ℤ F) of_power_series_injective,
          polynomial.coe_eq_zero_iff] },
-  { rw [ne.def,
-        (hahn_series.of_power_series ℤ F).map_eq_zero_iff hahn_series.of_power_series_injective,
+  { rw [ne.def, coe_laurent,
+        zero_hom_class.map_eq_zero_iff (of_power_series ℤ F) of_power_series_injective,
         polynomial.coe_eq_zero_iff, polynomial.C_eq_zero,
         inv_eq_zero, polynomial.leading_coeff_eq_zero],
     convert this }
 end
+
+@[simp] lemma coe_zero : ((0 : ratfunc F) : laurent_series F) = 0 :=
+by rw [coe_def, num_zero, denom_zero, coe_laurent_zero, coe_laurent_one, div_one]
+
+@[simp] lemma coe_one : ((1 : ratfunc F) : laurent_series F) = 1 :=
+by rw [coe_def, num_one, denom_one, coe_laurent_one, div_one]
+
+@[simp] lemma coe_mul : ((f * g : ratfunc F) : laurent_series F) = f * g :=
+begin
+  rw [←num_div_denom f, ←num_div_denom g],
+  simp only [div_mul_div, ←_root_.map_mul, coe_div, coe_laurent_mul]
+end
+
+@[simp] lemma coe_add : ((f + g : ratfunc F) : laurent_series F) = f + g :=
+begin
+  rw [←num_div_denom f, ←num_div_denom g, div_add_div],
+  simp only [coe_div, ←_root_.map_mul, ←_root_.map_add],
+  rw div_add_div,
+  simp_rw [←coe_laurent_mul, ←coe_laurent_add],
+  { rw [polynomial.coe_laurent, ne.def,
+        zero_hom_class.map_eq_zero_iff (of_power_series ℤ F) (of_power_series_injective),
+        coe_eq_zero_iff],
+    exact denom_ne_zero f },
+  { rw [polynomial.coe_laurent, ne.def,
+        zero_hom_class.map_eq_zero_iff (of_power_series ℤ F) (of_power_series_injective),
+        coe_eq_zero_iff],
+    exact denom_ne_zero g },
+  { simpa using denom_ne_zero f },
+  { simpa using denom_ne_zero g }
+end
+
+@[simp] lemma coe_C (r : F) : ((C r : ratfunc F) : laurent_series F) = hahn_series.C r :=
+by rw [coe_def, num_C, denom_C, coe_laurent_C, coe_laurent_one, div_one]
+
+@[simp] lemma coe_smul (r : F) : ((r • f : ratfunc F) : laurent_series F) = r • f :=
+by rw [smul_eq_C_mul, ←C_mul_eq_smul, coe_mul, coe_C]
+
+@[simp] lemma coe_X : ((X : ratfunc F) : laurent_series F) = single 1 1 :=
+by rw [coe_def, num_X, denom_X, coe_laurent_X, coe_laurent_one, div_one]
 
 end laurent_series
 

@@ -95,12 +95,8 @@ begin
   apply h_wf.lt_succ (exists_greater _ _ _),
 end
 
-
 lemma enum_mono {m n : ℕ} (h : m < n) : enum h_wf h_inf m < enum h_wf h_inf n :=
-begin
-  have := enum_lt h_wf h_inf,
-  sorry -- this is in the library somewhere
-end
+strict_mono_nat_of_lt_succ (enum_lt _ _) h
 
 lemma nothing_between {n} {z : s} (h_lt : enum h_wf h_inf n < z) :
   enum h_wf h_inf (n+1) ≤ z :=
@@ -177,14 +173,8 @@ begin
     exact lt_irrefl _ (lt_of_le_of_lt
       (le_cSup t_bdd (set.mem_range_self (n+1)))
       (lt_of_le_of_lt hge (enum_lt h_wf h_inf _))) },
-  rcases h_cf _ ht_sup (ne_of_lt sup_lt_r) with ⟨nhd', nhd'_mem, nhd'_inter⟩,
-  have ex_lt : ∃ nhd : set α, nhd ⊆ nhd' ∧ Sup t ∈ nhd ∧ is_open nhd ∧ ∃ v ∈ nhd, v < Sup t := sorry,
-  rcases ex_lt with ⟨nhd, nhd_sub_nhd', nhd_mem, nhd_open, v, v_mem, v_lt⟩,
-  have nhd_inter : nhd ∩ s = {Sup t},
-  { ext y,
-    split,
-    { rw ← nhd'_inter, rintro ⟨hl, hr⟩, exact ⟨nhd_sub_nhd' hl, hr⟩ },
-    { rw set.mem_singleton_iff, rintro rfl, exact set.mem_inter nhd_mem ht_sup } },
+  rcases h_cf _ ht_sup (ne_of_lt sup_lt_r) with ⟨nhd, nhd_mem, nhd_inter⟩,
+  rcases exists_Ioc_subset_of_mem_nhds nhd_mem ⟨_, h_sup_gt 0⟩ with ⟨v, v_lt, vsub⟩,
   apply not_le_of_lt v_lt,
   apply cSup_le ⟨_, set.mem_range_self 0⟩,
   intros b bmem,
@@ -193,7 +183,10 @@ begin
   apply le_of_not_lt,
   intro hvt,
   have bsup : ↑(enum h_wf h_inf y) < Sup t := h_sup_gt _,
-  have bnhd : ↑(enum h_wf h_inf y) ∈ nhd := sorry, -- order topology fact?
+  have bnhd : ↑(enum h_wf h_inf y) ∈ nhd,
+  { apply vsub,
+    rw set.mem_Ioc,
+    exact ⟨hvt, le_of_lt bsup⟩ },
   have beq : ↑(enum h_wf h_inf y) = Sup t,
   { apply set.mem_singleton_iff.mp,
     rw ← nhd_inter,
@@ -201,8 +194,6 @@ begin
   rw beq at bsup,
   exact lt_irrefl _ bsup
 end
-
-
 
 lemma enum_surj {x : α} (hxs : x ∈ s) (hxr : x < r) (hlt : ∀ y ∈ s, y ≤ r) :
   ∃ n, enum' h_wf h_inf n = x :=

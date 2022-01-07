@@ -997,6 +997,47 @@ lemma of_power_series_apply_coeff (x : power_series R) (n : ℕ) :
   (of_power_series Γ R x).coeff n = power_series.coeff R n x :=
 by simp
 
+@[simp] lemma of_power_series_C (r : R) :
+  of_power_series Γ R (power_series.C R r) = hahn_series.C r :=
+begin
+  ext n,
+  simp only [C, single_coeff, of_power_series_apply, ring_hom.coe_mk],
+  split_ifs with hn hn,
+  { rw hn,
+    convert @emb_domain_coeff _ _ _ _ _ _ _ _ 0,
+    simp },
+  { rw emb_domain_notin_image_support,
+    simp only [not_exists, set.mem_image, to_power_series_symm_apply_coeff, mem_support,
+               power_series.coeff_C],
+    intro,
+    simp [ne.symm hn] {contextual := tt} }
+end
+
+@[simp] lemma of_power_series_X :
+  of_power_series Γ R power_series.X = single 1 1 :=
+begin
+  ext n,
+  simp only [single_coeff, of_power_series_apply, ring_hom.coe_mk],
+  split_ifs with hn hn,
+  { rw hn,
+    convert @emb_domain_coeff _ _ _ _ _ _ _ _ 1;
+    simp },
+  { rw emb_domain_notin_image_support,
+    simp only [not_exists, set.mem_image, to_power_series_symm_apply_coeff, mem_support,
+               power_series.coeff_X],
+    intro,
+    simp [ne.symm hn] {contextual := tt} }
+end
+
+@[simp] lemma of_power_series_X_pow {R} [comm_semiring R] (n : ℕ) :
+  of_power_series Γ R (power_series.X ^ n) = single (n : Γ) 1 :=
+begin
+  rw ring_hom.map_pow,
+  induction n with n ih,
+  { refl },
+  rw [pow_succ, ih, of_power_series_X, mul_comm, single_mul_single, one_mul, nat.cast_succ]
+end
+
 end semiring
 
 section algebra

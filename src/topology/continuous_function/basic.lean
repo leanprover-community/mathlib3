@@ -91,6 +91,9 @@ def comp (f : C(β, γ)) (g : C(α, β)) : C(α, γ) := ⟨f ∘ g⟩
 @[simp] lemma comp_coe (f : C(β, γ)) (g : C(α, β)) : (comp f g : α → γ) = f ∘ g := rfl
 lemma comp_apply (f : C(β, γ)) (g : C(α, β)) (a : α) : comp f g a = f (g a) := rfl
 
+@[simp] lemma id_comp (f : C(β, γ)) : id.comp f = f := by { ext, refl }
+@[simp] lemma comp_id (f : C(α, β)) : f.comp id = f := by { ext, refl }
+
 /-- Constant map as a continuous map -/
 def const (b : β) : C(α, β) := ⟨λ x, b⟩
 

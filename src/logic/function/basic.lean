@@ -751,3 +751,7 @@ def set.separates_points {α β : Type*} (A : set (α → β)) : Prop :=
 
 lemma is_symm_op.flip_eq {α β} (op) [is_symm_op α β op] : flip op = op :=
 funext $ λ a, funext $ λ b, (is_symm_op.symm_op a b).symm
+
+lemma inv_image.equivalence {α : Sort u} {β : Sort v} (r : β → β → Prop) (f : α → β)
+  (h : equivalence r) : equivalence (inv_image r f) :=
+⟨λ _, h.1 _, λ _ _ x, h.2.1 x, inv_image.trans r f h.2.2⟩

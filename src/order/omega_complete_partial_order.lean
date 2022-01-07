@@ -419,6 +419,10 @@ begin
     { apply le_max_right }, },
 end
 
+lemma inf_continuous' [is_total β (≤)] {f g : α → β} (hf : continuous' f) (hg : continuous' g) :
+  continuous' (f ⊓ g) :=
+⟨_, inf_continuous _ _ hf.snd hg.snd⟩
+
 lemma Sup_continuous (s : set $ α →o β) (hs : ∀ f ∈ s, continuous f) :
   continuous (Sup s) :=
 begin

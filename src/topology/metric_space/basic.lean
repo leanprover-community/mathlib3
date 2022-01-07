@@ -1244,6 +1244,20 @@ begin
     linarith [nnreal.coe_le_coe.2 h] },
   rwa [nndist_comm, max_comm]
 end
+
+@[simp] lemma nnreal.nndist_zero_eq_val (z : ℝ≥0) : nndist 0 z = z :=
+by simp only [nnreal.nndist_eq, max_eq_right, tsub_zero, zero_tsub, zero_le']
+
+@[simp] lemma nnreal.nndist_zero_eq_val' (z : ℝ≥0) : nndist z 0 = z :=
+by { rw nndist_comm, exact nnreal.nndist_zero_eq_val z, }
+
+lemma nnreal.le_add_nndist (a b : ℝ≥0) : a ≤ b + nndist a b :=
+begin
+  suffices : (a : ℝ) ≤ (b : ℝ) + (dist a b),
+  { exact nnreal.coe_le_coe.mp this, },
+  linarith [le_of_abs_le (by refl : abs (a-b : ℝ) ≤ (dist a b))],
+end
+
 end nnreal
 
 section prod

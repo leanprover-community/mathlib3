@@ -266,6 +266,12 @@ def map (f : L →ₐ[K] L') : intermediate_field K L' :=
   neg_mem' := λ x hx, (S.to_subalgebra.map f).neg_mem hx,
   .. S.to_subalgebra.map f}
 
+lemma map_map {K L₁ L₂ L₃ : Type*} [field K] [field L₁] [algebra K L₁]
+  [field L₂] [algebra K L₂] [field L₃] [algebra K L₃]
+  (E : intermediate_field K L₁) (f : L₁ →ₐ[K] L₂) (g : L₂ →ₐ[K] L₃) :
+  (E.map f).map g = E.map (g.comp f) :=
+set_like.coe_injective $ set.image_image _ _ _
+
 /-- The embedding from an intermediate field of `L / K` to `L`. -/
 def val : S →ₐ[K] L :=
 S.to_subalgebra.val

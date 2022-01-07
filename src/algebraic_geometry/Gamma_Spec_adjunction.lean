@@ -62,13 +62,13 @@ lemma not_mem_prime_iff_unit_in_stalk (r : Γ.obj (op X)) (x : X) :
   r ∉ (X.to_Γ_Spec_fun x).as_ideal ↔ is_unit (X.Γ_to_stalk x r) :=
 by erw [local_ring.mem_maximal_ideal, not_not]
 
-/-- Preimage of a basic open in `Spec Γ(X)` under the unit is the basic open in `X`
-    defined by the same element (equal as sets). -/
+/-- The preimage of a basic open in `Spec Γ(X)` under the unit is the basic 
+open in `X` defined by the same element (they are equal as sets). -/
 lemma to_Γ_Spec_preim_basic_open_eq (r : Γ.obj (op X)) :
   X.to_Γ_Spec_fun⁻¹' (basic_open r).1 = (X.to_RingedSpace.basic_open r).1 :=
 by { ext, erw X.to_RingedSpace.mem_top_basic_open, apply not_mem_prime_iff_unit_in_stalk }
 
-/-- Unit is continuous. -/
+/-- `to_\Gamma_Spec_fun` is continuous. -/
 lemma to_Γ_Spec_continuous : continuous X.to_Γ_Spec_fun :=
 begin
   apply is_topological_basis_basic_opens.continuous,
@@ -77,7 +77,8 @@ begin
   exact (X.to_RingedSpace.basic_open r).2,
 end
 
-/-- Unit as a continuous map. -/
+/-- The canonical (bundled) continuous map from the underlying topological 
+space of `X` to the prime spectrum of its global sections. -/
 @[simps]
 def to_Γ_Spec_base : X.to_Top ⟶ Spec.Top_obj (Γ.obj (op X)) :=
 { to_fun := X.to_Γ_Spec_fun,
@@ -141,8 +142,7 @@ def to_Γ_Spec_c_basic_opens :
   (induced_functor basic_open).op ⋙ (structure_sheaf (Γ.obj (op X))).1 ⟶
   (induced_functor basic_open).op ⋙ ((Top.sheaf.pushforward X.to_Γ_Spec_base).obj X.𝒪).1 :=
 { app := λ r, X.to_Γ_Spec_c_app r.unop,
-  naturality' := λ r s f,
-  begin
+  naturality' := λ r s f, begin
     apply (structure_sheaf.to_basic_open_epi (Γ.obj (op X)) r.unop).1,
     simp only [← category.assoc],
     erw X.to_Γ_Spec_c_app_spec r.unop,
@@ -151,7 +151,7 @@ def to_Γ_Spec_c_basic_opens :
     apply X.presheaf.map_comp
   end }
 
-/-- Unit as a hom of sheafed spaces. -/
+/-- The canonical morphism of sheafed spaces from `X` to the spectrum of its global sections. -/
 @[simps]
 def to_Γ_Spec_SheafedSpace : X.to_SheafedSpace ⟶ Spec.to_SheafedSpace.obj (op (Γ.obj (op X))) :=
 { base := X.to_Γ_Spec_base,
@@ -185,7 +185,7 @@ begin
   apply germ_res,
 end
 
-/-- Unit as a hom of locally ringed spaces. -/
+/-- The canonical morphism from `X` to the spectrum of its global sections. -/
 @[simps coe_base]
 def to_Γ_Spec : X ⟶ Spec.LocallyRingedSpace_obj (Γ.obj (op X)) :=
 { val := X.to_Γ_Spec_SheafedSpace,
@@ -230,7 +230,7 @@ begin
   exact w,
 end
 
-/-- `to_Spec_Γ _` is iso so these are mutually two-sided inverses. -/
+/-- `to_Spec_Γ _` is an isomorphism so these are mutually two-sided inverses. -/
 lemma Γ_Spec_left_triangle : to_Spec_Γ (Γ.obj (op X)) ≫ X.to_Γ_Spec.1.c.app (op ⊤) = 𝟙 _ :=
 begin
   unfold to_Spec_Γ,

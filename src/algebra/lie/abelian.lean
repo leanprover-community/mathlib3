@@ -93,9 +93,11 @@ variables [add_comm_group N] [module R N] [lie_ring_module L N] [lie_module R L 
 namespace lie_module
 
 /-- The kernel of the action of a Lie algebra `L` on a Lie module `M` as a Lie ideal in `L`. -/
-protected def ker : lie_ideal R L := (to_endomorphism R L M).ker
+protected def ker [module Rᵐᵒᵖ M] [is_central_scalar R M] : lie_ideal R L :=
+(to_endomorphism R L M).ker
 
-@[simp] protected lemma mem_ker (x : L) : x ∈ lie_module.ker R L M ↔ ∀ (m : M), ⁅x, m⁆ = 0 :=
+@[simp] protected lemma mem_ker  [module Rᵐᵒᵖ M] [is_central_scalar R M] (x : L) :
+  x ∈ lie_module.ker R L M ↔ ∀ (m : M), ⁅x, m⁆ = 0 :=
 by simp only [lie_module.ker, lie_hom.mem_ker, linear_map.ext_iff, linear_map.zero_apply,
     to_endomorphism_apply_apply]
 

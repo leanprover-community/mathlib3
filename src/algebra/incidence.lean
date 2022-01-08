@@ -449,32 +449,6 @@ lemma mu_apply_self (a : α) : mu 𝕜 α a a = 1 := mu_apply_of_eq rfl
 lemma mu_apply_of_ne {a b : α} (h : a ≠ b) : mu 𝕜 α a b = -∑ x in Ico a b, mu 𝕜 α a x :=
 by rw [mu_apply, if_neg h]
 
--- lemma mu_apply_of_ne' {a b : α} (h : a ≠ b) : mu 𝕜 α a b = -∑ x in Ioc a b, mu 𝕜 α x b :=
--- begin
---   induction hi : (Icc a b).card generalizing a b,
---   { simp only [card_eq_zero, Icc_eq_empty_iff] at hi,
---     rw Ioc_eq_empty _,
---     rw eq_zero_of_not_le hi,
---     simp,
---     intro hh,
---     apply hi,
---     exact le_of_lt hh },
---   -- intro hne,
---   by_cases hab : a ≤ b,
---   { conv in (mu _ _ _ _) { rw mu_apply },
---     rw sum_ite,
---     rw filter_eq',
---     simp [hab],
---     have hIcc : Icc a b = Ioc a b ∪ {a},
---     sorry,
---     sorry,
---     -- rw [hIcc, sum_union, sum_singleton, this, add_neg_self],
---      },
---   { have : ∀ x ∈ Icc a b, ¬ x ≤ b,
---     { intros x hx hn, apply hab, rw [mem_Icc] at hx, exact le_trans hx.1 hn},
---     conv in (mu _ _ _ _) { rw eq_zero_of_not_le (this x H) },
---     simp },
--- end
 end mu
 section mu_spec
 -- we need partial order for this

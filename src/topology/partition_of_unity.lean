@@ -411,7 +411,7 @@ namespace partition_of_unity
 variables {s : set X}
 
 instance [inhabited ι] : inhabited (partition_of_unity ι X s) :=
-⟨(default (bump_covering ι X s)).to_partition_of_unity⟩
+⟨(default.to_partition_of_unity⟩
 
 /-- If `X` is a normal topological space and `U` is a locally finite open covering of a closed set
 `s`, then there exists a `partition_of_unity ι X s` that is subordinate to `U`. If `X` is a

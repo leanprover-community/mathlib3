@@ -1374,7 +1374,7 @@ begin
   let H := (F.to_embedding.trans G).trans
     (equiv.vector_equiv_fin _ _).symm.to_embedding,
   classical,
-  let enc := H.set_value default (vector.repeat ff n),
+  let enc := H.set_value default,
   exact ⟨_, enc, function.inv_fun enc,
     H.set_value_eq _ _, function.left_inverse_inv_fun enc.2⟩
 end

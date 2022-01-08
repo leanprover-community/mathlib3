@@ -776,7 +776,7 @@ end
 
 -- while `simp` is capable of proving this, it is not capable of turning the LHS into the RHS.
 @[simp] lemma default_coe_singleton (x : α) :
-  default ({x} : set α) = ⟨x, rfl⟩ := rfl
+  default = ⟨x, rfl⟩ := rfl
 
 /-! ### Lemmas about sets defined as `{x ∈ s | p x}`. -/
 

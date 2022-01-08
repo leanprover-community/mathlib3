@@ -208,7 +208,7 @@ def id_computable_in_poly_time {α : Type} (ea : fin_encoding α) :
     steps_le_m := by simp only [polynomial.eval_one] } }
 
 instance inhabited_tm2_computable_in_poly_time : inhabited (tm2_computable_in_poly_time
-(default (fin_encoding bool)) (default (fin_encoding bool)) id) :=
+(default :=
 ⟨id_computable_in_poly_time computability.inhabited_fin_encoding.default⟩
 
 instance inhabited_tm2_outputs_in_time :
@@ -244,6 +244,6 @@ instance inhabited_tm2_computable :
 ⟨id_computable computability.inhabited_fin_encoding.default⟩
 
 instance inhabited_tm2_computable_aux : inhabited (tm2_computable_aux bool bool) :=
-⟨(default (tm2_computable fin_encoding_bool_bool fin_encoding_bool_bool id)).to_tm2_computable_aux⟩
+⟨(default.to_tm2_computable_aux⟩
 
 end turing

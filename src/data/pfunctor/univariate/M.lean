@@ -165,7 +165,7 @@ structure M_intl :=
 def M := M_intl F
 
 lemma M.default_consistent [inhabited F.A] :
-  Π n, agree (default (cofix_a F n)) (default (cofix_a F (succ n)))
+  Π n, agree (default
 | 0 := agree.continue _ _
 | (succ n) := agree.intro _ _ $ λ _, M.default_consistent n
 
@@ -411,7 +411,7 @@ def isubtree [decidable_eq F.A] [inhabited (M F)] : path F → M F → M F
 | (⟨a, i⟩ :: ps) x :=
 pfunctor.M.cases_on' x (λ a' f,
 (if h : a = a' then isubtree ps (f $ cast (by rw h) i)
- else default (M F) : (λ x, M F) (M.mk ⟨a',f⟩)))
+ else default
 
 /-- similar to `isubtree` but returns the data at the end of the path instead
 of the whole subtree -/

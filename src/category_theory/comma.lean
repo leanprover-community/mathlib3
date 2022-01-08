@@ -78,7 +78,7 @@ variables {L : A ⥤ T} {R : B ⥤ T}
 
 -- Satisfying the inhabited linter
 instance comma_morphism.inhabited [inhabited (comma L R)] :
-  inhabited (comma_morphism (default (comma L R)) (default (comma L R))) :=
+  inhabited (comma_morphism (default :=
 { default :=
   { left := 𝟙 _,
     right := 𝟙 _ } }

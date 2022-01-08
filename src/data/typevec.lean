@@ -86,7 +86,7 @@ def drop (α : typevec.{u} (n+1)) : typevec n := λ i, α i.fs
 def last (α : typevec.{u} (n+1)) : Type* := α fin2.fz
 
 instance last.inhabited (α : typevec (n+1)) [inhabited (α fin2.fz)] : inhabited (last α) :=
-⟨ (default (α fin2.fz) : α fin2.fz) ⟩
+⟨ (default ⟩
 
 theorem drop_append1 {α : typevec n} {β : Type*} {i : fin2 n} : drop (append1 α β) i = α i := rfl
 

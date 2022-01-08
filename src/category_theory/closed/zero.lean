@@ -51,7 +51,7 @@ def unique_homset_of_zero [has_zero_object C] (X Y : C) :
 begin
   haveI : has_initial C := has_zero_object.has_initial,
   apply unique_homset_of_initial_iso_terminal _ X Y,
-  refine ⟨default, default (⊤_ C ⟶ 0) ≫ default, _, _⟩;
+  refine ⟨default, default ≫ default, _, _⟩;
   simp,
 end
 
@@ -66,8 +66,8 @@ equivalence.mk
   (functor.star C)
   (functor.from_punit 0)
   (nat_iso.of_components
-    (λ X, { hom := default (X ⟶ 0),
-            inv := default (0 ⟶ X) })
+    (λ X, { hom := default,
+            inv := default
     (λ X Y f, dec_trivial))
   (functor.punit_ext _ _)
 

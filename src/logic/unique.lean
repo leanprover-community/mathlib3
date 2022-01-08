@@ -79,7 +79,7 @@ lemma fin.eq_zero : ∀ n : fin 1, n = 0
 instance {n : ℕ} : inhabited (fin n.succ) := ⟨0⟩
 instance inhabited_fin_one_add (n : ℕ) : inhabited (fin (1 + n)) := ⟨⟨0, nat.zero_lt_one_add n⟩⟩
 
-@[simp] lemma fin.default_eq_zero (n : ℕ) : default (fin n.succ) = 0 := rfl
+@[simp] lemma fin.default_eq_zero (n : ℕ) : default = 0 := rfl
 
 instance fin.unique : unique (fin 1) :=
 { uniq := fin.eq_zero, .. fin.inhabited }
@@ -94,7 +94,7 @@ variables [unique α]
 @[priority 100] -- see Note [lower instance priority]
 instance : inhabited α := to_inhabited ‹unique α›
 
-lemma eq_default (a : α) : a = default α := uniq _ a
+lemma eq_default : a = default α := uniq _ a
 
 lemma default_eq (a : α) : default α = a := (uniq _ a).symm
 
@@ -123,11 +123,11 @@ a loop in the class inheritance graph. -/
 end unique
 
 @[simp] lemma pi.default_def {β : Π a : α, Sort v} [Π a, inhabited (β a)] :
-  default (Π a, β a) = λ a, default (β a) :=
+  default :=
 rfl
 
 lemma pi.default_apply {β : Π a : α, Sort v} [Π a, inhabited (β a)] (a : α) :
-  default (Π a, β a) a = default (β a) :=
+  default :=
 rfl
 
 instance pi.unique {β : Π a : α, Sort v} [Π a, unique (β a)] : unique (Π a, β a) :=

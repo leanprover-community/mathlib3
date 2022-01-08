@@ -30,7 +30,7 @@ conflicts with general sigma types.
 def total_space := Σ x, E x
 
 instance [inhabited B] [inhabited (E (default B))] :
-  inhabited (total_space E) := ⟨⟨default B, default (E (default B))⟩⟩
+  inhabited (total_space E) := ⟨⟨default B, default⟩⟩
 
 /-- `bundle.proj E` is the canonical projection `total_space E → B` on the base space. -/
 @[simp] def proj : total_space E → B := sigma.fst

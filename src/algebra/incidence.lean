@@ -29,6 +29,31 @@ open finset
 open_locale big_operators
 
 namespace finset
+section pre
+variables {α : Type*} [preorder α] [locally_finite_order α] {a b c : α}
+
+lemma Icc_ssubset_Icc_left (hab : a ≤ b) (h : c < b) : Icc a c ⊂ Icc a b :=
+begin
+  classical,
+  rw finset.ssubset_iff,
+  use b,
+  simp only [hab, true_and, mem_Icc],
+  refine ⟨λ hh, lt_irrefl c (h.trans_le hh),
+    insert_subset.mpr ⟨right_mem_Icc.mpr hab, finset.subset_iff.mpr (λ x hx, _)⟩⟩,
+  rw [mem_Icc] at ⊢ hx,
+  exact ⟨hx.1, (hx.2.trans_lt h).le⟩,
+end
+
+lemma Icc_ssubset_Icc_right (hab : a ≤ b) (h : a < c) : Icc c b ⊂ Icc a b :=
+@Icc_ssubset_Icc_left (order_dual α) _ _ _ _ _ hab h
+
+lemma card_Icc_lt_card_Icc_left (hab : a ≤ b) (h : c < b) : (Icc a c).card < (Icc a b).card :=
+card_lt_card (Icc_ssubset_Icc_left hab h)
+
+lemma card_Icc_lt_card_Icc_right (hab : a ≤ b) (h : a < c) : (Icc c b).card < (Icc a b).card :=
+@card_Icc_lt_card_Icc_left (order_dual α) _ _ _ _ _ hab h
+
+end pre
 variables {α : Type*} [partial_order α] [locally_finite_order α] [decidable_eq α] {a b : α}
 
 @[simp] lemma Ioc_insert_left (h : a ≤ b) : insert a (Ioc a b) = Icc a b :=
@@ -390,7 +415,9 @@ variables [add_comm_group 𝕜] [has_one 𝕜] [preorder α] [locally_finite_ord
 def mu_aux (a : α) : α → 𝕜
 | b := if h : a = b then 1 else
   -∑ x in (Ico a b).attach,
-    have (Icc a x).card < (Icc a b).card, from card_lt_card sorry,
+    have ha : a ≤ x, begin cases x, rw mem_Ico at x_property, exact x_property.1, end,
+    have hb : ↑x < b, begin cases x, rw mem_Ico at x_property, exact x_property.2, end,
+    have (Icc a x).card < (Icc a b).card, from card_Icc_lt_card_Icc_left (ha.trans_lt hb).le hb,
     mu_aux x
 using_well_founded { rel_tac := λ _ _, `[exact ⟨_, measure_wf (λ b, (Icc a b).card)⟩] }
 
@@ -476,7 +503,9 @@ variables [add_comm_group 𝕜] [has_one 𝕜] [preorder α] [locally_finite_ord
 private def mu'_aux (b : α) : α → 𝕜
 | a := if h : a = b then 1 else
   -∑ x in (Ioc a b).attach,
-    have (Icc ↑x b).card < (Icc a b).card, from card_lt_card sorry,
+    have ha : a < x, begin cases x, rw mem_Ioc at x_property, exact x_property.1, end,
+    have hb : ↑x ≤ b, begin cases x, rw mem_Ioc at x_property, exact x_property.2, end,
+    have (Icc ↑x b).card < (Icc a b).card, from card_Icc_lt_card_Icc_right (ha.le.trans hb) ha,
     mu'_aux x
 using_well_founded { rel_tac := λ _ _, `[exact ⟨_, measure_wf (λ a, (Icc a b).card)⟩] }
 

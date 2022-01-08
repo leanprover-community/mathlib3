@@ -125,7 +125,8 @@ basis.of_equiv_fun
   left_inv := λ z, by simp,
   right_inv := λ c, by { ext i, fin_cases i; simp },
   map_add' := λ z z', by simp,
-  map_smul' := λ c z, by simp }
+  -- why does `simp` not know how to apply `smul_cons`, which is a `@[simp]` lemma, here?
+  map_smul' := λ c z, by simp [matrix.smul_cons c z.re, matrix.smul_cons c z.im] }
 
 @[simp] lemma coe_basis_one_I_repr (z : ℂ) : ⇑(basis_one_I.repr z) = ![z.re, z.im] := rfl
 

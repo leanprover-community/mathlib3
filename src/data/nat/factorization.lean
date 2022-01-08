@@ -111,8 +111,7 @@ end
 
 /-- For coprime `a` and `b` the prime factorization `a * b` is the union of those of `a` and `b` -/
 lemma factorization_mul_support_of_coprime {a b : ℕ} (hab : coprime a b) :
-  (a * b).factorization.support =
-    a.factorization.support ∪ b.factorization.support :=
+  (a * b).factorization.support = a.factorization.support ∪ b.factorization.support :=
 begin
   rw factorization_mul_of_coprime hab,
   exact support_add_eq (factorization_disjoint_of_coprime hab),

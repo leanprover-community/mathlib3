@@ -33,33 +33,33 @@ variables {α β ι : Type*} {m : measurable_space α}
   [metric_space β] [second_countable_topology β] [measurable_space β] [borel_space β]
   {μ : measure α}
 
-def antitoneseq (f : ℕ → α → β) (g : α → β) (ε : ℝ≥0∞) (i j : ℕ) : set α :=
+def not_convergent_seq (f : ℕ → α → β) (g : α → β) (i j : ℕ) : set α :=
 ⋃ k (hk : j ≤ k), {x | (1 / (i + 1 : ℝ)) < dist (f k x) (g x)}
 
-variables {f : ℕ → α → β} {g : α → β} {ε : ℝ≥0∞}
+variables {f : ℕ → α → β} {g : α → β}
 
-lemma mem_antitoneseq_iff {i j : ℕ} {x : α} : x ∈ antitoneseq f g ε i j ↔
+lemma mem_not_convergent_seq_iff {i j : ℕ} {x : α} : x ∈ not_convergent_seq f g i j ↔
   ∃ k (hk : j ≤ k), (1 / (i + 1 : ℝ)) < dist (f k x) (g x) :=
-by { simp_rw [antitoneseq, mem_Union], refl }
+by { simp_rw [not_convergent_seq, mem_Union], refl }
 
-lemma antitoneseq_measurable_set
+lemma not_convergent_seq_measurable_set
   (hf : ∀ n, measurable[m] (f n)) (hg : measurable g)
-  {i j : ℕ} : measurable_set (antitoneseq f g ε i j) :=
+  {i j : ℕ} : measurable_set (not_convergent_seq f g i j) :=
 measurable_set.Union (λ k, measurable_set.Union_Prop $ λ hk,
   measurable_set_lt measurable_const $ (hf k).dist hg)
 
-lemma antitoneseq_antitone {i : ℕ} :
-  antitone (antitoneseq f g ε i) :=
+lemma not_convergent_seq_antitone {i : ℕ} :
+  antitone (not_convergent_seq f g i) :=
 λ j k hjk, bUnion_subset_bUnion (λ l hl, ⟨l, le_trans hjk hl, subset.refl _⟩)
 
-lemma inter_antitoneseq {s : set α} (hsm : measurable_set s) (hs : μ s < ∞)
+lemma measure_inter_not_convergent_seq_eq_zero {s : set α} (hsm : measurable_set s)
   (hfg : ∀ᵐ x ∂μ, x ∈ s → tendsto (λ n, f n x) at_top (𝓝 (g x))) (i : ℕ) :
-  μ (s ∩ ⋂ j, antitoneseq f g ε i j) = 0 :=
+  μ (s ∩ ⋂ j, not_convergent_seq f g i j) = 0 :=
 begin
   simp_rw [metric.tendsto_at_top, ae_iff] at hfg,
   rw [← nonpos_iff_eq_zero, ← hfg],
   refine measure_mono (λ x, _),
-  simp only [mem_inter_eq, mem_Inter, ge_iff_le, mem_antitoneseq_iff],
+  simp only [mem_inter_eq, mem_Inter, ge_iff_le, mem_not_convergent_seq_iff],
   push_neg,
   rintro ⟨hmem, hx⟩,
   refine ⟨hmem, 1 / (i + 1 : ℝ), nat.one_div_pos_of_nat, λ N, _⟩,
@@ -67,9 +67,50 @@ begin
   exact ⟨n, hn₁, hn₂.le⟩
 end
 
+lemma measure_not_convergent_seq_tendsto_zero
+  (hf : ∀ n, measurable[m] (f n)) (hg : measurable g)
+  {s : set α} (hsm : measurable_set s) (hs : μ s < ∞)
+  (hfg : ∀ᵐ x ∂μ, x ∈ s → tendsto (λ n, f n x) at_top (𝓝 (g x))) (i : ℕ) :
+  tendsto (λ j, μ (s ∩ not_convergent_seq f g i j)) at_top (𝓝 0) :=
+begin
+  rw [← measure_inter_not_convergent_seq_eq_zero hsm hfg, inter_Inter],
+  exact tendsto_measure_Inter (λ n, hsm.inter $ not_convergent_seq_measurable_set hf hg)
+    (λ k l hkl, inter_subset_inter_right _ $ not_convergent_seq_antitone hkl)
+    ⟨0, (lt_of_le_of_lt (measure_mono $ inter_subset_left _ _) hs).ne⟩
+end
+
+lemma exists_not_convergent_seq_lt {ε : ℝ} (hε : 0 < ε)
+  (hf : ∀ n, measurable[m] (f n)) (hg : measurable g)
+  {s : set α} (hsm : measurable_set s) (hs : μ s < ∞)
+  (hfg : ∀ᵐ x ∂μ, x ∈ s → tendsto (λ n, f n x) at_top (𝓝 (g x))) (i : ℕ) :
+  ∃ j : ℕ, μ (s ∩ not_convergent_seq f g i j) ≤ ennreal.of_real (ε * 2^(-(i : ℝ))) :=
+begin
+  obtain ⟨N, hN⟩ := (ennreal.tendsto_at_top ennreal.zero_ne_top).1
+    (measure_not_convergent_seq_tendsto_zero hf hg hsm hs hfg i)
+    (ennreal.of_real (ε * 2 ^ -(i : ℝ))) _,
+  { rw zero_add at hN,
+    exact ⟨N, (hN N le_rfl).2⟩ },
+  { rw [gt_iff_lt, ennreal.of_real_pos],
+    exact mul_pos hε (real.rpow_pos_of_pos (by norm_num) _) }
+end
+
+def not_convergent_seq_lt_index {ε : ℝ} (hε : 0 < ε)
+  (hf : ∀ n, measurable[m] (f n)) (hg : measurable g)
+  {s : set α} (hsm : measurable_set s) (hs : μ s < ∞)
+  (hfg : ∀ᵐ x ∂μ, x ∈ s → tendsto (λ n, f n x) at_top (𝓝 (g x))) (i : ℕ) : ℕ :=
+classical.some $ exists_not_convergent_seq_lt hε hf hg hsm hs hfg i
+
+lemma not_convergent_seq_lt_index_spec {ε : ℝ} (hε : 0 < ε)
+  (hf : ∀ n, measurable[m] (f n)) (hg : measurable g)
+  {s : set α} (hsm : measurable_set s) (hs : μ s < ∞)
+  (hfg : ∀ᵐ x ∂μ, x ∈ s → tendsto (λ n, f n x) at_top (𝓝 (g x))) (i : ℕ) :
+  μ (s ∩ not_convergent_seq f g i (not_convergent_seq_lt_index hε hf hg hsm hs hfg i)) ≤
+  ennreal.of_real (ε * 2^(-(i : ℝ))) :=
+classical.some_spec $ exists_not_convergent_seq_lt hε hf hg hsm hs hfg i
+
 theorem egorov {f : ℕ → α → β} {g : α → β} {s : set α} (hsm : measurable_set s) (hs : μ s < ∞)
-  (hfg : ∀ᵐ x ∂μ, x ∈ s → tendsto (λ n, f n x) at_top (𝓝 (g x))) (ε : ℝ≥0∞) :
-  ∃ t ⊆ s, μ t < ε ∧ tendsto_uniformly_on f g at_top t :=
+  (hfg : ∀ᵐ x ∂μ, x ∈ s → tendsto (λ n, f n x) at_top (𝓝 (g x))) {ε : ℝ} (hε : 0 < ε) :
+  ∃ t ⊆ s, μ t < ennreal.of_real ε ∧ tendsto_uniformly_on f g at_top t :=
 begin
   sorry
 end

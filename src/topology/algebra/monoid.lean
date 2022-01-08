@@ -262,14 +262,17 @@ instance submonoid.topological_closure_has_continuous_mul (s : submonoid M) :
     continuity,
   end }
 
+@[to_additive]
 lemma submonoid.submonoid_topological_closure (s : submonoid M) :
   s ≤ s.topological_closure :=
 subset_closure
 
+@[to_additive]
 lemma submonoid.is_closed_topological_closure (s : submonoid M) :
   is_closed (s.topological_closure : set M) :=
 by convert is_closed_closure
 
+@[to_additive]
 lemma submonoid.topological_closure_minimal
   (s : submonoid M) {t : submonoid M} (h : s ≤ t) (ht : is_closed (t : set M)) :
   s.topological_closure ≤ t :=
@@ -332,35 +335,40 @@ lemma continuous_list_prod {f : ι → X → M} (l : list ι)
 continuous_iff_continuous_at.2 $ assume x, tendsto_list_prod l $ assume c hc,
   continuous_iff_continuous_at.1 (h c hc) x
 
--- @[to_additive continuous_smul]
-@[continuity]
+@[continuity, to_additive continuous_smul]
 lemma continuous_pow : ∀ n : ℕ, continuous (λ a : M, a ^ n)
 | 0 := by simpa using continuous_const
 | (k+1) := by { simp only [pow_succ], exact continuous_id.mul (continuous_pow _) }
 
-@[continuity]
+@[continuity, to_additive continuous.pow]
 lemma continuous.pow {f : X → M} (h : continuous f) (n : ℕ) :
   continuous (λ b, (f b) ^ n) :=
 (continuous_pow n).comp h
 
+@[to_additive continuous_on_smul]
 lemma continuous_on_pow {s : set M} (n : ℕ) : continuous_on (λ x, x ^ n) s :=
 (continuous_pow n).continuous_on
 
+@[to_additive continuous_at_smul]
 lemma continuous_at_pow (x : M) (n : ℕ) : continuous_at (λ x, x ^ n) x :=
 (continuous_pow n).continuous_at
 
+@[to_additive filter.tendsto.smul]
 lemma filter.tendsto.pow {l : filter α} {f : α → M} {x : M} (hf : tendsto f l (𝓝 x)) (n : ℕ) :
   tendsto (λ x, f x ^ n) l (𝓝 (x ^ n)) :=
 (continuous_at_pow _ _).tendsto.comp hf
 
+@[to_additive continuous_within_at.smul]
 lemma continuous_within_at.pow {f : X → M} {x : X} {s : set X} (hf : continuous_within_at f s x)
   (n : ℕ) : continuous_within_at (λ x, f x ^ n) s x :=
 hf.pow n
 
+@[to_additive continuous_at.smul]
 lemma continuous_at.pow {f : X → M} {x : X} (hf : continuous_at f x) (n : ℕ) :
   continuous_at (λ x, f x ^ n) x :=
 hf.pow n
 
+@[to_additive continuous_on.smul]
 lemma continuous_on.pow {f : X → M} {s : set X} (hf : continuous_on f s) (n : ℕ) :
   continuous_on (λ x, f x ^ n) s :=
 λ x hx, (hf x hx).pow n

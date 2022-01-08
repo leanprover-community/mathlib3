@@ -11,7 +11,7 @@ import analysis.normed_space.lp_space
 -/
 
 open is_R_or_C submodule filter
-open_locale big_operators nnreal ennreal classical
+open_locale big_operators nnreal ennreal classical complex_conjugate
 
 local attribute [instance] fact_one_le_two_ennreal
 
@@ -21,11 +21,88 @@ noncomputable theory
 
 variables {ι : Type*}
 variables {𝕜 : Type*} [is_R_or_C 𝕜] {E : Type*} [inner_product_space 𝕜 E] [cplt : complete_space E]
+variables {G : ι → Type*} [Π i, inner_product_space 𝕜 (G i)]
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
 
+namespace lp
+
+lemma summable_inner (f g : lp G 2) : summable (λ i, ⟪f i, g i⟫) :=
+begin
+  refine summable_of_summable_norm _,
+  use ⨆ s : finset ι, ∑ i in s, ∥⟪f i, g i⟫∥,
+  refine has_sum_of_is_lub_of_nonneg _ _ _,
+  { exact λ b, norm_nonneg _ },
+  refine is_lub_csupr _,
+  use ∥f∥ * ∥g∥,
+  rintros a ⟨s, rfl⟩,
+  calc _ ≤ ∑ i in s, ∥f i∥ * ∥g i∥ : finset.sum_le_sum _
+  ... ≤ ∥f∥ * ∥g∥ : _,
+  { intros i hi,
+    exact norm_inner_le_norm (f i) (g i) },
+  -- simp,
+  -- refine has_sum_of_is_lub _ _,
+end
+
+instance : inner_product_space 𝕜 (lp G 2) :=
+{ inner := λ f g, ∑' i, ⟪f i, g i⟫,
+  norm_sq_eq_inner := λ f, begin
+    calc ∥f∥ ^ 2 = ∥f∥ ^ (2:ℝ≥0∞).to_real : by norm_cast
+    ... = ∑' i, ∥f i∥ ^ (2:ℝ≥0∞).to_real : lp.norm_rpow_eq_tsum _ f
+    ... = ∑' i, ∥f i∥ ^ 2 : by norm_cast
+    ... = ∑' i, re ⟪f i, f i⟫ : by simp [norm_sq_eq_inner]
+    ... = re (∑' i, ⟪f i, f i⟫) : (is_R_or_C.re_clm.map_tsum _).symm
+    ... = _ : by congr,
+    { norm_num },
+    { exact summable_inner f f },
+  end,
+  conj_sym := λ f g, begin
+    calc conj _ = conj ∑' i, ⟪g i, f i⟫ : by congr
+    ... = ∑' i, conj ⟪g i, f i⟫ : is_R_or_C.conj_cle.map_tsum
+    ... = ∑' i, ⟪f i, g i⟫ : by simp [inner_conj_sym]
+    ... = _ : by congr,
+  end,
+  add_left := λ f₁ f₂ g, begin
+    calc _ = ∑' i, ⟪(f₁ + f₂) i, g i⟫ : _
+    ... = ∑' i, (⟪f₁ i, g i⟫ + ⟪f₂ i, g i⟫) : by simp [inner_add_left]
+    ... = (∑' i, ⟪f₁ i, g i⟫) + ∑' i, ⟪f₂ i, g i⟫ : tsum_add _ _
+    ... = _ : by congr,
+    { congr, },
+    { exact summable_inner f₁ g },
+    { exact summable_inner f₂ g }
+  end,
+  smul_left := λ f g c, begin
+    calc _ = ∑' i, ⟪c • f i, g i⟫ : _
+    ... = ∑' i, conj c * ⟪f i, g i⟫ : by simp [inner_smul_left]
+    ... = conj c * ∑' i, ⟪f i, g i⟫ : tsum_mul_left
+    ... = _ : _,
+    { sorry },
+    -- { congr },
+    { congr },
+  end,
+  .. lp.normed_space }
+
+lemma inner_eq_tsum (f g : lp G 2) : ⟪f, g⟫ = ∑' i, ⟪f i, g i⟫ := rfl
+
+lemma has_sum_inner (f g : lp G 2) : has_sum (λ i, ⟪f i, g i⟫) ⟪f, g⟫ := (summable_inner f g).has_sum
+
+lemma inner_single_left (i : ι) (a : G i) (f : lp G 2) : ⟪lp.single 2 i a, f⟫ = ⟪a, f i⟫ :=
+begin
+  refine (has_sum_inner (lp.single 2 i a) f).unique _,
+  convert has_sum_ite_eq i ⟪a, f i⟫,
+  ext j,
+  rw lp.single_apply,
+  split_ifs,
+  { subst h },
+  { simp }
+end
+
+lemma inner_single_right (i : ι) (a : G i) (f : lp G 2) : ⟪f, lp.single 2 i a⟫ = ⟪f i, a⟫ :=
+by simpa [inner_conj_sym] using congr_arg conj (inner_single_left i a f)
+
+end lp
+
 namespace orthogonal_family
-variables {G : ι → Type*} [Π i, inner_product_space 𝕜 (G i)] {V : Π i, G i →ₗᵢ[𝕜] E}
-  (hV : orthogonal_family 𝕜 V) --[dec_V : Π i (x : G i), decidable (x ≠ 0)]
+variables {V : Π i, G i →ₗᵢ[𝕜] E} (hV : orthogonal_family 𝕜 V)
 
 include hV
 
@@ -143,6 +220,22 @@ rfl
 @[simp] protected lemma repr_self (b : hilbert_basis ι 𝕜 E) (i : ι) :
   b.repr (b i) = lp.single 2 i (1:𝕜) :=
 by rw [← b.repr_symm_single, linear_isometry_equiv.apply_symm_apply]
+
+protected lemma repr_apply_apply (b : hilbert_basis ι 𝕜 E) (v : E) (i : ι) :
+  b.repr v i = ⟪b i, v⟫ :=
+begin
+  rw [← b.repr.inner_map_map (b i) v, b.repr_self, lp.inner_single_left],
+  simp,
+end
+
+@[simp] protected lemma orthonormal (b : hilbert_basis ι 𝕜 E) : orthonormal 𝕜 b :=
+begin
+  rw orthonormal_iff_ite,
+  intros i j,
+  rw [← b.repr.inner_map_map (b i) (b j), b.repr_self, b.repr_self, lp.inner_single_left,
+    lp.single_apply],
+  simp,
+end
 
 -- why does this proof show as timing out?
 protected lemma has_sum_repr_symm (b : hilbert_basis ι 𝕜 E) (f : ℓ²(ι, 𝕜)) :

@@ -315,6 +315,30 @@ begin
     rpow_one, div_self hG_zero], },
 end
 
+/-- Hölder inequality: the scalar product of two functions is bounded by the product of their
+`L^p` and `L^q` norms when `p` and `q` are conjugate exponents. A version for `nnreal`-valued
+functions. -/
+theorem inner_le_Lp_mul_Lq_tsum {f g : ι → ℝ≥0} {p q : ℝ} (hpq : p.is_conjugate_exponent q)
+  (hf : summable (λ i, (f i) ^ p)) (hg : summable (λ i, (g i) ^ q)) :
+  summable (λ i, f i * g i) ∧
+  ∑' i, f i * g i ≤ (∑' i, (f i) ^ p) ^ (1 / p) * (∑' i, (g i) ^ q) ^ (1 / q) :=
+begin
+  have H₁ : ∀ s : finset ι, ∑ i in s, f i * g i
+    ≤ (∑' i, (f i) ^ p) ^ (1 / p) * (∑' i, (g i) ^ q) ^ (1 / q),
+  { intros s,
+    refine le_trans (inner_le_Lp_mul_Lq s f g hpq) (mul_le_mul _ _ bot_le bot_le),
+    { rw nnreal.rpow_le_rpow_iff (one_div_pos.mpr hpq.pos),
+      exact sum_le_tsum _ (λ _ _, zero_le _) hf },
+    { rw nnreal.rpow_le_rpow_iff (one_div_pos.mpr hpq.symm.pos),
+      exact sum_le_tsum _ (λ _ _, zero_le _) hg } },
+  have bdd : bdd_above (set.range (λ s, ∑ i in s, f i * g i)),
+  { refine ⟨(∑' i, (f i) ^ p) ^ (1 / p) * (∑' i, (g i) ^ q) ^ (1 / q), _⟩,
+    rintros a ⟨s, rfl⟩,
+    exact H₁ s },
+  have H₂ : summable _ := (has_sum_of_is_lub _ (is_lub_csupr bdd)).summable,
+  exact ⟨H₂, tsum_le_of_sum_le H₂ H₁⟩,
+end
+
 /-- For `1 ≤ p`, the `p`-th power of the sum of `f i` is bounded above by a constant times the
 sum of the `p`-th powers of `f i`. Version for sums over finite sets, with `ℝ≥0`-valued functions.
 -/

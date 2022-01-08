@@ -9,13 +9,35 @@ import measure_theory.integral.set_integral
 -- Probability should move to `measure_theory/integral`
 
 noncomputable theory
-open_locale classical measure_theory nnreal ennreal
+open_locale classical measure_theory nnreal ennreal topological_space
 
 namespace measure_theory
 
-open set
+open set filter
 
 variables {α β ι : Type*} [normed_group β]
+
+section move
+
+/-
+### Egorov's theorem
+
+If `f : ℕ → α → β` is a sequence of measurable functions where `β` is a separable metric space,
+and `f` converges to `g : α → β` almost surely on a measurable set `s : set α` of finite measure,
+then, for all `ε > 0`, there exists a subset `t ⊆ s` such that `μ t < ε` and `f` converges to
+`g` uniformly on `A \ B`.
+-/
+
+variables {m : measurable_space α} {μ : measure α}
+
+theorem egorov {f : ℕ → α → β} {g : α → β} {s : set α} (hsm : measurable_set s) (hs : μ s < ∞)
+  (hfg : ∀ᵐ x ∂μ, x ∈ s → tendsto (λ n, f n x) at_top (𝓝 (g x))) (ε : ℝ≥0∞) :
+  ∃ t ⊆ s, μ t < ε ∧ tendsto_uniformly_on f g at_top t :=
+begin
+  sorry
+end
+
+end move
 
 -- **Change doc-strings**
 

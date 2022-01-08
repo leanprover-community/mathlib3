@@ -4,13 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn
 -/
 import data.nat.basic
-
+import logic.relation
 /-!
 # Relations on `ℕ`
 
 This file contains properties about relations on `ℕ` and their closure operations
 (like the transitive closure).
-
 -/
 
 open set nat

@@ -1,5 +1,6 @@
 import topology.continuous_function.compact
 import topology.continuous_function.locally_constant
+import number_theory.padics.padic_integers
 
 variables {X : Type*} [topological_space X] (R : Type*) [mul_zero_one_class R]
 
@@ -11,6 +12,28 @@ instance : inhabited (clopen_sets H) :=
 {
   default := ⟨∅, is_clopen_empty⟩
 }
+
+instance : semilattice_inf_bot (clopen_sets X) :=
+begin
+  constructor,
+  swap 5, use ⟨∅, is_clopen_empty⟩,
+  swap 5, rintros a b, refine (a.val ⊆ b.val),
+  swap 8, rintros a b, refine ⟨a.val ∩ b.val, is_clopen.inter a.prop b.prop⟩,
+  { rintros a, apply set.empty_subset, },
+  { rintros a b, apply set.inter_subset_left, },
+  { rintros a b, apply set.inter_subset_right, },
+  { rintros a b c ab ac, apply set.subset_inter_iff.2 ⟨ab, ac⟩, },
+  { rintros a, apply set.subset.refl, },
+  { rintros a b c ab ac, apply set.subset.trans ab ac, },
+  { rintros a b ab ba, apply subtype.eq, apply set.subset.antisymm ab ba, },
+end
+
+instance : lattice (clopen_sets X) :=
+begin
+  refine subtype.lattice _ _,
+  { rintros x y, apply is_clopen.union, },
+  { rintros x y, apply is_clopen.inter, },
+end
 
 /-- Characteristic functions are locally constant functions taking `x : X` to `1` if `x ∈ U`,
   where `U` is a clopen set, and `0` otherwise. -/

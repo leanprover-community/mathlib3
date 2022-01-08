@@ -1143,6 +1143,8 @@ open submodule
 
 variable (K)
 
+
+/-- The rank of a set of vectors as a natural number. -/
 protected noncomputable def set.finrank (s : set V) : ℕ := finrank K (span K s)
 
 variable {K}

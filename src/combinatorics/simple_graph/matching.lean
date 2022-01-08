@@ -55,26 +55,27 @@ noncomputable def is_matching.to_edge {M : subgraph G} (h : M.is_matching)
   (v : M.verts) : M.edge_set :=
 ⟨⟦(v, (h v.property).some)⟧, (h v.property).some_spec.1⟩
 
+lemma is_matching.to_edge_eq_of_adj {M : subgraph G} (h : M.is_matching) {v w : V}
+  (hv : v ∈ M.verts) (hvw : M.adj v w) : h.to_edge ⟨v, hv⟩ = ⟨⟦(v, w)⟧, hvw⟩ :=
+begin
+  simp only [is_matching.to_edge, subtype.mk_eq_mk],
+  congr,
+  exact ((h (M.edge_vert hvw)).some_spec.2 w hvw).symm,
+end
+
 lemma is_matching.to_edge.surjective {M : subgraph G} (h : M.is_matching) :
   function.surjective h.to_edge :=
 begin
   rintro ⟨e, he⟩,
   refine sym2.ind (λ x y he, _) e he,
-  use ⟨x, M.edge_vert he⟩,
-  simp only [is_matching.to_edge, subtype.mk_eq_mk, subtype.coe_mk, sym2.congr_right],
-  exact ((h (M.edge_vert he)).some_spec.2 y he).symm,
+  exact ⟨⟨x, M.edge_vert he⟩, h.to_edge_eq_of_adj _ he⟩,
 end
 
-lemma is_matching.eq_to_edge_of_adj {M : subgraph G} {v w : V}
+lemma is_matching.to_edge_eq_to_edge_of_adj {M : subgraph G} {v w : V}
   (h : M.is_matching) (hv : v ∈ M.verts) (hw : w ∈ M.verts) (ha : M.adj v w) :
   h.to_edge ⟨v, hv⟩ = h.to_edge ⟨w, hw⟩ :=
-begin
-  simp only [is_matching.to_edge, subtype.mk_eq_mk],
-  rw sym2.eq_swap,
-  congr,
-  { exact ((h (M.edge_vert ha)).some_spec.2 w ha).symm, },
-  { exact ((h (M.edge_vert (M.symm ha))).some_spec.2 v (M.symm ha)), },
-end
+by rw [h.to_edge_eq_of_adj hv ha, h.to_edge_eq_of_adj hw (M.symm ha),
+       subtype.mk_eq_mk, sym2.eq_swap]
 
 /--
 The subgraph `M` of `G` is a perfect matching on `G` if it's a matching and every vertex `G` is
@@ -98,9 +99,9 @@ lemma is_matching.even_card {M : subgraph G} [fintype M.verts] (h : M.is_matchin
 begin
   classical,
   rw is_matching_iff_forall_degree at h,
-  have := M.coe.sum_degrees_eq_twice_card_edges, simp [h] at this,
   use M.coe.edge_finset.card,
-  simpa only [← this, set.to_finset_card],
+  rw ← M.coe.sum_degrees_eq_twice_card_edges,
+  simp [h, finset.card_univ],
 end
 
 lemma is_perfect_matching_iff : M.is_perfect_matching ↔ ∀ v, ∃! w, M.adj v w :=

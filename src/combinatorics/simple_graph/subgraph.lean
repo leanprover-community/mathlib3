@@ -65,8 +65,8 @@ namespace subgraph
 
 variables {V : Type u} {G : simple_graph V}
 
-protected lemma loopless {v : V} (G' : subgraph G) : ¬G'.adj v v :=
-by { by_contra h, exact G.loopless v (G'.adj_sub h) }
+protected lemma loopless (G' : subgraph G) : irreflexive G'.adj :=
+λ v h, G.loopless v (G'.adj_sub h)
 
 lemma adj_comm (G' : subgraph G) (v w : V) : G'.adj v w ↔ G'.adj w v :=
 ⟨λ x, G'.symm x, λ x, G'.symm x⟩
@@ -96,7 +96,7 @@ In general, this adds in all vertices from `V` as isolated vertices. -/
   symm := G'.symm,
   loopless := λ v hv, G.loopless v (G'.adj_sub hv) }
 
-@[simp] lemma spanning_coe_adj_sub (G' : subgraph G) (u v : G'.verts)
+@[simp] lemma adj.of_spanning_coe {G' : subgraph G} {u v : G'.verts}
   (h : G'.spanning_coe.adj u v) : G.adj u v := G'.adj_sub h
 
 /-- `spanning_coe` is equivalent to `coe` for a subgraph that `is_spanning`.  -/
@@ -354,8 +354,9 @@ def finite_at_of_subgraph {G' G'' : subgraph G} [decidable_rel G'.adj]
    fintype (G'.neighbor_set v) :=
 set.fintype_subset (G''.neighbor_set v) (neighbor_set_subset_of_subgraph h v)
 
-noncomputable instance (G' : subgraph G) [fintype G'.verts] (v : V) : fintype (G'.neighbor_set v) :=
-by { classical, exact set.fintype_subset G'.verts (neighbor_set_subset_verts G' v) }
+instance (G' : subgraph G) [fintype G'.verts]
+  (v : V) [decidable_pred (∈ G'.neighbor_set v)] : fintype (G'.neighbor_set v) :=
+set.fintype_subset G'.verts (neighbor_set_subset_verts G' v)
 
 instance coe_finite_at {G' : subgraph G} (v : G'.verts) [fintype (G'.neighbor_set v)] :
   fintype (G'.coe.neighbor_set v) :=
@@ -363,7 +364,7 @@ fintype.of_equiv _ (coe_neighbor_set_equiv v).symm
 
 lemma is_spanning.card_verts [fintype V] {G' : subgraph G} [fintype G'.verts]
   (h : G'.is_spanning) : G'.verts.to_finset.card = fintype.card V :=
-by { rw is_spanning_iff at h, congr, convert set.to_finset_univ }
+by { rw is_spanning_iff at h, simp [h] }
 
 /-- The degree of a vertex in a subgraph. It's zero for vertices outside the subgraph. -/
 def degree (G' : subgraph G) (v : V) [fintype (G'.neighbor_set v)] : ℕ :=

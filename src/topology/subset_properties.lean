@@ -590,6 +590,9 @@ class noncompact_space (α : Type*) [topological_space α] : Prop :=
 
 export noncompact_space (noncompact_univ)
 
+lemma is_compact.ne_univ [noncompact_space α] {s : set α} (hs : is_compact s) : s ≠ univ :=
+λ h, noncompact_univ α (h ▸ hs)
+
 instance [noncompact_space α] : ne_bot (filter.cocompact α) :=
 begin
   refine filter.has_basis_cocompact.ne_bot_iff.2 (λ s hs, _),
@@ -721,31 +724,43 @@ lemma exists_subset_nhd_of_compact_space [compact_space α] {ι : Type*} [nonemp
   {U : set α} (hU : ∀ x ∈ ⋂ i, V i, U ∈ 𝓝 x) : ∃ i, V i ⊆ U :=
 exists_subset_nhd_of_compact' hV (λ i, (hV_closed i).is_compact) hV_closed hU
 
-lemma embedding.is_compact_iff_is_compact_image {f : α → β} (hf : embedding f) :
-  is_compact s ↔ is_compact (f '' s) :=
-iff.intro (assume h, h.image hf.continuous) $ assume h, begin
-  rw is_compact_iff_ultrafilter_le_nhds at ⊢ h,
-  intros u us',
-  have : ↑(u.map f) ≤ 𝓟 (f '' s), begin
-    rw [ultrafilter.coe_map, map_le_iff_le_comap, comap_principal], convert us',
-    exact preimage_image_eq _ hf.inj
-  end,
-  rcases h (u.map f) this with ⟨_, ⟨a, ha, ⟨⟩⟩, _⟩,
-  refine ⟨a, ha, _⟩,
-  rwa [hf.induced, nhds_induced, ←map_le_iff_le_comap]
+/-- If `f : α → β` is an `inducing` map, then the image `f '' s` of a set `s` is compact if and only
+if the set `s` is closed. -/
+lemma inducing.is_compact_iff {f : α → β} (hf : inducing f) {s : set α} :
+  is_compact (f '' s) ↔ is_compact s :=
+begin
+  refine ⟨_, λ hs, hs.image hf.continuous⟩,
+  introsI hs F F_ne_bot F_le,
+  obtain ⟨_, ⟨x, x_in : x ∈ s, rfl⟩, hx : cluster_pt (f x) (map f F)⟩ :=
+    hs (calc map f F ≤ map f (𝓟 s) : map_mono F_le
+                ... = 𝓟 (f '' s) : map_principal),
+  use [x, x_in],
+  suffices : (map f (𝓝 x ⊓ F)).ne_bot, by simpa [filter.map_ne_bot_iff],
+  rwa calc map f (𝓝 x ⊓ F) = map f ((comap f $ 𝓝 $ f x) ⊓ F) : by rw hf.nhds_eq_comap
+                        ... = 𝓝 (f x) ⊓ map f F : filter.push_pull' _ _ _
 end
 
-/-- A closed embedding is proper, ie, inverse images of compact sets are contained in compacts. -/
+/-- If `f : α → β` is an `embedding` (or more generally, an `inducing` map, see
+`inducing.is_compact_iff`), then the image `f '' s` of a set `s` is compact if and only if the set
+`s` is closed. -/
+lemma embedding.is_compact_iff_is_compact_image {f : α → β} (hf : embedding f) :
+  is_compact s ↔ is_compact (f '' s) :=
+hf.to_inducing.is_compact_iff.symm
+
+/-- The preimage of a compact set under a closed embedding is a compact set. -/
+lemma closed_embedding.is_compact_preimage {f : α → β} (hf : closed_embedding f) {K : set β}
+  (hK : is_compact K) : is_compact (f ⁻¹' K) :=
+begin
+  replace hK := hK.inter_right hf.closed_range,
+  rwa [← hf.to_inducing.is_compact_iff, image_preimage_eq_inter_range]
+end
+
+/-- A closed embedding is proper, ie, inverse images of compact sets are contained in compacts.
+Moreover, the preimage of a compact set is compact, see `closed_embedding.is_compact_preimage`. -/
 lemma closed_embedding.tendsto_cocompact
   {f : α → β} (hf : closed_embedding f) : tendsto f (filter.cocompact α) (filter.cocompact β) :=
-begin
-  rw filter.has_basis_cocompact.tendsto_iff filter.has_basis_cocompact,
-  intros K hK,
-  refine ⟨f ⁻¹' (K ∩ (set.range f)), _, λ x hx, by simpa using hx⟩,
-  apply hf.to_embedding.is_compact_iff_is_compact_image.mpr,
-  rw set.image_preimage_eq_of_subset (set.inter_subset_right _ _),
-  exact hK.inter_right hf.closed_range,
-end
+filter.has_basis_cocompact.tendsto_right_iff.mpr $ λ K hK,
+  (hf.is_compact_preimage hK).compl_mem_cocompact
 
 lemma compact_iff_compact_in_subtype {p : α → Prop} {s : set {a // p a}} :
   is_compact s ↔ is_compact ((coe : _ → α) '' s) :=
@@ -779,22 +794,6 @@ begin
   rw map_le_iff_le_comap at ha hb,
   refine ⟨⟨a, b⟩, ⟨sa, tb⟩, _⟩,
   rw nhds_prod_eq, exact le_inf ha hb
-end
-
-lemma inducing.is_compact_iff {f : α → β} (hf : inducing f) {s : set α} :
-  is_compact (f '' s) ↔ is_compact s :=
-begin
-  split,
-  { introsI hs F F_ne_bot F_le,
-    obtain ⟨_, ⟨x, x_in : x ∈ s, rfl⟩, hx : cluster_pt (f x) (map f F)⟩ :=
-      hs (calc map f F ≤ map f (𝓟 s) : map_mono F_le
-                  ... = 𝓟 (f '' s) : map_principal),
-    use [x, x_in],
-    suffices : (map f (𝓝 x ⊓ F)).ne_bot, by simpa [filter.map_ne_bot_iff],
-    rwa calc map f (𝓝 x ⊓ F) = map f ((comap f $ 𝓝 $ f x) ⊓ F) : by rw hf.nhds_eq_comap
-                          ... = 𝓝 (f x) ⊓ map f F : filter.push_pull' _ _ _ },
-  { intro hs,
-    exact hs.image hf.continuous }
 end
 
 /-- Finite topological spaces are compact. -/
@@ -961,6 +960,37 @@ begin
   { exact λ _, is_open_interior }
 end
 
+protected lemma closed_embedding.locally_compact_space [locally_compact_space β] {f : α → β}
+  (hf : closed_embedding f) : locally_compact_space α :=
+begin
+  have : ∀ x : α, (𝓝 x).has_basis (λ s, s ∈ 𝓝 (f x) ∧ is_compact s) (λ s, f ⁻¹' s),
+  { intro x,
+    rw hf.to_embedding.to_inducing.nhds_eq_comap,
+    exact (compact_basis_nhds _).comap _ },
+  exact locally_compact_space_of_has_basis this (λ x s hs, hf.is_compact_preimage hs.2)
+end
+
+protected lemma is_closed.locally_compact_space [locally_compact_space α] {s : set α}
+  (hs : is_closed s) : locally_compact_space s :=
+(closed_embedding_subtype_coe hs).locally_compact_space
+
+protected lemma open_embedding.locally_compact_space [locally_compact_space β] {f : α → β}
+  (hf : open_embedding f) : locally_compact_space α :=
+begin
+  have : ∀ x : α, (𝓝 x).has_basis (λ s, (s ∈ 𝓝 (f x) ∧ is_compact s) ∧ s ⊆ range f) (λ s, f ⁻¹' s),
+  { intro x,
+    rw hf.to_embedding.to_inducing.nhds_eq_comap,
+    exact ((compact_basis_nhds _).restrict_subset $
+      hf.open_range.mem_nhds $ mem_range_self _).comap _ },
+  refine locally_compact_space_of_has_basis this (λ x s hs, _),
+  rw [← hf.to_inducing.is_compact_iff, image_preimage_eq_of_subset hs.2],
+  exact hs.1.2
+end
+
+protected lemma is_open.locally_compact_space [locally_compact_space α] {s : set α}
+  (hs : is_open s) : locally_compact_space s :=
+hs.open_embedding_subtype_coe.locally_compact_space
+
 lemma ultrafilter.le_nhds_Lim [compact_space α] (F : ultrafilter α) :
   ↑F ≤ 𝓝 (@Lim _ _ (F : filter α).nonempty_of_ne_bot F) :=
 begin
@@ -1061,7 +1091,7 @@ Union_eq_univ_iff.mp (Union_compact_covering α) x
 
 /-- If `α` is a `σ`-compact space, then a locally finite family of nonempty sets of `α` can have
 only countably many elements, `set.countable` version. -/
-lemma locally_finite.countable_of_sigma_compact {ι : Type*} {f : ι → set α} (hf : locally_finite f)
+protected lemma locally_finite.countable_univ {ι : Type*} {f : ι → set α} (hf : locally_finite f)
   (hne : ∀ i, (f i).nonempty) :
   countable (univ : set ι) :=
 begin
@@ -1071,6 +1101,12 @@ begin
   rcases Union_eq_univ_iff.1 (Union_compact_covering α) x with ⟨n, hn⟩,
   exact mem_Union.2 ⟨n, x, hx, hn⟩
 end
+
+/-- If `f : ι → set α` is a locally finite covering of a σ-compact topological space by nonempty
+sets, then the index type `ι` is encodable. -/
+protected noncomputable def locally_finite.encodable {ι : Type*} {f : ι → set α}
+  (hf : locally_finite f) (hne : ∀ i, (f i).nonempty) : encodable ι :=
+@encodable.of_equiv _ _ (hf.countable_univ hne).to_encodable (equiv.set.univ _).symm
 
 /-- In a topological space with sigma compact topology, if `f` is a function that sends each point
 `x` of a closed set `s` to a neighborhood of `x` within `s`, then for some countable set `t ⊆ s`,
@@ -1301,6 +1337,15 @@ lemma is_irreducible.closure {s : set α} (h : is_irreducible s) :
   is_irreducible (closure s) :=
 ⟨h.nonempty.closure, h.is_preirreducible.closure⟩
 
+lemma is_preirreducible_of_subsingleton (s : set α) [hs : subsingleton s] : is_preirreducible s :=
+begin
+  cases s.eq_empty_or_nonempty,
+  { exact h.symm ▸ is_preirreducible_empty },
+  { obtain ⟨x, e⟩ := exists_eq_singleton_iff_nonempty_unique_mem.mpr
+      ⟨h, λ _ _ a b, by injection @@subsingleton.elim hs ⟨_, a⟩ ⟨_, b⟩⟩,
+    exact e.symm ▸ is_irreducible_singleton.2 }
+end
+
 theorem exists_preirreducible (s : set α) (H : is_preirreducible s) :
   ∃ t : set α, is_preirreducible t ∧ s ⊆ t ∧ ∀ u, is_preirreducible u → t ⊆ u → u = t :=
 let ⟨m, hm, hsm, hmm⟩ := zorn.zorn_subset_nonempty {t : set α | is_preirreducible t}
@@ -1354,6 +1399,15 @@ class irreducible_space (α : Type u) [topological_space α] extends preirreduci
 
 -- see Note [lower instance priority]
 attribute [instance, priority 50] irreducible_space.to_nonempty
+
+lemma irreducible_space.is_irreducible_univ (α : Type u) [topological_space α]
+  [irreducible_space α] : is_irreducible (⊤ : set α) :=
+⟨by simp, preirreducible_space.is_preirreducible_univ α⟩
+
+lemma irreducible_space_def (α : Type u) [topological_space α] :
+  irreducible_space α ↔ is_irreducible (⊤ : set α) :=
+⟨@@irreducible_space.is_irreducible_univ α _,
+  λ h, by { haveI : preirreducible_space α := ⟨h.2⟩, exact ⟨⟨h.1.some⟩⟩ }⟩
 
 theorem nonempty_preirreducible_inter [preirreducible_space α] {s t : set α} :
   is_open s → is_open t → s.nonempty → t.nonempty → (s ∩ t).nonempty :=
@@ -1500,6 +1554,56 @@ begin
       rw [finset.mem_insert, finset.mem_singleton],
       rintro (rfl|rfl); assumption },
     { simpa using H } }
+end
+
+/-- A nonemtpy open subset of a preirreducible subspace is dense in the subspace. -/
+lemma subset_closure_inter_of_is_preirreducible_of_is_open {S U : set α}
+  (hS : is_preirreducible S) (hU : is_open U) (h : (S ∩ U).nonempty) : S ⊆ closure (S ∩ U) :=
+begin
+  by_contra h',
+  obtain ⟨x, h₁, h₂, h₃⟩ := hS _ (closure (S ∩ U))ᶜ hU (is_open_compl_iff.mpr is_closed_closure) h
+    (set.inter_compl_nonempty_iff.mpr h'),
+  exact h₃ (subset_closure ⟨h₁, h₂⟩)
+end
+
+/-- If `∅ ≠ U ⊆ S ⊆ Z` such that `U` is open and `Z` is preirreducible, then `S` is irreducible. -/
+lemma is_preirreducible.subset_irreducible {S U Z : set α}
+  (hZ : is_preirreducible Z) (hU : U.nonempty) (hU' : is_open U)
+  (h₁ : U ⊆ S) (h₂ : S ⊆ Z) : is_irreducible S :=
+begin
+  classical,
+  obtain ⟨z, hz⟩ := hU,
+  replace hZ : is_irreducible Z := ⟨⟨z, h₂ (h₁ hz)⟩, hZ⟩,
+  refine ⟨⟨z, h₁ hz⟩, _⟩,
+  rintros u v hu hv ⟨x, hx, hx'⟩ ⟨y, hy, hy'⟩,
+  obtain ⟨a, -, ha'⟩ := is_irreducible_iff_sInter.mp hZ {U, u, v} (by tidy) _,
+  replace ha' : a ∈ U ∧ a ∈ u ∧ a ∈ v := by simpa using ha',
+  exact ⟨a, h₁ ha'.1, ha'.2⟩,
+  { intros U H,
+    simp only [finset.mem_insert, finset.mem_singleton] at H,
+    rcases H with (rfl|rfl|rfl),
+    exacts [⟨z, h₂ (h₁ hz), hz⟩, ⟨x, h₂ hx, hx'⟩, ⟨y, h₂ hy, hy'⟩] }
+end
+
+lemma is_preirreducible.open_subset {Z U : set α} (hZ : is_preirreducible Z)
+  (hU : is_open U) (hU' : U ⊆ Z) :
+  is_preirreducible U :=
+U.eq_empty_or_nonempty.elim (λ h, h.symm ▸ is_preirreducible_empty)
+  (λ h, (hZ.subset_irreducible h hU (λ _, id) hU').2)
+
+lemma is_preirreducible.interior {Z : set α} (hZ : is_preirreducible Z) :
+  is_preirreducible (interior Z) :=
+hZ.open_subset is_open_interior interior_subset
+
+lemma is_preirreducible.preimage [topological_space β] {Z : set α} (hZ : is_preirreducible Z)
+  {f : β → α} (hf : open_embedding f) :
+  is_preirreducible (f ⁻¹' Z) :=
+begin
+  rintros U V hU hV ⟨x, hx, hx'⟩ ⟨y, hy, hy'⟩,
+  obtain ⟨_, h₁, ⟨z, h₂, rfl⟩, ⟨z', h₃, h₄⟩⟩ := hZ _ _ (hf.is_open_map _ hU) (hf.is_open_map _ hV)
+    ⟨f x, hx, set.mem_image_of_mem f hx'⟩ ⟨f y, hy, set.mem_image_of_mem f hy'⟩,
+  cases hf.inj h₄,
+  exact ⟨z, h₁, h₂, h₃⟩
 end
 
 end preirreducible

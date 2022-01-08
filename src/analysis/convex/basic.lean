@@ -505,7 +505,9 @@ iff.intro
   (λ h x y hx hy a b ha hb hab,
     (h ha hb hab) (set.add_mem_add ⟨_, hx, rfl⟩ ⟨_, hy, rfl⟩))
 
-lemma convex_empty : convex 𝕜 (∅ : set E) := by finish
+lemma convex_empty : convex 𝕜 (∅ : set E) :=
+by simp only [convex_iff_pointwise_add_subset, add_empty, forall_const, empty_subset,
+  implies_true_iff, smul_set_empty]
 
 lemma convex_univ : convex 𝕜 (set.univ : set E) := λ _ _ _ _ _ _ _ _ _, trivial
 

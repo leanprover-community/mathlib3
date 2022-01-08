@@ -1177,6 +1177,18 @@ def homemorph.to_measurable_equiv (h : α ≃ₜ β) : α ≃ᵐ β :=
   measurable_to_fun := h.continuous_to_fun.measurable,
   measurable_inv_fun := h.continuous_inv_fun.measurable }
 
+protected lemma is_finite_measure_on_compacts.map
+  {α : Type*} {m0 : measurable_space α} [topological_space α] [opens_measurable_space α]
+  {β : Type*} [measurable_space β] [topological_space β] [borel_space β]
+  [t2_space β] (μ : measure α) [is_finite_measure_on_compacts μ] (f : α ≃ₜ β) :
+  is_finite_measure_on_compacts (measure.map f μ) :=
+⟨begin
+  assume K hK,
+  rw [measure.map_apply f.measurable hK.measurable_set],
+  apply is_compact.measure_lt_top,
+  rwa f.compact_preimage
+end⟩
+
 end borel_space
 
 instance empty.borel_space : borel_space empty := ⟨borel_eq_top_of_discrete.symm⟩
@@ -1297,6 +1309,7 @@ lemma measurable.inf_nndist {f : β → α} (hf : measurable f) {s : set α} :
   measurable (λ x, inf_nndist (f x) s) :=
 measurable_inf_nndist.comp hf
 
+section
 variables [second_countable_topology α]
 
 @[measurability]
@@ -1316,6 +1329,45 @@ continuous_nndist.measurable
 lemma measurable.nndist {f g : β → α} (hf : measurable f) (hg : measurable g) :
   measurable (λ b, nndist (f b) (g b)) :=
 (@continuous_nndist α _).measurable2 hf hg
+
+end
+
+/-- If a set has a closed thickening with finite measure, then the measure of its `r`-closed
+thickenings converges to the measure of its closure as `r` tends to `0`. -/
+lemma tendsto_measure_cthickening {μ : measure α} {s : set α}
+  (hs : ∃ R > 0, μ (cthickening R s) ≠ ∞) :
+  tendsto (λ r, μ (cthickening r s)) (𝓝 0) (𝓝 (μ (closure s))) :=
+begin
+  have A : tendsto (λ r, μ (cthickening r s)) (𝓝[Ioi 0] 0) (𝓝 (μ (closure s))),
+  { rw closure_eq_Inter_cthickening,
+    exact tendsto_measure_bInter_gt (λ r hr, is_closed_cthickening.measurable_set)
+      (λ i j ipos ij, cthickening_mono ij _) hs },
+  have B : tendsto (λ r, μ (cthickening r s)) (𝓝[Iic 0] 0) (𝓝 (μ (closure s))),
+  { apply tendsto.congr' _ tendsto_const_nhds,
+    filter_upwards [self_mem_nhds_within],
+    assume r hr,
+    rw cthickening_of_nonpos hr },
+  convert B.sup A,
+  exact (nhds_left_sup_nhds_right' 0).symm,
+end
+
+/-- If a closed set has a closed thickening with finite measure, then the measure of its `r`-closed
+thickenings converges to its measure as `r` tends to `0`. -/
+lemma tendsto_measure_cthickening_of_is_closed {μ : measure α} {s : set α}
+  (hs : ∃ R > 0, μ (cthickening R s) ≠ ∞) (h's : is_closed s) :
+  tendsto (λ r, μ (cthickening r s)) (𝓝 0) (𝓝 (μ s)) :=
+begin
+  convert tendsto_measure_cthickening hs,
+  exact h's.closure_eq.symm
+end
+
+/-- Given a compact set in a proper space, the measure of its `r`-closed thickenings converges to
+its measure as `r` tends to `0`. -/
+lemma tendsto_measure_cthickening_of_is_compact [proper_space α] {μ : measure α}
+  [is_finite_measure_on_compacts μ] {s : set α} (hs : is_compact s) :
+  tendsto (λ r, μ (cthickening r s)) (𝓝 0) (𝓝 (μ s)) :=
+tendsto_measure_cthickening_of_is_closed
+  ⟨1, zero_lt_one, (bounded.measure_lt_top hs.bounded.cthickening).ne⟩ hs.is_closed
 
 end metric_space
 
@@ -1410,7 +1462,7 @@ begin
     simp only [mem_Union, mem_singleton_iff], rintro ⟨a, b, h, rfl⟩,
     rw (set.ext (λ x, _) : Ioo (a : ℝ) b = (⋃c>a, (Iio c)ᶜ) ∩ Iio b),
     { have hg : ∀ q : ℚ, g.measurable_set' (Iio q) :=
-        λ q, generate_measurable.basic (Iio q) (by { simp, exact ⟨_, rfl⟩ }),
+        λ q, generate_measurable.basic (Iio q) (by simp),
       refine @measurable_set.inter _ g _ _ _ (hg _),
       refine @measurable_set.bUnion _ _ g _ _ (countable_encodable _) (λ c h, _),
       exact @measurable_set.compl _ _ g (hg _) },

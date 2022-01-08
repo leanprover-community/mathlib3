@@ -3,29 +3,32 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
+import data.matrix.basis
 import linear_algebra.basis
 import linear_algebra.pi
-import data.matrix.basis
 
 /-!
 # The standard basis
 
-This file defines the standard basis `std_basis R φ i b j`, which is `b` where `i = j` and `0`
-elsewhere.
+This file defines the standard basis `pi.basis (s : ∀ j, basis (ι j) R (M j))`,
+which is the `Σ j, ι j`-indexed basis of Π j, M j`. The basis vectors are given by
+`pi.basis s ⟨j, i⟩ j' = linear_map.std_basis R M j' (s j) i = if j = j' then s i else 0`.
 
-To give a concrete example, `std_basis R (λ (i : fin 3), R) i 1` gives the `i`th unit basis vector
-in `R³`, and `pi.is_basis_fun` proves this is a basis over `fin 3 → R`.
+The standard basis on `R^η`, i.e. `η → R` is called `pi.basis_fun`.
+
+To give a concrete example, `linear_map.std_basis R (λ (i : fin 3), R) i 1`
+gives the `i`th unit basis vector in `R³`, and `pi.basis_fun R (fin 3)` proves
+this is a basis over `fin 3 → R`.
 
 ## Main definitions
 
- - `linear_map.std_basis R ϕ i b`: the `i`'th standard `R`-basis vector on `Π i, ϕ i`,
-   scaled by `b`.
-
-## Main results
-
- - `pi.is_basis_std_basis`: `std_basis` turns a component-wise basis into a basis on the product
-   type.
- - `pi.is_basis_fun`: `std_basis R (λ _, R) i 1` is a basis for `n → R`.
+ - `linear_map.std_basis R M`: if `x` is a basis vector of `M i`, then
+   `linear_map.std_basis R M i x` is the `i`th standard basis vector of `Π i, M i`.
+ - `pi.basis s`: given a basis `s i` for each `M i`, the standard basis on `Π i, M i`
+ - `pi.basis_fun R η`: the standard basis on `R^η`, i.e. `η → R`, given by
+   `pi.basis_fun R η i j = if i = j then 1 else 0`.
+ - `matrix.std_basis R n m`: the standard basis on `matrix n m R`, given by
+   `matrix.std_basis R n m (i, j) i' j' = if (i, j) = (i', j') then 1 else 0`.
 
 -/
 

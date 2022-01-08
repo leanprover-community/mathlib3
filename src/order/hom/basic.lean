@@ -10,12 +10,12 @@ import tactic.monotonicity.basic
 # Order homomorphisms
 
 This file defines order homomorphisms, which are bundled monotone functions. A preorder
-homomorphism `f : α →ₘ β` is a function `α → β` along with a proof that `∀ x y, x ≤ y → f x ≤ f y`.
+homomorphism `f : α →o β` is a function `α → β` along with a proof that `∀ x y, x ≤ y → f x ≤ f y`.
 
 ## Main definitions
 
 In this file we define the following bundled monotone maps:
- * `order_hom α β` a.k.a. `α →ₘ β`: Preorder homomorphism.
+ * `order_hom α β` a.k.a. `α →o β`: Preorder homomorphism.
     An `order_hom α β` is a function `f : α → β` such that `a₁ ≤ a₂ → f a₁ ≤ f a₂`
  * `order_embedding α β` a.k.a. `α ↪o β`: Relation embedding.
     An `order_embedding α β` is an embedding `f : α ↪ β` such that `a ≤ b ↔ f a ≤ f b`.
@@ -29,16 +29,16 @@ one without it (e.g., `order_hom.compₘ` and `order_hom.comp`). This means that
 function is a "more bundled" version of the latter. We can't just drop the "less bundled" version
 because the more bundled version usually does not work with dot notation.
 
-* `order_hom.id`: identity map as `α →ₘ α`;
-* `order_hom.curry`: an order isomorphism between `α × β →ₘ γ` and `α →ₘ β →ₘ γ`;
+* `order_hom.id`: identity map as `α →o α`;
+* `order_hom.curry`: an order isomorphism between `α × β →o γ` and `α →o β →o γ`;
 * `order_hom.comp`: composition of two bundled monotone maps;
 * `order_hom.compₘ`: composition of bundled monotone maps as a bundled monotone map;
 * `order_hom.const`: constant function as a bundled monotone map;
-* `order_hom.prod`: combine `α →ₘ β` and `α →ₘ γ` into `α →ₘ β × γ`;
+* `order_hom.prod`: combine `α →o β` and `α →o γ` into `α →o β × γ`;
 * `order_hom.prodₘ`: a more bundled version of `order_hom.prod`;
-* `order_hom.prod_iso`: order isomorphism between `α →ₘ β × γ` and `(α →ₘ β) × (α →ₘ γ)`;
+* `order_hom.prod_iso`: order isomorphism between `α →o β × γ` and `(α →o β) × (α →o γ)`;
 * `order_hom.diag`: diagonal embedding of `α` into `α × α` as a bundled monotone map;
-* `order_hom.on_diag`: restrict a monotone map `α →ₘ α →ₘ β` to the diagonal;
+* `order_hom.on_diag`: restrict a monotone map `α →o α →o β` to the diagonal;
 * `order_hom.fst`: projection `prod.fst : α × β → α` as a bundled monotone map;
 * `order_hom.snd`: projection `prod.snd : α × β → β` as a bundled monotone map;
 * `order_hom.prod_map`: `prod.map f g` as a bundled monotone map;
@@ -46,18 +46,18 @@ because the more bundled version usually does not work with dot notation.
   monotone map;
 * `order_hom.coe_fn_hom`: coercion to function as a bundled monotone map;
 * `order_hom.apply`: application of a `order_hom` at a point as a bundled monotone map;
-* `order_hom.pi`: combine a family of monotone maps `f i : α →ₘ π i` into a monotone map
-  `α →ₘ Π i, π i`;
-* `order_hom.pi_iso`: order isomorphism between `α →ₘ Π i, π i` and `Π i, α →ₘ π i`;
+* `order_hom.pi`: combine a family of monotone maps `f i : α →o π i` into a monotone map
+  `α →o Π i, π i`;
+* `order_hom.pi_iso`: order isomorphism between `α →o Π i, π i` and `Π i, α →o π i`;
 * `order_hom.subtyle.val`: embedding `subtype.val : subtype p → α` as a bundled monotone map;
-* `order_hom.dual`: reinterpret a monotone map `α →ₘ β` as a monotone map
-  `order_dual α →ₘ order_dual β`;
-* `order_hom.dual_iso`: order isomorphism between `α →ₘ β` and
-  `order_dual (order_dual α →ₘ order_dual β)`;
+* `order_hom.dual`: reinterpret a monotone map `α →o β` as a monotone map
+  `order_dual α →o order_dual β`;
+* `order_hom.dual_iso`: order isomorphism between `α →o β` and
+  `order_dual (order_dual α →o order_dual β)`;
 
-We also define two functions to convert other bundled maps to `α →ₘ β`:
+We also define two functions to convert other bundled maps to `α →o β`:
 
-* `order_embedding.to_order_hom`: convert `α ↪o β` to `α →ₘ β`;
+* `order_embedding.to_order_hom`: convert `α ↪o β` to `α →o β`;
 * `rel_hom.to_order_hom`: conver a `rel_hom` between strict orders to a `order_hom`.
 
 ## Tags
@@ -70,7 +70,11 @@ structure order_hom (α β : Type*) [preorder α] [preorder β] :=
 (to_fun   : α → β)
 (monotone' : monotone to_fun)
 
-infixr ` →ₘ `:25 := order_hom
+infixr ` →o `:25 := order_hom
+
+/-- `order_hom_class F α b` asserts that `F` is a type of `≤`-preserving morphisms. -/
+abbreviation order_hom_class (F : Type*) (α β : out_param Type*) [preorder α] [preorder β] :=
+rel_hom_class F ((≤) : α → α → Prop) ((≤) : β → β → Prop).
 
 /-- An order embedding is an embedding `f : α ↪ β` such that `a ≤ b ↔ (f a) ≤ (f b)`.
 This definition is an abbreviation of `rel_embedding (≤) (≤)`. -/
@@ -87,54 +91,67 @@ infix ` ≃o `:25 := order_iso
 
 variables {α β γ δ : Type*}
 
+namespace order_hom_class
+
+variables {F : Type*} [preorder α] [preorder β] [order_hom_class F α β]
+
+protected lemma monotone (f : F) : monotone (f : α → β) := λ _ _, map_rel f
+protected lemma mono (f : F) : monotone (f : α → β) := λ _ _, map_rel f
+
+end order_hom_class
+
 namespace order_hom
 variables [preorder α] [preorder β] [preorder γ] [preorder δ]
 
-instance : has_coe_to_fun (α →ₘ β) (λ _, α → β) := ⟨order_hom.to_fun⟩
+instance : has_coe_to_fun (α →o β) (λ _, α → β) := ⟨order_hom.to_fun⟩
 
 initialize_simps_projections order_hom (to_fun → coe)
 
-protected lemma monotone (f : α →ₘ β) : monotone f := f.monotone'
-protected lemma mono (f : α →ₘ β) : monotone f := f.monotone
+protected lemma monotone (f : α →o β) : monotone f := f.monotone'
+protected lemma mono (f : α →o β) : monotone f := f.monotone
 
-@[simp] lemma to_fun_eq_coe {f : α →ₘ β} : f.to_fun = f := rfl
+instance : order_hom_class (α →o β) α β :=
+{ coe := to_fun,
+  coe_injective' := λ f g h, by { cases f, cases g, congr' },
+  map_rel := λ f, f.monotone }
+
+@[simp] lemma to_fun_eq_coe {f : α →o β} : f.to_fun = f := rfl
 @[simp] lemma coe_fun_mk {f : α → β} (hf : _root_.monotone f) : (mk f hf : α → β) = f := rfl
 
 @[ext] -- See library note [partially-applied ext lemmas]
-lemma ext (f g : α →ₘ β) (h : (f : α → β) = g) : f = g :=
-by { cases f, cases g, congr, exact h }
+lemma ext (f g : α →o β) (h : (f : α → β) = g) : f = g := fun_like.coe_injective h
 
 /-- One can lift an unbundled monotone function to a bundled one. -/
-instance : can_lift (α → β) (α →ₘ β) :=
+instance : can_lift (α → β) (α →o β) :=
 { coe := coe_fn,
   cond := monotone,
   prf := λ f h, ⟨⟨f, h⟩, rfl⟩ }
 
 /-- The identity function as bundled monotone function. -/
 @[simps {fully_applied := ff}]
-def id : α →ₘ α := ⟨id, monotone_id⟩
+def id : α →o α := ⟨id, monotone_id⟩
 
-instance : inhabited (α →ₘ α) := ⟨id⟩
+instance : inhabited (α →o α) := ⟨id⟩
 
-/-- The preorder structure of `α →ₘ β` is pointwise inequality: `f ≤ g ↔ ∀ a, f a ≤ g a`. -/
-instance : preorder (α →ₘ β) :=
-@preorder.lift (α →ₘ β) (α → β) _ coe_fn
+/-- The preorder structure of `α →o β` is pointwise inequality: `f ≤ g ↔ ∀ a, f a ≤ g a`. -/
+instance : preorder (α →o β) :=
+@preorder.lift (α →o β) (α → β) _ coe_fn
 
-instance {β : Type*} [partial_order β] : partial_order (α →ₘ β) :=
-@partial_order.lift (α →ₘ β) (α → β) _ coe_fn ext
+instance {β : Type*} [partial_order β] : partial_order (α →o β) :=
+@partial_order.lift (α →o β) (α → β) _ coe_fn ext
 
-lemma le_def {f g : α →ₘ β} : f ≤ g ↔ ∀ x, f x ≤ g x := iff.rfl
+lemma le_def {f g : α →o β} : f ≤ g ↔ ∀ x, f x ≤ g x := iff.rfl
 
-@[simp, norm_cast] lemma coe_le_coe {f g : α →ₘ β} : (f : α → β) ≤ g ↔ f ≤ g := iff.rfl
+@[simp, norm_cast] lemma coe_le_coe {f g : α →o β} : (f : α → β) ≤ g ↔ f ≤ g := iff.rfl
 
 @[simp] lemma mk_le_mk {f g : α → β} {hf hg} : mk f hf ≤ mk g hg ↔ f ≤ g := iff.rfl
 
-@[mono] lemma apply_mono {f g : α →ₘ β} {x y : α} (h₁ : f ≤ g) (h₂ : x ≤ y) :
+@[mono] lemma apply_mono {f g : α →o β} {x y : α} (h₁ : f ≤ g) (h₂ : x ≤ y) :
   f x ≤ g y :=
 (h₁ x).trans $ g.mono h₂
 
-/-- Curry/uncurry as an order isomorphism between `α × β →ₘ γ` and `α →ₘ β →ₘ γ`. -/
-def curry : (α × β →ₘ γ) ≃o (α →ₘ β →ₘ γ) :=
+/-- Curry/uncurry as an order isomorphism between `α × β →o γ` and `α →o β →o γ`. -/
+def curry : (α × β →o γ) ≃o (α →o β →o γ) :=
 { to_fun := λ f, ⟨λ x, ⟨function.curry f x, λ y₁ y₂ h, f.mono ⟨le_rfl, h⟩⟩,
     λ x₁ x₂ h y, f.mono ⟨h, le_rfl⟩⟩,
   inv_fun := λ f, ⟨function.uncurry (λ x, f x), λ x y h, (f.mono h.1 x.2).trans $ (f y.1).mono h.2⟩,
@@ -142,80 +159,80 @@ def curry : (α × β →ₘ γ) ≃o (α →ₘ β →ₘ γ) :=
   right_inv := λ f, by { ext x y, refl },
   map_rel_iff' := λ f g, by simp [le_def] }
 
-@[simp] lemma curry_apply (f : α × β →ₘ γ) (x : α) (y : β) : curry f x y = f (x, y) := rfl
+@[simp] lemma curry_apply (f : α × β →o γ) (x : α) (y : β) : curry f x y = f (x, y) := rfl
 
-@[simp] lemma curry_symm_apply (f : α →ₘ β →ₘ γ) (x : α × β) : curry.symm f x = f x.1 x.2 := rfl
+@[simp] lemma curry_symm_apply (f : α →o β →o γ) (x : α × β) : curry.symm f x = f x.1 x.2 := rfl
 
 /-- The composition of two bundled monotone functions. -/
 @[simps {fully_applied := ff}]
-def comp (g : β →ₘ γ) (f : α →ₘ β) : α →ₘ γ := ⟨g ∘ f, g.mono.comp f.mono⟩
+def comp (g : β →o γ) (f : α →o β) : α →o γ := ⟨g ∘ f, g.mono.comp f.mono⟩
 
-@[mono] lemma comp_mono ⦃g₁ g₂ : β →ₘ γ⦄ (hg : g₁ ≤ g₂) ⦃f₁ f₂ : α →ₘ β⦄ (hf : f₁ ≤ f₂) :
+@[mono] lemma comp_mono ⦃g₁ g₂ : β →o γ⦄ (hg : g₁ ≤ g₂) ⦃f₁ f₂ : α →o β⦄ (hf : f₁ ≤ f₂) :
   g₁.comp f₁ ≤ g₂.comp f₂ :=
 λ x, (hg _).trans (g₂.mono $ hf _)
 
 /-- The composition of two bundled monotone functions, a fully bundled version. -/
 @[simps {fully_applied := ff}]
-def compₘ : (β →ₘ γ) →ₘ (α →ₘ β) →ₘ α →ₘ γ :=
-curry ⟨λ f : (β →ₘ γ) × (α →ₘ β), f.1.comp f.2, λ f₁ f₂ h, comp_mono h.1 h.2⟩
+def compₘ : (β →o γ) →o (α →o β) →o α →o γ :=
+curry ⟨λ f : (β →o γ) × (α →o β), f.1.comp f.2, λ f₁ f₂ h, comp_mono h.1 h.2⟩
 
-@[simp] lemma comp_id (f : α →ₘ β) : comp f id = f :=
+@[simp] lemma comp_id (f : α →o β) : comp f id = f :=
 by { ext, refl }
 
-@[simp] lemma id_comp (f : α →ₘ β) : comp id f = f :=
+@[simp] lemma id_comp (f : α →o β) : comp id f = f :=
 by { ext, refl }
 
 /-- Constant function bundled as a `order_hom`. -/
 @[simps {fully_applied := ff}]
-def const (α : Type*) [preorder α] {β : Type*} [preorder β] : β →ₘ α →ₘ β :=
+def const (α : Type*) [preorder α] {β : Type*} [preorder β] : β →o α →o β :=
 { to_fun := λ b, ⟨function.const α b, λ _ _ _, le_rfl⟩,
   monotone' := λ b₁ b₂ h x, h }
 
-@[simp] lemma const_comp (f : α →ₘ β) (c : γ) : (const β c).comp f = const α c := rfl
+@[simp] lemma const_comp (f : α →o β) (c : γ) : (const β c).comp f = const α c := rfl
 
-@[simp] lemma comp_const (γ : Type*) [preorder γ] (f : α →ₘ β) (c : α) :
+@[simp] lemma comp_const (γ : Type*) [preorder γ] (f : α →o β) (c : α) :
   f.comp (const γ c) = const γ (f c) := rfl
 
 /-- Given two bundled monotone maps `f`, `g`, `f.prod g` is the map `x ↦ (f x, g x)` bundled as a
 `order_hom`. -/
-@[simps] protected def prod (f : α →ₘ β) (g : α →ₘ γ) : α →ₘ (β × γ) :=
+@[simps] protected def prod (f : α →o β) (g : α →o γ) : α →o (β × γ) :=
 ⟨λ x, (f x, g x), λ x y h, ⟨f.mono h, g.mono h⟩⟩
 
-@[mono] lemma prod_mono {f₁ f₂ : α →ₘ β} (hf : f₁ ≤ f₂) {g₁ g₂ : α →ₘ γ} (hg : g₁ ≤ g₂) :
+@[mono] lemma prod_mono {f₁ f₂ : α →o β} (hf : f₁ ≤ f₂) {g₁ g₂ : α →o γ} (hg : g₁ ≤ g₂) :
   f₁.prod g₁ ≤ f₂.prod g₂ :=
 λ x, prod.le_def.2 ⟨hf _, hg _⟩
 
-lemma comp_prod_comp_same (f₁ f₂ : β →ₘ γ) (g : α →ₘ β) :
+lemma comp_prod_comp_same (f₁ f₂ : β →o γ) (g : α →o β) :
   (f₁.comp g).prod (f₂.comp g) = (f₁.prod f₂).comp g :=
 rfl
 
 /-- Given two bundled monotone maps `f`, `g`, `f.prod g` is the map `x ↦ (f x, g x)` bundled as a
 `order_hom`. This is a fully bundled version. -/
-@[simps] def prodₘ : (α →ₘ β) →ₘ (α →ₘ γ) →ₘ α →ₘ β × γ :=
-curry ⟨λ f : (α →ₘ β) × (α →ₘ γ), f.1.prod f.2, λ f₁ f₂ h, prod_mono h.1 h.2⟩
+@[simps] def prodₘ : (α →o β) →o (α →o γ) →o α →o β × γ :=
+curry ⟨λ f : (α →o β) × (α →o γ), f.1.prod f.2, λ f₁ f₂ h, prod_mono h.1 h.2⟩
 
 /-- Diagonal embedding of `α` into `α × α` as a `order_hom`. -/
-@[simps] def diag : α →ₘ α × α := id.prod id
+@[simps] def diag : α →o α × α := id.prod id
 
-/-- Restriction of `f : α →ₘ α →ₘ β` to the diagonal. -/
-@[simps {simp_rhs := tt}] def on_diag (f : α →ₘ α →ₘ β) : α →ₘ β := (curry.symm f).comp diag
+/-- Restriction of `f : α →o α →o β` to the diagonal. -/
+@[simps {simp_rhs := tt}] def on_diag (f : α →o α →o β) : α →o β := (curry.symm f).comp diag
 
 /-- `prod.fst` as a `order_hom`. -/
-@[simps] def fst : α × β →ₘ α := ⟨prod.fst, λ x y h, h.1⟩
+@[simps] def fst : α × β →o α := ⟨prod.fst, λ x y h, h.1⟩
 
 /-- `prod.snd` as a `order_hom`. -/
-@[simps] def snd : α × β →ₘ β := ⟨prod.snd, λ x y h, h.2⟩
+@[simps] def snd : α × β →o β := ⟨prod.snd, λ x y h, h.2⟩
 
-@[simp] lemma fst_prod_snd : (fst : α × β →ₘ α).prod snd = id :=
+@[simp] lemma fst_prod_snd : (fst : α × β →o α).prod snd = id :=
 by { ext ⟨x, y⟩ : 2, refl }
 
-@[simp] lemma fst_comp_prod (f : α →ₘ β) (g : α →ₘ γ) : fst.comp (f.prod g) = f := ext _ _ rfl
+@[simp] lemma fst_comp_prod (f : α →o β) (g : α →o γ) : fst.comp (f.prod g) = f := ext _ _ rfl
 
-@[simp] lemma snd_comp_prod (f : α →ₘ β) (g : α →ₘ γ) : snd.comp (f.prod g) = g := ext _ _ rfl
+@[simp] lemma snd_comp_prod (f : α →o β) (g : α →o γ) : snd.comp (f.prod g) = g := ext _ _ rfl
 
 /-- Order isomorphism between the space of monotone maps to `β × γ` and the product of the spaces
 of monotone maps to `β` and `γ`. -/
-@[simps] def prod_iso : (α →ₘ β × γ) ≃o (α →ₘ β) × (α →ₘ γ) :=
+@[simps] def prod_iso : (α →o β × γ) ≃o (α →o β) × (α →o γ) :=
 { to_fun := λ f, (fst.comp f, snd.comp f),
   inv_fun := λ f, f.1.prod f.2,
   left_inv := λ f, by ext; refl,
@@ -223,35 +240,35 @@ of monotone maps to `β` and `γ`. -/
   map_rel_iff' := λ f g, forall_and_distrib.symm }
 
 /-- `prod.map` of two `order_hom`s as a `order_hom`. -/
-@[simps] def prod_map (f : α →ₘ β) (g : γ →ₘ δ) : α × γ →ₘ β × δ :=
+@[simps] def prod_map (f : α →o β) (g : γ →o δ) : α × γ →o β × δ :=
 ⟨prod.map f g, λ x y h, ⟨f.mono h.1, g.mono h.2⟩⟩
 
 variables {ι : Type*} {π : ι → Type*} [Π i, preorder (π i)]
 
 /-- Evaluation of an unbundled function at a point (`function.eval`) as a `order_hom`. -/
 @[simps {fully_applied := ff}]
-def _root_.pi.eval_order_hom (i : ι) : (Π j, π j) →ₘ π i :=
+def _root_.pi.eval_order_hom (i : ι) : (Π j, π j) →o π i :=
 ⟨function.eval i, function.monotone_eval i⟩
 
-/-- The "forgetful functor" from `α →ₘ β` to `α → β` that takes the underlying function,
+/-- The "forgetful functor" from `α →o β` to `α → β` that takes the underlying function,
 is monotone. -/
-@[simps {fully_applied := ff}] def coe_fn_hom : (α →ₘ β) →ₘ (α → β) :=
+@[simps {fully_applied := ff}] def coe_fn_hom : (α →o β) →o (α → β) :=
 { to_fun := λ f, f,
   monotone' := λ x y h, h }
 
 /-- Function application `λ f, f a` (for fixed `a`) is a monotone function from the
-monotone function space `α →ₘ β` to `β`. See also `pi.eval_order_hom`.  -/
-@[simps {fully_applied := ff}] def apply (x : α) : (α →ₘ β) →ₘ β :=
+monotone function space `α →o β` to `β`. See also `pi.eval_order_hom`.  -/
+@[simps {fully_applied := ff}] def apply (x : α) : (α →o β) →o β :=
 (pi.eval_order_hom x).comp coe_fn_hom
 
-/-- Construct a bundled monotone map `α →ₘ Π i, π i` from a family of monotone maps
-`f i : α →ₘ π i`. -/
-@[simps] def pi (f : Π i, α →ₘ π i) : α →ₘ (Π i, π i) :=
+/-- Construct a bundled monotone map `α →o Π i, π i` from a family of monotone maps
+`f i : α →o π i`. -/
+@[simps] def pi (f : Π i, α →o π i) : α →o (Π i, π i) :=
 ⟨λ x i, f i x, λ x y h i, (f i).mono h⟩
 
-/-- Order isomorphism between bundled monotone maps `α →ₘ Π i, π i` and families of bundled monotone
-maps `Π i, α →ₘ π i`. -/
-@[simps] def pi_iso : (α →ₘ Π i, π i) ≃o Π i, α →ₘ π i :=
+/-- Order isomorphism between bundled monotone maps `α →o Π i, π i` and families of bundled monotone
+maps `Π i, α →o π i`. -/
+@[simps] def pi_iso : (α →o Π i, π i) ≃o Π i, α →o π i :=
 { to_fun := λ f i, (pi.eval_order_hom i).comp f,
   inv_fun := pi,
   left_inv := λ f, by { ext x i, refl },
@@ -260,20 +277,20 @@ maps `Π i, α →ₘ π i`. -/
 
 /-- `subtype.val` as a bundled monotone function.  -/
 @[simps {fully_applied := ff}]
-def subtype.val (p : α → Prop) : subtype p →ₘ α :=
+def subtype.val (p : α → Prop) : subtype p →o α :=
 ⟨subtype.val, λ x y h, h⟩
 
 -- TODO[gh-6025]: make this a global instance once safe to do so
 /-- There is a unique monotone map from a subsingleton to itself. -/
 local attribute [instance]
-def unique [subsingleton α] : unique (α →ₘ α) :=
+def unique [subsingleton α] : unique (α →o α) :=
 { default := order_hom.id, uniq := λ a, ext _ _ (subsingleton.elim _ _) }
 
-lemma order_hom_eq_id [subsingleton α] (g : α →ₘ α) : g = order_hom.id :=
+lemma order_hom_eq_id [subsingleton α] (g : α →o α) : g = order_hom.id :=
 subsingleton.elim _ _
 
 /-- Reinterpret a bundled monotone function as a monotone function between dual orders. -/
-@[simps] protected def dual : (α →ₘ β) ≃ (order_dual α →ₘ order_dual β) :=
+@[simps] protected def dual : (α →o β) ≃ (order_dual α →o order_dual β) :=
 { to_fun := λ f, ⟨order_dual.to_dual ∘ f ∘ order_dual.of_dual, f.mono.dual⟩,
   inv_fun := λ f, ⟨order_dual.of_dual ∘ f ∘ order_dual.to_dual, f.mono.dual⟩,
   left_inv := λ f, ext _ _ rfl,
@@ -281,7 +298,7 @@ subsingleton.elim _ _
 
 /-- `order_hom.dual` as an order isomorphism. -/
 def dual_iso (α β : Type*) [preorder α] [preorder β] :
-  (α →ₘ β) ≃o order_dual (order_dual α →ₘ order_dual β) :=
+  (α →o β) ≃o order_dual (order_dual α →o order_dual β) :=
 { to_equiv := order_hom.dual.trans order_dual.to_dual,
   map_rel_iff' := λ f g, iff.rfl }
 
@@ -315,7 +332,7 @@ f.lt_embedding.map_rel_iff
 
 @[simp] lemma eq_iff_eq {a b} : f a = f b ↔ a = b := f.injective.eq_iff
 
-protected theorem monotone : monotone f := λ x y, f.le_iff_le.2
+protected theorem monotone : monotone f := order_hom_class.monotone f
 
 protected theorem strict_mono : strict_mono f := λ x y, f.lt_iff_lt.2
 
@@ -358,7 +375,7 @@ of_map_le_iff f (λ _ _, h.le_iff_le)
 
 /-- Convert an `order_embedding` to a `order_hom`. -/
 @[simps {fully_applied := ff}]
-def to_order_hom {X Y : Type*} [preorder X] [preorder Y] (f : X ↪o Y) : X →ₘ Y :=
+def to_order_hom {X Y : Type*} [preorder X] [preorder Y] (f : X ↪o Y) : X →o Y :=
 { to_fun := f,
   monotone' := f.monotone }
 
@@ -374,7 +391,7 @@ variables (f : ((<) : α → α → Prop) →r ((<) : β → β → Prop))
 /-- A bundled expression of the fact that a map between partial orders that is strictly monotone
 is weakly monotone. -/
 @[simps {fully_applied := ff}]
-def to_order_hom : α →ₘ β :=
+def to_order_hom : α →o β :=
 { to_fun    := f,
   monotone' := strict_mono.monotone (λ x y, f.map_rel), }
 
@@ -569,6 +586,15 @@ protected noncomputable def strict_mono.order_iso {α β} [linear_order α] [pre
 noncomputable def strict_mono.order_iso_of_surjective {α β} [linear_order α] [preorder β]
   (f : α → β) (h_mono : strict_mono f) (h_surj : function.surjective f) : α ≃o β :=
 (h_mono.order_iso f).trans $ (order_iso.set_congr _ _ h_surj.range_eq).trans order_iso.set.univ
+
+/-- A strictly monotone function with a right inverse is an order isomorphism. -/
+def strict_mono.order_iso_of_right_inverse {α β} [linear_order α] [preorder β]
+  (f : α → β) (h_mono : strict_mono f) (g : β → α) (hg : function.right_inverse g f) : α ≃o β :=
+{ to_fun := f,
+  inv_fun := g,
+  left_inv := λ x, h_mono.injective $ hg _,
+  right_inv := hg,
+  .. order_embedding.of_strict_mono f h_mono }
 
 /-- An order isomorphism is also an order isomorphism between dual orders. -/
 protected def order_iso.dual [has_le α] [has_le β] (f : α ≃o β) :

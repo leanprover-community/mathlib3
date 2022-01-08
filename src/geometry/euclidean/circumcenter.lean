@@ -463,7 +463,7 @@ begin
     { exact mem_insert_self _ _ } },
   change _ = ∑ i, f (point_index_embedding n i) + _,
   rw [add_comm, h, ←sum_map, sum_insert],
-  simp_rw [mem_map, not_exists],
+  simp_rw [finset.mem_map, not_exists],
   intros x hx h,
   injection h
 end

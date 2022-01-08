@@ -444,6 +444,15 @@ lemma fst_inf_snd : submodule.fst R M M₂ ⊓ submodule.snd R M M₂ = ⊥ := b
 end submodule
 
 namespace linear_equiv
+
+/-- Product of modules is commutative up to linear isomorphism. -/
+@[simps apply]
+def prod_comm (R M N : Type*) [semiring R] [add_comm_monoid M] [add_comm_monoid N]
+  [module R M] [module R N] : (M × N) ≃ₗ[R] (N × M) :=
+{ to_fun := prod.swap,
+  map_smul' := λ r ⟨m, n⟩, rfl,
+  ..add_equiv.prod_comm }
+
 section
 
 variables [semiring R]
@@ -579,7 +588,7 @@ noncomputable def tunnel' (f : M × N →ₗ[R] M) (i : injective f) :
 Give an injective map `f : M × N →ₗ[R] M` we can find a nested sequence of submodules
 all isomorphic to `M`.
 -/
-def tunnel (f : M × N →ₗ[R] M) (i : injective f) : ℕ →ₘ order_dual (submodule R M) :=
+def tunnel (f : M × N →ₗ[R] M) (i : injective f) : ℕ →o order_dual (submodule R M) :=
 ⟨λ n, (tunnel' f i n).1, monotone_nat_of_le_succ (λ n, begin
     dsimp [tunnel', tunnel_aux],
     rw [submodule.map_comp, submodule.map_comp],

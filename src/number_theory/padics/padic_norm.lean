@@ -93,6 +93,12 @@ begin
 end
 
 /--
+`padic_val_rat p 0` is 0 for any `p`.
+-/
+@[simp]
+protected lemma zero (m : nat) : padic_val_rat m 0 = 0 := rfl
+
+/--
 `padic_val_rat p 1` is 0 for any `p`.
 -/
 @[simp] protected lemma one : padic_val_rat p 1 = 0 :=
@@ -179,7 +185,7 @@ begin
 end
 
 @[simp]
-lemma padic_val_nat_zero (m : nat) : padic_val_nat m 0 = 0 := by simpa
+lemma padic_val_nat_zero (m : nat) : padic_val_nat m 0 = 0 := rfl
 
 @[simp]
 lemma padic_val_nat_one (m : nat) : padic_val_nat m 1 = 0 := by simp [padic_val_nat]
@@ -281,9 +287,11 @@ Sufficient conditions to show that the p-adic valuation of `q` is less than or e
 p-adic vlauation of `q + r`.
 -/
 theorem le_padic_val_rat_add_of_le {q r : ℚ}
-  (hq : q ≠ 0) (hr : r ≠ 0) (hqr : q + r ≠ 0)
+  (hqr : q + r ≠ 0)
   (h : padic_val_rat p q ≤ padic_val_rat p r) :
   padic_val_rat p q ≤ padic_val_rat p (q + r) :=
+if hq : q = 0 then by simpa [hq] using h else
+if hr : r = 0 then by simp [hr] else
 have hqn : q.num ≠ 0, from rat.num_ne_zero_of_ne_zero hq,
 have hqd : (q.denom : ℤ) ≠ 0, by exact_mod_cast rat.denom_ne_zero _,
 have hrn : r.num ≠ 0, from rat.num_ne_zero_of_ne_zero hr,
@@ -311,12 +319,11 @@ end
 /--
 The minimum of the valuations of `q` and `r` is less than or equal to the valuation of `q + r`.
 -/
-theorem min_le_padic_val_rat_add {q r : ℚ}
-  (hq : q ≠ 0) (hr : r ≠ 0) (hqr : q + r ≠ 0) :
+theorem min_le_padic_val_rat_add {q r : ℚ} (hqr : q + r ≠ 0) :
   min (padic_val_rat p q) (padic_val_rat p r) ≤ padic_val_rat p (q + r) :=
 (le_total (padic_val_rat p q) (padic_val_rat p r)).elim
-  (λ h, by rw [min_eq_left h]; exact le_padic_val_rat_add_of_le _ hq hr hqr h)
-  (λ h, by rw [min_eq_right h, add_comm]; exact le_padic_val_rat_add_of_le _ hr hq
+  (λ h, by rw [min_eq_left h]; exact le_padic_val_rat_add_of_le _ hqr h)
+  (λ h, by rw [min_eq_right h, add_comm]; exact le_padic_val_rat_add_of_le _
     (by rwa add_comm) h)
 
 open_locale big_operators
@@ -333,12 +340,9 @@ begin
     by_cases h : ∑ (x : ℕ) in finset.range d, F x = 0,
     { rw [h, zero_add],
       exact hF d (lt_add_one _) },
-    { refine lt_of_lt_of_le _ (min_le_padic_val_rat_add p h (λ h1, _) hn0),
+    { refine lt_of_lt_of_le _ (min_le_padic_val_rat_add p hn0),
       { refine lt_min (hd (λ i hi, _) h) (hF d (lt_add_one _)),
-        exact hF _ (lt_trans hi (lt_add_one _)) },
-      { have h2 := hF d (lt_add_one _),
-        rw h1 at h2,
-        exact lt_irrefl _ h2 } } }
+        exact hF _ (lt_trans hi (lt_add_one _)) }, } }
 end
 
 end padic_val_rat

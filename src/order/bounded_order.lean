@@ -94,6 +94,15 @@ top_le_iff.1 $ h₂ ▸ h
 
 lemma lt_top_iff_ne_top : a < ⊤ ↔ a ≠ ⊤ := le_top.lt_iff_ne
 
+lemma eq_top_or_lt_top (a : α) : a = ⊤ ∨ a < ⊤ :=
+begin
+  by_cases h : a = ⊤,
+  { exact or.inl h },
+  right,
+  rw lt_top_iff_ne_top,
+  exact h,
+end
+
 lemma ne_top_of_lt (h : a < b) : a ≠ ⊤ :=
 lt_top_iff_ne_top.1 $ lt_of_lt_of_le h le_top
 
@@ -168,6 +177,15 @@ begin
   haveI := classical.dec_eq α,
   haveI : decidable (a ≤ ⊥) := decidable_of_iff' _ le_bot_iff,
   simp only [lt_iff_le_not_le, not_iff_not.mpr le_bot_iff, true_and, bot_le],
+end
+
+lemma eq_bot_or_bot_lt (a : α) : a = ⊥ ∨ ⊥ < a :=
+begin
+  by_cases h : a = ⊥,
+  { exact or.inl h },
+  right,
+  rw bot_lt_iff_ne_bot,
+  exact h,
 end
 
 lemma ne_bot_of_gt (h : a < b) : b ≠ ⊥ :=

@@ -1008,7 +1008,7 @@ by { ext i; by_cases h2 : f i ≠ 0; try {simp at h2};
 
 @[simp] lemma support_subtype_domain {f : Π₀ i, β i} :
   (subtype_domain p f).support = f.support.subtype p :=
-by { ext i, by_cases h2 : f i ≠ 0; simp [h2], }
+by { ext i, simp, }
 
 end filter_and_subtype_domain
 

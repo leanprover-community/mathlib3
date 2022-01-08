@@ -1060,14 +1060,16 @@ end monoid_hom
 
 section commute
 
-variables [mul_one_class M] [mul_one_class N] {a x y : M}
+variables [has_mul M] [has_mul N] {a x y : M}
 
 @[simp, to_additive]
-protected lemma semiconj_by.map (h : semiconj_by a x y) (f : M →* N) :
+protected lemma semiconj_by.map [mul_hom_class F M N] (h : semiconj_by a x y) (f : F) :
   semiconj_by (f a) (f x) (f y) :=
-by simpa only [semiconj_by, f.map_mul] using congr_arg f h
+by simpa only [semiconj_by, map_mul] using congr_arg f h
 
 @[simp, to_additive]
-protected lemma commute.map (h : commute x y) (f : M →* N) : commute (f x) (f y) := h.map f
+protected lemma commute.map [mul_hom_class F M N] (h : commute x y) (f : F) :
+  commute (f x) (f y) :=
+h.map f
 
 end commute

@@ -609,11 +609,11 @@ theorem is_haar_measure_eq_smul_is_haar_measure
 begin
   have K : positive_compacts G := classical.choice (topological_space.nonempty_positive_compacts G),
   have νpos : 0 < ν K.1 := haar_pos_of_nonempty_interior _ K.2.2,
-  have νlt : ν K.1 < ∞ := is_compact.haar_lt_top _ K.2.1,
+  have νlt : ν K.1 < ∞ := is_compact.measure_lt_top K.2.1,
   refine ⟨μ K.1 / ν K.1, _, _, _⟩,
   { simp only [νlt.ne, (μ.haar_pos_of_nonempty_interior K.property.right).ne', ne.def,
       ennreal.div_zero_iff, not_false_iff, or_self] },
-  { simp only [div_eq_mul_inv, νpos.ne', (is_compact.haar_lt_top μ K.property.left).ne, or_self,
+  { simp only [div_eq_mul_inv, νpos.ne', (is_compact.measure_lt_top K.property.left).ne, or_self,
       ennreal.inv_eq_top, with_top.mul_eq_top_iff, ne.def, not_false_iff, and_false, false_and] },
   { calc
     μ = μ K.1 • haar_measure K : haar_measure_unique (is_mul_left_invariant_haar μ) K
@@ -651,7 +651,7 @@ begin
          rw [one_pow, one_mul] },
   have : c^2 = 1^2 :=
     (ennreal.mul_eq_mul_right (haar_pos_of_nonempty_interior _ K.2.2).ne'
-      (is_compact.haar_lt_top _ K.2.1).ne).1 this,
+      (is_compact.measure_lt_top K.2.1).ne).1 this,
   have : c = 1 := (ennreal.pow_strict_mono two_ne_zero).injective this,
   rw [hc, this, one_smul]
 end

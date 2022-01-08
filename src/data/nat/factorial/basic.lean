@@ -13,11 +13,10 @@ This file defines the factorial, along with the ascending and descending variant
 
 ## Main declarations
 
-* `factorial`: The factorial.
-* `asc_factorial`: The ascending factorial. Note that it runs from `n + 1` to `n + k` and *not*
-  from`n`
-  to `n + k - 1`. We might want to change that in the future.
-* `desc_factorial`: The descending factorial. It runs from `n - k` to `n`.
+* `nat.factorial`: The factorial.
+* `nat.asc_factorial`: The ascending factorial. Note that it runs from `n + 1` to `n + k`
+  and *not* from `n` to `n + k - 1`. We might want to change that in the future.
+* `nat.desc_factorial`: The descending factorial. It runs from `n - k` to `n`.
 -/
 
 namespace nat

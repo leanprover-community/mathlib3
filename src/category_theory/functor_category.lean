@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Tim Baumann, Stephen Morgan, Scott Morrison, Floris van Doorn
 -/
 import category_theory.natural_transformation
+import category_theory.isomorphism
 
 /-!
 # The category of functors and natural transformations between two fixed categories.
@@ -122,5 +123,13 @@ protected def flip (F : C ⥤ (D ⥤ E)) : D ⥤ (C ⥤ E) :=
   (F.flip.map f).app c = (F.obj c).map f := rfl
 
 end functor
+
+@[simp, reassoc] lemma map_hom_inv_app (F : C ⥤ D ⥤ E) {X Y : C} (e : X ≅ Y) (Z : D) :
+  (F.map e.hom).app Z ≫ (F.map e.inv).app Z = 𝟙 _ :=
+by simp [← nat_trans.comp_app, ← functor.map_comp]
+
+@[simp, reassoc] lemma map_inv_hom_app (F : C ⥤ D ⥤ E) {X Y : C} (e : X ≅ Y) (Z : D) :
+  (F.map e.inv).app Z ≫ (F.map e.hom).app Z = 𝟙 _ :=
+by simp [← nat_trans.comp_app, ← functor.map_comp]
 
 end category_theory

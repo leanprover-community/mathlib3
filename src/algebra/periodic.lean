@@ -273,6 +273,12 @@ lemma periodic.exists_mem_Ioc [linear_ordered_add_comm_group α] [archimedean α
 let ⟨n, H, _⟩ := exists_unique_add_zsmul_mem_Ioc hc x a in
 ⟨x + n • c, H, (h.zsmul n x).symm⟩
 
+lemma periodic.image_Ioc [linear_ordered_add_comm_group α] [archimedean α]
+  (h : periodic f c) (hc : 0 < c) (a : α) :
+  f '' set.Ioc a (a + c) = set.range f :=
+(set.image_subset_range _ _).antisymm $ set.range_subset_iff.2 $ λ x,
+  let ⟨y, hy, hyx⟩ := h.exists_mem_Ioc hc x a in ⟨y, hy, hyx.symm⟩
+
 lemma periodic_with_period_zero [add_zero_class α]
   (f : α → β) :
   periodic f 0 :=

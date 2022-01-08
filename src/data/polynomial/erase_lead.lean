@@ -211,8 +211,8 @@ begin
     rw [nat_degree_add_eq_right_of_nat_degree_lt fg, map_add],
     by_cases FG : k ≤ f.nat_degree,
     { rw [nat_degree_add_eq_right_of_nat_degree_lt, kfg],
-      { rw [fk, kfg],
-        exact (tsub_lt_tsub_iff_right FG).mpr fg } },
+      rw [fk, kfg],
+      exact (tsub_lt_tsub_iff_right FG).mpr fg },
     { rw [φ_k f (not_le.mp FG), zero_add],
       by_cases KG : k ≤ g.nat_degree,
       { exact kfg },
@@ -223,9 +223,6 @@ lemma map_nat_degree_eq_nat_degree {S F : Type*} [semiring S]
   [add_monoid_hom_class F (polynomial R) (polynomial S)] {φ : F} (p)
   (φ_mon_nat : ∀ n c, c ≠ 0 → (φ (monomial n c)).nat_degree = n) :
   (φ p).nat_degree = p.nat_degree :=
-begin
-  refine eq.trans (map_nat_degree_eq_sub _ (by simpa)) p.nat_degree.sub_zero,
-  simp
-end
+(map_nat_degree_eq_sub (λ f h, (nat.not_lt_zero _ h).elim) (by simpa)).trans p.nat_degree.sub_zero
 
 end polynomial

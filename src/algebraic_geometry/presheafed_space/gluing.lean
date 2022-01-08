@@ -257,7 +257,7 @@ begin
 end
 
 lemma opens_image_preimage_map_app (i j k : D.J) (U : opens (D.U i).carrier) :
-D.opens_image_preimage_map i j U ≫ (D.f j k).c.app _ =
+  D.opens_image_preimage_map i j U ≫ (D.f j k).c.app _ =
   (pullback.fst ≫ D.t j i ≫ D.f i j : pullback (D.f j i) (D.f j k) ⟶ _).c.app (op U) ≫
   (is_open_immersion.pullback_snd_of_left (D.f j i) (D.f j k)).inv_app (unop _) ≫
   (D.V (j, k)).presheaf.map (eq_to_hom ((opens_image_preimage_map_app' D i j k U).some)) :=
@@ -423,7 +423,7 @@ begin
 end
 
 instance ι_is_open_immersion (i : D.J) :
-is_open_immersion (𝖣 .ι i) :=
+  is_open_immersion (𝖣 .ι i) :=
 { base_open := D.ι_open_embedding i,
   c_iso := λ U, by { erw ← colimit_presheaf_obj_iso_componentwise_limit_hom_π, apply_instance } }
 

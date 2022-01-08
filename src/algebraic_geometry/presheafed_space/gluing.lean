@@ -225,6 +225,7 @@ begin
     apply_instance }
 end
 
+/-- (Implementation). The map `Γ(𝒪_{U_i}, U) ⟶ Γ(𝒪_{U_j} 𝖣.ι j ⁻¹' (𝖣.ι i '' U))`. -/
 def opens_image_preimage_map (i j : D.J) (U : opens (D.U i).carrier) :
   (D.U i).presheaf.obj (op U) ⟶ (D.U j).presheaf.obj
     (op ((opens.map (𝖣 .ι j).base).obj ((D.ι_open_embedding i).is_open_map.functor.obj U))) :=
@@ -271,7 +272,7 @@ lemma opens_image_preimage_map_app_assoc (i j k : D.J) (U : opens (D.U i).carrie
 by { simp_rw ← category.assoc, congr' 1, simp_rw category.assoc,
   convert opens_image_preimage_map_app _ _ _ _ _ }
 
-/-- (Implementation) We construct the map `Γ(𝒪_{U_i}, U) ⟶ Γ(𝒪_V, U)` for each `V` in the gluing
+/-- (Implementation) We construct the map `Γ(𝒪_{U_i}, U) ⟶ Γ(𝒪_V, U_V)` for each `V` in the gluing
 diagram. We will lift these maps into `ι_inv_app`. -/
 def ι_inv_app_π_app (i : D.J) (U : opens (D.U i).carrier) (j) :
   (𝖣 .U i).presheaf.obj (op U) ⟶ (𝖣 .diagram.multispan.obj j).presheaf.obj

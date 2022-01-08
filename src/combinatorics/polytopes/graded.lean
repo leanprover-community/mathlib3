@@ -4,10 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Grayson Burton, Yaël Dillies, Violeta Hernández Palacios
 -/
 import category_theory.category.basic
+import data.dfinsupp.order
 import data.finsupp.order
 import data.nat.interval
 import data.set.intervals.ord_connected
 import data.sigma.order
+import data.sum.order
 import .cover
 
 /-!
@@ -211,6 +213,11 @@ noncomputable def grade_order.to_locally_finite_order : locally_finite_order α 
   finset_mem_Ioo := λ a b x,
     by rw [mem_preimage, mem_Ioo, grade_strict_mono.lt_iff_lt, grade_strict_mono.lt_iff_lt] }
 
+lemma card_Iio_eq_grade (a : α) : (Iic a).card = grade a := sorry
+lemma card_Iic_eq_grade_add_one (a : α) : (Iic a).card = grade a + 1 := sorry
+lemma card_Ico_eq_grade_sub_grade (a b : α) : (Ico a b).card = grade b - grade a :=  sorry
+lemma card_Ioc_eq_grade_sub_grade (a b : α) : (Ioc a b).card = grade b - grade a := sorry
+
 /-- The set of grades in a linear order has no gaps. -/
 private lemma grade_ioo_lin {a b : α} {m n r : ℕ} (ha : grade a = m) (hb : grade b = n)
   (hrl : m < r) (hrr : r < n) : ∃ (s ∈ set.Ioo m n) (c : α), grade c = s :=
@@ -235,15 +242,7 @@ def order_embedding.grade_fin : α ↪o fin (grade ⊤ + 1) :=
 /-- A graded linear order has an element of grade `j` when `j ≤ grade ⊤`. This is generalized to a
 partial order in `ex_of_grade`. -/
 lemma ex_of_grade_lin {j : ℕ} (hj : j ≤ grade (⊤ : α)) : (∃ a : α, grade a = j) :=
-have hj' : grade (⊥ : α) ≤ j := by simp [grade_bot],
-let S := {g | ∃ a : α, grade a = g} in
-suffices h : _,
-from @nat.all_icc_of_ex_ioo S h (grade (⊥ : α)) (grade (⊤ : α)) _ ⟨⊥, rfl⟩ ⟨⊤, rfl⟩ hj' hj,
-begin
-  rintros _ _ _ ⟨_, ha⟩ ⟨_, hb⟩ hac hcb,
-  rcases grade_ioo_lin ha hb hac hcb with ⟨_, hw, hw'⟩,
-  exact ⟨_, hw', hw⟩
-end
+(nat.all_icc_of_ex_ioo grade_ioo_lin) _ _ ⟨⊥, grade_bot⟩ ⟨⊤, rfl⟩ _ ⟨zero_le _, hj⟩
 
 /-- A graded linear order has a unique element of grade `j` when `j ≤ grade ⊤`. -/
 lemma ex_unique_of_grade {j : ℕ} (hj : j ≤ grade (⊤ : α)) : ∃! a : α, grade a = j :=
@@ -441,6 +440,8 @@ end⟩
 
 lemma _root_.covers.exists_cons_multiset (h : s ⋖ t) : ∃ a, t = a ::ₘ s :=
 begin
+  obtain ⟨a, ha⟩ := exists_cons_le_of_lt h.lt,
+  refine ⟨a, ha.eq_of_not_gt _⟩,
   obtain ⟨a, ha⟩ := lt_iff_cons_le.mp h.lt,
   refine ⟨a, ha.eq_of_not_gt _⟩,
   cases h with hlt no_intermediate,
@@ -462,7 +463,7 @@ instance (α : Type*) : grade_order (multiset α) :=
     have ab_cons : ∃ x, b = x ::ₘ a := hab.exists_cons_multiset,
     cases ab_cons with _ hcons,
     have hcard := congr_arg card hcons,
-    rwa [card_cons, @symmetric.iff _ eq (λ _ _, eq.symm) _ _] at hcard,
+    rwa [card_cons, eq_comm] at hcard,
   end }
 
 @[simp] protected lemma grade (m : multiset α) : grade m = m.card := rfl
@@ -552,25 +553,21 @@ variables (α β) [preorder α] [order_bot α] [grade_order α] [preorder β] [o
 
 instance : grade_order (α × β) :=
 { grade := λ a, grade a.1 + grade a.2,
-  grade_bot := begin
-    convert (zero_add _).trans grade_bot,
-    exact grade_bot,
-  end,
+  grade_bot := by { convert (zero_add _).trans grade_bot, exact grade_bot },
   strict_mono := λ a b h, begin
     rw prod.lt_iff at h,
     cases h,
-    {
-      sorry,
-    },
-    {
-      sorry
-    }
+    { exact add_lt_add_of_lt_of_le (grade_strict_mono h.1) (grade_mono h.2) },
+    { exact add_lt_add_of_le_of_lt (grade_mono h.1) (grade_strict_mono h.2) }
   end,
-  grade_of_covers := sorry }
+  grade_of_covers := begin
+
+  end }
 
 variables {α β}
 
 @[simp] protected lemma grade (a : α × β) : grade a = grade a.1 + grade a.2 := rfl
+lemma grade_mk (a : α) (b : β) : grade (a, b) = grade a + grade b := rfl
 
 end prod
 
@@ -601,22 +598,16 @@ section sum
 variables (α β) [preorder α] [bounded_order α] [grade_order α] [preorder β] [order_bot β]
   [grade_order β]
 
-/-
 def grade_order : grade_order (α ⊕ β) :=
 { grade := λ a, a.elim grade (λ b, grade (⊤ : α) + grade b),
   grade_bot := grade_bot,
   strict_mono := λ a b h, sorry,
   grade_of_covers := sorry }
--/
 
-variables {α β}
+variables {α β} (a : α) (b : β)
 
---@[simp] protected lemma grade_inl (a : α) : grade (sum.inl a : α ⊕ β) = grade a := rfl
-
-/-
-@[simp] protected lemma grade_inr (b : β) : grade (sum.inr b : α ⊕ β) = grade (⊤ : α) + grade b :=
-rfl
--/
+@[simp] protected lemma grade_inl : grade (sum.inl a : α ⊕ β) = grade a := rfl
+@[simp] protected lemma grade_inr : grade (sum.inr b : α ⊕ β) = grade (⊤ : α) + grade b := rfl
 
 end sum
 

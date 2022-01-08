@@ -16,13 +16,6 @@ lemma has_lt.lt.of_dual {a b : order_dual α} (h : a < b) : of_dual b < of_dual 
 
 end order_dual
 
-section locally_finite
-
---def locally_finite_order.of_
-
-
-end locally_finite
-
 namespace nat
 
 /-- A set of nats without gaps is an interval. The sizes of the gaps and intervals we consider are

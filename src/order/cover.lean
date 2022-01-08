@@ -9,7 +9,7 @@ import data.set.intervals.basic
 # The covering relation
 
 This file defines the covering relation in an order. `b` is said to cover `a` if `a < b` and there
-is no element in between. ∃ b, a < b
+is no element in between.
 
 ## Notation
 

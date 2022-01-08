@@ -61,7 +61,7 @@ inductive W_path : P.last.W → fin2 n → Type u
 instance W_path.inhabited (x : P.last.W) {i} [I : inhabited (P.drop.B x.head i)] :
   inhabited (W_path P x i) :=
 ⟨ match x, I with
-  | ⟨a, f ⟩, I := W_path.root a f i (@default)
+  | ⟨a, f ⟩, I := W_path.root a f i (@default _ I)
   end ⟩
 
 /-- Specialized destructor on `W_path` -/

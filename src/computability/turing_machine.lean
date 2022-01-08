@@ -62,9 +62,9 @@ open function (update iterate_succ iterate_succ_apply iterate_succ'
 namespace turing
 
 /-- The `blank_extends` partial order holds of `l₁` and `l₂` if `l₂` is obtained by adding
-blanks (`default Γ`) to the end of `l₁`. -/
+blanks (`default : Γ`) to the end of `l₁`. -/
 def blank_extends {Γ} [inhabited Γ] (l₁ l₂ : list Γ) : Prop :=
-∃ n, l₂ = l₁ ++ list.repeat (default Γ) n
+∃ n, l₂ = l₁ ++ list.repeat default n
 
 @[refl] theorem blank_extends.refl {Γ} [inhabited Γ] (l : list Γ) : blank_extends l l :=
 ⟨0, by simp⟩
@@ -841,7 +841,7 @@ The initial state takes a `list Γ` and produces a `tape Γ` where the head of t
 of the tape and the rest of the list extends to the right, with the left side all blank. The final
 state takes the entire right side of the tape right or equal to the current position of the
 machine. (This is actually a `list_blank Γ`, not a `list Γ`, because we don't know, at this level
-of generality, where the output ends. If equality to `default Γ` is decidable we can trim the list
+of generality, where the output ends. If equality to `default : Γ` is decidable we can trim the list
 to remove the infinite tail of blanks.)
 -/
 
@@ -900,7 +900,7 @@ refl_trans_gen (λ a b, b ∈ step M a)
 
 /-- The initial configuration. -/
 def init (l : list Γ) : cfg :=
-⟨default Λ, tape.mk₁ l⟩
+⟨default, tape.mk₁ l⟩
 
 /-- Evaluate a Turing machine on initial input to a final state,
   if it terminates. -/
@@ -915,7 +915,7 @@ def eval (M : machine) (l : list Γ) : part (list_blank Γ) :=
   supports a Turing machine `M` if `S` is closed under the
   transition function and contains the initial state. -/
 def supports (M : machine) (S : set Λ) :=
-default Λ ∈ S ∧ ∀ {q a q' s}, (q', s) ∈ M q a → q ∈ S → q' ∈ S
+default ∈ S ∧ ∀ {q a q' s}, (q', s) ∈ M q a → q ∈ S → q' ∈ S
 
 theorem step_supports (M : machine) {S}
   (ss : supports M S) : ∀ {c c' : cfg},
@@ -1149,7 +1149,7 @@ variable [inhabited Λ]
   statements in the functions in `S` refer only to other functions
   in `S`. -/
 def supports (M : Λ → stmt) (S : finset Λ) :=
-default Λ ∈ S ∧ ∀ q ∈ S, supports_stmt S (M q)
+default ∈ S ∧ ∀ q ∈ S, supports_stmt S (M q)
 
 theorem stmts_supports_stmt {M : Λ → stmt} {S q}
   (ss : supports M S) : some q ∈ stmts M S → supports_stmt S q :=
@@ -1374,7 +1374,7 @@ begin
   let H := (F.to_embedding.trans G).trans
     (equiv.vector_equiv_fin _ _).symm.to_embedding,
   classical,
-  let enc := H.set_value default,
+  let enc := H.set_value default (vector.repeat ff n),
   exact ⟨_, enc, function.inv_fun enc,
     H.set_value_eq _ _, function.left_inverse_inv_fun enc.2⟩
 end
@@ -1920,7 +1920,7 @@ variable [inhabited Λ]
 /-- Given a TM2 machine `M` and a set `S` of states, `supports M S` means that all states in
 `S` jump only to other states in `S`. -/
 def supports (M : Λ → stmt) (S : finset Λ) :=
-default Λ ∈ S ∧ ∀ q ∈ S, supports_stmt S (M q)
+default ∈ S ∧ ∀ q ∈ S, supports_stmt S (M q)
 
 theorem stmts_supports_stmt {M : Λ → stmt} {S q}
   (ss : supports M S) : some q ∈ stmts M S → supports_stmt S q :=

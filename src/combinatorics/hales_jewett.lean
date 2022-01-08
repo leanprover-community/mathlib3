@@ -100,9 +100,9 @@ structure almost_mono {α ι κ : Type*} (C : (ι → option α) → κ) :=
 (has_color : ∀ x : α, C (line (some x)) = color)
 
 instance {α ι κ : Type*} [nonempty ι] [inhabited κ] :
-  inhabited (almost_mono (λ v : ι → option α, default κ)) :=
+  inhabited (almost_mono (λ v : ι → option α, (default : κ))) :=
 ⟨{ line      := default,
-   color     := default κ,
+   color     := default,
    has_color := λ _, rfl }⟩
 
 /-- The type of collections of lines such that

@@ -1060,14 +1060,13 @@ variables [has_Sup α]
 non-canonical (it uses `default s`); it should be used only as here, as an auxiliary instance in the
 construction of the `conditionally_complete_linear_order` structure. -/
 noncomputable def subset_has_Sup [inhabited s] : has_Sup s := {Sup := λ t,
-if ht : Sup (coe '' t : set α) ∈ s then ⟨Sup (coe '' t : set α), ht⟩ else default s}
+if ht : Sup (coe '' t : set α) ∈ s then ⟨Sup (coe '' t : set α), ht⟩ else default}
 
 local attribute [instance] subset_has_Sup
 
 @[simp] lemma subset_Sup_def [inhabited s] :
   @Sup s _ = λ t,
-  if ht : Sup (coe '' t : set α) ∈ s then ⟨Sup (coe '' t : set α), ht⟩ else default s :=
-rfl
+  if ht : Sup (coe '' t : set α) ∈ s then ⟨Sup (coe '' t : set α), ht⟩ else default := rfl
 
 lemma subset_Sup_of_within [inhabited s] {t : set s} (h : Sup (coe '' t : set α) ∈ s) :
   Sup (coe '' t : set α) = (@Sup s _ t : α) :=
@@ -1082,14 +1081,13 @@ variables [has_Inf α]
 non-canonical (it uses `default s`); it should be used only as here, as an auxiliary instance in the
 construction of the `conditionally_complete_linear_order` structure. -/
 noncomputable def subset_has_Inf [inhabited s] : has_Inf s := {Inf := λ t,
-if ht : Inf (coe '' t : set α) ∈ s then ⟨Inf (coe '' t : set α), ht⟩ else default s}
+if ht : Inf (coe '' t : set α) ∈ s then ⟨Inf (coe '' t : set α), ht⟩ else default}
 
 local attribute [instance] subset_has_Inf
 
 @[simp] lemma subset_Inf_def [inhabited s] :
   @Inf s _ = λ t,
-  if ht : Inf (coe '' t : set α) ∈ s then ⟨Inf (coe '' t : set α), ht⟩ else default s :=
-rfl
+  if ht : Inf (coe '' t : set α) ∈ s then ⟨Inf (coe '' t : set α), ht⟩ else default := rfl
 
 lemma subset_Inf_of_within [inhabited s] {t : set s} (h : Inf (coe '' t : set α) ∈ s) :
   Inf (coe '' t : set α) = (@Inf s _ t : α) :=

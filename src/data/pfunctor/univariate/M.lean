@@ -33,7 +33,7 @@ protected def cofix_a.default [inhabited F.A] : Π n, cofix_a F n
 | 0 := cofix_a.continue
 | (succ n) := cofix_a.intro default $ λ _, cofix_a.default n
 
-instance [inhabited F.A] {n} : inhabited (cofix_a F n) := ⟨ cofix_a.default n ⟩
+instance [inhabited F.A] {n} : inhabited (cofix_a F n) := ⟨ cofix_a.default F n ⟩
 
 lemma cofix_a_eq_zero : ∀ x y : cofix_a F 0, x = y
 | cofix_a.continue cofix_a.continue := rfl
@@ -165,7 +165,7 @@ structure M_intl :=
 def M := M_intl F
 
 lemma M.default_consistent [inhabited F.A] :
-  Π n, agree (default
+  Π n, agree (default : cofix_a F n) default
 | 0 := agree.continue _ _
 | (succ n) := agree.intro _ _ $ λ _, M.default_consistent n
 
@@ -411,7 +411,7 @@ def isubtree [decidable_eq F.A] [inhabited (M F)] : path F → M F → M F
 | (⟨a, i⟩ :: ps) x :=
 pfunctor.M.cases_on' x (λ a' f,
 (if h : a = a' then isubtree ps (f $ cast (by rw h) i)
- else default
+ else default : (λ x, M F) (M.mk ⟨a',f⟩)))
 
 /-- similar to `isubtree` but returns the data at the end of the path instead
 of the whole subtree -/
@@ -420,7 +420,7 @@ def iselect [decidable_eq F.A] [inhabited (M F)] (ps : path F) : M F → F.A :=
 
 lemma iselect_eq_default [decidable_eq F.A] [inhabited (M F)] (ps : path F) (x : M F)
   (h : ¬ is_path ps x) :
-  iselect ps x = head (default $ M F) :=
+  iselect ps x = head default :=
 begin
   induction ps generalizing x,
   { exfalso, apply h, constructor },

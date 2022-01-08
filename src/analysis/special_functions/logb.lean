@@ -70,9 +70,6 @@ by { rw rpow_logb_eq_abs b_pos b_ne_one (hx.ne'), exact abs_of_pos hx, }
 lemma rpow_logb_of_neg (b_pos : 0 < b) (b_ne_one : b ≠ 1) (hx : x < 0) : b ^ (logb b x) = -x :=
 by { rw rpow_logb_eq_abs b_pos b_ne_one (ne_of_lt hx), exact abs_of_neg hx }
 
--- @[simp] lemma log_exp (x : ℝ) : log (exp x) = x :=
--- exp_injective $ exp_log (exp_pos x)
-
 lemma surj_on_logb (b_pos : 0 < b) (b_ne_one : b ≠ 1) : surj_on (logb b) (Ioi 0) univ :=
 λ x _, ⟨rpow b x, rpow_pos_of_pos b_pos x, logb_rpow b_pos b_ne_one⟩
 

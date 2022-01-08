@@ -28,19 +28,12 @@ namespace lp
 
 lemma summable_inner (f g : lp G 2) : summable (λ i, ⟪f i, g i⟫) :=
 begin
-  refine summable_of_summable_norm _,
-  use ⨆ s : finset ι, ∑ i in s, ∥⟪f i, g i⟫∥,
-  refine has_sum_of_is_lub_of_nonneg _ _ _,
-  { exact λ b, norm_nonneg _ },
-  refine is_lub_csupr _,
-  use ∥f∥ * ∥g∥,
-  rintros a ⟨s, rfl⟩,
-  calc _ ≤ ∑ i in s, ∥f i∥ * ∥g i∥ : finset.sum_le_sum _
-  ... ≤ ∥f∥ * ∥g∥ : _,
-  { intros i hi,
-    exact norm_inner_le_norm (f i) (g i) },
-  -- simp,
-  -- refine has_sum_of_is_lub _ _,
+  -- Apply the Direct Comparison Test, comparing with ∑' i, ∥f i∥ * ∥g i∥ (summable by Hölder)
+  refine summable_of_norm_bounded (λ i, ∥f i∥ * ∥g i∥) (lp.tsum_inner_mul_inner_le _ f g).1 _,
+  { rw real.is_conjugate_exponent_iff;
+    norm_num },
+  intros i,
+  exact norm_inner_le_norm _ _,
 end
 
 instance : inner_product_space 𝕜 (lp G 2) :=
@@ -76,7 +69,6 @@ instance : inner_product_space 𝕜 (lp G 2) :=
     ... = conj c * ∑' i, ⟪f i, g i⟫ : tsum_mul_left
     ... = _ : _,
     { sorry },
-    -- { congr },
     { congr },
   end,
   .. lp.normed_space }

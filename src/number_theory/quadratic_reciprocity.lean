@@ -35,12 +35,12 @@ namespace zmod
 variables (p q : ℕ) [fact p.prime] [fact q.prime]
 
 /-- Euler's Criterion: A unit `x` of `zmod p` is a square if and only if `x ^ (p / 2) = 1`. -/
-lemma euler_criterion_units (x : units (zmod p)) :
-  (∃ y : units (zmod p), y ^ 2 = x) ↔ x ^ (p / 2) = 1 :=
+lemma euler_criterion_units (x : (zmod p)ˣ) :
+  (∃ y : (zmod p)ˣ, y ^ 2 = x) ↔ x ^ (p / 2) = 1 :=
 begin
   cases nat.prime.eq_two_or_odd (fact.out p.prime) with hp2 hp_odd,
   { substI p, refine iff_of_true ⟨1, _⟩ _; apply subsingleton.elim },
-  obtain ⟨g, hg⟩ := is_cyclic.exists_generator (units (zmod p)),
+  obtain ⟨g, hg⟩ := is_cyclic.exists_generator (zmod p)ˣ,
   obtain ⟨n, hn⟩ : x ∈ submonoid.powers g, { rw mem_powers_iff_mem_zpowers, apply hg },
   split,
   { rintro ⟨y, rfl⟩, rw [← pow_mul, two_mul_odd_div_two hp_odd, units_pow_card_sub_one_eq_one], },
@@ -104,7 +104,7 @@ begin
   refine
   calc ((p - 1)! : zmod p) = (∏ x in Ico 1 (succ (p - 1)), x) :
     by rw [← finset.prod_Ico_id_eq_factorial, prod_nat_cast]
-                               ... = (∏ x : units (zmod p), x) : _
+                               ... = (∏ x : (zmod p)ˣ, x) : _
                                ... = -1 : by simp_rw [← units.coe_hom_apply,
     ← (units.coe_hom (zmod p)).map_prod, prod_univ_units_id_eq_neg_one, units.coe_hom_apply,
     units.coe_neg, units.coe_one],

@@ -679,21 +679,34 @@ noncomputable def Prop_equiv_bool : Prop ≃ bool :=
 
 /-- Sum of types is commutative up to an equivalence. -/
 @[simps apply]
-def sum_comm (α β : Sort*) : α ⊕ β ≃ β ⊕ α :=
+def sum_comm (α β : Type*) : α ⊕ β ≃ β ⊕ α :=
 ⟨sum.swap, sum.swap, sum.swap_swap, sum.swap_swap⟩
 
 @[simp] lemma sum_comm_symm (α β) : (sum_comm α β).symm = sum_comm β α := rfl
 
 /-- Sum of types is associative up to an equivalence. -/
-def sum_assoc (α β γ : Sort*) : (α ⊕ β) ⊕ γ ≃ α ⊕ (β ⊕ γ) :=
+def sum_assoc (α β γ : Type*) : (α ⊕ β) ⊕ γ ≃ α ⊕ (β ⊕ γ) :=
 ⟨sum.elim (sum.elim sum.inl (sum.inr ∘ sum.inl)) (sum.inr ∘ sum.inr),
   sum.elim (sum.inl ∘ sum.inl) $ sum.elim (sum.inl ∘ sum.inr) sum.inr,
   by rintros (⟨_ | _⟩ | _); refl,
   by rintros (_ | ⟨_ | _⟩); refl⟩
 
-@[simp] theorem sum_assoc_apply_in1 {α β γ} (a) : sum_assoc α β γ (inl (inl a)) = inl a := rfl
-@[simp] theorem sum_assoc_apply_in2 {α β γ} (b) : sum_assoc α β γ (inl (inr b)) = inr (inl b) := rfl
-@[simp] theorem sum_assoc_apply_in3 {α β γ} (c) : sum_assoc α β γ (inr c) = inr (inr c) := rfl
+@[simp] lemma sum_assoc_apply_inl_inl {α β γ} (a) : sum_assoc α β γ (inl (inl a)) = inl a := rfl
+
+@[simp] lemma sum_assoc_apply_inl_inr {α β γ} (b) : sum_assoc α β γ (inl (inr b)) = inr (inl b) :=
+rfl
+
+@[simp] lemma sum_assoc_apply_inr {α β γ} (c) : sum_assoc α β γ (inr c) = inr (inr c) := rfl
+
+@[simp] lemma sum_assoc_symm_apply_inl {α β γ} (a) : (sum_assoc α β γ).symm (inl a) = inl (inl a) :=
+rfl
+
+@[simp] lemma sum_assoc_symm_apply_inr_inl {α β γ} (b) :
+  (sum_assoc α β γ).symm (inr (inl b)) = inl (inr b) := rfl
+
+@[simp] lemma sum_assoc_symm_apply_inr_inr {α β γ} (c) :
+  (sum_assoc α β γ).symm (inr (inr c)) = inr c := rfl
+
 
 /-- Sum with `empty` is equivalent to the original type. -/
 @[simps symm_apply] def sum_empty (α β : Type*) [is_empty β] : α ⊕ β ≃ α :=

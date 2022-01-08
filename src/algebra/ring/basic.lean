@@ -772,39 +772,39 @@ namespace units
 variables [ring α] {a b : α}
 
 /-- Each element of the group of units of a ring has an additive inverse. -/
-instance : has_neg (units α) := ⟨λu, ⟨-↑u, -↑u⁻¹, by simp, by simp⟩ ⟩
+instance : has_neg αˣ := ⟨λu, ⟨-↑u, -↑u⁻¹, by simp, by simp⟩ ⟩
 
 /-- Representing an element of a ring's unit group as an element of the ring commutes with
     mapping this element to its additive inverse. -/
-@[simp, norm_cast] protected theorem coe_neg (u : units α) : (↑-u : α) = -u := rfl
+@[simp, norm_cast] protected theorem coe_neg (u : αˣ) : (↑-u : α) = -u := rfl
 
-@[simp, norm_cast] protected theorem coe_neg_one : ((-1 : units α) : α) = -1 := rfl
+@[simp, norm_cast] protected theorem coe_neg_one : ((-1 : αˣ) : α) = -1 := rfl
 
 /-- Mapping an element of a ring's unit group to its inverse commutes with mapping this element
     to its additive inverse. -/
-@[simp] protected theorem neg_inv (u : units α) : (-u)⁻¹ = -u⁻¹ := rfl
+@[simp] protected theorem neg_inv (u : αˣ) : (-u)⁻¹ = -u⁻¹ := rfl
 
 /-- An element of a ring's unit group equals the additive inverse of its additive inverse. -/
-@[simp] protected theorem neg_neg (u : units α) : - -u = u :=
+@[simp] protected theorem neg_neg (u : αˣ) : - -u = u :=
 units.ext $ neg_neg _
 
 /-- Multiplication of elements of a ring's unit group commutes with mapping the first
     argument to its additive inverse. -/
-@[simp] protected theorem neg_mul (u₁ u₂ : units α) : -u₁ * u₂ = -(u₁ * u₂) :=
+@[simp] protected theorem neg_mul (u₁ u₂ : αˣ) : -u₁ * u₂ = -(u₁ * u₂) :=
 units.ext $ neg_mul_eq_neg_mul_symm _ _
 
 /-- Multiplication of elements of a ring's unit group commutes with mapping the second argument
     to its additive inverse. -/
-@[simp] protected theorem mul_neg (u₁ u₂ : units α) : u₁ * -u₂ = -(u₁ * u₂) :=
+@[simp] protected theorem mul_neg (u₁ u₂ : αˣ) : u₁ * -u₂ = -(u₁ * u₂) :=
 units.ext $ (neg_mul_eq_mul_neg _ _).symm
 
 /-- Multiplication of the additive inverses of two elements of a ring's unit group equals
     multiplication of the two original elements. -/
-@[simp] protected theorem neg_mul_neg (u₁ u₂ : units α) : -u₁ * -u₂ = u₁ * u₂ := by simp
+@[simp] protected theorem neg_mul_neg (u₁ u₂ : αˣ) : -u₁ * -u₂ = u₁ * u₂ := by simp
 
 /-- The additive inverse of an element of a ring's unit group equals the additive inverse of
     one times the original element. -/
-protected theorem neg_eq_neg_one_mul (u : units α) : -u = -1 * u := by simp
+protected theorem neg_eq_neg_one_mul (u : αˣ) : -u = -1 * u := by simp
 
 end units
 
@@ -1077,7 +1077,7 @@ by rw [← mul_self_eq_mul_self_iff, one_mul]
 
 /-- In the unit group of an integral domain, a unit is its own inverse iff the unit is one or
   one's additive inverse. -/
-lemma units.inv_eq_self_iff (u : units α) : u⁻¹ = u ↔ u = 1 ∨ u = -1 :=
+lemma units.inv_eq_self_iff (u : αˣ) : u⁻¹ = u ↔ u = 1 ∨ u = -1 :=
 by { rw inv_eq_iff_mul_eq_one, simp only [units.ext_iff], push_cast, exact mul_self_eq_one_iff }
 
 /--

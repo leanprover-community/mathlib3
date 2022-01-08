@@ -2279,8 +2279,8 @@ variables [module R M] [module R M₂] [module R M₃]
 open _root_.linear_map
 
 /-- Multiplying by a unit `a` of the ring `R` is a linear equivalence. -/
-def smul_of_unit (a : units R) : M ≃ₗ[R] M :=
-of_linear ((a:R) • 1 : M →ₗ[R] M) (((a⁻¹ : units R) : R) • 1 : M →ₗ[R] M)
+def smul_of_unit (a : Rˣ) : M ≃ₗ[R] M :=
+of_linear ((a:R) • 1 : M →ₗ[R] M) (((a⁻¹ : Rˣ) : R) • 1 : M →ₗ[R] M)
   (by rw [smul_comp, comp_smul, smul_smul, units.mul_inv, one_smul]; refl)
   (by rw [smul_comp, comp_smul, smul_smul, units.inv_mul, one_smul]; refl)
 
@@ -2637,7 +2637,7 @@ variables [semiring R] [add_comm_monoid M] [module R M]
 variables (R M)
 
 /-- The group of invertible linear maps from `M` to itself -/
-@[reducible] def general_linear_group := units (M →ₗ[R] M)
+@[reducible] def general_linear_group := (M →ₗ[R] M)ˣ
 
 namespace general_linear_group
 variables {R M}

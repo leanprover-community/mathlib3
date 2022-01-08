@@ -798,16 +798,16 @@ instance : fintype bool := ⟨⟨tt ::ₘ ff ::ₘ 0, by simp⟩, λ x, by cases
 
 @[simp] theorem fintype.univ_bool : @univ bool _ = {tt, ff} := rfl
 
-instance units_int.fintype : fintype (units ℤ) :=
+instance units_int.fintype : fintype ℤˣ :=
 ⟨{1, -1}, λ x, by cases int.units_eq_one_or x; simp *⟩
 
-@[simp] lemma units_int.univ : (finset.univ : finset (units ℤ)) = {1, -1} := rfl
+@[simp] lemma units_int.univ : (finset.univ : finset ℤˣ) = {1, -1} := rfl
 
 instance additive.fintype : Π [fintype α], fintype (additive α) := id
 
 instance multiplicative.fintype : Π [fintype α], fintype (multiplicative α) := id
 
-@[simp] theorem fintype.card_units_int : fintype.card (units ℤ) = 2 := rfl
+@[simp] theorem fintype.card_units_int : fintype.card ℤˣ = 2 := rfl
 
 @[simp] theorem fintype.card_bool : fintype.card bool = 2 := rfl
 
@@ -1142,28 +1142,28 @@ by rw [←set.to_finset_card, finset.card_eq_iff_eq_univ, ←set.to_finset_univ,
 section
 variables (α)
 
-/-- The `units α` type is equivalent to a subtype of `α × α`. -/
+/-- The `αˣ` type is equivalent to a subtype of `α × α`. -/
 @[simps]
 def _root_.units_equiv_prod_subtype [monoid α] :
-  units α ≃ {p : α × α // p.1 * p.2 = 1 ∧ p.2 * p.1 = 1} :=
+  αˣ ≃ {p : α × α // p.1 * p.2 = 1 ∧ p.2 * p.1 = 1} :=
 { to_fun := λ u, ⟨(u, ↑u⁻¹), u.val_inv, u.inv_val⟩,
   inv_fun := λ p, units.mk (p : α × α).1 (p : α × α).2 p.prop.1 p.prop.2,
   left_inv := λ u, units.ext rfl,
   right_inv := λ p, subtype.ext $ prod.ext rfl rfl}
 
-/-- In a `group_with_zero` `α`, the unit group `units α` is equivalent to the subtype of nonzero
+/-- In a `group_with_zero` `α`, the unit group `αˣ` is equivalent to the subtype of nonzero
 elements. -/
 @[simps]
-def _root_.units_equiv_ne_zero [group_with_zero α] : units α ≃ {a : α // a ≠ 0} :=
+def _root_.units_equiv_ne_zero [group_with_zero α] : αˣ ≃ {a : α // a ≠ 0} :=
 ⟨λ a, ⟨a, a.ne_zero⟩, λ a, units.mk0 _ a.prop, λ _, units.ext rfl, λ _, subtype.ext rfl⟩
 
 end
 
-instance [monoid α] [fintype α] [decidable_eq α] : fintype (units α) :=
+instance [monoid α] [fintype α] [decidable_eq α] : fintype αˣ :=
 fintype.of_equiv _ (units_equiv_prod_subtype α).symm
 
-lemma fintype.card_units [group_with_zero α] [fintype α] [fintype (units α)] :
-  fintype.card (units α) = fintype.card α - 1 :=
+lemma fintype.card_units [group_with_zero α] [fintype α] [fintype αˣ] :
+  fintype.card αˣ = fintype.card α - 1 :=
 begin
   classical,
   rw [eq_comm, nat.sub_eq_iff_eq_add (fintype.card_pos_iff.2 ⟨(0 : α)⟩),

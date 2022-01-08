@@ -12,7 +12,7 @@ This file provides basic results about `list.prod` and `list.sum`, which calcula
 sum of elements of a list. These are defined in [`data.list.defs`](./data/list/defs).
 -/
 
-variables {α β γ : Type*}
+variables {ι α β γ : Type*}
 
 namespace list
 section monoid
@@ -75,8 +75,8 @@ lemma prod_eq_foldr : l.prod = foldr (*) 1 l :=
 list.rec_on l rfl $ λ a l ihl, by rw [prod_cons, foldr_cons, ihl]
 
 @[to_additive]
-lemma prod_hom_rel {α β γ : Type*} [monoid β] [monoid γ] (l : list α) {r : β → γ → Prop}
-  {f : α → β} {g : α → γ} (h₁ : r 1 1) (h₂ : ∀⦃a b c⦄, r b c → r (f a * b) (g a * c)) :
+lemma prod_hom_rel [monoid β] (l : list ι) {r : α → β → Prop} {f : ι → α} {g : ι → β} (h₁ : r 1 1)
+  (h₂ : ∀ ⦃i a b⦄, r a b → r (f i * a) (g i * b)) :
   r (l.map f).prod (l.map g).prod :=
 list.rec_on l h₁ (λ a l hl, by simp only [map_cons, prod_cons, h₂ hl])
 
@@ -85,6 +85,17 @@ lemma prod_hom [monoid β] (l : list α) (f : α →* β) :
   (l.map f).prod = f l.prod :=
 by { simp only [prod, foldl_map, f.map_one.symm],
   exact l.foldl_hom _ _ _ 1 f.map_mul }
+
+@[to_additive]
+lemma prod_hom₂ [monoid β] [monoid γ] (l : list ι) (f : α → β → γ)
+  (hf : ∀ a b c d, f (a * b) (c * d) = f a c * f b d) (hf' : f 1 1 = 1) (f₁ : ι → α) (f₂ : ι → β) :
+  (l.map $ λ i, f (f₁ i) (f₂ i)).prod = f (l.map f₁).prod (l.map f₂).prod :=
+begin
+  simp only [prod, foldl_map],
+  convert l.foldl_hom₂ (λ a b, f a b) _ _ _ _ _ (λ a b i, _),
+  { exact hf'.symm },
+  { exact hf _ _ _ _ }
+end
 
 @[to_additive]
 lemma prod_is_unit [monoid β] : Π {L : list β} (u : ∀ m ∈ L, is_unit m), is_unit L.prod

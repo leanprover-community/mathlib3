@@ -4,9 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: David Kurniadi Angdinata
 -/
 
-import algebraic_geometry.elliptic_curve.EllipticCurve
-
 import algebra.algebra.basic
+import field_theory.galois
+
+import algebraic_geometry.elliptic_curve.EllipticCurve
 
 /-!
 # The group of rational points on an elliptic curve over a field
@@ -18,12 +19,14 @@ noncomputable theory
 variables {F : Type*} [field F]
 variables (E : EllipticCurve F)
 variables (K : Type*) [field K] [algebra F K]
+variables (L : Type*) [field L] [algebra F L] [algebra K L] [is_scalar_tower F K L]
+
+notation K↑L := algebra_map K L
+notation K`⟶[`F]L := (algebra.of_id K L).restrict_scalars F
 
 ----------------------------------------------------------------------------------------------------
 
 namespace EllipticCurve
-
-notation F↑K := algebra_map F K
 
 /-- The group of `K`-rational points `E(K)` on an elliptic curve `E` over `F`,
     consisting of the point at infinity and the affine points satisfying a Weierstrass equation. -/
@@ -32,7 +35,7 @@ inductive point
 | some (x y : K) (w : y ^ 2 + (F↑K)E.a1 * x * y + (F↑K)E.a3 * y
                     = x ^ 3 + (F↑K)E.a2 * x ^ 2 + (F↑K)E.a4 * x + (F↑K)E.a6)
 
-notation E`⟮`K`⟯` := point E K
+notation E⟮K⟯ := point E K
 
 open point
 
@@ -454,6 +457,195 @@ instance point.add_comm_group : add_comm_group (E⟮K⟯) :=
   add_assoc    := add_assoc E K }
 
 end add_comm_group
+
+----------------------------------------------------------------------------------------------------
+/-! ## Functoriality of `K ↦ E(K)` -/
+
+section functoriality
+
+variables (φ : K →ₐ[F] L)
+
+/-- Set function `E(K) → E(L)`. -/
+def point_hom.to_fun : E⟮K⟯ → (E⟮L⟯)
+| 0            := 0
+| (some x y w) := some (φ x) (φ y)
+begin
+  apply_fun φ at w,
+  simp only [alg_hom.map_add, alg_hom.map_mul, alg_hom.map_pow, alg_hom.commutes] at w,
+  exact w
+end
+
+/-- `E(K) → E(L)` respects zero. -/
+lemma point_hom.map_zero : point_hom.to_fun E K L φ 0 = 0 := rfl
+
+/-- `E(K) → E(L)` respects addition. -/
+lemma point_hom.map_add (P Q : E⟮K⟯) :
+  point_hom.to_fun E K L φ (P + Q) = point_hom.to_fun E K L φ P + point_hom.to_fun E K L φ Q :=
+begin
+  cases P,
+  { cases Q; refl },
+  { cases Q,
+    { refl },
+    { sorry } }
+end
+
+/-- Group homomorphism `E(K) → E(L)`. -/
+def point_hom : E⟮K⟯ →+ (E⟮L⟯) :=
+{ to_fun    := point_hom.to_fun E K L φ,
+  map_zero' := point_hom.map_zero E K L φ,
+  map_add'  := point_hom.map_add E K L φ }
+
+/-- `K ↦ E(K)` respects identity. -/
+lemma point_hom.id (P : E⟮K⟯) : point_hom E K K (K⟶[F]K) P = P := by { cases P; refl }
+
+/-- `K ↦ E(K)` respects composition. -/
+lemma point_hom.comp (P : E⟮K⟯) (M : Type*) [field M] [algebra F M] [algebra K M] [algebra L M]
+  [is_scalar_tower F L M] [is_scalar_tower F K M] :
+  point_hom E L M (L⟶[F]M) (point_hom E K L (K⟶[F]L) P)
+    = point_hom E K M ((L⟶[F]M).comp (K⟶[F]L)) P :=
+by { cases P; refl }
+
+/-- `E(K) → E(L)` is injective. -/
+lemma point_hom.injective : function.injective (point_hom E K L φ) :=
+begin
+  intros P Q hPQ,
+  cases P,
+  { cases Q,
+    { refl },
+    { contradiction } },
+  { cases Q,
+    { contradiction },
+    { injection hPQ with hx hy,
+      simp only,
+      split,
+      { apply_fun φ using (φ : K →+* L).injective,
+        exact hx },
+      { apply_fun φ using (φ : K →+* L).injective,
+        exact hy } } }
+end
+
+/-- Canonical inclusion map `E(K) ↪ E(L)`. -/
+def ιₚ : E⟮K⟯ →+ (E⟮L⟯) := point_hom E K L $ K⟶[F]L
+
+end functoriality
+
+----------------------------------------------------------------------------------------------------
+/-! ## Galois module structure of `E(L)` -/
+
+section galois
+
+variables (σ τ : L ≃ₐ[K] L)
+
+/-- The Galois action `Gal(L/K) ↷ E(L)`. -/
+def gal_act : E⟮L⟯ → (E⟮L⟯)
+| 0            := 0
+| (some x y w) := some (σ • x) (σ • y)
+begin
+  apply_fun ((•) $ σ.restrict_scalars F) at w,
+  simp only [smul_add, smul_mul', smul_pow'] at w,
+  simp only [alg_equiv.smul_def, alg_equiv.commutes] at w,
+  exact w
+end
+
+/-- `Gal(L/K) ↷ E(L)` is a scalar action. -/
+instance : has_scalar (L ≃ₐ[K] L) (E⟮L⟯) := ⟨gal_act E K L⟩
+
+/-- `Gal(L/K) ↷ E(L)` respects scalar one. -/
+lemma gal_act.one_smul (P : E⟮L⟯) : (1 : L ≃ₐ[K] L) • P = P :=
+by { cases P, { refl }, { simp only [has_scalar.smul, gal_act], exact ⟨rfl, rfl⟩ } }
+
+/-- `Gal(L/K) ↷ E(L)` respects scalar multiplication. -/
+lemma gal_act.mul_smul (P : E⟮L⟯) : (σ * τ) • P = σ • τ • P :=
+by { cases P, { refl }, { simp only [has_scalar.smul, gal_act], exact ⟨rfl, rfl⟩ } }
+
+/-- `Gal(L/K) ↷ E(L)` is a multiplicative action. -/
+instance : mul_action (L ≃ₐ[K] L) (E⟮L⟯) := ⟨gal_act.one_smul E K L, gal_act.mul_smul E K L⟩
+
+/-- `Gal(L/K) ↷ E(L)` respects scaling on addition. -/
+lemma gal_act.smul_add (P Q : E⟮L⟯) : σ • (P + Q) = σ • P + σ • Q :=
+begin
+  cases P,
+  { cases Q; refl },
+  { cases Q,
+    { refl },
+    { sorry } }
+end
+
+/-- `Gal(L/K) ↷ E(L)` respects scaling on zero. -/
+lemma gal_act.smul_zero : σ • (0 : E⟮L⟯) = 0 := rfl
+
+/-- `Gal(L/K) ↷ E(L)` is a distributive multiplicative action. -/
+instance : distrib_mul_action (L ≃ₐ[K] L) (E⟮L⟯) :=
+⟨gal_act.smul_add E K L, gal_act.smul_zero E K L⟩
+
+local notation E⟮L⟯^K := mul_action.fixed_points (L ≃ₐ[K] L) (E⟮L⟯)
+
+/-- Zero is in `E(L)ᴷ`. -/
+lemma gal_act.fixed.zero_mem : (0 : E⟮L⟯) ∈ (E⟮L⟯^K) := λ σ, rfl
+
+/-- Addition is closed in `E(L)ᴷ`. -/
+lemma gal_act.fixed.add_mem (P Q : E⟮L⟯) : P ∈ (E⟮L⟯^K) → Q ∈ (E⟮L⟯^K) → P + Q ∈ (E⟮L⟯^K) :=
+λ hP hQ σ, by rw [smul_add, hP, hQ]
+
+/-- Negation is closed in `E(L)ᴷ`. -/
+lemma gal_act.fixed.neg_mem (P : E⟮L⟯) : P ∈ (E⟮L⟯^K) → -P ∈ (E⟮L⟯^K) :=
+λ hP σ, by { rw [← neg_inj, ← smul_neg, neg_neg], exact hP σ }
+
+/-- The Galois invariant subgroup `E(L)ᴷ` of `E(L)` fixed by `Gal(L/K)`. -/
+def gal_act.fixed : add_subgroup (E⟮L⟯) :=
+{ carrier   := E⟮L⟯^K,
+  zero_mem' := gal_act.fixed.zero_mem E K L,
+  add_mem'  := gal_act.fixed.add_mem E K L,
+  neg_mem'  := gal_act.fixed.neg_mem E K L }
+
+notation E⟮L`⟯^`K := gal_act.fixed E K L
+
+/-- `E(L)ᴷ = ιₚ(E(K))`. -/
+lemma gal_act.fixed.eq [finite_dimensional K L] [h : is_galois K L] :
+  (E⟮L⟯^K) = (ιₚ E K L).range :=
+begin
+  ext P,
+  split,
+  { intro hP,
+    cases P with x y w,
+    { existsi zero,
+      refl },
+    { change ∀ σ : L ≃ₐ[K] L, σ • some x y w = some x y w at hP,
+      simp only [has_scalar.smul, gal_act, forall_and_distrib] at hP,
+      have hx : x ∈ intermediate_field.fixed_field (⊤ : subgroup (L ≃ₐ[K] L)) := λ σ, hP.left σ,
+      have hy : y ∈ intermediate_field.fixed_field (⊤ : subgroup (L ≃ₐ[K] L)) := λ σ, hP.right σ,
+      rw [((@is_galois.tfae K _ L _ _ _).out 0 1).mp h, intermediate_field.mem_bot] at hx hy,
+      change ∃ x' : K, (K⟶[F]L)x' = x at hx,
+      change ∃ y' : K, (K⟶[F]L)y' = y at hy,
+      rw [add_monoid_hom.mem_range],
+      existsi some hx.some hy.some _,
+      change some ((K⟶[F]L)hx.some) ((K⟶[F]L)hy.some) _ = some x y w,
+      simp only [hx.some_spec, hy.some_spec],
+      exact ⟨rfl, rfl⟩,
+      apply_fun (K⟶[F]L) using (K⟶[F]L : K →+* L).injective,
+      simp only [alg_hom.map_add, alg_hom.map_mul, alg_hom.map_pow, alg_hom.commutes],
+      rw [hx.some_spec, hy.some_spec, w] } },
+  { intros hP σ,
+    cases P with x y w,
+    { refl },
+    { cases hP with Q hQ,
+      cases Q with x' y' w',
+      { contradiction },
+      { change some ((K↑L)x') ((K↑L) y') _ = some x y w at hQ,
+        simp only at hQ,
+        have hx : x ∈ set.range (K↑L) := exists.intro x' hQ.left,
+        have hy : y ∈ set.range (K↑L) := exists.intro y' hQ.right,
+        rw [← intermediate_field.mem_bot, ← ((@is_galois.tfae K _ L _ _ _).out 0 1).mp h] at hx hy,
+        simp only [has_scalar.smul, gal_act],
+        exact ⟨hx ⟨σ, subgroup.mem_top σ⟩, hy ⟨σ, subgroup.mem_top σ⟩⟩ } } }
+end
+
+/-- `Gal(L/K)` fixes `ιₚ(E(K))`. -/
+lemma gal_act.fixed.smul (P : E⟮K⟯) [finite_dimensional K L] [is_galois K L] :
+  σ • ιₚ E K L P = ιₚ E K L P :=
+by { revert σ, change ιₚ E K L P ∈ (E⟮L⟯^K), rw [gal_act.fixed.eq], use P }
+
+end galois
 
 ----------------------------------------------------------------------------------------------------
 

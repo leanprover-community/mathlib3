@@ -390,7 +390,7 @@ fintype.of_equiv _ (coe_neighbor_set_equiv v).symm
 
 lemma is_spanning.card_verts [fintype V] {G' : subgraph G} [fintype G'.verts]
   (h : G'.is_spanning) : G'.verts.to_finset.card = fintype.card V :=
-by { rw is_spanning_iff at h, simp [h] }
+by { rw is_spanning_iff at h, simpa [h] }
 
 /-- The degree of a vertex in a subgraph. It's zero for vertices outside the subgraph. -/
 def degree (G' : subgraph G) (v : V) [fintype (G'.neighbor_set v)] : ℕ :=

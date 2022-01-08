@@ -205,6 +205,18 @@ by rw [coe_laurent, coe_X, of_power_series_X]
   ((r • p : polynomial R) : laurent_series R) = r • p :=
 by rw [smul_eq_C_mul, coe_laurent_mul, coe_laurent_C, C_mul_eq_smul]
 
+@[simp, norm_cast] lemma coe_laurent_bit0 :
+  ((bit0 p : polynomial R) : laurent_series R) = bit0 p :=
+coe_laurent_add p p
+
+@[simp, norm_cast] lemma coe_laurent_bit1 :
+  ((bit1 p : polynomial R) : laurent_series R) = bit1 p :=
+by rw [bit1, bit1, coe_laurent_add, coe_laurent_bit0, coe_laurent_one]
+
+@[simp, norm_cast] lemma coe_laurent_pow (n : ℕ) :
+  ((p ^ n : polynomial R) : laurent_series R) = p ^ n :=
+by rw [coe_laurent, coe_pow, _root_.map_pow, ←coe_laurent]
+
 end laurent_series
 
 end polynomial

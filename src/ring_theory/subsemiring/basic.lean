@@ -787,13 +787,12 @@ def sof_left_inverse {g : S → R} {f : R →+* S} (h : function.left_inverse g 
   {g : S → R} {f : R →+* S} (h : function.left_inverse g f) (x : f.srange) :
   (sof_left_inverse h).symm x = g x := rfl
 
-/-- Given an equivalence `e : A ≃+* B` of semirings and a subsemiring `R` of `A`,
-`subsemiring_equiv_map e R` is the induced equivalence between `R` and `R.map e` -/
-@[simps] def subsemiring_equiv_map {A B : Type*} [non_assoc_semiring A]
-  [non_assoc_semiring B] (e : A ≃+* B) (R : subsemiring A) :
-  R ≃+* R.map e.to_ring_hom :=
-{ ..e.to_add_equiv.add_submonoid_equiv_map R.to_add_submonoid,
-  ..e.to_mul_equiv.submonoid_equiv_map R.to_submonoid }
+/-- Given an equivalence `e : R ≃+* S` of semirings and a subsemiring `s` of `R`,
+`subsemiring_map e s` is the induced equivalence between `s` and `s.map e` -/
+@[simps] def subsemiring_map (e : R ≃+* S) (s : subsemiring R) :
+  s ≃+* s.map e.to_ring_hom :=
+{ ..e.to_add_equiv.add_submonoid_map R.to_add_submonoid,
+  ..e.to_mul_equiv.submonoid_map R.to_submonoid }
 
 end ring_equiv
 

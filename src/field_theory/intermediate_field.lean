@@ -272,12 +272,12 @@ lemma map_map {K L₁ L₂ L₃ : Type*} [field K] [field L₁] [algebra K L₁]
   (E.map f).map g = E.map (g.comp f) :=
 set_like.coe_injective $ set.image_image _ _ _
 
-/-- Given an equivalence `e : L ≃ₐ[K] M` of `K`-field extensions and an intermediate
+/-- Given an equivalence `e : L ≃ₐ[K] L'` of `K`-field extensions and an intermediate
 field `E` of `L/K`, `intermediate_field_equiv_map e E` is the induced equivalence
 between `E` and `E.map e` -/
-@[simps] def intermediate_field_equiv_map (e : L ≃ₐ[K] L') (E : intermediate_field K L) :
+@[simps] def intermediate_field_map (e : L ≃ₐ[K] L') (E : intermediate_field K L) :
   E ≃ₐ[K] (E.map e.to_alg_hom) :=
-e.subalgebra_equiv_map E.to_subalgebra
+e.subalgebra_map E.to_subalgebra
 
 /-- The embedding from an intermediate field of `L / K` to `L`. -/
 def val : S →ₐ[K] L :=

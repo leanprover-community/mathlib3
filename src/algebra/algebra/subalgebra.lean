@@ -494,10 +494,10 @@ of_injective f f.to_ring_hom.injective
 
 /-- Given an equivalence `e : A ≃ₐ[R] B` of `R`-algebras and a subalgebra `S` of `A`,
 `subalgebra_equiv_map` is the induced equivalence between `S` and `S.map e` -/
-@[simps] def subalgebra_equiv_map (e : A ≃ₐ[R] B) (S : subalgebra R A) :
+@[simps] def subalgebra_map (e : A ≃ₐ[R] B) (S : subalgebra R A) :
   S ≃ₐ[R] (S.map e.to_alg_hom) :=
 { commutes' := λ r, by { ext, simp },
-  ..e.to_ring_equiv.subsemiring_equiv_map S.to_subsemiring }
+  ..e.to_ring_equiv.subsemiring_map S.to_subsemiring }
 
 end alg_equiv
 

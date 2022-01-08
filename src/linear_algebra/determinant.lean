@@ -318,8 +318,8 @@ namespace linear_equiv
 
 variables [is_domain R]
 
-/-- On a `linear_equiv`, the domain of `linear_map.det` can be promoted to `units R`. -/
-protected def det : (M ≃ₗ[R] M) →* units R :=
+/-- On a `linear_equiv`, the domain of `linear_map.det` can be promoted to `Rˣ`. -/
+protected def det : (M ≃ₗ[R] M) →* Rˣ :=
 (units.map (linear_map.det : (M →ₗ[R] M) →* R)).comp
   (linear_map.general_linear_group.general_linear_equiv R M).symm.to_monoid_hom
 
@@ -511,3 +511,12 @@ begin
   { rw [basis.mk_coord_apply_ne hik, mul_zero, eq_comm],
     exact e.det.map_eq_zero_of_eq _ (by simp [hik, function.update_apply]) hik, },
 end
+
+/-- The determinant of a basis constructed by `units_smul` is the product of the given units. -/
+@[simp] lemma basis.det_units_smul (w : ι → Rˣ) : e.det (e.units_smul w) = ∏ i, w i :=
+by simp [basis.det_apply]
+
+/-- The determinant of a basis constructed by `is_unit_smul` is the product of the given units. -/
+@[simp] lemma basis.det_is_unit_smul {w : ι → R} (hw : ∀ i, is_unit (w i)) :
+  e.det (e.is_unit_smul hw) = ∏ i, w i :=
+e.det_units_smul _

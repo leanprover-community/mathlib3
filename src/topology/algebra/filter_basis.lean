@@ -5,7 +5,7 @@ Authors: Patrick Massot
 -/
 
 import order.filter.bases
-import topology.algebra.module
+import topology.algebra.module.basic
 /-!
 # Group and ring filter bases
 

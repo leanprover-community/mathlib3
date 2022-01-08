@@ -22,8 +22,12 @@ This file introduces abstract configurations of points and lines, and proves som
 * `configuration.point_count`: The number of lines through a given line.
 
 ## Main statements
-* `configuration.has_lines.card_le`: `has_lines` implies `card points ≤ card lines`.
-* `configuration.has_points.card_le`: `has_points` implies `card lines ≤ card points`.
+* `configuration.has_lines.card_le`: `has_lines` implies `|P| ≤ |L|`.
+* `configuration.has_points.card_le`: `has_points` implies `|L| ≤ |P|`.
+* `configuration.has_lines.has_points`: `has_lines` and `|P| = |L|` implies `has_points`.
+* `configuration.has_points.has_lines`: `has_points` and `|P| = |L|` implies `has_lines`.
+Together, these four statements say that any two of the following properties imply the third:
+(a) `has_lines`, (b) `has_points`, (c) `|P| = |L|`.
 
 ## Todo
 * Abstract projective planes.
@@ -180,8 +184,7 @@ lemma has_points.line_count_le_point_count [has_points P L] {p : P} {l : L} (h :
 
 variables (P L)
 
-/-- If a nondegenerate configuration has a unique line through any two points,
-  then there are at least as many lines as points. -/
+/-- If a nondegenerate configuration has a unique line through any two points, then `|P| ≤ |L|`. -/
 lemma has_lines.card_le [has_lines P L] [fintype P] [fintype L] :
   fintype.card P ≤ fintype.card L :=
 begin
@@ -205,8 +208,7 @@ begin
       exact let this := not_exists.mp hp l in ⟨⟨mk_line this, (mk_line_ax this).2⟩⟩ } },
 end
 
-/-- If a nondegenerate configuration has a unique point on any two lines,
-  then there are at least as many points as lines. -/
+/-- If a nondegenerate configuration has a unique point on any two lines, then `|L| ≤ |P|`. -/
 lemma has_points.card_le [has_points P L] [fintype P] [fintype L] :
   fintype.card L ≤ fintype.card P :=
 @has_lines.card_le (dual L) (dual P) _ _ _ _
@@ -228,5 +230,75 @@ begin
   obtain ⟨l, rfl⟩ := hf3.2 p,
   exact ⟨l, finset.mem_univ l, rfl⟩,
 end
+
+lemma has_lines.line_count_eq_point_count [has_lines P L] [fintype P] [fintype L]
+  (hPL : fintype.card P = fintype.card L) {p : P} {l : L} (hpl : p ∉ l) :
+  line_count L p = point_count P l :=
+begin
+  classical,
+  obtain ⟨f, hf1, hf2⟩ := has_lines.exists_bijective_of_card_eq hPL,
+  let s : finset (P × L) := set.to_finset {i | i.1 ∈ i.2},
+  have step1 : ∑ i : P × L, line_count L i.1 = ∑ i : P × L, point_count P i.2,
+  { rw [←finset.univ_product_univ, finset.sum_product_right, finset.sum_product],
+    simp_rw [finset.sum_const, finset.card_univ, hPL, sum_line_count_eq_sum_point_count] },
+  have step2 : ∑ i in s, line_count L i.1 = ∑ i in s, point_count P i.2,
+  { rw [s.sum_finset_product finset.univ (λ p, set.to_finset {l | p ∈ l})],
+    rw [s.sum_finset_product_right finset.univ (λ l, set.to_finset {p | p ∈ l})],
+    refine (finset.sum_bij (λ l hl, f l) (λ l hl, finset.mem_univ (f l)) (λ l hl, _)
+      (λ _ _ _ _ h, hf1.1 h) (λ p hp, _)).symm,
+    { simp_rw [finset.sum_const, set.to_finset_card, ←nat.card_eq_fintype_card],
+      change (point_count P l) • (point_count P l) = (line_count L (f l)) • (line_count L (f l)),
+      rw hf2 },
+    { obtain ⟨l, hl⟩ := hf1.2 p,
+      exact ⟨l, finset.mem_univ l, hl.symm⟩ },
+    all_goals { simp_rw [finset.mem_univ, true_and, set.mem_to_finset], exact λ p, iff.rfl } },
+  have step3 : ∑ i in sᶜ, line_count L i.1 = ∑ i in sᶜ, point_count P i.2,
+  { rwa [←s.sum_add_sum_compl, ←s.sum_add_sum_compl, step2, add_left_cancel_iff] at step1 },
+  rw ← set.to_finset_compl at step3,
+  exact ((finset.sum_eq_sum_iff_of_le (by exact λ i hi, has_lines.point_count_le_line_count
+    (set.mem_to_finset.mp hi))).mp step3.symm (p, l) (set.mem_to_finset.mpr hpl)).symm,
+end
+
+lemma has_points.line_count_eq_point_count [has_points P L] [fintype P] [fintype L]
+  (hPL : fintype.card P = fintype.card L) {p : P} {l : L} (hpl : p ∉ l) :
+  line_count L p = point_count P l :=
+(@has_lines.line_count_eq_point_count (dual L) (dual P) _ _  _ _ hPL.symm l p hpl).symm
+
+/-- If a nondegenerate configuration has a unique line through any two points, and if `|P| = |L|`,
+  then there is a unique point on any two lines. -/
+noncomputable def has_lines.has_points [has_lines P L] [fintype P] [fintype L]
+  (h : fintype.card P = fintype.card L) : has_points P L :=
+let this : ∀ l₁ l₂ : L, l₁ ≠ l₂ → ∃ p : P, p ∈ l₁ ∧ p ∈ l₂ := λ l₁ l₂ hl, begin
+  classical,
+  obtain ⟨f, hf1, hf2⟩ := has_lines.exists_bijective_of_card_eq h,
+  haveI : nontrivial L := ⟨⟨l₁, l₂, hl⟩⟩,
+  haveI := fintype.one_lt_card_iff_nontrivial.mp ((congr_arg _ h).mpr fintype.one_lt_card),
+  have h₁ : ∀ p : P, 0 < line_count L p := λ p, exists.elim (exists_ne p) (λ q hq, (congr_arg _
+    nat.card_eq_fintype_card).mpr (fintype.card_pos_iff.mpr ⟨⟨mk_line hq, (mk_line_ax hq).2⟩⟩)),
+  have h₂ : ∀ l : L, 0 < point_count P l := λ l, (congr_arg _ (hf2 l)).mpr (h₁ (f l)),
+  obtain ⟨p, hl₁⟩ := fintype.card_pos_iff.mp ((congr_arg _ nat.card_eq_fintype_card).mp (h₂ l₁)),
+  by_cases hl₂ : p ∈ l₂, exact ⟨p, hl₁, hl₂⟩,
+  have key' : fintype.card {q : P // q ∈ l₂} = fintype.card {l : L // p ∈ l},
+  { exact ((has_lines.line_count_eq_point_count h hl₂).trans nat.card_eq_fintype_card).symm.trans
+    nat.card_eq_fintype_card, },
+  have : ∀ q : {q // q ∈ l₂}, p ≠ q := λ q hq, hl₂ ((congr_arg (∈ l₂) hq).mpr q.2),
+  let f : {q : P // q ∈ l₂} → {l : L // p ∈ l} := λ q, ⟨mk_line (this q), (mk_line_ax (this q)).1⟩,
+  have hf : function.injective f := λ q₁ q₂ hq, subtype.ext ((eq_or_eq q₁.2 q₂.2
+    (mk_line_ax (this q₁)).2 ((congr_arg _ (subtype.ext_iff.mp hq)).mpr (mk_line_ax
+      (this q₂)).2)).resolve_right (λ h, (congr_arg _ h).mp hl₂ (mk_line_ax (this q₁)).1)),
+  have key' := ((fintype.bijective_iff_injective_and_card f).mpr ⟨hf, key'⟩).2,
+  obtain ⟨q, hq⟩ := key' ⟨l₁, hl₁⟩,
+  exact ⟨q, (congr_arg _ (subtype.ext_iff.mp hq)).mp (mk_line_ax (this q)).2, q.2⟩,
+end in
+{ mk_point := λ l₁ l₂ hl, classical.some (this l₁ l₂ hl),
+  mk_point_ax := λ l₁ l₂ hl, classical.some_spec (this l₁ l₂ hl) }
+
+/-- If a nondegenerate configuration has a unique point on any two lines, and if `|P| = |L|`,
+  then there is a unique line through any two points. -/
+noncomputable def has_points.has_lines [has_points P L] [fintype P] [fintype L]
+  (h : fintype.card P = fintype.card L) : has_lines P L :=
+let this := @has_lines.has_points (dual L) (dual P) _ _ _ _ h.symm in
+{ mk_line := this.mk_point,
+  mk_line_ax := this.mk_point_ax }
 
 end configuration

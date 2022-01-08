@@ -204,7 +204,7 @@ end
 lemma image_Ico_mod (n a : ℕ) :
   (Ico n (n+a)).image (% a) = range a :=
 begin
-  obtain (rfl|ha) : a = 0 ∨ a ≠ 0 := eq_or_ne a 0,
+  obtain rfl | ha := eq_or_ne a 0,
   { rw [range_zero, add_zero, Ico_self, image_empty], },
   ext i,
   simp only [mem_image, exists_prop, mem_range, mem_Ico],

@@ -1,3 +1,9 @@
+/-
+Copyright (c) 2022 Yaël Dillies, Violeta Hernández Palacios. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Yaël Dillies, Violeta Hernández Palacios, Grayson Burton, Vladimir Ivanov
+-/
+
 import order.atoms
 import order.locally_finite
 import order.zorn
@@ -6,13 +12,35 @@ import order.zorn
 # To move
 -/
 
+open finset
+
 variables {α : Type*}
 
 section order_dual
 open order_dual
-variables [has_lt α]
+variables {a b : order_dual α}
 
-lemma has_lt.lt.of_dual {a b : order_dual α} (h : a < b) : of_dual b < of_dual a := h
+lemma has_le.le.of_dual [has_le α] (h : a ≤ b) : of_dual b ≤ of_dual a := h
+lemma has_lt.lt.of_dual [has_lt α] {a b : order_dual α} (h : a < b) : of_dual b < of_dual a := h
+
+variables [preorder α] [locally_finite_order α]
+
+lemma Icc_eq : Icc a b = (Icc (of_dual b) (of_dual a)).map to_dual.to_embedding := Icc_to_dual _ _
+lemma Ico_eq : Ico a b = (Ioc (of_dual b) (of_dual a)).map to_dual.to_embedding := Ico_to_dual _ _
+lemma Ioc_eq : Ioc a b = (Ico (of_dual b) (of_dual a)).map to_dual.to_embedding := Ioc_to_dual _ _
+lemma Ioo_eq : Ioo a b = (Ioo (of_dual b) (of_dual a)).map to_dual.to_embedding := Ioo_to_dual _ _
+
+@[simp] lemma card_Icc : (Icc a b).card = (Icc (of_dual b) (of_dual a)).card :=
+by rw [Icc_eq, card_map]
+
+@[simp] lemma card_Ico : (Ico a b).card = (Ioc (of_dual b) (of_dual a)).card :=
+by rw [Ico_eq, card_map]
+
+@[simp] lemma card_Ioc : (Ioc a b).card = (Ico (of_dual b) (of_dual a)).card :=
+by rw [Ioc_eq, card_map]
+
+@[simp] lemma card_Ioo : (Ioo a b).card = (Ioo (of_dual b) (of_dual a)).card :=
+by rw [Ioo_eq, card_map]
 
 end order_dual
 

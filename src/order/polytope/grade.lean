@@ -150,9 +150,32 @@ instance : grade_order (order_dual α) :=
       h.1.of_dual.grade_lt_grade_top),
   end }
 
+variables {α}
+
+protected lemma order_dual.grade (a : order_dual α) : grade a = grade (⊤ : α) - grade (of_dual a) :=
+rfl
+
+@[simp] lemma grade_add_grade_of_dual (a : order_dual α) :
+  grade a + grade (of_dual a) = grade (⊤ : α) :=
+by rw [order_dual.grade, tsub_add_cancel_of_le (grade_le_grade_top _)]
+
+@[simp] lemma grade_add_grade_to_dual (a : α) : grade a + grade (to_dual a) = grade (⊤ : α) :=
+(add_comm _ _).trans $ grade_add_grade_of_dual _
+
+@[simp] lemma grade_to_dual (a : α) : grade (to_dual a) = grade (⊤ : α) - grade a :=
+by rw [←grade_add_grade_to_dual a, add_tsub_cancel_left]
+
+@[simp] lemma grade_of_dual (a : order_dual α) : grade (of_dual a) = grade (⊤ : α) - grade a :=
+by rw [←grade_add_grade_of_dual a, add_tsub_cancel_left]
+
+@[simp] lemma to_dual_top : to_dual (⊤ : α) = ⊥ := rfl
+@[simp] lemma to_dual_bot : to_dual (⊥ : α) = ⊤ := rfl
+@[simp] lemma of_dual_top : of_dual (⊤ : order_dual α) = ⊥ := rfl
+@[simp] lemma of_dual_bot : of_dual (⊥ : order_dual α) = ⊤ := rfl
+
 /-- Duals have the same top grade as the posets they come from. -/
 lemma grade_top_dual : grade (⊤ : order_dual α) = grade (⊤ : α) :=
-by { change grade ⊤ - grade ⊥ = grade ⊤, rw [grade_bot, nat.sub_zero] }
+by rw [←to_dual_bot, grade_to_dual, grade_bot, nat.sub_zero]
 
 /-- An element has the top grade iff it is the top element. -/
 @[simp]
@@ -213,11 +236,6 @@ noncomputable def grade_order.to_locally_finite_order : locally_finite_order α 
   finset_mem_Ioo := λ a b x,
     by rw [mem_preimage, mem_Ioo, grade_strict_mono.lt_iff_lt, grade_strict_mono.lt_iff_lt] }
 
-lemma card_Iio_eq_grade (a : α) : (Iic a).card = grade a := sorry
-lemma card_Iic_eq_grade_add_one (a : α) : (Iic a).card = grade a + 1 := sorry
-lemma card_Ico_eq_grade_sub_grade (a b : α) : (Ico a b).card = grade b - grade a :=  sorry
-lemma card_Ioc_eq_grade_sub_grade (a b : α) : (Ioc a b).card = grade b - grade a := sorry
-
 /-- The set of grades in a linear order has no gaps. -/
 private lemma grade_ioo_lin {a b : α} {m n r : ℕ} (ha : grade a = m) (hb : grade b = n)
   (hrl : m < r) (hrr : r < n) : ∃ (s ∈ set.Ioo m n) (c : α), grade c = s :=
@@ -227,6 +245,13 @@ begin
     h.grade_covers) ((grade_lt_iff_lt _ _).1 (lt_trans hrl hrr)),
   exact ⟨_, ⟨grade_strict_mono hac, grade_strict_mono hcb⟩, _, rfl⟩
 end
+
+variables [locally_finite_order α]
+
+lemma card_Iio_eq_grade (a : α) : (Iic a).card = grade a := sorry
+lemma card_Iic_eq_grade_add_one (a : α) : (Iic a).card = grade a + 1 := sorry
+lemma card_Ico_eq_grade_sub_grade (a b : α) : (Ico a b).card = grade b - grade a :=  sorry
+lemma card_Ioc_eq_grade_sub_grade (a b : α) : (Ioc a b).card = grade b - grade a := sorry
 
 end order_bot
 
@@ -242,7 +267,15 @@ def order_embedding.grade_fin : α ↪o fin (grade ⊤ + 1) :=
 /-- A graded linear order has an element of grade `j` when `j ≤ grade ⊤`. This is generalized to a
 partial order in `ex_of_grade`. -/
 lemma ex_of_grade_lin {j : ℕ} (hj : j ≤ grade (⊤ : α)) : (∃ a : α, grade a = j) :=
-(nat.all_icc_of_ex_ioo grade_ioo_lin) _ _ ⟨⊥, grade_bot⟩ ⟨⊤, rfl⟩ _ ⟨zero_le _, hj⟩
+have hj' : grade (⊥ : α) ≤ j := by simp [grade_bot],
+let S := {g | ∃ a : α, grade a = g} in
+suffices h : _,
+from @nat.all_icc_of_ex_ioo S h (grade (⊥ : α)) (grade (⊤ : α)) _ ⟨⊥, rfl⟩ ⟨⊤, rfl⟩ hj' hj,
+begin
+  rintro _ _ _ ⟨_, ha⟩ ⟨_, hb⟩ hac hcb,
+  obtain ⟨_, hw, hw'⟩ := grade_ioo_lin ha hb hac hcb,
+  exact ⟨_, hw', hw⟩,
+end
 
 /-- A graded linear order has a unique element of grade `j` when `j ≤ grade ⊤`. -/
 lemma ex_unique_of_grade {j : ℕ} (hj : j ≤ grade (⊤ : α)) : ∃! a : α, grade a = j :=
@@ -328,8 +361,14 @@ def is_simple_order.to_grade_order [decidable_eq α] [preorder α] [bounded_orde
 variables {α}
 
 lemma is_simple_order.grade_top [partial_order α] [bounded_order α] [is_simple_order α]
-  [grade_order α] : grade (⊤ : α) = 1 :=
+  [grade_order α] :
+  grade (⊤ : α) = 1 :=
 by { rw [←bot_covers_top.grade, grade_bot], apply_instance }
+
+lemma is_simple_order.grade_le_one [partial_order α] [bounded_order α] [is_simple_order α]
+  [grade_order α] (a : α) :
+  grade a ≤ 1 :=
+by { convert grade_le_grade_top _, rw is_simple_order.grade_top }
 
 end is_simple_order
 
@@ -440,12 +479,10 @@ end⟩
 
 lemma _root_.covers.exists_cons_multiset (h : s ⋖ t) : ∃ a, t = a ::ₘ s :=
 begin
-  obtain ⟨a, ha⟩ := exists_cons_le_of_lt h.lt,
-  refine ⟨a, ha.eq_of_not_gt _⟩,
   obtain ⟨a, ha⟩ := lt_iff_cons_le.mp h.lt,
   refine ⟨a, ha.eq_of_not_gt _⟩,
   cases h with hlt no_intermediate,
-  exact no_intermediate (lt_cons_self _ _)
+  exact no_intermediate (lt_cons_self _ _),
 end
 
 lemma covers_iff_exists_cons : s ⋖ t ↔ ∃ a, t = a ::ₘ s :=
@@ -548,7 +585,7 @@ end dfinsupp
 /-! #### Product of two graded orders -/
 
 namespace prod
-variables (α β) [preorder α] [order_bot α] [grade_order α] [preorder β] [order_bot β]
+variables (α β) [partial_order α] [order_bot α] [grade_order α] [partial_order β] [order_bot β]
   [grade_order β]
 
 instance : grade_order (α × β) :=
@@ -561,7 +598,7 @@ instance : grade_order (α × β) :=
     { exact add_lt_add_of_le_of_lt (grade_mono h.1) (grade_strict_mono h.2) }
   end,
   grade_of_covers := begin
-
+    sorry
   end }
 
 variables {α β}
@@ -594,11 +631,11 @@ end pi
 
 /-! #### Lexicographical sum of two graded orders -/
 
-section sum
+namespace sum
 variables (α β) [preorder α] [bounded_order α] [grade_order α] [preorder β] [order_bot β]
   [grade_order β]
 
-def grade_order : grade_order (α ⊕ β) :=
+instance : grade_order (α ⊕ₗ β) :=
 { grade := λ a, a.elim grade (λ b, grade (⊤ : α) + grade b),
   grade_bot := grade_bot,
   strict_mono := λ a b h, sorry,
@@ -606,8 +643,8 @@ def grade_order : grade_order (α ⊕ β) :=
 
 variables {α β} (a : α) (b : β)
 
-@[simp] protected lemma grade_inl : grade (sum.inl a : α ⊕ β) = grade a := rfl
-@[simp] protected lemma grade_inr : grade (sum.inr b : α ⊕ β) = grade (⊤ : α) + grade b := rfl
+@[simp] protected lemma grade_inl : grade (sum.inlₗ a : α ⊕ₗ β) = grade a := rfl
+@[simp] protected lemma grade_inr : grade (sum.inrₗ b : α ⊕ₗ β) = grade (⊤ : α) + grade b := rfl
 
 end sum
 

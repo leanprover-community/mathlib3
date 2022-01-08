@@ -1166,7 +1166,7 @@ calc (s : set V).finrank K ≤ (s : set V).to_finset.card : finrank_span_le_card
 
 lemma finrank_span_eq_card {ι : Type*} [fintype ι] {b : ι → V}
   (hb : linear_independent K b) :
-  (set.range b).finrank K = fintype.card ι :=
+  finrank K (span K (set.range b)) = fintype.card ι :=
 begin
   haveI : finite_dimensional K (span K (set.range b)) := span_of_finite K (set.finite_range b),
   have : module.rank K (span K (set.range b)) = #(set.range b) := dim_span hb,
@@ -1186,7 +1186,7 @@ end
 
 lemma finrank_span_finset_eq_card (s : finset V)
   (hs : linear_independent K (coe : s → V)) :
-  (s : set V).finrank K = s.card :=
+  finrank K (span K (s : set V)) = s.card :=
 begin
   convert finrank_span_set_eq_card ↑s hs,
   ext,

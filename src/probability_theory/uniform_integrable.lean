@@ -15,27 +15,30 @@ namespace measure_theory
 
 open set
 
-variables {α β : Type*} [normed_group β]
+variables {α β ι : Type*} [normed_group β]
+
+-- **Change doc-strings**
 
 /-- A family `I` of (L₁-)functions is known as uniformly integrable if for all `ε > 0`, there
 exists some `δ > 0` such that for all `f ∈ I` and measurable sets `s` with measure less than `δ`,
 we have `∫ x in s, ∥f x∥ < ε`.
 
 This is the measure theory verison of uniform integrability. -/
-def unif_integrable {m : measurable_space α} (μ : measure α) (I : set (α → β)) : Prop :=
-∀ ε : ℝ≥0∞, ∃ δ : ℝ≥0∞, ∀ (f ∈ I) (s : set α), measurable_set s → μ s < δ →
-snorm (set.indicator s f) 1 μ < ε
+def unif_integrable {m : measurable_space α} (μ : measure α) (f : ι → α → β) : Prop :=
+∀ ε : ℝ≥0∞, ∃ δ : ℝ≥0∞, ∀ i s, measurable_set s → μ s < δ →
+snorm (set.indicator s (f i)) 1 μ < ε
 
 /-- In probability theory, a family of functions is uniformly integrable if it is uniformly
 integrable in the measure theory sense and is uniformly bounded. -/
-def uniform_integrable {m : measurable_space α} (μ : measure α) (I : set (α → β)) : Prop :=
-unif_integrable μ I ∧ ∃ C : ℝ≥0, ∀ f ∈ I, snorm f 1 μ < C
+def uniform_integrable {m : measurable_space α} [measurable_space β]
+  (μ : measure α) (f : ι → α → β) : Prop :=
+(∀ i, measurable (f i)) ∧ unif_integrable μ f ∧
+  ∃ C : ℝ≥0, ∀ i, snorm (f i) 1 μ < C
 
-variables {m : measurable_space α} {μ : measure α} {I : set (α → β)}
+variables {m : measurable_space α} {μ : measure α} [measurable_space β] {f : ι → α → β}
 
-lemma uniform_integrable.mem_ℒp_one [measurable_space β]
-  (hI : uniform_integrable μ I) {f : α → β} (hf : f ∈ I) (hfm : ae_measurable f μ) :
-  mem_ℒp f 1 μ :=
-⟨hfm, let ⟨C, hC⟩ := hI.2 in lt_trans (hC f hf) ennreal.coe_lt_top⟩
+lemma uniform_integrable.mem_ℒp_one (hf : uniform_integrable μ f) (i : ι) :
+  mem_ℒp (f i) 1 μ :=
+⟨(hf.1 i).ae_measurable, let ⟨_, _, hC⟩ := hf.2 in lt_trans (hC i) ennreal.coe_lt_top⟩
 
 end measure_theory

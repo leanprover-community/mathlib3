@@ -642,7 +642,7 @@ of_mono (order_hom.const _ x) (continuous_const x)
 @[simp] theorem const_apply (f : β) (a : α) : const f a = f := rfl
 
 instance [inhabited β] : inhabited (α →𝒄 β) :=
-⟨ const (default β) ⟩
+⟨ const default ⟩
 
 namespace prod
 

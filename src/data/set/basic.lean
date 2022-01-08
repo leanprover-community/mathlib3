@@ -444,8 +444,8 @@ lemma not_subset_iff_exists_mem_not_mem {α : Type*} {s t : set α} :
   ¬ s ⊆ t ↔ ∃ x, x ∈ s ∧ x ∉ t :=
 by simp [subset_def]
 
-lemma univ_unique [unique α] : @set.univ α = {default α} :=
-set.ext $ λ x, iff_of_true trivial $ subsingleton.elim x $ default α
+lemma univ_unique [unique α] : @set.univ α = {default} :=
+set.ext $ λ x, iff_of_true trivial $ subsingleton.elim x default
 
 /-! ### Lemmas about union -/
 
@@ -1896,7 +1896,7 @@ eq_univ_of_forall mem_range_self
 
 /-- The range of a function from a `unique` type contains just the
 function applied to its single value. -/
-lemma range_unique [h : unique ι] : range f = {f $ default ι} :=
+lemma range_unique [h : unique ι] : range f = {f default} :=
 begin
   ext x,
   rw mem_range,

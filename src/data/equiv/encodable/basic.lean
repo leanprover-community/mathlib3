@@ -163,7 +163,7 @@ def equiv_range_encode (α : Type*) [encodable α] : α ≃ set.range (@encode �
 
 /-- A type with unique element is encodable. This is not an instance to avoid diamonds. -/
 def _root_.unique.encodable [unique α] : encodable α :=
-⟨λ _, 0, λ _, some (default α), unique.forall_iff.2 rfl⟩
+⟨λ _, 0, λ _, some default, unique.forall_iff.2 rfl⟩
 
 section sum
 variables [encodable α] [encodable β]
@@ -426,7 +426,7 @@ variables {α : Type*} {β : Type*} [encodable α] [inhabited α]
 construct a noncomputable sequence such that `r (f (x n)) (f (x (n + 1)))`
 and `r (f a) (f (x (encode a + 1))`. -/
 protected noncomputable def sequence {r : β → β → Prop} (f : α → β) (hf : directed r f) : ℕ → α
-| 0       := default α
+| 0       := default
 | (n + 1) :=
   let p := sequence n in
   match decode α n with

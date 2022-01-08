@@ -475,7 +475,7 @@ do
 The type of this local constant is a constant with name `n`, so it is very unlikely to be
 a meaningful expression. -/
 meta def mk_local (n : name) : expr :=
-expr.local_const n n binder_info.default
+expr.local_const n n binder_info.default (expr.const n [])
 
 /-- `mk_psigma [x,y,z]`, with `[x,y,z]` list of local constants of types `x : tx`,
 `y : ty x` and `z : tz x y`, creates an expression of sigma type:

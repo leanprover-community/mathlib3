@@ -579,7 +579,7 @@ def mk_of_point (p : P) : simplex k P 0 :=
 rfl
 
 instance [inhabited P] : inhabited (simplex k P 0) :=
-⟨mk_of_point k $ default P⟩
+⟨mk_of_point k default⟩
 
 instance nonempty : nonempty (simplex k P 0) :=
 ⟨mk_of_point k $ add_torsor.nonempty.some⟩

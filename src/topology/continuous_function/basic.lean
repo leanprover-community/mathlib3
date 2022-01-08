@@ -106,7 +106,7 @@ instance [nonempty α] [nontrivial β] : nontrivial C(α, β) :=
     refine ⟨const b₁, const b₂, _⟩,
     contrapose! hb,
     inhabit α,
-    change const b₁ (default α) = const b₂ (default α),
+    change const b₁ default = const b₂ default,
     simp [hb]
   end }
 

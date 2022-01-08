@@ -43,7 +43,7 @@ universes u v w
 
 variables {α : Sort u} {β : Sort v} {γ : Sort w}
 
-/-- `unique α` expresses that `α` is a type with a unique term `default α`.
+/-- `unique α` expresses that `α` is a type with a unique term `default`.
 
 This is implemented as a type, rather than a `Prop`-valued predicate,
 for good definitional properties of the default term. -/
@@ -94,18 +94,18 @@ variables [unique α]
 @[priority 100] -- see Note [lower instance priority]
 instance : inhabited α := to_inhabited ‹unique α›
 
-lemma eq_default : a = default α := uniq _ a
+lemma eq_default (a : α) : a = default := uniq _ a
 
-lemma default_eq (a : α) : default α = a := (uniq _ a).symm
+lemma default_eq (a : α) : default = a := (uniq _ a).symm
 
 @[priority 100] -- see Note [lower instance priority]
 instance : subsingleton α := subsingleton_of_forall_eq _ eq_default
 
-lemma forall_iff {p : α → Prop} : (∀ a, p a) ↔ p (default α) :=
+lemma forall_iff {p : α → Prop} : (∀ a, p a) ↔ p default :=
 ⟨λ h, h _, λ h x, by rwa [unique.eq_default x]⟩
 
-lemma exists_iff {p : α → Prop} : Exists p ↔ p (default α) :=
-⟨λ ⟨a, ha⟩, eq_default a ▸ ha, exists.intro (default α)⟩
+lemma exists_iff {p : α → Prop} : Exists p ↔ p default :=
+⟨λ ⟨a, ha⟩, eq_default a ▸ ha, exists.intro default⟩
 
 end
 
@@ -123,12 +123,10 @@ a loop in the class inheritance graph. -/
 end unique
 
 @[simp] lemma pi.default_def {β : Π a : α, Sort v} [Π a, inhabited (β a)] :
-  default :=
-rfl
+  @default (Π a, β a) _ = λ a : α, @default (β a) _ := rfl
 
 lemma pi.default_apply {β : Π a : α, Sort v} [Π a, inhabited (β a)] (a : α) :
-  default :=
-rfl
+  @default (Π a, β a) _ a = default := rfl
 
 instance pi.unique {β : Π a : α, Sort v} [Π a, unique (β a)] : unique (Π a, β a) :=
 { uniq := λ f, funext $ λ x, unique.eq_default _,

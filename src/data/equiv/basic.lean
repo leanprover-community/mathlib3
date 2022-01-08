@@ -528,7 +528,7 @@ def arrow_punit_equiv_punit (α : Sort*) : (α → punit.{v}) ≃ punit.{w} :=
 
 /-- If `α` has a unique term, then the type of function `α → β` is equivalent to `β`. -/
 @[simps { fully_applied := ff }] def fun_unique (α β) [unique α] : (α → β) ≃ β :=
-{ to_fun := eval (default α),
+{ to_fun := eval default,
   inv_fun := const α,
   left_inv := λ f, funext $ λ a, congr_arg f $ subsingleton.elim _ _,
   right_inv := λ b, rfl }
@@ -1963,8 +1963,8 @@ funext $ λ z, hf.swap_apply _ _ _
 
 /-- If both `α` and `β` are singletons, then `α ≃ β`. -/
 def equiv_of_unique_of_unique [unique α] [unique β] : α ≃ β :=
-{ to_fun := λ _, default β,
-  inv_fun := λ _, default α,
+{ to_fun := λ _, default,
+  inv_fun := λ _, default,
   left_inv := λ _, subsingleton.elim _ _,
   right_inv := λ _, subsingleton.elim _ _ }
 

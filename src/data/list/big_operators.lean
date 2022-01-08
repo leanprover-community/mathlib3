@@ -381,7 +381,7 @@ end
 /-!
 Several lemmas about sum/head/tail for `list ℕ`.
 These are hard to generalize well, as they rely on the fact that `default ℕ = 0`.
-If desired, we could add a class stating that `default α = 0`.
+If desired, we could add a class stating that `default = 0`.
 -/
 
 /-- This relies on `default ℕ = 0`. -/

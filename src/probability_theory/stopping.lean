@@ -103,7 +103,8 @@ end adapted
 
 variable (β)
 lemma adapted_zero [has_zero β] (f : filtration ι m) : adapted f (0 : ι → α → β) :=
-λ i, @measurable_zero β α _ (f i) _
+λ i, @measurable_zero β α (f i) _ _
+
 variable {β}
 
 /-- Progressively measurable process. The usual definition uses the interval `[0,i]`, which we
@@ -215,8 +216,7 @@ begin
   { convert (hτ 0),
     simp only [set.set_of_eq_eq_singleton, le_zero_iff] },
   { rw (_ : {x | τ x = i + 1} = {x | τ x ≤ i + 1} \ {x | τ x ≤ i}),
-    { exact @measurable_set.diff _ (f (i + 1)) _ _ (hτ (i + 1))
-        (f.mono (nat.le_succ _) _ (hτ i)) },
+    { exact (hτ (i + 1)).diff (f.mono (nat.le_succ _) _ (hτ i)) },
     { ext, simp only [set.mem_diff, not_le, set.mem_set_of_eq],
       split,
       { intro h, simp [h] },
@@ -236,8 +236,7 @@ begin
     { simp [h], },
     { simp only [h, ne.symm h, or_false, or_iff_left_iff_imp], }, },
   rw this,
-  refine @measurable_set.union _ (f.seq i) _ _ _ (hτ.measurable_set_eq i),
-  exact @measurable_set.diff _ (f.seq i) _ _ (@measurable_set.univ _ (f.seq i)) (hτ i),
+  exact (measurable_set.univ.diff (hτ i)).union (hτ.measurable_set_eq i),
 end
 
 lemma is_stopping_time.measurable_set_eq_le
@@ -251,7 +250,7 @@ lemma is_stopping_time_of_measurable_set_eq
 begin
   intro i,
   rw show {x | τ x ≤ i} = ⋃ k ≤ i, {x | τ x = k}, by { ext, simp },
-  refine @measurable_set.bUnion _ _ (f i) _ _ (set.countable_encodable _) (λ k hk, _),
+  refine measurable_set.bUnion (set.countable_encodable _) (λ k hk, _),
   exact f.mono hk _ (hτ k),
 end
 
@@ -269,7 +268,7 @@ lemma max [linear_order ι] {f : filtration ι m} {τ π : α → ι}
 begin
   intro i,
   simp_rw [max_le_iff, set.set_of_and],
-  exact @measurable_set.inter _ (f i) _ _ (hτ i) (hπ i),
+  exact (hτ i).inter (hπ i),
 end
 
 lemma min [linear_order ι] {f : filtration ι m} {τ π : α → ι}
@@ -278,7 +277,7 @@ lemma min [linear_order ι] {f : filtration ι m} {τ π : α → ι}
 begin
   intro i,
   simp_rw [min_le_iff, set.set_of_or],
-  exact @measurable_set.union _ (f i) _ _ (hτ i) (hπ i),
+  exact (hτ i).union (hπ i),
 end
 
 lemma add_const
@@ -305,9 +304,9 @@ protected def measurable_space
   measurable_set_compl := λ s hs i,
     begin
       rw (_ : sᶜ ∩ {x | τ x ≤ i} = (sᶜ ∪ {x | τ x ≤ i}ᶜ) ∩ {x | τ x ≤ i}),
-      { refine @measurable_set.inter _ (f i) _ _ _ _,
+      { refine measurable_set.inter _ _,
         { rw ← set.compl_inter,
-          exact @measurable_set.compl _ _ (f i) (hs i) },
+          exact (hs i).compl },
         { exact hτ i} },
       { rw set.union_inter_distrib_right,
         simp only [set.compl_inter_self, set.union_empty] }
@@ -316,7 +315,7 @@ protected def measurable_space
     begin
       rw forall_swap at hs,
       rw set.Union_inter,
-      exact @measurable_set.Union _ _ (f i) _ _ (hs i),
+      exact measurable_set.Union (hs i),
     end }
 
 @[protected]
@@ -331,7 +330,7 @@ lemma measurable_space_mono
 begin
   intros s hs i,
   rw (_ : s ∩ {x | π x ≤ i} = s ∩ {x | τ x ≤ i} ∩ {x | π x ≤ i}),
-  { exact @measurable_set.inter _ (f i) _ _ (hs i) (hπ i) },
+  { exact (hs i).inter (hπ i) },
   { ext,
     simp only [set.mem_inter_eq, iff_self_and, and.congr_left_iff, set.mem_set_of_eq],
     intros hle' _,
@@ -611,7 +610,7 @@ begin
       exact nat.succ_le_iff, }, },
 end
 
-lemma adapted.stopped_process_adapted [measurable_space β] [has_measurable_add₂ β]
+lemma adapted.stopped_process [measurable_space β] [has_measurable_add₂ β]
   (hu : adapted f u) (hτ : is_stopping_time f τ) :
   adapted f (stopped_process u τ) :=
 (prog_measurable_stopped_process hu.prog_measurable hτ).adapted
@@ -624,7 +623,7 @@ variables [measurable_space β] [normed_group β] [has_measurable_add₂ β]
 
 lemma measurable_stopped_process (hτ : is_stopping_time f τ) (hu : adapted f u) (n : ℕ) :
   measurable (stopped_process u τ n) :=
-(hu.stopped_process_adapted hτ n).le (f.le _)
+(hu.stopped_process hτ n).le (f.le _)
 
 lemma mem_ℒp_stopped_process {p : ℝ≥0∞} [borel_space β] {μ : measure α} (hτ : is_stopping_time f τ)
   (hu : ∀ n, mem_ℒp (u n) p μ) (n : ℕ) :

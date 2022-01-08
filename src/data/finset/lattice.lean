@@ -635,6 +635,10 @@ lemma exists_mem_eq_sup [is_total α (≤)] (s : finset β) (h : s.nonempty) (f 
   ∃ b, b ∈ s ∧ s.sup f = f b :=
 sup'_eq_sup h f ▸ exists_mem_eq_sup' h f
 
+lemma coe_sup_of_nonempty {s : finset β} (h : s.nonempty) (f : β → α) :
+  (↑(s.sup f) : with_bot α) = s.sup (coe ∘ f) :=
+by simp only [←sup'_eq_sup h, coe_sup' h]
+
 end sup
 
 section inf
@@ -650,6 +654,10 @@ lemma inf_closed_of_inf_closed {s : set α} (t : finset α) (htne : t.nonempty) 
 lemma exists_mem_eq_inf [is_total α (≤)] (s : finset β) (h : s.nonempty) (f : β → α) :
   ∃ a, a ∈ s ∧ s.inf f = f a :=
 @exists_mem_eq_sup (order_dual α) _ _ _ _ _ h f
+
+lemma coe_inf_of_nonempty {s : finset β} (h : s.nonempty) (f : β → α):
+  (↑(s.inf f) : with_top α) = s.inf (λ i, f i) :=
+@coe_sup_of_nonempty (order_dual α) _ _ _ _ h f
 
 end inf
 

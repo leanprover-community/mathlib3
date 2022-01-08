@@ -812,6 +812,29 @@ def basic_open_iso (f : R) : (structure_sheaf R).1.obj (op (basic_open f)) ≅
   CommRing.of (localization.away f) :=
 (as_iso (show CommRing.of _ ⟶ _, from to_basic_open R f)).symm
 
+/-- Stalk of the structure sheaf at a prime p as localization of R -/
+lemma is_localization.to_stalk (p : prime_spectrum R) :
+  @is_localization.at_prime _ _ _ _ (to_stalk R p).to_algebra p.as_ideal _ :=
+begin
+  convert (is_localization.is_localization_iff_of_ring_equiv _ (stalk_iso R p).symm
+    .CommRing_iso_to_ring_equiv).mp localization.is_localization,
+  erw iso.eq_comp_inv,
+  exact to_stalk_comp_stalk_to_fiber_ring_hom R p,
+end
+
+/-- Sections of the structure sheaf of Spec R on a basic open as localization of R -/
+lemma is_localization.to_basic_open (r : R) :
+  @is_localization.away _ _ r _ _ (to_open R (basic_open r)).to_algebra :=
+begin
+  convert (is_localization.is_localization_iff_of_ring_equiv _ (basic_open_iso R r).symm
+    .CommRing_iso_to_ring_equiv).mp localization.is_localization,
+  exact (localization_to_basic_open R r).symm
+end
+
+instance to_basic_open_epi (r : R) : epi (to_open R (basic_open r)) :=
+⟨λ S f g h, by { refine is_localization.ring_hom_ext _ _,
+  swap 5, exact is_localization.to_basic_open R r, exact h }⟩
+
 @[elementwise] lemma to_global_factors : to_open R ⊤ =
   (CommRing.of_hom (algebra_map R (localization.away (1 : R)))) ≫ (to_basic_open R (1 : R)) ≫
   (structure_sheaf R).1.map (eq_to_hom (basic_open_one.symm)).op :=

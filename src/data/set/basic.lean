@@ -206,6 +206,8 @@ lemma set_of_app_iff {p : α → Prop} {x : α} : { x | p x } x ↔ p x := iff.r
 
 theorem mem_def {a : α} {s : set α} : a ∈ s ↔ s a := iff.rfl
 
+lemma set_of_bijective : bijective (set_of : (α → Prop) → set α) := bijective_id
+
 instance decidable_set_of (p : α → Prop) [H : decidable_pred p] : decidable_pred (∈ {a | p a}) := H
 
 @[simp] theorem set_of_subset_set_of {p q : α → Prop} :
@@ -1546,6 +1548,11 @@ Hh.symm ▸ set.ext (λ ⟨a₁, a₂⟩, ⟨quotient.induction_on₂ a₁ a₂
   λ ⟨⟨b₁, b₂⟩, h₁, h₂⟩, show (g a₁, g a₂) ∈ r, from
   have h₃ : ⟦b₁⟧ = a₁ ∧ ⟦b₂⟧ = a₂ := prod.ext_iff.1 h₂,
     h₃.1 ▸ h₃.2 ▸ h₁⟩)
+
+lemma exists_image_iff (f : α → β) (x : set α) (P : β → Prop) :
+  (∃ (a : f '' x), P a) ↔ ∃ (a : x), P (f a) :=
+⟨λ ⟨a, h⟩, ⟨⟨_, a.prop.some_spec.1⟩, a.prop.some_spec.2.symm ▸ h⟩,
+  λ ⟨a, h⟩, ⟨⟨_, _, a.prop, rfl⟩, h⟩⟩
 
 /-- Restriction of `f` to `s` factors through `s.image_factorization f : s → f '' s`. -/
 def image_factorization (f : α → β) (s : set α) : s → f '' s :=

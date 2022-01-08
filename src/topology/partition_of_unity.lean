@@ -185,7 +185,7 @@ protected def single (i : ι) (s : set X) : bump_covering ι X s :=
 @[simp] lemma coe_single (i : ι) (s : set X) : ⇑(bump_covering.single i s) = pi.single i 1 := rfl
 
 instance [inhabited ι] : inhabited (bump_covering ι X s) :=
-⟨bump_covering.single (default ι) s⟩
+⟨bump_covering.single default s⟩
 
 /-- A collection of bump functions `f i` is subordinate to a family of sets `U i` indexed by the
 same type if for each `i` the closure of the support of `f i` is a subset of `U i`. -/

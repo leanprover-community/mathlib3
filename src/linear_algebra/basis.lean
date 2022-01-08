@@ -643,8 +643,8 @@ section singleton
 protected def singleton (ι R : Type*) [unique ι] [semiring R] :
   basis ι R R :=
 of_repr
-{ to_fun := λ x, finsupp.single (default ι) x,
-  inv_fun := λ f, f (default ι),
+{ to_fun := λ x, finsupp.single default x,
+  inv_fun := λ f, f default,
   left_inv := λ x, by simp,
   right_inv := λ f, finsupp.unique_ext (by simp),
   map_add' := λ x y, by simp,
@@ -665,12 +665,12 @@ lemma basis_singleton_iff
 begin
   fsplit,
   { rintro ⟨b⟩,
-    refine ⟨b (default ι), b.linear_independent.ne_zero _, _⟩,
+    refine ⟨b default, b.linear_independent.ne_zero _, _⟩,
     simpa [span_singleton_eq_top_iff, set.range_unique] using b.span_eq },
   { rintro ⟨x, nz, w⟩,
     refine ⟨of_repr $ linear_equiv.symm
-      { to_fun := λ f, f (default ι) • x,
-        inv_fun := λ y, finsupp.single (default ι) (w y).some,
+      { to_fun := λ f, f default • x,
+        inv_fun := λ y, finsupp.single default (w y).some,
         left_inv := λ f, finsupp.unique_ext _,
         right_inv := λ y, _,
         map_add' := λ y z, _,
@@ -679,7 +679,7 @@ begin
     { rw [finsupp.smul_apply, smul_assoc], simp },
     { refine smul_left_injective _ nz _,
       simp only [finsupp.single_eq_same],
-      exact (w (f (default ι) • x)).some_spec },
+      exact (w (f default • x)).some_spec },
     { simp only [finsupp.single_eq_same],
       exact (w y).some_spec } }
 end

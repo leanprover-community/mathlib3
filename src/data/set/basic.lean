@@ -775,8 +775,7 @@ begin
 end
 
 -- while `simp` is capable of proving this, it is not capable of turning the LHS into the RHS.
-@[simp] lemma default_coe_singleton (x : α) :
-  default = ⟨x, rfl⟩ := rfl
+@[simp] lemma default_coe_singleton (x : α) : (default : ({x} : set α)) = ⟨x, rfl⟩ := rfl
 
 /-! ### Lemmas about sets defined as `{x ∈ s | p x}`. -/
 
@@ -1904,7 +1903,7 @@ begin
   { rintros ⟨i, hi⟩,
     rw h.uniq i at hi,
     exact hi ▸ mem_singleton _ },
-  { exact λ h, ⟨default ι, h.symm⟩ }
+  { exact λ h, ⟨default, h.symm⟩ }
 end
 
 lemma range_diff_image_subset (f : α → β) (s : set α) :

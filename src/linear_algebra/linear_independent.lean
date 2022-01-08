@@ -42,7 +42,7 @@ vectors.
   over an auxiliary `s : finset ι`;
 * `linear_independent_empty_type`: a family indexed by an empty type is linearly independent;
 * `linear_independent_unique_iff`: if `ι` is a singleton, then `linear_independent K v` is
-  equivalent to `v (default ι) ≠ 0`;
+  equivalent to `v default ≠ 0`;
 * linear_independent_option`, `linear_independent_sum`, `linear_independent_fin_cons`,
   `linear_independent_fin_succ`: type-specific tests for linear independence of families of vector
   fields;
@@ -1026,11 +1026,11 @@ variables {v : ι → M} {s t : set M} {x y z : M}
 
 lemma linear_independent_unique_iff
   (v : ι → M) [unique ι] :
-  linear_independent R v ↔ v (default ι) ≠ 0 :=
+  linear_independent R v ↔ v default ≠ 0 :=
 begin
   simp only [linear_independent_iff, finsupp.total_unique, smul_eq_zero],
   refine ⟨λ h hv, _, λ hv l hl, finsupp.unique_ext $ hl.resolve_right hv⟩,
-  have := h (finsupp.single (default ι) 1) (or.inr hv),
+  have := h (finsupp.single default 1) (or.inr hv),
   exact one_ne_zero (finsupp.single_eq_zero.1 this)
 end
 

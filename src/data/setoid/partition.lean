@@ -268,7 +268,7 @@ instance [unique ι] [inhabited α] :
 ⟨{ eq_of_mem := λ x i j hi hj, subsingleton.elim _ _,
    some := λ i, default,
    some_mem := set.mem_univ,
-   index := λ a, default ι,
+   index := λ a, default,
    mem_index := set.mem_univ }⟩
 
 attribute [simp] some_mem mem_index

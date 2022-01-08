@@ -1731,7 +1731,7 @@ def fun_unique : (ι → M) ≃L[R] M :=
 
 variables {ι R M}
 
-@[simp] lemma coe_fun_unique : ⇑(fun_unique ι R M) = function.eval (default ι) := rfl
+@[simp] lemma coe_fun_unique : ⇑(fun_unique ι R M) = function.eval default := rfl
 @[simp] lemma coe_fun_unique_symm : ⇑(fun_unique ι R M).symm = function.const ι := rfl
 
 variables (R M)

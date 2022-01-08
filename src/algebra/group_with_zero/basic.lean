@@ -310,17 +310,17 @@ namespace units
 
 /-- An element of the unit group of a nonzero monoid with zero represented as an element
     of the monoid is nonzero. -/
-@[simp] lemma ne_zero [nontrivial M₀] (u : units M₀) :
+@[simp] lemma ne_zero [nontrivial M₀] (u : M₀ˣ) :
   (u : M₀) ≠ 0 :=
 left_ne_zero_of_mul_eq_one u.mul_inv
 
 -- We can't use `mul_eq_zero` + `units.ne_zero` in the next two lemmas because we don't assume
 -- `nonzero M₀`.
 
-@[simp] lemma mul_left_eq_zero (u : units M₀) {a : M₀} : a * u = 0 ↔ a = 0 :=
+@[simp] lemma mul_left_eq_zero (u : M₀ˣ) {a : M₀} : a * u = 0 ↔ a = 0 :=
 ⟨λ h, by simpa using mul_eq_zero_of_left h ↑u⁻¹, λ h, mul_eq_zero_of_left h u⟩
 
-@[simp] lemma mul_right_eq_zero (u : units M₀) {a : M₀} : ↑u * a = 0 ↔ a = 0 :=
+@[simp] lemma mul_right_eq_zero (u : M₀ˣ) {a : M₀} : ↑u * a = 0 ↔ a = 0 :=
 ⟨λ h, by simpa using mul_eq_zero_of_right ↑u⁻¹ h, mul_eq_zero_of_right u⟩
 
 end units
@@ -355,10 +355,10 @@ than partially) defined inverse function for some purposes, including for calcul
 Note that while this is in the `ring` namespace for brevity, it requires the weaker assumption
 `monoid_with_zero M₀` instead of `ring M₀`. -/
 noncomputable def inverse : M₀ → M₀ :=
-λ x, if h : is_unit x then ((h.unit⁻¹ : units M₀) : M₀) else 0
+λ x, if h : is_unit x then ((h.unit⁻¹ : M₀ˣ) : M₀) else 0
 
 /-- By definition, if `x` is invertible then `inverse x = x⁻¹`. -/
-@[simp] lemma inverse_unit (u : units M₀) : inverse (u : M₀) = (u⁻¹ : units M₀) :=
+@[simp] lemma inverse_unit (u : M₀ˣ) : inverse (u : M₀) = (u⁻¹ : M₀ˣ) :=
 begin
   simp only [units.is_unit, inverse, dif_pos],
   exact units.inv_unique rfl
@@ -683,7 +683,7 @@ variables {a b : G₀}
   By combining this function with the operations on units,
   or the `/ₚ` operation, it is possible to write a division
   as a partial function with three arguments. -/
-def mk0 (a : G₀) (ha : a ≠ 0) : units G₀ :=
+def mk0 (a : G₀) (ha : a ≠ 0) : G₀ˣ :=
 ⟨a, a⁻¹, mul_inv_cancel ha, inv_mul_cancel ha⟩
 
 @[simp] lemma mk0_one (h := one_ne_zero) :
@@ -692,25 +692,25 @@ by { ext, refl }
 
 @[simp] lemma coe_mk0 {a : G₀} (h : a ≠ 0) : (mk0 a h : G₀) = a := rfl
 
-@[simp] lemma mk0_coe (u : units G₀) (h : (u : G₀) ≠ 0) : mk0 (u : G₀) h = u :=
+@[simp] lemma mk0_coe (u : G₀ˣ) (h : (u : G₀) ≠ 0) : mk0 (u : G₀) h = u :=
 units.ext rfl
 
-@[simp, norm_cast] lemma coe_inv' (u : units G₀) : ((u⁻¹ : units G₀) : G₀) = u⁻¹ :=
+@[simp, norm_cast] lemma coe_inv' (u : G₀ˣ) : ((u⁻¹ : G₀ˣ) : G₀) = u⁻¹ :=
 eq_inv_of_mul_left_eq_one u.inv_mul
 
-@[simp] lemma mul_inv' (u : units G₀) : (u : G₀) * u⁻¹ = 1 := mul_inv_cancel u.ne_zero
+@[simp] lemma mul_inv' (u : G₀ˣ) : (u : G₀) * u⁻¹ = 1 := mul_inv_cancel u.ne_zero
 
-@[simp] lemma inv_mul' (u : units G₀) : (u⁻¹ : G₀) * u = 1 := inv_mul_cancel u.ne_zero
+@[simp] lemma inv_mul' (u : G₀ˣ) : (u⁻¹ : G₀) * u = 1 := inv_mul_cancel u.ne_zero
 
 @[simp] lemma mk0_inj {a b : G₀} (ha : a ≠ 0) (hb : b ≠ 0) :
   units.mk0 a ha = units.mk0 b hb ↔ a = b :=
 ⟨λ h, by injection h, λ h, units.ext h⟩
 
-@[simp] lemma exists_iff_ne_zero {x : G₀} : (∃ u : units G₀, ↑u = x) ↔ x ≠ 0 :=
+@[simp] lemma exists_iff_ne_zero {x : G₀} : (∃ u : G₀ˣ, ↑u = x) ↔ x ≠ 0 :=
 ⟨λ ⟨u, hu⟩, hu ▸ u.ne_zero, assume hx, ⟨mk0 x hx, rfl⟩⟩
 
 lemma _root_.group_with_zero.eq_zero_or_unit (a : G₀) :
-  a = 0 ∨ ∃ u : units G₀, a = u :=
+  a = 0 ∨ ∃ u : G₀ˣ, a = u :=
 begin
   by_cases h : a = 0,
   { left,
@@ -833,7 +833,7 @@ eq_comm.trans $ inv_eq_zero.trans eq_comm
 lemma one_div_mul_one_div_rev (a b : G₀) : (1 / a) * (1 / b) =  1 / (b * a) :=
 by simp only [div_eq_mul_inv, one_mul, mul_inv_rev₀]
 
-theorem divp_eq_div (a : G₀) (u : units G₀) : a /ₚ u = a / u :=
+theorem divp_eq_div (a : G₀) (u : G₀ˣ) : a /ₚ u = a / u :=
 by simpa only [div_eq_mul_inv] using congr_arg ((*) a) u.coe_inv'
 
 @[simp] theorem divp_mk0 (a : G₀) {b : G₀} (hb : b ≠ 0) :
@@ -1158,12 +1158,19 @@ end group_with_zero
 
 end monoid_with_zero_hom
 
+/-- Inversion on a commutative group with zero, considered as a monoid with zero homomorphism. -/
+def inv_monoid_with_zero_hom {G₀ : Type*} [comm_group_with_zero G₀] : monoid_with_zero_hom G₀ G₀ :=
+{ to_fun := has_inv.inv,
+  map_zero' := inv_zero,
+  map_one' := inv_one,
+  map_mul' := λ _ _, mul_inv₀ }
+
 @[simp] lemma monoid_hom.map_units_inv {M G₀ : Type*} [monoid M] [group_with_zero G₀]
-  (f : M →* G₀) (u : units M) : f ↑u⁻¹ = (f u)⁻¹ :=
+  (f : M →* G₀) (u : Mˣ) : f ↑u⁻¹ = (f u)⁻¹ :=
 by rw [← units.coe_map, ← units.coe_map, ← units.coe_inv', monoid_hom.map_inv]
 
 @[simp] lemma monoid_with_zero_hom.map_units_inv {M G₀ : Type*} [monoid_with_zero M]
-  [group_with_zero G₀] (f : monoid_with_zero_hom M G₀) (u : units M) : f ↑u⁻¹ = (f u)⁻¹ :=
+  [group_with_zero G₀] (f : monoid_with_zero_hom M G₀) (u : Mˣ) : f ↑u⁻¹ = (f u)⁻¹ :=
 f.to_monoid_hom.map_units_inv u
 
 section noncomputable_defs

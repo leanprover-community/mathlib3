@@ -631,7 +631,7 @@ protected lemma single_apply_neg (p) (i : α) (a : E i) {j : α} (hij : j ≠ i)
   lp.single p i a j = 0 :=
 by rw [lp.single_apply, dif_neg hij]
 
-@[simp] protected lemma neg_single [decidable_eq α] (p) (i : α) (a : E i) :
+@[simp] protected lemma neg_single (p) (i : α) (a : E i) :
   lp.single p i (- a) = - lp.single p i a :=
 begin
   ext j,
@@ -641,7 +641,7 @@ begin
   { simp [lp.single_apply_neg p i _ hi] }
 end
 
-@[simp] protected lemma smul_single [decidable_eq α] (p) (i : α) (a : E i) (c : 𝕜) :
+@[simp] protected lemma smul_single (p) (i : α) (a : E i) (c : 𝕜) :
   lp.single p i (c • a) = c • lp.single p i a :=
 begin
   ext j,

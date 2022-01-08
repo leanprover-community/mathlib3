@@ -812,22 +812,42 @@ def basic_open_iso (f : R) : (structure_sheaf R).1.obj (op (basic_open f)) ≅
   CommRing.of (localization.away f) :=
 (as_iso (show CommRing.of _ ⟶ _, from to_basic_open R f)).symm
 
+instance stalk_algebra (p : prime_spectrum R) : algebra R ((structure_sheaf R).val.stalk p) :=
+(to_stalk R p).to_algebra
+
+@[simp] lemma stalk_algebra_map (p : prime_spectrum R) (r : R) :
+  algebra_map R ((structure_sheaf R).val.stalk p) r = to_stalk R p r := rfl
+
 /-- Stalk of the structure sheaf at a prime p as localization of R -/
-lemma is_localization.to_stalk (p : prime_spectrum R) :
-  @is_localization.at_prime _ _ _ _ (to_stalk R p).to_algebra p.as_ideal _ :=
+instance is_localization.to_stalk (p : prime_spectrum R) :
+  is_localization.at_prime ((structure_sheaf R).val.stalk p) p.as_ideal :=
 begin
   convert (is_localization.is_localization_iff_of_ring_equiv _ (stalk_iso R p).symm
     .CommRing_iso_to_ring_equiv).mp localization.is_localization,
+  apply algebra.algebra_ext,
+  intro _,
+  rw stalk_algebra_map,
+  congr' 1,
   erw iso.eq_comp_inv,
   exact to_stalk_comp_stalk_to_fiber_ring_hom R p,
 end
 
+instance open_algebra (U : (opens (prime_spectrum R))ᵒᵖ) :
+  algebra R ((structure_sheaf R).val.obj U) :=
+(to_open R (unop U)).to_algebra
+
+@[simp] lemma open_algebra_map (U : (opens (prime_spectrum R))ᵒᵖ) (r : R) :
+  algebra_map R ((structure_sheaf R).val.obj U) r = to_open R (unop U) r := rfl
+
 /-- Sections of the structure sheaf of Spec R on a basic open as localization of R -/
-lemma is_localization.to_basic_open (r : R) :
-  @is_localization.away _ _ r _ _ (to_open R (basic_open r)).to_algebra :=
+instance is_localization.to_basic_open (r : R) :
+  is_localization.away r ((structure_sheaf R).val.obj (op $ basic_open r)) :=
 begin
   convert (is_localization.is_localization_iff_of_ring_equiv _ (basic_open_iso R r).symm
     .CommRing_iso_to_ring_equiv).mp localization.is_localization,
+  apply algebra.algebra_ext,
+  intro x,
+  congr' 1,
   exact (localization_to_basic_open R r).symm
 end
 

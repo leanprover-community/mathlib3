@@ -212,7 +212,7 @@ begin
   { rintro ⟨i, h, rfl⟩, exact mod_lt i ha.bot_lt },
   { intro hia,
     have hn := nat.mod_add_div n a,
-    by_cases hi : i < n % a,
+    obtain hi | hi := lt_or_le i (n % a),
     { refine ⟨i + a * (n/a + 1), ⟨_, _⟩, _⟩,
       { rw [add_comm (n/a), mul_add, mul_one, ← add_assoc],
         refine hn.symm.le.trans (add_le_add_right _ _),

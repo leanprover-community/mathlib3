@@ -1,12 +1,16 @@
 import topology.continuous_function.compact
 import topology.continuous_function.locally_constant
 
-variables {X : Type*} [topological_space X] (R : Type*) [mul_zero_one_class R] [nontrivial R]
+variables {X : Type*} [topological_space X] (R : Type*) [mul_zero_one_class R]
 
 /-- Bundled version of `is_clopen` -/
 def clopen_sets (H : Type*) [topological_space H] := {s : set H // is_clopen s}
 
-variables (H : Type*) [topological_space H] --[ring H]
+variables {H : Type*} [topological_space H]
+instance : inhabited (clopen_sets H) :=
+{
+  default := ⟨∅, is_clopen_empty⟩
+}
 
 /-- Characteristic functions are locally constant functions taking `x : X` to `1` if `x ∈ U`,
   where `U` is a clopen set, and `0` otherwise. -/
@@ -44,7 +48,7 @@ begin
   simp only [ite_eq_right_iff, one_ne_zero, locally_constant.coe_mk],
 end
 
-lemma char_fn_inj : function.injective (@char_fn X _ R _ _) :=
+lemma char_fn_inj [nontrivial R] : function.injective (@char_fn X _ R _) :=
 begin
   rintros U V h, ext,
   rw locally_constant.ext_iff at h, specialize h x,

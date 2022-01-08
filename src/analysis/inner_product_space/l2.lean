@@ -144,24 +144,6 @@ rfl
   b.repr (b i) = lp.single 2 i (1:𝕜) :=
 by rw [← b.repr_symm_single, linear_isometry_equiv.apply_symm_apply]
 
--- protected lemma repr_apply_apply (b : hilbert_basis ι 𝕜 E) (v : E) (i : ι) :
---   b.repr v i = ⟪b i, v⟫ :=
--- begin
---   set w := b.repr v,
---   have hw : v = b.repr.symm w := by simp [w],
---   rw [hw, ← b.repr_symm_single],
---   sorry -- need inner product space structure
--- end
-
--- @[simp] protected lemma orthonormal (b : hilbert_basis ι 𝕜 E) : orthonormal 𝕜 b :=
--- begin
---   classical,
---   rw orthonormal_iff_ite,
---   intros i j,
---   simp [← b.repr_symm_single],
---   sorry -- need inner product space structure
--- end
-
 -- why does this proof show as timing out?
 protected lemma has_sum_repr_symm (b : hilbert_basis ι 𝕜 E) (f : ℓ²(ι, 𝕜)) :
   has_sum (λ i, f i • b i) (b.repr.symm f) :=

@@ -426,7 +426,7 @@ begin
 end
 
 /-- The minimal distance to a set is `< r` iff there exists a point in this set at distance `< r` -/
-lemma inf_dist_lt_iff {r : real} (hs : s.nonempty) :
+lemma inf_dist_lt_iff {r : ℝ} (hs : s.nonempty) :
   inf_dist x s < r ↔ ∃ y ∈ s, dist x y < r :=
 by simp_rw [inf_dist, ← ennreal.lt_of_real_iff_to_real_lt (inf_edist_ne_top hs), inf_edist_lt_iff,
     ennreal.lt_of_real_iff_to_real_lt (edist_ne_top _ _), ← dist_edist]

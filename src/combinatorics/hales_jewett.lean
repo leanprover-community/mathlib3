@@ -9,7 +9,8 @@ import algebra.big_operators.basic
 /-!
 # The Hales-Jewett theorem
 
-We prove the Hales-Jewett theorem and deduce Van der Waerden's theorem as a corollary.
+We prove the Hales-Jewett theorem. We deduce Van der Waerden's theorem and the extended Hales-Jewett
+theorm as corollaries.
 
 The Hales-Jewett theorem is a result in Ramsey theory dealing with *combinatorial lines*. Given
 an 'alphabet' `α : Type*` and `a b : α`, an example of a combinatorial line in `α^5` is
@@ -19,6 +20,10 @@ huge) finite type `ι` such that whenever `ι → α` is `κ`-colored (i.e. for 
 `C : (ι → α) → κ`), there exists a monochromatic line. We prove the Hales-Jewett theorem using
 the idea of *color focusing* and a *product argument*. See the proof of
 `combinatorics.line.exists_mono_in_high_dimension'` for details.
+
+*Combinatorial subspaces* are higher-dimensional analogues of combinatorial lines, defined in
+`combinatorics.subspace`. The extended Hales-Jewett theorem generalises the statement above from
+combinatorial lines to combinatorial subspaces of a fixed dimension.
 
 The version of Van der Waerden's theorem in this file states that whenever a commutative monoid `M`
 is finitely colored and `S` is a finite subset, there exists a monochromatic homothetic copy of `S`.
@@ -361,7 +366,7 @@ end
 
 /-- A variant of the extended Hales-Jewett theorem `exists_mono_in_high_dimension` where the
 returned type is some `fin n` instead of a general fintype. -/
-theorem exists_mono_in_high_dimension_fin (α) [fintype α] (κ) [fintype κ] (η) [fintype η] :
+theorem exists_mono_in_high_dimension_fin (α κ η) [fintype α] [fintype κ] [fintype η] :
   ∃ n : ℕ, ∀ C : (fin n → α) → κ, ∃ l : subspace η α (fin n), l.is_mono C :=
 begin
   obtain ⟨ι, ιfin, hι⟩ := exists_mono_in_high_dimension α κ η,

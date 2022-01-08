@@ -111,8 +111,37 @@ replace by `set.Iic i`. We recover the usual definition for `ι = ℝ≥0` or `�
 def prog_measurable [measurable_space ι] (f : filtration ι m) (u : ι → α → β) : Prop :=
 ∀ i, measurable[@prod.measurable_space (set.Iic i) α _ (f i)] (λ p : set.Iic i × α, u p.1 p.2)
 
-def continuous_process [topological_space ι] [topological_space β] (u : ι → α → β) : Prop :=
+/-- A process u is said to be continuous if every path is continuous. -/
+def continuous_process {ι β} [topological_space ι] [topological_space β] (u : ι → α → β) : Prop :=
 ∀ x, continuous (λ i, u i x)
+
+lemma _root_.measurable.comp' {α β γ} {mα : measurable_space α} {mβ : measurable_space β}
+  {mγ : measurable_space γ} {g : β → γ} {f : α → β} (hg : measurable g) (hf : measurable f) :
+  measurable (g ∘ f) :=
+λ t ht, hf (hg ht)
+
+lemma _root_.measurable.prod_mk' {α β γ} {mα : measurable_space α} {mβ : measurable_space β}
+  {mγ : measurable_space γ} {f : α → β} {g : α → γ} (hf : measurable f) (hg : measurable g) :
+  measurable (λ a : α, (f a, g a)) :=
+measurable.prod hf hg
+
+lemma _root_.measurable.min' {α δ} {mα : measurable_space α} {mδ : measurable_space δ}
+  [linear_order α] [topological_space α] [opens_measurable_space α] [second_countable_topology α]
+  [order_closed_topology α]
+  {f g : δ → α} (hf : measurable f) (hg : measurable g) :
+  measurable (λ a, min (f a) (g a)) :=
+by simpa only [min_def] using hf.piecewise (measurable_set_le hf hg) hg
+
+lemma _root_.measurable.subtype_mk' {α β} {mα : measurable_space α} {mβ : measurable_space β}
+  {p : β → Prop} {f : α → β} (hf : measurable f) {h : ∀ x, p (f x)} :
+  measurable (λ x, (⟨f x, h x⟩ : subtype p)) :=
+λ t ⟨s, hs⟩, hs.2 ▸ by simp only [← set.preimage_comp, (∘), subtype.coe_mk, hf hs.1]
+
+lemma _root_.measurable.subtype_coe' {α β} {mα : measurable_space α} {mβ : measurable_space β}
+  {p : β → Prop} {f : α → subtype p}
+  (hf : measurable f) :
+  measurable (λ a : α, (f a : β)) :=
+measurable_subtype_coe.comp hf
 
 namespace prog_measurable
 
@@ -127,6 +156,20 @@ begin
     _ _ _ (h i) _,
   exact @measurable.prod_mk _ _ _ (f i) _ (f i) _ _
     (@measurable_const _ _ _ (f i) _) (@measurable_id _ (f i)),
+end
+
+protected lemma comp {t : ι → α → ι} (h : prog_measurable f u) (ht : prog_measurable f t)
+  (ht_le : ∀ i x, t i x ≤ i) :
+  prog_measurable f (λ i x, u (t i x) x) :=
+begin
+  intro i,
+  dsimp only,
+  have : (λ p : ↥(set.Iic i) × α, u (t (p.fst : ι) p.snd) p.snd)
+    = (λ p : ↥(set.Iic i) × α, u (p.fst : ι) p.snd) ∘ (λ p : ↥(set.Iic i) × α,
+      (⟨t (p.fst : ι) p.snd, set.mem_Iic.mpr ((ht_le _ _).trans p.fst.prop)⟩, p.snd)) := rfl,
+  rw this,
+  refine (h i).comp' _,
+  refine measurable.prod_mk' (ht i).subtype_mk' (@measurable_snd _ _ _ (f i)),
 end
 
 end prog_measurable
@@ -158,11 +201,12 @@ Intuitively, the stopping time `τ` describes some stopping rule such that at ti
 def is_stopping_time (f : filtration ι m) (τ : α → ι) :=
 ∀ i : ι, measurable_set[f i] $ {x | τ x ≤ i}
 
-variables {f : filtration ℕ m} {τ : α → ℕ}
-
-lemma is_stopping_time.measurable_set_le (hτ : is_stopping_time f τ) (i : ℕ) :
+lemma is_stopping_time.measurable_set_le {f : filtration ι m} {τ : α → ι}
+  (hτ : is_stopping_time f τ) (i : ι) :
   measurable_set[f i] {x | τ x ≤ i} :=
 hτ i
+
+variables {f : filtration ℕ m} {τ : α → ℕ}
 
 lemma is_stopping_time.measurable_set_eq (hτ : is_stopping_time f τ) (i : ℕ) :
   measurable_set[f i] {x | τ x = i} :=
@@ -370,7 +414,7 @@ variable [linear_order ι]
 
 Intuitively, the stopped process stops evolving once the stopping time has occured. -/
 def stopped_process (u : ι → α → β) (τ : α → ι) : ι → α → β :=
-λ i x, u (linear_order.min i (τ x)) x
+λ i x, u (min i (τ x)) x
 
 lemma stopped_process_eq_of_le {u : ι → α → β} {τ : α → ι}
   {i : ι} {x : α} (h : i ≤ τ x) : stopped_process u τ i x = u i x :=
@@ -380,12 +424,108 @@ lemma stopped_process_eq_of_ge {u : ι → α → β} {τ : α → ι}
   {i : ι} {x : α} (h : τ x ≤ i) : stopped_process u τ i x = u (τ x) x :=
 by simp [stopped_process, min_eq_right h]
 
+lemma prog_measurable_min_stopping_time [measurable_space ι] [topological_space ι]
+  [opens_measurable_space ι] [order_topology ι] [second_countable_topology ι] [borel_space ι]
+  {τ : α → ι} {f : filtration ι m} (hτ : is_stopping_time f τ) :
+  prog_measurable f (λ i x, min i (τ x)) :=
+begin
+  intro i,
+  dsimp only,
+  let s := {p : set.Iic i × α | τ p.2 ≤ i},
+  have hs : measurable_set[@prod.measurable_space _ _ _ (f i)] s,
+  { let s_le := {x : α | τ x ≤ i},
+    have hs_le : measurable_set[f i] s_le := hτ.measurable_set_le i,
+    have hs_eq : s = (λ p : set.Iic i × α, p.2) ⁻¹' {x : α | τ x ≤ i} := rfl,
+    rw hs_eq,
+    dsimp only,
+    change measurable_set (prod.snd ⁻¹' s_le),
+    exact @measurable_snd (set.Iic i) α _ (f i) s_le hs_le, },
+  have h_meas_fst : ∀ t : set (set.Iic i × α),
+    measurable[(@subtype.measurable_space (set.Iic i × α) _ (@prod.measurable_space _ _ _ (f i)))]
+      (λ (x : ↥t), ((x : set.Iic i × α).fst : ι)),
+  { refine λ t, measurable.subtype_coe' _,
+    refine @measurable.fst _ (set.Iic i) α
+      (@subtype.measurable_space _ _ (@prod.measurable_space _ _ _ (f i))) _ (f i) _ _,
+    refine measurable.subtype_coe' _,
+    exact @measurable_id _ (@subtype.measurable_space _ _ (@prod.measurable_space _ _ _ (f i))), },
+  refine @measurable_of_restrict_of_restrict_compl _ _ (@prod.measurable_space _ _ _ (f i)) _ _ _
+    hs _ _,
+  { rw set.restrict,
+    refine measurable.min' (h_meas_fst s) _,
+    refine @measurable_of_Iic ι (↥s) _ _ _ (@subtype.measurable_space _ _
+      (@prod.measurable_space _ _ _ (f i))) _ _ _ _ (λ j, _),
+    have h_set_eq : (λ x : ↥s, τ (x : set.Iic i × α).snd) ⁻¹' set.Iic j
+      = (λ x : ↥s, (x : set.Iic i × α).snd) ⁻¹' {x | τ x ≤ min i j},
+    { ext1 x,
+      simp only [set.mem_preimage, set.mem_Iic, iff_and_self, le_min_iff, set.mem_set_of_eq],
+      exact λ _, x.prop, },
+    rw h_set_eq,
+    have h_meas : @measurable _ _
+      (@subtype.measurable_space _ _ (@prod.measurable_space _ _ _ (f i))) (f i)
+      (λ x : ↥s, (x : set.Iic i × α).snd),
+    { have : (λ x : ↥s, (x : set.Iic i × α).snd) = prod.snd ∘ (λ x : ↥s, (x : set.Iic i × α)),
+        from rfl,
+      rw this,
+      have h_coe_meas : @measurable _ _
+          (@subtype.measurable_space _ _ (@prod.measurable_space _ _ _ (f i)))
+          (@prod.measurable_space _ _ _ (f i)) (λ x : ↥s, (x : set.Iic i × α)),
+        from @measurable_subtype_coe _ (@prod.measurable_space _ _ _ (f i)) _,
+      exact (@measurable_snd _ _ _ (f i)).comp' h_coe_meas, },
+    exact h_meas (f.mono (min_le_left _ _) _ (hτ.measurable_set_le (min i j))), },
+  { rw set.restrict,
+    have h_min_eq_left : (λ x : ↥sᶜ, min ↑((x : set.Iic i × α).fst) (τ (x : set.Iic i × α).snd))
+      = (λ x : ↥sᶜ, ↑((x : set.Iic i × α).fst)),
+    { ext1 x,
+      rw min_eq_left,
+      have hx_fst_le : ↑(x : set.Iic i × α).fst ≤ i, from (x : set.Iic i × α).fst.prop,
+      refine hx_fst_le.trans (le_of_lt _),
+      convert x.prop,
+      simp only [not_le, set.mem_compl_eq, set.mem_set_of_eq], },
+    rw h_min_eq_left,
+    exact h_meas_fst _, },
+end
+
+lemma prog_measurable_stopped_process [measurable_space ι] [topological_space ι]
+  [opens_measurable_space ι] [order_topology ι] [second_countable_topology ι] [borel_space ι]
+  [measurable_space β]
+  {u : ι → α → β} {τ : α → ι} {f : filtration ι m}
+  (h : prog_measurable f u) (hτ : is_stopping_time f τ) :
+  prog_measurable f (stopped_process u τ) :=
+h.comp (prog_measurable_min_stopping_time hτ) (λ i x, min_le_left _ _)
+
+lemma adapted_stopped_process [measurable_space ι] [topological_space ι]
+  [opens_measurable_space ι] [order_topology ι] [second_countable_topology ι] [borel_space ι]
+  [measurable_space β]
+  {u : ι → α → β} {τ : α → ι} {f : filtration ι m}
+  (h : prog_measurable f u) (hτ : is_stopping_time f τ) :
+  adapted f (stopped_process u τ) :=
+(prog_measurable_stopped_process h hτ).adapted
+
 -- We will need cadlag to generalize the following to continuous processes
 section nat
 
 open filtration
 
 variables {f : filtration ℕ m} {u : ℕ → α → β} {τ : α → ℕ}
+
+lemma adapted.prog_measurable [measurable_space β] [add_comm_monoid β] [has_measurable_add₂ β]
+  (h : adapted f u) : prog_measurable f u :=
+begin
+  intro i,
+  have : (λ p : ↥(set.Iic i) × α, u ↑(p.fst) p.snd)
+    = (λ (p : ↥(set.Iic i) × α), ∑ j in finset.range i, if (↑p.fst = j) then u j p.snd else 0),
+  { ext1 p, sorry, },
+  rw this,
+  refine @finset.measurable_sum _ _ _ _ _ _ (@prod.measurable_space _ _ _ (f i)) _ (finset.range i)
+    (λ j hj, _),
+  refine @measurable.ite _ _ (@prod.measurable_space _ _ _ (f i)) _ _ _ _ _ _ _ _,
+  { have : {a : ↥(set.Iic i) × α | ↑(a.fst) = j} = (λ a : ↥(set.Iic i) × α, (a.fst : ℕ)) ⁻¹' {j},
+      by refl,
+    rw this,
+    sorry, },
+  { sorry, },
+  { exact @measurable_const _ (set.Iic i × α) _ (@prod.measurable_space _ _ _ (f i)) _, },
+end
 
 section add_comm_monoid
 
@@ -414,27 +554,67 @@ begin
       exact hneq.symm } },
 end
 
+example : topological_space ℕ := nat.topological_space
+
+instance {α} [topological_space α] [encodable α] : separable_space α :=
+{ exists_countable_dense := ⟨set.univ, set.countable_encodable set.univ, dense_univ⟩ }
+
+lemma filter.is_countably_generated_pure {α} (a : α) : filter.is_countably_generated (pure a) :=
+by { rw ← filter.principal_singleton, exact filter.is_countably_generated_principal _, }
+
+instance discrete_topology.first_countable_topology {α} [topological_space α]
+  [discrete_topology α] :
+  first_countable_topology α :=
+{ nhds_generated_countable :=
+    by { rw nhds_discrete, exact λ a, filter.is_countably_generated_pure _, } }
+
+instance discrete_topology.second_countable_topology_of_encodable {α} [topological_space α]
+  [hd : discrete_topology α] [encodable α] :
+  second_countable_topology α :=
+begin
+  haveI : ∀ (i : α), second_countable_topology ↥({i} : set α),
+    from λ i, { is_open_generated_countable :=
+      ⟨{set.univ}, set.countable_singleton _, by simp only [eq_iff_true_of_subsingleton]⟩, },
+  have h_open : ∀ (i : α), is_open ({i} : set α), from λ i, is_open_discrete _,
+  exact second_countable_topology_of_countable_cover h_open (set.Union_of_singleton α),
+end
+
+lemma is_open_generate_from_of_mem {α} [topological_space α] {S : set (set α)} {s : set α}
+  (hs : s ∈ S) :
+  (generate_from S).is_open s :=
+generate_open.basic s hs
+
+instance : order_topology ℕ :=
+begin
+  constructor,
+  rw nat.topological_space,
+  refine (eq_bot_of_singletons_open (λ a, _)).symm,
+  have ha_eq_inter : {a} = set.Iio (a+1) \ set.Iio a,
+  { ext1 x,
+    simp only [set.mem_Ico, set.Iio_diff_Iio, set.mem_singleton_iff],
+    refine ⟨λ h, _, λ h, nat.eq_of_le_of_lt_succ h.1 h.2⟩,
+    rw h,
+    simp only [le_refl, lt_add_iff_pos_right, eq_self_iff_true, and_self, nat.lt_one_iff], },
+  change is_open {a},
+  rw ha_eq_inter,
+  refine @is_open.inter _ _ _ (generate_from {s : set ℕ | ∃ a, s = set.Ioi a ∨ s = set.Iio a}) _ _,
+  { exact is_open_generate_from_of_mem ⟨a+1, or.inr rfl⟩, },
+  { cases a,
+    { have : (λ (a : ℕ), a ∈ set.Iio 0 → false) = set.univ,
+      { ext1 n,
+        simp only [forall_false_left, set.mem_univ, iff_true, set.mem_Iio, not_lt_zero'], },
+      rw this,
+      simp only [is_open_univ], },
+    { refine is_open_generate_from_of_mem ⟨a, or.inl _⟩,
+      ext1 n,
+      simp_rw [set.mem_Ioi, set.mem_Iio, imp_false, not_lt],
+      exact nat.succ_le_iff, }, },
+end
+
 lemma adapted.stopped_process_adapted [measurable_space β] [has_measurable_add₂ β]
   (hu : adapted f u) (hτ : is_stopping_time f τ) :
   adapted f (stopped_process u τ) :=
-begin
-  intro i,
-  rw stopped_process_eq,
-  refine @measurable.add _ _ _ _ (f i) _ _ _ _ _,
-  { refine @measurable.indicator _ _ (f i) _ _ _ _ (hu i) _,
-    convert @measurable_set.union _ (f i) _ _
-      (@measurable_set.compl _ _ (f i) (hτ i)) (hτ.measurable_set_eq i),
-    ext x,
-    change i ≤ τ x ↔ ¬ τ x ≤ i ∨ τ x = i,
-    rw [not_le, le_iff_lt_or_eq, eq_comm] },
-  { refine @finset.measurable_sum' _ _ _ _ _ _ (f i) _ _ _,
-    refine λ j hij, @measurable.indicator _ _ (f i) _ _ _ _ _ _,
-    { rw finset.mem_range at hij,
-      exact measurable.le (f.mono hij.le) (hu j) },
-    { rw finset.mem_range at hij,
-      refine f.mono hij.le _ _,
-      convert hτ.measurable_set_eq j, } }
-end
+(prog_measurable_stopped_process hu.prog_measurable hτ).adapted
 
 end add_comm_monoid
 

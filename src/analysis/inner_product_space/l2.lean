@@ -130,14 +130,6 @@ structure hilbert_basis := of_repr :: (repr : E ≃ₗᵢ[𝕜] ℓ²(ι, 𝕜))
 
 end
 
--- move this
-@[simp] lemma linear_isometry_equiv.coe_of_surjective {R : Type*} {R₂ : Type*} {E₂ : Type*}
-  {F : Type*} [semiring R] [semiring R₂] {σ₁₂ : R →+* R₂} {σ₂₁ : R₂ →+* R}
-  [ring_hom_inv_pair σ₁₂ σ₂₁] [ring_hom_inv_pair σ₂₁ σ₁₂] [semi_normed_group E₂] [module R₂ E₂]
-  [normed_group F] [module R F] (f : F →ₛₗᵢ[σ₁₂] E₂) (hfr : function.surjective f) :
-  ⇑(linear_isometry_equiv.of_surjective f hfr) = f :=
-by ext; refl
-
 namespace hilbert_basis
 
 /-- `b i` is the `i`th basis vector. -/

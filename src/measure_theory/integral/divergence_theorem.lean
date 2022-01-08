@@ -214,8 +214,8 @@ begin
           ≤ dist (f (i.insert_nth d x)) (f (i.insert_nth (c k) x)) :
         dist_le_pi_dist (f (i.insert_nth d x)) (f (i.insert_nth (c k) x)) i
       ... ≤ (ε / ∏ j, ((I.face i).upper j - (I.face i).lower j)) :
-        hδ _ _ (I.maps_to_insert_nth_face_Icc hd (Hsub hx))
-          (I.maps_to_insert_nth_face_Icc (hc _) (Hsub hx)) _,
+        hδ _ (I.maps_to_insert_nth_face_Icc hd $ Hsub hx)
+           _ (I.maps_to_insert_nth_face_Icc (hc _) $ Hsub hx) _,
       rw [fin.dist_insert_nth_insert_nth, dist_self, dist_comm],
       exact max_le hk.le δpos.lt.le
     end

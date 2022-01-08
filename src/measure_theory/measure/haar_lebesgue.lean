@@ -385,20 +385,45 @@ lemma add_haar_closed_ball_pos {E : Type*} [normed_group E] [measurable_space E]
   0 < μ (closed_ball x r) :=
 lt_of_lt_of_le (add_haar_ball_pos μ x hr) (measure_mono ball_subset_closed_ball)
 
+lemma add_haar_ball_mul_of_pos (x : E) {r : ℝ} (hr : 0 < r) (s : ℝ) :
+  μ (ball x (r * s)) = ennreal.of_real (r ^ (finrank ℝ E)) * μ (ball 0 s) :=
+begin
+  have : ball (0 : E) (r * s) = r • ball 0 s,
+    by simp only [smul_ball hr.ne' (0 : E) s, real.norm_eq_abs, abs_of_nonneg hr.le, smul_zero],
+  simp only [this, add_haar_smul, abs_of_nonneg hr.le, add_haar_ball_center, abs_pow],
+end
+
 lemma add_haar_ball_of_pos (x : E) {r : ℝ} (hr : 0 < r) :
   μ (ball x r) = ennreal.of_real (r ^ (finrank ℝ E)) * μ (ball 0 1) :=
+by rw [← add_haar_ball_mul_of_pos μ x hr, mul_one]
+
+lemma add_haar_ball_mul [nontrivial E] (x : E) {r : ℝ} (hr : 0 ≤ r) (s : ℝ) :
+  μ (ball x (r * s)) = ennreal.of_real (r ^ (finrank ℝ E)) * μ (ball 0 s) :=
 begin
-  have : ball (0 : E) r = r • ball 0 1,
-    by simp [smul_ball hr.ne' (0 : E) 1, real.norm_eq_abs, abs_of_nonneg hr.le],
-  simp [this, add_haar_smul, abs_of_nonneg hr.le, add_haar_ball_center],
+  rcases has_le.le.eq_or_lt hr with h|h,
+  { simp only [← h, zero_pow finrank_pos, measure_empty, zero_mul, ennreal.of_real_zero,
+               ball_zero] },
+  { exact add_haar_ball_mul_of_pos μ x h s }
 end
 
 lemma add_haar_ball [nontrivial E] (x : E) {r : ℝ} (hr : 0 ≤ r) :
   μ (ball x r) = ennreal.of_real (r ^ (finrank ℝ E)) * μ (ball 0 1) :=
+by rw [← add_haar_ball_mul μ x hr, mul_one]
+
+lemma add_haar_closed_ball_mul_of_pos (x : E) {r : ℝ} (hr : 0 < r) (s : ℝ) :
+  μ (closed_ball x (r * s)) = ennreal.of_real (r ^ (finrank ℝ E)) * μ (closed_ball 0 s) :=
 begin
-  rcases has_le.le.eq_or_lt hr with h|h,
-  { simp [← h, zero_pow finrank_pos] },
-  { exact add_haar_ball_of_pos μ x h }
+  have : closed_ball (0 : E) (r * s) = r • closed_ball 0 s,
+    by simp [smul_closed_ball' hr.ne' (0 : E), real.norm_eq_abs, abs_of_nonneg hr.le],
+  simp only [this, add_haar_smul, abs_of_nonneg hr.le, add_haar_closed_ball_center, abs_pow],
+end
+
+lemma add_haar_closed_ball_mul (x : E) {r : ℝ} (hr : 0 ≤ r) {s : ℝ} (hs : 0 ≤ s) :
+  μ (closed_ball x (r * s)) = ennreal.of_real (r ^ (finrank ℝ E)) * μ (closed_ball 0 s) :=
+begin
+  have : closed_ball (0 : E) (r * s) = r • closed_ball 0 s,
+    by simp [smul_closed_ball r (0 : E) hs, real.norm_eq_abs, abs_of_nonneg hr],
+  simp only [this, add_haar_smul, abs_of_nonneg hr, add_haar_closed_ball_center, abs_pow],
 end
 
 /-- The measure of a closed ball can be expressed in terms of the measure of the closed unit ball.
@@ -406,11 +431,7 @@ Use instead `add_haar_closed_ball`, which uses the measure of the open unit ball
 form. -/
 lemma add_haar_closed_ball' (x : E) {r : ℝ} (hr : 0 ≤ r) :
   μ (closed_ball x r) = ennreal.of_real (r ^ (finrank ℝ E)) * μ (closed_ball 0 1) :=
-begin
-  have : closed_ball (0 : E) r = r • closed_ball 0 1,
-    by simp [smul_closed_ball r (0 : E) zero_le_one, real.norm_eq_abs, abs_of_nonneg hr],
-  simp [this, add_haar_smul, abs_of_nonneg hr, add_haar_closed_ball_center],
-end
+by rw [← add_haar_closed_ball_mul μ x hr zero_le_one, mul_one]
 
 lemma add_haar_closed_unit_ball_eq_add_haar_unit_ball :
   μ (closed_ball (0 : E) 1) = μ (ball 0 1) :=

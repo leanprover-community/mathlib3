@@ -459,8 +459,7 @@ begin
   ... = ε * μ (⋃ n, closed_ball 0 R ∩ t n) :
     begin
       rw measure_Union,
-      { rw ← pairwise_univ at ⊢ t_disj,
-        refine pairwise_disjoint.mono t_disj (λ n, inter_subset_right _ _) },
+      { exact pairwise_disjoint.mono t_disj (λ n, inter_subset_right _ _) },
       { assume n,
         exact measurable_set_closed_ball.inter (t_meas n) }
     end
@@ -502,24 +501,93 @@ begin
   exact A,
 end
 
-lemma glou (s : set E) (hs : measurable_set s) :
-  ∀ᵐ x ∂(μ.restrict s), tendsto (λ r, μ (s ∩ closed_ball x r) / μ (closed_ball x r))
-    (𝓝[>] 0) (𝓝 1) :=
+lemma approximates_linear_on.norm_fderiv_sub_le {f : E → E} {A : E →L[ℝ] E} {s : set E} {δ : ℝ≥0}
+  (hf : approximates_linear_on f A s δ) (hs : measurable_set s)
+  (f' : E → E →L[ℝ] E) (hf' : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x) :
+  ∀ᵐ x ∂ (μ.restrict s), ∥f' x - A∥₊ ≤ δ :=
 begin
-  have : ∀ᵐ x ∂(μ.restrict s), rn_deriv (μ.restrict s) μ x = 1,
-  {
-
-  }
+  filter_upwards [besicovitch.ae_tendsto_measure_inter_div μ s, ae_restrict_mem hs],
+  assume x hx xs,
+  suffices : ∀ z, ∥z∥ = 2⁻¹  → ∥(f' x - A) z∥ ≤ δ * 2⁻¹, sorry,
+  assume z norm_z,
+  have ε : ℝ := sorry,
+  have εpos : 0 < ε := sorry,
+  have εle : ε ≤ 2⁻¹ := sorry,
+  have B : ∀ᶠ r in 𝓝[>] 0, ∃ a ∈ closed_ball z ε, x + r • a ∈ s ∩ closed_ball x r,
+  sorry; { have : ∀ᶠ r in 𝓝[>] 0, 1 - ennreal.of_real (ε ^ finrank ℝ E)
+       < μ (s ∩ closed_ball x r) / μ (closed_ball x r),
+    { apply (tendsto_order.1 hx).1,
+      apply ennreal.sub_lt_self ennreal.one_ne_top one_ne_zero,
+      simp only [ennreal.of_real_eq_zero, not_le, ne.def, εpos, pow_pos], },
+    filter_upwards [this, self_mem_nhds_within],
+    assume r hr rpos,
+    have ne_top : μ (closed_ball x r) ≠ ∞ := measure_closed_ball_lt_top.ne,
+    change 0 < r at rpos,
+    have : ((s ∩ closed_ball x r) ∩ closed_ball (x + r • z) (ε * r)).nonempty,
+    { have I : closed_ball (x + r • z) (ε * r) ⊆ closed_ball x r,
+      { apply closed_ball_subset_closed_ball',
+        simp [dist_eq_norm, norm_smul, norm_z, real.norm_eq_abs, abs_of_nonneg rpos.le],
+        calc ε * r + r * 2⁻¹
+            ≤ 2⁻¹ * r + r * 2⁻¹ : add_le_add (mul_le_mul_of_nonneg_right εle rpos.le) le_rfl
+        ... = r : by ring },
+      apply nonempty_inter_of_measure_lt_add μ
+        (hs.inter measurable_set_closed_ball) measurable_set_closed_ball
+        (inter_subset_right _ _) I,
+      have J : ennreal.of_real (ε ^ finrank ℝ E) * μ (closed_ball x r)
+        = μ (closed_ball (x + r • z) (ε * r)),
+        by rw [add_haar_closed_ball_mul_of_pos μ _ εpos, add_haar_closed_ball_center],
+      rwa [ennreal.lt_div_iff_mul_lt (or.inl (add_haar_closed_ball_pos μ _ rpos).ne')
+        (or.inl ne_top), ennreal.sub_mul (λ _ _, ne_top), one_mul, J,
+        ennreal.sub_lt_iff_lt_add _ (measure_mono I)] at hr,
+      exact measure_closed_ball_lt_top.ne },
+    rcases this with ⟨b, hb⟩,
+    refine ⟨r⁻¹ • (b - x), _, _⟩,
+    { simp only [mem_closed_ball_iff_norm],
+      calc ∥r⁻¹ • (b - x) - z∥
+          = ∥r⁻¹ • (b - (x + r • z))∥ : by simp only [smul_sub, smul_smul, inv_mul_cancel rpos.ne',
+                                                      one_smul, smul_add, sub_add_eq_sub_sub]
+      ... ≤ r⁻¹ * (ε * r) :
+        begin
+          rw [norm_smul, real.norm_eq_abs, abs_inv, abs_of_nonneg rpos.le],
+          exact mul_le_mul_of_nonneg_left (mem_closed_ball_iff_norm.1 hb.2) (inv_nonneg.2 rpos.le),
+        end
+      ... = ε : by field_simp [rpos.ne'] },
+    { convert hb.1,
+      rw [smul_smul, mul_inv_cancel rpos.ne', one_smul, add_sub_cancel'_right] } },
+  obtain ⟨ρ, ρpos, hρ⟩ :
+    ∃ ρ > 0, ball x ρ ∩ s ⊆ {y : E | ∥f y - f x - (f' x) (y - x)∥ ≤ ε * ∥y - x∥} :=
+      mem_nhds_within_iff.1 (is_o.def (hf' x xs) εpos),
+  have : Ioo (0 : ℝ) ρ ∈ 𝓝[>] (0 : ℝ) := Ioo_mem_nhds_within_Ioi ⟨le_rfl, ρpos⟩,
+  rcases (B.and this).exists with ⟨r, ⟨a, az, ha⟩, rpos, rρ⟩,
+  have norm_a : ∥a∥ ≤ 2⁻¹ + ε := calc
+    ∥a∥ = ∥z + (a - z)∥ : by simp only [add_sub_cancel'_right]
+    ... ≤ ∥z∥ + ∥a - z∥ : norm_add_le _ _
+    ... ≤ 2⁻¹ + ε : add_le_add (le_of_eq norm_z) (mem_closed_ball_iff_norm.1 az),
+  have : r * ∥(f' x - A) a∥ ≤ r * (δ + ε) * (2⁻¹ + ε) := calc
+    r * ∥(f' x - A) a∥ = ∥(f' x - A) (r • a)∥ :
+      by simp only [continuous_linear_map.map_smul, norm_smul, real.norm_eq_abs,
+                    abs_of_nonneg rpos.le]
+    ... = ∥(f (x + r • a) - f x - A ((x + r • a) - x)) -
+            (f (x + r • a) - f x - (f' x) ((x + r • a) - x))∥ :
+      begin
+        congr' 1,
+        simp only [add_sub_cancel', sub_sub_sub_cancel_left, continuous_linear_map.coe_sub',
+          eq_self_iff_true, sub_left_inj, pi.sub_apply, continuous_linear_map.map_smul, smul_sub]
+      end
+    ... ≤ ∥f (x + r • a) - f x - A ((x + r • a) - x)∥ +
+             ∥f (x + r • a) - f x - (f' x) ((x + r • a) - x)∥ : norm_sub_le _ _
+    ... ≤ δ * ∥(x + r • a) - x∥ + ε * ∥(x + r • a) - x∥ :
+      add_le_add (hf _ ha.1 _ xs) (hρ ⟨closed_ball_subset_ball rρ ha.2, ha.1⟩)
+    ... = r * (δ + ε) * ∥a∥ :
+      by { simp only [add_sub_cancel', norm_smul, real.norm_eq_abs, abs_of_nonneg rpos.le], ring }
+    ... ≤ r * (δ + ε) * (2⁻¹ + ε) :
+      mul_le_mul_of_nonneg_left norm_a (mul_nonneg rpos.le (add_nonneg δ.2 εpos.le))
 end
-
 
 #exit
 
-lemma approximates_linear_on.norm_fderiv_sub_le {f : E → E} {A : E →L[ℝ] E} {s : set E} {δ : ℝ≥0}
-  (hf : approximates_linear_on f A s δ)
-  (f' : E → E →L[ℝ] E) (hf' : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x) :
-  ∀ᵐ x ∂ (μ.restrict s), ∥f' x - A∥₊ ≤ δ :=
-sorry
+
+
 
 lemma ae_measurable_fderiv_within
   (f : E → E) (s : set E) (f' : E → (E →L[ℝ] E))

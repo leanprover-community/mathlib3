@@ -11,7 +11,7 @@ import analysis.normed_space.lp_space
 -/
 
 open is_R_or_C submodule filter
-open_locale big_operators nnreal ennreal direct_sum
+open_locale big_operators nnreal ennreal classical
 
 local attribute [instance] fact_one_le_two_ennreal
 
@@ -64,15 +64,16 @@ protected lemma has_sum_linear_isometry (f : lp G 2) :
   has_sum (λ i, V i (f i)) (hV.linear_isometry f) :=
 (hV.summable_of_lp f).has_sum
 
-@[simp] protected lemma linear_isometry_apply_single [decidable_eq ι] {i : ι} (x : G i) :
-  hV.linear_isometry (direct_sum.mk_lp (dfinsupp.single i x) 2) = V i x :=
+@[simp] protected lemma linear_isometry_apply_single {i : ι} (x : G i) :
+  hV.linear_isometry (lp.single 2 i x) = V i x :=
 begin
-  let fx : lp G 2 := direct_sum.mk_lp (dfinsupp.single i x) 2,
-  suffices : ∀ j ≠ i, V j (fx j) = 0,
-  { simpa [hV.linear_isometry_apply] using tsum_eq_single i this },
-  intros j hj,
-  have : fx j = 0 := dfinsupp.single_eq_of_ne hj.symm,
-  simp [this],
+  rw [hV.linear_isometry_apply, ← tsum_ite_eq i (V i x)],
+  congr,
+  ext j,
+  rw [lp.single_apply],
+  split_ifs,
+  { subst h },
+  { simp }
 end
 
 /-- The canonical linear isometry from the `lp 2` of a mutually orthogonal family of subspaces of
@@ -92,8 +93,8 @@ begin
   { apply topological_closure_minimal,
     { refine supr_le _,
       rintros i x ⟨x, rfl⟩,
-      use direct_sum.mk_lp (dfinsupp.single i x) 2,
-      { simp, } },
+      use lp.single 2 i x,
+      convert hV.linear_isometry_apply_single _ },
     exact hV.linear_isometry.isometry.uniform_inducing.is_complete_range.is_closed }
 end
 
@@ -104,17 +105,9 @@ variables {v : ι → E} (hv : orthonormal 𝕜 v)
 
 include cplt
 
--- why `by convert`?
 @[simp] protected lemma linear_isometry_apply_single (i : ι) (x : 𝕜) :
-  hv.orthogonal_family.linear_isometry (by convert finsupp.mk_lp (finsupp.single i x : ι →₀ 𝕜) 2)
-  = x • v i :=
-begin
-  suffices : ∀ j, j ≠ i → finsupp.single i x j • v j = 0,
-  { simpa [hv.orthogonal_family.linear_isometry_apply] using tsum_eq_single i this },
-  intros j hj,
-  have : finsupp.single i x j = 0 := finsupp.single_eq_of_ne hj.symm,
-  simp [this],
-end
+  hv.orthogonal_family.linear_isometry (lp.single 2 i x) = x • v i :=
+by simp [hv.orthogonal_family.linear_isometry_apply_single]
 
 /-- The canonical linear isometry from `ℓ²(ι, 𝕜)` to `E`, induced by an `ι`-indexed orthonormal
 set of vectors in `E`, has range the closure of the span of the vectors. -/
@@ -145,70 +138,19 @@ end
   ⇑(linear_isometry_equiv.of_surjective f hfr) = f :=
 by ext; refl
 
--- move this
-@[simp] lemma _root_.finsupp.norm_mk_lp {F : Type*} [normed_group F] {p : ℝ≥0∞} (hp : 0 < p.to_real)
-  {ι : Type*} (f : ι →₀ F) :
-  ∥f.mk_lp p∥ = (f.sum (λ i a, ∥a∥ ^ p.to_real)) ^ (1 / p.to_real) :=
-begin
-  rw lp.norm_eq_tsum_rpow hp,
-  congr,
-  dsimp [finsupp.sum],
-  apply tsum_eq_sum,
-  intros i hi,
-  simp [finsupp.not_mem_support_iff.1 hi, real.zero_rpow hp.ne']
-end
-
--- move this
-lemma _root_.has_sum_finsupp_single_mk_lp {F : Type*} [normed_group F] {p : ℝ≥0∞}
-  [fact (1 ≤ p)] (hp : p ≠ ⊤) {ι : Type*} (f : lp (λ i : ι, F) p) :
-  has_sum (λ i, finsupp.mk_lp (finsupp.single i (f i)) p) f :=
-begin
-  have hp' : 0 < p.to_real := sorry,
-  have := lp.has_sum_norm hp' f,
-  dsimp [has_sum] at this ⊢,
-  rw metric.tendsto_nhds at this ⊢,
-  intros ε hε,
-  refine (this ε hε).mono _,
-  intros s hs,
-  refine lt_of_le_of_lt _ hs,
-  simp [dist_eq_norm],
-  rw lp.norm_rpow_eq_tsum hp',
-  sorry
-end
-
-
--- move this
-@[simp] lemma _root_.finsupp.norm_mk_lp_infty {F : Type*} [normed_group F] [decidable_eq F]
-  {ι : Type*} (f : ι →₀ F) :
-  ∥f.mk_lp ∞∥ = (insert (0:ℝ) (f.frange.image (λ a, ∥a∥))).max' (finset.insert_nonempty _ _) :=
-begin
-  sorry,
-end
-
-
 namespace hilbert_basis
 
 /-- `b i` is the `i`th basis vector. -/
 instance : has_coe_to_fun (hilbert_basis ι 𝕜 E) (λ _, ι → E) :=
-{ coe := λ b i, begin
-    classical,
-    exact b.repr.symm (direct_sum.mk_lp (dfinsupp.single i (1:𝕜) : ⨁ i : ι, 𝕜) 2)
-  end }
+{ coe := λ b i, b.repr.symm (lp.single 2 i (1:𝕜)) }
 
 @[simp] protected lemma repr_symm_single (b : hilbert_basis ι 𝕜 E) (i : ι) :
-  b.repr.symm (by convert finsupp.mk_lp (finsupp.single i (1:𝕜)) 2 : ℓ²(ι, 𝕜)) = b i :=
-begin
-  classical,
-  change _ = b.repr.symm _,
-  simp [direct_sum.to_finsupp_mk_lp],
-  congr,
-  symmetry,
-  convert dfinsupp.to_finsupp_single i (1:𝕜),
-end
+  b.repr.symm (lp.single 2 i (1:𝕜)) = b i :=
+rfl
 
 @[simp] protected lemma repr_self (b : hilbert_basis ι 𝕜 E) (i : ι) :
-  b.repr (b i) = (by convert finsupp.mk_lp (finsupp.single i (1:𝕜)) 2 : ℓ²(ι, 𝕜)) :=
-by simp [← b.repr_symm_single]
+  b.repr (b i) = lp.single 2 i (1:𝕜) :=
+by rw [← b.repr_symm_single, linear_isometry_equiv.apply_symm_apply]
 
 -- protected lemma repr_apply_apply (b : hilbert_basis ι 𝕜 E) (v : E) (i : ι) :
 --   b.repr v i = ⟪b i, v⟫ :=
@@ -232,15 +174,11 @@ by simp [← b.repr_symm_single]
 protected lemma has_sum_repr_symm (b : hilbert_basis ι 𝕜 E) (f : ℓ²(ι, 𝕜)) :
   has_sum (λ i, f i • b i) (b.repr.symm f) :=
 begin
-  simp only [← b.repr_symm_single],
-  have := @has_sum_finsupp_single_mk_lp 𝕜 _ 2 _ (by norm_num) _ f,
+  have : has_sum (λ (i : ι), lp.single 2 i (f i)) f := lp.has_sum_single ennreal.two_ne_top f,
   convert (↑b.repr.symm.to_continuous_linear_equiv : ℓ²(ι, 𝕜) →L[𝕜] E).has_sum this,
   ext i,
-  have := (finsupp.mk_lp_smul (finsupp.single i (1:𝕜)) 2 (f i)).symm,
-  simpa only [linear_isometry_equiv.map_smul, finsupp.smul_single', mul_one, eq_mpr_eq_cast,
-    eq_self_iff_true, set_coe_cast, subtype.val_eq_coe, set_like.eta,
-    continuous_linear_equiv.coe_coe, linear_isometry_equiv.coe_to_continuous_linear_equiv]
-    using congr_arg (⇑b.repr.symm) this
+  apply b.repr.injective,
+  simpa using (lp.smul_single 2 i (1:𝕜) (f i)).symm,
 end
 
 protected lemma has_sum_repr_symm' (b : hilbert_basis ι 𝕜 E) (x : E) :

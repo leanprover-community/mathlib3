@@ -85,7 +85,7 @@ def adapted (f : filtration ι m) (u : ι → α → β) : Prop :=
 namespace adapted
 
 lemma add [has_add β] [has_measurable_add₂ β] {u v : ι → α → β} {f : filtration ι m}
-  (hu : adapted f u) (hv : adapted f v) : adapted f (u + v):=
+  (hu : adapted f u) (hv : adapted f v) : adapted f (u + v) :=
 λ i, @measurable.add _ _ _ _ (f i) _ _ _ (hu i) (hv i)
 
 lemma neg [has_neg β] [has_measurable_neg β] {u : ι → α → β} {f : filtration ι m}
@@ -101,7 +101,7 @@ end adapted
 variable (β)
 
 lemma adapted_zero [has_zero β] (f : filtration ι m) : adapted f (0 : ι → α → β) :=
-λ i, @measurable_zero β α _ (f i) _
+λ i, @measurable_zero β α (f i) _ _
 
 variable {β}
 
@@ -143,8 +143,7 @@ begin
   { convert (hτ 0),
     simp only [set.set_of_eq_eq_singleton, le_zero_iff] },
   { rw (_ : {x | τ x = i + 1} = {x | τ x ≤ i + 1} \ {x | τ x ≤ i}),
-    { exact @measurable_set.diff _ (f (i + 1)) _ _ (hτ (i + 1))
-        (f.mono (nat.le_succ _) _ (hτ i)) },
+    { exact (hτ (i + 1)).diff (f.mono (nat.le_succ _) _ (hτ i)) },
     { ext, simp only [set.mem_diff, not_le, set.mem_set_of_eq],
       split,
       { intro h, simp [h] },
@@ -164,8 +163,7 @@ begin
     { simp [h], },
     { simp only [h, ne.symm h, or_false, or_iff_left_iff_imp], }, },
   rw this,
-  refine @measurable_set.union _ (f.seq i) _ _ _ (hτ.measurable_set_eq i),
-  exact @measurable_set.diff _ (f.seq i) _ _ (@measurable_set.univ _ (f.seq i)) (hτ i),
+  exact (measurable_set.univ.diff (hτ i)).union (hτ.measurable_set_eq i),
 end
 
 lemma is_stopping_time.measurable_set_eq_le
@@ -179,7 +177,7 @@ lemma is_stopping_time_of_measurable_set_eq
 begin
   intro i,
   rw show {x | τ x ≤ i} = ⋃ k ≤ i, {x | τ x = k}, by { ext, simp },
-  refine @measurable_set.bUnion _ _ (f i) _ _ (set.countable_encodable _) (λ k hk, _),
+  refine measurable_set.bUnion (set.countable_encodable _) (λ k hk, _),
   exact f.mono hk _ (hτ k),
 end
 
@@ -197,7 +195,7 @@ lemma max [linear_order ι] {f : filtration ι m} {τ π : α → ι}
 begin
   intro i,
   simp_rw [max_le_iff, set.set_of_and],
-  exact @measurable_set.inter _ (f i) _ _ (hτ i) (hπ i),
+  exact (hτ i).inter (hπ i),
 end
 
 lemma min [linear_order ι] {f : filtration ι m} {τ π : α → ι}
@@ -206,7 +204,7 @@ lemma min [linear_order ι] {f : filtration ι m} {τ π : α → ι}
 begin
   intro i,
   simp_rw [min_le_iff, set.set_of_or],
-  exact @measurable_set.union _ (f i) _ _ (hτ i) (hπ i),
+  exact (hτ i).union (hπ i),
 end
 
 lemma add_const
@@ -233,9 +231,9 @@ protected def measurable_space
   measurable_set_compl := λ s hs i,
     begin
       rw (_ : sᶜ ∩ {x | τ x ≤ i} = (sᶜ ∪ {x | τ x ≤ i}ᶜ) ∩ {x | τ x ≤ i}),
-      { refine @measurable_set.inter _ (f i) _ _ _ _,
+      { refine measurable_set.inter _ _,
         { rw ← set.compl_inter,
-          exact @measurable_set.compl _ _ (f i) (hs i) },
+          exact (hs i).compl },
         { exact hτ i} },
       { rw set.union_inter_distrib_right,
         simp only [set.compl_inter_self, set.union_empty] }
@@ -244,7 +242,7 @@ protected def measurable_space
     begin
       rw forall_swap at hs,
       rw set.Union_inter,
-      exact @measurable_set.Union _ _ (f i) _ _ (hs i),
+      exact measurable_set.Union (hs i),
     end }
 
 @[protected]
@@ -259,7 +257,7 @@ lemma measurable_space_mono
 begin
   intros s hs i,
   rw (_ : s ∩ {x | π x ≤ i} = s ∩ {x | τ x ≤ i} ∩ {x | π x ≤ i}),
-  { exact @measurable_set.inter _ (f i) _ _ (hs i) (hπ i) },
+  { exact (hs i).inter (hπ i) },
   { ext,
     simp only [set.mem_inter_eq, iff_self_and, and.congr_left_iff, set.mem_set_of_eq],
     intros hle' _,
@@ -393,14 +391,13 @@ begin
   intro i,
   rw stopped_process_eq,
   refine @measurable.add _ _ _ _ (f i) _ _ _ _ _,
-  { refine @measurable.indicator _ _ (f i) _ _ _ _ (hu i) _,
-    convert @measurable_set.union _ (f i) _ _
-      (@measurable_set.compl _ _ (f i) (hτ i)) (hτ.measurable_set_eq i),
+  { refine (hu i).indicator _,
+    convert measurable_set.union (hτ i).compl (hτ.measurable_set_eq i),
     ext x,
     change i ≤ τ x ↔ ¬ τ x ≤ i ∨ τ x = i,
     rw [not_le, le_iff_lt_or_eq, eq_comm] },
   { refine @finset.measurable_sum' _ _ _ _ _ _ (f i) _ _ _,
-    refine λ j hij, @measurable.indicator _ _ (f i) _ _ _ _ _ _,
+    refine λ j hij, measurable.indicator _ _,
     { rw finset.mem_range at hij,
       exact measurable.le (f.mono hij.le) (hu j) },
     { rw finset.mem_range at hij,

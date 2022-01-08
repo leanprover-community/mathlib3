@@ -105,7 +105,7 @@ begin
       not_or_distrib, ne_of_gt hε, true_and, not_false_iff],
     exact λ y h1 h2, h1 (h2.symm ▸ hq) },
   classical,
-  let w : t → units ℝ := λ p, if hp : (p : P) ∈ s then 1 else units.mk0 _ (hεyq ↑p hp),
+  let w : t → ℝˣ := λ p, if hp : (p : P) ∈ s then 1 else units.mk0 _ (hεyq ↑p hp),
   refine ⟨set.range (λ (p : t), line_map q p (w p : ℝ)), _, _, _, _⟩,
   { intros p hp, use ⟨p, ht₁ hp⟩, simp [w, hp], },
   { intros y hy,

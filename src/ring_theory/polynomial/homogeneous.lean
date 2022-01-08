@@ -122,6 +122,15 @@ begin
 end
 variables (σ) {R}
 
+lemma is_homogeneous_of_total_degree_zero {p : mv_polynomial σ R} (hp : p.total_degree = 0) :
+  is_homogeneous p 0 :=
+begin
+  erw [total_degree, finset.sup_eq_bot_iff] at hp,
+  -- we have to do this in two steps to stop simp changing bot to zero
+  simp_rw [mem_support_iff] at hp,
+  exact hp,
+end
+
 lemma is_homogeneous_C (r : R) :
   is_homogeneous (C r : mv_polynomial σ R) 0 :=
 begin
@@ -234,7 +243,7 @@ def homogeneous_component [comm_semiring R] (n : ℕ) :
 
 section homogeneous_component
 open finset
-variables [comm_semiring R] (n : ℕ) (φ : mv_polynomial σ R)
+variables [comm_semiring R] (n : ℕ) (φ ψ : mv_polynomial σ R)
 
 lemma coeff_homogeneous_component (d : σ →₀ ℕ) :
   coeff d (homogeneous_component n φ) = if ∑ i in d.support, d i = n then coeff d φ else 0 :=
@@ -253,6 +262,7 @@ begin
   rw [coeff_homogeneous_component, if_neg hd]
 end
 
+@[simp]
 lemma homogeneous_component_zero : homogeneous_component 0 φ = C (coeff 0 φ) :=
 begin
   ext1 d,
@@ -263,6 +273,19 @@ begin
     simp only [finsupp.ext_iff, finsupp.zero_apply] at hd,
     simp [hd] }
 end
+
+@[simp]
+lemma homogeneous_component_add :
+  homogeneous_component n (φ + ψ) = homogeneous_component n φ + homogeneous_component n ψ :=
+by rw [homogeneous_component, linear_map.comp_apply, linear_map.comp_apply, linear_map.comp_apply,
+    linear_map.map_add, linear_map.map_add]
+
+@[simp]
+lemma homogeneous_component_C_mul (n : ℕ) (r : R) :
+  homogeneous_component n (C r * φ) = C r * homogeneous_component n φ :=
+by simp only [homogeneous_component, finsupp.restrict_dom_apply,
+  submodule.subtype_apply, function.comp_app, linear_map.coe_comp,
+  set.mem_set_of_eq, C_mul', finsupp.filter_smul]
 
 lemma homogeneous_component_eq_zero' (h : ∀ d : σ →₀ ℕ, d ∈ φ.support → ∑ i in d.support, d i ≠ n) :
   homogeneous_component n φ = 0 :=

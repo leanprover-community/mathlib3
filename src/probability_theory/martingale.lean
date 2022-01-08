@@ -531,11 +531,24 @@ begin
 end
 
 /-- The `t`-th upcrossing of a random process on the interval `[a, b]` is the ℕ-valued random
-variable corresponding to the maximum number of times the random process crossed above `b` before
-(not including) time `t`. -/ -- ** Upcrossing is actually 1 more **
+variable corresponding to the maximum number of times the random process crossed from below `a` to
+above `b` before (not including) time `t`.
+
+**Upcrossing is actually 1 more than what the doc-string suggests here in the non-zero case**
+In particular, `upcrossing f a b n` provides the first time the `upper_crossing` reaches `N`
+(hence indicating the last time the process performs an upcrossing) if such a time exists and
+0 otherwise. -/
 noncomputable
 def upcrossing (f : ℕ → α → ℝ) (a b : ℝ) (N : ℕ) : α → ℕ :=
 λ x, if h : ∃ n, n < N ∧ upper_crossing f a b N n x = N then nat.find h else 0
+
+lemma upper_crossing_upcrossing_zero {f : ℕ → α → ℝ} {a b : ℝ} {N : ℕ} {n : ℕ}
+  {x : α} (hn : upcrossing f a b N x ≠ 0) :
+  upper_crossing f a b N n x = N :=
+begin
+  rw [upcrossing, dite_ne_right_iff] at hn,
+  sorry
+end
 
 lemma upcrossing_le {f : ℕ → α → ℝ} {a b : ℝ} {N : ℕ} {x : α} :
   ↑(upcrossing f a b N x) * (b - a) ≤

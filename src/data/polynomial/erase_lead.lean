@@ -207,15 +207,15 @@ begin
   { simp },
   { intros n r r0 np,
     rw [nat_degree_C_mul_X_pow _ _ r0, ← monomial_eq_C_mul_X, φ_mon_nat _ _ r0] },
-  { intros f g fg gp fk kfg,
+  { intros f g fg gp fk gk,
     rw [nat_degree_add_eq_right_of_nat_degree_lt fg, map_add],
     by_cases FG : k ≤ f.nat_degree,
-    { rw [nat_degree_add_eq_right_of_nat_degree_lt, kfg],
-      rw [fk, kfg],
+    { rw [nat_degree_add_eq_right_of_nat_degree_lt, gk],
+      rw [fk, gk],
       exact (tsub_lt_tsub_iff_right FG).mpr fg },
     { rw [φ_k f (not_le.mp FG), zero_add],
       by_cases KG : k ≤ g.nat_degree,
-      { exact kfg },
+      { exact gk },
       { simpa [φ_k g (not_le.mp KG)] using (nat.sub_eq_zero_of_le (not_le.mp KG).le).symm } } }
 end
 

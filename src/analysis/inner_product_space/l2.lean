@@ -19,13 +19,13 @@ notation `ℓ²(` ι `,` 𝕜 `)` := lp (λ i : ι, 𝕜) 2
 
 noncomputable theory
 
-variables {ι : Type*} [dec_ι : decidable_eq ι]
+variables {ι : Type*}
 variables {𝕜 : Type*} [is_R_or_C 𝕜] {E : Type*} [inner_product_space 𝕜 E] [cplt : complete_space E]
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
 
 namespace orthogonal_family
 variables {G : ι → Type*} [Π i, inner_product_space 𝕜 (G i)] {V : Π i, G i →ₗᵢ[𝕜] E}
-  (hV : orthogonal_family 𝕜 V) [dec_V : Π i (x : G i), decidable (x ≠ 0)]
+  (hV : orthogonal_family 𝕜 V) --[dec_V : Π i (x : G i), decidable (x ≠ 0)]
 
 include hV
 
@@ -149,10 +149,14 @@ protected lemma has_sum_repr_symm (b : hilbert_basis ι 𝕜 E) (f : ℓ²(ι, �
   has_sum (λ i, f i • b i) (b.repr.symm f) :=
 begin
   have : has_sum (λ (i : ι), lp.single 2 i (f i)) f := lp.has_sum_single ennreal.two_ne_top f,
-  convert (↑b.repr.symm.to_continuous_linear_equiv : ℓ²(ι, 𝕜) →L[𝕜] E).has_sum this,
+  convert (↑(b.repr.symm.to_continuous_linear_equiv) : ℓ²(ι, 𝕜) →L[𝕜] E).has_sum this,
   ext i,
   apply b.repr.injective,
-  simpa using (lp.smul_single 2 i (1:𝕜) (f i)).symm,
+  have : lp.single 2 i (f i * 1) = _ := lp.smul_single 2 i (1:𝕜) (f i),
+  rw mul_one at this,
+  rw [linear_isometry_equiv.map_smul, b.repr_self, ← this, continuous_linear_equiv.coe_coe,
+    linear_isometry_equiv.coe_to_continuous_linear_equiv],
+  exact (b.repr.apply_symm_apply (lp.single 2 i (f i))).symm,
 end
 
 protected lemma has_sum_repr_symm' (b : hilbert_basis ι 𝕜 E) (x : E) :

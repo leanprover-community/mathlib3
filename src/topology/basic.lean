@@ -76,7 +76,7 @@ def topological_space.of_closed {α : Type u} (T : set (set α))
   topological_space α :=
 { is_open := λ X, Xᶜ ∈ T,
   is_open_univ := by simp [empty_mem],
-  is_open_inter := λ s t hs ht, by simpa [set.compl_inter] using union_mem sᶜ tᶜ hs ht,
+  is_open_inter := λ s t hs ht, by simpa [set.compl_inter] using union_mem sᶜ hs tᶜ ht,
   is_open_sUnion := λ s hs,
     by rw set.compl_sUnion; exact sInter_mem (set.compl '' s)
     (λ z ⟨y, hy, hz⟩, by simpa [hz.symm] using hs y hy) }

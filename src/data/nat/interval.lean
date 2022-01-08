@@ -232,14 +232,11 @@ end
 section multiset
 open multiset
 
-lemma multiset_Ico_map_mod (n a : ℕ) :
-  (multiset.Ico n (n+a)).map (% a) = multiset.range a :=
+lemma multiset_Ico_map_mod (n a : ℕ) : (multiset.Ico n (n+a)).map (% a) = range a :=
 begin
-  rw [← finset.range_coe, ← congr_arg finset.val (finset_Ico_image_mod n a),
-    finset.image_val, finset.Ico_val, eq_comm, multiset.erase_dup_eq_self, nodup_map_iff_inj_on],
-  swap, { exact finset.nodup _ },
-  intros k hk l hl hkl,
-  exact mod_inj_on_Ico n a hk hl hkl,
+  convert congr_arg finset.val (finset_Ico_image_mod n a),
+  refine ((nodup_map_iff_inj_on (finset.Ico _ _).nodup).2 $ _).erase_dup.symm,
+  exact mod_inj_on_Ico _ _,
 end
 
 end multiset

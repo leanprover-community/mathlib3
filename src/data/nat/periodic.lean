@@ -4,9 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bolton Bailey
 -/
 import algebra.periodic
-import data.nat.interval
 import data.nat.count
-import order.locally_finite
+import data.nat.interval
 
 /-!
 # Periodic Functions on ℕ

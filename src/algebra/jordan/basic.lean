@@ -11,9 +11,29 @@ import linear_algebra.basic
 /-!
 # Jordan algebras
 
-We define a set of conditions, formulated in terms of commuting multiplication operators, for the
-multiplication on a non-unital, non-associative semiring to be a Jordan multiplication. When the
-multiplication is commutative, these take a particularly simple form.
+Let `A` be a non-associative algebra (i.e. a module equipped with a bilinear multiplication
+operation). Then `A` is said to be a (commutative) Jordan algebra if the multiplication is
+commutative and satisfies a weak associativity law known as the Jordan Identity: for all `a` and `b`
+in `A`,
+```
+(a * b)* a^2 = a * (b * a^2)
+```
+i.e. the operators of multiplication by `a` and `a^2` commute. Every associative algebra can be
+equipped with a second  multiplication making it into a commutative Jordan algebra.
+Jordan algebras arising this way are said to be special. There are also exceptional Jordan algebras
+which can be shown not to be the symmetrisation of any associative algebra. The three by three
+matrices of octonians is the canonical example.
+
+Commutative Jordan algebras were introduced by Jordan, von Neumann and Wigner as a mathematical
+model for the observables of a quantum mechanical physical system (for a C*-algebra the
+self-adjoint part is closed under the symmetrised Jordan multiplication). Jordan algebras have
+subsequently been studied from the points of view of abstract algebra and functional analysis. They
+have connections to Lie algebras and differential geometry.
+
+A more general concept of a (non-commutative) Jordan algebra can also be defined, as a
+(non-commutative, non-associative) algebra `A` where, for each `a` in `A`, the operators of left and
+right multiplication by `a` and `a^2` commute. Such algebras have connected to the Vidav-Palmer
+theorem.
 
 A real Jordan algebra `A` can be introduced by
 ```

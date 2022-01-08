@@ -12,6 +12,28 @@ import data.finset.locally_finite
 /-!
 # Incidence algebras
 
+Given a locally finite order `α` the incidence algebra over `α` is the type of functions from
+non-empty intervals of `α` to some algebraic codomain.
+This algebra has a natural multiplication operation whereby the product of two such functions
+is defined on an interval by summing over all divisions into two subintervals the product of the
+values of the original pair of functions.
+This structure allows us to interpret many natural invariants of the intervals (such as their
+cardinality) as elements of the incidence algebra. For instance the cardinality function, viewed as
+an element of the incidence algebra, is simply the square of the function that takes constant value
+one on all intervals. This constant function is called the zeta function, after
+its connection with the Riemann zeta function.
+The incidence algebra is a good setting for proving many inclusion-exclusion type principles, these
+go under the name Möbius inversion, and are essentially due to the fact that the zeta function has
+a multiplicative inverse in the incidence algebra, an inductively definable function called the
+Möbius function that generalizes the Möbius function in number theory.
+
+
+## References
+- Aigner - Combinatorial Theory, Chapter IV
+- Jacobson - Basic Algebra I, 8.6
+- Rota - On the foundations of Combinatorial Theory
+- Spiegel, O'Donnell - Incidence Algebras
+- Kung, Rota, Yan - Combinatorics: The Rota Way, Chapter 3
 
 ## TODOs
 Here are some additions to this file that could be made in the future
@@ -23,6 +45,8 @@ Here are some additions to this file that could be made in the future
 - More examples / applications to different posets.
 - Connection with Galois insertions
 - Finsum version of Möbius inversion that holds even when an order doesn't have top/bot?
+- Connect this theory to (infinite) matrices, giving maps of the incedence algebra to matrix rings
+- Connect to the more advanced theory of arithmetic functions, and Dirichlet convolution.
 -/
 
 open finset
@@ -389,6 +413,22 @@ instance [preorder α] [locally_finite_order α] [decidable_eq α] [semiring �
   zero_smul := λ f, by { ext, exact sum_eq_zero (λ x _, zero_smul _ _) },
   smul_zero := λ f, by { ext, exact sum_eq_zero (λ x _, smul_zero _) } }
 
+/-! ### The Lambda function -/
+section lambda
+variables [has_zero 𝕜] [has_one 𝕜] [preorder α] [decidable_eq α] [@decidable_rel α (⋖)]
+
+/-- The lambda function of the incidence algebra is the function that assigns 1 to every nonempty
+interval of cardinality one or two. -/
+def lambda : incidence_algebra 𝕜 α :=
+⟨λ a b, if a = b ∨ a ⋖ b then 1 else 0,
+ λ a b h, if_neg (λ hh, h (hh.elim eq.le covers.le))⟩
+
+variables {𝕜 α}
+
+@[simp] lemma lambda_apply (a b : α) : lambda 𝕜 α a b = if a = b ∨ a ⋖ b then 1 else 0 := rfl
+
+end lambda
+
 /-! ### The Zeta and Möbius functions -/
 
 section zeta
@@ -407,6 +447,16 @@ lemma zeta_of_le {a b : α} (h : a ≤ b) : zeta 𝕜 α a b = 1 := if_pos h
 end zeta
 
 lemma zeta_mul_zeta [add_comm_monoid 𝕜] [mul_one_class 𝕜] [preorder α] [locally_finite_order α]
+  [@decidable_rel α (≤)] (a b : α) :
+  (zeta 𝕜 α * zeta 𝕜 α) a b = (Icc a b).card :=
+begin
+  rw [mul_apply, card_eq_sum_ones, nat.cast_sum, nat.cast_one],
+  refine sum_congr rfl (λ x hx, _),
+  rw mem_Icc at hx,
+  rw [zeta_of_le hx.1, zeta_of_le hx.2, one_mul],
+end
+
+lemma zeta_mul_kappa [add_comm_monoid 𝕜] [mul_one_class 𝕜] [preorder α] [locally_finite_order α]
   [@decidable_rel α (≤)] (a b : α) :
   (zeta 𝕜 α * zeta 𝕜 α) a b = (Icc a b).card :=
 begin

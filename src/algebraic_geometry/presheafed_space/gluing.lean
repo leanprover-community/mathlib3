@@ -225,7 +225,7 @@ begin
     apply_instance }
 end
 
-/-- (Implementation). The map `Γ(𝒪_{U_i}, U) ⟶ Γ(𝒪_{U_j} 𝖣.ι j ⁻¹' (𝖣.ι i '' U))`. -/
+/-- (Implementation). The map `Γ(𝒪_{U_i}, U) ⟶ Γ(𝒪_{U_j}, 𝖣.ι j ⁻¹' (𝖣.ι i '' U))`. -/
 def opens_image_preimage_map (i j : D.J) (U : opens (D.U i).carrier) :
   (D.U i).presheaf.obj (op U) ⟶ (D.U j).presheaf.obj
     (op ((opens.map (𝖣 .ι j).base).obj ((D.ι_open_embedding i).is_open_map.functor.obj U))) :=

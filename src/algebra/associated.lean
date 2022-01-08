@@ -110,12 +110,11 @@ end
 
 lemma prime.pow_dvd_of_dvd_mul_left
   [cancel_comm_monoid_with_zero α]
-  {p a b : α} (hp : prime p) (n : ℕ) (h : ¬(p ∣ a)) (h' : p ^ n ∣ a * b) : p ^ n ∣ b :=
+  {p a b : α} (hp : prime p) (n : ℕ) (h : ¬p ∣ a) (h' : p ^ n ∣ a * b) : p ^ n ∣ b :=
 begin
   induction n with n ih,
   { rw pow_zero, exact one_dvd b },
-  { specialize ih (dvd_trans (pow_dvd_pow p n.le_succ) h'),
-    obtain ⟨c, rfl⟩ := ih,
+  { obtain ⟨c, rfl⟩ := ih (dvd_trans (pow_dvd_pow p n.le_succ) h'),
     rw pow_succ',
     apply mul_dvd_mul_left _ ((hp.dvd_or_dvd _).resolve_left h),
     rwa [←mul_dvd_mul_iff_left (pow_ne_zero n hp.ne_zero), ←pow_succ', mul_left_comm] }
@@ -123,10 +122,8 @@ end
 
 lemma prime.pow_dvd_of_dvd_mul_right
   [cancel_comm_monoid_with_zero α]
-  {p a b : α} (hp : prime p) (n : ℕ) (h : ¬(p ∣ b)) (h' : p ^ n ∣ a * b) : p ^ n ∣ a :=
-begin
-  rw [mul_comm] at h', exact hp.pow_dvd_of_dvd_mul_left n h h',
-end
+  {p a b : α} (hp : prime p) (n : ℕ) (h : ¬p ∣ b) (h' : p ^ n ∣ a * b) : p ^ n ∣ a :=
+by { rw [mul_comm] at h', exact hp.pow_dvd_of_dvd_mul_left n h h' }
 
 /-- `irreducible p` states that `p` is non-unit and only factors into units.
 

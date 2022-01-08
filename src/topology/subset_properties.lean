@@ -1227,11 +1227,14 @@ section clopen
 def is_clopen (s : set α) : Prop :=
 is_open s ∧ is_closed s
 
+protected lemma is_clopen.is_open (hs : is_clopen s) : is_open s := hs.1
+protected lemma is_clopen.is_closed (hs : is_clopen s) : is_closed s := hs.2
+
 theorem is_clopen.union {s t : set α} (hs : is_clopen s) (ht : is_clopen t) : is_clopen (s ∪ t) :=
-⟨is_open.union hs.1 ht.1, is_closed.union hs.2 ht.2⟩
+⟨hs.1.union ht.1, hs.2.union ht.2⟩
 
 theorem is_clopen.inter {s t : set α} (hs : is_clopen s) (ht : is_clopen t) : is_clopen (s ∩ t) :=
-⟨is_open.inter hs.1 ht.1, is_closed.inter hs.2 ht.2⟩
+⟨hs.1.inter ht.1, hs.2.inter ht.2⟩
 
 @[simp] theorem is_clopen_empty : is_clopen (∅ : set α) :=
 ⟨is_open_empty, is_closed_empty⟩
@@ -1240,7 +1243,7 @@ theorem is_clopen.inter {s t : set α} (hs : is_clopen s) (ht : is_clopen t) : i
 ⟨is_open_univ, is_closed_univ⟩
 
 theorem is_clopen.compl {s : set α} (hs : is_clopen s) : is_clopen sᶜ :=
-⟨hs.2.is_open_compl, is_closed_compl_iff.2 hs.1⟩
+⟨hs.2.is_open_compl, hs.1.is_closed_compl⟩
 
 @[simp] theorem is_clopen_compl_iff {s : set α} : is_clopen sᶜ ↔ is_clopen s :=
 ⟨λ h, compl_compl s ▸ is_clopen.compl h, is_clopen.compl⟩
@@ -1296,6 +1299,10 @@ end
 lemma clopen_range_sigma_mk {ι : Type*} {σ : ι → Type*} [Π i, topological_space (σ i)] {i : ι} :
   is_clopen (set.range (@sigma.mk ι σ i)) :=
 ⟨open_embedding_sigma_mk.open_range, closed_embedding_sigma_mk.closed_range⟩
+
+protected lemma quotient_map.is_clopen_preimage [topological_space β] {f : α → β}
+  (hf : quotient_map f) {s : set β} : is_clopen (f ⁻¹' s) ↔ is_clopen s :=
+and_congr hf.is_open_preimage hf.is_closed_preimage
 
 end clopen
 

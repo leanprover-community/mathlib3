@@ -694,27 +694,25 @@ begin
 end
 
 /-- Preconnected sets are either contained in or disjoint to any given clopen set. -/
-theorem subset_or_disjoint_of_clopen {α : Type*} [topological_space α] {s t : set α}
-  (h : is_preconnected t) (h1 : is_clopen s) : s ∩ t = ∅ ∨ t ⊆ s :=
+theorem is_preconnected.subset_clopen {s t : set α} (hs : is_preconnected s) (ht : is_clopen t)
+  (hne : (s ∩ t).nonempty) : s ⊆ t :=
 begin
-  by_contradiction h2,
-  have h3 : (s ∩ t).nonempty := ne_empty_iff_nonempty.mp (mt or.inl h2),
-  have h4 : (t ∩ sᶜ).nonempty,
-  { apply inter_compl_nonempty_iff.2,
-    push_neg at h2,
-    exact h2.2 },
-  rw [inter_comm] at h3,
-  apply ne_empty_iff_nonempty.2 (h s sᶜ h1.1 (is_open_compl_iff.2 h1.2) _ h3 h4),
-  { rw [inter_compl_self, inter_empty] },
-  { rw [union_compl_self],
-    exact subset_univ t },
+  by_contra h,
+  have : (s ∩ tᶜ).nonempty := inter_compl_nonempty_iff.2 h,
+  obtain ⟨x, -, hx, hx'⟩ : (s ∩ (t ∩ tᶜ)).nonempty,
+    from hs t tᶜ ht.is_open ht.compl.is_open (λ x hx, em _) hne this,
+  exact hx' hx
 end
+
+/-- Preconnected sets are either contained in or disjoint to any given clopen set. -/
+theorem disjoint_or_subset_of_clopen {s t : set α} (hs : is_preconnected s) (ht : is_clopen t) :
+  disjoint s t ∨ s ⊆ t :=
+(disjoint_or_nonempty_inter s t).imp_right $ hs.subset_clopen ht
 
 /-- A set `s` is preconnected if and only if
 for every cover by two closed sets that are disjoint on `s`,
 it is contained in one of the two covering sets. -/
-theorem is_preconnected_iff_subset_of_disjoint_closed {α : Type*} {s : set α}
-  [topological_space α] :
+theorem is_preconnected_iff_subset_of_disjoint_closed :
   is_preconnected s ↔
     ∀ (u v : set α) (hu : is_closed u) (hv : is_closed v) (hs : s ⊆ u ∪ v) (huv : s ∩ (u ∩ v) = ∅),
       s ⊆ u ∨ s ⊆ v :=
@@ -769,28 +767,21 @@ begin
         inter_comm, inter_assoc, inter_comm v u, huv] }
 end
 
+lemma is_clopen.connected_component_subset {x} (hs : is_clopen s) (hx : x ∈ s) :
+  connected_component x ⊆ s :=
+is_preconnected_connected_component.subset_clopen hs ⟨x, mem_connected_component, hx⟩
+
 /-- The connected component of a point is always a subset of the intersection of all its clopen
 neighbourhoods. -/
 lemma connected_component_subset_Inter_clopen {x : α} :
   connected_component x ⊆ ⋂ Z : {Z : set α // is_clopen Z ∧ x ∈ Z}, Z :=
-begin
-  apply subset_Inter (λ Z, _),
-  cases (subset_or_disjoint_of_clopen (@is_connected_connected_component _ _ x).2 Z.2.1),
-  { exfalso,
-    apply nonempty.ne_empty
-      (nonempty_of_mem (mem_inter (@mem_connected_component _ _ x) Z.2.2)),
-    rw inter_comm,
-    exact h },
-  exact h,
-end
+subset_Inter $ λ Z, Z.2.1.connected_component_subset Z.2.2
 
 /-- A clopen set is the union of its connected components. -/
-lemma is_clopen.eq_union_connected_components {Z : set α} (h : is_clopen Z) :
-  Z = (⋃ (x : α) (H : x ∈ Z), connected_component x) :=
-eq_of_subset_of_subset (λ x xZ, mem_Union.2 ⟨x, mem_Union.2 ⟨xZ, mem_connected_component⟩⟩)
-  (Union_subset $ λ x, Union_subset $ λ xZ,
-    (by { apply subset.trans connected_component_subset_Inter_clopen
-      (Inter_subset _ ⟨Z, ⟨h, xZ⟩⟩) }))
+lemma is_clopen.bUnion_connected_component_eq {Z : set α} (h : is_clopen Z) :
+  (⋃ x ∈ Z, connected_component x) = Z :=
+(bUnion_subset $ λ x, h.connected_component_subset).antisymm $
+  λ x hx, mem_bUnion hx mem_connected_component
 
 /-- The preimage of a connected component is preconnected if the function has connected fibers
 and a subset is closed iff the preimage is. -/

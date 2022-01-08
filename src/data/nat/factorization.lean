@@ -117,4 +117,11 @@ begin
   exact support_add_eq (factorization_disjoint_of_coprime hab),
 end
 
+lemma factorization_mul_support_of_pos {a b : ℕ} (ha : 0 < a) (hb : 0 < b) :
+  (a * b).factorization.support = a.factorization.support ∪ b.factorization.support :=
+begin
+  ext q,
+  simp only [finset.mem_union, factor_iff_mem_factorization, mem_factors_mul_of_pos ha hb],
+end
+
 end nat

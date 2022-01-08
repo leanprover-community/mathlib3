@@ -8,6 +8,13 @@ open complex
 variables {M : Type*} [topological_space M] [charted_space ℂ M]
   [smooth_manifold_with_corners 𝓘(ℂ) M]
 
+-- how does this not exist???
+lemma norm_ne_zero (x : ℝ) (hx' : x ≠ 0) : ∥x∥ ≠ 0 :=
+begin
+  by_contra,
+  exact hx' (norm_eq_zero.mp h), -- there's probably a slick way to one-line this??
+end
+
 lemma non_zero_deriv (f : ℂ → ℂ) (s : set ℂ) (hs : is_open s) (c : ℝ) (hf : ∀ x ∈ s, ∥f x∥ = c) (f' : ℂ → ℂ)
   (hf' : ∀ x ∈ s, has_strict_deriv_at f (f' x) x) (x : ℂ) (hx : x ∈ s) :
   f' x = 0 :=
@@ -19,19 +26,38 @@ begin
   rw H₁ at H₃,
   rw metric.mem_nhds_iff at H₃,
   obtain ⟨ε, hε, H₄⟩ := H₃,
-  by_cases hfx : f x = 0, -- ALEX HOMEWORK
-  { sorry },
-  let η : ℝ := sorry, -- ε / (2 * ∥f x∥)
-  have hη : 0 < η := sorry,
-  have hη' : η * abs (f x) < ε := sorry,
+  by_cases hfx : f x = 0,
+  { let η := ε /2,
+    have hη : 0 < η := div_pos hε (by simp),
+    have H₅ : (η : ℂ) ∈ metric.ball (f x) ε,
+    { simp only [hfx, complex.abs_two, complex.abs_div, mem_ball_zero_iff, of_real_div,
+        of_real_one, of_real_bit0, norm_eq_abs, abs_of_real],
+      rw _root_.abs_of_pos hε,
+      nlinarith, },
+    obtain ⟨y, hys, hy⟩ := H₄ H₅,
+    have := (hf x hx).trans (hf y hys).symm,
+    rw [congr_arg norm hfx, congr_arg norm hy, norm_zero] at this,
+    have := norm_eq_zero.mp this.symm,
+    norm_cast at this,
+    exact ne_of_gt hη this, },
+  let η := ε / (2 * ∥f x∥),
+  have hη : 0 < η,
+  { have : 0 <  ∥ f x ∥ := norm_pos_iff.mpr hfx,
+    have : 0 < 2 * ∥ f x ∥ := by nlinarith,
+    convert div_pos hε this, },
+  have hη' : η * abs (f x) < ε,
+  { have : abs (f x) ≠ 0 := abs_ne_zero.mpr hfx,
+    calc η * abs (f x) = ε / 2 : _
+                 ... < ε : by linarith,
+    dsimp only [η],
+    field_simp,
+    ring, },
   have H₅ : (1 + η) • f x ∈ metric.ball (f x) ε,
-  { simp [dist_eq_norm, norm_eq_abs],
-    calc abs ((1 + ↑η) * f x - f x)
-        = abs ((η : ℂ) * f x) : by congr; ring
-    ... < ε : _,
-    simp,
-    rw _root_.abs_of_nonneg hη.le,
-    exact hη' },
+  { simp only [metric.mem_ball, real_smul, dist_eq_norm, norm_eq_abs, of_real_add],
+    calc abs ((1 + (η : ℂ)) * f x - f x) = abs ((η : ℂ) * f x) : by congr; ring
+                                ... < ε : _,
+    simp only [complex.abs_mul, abs_of_real, abs_of_pos, hη],
+    exact hη', },
   obtain ⟨y, hys, hy⟩ := H₄ H₅,
   have H₆ := congr_arg norm hy,
   simp only [of_real_add, normed_field.norm_mul, real_smul, of_real_one] at H₆,

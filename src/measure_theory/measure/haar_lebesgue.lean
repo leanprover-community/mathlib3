@@ -134,7 +134,6 @@ begin
   apply add_haar_eq_zero_of_disjoint_translates_aux μ u
     (bounded.mono (inter_subset_right _ _) bounded_closed_ball) hu _
     (h's.inter (measurable_set_closed_ball)),
-  rw ← pairwise_univ at ⊢ hs,
   apply pairwise_disjoint.mono hs (λ n, _),
   exact add_subset_add (subset.refl _) (inter_subset_left _ _)
 end

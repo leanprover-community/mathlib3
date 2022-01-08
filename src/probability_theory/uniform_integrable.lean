@@ -33,20 +33,39 @@ variables {α β ι : Type*} {m : measurable_space α}
   [metric_space β] [second_countable_topology β] [measurable_space β] [borel_space β]
   {μ : measure α}
 
-private def antitoneseq (f : ℕ → α → β) (g : α → β) (ε : ℝ≥0∞) (i j : ℕ) : set α :=
-⋃ k (hk : j ≤ k), {x | 2^(-(i : ℤ)) < dist (f k x) (g x)}
+def antitoneseq (f : ℕ → α → β) (g : α → β) (ε : ℝ≥0∞) (i j : ℕ) : set α :=
+⋃ k (hk : j ≤ k), {x | (1 / (i + 1 : ℝ)) < dist (f k x) (g x)}
 
 variables {f : ℕ → α → β} {g : α → β} {ε : ℝ≥0∞}
 
-private lemma antitoneseq_measurable_set
+lemma mem_antitoneseq_iff {i j : ℕ} {x : α} : x ∈ antitoneseq f g ε i j ↔
+  ∃ k (hk : j ≤ k), (1 / (i + 1 : ℝ)) < dist (f k x) (g x) :=
+by { simp_rw [antitoneseq, mem_Union], refl }
+
+lemma antitoneseq_measurable_set
   (hf : ∀ n, measurable[m] (f n)) (hg : measurable g)
   {i j : ℕ} : measurable_set (antitoneseq f g ε i j) :=
 measurable_set.Union (λ k, measurable_set.Union_Prop $ λ hk,
   measurable_set_lt measurable_const $ (hf k).dist hg)
 
-private lemma antitoneseq_antitone {i : ℕ} :
+lemma antitoneseq_antitone {i : ℕ} :
   antitone (antitoneseq f g ε i) :=
 λ j k hjk, bUnion_subset_bUnion (λ l hl, ⟨l, le_trans hjk hl, subset.refl _⟩)
+
+lemma inter_antitoneseq {s : set α} (hsm : measurable_set s) (hs : μ s < ∞)
+  (hfg : ∀ᵐ x ∂μ, x ∈ s → tendsto (λ n, f n x) at_top (𝓝 (g x))) (i : ℕ) :
+  μ (s ∩ ⋂ j, antitoneseq f g ε i j) = 0 :=
+begin
+  simp_rw [metric.tendsto_at_top, ae_iff] at hfg,
+  rw [← nonpos_iff_eq_zero, ← hfg],
+  refine measure_mono (λ x, _),
+  simp only [mem_inter_eq, mem_Inter, ge_iff_le, mem_antitoneseq_iff],
+  push_neg,
+  rintro ⟨hmem, hx⟩,
+  refine ⟨hmem, 1 / (i + 1 : ℝ), nat.one_div_pos_of_nat, λ N, _⟩,
+  obtain ⟨n, hn₁, hn₂⟩ := hx N,
+  exact ⟨n, hn₁, hn₂.le⟩
+end
 
 theorem egorov {f : ℕ → α → β} {g : α → β} {s : set α} (hsm : measurable_set s) (hs : μ s < ∞)
   (hfg : ∀ᵐ x ∂μ, x ∈ s → tendsto (λ n, f n x) at_top (𝓝 (g x))) (ε : ℝ≥0∞) :

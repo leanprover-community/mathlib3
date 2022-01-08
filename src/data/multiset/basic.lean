@@ -1746,8 +1746,8 @@ by { simp_rw [←filter_eq', eq_comm], congr }
 
 end
 
-lemma card_filter_eq_count (s : multiset α) (p : α → Prop) [decidable_pred p] :
-  (s.filter p).card = (s.map p).count true :=
+@[simp] lemma map_count_true_eq_filter_card (s : multiset α) (p : α → Prop) [decidable_pred p] :
+  (s.map p).count true = (s.filter p).card :=
 begin
   apply s.induction_on; clear s,
   { simp only [filter_zero, card_zero, count_zero, map_zero], },

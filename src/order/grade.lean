@@ -12,7 +12,8 @@ import order.atoms
 
 This file defines graded orders, also known as ranked orders.
 
-A graded order is an order in which every element has some finite "height", that
+A graded order is an order with a bottom element in which every element has some finite "height",
+that corresponds to how many elements you need to get down by to reach `⊥`.
 
 ## Main declarations
 

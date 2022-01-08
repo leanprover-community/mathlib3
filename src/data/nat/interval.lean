@@ -201,7 +201,7 @@ end
 
 
 -- what is the correct generality? It also works for `ℤ`
-lemma finset_Ico_image_mod (n a : ℕ) :
+lemma image_Ico_mod (n a : ℕ) :
   (Ico n (n+a)).image (% a) = range a :=
 begin
   obtain (rfl|ha) : a = 0 ∨ a ≠ 0 := eq_or_ne a 0,

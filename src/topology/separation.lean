@@ -1487,21 +1487,18 @@ end
 
 end locally_compact
 
-section connected_component_setoid
-local attribute [instance] connected_component_setoid
-
 /-- `connected_components α` is Hausdorff when `α` is Hausdorff and compact -/
 instance connected_components.t2 [t2_space α] [compact_space α] :
   t2_space (connected_components α) :=
 begin
   -- Proof follows that of: https://stacks.math.columbia.edu/tag/0900
   -- Fix 2 distinct connected components, with points a and b
-  refine ⟨λ x y, quotient.induction_on x (quotient.induction_on y (λ a b ne, _))⟩,
-  rw connected_component_nrel_iff at ne,
+  refine ⟨connected_components.surjective_coe.forall₂.2 $ λ a b ne, _⟩,
+  rw connected_components.coe_ne_coe at ne,
   have h := connected_component_disjoint ne,
-  -- write ⟦b⟧ as the intersection of all clopen subsets containing it
+  -- write ↑b as the intersection of all clopen subsets containing it
   rw [connected_component_eq_Inter_clopen, disjoint_iff_inter_eq_empty, inter_comm] at h,
-  -- Now we show that this can be reduced to some clopen containing ⟦b⟧ being disjoint to ⟦a⟧
+  -- Now we show that this can be reduced to some clopen containing `↑b` being disjoint to `↑a`
   cases is_closed_connected_component.is_compact.elim_finite_subfamily_closed _ _ h
     with fin_a ha,
   swap, { exact λ Z, Z.2.1.2 },

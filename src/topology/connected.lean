@@ -1119,15 +1119,14 @@ instance [inhabited α] : inhabited (connected_components α) := ⟨↑(default 
 instance : topological_space (connected_components α) :=
 quotient.topological_space
 
-lemma surjective_coe : surjective (coe : α → connected_components α) :=
-surjective_quot_mk _
-
-lemma quotient_map_coe : quotient_map (coe : α → connected_components α) :=
-quotient_map_quot_mk
+lemma surjective_coe : surjective (coe : α → connected_components α) := surjective_quot_mk _
+lemma quotient_map_coe : quotient_map (coe : α → connected_components α) := quotient_map_quot_mk
 
 @[continuity]
-lemma continuous_coe : continuous (coe : α → connected_components α) :=
-quotient_map_coe.continuous
+lemma continuous_coe : continuous (coe : α → connected_components α) := quotient_map_coe.continuous
+
+@[simp] lemma range_coe : range (coe : α → connected_components α)= univ :=
+surjective_coe.range_eq
 
 end connected_components
 
@@ -1168,14 +1167,14 @@ connected_components_lift_unique' $ hg.trans h.connected_components_lift_comp_co
 /-- The preimage of a singleton in `connected_components` is the connected component
 of an element in the equivalence class. -/
 lemma connected_components_preimage_singleton {x : α} :
-  connected_component x = coe ⁻¹' ({x} : set (connected_components α)) :=
+  coe ⁻¹' ({x} : set (connected_components α)) = connected_component x :=
 by { ext y, simp [connected_components.coe_eq_coe'] }
 
 /-- The preimage of the image of a set under the quotient map to `connected_components α`
 is the union of the connected components of the elements in it. -/
 lemma connected_components_preimage_image (U : set α) :
   coe ⁻¹' (coe '' U : set (connected_components α)) = ⋃ x ∈ U, connected_component x :=
-by simp only [connected_components_preimage_singleton, ← preimage_bUnion, image_eq_Union]
+by simp only [connected_components_preimage_singleton, preimage_bUnion, image_eq_Union]
 
 instance connected_components.totally_disconnected_space :
   totally_disconnected_space (connected_components α) :=
@@ -1183,10 +1182,10 @@ begin
   rw totally_disconnected_space_iff_connected_component_singleton,
   refine connected_components.surjective_coe.forall.2 (λ x, _),
   rw [← connected_components.quotient_map_coe.image_connected_component,
-    connected_components_preimage_singleton,
+    ← connected_components_preimage_singleton,
     image_preimage_eq _ connected_components.surjective_coe],
   refine connected_components.surjective_coe.forall.2 (λ y, _),
-  rw ← connected_components_preimage_singleton,
+  rw connected_components_preimage_singleton,
   exact is_connected_connected_component
 end
 

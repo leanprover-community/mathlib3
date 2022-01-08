@@ -260,8 +260,6 @@ end vec2_and_vec3
 
 section vec2_and_vec3_dot
 
-localized "infix  ` ⬝ᵥ ` : 67 := matrix.dot_product" in matrix
-
 variable [semiring α]
 
 lemma vec2_dot_product' {a₀ a₁ b₀ b₁ : α} :

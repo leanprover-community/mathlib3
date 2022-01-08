@@ -199,7 +199,7 @@ begin
   intro ha,
   rw le_logb_iff_rpow_le one_lt_b,
   tauto,
-  linarith,
+  exact lt_of_lt_of_le zero_lt_one ha,
 end
 
 /- TODO add other limits and continuous API lemmas analogous to those in log.lean -/

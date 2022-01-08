@@ -221,7 +221,7 @@ begin
     by { rw [ennreal.inv_lt_inv, ennreal.coe_nat_lt_coe_nat], linarith },
   refine ⟨(↑(2 * i + 1 + r))⁻¹ - (↑(2 * j + r))⁻¹, by simpa using A, λ x hx y hy, _⟩,
   have : inf_edist y t < (↑(2 * j + r))⁻¹, from not_le.1 (λ hle, hy.2 ⟨hy.1, hle⟩),
-  rcases exists_edist_lt_of_inf_edist_lt this with ⟨z, hzt, hyz⟩,
+  rcases inf_edist_lt_iff.mp this with ⟨z, hzt, hyz⟩,
   have hxz : (↑(2 * i + 1 + r))⁻¹ ≤ edist x z, from le_inf_edist.1 hx.2 _ hzt,
   apply ennreal.le_of_add_le_add_right hyz.ne_top,
   refine le_trans _ (edist_triangle _ _ _),

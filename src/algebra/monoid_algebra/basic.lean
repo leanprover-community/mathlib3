@@ -218,12 +218,15 @@ section derived_instances
 instance [semiring k] [subsingleton k] : unique (monoid_algebra k G) :=
 finsupp.unique_of_right
 
-instance [ring k] : add_group (monoid_algebra k G) :=
-finsupp.add_group
+instance [ring k] : add_comm_group (monoid_algebra k G) :=
+finsupp.add_comm_group
+
+instance [ring k] [has_mul G] : non_unital_non_assoc_ring (monoid_algebra k G) :=
+{ .. monoid_algebra.add_comm_group,
+  .. monoid_algebra.non_unital_non_assoc_semiring }
 
 instance [ring k] [monoid G] : ring (monoid_algebra k G) :=
-{ neg := has_neg.neg,
-  add_left_neg := add_left_neg,
+{ .. monoid_algebra.non_unital_non_assoc_ring,
   .. monoid_algebra.semiring }
 
 instance [comm_ring k] [comm_monoid G] : comm_ring (monoid_algebra k G) :=
@@ -423,7 +426,7 @@ end misc_theorems
 /-! #### Non-unital, non-associative algebra structure -/
 section non_unital_non_assoc_algebra
 
-variables {R : Type*} (k) [semiring R] [semiring k] [distrib_mul_action R k] [has_mul G]
+variables {R : Type*} (k) [monoid R] [semiring k] [distrib_mul_action R k] [has_mul G]
 
 instance is_scalar_tower_self [is_scalar_tower R k k] :
   is_scalar_tower R (monoid_algebra k G) (monoid_algebra k G) :=
@@ -953,14 +956,15 @@ section derived_instances
 instance [semiring k] [subsingleton k] : unique (add_monoid_algebra k G) :=
 finsupp.unique_of_right
 
-instance [ring k] : add_group (add_monoid_algebra k G) :=
-finsupp.add_group
+instance [ring k] : add_comm_group (add_monoid_algebra k G) :=
+finsupp.add_comm_group
+
+instance [ring k] [has_add G] : non_unital_non_assoc_ring (add_monoid_algebra k G) :=
+{ .. add_monoid_algebra.add_comm_group,
+  .. add_monoid_algebra.non_unital_non_assoc_semiring }
 
 instance [ring k] [add_monoid G] : ring (add_monoid_algebra k G) :=
-{ neg := has_neg.neg,
-  add_left_neg := add_left_neg,
-  sub := has_sub.sub,
-  sub_eq_add_neg := finsupp.add_group.sub_eq_add_neg,
+{ .. add_monoid_algebra.non_unital_non_assoc_ring,
   .. add_monoid_algebra.semiring }
 
 instance [comm_ring k] [add_comm_monoid G] : comm_ring (add_monoid_algebra k G) :=
@@ -1193,7 +1197,7 @@ variables {k G}
 
 section non_unital_non_assoc_algebra
 
-variables {R : Type*} (k) [semiring R] [semiring k] [distrib_mul_action R k] [has_add G]
+variables {R : Type*} (k) [monoid R] [semiring k] [distrib_mul_action R k] [has_add G]
 
 instance is_scalar_tower_self [is_scalar_tower R k k] :
   is_scalar_tower R (add_monoid_algebra k G) (add_monoid_algebra k G) :=

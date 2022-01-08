@@ -19,6 +19,13 @@ trivial `simp` lemmas, and define the following operations on `monoid_hom`s:
 * `f.coprod g : M × N →* P`: sends `(x, y)` to `f x * g y`;
 * `f.prod_map g : M × N → M' × N'`: `prod.map f g` as a `monoid_hom`,
   sends `(x, y)` to `(f x, g y)`.
+
+## Main declarations
+
+* `mul_mul_hom`/`mul_monoid_hom`/`mul_monoid_with_zero_hom`: Multiplication bundled as a
+  multiplicative/monoid/monoid with zero homomorphism.
+* `div_monoid_hom`/`div_monoid_with_zero_hom`: Division bundled as a monoid/monoid with zero
+  homomorphism.
 -/
 
 variables {A : Type*} {B : Type*} {G : Type*} {H : Type*} {M : Type*} {N : Type*} {P : Type*}
@@ -348,3 +355,43 @@ def embed_product (α : Type*) [monoid α] : αˣ →* α × αᵐᵒᵖ :=
   map_mul' := λ x y, by simp only [mul_inv_rev, op_mul, units.coe_mul, prod.mk_mul_mk] }
 
 end units
+
+/-! ### Multiplication and division as homomorphisms -/
+
+section bundled_mul_div
+variables {α : Type*}
+
+/-- Multiplication as a multiplicative homomorphism. -/
+@[to_additive "Addition as an additive homomorphism.", simps]
+def mul_mul_hom [comm_semigroup α] : mul_hom (α × α) α :=
+{ to_fun := λ a, a.1 * a.2,
+  map_mul' := λ a b, mul_mul_mul_comm _ _ _ _ }
+
+/-- Multiplication as a monoid homomorphism. -/
+@[to_additive "Addition as an additive monoid homomorphism.", simps]
+def mul_monoid_hom [comm_monoid α] : α × α →* α :=
+{ map_one' := mul_one _,
+  .. mul_mul_hom }
+
+/-- Multiplication as a multiplicative homomorphism with zero. -/
+@[simps]
+def mul_monoid_with_zero_hom [comm_monoid_with_zero α] : monoid_with_zero_hom (α × α) α :=
+{ map_zero' := mul_zero _,
+  .. mul_monoid_hom }
+
+/-- Division as a monoid homomorphism. -/
+@[to_additive "Subtraction as an additive monoid homomorphism.", simps]
+def div_monoid_hom [comm_group α] : α × α →* α :=
+{ to_fun := λ a, a.1 / a.2,
+  map_one' := div_one' _,
+  map_mul' := λ a b, mul_div_comm' _ _ _ _ }
+
+/-- Division as a multiplicative homomorphism with zero. -/
+@[simps]
+def div_monoid_with_zero_hom [comm_group_with_zero α] : monoid_with_zero_hom (α × α) α :=
+{ to_fun := λ a, a.1 / a.2,
+  map_zero' := zero_div _,
+  map_one' := div_one _,
+  map_mul' := λ a b, (div_mul_div _ _ _ _).symm }
+
+end bundled_mul_div

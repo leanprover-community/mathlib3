@@ -711,7 +711,11 @@ begin
   { simp only [Bx, zero_add] }
 end
 
-lemma ae_tendsto_measure_inter_of_measurable_set {s : set α} (hs : measurable_set s) :
+/-- Given a measurable set `s`, then `μ (s ∩ a) / μ a` converges when `a` shrinks to a typical
+point `x` along a Vitali family. The limit is `1` for `x ∈ s` and `0` for `x ∉ s`. This shows that
+almost every point of `s` is a Lebesgue density point for `s`. A version for non-measurable sets
+holds, but it only gives the first conclusion, see `ae_tendsto_measure_inter_div`. -/
+lemma ae_tendsto_measure_inter_div_of_measurable_set {s : set α} (hs : measurable_set s) :
   ∀ᵐ x ∂μ, tendsto (λ a, μ (s ∩ a) / μ a) (v.filter_at x) (𝓝 (s.indicator 1 x)) :=
 begin
   haveI : is_locally_finite_measure (μ.restrict s) :=
@@ -721,15 +725,18 @@ begin
   simpa only [h'x, restrict_apply' hs, inter_comm] using hx,
 end
 
-lemma ae_tendsto_measure_inter (s : set α) :
+/-- Given an arbitrary set `s`, then `μ (s ∩ a) / μ a` converges to `1` when `a` shrinks to a
+typical point of `s` along a Vitali family. This shows that almost every point of `s` is a
+Lebesgue density point for `s`. A stronger version for measurable sets is given
+in `ae_tendsto_measure_inter_div_of_measurable_set`. -/
+lemma ae_tendsto_measure_inter_div (s : set α) :
   ∀ᵐ x ∂(μ.restrict s), tendsto (λ a, μ (s ∩ a) / μ a) (v.filter_at x) (𝓝 1) :=
 begin
-  apply null_of_locally_null,
   let t := to_measurable μ s,
   have A : ∀ᵐ x ∂(μ.restrict s),
     tendsto (λ a, μ (t ∩ a) / μ a) (v.filter_at x) (𝓝 (t.indicator 1 x)),
   { apply ae_mono restrict_le_self,
-    apply ae_tendsto_measure_inter_of_measurable_set,
+    apply ae_tendsto_measure_inter_div_of_measurable_set,
     exact measurable_set_to_measurable _ _ },
   have B : ∀ᵐ x ∂(μ.restrict s), t.indicator 1 x = (1 : ℝ≥0∞),
   { refine ae_restrict_of_ae_restrict_of_subset (subset_to_measurable μ s) _,
@@ -743,7 +750,7 @@ begin
   filter_upwards [v.eventually_filter_at_measurable_set x],
   assume a ha,
   congr' 1,
-  apply measure_to_measurable_inter ha,
+  exact measure_to_measurable_inter_of_sigma_finite ha _,
 end
 
 end

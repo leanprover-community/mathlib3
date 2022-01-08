@@ -29,6 +29,12 @@ open finset
 open_locale big_operators
 
 namespace finset
+
+section
+variables {α β : Type*} [preorder α] [preorder β] [locally_finite_order α] [locally_finite_order β]
+  [decidable_rel ((≤) : α → α → Prop)] [decidable_rel ((≤) : β → β → Prop)]
+lemma prod_Icc (a b : α × β) : Icc a b = (Icc a.fst b.fst).product (Icc a.snd b.snd) := rfl
+end
 section pre
 variables {α : Type*} [preorder α] [locally_finite_order α] {a b c : α}
 
@@ -54,25 +60,26 @@ lemma card_Icc_lt_card_Icc_right (hab : a ≤ b) (h : a < c) : (Icc c b).card < 
 @card_Icc_lt_card_Icc_left (order_dual α) _ _ _ _ _ hab h
 
 end pre
-variables {α : Type*} [partial_order α] [locally_finite_order α] [decidable_eq α] {a b : α}
+variables {α : Type*} [partial_order α] [locally_finite_order α] {a b : α}
 
-@[simp] lemma Ioc_insert_left (h : a ≤ b) : insert a (Ioc a b) = Icc a b :=
+@[simp] lemma Ioc_insert_left [decidable_eq α] (h : a ≤ b) : insert a (Ioc a b) = Icc a b :=
 @Ico_insert_right (order_dual α) _ _ _ _ _ h
 local attribute [simp] Ico_insert_right
 
 lemma Icc_eq_cons_Ioc (h : a ≤ b) : Icc a b = (Ioc a b).cons a left_not_mem_Ioc :=
-finset.coe_inj.mp (by simp [h])
+finset.coe_inj.mp (by { classical, simp [h] })
 
 lemma Icc_eq_cons_Ico (h : a ≤ b) : Icc a b = (Ico a b).cons b right_not_mem_Ico :=
-finset.coe_inj.mp (by simp [h])
+finset.coe_inj.mp (by { classical, simp [h] })
 
 section order_top
 variables [order_top α]
 
-@[simp] lemma Ioi_insert (a : α) : insert a (Ioi a) = Ici a := Ioc_insert_left le_top
+@[simp]
+lemma Ioi_insert [decidable_eq α] (a : α) : insert a (Ioi a) = Ici a := Ioc_insert_left le_top
 
-lemma Ici_eq_cons_Ioi (a : α) : Ici a  = (Ioi a).cons a left_not_mem_Ioc :=
-finset.coe_inj.mp (by simp)
+lemma Ici_eq_cons_Ioi (a : α) : Ici a = (Ioi a).cons a left_not_mem_Ioc :=
+finset.coe_inj.mp (by { classical, simp })
 
 end order_top
 
@@ -161,6 +168,7 @@ end coes
 variables {𝕜 α}
 
 instance : has_zero (incidence_algebra 𝕜 α) := ⟨⟨λ _ _, 0, λ _ _ _, rfl⟩⟩
+instance : inhabited (incidence_algebra 𝕜 α) := ⟨0⟩
 
 @[simp] lemma zero_apply (a b : α) : (0 : incidence_algebra 𝕜 α) a b = 0 := rfl
 
@@ -560,9 +568,13 @@ end mu_zeta
 
 section mu_eq_mu'
 variables [ring 𝕜] [partial_order α] [locally_finite_order α]
-  [decidable_eq α] [@decidable_rel α (≤)]
+  [decidable_eq α]
 
-lemma mu_eq_mu' : mu 𝕜 α = mu' 𝕜 α := left_inv_eq_right_inv (mu_mul_zeta 𝕜 α) (zeta_mul_mu' 𝕜 α)
+lemma mu_eq_mu' : mu 𝕜 α = mu' 𝕜 α :=
+begin
+  letI : @decidable_rel α (≤) := classical.dec_rel _,
+  exact left_inv_eq_right_inv (mu_mul_zeta 𝕜 α) (zeta_mul_mu' 𝕜 α)
+end
 
 lemma mu_apply_of_ne' {a b : α} (h : a ≠ b) : mu 𝕜 α a b = -∑ x in Ioc a b, mu 𝕜 α x b :=
 begin
@@ -570,7 +582,7 @@ begin
   exact mu'_apply_of_ne h,
 end
 
-lemma zeta_mul_mu : zeta 𝕜 α * mu 𝕜 α = 1 :=
+lemma zeta_mul_mu [@decidable_rel α (≤)] : zeta 𝕜 α * mu 𝕜 α = 1 :=
 begin
   rw mu_eq_mu',
   exact zeta_mul_mu' 𝕜 α,
@@ -689,8 +701,21 @@ lemma zeta_prod_mk (a₁ a₂ : α) (b₁ b₂ : β) :
 zeta_prod_apply _ _ _
 end decidable_le
 
+variables {α β}
+
+variables [decidable_eq α] [decidable_eq β]
+lemma one_prod_apply (a b : α × β) :
+  (1 : incidence_algebra 𝕜 (α × β)) a b =
+  (1 : incidence_algebra 𝕜 α) a.1 b.1 * (1 : incidence_algebra 𝕜 β) a.2 b.2 :=
+by simp [ite_and, prod.ext_iff]
+
+lemma one_prod_mk (a₁ a₂ : α) (b₁ b₂ : β) :
+  (1 : incidence_algebra 𝕜 (α × β)) (a₁, b₁) (a₂, b₂) =
+    (1 : incidence_algebra 𝕜 α) a₁ a₂ * (1 : incidence_algebra 𝕜 β) b₁ b₂ :=
+one_prod_apply _ _ _
+
 variables (α β)
-variables [locally_finite_order α] [locally_finite_order β] [decidable_eq α] [decidable_eq β]
+variables [locally_finite_order α] [locally_finite_order β]
 
 /-- A description of `mu` in a product of incidence algebras -/
 def mu_prod : incidence_algebra 𝕜 (α × β) :=
@@ -707,18 +732,6 @@ lemma mu_prod_mk (x y : α) (u v : β) : mu_prod 𝕜 α β (x, u) (y, v) = mu �
 lemma mu_prod_apply (a b : α × β) : mu_prod 𝕜 α β a b = mu 𝕜 α a.fst b.fst * mu 𝕜 β a.snd b.snd :=
 rfl
 
-lemma one_prod_apply (a b : α × β) :
-  (1 : incidence_algebra 𝕜 (α × β)) a b =
-  (1 : incidence_algebra 𝕜 α) a.1 b.1 * (1 : incidence_algebra 𝕜 β) a.2 b.2 :=
-by simp [ite_and, prod.ext_iff]
-
-lemma one_prod_mk (a₁ a₂ : α) (b₁ b₂ : β) :
-  (1 : incidence_algebra 𝕜 (α × β)) (a₁, b₁) (a₂, b₂) =
-    (1 : incidence_algebra 𝕜 α) a₁ a₂ * (1 : incidence_algebra 𝕜 β) b₁ b₂ :=
-one_prod_apply _ _ _
-
-variables [decidable_rel ((≤) : α → α → Prop)] [decidable_rel ((≤) : β → β → Prop)]
-lemma prod_Icc (a b : α × β) : Icc a b = (Icc a.fst b.fst).product (Icc a.snd b.snd) := rfl
 
 end preorder
 

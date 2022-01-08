@@ -78,10 +78,8 @@ variables {L : A ⥤ T} {R : B ⥤ T}
 
 -- Satisfying the inhabited linter
 instance comma_morphism.inhabited [inhabited (comma L R)] :
-  inhabited (comma_morphism (default :=
-{ default :=
-  { left := 𝟙 _,
-    right := 𝟙 _ } }
+  inhabited (comma_morphism (default : comma L R) default) :=
+⟨⟨𝟙 _, 𝟙 _⟩⟩
 
 restate_axiom comma_morphism.w'
 attribute [simp, reassoc] comma_morphism.w

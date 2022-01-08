@@ -89,7 +89,7 @@ lemma length_set : ∀ {m : ℕ} {as : list α},
 | (m+1) []      := by simp only [set, nat.zero_max, length, @length_set m]
 | (m+1) (a::as) := by simp only [set, nat.max_succ_succ, length, @length_set m]
 
-@[simp] lemma get_nil {k : ℕ} : get k [] = default :=
+@[simp] lemma get_nil {k : ℕ} : (get k [] : α) = default :=
 by {cases k; refl}
 
 lemma get_eq_default_of_le :
@@ -310,8 +310,7 @@ begin
   rw [add, @nil_pointwise α α α ⟨0⟩ ⟨0⟩],
   apply eq.trans _ (map_id as),
   congr' with x,
-  have : @default ⟨0⟩ = 0 := rfl,
-  rw [this, zero_add], refl
+  rw [zero_add, id]
 end
 
 @[simp] lemma add_nil {α : Type u} [add_monoid α]
@@ -320,8 +319,7 @@ begin
   rw [add, @pointwise_nil α α α ⟨0⟩ ⟨0⟩],
   apply eq.trans _ (map_id as),
   congr' with x,
-  have : @default ⟨0⟩ = 0 := rfl,
-  rw [this, add_zero], refl
+  rw [add_zero, id]
 end
 
 lemma map_add_map {α : Type u} [add_monoid α] (f g : α → α) {as : list α} :
@@ -357,8 +355,7 @@ by {apply get_pointwise, apply sub_zero}
 begin
   rw [sub, nil_pointwise],
   congr' with x,
-  have : @default ⟨0⟩ = 0 := rfl,
-  rw [this, zero_sub]
+  rw [zero_sub]
 end
 
 @[simp] lemma sub_nil {α : Type} [add_group α]
@@ -367,8 +364,7 @@ begin
   rw [sub, pointwise_nil],
   apply eq.trans _ (map_id as),
   congr' with x,
-  have : @default ⟨0⟩ = 0 := rfl,
-  rw [this, sub_zero], refl
+  rw [sub_zero, id]
 end
 
 end func

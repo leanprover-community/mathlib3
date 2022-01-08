@@ -155,7 +155,7 @@ lemma linear_eq_zero_iff_exists_const (f : P1 →ᵃ[k] P2) :
 begin
   refine ⟨λ h, _, λ h, _⟩,
   { inhabit P1,
-    use f (default P1),
+    use f (default1),
     ext,
     rw [coe_const, function.const_apply, ← @vsub_eq_zero_iff_eq V2, ← f.linear_map_vsub, h,
       linear_map.zero_apply], },

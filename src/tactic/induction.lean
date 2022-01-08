@@ -815,7 +815,7 @@ focus1 $ do
   let go : expr → list expr → tactic (list expr) :=
         λ j ks, do
         { J ← infer_type j,
-          k ← mk_local' `index binder_info.default J,
+          k ← mk_local' `index binder_info.default,
           ks ← ks.mmap $ λ k', kreplace k' j k,
           pure $ k :: ks },
   ks ← js.mfoldr go [],

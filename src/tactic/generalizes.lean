@@ -68,7 +68,7 @@ meta def step1 (md : transparency) (unify : bool)
   let go : name × expr → expr × list expr → tactic (expr × list expr) :=
         λ ⟨n, j⟩ ⟨e, ks⟩, do
         { J ← infer_type j,
-          k ← mk_local' n binder_info.default J,
+          k ← mk_local' n binder_info.default,
           e ← kreplace e j k md unify,
           ks ← ks.mmap $ λ k', kreplace k' j k md unify,
           pure (e, k :: ks) },

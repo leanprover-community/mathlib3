@@ -150,7 +150,7 @@ by classical; exact
 (function.update_injective (λ i, classical.choice (inst i)) i').nontrivial
 
 /--
-As a convenience, provide an instance automatically if `(f (default I))` is nontrivial.
+As a convenience, provide an instance automatically if `(f default)` is nontrivial.
 
 If a different index has the non-trivial type, then use `haveI := nontrivial_at that_index`.
 -/

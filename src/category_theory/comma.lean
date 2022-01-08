@@ -62,9 +62,9 @@ structure comma (L : A ⥤ T) (R : B ⥤ T) : Type (max u₁ u₂ v₃) :=
 -- Satisfying the inhabited linter
 instance comma.inhabited [inhabited T] : inhabited (comma (𝟭 T) (𝟭 T)) :=
 { default :=
-  { left := default T,
-    right := default T,
-    hom := 𝟙 (default T) } }
+  { left := default,
+    right := default,
+    hom := 𝟙 default } }
 
 variables {L : A ⥤ T} {R : B ⥤ T}
 

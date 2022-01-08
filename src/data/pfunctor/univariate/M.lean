@@ -33,7 +33,7 @@ protected def cofix_a.default [inhabited F.A] : Π n, cofix_a F n
 | 0 := cofix_a.continue
 | (succ n) := cofix_a.intro default $ λ _, cofix_a.default n
 
-instance [inhabited F.A] {n} : inhabited (cofix_a F n) := ⟨ cofix_a.default F n ⟩
+instance [inhabited F.A] {n} : inhabited (cofix_a F n) := ⟨ cofix_a.default n ⟩
 
 lemma cofix_a_eq_zero : ∀ x y : cofix_a F 0, x = y
 | cofix_a.continue cofix_a.continue := rfl

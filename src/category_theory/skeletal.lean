@@ -66,7 +66,7 @@ its category structure.
 @[derive category]
 def skeleton : Type u₁ := induced_category C quotient.out
 
-instance [inhabited C] : inhabited (skeleton C) := ⟨⟦default C⟧⟩
+instance [inhabited C] : inhabited (skeleton C) := ⟨⟦default⟧⟩
 
 /-- The functor from the skeleton of `C` to `C`. -/
 @[simps, derive [full, faithful]]

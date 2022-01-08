@@ -256,11 +256,11 @@ Since there is an arbitrary choice in this construction, it is not an instance b
 def sum.dist : X ⊕ Y → X ⊕ Y → ℝ
 | (inl a) (inl a') := dist a a'
 | (inr b) (inr b') := dist b b'
-| (inl a) (inr b)  := dist a (default X) + 1 + dist (default Y) b
-| (inr b) (inl a)  := dist b (default Y) + 1 + dist (default X) a
+| (inl a) (inr b)  := dist a default + 1 + dist default b
+| (inr b) (inl a)  := dist b default + 1 + dist default a
 
 lemma sum.dist_eq_glue_dist {p q : X ⊕ Y} :
-  sum.dist p q = glue_dist (λ_ : unit, default X) (λ_ : unit, default Y) 1 p q :=
+  sum.dist p q = glue_dist (λ_ : unit, default) (λ_ : unit, default) 1 p q :=
 by cases p; cases q; refl <|> simp [sum.dist, glue_dist, dist_comm, add_comm, add_left_comm]
 
 private lemma sum.dist_comm (x y : X ⊕ Y) : sum.dist x y = sum.dist y x :=

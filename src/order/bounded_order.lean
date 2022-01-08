@@ -1245,7 +1245,8 @@ variables [partial_order α] [bounded_order α] [nontrivial α]
 lemma bot_ne_top : (⊥ : α) ≠ ⊤ :=
 λ H, not_nontrivial_iff_subsingleton.mpr (subsingleton_of_bot_eq_top H) ‹_›
 
-lemma top_ne_bot : (⊤ : α) ≠ ⊥ := ne.symm bot_ne_top
+lemma top_ne_bot : (⊤ : α) ≠ ⊥ := bot_ne_top.symm
+lemma bot_lt_top : (⊥ : α) < ⊤ := lt_top_iff_ne_top.2 bot_ne_top
 
 end nontrivial
 

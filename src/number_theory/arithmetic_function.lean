@@ -906,10 +906,10 @@ end special_functions
 def is_prime_power (n : ℕ) : Prop :=
   ∃ (p k : ℕ), p.prime ∧ 0 < k ∧ p ^ k = n
 
-lemma is_prime_power_def {n : ℕ} :
+lemma is_prime_power_def (n : ℕ) :
   is_prime_power n ↔ ∃ (p k : ℕ), p.prime ∧ 0 < k ∧ p ^ k = n := iff.rfl
 
-lemma is_prime_power_iff {n : ℕ} :
+lemma is_prime_power_iff_bounded (n : ℕ) :
   is_prime_power n ↔ ∃ (p : ℕ), p ≤ n ∧ ∃ (k : ℕ), k ≤ n ∧ p.prime ∧ 0 < k ∧ p ^ k = n :=
 begin
   refine iff.symm ⟨λ ⟨p, _, k, _, hp, hk, hn⟩, ⟨p, k, hp, hk, hn⟩, _⟩,
@@ -919,7 +919,13 @@ begin
 end
 
 instance {n : ℕ} : decidable (is_prime_power n) :=
-decidable_of_iff' _ is_prime_power_iff
+decidable_of_iff' _ (is_prime_power_iff_bounded n)
+
+lemma is_prime_power_iff_pow_succ (n : ℕ) :
+  is_prime_power n ↔ ∃ (p k : ℕ), p.prime ∧ p ^ (k + 1) = n :=
+(is_prime_power_def _).trans
+⟨λ ⟨p, k, hp, hk, hn⟩, ⟨_, _, hp, by rwa [nat.sub_add_cancel hk]⟩,
+  λ ⟨p, k, hp, hn⟩, ⟨_, _, hp, succ_pos', hn⟩⟩
 
 lemma not_is_prime_power_zero : ¬ is_prime_power 0 := dec_trivial
 lemma not_is_prime_power_one : ¬ is_prime_power 1 := dec_trivial
@@ -946,50 +952,34 @@ localized "notation `Λ` := nat.arithmetic_function.von_mangoldt" in arithmetic_
 lemma von_mangoldt_apply {n : ℕ} :
   Λ n = if is_prime_power n then real.log (min_fac n) else 0 := rfl
 
-lemma pow_factors_count {n p : ℕ} (hp : p.prime) :
-  p ^ n.factors.count p ∣ n :=
+lemma divisors_filter_prime_power' {n : ℕ} :
+  n.divisors.filter is_prime_power =
+    n.factors.to_finset.bUnion (λ p, ((range (n.factors.count p)).image (λ k, p ^ (k + 1)))) :=
 begin
-  apply dvd_of_factors_subperm,
-  apply pow_ne_zero _ hp.ne_zero,
-  rw [nat.prime.factors_pow hp, list.subperm_ext_iff],
-  intros q hq,
-  cases list.eq_of_mem_repeat hq,
-  simp
-end
-
-lemma factors_sublist_right {n k : ℕ} (h : k ≠ 0) : n.factors <+ (n * k).factors :=
-begin
-  cases n,
-  { rw zero_mul },
-  apply list.sublist_of_subperm_of_sorted _ (factors_sorted _) (factors_sorted _),
-  rw (perm_factors_mul_of_pos nat.succ_pos' (nat.pos_of_ne_zero h)).subperm_left,
-  exact (list.sublist_append_left _ _).subperm,
-end
-
-lemma factors_sublist_of_dvd {n k : ℕ} (h : n ∣ k) (h' : k ≠ 0) : n.factors <+ k.factors :=
-begin
-  obtain ⟨a, rfl⟩ := h,
-  exact factors_sublist_right (right_ne_zero_of_mul h'),
+  ext pk,
+  simp only [mem_bUnion, mem_image, exists_prop, mem_filter, mem_range, list.mem_to_finset,
+    mem_divisors, and_assoc, is_prime_power_iff_pow_succ],
+  split,
+  { rintro ⟨hdvd, hn, p, k, hp, rfl⟩,
+    refine ⟨_, _, _, _, rfl⟩,
+    { apply (mem_factors_iff_dvd (nat.pos_of_ne_zero hn) hp).2 (dvd_of_pow_dvd le_add_self hdvd) },
+    apply lt_of_lt_of_le _ (list.sublist.count_le (factors_sublist_of_dvd hdvd hn) p),
+    rw [hp.factors_pow, list.count_repeat, nat.lt_succ_iff] },
+  rintro ⟨p, hp, k, hk, rfl⟩,
+  rcases n.eq_zero_or_pos with rfl | hn,
+  { simpa using hp },
+  refine ⟨_, hn.ne', _, _, prime_of_mem_factors hp, rfl⟩,
+  exact (pow_dvd_pow _ hk).trans (pow_factors_count_dvd _ _),
 end
 
 lemma divisors_filter_prime_power {n : ℕ} :
   n.divisors.filter is_prime_power =
-    n.factors.to_finset.bUnion (λ p, ((Ioc 0 (n.factors.count p)).image (λ k, p ^ k))) :=
+    n.factors.to_finset.bUnion (λ p, ((Icc 1 (n.factors.count p)).image (λ k, p ^ k))) :=
 begin
-  ext pk,
-  simp only [mem_bUnion, mem_image, exists_prop, mem_filter, mem_Ioc, list.mem_to_finset,
-    mem_divisors, and_assoc],
-  split,
-  { rintro ⟨hpk, hn, p, k, hp, hk, rfl⟩,
-    refine ⟨p, _, k, hk, _, rfl⟩,
-    apply (mem_factors_iff_dvd (nat.pos_of_ne_zero hn) hp).2 (dvd_of_pow_dvd hk hpk),
-    apply le_trans _ (list.sublist.count_le (factors_sublist_of_dvd hpk hn) p),
-    rw [hp.factors_pow, list.count_repeat] },
-  rintro ⟨p, hp, k, hk', hk, rfl⟩,
-  rcases n.eq_zero_or_pos with rfl | hn,
-  { simpa using hp },
-  refine ⟨_, hn.ne', p, k, prime_of_mem_factors hp, hk', rfl⟩,
-  exact (pow_dvd_pow p hk).trans (pow_factors_count (prime_of_mem_factors hp)),
+  rw divisors_filter_prime_power',
+  congr,
+  ext p,
+  rw [←Ico_succ_right, ←image_add_right_Ico 0 _ 1, image_image, range_eq_Ico],
 end
 
 lemma multiset.sum_eq {α β : Type*} [decidable_eq α] [add_comm_monoid β]
@@ -1031,33 +1021,33 @@ begin
   rcases nat.eq_zero_or_pos n with rfl | hn,
   { simp },
   simp only [von_mangoldt_apply],
-  rw [←sum_filter, divisors_filter_prime_power, sum_bUnion],
+  rw [←sum_filter, divisors_filter_prime_power', sum_bUnion],
   { have :
       ∑ p in n.factors.to_finset,
-        ∑ (i : ℕ) in ((Ioc 0 (n.factors.count p)).image (λ k, p ^ k)), real.log i.min_fac =
+        ∑ (i : ℕ) in ((range (n.factors.count p)).image (λ k, p ^ (k + 1))), real.log i.min_fac =
       ∑ p in n.factors.to_finset,
-        ∑ (i : ℕ) in ((Ioc 0 (n.factors.count p)).image (λ k, p ^ k)), real.log p,
+        ∑ (i : ℕ) in ((range (n.factors.count p)).image (λ k, p ^ (k + 1))), real.log p,
     { rw sum_congr rfl (λ p hp, _),
       rw sum_congr rfl (λ pk hpk, _),
-      simp only [mem_image, exists_prop, mem_filter, mem_Ioc] at hpk,
-      obtain ⟨k, ⟨hk, -⟩, rfl⟩ := hpk,
-      rw prime.pow_min_fac (prime_of_mem_factors (list.mem_to_finset.1 hp)) hk.ne' },
+      simp only [mem_image, exists_prop, mem_filter, mem_range] at hpk,
+      obtain ⟨k, hk, rfl⟩ := hpk,
+      rw prime.pow_min_fac (prime_of_mem_factors (list.mem_to_finset.1 hp)) (nat.succ_ne_zero _) },
     rw this,
     simp_rw sum_const,
     have :
       ∑ p in n.factors.to_finset,
-        ((Ioc 0 (n.factors.count p)).image (λ k, p ^ k)).card • real.log p =
+        ((range (n.factors.count p)).image (λ k, p ^ (k + 1))).card • real.log p =
       ∑ p in n.factors.to_finset, n.factors.count p • real.log p,
     { rw [sum_congr rfl (λ p hp, _)],
-      rw [card_image_of_injective, card_Ioc, tsub_zero],
+      rw [card_image_of_injective, card_range],
+      apply function.injective.comp _ succ_injective,
       apply pow_right_injective (prime_of_mem_factors (list.mem_to_finset.1 hp)).two_le },
-    rw this,
-    rw thing },
+    rw [this, thing] },
   simp only [set.pairwise_disjoint, set.pairwise, mem_coe, list.mem_to_finset, ne.def,
     function.on_fun, mem_factors hn, and_imp, disjoint_left, mem_filter, mem_image, and_imp,
-    exists_prop, forall_exists_index, mem_Ioc, not_and, not_exists],
-  rintro p₁ hp₁ - p₂ hp₂ - hp - k₁ hk₁ - h k₂ - - rfl,
-  exact hp (unique_prime_power hp₁ hp₂ hk₁ h),
+    exists_prop, forall_exists_index, mem_range, not_and, not_exists],
+  rintro p₁ hp₁ - p₂ hp₂ - hp _ k₁ - h k₂ - rfl,
+  exact hp (unique_prime_power hp₁ hp₂ (nat.succ_pos _) h),
 end
 
 lemma von_mangoldt_mul_zeta {n : ℕ} :

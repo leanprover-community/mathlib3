@@ -16,7 +16,7 @@ operation). Then `A` is said to be a (commutative) Jordan algebra if the multipl
 commutative and satisfies a weak associativity law known as the Jordan Identity: for all `a` and `b`
 in `A`,
 ```
-(a * b)* a^2 = a * (b * a^2)
+(a * b) * a^2 = a * (b * a^2)
 ```
 i.e. the operators of multiplication by `a` and `a^2` commute. Every associative algebra can be
 equipped with a second  multiplication making it into a commutative Jordan algebra.

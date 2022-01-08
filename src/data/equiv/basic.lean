@@ -195,7 +195,7 @@ e.nonempty_congr.mpr ‹_›
 
 /-- If `α ≃ β` and `β` is inhabited, then so is `α`. -/
 protected def inhabited [inhabited β] (e : α ≃ β) : inhabited α :=
-⟨e.symm (default _)⟩
+⟨e.symm default⟩
 
 /-- If `α ≃ β` and `β` is a singleton type, then so is `α`. -/
 protected def unique [unique β] (e : α ≃ β) : unique α :=

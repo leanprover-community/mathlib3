@@ -97,7 +97,7 @@ variables [preorder α] [preorder β] [preorder γ]
 instance : has_coe_to_fun (chain α) (λ _, ℕ → α) := order_hom.has_coe_to_fun
 
 instance [inhabited α] : inhabited (chain α) :=
-⟨ ⟨ λ _, default _, λ _ _ _, le_refl _ ⟩ ⟩
+⟨ ⟨ λ _, default, λ _ _ _, le_refl _ ⟩ ⟩
 
 instance : has_mem α (chain α) :=
 ⟨λa (c : ℕ →o α), ∃ i, a = c i⟩

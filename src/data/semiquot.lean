@@ -181,7 +181,7 @@ theorem is_pure_of_subsingleton [subsingleton α] (q : semiquot α) : is_pure q
 
 /-- `univ : semiquot α` represents an unspecified element of `univ : set α`. -/
 def univ [inhabited α] : semiquot α :=
-mk $ set.mem_univ (default _)
+mk $ set.mem_univ default
 
 instance [inhabited α] : inhabited (semiquot α) := ⟨univ⟩
 

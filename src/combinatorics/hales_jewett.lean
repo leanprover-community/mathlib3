@@ -101,7 +101,7 @@ structure almost_mono {α ι κ : Type*} (C : (ι → option α) → κ) :=
 
 instance {α ι κ : Type*} [nonempty ι] [inhabited κ] :
   inhabited (almost_mono (λ v : ι → option α, default κ)) :=
-⟨{ line      := default _,
+⟨{ line      := default,
    color     := default κ,
    has_color := λ _, rfl }⟩
 
@@ -183,7 +183,7 @@ fintype.induction_empty_option
 begin -- This deals with the degenerate case where `α` is empty.
   introsI κ _,
   by_cases h : nonempty κ,
-  { resetI, exact ⟨unit, infer_instance, λ C, ⟨default _, classical.arbitrary _, pempty.rec _⟩⟩, },
+  { resetI, exact ⟨unit, infer_instance, λ C, ⟨default, classical.arbitrary _, pempty.rec _⟩⟩, },
   { exact ⟨empty, infer_instance, λ C, (h ⟨C (empty.rec _)⟩).elim⟩, }
 end
 begin -- Now we have to show that the theorem holds for `option α` if it holds for `α`.
@@ -209,7 +209,7 @@ begin -- Now we have to show that the theorem holds for `option α` if it holds 
   intro r,
   induction r with r ihr,
 -- The base case `r = 0` is trivial as the empty collection is color-focused.
-  { exact ⟨empty, infer_instance, λ C, or.inl ⟨default _, multiset.card_zero⟩⟩, },
+  { exact ⟨empty, infer_instance, λ C, or.inl ⟨default, multiset.card_zero⟩⟩, },
 -- Supposing the key claim holds for `r`, we need to show it for `r+1`. First pick a high enough
 -- dimension `ι` for `r`.
   obtain ⟨ι, _inst, hι⟩ := ihr,

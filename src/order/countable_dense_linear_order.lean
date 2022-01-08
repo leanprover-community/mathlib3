@@ -186,7 +186,7 @@ variables (α β)
 def embedding_from_countable_to_dense
   [encodable α] [densely_ordered β] [no_bot_order β] [no_top_order β] [nonempty β] :
   α ↪o β :=
-let our_ideal : ideal (partial_iso α β) := ideal_of_cofinals (default _) (defined_at_left β) in
+let our_ideal : ideal (partial_iso α β) := ideal_of_cofinals default (defined_at_left β) in
 let F := λ a, fun_of_ideal a our_ideal (cofinal_meets_ideal_of_cofinals _ _ a) in
 order_embedding.of_strict_mono (λ a, (F a).val)
 begin
@@ -204,7 +204,7 @@ def iso_of_countable_dense
   α ≃o β :=
 let to_cofinal : α ⊕ β → cofinal (partial_iso α β) :=
   λ p, sum.rec_on p (defined_at_left β) (defined_at_right α) in
-let our_ideal : ideal (partial_iso α β) := ideal_of_cofinals (default _) to_cofinal in
+let our_ideal : ideal (partial_iso α β) := ideal_of_cofinals default to_cofinal in
 let F := λ a, fun_of_ideal a our_ideal (cofinal_meets_ideal_of_cofinals _ to_cofinal (sum.inl a)) in
 let G := λ b, inv_of_ideal b our_ideal (cofinal_meets_ideal_of_cofinals _ to_cofinal (sum.inr b)) in
 order_iso.of_cmp_eq_cmp (λ a, (F a).val) (λ b, (G b).val)

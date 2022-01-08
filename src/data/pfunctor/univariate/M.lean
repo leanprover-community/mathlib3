@@ -31,7 +31,7 @@ inductive cofix_a : ℕ → Type u
 /-- default inhabitant of `cofix_a` -/
 protected def cofix_a.default [inhabited F.A] : Π n, cofix_a F n
 | 0 := cofix_a.continue
-| (succ n) := cofix_a.intro (default _) $ λ _, cofix_a.default n
+| (succ n) := cofix_a.intro default $ λ _, cofix_a.default n
 
 instance [inhabited F.A] {n} : inhabited (cofix_a F n) := ⟨ cofix_a.default F n ⟩
 
@@ -170,7 +170,7 @@ lemma M.default_consistent [inhabited F.A] :
 | (succ n) := agree.intro _ _ $ λ _, M.default_consistent n
 
 instance M.inhabited [inhabited F.A] : inhabited (M F) :=
-⟨ { approx := λ n, default _,
+⟨ { approx := λ n, default,
     consistent := M.default_consistent _ } ⟩
 
 instance M_intl.inhabited [inhabited F.A] : inhabited (M_intl F) :=
@@ -217,7 +217,7 @@ def children (x : M F) (i : F.B (head x)) : M F :=
 def ichildren [inhabited (M F)] [decidable_eq F.A] (i : F.Idx) (x : M F) : M F :=
 if H' : i.1 = head x
   then children x (cast (congr_arg _ $ by simp only [head,H']; refl) i.2)
-  else default _
+  else default
 
 lemma head_succ (n m : ℕ) (x : M F) :
   head' (x.approx (succ n)) = head' (x.approx (succ m)) :=

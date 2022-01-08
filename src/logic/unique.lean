@@ -147,7 +147,7 @@ variable {f : α → β}
 /-- If the domain of a surjective function is a singleton,
 then the codomain is a singleton as well. -/
 protected def surjective.unique (hf : surjective f) [unique α] : unique β :=
-{ default := f (default _),
+{ default := f default,
   uniq := λ b, let ⟨a, ha⟩ := hf b in ha ▸ congr_arg f (unique.eq_default _) }
 
 /-- If the codomain of an injective function is a subsingleton, then the domain

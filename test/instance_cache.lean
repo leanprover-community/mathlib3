@@ -53,7 +53,7 @@ example (α β) (h : α = β) [inhabited α] : β :=
 begin
   substI h,
   assert_frozen_instances,
-  exact default _
+  exact default
 end
 
 example (α β) (h : α = β) [inhabited α] : β :=

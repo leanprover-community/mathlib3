@@ -50,7 +50,7 @@ def arrow (α β : typevec n) := Π i : fin2 n, α i → β i
 localized "infixl ` ⟹ `:40 := typevec.arrow" in mvfunctor
 
 instance arrow.inhabited (α β : typevec n) [Π i, inhabited (β i)] : inhabited (α ⟹ β) :=
-⟨ λ _ _, default _ ⟩
+⟨ λ _ _, default ⟩
 
 /-- identity of arrow composition -/
 def id {α : typevec n} : α ⟹ α := λ i x, x

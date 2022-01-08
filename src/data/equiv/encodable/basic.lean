@@ -331,7 +331,7 @@ variables {α}
 /-- Lowers an `a : α` into `ulower α`. -/
 def down (a : α) : ulower α := equiv α a
 
-instance [inhabited α] : inhabited (ulower α) := ⟨down (default _)⟩
+instance [inhabited α] : inhabited (ulower α) := ⟨down default⟩
 
 /-- Lifts an `a : ulower α` into `α`. -/
 def up (a : ulower α) : α := (equiv α).symm a

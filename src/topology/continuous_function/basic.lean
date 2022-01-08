@@ -58,7 +58,7 @@ lemma ext_iff : f = g ↔ ∀ x, f x = g x :=
 ⟨continuous_map.congr_fun, ext⟩
 
 instance [inhabited β] : inhabited C(α, β) :=
-⟨{ to_fun := λ _, default _, }⟩
+⟨{ to_fun := λ _, default, }⟩
 
 lemma coe_inj ⦃f g : C(α, β)⦄ (h : (f : α → β) = g) : f = g :=
 by cases f; cases g; cases h; refl

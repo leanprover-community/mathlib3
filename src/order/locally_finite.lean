@@ -313,9 +313,6 @@ def Iio (b : α) : multiset α := (finset.Iio b).val
 end order_bot
 end multiset
 
-@[simp] lemma finset.Ico_val [preorder α] [locally_finite_order α] (a b : α) :
-  (finset.Ico a b).val = multiset.Ico a b := rfl
-
 /-! ### Finiteness of `set` intervals -/
 
 namespace set

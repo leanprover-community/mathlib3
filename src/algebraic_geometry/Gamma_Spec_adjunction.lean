@@ -50,11 +50,11 @@ variable (X : LocallyRingedSpace.{u})
 
 /-- The map from the global sections to a stalk. -/
 def Γ_to_stalk (x : X) : Γ.obj (op X) ⟶ X.presheaf.stalk x :=
-  X.presheaf.germ (⟨x,trivial⟩ : (⊤ : opens X))
+X.presheaf.germ (⟨x,trivial⟩ : (⊤ : opens X))
 
 /-- The canonical map from the underlying set to the prime spectrum of `Γ(X)`. -/
 def to_Γ_Spec_fun : X → prime_spectrum (Γ.obj (op X)) :=
-  λ x, comap (X.Γ_to_stalk x) (local_ring.closed_point (X.presheaf.stalk x))
+λ x, comap (X.Γ_to_stalk x) (local_ring.closed_point (X.presheaf.stalk x))
 
 lemma not_mem_prime_iff_unit_in_stalk (r : Γ.obj (op X)) (x : X) :
   r ∉ (X.to_Γ_Spec_fun x).as_ideal ↔ is_unit (X.Γ_to_stalk x r) :=

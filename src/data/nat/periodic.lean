@@ -50,7 +50,7 @@ end
 equal to the number naturals below `a` for which `p a` is true. -/
 lemma filter_Ico_card_eq_of_periodic (n a : ℕ) (p : ℕ → Prop) [decidable_pred p]
   (pp : periodic p a) :
-  (finset.filter p (finset.Ico n (n+a))).card = a.count p :=
+  ((Ico n (n + a)).filter p).card = a.count p :=
 filter_Ico_card_eq_of_periodic' n a p pp
 
 end finset

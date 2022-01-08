@@ -27,7 +27,7 @@ open category_theory.category
 /-
 We work in a category `C` equipped with a shift.
 -/
-variables (C : Type u) [category.{v} C] [has_shift C]
+variables (C : Type u) [category.{v} C] [has_shift C ℤ]
 
 /--
 A triangle in `C` is a sextuple `(X,Y,Z,f,g,h)` where `X,Y,Z` are objects of `C`,

@@ -149,8 +149,7 @@ begin
     contradiction },
   { intros h1 F h2,
     specialize h1 F,
-    cases F.mem_or_compl_mem S;
-    finish }
+    cases F.mem_or_compl_mem S, exacts [absurd (h1 h) h2, h] }
 end
 
 instance {X : Compactum} : compact_space X :=
@@ -369,7 +368,7 @@ noncomputable def of_topological_space (X : Type*) [topological_space X]
   [compact_space X] [t2_space X] : Compactum :=
 { A := X,
   a := ultrafilter.Lim,
-  unit' := by {ext x, exact Lim_eq (by finish [le_nhds_iff]) },
+  unit' := by {ext x, exact Lim_eq (pure_le_nhds _) },
   assoc' := begin
     ext FF,
     change ultrafilter (ultrafilter X) at FF,

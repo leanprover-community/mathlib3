@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Johan Commelin
 -/
 
-import linear_algebra.tensor_product
+import linear_algebra.tensor_product_basis
 import ring_theory.adjoin.basic
 
 /-!
@@ -789,3 +789,11 @@ by rw [product_map, alg_hom.range_comp, map_range, map_sup, ←alg_hom.range_com
 end
 end tensor_product
 end algebra
+
+lemma subalgebra.finite_dimensional_sup {K L : Type*} [field K] [comm_ring L] [algebra K L]
+  (E1 E2 : subalgebra K L) [finite_dimensional K E1] [finite_dimensional K E2] :
+  finite_dimensional K ↥(E1 ⊔ E2) :=
+begin
+  rw [←E1.range_val, ←E2.range_val, ←algebra.tensor_product.product_map_range],
+  exact (algebra.tensor_product.product_map E1.val E2.val).to_linear_map.finite_dimensional_range,
+end

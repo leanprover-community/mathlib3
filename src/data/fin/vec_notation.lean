@@ -300,6 +300,10 @@ by { ext i, refine fin.cases _ _ i; simp [vec_head, vec_tail] }
   v + vec_cons y w = vec_cons (vec_head v + y) (vec_tail v + w) :=
 by { ext i, refine fin.cases _ _ i; simp [vec_head, vec_tail] }
 
+@[simp] lemma cons_add_cons (x : α) (v : fin n → α) (y : α) (w : fin n → α) :
+  vec_cons x v + vec_cons y w = vec_cons (x + y) (v + w) :=
+by simp
+
 @[simp] lemma head_add (a b : fin n.succ → α) : vec_head (a + b) = vec_head a + vec_head b := rfl
 
 @[simp] lemma tail_add (a b : fin n.succ → α) : vec_tail (a + b) = vec_tail a + vec_tail b := rfl
@@ -319,6 +323,10 @@ by { ext i, refine fin.cases _ _ i; simp [vec_head, vec_tail] }
 @[simp] lemma sub_cons (v : fin n.succ → α) (y : α) (w : fin n → α) :
   v - vec_cons y w = vec_cons (vec_head v - y) (vec_tail v - w) :=
 by { ext i, refine fin.cases _ _ i; simp [vec_head, vec_tail] }
+
+@[simp] lemma cons_sub_cons (x : α) (v : fin n → α) (y : α) (w : fin n → α) :
+  vec_cons x v - vec_cons y w = vec_cons (x - y) (v - w) :=
+by simp
 
 @[simp] lemma head_sub (a b : fin n.succ → α) : vec_head (a - b) = vec_head a - vec_head b := rfl
 

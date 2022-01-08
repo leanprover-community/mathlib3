@@ -587,7 +587,7 @@ by rintro (rfl | rfl); [exact is_clopen_empty, exact is_clopen_univ]⟩
 
 lemma eq_univ_of_nonempty_clopen [preconnected_space α] {s : set α}
   (h : s.nonempty) (h' : is_clopen s) : s = univ :=
-by { rw is_clopen_iff at h', finish [h.ne_empty] }
+by { rw is_clopen_iff at h', exact h'.resolve_left h.ne_empty }
 
 lemma subtype.preconnected_space {s : set α} (h : is_preconnected s) :
   preconnected_space s :=

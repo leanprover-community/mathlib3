@@ -196,7 +196,7 @@ if the import structure permits them to be.
 
 section semiring
 
-variables {R S : Type*} [semiring R] [semiring S]
+variables {R S : Type*} [non_unital_non_assoc_semiring R] [non_unital_non_assoc_semiring S]
 
 /-- Multiplication of an element of a (semi)ring is an `add_monoid_hom` in both arguments.
 

@@ -590,6 +590,9 @@ class noncompact_space (α : Type*) [topological_space α] : Prop :=
 
 export noncompact_space (noncompact_univ)
 
+lemma is_compact.ne_univ [noncompact_space α] {s : set α} (hs : is_compact s) : s ≠ univ :=
+λ h, noncompact_univ α (h ▸ hs)
+
 instance [noncompact_space α] : ne_bot (filter.cocompact α) :=
 begin
   refine filter.has_basis_cocompact.ne_bot_iff.2 (λ s hs, _),

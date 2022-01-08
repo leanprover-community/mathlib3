@@ -210,7 +210,7 @@ congr_arg coe powerset_len_aux_eq_map_coe
   powerset_len 0 s = {0} :=
 quotient.induction_on s $ λ l, by simp [powerset_len_coe']; refl
 
-@[simp] theorem powerset_len_zero_right (n : ℕ) :
+theorem powerset_len_zero_right (n : ℕ) :
   @powerset_len α (n + 1) 0 = 0 := rfl
 
 @[simp] theorem powerset_len_cons (n : ℕ) (a : α) (s) :
@@ -235,5 +235,22 @@ theorem powerset_len_mono (n : ℕ) {s t : multiset α} (h : s ≤ t) :
   powerset_len n s ≤ powerset_len n t :=
 le_induction_on h $ λ l₁ l₂ h, by simp [powerset_len_coe]; exact
   ((sublists_len_sublist_of_sublist _ h).map _).subperm
+
+@[simp] theorem powerset_len_empty {α : Type*} (n : ℕ) {s : multiset α} (h : s.card < n) :
+  powerset_len n s = 0 :=
+card_eq_zero.mp (nat.choose_eq_zero_of_lt h ▸ card_powerset_len _ _)
+
+@[simp]
+lemma powerset_len_card_add (s : multiset α) {i : ℕ} (hi : 0 < i) :
+  s.powerset_len (s.card + i) = 0 :=
+powerset_len_empty _ (lt_add_of_pos_right (card s) hi)
+
+theorem powerset_len_map {β : Type*} (f : α → β) (n : ℕ) (s : multiset α) :
+  powerset_len n (s.map f) = (powerset_len n s).map (map f) :=
+begin
+  induction s using multiset.induction with t s ih generalizing n,
+  { cases n; simp [powerset_len_zero_left, powerset_len_zero_right], },
+  { cases n; simp [ih], },
+end
 
 end multiset

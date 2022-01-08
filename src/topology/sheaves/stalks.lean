@@ -9,6 +9,7 @@ import topology.sheaves.sheaf_condition.unique_gluing
 import category_theory.limits.types
 import category_theory.limits.preserves.filtered
 import category_theory.limits.final
+import topology.sober
 import tactic.elementwise
 
 /-!
@@ -278,6 +279,49 @@ def stalk_pullback_iso (f : X ⟶ Y) (F : Y.presheaf C) (x : X) :
   end }
 
 end stalk_pullback
+
+section stalk_specializes
+
+variables {C}
+
+/-- If `x` specializes to `y`, then there is a natural map `F.stalk y ⟶ F.stalk x`. -/
+noncomputable
+def stalk_specializes (F : X.presheaf C) {x y : X} (h : x ⤳ y) : F.stalk y ⟶ F.stalk x :=
+begin
+  refine colimit.desc _ ⟨_,λ U, _,_⟩,
+  { exact colimit.ι ((open_nhds.inclusion x).op ⋙ F)
+      (op ⟨(unop U).1, (specializes_iff_forall_open.mp h _ (unop U).1.2 (unop U).2 : _)⟩) },
+  { intros U V i,
+    dsimp,
+    rw category.comp_id,
+    let U' : open_nhds x := ⟨_, (specializes_iff_forall_open.mp h _ (unop U).1.2 (unop U).2 : _)⟩,
+    let V' : open_nhds x := ⟨_, (specializes_iff_forall_open.mp h _ (unop V).1.2 (unop V).2 : _)⟩,
+    exact colimit.w ((open_nhds.inclusion x).op ⋙ F) (show V' ⟶ U', from i.unop).op }
+end
+
+@[simp, reassoc, elementwise]
+lemma germ_stalk_specializes (F : X.presheaf C) {U : opens X} {y : U} {x : X} (h : x ⤳ y) :
+  F.germ y ≫ F.stalk_specializes h =
+    F.germ ⟨x, specializes_iff_forall_open.mp h _ U.2 y.prop⟩ := colimit.ι_desc _ _
+
+@[simp, reassoc, elementwise]
+lemma germ_stalk_specializes' (F : X.presheaf C) {U : opens X} {x y : X} (h : x ⤳ y) (hy : y ∈ U) :
+  F.germ ⟨y, hy⟩ ≫ F.stalk_specializes h =
+    F.germ ⟨x, specializes_iff_forall_open.mp h _ U.2 hy⟩ := colimit.ι_desc _ _
+
+@[simp, reassoc, elementwise]
+lemma stalk_specializes_stalk_functor_map {F G : X.presheaf C} (f : F ⟶ G) {x y : X} (h : x ⤳ y) :
+  F.stalk_specializes h ≫ (stalk_functor C x).map f =
+    (stalk_functor C y).map f ≫ G.stalk_specializes h :=
+by { ext, delta stalk_functor, simpa [stalk_specializes] }
+
+@[simp, reassoc, elementwise]
+lemma stalk_specializes_stalk_pushforward (f : X ⟶ Y) (F : X.presheaf C) {x y : X} (h : x ⤳ y) :
+  (f _* F).stalk_specializes (f.map_specialization h) ≫ F.stalk_pushforward _ f x =
+    F.stalk_pushforward _ f y ≫ F.stalk_specializes h :=
+by { ext, delta stalk_pushforward, simpa [stalk_specializes] }
+
+end stalk_specializes
 
 section concrete
 

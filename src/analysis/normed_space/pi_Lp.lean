@@ -27,17 +27,24 @@ functions, for instance.
 ## Implementation notes
 
 We only deal with the `L^p` distance on a product of finitely many metric spaces, which may be
-distinct. A closely related construction is the `L^p` norm on the space of
-functions from a measure space to a normed space, where the norm is
+distinct. A closely related construction is `lp`, the `L^p` norm on a product of (possibly
+infinitely many) normed spaces, where the norm is
+$$
+\left(\sum ∥f (x)∥^p \right)^{1/p}.
+$$
+However, the topology induced by this construction is not the product topology, and some functions
+have infinite `L^p` norm. These subtleties are not present in the case of finitely many metric
+spaces, hence it is worth devoting a file to this specific case which is particularly well behaved.
+
+Another related construction is `measure_theory.Lp`, the `L^p` norm on the space of functions from
+a measure space to a normed space, where the norm is
 $$
 \left(\int ∥f (x)∥^p dμ\right)^{1/p}.
 $$
-However, the topology induced by this construction is not the product topology, this only
-defines a seminorm (as almost everywhere zero functions have zero `L^p` norm), and some functions
-have infinite `L^p` norm. All these subtleties are not present in the case of finitely many
-metric spaces (which corresponds to the basis which is a finite space with the counting measure),
-hence it is worth devoting a file to this specific case which is particularly well behaved.
-The general case is not yet formalized in mathlib.
+This has all the same subtleties as `lp`, and the further subtlety that this only
+defines a seminorm (as almost everywhere zero functions have zero `L^p` norm).
+The construction `pi_Lp` corresponds to the special case of `measure_theory.Lp` in which the basis
+is a finite space equipped with the counting measure.
 
 To prove that the topology (and the uniform structure) on a finite product with the `L^p` distance
 are the same as those coming from the `L^∞` distance, we could argue that the `L^p` and `L^∞` norms

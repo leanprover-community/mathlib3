@@ -67,7 +67,8 @@ def order_embedding_of_set : ℕ ↪o ℕ :=
   (rel_embedding.nat_lt (nat.subtype.of_nat s) (λ n, nat.subtype.lt_succ_self _))).trans
   (order_embedding.subtype s)
 
-/-- `nat.subtype.of_nat` as an order isomorphism between `ℕ` and an infinite decidable subset. -/
+/-- `nat.subtype.of_nat` as an order isomorphism between `ℕ` and an infinite decidable subset.
+See also `nat.nth` for a version where the subset may be finite. -/
 noncomputable def subtype.order_iso_of_nat  :
   ℕ ≃o s :=
 rel_iso.of_surjective (rel_embedding.order_embedding_of_lt_embedding
@@ -77,8 +78,9 @@ rel_iso.of_surjective (rel_embedding.order_embedding_of_lt_embedding
 variable {s}
 
 @[simp]
-lemma order_embedding_of_set_apply {n : ℕ} : order_embedding_of_set s n = subtype.of_nat s n :=
-rfl
+lemma coe_order_embedding_of_set : ⇑(order_embedding_of_set s) = coe ∘ subtype.of_nat s := rfl
+
+lemma order_embedding_of_set_apply {n : ℕ} : order_embedding_of_set s n = subtype.of_nat s n := rfl
 
 @[simp]
 lemma subtype.order_iso_of_nat_apply {n : ℕ} :
@@ -87,18 +89,20 @@ by { simp [subtype.order_iso_of_nat] }
 
 variable (s)
 
-@[simp]
 lemma order_embedding_of_set_range : set.range (nat.order_embedding_of_set s) = s :=
+subtype.coe_comp_of_nat_range
+
+theorem exists_subseq_of_forall_mem_union {α : Type*} {s t : set α} (e : ℕ → α)
+  (he : ∀ n, e n ∈ s ∪ t) :
+  ∃ g : ℕ ↪o ℕ, (∀ n, e (g n) ∈ s) ∨ (∀ n, e (g n) ∈ t) :=
 begin
-  ext x,
-  rw [set.mem_range, nat.order_embedding_of_set],
-  split; intro h,
-  { obtain ⟨y, rfl⟩ := h,
-    simp },
-  { refine ⟨(nat.subtype.order_iso_of_nat s).symm ⟨x, h⟩, _⟩,
-    simp only [rel_embedding.coe_trans, rel_embedding.order_embedding_of_lt_embedding_apply,
-      rel_embedding.nat_lt_apply, function.comp_app, order_embedding.subtype_apply],
-    rw [← subtype.order_iso_of_nat_apply, order_iso.apply_symm_apply, subtype.coe_mk] }
+  classical,
+  have : infinite (e ⁻¹' s) ∨ infinite (e ⁻¹' t),
+    by simp only [set.infinite_coe_iff, ← set.infinite_union, ← set.preimage_union,
+      set.eq_univ_of_forall (λ n, set.mem_preimage.2 (he n)), set.infinite_univ],
+  casesI this,
+  exacts [⟨nat.order_embedding_of_set (e ⁻¹' s), or.inl $ λ n, (nat.subtype.of_nat (e ⁻¹' s) _).2⟩,
+    ⟨nat.order_embedding_of_set (e ⁻¹' t), or.inr $ λ n, (nat.subtype.of_nat (e ⁻¹' t) _).2⟩]
 end
 
 end nat

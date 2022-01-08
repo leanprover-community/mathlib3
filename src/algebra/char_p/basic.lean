@@ -349,7 +349,7 @@ section no_zero_divisors
 variable [no_zero_divisors R]
 
 theorem char_is_prime_of_two_le (p : ℕ) [hc : char_p R p] (hp : 2 ≤ p) : nat.prime p :=
-suffices ∀d ∣ p, d = 1 ∨ d = p, from ⟨hp, this⟩,
+suffices ∀d ∣ p, d = 1 ∨ d = p, from nat.prime_def_lt''.mpr ⟨hp, this⟩,
 assume (d : ℕ) (hdvd : ∃ e, p = d * e),
 let ⟨e, hmul⟩ := hdvd in
 have (p : R) = 0, from (cast_eq_zero_iff R p p).mpr (dvd_refl p),

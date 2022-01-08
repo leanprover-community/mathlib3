@@ -17,6 +17,8 @@ which in turn depends on other parts of algebra.
 This module contains lemmas about `a ^ n` and `n • a`, where `n : ℕ` or `n : ℤ`.
 Further lemmas can be found in `algebra.group_power.lemmas`.
 
+The analogous results for groups with zero can be found in `algebra.group_with_zero.power`.
+
 ## Notation
 
 - `a ^ n` is used as notation for `has_pow.pow a n`; in this file `n : ℕ` or `n : ℤ`.

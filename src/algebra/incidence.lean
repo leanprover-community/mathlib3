@@ -341,9 +341,7 @@ instance [preorder α] [locally_finite_order α] [decidable_eq α] [semiring �
 { smul := (•),
   one_smul := λ f, begin
     ext a b,
-    sorry
-    -- simp_rw [smul_apply, one_apply, sum_boole_smul],
-    -- exact ite_eq_left_iff.2 (not_imp_comm.1 $ λ h, left_mem_Icc.2 $ le_of_ne_zero $ ne.symm h),
+    simp [ite_smul, hab],
   end,
   mul_smul := λ f g h, begin
     convert smul_assoc _ _ _,

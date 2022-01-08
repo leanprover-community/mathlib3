@@ -3,7 +3,7 @@ Copyright (c) 2022 Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
-import data.nat.prime
+import data.nat.factorization
 
 /-!
 # Prime powers
@@ -50,6 +50,29 @@ lemma not_prime_pow_one : ¬ prime_pow 1 := dec_trivial
 lemma prime.prime_pow {p : ℕ} (hp : p.prime) : prime_pow p :=
 ⟨p, 1, hp, zero_lt_one, by simp⟩
 
+lemma prime_pow.min_fac_pow_factorization_eq {n : ℕ} (hn : n.prime_pow) :
+  n.min_fac ^ n.factorization n.min_fac = n :=
+begin
+  obtain ⟨p, k, hp, hk, rfl⟩ := hn,
+  rw [hp.pow_min_fac hk.ne', hp.factorization_pow, finsupp.single_eq_same],
+end
+
+lemma prime_pow_of_min_fac_pow_factorization_eq {n : ℕ}
+  (h : n.min_fac ^ n.factorization n.min_fac = n) (hn : n ≠ 1) :
+  n.prime_pow :=
+begin
+  rcases n.eq_zero_or_pos with rfl | hn',
+  { simpa using h },
+  refine ⟨_, _, min_fac_prime hn, _, h⟩,
+  rw [pos_iff_ne_zero, ←finsupp.mem_support_iff, factor_iff_mem_factorization,
+    mem_factors_iff_dvd hn' (min_fac_prime hn)],
+  apply min_fac_dvd
+end
+
+lemma prime_pow_iff_min_fac_pow_factorization_eq (hn : n ≠ 1) :
+  n.prime_pow ↔ n.min_fac ^ n.factorization n.min_fac = n :=
+⟨λ h, h.min_fac_pow_factorization_eq, λ h, prime_pow_of_min_fac_pow_factorization_eq h hn⟩
+
 /-- An equivalent definition for prime powers: `n` is a prime power iff there is a unique prime
 dividing it. -/
 lemma prime_pow_iff_unique_prime_dvd :
@@ -75,8 +98,7 @@ begin
   apply dvd_antisymm (pow_factors_count_dvd _ _),
   -- We need to show n ∣ p ^ n.factors.count p
   apply dvd_of_factors_subperm hn₀.ne',
-  rw hp.factors_pow,
-  rw list.subperm_ext_iff,
+  rw [hp.factors_pow, list.subperm_ext_iff],
   intros q hq',
   rw mem_factors hn₀ at hq',
   cases hq _ hq'.1 hq'.2,

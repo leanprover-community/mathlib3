@@ -174,7 +174,7 @@ begin
     lt_iff_le_and_ne],
 end
 
-lemma mod_inj_on_Ico (n a : ℕ) : set.inj_on (λ k, k % a) (finset.Ico n (n+a)) :=
+lemma mod_inj_on_Ico (n a : ℕ) : set.inj_on (% a) (finset.Ico n (n+a)) :=
 begin
   induction n with n ih,
   { simp only [zero_add, nat_zero_eq_zero, Ico_zero_eq_range],
@@ -202,7 +202,7 @@ end
 
 -- what is the correct generality? It also works for `ℤ`
 lemma finset_Ico_image_mod (n a : ℕ) :
-  (Ico n (n+a)).image (λ k, k % a) = range a :=
+  (Ico n (n+a)).image (% a) = range a :=
 begin
   obtain (rfl|ha) : a = 0 ∨ a ≠ 0 := eq_or_ne a 0,
   { rw [range_zero, add_zero, Ico_self, image_empty], },
@@ -233,7 +233,7 @@ section multiset
 open multiset
 
 lemma multiset_Ico_map_mod (n a : ℕ) :
-  (multiset.Ico n (n+a)).map (λ k, k % a) = multiset.range a :=
+  (multiset.Ico n (n+a)).map (% a) = multiset.range a :=
 begin
   rw [← finset.range_coe, ← congr_arg finset.val (finset_Ico_image_mod n a),
     finset.image_val, finset.Ico_val, eq_comm, multiset.erase_dup_eq_self, nodup_map_iff_inj_on],

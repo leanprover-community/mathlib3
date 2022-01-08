@@ -14,8 +14,6 @@ their proofs or cases of ℕ and ℤ being examples of structures in abstract al
 
 ## Main statements
 
-* `nat.prime_iff`: `nat.prime` coincides with the general definition of `prime`
-* `nat.irreducible_iff_prime`: a non-unit natural number is only divisible by `1` iff it is prime
 * `nat.factors_eq`: the multiset of elements of `nat.factors` is equal to the factors
    given by the `unique_factorization_monoid` instance
 * ℤ is a `normalization_monoid`
@@ -27,12 +25,6 @@ prime, irreducible, natural numbers, integers, normalization monoid, gcd monoid,
 greatest common divisor, prime factorization, prime factors, unique factorization,
 unique factors
 -/
-
-theorem nat.prime_iff {p : ℕ} : p.prime ↔ prime p :=
-⟨λ h, ⟨h.ne_zero, h.not_unit, λ a b, h.dvd_mul.mp⟩, prime.irreducible⟩
-
-theorem nat.irreducible_iff_prime {p : ℕ} : irreducible p ↔ prime p :=
-by rw [←nat.prime_iff, nat.prime]
 
 namespace nat
 
@@ -208,8 +200,6 @@ begin
 end
 
 end int
-
-theorem irreducible_iff_nat_prime (a : ℕ) : irreducible a ↔ nat.prime a := iff.rfl
 
 lemma nat.prime_iff_prime_int {p : ℕ} : p.prime ↔ _root_.prime (p : ℤ) :=
 ⟨λ hp, ⟨int.coe_nat_ne_zero_iff_pos.2 hp.pos, mt int.is_unit_iff_nat_abs_eq.1 hp.ne_one,

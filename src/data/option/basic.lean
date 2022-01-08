@@ -71,6 +71,9 @@ by cases x; [contradiction, rw get_or_else_some]
 theorem mem_unique {o : option α} {a b : α} (ha : a ∈ o) (hb : b ∈ o) : a = b :=
 option.some.inj $ ha.symm.trans hb
 
+theorem eq_of_mem_of_mem {a : α} {o1 o2 : option α} (h1 : a ∈ o1) (h2 : a ∈ o2) : o1 = o2 :=
+h1.trans h2.symm
+
 theorem mem.left_unique : relator.left_unique ((∈) : α → option α → Prop) :=
 λ a o b, mem_unique
 

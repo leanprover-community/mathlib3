@@ -86,7 +86,7 @@ all be relaxed independently; for instance, this allows us to:
 * Replace `semiring A` with `non_unital_non_assoc_semiring A` in order to describe non-unital and/or
   non-associative algebras.
 * Replace `comm_semiring R` and `module R A` with `comm_group R'` and `distrib_mul_action R' A`,
-  which when `R' = units R` lets us talk about the "algebra-like" action of `units R` on an
+  which when `R' = Rˣ` lets us talk about the "algebra-like" action of `Rˣ` on an
   `R`-algebra `A`.
 
 While `alg_hom R A B` cannot be used in the second approach, `non_unital_alg_hom R A B` still can.

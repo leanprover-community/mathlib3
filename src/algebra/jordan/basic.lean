@@ -24,16 +24,18 @@ Jordan algebras arising this way are said to be special. There are also exceptio
 which can be shown not to be the symmetrisation of any associative algebra. The three by three
 matrices of octonians is the canonical example.
 
-Commutative Jordan algebras were introduced by Jordan, von Neumann and Wigner as a mathematical
-model for the observables of a quantum mechanical physical system (for a C*-algebra the
-self-adjoint part is closed under the symmetrised Jordan multiplication). Jordan algebras have
-subsequently been studied from the points of view of abstract algebra and functional analysis. They
-have connections to Lie algebras and differential geometry.
+Commutative Jordan algebras were introduced by Jordan, von Neumann and Wigner
+([jordanvonneumannwigner1934]) as a mathematical model for the observables of a quantum mechanical
+physical system (for a C*-algebra the self-adjoint part is closed under the symmetrised Jordan
+multiplication). Jordan algebras have subsequently been studied from the points of view of abstract
+algebra and functional analysis. They have connections to Lie algebras and differential geometry.
 
 A more general concept of a (non-commutative) Jordan algebra can also be defined, as a
 (non-commutative, non-associative) algebra `A` where, for each `a` in `A`, the operators of left and
 right multiplication by `a` and `a^2` commute. Such algebras have connected to the Vidav-Palmer
-theorem.
+theorem [cabreragarciarodriguezpalacios2014].
+
+A comprehensive overview of the algebraic theory can be found in [mccrimmon2004].
 
 A real Jordan algebra `A` can be introduced by
 ```
@@ -56,9 +58,13 @@ and substitution instead.
 
 ## References
 
-* [Hanche-Olsen and Størmer, Jordan Operator Algebras][hancheolsenstormer1984]
 * [Cabrera García and Rodríguez Palacios, Non-associative normed algebras. Volume 1]
   [cabreragarciarodriguezpalacios2014]
+* [Hanche-Olsen and Størmer, Jordan Operator Algebras][hancheolsenstormer1984]
+* [Jordan, von Neumann and Wigner, 1934][jordanvonneumannwigner1934]
+* [McCrimmon, A taste of Jordan algebras][mccrimmon2004]
+
+
 -/
 
 set_option old_structure_cmd true

@@ -50,6 +50,20 @@ begin
         verschiebung_coeff_succ, h, one_pow], }
 end
 
+lemma coeff_p_pow_eq_zero [char_p R p] {i j : ℕ} (hj : j ≠ i) : (p ^ i : 𝕎 R).coeff j = 0 :=
+begin
+  induction i with i hi generalizing j,
+  { rw [pow_zero, one_coeff_eq_of_pos],
+    exact nat.pos_of_ne_zero hj },
+  { rw [pow_succ', ← frobenius_verschiebung, coeff_frobenius_char_p],
+    cases j,
+    { rw [verschiebung_coeff_zero, zero_pow],
+      exact nat.prime.pos hp.out },
+    { rw [verschiebung_coeff_succ, hi, zero_pow],
+      { exact nat.prime.pos hp.out },
+      { exact ne_of_apply_ne (λ (j : ℕ), j.succ) hj } } }
+end
+
 /-- The “projection formula” for Frobenius and Verschiebung. -/
 lemma verschiebung_mul_frobenius (x y : 𝕎 R) :
   verschiebung (x * frobenius y) = verschiebung x * y :=

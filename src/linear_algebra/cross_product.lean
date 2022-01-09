@@ -45,33 +45,11 @@ begin
   apply linear_map.mk₂ R (λ (a b : fin 3 → R),
     ![a 1 * b 2 - a 2 * b 1,
       a 2 * b 0 - a 0 * b 2,
-      a 0 * b 1 - a 1 * b 0]),
-  {
-    intros,
-    simp only [pi.add_apply],
-    symmetry,
-    convert @vec3_add R _ _ _ _ _ _ _;
-    ring,
-  },
-  {
-    intros,
-    simp only [smul_eq_mul, matrix.smul_cons, matrix.smul_empty, pi.smul_apply],
-    apply vec3_eq;
-    ring,
-  },
-  {
-    intros,
-    simp only [pi.add_apply],
-    symmetry,
-    convert @vec3_add R _ _ _ _ _ _ _;
-    ring,
-  },
-  {
-    intros,
-    simp only [smul_eq_mul, matrix.smul_cons, matrix.smul_empty, pi.smul_apply],
-    apply vec3_eq;
-    ring,
-  },
+      a 0 * b 1 - a 1 * b 0]);
+  intros;
+  simp only [@vec3_add R _ _ _ _ _ _ _,
+    pi.add_apply, algebra.id.smul_eq_mul, matrix.smul_cons, matrix.smul_empty, pi.smul_apply];
+  ring,
 end
 
 localized "infixl ` ×₃ `: 68 := cross_product" in matrix

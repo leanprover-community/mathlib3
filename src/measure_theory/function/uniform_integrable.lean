@@ -197,4 +197,31 @@ end
 
 end
 
+variables [measurable_space β] [normed_group β]
+-- variables [second_countable_topology β] [measurable_space β] [borel_space β]
+
+-- **Change doc-strings**
+
+/-- A family `I` of (L₁-)functions is known as uniformly integrable if for all `ε > 0`, there
+exists some `δ > 0` such that for all `f ∈ I` and measurable sets `s` with measure less than `δ`,
+we have `∫ x in s, ∥f x∥ < ε`.
+
+This is the measure theory verison of uniform integrability. -/
+def unif_integrable {m : measurable_space α} (μ : measure α) (f : ι → α → β) : Prop :=
+∀ ε : ℝ≥0∞, ∃ δ : ℝ≥0∞, ∀ i s, measurable_set s → μ s < δ →
+snorm (set.indicator s (f i)) 1 μ < ε
+
+/-- In probability theory, a family of functions is uniformly integrable if it is uniformly
+integrable in the measure theory sense and is uniformly bounded. -/
+def uniform_integrable {m : measurable_space α}
+  (μ : measure α) (f : ι → α → β) : Prop :=
+(∀ i, measurable (f i)) ∧ unif_integrable μ f ∧
+  ∃ C : ℝ≥0, ∀ i, snorm (f i) 1 μ < C
+
+variables {f : ι → α → β}
+
+lemma uniform_integrable.mem_ℒp_one (hf : uniform_integrable μ f) (i : ι) :
+  mem_ℒp (f i) 1 μ :=
+⟨(hf.1 i).ae_measurable, let ⟨_, _, hC⟩ := hf.2 in lt_trans (hC i) ennreal.coe_lt_top⟩
+
 end measure_theory

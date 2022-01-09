@@ -110,6 +110,40 @@ theorem nhds_subtype (s : set α) (a : {x // x ∈ s}) :
 nhds_induced coe a
 
 end topα
+/-- The topology whose open sets are the empty set and the sets with finite complements. -/
+def cofinite_topology (α : Type*) : topological_space α :=
+{ is_open := λ s, s.nonempty → set.finite sᶜ,
+  is_open_univ := by simp,
+  is_open_inter := λ s t, begin
+    classical,
+    rintros hs ht ⟨x, hxs, hxt⟩,
+    haveI := set.finite.fintype (hs ⟨x, hxs⟩),
+    haveI := set.finite.fintype (ht ⟨x, hxt⟩),
+    rw compl_inter,
+    exact set.finite.intro (sᶜ.fintype_union tᶜ),
+  end,
+  is_open_sUnion := begin
+    rintros s h ⟨x, t, hts, hzt⟩,
+    rw set.compl_sUnion,
+    apply set.finite.sInter _ (h t hts ⟨x, hzt⟩),
+    simp [hts]
+    end }
+
+lemma nhds_cofinite {α : Type*} (a : α) :
+  @nhds α (cofinite_topology α) a = pure a ⊔ cofinite :=
+begin
+  ext U,
+  rw mem_nhds_iff,
+  split,
+  { rintro ⟨V, hVU, V_op, haV⟩,
+    exact mem_sup.mpr ⟨hVU haV, mem_of_superset (V_op ⟨_, haV⟩) hVU⟩ },
+  { rintros ⟨hU : a ∈ U, hU' : (Uᶜ).finite⟩,
+    exact ⟨U, subset.rfl, λ h, hU', hU⟩ }
+end
+
+lemma mem_nhds_cofinite {α : Type*} {a : α} {s : set α} :
+  s ∈ @nhds α (cofinite_topology α) a ↔ a ∈ s ∧ sᶜ.finite :=
+by simp [nhds_cofinite]
 
 end constructions
 

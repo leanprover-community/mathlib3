@@ -60,11 +60,11 @@ lemma totient_pos : ∀ {n : ℕ}, 0 < n → 0 < φ n
 
 open zmod
 
-/-- Note this takes an explicit `fintype (units (zmod n))` argument to avoid trouble with instance
+/-- Note this takes an explicit `fintype ((zmod n)ˣ)` argument to avoid trouble with instance
 diamonds. -/
-@[simp] lemma _root_.zmod.card_units_eq_totient (n : ℕ) [fact (0 < n)] [fintype (units (zmod n))] :
-  fintype.card (units (zmod n)) = φ n :=
-calc fintype.card (units (zmod n)) = fintype.card {x : zmod n // x.val.coprime n} :
+@[simp] lemma _root_.zmod.card_units_eq_totient (n : ℕ) [fact (0 < n)] [fintype ((zmod n)ˣ)] :
+  fintype.card ((zmod n)ˣ) = φ n :=
+calc fintype.card ((zmod n)ˣ) = fintype.card {x : zmod n // x.val.coprime n} :
   fintype.card_congr zmod.units_equiv_coprime
 ... = φ n :
 begin
@@ -136,7 +136,7 @@ calc ∑ m in (range n.succ).filter (∣ n), φ m
 ... = ((filter (∣ n) (range n.succ)).bUnion (λ d, (range n).filter (λ m, gcd n m = d))).card :
   (card_bUnion (by intros; apply disjoint_filter.2; cc)).symm
 ... = (range n).card :
-  congr_arg card (finset.ext (λ m, ⟨by finish,
+  congr_arg card (finset.ext (λ m, ⟨by simp,
     λ hm, have h : m < n, from mem_range.1 hm,
       mem_bUnion.2 ⟨gcd n m, mem_filter.2
         ⟨mem_range.2 (lt_succ_of_le (le_of_dvd (lt_of_le_of_lt (zero_le _) h)
@@ -218,22 +218,22 @@ begin
   rwa [succ_le_iff, pos_iff_ne_zero],
 end
 
-lemma card_units_zmod_lt_sub_one {p : ℕ} (hp : 1 < p) [fintype (units (zmod p))] :
-  fintype.card (units (zmod p)) ≤ p - 1 :=
+lemma card_units_zmod_lt_sub_one {p : ℕ} (hp : 1 < p) [fintype ((zmod p)ˣ)] :
+  fintype.card ((zmod p)ˣ) ≤ p - 1 :=
 begin
   haveI : fact (0 < p) := ⟨zero_lt_one.trans hp⟩,
   rw zmod.card_units_eq_totient p,
   exact nat.le_pred_of_lt (nat.totient_lt p hp),
 end
 
-lemma prime_iff_card_units (p : ℕ) [fintype (units (zmod p))] :
-  p.prime ↔ fintype.card (units (zmod p)) = p - 1 :=
+lemma prime_iff_card_units (p : ℕ) [fintype ((zmod p)ˣ)] :
+  p.prime ↔ fintype.card ((zmod p)ˣ) = p - 1 :=
 begin
   by_cases hp : p = 0,
   { substI hp,
     simp only [zmod, not_prime_zero, false_iff, zero_tsub],
     -- the substI created an non-defeq but subsingleton instance diamond; resolve it
-    suffices : fintype.card (units ℤ) ≠ 0, { convert this },
+    suffices : fintype.card ℤˣ ≠ 0, { convert this },
     simp },
   haveI : fact (0 < p) := ⟨nat.pos_of_ne_zero hp⟩,
   rw [zmod.card_units_eq_totient, nat.totient_eq_iff_prime (fact.out (0 < p))],

@@ -560,7 +560,7 @@ def to_SheafedSpace_hom : to_SheafedSpace Y f ⟶ Y := f
 
 @[simp] lemma to_SheafedSpace_hom_c : (to_SheafedSpace_hom Y f).c = f.c := rfl
 
-instance to_SheafedSpace_hom_forget_is_open_immersion :
+instance to_SheafedSpace_is_open_immersion :
   SheafedSpace.is_open_immersion (to_SheafedSpace_hom Y f) := H
 
 omit H
@@ -597,7 +597,7 @@ def to_LocallyRingedSpace_hom : to_LocallyRingedSpace Y f ⟶ Y := ⟨f, λ x, i
 @[simp] lemma to_LocallyRingedSpace_hom_val :
   (to_LocallyRingedSpace_hom Y f).val = f := rfl
 
-instance to_LocallyRingedSpace_hom_hom_forget_is_open_immersion :
+instance to_LocallyRingedSpace_is_open_immersion :
   LocallyRingedSpace.is_open_immersion (to_LocallyRingedSpace_hom Y f) := H
 
 omit H
@@ -1061,6 +1061,34 @@ end
 
 end pullback
 
+/-- An open immersion is isomorphic to the induced open subscheme on its image. -/
+def iso_restrict {X Y : LocallyRingedSpace} {f : X ⟶ Y}
+  (H : LocallyRingedSpace.is_open_immersion f) : X ≅ Y.restrict H.base_open :=
+begin
+  apply LocallyRingedSpace.iso_of_SheafedSpace_iso,
+  apply @preimage_iso _ _ _ _ SheafedSpace.forget_to_PresheafedSpace,
+  exact H.iso_restrict
+end
+
+/-- To show that a locally ringed space is a scheme, it suffices to show that it has a jointly
+sujective family of open immersions from affine schemes. -/
+protected def Scheme (X : LocallyRingedSpace)
+  (h : ∀ (x : X), ∃ (R : CommRing) (f : Spec.to_LocallyRingedSpace.obj (op R) ⟶ X),
+    (x ∈ set.range f.1.base : _) ∧ LocallyRingedSpace.is_open_immersion f) : Scheme :=
+{ to_LocallyRingedSpace := X,
+  local_affine :=
+  begin
+    intro x,
+    obtain ⟨R, f, h₁, h₂⟩ := h x,
+    refine ⟨⟨⟨_, h₂.base_open.open_range⟩, h₁⟩, R, ⟨_⟩⟩,
+    apply LocallyRingedSpace.iso_of_SheafedSpace_iso,
+    apply @preimage_iso _ _ _ _ SheafedSpace.forget_to_PresheafedSpace,
+    resetI,
+    apply PresheafedSpace.is_open_immersion.iso_of_range_eq (PresheafedSpace.of_restrict _ _) f.1,
+    { exact subtype.range_coe_subtype },
+    { apply_instance }
+  end }
+
 end LocallyRingedSpace.is_open_immersion
 
 lemma is_open_immersion.open_range {X Y : Scheme} (f : X ⟶ Y) [H : is_open_immersion f] :
@@ -1173,6 +1201,13 @@ a basis. -/
 def affine_basis_cover (X : Scheme) : open_cover X :=
 X.affine_cover.bind (λ x, affine_basis_cover_of_affine _)
 
+/-- The coordinate ring of a component in the `affine_basis_cover`. -/
+def affine_basis_cover_ring (X : Scheme) (i : X.affine_basis_cover.J) : CommRing :=
+CommRing.of $ @localization.away (X.local_affine i.1).some_spec.some _ i.2
+
+lemma affine_basis_cover_obj (X : Scheme) (i : X.affine_basis_cover.J) :
+  X.affine_basis_cover.obj i = Spec.obj (op $ X.affine_basis_cover_ring i) := rfl
+
 lemma affine_basis_cover_map_range (X : Scheme)
   (x : X.carrier) (r : (X.local_affine x).some_spec.some) :
   set.range (X.affine_basis_cover.map ⟨x, r⟩).1.base =
@@ -1206,5 +1241,170 @@ end
 end Scheme
 
 end open_cover
+
+namespace PresheafedSpace.is_open_immersion
+
+section to_Scheme
+
+variables {X : PresheafedSpace CommRing.{u}} (Y : Scheme.{u})
+variables (f : X ⟶ Y.to_PresheafedSpace) [H : PresheafedSpace.is_open_immersion f]
+
+include H
+
+/-- If `X ⟶ Y` is an open immersion, and `Y` is a scheme, then so is `X`. -/
+def to_Scheme : Scheme :=
+begin
+  apply LocallyRingedSpace.is_open_immersion.Scheme (to_LocallyRingedSpace _ f),
+  intro x,
+  obtain ⟨_,⟨i,rfl⟩,hx,hi⟩ := Y.affine_basis_cover_is_basis.exists_subset_of_mem_open
+      (set.mem_range_self x) H.base_open.open_range,
+  use Y.affine_basis_cover_ring i,
+  use LocallyRingedSpace.is_open_immersion.lift (to_LocallyRingedSpace_hom _ f) _ hi,
+  split,
+  { rw LocallyRingedSpace.is_open_immersion.lift_range, exact hx },
+  { delta LocallyRingedSpace.is_open_immersion.lift, apply_instance }
+end
+
+@[simp] lemma to_Scheme_to_LocallyRingedSpace :
+  (to_Scheme Y f).to_LocallyRingedSpace = (to_LocallyRingedSpace Y.1 f) := rfl
+
+/--
+If `X ⟶ Y` is an open immersion of PresheafedSpaces, and `Y` is a Scheme, we can
+upgrade it into a morphism of Schemes.
+-/
+def to_Scheme_hom : to_Scheme Y f ⟶ Y := to_LocallyRingedSpace_hom _ f
+
+@[simp] lemma to_Scheme_hom_val :
+  (to_Scheme_hom Y f).val = f := rfl
+
+instance to_Scheme_hom_is_open_immersion :
+  is_open_immersion (to_Scheme_hom Y f) := H
+
+omit H
+
+lemma Scheme_eq_of_LocallyRingedSpace_eq {X Y : Scheme}
+  (H : X.to_LocallyRingedSpace = Y.to_LocallyRingedSpace) : X = Y :=
+by { cases X, cases Y, congr, exact H }
+
+lemma Scheme_to_Scheme {X Y : Scheme} (f : X ⟶ Y) [is_open_immersion f] :
+  to_Scheme Y f.1 = X :=
+begin
+  apply Scheme_eq_of_LocallyRingedSpace_eq,
+  exact LocallyRingedSpace_to_LocallyRingedSpace f
+end
+
+end to_Scheme
+
+end PresheafedSpace.is_open_immersion
+
+namespace is_open_immersion
+
+variables {X Y Z : Scheme.{u}} (f : X ⟶ Z) (g : Y ⟶ Z)
+variable [H : is_open_immersion f]
+
+@[priority 100]
+instance of_is_iso [is_iso g] :
+  is_open_immersion g := @@LocallyRingedSpace.is_open_immersion.of_is_iso _
+(show is_iso ((induced_functor _).map g), by apply_instance)
+
+include H
+
+local notation `forget` := Scheme.forget_to_LocallyRingedSpace
+
+instance mono : mono f :=
+faithful_reflects_mono (induced_functor _)
+  (show @mono LocallyRingedSpace _ _ _ f, by apply_instance)
+
+instance forget_map_is_open_immersion : LocallyRingedSpace.is_open_immersion (forget .map f) :=
+⟨H.base_open, H.c_iso⟩
+
+instance has_limit_cospan_forget_of_left :
+  has_limit (cospan f g ⋙ Scheme.forget_to_LocallyRingedSpace) :=
+begin
+  apply has_limit_of_iso (diagram_iso_cospan.{u} _).symm,
+  change has_limit (cospan (forget .map f) (forget .map g)),
+  apply_instance
+end
+
+open category_theory.limits.walking_cospan
+
+instance has_limit_cospan_forget_of_left' :
+  has_limit (cospan ((cospan f g ⋙ forget).map hom.inl)
+  ((cospan f g ⋙ forget).map hom.inr)) :=
+show has_limit (cospan (forget .map f) (forget .map g)), from infer_instance
+
+instance has_limit_cospan_forget_of_right : has_limit (cospan g f ⋙ forget) :=
+begin
+  apply has_limit_of_iso (diagram_iso_cospan.{u} _).symm,
+  change has_limit (cospan (forget .map g) (forget .map f)),
+  apply_instance
+end
+
+instance has_limit_cospan_forget_of_right' :
+  has_limit (cospan ((cospan g f ⋙ forget).map hom.inl)
+  ((cospan g f ⋙ forget).map hom.inr)) :=
+show has_limit (cospan (forget .map g) (forget .map f)), from infer_instance
+
+instance forget_creates_pullback_of_left : creates_limit (cospan f g) forget :=
+creates_limit_of_fully_faithful_of_iso
+  (PresheafedSpace.is_open_immersion.to_Scheme Y
+    (@pullback.snd LocallyRingedSpace _ _ _ _ f g _).1)
+  (eq_to_iso (by simp) ≪≫ has_limit.iso_of_nat_iso (diagram_iso_cospan _).symm)
+
+instance forget_creates_pullback_of_right : creates_limit (cospan g f) forget :=
+creates_limit_of_fully_faithful_of_iso
+  (PresheafedSpace.is_open_immersion.to_Scheme Y
+    (@pullback.fst LocallyRingedSpace _ _ _ _ g f _).1)
+  (eq_to_iso (by simp) ≪≫ has_limit.iso_of_nat_iso (diagram_iso_cospan _).symm)
+
+instance forget_preserves_of_left : preserves_limit (cospan f g) forget :=
+category_theory.preserves_limit_of_creates_limit_and_has_limit _ _
+
+instance forget_preserves_of_right : preserves_limit (cospan g f) forget :=
+preserves_pullback_symmetry _ _ _
+
+instance has_pullback_of_left : has_pullback f g :=
+has_limit_of_created (cospan f g) forget
+
+instance has_pullback_of_right : has_pullback g f :=
+has_limit_of_created (cospan g f) forget
+
+instance pullback_snd_of_left : is_open_immersion (pullback.snd : pullback f g ⟶ _) :=
+begin
+  have := preserves_pullback.iso_hom_snd forget f g,
+  dsimp only [Scheme.forget_to_LocallyRingedSpace, induced_functor_map] at this,
+  rw ← this,
+  change LocallyRingedSpace.is_open_immersion _,
+  apply_instance
+end
+
+instance pullback_fst_of_right : is_open_immersion (pullback.fst : pullback g f ⟶ _) :=
+begin
+  rw ← pullback_symmetry_hom_comp_snd,
+  apply_instance
+end
+
+instance pullback_one [is_open_immersion g] :
+  is_open_immersion (limit.π (cospan f g) walking_cospan.one) :=
+begin
+  rw ← limit.w (cospan f g) walking_cospan.hom.inl,
+  change is_open_immersion (_ ≫ f),
+  apply_instance
+end
+
+instance forget_to_Top_preserves_of_left :
+  preserves_limit (cospan f g) Scheme.forget_to_Top :=
+begin
+  apply_with limits.comp_preserves_limit { instances := ff },
+  apply_instance,
+  apply preserves_limit_of_iso_diagram _ (diagram_iso_cospan.{u} _).symm,
+  dsimp [LocallyRingedSpace.forget_to_Top],
+  apply_instance
+end
+
+instance forget_to_Top_preserves_of_right :
+  preserves_limit (cospan g f) Scheme.forget_to_Top := preserves_pullback_symmetry _ _ _
+
+end is_open_immersion
 
 end algebraic_geometry

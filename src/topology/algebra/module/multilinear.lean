@@ -3,7 +3,7 @@ Copyright (c) 2020 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-import topology.algebra.module
+import topology.algebra.module.basic
 import linear_algebra.multilinear.basic
 
 /-!

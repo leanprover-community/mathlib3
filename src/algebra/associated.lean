@@ -108,6 +108,23 @@ begin
     exact or.inr (hc.symm ▸ dvd_mul_right _ _) }
 end
 
+lemma prime.pow_dvd_of_dvd_mul_left
+  [cancel_comm_monoid_with_zero α]
+  {p a b : α} (hp : prime p) (n : ℕ) (h : ¬p ∣ a) (h' : p ^ n ∣ a * b) : p ^ n ∣ b :=
+begin
+  induction n with n ih,
+  { rw pow_zero, exact one_dvd b },
+  { obtain ⟨c, rfl⟩ := ih (dvd_trans (pow_dvd_pow p n.le_succ) h'),
+    rw pow_succ',
+    apply mul_dvd_mul_left _ ((hp.dvd_or_dvd _).resolve_left h),
+    rwa [←mul_dvd_mul_iff_left (pow_ne_zero n hp.ne_zero), ←pow_succ', mul_left_comm] }
+end
+
+lemma prime.pow_dvd_of_dvd_mul_right
+  [cancel_comm_monoid_with_zero α]
+  {p a b : α} (hp : prime p) (n : ℕ) (h : ¬p ∣ b) (h' : p ^ n ∣ a * b) : p ^ n ∣ a :=
+by { rw [mul_comm] at h', exact hp.pow_dvd_of_dvd_mul_left n h h' }
+
 /-- `irreducible p` states that `p` is non-unit and only factors into units.
 
 We explicitly avoid stating that `p` is non-zero, this would require a semiring. Assuming only a
@@ -198,7 +215,7 @@ lemma irreducible.dvd_comm [monoid α] {p q : α}
 
 /-- Two elements of a `monoid` are `associated` if one of them is another one
 multiplied by a unit on the right. -/
-def associated [monoid α] (x y : α) : Prop := ∃u:units α, x * u = y
+def associated [monoid α] (x y : α) : Prop := ∃u:αˣ, x * u = y
 
 local infix ` ~ᵤ ` : 50 := associated
 
@@ -220,7 +237,7 @@ end associated
 
 local attribute [instance] associated.setoid
 
-theorem unit_associated_one [monoid α] {u : units α} : (u : α) ~ᵤ 1 := ⟨u⁻¹, units.mul_inv u⟩
+theorem unit_associated_one [monoid α] {u : αˣ} : (u : α) ~ᵤ 1 := ⟨u⁻¹, units.mul_inv u⟩
 
 theorem associated_one_iff_is_unit [monoid α] {a : α} : (a : α) ~ᵤ 1 ↔ is_unit a :=
 iff.intro
@@ -353,8 +370,8 @@ protected lemma associated.irreducible [monoid α] {p q : α} (h : p ~ᵤ q)
   (hp : irreducible p) : irreducible q :=
 ⟨mt h.symm.is_unit hp.1,
   let ⟨u, hu⟩ := h in λ a b hab,
-  have hpab : p = a * (b * (u⁻¹ : units α)),
-    from calc p = (p * u) * (u ⁻¹ : units α) : by simp
+  have hpab : p = a * (b * (u⁻¹ : αˣ)),
+    from calc p = (p * u) * (u ⁻¹ : αˣ) : by simp
       ... = _ : by rw hu; simp [hab, mul_assoc],
   (hp.is_unit_or_is_unit hpab).elim or.inl (λ ⟨v, hv⟩, or.inr ⟨v * u, by simp [hv]⟩)⟩
 
@@ -365,7 +382,7 @@ protected lemma associated.irreducible_iff [monoid α] {p q : α} (h : p ~ᵤ q)
 lemma associated.of_mul_left [cancel_comm_monoid_with_zero α] {a b c d : α}
   (h : a * b ~ᵤ c * d) (h₁ : a ~ᵤ c) (ha : a ≠ 0) : b ~ᵤ d :=
 let ⟨u, hu⟩ := h in let ⟨v, hv⟩ := associated.symm h₁ in
-⟨u * (v : units α), mul_left_cancel₀ ha
+⟨u * (v : αˣ), mul_left_cancel₀ ha
   begin
     rw [← hv, mul_assoc c (v : α) d, mul_left_comm c, ← hu],
     simp [hv.symm, mul_assoc, mul_comm, mul_left_comm]
@@ -376,9 +393,9 @@ lemma associated.of_mul_right [cancel_comm_monoid_with_zero α] {a b c d : α} :
 by rw [mul_comm a, mul_comm c]; exact associated.of_mul_left
 
 section unique_units
-variables [monoid α] [unique (units α)]
+variables [monoid α] [unique αˣ]
 
-lemma units_eq_one (u : units α) : u = 1 := subsingleton.elim u 1
+lemma units_eq_one (u : αˣ) : u = 1 := subsingleton.elim u 1
 
 theorem associated_iff_eq {x y : α} : x ~ᵤ y ↔ x = y :=
 begin
@@ -490,13 +507,13 @@ iff.intro
       quotient.sound $ associated_one_of_associated_mul_one $ by rwa [mul_comm] at this⟩)
   (by simp {contextual := tt})
 
-theorem units_eq_one (u : units (associates α)) : u = 1 :=
+theorem units_eq_one (u : (associates α)ˣ) : u = 1 :=
 units.ext (mul_eq_one_iff.1 u.val_inv).1
 
-instance unique_units : unique (units (associates α)) :=
+instance unique_units : unique ((associates α)ˣ) :=
 { default := 1, uniq := associates.units_eq_one }
 
-theorem coe_unit_eq_one (u : units (associates α)): (u : associates α) = 1 :=
+theorem coe_unit_eq_one (u : (associates α)ˣ): (u : associates α) = 1 :=
 by simp
 
 theorem is_unit_iff_eq_one (a : associates α) : is_unit a ↔ a = 1 :=

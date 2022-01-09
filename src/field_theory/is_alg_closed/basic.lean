@@ -86,6 +86,17 @@ begin
   exact ⟨z, sq z⟩
 end
 
+lemma roots_eq_zero_iff [is_alg_closed k] {p : polynomial k} :
+  p.roots = 0 ↔ p = polynomial.C (p.coeff 0) :=
+begin
+  refine ⟨λ h, _, λ hp, by rw [hp, roots_C]⟩,
+  cases (le_or_lt (degree p) 0) with hd hd,
+  { exact eq_C_of_degree_le_zero hd },
+  { obtain ⟨z, hz⟩ := is_alg_closed.exists_root p hd.ne',
+    rw [←mem_roots (ne_zero_of_degree_gt hd), h] at hz,
+    simpa using hz }
+end
+
 theorem exists_eval₂_eq_zero_of_injective {R : Type*} [ring R] [is_alg_closed k] (f : R →+* k)
   (hf : function.injective f) (p : polynomial R) (hp : p.degree ≠ 0) : ∃ x, p.eval₂ f x = 0 :=
 let ⟨x, hx⟩ := exists_root (p.map f) (by rwa [degree_map_eq_of_injective hf]) in
@@ -154,27 +165,6 @@ class is_alg_closure (K : Type v) [field K] [algebra k K] : Prop :=
 theorem is_alg_closure_iff (K : Type v) [field K] [algebra k K] :
   is_alg_closure k K ↔ is_alg_closed K ∧ algebra.is_algebraic k K :=
 ⟨λ h, ⟨h.1, h.2⟩, λ h, ⟨h.1, h.2⟩⟩
-
-/--
-Every element `f` in a nontrivial finite-dimensional algebra `A`
-over an algebraically closed field `K`
-has non-empty spectrum:
-that is, there is some `c : K` so `f - c • 1` is not invertible.
--/
--- We will use this both to show eigenvalues exist, and to prove Schur's lemma.
-lemma exists_spectrum_of_is_alg_closed_of_finite_dimensional (𝕜 : Type*) [field 𝕜] [is_alg_closed 𝕜]
-  {A : Type*} [nontrivial A] [ring A] [algebra 𝕜 A] [I : finite_dimensional 𝕜 A] (f : A) :
-  ∃ c : 𝕜, ¬ is_unit (f - algebra_map 𝕜 A c) :=
-begin
-  obtain ⟨p, ⟨h_mon, h_eval_p⟩⟩ := is_integral_of_noetherian (is_noetherian.iff_fg.2 I) f,
-  have nu : ¬ is_unit (aeval f p), { rw [←aeval_def] at h_eval_p, rw h_eval_p, simp, },
-  rw [eq_prod_roots_of_monic_of_splits_id h_mon (is_alg_closed.splits p),
-    ←multiset.prod_to_list, alg_hom.map_list_prod] at nu,
-  replace nu := mt list.prod_is_unit nu,
-  simp only [not_forall, exists_prop, aeval_C, multiset.mem_to_list,
-    list.mem_map, aeval_X, exists_exists_and_eq_and, multiset.mem_map, alg_hom.map_sub] at nu,
-  exact ⟨nu.some, nu.some_spec.2⟩,
-end
 
 namespace lift
 /- In this section, the homomorphism from any algebraic extension into an algebraically

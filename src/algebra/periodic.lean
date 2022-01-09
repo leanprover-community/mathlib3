@@ -302,7 +302,7 @@ quot.lift f $ λ a b (h : ∃ k : ℤ, k • c = -a + b), begin
   exact (h.zsmul k _).symm
 end
 
-lemma periodic.lift_coe [add_group α] (h : periodic f c) (a : α) :
+@[simp] lemma periodic.lift_coe [add_group α] (h : periodic f c) (a : α) :
   h.lift (a : α ⧸ add_subgroup.zmultiples c) = f a :=
 rfl
 

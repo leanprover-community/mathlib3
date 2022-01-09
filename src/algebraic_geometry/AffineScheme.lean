@@ -1,12 +1,36 @@
+/-
+Copyright (c) 2022 Andrew Yang. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Andrew Yang
+-/
 import algebraic_geometry.Gamma_Spec_adjunction
 import algebraic_geometry.open_immersion
+import category_theory.limits.opposites
+
+/-!
+# Affine schemes
+
+We define the category of `AffineScheme`s as the essential image of `Spec`.
+We also define predicates about affine schemes and affine open sets.
+
+## Main definitions
+
+* `algebraic_geometry.AffineScheme`: The category of affine schemes.
+* `algebraic_geometry.is_affine`: A scheme is affine if the canonical map `X ⟶ Spec Γ(X)` is an
+  isomorphism.
+* `algebraic_geometry.Scheme.iso_Spec`: The canonical isomorphism `X ≅ Spec Γ(X)` for an affine
+  scheme.
+* `algebraic_geometry.AffineScheme.equiv_CommRing`: The equivalence of categories
+  `AffineScheme ≌ CommRingᵒᵖ` given by `AffineScheme.Spec : CommRingᵒᵖ ⥤ AffineScheme` and
+  `AffineScheme.Γ : AffineSchemeᵒᵖ ⥤ CommRing`.
+* `algebraic_geometry.is_affine_open`: An open subset of a scheme is affine if the open subscheme is
+  affine.
+
+-/
 
 noncomputable theory
 
-open topological_space
-open category_theory
-open Top
-open opposite
+open category_theory category_theory.limits opposite topological_space
 
 universe u
 
@@ -32,7 +56,7 @@ lemma mem_AffineScheme (X : Scheme) : X ∈ AffineScheme ↔ is_affine X :=
 instance is_affine_AffineScheme (X : AffineScheme.{u}) : is_affine (X : Scheme.{u}) :=
 (mem_AffineScheme _).mp X.prop
 
-instance (R : CommRingᵒᵖ) : is_affine (Scheme.Spec.obj R) :=
+instance Spec_is_affine (R : CommRingᵒᵖ) : is_affine (Scheme.Spec.obj R) :=
 (mem_AffineScheme _).mp (Scheme.Spec.obj_mem_ess_image R)
 
 lemma is_affine_of_iso {X Y : Scheme} (f : X ⟶ Y) [is_iso f] [h : is_affine Y] :
@@ -41,66 +65,75 @@ by { rw [← mem_AffineScheme] at h ⊢, exact functor.ess_image.of_iso (as_iso 
 
 namespace AffineScheme
 
+/-- The `Spec` functor into the category of affine schemes. -/
 @[derive [full, faithful, ess_surj], simps]
 def Spec : CommRingᵒᵖ ⥤ AffineScheme := Scheme.Spec.to_ess_image
 
+/-- The forgetful functor `AffineScheme ⥤ Scheme`. -/
 @[derive [full, faithful], simps]
 def forget_to_Scheme : AffineScheme ⥤ Scheme := Scheme.Spec.ess_image_inclusion
 
-def Γ : AffineSchemeᵒᵖ ⥤ CommRing := to_Scheme.op ⋙ Scheme.Γ
+/-- The global section functor of an affine scheme. -/
+def Γ : AffineSchemeᵒᵖ ⥤ CommRing := forget_to_Scheme.op ⋙ Scheme.Γ
 
+/-- The category of affine schemes is equivalent to the category of commutative rings. -/
 def equiv_CommRing : AffineScheme ≌ CommRingᵒᵖ :=
-{ functor := Γ.right_op,
-  inverse := Spec,
-  unit_iso := by { have := Spec_Γ_identity.symm, } }
+equiv_ess_image_of_reflective.symm
 
-end AffineScheme
+instance Γ_is_equiv : is_equivalence Γ.{u} :=
+begin
+  haveI : is_equivalence Γ.{u}.right_op.op := is_equivalence.of_equivalence equiv_CommRing.op,
+  exact (functor.is_equivalence_trans Γ.{u}.right_op.op (op_op_equivalence _).functor : _),
+end
 
+instance : has_colimits AffineScheme.{u} :=
+begin
+  haveI := adjunction.has_limits_of_equivalence.{u} Γ.{u},
+  haveI : has_colimits AffineScheme.{u} ᵒᵖᵒᵖ := has_colimits_op_of_has_limits,
+  exactI adjunction.has_colimits_of_equivalence.{u} (op_op_equivalence AffineScheme.{u}).inverse
+end
 
-def Spec_to_scheme : Spec ⋙ to_Scheme ≅ Scheme.Spec
-  := Scheme.Spec.to_ess_image_comp_essential_image_inclusion
-
-instance : faithful Spec := faithful.of_comp_iso Spec_to_scheme
-
-instance : full Spec := by {
-  haveI inst : full (Spec ⋙ to_Scheme) := full.of_iso Spec_to_scheme.symm,
-  exactI @full.of_comp_faithful _ _ _ _ _ _ Spec to_Scheme inst _
-}
-
-instance : is_equivalence Spec := equivalence.of_fully_faithfully_ess_surj Spec
-
--- Though `as_equivalence Spec` also works, might as well have the inverse map defeq to `Γ`
-local attribute[irreducible] Scheme.Spec Scheme.Γ
-def equiv_CommRing : AffineScheme ≌ CommRingᵒᵖ
-  := (mk_from_left_inv Spec Γ.right_op (nat_iso.op Spec.Spec_Γ_identity.symm)).symm
-
-lemma equiv_CommRing_inverse : equiv_CommRing.inverse = Spec := rfl
-lemma equiv_CommRing_functor : equiv_CommRing.functor = Γ.right_op := rfl
-
--- set_option trace.class_instances true
--- set_option pp.implicit true
-set_option pp.universes true
-
-
-instance Γ_is_equiv : is_equivalence Γ.{u} := by {
-  haveI inst : is_equivalence Γ.{u}.right_op := is_equivalence.of_equivalence equiv_CommRing,
-    change is_equivalence (Γ.right_op.op ⋙ (op_op _)),
-    apply_instance
-}
-
-instance : has_colimits AffineScheme.{u} := by {
-  haveI := adjunction.has_limits_of_equivalence Γ.{u},
-  haveI : has_colimits AffineScheme.{u} ᵒᵖᵒᵖ := limits.has_colimits_op_of_has_limits,
-  exactI adjunction.has_colimits_of_equivalence (unop_unop AffineScheme.{u})
-}
-
-instance : has_limits AffineScheme.{u} := by {
+instance : has_limits AffineScheme.{u} :=
+begin
   haveI := adjunction.has_colimits_of_equivalence Γ.{u},
   haveI : has_limits AffineScheme.{u} ᵒᵖᵒᵖ := limits.has_limits_op_of_has_colimits,
-  exactI adjunction.has_limits_of_equivalence (unop_unop AffineScheme.{u})
-}
-
+  exactI adjunction.has_limits_of_equivalence (op_op_equivalence AffineScheme.{u}).inverse
+end
 
 end AffineScheme
+
+/-- An open subset of a scheme is affine if the open subscheme is affine. -/
+def is_affine_open {X : Scheme} (U : opens X.carrier) : Prop :=
+is_affine (X.restrict U.open_embedding)
+
+lemma range_is_affine_open_of_open_immersion {X Y : Scheme} [is_affine X] (f : X ⟶ Y)
+  [H : is_open_immersion f] : is_affine_open ⟨set.range f.1.base, H.base_open.open_range⟩ :=
+begin
+  refine is_affine_of_iso (is_open_immersion.iso_of_range_eq f (Y.of_restrict _) _).inv,
+  exact subtype.range_coe.symm,
+  apply_instance
+end
+
+lemma top_is_affine_open (X : Scheme) [is_affine X] : is_affine_open (⊤ : opens X.carrier) :=
+begin
+  convert range_is_affine_open_of_open_immersion (𝟙 X),
+  ext1,
+  exact set.range_id.symm
+end
+
+instance Scheme.affine_basis_cover_is_affine (X : Scheme) (i : X.affine_basis_cover.J) :
+  is_affine (X.affine_basis_cover.obj i) :=
+algebraic_geometry.Spec_is_affine _
+
+lemma is_basis_affine_open (X : Scheme) :
+  opens.is_basis { U : opens X.carrier | is_affine_open U } :=
+begin
+  rw opens.is_basis_iff_nbhd,
+  rintros U x (hU : x ∈ (U : set X.carrier)),
+  obtain ⟨S, hS, hxS, hSU⟩ := X.affine_basis_cover_is_basis.exists_subset_of_mem_open hU U.prop,
+  refine ⟨⟨S, X.affine_basis_cover_is_basis.is_open hS⟩, _, hxS, hSU⟩,
+  rcases hS with ⟨i, rfl⟩,
+  exact range_is_affine_open_of_open_immersion _,
+end
 
 end algebraic_geometry

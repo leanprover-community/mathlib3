@@ -15,6 +15,8 @@ sense of `Icc`/`Ico`/`Ioc`/`Ioo` as lists, multisets, or finsets.
 Further, if the order is bounded above (resp. below), then we can also make sense of the
 "unbounded" intervals `Ici`/`Ioi` (resp. `Iic`/`Iio`).
 
+Many theorems about these intervals can be found in `data.finset.locally_finite`.
+
 ## Examples
 
 Naturally occurring locally finite orders are `ℕ`, `ℤ`, `ℕ+`, `fin n`, `α × β` the product of two
@@ -185,116 +187,11 @@ locally_finite_order.finset_mem_Ioo a b x
 @[simp, norm_cast] lemma coe_Ioc (a b : α) : (Ioc a b : set α) = set.Ioc a b := by { ext, simp }
 @[simp, norm_cast] lemma coe_Ioo (a b : α) : (Ioo a b : set α) = set.Ioo a b := by { ext, simp }
 
-@[simp] lemma left_mem_Ioo : a ∈ Ioo a b ↔ false := by simp [lt_irrefl]
-@[simp] lemma left_mem_Ico : a ∈ Ico a b ↔ a < b := by simp [le_refl]
-@[simp] lemma left_mem_Icc : a ∈ Icc a b ↔ a ≤ b := by simp [le_refl]
-@[simp] lemma left_mem_Ioc : a ∈ Ioc a b ↔ false := by simp [lt_irrefl]
-@[simp] lemma right_mem_Ioo : b ∈ Ioo a b ↔ false := by simp [lt_irrefl]
-@[simp] lemma right_mem_Ico : b ∈ Ico a b ↔ false := by simp [lt_irrefl]
-@[simp] lemma right_mem_Icc : b ∈ Icc a b ↔ a ≤ b := by simp [le_refl]
-@[simp] lemma right_mem_Ioc : b ∈ Ioc a b ↔ a < b := by simp [le_refl]
-
-@[simp] lemma nonempty_Icc : (Icc a b).nonempty ↔ a ≤ b :=
-⟨λ ⟨x, hx⟩, by { rw [mem_Icc] at hx, apply hx.1.trans hx.2 }, λ h, ⟨a, by simpa⟩⟩
-
-@[simp] lemma nonempty_Ico : (Ico a b).nonempty ↔ a < b :=
-⟨λ ⟨x, hx⟩, by { rw [mem_Ico] at hx, apply hx.1.trans_lt hx.2 }, λ h, ⟨a, by simpa⟩⟩
-
-@[simp] lemma nonempty_Ioc : (Ioc a b).nonempty ↔ a < b :=
-⟨λ ⟨x, hx⟩, by { rw [mem_Ioc] at hx, apply hx.1.trans_le hx.2 }, λ h, ⟨b, by simpa⟩⟩
-
-@[simp] lemma Icc_eq_empty (h : ¬a ≤ b) : Icc a b = ∅ := by simp [←coe_eq_empty, h]
-@[simp] lemma Ico_eq_empty (h : ¬a < b) : Ico a b = ∅ := by simp [←coe_eq_empty, h]
-@[simp] lemma Ioc_eq_empty (h : ¬a < b) : Ioc a b = ∅ := by simp [←coe_eq_empty, h]
-@[simp] lemma Ioo_eq_empty (h : ¬a < b) : Ioo a b = ∅ := by simp [←coe_eq_empty, h]
-@[simp] lemma Icc_eq_empty_of_lt (h : b < a) : Icc a b = ∅ := Icc_eq_empty h.not_le
-@[simp] lemma Ico_eq_empty_of_le (h : b ≤ a) : Ico a b = ∅ := Ico_eq_empty h.not_lt
-@[simp] lemma Ioc_eq_empty_of_le (h : b ≤ a) : Ioc a b = ∅ := Ioc_eq_empty h.not_lt
-@[simp] lemma Ioo_eq_empty_of_le (h : b ≤ a) : Ioo a b = ∅ := Ioo_eq_empty h.not_lt
-
-@[simp] lemma Ico_self (a : α) : Ico a a = ∅ := Ico_eq_empty $ lt_irrefl _
-@[simp] lemma Ioc_self (a : α) : Ioc a a = ∅ := Ioc_eq_empty $ lt_irrefl _
-@[simp] lemma Ioo_self (a : α) : Ioo a a = ∅ := Ioo_eq_empty $ lt_irrefl _
-
-lemma Ioo_subset_Ioo (ha : a₂ ≤ a₁) (hb : b₁ ≤ b₂) : Ioo a₁ b₁ ⊆ Ioo a₂ b₂ :=
-by simpa [←coe_subset] using set.Ioo_subset_Ioo ha hb
-
-lemma Ioo_subset_Ioo_left (h : a₁ ≤ a₂) : Ioo a₂ b ⊆ Ioo a₁ b := Ioo_subset_Ioo h le_rfl
-lemma Ioo_subset_Ioo_right (h : b₁ ≤ b₂) : Ioo a b₁ ⊆ Ioo a b₂ := Ioo_subset_Ioo le_rfl h
-
-lemma Ico_subset_Ico (ha : a₂ ≤ a₁) (hb : b₁ ≤ b₂) : Ico a₁ b₁ ⊆ Ico a₂ b₂ :=
-by simpa [←coe_subset] using set.Ico_subset_Ico ha hb
-
-lemma Ico_subset_Ico_left (h : a₁ ≤ a₂) : Ico a₂ b ⊆ Ico a₁ b := Ico_subset_Ico h le_rfl
-lemma Ico_subset_Ico_right (h : b₁ ≤ b₂) : Ico a b₁ ⊆ Ico a b₂ := Ico_subset_Ico le_rfl h
-
-lemma Icc_subset_Icc (ha : a₂ ≤ a₁) (hb : b₁ ≤ b₂) : Icc a₁ b₁ ⊆ Icc a₂ b₂ :=
-by simpa [←coe_subset] using set.Icc_subset_Icc ha hb
-
-lemma Icc_subset_Icc_left (h : a₁ ≤ a₂) : Icc a₂ b ⊆ Icc a₁ b := Icc_subset_Icc h le_rfl
-lemma Icc_subset_Icc_right (h : b₁ ≤ b₂) : Icc a b₁ ⊆ Icc a b₂ := Icc_subset_Icc le_rfl h
-
-lemma Icc_subset_Ioo (ha : a₂ < a₁) (hb : b₁ < b₂) : Icc a₁ b₁ ⊆ Ioo a₂ b₂ :=
-by simpa [←coe_subset] using set.Icc_subset_Ioo ha hb
-
-lemma Ioc_subset_Ioc (ha : a₂ ≤ a₁) (hb : b₁ ≤ b₂) : Ioc a₁ b₁ ⊆ Ioc a₂ b₂ :=
-by simpa [←coe_subset] using set.Ioc_subset_Ioc ha hb
-
-lemma Ioc_subset_Ioc_left (h : a₁ ≤ a₂) : Ioc a₂ b ⊆ Ioc a₁ b := Ioc_subset_Ioc h le_rfl
-lemma Ioc_subset_Ioc_right (h : b₁ ≤ b₂) : Ioc a b₁ ⊆ Ioc a b₂ := Ioc_subset_Ioc le_rfl h
-
-lemma Ico_subset_Ioo_left (h : a₁ < a₂) : Ico a₂ b ⊆ Ioo a₁ b :=
-by { rw [←coe_subset, coe_Ico, coe_Ioo], exact set.Ico_subset_Ioo_left h }
-
-lemma Ioc_subset_Ioo_right (h : b₁ < b₂) : Ioc a b₁ ⊆ Ioo a b₂ :=
-by { rw [←coe_subset, coe_Ioc, coe_Ioo], exact set.Ioc_subset_Ioo_right h }
-
-lemma Icc_subset_Ico_right (h : b₁ < b₂) : Icc a b₁ ⊆ Ico a b₂ :=
-by { rw [←coe_subset, coe_Icc, coe_Ico], exact set.Icc_subset_Ico_right h }
-
-lemma Ioo_subset_Ico_self : Ioo a b ⊆ Ico a b :=
-by { rw [←coe_subset, coe_Ioo, coe_Ico], exact set.Ioo_subset_Ico_self }
-
-lemma Ioo_subset_Ioc_self : Ioo a b ⊆ Ioc a b :=
-by { rw [←coe_subset, coe_Ioo, coe_Ioc], exact set.Ioo_subset_Ioc_self }
-
-lemma Ico_subset_Icc_self : Ico a b ⊆ Icc a b :=
-by { rw [←coe_subset, coe_Ico, coe_Icc], exact set.Ico_subset_Icc_self }
-
-lemma Ioc_subset_Icc_self : Ioc a b ⊆ Icc a b :=
-by { rw [←coe_subset, coe_Ioc, coe_Icc], exact set.Ioc_subset_Icc_self }
-
-lemma Ioo_subset_Icc_self : Ioo a b ⊆ Icc a b := Ioo_subset_Ico_self.trans Ico_subset_Icc_self
-
-lemma Icc_subset_Icc_iff (h₁ : a₁ ≤ b₁) : Icc a₁ b₁ ⊆ Icc a₂ b₂ ↔ a₂ ≤ a₁ ∧ b₁ ≤ b₂ :=
-by rw [←coe_subset, coe_Icc, coe_Icc, set.Icc_subset_Icc_iff h₁]
-
-lemma Icc_subset_Ioo_iff (h₁ : a₁ ≤ b₁) : Icc a₁ b₁ ⊆ Ioo a₂ b₂ ↔ a₂ < a₁ ∧ b₁ < b₂ :=
-by rw [←coe_subset, coe_Icc, coe_Ioo, set.Icc_subset_Ioo_iff h₁]
-
-lemma Icc_subset_Ico_iff (h₁ : a₁ ≤ b₁) : Icc a₁ b₁ ⊆ Ico a₂ b₂ ↔ a₂ ≤ a₁ ∧ b₁ < b₂ :=
-by rw [←coe_subset, coe_Icc, coe_Ico, set.Icc_subset_Ico_iff h₁]
-
-lemma Icc_subset_Ioc_iff (h₁ : a₁ ≤ b₁) : Icc a₁ b₁ ⊆ Ioc a₂ b₂ ↔ a₂ < a₁ ∧ b₁ ≤ b₂ :=
-by rw [←coe_subset, coe_Icc, coe_Ioc, set.Icc_subset_Ioc_iff h₁]
-
-lemma Icc_ssubset_Icc_left (hI : a₂ ≤ b₂) (ha : a₂ < a₁) (hb : b₁ ≤ b₂) :
-  Icc a₁ b₁ ⊂ Icc a₂ b₂ :=
-by { rw [←coe_ssubset, coe_Icc, coe_Icc], exact set.Icc_ssubset_Icc_left hI ha hb }
-
-lemma Icc_ssubset_Icc_right (hI : a₂ ≤ b₂) (ha : a₂ ≤ a₁) (hb : b₁ < b₂) :
-  Icc a₁ b₁ ⊂ Icc a₂ b₂ :=
-by { rw [←coe_ssubset, coe_Icc, coe_Icc], exact set.Icc_ssubset_Icc_right hI ha hb }
-
 end preorder
 
 section partial_order
 
 variables [partial_order α] [locally_finite_order α] {a b c : α}
-
-@[simp] lemma Icc_self (a : α) : Icc a a = {a} := by simp [←finset.coe_inj]
-
-@[simp] lemma Icc_eq_singleton_iff : Icc a b = {c} ↔ a = c ∧ b = c := by simp [←finset.coe_inj]
 
 variables [decidable_eq α]
 

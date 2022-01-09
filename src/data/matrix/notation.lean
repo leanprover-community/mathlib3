@@ -26,8 +26,6 @@ already appears in the input.
 We reuse notation `![a, b]` for `vec_cons a (vec_cons b vec_empty)`. It is a localized notation in
 the `matrix` locale.
 
-The locale `matrix` further provides notation `⬝ᵥ` for `matrix.dot_product`.
-
 ## Examples
 
 Examples of usage can be found in the `test/matrix.lean` file.
@@ -234,21 +232,15 @@ by { ext i j, refine fin.cases _ _ i; simp [minor] }
 
 end minor
 
-section vec2_and_vec3_add
+section vec2_and_vec3
 
-variable [has_add α]
-
-lemma vec2_add {a₀ a₁ b₀ b₁ : α} :
+lemma vec2_add [has_add α] (a₀ a₁ b₀ b₁ : α) :
   ![a₀, a₁] + ![b₀, b₁] = ![a₀ + b₀, a₁ + b₁] :=
 by rw [cons_add_cons, cons_add_cons, empty_add_empty]
 
-lemma vec3_add {a₀ a₁ a₂ b₀ b₁ b₂ : α} :
+lemma vec3_add [has_add α] (a₀ a₁ a₂ b₀ b₁ b₂ : α) :
   ![a₀, a₁, a₂] + ![b₀, b₁, b₂] = ![a₀ + b₀, a₁ + b₁, a₂ + b₂] :=
 by rw [cons_add_cons, cons_add_cons, cons_add_cons, empty_add_empty]
-
-end vec2_and_vec3_add
-
-section vec2_and_vec3_dot
 
 variable [semiring α]
 
@@ -269,6 +261,6 @@ by rw [cons_dot_product_cons, cons_dot_product_cons, cons_dot_product_cons,
   v ⬝ᵥ w = v 0 * w 0 + v 1 * w 1 + v 2 * w 2 :=
 vec3_dot_product'
 
-end vec2_and_vec3_dot
+end vec2_and_vec3
 
 end matrix

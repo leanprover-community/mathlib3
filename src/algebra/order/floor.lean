@@ -131,6 +131,9 @@ lemma pos_of_floor_pos (h : 0 < ⌊a⌋₊) : 0 < a :=
 lemma lt_of_lt_floor (h : n < ⌊a⌋₊) : ↑n < a :=
 (nat.cast_lt.2 h).trans_le $ floor_le (pos_of_floor_pos $ (nat.zero_le n).trans_lt h).le
 
+lemma floor_le_of_le (h : a ≤ n) : ⌊a⌋₊ ≤ n :=
+le_of_not_lt (mt lt_of_lt_floor (not_lt_of_le h))
+
 @[simp] lemma floor_eq_zero : ⌊a⌋₊ = 0 ↔ a < 1 :=
 by { rw [←lt_one_iff, ←@cast_one α], exact floor_lt' nat.one_ne_zero }
 
@@ -603,6 +606,18 @@ instance _root_.floor_ring.to_floor_semiring : floor_semiring α :=
 lemma floor_to_nat (a : α) : ⌊a⌋.to_nat = ⌊a⌋₊ := rfl
 
 lemma ceil_to_nat  (a : α) : ⌈a⌉.to_nat = ⌈a⌉₊ := rfl
+
+lemma coe_nat_floor_eq_floor {a : α} (ha : 0 ≤ a) : (⌊a⌋₊ : ℤ) = ⌊a⌋ :=
+by { rw [←floor_to_nat, to_nat_of_nonneg], rwa floor_nonneg }
+
+lemma coe_nat_floor_eq_floor' {a : α} (hy : 0 ≤ a) : (⌊a⌋₊ : α) = ⌊a⌋ :=
+by rw [←coe_nat_floor_eq_floor hy, cast_coe_nat]
+
+lemma coe_nat_ceil_eq_ceil {a : α} (ha : 0 ≤ a) : (⌈a⌉₊ : ℤ) = ⌈a⌉ :=
+by { rw [←ceil_to_nat, to_nat_of_nonneg (ceil_nonneg ha)] }
+
+lemma coe_nat_ceil_eq_ceil' {a : α} (hy : 0 ≤ a) : (⌈a⌉₊ : α) = ⌈a⌉ :=
+by rw [←coe_nat_ceil_eq_ceil hy, cast_coe_nat]
 
 /-! #### Intervals -/
 

@@ -468,10 +468,7 @@ variables (ι' : finset ι)
 
 lemma seminorm_le_sup (p : ι → seminorm 𝕜 E) (ι' : finset ι) (i : ι) (hi : i ∈ ι') (x : E) :
   p i x ≤ ι'.sup p x :=
-begin
-  have h : p i ≤ ι'.sup p := @finset.le_sup _ _ _ _ _ p _ hi,
-  exact h x,
-end
+(finset.le_sup hi : p _ ≤ _) x
 
 lemma seminorm_sup_ball_int (p : ι → seminorm 𝕜 E) (ι' : finset ι) :
   ball (ι'.sup p) 0 1 = ⋂ (i ∈ ι'), ball (p i) (0 : E) 1 :=

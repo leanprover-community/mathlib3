@@ -249,7 +249,7 @@ begin
   exact (f.map_rel_iff.2 hlt).not_le hle,
 end
 
-theorem finite.partially_well_ordered_on [is_refl α r] {s : set α} (hs : finite s) :
+protected theorem finite.partially_well_ordered_on [is_refl α r] {s : set α} (hs : finite s) :
   partially_well_ordered_on s r :=
 begin
   intros g hg,
@@ -271,7 +271,7 @@ end
 by simp only [← singleton_union, partially_well_ordered_on_union,
   partially_well_ordered_on_singleton, true_and]
 
-theorem partially_well_ordered_on.insert [is_refl α r] (h : partially_well_ordered_on s r) (a : α) :
+protected theorem partially_well_ordered_on.insert [is_refl α r] (h : partially_well_ordered_on s r) (a : α) :
   partially_well_ordered_on (insert a s) r :=
 partially_well_ordered_on_insert.2 h
 
@@ -322,17 +322,17 @@ theorem finite.is_pwo (hs : finite s) : is_pwo s := hs.partially_well_ordered_on
 
 @[simp] theorem is_pwo_empty : is_pwo (∅ : set α) := finite_empty.is_pwo
 
-theorem subsingleton.is_pwo (hs : s.subsingleton) : is_pwo s := hs.finite.is_pwo
+protected theorem subsingleton.is_pwo (hs : s.subsingleton) : is_pwo s := hs.finite.is_pwo
 
 @[simp] theorem is_pwo_insert {a} : is_pwo (insert a s) ↔ is_pwo s :=
 by simp only [← singleton_union, is_pwo_union, is_pwo_singleton, true_and]
 
-theorem is_pwo.insert (h : is_pwo s) (a : α) : is_pwo (insert a s) := is_pwo_insert.2 h
+protected theorem is_pwo.insert (h : is_pwo s) (a : α) : is_pwo (insert a s) := is_pwo_insert.2 h
 
 theorem finite.is_wf (hs : finite s) : is_wf s := hs.is_pwo.is_wf
 @[simp] theorem is_wf_empty : is_wf (∅ : set α) := finite_empty.is_wf
 @[simp] theorem is_wf_singleton {a : α} : is_wf ({a} : set α) := (finite_singleton a).is_wf
-theorem subsingleton.is_wf (hs : s.subsingleton) : is_wf s := hs.is_pwo.is_wf
+protected theorem subsingleton.is_wf (hs : s.subsingleton) : is_wf s := hs.is_pwo.is_wf
 
 @[simp] theorem is_wf_insert {a} : is_wf (insert a s) ↔ is_wf s :=
 by simp only [← singleton_union, is_wf_union, is_wf_singleton, true_and]
@@ -355,7 +355,7 @@ finite_empty.well_founded_on
 @[simp] theorem well_founded_on_singleton : well_founded_on ({a} : set α) r :=
 (finite_singleton a).well_founded_on
 
-theorem subsingleton.well_founded_on (hs : s.subsingleton) :
+protected theorem subsingleton.well_founded_on (hs : s.subsingleton) :
   well_founded_on s r :=
 hs.finite.well_founded_on
 
@@ -367,7 +367,7 @@ well_founded_on_insert.2 h
 
 end well_founded_on
 
-theorem is_wf.is_pwo [linear_order α] {s : set α} (hs : s.is_wf) : s.is_pwo :=
+protected theorem is_wf.is_pwo [linear_order α] {s : set α} (hs : s.is_wf) : s.is_pwo :=
 begin
   intros f hf,
   lift f to ℕ → s using hf,
@@ -424,7 +424,7 @@ section preorder
 
 variables [preorder α] {s : set α} {a : α}
 
-@[simp] theorem fintype.is_pwo [fintype α] : s.is_pwo := (finite.of_fintype s).is_pwo
+@[simp] protected theorem fintype.is_pwo [fintype α] : s.is_pwo := (finite.of_fintype s).is_pwo
 
 /-- `is_wf.min` returns a minimal element of a nonempty well-founded set. -/
 noncomputable def is_wf.min (hs : is_wf s) (hn : s.nonempty) : α :=

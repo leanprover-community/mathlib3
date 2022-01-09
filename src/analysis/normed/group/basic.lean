@@ -417,8 +417,15 @@ lemma normed_group.tendsto_nhds_nhds {f : E → F} {x : E} {y : F} :
 by simp_rw [metric.tendsto_nhds_nhds, dist_eq_norm]
 
 lemma normed_group.cauchy_seq_iff [nonempty α] [semilattice_sup α] {u : α → E} :
-  cauchy_seq u ↔ ∀ ε > 0, ∃ N, ∀ m n, N ≤ m → N ≤ n → ∥u m - u n∥ < ε :=
+  cauchy_seq u ↔ ∀ ε > 0, ∃ N, ∀ m, N ≤ m → ∀ n, N ≤ n → ∥u m - u n∥ < ε :=
 by simp [metric.cauchy_seq_iff, dist_eq_norm]
+
+lemma normed_group.uniformity_basis_dist :
+  (𝓤 E).has_basis (λ (ε : ℝ), 0 < ε) (λ ε, {p : E × E | ∥p.fst - p.snd∥ < ε}) :=
+begin
+  convert metric.uniformity_basis_dist,
+  simp [dist_eq_norm]
+end
 
 open finset
 

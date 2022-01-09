@@ -201,7 +201,7 @@ section normed_ring
 
 variables [normed_ring α]
 
-lemma units.norm_pos [nontrivial α] (x : units α) : 0 < ∥(x:α)∥ :=
+lemma units.norm_pos [nontrivial α] (x : αˣ) : 0 < ∥(x:α)∥ :=
 norm_pos_iff.mpr (units.ne_zero x)
 
 /-- Normed ring structure on the product of two normed rings, using the sup norm. -/

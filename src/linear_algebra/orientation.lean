@@ -214,14 +214,14 @@ section action
 variables {G : Type*} [group G] [nontrivial R] [distrib_mul_action G M] [smul_comm_class R G M]
 
 /-- Any invertible action preserves the non-zeroness of ray vectors. This is primarily of interest
-when `G = units R` -/
+when `G = Rˣ` -/
 instance : mul_action G (ray_vector M) :=
 { smul := λ r, (subtype.map ((•) r) $ λ a, (smul_ne_zero_iff_ne _).2),
   mul_smul := λ a b m, subtype.ext $ mul_smul a b _,
   one_smul := λ m, subtype.ext $ one_smul _ _ }
 
 /-- Any invertible action preserves the non-zeroness of rays. This is primarily of interest when
-`G = units R` -/
+`G = Rˣ` -/
 instance : mul_action G (module.ray R M) :=
 { smul := λ r, quotient.map ((•) r) (λ a b, same_ray.smul _),
   mul_smul := λ a b, quotient.ind $ by exact(λ m, congr_arg quotient.mk $ mul_smul a b _),
@@ -239,7 +239,7 @@ end action
 namespace module.ray
 
 /-- Scaling by a positive unit is a no-op. -/
-lemma units_smul_of_pos [nontrivial R] (u : units R) (hu : 0 < (u : R)) (v : module.ray R M) :
+lemma units_smul_of_pos [nontrivial R] (u : Rˣ) (hu : 0 < (u : R)) (v : module.ray R M) :
   u • v = v :=
 begin
   induction v using module.ray.ind,
@@ -351,7 +351,7 @@ begin
 end
 
 /-- Scaling by a negative unit is negation. -/
-lemma units_smul_of_neg [nontrivial R] (u : units R) (hu : (u : R) < 0) (v : module.ray R M) :
+lemma units_smul_of_neg [nontrivial R] (u : Rˣ) (hu : (u : R) < 0) (v : module.ray R M) :
   u • v = -v :=
 begin
   induction v using module.ray.ind,
@@ -415,12 +415,12 @@ begin
 end
 
 /-- Scaling by an inverse unit is the same as scaling by itself. -/
-@[simp] lemma units_inv_smul (u : units R) (v : module.ray R M) :
+@[simp] lemma units_inv_smul (u : Rˣ) (v : module.ray R M) :
   u⁻¹ • v = u • v :=
 begin
   induction v using module.ray.ind with v hv,
   rw [smul_ray_of_ne_zero, smul_ray_of_ne_zero, ray_eq_iff],
-  have : ∀ {u : units R}, 0 < (u : R) → same_ray R (u⁻¹ • v) (u • v) :=
+  have : ∀ {u : Rˣ}, 0 < (u : R) → same_ray R (u⁻¹ • v) (u • v) :=
     λ u h, ((same_ray.refl v).pos_smul_left $ units.inv_pos.mpr h).pos_smul_right h,
   cases lt_or_lt_iff_ne.2 u.ne_zero,
   { rw [←units.neg_neg u, units.neg_inv, (- u).neg_smul, units.neg_smul],
@@ -477,7 +477,7 @@ end
 
 /-- A nonzero vector is in the same ray as a multiple of itself if and only if that multiple
 is positive. -/
-@[simp] lemma units_smul_eq_self_iff {u : units R} {v : module.ray R M} :
+@[simp] lemma units_smul_eq_self_iff {u : Rˣ} {v : module.ray R M} :
   u • v = v ↔ (0 : R) < u :=
 begin
   induction v using module.ray.ind with v hv,
@@ -487,7 +487,7 @@ end
 
 /-- A nonzero vector is in the same ray as a multiple of itself if and only if that multiple
 is positive. -/
-@[simp] lemma units_smul_eq_neg_iff {u : units R} {v : module.ray R M} :
+@[simp] lemma units_smul_eq_neg_iff {u : Rˣ} {v : module.ray R M} :
   u • v = -v ↔ ↑u < (0 : R) :=
 begin
   induction v using module.ray.ind with v hv,

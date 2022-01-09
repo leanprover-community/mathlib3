@@ -22,7 +22,7 @@ variables {α : Type*}
 
 namespace finset
 section preorder
-variables [preorder α] [locally_finite_order α] {a b : α}
+variables [preorder α] [locally_finite_order α] {a a₁ a₂ b b₁ b₂ x : α}
 
 @[simp] lemma nonempty_Icc : (Icc a b).nonempty ↔ a ≤ b :=
 by rw [←coe_nonempty, coe_Icc, set.nonempty_Icc]
@@ -234,17 +234,29 @@ by rw [←coe_eq_singleton, coe_Icc, set.Icc_eq_singleton_iff]
 section decidable_eq
 variables [decidable_eq α]
 
-lemma Icc_erase_left : (Icc a b).erase a = Ioc a b :=
-by rw [←coe_inj, coe_erase, coe_Icc, coe_Ioc, set.Icc_diff_left]
-
-lemma Icc_erase_right : (Icc a b).erase b = Ico a b :=
-by rw [←coe_inj, coe_erase, coe_Icc, coe_Ico, set.Icc_diff_right]
+@[simp] lemma Icc_erase_left : (Icc a b).erase a = Ioc a b := by simp [←coe_inj]
+@[simp] lemma Icc_erase_right : (Icc a b).erase b = Ico a b := by simp [←coe_inj]
+@[simp] lemma Ico_erase_left : (Ico a b).erase a = Ioo a b := by simp [←coe_inj]
+@[simp] lemma Ioc_erase_right : (Ioc a b).erase b = Ioo a b := by simp [←coe_inj]
+@[simp] lemma Icc_diff_both : Icc a b \ {a, b} = Ioo a b := by simp [←coe_inj]
 
 lemma Ico_insert_right (h : a ≤ b) : insert b (Ico a b) = Icc a b :=
 by rw [←coe_inj, coe_insert, coe_Icc, coe_Ico, set.insert_eq, set.union_comm, set.Ico_union_right h]
 
 lemma Ioo_insert_left (h : a < b) : insert a (Ioo a b) = Ico a b :=
 by rw [←coe_inj, coe_insert, coe_Ioo, coe_Ico, set.insert_eq, set.union_comm, set.Ioo_union_left h]
+
+lemma Ioo_insert_right (h : a < b) : insert b (Ioo a b) = Ioc a b :=
+by rw [←coe_inj, coe_insert, coe_Ioo, coe_Ioc, set.insert_eq, set.union_comm, set.Ioo_union_right h]
+
+lemma Ioc_union_left (h : a ≤ b) : insert a (Ioc a b) = Icc a b :=
+by rw [←coe_inj, coe_insert, coe_Ioc, coe_Icc, set.insert_eq, set.union_comm, set.Ioc_union_left h]
+
+@[simp] lemma Ico_diff_Ioo_same (h : a < b) : Ico a b \ Ioo a b = {a} := by simp [←coe_inj, h]
+@[simp] lemma Ioc_diff_Ioo_same (h : a < b) : Ioc a b \ Ioo a b = {b} := by simp [←coe_inj, h]
+@[simp] lemma Icc_diff_Ico_same (h : a ≤ b) : Icc a b \ Ico a b = {b} := by simp [←coe_inj, h]
+@[simp] lemma Icc_diff_Ioc_same (h : a ≤ b) : Icc a b \ Ioc a b = {a} := by simp [←coe_inj, h]
+@[simp] lemma Icc_diff_Ioo_same (h : a ≤ b) : Icc a b \ Ioo a b = {a, b} := by simp [←coe_inj, h]
 
 @[simp] lemma Ico_inter_Ico_consecutive (a b c : α) : Ico a b ∩ Ico b c = ∅ :=
 begin
@@ -427,16 +439,16 @@ begin
     exact ⟨a + y, mem_Ioo.2 ⟨lt_of_add_lt_add_left hx.1, lt_of_add_lt_add_left hx.2⟩, hy.symm⟩ }
 end
 
-lemma image_add_right_Icc (a b c : α) : (Icc a b).image (λ x, x + c) = Icc (a + c) (b + c) :=
+lemma image_add_right_Icc (a b c : α) : (Icc a b).image (+ c) = Icc (a + c) (b + c) :=
 by { simp_rw add_comm _ c, exact image_add_left_Icc a b c }
 
-lemma image_add_right_Ico (a b c : α) : (Ico a b).image (λ x, x + c) = Ico (a + c) (b + c) :=
+lemma image_add_right_Ico (a b c : α) : (Ico a b).image (+ c) = Ico (a + c) (b + c) :=
 by { simp_rw add_comm _ c, exact image_add_left_Ico a b c }
 
-lemma image_add_right_Ioc (a b c : α) : (Ioc a b).image (λ x, x + c) = Ioc (a + c) (b + c) :=
+lemma image_add_right_Ioc (a b c : α) : (Ioc a b).image (+ c) = Ioc (a + c) (b + c) :=
 by { simp_rw add_comm _ c, exact image_add_left_Ioc a b c }
 
-lemma image_add_right_Ioo (a b c : α) : (Ioo a b).image (λ x, x + c) = Ioo (a + c) (b + c) :=
+lemma image_add_right_Ioo (a b c : α) : (Ioo a b).image (+ c) = Ioo (a + c) (b + c) :=
 by { simp_rw add_comm _ c, exact image_add_left_Ioo a b c }
 
 end ordered_cancel_add_comm_monoid

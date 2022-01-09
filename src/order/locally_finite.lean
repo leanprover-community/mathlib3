@@ -189,46 +189,6 @@ locally_finite_order.finset_mem_Ioo a b x
 
 end preorder
 
-section partial_order
-
-variables [partial_order α] [locally_finite_order α] {a b c : α}
-
-variables [decidable_eq α]
-
-@[simp] lemma Icc_diff_left : Icc a b \ {a} = Ioc a b := by simp [←finset.coe_inj]
-@[simp] lemma Icc_diff_right : Icc a b \ {b} = Ico a b := by simp [←finset.coe_inj]
-@[simp] lemma Ico_diff_left : Ico a b \ {a} = Ioo a b := by simp [←finset.coe_inj]
-@[simp] lemma Ioc_diff_right : Ioc a b \ {b} = Ioo a b := by simp [←finset.coe_inj]
-@[simp] lemma Icc_diff_both : Icc a b \ {a, b} = Ioo a b := by simp [←finset.coe_inj]
-@[simp] lemma Ico_diff_Ioo_same (h : a < b) : Ico a b \ Ioo a b = {a} :=
-by simp [←finset.coe_inj, h]
-
-@[simp] lemma Ioc_diff_Ioo_same (h : a < b) : Ioc a b \ Ioo a b = {b} :=
-by simp [←finset.coe_inj, h]
-
-@[simp] lemma Icc_diff_Ico_same (h : a ≤ b) : Icc a b \ Ico a b = {b} :=
-by simp [←finset.coe_inj, h]
-
-@[simp] lemma Icc_diff_Ioc_same (h : a ≤ b) : Icc a b \ Ioc a b = {a} :=
-by simp [←finset.coe_inj, h]
-
-@[simp] lemma Icc_diff_Ioo_same (h : a ≤ b) : Icc a b \ Ioo a b = {a, b} :=
-by simp [←finset.coe_inj, h]
-
-lemma Ioo_union_left (hab : a < b) : Ioo a b ∪ {a} = Ico a b :=
-by simp only [←finset.coe_inj, coe_Ioo, coe_Ico, coe_singleton, coe_union, set.Ioo_union_left hab]
-
-lemma Ioo_union_right (hab : a < b) : Ioo a b ∪ {b} = Ioc a b :=
-by simp only [←finset.coe_inj, coe_Ioo, coe_Ioc, coe_singleton, coe_union, set.Ioo_union_right hab]
-
-lemma Ioc_union_left (hab : a ≤ b) : Ioc a b ∪ {a} = Icc a b :=
-by simp only [←finset.coe_inj, coe_Icc, coe_Ioc, coe_singleton, coe_union, set.Ioc_union_left hab]
-
-lemma Ico_union_right (hab : a ≤ b) : Ico a b ∪ {b} = Icc a b :=
-by simp only [←finset.coe_inj, coe_Icc, coe_Ico, coe_singleton, coe_union, set.Ico_union_right hab]
-
-end partial_order
-
 section order_top
 variables [preorder α] [order_top α] [locally_finite_order α]
 

@@ -473,8 +473,6 @@ begin
 end
 
 
--- Show that this is a seminorm
--- Show that its unit ball is given by intersection
 lemma seminorm_sup_ball_int (p : ι → seminorm 𝕜 E) (ι' : finset ι) :
   ball (seminorm_sup_finset p ι') 0 1 = ⋂ (i ∈ ι'), ball (p i) (0 : E) 1 :=
 begin
@@ -483,16 +481,14 @@ begin
   rw seminorm_sup_finset_coe_to_fun,
   simp,
   split,
-  {
-    intros hx i hi,
+  { intros hx i hi,
     have hp : (p i x).to_nnreal < 1 := lt_of_le_of_lt (seminorm_sup_le_aux p ι' i hi x) hx,
     rw [←nnreal.coe_lt_coe, (p i x).coe_to_nnreal ((p i).nonneg x)] at hp,
     exact hp,
   },
   intros hx,
   rw [←nnreal.coe_one, nnreal.coe_lt_coe, finset.sup_lt_iff],
-  {
-    intros i' hi',
+  { intros i' hi',
     have hp : p i' x < 1 := hx i' hi',
     rw [←nnreal.coe_lt_coe, (p i' x).coe_to_nnreal ((p i').nonneg x)],
     exact hp,

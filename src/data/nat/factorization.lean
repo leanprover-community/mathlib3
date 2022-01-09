@@ -159,7 +159,7 @@ begin
     convert (factorization_disjoint_of_coprime hab) },
 end
 
-@[simp] lemma factorization_prod_pow_eq_self (n : ℕ) (hn : 0 < n) : n.factorization.prod pow = n :=
+@[simp] lemma factorization_prod_pow_eq_self {n : ℕ} (hn : 0 < n) : n.factorization.prod pow = n :=
 by simpa only using (multiplicative_factorization id (by simp) (by simp) hn).symm
 
 end nat

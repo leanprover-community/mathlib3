@@ -146,8 +146,8 @@ cycle_induction_on (λ τ : perm α, τ.cycle_type.sum = τ.support.card) σ
   (λ σ τ hστ hc hσ hτ, by rw [hστ.cycle_type, sum_add, hσ, hτ, hστ.card_support_mul])
 
 lemma sign_of_cycle_type (σ : perm α) :
-  sign σ = (σ.cycle_type.map (λ n, -(-1 : units ℤ) ^ n)).prod :=
-cycle_induction_on (λ τ : perm α, sign τ = (τ.cycle_type.map (λ n, -(-1 : units ℤ) ^ n)).prod) σ
+  sign σ = (σ.cycle_type.map (λ n, -(-1 : ℤˣ) ^ n)).prod :=
+cycle_induction_on (λ τ : perm α, sign τ = (τ.cycle_type.map (λ n, -(-1 : ℤˣ) ^ n)).prod) σ
   (by rw [sign_one, cycle_type_one, multiset.map_zero, prod_zero])
   (λ σ hσ, by rw [hσ.sign, hσ.cycle_type, coe_map, coe_prod,
     list.map_singleton, list.prod_singleton])

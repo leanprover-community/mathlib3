@@ -3,7 +3,6 @@ Copyright (c) 2020 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Mario Carneiro, Yury G. Kudryashov
 -/
-import data.sum.basic
 import order.basic
 
 /-!
@@ -21,7 +20,17 @@ variables {α : Type u} {β : Type v} {r : α → α → Prop} {s : β → β �
 
 open function
 
+/-- A version of `antisymm` with `r` explicit.
+
+This lemma matches the lemmas from lean core in `init.algebra.classes`, but is missing there.  -/
+@[elab_simple]
+lemma antisymm_of (r : α → α → Prop) [is_antisymm α r] {a b : α} : r a b → r b a → a = b := antisymm
+
 lemma comm [is_symm α r] {a b : α} : r a b ↔ r b a := ⟨symm, symm⟩
+
+/-- A version of `comm` with `r` explicit.
+
+This lemma matches the lemmas from lean core in `init.algebra.classes`, but is missing there.  -/
 lemma comm_of (r : α → α → Prop) [is_symm α r] {a b : α} : r a b ↔ r b a := comm
 
 theorem is_refl.swap (r) [is_refl α r] : is_refl α (swap r) := ⟨refl_of r⟩
@@ -243,13 +252,6 @@ instance empty_relation.is_well_order [subsingleton α] : is_well_order α empty
   wf           := ⟨λ a, ⟨_, λ y, false.elim⟩⟩ }
 
 instance nat.lt.is_well_order : is_well_order ℕ (<) := ⟨nat.lt_wf⟩
-
-instance sum.lex.is_well_order [is_well_order α r] [is_well_order β s] :
-  is_well_order (α ⊕ β) (sum.lex r s) :=
-{ trichotomous := λ a b, by cases a; cases b; simp; apply trichotomous,
-  irrefl       := λ a, by cases a; simp; apply irrefl,
-  trans        := λ a b c, by cases a; cases b; simp; cases c; simp; apply trans,
-  wf           := sum.lex_wf is_well_order.wf is_well_order.wf }
 
 instance prod.lex.is_well_order [is_well_order α r] [is_well_order β s] :
   is_well_order (α × β) (prod.lex r s) :=

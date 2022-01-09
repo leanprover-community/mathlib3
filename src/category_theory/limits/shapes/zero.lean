@@ -205,7 +205,7 @@ instance {X : C} (f : X ⟶ 0) : epi f :=
     asks for an instance of `has_zero_objects`. -/
 def zero_morphisms_of_zero_object : has_zero_morphisms C :=
 { has_zero := λ X Y,
-  { zero := inhabited.default },
+  { zero := (default : X ⟶ 0) ≫ default },
   zero_comp' := λ X Y Z f, by { dunfold has_zero.zero, rw category.assoc, congr, },
   comp_zero' := λ X Y Z f, by { dunfold has_zero.zero, rw ←category.assoc, congr, }}
 

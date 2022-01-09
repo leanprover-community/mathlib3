@@ -79,7 +79,7 @@ lemma fin.eq_zero : ∀ n : fin 1, n = 0
 instance {n : ℕ} : inhabited (fin n.succ) := ⟨0⟩
 instance inhabited_fin_one_add (n : ℕ) : inhabited (fin (1 + n)) := ⟨⟨0, nat.zero_lt_one_add n⟩⟩
 
-@[simp] lemma fin.default_eq_zero (n : ℕ) : default = 0 := rfl
+@[simp] lemma fin.default_eq_zero (n : ℕ) : (default : fin n.succ) = 0 := rfl
 
 instance fin.unique : unique (fin 1) :=
 { uniq := fin.eq_zero, .. fin.inhabited }

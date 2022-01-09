@@ -1489,7 +1489,7 @@ instance : monad id :=
      fs ← expanded_field_list cl,
      let fs := fs.map prod.snd,
      let fs := format.intercalate (",\n  " : format) $ fs.map (λ fn, format!"{fn} := _"),
-     let out := format.to_string format!"{{ {fs} }",
+     let out := format.to_string format!"{{ {fs} }}",
      return [(out,"")] }
 
 add_tactic_doc
@@ -1708,7 +1708,7 @@ sum.inr : ℕ → ℤ ⊕ ℕ
             c ← strip_prefix c,
             pure format!"\n{c} : {t}\n" },
      fs ← format.intercalate ", " <$> cs.mmap (strip_prefix >=> pure ∘ to_fmt),
-     let out := format.to_string format!"{{! {fs} !}",
+     let out := format.to_string format!"{{! {fs} !}}",
      trace (format.join ts).to_string,
      return [(out,"")] }
 

@@ -71,9 +71,9 @@ variables {α α' β β' γ E : Type*}
 lemma is_pi_system.prod {C : set (set α)} {D : set (set β)} (hC : is_pi_system C)
   (hD : is_pi_system D) : is_pi_system (image2 (×ˢ) C D) :=
 begin
-  rintro _ _ ⟨s₁, t₁, hs₁, ht₁, rfl⟩ ⟨s₂, t₂, hs₂, ht₂, rfl⟩ hst,
+  rintro _ ⟨s₁, t₁, hs₁, ht₁, rfl⟩ _ ⟨s₂, t₂, hs₂, ht₂, rfl⟩ hst,
   rw [prod_inter_prod] at hst ⊢, rw [prod_nonempty_iff] at hst,
-  exact mem_image2_of_mem (hC _ _ hs₁ hs₂ hst.1) (hD _ _ ht₁ ht₂ hst.2)
+  exact mem_image2_of_mem (hC _ hs₁ _ hs₂ hst.1) (hD _ ht₁ _ ht₂ hst.2)
 end
 
 /-- Rectangles of countably spanning sets are countably spanning. -/

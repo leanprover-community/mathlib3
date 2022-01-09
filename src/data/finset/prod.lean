@@ -110,6 +110,10 @@ let ⟨xy, hxy⟩ := h in ⟨xy.2, (mem_product.1 hxy).2⟩
 @[simp] lemma nonempty_product : (s.product t).nonempty ↔ s.nonempty ∧ t.nonempty :=
 ⟨λ h, ⟨h.fst, h.snd⟩, λ h, h.1.product h.2⟩
 
+@[simp] lemma product_eq_empty {s : finset α} {t : finset β} : s.product t = ∅ ↔ s = ∅ ∨ t = ∅ :=
+by rw [←not_nonempty_iff_eq_empty, nonempty_product, not_and_distrib, not_nonempty_iff_eq_empty,
+  not_nonempty_iff_eq_empty]
+
 @[simp] lemma singleton_product {a : α} :
   ({a} : finset α).product t = t.map ⟨prod.mk a, prod.mk.inj_left _⟩ :=
 by { ext ⟨x, y⟩, simp [and.left_comm, eq_comm] }
@@ -171,6 +175,11 @@ end
 @[simp] lemma diag_empty : (∅ : finset α).diag = ∅ := rfl
 
 @[simp] lemma off_diag_empty : (∅ : finset α).off_diag = ∅ := rfl
+
+@[simp] lemma diag_union_off_diag : s.diag ∪ s.off_diag = s.product s :=
+filter_union_filter_neg_eq _ _
+
+@[simp] lemma disjoint_diag_off_diag : disjoint s.diag s.off_diag := disjoint_filter_filter_neg _ _
 
 end diag
 end finset

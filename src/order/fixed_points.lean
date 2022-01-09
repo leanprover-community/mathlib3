@@ -36,15 +36,15 @@ namespace order_hom
 
 section basic
 
-variables [complete_lattice α] (f : α →ₘ α)
+variables [complete_lattice α] (f : α →o α)
 
 /-- Least fixed point of a monotone function -/
-def lfp : (α →ₘ α) →ₘ α :=
+def lfp : (α →o α) →o α :=
 { to_fun := λ f, Inf {a | f a ≤ a},
   monotone' := λ f g hle, Inf_le_Inf $ λ a ha, (hle a).trans ha }
 
 /-- Greatest fixed point of a monotone function -/
-def gfp : (α →ₘ α) →ₘ α :=
+def gfp : (α →o α) →o α :=
 { to_fun := λ f, Sup {a | a ≤ f a},
   monotone' := λ f g hle, Sup_le_Sup $ λ a ha, le_trans ha (hle a) }
 
@@ -114,7 +114,7 @@ end basic
 
 section eqn
 
-variables [complete_lattice α] [complete_lattice β] (f : β →ₘ α) (g : α →ₘ β)
+variables [complete_lattice α] [complete_lattice β] (f : β →o α) (g : α →o β)
 
 -- Rolling rule
 lemma map_lfp_comp : f (lfp (g.comp f)) = lfp (f.comp g) :=
@@ -125,7 +125,7 @@ lemma map_gfp_comp : f ((g.comp f).gfp) = (f.comp g).gfp :=
 f.dual.map_lfp_comp g.dual
 
 -- Diagonal rule
-lemma lfp_lfp (h : α →ₘ α →ₘ α) :
+lemma lfp_lfp (h : α →o α →o α) :
   lfp (lfp.comp h) = lfp h.on_diag :=
 begin
   let a := lfp (lfp.comp h),
@@ -137,7 +137,7 @@ begin
          ... = a               : ha
 end
 
-lemma gfp_gfp (h : α →ₘ α →ₘ α) :
+lemma gfp_gfp (h : α →o α →o α) :
   gfp (gfp.comp h) = gfp h.on_diag :=
 @lfp_lfp (order_dual α) _ $ (order_hom.dual_iso (order_dual α)
   (order_dual α)).symm.to_order_embedding.to_order_hom.comp h.dual
@@ -145,7 +145,7 @@ lemma gfp_gfp (h : α →ₘ α →ₘ α) :
 end eqn
 
 section prev_next
-variables [complete_lattice α] (f : α →ₘ α)
+variables [complete_lattice α] (f : α →o α)
 
 lemma gfp_const_inf_le (x : α) : gfp (const α x ⊓ f) ≤ x :=
 gfp_le _ $ λ b hb, hb.trans inf_le_left
@@ -209,7 +209,7 @@ namespace fixed_points
 
 open order_hom
 
-variables [complete_lattice α] (f : α →ₘ α)
+variables [complete_lattice α] (f : α →o α)
 
 instance : semilattice_sup (fixed_points f) :=
 { sup := λ x y, f.next_fixed (x ⊔ y) (f.le_map_sup_fixed_points x y),

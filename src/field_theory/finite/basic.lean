@@ -38,8 +38,8 @@ and `q` is notation for the cardinality of `K`.
 
 ## Implementation notes
 
-While `fintype (units K)` can be inferred from `fintype K` in the presence of `decidable_eq K`,
-in this file we take the `fintype (units K)` argument directly to reduce the chance of typeclass
+While `fintype Kˣ` can be inferred from `fintype K` in the presence of `decidable_eq K`,
+in this file we take the `fintype Kˣ` argument directly to reduce the chance of typeclass
 diamonds, as `fintype` carries data.
 
 -/
@@ -97,16 +97,16 @@ calc 2 * ((univ.image (λ x : R, eval x f)) ∪ (univ.image (λ x : R, eval x (-
 
 end polynomial
 
-lemma prod_univ_units_id_eq_neg_one [comm_ring K] [is_domain K] [fintype (units K)] :
-  (∏ x : units K, x) = (-1 : units K) :=
+lemma prod_univ_units_id_eq_neg_one [comm_ring K] [is_domain K] [fintype Kˣ] :
+  (∏ x : Kˣ, x) = (-1 : Kˣ) :=
 begin
   classical,
-  have : (∏ x in (@univ (units K) _).erase (-1), x) = 1,
+  have : (∏ x in (@univ Kˣ _).erase (-1), x) = 1,
   from prod_involution (λ x _, x⁻¹) (by simp)
     (λ a, by simp [units.inv_eq_self_iff] {contextual := tt})
     (λ a, by simp [@inv_eq_iff_inv_eq _ _ a, eq_comm] {contextual := tt})
     (by simp),
-  rw [← insert_erase (mem_univ (-1 : units K)), prod_insert (not_mem_erase _ _),
+  rw [← insert_erase (mem_univ (-1 : Kˣ)), prod_insert (not_mem_erase _ _),
       this, mul_one]
 end
 
@@ -114,7 +114,7 @@ section
 variables [group_with_zero K] [fintype K]
 
 lemma pow_card_sub_one_eq_one (a : K) (ha : a ≠ 0) : a ^ (q - 1) = 1 :=
-calc a ^ (fintype.card K - 1) = (units.mk0 a ha ^ (fintype.card K - 1) : units K) :
+calc a ^ (fintype.card K - 1) = (units.mk0 a ha ^ (fintype.card K - 1) : Kˣ) :
     by rw [units.coe_pow, units.coe_mk0]
   ... = 1 : by { classical, rw [← fintype.card_units, pow_card_eq_one], refl }
 
@@ -165,10 +165,10 @@ begin
 end
 
 lemma forall_pow_eq_one_iff (i : ℕ) :
-  (∀ x : units K, x ^ i = 1) ↔ q - 1 ∣ i :=
+  (∀ x : Kˣ, x ^ i = 1) ↔ q - 1 ∣ i :=
 begin
   classical,
-  obtain ⟨x, hx⟩ := is_cyclic.exists_generator (units K),
+  obtain ⟨x, hx⟩ := is_cyclic.exists_generator Kˣ,
   rw [←fintype.card_units, ←order_of_eq_card_of_forall_mem_zpowers hx, order_of_dvd_iff_pow_eq_one],
   split,
   { intro h, apply h },
@@ -180,15 +180,15 @@ end
 
 /-- The sum of `x ^ i` as `x` ranges over the units of a finite field of cardinality `q`
 is equal to `0` unless `(q - 1) ∣ i`, in which case the sum is `q - 1`. -/
-lemma sum_pow_units [fintype (units K)] (i : ℕ) :
-  ∑ x : units K, (x ^ i : K) = if (q - 1) ∣ i then -1 else 0 :=
+lemma sum_pow_units [fintype Kˣ] (i : ℕ) :
+  ∑ x : Kˣ, (x ^ i : K) = if (q - 1) ∣ i then -1 else 0 :=
 begin
-  let φ : units K →* K :=
+  let φ : Kˣ →* K :=
   { to_fun   := λ x, x ^ i,
     map_one' := by rw [units.coe_one, one_pow],
     map_mul' := by { intros, rw [units.coe_mul, mul_pow] } },
   haveI : decidable (φ = 1), { classical, apply_instance },
-  calc ∑ x : units K, φ x = if φ = 1 then fintype.card (units K) else 0 : sum_hom_units φ
+  calc ∑ x : Kˣ, φ x = if φ = 1 then fintype.card Kˣ else 0 : sum_hom_units φ
                       ... = if (q - 1) ∣ i then -1 else 0 : _,
   suffices : (q - 1) ∣ i ↔ φ = 1,
   { simp only [this],
@@ -210,7 +210,7 @@ begin
   { simp only [hi, nsmul_one, sum_const, pow_zero, card_univ, cast_card_eq_zero], },
   classical,
   have hiq : ¬ (q - 1) ∣ i, { contrapose! h,  exact nat.le_of_dvd (nat.pos_of_ne_zero hi) h },
-  let φ : units K ↪ K := ⟨coe, units.ext⟩,
+  let φ : Kˣ ↪ K := ⟨coe, units.ext⟩,
   have : univ.map φ = univ \ {0},
   { ext x,
     simp only [true_and, embedding.coe_fn_mk, mem_sdiff, units.exists_iff_ne_zero,
@@ -218,7 +218,7 @@ begin
   calc ∑ x : K, x ^ i = ∑ x in univ \ {(0 : K)}, x ^ i :
     by rw [← sum_sdiff ({0} : finset K).subset_univ, sum_singleton,
            zero_pow (nat.pos_of_ne_zero hi), add_zero]
-    ... = ∑ x : units K, x ^ i : by { rw [← this, univ.sum_map φ], refl }
+    ... = ∑ x : Kˣ, x ^ i : by { rw [← this, univ.sum_map φ], refl }
     ... = 0 : by { rw [sum_pow_units K i, if_neg], exact hiq, }
 end
 
@@ -354,7 +354,7 @@ open zmod
 
 /-- The **Fermat-Euler totient theorem**. `nat.modeq.pow_totient` is an alternative statement
   of the same theorem. -/
-@[simp] lemma zmod.pow_totient {n : ℕ} [fact (0 < n)] (x : units (zmod n)) : x ^ φ n = 1 :=
+@[simp] lemma zmod.pow_totient {n : ℕ} [fact (0 < n)] (x : (zmod n)ˣ) : x ^ φ n = 1 :=
 by rw [← card_units_eq_totient, pow_card_eq_one]
 
 /-- The **Fermat-Euler totient theorem**. `zmod.pow_totient` is an alternative statement
@@ -404,11 +404,11 @@ end
   frobenius (zmod p) p = ring_hom.id _ :=
 by { ext a, rw [frobenius_def, zmod.pow_card, ring_hom.id_apply] }
 
-@[simp] lemma card_units (p : ℕ) [fact p.prime] : fintype.card (units (zmod p)) = p - 1 :=
+@[simp] lemma card_units (p : ℕ) [fact p.prime] : fintype.card ((zmod p)ˣ) = p - 1 :=
 by rw [fintype.card_units, card]
 
 /-- **Fermat's Little Theorem**: for every unit `a` of `zmod p`, we have `a ^ (p - 1) = 1`. -/
-theorem units_pow_card_sub_one_eq_one (p : ℕ) [fact p.prime] (a : units (zmod p)) :
+theorem units_pow_card_sub_one_eq_one (p : ℕ) [fact p.prime] (a : (zmod p)ˣ) :
   a ^ (p - 1) = 1 :=
 by rw [← card_units p, pow_card_eq_one]
 

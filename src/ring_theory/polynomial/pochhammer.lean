@@ -12,7 +12,7 @@ import data.polynomial.eval
 We define and prove some basic relations about
 `pochhammer S n : polynomial S := X * (X + 1) * ... * (X + n - 1)`
 which is also known as the rising factorial. A version of this definition
-that is focused on `nat` can be found in `data.nat.factorial` as `asc_factorial`.
+that is focused on `nat` can be found in `data.nat.factorial` as `nat.asc_factorial`.
 
 ## Implementation
 

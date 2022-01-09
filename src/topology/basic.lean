@@ -76,7 +76,7 @@ def topological_space.of_closed {α : Type u} (T : set (set α))
   topological_space α :=
 { is_open := λ X, Xᶜ ∈ T,
   is_open_univ := by simp [empty_mem],
-  is_open_inter := λ s t hs ht, by simpa [set.compl_inter] using union_mem sᶜ tᶜ hs ht,
+  is_open_inter := λ s t hs ht, by simpa [set.compl_inter] using union_mem sᶜ hs tᶜ ht,
   is_open_sUnion := λ s hs,
     by rw set.compl_sUnion; exact sInter_mem (set.compl '' s)
     (λ z ⟨y, hy, hz⟩, by simpa [hz.symm] using hs y hy) }
@@ -909,6 +909,18 @@ theorem is_open_iff_ultrafilter {s : set α} :
   is_open s ↔ (∀ (x ∈ s) (l : ultrafilter α), ↑l ≤ 𝓝 x → s ∈ l) :=
 by simp_rw [is_open_iff_mem_nhds, ← mem_iff_ultrafilter]
 
+lemma is_open_singleton_iff_nhds_eq_pure {α : Type*} [topological_space α] (a : α) :
+  is_open ({a} : set α) ↔ 𝓝 a = pure a :=
+begin
+  split,
+  { intros h,
+    apply le_antisymm _ (pure_le_nhds a),
+    rw le_pure_iff,
+    exact h.mem_nhds (mem_singleton a) },
+  { intros h,
+    simp [is_open_iff_nhds, h] }
+end
+
 lemma mem_closure_iff_frequently {s : set α} {a : α} : a ∈ closure s ↔ ∃ᶠ x in 𝓝 a, x ∈ s :=
 by rw [filter.frequently, filter.eventually, ← mem_interior_iff_mem_nhds,
   closure_eq_compl_interior_compl]; refl
@@ -1213,6 +1225,9 @@ def continuous_at (f : α → β) (x : α) := tendsto f (𝓝 x) (𝓝 (f x))
 lemma continuous_at.tendsto {f : α → β} {x : α} (h : continuous_at f x) :
   tendsto f (𝓝 x) (𝓝 (f x)) :=
 h
+
+lemma continuous_at_def {f : α → β} {x : α} : continuous_at f x ↔ ∀ A ∈ 𝓝 (f x), f ⁻¹' A ∈ 𝓝 x :=
+iff.rfl
 
 lemma continuous_at_congr {f g : α → β} {x : α} (h : f =ᶠ[𝓝 x] g) :
   continuous_at f x ↔ continuous_at g x :=

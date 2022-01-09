@@ -86,7 +86,7 @@ all be relaxed independently; for instance, this allows us to:
 * Replace `semiring A` with `non_unital_non_assoc_semiring A` in order to describe non-unital and/or
   non-associative algebras.
 * Replace `comm_semiring R` and `module R A` with `comm_group R'` and `distrib_mul_action R' A`,
-  which when `R' = units R` lets us talk about the "algebra-like" action of `units R` on an
+  which when `R' = Rˣ` lets us talk about the "algebra-like" action of `Rˣ` on an
   `R`-algebra `A`.
 
 While `alg_hom R A B` cannot be used in the second approach, `non_unital_alg_hom R A B` still can.
@@ -1001,6 +1001,12 @@ lemma of_alg_hom_symm (f : A₁ →ₐ[R] A₂) (g : A₂ →ₐ[R] A₁) (h₁ 
 /-- Promotes a bijective algebra homomorphism to an algebra equivalence. -/
 noncomputable def of_bijective (f : A₁ →ₐ[R] A₂) (hf : function.bijective f) : A₁ ≃ₐ[R] A₂ :=
 { .. ring_equiv.of_bijective (f : A₁ →+* A₂) hf, .. f }
+
+@[simp] lemma coe_of_bijective {f : A₁ →ₐ[R] A₂} {hf : function.bijective f} :
+  (alg_equiv.of_bijective f hf : A₁ → A₂) = f := rfl
+
+lemma of_bijective_apply {f : A₁ →ₐ[R] A₂} {hf : function.bijective f} (a : A₁) :
+  (alg_equiv.of_bijective f hf) a = f a := rfl
 
 /-- Forgetting the multiplicative structures, an equivalence of algebras is a linear equivalence. -/
 @[simps apply] def to_linear_equiv (e : A₁ ≃ₐ[R] A₂) : A₁ ≃ₗ[R] A₂ :=

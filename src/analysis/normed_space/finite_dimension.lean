@@ -266,6 +266,7 @@ end linear_map
 
 /-- The continuous linear equivalence induced by a linear equivalence on a finite dimensional
 space. -/
+@[simps]
 def linear_equiv.to_continuous_linear_equiv [finite_dimensional 𝕜 E] (e : E ≃ₗ[𝕜] F) : E ≃L[𝕜] F :=
 { continuous_to_fun := e.to_linear_map.continuous_of_finite_dimensional,
   continuous_inv_fun := begin
@@ -611,11 +612,24 @@ end proper_field
 
 /- Over the real numbers, we can register the previous statement as an instance as it will not
 cause problems in instance resolution since the properness of `ℝ` is already known. -/
+@[priority 900]
 instance finite_dimensional.proper_real
   (E : Type u) [normed_group E] [normed_space ℝ E] [finite_dimensional ℝ E] : proper_space E :=
 finite_dimensional.proper ℝ E
 
-attribute [instance, priority 900] finite_dimensional.proper_real
+/-- If `E` is a finite dimensional normed real vector space, `x : E`, and `s` is a neighborhood of
+`x` that is not equal to the whole space, then there exists a point `y ∈ frontier s` at distance
+`metric.inf_dist x sᶜ` from `x`. -/
+lemma exists_mem_frontier_inf_dist_compl_eq_dist {E : Type*} [normed_group E]
+  [normed_space ℝ E] [finite_dimensional ℝ E] {x : E} {s : set E} (hx : x ∈ s) (hs : s ≠ univ) :
+  ∃ y ∈ frontier s, metric.inf_dist x sᶜ = dist x y :=
+begin
+  rcases metric.exists_mem_closure_inf_dist_eq_dist (nonempty_compl.2 hs) x with ⟨y, hys, hyd⟩,
+  rw closure_compl at hys,
+  refine ⟨y, ⟨metric.closed_ball_inf_dist_compl_subset_closure hx hs $
+    metric.mem_closed_ball.2 $ ge_of_eq _, hys⟩, hyd⟩,
+  rwa dist_comm
+end
 
 /-- In a finite dimensional vector space over `ℝ`, the series `∑ x, ∥f x∥` is unconditionally
 summable if and only if the series `∑ x, f x` is unconditionally summable. One implication holds in

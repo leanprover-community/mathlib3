@@ -338,17 +338,28 @@ instance [decidable_eq α] [decidable_eq β] : semilattice_inf (α ≃. β) :=
   { to_fun := λ a, if f a = g a then f a else none,
     inv_fun := λ b, if f.symm b = g.symm b then f.symm b else none,
     inv := λ a b, begin
-      have := @mem_iff_mem _ _ f a b,
-      have := @mem_iff_mem _ _ g a b,
-      split_ifs; finish
+      have hf := @mem_iff_mem _ _ f a b,
+      have hg := @mem_iff_mem _ _ g a b, -- `split_ifs; finish` closes this goal from here
+      split_ifs with h1 h2 h2; try { simp [hf] },
+      { contrapose! h2,
+        rw h2,
+        rw [←h1,hf,h2] at hg,
+        simp only [mem_def, true_iff, eq_self_iff_true] at hg,
+        rw [hg] },
+      { contrapose! h1,
+        rw h1 at *,
+        rw ←h2 at hg,
+        simp only [mem_def, eq_self_iff_true, iff_true] at hf hg,
+        rw [hf,hg] },
     end },
   inf_le_left := λ _ _ _ _, by simp; split_ifs; cc,
   inf_le_right := λ _ _ _ _, by simp; split_ifs; cc,
   le_inf := λ f g h fg gh a b, begin
-    have := fg a b,
-    have := gh a b,
-    simp [le_def],
-    split_ifs; finish
+    intro H,
+    have hf := fg a b H,
+    have hg := gh a b H,
+    simp only [option.mem_def, pequiv.coe_mk_apply],
+    split_ifs with h1, { exact hf }, { exact h1 (hf.trans hg.symm) },
   end,
   ..pequiv.partial_order }
 

@@ -1060,6 +1060,12 @@ theorem has_deriv_at_filter.scomp
   has_deriv_at_filter (g₁ ∘ h) (h' • g₁') x L :=
 by simpa using ((hg.restrict_scalars 𝕜).comp x hh hL).has_deriv_at_filter
 
+theorem has_deriv_within_at.scomp_has_deriv_at
+  (hg : has_deriv_within_at g₁ g₁' s' (h x))
+  (hh : has_deriv_at h h' x) (hs : ∀ x, h x ∈ s') :
+  has_deriv_at (g₁ ∘ h) (h' • g₁') x :=
+hg.scomp x hh $ tendsto_inf.2 ⟨hh.continuous_at, tendsto_principal.2 $ eventually_of_forall hs⟩
+
 theorem has_deriv_within_at.scomp
   (hg : has_deriv_within_at g₁ g₁' t' (h x))
   (hh : has_deriv_within_at h h' s x) (hst : maps_to h s t') :

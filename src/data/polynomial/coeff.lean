@@ -175,18 +175,21 @@ by rw [C_mul_X_pow_eq_monomial, support_monomial n c H]
 lemma support_C_mul_X_pow' {c : R} {n : ℕ} : (C c * X^n).support ⊆ singleton n :=
 by { rw [C_mul_X_pow_eq_monomial], exact support_monomial' n c }
 
+lemma coeff_X_add_C_pow (r : R) (n k : ℕ) :
+  ((X + C r) ^ n).coeff k = r ^ (n - k) * (n.choose k : R) :=
+begin
+  rw [(commute_X (C r : polynomial R)).add_pow, ← lcoeff_apply, linear_map.map_sum],
+  simp only [one_pow, mul_one, lcoeff_apply, ← C_eq_nat_cast, ←C_pow, coeff_mul_C, nat.cast_id],
+  rw [finset.sum_eq_single k, coeff_X_pow_self, one_mul],
+  { intros _ _ h,
+    simp [coeff_X_pow, h.symm] },
+  { simp only [coeff_X_pow_self, one_mul, not_lt, finset.mem_range],
+    intro h, rw [nat.choose_eq_zero_of_lt h, nat.cast_zero, mul_zero] }
+end
+
 lemma coeff_X_add_one_pow (R : Type*) [semiring R] (n k : ℕ) :
   ((X + 1) ^ n).coeff k = (n.choose k : R) :=
-begin
-  rw [(commute_X (1 : polynomial R)).add_pow, ← lcoeff_apply, linear_map.map_sum],
-  simp only [one_pow, mul_one, lcoeff_apply, ← C_eq_nat_cast, coeff_mul_C, nat.cast_id],
-  rw [finset.sum_eq_single k, coeff_X_pow_self, one_mul],
-  { intros _ _,
-    simp only [coeff_X_pow, boole_mul, ite_eq_right_iff, ne.def] {contextual := tt},
-    rintro h rfl, contradiction },
-  { simp only [coeff_X_pow_self, one_mul, not_lt, finset.mem_range],
-    intro h, rw [nat.choose_eq_zero_of_lt h, nat.cast_zero], }
-end
+by rw [←C_1, coeff_X_add_C_pow, one_pow, one_mul]
 
 lemma coeff_one_add_X_pow (R : Type*) [semiring R] (n k : ℕ) :
   ((1 + X) ^ n).coeff k = (n.choose k : R) :=

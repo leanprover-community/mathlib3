@@ -590,6 +590,9 @@ class noncompact_space (α : Type*) [topological_space α] : Prop :=
 
 export noncompact_space (noncompact_univ)
 
+lemma is_compact.ne_univ [noncompact_space α] {s : set α} (hs : is_compact s) : s ≠ univ :=
+λ h, noncompact_univ α (h ▸ hs)
+
 instance [noncompact_space α] : ne_bot (filter.cocompact α) :=
 begin
   refine filter.has_basis_cocompact.ne_bot_iff.2 (λ s hs, _),
@@ -1339,7 +1342,7 @@ begin
   cases s.eq_empty_or_nonempty,
   { exact h.symm ▸ is_preirreducible_empty },
   { obtain ⟨x, e⟩ := exists_eq_singleton_iff_nonempty_unique_mem.mpr
-      ⟨h, λ _ _ a b, by injection @@subsingleton.elim hs ⟨_, a⟩ ⟨_, b⟩⟩,
+      ⟨h, λ _ ha _ hb, by injection @@subsingleton.elim hs ⟨_, ha⟩ ⟨_, hb⟩⟩,
     exact e.symm ▸ is_irreducible_singleton.2 }
 end
 
@@ -1400,6 +1403,11 @@ attribute [instance, priority 50] irreducible_space.to_nonempty
 lemma irreducible_space.is_irreducible_univ (α : Type u) [topological_space α]
   [irreducible_space α] : is_irreducible (⊤ : set α) :=
 ⟨by simp, preirreducible_space.is_preirreducible_univ α⟩
+
+lemma irreducible_space_def (α : Type u) [topological_space α] :
+  irreducible_space α ↔ is_irreducible (⊤ : set α) :=
+⟨@@irreducible_space.is_irreducible_univ α _,
+  λ h, by { haveI : preirreducible_space α := ⟨h.2⟩, exact ⟨⟨h.1.some⟩⟩ }⟩
 
 theorem nonempty_preirreducible_inter [preirreducible_space α] {s t : set α} :
   is_open s → is_open t → s.nonempty → t.nonempty → (s ∩ t).nonempty :=

@@ -77,8 +77,34 @@ end
 lemma embed_mono {m n : ℕ} (hmn : m < n) : embed f hf m < embed f hf n :=
 strict_mono_nat_of_lt_succ (embed_succ_lt _ _) hmn
 
+
+lemma embed_inj : function.injective (embed f hf) :=
+begin
+  intros m n hmn,
+  by_contradiction hne,
+  wlog hlt : m < n,
+  { simp [hne] },
+  { refine ne_of_lt (embed_mono _ _ hlt) hmn, }
+end
+
 def elt_of_index : indices f → α
 | ⟨row, col, col_lt⟩ := (f row).nth_le _ col_lt
+
+
+lemma elt_of_index_inj
+  (hf_inj : ∀ (row1 col1 row2 col2 : ℕ)
+      (h : col1 < (f row1).length) (h2 : col2 < (f row2).length),
+        (f row1).nth_le _ h = (f row2).nth_le _ h2 → row1 = row2 ∧ col1 = col2) :
+  function.injective (elt_of_index f) :=
+begin
+  rintros ⟨rowm, colm, hcolm⟩ ⟨rown, coln, hcoln⟩ hmn,
+  specialize hf_inj rowm colm rown coln hcolm hcoln hmn,
+  cases hf_inj; ext; assumption
+end
+
+lemma elt_of_index_def (i : indices f) :
+  elt_of_index f i = (f i.1).nth_le _ i.2.2 :=
+by rcases i with ⟨_, _, _⟩; refl
 
 def flatten {α : Type*} (f : ℕ → list α) (hf : ∀ n, f n ≠ []) : ℕ → α :=
 λ n, elt_of_index f (embed f hf n)
@@ -90,6 +116,10 @@ begin
   use w,
   simp only [flatten, ← hw, elt_of_index, hcol]
 end
+
+lemma flatten_inj {α : Type*} (f : ℕ → list α) (hf : ∀ n, f n ≠ [])
+  (hf_inj : function.injective (elt_of_index f)) : function.injective (flatten f hf) :=
+hf_inj.comp (embed_inj _ _)
 
 variables {β : Type*} [linear_order β] {v : α → β}
   (hv1 : ∀ n, ∀ i j ∈ f n, v i = v j)

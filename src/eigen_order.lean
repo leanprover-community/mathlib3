@@ -98,6 +98,9 @@ end
 lemma enum_mono {m n : ℕ} (h : m < n) : enum h_wf h_inf m < enum h_wf h_inf n :=
 strict_mono_nat_of_lt_succ (enum_lt _ _) h
 
+lemma enum_inj : function.injective (enum h_wf h_inf) :=
+strict_mono.injective $ @enum_mono _ _ _ h_wf h_inf
+
 lemma nothing_between {n} {z : s} (h_lt : enum h_wf h_inf n < z) :
   enum h_wf h_inf (n+1) ≤ z :=
 begin
@@ -253,19 +256,31 @@ variables {ι : Type*} -- the type of eigenvectors
           (h_cf : iso_set (set.range f) z)
           (hfz : ∀ i, f i < z) -- cannot enumerate 0 in order
 
+noncomputable def premap : ℕ → list ι :=
+λ n : ℕ, (h_pre (enum h_wf h_inf n)).to_finset.to_list
+
+lemma premap_nodup (n) : (premap h_pre h_wf h_inf n).nodup :=
+finset.nodup_to_list _
+
+lemma premap_mem_unique {i : ι} {m n : ℕ}
+  (him : i ∈ premap h_pre h_wf h_inf m) (hin : i ∈ premap h_pre h_wf h_inf n) : m = n :=
+begin
+  simp only [premap, set.mem_preimage, set.finite.mem_to_finset, set.mem_singleton_iff,
+    finset.mem_to_list] at him hin,
+  rw him at hin,
+  exact enum_inj _ _ (subtype.ext_iff.mpr hin),
+end
+
+lemma premap_ne_nil (n) : (premap h_pre h_wf h_inf n) ≠ [] :=
+begin
+  cases set.mem_range.mp (enum h_wf h_inf n).property with i hi,
+  simp only [premap, finset.to_list_ne_nil],
+  use i,
+  simp only [hi, set.mem_preimage, set.mem_singleton, set.finite.mem_to_finset, subtype.val_eq_coe]
+end
 
 noncomputable def enum_dom : ℕ → ι :=
-let val := enum h_wf h_inf,
-    map' := λ n : ℕ, (h_pre (val n)).to_finset.to_list in
-have ∀ n, (map' n) ≠ [],
-begin
-  intro n,
-  cases set.mem_range.mp (enum h_wf h_inf n).property with i hi,
-  simp only [map', finset.to_list_ne_nil],
-  use i,
-  simp [map', val, hi],
-end,
-flatten map' this
+flatten (premap h_pre h_wf h_inf) (premap_ne_nil _ _ _)
 
 lemma enum_dom_le (n : ℕ) :
   f (enum_dom h_pre h_wf h_inf n) ≤ f (enum_dom h_pre h_wf h_inf (n+1)) :=
@@ -273,10 +288,10 @@ begin
   dsimp [enum_dom],
   apply flatten_le,
   { intros n i j hi hj,
-    simp only [set.mem_preimage, set.finite.mem_to_finset, set.mem_singleton_iff, finset.mem_to_list] at hi hj,
+    simp only [premap, set.mem_preimage, set.finite.mem_to_finset, set.mem_singleton_iff, finset.mem_to_list] at hi hj,
     rw [hi, hj] },
   { intros n i hi j hj,
-    simp only [set.mem_preimage, set.finite.mem_to_finset, set.mem_singleton_iff, finset.mem_to_list] at hi hj,
+    simp only [premap, set.mem_preimage, set.finite.mem_to_finset, set.mem_singleton_iff, finset.mem_to_list] at hi hj,
     rw [hi, hj],
     apply_mod_cast enum_lt }
 end
@@ -291,7 +306,20 @@ begin
   { intros y, simp only [set.mem_range, forall_exists_index], rintro _ rfl, exact le_of_lt (hfz _) },
   cases this with n hn,
   apply flatten_surj,
-  simpa [val] using hn.symm
+  simpa [premap, val] using hn.symm
+end
+
+lemma enum_dom_inj : function.injective (enum_dom h_pre h_wf h_inf) :=
+begin
+  apply flatten_inj,
+  apply elt_of_index_inj,
+  intros row1 col1 row2 col2 hcol1 hcol2 heq,
+  have mem1 : (premap h_pre h_wf h_inf row1).nth_le col1 hcol1 ∈ premap h_pre h_wf h_inf row1 :=
+    list.nth_le_mem _ _ _,
+  rw heq at mem1,
+  cases premap_mem_unique _ _ _ mem1 (list.nth_le_mem _ _ _),
+  refine ⟨rfl, (list.nodup.nth_le_inj_iff _ _ _).mp heq⟩,
+  apply premap_nodup
 end
 
 end

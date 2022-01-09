@@ -466,11 +466,11 @@ instance [nonempty σ] [nontrivial R] : nontrivial (subalgebra R (mv_power_serie
 ⟨⟨⊥, ⊤, begin
   rw [ne.def, set_like.ext_iff, not_forall],
   inhabit σ,
-  refine ⟨X (default σ), _⟩,
+  refine ⟨X default, _⟩,
   simp only [algebra.mem_bot, not_exists, set.mem_range, iff_true, algebra.mem_top],
   intros x,
   rw [ext_iff, not_forall],
-  refine ⟨finsupp.single (default σ) 1, _⟩,
+  refine ⟨finsupp.single default 1, _⟩,
   simp [algebra_map_apply, coeff_C],
 end⟩⟩
 

@@ -324,7 +324,7 @@ begin
       candidates_b_dist X Y (inl x, inr default) :=
       cinfi_le (by simpa using HD_below_aux1 0) default,
     have B : dist (inl x) (inr default) ≤ diam (univ : set X) + 1 + diam (univ : set Y) := calc
-      dist (inl x) (inr default) = dist x default + 1 + dist default default : rfl
+      dist (inl x) (inr (default : Y)) = dist x (default : X) + 1 + dist default default : rfl
       ... ≤ diam (univ : set X) + 1 + diam (univ : set Y) :
       begin
         apply add_le_add (add_le_add _ (le_refl _)),
@@ -338,7 +338,7 @@ begin
       candidates_b_dist X Y (inl default, inr y) :=
       cinfi_le (by simpa using HD_below_aux2 0) default,
     have B : dist (inl default) (inr y) ≤ diam (univ : set X) + 1 + diam (univ : set Y) := calc
-      dist (inl default) (inr y) = dist default default + 1 + dist default y : rfl
+      dist (inl (default : X)) (inr y) = dist default default + 1 + dist default y : rfl
       ... ≤ diam (univ : set X) + 1 + diam (univ : set Y) :
       begin
         apply add_le_add (add_le_add _ (le_refl _)),

@@ -29,7 +29,7 @@ lemma filter.has_basis.cauchy_iff {ι} {p : ι → Prop} {s : ι → set (α × 
   {f : filter α} :
   cauchy f ↔ (ne_bot f ∧ (∀ i, p i → ∃ t ∈ f, ∀ x y ∈ t, (x, y) ∈ s i)) :=
 and_congr iff.rfl $ (f.basis_sets.prod_self.le_basis_iff h).trans $
-  by simp only [subset_def, prod.forall, mem_prod_eq, and_imp, id]
+  by simp only [subset_def, prod.forall, mem_prod_eq, and_imp, id, ball_mem_comm]
 
 lemma cauchy_iff' {f : filter α} :
   cauchy f ↔ (ne_bot f ∧ (∀ s ∈ 𝓤 α, ∃t∈f, ∀ x y ∈ t, (x, y) ∈ s)) :=
@@ -37,7 +37,8 @@ lemma cauchy_iff' {f : filter α} :
 
 lemma cauchy_iff {f : filter α} :
   cauchy f ↔ (ne_bot f ∧ (∀ s ∈ 𝓤 α, ∃t∈f, (set.prod t t) ⊆ s)) :=
-cauchy_iff'.trans $ by simp only [subset_def, prod.forall, mem_prod_eq, and_imp, id]
+cauchy_iff'.trans $ by simp only [subset_def, prod.forall, mem_prod_eq,
+                                  and_imp, id, ball_mem_comm]
 
 lemma cauchy_map_iff {l : filter β} {f : β → α} :
   cauchy (l.map f) ↔ (ne_bot l ∧ tendsto (λp:β×β, (f p.1, f p.2)) (l ×ᶠ l) (𝓤 α)) :=
@@ -247,7 +248,7 @@ begin
   rw [cauchy_seq_iff_tendsto, ← prod_at_top_at_top_eq],
   refine (at_top_basis.prod_self.tendsto_iff h).trans _,
   simp only [exists_prop, true_and, maps_to, preimage, subset_def, prod.forall,
-    mem_prod_eq, mem_set_of_eq, mem_Ici, and_imp, prod.map]
+    mem_prod_eq, mem_set_of_eq, mem_Ici, and_imp, prod.map, ge_iff_le, @forall_swap (_ ≤ _) β]
 end
 
 lemma filter.has_basis.cauchy_seq_iff' {γ} [nonempty β] [semilattice_sup β] {u : β → α}
@@ -255,10 +256,10 @@ lemma filter.has_basis.cauchy_seq_iff' {γ} [nonempty β] [semilattice_sup β] {
   cauchy_seq u ↔ ∀ i, p i → ∃N, ∀n≥N, (u n, u N) ∈ s i :=
 begin
   refine H.cauchy_seq_iff.trans ⟨λ h i hi, _, λ h i hi, _⟩,
-  { exact (h i hi).imp (λ N hN n hn, hN n N hn (le_refl N)) },
+  { exact (h i hi).imp (λ N hN n hn, hN n hn N le_rfl) },
   { rcases comp_symm_of_uniformity (H.mem_of_mem hi) with ⟨t, ht, ht', hts⟩,
     rcases H.mem_iff.1 ht with ⟨j, hj, hjt⟩,
-    refine (h j hj).imp (λ N hN m n hm hn, hts ⟨u N, hjt _, ht' $ hjt _⟩),
+    refine (h j hj).imp (λ N hN m hm n hn, hts ⟨u N, hjt _, ht' $ hjt _⟩),
     { exact hN m hm },
     { exact hN n hn } }
 end

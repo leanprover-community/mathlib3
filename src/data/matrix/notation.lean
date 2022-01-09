@@ -244,9 +244,7 @@ lemma vec3_eq {a₀ a₁ a₂ b₀ b₁ b₂ : α} (h₀ : a₀ = b₀) (h₁ : 
   ![a₀, a₁, a₂] = ![b₀, b₁, b₂] :=
 by { ext x, fin_cases x; assumption }
 
-variable [add_semigroup α]
-/-- TODO: understand why `[has_add α]` is not enough for `pi.add_apply` correctly work
-          in `linear_algebra/cross_product` on line 51 -/
+variable [has_add α]
 
 lemma vec2_add {a₀ a₁ b₀ b₁ : α} :
   ![a₀, a₁] + ![b₀, b₁] = ![a₀ + b₀, a₁ + b₁] :=

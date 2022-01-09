@@ -1746,8 +1746,8 @@ by { simp_rw [←filter_eq', eq_comm], congr }
 
 end
 
-lemma count_true_eq_card_filter (s : multiset Prop) :
-  s.count true = (s.filter (eq true)).card :=
+lemma count_true_eq_card_filter [decidable_eq α] (s : multiset α) (a : α) :
+  s.count a = (s.filter (eq a)).card :=
 begin
   rw [count, countp_eq_card_filter],
 end

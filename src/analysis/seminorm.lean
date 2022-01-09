@@ -316,9 +316,6 @@ nonneg_of_mul_nonneg_left h zero_lt_two
 
 lemma sub_rev : p (x - y) = p (y - x) := by rw [←neg_sub, p.neg]
 
-variables {α : Type*} [semilattice_sup α] {a b c d : α}
-variables (h₁ : a = b)
-
 lemma mul_sup {a b c : ℝ} (h₁ : 0 ≤ a) : a * (b ⊔ c) = (a * b) ⊔ (a * c) :=
 begin
   cases le_total b c with h h,
@@ -347,13 +344,13 @@ instance : has_sup (seminorm 𝕜 E) :=
         rw [p.smul x v, q.smul x v],
       end }}
 
-@[simp] lemma coe_sup (x y : seminorm 𝕜 E) : ⇑(x ⊔ y) = x ⊔ y := rfl
+@[simp] lemma coe_sup (p q : seminorm 𝕜 E) : ⇑(p ⊔ q) = p ⊔ q := rfl
 
 instance : semilattice_sup (seminorm 𝕜 E) :=
 function.injective.semilattice_sup _ coe_injective coe_sup
 
-lemma le_def (x y : seminorm 𝕜 E) : x ≤ y ↔ (x : E → ℝ) ≤ y := iff.rfl
-lemma lt_def (x y : seminorm 𝕜 E) : x < y ↔ (x : E → ℝ) < y := iff.rfl
+lemma le_def (p q : seminorm 𝕜 E) : p ≤ q ↔ (p : E → ℝ) ≤ q := iff.rfl
+lemma lt_def (p q : seminorm 𝕜 E) : p < q ↔ (p : E → ℝ) < q := iff.rfl
 
 instance : order_bot (seminorm 𝕜 E) :=
 { bot := 0,
@@ -481,13 +478,6 @@ variables {ι : Type*} [decidable_eq ι]
 variables (p : ι → seminorm 𝕜 E)
 variables (ι' : finset ι)
 
-lemma seminorm_sup_finset_coe_to_fun (p : ι → seminorm 𝕜 E) (ι' : finset ι) :
-  coe_fn (ι'.sup p) = ↑(ι'.sup (λ i x, (p i x).to_nnreal)) :=
-begin
-  sorry,
-end
-
-
 lemma seminorm_le_sup (p : ι → seminorm 𝕜 E) (ι' : finset ι) (i : ι) (hi : i ∈ ι') (x : E) :
   p i x ≤ ι'.sup p x :=
 begin
@@ -505,7 +495,13 @@ begin
   { intros hx i hi,
     exact lt_of_le_of_lt (seminorm_le_sup p ι' i hi x) hx },
   intros hx,
-  sorry,
+  rw [finset_sup_apply, ←nnreal.coe_one, nnreal.coe_lt_coe, finset.sup_lt_iff],
+  {
+    intros i hi,
+    have hp : p i x < 1 := hx i hi,
+    exact hp,
+  },
+  simp,
 end
 
 end seminorm_sup

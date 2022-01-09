@@ -259,9 +259,9 @@ section has_scalar
 variables [has_scalar 𝕜 E]
 
 instance : has_zero (seminorm 𝕜 E) :=
-  ⟨{ to_fun    := λ _, 0,
-    smul'     := λ _ _, (mul_zero _).symm,
-    triangle' := λ _ _, by rw add_zero }⟩
+⟨{ to_fun    := λ _, 0,
+  smul'     := λ _ _, (mul_zero _).symm,
+  triangle' := λ _ _, by rw add_zero }⟩
 
 instance : inhabited (seminorm 𝕜 E) := ⟨0⟩
 

@@ -240,7 +240,7 @@ end
 section
 variables {α : Type*} -- α is the type of eigenvals
 [conditionally_complete_linear_order α] [topological_space α] [order_topology α]
-[has_abs α] [add_group α] [covariant_class α α has_add.add has_le.le]
+[add_group α] [covariant_class α α has_add.add has_le.le]
 
 
 variables {ι : Type*} -- the type of eigenvectors
@@ -250,10 +250,8 @@ variables {ι : Type*} -- the type of eigenvectors
           (h_wf : (set.range f).is_wf)
           (h_inf : (set.range f).infinite)
           (h_cpct : is_compact (set.range f))
-          (h_cf : ∀ n, tendsto (enum' h_wf h_inf)
-                        (cofinite : filter ℕ)
-                        (𝓝 (enum' h_wf h_inf n)) →
-                          enum' h_wf h_inf n = z)
+          (h_cf : iso_set (set.range f) z)
+          (hfz : ∀ i, f i < z) -- cannot enumerate 0 in order
 
 
 noncomputable def enum_dom : ℕ → ι :=
@@ -267,13 +265,13 @@ begin
   use i,
   simp [map', val, hi],
 end,
-stream.flatten map' this
+flatten map' this
 
 lemma enum_dom_le (n : ℕ) :
   f (enum_dom h_pre h_wf h_inf n) ≤ f (enum_dom h_pre h_wf h_inf (n+1)) :=
 begin
   dsimp [enum_dom],
-  apply stream.flatten_le,
+  apply flatten_le,
   { intros n i j hi hj,
     simp only [set.mem_preimage, set.finite.mem_to_finset, set.mem_singleton_iff, finset.mem_to_list] at hi hj,
     rw [hi, hj] },
@@ -281,6 +279,19 @@ begin
     simp only [set.mem_preimage, set.finite.mem_to_finset, set.mem_singleton_iff, finset.mem_to_list] at hi hj,
     rw [hi, hj],
     apply_mod_cast enum_lt }
+end
+
+include h_cpct h_cf hfz
+
+lemma enum_dom_surj (i : ι) : ∃ n, i = enum_dom h_pre h_wf h_inf n :=
+begin
+  let val := f i,
+  have : ∃ n, ↑(enum h_wf h_inf n) = val := enum_surj h_wf h_inf h_cpct h_cf (set.mem_range_self _) (hfz _) _,
+  rotate 1,
+  { intros y, simp only [set.mem_range, forall_exists_index], rintro _ rfl, exact le_of_lt (hfz _) },
+  cases this with n hn,
+  apply flatten_surj,
+  simpa [val] using hn.symm
 end
 
 end

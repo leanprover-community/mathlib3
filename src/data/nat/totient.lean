@@ -253,18 +253,18 @@ begin
   rcases n.eq_zero_or_pos with rfl | hn0, { simp },
 
 -- Otherwise n is the product over its prime factorization
-  nth_rewrite_rhs 0 (prime_factorization_prod_pow hn0),
+  nth_rewrite_rhs 0 (factorization_prod_pow hn0),
 
 -- Since φ is multiplicative (and primes are coprime) we can rewrite φ n
   rw (multiplicative_factorization hn0 (λ a b, totient_mul) totient_one),
 
 -- So if we rebase the product over prime factors we can gather the RHS into a single product
-  simp only [←rebase_prod_prime_factorization, cast_finsupp_prod, ←finsupp.prod_mul],
+  simp only [←rebase_prod_factorization, cast_finsupp_prod, ←finsupp.prod_mul],
 
 -- and so it suffices to prove that the multiplicands are equal
   apply prod_congr rfl,
   intros p hp,
-  set k := n.prime_factorization p,
+  set k := n.factorization p,
 
   have hpp : prime p := prime_of_mem_factors (factor_iff_mem_factorization.mp hp),
   have hp_pos : 0 < p := prime.pos hpp,

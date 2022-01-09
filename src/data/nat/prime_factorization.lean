@@ -24,17 +24,10 @@ open_locale nat  -- to enable φ notation
 
 namespace nat
 
-/-- `n.factorization` is the finitely supported function `ℕ →₀ ℕ`
- mapping each prime factor of `n` to its multiplicity in `n`. -/
-noncomputable def factorization (n : ℕ) : ℕ →₀ ℕ := (n.factors : multiset ℕ).to_finsupp
-
-lemma factorization_count {n p : ℕ} : n.factorization p = list.count p n.factors :=
-by simp [factorization]
-
 /-- Every positive natural number has a unique prime factorization -/
 lemma factorization_eq_iff {a b : ℕ} (ha : 0 < a) (hb : 0 < b) :
   a.factorization = b.factorization ↔ a = b :=
-⟨λ h, eq_of_count_factors_eq ha hb (λ p, by simp [←factorization_count, h]), λ h, by rw h⟩
+⟨λ h, eq_of_count_factors_eq ha hb (λ p, by simp [←factorization_eq_count, h]), λ h, by rw h⟩
 
 /-- For `n > 0`, the product of `p_i ^ k_i` over the prime factorization of `n` equals `n` -/
 lemma factorization_prod_pow {n : ℕ} (hn : 0 < n) :
@@ -44,12 +37,6 @@ begin
   simp only [factorization, multiset.coe_prod, multiset.to_finsupp_to_multiset],
   exact (prod_factors hn).symm,
 end
-
-@[simp] lemma factorization_zero : factorization 0 = 0  :=
-by simp [factorization]
-
-@[simp] lemma factorization_one : factorization 1 = 0 :=
-by simp [factorization]
 
 /-- The support of `n.factorization` is exactly `n.factors.to_finset` -/
 @[simp] lemma support_factorization {n : ℕ} :
@@ -70,7 +57,7 @@ lemma factorization_pow {n k : ℕ} :
 begin
   ext p,
   simp only [algebra.id.smul_eq_mul, finsupp.coe_smul, pi.smul_apply],
-  simp only [factorization_count, factors_count_pow],
+  simp only [factorization_eq_count, factors_count_pow],
 end
 
 /-- The only prime factor of prime `p` is `p` itself, with multiplicity 1 -/
@@ -78,7 +65,7 @@ end
   p.factorization = single p 1 :=
 begin
   ext q,
-  rw [factorization_count, factors_prime hp],
+  rw [factorization_eq_count, factors_prime hp],
   by_cases hqp : q = p,
   { rw hqp, simp },
   { rw finsupp.single_eq_of_ne (ne.symm hqp),
@@ -109,7 +96,7 @@ lemma factorization_mul_add_of_coprime {a b : ℕ} (hab : coprime a b) :
   (a * b).factorization = a.factorization + b.factorization :=
 begin
   ext q,
-  simp only [finsupp.coe_add, pi.add_apply, factorization_count],
+  simp only [finsupp.coe_add, pi.add_apply, factorization_eq_count],
   simp only [count_factors_mul_of_coprime hab],
 end
 
@@ -118,7 +105,7 @@ lemma factorization_mul_add_of_pos {a b : ℕ}  (ha : 0 < a) (hb : 0 < b) :
   (a * b).factorization = a.factorization + b.factorization :=
 begin
   ext q,
-  simp only [finsupp.coe_add, pi.add_apply, factorization_count],
+  simp only [finsupp.coe_add, pi.add_apply, factorization_eq_count],
   simp only [count_factors_mul_of_pos ha hb],
 end
 

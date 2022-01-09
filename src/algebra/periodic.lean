@@ -295,12 +295,9 @@ lemma periodic.map_vadd_multiples [add_comm_monoid α] (hf : periodic f c)
 by { rcases a with ⟨_, m, rfl⟩, simp [add_submonoid.vadd_def, add_comm _ x, hf.nsmul m x] }
 
 /-- Lift a periodic function to a function from the quotient group. -/
-def periodic.lift [add_group α] (h : periodic f c) : α ⧸ (add_subgroup.zmultiples c) → β :=
-quot.lift f $ λ a b (h : ∃ k : ℤ, k • c = -a + b), begin
-  cases h with k hk,
-  rw ←add_eq_of_eq_neg_add hk,
-  exact (h.zsmul k _).symm
-end
+def periodic.lift [add_group α] (h : periodic f c) (x : α ⧸ add_subgroup.zmultiples c) : β :=
+quotient.lift_on' x f $
+  λ a b ⟨k, hk⟩, (h.zsmul k _).symm.trans $ congr_arg f $ add_eq_of_eq_neg_add hk
 
 @[simp] lemma periodic.lift_coe [add_group α] (h : periodic f c) (a : α) :
   h.lift (a : α ⧸ add_subgroup.zmultiples c) = f a :=

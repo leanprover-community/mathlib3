@@ -317,17 +317,6 @@ lemma sub_rev : p (x - y) = p (y - x) := by rw [←neg_sub, p.neg]
 variables {α : Type*} [semilattice_sup α] {a b c d : α}
 variables (h₁ : a = b)
 
-theorem sup_eq_sup (h₁ : a = b) (h₂ : c = d) : a ⊔ c = b ⊔ d :=
-begin
-  refine le_antisymm _ _,
-  { refine sup_le_sup _ _,
-    exact (le_antisymm_iff.mp h₁).1,
-    exact (le_antisymm_iff.mp h₂).1 },
-  refine sup_le_sup _ _,
-  exact (le_antisymm_iff.mp h₁).2,
-  exact (le_antisymm_iff.mp h₂).2,
-end
-
 lemma mul_sup {a b c : ℝ} (h₁ : 0 ≤ a) : a * (b ⊔ c) = (a * b) ⊔ (a * c) :=
 begin
   cases le_total b c with h h,
@@ -353,9 +342,7 @@ instance : has_sup (seminorm 𝕜 E) :=
         intros x v,
         simp,
         rw mul_sup (norm_nonneg x),
-        rw sup_eq_sup,
-        exact p.smul x v,
-        exact q.smul x v,
+        rw [p.smul x v, q.smul x v],
       end }}
 
 @[simp] lemma coe_sup (x y : seminorm 𝕜 E) : ⇑(x ⊔ y) = x ⊔ y := rfl
@@ -480,13 +467,6 @@ variables [module ℝ E]
 variables {ι : Type*} [decidable_eq ι]
 variables (p : ι → seminorm 𝕜 E)
 variables (ι' : finset ι)
-
-@[simp]
-lemma seminorm_sup_singleton (p : ι → seminorm 𝕜 E) (i : ι):
-  ({i} : finset ι).sup p = p i :=
-begin
-  simp,
-end
 
 lemma seminorm_sup_finset_coe_to_fun (p : ι → seminorm 𝕜 E) (ι' : finset ι) :
   coe_fn (ι'.sup p) = λ x, ↑(ι'.sup (λ i, (p i x).to_nnreal)) :=

@@ -259,6 +259,23 @@ by rw [finset.prod, ← multiset.coe_prod, ← multiset.coe_map, finset.coe_to_l
 
 end to_list
 
+@[to_additive]
+lemma prod_reindex (s : finset α) (f : α → β) {σ : equiv.perm α} (hs : {a | σ a ≠ a} ⊆ s) :
+  (∏ x in s, f (σ x)) = ∏ x in s, f x :=
+begin
+  convert (prod_map _ σ.to_embedding _).symm,
+  exact (map_perm hs).symm,
+end
+
+@[to_additive]
+lemma prod_reindex' (s : finset α) (f : α → α → β) {σ : equiv.perm α} (hs : {a | σ a ≠ a} ⊆ s) :
+  (∏ x in s, f (σ x) x) = ∏ x in s, f x (σ.symm x) :=
+begin
+  convert s.prod_reindex (λ x, f x (σ.symm x)) hs,
+  ext,
+  rw [equiv.symm_apply_apply],
+end
+
 end comm_monoid
 
 end finset

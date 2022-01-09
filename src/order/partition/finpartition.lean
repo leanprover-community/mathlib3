@@ -89,6 +89,13 @@ variables [lattice α] [order_bot α]
   sup_parts := sup_parts,
   not_bot_mem := λ h, P.not_bot_mem (subset h) }
 
+@[simps]
+def copy {a b : α} (P : finpartition a) (h : a = b) : finpartition b :=
+{ parts := P.parts,
+  sup_indep := P.sup_indep,
+  sup_parts := h ▸ P.sup_parts,
+  not_bot_mem := P.not_bot_mem }
+
 variables (α)
 
 /-- The empty finpartition. -/
@@ -161,7 +168,7 @@ def _root_.is_atom.unique_finpartition (ha : is_atom a) : unique (finpartition a
 section order
 variables (a)
 
-/-- We say that `P ≤ Q` if `P ` refines `Q`: each part of `P` is less than some part of `Q`. -/
+/-- We say that `P ≤ Q` if `P` refines `Q`: each part of `P` is less than some part of `Q`. -/
 instance : has_le (finpartition a) := ⟨λ P Q, ∀ ⦃b⦄, b ∈ P.parts → ∃ c ∈ Q.parts, b ≤ c⟩
 
 instance : partial_order (finpartition a) :=
@@ -186,21 +193,33 @@ instance : partial_order (finpartition a) :=
   .. finpartition.has_le a }
 
 instance [decidable (a = ⊥)] : order_top (finpartition a) :=
-{ top := if ha : a = ⊥ then finpartition.empty α else indiscrete ha,
-  le_top := λ P, begin
-    split_ifs,
-    { sorry },
-    { exact λ b hb, ⟨a, P.le hb⟩ }
+{ top := if ha : a = ⊥ then (finpartition.empty α).copy ha.symm else indiscrete ha,
+  le_top := λ P,
+  begin
+    split_ifs;
+    { intros x hx,
+      simpa [h, P.ne_bot hx] using P.le hx },
   end }
 
-instance [decidable_eq α] : has_inf (finpartition a) :=
+instance {α : Type*} [decidable_eq α] [distrib_lattice α] [order_bot α] (a : α) :
+  has_inf (finpartition a) :=
 ⟨λ P Q, of_erase ((P.parts.product Q.parts).image $ λ bc, bc.1 ⊓ bc.2)
-    begin
-      sorry
-    end
-    begin
-      sorry
-    end⟩
+  begin
+    rw sup_indep_iff_disjoint_erase,
+    simp only [mem_image, and_imp, exists_prop, forall_exists_index, id.def, prod.exists,
+      mem_product, finset.disjoint_sup_right, mem_erase, ne.def],
+    rintro _ x₁ y₁ hx₁ hy₁ rfl _ h x₂ y₂ hx₂ hy₂ rfl,
+    rcases eq_or_ne x₁ x₂ with rfl | xdiff,
+    { refine disjoint.mono inf_le_right inf_le_right (Q.disjoint hy₁ hy₂ _),
+      intro t,
+      simpa [t] using h },
+    exact disjoint.mono inf_le_left inf_le_left (P.disjoint hx₁ hx₂ xdiff),
+  end
+  begin
+    rw [sup_image, comp.left_id, sup_product_left],
+    simp_rw [←finset.inf_sup_left, ←finset.sup_inf_right],
+    erw [P.sup_parts, Q.sup_parts, inf_idem],
+  end⟩
 
 instance [decidable_eq α] : has_sup (finpartition a) :=
 ⟨λ P Q,

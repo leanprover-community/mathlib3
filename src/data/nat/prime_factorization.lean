@@ -24,11 +24,6 @@ open_locale nat  -- to enable φ notation
 
 namespace nat
 
-/-- Every positive natural number has a unique prime factorization -/
-lemma factorization_eq_iff {a b : ℕ} (ha : 0 < a) (hb : 0 < b) :
-  a.factorization = b.factorization ↔ a = b :=
-⟨λ h, eq_of_count_factors_eq ha hb (λ p, by simp [←factorization_eq_count, h]), λ h, by rw h⟩
-
 /-- For `n > 0`, the product of `p_i ^ k_i` over the prime factorization of `n` equals `n` -/
 lemma factorization_prod_pow {n : ℕ} (hn : 0 < n) :
   n = n.factorization.prod pow :=

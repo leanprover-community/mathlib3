@@ -40,11 +40,23 @@ end
 ---------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------
 
+/-- If a product over `F : α →₀ β` doesn't use the values of F
+then it's equal to the corresponding product over `F.support` -/
+example {α β M : Type*} [has_zero β] [comm_monoid M] {F : α →₀ β} (g : α → M) :
+  F.prod (λ p k, g p) = F.support.prod g := rfl
+
+
+
 /-- If a product over `n.factorization` doesn't use the multiplicities of the prime factors
-then it's equal to the corresponding product over `n.factors.to_finset` -/
+then it's equal to the corresponding product over `n.factors.to_finset`
+
+TODO: GIVEN THE MORE GENERAL `rebase_finsupp_prod` WE DON'T NEED THIS AS A SEPARATE LEMMA.
+RE-WRITE `totient_Euler_product_formula` TO USE `rw [rebase_finsupp_prod _, support_factorization]`
+-/
+
 lemma rebase_prod_factorization {n : ℕ} {β : Type*} [comm_monoid β] (f : ℕ → β) :
   n.factorization.prod (λ p k, f p) = ∏ p in n.factors.to_finset, (f p) :=
-by { apply prod_congr support_factorization, simp }
+by { rw ←support_factorization, refl }
 
 ---------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------

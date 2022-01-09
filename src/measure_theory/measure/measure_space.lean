@@ -1170,7 +1170,7 @@ begin
   { intros t ht, rw [h_gen], exact generate_measurable.basic _ (h_sub ht) },
   { intros t ht s hs, cases (s ∩ t).eq_empty_or_nonempty with H H,
     { simp only [H, measure_empty] },
-    { exact h_eq _ (h_inter _ _ hs (h_sub ht) H) } }
+    { exact h_eq _ (h_inter _ hs _ (h_sub ht) H) } }
 end
 
 /-- Two measures are equal if they are equal on the π-system generating the σ-algebra,

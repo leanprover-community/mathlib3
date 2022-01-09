@@ -195,24 +195,40 @@ begin
       exact nat.succ_ne_zero _ } }
 end
 
+/-- Let `φ : R[x] → S[x]` be an additive map, `k : ℕ` a bound, and `fu : ℕ → ℕ` a
+"sufficiently monotone" map.  Assume also that
+* `φ` maps to `0` all monomials of degree less than `n`,
+* `φ` maps each monomial `m` in `R[x]` to a polynomial `φ m` of degree `fu (deg m)`.
+Then, `φ` maps each polynomial `p` in `R[x]` to a polynomial of degree `fu (deg p)`. -/
+lemma mono_map_nat_degree_eq {S F : Type*} [semiring S]
+  [add_monoid_hom_class F (polynomial R) (polynomial S)] {φ : F}
+  {p : polynomial R} (k : ℕ)
+  (fu : ℕ → ℕ) (fu0 : ∀ {n}, n ≤ k → fu n = 0) (fc : ∀ {n m}, k ≤ n → n < m → fu n < fu m)
+  (φ_k : ∀ {f : polynomial R}, f.nat_degree < k → φ f = 0)
+  (φ_mon_nat : ∀ n c, c ≠ 0 → (φ (monomial n c)).nat_degree = fu n) :
+  (φ p).nat_degree = fu p.nat_degree :=
+begin
+  refine induction_with_nat_degree_le (λ p, _ = fu _) p.nat_degree (by simp [fu0]) _ _ _ rfl.le,
+  { intros n r r0 np,
+    rw [nat_degree_C_mul_X_pow _ _ r0, ← monomial_eq_C_mul_X, φ_mon_nat _ _ r0] },
+  { intros f g fg gp fk gk,
+    rw [nat_degree_add_eq_right_of_nat_degree_lt fg, _root_.map_add],
+    by_cases FG : k ≤ f.nat_degree,
+    { rw [nat_degree_add_eq_right_of_nat_degree_lt, gk],
+      rw [fk, gk],
+      exact fc FG fg },
+    { cases k,
+      { exact (FG (nat.zero_le _)).elim },
+      { rwa [φ_k (not_le.mp FG), zero_add] } } }
+end
+
 lemma map_nat_degree_eq_sub {S F : Type*} [semiring S]
   [add_monoid_hom_class F (polynomial R) (polynomial S)] {φ : F}
   {p : polynomial R} {k : ℕ}
   (φ_k : ∀ f : polynomial R, f.nat_degree < k → φ f = 0)
-  (φ_mon_nat : ∀ n c, c ≠ 0 → (φ (monomial n c)).nat_degree = n - k) :
+  (φ_mon : ∀ n c, c ≠ 0 → (φ (monomial n c)).nat_degree = n - k) :
   (φ p).nat_degree = p.nat_degree - k :=
-begin
-  refine induction_with_nat_degree_le (λ p, _ = _ - k) p.nat_degree (by simp) _ _ _ rfl.le,
-  { intros n r r0 np,
-    rw [nat_degree_C_mul_X_pow _ _ r0, ← monomial_eq_C_mul_X, φ_mon_nat _ _ r0] },
-  { intros f g fg gp fk gk,
-    rw [nat_degree_add_eq_right_of_nat_degree_lt fg, map_add],
-    by_cases FG : k ≤ f.nat_degree,
-    { rw [nat_degree_add_eq_right_of_nat_degree_lt, gk],
-      rw [fk, gk],
-      exact (tsub_lt_tsub_iff_right FG).mpr fg },
-    { rwa [φ_k f (not_le.mp FG), zero_add] } }
-end
+mono_map_nat_degree_eq k (λ j, j - k) (by simp) (λ m n h, (tsub_lt_tsub_iff_right h).mpr) φ_k φ_mon
 
 lemma map_nat_degree_eq_nat_degree {S F : Type*} [semiring S]
   [add_monoid_hom_class F (polynomial R) (polynomial S)] {φ : F} (p)

@@ -505,7 +505,8 @@ def map_ring_hom (f : R →+* S) : polynomial R →+* polynomial S :=
 
 @[simp] lemma coe_map_ring_hom (f : R →+* S) : ⇑(map_ring_hom f) = map f := rfl
 
-@[simp] theorem map_nat_cast (n : ℕ) : (n : polynomial R).map f = n :=
+-- todo: this will be removed in #11161, so `protecting` is a reasonable temporary strat
+@[simp] protected theorem map_nat_cast (n : ℕ) : (n : polynomial R).map f = n :=
 map_nat_cast (map_ring_hom f) n
 
 @[simp]

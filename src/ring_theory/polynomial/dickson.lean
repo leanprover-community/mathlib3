@@ -79,7 +79,7 @@ variables {R S k a}
 
 lemma map_dickson (f : R →+* S) :
   ∀ (n : ℕ), map f (dickson k a n) = dickson k (f a) n
-| 0       := by simp only [dickson_zero, map_sub, map_nat_cast, bit1, bit0, map_add, map_one]
+| 0       := by simp only [dickson_zero, map_sub, polynomial.map_nat_cast, bit1, bit0, map_add, map_one]
 | 1       := by simp only [dickson_one, map_X]
 | (n + 2) :=
 begin

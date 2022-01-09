@@ -263,8 +263,6 @@ instance : has_zero (seminorm 𝕜 E) :=
   smul'     := λ _ _, (mul_zero _).symm,
   triangle' := λ _ _, by rw add_zero }⟩
 
-@[simp] lemma coe_zero : (0 : seminorm 𝕜 E) = 0 := rfl
-
 instance : inhabited (seminorm 𝕜 E) := ⟨0⟩
 
 instance : has_coe_to_fun (seminorm 𝕜 E) (λ _, E → ℝ) := ⟨λ p, p.to_fun⟩
@@ -278,43 +276,6 @@ variables (p : seminorm 𝕜 E) (c : 𝕜) (x y : E) (r : ℝ)
 
 protected lemma smul : p (c • x) = ∥c∥ * p x := p.smul' _ _
 protected lemma triangle : p (x + y) ≤ p x + p y := p.triangle' _ _
-
-end has_scalar
-
-section smul_with_zero
-variables [smul_with_zero 𝕜 E] (p : seminorm 𝕜 E)
-
-@[simp]
-protected lemma zero : p 0 = 0 :=
-calc p 0 = p ((0 : 𝕜) • 0) : by rw zero_smul
-...      = 0 : by rw [p.smul, norm_zero, zero_mul]
-
-end smul_with_zero
-end add_monoid
-
-section norm_one_class
-variables [norm_one_class 𝕜] [add_comm_group E] [module 𝕜 E] (p : seminorm 𝕜 E) (x y : E) (r : ℝ)
-
-@[simp]
-protected lemma neg : p (-x) = p x :=
-calc p (-x) = p ((-1 : 𝕜) • x) : by rw neg_one_smul
-...         = p x : by rw [p.smul, norm_neg, norm_one, one_mul]
-
-protected lemma sub_le : p (x - y) ≤ p x + p y :=
-calc
-  p (x - y)
-      = p (x + -y) : by rw sub_eq_add_neg
-  ... ≤ p x + p (-y) : p.triangle x (-y)
-  ... = p x + p y : by rw p.neg
-
-lemma nonneg : 0 ≤ p x :=
-have h: 0 ≤ 2 * p x, from
-calc 0 = p (x + (- x)) : by rw [add_neg_self, p.zero]
-...    ≤ p x + p (-x)  : p.triangle _ _
-...    = 2 * p x : by rw [p.neg, two_mul],
-nonneg_of_mul_nonneg_left h zero_lt_two
-
-lemma sub_rev : p (x - y) = p (y - x) := by rw [←neg_sub, p.neg]
 
 lemma mul_sup {a b c : ℝ} (h₁ : 0 ≤ a) : a * (b ⊔ c) = (a * b) ⊔ (a * c) :=
 begin
@@ -340,13 +301,51 @@ function.injective.semilattice_sup _ coe_injective coe_sup
 lemma le_def (p q : seminorm 𝕜 E) : p ≤ q ↔ (p : E → ℝ) ≤ q := iff.rfl
 lemma lt_def (p q : seminorm 𝕜 E) : p < q ↔ (p : E → ℝ) < q := iff.rfl
 
+end has_scalar
+
+section smul_with_zero
+variables [smul_with_zero 𝕜 E] (p : seminorm 𝕜 E)
+
+@[simp]
+protected lemma zero : p 0 = 0 :=
+calc p 0 = p ((0 : 𝕜) • 0) : by rw zero_smul
+...      = 0 : by rw [p.smul, norm_zero, zero_mul]
+
+end smul_with_zero
+end add_monoid
+
+section norm_one_class
+variables [norm_one_class 𝕜] [add_comm_group E] [module 𝕜 E] (p : seminorm 𝕜 E) (x y : E) (r : ℝ)
+variables {ι : Type*}
+
+@[simp]
+protected lemma neg : p (-x) = p x :=
+calc p (-x) = p ((-1 : 𝕜) • x) : by rw neg_one_smul
+...         = p x : by rw [p.smul, norm_neg, norm_one, one_mul]
+
+protected lemma sub_le : p (x - y) ≤ p x + p y :=
+calc
+  p (x - y)
+      = p (x + -y) : by rw sub_eq_add_neg
+  ... ≤ p x + p (-y) : p.triangle x (-y)
+  ... = p x + p y : by rw p.neg
+
+lemma nonneg : 0 ≤ p x :=
+have h: 0 ≤ 2 * p x, from
+calc 0 = p (x + (- x)) : by rw [add_neg_self, p.zero]
+...    ≤ p x + p (-x)  : p.triangle _ _
+...    = 2 * p x : by rw [p.neg, two_mul],
+nonneg_of_mul_nonneg_left h zero_lt_two
+
+lemma sub_rev : p (x - y) = p (y - x) := by rw [←neg_sub, p.neg]
+
 instance : order_bot (seminorm 𝕜 E) :=
 { bot := 0,
   bot_le := nonneg }
 
 @[simp] lemma coe_bot : ⇑(⊥ : seminorm 𝕜 E) = 0 := rfl
 
-lemma finset_sup_apply {ι} (p : ι → seminorm 𝕜 E) (s : finset ι) (x : E) :
+lemma finset_sup_apply (p : ι → seminorm 𝕜 E) (s : finset ι) (x : E) :
   s.sup p x = ↑(s.sup (λ i, ⟨p i x, nonneg (p i) x⟩) : nnreal) :=
 begin
   induction s using finset.cons_induction_on with a s ha ih,
@@ -354,6 +353,11 @@ begin
   { rw [finset.sup_cons, finset.sup_cons, coe_sup, sup_eq_max, pi.sup_apply, sup_eq_max,
         nnreal.coe_max, subtype.coe_mk, ih] }
 end
+
+lemma finset_le_sup (p : ι → seminorm 𝕜 E) (ι' : finset ι) (i : ι) (hi : i ∈ ι') (x : E) :
+  p i x ≤ ι'.sup p x :=
+(finset.le_sup hi : p _ ≤ _) x
+
 end norm_one_class
 
 /-! ### Seminorm ball -/
@@ -379,7 +383,7 @@ lemma ball_zero_eq : ball p 0 r = { y : E | p y < r } := set.ext $ λ x, p.mem_b
 end has_scalar
 
 section module
-variables [norm_one_class 𝕜] [module 𝕜 E] (p : seminorm 𝕜 E)
+variables [norm_one_class 𝕜] [module 𝕜 E] (p : seminorm 𝕜 E) {ι : Type*}
 
 /-- Seminorm-balls at the origin are balanced. -/
 lemma balanced_ball_zero (r : ℝ): balanced 𝕜 (ball p 0 r) :=
@@ -388,6 +392,23 @@ begin
   rw [mem_ball_zero, ←hx, p.smul],
   calc _ ≤ p y : mul_le_of_le_one_left (p.nonneg _) ha
   ...    < r   : by rwa mem_ball_zero at hy,
+end
+
+lemma finset_sup_ball_inter (p : ι → seminorm 𝕜 E) (ι' : finset ι) (r : ℝ) (hr : 0 < r):
+  ball (ι'.sup p) 0 r = ⋂ (i ∈ ι'), ball (p i) (0 : E) r :=
+begin
+  dunfold ball,
+  ext,
+  simp,
+  split,
+  { intros hx i hi,
+    exact lt_of_le_of_lt (finset_le_sup p ι' i hi x) hx },
+  intros hx,
+  rw [finset_sup_apply, ←r.coe_to_nnreal (has_lt.lt.le hr), nnreal.coe_lt_coe, finset.sup_lt_iff],
+  { intros i hi,
+    rw [←nnreal.coe_lt_coe, r.coe_to_nnreal (has_lt.lt.le hr)],
+    exact (hx i hi) },
+  simp[hr],
 end
 
 end module
@@ -457,36 +478,6 @@ end
 
 end module
 end normed_linear_ordered_field
-
-section seminorm_sup
-
-variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E] [semi_normed_space ℝ 𝕜]
-variables [module ℝ E]
-variables {ι : Type*} [decidable_eq ι]
-variables (p : ι → seminorm 𝕜 E)
-variables (ι' : finset ι)
-
-lemma seminorm_le_sup (p : ι → seminorm 𝕜 E) (ι' : finset ι) (i : ι) (hi : i ∈ ι') (x : E) :
-  p i x ≤ ι'.sup p x :=
-(finset.le_sup hi : p _ ≤ _) x
-
-lemma seminorm_sup_ball_int (p : ι → seminorm 𝕜 E) (ι' : finset ι) :
-  ball (ι'.sup p) 0 1 = ⋂ (i ∈ ι'), ball (p i) (0 : E) 1 :=
-begin
-  dunfold ball,
-  ext,
-  simp,
-  split,
-  { intros hx i hi,
-    exact lt_of_le_of_lt (seminorm_le_sup p ι' i hi x) hx },
-  intros hx,
-  rw [finset_sup_apply, ←nnreal.coe_one, nnreal.coe_lt_coe, finset.sup_lt_iff],
-  { intros i hi,
-    exact (hx i hi) },
-  simp,
-end
-
-end seminorm_sup
 
 -- TODO: convexity and absorbent/balanced sets in vector spaces over ℝ
 

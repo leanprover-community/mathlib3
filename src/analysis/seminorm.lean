@@ -258,25 +258,19 @@ variables [add_monoid E]
 section has_scalar
 variables [has_scalar 𝕜 E]
 
-def zero_seminorm : seminorm 𝕜 E :=
-  { to_fun    := 0,
-    smul'     := by simp,
-    triangle' := by simp }
+instance : has_zero (seminorm 𝕜 E) :=
+  ⟨{ to_fun    := λ _, 0,
+    smul'     := λ _ _, (mul_zero _).symm,
+    triangle' := λ _ _, by rw add_zero }⟩
 
-instance : inhabited (seminorm 𝕜 E) := ⟨zero_seminorm⟩
+instance : inhabited (seminorm 𝕜 E) := ⟨0⟩
 
 instance : has_coe_to_fun (seminorm 𝕜 E) (λ _, E → ℝ) := ⟨λ p, p.to_fun⟩
 
 lemma coe_injective : @function.injective (seminorm 𝕜 E) (E → ℝ) coe_fn
 | ⟨x, _, _⟩ ⟨y, _, _⟩ rfl := rfl
 
-@[ext] lemma ext {p q : seminorm 𝕜 E} (h : (p : E → ℝ) = q) : p = q :=
-begin
-  cases p,
-  cases q,
-  have : p_to_fun = q_to_fun := h,
-  simp_rw this,
-end
+@[ext] lemma ext {p q : seminorm 𝕜 E} (h : (p : E → ℝ) = q) : p = q := coe_injective h
 
 variables (p : seminorm 𝕜 E) (c : 𝕜) (x y : E) (r : ℝ)
 
@@ -323,17 +317,12 @@ lemma sub_rev : p (x - y) = p (y - x) := by rw [←neg_sub, p.neg]
 variables {α : Type*} [semilattice_sup α] {a b c d : α}
 variables (h₁ : a = b)
 
-#check le_antisymm_iff.mp h₁
-
-#check sup_le_sup
 theorem sup_eq_sup (h₁ : a = b) (h₂ : c = d) : a ⊔ c = b ⊔ d :=
 begin
   refine le_antisymm _ _,
-  {
-    refine sup_le_sup _ _,
+  { refine sup_le_sup _ _,
     exact (le_antisymm_iff.mp h₁).1,
-    exact (le_antisymm_iff.mp h₂).1,
-  },
+    exact (le_antisymm_iff.mp h₂).1 },
   refine sup_le_sup _ _,
   exact (le_antisymm_iff.mp h₁).2,
   exact (le_antisymm_iff.mp h₂).2,
@@ -375,7 +364,7 @@ instance : semilattice_sup (seminorm 𝕜 E) :=
 function.injective.semilattice_sup _ coe_injective coe_sup
 
 instance : order_bot (seminorm 𝕜 E) :=
-{ bot := zero_seminorm,
+{ bot := 0,
   bot_le := nonneg }
 
 @[simp] lemma coe_bot : ⇑(⊥ : seminorm 𝕜 E) = 0 := rfl
@@ -485,8 +474,6 @@ end module
 end normed_linear_ordered_field
 
 section seminorm_sup
-
-noncomputable theory
 
 variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E] [semi_normed_space ℝ 𝕜]
 variables [module ℝ E]
@@ -823,7 +810,5 @@ lemma seminorm.gauge_seminorm_ball (p : seminorm ℝ E) :
 seminorm.ext p.gauge_ball
 
 end gauge
-
-
 
 -- TODO: topology induced by family of seminorms, local convexity.

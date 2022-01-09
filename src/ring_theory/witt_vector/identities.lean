@@ -79,5 +79,17 @@ lemma mul_char_p_coeff_succ [char_p R p] (x : 𝕎 R) (i : ℕ) :
   (x * p).coeff (i + 1) = (x.coeff i)^p :=
 by rw [← frobenius_verschiebung, coeff_frobenius_char_p, verschiebung_coeff_succ]
 
+lemma verschiebung_frobenius [char_p R p] (x : 𝕎 R) :
+  verschiebung (frobenius x) = x * p :=
+begin
+  ext ⟨i⟩,
+  { rw [mul_char_p_coeff_zero, verschiebung_coeff_zero], },
+  { rw [mul_char_p_coeff_succ, verschiebung_coeff_succ, coeff_frobenius_char_p], }
+end
+
+lemma verschiebung_frobenius_comm [char_p R p] (x : 𝕎 R) :
+  verschiebung (frobenius x) = frobenius (verschiebung x) :=
+by rw [verschiebung_frobenius, frobenius_verschiebung]
+
 
 end witt_vector

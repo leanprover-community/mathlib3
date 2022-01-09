@@ -483,8 +483,7 @@ begin
   rw [finset_sup_apply, ←nnreal.coe_one, nnreal.coe_lt_coe, finset.sup_lt_iff],
   {
     intros i hi,
-    have hp : p i x < 1 := hx i hi,
-    exact hp,
+    exact (hx i hi),
   },
   simp,
 end

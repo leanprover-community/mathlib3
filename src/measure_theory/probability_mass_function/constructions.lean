@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Devon Tuma
 -/
 import measure_theory.probability_mass_function.basic
+import measure_theory.probability_mass_function.monad
 
 /-!
 # Specific Constructions of Probability Mass Functions

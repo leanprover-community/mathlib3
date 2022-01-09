@@ -263,6 +263,8 @@ instance : has_zero (seminorm 𝕜 E) :=
     smul'     := λ _ _, (mul_zero _).symm,
     triangle' := λ _ _, by rw add_zero }⟩
 
+@[simp] lemma coe_zero : (0 : seminorm 𝕜 E) = 0 := rfl
+
 instance : inhabited (seminorm 𝕜 E) := ⟨0⟩
 
 instance : has_coe_to_fun (seminorm 𝕜 E) (λ _, E → ℝ) := ⟨λ p, p.to_fun⟩
@@ -469,10 +471,11 @@ variables (p : ι → seminorm 𝕜 E)
 variables (ι' : finset ι)
 
 lemma seminorm_sup_finset_coe_to_fun (p : ι → seminorm 𝕜 E) (ι' : finset ι) :
-  coe_fn (ι'.sup p) = λ x, ↑(ι'.sup (λ i, (p i x).to_nnreal)) :=
+  coe_fn (ι'.sup p) = ↑(ι'.sup (λ i x, (p i x).to_nnreal)) :=
 begin
   sorry,
 end
+
 
 lemma seminorm_le_sup (p : ι → seminorm 𝕜 E) (ι' : finset ι) (i : ι) (hi : i ∈ ι') (x : E) :
   p i x ≤ ι'.sup p x :=

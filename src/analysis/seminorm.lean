@@ -416,6 +416,92 @@ end
 end module
 end normed_linear_ordered_field
 
+section seminorm_sup
+
+noncomputable theory
+
+variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E] [semi_normed_space ℝ 𝕜]
+variables [module ℝ E]
+variables {ι : Type*} [decidable_eq ι]
+
+lemma seminorm_sup_le_aux (p : ι → seminorm 𝕜 E) (ι' : finset ι) (i : ι) (hi : i ∈ ι') (x : E) :
+  (p i x).to_nnreal ≤ ι'.sup (λ (i : ι), (p i x).to_nnreal) := by exact finset.le_sup hi
+
+def seminorm_sup_finset (p : ι → seminorm 𝕜 E) (ι' : finset ι) : seminorm 𝕜 E :=
+  { to_fun := λ x, ↑(ι'.sup (λ i, (p i x).to_nnreal)),
+  smul' :=
+    begin
+      intros x v,
+      rw [←∥x∥.coe_to_nnreal (norm_nonneg x), ←nnreal.coe_mul, nnreal.coe_eq],
+      rw (∥x∥.to_nnreal).mul_finset_sup,
+      refine finset.sup_congr _ _,
+      trivial,
+      intros i hi,
+      rw [←nnreal.coe_eq, nnreal.coe_mul, ∥x∥.coe_to_nnreal (norm_nonneg x),
+      (p i v).coe_to_nnreal (nonneg (p i) v), (p i (x • v)).coe_to_nnreal (nonneg (p i) (x • v))],
+      exact (p i).smul x v,
+    end,
+  triangle' :=
+    begin
+      intros x y,
+      rw [←nnreal.coe_add, nnreal.coe_le_coe],
+      refine finset.sup_le _,
+      intros i hi,
+      have hpxy : ((p i) (x + y)).to_nnreal ≤ (p i x).to_nnreal + (p i y).to_nnreal :=
+      begin
+        rw real.to_nnreal_add_to_nnreal (nonneg (p i) x) (nonneg (p i) y),
+        apply real.to_nnreal_le_to_nnreal,
+        exact (p i).triangle x y,
+      end,
+      apply le_trans hpxy,
+      exact add_le_add (seminorm_sup_le_aux p ι' i hi x) (seminorm_sup_le_aux p ι' i hi y),
+    end }
+
+
+lemma seminorm_sup_finset_coe_to_fun (p : ι → seminorm 𝕜 E) (ι' : finset ι) :
+  coe_fn (seminorm_sup_finset p ι') =
+  λ x, ↑(ι'.sup (λ i, (p i x).to_nnreal)) := rfl
+
+@[simp]
+lemma seminorm_sup_singleton (p : ι → seminorm 𝕜 E) (i : ι):
+  seminorm_sup_finset p {i} = p i :=
+begin
+  ext,
+  rw seminorm_sup_finset_coe_to_fun,
+  simp,
+  exact (p i).nonneg x,
+end
+
+
+-- Show that this is a seminorm
+-- Show that its unit ball is given by intersection
+lemma seminorm_sup_ball_int (p : ι → seminorm 𝕜 E) (ι' : finset ι) :
+  ball (seminorm_sup_finset p ι') 0 1 = ⋂ (i ∈ ι'), ball (p i) (0 : E) 1 :=
+begin
+  dunfold ball,
+  ext,
+  rw seminorm_sup_finset_coe_to_fun,
+  simp,
+  split,
+  {
+    intros hx i hi,
+    have hp : (p i x).to_nnreal < 1 := lt_of_le_of_lt (seminorm_sup_le_aux p ι' i hi x) hx,
+    rw [←nnreal.coe_lt_coe, (p i x).coe_to_nnreal ((p i).nonneg x)] at hp,
+    exact hp,
+  },
+  intros hx,
+  rw [←nnreal.coe_one, nnreal.coe_lt_coe, finset.sup_lt_iff],
+  {
+    intros i' hi',
+    have hp : p i' x < 1 := hx i' hi',
+    rw [←nnreal.coe_lt_coe, (p i' x).coe_to_nnreal ((p i').nonneg x)],
+    exact hp,
+  },
+  simp,
+end
+
+end seminorm_sup
+
 -- TODO: convexity and absorbent/balanced sets in vector spaces over ℝ
 
 end seminorm
@@ -710,5 +796,7 @@ lemma seminorm.gauge_seminorm_ball (p : seminorm ℝ E) :
 seminorm.ext p.gauge_ball
 
 end gauge
+
+
 
 -- TODO: topology induced by family of seminorms, local convexity.

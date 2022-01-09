@@ -747,6 +747,27 @@ lemma orthonormal.inner_left_fintype [fintype ι]
   ⟪∑ i : ι, (l i) • (v i), v i⟫ = conj (l i) :=
 by classical; simp [sum_inner, inner_smul_left, orthonormal_iff_ite.mp hv]
 
+/-- The inner product of two linear combinations of a set of orthonormal vectors, expressed as
+a sum over the first `finsupp`. -/
+lemma orthonormal.inner_finsupp_eq_sum_left
+  {v : ι → E} (hv : orthonormal 𝕜 v) (l₁ l₂ : ι →₀ 𝕜) :
+  ⟪finsupp.total ι E 𝕜 v l₁, finsupp.total ι E 𝕜 v l₂⟫ = l₁.sum (λ i y, conj y * l₂ i) :=
+by simp [finsupp.total_apply _ l₁, finsupp.sum_inner, hv.inner_right_finsupp]
+
+/-- The inner product of two linear combinations of a set of orthonormal vectors, expressed as
+a sum over the second `finsupp`. -/
+lemma orthonormal.inner_finsupp_eq_sum_right
+  {v : ι → E} (hv : orthonormal 𝕜 v) (l₁ l₂ : ι →₀ 𝕜) :
+  ⟪finsupp.total ι E 𝕜 v l₁, finsupp.total ι E 𝕜 v l₂⟫ = l₂.sum (λ i y, conj (l₁ i) * y) :=
+by simp [finsupp.total_apply _ l₂, finsupp.inner_sum, hv.inner_left_finsupp, mul_comm]
+
+/-- The inner product of two linear combinations of a set of orthonormal vectors, expressed as
+a sum. -/
+lemma orthonormal.inner_fintype [fintype ι]
+  {v : ι → E} (hv : orthonormal 𝕜 v) (l₁ l₂ : ι → 𝕜) :
+  ⟪∑ i, l₁ i • v i, ∑ i, l₂ i • v i⟫ = ∑ i, conj (l₁ i) * l₂ i :=
+by simp [sum_inner, inner_smul_left, hv.inner_right_fintype]
+
 /--
 The double sum of weighted inner products of pairs of vectors from an orthonormal sequence is the
 sum of the weights.

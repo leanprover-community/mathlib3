@@ -329,13 +329,8 @@ instance : has_sup (seminorm 𝕜 E) :=
     triangle' := λ x y, sup_le
       ((p.triangle x y).trans $ add_le_add le_sup_left le_sup_left)
       ((q.triangle x y).trans $ add_le_add le_sup_right le_sup_right),
-    smul' :=
-      begin
-        intros x v,
-        simp,
-        rw mul_sup (norm_nonneg x),
-        rw [p.smul x v, q.smul x v],
-      end }}
+    smul' := λ x v, (congr_arg2 (⊔) (p.smul x v) (q.smul x v)).trans $
+      (mul_sup $ norm_nonneg x).symm } }
 
 @[simp] lemma coe_sup (p q : seminorm 𝕜 E) : ⇑(p ⊔ q) = p ⊔ q := rfl
 

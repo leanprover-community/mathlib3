@@ -382,6 +382,19 @@ noncomputable def function.extend_by_zero.linear_map : (ι → R) →ₗ[R] (η 
 
 end extend
 
+
+/-! ### Bundled versions of `matrix.vec_cons` and `matrix.vec_empty`
+
+The idea of these definitions is to be able to define a map as `x ↦ ![f₁ x, f₂ x, f₃ x]`, where
+`f₁ f₂ f₃` are already linear maps, as `f₁.vec_cons $ f₂.vec_cons $ f₃.vec_cons $ vec_empty`.
+
+While the same thing could be achieved using `linear_map.pi ![f₁, f₂, f₃]`, this is not
+definitionally equal to the result using `linear_map.vec_cons`, as `fin.cases` and function
+application do not commute definitionally.
+
+Versions for when `f₁ f₂ f₃` are bilinear maps are also provided.
+
+-/
 section fin
 
 section semiring

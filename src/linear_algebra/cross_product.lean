@@ -21,6 +21,7 @@ This module defines the cross product of vectors in $R^3$ for $R$ a commutative 
 ## Main results
 
 * `triple_product_eq_det`
+* `cross_dot_cross`
 * `jacobi_identity`
 
 ## Notation
@@ -62,6 +63,8 @@ lemma cross_product_apply (a b : fin 3 → R) :
              a 2 * b 0 - a 0 * b 2,
              a 0 * b 1 - a 1 * b 0] :=
 rfl
+
+section products_properties
 
 lemma cross_product_anticomm (v w : fin 3 → R) :
   - (v ×₃ w) = w ×₃ v :=
@@ -107,6 +110,18 @@ begin
   ring,
 end
 
+theorem cross_dot_cross (u v w x : fin 3 → R) :
+  (u ×₃ v) ⬝ᵥ (w ×₃ x) = (u ⬝ᵥ w) * (v ⬝ᵥ x) - (u ⬝ᵥ x) * (v ⬝ᵥ w) :=
+begin
+  simp only [vec3_dot_product, cross_product, cons_append, cons_vec_bit0_eq_alt0,
+    cons_val_one, cons_vec_alt0, linear_map.mk₂_apply, cons_val_zero, head_cons, empty_append],
+  ring_nf,
+end
+
+end products_properties
+
+section leibniz_properties
+
 /-- The cross product satisfies the Leibniz lie property. -/
 lemma leibniz_cross (u v w : fin 3 → R) :
   u ×₃ (v ×₃ w) = (u ×₃ v) ×₃ w + v ×₃ (u ×₃ w) :=
@@ -138,3 +153,5 @@ lie_lie u v w
 theorem jacobi_identity (u v w : fin 3 → R) :
   u ×₃ (v ×₃ w) + v ×₃ (w ×₃ u) + w ×₃ (u ×₃ v) = 0 :=
 lie_jacobi u v w
+
+end leibniz_properties

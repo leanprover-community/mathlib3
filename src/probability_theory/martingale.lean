@@ -330,7 +330,7 @@ integrable_stopped_value hτ hf.integrable hbdd
 /-- Given a submartingale `f` and bounded stopping times `τ` and `π` such that `τ ≤ π`, the
 expectation of `stopped_value f τ` is less or equal to the expectation of `stopped_value f π`.
 This is the forward direction of the optional stopping theorem. -/
-lemma stopped_value_le {f : ℕ → α → ℝ} (hf : submartingale f 𝒢 μ) {τ π : α → ℕ}
+lemma expected_stopped_value_mono {f : ℕ → α → ℝ} (hf : submartingale f 𝒢 μ) {τ π : α → ℕ}
   (hτ : is_stopping_time 𝒢 τ) (hπ : is_stopping_time 𝒢 π) (hle : τ ≤ π)
   {N : ℕ} (hbdd : ∀ x, π x ≤ N) :
   μ[stopped_value f τ] ≤ μ[stopped_value f π] :=

@@ -397,7 +397,7 @@ begin
     have h'' : continuous_on _ univ := (model_with_corners.continuous I').continuous_on,
     convert (h''.comp' (chart_at H' y).continuous_to_fun).comp' h,
     simp },
-  { exact λ h' x y, (h' y).2 x (default') }
+  { exact λ h' x y, (h' y).2 x default }
 end
 
 lemma smooth_on_iff :

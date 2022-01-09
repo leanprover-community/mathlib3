@@ -8,21 +8,21 @@ example (α) (a : α) :=
 begin
   haveI h : inhabited α := ⟨a⟩,
   assert_frozen_instances,
-  exact default
+  exact (default : α)
 end
 
 example (α) (a : α) :=
 begin
   haveI h := inhabited.mk a,
   assert_frozen_instances,
-  exact default
+  exact (default : α)
 end
 
 example (α) (a : α) :=
 begin
   letI h : inhabited α := ⟨a⟩,
   assert_frozen_instances,
-  exact default
+  exact (default : α)
 end
 
 example (α) (a : α) :=
@@ -30,13 +30,13 @@ begin
   letI h : inhabited α,
   all_goals { assert_frozen_instances },
   exact ⟨a⟩,
-  exact default
+  exact (default : α)
 end
 
 example (α) (a : α) :=
 begin
   letI h := inhabited.mk a,
-  exact default
+  exact (default : α)
 end
 
 example (α) : inhabited α → α :=

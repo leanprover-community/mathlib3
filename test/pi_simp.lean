@@ -16,8 +16,8 @@ namespace test
 def eval_default [inhabited I] (F : Π i, f i) : f default := F default
 
 @[simp] lemma eval_default_one [inhabited I] [Π i, has_one (f i)] :
-  eval_default = 1 := rfl
+  eval_default (1 : Π i, f i) = 1 := rfl
 
-example [inhabited I] [Π i, group (f i)] (F : Π i, f i) : eval_default = 1 := by simp
+example [inhabited I] [Π i, group (f i)] (F : Π i, f i) : eval_default (F⁻¹ * F) = 1 := by simp
 
 end test

@@ -68,13 +68,20 @@ class order_top (α : Type u) [has_le α] extends has_top α :=
 (le_top : ∀ a : α, a ≤ ⊤)
 
 section order_top
-variables [partial_order α] [order_top α] {a b : α}
 
 @[simp] theorem le_top {α : Type u} [has_le α] [order_top α] {a : α} : a ≤ ⊤ :=
 order_top.le_top a
 
-@[simp] theorem not_top_lt {α : Type u} [preorder α] [order_top α] {a : α} : ¬ ⊤ < a :=
-λ h, lt_irrefl a (lt_of_le_of_lt le_top h)
+section preorder
+variables [preorder α] [order_top α] {a b : α}
+
+lemma ne_top_of_lt (h : a < b) : a ≠ ⊤ := (h.trans_le le_top).ne
+
+@[simp] lemma not_top_lt : ¬ ⊤ < a := λ h, lt_irrefl a (lt_of_le_of_lt le_top h)
+
+end preorder
+
+variables [partial_order α] [order_top α] {a b : α}
 
 theorem top_unique (h : ⊤ ≤ a) : a = ⊤ :=
 le_top.antisymm h
@@ -102,9 +109,6 @@ begin
   rw lt_top_iff_ne_top,
   exact h,
 end
-
-lemma ne_top_of_lt (h : a < b) : a ≠ ⊤ :=
-lt_top_iff_ne_top.1 $ lt_of_lt_of_le h le_top
 
 alias ne_top_of_lt ← has_lt.lt.ne_top
 
@@ -146,12 +150,21 @@ class order_bot (α : Type u) [has_le α] extends has_bot α :=
 (bot_le : ∀ a : α, ⊥ ≤ a)
 
 section order_bot
-variables [partial_order α] [order_bot α] {a b : α}
 
 @[simp] theorem bot_le {α : Type u} [has_le α] [order_bot α] {a : α} : ⊥ ≤ a := order_bot.bot_le a
 
-@[simp] theorem not_lt_bot {α : Type u} [preorder α] [order_bot α] {a : α} : ¬ a < ⊥ :=
-λ h, lt_irrefl a (lt_of_lt_of_le h bot_le)
+section preorder
+variables [preorder α] [order_bot α] {a b : α}
+
+@[simp] lemma not_lt_bot : ¬ a < ⊥ := λ h, lt_irrefl a (lt_of_lt_of_le h bot_le)
+
+lemma ne_bot_of_gt (h : a < b) : b ≠ ⊥ := (bot_le.trans_lt h).ne'
+
+alias ne_bot_of_gt ← has_lt.lt.ne_bot
+
+end preorder
+
+variables [partial_order α] [order_bot α] {a b : α}
 
 theorem bot_unique (h : a ≤ ⊥) : a = ⊥ :=
 h.antisymm bot_le
@@ -187,11 +200,6 @@ begin
   rw bot_lt_iff_ne_bot,
   exact h,
 end
-
-lemma ne_bot_of_gt (h : a < b) : b ≠ ⊥ :=
-bot_lt_iff_ne_bot.1 $ lt_of_le_of_lt bot_le h
-
-alias ne_bot_of_gt ← has_lt.lt.ne_bot
 
 lemma eq_bot_of_minimal (h : ∀ b, ¬ b < a) : a = ⊥ :=
 or.elim (lt_or_eq_of_le bot_le) (λ hlt, absurd hlt (h ⊥)) (λ he, he.symm)

@@ -172,7 +172,7 @@ lemma is_stopping_time.measurable_set_eq_le
 f.mono hle _ $ hτ.measurable_set_eq i
 
 lemma is_stopping_time.measurable_set_lt (hτ : is_stopping_time f τ) (i : ℕ) :
-  measurable_set[f i] $ {x | τ x < i} :=
+  measurable_set[f i] {x | τ x < i} :=
 begin
   convert (hτ i).diff (hτ.measurable_set_eq i),
   ext,
@@ -182,7 +182,7 @@ end
 
 lemma is_stopping_time.measurable_set_lt_le
   (hτ : is_stopping_time f τ) {i j : ℕ} (hle : i ≤ j) :
-  measurable_set[f j] $ {x | τ x < i} :=
+  measurable_set[f j] {x | τ x < i} :=
 f.mono hle _ $ hτ.measurable_set_lt i
 
 lemma is_stopping_time_of_measurable_set_eq
@@ -406,8 +406,7 @@ begin
   rw [stopped_value, finset.sum_apply, finset.sum_eq_single (τ y)],
   { rw set.indicator_of_mem,
     exact rfl },
-  { intros i hi hneq,
-    exact set.indicator_of_not_mem hneq.symm _ },
+  { exact λ i hi hneq, set.indicator_of_not_mem hneq.symm _ },
   { intro hy,
     rw set.indicator_of_not_mem,
     exact λ _, hy (finset.mem_range.2 $ lt_of_le_of_lt (hbdd _) (nat.lt_succ_self _)) }

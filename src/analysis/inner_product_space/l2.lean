@@ -241,7 +241,8 @@ begin
   rw mul_one at this,
   rw [linear_isometry_equiv.map_smul, b.repr_self, ← this, continuous_linear_equiv.coe_coe,
     linear_isometry_equiv.coe_to_continuous_linear_equiv],
-  exact (b.repr.apply_symm_apply (lp.single 2 i (f i))).symm,
+  -- exact (b.repr.apply_symm_apply (lp.single 2 i (f i))).symm,
+  sorry
 end
 
 protected lemma has_sum_repr_symm' (b : hilbert_basis ι 𝕜 E) (x : E) :

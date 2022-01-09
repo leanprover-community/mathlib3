@@ -118,7 +118,7 @@ begin
     { exact (ultrafilter_is_closed_basic _).is_compact, },
     { intro n, apply ultrafilter_is_closed_basic, }, },
   { exact is_closed.is_compact (is_closed_Inter $ λ i, ultrafilter_is_closed_basic _) },
-  { intros U V hU hV,
+  { intros U hU V hV,
     rw set.mem_Inter at *,
     intro n,
     rw [set.mem_set_of_eq, ultrafilter.eventually_mul],

@@ -98,7 +98,7 @@ lemma topological_space.is_topological_basis.borel_eq_generate_from [topological
 borel_eq_generate_from_of_subbasis hs.eq_generate_from
 
 lemma is_pi_system_is_open [topological_space α] : is_pi_system (is_open : set α → Prop) :=
-λ s t hs ht hst, is_open.inter hs ht
+λ s hs t ht hst, is_open.inter hs ht
 
 lemma borel_eq_generate_from_is_closed [topological_space α] :
   borel α = generate_from {s | is_closed s} :=

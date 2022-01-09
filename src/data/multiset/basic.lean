@@ -1748,9 +1748,7 @@ end
 
 lemma count_eq_card_filter_eq [decidable_eq α] (s : multiset α) (a : α) :
   s.count a = (s.filter (eq a)).card :=
-begin
-  rw [count, countp_eq_card_filter],
-end
+by rw [count, countp_eq_card_filter]
 
 @[simp] lemma map_count_true_eq_filter_card (s : multiset α) (p : α → Prop) [decidable_pred p] :
   (s.map p).count true = (s.filter p).card :=

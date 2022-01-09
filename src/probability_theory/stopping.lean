@@ -174,7 +174,7 @@ f.mono hle _ $ hτ.measurable_set_eq i
 lemma is_stopping_time.measurable_set_lt (hτ : is_stopping_time f τ) (i : ℕ) :
   measurable_set[f i] $ {x | τ x < i} :=
 begin
-  convert @measurable_set.diff _ (f i) _ _ (hτ i) (hτ.measurable_set_eq i),
+  convert (hτ i).diff (hτ.measurable_set_eq i),
   ext,
   change τ x < i ↔ τ x ≤ i ∧ τ x ≠ i,
   rw lt_iff_le_and_ne,

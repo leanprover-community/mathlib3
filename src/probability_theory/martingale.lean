@@ -327,6 +327,9 @@ lemma integrable_stopped_value [has_le E] {f : ℕ → α → E} (hf : submartin
   integrable (stopped_value f τ) μ :=
 integrable_stopped_value hτ hf.integrable hbdd
 
+-- We may generalize the below lemma to functions taking value in a `normed_lattice_add_comm_group`.
+-- Similarly, generalize `(super/)submartingale.set_integral_le`.
+
 /-- Given a submartingale `f` and bounded stopping times `τ` and `π` such that `τ ≤ π`, the
 expectation of `stopped_value f τ` is less or equal to the expectation of `stopped_value f π`.
 This is the forward direction of the optional stopping theorem. -/

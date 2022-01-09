@@ -233,6 +233,14 @@ end minor
 
 section vec2_and_vec3
 
+lemma vec2_eq {a₀ a₁ b₀ b₁ : α} (h₀ : a₀ = b₀) (h₁ : a₁ = b₁) :
+  ![a₀, a₁] = ![b₀, b₁] :=
+by subst_vars
+
+lemma vec3_eq {a₀ a₁ a₂ b₀ b₁ b₂ : α} (h₀ : a₀ = b₀) (h₁ : a₁ = b₁) (h₂ : a₂ = b₂) :
+  ![a₀, a₁, a₂] = ![b₀, b₁, b₂] :=
+by subst_vars
+
 lemma vec2_add [has_add α] (a₀ a₁ b₀ b₁ : α) :
   ![a₀, a₁] + ![b₀, b₁] = ![a₀ + b₀, a₁ + b₁] :=
 by rw [cons_add_cons, cons_add_cons, empty_add_empty]

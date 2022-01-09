@@ -49,7 +49,10 @@ begin
   intros;
   simp only [@vec3_add R _ _ _ _ _ _ _,
     pi.add_apply, algebra.id.smul_eq_mul, matrix.smul_cons, matrix.smul_empty, pi.smul_apply];
-  ring_nf,
+  apply vec3_eq;
+  -- ring_nf is slow here
+  simp [add_comm, add_assoc, add_left_comm, mul_comm, mul_assoc, mul_left_comm,
+    add_mul, mul_add, sub_eq_add_neg],
 end
 
 localized "infixl ` ×₃ `: 74 := cross_product" in matrix

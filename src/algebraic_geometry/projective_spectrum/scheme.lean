@@ -299,6 +299,7 @@ def isos.top_component.forward (f : A) (m : ℕ) (f_deg : f ∈ 𝒜 m) :
       erw [←k_eq, pow_zero, ←ideal.eq_top_iff_one] at hg1,
       apply x.1.is_prime.1, exact hg1,
     end, λ x1 x2 hx12, begin
+      -- sorry, -- the following works, but it is very slow to compile, so I comment them out,
       rw isos.forward.carrier at hx12,
       rcases x1 with ⟨x1, hx1⟩,
       induction x1 using localization.induction_on with data_x1,
@@ -439,7 +440,11 @@ def isos.top_component.forward (f : A) (m : ℕ) (f_deg : f ∈ 𝒜 m) :
   continuous_to_fun := begin
     apply is_topological_basis.continuous,
     exact prime_spectrum.is_topological_basis_basic_opens,
-    rintros _ ⟨y, rfl⟩, dsimp only,
+    rintros _ ⟨⟨g, hg⟩, rfl⟩,
+    induction g using localization.induction_on with data,
+    obtain ⟨a, ⟨_, ⟨n, rfl⟩⟩⟩ := data,
+    dsimp only,
+    -- we want to use `projective_spectrum.basic_open 𝒜 (a * f) = preimage`
     sorry
   end }
 

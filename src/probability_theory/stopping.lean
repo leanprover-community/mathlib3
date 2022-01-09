@@ -369,7 +369,7 @@ section nat
 
 open filtration
 
-variables {f : filtration ℕ m} {u : ℕ → α → β} {τ : α → ℕ}
+variables {f : filtration ℕ m} {u : ℕ → α → β} {τ π : α → ℕ}
 
 lemma stopped_value_sub_eq_sum [add_comm_group β] (hle : τ ≤ π) :
   stopped_value u π - stopped_value u τ =

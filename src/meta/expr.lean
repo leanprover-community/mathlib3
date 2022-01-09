@@ -759,7 +759,7 @@ e.has_local_in $ mk_name_set.insert l.local_uniq_name
 /-- Turns a local constant into a binder -/
 meta def to_binder : expr → binder
 | (local_const _ nm bi t) := ⟨nm, bi, t⟩
-| _                       := default binder
+| _                       := default
 
 /-- Strip-away the context-dependent unique id for the given local const and return: its friendly
 `name`, its `binder_info`, and its `type : expr`. -/

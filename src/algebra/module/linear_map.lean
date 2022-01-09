@@ -554,7 +554,7 @@ rfl
 
 instance : inhabited (M →ₛₗ[σ₁₂] M₂) := ⟨0⟩
 
-@[simp] lemma default_def : default (M →ₛₗ[σ₁₂] M₂) = 0 := rfl
+@[simp] lemma default_def : (default : (M →ₛₗ[σ₁₂] M₂)) = 0 := rfl
 
 /-- The sum of two linear maps is linear. -/
 instance : has_add (M →ₛₗ[σ₁₂] M₂) :=

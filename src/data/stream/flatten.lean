@@ -77,19 +77,11 @@ end
 lemma embed_mono {m n : ℕ} (hmn : m < n) : embed f hf m < embed f hf n :=
 strict_mono_nat_of_lt_succ (embed_succ_lt _ _) hmn
 
-
 lemma embed_inj : function.injective (embed f hf) :=
-begin
-  intros m n hmn,
-  by_contradiction hne,
-  wlog hlt : m < n,
-  { simp [hne] },
-  { refine ne_of_lt (embed_mono _ _ hlt) hmn, }
-end
+strict_mono.injective $ @embed_mono _ _ _
 
 def elt_of_index : indices f → α
 | ⟨row, col, col_lt⟩ := (f row).nth_le _ col_lt
-
 
 lemma elt_of_index_inj
   (hf_inj : ∀ (row1 col1 row2 col2 : ℕ)

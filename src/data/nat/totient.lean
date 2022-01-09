@@ -262,4 +262,47 @@ begin
   push_cast [←(pow_sub_mul_pow ↑p hk), pow_one, mul_right_comm],
 end
 
+-- TODO: Prove this in `data/nat/factorization`
+lemma aux (n : ℕ) : n.factorization.prod (λ (p k : ℕ), p) ∣ n := sorry
+
+theorem totient_Euler_product_formula' (n : ℕ) :
+  φ n = n / (n.factorization.prod (λ p k, p)) * (n.factorization.prod (λ p k, p - 1)) :=
+-- theorem totient_Euler_product_formula' (n : ℕ) :
+--   φ n = n / (n.factors.to_finset.prod id) * (n.factors.map pred).to_finset.prod id :=
+begin
+  rcases n.eq_zero_or_pos with rfl | hn0, { simp },
+  have h1 : 0 < n.factorization.prod (λ (p k : ℕ), p), {
+    unfold finsupp.prod,
+    apply prod_pos,
+    intros p hp,
+    rw factor_iff_mem_factorization at hp,
+    exact prime.pos (prime_of_mem_factors hp),
+    },
+  suffices : φ n = n * (n.factorization.prod (λ p k, p - 1)) / (n.factorization.prod (λ p k, p)),
+  {
+    rw this,
+    nth_rewrite_lhs 0 mul_comm,
+    nth_rewrite_rhs 0 mul_comm,
+    apply nat.mul_div_assoc (n.factorization.prod (λ (p k : ℕ), p - 1)),
+    exact aux n,
+   },
+
+  suffices : φ n * (n.factorization.prod (λ p k, p)) = n * (n.factorization.prod (λ p k, p - 1)),
+  {
+    rw ←this,
+    rw nat.mul_div_cancel _ h1,
+  },
+  rw multiplicative_factorization φ (λ a b, totient_mul) totient_one hn0,
+  nth_rewrite_rhs 0 ←(factorization_prod_pow_eq_self hn0),
+  simp only [←finsupp.prod_mul],
+  apply prod_congr rfl,
+  intros p hp,
+  set k := n.factorization p,
+  simp,
+  have hpp : prime p := prime_of_mem_factors (factor_iff_mem_factorization.mp hp),
+  have hk : 0 < k := zero_lt_iff.mpr (finsupp.mem_support_iff.mp hp),
+  simp only [totient_prime_pow hpp hk],
+  simp only [mul_right_comm, ←(pow_sub_mul_pow p hk), pow_one],
+end
+
 end nat

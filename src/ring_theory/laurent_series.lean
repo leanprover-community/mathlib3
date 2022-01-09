@@ -167,16 +167,16 @@ lemma coe_laurent : (p : laurent_series R) = of_power_series ℤ R p := rfl
 @[norm_cast] lemma coe_coe : ((p : power_series R) : laurent_series R) = p := rfl
 
 @[simp] lemma coe_laurent_zero : ((0 : polynomial R) : laurent_series R) = 0 :=
-by rw [coe_laurent, ←coe_to_power_series.ring_hom_apply, ←ring_hom.comp_apply, _root_.map_zero]
+((of_power_series ℤ R).comp (coe_to_power_series.ring_hom)).map_zero
 
 @[simp] lemma coe_laurent_one : ((1 : polynomial R) : laurent_series R) = 1 :=
-by rw [coe_laurent, ←coe_to_power_series.ring_hom_apply, ←ring_hom.comp_apply, _root_.map_one]
+((of_power_series ℤ R).comp (coe_to_power_series.ring_hom)).map_one
 
 @[simp, norm_cast] lemma coe_laurent_add : ((p + q : polynomial R) : laurent_series R) = p + q :=
-by simp_rw [coe_laurent, ←coe_to_power_series.ring_hom_apply, ←ring_hom.comp_apply, _root_.map_add]
+((of_power_series ℤ R).comp (coe_to_power_series.ring_hom)).map_add _ _
 
 @[simp, norm_cast] lemma coe_laurent_mul : ((p * q : polynomial R) : laurent_series R) = p * q :=
-by simp_rw [coe_laurent, ←coe_to_power_series.ring_hom_apply, ←ring_hom.comp_apply, _root_.map_mul]
+((of_power_series ℤ R).comp (coe_to_power_series.ring_hom)).map_mul _ _
 
 @[norm_cast] lemma coeff_coe_laurent_coe (i : ℕ) :
   ((p : polynomial R) : laurent_series R).coeff i = p.coeff i :=
@@ -207,15 +207,15 @@ by rw [smul_eq_C_mul, coe_laurent_mul, coe_laurent_C, C_mul_eq_smul]
 
 @[simp, norm_cast] lemma coe_laurent_bit0 :
   ((bit0 p : polynomial R) : laurent_series R) = bit0 p :=
-coe_laurent_add p p
+((of_power_series ℤ R).comp (coe_to_power_series.ring_hom)).map_bit0 _
 
 @[simp, norm_cast] lemma coe_laurent_bit1 :
   ((bit1 p : polynomial R) : laurent_series R) = bit1 p :=
-by rw [bit1, bit1, coe_laurent_add, coe_laurent_bit0, coe_laurent_one]
+((of_power_series ℤ R).comp (coe_to_power_series.ring_hom)).map_bit1 _
 
 @[simp, norm_cast] lemma coe_laurent_pow (n : ℕ) :
   ((p ^ n : polynomial R) : laurent_series R) = p ^ n :=
-by rw [coe_laurent, coe_pow, _root_.map_pow, ←coe_laurent]
+((of_power_series ℤ R).comp (coe_to_power_series.ring_hom)).map_pow _ _
 
 end laurent_series
 

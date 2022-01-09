@@ -1062,7 +1062,7 @@ begin
   { intro h,
     rw exists_eq_singleton_iff_nonempty_unique_mem,
     use h.1,
-    intros a b ha hb,
+    intros a ha b hb,
     injection @@subsingleton.elim ((is_preirreducible_iff_subsingleton _).mp h.2) ⟨_, ha⟩ ⟨_, hb⟩ },
   { rintro ⟨x, rfl⟩, exact is_irreducible_singleton }
 end
@@ -1164,8 +1164,8 @@ begin
   rcases t2_separation h with ⟨U₁, U₂, U₁_op, U₂_op, x_in, y_in, H⟩,
   rcases nhds_is_closed (is_open.mem_nhds U₁_op x_in) with ⟨V₁, V₁_in, h₁, V₁_closed⟩,
   rcases nhds_is_closed (is_open.mem_nhds U₂_op y_in) with ⟨V₂, V₂_in, h₂, V₂_closed⟩,
-  use [U₁, V₁, mem_of_superset V₁_in h₁, V₁_in,
-       U₂, V₂, mem_of_superset V₂_in h₂, V₂_in],
+  use [U₁, mem_of_superset V₁_in h₁, V₁, V₁_in,
+       U₂, mem_of_superset V₂_in h₂, V₂, V₂_in],
   tauto
 end
 

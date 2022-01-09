@@ -83,15 +83,15 @@ lemma exists_not_convergent_seq_lt {ε : ℝ} (hε : 0 < ε)
   (hf : ∀ n, measurable[m] (f n)) (hg : measurable g)
   {s : set α} (hsm : measurable_set s) (hs : μ s < ∞)
   (hfg : ∀ᵐ x ∂μ, x ∈ s → tendsto (λ n, f n x) at_top (𝓝 (g x))) (i : ℕ) :
-  ∃ j : ℕ, μ (s ∩ not_convergent_seq f g i j) ≤ ennreal.of_real (ε * 2^(-(i : ℝ))) :=
+  ∃ j : ℕ, μ (s ∩ not_convergent_seq f g i j) ≤ ennreal.of_real (ε * 2⁻¹ ^ i) :=
 begin
   obtain ⟨N, hN⟩ := (ennreal.tendsto_at_top ennreal.zero_ne_top).1
     (measure_not_convergent_seq_tendsto_zero hf hg hsm hs hfg i)
-    (ennreal.of_real (ε * 2 ^ -(i : ℝ))) _,
+    (ennreal.of_real (ε * 2⁻¹ ^ i)) _,
   { rw zero_add at hN,
     exact ⟨N, (hN N le_rfl).2⟩ },
   { rw [gt_iff_lt, ennreal.of_real_pos],
-    exact mul_pos hε (real.rpow_pos_of_pos (by norm_num) _) }
+    exact mul_pos hε (pow_pos (by norm_num) _) }
 end
 
 def not_convergent_seq_lt_index {ε : ℝ} (hε : 0 < ε)
@@ -105,14 +105,65 @@ lemma not_convergent_seq_lt_index_spec {ε : ℝ} (hε : 0 < ε)
   {s : set α} (hsm : measurable_set s) (hs : μ s < ∞)
   (hfg : ∀ᵐ x ∂μ, x ∈ s → tendsto (λ n, f n x) at_top (𝓝 (g x))) (i : ℕ) :
   μ (s ∩ not_convergent_seq f g i (not_convergent_seq_lt_index hε hf hg hsm hs hfg i)) ≤
-  ennreal.of_real (ε * 2^(-(i : ℝ))) :=
+  ennreal.of_real (ε * 2⁻¹ ^ i) :=
 classical.some_spec $ exists_not_convergent_seq_lt hε hf hg hsm hs hfg i
 
-theorem egorov {f : ℕ → α → β} {g : α → β} {s : set α} (hsm : measurable_set s) (hs : μ s < ∞)
-  (hfg : ∀ᵐ x ∂μ, x ∈ s → tendsto (λ n, f n x) at_top (𝓝 (g x))) {ε : ℝ} (hε : 0 < ε) :
-  ∃ t ⊆ s, μ t < ennreal.of_real ε ∧ tendsto_uniformly_on f g at_top t :=
+def Union_not_convergent_seq {ε : ℝ} (hε : 0 < ε)
+  (hf : ∀ n, measurable[m] (f n)) (hg : measurable g)
+  {s : set α} (hsm : measurable_set s) (hs : μ s < ∞)
+  (hfg : ∀ᵐ x ∂μ, x ∈ s → tendsto (λ n, f n x) at_top (𝓝 (g x))) : set α :=
+⋃ i, s ∩ not_convergent_seq f g i (not_convergent_seq_lt_index (half_pos hε) hf hg hsm hs hfg i)
+
+lemma measure_Union_not_convergent_seq {ε : ℝ} (hε : 0 < ε)
+  (hf : ∀ n, measurable[m] (f n)) (hg : measurable g)
+  {s : set α} (hsm : measurable_set s) (hs : μ s < ∞)
+  (hfg : ∀ᵐ x ∂μ, x ∈ s → tendsto (λ n, f n x) at_top (𝓝 (g x))) :
+  μ (Union_not_convergent_seq hε hf hg hsm hs hfg) ≤ ennreal.of_real ε :=
 begin
-  sorry
+  refine le_trans (measure_Union_le _)
+    (le_trans (ennreal.tsum_le_tsum $ not_convergent_seq_lt_index_spec
+    (half_pos hε) hf hg hsm hs hfg) _),
+  simp_rw [ennreal.of_real_mul (half_pos hε).le],
+  rw [ennreal.tsum_mul_left, ← ennreal.of_real_tsum_of_nonneg, inv_eq_one_div,
+      tsum_geometric_two, ← ennreal.of_real_mul (half_pos hε).le, div_mul_cancel ε two_ne_zero],
+  { exact le_rfl },
+  { exact λ n, pow_nonneg (by norm_num) _ },
+  { rw [inv_eq_one_div],
+    exact summable_geometric_two },
+end
+
+lemma Union_not_convergent_seq_subset {ε : ℝ} (hε : 0 < ε)
+  (hf : ∀ n, measurable[m] (f n)) (hg : measurable g)
+  {s : set α} (hsm : measurable_set s) (hs : μ s < ∞)
+  (hfg : ∀ᵐ x ∂μ, x ∈ s → tendsto (λ n, f n x) at_top (𝓝 (g x))) :
+  Union_not_convergent_seq hε hf hg hsm hs hfg ⊆ s :=
+begin
+  rw [Union_not_convergent_seq, ← inter_Union],
+  exact inter_subset_left _ _,
+end
+
+theorem egorov (hf : ∀ n, measurable[m] (f n)) (hg : measurable g)
+  {s : set α} (hsm : measurable_set s) (hs : μ s < ∞)
+  (hfg : ∀ᵐ x ∂μ, x ∈ s → tendsto (λ n, f n x) at_top (𝓝 (g x))) {ε : ℝ} (hε : 0 < ε) :
+  ∃ t ⊆ s, μ t ≤ ennreal.of_real ε ∧ tendsto_uniformly_on f g at_top (s \ t) :=
+begin
+  refine ⟨Union_not_convergent_seq hε hf hg hsm hs hfg,
+    Union_not_convergent_seq_subset hε hf hg hsm hs hfg,
+    measure_Union_not_convergent_seq hε hf hg hsm hs hfg, _⟩,
+  rw metric.tendsto_uniformly_on_iff,
+  intros δ hδ,
+  obtain ⟨N, hN⟩ := exists_nat_one_div_lt hδ,
+  rw eventually_iff_exists_mem,
+  refine ⟨Ioi (not_convergent_seq_lt_index (half_pos hε) hf hg hsm hs hfg N),
+    Ioi_mem_at_top _, λ n hn x hx, _⟩,
+  simp only [mem_diff, Union_not_convergent_seq, not_exists, mem_Union, mem_inter_eq,
+    not_and, exists_and_distrib_left] at hx,
+  obtain ⟨hxs, hx⟩ := hx,
+  specialize hx hxs N,
+  rw mem_not_convergent_seq_iff at hx,
+  push_neg at hx,
+  rw dist_comm,
+  exact lt_of_le_of_lt (hx n (mem_Ioi.1 hn).le) hN,
 end
 
 end move

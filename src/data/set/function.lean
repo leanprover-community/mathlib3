@@ -694,9 +694,29 @@ theorem inv_on.bij_on (h : inv_on f' f s t) (hf : maps_to f s t) (hf' : maps_to 
 
 /-! ### `inv_fun_on` is a left/right inverse -/
 
+section inv_fun_on
+variables [nonempty α] {a : α} {b : β}
+local attribute [instance, priority 10] classical.prop_decidable
+
+/-- Construct the inverse for a function `f` on domain `s`. This function is a right inverse of `f`
+on `f '' s`. For a computable version, see `function.injective.inv_of_mem_range`. -/
+noncomputable def inv_fun_on (f : α → β) (s : set α) (b : β) : α :=
+if h : ∃a, a ∈ s ∧ f a = b then classical.some h else classical.choice ‹nonempty α›
+
+theorem inv_fun_on_pos (h : ∃a∈s, f a = b) : inv_fun_on f s b ∈ s ∧ f (inv_fun_on f s b) = b :=
+by rw [bex_def] at h; rw [inv_fun_on, dif_pos h]; exact classical.some_spec h
+
+theorem inv_fun_on_mem (h : ∃a∈s, f a = b) : inv_fun_on f s b ∈ s := (inv_fun_on_pos h).left
+
+theorem inv_fun_on_eq (h : ∃a∈s, f a = b) : f (inv_fun_on f s b) = b := (inv_fun_on_pos h).right
+
+theorem inv_fun_on_neg (h : ¬ ∃a∈s, f a = b) : inv_fun_on f s b = classical.choice ‹nonempty α› :=
+by rw [bex_def] at h; rw [inv_fun_on, dif_neg h]
+
 theorem inj_on.left_inv_on_inv_fun_on [nonempty α] (h : inj_on f s) :
   left_inv_on (inv_fun_on f s) f s :=
-λ x hx, inv_fun_on_eq' h hx
+λ a ha, have ∃a'∈s, f a' = f a, from ⟨a, ha, rfl⟩,
+  h (inv_fun_on_mem this) ha (inv_fun_on_eq this)
 
 lemma inj_on.inv_fun_on_image [nonempty α] (h : inj_on f s₂) (ht : s₁ ⊆ s₂) :
   (inv_fun_on f s₂) '' (f '' s₁) = s₁ :=
@@ -729,6 +749,8 @@ begin
   rintros _ ⟨y, hy, rfl⟩,
   rwa [h.right_inv_on_inv_fun_on hy]
 end
+
+end inv_fun_on
 
 theorem surj_on_iff_exists_bij_on_subset :
   surj_on f s t ↔ ∃ s' ⊆ s, bij_on f s' t :=

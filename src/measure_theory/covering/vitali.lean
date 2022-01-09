@@ -496,15 +496,15 @@ protected def vitali_family [metric_space α] [measurable_space α] [opens_measu
       exact (hx a au).1 },
     { rw [inj_on_x.pairwise_disjoint_image],
       assume a ha b hb hab,
-      simp only [function.on_fun, function.inv_fun_on_eq' inj_on_x, ha, hb, (∘)],
+      simp only [function.on_fun, inj_on_x.left_inv_on_inv_fun_on, ha, hb, (∘)],
       exact u_disj ha hb hab },
     { assume y hy,
       rcases (mem_image _ _ _).1 hy with ⟨a, ha, rfl⟩,
-      rw function.inv_fun_on_eq' inj_on_x ha,
+      rw inj_on_x.left_inv_on_inv_fun_on ha,
       exact (hx a ha).2 },
     { rw [bUnion_image],
       convert μu using 3,
-      exact bUnion_congr (λ a ha, function.inv_fun_on_eq' inj_on_x ha) }
+      exact bUnion_congr (λ a ha, inj_on_x.left_inv_on_inv_fun_on ha) }
   end }
 
 end vitali

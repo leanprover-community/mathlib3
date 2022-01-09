@@ -402,14 +402,8 @@ lemma div_lt_div_of_lt_left (hc : 0 < c) (hb : 0 < b) (h : b < a) : c / a < c / 
 ### Relating one division and involving `1`
 -/
 
-lemma div_le_self_iff (ha : 0 < a) (hb : 0 < b) : a / b ≤ a ↔ 1 ≤ b :=
-by simpa only [div_one] using div_le_div_left ha hb zero_lt_one
-
 lemma div_le_self (ha : 0 ≤ a) (hb : 1 ≤ b) : a / b ≤ a :=
 by simpa only [div_one] using div_le_div_of_le_left ha zero_lt_one hb
-
-lemma div_lt_self_iff (ha : 0 < a) (hb : 0 < b) : a / b < a ↔ 1 < b :=
-by simpa only [div_one] using div_lt_div_left ha hb zero_lt_one
 
 lemma div_lt_self (ha : 0 < a) (hb : 1 < b) : a / b < a :=
 by simpa only [div_one] using div_lt_div_of_lt_left ha zero_lt_one hb

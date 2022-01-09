@@ -64,25 +64,32 @@ star_add_equiv.to_add_monoid_hom.isometry_of_norm (λ _, norm_star)
 
 lemma continuous_star : continuous (star : E → E) := star_isometry.continuous
 
-lemma continuous_on_star {s : set E} : continuous_on (star : E → E) s := sorry
+lemma continuous_on_star {s : set E} : continuous_on star s := continuous_star.continuous_on
 
-lemma continuous_at_star {x : E} : continuous_at (star : E → E) x := sorry
+lemma continuous_at_star {x : E} : continuous_at star x := continuous_star.continuous_at
 
-lemma continuous_within_at_star {s : set E} {x : E} : continuous_within_at (star : E → E) s x :=
-sorry
+lemma continuous_within_at_star {s : set E} {x : E} : continuous_within_at star s x :=
+continuous_star.continuous_within_at
 
-lemma tendsto_star (x : E) : filter.tendsto star (𝓝 x) (𝓝 x⋆) := sorry
-
-lemma continuous.star {f : α → E} (hf : continuous f) : continuous (λ y, star (f y)) := sorry
-
-lemma continuous_at.star {f : α → E} {x : α} (hf : continuous_at f x) :
-  continuous_at (λ x, (f x)⋆) x := sorry
-
-lemma continuous_within_at.star {f : α → E} {s : set α} {x : α}
-  (hf : continuous_within_at f s x) : continuous_within_at (λ x, (f x)⋆) s x := sorry
+lemma tendsto_star (x : E) : filter.tendsto star (𝓝 x) (𝓝 x⋆) := continuous_star.tendsto x
 
 lemma filter.tendsto.star {f : α → E} {l : filter α} {y : E} (h : filter.tendsto f l (𝓝 y)) :
-  filter.tendsto (λ x, (f x)⋆) l (𝓝 y⋆) := sorry
+  filter.tendsto (λ x, (f x)⋆) l (𝓝 y⋆) :=
+(continuous_star.tendsto y).comp h
+
+lemma continuous.star {f : α → E} (hf : continuous f) : continuous (λ y, star (f y)) :=
+continuous_star.comp hf
+
+lemma continuous_at.star {f : α → E} {x : α} (hf : continuous_at f x) :
+  continuous_at (λ x, (f x)⋆) x :=
+continuous_at_star.comp hf
+
+lemma continuous_on.star {f : α → E} {s : set α} (hf : continuous_on f s) :
+  continuous_on (λ x, (f x)⋆) s :=
+continuous_star.comp_continuous_on hf
+
+lemma continuous_within_at.star {f : α → E} {s : set α} {x : α}
+  (hf : continuous_within_at f s x) : continuous_within_at (λ x, (f x)⋆) s x := hf.star
 
 end normed_star_monoid
 

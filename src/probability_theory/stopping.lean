@@ -5,6 +5,7 @@ Authors: Kexing Ying
 -/
 import measure_theory.constructions.borel_space
 import measure_theory.function.l1_space
+import data.nat.succ_pred
 
 /-!
 # Filtration and stopping time
@@ -90,14 +91,14 @@ namespace adapted
 
 lemma add [has_add β] [has_measurable_add₂ β] (hu : adapted f u) (hv : adapted f v) :
   adapted f (u + v) :=
-λ i, @measurable.add _ _ _ _ (f i) _ _ _ (hu i) (hv i)
+λ i, (hu i).add (hv i)
 
 lemma neg [has_neg β] [has_measurable_neg β] (hu : adapted f u) : adapted f (-u) :=
-λ i, @measurable.neg _ α _ _ _ (f i) _ (hu i)
+λ i, (hu i).neg
 
 lemma smul [has_scalar ℝ β] [has_measurable_smul ℝ β] (c : ℝ) (hu : adapted f u) :
   adapted f (c • u) :=
-λ i, @measurable.const_smul ℝ β α _ _ _ (f i) _ _ (hu i) c
+λ i, (hu i).const_smul c
 
 end adapted
 
@@ -133,17 +134,6 @@ lemma _root_.measurable.min' {α δ} {mα : measurable_space α} {mδ : measurab
   measurable (λ a, min (f a) (g a)) :=
 by simpa only [min_def] using hf.piecewise (measurable_set_le hf hg) hg
 
-lemma _root_.measurable.subtype_mk' {α β} {mα : measurable_space α} {mβ : measurable_space β}
-  {p : β → Prop} {f : α → β} (hf : measurable f) {h : ∀ x, p (f x)} :
-  measurable (λ x, (⟨f x, h x⟩ : subtype p)) :=
-λ t ⟨s, hs⟩, hs.2 ▸ by simp only [← set.preimage_comp, (∘), subtype.coe_mk, hf hs.1]
-
-lemma _root_.measurable.subtype_coe' {α β} {mα : measurable_space α} {mβ : measurable_space β}
-  {p : β → Prop} {f : α → subtype p}
-  (hf : measurable f) :
-  measurable (λ a : α, (f a : β)) :=
-measurable_subtype_coe.comp hf
-
 namespace prog_measurable
 
 variables [measurable_space ι]
@@ -155,7 +145,7 @@ begin
   rw this,
   refine @measurable.comp _ (set.Iic i × α) β (f i) (@prod.measurable_space (set.Iic i) α _ (f i))
     _ _ _ (h i) _,
-  exact @measurable.prod_mk _ _ _ (f i) _ (f i) _ _
+  exact @measurable.prod_mk _ _ _ _ (f i) (f i) _ _
     (@measurable_const _ _ _ (f i) _) (@measurable_id _ (f i)),
 end
 
@@ -170,7 +160,7 @@ begin
       (⟨t (p.fst : ι) p.snd, set.mem_Iic.mpr ((ht_le _ _).trans p.fst.prop)⟩, p.snd)) := rfl,
   rw this,
   refine (h i).comp' _,
-  refine measurable.prod_mk' (ht i).subtype_mk' (@measurable_snd _ _ _ (f i)),
+  refine measurable.prod_mk' (ht i).subtype_mk (@measurable_snd _ _ (f i) _),
 end
 
 end prog_measurable
@@ -262,7 +252,7 @@ end preorder
 
 namespace is_stopping_time
 
-lemma max [linear_order ι] {f : filtration ι m} {τ π : α → ι}
+protected lemma max [linear_order ι] {f : filtration ι m} {τ π : α → ι}
   (hτ : is_stopping_time f τ) (hπ : is_stopping_time f π) :
   is_stopping_time f (λ x, max (τ x) (π x)) :=
 begin
@@ -271,7 +261,7 @@ begin
   exact (hτ i).inter (hπ i),
 end
 
-lemma min [linear_order ι] {f : filtration ι m} {τ π : α → ι}
+protected lemma min [linear_order ι] {f : filtration ι m} {τ π : α → ι}
   (hτ : is_stopping_time f τ) (hπ : is_stopping_time f π) :
   is_stopping_time f (λ x, min (τ x) (π x)) :=
 begin
@@ -389,8 +379,8 @@ begin
   refine @measurable_of_Iic ι α _ _ _ hτ.measurable_space _ _ _ _ _,
   simp_rw [hτ.measurable_set, set.preimage, set.mem_Iic],
   intros i j,
-  rw (_ : {x | τ x ≤ i} ∩ {x | τ x ≤ j} = {x | τ x ≤ linear_order.min i j}),
-  { exact f.mono (min_le_right i j) _ (hτ (linear_order.min i j)) },
+  rw (_ : {x | τ x ≤ i} ∩ {x | τ x ≤ j} = {x | τ x ≤ min i j}),
+  { exact f.mono (min_le_right i j) _ (hτ (min i j)) },
   { ext,
     simp only [set.mem_inter_eq, iff_self, le_min_iff, set.mem_set_of_eq] }
 end
@@ -432,23 +422,15 @@ begin
   dsimp only,
   let s := {p : set.Iic i × α | τ p.2 ≤ i},
   have hs : measurable_set[@prod.measurable_space _ _ _ (f i)] s,
-  { let s_le := {x : α | τ x ≤ i},
-    have hs_le : measurable_set[f i] s_le := hτ.measurable_set_le i,
-    have hs_eq : s = (λ p : set.Iic i × α, p.2) ⁻¹' {x : α | τ x ≤ i} := rfl,
-    rw hs_eq,
-    dsimp only,
-    change measurable_set (prod.snd ⁻¹' s_le),
-    exact @measurable_snd (set.Iic i) α _ (f i) s_le hs_le, },
+    from @measurable_snd (set.Iic i) α (f i) _ _ (hτ i),
   have h_meas_fst : ∀ t : set (set.Iic i × α),
     measurable[(@subtype.measurable_space (set.Iic i × α) _ (@prod.measurable_space _ _ _ (f i)))]
       (λ (x : ↥t), ((x : set.Iic i × α).fst : ι)),
-  { refine λ t, measurable.subtype_coe' _,
-    refine @measurable.fst _ (set.Iic i) α
-      (@subtype.measurable_space _ _ (@prod.measurable_space _ _ _ (f i))) _ (f i) _ _,
-    refine measurable.subtype_coe' _,
-    exact @measurable_id _ (@subtype.measurable_space _ _ (@prod.measurable_space _ _ _ (f i))), },
-  refine @measurable_of_restrict_of_restrict_compl _ _ (@prod.measurable_space _ _ _ (f i)) _ _ _
-    hs _ _,
+  { refine λ t, measurable.subtype_coe _,
+    refine @measurable.fst _ (set.Iic i) α _ (f i)
+      (@subtype.measurable_space _ _ (@prod.measurable_space _ _ _ (f i))) _ _,
+    exact @measurable_subtype_coe (set.Iic i × α) (@prod.measurable_space _ _ _ (f i)) _, },
+  refine measurable_of_restrict_of_restrict_compl hs _ _,
   { rw set.restrict,
     refine measurable.min' (h_meas_fst s) _,
     refine @measurable_of_Iic ι (↥s) _ _ _ (@subtype.measurable_space _ _
@@ -469,7 +451,7 @@ begin
           (@subtype.measurable_space _ _ (@prod.measurable_space _ _ _ (f i)))
           (@prod.measurable_space _ _ _ (f i)) (λ x : ↥s, (x : set.Iic i × α)),
         from @measurable_subtype_coe _ (@prod.measurable_space _ _ _ (f i)) _,
-      exact (@measurable_snd _ _ _ (f i)).comp' h_coe_meas, },
+      exact (@measurable_snd _ _ (f i) _).comp' h_coe_meas, },
     exact h_meas (f.mono (min_le_left _ _) _ (hτ.measurable_set_le (min i j))), },
   { rw set.restrict,
     have h_min_eq_left : (λ x : ↥sᶜ, min ↑((x : set.Iic i × α).fst) (τ (x : set.Iic i × α).snd))
@@ -515,14 +497,14 @@ begin
     = (λ (p : ↥(set.Iic i) × α), ∑ j in finset.range i, if (↑p.fst = j) then u j p.snd else 0),
   { ext1 p, sorry, },
   rw this,
-  refine @finset.measurable_sum _ _ _ _ _ _ (@prod.measurable_space _ _ _ (f i)) _ (finset.range i)
-    (λ j hj, _),
-  refine @measurable.ite _ _ (@prod.measurable_space _ _ _ (f i)) _ _ _ _ _ _ _ _,
-  { have : {a : ↥(set.Iic i) × α | ↑(a.fst) = j} = (λ a : ↥(set.Iic i) × α, (a.fst : ℕ)) ⁻¹' {j},
-      by refl,
-    rw this,
-    sorry, },
-  { sorry, },
+  refine finset.measurable_sum _ (λ j hj, _),
+  refine measurable.ite _ _ _,
+  { suffices h_meas : measurable[@prod.measurable_space _ _ _ (f i)]
+        (λ a : ↥(set.Iic i) × α, (a.fst : ℕ)),
+      from h_meas (measurable_set_singleton j),
+    exact (@measurable_fst _ α (f i) _).subtype_coe, },
+  { have h_le : j ≤ i, from finset.mem_range_le hj,
+    exact (measurable.le (f.mono h_le) (h j)).comp (@measurable_snd _ α (f i) _), },
   { exact @measurable_const _ (set.Iic i × α) _ (@prod.measurable_space _ _ _ (f i)) _, },
 end
 
@@ -583,31 +565,95 @@ lemma is_open_generate_from_of_mem {α} [topological_space α] {S : set (set α)
   (generate_from S).is_open s :=
 generate_open.basic s hs
 
-instance : order_topology ℕ :=
+lemma lt_succ_of_exists_lt {α} [preorder α] [succ_order α] {a : α} (ha : ∃ b, a < b) :
+  a < succ_order.succ a :=
+(succ_order.le_succ a).lt_of_not_le (λ h, not_exists.2 (succ_order.maximal_of_succ_le h) ha)
+
+lemma lt_succ_iff_of_exists_lt {α} [preorder α] [succ_order α] {a b : α} (ha : ∃ b, a < b) :
+  b < succ_order.succ a ↔ b ≤ a :=
+⟨succ_order.le_of_lt_succ, λ h_le, h_le.trans_lt (lt_succ_of_exists_lt ha)⟩
+
+lemma pred_lt_of_exists_lt {α} [preorder α] [pred_order α] {a : α} (ha : ∃ b, b < a) :
+  pred_order.pred a < a :=
+(pred_order.pred_le a).lt_of_not_le (λ h, not_exists.2 (pred_order.minimal_of_le_pred h) ha)
+
+lemma pred_lt_iff_of_exists_lt {α} [preorder α] [pred_order α] {a b : α} (ha : ∃ b, b < a) :
+  pred_order.pred a < b ↔ a ≤ b :=
+⟨pred_order.le_of_pred_lt, λ h_le, (pred_lt_of_exists_lt ha).trans_le h_le⟩
+
+lemma Iic_eq_Iio_succ {α} [preorder α] [succ_order α] [no_top_order α] (a : α) :
+  set.Iic a = set.Iio (succ_order.succ a) :=
+by { ext1 x, rw [set.mem_Iic, set.mem_Iio], exact succ_order.lt_succ_iff.symm, }
+
+lemma Iic_eq_Iio_succ' {α} [preorder α] [succ_order α] {a : α} (ha : ∃ b, a < b) :
+  set.Iic a = set.Iio (succ_order.succ a) :=
+by { ext1 x, rw [set.mem_Iic, set.mem_Iio], exact (lt_succ_iff_of_exists_lt ha).symm, }
+
+lemma Ici_succ_eq_Ioi {α} [preorder α] [succ_order α] [no_top_order α] (a : α) :
+  set.Ici (succ_order.succ a) = set.Ioi a :=
+by { ext1 x, rw [set.mem_Ici, set.mem_Ioi], exact succ_order.succ_le_iff, }
+
+lemma Ici_eq_Ioi_pred {α} [preorder α] [pred_order α] [no_bot_order α] (a : α) :
+  set.Ici a = set.Ioi (pred_order.pred a) :=
+by { ext1 x, rw [set.mem_Ici, set.mem_Ioi], exact pred_order.pred_lt_iff.symm, }
+
+lemma Ici_eq_Ioi_pred' {α} [preorder α] [pred_order α] {a : α} (ha : ∃ b, b < a) :
+  set.Ici a = set.Ioi (pred_order.pred a) :=
+by { ext1 x, rw [set.mem_Ici, set.mem_Ioi], exact (pred_lt_iff_of_exists_lt ha).symm, }
+
+instance todo {α} [topological_space α] [h : discrete_topology α] [partial_order α] [succ_order α]
+  [pred_order α] [no_top_order α] [no_bot_order α] :
+  order_topology α :=
 begin
   constructor,
-  rw nat.topological_space,
+  rw h.eq_bot,
   refine (eq_bot_of_singletons_open (λ a, _)).symm,
-  have ha_eq_inter : {a} = set.Iio (a+1) \ set.Iio a,
-  { ext1 x,
-    simp only [set.mem_Ico, set.Iio_diff_Iio, set.mem_singleton_iff],
-    refine ⟨λ h, _, λ h, nat.eq_of_le_of_lt_succ h.1 h.2⟩,
-    rw h,
-    simp only [le_refl, lt_add_iff_pos_right, eq_self_iff_true, and_self, nat.lt_one_iff], },
-  change is_open {a},
-  rw ha_eq_inter,
-  refine @is_open.inter _ _ _ (generate_from {s : set ℕ | ∃ a, s = set.Ioi a ∨ s = set.Iio a}) _ _,
-  { exact is_open_generate_from_of_mem ⟨a+1, or.inr rfl⟩, },
-  { cases a,
-    { have : (λ (a : ℕ), a ∈ set.Iio 0 → false) = set.univ,
-      { ext1 n,
-        simp only [forall_false_left, set.mem_univ, iff_true, set.mem_Iio, not_lt_zero'], },
-      rw this,
-      simp only [is_open_univ], },
-    { refine is_open_generate_from_of_mem ⟨a, or.inl _⟩,
-      ext1 n,
-      simp_rw [set.mem_Ioi, set.mem_Iio, imp_false, not_lt],
-      exact nat.succ_le_iff, }, },
+  have h_singleton_eq_inter : {a} = set.Iio (succ_order.succ a) ∩ set.Ioi (pred_order.pred a),
+  { suffices h_singleton_eq_inter' : {a} = set.Iic a ∩ set.Ici a,
+      by rw [h_singleton_eq_inter', Ici_eq_Ioi_pred, Iic_eq_Iio_succ],
+    rw [set.inter_comm, set.Ici_inter_Iic, set.Icc_self a], },
+  rw h_singleton_eq_inter,
+  refine @is_open.inter _ _ _ (generate_from {s : set α | ∃ a, s = set.Ioi a ∨ s = set.Iio a}) _ _,
+  { exact is_open_generate_from_of_mem ⟨succ_order.succ a, or.inr rfl⟩, },
+  { exact is_open_generate_from_of_mem ⟨pred_order.pred a, or.inl rfl⟩, },
+end
+
+instance {α} [topological_space α] [h : discrete_topology α] [linear_order α] [succ_order α]
+  [pred_order α] :
+  order_topology α :=
+begin
+  constructor,
+  rw h.eq_bot,
+  refine (eq_bot_of_singletons_open (λ a, _)).symm,
+  have h_singleton_eq_inter : {a} = set.Iic a ∩ set.Ici a,
+    by rw [set.inter_comm, set.Ici_inter_Iic, set.Icc_self a],
+  have h_Iic_eq_univ_of_top : (∀ b, b ≤ a) → set.Iic a = set.univ,
+  { intros ha_top, ext1 x, simp [ha_top x], },
+  have h_Ici_eq_univ_of_bot : (∀ b, a ≤ b) → set.Ici a = set.univ,
+  { intros ha_bot, ext1 x, simp [ha_bot x], },
+  by_cases ha_top : ∃ b, a < b,
+  { rw Iic_eq_Iio_succ' ha_top at h_singleton_eq_inter,
+    by_cases ha_bot : ∃ b, b < a,
+    { rw Ici_eq_Ioi_pred' ha_bot at h_singleton_eq_inter,
+      rw h_singleton_eq_inter,
+      refine @is_open.inter _ _ _
+        (generate_from {s : set α | ∃ a, s = set.Ioi a ∨ s = set.Iio a}) _ _,
+      { exact is_open_generate_from_of_mem ⟨succ_order.succ a, or.inr rfl⟩, },
+      { exact is_open_generate_from_of_mem ⟨pred_order.pred a, or.inl rfl⟩, }, },
+    { push_neg at ha_bot,
+      rw [h_Ici_eq_univ_of_bot ha_bot, set.inter_univ] at h_singleton_eq_inter,
+      rw h_singleton_eq_inter,
+      exact is_open_generate_from_of_mem ⟨succ_order.succ a, or.inr rfl⟩, }, },
+  { push_neg at ha_top,
+    rw [h_Iic_eq_univ_of_top ha_top, set.inter_comm, set.inter_univ] at h_singleton_eq_inter,
+    by_cases ha_bot : ∃ b, b < a,
+    { rw Ici_eq_Ioi_pred' ha_bot at h_singleton_eq_inter,
+      rw h_singleton_eq_inter,
+      exact is_open_generate_from_of_mem ⟨pred_order.pred a, or.inl rfl⟩, },
+    { push_neg at ha_bot,
+      rw h_Ici_eq_univ_of_bot ha_bot at h_singleton_eq_inter,
+      rw h_singleton_eq_inter,
+      exact @is_open_univ _ (generate_from {s : set α | ∃ a, s = set.Ioi a ∨ s = set.Iio a}), }, },
 end
 
 lemma adapted.stopped_process [measurable_space β] [has_measurable_add₂ β]

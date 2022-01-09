@@ -378,12 +378,7 @@ end
 @[to_additive]
 lemma finprod_mem_eq_one_of_forall_eq_one {f : α → M} {s : set α} (h : ∀ x ∈ s, f x = 1) :
   ∏ᶠ i ∈ s, f i = 1 :=
-begin
-  suffices : s.mul_indicator f = 1,
-  { simp [finprod_mem_def, this] },
-  ext,
-  simpa using h _
-end
+by simp [h] {contextual := tt}
 
 @[to_additive] lemma finprod_mem_inter_mul_support (f : α → M) (s : set α) :
   ∏ᶠ i ∈ (s ∩ mul_support f), f i = ∏ᶠ i ∈ s, f i :=
@@ -415,10 +410,7 @@ h₀.symm ▸ (finprod_congr $ λ i, finprod_congr_Prop rfl (h₁ i))
 @[to_additive]
 lemma finprod_eq_one_of_forall_eq_one {f : α → M} (h : ∀ x, f x = 1) :
   ∏ᶠ i, f i = 1 :=
-begin
-  rw [←finprod_mem_univ, finprod_mem_eq_one_of_forall_eq_one],
-  exact λ x _, h x
-end
+by simp [h] {contextual := tt}
 
 /-!
 ### Distributivity w.r.t. addition, subtraction, and (scalar) multiplication

@@ -69,4 +69,15 @@ lemma verschiebung_mul_frobenius (x y : 𝕎 R) :
   verschiebung (x * frobenius y) = verschiebung x * y :=
 by { ghost_calc x y, rintro ⟨⟩; ghost_simp [mul_assoc] }
 
+lemma mul_char_p_coeff_zero [char_p R p] (x : 𝕎 R) : (x * p).coeff 0 = 0 :=
+begin
+  rw [← frobenius_verschiebung, coeff_frobenius_char_p, verschiebung_coeff_zero, zero_pow],
+  exact nat.prime.pos hp.out
+end
+
+lemma mul_char_p_coeff_succ [char_p R p] (x : 𝕎 R) (i : ℕ) :
+  (x * p).coeff (i + 1) = (x.coeff i)^p :=
+by rw [← frobenius_verschiebung, coeff_frobenius_char_p, verschiebung_coeff_succ]
+
+
 end witt_vector

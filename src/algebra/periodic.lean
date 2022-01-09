@@ -7,7 +7,7 @@ import algebra.field.opposite
 import algebra.module.basic
 import algebra.order.archimedean
 import data.int.parity
-import group_theory.subgroup.basic
+import group_theory.coset
 
 /-!
 # Periodicity
@@ -293,6 +293,18 @@ lemma periodic.map_vadd_multiples [add_comm_monoid α] (hf : periodic f c)
   (a : add_submonoid.multiples c) (x : α) :
   f (a +ᵥ x) = f x :=
 by { rcases a with ⟨_, m, rfl⟩, simp [add_submonoid.vadd_def, add_comm _ x, hf.nsmul m x] }
+
+/-- Lift a periodic function to a function from the quotient group. -/
+def periodic.lift [add_group α] (h : periodic f c) : α ⧸ (add_subgroup.zmultiples c) → β :=
+quot.lift f $ λ a b (h : ∃ k : ℤ, k • c = -a + b), begin
+  cases h with k hk,
+  rw ←add_eq_of_eq_neg_add hk,
+  exact (h.zsmul k _).symm
+end
+
+lemma periodic.lift_coe [add_group α] (h : periodic f c) (a : α) :
+  h.lift (a : α ⧸ add_subgroup.zmultiples c) = f a :=
+rfl
 
 /-! ### Antiperiodicity -/
 

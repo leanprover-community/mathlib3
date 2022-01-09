@@ -75,6 +75,7 @@ instance : inner_product_space 𝕜 (lp G 2) :=
 
 lemma inner_eq_tsum (f g : lp G 2) : ⟪f, g⟫ = ∑' i, ⟪f i, g i⟫ := rfl
 
-lemma has_sum_inner (f g : lp G 2) : has_sum (λ i, ⟪f i, g i⟫) ⟪f, g⟫ := (summable_inner f g).has_sum
+lemma has_sum_inner (f g : lp G 2) : has_sum (λ i, ⟪f i, g i⟫) ⟪f, g⟫ :=
+(summable_inner f g).has_sum
 
 end lp

@@ -275,17 +275,9 @@ begin
 end
 
 @[simp]
-lemma homogeneous_component_add :
-  homogeneous_component n (φ + ψ) = homogeneous_component n φ + homogeneous_component n ψ :=
-by rw [homogeneous_component, linear_map.comp_apply, linear_map.comp_apply, linear_map.comp_apply,
-    linear_map.map_add, linear_map.map_add]
-
-@[simp]
 lemma homogeneous_component_C_mul (n : ℕ) (r : R) :
   homogeneous_component n (C r * φ) = C r * homogeneous_component n φ :=
-by simp only [homogeneous_component, finsupp.restrict_dom_apply,
-  submodule.subtype_apply, function.comp_app, linear_map.coe_comp,
-  set.mem_set_of_eq, C_mul', finsupp.filter_smul]
+by simp only [C_mul', ring_hom.id_apply, linear_map.map_smulₛₗ]
 
 lemma homogeneous_component_eq_zero' (h : ∀ d : σ →₀ ℕ, d ∈ φ.support → ∑ i in d.support, d i ≠ n) :
   homogeneous_component n φ = 0 :=

@@ -63,12 +63,12 @@ instance ring_hom_isometric.star_ring_aut [normed_comm_ring E] [star_ring E]
    [normed_star_monoid E] : ring_hom_isometric ((star_ring_aut : ring_aut E) : E →+* E) :=
 ⟨λ _, norm_star⟩
 
-open cstar_ring
+namespace cstar_ring
+variables [normed_ring E] [star_ring E] [cstar_ring E]
 
 /-- In a C*-ring, star preserves the norm. -/
 @[priority 100] -- see Note [lower instance priority]
-instance cstar_ring.to_normed_star_monoid {E : Type*} [normed_ring E] [star_ring E] [cstar_ring E] :
-  normed_star_monoid E :=
+instance to_normed_star_monoid : normed_star_monoid E :=
 ⟨begin
   intro x,
   by_cases htriv : x = 0,
@@ -85,13 +85,25 @@ instance cstar_ring.to_normed_star_monoid {E : Type*} [normed_ring E] [star_ring
     exact le_antisymm (le_of_mul_le_mul_right h₂ hnt_star) (le_of_mul_le_mul_right h₁ hnt) },
 end⟩
 
-lemma cstar_ring.norm_self_mul_star [normed_ring E] [star_ring E] [cstar_ring E] {x : E} :
-  ∥x * x⋆∥ = ∥x∥ * ∥x∥ :=
+lemma norm_self_mul_star {x : E} : ∥x * x⋆∥ = ∥x∥ * ∥x∥ :=
 by { nth_rewrite 0 [←star_star x], simp only [norm_star_mul_self, norm_star] }
 
-lemma cstar_ring.norm_star_mul_self' [normed_ring E] [star_ring E] [cstar_ring E] {x : E} :
-  ∥x⋆ * x∥ = ∥x⋆∥ * ∥x∥ :=
+lemma norm_star_mul_self' {x : E} : ∥x⋆ * x∥ = ∥x⋆∥ * ∥x∥ :=
 by rw [norm_star_mul_self, norm_star]
+
+@[simp] lemma norm_one [nontrivial E] : ∥(1 : E)∥ = 1 :=
+begin
+  cases mul_eq_mul_right_iff.mp
+    (calc 1 * ∥(1 : E)∥ = ∥(1 : E)∥              : one_mul _
+                   ...  = ∥(1 : E) * 1∥          : by rw [mul_one]
+                   ...  = ∥(1 : E)⋆ * 1∥         : by rw [star_one]
+                   ...  = ∥(1 : E)∥ * ∥(1 : E)∥  : norm_star_mul_self) with h,
+  { exact h.symm },
+  { exfalso,
+    exact one_ne_zero (norm_eq_zero.mp h) }
+end
+
+end cstar_ring
 
 section starₗᵢ
 

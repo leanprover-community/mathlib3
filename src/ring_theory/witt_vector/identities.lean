@@ -27,9 +27,9 @@ In this file we derive common identities between the Frobenius and Verschiebung 
 
 namespace witt_vector
 
-variables {p : ℕ} {R : Type*} [fact p.prime] [comm_ring R]
+variables {p : ℕ} {R : Type*} [hp : fact p.prime] [comm_ring R]
 local notation `𝕎` := witt_vector p -- type as `\bbW`
-
+include hp
 noncomputable theory
 
 /-- The composition of Frobenius and Verschiebung is multiplication by `p`. -/

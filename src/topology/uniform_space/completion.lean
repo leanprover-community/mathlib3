@@ -65,24 +65,24 @@ def gen (s : set (α × α)) : set (Cauchy α × Cauchy α) :=
 {p | s ∈ p.1.val ×ᶠ p.2.val }
 
 lemma monotone_gen : monotone gen :=
-monotone_set_of $ assume p, @monotone_mem_sets (α×α) (p.1.val ×ᶠ p.2.val)
+monotone_set_of $ assume p, @monotone_mem (α×α) (p.1.val ×ᶠ p.2.val)
 
 private lemma symm_gen : map prod.swap ((𝓤 α).lift' gen) ≤ (𝓤 α).lift' gen :=
 calc map prod.swap ((𝓤 α).lift' gen) =
   (𝓤 α).lift' (λs:set (α×α), {p | s ∈ p.2.val ×ᶠ p.1.val }) :
   begin
     delta gen,
-    simp [map_lift'_eq, monotone_set_of, monotone_mem_sets,
+    simp [map_lift'_eq, monotone_set_of, monotone_mem,
           function.comp, image_swap_eq_preimage_swap, -subtype.val_eq_coe]
   end
   ... ≤ (𝓤 α).lift' gen :
     uniformity_lift_le_swap
       (monotone_principal.comp (monotone_set_of $ assume p,
-        @monotone_mem_sets (α×α) (p.2.val ×ᶠ  p.1.val)))
+        @monotone_mem (α×α) (p.2.val ×ᶠ  p.1.val)))
       begin
         have h := λ(p:Cauchy α×Cauchy α), @filter.prod_comm _ _ (p.2.val) (p.1.val),
-        simp [function.comp, h, -subtype.val_eq_coe],
-        exact le_refl _
+        simp [function.comp, h, -subtype.val_eq_coe, mem_map'],
+        exact le_refl _,
       end
 
 private lemma comp_rel_gen_gen_subset_gen_comp_rel {s t : set (α×α)} : comp_rel (gen s) (gen t) ⊆
@@ -93,7 +93,7 @@ let ⟨t₁, (ht₁ : t₁ ∈ f.val), t₂, (ht₂ : t₂ ∈ h.val), (h₁ : s
 let ⟨t₃, (ht₃ : t₃ ∈ h.val), t₄, (ht₄ : t₄ ∈ g.val), (h₂ : set.prod t₃ t₄ ⊆ t)⟩ :=
   mem_prod_iff.mp h₂ in
 have t₂ ∩ t₃ ∈ h.val,
-  from inter_mem_sets ht₂ ht₃,
+  from inter_mem ht₂ ht₃,
 let ⟨x, xt₂, xt₃⟩ :=
   h.property.left.nonempty_of_mem this in
 (f.val ×ᶠ g.val).sets_of_superset
@@ -175,7 +175,7 @@ have h_ex : ∀ s ∈ 𝓤 (Cauchy α), ∃y:α, (f, pure_cauchy y) ∈ s, from
 begin
   simp only [closure_eq_cluster_pts, cluster_pt, nhds_eq_uniformity, lift'_inf_principal_eq,
     set.inter_comm _ (range pure_cauchy), mem_set_of_eq],
-  exact (lift'_ne_bot_iff $ monotone_inter monotone_const monotone_preimage).mpr
+  exact (lift'_ne_bot_iff $ monotone_const.inter monotone_preimage).mpr
     (assume s hs,
       let ⟨y, hy⟩ := h_ex s hs in
       have pure_cauchy y ∈ range pure_cauchy ∩ {y : Cauchy α | (f, y) ∈ s},
@@ -230,6 +230,7 @@ if uniform_continuous f then
 else
   λ x, f (classical.inhabited_of_nonempty $ nonempty_Cauchy_iff.1 ⟨x⟩).default
 
+section separated_space
 variables [separated_space β]
 
 lemma extend_pure_cauchy {f : α → β} (hf : uniform_continuous f) (a : α) :
@@ -238,6 +239,8 @@ begin
   rw [extend, if_pos hf],
   exact uniformly_extend_of_ind uniform_inducing_pure_cauchy dense_range_pure_cauchy hf _
 end
+
+end separated_space
 
 variables [_root_.complete_space β]
 
@@ -293,7 +296,7 @@ lemma separated_pure_cauchy_injective {α : Type*} [uniform_space α] [s : separ
   function.injective (λa:α, ⟦pure_cauchy a⟧) | a b h :=
 separated_def.1 s _ _ $ assume s hs,
 let ⟨t, ht, hts⟩ :=
-  by rw [← (@uniform_embedding_pure_cauchy α _).comap_uniformity, filter.mem_comap_sets] at hs;
+  by rw [← (@uniform_embedding_pure_cauchy α _).comap_uniformity, filter.mem_comap] at hs;
     exact hs in
 have (pure_cauchy a, pure_cauchy b) ∈ t, from quotient.exact h t ht,
 @hts (a, b) this
@@ -391,6 +394,9 @@ lemma uniform_embedding_coe [separated_space α] : uniform_embedding  (coe : α 
 { comap_uniformity := comap_coe_eq_uniformity α,
   inj := separated_pure_cauchy_injective }
 
+lemma coe_injective [separated_space α] : function.injective (coe : α → completion α) :=
+uniform_embedding.inj (uniform_embedding_coe _)
+
 variable {α}
 
 lemma dense_inducing_coe : dense_inducing (coe : α → completion α) :=
@@ -450,11 +456,7 @@ returns an arbitrary constant value if `f` is not uniformly continuous -/
 protected def extension (f : α → β) : completion α → β :=
 cpkg.extend f
 
-variables [separated_space β]
-
-@[simp]lemma extension_coe (hf : uniform_continuous f) (a : α) :
-  (completion.extension f) a = f a :=
-cpkg.extend_coe hf a
+section complete_space
 
 variables [complete_space β]
 
@@ -463,6 +465,14 @@ cpkg.uniform_continuous_extend
 
 lemma continuous_extension : continuous (completion.extension f) :=
 cpkg.continuous_extend
+
+end complete_space
+
+@[simp] lemma extension_coe [separated_space β] (hf : uniform_continuous f) (a : α) :
+  (completion.extension f) a = f a :=
+cpkg.extend_coe hf a
+
+variables [separated_space β] [complete_space β]
 
 lemma extension_unique (hf : uniform_continuous f) {g : completion α → β}
   (hg : uniform_continuous g) (h : ∀ a : α, f a = g (a : completion α)) :
@@ -551,11 +561,14 @@ open function
 protected def extension₂ (f : α → β → γ) : completion α → completion β → γ :=
 cpkg.extend₂ cpkg f
 
+section separated_space
 variables [separated_space γ] {f}
 
 @[simp] lemma extension₂_coe_coe (hf : uniform_continuous₂ f) (a : α) (b : β) :
   completion.extension₂ f a b = f a b :=
 cpkg.extension₂_coe_coe cpkg hf a b
+
+end separated_space
 
 variables [complete_space γ] (f)
 

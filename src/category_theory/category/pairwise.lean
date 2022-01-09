@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 
-import category_theory.limits.preserves.basic
-import category_theory.limits.lattice
+import category_theory.category.preorder
+import category_theory.limits.is_limit
 
 /-!
 # The category of "pairwise intersections".

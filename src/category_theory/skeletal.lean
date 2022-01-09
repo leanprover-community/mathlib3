@@ -3,6 +3,7 @@ Copyright (c) 2020 Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
+import category_theory.category.preorder
 import category_theory.isomorphism_classes
 import category_theory.thin
 
@@ -75,7 +76,11 @@ instance : ess_surj (from_skeleton C) :=
 { mem_ess_image := λ X, ⟨quotient.mk X, quotient.mk_out X⟩ }
 
 noncomputable instance : is_equivalence (from_skeleton C) :=
-equivalence.equivalence_of_fully_faithfully_ess_surj (from_skeleton C)
+equivalence.of_fully_faithfully_ess_surj (from_skeleton C)
+
+/-- The equivalence between the skeleton and the category itself. -/
+noncomputable def skeleton_equivalence : skeleton C ≌ C :=
+(from_skeleton C).as_equivalence
 
 lemma skeleton_skeletal : skeletal (skeleton C) :=
 begin
@@ -97,7 +102,7 @@ Two categories which are categorically equivalent have skeletons with equivalent
 -/
 noncomputable
 def equivalence.skeleton_equiv (e : C ≌ D) : skeleton C ≃ skeleton D :=
-let f := ((from_skeleton C).as_equivalence.trans e).trans (from_skeleton D).as_equivalence.symm in
+let f := ((skeleton_equivalence C).trans e).trans (skeleton_equivalence D).symm in
 { to_fun := f.functor.obj,
   inv_fun := f.inverse.obj,
   left_inv := λ X, skeleton_skeletal C ⟨(f.unit_iso.app X).symm⟩,
@@ -204,6 +209,10 @@ noncomputable instance from_thin_skeleton_equivalence : is_equivalence (from_thi
         (λ X, eq_to_iso (quotient.sound ⟨(nonempty.some (quotient.mk_out X)).symm⟩)))
       (by tidy) }
 
+/-- The equivalence between the thin skeleton and the category itself. -/
+noncomputable def equivalence : thin_skeleton C ≌ C :=
+(from_thin_skeleton C).as_equivalence
+
 variables {C}
 
 lemma equiv_of_both_ways {X Y : C} (f : X ⟶ Y) (g : Y ⟶ X) : X ≈ Y :=
@@ -278,7 +287,7 @@ the `thin_skeleton C` is order isomorphic to `α`.
 noncomputable
 def equivalence.thin_skeleton_order_iso
   [∀ X Y : C, subsingleton (X ⟶ Y)] (e : C ≌ α) : thin_skeleton C ≃o α :=
-((from_thin_skeleton C).as_equivalence.trans e).to_order_iso
+((thin_skeleton.equivalence C).trans e).to_order_iso
 
 end
 

@@ -20,6 +20,12 @@ variables {α : Type u} {β : Type v} {r : α → α → Prop} {s : β → β �
 
 open function
 
+/-- A version of `antisymm` with `r` explicit.
+
+This lemma matches the lemmas from lean core in `init.algebra.classes`, but is missing there.  -/
+@[elab_simple]
+lemma antisymm_of (r : α → α → Prop) [is_antisymm α r] {a b : α} : r a b → r b a → a = b := antisymm
+
 theorem is_refl.swap (r) [is_refl α r] : is_refl α (swap r) := ⟨refl_of r⟩
 theorem is_irrefl.swap (r) [is_irrefl α r] : is_irrefl α (swap r) := ⟨irrefl_of r⟩
 theorem is_trans.swap (r) [is_trans α r] : is_trans α (swap r) :=
@@ -47,6 +53,8 @@ protected theorem is_asymm.is_antisymm (r) [is_asymm α r] : is_antisymm α r :=
 ⟨λ x y h₁ h₂, (asymm h₁ h₂).elim⟩
 protected theorem is_asymm.is_irrefl [is_asymm α r] : is_irrefl α r :=
 ⟨λ a h, asymm h h⟩
+protected theorem is_total.is_trichotomous (r) [is_total α r] : is_trichotomous α r :=
+⟨λ a b, or.left_comm.1 (or.inr $ total_of r a b)⟩
 
 /- Convert algebraic structure style to explicit relation style typeclasses -/
 instance [preorder α] : is_refl α (≤) := ⟨le_refl⟩
@@ -65,7 +73,6 @@ instance [preorder α] : is_antisymm α (<) := is_asymm.is_antisymm _
 instance [preorder α] : is_antisymm α (>) := is_asymm.is_antisymm _
 instance [preorder α] : is_strict_order α (<) := {}
 instance [preorder α] : is_strict_order α (>) := {}
-instance preorder.is_total_preorder [preorder α] [is_total α (≤)] : is_total_preorder α (≤) := {}
 instance [partial_order α] : is_antisymm α (≤) := ⟨@le_antisymm _ _⟩
 instance [partial_order α] : is_antisymm α (≥) := is_antisymm.swap _
 instance [partial_order α] : is_partial_order α (≤) := {}
@@ -79,6 +86,8 @@ instance [linear_order α] : is_linear_order α (≤) := {}
 instance [linear_order α] : is_linear_order α (≥) := {}
 instance [linear_order α] : is_trichotomous α (<) := ⟨lt_trichotomy⟩
 instance [linear_order α] : is_trichotomous α (>) := is_trichotomous.swap _
+instance [linear_order α] : is_trichotomous α (≤) := is_total.is_trichotomous _
+instance [linear_order α] : is_trichotomous α (≥) := is_total.is_trichotomous _
 
 instance order_dual.is_total_le [has_le α] [is_total α (≤)] : is_total (order_dual α) (≤) :=
 @is_total.swap α _ _
@@ -100,8 +109,10 @@ begin
   exact trans h₁ h₃, rw ←h₃, exact h₁, exfalso, exact h₂ h₃
 end
 
-/-- Construct a partial order from a `is_strict_order` relation -/
-def partial_order_of_SO (r) [is_strict_order α r] : partial_order α :=
+/-- Construct a partial order from a `is_strict_order` relation.
+
+See note [reducible non-instances]. -/
+@[reducible] def partial_order_of_SO (r) [is_strict_order α r] : partial_order α :=
 { le := λ x y, x = y ∨ r x y,
   lt := r,
   le_refl := λ x, or.inl rfl,
@@ -123,12 +134,15 @@ def partial_order_of_SO (r) [is_strict_order α r] : partial_order α :=
       (asymm h)⟩,
     λ ⟨h₁, h₂⟩, h₁.resolve_left (λ e, h₂ $ e ▸ or.inl rfl)⟩ }
 
-/-- This is basically the same as `is_strict_total_order`, but that definition is
-  in Type (probably by mistake) and also has redundant assumptions. -/
+/-- This is basically the same as `is_strict_total_order`, but that definition has a redundant
+assumption `is_incomp_trans α lt`. -/
 @[algebra] class is_strict_total_order' (α : Type u) (lt : α → α → Prop)
   extends is_trichotomous α lt, is_strict_order α lt : Prop.
 
-/-- Construct a linear order from an `is_strict_total_order'` relation -/
+/-- Construct a linear order from an `is_strict_total_order'` relation.
+
+See note [reducible non-instances]. -/
+@[reducible]
 def linear_order_of_STO' (r) [is_strict_total_order' α r] [Π x y, decidable (¬ r x y)] :
   linear_order α :=
 { le_total := λ x y,
@@ -232,13 +246,6 @@ instance empty_relation.is_well_order [subsingleton α] : is_well_order α empty
 
 instance nat.lt.is_well_order : is_well_order ℕ (<) := ⟨nat.lt_wf⟩
 
-instance sum.lex.is_well_order [is_well_order α r] [is_well_order β s] :
-  is_well_order (α ⊕ β) (sum.lex r s) :=
-{ trichotomous := λ a b, by cases a; cases b; simp; apply trichotomous,
-  irrefl       := λ a, by cases a; simp; apply irrefl,
-  trans        := λ a b c, by cases a; cases b; simp; cases c; simp; apply trans,
-  wf           := sum.lex_wf is_well_order.wf is_well_order.wf }
-
 instance prod.lex.is_well_order [is_well_order α r] [is_well_order β s] :
   is_well_order (α × β) (prod.lex r s) :=
 { trichotomous := λ ⟨a₁, a₂⟩ ⟨b₁, b₂⟩,
@@ -269,13 +276,10 @@ def unbounded (r : α → α → Prop) (s : set α) : Prop := ∀ a, ∃ b ∈ s
 def bounded (r : α → α → Prop) (s : set α) : Prop := ∃a, ∀ b ∈ s, r b a
 
 @[simp] lemma not_bounded_iff {r : α → α → Prop} (s : set α) : ¬bounded r s ↔ unbounded r s :=
-begin
-  classical,
-  simp only [bounded, unbounded, not_forall, not_exists, exists_prop, not_and, not_not]
-end
+by simp only [bounded, unbounded, not_forall, not_exists, exists_prop, not_and, not_not]
 
 @[simp] lemma not_unbounded_iff {r : α → α → Prop} (s : set α) : ¬unbounded r s ↔ bounded r s :=
-by { classical, rw [not_iff_comm, not_bounded_iff] }
+by rw [not_iff_comm, not_bounded_iff]
 
 namespace prod
 

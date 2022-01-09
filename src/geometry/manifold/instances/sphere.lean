@@ -3,6 +3,10 @@ Copyright (c) 2021 Heather Macbeth. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Heather Macbeth
 -/
+import analysis.complex.circle
+import analysis.inner_product_space.calculus
+import analysis.inner_product_space.pi_L2
+import geometry.manifold.algebra.lie_group
 import geometry.manifold.instances.real
 
 /-!
@@ -21,7 +25,7 @@ For finite-dimensional `E`, we then construct a smooth manifold instance on the 
 here are obtained by composing the local homeomorphisms `stereographic` with arbitrary isometries
 from `(ℝ ∙ v)ᗮ` to Euclidean space.
 
-Finally, two lemmas about smooth maps:
+We prove two lemmas about smooth maps:
 * `times_cont_mdiff_coe_sphere` states that the coercion map from the sphere into `E` is smooth;
   this is a useful tool for constructing smooth maps *from* the sphere.
 * `times_cont_mdiff.cod_restrict_sphere` states that a map from a manifold into the sphere is
@@ -29,6 +33,15 @@ Finally, two lemmas about smooth maps:
   *to* the sphere.
 
 As an application we prove `times_cont_mdiff_neg_sphere`, that the antipodal map is smooth.
+
+Finally, we equip the `circle` (defined in `analysis.complex.circle` to be the sphere in `ℂ`
+centred at `0` of radius `1`) with the following structure:
+* a charted space with model space `euclidean_space ℝ (fin 1)` (inherited from `metric.sphere`)
+* a Lie group with model with corners `𝓡 1`
+
+We furthermore show that `exp_map_circle` (defined in `analysis.complex.circle` to be the natural
+map `λ t, exp (t * I)` from `ℝ` to `circle`) is smooth.
+
 
 ## Implementation notes
 
@@ -48,7 +61,7 @@ noncomputable theory
 open metric finite_dimensional
 open_locale manifold
 
-local attribute [instance] finite_dimensional_of_finrank_eq_succ
+local attribute [instance] fact_finite_dimensional_of_finrank_eq_succ
 
 section stereographic_projection
 variables (v : E)
@@ -60,27 +73,27 @@ the orthogonal complement of an element `v` of `E`. It is smooth away from the a
 through `v` parallel to the orthogonal complement.  It restricts on the sphere to the stereographic
 projection. -/
 def stereo_to_fun [complete_space E] (x : E) : (ℝ ∙ v)ᗮ :=
-(2 / ((1:ℝ) - inner_right v x)) • orthogonal_projection (ℝ ∙ v)ᗮ x
+(2 / ((1:ℝ) - innerSL v x)) • orthogonal_projection (ℝ ∙ v)ᗮ x
 
 variables {v}
 
 @[simp] lemma stereo_to_fun_apply [complete_space E] (x : E) :
-  stereo_to_fun v x = (2 / ((1:ℝ) - inner_right v x)) • orthogonal_projection (ℝ ∙ v)ᗮ x :=
+  stereo_to_fun v x = (2 / ((1:ℝ) - innerSL v x)) • orthogonal_projection (ℝ ∙ v)ᗮ x :=
 rfl
 
 lemma times_cont_diff_on_stereo_to_fun [complete_space E] :
-  times_cont_diff_on ℝ ⊤ (stereo_to_fun v) {x : E | inner_right v x ≠ (1:ℝ)} :=
+  times_cont_diff_on ℝ ⊤ (stereo_to_fun v) {x : E | innerSL v x ≠ (1:ℝ)} :=
 begin
   refine times_cont_diff_on.smul _
     (orthogonal_projection ((ℝ ∙ v)ᗮ)).times_cont_diff.times_cont_diff_on,
   refine times_cont_diff_const.times_cont_diff_on.div _ _,
-  { exact (times_cont_diff_const.sub (inner_right v).times_cont_diff).times_cont_diff_on },
+  { exact (times_cont_diff_const.sub (innerSL v).times_cont_diff).times_cont_diff_on },
   { intros x h h',
     exact h (sub_eq_zero.mp h').symm }
 end
 
 lemma continuous_on_stereo_to_fun [complete_space E] :
-  continuous_on (stereo_to_fun v) {x : E | inner_right v x ≠ (1:ℝ)} :=
+  continuous_on (stereo_to_fun v) {x : E | innerSL v x ≠ (1:ℝ)} :=
 times_cont_diff_on_stereo_to_fun.continuous_on
 
 variables (v)
@@ -147,7 +160,7 @@ begin
     { refine (inv_mul_lt_iff' _).mpr _,
       { nlinarith },
       linarith },
-    simpa [real_inner_comm, inner_add_right, inner_smul_right, real_inner_self_eq_norm_sq, hw,
+    simpa [real_inner_comm, inner_add_right, inner_smul_right, real_inner_self_eq_norm_mul_norm, hw,
       hv] using hw' },
   { simpa using stereo_inv_fun_aux_mem hv w.2 }
 end
@@ -163,7 +176,7 @@ begin
   ext,
   simp only [stereo_to_fun_apply, stereo_inv_fun_apply, smul_add],
   -- name two frequently-occuring quantities and write down their basic properties
-  set a : ℝ := inner_right v x,
+  set a : ℝ := innerSL v x,
   set y := orthogonal_projection (ℝ ∙ v)ᗮ x,
   have split : ↑x = a • v + ↑y,
   { convert eq_sum_orthogonal_projection_self_orthogonal_complement (ℝ ∙ v) x,
@@ -193,11 +206,11 @@ begin
     transitivity (1 - a) ^ 2 * (a * (2 ^ 2 * ∥y∥ ^ 2 + 4 * (1 - a) ^ 2)),
     { congr,
       nlinarith },
-    ring_nf, ring },
+    ring },
   -- deduce the result
   convert congr_arg2 has_add.add (congr_arg (λ t, t • (y:E)) h₁) (congr_arg (λ t, t • v) h₂)
     using 1,
-  { simp [inner_add_right, inner_smul_right, hvy, real_inner_self_eq_norm_sq, hv, mul_smul,
+  { simp [inner_add_right, inner_smul_right, hvy, real_inner_self_eq_norm_mul_norm, hv, mul_smul,
       mul_pow, real.norm_eq_abs, sq_abs, norm_smul] },
   { simp [split, add_comm] }
 end
@@ -215,8 +228,8 @@ begin
       orthogonal_projection_orthogonal_complement_singleton_eq_zero v,
     have h₂ : orthogonal_projection (ℝ ∙ v)ᗮ w = w :=
       orthogonal_projection_mem_subspace_eq_self w,
-    have h₃ : inner_right v w = (0:ℝ) := inner_right_of_mem_orthogonal_singleton v w.2,
-    have h₄ : inner_right v v = (1:ℝ) := by simp [real_inner_self_eq_norm_sq, hv],
+    have h₃ : innerSL v w = (0:ℝ) := inner_right_of_mem_orthogonal_singleton v w.2,
+    have h₄ : innerSL v v = (1:ℝ) := by simp [real_inner_self_eq_norm_mul_norm, hv],
     simp [h₁, h₂, h₃, h₄, continuous_linear_map.map_add, continuous_linear_map.map_smul,
       mul_smul] },
   { simp }
@@ -377,3 +390,38 @@ lemma times_cont_mdiff_neg_sphere {n : ℕ} [fact (finrank ℝ E = n + 1)] :
 (times_cont_diff_neg.times_cont_mdiff.comp times_cont_mdiff_coe_sphere).cod_restrict_sphere _
 
 end smooth_manifold
+
+section circle
+
+open complex
+
+local attribute [instance] finrank_real_complex_fact
+
+/-- The unit circle in `ℂ` is a charted space modelled on `euclidean_space ℝ (fin 1)`.  This
+follows by definition from the corresponding result for `metric.sphere`. -/
+instance : charted_space (euclidean_space ℝ (fin 1)) circle := metric.sphere.charted_space
+
+instance : smooth_manifold_with_corners (𝓡 1) circle :=
+metric.sphere.smooth_manifold_with_corners
+
+/-- The unit circle in `ℂ` is a Lie group. -/
+instance : lie_group (𝓡 1) circle :=
+{ smooth_mul := begin
+    let c : circle → ℂ := coe,
+    have h₁ : times_cont_mdiff _ _ _ (prod.map c c) :=
+      times_cont_mdiff_coe_sphere.prod_map times_cont_mdiff_coe_sphere,
+    have h₂ : times_cont_mdiff (𝓘(ℝ, ℂ).prod 𝓘(ℝ, ℂ)) 𝓘(ℝ, ℂ) ∞ (λ (z : ℂ × ℂ), z.fst * z.snd),
+    { rw times_cont_mdiff_iff,
+      exact ⟨continuous_mul, λ x y, (times_cont_diff_mul.restrict_scalars ℝ).times_cont_diff_on⟩ },
+    exact (h₂.comp h₁).cod_restrict_sphere _,
+  end,
+  smooth_inv := (complex.conj_cle.times_cont_diff.times_cont_mdiff.comp
+    times_cont_mdiff_coe_sphere).cod_restrict_sphere _,
+  .. metric.sphere.smooth_manifold_with_corners }
+
+/-- The map `λ t, exp (t * I)` from `ℝ` to the unit circle in `ℂ` is smooth. -/
+lemma times_cont_mdiff_exp_map_circle : times_cont_mdiff 𝓘(ℝ, ℝ) (𝓡 1) ∞ exp_map_circle :=
+(((times_cont_diff_exp.restrict_scalars ℝ).comp
+  (times_cont_diff_id.smul times_cont_diff_const)).times_cont_mdiff).cod_restrict_sphere _
+
+end circle

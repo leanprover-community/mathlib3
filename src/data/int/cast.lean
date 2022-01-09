@@ -6,11 +6,26 @@ Authors: Mario Carneiro
 import data.int.basic
 import data.nat.cast
 
+/-!
+# Cast of integers
+
+This file defines the *canonical* homomorphism from the integers into a type `α` with `0`,
+`1`, `+` and `-` (typically a `ring`).
+
+## Main declarations
+
+* `cast`: Canonical homomorphism `ℤ → α` where `α` has a `0`, `1`, `+` and `-`.
+* `cast_add_hom`: `cast` bundled as an `add_monoid_hom`.
+* `cast_ring_hom`: `cast` bundled as a `ring_hom`.
+
+## Implementation note
+
+Setting up the coercions priorities is tricky. See Note [coercion into rings].
+-/
+
 open nat
 
 namespace int
-
-/- cast (injection into groups with one) -/
 
 @[simp, push_cast] theorem nat_cast_eq_coe_nat : ∀ n,
   @coe ℕ ℤ (@coe_to_lift _ _ nat.cast_coe) n =
@@ -54,7 +69,7 @@ end
   ((int.sub_nat_nat m n : ℤ) : α) = m - n :=
 begin
   unfold sub_nat_nat, cases e : n - m,
-  { simp [sub_nat_nat, e, nat.le_of_sub_eq_zero e] },
+  { simp [sub_nat_nat, e, tsub_eq_zero_iff_le.mp e] },
   { rw [sub_nat_nat, cast_neg_succ_of_nat, ← nat.cast_succ, ← e,
         nat.cast_sub $ _root_.le_of_lt $ nat.lt_of_sub_eq_succ e, neg_sub] },
 end
@@ -171,8 +186,13 @@ monotone.map_min cast_mono
 monotone.map_max cast_mono
 
 @[simp, norm_cast] theorem cast_abs [linear_ordered_ring α] {q : ℤ} :
-  ((abs q : ℤ) : α) = abs q :=
-by simp [abs]
+  ((|q| : ℤ) : α) = |q| :=
+by simp [abs_eq_max_neg]
+
+lemma cast_nat_abs {R : Type*} [linear_ordered_ring R] : ∀ (n : ℤ), (n.nat_abs : R) = |n|
+| (n : ℕ) := by simp only [int.nat_abs_of_nat, int.cast_coe_nat, nat.abs_cast]
+| -[1+n]  := by simp only [int.nat_abs, int.cast_neg_succ_of_nat, abs_neg,
+                           ← nat.cast_succ, nat.abs_cast]
 
 lemma coe_int_dvd [comm_ring α] (m n : ℤ) (h : m ∣ n) :
   (m : α) ∣ (n : α) :=
@@ -181,6 +201,19 @@ ring_hom.map_dvd (int.cast_ring_hom α) h
 end cast
 
 end int
+
+namespace prod
+
+variables {α : Type*} {β : Type*} [has_zero α] [has_one α] [has_add α] [has_neg α]
+  [has_zero β] [has_one β] [has_add β] [has_neg β]
+
+@[simp] lemma fst_int_cast (n : ℤ) : (n : α × β).fst = n :=
+by induction n; simp *
+
+@[simp] lemma snd_int_cast (n : ℤ) : (n : α × β).snd = n :=
+by induction n; simp *
+
+end prod
 
 open int
 

@@ -105,7 +105,7 @@ begin
     rw [←hca, sdiff_eq_self_iff_disjoint],
     exact hba.of_disjoint_inf_of_le ha },
   { have hd : disjoint a b := by { rw ←h, exact disjoint_sdiff_self_right },
-    rw [symm_diff_def, hd.sdiff_eq_left, hd.sdiff_eq_right, ←h, sup_sdiff_of_le ha], },
+    rw [symm_diff_def, hd.sdiff_eq_left, hd.sdiff_eq_right, ←h, sup_sdiff_cancel_right ha] }
 end
 
 lemma disjoint.symm_diff_eq_sup {a b : α} (h : disjoint a b) : a Δ b = a ⊔ b :=
@@ -168,6 +168,13 @@ calc a Δ b = a ↔ a Δ b = a Δ ⊥ : by rw symm_diff_bot
 calc a Δ b = ⊥ ↔ a Δ b = a Δ a : by rw symm_diff_self
            ... ↔     a = b     : by rw [symm_diff_right_inj, eq_comm]
 
+lemma disjoint.disjoint_symm_diff_of_disjoint {a b c : α} (ha : disjoint a c) (hb : disjoint b c) :
+  disjoint (a Δ b) c :=
+begin
+  rw symm_diff_eq_sup_sdiff_inf,
+  exact (ha.sup_left hb).disjoint_sdiff_left,
+end
+
 end generalized_boolean_algebra
 
 section boolean_algebra
@@ -182,7 +189,7 @@ lemma compl_symm_diff : (a Δ b)ᶜ = (a ⊓ b) ⊔ (aᶜ ⊓ bᶜ) :=
 by simp only [←top_sdiff, sdiff_symm_diff, top_inf_eq]
 
 lemma symm_diff_eq_top_iff : a Δ b = ⊤ ↔ is_compl a b :=
-by rw [symm_diff_eq_iff_sdiff_eq (@le_top _ _ a), top_sdiff, compl_eq_iff_is_compl]
+by rw [symm_diff_eq_iff_sdiff_eq le_top, top_sdiff, compl_eq_iff_is_compl]
 
 lemma is_compl.symm_diff_eq_top (h : is_compl a b) : a Δ b = ⊤ := (symm_diff_eq_top_iff a b).2 h
 
@@ -206,13 +213,5 @@ calc a Δ (b Δ c) = (a ⊓ ((b ⊓ c) ⊔ (bᶜ ⊓ cᶜ))) ⊔
                                                          rw [inf_comm, inf_assoc], },
                                                        { apply inf_left_right_swap }
                                                      end
-
--- TODO: move this to generalized_boolean_algebra when we have a distrib_lattice_with_bot typeclass
-lemma disjoint.disjoint_symm_diff_of_disjoint {a b c : α} (h1 : disjoint a c) (h2 : disjoint b c) :
-  disjoint (a Δ b) c :=
-begin
-  rw [symm_diff_eq_sup_sdiff_inf],
-  exact (h1.sup_left h2).disjoint_sdiff_left,
-end
 
 end boolean_algebra

@@ -21,7 +21,7 @@ open_locale classical
 Any partial order can be extended to a linear order.
 -/
 theorem extend_partial_order {α : Type u} (r : α → α → Prop) [is_partial_order α r] :
-  ∃ (s : α → α → Prop) [is_linear_order α s], r ≤ s :=
+  ∃ (s : α → α → Prop) (_ : is_linear_order α s), r ≤ s :=
 begin
   let S := {s | is_partial_order α s},
   have hS : ∀ c, c ⊆ S → zorn.chain (≤) c → ∀ y ∈ c, (∃ ub ∈ S, ∀ z ∈ c, z ≤ ub),

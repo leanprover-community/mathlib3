@@ -142,7 +142,7 @@ theorem encodek₂ [encodable α] (a : α) : decode₂ α (encode a) = some a :=
 mem_decode₂.2 rfl
 
 /-- The encoding function has decidable range. -/
-def decidable_range_encode (α : Type*) [encodable α] : decidable_pred (set.range (@encode α _)) :=
+def decidable_range_encode (α : Type*) [encodable α] : decidable_pred (∈ set.range (@encode α _)) :=
 λ x, decidable_of_iff (option.is_some (decode₂ α x))
   ⟨λ h, ⟨option.get h, by rw [← decode₂_is_partial_inv (option.get h), option.some_get]⟩,
   λ ⟨n, hn⟩, by rw [← hn, encodek₂]; exact rfl⟩
@@ -160,6 +160,10 @@ def equiv_range_encode (α : Type*) [encodable α] : α ≃ set.range (@encode �
     conv {to_rhs, rw ← hx},
     rw [encode_injective.eq_iff, ← option.some_inj, option.some_get, ← hx, encodek₂],
   end }
+
+/-- A type with unique element is encodable. This is not an instance to avoid diamonds. -/
+def _root_.unique.encodable [unique α] : encodable α :=
+⟨λ _, 0, λ _, some (default α), unique.forall_iff.2 rfl⟩
 
 section sum
 variables [encodable α] [encodable β]
@@ -209,6 +213,9 @@ begin
   cases exists_eq_succ_of_ne_zero (ne_of_gt this) with m e,
   simp [decode_sum]; cases bodd n; simp [decode_sum]; rw e; refl
 end
+
+noncomputable instance «Prop» : encodable Prop :=
+of_equiv bool equiv.Prop_equiv_bool
 
 section sigma
 variables {γ : α → Type*} [encodable α] [∀ a, encodable (γ a)]
@@ -447,7 +454,7 @@ end
 variables [preorder β] {f : α → β} (hf : directed (≤) f)
 
 lemma sequence_mono : monotone (f ∘ (hf.sequence f)) :=
-monotone_of_monotone_nat $ hf.sequence_mono_nat
+monotone_nat_of_le_succ $ hf.sequence_mono_nat
 
 lemma le_sequence (a : α) : f a ≤ f (hf.sequence f (encode a + 1)) :=
 hf.rel_sequence a

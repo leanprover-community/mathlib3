@@ -29,6 +29,10 @@ prod.forall
 theorem exists' {p : α → β → Prop} : (∃ x : α × β, p x.1 x.2) ↔ ∃ a b, p a b :=
 prod.exists
 
+@[simp] lemma snd_comp_mk (x : α) : prod.snd ∘ (prod.mk x : β → α × β) = id := rfl
+
+@[simp] lemma fst_comp_mk (x : α) : prod.fst ∘ (prod.mk x : β → α × β) = function.const β x := rfl
+
 @[simp] lemma map_mk (f : α → γ) (g : β → δ) (a : α) (b : β) : map f g (a, b) = (f a, g b) := rfl
 
 lemma map_fst (f : α → γ) (g : β → δ) (p : α × β) : (map f g p).1 = f (p.1) := rfl

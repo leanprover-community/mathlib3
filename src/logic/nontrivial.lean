@@ -3,11 +3,10 @@ Copyright (c) 2020 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-import data.pi
 import data.prod
 import data.subtype
-import logic.unique
 import logic.function.basic
+import logic.unique
 
 /-!
 # Nontrivial types
@@ -61,6 +60,8 @@ lemma nontrivial_iff_exists_ne (x : α) : nontrivial α ↔ ∃ y, y ≠ x :=
 lemma subtype.nontrivial_iff_exists_ne (p : α → Prop) (x : subtype p) :
   nontrivial (subtype p) ↔ ∃ (y : α) (hy : p y), y ≠ x :=
 by simp only [nontrivial_iff_exists_ne x, subtype.exists, ne.def, subtype.ext_iff, subtype.coe_mk]
+
+instance : nontrivial Prop := ⟨⟨true, false, true_ne_false⟩⟩
 
 /--
 See Note [lower instance priority]

@@ -3,10 +3,10 @@ Copyright (c) 2020 Markus Himmel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Markus Himmel, Scott Morrison
 -/
-import category_theory.abelian.projective
-import algebra.category.Module.abelian
-import linear_algebra.finsupp_vector_space
+import algebra.category.Module.epi_mono
 import algebra.module.projective
+import category_theory.preadditive.projective
+import linear_algebra.finsupp_vector_space
 
 /-!
 # The category of `R`-modules has enough projectives.
@@ -43,7 +43,7 @@ variables {R : Type u} [ring R] {M : Module.{(max u v)} R}
 -- We transport the corresponding result from `module.projective`.
 lemma projective_of_free {ι : Type*} (b : basis ι R M) : projective M :=
 projective.of_iso (Module.of_self_iso _)
-  ((is_projective.iff_projective).mp (module.projective_of_free b))
+  ((is_projective.iff_projective).mp (module.projective_of_basis b))
 
 /-- The category of modules has enough projectives, since every module is a quotient of a free
     module. -/

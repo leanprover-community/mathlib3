@@ -3,6 +3,7 @@ Copyright (c) 2020 Hanting Zhang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Hanting Zhang, Johan Commelin
 -/
+import data.fintype.card
 import data.mv_polynomial.rename
 import data.mv_polynomial.comm_ring
 import algebra.algebra.subalgebra
@@ -192,7 +193,7 @@ lemma support_esymm'' (n : ℕ) [decidable_eq σ] [nontrivial R] :
     (λ t, (finsupp.single (∑ (i : σ) in t, finsupp.single i 1) (1:R)).support) :=
 begin
   rw esymm_eq_sum_monomial,
-  simp only [monomial],
+  simp only [← single_eq_monomial],
   convert finsupp.support_sum_eq_bUnion (powerset_len n (univ : finset σ)) _,
   intros s t hst d,
   simp only [finsupp.support_single_ne_zero one_ne_zero, and_imp, inf_eq_inter, mem_inter,
@@ -226,7 +227,7 @@ lemma degrees_esymm [nontrivial R]
 begin
   classical,
   have : (finsupp.to_multiset ∘ λ (t : finset σ), ∑ (i : σ) in t, finsupp.single i 1) = finset.val,
-    { funext, simp [finsupp.to_multiset_sum_single] },
+  { funext, simp [finsupp.to_multiset_sum_single] },
   rw [degrees, support_esymm, sup_finset_image, this, ←comp_sup_eq_sup_comp],
   { obtain ⟨k, rfl⟩ := nat.exists_eq_succ_of_ne_zero hpos.ne',
     simpa using powerset_len_sup _ _ (nat.lt_of_succ_le hn) },

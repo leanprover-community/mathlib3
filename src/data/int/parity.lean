@@ -3,7 +3,6 @@ Copyright (c) 2019 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Benjamin Davidson
 -/
-import data.int.modeq
 import data.nat.parity
 
 /-!
@@ -46,7 +45,7 @@ by rw [not_odd_iff, even_iff]
 @[simp] lemma odd_iff_not_even : odd n ↔ ¬ even n :=
 by rw [not_even_iff, odd_iff]
 
-lemma is_compl_even_odd : is_compl {n : ℕ | even n} {n | odd n} :=
+lemma is_compl_even_odd : is_compl {n : ℤ | even n} {n | odd n} :=
 by simp [← set.compl_set_of, is_compl_compl]
 
 lemma even_or_odd (n : ℤ) : even n ∨ odd n :=
@@ -103,9 +102,6 @@ by rw [even_add, even_iff_not_odd, even_iff_not_odd, not_iff_not]
 
 theorem odd.add_odd (hm : odd m) (hn : odd n) : even (m + n) :=
 even_add'.2 $ iff_of_true hm hn
-
-@[parity_simps] theorem even_neg : even (-n) ↔ even n :=
-by simp [even_iff]
 
 @[simp] theorem not_even_bit1 (n : ℤ) : ¬ even (bit1 n) :=
 by simp [bit1] with parity_simps
@@ -203,6 +199,26 @@ coe_nat_dvd_left.symm
 
 @[simp] theorem nat_abs_odd : odd n.nat_abs ↔ odd n :=
 by rw [odd_iff_not_even, nat.odd_iff_not_even, nat_abs_even]
+
+lemma four_dvd_add_or_sub_of_odd {a b : ℤ} (ha : odd a) (hb : odd b) : 4 ∣ a + b ∨ 4 ∣ a - b :=
+begin
+  obtain ⟨m, rfl⟩ := ha,
+  obtain ⟨n, rfl⟩ := hb,
+  obtain h|h := int.even_or_odd (m + n),
+  { right,
+    rw [int.even_add, ←int.even_sub] at h,
+    obtain ⟨k, hk⟩ := h,
+    convert dvd_mul_right 4 k,
+    rw [eq_add_of_sub_eq hk, mul_add, add_assoc, add_sub_cancel, ←mul_assoc],
+    norm_num },
+  { left,
+    obtain ⟨k, hk⟩ := h,
+    convert dvd_mul_right 4 (k + 1),
+    rw [eq_sub_of_add_eq hk, add_right_comm, ←add_sub, mul_add, mul_sub, add_assoc, add_assoc,
+      sub_add, add_assoc, ←sub_sub (2 * n), sub_self, zero_sub, sub_neg_eq_add, ←mul_assoc,
+      mul_add],
+    norm_num },
+end
 
 -- Here are examples of how `parity_simps` can be used with `int`.
 

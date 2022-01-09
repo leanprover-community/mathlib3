@@ -64,8 +64,7 @@ instance mvqpf : @mvqpf _ (const n A) (mvqpf.const.mvfunctor) :=
   abs       := λ α x, mvpfunctor.const.get x,
   repr      := λ α x, mvpfunctor.const.mk n x,
   abs_repr  := by intros; simp,
-  abs_map   := by intros; simp; refl,
-}
+  abs_map   := by intros; simp; refl, }
 
 end const
 

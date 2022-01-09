@@ -5,6 +5,25 @@ Authors: Seul Baek
 -/
 import data.nat.basic
 
+/-!
+# Lists as Functions
+
+Definitions for using lists as finite representations of finitely-supported functions with domain
+ℕ.
+
+These include pointwise operations on lists, as well as get and set operations.
+
+## Notations
+
+An index notation is introduced in this file for setting a particular element of a list. With `as`
+as a list `m` as an index, and `a` as a new element, the notation is `as {m ↦ a}`.
+
+So, for example
+`[1, 3, 5] {1 ↦ 9}` would result in `[1, 9, 5]`
+
+This notation is in the locale `list.func`.
+-/
+
 open list
 
 universes u v w
@@ -16,12 +35,15 @@ namespace func
 variables {a : α}
 variables {as as1 as2 as3 : list α}
 
-/- Definitions for using lists as finite
-   representations of functions with domain ℕ. -/
+/-- Elementwise negation of a list -/
 def neg [has_neg α] (as : list α) := as.map (λ a, -a)
 
 variables [inhabited α] [inhabited β]
 
+/--
+Update element of a list by index. If the index is out of range, extend the list with default
+elements
+-/
 @[simp] def set (a : α) : list α → ℕ → list α
 | (_::as) 0     := a::as
 | []      0     := [a]
@@ -30,30 +52,38 @@ variables [inhabited α] [inhabited β]
 
 localized "notation as ` {` m ` ↦ ` a `}` := list.func.set a as m" in list.func
 
+/-- Get element of a list by index. If the index is out of range, return the default element -/
 @[simp] def get : ℕ → list α → α
 | _ []          := default α
 | 0 (a::as)     := a
 | (n+1) (a::as) := get n as
 
+/--
+Pointwise equality of lists. If lists are different lengths, compare with the default
+element.
+-/
 def equiv (as1 as2 : list α) : Prop :=
 ∀ (m : nat), get m as1 = get m as2
 
+/-- Pointwise operations on lists. If lists are different lengths, use the default element. -/
 @[simp] def pointwise (f : α → β → γ) : list α → list β → list γ
 | []      []      := []
 | []      (b::bs) := map (f $ default α) (b::bs)
 | (a::as) []      := map (λ x, f x $ default β) (a::as)
 | (a::as) (b::bs) := (f a b)::(pointwise as bs)
 
+/-- Pointwise addition on lists. If lists are different lengths, use zero. -/
 def add {α : Type u} [has_zero α] [has_add α] : list α → list α → list α :=
 @pointwise α α α ⟨0⟩ ⟨0⟩ (+)
 
+/-- Pointwise subtraction on lists. If lists are different lengths, use zero. -/
 def sub {α : Type u} [has_zero α] [has_sub α] : list α → list α → list α :=
 @pointwise α α α ⟨0⟩ ⟨0⟩ (@has_sub.sub α _)
 
 /- set -/
 
 lemma length_set : ∀ {m : ℕ} {as : list α},
-  (as {m ↦ a}).length = _root_.max as.length (m+1)
+  (as {m ↦ a}).length = max as.length (m+1)
 | 0 []          := rfl
 | 0 (a::as)     := by {rw max_eq_left, refl, simp [nat.le_add_right]}
 | (m+1) []      := by simp only [set, nat.zero_max, length, @length_set m]
@@ -248,7 +278,7 @@ lemma get_pointwise [inhabited γ] {f : α → β → γ} (h1 : f (default α) (
 
 lemma length_pointwise {f : α → β → γ} :
   ∀ {as : list α} {bs : list β},
-  (pointwise f as bs).length = _root_.max as.length bs.length
+  (pointwise f as bs).length = max as.length bs.length
 | []      []      := rfl
 | []      (b::bs) :=
   by simp only [pointwise, length, length_map,
@@ -271,7 +301,7 @@ by {apply get_pointwise, apply zero_add}
 
 @[simp] lemma length_add {α : Type u}
   [has_zero α] [has_add α] {xs ys : list α} :
-  (add xs ys).length = _root_.max xs.length ys.length :=
+  (add xs ys).length = max xs.length ys.length :=
 @length_pointwise α α α ⟨0⟩ ⟨0⟩ _ _ _
 
 @[simp] lemma nil_add {α : Type u} [add_monoid α]
@@ -319,7 +349,7 @@ end
 by {apply get_pointwise, apply sub_zero}
 
 @[simp] lemma length_sub [has_zero α] [has_sub α] {xs ys : list α} :
-  (sub xs ys).length = _root_.max xs.length ys.length :=
+  (sub xs ys).length = max xs.length ys.length :=
 @length_pointwise α α α ⟨0⟩ ⟨0⟩ _ _ _
 
 @[simp] lemma nil_sub {α : Type} [add_group α]

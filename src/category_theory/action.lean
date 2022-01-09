@@ -120,9 +120,9 @@ category_theory.groupoid_of_elements _
 
 /-- Any subgroup of `G` is a vertex group in its action groupoid. -/
 def End_mul_equiv_subgroup (H : subgroup G) :
-  End (obj_equiv G (quotient_group.quotient H) ↑(1 : G)) ≃* H :=
+  End (obj_equiv G (G ⧸ H) ↑(1 : G)) ≃* H :=
 mul_equiv.trans
-  (stabilizer_iso_End G ((1 : G) : quotient_group.quotient H)).symm
+  (stabilizer_iso_End G ((1 : G) : G ⧸ H)).symm
   (mul_equiv.subgroup_congr $ stabilizer_quotient H)
 
 /-- A target vertex `t` and a scalar `g` determine a morphism in the action groupoid. -/

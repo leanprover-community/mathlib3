@@ -89,13 +89,13 @@ the depth of recursive applications.
   `x : α ⊢ f x = g x`.
 -/
 meta def congr' (n : parse (with_desc "n" small_nat)?) :
-  parse (tk "with" *> prod.mk <$> (rcases_patt_parse tt)* <*> (tk ":" *> small_nat)?)? →
+  parse (tk "with" *> prod.mk <$> rcases_patt_parse_hi* <*> (tk ":" *> small_nat)?)? →
   tactic unit
 | none         := tactic.congr' n
 | (some ⟨p, m⟩) := focus1 (tactic.congr' n >> all_goals' (tactic.ext p m $> ()))
 
 /--
-Repeatedly and apply `congr'` and `ext`, using the the given patterns as arguments for `ext`.
+Repeatedly and apply `congr'` and `ext`, using the given patterns as arguments for `ext`.
 
 There are two ways this tactic stops:
 * `congr'` fails (makes no progress), after having already applied `ext`.
@@ -121,7 +121,7 @@ and `congr' with x` (or `congr', ext x`) would produce
 x : α ⊢ f x + 3 = g x + 3
 ```
 -/
-meta def rcongr : parse (rcases_patt_parse tt)* → tactic unit
+meta def rcongr : parse rcases_patt_parse_hi* → tactic unit
 | ps := do
   t ← target,
   qs ← try_core (tactic.ext ps none),
@@ -138,8 +138,8 @@ add_tactic_doc
 
 /--
 The `exact e` and `refine e` tactics require a term `e` whose type is
-definitionally equal to the goal. `convert e` is similar to `refine
-e`, but the type of `e` is not required to exactly match the
+definitionally equal to the goal. `convert e` is similar to `refine e`,
+but the type of `e` is not required to exactly match the
 goal. Instead, new goals are created for differences between the type
 of `e` and the goal. For example, in the proof state
 
@@ -203,15 +203,9 @@ add_tactic_doc
 it will generate equality proof obligations using `congr' n` to resolve discrepancies.
 `convert_to g` defaults to using `congr' 1`.
 
-`ac_change` is `convert_to` followed by `ac_refl`. It is useful for rearranging/reassociating
-e.g. sums:
-```lean
-example (a b c d e f g N : ℕ) : (a + b) + (c + d) + (e + f) + g ≤ N :=
-begin
-  ac_change a + d + e + f + c + g + b ≤ _,
--- ⊢ a + d + e + f + c + g + b ≤ N
-end
-```
+`convert_to` is similar to `convert`, but `convert_to` takes a type (the desired subgoal) while
+`convert` takes a proof term.
+That is, `convert_to g using n` is equivalent to `convert (_ : g) using n`.
 -/
 meta def convert_to (r : parse texpr) (n : parse (tk "using" *> small_nat)?) : tactic unit :=
 match n with
@@ -220,7 +214,17 @@ match n with
   | (some o) := convert_to_core r >> tactic.congr' o
 end
 
-/-- `ac_change g using n` is `convert_to g using n; try {ac_refl}`. -/
+/--
+`ac_change g using n` is `convert_to g using n` followed by `ac_refl`. It is useful for
+rearranging/reassociating e.g. sums:
+```lean
+example (a b c d e f g N : ℕ) : (a + b) + (c + d) + (e + f) + g ≤ N :=
+begin
+  ac_change a + d + e + f + c + g + b ≤ _,
+-- ⊢ a + d + e + f + c + g + b ≤ N
+end
+```
+-/
 meta def ac_change (r : parse texpr) (n : parse (tk "using" *> small_nat)?) : tactic unit :=
 convert_to r n; try ac_refl
 

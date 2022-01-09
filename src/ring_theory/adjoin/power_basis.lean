@@ -45,7 +45,7 @@ begin
     have := hx'.mem_span_pow,
     rw minpoly_eq at this,
     apply this,
-    { rw [adjoin_singleton_eq_range] at hy,
+    { rw [adjoin_singleton_eq_range_aeval] at hy,
       obtain ⟨f, rfl⟩ := (aeval x).mem_range.mp hy,
       use f,
       ext,
@@ -54,7 +54,7 @@ end
 
 /-- The power basis `1, x, ..., x ^ (d - 1)` for `K[x]`,
 where `d` is the degree of the minimal polynomial of `x`. -/
-noncomputable def adjoin.power_basis {x : S} (hx : _root_.is_integral K x) :
+@[simps gen dim] noncomputable def adjoin.power_basis {x : S} (hx : _root_.is_integral K x) :
   power_basis K (adjoin K ({x} : set S)) :=
 { gen := ⟨x, subset_adjoin (set.mem_singleton x)⟩,
   dim := (minpoly K x).nat_degree,

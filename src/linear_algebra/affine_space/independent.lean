@@ -544,8 +544,8 @@ begin
     fin_cases i,
     { simpa using hi } },
   haveI : unique {x // x ≠ (0 : fin 2)} := ⟨⟨i₁⟩, he'⟩,
-  have hz : (![p₁, p₂] ↑(default {x // x ≠ (0 : fin 2)}) -ᵥ ![p₁, p₂] 0 : V) ≠ 0,
-  { rw he' default, simp, cc },
+  have hz : (![p₁, p₂] ↑default -ᵥ ![p₁, p₂] 0 : V) ≠ 0,
+  { rw he' default, simpa using h.symm },
   exact linear_independent_unique _ hz
 end
 

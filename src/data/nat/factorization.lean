@@ -129,7 +129,7 @@ end
 we can evaluate `f n` by evaluating `f` at `p ^ k` over the factorization of `n` -/
 lemma multiplicative_factorization {β : Type*} [comm_monoid β] (f : ℕ → β)
   (h_mult : ∀ x y : ℕ, coprime x y → f (x * y) = f x * f y) (hf : f 1 = 1) :
-∀ {n : ℕ}, 0 < n → f n = n.factorization.prod (λ p k, f (p ^ k)) :=
+  ∀ {n : ℕ}, 0 < n → f n = n.factorization.prod (λ p k, f (p ^ k)) :=
 begin
   apply' nat.rec_on_pos_prime_coprime,
   { intros p k hp hk hpk, simp [prime.factorization_pow hp, finsupp.prod_single_index _, hf] },
@@ -148,7 +148,7 @@ end
 we can evaluate `f n` by evaluating `f` at `p ^ k` over the factorization of `n` -/
 lemma multiplicative_factorization' {β : Type*} [comm_monoid β] (f : ℕ → β)
   (h_mult : ∀ x y : ℕ, coprime x y → f (x * y) = f x * f y) (hf0 : f 0 = 1) (hf1 : f 1 = 1) :
-∀ {n : ℕ}, f n = n.factorization.prod (λ p k, f (p ^ k)) :=
+  ∀ {n : ℕ}, f n = n.factorization.prod (λ p k, f (p ^ k)) :=
 begin
   apply' nat.rec_on_pos_prime_coprime,
   { intros p k hp hk, simp only [hp.factorization_pow], rw prod_single_index _, simp [hf1] },

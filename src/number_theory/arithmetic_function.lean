@@ -561,7 +561,7 @@ end⟩
 we can evaluate `f n` by evaluating `f` at `p ^ k` over the factorization of `n` -/
 lemma multiplicative_factorization [comm_monoid_with_zero R] (f : arithmetic_function R)
   (hf : f.is_multiplicative) :
-∀ {n : ℕ}, 0 < n → f n = n.factorization.prod (λ p k, f (p ^ k)) :=
+  ∀ {n : ℕ}, 0 < n → f n = n.factorization.prod (λ p k, f (p ^ k)) :=
 λ n hn, multiplicative_factorization f hf.2 hf.1 hn
 
 end is_multiplicative

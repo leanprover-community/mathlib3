@@ -160,6 +160,12 @@ has_colimits_of_has_colimits_creates_colimits forget_to_PresheafedSpace
 noncomputable instance [has_limits C] : preserves_colimits (forget C) :=
 limits.comp_preserves_colimits forget_to_PresheafedSpace (PresheafedSpace.forget C)
 
+def iso_of_presheaf_iso (X Y : SheafedSpace C) (H : X.to_PresheafedSpace ≅ Y.to_PresheafedSpace) : X ≅ Y :=
+{ hom := H.hom,
+  inv := H.inv,
+  hom_inv_id' := H.hom_inv_id',
+  inv_hom_id' := H.inv_hom_id' }
+
 end SheafedSpace
 
 end algebraic_geometry

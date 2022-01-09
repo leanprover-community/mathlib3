@@ -246,6 +246,9 @@ structure seminorm (𝕜 : Type*) (E : Type*) [semi_normed_ring 𝕜] [add_monoi
 (triangle' : ∀ x y : E, to_fun (x + y) ≤ to_fun x + to_fun y)
 
 namespace seminorm
+
+noncomputable theory
+
 section semi_normed_ring
 variables [semi_normed_ring 𝕜]
 
@@ -255,12 +258,17 @@ variables [add_monoid E]
 section has_scalar
 variables [has_scalar 𝕜 E]
 
-instance : inhabited (seminorm 𝕜 E) :=
-⟨{ to_fun    := λ _, 0,
-   smul'     := λ _ _, (mul_zero _).symm,
-   triangle' := λ x y, by rw add_zero }⟩
+def zero_seminorm : seminorm 𝕜 E :=
+  { to_fun    := 0,
+    smul'     := by simp,
+    triangle' := by simp }
+
+instance : inhabited (seminorm 𝕜 E) := ⟨zero_seminorm⟩
 
 instance : has_coe_to_fun (seminorm 𝕜 E) (λ _, E → ℝ) := ⟨λ p, p.to_fun⟩
+
+lemma coe_injective : @function.injective (seminorm 𝕜 E) (E → ℝ) coe_fn
+| ⟨x, _, _⟩ ⟨y, _, _⟩ rfl := rfl
 
 @[ext] lemma ext {p q : seminorm 𝕜 E} (h : (p : E → ℝ) = q) : p = q :=
 begin
@@ -311,6 +319,66 @@ calc 0 = p (x + (- x)) : by rw [add_neg_self, p.zero]
 nonneg_of_mul_nonneg_left h zero_lt_two
 
 lemma sub_rev : p (x - y) = p (y - x) := by rw [←neg_sub, p.neg]
+
+variables {α : Type*} [semilattice_sup α] {a b c d : α}
+variables (h₁ : a = b)
+
+#check le_antisymm_iff.mp h₁
+
+#check sup_le_sup
+theorem sup_eq_sup (h₁ : a = b) (h₂ : c = d) : a ⊔ c = b ⊔ d :=
+begin
+  refine le_antisymm _ _,
+  {
+    refine sup_le_sup _ _,
+    exact (le_antisymm_iff.mp h₁).1,
+    exact (le_antisymm_iff.mp h₂).1,
+  },
+  refine sup_le_sup _ _,
+  exact (le_antisymm_iff.mp h₁).2,
+  exact (le_antisymm_iff.mp h₂).2,
+end
+
+lemma mul_sup {a b c : ℝ} (h₁ : 0 ≤ a) : a * (b ⊔ c) = (a * b) ⊔ (a * c) :=
+begin
+  cases le_total b c with h h,
+  { simp [sup_eq_max, max_eq_right h, max_eq_right (mul_le_mul_of_nonneg_left h h₁)] },
+  { simp [sup_eq_max, max_eq_left h, max_eq_left (mul_le_mul_of_nonneg_left h h₁)] },
+end
+
+instance : has_sup (seminorm 𝕜 E) :=
+{ sup := λ p q,
+  { to_fun := p ⊔ q,
+    triangle' :=
+      begin
+        intros x y,
+        simp,
+        split,
+        { apply le_trans (p.triangle x y),
+          exact add_le_add (le_sup_left) (le_sup_left) },
+        apply le_trans (q.triangle x y),
+        exact add_le_add le_sup_right le_sup_right,
+      end,
+    smul' :=
+      begin
+        intros x v,
+        simp,
+        rw mul_sup (norm_nonneg x),
+        rw sup_eq_sup,
+        exact p.smul x v,
+        exact q.smul x v,
+      end }}
+
+@[simp] lemma coe_sup (x y : seminorm 𝕜 E) : ⇑(x ⊔ y) = x ⊔ y := rfl
+
+instance : semilattice_sup (seminorm 𝕜 E) :=
+function.injective.semilattice_sup _ coe_injective coe_sup
+
+instance : order_bot (seminorm 𝕜 E) :=
+{ bot := zero_seminorm,
+  bot_le := nonneg }
+
+@[simp] lemma coe_bot : ⇑(⊥ : seminorm 𝕜 E) = 0 := rfl
 
 end norm_one_class
 
@@ -423,70 +491,40 @@ noncomputable theory
 variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E] [semi_normed_space ℝ 𝕜]
 variables [module ℝ E]
 variables {ι : Type*} [decidable_eq ι]
-
-def seminorm_sup_finset (p : ι → seminorm 𝕜 E) (ι' : finset ι) : seminorm 𝕜 E :=
-  { to_fun := λ x, ↑(ι'.sup (λ i, (p i x).to_nnreal)),
-  smul' :=
-    begin
-      intros x v,
-      rw [←∥x∥.coe_to_nnreal (norm_nonneg x), ←nnreal.coe_mul, nnreal.coe_eq],
-      rw (∥x∥.to_nnreal).mul_finset_sup,
-      refine finset.sup_congr _ _,
-      trivial,
-      intros i hi,
-      rw [←nnreal.coe_eq, nnreal.coe_mul, ∥x∥.coe_to_nnreal (norm_nonneg x),
-      (p i v).coe_to_nnreal (nonneg (p i) v), (p i (x • v)).coe_to_nnreal (nonneg (p i) (x • v))],
-      exact (p i).smul x v,
-    end,
-  triangle' :=
-    begin
-      intros x y,
-      rw [←nnreal.coe_add, nnreal.coe_le_coe],
-      refine finset.sup_le _,
-      intros i hi,
-      have hpxy : ((p i) (x + y)).to_nnreal ≤ (p i x).to_nnreal + (p i y).to_nnreal :=
-      begin
-        rw real.to_nnreal_add_to_nnreal (nonneg (p i) x) (nonneg (p i) y),
-        apply real.to_nnreal_le_to_nnreal,
-        exact (p i).triangle x y,
-      end,
-      apply le_trans hpxy,
-      exact add_le_add (finset.le_sup hi) (finset.le_sup hi)
-    end }
-
-lemma seminorm_sup_finset_coe_to_fun (p : ι → seminorm 𝕜 E) (ι' : finset ι) :
-  coe_fn (seminorm_sup_finset p ι') =
-  λ x, ↑(ι'.sup (λ i, (p i x).to_nnreal)) := rfl
+variables (p : ι → seminorm 𝕜 E)
+variables (ι' : finset ι)
 
 @[simp]
 lemma seminorm_sup_singleton (p : ι → seminorm 𝕜 E) (i : ι):
-  seminorm_sup_finset p {i} = p i :=
+  ({i} : finset ι).sup p = p i :=
 begin
-  ext,
-  rw seminorm_sup_finset_coe_to_fun,
   simp,
-  exact (p i).nonneg x,
+end
+
+lemma seminorm_sup_finset_coe_to_fun (p : ι → seminorm 𝕜 E) (ι' : finset ι) :
+  coe_fn (ι'.sup p) = λ x, ↑(ι'.sup (λ i, (p i x).to_nnreal)) :=
+begin
+  sorry,
+end
+
+lemma seminorm_le_sup (p : ι → seminorm 𝕜 E) (ι' : finset ι) (i : ι) (hi : i ∈ ι') (x : E) :
+  p i x ≤ ι'.sup p x :=
+begin
+  have h : p i ≤ ι'.sup p := @finset.le_sup _ _ _ _ _ p _ hi,
+  exact h x,
 end
 
 lemma seminorm_sup_ball_int (p : ι → seminorm 𝕜 E) (ι' : finset ι) :
-  ball (seminorm_sup_finset p ι') 0 1 = ⋂ (i ∈ ι'), ball (p i) (0 : E) 1 :=
+  ball (ι'.sup p) 0 1 = ⋂ (i ∈ ι'), ball (p i) (0 : E) 1 :=
 begin
   dunfold ball,
   ext,
-  rw seminorm_sup_finset_coe_to_fun,
   simp,
   split,
   { intros hx i hi,
-    have hp : (p i x).to_nnreal < 1 := lt_of_le_of_lt (@finset.le_sup _ _ _ _ _ _ i hi) hx,
-    rw [←nnreal.coe_lt_coe, (p i x).coe_to_nnreal ((p i).nonneg x)] at hp,
-    exact hp },
+    exact lt_of_le_of_lt (seminorm_le_sup p ι' i hi x) hx },
   intros hx,
-  rw [←nnreal.coe_one, nnreal.coe_lt_coe, finset.sup_lt_iff],
-  { intros i' hi',
-    have hp : p i' x < 1 := hx i' hi',
-    rw [←nnreal.coe_lt_coe, (p i' x).coe_to_nnreal ((p i').nonneg x)],
-    exact hp },
-  simp,
+  sorry,
 end
 
 end seminorm_sup

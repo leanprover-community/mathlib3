@@ -424,9 +424,6 @@ variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E] [semi_normed_sp
 variables [module ℝ E]
 variables {ι : Type*} [decidable_eq ι]
 
-lemma seminorm_sup_le_aux (p : ι → seminorm 𝕜 E) (ι' : finset ι) (i : ι) (hi : i ∈ ι') (x : E) :
-  (p i x).to_nnreal ≤ ι'.sup (λ (i : ι), (p i x).to_nnreal) := by exact finset.le_sup hi
-
 def seminorm_sup_finset (p : ι → seminorm 𝕜 E) (ι' : finset ι) : seminorm 𝕜 E :=
   { to_fun := λ x, ↑(ι'.sup (λ i, (p i x).to_nnreal)),
   smul' :=
@@ -454,9 +451,8 @@ def seminorm_sup_finset (p : ι → seminorm 𝕜 E) (ι' : finset ι) : seminor
         exact (p i).triangle x y,
       end,
       apply le_trans hpxy,
-      exact add_le_add (seminorm_sup_le_aux p ι' i hi x) (seminorm_sup_le_aux p ι' i hi y),
+      exact add_le_add (finset.le_sup hi) (finset.le_sup hi)
     end }
-
 
 lemma seminorm_sup_finset_coe_to_fun (p : ι → seminorm 𝕜 E) (ι' : finset ι) :
   coe_fn (seminorm_sup_finset p ι') =
@@ -472,7 +468,6 @@ begin
   exact (p i).nonneg x,
 end
 
-
 lemma seminorm_sup_ball_int (p : ι → seminorm 𝕜 E) (ι' : finset ι) :
   ball (seminorm_sup_finset p ι') 0 1 = ⋂ (i ∈ ι'), ball (p i) (0 : E) 1 :=
 begin
@@ -482,7 +477,7 @@ begin
   simp,
   split,
   { intros hx i hi,
-    have hp : (p i x).to_nnreal < 1 := lt_of_le_of_lt (seminorm_sup_le_aux p ι' i hi x) hx,
+    have hp : (p i x).to_nnreal < 1 := lt_of_le_of_lt (@finset.le_sup _ _ _ _ _ _ i hi) hx,
     rw [←nnreal.coe_lt_coe, (p i x).coe_to_nnreal ((p i).nonneg x)] at hp,
     exact hp },
   intros hx,

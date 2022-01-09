@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: François Sunatori
 -/
 import analysis.complex.circle
+import linear_algebra.determinant
 
 /-!
 # Isometries of the Complex Plane
@@ -145,3 +146,24 @@ begin
   { simpa using eq_mul_of_inv_mul_eq h₁ },
   { exact eq_mul_of_inv_mul_eq h₂ }
 end
+
+/-- The matrix representation of `rotation`. -/
+lemma to_matrix_rotation (a : circle) :
+  linear_map.to_matrix basis_one_I basis_one_I (rotation a).to_linear_equiv =
+    ![![re a, -im a], ![im a, re a]] :=
+begin
+  ext i j,
+  simp [linear_map.to_matrix_apply],
+  fin_cases i; fin_cases j; simp
+end
+
+/-- The determinant of `rotation`, as a linear map. -/
+@[simp] lemma det_rotation (a : circle) : ((rotation a).to_linear_equiv : ℂ →ₗ[ℝ] ℂ).det = 1 :=
+begin
+  rw [←linear_map.det_to_matrix basis_one_I, to_matrix_rotation, matrix.det_fin_two],
+  simp [←norm_sq_apply]
+end
+
+/-- The determinant of `rotation`, as a linear equiv. -/
+@[simp] lemma linear_equiv_det_rotation (a : circle) : (rotation a).to_linear_equiv.det = 1 :=
+by rw [←units.eq_iff, linear_equiv.coe_det, det_rotation, units.coe_one]

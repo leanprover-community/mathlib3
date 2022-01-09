@@ -225,6 +225,9 @@ theorem iff_iff_eq : (a ↔ b) ↔ a = b := ⟨propext, iff_of_eq⟩
 
 @[simp] theorem imp_self : (a → a) ↔ true := iff_true_intro id
 
+@[simp] lemma eq_true_eq_id : eq true = id :=
+by { funext, simp only [true_iff, id.def, iff_self, eq_iff_iff], }
+
 theorem imp_intro {α β : Prop} (h : α) : β → α := λ _, h
 
 theorem imp_false : (a → false) ↔ ¬ a := iff.rfl

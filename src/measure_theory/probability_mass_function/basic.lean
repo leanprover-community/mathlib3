@@ -12,7 +12,7 @@ import measure_theory.measure.measure_space
 This file is about probability mass functions or discrete probability measures:
 a function `α → ℝ≥0` such that the values have (infinite) sum `1`.
 
-This file features the monadic structure of `pmf`,
+Constructions of a monadic structure on `pmf` are found in `probability_mass_function/monad.lean`,
 other constructions of `pmf`s are found in `probability_mass_function/constructions.lean`
 
 Given `p : pmf α`, `pmf.to_outer_measure` constructs an `outer_measure` on `α`,

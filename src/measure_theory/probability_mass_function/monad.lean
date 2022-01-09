@@ -12,11 +12,11 @@ This file features the monadic structure of `pmf`.
 The pure `pmf` is the `pmf` where all the mass lies in one point.
 
 The `bind : ∀ (pa : pmf α) (pb : α → pmf β), pmf β` operation is the distribution
-  given by sampling `a : α` from `pa` and then sampling a value `b : β` from `pb a`.
+given by sampling `a : α` from `pa` and then sampling a value `b : β` from `pb a`.
 The explicit probability of choosing `b : β` is the sum over `a : α` of `pa a * pb a b`.
 
 Explicit measures of sets under these constructions are given by
-  `to_measure_pure_apply` and `to_measure_bind_apply`
+`to_measure_pure_apply` and `to_measure_bind_apply`
 -/
 
 namespace pmf

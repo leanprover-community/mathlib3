@@ -121,7 +121,7 @@ lemma is_prime_pow.two_le : ∀ {n : ℕ}, n.is_prime_pow → 2 ≤ n
 | 1 h := (not_is_prime_pow_one h).elim
 | (n+2) _ := le_add_self
 
-theorem is_prime_pow.pos {n : ℕ} (hn : n.is_prime_pow) : 0 < n := zero_lt_two.trans_le hn.two_le
+theorem is_prime_pow.pos {n : ℕ} (hn : n.is_prime_pow) : 0 < n := pos_of_gt hn.two_le
 
 theorem is_prime_pow.ne_zero {n : ℕ} (h : n.is_prime_pow) : n ≠ 0 := h.pos.ne'
 

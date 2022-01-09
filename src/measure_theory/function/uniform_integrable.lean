@@ -201,8 +201,8 @@ variables [normed_group β] [measurable_space β]
 
 /-- Also known as uniformly absolutely continuous integrals. -/
 def unif_integrable {m : measurable_space α} (μ : measure α) (f : ι → α → β) : Prop :=
-∀ ε : ℝ≥0∞, ∃ δ : ℝ≥0∞, ∀ i s, measurable_set s → μ s < δ →
-snorm (set.indicator s (f i)) 1 μ < ε
+∀ (ε : ℝ) (hε : 0 < ε), ∃ (δ : ℝ) (hδ : 0 < δ), ∀ i s, measurable_set s → μ s < ennreal.of_real δ →
+snorm (set.indicator s (f i)) 1 μ < ennreal.of_real ε
 
 section vitali
 
@@ -235,8 +235,7 @@ end vitali
 integrable in the measure theory sense and is uniformly bounded. -/
 def uniform_integrable {m : measurable_space α}
   (μ : measure α) (f : ι → α → β) : Prop :=
-(∀ i, measurable (f i)) ∧ unif_integrable μ f ∧
-  ∃ C : ℝ≥0, ∀ i, snorm (f i) 1 μ < C
+(∀ i, measurable (f i)) ∧ unif_integrable μ f ∧ ∃ C : ℝ≥0, ∀ i, snorm (f i) 1 μ < C
 
 variables {μ : measure α} {f : ι → α → β}
 

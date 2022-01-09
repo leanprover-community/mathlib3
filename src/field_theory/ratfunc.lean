@@ -102,6 +102,9 @@ both `q` and `q'` are not zero divisors, stated as `q ∉ (polynomial K)⁰`, `q
 If considering `K` as an integral domain, this is the same as saying that
 we construct a value of `P` for such elements of `ratfunc K` by setting
 `lift_on (p / q) f _ = f p q`.
+
+When `[is_domain K]`, one can use `ratfunc.lift_on'`, which has the stronger requirement
+of `∀ {p q a : polynomial K} (hq : q ≠ 0) (ha : a ≠ 0), f (a * p) (a * q) = f p q)`.
 -/
 @[irreducible] protected def lift_on {P : Sort v} (x : ratfunc K)
   (f : ∀ (p q : polynomial K), P)

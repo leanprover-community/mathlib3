@@ -171,8 +171,7 @@ lemma is_stopping_time.measurable_set_eq_le
   measurable_set[f j] {x | τ x = i} :=
 f.mono hle _ $ hτ.measurable_set_eq i
 
-lemma is_stopping_time.measurable_set_lt
-  {f : filtration ℕ m} {τ : α → ℕ} (hτ : is_stopping_time f τ) (i : ℕ) :
+lemma is_stopping_time.measurable_set_lt (hτ : is_stopping_time f τ) (i : ℕ) :
   measurable_set[f i] $ {x | τ x < i} :=
 begin
   convert @measurable_set.diff _ (f i) _ _ (hτ i) (hτ.measurable_set_eq i),
@@ -182,7 +181,7 @@ begin
 end
 
 lemma is_stopping_time.measurable_set_lt_le
-  {f : filtration ℕ m} {τ : α → ℕ} (hτ : is_stopping_time f τ) {i j : ℕ} (hle : i ≤ j) :
+  (hτ : is_stopping_time f τ) {i j : ℕ} (hle : i ≤ j) :
   measurable_set[f j] $ {x | τ x < i} :=
 f.mono hle _ $ hτ.measurable_set_lt i
 
@@ -372,8 +371,7 @@ open filtration
 
 variables {f : filtration ℕ m} {u : ℕ → α → β} {τ : α → ℕ}
 
-lemma stopped_value_sub_eq_sum [add_comm_group β] {u : ℕ → α → β}
-  {τ π : α → ℕ} (hle : τ ≤ π) :
+lemma stopped_value_sub_eq_sum [add_comm_group β] (hle : τ ≤ π) :
   stopped_value u π - stopped_value u τ =
   λ x, (∑ i in finset.Ico (τ x) (π x), (u (i + 1) - u i)) x :=
 begin
@@ -382,8 +380,7 @@ begin
   simp [stopped_value],
 end
 
-lemma stopped_value_sub_eq_sum' [add_comm_group β] {u : ℕ → α → β}
-  {τ π : α → ℕ} (hle : τ ≤ π) {N : ℕ} (hbdd : ∀ x, π x ≤ N) :
+lemma stopped_value_sub_eq_sum' [add_comm_group β] (hle : τ ≤ π) {N : ℕ} (hbdd : ∀ x, π x ≤ N) :
   stopped_value u π - stopped_value u τ =
   λ x, (∑ i in finset.range (N + 1),
     set.indicator {x | τ x ≤ i ∧ i < π x} (u (i + 1) - u i)) x :=
@@ -401,7 +398,7 @@ section add_comm_monoid
 
 variables [add_comm_monoid β]
 
-lemma stopped_value_eq {τ : α → ℕ} {N : ℕ} (hbdd : ∀ x, τ x ≤ N) :
+lemma stopped_value_eq {N : ℕ} (hbdd : ∀ x, τ x ≤ N) :
   stopped_value u τ =
   λ x, (∑ i in finset.range (N + 1), set.indicator {x | τ x = i} (u i)) x :=
 begin

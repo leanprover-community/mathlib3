@@ -219,7 +219,7 @@ theorem partially_well_ordered_on.exists_monotone_subseq [is_refl α r] [is_tran
 begin
   obtain ⟨g, h1 | h2⟩ := exists_increasing_or_nonincreasing_subseq r f,
   { refine ⟨g, λ m n hle, _⟩,
-    obtain hlt | rfl := lt_or_eq_of_le hle,
+    obtain hlt | rfl := hle.lt_or_eq,
     exacts [h1 m n hlt, refl_of r _] },
   { exfalso,
     obtain ⟨m, n, hlt, hle⟩ := h (f ∘ g) (λ n, hf _),
@@ -271,9 +271,20 @@ end
 by simp only [← singleton_union, partially_well_ordered_on_union,
   partially_well_ordered_on_singleton, true_and]
 
-protected theorem partially_well_ordered_on.insert [is_refl α r] (h : partially_well_ordered_on s r) (a : α) :
-  partially_well_ordered_on (insert a s) r :=
+protected theorem partially_well_ordered_on.insert [is_refl α r] (h : partially_well_ordered_on s r)
+  (a : α) : partially_well_ordered_on (insert a s) r :=
 partially_well_ordered_on_insert.2 h
+
+protected theorem partially_well_ordered_on.prod [is_refl α r] [is_trans α r] {β}
+  {rb : β → β → Prop} {t : set β}
+  (hs : partially_well_ordered_on s r) (ht : partially_well_ordered_on t rb) :
+  partially_well_ordered_on (s.prod t) (λ x y, r x.1 y.1 ∧ rb x.2 y.2) :=
+begin
+  intros f hf,
+  obtain ⟨g₁, h₁⟩ := hs.exists_monotone_subseq (prod.fst ∘ f) (λ n, (hf n).1),
+  obtain ⟨m, n, hlt, hle⟩ := ht (prod.snd ∘ f ∘ g₁) (λ n, (hf _).2),
+  exact ⟨g₁ m, g₁ n, g₁.strict_mono hlt, h₁ _ _ hlt.le, hle⟩
+end
 
 end partially_well_ordered_on
 
@@ -294,12 +305,7 @@ by simpa only [← lt_iff_le_not_le] using h.well_founded_on
 
 lemma is_pwo.prod {β : Type*} [preorder β] {t : set β} (hs : s.is_pwo) (ht : t.is_pwo) :
   (s.prod t).is_pwo :=
-begin
-  intros f hf,
-  obtain ⟨g₁, h₁⟩ := hs.exists_monotone_subseq (prod.fst ∘ f) (λ n, (hf n).1),
-  obtain ⟨m, n, hlt, hle⟩ := ht (prod.snd ∘ f ∘ g₁) (λ n, (hf _).2),
-  exact ⟨g₁ m, g₁ n, g₁.strict_mono hlt, h₁ hlt.le, hle⟩,
-end
+hs.prod ht
 
 theorem is_pwo.image_of_monotone_on {β : Type*} [preorder β] (hs : s.is_pwo) {f : α → β}
   (hf : monotone_on f s) :
@@ -386,35 +392,56 @@ end set
 
 namespace finset
 
-@[simp] theorem partially_well_ordered_on {r : α → α → Prop} [is_refl α r] (s : finset α) :
+@[simp]
+protected theorem partially_well_ordered_on {r : α → α → Prop} [is_refl α r] (s : finset α) :
   set.partially_well_ordered_on (s : set α) r :=
 s.finite_to_set.partially_well_ordered_on
 
-@[simp] theorem is_pwo [preorder α] (s : finset α) : set.is_pwo (↑s : set α) :=
+@[simp] protected theorem is_pwo [preorder α] (s : finset α) : set.is_pwo (↑s : set α) :=
 s.partially_well_ordered_on
 
-@[simp] theorem is_wf [preorder α] (s : finset α) : set.is_wf (↑s : set α) :=
+@[simp] protected theorem is_wf [preorder α] (s : finset α) : set.is_wf (↑s : set α) :=
 s.finite_to_set.is_wf
 
-@[simp] theorem well_founded_on {r : α → α → Prop} [is_strict_order α r] (s : finset α) :
+@[simp] protected theorem well_founded_on {r : α → α → Prop} [is_strict_order α r] (s : finset α) :
   set.well_founded_on (↑s : set α) r :=
 by { letI := partial_order_of_SO r, exact s.is_wf }
 
-@[simp] theorem is_wf_sup {ι : Type*} [partial_order α] (s : finset ι) {f : ι → set α} :
-  (s.sup f).is_wf ↔ ∀ i ∈ s, (f i).is_wf :=
+@[simp] theorem well_founded_on_sup {ι : Type*} {r : α → α → Prop} [is_strict_order α r]
+  (s : finset ι) {f : ι → set α} :
+  (s.sup f).well_founded_on r ↔ ∀ i ∈ s, (f i).well_founded_on r :=
 finset.cons_induction_on s (by simp) (λ a s ha hs, by simp [hs])
+
+@[simp] theorem partially_well_ordered_on_sup {ι : Type*} {r : α → α → Prop}
+  (s : finset ι) {f : ι → set α} :
+  (s.sup f).partially_well_ordered_on r ↔ ∀ i ∈ s, (f i).partially_well_ordered_on r :=
+finset.cons_induction_on s (by simp) (λ a s ha hs, by simp [hs])
+
+@[simp] theorem is_wf_sup {ι : Type*} [preorder α] (s : finset ι) {f : ι → set α} :
+  (s.sup f).is_wf ↔ ∀ i ∈ s, (f i).is_wf :=
+s.well_founded_on_sup
 
 @[simp] theorem is_pwo_sup {ι : Type*} [partial_order α] (s : finset ι) {f : ι → set α} :
   (s.sup f).is_pwo ↔ ∀ i ∈ s, (f i).is_pwo :=
-finset.cons_induction_on s (by simp) (λ a s ha hs, by simp [hs])
+s.partially_well_ordered_on_sup
+
+@[simp] theorem well_founded_on_bUnion {ι : Type*} {r : α → α → Prop} [is_strict_order α r]
+  (s : finset ι) {f : ι → set α} :
+  (⋃ i ∈ s, f i).well_founded_on r ↔ ∀ i ∈ s, (f i).well_founded_on r :=
+by simpa only [finset.sup_eq_supr] using s.well_founded_on_sup
+
+@[simp] theorem partially_well_ordered_on_bUnion {ι : Type*} {r : α → α → Prop}
+  (s : finset ι) {f : ι → set α} :
+  (⋃ i ∈ s, f i).partially_well_ordered_on r ↔ ∀ i ∈ s, (f i).partially_well_ordered_on r :=
+by simpa only [finset.sup_eq_supr] using s.partially_well_ordered_on_sup
 
 @[simp] theorem is_wf_bUnion {ι : Type*} [partial_order α] (s : finset ι) {f : ι → set α} :
   (⋃ i ∈ s, f i).is_wf ↔ ∀ i ∈ s, (f i).is_wf :=
-by simpa only [finset.sup_eq_supr] using s.is_wf_sup
+s.well_founded_on_bUnion
 
 @[simp] theorem is_pwo_bUnion {ι : Type*} [partial_order α] (s : finset ι) {f : ι → set α} :
   (⋃ i ∈ s, f i).is_pwo ↔ ∀ i ∈ s, (f i).is_pwo :=
-by simpa only [finset.sup_eq_supr] using s.is_pwo_sup
+s.partially_well_ordered_on_bUnion
 
 end finset
 

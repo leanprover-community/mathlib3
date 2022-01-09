@@ -126,7 +126,7 @@ instance pi.sampleable_ext : sampleable_ext (α → β) :=
   sample := do
   { xs ← (sampleable.sample (list (α × β)) : gen ((list (α × β)))),
     ⟨x⟩ ← (uliftable.up $ sample β : gen (ulift.{max u v} β)),
-    pure $ total_function.with_default x },
+    pure $ total_function.with_default (list.to_finmap' xs) x },
   shrink := total_function.shrink }
 
 end
@@ -179,7 +179,7 @@ instance finsupp.sampleable_ext [has_repr α] [has_repr β] : sampleable_ext (α
   sample := (do
     xs ← (sampleable.sample (list (α × β)) : gen (list (α × β))),
     ⟨x⟩ ← (uliftable.up $ sample β : gen (ulift.{max u v} β)),
-    pure $ total_function.with_default,
+    pure $ total_function.with_default (list.to_finmap' xs) x),
   shrink := total_function.shrink }
 
 -- TODO: support a non-constant codomain type
@@ -189,7 +189,7 @@ instance dfinsupp.sampleable_ext [has_repr α] [has_repr β] : sampleable_ext (�
   sample := (do
     xs ← (sampleable.sample (list (α × β)) : gen (list (α × β))),
     ⟨x⟩ ← (uliftable.up $ sample β : gen (ulift.{max u v} β)),
-    pure $ total_function.with_default,
+    pure $ total_function.with_default (list.to_finmap' xs) x),
   shrink := total_function.shrink }
 
 end finsupp

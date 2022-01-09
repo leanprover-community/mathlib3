@@ -1166,7 +1166,7 @@ lemma linear_independent_fin2 {f : fin 2 → V} :
   linear_independent K f ↔ f 1 ≠ 0 ∧ ∀ a : K, a • f 1 ≠ f 0 :=
 by rw [linear_independent_fin_succ, linear_independent_unique_iff, range_unique,
   mem_span_singleton, not_exists,
-  show fin.tail f (default = f 1, by rw ← fin.succ_zero_eq_one; refl]
+  show fin.tail f default = f 1, by rw ← fin.succ_zero_eq_one; refl]
 
 lemma exists_linear_independent_extension (hs : linear_independent K (coe : s → V)) (hst : s ⊆ t) :
   ∃b⊆t, s ⊆ b ∧ t ⊆ span K b ∧ linear_independent K (coe : b → V) :=

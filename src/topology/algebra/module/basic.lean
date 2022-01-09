@@ -431,7 +431,7 @@ end
 instance: has_zero (M₁ →SL[σ₁₂] M₂) := ⟨⟨0, continuous_zero⟩⟩
 instance : inhabited (M₁ →SL[σ₁₂] M₂) := ⟨0⟩
 
-@[simp] lemma default_def : default = 0 := rfl
+@[simp] lemma default_def : (default : M₁ →SL[σ₁₂] M₂) = 0 := rfl
 @[simp] lemma zero_apply : (0 : M₁ →SL[σ₁₂] M₂) x = 0 := rfl
 @[simp, norm_cast] lemma coe_zero : ((0 : M₁ →SL[σ₁₂] M₂) : M₁ →ₛₗ[σ₁₂] M₂) = 0 := rfl
 /- no simp attribute on the next line as simp does not always simplify `0 x` to `0`

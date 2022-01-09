@@ -57,7 +57,7 @@ inductive hom : pairwise ι → pairwise ι → Type v
 
 open hom
 
-instance hom_inhabited [inhabited ι] : inhabited (hom (single default) (single default)) :=
+instance hom_inhabited [inhabited ι] : inhabited (hom (single (default : ι)) (single default)) :=
 ⟨id_single default⟩
 
 /--

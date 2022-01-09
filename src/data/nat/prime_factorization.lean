@@ -39,46 +39,6 @@ begin
 end
 
 ---------------------------------------------------------------------------------------------------
--- Prime factorisations involving `coprime a b` and/or positive `a` and `b`
----------------------------------------------------------------------------------------------------
-
-/-- The prime factorizations of coprime `a` and `b` are disjoint -/
-lemma factorization_disjoint_of_coprime {a b : ℕ} (hab : coprime a b) :
-  disjoint a.factorization.support b.factorization.support :=
-begin
-  simp only [support_factorization],
-  exact disjoint_to_finset_iff_disjoint.mpr (coprime_factors_disjoint hab),
-end
-
-/-- For coprime `a` and `b`, the power of `p` in `a * b` is the sum of the powers in `a` and `b` -/
-lemma factorization_mul_add_of_coprime {a b : ℕ} (hab : coprime a b) :
-  (a * b).factorization = a.factorization + b.factorization :=
-begin
-  ext q,
-  simp only [finsupp.coe_add, pi.add_apply, factorization_eq_count],
-  simp only [count_factors_mul_of_coprime hab],
-end
-
-/-- For positive `a` and `b`, the power of `p` in `a * b` is the sum of the powers in `a` and `b` -/
-lemma factorization_mul_add_of_pos {a b : ℕ}  (ha : 0 < a) (hb : 0 < b) :
-  (a * b).factorization = a.factorization + b.factorization :=
-begin
-  ext q,
-  simp only [finsupp.coe_add, pi.add_apply, factorization_eq_count],
-  simp only [count_factors_mul_of_pos ha hb],
-end
-
-/-- For coprime `a` and `b` the prime factorization `a * b` is the union of those of `a` and `b` -/
-lemma factorization_union_of_coprime {a b : ℕ} (hab : coprime a b) :
-  (a * b).factorization.support =
-    a.factorization.support ∪ b.factorization.support
-  :=
-begin
-  rw factorization_mul_add_of_coprime hab,
-  exact support_add_eq (factorization_disjoint_of_coprime hab),
-end
-
----------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------
 
 /-- If a product over `n.factorization` doesn't use the multiplicities of the prime factors

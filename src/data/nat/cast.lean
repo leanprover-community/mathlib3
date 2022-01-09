@@ -315,7 +315,8 @@ variables {R S F : Type*} [non_assoc_semiring R] [non_assoc_semiring S]
 @[simp] lemma eq_nat_cast [ring_hom_class F ℕ R] (f : F) : ∀ n, f n = n :=
 eq_nat_cast' f $ map_one f
 
-@[simp] lemma map_nat_cast (f : R →+* S) : ∀ n : ℕ, f (n : R) = n := map_nat_cast' f $ map_one f
+@[simp] lemma map_nat_cast [ring_hom_class F R S] (f : F) : ∀ n : ℕ, f (n : R) = n :=
+map_nat_cast' f $ map_one f
 
 lemma ext_nat [ring_hom_class F ℕ R] (f g : F) : f = g :=
 begin

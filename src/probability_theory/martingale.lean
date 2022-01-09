@@ -322,7 +322,7 @@ variables {𝒢 : filtration ℕ m0} [sigma_finite_filtration μ 𝒢]
 
 namespace submartingale
 
-lemma integrable_stopped_value {f : ℕ → α → ℝ} (hf : submartingale f 𝒢 μ) {τ : α → ℕ}
+lemma integrable_stopped_value [has_le E] {f : ℕ → α → E} (hf : submartingale f 𝒢 μ) {τ : α → ℕ}
   (hτ : is_stopping_time 𝒢 τ) {N : ℕ} (hbdd : ∀ x, τ x ≤ N) :
   integrable (stopped_value f τ) μ :=
 integrable_stopped_value hτ hf.integrable hbdd

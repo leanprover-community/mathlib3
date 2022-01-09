@@ -5,15 +5,16 @@ Authors: Stuart Presnell
 -/
 import data.nat.prime
 import data.nat.mul_ind
+import data.nat.factorization
 
 /-!
 # Prime factorizations
 
- `n.prime_factorization` is the finitely supported function `ℕ →₀ ℕ`
+ `n.factorization` is the finitely supported function `ℕ →₀ ℕ`
  mapping each prime factor of `n` to its multiplicity in `n`.  For example, since 2000 = 2^4 * 5^3,
-  * `prime_factorization 2000 2` is 4
-  * `prime_factorization 2000 5` is 3
-  * `prime_factorization 2000 k` is 0 for all other `k : ℕ`.
+  * `factorization 2000 2` is 4
+  * `factorization 2000 5` is 3
+  * `factorization 2000 k` is 0 for all other `k : ℕ`.
 
 -/
 
@@ -23,61 +24,61 @@ open_locale nat  -- to enable φ notation
 
 namespace nat
 
-/-- `n.prime_factorization` is the finitely supported function `ℕ →₀ ℕ`
+/-- `n.factorization` is the finitely supported function `ℕ →₀ ℕ`
  mapping each prime factor of `n` to its multiplicity in `n`. -/
-noncomputable def prime_factorization (n : ℕ) : ℕ →₀ ℕ := (n.factors : multiset ℕ).to_finsupp
+noncomputable def factorization (n : ℕ) : ℕ →₀ ℕ := (n.factors : multiset ℕ).to_finsupp
 
-lemma prime_factorization_count {n p : ℕ} : n.prime_factorization p = list.count p n.factors :=
-by simp [prime_factorization]
+lemma factorization_count {n p : ℕ} : n.factorization p = list.count p n.factors :=
+by simp [factorization]
 
 /-- Every positive natural number has a unique prime factorization -/
-lemma prime_factorization_eq_iff {a b : ℕ} (ha : 0 < a) (hb : 0 < b) :
-  a.prime_factorization = b.prime_factorization ↔ a = b :=
-⟨λ h, eq_of_count_factors_eq ha hb (λ p, by simp [←prime_factorization_count, h]), λ h, by rw h⟩
+lemma factorization_eq_iff {a b : ℕ} (ha : 0 < a) (hb : 0 < b) :
+  a.factorization = b.factorization ↔ a = b :=
+⟨λ h, eq_of_count_factors_eq ha hb (λ p, by simp [←factorization_count, h]), λ h, by rw h⟩
 
 /-- For `n > 0`, the product of `p_i ^ k_i` over the prime factorization of `n` equals `n` -/
-lemma prime_factorization_prod_pow {n : ℕ} (hn : 0 < n) :
-  n = n.prime_factorization.prod pow :=
+lemma factorization_prod_pow {n : ℕ} (hn : 0 < n) :
+  n = n.factorization.prod pow :=
 begin
   rw ←finsupp.prod_to_multiset,
-  simp only [prime_factorization, multiset.coe_prod, multiset.to_finsupp_to_multiset],
+  simp only [factorization, multiset.coe_prod, multiset.to_finsupp_to_multiset],
   exact (prod_factors hn).symm,
 end
 
-@[simp] lemma prime_factorization_zero : prime_factorization 0 = 0  :=
-by simp [prime_factorization]
+@[simp] lemma factorization_zero : factorization 0 = 0  :=
+by simp [factorization]
 
-@[simp] lemma prime_factorization_one : prime_factorization 1 = 0 :=
-by simp [prime_factorization]
+@[simp] lemma factorization_one : factorization 1 = 0 :=
+by simp [factorization]
 
-/-- The support of `n.prime_factorization` is exactly `n.factors.to_finset` -/
-@[simp] lemma support_prime_factorization {n : ℕ} :
-  n.prime_factorization.support = n.factors.to_finset :=
-by simpa [prime_factorization, multiset.to_finsupp_support]
+/-- The support of `n.factorization` is exactly `n.factors.to_finset` -/
+@[simp] lemma support_factorization {n : ℕ} :
+  n.factorization.support = n.factors.to_finset :=
+by simpa [factorization, multiset.to_finsupp_support]
 
 lemma factor_iff_mem_factorization {n p : ℕ} :
-  (p ∈ n.prime_factorization.support) ↔ (p ∈ n.factors) :=
-by simp only [support_prime_factorization, list.mem_to_finset]
+  (p ∈ n.factorization.support) ↔ (p ∈ n.factors) :=
+by simp only [support_factorization, list.mem_to_finset]
 
 /-- The only numbers with empty prime factorization are 0 and 1 -/
-lemma prime_factorization_eq_nil_iff (n : ℕ) : n.prime_factorization = 0 ↔ n = 0 ∨ n = 1 :=
-by simp [prime_factorization, add_equiv.map_eq_zero_iff, multiset.coe_eq_zero]
+lemma factorization_eq_nil_iff (n : ℕ) : n.factorization = 0 ↔ n = 0 ∨ n = 1 :=
+by simp [factorization, add_equiv.map_eq_zero_iff, multiset.coe_eq_zero]
 
 /-- For any `p`, the power of `p` in `n^k` is `k` times the power in `n` -/
-lemma prime_factorization_pow {n k : ℕ} :
-  prime_factorization (n^k) = k • n.prime_factorization :=
+lemma factorization_pow {n k : ℕ} :
+  factorization (n^k) = k • n.factorization :=
 begin
   ext p,
   simp only [algebra.id.smul_eq_mul, finsupp.coe_smul, pi.smul_apply],
-  simp only [prime_factorization_count, factors_count_pow],
+  simp only [factorization_count, factors_count_pow],
 end
 
 /-- The only prime factor of prime `p` is `p` itself, with multiplicity 1 -/
-@[simp] lemma prime_factorization_prime {p : ℕ} (hp : prime p) :
-  p.prime_factorization = single p 1 :=
+@[simp] lemma factorization_prime {p : ℕ} (hp : prime p) :
+  p.factorization = single p 1 :=
 begin
   ext q,
-  rw [prime_factorization_count, factors_prime hp],
+  rw [factorization_count, factors_prime hp],
   by_cases hqp : q = p,
   { rw hqp, simp },
   { rw finsupp.single_eq_of_ne (ne.symm hqp),
@@ -85,9 +86,9 @@ begin
 end
 
 /-- For prime `p` the only prime factor of `p^k` is `p` with multiplicity `k` -/
-@[simp] lemma prime_factorization_prime_pow {p k : ℕ} (hp : prime p) :
-  prime_factorization (p^k) = single p k :=
-by simp [prime_factorization_pow, prime_factorization_prime hp]
+@[simp] lemma factorization_prime_pow {p k : ℕ} (hp : prime p) :
+  factorization (p^k) = single p k :=
+by simp [factorization_pow, factorization_prime hp]
 
 
 
@@ -96,49 +97,49 @@ by simp [prime_factorization_pow, prime_factorization_prime hp]
 ---------------------------------------------------------------------------------------------------
 
 /-- The prime factorizations of coprime `a` and `b` are disjoint -/
-lemma prime_factorization_disjoint_of_coprime {a b : ℕ} (hab : coprime a b) :
-  disjoint a.prime_factorization.support b.prime_factorization.support :=
+lemma factorization_disjoint_of_coprime {a b : ℕ} (hab : coprime a b) :
+  disjoint a.factorization.support b.factorization.support :=
 begin
-  simp only [support_prime_factorization],
+  simp only [support_factorization],
   exact disjoint_to_finset_iff_disjoint.mpr (coprime_factors_disjoint hab),
 end
 
 /-- For coprime `a` and `b`, the power of `p` in `a * b` is the sum of the powers in `a` and `b` -/
-lemma prime_factorization_mul_add_of_coprime {a b : ℕ} (hab : coprime a b) :
-  (a * b).prime_factorization = a.prime_factorization + b.prime_factorization :=
+lemma factorization_mul_add_of_coprime {a b : ℕ} (hab : coprime a b) :
+  (a * b).factorization = a.factorization + b.factorization :=
 begin
   ext q,
-  simp only [finsupp.coe_add, pi.add_apply, prime_factorization_count],
+  simp only [finsupp.coe_add, pi.add_apply, factorization_count],
   simp only [count_factors_mul_of_coprime hab],
 end
 
 /-- For positive `a` and `b`, the power of `p` in `a * b` is the sum of the powers in `a` and `b` -/
-lemma prime_factorization_mul_add_of_pos {a b : ℕ}  (ha : 0 < a) (hb : 0 < b) :
-  (a * b).prime_factorization = a.prime_factorization + b.prime_factorization :=
+lemma factorization_mul_add_of_pos {a b : ℕ}  (ha : 0 < a) (hb : 0 < b) :
+  (a * b).factorization = a.factorization + b.factorization :=
 begin
   ext q,
-  simp only [finsupp.coe_add, pi.add_apply, prime_factorization_count],
+  simp only [finsupp.coe_add, pi.add_apply, factorization_count],
   simp only [count_factors_mul_of_pos ha hb],
 end
 
 /-- For coprime `a` and `b` the prime factorization `a * b` is the union of those of `a` and `b` -/
-lemma prime_factorization_union_of_coprime {a b : ℕ} (hab : coprime a b) :
-  (a * b).prime_factorization.support =
-    a.prime_factorization.support ∪ b.prime_factorization.support
+lemma factorization_union_of_coprime {a b : ℕ} (hab : coprime a b) :
+  (a * b).factorization.support =
+    a.factorization.support ∪ b.factorization.support
   :=
 begin
-  rw prime_factorization_mul_add_of_coprime hab,
-  exact support_add_eq (prime_factorization_disjoint_of_coprime hab),
+  rw factorization_mul_add_of_coprime hab,
+  exact support_add_eq (factorization_disjoint_of_coprime hab),
 end
 
 ---------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------
 
-/-- If a product over `n.prime_factorization` doesn't use the multiplicities of the prime factors
+/-- If a product over `n.factorization` doesn't use the multiplicities of the prime factors
 then it's equal to the corresponding product over `n.factors.to_finset` -/
-lemma rebase_prod_prime_factorization {n : ℕ} {β : Type*} [comm_monoid β] (f : ℕ → β) :
-  n.prime_factorization.prod (λ p k, f p) = ∏ p in n.factors.to_finset, (f p) :=
-by { apply prod_congr support_prime_factorization, simp }
+lemma rebase_prod_factorization {n : ℕ} {β : Type*} [comm_monoid β] (f : ℕ → β) :
+  n.factorization.prod (λ p k, f p) = ∏ p in n.factors.to_finset, (f p) :=
+by { apply prod_congr support_factorization, simp }
 
 ---------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------
@@ -172,14 +173,14 @@ lemma multiplicative_factorization {n : ℕ} {β : Type*} [comm_monoid β] {f : 
   (hn : 0 < n)
   (h_mult : ∀ x y : ℕ, coprime x y → f(x * y) = f x * f y)
   (hf : f 1 = 1) :
-f n = n.prime_factorization.prod (λ p k, f(p ^ k)) :=
+f n = n.factorization.prod (λ p k, f(p ^ k)) :=
 begin
   apply @nat.rec_on_pos_prime_coprime
-    (λ n, (0 < n) → (f n = n.prime_factorization.prod (λ p k, f(p ^ k)))),
+    (λ n, (0 < n) → (f n = n.factorization.prod (λ p k, f(p ^ k)))),
 
   -- Case for positive prime power p^k
   { intros p k hp hk hpk,
-    rw prime_factorization_prime_pow hp,
+    rw factorization_prime_pow hp,
     rw finsupp.prod_single_index _,
     simpa using hf },
 
@@ -187,25 +188,25 @@ begin
   { simp },
 
   -- Case for 1
-  { rintros -, rw [prime_factorization_one, hf], simp },
+  { rintros -, rw [factorization_one, hf], simp },
 
   -- Case for coprime a and b
   { intros a b hab ha hb hab_pos,
     rw h_mult a b hab,
     rw ha (pos_of_mul_pos_right hab_pos (b.zero_le)),
     rw hb (pos_of_mul_pos_left hab_pos (a.zero_le)),
-    rw prime_factorization_mul_add_of_coprime hab,
-    apply disjoint_prod_add (prime_factorization_disjoint_of_coprime hab) },
+    rw factorization_mul_add_of_coprime hab,
+    apply disjoint_prod_add (factorization_disjoint_of_coprime hab) },
 
   exact hn,
 end
 
 ---------------------------------------------------------------------------------------------------
 
-/-- If the prime_factorization of `n` contains just one prime `p` then `n` is a power of `p` -/
-lemma prime_pow_of_prime_factorization_single {n p k : ℕ} (hn : 0 < n)
-  (h : n.prime_factorization = single p k) : n = p ^ k :=
-by { rw [prime_factorization_prod_pow hn, h], simp }
+/-- If the factorization of `n` contains just one prime `p` then `n` is a power of `p` -/
+lemma prime_pow_of_factorization_single {n p k : ℕ} (hn : 0 < n)
+  (h : n.factorization = single p k) : n = p ^ k :=
+by { rw [factorization_prod_pow hn, h], simp }
 
 ---------------------------------------------------------------------------------------------------
 

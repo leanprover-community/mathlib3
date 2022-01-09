@@ -99,7 +99,7 @@ lemma surjective_trop : function.surjective (trop : R → tropical R) := trop_eq
 lemma surjective_untrop : function.surjective (untrop : tropical R → R) :=
 trop_equiv.symm.surjective
 
-instance [inhabited R] : inhabited (tropical R) := ⟨trop (default _)⟩
+instance [inhabited R] : inhabited (tropical R) := ⟨trop default⟩
 
 /-- Recursing on a `x' : tropical R` is the same as recursing on an `x : R` reinterpreted
 as a term of `tropical R` via `trop x`. -/

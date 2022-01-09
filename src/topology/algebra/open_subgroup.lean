@@ -48,10 +48,6 @@ add_decl_doc open_subgroup.to_subgroup
 /-- Reinterpret an `open_add_subgroup` as an `add_subgroup`. -/
 add_decl_doc open_add_subgroup.to_add_subgroup
 
--- Tell Lean that `open_add_subgroup` is a namespace
-namespace open_add_subgroup
-end open_add_subgroup
-
 namespace open_subgroup
 open function topological_space
 variables {G : Type*} [group G] [topological_space G]

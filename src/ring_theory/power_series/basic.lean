@@ -76,7 +76,7 @@ namespace mv_power_series
 open finsupp
 variables {σ R : Type*}
 
-instance [inhabited R]       : inhabited       (mv_power_series σ R) := ⟨λ _, default _⟩
+instance [inhabited R]       : inhabited       (mv_power_series σ R) := ⟨λ _, default⟩
 instance [has_zero R]        : has_zero        (mv_power_series σ R) := pi.has_zero
 instance [add_monoid R]      : add_monoid      (mv_power_series σ R) := pi.add_monoid
 instance [add_group R]       : add_group       (mv_power_series σ R) := pi.add_group
@@ -466,11 +466,11 @@ instance [nonempty σ] [nontrivial R] : nontrivial (subalgebra R (mv_power_serie
 ⟨⟨⊥, ⊤, begin
   rw [ne.def, set_like.ext_iff, not_forall],
   inhabit σ,
-  refine ⟨X (default σ), _⟩,
+  refine ⟨X default, _⟩,
   simp only [algebra.mem_bot, not_exists, set.mem_range, iff_true, algebra.mem_top],
   intros x,
   rw [ext_iff, not_forall],
-  refine ⟨finsupp.single (default σ) 1, _⟩,
+  refine ⟨finsupp.single default 1, _⟩,
   simp [algebra_map_apply, coeff_C],
 end⟩⟩
 
@@ -780,6 +780,14 @@ by simp only [coeff_coe, mv_power_series.coeff_mul, coeff_mul]
   ((C a : mv_polynomial σ R) : mv_power_series σ R) = mv_power_series.C σ R a :=
 coe_monomial _ _
 
+@[simp, norm_cast] lemma coe_bit0 :
+  ((bit0 φ : mv_polynomial σ R) : mv_power_series σ R) = bit0 (φ : mv_power_series σ R) :=
+coe_add _ _
+
+@[simp, norm_cast] lemma coe_bit1 :
+  ((bit1 φ : mv_polynomial σ R) : mv_power_series σ R) = bit1 (φ : mv_power_series σ R) :=
+by rw [bit1, bit1, coe_add, coe_one, coe_bit0]
+
 @[simp, norm_cast] lemma coe_X (s : σ) :
   ((X s : mv_polynomial σ R) : mv_power_series σ R) = mv_power_series.X s :=
 coe_monomial _ _
@@ -810,6 +818,10 @@ def coe_to_mv_power_series.ring_hom : mv_polynomial σ R →+* mv_power_series �
   map_one' := coe_one,
   map_add' := coe_add,
   map_mul' := coe_mul }
+
+@[simp, norm_cast] lemma coe_pow (n : ℕ) :
+  ((φ ^ n : mv_polynomial σ R) : mv_power_series σ R) = (φ : mv_power_series σ R) ^ n :=
+coe_to_mv_power_series.ring_hom.map_pow _ _
 
 variables (φ ψ)
 
@@ -1811,6 +1823,14 @@ begin
   rwa power_series.monomial_zero_eq_C_apply at this,
 end
 
+@[simp, norm_cast] lemma coe_bit0 :
+  ((bit0 φ : polynomial R) : power_series R) = bit0 (φ : power_series R) :=
+coe_add φ φ
+
+@[simp, norm_cast] lemma coe_bit1 :
+  ((bit1 φ : polynomial R) : power_series R) = bit1 (φ : power_series R) :=
+by rw [bit1, bit1, coe_add, coe_one, coe_bit0]
+
 @[simp, norm_cast] lemma coe_X :
   ((X : polynomial R) : power_series R) = power_series.X :=
 coe_monomial _ _
@@ -1845,6 +1865,10 @@ def coe_to_power_series.ring_hom : polynomial R →+* power_series R :=
   map_mul' := coe_mul }
 
 @[simp] lemma coe_to_power_series.ring_hom_apply : coe_to_power_series.ring_hom φ = φ := rfl
+
+@[simp, norm_cast] lemma coe_pow (n : ℕ):
+  ((φ ^ n : polynomial R) : power_series R) = (φ : power_series R) ^ n :=
+coe_to_power_series.ring_hom.map_pow _ _
 
 variables (A : Type*) [semiring A] [algebra R A]
 

@@ -3,8 +3,9 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import tactic.basic
 import logic.is_empty
+import tactic.basic
+import logic.relator
 
 /-!
 # Option of a type
@@ -22,7 +23,7 @@ This is useful in multiple ways:
   return `none`.
 * `option` is a monad. We love monads.
 
-`roption` is an alternative to `option` that can be seen as the type of `true`/`false` values
+`part` is an alternative to `option` that can be seen as the type of `true`/`false` values
 along with a term `a : α` if the value is `true`.
 
 ## Implementation notes
@@ -70,8 +71,11 @@ by cases x; [contradiction, rw get_or_else_some]
 theorem mem_unique {o : option α} {a b : α} (ha : a ∈ o) (hb : b ∈ o) : a = b :=
 option.some.inj $ ha.symm.trans hb
 
+theorem eq_of_mem_of_mem {a : α} {o1 o2 : option α} (h1 : a ∈ o1) (h2 : a ∈ o2) : o1 = o2 :=
+h1.trans h2.symm
+
 theorem mem.left_unique : relator.left_unique ((∈) : α → option α → Prop) :=
-⟨λ a o b, mem_unique⟩
+λ a o b, mem_unique
 
 theorem some_injective (α : Type*) : function.injective (@some α) :=
 λ _ _, some_inj.mp
@@ -415,6 +419,30 @@ by cases o; refl
   get_or_else (o.map f) (f x) = f (get_or_else o x) :=
 by cases o; refl
 
+lemma orelse_eq_some (o o' : option α) (x : α) :
+  (o <|> o') = some x ↔ o = some x ∨ (o = none ∧ o' = some x) :=
+begin
+  cases o,
+  { simp only [true_and, false_or, eq_self_iff_true, none_orelse] },
+  { simp only [some_orelse, or_false, false_and] }
+end
+
+lemma orelse_eq_some' (o o' : option α) (x : α) :
+  o.orelse o' = some x ↔ o = some x ∨ (o = none ∧ o' = some x) :=
+option.orelse_eq_some o o' x
+
+@[simp] lemma orelse_eq_none (o o' : option α) :
+  (o <|> o') = none ↔ (o = none ∧ o' = none) :=
+begin
+  cases o,
+  { simp only [true_and, none_orelse, eq_self_iff_true] },
+  { simp only [some_orelse, false_and], }
+end
+
+@[simp] lemma orelse_eq_none' (o o' : option α) :
+  o.orelse o' = none ↔ (o = none ∧ o' = none) :=
+option.orelse_eq_none o o'
+
 section
 open_locale classical
 
@@ -439,13 +467,18 @@ lemma choice_is_some_iff_nonempty {α : Type*} : (choice α).is_some ↔ nonempt
 begin
   fsplit,
   { intro h, exact ⟨option.get h⟩, },
-  { rintro ⟨a⟩,
-    dsimp [choice],
-    rw dif_pos,
-    fsplit,
-    exact ⟨a⟩, },
+  { intro h,
+    dsimp only [choice],
+    rw dif_pos h,
+    exact is_some_some },
 end
 
 end
+
+@[simp] lemma to_list_some (a : α) : (a : option α).to_list = [a] :=
+rfl
+
+@[simp] lemma to_list_none (α : Type*) : (none : option α).to_list = [] :=
+rfl
 
 end option

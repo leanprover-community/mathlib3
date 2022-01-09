@@ -65,6 +65,10 @@ variables {R : Type*} [add_monoid R] [has_one R] [char_zero R]
 theorem cast_injective : function.injective (coe : ℕ → R) :=
 char_zero.cast_injective
 
+/-- `nat.cast` as an embedding into monoids of characteristic `0`. -/
+@[simps]
+def cast_embedding : ℕ ↪ R := ⟨coe, cast_injective⟩
+
 @[simp, norm_cast] theorem cast_inj {m n : ℕ} : (m : R) = n ↔ m = n :=
 cast_injective.eq_iff
 

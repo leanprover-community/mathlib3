@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ruben Van de Velde
 -/
 
+import algebra.algebra.restrict_scalars
 import data.complex.is_R_or_C
 
 /-!
@@ -43,9 +44,7 @@ begin
   have add : ∀ x y : F, fc (x + y) = fc x + fc y,
   { assume x y,
     simp only [fc],
-    unfold_coes,
-    simp only [smul_add, ring_hom.map_add, ring_hom.to_fun_eq_coe, linear_map.to_fun_eq_coe,
-               linear_map.map_add],
+    simp only [smul_add, linear_map.map_add, of_real_add],
     rw mul_add,
     abel, },
   have A : ∀ (c : ℝ) (x : F), (fr ((c : 𝕜) • x) : 𝕜) = (c : 𝕜) * (fr x : 𝕜),

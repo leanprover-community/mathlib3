@@ -214,6 +214,12 @@ theorem chain'.cons' {x} :
 theorem chain'_cons' {x l} : chain' R (x :: l) ↔ (∀ y ∈ head' l, R x y) ∧ chain' R l :=
 ⟨λ h, ⟨h.rel_head', h.tail⟩, λ ⟨h₁, h₂⟩, h₂.cons' h₁⟩
 
+theorem chain'.drop : ∀ (n) {l} (h : chain' R l), chain' R (drop n l)
+| 0       _             h := h
+| _       []            _ := by {rw drop_nil, exact chain'_nil}
+| (n + 1) [a]           _ := by {unfold drop, rw drop_nil, exact chain'_nil}
+| (n + 1) (a :: b :: l) h := chain'.drop n (chain'_cons'.mp h).right
+
 theorem chain'.append : ∀ {l₁ l₂ : list α} (h₁ : chain' R l₁) (h₂ : chain' R l₂)
   (h : ∀ (x ∈ l₁.last') (y ∈ l₂.head'), R x y),
   chain' R (l₁ ++ l₂)
@@ -253,14 +259,12 @@ begin
     { exact R, },
     { convert h i _ using 1,
       simp only [succ_eq_add_one, add_succ_sub_one, add_zero, length, add_lt_add_iff_right] at w,
-      simpa using w, },
-   },
+      simpa using w, } },
   { rintro h, split,
     { apply h 0, simp, },
     { intros i w, convert h (i+1) _ using 1,
       simp only [add_zero, length, add_succ_sub_one] at w,
-      simpa using w, }
-    },
+      simpa using w, } },
 end
 
 /-- If `l₁ l₂` and `l₃` are lists and `l₁ ++ l₂` and `l₂ ++ l₃` both satisfy

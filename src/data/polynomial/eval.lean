@@ -3,8 +3,8 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
-import data.polynomial.induction
 import data.polynomial.degree.definitions
+import algebra.geom_sum
 
 /-!
 # Theory of univariate polynomials
@@ -224,6 +224,13 @@ begin
   rw [f.map_zero, zero_mul]
 end
 
+lemma eval₂_dvd : p ∣ q → eval₂ f x p ∣ eval₂ f x q :=
+(eval₂_ring_hom f x).map_dvd
+
+lemma eval₂_eq_zero_of_dvd_of_eval₂_eq_zero (h : p ∣ q) (h0 : eval₂ f x p = 0) :
+  eval₂ f x q = 0 :=
+zero_dvd_iff.mp (h0 ▸ eval₂_dvd f x h)
+
 end eval₂
 
 section eval
@@ -296,8 +303,14 @@ begin
   { intros p q ph qh,
     simp only [mul_add, eval_add, ph, qh], },
   { intros n b,
-    simp [mul_assoc], }
+    simp only [mul_assoc, C_mul_monomial, eval_monomial], }
 end
+
+/-- `polynomial.eval` as linear map -/
+@[simps] def leval {R : Type*} [semiring R] (r : R) : polynomial R →ₗ[R] R :=
+{ to_fun := λ f, f.eval r,
+  map_add' := λ f g, eval_add,
+  map_smul' := λ c f, eval_smul f r }
 
 @[simp] lemma eval_nat_cast_mul {n : ℕ} : ((n : polynomial R) * p).eval x = n * p.eval x :=
 by rw [←C_eq_nat_cast, eval_C_mul]
@@ -333,6 +346,8 @@ instance [decidable_eq R] : decidable (is_root p a) := by unfold is_root; apply_
 
 @[simp] lemma is_root.def : is_root p a ↔ p.eval a = 0 := iff.rfl
 
+lemma is_root.eq_zero (h : is_root p x) : eval x p = 0 := h
+
 lemma coeff_zero_eq_eval_zero (p : polynomial R) :
   coeff p 0 = p.eval 0 :=
 calc coeff p 0 = coeff p 0 * 0 ^ 0 : by simp
@@ -342,6 +357,13 @@ calc coeff p 0 = coeff p 0 * 0 ^ 0 : by simp
 lemma zero_is_root_of_coeff_zero_eq_zero {p : polynomial R} (hp : p.coeff 0 = 0) :
   is_root p 0 :=
 by rwa coeff_zero_eq_eval_zero at hp
+
+lemma is_root.dvd {R : Type*} [comm_semiring R] {p q : polynomial R} {x : R}
+  (h : p.is_root x) (hpq : p ∣ q) : q.is_root x :=
+by rwa [is_root, eval, eval₂_eq_zero_of_dvd_of_eval₂_eq_zero _ _ hpq]
+
+lemma not_is_root_C (r a : R) (hr : r ≠ 0) : ¬ is_root (C r) a :=
+by simpa using hr
 
 end eval
 
@@ -473,6 +495,7 @@ by { rw [map, eval₂_mul_noncomm], exact λ k, (commute_X _).symm }
 by rw [map, eval₂_smul, ring_hom.comp_apply, C_mul']
 
 /-- `polynomial.map` as a `ring_hom` -/
+-- TODO: can't we make this the main definition of `polynomial.map`?
 def map_ring_hom (f : R →+* S) : polynomial R →+* polynomial S :=
 { to_fun := polynomial.map f,
   map_add' := λ _ _, map_add f,
@@ -494,6 +517,14 @@ begin
   simp [function.comp, coeff_C_mul_X, f.map_mul],
   split_ifs; simp [f.map_zero],
 end
+
+/-- If `R` and `S` are isomorphic, then so are their polynomial rings. -/
+@[simps] def map_equiv (e : R ≃+* S) : polynomial R ≃+* polynomial S :=
+ring_equiv.of_hom_inv
+  (map_ring_hom e)
+  (map_ring_hom e.symm)
+  (by ext; simp)
+  (by ext; simp)
 
 lemma map_map [semiring T] (g : S →+* T)
   (p : polynomial R) : (p.map f).map g = p.map (g.comp f) :=
@@ -565,12 +596,13 @@ ring_hom.ext $ λ x, map_id
 
 @[simp] lemma map_ring_hom_comp [semiring T] (f : S →+* T) (g : R →+* S) :
   (map_ring_hom f).comp (map_ring_hom g) = map_ring_hom (f.comp g) :=
-ring_hom.ext $ map_map g f
+ring_hom.ext $ polynomial.map_map g f
 
 lemma map_list_prod (L : list (polynomial R)) : L.prod.map f = (L.map $ map f).prod :=
 eq.symm $ list.prod_hom _ (map_ring_hom f).to_monoid_hom
 
-@[simp] lemma map_pow (n : ℕ) : (p ^ n).map f = p.map f ^ n := (map_ring_hom f).map_pow _ _
+@[simp] protected lemma map_pow (n : ℕ) : (p ^ n).map f = p.map f ^ n :=
+(map_ring_hom f).map_pow _ _
 
 lemma mem_map_srange {p : polynomial S} :
   p ∈ (map_ring_hom f).srange ↔ ∀ n, p.coeff n ∈ f.srange :=
@@ -582,7 +614,7 @@ begin
     intros i hi,
     rcases h i with ⟨c, hc⟩,
     use [C c * X^i],
-    rw [coe_map_ring_hom, map_mul, map_C, hc, map_pow, map_X] }
+    rw [coe_map_ring_hom, map_mul, map_C, hc, polynomial.map_pow, map_X] }
 end
 
 lemma mem_map_range {R S : Type*} [ring R] [ring S] (f : R →+* S)
@@ -660,17 +692,11 @@ Perhaps we can make the others irreducible too?
 attribute [irreducible] polynomial.eval₂
 
 section hom_eval₂
--- TODO: Here we need commutativity in both `S` and `T`?
-variables [comm_semiring S] [comm_semiring T]
-variables (f : R →+* S) (g : S →+* T) (p)
+
+variables [semiring S] [semiring T]  (f : R →+* S) (g : S →+* T) (p)
 
 lemma hom_eval₂ (x : S) : g (p.eval₂ f x) = p.eval₂ (g.comp f) (g x) :=
-begin
-  apply polynomial.induction_on p; clear p,
-  { simp only [forall_const, eq_self_iff_true, eval₂_C, ring_hom.coe_comp] },
-  { intros p q hp hq, simp only [hp, hq, eval₂_add, g.map_add] },
-  { intros n a ih, simpa only [eval₂_mul, eval₂_C, eval₂_X_pow, g.map_mul, g.map_pow] }
-end
+by rw [←eval₂_map, eval₂_at_apply, eval_map]
 
 end hom_eval₂
 
@@ -721,19 +747,40 @@ lemma root_mul_right_of_is_root {p : polynomial R} (q : polynomial R) :
 λ H, by rw [is_root, eval_mul, is_root.def.1 H, zero_mul]
 
 /--
-Polynomial evaluation commutes with finset.prod
+Polynomial evaluation commutes with `list.prod`
+-/
+lemma eval_list_prod (l : list (polynomial R)) (x : R) :
+  eval x l.prod = (l.map (eval x)).prod :=
+(eval_ring_hom x).map_list_prod l
+
+/--
+Polynomial evaluation commutes with `multiset.prod`
+-/
+lemma eval_multiset_prod (s : multiset (polynomial R)) (x : R) :
+  eval x s.prod = (s.map (eval x)).prod :=
+(eval_ring_hom x).map_multiset_prod s
+
+/--
+Polynomial evaluation commutes with `finset.prod`
 -/
 lemma eval_prod {ι : Type*} (s : finset ι) (p : ι → polynomial R) (x : R) :
   eval x (∏ j in s, p j) = ∏ j in s, eval x (p j) :=
-begin
-  classical,
-  apply finset.induction_on s,
-    { simp only [finset.prod_empty, eval_one] },
-    { intros j s hj hpj,
-      have h0 : ∏ i in insert j s, eval x (p i) = (eval x (p j)) * ∏ i in s, eval x (p i),
-      { apply finset.prod_insert hj },
-      rw [h0, ← hpj, finset.prod_insert hj, eval_mul] },
-end
+(eval_ring_hom x).map_prod _ _
+
+lemma is_root_prod {R} [comm_ring R] [is_domain R] {ι : Type*}
+  (s : finset ι) (p : ι → polynomial R) (x : R) :
+  is_root (∏ j in s, p j) x ↔ ∃ i ∈ s, is_root (p i) x :=
+by simp only [is_root, eval_prod, finset.prod_eq_zero_iff]
+
+lemma eval_dvd : p ∣ q → eval x p ∣ eval x q :=
+eval₂_dvd _ _
+
+lemma eval_eq_zero_of_dvd_of_eval_eq_zero : p ∣ q → eval x p = 0 → eval x q = 0 :=
+eval₂_eq_zero_of_dvd_of_eval₂_eq_zero _ _
+
+@[simp]
+lemma eval_geom_sum {R} [comm_semiring R] {n : ℕ} {x : R} : eval x (geom_sum X n) = geom_sum x n :=
+by simp [geom_sum_def, eval_finset_sum]
 
 end eval
 
@@ -758,6 +805,18 @@ begin
   rw hx,
   exact ring_hom.map_zero f,
 end
+
+lemma is_root.map {f : R →+* S} {x : R} {p : polynomial R} (h : is_root p x) :
+  is_root (p.map f) (f x) :=
+by rw [is_root, eval_map, eval₂_hom, h.eq_zero, f.map_zero]
+
+lemma is_root.of_map {R} [comm_ring R] {f : R →+* S} {x : R} {p : polynomial R}
+  (h : is_root (p.map f) (f x)) (hf : function.injective f) : is_root p x :=
+by rwa [is_root, ←f.injective_iff'.mp hf, ←eval₂_hom, ←eval_map]
+
+lemma is_root_map_iff {R : Type*} [comm_ring R] {f : R →+* S} {x : R} {p : polynomial R}
+  (hf : function.injective f) : is_root (p.map f) (f x) ↔ is_root p x :=
+⟨λ h, h.of_map hf, λ h, h.map⟩
 
 end map
 

@@ -3,10 +3,9 @@ Copyright (c) 2021 Ashwin Iyengar. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin Buzzard, Johan Commelin, Ashwin Iyengar, Patrick Massot
 -/
-import topology.algebra.ring
+import group_theory.subgroup.basic
 import topology.algebra.open_subgroup
-import data.set.basic
-import group_theory.subgroup
+import topology.algebra.ring
 
 /-!
 # Nonarchimedean Topology
@@ -25,6 +24,8 @@ group is nonarchimedean.
 - `nonarchimedean_ring`: nonarchimedean ring.
 
 -/
+
+open_locale pointwise
 
 /-- An topological additive group is nonarchimedean if every neighborhood of 0
   contains an open subgroup. -/

@@ -28,10 +28,15 @@ instance has_mem : has_mem α (option α) := ⟨λ a b, b = some a⟩
 @[simp] theorem mem_def {a : α} {b : option α} : a ∈ b ↔ b = some a :=
 iff.rfl
 
+lemma mem_iff {a : α} {b : option α} : a ∈ b ↔ b = a := iff.rfl
+
 theorem is_none_iff_eq_none {o : option α} : o.is_none = tt ↔ o = none :=
 ⟨option.eq_none_of_is_none, λ e, e.symm ▸ rfl⟩
 
 theorem some_inj {a b : α} : some a = some b ↔ a = b := by simp
+
+lemma mem_some_iff {α : Type*} {a b : α} : a ∈ some b ↔ b = a :=
+by simp
 
 /--
 `o = none` is decidable even if the wrapped type does not have decidable equality.

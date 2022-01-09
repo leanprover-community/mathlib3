@@ -3,8 +3,10 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
+
 import data.polynomial.basic
 import data.finset.nat_antidiagonal
+import data.nat.choose.sum
 
 /-!
 # Theory of univariate polynomials
@@ -46,6 +48,18 @@ begin
   contrapose! hi,
   simp [hi]
 end
+
+/-- `polynomial.sum` as a linear map. -/
+@[simps] def lsum {R A M : Type*} [semiring R] [semiring A] [add_comm_monoid M]
+  [module R A] [module R M] (f : ℕ → A →ₗ[R] M) :
+  polynomial A →ₗ[R] M :=
+{ to_fun := λ p, p.sum (λ n r, f n r),
+  map_add' := λ p q, sum_add_index p q _ (λ n, (f n).map_zero) (λ n _ _, (f n).map_add _ _),
+  map_smul' := λ c p,
+  begin
+    rw [sum_eq_of_subset _ (λ n r, f n r) (λ n, (f n).map_zero) _ (support_smul c p)],
+    simp only [sum_def, finset.smul_sum, coeff_smul, linear_map.map_smul, ring_hom.id_apply]
+  end }
 
 variable (R)
 /-- The nth coefficient, as a linear map. -/
@@ -111,6 +125,7 @@ lemma coeff_X_pow_self (n : ℕ) :
   coeff (X^n : polynomial R) n = 1 :=
 by simp [coeff_X_pow]
 
+@[simp]
 theorem coeff_mul_X_pow (p : polynomial R) (n d : ℕ) :
   coeff (p * polynomial.X ^ n) (d + n) = coeff p d :=
 begin
@@ -120,20 +135,32 @@ begin
   { exact λ h1, (h1 (nat.mem_antidiagonal.2 rfl)).elim }
 end
 
+@[simp]
+theorem coeff_X_pow_mul (p : polynomial R) (n d : ℕ) :
+  coeff (polynomial.X ^ n * p) (d + n) = coeff p d :=
+by rw [(commute_X_pow p n).eq, coeff_mul_X_pow]
+
 lemma coeff_mul_X_pow' (p : polynomial R) (n d : ℕ) :
   (p * X ^ n).coeff d = ite (n ≤ d) (p.coeff (d - n)) 0 :=
 begin
   split_ifs,
-  { rw [←@nat.sub_add_cancel d n h, coeff_mul_X_pow, nat.add_sub_cancel] },
+  { rw [← tsub_add_cancel_of_le h, coeff_mul_X_pow, add_tsub_cancel_right] },
   { refine (coeff_mul _ _ _).trans (finset.sum_eq_zero (λ x hx, _)),
     rw [coeff_X_pow, if_neg, mul_zero],
     exact ne_of_lt (lt_of_le_of_lt (nat.le_of_add_le_right
       (le_of_eq (finset.nat.mem_antidiagonal.mp hx))) (not_le.mp h)) },
 end
 
+lemma coeff_X_pow_mul' (p : polynomial R) (n d : ℕ) :
+  (X ^ n * p).coeff d = ite (n ≤ d) (p.coeff (d - n)) 0 :=
+by rw [(commute_X_pow p n).eq, coeff_mul_X_pow']
+
 @[simp] theorem coeff_mul_X (p : polynomial R) (n : ℕ) :
   coeff (p * X) (n + 1) = coeff p n :=
 by simpa only [pow_one] using coeff_mul_X_pow p 1 n
+
+@[simp] theorem coeff_X_mul (p : polynomial R) (n : ℕ) :
+  coeff (X * p) (n + 1) = coeff p n := by rw [(commute_X p).eq, coeff_mul_X]
 
 theorem mul_X_pow_eq_zero {p : polynomial R} {n : ℕ}
   (H : p * X ^ n = 0) : p = 0 :=
@@ -147,6 +174,26 @@ by rw [C_mul_X_pow_eq_monomial, support_monomial n c H]
 
 lemma support_C_mul_X_pow' {c : R} {n : ℕ} : (C c * X^n).support ⊆ singleton n :=
 by { rw [C_mul_X_pow_eq_monomial], exact support_monomial' n c }
+
+lemma coeff_X_add_C_pow (r : R) (n k : ℕ) :
+  ((X + C r) ^ n).coeff k = r ^ (n - k) * (n.choose k : R) :=
+begin
+  rw [(commute_X (C r : polynomial R)).add_pow, ← lcoeff_apply, linear_map.map_sum],
+  simp only [one_pow, mul_one, lcoeff_apply, ← C_eq_nat_cast, ←C_pow, coeff_mul_C, nat.cast_id],
+  rw [finset.sum_eq_single k, coeff_X_pow_self, one_mul],
+  { intros _ _ h,
+    simp [coeff_X_pow, h.symm] },
+  { simp only [coeff_X_pow_self, one_mul, not_lt, finset.mem_range],
+    intro h, rw [nat.choose_eq_zero_of_lt h, nat.cast_zero, mul_zero] }
+end
+
+lemma coeff_X_add_one_pow (R : Type*) [semiring R] (n k : ℕ) :
+  ((X + 1) ^ n).coeff k = (n.choose k : R) :=
+by rw [←C_1, coeff_X_add_C_pow, one_pow, one_mul]
+
+lemma coeff_one_add_X_pow (R : Type*) [semiring R] (n k : ℕ) :
+  ((1 + X) ^ n).coeff k = (n.choose k : R) :=
+by rw [add_comm _ X, coeff_X_add_one_pow]
 
 lemma C_dvd_iff_dvd_coeff (r : R) (φ : polynomial R) :
   C r ∣ φ ↔ ∀ i, r ∣ φ.coeff i :=
@@ -174,6 +221,17 @@ by simp [bit0, add_mul]
 lemma coeff_bit1_mul (P Q : polynomial R) (n : ℕ) :
   coeff (bit1 P * Q) n = 2 * coeff (P * Q) n + coeff Q n :=
 by simp [bit1, add_mul, coeff_bit0_mul]
+
+lemma smul_eq_C_mul (a : R) : a • p = C a * p := by simp [ext_iff]
+
+lemma update_eq_add_sub_coeff {R : Type*} [ring R] (p : polynomial R) (n : ℕ) (a : R) :
+  p.update n a = p + (polynomial.C (a - p.coeff n) * polynomial.X ^ n) :=
+begin
+  ext,
+  rw [coeff_update_apply, coeff_add, coeff_C_mul_X],
+  split_ifs with h;
+  simp [h]
+end
 
 end coeff
 

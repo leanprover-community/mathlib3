@@ -5,6 +5,7 @@ Authors: Scott Morrison, Bhavik Mehta
 -/
 import category_theory.limits.shapes.regular_mono
 import category_theory.limits.shapes.kernels
+import category_theory.limits.preserves.basic
 
 /-!
 # Definitions and basic properties of normal monomorphisms and epimorphisms.
@@ -49,7 +50,7 @@ def equivalence_reflects_normal_mono {D : Type u₂} [category.{v₁} D] [has_ze
   g := full.preimage (hf.g ≫ (F.obj_obj_preimage_iso hf.Z).inv),
   w := faithful.map_injective F $ by simp [reassoc_of hf.w],
   is_limit := reflects_limit.reflects $
-    is_limit.of_cone_equiv (cones.postcompose_equivalence (comp_nat_iso F)) $
+    is_limit.of_cone_equiv (cones.postcompose_equivalence (comp_nat_iso F : _)) $
       is_limit.of_iso_limit
         (by exact is_limit.of_iso_limit
           (is_kernel.of_comp_iso _ _ (F.obj_obj_preimage_iso hf.Z) (by simp) hf.is_limit)

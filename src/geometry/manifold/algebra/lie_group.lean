@@ -40,9 +40,6 @@ noncomputable theory
 
 open_locale manifold
 
-section
-set_option old_structure_cmd true
-
 /-- A Lie (additive) group is a group and a smooth manifold at the same time in which
 the addition and negation operations are smooth. -/
 -- See note [Design choices about smooth algebraic structures]
@@ -64,8 +61,6 @@ class lie_group {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
   (G : Type*) [group G] [topological_space G] [charted_space H G]
   extends has_smooth_mul I G : Prop :=
 (smooth_inv : smooth I I (λ a:G, a⁻¹))
-
-end
 
 section lie_group
 

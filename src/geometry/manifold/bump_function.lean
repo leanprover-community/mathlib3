@@ -4,8 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import analysis.calculus.specific_functions
-import geometry.manifold.diffeomorph
-import geometry.manifold.instances.real
+import geometry.manifold.times_cont_mdiff
 
 /-!
 # Smooth bump functions on a smooth manifold
@@ -73,7 +72,7 @@ instead. -/
 def to_fun : M → ℝ :=
 indicator (chart_at H c).source (f.to_times_cont_diff_bump ∘ ext_chart_at I c)
 
-instance : has_coe_to_fun (smooth_bump_function I c) := ⟨_, to_fun⟩
+instance : has_coe_to_fun (smooth_bump_function I c) (λ _, M → ℝ) := ⟨to_fun⟩
 
 lemma coe_def :
   ⇑f = indicator (chart_at H c).source (f.to_times_cont_diff_bump ∘ ext_chart_at I c) :=
@@ -168,7 +167,7 @@ lemma support_mem_nhds : support f ∈ 𝓝 c :=
 f.eventually_eq_one.mono $ λ x hx, by { rw hx, exact one_ne_zero }
 
 lemma closure_support_mem_nhds : closure (support f) ∈ 𝓝 c :=
-mem_sets_of_superset f.support_mem_nhds subset_closure
+mem_of_superset f.support_mem_nhds subset_closure
 
 lemma c_mem_support : c ∈ support f := mem_of_mem_nhds f.support_mem_nhds
 
@@ -176,7 +175,7 @@ lemma nonempty_support : (support f).nonempty := ⟨c, f.c_mem_support⟩
 
 lemma compact_symm_image_closed_ball :
   is_compact ((ext_chart_at I c).symm '' (closed_ball (ext_chart_at I c c) f.R ∩ range I)) :=
-(compact_ball.inter_right I.closed_range).image_of_continuous_on $
+(euclidean.is_compact_closed_ball.inter_right I.closed_range).image_of_continuous_on $
   (ext_chart_at_continuous_on_symm _ _).mono f.closed_ball_subset
 
 /-- Given a smooth bump function `f : smooth_bump_function I c`, the closed ball of radius `f.R` is
@@ -190,7 +189,7 @@ begin
       (ext_chart_at_target_mem_nhds_within _ _)).to_has_basis' _ _,
   { rintro R ⟨hR0, hsub⟩,
     exact ⟨⟨⟨⟨R / 2, R, half_pos hR0, half_lt_self hR0⟩⟩, hsub⟩, trivial, subset.rfl⟩ },
-  { exact λ f _, inter_mem_sets (mem_nhds_within_of_mem_nhds $ closed_ball_mem_nhds f.R_pos)
+  { exact λ f _, inter_mem (mem_nhds_within_of_mem_nhds $ closed_ball_mem_nhds f.R_pos)
       self_mem_nhds_within }
 end
 

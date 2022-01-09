@@ -42,6 +42,7 @@ that have been processed by `to_additive`. -/
 meta def aux_attr : user_attribute (name_map name) name :=
 { name      := `to_additive_aux,
   descr     := "Auxiliary attribute for `to_additive`. DON'T USE IT",
+  parser    := failed,
   cache_cfg := ⟨λ ns,
                 ns.mfoldl
                   (λ dict n', do
@@ -51,8 +52,7 @@ meta def aux_attr : user_attribute (name_map name) name :=
                             end,
                     param ← aux_attr.get_param_untyped n',
                     pure $ dict.insert n param.app_arg.const_name)
-                  mk_name_map, []⟩,
-  parser    := lean.parser.ident }
+                  mk_name_map, []⟩ }
 
 end performance_hack
 
@@ -76,6 +76,42 @@ meta def ignore_args_attr : user_attribute (name_map $ list ℕ) (list ℕ) :=
         return $ dict.insert n (param.to_list expr.to_nat).iget)
       mk_name_map, []⟩,
   parser    := (lean.parser.small_nat)* }
+
+/--
+An attribute that is automatically added to declarations tagged with `@[to_additive]`, if needed.
+
+This attribute tells which argument is the type where this declaration uses the multiplicative
+structure. If there are multiple argument, we typically tag the first one.
+If this argument contains a fixed type, this declaration will note be additivized.
+See the Heuristics section of `to_additive.attr` for more details.
+
+If a declaration is not tagged, it is presumed that the first argument is relevant.
+`@[to_additive]` uses the function `to_additive.first_multiplicative_arg` to automatically tag
+declarations. It is ok to update it manually if the automatic tagging made an error.
+
+Implementation note: we only allow exactly 1 relevant argument, even though some declarations
+(like `prod.group`) have multiple arguments with a multiplicative structure on it.
+The reason is that whether we additivize a declaration is an all-or-nothing decision, and if
+we will not be able to additivize declarations that (e.g.) talk about multiplication on `ℕ × α`
+anyway.
+
+Warning: adding `@[to_additive_reorder]` with an equal or smaller number than the number in this
+attribute is currently not supported.
+-/
+@[user_attribute]
+meta def relevant_arg_attr : user_attribute (name_map ℕ) ℕ :=
+{ name      := `to_additive_relevant_arg,
+  descr     :=
+    "Auxiliary attribute for `to_additive` stating which arguments are the types with a " ++
+    "multiplicative structure.",
+  cache_cfg :=
+    ⟨λ ns, ns.mfoldl
+      (λ dict n, do
+        param ← relevant_arg_attr.get_param_untyped n, -- see Note [user attribute parameters]
+        -- we subtract 1 from the values provided by the user.
+        return $ dict.insert n $ param.to_nat.iget.pred)
+      mk_name_map, []⟩,
+  parser    := lean.parser.small_nat }
 
 /--
 An attribute that stores all the declarations that needs their arguments reordered when
@@ -103,6 +139,23 @@ meta def reorder_attr : user_attribute (name_map $ list ℕ) (list ℕ) :=
     return l }
 
 end extra_attributes
+
+/--
+Find the first argument of `nm` that has a multiplicative type-class on it.
+Returns 1 if there are no types with a multiplicative class as arguments.
+E.g. `prod.group` returns 1, and `pi.has_one` returns 2.
+-/
+meta def first_multiplicative_arg (nm : name) : tactic ℕ := do
+  d ← get_decl nm,
+  let (es, _) := d.type.pi_binders,
+  l ← es.mmap_with_index $ λ n bi, do
+  { let tgt := bi.type.pi_codomain,
+    let n_bi := bi.type.pi_binders.fst.length,
+    tt ← has_attribute' `to_additive tgt.get_app_fn.const_name | return none,
+    let n2 := tgt.get_app_args.head.get_app_fn.match_var.map $ λ m, n + n_bi - m,
+    return $ n2 },
+  let l := l.reduce_option,
+  return $ if l = [] then 1 else l.foldr min l.head
 
 /-- A command that can be used to have future uses of `to_additive` change the `src` namespace
 to the `tgt` namespace.
@@ -159,7 +212,7 @@ meta def tr : bool → list string → list string
 | is_comm ("prod" :: s)               := add_comm_prefix is_comm "sum"       :: tr ff s
 | is_comm ("finprod" :: s)            := add_comm_prefix is_comm "finsum"    :: tr ff s
 | is_comm ("npow" :: s)               := add_comm_prefix is_comm "nsmul"     :: tr ff s
-| is_comm ("gpow" :: s)               := add_comm_prefix is_comm "gsmul"     :: tr ff s
+| is_comm ("zpow" :: s)               := add_comm_prefix is_comm "zsmul"     :: tr ff s
 | is_comm ("monoid" :: s)      := ("add_" ++ add_comm_prefix is_comm "monoid")    :: tr ff s
 | is_comm ("submonoid" :: s)   := ("add_" ++ add_comm_prefix is_comm "submonoid") :: tr ff s
 | is_comm ("group" :: s)       := ("add_" ++ add_comm_prefix is_comm "group")     :: tr ff s
@@ -273,12 +326,22 @@ copied to the additive version, then `to_additive` should come last:
 @[simp, to_additive] lemma mul_one' {G : Type*} [group G] (x : G) : x * 1 = x := mul_one x
 ```
 
+The following attributes are supported and should be applied correctly by `to_additive` to
+the new additivized declaration, if they were present on the original one:
+```
+reducible, _refl_lemma, simp, norm_cast, instance, refl, symm, trans, elab_as_eliminator, no_rsimp,
+continuity, ext, ematch, measurability, alias, _ext_core, _ext_lemma_core, nolint
+```
+
 The exception to this rule is the `simps` attribute, which should come after `to_additive`:
 
 ```
 @[to_additive, simps]
 instance {M N} [has_mul M] [has_mul N] : has_mul (M × N) := ⟨λ p q, ⟨p.1 * q.1, p.2 * q.2⟩⟩
 ```
+
+Additionally the `mono` attribute is not handled by `to_additive` and should be applied afterwards
+to both the original and additivized lemma.
 
 ## Implementation notes
 
@@ -312,10 +375,14 @@ Examples:
 The reasoning behind the heuristic is that the first argument is the type which is "additivized",
 and this usually doesn't make sense if this is on a fixed type.
 
-There are two exceptions in this heuristic:
+There are some exceptions to this heuristic:
 
 * Identifiers that have the `@[to_additive]` attribute are ignored.
   For example, multiplication in `↥Semigroup` is replaced by addition in `↥AddSemigroup`.
+* If an identifier `d` has attribute `@[to_additive_relevant_arg n]` then the argument
+  in position `n` is checked for a fixed type, instead of checking the first argument.
+  `@[to_additive]` will automatically add the attribute `@[to_additive_relevant_arg n]` to a
+  declaration when the first argument has no multiplicative type-class, but argument `n` does.
 * If an identifier has attribute `@[to_additive_ignore_args n1 n2 ...]` then all the arguments in
   positions `n1`, `n2`, ... will not be checked for unapplied identifiers (start counting from 1).
   For example, `times_cont_mdiff_map` has attribute `@[to_additive_ignore_args 21]`, which means
@@ -330,16 +397,22 @@ various things you can try.
 The first thing to do is to figure out what `@[to_additive]` did wrong by looking at the type
 mismatch error.
 
-* Option 1: It additivized a declaration `d` that should remain multiplicative. Solutions:
+* Option 1: It additivized a declaration `d` that should remain multiplicative. Solution:
   * Make sure the first argument of `d` is a type with a multiplicative structure. If not, can you
     reorder the (implicit) arguments of `d` so that the first argument becomes a type with a
     multiplicative structure (and not some indexing type)?
     The reason is that `@[to_additive]` doesn't additivize declarations if their first argument
     contains fixed types like `ℕ` or `ℝ`. See section Heuristics.
-    This is not possible if `d` is something like `pi.has_one` or `prod.group`, where the second
-    argument (also) has a multiplicative structure.
-  * Sometimes only the proof of a lemma/theorem uses these problematic declarations.
-    In some cases you can rewrite the proof a little bit to work around these declarations.
+    If the first argument is not the argument with a multiplicative type-class, `@[to_additive]`
+    should have automatically added the attribute `@[to_additive_relevant_arg]` to the declaration.
+    You can test this by running the following (where `d` is the full name of the declaration):
+    ```
+      run_cmd to_additive.relevant_arg_attr.get_param `d >>= tactic.trace
+    ```
+    The expected output is `n` where the `n`-th argument of `d` is a type (family) with a
+    multiplicative structure on it. If you get a different output (or a failure), you could add
+    the attribute `@[to_additive_relevant_arg n]` manually, where `n` is an argument with a
+    multiplicative structure.
 * Option 2: It didn't additivize a declaration that should be additivized.
   This happened because the heuristic applied, and the first argument contains a fixed type,
   like `ℕ` or `ℝ`. Solutions:
@@ -379,8 +452,10 @@ scans its type and value for names starting with `src`, and transports
 them. This includes auxiliary definitions like `src._match_1`,
 `src._proof_1`.
 
-After transporting the “main” declaration, `to_additive` transports
-its equational lemmas.
+In addition to transporting the “main” declaration, `to_additive` transports
+its equational lemmas and tags them as equational lemmas for the new declaration,
+attributes present on the original equational lemmas are also transferred first (notably
+`_refl_lemma`).
 
 ### Structure fields and constructors
 
@@ -435,18 +510,25 @@ protected meta def attr : user_attribute unit value_type :=
     val ← attr.get_param src,
     dict ← aux_attr.get_cache,
     ignore ← ignore_args_attr.get_cache,
+    relevant ← relevant_arg_attr.get_cache,
     reorder ← reorder_attr.get_cache,
     tgt ← target_name src val.tgt dict val.allow_auto_name,
     aux_attr.set src tgt tt,
     let dict := dict.insert src tgt,
+    first_mult_arg ← first_multiplicative_arg src,
+    when (first_mult_arg ≠ 1) $ relevant_arg_attr.set src first_mult_arg tt,
     if env.contains tgt
     then proceed_fields env src tgt prio
     else do
-      transform_decl_with_prefix_dict dict val.replace_all val.trace ignore reorder src tgt
-        [`reducible, `_refl_lemma, `simp, `instance, `refl, `symm, `trans, `elab_as_eliminator,
-         `no_rsimp, `measurability],
+      transform_decl_with_prefix_dict dict val.replace_all val.trace relevant ignore reorder src tgt
+        [`reducible, `_refl_lemma, `simp, `norm_cast, `instance, `refl, `symm, `trans,
+          `elab_as_eliminator, `no_rsimp, `continuity, `ext, `ematch, `measurability, `alias,
+          `_ext_core, `_ext_lemma_core, `nolint],
       mwhen (has_attribute' `simps src)
         (trace "Apply the simps attribute after the to_additive attribute"),
+      mwhen (has_attribute' `mono src)
+        (trace $ "to_additive does not work with mono, apply the mono attribute to both" ++
+          "versions after"),
       match val.doc with
       | some doc := add_doc_string tgt doc
       | none := skip
@@ -467,12 +549,3 @@ attribute [to_additive empty] empty
 attribute [to_additive pempty] pempty
 attribute [to_additive punit] punit
 attribute [to_additive unit] unit
-/-
-We ignore the third argument of `has_coe_to_fun.F` when deciding whether the operation
-needs to be additivized. The reason is that this argument is the element to be coerced,
-which usually does not actually show up in the type after reduction.
-Hypothetically, this could be ignoring too much, in that case, we can remove this,
-but in that case we have to add the `to_additive_ignore_args` attribute more systematically
-to a lot of other definitions (like `times_cont_mdiff_map.comp`).
--/
-attribute [to_additive_ignore_args 3] has_coe_to_fun.F

@@ -3,7 +3,7 @@ Copyright (c) 2021 Damiano Testa. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Damiano Testa
 -/
-import algebra.group.basic
+import algebra.order.monoid_lemmas
 import algebra.group_with_zero.basic
 import logic.embedding
 
@@ -42,6 +42,10 @@ on the right is injective. -/
 structure is_regular (c : R) : Prop :=
 (left : is_left_regular c)
 (right : is_right_regular c)
+
+protected lemma mul_le_cancellable.is_left_regular [partial_order R] {a : R}
+  (ha : mul_le_cancellable a) : is_left_regular a :=
+ha.injective
 
 end has_mul
 
@@ -229,8 +233,8 @@ lemma is_left_regular_of_mul_eq_one (h : b * a = 1) : is_left_regular a :=
 lemma is_right_regular_of_mul_eq_one (h : a * b = 1) : is_right_regular a :=
 @is_right_regular.of_mul R _ a _ (by { rw h, exact is_regular_one.right })
 
-/-- If `R` is a monoid, an element in `units R` is regular. -/
-lemma units.is_regular (a : units R) : is_regular (a : R) :=
+/-- If `R` is a monoid, an element in `Rˣ` is regular. -/
+lemma units.is_regular (a : Rˣ) : is_regular (a : R) :=
 ⟨is_left_regular_of_mul_eq_one a.inv_mul, is_right_regular_of_mul_eq_one a.mul_inv⟩
 
 /-- A unit in a monoid is regular. -/
@@ -263,6 +267,11 @@ by right multiplication by a fixed element.
    by right translation by a fixed element.", simps]
 def mul_right_embedding {G : Type*} [right_cancel_semigroup G] (g : G) : G ↪ G :=
 { to_fun := λ h, h * g, inj' := mul_left_injective g }
+
+@[to_additive]
+lemma mul_left_embedding_eq_mul_right_embedding {G : Type*} [cancel_comm_monoid G] (g : G) :
+  mul_left_embedding g = mul_right_embedding g :=
+by { ext, exact mul_comm _ _ }
 
 /--  Elements of a left cancel semigroup are left regular. -/
 lemma is_left_regular_of_left_cancel_semigroup [left_cancel_semigroup R] (g : R) :

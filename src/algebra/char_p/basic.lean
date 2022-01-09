@@ -4,10 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Joey van Langen, Casper Putz
 -/
 
-import data.nat.choose
 import data.int.modeq
 import algebra.iterate_hom
+import data.nat.choose.sum
 import group_theory.order_of_element
+import data.nat.choose.dvd
 /-!
 # Characteristic of semirings
 -/
@@ -44,7 +45,7 @@ end
 lemma char_p.int_coe_eq_int_coe_iff [add_group R] [has_one R] (p : ℕ) [char_p R p] (a b : ℤ) :
   (a : R) = (b : R) ↔ a ≡ b [ZMOD p] :=
 by rw [eq_comm, ←sub_eq_zero, ←int.cast_sub,
-       char_p.int_cast_eq_zero_iff R p, int.modeq.modeq_iff_dvd]
+       char_p.int_cast_eq_zero_iff R p, int.modeq_iff_dvd]
 
 theorem char_p.eq [add_monoid R] [has_one R] {p q : ℕ} (c1 : char_p R p) (c2 : char_p R q) :
   p = q :=
@@ -117,10 +118,10 @@ theorem add_pow_char_of_commute [semiring R] {p : ℕ} [fact p.prime]
   [char_p R p] (x y : R) (h : commute x y) :
   (x + y)^p = x^p + y^p :=
 begin
-  rw [commute.add_pow h, finset.sum_range_succ_comm, nat.sub_self, pow_zero, nat.choose_self],
+  rw [commute.add_pow h, finset.sum_range_succ_comm, tsub_self, pow_zero, nat.choose_self],
   rw [nat.cast_one, mul_one, mul_one], congr' 1,
   convert finset.sum_eq_single 0 _ _,
-  { simp only [mul_one, one_mul, nat.choose_zero_right, nat.sub_zero, nat.cast_one, pow_zero] },
+  { simp only [mul_one, one_mul, nat.choose_zero_right, tsub_zero, nat.cast_one, pow_zero] },
   { intros b h1 h2,
     suffices : (p.choose b : R) = 0, { rw this, simp },
     rw char_p.cast_eq_zero_iff R p,
@@ -179,7 +180,7 @@ sub_pow_char_pow_of_commute _ _ _ (commute.all _ _)
 lemma eq_iff_modeq_int [ring R] (p : ℕ) [char_p R p] (a b : ℤ) :
   (a : R) = b ↔ a ≡ b [ZMOD p] :=
 by rw [eq_comm, ←sub_eq_zero, ←int.cast_sub,
-       char_p.int_cast_eq_zero_iff R p, int.modeq.modeq_iff_dvd]
+       char_p.int_cast_eq_zero_iff R p, int.modeq_iff_dvd]
 
 lemma char_p.neg_one_ne_one [ring R] (p : ℕ) [char_p R p] [fact (2 < p)] :
   (-1 : R) ≠ (1 : R) :=
@@ -193,7 +194,24 @@ begin
   rw fact_iff at *, linarith,
 end
 
-lemma ring_hom.char_p_iff_char_p {K L : Type*} [field K] [field L] (f : K →+* L) (p : ℕ) :
+lemma char_p.neg_one_pow_char [comm_ring R] (p : ℕ) [char_p R p] [fact p.prime] :
+  (-1 : R) ^ p = -1 :=
+begin
+  rw eq_neg_iff_add_eq_zero,
+  nth_rewrite 1 ← one_pow p,
+  rw [← add_pow_char, add_left_neg, zero_pow (fact.out (nat.prime p)).pos],
+end
+
+lemma char_p.neg_one_pow_char_pow [comm_ring R] (p n : ℕ) [char_p R p] [fact p.prime] :
+  (-1 : R) ^ p ^ n = -1 :=
+begin
+  rw eq_neg_iff_add_eq_zero,
+  nth_rewrite 1 ← one_pow (p ^ n),
+  rw [← add_pow_char_pow, add_left_neg, zero_pow (pow_pos (fact.out (nat.prime p)).pos _)],
+end
+
+lemma ring_hom.char_p_iff_char_p {K L : Type*} [division_ring K] [semiring L] [nontrivial L]
+  (f : K →+* L) (p : ℕ) :
   char_p K p ↔ char_p L p :=
 begin
   split;
@@ -206,14 +224,14 @@ section frobenius
 section comm_semiring
 
 variables [comm_semiring R] {S : Type v} [comm_semiring S] (f : R →* S) (g : R →+* S)
-  (p : ℕ) [fact p.prime] [char_p R p]  [char_p S p] (x y : R)
+  (p : ℕ) [fact p.prime] [char_p R p] [char_p S p] (x y : R)
 
 /-- The frobenius map that sends x to x^p -/
 def frobenius : R →+* R :=
 { to_fun := λ x, x^p,
   map_one' := one_pow p,
   map_mul' := λ x y, mul_pow x y p,
-  map_zero' := zero_pow (lt_trans zero_lt_one (fact.out (nat.prime p)).one_lt),
+  map_zero' := zero_pow (fact.out (nat.prime p)).pos,
   map_add' := add_pow_char R }
 
 variable {R}
@@ -261,6 +279,19 @@ theorem frobenius_add : frobenius R p (x + y) = frobenius R p x + frobenius R p 
 (frobenius R p).map_add x y
 
 theorem frobenius_nat_cast (n : ℕ) : frobenius R p n = n := (frobenius R p).map_nat_cast n
+
+open_locale big_operators
+variables {R}
+
+lemma list_sum_pow_char (l : list R) : l.sum ^ p = (l.map (^ p)).sum :=
+(frobenius R p).map_list_sum _
+
+lemma multiset_sum_pow_char (s : multiset R) : s.sum ^ p = (s.map (^ p)).sum :=
+(frobenius R p).map_multiset_sum _
+
+lemma sum_pow_char {ι : Type*} (s : finset ι) (f : ι → R) :
+  (∑ i in s, f i) ^ p = ∑ i in s, f i ^ p :=
+(frobenius R p).map_sum _ _
 
 end comm_semiring
 
@@ -318,7 +349,7 @@ section no_zero_divisors
 variable [no_zero_divisors R]
 
 theorem char_is_prime_of_two_le (p : ℕ) [hc : char_p R p] (hp : 2 ≤ p) : nat.prime p :=
-suffices ∀d ∣ p, d = 1 ∨ d = p, from ⟨hp, this⟩,
+suffices ∀d ∣ p, d = 1 ∨ d = p, from nat.prime_def_lt''.mpr ⟨hp, this⟩,
 assume (d : ℕ) (hdvd : ∃ e, p = d * e),
 let ⟨e, hmul⟩ := hdvd in
 have (p : R) = 0, from (cast_eq_zero_iff R p p).mpr (dvd_refl p),

@@ -5,7 +5,6 @@ Authors: David Wärn
 -/
 import data.fintype.basic
 import algebra.big_operators.basic
-import data.equiv.fin
 
 /-!
 # The Hales-Jewett theorem
@@ -80,8 +79,8 @@ structure line (α ι : Type*) :=
 namespace line
 
 /- This lets us treat a line `l : line α ι` as a function `α → ι → α`. -/
-instance (α ι) : has_coe_to_fun (line α ι) :=
-⟨λ _, α → ι → α, λ l x i, (l.idx_fun i).get_or_else x⟩
+instance (α ι) : has_coe_to_fun (line α ι) (λ _, α → ι → α) :=
+⟨λ l x i, (l.idx_fun i).get_or_else x⟩
 
 /-- A line is monochromatic if all its points are the same color. -/
 def is_mono {α ι κ} (C : (ι → α) → κ) (l : line α ι) : Prop :=
@@ -174,7 +173,7 @@ by simp_rw [line.apply, line.diagonal, option.get_or_else_none]
 for the proof. See `exists_mono_in_high_dimension` for a fully universe-polymorphic version. -/
 private theorem exists_mono_in_high_dimension' :
   ∀ (α : Type u) [fintype α] (κ : Type (max v u)) [fintype κ],
-  ∃ (ι : Type) [fintype ι], ∀ C : (ι → α) → κ, ∃ l : line α ι, l.is_mono C :=
+  ∃ (ι : Type) (_ : fintype ι), ∀ C : (ι → α) → κ, ∃ l : line α ι, l.is_mono C :=
 -- The proof proceeds by induction on `α`.
 fintype.induction_empty_option
 -- We have to show that the theorem is invariant under `α ≃ α'` for the induction to work.
@@ -196,7 +195,7 @@ begin -- Now we have to show that the theorem holds for `option α` if it holds 
     rintros (_ | ⟨a⟩), refl, exact (h ⟨a⟩).elim, },
 -- The key idea is to show that for every `r`, in high dimension we can either find
 -- `r` color focused lines or a monochromatic line.
-  suffices key : ∀ r : ℕ, ∃ (ι : Type) [fintype ι], ∀ C : (ι → (option α)) → κ,
+  suffices key : ∀ r : ℕ, ∃ (ι : Type) (_ : fintype ι), ∀ C : (ι → (option α)) → κ,
     (∃ s : color_focused C, s.lines.card = r) ∨ (∃ l, is_mono C l),
 -- Given the key claim, we simply take `r = |κ| + 1`. We cannot have this many distinct colors so
 -- we must be in the second case, where there is a monochromatic line.

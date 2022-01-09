@@ -3,7 +3,10 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
+import data.list.count
+import data.list.lex
 import data.list.sublists
+import data.set.pairwise
 
 /-!
 # Pairwise relations on a list
@@ -42,6 +45,11 @@ theorem pairwise_of_pairwise_cons {a : α} {l : list α}
 theorem pairwise.tail : ∀ {l : list α} (p : pairwise R l), pairwise R l.tail
 | [] h := h
 | (a :: l) h := pairwise_of_pairwise_cons h
+
+theorem pairwise.drop : ∀ {l : list α} {n : ℕ}, list.pairwise R l → list.pairwise R (l.drop n)
+| _ 0 h := h
+| [] (n + 1) h := list.pairwise.nil
+| (a :: l) (n + 1) h := pairwise.drop (pairwise_cons.mp h).right
 
 theorem pairwise.imp_of_mem {S : α → α → Prop} {l : list α}
   (H : ∀ {a b}, a ∈ l → b ∈ l → R a b → S a b) (p : pairwise R l) : pairwise S l :=
@@ -239,8 +247,8 @@ from λ R l, ⟨λ p, reverse_reverse l ▸ this p, this⟩,
     pairwise_cons, forall_prop_of_false (not_mem_nil _), forall_true_iff,
     pairwise.nil, mem_reverse, mem_singleton, forall_eq, true_and] using h]
 
-lemma pairwise.set_pairwise_on {l : list α} (h : pairwise R l) (hr : symmetric R) :
-  set.pairwise_on {x | x ∈ l} R :=
+lemma pairwise.set_pairwise {l : list α} (h : pairwise R l) (hr : symmetric R) :
+  set.pairwise {x | x ∈ l} R :=
 begin
   induction h with hd tl imp h IH,
   { simp },
@@ -251,7 +259,7 @@ begin
     { contradiction },
     { exact imp y hy },
     { exact hr (imp x hx) },
-    { exact IH x hx y hy hxy } }
+    { exact IH hx hy hxy } }
 end
 
 lemma pairwise_of_reflexive_on_dupl_of_forall_ne [decidable_eq α] {l : list α} {r : α → α → Prop}
@@ -290,12 +298,12 @@ end
 theorem pairwise_iff_nth_le {R} : ∀ {l : list α},
   pairwise R l ↔ ∀ i j (h₁ : j < length l) (h₂ : i < j),
     R (nth_le l i (lt_trans h₂ h₁)) (nth_le l j h₁)
-| [] := by simp only [pairwise.nil, true_iff]; exact λ i j h, (not_lt_zero j).elim h
+| [] := by simp only [pairwise.nil, true_iff]; exact λ i j h, (nat.not_lt_zero j).elim h
 | (a :: l) := begin
   rw [pairwise_cons, pairwise_iff_nth_le],
   refine ⟨λ H i j h₁ h₂, _, λ H, ⟨λ a' m, _,
     λ i j h₁ h₂, H _ _ (succ_lt_succ h₁) (succ_lt_succ h₂)⟩⟩,
-  { cases j with j, {exact (not_lt_zero _).elim h₂},
+  { cases j with j, {exact (nat.not_lt_zero _).elim h₂},
     cases i with i,
     { exact H.1 _ (nth_le_mem l _ _) },
     { exact H.2 _ _ (lt_of_succ_lt_succ h₁) (lt_of_succ_lt_succ h₂) } },
@@ -321,6 +329,11 @@ theorem pairwise_sublists {R} {l : list α} (H : pairwise R l) :
   pairwise (λ l₁ l₂, lex R (reverse l₁) (reverse l₂)) (sublists l) :=
 by have := pairwise_sublists' (pairwise_reverse.2 H);
    rwa [sublists'_reverse, pairwise_map] at this
+
+lemma pairwise_repeat {α : Type*} {r : α → α → Prop} {x : α} (hx : r x x) :
+  ∀ (n : ℕ), pairwise r (repeat x n)
+| 0 := by simp
+| (n+1) := by simp [hx, mem_repeat, pairwise_repeat n]
 
 /-! ### Pairwise filtering -/
 
@@ -353,7 +366,7 @@ theorem pw_filter_sublist : ∀ (l : list α), pw_filter R l <+ l
 | (x :: l) := begin
   by_cases (∀ y ∈ pw_filter R l, R x y),
   { rw [pw_filter_cons_of_pos h],
-    exact cons_sublist_cons _ (pw_filter_sublist l) },
+    exact (pw_filter_sublist l).cons_cons _ },
   { rw [pw_filter_cons_of_neg h],
     exact sublist_cons_of_sublist _ (pw_filter_sublist l) },
 end

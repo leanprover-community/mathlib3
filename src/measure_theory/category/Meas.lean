@@ -3,9 +3,10 @@ Copyright (c) 2018 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
-import topology.category.Top.basic
-import measure_theory.giry_monad
+import measure_theory.measure.giry_monad
+import category_theory.concrete_category.unbundled_hom
 import category_theory.monad.algebra
+import topology.category.Top.basic
 
 /-!
 # The category of measurable spaces
@@ -32,11 +33,11 @@ open_locale ennreal
 universes u v
 
 /-- The category of measurable spaces and measurable functions. -/
-@[derive has_coe_to_sort]
 def Meas : Type (u+1) := bundled measurable_space
 
 namespace Meas
 
+instance : has_coe_to_sort Meas Type* := bundled.has_coe_to_sort
 instance (X : Meas) : measurable_space X := X.str
 
 /-- Construct a bundled `Meas` from the underlying type and the typeclass. -/

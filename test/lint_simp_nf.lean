@@ -29,8 +29,8 @@ guard $ res.is_some
 structure morphism :=
 (f : ℕ → ℕ)
 
-instance : has_coe_to_fun morphism :=
-⟨_, morphism.f⟩
+instance : has_coe_to_fun morphism (λ _, ℕ → ℕ):=
+⟨morphism.f⟩
 
 def h : morphism := ⟨default _⟩
 

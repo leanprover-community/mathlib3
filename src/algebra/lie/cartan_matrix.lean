@@ -5,7 +5,7 @@ Authors: Oliver Nash
 -/
 import algebra.lie.free
 import algebra.lie.quotient
-import data.matrix.notation
+import data.matrix.basic
 
 /-!
 # Lie algebras from Cartan matrices
@@ -169,7 +169,7 @@ end cartan_matrix
 Note that it is defined for any matrix of integers. Its value for non-Cartan matrices should be
 regarded as junk. -/
 @[derive [inhabited, lie_ring, lie_algebra R]]
-def matrix.to_lie_algebra := (cartan_matrix.relations.to_ideal R A).quotient
+def matrix.to_lie_algebra := free_lie_algebra R _ ⧸ cartan_matrix.relations.to_ideal R A
 
 namespace cartan_matrix
 

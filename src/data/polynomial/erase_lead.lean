@@ -3,8 +3,7 @@ Copyright (c) 2020 Damiano Testa. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Damiano Testa
 -/
-import data.polynomial.degree.trailing_degree
-import data.polynomial.inductions
+import data.polynomial.degree.definitions
 
 /-!
 # Erase the leading term of a univariate polynomial
@@ -77,7 +76,7 @@ by rw [C_mul_X_pow_eq_monomial, self_sub_monomial_nat_degree_leading_coeff]
 lemma erase_lead_ne_zero (f0 : 2 ≤ f.support.card) : erase_lead f ≠ 0 :=
 begin
   rw [ne.def, ← card_support_eq_zero, erase_lead_support],
-  exact (zero_lt_one.trans_le $ (nat.sub_le_sub_right f0 1).trans
+  exact (zero_lt_one.trans_le $ (tsub_le_tsub_right f0 1).trans
     finset.pred_card_le_card_erase).ne.symm
 end
 
@@ -112,7 +111,7 @@ erase_lead_card_support fc
 begin
   by_cases hr : r = 0,
   { subst r, simp only [monomial_zero_right, erase_lead_zero] },
-  { rw [erase_lead, nat_degree_monomial _ _ hr, erase_monomial] }
+  { rw [erase_lead, nat_degree_monomial, if_neg hr, erase_monomial] }
 end
 
 @[simp] lemma erase_lead_C (r : R) : erase_lead (C r) = 0 :=
@@ -161,10 +160,11 @@ end erase_lead
 required to be at least as big as the `nat_degree` of the polynomial.  This is useful to prove
 results where you want to change each term in a polynomial to something else depending on the
 `nat_degree` of the polynomial itself and not on the specific `nat_degree` of each term. -/
-lemma induction_with_nat_degree_le {R : Type*} [semiring R] {P : polynomial R → Prop} (N : ℕ)
+lemma induction_with_nat_degree_le (P : polynomial R → Prop) (N : ℕ)
   (P_0 : P 0)
   (P_C_mul_pow : ∀ n : ℕ, ∀ r : R, r ≠ 0 → n ≤ N → P (C r * X ^ n))
-  (P_C_add : ∀ f g : polynomial R, f.nat_degree ≤ N → g.nat_degree ≤ N → P f → P g → P (f + g)) :
+  (P_C_add : ∀ f g : polynomial R, f.nat_degree < g.nat_degree →
+    g.nat_degree ≤ N → P f → P g → P (f + g)) :
   ∀ f : polynomial R, f.nat_degree ≤ N → P f :=
 begin
   intros f df,
@@ -173,18 +173,26 @@ begin
   induction c with c hc,
   { assume f df f0,
     convert P_0,
-    simpa only [support_eq_empty, card_eq_zero] using f0},
-
- --   exact λ f df f0, by rwa (finsupp.support_eq_empty.mp (card_eq_zero.mp f0)) },
+    simpa only [support_eq_empty, card_eq_zero] using f0 },
   { intros f df f0,
-    rw ← erase_lead_add_C_mul_X_pow f,
-    refine P_C_add f.erase_lead _ (erase_lead_nat_degree_le.trans df) _ _ _,
+    rw [← erase_lead_add_C_mul_X_pow f],
+    cases c,
+    { convert P_C_mul_pow f.nat_degree f.leading_coeff _ df,
+      { convert zero_add _,
+        rw [← card_support_eq_zero, erase_lead_card_support f0] },
+      { rw [leading_coeff_ne_zero, ne.def, ← card_support_eq_zero, f0],
+        exact zero_ne_one.symm } },
+    refine P_C_add f.erase_lead _ _ _ _ _,
+    { refine (erase_lead_nat_degree_lt _).trans_le (le_of_eq _),
+      { exact (nat.succ_le_succ (nat.succ_le_succ (nat.zero_le _))).trans f0.ge },
+      { rw [nat_degree_C_mul_X_pow _ _ (leading_coeff_ne_zero.mpr _)],
+        rintro rfl,
+        simpa using f0 } },
     { exact (nat_degree_C_mul_X_pow_le f.leading_coeff f.nat_degree).trans df },
     { exact hc _ (erase_lead_nat_degree_le.trans df) (erase_lead_card_support f0) },
     { refine P_C_mul_pow _ _ _ df,
-      rw [ne.def, leading_coeff_eq_zero],
-      rintro rfl,
-      exact not_le.mpr c.succ_pos f0.ge } }
+      rw [ne.def, leading_coeff_eq_zero, ← card_support_eq_zero, f0],
+      exact nat.succ_ne_zero _ } }
 end
 
 end polynomial

@@ -76,7 +76,7 @@ lemma tangent_cone_univ : tangent_cone_at 𝕜 univ x = univ :=
 begin
   refine univ_subset_iff.1 (λy hy, _),
   rcases exists_one_lt_norm 𝕜 with ⟨w, hw⟩,
-  refine ⟨λn, w^n, λn, (w^n)⁻¹ • y, univ_mem_sets' (λn, mem_univ _),  _, _⟩,
+  refine ⟨λn, w^n, λn, (w^n)⁻¹ • y, univ_mem' (λn, mem_univ _),  _, _⟩,
   { simp only [norm_pow],
     exact tendsto_pow_at_top_at_top_of_one_lt hw },
   { convert tendsto_const_nhds,
@@ -92,7 +92,7 @@ lemma tangent_cone_mono (h : s ⊆ t) :
   tangent_cone_at 𝕜 s x ⊆ tangent_cone_at 𝕜 t x :=
 begin
   rintros y ⟨c, d, ds, ctop, clim⟩,
-  exact ⟨c, d, mem_sets_of_superset ds (λn hn, h hn), ctop, clim⟩
+  exact ⟨c, d, mem_of_superset ds (λn hn, h hn), ctop, clim⟩
 end
 
 /-- Auxiliary lemma ensuring that, under the assumptions defining the tangent cone,
@@ -197,7 +197,7 @@ begin
     exact ⟨z - x j, by simpa using hzs, by simpa using hz⟩ },
   choose! d' hd's hcd',
   refine ⟨c, λ n, function.update (d' n) i (d n), hd.mono (λ n hn j hj', _), hc,
-    tendsto_pi.2 $ λ j, _⟩,
+    tendsto_pi_nhds.2 $ λ j, _⟩,
   { rcases em (j = i) with rfl|hj; simp * },
   { rcases em (j = i) with rfl|hj,
     { simp [hy] },
@@ -208,13 +208,13 @@ end
 
 /-- If a subset of a real vector space contains a segment, then the direction of this
 segment belongs to the tangent cone at its endpoints. -/
-lemma mem_tangent_cone_of_segment_subset {s : set G} {x y : G} (h : segment x y ⊆ s) :
+lemma mem_tangent_cone_of_segment_subset {s : set G} {x y : G} (h : segment ℝ x y ⊆ s) :
   y - x ∈ tangent_cone_at ℝ s x :=
 begin
   let c := λn:ℕ, (2:ℝ)^n,
   let d := λn:ℕ, (c n)⁻¹ • (y-x),
-  refine ⟨c, d, filter.univ_mem_sets' (λn, h _), _, _⟩,
-  show x + d n ∈ segment x y,
+  refine ⟨c, d, filter.univ_mem' (λn, h _), _, _⟩,
+  show x + d n ∈ segment ℝ x y,
   { rw segment_eq_image,
     refine ⟨(c n)⁻¹, ⟨_, _⟩, _⟩,
     { rw inv_nonneg, apply pow_nonneg, norm_num },
@@ -368,7 +368,7 @@ unique_diff_on.pi _ _ _ _ $ λ i _, h i
 
 /-- In a real vector space, a convex set with nonempty interior is a set of unique
 differentiability. -/
-theorem unique_diff_on_convex {s : set G} (conv : convex s) (hs : (interior s).nonempty) :
+theorem unique_diff_on_convex {s : set G} (conv : convex ℝ s) (hs : (interior s).nonempty) :
   unique_diff_on ℝ s :=
 begin
   assume x xs,
@@ -378,7 +378,7 @@ begin
     simp [(submodule.span ℝ (tangent_cone_at ℝ s x)).eq_top_of_nonempty_interior'
       ⟨y - x, interior_mono submodule.subset_span this⟩] },
   rw [mem_interior_iff_mem_nhds] at hy ⊢,
-  apply mem_sets_of_superset ((is_open_map_sub_right x).image_mem_nhds hy),
+  apply mem_of_superset ((is_open_map_sub_right x).image_mem_nhds hy),
   rintros _ ⟨z, zs, rfl⟩,
   exact mem_tangent_cone_of_segment_subset (conv.segment_subset xs zs)
 end

@@ -42,10 +42,7 @@ def uncurry : (C ⥤ (D ⥤ E)) ⥤ ((C × D) ⥤ E) :=
       simp only [prod_comp_fst, prod_comp_snd, category.comp_id, category.assoc,
         functor.map_id, functor.map_comp, nat_trans.id_app, nat_trans.comp_app],
       slice_lhs 2 3 { rw nat_trans.naturality },
-      slice_lhs 1 2 {
-        rw [←nat_trans.comp_app, nat_trans.naturality,
-            nat_trans.comp_app],
-      },
+      slice_lhs 1 2 { rw [←nat_trans.comp_app, nat_trans.naturality, nat_trans.comp_app] },
       rw category.assoc,
     end } }.
 
@@ -104,5 +101,11 @@ equivalence.mk uncurry curry
     (λ X, nat_iso.of_components (λ Y, iso.refl _) (by tidy)) (by tidy)) (by tidy))
   (nat_iso.of_components (λ F, nat_iso.of_components
     (λ X, eq_to_iso (by simp)) (by tidy)) (by tidy))
+
+/-- `F.flip` is isomorphic to uncurrying `F`, swapping the variables, and currying. -/
+@[simps]
+def flip_iso_curry_swap_uncurry (F : C ⥤ D ⥤ E) :
+  F.flip ≅ curry.obj (prod.swap _ _ ⋙ uncurry.obj F) :=
+nat_iso.of_components (λ d, nat_iso.of_components (λ c, eq_to_iso rfl) $ by tidy) $ by tidy
 
 end category_theory

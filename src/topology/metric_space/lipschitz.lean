@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rohan Mitta, Kevin Buzzard, Alistair Tucker, Johannes Hölzl, Yury Kudryashov
 -/
 import logic.function.iterate
+import data.set.intervals.proj_Icc
 import topology.metric_space.basic
 import category_theory.endomorphism
 import category_theory.types
@@ -96,9 +97,9 @@ protected lemma lipschitz_on_with (h : lipschitz_with K f) (s : set α) : lipsch
 
 lemma edist_le_mul (h : lipschitz_with K f) (x y : α) : edist (f x) (f y) ≤ K * edist x y := h x y
 
-lemma edist_lt_top (hf : lipschitz_with K f) {x y : α} (h : edist x y < ⊤) :
+lemma edist_lt_top (hf : lipschitz_with K f) {x y : α} (h : edist x y ≠ ⊤) :
   edist (f x) (f y) < ⊤ :=
-lt_of_le_of_lt (hf x y) $ ennreal.mul_lt_top ennreal.coe_lt_top h
+lt_of_le_of_lt (hf x y) $ ennreal.mul_lt_top ennreal.coe_ne_top h
 
 lemma mul_edist_le (h : lipschitz_with K f) (x y : α) :
   (K⁻¹ : ℝ≥0∞) * edist (f x) (f y) ≤ edist x y :=
@@ -125,16 +126,18 @@ begin
     ennreal.mul_left_mono (emetric.edist_le_diam_of_mem hx hy)
 end
 
+lemma edist_lt_of_edist_lt_div (hf : lipschitz_with K f) {x y : α} {d : ℝ≥0∞}
+  (h : edist x y < d / K) : edist (f x) (f y) < d :=
+calc edist (f x) (f y) ≤ K * edist x y : hf x y
+... < d : ennreal.mul_lt_of_lt_div' h
+
 /-- A Lipschitz function is uniformly continuous -/
 protected lemma uniform_continuous (hf : lipschitz_with K f) :
   uniform_continuous f :=
 begin
   refine emetric.uniform_continuous_iff.2 (λε εpos, _),
   use [ε / K, ennreal.div_pos_iff.2 ⟨ne_of_gt εpos, ennreal.coe_ne_top⟩],
-  assume x y Dxy,
-  apply lt_of_le_of_lt (hf.edist_le_mul x y),
-  rw [mul_comm],
-  exact ennreal.mul_lt_of_lt_div Dxy
+  exact λ x y, hf.edist_lt_of_edist_lt_div
 end
 
 /-- A Lipschitz function is continuous -/
@@ -153,6 +156,10 @@ lipschitz_with.of_edist_le $ assume x y, le_refl _
 
 protected lemma subtype_coe (s : set α) : lipschitz_with 1 (coe : s → α) :=
 lipschitz_with.subtype_val s
+
+lemma subtype_mk (hf : lipschitz_with K f) {p : β → Prop} (hp : ∀ x, p (f x)) :
+  lipschitz_with K (λ x, ⟨f x, hp x⟩ : α → {y // p y}) :=
+hf
 
 protected lemma eval {α : ι → Type u} [Π i, pseudo_emetric_space (α i)] [fintype ι] (i : ι) :
   lipschitz_with 1 (function.eval i : (Π i, α i) → α i) :=
@@ -272,15 +279,16 @@ lemma nndist_le {f : α → β} (hf : lipschitz_with K f) (x y : α) :
   nndist (f x) (f y) ≤ K * nndist x y :=
 hf.dist_le_mul x y
 
+lemma bounded_image {f : α → β} (hf : lipschitz_with K f) {s : set α} (hs : metric.bounded s) :
+  metric.bounded (f '' s) :=
+metric.bounded_iff_ediam_ne_top.2 $ ne_top_of_le_ne_top
+  (ennreal.mul_ne_top ennreal.coe_ne_top hs.ediam_ne_top) (hf.ediam_image_le s)
+
 lemma diam_image_le {f : α → β} (hf : lipschitz_with K f) (s : set α) (hs : metric.bounded s) :
   metric.diam (f '' s) ≤ K * metric.diam s :=
-begin
-  apply metric.diam_le_of_forall_dist_le (mul_nonneg K.coe_nonneg metric.diam_nonneg),
-  rintros _ ⟨x, hx, rfl⟩ _ ⟨y, hy, rfl⟩,
-  calc dist (f x) (f y) ≤ ↑K * dist x y      : hf.dist_le_mul x y
-                    ... ≤ ↑K * metric.diam s :
-    mul_le_mul_of_nonneg_left (metric.dist_le_diam_of_mem hs hx hy) K.2
-end
+by simpa only [ennreal.to_real_mul, ennreal.coe_to_real]
+  using (ennreal.to_real_le_to_real (hf.bounded_image hs).ediam_ne_top
+    (ennreal.mul_ne_top ennreal.coe_ne_top hs.ediam_ne_top)).2 (hf.ediam_image_le s)
 
 protected lemma dist_left (y : α) : lipschitz_with 1 (λ x, dist x y) :=
 lipschitz_with.of_le_add $ assume x z, by { rw [add_comm], apply dist_triangle }
@@ -298,7 +306,45 @@ begin
   simpa only [nnreal.coe_pow] using (hf.iterate n).dist_le_mul x (f x)
 end
 
+lemma _root_.lipschitz_with_max : lipschitz_with 1 (λ p : ℝ × ℝ, max p.1 p.2) :=
+lipschitz_with.of_le_add $ λ p₁ p₂, sub_le_iff_le_add'.1 $
+  (le_abs_self _).trans (abs_max_sub_max_le_max _ _ _ _)
+
+lemma _root_.lipschitz_with_min : lipschitz_with 1 (λ p : ℝ × ℝ, min p.1 p.2) :=
+lipschitz_with.of_le_add $ λ p₁ p₂, sub_le_iff_le_add'.1 $
+  (le_abs_self _).trans (abs_min_sub_min_le_max _ _ _ _)
+
 end metric
+
+section emetric
+
+variables {α} [pseudo_emetric_space α] {f g : α → ℝ} {Kf Kg : ℝ≥0}
+
+protected lemma max (hf : lipschitz_with Kf f) (hg : lipschitz_with Kg g) :
+  lipschitz_with (max Kf Kg) (λ x, max (f x) (g x)) :=
+by simpa only [(∘), one_mul] using lipschitz_with_max.comp (hf.prod hg)
+
+protected lemma min (hf : lipschitz_with Kf f) (hg : lipschitz_with Kg g) :
+  lipschitz_with (max Kf Kg) (λ x, min (f x) (g x)) :=
+by simpa only [(∘), one_mul] using lipschitz_with_min.comp (hf.prod hg)
+
+lemma max_const (hf : lipschitz_with Kf f) (a : ℝ) : lipschitz_with Kf (λ x, max (f x) a) :=
+by simpa only [max_eq_left (zero_le Kf)] using hf.max (lipschitz_with.const a)
+
+lemma const_max (hf : lipschitz_with Kf f) (a : ℝ) : lipschitz_with Kf (λ x, max a (f x)) :=
+by simpa only [max_comm] using hf.max_const a
+
+lemma min_const (hf : lipschitz_with Kf f) (a : ℝ) : lipschitz_with Kf (λ x, min (f x) a) :=
+by simpa only [max_eq_left (zero_le Kf)] using hf.min (lipschitz_with.const a)
+
+lemma const_min (hf : lipschitz_with Kf f) (a : ℝ) : lipschitz_with Kf (λ x, min a (f x)) :=
+by simpa only [min_comm] using hf.min_const a
+
+end emetric
+
+protected lemma proj_Icc {a b : ℝ} (h : a ≤ b) :
+  lipschitz_with 1 (proj_Icc a b h) :=
+((lipschitz_with.id.const_min _).const_max _).subtype_mk _
 
 end lipschitz_with
 
@@ -313,7 +359,56 @@ uniform_continuous_on_iff_restrict.mpr (lipschitz_on_with_iff_restrict.mp hf).un
 protected lemma continuous_on (hf : lipschitz_on_with K f s) : continuous_on f s :=
 hf.uniform_continuous_on.continuous_on
 
+lemma edist_lt_of_edist_lt_div (hf : lipschitz_on_with K f s) {x y : α} (hx : x ∈ s) (hy : y ∈ s)
+  {d : ℝ≥0∞} (hd : edist x y < d / K) : edist (f x) (f y) < d :=
+(lipschitz_on_with_iff_restrict.mp hf).edist_lt_of_edist_lt_div $
+  show edist (⟨x, hx⟩ : s) ⟨y, hy⟩ < d / K, from hd
+
 end lipschitz_on_with
+
+/-- Consider a function `f : α × β → γ`. Suppose that it is continuous on each “vertical fiber”
+`{a} × t`, `a ∈ s`, and is Lipschitz continuous on each “horizontal fiber” `s × {b}`, `b ∈ t`
+with the same Lipschitz constant `K`. Then it is continuous on `s × t`.
+
+The actual statement uses (Lipschitz) continuity of `λ y, f (a, y)` and `λ x, f (x, b)` instead
+of continuity of `f` on subsets of the product space. -/
+lemma continuous_on_prod_of_continuous_on_lipschitz_on [pseudo_emetric_space α]
+  [topological_space β] [pseudo_emetric_space γ] (f : α × β → γ) {s : set α} {t : set β}
+  (K : ℝ≥0) (ha : ∀ a ∈ s, continuous_on (λ y, f (a, y)) t)
+  (hb : ∀ b ∈ t, lipschitz_on_with K (λ x, f (x, b)) s) :
+  continuous_on f (s.prod t) :=
+begin
+  rintro ⟨x, y⟩ ⟨hx : x ∈ s, hy : y ∈ t⟩,
+  refine emetric.tendsto_nhds.2 (λ ε (ε0 : 0 < ε), _),
+  replace ε0 : 0 < ε / 2 := ennreal.half_pos (ne_of_gt ε0),
+  have εK : 0 < ε / 2 / K := ennreal.div_pos_iff.2 ⟨ε0.ne', ennreal.coe_ne_top⟩,
+  have A : s ∩ emetric.ball x (ε / 2 / K) ∈ 𝓝[s] x :=
+    inter_mem_nhds_within _ (emetric.ball_mem_nhds _ εK),
+  have B : {b : β | b ∈ t ∧ edist (f (x, b)) (f (x, y)) < ε / 2} ∈ 𝓝[t] y :=
+    inter_mem self_mem_nhds_within (ha x hx y hy (emetric.ball_mem_nhds _ ε0)),
+  filter_upwards [nhds_within_prod A B],
+  rintro ⟨a, b⟩ ⟨⟨has : a ∈ s, hax : edist a x < ε / 2 / K⟩,
+    hbt : b ∈ t, hby : edist (f (x, b)) (f (x, y)) < ε / 2⟩,
+  calc edist (f (a, b)) (f (x, y)) ≤ edist (f (a, b)) (f (x, b)) + edist (f (x, b)) (f (x, y)) :
+    edist_triangle _ _ _
+  ... < ε / 2 + ε / 2 : ennreal.add_lt_add ((hb _ hbt).edist_lt_of_edist_lt_div has hx hax) hby
+  ... = ε : ennreal.add_halves ε
+end
+
+/-- Consider a function `f : α × β → γ`. Suppose that it is continuous on each “vertical section”
+`{a} × univ`, `a : α`, and is Lipschitz continuous on each “horizontal section”
+`univ × {b}`, `b : β` with the same Lipschitz constant `K`. Then it is continuous.
+
+The actual statement uses (Lipschitz) continuity of `λ y, f (a, y)` and `λ x, f (x, b)` instead
+of continuity of `f` on subsets of the product space. -/
+lemma continuous_prod_of_continuous_lipschitz [pseudo_emetric_space α]
+  [topological_space β] [pseudo_emetric_space γ] (f : α × β → γ) (K : ℝ≥0)
+  (ha : ∀ a, continuous (λ y, f (a, y))) (hb : ∀ b, lipschitz_with K (λ x, f (x, b))) :
+  continuous f :=
+begin
+  simp only [continuous_iff_continuous_on_univ, ← univ_prod_univ, ← lipschitz_on_univ] at *,
+  exact continuous_on_prod_of_continuous_on_lipschitz_on f K (λ a _, ha a) (λ b _, hb b)
+end
 
 open metric
 
@@ -322,15 +417,11 @@ lemma continuous_at_of_locally_lipschitz [metric_space α] [metric_space β] {f 
   {r : ℝ} (hr : 0 < r) (K : ℝ) (h : ∀y, dist y x < r → dist (f y) (f x) ≤ K * dist y x) :
   continuous_at f x :=
 begin
-  refine (nhds_basis_ball.tendsto_iff nhds_basis_closed_ball).2
-    (λε εpos, ⟨min r (ε / max K 1), _, λ y hy, _⟩),
-  { simp [hr, div_pos εpos, zero_lt_one] },
-  have A : max K 1 ≠ 0 := ne_of_gt (lt_max_iff.2 (or.inr zero_lt_one)),
-  calc dist (f y) (f x)
-    ≤ K * dist y x : h y (lt_of_lt_of_le hy (min_le_left _ _))
-    ... ≤ max K 1 * dist y x : mul_le_mul_of_nonneg_right (le_max_left K 1) dist_nonneg
-    ... ≤ max K 1 * (ε / max K 1) :
-      mul_le_mul_of_nonneg_left (le_of_lt (lt_of_lt_of_le hy (min_le_right _ _)))
-        (le_trans zero_le_one (le_max_right K 1))
-    ... = ε : mul_div_cancel' _ A
+  -- We use `h` to squeeze `dist (f y) (f x)` between `0` and `K * dist y x`
+  refine tendsto_iff_dist_tendsto_zero.2
+    (squeeze_zero' (eventually_of_forall $ λ _, dist_nonneg)
+    (mem_of_superset (ball_mem_nhds _ hr) h) _),
+  -- Then show that `K * dist y x` tends to zero as `y → x`
+  refine (continuous_const.mul (continuous_id.dist continuous_const)).tendsto' _ _ _,
+  simp
 end

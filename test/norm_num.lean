@@ -2,11 +2,13 @@
 Copyright (c) 2017 Simon Hudon All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon, Mario Carneiro
-
-Tests for norm_num
 -/
 
 import tactic.norm_num
+
+/-!
+# Tests for `norm_num` extensions
+-/
 
 constant real : Type
 notation `ℝ` := real

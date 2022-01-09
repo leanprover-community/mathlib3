@@ -18,12 +18,12 @@ Dualise and apply to functor categories.
 
 -/
 
-universes v u₁ u₂
+universes v₁ v₂ u₁ u₂
 
 namespace category_theory
 open category limits
 
-variables {C : Type u₁} {D : Type u₂} [category.{v} C] [category.{v} D]
+variables {C : Type u₁} {D : Type u₂} [category.{v₁} C] [category.{v₂} D]
 variables (F : C ⥤ D)
 
 /-- If `F` preserves pullbacks, then it preserves monomorphisms. -/

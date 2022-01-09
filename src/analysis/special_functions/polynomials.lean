@@ -95,9 +95,9 @@ begin
 end
 
 lemma abs_is_bounded_under_iff :
-  is_bounded_under (≤) at_top (λ x, abs (eval x P)) ↔ P.degree ≤ 0 :=
+  is_bounded_under (≤) at_top (λ x, |eval x P|) ↔ P.degree ≤ 0 :=
 begin
-  refine ⟨λ h, _, λ h, ⟨abs (P.coeff 0), eventually_map.mpr (eventually_of_forall
+  refine ⟨λ h, _, λ h, ⟨|P.coeff 0|, eventually_map.mpr (eventually_of_forall
     (forall_imp (λ _, le_of_eq) (λ x, congr_arg abs $ trans (congr_arg (eval x)
     (eq_C_of_degree_le_zero h)) (eval_C))))⟩⟩,
   contrapose! h,
@@ -141,7 +141,7 @@ begin
   refine (P.is_equivalent_at_top_lead.symm.div
           Q.is_equivalent_at_top_lead.symm).symm.trans
          (eventually_eq.is_equivalent ((eventually_gt_at_top 0).mono $ λ x hx, _)),
-  simp [← div_mul_div, hP, hQ, fpow_sub hx.ne.symm]
+  simp [← div_mul_div, hP, hQ, zpow_sub₀ hx.ne.symm]
 end
 
 lemma div_tendsto_zero_of_degree_lt (hdeg : P.degree < Q.degree) :
@@ -152,7 +152,7 @@ begin
   rw ←  nat_degree_lt_nat_degree_iff hP at hdeg,
   refine (is_equivalent_at_top_div P Q).symm.tendsto_nhds _,
   rw ← mul_zero,
-  refine (tendsto_fpow_at_top_zero _).const_mul _,
+  refine (tendsto_zpow_at_top_zero _).const_mul _,
   linarith
 end
 
@@ -167,7 +167,7 @@ begin
       exact bot_lt_iff_ne_bot.2 (λ hQ', hQ (degree_eq_bot.1 hQ')) },
     { exact absurd (leading_coeff_eq_zero.1 hQ0) hQ } },
   { have := (is_equivalent_at_top_div P Q).tendsto_nhds h,
-    rw tendsto_const_mul_fpow_at_top_zero_iff hPQ at this,
+    rw tendsto_const_mul_zpow_at_top_zero_iff hPQ at this,
     cases this with h h,
     { exact absurd h.2 hPQ },
     { rw [sub_lt_iff_lt_add, zero_add, int.coe_nat_lt] at h,
@@ -190,7 +190,7 @@ begin
   rw ← nat_degree_lt_nat_degree_iff hQ at hdeg,
   refine (is_equivalent_at_top_div P Q).symm.tendsto_at_top _,
   apply tendsto.const_mul_at_top hpos,
-  apply tendsto_fpow_at_top_at_top,
+  apply tendsto_zpow_at_top_at_top,
   linarith
 end
 
@@ -211,7 +211,7 @@ begin
   rw ← nat_degree_lt_nat_degree_iff hQ at hdeg,
   refine (is_equivalent_at_top_div P Q).symm.tendsto_at_bot _,
   apply tendsto.neg_const_mul_at_top hneg,
-  apply tendsto_fpow_at_top_at_top,
+  apply tendsto_zpow_at_top_at_top,
   linarith
 end
 
@@ -226,7 +226,7 @@ div_tendsto_at_bot_of_degree_gt' P Q hdeg ratio_neg
 
 lemma abs_div_tendsto_at_top_of_degree_gt (hdeg : Q.degree < P.degree)
   (hQ : Q ≠ 0) :
-  tendsto (λ x, abs ((eval x P)/(eval x Q))) at_top at_top :=
+  tendsto (λ x, |(eval x P)/(eval x Q)|) at_top at_top :=
 begin
   by_cases h : 0 ≤ P.leading_coeff/Q.leading_coeff,
   { exact tendsto_abs_at_top_at_top.comp (P.div_tendsto_at_top_of_degree_gt Q hdeg hQ h) },
@@ -243,7 +243,7 @@ begin
   { simpa [hp] using is_O_zero (λ x, eval x Q) filter.at_top },
   { have hq : Q ≠ 0 := ne_zero_of_degree_ge_degree h hp,
     have hPQ : ∀ᶠ (x : 𝕜) in at_top, eval x Q = 0 → eval x P = 0 :=
-      filter.mem_sets_of_superset (polynomial.eventually_no_roots Q hq) (λ x h h', absurd h' h),
+      filter.mem_of_superset (polynomial.eventually_no_roots Q hq) (λ x h h', absurd h' h),
     cases le_iff_lt_or_eq.mp h with h h,
     { exact is_O_of_div_tendsto_nhds hPQ 0 (div_tendsto_zero_of_degree_lt P Q h) },
     { exact is_O_of_div_tendsto_nhds hPQ _ (div_tendsto_leading_coeff_div_of_degree_eq P Q h) } }

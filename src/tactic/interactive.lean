@@ -3,14 +3,11 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Simon Hudon, Sébastien Gouëzel, Scott Morrison
 -/
+import logic.nonempty
 import tactic.lint
 import tactic.dependencies
 
-open lean
-open lean.parser
-
-local postfix `?`:9001 := optional
-local postfix *:9001 := many
+setup_tactic_parser
 
 namespace tactic
 namespace interactive
@@ -99,10 +96,9 @@ Typically usage might look like:
 intros,
 simp,
 apply lemma_1,
-work_on_goal 2 {
-  dsimp,
-  simp
-},
+work_on_goal 2
+{ dsimp,
+  simp },
 refl
 ````
 
@@ -382,7 +378,8 @@ do h ← get_local n >>= infer_type >>= instantiate_mvars, guard_expr_eq h p
 `match_hyp h : t` fails if the hypothesis `h` does not match the type `t` (which may be a pattern).
 We use this tactic for writing tests.
 -/
-meta def match_hyp (n : parse ident) (p : parse $ tk ":" *> texpr) (m := reducible) : tactic (list expr) :=
+meta def match_hyp (n : parse ident) (p : parse $ tk ":" *> texpr) (m := reducible) :
+  tactic (list expr) :=
 do
   h ← get_local n >>= infer_type >>= instantiate_mvars,
   match_expr p h m
@@ -645,8 +642,8 @@ add_tactic_doc
   tags       := ["finishing"] }
 
 /--
-Similar to `existsi`. `use x` will instantiate the first term of an `∃` or `Σ` goal with `x`.
-It will then try to close the new goal using `triv`, or try to simplify it by applying `exists_prop`.
+Similar to `existsi`. `use x` will instantiate the first term of an `∃` or `Σ` goal with `x`. It
+will then try to close the new goal using `triv`, or try to simplify it by applying `exists_prop`.
 Unlike `existsi`, `x` is elaborated with respect to the expected type.
 `use` will alternatively take a list of terms `[x0, ..., xn]`.
 
@@ -849,7 +846,8 @@ private meta def format_binders : list name × binder_info × expr → tactic fo
 | (ns, binder_info.inst_implicit, t) := indent_bindents "[" "]" ns t
 | (ns, binder_info.aux_decl, t) := indent_bindents "(" ")" ns t
 
-private meta def partition_vars' (s : name_set) : list expr → list expr → list expr → tactic (list expr × list expr)
+private meta def partition_vars' (s : name_set) :
+  list expr → list expr → list expr → tactic (list expr × list expr)
 | [] as bs := pure (as.reverse, bs.reverse)
 | (x :: xs) as bs :=
 do t ← infer_type x,
@@ -931,12 +929,12 @@ end
 
 -/
 meta def extract_goal (print_use : parse $ tt <$ tk "!" <|> pure ff)
-  (n : parse ident?) (vs : parse with_ident_list)
+  (n : parse ident?) (vs : parse (tk "with" *> ident*)?)
   : tactic unit :=
 do tgt ← target,
-   solve_aux tgt $ do {
-     ((cxt₀,cxt₁,ls,tgt),_) ← solve_aux tgt $ do {
-         when (¬ vs.empty) (clear_except vs),
+   solve_aux tgt $ do
+   { ((cxt₀,cxt₁,ls,tgt),_) ← solve_aux tgt $ do
+       { vs.mmap clear_except,
          ls ← local_context,
          ls ← ls.mfilter $ succeeds ∘ is_local_def,
          n ← revert_lst ls,
@@ -1060,17 +1058,18 @@ the same type.
 succeeds when `e` does not occur in the goal. It is similar to `set`, but the resulting hypothesis
 `x` is not a local definition.
 -/
-meta def generalize' (h : parse ident?) (_ : parse $ tk ":") (p : parse generalize_arg_p) : tactic unit :=
+meta def generalize' (h : parse ident?) (_ : parse $ tk ":") (p : parse generalize_arg_p) :
+  tactic unit :=
 propagate_tags $
 do let (p, x) := p,
    e ← i_to_expr p,
    some h ← pure h | tactic.generalize' e x >> skip,
    -- `h` is given, the regular implementation of `generalize` works.
    tgt ← target,
-   tgt' ← do {
-     ⟨tgt', _⟩ ← solve_aux tgt (tactic.generalize e x >> target),
-     to_expr ``(Π x, %%e = x → %%(tgt'.binding_body.lift_vars 0 1))
-   } <|> to_expr ``(Π x, %%e = x → %%tgt),
+   tgt' ← do
+   { ⟨tgt', _⟩ ← solve_aux tgt (tactic.generalize e x >> target),
+     to_expr ``(Π x, %%e = x → %%(tgt'.binding_body.lift_vars 0 1)) }
+   <|> to_expr ``(Π x, %%e = x → %%tgt),
    t ← assert h tgt',
    swap,
    exact ``(%%t %%e rfl),

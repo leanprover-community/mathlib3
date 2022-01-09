@@ -236,13 +236,25 @@ end
 
 end sup
 
+lemma inf_sup_left [distrib_lattice α] [order_bot α] (a : α) (s : finset β) (f : β → α) :
+  a ⊓ s.sup f = s.sup (λ x, a ⊓ f x) :=
+begin
+  refine finset.cons_induction_on s (by simp) _,
+  intros i s' h ih,
+  simp only [←ih, sup_cons, inf_sup_left],
+end
+
+lemma sup_inf_right [distrib_lattice α] [order_bot α] (a : α) (s : finset β) (f : β → α) :
+  s.sup f ⊓ a = s.sup (λ x, f x ⊓ a) :=
+by simpa only [inf_comm] using inf_sup_left a s f
+
 lemma disjoint_sup_right [distrib_lattice α] [order_bot α] {a : α} {s : finset β} {f : β → α} :
   disjoint a (s.sup f) ↔ ∀ i ∈ s, disjoint a (f i) :=
-⟨λ h i hi, h.mono_right (le_sup hi), sup_induction disjoint_bot_right (λ b c, disjoint.sup_right)⟩
+by simp only [disjoint_iff, inf_sup_left, sup_eq_bot_iff]
 
 lemma disjoint_sup_left [distrib_lattice α] [order_bot α] {a : α} {s : finset β} {f : β → α} :
   disjoint (s.sup f) a ↔ ∀ i ∈ s, disjoint (f i) a :=
-by { simp_rw @disjoint.comm _ _ _ _ a, exact disjoint_sup_right }
+by simp only [disjoint_iff, sup_inf_right, sup_eq_bot_iff]
 
 lemma sup_eq_supr [complete_lattice β] (s : finset α) (f : α → β) : s.sup f = (⨆a∈s, f a) :=
 le_antisymm

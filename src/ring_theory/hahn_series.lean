@@ -184,6 +184,16 @@ lemma order_single (h : r ≠ 0) : (single a r).order = a :=
 (order_of_ne (single_ne_zero h)).trans (support_single_subset ((single a r).is_wf_support.min_mem
     (support_nonempty_iff.2 (single_ne_zero h))))
 
+lemma coeff_eq_zero_of_lt_order {x : hahn_series Γ R} {i : Γ} (hi : i < x.order) : x.coeff i = 0 :=
+begin
+  rcases eq_or_ne x 0 with rfl|hx,
+  { simp },
+  contrapose! hi,
+  rw [←ne.def, ←mem_support] at hi,
+  rw [order_of_ne hx],
+  exact set.is_wf.not_lt_min _ _ hi
+end
+
 end order
 
 section domain
@@ -740,8 +750,8 @@ instance [comm_ring R] : comm_ring (hahn_series Γ R) :=
 { .. hahn_series.comm_semiring,
   .. hahn_series.ring }
 
-instance {Γ} [linear_ordered_cancel_add_comm_monoid Γ] [ring R] [is_domain R] :
-  is_domain (hahn_series Γ R) :=
+instance {Γ} [linear_ordered_cancel_add_comm_monoid Γ] [non_unital_non_assoc_semiring R]
+  [no_zero_divisors R] : no_zero_divisors (hahn_series Γ R) :=
 { eq_zero_or_eq_zero_of_mul_eq_zero := λ x y xy, begin
     by_cases hx : x = 0,
     { left, exact hx },
@@ -751,13 +761,17 @@ instance {Γ} [linear_ordered_cancel_add_comm_monoid Γ] [ring R] [is_domain R] 
     refine ⟨x.order + y.order, _⟩,
     rw [mul_coeff_order_add_order x y, zero_coeff, mul_eq_zero],
     simp [coeff_order_ne_zero, hx, xy],
-  end,
+  end }
+
+instance {Γ} [linear_ordered_cancel_add_comm_monoid Γ] [ring R] [is_domain R] :
+  is_domain (hahn_series Γ R) :=
+{ .. hahn_series.no_zero_divisors,
   .. hahn_series.nontrivial,
   .. hahn_series.ring }
 
 @[simp]
-lemma order_mul {Γ} [linear_ordered_cancel_add_comm_monoid Γ] [ring R] [is_domain R]
-  {x y : hahn_series Γ R} (hx : x ≠ 0) (hy : y ≠ 0) :
+lemma order_mul {Γ} [linear_ordered_cancel_add_comm_monoid Γ] [non_unital_non_assoc_semiring R]
+  [no_zero_divisors R] {x y : hahn_series Γ R} (hx : x ≠ 0) (hy : y ≠ 0) :
   (x * y).order = x.order + y.order :=
 begin
   apply le_antisymm,
@@ -766,6 +780,17 @@ begin
     exact mul_ne_zero (coeff_order_ne_zero hx) (coeff_order_ne_zero hy) },
   { rw [order_of_ne hx, order_of_ne hy, order_of_ne (mul_ne_zero hx hy), ← set.is_wf.min_add],
     exact set.is_wf.min_le_min_of_subset (support_mul_subset_add_support) },
+end
+
+@[simp]
+lemma order_pow {Γ} [linear_ordered_cancel_add_comm_monoid Γ] [semiring R] [no_zero_divisors R]
+  (x : hahn_series Γ R) (n : ℕ) : (x ^ n).order = n • x.order :=
+begin
+  induction n with h IH,
+  { simp },
+  rcases eq_or_ne x 0 with rfl|hx,
+  { simp },
+  rw [pow_succ', order_mul (pow_ne_zero _ hx) hx, succ_nsmul', IH]
 end
 
 section non_unital_non_assoc_semiring

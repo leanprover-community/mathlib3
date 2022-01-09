@@ -154,69 +154,59 @@ is_localization.of_le (submonoid.powers (power_series.X : power_series K)) _
 
 end laurent_series
 
-namespace polynomial
+namespace power_series
 
-section laurent_series
+open laurent_series
 
-variables [comm_semiring R] (p q : polynomial R)
+variables [semiring R] (f g : power_series R)
 
-open laurent_series hahn_series
+@[simp, norm_cast] lemma coe_zero : ((0 : power_series R) : laurent_series R) = 0 :=
+(of_power_series ℤ R).map_zero
 
-lemma coe_laurent : (p : laurent_series R) = of_power_series ℤ R p := rfl
+@[simp, norm_cast] lemma coe_one : ((1 : power_series R) : laurent_series R) = 1 :=
+(of_power_series ℤ R).map_one
 
-@[norm_cast] lemma coe_coe : ((p : power_series R) : laurent_series R) = p := rfl
+@[simp, norm_cast] lemma coe_add : ((f + g : power_series R) : laurent_series R) = f + g :=
+(of_power_series ℤ R).map_add _ _
 
-@[simp] lemma coe_laurent_zero : ((0 : polynomial R) : laurent_series R) = 0 :=
-((of_power_series ℤ R).comp (coe_to_power_series.ring_hom)).map_zero
+@[simp, norm_cast] lemma coe_mul : ((f * g : power_series R) : laurent_series R) = f * g :=
+(of_power_series ℤ R).map_mul _ _
 
-@[simp] lemma coe_laurent_one : ((1 : polynomial R) : laurent_series R) = 1 :=
-((of_power_series ℤ R).comp (coe_to_power_series.ring_hom)).map_one
-
-@[simp, norm_cast] lemma coe_laurent_add : ((p + q : polynomial R) : laurent_series R) = p + q :=
-((of_power_series ℤ R).comp (coe_to_power_series.ring_hom)).map_add _ _
-
-@[simp, norm_cast] lemma coe_laurent_mul : ((p * q : polynomial R) : laurent_series R) = p * q :=
-((of_power_series ℤ R).comp (coe_to_power_series.ring_hom)).map_mul _ _
-
-@[norm_cast] lemma coeff_coe_laurent_coe (i : ℕ) :
-  ((p : polynomial R) : laurent_series R).coeff i = p.coeff i :=
-by rw [←coe_coe, coeff_coe_power_series, coeff_coe]
-
-lemma coeff_coe_laurent (i : ℤ) :
-  ((p : polynomial R) : laurent_series R).coeff i = if i < 0 then 0 else p.coeff i.nat_abs :=
+lemma coeff_coe (i : ℤ) :
+  ((f : power_series R) : laurent_series R).coeff i =
+    if i < 0 then 0 else power_series.coeff R i.nat_abs f :=
 begin
   cases i,
-  { rw [int.nat_abs_of_nat_core, int.of_nat_eq_coe, coeff_coe_laurent_coe,
+  { rw [int.nat_abs_of_nat_core, int.of_nat_eq_coe, coeff_coe_power_series,
         if_neg (int.coe_nat_nonneg _).not_lt] },
-  { rw [coe_laurent, of_power_series_apply, emb_domain_notin_image_support,
+  { rw [coe_power_series, of_power_series_apply, emb_domain_notin_image_support,
         if_pos (int.neg_succ_lt_zero _)],
-    simp only [not_exists, rel_embedding.coe_fn_mk, set.mem_image, not_and, coeff_coe,
+    simp only [not_exists, rel_embedding.coe_fn_mk, set.mem_image, not_and,
                function.embedding.coe_fn_mk, ne.def, to_power_series_symm_apply_coeff, mem_support,
                int.nat_cast_eq_coe_nat, int.coe_nat_eq, implies_true_iff, not_false_iff] }
 end
 
-@[simp] lemma coe_laurent_C (r : R) : ((C r : polynomial R) : laurent_series R) = hahn_series.C r :=
-by rw [coe_laurent, coe_C, of_power_series_C]
+@[simp, norm_cast] lemma coe_C (r : R) : ((C R r : power_series R) : laurent_series R) =
+  hahn_series.C r :=
+of_power_series_C _
 
-@[simp] lemma coe_laurent_X : ((X : polynomial R) : laurent_series R) = single 1 1 :=
-by rw [coe_laurent, coe_X, of_power_series_X]
+@[simp] lemma coe_X : ((X : power_series R) : laurent_series R) = single 1 1 :=
+of_power_series_X
 
-@[simp, norm_cast] lemma coe_laurent_smul (r : R) :
-  ((r • p : polynomial R) : laurent_series R) = r • p :=
-by rw [smul_eq_C_mul, coe_laurent_mul, coe_laurent_C, C_mul_eq_smul]
+@[simp, norm_cast] lemma coe_smul {S : Type*} [semiring S] [module R S]
+  (r : R) (x : power_series S) : ((r • x : power_series S) : laurent_series S) = r • x :=
+by { ext, simp [coeff_coe, coeff_smul, smul_ite] }
 
-@[simp, norm_cast] lemma coe_laurent_bit0 :
-  ((bit0 p : polynomial R) : laurent_series R) = bit0 p :=
-((of_power_series ℤ R).comp (coe_to_power_series.ring_hom)).map_bit0 _
+@[simp, norm_cast] lemma coe_bit0 :
+  ((bit0 f : power_series R) : laurent_series R) = bit0 f :=
+(of_power_series ℤ R).map_bit0 _
 
-@[simp, norm_cast] lemma coe_laurent_bit1 :
-  ((bit1 p : polynomial R) : laurent_series R) = bit1 p :=
-((of_power_series ℤ R).comp (coe_to_power_series.ring_hom)).map_bit1 _
+@[simp, norm_cast] lemma coe_bit1 :
+  ((bit1 f : power_series R) : laurent_series R) = bit1 f :=
+(of_power_series ℤ R).map_bit1 _
 
-@[simp, norm_cast] lemma coe_laurent_pow (n : ℕ) :
-  ((p ^ n : polynomial R) : laurent_series R) = p ^ n :=
-((of_power_series ℤ R).comp (coe_to_power_series.ring_hom)).map_pow _ _
+@[simp, norm_cast] lemma coe_pow (n : ℕ) :
+  ((f ^ n : power_series R) : laurent_series R) = f ^ n :=
+(of_power_series ℤ R).map_pow _ _
 
-end laurent_series
-
-end polynomial
+end power_series

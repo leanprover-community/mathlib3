@@ -146,8 +146,10 @@ ext_iff.2 $ by simp
 @[simp, norm_cast, priority 900] lemma of_real_mul (r s : ℝ) : ((r * s : ℝ) : K) = r * s :=
 ext_iff.2 $ by simp
 @[simp, norm_cast] lemma of_real_smul (r x : ℝ) : r • (x : K) = (r : K) * (x : K) :=
-by { simp_rw [← smul_eq_mul, of_real_alg r], simp only [algebra.id.smul_eq_mul, one_mul,
-                                                        algebra.smul_mul_assoc], }
+begin
+  simp_rw [← smul_eq_mul, of_real_alg r],
+  simp only [algebra.id.smul_eq_mul, one_mul, algebra.smul_mul_assoc],
+end
 
 lemma of_real_mul_re (r : ℝ) (z : K) : re (↑r * z) = r * re z :=
 by simp only [mul_re, of_real_im, zero_mul, of_real_re, sub_zero]

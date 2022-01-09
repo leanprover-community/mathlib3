@@ -27,7 +27,7 @@ namespace measure_theory
 
 open set filter topological_space
 
-variables {α β ι : Type*} {m : measurable_space α} [metric_space β] {μ : measure α}
+variables {α β ι : Type*} {m : measurable_space α} [metric_space β]
 
 section
 
@@ -43,7 +43,7 @@ This definition is useful for Egorov's theorem. -/
 def not_convergent_seq (f : ℕ → α → β) (g : α → β) (i j : ℕ) : set α :=
 ⋃ k (hk : j ≤ k), {x | (1 / (i + 1 : ℝ)) < dist (f k x) (g x)}
 
-variables {f : ℕ → α → β} {g : α → β}
+variables {f : ℕ → α → β} {g : α → β} {μ : measure α}
 
 lemma mem_not_convergent_seq_iff {i j : ℕ} {x : α} : x ∈ not_convergent_seq f g i j ↔
   ∃ k (hk : j ≤ k), (1 / (i + 1 : ℝ)) < dist (f k x) (g x) :=
@@ -163,7 +163,7 @@ end
 end egorov
 
 variables [second_countable_topology β] [measurable_space β] [borel_space β]
-  {f : ℕ → α → β} {g : α → β}
+  {μ : measure α} {f : ℕ → α → β} {g : α → β}
 
 /-- **Egorov's theorem**: If `f : ℕ → α → β` is a sequence of measurable functions that converges
 to `g : α → β` almost everywhere on a measurable set `s` of finite measure, then for all `ε > 0`,
@@ -197,19 +197,39 @@ end
 
 end
 
-variables [measurable_space β] [normed_group β]
--- variables [second_countable_topology β] [measurable_space β] [borel_space β]
+variables [normed_group β] [measurable_space β]
 
--- **Change doc-strings**
-
-/-- A family `I` of (L₁-)functions is known as uniformly integrable if for all `ε > 0`, there
-exists some `δ > 0` such that for all `f ∈ I` and measurable sets `s` with measure less than `δ`,
-we have `∫ x in s, ∥f x∥ < ε`.
-
-This is the measure theory verison of uniform integrability. -/
+/-- Also known as uniformly absolutely continuous integrals. -/
 def unif_integrable {m : measurable_space α} (μ : measure α) (f : ι → α → β) : Prop :=
 ∀ ε : ℝ≥0∞, ∃ δ : ℝ≥0∞, ∀ i s, measurable_set s → μ s < δ →
 snorm (set.indicator s (f i)) 1 μ < ε
+
+section vitali
+
+variables [borel_space β] [second_countable_topology β]
+  {μ : measure α} [is_finite_measure μ] {p : ℝ≥0∞}
+
+/- The next three lemmas together is known as **the Vitali convergence theorem**. -/
+
+lemma tendsto_Lp_of_unif_integrable {f : ℕ → α → β} {g : α → β}
+  (hf : ∀ n, mem_ℒp (f n) p μ) (hg : mem_ℒp g p μ) (hui : unif_integrable μ f)
+  (hfg : ∀ᵐ x ∂μ, tendsto (λ n, f n x) at_top (𝓝 (g x))) :
+  tendsto (λ n, snorm (f n - g) p μ) at_top (𝓝 0) :=
+sorry
+
+lemma unif_integrable_of_tendsto_Lp {f : ℕ → α → β} {g : α → β}
+  (hf : ∀ n, mem_ℒp (f n) p μ) (hg : mem_ℒp g p μ)
+  (hfg : tendsto (λ n, snorm (f n - g) p μ) at_top (𝓝 0)) :
+  unif_integrable μ f :=
+sorry
+
+lemma ae_tendsto_of_tendsto_Lp {f : ℕ → α → β} {g : α → β}
+  (hf : ∀ n, mem_ℒp (f n) p μ) (hg : mem_ℒp g p μ)
+  (hfg : tendsto (λ n, snorm (f n - g) p μ) at_top (𝓝 0)) :
+  ∀ᵐ x ∂μ, tendsto (λ n, f n x) at_top (𝓝 (g x)) :=
+sorry
+
+end vitali
 
 /-- In probability theory, a family of functions is uniformly integrable if it is uniformly
 integrable in the measure theory sense and is uniformly bounded. -/
@@ -218,7 +238,7 @@ def uniform_integrable {m : measurable_space α}
 (∀ i, measurable (f i)) ∧ unif_integrable μ f ∧
   ∃ C : ℝ≥0, ∀ i, snorm (f i) 1 μ < C
 
-variables {f : ι → α → β}
+variables {μ : measure α} {f : ι → α → β}
 
 lemma uniform_integrable.mem_ℒp_one (hf : uniform_integrable μ f) (i : ι) :
   mem_ℒp (f i) 1 μ :=

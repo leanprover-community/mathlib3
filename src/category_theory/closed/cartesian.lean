@@ -111,7 +111,7 @@ lemma coev_naturality {X Y : C} (f : X ⟶ Y) :
   f ≫ (coev A).app Y = (coev A).app X ≫ (exp A).map (limits.prod.map (𝟙 A) f) :=
 (coev A).naturality f
 
-notation A ` ⟹ `:20 B:20 := (exp A).obj B
+notation A ` ⟹ `:20 B:19 := (exp A).obj B
 notation B ` ^^ `:30 A:30 := (exp A).obj B
 
 @[simp, reassoc] lemma ev_coev :

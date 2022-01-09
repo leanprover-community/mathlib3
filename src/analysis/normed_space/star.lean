@@ -51,7 +51,7 @@ noncomputable instance : cstar_ring ℝ :=
 variables {𝕜 E α : Type*}
 
 section normed_star_monoid
-variables [normed_group E] [star_add_monoid E] [normed_star_monoid E] [topological_space α]
+variables [normed_group E] [star_add_monoid E] [normed_star_monoid E]
 
 /-- The `star` map in a normed star group is a normed group homomorphism. -/
 def star_normed_group_hom : normed_group_hom E E :=
@@ -76,6 +76,8 @@ lemma tendsto_star (x : E) : filter.tendsto star (𝓝 x) (𝓝 x⋆) := continu
 lemma filter.tendsto.star {f : α → E} {l : filter α} {y : E} (h : filter.tendsto f l (𝓝 y)) :
   filter.tendsto (λ x, (f x)⋆) l (𝓝 y⋆) :=
 (continuous_star.tendsto y).comp h
+
+variables [topological_space α]
 
 lemma continuous.star {f : α → E} (hf : continuous f) : continuous (λ y, star (f y)) :=
 continuous_star.comp hf

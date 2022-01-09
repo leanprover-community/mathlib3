@@ -69,14 +69,20 @@ def d {i j : ℕ} (hj : i = j + 1) : group_ring (fin i → G) →ₗ[group_ring 
 
 variables {G}
 
+lemma d_single {i j : ℕ} (hj : i = j + 1) (c : fin i → G) (n : ℤ) :
+  d G hj (finsupp.single c n) = (finset.range i).sum (λ p, finsupp.single
+    (λ k, c $ fin.delta hj p k) ((-1 : ℤ) ^ p * n)) :=
+begin
+  erw finsupp.lift_add_hom_apply_single,
+  show (finset.range i).sum _ = _,
+  congr,
+end
+
 lemma d_of {i j : ℕ} (hj : i = j + 1) (c : fin i → G) :
   d G hj (of _ c) = (finset.range i).sum (λ p, finsupp.single
     (λ k, c $ fin.delta hj p k) ((-1 : ℤ) ^ p)) :=
 begin
-  erw finsupp.lift_add_hom_apply_single,
-  show (finset.range i).sum _ = _,
-  congr, ext, congr,
-  rw mul_one,
+  simp only [of_apply, d_single, mul_one],
 end
 
 theorem d_squared_of {i j k : ℕ} (hj : i = j + 1) (hk : j = k + 1) (c : fin i → G) :
@@ -147,7 +153,7 @@ variables (G)
 def trivial : Module (group_ring G) :=
 { carrier := (ulift ℤ : Type u),
   is_add_comm_group := ulift.add_comm_group,
-  is_module := @ulift.module' _ _ _ _ $ distrib_mul_action.to_module }
+  is_module := @ulift.module' _ _ _ _ $ group_ring.to_module }
 
 open category_theory
 

@@ -27,7 +27,7 @@ cochain_complex.of (λ n, Module.of ℤ $ cochain_succ G M (n + 1))
  (λ i, (cochain_succ.d rfl).to_int_linear_map)
  (λ i, linear_map.ext $ cochain_succ.d_squared_eq_zero rfl rfl)
 
-local attribute [instance] distrib_mul_action.to_module
+local attribute [instance] group_ring.to_module
 
 /-- The group of homogeneous cochains `Gⁿ → M` is isomorphic to the group of
 `ℤ[G]`-linear homs `ℤ[Gⁿ] → M`. -/
@@ -116,7 +116,7 @@ def group_ring.Module_of  (N : Type v) [add_comm_group N] [distrib_mul_action G 
   Module (group_ring G) :=
 { carrier := N,
   is_add_comm_group := by apply_instance,
-  is_module := distrib_mul_action.to_module }
+  is_module := group_ring.to_module }
 
 open category_theory
 /-- Expresses a cochain complex as a chain complex in the opposite category. -/

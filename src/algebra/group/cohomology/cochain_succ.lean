@@ -17,13 +17,6 @@ import algebra.group.cohomology.std_resn
 We describe an explicit model for the group cohomology groups `Hⁿ(G,M)`,
 as certain homogeneous cocycles over coboundaries.
 
-## TODO
-
-Write down map from usual n-cocycles to group cohomology and prove
-that it's surjective with kernel precisely the classical n-coboundaries.
-
-Prove that the projective resolution is indeed a projective resolution
-(define h and prove hd+dh=1; prove something is free)
 -/
 
 namespace add_comm_group
@@ -155,60 +148,16 @@ begin
   simp only [int_smul_apply, finsupp.total_single, linear_map.map_sum],
 end
 
-/- a very similar proof to group_ring.d_squared_of, hope to find a more general statement
-that works for both... -/
 theorem d_squared_eq_zero {i j k : ℕ} (hj : j = i + 1) (hk : k = j + 1) (c : cochain_succ G M i) :
-  (d hk (d hj c)) = 0 :=
+  d hk (d hj c) = 0 :=
 begin
-  ext g, change _ = (0 : M),
-  simp only [d_eval],
-  -- how do I avoid `conv` if I want to apply `d_eval` again?
-  conv begin
-    congr,
-    congr, skip,
-    funext,
-    rw int_smul_apply,
-    rw d_eval,
-  end,
-  simp_rw finset.smul_sum,
-  rw ← finset.sum_product',
-  refine finset.sum_involution (λ (pq : ℕ × ℕ) (hpq), invo pq) _ _ _ _,
-  { intros,
-    unfold invo,
-    split_ifs,
-    { simp [fin.delta_comm_apply hj hk h, pow_succ, smul_smul, mul_comm ((-1 : ℤ) ^ a.fst)] },
-    { -- kill the pred.
-      cases a with p q,
-      -- pred 0 can't happen
-      cases p, { push_neg at h, cases h },
-      -- rewrite now succeeds
-      simp [nat.pred_succ, pow_succ],
-      push_neg at h,
-      have hqp : q ≤ p := nat.lt_succ_iff.mp h,
-      have := fin.delta_comm_apply.symm hj hk hqp,
-      simp_rw this,
-      simp [smul_comm ((-1 : ℤ) ^ p)] } },
-  { rintros ⟨p, q⟩ h _ hfalse,
-    rw prod.ext_iff at hfalse,
-    rcases hfalse with ⟨h1, h2⟩,
-    dsimp at *,
-    unfold invo at *,
-    split_ifs at *,
-    { subst h1,revert h_1,
-      apply nat.not_succ_le_self },
-    { exact h_1 (h1 ▸ le_refl _) } },
-  { rintro ⟨p, q⟩ hpqrange,
-    unfold invo,
-    simp only [hk, hj, finset.mem_product, finset.mem_range] at ⊢ hpqrange,
-    split_ifs,
-      { exact ⟨nat.add_lt_add_right hpqrange.2 _, lt_of_le_of_lt h hpqrange.2⟩ },
-      { cases p,
-        { exact false.elim (h (zero_le _))},
-        { exact ⟨lt_trans hpqrange.2 (nat.lt_succ_self _),
-          (add_lt_add_iff_right 1).1 hpqrange.1⟩}}},
-  { intros,
-    exact invo_invo _, },
-end
+  ext g,
+  suffices : d hk (d hj c) g = finsupp.total (fin i → G) M ℤ c (group_ring.d G hj
+    (group_ring.d G hk (group_ring.of _ g))),
+  by rwa [group_ring.d_squared, map_zero] at this,
+  simp only [←total_d_eq_d, group_ring.d_of, linear_map.map_sum, group_ring.d_single,
+    finsupp.total_single, mul_comm, mul_smul, finset.smul_sum],
+ end
 
 end cochain_succ
 

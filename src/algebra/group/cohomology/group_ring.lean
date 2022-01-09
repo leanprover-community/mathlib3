@@ -20,71 +20,99 @@ variables (G : Type*) [group G] (M : Type*) [add_comm_group M] [distrib_mul_acti
 (n : ℕ)
 noncomputable theory
 
-/-- The quotient of `Gⁿ⁺¹` by the left action of `G` -/
-abbreviation orbit_quot := quotient (mul_action.orbit_rel G (fin (n + 1) → G))
-
 /- Thank you to this def for solving all my instance clashes -/
-def group_ring := monoid_algebra ℤ G
+/- Linter asks me not to assume `G` is a group. But it seems misleading to do this as
+  this def is basically 'made for' the situation of G being a group, idk. -/
+/-- The ring `ℤ[G]`. -/
+def group_ring (G : Type*) := monoid_algebra ℤ G
 
-instance : add_comm_group (group_ring G) :=
+namespace group_ring
+
+instance (G : Type*) : inhabited (group_ring G) :=
+by unfold group_ring; apply_instance
+instance (G : Type*) : add_comm_group (group_ring G) :=
 finsupp.add_comm_group
 
 instance : ring (group_ring G) :=
 { ..monoid_algebra.semiring, ..group_ring.add_comm_group G }
 
+/-- The natural inclusion `G → ℤ[G]`. -/
+def of : G →* group_ring G :=
+monoid_algebra.of ℤ G
+
+variables {G}
+
+@[simp] lemma of_apply (g : G) :
+  of G g = finsupp.single g (1 : ℤ) := rfl
+
+lemma zsmul_single_one (g : G) (r : ℤ) :
+  (finsupp.single g r : group_ring G) = r • (of G g) :=
+by simp only [mul_one, finsupp.smul_single', zsmul_eq_smul, of_apply]
+
+@[elab_as_eliminator]
+lemma induction_on {p : group_ring G → Prop} (f : group_ring G)
+  (hM : ∀ g, p (of G g)) (hadd : ∀ f g : group_ring G, p f → p g → p (f + g))
+  (hsmul : ∀ (r : ℤ) f, p f → p (r • f)) : p f :=
+monoid_algebra.induction_on _ hM hadd hsmul
+
+lemma ext {P : Type*} [add_comm_group P] (f : group_ring G →+ P)
+  (g : group_ring G →+ P) (H : ∀ x, f (of G x) = g (of G x)) {x} :
+  f x = g x :=
+begin
+  congr,
+  refine finsupp.add_hom_ext _,
+  intros,
+  rw ←finsupp.smul_single_one,
+  simp only [add_monoid_hom.map_zsmul, ←of_apply, H],
+end
+
+variables (G)
+
 /-- `ℤ[G]`-module instance on an `add_comm_group` `M` with a `distrib_mul_action` of `G`.
   Deliberately not an instance. -/
-def distrib_mul_action.to_module {G : Type*} [group G] {M : Type*} [add_comm_group M]
-  [h : distrib_mul_action G M] : module (group_ring G) M :=
+def to_module {G : Type*} [group G] {M : Type*} [add_comm_group M]
+  [H : distrib_mul_action G M] : module (group_ring G) M :=
 { smul := λ g m, finsupp.total G M ℤ (λ h, h • m) g,
-    one_smul := λ b, by
-    { dsimp,
-        erw [finsupp.total_single],
-        simp only [one_smul] },
-    mul_smul := λ g h m, by
-    { refine g.induction_on _ _ _,
-      intros g,
-      { dsimp,
-        simp only [one_zsmul, finsupp.total_single, monoid_algebra.mul_def, one_mul,
-          zero_mul, finsupp.single_zero, finsupp.sum_zero, finsupp.sum_single_index,
-          linear_map.map_finsupp_sum],
-        rw [finsupp.total_apply, finsupp.smul_sum],
-        congr,
-        ext f n,
-        rw [mul_smul, distrib_mul_action.smul_zsmul] },
-      { intros g1 g2 hg1 hg2,
-        rw add_mul,
-        simp only [linear_map.map_add] at *,
-        simp only [hg1, hg2] },
-      { intros r f hf,
-        rw algebra.smul_mul_assoc,
-        simp only [linear_map.map_smul] at *,
-        simp only [←hf] }},
-    smul_add := λ g b c, by
-      { simp only [smul_add, finsupp.total_apply, finsupp.sum_add] },
-    smul_zero := λ x, by
-      simp only [finsupp.total_apply, finsupp.sum_zero, smul_zero],
-    add_smul := λ r s x, linear_map.map_add _ _ _,
-    zero_smul := λ x, linear_map.map_zero _ }
+  one_smul := λ b, by
+  { dsimp,
+    erw [finsupp.total_single],
+    simp only [one_smul] },
+  mul_smul := λ g h m, by
+  { refine g.induction_on _ _ _,
+    { intros g,
+      dsimp,
+      simp only [one_zsmul, finsupp.total_single, monoid_algebra.mul_def, one_mul,
+        zero_mul, finsupp.single_zero, finsupp.sum_zero, finsupp.sum_single_index,
+        linear_map.map_finsupp_sum],
+      rw [finsupp.total_apply, finsupp.smul_sum],
+      congr,
+      ext f n,
+      rw [mul_smul, distrib_mul_action.smul_zsmul] },
+    { intros x y hx hy,
+      rw add_mul,
+      simp only [linear_map.map_add] at *,
+      simp only [hx, hy] },
+    { intros r f hf,
+      rw algebra.smul_mul_assoc,
+      simp only [linear_map.map_smul] at *,
+      simp only [←hf] }},
+  smul_add := λ g b c, by
+    { simp only [smul_add, finsupp.total_apply, finsupp.sum_add] },
+  smul_zero := λ x, by
+    simp only [finsupp.total_apply, finsupp.sum_zero, smul_zero],
+  add_smul := λ r s x, linear_map.map_add _ _ _,
+  zero_smul := λ x, linear_map.map_zero _ }
 
-namespace group_ring
-
-instance {H : Type*} [group H] [mul_action G H] :
+instance {H : Type*} [mul_action G H] :
   distrib_mul_action G (group_ring H) :=
 finsupp.comap_distrib_mul_action
 
 instance : module (group_ring G) (group_ring (fin n → G)) :=
-distrib_mul_action.to_module
+group_ring.to_module
 
 instance (M : submodule (group_ring G) (group_ring (fin n → G))) :
   has_coe M (group_ring (fin n → G)) :=
 { coe := λ m, m.1 }
-
-def of : G →* group_ring G :=
-monoid_algebra.of ℤ G
-
-@[simp] lemma of_apply (g : G) :
-  of G g = finsupp.single g (1 : ℤ) := rfl
 
 variables {G n}
 
@@ -93,46 +121,61 @@ lemma smul_def
   g • h = finsupp.total G (group_ring (fin n → G)) ℤ (λ x, x • h) g :=
 rfl
 
-lemma zsmul_single_one (g : G) (r : ℤ) :
-  (finsupp.single g r : group_ring G) = r • (of G g) :=
-by simp only [mul_one, finsupp.smul_single', zsmul_eq_smul, of_apply]
-
 lemma of_smul_of (g : G) (x : fin n → G) :
   of G g • of (fin n → G) x = of (fin n → G) (g • x) :=
-begin
-  show finsupp.total _ _ _ _ _ = _,
-  simp only [of_apply, finsupp.total_single, one_smul, finsupp.comap_smul_single],
-end
+show finsupp.total _ _ _ _ _ = _, by simp
 
-@[elab_as_eliminator]
-lemma induction_on {p : group_ring G → Prop} (f : group_ring G)
-  (hM : ∀ g, p (of G g)) (hadd : ∀ f g : group_ring G, p f → p g → p (f + g))
-  (hsmul : ∀ (r : ℤ) f, p f → p (r • f)) : p f :=
+/-- Makes a `ℤ[G]`-linear map from a `G`-linear hom of additive groups. -/
+def mk_linear {P : Type*} {P' : Type*} [add_comm_group P] [add_comm_group P']
+  [module (group_ring G) P] [module (group_ring G) P'] (f : P →+ P')
+  (H : ∀ g x, f (of G g • x) = of G g • f x) : P →ₗ[group_ring G] P' :=
+{ map_smul' := λ z,
+  begin
+  refine z.induction_on (by exact H) _ _,
+  { intros a b ha hb x,
+    dsimp at ⊢ ha hb,
+    simp only [add_smul, f.map_add, ha, hb] },
+  { intros r a ha x,
+    dsimp at ⊢ ha,
+    simp only [smul_assoc, f.map_zsmul, ha] }
+  end, ..f }
+
+@[simp] lemma mk_linear_apply {P : Type*} {P' : Type*} [add_comm_group P] [add_comm_group P']
+  [module (group_ring G) P] [module (group_ring G) P'] (f : P →+ P')
+  {H : ∀ g x, f (of G g • x) = of G g • f x} {x : P} :
+  mk_linear f H x = f x := rfl
+
+/-- Makes a `ℤ[G]`-linear isomorphism from a `G`-linear isomorphism of additive groups. -/
+def mk_equiv {P : Type*} {P' : Type*} [add_comm_group P] [add_comm_group P']
+  [module (group_ring G) P] [module (group_ring G) P'] (f : P ≃+ P')
+  (H : ∀ g x, f (of G g • x) = of G g • f x) : P ≃ₗ[group_ring G] P' :=
+{ ..f, ..mk_linear f.to_add_monoid_hom H }
+
+@[simp] lemma mk_equiv_apply {P : Type*} {P' : Type*} [add_comm_group P] [add_comm_group P']
+  [module (group_ring G) P] [module (group_ring G) P'] (f : P ≃+ P')
+  {H : ∀ g x, f (of G g • x) = of G g • f x} {x : P} :
+  mk_equiv f H x = f x := rfl
+
+lemma map_smul_of_map_of_smul_of {P : Type*} [add_comm_group P] [module (group_ring G) P] {n : ℕ}
+  (f : group_ring (fin n → G) →+ P)
+  (H : ∀ (g : G) (x : fin n → G), f (of G g • of _ x) = of G g • f (of _ x)) (g : group_ring G)
+  (x : group_ring (fin n → G)) : f (g • x) = g • f x :=
 begin
-  refine finsupp.induction_linear f _ (λ f g hf hg, hadd f g hf hg) (λ g r, _),
-  { simpa using hsmul 0 (of G 1) (hM 1) },
-  { convert hsmul r (of G g) (hM g),
-    rw zsmul_single_one, },
+  convert (mk_linear f _).map_smul g x,
+  intros a b,
+  refine b.induction_on (by exact H a) _ _,
+  { intros s t hs ht,
+    simp only [smul_add, f.map_add, hs, ht] },
+  { intros r s hs,
+    simp only [smul_algebra_smul_comm, f.map_zsmul, hs] }
 end
 
 variables (G)
+
+/-- The natural `ℤ[G]`-linear isomorphism `ℤ[G¹] ≅ ℤ[G]` -/
 def dom_one_equiv : group_ring (fin 1 → G) ≃ₗ[group_ring G] group_ring G :=
-{ map_smul' := λ x y, by
-  { refine x.induction_on _ _ _,
-    { dsimp,
-      intro g,
-      ext,
-      rw [smul_def, finsupp.total_single, one_smul],
-      simp only [monoid_algebra.single_mul_apply, one_mul, finsupp.equiv_map_domain_apply,
-        finsupp.comap_smul_apply],
-      congr },
-    { intros a b ha hb,
-      simp [*, add_smul, add_equiv.map_add, add_mul] at *},
-    { intros r a ha,
-      simp only [add_equiv.to_fun_eq_coe, smul_assoc, add_equiv.map_zsmul] at ha ⊢,
-      rw [ha, ←smul_assoc],
-      refl }},
-  ..finsupp.dom_congr (fin.dom_one_equiv G) }
+mk_equiv (finsupp.dom_congr (fin.dom_one_equiv G)) $ λ g x, finsupp.ext $ λ c,
+by { dsimp, simpa [smul_def] }
 
 variables {G}
 
@@ -143,8 +186,8 @@ begin
   refl,
 end
 
-/- The hom sending `ℤ[Gⁿ] → ℤ[Gⁿ⁺¹]` sending `(g₁, ..., gₙ) ↦ (r, g₁, ..., gₙ)` -/
-def cons (n : ℕ) (r : G) : group_ring (fin n → G) →+ group_ring (fin (n + 1) → G) :=
+/-- The hom sending `ℤ[Gⁿ] → ℤ[Gⁿ⁺¹]` sending `(g₁, ..., gₙ) ↦ (r, g₁, ..., gₙ)` -/
+def cons {G : Type*} (n : ℕ) (r : G) : group_ring (fin n → G) →+ group_ring (fin (n + 1) → G) :=
 finsupp.map_domain.add_monoid_hom (@fin.cons n (λ i, G) r)
 
 lemma cons_of {n : ℕ} {r : G} (g : fin n → G) :
@@ -152,6 +195,9 @@ lemma cons_of {n : ℕ} {r : G} (g : fin n → G) :
 finsupp.map_domain_single
 
 variables (G n)
+
+/-- The quotient of `Gⁿ⁺¹` by the left action of `G` -/
+abbreviation orbit_quot := quotient (mul_action.orbit_rel G (fin (n + 1) → G))
 
 /-- Helper function; sends `g ∈ Gⁿ⁺¹`, `n ∈ ℤ` to `(n • g₀) • g` as an element of `ℤ[Gⁿ⁺¹] → ℤ[G]` -/
 def to_basis_add_hom_aux (g : fin (n + 1) → G) : ℤ →+ ((fin (n + 1) → G) →₀ group_ring G) :=
@@ -176,40 +222,19 @@ begin
   exact finsupp.map_domain_single,
 end
 
-
 variables (G n)
 
 /-- The `ℤ[G]`-linear map on `ℤ[Gⁿ⁺¹]` sending `g` to `g₀ • ⟦g⟧`; image is a basis
   of the free `ℤ[G]`-module on `Gⁿ⁺¹/G`. -/
 noncomputable def to_basis :
   group_ring (fin (n + 1) → G) →ₗ[group_ring G] (orbit_quot G n →₀ group_ring G) :=
-{ map_smul' := λ g x,
-  begin
-    refine x.induction_on _ _ _,
-    { intro x,
-      refine g.induction_on _ _ _,
-      { intro g,
-        erw of_smul_of,
-        dsimp,
-        erw [to_basis_add_hom_of, to_basis_add_hom_of, ←of_apply],
-        simp only [smul_eq_mul, smul_def, finsupp.smul_single, of_apply, pi.smul_apply,
-          one_mul, int.cast_one, finsupp.total_single, finsupp.comap_smul_single, zsmul_eq_mul],
-        congr' 1,
-        { exact quotient.sound' (set.mem_range_self _) },
-        { erw [monoid_algebra.single_mul_single, one_mul] }},
-      { intros a b ha hb,
-        simp only [*, add_smul, map_add, add_monoid_hom.to_fun_eq_coe] at * },
-      { intros r y hy,
-        simp only [add_monoid_hom.to_fun_eq_coe] at *,
-        rw [smul_assoc, add_monoid_hom.map_zsmul, hy, ←smul_assoc],
-        refl }},
-    { intros a b ha hb,
-      simp only [*, smul_add, add_monoid_hom.map_add, add_monoid_hom.to_fun_eq_coe] at * },
-    { intros r y hy,
-      dsimp at ⊢ hy,
-      rw [smul_algebra_smul_comm, add_monoid_hom.map_zsmul, hy,
-        ←smul_algebra_smul_comm, add_monoid_hom.map_zsmul] }
-  end, .. to_basis_add_hom G n }
+mk_linear (to_basis_add_hom G n) $ λ x g,
+begin
+  refine map_smul_of_map_of_smul_of (to_basis_add_hom G n) _ _ _,
+  intros g y,
+  simp only [of_smul_of, to_basis_add_hom_of, ←of_apply],
+  simp [smul_def, @quotient.sound' _ (mul_action.orbit_rel G _) _ y (set.mem_range_self g)],
+end
 
 variables {G n}
 
@@ -231,22 +256,19 @@ finsupp.lift (group_ring (fin (n + 1) → G)) (group_ring G) (orbit_quot G n)
     dsimp,
     congr' 1,
     ext i,
-    simp only [mul_inv_rev, smul_eq_mul, pi.smul_apply, mul_assoc, inv_mul_cancel_left]
+    simp [mul_assoc]
   end)
 
 lemma left_inverse (x : group_ring (fin (n + 1) → G)) :
   of_basis G n (to_basis G n x) = x :=
 begin
-  refine induction_on x _ _ _,
+  refine ext ((of_basis G n).comp (to_basis G n)).to_add_monoid_hom (add_monoid_hom.id _) _,
   { intro g,
+    dsimp,
     erw to_basis_add_hom_of,
     unfold of_basis,
-    simp only [quotient.lift_on'_mk', smul_inv_smul, of_smul_of, zero_smul,
-      finsupp.sum_single_index, finsupp.lift_apply]},
-  { intros f g hf hg,
-    simp only [linear_map.map_add, hf, hg]},
-  { intros r f hf,
-    simp only [linear_map.map_smul_of_tower, hf] }
+    simpa only [quotient.lift_on'_mk', smul_inv_smul, of_smul_of, zero_smul,
+      finsupp.sum_single_index, finsupp.lift_apply] },
 end
 
 lemma right_inverse (x : orbit_quot G n →₀ group_ring G) :

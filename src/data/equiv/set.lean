@@ -338,7 +338,7 @@ protected def compl {α : Type u} {β : Type v} {s : set α} {t : set β} [decid
 
 /-- The set product of two sets is equivalent to the type product of their coercions to types. -/
 protected def prod {α β} (s : set α) (t : set β) :
-  (s ×ˢ t : set _) ≃ s × t :=
+  ↥(s ×ˢ t) ≃ s × t :=
 @subtype_prod_equiv_prod α β s t
 
 /-- If a function `f` is injective on a set `s`, then `s` is equivalent to `f '' s`. -/

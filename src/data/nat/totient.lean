@@ -7,6 +7,8 @@ import algebra.big_operators.basic
 import data.nat.prime
 import data.zmod.basic
 import ring_theory.multiplicity
+import data.nat.factorization
+import tactic.field_simp
 
 /-!
 # Euler's totient function
@@ -239,5 +241,38 @@ end
 
 @[simp] lemma totient_two : φ 2 = 1 :=
 (totient_prime prime_two).trans (by norm_num)
+
+theorem totient_Euler_product_formula (n : ℕ) :
+   ↑(φ n) = ↑n * ∏ p in (n.factors.to_finset), (1 - p⁻¹ : ℚ) :=
+begin
+-- If n = 0 then the identity holds trivially
+  rcases n.eq_zero_or_pos with rfl | hn0, { simp },
+
+-- Otherwise n is the product over its prime factorization
+  -- have := factorization_prod_pow_eq_self n hn0,
+  nth_rewrite_rhs 0 ←(factorization_prod_pow_eq_self hn0),
+
+-- Since φ is multiplicative (and primes are coprime) we can rewrite φ n
+  rw multiplicative_factorization φ (λ a b, totient_mul) totient_one hn0,
+
+-- So if we rebase the product over prime factors we can gather the RHS into a single product
+  have : ∏ (p : ℕ) in n.factorization.support, (1 - (↑p)⁻¹ : ℚ) =
+    n.factorization.prod (λ p k, 1 - (↑p)⁻¹), { refl },
+  simp only [←support_factorization, cast_finsupp_prod, this, ←finsupp.prod_mul],
+
+-- and so it suffices to prove that the multiplicands are equal
+  apply prod_congr rfl,
+  intros p hp,
+  set k := n.factorization p,
+
+  have hpp : prime p := prime_of_mem_factors (factor_iff_mem_factorization.mp hp),
+  have : (p : ℚ) ≠ 0 := cast_ne_zero.mpr hpp.pos.ne',
+  have hk : 0 < k := zero_lt_iff.mpr (finsupp.mem_support_iff.mp hp),
+  simp only [nat.cast_pow, totient_prime_pow hpp hk],
+
+  -- Finally, we need to prove: ↑(p ^ (k - 1) * (p - 1)) = ↑p ^ k * (1 - (↑p)⁻¹)
+  field_simp [hpp.pos],
+  push_cast [←(pow_sub_mul_pow ↑p hk), pow_one, mul_right_comm],
+end
 
 end nat

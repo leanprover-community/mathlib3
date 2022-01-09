@@ -352,6 +352,9 @@ instance : has_sup (seminorm 𝕜 E) :=
 instance : semilattice_sup (seminorm 𝕜 E) :=
 function.injective.semilattice_sup _ coe_injective coe_sup
 
+lemma le_def (x y : seminorm 𝕜 E) : x ≤ y ↔ (x : E → ℝ) ≤ y := iff.rfl
+lemma lt_def (x y : seminorm 𝕜 E) : x < y ↔ (x : E → ℝ) < y := iff.rfl
+
 instance : order_bot (seminorm 𝕜 E) :=
 { bot := 0,
   bot_le := nonneg }

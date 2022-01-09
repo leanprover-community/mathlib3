@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
 import data.finset.sort
+import data.set.functor
 
 /-!
 # Finite sets
@@ -218,6 +219,8 @@ fintype.card_of_subsingleton _
 lemma subsingleton.finite {s : set α} (h : s.subsingleton) : finite s :=
 h.induction_on finite_empty finite_singleton
 
+lemma to_finset_singleton (a : α) : ({a} : set α).to_finset = {a} := rfl
+
 lemma finite_is_top (α : Type*) [partial_order α] : finite {x : α | is_top x} :=
 (subsingleton_is_top α).finite
 
@@ -303,15 +306,12 @@ by rw ← inter_eq_self_of_subset_right h; apply_instance
 theorem finite.subset {s : set α} : finite s → ∀ {t : set α}, t ⊆ s → finite t
 | ⟨hs⟩ t h := ⟨@set.fintype_subset _ _ _ hs (classical.dec_pred t) h⟩
 
-lemma finite.union_iff {s t : set α} : finite (s ∪ t) ↔ finite s ∧ finite t :=
+@[simp] lemma finite_union {s t : set α} : finite (s ∪ t) ↔ finite s ∧ finite t :=
 ⟨λ h, ⟨h.subset (subset_union_left _ _), h.subset (subset_union_right _ _)⟩,
  λ ⟨hs, ht⟩, hs.union ht⟩
 
-lemma finite.diff {s t u : set α} (hs : s.finite) (ht : t.finite) (h : u \ t ≤ s) : u.finite :=
-begin
-  refine finite.subset (ht.union hs) _,
-  exact diff_subset_iff.mp h
-end
+lemma finite.of_diff {s t : set α} (hd : finite (s \ t)) (ht : finite t) : finite s :=
+(hd.union ht).subset $ subset_diff_union _ _
 
 theorem finite.inter_of_left {s : set α} (h : finite s) (t : set α) : finite (s ∩ t) :=
 h.subset (inter_subset_left _ _)
@@ -334,7 +334,10 @@ mt (λ ht, ht.subset h)
 
 lemma infinite.diff {s t : set α} (hs : s.infinite) (ht : t.finite) :
   (s \ t).infinite :=
-λ h, hs ((h.union ht).subset (s.subset_diff_union t))
+λ h, hs $ h.of_diff ht
+
+@[simp] lemma infinite_union {s t : set α} : infinite (s ∪ t) ↔ infinite s ∨ infinite t :=
+by simp only [infinite, finite_union, not_and_distrib]
 
 instance fintype_image [decidable_eq β] (s : set α) (f : α → β) [fintype s] : fintype (f '' s) :=
 fintype.of_finset (s.to_finset.image f) $ by simp
@@ -636,6 +639,20 @@ begin
   exact or.inr ⟨i, finset.mem_univ i, le_rfl⟩
 end
 
+lemma Union_pi_of_monotone {ι ι' : Type*} [linear_order ι'] [nonempty ι'] {α : ι → Type*}
+  {I : set ι} {s : Π i, ι' → set (α i)} (hI : finite I) (hs : ∀ i ∈ I, monotone (s i)) :
+  (⋃ j : ι', I.pi (λ i, s i j)) = I.pi (λ i, ⋃ j, s i j) :=
+begin
+  simp only [pi_def, bInter_eq_Inter, preimage_Union],
+  haveI := hI.fintype,
+  exact Union_Inter_of_monotone (λ i j₁ j₂ h, preimage_mono $ hs i i.2 h)
+end
+
+lemma Union_univ_pi_of_monotone {ι ι' : Type*} [linear_order ι'] [nonempty ι'] [fintype ι]
+  {α : ι → Type*} {s : Π i, ι' → set (α i)} (hs : ∀ i, monotone (s i)) :
+  (⋃ j : ι', pi univ (λ i, s i j)) = pi univ (λ i, ⋃ j, s i j) :=
+Union_pi_of_monotone (finite.of_fintype _) (λ i _, hs i)
+
 instance nat.fintype_Iio (n : ℕ) : fintype (Iio n) :=
 fintype.of_finset (finset.range n) $ by simp
 
@@ -761,6 +778,15 @@ by ext; simp
 
 lemma to_finset_union {α : Type*} [decidable_eq α] (s t : set α) [fintype (s ∪ t : set α)]
   [fintype s] [fintype t] : (s ∪ t).to_finset = s.to_finset ∪ t.to_finset :=
+by ext; simp
+
+instance fintype_sdiff  {α : Type*} [decidable_eq α]
+  (s t : set α) [fintype s] [fintype t] :
+  fintype (s \ t : set α) :=
+fintype.of_finset (s.to_finset \ t.to_finset) $ by simp
+
+lemma to_finset_sdiff {α : Type*} [decidable_eq α] (s t : set α) [fintype s] [fintype t]
+  [fintype (s \ t : set α)] : (s \ t).to_finset = s.to_finset \ t.to_finset :=
 by ext; simp
 
 lemma to_finset_ne_eq_erase {α : Type*} [decidable_eq α] [fintype α] (a : α)

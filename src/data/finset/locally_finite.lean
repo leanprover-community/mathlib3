@@ -119,6 +119,36 @@ lemma _root_.bdd_below.finite_of_bdd_above {s : set α} (h₀ : bdd_below s) (h�
   s.finite :=
 let ⟨a, ha⟩ := h₀, ⟨b, hb⟩ := h₁ in by { classical, exact ⟨set.fintype_of_mem_bounds ha hb⟩ }
 
+section filter
+
+variables (a b) [fintype α]
+
+lemma filter_lt_lt_eq_Ioo [decidable_pred (λ (j : α), a < j ∧ j < b)] :
+  finset.univ.filter (λ j, a < j ∧ j < b) = Ioo a b := by { ext, simp }
+
+lemma filter_lt_le_eq_Ioc [decidable_pred (λ (j : α), a < j ∧ j ≤ b)] :
+  finset.univ.filter (λ j, a < j ∧ j ≤ b) = Ioc a b := by { ext, simp }
+
+lemma filter_le_lt_eq_Ico [decidable_pred (λ (j : α), a ≤ j ∧ j < b)] :
+  finset.univ.filter (λ j, a ≤ j ∧ j < b) = Ico a b := by { ext, simp }
+
+lemma filter_le_le_eq_Icc [decidable_pred (λ (j : α), a ≤ j ∧ j ≤ b)] :
+  finset.univ.filter (λ j, a ≤ j ∧ j ≤ b) = Icc a b := by { ext, simp }
+
+lemma filter_lt_eq_Ioi [order_top α] [decidable_pred ((<) a)] :
+  finset.univ.filter (λ j, a < j) = Ioi a := by { ext, simp }
+
+lemma filter_le_eq_Ici [order_top α] [decidable_pred ((≤) a)] :
+  finset.univ.filter (λ j, a ≤ j) = Ici a := by { ext, simp }
+
+lemma filter_gt_eq_Iio [order_bot α] [decidable_pred (< a)] :
+  finset.univ.filter (λ j, j < a) = Iio a := by { ext, simp }
+
+lemma filter_ge_eq_Iic [order_bot α] [decidable_pred (≤ a)] :
+  finset.univ.filter (λ j, j ≤ a) = Iic a := by { ext, simp }
+
+end filter
+
 end preorder
 
 section partial_order

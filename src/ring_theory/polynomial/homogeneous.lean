@@ -277,7 +277,7 @@ end
 @[simp]
 lemma homogeneous_component_C_mul (n : ℕ) (r : R) :
   homogeneous_component n (C r * φ) = C r * homogeneous_component n φ :=
-by simp only [C_mul', ring_hom.id_apply, linear_map.map_smulₛₗ]
+by simp only [C_mul', linear_map.map_smul]
 
 lemma homogeneous_component_eq_zero' (h : ∀ d : σ →₀ ℕ, d ∈ φ.support → ∑ i in d.support, d i ≠ n) :
   homogeneous_component n φ = 0 :=

@@ -29,7 +29,9 @@ To get a C⋆-algebra `E` over field `𝕜`, use
 
 -/
 
-local postfix `⋆`:1000 := star
+open_locale topological_space
+
+local postfix `⋆`:std.prec.max_plus := star
 
 /-- A normed star ring is a star ring endowed with a norm such that `star` is isometric. -/
 class normed_star_monoid (E : Type*) [normed_group E] [star_add_monoid E] :=
@@ -46,18 +48,43 @@ class cstar_ring (E : Type*) [normed_ring E] [star_ring E] :=
 noncomputable instance : cstar_ring ℝ :=
 { norm_star_mul_self := λ x, by simp only [star, id.def, normed_field.norm_mul] }
 
-variables {𝕜 E : Type*}
+variables {𝕜 E α : Type*}
+
+section normed_star_monoid
+variables [normed_group E] [star_add_monoid E] [normed_star_monoid E] [topological_space α]
 
 /-- The `star` map in a normed star group is a normed group homomorphism. -/
-def star_normed_group_hom [normed_group E] [star_add_monoid E] [normed_star_monoid E] :
-  normed_group_hom E E :=
+def star_normed_group_hom : normed_group_hom E E :=
 { bound' := ⟨1, λ v, le_trans (norm_star.le) (one_mul _).symm.le⟩,
   .. star_add_equiv }
 
 /-- The `star` map in a normed star group is an isometry -/
-lemma star_isometry [normed_group E] [star_add_monoid E] [normed_star_monoid E] :
-  isometry (star : E → E) :=
-star_add_equiv.to_add_monoid_hom.isometry_of_norm (@normed_star_monoid.norm_star _ _ _ _)
+lemma star_isometry : isometry (star : E → E) :=
+star_add_equiv.to_add_monoid_hom.isometry_of_norm (λ _, norm_star)
+
+lemma continuous_star : continuous (star : E → E) := star_isometry.continuous
+
+lemma continuous_on_star {s : set E} : continuous_on (star : E → E) s := sorry
+
+lemma continuous_at_star {x : E} : continuous_at (star : E → E) x := sorry
+
+lemma continuous_within_at_star {s : set E} {x : E} : continuous_within_at (star : E → E) s x :=
+sorry
+
+lemma tendsto_star (x : E) : filter.tendsto star (𝓝 x) (𝓝 x⋆) := sorry
+
+lemma continuous.star {f : α → E} (hf : continuous f) : continuous (λ y, star (f y)) := sorry
+
+lemma continuous_at.star {f : α → E} {x : α} (hf : continuous_at f x) :
+  continuous_at (λ x, (f x)⋆) x := sorry
+
+lemma continuous_within_at.star {f : α → E} {s : set α} {x : α}
+  (hf : continuous_within_at f s x) : continuous_within_at (λ x, (f x)⋆) s x := sorry
+
+lemma filter.tendsto.star {f : α → E} {l : filter α} {y : E} (h : filter.tendsto f l (𝓝 y)) :
+  filter.tendsto (λ x, (f x)⋆) l (𝓝 y⋆) := sorry
+
+end normed_star_monoid
 
 instance ring_hom_isometric.star_ring_aut [normed_comm_ring E] [star_ring E]
    [normed_star_monoid E] : ring_hom_isometric ((star_ring_aut : ring_aut E) : E →+* E) :=
@@ -95,8 +122,7 @@ by rw [norm_star_mul_self, norm_star]
 begin
   cases mul_eq_mul_right_iff.mp
     (calc 1 * ∥(1 : E)∥ = ∥(1 : E)∥              : one_mul _
-                   ...  = ∥(1 : E) * 1∥          : by rw [mul_one]
-                   ...  = ∥(1 : E)⋆ * 1∥         : by rw [star_one]
+                   ...  = ∥(1 : E)⋆ * 1∥         : by rw [mul_one, star_one]
                    ...  = ∥(1 : E)∥ * ∥(1 : E)∥  : norm_star_mul_self) with h,
   { exact h.symm },
   { exfalso,

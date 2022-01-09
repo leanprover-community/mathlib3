@@ -35,35 +35,15 @@ finsupp.lift_add_hom (d_aux G hj)
 def d {i j : ℕ} (hj : i = j + 1) : group_ring (fin i → G) →ₗ[group_ring G] group_ring (fin j → G) :=
 { map_smul' := λ g x,
   begin
-    refine x.induction_on _ _ _,
-    { intro x,
-      refine g.induction_on _ _ _,
-      { intro g,
-        dsimp,
-        unfold d_aux,
-        dsimp,
-        erw of_smul_of,
-        simp only [finset.smul_sum, mul_one, finsupp.single_zero, smul_eq_mul,
-          finset.sum_const_zero, of_apply, pi.smul_apply, mul_zero, finsupp.sum_single_index],
-        congr,
-        ext1 p,
-        simp only [zsmul_single_one, zsmul_single_one],
-        rw [smul_algebra_smul_comm, one_smul, of_smul_of],
-        congr },
-      { intros a b ha hb,
-        simp only [add_smul, add_monoid_hom.to_fun_eq_coe, map_add] at ⊢ ha hb,
-        rw [ha, hb] },
-      { intros r a ha,
-        simp only [smul_assoc, add_monoid_hom.to_fun_eq_coe, add_monoid_hom.map_zsmul] at ⊢ ha,
-        rw [ha, ←smul_assoc],
-        refl }},
-    { intros a b ha hb,
-      simp only [smul_add, add_monoid_hom.to_fun_eq_coe, add_monoid_hom.map_add] at ⊢ ha hb,
-      rw [ha, hb] },
-    { intros r a ha,
-      simp only [smul_algebra_smul_comm, add_monoid_hom.to_fun_eq_coe,
-        add_monoid_hom.map_zsmul] at ⊢ ha,
-      rw ha }
+    refine map_smul_of_map_of_smul_of (finsupp.lift_add_hom (d_aux G hj)) (λ g x, _) _ _,
+    dsimp,
+    show finsupp.sum _ (λ _ _, _) = _ • finsupp.sum _ (λ _ _, _),
+    erw of_smul_of,
+    simp only [finset.smul_sum, mul_one, finsupp.single_zero, smul_eq_mul,
+      finset.sum_const_zero, of_apply, pi.smul_apply, mul_zero, finsupp.sum_single_index],
+    congr,
+    ext1 p,
+    simpa only [zsmul_single_one, smul_algebra_smul_comm, one_smul, of_smul_of],
   end,
   ..finsupp.lift_add_hom (d_aux G hj) }
 
@@ -89,28 +69,20 @@ theorem d_squared_of {i j k : ℕ} (hj : i = j + 1) (hk : j = k + 1) (c : fin i 
   (d G hk (d G hj $ of _ c)) = 0 :=
 begin
   ext g,
-  simp only [d_of],
-  rw linear_map.map_sum,
-  simp only [zsmul_single_one, linear_map.map_smul_of_tower, d_of],
-  simp_rw finset.smul_sum,
-  rw ← finset.sum_product',
+  simp only [d_of, linear_map.map_sum, zsmul_single_one, linear_map.map_smul_of_tower,
+    finset.smul_sum, ←finset.sum_product'],
   congr,
   refine finset.sum_involution (λ pq h, invo pq) _ _ _ _,
   { intros pq hpq,
     unfold invo,
     split_ifs,
-    { simp only [fin.delta_comm_apply hk hj h, mul_comm, pow_succ, mul_one, finsupp.smul_single',
-        of_apply, neg_mul_eq_neg_mul_symm, finsupp.single_neg, one_mul, add_right_neg] },
-    { -- kill the pred.
-      cases pq with p q,
-      -- pred 0 can't happen
+    { simp [fin.delta_comm_apply hk hj h, mul_comm, pow_succ] },
+    { cases pq with p q,
       cases p, { push_neg at h, cases h },
-      -- rewrite now succeeds
-      simp [nat.pred_succ, pow_succ],
+      simp only [nat.pred_succ, pow_succ],
       push_neg at h,
       have hqp : q ≤ p := nat.lt_succ_iff.mp h,
-      have := fin.delta_comm_apply.symm hk hj hqp,
-      simp_rw this,
+      simp_rw fin.delta_comm_apply.symm hk hj hqp,
       simp [mul_comm ((-1 : ℤ) ^ p)]}},
   { rintros ⟨p, q⟩ h _ hfalse,
     rw prod.ext_iff at hfalse,
@@ -165,26 +137,16 @@ chain_complex.of (λ n, Module.of (group_ring G) (group_ring (fin (n + 1) → G)
 /-- The hom `ℤ[G] → ℤ` sending `∑ nᵢgᵢ ↦ ∑ nᵢ`. -/
 def coeff_sum : group_ring G →ₗ[group_ring G] trivial G :=
 { map_smul' := λ g x, by
-  { dsimp,
-    refine x.induction_on _ _ _,
-    { intro y,
-      refine g.induction_on _ _ _,
-      { intro z,
-        erw monoid_algebra.single_mul_single,
-        simp only [mul_one, one_zsmul, finsupp.total_single, of_apply],
-        ext,
-        show _ = finsupp.total _ _ _ _ _,
-        rw [finsupp.total_single, one_smul],
-        refl },
-      { intros a b ha hb,
-        rw [add_mul, add_smul, linear_map.map_add, ha, hb]},
-      { intros r a ha,
-        rw [smul_mul_assoc, linear_map.map_smul, ha, smul_assoc] }},
-    { intros a b ha hb,
-      rw [mul_add, linear_map.map_add, ha, hb, linear_map.map_add, smul_add]},
-    { intros r a ha,
-      rw [mul_smul_comm, linear_map.map_smul, ha, linear_map.map_smul, smul_algebra_smul_comm]}}
-  .. (finsupp.total G (trivial G) ℤ (λ g, ulift.up 1))}
+  { refine map_smul_of_map_of_smul_of (finsupp.total G (trivial G) ℤ
+      (λ g, ulift.up 1)).to_add_monoid_hom (λ g x, _) _ _,
+    dsimp,
+    erw monoid_algebra.single_mul_single,
+    simp only [mul_one, one_zsmul, finsupp.total_single, of_apply],
+    ext,
+    show _ = finsupp.total _ _ _ _ _,
+    rw [finsupp.total_single, one_smul],
+    refl },
+ .. (finsupp.total G (trivial G) ℤ (λ g, ulift.up 1))}
 
 variables {G}
 
@@ -210,35 +172,27 @@ lemma coeff_sum_dom_one_equiv_apply {g : group_ring (fin 1 → G)} :
   coeff_sum G (dom_one_equiv G g) = finsupp.total (fin 1 → G)
     (trivial G) ℤ (λ g, ulift.up 1) g :=
 begin
-  refine g.induction_on _ _ _,
-  { intros g,
-    rw [of_apply, dom_one_equiv_single, coeff_sum_single, finsupp.total_single, one_smul] },
-  { intros a b ha hb,
-    simp only [linear_equiv.map_add, linear_map.map_add, ha, hb], },
-  { intros r a ha,
-    simp only [←linear_equiv.coe_to_linear_map, linear_map.map_smul_of_tower,
-      linear_map.map_smul] at ⊢ ha,
-    rw ha }
+  refine ext ((coeff_sum G).comp (dom_one_equiv G).to_linear_map).to_add_monoid_hom
+    (finsupp.total _ _ _ _).to_add_monoid_hom _,
+  intros g,
+  dsimp,
+  rw [dom_one_equiv_single, coeff_sum_single, finsupp.total_single, one_smul],
 end
 
 lemma coeff_sum_d {x : group_ring (fin 2 → G)} :
   coeff_sum G (dom_one_equiv G $ d G rfl x) = 0 :=
 begin
-  refine x.induction_on _ _ _,
-  { intro g,
-    rw [d_of, linear_equiv.map_sum, linear_map.map_sum],
-    unfold dom_one_equiv,
-    dsimp,
-    simp only [finsupp.dom_congr_apply, finsupp.equiv_map_domain_single, coeff_sum_single],
-    rw [finset.range_add_one, finset.sum_insert (@finset.not_mem_range_self 1)],
-    ext,
-    simp only [ulift.zero_down, pow_one, add_left_neg, finset.sum_singleton,
-        finset.range_one, pow_zero, ulift.add_down] },
-  { intros a b ha hb,
-    simp only [linear_map.map_add, linear_equiv.map_add, ha, hb, zero_add] },
-  { intros r a ha,
-    simp only [linear_map.map_smul_of_tower, ←linear_equiv.coe_to_linear_map] at ha ⊢,
-    rw [ha, smul_zero] }
+  refine ext ((coeff_sum G).comp ((dom_one_equiv G).to_linear_map.comp
+    (d G rfl))).to_add_monoid_hom 0 _,
+  intro g,
+  dsimp,
+  rw [d_single, linear_equiv.map_sum, linear_map.map_sum],
+  show finset.sum _ (λ i, coeff_sum G (finsupp.equiv_map_domain _ _)) = _,
+  simp only [mul_one, finsupp.dom_congr_apply, finsupp.equiv_map_domain_single, coeff_sum_single],
+  rw [finset.range_add_one, finset.sum_insert (@finset.not_mem_range_self 1)],
+  ext,
+  simp only [ulift.zero_down, pow_one, add_left_neg, finset.sum_singleton,
+    finset.range_one, pow_zero, ulift.add_down],
 end
 
 variables (G)

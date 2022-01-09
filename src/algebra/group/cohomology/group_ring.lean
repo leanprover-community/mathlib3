@@ -156,14 +156,14 @@ def mk_equiv {P : Type*} {P' : Type*} [add_comm_group P] [add_comm_group P']
   {H : ∀ g x, f (of G g • x) = of G g • f x} {x : P} :
   mk_equiv f H x = f x := rfl
 
-lemma map_smul_of_map_of_smul_of {P : Type*} [add_comm_group P] [module (group_ring G) P] {n : ℕ}
-  (f : group_ring (fin n → G) →+ P)
-  (H : ∀ (g : G) (x : fin n → G), f (of G g • of _ x) = of G g • f (of _ x)) (g : group_ring G)
-  (x : group_ring (fin n → G)) : f (g • x) = g • f x :=
+lemma map_smul_of_map_of_smul_of {H : Type*} [group H] [module (group_ring G) (group_ring H)]
+  {P : Type*} [add_comm_group P] [module (group_ring G) P] (f : group_ring H →+ P)
+  (h : ∀ (g : G) (x : H), f (of G g • of _ x) = of G g • f (of _ x)) (g : group_ring G)
+  (x : group_ring H) : f (g • x) = g • f x :=
 begin
   convert (mk_linear f _).map_smul g x,
   intros a b,
-  refine b.induction_on (by exact H a) _ _,
+  refine b.induction_on (by exact h a) _ _,
   { intros s t hs ht,
     simp only [smul_add, f.map_add, hs, ht] },
   { intros r s hs,

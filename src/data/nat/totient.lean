@@ -244,22 +244,32 @@ end
 
 ---------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------
+-- These are in `PR #11167`
+lemma factorization_prod_pow_eq_self (n : ℕ) (hn : 0 < n) : n.factorization.prod pow = n := sorry
 
-theorem totient_Euler_product_formula (n:ℕ) :
-  ↑(φ n) = ↑n * ∏ p in (n.factors.to_finset), (1 - p⁻¹:ℚ)
-  :=
+lemma multiplicative_factorization {β : Type*} [comm_monoid β] (f : ℕ → β)
+   (h_mult : ∀ x y : ℕ, coprime x y → f (x * y) = f x * f y) (hf : f 1 = 1) :
+ ∀ {n : ℕ}, 0 < n → f n = n.factorization.prod (λ p k, f (p ^ k)) := sorry
+---------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------
+
+theorem totient_Euler_product_formula (n : ℕ) :
+   ↑(φ n) = ↑n * ∏ p in (n.factors.to_finset), (1 - p⁻¹ : ℚ) :=
 begin
 -- If n = 0 then the identity holds trivially
   rcases n.eq_zero_or_pos with rfl | hn0, { simp },
 
 -- Otherwise n is the product over its prime factorization
-  nth_rewrite_rhs 0 (factorization_prod_pow hn0),
+  -- have := factorization_prod_pow_eq_self n hn0,
+  nth_rewrite_rhs 0 ←(factorization_prod_pow_eq_self n hn0),
 
 -- Since φ is multiplicative (and primes are coprime) we can rewrite φ n
-  rw (multiplicative_factorization hn0 (λ a b, totient_mul) totient_one),
+  rw multiplicative_factorization φ (λ a b, totient_mul) totient_one hn0,
 
 -- So if we rebase the product over prime factors we can gather the RHS into a single product
-  simp only [←rebase_prod_factorization, cast_finsupp_prod, ←finsupp.prod_mul],
+  have : ∏ (p : ℕ) in n.factorization.support, (1 - (↑p)⁻¹ : ℚ) =
+    n.factorization.prod (λ p k, 1 - (↑p)⁻¹), { refl },
+  simp only [←support_factorization, cast_finsupp_prod, this, ←finsupp.prod_mul],
 
 -- and so it suffices to prove that the multiplicands are equal
   apply prod_congr rfl,
@@ -267,27 +277,26 @@ begin
   set k := n.factorization p,
 
   have hpp : prime p := prime_of_mem_factors (factor_iff_mem_factorization.mp hp),
-  have hp_pos : 0 < p := prime.pos hpp,
-  have : (p : ℚ) ≠ 0 := cast_ne_zero.mpr hp_pos.ne',
+  have : (p : ℚ) ≠ 0 := cast_ne_zero.mpr hpp.pos.ne',
   have hk : 0 < k := zero_lt_iff.mpr (finsupp.mem_support_iff.mp hp),
   simp only [nat.cast_pow, totient_prime_pow hpp hk],
 
   -- Finally, we need to prove: ↑(p ^ (k - 1) * (p - 1)) = ↑p ^ k * (1 - (↑p)⁻¹)
-  field_simp,
+  field_simp [hpp.pos],
   push_cast [←(pow_sub_mul_pow ↑p hk), pow_one, mul_right_comm],
 end
 
 lemma totient_prime_pow' {p : ℕ} (hp : p.prime) {n : ℕ} (hn : 0 < n) :
   φ (p ^ n) = p ^ (n - 1) * (p - 1) :=
 begin
-  have hp_pos : 0 < p := prime.pos hp,
+  have hp_pos : 0 < p := hp.pos,
   have : (p : ℚ) ≠ 0 := cast_ne_zero.mpr (prime.pos hp).ne',
   have h1 := totient_Euler_product_formula (p^n),
   rw prime_pow_prime_divisor hn hp at h1,
   simp only [finset.prod_singleton, nat.cast_pow] at h1,
   field_simp only [mul_right_comm, one_mul, mul_eq_mul_right_iff] at h1,
   norm_cast at h1,
-  apply eq_of_mul_eq_mul_right hp_pos,
+  apply eq_of_mul_eq_mul_right hp.pos,
   rw [h1, mul_right_comm],
   have := pow_sub_mul_pow p hn,
   rw pow_one at this,

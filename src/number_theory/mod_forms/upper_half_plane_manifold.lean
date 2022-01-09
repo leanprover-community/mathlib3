@@ -43,10 +43,14 @@ simp_rw chart_at,
 simp_rw extend_by_zero,
 simp,
 have :=  (local_homeomorph.subtype_restr_coe  (local_homeomorph.refl ℂ) ℍ').symm,
-
 congr,
-sorry,
-
+simp_rw local_homeomorph.subtype_restr,
+simp,
+have hf:= topological_space.opens.local_homeomorph_subtype_coe_coe ℍ',
+simp_rw ← hf,
+apply symm,
+apply local_homeomorph.left_inv,
+simp [z.2],
 end
 
 lemma df2 : mdifferentiable I I f :=
@@ -65,6 +69,7 @@ have hfx := hf x x.2,
 convert hfx,
 funext y,
 simp,
+
 sorry,
 sorry,
 end

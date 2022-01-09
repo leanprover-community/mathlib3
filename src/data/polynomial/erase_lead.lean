@@ -202,9 +202,7 @@ lemma map_nat_degree_eq_sub {S F : Type*} [semiring S]
   (φ_mon_nat : ∀ n c, c ≠ 0 → (φ (monomial n c)).nat_degree = n - k) :
   (φ p).nat_degree = p.nat_degree - k :=
 begin
-  refine induction_with_nat_degree_le
-    (λ p, (φ p).nat_degree = p.nat_degree - k) p.nat_degree _ _ _ _ rfl.le,
-  { simp },
+  refine induction_with_nat_degree_le (λ p, _ = _ - k) p.nat_degree (by simp) _ _ _ rfl.le,
   { intros n r r0 np,
     rw [nat_degree_C_mul_X_pow _ _ r0, ← monomial_eq_C_mul_X, φ_mon_nat _ _ r0] },
   { intros f g fg gp fk gk,
@@ -213,10 +211,7 @@ begin
     { rw [nat_degree_add_eq_right_of_nat_degree_lt, gk],
       rw [fk, gk],
       exact (tsub_lt_tsub_iff_right FG).mpr fg },
-    { rw [φ_k f (not_le.mp FG), zero_add],
-      by_cases KG : k ≤ g.nat_degree,
-      { exact gk },
-      { simpa [φ_k g (not_le.mp KG)] using (nat.sub_eq_zero_of_le (not_le.mp KG).le).symm } } }
+    { rwa [φ_k f (not_le.mp FG), zero_add] } }
 end
 
 lemma map_nat_degree_eq_nat_degree {S F : Type*} [semiring S]

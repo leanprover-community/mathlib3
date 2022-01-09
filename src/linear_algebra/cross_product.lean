@@ -52,7 +52,7 @@ begin
   ring_nf,
 end
 
-localized "infixl ` ×₃ `: 68 := cross_product" in matrix
+localized "infixl ` ×₃ `: 74 := cross_product" in matrix
 
 lemma cross_product_apply (a b : fin 3 → R) :
   a ×₃ b = ![a 1 * b 2 - a 2 * b 1,

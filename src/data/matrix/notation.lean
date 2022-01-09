@@ -5,7 +5,6 @@ Authors: Anne Baanen
 -/
 import data.matrix.basic
 import data.fin.vec_notation
-import tactic.fin_cases
 
 /-!
 # Matrix and vector notation

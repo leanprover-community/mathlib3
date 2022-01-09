@@ -326,16 +326,9 @@ end
 instance : has_sup (seminorm 𝕜 E) :=
 { sup := λ p q,
   { to_fun := p ⊔ q,
-    triangle' :=
-      begin
-        intros x y,
-        simp,
-        split,
-        { apply le_trans (p.triangle x y),
-          exact add_le_add (le_sup_left) (le_sup_left) },
-        apply le_trans (q.triangle x y),
-        exact add_le_add le_sup_right le_sup_right,
-      end,
+    triangle' := λ x y, sup_le
+      ((p.triangle x y).trans $ add_le_add le_sup_left le_sup_left)
+      ((q.triangle x y).trans $ add_le_add le_sup_right le_sup_right),
     smul' :=
       begin
         intros x v,

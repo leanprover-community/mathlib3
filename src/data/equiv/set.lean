@@ -341,14 +341,40 @@ protected def prod {α β} (s : set α) (t : set β) :
   s.prod t ≃ s × t :=
 @subtype_prod_equiv_prod α β s t
 
-/-- If a function `f` is injective on a set `s`, then `s` is equivalent to `f '' s`. -/
-protected noncomputable def image_of_inj_on {α β} (f : α → β) (s : set α) (H : inj_on f s) :
+/-- If a function `f` has a left-inverse `g` on a set `s`, then `s` is computably equivalent to
+`f '' s`.
+
+While awkward, the `nonempty α` hypothesis on `f_inv` and `hf` allows this to be used when `α` is
+empty too. This hypothesis is absent on analogous definitions on stronger `equiv`s like
+`linear_equiv.of_left_inverse` and `ring_equiv.of_left_inverse` as their typeclass assumptions
+are already sufficient to ensure non-emptiness. -/
+@[simps]
+protected def image_of_left_inv_on {α β} (f : α → β) (f_inv : nonempty α → β → α) (s : set α)
+  (hf : Π h : nonempty α, left_inv_on (f_inv h) f s) :
   s ≃ (f '' s) :=
-⟨λ p, ⟨f p, mem_image_of_mem f p.2⟩,
- λ p, ⟨classical.some p.2, (classical.some_spec p.2).1⟩,
- λ ⟨x, h⟩, subtype.eq (H (classical.some_spec (mem_image_of_mem f h)).1 h
-   (classical.some_spec (mem_image_of_mem f h)).2),
- λ ⟨y, h⟩, subtype.eq (classical.some_spec h).2⟩
+{ to_fun := λ a, ⟨f a, mem_image_of_mem f a.2⟩,
+  inv_fun := λ b, ⟨f_inv (nonempty_of_exists b.2) b,
+      let ⟨a, ha, hp⟩ := b.prop in hp ▸ (hf (nonempty_of_exists b.2) ha).symm ▸ ha⟩,
+  left_inv := λ a, subtype.ext $ hf _ a.prop,
+  right_inv := λ b, subtype.ext $ let ⟨a, ha, hb⟩ := b.prop in
+    show f (f_inv (nonempty_of_exists b.2) ↑b) = ↑b, from hb ▸ congr_arg f (hf _ ha) }
+
+
+/-- If `f : α → β` has a left-inverse on `s`, then `s` is computably equivalent to the image of `s`
+under `f`.
+
+Note that if `α` is empty, no such `f_inv` exists and so this definition can't be used, unlike
+the stronger but less convenient `of_left_inverse`. -/
+abbreviation image_of_left_inv_on' {α β} (f : α → β) (f_inv : β → α) (s : set α)
+  (hf : left_inv_on f_inv f s) :
+  s ≃ (f '' s) :=
+equiv.set.image_of_left_inv_on f (λ _, f_inv) s (λ _, hf)
+
+/-- If a function `f` is injective on a set `s`, then `s` is equivalent to `f '' s`. -/
+protected noncomputable def image_of_inj_on {α β} (f : α → β) (s : set α) (hf : inj_on f s) :
+  s ≃ (f '' s) :=
+equiv.set.image_of_left_inv_on f (λ _, by exactI function.inv_fun_on f s) s
+  (λ _, by exactI hf.left_inv_on_inv_fun_on)
 
 /-- If `f` is an injective function, then `s` is equivalent to `f '' s`. -/
 @[simps apply]
@@ -367,8 +393,7 @@ lemma image_symm_preimage {α β} {f : α → β} (hf : injective f) (u s : set 
   (λ x, (set.image f s hf).symm x : f '' s → α) ⁻¹' u = coe ⁻¹' (f '' u) :=
 begin
   ext ⟨b, a, has, rfl⟩,
-  have : ∀(h : ∃a', a' ∈ s ∧ a' = a), classical.some h = a := λ h, (classical.some_spec h).2,
-  simp [equiv.set.image, equiv.set.image_of_inj_on, hf.eq_iff, this],
+  simp [equiv.set.image, equiv.set.image_of_inj_on, hf.eq_iff, has],
 end
 
 /-- If `α` is equivalent to `β`, then `set α` is equivalent to `set β`. -/

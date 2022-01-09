@@ -41,7 +41,7 @@ instance : inner_product_space 𝕜 (lp G 2) :=
     calc ∥f∥ ^ 2 = ∥f∥ ^ (2:ℝ≥0∞).to_real : by norm_cast
     ... = ∑' i, ∥f i∥ ^ (2:ℝ≥0∞).to_real : lp.norm_rpow_eq_tsum _ f
     ... = ∑' i, ∥f i∥ ^ 2 : by norm_cast
-    ... = ∑' i, re ⟪f i, f i⟫ : by simp [norm_sq_eq_inner]
+    ... = ∑' i, re ⟪f i, f i⟫ : by simp only [norm_sq_eq_inner]
     ... = re (∑' i, ⟪f i, f i⟫) : (is_R_or_C.re_clm.map_tsum _).symm
     ... = _ : by congr,
     { norm_num },
@@ -50,12 +50,13 @@ instance : inner_product_space 𝕜 (lp G 2) :=
   conj_sym := λ f g, begin
     calc conj _ = conj ∑' i, ⟪g i, f i⟫ : by congr
     ... = ∑' i, conj ⟪g i, f i⟫ : is_R_or_C.conj_cle.map_tsum
-    ... = ∑' i, ⟪f i, g i⟫ : by simp [inner_conj_sym]
+    ... = ∑' i, ⟪f i, g i⟫ : by simp only [inner_conj_sym]
     ... = _ : by congr,
   end,
   add_left := λ f₁ f₂ g, begin
     calc _ = ∑' i, ⟪(f₁ + f₂) i, g i⟫ : _
-    ... = ∑' i, (⟪f₁ i, g i⟫ + ⟪f₂ i, g i⟫) : by simp [inner_add_left]
+    ... = ∑' i, (⟪f₁ i, g i⟫ + ⟪f₂ i, g i⟫) :
+          by simp only [inner_add_left, pi.add_apply, coe_fn_add]
     ... = (∑' i, ⟪f₁ i, g i⟫) + ∑' i, ⟪f₂ i, g i⟫ : tsum_add _ _
     ... = _ : by congr,
     { congr, },
@@ -64,10 +65,10 @@ instance : inner_product_space 𝕜 (lp G 2) :=
   end,
   smul_left := λ f g c, begin
     calc _ = ∑' i, ⟪c • f i, g i⟫ : _
-    ... = ∑' i, conj c * ⟪f i, g i⟫ : by simp [inner_smul_left]
+    ... = ∑' i, conj c * ⟪f i, g i⟫ : by simp only [inner_smul_left]
     ... = conj c * ∑' i, ⟪f i, g i⟫ : tsum_mul_left
     ... = _ : _,
-    { sorry },
+    { simp only [coe_fn_smul, pi.smul_apply] },
     { congr },
   end,
   .. lp.normed_space }

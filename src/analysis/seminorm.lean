@@ -481,10 +481,8 @@ begin
     exact lt_of_le_of_lt (seminorm_le_sup p ι' i hi x) hx },
   intros hx,
   rw [finset_sup_apply, ←nnreal.coe_one, nnreal.coe_lt_coe, finset.sup_lt_iff],
-  {
-    intros i hi,
-    exact (hx i hi),
-  },
+  { intros i hi,
+    exact (hx i hi) },
   simp,
 end
 

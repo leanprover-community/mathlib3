@@ -234,15 +234,7 @@ by { ext i j, refine fin.cases _ _ i; simp [minor] }
 
 end minor
 
-section vec2_and_vec3
-
-lemma vec2_eq {a₀ a₁ b₀ b₁ : α} (h₀ : a₀ = b₀) (h₁ : a₁ = b₁) :
-  ![a₀, a₁] = ![b₀, b₁] :=
-by { ext x, fin_cases x; assumption }
-
-lemma vec3_eq {a₀ a₁ a₂ b₀ b₁ b₂ : α} (h₀ : a₀ = b₀) (h₁ : a₁ = b₁) (h₂ : a₂ = b₂) :
-  ![a₀, a₁, a₂] = ![b₀, b₁, b₂] :=
-by { ext x, fin_cases x; assumption }
+section vec2_and_vec3_add
 
 variable [has_add α]
 
@@ -254,7 +246,7 @@ lemma vec3_add {a₀ a₁ a₂ b₀ b₁ b₂ : α} :
   ![a₀, a₁, a₂] + ![b₀, b₁, b₂] = ![a₀ + b₀, a₁ + b₁, a₂ + b₂] :=
 by rw [cons_add_cons, cons_add_cons, cons_add_cons, empty_add_empty]
 
-end vec2_and_vec3
+end vec2_and_vec3_add
 
 section vec2_and_vec3_dot
 
@@ -264,7 +256,7 @@ lemma vec2_dot_product' {a₀ a₁ b₀ b₁ : α} :
   ![a₀, a₁] ⬝ᵥ ![b₀, b₁] = a₀ * b₀ + a₁ * b₁ :=
 by rw [cons_dot_product_cons, cons_dot_product_cons, dot_product_empty, add_zero]
 
-lemma vec2_dot_product (v w : fin 2 → α) :
+@[simp] lemma vec2_dot_product (v w : fin 2 → α) :
   v ⬝ᵥ w = v 0 * w 0 + v 1 * w 1 :=
 vec2_dot_product'
 
@@ -273,7 +265,7 @@ lemma vec3_dot_product' {a₀ a₁ a₂ b₀ b₁ b₂ : α} :
 by rw [cons_dot_product_cons, cons_dot_product_cons, cons_dot_product_cons,
        dot_product_empty, add_zero, add_assoc]
 
-lemma vec3_dot_product (v w : fin 3 → α) :
+@[simp] lemma vec3_dot_product (v w : fin 3 → α) :
   v ⬝ᵥ w = v 0 * w 0 + v 1 * w 1 + v 2 * w 2 :=
 vec3_dot_product'
 

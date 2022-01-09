@@ -15,24 +15,17 @@ namespace measure_theory
 
 open set filter topological_space
 
-section move
+variables {α β ι : Type*} {m : measurable_space α} [metric_space β] {μ : measure α}
 
-/-
-### Egorov's theorem
+section
 
-If `f : ℕ → α → β` is a sequence of measurable functions where `β` is a separable metric space,
-and `f` converges to `g : α → β` almost surely on a measurable set `s : set α` of finite measure,
-then, for all `ε > 0`, there exists a subset `t ⊆ s` such that `μ t < ε` and `f` converges to
-`g` uniformly on `A \ B`.
+namespace egorov
 
-Useful:
--- `nnreal.has_sum_geometric` in `analysis.specific_limits`
--/
+/-- Given a sequence of functions `f` and a function `g`, `not_convergent_seq f g i j` is the
+set of elements such that `f k x` and `g x` are separated by at least `1 / (i + 1)` for some
+`k ≥ j`.
 
-variables {α β ι : Type*} {m : measurable_space α}
-  [metric_space β] [second_countable_topology β] [measurable_space β] [borel_space β]
-  {μ : measure α}
-
+This definition is useful for Egorov's theorem. -/
 def not_convergent_seq (f : ℕ → α → β) (g : α → β) (i j : ℕ) : set α :=
 ⋃ k (hk : j ≤ k), {x | (1 / (i + 1 : ℝ)) < dist (f k x) (g x)}
 
@@ -42,17 +35,11 @@ lemma mem_not_convergent_seq_iff {i j : ℕ} {x : α} : x ∈ not_convergent_seq
   ∃ k (hk : j ≤ k), (1 / (i + 1 : ℝ)) < dist (f k x) (g x) :=
 by { simp_rw [not_convergent_seq, mem_Union], refl }
 
-lemma not_convergent_seq_measurable_set
-  (hf : ∀ n, measurable[m] (f n)) (hg : measurable g)
-  {i j : ℕ} : measurable_set (not_convergent_seq f g i j) :=
-measurable_set.Union (λ k, measurable_set.Union_Prop $ λ hk,
-  measurable_set_lt measurable_const $ (hf k).dist hg)
-
 lemma not_convergent_seq_antitone {i : ℕ} :
   antitone (not_convergent_seq f g i) :=
 λ j k hjk, bUnion_subset_bUnion (λ l hl, ⟨l, le_trans hjk hl, subset.refl _⟩)
 
-lemma measure_inter_not_convergent_seq_eq_zero {s : set α} (hsm : measurable_set s)
+lemma measure_inter_not_convergent_seq_eq_zero {s : set α}
   (hfg : ∀ᵐ x ∂μ, x ∈ s → tendsto (λ n, f n x) at_top (𝓝 (g x))) (i : ℕ) :
   μ (s ∩ ⋂ j, not_convergent_seq f g i j) = 0 :=
 begin
@@ -67,13 +54,21 @@ begin
   exact ⟨n, hn₁, hn₂.le⟩
 end
 
+variables [second_countable_topology β] [measurable_space β] [borel_space β]
+
+lemma not_convergent_seq_measurable_set
+  (hf : ∀ n, measurable[m] (f n)) (hg : measurable g)
+  {i j : ℕ} : measurable_set (not_convergent_seq f g i j) :=
+measurable_set.Union (λ k, measurable_set.Union_Prop $ λ hk,
+  measurable_set_lt measurable_const $ (hf k).dist hg)
+
 lemma measure_not_convergent_seq_tendsto_zero
   (hf : ∀ n, measurable[m] (f n)) (hg : measurable g)
   {s : set α} (hsm : measurable_set s) (hs : μ s < ∞)
   (hfg : ∀ᵐ x ∂μ, x ∈ s → tendsto (λ n, f n x) at_top (𝓝 (g x))) (i : ℕ) :
   tendsto (λ j, μ (s ∩ not_convergent_seq f g i j)) at_top (𝓝 0) :=
 begin
-  rw [← measure_inter_not_convergent_seq_eq_zero hsm hfg, inter_Inter],
+  rw [← measure_inter_not_convergent_seq_eq_zero hfg, inter_Inter],
   exact tendsto_measure_Inter (λ n, hsm.inter $ not_convergent_seq_measurable_set hf hg)
     (λ k l hkl, inter_subset_inter_right _ $ not_convergent_seq_antitone hkl)
     ⟨0, (lt_of_le_of_lt (measure_mono $ inter_subset_left _ _) hs).ne⟩
@@ -94,6 +89,11 @@ begin
     exact mul_pos hε (pow_pos (by norm_num) _) }
 end
 
+/-- Given some `ε > 0`, `not_convergent_seq_lt_index` provides the index such that
+`not_convergent_seq` (intersected with a set of finite measure) has measure less than
+`ε * 2⁻¹ ^ i`.
+
+This definition is useful for Egorov's theorem. -/
 def not_convergent_seq_lt_index {ε : ℝ} (hε : 0 < ε)
   (hf : ∀ n, measurable[m] (f n)) (hg : measurable g)
   {s : set α} (hsm : measurable_set s) (hs : μ s < ∞)
@@ -108,6 +108,10 @@ lemma not_convergent_seq_lt_index_spec {ε : ℝ} (hε : 0 < ε)
   ennreal.of_real (ε * 2⁻¹ ^ i) :=
 classical.some_spec $ exists_not_convergent_seq_lt hε hf hg hsm hs hfg i
 
+/-- Given some `ε > 0`, `Union_not_convergent_seq` is the union of `not_convergent_seq` with
+specific indicies such that `Union_not_convergent_seq` has measure less equal than `ε`.
+
+This definition is useful for Egorov's theorem. -/
 def Union_not_convergent_seq {ε : ℝ} (hε : 0 < ε)
   (hf : ∀ n, measurable[m] (f n)) (hg : measurable g)
   {s : set α} (hsm : measurable_set s) (hs : μ s < ∞)
@@ -142,33 +146,44 @@ begin
   exact inter_subset_left _ _,
 end
 
+end egorov
+
+variables [second_countable_topology β] [measurable_space β] [borel_space β]
+  {f : ℕ → α → β} {g : α → β}
+
+/-- **Egorov's theorem**: If `f : ℕ → α → β` is a sequence of measurable functions that converges
+to `g : α → β` almost everywhere on a measurable set `s` of finite measure, then for all `ε > 0`,
+there exists a subset `t ⊆ s` such that `μ t < ε` and `f` converges to `g` uniformly on `A \ B`.
+In other words, a sequence of almost everywhere convergent functions converges uniformly except on
+an arbitrarily small set. -/
 theorem egorov (hf : ∀ n, measurable[m] (f n)) (hg : measurable g)
   {s : set α} (hsm : measurable_set s) (hs : μ s < ∞)
   (hfg : ∀ᵐ x ∂μ, x ∈ s → tendsto (λ n, f n x) at_top (𝓝 (g x))) {ε : ℝ} (hε : 0 < ε) :
   ∃ t ⊆ s, μ t ≤ ennreal.of_real ε ∧ tendsto_uniformly_on f g at_top (s \ t) :=
 begin
-  refine ⟨Union_not_convergent_seq hε hf hg hsm hs hfg,
-    Union_not_convergent_seq_subset hε hf hg hsm hs hfg,
-    measure_Union_not_convergent_seq hε hf hg hsm hs hfg, _⟩,
+  refine ⟨egorov.Union_not_convergent_seq hε hf hg hsm hs hfg,
+    egorov.Union_not_convergent_seq_subset hε hf hg hsm hs hfg,
+    egorov.measure_Union_not_convergent_seq hε hf hg hsm hs hfg, _⟩,
   rw metric.tendsto_uniformly_on_iff,
   intros δ hδ,
   obtain ⟨N, hN⟩ := exists_nat_one_div_lt hδ,
   rw eventually_iff_exists_mem,
-  refine ⟨Ioi (not_convergent_seq_lt_index (half_pos hε) hf hg hsm hs hfg N),
+  refine ⟨Ioi (egorov.not_convergent_seq_lt_index (half_pos hε) hf hg hsm hs hfg N),
     Ioi_mem_at_top _, λ n hn x hx, _⟩,
-  simp only [mem_diff, Union_not_convergent_seq, not_exists, mem_Union, mem_inter_eq,
+  simp only [mem_diff, egorov.Union_not_convergent_seq, not_exists, mem_Union, mem_inter_eq,
     not_and, exists_and_distrib_left] at hx,
   obtain ⟨hxs, hx⟩ := hx,
   specialize hx hxs N,
-  rw mem_not_convergent_seq_iff at hx,
+  rw egorov.mem_not_convergent_seq_iff at hx,
   push_neg at hx,
   rw dist_comm,
   exact lt_of_le_of_lt (hx n (mem_Ioi.1 hn).le) hN,
 end
 
-end move
+end
 
-variables {α β ι : Type*} [normed_group β]
+variables [measurable_space β] [normed_group β]
+-- variables [second_countable_topology β] [measurable_space β] [borel_space β]
 
 -- **Change doc-strings**
 
@@ -183,12 +198,12 @@ snorm (set.indicator s (f i)) 1 μ < ε
 
 /-- In probability theory, a family of functions is uniformly integrable if it is uniformly
 integrable in the measure theory sense and is uniformly bounded. -/
-def uniform_integrable {m : measurable_space α} [measurable_space β]
+def uniform_integrable {m : measurable_space α}
   (μ : measure α) (f : ι → α → β) : Prop :=
 (∀ i, measurable (f i)) ∧ unif_integrable μ f ∧
   ∃ C : ℝ≥0, ∀ i, snorm (f i) 1 μ < C
 
-variables {m : measurable_space α} {μ : measure α} [measurable_space β] {f : ι → α → β}
+variables {f : ι → α → β}
 
 lemma uniform_integrable.mem_ℒp_one (hf : uniform_integrable μ f) (i : ι) :
   mem_ℒp (f i) 1 μ :=

@@ -894,7 +894,8 @@ end
 lemma cyclotomic_mul_prime_pow_eq (R : Type*) {p m : ℕ} [fact (nat.prime p)]
   [ring R] [char_p R p] (hm : ¬p ∣ m) :
   ∀ {k}, 0 < k → cyclotomic (p ^ k * m) R = (cyclotomic m R) ^ (p ^ k - p ^ (k - 1))
-| 1 _ := by rw [pow_one, nat.sub_self, pow_zero, mul_comm, cyclotomic_mul_prime_not_dvd_eq_pow R hm]
+| 1 _ := by rw [pow_one, nat.sub_self, pow_zero, mul_comm,
+  cyclotomic_mul_prime_eq_pow_of_not_dvd R hm]
 | (a + 2) _ :=
 begin
   have hdiv : p ∣ p ^ a.succ * m := ⟨p ^ a * m, by rw [← mul_assoc, pow_succ]⟩,

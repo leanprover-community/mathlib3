@@ -278,21 +278,18 @@ variables (p : seminorm 𝕜 E) (c : 𝕜) (x y : E) (r : ℝ)
 protected lemma smul : p (c • x) = ∥c∥ * p x := p.smul' _ _
 protected lemma triangle : p (x + y) ≤ p x + p y := p.triangle' _ _
 
-lemma mul_sup {a b c : ℝ} (h₁ : 0 ≤ a) : a * (b ⊔ c) = (a * b) ⊔ (a * c) :=
-begin
-  cases le_total b c with h h,
-  { simp [sup_eq_max, max_eq_right h, max_eq_right (mul_le_mul_of_nonneg_left h h₁)] },
-  { simp [sup_eq_max, max_eq_left h, max_eq_left (mul_le_mul_of_nonneg_left h h₁)] },
-end
-
 noncomputable instance : has_sup (seminorm 𝕜 E) :=
 { sup := λ p q,
   { to_fun := p ⊔ q,
     triangle' := λ x y, sup_le
       ((p.triangle x y).trans $ add_le_add le_sup_left le_sup_left)
       ((q.triangle x y).trans $ add_le_add le_sup_right le_sup_right),
-    smul' := λ x v, (congr_arg2 (⊔) (p.smul x v) (q.smul x v)).trans $
-      (mul_sup $ norm_nonneg x).symm } }
+    smul' := λ x v,
+    begin
+      simp,
+      rw [sup_eq_max, sup_eq_max, p.smul x v, q.smul x v,
+        (mul_max_of_nonneg (p v) (q v) (norm_nonneg x))],
+    end } }
 
 @[simp] lemma coe_sup (p q : seminorm 𝕜 E) : ⇑(p ⊔ q) = p ⊔ q := rfl
 

@@ -537,8 +537,6 @@ begin
       exact hneq.symm } },
 end
 
-example : topological_space ℕ := nat.topological_space
-
 instance {α} [topological_space α] [encodable α] : separable_space α :=
 { exists_countable_dense := ⟨set.univ, set.countable_encodable set.univ, dense_univ⟩ }
 

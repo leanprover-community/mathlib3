@@ -51,10 +51,10 @@ instance subsingleton.prod {α β : Type*} [subsingleton α] [subsingleton β] :
 instance : decidable_eq empty := λa, a.elim
 
 instance sort.inhabited : inhabited (Sort*) := ⟨punit⟩
-instance sort.inhabited' : inhabited (default (Sort*)) := ⟨punit.star⟩
+instance sort.inhabited' : inhabited (default) := ⟨punit.star⟩
 
-instance psum.inhabited_left {α β} [inhabited α] : inhabited (psum α β) := ⟨psum.inl (default _)⟩
-instance psum.inhabited_right {α β} [inhabited β] : inhabited (psum α β) := ⟨psum.inr (default _)⟩
+instance psum.inhabited_left {α β} [inhabited α] : inhabited (psum α β) := ⟨psum.inl default⟩
+instance psum.inhabited_right {α β} [inhabited β] : inhabited (psum α β) := ⟨psum.inr default⟩
 
 @[priority 10] instance decidable_eq_of_subsingleton
   {α} [subsingleton α] : decidable_eq α
@@ -731,6 +731,15 @@ by subst q; refl
 theorem ne_of_mem_of_not_mem {α β} [has_mem α β] {s : β} {a b : α}
   (h : a ∈ s) : b ∉ s → a ≠ b :=
 mt $ λ e, e ▸ h
+
+-- todo: change name
+lemma ball_cond_comm {α} {s : α → Prop} {p : α → α → Prop} :
+  (∀ a, s a → ∀ b, s b → p a b) ↔ (∀ a b, s a → s b → p a b) :=
+⟨λ h a b ha hb, h a ha b hb, λ h a ha b hb, h a b ha hb⟩
+
+lemma ball_mem_comm {α β} [has_mem α β] {s : β} {p : α → α → Prop} :
+  (∀ a b ∈ s, p a b) ↔ (∀ a b, a ∈ s → b ∈ s → p a b) :=
+ball_cond_comm
 
 lemma ne_of_apply_ne {α β : Sort*} (f : α → β) {x y : α} (h : f x ≠ f y) : x ≠ y :=
 λ (w : x = y), h (congr_arg f w)

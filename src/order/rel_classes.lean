@@ -20,6 +20,12 @@ variables {α : Type u} {β : Type v} {r : α → α → Prop} {s : β → β �
 
 open function
 
+/-- A version of `antisymm` with `r` explicit.
+
+This lemma matches the lemmas from lean core in `init.algebra.classes`, but is missing there.  -/
+@[elab_simple]
+lemma antisymm_of (r : α → α → Prop) [is_antisymm α r] {a b : α} : r a b → r b a → a = b := antisymm
+
 theorem is_refl.swap (r) [is_refl α r] : is_refl α (swap r) := ⟨refl_of r⟩
 theorem is_irrefl.swap (r) [is_irrefl α r] : is_irrefl α (swap r) := ⟨irrefl_of r⟩
 theorem is_trans.swap (r) [is_trans α r] : is_trans α (swap r) :=
@@ -270,13 +276,10 @@ def unbounded (r : α → α → Prop) (s : set α) : Prop := ∀ a, ∃ b ∈ s
 def bounded (r : α → α → Prop) (s : set α) : Prop := ∃a, ∀ b ∈ s, r b a
 
 @[simp] lemma not_bounded_iff {r : α → α → Prop} (s : set α) : ¬bounded r s ↔ unbounded r s :=
-begin
-  classical,
-  simp only [bounded, unbounded, not_forall, not_exists, exists_prop, not_and, not_not]
-end
+by simp only [bounded, unbounded, not_forall, not_exists, exists_prop, not_and, not_not]
 
 @[simp] lemma not_unbounded_iff {r : α → α → Prop} (s : set α) : ¬unbounded r s ↔ bounded r s :=
-by { classical, rw [not_iff_comm, not_bounded_iff] }
+by rw [not_iff_comm, not_bounded_iff]
 
 namespace prod
 

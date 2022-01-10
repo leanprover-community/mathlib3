@@ -865,7 +865,7 @@ theorem is_O.const_mul_left {f : α → R} (h : is_O f g l) (c' : R) :
   is_O (λ x, c' * f x) g l :=
 let ⟨c, hc⟩ := h.is_O_with in (hc.const_mul_left c').is_O
 
-theorem is_O_with_self_const_mul' (u : units R) (f : α → R) (l : filter α) :
+theorem is_O_with_self_const_mul' (u : Rˣ) (f : α → R) (l : filter α) :
   is_O_with ∥(↑u⁻¹:R)∥ f (λ x, ↑u * f x) l :=
 (is_O_with_const_mul_self ↑u⁻¹ _ l).congr_left $ λ x, u.inv_mul_cancel_left (f x)
 
@@ -912,7 +912,7 @@ theorem is_O.of_const_mul_right {g : α → R} {c : R}
   is_O f g l :=
 let ⟨c, cnonneg, hc⟩ := h.exists_nonneg in (hc.of_const_mul_right cnonneg).is_O
 
-theorem is_O_with.const_mul_right' {g : α → R} {u : units R} {c' : ℝ} (hc' : 0 ≤ c')
+theorem is_O_with.const_mul_right' {g : α → R} {u : Rˣ} {c' : ℝ} (hc' : 0 ≤ c')
   (h : is_O_with c' f g l) :
   is_O_with (c' * ∥(↑u⁻¹:R)∥) f (λ x, ↑u * g x) l :=
 h.trans (is_O_with_self_const_mul' _ _ _) hc'

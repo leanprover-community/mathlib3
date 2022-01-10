@@ -236,7 +236,7 @@ eq_neg_of_add_eq_zero (by rw [← add_smul, add_left_neg, zero_smul])
 @[simp] lemma neg_smul_neg : -r • -x = r • x :=
 by rw [neg_smul, smul_neg, neg_neg]
 
-@[simp] theorem units.neg_smul (u : units R) (x : M) : -u • x = - (u • x) :=
+@[simp] theorem units.neg_smul (u : Rˣ) (x : M) : -u • x = - (u • x) :=
 by rw [units.smul_def, units.coe_neg, neg_smul, units.smul_def]
 
 variables (R)

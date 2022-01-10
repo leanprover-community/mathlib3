@@ -183,7 +183,7 @@ def Sheaf_equiv_SheafOfTypes : Sheaf J (Type w) ≌ SheafOfTypes J :=
   counit_iso := nat_iso.of_components (λ X, ⟨⟨𝟙 _⟩, ⟨𝟙 _⟩, by tidy, by tidy⟩) (by tidy) }
 
 instance : inhabited (Sheaf (⊥ : grothendieck_topology C) (Type w)) :=
-⟨(Sheaf_equiv_SheafOfTypes _).inverse.obj (default _)⟩
+⟨(Sheaf_equiv_SheafOfTypes _).inverse.obj default⟩
 
 variables {J} {A}
 

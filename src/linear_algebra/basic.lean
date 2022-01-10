@@ -1378,8 +1378,8 @@ open set
 @[simp] lemma neg_coe : -(p : set M) = p := set.ext $ λ x, p.neg_mem_iff
 
 @[simp] protected lemma map_neg (f : M →ₗ[R] M₂) : map (-f) p = map f p :=
-ext $ λ y, ⟨λ ⟨x, hx, hy⟩, hy ▸ ⟨-x, neg_mem hx, map_neg f x⟩,
-  λ ⟨x, hx, hy⟩, hy ▸ ⟨-x, neg_mem hx, (map_neg (-f) _).trans (neg_neg (f x))⟩⟩
+ext $ λ y, ⟨λ ⟨x, hx, hy⟩, hy ▸ ⟨-x, show -x ∈ p, from neg_mem hx, map_neg f x⟩,
+  λ ⟨x, hx, hy⟩, hy ▸ ⟨-x, show -x ∈ p, from neg_mem hx, (map_neg (-f) _).trans (neg_neg (f x))⟩⟩
 
 @[simp] lemma span_neg (s : set M) : span R (-s) = span R s :=
 calc span R (-s) = span R ((-linear_map.id : M →ₗ[R] M) '' s) : by simp

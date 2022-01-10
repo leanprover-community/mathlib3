@@ -1,0 +1,75 @@
+/-
+Copyright (c) 2022 Yaël Dillies. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Yaël Dillies
+-/
+import data.multiset.basic
+
+/-!
+# Disjoint sum of multisets
+
+This file defines the disjoint sum of two multisets as `multiset (α ⊕ β)`. Beware not to confuse
+  with the `multiset.sum` operation which computes the additive sum.
+
+## Main declarations
+
+* `multiset.disj_sum`: `s.disj_sum t` is the disjoint sum of `s` and `t`.
+-/
+
+namespace multiset
+variables {α β : Type*} (s : multiset α) (t : multiset β)
+
+/-- Disjoint sum of multisets. -/
+def disj_sum : multiset (α ⊕ β) := s.map inl + t.map inr
+
+@[simp] lemma zero_disj_sum : (0 : multiset α).disj_sum t = t.map inr := zero_add _
+@[simp] lemma disj_sum_zero : s.disj_sum (0 : multiset β) = s.map inl := add_zero _
+
+@[simp] lemma card_disj_sum : (s.disj_sum t).card = s.card + t.card :=
+by rw [disj_sum, card_add, card_map, card_map]
+
+variables {s t} {s₁ s₂ : multiset α} {t₁ t₂ : multiset β} {a : α} {b : β} {x : α ⊕ β}
+
+lemma mem_disj_sum : x ∈ s.disj_sum t ↔ (∃ a, a ∈ s ∧ inl a = x) ∨ ∃ b, b ∈ t ∧ inr b = x :=
+by simp_rw [disj_sum, mem_add, mem_map]
+
+@[simp] lemma inl_mem_disj_sum : inl a ∈ s.disj_sum t ↔ a ∈ s :=
+begin
+  rw [mem_disj_sum, or_iff_left],
+  simp only [exists_eq_right],
+  rintro ⟨b, _, hb⟩,
+  exact inr_ne_inl hb,
+end
+
+@[simp] lemma inr_mem_disj_sum : inr b ∈ s.disj_sum t ↔ b ∈ t :=
+begin
+  rw [mem_disj_sum, or_iff_right],
+  simp only [exists_eq_right],
+  rintro ⟨a, _, ha⟩,
+  exact inl_ne_inr ha,
+end
+
+lemma disj_sum_mono (hs : s₁ ≤ s₂) (ht : t₁ ≤ t₂) : s₁.disj_sum t₁ ≤ s₂.disj_sum t₂ :=
+add_le_add (map_le_map hs) (map_le_map ht)
+
+lemma disj_sum_mono_left (hs : s₁ ≤ s₂) (t : multiset β) : s₁.disj_sum t ≤ s₂.disj_sum t :=
+add_le_add_right (map_le_map hs) _
+
+lemma disj_sum_mono_right (s : multiset α) :
+  monotone (s.disj_sum : multiset β → multiset (α ⊕ β)) :=
+λ t₁ t₂ ht, add_le_add_left (map_le_map ht) _
+
+lemma disj_sum_strict_mono (hs : s₁ < s₂) (ht : t₁ < t₂) : s₁.disj_sum t₁ < s₂.disj_sum t₂ :=
+add_lt_add (map_lt_map hs) (map_lt_map ht)
+
+protected lemma nodup.disj_sum (hs : s.nodup) (ht : t.nodup) : (s.disj_sum t).nodup :=
+begin
+  refine (multiset.nodup_add_of_nodup (multiset.nodup_map inl_injective hs) $
+    multiset.nodup_map inr_injective ht).2 (λ x hs ht, _),
+  rw multiset.mem_map at hs ht,
+  obtain ⟨a, _, rfl⟩ := hs,
+  obtain ⟨b, _, h⟩ := ht,
+  exact inr_ne_inl h,
+end
+
+end multiset

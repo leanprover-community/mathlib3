@@ -838,6 +838,16 @@ eq_of_mem_repeat $ by rwa map_const at h
 @[simp] theorem map_le_map {f : α → β} {s t : multiset α} (h : s ≤ t) : map f s ≤ map f t :=
 le_induction_on h $ λ l₁ l₂ h, (h.map f).subperm
 
+@[simp] lemma map_lt_map {f : α → β} {s t : multiset α} (h : s < t) : s.map f < t.map f :=
+begin
+  refine (map_le_map h.le).lt_of_not_le (λ H, h.ne $ eq_of_le_of_card_le h.le _),
+  rw [←s.card_map f, ←t.card_map f],
+  exact card_le_of_le H,
+end
+
+lemma map_mono (f : α → β) : mono (map f) := λ _ _, map_le_map
+lemma map_strict_mono (f : α → β) : strict_mono (map f) := λ _ _, map_lt_map
+
 @[simp] theorem map_subset_map {f : α → β} {s t : multiset α} (H : s ⊆ t) : map f s ⊆ map f t :=
 λ b m, let ⟨a, h, e⟩ := mem_map.1 m in mem_map.2 ⟨a, H h, e⟩
 

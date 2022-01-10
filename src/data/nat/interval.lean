@@ -233,7 +233,7 @@ open multiset
 
 lemma multiset_Ico_map_mod (n a : ℕ) : (multiset.Ico n (n+a)).map (% a) = range a :=
 begin
-  convert congr_arg finset.val (finset_Ico_image_mod n a),
+  convert congr_arg finset.val (image_Ico_mod n a),
   refine ((nodup_map_iff_inj_on (finset.Ico _ _).nodup).2 $ _).erase_dup.symm,
   exact mod_inj_on_Ico _ _,
 end

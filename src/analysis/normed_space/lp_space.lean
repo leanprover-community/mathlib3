@@ -382,7 +382,7 @@ begin
     { rw lp.norm_eq_csupr,
       simp [real.csupr_empty] },
     inhabit α,
-    exact (norm_nonneg (f (default α))).trans ((lp.is_lub_norm f).1 ⟨default α, rfl⟩) },
+    exact (norm_nonneg (f default)).trans ((lp.is_lub_norm f).1 ⟨default, rfl⟩) },
   { rw lp.norm_eq_tsum_rpow hp f,
     refine real.rpow_nonneg_of_nonneg (tsum_nonneg _) _,
     exact λ i, real.rpow_nonneg_of_nonneg (norm_nonneg _) _ },

@@ -217,7 +217,7 @@ complete_space_extension
 end
 
 instance [inhabited α] : inhabited (Cauchy α) :=
-⟨pure_cauchy $ default α⟩
+⟨pure_cauchy default⟩
 
 instance [h : nonempty α] : nonempty (Cauchy α) :=
 h.rec_on $ assume a, nonempty.intro $ Cauchy.pure_cauchy a

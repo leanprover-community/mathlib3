@@ -112,7 +112,7 @@ instance uniform_space : uniform_space R := topological_add_group.to_uniform_spa
 instance uniform_add_group : uniform_add_group R := topological_add_group_is_uniform
 
 lemma cauchy_iff {F : filter R} :
-  cauchy F ↔ F.ne_bot ∧ ∀ γ : (Γ₀ R)ˣ, ∃ M ∈ F, ∀ x y, x ∈ M → y ∈ M → v (y - x) < γ :=
+  cauchy F ↔ F.ne_bot ∧ ∀ γ : (Γ₀ R)ˣ, ∃ M ∈ F, ∀ x y ∈ M, v (y - x) < γ :=
 begin
   rw add_group_filter_basis.cauchy_iff,
   apply and_congr iff.rfl,

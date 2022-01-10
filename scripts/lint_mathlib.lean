@@ -74,24 +74,8 @@ h ← mk_file_handle fn mode.write,
 put_str h contents,
 close h
 
-def lintfail : 1 + 0 = 1 := by simp
-#lint
-
-/--
-Prints annotations for failing linters in a format understood by github.
--/
-meta def print_annotations
-  (env : environment)
-  (results : list (name × linter × rb_map name string))
-  (decls non_auto_decls : list declaration)
-  (group_by_filename : option ℕ)
-  (where_desc : string) (slow : bool) (verbose : lint_verbosity) (num_linters : ℕ) : io unit := do
-results.mmap' $ λ ⟨linter_name, linter, results⟩, do
-results.mfold () (λ decl_name decl_warn _, do
-decl ← env.get decl_name,
-po ← env.decl_pos decl_name,
-ol ← env.decl_olean decl_name,
-io.print_ln sformat!"::error file={ol},line={po.line},col={po.column}::{decl_name} - {decl_warn}")
+def lintfail : 1 + 0 = 1 := by simp -- for demo purposes only
+def lintfail2 : 1 + 0 = 1 := by simp
 
 /-- Runs when called with `lean --run` -/
 meta def main : io unit := do
@@ -99,7 +83,9 @@ env ← get_env,
 args ← io.cmdline_args,
 mathlib_path ← get_mathlib_dir,
 decls ← lint_project_decls mathlib_path,
-d ← env.get `lintfail,
+d ← env.get `lintfail, -- for demo purposes only
+let decls := d :: decls,
+d ← env.get `lintfail2,
 let decls := d :: decls,
 linters ← get_linters mathlib_linters,
 let non_auto_decls := decls.filter (λ d, ¬ d.is_auto_or_internal env),
@@ -108,9 +94,8 @@ nolint_file ← read_nolints_file,
 let results := (do
   (linter_name, linter, decls) ← results₀,
   [(linter_name, linter, (nolint_file.find linter_name).foldl rb_map.erase decls)]),
-if "--github" ∈ args then print_annotations env results decls non_auto_decls
-  mathlib_path.length "in mathlib" tt lint_verbosity.medium linters.length else skip,
+let emit_workflow_commands : bool :=  "--github" ∈ args,
 io.print $ to_string $ format_linter_results env results decls non_auto_decls
-  mathlib_path.length "in mathlib" tt lint_verbosity.medium linters.length,
+  mathlib_path.length "in mathlib" tt lint_verbosity.medium linters.length emit_workflow_commands,
 io.write_file "nolints.txt" $ to_string $ mk_nolint_file env mathlib_path.length results₀,
 if results.all (λ r, r.2.2.empty) then pure () else io.fail ""

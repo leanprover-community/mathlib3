@@ -102,7 +102,7 @@ See also `linear_map_class F R M M₂` for the case where `σ` is the identity m
 A map `f` between an `R`-module and an `S`-module over a ring homomorphism `σ : R →+* S`
 is semilinear if it satisfies the two properties `f (x + y) = f x + f y` and
 `f (c • x) = (σ c) • f x`. -/
-class semilinear_map_class (F : Type*) {R S : out_param Type*} {hR : semiring R} {hS : semiring S}
+class semilinear_map_class (F : Type*) {R S : out_param Type*} [semiring R] [semiring S]
   (σ : out_param $ R →+* S) (M M₂ : out_param Type*)
   [add_comm_monoid M] [add_comm_monoid M₂] [module R M] [module S M₂]
   extends add_hom_class F M M₂ :=
@@ -150,7 +150,7 @@ include i
 
 lemma map_smul_inv {σ' : S →+* R} [ring_hom_inv_pair σ σ'] (c : S) (x : M) :
   c • f x = f (σ' c • x) :=
-by rw [map_smulₛₗ f]; simp
+by simp
 
 end semilinear_map_class
 

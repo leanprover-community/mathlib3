@@ -890,7 +890,7 @@ begin
   exact hao.not_le (sup_le.2 (λ i, lt_succ.1 ((lt_of_le_of_ne (le_sup _ _) (hf i)).trans_le hoa)))
 end
 
-theorem sup_eq_zero_iff {ι} {f : ι → ordinal} : sup f = 0 ↔ ∀ i, f i = 0 :=
+@[simp] theorem sup_eq_zero_iff {ι} {f : ι → ordinal} : sup f = 0 ↔ ∀ i, f i = 0 :=
 begin
   refine ⟨λ h i, _, λ h, le_antisymm
     (sup_le.2 (λ i, ordinal.le_zero.2 (h i))) (ordinal.zero_le _)⟩,

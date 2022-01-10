@@ -12,8 +12,9 @@ import ring_theory.witt_vector.identities
 
 This file builds to the proof `witt_vector.domain`,
 an instance that says if `R` is an integral domain, then so is `𝕎 R`.
-Most of the file develops an API around iterated applications
-of `witt_vector.verschiebung` and `witt_vector.frobenius`.
+It depends on the API around iterated applications
+of `witt_vector.verschiebung` and `witt_vector.frobenius`
+found in `identities.lean`.
 
 The [proof sketch](https://math.stackexchange.com/questions/4117247/ring-of-witt-vectors-over-an-integral-domain/4118723#4118723)
 goes as follows:
@@ -95,84 +96,6 @@ begin
 end
 
 /-!
-## Iteration lemmas
-
-This construction involves iterated applications of `verschiebung` and `frobenius`.
-Here we prove some useful lemmas about these.
-Auxiliary lemmas are used to simplify double inductions.
--/
-
-lemma iterate_verschiebung_coeff (x : 𝕎 R) (n k : ℕ) :
-  (verschiebung^[n] x).coeff (k + n) = x.coeff k :=
-begin
-  induction n with k ih,
-  { simp },
-  { rw [iterate_succ_apply', nat.add_succ, verschiebung_coeff_succ],
-    exact ih }
-end
-
-lemma iterate_verschiebung_mul_left (x y : 𝕎 R) (i : ℕ) :
-  (verschiebung^[i] x) * y = (verschiebung^[i] (x * (frobenius^[i] y))) :=
-begin
-  induction i with i ih generalizing y,
-  { simp },
-  { rw [iterate_succ_apply', ← verschiebung_mul_frobenius, ih, iterate_succ_apply'], refl }
-end
-
-/-!
-From this point on, we assume `R` is of characteristic `p`.
--/
-
-section char_p
-
-variable [char_p R p]
-
-lemma iterate_verschiebung_mul (x y : 𝕎 R) (i j : ℕ) :
-  (verschiebung^[i] x) * (verschiebung^[j] y) =
-    (verschiebung^[i + j] ((frobenius^[j] x) * (frobenius^[i] y))) :=
-begin
-  calc
-  _ = (verschiebung^[i] (x * (frobenius^[i] ((verschiebung^[j] y))))) : _
-... = (verschiebung^[i] (x * (verschiebung^[j] ((frobenius^[i] y))))) : _
-... = (verschiebung^[i] ((verschiebung^[j] ((frobenius^[i] y)) * x))) : _
-... = (verschiebung^[i] ((verschiebung^[j] ((frobenius^[i] y) * (frobenius^[j] x))))) : _
-... = (verschiebung^[i + j] ((frobenius^[i] y) * (frobenius^[j] x))) : _
-... = _ : _,
-  { apply iterate_verschiebung_mul_left },
-  { rw verschiebung_frobenius_comm.iterate_iterate; apply_instance },
-  { rw mul_comm },
-  { rw iterate_verschiebung_mul_left },
-  { rw iterate_add_apply },
-  { rw mul_comm }
-end
-
-lemma iterate_frobenius_coeff (x : 𝕎 R) (i k : ℕ) :
-  ((frobenius^[i] x)).coeff k = (x.coeff k)^(p^i) :=
-begin
-  induction i with i ih,
-  { simp },
-  { rw [iterate_succ_apply', coeff_frobenius_char_p, ih],
-    ring_exp }
-end
-
-/-- This is a slightly specialized form of [Hazewinkel, *Witt Vectors*][Haze09] 6.2 equation 5. -/
-lemma iterate_verschiebung_mul_coeff (x y : 𝕎 R) (i j : ℕ) :
-  ((verschiebung^[i] x) * (verschiebung^[j] y)).coeff (i + j) =
-    (x.coeff 0)^(p ^ j) * (y.coeff 0)^(p ^ i) :=
-begin
-  calc
-  _ = (verschiebung^[i + j] ((frobenius^[j] x) * (frobenius^[i] y))).coeff (i + j) : _
-... = ((frobenius^[j] x) * (frobenius^[i] y)).coeff 0 : _
-... = (frobenius^[j] x).coeff 0 * ((frobenius^[i] y)).coeff 0 : _
-... = _ : _,
-  { rw iterate_verschiebung_mul },
-  { convert iterate_verschiebung_coeff _ _ _ using 2,
-    rw zero_add },
-  { apply mul_coeff_zero },
-  { simp only [iterate_frobenius_coeff] }
-end
-
-/-!
 ## Witt vectors over a domain
 
 If `R` is an integral domain, then so is `𝕎 R`.
@@ -180,7 +103,7 @@ This argument is adapted from
 <https://math.stackexchange.com/questions/4117247/ring-of-witt-vectors-over-an-integral-domain/4118723#4118723>.
 -/
 
-instance [no_zero_divisors R] : no_zero_divisors (𝕎 R) :=
+instance [char_p R p] [no_zero_divisors R] : no_zero_divisors (𝕎 R) :=
 ⟨λ x y, begin
   contrapose!,
   rintros ⟨ha, hb⟩,
@@ -191,10 +114,8 @@ instance [no_zero_divisors R] : no_zero_divisors (𝕎 R) :=
   refine mul_ne_zero (pow_ne_zero _ hwa0) (pow_ne_zero _ hwb0),
 end⟩
 
-instance [is_domain R] : is_domain (𝕎 R) :=
+instance [char_p R p] [is_domain R] : is_domain (𝕎 R) :=
 { ..witt_vector.no_zero_divisors,
   ..witt_vector.nontrivial }
-
-end char_p
 
 end witt_vector

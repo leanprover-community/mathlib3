@@ -80,8 +80,10 @@ h ← mk_file_handle fn mode.write,
 put_str h contents,
 close h
 
-def lintfail : 1 + 0 = 1 := by simp -- for demo purposes only
-def lintfail2 : 1 + 0 = 1 := by simp
+@[simp]
+lemma lintfail : 1 + 0 = 1 := by simp -- for demo purposes only
+@[simp, priority 1]
+lemma lintfail2 : 1 + 0 = 1 := by simp
 
 /-- Runs when called with `lean --run` -/
 meta def main : io unit := do
@@ -100,7 +102,7 @@ nolint_file ← read_nolints_file,
 let results := (do
   (linter_name, linter, decls) ← results₀,
   [(linter_name, linter, (nolint_file.find linter_name).foldl rb_map.erase decls)]),
-let emit_workflow_commands : bool :=  "--github" ∈ args,
+let emit_workflow_commands : bool := "--github" ∈ args,
 io.print $ to_string $ format_linter_results env results decls non_auto_decls
   mathlib_path.length "in mathlib" tt lint_verbosity.medium linters.length emit_workflow_commands,
 io.write_file "nolints.txt" $ to_string $ mk_nolint_file env mathlib_path.length results₀,

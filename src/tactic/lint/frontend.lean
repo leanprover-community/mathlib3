@@ -108,6 +108,20 @@ list.reverse $ rb_lmap.values $ rb_lmap.of_list $
 meta def print_warning (decl_name : name) (warning : string) : format :=
 "#check @" ++ to_fmt decl_name ++ " /- " ++ warning ++ " -/"
 
+private def workflow_command_replacements : char → string
+| '%' := "%25"
+| '\n' := "%0A"
+| ':' := "%3A"
+| ',' := "%2C"
+| c := to_string c
+
+/--
+Escape characters that may not be used in a workflow commands, following
+https://github.com/actions/toolkit/blob/7257597d731b34d14090db516d9ea53439300e98/packages/core/src/command.ts#L92-L105
+-/
+def escape_workflow_command (s : string) : string :=
+"".intercalate $ s.to_list.map workflow_command_replacements
+
 /--
 Prints a workflow command to emit an error understood by github in an actions workflow.
 This enables CI to tag the parts of the file where linting failed with annotations, and makes it
@@ -119,7 +133,8 @@ meta def print_workflow_command (env : environment) (decl_name : name) (warning 
 do
   po ← env.decl_pos decl_name,
   ol ← env.decl_olean decl_name,
-  return sformat!"\n::error file={ol},line={po.line},col={po.column}::{decl_name} - {warning}"
+  return $ sformat!"\n::error file={ol},line={po.line},col={po.column}::" ++
+    sformat!"{escape_workflow_command $ to_string decl_name} - {escape_workflow_command warning}"
 
 /-- Formats a map of linter warnings using `print_warning`, sorted by line number. -/
 meta def print_warnings (env : environment) (emit_workflow_commands : bool)

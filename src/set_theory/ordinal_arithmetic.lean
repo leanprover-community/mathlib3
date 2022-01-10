@@ -985,14 +985,19 @@ eq_of_forall_ge_iff $ λ o,
 by rw [bsup_le, sup_le]; exact
   ⟨λ H b, H _ _, λ H i h, by simpa only [family_of_bfamily', typein_enum] using H (enum r i h)⟩
 
+set_option trace.ext true
+
 theorem bsup_eq_sup {o} (f : Π a < o, ordinal) : bsup o f = sup (family_of_bfamily o f) :=
 begin
-  convert bsup_eq_sup' o.out.r (λ b hb, f b (by rwa type_out o at hb)), { exact (type_out o).symm },
-  ext, { exact rfl },
-  intros a a' ha,
-  ext;
-  rw eq_of_heq ha;
-  simp
+  convert bsup_eq_sup' o.out.r (λ b hb, f b (by rwa type_out o at hb)),
+  { exact (type_out o).symm },
+  { ext,
+    { exact rfl },
+    { rintros a a' ⟨ha⟩,
+      ext,
+      { rw [type_out] },
+      { intros,
+        rw heq_iff_eq }}}
 end
 
 theorem sup_eq_bsup' {ι} (r : ι → ι → Prop) [is_well_order ι r] (f : ι → ordinal) :

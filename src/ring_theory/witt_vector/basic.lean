@@ -270,7 +270,7 @@ def zeroth_coeff : 𝕎 R →+* R :=
   map_add' := add_coeff_zero,
   map_mul' := mul_coeff_zero }
 
-lemma nontrivial [nontrivial R] : nontrivial (𝕎 R) :=
+instance [nontrivial R] : nontrivial (𝕎 R) :=
 zeroth_coeff.domain_nontrivial
 
 

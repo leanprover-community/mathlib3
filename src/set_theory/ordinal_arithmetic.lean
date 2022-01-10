@@ -1849,7 +1849,7 @@ le_antisymm
     (λ b hb, le_of_lt (power_lt_omega h hb)))
   (le_power_self _ a1)
 
-theorem is_normal.omega {f : ordinal.{u} → ordinal.{u}} (hf : is_normal f) :
+protected theorem is_normal.omega {f : ordinal.{u} → ordinal.{u}} (hf : is_normal f) :
   f omega.{u} = sup (λ n : ℕ, f n) :=
 by rw [omega_eq_sup_nat, is_normal.sup.{0 u u} hf ⟨0⟩]
 
@@ -1925,7 +1925,7 @@ theorem is_normal.le_nfp {f} (H : is_normal f) {a b} :
 theorem nfp_eq_self {f : ordinal → ordinal} {a} (h : f a = a) : nfp f a = a :=
 le_antisymm (sup_le.mpr $ λ i, by rw [iterate_fixed h]) (le_nfp_self f a)
 
-theorem nfp_monotone {f : ordinal → ordinal} (hf : monotone f) : monotone (nfp f) :=
+protected lemma monotone.nfp {f : ordinal → ordinal} (hf : monotone f) : monotone (nfp f) :=
 λ a b h, nfp_le_iff_iterate_le.2 (λ n, (hf.iterate n h).trans (le_sup _ n))
 
 /-- The derivative of a normal function `f` is
@@ -2000,7 +2000,7 @@ theorem mul_omega_nfp_add_of_le_mul_omega {a b} (hba : b ≤ a * omega) :
 begin
   refine le_antisymm _ ((add_is_normal a).nfp_le_fp hba _),
   { rw mul_omega_nfp_add_zero,
-    exact nfp_monotone (add_is_normal a).strict_mono.monotone (ordinal.zero_le b) },
+    exact monotone.nfp (add_is_normal a).strict_mono.monotone (ordinal.zero_le b) },
   rw add_mul_omega
 end
 

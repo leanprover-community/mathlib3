@@ -131,8 +131,7 @@ lemma pos_of_floor_pos (h : 0 < ⌊a⌋₊) : 0 < a :=
 lemma lt_of_lt_floor (h : n < ⌊a⌋₊) : ↑n < a :=
 (nat.cast_lt.2 h).trans_le $ floor_le (pos_of_floor_pos $ (nat.zero_le n).trans_lt h).le
 
-lemma floor_le_of_le (h : a ≤ n) : ⌊a⌋₊ ≤ n :=
-le_of_not_lt (mt lt_of_lt_floor (not_lt_of_le h))
+lemma floor_le_of_le (h : a ≤ n) : ⌊a⌋₊ ≤ n := le_imp_le_iff_lt_imp_lt.2 lt_of_lt_floor h
 
 @[simp] lemma floor_eq_zero : ⌊a⌋₊ = 0 ↔ a < 1 :=
 by { rw [←lt_one_iff, ←@cast_one α], exact floor_lt' nat.one_ne_zero }
@@ -607,18 +606,6 @@ lemma floor_to_nat (a : α) : ⌊a⌋.to_nat = ⌊a⌋₊ := rfl
 
 lemma ceil_to_nat  (a : α) : ⌈a⌉.to_nat = ⌈a⌉₊ := rfl
 
-lemma coe_nat_floor_eq_floor {a : α} (ha : 0 ≤ a) : (⌊a⌋₊ : ℤ) = ⌊a⌋ :=
-by { rw [←floor_to_nat, to_nat_of_nonneg], rwa floor_nonneg }
-
-lemma coe_nat_floor_eq_floor' {a : α} (hy : 0 ≤ a) : (⌊a⌋₊ : α) = ⌊a⌋ :=
-by rw [←coe_nat_floor_eq_floor hy, cast_coe_nat]
-
-lemma coe_nat_ceil_eq_ceil {a : α} (ha : 0 ≤ a) : (⌈a⌉₊ : ℤ) = ⌈a⌉ :=
-by { rw [←ceil_to_nat, to_nat_of_nonneg (ceil_nonneg ha)] }
-
-lemma coe_nat_ceil_eq_ceil' {a : α} (hy : 0 ≤ a) : (⌈a⌉₊ : α) = ⌈a⌉ :=
-by rw [←coe_nat_ceil_eq_ceil hy, cast_coe_nat]
-
 /-! #### Intervals -/
 
 @[simp] lemma preimage_Ioo {a b : α} : ((coe : ℤ → α) ⁻¹' (set.Ioo a b)) = set.Ioo ⌊a⌋ ⌈b⌉ :=
@@ -646,6 +633,20 @@ by { ext, simp [lt_ceil] }
 by { ext, simp [le_floor] }
 
 end int
+
+variables [linear_ordered_ring α] [floor_ring α] {a : α}
+
+lemma nat.cast_floor_eq_int_floor (ha : 0 ≤ a) : (⌊a⌋₊ : ℤ) = ⌊a⌋ :=
+by rw [←int.floor_to_nat, int.to_nat_of_nonneg (int.floor_nonneg.2 ha)]
+
+lemma nat.cast_floor_eq_cast_int_floor (ha : 0 ≤ a) : (⌊a⌋₊ : α) = ⌊a⌋ :=
+by rw [←nat.cast_floor_eq_int_floor ha, int.cast_coe_nat]
+
+lemma nat.cast_ceil_eq_int_ceil (ha : 0 ≤ a) : (⌈a⌉₊ : ℤ) = ⌈a⌉ :=
+by { rw [←int.ceil_to_nat, int.to_nat_of_nonneg (int.ceil_nonneg ha)] }
+
+lemma nat.cast_ceil_eq_cast_int_ceil (hy : 0 ≤ a) : (⌈a⌉₊ : α) = ⌈a⌉ :=
+by rw [←nat.cast_ceil_eq_int_ceil hy, int.cast_coe_nat]
 
 /-- There exists at most one `floor_ring` structure on a given linear ordered ring. -/
 lemma subsingleton_floor_ring {α} [linear_ordered_ring α] :

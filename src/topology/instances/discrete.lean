@@ -16,10 +16,6 @@ open topological_space
 variables {α : Type*} [topological_space α]
 
 @[priority 100]
-instance encodable.separable_space [encodable α] : separable_space α :=
-{ exists_countable_dense := ⟨set.univ, set.countable_encodable set.univ, dense_univ⟩ }
-
-@[priority 100]
 instance discrete_topology.first_countable_topology [discrete_topology α] :
   first_countable_topology α :=
 { nhds_generated_countable :=

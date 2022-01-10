@@ -868,12 +868,12 @@ theorem dvd_iff_mod_eq_zero {a b : ordinal} : b ∣ a ↔ a % b = 0 :=
 /-- Converts a family indexed by a `Type u` to one indexed by an `ordinal.{u}` using a specified
 well-ordering. -/
 def bfamily_of_family' {ι : Type u} (r : ι → ι → Prop) [is_well_order ι r] (f : ι → β) :
-  Π o < type r, β :=
-λ o ho, f (enum r o ho)
+  Π b < type r, β :=
+λ b hb, f (enum r b hb)
 
 /-- Converts a family indexed by a `Type u` to one indexed by an `ordinal.{u}` using a well-ordering
 given by the axiom of choice. -/
-def bfamily_of_family {ι : Type u} : (ι → β) → Π o < type (@well_ordering_rel ι), β :=
+def bfamily_of_family {ι : Type u} : (ι → β) → Π b < type (@well_ordering_rel ι), β :=
 bfamily_of_family' well_ordering_rel
 
 /-- Converts a family indexed by an `ordinal.{u}` to one indexed by an `Type u` using a specified

@@ -5,6 +5,7 @@ Authors: Heather Macbeth
 -/
 import analysis.inner_product_space.rayleigh
 import analysis.inner_product_space.pi_L2
+import analysis.inner_product_space.l2
 
 /-! # Spectral theory of self-adjoint operators
 
@@ -44,17 +45,21 @@ self-adjoint operator, spectral theorem, diagonalization theorem
 -/
 
 variables {𝕜 : Type*} [is_R_or_C 𝕜] [dec_𝕜 : decidable_eq 𝕜]
-variables {E : Type*} [inner_product_space 𝕜 E]
+variables {E : Type*} [inner_product_space 𝕜 E] [cplt : complete_space E]
 
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 E _ x y
 
-local attribute [instance] fact_one_le_two_real
+local attribute [instance] fact_one_le_two_real fact_one_le_two_ennreal
 
 open_locale big_operators complex_conjugate
 open module.End
 
 namespace inner_product_space
 namespace is_self_adjoint
+
+-- follows by expressing the eigenspace as the kernel of a operator, since kernel is closed
+-- move this
+instance [complete_space E] {T : E →ₗ[𝕜] E} (μ : 𝕜) : complete_space (eigenspace T μ) := sorry
 
 variables {T : E →ₗ[𝕜] E} (hT : is_self_adjoint T)
 include hT
@@ -116,6 +121,7 @@ end
 
 /-! ### Finite-dimensional theory -/
 
+section
 variables [finite_dimensional 𝕜 E]
 
 /-- The mutual orthogonal complement of the eigenspaces of a self-adjoint operator on a
@@ -243,6 +249,119 @@ begin
 end
 
 end version2
+end
+
+/-! ### Theory for compact operators -/
+
+variables (hT_cpct : compact_operator T)
+include cplt hT_cpct
+
+/-- The mutual orthogonal complement of the eigenspaces of a compact self-adjoint operator on an
+inner product space is trivial. -/
+lemma orthogonal_supr_eigenspaces_eq_bot_of_compact : (⨆ μ, eigenspace T μ)ᗮ = ⊥ :=
+begin
+  have hT' : is_self_adjoint _ := hT.restrict_invariant hT.orthogonal_supr_eigenspaces_invariant,
+  have hT_cpct' : compact_operator _ :=
+    hT_cpct.restrict_invariant hT.orthogonal_supr_eigenspaces_invariant,
+  -- a self-adjoint operator on a nontrivial inner product space has an eigenvalue
+  haveI := hT'.subsingleton_of_no_eigenvalue_of_compact hT_cpct' hT.orthogonal_supr_eigenspaces,
+  exact submodule.eq_bot_of_subsingleton _,
+end
+
+include dec_𝕜
+
+lemma supr_eigenspaces_dense : (supr (eigenspace T)).topological_closure = ⊤ :=
+begin
+  rw ← submodule.orthogonal_orthogonal_eq_closure,
+  rw submodule.orthogonal_eq_top_iff,
+  exact hT.orthogonal_supr_eigenspaces_eq_bot_of_compact hT_cpct
+end
+
+/-- Isometry from a Hilbert space `E` to the Hilbert sum of the eigenspaces of some compact
+self-adjoint operator `T` on `E`. -/
+noncomputable def diagonalization' : E ≃ₗᵢ[𝕜] lp (λ μ, eigenspace T μ) 2 :=
+linear_isometry_equiv.symm $
+linear_isometry_equiv.of_surjective
+hT.orthogonal_family_eigenspaces.linear_isometry
+begin
+  refine linear_map.range_eq_top.mp _,
+  rw ← hT.supr_eigenspaces_dense hT_cpct,
+  rw hT.orthogonal_family_eigenspaces.range_linear_isometry,
+  simp,
+end
+
+@[simp] lemma diagonalization_symm_apply' (w : lp (λ μ, eigenspace T μ) 2) :
+  (hT.diagonalization' hT_cpct).symm w = ∑' μ, w μ :=
+by simp [diagonalization', orthogonal_family.linear_isometry_apply]
+
+lemma has_sum_diagonalization_symm (w : lp (λ μ, eigenspace T μ) 2) :
+  has_sum (λ μ, (w μ : E)) ((hT.diagonalization' hT_cpct).symm w) :=
+sorry
+
+lemma foo [Π μ, Π v : eigenspace T μ, decidable (v ≠ 0)] (W : Π₀ μ, eigenspace T μ) :
+  (hT.diagonalization' hT_cpct) (W.sum (λ μ v, (v:E))) = W.sum (lp.single 2) :=
+begin
+  refine (hT.diagonalization' hT_cpct).symm.injective _,
+  rw linear_isometry_equiv.symm_apply_apply,
+  symmetry,
+  refine (has_sum_diagonalization_symm hT hT_cpct (W.sum (lp.single 2))).unique _,
+  have : ∀ ν, ∀ v : eigenspace T ν, has_sum (λ μ, lp.single 2 ν (v:E) μ) (v : E),
+  { intros ν v,
+    sorry },
+  have : ∀ ν, ∀ v : eigenspace T ν, has_sum (λ μ, (lp.single 2 ν v μ : E)) (v : E),
+  { sorry },
+  have : has_sum (λ μ, W.sum (λ ν v, (lp.single 2 ν v μ : E))) (W.sum (λ ν v, (v : E))),
+  { sorry },
+  convert this,
+  ext μ,
+  sorry
+end
+
+local attribute [-instance] char_p.subsingleton unique.subsingleton is_empty.subsingleton
+
+/-- **Spectral theorem**; version 1: A compact self-adjoint operator `T` on a Hilbert space `E` acts
+diagonally on the decomposition of `E` into the direct sum of the eigenspaces of `T`. -/
+lemma diagonalization_apply_self_apply' (v : E) (μ : 𝕜) :
+  hT.diagonalization' hT_cpct (T v) μ = (μ : 𝕜) • hT.diagonalization' hT_cpct v μ :=
+begin
+  classical,
+  set F := hT.diagonalization' hT_cpct,
+  show F (T v) μ = μ • F v μ,
+  have : dense_range (coe : supr (eigenspace T) → E) := sorry,
+  refine this.induction_on v _ _,
+  { -- have := continuous_linear_map.is_closed_ker
+    sorry },
+  { rintros ⟨w, hw⟩,
+    rw submodule.mem_supr_iff_exists_dfinsupp' at hw,
+    obtain ⟨W, rfl⟩ := hw,
+    let eig_coe : Π μ : 𝕜, eigenspace T μ → E := λ μ, (coe : eigenspace T μ → E),
+    let _i : add_comm_monoid (Π₀ ν, eigenspace T ν) :=
+      @dfinsupp.add_comm_monoid _ (λ ν, eigenspace T ν) _,
+    have : ∀ W : Π₀ ν, eigenspace T ν, F (W.sum eig_coe) μ = W μ,
+    { sorry },
+    -- or, alt version:
+    -- have : ∀ W : Π₀ ν, eigenspace T ν,
+    --   F (W.sum eig_coe) μ = @dfinsupp.sum _ _ _ _ _ _ _i W dfinsupp.single μ,
+    simp,
+    let f₁ : Π μ : 𝕜, eigenspace T μ → E := λ μ, T ∘ (coe : eigenspace T μ → E),
+    let f₂ : Π μ : 𝕜, eigenspace T μ →ₗ[𝕜] eigenspace T μ := λ μ, μ • linear_map.id,
+    have hf : f₁ = λ μ, eig_coe μ ∘ f₂ μ,
+    { ext μ v,
+      obtain ⟨v, hv⟩ := v,
+      dsimp [f₁, f₂],
+      rwa mem_eigenspace_iff at hv },
+    change F (W.sum f₁) μ = μ • F (W.sum eig_coe) μ,
+    rw hf,
+    transitivity F ((dfinsupp.map_range.linear_map f₂ W).sum eig_coe) μ,
+    { congr' 2,
+      sorry }, -- prob in the library somewhere, fact about `dfinsupp.map_range` and `dfinsupp.sum`
+    rw [this, this],
+    -- or, alt version:
+    -- rw [this, this, @dfinsupp.sum_single _ (λ μ, eigenspace T μ) _ _ _ _,
+    --   @dfinsupp.sum_single _ (λ μ, eigenspace T μ) _ _ _ _],
+    simp }
+end
+
 
 end is_self_adjoint
 end inner_product_space

@@ -6,6 +6,7 @@ Authors: Heather Macbeth, Frédéric Dupuis
 import analysis.inner_product_space.calculus
 import analysis.inner_product_space.dual
 import analysis.calculus.lagrange_multipliers
+import analysis.normed_space.compact_operator
 import linear_algebra.eigenspace
 
 /-!
@@ -217,6 +218,25 @@ begin
 end
 
 end complete_space
+
+section compact
+variables [complete_space E] {T : E →ₗ[𝕜] E}
+
+lemma exists_eigenvalue_of_compact [nontrivial E] (hT : is_self_adjoint T)
+  (hT_cpct : compact_operator T) :
+  ∃ c, has_eigenvalue T c :=
+begin
+  sorry
+end
+
+lemma subsingleton_of_no_eigenvalue_of_compact (hT : is_self_adjoint T)
+  (hT_cpct : compact_operator T) (hT' : ∀ μ : 𝕜, module.End.eigenspace (T : E →ₗ[𝕜] E) μ = ⊥) :
+  subsingleton E :=
+(subsingleton_or_nontrivial E).resolve_right
+  (λ h, by exactI absurd (hT' _) (hT.exists_eigenvalue_of_compact hT_cpct).some_spec)
+
+end compact
+
 
 section finite_dimensional
 variables [finite_dimensional 𝕜 E] [_i : nontrivial E] {T : E →ₗ[𝕜] E}

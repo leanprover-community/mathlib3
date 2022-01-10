@@ -395,17 +395,12 @@ begin
   ...    < r   : by rwa mem_ball_zero at hy,
 end
 
-lemma finset_sup_ball_inter (p : ι → seminorm 𝕜 E) (s : finset ι) (r : ℝ) (hr : 0 < r):
-  ball (s.sup p) 0 r = ⋂ (i ∈ s), ball (p i) (0 : E) r :=
+lemma finset_sup_ball_inter (p : ι → seminorm 𝕜 E) (s : finset ι) (e : E) (r : ℝ) (hr : 0 < r):
+  ball (s.sup p) e r = ⋂ (i ∈ s), ball (p i) e r :=
 begin
-  ext,
-  simp_rw [mem_Inter, mem_ball_zero],
-  refine ⟨λ hx i hi, (finset_le_sup p s i hi x).trans_lt hx, λ hx, _⟩,
-  rw [finset_sup_apply, ←r.coe_to_nnreal hr.le, nnreal.coe_lt_coe, finset.sup_lt_iff],
-  { intros i hi,
-    rw [←nnreal.coe_lt_coe, r.coe_to_nnreal hr.le],
-    exact (hx i hi) },
-  simp [hr],
+  lift r to nnreal using hr.le,
+  simp_rw [ball, Inter_set_of, finset_sup_apply, nnreal.coe_lt_coe,
+    finset.sup_lt_iff (show ⊥ < r, from hr), ←nnreal.coe_lt_coe, subtype.coe_mk],
 end
 
 end module

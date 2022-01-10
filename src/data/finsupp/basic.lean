@@ -1284,10 +1284,7 @@ lemma prod_finset_sum_index [add_comm_monoid M] [comm_monoid N]
   {h : α → M → N} (h_zero : ∀a, h a 0 = 1) (h_add : ∀a b₁ b₂, h a (b₁ + b₂) = h a b₁ * h a b₂) :
   ∏ i in s, (g i).prod h = (∑ i in s, g i).prod h :=
 finset.induction_on s rfl $ λ a s has ih,
-by rw [prod_insert has, ih, sum_insert has,
-  -- prod_add_index'' (λ a _, h_zero a) h_add
-  prod_add_index h_zero h_add
-  ]
+by rw [prod_insert has, ih, sum_insert has, prod_add_index'' (λ a _, h_zero a) h_add]
 
 @[to_additive]
 lemma prod_sum_index

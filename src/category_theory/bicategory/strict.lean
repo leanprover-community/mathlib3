@@ -40,7 +40,7 @@ class bicategory.strict : Prop :=
 (assoc' : ∀ {a b c d : B} (f : a ⟶ b) (g : b ⟶ c) (h : c ⟶ d),
   (f ≫ g) ≫ h = f ≫ (g ≫ h) . obviously)
 (left_unitor_eq_to_iso' : ∀ {a b : B} (f : a ⟶ b),
-  λ_ f  = eq_to_iso (id_comp' f) . obviously)
+  λ_ f = eq_to_iso (id_comp' f) . obviously)
 (right_unitor_eq_to_iso' : ∀ {a b : B} (f : a ⟶ b),
   ρ_ f = eq_to_iso (comp_id' f) . obviously)
 (associator_eq_to_iso' : ∀ {a b c d : B} (f : a ⟶ b) (g : b ⟶ c) (h : c ⟶ d),

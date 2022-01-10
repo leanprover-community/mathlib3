@@ -51,7 +51,7 @@ instance : comm_group (abelianization G) :=
 
 instance : inhabited (abelianization G) := ⟨1⟩
 
-instance [fintype G] [decidable_rel (quotient_group.left_rel (commutator G)).r] :
+instance [fintype G] [decidable_pred (∈ commutator G)] :
   fintype (abelianization G) :=
 quotient_group.fintype (commutator G)
 

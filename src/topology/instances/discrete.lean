@@ -9,6 +9,14 @@ import topology.algebra.ordered.basic
 
 /-!
 # Instances related to the discrete topology
+
+We prove that the discrete topology is a first-countable topology, and is second-countable for an
+encodable type. Also, in linear orders which are also `pred_order` and `succ_order`, the discrete
+topology is the order topology.
+
+When importing this file and `data.nat.succ_pred`, the instances `second_countable_topology ℕ` and
+`order_topology ℕ` become available.
+
 -/
 
 open topological_space

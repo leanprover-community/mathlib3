@@ -399,6 +399,8 @@ instance has_one : has_one S' := ⟨⟨_, one_mem S'⟩⟩
 
 @[simp, norm_cast, to_additive] lemma coe_mul (x y : S') : (↑(x * y) : M) = ↑x * ↑y := rfl
 @[simp, norm_cast, to_additive] lemma coe_one : ((1 : S') : M) = 1 := rfl
+@[simp, norm_cast, to_additive] lemma coe_eq_one (x : S') : (↑x : M) = 1 ↔ x = 1 :=
+(subtype.ext_iff.symm : (x : M) = (1 : S') ↔ x = 1)
 
 @[simp, to_additive] lemma mk_mul_mk (x y : M) (hx : x ∈ S') (hy : y ∈ S') :
   (⟨x, hx⟩ : S') * ⟨y, hy⟩ = ⟨x * y, mul_mem hx hy⟩ := rfl

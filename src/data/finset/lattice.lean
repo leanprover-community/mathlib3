@@ -986,11 +986,7 @@ begin
     rw ← insert_erase has,
     refine step _ _ (not_mem_erase a s) (λ x hx, _) (ihs _ $ erase_ssubset has),
     rw hfa,
-<<<<<<< HEAD
-    exact le_max' _ _ (mem_image_of_mem _ $  mem_of_mem_erase hx) }
-=======
     exact le_max' _ _ (mem_image_of_mem _ $ mem_of_mem_erase hx) }
->>>>>>> master
 end
 
 /-- Induction principle for `finset`s in any type from which a given function `f` maps to a linearly
@@ -1005,43 +1001,6 @@ lemma induction_on_min_value [decidable_eq ι] (f : ι → α)
   (step : ∀ a s, a ∉ s → (∀ x ∈ s, f a ≤ f x) → p s → p (insert a s)) : p s :=
 @induction_on_max_value (order_dual α) ι _ _ _ _ s h0 step
 
-<<<<<<< HEAD
-/-- Induction principle for `finset`s in any type from which a given functions `f` and `g` map to a
-linearly ordered types : a predicate is true on all `s : finset α` provided that:
-
-* it is true on the empty `finset`,
-* for every `s : finset α` and an element `a` such that it is greater than or equal to all
-elements of `s` in the lexicographical order, then `p s` implies `p (insert a s)`. -/
-@[elab_as_eliminator]
-lemma induction_on_max_value₂ [decidable_eq ι] (f : ι → α) (g : ι → β) {p : finset ι → Prop}
-  (s : finset ι) (h0 : p ∅)
-  (step : ∀ a s, a ∉ s → (∀ x ∈ s, f x < f a ∨ (f x = f a ∧ g x ≤ g a)) → p s → p (insert a s)) :
-  p s :=
-begin
-  revert h0 step,
-  convert @induction_on_max_value (lex α β) ι _ _ (λ i, (prod.map f g) (i, i)) p s,
-  simp_rw [lex_le_iff, eq_iff_iff, prod.map_mk]
-end
-
-/-- Induction principle for `finset`s in any type from which a given functions `f` and `g` map to a
-linearly ordered types : a predicate is true on all `s : finset α` provided that:
-
-* it is true on the empty `finset`,
-* for every `s : finset α` and an element `a` such that it is less than or equal to all elements of
-`s` in the lexicographical order, then `p s` implies `p (insert a s)`. -/
-@[elab_as_eliminator]
-lemma induction_on_min_value₂ [decidable_eq ι] (f : ι → α)
-  (g : ι → β) {p : finset ι → Prop} (s : finset ι) (h0 : p ∅)
-  (step : ∀ a s, a ∉ s → (∀ x ∈ s, f a < f x ∨ (f a = f x ∧ g a ≤ g x)) → p s → p (insert a s)) :
-  p s :=
-begin
-  revert h0 step,
-  convert @induction_on_min_value (lex α β) ι _ _ (λ i, (prod.map f g) (i, i)) p s,
-  simp_rw [lex_le_iff, eq_iff_iff, prod.map_mk]
-end
-
-=======
->>>>>>> master
 end max_min_induction_value
 
 section exists_max_min

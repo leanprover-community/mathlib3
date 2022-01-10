@@ -899,7 +899,7 @@ begin
   exact hao.not_le (sup_le.2 (λ i, lt_succ.1 ((lt_of_le_of_ne (le_sup _ _) (hf i)).trans_le hoa)))
 end
 
-theorem sup_eq_zero_iff {ι} {f : ι → ordinal} : sup f = 0 ↔ ∀ i, f i = 0 :=
+@[simp] theorem sup_eq_zero_iff {ι} {f : ι → ordinal} : sup f = 0 ↔ ∀ i, f i = 0 :=
 begin
   refine ⟨λ h i, _, λ h, le_antisymm
     (sup_le.2 (λ i, ordinal.le_zero.2 (h i))) (ordinal.zero_le _)⟩,
@@ -986,7 +986,7 @@ theorem bsup_not_succ_of_ne_bsup {o} {f : Π a < o, ordinal}
   a < bsup o f → succ a < bsup o f :=
 by { rw bsup_eq_sup at *, exact sup_not_succ_of_ne_sup (λ i, hf _) }
 
-theorem bsup_eq_zero_iff {o} {f : Π a < o, ordinal} : bsup o f = 0 ↔ ∀ i hi, f i hi = 0 :=
+@[simp] theorem bsup_eq_zero_iff {o} {f : Π a < o, ordinal} : bsup o f = 0 ↔ ∀ i hi, f i hi = 0 :=
 begin
   refine ⟨λ h i hi, _, λ h, le_antisymm
     (bsup_le.2 (λ i hi, ordinal.le_zero.2 (h i hi))) (ordinal.zero_le _)⟩,
@@ -1054,7 +1054,7 @@ begin
   exact lt_irrefl _ this
 end
 
-theorem lsub_eq_zero_iff {ι} {f : ι → ordinal} : lsub f = 0 ↔ is_empty ι :=
+@[simp] theorem lsub_eq_zero_iff {ι} {f : ι → ordinal} : lsub f = 0 ↔ is_empty ι :=
 begin
   refine ⟨λ h, ⟨λ i, _⟩, λ h, _⟩,
   { have := lt_lsub f i,
@@ -1111,7 +1111,7 @@ theorem bsup_eq_blsub {o} (f : Π a < o, ordinal) :
   bsup o f = blsub o f ↔ ∀ a < blsub o f, succ a < blsub o f :=
 by { rw [bsup_eq_sup, blsub_eq_lsub], exact sup_eq_lsub _ }
 
-theorem blsub_eq_zero_iff {o} {f : Π a < o, ordinal} : blsub o f = 0 ↔ o = 0 :=
+@[simp] theorem blsub_eq_zero_iff {o} {f : Π a < o, ordinal} : blsub o f = 0 ↔ o = 0 :=
 by { rw [blsub_eq_lsub, lsub_eq_zero_iff], exact out_empty_iff_eq_zero }
 
 theorem blsub_type (r : α → α → Prop) [is_well_order α r] (f) :

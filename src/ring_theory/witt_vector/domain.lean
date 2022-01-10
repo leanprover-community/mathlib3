@@ -88,7 +88,7 @@ begin
 end
 
 lemma eq_iterate_verschiebung {x : 𝕎 R} {n : ℕ} (h : ∀ i < n, x.coeff i = 0) :
-  x = nat.iterate verschiebung n (x.shift n) :=
+  x = (verschiebung^[n] (x.shift n)) :=
 begin
   induction n with k ih,
   { cases x; simp [shift] },
@@ -98,7 +98,7 @@ begin
 end
 
 lemma verschiebung_nonzero {x : 𝕎 R} (hx : x ≠ 0) :
-  ∃ n : ℕ, ∃ x' : 𝕎 R, x'.coeff 0 ≠ 0 ∧ x = nat.iterate verschiebung n x' :=
+  ∃ n : ℕ, ∃ x' : 𝕎 R, x'.coeff 0 ≠ 0 ∧ x = (verschiebung^[n] x') :=
 begin
   have hex : ∃ k : ℕ, x.coeff k ≠ 0,
   { by_contradiction hall,
@@ -121,7 +121,7 @@ Auxiliary lemmas are used to simplify double inductions.
 -/
 
 lemma iterate_verschiebung_coeff (x : 𝕎 R) (n k : ℕ) :
-  (nat.iterate verschiebung n x).coeff (k + n) = x.coeff k :=
+  (verschiebung^[n] x).coeff (k + n) = x.coeff k :=
 begin
   induction n with k ih,
   { simp },
@@ -130,7 +130,7 @@ begin
 end
 
 lemma iterate_verschiebung_mul_left (x y : 𝕎 R) (i : ℕ) :
-  nat.iterate verschiebung i x * y = nat.iterate verschiebung i (x * nat.iterate frobenius i y) :=
+  (verschiebung^[i] x) * y = (verschiebung^[i] (x * (frobenius^[i] y))) :=
 begin
   induction i with i ih generalizing y,
   { simp },
@@ -146,20 +146,20 @@ section char_p
 variable [char_p R p]
 
 lemma iterate_verschiebung_mul_frobenius (x : 𝕎 R) (i j : ℕ) :
-  (nat.iterate frobenius i : 𝕎 R → 𝕎 R) (nat.iterate verschiebung j x) =
-    nat.iterate verschiebung j (nat.iterate frobenius i x) :=
+  (frobenius^[i] : 𝕎 R → 𝕎 R) (verschiebung^[j] x) =
+    (verschiebung^[j] ((frobenius^[i] x))) :=
 iterate_comm_apply _ _ (λ _, (verschiebung_frobenius_comm _).symm) _ _ _
 
 lemma iterate_verschiebung_mul (x y : 𝕎 R) (i j : ℕ) :
-  nat.iterate verschiebung i x * nat.iterate verschiebung j y =
-    nat.iterate verschiebung (i + j) (nat.iterate frobenius j x * nat.iterate frobenius i y) :=
+  (verschiebung^[i] x) * (verschiebung^[j] y) =
+    (verschiebung^[i + j] ((frobenius^[j] x) * (frobenius^[i] y))) :=
 begin
   calc
-  _ = nat.iterate verschiebung i (x * nat.iterate frobenius i (nat.iterate verschiebung j y)) : _
-... = nat.iterate verschiebung i (x * nat.iterate verschiebung j (nat.iterate frobenius i y)) : _
-... = nat.iterate verschiebung i (nat.iterate verschiebung j (nat.iterate frobenius i y) * x) : _
-... = nat.iterate verschiebung i (nat.iterate verschiebung j (nat.iterate frobenius i y * nat.iterate frobenius j x)) : _
-... = nat.iterate verschiebung (i + j) (nat.iterate frobenius i y * nat.iterate frobenius j x) : _
+  _ = (verschiebung^[i] (x * (frobenius^[i] ((verschiebung^[j] y))))) : _
+... = (verschiebung^[i] (x * (verschiebung^[j] ((frobenius^[i] y))))) : _
+... = (verschiebung^[i] ((verschiebung^[j] ((frobenius^[i] y)) * x))) : _
+... = (verschiebung^[i] ((verschiebung^[j] ((frobenius^[i] y) * (frobenius^[j] x))))) : _
+... = (verschiebung^[i + j] ((frobenius^[i] y) * (frobenius^[j] x))) : _
 ... = _ : _,
   { apply iterate_verschiebung_mul_left },
   { rw iterate_verschiebung_mul_frobenius },
@@ -170,7 +170,7 @@ begin
 end
 
 lemma iter_frobenius_coeff (x : 𝕎 R) (i k : ℕ) :
-  (nat.iterate frobenius i x).coeff k = (x.coeff k)^(p^i) :=
+  ((frobenius^[i] x)).coeff k = (x.coeff k)^(p^i) :=
 begin
   induction i with i ih,
   { simp },
@@ -180,13 +180,13 @@ end
 
 /-- This is a slightly specialized form of [Hazewinkel, *Witt Vectors*][Haze09] 6.2 equation 5. -/
 lemma iterate_verschiebung_mul_coeff (x y : 𝕎 R) (i j : ℕ) :
-  (nat.iterate verschiebung i x * nat.iterate verschiebung j y).coeff (i + j) =
+  ((verschiebung^[i] x) * (verschiebung^[j] y)).coeff (i + j) =
     (x.coeff 0)^(p ^ j) * (y.coeff 0)^(p ^ i) :=
 begin
   calc
-  _ = (nat.iterate verschiebung (i + j) (nat.iterate frobenius j x * nat.iterate frobenius i y)).coeff (i + j) : _
-... = (nat.iterate frobenius j x * nat.iterate frobenius i y).coeff 0 : _
-... = (nat.iterate frobenius j x).coeff 0 * (nat.iterate frobenius i y).coeff 0 : _
+  _ = (verschiebung^[i + j] ((frobenius^[j] x) * (frobenius^[i] y))).coeff (i + j) : _
+... = ((frobenius^[j] x) * (frobenius^[i] y)).coeff 0 : _
+... = (frobenius^[j] x).coeff 0 * ((frobenius^[i] y)).coeff 0 : _
 ... = _ : _,
   { rw iterate_verschiebung_mul },
   { convert iterate_verschiebung_coeff _ _ _ using 2,

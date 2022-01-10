@@ -489,28 +489,30 @@ open filtration
 
 variables {f : filtration ℕ m} {u : ℕ → α → β} {τ : α → ℕ}
 
-lemma adapted.prog_measurable [measurable_space β] [add_comm_monoid β] [has_measurable_add₂ β]
+section add_comm_monoid
+
+variables [add_comm_monoid β]
+
+lemma adapted.prog_measurable [measurable_space β] [has_measurable_add₂ β]
   (h : adapted f u) : prog_measurable f u :=
 begin
   intro i,
   have : (λ p : ↥(set.Iic i) × α, u ↑(p.fst) p.snd)
-    = (λ (p : ↥(set.Iic i) × α), ∑ j in finset.range i, if (↑p.fst = j) then u j p.snd else 0),
-  { ext1 p, sorry, },
+    = λ p : ↥(set.Iic i) × α, ∑ j in finset.range (i + 1), if ↑p.fst = j then u j p.snd else 0,
+  { ext1 p,
+    rw finset.sum_ite_eq,
+    have hp_mem : (p.fst : ℕ) ∈ finset.range (i + 1) := finset.mem_range_succ_iff.mpr p.fst.prop,
+    simp only [hp_mem, if_true], },
   rw this,
-  refine finset.measurable_sum _ (λ j hj, _),
-  refine measurable.ite _ _ _,
+  refine finset.measurable_sum _ (λ j hj, measurable.ite _ _ _),
   { suffices h_meas : measurable[@prod.measurable_space _ _ _ (f i)]
         (λ a : ↥(set.Iic i) × α, (a.fst : ℕ)),
       from h_meas (measurable_set_singleton j),
     exact (@measurable_fst _ α (f i) _).subtype_coe, },
-  { have h_le : j ≤ i, from finset.mem_range_le hj,
+  { have h_le : j ≤ i, from finset.mem_range_succ_iff.mp hj,
     exact (measurable.le (f.mono h_le) (h j)).comp (@measurable_snd _ α (f i) _), },
   { exact @measurable_const _ (set.Iic i × α) _ (@prod.measurable_space _ _ _ (f i)) _, },
 end
-
-section add_comm_monoid
-
-variables [add_comm_monoid β]
 
 lemma stopped_process_eq (n : ℕ) :
   stopped_process u τ n =

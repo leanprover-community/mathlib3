@@ -228,8 +228,8 @@ end
 
 /-- The function `λ t, inverse (x + t) - x⁻¹` is `O(t)` as `t → 0`. -/
 lemma inverse_add_norm_diff_first_order (x : Rˣ) :
-  is_O (λ t, inverse (↑x + t) - ↑x⁻¹) (λ t, ∥t∥) (𝓝 (0:R)) :=
-by { convert inverse_add_norm_diff_nth_order x 1; simp }
+  is_O (λ t, inverse (↑x + t) - ↑x⁻¹) id (𝓝 (0:R)) :=
+is_O.of_norm_right $ by simpa using inverse_add_norm_diff_nth_order x 1
 
 /-- The function
 `λ t, inverse (x + t) - x⁻¹ + x⁻¹ * t * x⁻¹`
@@ -247,16 +247,14 @@ end
 /-- The function `inverse` is continuous at each unit of `R`. -/
 lemma inverse_continuous_at (x : Rˣ) : continuous_at inverse (x : R) :=
 begin
-  have h_is_o : is_o (λ (t : R), ∥inverse (↑x + t) - ↑x⁻¹∥) (λ (t : R), (1:ℝ)) (𝓝 0),
-  { refine is_o_norm_left.mpr ((inverse_add_norm_diff_first_order x).trans_is_o _),
-    exact is_o_norm_left.mpr (is_o_id_const one_ne_zero) },
+  have h_is_o : is_o (λ (t : R), inverse (↑x + t) - ↑x⁻¹) (λ _, 1 : R → ℝ) (𝓝 0),
+    from ((inverse_add_norm_diff_first_order x).trans_is_o (is_o_id_const one_ne_zero)),
   have h_lim : tendsto (λ (y:R), y - x) (𝓝 x) (𝓝 0),
   { refine tendsto_zero_iff_norm_tendsto_zero.mpr _,
     exact tendsto_iff_norm_tendsto_zero.mp tendsto_id },
   simp only [continuous_at],
   rw [tendsto_iff_norm_tendsto_zero, inverse_unit],
-  convert h_is_o.tendsto_0.comp h_lim,
-  ext, simp
+  simpa [(∘)] using h_is_o.norm_norm.tendsto_div_nhds_zero.comp h_lim,
 end
 
 end normed_ring

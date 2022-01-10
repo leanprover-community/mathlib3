@@ -7,7 +7,9 @@ import measure_theory.measure.complex_lebesgue
 import measure_theory.integral.divergence_theorem
 import measure_theory.integral.circle_integral
 import analysis.calculus.fderiv_analytic
+import analysis.calculus.dslope
 import analysis.complex.re_im_topology
+import analysis.asymptotics.specific_asymptotics
 import data.real.cardinality
 
 /-!
@@ -136,7 +138,7 @@ function is analytic on the open ball.
 Cauchy theorem, Cauchy integral formula
 -/
 
-open topological_space set measure_theory interval_integral metric filter function
+open topological_space set measure_theory interval_integral metric filter function asymptotics
 open_locale interval real nnreal ennreal topological_space big_operators
 
 noncomputable theory
@@ -148,10 +150,10 @@ variables {E : Type u} [normed_group E] [normed_space ℂ E] [measurable_space E
 
 namespace complex
 
-/-- Suppose that a function `f : ℂ → E` is continuous on a closed rectangle with vertices `z w : ℂ`,
-is *real* differentiable at all but countably many points of the corresponding open rectangle, and
-$\frac{\partial f}{\partial \bar z}$ is integrable on this rectangle. Then the integral of `f` over
-the boundary of the rectangle is equal to the integral of
+/-- Suppose that a function `f : ℂ → E` is continuous on a closed rectangle with opposite corners at
+`z w : ℂ`, is *real* differentiable at all but countably many points of the corresponding open
+rectangle, and $\frac{\partial f}{\partial \bar z}$ is integrable on this rectangle. Then the
+integral of `f` over the boundary of the rectangle is equal to the integral of
 $2i\frac{\partial f}{\partial \bar z}=i\frac{\partial f}{\partial x}-\frac{\partial f}{\partial y}$
 over the rectangle. -/
 lemma integral_boundary_rect_of_has_fderiv_at_real_off_countable (f : ℂ → E)
@@ -190,8 +192,8 @@ begin
   simpa only [hF'] using Hi.neg
 end
 
-/-- Suppose that a function `f : ℂ → E` is continuous on a closed rectangle with vertices `z w : ℂ`,
-is *real* differentiable on the corresponding open rectangle, and
+/-- Suppose that a function `f : ℂ → E` is continuous on a closed rectangle with opposite corners at
+`z w : ℂ`, is *real* differentiable on the corresponding open rectangle, and
 $\frac{\partial f}{\partial \bar z}$ is integrable on this rectangle. Then the integral of `f` over
 the boundary of the rectangle is equal to the integral of
 $2i\frac{\partial f}{\partial \bar z}=i\frac{\partial f}{\partial x}-\frac{\partial f}{\partial y}$
@@ -208,9 +210,9 @@ lemma integral_boundary_rect_of_continuous_on_of_has_fderiv_at_real (f : ℂ →
 integral_boundary_rect_of_has_fderiv_at_real_off_countable f f' z w ∅ countable_empty Hc
   (λ x hx, Hd x hx.1) Hi
 
-/-- Suppose that a function `f : ℂ → E` is *real* differentiable on a closed rectangle with vertices
-`z w : ℂ` and $\frac{\partial f}{\partial \bar z}$ is integrable on this rectangle. Then the
-integral of `f` over the boundary of the rectangle is equal to the integral of
+/-- Suppose that a function `f : ℂ → E` is *real* differentiable on a closed rectangle with opposite
+corners at `z w : ℂ` and $\frac{\partial f}{\partial \bar z}$ is integrable on this rectangle. Then
+the integral of `f` over the boundary of the rectangle is equal to the integral of
 $2i\frac{\partial f}{\partial \bar z}=i\frac{\partial f}{\partial x}-\frac{\partial f}{\partial y}$
 over the rectangle. -/
 lemma integral_boundary_rect_of_differentiable_on_real (f : ℂ → E) (z w : ℂ)
@@ -245,8 +247,8 @@ by refine (integral_boundary_rect_of_has_fderiv_at_real_off_countable f
 
 /-- **Cauchy theorem**: the integral of a complex differentiable function over the boundary of a
 rectangle equals zero. More precisely, if `f` is continuous on a closed rectangle and is complex
-differentiable at all but countably many points of the corresponding open rectangle, then its
-integral over the boundary of the rectangle equals zero. -/
+differentiable on the corresponding open rectangle, then its integral over the boundary of the
+rectangle equals zero. -/
 lemma integral_boundary_rect_eq_zero_of_continuous_on_of_differentiable_on (f : ℂ → E) (z w : ℂ)
   (Hc : continuous_on f (re ⁻¹' [z.re, w.re] ∩ im ⁻¹' [z.im, w.im]))
   (Hd : differentiable_on ℂ f (re ⁻¹' (Ioo (min z.re w.re) (max z.re w.re)) ∩
@@ -258,9 +260,8 @@ integral_boundary_rect_eq_zero_of_differentiable_on_off_countable f z w ∅ coun
   Hc $ λ x hx, Hd.differentiable_at $ (is_open_Ioo.re_prod_im is_open_Ioo).mem_nhds hx.1
 
 /-- **Cauchy theorem**: the integral of a complex differentiable function over the boundary of a
-rectangle equals zero. More precisely, if `f` is continuous on a closed rectangle and is complex
-differentiable at all but countably many points of the corresponding open rectangle, then its
-integral over the boundary of the rectangle equals zero. -/
+rectangle equals zero. More precisely, if `f` is complex differentiable on a closed rectangle, then
+its integral over the boundary of the rectangle equals zero. -/
 lemma integral_boundary_rect_eq_zero_of_differentiable_on (f : ℂ → E) (z w : ℂ)
   (H : differentiable_on ℂ f (re ⁻¹' [z.re, w.re] ∩ im ⁻¹' [z.im, w.im])) :
   (∫ x : ℝ in z.re..w.re, f (x + z.im * I)) - (∫ x : ℝ in z.re..w.re, f (x + w.im * I)) +
@@ -270,12 +271,10 @@ integral_boundary_rect_eq_zero_of_continuous_on_of_differentiable_on f z w H.con
   H.mono $
     inter_subset_inter (preimage_mono Ioo_subset_Icc_self) (preimage_mono Ioo_subset_Icc_self)
 
-/-- If `f : ℂ → E` is complex differentiable on the closed annulus `r ≤ ∥z - c∥ ≤ R`, `0 < r ≤ R`,
-then the integrals of `f z / (z - c)` (formally, `(z - c)⁻¹ • f z`) over the circles
-`∥z - c∥ = r` and `∥z - c∥ = R` are equal to each other.
-
-Moreover, the same is true if `f` is differentiable at points of the annulus outside of a countable
-set `s` and is continuous at points of this set.  -/
+/-- If `f : ℂ → E` is continuous the closed annulus `r ≤ ∥z - c∥ ≤ R`, `0 < r ≤ R`, and is complex
+differentiable at all but countably many points of its interior, then the integrals of
+`f z / (z - c)` (formally, `(z - c)⁻¹ • f z`) over the circles `∥z - c∥ = r` and `∥z - c∥ = R` are
+equal to each other. -/
 lemma circle_integral_sub_center_inv_smul_eq_of_differentiable_on_annulus_off_countable
   {c : ℂ} {r R : ℝ} (h0 : 0 < r) (hle : r ≤ R) {f : ℂ → E} {s : set ℂ} (hs : countable s)
   (hc : continuous_on f (closed_ball c R \ ball c r))
@@ -310,10 +309,10 @@ begin
       _ hs hc hd
 end
 
-/-- **Cauchy integral formula** for the value at the center of a disc. If `f` is differentiable on a
-punctured closed disc of radius `R` and has a limit `y` at the center of the disc, then the integral
-$\int_{|z|=R} f(z)\,d(\arg z)=-i\int_{|z|=R}\frac{f(z)\,dz}{z}$ is equal to $2πy`. Moreover, the
-same is true if at the points of some countable set, `f` is only continuous, not differentiable. -/
+/-- **Cauchy integral formula** for the value at the center of a disc. If `f` is continuous on a
+punctured closed disc of radius `R`, is differentiable at all but countably many points of the
+interior of this disc, and has a limit `y` at the center of the disc, then the integral
+$\oint_{∥z-c∥=R} \frac{f(z)}{z-c}\,dz$ is equal to $2πiy`. -/
 lemma circle_integral_sub_center_inv_smul_of_differentiable_on_off_countable_of_tendsto
   {c : ℂ} {R : ℝ} (h0 : 0 < R) {f : ℂ → E} {y : E} {s : set ℂ} (hs : countable s)
   (hc : continuous_on f (closed_ball c R \ {c}))
@@ -367,10 +366,9 @@ begin
   ... = ε : by { field_simp [hr0.ne', real.two_pi_pos.ne'], ac_refl }
 end
 
-/-- **Cauchy integral formula** for the value at the center of a disc. If `f` is differentiable on a
-closed disc of radius `R`, then the integral
-$\int_{|z|=R} f(z)\,d(\arg z)=-i\int_{|z|=R}\frac{f(z)\,dz}{z}$ is equal to $2πy`. Moreover, the
-same is true if at the points of some countable set, `f` is only continuous, not differentiable. -/
+/-- **Cauchy integral formula** for the value at the center of a disc. If `f : ℂ → E` is continuous
+on a closed disc of radius `R` and is complex differentiable at all but countably many points of its
+interior, then the integral $\oint_{|z-c|=R} \frac{f(z)}{z-c}\,dz$ is equal to $2πiy`. -/
 lemma circle_integral_sub_center_inv_smul_of_differentiable_on_off_countable {R : ℝ} (h0 : 0 < R)
   {f : ℂ → E} {c : ℂ} {s : set ℂ} (hs : countable s)
   (hc : continuous_on f (closed_ball c R)) (hd : ∀ z ∈ ball c R \ s, differentiable_at ℂ f z) :
@@ -379,9 +377,9 @@ circle_integral_sub_center_inv_smul_of_differentiable_on_off_countable_of_tendst
   (hc.mono $ diff_subset _ _) (λ z hz, hd z ⟨hz.1.1, hz.2⟩)
   (hc.continuous_at $ closed_ball_mem_nhds _ h0).continuous_within_at
 
-/-- **Cauchy theorem**: the integral of a complex differentiable function over the boundary of a
-disc equals zero. Moreover, the same is true if at the points of some countable set, `f` is only
-continuous. -/
+/-- **Cauchy theorem**: if `f : ℂ → E` is continuous on a closed ball `{z | ∥z - c∥ ≤ R}` and is
+complex differentiable at all but countably many points of its interior, then the integral
+$\oint_{|z-c|=R}f(z)\,dz$ equals zero. -/
 lemma circle_integral_eq_zero_of_differentiable_on_off_countable {R : ℝ} (h0 : 0 ≤ R) {f : ℂ → E}
   {c : ℂ} {s : set ℂ} (hs : countable s) (hc : continuous_on f (closed_ball c R))
   (hd : ∀ z ∈ ball c R \ s, differentiable_at ℂ f z) :
@@ -410,22 +408,15 @@ lemma circle_integral_sub_inv_smul_of_differentiable_on_off_countable_aux {R : �
   ∮ z in C(c, R), (z - w)⁻¹ • f z = (2 * π * I : ℂ) • f w :=
 begin
   have hR : 0 < R := dist_nonneg.trans_lt hw.1,
-  set F : ℂ → E := update (λ z, (z - w)⁻¹ • (f z - f w)) w (deriv f w),
+  set F : ℂ → E := dslope f w,
   have hws : countable (insert w s) := hs.insert _,
   have hnhds : closed_ball c R ∈ 𝓝 w, from closed_ball_mem_nhds_of_mem hw.1,
   have hcF : continuous_on F (closed_ball c R),
-  { refine continuous_on_update_iff.2 ⟨_, _⟩,
-    { refine ((continuous_on_id.sub continuous_on_const).inv₀ $ λ z hz, sub_ne_zero.2 _).smul
-        ((hc.mono $ diff_subset _ _).sub continuous_on_const), exact hz.2 },
-    { have := has_deriv_at_iff_tendsto_slope.1 (hd _ hw).has_deriv_at,
-      exact λ _, this.mono_left (nhds_within_mono _ (inter_subset_right _ _)) } },
+    from (continuous_on_dslope $ closed_ball_mem_nhds_of_mem hw.1).2 ⟨hc, hd _ hw⟩,
   have hdF : ∀ z ∈ ball (c : ℂ) R \ (insert w s), differentiable_at ℂ F z,
-  { rintro z ⟨hzR, hzws⟩,
-    rw [mem_insert_iff, not_or_distrib] at hzws,
-    refine (((differentiable_at_id.sub_const w).inv $ sub_ne_zero.2 hzws.1).smul
-      ((hd z ⟨hzR, hzws.2⟩).sub_const (f w))).congr_of_eventually_eq _,
-    filter_upwards [is_open_ne.mem_nhds hzws.1],
-    exact λ x hx, update_noteq hx _ _ },
+    from λ z hz, (differentiable_at_dslope_of_ne
+      (ne_of_mem_of_not_mem (mem_insert _ _) hz.2).symm).2
+      (hd _ (diff_subset_diff_right (subset_insert _ _) hz)),
   have HI := circle_integral_eq_zero_of_differentiable_on_off_countable hR.le hws hcF hdF,
   have hne : ∀ z ∈ sphere c R, z ≠ w, from λ z hz, ne_of_mem_of_not_mem hz (ne_of_lt hw.1),
   have hFeq : eq_on F (λ z, (z - w)⁻¹ • f z - (z - w)⁻¹ • f w) (sphere c R),
@@ -440,9 +431,9 @@ begin
     (hc'.smul continuous_on_const).circle_integrable hR.le]
 end
 
-/-- **Cauchy integral formula**: if `f : ℂ → E` is complex differentiable on a closed disc of radius
-`R`, then for any `w` in the corresponding open disc we have
-$\frac{1}{2πi}\oint_{|z-c|=R}(z-w)^{-1}f(z)\,dz=f(w)$.
+/-- **Cauchy integral formula**: if `f : ℂ → E` is continuous on a closed disc of radius `R` and is
+complex differentiable at all but countably many points of its interior, then for any `w` in this
+interior we have $\frac{1}{2πi}\oint_{|z-c|=R}(z-w)^{-1}f(z)\,dz=f(w)$.
 -/
 lemma two_pi_I_inv_smul_circle_integral_sub_inv_smul_of_differentiable_on_off_countable
   {R : ℝ} {c w : ℂ} {f : ℂ → E} {s : set ℂ} (hs : countable s) (hw : w ∈ ball c R)
@@ -479,9 +470,9 @@ begin
   exact ⟨g x, (hlu_sub hx.1).1, (hlu_sub hx.1).2, hx.2⟩
 end
 
-/-- **Cauchy integral formula**: if `f : ℂ → E` is complex differentiable on a closed disc of radius
-`R`, then for any `w` in the corresponding open disc we have
-$\oint_{|z-c|=R}(z-w)^{-1}f(z)\,dz=2\pi i\,f(w)$.
+/-- **Cauchy integral formula**: if `f : ℂ → E` is continuous on a closed disc of radius `R` and is
+complex differentiable at all but countably many points of its interior, then for any `w` in this
+interior we have $\oint_{|z-c|=R}(z-w)^{-1}f(z)\,dz=2πif(w)$.
 -/
 lemma circle_integral_sub_inv_smul_of_differentiable_on_off_countable
   {R : ℝ} {c w : ℂ} {f : ℂ → E} {s : set ℂ} (hs : countable s) (hw : w ∈ ball c R)
@@ -490,6 +481,10 @@ lemma circle_integral_sub_inv_smul_of_differentiable_on_off_countable
 by { rw [← two_pi_I_inv_smul_circle_integral_sub_inv_smul_of_differentiable_on_off_countable
   hs hw hc hd, smul_inv_smul₀], simp [real.pi_ne_zero, I_ne_zero] }
 
+/-- **Cauchy integral formula**: if `f : ℂ → E` is continuous on a closed disc of radius `R` and is
+complex differentiable on its interior, then for any `w` in this interior we have
+$\oint_{|z-c|=R}(z-w)^{-1}f(z)\,dz=2πif(w)$.
+-/
 lemma circle_integral_sub_inv_smul_of_continuous_on_of_differentiable_on
   {R : ℝ} {c w : ℂ} {f : ℂ → E} (hw : w ∈ ball c R)
   (hc : continuous_on f (closed_ball c R)) (hd : differentiable_on ℂ f (ball c R)) :
@@ -497,15 +492,18 @@ lemma circle_integral_sub_inv_smul_of_continuous_on_of_differentiable_on
 circle_integral_sub_inv_smul_of_differentiable_on_off_countable countable_empty hw hc $ λ z hz,
   hd.differentiable_at (is_open_ball.mem_nhds hz.1)
 
+/-- **Cauchy integral formula**: if `f : ℂ → E` is complex differentiable on a closed disc of radius
+`R`, then for any `w` in its interior we have $\oint_{|z-c|=R}(z-w)^{-1}f(z)\,dz=2πif(w)$. -/
 lemma circle_integral_sub_inv_smul_of_differentiable_on
   {R : ℝ} {c w : ℂ} {f : ℂ → E} (hw : w ∈ ball c R) (hd : differentiable_on ℂ f (closed_ball c R)) :
   ∮ z in C(c, R), (z - w)⁻¹ • f z = (2 * π * I : ℂ) • f w :=
 circle_integral_sub_inv_smul_of_continuous_on_of_differentiable_on hw hd.continuous_on $
   hd.mono $ ball_subset_closed_ball
 
-/-- **Cauchy integral formula**: if `f : ℂ → ℂ` is complex differentiable on a closed disc of radius
-`R`, then for any `w` in the corresponding open disc we have
-$\oint_{|z-c|=R}\frac{f(z)}{z-w}dz=2\pi i\,f(w)$. -/
+/-- **Cauchy integral formula**: if `f : ℂ → ℂ` is continuous on a closed disc of radius `R` and is
+complex differentiable at all but countably many points of its interior, then for any `w` in this
+interior we have $\oint_{|z-c|=R}\frac{f(z)}{z-w}dz=2\pi i\,f(w)$.
+-/
 lemma circle_integral_div_sub_of_differentiable_on_off_countable {R : ℝ} {c w : ℂ} {s : set ℂ}
   (hs : countable s) (hw : w ∈ ball c R) {f : ℂ → ℂ} (hc : continuous_on f (closed_ball c R))
   (hd : ∀ z ∈ ball c R \ s, differentiable_at ℂ f z) :
@@ -533,6 +531,15 @@ lemma has_fpower_series_on_ball_of_differentiable_off_countable {R : ℝ≥0} {c
         ((hc.mono sphere_subset_closed_ball).circle_integrable R.2) hR).has_sum hw
     end }
 
+/-- If `f : ℂ → E` is continuous on a closed ball of positive radius and is complex differentiable
+on its interior, then it is analytic on the open ball with coefficients of the power series given by
+Cauchy integral formulas. -/
+lemma has_fpower_series_on_ball_of_continuous_on_of_differentiable_on {R : ℝ≥0} {c : ℂ} {f : ℂ → E}
+  (hc : continuous_on f (closed_ball c R)) (hd : differentiable_on ℂ f (ball c R)) (hR : 0 < R) :
+  has_fpower_series_on_ball f (cauchy_power_series f c R) c R :=
+has_fpower_series_on_ball_of_differentiable_off_countable countable_empty hc
+  (λ z hz, hd.differentiable_at $ is_open_ball.mem_nhds hz.1) hR
+
 /-- If `f : ℂ → E` is complex differentiable on a closed disc of positive radius, then it is
 analytic on the corresponding open disc, and the coefficients of the power series are given by
 Cauchy integral formulas. See also
@@ -541,8 +548,24 @@ weaker assumptions. -/
 protected lemma _root_.differentiable_on.has_fpower_series_on_ball {R : ℝ≥0} {c : ℂ} {f : ℂ → E}
   (hd : differentiable_on ℂ f (closed_ball c R)) (hR : 0 < R) :
   has_fpower_series_on_ball f (cauchy_power_series f c R) c R :=
-has_fpower_series_on_ball_of_differentiable_off_countable countable_empty hd.continuous_on
-  (λ z hz, hd.differentiable_at $ closed_ball_mem_nhds_of_mem hz.1) hR
+has_fpower_series_on_ball_of_continuous_on_of_differentiable_on hd.continuous_on
+  (hd.mono ball_subset_closed_ball) hR
+
+/-- **Removable singularity** theorem, weak version. If `f : ℂ → E` is differentiable in a punctured
+neighborhood of a point and is continuous at a point, then it is analytic at this point. -/
+lemma analytic_at_of_differentiable_on_punctured_nhds_of_continuous_at {f : ℂ → E} {c : ℂ}
+  (hd : ∀ᶠ z in 𝓝[≠] c, differentiable_at ℂ f z) (hc : continuous_at f c) :
+  analytic_at ℂ f c :=
+begin
+  rcases (nhds_within_has_basis nhds_basis_closed_ball _).mem_iff.1 hd with ⟨R, hR0, hRs⟩,
+  lift R to ℝ≥0 using hR0.le,
+  replace hc : continuous_on f (closed_ball c R),
+  { refine λ z hz, continuous_at.continuous_within_at _,
+    rcases eq_or_ne z c with rfl | hne,
+    exacts [hc, (hRs ⟨hz, hne⟩).continuous_at] },
+  exact (has_fpower_series_on_ball_of_differentiable_off_countable (countable_singleton c) hc
+    (λ z hz, hRs (diff_subset_diff_left ball_subset_closed_ball hz)) hR0).analytic_at 
+end
 
 /-- If `f : ℂ → E` is complex differentiable on some set `s`, then it is analytic at any point `z`
 such that `s ∈ 𝓝 z` (equivalently, `z ∈ interior s`). -/
@@ -555,9 +578,82 @@ begin
 end
 
 /-- A complex differentiable function `f : ℂ → E` is analytic at every point. -/
-protected lemma differentiable.analytic_at {f : ℂ → E} (hf : differentiable ℂ f) (z : ℂ) :
+protected lemma _root_.differentiable.analytic_at {f : ℂ → E} (hf : differentiable ℂ f) (z : ℂ) :
   analytic_at ℂ f z :=
 hf.differentiable_on.analytic_at univ_mem
+
+lemma differentiable_on_compl_singleton_and_continuous_at_iff {f : ℂ → E} {s : set ℂ} {c : ℂ}
+  (hs : s ∈ 𝓝 c) : differentiable_on ℂ f (s \ {c}) ∧ continuous_at f c ↔ differentiable_on ℂ f s :=
+begin
+  refine ⟨_, λ hd, ⟨hd.mono (diff_subset _ _), (hd.differentiable_at hs).continuous_at⟩⟩,
+  rintro ⟨hd, hc⟩ x hx,
+  rcases eq_or_ne x c with rfl | hne,
+  { refine (analytic_at_of_differentiable_on_punctured_nhds_of_continuous_at _ hc)
+      .differentiable_at.differentiable_within_at,
+    refine eventually_nhds_within_iff.2 ((eventually_mem_nhds.2 hs).mono $ λ z hz hzx, _),
+    exact hd.differentiable_at (inter_mem hz (is_open_ne.mem_nhds hzx)) },
+  { simpa only [differentiable_within_at, has_fderiv_within_at, hne.nhds_within_diff_singleton]
+      using hd x ⟨hx, hne⟩ }
+end
+
+lemma differentiable_on_dslope {f : ℂ → E} {s : set ℂ} {c : ℂ} (hc : s ∈ 𝓝 c) :
+  differentiable_on ℂ (dslope f c) s ↔ differentiable_on ℂ f s :=
+⟨λ h, h.of_dslope, λ h, (differentiable_on_compl_singleton_and_continuous_at_iff hc).mp $
+  ⟨iff.mpr (differentiable_on_dslope_of_nmem $ λ h, h.2 rfl) (h.mono $ diff_subset _ _),
+    continuous_at_dslope_same.2 $ h.differentiable_at hc⟩⟩
+
+lemma differentiable_on_update_lim_of_is_o {f : ℂ → E} {s : set ℂ} {c : ℂ}
+  (hc : s ∈ 𝓝 c) (hd : differentiable_on ℂ f (s \ {c}))
+  (ho : is_o (λ z, f z - f c) (λ z, (z - c)⁻¹) (𝓝[≠] c)) :
+  differentiable_on ℂ (update f c (lim (𝓝[≠] c) f)) s :=
+begin
+  set F : ℂ → E := λ z, (z - c) • f z with hF,
+  suffices : differentiable_on ℂ F (s \ {c}) ∧ continuous_at F c,
+  { rw [differentiable_on_compl_singleton_and_continuous_at_iff hc, ← differentiable_on_dslope hc,
+      dslope_sub_smul] at this; try { apply_instance },
+    have hc : tendsto f (𝓝[≠] c) (𝓝 (deriv F c)),
+      from continuous_at_update_same.mp (this.continuous_on.continuous_at hc),
+    rwa hc.lim_eq },
+  refine ⟨(differentiable_on_id.sub_const _).smul hd, _⟩,
+  rw ← continuous_within_at_compl_self,
+  have H := ho.tendsto_inv_smul_nhds_zero,
+  have H' : tendsto (λ z, (z - c) • f c) (𝓝[≠] c) (𝓝 (F c)),
+    from (continuous_within_at_id.tendsto.sub tendsto_const_nhds).smul tendsto_const_nhds,
+  simpa [← smul_add, continuous_within_at] using H.add H'
+end
+
+lemma differentiable_on_update_lim_insert_of_is_o {f : ℂ → E} {s : set ℂ} {c : ℂ}
+  (hc : s ∈ 𝓝[≠] c) (hd : differentiable_on ℂ f s)
+  (ho : is_o (λ z, f z - f c) (λ z, (z - c)⁻¹) (𝓝[≠] c)) :
+  differentiable_on ℂ (update f c (lim (𝓝[≠] c) f)) (insert c s) :=
+differentiable_on_update_lim_of_is_o (insert_mem_nhds_iff.2 hc)
+  (hd.mono $ λ z hz, hz.1.resolve_left hz.2) ho
+
+lemma differentiable_on_update_lim_of_bdd_above {f : ℂ → E} {s : set ℂ} {c : ℂ}
+  (hc : s ∈ 𝓝 c) (hd : differentiable_on ℂ f (s \ {c}))
+  (hb : bdd_above (norm ∘ f '' (s \ {c}))) :
+  differentiable_on ℂ (update f c (lim (𝓝[≠] c) f)) s :=
+differentiable_on_update_lim_of_is_o hc hd $ is_bounded_under.is_o_sub_self_inv $
+  let ⟨C, hC⟩ := hb in ⟨C + ∥f c∥, eventually_map.2 $ mem_nhds_within_iff_exists_mem_nhds_inter.2
+    ⟨s, hc, λ z hz, norm_sub_le_of_le (hC $ mem_image_of_mem _ hz) le_rfl⟩⟩
+
+lemma tendsto_lim_of_differentiable_on_punctured_nhds_of_is_o {f : ℂ → E} {c : ℂ}
+  (hd : ∀ᶠ z in 𝓝[≠] c, differentiable_at ℂ f z)
+  (ho : is_o (λ z, f z - f c) (λ z, (z - c)⁻¹) (𝓝[≠] c)) :
+  tendsto f (𝓝[≠] c) (𝓝 $ lim (𝓝[≠] c) f) :=
+begin
+  rw eventually_nhds_within_iff at hd,
+  have : differentiable_on ℂ f ({z | z ≠ c → differentiable_at ℂ f z} \ {c}),
+    from λ z hz, (hz.1 hz.2).differentiable_within_at,
+  have H := differentiable_on_update_lim_of_is_o hd this ho,
+  exact continuous_at_update_same.1 (H.differentiable_at hd).continuous_at
+end
+
+lemma tendsto_lim_of_differentiable_on_punctured_nhds_of_bounded_under {f : ℂ → E}
+  {c : ℂ} (hd : ∀ᶠ z in 𝓝[≠] c, differentiable_at ℂ f z)
+  (hb : is_bounded_under (≤) (𝓝[≠] c) (λ z, ∥f z - f c∥)) :
+  tendsto f (𝓝[≠] c) (𝓝 $ lim (𝓝[≠] c) f) :=
+tendsto_lim_of_differentiable_on_punctured_nhds_of_is_o hd hb.is_o_sub_self_inv
 
 /-- If `f` is complex differentiable on a closed disc with center `c` and radius `R > 0`, then
 `f' c` can be represented as an integral over the corresponding circle.
@@ -566,26 +662,28 @@ TODO: add a version for `w ∈ metric.ball c R`.
 
 TODO: add a version for higher derivatives. -/
 lemma deriv_eq_smul_circle_integral {R : ℝ} {c : ℂ} {f : ℂ → E} (hR : 0 < R)
-  (hd : differentiable_on ℂ f (closed_ball c R)) :
+  (hc : continuous_on f (closed_ball c R)) (hd : differentiable_on ℂ f (ball c R)) :
   deriv f c = (2 * π * I : ℂ)⁻¹ • ∮ z in C(c, R), (z - c) ^ (-2 : ℤ) • f z :=
 begin
   lift R to ℝ≥0 using hR.le,
-  refine (hd.has_fpower_series_on_ball hR).has_fpower_series_at.deriv.trans _,
+  refine (has_fpower_series_on_ball_of_continuous_on_of_differentiable_on
+    hc hd hR).has_fpower_series_at.deriv.trans _,
   simp only [cauchy_power_series_apply, one_div, zpow_neg₀, pow_one, smul_smul,
     zpow_two, mul_inv₀]
 end
 
-/-- If `f` is complex differentiable on a closed disc of radius `R`, and its values on the boundary
-circle of this disc are bounded from above by `C`, then the norm of its derivative at the center
-is at most `C / R`. -/
+/-- If `f` is continuous on a closed disc of radius `R`, is complex differentiable on its interior,
+and its values on the boundary circle of this disc are bounded from above by `C`, then the norm of
+its derivative at the center is at most `C / R`. -/
 lemma norm_deriv_le_of_forall_mem_sphere_norm_le {c : ℂ} {R C : ℝ} {f : ℂ → E} (hR : 0 < R)
-  (hd : differentiable_on ℂ f (closed_ball c R)) (hC : ∀ z ∈ sphere c R, ∥f z∥ ≤ C) :
+  (hc : continuous_on f (closed_ball c R)) (hd : differentiable_on ℂ f (ball c R))
+  (hC : ∀ z ∈ sphere c R, ∥f z∥ ≤ C) :
   ∥deriv f c∥ ≤ C / R :=
 have ∀ z ∈ sphere c R, ∥(z - c) ^ (-2 : ℤ) • f z∥ ≤ C / (R * R),
   from λ z (hz : abs (z - c) = R), by simpa [norm_smul, hz, zpow_two, ← div_eq_inv_mul]
     using (div_le_div_right (mul_pos hR hR)).2 (hC z hz),
 calc ∥deriv f c∥ = ∥(2 * π * I : ℂ)⁻¹ • ∮ z in C(c, R), (z - c) ^ (-2 : ℤ) • f z∥ :
-  congr_arg norm (deriv_eq_smul_circle_integral hR hd)
+  congr_arg norm (deriv_eq_smul_circle_integral hR hc hd)
 ... ≤ R * (C / (R * R)) :
   circle_integral.norm_two_pi_I_inv_smul_integral_le_of_norm_le_const hR.le this
 ... = C / R : by rw [mul_div_comm, div_self_mul_self', div_eq_mul_inv]
@@ -602,7 +700,8 @@ begin
       λ z, (hC (f z) (mem_range_self _)).trans (le_max_left _ _)⟩ },
   refine norm_le_zero_iff.1 (le_of_forall_le_of_dense $ λ ε ε₀, _),
   calc ∥deriv f c∥ ≤ C / (C / ε) :
-    norm_deriv_le_of_forall_mem_sphere_norm_le (div_pos C₀ ε₀) hf.differentiable_on (λ z _, hC z)
+    norm_deriv_le_of_forall_mem_sphere_norm_le (div_pos C₀ ε₀) hf.continuous.continuous_on
+      hf.differentiable_on (λ z _, hC z)
   ... = ε : div_div_cancel' C₀.lt.ne'
 end
 

@@ -30,7 +30,7 @@ structure pfunctor :=
 namespace pfunctor
 
 instance : inhabited pfunctor :=
-⟨⟨default _, default _⟩⟩
+⟨⟨default, default⟩⟩
 
 variables (P : pfunctor) {α β : Type u}
 
@@ -42,7 +42,7 @@ def map {α β : Type*} (f : α → β) : P.obj α → P.obj β :=
 λ ⟨a, g⟩, ⟨a, f ∘ g⟩
 
 instance obj.inhabited [inhabited P.A] [inhabited α] : inhabited (P.obj α) :=
-⟨ ⟨ default _, λ _, default _ ⟩ ⟩
+⟨ ⟨ default, λ _, default ⟩ ⟩
 instance : functor P.obj := {map := @map P}
 
 protected theorem map_eq {α β : Type*} (f : α → β) (a : P.A) (g : P.B a → α) :
@@ -98,8 +98,8 @@ For `F : pfunctor`, `x : F.obj α` and `i : F.Idx`, `i` can designate
 one part of `x` or is invalid, if `i.1 ≠ x.1` -/
 def Idx := Σ x : P.A, P.B x
 
-instance Idx.inhabited [inhabited P.A] [inhabited (P.B (default _))] : inhabited P.Idx :=
-⟨ ⟨default _, default _⟩ ⟩
+instance Idx.inhabited [inhabited P.A] [inhabited (P.B default)] : inhabited P.Idx :=
+⟨ ⟨default, default⟩ ⟩
 
 variables {P}
 
@@ -108,7 +108,7 @@ a default value -/
 def obj.iget [decidable_eq P.A] {α} [inhabited α] (x : P.obj α) (i : P.Idx) : α :=
 if h : i.1 = x.1
   then x.2 (cast (congr_arg _ h) i.2)
-  else default _
+  else default
 
 @[simp]
 lemma fst_map {α β : Type u} (x : P.obj α) (f : α → β) :

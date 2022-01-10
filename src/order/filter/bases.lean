@@ -696,7 +696,7 @@ structure countable_filter_basis (α : Type*) extends filter_basis α :=
 -- For illustration purposes, the countable filter basis defining (at_top : filter ℕ)
 instance nat.inhabited_countable_filter_basis : inhabited (countable_filter_basis ℕ) :=
 ⟨{ countable := countable_range (λ n, Ici n),
-   ..(default $ filter_basis ℕ),}⟩
+   ..(default : filter_basis ℕ) }⟩
 
 lemma has_countable_basis.is_countably_generated {f : filter α} {p : ι → Prop} {s : ι → set α}
   (h : f.has_countable_basis p s) :

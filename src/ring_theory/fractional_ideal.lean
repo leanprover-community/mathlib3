@@ -33,7 +33,7 @@ Let `K` be the localization of `R` at `R⁰ = R \ {0}` (i.e. the field of fracti
 
   * `mul_left_mono` and `mul_right_mono` state that ideal multiplication is monotone
   * `prod_one_self_div_eq` states that `1 / I` is the inverse of `I` if one exists
-  * `is_noetherian` states that very fractional ideal of a noetherian integral domain is noetherian
+  * `is_noetherian` states that every fractional ideal of a noetherian integral domain is noetherian
 
 ## Implementation notes
 

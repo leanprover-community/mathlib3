@@ -181,12 +181,99 @@ def isos.backward.carrier (f : A) (m : ℕ) (f_deg : f ∈ 𝒜 m)
       (localization.mk a 1) hb,
   end }
 
-def isos.backward.carrier.homogeneous (f : A) (m : ℕ) (f_deg : f ∈ 𝒜 m)
+def isos.backward.carrier.homogeneous_prime (f : A) (m : ℕ) (f_deg : f ∈ 𝒜 m)
   (q : (Spec (degree_zero_part _ f m f_deg)).to_SheafedSpace.to_PresheafedSpace.1) :
-  ideal.is_homogeneous 𝒜 (isos.backward.carrier _ f m f_deg q) := λ i a ha,
+  ideal.is_homogeneous 𝒜 (isos.backward.carrier _ f m f_deg q) ∧
+  ideal.is_prime (isos.backward.carrier _ f m f_deg q) :=
 begin
-  erw [isos.backward.carrier, set.mem_set_of_eq] at ha,
-  sorry
+  have : ∀ y : degree_zero_part _ f m f_deg,
+      ∃ (n : ℕ) (a : A), a ∈ (𝒜 (m * n)) ∧ y.1 = localization.mk a ⟨f^n,⟨n,rfl⟩⟩,
+  { rintros ⟨y, n, a, a_mem, hy⟩,
+    refine ⟨n, a, a_mem, hy⟩, },
+  choose pick_degree h_pick_degree using this,
+  choose pick_num h_pick_num using h_pick_degree,
+  rw [isos.backward.carrier, ideal.is_homogeneous.iff_exists],
+  use {h | h.1 ∈ set.range pick_num},
+
+  -- ideal.span (coe '' {h : ↥(homogeneous_submonoid 𝒜) | h.val ∈ set.range pick_num})
+  -- this is a prime ideal
+  have ideal_is_prime : ideal.is_prime (ideal.span
+    (coe '' {h : (homogeneous_submonoid 𝒜) | h.val ∈ set.range pick_num}) : ideal A),
+  { split,
+    { -- ne_top
+      have ne_top1 := q.2.1,
+      replace ne_top1 : q.1.1 ≠ set.univ,
+      { intro rid,
+        have rid2 : (1 : degree_zero_part _ f m f_deg) ∈ q.1.1,
+        erw rid,
+        exact set.mem_univ _,
+        have : (1 : degree_zero_part _ f m f_deg) ∈ q.1,
+        exact rid2,
+        erw ←ideal.eq_top_iff_one at rid2,
+        apply q.2.1,
+        exact rid2, },
+      replace ne_top1 : ∃ a, a ∉ q.1,
+      { erw set.ne_univ_iff_exists_not_mem at ne_top1, exact ne_top1, },
+      obtain ⟨⟨y, hy⟩, y_not_in⟩ := ne_top1,
+      suffices :
+        (ideal.span (coe '' {h : (homogeneous_submonoid 𝒜) | h.val ∈ set.range pick_num})).carrier
+        ≠ set.univ,
+      { intro rid, erw rid at this, apply this, refl, },
+      erw set.ne_univ_iff_exists_not_mem,
+      induction y using localization.induction_on with data,
+      rcases data with ⟨a, ⟨_, ⟨n, rfl⟩⟩⟩,
+      dsimp only at hy,
+
+      use a, intros ha,
+      erw [←ideal.submodule_span_eq, finsupp.span_eq_range_total, set.mem_range] at ha,
+      obtain ⟨c, eq1⟩ := ha,
+      erw [finsupp.total_apply, finsupp.sum] at eq1,
+
+      have h1 : ∀ x : coe '' {h : (homogeneous_submonoid 𝒜) | h.val ∈ set.range pick_num},
+        ∃ (h : homogeneous_submonoid 𝒜), h.1 ∈ set.range pick_num ∧ h.1 = x.1,
+      { intros x, exact x.2, },
+      choose pick_hom_elm h_pick_hom_elm using h1,
+
+      have eq2 := calc
+              (localization.mk a ⟨f^n, ⟨_, rfl⟩⟩ : localization.away f)
+            = localization.mk (∑ i in c.support, c i * i.1) ⟨f^n, ⟨_, rfl⟩⟩
+            : by { rw ←eq1, refl }
+        ... = ∑ i in c.support, localization.mk (c i * i.1) ⟨f^n, ⟨_, rfl⟩⟩
+            : begin
+              induction c.support using finset.induction_on with a s ha ih,
+              { rw [finset.sum_empty, finset.sum_empty, localization.mk_zero], },
+              { erw [finset.sum_insert, finset.sum_insert, ←ih, localization.add_mk,
+                localization.mk_eq_mk', is_localization.eq],
+                refine ⟨1, _⟩,
+                erw [mul_one, mul_one, ←subtype.val_eq_coe, ←subtype.val_eq_coe,
+                  show ((⟨f ^ n, _⟩ : submonoid.powers f) * ⟨f ^ n, _⟩).val =
+                    (⟨f^n, _⟩ : submonoid.powers f).val * (⟨f^n, _⟩ : submonoid.powers f).val,
+                    from rfl], dsimp only, ring, exact ha, exact ha },
+            end
+        ... = ∑ i in c.support, (localization.mk (c i) 1 : localization.away f) *
+              (localization.mk i.1 ⟨f ^ n, ⟨_, rfl⟩⟩ : localization.away f)
+            : begin
+              rw [finset.sum_congr rfl (λ i hi, _)],
+              rw [localization.mk_mul, one_mul],
+            end,
+
+      sorry },
+    { -- mem_or_mem,
+      sorry
+    }, },
+
+
+  ext x, split; intros hx,
+  { replace hx : localization.mk x 1 ∈ ideal.span _ := hx,
+    erw [←ideal.submodule_span_eq, finsupp.span_eq_range_total, set.mem_range] at hx,
+    obtain ⟨c, eq1⟩ := hx,
+    erw [finsupp.total_apply, finsupp.sum] at eq1,
+
+    -- cancel denominator now
+    sorry },
+  { sorry },
+
+  sorry,
 end
 
 def isos.forward.carrer_ne_top (f : A) (m : ℕ) (f_deg : f ∈ 𝒜 m)

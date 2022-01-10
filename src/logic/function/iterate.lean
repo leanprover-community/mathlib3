@@ -150,22 +150,6 @@ rfl
 
 variable {f}
 
-lemma iterate_comm_apply_aux {g : α → α} (h_comm : ∀ v, f (g v) = g (f v)) (a : α) (j : ℕ) :
-  f (nat.iterate g j a) = nat.iterate g j (f a) :=
-begin
-  induction j with j jh,
-  { refl },
-  { rw [iterate_succ_apply', h_comm, jh, iterate_succ_apply'], }
-end
-
-lemma iterate_comm_apply {g : α → α} (h_comm : ∀ v, f (g v) = g (f v)) (a : α) (i j : ℕ) :
-  nat.iterate f i (nat.iterate g j a) = nat.iterate g j (nat.iterate f i a) :=
-begin
-  induction i with i ih generalizing a,
-  { refl },
-  { rw [iterate_succ_apply', ih, iterate_comm_apply_aux h_comm, iterate_succ_apply'], }
-end
-
 theorem left_inverse.iterate {g : α → α} (hg : left_inverse g f) (n : ℕ) :
   left_inverse (g^[n]) (f^[n]) :=
 nat.rec_on n (λ _, rfl) $ λ n ihn, by { rw [iterate_succ', iterate_succ], exact ihn.comp hg }

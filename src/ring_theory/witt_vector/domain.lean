@@ -127,11 +127,6 @@ section char_p
 
 variable [char_p R p]
 
-lemma iterate_verschiebung_mul_frobenius (x : 𝕎 R) (i j : ℕ) :
-  (frobenius^[i] : 𝕎 R → 𝕎 R) (verschiebung^[j] x) =
-    (verschiebung^[j] ((frobenius^[i] x))) :=
-iterate_comm_apply (λ _, (verschiebung_frobenius_comm _).symm) _ _ _
-
 lemma iterate_verschiebung_mul (x y : 𝕎 R) (i j : ℕ) :
   (verschiebung^[i] x) * (verschiebung^[j] y) =
     (verschiebung^[i + j] ((frobenius^[j] x) * (frobenius^[i] y))) :=
@@ -144,7 +139,7 @@ begin
 ... = (verschiebung^[i + j] ((frobenius^[i] y) * (frobenius^[j] x))) : _
 ... = _ : _,
   { apply iterate_verschiebung_mul_left },
-  { rw iterate_verschiebung_mul_frobenius },
+  { rw verschiebung_frobenius_comm.iterate_iterate; apply_instance },
   { rw mul_comm },
   { rw iterate_verschiebung_mul_left },
   { rw iterate_add_apply },
@@ -173,7 +168,7 @@ begin
   { rw iterate_verschiebung_mul },
   { convert iterate_verschiebung_coeff _ _ _ using 2,
     rw zero_add },
-  { apply coeff_mul_zero },
+  { apply mul_coeff_zero },
   { simp only [iterate_frobenius_coeff] }
 end
 

@@ -89,20 +89,20 @@ lemma is_bounded.is_bounded_under {q : β → β → Prop} {u : α → β}
   (hf : ∀a₀ a₁, r a₀ a₁ → q (u a₀) (u a₁)) : f.is_bounded r → f.is_bounded_under q u
 | ⟨b, h⟩ := ⟨u b, show ∀ᶠ x in f, q (u x) (u b), from h.mono (λ x, hf x b)⟩
 
-lemma not_is_bounded_under_of_tendsto_at_top [preorder β] [no_top_order β] {f : α → β}
+lemma not_is_bounded_under_of_tendsto_at_top [preorder β] [no_max_order β] {f : α → β}
   {l : filter α} [l.ne_bot] (hf : tendsto f l at_top) :
   ¬ is_bounded_under (≤) l f :=
 begin
   rintro ⟨b, hb⟩,
   rw eventually_map at hb,
-  obtain ⟨b', h⟩ := no_top b,
+  obtain ⟨b', h⟩ := no_max b,
   have hb' := (tendsto_at_top.mp hf) b',
   have : {x : α | f x ≤ b} ∩ {x : α | b' ≤ f x} = ∅ :=
     eq_empty_of_subset_empty (λ x hx, (not_le_of_lt h) (le_trans hx.2 hx.1)),
   exact (nonempty_of_mem (hb.and hb')).ne_empty this
 end
 
-lemma not_is_bounded_under_of_tendsto_at_bot [preorder β] [no_bot_order β] {f : α → β}
+lemma not_is_bounded_under_of_tendsto_at_bot [preorder β] [no_min_order β] {f : α → β}
   {l : filter α} [l.ne_bot](hf : tendsto f l at_bot) :
   ¬ is_bounded_under (≥) l f :=
 @not_is_bounded_under_of_tendsto_at_top α (order_dual β) _ _ _ _ _ hf

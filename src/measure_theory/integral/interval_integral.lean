@@ -1110,15 +1110,15 @@ begin
   exact (continuous_on_primitive_interval h_int).neg,
 end
 
-variables [no_bot_order α] [no_top_order α] [has_no_atoms μ]
+variables [no_min_order α] [no_max_order α] [has_no_atoms μ]
 
 lemma continuous_primitive {f : α → E} (h_int : ∀ a b : α, interval_integrable f μ a b) (a : α) :
   continuous (λ b, ∫ x in a..b, f x ∂ μ) :=
 begin
   rw continuous_iff_continuous_at,
   intro b₀,
-  cases no_bot b₀ with b₁ hb₁,
-  cases no_top b₀ with b₂ hb₂,
+  cases no_min b₀ with b₁ hb₁,
+  cases no_max b₀ with b₂ hb₂,
   apply continuous_within_at.continuous_at _ (Icc_mem_nhds hb₁ hb₂),
   exact continuous_within_at_primitive (measure_singleton b₀) (h_int _ _)
 end

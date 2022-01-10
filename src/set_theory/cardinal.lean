@@ -472,8 +472,8 @@ begin
   exact cantor_injective f hf
 end
 
-instance : no_top_order cardinal.{u} :=
-{ no_top := λ a, ⟨_, cantor a⟩, ..cardinal.partial_order }
+instance : no_max_order cardinal.{u} :=
+{ no_max := λ a, ⟨_, cantor a⟩, ..cardinal.partial_order }
 
 noncomputable instance : linear_order cardinal.{u} :=
 { le_total    := by rintros ⟨α⟩ ⟨β⟩; exact embedding.total,

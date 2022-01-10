@@ -464,8 +464,8 @@ end prog_measurable
 
 end linear_order
 
--- We will need cadlag to generalize the following to continuous processes
 section nat
+/-! ### Filtrations indexed by `ℕ` -/
 
 open filtration
 
@@ -474,6 +474,42 @@ variables {f : filtration ℕ m} {u : ℕ → α → β} {τ : α → ℕ}
 section add_comm_monoid
 
 variables [add_comm_monoid β]
+
+/-- For filtrations indexed by `ℕ`, `adapted` and `prog_measurable` are equivalent. This lemma
+provides `adapted f u → prog_measurable f u`. See `prog_measurable.adapted` for the reverse
+direction, which is true more generally. -/
+lemma adapted.prog_measurable [measurable_space β] [has_measurable_add₂ β]
+  (h : adapted f u) : prog_measurable f u :=
+begin
+  intro i,
+  have : (λ p : ↥(set.Iic i) × α, u ↑(p.fst) p.snd)
+    = λ p : ↥(set.Iic i) × α, ∑ j in finset.range (i + 1), if ↑p.fst = j then u j p.snd else 0,
+  { ext1 p,
+    rw finset.sum_ite_eq,
+    have hp_mem : (p.fst : ℕ) ∈ finset.range (i + 1) := finset.mem_range_succ_iff.mpr p.fst.prop,
+    simp only [hp_mem, if_true], },
+  rw this,
+  refine finset.measurable_sum _ (λ j hj, measurable.ite _ _ _),
+  { suffices h_meas : measurable[@prod.measurable_space _ _ _ (f i)]
+        (λ a : ↥(set.Iic i) × α, (a.fst : ℕ)),
+      from h_meas (measurable_set_singleton j),
+    exact (@measurable_fst _ α (f i) _).subtype_coe, },
+  { have h_le : j ≤ i, from finset.mem_range_succ_iff.mp hj,
+    exact (measurable.le (f.mono h_le) (h j)).comp (@measurable_snd _ α (f i) _), },
+  { exact @measurable_const _ (set.Iic i × α) _ (@prod.measurable_space _ _ _ (f i)) _, },
+end
+
+/-- For filtrations indexed by `ℕ`, the stopped process obtained from an adapted process is
+adapted. -/
+lemma adapted.stopped_process [measurable_space β] [has_measurable_add₂ β]
+  (hu : adapted f u) (hτ : is_stopping_time f τ) :
+  adapted f (stopped_process u τ) :=
+(hu.prog_measurable.stopped_process hτ).adapted
+
+lemma adapted.measurable_stopped_process [measurable_space β] [has_measurable_add₂ β]
+  (hτ : is_stopping_time f τ) (hu : adapted f u) (n : ℕ) :
+  measurable (stopped_process u τ n) :=
+hu.prog_measurable.measurable_stopped_process hτ n
 
 lemma stopped_process_eq (n : ℕ) :
   stopped_process u τ n =
@@ -497,37 +533,6 @@ begin
       rw set.indicator_of_not_mem,
       exact hneq.symm } },
 end
-
-lemma adapted.prog_measurable [measurable_space β] [has_measurable_add₂ β]
-  (h : adapted f u) : prog_measurable f u :=
-begin
-  intro i,
-  have : (λ p : ↥(set.Iic i) × α, u ↑(p.fst) p.snd)
-    = λ p : ↥(set.Iic i) × α, ∑ j in finset.range (i + 1), if ↑p.fst = j then u j p.snd else 0,
-  { ext1 p,
-    rw finset.sum_ite_eq,
-    have hp_mem : (p.fst : ℕ) ∈ finset.range (i + 1) := finset.mem_range_succ_iff.mpr p.fst.prop,
-    simp only [hp_mem, if_true], },
-  rw this,
-  refine finset.measurable_sum _ (λ j hj, measurable.ite _ _ _),
-  { suffices h_meas : measurable[@prod.measurable_space _ _ _ (f i)]
-        (λ a : ↥(set.Iic i) × α, (a.fst : ℕ)),
-      from h_meas (measurable_set_singleton j),
-    exact (@measurable_fst _ α (f i) _).subtype_coe, },
-  { have h_le : j ≤ i, from finset.mem_range_succ_iff.mp hj,
-    exact (measurable.le (f.mono h_le) (h j)).comp (@measurable_snd _ α (f i) _), },
-  { exact @measurable_const _ (set.Iic i × α) _ (@prod.measurable_space _ _ _ (f i)) _, },
-end
-
-lemma adapted.stopped_process [measurable_space β] [has_measurable_add₂ β]
-  (hu : adapted f u) (hτ : is_stopping_time f τ) :
-  adapted f (stopped_process u τ) :=
-(hu.prog_measurable.stopped_process hτ).adapted
-
-lemma adapted.measurable_stopped_process [measurable_space β] [has_measurable_add₂ β]
-  (hτ : is_stopping_time f τ) (hu : adapted f u) (n : ℕ) :
-  measurable (stopped_process u τ n) :=
-hu.prog_measurable.measurable_stopped_process hτ n
 
 end add_comm_monoid
 

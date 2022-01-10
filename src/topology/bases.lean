@@ -285,6 +285,10 @@ def dense_seq [separable_space α] [nonempty α] : ℕ → α := classical.some 
 
 variable {α}
 
+@[priority 100]
+instance encodable.separable_space [encodable α] : separable_space α :=
+{ exists_countable_dense := ⟨set.univ, set.countable_encodable set.univ, dense_univ⟩ }
+
 /-- In a separable space, a family of nonempty disjoint open sets is countable. -/
 lemma _root_.set.pairwise_disjoint.countable_of_is_open [separable_space α] {ι : Type*}
   {s : ι → set α} {a : set ι} (h : a.pairwise_disjoint s) (ha : ∀ i ∈ a, is_open (s i))

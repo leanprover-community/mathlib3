@@ -30,24 +30,6 @@ the 0th component of which must be nonzero.
 
 -/
 
-open function
-
-
-lemma function.iterate_comm_aux {α : Type*} (op1 op2 : α → α) (h_comm : ∀ v, op1 (op2 v) = op2 (op1 v)) (a : α) (j : ℕ) :
-  op1 (nat.iterate op2 j a) = nat.iterate op2 j (op1 a) :=
-begin
-  induction j with j jh,
-  { refl },
-  { rw [iterate_succ_apply', h_comm, jh, iterate_succ_apply'], }
-end
-lemma function.iterate_comm_apply {α : Type*} (op1 op2 : α → α) (h_comm : ∀ v, op1 (op2 v) = op2 (op1 v)) (a : α) (i j : ℕ) :
-  nat.iterate op1 i (nat.iterate op2 j a) = nat.iterate op2 j (nat.iterate op1 i a) :=
-begin
-  induction i with i ih generalizing a,
-  { refl },
-  { rw [iterate_succ_apply', ih, function.iterate_comm_aux op1 op2 h_comm, iterate_succ_apply'], }
-end
-
 noncomputable theory
 open_locale classical
 
@@ -148,7 +130,7 @@ variable [char_p R p]
 lemma iterate_verschiebung_mul_frobenius (x : 𝕎 R) (i j : ℕ) :
   (frobenius^[i] : 𝕎 R → 𝕎 R) (verschiebung^[j] x) =
     (verschiebung^[j] ((frobenius^[i] x))) :=
-iterate_comm_apply _ _ (λ _, (verschiebung_frobenius_comm _).symm) _ _ _
+iterate_comm_apply (λ _, (verschiebung_frobenius_comm _).symm) _ _ _
 
 lemma iterate_verschiebung_mul (x y : 𝕎 R) (i j : ℕ) :
   (verschiebung^[i] x) * (verschiebung^[j] y) =

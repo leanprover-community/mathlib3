@@ -77,31 +77,50 @@ end
 
 variables {G} (H : subgroup G)
 
-lemma subgroup.bound1 : comm_prob G ≤ comm_prob H :=
+section conj_classes
+
+lemma conj_classes.map_surjective {α β : Type*} [monoid α] [monoid β] (f : α →* β)
+  (hf : function.surjective f) : function.surjective (conj_classes.map f) :=
 begin
-  sorry
+  intros b,
+  obtain ⟨b, rfl⟩ := conj_classes.mk_surjective b,
+  obtain ⟨a, rfl⟩ := hf b,
+  exact ⟨conj_classes.mk a, rfl⟩,
 end
 
-lemma subgroup.bound2 : comm_prob H ≤ comm_prob G * H.index ^ 2 :=
+lemma conj_classes.map_quotient_surjective {G : Type*} [group G] (H : subgroup G) [H.normal] :
+  function.surjective (conj_classes.map (quotient_group.mk' H)) :=
+conj_classes.map_surjective (quotient_group.mk' H) quotient.surjective_quotient_mk'
+
+end conj_classes
+
+lemma subgroup.comm_prob_subgroup_le : comm_prob H ≤ comm_prob G * H.index ^ 2 :=
 begin
-  sorry
+  rw [comm_prob, comm_prob, div_le_iff, mul_assoc, ←mul_pow, ←nat.cast_mul, H.index_mul_card,
+      div_mul_cancel, nat.cast_le],
+  { let f : {p : H × H // p.1 * p.2 = p.2 * p.1} → {p : G × G // p.1 * p.2 = p.2 * p.1} :=
+    λ p, ⟨⟨p.1.1, p.1.2⟩, subtype.ext_iff.mp p.2⟩,
+    convert card_le_of_injective f (λ p q h, _),
+    simp only [subtype.ext_iff, prod.ext_iff] at h ⊢,
+    exact h },
+  { exact pow_ne_zero 2 (nat.cast_ne_zero.mpr card_ne_zero) },
+  { exact pow_pos (nat.cast_pos.mpr card_pos) 2 },
 end
 
-lemma subgroup.bound3 [H.normal] : comm_prob G ≤ comm_prob H * comm_prob (G ⧸ H) :=
+lemma subgroup.comm_prob_quotient_le [H.normal] : comm_prob (G ⧸ H) ≤ comm_prob G * card H :=
 begin
-  sorry
-end
-
-lemma subgroup.bound4 [H.normal] : comm_prob (G ⧸ H) ≤ comm_prob G * card H :=
-begin
-  sorry
+  rw [comm_prob_def', comm_prob_def', div_le_iff, mul_assoc, ←nat.cast_mul, mul_comm (card H),
+      ←subgroup.card_eq_card_quotient_mul_card_subgroup, div_mul_cancel, nat.cast_le],
+  { exact card_le_of_surjective _ (conj_classes.map_quotient_surjective H) },
+  { exact nat.cast_ne_zero.mpr card_ne_zero },
+  { exact nat.cast_pos.mpr card_pos },
 end
 
 variables (G)
 
 lemma subgroup.bound5 : (↑(card (commutator G)))⁻¹ ≤ comm_prob G :=
 begin
-  have key1 := (commutator G).bound4,
+  have key1 := (commutator G).comm_prob_quotient_le,
   have key2 : comm_prob (abelianization G) = 1 := comm_prob_eq_one_iff.mpr begin
     intros x y,
     exact mul_comm x y,

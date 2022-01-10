@@ -1166,7 +1166,7 @@ local_of_nonunits_ideal
         htz.symm ▸ I.zero_mem))
     end)
   (begin
-    intros x y hx hy hu,
+    intros x hx y hy hu,
     cases is_unit_iff_exists_inv.1 hu with z hxyz,
     have : ∀ {r : R} {s : I.prime_compl}, mk' S r s ∈ nonunits S → r ∈ I, from
       λ (r : R) (s : I.prime_compl), not_imp_comm.1

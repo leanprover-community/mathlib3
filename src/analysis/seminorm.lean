@@ -247,8 +247,6 @@ structure seminorm (𝕜 : Type*) (E : Type*) [semi_normed_ring 𝕜] [add_monoi
 
 namespace seminorm
 
-noncomputable theory
-
 section semi_normed_ring
 variables [semi_normed_ring 𝕜]
 
@@ -286,7 +284,7 @@ begin
   { simp [sup_eq_max, max_eq_left h, max_eq_left (mul_le_mul_of_nonneg_left h h₁)] },
 end
 
-instance : has_sup (seminorm 𝕜 E) :=
+noncomputable instance : has_sup (seminorm 𝕜 E) :=
 { sup := λ p q,
   { to_fun := p ⊔ q,
     triangle' := λ x y, sup_le
@@ -297,7 +295,7 @@ instance : has_sup (seminorm 𝕜 E) :=
 
 @[simp] lemma coe_sup (p q : seminorm 𝕜 E) : ⇑(p ⊔ q) = p ⊔ q := rfl
 
-instance : semilattice_sup (seminorm 𝕜 E) :=
+noncomputable instance : semilattice_sup (seminorm 𝕜 E) :=
 function.injective.semilattice_sup _ coe_injective coe_sup
 
 lemma le_def (p q : seminorm 𝕜 E) : p ≤ q ↔ (p : E → ℝ) ≤ q := iff.rfl
@@ -341,7 +339,7 @@ nonneg_of_mul_nonneg_left h zero_lt_two
 
 lemma sub_rev : p (x - y) = p (y - x) := by rw [←neg_sub, p.neg]
 
-instance : order_bot (seminorm 𝕜 E) :=
+noncomputable instance : order_bot (seminorm 𝕜 E) :=
 { bot := 0,
   bot_le := nonneg }
 

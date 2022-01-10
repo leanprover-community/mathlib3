@@ -9,6 +9,7 @@ import data.zmod.basic
 import ring_theory.multiplicity
 import data.nat.factorization
 import tactic.field_simp
+-- import data.finsupp.order
 
 /-!
 # Euler's totient function
@@ -262,8 +263,64 @@ begin
   push_cast [←(pow_sub_mul_pow ↑p hk), pow_one, mul_right_comm],
 end
 
+-- NEED MORE CONDITIONS ON `g` — completely multiplicative?
+-- example (f1 f2 : ℕ →₀ ℕ) (g : ℕ → ℕ → ℕ) (hg : ∀ x, g x 0 = 1) :
+--   (f1.prod g) * (f2.prod g) = (f1 + f2).prod g :=
+-- begin
+--   unfold finsupp.prod,
+--   simp,
+--   sorry,
+-- end
+
+lemma prod_pow_mul (f1 f2 : ℕ →₀ ℕ) : (f1.prod pow) * (f2.prod pow) = (f1 + f2).prod pow :=
+begin
+  have h1 := finsupp.prod_of_support_subset f1 (subset_union_left _ f2.support) pow (by simp),
+  have h2 := finsupp.prod_of_support_subset f2 (subset_union_right f1.support _) pow (by simp),
+  rw [h1, h2],
+  rw ←finset.prod_mul_distrib,
+
+  have h3 := @finsupp.support_add ℕ ℕ _ _ f1 f2,
+  have h4 := @finsupp.prod_of_support_subset ℕ ℕ _ _ _ _ _ h3 pow (by simp),
+  rw h4,
+  simp only [pi.add_apply, finset.prod_congr, finsupp.coe_add],
+
+  apply finset.prod_congr rfl,
+  intros x hx,
+  have := pow_add x (f1 x) (f2 x),
+  rw this,
+end
+
+example (d n : ℕ) (hd : 0 < d) (hn : 0 < n) (hdn : d.factorization ≤ n.factorization) : d ∣ n :=
+begin
+  set K := n.factorization - d.factorization with hK,
+  rw dvd_iff_exists_eq_mul_left,
+  use K.prod pow,
+  rw ←(factorization_prod_pow_eq_self hd),
+  rw ←(factorization_prod_pow_eq_self hn),
+  rw prod_pow_mul K d.factorization,
+
+  rw hK,
+  suffices : n.factorization - d.factorization + d.factorization = n.factorization, { rw this },
+  rw add_comm,
+
+  ext p,
+  simp only [pi.add_apply, finsupp.coe_add, finsupp.coe_tsub, pi.sub_apply],
+  have h1 := finsupp.le_def.mp hdn p,
+  have h2 := nat.add_sub_assoc h1,
+  rw ←h2,
+  simp only [add_tsub_cancel_left, eq_self_iff_true],
+end
+
 -- TODO: Prove this in `data/nat/factorization`
-lemma aux (n : ℕ) : n.factorization.prod (λ (p k : ℕ), p) ∣ n := sorry
+lemma aux (n : ℕ) : n.factorization.prod (λ (p k : ℕ), p) ∣ n :=
+begin
+  rcases n.eq_zero_or_pos with rfl | hn0, { simp },
+  nth_rewrite_rhs 0 ←(factorization_prod_pow_eq_self hn0),
+  unfold finsupp.prod,
+
+  -- have := dvd_prod_of_mem,
+  sorry,
+end
 
 theorem totient_Euler_product_formula' (n : ℕ) :
   φ n = n / (n.factorization.prod (λ p k, p)) * (n.factorization.prod (λ p k, p - 1)) :=

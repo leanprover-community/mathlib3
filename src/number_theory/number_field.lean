@@ -102,7 +102,7 @@ instance rat.number_field : number_field ℚ :=
              -- all fields are vector spaces over themselves (used in `rat.finite_dimensional`)
              -- all char 0 fields have a canonical embedding of `ℚ` (used in `number_field`).
              -- Show that these coincide:
-             ext, simp [algebra.smul_def] } }
+             ext1, simp [algebra.smul_def] } }
 
 /-- The ring of integers of `ℚ` as a number field is just `ℤ`. -/
 noncomputable def ring_of_integers_equiv : ring_of_integers ℚ ≃+* ℤ :=

@@ -68,6 +68,16 @@ end
   (abs x * (cos (arg x) + sin (arg x) * I) : ℂ) = x :=
 by rw [← exp_mul_I, abs_mul_exp_arg_mul_I]
 
+@[simp] lemma range_exp_mul_I : range (λ x : ℝ, exp (x * I)) = metric.sphere 0 1 :=
+begin
+  simp only [metric.sphere, dist_eq, sub_zero],
+  refine (range_subset_iff.2 $ λ x, _).antisymm (λ z (hz : abs z = 1), _),
+  { exact abs_exp_of_real_mul_I _ },
+  { refine ⟨arg z, _⟩,
+    calc exp (arg z * I) = abs z * exp (arg z * I) : by rw [hz, of_real_one, one_mul]
+    ... = z : abs_mul_exp_arg_mul_I z }
+end
+
 lemma arg_mul_cos_add_sin_mul_I {r : ℝ} (hr : 0 < r) {θ : ℝ} (hθ : θ ∈ Ioc (-π) π) :
   arg (r * (cos θ + sin θ * I)) = θ :=
 begin

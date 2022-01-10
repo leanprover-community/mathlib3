@@ -754,13 +754,16 @@ variables [boolean_algebra α]
 
 theorem sdiff_eq : x \ y = x ⊓ yᶜ := boolean_algebra.sdiff_eq x y
 
-theorem sdiff_compl : x \ yᶜ = x ⊓ y := by rw [sdiff_eq, compl_compl]
+@[simp] theorem sdiff_compl : x \ yᶜ = x ⊓ y := by rw [sdiff_eq, compl_compl]
 
-theorem top_sdiff : ⊤ \ x = xᶜ := by rw [sdiff_eq, top_inf_eq]
+@[simp] theorem top_sdiff : ⊤ \ x = xᶜ := by rw [sdiff_eq, top_inf_eq]
 @[simp] theorem sdiff_top : x \ ⊤ = ⊥ := by rw [sdiff_eq, compl_top, inf_bot_eq]
 
 @[simp] lemma sup_inf_inf_compl : (x ⊓ y) ⊔ (x ⊓ yᶜ) = x :=
 by rw [← sdiff_eq, sup_inf_sdiff _ _]
+
+@[simp] lemma compl_sdiff : (x \ y)ᶜ = xᶜ ⊔ y :=
+by rw [sdiff_eq, compl_inf, compl_compl]
 
 end boolean_algebra
 

@@ -99,16 +99,28 @@ instance : complete_boolean_algebra (set α) :=
 lemma monotone_image {f : α → β} : monotone (image f) :=
 λ s t, image_subset _
 
-theorem monotone_inter [preorder β] {f g : β → set α}
+theorem _root_.monotone.inter [preorder β] {f g : β → set α}
   (hf : monotone f) (hg : monotone g) : monotone (λ x, f x ∩ g x) :=
-λ b₁ b₂ h, inter_subset_inter (hf h) (hg h)
+hf.inf hg
 
-theorem monotone_union [preorder β] {f g : β → set α}
+theorem _root_.antitone.inter [preorder β] {f g : β → set α}
+  (hf : antitone f) (hg : antitone g) : antitone (λ x, f x ∩ g x) :=
+hf.inf hg
+
+theorem _root_.monotone.union [preorder β] {f g : β → set α}
   (hf : monotone f) (hg : monotone g) : monotone (λ x, f x ∪ g x) :=
-λ b₁ b₂ h, union_subset_union (hf h) (hg h)
+hf.sup hg
+
+theorem _root_.antitone.union [preorder β] {f g : β → set α}
+  (hf : antitone f) (hg : antitone g) : antitone (λ x, f x ∪ g x) :=
+hf.sup hg
 
 theorem monotone_set_of [preorder α] {p : α → β → Prop}
   (hp : ∀ b, monotone (λ a, p a b)) : monotone (λ a, {b | p a b}) :=
+λ a a' h b, hp b h
+
+theorem antitone_set_of [preorder α] {p : α → β → Prop}
+  (hp : ∀ b, antitone (λ a, p a b)) : antitone (λ a, {b | p a b}) :=
 λ a a' h b, hp b h
 
 section galois_connection
@@ -843,10 +855,14 @@ lemma Union_subset_Union2 {s : ι → set α} {t : ι₂ → set α} (h : ∀ i,
 lemma Union_subset_Union_const {s : set α} (h : ι → ι₂) : (⋃ i : ι, s) ⊆ (⋃ j : ι₂, s) :=
 @supr_le_supr_const (set α) ι ι₂ _ s h
 
-@[simp] lemma Union_of_singleton (α : Type*) : (⋃ x, {x} : set α) = univ :=
-Union_eq_univ_iff.2 $ λ x, ⟨x, rfl⟩
+@[simp] lemma Union_singleton_eq_range {α β : Type*} (f : α → β) :
+  (⋃ (x : α), {f x}) = range f :=
+by { ext x, simp [@eq_comm _ x] }
 
-@[simp] lemma Union_of_singleton_coe (s : set α) :
+lemma Union_of_singleton (α : Type*) : (⋃ x, {x} : set α) = univ :=
+by simp
+
+lemma Union_of_singleton_coe (s : set α) :
   (⋃ (i : s), {i} : set α) = s :=
 by simp
 
@@ -1028,8 +1044,8 @@ begin
   refine subset.antisymm (image_Inter_subset s f) (λ y hy, _),
   simp only [mem_Inter, mem_image_iff_bex] at hy,
   choose x hx hy using hy,
-  refine ⟨x (default ι), mem_Inter.2 $ λ i, _, hy _⟩,
-  suffices : x (default ι) = x i,
+  refine ⟨x default, mem_Inter.2 $ λ i, _, hy _⟩,
+  suffices : x default = x i,
   { rw this, apply hx },
   replace hx : ∀ i, x i ∈ ⋃ j, s j := λ i, (subset_Union _ _) (hx i),
   apply h (hx _) (hx _),
@@ -1325,40 +1341,6 @@ by { ext, simp }
 
 end seq
 
-/-! ### `set` as a monad -/
-
-instance : monad set :=
-{ pure       := λ (α : Type u) a, {a},
-  bind       := λ (α β : Type u) s f, ⋃ i ∈ s, f i,
-  seq        := λ (α β : Type u), set.seq,
-  map        := λ (α β : Type u), set.image }
-
-section monad
-variables {α' β' : Type u} {s : set α'} {f : α' → set β'} {g : set (α' → β')}
-
-@[simp] lemma bind_def : s >>= f = ⋃ i ∈ s, f i := rfl
-
-@[simp] lemma fmap_eq_image (f : α' → β') : f <$> s = f '' s := rfl
-
-@[simp] lemma seq_eq_set_seq {α β : Type*} (s : set (α → β)) (t : set α) : s <*> t = s.seq t := rfl
-
-@[simp] lemma pure_def (a : α) : (pure a : set α) = {a} := rfl
-
-end monad
-
-instance : is_lawful_monad set :=
-{ pure_bind             := λ α β x f, by simp,
-  bind_assoc            := λ α β γ s f g, set.ext $ λ a,
-    by simp [exists_and_distrib_right.symm, -exists_and_distrib_right,
-             exists_and_distrib_left.symm, -exists_and_distrib_left, and_assoc];
-       exact exists_swap,
-  id_map                := λ α, id_map,
-  bind_pure_comp_eq_map := λ α β f s, set.ext $ by simp [set.image, eq_comm],
-  bind_map_eq_seq       := λ α β s t, by simp [seq_def] }
-
-instance : is_comm_applicative (set : Type u → Type u) :=
-⟨ λ α β s t, prod_image_seq_comm s t ⟩
-
 section pi
 
 variables {π : α → Type*}
@@ -1528,7 +1510,13 @@ by simpa using h.preimage f
 
 lemma preimage_eq_empty_iff {f : α → β} {s : set β} : disjoint s (range f) ↔ f ⁻¹' s = ∅ :=
 ⟨preimage_eq_empty,
-  λ h, by { simp [eq_empty_iff_forall_not_mem, set.disjoint_iff_inter_eq_empty] at h ⊢, finish }⟩
+  λ h, begin
+    simp only [eq_empty_iff_forall_not_mem, disjoint_iff_inter_eq_empty, not_exists,
+      mem_inter_eq, not_and, mem_range, mem_preimage] at h ⊢,
+    assume y hy x hx,
+    rw ← hx at hy,
+    exact h x hy,
+  end ⟩
 
 lemma disjoint_iff_subset_compl_right :
   disjoint s t ↔ s ⊆ tᶜ :=

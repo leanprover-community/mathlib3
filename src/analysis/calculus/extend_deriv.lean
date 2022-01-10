@@ -99,8 +99,8 @@ end
 its derivative also converges at `a`, then `f` is differentiable on the right at `a`. -/
 lemma has_deriv_at_interval_left_endpoint_of_tendsto_deriv {s : set ℝ} {e : E} {a : ℝ} {f : ℝ → E}
   (f_diff : differentiable_on ℝ f s) (f_lim : continuous_within_at f s a)
-  (hs : s ∈ 𝓝[Ioi a] a)
-  (f_lim' : tendsto (λx, deriv f x) (𝓝[Ioi a] a) (𝓝 e)) :
+  (hs : s ∈ 𝓝[>] a)
+  (f_lim' : tendsto (λx, deriv f x) (𝓝[>] a) (𝓝 e)) :
   has_deriv_within_at f e (Ici a) a :=
 begin
   /- This is a specialization of `has_fderiv_at_boundary_of_tendsto_fderiv`. To be in the setting of
@@ -136,8 +136,8 @@ end
 its derivative also converges at `a`, then `f` is differentiable on the left at `a`. -/
 lemma has_deriv_at_interval_right_endpoint_of_tendsto_deriv {s : set ℝ} {e : E} {a : ℝ} {f : ℝ → E}
   (f_diff : differentiable_on ℝ f s) (f_lim : continuous_within_at f s a)
-  (hs : s ∈ 𝓝[Iio a] a)
-  (f_lim' : tendsto (λx, deriv f x) (𝓝[Iio a] a) (𝓝 e)) :
+  (hs : s ∈ 𝓝[<] a)
+  (f_lim' : tendsto (λx, deriv f x) (𝓝[<] a) (𝓝 e)) :
   has_deriv_within_at f e (Iic a) a :=
 begin
   /- This is a specialization of `has_fderiv_at_boundary_of_differentiable`. To be in the setting of
@@ -183,7 +183,7 @@ begin
     -- extension results.
     apply has_deriv_at_interval_left_endpoint_of_tendsto_deriv diff hf.continuous_within_at
       self_mem_nhds_within,
-    have : tendsto g (𝓝[Ioi x] x) (𝓝 (g x)) := tendsto_inf_left hg,
+    have : tendsto g (𝓝[>] x) (𝓝 (g x)) := tendsto_inf_left hg,
     apply this.congr' _,
     apply mem_of_superset self_mem_nhds_within (λy hy, _),
     exact (f_diff y (ne_of_gt hy)).deriv.symm },
@@ -194,7 +194,7 @@ begin
     -- extension results.
     apply has_deriv_at_interval_right_endpoint_of_tendsto_deriv diff hf.continuous_within_at
       self_mem_nhds_within,
-    have : tendsto g (𝓝[Iio x] x) (𝓝 (g x)) := tendsto_inf_left hg,
+    have : tendsto g (𝓝[<] x) (𝓝 (g x)) := tendsto_inf_left hg,
     apply this.congr' _,
     apply mem_of_superset self_mem_nhds_within (λy hy, _),
     exact (f_diff y (ne_of_lt hy)).deriv.symm },

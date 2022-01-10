@@ -39,7 +39,7 @@ hs.imp_on $ h.imp $ λ a b h h₁ h₂, h₁ $ h h₂
 
 lemma eq_of_related (hs : is_antichain r s) {a b : α} (ha : a ∈ s) (hb : b ∈ s) (h : r a b) :
   a = b :=
-of_not_not $ λ hab, hs _ ha _ hb hab h
+of_not_not $ λ hab, hs ha hb hab h
 
 protected lemma is_antisymm (h : is_antichain r univ) : is_antisymm α r :=
 ⟨λ a b ha _, h.eq_of_related trivial trivial ha⟩
@@ -54,7 +54,7 @@ begin
 end
 
 protected lemma flip (hs : is_antichain r s) : is_antichain (flip r) s :=
-λ a ha b hb h, hs _ hb _ ha h.symm
+λ a ha b hb h, hs hb ha h.symm
 
 lemma swap (hs : is_antichain r s) : is_antichain (swap r) s := hs.flip
 
@@ -62,13 +62,13 @@ lemma image (hs : is_antichain r s) (f : α → β) (h : ∀ ⦃a b⦄, r' (f a)
   is_antichain r' (f '' s) :=
 begin
   rintro _ ⟨b, hb, rfl⟩ _ ⟨c, hc, rfl⟩ hbc hr,
-  exact hs _ hb _ hc (ne_of_apply_ne _ hbc) (h hr),
+  exact hs hb hc (ne_of_apply_ne _ hbc) (h hr),
 end
 
 lemma preimage (hs : is_antichain r s) {f : β → α} (hf : injective f)
   (h : ∀ ⦃a b⦄, r' a b → r (f a) (f b)) :
   is_antichain r' (f ⁻¹' s) :=
-λ b hb c hc hbc hr, hs _ hb _ hc (hf.ne hbc) $ h hr
+λ b hb c hc hbc hr, hs hb hc (hf.ne hbc) $ h hr
 
 lemma _root_.is_antichain_insert :
   is_antichain r (insert a s) ↔ is_antichain r s ∧ ∀ ⦃b⦄, b ∈ s → a ≠ b → ¬ r a b ∧ ¬ r b a :=
@@ -104,7 +104,7 @@ lemma mk_max (ht : is_antichain r t) (h : is_antichain.mk r s ⊆ t)
 begin
   refine subset.antisymm (λ a ha, _) h,
   obtain ⟨b, hb, hr⟩ := hs ha,
-  rwa of_not_not (λ hab, ht _ ha _ (h hb) hab hr),
+  rwa of_not_not (λ hab, ht ha (h hb) hab hr),
 end
 
 end is_antichain

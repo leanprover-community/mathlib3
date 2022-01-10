@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Johan Commelin, Mario Carneiro
 -/
 
-import algebra.algebra.tower
+import ring_theory.adjoin.basic
 import data.finsupp.antidiagonal
 import algebra.monoid_algebra.basic
 import order.symm_diff
@@ -119,6 +119,10 @@ instance [monoid R] [monoid S₁][comm_semiring S₂]
   [distrib_mul_action R S₂] [distrib_mul_action S₁ S₂] [smul_comm_class R S₁ S₂] :
   smul_comm_class R S₁ (mv_polynomial σ S₂) :=
 add_monoid_algebra.smul_comm_class
+instance [monoid R] [comm_semiring S₁] [distrib_mul_action R S₁] [distrib_mul_action Rᵐᵒᵖ S₁]
+  [is_central_scalar R S₁] :
+  is_central_scalar R (mv_polynomial σ S₁) :=
+add_monoid_algebra.is_central_scalar
 instance [comm_semiring R] [comm_semiring S₁] [algebra R S₁] : algebra R (mv_polynomial σ S₁) :=
 add_monoid_algebra.algebra
 -- TODO[gh-6025]: make this an instance once safe to do so
@@ -263,11 +267,8 @@ monomial_sum_index _ _ _
 lemma monomial_eq : monomial s a = C a * (s.prod $ λn e, X n ^ e : mv_polynomial σ R) :=
 by simp only [X_pow_eq_monomial, ← monomial_finsupp_sum_index, finsupp.sum_single]
 
-@[recursor 5]
-lemma induction_on {M : mv_polynomial σ R → Prop} (p : mv_polynomial σ R)
-  (h_C : ∀a, M (C a)) (h_add : ∀p q, M p → M q → M (p + q)) (h_X : ∀p n, M p → M (p * X n)) :
-  M p :=
-have ∀s a, M (monomial s a),
+lemma induction_on_monomial {M : mv_polynomial σ R → Prop} (h_C : ∀ a, M (C a))
+  (h_X : ∀ p n, M p → M (p * X n)) : ∀ s a, M (monomial s a) :=
 begin
   assume s a,
   apply @finsupp.induction σ ℕ _ _ s,
@@ -279,11 +280,12 @@ begin
       { simp [ih] },
       { simp [ih, pow_succ', (mul_assoc _ _ _).symm, h_X, e_ih] } },
     simp [add_comm, monomial_add_single, this] }
-end,
-finsupp.induction p
-  (by have : M (C 0) := h_C 0; rwa [C_0] at this)
-  (assume s a p hsp ha hp, h_add _ _ (this s a) hp)
+end
 
+/-- Analog of `polynomial.induction_on'`.
+To prove something about mv_polynomials,
+it suffices to show the condition is closed under taking sums,
+and it holds for monomials. -/
 attribute [elab_as_eliminator]
 theorem induction_on' {P : mv_polynomial σ R → Prop} (p : mv_polynomial σ R)
     (h1 : ∀ (u : σ →₀ ℕ) (a : R), P (monomial u a))
@@ -291,6 +293,27 @@ theorem induction_on' {P : mv_polynomial σ R → Prop} (p : mv_polynomial σ R)
 finsupp.induction p (suffices P (monomial 0 0), by rwa monomial_zero at this,
                      show P (monomial 0 0), from h1 0 0)
                     (λ a b f ha hb hPf, h2 _ _ (h1 _ _) hPf)
+
+/-- Similar to `mv_polynomial.induction_on` but only a weak form of `h_add` is required.-/
+lemma induction_on''' {M : mv_polynomial σ R → Prop} (p : mv_polynomial σ R) (h_C : ∀ a, M (C a))
+  (h_add_weak : ∀ (a : σ →₀ ℕ) (b : R) (f : (σ →₀ ℕ) →₀ R),
+    a ∉ f.support → b ≠ 0 → M f → M (monomial a b + f)) : M p :=
+finsupp.induction p (C_0.rec $ h_C 0) h_add_weak
+
+/-- Similar to `mv_polynomial.induction_on` but only a yet weaker form of `h_add` is required.-/
+lemma induction_on'' {M : mv_polynomial σ R → Prop} (p : mv_polynomial σ R) (h_C : ∀ a, M (C a))
+  (h_add_weak : ∀ (a : σ →₀ ℕ) (b : R) (f : (σ →₀ ℕ) →₀ R),
+    a ∉ f.support → b ≠ 0 → M f → M (monomial a b) → M (monomial a b + f))
+    (h_X : ∀ (p : mv_polynomial σ R) (n : σ), M p → M (p * mv_polynomial.X n)): M p :=
+induction_on''' p h_C (λ a b f ha hb hf,
+  h_add_weak a b f ha hb hf $ induction_on_monomial h_C h_X a b)
+
+/-- Analog of `polynomial.induction_on`.-/
+@[recursor 5]
+lemma induction_on {M : mv_polynomial σ R → Prop} (p : mv_polynomial σ R)
+  (h_C : ∀a, M (C a)) (h_add : ∀p q, M p → M q → M (p + q)) (h_X : ∀p n, M p → M (p * X n)) :
+  M p :=
+induction_on'' p h_C (λ a b f  ha hb hf hm, h_add (monomial a b) f hm hf) h_X
 
 lemma ring_hom_ext {A : Type*} [semiring A] {f g : mv_polynomial σ R →+* A}
   (hC : ∀ r, f (C r) = g (C r)) (hX : ∀ i, f (X i) = g (X i)) :
@@ -322,7 +345,7 @@ hom_eq_hom f (ring_hom.id _) hC hX p
 alg_hom.coe_ring_hom_injective (mv_polynomial.ring_hom_ext'
   (congr_arg alg_hom.to_ring_hom h₁) h₂)
 
-@[ext] lemma alg_hom_ext {A : Type*} [comm_semiring A] [algebra R A]
+@[ext] lemma alg_hom_ext {A : Type*} [semiring A] [algebra R A]
   {f g : mv_polynomial σ R →ₐ[R] A} (hf : ∀ i : σ, f (X i) = g (X i)) :
   f = g :=
 add_monoid_algebra.alg_hom_ext' (mul_hom_ext' (λ (x : σ), monoid_hom.ext_mnat (hf x)))
@@ -331,6 +354,20 @@ add_monoid_algebra.alg_hom_ext' (mul_hom_ext' (λ (x : σ), monoid_hom.ext_mnat 
   f (C r) = C r :=
 f.commutes r
 
+@[simp] lemma adjoin_range_X : algebra.adjoin R (range (X : σ → mv_polynomial σ R)) = ⊤ :=
+begin
+  set S := algebra.adjoin R (range (X : σ → mv_polynomial σ R)),
+  refine top_unique (λ p hp, _), clear hp,
+  induction p using mv_polynomial.induction_on,
+  case h_C : { exact S.algebra_map_mem _ },
+  case h_add : p q hp hq { exact S.add_mem hp hq },
+  case h_X : p i hp { exact S.mul_mem hp (algebra.subset_adjoin $ mem_range_self _) }
+end
+
+@[ext] lemma linear_map_ext {M : Type*} [add_comm_monoid M] [module R M]
+  {f g : mv_polynomial σ R →ₗ[R] M} (h : ∀ s, f ∘ₗ monomial s = g ∘ₗ monomial s) :
+  f = g :=
+finsupp.lhom_ext' h
 
 section support
 
@@ -352,6 +389,11 @@ lemma support_add : (p + q).support ⊆ p.support ∪ q.support := finsupp.suppo
 
 lemma support_X [nontrivial R] : (X n : mv_polynomial σ R).support = {single n 1} :=
 by rw [X, support_monomial, if_neg]; exact one_ne_zero
+
+@[simp] lemma support_zero : (0 : mv_polynomial σ R).support = ∅ := rfl
+
+lemma support_sum {α : Type*} {s : finset α} {f : α → mv_polynomial σ R} :
+  (∑ x in s, f x).support ⊆ s.bUnion (λ x, (f x).support) := finsupp.support_finset_sum
 
 end support
 
@@ -1103,6 +1145,17 @@ lemma aeval_sum {ι : Type*} (s : finset ι) (φ : ι → mv_polynomial σ R) :
 lemma aeval_prod {ι : Type*} (s : finset ι) (φ : ι → mv_polynomial σ R) :
   aeval f (∏ i in s, φ i) = ∏ i in s, aeval f (φ i) :=
 (mv_polynomial.aeval f).map_prod _ _
+
+variable (R)
+
+lemma _root_.algebra.adjoin_range_eq_range_aeval :
+  algebra.adjoin R (set.range f) = (mv_polynomial.aeval f).range :=
+by simp only [← algebra.map_top, ← mv_polynomial.adjoin_range_X, alg_hom.map_adjoin,
+  ← set.range_comp, (∘), mv_polynomial.aeval_X]
+
+theorem _root_.algebra.adjoin_eq_range (s : set S₁) :
+  algebra.adjoin R s = (mv_polynomial.aeval (coe : s → S₁)).range :=
+by rw [← algebra.adjoin_range_eq_range_aeval, subtype.range_coe]
 
 end aeval
 

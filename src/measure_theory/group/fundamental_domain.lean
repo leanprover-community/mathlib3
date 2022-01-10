@@ -28,7 +28,7 @@ We also generate additive versions of all theorems in this file using the `to_ad
 -/
 
 open_locale ennreal pointwise topological_space nnreal ennreal measure_theory
-open measure_theory measure_theory.measure set function topological_space
+open measure_theory measure_theory.measure set function topological_space filter
 
 namespace measure_theory
 
@@ -56,9 +56,25 @@ namespace is_fundamental_domain
 variables {G α E : Type*} [group G] [mul_action G α] [measurable_space α]
   [normed_group E] {s t : set α} {μ : measure α}
 
+/-- If for each `x : α`, exactly one of `g • x`, `g : G`, belongs to a measurable set `s`, then `s`
+is a fundamental domain for the action of `G` on `α`. -/
+@[to_additive "/- If for each `x : α`, exactly one of `g +ᵥ x`, `g : G`, belongs to a measurable set
+`s`, then `s` is a fundamental domain for the additive action of `G` on `α`. -/"]
+lemma mk' (h_meas : measurable_set s) (h_exists : ∀ x : α, ∃! g : G, g • x ∈ s) :
+  is_fundamental_domain G s μ :=
+{ measurable_set := h_meas,
+  ae_covers := eventually_of_forall $ λ x, (h_exists x).exists,
+  ae_disjoint := λ g hne,
+    begin
+      suffices : g • s ∩ s = ∅, by rw [this, measure_empty],
+      refine eq_empty_iff_forall_not_mem.2 _, rintro _ ⟨⟨x, hx, rfl⟩, hgx⟩,
+      rw ← one_smul G x at hx,
+      exact hne ((h_exists x).unique hgx hx)
+    end }
+
 @[to_additive] lemma Union_smul_ae_eq (h : is_fundamental_domain G s μ) :
   (⋃ g : G, g • s) =ᵐ[μ] univ :=
-filter.eventually_eq_univ.2 $ h.ae_covers.mono $
+eventually_eq_univ.2 $ h.ae_covers.mono $
   λ x ⟨g, hg⟩, mem_Union.2 ⟨g⁻¹, _, hg, inv_smul_smul _ _⟩
 
 @[to_additive] lemma mono (h : is_fundamental_domain G s μ) {ν : measure α} (hle : ν ≪ μ) :

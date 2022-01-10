@@ -71,6 +71,9 @@ by cases x; [contradiction, rw get_or_else_some]
 theorem mem_unique {o : option α} {a b : α} (ha : a ∈ o) (hb : b ∈ o) : a = b :=
 option.some.inj $ ha.symm.trans hb
 
+theorem eq_of_mem_of_mem {a : α} {o1 o2 : option α} (h1 : a ∈ o1) (h2 : a ∈ o2) : o1 = o2 :=
+h1.trans h2.symm
+
 theorem mem.left_unique : relator.left_unique ((∈) : α → option α → Prop) :=
 λ a o b, mem_unique
 
@@ -415,6 +418,30 @@ by cases o; refl
 @[simp] lemma get_or_else_map (f : α → β) (x : α) (o : option α) :
   get_or_else (o.map f) (f x) = f (get_or_else o x) :=
 by cases o; refl
+
+lemma orelse_eq_some (o o' : option α) (x : α) :
+  (o <|> o') = some x ↔ o = some x ∨ (o = none ∧ o' = some x) :=
+begin
+  cases o,
+  { simp only [true_and, false_or, eq_self_iff_true, none_orelse] },
+  { simp only [some_orelse, or_false, false_and] }
+end
+
+lemma orelse_eq_some' (o o' : option α) (x : α) :
+  o.orelse o' = some x ↔ o = some x ∨ (o = none ∧ o' = some x) :=
+option.orelse_eq_some o o' x
+
+@[simp] lemma orelse_eq_none (o o' : option α) :
+  (o <|> o') = none ↔ (o = none ∧ o' = none) :=
+begin
+  cases o,
+  { simp only [true_and, none_orelse, eq_self_iff_true] },
+  { simp only [some_orelse, false_and], }
+end
+
+@[simp] lemma orelse_eq_none' (o o' : option α) :
+  o.orelse o' = none ↔ (o = none ∧ o' = none) :=
+option.orelse_eq_none o o'
 
 section
 open_locale classical

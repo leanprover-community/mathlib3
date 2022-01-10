@@ -94,9 +94,9 @@ end
 
 /-- The unit group of a finite integral domain is cyclic.
 
-To support `units ℤ` and other infinite monoids with finite groups of units, this requires only
-`fintype (units R)` rather than deducing it from `fintype R`. -/
-instance [fintype (units R)] : is_cyclic (units R) :=
+To support `ℤˣ` and other infinite monoids with finite groups of units, this requires only
+`fintype Rˣ` rather than deducing it from `fintype R`. -/
+instance [fintype Rˣ] : is_cyclic Rˣ :=
 is_cyclic_of_subgroup_is_domain (units.coe_hom R) $ units.ext
 
 /-- Every finite integral domain is a field. -/
@@ -105,7 +105,7 @@ def field_of_is_domain [decidable_eq R] [fintype R] : field R :=
 
 section
 
-variables (S : subgroup (units R)) [fintype S]
+variables (S : subgroup Rˣ) [fintype S]
 
 /-- A finite subgroup of the units of an integral domain is cyclic. -/
 instance subgroup_units_cyclic : is_cyclic S :=
@@ -155,9 +155,9 @@ begin
   let c := (univ.filter (λ g, f.to_hom_units g = 1)).card,
   calc ∑ g : G, f g
       = ∑ g : G, f.to_hom_units g : rfl
-  ... = ∑ u : units R in univ.image f.to_hom_units,
-    (univ.filter (λ g, f.to_hom_units g = u)).card • u : sum_comp (coe : units R → R) f.to_hom_units
-  ... = ∑ u : units R in univ.image f.to_hom_units, c • u :
+  ... = ∑ u : Rˣ in univ.image f.to_hom_units,
+    (univ.filter (λ g, f.to_hom_units g = u)).card • u : sum_comp (coe : Rˣ → R) f.to_hom_units
+  ... = ∑ u : Rˣ in univ.image f.to_hom_units, c • u :
     sum_congr rfl (λ u hu, congr_arg2 _ _ rfl) -- remaining goal 1, proven below
   ... = ∑ b : monoid_hom.range f.to_hom_units, c • ↑b : finset.sum_subtype _
       (by simp ) _

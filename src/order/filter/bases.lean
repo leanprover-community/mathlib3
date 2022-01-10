@@ -150,7 +150,8 @@ begin
   { rintros ⟨U, U_in⟩ ⟨V, V_in⟩,
     rcases B.inter_sets U_in V_in with ⟨W, W_in, W_sub⟩,
     use [W, W_in],
-    finish },
+    simp only [ge_iff_le, le_principal_iff, mem_principal, subtype.coe_mk],
+    exact subset_inter_iff.mp W_sub },
   ext U,
   simp [mem_filter_iff, mem_infi_of_directed this]
 end
@@ -695,7 +696,7 @@ structure countable_filter_basis (α : Type*) extends filter_basis α :=
 -- For illustration purposes, the countable filter basis defining (at_top : filter ℕ)
 instance nat.inhabited_countable_filter_basis : inhabited (countable_filter_basis ℕ) :=
 ⟨{ countable := countable_range (λ n, Ici n),
-   ..(default $ filter_basis ℕ),}⟩
+   ..(default : filter_basis ℕ) }⟩
 
 lemma has_countable_basis.is_countably_generated {f : filter α} {p : ι → Prop} {s : ι → set α}
   (h : f.has_countable_basis p s) :

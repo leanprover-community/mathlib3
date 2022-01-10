@@ -25,7 +25,7 @@ its group of units, the general linear group GL(`𝕜`, `V`).
 
 The Lie group instance requires the following fields:
 ```
-instance : lie_group 𝓘(𝕜, R) (units R) :=
+instance : lie_group 𝓘(𝕜, R) Rˣ :=
 { smooth_mul := sorry,
   smooth_inv := sorry,
   ..units.smooth_manifold_with_corners }
@@ -52,14 +52,14 @@ namespace units
 
 variables {R : Type*} [normed_ring R] [complete_space R]
 
-instance : charted_space R (units R) := open_embedding_coe.singleton_charted_space
+instance : charted_space R Rˣ := open_embedding_coe.singleton_charted_space
 
-lemma chart_at_apply {a : units R} {b : units R} : chart_at R a b = b := rfl
-lemma chart_at_source {a : units R} : (chart_at R a).source = set.univ := rfl
+lemma chart_at_apply {a : Rˣ} {b : Rˣ} : chart_at R a b = b := rfl
+lemma chart_at_source {a : Rˣ} : (chart_at R a).source = set.univ := rfl
 
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜] [normed_algebra 𝕜 R]
 
-instance : smooth_manifold_with_corners 𝓘(𝕜, R) (units R) :=
+instance : smooth_manifold_with_corners 𝓘(𝕜, R) Rˣ :=
 open_embedding_coe.singleton_smooth_manifold_with_corners 𝓘(𝕜, R)
 
 end units

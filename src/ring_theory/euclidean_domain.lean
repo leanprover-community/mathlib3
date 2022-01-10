@@ -79,11 +79,11 @@ end
 
 -- this should be proved for UFDs surely?
 theorem is_coprime_of_dvd {α} [euclidean_domain α] {x y : α}
-  (z : ¬ (x = 0 ∧ y = 0)) (H : ∀ z ∈ nonunits α, z ≠ 0 → z ∣ x → ¬ z ∣ y) :
+  (nonzero : ¬ (x = 0 ∧ y = 0)) (H : ∀ z ∈ nonunits α, z ≠ 0 → z ∣ x → ¬ z ∣ y) :
   is_coprime x y :=
 begin
   letI := euclidean_domain.gcd_monoid α,
-  exact is_coprime_of_dvd x y z H,
+  exact is_coprime_of_dvd x y nonzero H,
 end
 
 -- this should be proved for UFDs surely?

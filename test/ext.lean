@@ -6,7 +6,7 @@ Authors: Simon Hudon
 
 import tactic.ext
 import tactic.solve_by_elim
-import data.stream.basic
+import data.stream.init
 import data.finset.basic
 import tactic.rcases
 

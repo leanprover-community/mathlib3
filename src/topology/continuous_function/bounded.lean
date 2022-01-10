@@ -4,7 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel, Mario Carneiro, Yury Kudryashov, Heather Macbeth
 -/
 import analysis.normed_space.operator_norm
+import analysis.normed_space.star
 import topology.continuous_function.algebra
+import data.real.sqrt
+import analysis.normed_space.lattice_ordered_group
 
 /-!
 # Bounded continuous functions
@@ -180,7 +183,7 @@ variable {α}
 lemma const_apply' (a : α) (b : β) : (const α b : α → β) a = b := rfl
 
 /-- If the target space is inhabited, so is the space of bounded continuous functions -/
-instance [inhabited β] : inhabited (α →ᵇ β) := ⟨const α (default β)⟩
+instance [inhabited β] : inhabited (α →ᵇ β) := ⟨const α default⟩
 
 lemma lipschitz_evalx (x : α) : lipschitz_with 1 (λ f : α →ᵇ β, f x) :=
 lipschitz_with.mk_one $ λ f g, dist_coe_le_dist x
@@ -379,7 +382,7 @@ begin
     f ∈ A → dist (f y) (f z) < ε₂ := λ x,
       let ⟨U, nhdsU, hU⟩ := H x _ ε₂0,
           ⟨V, VU, openV, xV⟩ := _root_.mem_nhds_iff.1 nhdsU in
-      ⟨V, xV, openV, λy z hy hz f hf, hU y z (VU hy) (VU hz) f hf⟩,
+      ⟨V, xV, openV, λy hy z hz f hf, hU y (VU hy) z (VU hz) f hf⟩,
   choose U hU using this,
   /- For all x, the set hU x is an open set containing x on which the elements of A
   fluctuate by at most ε₂.
@@ -406,8 +409,8 @@ begin
       ≤ dist (f x) (f x') + dist (g x) (g x') + dist (f x') (g x') : dist_triangle4_right _ _ _ _
   ... ≤ ε₂ + ε₂ + ε₁/2 : le_of_lt (add_lt_add (add_lt_add _ _) _)
   ... = ε₁ : by rw [add_halves, add_halves],
-  { exact (hU x').2.2 _ _ hx' ((hU x').1) hf },
-  { exact (hU x').2.2 _ _ hx' ((hU x').1) hg },
+  { exact (hU x').2.2 _ hx' _ ((hU x').1) hf },
+  { exact (hU x').2.2 _ hx' _ ((hU x').1) hg },
   { have F_f_g : F (f x') = F (g x') :=
       (congr_arg (λ f:tα → tβ, (f ⟨x', x'tα⟩ : β)) f_eq_g : _),
     calc dist (f x') (g x')
@@ -435,9 +438,9 @@ begin
     ((_ : is_compact (F ⁻¹' A)).image (continuous_comp M)) closed (λ f hf, _),
   { haveI : compact_space s := is_compact_iff_compact_space.1 hs,
     refine arzela_ascoli₁ _ (continuous_iff_is_closed.1 (continuous_comp M) _ closed)
-      (λ x ε ε0, bex.imp_right (λ U U_nhds hU y z hy hz f hf, _) (H x ε ε0)),
+      (λ x ε ε0, bex.imp_right (λ U U_nhds hU y hy z hz f hf, _) (H x ε ε0)),
     calc dist (f y) (f z) = dist (F f y) (F f z) : rfl
-                        ... < ε : hU y z hy hz (F f) hf },
+                        ... < ε : hU y hy z hz (F f) hf },
   { let g := cod_restrict s f (λx, in_s f x hf),
     rw [show f = F g, by ext; refl] at hf ⊢,
     exact ⟨g, hf, rfl⟩ }
@@ -461,13 +464,13 @@ arzela_ascoli₂ s hs (closure A) is_closed_closure
   (λ x ε ε0, show ∃ U ∈ 𝓝 x,
       ∀ y z ∈ U, ∀ (f : α →ᵇ β), f ∈ closure A → dist (f y) (f z) < ε,
     begin
-      refine bex.imp_right (λ U U_set hU y z hy hz f hf, _) (H x (ε/2) (half_pos ε0)),
+      refine bex.imp_right (λ U U_set hU y hy z hz f hf, _) (H x (ε/2) (half_pos ε0)),
       rcases metric.mem_closure_iff.1 hf (ε/2/2) (half_pos (half_pos ε0)) with ⟨g, gA, dist_fg⟩,
       replace dist_fg := λ x, lt_of_le_of_lt (dist_coe_le_dist x) dist_fg,
       calc dist (f y) (f z) ≤ dist (f y) (g y) + dist (f z) (g z) + dist (g y) (g z) :
         dist_triangle4_right _ _ _ _
           ... < ε/2/2 + ε/2/2 + ε/2 :
-            add_lt_add (add_lt_add (dist_fg y) (dist_fg z)) (hU y z hy hz g gA)
+            add_lt_add (add_lt_add (dist_fg y) (dist_fg z)) (hU y hy z hz g gA)
           ... = ε : by rw [add_halves, add_halves]
     end)
 
@@ -483,7 +486,7 @@ lemma equicontinuous_of_continuity_modulus {α : Type u} [metric_space α]
     f ∈ A → dist (f y) (f z) < ε :=
 begin
   rcases tendsto_nhds_nhds.1 b_lim ε ε0 with ⟨δ, δ0, hδ⟩,
-  refine ⟨ball x (δ/2), ball_mem_nhds x (half_pos δ0), λ y z hy hz f hf, _⟩,
+  refine ⟨ball x (δ/2), ball_mem_nhds x (half_pos δ0), λ y hy z hz f hf, _⟩,
   have : dist y z < δ := calc
     dist y z ≤ dist y x + dist z x : dist_triangle_right _ _ _
     ... < δ/2 + δ/2 : add_lt_add hy hz
@@ -712,7 +715,7 @@ of_normed_group f continuous_of_discrete_topology C H
 /-- Taking the pointwise norm of a bounded continuous function with values in a `normed_group`,
 yields a bounded continuous function with values in ℝ. -/
 def norm_comp : α →ᵇ ℝ :=
-of_normed_group (norm ∘ f) (by continuity) ∥f∥ (λ x, by simp only [f.norm_coe_le_norm, norm_norm])
+f.comp norm lipschitz_with_one_norm
 
 @[simp] lemma coe_norm_comp : (f.norm_comp : α → ℝ) = norm ∘ f := rfl
 
@@ -768,6 +771,11 @@ by { rw dist_eq_norm, exact (f - g).norm_coe_le_norm x }
 
 lemma coe_le_coe_add_dist {f g : α →ᵇ ℝ} : f x ≤ g x + dist f g :=
 sub_le_iff_le_add'.1 $ (abs_le.1 $ @dist_coe_le_dist _ _ _ _ f g x).2
+
+lemma norm_comp_continuous_le [topological_space γ] (f : α →ᵇ β) (g : C(γ, α)) :
+  ∥f.comp_continuous g∥ ≤ ∥f∥ :=
+((lipschitz_comp_continuous g).dist_le_mul f 0).trans $
+  by rw [nnreal.coe_one, one_mul, dist_zero_right]
 
 end normed_group
 
@@ -1016,5 +1024,156 @@ show that the space of bounded continuous functions from `α` to `β` is natural
 module over the algebra of bounded continuous functions from `α` to `𝕜`. -/
 
 end normed_algebra
+
+lemma nnreal.upper_bound {α : Type*} [topological_space α]
+  (f : α →ᵇ ℝ≥0) (x : α) : f x ≤ nndist f 0 :=
+begin
+  have key : nndist (f x) ((0 : α →ᵇ ℝ≥0) x) ≤ nndist f 0,
+  { exact @dist_coe_le_dist α ℝ≥0 _ _ f 0 x, },
+  simp only [coe_zero, pi.zero_apply] at key,
+  rwa nnreal.nndist_zero_eq_val' (f x) at key,
+end
+
+/-!
+### Star structures
+
+In this section, if `β` is a normed ⋆-group, then so is the space of bounded
+continuous functions from `α` to `β`, by using the star operation pointwise.
+
+If `𝕜` is normed field and a ⋆-ring over which `β` is a normed algebra and a
+star module, then the space of bounded continuous functions from `α` to `β`
+is a star module.
+
+If `β` is a ⋆-ring in addition to being a normed ⋆-group, then `α →ᵇ β`
+inherits a ⋆-ring structure.
+
+In summary, if `β` is a C⋆-algebra over `𝕜`, then so is  `α →ᵇ β`; note that
+completeness is guaranteed when `β` is complete (see
+`bounded_continuous_function.complete`). -/
+
+section normed_group
+
+variables {𝕜 : Type*} [normed_field 𝕜] [star_ring 𝕜]
+variables [topological_space α] [normed_group β] [star_add_monoid β] [normed_star_monoid β]
+variables [normed_space 𝕜 β] [star_module 𝕜 β]
+
+instance : star_add_monoid (α →ᵇ β) :=
+{ star            := λ f, f.comp star star_normed_group_hom.lipschitz,
+  star_involutive := λ f, ext $ λ x, star_star (f x),
+  star_add        := λ f g, ext $ λ x, star_add (f x) (g x) }
+
+/-- The right-hand side of this equality can be parsed `star ∘ ⇑f` because of the
+instance `pi.has_star`. Upon inspecting the goal, one sees `⊢ ⇑(star f) = star ⇑f`.-/
+@[simp] lemma coe_star (f : α →ᵇ β) : ⇑(star f) = star f := rfl
+
+@[simp] lemma star_apply (f : α →ᵇ β) (x : α) : star f x = star (f x) := rfl
+
+instance : normed_star_monoid (α →ᵇ β) :=
+{ norm_star := λ f, by
+  { simp only [norm_eq], congr, ext, conv_lhs { find (∥_∥) { erw (@norm_star β _ _ _ (f x)) } } } }
+
+instance : star_module 𝕜 (α →ᵇ β) :=
+{ star_smul := λ k f, ext $ λ x, star_smul k (f x) }
+
+end normed_group
+
+section cstar_ring
+
+variables [topological_space α]
+variables [normed_ring β] [star_ring β]
+
+instance [normed_star_monoid β] : star_ring (α →ᵇ β) :=
+{ star_mul := λ f g, ext $ λ x, star_mul (f x) (g x),
+  ..bounded_continuous_function.star_add_monoid }
+
+variable [cstar_ring β]
+
+instance : cstar_ring (α →ᵇ β) :=
+{ norm_star_mul_self :=
+  begin
+    intro f,
+    refine le_antisymm _ _,
+    { rw [←sq, norm_le (sq_nonneg _)],
+      dsimp [star_apply],
+      intro x,
+      rw [cstar_ring.norm_star_mul_self, ←sq],
+      refine sq_le_sq' _ _,
+      { linarith [norm_nonneg (f x), norm_nonneg f] },
+      { exact norm_coe_le_norm f x }, },
+    { rw [←sq, ←real.le_sqrt (norm_nonneg _) (norm_nonneg _), norm_le (real.sqrt_nonneg _)],
+      intro x,
+      rw [real.le_sqrt (norm_nonneg _) (norm_nonneg _), sq, ←cstar_ring.norm_star_mul_self],
+      exact norm_coe_le_norm (star f * f) x }
+  end }
+
+end cstar_ring
+
+section normed_lattice_ordered_group
+
+variables [topological_space α] [normed_lattice_add_comm_group β]
+
+instance : partial_order (α →ᵇ β) := partial_order.lift (λ f, f.to_fun) (by tidy)
+
+/--
+Continuous normed lattice group valued functions form a meet-semilattice
+-/
+instance : semilattice_inf (α →ᵇ β) :=
+{ inf := λ f g,
+  { to_fun := λ t, f t ⊓ g t,
+    continuous_to_fun := f.continuous.inf g.continuous,
+    bounded' := begin
+      cases f.bounded' with C₁ hf,
+      cases g.bounded' with C₂ hg,
+      refine ⟨C₁ + C₂, λ x y, _⟩,
+      simp_rw normed_group.dist_eq at hf hg ⊢,
+      exact (norm_inf_sub_inf_le_add_norm _ _ _ _).trans (add_le_add (hf _ _) (hg _ _)),
+    end },
+  inf_le_left := λ f g, continuous_map.le_def.mpr (λ _, inf_le_left),
+  inf_le_right := λ f g, continuous_map.le_def.mpr (λ _, inf_le_right),
+  le_inf := λ f g₁ g₂ w₁ w₂, continuous_map.le_def.mpr (λ _, le_inf (continuous_map.le_def.mp w₁ _)
+    (continuous_map.le_def.mp w₂ _)),
+  ..bounded_continuous_function.partial_order }
+
+instance : semilattice_sup (α →ᵇ β) :=
+{ sup := λ f g,
+  { to_fun := λ t, f t ⊔ g t,
+    continuous_to_fun := f.continuous.sup g.continuous,
+    bounded' := begin
+      cases f.bounded' with C₁ hf,
+      cases g.bounded' with C₂ hg,
+      refine ⟨C₁ + C₂, λ x y, _⟩,
+      simp_rw normed_group.dist_eq at hf hg ⊢,
+      exact (norm_sup_sub_sup_le_add_norm _ _ _ _).trans (add_le_add (hf _ _) (hg _ _)),
+    end },
+  le_sup_left := λ f g, continuous_map.le_def.mpr (λ _, le_sup_left),
+  le_sup_right := λ f g, continuous_map.le_def.mpr (λ _, le_sup_right),
+  sup_le := λ f g₁ g₂ w₁ w₂, continuous_map.le_def.mpr (λ _, sup_le (continuous_map.le_def.mp w₁ _)
+    (continuous_map.le_def.mp w₂ _)),
+  ..bounded_continuous_function.partial_order }
+
+instance  : lattice (α →ᵇ β) :=
+{ .. bounded_continuous_function.semilattice_sup, .. bounded_continuous_function.semilattice_inf }
+
+@[simp] lemma coe_fn_sup (f g : α →ᵇ β) : ⇑(f ⊔ g) = f ⊔ g := rfl
+
+@[simp] lemma coe_fn_abs (f : α →ᵇ β) : ⇑|f| = |f| := rfl
+
+instance : normed_lattice_add_comm_group (α →ᵇ β) :=
+{ add_le_add_left := begin
+    intros f g h₁ h t,
+    simp only [coe_to_continuous_fun, pi.add_apply, add_le_add_iff_left, coe_add,
+      continuous_map.to_fun_eq_coe],
+    exact h₁ _,
+  end,
+  solid :=
+  begin
+    intros f g h,
+    have i1: ∀ t, ∥f t∥ ≤ ∥g t∥ := λ t, solid (h t),
+    rw norm_le (norm_nonneg _),
+    exact λ t, (i1 t).trans (norm_coe_le_norm g t),
+  end,
+  ..bounded_continuous_function.lattice, }
+
+end normed_lattice_ordered_group
 
 end bounded_continuous_function

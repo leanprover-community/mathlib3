@@ -308,12 +308,12 @@ theorem cSup_eq_of_forall_le_of_forall_lt_exists_gt (_ : s.nonempty)
   (_ : ∀a∈s, a ≤ b) (H : ∀w, w < b → (∃a∈s, w < a)) : Sup s = b :=
 have bdd_above s := ⟨b, by assumption⟩,
 have (Sup s < b) ∨ (Sup s = b) := lt_or_eq_of_le (cSup_le ‹_› ‹∀a∈s, a ≤ b›),
-have ¬(Sup s < b) :=
+have h : ¬(Sup s < b) :=
   assume: Sup s < b,
   let ⟨a, _, _⟩ := (H (Sup s) ‹Sup s < b›) in  /- a ∈ s, Sup s < a-/
   have Sup s < Sup s := lt_of_lt_of_le ‹Sup s < a› (le_cSup ‹bdd_above s› ‹a ∈ s›),
-  show false, by finish [lt_irrefl (Sup s)],
-show Sup s = b, by finish
+  show false, by { exact lt_irrefl (Sup s) this },
+show Sup s = b, by { cases this with h1, { cases h h1 }, { assumption } }
 
 /--Introduction rule to prove that `b` is the infimum of `s`: it suffices to check that `b`
 is smaller than all elements of `s`, and that this is not the case of any `w>b`.
@@ -474,11 +474,11 @@ by rw [supr, range_const, cSup_singleton]
 @[simp] theorem cinfi_const [hι : nonempty ι] {a : α} : (⨅ b:ι, a) = a :=
 @csupr_const (order_dual α) _ _ _ _
 
-theorem supr_unique [unique ι] {s : ι → α} : (⨆ i, s i) = s (default ι) :=
-have ∀ i, s i = s (default ι) := λ i, congr_arg s (unique.eq_default i),
+theorem supr_unique [unique ι] {s : ι → α} : (⨆ i, s i) = s default :=
+have ∀ i, s i = s default := λ i, congr_arg s (unique.eq_default i),
 by simp only [this, csupr_const]
 
-theorem infi_unique [unique ι] {s : ι → α} : (⨅ i, s i) = s (default ι) :=
+theorem infi_unique [unique ι] {s : ι → α} : (⨅ i, s i) = s default :=
 @supr_unique (order_dual α) _ _ _ _
 
 @[simp] theorem supr_unit {f : unit → α} : (⨆ x, f x) = f () :=
@@ -1060,14 +1060,13 @@ variables [has_Sup α]
 non-canonical (it uses `default s`); it should be used only as here, as an auxiliary instance in the
 construction of the `conditionally_complete_linear_order` structure. -/
 noncomputable def subset_has_Sup [inhabited s] : has_Sup s := {Sup := λ t,
-if ht : Sup (coe '' t : set α) ∈ s then ⟨Sup (coe '' t : set α), ht⟩ else default s}
+if ht : Sup (coe '' t : set α) ∈ s then ⟨Sup (coe '' t : set α), ht⟩ else default}
 
 local attribute [instance] subset_has_Sup
 
 @[simp] lemma subset_Sup_def [inhabited s] :
   @Sup s _ = λ t,
-  if ht : Sup (coe '' t : set α) ∈ s then ⟨Sup (coe '' t : set α), ht⟩ else default s :=
-rfl
+  if ht : Sup (coe '' t : set α) ∈ s then ⟨Sup (coe '' t : set α), ht⟩ else default := rfl
 
 lemma subset_Sup_of_within [inhabited s] {t : set s} (h : Sup (coe '' t : set α) ∈ s) :
   Sup (coe '' t : set α) = (@Sup s _ t : α) :=
@@ -1082,14 +1081,13 @@ variables [has_Inf α]
 non-canonical (it uses `default s`); it should be used only as here, as an auxiliary instance in the
 construction of the `conditionally_complete_linear_order` structure. -/
 noncomputable def subset_has_Inf [inhabited s] : has_Inf s := {Inf := λ t,
-if ht : Inf (coe '' t : set α) ∈ s then ⟨Inf (coe '' t : set α), ht⟩ else default s}
+if ht : Inf (coe '' t : set α) ∈ s then ⟨Inf (coe '' t : set α), ht⟩ else default}
 
 local attribute [instance] subset_has_Inf
 
 @[simp] lemma subset_Inf_def [inhabited s] :
   @Inf s _ = λ t,
-  if ht : Inf (coe '' t : set α) ∈ s then ⟨Inf (coe '' t : set α), ht⟩ else default s :=
-rfl
+  if ht : Inf (coe '' t : set α) ∈ s then ⟨Inf (coe '' t : set α), ht⟩ else default := rfl
 
 lemma subset_Inf_of_within [inhabited s] {t : set s} (h : Inf (coe '' t : set α) ∈ s) :
   Inf (coe '' t : set α) = (@Inf s _ t : α) :=

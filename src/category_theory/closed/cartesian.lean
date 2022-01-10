@@ -111,7 +111,7 @@ lemma coev_naturality {X Y : C} (f : X ⟶ Y) :
   f ≫ (coev A).app Y = (coev A).app X ≫ (exp A).map (limits.prod.map (𝟙 A) f) :=
 (coev A).naturality f
 
-notation A ` ⟹ `:20 B:20 := (exp A).obj B
+notation A ` ⟹ `:20 B:19 := (exp A).obj B
 notation B ` ^^ `:30 A:30 := (exp A).obj B
 
 @[simp, reassoc] lemma ev_coev :
@@ -283,7 +283,7 @@ limits.prod.braiding _ _ ≪≫ zero_mul t
 
 /-- If an initial object `0` exists in a CCC then `0^B ≅ 1` for any `B`. -/
 def pow_zero {I : C} (t : is_initial I) [cartesian_closed C] : I ⟹ B ≅ ⊤_ C :=
-{ hom := default _,
+{ hom := default,
   inv := cartesian_closed.curry ((mul_zero t).hom ≫ t.to _),
   hom_inv_id' :=
   begin

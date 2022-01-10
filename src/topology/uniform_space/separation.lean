@@ -222,15 +222,14 @@ begin
   rcases hx (inter_mem V₁_in V_in) with ⟨z, hz, hz'⟩,
   obtain rfl : z = y,
   { by_contra hzy,
-    exact hs z hz' y hy' hzy (h_comp $ mem_comp_of_mem_ball V₁_symm
-      (ball_inter_left x _ _ hz) hy) },
+    exact hs hz' hy' hzy (h_comp $ mem_comp_of_mem_ball V₁_symm (ball_inter_left x _ _ hz) hy) },
   exact ball_inter_right x _ _ hz
 end
 
 lemma is_closed_range_of_spaced_out {ι} [separated_space α] {V₀ : set (α × α)} (V₀_in : V₀ ∈ 𝓤 α)
   {f : ι → α} (hf : pairwise (λ x y, (f x, f y) ∉ V₀)) : is_closed (range f) :=
 is_closed_of_spaced_out V₀_in $
-  by { rintro _ ⟨x, rfl⟩ _ ⟨y, rfl⟩ h, exact hf x y (mt (congr_arg f) h) }
+  by { rintro _ ⟨x, rfl⟩ _ ⟨y, rfl⟩ h, exact hf x y (ne_of_apply_ne f h) }
 
 /-!
 ### Separated sets
@@ -248,14 +247,14 @@ begin
   rw is_separated_def,
   split,
   { rintros h ⟨x, y⟩ ⟨⟨x_in, y_in⟩, H⟩,
-    simp [h x y x_in y_in H] },
-  { intros h x y x_in y_in xy_in,
+    simp [h x x_in y y_in H] },
+  { intros h x x_in y y_in xy_in,
     rw ← mem_id_rel,
     exact h ⟨mk_mem_prod x_in y_in, xy_in⟩ }
 end
 
 lemma is_separated.mono {s t : set α} (hs : is_separated s) (hts : t ⊆ s) : is_separated t :=
-λ x y hx hy, hs x y (hts hx) (hts hy)
+λ x hx y hy, hs x (hts hx) y (hts hy)
 
 lemma univ_separated_iff : is_separated (univ : set α) ↔ separated_space α :=
 begin
@@ -299,7 +298,7 @@ begin
     rw mem_closure_iff_cluster_pt,
     have : 𝓤 α ≤ 𝓟 V, by rwa le_principal_iff,
     exact H.mono this },
-  apply hs x y x_in y_in,
+  apply hs x x_in y y_in,
   simpa [separation_rel_eq_inter_closure],
 end
 
@@ -440,7 +439,7 @@ separated_def.1 (by apply_instance) _ _ $ separated_of_uniform_continuous H h
 lemma _root_.is_separated.eq_of_uniform_continuous {f : α → β} {x y : α} {s : set β}
   (hs : is_separated s) (hxs : f x ∈ s) (hys : f y ∈ s) (H : uniform_continuous f) (h : x ≈ y) :
   f x = f y :=
-(is_separated_def _).mp hs _ _ hxs hys $ λ _ h', h _ (H h')
+(is_separated_def _).mp hs _ hxs _ hys $ λ _ h', h _ (H h')
 
 /-- The maximal separated quotient of a uniform space `α`. -/
 def separation_quotient (α : Type*) [uniform_space α] := quotient (separation_setoid α)
@@ -519,7 +518,7 @@ separated_def.2 $ assume x y H, prod.ext
 
 lemma _root_.is_separated.prod {s : set α} {t : set β} (hs : is_separated s) (ht : is_separated t) :
   is_separated (s.prod t) :=
-(is_separated_def _).mpr $ assume x y hx hy H, prod.ext
+(is_separated_def _).mpr $ λ x hx y hy H, prod.ext
   (hs.eq_of_uniform_continuous hx.1 hy.1 uniform_continuous_fst H)
   (ht.eq_of_uniform_continuous hx.2 hy.2 uniform_continuous_snd H)
 

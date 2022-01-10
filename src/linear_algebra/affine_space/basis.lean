@@ -95,8 +95,8 @@ noncomputable def coord (i : ι) : P →ᵃ[k] k :=
   map_vadd' := λ q v, by rw [vadd_vsub_assoc, linear_map.map_add, vadd_eq_add, linear_map.neg_apply,
     sub_add_eq_sub_sub_swap, add_comm, sub_eq_add_neg], }
 
-@[simp] lemma coe_linear (i : ι) :
-  ((b.coord i).linear : V → k) = -(b.basis_of i).sum_coords :=
+@[simp] lemma linear_eq_sum_coords (i : ι) :
+  (b.coord i).linear = -(b.basis_of i).sum_coords :=
 rfl
 
 @[simp] lemma coord_apply_eq (i : ι) :
@@ -197,9 +197,8 @@ noncomputable def coords : P →ᵃ[k] ι → k :=
     map_smul' := λ t v, by { ext i, simpa only [linear_map.map_smul, pi.smul_apply, smul_neg] } },
   map_vadd' := λ p v, by
     { ext i,
-      simp only [add_left_inj, vadd_eq_add, pi.vadd_apply', pi.smul_apply, pi.neg_apply,
-        linear_map.coe_mk, linear_map.neg_apply, linear_map.map_add, smul_neg,
-        affine_map.map_vadd, affine_basis.coe_linear], }, }
+      simp only [linear_eq_sum_coords, linear_map.coe_mk, linear_map.neg_apply, pi.vadd_apply',
+        affine_map.map_vadd], }, }
 
 @[simp] lemma coords_apply (q : P) (i : ι) :
   b.coords q i = b.coord i q :=

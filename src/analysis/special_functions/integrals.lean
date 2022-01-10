@@ -44,6 +44,14 @@ variables {f : ℝ → ℝ} {μ ν : measure ℝ} [is_locally_finite_measure μ]
 lemma interval_integrable_pow : interval_integrable (λ x, x^n) μ a b :=
 (continuous_pow n).interval_integrable a b
 
+lemma interval_integrable_zpow {n : ℤ} (h : 0 ≤ n ∨ (0 : ℝ) ∉ [a, b]) :
+  interval_integrable (λ x, x ^ n) μ a b :=
+(continuous_on_id.zpow n $ λ x hx, h.symm.imp (ne_of_mem_of_not_mem hx) id).interval_integrable
+
+lemma interval_integrable_rpow {r : ℝ} (h : 0 ≤ r ∨ (0 : ℝ) ∉ [a, b]) :
+  interval_integrable (λ x, x ^ r) μ a b :=
+(continuous_on_id.rpow_const $ λ x hx, h.symm.imp (ne_of_mem_of_not_mem hx) id).interval_integrable
+
 @[simp]
 lemma interval_integrable_id : interval_integrable (λ x, x) μ a b :=
 continuous_id.interval_integrable a b
@@ -164,16 +172,32 @@ open interval_integral
 
 /-! ### Integrals of simple functions -/
 
-@[simp]
-lemma integral_pow : ∫ x in a..b, x ^ n = (b ^ (n + 1) - a ^ (n + 1)) / (n + 1) :=
+lemma integral_rpow {r : ℝ} (h : 0 ≤ r ∨ r ≠ -1 ∧ (0 : ℝ) ∉ [a, b]) :
+  ∫ x in a..b, x ^ r = (b ^ (r + 1) - a ^ (r + 1)) / (r + 1) :=
 begin
-  have hderiv : deriv (λ x : ℝ, x ^ (n + 1) / (n + 1)) = λ x, x ^ n,
-  { ext,
-    have hne : (n + 1 : ℝ) ≠ 0 := by exact_mod_cast succ_ne_zero n,
-    simp [mul_div_assoc, mul_div_cancel' _ hne] },
-  rw integral_deriv_eq_sub' _ hderiv;
-  norm_num [div_sub_div_same, continuous_on_pow],
+  suffices : ∀ x ∈ [a, b], has_deriv_at (λ x : ℝ, x ^ (r + 1) / (r + 1)) (x ^ r) x,
+  { rw sub_div,
+    exact integral_eq_sub_of_has_deriv_at this (interval_integrable_rpow (h.imp_right and.right)) },
+  intros x hx,
+  have hx' : x ≠ 0 ∨ 1 ≤ r + 1,
+    from h.symm.imp (λ h, ne_of_mem_of_not_mem hx h.2) (le_add_iff_nonneg_left _).2,
+  convert (real.has_deriv_at_rpow_const hx').div_const (r + 1),
+  rw [add_sub_cancel, mul_div_cancel_left],
+  rw [ne.def, ← eq_neg_iff_add_eq_zero],
+  rintro rfl,
+  apply (@zero_lt_one ℝ _ _).not_le,
+  simpa using h
 end
+
+lemma integral_zpow {n : ℤ} (h : 0 ≤ n ∨ n ≠ -1 ∧ (0 : ℝ) ∉ [a, b]) :
+  ∫ x in a..b, x ^ n = (b ^ (n + 1) - a ^ (n + 1)) / (n + 1) :=
+begin
+  replace h : 0 ≤ (n : ℝ) ∨ (n : ℝ) ≠ -1 ∧ (0 : ℝ) ∉ [a, b], by exact_mod_cast h,
+  exact_mod_cast integral_rpow h
+end
+
+@[simp] lemma integral_pow : ∫ x in a..b, x ^ n = (b ^ (n + 1) - a ^ (n + 1)) / (n + 1) :=
+by simpa using integral_zpow (or.inl (int.coe_nat_nonneg n))
 
 /-- Integral of `|x - a| ^ n` over `Ι a b`. This integral appears in the proof of the
 Picard-Lindelöf/Cauchy-Lipschitz theorem. -/

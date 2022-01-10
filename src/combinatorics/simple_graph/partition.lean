@@ -14,7 +14,7 @@ a graph `G`, with vertices `V`, is a set `P` of disjoint nonempty subsets of `V`
 
 * The union of the subsets in `P` is `V`.
 
-* * Each element of `P` is an independent set. (Each subset contains no pair of adjacent vertices.)
+* Each element of `P` is an independent set. (Each subset contains no pair of adjacent vertices.)
 
 Graph partitions are graph colorings that do not name their colors.  They are adjoint in the
 following sense. Given a graph coloring, there is an associated partition from the set of color
@@ -88,8 +88,7 @@ begin
   intro hn,
   have hw := P.mem_part_of_vertex w,
   rw ←hn at hw,
-  have h' := P.independent _ (P.part_of_vertex_mem v) _ (P.mem_part_of_vertex v),
-  exact h' w hw (G.ne_of_adj h) h,
+  exact P.independent _ (P.part_of_vertex_mem v) (P.mem_part_of_vertex v) hw (G.ne_of_adj h) h,
 end
 
 /-- Create a coloring using the parts themselves as the colors.

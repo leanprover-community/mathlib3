@@ -50,14 +50,14 @@ have hf:= topological_space.opens.local_homeomorph_subtype_coe_coe ℍ',
 simp_rw ← hf,
 apply symm,
 apply local_homeomorph.left_inv,
-simp [z.2],
+simp only [topological_space.opens.local_homeomorph_subtype_coe_source],
 end
 
 lemma df2 : mdifferentiable I I f :=
 begin
 have hf := df f,
 rw ← is_holomorphic_on_iff_differentiable_on at hf,
-simp_rw differentiable_on at hf,
+
 
 simp_rw mdifferentiable,
  simp only [mdifferentiable_at, differentiable_within_at_univ] with mfld_simps,
@@ -66,10 +66,17 @@ split,
 
 sorry,
 have hfx := hf x x.2,
-convert hfx,
-funext y,
+apply differentiable_at.differentiable_within_at,
+have hH: ℍ'.1 ∈ 𝓝 (I ((chart_at ℂ x) x)), by {simp_rw metric.mem_nhds_iff, simp_rw I, simp,
+simp_rw chart_at, simp, have:= upper_half_plane_is_open, rw metric.is_open_iff at this,
+have ht:= this x.1 x.2, simp at ht, exact ht,},
+apply differentiable_on.differentiable_at _ hH,
+apply differentiable_on.congr hf,
+intros y hy,
+have HH:= ext_chart f (⟨y,hy⟩ : ℍ'),
+simp at HH,
+simp_rw I,
 simp,
-
-sorry,
-sorry,
+simp_rw HH,
+congr,
 end

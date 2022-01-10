@@ -237,7 +237,11 @@ lemma tendsto_Lp_of_unif_integrable {f : ℕ → α → β} {g : α → β}
   (hf : ∀ n, mem_ℒp (f n) p μ) (hg : mem_ℒp g p μ) (hui : unif_integrable f p μ)
   (hfg : ∀ᵐ x ∂μ, tendsto (λ n, f n x) at_top (𝓝 (g x))) :
   tendsto (λ n, snorm (f n - g) p μ) at_top (𝓝 0) :=
-sorry
+begin
+  rw ennreal.tendsto_at_top ennreal.zero_ne_top,
+  swap, apply_instance,
+  intros ε hε,
+end
 
 lemma unif_integrable_of_tendsto_Lp {f : ℕ → α → β} {g : α → β}
   (hf : ∀ n, mem_ℒp (f n) p μ) (hg : mem_ℒp g p μ)

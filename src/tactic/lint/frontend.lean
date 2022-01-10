@@ -112,6 +112,7 @@ meta def print_warning (decl_name : name) (warning : string) : format :=
 Prints a workflow command to emit an error understood by github in an actions workflow.
 This enables CI to tag the parts of the file where linting failed with annotations, and makes it
 easier for mathlib contributors to see what needs fixing.
+See https://docs.github.com/en/actions/learn-github-actions/workflow-commands-for-github-actions#setting-an-error-message
 -/
 meta def print_workflow_command (env : environment) (decl_name : name) (warning : string) :
   option string :=

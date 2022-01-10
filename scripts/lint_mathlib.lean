@@ -6,7 +6,7 @@ Authors: Robert Y. Lewis, Gabriel Ebner
 
 import tactic.lint
 import system.io  -- these are required
--- import all   -- then import everything, to parse the library for failing linters
+import all   -- then import everything, to parse the library for failing linters
 
 /-!
 # lint_mathlib

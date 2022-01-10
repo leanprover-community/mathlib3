@@ -867,40 +867,40 @@ theorem dvd_iff_mod_eq_zero {a b : ordinal} : b ∣ a ↔ a % b = 0 :=
 
 /-- Converts a family indexed by a `Type u` to one indexed by an `ordinal.{u}` using a specified
 well-ordering. -/
-def bfamily_of_family' {ι : Type u} (r : ι → ι → Prop) [is_well_order ι r] (f : ι → β) :
-  Π b < type r, β :=
-λ b hb, f (enum r b hb)
+def bfamily_of_family' {ι : Type u} (r : ι → ι → Prop) [is_well_order ι r] (f : ι → α) :
+  Π a < type r, α :=
+λ a ha, f (enum r a ha)
 
 /-- Converts a family indexed by a `Type u` to one indexed by an `ordinal.{u}` using a well-ordering
 given by the axiom of choice. -/
-def bfamily_of_family {ι : Type u} : (ι → β) → Π b < type (@well_ordering_rel ι), β :=
+def bfamily_of_family {ι : Type u} : (ι → α) → Π a < type (@well_ordering_rel ι), α :=
 bfamily_of_family' well_ordering_rel
 
 /-- Converts a family indexed by an `ordinal.{u}` to one indexed by an `Type u` using a specified
 well-ordering. -/
-def family_of_bfamily' {β} {ι : Type u} (r : ι → ι → Prop) [is_well_order ι r] {o} (ho : type r = o)
-  (f : Π b < o, β) : ι → β :=
+def family_of_bfamily' {ι : Type u} (r : ι → ι → Prop) [is_well_order ι r] {o} (ho : type r = o)
+  (f : Π a < o, α) : ι → α :=
 λ i, f (typein r i) (by { rw ←ho, exact typein_lt_type r i })
 
 /-- Converts a family indexed by an `ordinal.{u}` to one indexed by a `Type u` using a well-ordering
 given by the axiom of choice. -/
-def family_of_bfamily {β} (o : ordinal.{u}) (f : Π b < o, β) : o.out.α → β :=
+def family_of_bfamily (o : ordinal.{u}) (f : Π a < o, α) : o.out.α → α :=
 family_of_bfamily' o.out.r (type_out o) f
 
-theorem bfamily_of_family'_typein {ι} (r : ι → ι → Prop) [is_well_order ι r] (f : ι → β) (i) :
+theorem bfamily_of_family'_typein {ι} (r : ι → ι → Prop) [is_well_order ι r] (f : ι → α) (i) :
   f i = bfamily_of_family' r f (typein r i) (typein_lt_type r i) :=
 by simp only [bfamily_of_family', enum_typein]
 
-theorem bfamily_of_family_typein {ι} (f : ι → β) (i) :
+theorem bfamily_of_family_typein {ι} (f : ι → α) (i) :
   f i = bfamily_of_family f (typein _ i) (typein_lt_type _ i) :=
 bfamily_of_family'_typein  _ f i
 
 theorem family_of_bfamily'_enum {ι : Type u} (r : ι → ι → Prop) [is_well_order ι r] {o}
-  (ho : type r = o) (f : Π b < o, β) (i hi) :
+  (ho : type r = o) (f : Π a < o, α) (i hi) :
   f i hi = family_of_bfamily' r ho f (enum r i (by rwa ho)) :=
 by simp only [family_of_bfamily', typein_enum]
 
-theorem family_of_bfamily_enum (o : ordinal.{u}) (f : Π b < o, β) (i hi) :
+theorem family_of_bfamily_enum (o : ordinal.{u}) (f : Π a < o, α) (i hi) :
   f i hi = family_of_bfamily o f (enum o.out.r i (by { convert hi, exact type_out _ })) :=
 family_of_bfamily'_enum _ (type_out o) f _ _
 

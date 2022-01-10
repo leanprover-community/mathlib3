@@ -342,7 +342,7 @@ nonneg_of_mul_nonneg_left h zero_lt_two
 
 lemma sub_rev : p (x - y) = p (y - x) := by rw [←neg_sub, p.neg]
 
-noncomputable instance : order_bot (seminorm 𝕜 E) :=
+instance : order_bot (seminorm 𝕜 E) :=
 { bot := 0,
   bot_le := nonneg }
 

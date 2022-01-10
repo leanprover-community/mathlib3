@@ -9,14 +9,15 @@ import group_theory.group_action.basic
 # Continuous monoid action
 
 In this file we define class `has_continuous_smul₂`. We say `has_continuous_smul₂ Γ T` if `Γ` acts
-on `T` and for each `γ`, the map `x ↦ γ • x` is continuous.
+on `T` and for each `γ`, the map `x ↦ γ • x` is continuous. (This differs from
+`has_continuous_smul`, which requires simultaneous continuity in both variables.)
 
 ## Main definitions
 
 * `has_continuous_smul₂ Γ T` : typeclass saying that the map `x ↦ γ • x` is continuous on `T`;
 * `properly_discontinuous_smul`: says that the scalar multiplication `(•) : Γ → T → T`
-is properly discontinuous, that is, for any pair of compact sets `K, L` in `T`, only finitely many
-`γ:Γ` move `K` to have nontrivial intersection with `L`.
+  is properly discontinuous, that is, for any pair of compact sets `K, L` in `T`, only finitely
+  many `γ:Γ` move `K` to have nontrivial intersection with `L`.
 * `homeomorph.smul`: scalar multiplication by an element of a group `Γ` acting on `T`
   is a homeomorphism of `T`.
 
@@ -108,8 +109,7 @@ def homeomorph.vadd {T : Type*} [topological_space T] {Γ : Type*} [add_group Γ
 
 attribute [to_additive homeomorph.vadd] homeomorph.smul
 
-/-- The quotient map by a group action is open.
--/
+/-- The quotient map by a group action is open. -/
 @[to_additive] lemma is_open_map_quotient_mk_mul [has_continuous_smul₂ Γ T] :
   is_open_map (quotient.mk : T → quotient (mul_action.orbit_rel Γ T)) :=
 begin
@@ -118,8 +118,7 @@ begin
   exact is_open_Union (λ γ, (homeomorph.smul γ).is_open_map U hU)
 end
 
-/-- The quotient by a discontinuous group action of a locally compact t2 space is t2.
--/
+/-- The quotient by a discontinuous group action of a locally compact t2 space is t2. -/
 @[priority 100, to_additive] instance is_t2_of_properly_discontinuous_smul_of_t2 [t2_space T]
   [locally_compact_space T] [has_continuous_smul₂ Γ T] [properly_discontinuous_smul Γ T] :
   t2_space (quotient (mul_action.orbit_rel Γ T)) :=

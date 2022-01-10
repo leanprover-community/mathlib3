@@ -320,7 +320,13 @@ def S : SL(2,ℤ) := ⟨![![0, -1], ![1, 0]], by norm_num [matrix.det_fin_two]�
 def fundamental_domain : set ℍ :=
 {z | 1 ≤ (complex.norm_sq z) ∧ |z.re| ≤ (1 : ℝ) / 2}
 
+/-- The standard open fundamental domain of the action of `SL(2,ℤ)` on `ℍ` -/
+def fundamental_domain_open : set ℍ :=
+{z | 1 < ((z:ℂ).norm_sq) ∧ |z.re| < (1 : ℝ) / 2}
+
 localized "notation `𝒟` := fundamental_domain" in modular
+
+localized "notation `𝒟ᵒ` := fundamental_domain_open" in modular
 
 /-- If `|z|<1`, then applying `S` strictly decreases `im` -/
 lemma im_lt_im_S_smul {z : ℍ} (h: norm_sq z < 1) : z.im < (S • z).im :=
@@ -376,39 +382,6 @@ begin
       simp [T', sub_eq_add_neg] } }
 end
 
-/-- The standard open fundamental domain of the action of `SL(2,ℤ)` on `ℍ` -/
-def fundamental_domain_open : set ℍ :=
-{z | 1 < ((z:ℂ).norm_sq) ∧ |z.re| < (1 : ℝ) / 2}
-
-notation `𝒟ᵒ` := fundamental_domain_open
-
-/-- MOVE TO INT SOMEWHERE -/
-lemma int.eq_one_or_neg_one_of_mul_eq_one {z w : ℤ} (h : z * w = 1) : z = 1 ∨ z = -1 :=
-int.is_unit_iff.mp (is_unit_of_mul_eq_one z w h)
-
-lemma int.eq_one_or_neg_one_of_mul_eq_one' {z w : ℤ} (h : z * w = 1) :
-  (z = 1 ∧ w = 1) ∨ (z = -1 ∧ w = -1) :=
-begin
-  cases int.eq_one_or_neg_one_of_mul_eq_one h,
-  { left,
-    split,
-    assumption,
-    rw [h_1, one_mul] at h,
-    exact h },
-  { right,
-    split,
-    assumption,
-    rw [h_1, neg_mul_eq_neg_mul_symm, one_mul] at h,
-    exact eq_neg_of_eq_neg (eq.symm h), },
-end
-
-lemma int.ne_zero_ge_one {z : ℤ} (h₀: ¬ z = 0) : 1 ≤ |z| :=
-begin
-  by_contra,
-  push_neg at h,
-  exact h₀ (int.eq_zero_iff_abs_lt_one.mp h),
-end
-
 lemma move_by_large {x y : ℝ} (h : |x| < 1/2) (h₁ : |x+y|<1/2) (h₂ : 1≤ |y|) : false :=
   by cases abs_cases x; cases abs_cases y; cases abs_cases (x+y); linarith
 
@@ -451,59 +424,22 @@ begin
     repeat {nlinarith}, },
 end
 
-lemma nat.is_zero_or_one_of_le_one {n : ℕ} (h: n ≤ 1) : n = 0 ∨ n = 1 :=
-begin
-  cases n,
-  { left, refl, },
-  right,
-  rw [nat.succ_le_succ_iff, le_zero_iff] at h,
-  rw h,
-end
-
-lemma int.is_zero_or__pm_one_of_le_one {n : ℤ} (h: |n| ≤ 1) : n = -1 ∨ n = 0 ∨ n = 1 :=
-begin
-  cases abs_cases n,
-  { right,
-    rw h_1.1 at h,
-    lift n to ℕ using h_1.2,
-    norm_cast at h,
-    norm_cast,
-    exact nat.is_zero_or_one_of_le_one h, },
-  { left,
-    rw h_1.1 at h,
-    linarith, },
-end
-
-lemma int.is_le_one_or_ge_two (x : ℤ) : |x| ≤ 1 ∨ 2 ≤ |x| :=
-begin
-  cases le_or_gt (|x|) 1,
-  left, assumption, right,
-  exact h,
-end
-
-lemma int.fourth_le_fourth {a b : ℤ} (hab : |a| ≤ |b|) : a ^ 4 ≤ b ^ 4 :=
-begin
-  have := sq_le_sq hab,
-  rw [(by simp only [pow_bit0_abs, _root_.abs_pow] : a ^ 2 = |a ^ 2|),
-   (by simp only [pow_bit0_abs, _root_.abs_pow] : b ^ 2 = |b ^ 2|)] at this,
-  convert sq_le_sq this using 1; ring,
-end
 
 /-- Knowing that `3/4<4/(3c^4)` from `ineq_1`, and `c≠0`, we conclude that `c=1` or `c=-1`. -/
 lemma ineq_2 (c : ℤ) (hc₁ : (3 : ℝ)/4 < 4/ (3* c^4)) (hc₂ : c ≠ 0) : c = 1 ∨ c = -1 :=
 begin
-  cases (int.is_le_one_or_ge_two c),
+  rcases (le_or_gt (|c|) 1) with h | (h : 2 ≤ |c|),
   { -- case |c| ≤ 1
-     cases int.is_zero_or__pm_one_of_le_one h, -- either c = 1 or c = 0 or c = -1
+     cases int.is_zero_or_pm_one_of_le_one h with h₁ h₁, -- either c = 1 or c = 0 or c = -1
     { right, assumption, },
-    { cases h_1,
+    { cases h₁,
       { exfalso,
-        exact hc₂ h_1, },
+        exact hc₂ h₁, },
       left, assumption, }, },
   { -- case 2 ≤ |c|
     exfalso,
     have : 2^4 ≤ c^4,
-    { refine int.fourth_le_fourth _,
+    { refine fourth_le_fourth _,
       convert h using 1, },
     have : (2:ℝ)^4 ≤ c^4,
     { norm_cast,
@@ -512,14 +448,12 @@ begin
     repeat {linarith}, },
 end
 
-
 /-- Definition: `T_pow` is the matrix `T` raised to the power `n:ℤ`. -/
 def T_pow (n : ℤ) : SL(2,ℤ) := ⟨ ![![1, n],![0,1]],
 begin
   rw matrix.det_fin_two,
   simp,
 end ⟩
-
 
 /- If c=1, then `g=[[1,a],[0,1]] * S * [[1,d],[0,1]]` -/
 lemma g_is_of_c_is_one (g : SL(2,ℤ)) (hc : ↑ₘg 1 0 = 1) :
@@ -542,7 +476,7 @@ begin
 end
 
 /-- Nontrivial lemma: if `|x|<1/2` and `n:ℤ`, then `2nx+n^2≥0`. (False for `n:ℝ`!) -/
-lemma int.non_neg_of_lt_half (n : ℤ) (x : ℝ) (hx : |x| < 1/2) : (0:ℝ) ≤ 2 * n * x + n * n :=
+lemma _root_.int.non_neg_of_lt_half (n : ℤ) (x : ℝ) (hx : |x| < 1/2) : (0:ℝ) ≤ 2 * n * x + n * n :=
 begin
   rw abs_lt at hx,
   have : (0:ℝ) ≤ n*n := by nlinarith,
@@ -630,7 +564,7 @@ begin
   have w₁_S_z₁ : w₁ = S • z₁,
   { dsimp only [w₁, z₁],
     rw [← mul_action.mul_smul, T_pow_S_of_g g hc, ← mul_action.mul_smul], },
-  have := normsq_S_lt_of_normsq z₁_norm,
+  have := norm_sq_S_smul_lt_one z₁_norm,
   rw ← w₁_S_z₁ at this,
   linarith,
 end

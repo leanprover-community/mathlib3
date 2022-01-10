@@ -365,6 +365,15 @@ lemma succ_lt_succ_iff {m n : ℕ} : succ m < succ n ↔ m < n :=
 @[simp] lemma lt_one_iff {n : ℕ} : n < 1 ↔ n = 0 :=
 lt_succ_iff.trans le_zero_iff
 
+lemma is_zero_or_one_of_le_one {n : ℕ} (h : n ≤ 1) : n = 0 ∨ n = 1 :=
+begin
+  cases n,
+  { left, refl, },
+  right,
+  rw [succ_le_succ_iff, le_zero_iff] at h,
+  rw h,
+end
+
 lemma div_le_iff_le_mul_add_pred {m n k : ℕ} (n0 : 0 < n) : m / n ≤ k ↔ m ≤ n * k + (n - 1) :=
 begin
   rw [← lt_succ_iff, div_lt_iff_lt_mul _ _ n0, succ_mul, mul_comm],

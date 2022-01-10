@@ -218,6 +218,30 @@ le_sub_iff_add_le
 ⟨λ a0, let ⟨hn, hp⟩ := abs_lt.mp a0 in (le_of_lt_add_one (by exact hp)).antisymm hn,
   λ a0, (abs_eq_zero.mpr a0).le.trans_lt zero_lt_one⟩
 
+lemma ne_zero_ge_one {z : ℤ} (h₀: ¬ z = 0) : 1 ≤ |z| :=
+begin
+  by_contra h,
+  push_neg at h,
+  exact h₀ (eq_zero_iff_abs_lt_one.mp h),
+end
+
+lemma is_zero_or_one_of_nonneg_of_le_one {z : ℤ} (h₀ : 0 ≤ z) (h₁ : z ≤ 1) : z = 0 ∨ z = 1 :=
+begin
+  lift z to ℕ using h₀,
+  norm_cast at h₁,
+  exact_mod_cast nat.is_zero_or_one_of_le_one h₁,
+end
+
+lemma is_zero_or_pm_one_of_le_one {n : ℤ} (h: |n| ≤ 1) : n = -1 ∨ n = 0 ∨ n = 1 :=
+begin
+  cases int.is_zero_or_one_of_nonneg_of_le_one (abs_nonneg _) h; cases abs_cases n,
+  -- This ought to be automated somehow
+  { right, left, linarith, },
+  { left, linarith, },
+  { right, right, linarith, },
+  { left, linarith, },
+end
+
 @[elab_as_eliminator] protected lemma induction_on {p : ℤ → Prop}
   (i : ℤ) (hz : p 0) (hp : ∀ i : ℕ, p i → p (i + 1)) (hn : ∀ i : ℕ, p (-i) → p (-i - 1)) : p i :=
 begin
@@ -1157,6 +1181,19 @@ begin
   rcases h with rfl | rfl,
   { exact is_unit_one },
   { exact is_unit_one.neg }
+end
+
+lemma eq_one_or_neg_one_of_mul_eq_one {z w : ℤ} (h : z * w = 1) : z = 1 ∨ z = -1 :=
+is_unit_iff.mp (is_unit_of_mul_eq_one z w h)
+
+lemma eq_one_or_neg_one_of_mul_eq_one' {z w : ℤ} (h : z * w = 1) :
+  (z = 1 ∧ w = 1) ∨ (z = -1 ∧ w = -1) :=
+begin
+  rcases eq_one_or_neg_one_of_mul_eq_one h with rfl | rfl,
+  { left,
+    refine ⟨rfl, by simpa using h⟩, },
+  { right,
+    refine ⟨rfl, by rw [← h, neg_mul_eq_neg_mul_symm, one_mul, neg_neg]⟩, },
 end
 
 theorem is_unit_iff_nat_abs_eq {n : ℤ} : is_unit n ↔ n.nat_abs = 1 :=

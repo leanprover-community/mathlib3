@@ -760,7 +760,7 @@ by simp only [lt_iff_le_and_ne, ordinal.zero_le, true_and, ne.def, eq_comm]
 protected theorem not_lt_zero (o : ordinal) : ¬ o < 0 :=
 not_lt_of_le (ordinal.zero_le o)
 
-theorem out_empty_iff_eq_zero {o : ordinal} : is_empty o.out.α ↔ o = 0 :=
+@[simp] theorem out_empty_iff_eq_zero {o : ordinal} : is_empty o.out.α ↔ o = 0 :=
 begin
   refine ⟨λ h, _, _⟩,
   { by_contra ho,

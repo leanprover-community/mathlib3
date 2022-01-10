@@ -501,96 +501,104 @@ begin
   exact A,
 end
 
+/-- If a differentiable function `f` is approximated by a linear map `A` on a set `s`, up to `δ`,
+then at almost every `x` in `s` one has `∥f' x - A∥ ≤ δ`. -/
 lemma approximates_linear_on.norm_fderiv_sub_le {f : E → E} {A : E →L[ℝ] E} {s : set E} {δ : ℝ≥0}
   (hf : approximates_linear_on f A s δ) (hs : measurable_set s)
   (f' : E → E →L[ℝ] E) (hf' : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x) :
   ∀ᵐ x ∂ (μ.restrict s), ∥f' x - A∥₊ ≤ δ :=
 begin
+  /- The conclusion will hold at the Lebesgue density points of `s` (which have full measure).
+  at such a point `x`, for any `z` and any `ε > 0` one has for small `r`
+  that `{x} + r • closed_ball z ε` intersects `s`. At a point `y` in the intersection,
+  `f y - f x` is close both to `f' x (r z)` (by differentiability) and to `A (r z)`
+  (by linear approximation), so these two quantities are close, i.e., `(f' x - A) z` is small. -/
   filter_upwards [besicovitch.ae_tendsto_measure_inter_div μ s, ae_restrict_mem hs],
+  -- start from a Lebesgue density point `x`, belonging to `s`.
   assume x hx xs,
-  suffices : ∀ z, ∥z∥ = 2⁻¹  → ∥(f' x - A) z∥ ≤ δ * 2⁻¹, sorry,
-  assume z norm_z,
-  have ε : ℝ := sorry,
-  have εpos : 0 < ε := sorry,
-  have εle : ε ≤ 2⁻¹ := sorry,
-  have B : ∀ᶠ r in 𝓝[>] 0, ∃ a ∈ closed_ball z ε, x + r • a ∈ s ∩ closed_ball x r,
-  sorry; { have : ∀ᶠ r in 𝓝[>] 0, 1 - ennreal.of_real (ε ^ finrank ℝ E)
-       < μ (s ∩ closed_ball x r) / μ (closed_ball x r),
-    { apply (tendsto_order.1 hx).1,
-      apply ennreal.sub_lt_self ennreal.one_ne_top one_ne_zero,
-      simp only [ennreal.of_real_eq_zero, not_le, ne.def, εpos, pow_pos], },
-    filter_upwards [this, self_mem_nhds_within],
-    assume r hr rpos,
-    have ne_top : μ (closed_ball x r) ≠ ∞ := measure_closed_ball_lt_top.ne,
-    change 0 < r at rpos,
-    have : ((s ∩ closed_ball x r) ∩ closed_ball (x + r • z) (ε * r)).nonempty,
-    { have I : closed_ball (x + r • z) (ε * r) ⊆ closed_ball x r,
-      { apply closed_ball_subset_closed_ball',
-        simp [dist_eq_norm, norm_smul, norm_z, real.norm_eq_abs, abs_of_nonneg rpos.le],
-        calc ε * r + r * 2⁻¹
-            ≤ 2⁻¹ * r + r * 2⁻¹ : add_le_add (mul_le_mul_of_nonneg_right εle rpos.le) le_rfl
-        ... = r : by ring },
-      apply nonempty_inter_of_measure_lt_add μ
-        (hs.inter measurable_set_closed_ball) measurable_set_closed_ball
-        (inter_subset_right _ _) I,
-      have J : ennreal.of_real (ε ^ finrank ℝ E) * μ (closed_ball x r)
-        = μ (closed_ball (x + r • z) (ε * r)),
-        by rw [add_haar_closed_ball_mul_of_pos μ _ εpos, add_haar_closed_ball_center],
-      rwa [ennreal.lt_div_iff_mul_lt (or.inl (add_haar_closed_ball_pos μ _ rpos).ne')
-        (or.inl ne_top), ennreal.sub_mul (λ _ _, ne_top), one_mul, J,
-        ennreal.sub_lt_iff_lt_add _ (measure_mono I)] at hr,
-      exact measure_closed_ball_lt_top.ne },
-    rcases this with ⟨b, hb⟩,
-    refine ⟨r⁻¹ • (b - x), _, _⟩,
-    { simp only [mem_closed_ball_iff_norm],
-      calc ∥r⁻¹ • (b - x) - z∥
-          = ∥r⁻¹ • (b - (x + r • z))∥ : by simp only [smul_sub, smul_smul, inv_mul_cancel rpos.ne',
-                                                      one_smul, smul_add, sub_add_eq_sub_sub]
-      ... ≤ r⁻¹ * (ε * r) :
-        begin
-          rw [norm_smul, real.norm_eq_abs, abs_inv, abs_of_nonneg rpos.le],
-          exact mul_le_mul_of_nonneg_left (mem_closed_ball_iff_norm.1 hb.2) (inv_nonneg.2 rpos.le),
-        end
-      ... = ε : by field_simp [rpos.ne'] },
-    { convert hb.1,
-      rw [smul_smul, mul_inv_cancel rpos.ne', one_smul, add_sub_cancel'_right] } },
+  -- consider an arbitrary vector `z`.
+  apply continuous_linear_map.op_norm_le_bound _ δ.2 (λ z, _),
+  -- to show that `∥(f' x - A) z∥ ≤ δ ∥z∥`, it suffices to do it up to some error that vanishes
+  -- asymptotically in terms of `ε > 0`.
+  suffices H : ∀ ε, 0 < ε → ∥(f' x - A) z∥ ≤ (δ + ε) * (∥z∥ + ε) + ∥(f' x - A)∥ * ε,
+  { have : tendsto (λ (ε : ℝ), ((δ : ℝ) + ε) * (∥z∥ + ε) + ∥(f' x - A)∥ * ε) (𝓝[>] 0)
+      (𝓝 ((δ + 0) * (∥z∥ + 0) + ∥(f' x - A)∥ * 0)) :=
+        tendsto.mono_left (continuous.tendsto (by continuity) 0) nhds_within_le_nhds,
+    simp only [add_zero, mul_zero] at this,
+    apply le_of_tendsto_of_tendsto tendsto_const_nhds this,
+    filter_upwards [self_mem_nhds_within],
+    exact H },
+  -- fix a positive `ε`.
+  assume ε εpos,
+  -- for small enough `r`, the rescaled ball `r • closed_ball z ε` intersects `s`, as `x` is a
+  -- density point
+  have B₁ : ∀ᶠ r in 𝓝[>] (0 : ℝ), (s ∩ ({x} + r • closed_ball z ε)).nonempty :=
+    eventually_nonempty_inter_smul_of_tendsto_measure_inter_closed_ball_one μ s x hx
+      _ measurable_set_closed_ball (add_haar_closed_ball_pos μ z εpos).ne',
   obtain ⟨ρ, ρpos, hρ⟩ :
     ∃ ρ > 0, ball x ρ ∩ s ⊆ {y : E | ∥f y - f x - (f' x) (y - x)∥ ≤ ε * ∥y - x∥} :=
       mem_nhds_within_iff.1 (is_o.def (hf' x xs) εpos),
-  have : Ioo (0 : ℝ) ρ ∈ 𝓝[>] (0 : ℝ) := Ioo_mem_nhds_within_Ioi ⟨le_rfl, ρpos⟩,
-  rcases (B.and this).exists with ⟨r, ⟨a, az, ha⟩, rpos, rρ⟩,
-  have norm_a : ∥a∥ ≤ 2⁻¹ + ε := calc
+  -- for small enough `r`, the rescaled ball `r • closed_ball z ε` is included in the set where
+  -- `f y - f x` is well approximated by `f' x (y - x)`.
+  have B₂ : ∀ᶠ r in 𝓝[>] (0 : ℝ), {x} + r • closed_ball z ε ⊆ ball x ρ := nhds_within_le_nhds
+    (eventually_singleton_add_smul_subset bounded_closed_ball (ball_mem_nhds x ρpos)),
+  -- fix a small positive `r` satisfying the above properties, as well as a corresponding `y`.
+  obtain ⟨r, ⟨y, ⟨ys, hy⟩⟩, rρ, rpos⟩ : ∃ (r : ℝ), (s ∩ ({x} + r • closed_ball z ε)).nonempty ∧
+    {x} + r • closed_ball z ε ⊆ ball x ρ ∧ 0 < r := (B₁.and (B₂.and self_mem_nhds_within)).exists,
+  -- write `y = x + r a` with `a ∈ closed_ball z ε`.
+  obtain ⟨a, az, ya⟩ : ∃ a, a ∈ closed_ball z ε ∧ y = x + r • a,
+  { simp only [mem_smul_set, image_add_left, mem_preimage, singleton_add] at hy,
+    rcases hy with ⟨a, az, ha⟩,
+    exact ⟨a, az, by simp only [ha, add_neg_cancel_left]⟩ },
+  have norm_a : ∥a∥ ≤ ∥z∥ + ε := calc
     ∥a∥ = ∥z + (a - z)∥ : by simp only [add_sub_cancel'_right]
     ... ≤ ∥z∥ + ∥a - z∥ : norm_add_le _ _
-    ... ≤ 2⁻¹ + ε : add_le_add (le_of_eq norm_z) (mem_closed_ball_iff_norm.1 az),
-  have : r * ∥(f' x - A) a∥ ≤ r * (δ + ε) * (2⁻¹ + ε) := calc
+    ... ≤ ∥z∥ + ε : add_le_add_left (mem_closed_ball_iff_norm.1 az) _,
+  -- use the approximation properties to control `(f' x - A) a`, and then `(f' x - A) z` as `z` is
+  -- close to `a`.
+  have I : r * ∥(f' x - A) a∥ ≤ r * (δ + ε) * (∥z∥ + ε) := calc
     r * ∥(f' x - A) a∥ = ∥(f' x - A) (r • a)∥ :
       by simp only [continuous_linear_map.map_smul, norm_smul, real.norm_eq_abs,
                     abs_of_nonneg rpos.le]
-    ... = ∥(f (x + r • a) - f x - A ((x + r • a) - x)) -
-            (f (x + r • a) - f x - (f' x) ((x + r • a) - x))∥ :
+    ... = ∥(f y - f x - A (y - x)) -
+            (f y - f x - (f' x) (y - x))∥ :
       begin
         congr' 1,
-        simp only [add_sub_cancel', sub_sub_sub_cancel_left, continuous_linear_map.coe_sub',
-          eq_self_iff_true, sub_left_inj, pi.sub_apply, continuous_linear_map.map_smul, smul_sub]
+        simp only [ya, add_sub_cancel', sub_sub_sub_cancel_left, continuous_linear_map.coe_sub',
+          eq_self_iff_true, sub_left_inj, pi.sub_apply, continuous_linear_map.map_smul, smul_sub],
       end
-    ... ≤ ∥f (x + r • a) - f x - A ((x + r • a) - x)∥ +
-             ∥f (x + r • a) - f x - (f' x) ((x + r • a) - x)∥ : norm_sub_le _ _
-    ... ≤ δ * ∥(x + r • a) - x∥ + ε * ∥(x + r • a) - x∥ :
-      add_le_add (hf _ ha.1 _ xs) (hρ ⟨closed_ball_subset_ball rρ ha.2, ha.1⟩)
+    ... ≤ ∥f y - f x - A (y - x)∥ +
+             ∥f y - f x - (f' x) (y - x)∥ : norm_sub_le _ _
+    ... ≤ δ * ∥y - x∥ + ε * ∥y - x∥ :
+      add_le_add (hf _ ys _ xs) (hρ ⟨rρ hy, ys⟩)
     ... = r * (δ + ε) * ∥a∥ :
-      by { simp only [add_sub_cancel', norm_smul, real.norm_eq_abs, abs_of_nonneg rpos.le], ring }
-    ... ≤ r * (δ + ε) * (2⁻¹ + ε) :
-      mul_le_mul_of_nonneg_left norm_a (mul_nonneg rpos.le (add_nonneg δ.2 εpos.le))
+      by { simp only [ya, add_sub_cancel', norm_smul, real.norm_eq_abs, abs_of_nonneg rpos.le],
+           ring }
+    ... ≤ r * (δ + ε) * (∥z∥ + ε) :
+      mul_le_mul_of_nonneg_left norm_a (mul_nonneg rpos.le (add_nonneg δ.2 εpos.le)),
+  show ∥(f' x - A) z∥ ≤ (δ + ε) * (∥z∥ + ε) + ∥(f' x - A)∥ * ε, from calc
+    ∥(f' x - A) z∥ = ∥(f' x - A) a + (f' x - A) (z - a)∥ :
+      begin
+        congr' 1,
+        simp only [continuous_linear_map.coe_sub', map_sub, pi.sub_apply],
+        abel
+      end
+    ... ≤ ∥(f' x - A) a∥ + ∥(f' x - A) (z - a)∥ : norm_add_le _ _
+    ... ≤ (δ + ε) * (∥z∥ + ε) + ∥f' x - A∥ * ∥z - a∥ :
+      begin
+        apply add_le_add,
+        { rw mul_assoc at I, exact (mul_le_mul_left rpos).1 I },
+        { apply continuous_linear_map.le_op_norm }
+      end
+    ... ≤ (δ + ε) * (∥z∥ + ε) + ∥f' x - A∥ * ε : add_le_add le_rfl
+      (mul_le_mul_of_nonneg_left (mem_closed_ball_iff_norm'.1 az) (norm_nonneg _)),
 end
 
-#exit
-
-
-
-
+/-- The derivative of a function on a measurable set is almost everywhere measurable on this set
+with respect to Lebesgue measure. Note that, in general, it is not measurable there, as `f'` is not
+unique (but only on a set of measure `0`). -/
 lemma ae_measurable_fderiv_within
-  (f : E → E) (s : set E) (f' : E → (E →L[ℝ] E))
+  (f : E → E) (s : set E) (hs : measurable_set s) (f' : E → (E →L[ℝ] E))
   (hf' : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x) :
   ae_measurable f' (μ.restrict s) :=
 begin
@@ -630,7 +638,8 @@ begin
   -- on almost all `s ∩ t n`, `f' x` is close to `A n` thanks to
   -- `approximates_linear_on.norm_fderiv_sub_le`.
   have E₁ : ∀ᵐ (x : E) ∂μ.restrict (s ∩ t n), ∥f' x - A n∥₊ ≤ δ :=
-    (ht n).norm_fderiv_sub_le μ f' (λ x hx, (hf' x hx.1).mono (inter_subset_left _ _)),
+    (ht n).norm_fderiv_sub_le μ (hs.inter (t_meas n)) f'
+      (λ x hx, (hf' x hx.1).mono (inter_subset_left _ _)),
   -- moreover, `g x` is equal to `A n` there.
   have E₂ : ∀ᵐ (x : E) ∂μ.restrict (s ∩ t n), g x = A n,
   { suffices H : ∀ᵐ (x : E) ∂μ.restrict (t n), g x = A n,

@@ -2140,9 +2140,24 @@ begin
   { exact directed_of_sup (monotone_spanning_sets μ) }
 end
 
+/-- In a sigma-finite space, any measurable set of measure `> r` contains a measurable subset of
+finite measure `> r`. -/
+lemma exists_subset_measure_lt_top [sigma_finite μ]
+  {r : ℝ≥0∞} (hs : measurable_set s) (h's : r < μ s) :
+  ∃ t, measurable_set t ∧ t ⊆ s ∧ r < μ t ∧ μ t < ∞ :=
+begin
+  rw [← supr_restrict_spanning_sets hs,
+      @lt_supr_iff _ _ _ r (λ (i : ℕ), μ.restrict (spanning_sets μ i) s)] at h's,
+  rcases h's with ⟨n, hn⟩,
+  simp only [restrict_apply hs] at hn,
+  refine ⟨s ∩ spanning_sets μ n, hs.inter (measurable_spanning_sets _ _), inter_subset_left _ _,
+    hn, _⟩,
+  exact (measure_mono (inter_subset_right _ _)).trans_lt (measure_spanning_sets_lt_top _ _),
+end
+
 /-- The measurable superset `to_measurable μ t` of `t` (which has the same measure as `t`)
-satisfies, for any measurable set `s`, the equality `μ (to_measurable μ t ∩ s) = μ (u ∩ s)`.
-Here, we require that `μ` is sigma-finite. For a version without this assumption (but requiring
+satisfies, for any measurable set `s`, the equality `μ (to_measurable μ t ∩ s) = μ (t ∩ s)`.
+This only holds when `μ` is sigma-finite. For a version without this assumption (but requiring
 that `t` has finite measure), see `measure_to_measurable_inter`. -/
 lemma measure_to_measurable_inter_of_sigma_finite
   [sigma_finite μ] {s : set α} (hs : measurable_set s) (t : set α) :

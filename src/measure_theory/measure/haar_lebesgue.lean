@@ -475,6 +475,31 @@ begin
   { exact add_haar_sphere_of_ne_zero μ x h }
 end
 
+lemma tendsto_measure_inter_smul_one_of_tendsto_measure_inter_closed_ball_one (s : set E) (x : E)
+  (h : tendsto (λ r, μ (s ∩ closed_ball x r) / μ (closed_ball x r)) (𝓝[>] 0) (𝓝 1))
+  (t : set E) (ht : measurable_set t) (h't : μ t ≠ 0) (h''t : μ t ≠ ∞) :
+  tendsto (λ (r : ℝ), μ (s ∩ ({x} + r • t)) / μ ({x} + r • t)) (𝓝[>] 0) (𝓝 1) :=
+sorry
+
+lemma eventually_nonempty_inter_smul_of_tendsto_measure_inter_closed_ball_one (s : set E) (x : E)
+  (h : tendsto (λ r, μ (s ∩ closed_ball x r) / μ (closed_ball x r)) (𝓝[>] 0) (𝓝 1))
+  (t : set E) (ht : measurable_set t) (h't : μ t ≠ 0) :
+  ∀ᶠ r in 𝓝[>] (0 : ℝ), (s ∩ ({x} + r • t)).nonempty :=
+begin
+  obtain ⟨t', t'_meas, t't, t'pos, t'top⟩ :
+    ∃ t', measurable_set t' ∧ t' ⊆ t ∧ 0 < μ t' ∧ μ t' < ⊤ :=
+      exists_subset_measure_lt_top ht h't.bot_lt,
+  filter_upwards [(tendsto_order.1
+    (tendsto_measure_inter_smul_one_of_tendsto_measure_inter_closed_ball_one μ s x h t'
+      t'_meas t'pos.ne' t'top.ne)).1 0 ennreal.zero_lt_one],
+  assume r hr,
+  have : μ (s ∩ ({x} + r • t')) ≠ 0 :=
+    λ h', by simpa only [ennreal.not_lt_zero, ennreal.zero_div, h'] using hr,
+  have : (s ∩ ({x} + r • t')).nonempty := nonempty_of_measure_ne_zero this,
+  apply this.mono (inter_subset_inter subset.rfl _),
+  exact add_subset_add subset.rfl (smul_set_mono t't),
+end
+
 end measure
 
 end measure_theory

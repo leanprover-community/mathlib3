@@ -3,18 +3,20 @@ Copyright (c) 2022 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
-import data.multiset.basic
+import data.multiset.nodup
 
 /-!
 # Disjoint sum of multisets
 
 This file defines the disjoint sum of two multisets as `multiset (α ⊕ β)`. Beware not to confuse
-  with the `multiset.sum` operation which computes the additive sum.
+with the `multiset.sum` operation which computes the additive sum.
 
 ## Main declarations
 
 * `multiset.disj_sum`: `s.disj_sum t` is the disjoint sum of `s` and `t`.
 -/
+
+open sum
 
 namespace multiset
 variables {α β : Type*} (s : multiset α) (t : multiset β)
@@ -59,8 +61,13 @@ lemma disj_sum_mono_right (s : multiset α) :
   monotone (s.disj_sum : multiset β → multiset (α ⊕ β)) :=
 λ t₁ t₂ ht, add_le_add_left (map_le_map ht) _
 
-lemma disj_sum_strict_mono (hs : s₁ < s₂) (ht : t₁ < t₂) : s₁.disj_sum t₁ < s₂.disj_sum t₂ :=
-add_lt_add (map_lt_map hs) (map_lt_map ht)
+lemma disj_sum_lt_disj_sum_of_lt_of_le (hs : s₁ < s₂) (ht : t₁ ≤ t₂) :
+  s₁.disj_sum t₁ < s₂.disj_sum t₂ :=
+add_lt_add_of_lt_of_le (map_lt_map hs) (map_le_map ht)
+
+lemma disj_sum_lt_disj_sum_of_le_of_lt (hs : s₁ ≤ s₂) (ht : t₁ < t₂) :
+  s₁.disj_sum t₁ < s₂.disj_sum t₂ :=
+add_lt_add_of_le_of_lt (map_le_map hs) (map_lt_map ht)
 
 protected lemma nodup.disj_sum (hs : s.nodup) (ht : t.nodup) : (s.disj_sum t).nodup :=
 begin

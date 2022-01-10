@@ -845,7 +845,7 @@ begin
   exact card_le_of_le H,
 end
 
-lemma map_mono (f : α → β) : mono (map f) := λ _ _, map_le_map
+lemma map_mono (f : α → β) : monotone (map f) := λ _ _, map_le_map
 lemma map_strict_mono (f : α → β) : strict_mono (map f) := λ _ _, map_lt_map
 
 @[simp] theorem map_subset_map {f : α → β} {s t : multiset α} (H : s ⊆ t) : map f s ⊆ map f t :=

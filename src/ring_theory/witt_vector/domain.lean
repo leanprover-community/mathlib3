@@ -16,11 +16,11 @@ Most of the file develops an API around iterated applications
 of `witt_vector.verschiebung` and `witt_vector.frobenius`.
 
 The [proof sketch](https://tinyurl.com/2p8cwrn7) goes as follows:
-any nonzero $$x$$ is an iterated application of $$V$$
-to some vector $$w_x$$ whose 0th component is zero (`witt_vector.verschiebung_nonzero`).
+any nonzero $x$ is an iterated application of $V$
+to some vector $w_x$ whose 0th component is zero (`witt_vector.verschiebung_nonzero`).
 Known identities (`witt_vector.iterate_verschiebung_mul`) allow us to transform
-the product of two such $$x$$ and $$y$$
-to the form $$V^{m+n}\left(F^n(w_x) \cdot F^m(w_y)\right)$$,
+the product of two such $x$ and $y$
+to the form $V^{m+n}\left(F^n(w_x) \cdot F^m(w_y)\right)$,
 the 0th component of which must be nonzero.
 
 ## Main declarations

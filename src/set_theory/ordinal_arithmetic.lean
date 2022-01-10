@@ -1107,7 +1107,7 @@ theorem bsup_eq_blsub {o} (f : Π a < o, ordinal) :
 by { rw [bsup_eq_sup, blsub_eq_lsub], exact sup_eq_lsub _ }
 
 /-
-lemma blsub_eq_zero {f : Π a < 0, ordinal} : lsub f = 0 :=
+lemma blsub_eq_zero {o : ordinal} (ho : o = 0) {f : Π a < o, ordinal} : lsub f = 0 :=
 by { rw [←ordinal.le_zero, lsub_le_iff_lt], exact h.elim }
 
 lemma zero_lt_blsub {ι} [h : nonempty ι] (f : ι → ordinal) : 0 < lsub f :=

@@ -32,3 +32,7 @@ theorem modularity_conjecture (E : EllipticCurve ℚ) : ∃ (N : ℕ)
 begin
 sorry,
 end
+
+def GL_pos'  {n : Type*} {R : Type*} [decidable_eq n] [fintype n] [linear_ordered_comm_ring R ]
+ : subgroup (GL n R) :=
+(units.pos_subgroup R).comap general_linear_group.det

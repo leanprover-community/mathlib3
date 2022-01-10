@@ -135,9 +135,9 @@ begin
 end
 
 lemma Eisenstein_is_modular (Γ : subgroup SL2Z) (k: ℤ)  :
- (Eisenstein_series_of_weight_ k) ∈ (modular_forms.modular_submodule k Γ) :=
+ (Eisenstein_series_of_weight_ k) ∈ (modular_forms.weakly_modular_submodule k Γ) :=
 begin
-rw modular_forms.modular_mem',
+rw modular_forms.wmodular_mem',
 rw Eisenstein_series_of_weight_,
 simp only [set.mem_set_of_eq],
 intros A z,

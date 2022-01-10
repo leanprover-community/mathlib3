@@ -258,19 +258,21 @@ variables [add_monoid E]
 section has_scalar
 variables [has_scalar 𝕜 E]
 
-instance : has_zero (seminorm 𝕜 E) :=
-⟨{ to_fun    := λ _, 0,
-  smul'     := λ _ _, (mul_zero _).symm,
-  triangle' := λ _ _, by rw add_zero }⟩
-
-instance : inhabited (seminorm 𝕜 E) := ⟨0⟩
-
 instance : has_coe_to_fun (seminorm 𝕜 E) (λ _, E → ℝ) := ⟨λ p, p.to_fun⟩
 
 lemma coe_injective : @function.injective (seminorm 𝕜 E) (E → ℝ) coe_fn
 | ⟨x, _, _⟩ ⟨y, _, _⟩ rfl := rfl
 
 @[ext] lemma ext {p q : seminorm 𝕜 E} (h : (p : E → ℝ) = q) : p = q := coe_injective h
+
+instance : has_zero (seminorm 𝕜 E) :=
+⟨{ to_fun    := λ _, 0,
+  smul'     := λ _ _, (mul_zero _).symm,
+  triangle' := λ _ _, by rw add_zero }⟩
+
+@[simp] lemma coe_zero : coe_fn (0 : seminorm 𝕜 E) = 0 := rfl
+
+instance : inhabited (seminorm 𝕜 E) := ⟨0⟩
 
 variables (p : seminorm 𝕜 E) (c : 𝕜) (x y : E) (r : ℝ)
 

@@ -563,7 +563,7 @@ lemma filter.tendsto.min {b : filter β} {a₁ a₂ : α} (hf : tendsto f b (�
 (continuous_min.tendsto (a₁, a₂)).comp (hf.prod_mk_nhds hg)
 
 lemma dense.exists_lt [no_min_order α] {s : set α} (hs : dense s) (x : α) : ∃ y ∈ s, y < x :=
-hs.exists_mem_open is_open_Iio (no_min x)
+hs.exists_mem_open is_open_Iio (exists_lt x)
 
 lemma dense.exists_gt [no_max_order α] {s : set α} (hs : dense s) (x : α) : ∃ y ∈ s, x < y :=
 hs.order_dual.exists_lt x
@@ -1049,7 +1049,7 @@ end
 -/
 lemma mem_nhds_iff_exists_Ioo_subset [no_max_order α] [no_min_order α] {a : α} {s : set α} :
   s ∈ 𝓝 a ↔ ∃l u, a ∈ Ioo l u ∧ Ioo l u ⊆ s :=
-mem_nhds_iff_exists_Ioo_subset' (no_min a) (no_max a)
+mem_nhds_iff_exists_Ioo_subset' (exists_lt a) (exists_gt a)
 
 lemma nhds_basis_Ioo' {a : α} (hl : ∃ l, l < a) (hu : ∃ u, a < u) :
   (𝓝 a).has_basis (λ b : α × α, b.1 < a ∧ a < b.2) (λ b, Ioo b.1 b.2) :=
@@ -1057,7 +1057,7 @@ lemma nhds_basis_Ioo' {a : α} (hl : ∃ l, l < a) (hu : ∃ u, a < u) :
 
 lemma nhds_basis_Ioo [no_max_order α] [no_min_order α] (a : α) :
   (𝓝 a).has_basis (λ b : α × α, b.1 < a ∧ a < b.2) (λ b, Ioo b.1 b.2) :=
-nhds_basis_Ioo' (no_min a) (no_max a)
+nhds_basis_Ioo' (exists_lt a) (exists_gt a)
 
 lemma filter.eventually.exists_Ioo_subset [no_max_order α] [no_min_order α] {a : α} {p : α → Prop}
   (hp : ∀ᶠ x in 𝓝 a, p x) :
@@ -1149,7 +1149,7 @@ lemma disjoint_nhds_at_top [no_max_order α] (x : α) :
   disjoint (𝓝 x) at_top :=
 begin
   rw filter.disjoint_iff,
-  cases no_max x with a ha,
+  cases exists_gt x with a ha,
   use [Iio a, Iio_mem_nhds ha, Ici a, mem_at_top a],
   rw [inter_comm, Ici_inter_Iio, Ico_self]
 end
@@ -1238,7 +1238,7 @@ lemma mem_nhds_within_Ioi_iff_exists_Ioo_subset' {a u' : α} {s : set α} (hu' :
 with `a < u`. -/
 lemma mem_nhds_within_Ioi_iff_exists_Ioo_subset [no_max_order α] {a : α} {s : set α} :
   s ∈ 𝓝[>] a ↔ ∃u ∈ Ioi a, Ioo a u ⊆ s :=
-let ⟨u', hu'⟩ := no_max a in mem_nhds_within_Ioi_iff_exists_Ioo_subset' hu'
+let ⟨u', hu'⟩ := exists_gt a in mem_nhds_within_Ioi_iff_exists_Ioo_subset' hu'
 
 /-- A set is a neighborhood of `a` within `(a, +∞)` if and only if it contains an interval `(a, u]`
 with `a < u`. -/
@@ -1284,7 +1284,7 @@ lemma mem_nhds_within_Iio_iff_exists_Ioo_subset' {a l' : α} {s : set α} (hl' :
 with `l < a`. -/
 lemma mem_nhds_within_Iio_iff_exists_Ioo_subset [no_min_order α] {a : α} {s : set α} :
   s ∈ 𝓝[<] a ↔ ∃l ∈ Iio a, Ioo l a ⊆ s :=
-let ⟨l', hl'⟩ := no_min a in mem_nhds_within_Iio_iff_exists_Ioo_subset' hl'
+let ⟨l', hl'⟩ := exists_lt a in mem_nhds_within_Iio_iff_exists_Ioo_subset' hl'
 
 /-- A set is a neighborhood of `a` within `(-∞, a)` if and only if it contains an interval `[l, a)`
 with `l < a`. -/
@@ -1340,7 +1340,7 @@ lemma mem_nhds_within_Ici_iff_exists_Ico_subset' {a u' : α} {s : set α} (hu' :
 with `a < u`. -/
 lemma mem_nhds_within_Ici_iff_exists_Ico_subset [no_max_order α] {a : α} {s : set α} :
   s ∈ 𝓝[≥] a ↔ ∃u ∈ Ioi a, Ico a u ⊆ s :=
-let ⟨u', hu'⟩ := no_max a in mem_nhds_within_Ici_iff_exists_Ico_subset' hu'
+let ⟨u', hu'⟩ := exists_gt a in mem_nhds_within_Ici_iff_exists_Ico_subset' hu'
 
 /-- A set is a neighborhood of `a` within `[a, +∞)` if and only if it contains an interval `[a, u]`
 with `a < u`. -/
@@ -1386,7 +1386,7 @@ lemma mem_nhds_within_Iic_iff_exists_Ioc_subset' {a l' : α} {s : set α} (hl' :
 with `l < a`. -/
 lemma mem_nhds_within_Iic_iff_exists_Ioc_subset [no_min_order α] {a : α} {s : set α} :
   s ∈ 𝓝[≤] a ↔ ∃l ∈ Iio a, Ioc l a ⊆ s :=
-let ⟨l', hl'⟩ := no_min a in mem_nhds_within_Iic_iff_exists_Ioc_subset' hl'
+let ⟨l', hl'⟩ := exists_lt a in mem_nhds_within_Iic_iff_exists_Ioc_subset' hl'
 
 /-- A set is a neighborhood of `a` within `(-∞, a]` if and only if it contains an interval `[l, a]`
 with `l < a`. -/
@@ -1576,7 +1576,7 @@ lemma filter.tendsto.add_at_top {C : α} (hf : tendsto f l (𝓝 C)) (hg : tends
   tendsto (λ x, f x + g x) l at_top :=
 begin
   nontriviality α,
-  obtain ⟨C', hC'⟩ : ∃ C', C' < C := no_min C,
+  obtain ⟨C', hC'⟩ : ∃ C', C' < C := exists_lt C,
   refine tendsto_at_top_add_left_of_le' _ C' _ hg,
   exact (hf.eventually (lt_mem_nhds hC')).mono (λ x, le_of_lt)
 end
@@ -2097,7 +2097,7 @@ lemma exists_seq_strict_mono_tendsto [densely_ordered α] [no_min_order α]
   [first_countable_topology α] (x : α) :
   ∃ u : ℕ → α, strict_mono u ∧ (∀ n, u n < x) ∧ tendsto u at_top (𝓝 x) :=
 begin
-  obtain ⟨y, hy⟩ : ∃ y, y < x := no_min x,
+  obtain ⟨y, hy⟩ : ∃ y, y < x := exists_lt x,
   rcases exists_seq_strict_mono_tendsto' hy with ⟨u, hu_mono, hu_mem, hux⟩,
   exact ⟨u, hu_mono, λ n, (hu_mem n).2, hux⟩
 end

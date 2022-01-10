@@ -115,7 +115,7 @@ section no_max_order
 variables [no_max_order α] {a b : α}
 
 lemma lt_succ (a : α) : a < succ a :=
-(le_succ a).lt_of_not_le $ λ h, not_exists.2 (maximal_of_succ_le h) (no_max a)
+(le_succ a).lt_of_not_le $ λ h, not_exists.2 (maximal_of_succ_le h) (exists_gt a)
 
 lemma lt_succ_iff : a < succ b ↔ a ≤ b :=
 ⟨le_of_lt_succ, λ h, h.trans_lt $ lt_succ b⟩
@@ -327,7 +327,7 @@ section no_min_order
 variables [no_min_order α] {a b : α}
 
 lemma pred_lt (a : α) : pred a < a :=
-(pred_le a).lt_of_not_le $ λ h, not_exists.2 (minimal_of_le_pred h) (no_min a)
+(pred_le a).lt_of_not_le $ λ h, not_exists.2 (minimal_of_le_pred h) (exists_lt a)
 
 lemma pred_lt_iff : pred a < b ↔ a ≤ b :=
 ⟨le_of_pred_lt, (pred_lt a).trans_le⟩
@@ -634,7 +634,7 @@ instance with_top.succ_order_of_no_max_order [partial_order α] [no_max_order α
   maximal_of_succ_le := λ a ha b h, begin
     cases a,
     { exact not_top_lt h },
-    { exact not_exists.2 (maximal_of_succ_le (some_le_some.1 ha)) (no_max a) }
+    { exact not_exists.2 (maximal_of_succ_le (some_le_some.1 ha)) (exists_gt a) }
   end,
   succ_le_of_lt := λ a b h, begin
     cases a,
@@ -658,7 +658,7 @@ instance [partial_order α] [no_max_order α] [hα : nonempty α] :
   set b := pred (⊤ : with_top α) with h,
   cases pred (⊤ : with_top α) with a ha; change b with pred ⊤ at h,
   { exact hα.elim (λ a, minimal_of_le_pred h.ge (coe_lt_top a)) },
-  { obtain ⟨c, hc⟩ := no_max a,
+  { obtain ⟨c, hc⟩ := exists_gt a,
     rw [←some_lt_some, ←h] at hc,
     exact (le_of_pred_lt hc).not_lt (some_lt_none _) }
 end⟩
@@ -758,7 +758,7 @@ instance [partial_order α] [no_min_order α] [hα : nonempty α] :
   set b : with_bot α := succ ⊥ with h,
   cases succ (⊥ : with_bot α) with a ha; change b with succ ⊥ at h,
   { exact hα.elim (λ a, maximal_of_succ_le h.le (bot_lt_coe a)) },
-  { obtain ⟨c, hc⟩ := no_min a,
+  { obtain ⟨c, hc⟩ := exists_lt a,
     rw [←some_lt_some, ←h] at hc,
     exact (le_of_lt_succ hc).not_lt (none_lt_some _) }
 end⟩
@@ -777,7 +777,7 @@ instance with_bot.pred_order_of_no_min_order [partial_order α] [no_min_order α
   minimal_of_le_pred := λ a ha b h, begin
     cases a,
     { exact not_lt_bot h },
-    { exact not_exists.2 (minimal_of_le_pred (some_le_some.1 ha)) (no_min a) }
+    { exact not_exists.2 (minimal_of_le_pred (some_le_some.1 ha)) (exists_lt a) }
   end,
   le_pred_of_lt := λ a b h, begin
     cases b,

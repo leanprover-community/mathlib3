@@ -550,13 +550,13 @@ end prod
 
 /-- Order without a maximal element. Sometimes called cofinal. -/
 class no_max_order (α : Type u) [has_lt α] : Prop :=
-(no_max (a : α) : ∃ b, a < b)
+(exists_gt (a : α) : ∃ b, a < b)
 
-lemma no_max [has_lt α] [no_max_order α] : ∀ a : α, ∃ a', a < a' :=
-no_max_order.no_max
+lemma exists_gt [has_lt α] [no_max_order α] : ∀ a : α, ∃ a', a < a' :=
+no_max_order.exists_gt
 
 instance nonempty_gt [has_lt α] [no_max_order α] (a : α) : nonempty {x // a < x} :=
-nonempty_subtype.2 (no_max a)
+nonempty_subtype.2 (exists_gt a)
 
 /-- `a : α` is a top element of `α` if it is greater than or equal to any other element of `α`.
 This predicate is roughly an unbundled version of `order_bot`, except that a preorder may have
@@ -565,7 +565,7 @@ several top elements. When `α` is linear, this is useful to make a case disjunc
 def is_top {α : Type u} [has_le α] (a : α) : Prop := ∀ b, b ≤ a
 
 @[simp] lemma not_is_top [preorder α] [no_max_order α] (a : α) : ¬is_top a :=
-λ h, let ⟨b, hb⟩ := no_max a in hb.not_le (h b)
+λ h, let ⟨b, hb⟩ := exists_gt a in hb.not_le (h b)
 
 lemma is_top.unique {α : Type u} [partial_order α] {a b : α} (ha : is_top a) (hb : a ≤ b) :
   a = b :=
@@ -573,10 +573,10 @@ le_antisymm hb (ha b)
 
 /-- Order without a minimal element. Sometimes called coinitial or dense. -/
 class no_min_order (α : Type u) [has_lt α] : Prop :=
-(no_min (a : α) : ∃ b, b < a)
+(exists_lt (a : α) : ∃ b, b < a)
 
-lemma no_min [has_lt α] [no_min_order α] : ∀ a : α, ∃ a', a' < a :=
-no_min_order.no_min
+lemma exists_lt [has_lt α] [no_min_order α] : ∀ a : α, ∃ a', a' < a :=
+no_min_order.exists_lt
 
 /-- `a : α` is a bottom element of `α` if it is less than or equal to any other element of `α`.
 This predicate is roughly an unbundled version of `order_bot`, except that a preorder may have
@@ -585,7 +585,7 @@ several bottom elements. When `α` is linear, this is useful to make a case disj
 def is_bot {α : Type u} [has_le α] (a : α) : Prop := ∀ b, a ≤ b
 
 @[simp] lemma not_is_bot [preorder α] [no_min_order α] (a : α) : ¬is_bot a :=
-λ h, let ⟨b, hb⟩ := no_min a in hb.not_le (h b)
+λ h, let ⟨b, hb⟩ := exists_lt a in hb.not_le (h b)
 
 lemma is_bot.unique {α : Type u} [partial_order α] {a b : α} (ha : is_bot a) (hb : b ≤ a) :
   a = b :=
@@ -593,14 +593,14 @@ le_antisymm (ha b) hb
 
 instance order_dual.no_max_order (α : Type u) [has_lt α] [no_min_order α] :
   no_max_order (order_dual α) :=
-⟨λ a, @no_min α _ _ a⟩
+⟨λ a, @exists_lt α _ _ a⟩
 
 instance order_dual.no_min_order (α : Type u) [has_lt α] [no_max_order α] :
   no_min_order (order_dual α) :=
-⟨λ a, @no_max α _ _ a⟩
+⟨λ a, @exists_gt α _ _ a⟩
 
 instance nonempty_lt [has_lt α] [no_min_order α] (a : α) : nonempty {x // x < a} :=
-nonempty_subtype.2 (no_min a)
+nonempty_subtype.2 (exists_lt a)
 
 /-- An order is dense if there is an element between any pair of distinct elements. -/
 class densely_ordered (α : Type u) [has_lt α] : Prop :=

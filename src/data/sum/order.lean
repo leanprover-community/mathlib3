@@ -157,25 +157,25 @@ instance [partial_order α] [partial_order β] : partial_order (α ⊕ β) :=
 instance no_min_order [has_lt α] [has_lt β] [no_min_order α] [no_min_order β] :
   no_min_order (α ⊕ β) :=
 ⟨λ a, match a with
-| inl a := let ⟨b, h⟩ := no_min a in ⟨inl b, inl_lt_inl_iff.2 h⟩
-| inr a := let ⟨b, h⟩ := no_min a in ⟨inr b, inr_lt_inr_iff.2 h⟩
+| inl a := let ⟨b, h⟩ := exists_lt a in ⟨inl b, inl_lt_inl_iff.2 h⟩
+| inr a := let ⟨b, h⟩ := exists_lt a in ⟨inr b, inr_lt_inr_iff.2 h⟩
 end⟩
 
 instance no_max_order [has_lt α] [has_lt β] [no_max_order α] [no_max_order β] :
   no_max_order (α ⊕ β) :=
 ⟨λ a, match a with
-| inl a := let ⟨b, h⟩ := no_max a in ⟨inl b, inl_lt_inl_iff.2 h⟩
-| inr a := let ⟨b, h⟩ := no_max a in ⟨inr b, inr_lt_inr_iff.2 h⟩
+| inl a := let ⟨b, h⟩ := exists_gt a in ⟨inl b, inl_lt_inl_iff.2 h⟩
+| inr a := let ⟨b, h⟩ := exists_gt a in ⟨inr b, inr_lt_inr_iff.2 h⟩
 end⟩
 
 @[simp] lemma no_min_order_iff [has_lt α] [has_lt β] :
   no_min_order (α ⊕ β) ↔ no_min_order α ∧ no_min_order β :=
 ⟨λ _, by exactI ⟨⟨λ a, begin
-  obtain ⟨b | b, h⟩ := no_min (inl a : α ⊕ β),
+  obtain ⟨b | b, h⟩ := exists_lt (inl a : α ⊕ β),
   { exact ⟨b, inl_lt_inl_iff.1 h⟩ },
   { exact (not_inr_lt_inl h).elim }
 end⟩, ⟨λ a, begin
-  obtain ⟨b | b, h⟩ := no_min (inr a : α ⊕ β),
+  obtain ⟨b | b, h⟩ := exists_lt (inr a : α ⊕ β),
   { exact (not_inl_lt_inr h).elim },
   { exact ⟨b, inr_lt_inr_iff.1 h⟩ }
 end⟩⟩, λ h, @sum.no_min_order _ _ _ _ h.1 h.2⟩
@@ -183,11 +183,11 @@ end⟩⟩, λ h, @sum.no_min_order _ _ _ _ h.1 h.2⟩
 @[simp] lemma no_max_order_iff [has_lt α] [has_lt β] :
   no_max_order (α ⊕ β) ↔ no_max_order α ∧ no_max_order β :=
 ⟨λ _, by exactI ⟨⟨λ a, begin
-  obtain ⟨b | b, h⟩ := no_max (inl a : α ⊕ β),
+  obtain ⟨b | b, h⟩ := exists_gt (inl a : α ⊕ β),
   { exact ⟨b, inl_lt_inl_iff.1 h⟩ },
   { exact (not_inl_lt_inr h).elim }
 end⟩, ⟨λ a, begin
-  obtain ⟨b | b, h⟩ := no_max (inr a : α ⊕ β),
+  obtain ⟨b | b, h⟩ := exists_gt (inr a : α ⊕ β),
   { exact (not_inr_lt_inl h).elim },
   { exact ⟨b, inr_lt_inr_iff.1 h⟩ }
 end⟩⟩, λ h, @sum.no_max_order _ _ _ _ h.1 h.2⟩
@@ -357,21 +357,21 @@ instance bounded_order [has_le α] [has_le β] [order_bot α] [order_top β] :
 instance no_min_order [has_lt α] [has_lt β] [no_min_order α] [no_min_order β] :
   no_min_order (α ⊕ₗ β) :=
 ⟨λ a, match a with
-| inl a := let ⟨b, h⟩ := no_min a in ⟨to_lex (inl b), inl_lt_inl_iff.2 h⟩
-| inr a := let ⟨b, h⟩ := no_min a in ⟨to_lex (inr b), inr_lt_inr_iff.2 h⟩
+| inl a := let ⟨b, h⟩ := exists_lt a in ⟨to_lex (inl b), inl_lt_inl_iff.2 h⟩
+| inr a := let ⟨b, h⟩ := exists_lt a in ⟨to_lex (inr b), inr_lt_inr_iff.2 h⟩
 end⟩
 
 instance no_max_order [has_lt α] [has_lt β] [no_max_order α] [no_max_order β] :
   no_max_order (α ⊕ₗ β) :=
 ⟨λ a, match a with
-| inl a := let ⟨b, h⟩ := no_max a in ⟨to_lex (inl b), inl_lt_inl_iff.2 h⟩
-| inr a := let ⟨b, h⟩ := no_max a in ⟨to_lex (inr b), inr_lt_inr_iff.2 h⟩
+| inl a := let ⟨b, h⟩ := exists_gt a in ⟨to_lex (inl b), inl_lt_inl_iff.2 h⟩
+| inr a := let ⟨b, h⟩ := exists_gt a in ⟨to_lex (inr b), inr_lt_inr_iff.2 h⟩
 end⟩
 
 instance no_min_order_of_nonempty [has_lt α] [has_lt β] [no_min_order α] [nonempty α] :
   no_min_order (α ⊕ₗ β) :=
 ⟨λ a, match a with
-| inl a := let ⟨b, h⟩ := no_min a in ⟨to_lex (inl b), inl_lt_inl_iff.2 h⟩
+| inl a := let ⟨b, h⟩ := exists_lt a in ⟨to_lex (inl b), inl_lt_inl_iff.2 h⟩
 | inr a := ⟨to_lex (inl $ classical.arbitrary α), inl_lt_inr _ _⟩
 end⟩
 
@@ -379,7 +379,7 @@ instance no_max_order_of_nonempty [has_lt α] [has_lt β] [no_max_order β] [non
   no_max_order (α ⊕ₗ β) :=
 ⟨λ a, match a with
 | inl a := ⟨to_lex (inr $ classical.arbitrary β), inl_lt_inr _ _⟩
-| inr a := let ⟨b, h⟩ := no_max a in ⟨to_lex (inr b), inr_lt_inr_iff.2 h⟩
+| inr a := let ⟨b, h⟩ := exists_gt a in ⟨to_lex (inr b), inr_lt_inr_iff.2 h⟩
 end⟩
 
 instance densely_ordered_of_no_max_order [has_lt α] [has_lt β] [densely_ordered α]
@@ -388,7 +388,7 @@ instance densely_ordered_of_no_max_order [has_lt α] [has_lt β] [densely_ordere
 ⟨λ a b h, match a, b, h with
 | inl a, inl b, lex.inl h := let ⟨c, ha, hb⟩ := exists_between h in
                     ⟨to_lex (inl c), inl_lt_inl_iff.2 ha, inl_lt_inl_iff.2 hb⟩
-| inl a, inr b, lex.sep _ _ := let ⟨c, h⟩ := no_max a in
+| inl a, inr b, lex.sep _ _ := let ⟨c, h⟩ := exists_gt a in
                     ⟨to_lex (inl c), inl_lt_inl_iff.2 h, inl_lt_inr _ _⟩
 | inr a, inr b, lex.inr h := let ⟨c, ha, hb⟩ := exists_between h in
                     ⟨to_lex (inr c), inr_lt_inr_iff.2 ha, inr_lt_inr_iff.2 hb⟩
@@ -400,7 +400,7 @@ instance densely_ordered_of_no_min_order [has_lt α] [has_lt β] [densely_ordere
 ⟨λ a b h, match a, b, h with
 | inl a, inl b, lex.inl h := let ⟨c, ha, hb⟩ := exists_between h in
                     ⟨to_lex (inl c), inl_lt_inl_iff.2 ha, inl_lt_inl_iff.2 hb⟩
-| inl a, inr b, lex.sep _ _ := let ⟨c, h⟩ := no_min b in
+| inl a, inr b, lex.sep _ _ := let ⟨c, h⟩ := exists_lt b in
                     ⟨to_lex (inr c), inl_lt_inr _ _, inr_lt_inr_iff.2 h⟩
 | inr a, inr b, lex.inr h := let ⟨c, ha, hb⟩ := exists_between h in
                     ⟨to_lex (inr c), inr_lt_inr_iff.2 ha, inr_lt_inr_iff.2 hb⟩

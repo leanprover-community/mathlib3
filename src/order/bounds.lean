@@ -518,7 +518,7 @@ lemma is_glb_univ [preorder γ] [order_bot γ] : is_glb (univ : set γ) ⊥ :=
 is_least_univ.is_glb
 
 @[simp] lemma no_max_order.upper_bounds_univ [no_max_order α] : upper_bounds (univ : set α) = ∅ :=
-eq_empty_of_subset_empty $ λ b hb, let ⟨x, hx⟩ := no_max b in
+eq_empty_of_subset_empty $ λ b hb, let ⟨x, hx⟩ := exists_gt b in
 not_le_of_lt hx (hb trivial)
 
 @[simp] lemma no_min_order.lower_bounds_univ [no_min_order α] : lower_bounds (univ : set α) = ∅ :=
@@ -553,7 +553,7 @@ lemma is_lub_empty [preorder γ] [order_bot γ] : is_lub ∅ (⊥:γ) :=
 @is_glb_empty (order_dual γ) _ _
 
 lemma is_lub.nonempty [no_min_order α] (hs : is_lub s a) : s.nonempty :=
-let ⟨a', ha'⟩ := no_min a in
+let ⟨a', ha'⟩ := exists_lt a in
 ne_empty_iff_nonempty.1 $ assume h,
 have a ≤ a', from hs.right $ by simp only [h, upper_bounds_empty],
 not_le_of_lt ha' this

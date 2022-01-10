@@ -49,7 +49,7 @@ begin
   rintro (f : finite (Iio b)),
   obtain ⟨m, hm₁, hm₂⟩ : ∃ m < b, ∀ x < b, ¬x < m,
   { simpa using finset.exists_minimal f.to_finset },
-  obtain ⟨z, hz⟩ : ∃ z, z < m := no_min _,
+  obtain ⟨z, hz⟩ : ∃ z, z < m := exists_lt _,
   exact hm₂ z (lt_trans hz hm₁) hz
 end
 

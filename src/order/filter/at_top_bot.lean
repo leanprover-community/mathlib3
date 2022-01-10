@@ -39,13 +39,13 @@ lemma mem_at_top [preorder α] (a : α) : {b : α | a ≤ b} ∈ @at_top α _ :=
 mem_infi_of_mem a $ subset.refl _
 
 lemma Ioi_mem_at_top [preorder α] [no_max_order α] (x : α) : Ioi x ∈ (at_top : filter α) :=
-let ⟨z, hz⟩ := no_max x in mem_of_superset (mem_at_top z) $ λ y h,  lt_of_lt_of_le hz h
+let ⟨z, hz⟩ := exists_gt x in mem_of_superset (mem_at_top z) $ λ y h,  lt_of_lt_of_le hz h
 
 lemma mem_at_bot [preorder α] (a : α) : {b : α | b ≤ a} ∈ @at_bot α _ :=
 mem_infi_of_mem a $ subset.refl _
 
 lemma Iio_mem_at_bot [preorder α] [no_min_order α] (x : α) : Iio x ∈ (at_bot : filter α) :=
-let ⟨z, hz⟩ := no_min x in mem_of_superset (mem_at_bot z) $ λ y h, lt_of_le_of_lt h hz
+let ⟨z, hz⟩ := exists_lt x in mem_of_superset (mem_at_bot z) $ λ y h, lt_of_le_of_lt h hz
 
 lemma at_top_basis [nonempty α] [semilattice_sup α] :
   (@at_top α _).has_basis (λ _, true) Ici :=
@@ -108,7 +108,7 @@ Iio_mem_at_bot a
 lemma at_top_basis_Ioi [nonempty α] [semilattice_sup α] [no_max_order α] :
   (@at_top α _).has_basis (λ _, true) Ioi :=
 at_top_basis.to_has_basis (λ a ha, ⟨a, ha, Ioi_subset_Ici_self⟩) $
-  λ a ha, (no_max a).imp $ λ b hb, ⟨ha, Ici_subset_Ioi.2 hb⟩
+  λ a ha, (exists_gt a).imp $ λ b hb, ⟨ha, Ici_subset_Ioi.2 hb⟩
 
 lemma at_top_countable_basis [nonempty α] [semilattice_sup α] [encodable α] :
   has_countable_basis (at_top : filter α) (λ _, true) Ici :=
@@ -294,7 +294,7 @@ lemma exists_le_of_tendsto_at_bot [semilattice_sup α] [preorder β] {u : α →
 lemma exists_lt_of_tendsto_at_top [semilattice_sup α] [preorder β] [no_max_order β]
   {u : α → β} (h : tendsto u at_top at_top) (a : α) (b : β) : ∃ a' ≥ a, b < u a' :=
 begin
-  cases no_max b with b' hb',
+  cases exists_gt b with b' hb',
   rcases exists_le_of_tendsto_at_top h a b' with ⟨a', ha', ha''⟩,
   exact ⟨a', ha', lt_of_lt_of_le hb' ha''⟩
 end
@@ -1043,7 +1043,7 @@ map_coe_at_top_of_Ici_subset (subset.refl _)
 /-- The image of the filter `at_top` on `Ioi a` under the coercion equals `at_top`. -/
 @[simp] lemma map_coe_Ioi_at_top [semilattice_sup α] [no_max_order α] (a : α) :
   map (coe : Ioi a → α) at_top = at_top :=
-let ⟨b, hb⟩ := no_max a in map_coe_at_top_of_Ici_subset $ Ici_subset_Ioi.2 hb
+let ⟨b, hb⟩ := exists_gt a in map_coe_at_top_of_Ici_subset $ Ici_subset_Ioi.2 hb
 
 /-- The `at_top` filter for an open interval `Ioi a` comes from the `at_top` filter in the ambient
 order. -/

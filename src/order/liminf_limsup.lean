@@ -95,7 +95,7 @@ lemma not_is_bounded_under_of_tendsto_at_top [preorder β] [no_max_order β] {f 
 begin
   rintro ⟨b, hb⟩,
   rw eventually_map at hb,
-  obtain ⟨b', h⟩ := no_max b,
+  obtain ⟨b', h⟩ := exists_gt b,
   have hb' := (tendsto_at_top.mp hf) b',
   have : {x : α | f x ≤ b} ∩ {x : α | b' ≤ f x} = ∅ :=
     eq_empty_of_subset_empty (λ x hx, (not_le_of_lt h) (le_trans hx.2 hx.1)),

@@ -624,7 +624,7 @@ instance densely_ordered [has_lt α] [densely_ordered α] [no_min_order α] :
 ⟨ λ a b,
   match a, b with
   | a,      none   := λ h : a < ⊥, (not_lt_none _ h).elim
-  | none,   some b := λ h, let ⟨a, ha⟩ := no_min b in ⟨a, bot_lt_coe a, coe_lt_coe.2 ha⟩
+  | none,   some b := λ h, let ⟨a, ha⟩ := exists_lt b in ⟨a, bot_lt_coe a, coe_lt_coe.2 ha⟩
   | some a, some b := λ h, let ⟨a, ha₁, ha₂⟩ := exists_between (coe_lt_coe.1 h) in
     ⟨a, coe_lt_coe.2 ha₁, coe_lt_coe.2 ha₂⟩
   end⟩
@@ -635,7 +635,7 @@ instance [has_lt α] [no_max_order α] [nonempty α] : no_max_order (with_bot α
   { apply ‹nonempty α›.elim,
     exact λ a, ⟨a, with_bot.bot_lt_coe a⟩, },
   { intro a,
-    obtain ⟨b, ha⟩ := no_max a,
+    obtain ⟨b, ha⟩ := exists_gt a,
     exact ⟨b, with_bot.coe_lt_coe.mpr ha⟩, }
 end⟩
 
@@ -871,7 +871,7 @@ instance densely_ordered [has_lt α] [densely_ordered α] [no_max_order α] :
 ⟨ λ a b,
   match a, b with
   | none,   a   := λ h : ⊤ < a, (not_none_lt _ h).elim
-  | some a, none := λ h, let ⟨b, hb⟩ := no_max a in ⟨b, coe_lt_coe.2 hb, coe_lt_top b⟩
+  | some a, none := λ h, let ⟨b, hb⟩ := exists_gt a in ⟨b, coe_lt_coe.2 hb, coe_lt_top b⟩
   | some a, some b := λ h, let ⟨a, ha₁, ha₂⟩ := exists_between (coe_lt_coe.1 h) in
     ⟨a, coe_lt_coe.2 ha₁, coe_lt_coe.2 ha₂⟩
   end⟩
@@ -888,7 +888,7 @@ instance [has_lt α] [no_min_order α] [nonempty α] : no_min_order (with_top α
   { apply ‹nonempty α›.elim,
     exact λ a, ⟨a, with_top.coe_lt_top a⟩, },
   { intro a,
-    obtain ⟨b, ha⟩ := no_min a,
+    obtain ⟨b, ha⟩ := exists_lt a,
     exact ⟨b, with_top.coe_lt_coe.mpr ha⟩, }
 end⟩
 

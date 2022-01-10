@@ -207,7 +207,7 @@ show continuous ((has_inv.inv ∘ @subtype.val ℝ (λr, r ≠ 0)) ∘ λa, ⟨f
 
 lemma real.uniform_continuous_mul_const {x : ℝ} : uniform_continuous ((*) x) :=
 metric.uniform_continuous_iff.2 $ λ ε ε0, begin
-  cases no_max (|x|) with y xy,
+  cases exists_gt (|x|) with y xy,
   have y0 := lt_of_le_of_lt (abs_nonneg _) xy,
   refine ⟨_, div_pos ε0 y0, λ a b h, _⟩,
   rw [real.dist_eq, ← mul_sub, abs_mul, ← mul_div_cancel' ε (ne_of_gt y0)],

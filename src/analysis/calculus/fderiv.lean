@@ -379,7 +379,7 @@ neighborhood of `x`. See also `has_strict_fderiv_at.exists_lipschitz_on_with_of_
 more precise statement. -/
 lemma has_strict_fderiv_at.exists_lipschitz_on_with (hf : has_strict_fderiv_at f f' x) :
   ∃ K (s ∈ 𝓝 x), lipschitz_on_with K f s :=
-(no_max _).imp hf.exists_lipschitz_on_with_of_nnnorm_lt
+(exists_gt _).imp hf.exists_lipschitz_on_with_of_nnnorm_lt
 
 /-- Directional derivative agrees with `has_fderiv`. -/
 lemma has_fderiv_at.lim (hf : has_fderiv_at f f' x) (v : E) {α : Type*} {c : α → 𝕜}

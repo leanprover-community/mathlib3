@@ -473,7 +473,7 @@ begin
 end
 
 instance : no_max_order cardinal.{u} :=
-{ no_max := λ a, ⟨_, cantor a⟩, ..cardinal.partial_order }
+{ exists_gt := λ a, ⟨_, cantor a⟩, ..cardinal.partial_order }
 
 noncomputable instance : linear_order cardinal.{u} :=
 { le_total    := by rintros ⟨α⟩ ⟨β⟩; exact embedding.total,

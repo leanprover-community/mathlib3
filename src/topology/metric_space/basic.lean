@@ -1652,7 +1652,7 @@ lemma exists_lt_subset_ball (hs : is_closed s) (h : s ⊆ ball x r) :
 begin
   cases le_or_lt r 0 with hr hr,
   { rw [ball_eq_empty.2 hr, subset_empty_iff] at h, unfreezingI { subst s },
-    exact (no_min r).imp (λ r' hr', ⟨hr', empty_subset _⟩) },
+    exact (exists_lt r).imp (λ r' hr', ⟨hr', empty_subset _⟩) },
   { exact (exists_pos_lt_subset_ball hr hs h).imp (λ r' hr', ⟨hr'.fst.2, hr'.snd⟩) }
 end
 

@@ -48,12 +48,12 @@ if nlo : lo.nonempty then
       (λ m hm, ⟨m, λ x hx, lt_of_le_of_lt (finset.le_max' lo x hx) hm.1,
                    λ y hy, lt_of_lt_of_le hm.2 (finset.min'_le hi y hy)⟩)
   else -- upper set is empty, use `no_max_order`
-    exists.elim (no_max (finset.max' lo nlo)) (λ m hm,
+    exists.elim (exists_gt (finset.max' lo nlo)) (λ m hm,
     ⟨m, λ x hx, lt_of_le_of_lt (finset.le_max' lo x hx) hm,
         λ y hy, (nhi ⟨y, hy⟩).elim⟩)
 else
   if nhi : hi.nonempty then -- lower set is empty, use `no_min_order`
-    exists.elim (no_min (finset.min' hi nhi)) (λ m hm,
+    exists.elim (exists_lt (finset.min' hi nhi)) (λ m hm,
     ⟨m, λ x hx, (nlo ⟨x, hx⟩).elim,
         λ y hy, lt_of_lt_of_le hm (finset.min'_le hi y hy)⟩)
   else -- both sets are empty, use nonempty

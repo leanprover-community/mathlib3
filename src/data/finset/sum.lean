@@ -8,11 +8,12 @@ import data.multiset.sum
 /-!
 # Disjoint sum of finsets
 
-This file defines finset constructions on the product type `α × β`. Beware not to confuse with the
-`finset.sum` operation which computes the additive sum.
+This file defines the disjoint sum of two finsets as `finset (α ⊕ β)`. Beware not to confuse with
+the `finset.sum` operation which computes the additive sum.
+
 ## Main declarations
 
-* `finset.disj_sum`
+* `finset.disj_sum`: `s.disj_sum t` is the disjoint sum of `s` and `t`.
 -/
 
 namespace finset

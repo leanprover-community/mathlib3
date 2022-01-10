@@ -239,11 +239,12 @@ variables (fₗ gₗ f g)
 
 protected lemma map_add (x y : M) : f (x + y) = f x + f y := map_add f x y
 protected lemma map_zero : f 0 = 0 := map_zero f
-protected lemma map_smulₛₗ (c : R) (x : M) : f (c • x) = (σ c) • f x := map_smulₛₗ f c x
+-- TODO: `simp` isn't picking up `map_smulₛₗ` for `linear_map`s without specifying `map_smulₛₗ f`
+@[simp] protected lemma map_smulₛₗ (c : R) (x : M) : f (c • x) = (σ c) • f x := map_smulₛₗ f c x
 protected lemma map_smul (c : R) (x : M) : fₗ (c • x) = c • fₗ x := map_smul fₗ c x
 protected lemma map_smul_inv {σ' : S →+* R} [ring_hom_inv_pair σ σ'] (c : S) (x : M) :
   c • f x = f (σ' c • x) :=
-semilinear_map_class.map_smul_inv f c x
+by simp
 
 -- TODO: generalize to `zero_hom_class`
 @[simp] lemma map_eq_zero_iff (h : function.injective f) {x : M} : f x = 0 ↔ x = 0 :=
@@ -276,7 +277,7 @@ begin
         is_unit.coe_inv_mul, one_smul, map_one, ys] },
     { simp only [smul_smul, is_unit.mul_coe_inv, one_smul, units.inv_eq_coe_inv] } },
   { rintros x ⟨y, hy, rfl⟩,
-    refine ⟨f y, hy, by simp only [ring_hom.id_apply, linear_map.map_smulₛₗ]⟩ }
+    refine ⟨f y, hy, by simp only [ring_hom.id_apply, map_smulₛₗ f]⟩ }
 end
 
 lemma preimage_smul_set {c : R} (hc : is_unit c) (s : set M₂) :
@@ -421,7 +422,7 @@ def inverse [module R M] [module S M₂] {σ : R →+* S} {σ' : S →+* R} [rin
 by dsimp [left_inverse, function.right_inverse] at h₁ h₂; exact
   { to_fun := g,
     map_add' := λ x y, by { rw [← h₁ (g (x + y)), ← h₁ (g x + g y)]; simp [h₂] },
-    map_smul' := λ a b, by { rw [← h₁ (g (a • b)), ← h₁ ((σ' a) • g b)], simp [h₂, map_smulₛₗ f] } }
+    map_smul' := λ a b, by { rw [← h₁ (g (a • b)), ← h₁ ((σ' a) • g b)], simp [h₂] } }
 
 end add_comm_monoid
 
@@ -651,8 +652,8 @@ instance : inhabited (M →ₛₗ[σ₁₂] M₂) := ⟨0⟩
 /-- The sum of two linear maps is linear. -/
 instance : has_add (M →ₛₗ[σ₁₂] M₂) :=
 ⟨λ f g, { to_fun := f + g,
-          map_add' := by simp [add_comm, add_left_comm], map_smul' :=
-            by simp [smul_add, map_smulₛₗ f, map_smulₛₗ g] }⟩
+          map_add' := by simp [add_comm, add_left_comm],
+          map_smul' := by simp [smul_add] }⟩
 
 @[simp] lemma add_apply (f g : M →ₛₗ[σ₁₂] M₂) (x : M) : (f + g) x = f x + g x := rfl
 
@@ -669,7 +670,7 @@ fun_like.coe_injective.add_comm_monoid _ rfl (λ _ _, rfl) (λ _ _, rfl)
 
 /-- The negation of a linear map is linear. -/
 instance : has_neg (M →ₛₗ[σ₁₂] N₂) :=
-⟨λ f, { to_fun := -f, map_add' := by simp [add_comm], map_smul' := by simp [map_smulₛₗ f] }⟩
+⟨λ f, { to_fun := -f, map_add' := by simp [add_comm], map_smul' := by simp }⟩
 
 @[simp] lemma neg_apply (f : M →ₛₗ[σ₁₂] N₂) (x : M) : (- f) x = - f x := rfl
 
@@ -684,7 +685,7 @@ omit σ₁₃
 instance : has_sub (M →ₛₗ[σ₁₂] N₂) :=
 ⟨λ f g, { to_fun := f - g,
           map_add' := λ x y, by simp only [pi.sub_apply, map_add, add_sub_comm],
-          map_smul' := λ r x, by simp [pi.sub_apply, map_smulₛₗ f, map_smulₛₗ g, smul_sub] }⟩
+          map_smul' := λ r x, by simp [pi.sub_apply, smul_sub] }⟩
 
 @[simp] lemma sub_apply (f g : M →ₛₗ[σ₁₂] N₂) (x : M) : (f - g) x = f x - g x := rfl
 

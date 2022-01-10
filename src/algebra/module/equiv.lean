@@ -314,11 +314,12 @@ rfl
 
 protected theorem map_add (a b : M) : e (a + b) = e a + e b := map_add e a b
 protected theorem map_zero : e 0 = 0 := map_zero e
-@[simp] theorem map_smulₛₗ (c : R) (x : M) : e (c • x) = (σ c) • e x := e.map_smul' c x
+-- TODO: `simp` isn't picking up `map_smulₛₗ` for `linear_equiv`s without specifying `map_smulₛₗ f`
+@[simp] protected theorem map_smulₛₗ (c : R) (x : M) : e (c • x) = (σ c) • e x := e.map_smul' c x
 
 include module_N₁ module_N₂
 theorem map_smul (e : N₁ ≃ₗ[R₁] N₂) (c : R₁) (x : N₁) :
-  e (c • x) = c • e x := map_smulₛₗ _ _ _
+  e (c • x) = c • e x := map_smulₛₗ e c x
 omit module_N₁ module_N₂
 
 @[simp] lemma map_sum {s : finset ι} (u : ι → M) : e (∑ i in s, u i) = ∑ i in s, e (u i) :=

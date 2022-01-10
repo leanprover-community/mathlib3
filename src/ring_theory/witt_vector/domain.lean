@@ -10,7 +10,7 @@ import ring_theory.witt_vector.identities
 
 # Witt vectors over a domain
 
-This file builds to the proof `witt_vector.domain`,
+This file builds to the proof `witt_vector.is_domain`,
 an instance that says if `R` is an integral domain, then so is `𝕎 R`.
 It depends on the API around iterated applications
 of `witt_vector.verschiebung` and `witt_vector.frobenius`
@@ -19,7 +19,7 @@ found in `identities.lean`.
 The [proof sketch](https://math.stackexchange.com/questions/4117247/ring-of-witt-vectors-over-an-integral-domain/4118723#4118723)
 goes as follows:
 any nonzero $x$ is an iterated application of $V$
-to some vector $w_x$ whose 0th component is zero (`witt_vector.verschiebung_nonzero`).
+to some vector $w_x$ whose 0th component is nonzero (`witt_vector.verschiebung_nonzero`).
 Known identities (`witt_vector.iterate_verschiebung_mul`) allow us to transform
 the product of two such $x$ and $y$
 to the form $V^{m+n}\left(F^n(w_x) \cdot F^m(w_y)\right)$,

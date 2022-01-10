@@ -354,8 +354,8 @@ begin
         nnreal.coe_max, subtype.coe_mk, ih] }
 end
 
-lemma finset_le_sup (p : ι → seminorm 𝕜 E) (ι' : finset ι) (i : ι) (hi : i ∈ ι') (x : E) :
-  p i x ≤ ι'.sup p x :=
+lemma finset_le_sup (p : ι → seminorm 𝕜 E) (s : finset ι) (i : ι) (hi : i ∈ s) (x : E) :
+  p i x ≤ s.sup p x :=
 (finset.le_sup hi : p _ ≤ _) x
 
 end norm_one_class
@@ -394,21 +394,17 @@ begin
   ...    < r   : by rwa mem_ball_zero at hy,
 end
 
-lemma finset_sup_ball_inter (p : ι → seminorm 𝕜 E) (ι' : finset ι) (r : ℝ) (hr : 0 < r):
-  ball (ι'.sup p) 0 r = ⋂ (i ∈ ι'), ball (p i) (0 : E) r :=
+lemma finset_sup_ball_inter (p : ι → seminorm 𝕜 E) (s : finset ι) (r : ℝ) (hr : 0 < r):
+  ball (s.sup p) 0 r = ⋂ (i ∈ s), ball (p i) (0 : E) r :=
 begin
-  dunfold ball,
   ext,
-  simp,
-  split,
-  { intros hx i hi,
-    exact lt_of_le_of_lt (finset_le_sup p ι' i hi x) hx },
-  intros hx,
-  rw [finset_sup_apply, ←r.coe_to_nnreal (has_lt.lt.le hr), nnreal.coe_lt_coe, finset.sup_lt_iff],
+  simp_rw [mem_Inter, mem_ball_zero],
+  refine ⟨λ hx i hi, (finset_le_sup p s i hi x).trans_lt hx, λ hx, _⟩,
+  rw [finset_sup_apply, ←r.coe_to_nnreal (hr.le), nnreal.coe_lt_coe, finset.sup_lt_iff],
   { intros i hi,
-    rw [←nnreal.coe_lt_coe, r.coe_to_nnreal (has_lt.lt.le hr)],
+    rw [←nnreal.coe_lt_coe, r.coe_to_nnreal (hr.le)],
     exact (hx i hi) },
-  simp[hr],
+  simp [hr],
 end
 
 end module

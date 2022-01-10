@@ -23,7 +23,6 @@ identities.
 
 namespace category_theory
 
-open bicategory
 open_locale bicategory
 
 universes w v u
@@ -55,7 +54,7 @@ restate_axiom bicategory.strict.associator_eq_to_iso'
 attribute [simp]
   bicategory.strict.id_comp bicategory.strict.left_unitor_eq_to_iso
   bicategory.strict.comp_id bicategory.strict.right_unitor_eq_to_iso
-  bicategory.strict.assoc  bicategory.strict.associator_eq_to_iso
+  bicategory.strict.assoc bicategory.strict.associator_eq_to_iso
 
 /-- Category structure on a strict bicategory -/
 @[priority 100] -- see Note [lower instance priority]

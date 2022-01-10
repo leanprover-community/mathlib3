@@ -456,13 +456,18 @@ begin
     exact h_meas_fst _, },
 end
 
-lemma prog_measurable_stopped_process (h : prog_measurable f u) (hτ : is_stopping_time f τ) :
+lemma prog_measurable.stopped_process (h : prog_measurable f u) (hτ : is_stopping_time f τ) :
   prog_measurable f (stopped_process u τ) :=
 h.comp (prog_measurable_min_stopping_time hτ) (λ i x, min_le_left _ _)
 
-lemma adapted_stopped_process (h : prog_measurable f u) (hτ : is_stopping_time f τ) :
+lemma prog_measurable.adapted_stopped_process (h : prog_measurable f u) (hτ : is_stopping_time f τ) :
   adapted f (stopped_process u τ) :=
-(prog_measurable_stopped_process h hτ).adapted
+(h.stopped_process hτ).adapted
+
+lemma prog_measurable.measurable_stopped_process
+  (hu : prog_measurable f u) (hτ : is_stopping_time f τ) (i : ι) :
+  measurable (stopped_process u τ i) :=
+(hu.adapted_stopped_process hτ i).le (f.le _)
 
 end prog_measurable
 
@@ -647,7 +652,7 @@ end
 lemma adapted.stopped_process [measurable_space β] [has_measurable_add₂ β]
   (hu : adapted f u) (hτ : is_stopping_time f τ) :
   adapted f (stopped_process u τ) :=
-(prog_measurable_stopped_process hu.prog_measurable hτ).adapted
+(hu.prog_measurable.stopped_process hτ).adapted
 
 end add_comm_monoid
 
@@ -657,7 +662,7 @@ variables [measurable_space β] [normed_group β] [has_measurable_add₂ β]
 
 lemma measurable_stopped_process (hτ : is_stopping_time f τ) (hu : adapted f u) (n : ℕ) :
   measurable (stopped_process u τ n) :=
-(hu.stopped_process hτ n).le (f.le _)
+hu.prog_measurable.measurable_stopped_process hτ n
 
 lemma mem_ℒp_stopped_process {p : ℝ≥0∞} [borel_space β] {μ : measure α} (hτ : is_stopping_time f τ)
   (hu : ∀ n, mem_ℒp (u n) p μ) (n : ℕ) :

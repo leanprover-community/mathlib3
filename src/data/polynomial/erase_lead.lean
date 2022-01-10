@@ -197,7 +197,7 @@ end
 
 /-- Let `φ : R[x] → S[x]` be an additive map, `k : ℕ` a bound, and `fu : ℕ → ℕ` a
 "sufficiently monotone" map.  Assume also that
-* `φ` maps to `0` all monomials of degree less than `n`,
+* `φ` maps to `0` all monomials of degree less than `k`,
 * `φ` maps each monomial `m` in `R[x]` to a polynomial `φ m` of degree `fu (deg m)`.
 Then, `φ` maps each polynomial `p` in `R[x]` to a polynomial of degree `fu (deg p)`. -/
 lemma mono_map_nat_degree_eq {S F : Type*} [semiring S]

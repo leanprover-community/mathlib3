@@ -127,7 +127,7 @@ begin
     .. },
   { rintros a b c ⟨t₁, ht₁⟩ ⟨t₂, ht₂⟩,
     use b.2 * t₁ * t₂,
-    simp only [submonoid.coe_mul],
+    simp only [submonoid_class.coe_mul],
     calc a.1 * c.2 * (b.2 * t₁ * t₂) = a.1 * b.2 * t₁ * c.2 * t₂ : by ac_refl
     ... = b.1 * c.2 * t₂ * a.2 * t₁ : by { rw ht₁, ac_refl }
     ... = c.1 * a.2 * (b.2 * t₁ * t₂) : by { rw ht₂, ac_refl } },
@@ -151,7 +151,7 @@ le_antisymm (Inf_le $ λ _, ⟨1, by simp⟩) $
       rw [← mul_one (p, q), ← mul_one y],
       refine b.trans (b.mul (b.refl _) (H (y.2 * t))) _,
       convert b.symm (b.mul (b.refl y) (H (q * t))) using 1,
-      rw [prod.mk_mul_mk, submonoid.coe_mul, ← mul_assoc, ht, mul_left_comm, mul_assoc],
+      rw [prod.mk_mul_mk, submonoid_class.coe_mul, ← mul_assoc, ht, mul_left_comm, mul_assoc],
       refl
     end
 
@@ -529,7 +529,7 @@ f.to_map x * ↑(is_unit.lift_right (f.to_map.mrestrict S) f.map_units y)⁻¹
   show _ = _ * (_ * _ * (_ * _)), by
   rw [←mul_assoc, ←mul_assoc, mul_inv_right f.map_units, mul_assoc, mul_assoc,
       mul_comm _ (f.to_map x₂), ←mul_assoc, ←mul_assoc, mul_inv_right f.map_units,
-      submonoid.coe_mul, f.to_map.map_mul, f.to_map.map_mul];
+      submonoid_class.coe_mul, f.to_map.map_mul, f.to_map.map_mul];
   ac_refl
 
 @[to_additive] lemma mk'_one (x) : f.mk' x (1 : S) = f.to_map x :=

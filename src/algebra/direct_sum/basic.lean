@@ -208,7 +208,7 @@ lemma coe_of_add_submonoid_apply {M : Type*} [decidable_eq ι] [add_comm_monoid 
 begin
   obtain rfl | h := decidable.eq_or_ne i j,
   { rw [direct_sum.of_eq_same, if_pos rfl], },
-  { rw [direct_sum.of_eq_of_ne _ _ _ _ h, if_neg h, add_submonoid.coe_zero], },
+  { rw [direct_sum.of_eq_of_ne _ _ _ _ h, if_neg h, add_submonoid_class.coe_zero], },
 end
 
 /-- The `direct_sum` formed by a collection of `add_submonoid`s of `M` is said to be internal if the
@@ -244,7 +244,7 @@ lemma coe_of_add_subgroup_apply {M : Type*} [decidable_eq ι] [add_comm_group M]
 begin
   obtain rfl | h := decidable.eq_or_ne i j,
   { rw [direct_sum.of_eq_same, if_pos rfl], },
-  { rw [direct_sum.of_eq_of_ne _ _ _ _ h, if_neg h, add_subgroup.coe_zero], },
+  { rw [direct_sum.of_eq_of_ne _ _ _ _ h, if_neg h, add_submonoid_class.coe_zero], },
 end
 
 /-- The `direct_sum` formed by a collection of `add_subgroup`s of `M` is said to be internal if the

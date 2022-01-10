@@ -53,7 +53,7 @@ def left_inv : submonoid M :=
 { carrier := { x : M | ∃ y : S, x * y = 1 },
   one_mem' := ⟨1, mul_one 1⟩,
   mul_mem' := λ a b ⟨a', ha⟩ ⟨b', hb⟩,
-    ⟨b' * a', by rw [coe_mul, ← mul_assoc, mul_assoc a, hb, mul_one, ha]⟩ }
+    ⟨b' * a', by rw [submonoid_class.coe_mul, ← mul_assoc, mul_assoc a, hb, mul_one, ha]⟩ }
 
 @[to_additive]
 lemma left_inv_left_inv_le : S.left_inv.left_inv ≤ S :=
@@ -118,8 +118,8 @@ def from_comm_left_inv : S.left_inv →* S :=
 { to_fun := S.from_left_inv,
   map_one' := S.from_left_inv_one,
   map_mul' := λ x y, subtype.ext $
-    by rw [from_left_inv_eq_iff, mul_comm x, submonoid.coe_mul, submonoid.coe_mul, mul_assoc,
-      ← mul_assoc (x : M), mul_from_left_inv, one_mul, mul_from_left_inv] }
+    by rw [from_left_inv_eq_iff, mul_comm x, submonoid_class.coe_mul, submonoid_class.coe_mul,
+      mul_assoc, ← mul_assoc (x : M), mul_from_left_inv, one_mul, mul_from_left_inv] }
 
 variable (hS : S ≤ is_unit.submonoid M)
 

@@ -109,7 +109,7 @@ variables {A B}
 variables {G} (H)
 
 /-- The canonical map to the left cosets. -/
-def to_quotient : G →[G] quotient_group.quotient H :=
+def to_quotient : G →[G] G ⧸ H :=
 ⟨coe, λ g x, rfl⟩
 
 @[simp] lemma to_quotient_apply (g : G) : to_quotient H g = g := rfl

@@ -104,18 +104,47 @@ variables (J : grothendieck_topology C)
 variables (A : Type u₂) [category.{v₂} A]
 
 /-- The category of sheaves taking values in `A` on a grothendieck topology. -/
-@[derive category]
-def Sheaf : Type* :=
-{P : Cᵒᵖ ⥤ A // presheaf.is_sheaf J P}
+structure Sheaf :=
+(val : Cᵒᵖ ⥤ A)
+(cond : presheaf.is_sheaf J val)
+
+namespace Sheaf
+
+variables {J A}
+
+/-- Morphisms between sheaves are just morphisms of presheaves. -/
+@[ext]
+structure hom (X Y : Sheaf J A) :=
+(val : X.val ⟶ Y.val)
+
+@[simps]
+instance : category (Sheaf J A) :=
+{ hom := hom,
+  id := λ X, ⟨𝟙 _⟩,
+  comp := λ X Y Z f g, ⟨f.val ≫ g.val⟩,
+  id_comp' := λ X Y f, hom.ext _ _ $ id_comp _,
+  comp_id' := λ X Y f, hom.ext _ _ $ comp_id _,
+  assoc' := λ X Y Z W f g h, hom.ext _ _ $ assoc _ _ _ }
+
+-- Let's make the inhabited linter happy...
+instance (X : Sheaf J A) : inhabited (hom X X) := ⟨𝟙 X⟩
+
+end Sheaf
 
 /-- The inclusion functor from sheaves to presheaves. -/
-@[simps {rhs_md := semireducible}, derive [full, faithful]]
+@[simps]
 def Sheaf_to_presheaf : Sheaf J A ⥤ (Cᵒᵖ ⥤ A) :=
-full_subcategory_inclusion (presheaf.is_sheaf J)
+{ obj := Sheaf.val,
+  map := λ _ _ f, f.val,
+  map_id' := λ X, rfl,
+  map_comp' := λ X Y Z f g, rfl }
+
+instance : full (Sheaf_to_presheaf J A) := { preimage := λ X Y f, ⟨f⟩ }
+instance : faithful (Sheaf_to_presheaf J A) := {}
 
 /-- The sheaf of sections guaranteed by the sheaf condition. -/
-@[simps] abbreviation sheaf_over {A : Type u₂} [category.{v₂} A] {J : grothendieck_topology C}
-  (ℱ : Sheaf J A) (X : A) : SheafOfTypes J := ⟨ℱ.val ⋙ coyoneda.obj (op X), ℱ.property X⟩
+@[simps] def sheaf_over {A : Type u₂} [category.{v₂} A] {J : grothendieck_topology C}
+  (ℱ : Sheaf J A) (X : A) : SheafOfTypes J := ⟨ℱ.val ⋙ coyoneda.obj (op X), ℱ.cond X⟩
 
 lemma is_sheaf_iff_is_sheaf_of_type (P : Cᵒᵖ ⥤ Type w) :
   presheaf.is_sheaf J P ↔ presieve.is_sheaf J P :=
@@ -145,16 +174,28 @@ The category of sheaves taking values in Type is the same as the category of set
 @[simps]
 def Sheaf_equiv_SheafOfTypes : Sheaf J (Type w) ≌ SheafOfTypes J :=
 { functor :=
-  { obj := λ S, ⟨S.1, (is_sheaf_iff_is_sheaf_of_type _ _).1 S.2⟩,
-    map := λ S₁ S₂ f, f },
+  { obj := λ S, ⟨S.val, (is_sheaf_iff_is_sheaf_of_type _ _).1 S.2⟩,
+    map := λ S T f, ⟨f.val⟩ },
   inverse :=
-  { obj := λ S, ⟨S.1, (is_sheaf_iff_is_sheaf_of_type _ _).2 S.2⟩,
-    map := λ S₁ S₂ f, f },
-  unit_iso := nat_iso.of_components (λ X, ⟨𝟙 _, 𝟙 _, by tidy, by tidy⟩) (by tidy),
-  counit_iso := nat_iso.of_components (λ X, ⟨𝟙 _, 𝟙 _, by tidy, by tidy⟩) (by tidy) }
+  { obj := λ S, ⟨S.val, (is_sheaf_iff_is_sheaf_of_type _ _ ).2 S.2⟩,
+    map := λ S T f, ⟨f.val⟩ },
+  unit_iso := nat_iso.of_components (λ X, ⟨⟨𝟙 _⟩, ⟨𝟙 _⟩, by tidy, by tidy⟩) (by tidy),
+  counit_iso := nat_iso.of_components (λ X, ⟨⟨𝟙 _⟩, ⟨𝟙 _⟩, by tidy, by tidy⟩) (by tidy) }
 
 instance : inhabited (Sheaf (⊥ : grothendieck_topology C) (Type w)) :=
-⟨(Sheaf_equiv_SheafOfTypes _).inverse.obj (default _)⟩
+⟨(Sheaf_equiv_SheafOfTypes _).inverse.obj default⟩
+
+variables {J} {A}
+
+/-- If the empty sieve is a cover of `X`, then `F(X)` is terminal. -/
+def Sheaf.is_terminal_of_bot_cover (F : Sheaf J A) (X : C) (H : ⊥ ∈ J X) :
+  is_terminal (F.1.obj (op X)) :=
+begin
+  apply_with is_terminal.of_unique { instances := ff },
+  intro Y,
+  choose t h using F.2 Y _ H (by tidy) (by tidy),
+  exact ⟨⟨t⟩, λ a, h.2 a (by tidy)⟩
+end
 
 end category_theory
 
@@ -297,7 +338,7 @@ nonempty (is_limit (fork.of_ι _ (w R P)))
 
 /-- (Implementation). An auxiliary lemma to convert between sheaf conditions. -/
 def is_sheaf_for_is_sheaf_for' (P : Cᵒᵖ ⥤ A) (s : A ⥤ Type (max v₁ u₁))
-  [Π J, preserves_limits_of_shape (discrete J) s] (U : C) (R : presieve U) :
+  [Π J, preserves_limits_of_shape (discrete.{max v₁ u₁} J) s] (U : C) (R : presieve U) :
   is_limit (s.map_cone (fork.of_ι _ (w R P))) ≃
     is_limit (fork.of_ι _ (equalizer.presieve.w (P ⋙ s) R)) :=
 begin

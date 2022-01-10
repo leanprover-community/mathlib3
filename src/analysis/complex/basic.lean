@@ -200,14 +200,17 @@ variables {α β γ : Type*}
   [add_comm_monoid α] [topological_space α] [add_comm_monoid γ] [topological_space γ]
 
 /-- The natural `add_equiv` from `ℂ` to `ℝ × ℝ`. -/
+@[simps apply symm_apply_re symm_apply_im { simp_rhs := tt }]
 def equiv_real_prod_add_hom : ℂ ≃+ ℝ × ℝ :=
 { map_add' := by simp, .. equiv_real_prod }
 
 /-- The natural `linear_equiv` from `ℂ` to `ℝ × ℝ`. -/
+@[simps apply symm_apply_re symm_apply_im { simp_rhs := tt }]
 def equiv_real_prod_add_hom_lm : ℂ ≃ₗ[ℝ] ℝ × ℝ :=
 { map_smul' := by simp [equiv_real_prod_add_hom], .. equiv_real_prod_add_hom }
 
 /-- The natural `continuous_linear_equiv` from `ℂ` to `ℝ × ℝ`. -/
+@[simps apply symm_apply_re symm_apply_im { simp_rhs := tt }]
 def equiv_real_prodₗ : ℂ ≃L[ℝ] ℝ × ℝ :=
 equiv_real_prod_add_hom_lm.to_continuous_linear_equiv
 
@@ -216,7 +219,9 @@ end
 lemma has_sum_iff {α} (f : α → ℂ) (c : ℂ) :
   has_sum f c ↔ has_sum (λ x, (f x).re) c.re ∧ has_sum (λ x, (f x).im) c.im :=
 begin
-  refine ⟨λ h, ⟨h.mapL re_clm, h.mapL im_clm⟩, _⟩,
+  -- For some reason, `continuous_linear_map.has_sum` is orders of magnitude faster than
+  -- `has_sum.mapL` here:
+  refine ⟨λ h, ⟨re_clm.has_sum h, im_clm.has_sum h⟩, _⟩,
   rintro ⟨h₁, h₂⟩,
   convert (h₁.prod_mk h₂).mapL equiv_real_prodₗ.symm.to_continuous_linear_map,
   { ext x; refl },

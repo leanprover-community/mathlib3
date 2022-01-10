@@ -477,7 +477,7 @@ begin
       (𝓝 (r * (I + 1) * 0)) := tendsto_const_nhds.mul tendsto_id,
     have B : ∀ᶠ a in 𝓝 0, r * (I + 1) * a < 1/2,
       by { apply (tendsto_order.1 this).2, simp [zero_lt_one] },
-    have C : ∀ᶠ a in 𝓝[set.Ioi (0 : ℝ)] (0 : ℝ), (0 : ℝ) < a,
+    have C : ∀ᶠ a in 𝓝[>] (0 : ℝ), (0 : ℝ) < a,
       by { filter_upwards [self_mem_nhds_within], exact λ a ha, ha },
     rcases (C.and ((A.and B).filter_mono inf_le_left)).exists with ⟨a, ha⟩,
     exact ⟨a, ha.1, ha.2.1.le, ha.2.2.le⟩ },

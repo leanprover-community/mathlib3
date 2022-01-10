@@ -755,7 +755,7 @@ begin
   refine ⟨_, λ h, (is_o_zero g' ⊤).congr (λ x, (h x).symm) (λ x, rfl)⟩,
   simp only [is_o_iff, eventually_top],
   refine λ h x, norm_le_zero_iff.1 _,
-  have : tendsto (λ c : ℝ, c * ∥g' x∥) (𝓝[Ioi 0] 0) (𝓝 0) :=
+  have : tendsto (λ c : ℝ, c * ∥g' x∥) (𝓝[>] 0) (𝓝 0) :=
     ((continuous_id.mul continuous_const).tendsto' _ _ (zero_mul _)).mono_left inf_le_left,
   exact le_of_tendsto_of_tendsto tendsto_const_nhds this
     (eventually_nhds_within_iff.2 $ eventually_of_forall $ λ c hc, h hc x)
@@ -865,7 +865,7 @@ theorem is_O.const_mul_left {f : α → R} (h : is_O f g l) (c' : R) :
   is_O (λ x, c' * f x) g l :=
 let ⟨c, hc⟩ := h.is_O_with in (hc.const_mul_left c').is_O
 
-theorem is_O_with_self_const_mul' (u : units R) (f : α → R) (l : filter α) :
+theorem is_O_with_self_const_mul' (u : Rˣ) (f : α → R) (l : filter α) :
   is_O_with ∥(↑u⁻¹:R)∥ f (λ x, ↑u * f x) l :=
 (is_O_with_const_mul_self ↑u⁻¹ _ l).congr_left $ λ x, u.inv_mul_cancel_left (f x)
 
@@ -912,7 +912,7 @@ theorem is_O.of_const_mul_right {g : α → R} {c : R}
   is_O f g l :=
 let ⟨c, cnonneg, hc⟩ := h.exists_nonneg in (hc.of_const_mul_right cnonneg).is_O
 
-theorem is_O_with.const_mul_right' {g : α → R} {u : units R} {c' : ℝ} (hc' : 0 ≤ c')
+theorem is_O_with.const_mul_right' {g : α → R} {u : Rˣ} {c' : ℝ} (hc' : 0 ≤ c')
   (h : is_O_with c' f g l) :
   is_O_with (c' * ∥(↑u⁻¹:R)∥) f (λ x, ↑u * g x) l :=
 h.trans (is_O_with_self_const_mul' _ _ _) hc'
@@ -1024,6 +1024,27 @@ begin
   induction n with n ihn, { simpa only [pow_one] },
   convert h.mul ihn; simp [pow_succ]
 end
+
+/-! ### Inverse -/
+
+theorem is_O_with.inv_rev {f : α → 𝕜} {g : α → 𝕜'} (h : is_O_with c f g l)
+  (h₀ : ∀ᶠ x in l, f x ≠ 0) : is_O_with c (λ x, (g x)⁻¹) (λ x, (f x)⁻¹) l :=
+begin
+  refine is_O_with.of_bound (h.bound.mp (h₀.mono $ λ x h₀ hle, _)),
+  cases le_or_lt c 0 with hc hc,
+  { refine (h₀ $ norm_le_zero_iff.1 _).elim,
+    exact hle.trans (mul_nonpos_of_nonpos_of_nonneg hc $ norm_nonneg _) },
+  { replace hle := inv_le_inv_of_le (norm_pos_iff.2 h₀) hle,
+    simpa only [normed_field.norm_inv, mul_inv₀, ← div_eq_inv_mul, div_le_iff hc] using hle }
+end
+
+theorem is_O.inv_rev {f : α → 𝕜} {g : α → 𝕜'} (h : is_O f g l)
+  (h₀ : ∀ᶠ x in l, f x ≠ 0) : is_O (λ x, (g x)⁻¹) (λ x, (f x)⁻¹) l :=
+let ⟨c, hc⟩ := h.is_O_with in (hc.inv_rev h₀).is_O
+
+theorem is_o.inv_rev {f : α → 𝕜} {g : α → 𝕜'} (h : is_o f g l)
+  (h₀ : ∀ᶠ x in l, f x ≠ 0) : is_o (λ x, (g x)⁻¹) (λ x, (f x)⁻¹) l :=
+is_o.of_is_O_with $ λ c hc, (h.def' hc).inv_rev h₀
 
 /-! ### Scalar multiplication -/
 

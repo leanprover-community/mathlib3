@@ -41,10 +41,12 @@ lemma pi.cons_swap {a a' : α} {b : δ a} {b' : δ a'} {m : multiset α} {f : Π
 begin
   apply hfunext, { refl }, intros a'' _ h, subst h,
   apply hfunext, { rw [cons_swap] }, intros ha₁ ha₂ h,
-  by_cases h₁ : a'' = a; by_cases h₂ : a'' = a';
-    simp [*, pi.cons_same, pi.cons_ne] at *,
+  by_cases h₁ : a'' = a,
+  simp [*, pi.cons_same, pi.cons_ne] at *,
   { subst h₁, rw [pi.cons_same, pi.cons_same] },
-  { subst h₂, rw [pi.cons_same, pi.cons_same] }
+  by_cases h₂ : a'' = a';
+    simp [*, pi.cons_same, pi.cons_ne] at *;
+    subst h₂; rw [pi.cons_same, pi.cons_same]
 end
 
 /-- `pi m t` constructs the Cartesian product over `t` indexed by `m`. -/

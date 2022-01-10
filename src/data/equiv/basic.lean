@@ -4,16 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Mario Carneiro
 -/
 import data.option.basic
-import data.sum
-import logic.unique
-import logic.function.basic
-import data.quot
-import tactic.simps
-import logic.function.conjugate
 import data.prod
-import tactic.norm_cast
+import data.quot
 import data.sigma.basic
+import data.sum.basic
 import data.subtype
+import logic.function.conjugate
+import logic.unique
+import tactic.norm_cast
+import tactic.simps
 
 /-!
 # Equivalence between types
@@ -196,7 +195,7 @@ e.nonempty_congr.mpr ‹_›
 
 /-- If `α ≃ β` and `β` is inhabited, then so is `α`. -/
 protected def inhabited [inhabited β] (e : α ≃ β) : inhabited α :=
-⟨e.symm (default _)⟩
+⟨e.symm default⟩
 
 /-- If `α ≃ β` and `β` is a singleton type, then so is `α`. -/
 protected def unique [unique β] (e : α ≃ β) : unique α :=
@@ -408,6 +407,14 @@ protected def ulift {α : Type v} : ulift.{u} α ≃ α :=
 protected def plift : plift α ≃ α :=
 ⟨plift.down, plift.up, plift.up_down, plift.down_up⟩
 
+/-- `pprod α β` is equivalent to `α × β` -/
+@[simps apply symm_apply]
+def pprod_equiv_prod {α β : Type*} : pprod α β ≃ α × β :=
+{ to_fun := λ x, (x.1, x.2),
+  inv_fun := λ x, ⟨x.1, x.2⟩,
+  left_inv := λ ⟨x, y⟩, rfl,
+  right_inv := λ ⟨x, y⟩, rfl }
+
 /-- equivalence of propositions is the same as iff -/
 def of_iff {P Q : Prop} (h : P ↔ Q) : P ≃ Q :=
 { to_fun := h.mp,
@@ -521,7 +528,7 @@ def arrow_punit_equiv_punit (α : Sort*) : (α → punit.{v}) ≃ punit.{w} :=
 
 /-- If `α` has a unique term, then the type of function `α → β` is equivalent to `β`. -/
 @[simps { fully_applied := ff }] def fun_unique (α β) [unique α] : (α → β) ≃ β :=
-{ to_fun := eval (default α),
+{ to_fun := eval default,
   inv_fun := const α,
   left_inv := λ f, funext $ λ a, congr_arg f $ subsingleton.elim _ _,
   right_inv := λ b, rfl }
@@ -672,21 +679,34 @@ noncomputable def Prop_equiv_bool : Prop ≃ bool :=
 
 /-- Sum of types is commutative up to an equivalence. -/
 @[simps apply]
-def sum_comm (α β : Sort*) : α ⊕ β ≃ β ⊕ α :=
+def sum_comm (α β : Type*) : α ⊕ β ≃ β ⊕ α :=
 ⟨sum.swap, sum.swap, sum.swap_swap, sum.swap_swap⟩
 
 @[simp] lemma sum_comm_symm (α β) : (sum_comm α β).symm = sum_comm β α := rfl
 
 /-- Sum of types is associative up to an equivalence. -/
-def sum_assoc (α β γ : Sort*) : (α ⊕ β) ⊕ γ ≃ α ⊕ (β ⊕ γ) :=
+def sum_assoc (α β γ : Type*) : (α ⊕ β) ⊕ γ ≃ α ⊕ (β ⊕ γ) :=
 ⟨sum.elim (sum.elim sum.inl (sum.inr ∘ sum.inl)) (sum.inr ∘ sum.inr),
   sum.elim (sum.inl ∘ sum.inl) $ sum.elim (sum.inl ∘ sum.inr) sum.inr,
   by rintros (⟨_ | _⟩ | _); refl,
   by rintros (_ | ⟨_ | _⟩); refl⟩
 
-@[simp] theorem sum_assoc_apply_in1 {α β γ} (a) : sum_assoc α β γ (inl (inl a)) = inl a := rfl
-@[simp] theorem sum_assoc_apply_in2 {α β γ} (b) : sum_assoc α β γ (inl (inr b)) = inr (inl b) := rfl
-@[simp] theorem sum_assoc_apply_in3 {α β γ} (c) : sum_assoc α β γ (inr c) = inr (inr c) := rfl
+@[simp] lemma sum_assoc_apply_inl_inl {α β γ} (a) : sum_assoc α β γ (inl (inl a)) = inl a := rfl
+
+@[simp] lemma sum_assoc_apply_inl_inr {α β γ} (b) : sum_assoc α β γ (inl (inr b)) = inr (inl b) :=
+rfl
+
+@[simp] lemma sum_assoc_apply_inr {α β γ} (c) : sum_assoc α β γ (inr c) = inr (inr c) := rfl
+
+@[simp] lemma sum_assoc_symm_apply_inl {α β γ} (a) : (sum_assoc α β γ).symm (inl a) = inl (inl a) :=
+rfl
+
+@[simp] lemma sum_assoc_symm_apply_inr_inl {α β γ} (b) :
+  (sum_assoc α β γ).symm (inr (inl b)) = inl (inr b) := rfl
+
+@[simp] lemma sum_assoc_symm_apply_inr_inr {α β γ} (c) :
+  (sum_assoc α β γ).symm (inr (inr c)) = inr c := rfl
+
 
 /-- Sum with `empty` is equivalent to the original type. -/
 @[simps symm_apply] def sum_empty (α β : Type*) [is_empty β] : α ⊕ β ≃ α :=
@@ -1573,7 +1593,7 @@ equivalence relation `~`. Let `p₂` be a predicate on the quotient type `α/~`,
 of this predicate to `α`: `p₁ a ↔ p₂ ⟦a⟧`. Let `~₂` be the restriction of `~` to `{x // p₁ x}`.
 Then `{x // p₂ x}` is equivalent to the quotient of `{x // p₁ x}` by `~₂`. -/
 def subtype_quotient_equiv_quotient_subtype (p₁ : α → Prop) [s₁ : setoid α]
-  [s₂ : setoid (subtype p₁)] (p₂ : quotient s₁ → Prop) (hp₂ :  ∀ a, p₁ a ↔ p₂ ⟦a⟧)
+  [s₂ : setoid (subtype p₁)] (p₂ : quotient s₁ → Prop) (hp₂ : ∀ a, p₁ a ↔ p₂ ⟦a⟧)
   (h : ∀ x y : subtype p₁, @setoid.r _ s₂ x y ↔ (x : α) ≈ y) :
   {x // p₂ x} ≃ quotient s₂ :=
 { to_fun := λ a, quotient.hrec_on a.1 (λ a h, ⟦⟨a, (hp₂ _).2 h⟩⟧)
@@ -1583,6 +1603,16 @@ def subtype_quotient_equiv_quotient_subtype (p₁ : α → Prop) [s₁ : setoid 
     (λ a b hab, subtype.ext_val (quotient.sound ((h _ _).1 hab))),
   left_inv := λ ⟨a, ha⟩, quotient.induction_on a (λ a ha, rfl) ha,
   right_inv := λ a, quotient.induction_on a (λ ⟨a, ha⟩, rfl) }
+
+@[simp] lemma subtype_quotient_equiv_quotient_subtype_mk (p₁ : α → Prop) [s₁ : setoid α]
+  [s₂ : setoid (subtype p₁)] (p₂ : quotient s₁ → Prop) (hp₂ : ∀ a, p₁ a ↔ p₂ ⟦a⟧)
+  (h : ∀ x y : subtype p₁, @setoid.r _ s₂ x y ↔ (x : α) ≈ y) (x hx) :
+  subtype_quotient_equiv_quotient_subtype p₁ p₂ hp₂ h ⟨⟦x⟧, hx⟩ = ⟦⟨x, (hp₂ _).2 hx⟩⟧ := rfl
+
+@[simp] lemma subtype_quotient_equiv_quotient_subtype_symm_mk (p₁ : α → Prop) [s₁ : setoid α]
+  [s₂ : setoid (subtype p₁)] (p₂ : quotient s₁ → Prop) (hp₂ : ∀ a, p₁ a ↔ p₂ ⟦a⟧)
+  (h : ∀ x y : subtype p₁, @setoid.r _ s₂ x y ↔ (x : α) ≈ y) (x) :
+  (subtype_quotient_equiv_quotient_subtype p₁ p₂ hp₂ h).symm ⟦x⟧ = ⟨⟦x⟧, (hp₂ _).1 x.prop⟩ := rfl
 
 section swap
 variable [decidable_eq α]
@@ -1860,6 +1890,25 @@ of equivalences of the matching fibers.
 -/
 def Pi_congr : (Π a, W a) ≃ (Π b, Z b) :=
 (equiv.Pi_congr_right h₂).trans (equiv.Pi_congr_left _ h₁)
+
+@[simp] lemma coe_Pi_congr_symm :
+  ((h₁.Pi_congr h₂).symm : (Π b, Z b) → (Π a, W a)) = λ f a, (h₂ a).symm (f (h₁ a)) :=
+rfl
+
+lemma Pi_congr_symm_apply (f : Π b, Z b) :
+  (h₁.Pi_congr h₂).symm f = λ a, (h₂ a).symm (f (h₁ a)) :=
+rfl
+
+@[simp] lemma Pi_congr_apply_apply (f : Π a, W a) (a : α) :
+  h₁.Pi_congr h₂ f (h₁ a) = h₂ a (f a) :=
+begin
+  change cast _ ((h₂ (h₁.symm (h₁ a))) (f (h₁.symm (h₁ a)))) = (h₂ a) (f a),
+  generalize_proofs hZa,
+  revert hZa,
+  rw h₁.symm_apply_apply a,
+  simp,
+end
+
 end
 
 section
@@ -1873,6 +1922,27 @@ of equivalences of the matching fibres.
 -/
 def Pi_congr' : (Π a, W a) ≃ (Π b, Z b) :=
 (Pi_congr h₁.symm (λ b, (h₂ b).symm)).symm
+
+@[simp] lemma coe_Pi_congr' :
+  (h₁.Pi_congr' h₂ : (Π a, W a) → (Π b, Z b)) = λ f b, h₂ b $ f $ h₁.symm b :=
+rfl
+
+lemma Pi_congr'_apply (f : Π a, W a) :
+  h₁.Pi_congr' h₂ f = λ b, h₂ b $ f $ h₁.symm b :=
+rfl
+
+@[simp] lemma Pi_congr'_symm_apply_symm_apply (f : Π b, Z b) (b : β) :
+  (h₁.Pi_congr' h₂).symm f (h₁.symm b) = (h₂ b).symm (f b) :=
+begin
+  change cast _ ((h₂ (h₁ (h₁.symm b))).symm (f (h₁ (h₁.symm b)))) = (h₂ b).symm (f b),
+  generalize_proofs hWb,
+  revert hWb,
+  generalize hb : h₁ (h₁.symm b) = b',
+  rw h₁.apply_symm_apply b at hb,
+  subst hb,
+  simp,
+end
+
 end
 
 end equiv
@@ -1893,8 +1963,8 @@ funext $ λ z, hf.swap_apply _ _ _
 
 /-- If both `α` and `β` are singletons, then `α ≃ β`. -/
 def equiv_of_unique_of_unique [unique α] [unique β] : α ≃ β :=
-{ to_fun := λ _, default β,
-  inv_fun := λ _, default α,
+{ to_fun := λ _, default,
+  inv_fun := λ _, default,
   left_inv := λ _, subsingleton.elim _ _,
   right_inv := λ _, subsingleton.elim _ _ }
 
@@ -1996,5 +2066,20 @@ lemma update_apply_equiv_apply {α β α' : Sort*} [decidable_eq α'] [decidable
   (f : α → β) (g : α' ≃ α) (a : α) (v : β) (a' : α') :
   update f a v (g a') = update (f ∘ g) (g.symm a) v a' :=
 congr_fun (update_comp_equiv f g a v) a'
+
+lemma Pi_congr_left'_update [decidable_eq α] [decidable_eq β]
+  (P : α → Sort*) (e : α ≃ β) (f : Π a, P a) (b : β) (x : P (e.symm b)) :
+  e.Pi_congr_left' P (update f (e.symm b) x) = update (e.Pi_congr_left' P f) b x :=
+begin
+  ext b',
+  rcases eq_or_ne b' b with rfl | h,
+  { simp, },
+  { simp [h], },
+end
+
+lemma Pi_congr_left'_symm_update [decidable_eq α] [decidable_eq β]
+  (P : α → Sort*) (e : α ≃ β) (f : Π b, P (e.symm b)) (b : β) (x : P (e.symm b)) :
+  (e.Pi_congr_left' P).symm (update f b x) = update ((e.Pi_congr_left' P).symm f) (e.symm b) x :=
+by simp [(e.Pi_congr_left' P).symm_apply_eq, Pi_congr_left'_update]
 
 end function

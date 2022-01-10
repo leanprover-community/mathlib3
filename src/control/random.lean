@@ -6,12 +6,10 @@ Authors: Simon Hudon
 
 import control.monad.basic
 import data.int.basic
-import data.stream.basic
+import data.stream.defs
 import control.uliftable
 import tactic.norm_num
 import data.bitvec.basic
-
-
 
 
 /-!

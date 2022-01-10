@@ -123,6 +123,9 @@ by simp only [←category.assoc, cancel_mono]
   f ≫ g ≫ α.inv.app Y = f' ≫ g' ≫ α.inv.app Y ↔ f ≫ g = f' ≫ g' :=
 by simp only [←category.assoc, cancel_mono]
 
+@[simp] lemma inv_inv_app {F G : C ⥤ D} (e : F ≅ G) (X : C) :
+  inv (e.inv.app X) = e.hom.app X := by { ext, simp }
+
 end
 
 variables {X Y : C}

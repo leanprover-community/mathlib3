@@ -72,7 +72,7 @@ Construction of a limit cone in `Mon`.
 (Internal use only; use the limits API.)
 -/
 @[to_additive "(Internal use only; use the limits API.)"]
-def limit_cone (F : J ⥤ Mon) : cone F :=
+def limit_cone (F : J ⥤ Mon.{u}) : cone F :=
 { X := Mon.of (types.limit_cone (F ⋙ forget _)).X,
   π :=
   { app := limit_π_monoid_hom F,

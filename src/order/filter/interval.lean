@@ -174,7 +174,7 @@ tendsto_Ixx_class_of_subset (λ _ _, Ioo_subset_Ioc_self)
 instance tendsto_Ioo_Iio_Iio {a : α} : tendsto_Ixx_class Ioo (𝓟 (Iio a)) (𝓟 (Iio a)) :=
 tendsto_Ixx_class_of_subset (λ _ _, Ioo_subset_Ioc_self)
 
-instance tendsto_Icc_Icc_icc {a b : α} :
+instance tendsto_Icc_Icc_Icc {a b : α} :
   tendsto_Ixx_class Icc (𝓟 (Icc a b)) (𝓟 (Icc a b)) :=
 tendsto_Ixx_class_principal.mpr $ λ x hx y hy, Icc_subset_Icc hx.1 hy.2
 
@@ -206,10 +206,27 @@ section linear_order
 variables [linear_order α]
 
 instance tendsto_Icc_interval_interval {a b : α} : tendsto_Ixx_class Icc (𝓟 [a, b]) (𝓟 [a, b]) :=
-filter.tendsto_Icc_Icc_icc
+filter.tendsto_Icc_Icc_Icc
 
 instance tendsto_Ioc_interval_interval {a b : α} : tendsto_Ixx_class Ioc (𝓟 [a, b]) (𝓟 [a, b]) :=
-tendsto_Ixx_class_of_subset $ λ _ _, Ioc_subset_Icc_self
+filter.tendsto_Ioc_Icc_Icc
+
+instance tendsto_interval_of_Icc {l : filter α} [tendsto_Ixx_class Icc l l] :
+  tendsto_Ixx_class interval l l :=
+begin
+  refine ⟨λ s hs, mem_map.2 $ mem_prod_self_iff.2 _⟩,
+  obtain ⟨t, htl, hts⟩ : ∃ t ∈ l, ∀ p ∈ (t : set α).prod t, Icc (p : α × α).1 p.2 ∈ s,
+    from mem_prod_self_iff.1 (mem_map.1 (tendsto_fst.Icc tendsto_snd hs)),
+  refine ⟨t, htl, λ p hp, _⟩,
+  cases le_total p.1 p.2,
+  { rw [mem_preimage, interval_of_le h], exact hts p hp },
+  { rw [mem_preimage, interval_of_ge h], exact hts ⟨p.2, p.1⟩ ⟨hp.2, hp.1⟩ }
+end
+
+lemma tendsto.interval {l : filter α} [tendsto_Ixx_class Icc l l] {f g : β → α} {lb : filter β}
+  (hf : tendsto f lb l) (hg : tendsto g lb l) :
+  tendsto (λ x, [f x, g x]) lb (l.lift' powerset) :=
+tendsto_Ixx_class.tendsto_Ixx.comp $ hf.prod_mk hg
 
 end linear_order
 

@@ -358,7 +358,7 @@ lemma has_fpower_series_on_ball.mono
 ⟨le_trans hr hf.1, r'_pos, λ y hy, hf.has_sum (emetric.ball_subset_ball hr hy)⟩
 
 protected lemma has_fpower_series_at.eventually (hf : has_fpower_series_at f p x) :
-  ∀ᶠ r : ℝ≥0∞ in 𝓝[Ioi 0] 0, has_fpower_series_on_ball f p x r :=
+  ∀ᶠ r : ℝ≥0∞ in 𝓝[>] 0, has_fpower_series_on_ball f p x r :=
 let ⟨r, hr⟩ := hf in
 mem_of_superset (Ioo_mem_nhds_within_Ioi (left_mem_Ico.2 hr.r_pos)) $
   λ r' hr', hr.mono hr'.1 hr'.2.le
@@ -565,7 +565,7 @@ lemma has_fpower_series_on_ball.image_sub_sub_deriv_le
   ∃ C, ∀ (y z ∈ emetric.ball x r'),
     ∥f y - f z - (p 1 (λ _, y - z))∥ ≤ C * (max ∥y - x∥ ∥z - x∥) * ∥y - z∥ :=
 by simpa only [is_O_principal, mul_assoc, normed_field.norm_mul, norm_norm, prod.forall,
-  emetric.mem_ball, prod.edist_eq, max_lt_iff, and_imp]
+  emetric.mem_ball, prod.edist_eq, max_lt_iff, and_imp, @forall_swap (_ < _) E]
   using hf.is_O_image_sub_image_sub_deriv_principal hr
 
 /-- If `f` has formal power series `∑ n, pₙ` at `x`, then

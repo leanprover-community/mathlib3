@@ -191,20 +191,23 @@ strict_mono_pow h h2
 lemma pow_lt_pow_iff (h : 1 < a) : a ^ n < a ^ m ↔ n < m :=
 (strict_mono_pow h).lt_iff_lt
 
+lemma strict_anti_pow (h₀ : 0 < a) (h₁ : a < 1) : strict_anti (λ n : ℕ, a ^ n) :=
+strict_anti_nat_of_succ_lt $ λ n,
+  by simpa only [pow_succ, one_mul] using mul_lt_mul h₁ le_rfl (pow_pos h₀ n) zero_le_one
+
+lemma pow_lt_pow_iff_of_lt_one (h₀ : 0 < a) (h₁ : a < 1) : a ^ m < a ^ n ↔ n < m :=
+(strict_anti_pow h₀ h₁).lt_iff_lt
+
+lemma pow_lt_pow_of_lt_one (h : 0 < a) (ha : a < 1) {i j : ℕ} (hij : i < j) : a ^ j < a ^ i :=
+(pow_lt_pow_iff_of_lt_one h ha).2 hij
+
 @[mono] lemma pow_le_pow_of_le_left {a b : R} (ha : 0 ≤ a) (hab : a ≤ b) : ∀ i : ℕ, a^i ≤ b^i
 | 0     := by simp
 | (k+1) := by { rw [pow_succ, pow_succ],
     exact mul_le_mul hab (pow_le_pow_of_le_left _) (pow_nonneg ha _) (le_trans ha hab) }
 
-lemma one_lt_pow (ha : 1 < a) : ∀ {n : ℕ}, n ≠ 0 → 1 < a ^ n
-| 0       h := (h rfl).elim
-| 1       h := (pow_one a).symm.subst ha
-| (n + 2) h :=
-  begin
-    nontriviality R,
-    rw [←one_mul (1 : R), pow_succ],
-    exact mul_lt_mul ha (one_lt_pow (nat.succ_ne_zero _)).le zero_lt_one (zero_lt_one.trans ha).le,
-  end
+lemma one_lt_pow (ha : 1 < a) {n : ℕ} (hn : n ≠ 0) : 1 < a ^ n :=
+pow_zero a ▸ pow_lt_pow ha (pos_iff_ne_zero.2 hn)
 
 lemma pow_le_one : ∀ (n : ℕ) (h₀ : 0 ≤ a) (h₁ : a ≤ 1), a ^ n ≤ 1
 | 0       h₀ h₁ := (pow_zero a).le

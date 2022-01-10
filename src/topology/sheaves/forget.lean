@@ -175,7 +175,7 @@ begin
       -- introduced above.
       let d' := (cones.postcompose (diagram_comp_preserves_limits G F U).hom).obj d,
       have hd' : is_limit d' :=
-        (is_limit.postcompose_hom_equiv (diagram_comp_preserves_limits G F U) d).symm hd,
+        (is_limit.postcompose_hom_equiv (diagram_comp_preserves_limits G F U : _) d).symm hd,
       -- Now everything works: we verify that `f` really is a morphism between these cones:
       let f' : c ⟶ d' :=
       fork.mk_hom (G.map f)

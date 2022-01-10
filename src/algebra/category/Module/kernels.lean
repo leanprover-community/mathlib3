@@ -93,7 +93,7 @@ The categorical cokernel of a morphism in `Module`
 agrees with the usual module-theoretical quotient.
 -/
 noncomputable def cokernel_iso_range_quotient {G H : Module.{v} R} (f : G ⟶ H) :
-  cokernel f ≅ Module.of R (f.range.quotient) :=
+  cokernel f ≅ Module.of R (H ⧸ f.range) :=
 colimit.iso_colimit_cocone ⟨_, cokernel_is_colimit f⟩
 
 -- We now show this isomorphism commutes with the projection of target to the cokernel.

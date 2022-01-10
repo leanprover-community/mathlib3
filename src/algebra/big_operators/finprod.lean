@@ -139,8 +139,8 @@ begin
   rw [finprod_eq_prod_plift_of_mul_support_subset this, finset.prod_singleton],
 end
 
-@[to_additive] lemma finprod_unique [unique α] (f : α → M) : ∏ᶠ i, f i = f (default α) :=
-finprod_eq_single f (default α) $ λ x hx, (hx $ unique.eq_default _).elim
+@[to_additive] lemma finprod_unique [unique α] (f : α → M) : ∏ᶠ i, f i = f default :=
+finprod_eq_single f default $ λ x hx, (hx $ unique.eq_default _).elim
 
 @[simp, to_additive] lemma finprod_true (f : true → M) : ∏ᶠ i, f i = f trivial :=
 @finprod_unique M true _ ⟨⟨trivial⟩, λ _, rfl⟩ f

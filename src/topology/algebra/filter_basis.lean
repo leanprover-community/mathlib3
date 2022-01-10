@@ -335,7 +335,7 @@ instance [discrete_topology R] : inhabited (module_filter_basis R M) :=
      rw mem_singleton_iff at h,
      simp [h, nhds_discrete]
    end,
-   ..(default $ add_group_filter_basis M) }⟩
+   ..show add_group_filter_basis M, from default }⟩
 
 /-- The topology associated to a module filter basis on a module over a topological ring.
 It has the given basis as a basis of neighborhoods of zero. -/

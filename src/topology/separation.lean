@@ -299,6 +299,13 @@ lemma ne.nhds_within_compl_singleton [t1_space α] {x y : α} (h : x ≠ y) :
   𝓝[{y}ᶜ] x = 𝓝 x :=
 is_open_ne.nhds_within_eq h
 
+lemma ne.nhds_within_diff_singleton [t1_space α] {x y : α} (h : x ≠ y) (s : set α) :
+  𝓝[s \ {y}] x = 𝓝[s] x :=
+begin
+  rw [diff_eq, inter_comm, nhds_within_inter_of_mem],
+  exact mem_nhds_within_of_mem_nhds (is_open_ne.mem_nhds h)
+end
+
 @[priority 100] -- see Note [lower instance priority]
 instance t1_space_cofinite {α : Type*} : @t1_space α (cofinite_topology α) :=
 begin
@@ -338,6 +345,11 @@ eventually_eq.congr_continuous_within_at
   (mem_nhds_within_of_mem_nhds $ mem_of_superset (is_open_ne.mem_nhds hne) $
     λ y' hy', function.update_noteq hy' _ _)
   (function.update_noteq hne _ _)
+
+lemma continuous_at_update_of_ne [t1_space α] [decidable_eq α] [topological_space β]
+  {f : α → β} {x y : α} {z : β} (hne : y ≠ x) :
+  continuous_at (function.update f x z) y ↔ continuous_at f y :=
+by simp only [← continuous_within_at_univ, continuous_within_at_update_of_ne hne]
 
 lemma continuous_on_update_iff [t1_space α] [decidable_eq α] [topological_space β]
   {f : α → β} {s : set α} {x : α} {y : β} :

@@ -444,8 +444,8 @@ lemma not_subset_iff_exists_mem_not_mem {α : Type*} {s t : set α} :
   ¬ s ⊆ t ↔ ∃ x, x ∈ s ∧ x ∉ t :=
 by simp [subset_def]
 
-lemma univ_unique [unique α] : @set.univ α = {default α} :=
-set.ext $ λ x, iff_of_true trivial $ subsingleton.elim x $ default α
+lemma univ_unique [unique α] : @set.univ α = {default} :=
+set.ext $ λ x, iff_of_true trivial $ subsingleton.elim x default
 
 /-! ### Lemmas about union -/
 
@@ -769,14 +769,13 @@ lemma exists_eq_singleton_iff_nonempty_unique_mem :
 begin
   refine ⟨_, λ h, _⟩,
   { rintros ⟨a, rfl⟩,
-    refine ⟨set.singleton_nonempty a, λ b c hb hc, hb.trans hc.symm⟩ },
+    refine ⟨set.singleton_nonempty a, λ b hb c hc, hb.trans hc.symm⟩ },
   { obtain ⟨a, ha⟩ := h.1,
-    refine ⟨a, set.eq_singleton_iff_unique_mem.mpr ⟨ha, λ b hb, (h.2 b a hb ha)⟩⟩ },
+    refine ⟨a, set.eq_singleton_iff_unique_mem.mpr ⟨ha, λ b hb, (h.2 b hb a ha)⟩⟩ },
 end
 
 -- while `simp` is capable of proving this, it is not capable of turning the LHS into the RHS.
-@[simp] lemma default_coe_singleton (x : α) :
-  default ({x} : set α) = ⟨x, rfl⟩ := rfl
+@[simp] lemma default_coe_singleton (x : α) : (default : ({x} : set α)) = ⟨x, rfl⟩ := rfl
 
 /-! ### Lemmas about sets defined as `{x ∈ s | p x}`. -/
 
@@ -1896,7 +1895,7 @@ eq_univ_of_forall mem_range_self
 
 /-- The range of a function from a `unique` type contains just the
 function applied to its single value. -/
-lemma range_unique [h : unique ι] : range f = {f $ default ι} :=
+lemma range_unique [h : unique ι] : range f = {f default} :=
 begin
   ext x,
   rw mem_range,
@@ -1904,7 +1903,7 @@ begin
   { rintros ⟨i, hi⟩,
     rw h.uniq i at hi,
     exact hi ▸ mem_singleton _ },
-  { exact λ h, ⟨default ι, h.symm⟩ }
+  { exact λ h, ⟨default, h.symm⟩ }
 end
 
 lemma range_diff_image_subset (f : α → β) (s : set α) :

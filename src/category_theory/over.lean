@@ -37,9 +37,9 @@ See https://stacks.math.columbia.edu/tag/001G.
 def over (X : T) := costructured_arrow (𝟭 T) X
 
 -- Satisfying the inhabited linter
-instance over.inhabited [inhabited T] : inhabited (over (default T)) :=
+instance over.inhabited [inhabited T] : inhabited (over (default : T)) :=
 { default :=
-  { left := default T,
+  { left := default,
     hom := 𝟙 _ } }
 
 namespace over
@@ -231,9 +231,9 @@ end over
 def under (X : T) := structured_arrow X (𝟭 T)
 
 -- Satisfying the inhabited linter
-instance under.inhabited [inhabited T] : inhabited (under (default T)) :=
+instance under.inhabited [inhabited T] : inhabited (under (default : T)) :=
 { default :=
-  { right := default T,
+  { right := default,
     hom := 𝟙 _ } }
 
 namespace under

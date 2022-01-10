@@ -44,7 +44,7 @@ namespace free_magma
 variables {α : Type u}
 
 @[to_additive]
-instance [inhabited α] : inhabited (free_magma α) := ⟨of (default _)⟩
+instance [inhabited α] : inhabited (free_magma α) := ⟨of default⟩
 
 @[to_additive]
 instance : has_mul (free_magma α) := ⟨free_magma.mul⟩
@@ -300,7 +300,7 @@ variables {α : Type u} [has_mul α]
 def of : α → free_semigroup α := quot.mk _
 
 @[to_additive]
-instance [inhabited α] : inhabited (free_semigroup α) := ⟨of (default _)⟩
+instance [inhabited α] : inhabited (free_semigroup α) := ⟨of default⟩
 
 @[elab_as_eliminator, to_additive]
 protected lemma induction_on {C : free_semigroup α → Prop} (x : free_semigroup α)
@@ -399,7 +399,7 @@ def of (x : α) : free_semigroup α :=
 (x, [])
 
 @[to_additive]
-instance [inhabited α] : inhabited (free_semigroup α) := ⟨of (default _)⟩
+instance [inhabited α] : inhabited (free_semigroup α) := ⟨of default⟩
 
 /-- Recursor for free semigroup using `of` and `*`. -/
 @[elab_as_eliminator, to_additive "Recursor for free additive semigroup using `of` and `+`."]

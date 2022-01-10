@@ -184,13 +184,15 @@ calc map f.to_linear_map (M * N)
     { use [f y, mem_map.mpr ⟨y.1, y.2, rfl⟩],
       refine trans _ hy,
       ext,
-      simp },
+      simp only [lmul_apply, f.to_linear_map_apply, mem_map, exists_exists_and_eq_and, map_mul] },
     { obtain ⟨y', hy', fy_eq⟩ := mem_map.mp y.2,
       use [y', hy'],
       refine trans _ hy,
       rw f.to_linear_map_apply at fy_eq,
       ext,
-      simp [fy_eq] }
+      simp only [fy_eq, alg_hom.to_linear_map_apply, coe_mk, lmul_apply, exists_exists_and_eq_and,
+                 mem_map, map_mul]
+ }
 end
 
 section decidable_eq

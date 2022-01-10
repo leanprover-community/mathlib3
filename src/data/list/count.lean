@@ -22,6 +22,11 @@ namespace list
 section countp
 variables (p : α → Prop) [decidable_pred p]
 
+@[congr]
+lemma countp_congr {p q} [dp : decidable_pred p] [dq : decidable_pred q] {xs ys : list α}
+  (hpq : p = q) (hxs : xs = ys) : @countp _ p dp xs = @countp _ q dq ys :=
+by cc
+
 @[simp] lemma countp_nil : countp p [] = 0 := rfl
 
 @[simp] lemma countp_cons_of_pos {a : α} (l) (pa : p a) : countp p (a::l) = countp p l + 1 :=
@@ -138,8 +143,7 @@ eq_of_sublist_of_length_eq (le_count_iff_repeat_sublist.mp (le_refl (count a l))
 
 @[simp] lemma count_filter {p} [decidable_pred p]
   {a} {l : list α} (h : p a) : count a (filter p l) = count a l :=
-by simp only [count, countp_filter]; congr; exact
-set.ext (λ b, and_iff_left_of_imp (λ e, e ▸ h))
+by simp only [count, countp_filter, show (λ b, a = b ∧ p b) = eq a, by { ext b, constructor; cc }]
 
 lemma count_bind {α β} [decidable_eq β] (l : list α) (f : α → list β) (x : β)  :
   count x (l.bind f) = sum (map (count x ∘ f) l) :=

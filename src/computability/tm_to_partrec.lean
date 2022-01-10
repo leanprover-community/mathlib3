@@ -1143,7 +1143,8 @@ begin
     (split_at_pred_eq _ _ (tr_nat L.head) o (tr_list L.tail) (tr_nat_nat_end _) _)).trans
     (trans_gen.head rfl (trans_gen.head rfl _)),
   { cases L; exact ⟨rfl, rfl⟩ },
-  simp [show o ≠ some Γ'.Cons, by cases L; rintro ⟨⟩],
+  simp,
+  rw if_neg (show o ≠ some Γ'.Cons, by cases L; rintro ⟨⟩),
   refine (clear_ok (split_at_pred_eq _ _ _ none [] _ ⟨rfl, rfl⟩)).trans _,
   { exact λ x h, (to_bool_ff (tr_list_ne_Cons _ _ h)) },
   convert unrev_ok, simp [list.reverse_core_eq],

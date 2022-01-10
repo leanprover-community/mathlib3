@@ -5,6 +5,7 @@ Authors: Johannes Hölzl, Mario Carneiro
 -/
 import data.option.defs
 import logic.nonempty
+import tactic.cache
 
 /-!
 # Miscellaneous function constructions and lemmas
@@ -689,6 +690,17 @@ def set.piecewise {α : Type u} {β : α → Sort v} (s : set α) (f g : Πi, β
   [∀j, decidable (j ∈ s)] :
   Πi, β i :=
 λi, if i ∈ s then f i else g i
+
+@[congr]
+lemma set.piecewise_congr {α : Type u} {β : α → Sort v} {s t : set α} {f f' g g' : Π i, β i}
+  [ds : ∀ j, decidable (j ∈ s)] [dt : ∀ j, decidable (j ∈ t)]
+  (hst : s = t) (hf : f = f') (hg : g = g') :
+  @set.piecewise α β s f g ds = @set.piecewise α β t f' g' dt :=
+begin
+  substI hst,
+  casesI subsingleton.elim ds dt,
+  cc,
+end
 
 /-! ### Bijectivity of `eq.rec`, `eq.mp`, `eq.mpr`, and `cast` -/
 

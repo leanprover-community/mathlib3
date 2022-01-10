@@ -28,6 +28,22 @@ variable [decidable_pred p]
 /-- Count the number of naturals `k < n` satisfying `p k`. -/
 def count (n : ℕ) : ℕ := (list.range n).countp p
 
+@[congr]
+lemma count_congr' {p q : ℕ → Prop} [decp : decidable_pred p] [decq : decidable_pred q] :
+  p = q → @count p decp = @count q decq :=
+begin
+  unfreezingI { rintros rfl },
+  cc
+end
+
+@[congr]
+lemma count_congr {p q : ℕ → Prop} {m n} [decp : decidable_pred p] [decq : decidable_pred q] :
+  p = q → m = n → @count p decp m = @count q decq n :=
+begin
+  unfreezingI { rintros rfl rfl },
+  cc
+end
+
 @[simp] lemma count_zero : count p 0 = 0 :=
 by rw [count, list.range_zero, list.countp]
 
@@ -63,11 +79,11 @@ begin
     obtain ⟨⟨hx, _⟩, ⟨c, _, rfl⟩, _⟩ := hx,
     exact (self_le_add_right _ _).not_lt hx },
   simp_rw [count_eq_card_filter_range, range_add, filter_union, card_disjoint_union this,
-    map_filter, add_left_embedding, card_map, function.embedding.coe_fn_mk]
+    map_filter, add_left_embedding, card_map], refl,
 end
 
 lemma count_add' (a b : ℕ) : count p (a + b) = count (λ k, p (k + b)) a + count p b :=
-by { rw [add_comm, count_add, add_comm], simp_rw add_comm b, congr, }
+by { rw [add_comm, count_add, add_comm], simp_rw [add_comm b] }
 
 lemma count_one : count p 1 = if p 0 then 1 else 0 := by simp [count_succ]
 

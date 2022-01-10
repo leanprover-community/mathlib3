@@ -1290,6 +1290,17 @@ def piecewise {α : Type*} {δ : α → Sort*} (s : finset α) (f g : Πi, δ i)
 
 variables {δ : α → Sort*} (s : finset α) (f g : Πi, δ i)
 
+@[congr]
+lemma piecewise_congr' {s t : finset α} {f f' g g' : Π i, δ i}
+    [ds : ∀ j, decidable (j ∈ s)] [dt : ∀ j, decidable (j ∈ t)]
+    (hf : f = f') (hg : g = g') (hst : s = t) :
+    @piecewise α δ s f g ds = @piecewise α δ t f' g' dt :=
+begin
+  substI hst,
+  casesI subsingleton.elim ds dt,
+  cc,
+end
+
 @[simp] lemma piecewise_insert_self [decidable_eq α] {j : α} [∀i, decidable (i ∈ insert j s)] :
   (insert j s).piecewise f g j = f j :=
 by simp [piecewise]
@@ -1299,7 +1310,8 @@ by { ext i, simp [piecewise] }
 
 variable [∀j, decidable (j ∈ s)]
 
-@[norm_cast] lemma piecewise_coe [∀j, decidable (j ∈ (s : set α))] :
+-- TODO: fix this in norm_cast
+@[norm_cast move] lemma piecewise_coe [∀j, decidable (j ∈ (s : set α))] :
   (s : set α).piecewise f g = s.piecewise f g :=
 by { ext, congr }
 
@@ -1324,8 +1336,7 @@ lemma piecewise_insert [decidable_eq α] (j : α) [∀i, decidable (i ∈ insert
   (insert j s).piecewise f g = update (s.piecewise f g) j (f j) :=
 begin
   classical,
-  rw [← piecewise_coe, ← piecewise_coe, ← set.piecewise_insert, ← coe_insert j s],
-  congr
+  simp only [← piecewise_coe, coe_insert, ← set.piecewise_insert],
 end
 
 lemma piecewise_cases {i} (p : δ i → Prop) (hf : p (f i)) (hg : p (g i)) : p (s.piecewise f g i) :=
@@ -1477,6 +1488,10 @@ eq_empty_of_forall_not_mem (by simpa)
 
 lemma filter_congr {s : finset α} (H : ∀ x ∈ s, p x ↔ q x) : filter p s = filter q s :=
 eq_of_veq $ filter_congr H
+
+@[congr]
+lemma filter_congr' {s t} : p = q → s = t → @filter _ p _inst_1 s = @filter _ q _inst_2 t :=
+by cc
 
 variables (p q)
 

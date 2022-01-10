@@ -1623,6 +1623,10 @@ lemma map_congr {f g : α → β} : ∀ {l : list α}, (∀ x ∈ l, f x = g x) 
 | (a::l) h := let ⟨h₁, h₂⟩ := forall_mem_cons.1 h in
   by rw [map, map, h₁, map_congr h₂]
 
+@[congr]
+lemma map_congr' {f g : α → β} {k l : list α} (h : k = l) (hfg : f = g) : map f k = map g l :=
+by simp [h, map_congr, hfg]
+
 lemma map_eq_map_iff {f g : α → β} {l : list α} : map f l = map g l ↔ (∀ x ∈ l, f x = g x) :=
 begin
   refine ⟨_, map_congr⟩, intros h x hx,
@@ -1633,8 +1637,11 @@ end
 theorem map_concat (f : α → β) (a : α) (l : list α) : map f (concat l a) = concat (map f l) (f a) :=
 by induction l; [refl, simp only [*, concat_eq_append, cons_append, map, map_append]]; split; refl
 
+@[simp] theorem map_id'' (l : list α) : map (λ x, x) l = l :=
+map_id _
+
 theorem map_id' {f : α → α} (h : ∀ x, f x = x) (l : list α) : map f l = l :=
-by induction l; [refl, simp only [*, map]]; split; refl
+by simp [show f = id, from funext h]
 
 theorem eq_nil_of_map_eq_nil {f : α → β} {l : list α} (h : map f l = nil) : l = nil :=
 eq_nil_of_length_eq_zero $ by rw [← length_map f l, h]; refl
@@ -2868,12 +2875,12 @@ theorem filter_eq_foldr (p : α → Prop) [decidable_pred p] (l : list α) :
   filter p l = foldr (λ a out, if p a then a :: out else out) [] l :=
 by induction l; simp [*, filter]
 
-lemma filter_congr {p q : α → Prop} [decidable_pred p] [decidable_pred q]
+lemma filter_congr' {p q : α → Prop} [decidable_pred p] [decidable_pred q]
   : ∀ {l : list α}, (∀ x ∈ l, p x ↔ q x) → filter p l = filter q l
 | [] _     := rfl
 | (a::l) h := by rw forall_mem_cons at h; by_cases pa : p a;
-  [simp only [filter_cons_of_pos _ pa, filter_cons_of_pos _ (h.1.1 pa), filter_congr h.2],
-   simp only [filter_cons_of_neg _ pa, filter_cons_of_neg _ (mt h.1.2 pa), filter_congr h.2]];
+  [simp only [filter_cons_of_pos _ pa, filter_cons_of_pos _ (h.1.1 pa), filter_congr' h.2],
+   simp only [filter_cons_of_neg _ pa, filter_cons_of_neg _ (mt h.1.2 pa), filter_congr' h.2]];
      split; refl
 
 @[simp] theorem filter_subset (l : list α) : filter p l ⊆ l :=
@@ -2979,6 +2986,12 @@ end filter
 /-! ### erasep -/
 section erasep
 variables {p : α → Prop} [decidable_pred p]
+
+@[congr]
+lemma erasep_congr {p q} [dp : decidable_pred p] [dq : decidable_pred q] {xs ys : list α}
+  (hpq : ∀ x, p x ↔ q x) (hxs : xs = ys) :
+  @erasep _ p dp xs = @erasep _ q dq ys :=
+have p = q, by ext; exact hpq _, by cc
 
 @[simp] theorem erasep_nil : [].erasep p = [] := rfl
 
@@ -3163,8 +3176,8 @@ else by simp only [erase_of_not_mem ha, erase_of_not_mem (mt mem_of_mem_erase ha
 
 theorem map_erase [decidable_eq β] {f : α → β} (finj : injective f) {a : α}
   (l : list α) : map f (l.erase a) = (map f l).erase (f a) :=
-by rw [erase_eq_erasep, erase_eq_erasep, erasep_map]; congr;
-   ext b; simp [finj.eq_iff]
+have this : eq a = eq (f a) ∘ f, { ext b, simp [finj.eq_iff] },
+by simp [erase_eq_erasep, erase_eq_erasep, erasep_map, this]
 
 theorem map_foldl_erase [decidable_eq β] {f : α → β} (finj : injective f) {l₁ l₂ : list α} :
   map f (foldl list.erase l₁ l₂) = foldl (λ l a, l.erase (f a)) (map f l₁) l₂ :=

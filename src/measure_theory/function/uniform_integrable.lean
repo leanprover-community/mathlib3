@@ -171,7 +171,7 @@ there exists a subset `t ⊆ s` such that `μ t ≤ ε` and `f` converges to `g`
 
 In other words, a sequence of almost everywhere convergent functions converges uniformly except on
 an arbitrarily small set. -/
-theorem egorov (hf : ∀ n, measurable[m] (f n)) (hg : measurable g)
+theorem tendsto_uniformly_on_of_ae_tendsto (hf : ∀ n, measurable[m] (f n)) (hg : measurable g)
   {s : set α} (hsm : measurable_set s) (hs : μ s ≠ ∞)
   (hfg : ∀ᵐ x ∂μ, x ∈ s → tendsto (λ n, f n x) at_top (𝓝 (g x))) {ε : ℝ} (hε : 0 < ε) :
   ∃ t ⊆ s, μ t ≤ ennreal.of_real ε ∧ tendsto_uniformly_on f g at_top (s \ t) :=
@@ -193,6 +193,21 @@ begin
   push_neg at hx,
   rw dist_comm,
   exact lt_of_le_of_lt (hx n (mem_Ioi.1 hn).le) hN,
+end
+
+/-- Egorov's theorem for finite measure spaces. -/
+lemma tendsto_uniformly_on_of_ae_tendsto' [is_finite_measure μ]
+  (hf : ∀ n, measurable[m] (f n)) (hg : measurable g)
+  (hfg : ∀ᵐ x ∂μ, tendsto (λ n, f n x) at_top (𝓝 (g x))) {ε : ℝ} (hε : 0 < ε) :
+  ∃ t, μ t ≤ ennreal.of_real ε ∧ tendsto_uniformly_on f g at_top tᶜ :=
+begin
+  obtain ⟨t, _, ht, htendsto⟩ :=
+    tendsto_uniformly_on_of_ae_tendsto hf hg measurable_set.univ (measure_ne_top μ univ) _ hε,
+  { refine ⟨t, ht, _⟩,
+    rwa compl_eq_univ_diff },
+  { filter_upwards [hfg],
+    intros,
+    assumption }
 end
 
 end

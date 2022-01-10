@@ -1118,6 +1118,24 @@ lemma factors_mul_of_pos {a b : ℕ} (ha : 0 < a) (hb : 0 < b) :
   (a * b).factors.to_finset = a.factors.to_finset ∪ b.factors.to_finset :=
 by { ext p, simp only [finset.mem_union, list.mem_to_finset, mem_factors_mul_of_pos ha hb p] }
 
+lemma pow_succ_factors_to_finset (n k : ℕ) :
+  (n^(k+1)).factors.to_finset = n.factors.to_finset :=
+begin
+  rcases eq_or_ne n 0 with rfl | hn,
+  { simp },
+  induction k with k ih,
+  { simp },
+  rw [pow_succ, factors_mul_of_pos hn.bot_lt (pow_pos hn.bot_lt _), ih, finset.union_idempotent],
+end
+
+lemma pow_factors_to_finset (n : ℕ) {k : ℕ} (hk : k ≠ 0) :
+  (n^k).factors.to_finset = n.factors.to_finset :=
+begin
+  cases k,
+  { simpa using hk },
+  rw pow_succ_factors_to_finset
+end
+
 /-- The sets of factors of coprime `a` and `b` are disjoint -/
 lemma coprime_factors_disjoint {a b : ℕ} (hab: a.coprime b) : list.disjoint a.factors b.factors :=
 begin
@@ -1137,6 +1155,9 @@ begin
   rw [mem_factors_mul_of_pos ha hb p, list.mem_union]
 end
 
+lemma factors_mul_to_finset_of_coprime {a b : ℕ} (hab : coprime a b) :
+  (a * b).factors.to_finset = a.factors.to_finset ∪ b.factors.to_finset :=
+by { ext p, simp [factors_mul_of_coprime hab] }
 
 open list
 

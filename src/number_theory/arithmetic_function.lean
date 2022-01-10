@@ -670,6 +670,18 @@ begin
   simp [h0, card_factors_mul, h],
 end
 
+@[simp] lemma _root_.nat.prime.card_factors {n : ℕ} (hn : n.prime) : Ω n = 1 :=
+card_factors_eq_one_iff_prime.2 hn
+
+@[simp] lemma card_factors_pow {n k : ℕ} : Ω (n ^ k) = k * Ω n :=
+begin
+  induction k with k ih,
+  { simp },
+  rcases eq_or_ne n 0 with rfl | hn,
+  { simp },
+  rw [pow_succ', card_factors_mul (pow_ne_zero _ hn) hn, ih, succ_mul],
+end
+
 /-- `ω n` is the number of distinct prime factors of `n`. -/
 def card_distinct_factors : arithmetic_function ℕ :=
 ⟨λ n, n.factors.erase_dup.length, by simp⟩
@@ -678,8 +690,9 @@ localized "notation `ω` := nat.arithmetic_function.card_distinct_factors" in ar
 
 lemma card_distinct_factors_zero : ω 0 = 0 := by simp
 
-lemma card_distinct_factors_apply {n : ℕ} :
-  ω n = n.factors.erase_dup.length := rfl
+lemma card_distinct_factors_apply {n : ℕ} : ω n = n.factors.erase_dup.length := rfl
+
+lemma card_distinct_factors_eq_finset_card {n : ℕ} : ω n = n.factors.to_finset.card := rfl
 
 lemma card_distinct_factors_eq_card_factors_iff_squarefree {n : ℕ} (h0 : n ≠ 0) :
   ω n = Ω n ↔ squarefree n :=
@@ -692,20 +705,38 @@ begin
     refl }
 end
 
+lemma card_distinct_factors_mul {m n : ℕ} (hmn : coprime m n) :
+  ω (m * n) = ω m + ω n :=
+begin
+  rw [card_distinct_factors_eq_finset_card, factors_mul_to_finset_of_coprime hmn,
+    card_disjoint_union],
+  { refl },
+  rw list.disjoint_to_finset_iff_disjoint,
+  apply coprime_factors_disjoint hmn,
+end
+
+@[simp] lemma _root_.nat.prime.card_distinct_factors_eq_one {n : ℕ} (hn : n.prime) : ω n = 1 :=
+by simp [card_distinct_factors_apply, factors_prime hn]
+
+@[simp] lemma card_distinct_factors_pow {n k : ℕ} {hk : k ≠ 0} : ω (n ^ k) = ω n :=
+by { rw [card_distinct_factors_eq_finset_card, pow_factors_to_finset _ hk], refl }
+
+@[simp] lemma card_distinct_factors_one : ω 1 = 0 := by simp [card_distinct_factors_apply]
+
 /-- `μ` is the Möbius function. If `n` is squarefree with an even number of distinct prime factors,
   `μ n = 1`. If `n` is squarefree with an odd number of distinct prime factors, `μ n = -1`.
   If `n` is not squarefree, `μ n = 0`. -/
 def moebius : arithmetic_function ℤ :=
-⟨λ n, if squarefree n then (-1) ^ (card_factors n) else 0, by simp⟩
+⟨λ n, if squarefree n then (-1) ^ card_factors n else 0, by simp⟩
 
 localized "notation `μ` := nat.arithmetic_function.moebius" in arithmetic_function
 
 @[simp]
-lemma moebius_apply_of_squarefree {n : ℕ} (h : squarefree n): μ n = (-1) ^ (card_factors n) :=
+lemma moebius_apply_of_squarefree {n : ℕ} (h : squarefree n) : μ n = (-1) ^ card_factors n :=
 if_pos h
 
 @[simp]
-lemma moebius_eq_zero_of_not_squarefree {n : ℕ} (h : ¬ squarefree n): μ n = 0 := if_neg h
+lemma moebius_eq_zero_of_not_squarefree {n : ℕ} (h : ¬ squarefree n) : μ n = 0 := if_neg h
 
 lemma moebius_ne_zero_iff_squarefree {n : ℕ} : μ n ≠ 0 ↔ squarefree n :=
 begin
@@ -715,6 +746,15 @@ begin
   { simp [h, pow_ne_zero] }
 end
 
+lemma moebius_prime {p : ℕ} (hp : p.prime) : μ p = -1 :=
+by { rw moebius_apply_of_squarefree hp.squarefree, simp [hp] }
+
+lemma moebius_power_add_two {n : ℕ} (hn : n ≠ 1) (k : ℕ) : μ (n ^ (k + 2)) = 0 :=
+moebius_eq_zero_of_not_squarefree $ λ q, by simpa using q n ⟨n ^ k, by simp [pow_succ, mul_assoc]⟩
+
+lemma moebius_power {n k : ℕ} (hn : n ≠ 1) (hk : 2 ≤ k) : μ (n ^ k) = 0 :=
+by simpa [nat.sub_add_cancel hk] using moebius_power_add_two hn (k - 2)
+
 lemma moebius_ne_zero_iff_eq_or {n : ℕ} : μ n ≠ 0 ↔ μ n = 1 ∨ μ n = -1 :=
 begin
   split; intro h,
@@ -723,6 +763,30 @@ begin
     apply neg_one_pow_eq_or },
   { rcases h with h | h; simp [h] }
 end
+
+lemma squarefree_mul_of_coprime {m n : ℕ} (hm : squarefree m) (hn : squarefree n)
+  (hmn : m.coprime n) : squarefree (m * n) :=
+begin
+  intros k hk,
+end
+
+lemma moebius_is_multiplicative :
+  is_multiplicative μ :=
+begin
+  refine ⟨by simp, _⟩,
+  intros m n hmn,
+  rcases m.eq_zero_or_pos with rfl | hm,
+  { simp },
+  rcases n.eq_zero_or_pos with rfl | hn,
+  { simp },
+  by_cases hm' : squarefree m; by_cases hn' : squarefree n,
+  { rw [moebius_apply_of_squarefree hm', moebius_apply_of_squarefree hn', ←pow_add,
+      ←card_factors_mul hm.ne' hn.ne', moebius_apply_of_squarefree],
+
+  },
+end
+
+#exit
 
 open unique_factorization_monoid
 

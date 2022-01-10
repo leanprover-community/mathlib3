@@ -91,5 +91,4 @@ lemma verschiebung_frobenius_comm [char_p R p] (x : 𝕎 R) :
   verschiebung (frobenius x) = frobenius (verschiebung x) :=
 by rw [verschiebung_frobenius, frobenius_verschiebung]
 
-
 end witt_vector

@@ -1,72 +1,80 @@
+/-
+Copyright (c) 2022 Robert Y. Lewis. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Robert Y. Lewis
+-/
+
 import ring_theory.witt_vector.identities
-import tactic.induction
 
-lemma nat.iterate_succ {α} (n : ℕ) (op : α → α) (a : α) :
-  nat.iterate op n.succ a = nat.iterate op n (op a) :=
-rfl
+/-!
 
-lemma nat.iterate_succ' {α} (n : ℕ) (op : α → α) (a : α) :
-  nat.iterate op n.succ a = op (nat.iterate op n a) :=
-begin
-  induction n with k ih generalizing a,
-  { refl },
-  { apply ih }
-end
+# Witt vectors over a domain
 
-lemma nat.iterate_add {α} (op : α → α) (a : α) (i j : ℕ) :
-  nat.iterate op i (nat.iterate op j a) = nat.iterate op (i+j) a :=
-begin
-  induction j with j ih generalizing a,
-  { refl },
-  { rw [nat.iterate_succ, ih], refl }
-end
+This file builds to the proof `witt_vector.domain`,
+an instance that says if `R` is an integral domain, then so is `𝕎 R`.
+Most of the file develops an API around iterated applications
+of `witt_vector.verschiebung` and `witt_vector.frobenius`.
 
-lemma nat.iterate_comm_aux {α} (op1 op2 : α → α) (h_comm : ∀ v, op1 (op2 v) = op2 (op1 v)) (a : α) (j : ℕ) :
+The [proof sketch](https://tinyurl.com/2p8cwrn7) goes as follows:
+any nonzero $$x$$ is an iterated application of $$V$$
+to some vector $$w_x$$ whose 0th component is zero (`witt_vector.verschiebung_nonzero`).
+Known identities (`witt_vector.iterate_verschiebung_mul`) allow us to transform
+the product of two such $$x$$ and $$y$$
+to the form $$V^{m+n}\left(F^n(w_x) \cdot F^m(w_y)\right)$$,
+the 0th component of which must be nonzero.
+
+## Main declarations
+
+* `witt_vector.iterate_verschiebung_mul_coeff` : an identity from [Haze09]
+* `witt_vector.domain`
+
+-/
+
+open function
+
+
+lemma function.iterate_comm_aux {α : Type*} (op1 op2 : α → α) (h_comm : ∀ v, op1 (op2 v) = op2 (op1 v)) (a : α) (j : ℕ) :
   op1 (nat.iterate op2 j a) = nat.iterate op2 j (op1 a) :=
 begin
   induction j with j jh,
   { refl },
-  { rw [nat.iterate_succ', h_comm, jh, nat.iterate_succ'], }
+  { rw [iterate_succ_apply', h_comm, jh, iterate_succ_apply'], }
 end
-
-lemma nat.iterate_comm {α} (op1 op2 : α → α) (h_comm : ∀ v, op1 (op2 v) = op2 (op1 v)) (a : α) (i j : ℕ) :
+lemma function.iterate_comm_apply {α : Type*} (op1 op2 : α → α) (h_comm : ∀ v, op1 (op2 v) = op2 (op1 v)) (a : α) (i j : ℕ) :
   nat.iterate op1 i (nat.iterate op2 j a) = nat.iterate op2 j (nat.iterate op1 i a) :=
 begin
   induction i with i ih generalizing a,
   { refl },
-  { rw [nat.iterate_succ', ih, nat.iterate_comm_aux op1 op2 h_comm, nat.iterate_succ'], }
+  { rw [iterate_succ_apply', ih, function.iterate_comm_aux op1 op2 h_comm, iterate_succ_apply'], }
 end
 
+noncomputable theory
+open_locale classical
+
 namespace witt_vector
+open function
 
 variables {p : ℕ} {R : Type*}
 
 local notation `𝕎` := witt_vector p -- type as `\bbW`
 
+
+/-!
+## The `shift` operator
+-/
+
+/--
+`witt_vector.verschiebung` translates the entries of a Witt vector upward, inserting 0s in the gaps.
+`witt_vector.shift` does the opposite, removing the first entries.
+This is mainly useful as an auxiliary construction for `witt_vector.verschiebung_nonzero`.
+-/
 def shift (x : 𝕎 R) (n : ℕ) : 𝕎 R := mk p (λ i, x.coeff (n + i))
-
-
-variables [hp : fact p.prime] [comm_ring R]
-include hp
-
-
-noncomputable theory
-
-open_locale classical
-
-
 
 lemma shift_coeff (x : 𝕎 R) (n k : ℕ) : (x.shift n).coeff k = x.coeff (n + k) :=
 rfl
 
-lemma iterate_verschiebung_coeff (x : 𝕎 R) (n k : ℕ) :
-  (nat.iterate verschiebung n x).coeff (k + n) = x.coeff k :=
-begin
-  induction n with k ih,
-  { simp },
-  { rw [nat.iterate_succ', nat.add_succ, verschiebung_coeff_succ],
-    exact ih }
-end
+variables [hp : fact p.prime] [comm_ring R]
+include hp
 
 lemma verschiebung_shift (x : 𝕎 R) (k : ℕ) (h : ∀ i < k+1, x.coeff i = 0) :
   verschiebung (x.shift k.succ) = x.shift k :=
@@ -89,7 +97,6 @@ begin
     { exact h } }
 end
 
-
 lemma verschiebung_nonzero {x : 𝕎 R} (hx : x ≠ 0) :
   ∃ n : ℕ, ∃ x' : 𝕎 R, x'.coeff 0 ≠ 0 ∧ x = nat.iterate verschiebung n x' :=
 begin
@@ -105,41 +112,45 @@ begin
   exact nat.find_min hex hi,
 end
 
-lemma coeff_mul_zero (x y : 𝕎 R) : (x * y).coeff 0 = x.coeff 0 * y.coeff 0 :=
+/-!
+## Iteration lemmas
+
+This construction involves iterated applications of `verschiebung` and `frobenius`.
+Here we prove some useful lemmas about these.
+Auxiliary lemmas are used to simplify double inductions.
+-/
+
+lemma iterate_verschiebung_coeff (x : 𝕎 R) (n k : ℕ) :
+  (nat.iterate verschiebung n x).coeff (k + n) = x.coeff k :=
 begin
-  simp [mul_coeff, peval],
+  induction n with k ih,
+  { simp },
+  { rw [iterate_succ_apply', nat.add_succ, verschiebung_coeff_succ],
+    exact ih }
 end
 
-
-lemma iterate_verschiebung_mul_aux1 (x y : 𝕎 R) (i : ℕ) :
+lemma iterate_verschiebung_mul_left (x y : 𝕎 R) (i : ℕ) :
   nat.iterate verschiebung i x * y = nat.iterate verschiebung i (x * nat.iterate frobenius i y) :=
 begin
   induction i with i ih generalizing y,
   { simp },
-  { rw [nat.iterate_succ', ← verschiebung_mul_frobenius, ih, nat.iterate_succ'], refl }
+  { rw [iterate_succ_apply', ← verschiebung_mul_frobenius, ih, iterate_succ_apply'], refl }
 end
+
+/-!
+From this point on, we assume `R` is of characteristic `p`.
+-/
+
+section char_p
 
 variable [char_p R p]
 
-lemma nontrivial : nontrivial (𝕎 R) :=
-{ exists_pair_ne := ⟨0, 1,
-  begin
-    haveI : nontrivial R := char_p.nontrivial_of_char_ne_one hp.1.ne_one,
-    intro h,
-    have : (0 : 𝕎 R).coeff 0 = (1 : 𝕎 R).coeff 0 := by rw h,
-    simpa using this,
-  end⟩ }
-
-
-
 lemma iterate_verschiebung_mul_frobenius (x : 𝕎 R) (i j : ℕ) :
-  nat.iterate frobenius i (nat.iterate verschiebung j x) =
+  (nat.iterate frobenius i : 𝕎 R → 𝕎 R) (nat.iterate verschiebung j x) =
     nat.iterate verschiebung j (nat.iterate frobenius i x) :=
-nat.iterate_comm _ _ (λ _, (verschiebung_frobenius_comm _).symm) _ _ _
+iterate_comm_apply _ _ (λ _, (verschiebung_frobenius_comm _).symm) _ _ _
 
-
-
-lemma iterate_verschiebung_mul_aux (x y : 𝕎 R) (i j : ℕ) :
+lemma iterate_verschiebung_mul (x y : 𝕎 R) (i j : ℕ) :
   nat.iterate verschiebung i x * nat.iterate verschiebung j y =
     nat.iterate verschiebung (i + j) (nat.iterate frobenius j x * nat.iterate frobenius i y) :=
 begin
@@ -150,26 +161,25 @@ begin
 ... = nat.iterate verschiebung i (nat.iterate verschiebung j (nat.iterate frobenius i y * nat.iterate frobenius j x)) : _
 ... = nat.iterate verschiebung (i + j) (nat.iterate frobenius i y * nat.iterate frobenius j x) : _
 ... = _ : _,
-  { apply iterate_verschiebung_mul_aux1 },
+  { apply iterate_verschiebung_mul_left },
   { rw iterate_verschiebung_mul_frobenius },
   { rw mul_comm },
-  { rw iterate_verschiebung_mul_aux1 },
-  { apply nat.iterate_add },
+  { rw iterate_verschiebung_mul_left },
+  { rw iterate_add_apply },
   { rw mul_comm }
 end
-
 
 lemma iter_frobenius_coeff (x : 𝕎 R) (i k : ℕ) :
   (nat.iterate frobenius i x).coeff k = (x.coeff k)^(p^i) :=
 begin
   induction i with i ih,
   { simp },
-  { rw [nat.iterate_succ', coeff_frobenius_char_p, ih], ring_exp }
+  { rw [iterate_succ_apply', coeff_frobenius_char_p, ih],
+    ring_exp }
 end
 
--- a specialization of hw 6.1.5
--- "follows from 6.1.2, 6.1.4, and repeated application of product formula"
-lemma iterate_verschiebung_mul (x y : 𝕎 R) (i j : ℕ) :
+/-- This is a slightly specialized form of [Hazewinkel, *Witt Vectors*][Haze09] 6.2 equation 5. -/
+lemma iterate_verschiebung_mul_coeff (x y : 𝕎 R) (i j : ℕ) :
   (nat.iterate verschiebung i x * nat.iterate verschiebung j y).coeff (i + j) =
     (x.coeff 0)^(p ^ j) * (y.coeff 0)^(p ^ i) :=
 begin
@@ -178,12 +188,19 @@ begin
 ... = (nat.iterate frobenius j x * nat.iterate frobenius i y).coeff 0 : _
 ... = (nat.iterate frobenius j x).coeff 0 * (nat.iterate frobenius i y).coeff 0 : _
 ... = _ : _,
-  { rw iterate_verschiebung_mul_aux },
+  { rw iterate_verschiebung_mul },
   { convert iterate_verschiebung_coeff _ _ _ using 2,
     rw zero_add },
   { apply coeff_mul_zero },
   { simp only [iter_frobenius_coeff] }
 end
+
+/-!
+## Witt vectors over a domain
+
+If `R` is an integral domain, then so is `𝕎 R`.
+This argument is adapted from <https://tinyurl.com/2p8cwrn7>.
+-/
 
 variable  [is_domain R]
 
@@ -194,7 +211,7 @@ begin
   rcases verschiebung_nonzero ha with ⟨na, wa, hwa0, hwaeq⟩,
   rcases verschiebung_nonzero hb with ⟨nb, wb, hwb0, hwbeq⟩,
   have : (x * y).coeff (na + nb) = (wa.coeff 0) ^ (p ^ nb) * (wb.coeff 0) ^ (p ^ na),
-  { rw [← iterate_verschiebung_mul, hwaeq, hwbeq], },
+  { rw [← iterate_verschiebung_mul_coeff, hwaeq, hwbeq], },
   have : (x * y).coeff (na + nb) ≠ 0,
   { rw this,
     apply mul_ne_zero; apply pow_ne_zero; assumption },
@@ -202,9 +219,10 @@ begin
   simp [this]
 end
 
-
 instance : is_domain (𝕎 R) :=
 { eq_zero_or_eq_zero_of_mul_eq_zero := nonzeros,
   exists_pair_ne := witt_vector.nontrivial.exists_pair_ne }
+
+end char_p
 
 end witt_vector

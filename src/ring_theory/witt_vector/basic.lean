@@ -246,6 +246,12 @@ lemma ghost_component_apply (n : ℕ) (x : 𝕎 R) : ghost_component n x = aeval
 
 @[simp] lemma ghost_map_apply (x : 𝕎 R) (n : ℕ) : ghost_map x n = ghost_component n x := rfl
 
+-- TODO: upgrade `x ↦ x.coeff 0` to a ring hom
+lemma coeff_mul_zero (x y : 𝕎 R) : (x * y).coeff 0 = x.coeff 0 * y.coeff 0 :=
+by simp [mul_coeff, peval]
+
+section invertible
+
 variables (p R) [invertible (p : R)]
 
 /-- `witt_vector.ghost_map` is a ring isomorphism when `p` is invertible in `R`. -/
@@ -256,5 +262,16 @@ def ghost_equiv : 𝕎 R ≃+* (ℕ → R) :=
 
 lemma ghost_map.bijective_of_invertible : function.bijective (ghost_map : 𝕎 R → ℕ → R) :=
 (ghost_equiv p R).bijective
+
+end invertible
+
+lemma nontrivial [nontrivial R] : nontrivial (𝕎 R) :=
+{ exists_pair_ne := ⟨0, 1,
+  begin
+    intro h,
+    have : (0 : 𝕎 R).coeff 0 = (1 : 𝕎 R).coeff 0 := by rw h,
+    simpa using this,
+  end⟩ }
+
 
 end witt_vector

@@ -256,13 +256,13 @@ variables [add_monoid E]
 section has_scalar
 variables [has_scalar 𝕜 E]
 
-instance : fun_like (seminorm 𝕜 E) E (λ _, ℝ) :=
+instance fun_like : fun_like (seminorm 𝕜 E) E (λ _, ℝ) :=
 { coe := seminorm.to_fun, coe_injective' := λ f g h, by cases f; cases g; congr' }
 
 /-- Helper instance for when there's too many metavariables to apply `fun_like`. -/
 instance : has_coe_to_fun (seminorm 𝕜 E) (λ _, E → ℝ) := ⟨λ p, p.to_fun⟩
 
-@[ext] lemma ext {p q : seminorm 𝕜 E} (h : (p : E → ℝ) = q) : p = q := fun_like.ext h
+@[ext] lemma ext {p q : seminorm 𝕜 E} (h : (p : E → ℝ) = q) : p = q := fun_like.ext p q h
 
 instance : has_zero (seminorm 𝕜 E) :=
 ⟨{ to_fun    := λ _, 0,
@@ -303,7 +303,7 @@ lemma le_def (p q : seminorm 𝕜 E) : p ≤ q ↔ (p : E → ℝ) ≤ q := iff.
 lemma lt_def (p q : seminorm 𝕜 E) : p < q ↔ (p : E → ℝ) < q := iff.rfl
 
 noncomputable instance : semilattice_sup (seminorm 𝕜 E) :=
-function.injective.semilattice_sup _ coe_injective coe_sup
+function.injective.semilattice_sup _ fun_like.coe_injective coe_sup
 
 end has_scalar
 

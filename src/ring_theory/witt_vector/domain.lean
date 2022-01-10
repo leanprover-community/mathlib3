@@ -1,6 +1,14 @@
 import ring_theory.witt_vector.identities
 import tactic.induction
 
+lemma nat.iterate_succ' {α} (n : ℕ) (op : α → α) (a : α) :
+  nat.iterate op n.succ a = op (nat.iterate op n a) :=
+begin
+  induction n with k ih generalizing a,
+  { refl },
+  { apply ih }
+end
+
 
 namespace witt_vector
 open mv_polynomial
@@ -19,6 +27,15 @@ def shift (x : 𝕎 R) (n : ℕ) : 𝕎 R := mk p (λ i, x.coeff (n + i))
 
 lemma shift_coeff (x : 𝕎 R) (n k : ℕ) : (x.shift n).coeff k = x.coeff (n + k) :=
 rfl
+
+lemma iterate_verschiebung_coeff (x : 𝕎 R) (n k : ℕ) :
+  (nat.iterate verschiebung n x).coeff (k + n) = x.coeff k :=
+begin
+  induction n with k ih,
+  { simp },
+  { rw [nat.iterate_succ', nat.add_succ, verschiebung_coeff_succ],
+    exact ih }
+end
 
 lemma verschiebung_shift (x : 𝕎 R) (k : ℕ) (h : ∀ i < k+1, x.coeff i = 0) :
   verschiebung (x.shift k.succ) = x.shift k :=
@@ -70,17 +87,43 @@ lemma nontrivial : nontrivial (𝕎 R) :=
 
 variable  [is_domain R]
 
+
+-- 6.1.1
+#check coeff_frobenius_char_p
+
+-- 6.1.2
+#check mul_char_p_coeff_zero
+#check mul_char_p_coeff_succ
+
+-- 6.1.3
+#check coeff_p_pow
+#check coeff_p_pow_eq_zero
+
+-- 6.1.4
+#check frobenius_verschiebung
+#check verschiebung_frobenius
+#check verschiebung_frobenius_comm
+
+-- a specialization of hw 6.1.5
+-- "follows from 6.1.2, 6.1.4, and repeated application of product formula"
+lemma iterate_verschiebung_mul (x y : 𝕎 R) (i j : ℕ) :
+  (nat.iterate verschiebung i x * nat.iterate verschiebung j y).coeff (i + j) =
+    (x.coeff 0)^(p ^ i) * (y.coeff 0)^(p ^ j) :=
+begin
+  sorry
+end
+
 lemma nonzeros (x y : 𝕎 R) : x * y = 0 → x = 0 ∨ y = 0 :=
 begin
   contrapose!,
   rintros ⟨ha, hb⟩,
   rcases verschiebung_nonzero ha with ⟨na, wa, hwa0, hwaeq⟩,
   rcases verschiebung_nonzero hb with ⟨nb, wb, hwb0, hwbeq⟩,
-
   have : (x * y).coeff (na + nb) = (wa.coeff 0) ^ (p ^ na) * (wb.coeff 0) ^ (p ^ nb),
-  { sorry },
+  { rw [← iterate_verschiebung_mul, hwaeq, hwbeq], },
   have : (x * y).coeff (na + nb) ≠ 0,
-  { sorry },
+  { rw this,
+    apply mul_ne_zero; apply pow_ne_zero; assumption },
   contrapose! this,
   simp [this]
 end

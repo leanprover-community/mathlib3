@@ -136,11 +136,8 @@ begin
   { simp },
   { rintros -, rw [factorization_one, hf], simp },
   { intros a b hab ha hb hab_pos,
-    rw [h_mult a b hab,
-        ha (left_ne_zero_of_mul hab_pos),
-        hb (right_ne_zero_of_mul hab_pos),
-        factorization_mul_of_coprime hab,
-        ←prod_add_index_of_disjoint],
+    rw [h_mult a b hab, ha (left_ne_zero_of_mul hab_pos), hb (right_ne_zero_of_mul hab_pos),
+        factorization_mul_of_coprime hab, ←prod_add_index_of_disjoint],
     convert (factorization_disjoint_of_coprime hab) },
 end
 

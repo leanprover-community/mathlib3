@@ -100,7 +100,7 @@ by rw [abs_eq_nat_abs]; refl
 theorem sign_mul_abs (a : ℤ) : sign a * |a| = a :=
 by rw [abs_eq_nat_abs, sign_mul_nat_abs]
 
-@[simp] lemma default_eq_zero : default ℤ = 0 := rfl
+@[simp] lemma default_eq_zero : default = (0 : ℤ) := rfl
 
 meta instance : has_to_format ℤ := ⟨λ z, to_string z⟩
 meta instance : has_reflect ℤ := by tactic.mk_has_reflect_instance

@@ -80,7 +80,7 @@ let ⟨ε, hε, N1, hN1⟩ := this,
     ⟨N2, hN2⟩ := cau_seq.cauchy₂ f hε in
 ⟨ max N1 N2,
   λ n m hn hm,
-  have padic_norm p (f n - f m) < ε, from hN2 _ _ (max_le_iff.1 hn).2 (max_le_iff.1 hm).2,
+  have padic_norm p (f n - f m) < ε, from hN2 _ (max_le_iff.1 hn).2 _ (max_le_iff.1 hm).2,
   have padic_norm p (f n - f m) < padic_norm p (f n),
     from lt_of_lt_of_le this $ hN1 _ (max_le_iff.1 hn).1,
   have  padic_norm p (f n - f m) < max (padic_norm p (f n)) (padic_norm p (f m)),

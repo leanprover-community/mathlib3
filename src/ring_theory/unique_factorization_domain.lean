@@ -1421,3 +1421,46 @@ begin
 end
 
 end unique_factorization_monoid
+
+section finsupp
+variables [cancel_comm_monoid_with_zero α] [unique_factorization_monoid α]
+variables [normalization_monoid α] [decidable_eq α]
+
+open unique_factorization_monoid
+
+/-- This returns the multiset of irreducible factors as a `finsupp` -/
+noncomputable def factorization (n : α) : α →₀ ℕ := (normalized_factors n).to_finsupp
+
+lemma factorization_eq_count {n p : α} :
+  factorization n p = multiset.count p (normalized_factors n) :=
+by simp [factorization]
+
+@[simp] lemma factorization_zero : factorization (0 : α) = 0 := by simp [factorization]
+
+@[simp] lemma factorization_one : factorization (1 : α) = 0 := by simp [factorization]
+
+/-- The support of `factorization n` is exactly the finset of normalized factors -/
+@[simp] lemma support_factorization {n : α} :
+  (factorization n).support = (normalized_factors n).to_finset :=
+by simp [factorization, multiset.to_finsupp_support]
+
+/-- For nonzero `a` and `b`, the power of `p` in `a * b` is the sum of the powers in `a` and `b` -/
+@[simp] lemma factorization_mul {a b : α} (ha : a ≠ 0) (hb : b ≠ 0) :
+  factorization (a * b) = factorization a + factorization b :=
+by simp [factorization, normalized_factors_mul ha hb]
+
+/-- For any `p`, the power of `p` in `x^n` is `n` times the power in `x` -/
+lemma factorization_pow {x : α} {n : ℕ} :
+  factorization (x^n) = n • factorization x :=
+by { ext, simp [factorization] }
+
+lemma associated_of_factorization_eq (a b: α) (ha: a ≠ 0) (hb: b ≠ 0)
+  (h: factorization a = factorization b) : associated a b :=
+begin
+  simp only [factorization, add_equiv.apply_eq_iff_eq] at h,
+  have ha' := normalized_factors_prod ha,
+  rw h at ha',
+  exact associated.trans ha'.symm (normalized_factors_prod hb),
+end
+
+end finsupp

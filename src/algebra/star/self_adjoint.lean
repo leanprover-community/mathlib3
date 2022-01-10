@@ -82,6 +82,10 @@ instance : inhabited (self_adjoint R) := ⟨0⟩
 lemma bit0_mem {x : R} (hx : x ∈ self_adjoint R) : bit0 x ∈ self_adjoint R :=
 by simp only [mem_iff, star_bit0, mem_iff.mp hx]
 
+instance [add_comm_group R] [star_add_monoid R] : add_comm_group (self_adjoint R) :=
+{ add_comm := add_comm,
+  ..add_subgroup_class.to_add_group (self_adjoint R) }
+
 end add_group
 
 section ring

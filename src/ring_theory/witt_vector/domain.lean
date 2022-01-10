@@ -180,8 +180,6 @@ This argument is adapted from
 <https://math.stackexchange.com/questions/4117247/ring-of-witt-vectors-over-an-integral-domain/4118723#4118723>.
 -/
 
-variable  [is_domain R]
-
 instance [no_zero_divisors R] : no_zero_divisors (𝕎 R) :=
 ⟨λ x y, begin
   contrapose!,
@@ -193,7 +191,7 @@ instance [no_zero_divisors R] : no_zero_divisors (𝕎 R) :=
   refine mul_ne_zero (pow_ne_zero _ hwa0) (pow_ne_zero _ hwb0),
 end⟩
 
-instance : is_domain (𝕎 R) :=
+instance [is_domain R] : is_domain (𝕎 R) :=
 { ..witt_vector.no_zero_divisors,
   ..witt_vector.nontrivial }
 

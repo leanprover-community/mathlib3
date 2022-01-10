@@ -262,7 +262,7 @@ instance fun_like : fun_like (seminorm 𝕜 E) E (λ _, ℝ) :=
 /-- Helper instance for when there's too many metavariables to apply `fun_like`. -/
 instance : has_coe_to_fun (seminorm 𝕜 E) (λ _, E → ℝ) := ⟨λ p, p.to_fun⟩
 
-@[ext] lemma ext {p q : seminorm 𝕜 E} (h : (p : E → ℝ) = q) : p = q := fun_like.ext p q h
+@[ext] lemma ext {p q : seminorm 𝕜 E} (h : ∀ x, (p : E → ℝ) x = q x) : p = q := fun_like.ext p q h
 
 instance : has_zero (seminorm 𝕜 E) :=
 ⟨{ to_fun    := λ _, 0,
@@ -743,9 +743,8 @@ end
   triangle' := gauge_add_le hs hs' }
 
 /-- Any seminorm arises a the gauge of its unit ball. -/
-lemma seminorm.gauge_ball (p : seminorm ℝ E) : gauge (p.ball 0 1) = p :=
+lemma seminorm.gauge_ball (p : seminorm ℝ E) (x : E): gauge (p.ball 0 1) x = p x :=
 begin
-  ext,
   obtain hp | hp := {r : ℝ | 0 < r ∧ x ∈ r • p.ball 0 1}.eq_empty_or_nonempty,
   { rw [gauge, hp, real.Inf_empty],
     by_contra,
@@ -769,8 +768,7 @@ end
 
 lemma seminorm.gauge_seminorm_ball (p : seminorm ℝ E) :
   gauge_seminorm (λ x, p.symmetric_ball_zero 1) (p.convex_ball 0 1)
-    (p.absorbent_ball_zero zero_lt_one) = p :=
-seminorm.ext p.gauge_ball
+    (p.absorbent_ball_zero zero_lt_one) = p := seminorm.ext p.gauge_ball
 
 end gauge
 

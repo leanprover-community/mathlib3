@@ -263,7 +263,7 @@ end invertible
 
 /-- `witt_vector.coeff x 0` as a `ring_hom` -/
 @[simps]
-def constant_coeff : 𝕎 R →+* R :=
+def zeroth_coeff : 𝕎 R →+* R :=
 { to_fun := λ x, x.coeff 0,
   map_zero' := by simp,
   map_one' := by simp,
@@ -271,7 +271,7 @@ def constant_coeff : 𝕎 R →+* R :=
   map_mul' := mul_coeff_zero }
 
 lemma nontrivial [nontrivial R] : nontrivial (𝕎 R) :=
-constant_coeff.domain_nontrivial
+zeroth_coeff.domain_nontrivial
 
 
 end witt_vector

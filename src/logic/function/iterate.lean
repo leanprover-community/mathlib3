@@ -158,7 +158,7 @@ begin
   { rw [iterate_succ_apply', h_comm, jh, iterate_succ_apply'], }
 end
 
-lemma iterate_comm_apply {α : Type*} (f g : α → α) (h_comm : ∀ v, f (g v) = g (f v)) (a : α) (i j : ℕ) :
+lemma iterate_comm_apply {g : α → α} (h_comm : ∀ v, f (g v) = g (f v)) (a : α) (i j : ℕ) :
   nat.iterate f i (nat.iterate g j a) = nat.iterate g j (nat.iterate f i a) :=
 begin
   induction i with i ih generalizing a,

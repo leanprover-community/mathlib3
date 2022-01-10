@@ -1043,7 +1043,7 @@ map_coe_at_top_of_Ici_subset (subset.refl _)
 /-- The image of the filter `at_top` on `Ioi a` under the coercion equals `at_top`. -/
 @[simp] lemma map_coe_Ioi_at_top [semilattice_sup α] [no_max_order α] (a : α) :
   map (coe : Ioi a → α) at_top = at_top :=
-map_coe_at_top_of_Ici_subset $ Ici_subset_Ioi.2 (no_max a).snd
+let ⟨b, hb⟩ := no_max a in map_coe_at_top_of_Ici_subset $ Ici_subset_Ioi.2 hb
 
 /-- The `at_top` filter for an open interval `Ioi a` comes from the `at_top` filter in the ambient
 order. -/

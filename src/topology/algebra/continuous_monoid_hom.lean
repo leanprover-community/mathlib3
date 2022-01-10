@@ -33,8 +33,11 @@ structure continuous_add_monoid_hom (A B : Type*) [add_monoid A] [add_monoid B]
   [topological_space A] [topological_space B] extends A →+ B, continuous_map A B
 
 attribute [to_additive] continuous_monoid_hom
-
 attribute [to_additive] continuous_monoid_hom.to_monoid_hom
+attribute [nolint doc_blame] continuous_monoid_hom.to_monoid_hom
+attribute [nolint doc_blame] continuous_monoid_hom.to_continuous_map
+attribute [nolint doc_blame] continuous_add_monoid_hom.to_add_monoid_hom
+attribute [nolint doc_blame] continuous_add_monoid_hom.to_continuous_map
 
 namespace continuous_monoid_hom
 
@@ -129,5 +132,3 @@ def coprod (f : continuous_monoid_hom A E) (g : continuous_monoid_hom B E) :
   mul_left_inv := λ f, ext (λ x, mul_left_inv (f x)) }
 
 end continuous_monoid_hom
-
-#lint

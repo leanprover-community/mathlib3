@@ -518,9 +518,6 @@ end
 instance {α} [topological_space α] [encodable α] : separable_space α :=
 { exists_countable_dense := ⟨set.univ, set.countable_encodable set.univ, dense_univ⟩ }
 
-lemma filter.is_countably_generated_pure {α} (a : α) : filter.is_countably_generated (pure a) :=
-by { rw ← filter.principal_singleton, exact filter.is_countably_generated_principal _, }
-
 @[priority 100]
 instance discrete_topology.first_countable_topology {α} [topological_space α]
   [discrete_topology α] :
@@ -539,46 +536,6 @@ begin
   have h_open : ∀ (i : α), is_open ({i} : set α), from λ i, is_open_discrete _,
   exact second_countable_topology_of_countable_cover h_open (set.Union_of_singleton α),
 end
-
-lemma is_open_generate_from_of_mem {α} {S : set (set α)} {s : set α} (hs : s ∈ S) :
-  (generate_from S).is_open s :=
-generate_open.basic s hs
-
-lemma lt_succ_of_exists_lt {α} [preorder α] [succ_order α] {a : α} (ha : ∃ b, a < b) :
-  a < succ_order.succ a :=
-(succ_order.le_succ a).lt_of_not_le (λ h, not_exists.2 (succ_order.maximal_of_succ_le h) ha)
-
-lemma lt_succ_iff_of_exists_lt {α} [preorder α] [succ_order α] {a b : α} (ha : ∃ b, a < b) :
-  b < succ_order.succ a ↔ b ≤ a :=
-⟨succ_order.le_of_lt_succ, λ h_le, h_le.trans_lt (lt_succ_of_exists_lt ha)⟩
-
-lemma pred_lt_of_exists_lt {α} [preorder α] [pred_order α] {a : α} (ha : ∃ b, b < a) :
-  pred_order.pred a < a :=
-(pred_order.pred_le a).lt_of_not_le (λ h, not_exists.2 (pred_order.minimal_of_le_pred h) ha)
-
-lemma pred_lt_iff_of_exists_lt {α} [preorder α] [pred_order α] {a b : α} (ha : ∃ b, b < a) :
-  pred_order.pred a < b ↔ a ≤ b :=
-⟨pred_order.le_of_pred_lt, λ h_le, (pred_lt_of_exists_lt ha).trans_le h_le⟩
-
-lemma Iic_eq_Iio_succ {α} [preorder α] [succ_order α] [no_top_order α] (a : α) :
-  set.Iic a = set.Iio (succ_order.succ a) :=
-by { ext1 x, rw [set.mem_Iic, set.mem_Iio], exact succ_order.lt_succ_iff.symm, }
-
-lemma Iic_eq_Iio_succ' {α} [preorder α] [succ_order α] {a : α} (ha : ∃ b, a < b) :
-  set.Iic a = set.Iio (succ_order.succ a) :=
-by { ext1 x, rw [set.mem_Iic, set.mem_Iio], exact (lt_succ_iff_of_exists_lt ha).symm, }
-
-lemma Ici_succ_eq_Ioi {α} [preorder α] [succ_order α] [no_top_order α] (a : α) :
-  set.Ici (succ_order.succ a) = set.Ioi a :=
-by { ext1 x, rw [set.mem_Ici, set.mem_Ioi], exact succ_order.succ_le_iff, }
-
-lemma Ici_eq_Ioi_pred {α} [preorder α] [pred_order α] [no_bot_order α] (a : α) :
-  set.Ici a = set.Ioi (pred_order.pred a) :=
-by { ext1 x, rw [set.mem_Ici, set.mem_Ioi], exact pred_order.pred_lt_iff.symm, }
-
-lemma Ici_eq_Ioi_pred' {α} [preorder α] [pred_order α] {a : α} (ha : ∃ b, b < a) :
-  set.Ici a = set.Ioi (pred_order.pred a) :=
-by { ext1 x, rw [set.mem_Ici, set.mem_Ioi], exact (pred_lt_iff_of_exists_lt ha).symm, }
 
 @[priority 100]
 instance todo {α} [topological_space α] [h : discrete_topology α] [partial_order α] [succ_order α]
@@ -668,10 +625,7 @@ end
 lemma integrable_stopped_process [borel_space β] {μ : measure α} (hτ : is_stopping_time f τ)
   (hu : ∀ n, integrable (u n) μ) (n : ℕ) :
   integrable (stopped_process u τ n) μ :=
-begin
-  simp_rw ← mem_ℒp_one_iff_integrable at hu ⊢,
-  exact mem_ℒp_stopped_process hτ hu n,
-end
+by { simp_rw ← mem_ℒp_one_iff_integrable at hu ⊢, exact mem_ℒp_stopped_process hτ hu n, }
 
 end normed_group
 

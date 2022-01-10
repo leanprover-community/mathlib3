@@ -120,6 +120,12 @@ lemma lt_succ (a : α) : a < succ a :=
 lemma lt_succ_iff : a < succ b ↔ a ≤ b :=
 ⟨le_of_lt_succ, λ h, h.trans_lt $ lt_succ b⟩
 
+lemma lt_succ_of_exists_lt {a : α} (ha : ∃ b, a < b) : a < succ_order.succ a :=
+(le_succ a).lt_of_not_le (λ h, not_exists.2 (maximal_of_succ_le h) ha)
+
+lemma lt_succ_iff_of_exists_lt {a b : α} (ha : ∃ b, a < b) : b < succ_order.succ a ↔ b ≤ a :=
+⟨le_of_lt_succ, λ h_le, h_le.trans_lt (lt_succ_of_exists_lt ha)⟩
+
 lemma succ_le_iff : succ a ≤ b ↔ a < b :=
 ⟨(lt_succ a).trans_le, succ_le_of_lt⟩
 
@@ -267,6 +273,31 @@ begin
 end
 
 end complete_lattice
+
+section intervals
+
+lemma Iic_eq_Iio_succ' {α} [preorder α] [succ_order α] {a : α} (ha : ∃ b, a < b) :
+  set.Iic a = set.Iio (succ_order.succ a) :=
+by { ext1 x, rw [set.mem_Iic, set.mem_Iio], exact (lt_succ_iff_of_exists_lt ha).symm, }
+
+lemma Iic_eq_Iio_succ {α} [preorder α] [succ_order α] [no_top_order α] (a : α) :
+  set.Iic a = set.Iio (succ_order.succ a) :=
+by { ext1 x, rw [set.mem_Iic, set.mem_Iio], exact succ_order.lt_succ_iff.symm, }
+
+lemma Ici_succ_eq_Ioi {α} [preorder α] [succ_order α] [no_top_order α] (a : α) :
+  set.Ici (succ_order.succ a) = set.Ioi a :=
+by { ext1 x, rw [set.mem_Ici, set.mem_Ioi], exact succ_order.succ_le_iff, }
+
+lemma Ici_eq_Ioi_pred {α} [preorder α] [pred_order α] [no_bot_order α] (a : α) :
+  set.Ici a = set.Ioi (pred_order.pred a) :=
+by { ext1 x, rw [set.mem_Ici, set.mem_Ioi], exact pred_order.pred_lt_iff.symm, }
+
+lemma Ici_eq_Ioi_pred' {α} [preorder α] [pred_order α] {a : α} (ha : ∃ b, b < a) :
+  set.Ici a = set.Ioi (pred_order.pred a) :=
+by { ext1 x, rw [set.mem_Ici, set.mem_Ioi], exact (pred_lt_iff_of_exists_lt ha).symm, }
+
+end intervals
+
 end succ_order
 
 /-! ### Predecessor order -/
@@ -331,6 +362,12 @@ lemma pred_lt (a : α) : pred a < a :=
 
 lemma pred_lt_iff : pred a < b ↔ a ≤ b :=
 ⟨le_of_pred_lt, (pred_lt a).trans_le⟩
+
+lemma pred_lt_of_exists_lt {a : α} (ha : ∃ b, b < a) : pred_order.pred a < a :=
+(pred_le a).lt_of_not_le (λ h, not_exists.2 (minimal_of_le_pred h) ha)
+
+lemma pred_lt_iff_of_exists_lt {a b : α} (ha : ∃ b, b < a) : pred_order.pred a < b ↔ a ≤ b :=
+⟨le_of_pred_lt, λ h_le, (pred_lt_of_exists_lt ha).trans_le h_le⟩
 
 lemma le_pred_iff : a ≤ pred b ↔ a < b :=
 ⟨λ h, h.trans_lt (pred_lt b), le_pred_of_lt⟩
@@ -477,6 +514,31 @@ begin
 end
 
 end complete_lattice
+
+section intervals
+
+lemma Iic_eq_Iio_succ' {α} [preorder α] [succ_order α] {a : α} (ha : ∃ b, a < b) :
+  set.Iic a = set.Iio (succ_order.succ a) :=
+by { ext1 x, rw [set.mem_Iic, set.mem_Iio], exact (lt_succ_iff_of_exists_lt ha).symm, }
+
+lemma Iic_eq_Iio_succ {α} [preorder α] [succ_order α] [no_top_order α] (a : α) :
+  set.Iic a = set.Iio (succ_order.succ a) :=
+by { ext1 x, rw [set.mem_Iic, set.mem_Iio], exact succ_order.lt_succ_iff.symm, }
+
+lemma Ici_succ_eq_Ioi {α} [preorder α] [succ_order α] [no_top_order α] (a : α) :
+  set.Ici (succ_order.succ a) = set.Ioi a :=
+by { ext1 x, rw [set.mem_Ici, set.mem_Ioi], exact succ_order.succ_le_iff, }
+
+lemma Ici_eq_Ioi_pred {α} [preorder α] [pred_order α] [no_bot_order α] (a : α) :
+  set.Ici a = set.Ioi (pred_order.pred a) :=
+by { ext1 x, rw [set.mem_Ici, set.mem_Ioi], exact pred_order.pred_lt_iff.symm, }
+
+lemma Ici_eq_Ioi_pred' {α} [preorder α] [pred_order α] {a : α} (ha : ∃ b, b < a) :
+  set.Ici a = set.Ioi (pred_order.pred a) :=
+by { ext1 x, rw [set.mem_Ici, set.mem_Ioi], exact (pred_lt_iff_of_exists_lt ha).symm, }
+
+end intervals
+
 end pred_order
 
 open succ_order pred_order

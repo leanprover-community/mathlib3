@@ -35,6 +35,9 @@ We provide many ways to build finpartitions:
 ## TODO
 
 Link `finpartition` and `setoid.is_partition`.
+
+The order is the wrong way around to make `finpartition a` a graded order. Is it bad to depart from
+the literature and turn the order around?
 -/
 
 open finset function
@@ -222,7 +225,7 @@ instance {α : Type*} [decidable_eq α] [distrib_lattice α] [order_bot α] (a :
   end
   begin
     rw [sup_image, comp.left_id, sup_product_left],
-    simp_rw [←finset.inf_sup_left, ←finset.sup_inf_right],
+    simp_rw [sup_inf_left, sup_inf_right],
     erw [P.sup_parts, Q.sup_parts, inf_idem],
   end⟩
 
@@ -352,7 +355,7 @@ end finpartition
 /-! ### Finite partitions of finsets -/
 
 namespace finpartition
-variables [decidable_eq α] {s : finset α} (P : finpartition s)
+variables [decidable_eq α] {s t : finset α} (P : finpartition s)
 
 lemma nonempty_of_mem_parts {a : finset α} (ha : a ∈ P.parts) : a.nonempty :=
 nonempty_iff_ne_empty.2 $ P.ne_bot ha
@@ -364,26 +367,42 @@ lemma bUnion_parts : P.parts.bUnion id = s := (sup_eq_bUnion _ _).symm.trans P.s
 
 lemma sum_card_parts : ∑ i in P.parts, i.card = s.card :=
 begin
-  rw ←card_bUnion P.sup_indep,
-  exact congr_arg finset.card P.bUnion_parts,
+  convert congr_arg finset.card P.bUnion_parts,
+  rw card_bUnion P.sup_indep.pairwise_disjoint,
+  refl,
 end
 
 lemma parts_nonempty [nonempty α] [fintype α] (P : finpartition (univ : finset α)) :
   P.parts.nonempty :=
 parts_nonempty_iff.2 univ_nonempty.ne_empty
 
-/-- The partition in singletons. -/
-@[simps] def discrete (s : finset α) : finpartition s :=
-{ parts := s.map ⟨singleton, singleton_injective⟩,
+/-- `⊥` is the partition in singletons, aka discrete partition. -/
+instance (s : finset α) : has_bot (finpartition s) :=
+⟨{ parts := s.map ⟨singleton, singleton_injective⟩,
   sup_indep :=
     begin
       rw finset.coe_map,
       exact finset.pairwise_disjoint_range_singleton.subset (set.image_subset_range _ _),
     end,
   sup_parts := by rw [sup_map, comp.left_id, embedding.coe_fn_mk, finset.sup_singleton'],
-  not_bot_mem := by simp }
+  not_bot_mem := by simp }⟩
 
-lemma card_discrete : (discrete s).parts.card = s.card := finset.card_map _
+@[simp] lemma parts_bot (s : finset α) :
+  (⊥ : finpartition s).parts = s.map ⟨singleton, singleton_injective⟩ := rfl
+
+@[simp] lemma card_bot (s : finset α) : (⊥ : finpartition s).parts.card = s.card :=
+finset.card_map _
+
+@[simp] lemma mem_bot_iff : t ∈ (⊥ : finpartition s).parts ↔ ∃ a ∈ s, {a} = t := mem_map
+
+instance (s : finset α) : order_bot (finpartition s) :=
+{ bot_le := λ P t ht, begin
+    rw mem_bot_iff at ht,
+    obtain ⟨a, ha, rfl⟩ := ht,
+    obtain ⟨t, ht, hat⟩ := P.exists_mem ha,
+    exact ⟨t, ht, singleton_subset_iff.2 hat⟩,
+  end,
+  .. finpartition.has_bot s }
 
 section atomise
 

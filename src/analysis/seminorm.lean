@@ -284,12 +284,8 @@ noncomputable instance : has_sup (seminorm 𝕜 E) :=
     triangle' := λ x y, sup_le
       ((p.triangle x y).trans $ add_le_add le_sup_left le_sup_left)
       ((q.triangle x y).trans $ add_le_add le_sup_right le_sup_right),
-    smul' := λ x v,
-    begin
-      simp,
-      rw [sup_eq_max, sup_eq_max, p.smul x v, q.smul x v,
-        (mul_max_of_nonneg (p v) (q v) (norm_nonneg x))],
-    end } }
+    smul' := λ x v, (congr_arg2 max (p.smul x v) (q.smul x v)).trans $
+      (mul_max_of_nonneg _ _ $ norm_nonneg x).symm } }
 
 @[simp] lemma coe_sup (p q : seminorm 𝕜 E) : ⇑(p ⊔ q) = p ⊔ q := rfl
 

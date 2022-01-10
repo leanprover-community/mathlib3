@@ -17,6 +17,8 @@ This file is mostly for non-tactics. Tactics should generally be placed in `tact
 expr, name, declaration, level, environment, meta, metaprogramming, tactic
 -/
 
+open tactic
+
 attribute [derive has_reflect, derive decidable_eq] binder_info congr_arg_kind
 
 @[priority 100] meta instance has_reflect.has_to_pexpr {α} [has_reflect α] : has_to_pexpr α :=
@@ -274,7 +276,6 @@ protected meta def to_string (b : binder) : string :=
 let (l, r) := b.info.brackets in
 l ++ b.name.to_string ++ " : " ++ b.type.to_string ++ r
 
-open tactic
 meta instance : has_to_string binder := ⟨ binder.to_string ⟩
 meta instance : has_to_format binder := ⟨ λ b, b.to_string ⟩
 meta instance : has_to_tactic_format binder :=
@@ -374,7 +375,6 @@ end expr
 /-! ### Declarations about `expr` -/
 
 namespace expr
-open tactic
 
 /-- List of names removed by `clean`. All these names must resolve to functions defeq `id`. -/
 meta def clean_ids : list name :=
@@ -586,6 +586,7 @@ e.fold ff (λ e' _ b, if p (e'.const_name) then tt else b)
 
 /--
 Returns true if `e` contains a `sorry`.
+See also `name.contains_sorry`.
 -/
 meta def contains_sorry (e : expr) : bool :=
 e.fold ff (λ e' _ b, if (is_sorry e').is_some then tt else b)
@@ -758,7 +759,7 @@ e.has_local_in $ mk_name_set.insert l.local_uniq_name
 /-- Turns a local constant into a binder -/
 meta def to_binder : expr → binder
 | (local_const _ nm bi t) := ⟨nm, bi, t⟩
-| _                       := default binder
+| _                       := default
 
 /-- Strip-away the context-dependent unique id for the given local const and return: its friendly
 `name`, its `binder_info`, and its `type : expr`. -/
@@ -974,8 +975,6 @@ end environment
 
 namespace expr
 
-open tactic
-
 /-- `is_eta_expansion_of args univs l` checks whether for all elements `(nm, pr)` in `l` we have
   `pr = nm.{univs} args`.
   Used in `is_eta_expansion`, where `l` consists of the projections and the fields of the value we
@@ -1036,7 +1035,6 @@ end expr
 /-! ### Declarations about `declaration` -/
 
 namespace declaration
-open tactic
 
 /--
 `declaration.update_with_fun f test tgt decl`

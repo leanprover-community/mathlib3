@@ -175,7 +175,7 @@ instance {A : Type*} [semiring A] [algebra ℝ A] : algebra ℝ≥0 A :=
 
 -- verify that the above produces instances we might care about
 example : algebra ℝ≥0 ℝ := by apply_instance
-example : distrib_mul_action (units ℝ≥0) ℝ := by apply_instance
+example : distrib_mul_action ℝ≥0ˣ ℝ := by apply_instance
 
 end actions
 
@@ -237,7 +237,7 @@ lemma nsmul_coe (r : ℝ≥0) (n : ℕ) : ↑(n • r) = n • (r:ℝ) :=
 by norm_cast
 
 @[simp, norm_cast] protected lemma coe_nat_cast (n : ℕ) : (↑(↑n : ℝ≥0) : ℝ) = n :=
-to_real_hom.map_nat_cast n
+map_nat_cast to_real_hom n
 
 noncomputable example : linear_order ℝ≥0 := by apply_instance
 
@@ -488,12 +488,11 @@ section pow
 
 lemma pow_antitone_exp {a : ℝ≥0} (m n : ℕ) (mn : m ≤ n) (a1 : a ≤ 1) :
   a ^ n ≤ a ^ m :=
-begin
-  rcases le_iff_exists_add.mp mn with ⟨k, rfl⟩,
-  rw [← mul_one (a ^ m), pow_add],
-  refine mul_le_mul rfl.le (pow_le_one _ (zero_le a) a1) _ _;
-  exact pow_nonneg (zero_le _) _,
-end
+pow_le_pow_of_le_one (zero_le a) a1 mn
+
+lemma exists_pow_lt_of_lt_one {a b : ℝ≥0} (ha : 0 < a) (hb : b < 1) : ∃ n : ℕ, b ^ n < a :=
+by simpa only [← coe_pow, nnreal.coe_lt_coe]
+  using exists_pow_lt_of_lt_one (nnreal.coe_pos.2 ha) (nnreal.coe_lt_coe.2 hb)
 
 lemma exists_mem_Ico_zpow
   {x : ℝ≥0} {y : ℝ≥0} (hx : x ≠ 0) (hy : 1 < y) :
@@ -550,8 +549,7 @@ by simpa only [div_eq_mul_inv] using mul_pos hr (inv_pos.2 hp)
 
 protected lemma mul_inv {r p : ℝ≥0} : (r * p)⁻¹ = p⁻¹ * r⁻¹ := nnreal.eq $ mul_inv_rev₀ _ _
 
-lemma div_self_le (r : ℝ≥0) : r / r ≤ 1 :=
-if h : r = 0 then by simp [h] else by rw [div_self h]
+lemma div_self_le (r : ℝ≥0) : r / r ≤ 1 := div_self_le_one (r : ℝ)
 
 @[simp] lemma inv_le {r p : ℝ≥0} (h : r ≠ 0) : r⁻¹ ≤ p ↔ 1 ≤ r * p :=
 by rw [← mul_le_mul_left (pos_iff_ne_zero.2 h), mul_inv_cancel h]

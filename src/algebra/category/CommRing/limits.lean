@@ -69,7 +69,7 @@ namespace has_limits
 Construction of a limit cone in `SemiRing`.
 (Internal use only; use the limits API.)
 -/
-def limit_cone (F : J ⥤ SemiRing) : cone F :=
+def limit_cone (F : J ⥤ SemiRing.{u}) : cone F :=
 { X := SemiRing.of (types.limit_cone (F ⋙ forget _)).X,
   π :=
   { app := limit_π_ring_hom F,

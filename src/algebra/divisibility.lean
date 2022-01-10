@@ -160,7 +160,7 @@ exists_congr $ λ d, by rw [mul_assoc, mul_right_inj' ha]
 
 /-- Given two elements `a`, `b` of a commutative `cancel_monoid_with_zero` and a nonzero
   element `c`, `a*c` divides `b*c` iff `a` divides `b`. -/
-theorem mul_dvd_mul_iff_right [comm_cancel_monoid_with_zero α] {a b c : α} (hc : c ≠ 0) :
+theorem mul_dvd_mul_iff_right [cancel_comm_monoid_with_zero α] {a b c : α} (hc : c ≠ 0) :
   a * c ∣ b * c ↔ a ∣ b :=
 exists_congr $ λ d, by rw [mul_right_comm, mul_left_inj' hc]
 
@@ -171,7 +171,7 @@ exists_congr $ λ d, by rw [mul_right_comm, mul_left_inj' hc]
 namespace units
 
 section monoid
-variables [monoid α] {a b : α} {u : units α}
+variables [monoid α] {a b : α} {u : αˣ}
 
 /-- Elements of the unit group of a monoid represented as elements of the monoid
     divide any element of the monoid. -/
@@ -193,7 +193,7 @@ iff.intro
 end monoid
 
 section comm_monoid
-variables [comm_monoid α] {a b : α} {u : units α}
+variables [comm_monoid α] {a b : α} {u : αˣ}
 
 /-- In a commutative monoid, an element `a` divides an element `b` iff `a` divides all left
     associates of `b`. -/

@@ -460,7 +460,7 @@ localized "notation x ` D∨ `:35 y := dioph.or_dioph x y" in dioph
 
 localized "notation `D∃`:30 := dioph.vec_ex1_dioph" in dioph
 
-localized "prefix `&`:max := of_nat'" in dioph
+localized "prefix `&`:max := fin2.of_nat'" in dioph
 theorem proj_dioph_of_nat {n : ℕ} (m : ℕ) [is_lt m n] : dioph_fn (λv : vector3 ℕ n, v &m) :=
 proj_dioph &m
 localized "prefix `D&`:100 := dioph.proj_dioph_of_nat" in dioph

@@ -6,7 +6,7 @@ Authors: Alex Kontorovich, Heather Macbeth
 import topology.homeomorph
 import group_theory.group_action.basic
 /-!
-# Continuous monoid action
+# Monoid actions continuous in the second variable
 
 In this file we define class `has_continuous_smul₂`. We say `has_continuous_smul₂ Γ T` if `Γ` acts
 on `T` and for each `γ`, the map `x ↦ γ • x` is continuous. (This differs from

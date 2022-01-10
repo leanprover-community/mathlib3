@@ -318,7 +318,7 @@ namespace units
 
 variables [monoid R] [star_monoid R]
 
-instance : star_monoid (units R) :=
+instance : star_monoid Rˣ :=
 { star := λ u,
   { val := star u,
     inv := star ↑u⁻¹,
@@ -327,10 +327,10 @@ instance : star_monoid (units R) :=
   star_involutive := λ u, units.ext (star_involutive _),
   star_mul := λ u v, units.ext (star_mul _ _) }
 
-@[simp] lemma coe_star (u : units R) : ↑(star u) = (star ↑u : R) := rfl
-@[simp] lemma coe_star_inv (u : units R) : ↑(star u)⁻¹ = (star ↑u⁻¹ : R) := rfl
+@[simp] lemma coe_star (u : Rˣ) : ↑(star u) = (star ↑u : R) := rfl
+@[simp] lemma coe_star_inv (u : Rˣ) : ↑(star u)⁻¹ = (star ↑u⁻¹ : R) := rfl
 
-instance {A : Type*} [has_star A] [has_scalar R A] [star_module R A] : star_module (units R) A :=
+instance {A : Type*} [has_star A] [has_scalar R A] [star_module R A] : star_module Rˣ A :=
 ⟨λ u a, (star_smul ↑u a : _)⟩
 
 end units

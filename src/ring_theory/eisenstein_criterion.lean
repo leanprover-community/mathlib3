@@ -20,9 +20,10 @@ namespace eisenstein_criterion_aux
 /- Section for auxiliary lemmas used in the proof of `irreducible_of_eisenstein_criterion`-/
 
 lemma map_eq_C_mul_X_pow_of_forall_coeff_mem {f : polynomial R} {P : ideal R}
-  (hfP : ∀ (n : ℕ), ↑n < f.degree → f.coeff n ∈ P) (hf0 : f ≠ 0) :
+  (hfP : ∀ (n : ℕ), ↑n < f.degree → f.coeff n ∈ P) :
   map (mk P) f = C ((mk P) f.leading_coeff) * X ^ f.nat_degree :=
 polynomial.ext (λ n, begin
+  by_cases hf0 : f = 0, { simp [hf0], },
   rcases lt_trichotomy ↑n (degree f) with h | h | h,
   { erw [coeff_map, eq_zero_iff_mem.2 (hfP n h), coeff_C_mul, coeff_X_pow, if_neg, mul_zero],
     rintro rfl, exact not_lt_of_ge degree_le_nat_degree h },
@@ -35,7 +36,7 @@ polynomial.ext (λ n, begin
 end)
 
 lemma le_nat_degree_of_map_eq_mul_X_pow {n : ℕ}
-  {P : ideal R} (hP : P.is_prime) {q : polynomial R} {c : polynomial P.quotient}
+  {P : ideal R} (hP : P.is_prime) {q : polynomial R} {c : polynomial (R ⧸ P)}
   (hq : map (mk P) q = c * X ^ n) (hc0 : c.degree = 0) : n ≤ q.nat_degree :=
 with_bot.coe_le_coe.1
   (calc ↑n = degree (q.map (mk P)) :
@@ -44,7 +45,7 @@ with_bot.coe_le_coe.1
       ... ≤ nat_degree q : degree_le_nat_degree)
 
 lemma eval_zero_mem_ideal_of_eq_mul_X_pow {n : ℕ} {P : ideal R}
-  {q : polynomial R} {c : polynomial P.quotient}
+  {q : polynomial R} {c : polynomial (R ⧸ P)}
   (hq : map (mk P) q = c * X ^ n) (hn0 : 0 < n) : eval 0 q ∈ P :=
 by rw [← coeff_zero_eq_eval_zero, ← eq_zero_iff_mem, ← coeff_map,
     coeff_zero_eq_eval_zero, hq, eval_mul, eval_pow, eval_X, zero_pow hn0, mul_zero]
@@ -76,14 +77,14 @@ theorem irreducible_of_eisenstein_criterion {f : polynomial R} {P : ideal R} (hP
   (hu : f.is_primitive) : irreducible f :=
 have hf0 : f ≠ 0, from λ _, by simp only [*, not_true, submodule.zero_mem, coeff_zero] at *,
 have hf : f.map (mk P) = C (mk P (leading_coeff f)) * X ^ nat_degree f,
-  from map_eq_C_mul_X_pow_of_forall_coeff_mem hfP hf0,
+  from map_eq_C_mul_X_pow_of_forall_coeff_mem hfP,
 have hfd0 : 0 < f.nat_degree, from with_bot.coe_lt_coe.1
   (lt_of_lt_of_le hfd0 degree_le_nat_degree),
 ⟨mt degree_eq_zero_of_is_unit (λ h, by simp only [*, lt_irrefl] at *),
 begin
   rintros p q rfl,
   rw [map_mul] at hf,
-  rcases mul_eq_mul_prime_pow (show prime (X : polynomial (ideal.quotient P)),
+  rcases mul_eq_mul_prime_pow (show prime (X : polynomial (R ⧸ P)),
     from monic_X.prime_of_degree_eq_one degree_X) hf with
       ⟨m, n, b, c, hmnd, hbc, hp, hq⟩,
   have hmn : 0 < m → 0 < n → false,

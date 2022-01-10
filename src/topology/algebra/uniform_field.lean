@@ -112,7 +112,7 @@ begin
     { exact λ H, h (dense_embedding_coe.inj H) } }
 end
 
-variables [uniform_add_group K] [topological_ring K]
+variables [uniform_add_group K]
 
 lemma mul_hat_inv_cancel {x : hat K} (x_ne : x ≠ 0) : x*hat_inv x = 1 :=
 begin

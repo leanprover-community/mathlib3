@@ -42,20 +42,20 @@ variables {G : Type*} [group G] {H : subgroup G}
   mul_smul := λ g g' T, subtype.ext (left_coset_assoc ↑T g g').symm }
 
 lemma smul_symm_apply_eq_mul_symm_apply_inv_smul
-  (g : G) (α : left_transversals (H : set G)) (q : quotient_group.quotient H) :
+  (g : G) (α : left_transversals (H : set G)) (q : G ⧸ H) :
   ↑((equiv.of_bijective _ (mem_left_transversals_iff_bijective.mp (g • α).2)).symm q) =
     g * ((equiv.of_bijective _ (mem_left_transversals_iff_bijective.mp α.2)).symm
-      (g⁻¹ • q : quotient_group.quotient H)) :=
+      (g⁻¹ • q : G ⧸ H)) :=
 begin
   let w := (equiv.of_bijective _ (mem_left_transversals_iff_bijective.mp α.2)),
   let y := (equiv.of_bijective _ (mem_left_transversals_iff_bijective.mp (g • α).2)),
   change ↑(y.symm q) = ↑(⟨_, mem_left_coset g (subtype.mem _)⟩ : (g • α).1),
   refine subtype.ext_iff.mp (y.symm_apply_eq.mpr _),
-  change q = g • (w (w.symm (g⁻¹ • q : quotient_group.quotient H))),
+  change q = g • (w (w.symm (g⁻¹ • q : G ⧸ H))),
   rw [equiv.apply_symm_apply, ←mul_smul, mul_inv_self, one_smul],
 end
 
-variables [is_commutative H] [fintype (quotient_group.quotient H)]
+variables [is_commutative H] [fintype (G ⧸ H)]
 
 variables (α β γ : left_transversals (H : set G))
 
@@ -64,7 +64,7 @@ variables (α β γ : left_transversals (H : set G))
 noncomputable def diff [hH : normal H] : H :=
 let α' := (equiv.of_bijective _ (mem_left_transversals_iff_bijective.mp α.2)).symm,
     β' := (equiv.of_bijective _ (mem_left_transversals_iff_bijective.mp β.2)).symm in
-∏ (q : quotient_group.quotient H), ⟨(α' q) * (β' q)⁻¹,
+∏ (q : G ⧸ H), ⟨(α' q) * (β' q)⁻¹,
   hH.mem_comm (quotient.exact' ((β'.symm_apply_apply q).trans (α'.symm_apply_apply q).symm))⟩
 
 @[to_additive] lemma diff_mul_diff [normal H] : diff α β * diff β γ = diff α γ :=
@@ -244,7 +244,7 @@ begin
   have : function.surjective (quotient_group.mk' K) := quotient.surjective_quotient_mk',
   have h4 := step1 h1 h2 h3,
   contrapose! h4,
-  have h5 : fintype.card (quotient_group.quotient K) < fintype.card G,
+  have h5 : fintype.card (G ⧸ K) < fintype.card G,
   { rw [←index_eq_card, ←K.index_mul_card],
     refine lt_mul_of_one_lt_right (nat.pos_of_ne_zero index_ne_zero_of_fintype)
       (K.one_lt_card_iff_ne_bot.mpr h4.1) },
@@ -256,7 +256,7 @@ begin
     refine h1.coprime_dvd_left _,
     rw [←nat.mul_dvd_mul_iff_left index_pos, index_mul_card, ←index_map, index_mul_card],
     exact K.card_quotient_dvd_card },
-  obtain ⟨H, hH⟩ := h2 (quotient_group.quotient K) h5 h6,
+  obtain ⟨H, hH⟩ := h2 (G ⧸ K) h5 h6,
   refine ⟨H.comap (quotient_group.mk' K), _, _⟩,
   { have key : (N.map (quotient_group.mk' K)).comap (quotient_group.mk' K) = N,
     { refine comap_map_eq_self _,

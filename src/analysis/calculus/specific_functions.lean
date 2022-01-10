@@ -109,11 +109,11 @@ end
 is `0`, to be able to apply general differentiability extension theorems. This limit is checked in
 this lemma. -/
 lemma f_aux_limit (n : ℕ) :
-  tendsto (λx, (P_aux n).eval x * exp (-x⁻¹) / x^(2 * n)) (𝓝[Ioi 0] 0) (𝓝 0) :=
+  tendsto (λx, (P_aux n).eval x * exp (-x⁻¹) / x^(2 * n)) (𝓝[>] 0) (𝓝 0) :=
 begin
-  have A : tendsto (λx, (P_aux n).eval x) (𝓝[Ioi 0] 0) (𝓝 ((P_aux n).eval 0)) :=
+  have A : tendsto (λx, (P_aux n).eval x) (𝓝[>] 0) (𝓝 ((P_aux n).eval 0)) :=
   (P_aux n).continuous_within_at,
-  have B : tendsto (λx, exp (-x⁻¹) / x^(2 * n)) (𝓝[Ioi 0] 0) (𝓝 0),
+  have B : tendsto (λx, exp (-x⁻¹) / x^(2 * n)) (𝓝[>] 0) (𝓝 0),
   { convert (tendsto_pow_mul_exp_neg_at_top_nhds_0 (2 * n)).comp tendsto_inv_zero_at_top,
     ext x,
     field_simp },
@@ -374,7 +374,7 @@ def to_fun (f : times_cont_diff_bump c) : E → ℝ := f.to_times_cont_diff_bump
 
 instance : has_coe_to_fun (times_cont_diff_bump c) (λ _, E → ℝ) := ⟨to_fun⟩
 
-instance (c : E) : inhabited (times_cont_diff_bump c) := ⟨⟨default _⟩⟩
+instance (c : E) : inhabited (times_cont_diff_bump c) := ⟨⟨default⟩⟩
 
 lemma R_pos : 0 < f.R := f.to_times_cont_diff_bump_of_inner.R_pos
 

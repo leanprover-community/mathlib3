@@ -317,8 +317,8 @@ def subtype (s : subring R) : s →+* R :=
  .. s.to_submonoid.subtype, .. s.to_add_subgroup.subtype }
 
 @[simp] theorem coe_subtype : ⇑s.subtype = coe := rfl
-@[simp, norm_cast] lemma coe_nat_cast (n : ℕ) : ((n : s) : R) = n :=
-s.subtype.map_nat_cast n
+@[simp, norm_cast] lemma coe_nat_cast : ∀ (n : ℕ), ((n : s) : R) = n :=
+map_nat_cast s.subtype
 @[simp, norm_cast] lemma coe_int_cast (n : ℤ) : ((n : s) : R) = n :=
 s.subtype.map_int_cast n
 
@@ -1001,10 +1001,10 @@ end actions
 
 /-- The subgroup of positive units of a linear ordered semiring. -/
 def units.pos_subgroup (R : Type*) [linear_ordered_semiring R] :
-  subgroup (units R) :=
+  subgroup Rˣ :=
 { carrier := {x | (0 : R) < x},
-  inv_mem' := λ x (hx : (0 : R) < x), (zero_lt_mul_left hx).mp $ x.mul_inv.symm ▸ zero_lt_one,
+  inv_mem' := λ x, units.inv_pos.mpr,
   ..(pos_submonoid R).comap (units.coe_hom R)}
 
 @[simp] lemma units.mem_pos_subgroup {R : Type*} [linear_ordered_semiring R]
-  (u : units R) : u ∈ units.pos_subgroup R ↔ (0 : R) < u := iff.rfl
+  (u : Rˣ) : u ∈ units.pos_subgroup R ↔ (0 : R) < u := iff.rfl

@@ -104,7 +104,7 @@ f.range.exists_le.imp $ λ C, forall_range_iff.1
 def const (α) {β} [measurable_space α] (b : β) : α →ₛ β :=
 ⟨λ a, b, λ x, measurable_set.const _, finite_range_const⟩
 
-instance [inhabited β] : inhabited (α →ₛ β) := ⟨const _ (default _)⟩
+instance [inhabited β] : inhabited (α →ₛ β) := ⟨const _ default⟩
 
 theorem const_apply (a : α) (b : β) : (const α b) a = b := rfl
 
@@ -236,7 +236,7 @@ theorem map_map (g : β → γ) (h: γ → δ) (f : α →ₛ β) : (f.map g).ma
 
 @[simp] theorem range_map [decidable_eq γ] (g : β → γ) (f : α →ₛ β) :
   (f.map g).range = f.range.image g :=
-finset.coe_injective $ by simp [range_comp]
+finset.coe_injective $ by simp only [coe_range, coe_map, finset.coe_image, range_comp]
 
 @[simp] theorem map_const (g : β → γ) (b : β) : (const α b).map g = const α (g b) := rfl
 
@@ -1126,7 +1126,7 @@ by simp only [h]
 
 lemma set_lintegral_congr {f : α → ℝ≥0∞} {s t : set α} (h : s =ᵐ[μ] t) :
   ∫⁻ x in s, f x ∂μ = ∫⁻ x in t, f x ∂μ :=
-by rw [restrict_congr_set h]
+by rw [measure.restrict_congr_set h]
 
 lemma set_lintegral_congr_fun {f g : α → ℝ≥0∞} {s : set α} (hs : measurable_set s)
   (hfg : ∀ᵐ x ∂μ, x ∈ s → f x = g x) :
@@ -2017,6 +2017,16 @@ lemma set_lintegral_lt_top_of_is_compact [topological_space α] [opens_measurabl
   {s : set α} (hs : μ s ≠ ∞) (hsc : is_compact s) {f : α → ℝ≥0} (hf : continuous f) :
   ∫⁻ x in s, f x ∂μ < ∞ :=
 set_lintegral_lt_top_of_bdd_above hs hf.measurable (hsc.image hf).bdd_above
+
+lemma _root_.is_finite_measure.lintegral_lt_top_of_bounded_to_ennreal {α : Type*}
+  [measurable_space α] (μ : measure α) [μ_fin : is_finite_measure μ]
+  {f : α → ℝ≥0∞} (f_bdd : ∃ c : ℝ≥0, ∀ x, f x ≤ c) : ∫⁻ x, f x ∂μ < ∞ :=
+begin
+  cases f_bdd with c hc,
+  apply lt_of_le_of_lt (@lintegral_mono _ _ μ _ _ hc),
+  rw lintegral_const,
+  exact ennreal.mul_lt_top ennreal.coe_lt_top.ne μ_fin.measure_univ_lt_top.ne,
+end
 
 /-- Given a measure `μ : measure α` and a function `f : α → ℝ≥0∞`, `μ.with_density f` is the
 measure such that for a measurable set `s` we have `μ.with_density f s = ∫⁻ a in s, f a ∂μ`. -/

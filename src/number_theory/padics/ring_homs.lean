@@ -120,8 +120,6 @@ end
 lemma norm_sub_mod_part (h : ∥(r : ℚ_[p])∥ ≤ 1) : ∥(⟨r,h⟩ - mod_part p r : ℤ_[p])∥ < 1 :=
 begin
   let n := mod_part p r,
-  by_cases aux : (⟨r,h⟩ - n : ℤ_[p]) = 0,
-  { rw [aux, norm_zero], exact zero_lt_one, },
   rw [norm_lt_one_iff_dvd, ← (is_unit_denom r h).dvd_mul_right],
   suffices : ↑p ∣ r.num - n * r.denom,
   { convert (int.cast_ring_hom ℤ_[p]).map_dvd this,
@@ -305,7 +303,7 @@ lemma appr_lt (x : ℤ_[p]) (n : ℕ) : x.appr n < p ^ n :=
 begin
   induction n with n ih generalizing x,
   { simp only [appr, succ_pos', pow_zero], },
-  simp only [appr, ring_hom.map_nat_cast, zmod.nat_cast_self, ring_hom.map_pow, int.nat_abs,
+  simp only [appr, map_nat_cast, zmod.nat_cast_self, ring_hom.map_pow, int.nat_abs,
     ring_hom.map_mul],
   have hp : p ^ n < p ^ (n + 1),
   { apply pow_lt_pow hp_prime.1.one_lt (lt_add_one n) },
@@ -357,7 +355,7 @@ begin
   { rw h, apply dvd_zero },
   push_cast, rw sub_add_eq_sub_sub,
   obtain ⟨c, hc⟩ := ih x,
-  simp only [ring_hom.map_nat_cast, zmod.nat_cast_self, ring_hom.map_pow, ring_hom.map_mul,
+  simp only [map_nat_cast, zmod.nat_cast_self, ring_hom.map_pow, ring_hom.map_mul,
     zmod.nat_cast_val],
   have hc' : c ≠ 0,
   { rintro rfl, simp only [mul_zero] at hc, contradiction },
@@ -648,7 +646,7 @@ lemma lift_spec (n : ℕ) : (to_zmod_pow n).comp (lift f_compat) = f n :=
 begin
   ext r,
   haveI : fact (0 < p ^ n) := ⟨pow_pos hp_prime.1.pos n⟩,
-  rw [ring_hom.comp_apply, ← zmod.nat_cast_zmod_val (f n r), ← (to_zmod_pow n).map_nat_cast,
+  rw [ring_hom.comp_apply, ← zmod.nat_cast_zmod_val (f n r), ← map_nat_cast $ to_zmod_pow n,
       ← sub_eq_zero, ← ring_hom.map_sub, ← ring_hom.mem_ker, ker_to_zmod_pow],
   apply lift_sub_val_mem_span,
 end

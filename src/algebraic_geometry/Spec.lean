@@ -6,6 +6,8 @@ Authors: Scott Morrison, Justus Springer
 import algebraic_geometry.locally_ringed_space
 import algebraic_geometry.structure_sheaf
 import data.equiv.transfer_instance
+import topology.sheaves.sheaf_condition.sites
+import topology.sheaves.functors
 
 /-!
 # $Spec$ as a functor to locally ringed spaces.
@@ -23,14 +25,9 @@ We define $Spec$ in three consecutive steps, each with more structure than the l
 Additionally, we provide `Spec.to_PresheafedSpace` as a composition of `Spec.to_SheafedSpace` with
 a forgetful functor.
 
-## In progress
+## Related results
 
-Adjunction between `Γ` and `Spec`: Currently, the counit of the adjunction is proven to be a
-natural transformation in `Spec_Γ_naturality`, and realized as a natural isomorphism in
-`Spec_Γ_identity`.
-
-TODO: provide the unit, and prove the triangle identities.
-
+The adjunction `Γ ⊣ Spec` is constructed in `algebraic_geometry/Gamma_Spec_adjunction.lean`.
 
 -/
 
@@ -103,7 +100,7 @@ end
 lemma Spec.SheafedSpace_map_comp {R S T : CommRing} (f : R ⟶ S) (g : S ⟶ T) :
   Spec.SheafedSpace_map (f ≫ g) = Spec.SheafedSpace_map g ≫ Spec.SheafedSpace_map f :=
 PresheafedSpace.ext _ _ (Spec.Top_map_comp f g) $ nat_trans.ext _ _ $ funext $ λ U,
-by { dsimp, rw category.comp_id, erw comap_comp f g, refl }
+by { dsimp, rw category_theory.functor.map_id, rw category.comp_id, erw comap_comp f g, refl }
 
 /--
 Spec, as a contravariant functor from commutative rings to sheafed spaces.
@@ -131,6 +128,20 @@ lemma Spec.to_PresheafedSpace_obj_op (R : CommRing) :
 
 lemma Spec.to_PresheafedSpace_map_op (R S : CommRing) (f : R ⟶ S) :
   Spec.to_PresheafedSpace.map f.op = Spec.SheafedSpace_map f := rfl
+
+lemma Spec.basic_open_hom_ext {X : RingedSpace} {R : CommRing} {α β : X ⟶ Spec.SheafedSpace_obj R}
+  (w : α.base = β.base) (h : ∀ r : R, let U := prime_spectrum.basic_open r in
+    (to_open R U ≫ α.c.app (op U)) ≫ X.presheaf.map (eq_to_hom (by rw w)) =
+     to_open R U ≫ β.c.app (op U)) : α = β :=
+begin
+  ext1,
+  { apply ((Top.sheaf.pushforward β.base).obj X.sheaf).hom_ext _
+      prime_spectrum.is_basis_basic_opens,
+    intro r,
+    apply (structure_sheaf.to_basic_open_epi R r).1,
+    simpa using h r },
+  exact w,
+end
 
 /--
 The spectrum of a commutative ring, as a `LocallyRingedSpace`.
@@ -209,7 +220,7 @@ Spec, as a contravariant functor from commutative rings to locally ringed spaces
 section Spec_Γ
 open algebraic_geometry.LocallyRingedSpace
 
-/-- The morphism `R ⟶ Γ(Spec R)` given by `algebraic_geometry.structure_sheaf.to_open`.  -/
+/-- The counit morphism `R ⟶ Γ(Spec R)` given by `algebraic_geometry.structure_sheaf.to_open`.  -/
 @[simps] def to_Spec_Γ (R : CommRing) : R ⟶ Γ.obj (op (Spec.to_LocallyRingedSpace.obj (op R))) :=
 structure_sheaf.to_open R ⊤
 
@@ -220,10 +231,27 @@ lemma Spec_Γ_naturality {R S : CommRing} (f : R ⟶ S) :
   f ≫ to_Spec_Γ S = to_Spec_Γ R ≫ Γ.map (Spec.to_LocallyRingedSpace.map f.op).op :=
 by { ext, symmetry, apply localization.local_ring_hom_to_map }
 
-/-- The counit of the adjunction `Γ ⊣ Spec` is an isomorphism. -/
+/-- The counit (`Spec_Γ_identity.inv.op`) of the adjunction `Γ ⊣ Spec` is an isomorphism. -/
 @[simps] def Spec_Γ_identity : Spec.to_LocallyRingedSpace.right_op ⋙ Γ ≅ 𝟭 _ :=
 iso.symm $ nat_iso.of_components (λ R, as_iso (to_Spec_Γ R) : _) (λ _ _, Spec_Γ_naturality)
 
 end Spec_Γ
+
+/-- The stalk map of `Spec M⁻¹R ⟶ Spec R` is an iso for each `p : Spec M⁻¹R`. -/
+lemma Spec_map_localization_is_iso (R : CommRing) (M : submonoid R)
+  (x : prime_spectrum (localization M)) :
+  is_iso (PresheafedSpace.stalk_map (Spec.to_PresheafedSpace.map
+    (CommRing.of_hom (algebra_map R (localization M))).op) x) :=
+begin
+  erw ← local_ring_hom_comp_stalk_iso,
+  apply_with is_iso.comp_is_iso { instances := ff },
+  apply_instance,
+  apply_with is_iso.comp_is_iso { instances := ff },
+  /- I do not know why this is defeq to the goal, but I'm happy to accept that it is. -/
+  exact (show is_iso (is_localization.localization_localization_at_prime_iso_localization
+    M x.as_ideal).to_ring_equiv.to_CommRing_iso.hom, by apply_instance),
+  apply_instance
+end
+
 
 end algebraic_geometry

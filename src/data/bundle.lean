@@ -29,8 +29,8 @@ conflicts with general sigma types.
 -/
 def total_space := Σ x, E x
 
-instance [inhabited B] [inhabited (E (default B))] :
-  inhabited (total_space E) := ⟨⟨default B, default (E (default B))⟩⟩
+instance [inhabited B] [inhabited (E default)] :
+  inhabited (total_space E) := ⟨⟨default, default⟩⟩
 
 /-- `bundle.proj E` is the canonical projection `total_space E → B` on the base space. -/
 @[simp] def proj : total_space E → B := sigma.fst
@@ -48,7 +48,7 @@ lemma to_total_space_coe {x : B} (v : E x) : (v : total_space E) = ⟨x, v⟩ :=
 /-- `bundle.trivial B F` is the trivial bundle over `B` of fiber `F`. -/
 def trivial (B : Type*) (F : Type*) : B → Type* := function.const B F
 
-instance {F : Type*} [inhabited F] {b : B} : inhabited (bundle.trivial B F b) := ⟨(default F : F)⟩
+instance {F : Type*} [inhabited F] {b : B} : inhabited (bundle.trivial B F b) := ⟨(default : F)⟩
 
 /-- The trivial bundle, unlike other bundles, has a canonical projection on the fiber. -/
 def trivial.proj_snd (B : Type*) (F : Type*) : (total_space (bundle.trivial B F)) → F := sigma.snd

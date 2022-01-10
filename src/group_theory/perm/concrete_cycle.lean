@@ -62,7 +62,7 @@ begin
         form_perm_apply_mem_eq_self_iff _ hl' _ hx'] at h,
     rcases h with hl | hl'; linarith },
   { intros h x,
-    by_cases hx : x ∈ l; by_cases hx' : x ∈ l',
+    by_cases hx : x ∈ l, by_cases hx' : x ∈ l',
     { exact (h hx hx').elim },
     all_goals { have := form_perm_eq_self_of_not_mem _ _ ‹_›, tauto } }
 end

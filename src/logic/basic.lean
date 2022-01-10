@@ -51,10 +51,10 @@ instance subsingleton.prod {α β : Type*} [subsingleton α] [subsingleton β] :
 instance : decidable_eq empty := λa, a.elim
 
 instance sort.inhabited : inhabited (Sort*) := ⟨punit⟩
-instance sort.inhabited' : inhabited (default (Sort*)) := ⟨punit.star⟩
+instance sort.inhabited' : inhabited (default) := ⟨punit.star⟩
 
-instance psum.inhabited_left {α β} [inhabited α] : inhabited (psum α β) := ⟨psum.inl (default _)⟩
-instance psum.inhabited_right {α β} [inhabited β] : inhabited (psum α β) := ⟨psum.inr (default _)⟩
+instance psum.inhabited_left {α β} [inhabited α] : inhabited (psum α β) := ⟨psum.inl default⟩
+instance psum.inhabited_right {α β} [inhabited β] : inhabited (psum α β) := ⟨psum.inr default⟩
 
 @[priority 10] instance decidable_eq_of_subsingleton
   {α} [subsingleton α] : decidable_eq α
@@ -190,6 +190,13 @@ In particular, this class is not intended for turning the type class system
 into an automated theorem prover for first order logic. -/
 class fact (p : Prop) : Prop := (out [] : p)
 
+/--
+In most cases, we should not have global instances of `fact`; typeclass search only reads the head
+symbol and then tries any instances, which means that adding any such instance will cause slowdowns
+everywhere. We instead make them as lemmata and make them local instances as required.
+-/
+library_note "fact non-instances"
+
 lemma fact.elim {p : Prop} (h : fact p) : p := h.1
 lemma fact_iff {p : Prop} : fact p ↔ p := ⟨λ h, h.1, λ h, ⟨h⟩⟩
 
@@ -203,7 +210,7 @@ theorem false_ne_true : false ≠ true
 | h := h.symm ▸ trivial
 
 section propositional
-variables {a b c d : Prop}
+variables {a b c d e f : Prop}
 
 /-! ### Declarations about `implies` -/
 
@@ -217,6 +224,9 @@ theorem iff_iff_eq : (a ↔ b) ↔ a = b := ⟨propext, iff_of_eq⟩
 @[simp] lemma eq_iff_iff {p q : Prop} : (p = q) ↔ (p ↔ q) := iff_iff_eq.symm
 
 @[simp] theorem imp_self : (a → a) ↔ true := iff_true_intro id
+
+@[simp] lemma eq_true_eq_id : eq true = id :=
+by { funext, simp only [true_iff, id.def, iff_self, eq_iff_iff], }
 
 theorem imp_intro {α β : Prop} (h : α) : β → α := λ _, h
 
@@ -241,12 +251,21 @@ iff_true_intro $ λ_, trivial
 theorem imp_iff_right (ha : a) : (a → b) ↔ b :=
 ⟨λf, f ha, imp_intro⟩
 
+lemma imp_iff_not (hb : ¬ b) : a → b ↔ ¬ a := imp_congr_right $ λ _, iff_false_intro hb
+
 theorem decidable.imp_iff_right_iff [decidable a] : ((a → b) ↔ b) ↔ (a ∨ b) :=
 ⟨λ H, (decidable.em a).imp_right $ λ ha', H.1 $ λ ha, (ha' ha).elim,
   λ H, H.elim imp_iff_right $ λ hb, ⟨λ hab, hb, λ _ _, hb⟩⟩
 
 @[simp] theorem imp_iff_right_iff : ((a → b) ↔ b) ↔ (a ∨ b) :=
 decidable.imp_iff_right_iff
+
+lemma decidable.and_or_imp [decidable a] : (a ∧ b) ∨ (a → c) ↔ a → (b ∨ c) :=
+if ha : a then by simp only [ha, true_and, true_implies_iff]
+          else by simp only [ha, false_or, false_and, false_implies_iff]
+
+@[simp] theorem and_or_imp : (a ∧ b) ∨ (a → c) ↔ a → (b ∨ c) :=
+decidable.and_or_imp
 
 /-! ### Declarations about `not` -/
 
@@ -323,6 +342,8 @@ is classically true but not constructively. -/
 @[simp] theorem not_not : ¬¬a ↔ a := decidable.not_not
 
 theorem of_not_not : ¬¬a → a := by_contra
+
+lemma not_ne_iff {α : Sort*} {a b : α} : ¬ a ≠ b ↔ a = b := not_not
 
 -- See Note [decidable namespace]
 protected theorem decidable.of_not_imp [decidable a] (h : ¬ (a → b)) : a :=
@@ -454,6 +475,9 @@ or.imp_right h h₁
 
 theorem or.elim3 (h : a ∨ b ∨ c) (ha : a → d) (hb : b → d) (hc : c → d) : d :=
 or.elim h ha (assume h₂, or.elim h₂ hb hc)
+
+lemma or.imp3 (had : a → d) (hbe : b → e) (hcf : c → f) : a ∨ b ∨ c → d ∨ e ∨ f :=
+or.imp had $ or.imp hbe hcf
 
 theorem or_imp_distrib : (a ∨ b → c) ↔ (a → c) ∧ (b → c) :=
 ⟨assume h, ⟨assume ha, h (or.inl ha), assume hb, h (or.inr hb)⟩,
@@ -686,6 +710,13 @@ by rw [← decidable.not_and_distrib, decidable.not_not]
 
 theorem and_iff_not_or_not : a ∧ b ↔ ¬ (¬ a ∨ ¬ b) := decidable.and_iff_not_or_not
 
+@[simp] theorem not_xor (P Q : Prop) : ¬ xor P Q ↔ (P ↔ Q) :=
+by simp only [not_and, xor, not_or_distrib, not_not, ← iff_iff_implies_and_implies]
+
+theorem xor_iff_not_iff (P Q : Prop) : xor P Q ↔ ¬ (P ↔ Q) :=
+by rw [iff_not_comm, not_xor]
+
+
 end propositional
 
 /-! ### Declarations about equality -/
@@ -703,6 +734,15 @@ by subst q; refl
 theorem ne_of_mem_of_not_mem {α β} [has_mem α β] {s : β} {a b : α}
   (h : a ∈ s) : b ∉ s → a ≠ b :=
 mt $ λ e, e ▸ h
+
+-- todo: change name
+lemma ball_cond_comm {α} {s : α → Prop} {p : α → α → Prop} :
+  (∀ a, s a → ∀ b, s b → p a b) ↔ (∀ a b, s a → s b → p a b) :=
+⟨λ h a b ha hb, h a ha b hb, λ h a ha b hb, h a b ha hb⟩
+
+lemma ball_mem_comm {α β} [has_mem α β] {s : β} {p : α → α → Prop} :
+  (∀ a b ∈ s, p a b) ↔ (∀ a b, a ∈ s → b ∈ s → p a b) :=
+ball_cond_comm
 
 lemma ne_of_apply_ne {α β : Sort*} (f : α → β) {x y : α} (h : f x ≠ f y) : x ≠ y :=
 λ (w : x = y), h (congr_arg f w)
@@ -765,7 +805,7 @@ by { subst h₁, subst h₂ }
 lemma eq.congr_left {x y z : α} (h : x = y) : x = z ↔ y = z := by rw [h]
 lemma eq.congr_right {x y z : α} (h : x = y) : z = x ↔ z = y := by rw [h]
 
-lemma congr_arg2 {α β γ : Type*} (f : α → β → γ) {x x' : α} {y y' : β}
+lemma congr_arg2 {α β γ : Sort*} (f : α → β → γ) {x x' : α} {y y' : β}
   (hx : x = x') (hy : y = y') : f x y = f x' y' :=
 by { subst hx, subst hy }
 
@@ -1042,13 +1082,6 @@ by simp [or_comm, decidable.forall_or_distrib_left]
 theorem forall_or_distrib_right {q : Prop} {p : α → Prop} :
   (∀x, p x ∨ q) ↔ (∀x, p x) ∨ q := decidable.forall_or_distrib_right
 
-/-- A predicate holds everywhere on the image of a surjective functions iff
-    it holds everywhere. -/
-theorem forall_iff_forall_surj
-  {α β : Type*} {f : α → β} (h : function.surjective f) {P : β → Prop} :
-  (∀ a, P (f a)) ↔ ∀ b, P b :=
-⟨λ ha b, by cases h b with a hab; rw ←hab; exact ha a, λ hb a, hb $ f a⟩
-
 @[simp] theorem exists_prop {p q : Prop} : (∃ h : p, q) ↔ p ∧ q :=
 ⟨λ ⟨h₁, h₂⟩, ⟨h₁, h₂⟩, λ ⟨h₁, h₂⟩, ⟨h₁, h₂⟩⟩
 
@@ -1070,6 +1103,9 @@ theorem forall_prop_of_true {p : Prop} {q : p → Prop} (h : p) : (∀ h' : p, q
 
 theorem exists_prop_of_true {p : Prop} {q : p → Prop} (h : p) : (∃ h' : p, q h') ↔ q h :=
 @exists_const (q h) p ⟨h⟩
+
+lemma exists_iff_of_forall {p : Prop} {q : p → Prop} (h : ∀ h, q h) : (∃ h, q h) ↔ p :=
+⟨Exists.fst, λ H, ⟨H, h H⟩⟩
 
 theorem exists_unique_prop_of_true {p : Prop} {q : p → Prop} (h : p) : (∃! h' : p, q h') ↔ q h :=
 @exists_unique_const (q h) p ⟨h⟩ _
@@ -1298,182 +1334,99 @@ theorem not_ball {α : Sort*} {p : α → Prop} {P : Π (x : α), p x → Prop} 
 
 end classical
 
-lemma ite_eq_iff {α} {p : Prop} [decidable p] {a b c : α} :
-  (if p then a else b) = c ↔ p ∧ a = c ∨ ¬p ∧ b = c :=
-by by_cases p; simp *
-
-@[simp] lemma ite_eq_left_iff {α} {p : Prop} [decidable p] {a b : α} :
-  (if p then a else b) = a ↔ (¬p → b = a) :=
-by by_cases p; simp *
-
-@[simp] lemma ite_eq_right_iff {α} {p : Prop} [decidable p] {a b : α} :
-  (if p then a else b) = b ↔ (p → a = b) :=
-by by_cases p; simp *
-
-lemma ite_eq_or_eq {α} {p : Prop} [decidable p] (a b : α) :
-  ite p a b = a ∨ ite p a b = b :=
-decidable.by_cases (λ h, or.inl (if_pos h)) (λ h, or.inr (if_neg h))
-
-/-! ### Declarations about `nonempty` -/
-
-section nonempty
-variables {α β : Type*} {γ : α → Type*}
-
-attribute [simp] nonempty_of_inhabited
-
-@[priority 20]
-instance has_zero.nonempty [has_zero α] : nonempty α := ⟨0⟩
-@[priority 20]
-instance has_one.nonempty [has_one α] : nonempty α := ⟨1⟩
-
-lemma exists_true_iff_nonempty {α : Sort*} : (∃a:α, true) ↔ nonempty α :=
-iff.intro (λ⟨a, _⟩, ⟨a⟩) (λ⟨a⟩, ⟨a, trivial⟩)
-
-@[simp] lemma nonempty_Prop {p : Prop} : nonempty p ↔ p :=
-iff.intro (assume ⟨h⟩, h) (assume h, ⟨h⟩)
-
-lemma not_nonempty_iff_imp_false {α : Sort*} : ¬ nonempty α ↔ α → false :=
-⟨λ h a, h ⟨a⟩, λ h ⟨a⟩, h a⟩
-
-@[simp] lemma nonempty_sigma : nonempty (Σa:α, γ a) ↔ (∃a:α, nonempty (γ a)) :=
-iff.intro (assume ⟨⟨a, c⟩⟩, ⟨a, ⟨c⟩⟩) (assume ⟨a, ⟨c⟩⟩, ⟨⟨a, c⟩⟩)
-
-@[simp] lemma nonempty_subtype {α} {p : α → Prop} : nonempty (subtype p) ↔ (∃a:α, p a) :=
-iff.intro (assume ⟨⟨a, h⟩⟩, ⟨a, h⟩) (assume ⟨a, h⟩, ⟨⟨a, h⟩⟩)
-
-@[simp] lemma nonempty_prod : nonempty (α × β) ↔ (nonempty α ∧ nonempty β) :=
-iff.intro (assume ⟨⟨a, b⟩⟩, ⟨⟨a⟩, ⟨b⟩⟩) (assume ⟨⟨a⟩, ⟨b⟩⟩, ⟨⟨a, b⟩⟩)
-
-@[simp] lemma nonempty_pprod {α β} : nonempty (pprod α β) ↔ (nonempty α ∧ nonempty β) :=
-iff.intro (assume ⟨⟨a, b⟩⟩, ⟨⟨a⟩, ⟨b⟩⟩) (assume ⟨⟨a⟩, ⟨b⟩⟩, ⟨⟨a, b⟩⟩)
-
-@[simp] lemma nonempty_sum : nonempty (α ⊕ β) ↔ (nonempty α ∨ nonempty β) :=
-iff.intro
-  (assume ⟨h⟩, match h with sum.inl a := or.inl ⟨a⟩ | sum.inr b := or.inr ⟨b⟩ end)
-  (assume h, match h with or.inl ⟨a⟩ := ⟨sum.inl a⟩ | or.inr ⟨b⟩ := ⟨sum.inr b⟩ end)
-
-@[simp] lemma nonempty_psum {α β} : nonempty (psum α β) ↔ (nonempty α ∨ nonempty β) :=
-iff.intro
-  (assume ⟨h⟩, match h with psum.inl a := or.inl ⟨a⟩ | psum.inr b := or.inr ⟨b⟩ end)
-  (assume h, match h with or.inl ⟨a⟩ := ⟨psum.inl a⟩ | or.inr ⟨b⟩ := ⟨psum.inr b⟩ end)
-
-@[simp] lemma nonempty_psigma {α} {β : α → Sort*} : nonempty (psigma β) ↔ (∃a:α, nonempty (β a)) :=
-iff.intro (assume ⟨⟨a, c⟩⟩, ⟨a, ⟨c⟩⟩) (assume ⟨a, ⟨c⟩⟩, ⟨⟨a, c⟩⟩)
-
-@[simp] lemma nonempty_empty : ¬ nonempty empty :=
-assume ⟨h⟩, h.elim
-
-@[simp] lemma nonempty_ulift : nonempty (ulift α) ↔ nonempty α :=
-iff.intro (assume ⟨⟨a⟩⟩, ⟨a⟩) (assume ⟨a⟩, ⟨⟨a⟩⟩)
-
-@[simp] lemma nonempty_plift {α} : nonempty (plift α) ↔ nonempty α :=
-iff.intro (assume ⟨⟨a⟩⟩, ⟨a⟩) (assume ⟨a⟩, ⟨⟨a⟩⟩)
-
-@[simp] lemma nonempty.forall {α} {p : nonempty α → Prop} : (∀h:nonempty α, p h) ↔ (∀a, p ⟨a⟩) :=
-iff.intro (assume h a, h _) (assume h ⟨a⟩, h _)
-
-@[simp] lemma nonempty.exists {α} {p : nonempty α → Prop} : (∃h:nonempty α, p h) ↔ (∃a, p ⟨a⟩) :=
-iff.intro (assume ⟨⟨a⟩, h⟩, ⟨a, h⟩) (assume ⟨a, h⟩, ⟨⟨a⟩, h⟩)
-
-lemma classical.nonempty_pi {α} {β : α → Sort*} : nonempty (Πa:α, β a) ↔ (∀a:α, nonempty (β a)) :=
-iff.intro (assume ⟨f⟩ a, ⟨f a⟩) (assume f, ⟨assume a, classical.choice $ f a⟩)
-
-/-- Using `classical.choice`, lifts a (`Prop`-valued) `nonempty` instance to a (`Type`-valued)
-  `inhabited` instance. `classical.inhabited_of_nonempty` already exists, in
-  `core/init/classical.lean`, but the assumption is not a type class argument,
-  which makes it unsuitable for some applications. -/
-noncomputable def classical.inhabited_of_nonempty' {α} [h : nonempty α] : inhabited α :=
-⟨classical.choice h⟩
-
-/-- Using `classical.choice`, extracts a term from a `nonempty` type. -/
-@[reducible] protected noncomputable def nonempty.some {α} (h : nonempty α) : α :=
-classical.choice h
-
-/-- Using `classical.choice`, extracts a term from a `nonempty` type. -/
-@[reducible] protected noncomputable def classical.arbitrary (α) [h : nonempty α] : α :=
-classical.choice h
-
-/-- Given `f : α → β`, if `α` is nonempty then `β` is also nonempty.
-  `nonempty` cannot be a `functor`, because `functor` is restricted to `Type`. -/
-lemma nonempty.map {α β} (f : α → β) : nonempty α → nonempty β
-| ⟨h⟩ := ⟨f h⟩
-
-protected lemma nonempty.map2 {α β γ : Sort*} (f : α → β → γ) : nonempty α → nonempty β → nonempty γ
-| ⟨x⟩ ⟨y⟩ := ⟨f x y⟩
-
-protected lemma nonempty.congr {α β} (f : α → β) (g : β → α) :
-  nonempty α ↔ nonempty β :=
-⟨nonempty.map f, nonempty.map g⟩
-
-lemma nonempty.elim_to_inhabited {α : Sort*} [h : nonempty α] {p : Prop}
-  (f : inhabited α → p) : p :=
-h.elim $ f ∘ inhabited.mk
-
-instance {α β} [h : nonempty α] [h2 : nonempty β] : nonempty (α × β) :=
-h.elim $ λ g, h2.elim $ λ g2, ⟨⟨g, g2⟩⟩
-
-end nonempty
-
-lemma subsingleton_of_not_nonempty {α : Sort*} (h : ¬ nonempty α) : subsingleton α :=
-⟨λ x, false.elim $ not_nonempty_iff_imp_false.mp h x⟩
-
 section ite
+variables {α β γ : Sort*} {σ : α → Sort*} (f : α → β) {P Q : Prop} [decidable P] [decidable Q]
+  {a b c : α} {A : P → α} {B : ¬ P → α}
+
+lemma dite_eq_iff : dite P A B = c ↔ (∃ h, A h = c) ∨ ∃ h, B h = c := by by_cases P; simp *
+lemma ite_eq_iff : ite P a b = c ↔ P ∧ a = c ∨ ¬ P ∧ b = c :=
+dite_eq_iff.trans $ by rw [exists_prop, exists_prop]
+
+@[simp] lemma dite_eq_left_iff : dite P (λ _, a) B = a ↔ ∀ h, B h = a := by by_cases P; simp *
+@[simp] lemma dite_eq_right_iff : dite P A (λ _, b) = b ↔ ∀ h, A h = b := by by_cases P; simp *
+@[simp] lemma ite_eq_left_iff : ite P a b = a ↔ (¬ P → b = a) := dite_eq_left_iff
+@[simp] lemma ite_eq_right_iff : ite P a b = b ↔ (P → a = b) := dite_eq_right_iff
+
+lemma dite_ne_left_iff : dite P (λ _, a) B ≠ a ↔ ∃ h, a ≠ B h :=
+by { rw [ne.def, dite_eq_left_iff, not_forall], exact exists_congr (λ h, by rw ne_comm) }
+
+lemma dite_ne_right_iff : dite P A (λ _, b) ≠ b ↔ ∃ h, A h ≠ b :=
+by simp only [ne.def, dite_eq_right_iff, not_forall]
+
+lemma ite_ne_left_iff : ite P a b ≠ a ↔ ¬ P ∧ a ≠ b := dite_ne_left_iff.trans $ by rw exists_prop
+lemma ite_ne_right_iff : ite P a b ≠ b ↔ P ∧ a ≠ b := dite_ne_right_iff.trans $ by rw exists_prop
+
+protected lemma ne.dite_eq_left_iff (h : ∀ h, a ≠ B h) : dite P (λ _, a) B = a ↔ P :=
+dite_eq_left_iff.trans $ ⟨λ H, of_not_not $ λ h', h h' (H h').symm, λ h H, (H h).elim⟩
+
+protected lemma ne.dite_eq_right_iff (h : ∀ h, A h ≠ b) : dite P A (λ _, b) = b ↔ ¬ P :=
+dite_eq_right_iff.trans $ ⟨λ H h', h h' (H h'), λ h' H, (h' H).elim⟩
+
+protected lemma ne.ite_eq_left_iff (h : a ≠ b) : ite P a b = a ↔ P := ne.dite_eq_left_iff $ λ _, h
+protected lemma ne.ite_eq_right_iff (h : a ≠ b) : ite P a b = b ↔ ¬ P :=
+ne.dite_eq_right_iff $ λ _, h
+
+protected lemma ne.dite_ne_left_iff (h : ∀ h, a ≠ B h) : dite P (λ _, a) B ≠ a ↔ ¬ P :=
+dite_ne_left_iff.trans $ exists_iff_of_forall h
+
+protected lemma ne.dite_ne_right_iff (h : ∀ h, A h ≠ b) : dite P A (λ _, b) ≠ b ↔ P :=
+dite_ne_right_iff.trans $ exists_iff_of_forall h
+
+protected lemma ne.ite_ne_left_iff (h : a ≠ b) : ite P a b ≠ a ↔ ¬ P := ne.dite_ne_left_iff $ λ _, h
+
+protected lemma ne.ite_ne_right_iff (h : a ≠ b) : ite P a b ≠ b ↔ P := ne.dite_ne_right_iff $ λ _, h
+
+variables (P Q) (a b)
 
 /-- A `dite` whose results do not actually depend on the condition may be reduced to an `ite`. -/
-@[simp]
-lemma dite_eq_ite (P : Prop) [decidable P] {α : Sort*} (x y : α) :
-  dite P (λ h, x) (λ h, y) = ite P x y := rfl
+@[simp] lemma dite_eq_ite : dite P (λ h, a) (λ h, b) = ite P a b := rfl
+
+lemma dite_eq_or_eq : (∃ h, dite P A B = A h) ∨ ∃ h, dite P A B = B h :=
+decidable.by_cases (λ h, or.inl ⟨h, dif_pos h⟩) (λ h, or.inr ⟨h, dif_neg h⟩)
+
+lemma ite_eq_or_eq : ite P a b = a ∨ ite P a b = b :=
+decidable.by_cases (λ h, or.inl (if_pos h)) (λ h, or.inr (if_neg h))
 
 /-- A function applied to a `dite` is a `dite` of that function applied to each of the branches. -/
-lemma apply_dite {α β : Sort*} (f : α → β) (P : Prop) [decidable P] (x : P → α) (y : ¬P → α) :
-  f (dite P x y) = dite P (λ h, f (x h)) (λ h, f (y h)) :=
-by { by_cases h : P; simp [h] }
+lemma apply_dite (x : P → α) (y : ¬P → α) : f (dite P x y) = dite P (λ h, f (x h)) (λ h, f (y h)) :=
+by by_cases h : P; simp [h]
 
 /-- A function applied to a `ite` is a `ite` of that function applied to each of the branches. -/
-lemma apply_ite {α β : Sort*} (f : α → β) (P : Prop) [decidable P] (x y : α) :
-  f (ite P x y) = ite P (f x) (f y) :=
-apply_dite f P (λ _, x) (λ _, y)
+lemma apply_ite : f (ite P a b) = ite P (f a) (f b) := apply_dite f P (λ _, a) (λ _, b)
 
 /-- A two-argument function applied to two `dite`s is a `dite` of that two-argument function
 applied to each of the branches. -/
-lemma apply_dite2 {α β γ : Sort*} (f : α → β → γ) (P : Prop) [decidable P] (a : P → α)
-  (b : ¬P → α) (c : P → β) (d : ¬P → β) :
+lemma apply_dite2 (f : α → β → γ) (P : Prop) [decidable P] (a : P → α) (b : ¬P → α) (c : P → β)
+  (d : ¬P → β) :
   f (dite P a b) (dite P c d) = dite P (λ h, f (a h) (c h)) (λ h, f (b h) (d h)) :=
-by { by_cases h : P; simp [h] }
+by by_cases h : P; simp [h]
 
 /-- A two-argument function applied to two `ite`s is a `ite` of that two-argument function
 applied to each of the branches. -/
-lemma apply_ite2 {α β γ : Sort*} (f : α → β → γ) (P : Prop) [decidable P] (a b : α) (c d : β) :
+lemma apply_ite2 (f : α → β → γ) (P : Prop) [decidable P] (a b : α) (c d : β) :
   f (ite P a b) (ite P c d) = ite P (f a c) (f b d) :=
 apply_dite2 f P (λ _, a) (λ _, b) (λ _, c) (λ _, d)
 
-/-- A 'dite' producing a `Pi` type `Π a, β a`, applied to a value `x : α`
-is a `dite` that applies either branch to `x`. -/
-lemma dite_apply {α : Sort*} {β : α → Sort*} (P : Prop) [decidable P]
-  (f : P → Π a, β a) (g : ¬ P → Π a, β a) (x : α) :
-  (dite P f g) x = dite P (λ h, f h x) (λ h, g h x) :=
-by { by_cases h : P; simp [h] }
+/-- A 'dite' producing a `Pi` type `Π a, σ a`, applied to a value `a : α` is a `dite` that applies
+either branch to `a`. -/
+lemma dite_apply (f : P → Π a, σ a) (g : ¬ P → Π a, σ a) (a : α) :
+  (dite P f g) a = dite P (λ h, f h a) (λ h, g h a) :=
+by by_cases h : P; simp [h]
 
-/-- A 'ite' producing a `Pi` type `Π a, β a`, applied to a value `x : α`
-is a `ite` that applies either branch to `x` -/
-lemma ite_apply {α : Sort*} {β : α → Sort*} (P : Prop) [decidable P]
-  (f g : Π a, β a) (x : α) :
-  (ite P f g) x = ite P (f x) (g x) :=
-dite_apply P (λ _, f) (λ _, g) x
+/-- A 'ite' producing a `Pi` type `Π a, σ a`, applied to a value `a : α` is a `ite` that applies
+either branch to `a`. -/
+lemma ite_apply (f g : Π a, σ a) (a : α) : (ite P f g) a = ite P (f a) (g a) :=
+dite_apply P (λ _, f) (λ _, g) a
 
 /-- Negation of the condition `P : Prop` in a `dite` is the same as swapping the branches. -/
-@[simp] lemma dite_not {α : Sort*} (P : Prop) [decidable P] (x : ¬ P → α) (y : ¬¬ P → α) :
+@[simp] lemma dite_not (x : ¬ P → α) (y : ¬¬ P → α) :
   dite (¬ P) x y = dite P (λ h, y (not_not_intro h)) x :=
-by { by_cases h : P; simp [h] }
+by by_cases h : P; simp [h]
 
 /-- Negation of the condition `P : Prop` in a `ite` is the same as swapping the branches. -/
-@[simp] lemma ite_not {α : Sort*} (P : Prop) [decidable P] (x y : α) :
-  ite (¬ P) x y = ite P y x :=
-dite_not P (λ _, x) (λ _, y)
+@[simp] lemma ite_not : ite (¬ P) a b = ite P b a := dite_not P (λ _, a) (λ _, b)
 
-lemma ite_and {α} {p q : Prop} [decidable p] [decidable q] {x y : α} :
-  ite (p ∧ q) x y = ite p (ite q x y) y :=
-by { by_cases hp : p; by_cases hq : q; simp [hp, hq] }
-
+lemma ite_and : ite (P ∧ Q) a b = ite P (ite Q a b) b :=
+by by_cases hp : P; by_cases hq : Q; simp [hp, hq]
 
 end ite

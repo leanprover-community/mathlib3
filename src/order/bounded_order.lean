@@ -629,7 +629,7 @@ instance densely_ordered [has_lt α] [densely_ordered α] [no_min_order α] :
     ⟨a, coe_lt_coe.2 ha₁, coe_lt_coe.2 ha₂⟩
   end⟩
 
-instance {α : Type*} [has_lt α] [no_max_order α] [nonempty α] : no_max_order (with_bot α) :=
+instance [has_lt α] [no_max_order α] [nonempty α] : no_max_order (with_bot α) :=
 ⟨begin
   apply with_bot.rec_bot_coe,
   { apply ‹nonempty α›.elim,
@@ -882,7 +882,7 @@ lemma lt_iff_exists_coe_btwn [partial_order α] [densely_ordered α] [no_max_ord
 ⟨λ h, let ⟨y, hy⟩ := exists_between h, ⟨x, hx⟩ := lt_iff_exists_coe.1 hy.2 in ⟨x, hx.1 ▸ hy⟩,
  λ ⟨x, hx⟩, lt_trans hx.1 hx.2⟩
 
-instance {α : Type*} [has_lt α] [no_min_order α] [nonempty α] : no_min_order (with_top α) :=
+instance [has_lt α] [no_min_order α] [nonempty α] : no_min_order (with_top α) :=
 ⟨begin
   apply with_top.rec_top_coe,
   { apply ‹nonempty α›.elim,

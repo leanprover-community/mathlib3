@@ -550,7 +550,7 @@ end prod
 
 /-- Order without a maximal element. Sometimes called cofinal. -/
 class no_max_order (α : Type u) [has_lt α] : Prop :=
-(no_max : ∀ a : α, ∃ a', a < a')
+(no_max (a : α) : ∃ b, a < b)
 
 lemma no_max [has_lt α] [no_max_order α] : ∀ a : α, ∃ a', a < a' :=
 no_max_order.no_max
@@ -573,7 +573,7 @@ le_antisymm hb (ha b)
 
 /-- Order without a minimal element. Sometimes called coinitial or dense. -/
 class no_min_order (α : Type u) [has_lt α] : Prop :=
-(no_min : ∀ a : α, ∃ a', a' < a)
+(no_min (a : α) : ∃ b, b < a)
 
 lemma no_min [has_lt α] [no_min_order α] : ∀ a : α, ∃ a', a' < a :=
 no_min_order.no_min

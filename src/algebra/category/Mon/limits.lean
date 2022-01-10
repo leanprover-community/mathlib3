@@ -52,7 +52,7 @@ def sections_submonoid (F : J ⥤ Mon) :
 @[to_additive]
 instance limit_monoid (F : J ⥤ Mon) :
   monoid (types.limit_cone (F ⋙ forget Mon.{u})).X :=
-(sections_submonoid F).to_monoid
+submonoid_class.to_monoid (sections_submonoid F)
 
 /-- `limit.π (F ⋙ forget Mon) j` as a `monoid_hom`. -/
 @[to_additive "`limit.π (F ⋙ forget AddMon) j` as an `add_monoid_hom`."]
@@ -127,7 +127,7 @@ by { change comm_monoid (F.obj j), apply_instance }
 @[to_additive]
 instance limit_comm_monoid (F : J ⥤ CommMon) :
   comm_monoid (types.limit_cone (F ⋙ forget CommMon.{u})).X :=
-@submonoid.to_comm_monoid (Π j, F.obj j) _
+@submonoid_class.to_comm_monoid (Π j, F.obj j) _ _ _
   (Mon.sections_submonoid (F ⋙ forget₂ CommMon Mon.{u}))
 
 /--

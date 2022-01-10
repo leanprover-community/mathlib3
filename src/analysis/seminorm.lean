@@ -765,7 +765,7 @@ end
 
 lemma seminorm.gauge_seminorm_ball (p : seminorm ℝ E) :
   gauge_seminorm (λ x, p.symmetric_ball_zero 1) (p.convex_ball 0 1)
-    (p.absorbent_ball_zero zero_lt_one) = p := seminorm.ext p.gauge_ball
+    (p.absorbent_ball_zero zero_lt_one) = p := fun_like.coe_injective p.gauge_ball
 
 end gauge
 

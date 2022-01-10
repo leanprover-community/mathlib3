@@ -226,7 +226,7 @@ variables [measurable_space β] [normed_group β]
 
 /-- Also known as uniformly absolutely continuous integrals. -/
 def unif_integrable {m : measurable_space α} (f : ι → α → β) (p : ℝ≥0∞) (μ : measure α) : Prop :=
-∀ (ε : ℝ) (hε : 0 < ε), ∃ (δ : ℝ) (hδ : 0 < δ), ∀ i s, measurable_set s → μ s < ennreal.of_real δ →
+∀ ⦃ε : ℝ⦄ (hε : 0 < ε), ∃ (δ : ℝ) (hδ : 0 < δ), ∀ i s, measurable_set s → μ s ≤ ennreal.of_real δ →
 snorm (s.indicator (f i)) p μ < ennreal.of_real ε
 
 section unif_integrable
@@ -234,11 +234,12 @@ section unif_integrable
 variables [borel_space β] [second_countable_topology β]
   {μ : measure α} [is_finite_measure μ] {p : ℝ≥0∞}
 
-#check snorm_ess_sup_lt_top_of_ae_bound
-#check snorm_le_of_ae_bound
+-- useful lemmas:
+-- #check snorm_ess_sup_lt_top_of_ae_bound
+-- #check snorm_le_of_ae_bound
 
-lemma foo {f : α → β} (hf : mem_ℒp f p μ) {ε : ℝ} (hε : 0 < ε) :
-  ∃ (δ : ℝ) (hδ : 0 < δ), ∀ s, measurable_set s → μ s < ennreal.of_real δ →
+lemma mem_ℒp.snorm_lt_measure {f : α → β} (hf : mem_ℒp f p μ) {ε : ℝ} (hε : 0 < ε) :
+  ∃ (δ : ℝ) (hδ : 0 < δ), ∀ s, measurable_set s → μ s ≤ ennreal.of_real δ →
   snorm (s.indicator f) p μ < ennreal.of_real ε :=
 begin
   sorry
@@ -255,6 +256,25 @@ lemma unif_integrable_finite [fintype ι] {f : ι → α → β} (hf : ∀ i, me
 begin
   sorry
 end
+
+--move
+section
+
+variables {M : Type*} [mul_one_class M]
+
+@[to_additive] lemma mul_indicator_mul' (s : set α) (f g : α → M) :
+  mul_indicator s (f * g) = mul_indicator s f * mul_indicator s g :=
+mul_indicator_mul s f g
+
+lemma ennreal.add_three (a : ℝ≥0∞) : a / 3 + a / 3 + a / 3 = a:=
+begin
+  rw [div_eq_mul_inv, ← mul_add, ← mul_add, show a * (3⁻¹ + 3⁻¹ + 3⁻¹) = 3 * 3⁻¹ * a, by ring,
+    ← div_eq_mul_inv, ennreal.div_self, one_mul];
+  simp,
+end
+
+end
+
 
 /- The next three lemmas together is known as **the Vitali convergence theorem**. -/
 
@@ -274,21 +294,40 @@ begin
     { exact ⟨0, λ n hn, by simp [hμ]⟩ },
     have hε' : 0 < ε.to_real / 3 :=
       div_pos (ennreal.to_real_pos (gt_iff_lt.1 hε).ne.symm h.ne) (by norm_num),
-    obtain ⟨δ, hδ, hsnorm⟩ := hui _ hε',
-    obtain ⟨t, ht₁, ht₂⟩ := tendsto_uniformly_on_of_ae_tendsto' hf hg hfg hδ,
+    obtain ⟨δ₁, hδ₁, hsnorm₁⟩ := hui hε',
+    obtain ⟨δ₂, hδ₂, hsnorm₂⟩ := hg'.snorm_lt_measure hε',
+    have hδ : 0 < min δ₁ δ₂ := lt_min hδ₁ hδ₂, -- golf?
+    obtain ⟨t, htm, ht₁, ht₂⟩ := tendsto_uniformly_on_of_ae_tendsto' hf hg hfg hδ,
     rw metric.tendsto_uniformly_on_iff at ht₂,
     specialize ht₂ (ε.to_real / (3 * measure_univ_nnreal μ))
       (div_pos (ennreal.to_real_pos (gt_iff_lt.1 hε).ne.symm h.ne)
       (mul_pos (by norm_num) (measure_univ_nnreal_pos hμ))),
-    obtain ⟨N, hN⟩ := eventually_at_top.1 ht₂,
+    obtain ⟨N, hN⟩ := eventually_at_top.1 ht₂, clear ht₂,
     refine ⟨N, λ n hn, _⟩,
     simp only [mem_Icc, true_and, zero_tsub, zero_le, zero_add],
-    rw [show f n - g = t.indicator (f n - g) + tᶜ.indicator (f n - g), by simp [indicator_compl]],
-    refine le_trans (snorm_add_le _ _ hp) _,
-    { refine measurable.ae_measurable (measurable.indicator _ _),
-
-    }
-  },
+    rw [← t.indicator_self_add_compl (f n - g)],
+    refine le_trans (snorm_add_le ((((hf n).sub hg).indicator htm).ae_measurable)
+      (((hf n).sub hg).indicator htm.compl).ae_measurable hp) _,
+    rw [sub_eq_add_neg, indicator_add' t, indicator_neg'],
+    refine le_trans (add_le_add_right (snorm_add_le ((hf n).indicator htm).ae_measurable
+      (hg.indicator htm).neg.ae_measurable hp) _) _,
+    have hnf : snorm (t.indicator (f n)) p μ < ennreal.of_real (ε.to_real / 3),
+    { refine hsnorm₁ n t htm (le_trans ht₁ _),
+      rw ennreal.of_real_le_of_real_iff hδ₁.le,
+      exact min_le_left _ _ },
+    have hng : snorm (t.indicator g) p μ < ennreal.of_real (ε.to_real / 3),
+    { refine hsnorm₂ t htm (le_trans ht₁ _),
+      rw ennreal.of_real_le_of_real_iff hδ₂.le,
+      exact min_le_right _ _ },
+    have hlt : snorm (tᶜ.indicator (f n + -g)) p μ < ennreal.of_real (ε.to_real / 3),
+    {
+      sorry },
+    have : ennreal.of_real (ε.to_real / 3) = ε / 3,
+    { rw [ennreal.of_real_div_of_pos (show (0 : ℝ) < 3, by norm_num), ennreal.of_real_to_real h.ne],
+      simp },
+    rw this at hnf hng hlt,
+    rw [snorm_neg, ← ennreal.add_three ε],
+    exact add_le_add_three hnf.le hng.le hlt.le },
   { rw [not_lt, top_le_iff] at h,
     exact ⟨0, λ n hn, by simp [h]⟩ }
 end

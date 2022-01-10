@@ -28,7 +28,7 @@ the 0th component of which must be nonzero.
 ## Main declarations
 
 * `witt_vector.iterate_verschiebung_mul_coeff` : an identity from [Haze09]
-* `witt_vector.domain`
+* `witt_vector.is_domain`
 
 -/
 

@@ -14,10 +14,11 @@ isomorphisms given by equalities.
 
 ## Implementation notes
 
-In the literature of category theory, a strict bicategory is often defined as a bicategory whose
-left unitors, right unitors, and associators are the identities. We cannot use this definition
-directly in Lean since the types of 2-morphisms depend on 1-morphisms. For this reason, we use
-`eq_to_iso`, which gives isomorphisms from equalities, instead of identities.
+In the literature of category theory, a strict bicategory (usually called a strict 2-category) is
+often defined as a bicategory whose left unitors, right unitors, and associators are identities.
+We cannot use this definition directly here since the types of 2-morphisms depend on 1-morphisms.
+For this reason, we use `eq_to_iso`, which gives isomorphisms from equalities, instead of
+identities.
 -/
 
 namespace category_theory

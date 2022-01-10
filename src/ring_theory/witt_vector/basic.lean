@@ -265,13 +265,17 @@ lemma ghost_map.bijective_of_invertible : function.bijective (ghost_map : 𝕎 R
 
 end invertible
 
+/-- `witt_vector.coeff x 0` as a `ring_hom` -/
+@[simps]
+def constant_coeff : 𝕎 R →+* R :=
+{ to_fun := λ x, x.coeff 0,
+  map_zero' := by simp,
+  map_one' := by simp,
+  map_add' := λ x y, by simp [add_coeff, peval],  -- TODO: extract these as standalone lemmas?
+  map_mul' := coeff_mul_zero }
+
 lemma nontrivial [nontrivial R] : nontrivial (𝕎 R) :=
-{ exists_pair_ne := ⟨0, 1,
-  begin
-    intro h,
-    have : (0 : 𝕎 R).coeff 0 = (1 : 𝕎 R).coeff 0 := by rw h,
-    simpa using this,
-  end⟩ }
+constant_coeff.domain_nontrivial
 
 
 end witt_vector

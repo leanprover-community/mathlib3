@@ -59,7 +59,7 @@ mem_product.2 ⟨ha, hb⟩
 
 /-- A finite partition of `a : α` is a pairwise disjoint finite set of elements whose supremum is
 `a`. We forbid `⊥` as a part. -/
-@[ext] structure finpartition {α : Type*} [lattice α] [order_bot α] (a : α) :=
+@[ext, derive decidable_eq] structure finpartition {α : Type*} [lattice α] [order_bot α] (a : α) :=
 (parts : finset α)
 (sup_indep : parts.sup_indep id)
 (sup_parts : parts.sup id = a)
@@ -162,6 +162,10 @@ def _root_.is_atom.unique_finpartition (ha : is_atom a) : unique (finpartition a
     simp_rw ←h c hc,
     exact hc,
   end,  }
+
+instance [fintype α] [decidable_eq α] : fintype (finpartition a) :=
+@fintype.of_surjective {p : finset α // p.sup_indep id ∧ p.sup id = a ∧ ⊥ ∉ p} (finpartition a) _
+  (subtype.fintype _) (λ i, ⟨i.1, i.2.1, i.2.2.1, i.2.2.2⟩) (λ ⟨_, y, z, w⟩, ⟨⟨_, y, z, w⟩, rfl⟩)
 
 /-! ### Refinement order -/
 

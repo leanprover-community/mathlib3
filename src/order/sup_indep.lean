@@ -37,6 +37,14 @@ def sup_indep (s : finset ι) (f : ι → α) : Prop :=
 
 variables {s t : finset ι} {f : ι → α} {i : ι}
 
+instance [decidable_eq ι] [decidable_eq α] : decidable (sup_indep s f) :=
+begin
+  apply @finset.decidable_forall_of_decidable_subsets _ _ _ _,
+  intros t ht,
+  apply @finset.decidable_dforall_finset _ _ _ _,
+  exact λ i hi, @implies.decidable _ _ _ (decidable_of_iff' (_ = ⊥) disjoint_iff),
+end
+
 lemma sup_indep.subset (ht : t.sup_indep f) (h : s ⊆ t) : s.sup_indep f :=
 λ u hu i hi, ht (hu.trans h) (h hi)
 

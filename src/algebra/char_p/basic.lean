@@ -21,6 +21,7 @@ variables (R : Type u)
 class char_p [add_monoid R] [has_one R] (p : ℕ) : Prop :=
 (cast_eq_zero_iff [] : ∀ x:ℕ, (x:R) = 0 ↔ p ∣ x)
 
+@[simp]
 theorem char_p.cast_eq_zero [add_monoid R] [has_one R] (p : ℕ) [char_p R p] :
   (p:R) = 0 :=
 (char_p.cast_eq_zero_iff R p p).2 (dvd_refl p)
@@ -114,23 +115,43 @@ lemma eq_zero [char_zero R] : ring_char R = 0 := (eq R (char_p.of_char_zero R)).
 
 end ring_char
 
+variable {R}
+
+theorem add_pow_prime_eq_pow_add_pow_add_prime_mul_of_commute [semiring R] (p : ℕ)
+  [fact p.prime] (x y : R) (h : commute x y) : ∃ r : R, (x + y) ^ p = x ^ p + y ^ p + p * r :=
+begin
+  have : p = p - 1 + 1 := (nat.succ_pred_prime (fact.out _)).symm,
+  rw [commute.add_pow h, finset.sum_range_succ_comm, tsub_self, pow_zero, nat.choose_self,
+    nat.cast_one, mul_one, mul_one, this, finset.sum_range_succ'],
+  simp only [this.symm, tsub_zero, mul_one, one_mul, nat.choose_zero_right, nat.cast_one, pow_zero],
+  rw add_comm _ (y ^ p),
+  simp_rw add_assoc,
+  use (finset.range (p - 1)).sum
+    (λ (n : ℕ), x ^ (n + 1) * y ^ (p - (n + 1)) * ↑(p.choose (n + 1) / p)),
+  rw finset.mul_sum,
+  congr' 2,
+  apply finset.sum_congr rfl,
+  intros i hi,
+  rw [finset.mem_range] at hi,
+  rw [nat.cast_comm, mul_assoc, mul_assoc, mul_assoc],
+  congr,
+  norm_cast,
+  rw nat.div_mul_cancel,
+  exact nat.prime.dvd_choose_self (nat.succ_pos _) (lt_tsub_iff_right.mp hi) (fact.out _),
+end
+
+theorem add_pow_prime_eq_pow_add_pow_add_prime_mul [comm_semiring R] (p : ℕ)
+  [fact p.prime] (x y : R) : ∃ r : R, (x + y) ^ p = x ^ p + y ^ p + p * r :=
+add_pow_prime_eq_pow_add_pow_add_prime_mul_of_commute _ _ _ (commute.all _ _)
+
+variable (R)
+
 theorem add_pow_char_of_commute [semiring R] {p : ℕ} [fact p.prime]
   [char_p R p] (x y : R) (h : commute x y) :
   (x + y)^p = x^p + y^p :=
 begin
-  rw [commute.add_pow h, finset.sum_range_succ_comm, tsub_self, pow_zero, nat.choose_self],
-  rw [nat.cast_one, mul_one, mul_one], congr' 1,
-  convert finset.sum_eq_single 0 _ _,
-  { simp only [mul_one, one_mul, nat.choose_zero_right, tsub_zero, nat.cast_one, pow_zero] },
-  { intros b h1 h2,
-    suffices : (p.choose b : R) = 0, { rw this, simp },
-    rw char_p.cast_eq_zero_iff R p,
-    refine nat.prime.dvd_choose_self (pos_iff_ne_zero.mpr h2) _ (fact.out _),
-    rwa ← finset.mem_range },
-  { intro h1,
-    contrapose! h1,
-    rw finset.mem_range,
-    exact nat.prime.pos (fact.out _) }
+  rcases add_pow_prime_eq_pow_add_pow_add_prime_mul_of_commute p x y h with ⟨r, hr⟩,
+  simp [hr],
 end
 
 theorem add_pow_char_pow_of_commute [semiring R] {p : ℕ} [fact p.prime]

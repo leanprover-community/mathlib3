@@ -986,7 +986,7 @@ begin
     rw ← insert_erase has,
     refine step _ _ (not_mem_erase a s) (λ x hx, _) (ihs _ $ erase_ssubset has),
     rw hfa,
-    exact le_max' _ _ (mem_image_of_mem _ $  mem_of_mem_erase hx) }
+    exact le_max' _ _ (mem_image_of_mem _ $ mem_of_mem_erase hx) }
 end
 
 /-- Induction principle for `finset`s in any type from which a given function `f` maps to a linearly

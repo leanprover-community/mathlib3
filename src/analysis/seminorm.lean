@@ -740,8 +740,9 @@ end
   triangle' := gauge_add_le hs hs' }
 
 /-- Any seminorm arises a the gauge of its unit ball. -/
-lemma seminorm.gauge_ball (p : seminorm ℝ E) (x : E): gauge (p.ball 0 1) x = p x :=
+lemma seminorm.gauge_ball (p : seminorm ℝ E) : gauge (p.ball 0 1) = p :=
 begin
+  ext,
   obtain hp | hp := {r : ℝ | 0 < r ∧ x ∈ r • p.ball 0 1}.eq_empty_or_nonempty,
   { rw [gauge, hp, real.Inf_empty],
     by_contra,

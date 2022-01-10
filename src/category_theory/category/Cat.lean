@@ -51,8 +51,8 @@ instance bicategory : bicategory.{(max v u) (max v u)} Cat.{v u} :=
   associator := λ A B C D, functor.associator,
   left_unitor :=  λ A B, functor.left_unitor,
   right_unitor := λ A B, functor.right_unitor,
-  pentagon' := by { intros, apply functor.pentagon },
-  triangle' := by { intros, apply functor.triangle } }
+  pentagon' := λ A B C D E, functor.pentagon,
+  triangle' := λ A B C, functor.triangle }
 
 /-- `Cat` is a strict bicategory. -/
 instance bicategory.strict : bicategory.strict Cat.{v u} :=

@@ -6,6 +6,7 @@ Authors: Kexing Ying
 import measure_theory.constructions.borel_space
 import measure_theory.function.l1_space
 import data.nat.succ_pred
+import topology.instances.discrete
 
 /-!
 # Filtration and stopping time
@@ -461,6 +462,8 @@ lemma prog_measurable.measurable_stopped_process
 
 end prog_measurable
 
+end linear_order
+
 -- We will need cadlag to generalize the following to continuous processes
 section nat
 
@@ -471,27 +474,6 @@ variables {f : filtration ℕ m} {u : ℕ → α → β} {τ : α → ℕ}
 section add_comm_monoid
 
 variables [add_comm_monoid β]
-
-lemma adapted.prog_measurable [measurable_space β] [has_measurable_add₂ β]
-  (h : adapted f u) : prog_measurable f u :=
-begin
-  intro i,
-  have : (λ p : ↥(set.Iic i) × α, u ↑(p.fst) p.snd)
-    = λ p : ↥(set.Iic i) × α, ∑ j in finset.range (i + 1), if ↑p.fst = j then u j p.snd else 0,
-  { ext1 p,
-    rw finset.sum_ite_eq,
-    have hp_mem : (p.fst : ℕ) ∈ finset.range (i + 1) := finset.mem_range_succ_iff.mpr p.fst.prop,
-    simp only [hp_mem, if_true], },
-  rw this,
-  refine finset.measurable_sum _ (λ j hj, measurable.ite _ _ _),
-  { suffices h_meas : measurable[@prod.measurable_space _ _ _ (f i)]
-        (λ a : ↥(set.Iic i) × α, (a.fst : ℕ)),
-      from h_meas (measurable_set_singleton j),
-    exact (@measurable_fst _ α (f i) _).subtype_coe, },
-  { have h_le : j ≤ i, from finset.mem_range_succ_iff.mp hj,
-    exact (measurable.le (f.mono h_le) (h j)).comp (@measurable_snd _ α (f i) _), },
-  { exact @measurable_const _ (set.Iic i × α) _ (@prod.measurable_space _ _ _ (f i)) _, },
-end
 
 lemma stopped_process_eq (n : ℕ) :
   stopped_process u τ n =
@@ -516,84 +498,25 @@ begin
       exact hneq.symm } },
 end
 
-@[priority 100]
-instance {α} [topological_space α] [encodable α] : separable_space α :=
-{ exists_countable_dense := ⟨set.univ, set.countable_encodable set.univ, dense_univ⟩ }
-
-@[priority 100]
-instance discrete_topology.first_countable_topology {α} [topological_space α]
-  [discrete_topology α] :
-  first_countable_topology α :=
-{ nhds_generated_countable :=
-    by { rw nhds_discrete, exact λ a, filter.is_countably_generated_pure _, } }
-
-@[priority 100]
-instance discrete_topology.second_countable_topology_of_encodable {α} [topological_space α]
-  [hd : discrete_topology α] [encodable α] :
-  second_countable_topology α :=
+lemma adapted.prog_measurable [measurable_space β] [has_measurable_add₂ β]
+  (h : adapted f u) : prog_measurable f u :=
 begin
-  haveI : ∀ (i : α), second_countable_topology ↥({i} : set α),
-    from λ i, { is_open_generated_countable :=
-      ⟨{set.univ}, set.countable_singleton _, by simp only [eq_iff_true_of_subsingleton]⟩, },
-  have h_open : ∀ (i : α), is_open ({i} : set α), from λ i, is_open_discrete _,
-  exact second_countable_topology_of_countable_cover h_open (set.Union_of_singleton α),
-end
-
-@[priority 100]
-instance todo {α} [topological_space α] [h : discrete_topology α] [partial_order α] [succ_order α]
-  [pred_order α] [no_top_order α] [no_bot_order α] :
-  order_topology α :=
-begin
-  constructor,
-  rw h.eq_bot,
-  refine (eq_bot_of_singletons_open (λ a, _)).symm,
-  have h_singleton_eq_inter : {a} = set.Iio (succ_order.succ a) ∩ set.Ioi (pred_order.pred a),
-  { suffices h_singleton_eq_inter' : {a} = set.Iic a ∩ set.Ici a,
-      by rw [h_singleton_eq_inter', pred_order.Ici_eq_Ioi_pred, succ_order.Iic_eq_Iio_succ],
-    rw [set.inter_comm, set.Ici_inter_Iic, set.Icc_self a], },
-  rw h_singleton_eq_inter,
-  refine @is_open.inter _ _ _ (generate_from {s : set α | ∃ a, s = set.Ioi a ∨ s = set.Iio a}) _ _,
-  { exact is_open_generate_from_of_mem ⟨succ_order.succ a, or.inr rfl⟩, },
-  { exact is_open_generate_from_of_mem ⟨pred_order.pred a, or.inl rfl⟩, },
-end
-
-@[priority 100]
-instance {α} [topological_space α] [h : discrete_topology α] [linear_order α] [succ_order α]
-  [pred_order α] :
-  order_topology α :=
-begin
-  constructor,
-  rw h.eq_bot,
-  refine (eq_bot_of_singletons_open (λ a, _)).symm,
-  have h_singleton_eq_inter : {a} = set.Iic a ∩ set.Ici a,
-    by rw [set.inter_comm, set.Ici_inter_Iic, set.Icc_self a],
-  have h_Iic_eq_univ_of_top : (∀ b, b ≤ a) → set.Iic a = set.univ,
-  { intros ha_top, ext1 x, simp [ha_top x], },
-  have h_Ici_eq_univ_of_bot : (∀ b, a ≤ b) → set.Ici a = set.univ,
-  { intros ha_bot, ext1 x, simp [ha_bot x], },
-  by_cases ha_top : ∃ b, a < b,
-  { rw succ_order.Iic_eq_Iio_succ' ha_top at h_singleton_eq_inter,
-    by_cases ha_bot : ∃ b, b < a,
-    { rw pred_order.Ici_eq_Ioi_pred' ha_bot at h_singleton_eq_inter,
-      rw h_singleton_eq_inter,
-      refine @is_open.inter _ _ _
-        (generate_from {s : set α | ∃ a, s = set.Ioi a ∨ s = set.Iio a}) _ _,
-      { exact is_open_generate_from_of_mem ⟨succ_order.succ a, or.inr rfl⟩, },
-      { exact is_open_generate_from_of_mem ⟨pred_order.pred a, or.inl rfl⟩, }, },
-    { push_neg at ha_bot,
-      rw [h_Ici_eq_univ_of_bot ha_bot, set.inter_univ] at h_singleton_eq_inter,
-      rw h_singleton_eq_inter,
-      exact is_open_generate_from_of_mem ⟨succ_order.succ a, or.inr rfl⟩, }, },
-  { push_neg at ha_top,
-    rw [h_Iic_eq_univ_of_top ha_top, set.inter_comm, set.inter_univ] at h_singleton_eq_inter,
-    by_cases ha_bot : ∃ b, b < a,
-    { rw pred_order.Ici_eq_Ioi_pred' ha_bot at h_singleton_eq_inter,
-      rw h_singleton_eq_inter,
-      exact is_open_generate_from_of_mem ⟨pred_order.pred a, or.inl rfl⟩, },
-    { push_neg at ha_bot,
-      rw h_Ici_eq_univ_of_bot ha_bot at h_singleton_eq_inter,
-      rw h_singleton_eq_inter,
-      exact @is_open_univ _ (generate_from {s : set α | ∃ a, s = set.Ioi a ∨ s = set.Iio a}), }, },
+  intro i,
+  have : (λ p : ↥(set.Iic i) × α, u ↑(p.fst) p.snd)
+    = λ p : ↥(set.Iic i) × α, ∑ j in finset.range (i + 1), if ↑p.fst = j then u j p.snd else 0,
+  { ext1 p,
+    rw finset.sum_ite_eq,
+    have hp_mem : (p.fst : ℕ) ∈ finset.range (i + 1) := finset.mem_range_succ_iff.mpr p.fst.prop,
+    simp only [hp_mem, if_true], },
+  rw this,
+  refine finset.measurable_sum _ (λ j hj, measurable.ite _ _ _),
+  { suffices h_meas : measurable[@prod.measurable_space _ _ _ (f i)]
+        (λ a : ↥(set.Iic i) × α, (a.fst : ℕ)),
+      from h_meas (measurable_set_singleton j),
+    exact (@measurable_fst _ α (f i) _).subtype_coe, },
+  { have h_le : j ≤ i, from finset.mem_range_succ_iff.mp hj,
+    exact (measurable.le (f.mono h_le) (h j)).comp (@measurable_snd _ α (f i) _), },
+  { exact @measurable_const _ (set.Iic i × α) _ (@prod.measurable_space _ _ _ (f i)) _, },
 end
 
 lemma adapted.stopped_process [measurable_space β] [has_measurable_add₂ β]
@@ -601,15 +524,16 @@ lemma adapted.stopped_process [measurable_space β] [has_measurable_add₂ β]
   adapted f (stopped_process u τ) :=
 (hu.prog_measurable.stopped_process hτ).adapted
 
+lemma adapted.measurable_stopped_process [measurable_space β] [has_measurable_add₂ β]
+  (hτ : is_stopping_time f τ) (hu : adapted f u) (n : ℕ) :
+  measurable (stopped_process u τ n) :=
+hu.prog_measurable.measurable_stopped_process hτ n
+
 end add_comm_monoid
 
 section normed_group
 
 variables [measurable_space β] [normed_group β] [has_measurable_add₂ β]
-
-lemma measurable_stopped_process (hτ : is_stopping_time f τ) (hu : adapted f u) (n : ℕ) :
-  measurable (stopped_process u τ n) :=
-hu.prog_measurable.measurable_stopped_process hτ n
 
 lemma mem_ℒp_stopped_process {p : ℝ≥0∞} [borel_space β] {μ : measure α} (hτ : is_stopping_time f τ)
   (hu : ∀ n, mem_ℒp (u n) p μ) (n : ℕ) :
@@ -632,7 +556,5 @@ by { simp_rw ← mem_ℒp_one_iff_integrable at hu ⊢, exact mem_ℒp_stopped_p
 end normed_group
 
 end nat
-
-end linear_order
 
 end measure_theory

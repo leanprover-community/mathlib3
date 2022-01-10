@@ -558,7 +558,7 @@ lemma is_root_cyclotomic_iff {n : ℕ} {R : Type*} [comm_ring R] [is_domain R] [
   {μ : R} : is_root (cyclotomic n R) μ ↔ is_primitive_root μ n :=
 begin
   have hf : function.injective _ := is_fraction_ring.injective R (fraction_ring R),
-  haveI : ne_zero (n : fraction_ring R) := ne_zero.of_injective hf,
+  haveI : ne_zero (n : fraction_ring R) := ne_zero.nat_of_injective hf,
   rw [←is_root_map_iff hf, ←is_primitive_root.map_iff_of_injective hf, map_cyclotomic,
       ←is_root_cyclotomic_iff']
 end

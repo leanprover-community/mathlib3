@@ -319,10 +319,7 @@ eq_nat_cast' f $ map_one f
 map_nat_cast' f $ map_one f
 
 lemma ext_nat [ring_hom_class F ℕ R] (f g : F) : f = g :=
-begin
-  apply @ext_nat' R, -- why does this need to be like this? even `ext_nat f g` doesn't work
-  simp only [map_one]
-end
+ext_nat' f g $ by simp only [map_one]
 
 end ring_hom_class
 
@@ -336,7 +333,7 @@ end ring_hom_class
 
 -- I don't think `ring_hom_class` is good here, because of the `subsingleton` TC slowness
 instance nat.subsingleton_ring_hom {R : Type*} [non_assoc_semiring R] : subsingleton (ℕ →+* R) :=
-⟨@ext_nat R (ℕ →+* R) _ _⟩
+⟨ext_nat⟩
 
 namespace with_top
 variables {α : Type*}

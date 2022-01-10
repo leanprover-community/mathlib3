@@ -176,7 +176,8 @@ end
 ## Witt vectors over a domain
 
 If `R` is an integral domain, then so is `𝕎 R`.
-This argument is adapted from <https://tinyurl.com/2p8cwrn7>.
+This argument is adapted from
+<https://math.stackexchange.com/questions/4117247/ring-of-witt-vectors-over-an-integral-domain/4118723#4118723>.
 -/
 
 variable  [is_domain R]

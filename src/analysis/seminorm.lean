@@ -293,7 +293,7 @@ noncomputable instance : has_sup (seminorm 𝕜 E) :=
 @[simp] lemma coe_sup (p q : seminorm 𝕜 E) : ⇑(p ⊔ q) = p ⊔ q := rfl
 
 instance : partial_order (seminorm 𝕜 E) :=
-  partial_order.lift _ coe_injective
+  partial_order.lift _ fun_like.coe_injective
 
 lemma le_def (p q : seminorm 𝕜 E) : p ≤ q ↔ (p : E → ℝ) ≤ q := iff.rfl
 lemma lt_def (p q : seminorm 𝕜 E) : p < q ↔ (p : E → ℝ) < q := iff.rfl

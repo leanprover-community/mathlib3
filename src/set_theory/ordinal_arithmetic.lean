@@ -889,7 +889,7 @@ def family_of_bfamily' {ι : Type u} (r : ι → ι → Prop) [is_well_order ι 
 given by the axiom of choice. -/
 @[simp]
 def family_of_bfamily (o : ordinal.{u}) (f : Π b < o, β) : o.out.α → β :=
-family_of_bfamily' o.out.r (λ b hb, f b (by rwa type_out o at hb))
+family_of_bfamily' o.out.r (λ b hb, f b (by rwa type_out at hb))
 
 theorem bfamily_of_family'_typein {ι} (r : ι → ι → Prop) [is_well_order ι r] (f : ι → β) (i) :
   f i = bfamily_of_family' r f (typein r i) (typein_lt_type r i) :=
@@ -909,7 +909,7 @@ by { convert h, exact type_out b }
 
 theorem family_of_bfamily_enum (o : ordinal.{u}) (f : Π b < o, β) (i hi) :
   f i hi = family_of_bfamily o f (enum o.out.r i (lt_type_out_of_lt hi)) :=
-family_of_bfamily'_enum _ (λ b hb, f b (by rwa type_out o at hb)) _ _
+family_of_bfamily'_enum _ (λ b hb, f b (by rwa type_out at hb)) _ _
 
 /-! ### Supremum of a family of ordinals -/
 
@@ -987,15 +987,14 @@ by rw [bsup_le, sup_le]; exact
 
 theorem bsup_eq_sup {o} (f : Π a < o, ordinal) : bsup o f = sup (family_of_bfamily o f) :=
 begin
-  convert bsup_eq_sup' o.out.r (λ b hb, f b (by rwa type_out o at hb)),
-  { exact (type_out o).symm },
-  { ext,
-    { exact rfl },
-    { rintros a a' ⟨ha⟩,
-      ext,
-      { rw type_out },
-      { intros,
-        rw heq_iff_eq }}}
+  convert bsup_eq_sup' o.out.r (λ b hb, f b (by rwa type_out at hb)),
+  { rw type_out },
+  apply function.hfunext rfl,
+  rintros a a' rfl,
+  apply function.hfunext,
+  { rw type_out },
+  intros,
+  rw heq_iff_eq
 end
 
 theorem sup_eq_bsup' {ι} (r : ι → ι → Prop) [is_well_order ι r] (f : ι → ordinal) :

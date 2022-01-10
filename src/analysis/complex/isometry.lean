@@ -5,6 +5,7 @@ Authors: François Sunatori
 -/
 import analysis.complex.circle
 import linear_algebra.determinant
+import linear_algebra.general_linear_group
 
 /-!
 # Isometries of the Complex Plane
@@ -150,7 +151,7 @@ end
 /-- The matrix representation of `rotation`. -/
 lemma to_matrix_rotation (a : circle) :
   linear_map.to_matrix basis_one_I basis_one_I (rotation a).to_linear_equiv =
-    ![![re a, -im a], ![im a, re a]] :=
+    matrix.plane_conformal_matrix (re a) (-im a) (by simp [pow_two, ←norm_sq_apply]) :=
 begin
   ext i j,
   simp [linear_map.to_matrix_apply],

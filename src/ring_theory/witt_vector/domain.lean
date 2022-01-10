@@ -186,24 +186,20 @@ This argument is adapted from <https://tinyurl.com/2p8cwrn7>.
 
 variable  [is_domain R]
 
-lemma eq_zero_or_eq_zero_of_mul_eq_zero (x y : 𝕎 R) : x * y = 0 → x = 0 ∨ y = 0 :=
-begin
+instance [no_zero_divisors R] : no_zero_divisors (𝕎 R) :=
+⟨λ x y, begin
   contrapose!,
   rintros ⟨ha, hb⟩,
-  rcases verschiebung_nonzero ha with ⟨na, wa, hwa0, hwaeq⟩,
-  rcases verschiebung_nonzero hb with ⟨nb, wb, hwb0, hwbeq⟩,
-  have : (x * y).coeff (na + nb) = (wa.coeff 0) ^ (p ^ nb) * (wb.coeff 0) ^ (p ^ na),
-  { rw [← iterate_verschiebung_mul_coeff, hwaeq, hwbeq], },
-  have : (x * y).coeff (na + nb) ≠ 0,
-  { rw this,
-    apply mul_ne_zero; apply pow_ne_zero; assumption },
-  contrapose! this,
-  simp [this]
-end
+  rcases verschiebung_nonzero ha with ⟨na, wa, hwa0, rfl⟩,
+  rcases verschiebung_nonzero hb with ⟨nb, wb, hwb0, rfl⟩,
+  refine ne_of_apply_ne (λ x, x.coeff (na + nb)) _,
+  rw [iterate_verschiebung_mul_coeff, zero_coeff],
+  refine mul_ne_zero (pow_ne_zero _ hwa0) (pow_ne_zero _ hwb0),
+end⟩
 
 instance : is_domain (𝕎 R) :=
-{ eq_zero_or_eq_zero_of_mul_eq_zero := eq_zero_or_eq_zero_of_mul_eq_zero,
-  exists_pair_ne := witt_vector.nontrivial.exists_pair_ne }
+{ ..witt_vector.no_zero_divisors,
+  ..witt_vector.nontrivial }
 
 end char_p
 

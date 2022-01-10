@@ -87,8 +87,8 @@ begin
   { rw [mul_char_p_coeff_succ, verschiebung_coeff_succ, coeff_frobenius_char_p], }
 end
 
-lemma verschiebung_frobenius_comm [char_p R p] (x : 𝕎 R) :
-  verschiebung (frobenius x) = frobenius (verschiebung x) :=
-by rw [verschiebung_frobenius, frobenius_verschiebung]
+lemma verschiebung_frobenius_comm [char_p R p] :
+  function.commute (verschiebung : 𝕎 R → 𝕎 R) frobenius :=
+λ x, by rw [verschiebung_frobenius, frobenius_verschiebung]
 
 end witt_vector

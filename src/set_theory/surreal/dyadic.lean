@@ -215,6 +215,17 @@ def dyadic_map : localization.away (2 : ℤ) →+ surreal :=
     ... = a • pow_half b' + c • pow_half d' : add_comm _ _,
   end }
 
+lemma dyadic_map_apply (m : ℤ) (p : submonoid.powers (2 : ℤ)) :
+  dyadic_map (localization.mk m p) = m • pow_half (submonoid.log p) := rfl
+
+lemma dyadic_map_apply' (m : ℤ) (n : ℕ) :
+  dyadic_map (localization.mk m (submonoid.pow 2 n)) = m • pow_half n :=
+by rw [dyadic_map_apply, @submonoid.log_pow_int_eq_self 2 one_lt_two]
+
+lemma dyadic_map_apply'' (m : ℤ) (n : ℕ) :
+  dyadic_map (localization.mk m ⟨2 ^ n, n, rfl⟩) = m • pow_half n :=
+by rw [← submonoid.pow_apply, dyadic_map_apply']
+
 /-- We define dyadic surreals as the range of the map `dyadic_map`. -/
 def dyadic : set surreal := set.range dyadic_map
 

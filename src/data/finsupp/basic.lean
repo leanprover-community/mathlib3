@@ -2589,3 +2589,15 @@ int.cast_sum _ _
 
 end int
 end cast_finsupp
+
+lemma prod_pow_mul [add_zero_class M] [comm_monoid N] {f1 f2 : α →₀ M} {g : α → M → N}
+  (hg : ∀ i ∈ f1.support ∪ f2.support, g i 0 = 1)
+  (hg' : ∀ x : α, ∀ a b : M, g x a * g x b = g x (a + b)) :
+  (f1.prod g) * (f2.prod g) = (f1 + f2).prod g :=
+begin
+  rw [finsupp.prod_of_support_subset f1 (subset_union_left _ f2.support) g hg,
+      finsupp.prod_of_support_subset f2 (subset_union_right f1.support _) g hg,
+      ←finset.prod_mul_distrib,
+      finsupp.prod_of_support_subset (f1 + f2) finsupp.support_add g hg],
+  exact finset.prod_congr rfl (λ x hx, (by apply hg')),
+end

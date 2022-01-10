@@ -353,10 +353,10 @@ section preorder
 variables [preorder α] [bounded_order α] [is_simple_order α] {a b : α}
 
 lemma eq_bot_of_lt (h : a < b) : a = ⊥ :=
-(is_simple_order.eq_bot_or_eq_top _).resolve_right $ ne_top_of_gt h
+(is_simple_order.eq_bot_or_eq_top _).resolve_right $ ne_top_of_lt h
 
 lemma eq_top_of_lt (h : a < b) : b = ⊤ :=
-(is_simple_order.eq_bot_or_eq_top _).resolve_left $ ne_bot_of_lt h
+(is_simple_order.eq_bot_or_eq_top _).resolve_left $ ne_bot_of_gt h
 
 end preorder
 

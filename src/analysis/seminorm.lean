@@ -258,10 +258,7 @@ variables [has_scalar 𝕜 E]
 
 instance : has_coe_to_fun (seminorm 𝕜 E) (λ _, E → ℝ) := ⟨λ p, p.to_fun⟩
 
-lemma coe_injective : @function.injective (seminorm 𝕜 E) (E → ℝ) coe_fn
-| ⟨x, _, _⟩ ⟨y, _, _⟩ rfl := rfl
-
-@[ext] lemma ext {p q : seminorm 𝕜 E} (h : (p : E → ℝ) = q) : p = q := coe_injective h
+@[ext] lemma ext {p q : seminorm 𝕜 E} (h : (p : E → ℝ) = q) : p = q := fun_like.ext h
 
 instance : has_zero (seminorm 𝕜 E) :=
 ⟨{ to_fun    := λ _, 0,

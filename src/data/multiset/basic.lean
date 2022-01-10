@@ -1753,7 +1753,7 @@ by rw [count, countp_eq_card_filter]
 @[simp] lemma map_count_true_eq_filter_card (s : multiset α) (p : α → Prop) [decidable_pred p] :
   (s.map p).count true = (s.filter p).card :=
 begin
-  simp [count_eq_card_filter_eq, map_filter, card_map],
+  simp only [count_eq_card_filter_eq, map_filter, card_map, function.comp.left_id, eq_true_eq_id],
   congr,
 end
 

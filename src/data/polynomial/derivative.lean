@@ -249,11 +249,8 @@ begin
   rw [h, ← add_monoid_hom.coe_mul_left, (add_monoid_hom.mul_left (f i)).map_multiset_sum _,
     add_monoid_hom.coe_mul_left],
   simp only [function.comp_app, multiset.map_map],
-  congr' 1,
-  refine multiset.map_congr (λ j hj, _),
-  simp only [function.comp_app],
+  refine congr_arg _ (multiset.map_congr rfl (λ j hj, _)),
   rw [← mul_assoc, ← multiset.prod_cons, ← multiset.map_cons],
-  congr' 1,
   by_cases hij : i = j,
   { simp [hij, ← multiset.prod_cons, ← multiset.map_cons, multiset.cons_erase hj] },
   { simp [hij] }

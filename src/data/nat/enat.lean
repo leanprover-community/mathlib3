@@ -391,11 +391,6 @@ section with_top
 /-- Computably converts an `enat` to a `with_top ℕ`. -/
 def to_with_top (x : enat) [decidable x.dom] : with_top ℕ := x.to_option
 
-@[congr]
-lemma to_with_top_congr {x y : enat} [decidable x.dom] [decidable y.dom] :
-  x = y → to_with_top x = to_with_top y :=
-by cc
-
 lemma to_with_top_top : to_with_top ⊤ = ⊤ := rfl
 
 @[simp] lemma to_with_top_top' {h : decidable (⊤ : enat).dom} : to_with_top ⊤ = ⊤ :=

@@ -1290,17 +1290,6 @@ def piecewise {α : Type*} {δ : α → Sort*} (s : finset α) (f g : Πi, δ i)
 
 variables {δ : α → Sort*} (s : finset α) (f g : Πi, δ i)
 
-@[congr]
-lemma piecewise_congr' {s t : finset α} {f f' g g' : Π i, δ i}
-    [ds : ∀ j, decidable (j ∈ s)] [dt : ∀ j, decidable (j ∈ t)]
-    (hf : f = f') (hg : g = g') (hst : s = t) :
-    @piecewise α δ s f g ds = @piecewise α δ t f' g' dt :=
-begin
-  substI hst,
-  casesI subsingleton.elim ds dt,
-  cc,
-end
-
 @[simp] lemma piecewise_insert_self [decidable_eq α] {j : α} [∀i, decidable (i ∈ insert j s)] :
   (insert j s).piecewise f g j = f j :=
 by simp [piecewise]
@@ -1488,10 +1477,6 @@ eq_empty_of_forall_not_mem (by simpa)
 
 lemma filter_congr {s : finset α} (H : ∀ x ∈ s, p x ↔ q x) : filter p s = filter q s :=
 eq_of_veq $ filter_congr H
-
-@[congr]
-lemma filter_congr' {s t} : p = q → s = t → @filter _ p _inst_1 s = @filter _ q _inst_2 t :=
-by cc
 
 variables (p q)
 

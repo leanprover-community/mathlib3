@@ -767,6 +767,9 @@ quotient.induction_on' s $ λ L, list.forall_mem_map_iff
 @[simp] theorem map_cons (f : α → β) (a s) : map f (a ::ₘ s) = f a ::ₘ map f s :=
 quot.induction_on s $ λ l, rfl
 
+theorem map_comp_cons (f : α → β) (t) : map f ∘ cons t = cons (f t) ∘ map f :=
+by { ext, simp }
+
 @[simp] theorem map_singleton (f : α → β) (a : α) : ({a} : multiset α).map f = {f a} := rfl
 
 theorem map_repeat (f : α → β) (a : α) (k : ℕ) : (repeat a k).map f = repeat (f a) k := by
@@ -1281,11 +1284,6 @@ quot.lift_on s (λ l, (filter p l : multiset α))
 lemma filter_congr {p q : α → Prop} [decidable_pred p] [decidable_pred q]
   {s : multiset α} : (∀ x ∈ s, p x ↔ q x) → filter p s = filter q s :=
 quot.induction_on s $ λ l h, congr_arg coe $ filter_congr' h
-
-@[congr]
-lemma filter_congr' {p q : α → Prop} [dp : decidable_pred p] [dq : decidable_pred q]
-  {s t : multiset α} : s = t → p = q → @filter _ p dp s = @filter _ q dq t :=
-by rintro rfl h; exact filter_congr (λ _ _, by rw h)
 
 @[simp] theorem filter_add (s t : multiset α) : filter p (s + t) = filter p s + filter p t :=
 quotient.induction_on₂ s t $ λ l₁ l₂, congr_arg coe $ filter_append _ _

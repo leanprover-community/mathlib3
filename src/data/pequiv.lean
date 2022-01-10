@@ -169,11 +169,6 @@ def of_set (s : set α) [decidable_pred (∈ s)] : α ≃. α :=
     { simp [ne_of_mem_of_not_mem ha hb] },
     { simp } } }
 
-@[congr]
-lemma of_set_congr {s t : set α} [ds : decidable_pred (∈ s)] [dt : decidable_pred (∈ t)]
-  (h : s = t) : @of_set _ s ds = @of_set _ t dt :=
-by { substI h, cc }
-
 lemma mem_of_set_self_iff {s : set α} [decidable_pred (∈ s)] {a : α} : a ∈ of_set s a ↔ a ∈ s :=
 by dsimp [of_set]; split_ifs; simp *
 
@@ -207,7 +202,7 @@ end
   intro,
   rw [← mem_of_set_self_iff, h],
   exact rfl
-end, λ h, by simp only [of_set_congr, of_set_univ.symm, h]⟩
+end, λ h, by simp only [← of_set_univ, h]⟩
 
 end of_set
 

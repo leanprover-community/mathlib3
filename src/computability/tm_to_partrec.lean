@@ -274,7 +274,7 @@ begin
         subst this, exact ⟨_, ⟨h, hm⟩, rfl⟩ },
       { simp only [list.head, exists_eq_left, part.mem_some_iff,
           list.tail_cons, false_or] at this,
-        refine IH _ this (by simp [hf, h, -subtype.val_eq_coe]) _ rfl (λ m h', _),
+        refine IH _ this (by simp * at *) _ rfl (λ m h', _),
         obtain h|rfl := nat.lt_succ_iff_lt_or_eq.1 h', exacts [hm _ h, h] } },
     { rintro ⟨n, ⟨hn, hm⟩, rfl⟩, refine ⟨n.succ :: v.1, _, rfl⟩,
       have : (n.succ :: v.1 : list ℕ) ∈ pfun.fix

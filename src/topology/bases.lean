@@ -111,7 +111,7 @@ lemma is_topological_basis.mem_nhds_iff {a : α} {s : set α} {b : set (set α)}
 begin
   change s ∈ (𝓝 a).sets ↔ ∃t∈b, a ∈ t ∧ t ⊆ s,
   rw [hb.eq_generate_from, nhds_generate_from, binfi_sets_eq],
-  { simp only [mem_bUnion_iff, exists_prop, mem_set_of_eq, and_assoc, and.left_comm], refl },
+  { simp [and_assoc, and.left_comm] },
   { exact assume s ⟨hs₁, hs₂⟩ t ⟨ht₁, ht₂⟩,
       have a ∈ s ∩ t, from ⟨hs₁, ht₁⟩,
       let ⟨u, hu₁, hu₂, hu₃⟩ := hb.1 _ hs₂ _ ht₂ _ this in

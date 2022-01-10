@@ -1057,9 +1057,10 @@ lemma restrict_finset_bUnion_congr {s : finset ι} {t : ι → set α}
     ∀ i ∈ s, μ.restrict (t i) = ν.restrict (t i) :=
 begin
   induction s using finset.induction_on with i s hi hs, { simp },
-  simp only [finset.mem_insert, or_imp_distrib, forall_and_distrib, forall_eq] at htm ⊢,
-  simp only [finset.set_bUnion_insert, ← hs htm.2],
-  exact restrict_union_congr htm.1 (s.measurable_set_bUnion htm.2)
+  simp only [forall_eq_or_imp, Union_Union_eq_or_left, finset.mem_insert],
+  rw restrict_union_congr (htm _ (finset.mem_insert_self i s)),
+  rw ← hs (λ i hi, htm _ (finset.mem_insert_of_mem hi)),
+  exact s.measurable_set_bUnion (λ i hi, htm _ (finset.mem_insert_of_mem hi))
 end
 
 lemma restrict_Union_congr [encodable ι] {s : ι → set α} (hm : ∀ i, measurable_set (s i)) :

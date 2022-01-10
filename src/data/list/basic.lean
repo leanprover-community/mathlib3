@@ -1623,10 +1623,6 @@ lemma map_congr {f g : α → β} : ∀ {l : list α}, (∀ x ∈ l, f x = g x) 
 | (a::l) h := let ⟨h₁, h₂⟩ := forall_mem_cons.1 h in
   by rw [map, map, h₁, map_congr h₂]
 
-@[congr]
-lemma map_congr' {f g : α → β} {k l : list α} (h : k = l) (hfg : f = g) : map f k = map g l :=
-by simp [h, map_congr, hfg]
-
 lemma map_eq_map_iff {f g : α → β} {l : list α} : map f l = map g l ↔ (∀ x ∈ l, f x = g x) :=
 begin
   refine ⟨_, map_congr⟩, intros h x hx,
@@ -2986,12 +2982,6 @@ end filter
 /-! ### erasep -/
 section erasep
 variables {p : α → Prop} [decidable_pred p]
-
-@[congr]
-lemma erasep_congr {p q} [dp : decidable_pred p] [dq : decidable_pred q] {xs ys : list α}
-  (hpq : ∀ x, p x ↔ q x) (hxs : xs = ys) :
-  @erasep _ p dp xs = @erasep _ q dq ys :=
-have p = q, by ext; exact hpq _, by cc
 
 @[simp] theorem erasep_nil : [].erasep p = [] := rfl
 

@@ -828,8 +828,8 @@ open finset function
 
 lemma support_eq [measurable_space α] [has_zero β] (f : α →ₛ β) :
   support f = ⋃ y ∈ f.range.filter (λ y, y ≠ 0), f ⁻¹' {y} :=
-set.ext $ λ x, by simp only [finset.set_bUnion_preimage_singleton, mem_support, set.mem_preimage,
-  finset.mem_coe, mem_filter, mem_range_self, true_and]
+set.ext $ λ x, by simp only [mem_support, set.mem_preimage, mem_filter, mem_range_self, true_and,
+  exists_prop, mem_Union, set.mem_range, mem_singleton_iff, exists_eq_right']
 
 variables {m : measurable_space α} [has_zero β] [has_zero γ] {μ : measure α} {f : α →ₛ β}
 

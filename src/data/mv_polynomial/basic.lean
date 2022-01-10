@@ -574,7 +574,6 @@ begin
   refine (coeff_mul_monomial' _ _ _ _).trans _,
   simp_rw [finsupp.single_le_iff, finsupp.mem_support_iff, nat.succ_le_iff, pos_iff_ne_zero,
     mul_one],
-  congr,
 end
 
 lemma coeff_X_mul' [decidable_eq σ] (m) (s : σ) (p : mv_polynomial σ R) :
@@ -583,7 +582,6 @@ begin
   refine (coeff_monomial_mul' _ _ _ _).trans _,
   simp_rw [finsupp.single_le_iff, finsupp.mem_support_iff, nat.succ_le_iff, pos_iff_ne_zero,
     one_mul],
-  congr,
 end
 
 lemma eq_zero_iff {p : mv_polynomial σ R} :

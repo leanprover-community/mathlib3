@@ -780,10 +780,7 @@ end
 
 lemma card_common_neighbors_le_degree_right [decidable_rel G.adj] (v w : V) :
   fintype.card (G.common_neighbors v w) ≤ G.degree w :=
-begin
-  convert G.card_common_neighbors_le_degree_left w v using 3,
-  apply common_neighbors_symm,
-end
+by simp_rw [common_neighbors_symm _ v w, card_common_neighbors_le_degree_left]
 
 lemma card_common_neighbors_lt_card_verts [decidable_rel G.adj] (v w : V) :
   fintype.card (G.common_neighbors v w) < fintype.card V :=

@@ -932,7 +932,7 @@ begin
   rw continuous_multilinear_map.curry_fin_finset_apply_const,
   have : ∀ m (hm : n = m), p n (s.piecewise (λ _, x) (λ _, y)) =
     p m ((s.map (fin.cast hm).to_equiv.to_embedding).piecewise (λ _, x) (λ _, y)),
-  { rintro m rfl, simp, congr /- probably different `decidable_eq` instances -/ },
+  { rintro m rfl, simp },
   apply this
 end
 

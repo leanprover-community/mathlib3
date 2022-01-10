@@ -2417,11 +2417,11 @@ instance decidable_union [decidable (a ∈ s)] [decidable (a ∈ t)] : decidable
 instance decidable_compl [decidable (a ∈ s)] : decidable (a ∈ sᶜ) :=
 (by apply_instance : decidable (a ∉ s))
 
-instance decidable_emptyset [decidable (a ∈ s)] : decidable (a ∈ (∅ : set α)) :=
-decidable.is_false (by simp)
+instance decidable_emptyset : decidable_pred (∈ (∅ : set α)) :=
+λ _, decidable.is_false (by simp)
 
-instance decidable_univ [decidable (a ∈ s)] : decidable (a ∈ (set.univ : set α)) :=
-decidable.is_true (by simp)
+instance decidable_univ : decidable_pred (∈ (set.univ : set α)) :=
+λ _, decidable.is_true (by simp)
 
 instance decidable_set_of (p : α → Prop) [decidable (p a)] : decidable (a ∈ {a | p a}) :=
 by assumption

@@ -28,7 +28,6 @@ variable [decidable_pred p]
 /-- Count the number of naturals `k < n` satisfying `p k`. -/
 def count (n : ℕ) : ℕ := (list.range n).countp p
 
-@[congr]
 lemma count_congr' {p q : ℕ → Prop} [decp : decidable_pred p] [decq : decidable_pred q] :
   p = q → @count p decp = @count q decq :=
 begin
@@ -36,7 +35,6 @@ begin
   cc
 end
 
-@[congr]
 lemma count_congr {p q : ℕ → Prop} {m n} [decp : decidable_pred p] [decq : decidable_pred q] :
   p = q → m = n → @count p decp m = @count q decq n :=
 begin

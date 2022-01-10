@@ -22,11 +22,6 @@ namespace list
 section countp
 variables (p : α → Prop) [decidable_pred p]
 
-@[congr]
-lemma countp_congr {p q} [dp : decidable_pred p] [dq : decidable_pred q] {xs ys : list α}
-  (hpq : p = q) (hxs : xs = ys) : @countp _ p dp xs = @countp _ q dq ys :=
-by cc
-
 @[simp] lemma countp_nil : countp p [] = 0 := rfl
 
 @[simp] lemma countp_cons_of_pos {a : α} (l) (pa : p a) : countp p (a::l) = countp p l + 1 :=

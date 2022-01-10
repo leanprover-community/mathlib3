@@ -53,11 +53,11 @@ end
 lemma is_o_pow_exp_at_top {n : ℕ} (hn : 1 ≤ n) : is_o (λ x, x^n) exp at_top :=
 begin
   rw is_o_iff_tendsto (λ x hx, ((exp_pos x).ne' hx).elim),
-  { simpa using tendsto_div_pow_mul_exp_add_at_top 1 0 n zero_ne_one hn },
+  simpa using tendsto_div_pow_mul_exp_add_at_top 1 0 n zero_ne_one hn,
 end
 
 lemma tendsto_log_div_mul_add_at_top (a b : ℝ) (ha : a ≠ 0) :
-  tendsto (λ x, log x / (a * x + b)) at_top (nhds 0) :=
+  tendsto (λ x, log x / (a * x + b)) at_top (𝓝 0) :=
 ((tendsto_div_pow_mul_exp_add_at_top a b 1 ha.symm le_rfl).comp tendsto_log_at_top).congr'
   (by filter_upwards [eventually_gt_at_top (0 : ℝ)] (λ x hx, by simp [exp_log hx]))
 
@@ -79,7 +79,7 @@ Given a function `a : ℕ → M` from the naturals into an additive commutative 
 
 variables {M : Type*} [add_comm_monoid M] (a : ℕ → M)
 
-def summatory (x : ℝ) : M :=
+def summatory (a : ℕ → M) (x : ℝ) : M :=
 ∑ n in finset.Icc 1 ⌊x⌋₊, a n
 
 lemma summatory_nat (n : ℕ) :
@@ -599,79 +599,6 @@ begin
   norm_num [hc]
 end
 
-namespace nat.arithmetic_function
-
-lemma pow_zero_eq_zeta :
-  pow 0 = ζ :=
-begin
-  ext i,
-  simp,
-end
-
-lemma sigma_zero_eq_zeta_mul_zeta :
-  σ 0 = ζ * ζ :=
-by rw [←zeta_mul_pow_eq_sigma, pow_zero_eq_zeta]
-
-lemma sigma_zero_apply_eq_sum_divisors {i : ℕ} :
-  σ 0 i = ∑ d in i.divisors, 1 :=
-begin
-  rw [sigma_apply, finset.sum_congr rfl],
-  intros x hx,
-  apply pow_zero,
-end
-
-lemma sigma_zero_apply_eq_card_divisors {i : ℕ} :
-  σ 0 i = i.divisors.card :=
- by rw [sigma_zero_apply_eq_sum_divisors, finset.card_eq_sum_ones]
-
--- BM: Bounds like these make me tempted to define a relation
--- `equal_up_to p f g` to express that `f - g ≪ p` (probably stated `f - g = O(p)`) and show that
--- (for fixed p) this is an equivalence relation, and that it is increasing in `p`
--- Perhaps this would make it easier to express the sorts of calculations that are common in ANT,
--- especially ones like
--- f₁ = f₂ + O(p)
---    = f₃ + O(p)
---    = f₄ + O(p)
--- since this is essentially using transitivity of `equal_up_to p` three times
-lemma hyperbola :
-  is_O (λ x : ℝ, summatory (λ i, (σ 0 i : ℝ)) x - x * log x - (2 * euler_mascheroni - 1) * x)
-    sqrt at_top :=
-sorry
-
--- BM: This might need a lower bound on `n`, maybe just `1 ≤ n` is good enough?
-lemma divisor_bound :
-  ∃ (g : ℝ → ℝ), is_O g (λ i, 1 / log (log i)) at_top ∧
-    ∀ (n : ℕ), (σ 0 n : ℝ) ≤ n ^ g n :=
-sorry
-
--- BM: Might also need a lower bound on `n`?
-lemma weak_divisor_bound (ε : ℝ) (hε : 0 < ε) :
-  ∃ C, 0 < C ∧ ∀ n, (σ 0 n : ℝ) ≤ C * (n : ℝ)^ε :=
-sorry
-
-lemma big_O_divisor_bound (ε : ℝ) (hε : 0 < ε) :
-  is_O (λ n, (σ 0 n : ℝ)) (λ n, (n : ℝ)^ε) filter.at_top :=
-sorry
-
--- BM: I have this defined in another branch, coming to mathlib soon
-def von_mangoldt : nat.arithmetic_function ℝ := sorry
-localized "notation `Λ` := nat.arithmetic_function.von_mangoldt" in arithmetic_function
-
-lemma von_mangoldt_nonneg (n : ℕ) : 0 ≤ Λ n :=
-sorry
-
-lemma von_mangoldt_divisor_sum {n : ℕ} :
-  ∑ i in n.divisors, Λ i = log n :=
-sorry
-
-lemma von_mangoldt_upper {n : ℕ} : Λ n ≤ log n :=
-begin
-  rcases n.eq_zero_or_pos with rfl | hn,
-  { simp },
-  rw ←von_mangoldt_divisor_sum,
-  exact finset.single_le_sum (λ i hi, von_mangoldt_nonneg i) (nat.mem_divisors_self _ hn.ne'),
-end
-
 lemma summatory_mul_floor_eq_summatory_sum_divisors {x y : ℝ}
   (hy : 0 ≤ x) (xy : x ≤ y) (f : ℕ → ℝ) :
   summatory (λ n, f n * ⌊x / n⌋) y = summatory (λ n, ∑ i in n.divisors, f i) x :=
@@ -718,6 +645,81 @@ begin
     refine ⟨le_trans _ (hx'.trans xy), hx'⟩,
     rw nat.cast_le,
     apply nat.le_mul_of_pos_left hij.2 }
+end
+
+namespace nat.arithmetic_function
+
+lemma pow_zero_eq_zeta :
+  pow 0 = ζ :=
+begin
+  ext i,
+  simp,
+end
+
+lemma sigma_zero_eq_zeta_mul_zeta :
+  σ 0 = ζ * ζ :=
+by rw [←zeta_mul_pow_eq_sigma, pow_zero_eq_zeta]
+
+lemma sigma_zero_apply_eq_sum_divisors {i : ℕ} :
+  σ 0 i = ∑ d in i.divisors, 1 :=
+begin
+  rw [sigma_apply, finset.sum_congr rfl],
+  intros x hx,
+  apply pow_zero,
+end
+
+lemma sigma_zero_apply_eq_card_divisors {i : ℕ} :
+  σ 0 i = i.divisors.card :=
+ by rw [sigma_zero_apply_eq_sum_divisors, finset.card_eq_sum_ones]
+
+localized "notation `τ` := σ 0" in arithmetic_function
+
+-- BM: Bounds like these make me tempted to define a relation
+-- `equal_up_to p f g` to express that `f - g ≪ p` (probably stated `f - g = O(p)`) and show that
+-- (for fixed p) this is an equivalence relation, and that it is increasing in `p`
+-- Perhaps this would make it easier to express the sorts of calculations that are common in ANT,
+-- especially ones like
+-- f₁ = f₂ + O(p)
+--    = f₃ + O(p)
+--    = f₄ + O(p)
+-- since this is essentially using transitivity of `equal_up_to p` three times
+lemma hyperbola :
+  is_O (λ x : ℝ, summatory (λ i, (τ i : ℝ)) x - x * log x - (2 * euler_mascheroni - 1) * x)
+    sqrt at_top :=
+sorry
+
+-- BM: This might need a lower bound on `n`, maybe just `1 ≤ n` is good enough?
+lemma divisor_bound :
+  ∃ (g : ℝ → ℝ), is_O g (λ i, 1 / log (log i)) at_top ∧
+    ∀ (n : ℕ), (σ 0 n : ℝ) ≤ n ^ g n :=
+sorry
+
+-- BM: Might also need a lower bound on `n`?
+lemma weak_divisor_bound (ε : ℝ) (hε : 0 < ε) :
+  ∃ C, 0 < C ∧ ∀ n, (σ 0 n : ℝ) ≤ C * (n : ℝ)^ε :=
+sorry
+
+lemma big_O_divisor_bound (ε : ℝ) (hε : 0 < ε) :
+  is_O (λ n, (σ 0 n : ℝ)) (λ n, (n : ℝ)^ε) filter.at_top :=
+sorry
+
+-- BM: I have this defined in another branch, coming to mathlib soon
+def von_mangoldt : nat.arithmetic_function ℝ := sorry
+localized "notation `Λ` := nat.arithmetic_function.von_mangoldt" in arithmetic_function
+
+lemma von_mangoldt_nonneg (n : ℕ) : 0 ≤ Λ n :=
+sorry
+
+lemma von_mangoldt_divisor_sum {n : ℕ} :
+  ∑ i in n.divisors, Λ i = log n :=
+sorry
+
+lemma von_mangoldt_upper {n : ℕ} : Λ n ≤ log n :=
+begin
+  rcases n.eq_zero_or_pos with rfl | hn,
+  { simp },
+  rw ←von_mangoldt_divisor_sum,
+  exact finset.single_le_sum (λ i hi, von_mangoldt_nonneg i) (nat.mem_divisors_self _ hn.ne'),
 end
 
 lemma von_mangoldt_summatory {x y : ℝ} (hx : 0 ≤ x) (xy : x ≤ y) :

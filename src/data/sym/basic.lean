@@ -196,10 +196,10 @@ instance [subsingleton α] (n : ℕ) : subsingleton (sym α n) :=
 end⟩
 
 instance inhabited_sym [inhabited α] (n : ℕ) : inhabited (sym α n) :=
-⟨repeat (default α) n⟩
+⟨repeat default n⟩
 
 instance inhabited_sym' [inhabited α] (n : ℕ) : inhabited (sym' α n) :=
-⟨quotient.mk' (vector.repeat (default α) n)⟩
+⟨quotient.mk' (vector.repeat default n)⟩
 
 instance (n : ℕ) [is_empty α] : is_empty (sym α n.succ) :=
 ⟨λ s, by { obtain ⟨a, -⟩ := exists_mem s, exact is_empty_elim a }⟩

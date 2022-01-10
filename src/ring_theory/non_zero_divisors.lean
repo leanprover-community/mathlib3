@@ -92,6 +92,11 @@ begin
     rw [mul_assoc, hx] },
 end
 
+lemma is_unit_of_mem_non_zero_divisors {G₀ : Type*} [group_with_zero G₀]
+  {x : G₀} (hx : x ∈ non_zero_divisors G₀) : is_unit x :=
+⟨⟨x, x⁻¹, mul_inv_cancel (non_zero_divisors.ne_zero hx),
+  inv_mul_cancel (non_zero_divisors.ne_zero hx)⟩, rfl⟩
+
 lemma eq_zero_of_ne_zero_of_mul_right_eq_zero [no_zero_divisors M]
   {x y : M} (hnx : x ≠ 0) (hxy : y * x = 0) : y = 0 :=
 or.resolve_right (eq_zero_or_eq_zero_of_mul_eq_zero hxy) hnx

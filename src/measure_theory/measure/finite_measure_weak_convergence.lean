@@ -6,7 +6,7 @@ Authors: Kalle Kytölä
 import measure_theory.measure.measure_space
 import measure_theory.integral.bochner
 import topology.continuous_function.bounded
-import topology.algebra.weak_dual_topology
+import topology.algebra.module.weak_dual
 
 /-!
 # Weak convergence of (finite) measures
@@ -290,7 +290,7 @@ def probability_measure (α : Type*) [measurable_space α] : Type* :=
 namespace probability_measure
 
 instance [inhabited α] : inhabited (probability_measure α) :=
-⟨⟨measure.dirac (default α), measure.dirac.is_probability_measure⟩⟩
+⟨⟨measure.dirac default, measure.dirac.is_probability_measure⟩⟩
 
 /-- A probability measure can be interpreted as a measure. -/
 instance : has_coe (probability_measure α) (measure_theory.measure α) := coe_subtype

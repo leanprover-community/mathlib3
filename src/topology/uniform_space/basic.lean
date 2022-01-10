@@ -943,8 +943,8 @@ lemma filter.has_basis.uniform_continuous_on_iff [uniform_space β] {p : γ → 
   (hb : (𝓤 β).has_basis q t) {f : α → β} {S : set α} :
   uniform_continuous_on f S ↔
     ∀ i (hi : q i), ∃ j (hj : p j), ∀ x y ∈ S, (x, y) ∈ s j → (f x, f y) ∈ t i :=
-((ha.inf_principal (S.prod S)).tendsto_iff hb).trans $ by -- `finish [prod.forall]` solves this
-  simp [prod.forall, set.inter_comm (s _)]
+((ha.inf_principal (S.prod S)).tendsto_iff hb).trans $
+by simp [prod.forall, set.inter_comm (s _), ball_mem_comm]
 
 end uniform_space
 
@@ -1030,7 +1030,7 @@ calc (u ⊓ v).uniformity = ((⨅i (h : i = u ∨ i = v), i) : uniform_space α)
 
 instance inhabited_uniform_space : inhabited (uniform_space α) := ⟨⊥⟩
 instance inhabited_uniform_space_core : inhabited (uniform_space.core α) :=
-⟨@uniform_space.to_core _ (default _)⟩
+⟨@uniform_space.to_core _ default⟩
 
 /-- Given `f : α → β` and a uniformity `u` on `β`, the inverse image of `u` under `f`
   is the inverse image in the filter sense of the induced function `α × α → β × β`. -/

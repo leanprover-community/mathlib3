@@ -104,7 +104,7 @@ f.range.exists_le.imp $ λ C, forall_range_iff.1
 def const (α) {β} [measurable_space α] (b : β) : α →ₛ β :=
 ⟨λ a, b, λ x, measurable_set.const _, finite_range_const⟩
 
-instance [inhabited β] : inhabited (α →ₛ β) := ⟨const _ (default _)⟩
+instance [inhabited β] : inhabited (α →ₛ β) := ⟨const _ default⟩
 
 theorem const_apply (a : α) (b : β) : (const α b) a = b := rfl
 

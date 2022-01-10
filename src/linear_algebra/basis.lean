@@ -197,19 +197,25 @@ end coord
 
 section ext
 
-variables {M₁ : Type*} [add_comm_monoid M₁] [module R M₁]
+variables {R₁ : Type*} [semiring R₁] {σ : R →+* R₁} {σ' : R₁ →+* R}
+variables [ring_hom_inv_pair σ σ'] [ring_hom_inv_pair σ' σ]
+variables {M₁ : Type*} [add_comm_monoid M₁] [module R₁ M₁]
 
 /-- Two linear maps are equal if they are equal on basis vectors. -/
-theorem ext {f₁ f₂ : M →ₗ[R] M₁} (h : ∀ i, f₁ (b i) = f₂ (b i)) : f₁ = f₂ :=
+theorem ext {f₁ f₂ : M →ₛₗ[σ] M₁} (h : ∀ i, f₁ (b i) = f₂ (b i)) : f₁ = f₂ :=
 by { ext x,
      rw [← b.total_repr x, finsupp.total_apply, finsupp.sum],
-     simp only [linear_map.map_sum, linear_map.map_smul, h] }
+     simp only [linear_map.map_sum, linear_map.map_smulₛₗ, h] }
+
+include σ'
 
 /-- Two linear equivs are equal if they are equal on basis vectors. -/
-theorem ext' {f₁ f₂ : M ≃ₗ[R] M₁} (h : ∀ i, f₁ (b i) = f₂ (b i)) : f₁ = f₂ :=
+theorem ext' {f₁ f₂ : M ≃ₛₗ[σ] M₁} (h : ∀ i, f₁ (b i) = f₂ (b i)) : f₁ = f₂ :=
 by { ext x,
       rw [← b.total_repr x, finsupp.total_apply, finsupp.sum],
-      simp only [linear_equiv.map_sum, linear_equiv.map_smul, h] }
+      simp only [linear_equiv.map_sum, linear_equiv.map_smulₛₗ, h] }
+
+omit σ'
 
 /-- Two elements are equal if their coordinates are equal. -/
 theorem ext_elem {x y : M}
@@ -643,8 +649,8 @@ section singleton
 protected def singleton (ι R : Type*) [unique ι] [semiring R] :
   basis ι R R :=
 of_repr
-{ to_fun := λ x, finsupp.single (default ι) x,
-  inv_fun := λ f, f (default ι),
+{ to_fun := λ x, finsupp.single default x,
+  inv_fun := λ f, f default,
   left_inv := λ x, by simp,
   right_inv := λ f, finsupp.unique_ext (by simp),
   map_add' := λ x y, by simp,
@@ -665,12 +671,12 @@ lemma basis_singleton_iff
 begin
   fsplit,
   { rintro ⟨b⟩,
-    refine ⟨b (default ι), b.linear_independent.ne_zero _, _⟩,
+    refine ⟨b default, b.linear_independent.ne_zero _, _⟩,
     simpa [span_singleton_eq_top_iff, set.range_unique] using b.span_eq },
   { rintro ⟨x, nz, w⟩,
     refine ⟨of_repr $ linear_equiv.symm
-      { to_fun := λ f, f (default ι) • x,
-        inv_fun := λ y, finsupp.single (default ι) (w y).some,
+      { to_fun := λ f, f default • x,
+        inv_fun := λ y, finsupp.single default (w y).some,
         left_inv := λ f, finsupp.unique_ext _,
         right_inv := λ y, _,
         map_add' := λ y z, _,
@@ -679,7 +685,7 @@ begin
     { rw [finsupp.smul_apply, smul_assoc], simp },
     { refine smul_left_injective _ nz _,
       simp only [finsupp.single_eq_same],
-      exact (w (f (default ι) • x)).some_spec },
+      exact (w (f default • x)).some_spec },
     { simp only [finsupp.single_eq_same],
       exact (w y).some_spec } }
 end
@@ -972,17 +978,17 @@ mk_apply
   (v.linear_independent.group_smul w) (group_smul_span_eq_top v.span_eq) i
 
 lemma units_smul_span_eq_top {v : ι → M} (hv : submodule.span R (set.range v) = ⊤)
-  {w : ι → units R} : submodule.span R (set.range (w • v)) = ⊤ :=
+  {w : ι → Rˣ} : submodule.span R (set.range (w • v)) = ⊤ :=
 group_smul_span_eq_top hv
 
 /-- Given a basis `v` and a map `w` such that for all `i`, `w i` is a unit, `smul_of_is_unit`
 provides the basis corresponding to `w • v`. -/
-def units_smul (v : basis ι R M) (w : ι → units R) :
+def units_smul (v : basis ι R M) (w : ι → Rˣ) :
   basis ι R M :=
 @basis.mk ι R M (w • v) _ _ _
   (v.linear_independent.units_smul w) (units_smul_span_eq_top v.span_eq)
 
-lemma units_smul_apply {v : basis ι R M} {w : ι → units R} (i : ι) :
+lemma units_smul_apply {v : basis ι R M} {w : ι → Rˣ} (i : ι) :
   v.units_smul w i = w i • v i :=
 mk_apply
   (v.linear_independent.units_smul w) (units_smul_span_eq_top v.span_eq) i

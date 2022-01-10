@@ -108,15 +108,18 @@ variables [module.finite K L] [is_separable K L] [is_alg_closed E]
 variables (b : ι → L) (pb : power_basis K L)
 
 /-- Over a field, if `b` is linear independent, then `algebra.discr K b ≠ 0`. -/
-lemma discr_not_zero_of_linear_independent [nonempty ι]
+lemma discr_not_zero_of_linear_independent
   (hcard : fintype.card ι = finrank K L) (hli : linear_independent K b) : discr K b ≠ 0 :=
 begin
-  classical,
-  have := span_eq_top_of_linear_independent_of_card_eq_finrank hli hcard,
-  rw [discr_def, trace_matrix_def],
-  simp_rw [← basis.mk_apply hli this],
-  rw [← trace_matrix_def, trace_matrix_of_basis, ← bilin_form.nondegenerate_iff_det_ne_zero],
-  exact trace_form_nondegenerate _ _
+  by_cases h : nonempty ι,
+  { classical,
+    have := span_eq_top_of_linear_independent_of_card_eq_finrank hli hcard,
+    rw [discr_def, trace_matrix_def],
+    simp_rw [← basis.mk_apply hli this],
+    rw [← trace_matrix_def, trace_matrix_of_basis, ← bilin_form.nondegenerate_iff_det_ne_zero],
+    exact trace_form_nondegenerate _ _  },
+  letI := not_nonempty_iff.1 h,
+  simp [discr],
 end
 
 /-- If `L/K` is a field extension and `b : ι → L`, then `discr K b` is the square of the

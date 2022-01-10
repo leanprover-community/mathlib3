@@ -27,11 +27,13 @@ namespace measure_theory
 
 open set filter topological_space
 
-variables {α β ι : Type*} {m : measurable_space α} [metric_space β]
+variables {α β ι : Type*} {m : measurable_space α}
 
 section
 
 /-! We will in this section prove Egorov's theorem. -/
+
+variables [metric_space β]
 
 namespace egorov
 
@@ -212,12 +214,12 @@ end
 
 end
 
-variables [normed_group β] [measurable_space β]
+variables [measurable_space β] [normed_group β]
 
 /-- Also known as uniformly absolutely continuous integrals. -/
 def unif_integrable {m : measurable_space α} (f : ι → α → β) (p : ℝ≥0∞) (μ : measure α) : Prop :=
 ∀ (ε : ℝ) (hε : 0 < ε), ∃ (δ : ℝ) (hδ : 0 < δ), ∀ i s, measurable_set s → μ s < ennreal.of_real δ →
-snorm (set.indicator s (f i)) p μ < ennreal.of_real ε
+snorm (s.indicator (f i)) p μ < ennreal.of_real ε
 
 section unif_integrable
 
@@ -229,7 +231,7 @@ variables [borel_space β] [second_countable_topology β]
 
 lemma foo {f : α → β} (hf : mem_ℒp f p μ) {ε : ℝ} (hε : 0 < ε) :
   ∃ (δ : ℝ) (hδ : 0 < δ), ∀ s, measurable_set s → μ s < ennreal.of_real δ →
-  snorm (set.indicator s f) p μ < ennreal.of_real ε :=
+  snorm (s.indicator f) p μ < ennreal.of_real ε :=
 begin
   sorry
 end
@@ -248,14 +250,39 @@ end
 
 /- The next three lemmas together is known as **the Vitali convergence theorem**. -/
 
-lemma tendsto_Lp_of_unif_integrable {f : ℕ → α → β} {g : α → β}
-  (hf : ∀ n, mem_ℒp (f n) p μ) (hg : mem_ℒp g p μ) (hui : unif_integrable f p μ)
+-- We can remove the measurability assumption so this lemma should be private once we have
+-- generalized it
+lemma tendsto_Lp_of_unif_integrable (hp : 1 ≤ p) {f : ℕ → α → β} {g : α → β}
+  (hf : ∀ n, measurable[m] (f n)) (hg : measurable g)
+  (hf' : ∀ n, mem_ℒp (f n) p μ) (hg' : mem_ℒp g p μ) (hui : unif_integrable f p μ)
   (hfg : ∀ᵐ x ∂μ, tendsto (λ n, f n x) at_top (𝓝 (g x))) :
   tendsto (λ n, snorm (f n - g) p μ) at_top (𝓝 0) :=
 begin
   rw ennreal.tendsto_at_top ennreal.zero_ne_top,
   swap, apply_instance,
   intros ε hε,
+  by_cases ε < ∞,
+  { by_cases hμ : μ = 0,
+    { exact ⟨0, λ n hn, by simp [hμ]⟩ },
+    have hε' : 0 < ε.to_real / 3 :=
+      div_pos (ennreal.to_real_pos (gt_iff_lt.1 hε).ne.symm h.ne) (by norm_num),
+    obtain ⟨δ, hδ, hsnorm⟩ := hui _ hε',
+    obtain ⟨t, ht₁, ht₂⟩ := tendsto_uniformly_on_of_ae_tendsto' hf hg hfg hδ,
+    rw metric.tendsto_uniformly_on_iff at ht₂,
+    specialize ht₂ (ε.to_real / (3 * measure_univ_nnreal μ))
+      (div_pos (ennreal.to_real_pos (gt_iff_lt.1 hε).ne.symm h.ne)
+      (mul_pos (by norm_num) (measure_univ_nnreal_pos hμ))),
+    obtain ⟨N, hN⟩ := eventually_at_top.1 ht₂,
+    refine ⟨N, λ n hn, _⟩,
+    simp only [mem_Icc, true_and, zero_tsub, zero_le, zero_add],
+    rw [show f n - g = t.indicator (f n - g) + tᶜ.indicator (f n - g), by simp [indicator_compl]],
+    refine le_trans (snorm_add_le _ _ hp) _,
+    { refine measurable.ae_measurable (measurable.indicator _ _),
+
+    }
+  },
+  { rw [not_lt, top_le_iff] at h,
+    exact ⟨0, λ n hn, by simp [h]⟩ }
 end
 
 lemma unif_integrable_of_tendsto_Lp {f : ℕ → α → β} {g : α → β}

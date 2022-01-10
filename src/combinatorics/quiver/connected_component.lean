@@ -70,7 +70,7 @@ variable {V}
 protected def mk : V → weakly_connected_component V := quotient.mk'
 
 instance : has_coe_t V (weakly_connected_component V) := ⟨weakly_connected_component.mk⟩
-instance [inhabited V] : inhabited (weakly_connected_component V) := ⟨↑(default V)⟩
+instance [inhabited V] : inhabited (weakly_connected_component V) := ⟨show V, from default⟩
 
 protected lemma eq (a b : V) :
   (a : weakly_connected_component V) = b ↔ nonempty (@path (symmetrify V) _ a b) :=

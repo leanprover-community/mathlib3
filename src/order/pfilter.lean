@@ -83,7 +83,7 @@ lemma mem_of_le {F : pfilter P} : x ≤ y → x ∈ F → y ∈ F := λ h, F.dua
 /-- The smallest filter containing a given element. -/
 def principal (p : P) : pfilter P := ⟨ideal.principal p⟩
 
-instance [inhabited P] : inhabited (pfilter P) := ⟨⟨default _⟩⟩
+instance [inhabited P] : inhabited (pfilter P) := ⟨⟨default⟩⟩
 
 /-- Two filters are equal when their underlying sets are equal. -/
 @[ext] lemma ext : ∀ (F G : pfilter P), (F : set P) = G → F = G

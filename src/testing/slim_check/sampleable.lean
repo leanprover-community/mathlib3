@@ -527,7 +527,7 @@ integers being kept as is. -/
 def no_shrink (α : Type*) := α
 
 instance no_shrink.inhabited {α} [inhabited α] : inhabited (no_shrink α) :=
-⟨ (default α : α) ⟩
+⟨ (default : α) ⟩
 
 /-- Introduction of the `no_shrink` type. -/
 def no_shrink.mk {α} (x : α) : no_shrink α := x
@@ -632,8 +632,8 @@ def large.mk {α} (x : α) : large α := x
 
 instance small.functor : functor small := id.monad.to_functor
 instance large.functor : functor large := id.monad.to_functor
-instance small.inhabited [inhabited α] : inhabited (small α) := ⟨ (default α : α) ⟩
-instance large.inhabited [inhabited α] : inhabited (large α) := ⟨ (default α : α) ⟩
+instance small.inhabited [inhabited α] : inhabited (small α) := ⟨ (default : α) ⟩
+instance large.inhabited [inhabited α] : inhabited (large α) := ⟨ (default : α) ⟩
 
 instance small.sampleable_functor : sampleable_functor small :=
 { wf := _,

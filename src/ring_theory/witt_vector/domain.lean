@@ -40,7 +40,6 @@ variables {p : ℕ} {R : Type*}
 
 local notation `𝕎` := witt_vector p -- type as `\bbW`
 
-
 /-!
 ## The `shift` operator
 -/
@@ -151,7 +150,7 @@ begin
   { rw mul_comm }
 end
 
-lemma iter_frobenius_coeff (x : 𝕎 R) (i k : ℕ) :
+lemma iterate_frobenius_coeff (x : 𝕎 R) (i k : ℕ) :
   ((frobenius^[i] x)).coeff k = (x.coeff k)^(p^i) :=
 begin
   induction i with i ih,
@@ -174,7 +173,7 @@ begin
   { convert iterate_verschiebung_coeff _ _ _ using 2,
     rw zero_add },
   { apply coeff_mul_zero },
-  { simp only [iter_frobenius_coeff] }
+  { simp only [iterate_frobenius_coeff] }
 end
 
 /-!
@@ -186,7 +185,7 @@ This argument is adapted from <https://tinyurl.com/2p8cwrn7>.
 
 variable  [is_domain R]
 
-lemma nonzeros (x y : 𝕎 R) : x * y = 0 → x = 0 ∨ y = 0 :=
+lemma eq_zero_or_eq_zero_of_mul_eq_zero (x y : 𝕎 R) : x * y = 0 → x = 0 ∨ y = 0 :=
 begin
   contrapose!,
   rintros ⟨ha, hb⟩,
@@ -202,7 +201,7 @@ begin
 end
 
 instance : is_domain (𝕎 R) :=
-{ eq_zero_or_eq_zero_of_mul_eq_zero := nonzeros,
+{ eq_zero_or_eq_zero_of_mul_eq_zero := eq_zero_or_eq_zero_of_mul_eq_zero,
   exists_pair_ne := witt_vector.nontrivial.exists_pair_ne }
 
 end char_p

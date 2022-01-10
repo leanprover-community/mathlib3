@@ -574,10 +574,10 @@ quotient.sound ⟨⟨sum_prod_distrib _ _ _, begin
 end⟩⟩
 
 @[simp] theorem mul_add_one (a b : ordinal) : a * (b + 1) = a * b + a :=
-by simp only [mul_add, mul_one]
+by rw [mul_add, mul_one]
 
 @[simp] theorem mul_one_add (a b : ordinal) : a * (1 + b) = a + a * b :=
-by simp only [mul_add, mul_one]
+by rw [mul_add, mul_one]
 
 @[simp] theorem mul_succ (a b : ordinal) : a * succ b = a * b + a := mul_add_one _ _
 
@@ -1054,14 +1054,15 @@ begin
   exact lt_irrefl _ this
 end
 
+lemma lsub_eq_zero {ι} [h : is_empty ι] (f : ι → ordinal) : lsub f = 0 :=
+by { rw [←ordinal.le_zero, lsub_le_iff_lt], exact h.elim }
+
 @[simp] theorem lsub_eq_zero_iff {ι} {f : ι → ordinal} : lsub f = 0 ↔ is_empty ι :=
 begin
-  refine ⟨λ h, ⟨λ i, _⟩, λ h, _⟩,
-  { have := lt_lsub f i,
-    rw h at this,
-    exact @not_lt_bot _ _ _ (f i) this },
-  rw [←ordinal.le_zero, lsub_le_iff_lt],
-  exact h.elim
+  refine ⟨λ h, ⟨λ i, _⟩, λ h, @lsub_eq_zero _ h _⟩,
+  have := lt_lsub f i,
+  rw h at this,
+  exact @not_lt_bot _ _ _ (f i) this
 end
 
 /-- The bounded least strict upper bound of a family of ordinals. -/

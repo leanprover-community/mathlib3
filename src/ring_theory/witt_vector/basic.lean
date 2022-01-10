@@ -246,10 +246,6 @@ lemma ghost_component_apply (n : ℕ) (x : 𝕎 R) : ghost_component n x = aeval
 
 @[simp] lemma ghost_map_apply (x : 𝕎 R) (n : ℕ) : ghost_map x n = ghost_component n x := rfl
 
--- TODO: upgrade `x ↦ x.coeff 0` to a ring hom
-lemma coeff_mul_zero (x y : 𝕎 R) : (x * y).coeff 0 = x.coeff 0 * y.coeff 0 :=
-by simp [mul_coeff, peval]
-
 section invertible
 
 variables (p R) [invertible (p : R)]
@@ -271,8 +267,8 @@ def constant_coeff : 𝕎 R →+* R :=
 { to_fun := λ x, x.coeff 0,
   map_zero' := by simp,
   map_one' := by simp,
-  map_add' := λ x y, by simp [add_coeff, peval],  -- TODO: extract these as standalone lemmas?
-  map_mul' := coeff_mul_zero }
+  map_add' := add_coeff_zero,
+  map_mul' := mul_coeff_zero }
 
 lemma nontrivial [nontrivial R] : nontrivial (𝕎 R) :=
 constant_coeff.domain_nontrivial

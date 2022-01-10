@@ -762,8 +762,7 @@ begin
   by_contra ho,
   have : 0 < o := ordinal.pos_iff_ne_zero.2 ho,
   rw ←type_out o at this,
-  have := enum o.out.r 0 this,
-  exact h.elim this
+  exact @is_empty.elim _ h (λ _, false) (enum o.out.r 0 this)
 end
 
 @[simp] theorem out_empty_iff_eq_zero {o : ordinal} : is_empty o.out.α ↔ o = 0 :=

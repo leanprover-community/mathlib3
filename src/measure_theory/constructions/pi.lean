@@ -64,9 +64,9 @@ variables {ι ι' : Type*} {α : ι → Type*}
 lemma is_pi_system.pi {C : Π i, set (set (α i))} (hC : ∀ i, is_pi_system (C i)) :
   is_pi_system (pi univ '' pi univ C) :=
 begin
-  rintro _ _ ⟨s₁, hs₁, rfl⟩ ⟨s₂, hs₂, rfl⟩ hst,
+  rintro _ ⟨s₁, hs₁, rfl⟩ _ ⟨s₂, hs₂, rfl⟩ hst,
   rw [← pi_inter_distrib] at hst ⊢, rw [univ_pi_nonempty_iff] at hst,
-  exact mem_image_of_mem _ (λ i _, hC i _ _ (hs₁ i (mem_univ i)) (hs₂ i (mem_univ i)) (hst i))
+  exact mem_image_of_mem _ (λ i _, hC i _ (hs₁ i (mem_univ i)) _ (hs₂ i (mem_univ i)) (hst i))
 end
 
 /-- Boxes form a π-system. -/

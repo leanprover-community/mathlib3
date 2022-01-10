@@ -148,7 +148,7 @@ instance : has_pure ultrafilter :=
 
 @[simp] lemma mem_pure {a : α} {s : set α} : s ∈ (pure a : ultrafilter α) ↔ a ∈ s := iff.rfl
 
-instance [inhabited α] : inhabited (ultrafilter α) := ⟨pure (default _)⟩
+instance [inhabited α] : inhabited (ultrafilter α) := ⟨pure default⟩
 instance [nonempty α] : nonempty (ultrafilter α) := nonempty.map pure infer_instance
 
 lemma eq_principal_of_finite_mem {f : ultrafilter α} {s : set α} (h : s.finite) (h' : s ∈ f) :

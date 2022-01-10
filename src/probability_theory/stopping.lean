@@ -337,7 +337,8 @@ begin
   { rw (_ : {x | τ x = i} ∩ {x | τ x ≤ j} = ∅),
     { exact @measurable_set.empty _ (f j) },
     { ext,
-      simp only [set.mem_empty_eq, set.mem_inter_eq, not_and, not_le, set.mem_set_of_eq, iff_false],
+      simp only [set.mem_empty_eq, set.mem_inter_eq, not_and, not_le, set.mem_set_of_eq,
+        iff_false],
       rintro rfl,
       rwa not_le at h } }
 end
@@ -448,7 +449,8 @@ lemma prog_measurable.stopped_process (h : prog_measurable f u) (hτ : is_stoppi
   prog_measurable f (stopped_process u τ) :=
 h.comp (prog_measurable_min_stopping_time hτ) (λ i x, min_le_left _ _)
 
-lemma prog_measurable.adapted_stopped_process (h : prog_measurable f u) (hτ : is_stopping_time f τ) :
+lemma prog_measurable.adapted_stopped_process
+  (h : prog_measurable f u) (hτ : is_stopping_time f τ) :
   adapted f (stopped_process u τ) :=
 (h.stopped_process hτ).adapted
 

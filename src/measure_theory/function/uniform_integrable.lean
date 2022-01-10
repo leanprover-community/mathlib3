@@ -132,6 +132,13 @@ def Union_not_convergent_seq {ε : ℝ} (hε : 0 < ε)
   (hfg : ∀ᵐ x ∂μ, x ∈ s → tendsto (λ n, f n x) at_top (𝓝 (g x))) : set α :=
 ⋃ i, s ∩ not_convergent_seq f g i (not_convergent_seq_lt_index (half_pos hε) hf hg hsm hs hfg i)
 
+lemma Union_not_convergent_seq_measurable_set {ε : ℝ} (hε : 0 < ε)
+  (hf : ∀ n, measurable[m] (f n)) (hg : measurable g)
+  {s : set α} (hsm : measurable_set s) (hs : μ s ≠ ∞)
+  (hfg : ∀ᵐ x ∂μ, x ∈ s → tendsto (λ n, f n x) at_top (𝓝 (g x))) :
+  measurable_set $ Union_not_convergent_seq hε hf hg hsm hs hfg :=
+measurable_set.Union (λ n, hsm.inter $ not_convergent_seq_measurable_set hf hg)
+
 lemma measure_Union_not_convergent_seq {ε : ℝ} (hε : 0 < ε)
   (hf : ∀ n, measurable[m] (f n)) (hg : measurable g)
   {s : set α} (hsm : measurable_set s) (hs : μ s ≠ ∞)
@@ -174,10 +181,11 @@ an arbitrarily small set. -/
 theorem tendsto_uniformly_on_of_ae_tendsto (hf : ∀ n, measurable[m] (f n)) (hg : measurable g)
   {s : set α} (hsm : measurable_set s) (hs : μ s ≠ ∞)
   (hfg : ∀ᵐ x ∂μ, x ∈ s → tendsto (λ n, f n x) at_top (𝓝 (g x))) {ε : ℝ} (hε : 0 < ε) :
-  ∃ t ⊆ s, μ t ≤ ennreal.of_real ε ∧ tendsto_uniformly_on f g at_top (s \ t) :=
+  ∃ t ⊆ s, measurable_set t ∧ μ t ≤ ennreal.of_real ε ∧ tendsto_uniformly_on f g at_top (s \ t) :=
 begin
   refine ⟨egorov.Union_not_convergent_seq hε hf hg hsm hs hfg,
     egorov.Union_not_convergent_seq_subset hε hf hg hsm hs hfg,
+    egorov.Union_not_convergent_seq_measurable_set hε hf hg hsm hs hfg,
     egorov.measure_Union_not_convergent_seq hε hf hg hsm hs hfg, _⟩,
   rw metric.tendsto_uniformly_on_iff,
   intros δ hδ,
@@ -199,7 +207,7 @@ end
 lemma tendsto_uniformly_on_of_ae_tendsto' [is_finite_measure μ]
   (hf : ∀ n, measurable[m] (f n)) (hg : measurable g)
   (hfg : ∀ᵐ x ∂μ, tendsto (λ n, f n x) at_top (𝓝 (g x))) {ε : ℝ} (hε : 0 < ε) :
-  ∃ t, μ t ≤ ennreal.of_real ε ∧ tendsto_uniformly_on f g at_top tᶜ :=
+  ∃ t, measurable_set t ∧ μ t ≤ ennreal.of_real ε ∧ tendsto_uniformly_on f g at_top tᶜ :=
 begin
   obtain ⟨t, _, ht, htendsto⟩ :=
     tendsto_uniformly_on_of_ae_tendsto hf hg measurable_set.univ (measure_ne_top μ univ) _ hε,

@@ -404,9 +404,14 @@ lemma stopped_process_eq_of_ge {u : ι → α → β} {τ : α → ι}
   {i : ι} {x : α} (h : τ x ≤ i) : stopped_process u τ i x = u (τ x) x :=
 by simp [stopped_process, min_eq_right h]
 
-lemma prog_measurable_min_stopping_time [measurable_space ι] [topological_space ι]
-  [opens_measurable_space ι] [order_topology ι] [second_countable_topology ι] [borel_space ι]
-  {τ : α → ι} {f : filtration ι m} (hτ : is_stopping_time f τ) :
+section prog_measurable
+
+variables [measurable_space ι] [topological_space ι] [order_topology ι]
+  [second_countable_topology ι] [borel_space ι]
+  [measurable_space β]
+  {u : ι → α → β} {τ : α → ι} {f : filtration ι m}
+
+lemma prog_measurable_min_stopping_time (hτ : is_stopping_time f τ) :
   prog_measurable f (λ i x, min i (τ x)) :=
 begin
   intro i,
@@ -451,21 +456,15 @@ begin
     exact h_meas_fst _, },
 end
 
-lemma prog_measurable_stopped_process [measurable_space ι] [topological_space ι]
-  [opens_measurable_space ι] [order_topology ι] [second_countable_topology ι] [borel_space ι]
-  [measurable_space β]
-  {u : ι → α → β} {τ : α → ι} {f : filtration ι m}
-  (h : prog_measurable f u) (hτ : is_stopping_time f τ) :
+lemma prog_measurable_stopped_process (h : prog_measurable f u) (hτ : is_stopping_time f τ) :
   prog_measurable f (stopped_process u τ) :=
 h.comp (prog_measurable_min_stopping_time hτ) (λ i x, min_le_left _ _)
 
-lemma adapted_stopped_process [measurable_space ι] [topological_space ι]
-  [opens_measurable_space ι] [order_topology ι] [second_countable_topology ι] [borel_space ι]
-  [measurable_space β]
-  {u : ι → α → β} {τ : α → ι} {f : filtration ι m}
-  (h : prog_measurable f u) (hτ : is_stopping_time f τ) :
+lemma adapted_stopped_process (h : prog_measurable f u) (hτ : is_stopping_time f τ) :
   adapted f (stopped_process u τ) :=
 (prog_measurable_stopped_process h hτ).adapted
+
+end prog_measurable
 
 -- We will need cadlag to generalize the following to continuous processes
 section nat

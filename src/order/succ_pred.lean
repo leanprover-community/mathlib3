@@ -117,17 +117,20 @@ lemma lt_succ_of_exists_lt {a : α} (ha : ∃ b, a < b) : a < succ_order.succ a 
 lemma lt_succ_iff_of_exists_lt {a b : α} (ha : ∃ b, a < b) : b < succ_order.succ a ↔ b ≤ a :=
 ⟨le_of_lt_succ, λ h_le, h_le.trans_lt (lt_succ_of_exists_lt ha)⟩
 
+lemma succ_le_iff_of_exists_lt {a b : α} (ha : ∃ b, a < b) : succ a ≤ b ↔ a < b :=
+⟨(lt_succ_of_exists_lt ha).trans_le, succ_le_of_lt⟩
+
 section no_top_order
 variables [no_top_order α] {a b : α}
 
 lemma lt_succ (a : α) : a < succ a :=
-(le_succ a).lt_of_not_le (λ h, not_exists.2 (maximal_of_succ_le h) (no_top a))
+lt_succ_of_exists_lt (no_top a)
 
 lemma lt_succ_iff : a < succ b ↔ a ≤ b :=
-⟨le_of_lt_succ, λ h, h.trans_lt $ lt_succ b⟩
+lt_succ_iff_of_exists_lt (no_top b)
 
 lemma succ_le_iff : succ a ≤ b ↔ a < b :=
-⟨(lt_succ a).trans_le, succ_le_of_lt⟩
+succ_le_iff_of_exists_lt (no_top a)
 
 @[simp] lemma succ_le_succ_iff : succ a ≤ succ b ↔ a ≤ b :=
 ⟨λ h, le_of_lt_succ $ (lt_succ a).trans_le h, λ h, succ_le_of_lt $ h.trans_lt $ lt_succ b⟩
@@ -285,6 +288,14 @@ lemma Iic_eq_Iio_succ [no_top_order α] (a : α) :
   set.Iic a = set.Iio (succ_order.succ a) :=
 Iic_eq_Iio_succ' (no_top a)
 
+lemma Ioi_eq_Ici_succ' {a : α} (ha : ∃ b, a < b) :
+  set.Ioi a = set.Ici (succ_order.succ a) :=
+by { ext1 x, rw [set.mem_Ioi, set.mem_Ici], exact (succ_le_iff_of_exists_lt ha).symm, }
+
+lemma Ioi_eq_Ici_succ [no_top_order α] {a : α} (ha : ∃ b, a < b) :
+  set.Ioi a = set.Ici (succ_order.succ a) :=
+Ioi_eq_Ici_succ' (no_top a)
+
 end intervals
 
 end succ_order
@@ -349,17 +360,20 @@ lemma pred_lt_of_exists_lt {a : α} (ha : ∃ b, b < a) : pred_order.pred a < a 
 lemma pred_lt_iff_of_exists_lt {a b : α} (ha : ∃ b, b < a) : pred_order.pred a < b ↔ a ≤ b :=
 ⟨le_of_pred_lt, λ h_le, (pred_lt_of_exists_lt ha).trans_le h_le⟩
 
+lemma le_pred_iff_of_exists_lt {a b : α} (hb : ∃ c, c < b) : a ≤ pred b ↔ a < b :=
+⟨λ h, h.trans_lt (pred_lt_of_exists_lt hb), le_pred_of_lt⟩
+
 section no_bot_order
 variables [no_bot_order α] {a b : α}
 
 lemma pred_lt (a : α) : pred a < a :=
-(pred_le a).lt_of_not_le (λ h, not_exists.2 (minimal_of_le_pred h) (no_bot a))
+pred_lt_of_exists_lt (no_bot a)
 
 lemma pred_lt_iff : pred a < b ↔ a ≤ b :=
-⟨le_of_pred_lt, (pred_lt a).trans_le⟩
+pred_lt_iff_of_exists_lt (no_bot a)
 
 lemma le_pred_iff : a ≤ pred b ↔ a < b :=
-⟨λ h, h.trans_lt (pred_lt b), le_pred_of_lt⟩
+le_pred_iff_of_exists_lt (no_bot b)
 
 @[simp] lemma pred_le_pred_iff : pred a ≤ pred b ↔ a ≤ b :=
 ⟨λ h, le_of_pred_lt $ h.trans_lt (pred_lt b), λ h, le_pred_of_lt $ (pred_lt a).trans_le h⟩
@@ -514,6 +528,14 @@ by { ext1 x, rw [set.mem_Ici, set.mem_Ioi], exact (pred_lt_iff_of_exists_lt ha).
 lemma Ici_eq_Ioi_pred [no_bot_order α] (a : α) :
   set.Ici a = set.Ioi (pred_order.pred a) :=
 Ici_eq_Ioi_pred' (no_bot a)
+
+lemma Iio_eq_Iic_pred' {a : α} (ha : ∃ b, b < a) :
+  set.Iio a = set.Iic (pred_order.pred a) :=
+by { ext1 x, rw [set.mem_Iio, set.mem_Iic], exact (le_pred_iff_of_exists_lt ha).symm, }
+
+lemma Iio_eq_Iic_pred [no_bot_order α] {a : α} :
+  set.Iio a = set.Iic (pred_order.pred a) :=
+Iio_eq_Iic_pred' (no_bot a)
 
 end intervals
 

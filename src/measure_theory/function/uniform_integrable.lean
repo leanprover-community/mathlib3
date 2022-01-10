@@ -200,19 +200,41 @@ end
 variables [normed_group β] [measurable_space β]
 
 /-- Also known as uniformly absolutely continuous integrals. -/
-def unif_integrable {m : measurable_space α} (μ : measure α) (f : ι → α → β) : Prop :=
+def unif_integrable {m : measurable_space α} (f : ι → α → β) (p : ℝ≥0∞) (μ : measure α) : Prop :=
 ∀ (ε : ℝ) (hε : 0 < ε), ∃ (δ : ℝ) (hδ : 0 < δ), ∀ i s, measurable_set s → μ s < ennreal.of_real δ →
-snorm (set.indicator s (f i)) 1 μ < ennreal.of_real ε
+snorm (set.indicator s (f i)) p μ < ennreal.of_real ε
 
-section vitali
+section unif_integrable
 
 variables [borel_space β] [second_countable_topology β]
   {μ : measure α} [is_finite_measure μ] {p : ℝ≥0∞}
 
+#check snorm_ess_sup_lt_top_of_ae_bound
+#check snorm_le_of_ae_bound
+
+lemma foo {f : α → β} (hf : mem_ℒp f p μ) {ε : ℝ} (hε : 0 < ε) :
+  ∃ (δ : ℝ) (hδ : 0 < δ), ∀ s, measurable_set s → μ s < ennreal.of_real δ →
+  snorm (set.indicator s f) p μ < ennreal.of_real ε :=
+begin
+  sorry
+end
+
+lemma unif_integrable_subsingleton [subsingleton ι] {f : ι → α → β} (hf : ∀ i, mem_ℒp (f i) p μ) :
+  unif_integrable f p μ :=
+begin
+  sorry
+end
+
+lemma unif_integrable_finite [fintype ι] {f : ι → α → β} (hf : ∀ i, mem_ℒp (f i) p μ) :
+  unif_integrable f p μ :=
+begin
+  sorry
+end
+
 /- The next three lemmas together is known as **the Vitali convergence theorem**. -/
 
 lemma tendsto_Lp_of_unif_integrable {f : ℕ → α → β} {g : α → β}
-  (hf : ∀ n, mem_ℒp (f n) p μ) (hg : mem_ℒp g p μ) (hui : unif_integrable μ f)
+  (hf : ∀ n, mem_ℒp (f n) p μ) (hg : mem_ℒp g p μ) (hui : unif_integrable f p μ)
   (hfg : ∀ᵐ x ∂μ, tendsto (λ n, f n x) at_top (𝓝 (g x))) :
   tendsto (λ n, snorm (f n - g) p μ) at_top (𝓝 0) :=
 sorry
@@ -220,27 +242,30 @@ sorry
 lemma unif_integrable_of_tendsto_Lp {f : ℕ → α → β} {g : α → β}
   (hf : ∀ n, mem_ℒp (f n) p μ) (hg : mem_ℒp g p μ)
   (hfg : tendsto (λ n, snorm (f n - g) p μ) at_top (𝓝 0)) :
-  unif_integrable μ f :=
-sorry
+  unif_integrable f p μ :=
+begin
+  sorry
+end
 
+-- should be a standard result
 lemma ae_tendsto_of_tendsto_Lp {f : ℕ → α → β} {g : α → β}
   (hf : ∀ n, mem_ℒp (f n) p μ) (hg : mem_ℒp g p μ)
   (hfg : tendsto (λ n, snorm (f n - g) p μ) at_top (𝓝 0)) :
   ∀ᵐ x ∂μ, tendsto (λ n, f n x) at_top (𝓝 (g x)) :=
 sorry
 
-end vitali
+end unif_integrable
 
 /-- In probability theory, a family of functions is uniformly integrable if it is uniformly
 integrable in the measure theory sense and is uniformly bounded. -/
 def uniform_integrable {m : measurable_space α}
-  (μ : measure α) (f : ι → α → β) : Prop :=
-(∀ i, measurable (f i)) ∧ unif_integrable μ f ∧ ∃ C : ℝ≥0, ∀ i, snorm (f i) 1 μ < C
+  (μ : measure α) (f : ι → α → β) (p : ℝ≥0∞) : Prop :=
+(∀ i, measurable (f i)) ∧ unif_integrable f p μ ∧ ∃ C : ℝ≥0, ∀ i, snorm (f i) p μ < C
 
-variables {μ : measure α} {f : ι → α → β}
+variables {μ : measure α} {f : ι → α → β} {p : ℝ≥0∞}
 
-lemma uniform_integrable.mem_ℒp_one (hf : uniform_integrable μ f) (i : ι) :
-  mem_ℒp (f i) 1 μ :=
+lemma uniform_integrable.mem_ℒp (hf : uniform_integrable μ f p) (i : ι) :
+  mem_ℒp (f i) p μ :=
 ⟨(hf.1 i).ae_measurable, let ⟨_, _, hC⟩ := hf.2 in lt_trans (hC i) ennreal.coe_lt_top⟩
 
 end measure_theory

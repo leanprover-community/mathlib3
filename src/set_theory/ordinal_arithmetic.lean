@@ -1045,7 +1045,7 @@ begin
   exact lt_irrefl _ this
 end
 
-theorem lsub_eq_zero_iff {ι} {f : ι → ordinal} : lsub f = 0 ↔ is_empty ι :=
+@[simp] theorem lsub_eq_zero_iff {ι} {f : ι → ordinal} : lsub f = 0 ↔ is_empty ι :=
 begin
   refine ⟨λ h, ⟨λ i, _⟩, λ h, _⟩,
   { have := lt_lsub f i,

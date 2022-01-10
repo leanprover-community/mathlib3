@@ -537,18 +537,21 @@ begin
       exact hneq.symm } },
 end
 
+@[priority 100]
 instance {α} [topological_space α] [encodable α] : separable_space α :=
 { exists_countable_dense := ⟨set.univ, set.countable_encodable set.univ, dense_univ⟩ }
 
 lemma filter.is_countably_generated_pure {α} (a : α) : filter.is_countably_generated (pure a) :=
 by { rw ← filter.principal_singleton, exact filter.is_countably_generated_principal _, }
 
+@[priority 100]
 instance discrete_topology.first_countable_topology {α} [topological_space α]
   [discrete_topology α] :
   first_countable_topology α :=
 { nhds_generated_countable :=
     by { rw nhds_discrete, exact λ a, filter.is_countably_generated_pure _, } }
 
+@[priority 100]
 instance discrete_topology.second_countable_topology_of_encodable {α} [topological_space α]
   [hd : discrete_topology α] [encodable α] :
   second_countable_topology α :=
@@ -560,8 +563,7 @@ begin
   exact second_countable_topology_of_countable_cover h_open (set.Union_of_singleton α),
 end
 
-lemma is_open_generate_from_of_mem {α} [topological_space α] {S : set (set α)} {s : set α}
-  (hs : s ∈ S) :
+lemma is_open_generate_from_of_mem {α} {S : set (set α)} {s : set α} (hs : s ∈ S) :
   (generate_from S).is_open s :=
 generate_open.basic s hs
 
@@ -601,6 +603,7 @@ lemma Ici_eq_Ioi_pred' {α} [preorder α] [pred_order α] {a : α} (ha : ∃ b, 
   set.Ici a = set.Ioi (pred_order.pred a) :=
 by { ext1 x, rw [set.mem_Ici, set.mem_Ioi], exact (pred_lt_iff_of_exists_lt ha).symm, }
 
+@[priority 100]
 instance todo {α} [topological_space α] [h : discrete_topology α] [partial_order α] [succ_order α]
   [pred_order α] [no_top_order α] [no_bot_order α] :
   order_topology α :=
@@ -618,6 +621,7 @@ begin
   { exact is_open_generate_from_of_mem ⟨pred_order.pred a, or.inl rfl⟩, },
 end
 
+@[priority 100]
 instance {α} [topological_space α] [h : discrete_topology α] [linear_order α] [succ_order α]
   [pred_order α] :
   order_topology α :=

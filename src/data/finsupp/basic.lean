@@ -1739,7 +1739,7 @@ begin
   apply induction_linear f,
   { simp [h_zero], },
   { intros f₁ f₂ h₁ h₂,
-    rw [finsupp.prod_add_index, h₁, h₂, some_add, finsupp.prod_add_index],
+    rw [finsupp.prod_add_index'', h₁, h₂, some_add, finsupp.prod_add_index''],
     simp only [h_add, pi.add_apply, finsupp.coe_add],
     rw mul_mul_mul_comm,
     all_goals { simp [h_zero, h_add], }, },

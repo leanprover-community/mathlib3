@@ -986,7 +986,11 @@ begin
     rw ← insert_erase has,
     refine step _ _ (not_mem_erase a s) (λ x hx, _) (ihs _ $ erase_ssubset has),
     rw hfa,
+<<<<<<< HEAD
     exact le_max' _ _ (mem_image_of_mem _ $  mem_of_mem_erase hx) }
+=======
+    exact le_max' _ _ (mem_image_of_mem _ $ mem_of_mem_erase hx) }
+>>>>>>> master
 end
 
 /-- Induction principle for `finset`s in any type from which a given function `f` maps to a linearly
@@ -1001,6 +1005,7 @@ lemma induction_on_min_value [decidable_eq ι] (f : ι → α)
   (step : ∀ a s, a ∉ s → (∀ x ∈ s, f a ≤ f x) → p s → p (insert a s)) : p s :=
 @induction_on_max_value (order_dual α) ι _ _ _ _ s h0 step
 
+<<<<<<< HEAD
 /-- Induction principle for `finset`s in any type from which a given functions `f` and `g` map to a
 linearly ordered types : a predicate is true on all `s : finset α` provided that:
 
@@ -1035,6 +1040,8 @@ begin
   simp_rw [lex_le_iff, eq_iff_iff, prod.map_mk]
 end
 
+=======
+>>>>>>> master
 end max_min_induction_value
 
 section exists_max_min

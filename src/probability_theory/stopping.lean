@@ -109,20 +109,9 @@ lemma adapted_zero [has_zero β] (f : filtration ι m) : adapted f (0 : ι → �
 variable {β}
 
 /-- Progressively measurable process. The usual definition uses the interval `[0,i]`, which we
-replace by `set.Iic i`. We recover the usual definition for `ι = ℝ≥0` or `ι = ℕ`. -/
+replace by `set.Iic i`. We recover the usual definition for `ℝ≥0` or `ℕ`. -/
 def prog_measurable [measurable_space ι] (f : filtration ι m) (u : ι → α → β) : Prop :=
 ∀ i, measurable[@prod.measurable_space (set.Iic i) α _ (f i)] (λ p : set.Iic i × α, u p.1 p.2)
-
-/-- A process u is said to be continuous if every path is continuous. -/
-def continuous_process {ι β} [topological_space ι] [topological_space β] (u : ι → α → β) : Prop :=
-∀ x, continuous (λ i, u i x)
-
-lemma _root_.measurable.min' {α δ} {mα : measurable_space α} {mδ : measurable_space δ}
-  [linear_order α] [topological_space α] [opens_measurable_space α] [second_countable_topology α]
-  [order_closed_topology α]
-  {f g : δ → α} (hf : measurable f) (hg : measurable g) :
-  measurable (λ a, min (f a) (g a)) :=
-by simpa only [min_def] using hf.piecewise (measurable_set_le hf hg) hg
 
 namespace prog_measurable
 
@@ -133,8 +122,7 @@ begin
   intro i,
   have : u i = (λ p : set.Iic i × α, u p.1 p.2) ∘ (λ x, (⟨i, set.mem_Iic.mpr le_rfl⟩, x)) := rfl,
   rw this,
-  refine @measurable.comp _ (set.Iic i × α) β (f i) (@prod.measurable_space (set.Iic i) α _ (f i))
-    _ _ _ (h i) _,
+  refine (h i).comp _,
   exact @measurable.prod_mk _ _ _ _ (f i) (f i) _ _
     (@measurable_const _ _ _ (f i) _) (@measurable_id _ (f i)),
 end

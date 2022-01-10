@@ -394,7 +394,7 @@ in ⟨coe '' t, image_subset_iff.2 $ λ x _, mem_preimage.2 $ subtype.coe_prop _
 separable space (e.g., if `α` has a second countable topology), then there exists a countable
 dense subset `t ⊆ s` such that `t` contains bottom/top element of `α` when they exist and belong
 to `s`. For a dense subset containing neither bot nor top elements, see
-`dense.exists_countable_dense_subset_no_min_max`. -/
+`dense.exists_countable_dense_subset_no_bot_top`. -/
 lemma dense.exists_countable_dense_subset_bot_top {α : Type*} [topological_space α]
   [partial_order α] {s : set α} [separable_space s] (hs : dense s) :
   ∃ t ⊆ s, countable t ∧ dense t ∧ (∀ x, is_bot x → x ∈ s → x ∈ t) ∧

@@ -69,7 +69,7 @@ different distances. -/
 def pi_Lp {ι : Type*} (p : ℝ) (α : ι → Type*) : Type* := Π (i : ι), α i
 
 instance {ι : Type*} (p : ℝ) (α : ι → Type*) [∀ i, inhabited (α i)] : inhabited (pi_Lp p α) :=
-⟨λ i, default (α i)⟩
+⟨λ i, default⟩
 
 lemma fact_one_le_one_real : fact ((1:ℝ) ≤ 1) := ⟨rfl.le⟩
 lemma fact_one_le_two_real : fact ((1:ℝ) ≤ 2) := ⟨one_le_two⟩

@@ -641,7 +641,7 @@ begin
       exact (hf' i).1 },
     { intro hx,
       use [⟨p x, hps.symm ▸ set.mem_image_of_mem _ hx⟩, mem_univ _],
-      refine hi _ _ (hf' _).1 hx _,
+      refine hi _ (hf' _).1 _ hx _,
       rw (hf' _).2,
       refl } },
   rw [←hu, centroid_map],

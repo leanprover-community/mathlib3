@@ -342,8 +342,8 @@ lemma continuous_on.ae_measurable [topological_space α] [opens_measurable_space
   ae_measurable f (μ.restrict s) :=
 begin
   nontriviality α, inhabit α,
-  have : piecewise s f (λ _, f (default α)) =ᵐ[μ.restrict s] f := piecewise_ae_eq_restrict hs,
-  refine ⟨piecewise s f (λ _, f (default α)), _, this.symm⟩,
+  have : piecewise s f (λ _, f default) =ᵐ[μ.restrict s] f := piecewise_ae_eq_restrict hs,
+  refine ⟨piecewise s f (λ _, f default), _, this.symm⟩,
   apply measurable_of_is_open,
   assume t ht,
   obtain ⟨u, u_open, hu⟩ : ∃ (u : set α), is_open u ∧ f ⁻¹' t ∩ s = u ∩ s :=

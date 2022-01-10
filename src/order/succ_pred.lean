@@ -292,7 +292,7 @@ lemma Ioi_eq_Ici_succ' {a : α} (ha : ∃ b, a < b) :
   set.Ioi a = set.Ici (succ_order.succ a) :=
 by { ext1 x, rw [set.mem_Ioi, set.mem_Ici], exact (succ_le_iff_of_exists_lt ha).symm, }
 
-lemma Ioi_eq_Ici_succ [no_top_order α] {a : α} (ha : ∃ b, a < b) :
+lemma Ioi_eq_Ici_succ [no_top_order α] (a : α) :
   set.Ioi a = set.Ici (succ_order.succ a) :=
 Ioi_eq_Ici_succ' (no_top a)
 
@@ -533,7 +533,7 @@ lemma Iio_eq_Iic_pred' {a : α} (ha : ∃ b, b < a) :
   set.Iio a = set.Iic (pred_order.pred a) :=
 by { ext1 x, rw [set.mem_Iio, set.mem_Iic], exact (le_pred_iff_of_exists_lt ha).symm, }
 
-lemma Iio_eq_Iic_pred [no_bot_order α] {a : α} :
+lemma Iio_eq_Iic_pred [no_bot_order α] (a : α) :
   set.Iio a = set.Iic (pred_order.pred a) :=
 Iio_eq_Iic_pred' (no_bot a)
 

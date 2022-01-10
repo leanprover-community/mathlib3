@@ -295,11 +295,14 @@ noncomputable instance : has_sup (seminorm 𝕜 E) :=
 
 @[simp] lemma coe_sup (p q : seminorm 𝕜 E) : ⇑(p ⊔ q) = p ⊔ q := rfl
 
-noncomputable instance : semilattice_sup (seminorm 𝕜 E) :=
-function.injective.semilattice_sup _ coe_injective coe_sup
+instance : partial_order (seminorm 𝕜 E) :=
+  partial_order.lift _ coe_injective
 
 lemma le_def (p q : seminorm 𝕜 E) : p ≤ q ↔ (p : E → ℝ) ≤ q := iff.rfl
 lemma lt_def (p q : seminorm 𝕜 E) : p < q ↔ (p : E → ℝ) < q := iff.rfl
+
+noncomputable instance : semilattice_sup (seminorm 𝕜 E) :=
+function.injective.semilattice_sup _ coe_injective coe_sup
 
 end has_scalar
 
@@ -400,9 +403,9 @@ begin
   ext,
   simp_rw [mem_Inter, mem_ball_zero],
   refine ⟨λ hx i hi, (finset_le_sup p s i hi x).trans_lt hx, λ hx, _⟩,
-  rw [finset_sup_apply, ←r.coe_to_nnreal (hr.le), nnreal.coe_lt_coe, finset.sup_lt_iff],
+  rw [finset_sup_apply, ←r.coe_to_nnreal hr.le, nnreal.coe_lt_coe, finset.sup_lt_iff],
   { intros i hi,
-    rw [←nnreal.coe_lt_coe, r.coe_to_nnreal (hr.le)],
+    rw [←nnreal.coe_lt_coe, r.coe_to_nnreal hr.le],
     exact (hx i hi) },
   simp [hr],
 end

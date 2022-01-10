@@ -61,7 +61,7 @@ end add_group
 
 instance [add_comm_group R] [star_add_monoid R] : add_comm_group (self_adjoint R) :=
 { add_comm := add_comm,
-  ..add_subgroup.to_add_group (self_adjoint R) }
+  ..add_subgroup_class.to_add_group (self_adjoint R) }
 
 section ring
 variables [ring R] [star_ring R]

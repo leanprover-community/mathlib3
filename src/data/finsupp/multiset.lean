@@ -32,7 +32,7 @@ def to_multiset : (α →₀ ℕ) ≃+ multiset α :=
         multiset.count_eq_zero, multiset.count_nsmul, finset.sum_ite_eq, ite_not],
       exact eq.symm },
   right_inv := λ s, by simp only [sum, coe_mk, multiset.to_finset_sum_count_nsmul_eq],
-  map_add' := λ f g, sum_add_index (λ a, zero_nsmul _) (λ a, add_nsmul _) }
+  map_add' := λ f g, sum_add_index'' (λ a _, zero_nsmul _) (λ a, add_nsmul _) }
 
 lemma to_multiset_zero : (0 : α →₀ ℕ).to_multiset = 0 := rfl
 

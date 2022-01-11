@@ -1215,7 +1215,7 @@ lemma add_halves (a : ℝ≥0∞) : a / 2 + a / 2 = a :=
 by rw [div_eq_mul_inv, ← mul_add, inv_two_add_inv_two, mul_one]
 
 @[simp]
-lemma add_thrids (a : ℝ≥0∞) : a / 3 + a / 3 + a / 3 = a:=
+lemma add_thrids (a : ℝ≥0∞) : a / 3 + a / 3 + a / 3 = a :=
 begin
   rw [div_eq_mul_inv, ← mul_add, ← mul_add, show a * (3⁻¹ + 3⁻¹ + 3⁻¹) = 3 * 3⁻¹ * a, by ring,
     ← div_eq_mul_inv, ennreal.div_self, one_mul];

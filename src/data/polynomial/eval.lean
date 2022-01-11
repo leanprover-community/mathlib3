@@ -505,8 +505,9 @@ def map_ring_hom (f : R →+* S) : polynomial R →+* polynomial S :=
 
 @[simp] lemma coe_map_ring_hom (f : R →+* S) : ⇑(map_ring_hom f) = map f := rfl
 
-@[simp] theorem map_nat_cast (n : ℕ) : (n : polynomial R).map f = n :=
-(map_ring_hom f).map_nat_cast n
+-- todo: this will be removed in #11161, so `protecting` is a reasonable temporary strat
+@[simp] protected theorem map_nat_cast (n : ℕ) : (n : polynomial R).map f = n :=
+map_nat_cast (map_ring_hom f) n
 
 @[simp]
 lemma coeff_map (n : ℕ) : coeff (p.map f) n = f (coeff p n) :=
@@ -596,7 +597,7 @@ ring_hom.ext $ λ x, map_id
 
 @[simp] lemma map_ring_hom_comp [semiring T] (f : S →+* T) (g : R →+* S) :
   (map_ring_hom f).comp (map_ring_hom g) = map_ring_hom (f.comp g) :=
-ring_hom.ext $ map_map g f
+ring_hom.ext $ polynomial.map_map g f
 
 lemma map_list_prod (L : list (polynomial R)) : L.prod.map f = (L.map $ map f).prod :=
 eq.symm $ list.prod_hom _ (map_ring_hom f).to_monoid_hom
@@ -668,7 +669,7 @@ lemma eval_nat_cast_map (f : R →+* S) (p : polynomial R) (n : ℕ) :
 begin
   apply polynomial.induction_on' p,
   { intros p q hp hq, simp only [hp, hq, map_add, ring_hom.map_add, eval_add] },
-  { intros n r, simp only [f.map_nat_cast, eval_monomial, map_monomial, f.map_pow, f.map_mul] }
+  { intros n r, simp only [map_nat_cast f, eval_monomial, map_monomial, f.map_pow, f.map_mul] }
 end
 
 @[simp]

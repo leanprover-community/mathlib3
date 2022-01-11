@@ -274,14 +274,12 @@ end val
 
 section smul
 
-variables [semiring α]
--- TODO: if I generalize these lemmas to `[has_scalar M α]`, then Lean fails to apply them
--- in `data.complex.module`
+variables {M : Type*} [has_scalar M α]
 
-@[simp] lemma smul_empty (x : α) (v : fin 0 → α) : x • v = ![] := empty_eq _
+@[simp] lemma smul_empty (x : M) (v : fin 0 → α) : x • v = ![] := empty_eq _
 
-@[simp] lemma smul_cons (x y : α) (v : fin n → α) :
-  x • vec_cons y v = vec_cons (x * y) (x • v) :=
+@[simp] lemma smul_cons (x : M) (y : α) (v : fin n → α) :
+  x • vec_cons y v = vec_cons (x • y) (x • v) :=
 by { ext i, refine fin.cases _ _ i; simp }
 
 end smul
@@ -299,6 +297,10 @@ by { ext i, refine fin.cases _ _ i; simp [vec_head, vec_tail] }
 @[simp] lemma add_cons (v : fin n.succ → α) (y : α) (w : fin n → α) :
   v + vec_cons y w = vec_cons (vec_head v + y) (vec_tail v + w) :=
 by { ext i, refine fin.cases _ _ i; simp [vec_head, vec_tail] }
+
+@[simp] lemma cons_add_cons (x : α) (v : fin n → α) (y : α) (w : fin n → α) :
+  vec_cons x v + vec_cons y w = vec_cons (x + y) (v + w) :=
+by simp
 
 @[simp] lemma head_add (a b : fin n.succ → α) : vec_head (a + b) = vec_head a + vec_head b := rfl
 
@@ -319,6 +321,10 @@ by { ext i, refine fin.cases _ _ i; simp [vec_head, vec_tail] }
 @[simp] lemma sub_cons (v : fin n.succ → α) (y : α) (w : fin n → α) :
   v - vec_cons y w = vec_cons (vec_head v - y) (vec_tail v - w) :=
 by { ext i, refine fin.cases _ _ i; simp [vec_head, vec_tail] }
+
+@[simp] lemma cons_sub_cons (x : α) (v : fin n → α) (y : α) (w : fin n → α) :
+  vec_cons x v - vec_cons y w = vec_cons (x - y) (v - w) :=
+by simp
 
 @[simp] lemma head_sub (a b : fin n.succ → α) : vec_head (a - b) = vec_head a - vec_head b := rfl
 

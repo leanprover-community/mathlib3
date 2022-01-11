@@ -40,7 +40,11 @@ i.e., it is complete and second countable. We also prove the Gromov compactness 
 -/
 
 noncomputable theory
-open_locale classical topological_space
+open_locale classical topological_space ennreal
+
+local notation `ℓ_infty_ℝ`:= lp (λ n : ℕ, ℝ) ∞
+local attribute [instance] fact_one_le_top_ennreal
+
 universes u v w
 
 open classical set function topological_space filter metric quotient
@@ -172,7 +176,7 @@ we only consider embeddings in `ℓ^∞(ℝ)`, but we will prove below that it w
 instance : has_dist (GH_space) :=
 { dist := λ x y, Inf $
     (λ p : nonempty_compacts ℓ_infty_ℝ × nonempty_compacts ℓ_infty_ℝ,
-      Hausdorff_dist p.1.val p.2.val) '' (set.prod {a | ⟦a⟧ = x} {b | ⟦b⟧ = y}) }
+      Hausdorff_dist p.1.val p.2.val) '' ({a | ⟦a⟧ = x} ×ˢ {b | ⟦b⟧ = y}) }
 
 /-- The Gromov-Hausdorff distance between two nonempty compact metric spaces, equal by definition to
 the distance of the equivalence classes of these spaces in the Gromov-Hausdorff space. -/
@@ -388,10 +392,10 @@ instance : metric_space GH_space :=
   dist_comm := λ x y, begin
     have A : (λ (p : nonempty_compacts ℓ_infty_ℝ × nonempty_compacts ℓ_infty_ℝ),
                  Hausdorff_dist ((p.fst).val) ((p.snd).val)) ''
-             (set.prod {a | ⟦a⟧ = x} {b | ⟦b⟧ = y})
+             ({a | ⟦a⟧ = x} ×ˢ {b | ⟦b⟧ = y})
            = ((λ (p : nonempty_compacts ℓ_infty_ℝ × nonempty_compacts ℓ_infty_ℝ),
                  Hausdorff_dist ((p.fst).val) ((p.snd).val)) ∘ prod.swap) ''
-                 (set.prod {a | ⟦a⟧ = x} {b | ⟦b⟧ = y}) :=
+                 ({a | ⟦a⟧ = x} ×ˢ {b | ⟦b⟧ = y}) :=
       by { congr, funext, simp, rw Hausdorff_dist_comm },
     simp only [dist, A, image_comp, image_swap_prod],
   end,

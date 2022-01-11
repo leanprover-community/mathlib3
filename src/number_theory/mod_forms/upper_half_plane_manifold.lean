@@ -84,7 +84,7 @@ apply differentiable_on.congr hf,
 intros y hy,
 have HH:= ext_chart f (⟨y,hy⟩ : ℍ'),
 simp at HH,
-simp,
+simp only [function.comp_app],
 simp_rw HH,
 congr,
 end

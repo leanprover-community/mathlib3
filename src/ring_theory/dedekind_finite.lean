@@ -305,83 +305,35 @@ lemma pow_mul_pow_eq_pow_sub_mul_pow_sub_of_mul_eq_one [monoid R] {a b : R} (hab
         -- exact aux1,
     end
 
-private lemma aux3 {j k : ℕ} (H : k < j) (hjk : ¬j = k + 1) : ¬j ≤ k + 1 :=
-by simp; exact (ne.symm hjk).le_iff_lt.mp H
-
-private lemma aux4 {j k l : ℕ} (H : k < j) : j - (k + 1) + (l + 1) = j - k + l :=
-have k + 1 ≤ j := H,
-by omega
-
-private lemma aux5 {j k l : ℕ} (H : k < j) : j + 1 - (k + 1) + (l + 1) = j + 1 - k + l :=
-have k + 1 < j + 1 := nat.succ_lt_succ H,
-have k ≤ j + 1 := by omega,
-by omega  --zify [this, H]; linarith
-
-private def e (a b : R) [ring R] (i j : ℕ) : R := b ^ i * a ^ j - b ^ (i + 1) * a ^ (j + 1)
+private def e [ring R] (a b : R) (i j : ℕ) : R := b ^ i * (1 - b * a) * a ^ j
+lemma left_mul [ring R] {a b : R} (hab : a * b = 1) : a * (1 - b * a) = 0 :=
+by rw [mul_sub, ← mul_assoc, hab, mul_one, one_mul, sub_self]
+lemma right_mul [ring R] {a b : R} (hab : a * b = 1) : (1 - b * a) * b = 0 :=
+by rw [sub_mul, mul_assoc, hab, mul_one, one_mul, sub_self]
+lemma idemp [ring R] {a b : R} (hab : a * b = 1) : (1 - b * a) * (1 - b * a) = (1 - b * a) :=
+begin
+  assoc_rw [sub_mul, mul_sub, mul_sub, hab],
+  simp,
+end
 
 lemma e_orthogonal [ring R] {a b : R} (hab : a * b = 1) {i j k l : ℕ} :
   e a b i j * e a b k l = if j = k then e a b i l else (0 : R) :=
 begin
-  rw [e, e, e, mul_sub, sub_mul, sub_mul, sub_right_comm, mul_assoc, mul_assoc, mul_assoc,
-    mul_assoc, ← sub_add, ← mul_sub (b ^ i), ← sub_sub_assoc_swap, ← mul_sub (b ^ (i + 1)),
-    ← mul_assoc, ← mul_assoc, ← mul_assoc, ← mul_assoc,
-    pow_mul_pow_eq_pow_sub_mul_pow_sub_of_mul_eq_one hab j k,
-    pow_mul_pow_eq_pow_sub_mul_pow_sub_of_mul_eq_one hab j (k + 1),
-    pow_mul_pow_eq_pow_sub_mul_pow_sub_of_mul_eq_one hab (j + 1) k,
-    pow_mul_pow_eq_pow_sub_mul_pow_sub_of_mul_eq_one hab (j + 1) (k + 1)],
+  rw [e, e, e],
+  assoc_rw [pow_mul_pow_eq_pow_sub_mul_pow_sub_of_mul_eq_one hab],
   rcases lt_trichotomy j k with H | rfl | H,
-  { conv_rhs {rw if_neg (ne_of_lt H),},
-    -- simp,
-    -- TODO omega gets stuck on instances
-    rw (nat.sub_eq_zero_of_le ((le_of_lt H).trans k.le_succ) : j - (k + 1) = 0),
-    rw (nat.sub_eq_zero_of_le (nat.succ_le_of_lt H) : j + 1 - k = 0),
-    rw (nat.sub_eq_zero_of_le (le_of_lt (nat.succ_lt_succ_iff.mpr H)) : j + 1 - (k + 1) = 0),
-    rw (nat.sub_eq_zero_of_le H.le : j - k = 0),
-    simp,
-    -- rw if_pos (le_of_lt H),
-    -- rw if_pos (by linarith : j ≤ k + 1),
-    -- rw if_pos (nat.succ_le_iff.mpr H),
-    -- rw if_pos (le_add_right H : j + 1 ≤ k + 1),
-    rw ← nat.succ_pred_eq_of_pos (tsub_pos_of_lt H),
-
-    have : 0 < k + 1 - j := nat.sub_pos_of_lt (H.trans (lt_add_one k)),
-    rw ← nat.succ_pred_eq_of_pos this,
-    rw pow_succ,
-    rw pow_succ,
-    rw mul_assoc,
-    rw mul_assoc,
-    rw ← mul_sub b,
-    rw ← mul_assoc,
-    rw ← pow_succ',
-    rw ← mul_sub (b ^ (i + 1)),
-    convert mul_zero _,
-    rw nat.pred_eq_sub_one,
-    rw nat.pred_eq_sub_one,
-    rw sub_sub_assoc_swap,
-    rw (show k + 1 - j - 1 = k - j, from nat.succ_sub_succ k j),
-    rw ← pow_succ,
-    rw (show k - j - 1 + 1 = k - j, from nat.succ_pred_eq_of_pos (tsub_pos_of_lt H)),
-    rw nat.sub_sub,
-    rw add_comm j 1,
-    rw ← nat.sub_sub,
-    simp, },
-  { conv_rhs {rw if_pos,},
-    simp [add_comm, mul_sub, mul_assoc, pow_succ', ← pow_succ], },
-  sorry; { conv_rhs {rw if_neg (ne_of_gt H),},
-    rw if_neg (not_le.mpr H),
-    have : ite (j ≤ k + 1) (b ^ (k + 1 - j)) (a ^ (j - (k + 1))) = a ^ (j - (k + 1)),
-    { by_cases hjk : j = k + 1,
-      { rw [if_pos (le_of_eq hjk), ← hjk],
-        simp, },
-      { rw if_neg, exact aux3 H hjk, } },
-    rw this,
-    rw if_neg (by exact (nat.lt_asymm H) : ¬j + 1 ≤ k),
-    rw if_neg (by exact nat.le_lt_antisymm H : ¬j + 1 ≤ k + 1),
-    rw [← pow_add, ← pow_add, ← pow_add, ← pow_add,
-      (aux4 H : j - (k + 1) + (l + 1) = j - k + l),
-      sub_self, mul_zero, zero_sub,
-      (aux5 H : j + 1 - (k + 1) + (l + 1) = j + 1 - k + l),
-      sub_self, mul_zero, neg_zero], }
+  { rw [if_neg (ne_of_lt H),
+        show k - j = k - j - 1 + 1, from (nat.succ_pred_eq_of_pos (tsub_pos_of_lt H)).symm,
+        pow_succ],
+    assoc_rw right_mul hab,
+    simp [H], },
+  { simp,
+    assoc_rw idemp hab, },
+  { rw [if_neg (ne_of_gt H),
+        show j - k = j - k - 1 + 1, from (nat.succ_pred_eq_of_pos (tsub_pos_of_lt H)).symm,
+        pow_succ'],
+    assoc_rw left_mul hab,
+    simp [H], },
 end
 
 lemma e_ne_pow_two [ring R] {a b : R} (hab : a * b = 1) {i j : ℕ} (hij : i ≠ j) :

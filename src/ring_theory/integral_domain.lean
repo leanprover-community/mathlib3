@@ -175,7 +175,8 @@ begin
       = ∑ n in range (order_of x), x ^ n :
     eq.symm $ sum_bij (λ n _, x ^ n)
       (by simp only [mem_univ, forall_true_iff])
-      (by simp only [implies_true_iff, eq_self_iff_true, subgroup.coe_pow, units.coe_pow, coe_coe])
+      (by simp only [implies_true_iff, eq_self_iff_true, submonoid_class.coe_pow,
+            units.coe_pow, coe_coe])
       (λ m n hm hn, pow_injective_of_lt_order_of _
         (by simpa only [mem_range] using hm)
         (by simpa only [mem_range] using hn))

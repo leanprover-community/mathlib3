@@ -264,10 +264,10 @@ begin
 end
 
 lemma mod_form_periodic (k : ℤ) (f : ℍ → ℂ)
-  (h: f ∈ (modular_forms.modular_submodule k (⊤ : subgroup SL2Z))) : ∀ (z : ℍ) (n : ℤ),
+  (h: f ∈ (modular_forms.weakly_modular_submodule k (⊤ : subgroup SL2Z))) : ∀ (z : ℍ) (n : ℤ),
   f( ((TN n) : matrix.GL_pos (fin 2) ℝ)  • z ) = f(z) :=
 begin
-  simp only [modular_forms.modular_mem', coe_coe] at h,
+  simp only [modular_forms.wmodular_mem', coe_coe] at h,
   intros z n,
   have htop : (TN n) ∈ (⊤ : subgroup SL2Z), by {simp,},
   have H:= h ⟨(TN n), htop⟩ z,
@@ -392,10 +392,10 @@ end
 lemma Eisenstein_series_is_modular_form  (k: ℕ) (hk : 3 ≤ k) :
  modular_forms.is_modular_form_of_lvl_and_weight (⊤ : subgroup SL2Z) k
  (λ z : ℍ, Eisenstein_series_of_weight_ k z) :=
- {hol:= by {simp_rw modular_forms.hol_extn, apply Eisenstein_is_holomorphic k hk, },
+ {hol:= by {simp_rw modular_forms.hol_extn, rw mdiff_iff_holo, apply Eisenstein_is_holomorphic k hk, },
  transf := by {simp only, apply Eisenstein_is_modular (⊤ : subgroup SL2Z) k, },
  infinity := by {intros A,
- have := (modular_forms.modular_mem k (⊤ : subgroup SL2Z)
+ have := (modular_forms.wmodular_mem k (⊤ : subgroup SL2Z)
  (λ z : ℍ, Eisenstein_series_of_weight_ k z)).1 (Eisenstein_is_modular (⊤ : subgroup SL2Z) k) A,
  rw this,
  apply Eisenstein_is_bounded k hk,}}

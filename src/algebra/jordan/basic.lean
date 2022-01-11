@@ -151,7 +151,7 @@ variables (A : Type*) [non_unital_non_assoc_ring A]
 A non unital, non-associative ring with a commutative Jordan multipication
 -/
 class comm_jordan :=
-(comm: ∀ a b : A, a * b = b * a)
+(mul_comm: ∀ a b : A, a * b = b * a)
 (jordan: ∀ a b : A, (a * b) * (a * a) = a * (b * (a *a)))
 
 variable [comm_jordan A]

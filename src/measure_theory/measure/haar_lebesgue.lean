@@ -475,6 +475,154 @@ begin
   { exact add_haar_sphere_of_ne_zero μ x h }
 end
 
+lemma ennreal.mul_inv {a b : ℝ≥0∞} (ha : a ≠ 0 ∨ b ≠ ∞) (hb : a ≠ ∞ ∨ b ≠ 0) :
+  (a * b)⁻¹ = a⁻¹ * b⁻¹ :=
+begin
+  cases b,
+  { simp at ha, simp [ha], },
+  cases a,
+  { simp at hb, simp [hb] },
+  by_cases h'a : a = 0,
+  { simp only [h'a, with_top.top_mul, ennreal.inv_zero, ennreal.coe_ne_top, zero_mul, ne.def,
+      not_false_iff, ennreal.coe_zero, ennreal.some_eq_coe, ennreal.inv_eq_zero] },
+  by_cases h'b : b = 0,
+  { simp only [h'b, ennreal.inv_zero, ennreal.coe_ne_top, with_top.mul_top, ne.def, not_false_iff,
+      mul_zero, ennreal.coe_zero, ennreal.some_eq_coe, ennreal.inv_eq_zero] },
+  simp only [ennreal.some_eq_coe],
+  rw [← ennreal.coe_mul, ← ennreal.coe_inv, ← ennreal.coe_inv h'a, ← ennreal.coe_inv h'b,
+    ← ennreal.coe_mul, nnreal.mul_inv, mul_comm],
+  simp [h'a, h'b],
+end
+
+lemma tendsto_measure_inter_smul_zero_of_tendsto_measure_inter_closed_ball_zero_aux1
+  (s : set E) (hs : measurable_set s) (x : E)
+  (h : tendsto (λ r, μ (s ∩ closed_ball x r) / μ (closed_ball x r)) (𝓝[>] 0) (𝓝 0))
+  (t : set E) (ht : measurable_set t) (h't : μ t ≠ 0) (h''t : μ t ≠ ∞)
+  (t_bound : t ⊆ closed_ball 0 1) :
+  tendsto (λ (r : ℝ), μ (s ∩ ({x} + r • t)) / μ ({x} + r • t)) (𝓝[>] 0) (𝓝 0) :=
+begin
+  have A : tendsto (λ (r : ℝ), μ (s ∩ ({x} + r • t)) / μ (closed_ball x r)) (𝓝[>] 0) (𝓝 0),
+  { apply tendsto_of_tendsto_of_tendsto_of_le_of_le' tendsto_const_nhds h
+      (eventually_of_forall (λ b, zero_le _)),
+    filter_upwards [self_mem_nhds_within],
+    assume r rpos,
+    change 0 < r at rpos,
+    apply ennreal.mul_le_mul (measure_mono (inter_subset_inter_right _ _)) le_rfl,
+    assume y hy,
+    have : y - x ∈ r • closed_ball (0 : E) 1,
+    { apply smul_set_mono t_bound,
+      simpa [neg_add_eq_sub] using hy },
+    simpa only [smul_closed_ball _ _ zero_le_one, real.norm_of_nonneg rpos.le,
+      mem_closed_ball_iff_norm, mul_one, sub_zero, smul_zero] },
+  have B : tendsto (λ (r : ℝ), μ (closed_ball x r) / μ ({x} + r • t)) (𝓝[>] 0)
+    (𝓝 (μ (closed_ball x 1) / μ ({x} + t))),
+  { apply tendsto_const_nhds.congr' _,
+    filter_upwards [self_mem_nhds_within],
+    assume r rpos,
+    change 0 < r at rpos,
+    have I : ennreal.of_real (r ^ finrank ℝ E) * μ (closed_ball 0 1) *
+            ((ennreal.of_real (r ^ finrank ℝ E))⁻¹ * (μ t)⁻¹)
+          = (ennreal.of_real (r ^ finrank ℝ E) * (ennreal.of_real (r ^ finrank ℝ E))⁻¹) *
+            μ (closed_ball 0 1) * (μ t)⁻¹, by ring,
+    simp only [μ.add_haar_closed_ball' 0 rpos.le, abs_of_nonneg rpos.le, add_haar_smul,
+      image_add_left, add_haar_preimage_add, abs_pow, singleton_add, div_eq_mul_inv,
+       ennreal.mul_inv (or.inr h''t) (or.inr h't), add_haar_closed_ball_center],
+    rw [I, ennreal.mul_inv_cancel _ ennreal.of_real_ne_top, one_mul],
+    simp only [pow_pos rpos, ennreal.of_real_eq_zero, not_le, ne.def] },
+  have C : tendsto (λ (r : ℝ),
+    (μ (s ∩ ({x} + r • t)) / μ (closed_ball x r)) * (μ (closed_ball x r) / μ ({x} + r • t)))
+    (𝓝[>] 0) (𝓝 (0 * (μ (closed_ball x 1) / μ ({x} + t)))),
+  { apply ennreal.tendsto.mul A _ B (or.inr ennreal.zero_ne_top),
+    simp only [ennreal.div_eq_top, h't, measure_closed_ball_lt_top.ne, false_or, image_add_left,
+      eq_self_iff_true, not_true, ne.def, not_false_iff, add_haar_preimage_add, singleton_add,
+      and_false, false_and] },
+  simp only [zero_mul] at C,
+  apply C.congr' _,
+  filter_upwards [self_mem_nhds_within],
+  assume r rpos,
+  change 0 < r at rpos,
+  calc μ (s ∩ ({x} + r • t)) / μ (closed_ball x r) * (μ (closed_ball x r) / μ ({x} + r • t))
+    = (μ (closed_ball x r) * (μ (closed_ball x r))⁻¹) * (μ (s ∩ ({x} + r • t)) / μ ({x} + r • t)) :
+      by { simp only [div_eq_mul_inv], ring }
+    ... = μ (s ∩ ({x} + r • t)) / μ ({x} + r • t) :
+      by rw [ennreal.mul_inv_cancel (add_haar_closed_ball_pos μ x rpos).ne'
+          measure_closed_ball_lt_top.ne, one_mul],
+end
+
+lemma _root_.measurable_set.smul {s : set E} (hs : measurable_set s) (c : ℝ) :
+  measurable_set (c • s) :=
+begin
+  rcases eq_or_ne c 0 with rfl|hc,
+  { rcases eq_empty_or_nonempty s with rfl|h's,
+    { simp },
+    { simp [zero_smul_set h's],
+      exact measurable_set_singleton _ } },
+  { rw ← preimage_smul_inv₀ hc,
+    exact has_measurable_smul.measurable_const_smul (c⁻¹) hs }
+end
+
+lemma tendsto_measure_inter_smul_zero_of_tendsto_measure_inter_closed_ball_zero_aux2
+  (s : set E) (x : E) (hs : measurable_set s)
+  (h : tendsto (λ r, μ (s ∩ closed_ball x r) / μ (closed_ball x r)) (𝓝[>] 0) (𝓝 0))
+  (t : set E) (ht : measurable_set t) (h't : μ t ≠ 0) (h''t : μ t ≠ ∞)
+  (R : ℝ) (Rpos : 0 < R) (t_bound : t ⊆ closed_ball 0 R) :
+  tendsto (λ (r : ℝ), μ (s ∩ ({x} + r • t)) / μ ({x} + r • t)) (𝓝[>] 0) (𝓝 0) :=
+begin
+  set t' := R⁻¹ • t with ht',
+  have A : tendsto (λ (r : ℝ), μ (s ∩ ({x} + r • t')) / μ ({x} + r • t')) (𝓝[>] 0) (𝓝 0),
+  { apply tendsto_measure_inter_smul_zero_of_tendsto_measure_inter_closed_ball_zero_aux1 μ s hs x h
+      t' (ht.smul _),
+    { simp only [h't, (pow_pos Rpos _).ne', abs_nonpos_iff, add_haar_smul, not_false_iff,
+        ennreal.of_real_eq_zero, inv_eq_zero, inv_pow₀, ne.def, or_self, mul_eq_zero] },
+    { simp only [h''t, ennreal.of_real_ne_top, add_haar_smul, with_top.mul_eq_top_iff, ne.def,
+        not_false_iff, and_false, false_and, or_self] },
+    { convert smul_set_mono t_bound,
+      rw [smul_closed_ball _ _ Rpos.le, smul_zero, real.norm_of_nonneg (inv_nonneg.2 Rpos.le),
+        inv_mul_cancel Rpos.ne'] } },
+  have B : tendsto (λ (r : ℝ), R * r) (𝓝[>] 0) (𝓝[>] (R * 0)),
+  { apply tendsto_nhds_within_of_tendsto_nhds_of_eventually_within,
+    { exact (tendsto_const_nhds.mul tendsto_id).mono_left nhds_within_le_nhds },
+    { filter_upwards [self_mem_nhds_within],
+      assume r rpos,
+      rw mul_zero,
+      exact mul_pos Rpos rpos } },
+  rw mul_zero at B,
+  apply (A.comp B).congr' _,
+  filter_upwards [self_mem_nhds_within],
+  assume r rpos,
+  change 0 < r at rpos,
+  have : (R * r) • t' = r • t,
+    by rw [mul_comm, ht', smul_smul, mul_assoc, mul_inv_cancel Rpos.ne', mul_one],
+  dsimp,
+  rw this,
+end
+
+
+lemma tendsto_measure_inter_smul_zero_of_tendsto_measure_inter_closed_ball_zero
+  (s : set E) (x : E) (hs : measurable_set s)
+  (h : tendsto (λ r, μ (s ∩ closed_ball x r) / μ (closed_ball x r)) (𝓝[>] 0) (𝓝 0))
+  (t : set E) (ht : measurable_set t) (h't : μ t ≠ 0) (h''t : μ t ≠ ∞) :
+  tendsto (λ (r : ℝ), μ (s ∩ ({x} + r • t)) / μ ({x} + r • t)) (𝓝[>] 0) (𝓝 0) :=
+begin
+  refine tendsto_order.2 ⟨λ a' ha', (ennreal.not_lt_zero ha').elim, λ ε εpos, _⟩,
+  change 0 < ε at εpos,
+  obtain ⟨n, hn⟩ : ∃ (n : ℕ), μ (t \ closed_ball 0 n) < ε / 2,
+  { have A : tendsto (λ (n : ℕ), μ (t \ closed_ball 0 n)) at_top
+      (𝓝 (μ (⋂ (n : ℕ), t \ closed_ball 0 n))),
+    { have N : ∃ (n : ℕ), μ (t \ closed_ball 0 n) ≠ ∞ :=
+        ⟨0, ((measure_mono (diff_subset t _)).trans_lt h''t.lt_top).ne⟩,
+      refine tendsto_measure_Inter (λ n, ht.diff measurable_set_closed_ball) (λ m n hmn, _) N,
+      exact diff_subset_diff subset.rfl (closed_ball_subset_closed_ball (nat.cast_le.2 hmn)) },
+    have : (⋂ (n : ℕ), t \ closed_ball 0 n) = ∅,
+      by simp_rw [diff_eq, ← inter_Inter, Inter_eq_compl_Union_compl, compl_compl,
+          Union_closed_ball_nat, compl_univ, inter_empty],
+    simp only [this, measure_empty] at A,
+    exact ((tendsto_order.1 A).2 _ (ennreal.half_pos εpos.ne')).exists },
+end
+
+
+#exit
+
 lemma tendsto_measure_inter_smul_one_of_tendsto_measure_inter_closed_ball_one_aux (s : set E) (x : E)
   (h : tendsto (λ r, μ (s ∩ closed_ball x r) / μ (closed_ball x r)) (𝓝[>] 0) (𝓝 1))
   (t : set E) (ht : measurable_set t) (h't : μ t ≠ 0) (h''t : μ t ≠ ∞)

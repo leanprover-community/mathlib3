@@ -390,7 +390,7 @@ def single (i : ι) (s : set M) : smooth_partition_of_unity ι I M s :=
   end
 
 instance [inhabited ι] (s : set M) : inhabited (smooth_partition_of_unity ι I M s) :=
-⟨single (default ι) s⟩
+⟨single default s⟩
 
 variables [t2_space M] [sigma_compact_space M]
 

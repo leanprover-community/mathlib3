@@ -749,7 +749,9 @@ theorem tendsto_nhds_within_nhds_within [pseudo_metric_space β] {t : set β} {f
   tendsto f (𝓝[s] a) (𝓝[t] b) ↔
     ∀ ε > 0, ∃ δ > 0, ∀{x:α}, x ∈ s → dist x a < δ → f x ∈ t ∧ dist (f x) b < ε :=
 (nhds_within_basis_ball.tendsto_iff nhds_within_basis_ball).trans $
-  by simp only [inter_comm, mem_inter_iff, and_imp, mem_ball]
+  forall_congr $ λ ε, forall_congr $ λ hε,
+  exists_congr $ λ δ, exists_congr $ λ hδ,
+  forall_congr $ λ x, by simp; itauto
 
 theorem tendsto_nhds_within_nhds [pseudo_metric_space β] {f : α → β} {a b} :
   tendsto f (𝓝[s] a) (𝓝 b) ↔
@@ -814,7 +816,7 @@ theorem tendsto_at_top [nonempty β] [semilattice_sup β] {u : β → α} {a : �
 A variant of `tendsto_at_top` that
 uses `∃ N, ∀ n > N, ...` rather than `∃ N, ∀ n ≥ N, ...`
 -/
-theorem tendsto_at_top' [nonempty β] [semilattice_sup β] [no_top_order β] {u : β → α} {a : α} :
+theorem tendsto_at_top' [nonempty β] [semilattice_sup β] [no_max_order β] {u : β → α} {a : α} :
   tendsto u at_top (𝓝 a) ↔ ∀ε>0, ∃N, ∀n>N, dist (u n) a < ε :=
 (at_top_basis_Ioi.tendsto_iff nhds_basis_ball).trans $
   by { simp only [exists_prop, true_and], refl }
@@ -1134,7 +1136,7 @@ lemma cauchy_seq_of_le_tendsto_0 {s : β → α} (b : β → ℝ)
   (h : ∀ n m N : β, N ≤ n → N ≤ m → dist (s n) (s m) ≤ b N) (h₀ : tendsto b at_top (nhds 0)) :
   cauchy_seq s :=
 metric.cauchy_seq_iff.2 $ λ ε ε0,
-  (metric.tendsto_at_top.1 h₀ ε ε0).imp $ λ N hN m n hm hn,
+  (metric.tendsto_at_top.1 h₀ ε ε0).imp $ λ N hN m hm n hn,
   calc dist (s m) (s n) ≤ b N : h m n N hm hn
                     ... ≤ |b N| : le_abs_self _
                     ... = dist (b N) 0 : by rw real.dist_0_eq_abs; refl
@@ -1187,7 +1189,7 @@ lemma cauchy_seq_iff_le_tendsto_0 {s : ℕ → α} : cauchy_seq s ↔ ∃ b : �
   rw [real.dist_0_eq_abs, abs_of_nonneg (S0 n)],
   refine lt_of_le_of_lt (cSup_le ⟨_, S0m _⟩ _) (half_lt_self ε0),
   rintro _ ⟨⟨m', n'⟩, ⟨hm', hn'⟩, rfl⟩,
-  exact le_of_lt (hN _ _ (le_trans hn hm') (le_trans hn hn'))
+  exact le_of_lt (hN _ (le_trans hn hm') _ (le_trans hn hn'))
   end,
 λ ⟨b, _, b_bound, b_lim⟩, cauchy_seq_of_le_tendsto_0 b b_bound b_lim⟩
 
@@ -1288,11 +1290,11 @@ lemma prod.dist_eq [pseudo_metric_space β] {x y : α × β} :
   dist x y = max (dist x.1 y.1) (dist x.2 y.2) := rfl
 
 theorem ball_prod_same [pseudo_metric_space β] (x : α) (y : β) (r : ℝ) :
-  (ball x r).prod (ball y r) = ball (x, y) r :=
+  ball x r ×ˢ ball y r = ball (x, y) r :=
 ext $ λ z, by simp [prod.dist_eq]
 
 theorem closed_ball_prod_same [pseudo_metric_space β] (x : α) (y : β) (r : ℝ) :
-  (closed_ball x r).prod (closed_ball y r) = closed_ball (x, y) r :=
+  closed_ball x r ×ˢ closed_ball y r = closed_ball (x, y) r :=
 ext $ λ z, by simp [prod.dist_eq]
 
 end prod
@@ -1610,7 +1612,7 @@ instance complete_of_proper [proper_space α] : complete_space α :=
   obtain ⟨t, t_fset, ht⟩ : ∃ t ∈ f, ∀ x y ∈ t, dist x y < 1 :=
     (metric.cauchy_iff.1 hf).2 1 zero_lt_one,
   rcases hf.1.nonempty_of_mem t_fset with ⟨x, xt⟩,
-  have : closed_ball x 1 ∈ f := mem_of_superset t_fset (λ y yt, (ht y x yt xt).le),
+  have : closed_ball x 1 ∈ f := mem_of_superset t_fset (λ y yt, (ht y yt x xt).le),
   rcases (compact_iff_totally_bounded_complete.1 (is_compact_closed_ball x 1)).2 f hf
     (le_principal_iff.2 this) with ⟨y, -, hy⟩,
   exact ⟨y, hy⟩
@@ -1652,7 +1654,7 @@ lemma exists_lt_subset_ball (hs : is_closed s) (h : s ⊆ ball x r) :
 begin
   cases le_or_lt r 0 with hr hr,
   { rw [ball_eq_empty.2 hr, subset_empty_iff] at h, unfreezingI { subst s },
-    exact (no_bot r).imp (λ r' hr', ⟨hr', empty_subset _⟩) },
+    exact (exists_lt r).imp (λ r' hr', ⟨hr', empty_subset _⟩) },
   { exact (exists_pos_lt_subset_ball hr hs h).imp (λ r' hr', ⟨hr'.fst.2, hr'.snd⟩) }
 end
 
@@ -1715,11 +1717,11 @@ lemma bounded_iff_mem_bounded : bounded s ↔ ∀ x ∈ s, bounded s :=
 
 /-- Subsets of a bounded set are also bounded -/
 lemma bounded.mono (incl : s ⊆ t) : bounded t → bounded s :=
-Exists.imp $ λ C hC x y hx hy, hC x y (incl hx) (incl hy)
+Exists.imp $ λ C hC x hx y hy, hC x (incl hx) y (incl hy)
 
 /-- Closed balls are bounded -/
 lemma bounded_closed_ball : bounded (closed_ball x r) :=
-⟨r + r, λ y z hy hz, begin
+⟨r + r, λ y hy z hz, begin
   simp only [mem_closed_ball] at *,
   calc dist y z ≤ dist y x + dist z x : dist_triangle_right _ _ _
             ... ≤ r + r : add_le_add hy hz
@@ -1738,7 +1740,7 @@ begin
     { rcases h with ⟨x, hx⟩,
       exact ⟨C + dist x c, λ y hy, calc
         dist y c ≤ dist y x + dist x c : dist_triangle _ _ _
-            ... ≤ C + dist x c : add_le_add_right (hC y x hy hx) _⟩ } },
+            ... ≤ C + dist x c : add_le_add_right (hC y hy x hx) _⟩ } },
   { exact bounded_closed_ball.mono hC }
 end
 
@@ -1754,7 +1756,8 @@ end
 
 lemma bounded_closure_of_bounded (h : bounded s) : bounded (closure s) :=
 let ⟨C, h⟩ := h in
-⟨C, λ a b ha hb, (is_closed_le' C).closure_subset $ map_mem_closure2 continuous_dist ha hb h⟩
+⟨C, λ a ha b hb, (is_closed_le' C).closure_subset $ map_mem_closure2 continuous_dist ha hb
+$ ball_mem_comm.mp h⟩
 
 alias bounded_closure_of_bounded ← metric.bounded.closure
 
@@ -1807,8 +1810,8 @@ bounded_of_finite $ finite_singleton _
 /-- Characterization of the boundedness of the range of a function -/
 lemma bounded_range_iff {f : β → α} : bounded (range f) ↔ ∃C, ∀x y, dist (f x) (f y) ≤ C :=
 exists_congr $ λ C, ⟨
-  λ H x y, H _ _ ⟨x, rfl⟩ ⟨y, rfl⟩,
-  by rintro H _ _ ⟨x, rfl⟩ ⟨y, rfl⟩; exact H x y⟩
+  λ H x y, H _ ⟨x, rfl⟩ _ ⟨y, rfl⟩,
+  by rintro H _ ⟨x, rfl⟩ _ ⟨y, rfl⟩; exact H x y⟩
 
 lemma bounded_range_of_tendsto_cofinite_uniformity {f : β → α}
   (hf : tendsto (prod.map f f) (cofinite ×ᶠ cofinite) (𝓤 α)) :
@@ -1818,7 +1821,7 @@ begin
     with ⟨s, hsf, hs1⟩,
   rw [← image_univ, ← union_compl_self s, image_union, bounded_union],
   use [(hsf.image f).bounded, 1],
-  rintro _ _ ⟨x, hx, rfl⟩ ⟨y, hy, rfl⟩,
+  rintro _ ⟨x, hx, rfl⟩ _ ⟨y, hy, rfl⟩,
   exact le_of_lt (hs1 (x, y) ⟨hx, hy⟩)
 end
 
@@ -1960,9 +1963,8 @@ end
 /-- Characterize the boundedness of a set in terms of the finiteness of its emetric.diameter. -/
 lemma bounded_iff_ediam_ne_top : bounded s ↔ emetric.diam s ≠ ⊤ :=
 iff.intro
-  (λ ⟨C, hC⟩, ne_top_of_le_ne_top ennreal.of_real_ne_top
-    (ediam_le_of_forall_dist_le $ λ x hx y hy, hC x y hx hy))
-  (λ h, ⟨diam s, λ x y hx hy, dist_le_diam_of_mem' h hx hy⟩)
+  (λ ⟨C, hC⟩, ne_top_of_le_ne_top ennreal.of_real_ne_top $ ediam_le_of_forall_dist_le hC)
+  (λ h, ⟨diam s, λ x hx y hy, dist_le_diam_of_mem' h hx hy⟩)
 
 lemma bounded.ediam_ne_top (h : bounded s) : emetric.diam s ≠ ⊤ :=
 bounded_iff_ediam_ne_top.1 h

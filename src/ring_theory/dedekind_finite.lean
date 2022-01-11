@@ -446,45 +446,4 @@ end
 
 end
 end dedekind_finite
--- IIRC this was an attempt to p
-section
-variables {R : Type*} [comm_ring R] {M : Type*} [add_comm_group M] [module R M] (f : M →ₗ[R] M)
-
-noncomputable theory
-
-/-- The structure of a module `M` over a ring `R` as a module over `polynomial R` when given a choice
-  of how `X` acts by choosing a linear map `f : M →ₗ[R] M` -/
-@[simps]
-def module_polynomial_ring_endo : module (polynomial R) M :=
-module.comp_hom M (polynomial.aeval f).to_ring_hom
-
-open polynomial module
-
-theorem fg_comm_mod_surj_inj [hfg : finite R M] (f_surj : function.surjective f) :
-  function.injective f :=
-begin
-  letI := module_polynomial_ring_endo f,
-  have X_mul : ∀ o, (X : polynomial R) • o = f o,
-  { intro,
-    simp, },
-  have : (⊤ : submodule (polynomial R) M) ≤ ideal.span {X} • ⊤,
-  { intros a ha,
-    obtain ⟨y, rfl⟩ := f_surj a,
-    rw [← X_mul y],
-    exact submodule.smul_mem_smul (ideal.mem_span_singleton.mpr (dvd_refl _)) trivial, },
-  haveI : is_scalar_tower R (polynomial R) M := ⟨λ x y z, by simp⟩,
-  have hfgpoly : finite (polynomial R) M, from finite.of_restrict_scalars_finite R _ _,
-  obtain ⟨F, hFa, hFb⟩ := submodule.exists_sub_one_mem_and_smul_eq_zero_of_fg_of_le_smul _
-    (⊤ : submodule (polynomial R) M) (finite_def.mp hfgpoly) this,
-  rw [← linear_map.ker_eq_bot, linear_map.ker_eq_bot'],
-  intros m hm,
-  rw ideal.mem_span_singleton' at hFa,
-  obtain ⟨G, hG⟩ := hFa,
-  suffices : (F - 1) • m = 0,
-  { have Fmzero := hFb m (by simp),
-    rwa [← sub_add_cancel F 1, add_smul, one_smul, this, zero_add] at Fmzero, },
-  rw [← hG, mul_smul, X_mul m, hm, smul_zero],
-end
-end
-
 #lint

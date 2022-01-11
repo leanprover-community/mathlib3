@@ -165,7 +165,7 @@ def proj (i : ι) (p : path.homotopic.quotient as bs) : path.homotopic.quotient 
 p.map_fn ⟨_, continuous_apply i⟩
 
 /-- Lemmas showing projection is the inverse of pi -/
-@[simp] lemma proj_of_pi (i : ι) (paths : Π i, path.homotopic.quotient (as i) (bs i)) :
+@[simp] lemma proj_pi (i : ι) (paths : Π i, path.homotopic.quotient (as i) (bs i)) :
   proj i (pi paths) = paths i :=
 begin
   apply quotient.induction_on_pi paths,
@@ -174,7 +174,7 @@ begin
   congr, ext, refl,
 end
 
-@[simp] lemma pi_of_proj (p : path.homotopic.quotient as bs) : pi (λ i, proj i p) = p :=
+@[simp] lemma pi_proj (p : path.homotopic.quotient as bs) : pi (λ i, proj i p) = p :=
 begin
   apply quotient.induction_on p,
   intro, unfold proj,
@@ -229,7 +229,7 @@ def proj_right (p : path.homotopic.quotient c₁ c₂) : path.homotopic.quotient
 p.map_fn ⟨_, continuous_snd⟩
 
 /-- Lemmas showing projection is the inverse of product -/
-@[simp] lemma proj_left_of_prod : proj_left (prod q₁ q₂) = q₁ :=
+@[simp] lemma proj_left_prod : proj_left (prod q₁ q₂) = q₁ :=
 begin
   apply quotient.induction_on₂ q₁ q₂,
   intros p₁ p₂,
@@ -238,7 +238,7 @@ begin
   congr, ext, refl,
 end
 
-@[simp] lemma proj_right_of_prod : proj_right (prod q₁ q₂) = q₂ :=
+@[simp] lemma proj_right_prod : proj_right (prod q₁ q₂) = q₂ :=
 begin
   apply quotient.induction_on₂ q₁ q₂,
   intros p₁ p₂,
@@ -247,7 +247,7 @@ begin
   congr, ext, refl,
 end
 
-@[simp] lemma prod_of_proj (p : path.homotopic.quotient (a₁, b₁) (a₂, b₂))
+@[simp] lemma prod_proj_left_proj_right (p : path.homotopic.quotient (a₁, b₁) (a₂, b₂))
   : prod (proj_left p) (proj_right p) = p :=
 begin
   apply quotient.induction_on p,

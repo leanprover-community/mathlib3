@@ -27,7 +27,7 @@ classes and allows to transfer order instances.
 
 ### Extra classes
 
-- `no_top_order`, `no_bot_order`: An order without a maximal/minimal element.
+- `no_max_order`, `no_min_order`: An order without a maximal/minimal element.
 - `densely_ordered`: An order with no gap, i.e. for any two elements `a < b` there exists `c` such
   that `a < c < b`.
 
@@ -499,7 +499,7 @@ instance subtype.linear_order {α} [linear_order α] (p : α → Prop) : linear_
 ### Pointwise order on `α × β`
 
 The lexicographic order is defined in `order.lexicographic`, and the instances are available via the
-type synonym `lex α β = α × β`.
+type synonym `α ×ₗ β = α × β`.
 -/
 
 namespace prod
@@ -537,7 +537,7 @@ lt_iff
 
 /-- The pointwise partial order on a product.
     (The lexicographic ordering is defined in order/lexicographic.lean, and the instances are
-    available via the type synonym `lex α β = α × β`.) -/
+    available via the type synonym `α ×ₗ β = α × β`.) -/
 instance (α : Type u) (β : Type v) [partial_order α] [partial_order β] :
   partial_order (α × β) :=
 { le_antisymm := λ ⟨a, b⟩ ⟨c, d⟩ ⟨hac, hbd⟩ ⟨hca, hdb⟩,
@@ -549,58 +549,58 @@ end prod
 /-! ### Additional order classes -/
 
 /-- Order without a maximal element. Sometimes called cofinal. -/
-class no_top_order (α : Type u) [has_lt α] : Prop :=
-(no_top : ∀ a : α, ∃ a', a < a')
+class no_max_order (α : Type u) [has_lt α] : Prop :=
+(exists_gt (a : α) : ∃ b, a < b)
 
-lemma no_top [has_lt α] [no_top_order α] : ∀ a : α, ∃ a', a < a' :=
-no_top_order.no_top
+lemma exists_gt [has_lt α] [no_max_order α] : ∀ a : α, ∃ a', a < a' :=
+no_max_order.exists_gt
 
-instance nonempty_gt {α : Type u} [has_lt α] [no_top_order α] (a : α) :
-  nonempty {x // a < x} :=
-nonempty_subtype.2 (no_top a)
+instance nonempty_gt [has_lt α] [no_max_order α] (a : α) : nonempty {x // a < x} :=
+nonempty_subtype.2 (exists_gt a)
 
 /-- `a : α` is a top element of `α` if it is greater than or equal to any other element of `α`.
-This predicate is useful, e.g., to make some statements and proofs work in both cases
-`[order_top α]` and `[no_top_order α]`. -/
+This predicate is roughly an unbundled version of `order_bot`, except that a preorder may have
+several top elements. When `α` is linear, this is useful to make a case disjunction on
+`no_max_order α` within a proof. -/
 def is_top {α : Type u} [has_le α] (a : α) : Prop := ∀ b, b ≤ a
 
-@[simp] lemma not_is_top {α : Type u} [preorder α] [no_top_order α] (a : α) : ¬is_top a :=
-λ h, let ⟨b, hb⟩ := no_top a in hb.not_le (h b)
+@[simp] lemma not_is_top [preorder α] [no_max_order α] (a : α) : ¬is_top a :=
+λ h, let ⟨b, hb⟩ := exists_gt a in hb.not_le (h b)
 
 lemma is_top.unique {α : Type u} [partial_order α] {a b : α} (ha : is_top a) (hb : a ≤ b) :
   a = b :=
 le_antisymm hb (ha b)
 
 /-- Order without a minimal element. Sometimes called coinitial or dense. -/
-class no_bot_order (α : Type u) [has_lt α] : Prop :=
-(no_bot : ∀ a : α, ∃ a', a' < a)
+class no_min_order (α : Type u) [has_lt α] : Prop :=
+(exists_lt (a : α) : ∃ b, b < a)
 
-lemma no_bot [has_lt α] [no_bot_order α] : ∀ a : α, ∃ a', a' < a :=
-no_bot_order.no_bot
+lemma exists_lt [has_lt α] [no_min_order α] : ∀ a : α, ∃ a', a' < a :=
+no_min_order.exists_lt
 
 /-- `a : α` is a bottom element of `α` if it is less than or equal to any other element of `α`.
-This predicate is useful, e.g., to make some statements and proofs work in both cases
-`[order_bot α]` and `[no_bot_order α]`. -/
+This predicate is roughly an unbundled version of `order_bot`, except that a preorder may have
+several bottom elements. When `α` is linear, this is useful to make a case disjunction on
+`no_min_order α` within a proof. -/
 def is_bot {α : Type u} [has_le α] (a : α) : Prop := ∀ b, a ≤ b
 
-@[simp] lemma not_is_bot {α : Type u} [preorder α] [no_bot_order α] (a : α) : ¬is_bot a :=
-λ h, let ⟨b, hb⟩ := no_bot a in hb.not_le (h b)
+@[simp] lemma not_is_bot [preorder α] [no_min_order α] (a : α) : ¬is_bot a :=
+λ h, let ⟨b, hb⟩ := exists_lt a in hb.not_le (h b)
 
 lemma is_bot.unique {α : Type u} [partial_order α] {a b : α} (ha : is_bot a) (hb : b ≤ a) :
   a = b :=
 le_antisymm (ha b) hb
 
-instance order_dual.no_top_order (α : Type u) [has_lt α] [no_bot_order α] :
-  no_top_order (order_dual α) :=
-⟨λ a, @no_bot α _ _ a⟩
+instance order_dual.no_max_order (α : Type u) [has_lt α] [no_min_order α] :
+  no_max_order (order_dual α) :=
+⟨λ a, @exists_lt α _ _ a⟩
 
-instance order_dual.no_bot_order (α : Type u) [has_lt α] [no_top_order α] :
-  no_bot_order (order_dual α) :=
-⟨λ a, @no_top α _ _ a⟩
+instance order_dual.no_min_order (α : Type u) [has_lt α] [no_max_order α] :
+  no_min_order (order_dual α) :=
+⟨λ a, @exists_gt α _ _ a⟩
 
-instance nonempty_lt {α : Type u} [has_lt α] [no_bot_order α] (a : α) :
-  nonempty {x // x < a} :=
-nonempty_subtype.2 (no_bot a)
+instance nonempty_lt [has_lt α] [no_min_order α] (a : α) : nonempty {x // x < a} :=
+nonempty_subtype.2 (exists_lt a)
 
 /-- An order is dense if there is an element between any pair of distinct elements. -/
 class densely_ordered (α : Type u) [has_lt α] : Prop :=
@@ -651,7 +651,7 @@ variables {s : β → β → Prop} {t : γ → γ → Prop}
 def as_linear_order (α : Type u) := α
 
 instance {α} [inhabited α] : inhabited (as_linear_order α) :=
-⟨ (default α : α) ⟩
+⟨ (default : α) ⟩
 
 noncomputable instance as_linear_order.linear_order {α} [partial_order α] [is_total α (≤)] :
   linear_order (as_linear_order α) :=

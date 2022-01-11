@@ -410,7 +410,7 @@ section monoid_with_zero
 variables [monoid_with_zero M]
 
 lemma indicator_prod_one {s : set α} {t : set β} {x : α} {y : β} :
-  (s.prod t).indicator (1 : _ → M) (x, y) = s.indicator 1 x * t.indicator 1 y :=
+  (s ×ˢ t : set _).indicator (1 : _ → M) (x, y) = s.indicator 1 x * t.indicator 1 y :=
 by simp [indicator, ← ite_and]
 
 end monoid_with_zero

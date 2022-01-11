@@ -101,7 +101,7 @@ lemma eq_preimage_iff_image_eq {α β} (e : α ≃ β) (s t) : s = e ⁻¹' t �
 set.eq_preimage_iff_image_eq e.bijective
 
 lemma prod_assoc_preimage {α β γ} {s : set α} {t : set β} {u : set γ} :
-  equiv.prod_assoc α β γ ⁻¹' s.prod (t.prod u) = (s.prod t).prod u :=
+  equiv.prod_assoc α β γ ⁻¹' (s ×ˢ (t ×ˢ u)) = (s ×ˢ t) ×ˢ u :=
 by { ext, simp [and_assoc] }
 
 /-- A set `s` in `α × β` is equivalent to the sigma-type `Σ x, {y | (x, y) ∈ s}`. -/
@@ -205,7 +205,7 @@ protected def of_eq {α : Type u} {s t : set α} (h : s = t) : s ≃ t :=
 protected def insert {α} {s : set.{u} α} [decidable_pred (∈ s)] {a : α} (H : a ∉ s) :
   (insert a s : set α) ≃ s ⊕ punit.{u+1} :=
 calc (insert a s : set α) ≃ ↥(s ∪ {a}) : equiv.set.of_eq (by simp)
-... ≃ s ⊕ ({a} : set α) : equiv.set.union (by finish [set.subset_def])
+... ≃ s ⊕ ({a} : set α) : equiv.set.union (λ x ⟨hx, hx'⟩, by simp [*] at *)
 ... ≃ s ⊕ punit.{u+1} : sum_congr (equiv.refl _) (equiv.set.singleton _)
 
 @[simp] lemma insert_symm_apply_inl {α} {s : set.{u} α} [decidable_pred (∈ s)] {a : α} (H : a ∉ s)
@@ -338,7 +338,7 @@ protected def compl {α : Type u} {β : Type v} {s : set α} {t : set β} [decid
 
 /-- The set product of two sets is equivalent to the type product of their coercions to types. -/
 protected def prod {α β} (s : set α) (t : set β) :
-  s.prod t ≃ s × t :=
+  ↥(s ×ˢ t) ≃ s × t :=
 @subtype_prod_equiv_prod α β s t
 
 /-- If a function `f` is injective on a set `s`, then `s` is equivalent to `f '' s`. -/
@@ -436,24 +436,24 @@ noncomputable def of_injective {α β} (f : α → β) (hf : injective f) : α �
 equiv.of_left_inverse f
   (λ h, by exactI function.inv_fun f) (λ h, by exactI function.left_inverse_inv_fun hf)
 
-theorem apply_of_injective_symm {α β} (f : α → β) (hf : injective f) (b : set.range f) :
+theorem apply_of_injective_symm {α β} {f : α → β} (hf : injective f) (b : set.range f) :
   f ((of_injective f hf).symm b) = b :=
 subtype.ext_iff.1 $ (of_injective f hf).apply_symm_apply b
 
-@[simp] theorem of_injective_symm_apply {α β} (f : α → β) (hf : injective f) (a : α) :
+@[simp] theorem of_injective_symm_apply {α β} {f : α → β} (hf : injective f) (a : α) :
   (of_injective f hf).symm ⟨f a, ⟨a, rfl⟩⟩ = a :=
 begin
   apply (of_injective f hf).injective,
-  simp [apply_of_injective_symm f hf],
+  simp [apply_of_injective_symm hf],
 end
 
-lemma coe_of_injective_symm {α β} (f : α → β) (hf : injective f) :
+lemma coe_of_injective_symm {α β} {f : α → β} (hf : injective f) :
   ((of_injective f hf).symm : range f → α) = range_splitting f :=
 by { ext ⟨y, x, rfl⟩, apply hf, simp [apply_range_splitting f] }
 
-@[simp] lemma self_comp_of_injective_symm {α β} (f : α → β) (hf : injective f) :
+@[simp] lemma self_comp_of_injective_symm {α β} {f : α → β} (hf : injective f) :
   f ∘ ((of_injective f hf).symm) = coe :=
-funext (λ x, apply_of_injective_symm f hf x)
+funext (λ x, apply_of_injective_symm hf x)
 
 lemma of_left_inverse_eq_of_injective {α β : Type*}
   (f : α → β) (f_inv : nonempty α → β → α) (hf : Π h : nonempty α, left_inverse (f_inv h) f) :

@@ -105,8 +105,8 @@ def dart_of_neighbor_set (v : V) (w : G.neighbor_set v) : G.dart :=
 lemma dart_of_neighbor_set_injective (v : V) : function.injective (G.dart_of_neighbor_set v) :=
 λ e₁ e₂ h, by { injection h with h₁ h₂, exact subtype.ext h₂ }
 
-instance dart.inhabited [inhabited V] [inhabited (G.neighbor_set (default _))] :
-  inhabited G.dart := ⟨G.dart_of_neighbor_set (default _) (default _)⟩
+instance dart.inhabited [inhabited V] [inhabited (G.neighbor_set default)] :
+  inhabited G.dart := ⟨G.dart_of_neighbor_set default default⟩
 
 section degree_sum
 variables [fintype V] [decidable_rel G.adj]

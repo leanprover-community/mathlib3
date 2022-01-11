@@ -194,33 +194,6 @@ end
 
 end canonically_linear_ordered_add_monoid
 
-/-- `finsupp.to_multiset` as an order isomorphism. -/
-def order_iso_multiset : (ι →₀ ℕ) ≃o multiset ι :=
-{ to_equiv := to_multiset.to_equiv,
-  map_rel_iff' := λ f g, by simp [multiset.le_iff_count, le_def] }
-
-@[simp] lemma coe_order_iso_multiset : ⇑(@order_iso_multiset ι) = to_multiset := rfl
-
-@[simp] lemma coe_order_iso_multiset_symm : ⇑(@order_iso_multiset ι).symm = multiset.to_finsupp :=
-rfl
-
-lemma to_multiset_strict_mono : strict_mono (@to_multiset ι) := (@order_iso_multiset ι).strict_mono
-
-lemma sum_id_lt_of_lt (m n : ι →₀ ℕ) (h : m < n) : m.sum (λ _, id) < n.sum (λ _, id) :=
-begin
-  rw [←card_to_multiset, ←card_to_multiset],
-  apply multiset.card_lt_of_lt,
-  exact to_multiset_strict_mono h
-end
-
-variable (ι)
-
-/-- The order on `ι →₀ ℕ` is well-founded. -/
-lemma lt_wf : well_founded (@has_lt.lt (ι →₀ ℕ) _) :=
-subrelation.wf (sum_id_lt_of_lt) $ inv_image.wf _ nat.lt_wf
-
-variable {ι}
-
 /-! ### Some lemmas about `ℕ` -/
 
 section nat
@@ -235,10 +208,3 @@ lemma add_sub_single_one {a : ι} {u u' : ι →₀ ℕ} (h : u' a ≠ 0) :
 
 end nat
 end finsupp
-
-namespace multiset
-
-lemma to_finsupp_strict_mono : strict_mono (@to_finsupp ι) :=
-(@finsupp.order_iso_multiset ι).symm.strict_mono
-
-end multiset

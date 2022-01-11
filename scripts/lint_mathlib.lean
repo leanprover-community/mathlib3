@@ -80,21 +80,12 @@ h ← mk_file_handle fn mode.write,
 put_str h contents,
 close h
 
-@[simp]
-lemma lintfail : 1 + 0 = 1 := by simp -- for demo purposes only
-@[simp, priority 1]
-lemma lintfail2 : 1 + 0 = 1 := by simp
-
 /-- Runs when called with `lean --run` -/
 meta def main : io unit := do
 env ← get_env,
 args ← io.cmdline_args,
 mathlib_path ← get_mathlib_dir,
 decls ← lint_project_decls mathlib_path,
-d ← env.get `lintfail, -- for demo purposes only
-let decls := d :: decls,
-d ← env.get `lintfail2,
-let decls := d :: decls,
 linters ← get_linters mathlib_linters,
 let non_auto_decls := decls.filter (λ d, ¬ d.is_auto_or_internal env),
 results₀ ← lint_core decls non_auto_decls linters,

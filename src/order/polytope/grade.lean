@@ -588,18 +588,101 @@ namespace prod
 variables (α β) [partial_order α] [order_bot α] [grade_order α] [partial_order β] [order_bot β]
   [grade_order β]
 
+variables {α β}
+
+variables {a a' : α} {b b' : β}
+
+lemma swap_lt_of_lt : (a, b) < (a', b') → (b, a) < (b', a') := begin
+  intro,
+  rw mk_lt_mk at *,
+  tauto!
+end
+
+lemma swap_covers_of_covers : (a, b) ⋖ (a', b') → (b, a) ⋖ (b', a') :=
+λ hcov, ⟨swap_lt_of_lt hcov.1, λ _ h₁ h₂, hcov.2 (swap_lt_of_lt h₁) (swap_lt_of_lt h₂)⟩
+
+lemma mk_le_mk_iff_left : (a, b) ≤ (a', b) ↔ a ≤ a' :=
+iff.intro (λ h, h.1) (λ ha, ⟨ha, le_rfl⟩)
+
+lemma mk_le_mk_iff_right : (a, b) ≤ (a, b') ↔ b ≤ b' :=
+iff.intro (λ h, h.2) (λ hb, ⟨le_rfl, hb⟩)
+
+lemma mk_lt_mk_iff_left : (a, b) < (a', b) ↔ a < a' :=
+iff.trans mk_lt_mk ⟨λ H, H.elim (λ h, h.1) (λ h, (lt_irrefl _ h.2).elim), λ h, or.inl ⟨h, le_rfl⟩⟩
+
+lemma mk_lt_mk_iff_right : (a, b) < (a, b') ↔ b < b' :=
+iff.trans mk_lt_mk ⟨λ H, H.elim (λ h, (lt_irrefl _ h.1).elim) (λ h, h.2), λ h, or.inr ⟨le_rfl, h⟩⟩
+
+lemma fst_eq_or_snd_eq_of_covers : (a, b) ⋖ (a', b') → a = a' ∨ b = b' :=
+begin
+  contrapose,
+  push_neg,
+  rintros ⟨ha, hb⟩ hcov,
+  have h₁ : (a, b) < (a', b)    := mk_lt_mk.mpr (or.inl ⟨ha.le_iff_lt.mp hcov.1.1.1, le_rfl⟩),
+  have h₂ : (a', b) < (a', b')  := mk_lt_mk.mpr (or.inr ⟨le_rfl, hb.le_iff_lt.mp hcov.1.1.2⟩),
+  exact hcov.2 h₁ h₂
+end
+
+lemma mk_covers_mk_iff_left : (a, b) ⋖ (a', b) ↔ a ⋖ a' :=
+begin
+  split;
+  rintro ⟨hcov_left, hcov_right⟩;
+  split;
+  [ { skip },
+    { intros c hac hca',
+      apply @hcov_right (c, b) },
+    { skip },
+    { rintros ⟨c₁, c₂⟩ h h',
+      apply @hcov_right c₁;
+      have : c₂ = b := le_antisymm h'.1.2 h.1.2;
+      rw this at *, } ];
+  rw mk_lt_mk_iff_left at *;
+  assumption,
+end
+
+lemma mk_covers_mk_iff_right : (a, b) ⋖ (a, b') ↔ b ⋖ b' :=
+iff.intro
+( λ hprod, mk_covers_mk_iff_left.mp (swap_covers_of_covers hprod) )
+( λ hbb',  swap_covers_of_covers (mk_covers_mk_iff_left.mpr hbb') )
+
+lemma mk_covers_mk_iff : (a, b) ⋖ (a', b') ↔
+                          a ⋖ a' ∧ b = b' ∨ a = a' ∧ b ⋖ b' :=
+begin
+  split,
+  { intro hcov,
+    cases fst_eq_or_snd_eq_of_covers hcov with heq heq;
+    rw [heq, eq_self_iff_true] at *,
+    { rw [mk_covers_mk_iff_right] at *,
+      tauto },
+    { rw mk_covers_mk_iff_left at *,
+      tauto } },
+  { intro h,
+    rcases h with ⟨acov, beq⟩ | ⟨aeq, bcov⟩,
+    { rw beq at *,
+      exact mk_covers_mk_iff_left.mpr acov },
+    { rw aeq at *,
+      exact mk_covers_mk_iff_right.mpr bcov } }
+end
+
+variables (α β)
+
 instance : grade_order (α × β) :=
 { grade := λ a, grade a.1 + grade a.2,
   grade_bot := by { convert (zero_add _).trans grade_bot, exact grade_bot },
-  strict_mono := λ a b h, begin
-    rw prod.lt_iff at h,
-    cases h,
-    { exact add_lt_add_of_lt_of_le (grade_strict_mono h.1) (grade_mono h.2) },
-    { exact add_lt_add_of_le_of_lt (grade_mono h.1) (grade_strict_mono h.2) }
-  end,
-  grade_of_covers := begin
-    sorry
-  end }
+  strict_mono := λ a b h,
+    match mk_lt_mk.mp h with
+    | or.inl ⟨fst_lt, snd_le⟩ := add_lt_add_of_lt_of_le
+                                  (grade_strict_mono  fst_lt)
+                                  (grade_mono         snd_le)
+    | or.inr ⟨fst_le, snd_lt⟩ := add_lt_add_of_le_of_lt
+                                  (grade_mono         fst_le)
+                                  (grade_strict_mono  snd_lt)
+    end,
+  grade_of_covers := λ a b h,
+    match mk_covers_mk_iff.mp h with
+    | or.inl ⟨fst_cov, snd_eq⟩ := by { rw [←fst_cov.grade, snd_eq], ring }
+    | or.inr ⟨fst_eq, snd_cov⟩ := by { rw [fst_eq, ←snd_cov.grade], ring }
+    end }
 
 variables {α β}
 

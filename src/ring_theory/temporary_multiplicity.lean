@@ -73,7 +73,7 @@ begin
   { exact associates.dvd_not_unit_iff_lt.mp ⟨pow_ne_zero n hp.ne_zero, p^(m - n : ℕ),
       not_is_unit_of_not_is_unit_dvd hp.not_unit (dvd_pow (dvd_refl _) (nat.sub_pos_of_lt h).ne'),
       (pow_mul_pow_sub p h.le).symm⟩ },
-  { simpa [associated_iff_eq] using (dvd_prime_pow hp n).1 },
+  { simpa only [← associated_iff_eq] using (dvd_prime_pow hp n).1 },
   { rintro ⟨i, hy', rfl⟩,
     exact ⟨p^(n - i : ℕ), by simpa using (pow_mul_pow_sub p hy').symm⟩ }
 end

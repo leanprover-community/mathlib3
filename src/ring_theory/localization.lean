@@ -483,7 +483,7 @@ begin
   rw [mul_comm (_ + _), mul_add, mul_mk'_eq_mk'_of_mul, ←eq_sub_iff_add_eq, mk'_eq_iff_eq_mul,
       mul_comm _ ((algebra_map R S) _), mul_sub, eq_sub_iff_add_eq, ←eq_sub_iff_add_eq', ←mul_assoc,
       ←(algebra_map R S).map_mul, mul_mk'_eq_mk'_of_mul, mk'_eq_iff_eq_mul],
-  simp only [(algebra_map R S).map_add, submonoid.coe_mul, (algebra_map R S).map_mul],
+  simp only [(algebra_map R S).map_add, submonoid_class.coe_mul, (algebra_map R S).map_mul],
   ring_exp,
 end
 
@@ -977,7 +977,7 @@ lemma add_mk_self (a b c) : (mk a b : localization M) + mk c b = mk (a + c) b :=
 begin
   rw [add_mk, mk_eq_mk_iff, r_eq_r'],
   refine (r' M).symm ⟨1, _⟩,
-  simp only [submonoid.coe_one, submonoid.coe_mul],
+  simp only [submonoid_class.coe_one, submonoid_class.coe_mul],
   ring
 end
 
@@ -1017,7 +1017,7 @@ private meta def tac := `[
 { intros,
   simp only [add_mk, localization.mk_mul, neg_mk, ← mk_zero 1],
   refine mk_eq_mk_iff.mpr (r_of_eq _),
-  simp only [submonoid.coe_mul, prod.fst_mul, prod.snd_mul],
+  simp only [submonoid_class.coe_mul, prod.fst_mul, prod.snd_mul],
   ring }]
 
 instance : comm_ring (localization M) :=
@@ -1076,7 +1076,7 @@ instance {S : Type*} [comm_semiring S] [algebra S R] : algebra S (localization M
   { to_fun := (monoid_of M).to_map,
     map_zero' := by rw [← mk_zero (1 : M), mk_one_eq_monoid_of_mk],
     map_add' := λ x y,
-      by simp only [← mk_one_eq_monoid_of_mk, add_mk, submonoid.coe_one, one_mul, add_comm],
+      by simp only [← mk_one_eq_monoid_of_mk, add_mk, submonoid_class.coe_one, one_mul, add_comm],
     .. localization.monoid_of M } (algebra_map S R),
   smul_def' := λ s, localization.ind $ prod.rec $ begin
     intros r x,
@@ -1207,7 +1207,7 @@ local_of_nonunits_ideal
         ←mk'_self S I.prime_compl.one_mem] at hxyz,
     rw ←hrx at hx, rw ←hry at hy,
     obtain ⟨t, ht⟩ := is_localization.eq.1 hxyz,
-    simp only [mul_one, one_mul, submonoid.coe_mul, subtype.coe_mk] at ht,
+    simp only [mul_one, one_mul, submonoid_class.coe_mul, subtype.coe_mk] at ht,
     rw [←sub_eq_zero, ←sub_mul] at ht,
     have hr := (hp.mem_or_mem_of_mul_eq_zero ht).resolve_right t.2,
     rw sub_eq_add_neg at hr,
@@ -1248,7 +1248,7 @@ private def map_ideal (I : ideal R) : ideal S :=
     rintros a b ⟨a', ha⟩ ⟨b', hb⟩,
     use ⟨a'.2 * b'.1 + b'.2 * a'.1, I.add_mem (I.mul_mem_left _ b'.1.2) (I.mul_mem_left _ a'.1.2)⟩,
     use a'.2 * b'.2,
-    simp only [ring_hom.map_add, submodule.coe_mk, submonoid.coe_mul, ring_hom.map_mul],
+    simp only [ring_hom.map_add, submodule.coe_mk, submonoid_class.coe_mul, ring_hom.map_mul],
     rw [add_mul, ← mul_assoc a, ha, mul_comm (algebra_map R S a'.2) (algebra_map R S b'.2),
         ← mul_assoc b, hb],
     ring
@@ -1258,7 +1258,7 @@ private def map_ideal (I : ideal R) : ideal S :=
     obtain ⟨c', hc⟩ := is_localization.surj M c,
     use ⟨c'.1 * x'.1, I.mul_mem_left c'.1 x'.1.2⟩,
     use c'.2 * x'.2,
-    simp only [←hx, ←hc, smul_eq_mul, submodule.coe_mk, submonoid.coe_mul, ring_hom.map_mul],
+    simp only [←hx, ←hc, smul_eq_mul, submodule.coe_mk, submonoid_class.coe_mul, ring_hom.map_mul],
     ring
   end }
 
@@ -1498,7 +1498,8 @@ begin
   use z * t', use z' * t, -- x = y / s = (z * t') / (z' * t)
   { rw mem_localization_localization_submodule,
     refine ⟨s, t * t', _⟩,
-    rw [ring_hom.map_mul, ← eq₃, mul_assoc, ← ring_hom.map_mul, mul_comm t, submonoid.coe_mul] },
+    rw [ring_hom.map_mul, ← eq₃, mul_assoc, ← ring_hom.map_mul, mul_comm t,
+        submonoid_class.coe_mul] },
   { simp only [subtype.coe_mk, ring_hom.map_mul, is_scalar_tower.algebra_map_apply R S T,
       ← eq₃, ← eq₂, ← eq₁],
     ring },
@@ -1519,7 +1520,7 @@ begin
     use z' * c,
     { rw mem_localization_localization_submodule,
       refine ⟨z, s * c, _⟩,
-      rw [ring_hom.map_mul, ← eq₂, mul_assoc, ← ring_hom.map_mul, submonoid.coe_mul] },
+      rw [ring_hom.map_mul, ← eq₂, mul_assoc, ← ring_hom.map_mul, submonoid_class.coe_mul] },
     { simpa only [mul_assoc] using eq₃ } },
   { rintro ⟨⟨c, hc⟩, eq₁ : x * c = y * c⟩,
     rw mem_localization_localization_submodule at hc,

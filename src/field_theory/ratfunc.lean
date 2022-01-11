@@ -163,7 +163,8 @@ lemma mk_eq_localization_mk (p : polynomial K) {q : polynomial K} (hq : q ≠ 0)
 by rw [mk_def_of_ne, localization.mk_eq_mk']
 
 lemma mk_one' (p : polynomial K) : ratfunc.mk p 1 = of_fraction_ring (algebra_map _ _ p) :=
-by rw [← is_localization.mk'_one (fraction_ring (polynomial K)) p, ← mk_coe_def, submonoid.coe_one]
+by rw [← is_localization.mk'_one (fraction_ring (polynomial K)) p, ← mk_coe_def,
+  submonoid_class.coe_one]
 
 lemma mk_eq_mk {p q p' q' : polynomial K} (hq : q ≠ 0) (hq' : q' ≠ 0) :
   ratfunc.mk p q = ratfunc.mk p' q' ↔ p * q' = p' * q :=

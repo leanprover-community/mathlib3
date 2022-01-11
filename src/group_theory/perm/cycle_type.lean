@@ -188,12 +188,12 @@ lemma cycle_type_prime_order {σ : perm α} (hσ : (order_of σ).prime) :
   ∃ n : ℕ, σ.cycle_type = repeat (order_of σ) (n + 1) :=
 begin
   rw eq_repeat_of_mem (λ n hn, or_iff_not_imp_left.mp
-    (hσ.2 n (dvd_of_mem_cycle_type hn)) (ne_of_gt (one_lt_of_mem_cycle_type hn))),
+    (hσ.eq_one_or_self_of_dvd n (dvd_of_mem_cycle_type hn)) (one_lt_of_mem_cycle_type hn).ne'),
   use σ.cycle_type.card - 1,
   rw tsub_add_cancel_of_le,
   rw [nat.succ_le_iff, pos_iff_ne_zero, ne, card_cycle_type_eq_zero],
-  rintro rfl,
-  rw order_of_one at hσ,
+  intro H,
+  rw [H, order_of_one] at hσ,
   exact hσ.ne_one rfl,
 end
 

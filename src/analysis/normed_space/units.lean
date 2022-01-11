@@ -70,7 +70,7 @@ begin
   nontriviality R,
   apply metric.is_open_iff.mpr,
   rintros x' ⟨x, rfl⟩,
-  refine ⟨∥(↑x⁻¹ : R)∥⁻¹, inv_pos.mpr (units.norm_pos x⁻¹), _⟩,
+  refine ⟨∥(↑x⁻¹ : R)∥⁻¹, _root_.inv_pos.mpr (units.norm_pos x⁻¹), _⟩,
   intros y hy,
   rw [metric.mem_ball, dist_eq_norm] at hy,
   exact (x.unit_of_nearby y hy).is_unit

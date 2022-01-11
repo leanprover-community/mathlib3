@@ -294,7 +294,7 @@ private lemma digits_last_aux {b n : ℕ} (h : 2 ≤ b) (w : 0 < n) :
   digits b n = ((n % b) :: digits b (n / b)) :=
 begin
   rcases b with _|_|b,
-  { finish },
+  { rw [digits_zero_succ' w, nat.mod_zero, nat.div_zero, nat.digits_zero_zero] },
   { norm_num at h },
   rcases n with _|n,
   { norm_num at w },
@@ -321,8 +321,10 @@ lemma last_digit_ne_zero (b : ℕ) {m : ℕ} (hm : m ≠ 0) :
   (digits b m).last (digits_ne_nil_iff_ne_zero.mpr hm) ≠ 0 :=
 begin
   rcases b with _|_|b,
-  { cases m; finish },
-  { cases m, { finish },
+  { cases m,
+    { cases hm rfl },
+    { simp } },
+  { cases m, { cases hm rfl },
     simp_rw [digits_one, list.last_repeat_succ 1 m],
     norm_num },
   revert hm,

@@ -633,14 +633,14 @@ alg_equiv.symm $ alg_equiv.of_bijective (algebra.of_id R _)
  λ ⟨y, hy⟩, let ⟨x, hx⟩ := algebra.mem_bot.1 hy in ⟨x, subtype.eq hx⟩⟩
 
 /-- The bottom subalgebra is isomorphic to the field. -/
+@[simps symm_apply]
 noncomputable def bot_equiv (F R : Type*) [field F] [semiring R] [nontrivial R] [algebra F R] :
   (⊥ : subalgebra F R) ≃ₐ[F] F :=
 bot_equiv_of_injective (ring_hom.injective _)
 
 /-- The top subalgebra is isomorphic to the field. -/
-noncomputable def top_equiv : (⊤ : subalgebra R A) ≃ₐ[R] A :=
-(alg_equiv.of_bijective to_top ⟨λ _ _, subtype.mk.inj,
-  λ x, ⟨x.val, by { ext, refl }⟩⟩ : A ≃ₐ[R] (⊤ : subalgebra R A)).symm
+@[simps] def top_equiv : (⊤ : subalgebra R A) ≃ₐ[R] A :=
+alg_equiv.of_alg_hom (subalgebra.val ⊤) to_top rfl $ alg_hom.ext $ λ x, subtype.ext rfl
 
 end algebra
 
@@ -962,6 +962,42 @@ lemma smul_mem_pointwise_smul (m : R') (r : A) (S : subalgebra R A) : r ∈ S �
 (set.smul_mem_smul_set : _ → _ ∈ m • (S : set A))
 
 end pointwise
+
+section center
+
+lemma _root_.set.algebra_map_mem_center (r : R) : algebra_map R A r ∈ set.center A :=
+by simp [algebra.commutes, set.mem_center_iff]
+
+variables (R A)
+
+/-- The center of an algebra is the set of elements which commute with every element. They form a
+subalgebra. -/
+def center : subalgebra R A :=
+{ algebra_map_mem' := set.algebra_map_mem_center,
+  .. subsemiring.center A }
+
+lemma coe_center : (center R A : set A) = set.center A := rfl
+
+@[simp] lemma center_to_subsemiring :
+  (center R A).to_subsemiring = subsemiring.center A :=
+rfl
+
+@[simp] lemma center_to_subring (R A : Type*) [comm_ring R] [ring A] [algebra R A] :
+  (center R A).to_subring = subring.center A :=
+rfl
+
+@[simp] lemma center_eq_top (A : Type*) [comm_semiring A] [algebra R A] : center R A = ⊤ :=
+set_like.coe_injective (set.center_eq_univ A)
+
+variables {R A}
+
+instance : comm_semiring (center R A) := subsemiring.center.comm_semiring
+
+instance {A : Type*} [ring A] [algebra R A] : comm_ring (center R A) := subring.center.comm_ring
+
+lemma mem_center_iff {a : A} : a ∈ center R A ↔ ∀ (b : A), b*a = a*b := iff.rfl
+
+end center
 
 end subalgebra
 

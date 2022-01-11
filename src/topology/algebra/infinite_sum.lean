@@ -338,8 +338,13 @@ by simpa [(hf'.has_sum.sigma hf).unique ha] using hf'.has_sum
 end has_sum
 
 section tsum
-variables [add_comm_monoid α] [topological_space α] [t2_space α]
-variables {f g : β → α} {a a₁ a₂ : α}
+variables [add_comm_monoid α] [topological_space α]
+
+lemma tsum_congr_subtype (f : β → α) {s t : set β} (h : s = t) :
+  ∑' (x : s), f x = ∑' (x : t), f x :=
+by rw h
+
+variables [t2_space α] {f g : β → α} {a a₁ a₂ : α}
 
 lemma has_sum.tsum_eq (ha : has_sum f a) : ∑'b, f b = a :=
 (summable.has_sum ⟨a, ha⟩).unique ha
@@ -886,7 +891,7 @@ ge_of_tendsto hf (eventually_at_top.2 ⟨s, λ t hst,
 
 lemma is_lub_has_sum (h : ∀ b, 0 ≤ f b) (hf : has_sum f a) :
   is_lub (set.range (λ s : finset β, ∑ b in s, f b)) a :=
-is_lub_of_tendsto (finset.sum_mono_set_of_nonneg h) hf
+is_lub_of_tendsto_at_top (finset.sum_mono_set_of_nonneg h) hf
 
 lemma le_has_sum (hf : has_sum f a) (b : β) (hb : ∀ b' ≠ b, 0 ≤ f b') : f b ≤ a :=
 calc f b = ∑ b in {b}, f b : finset.sum_singleton.symm
@@ -969,6 +974,18 @@ lemma tsum_pos (hsum : summable g) (hg : ∀ b, 0 ≤ g b) (i : β) (hi : 0 < g 
   0 < ∑' b, g b :=
 by { rw ← tsum_zero, exact tsum_lt_tsum hg hi summable_zero hsum }
 
+lemma has_sum_zero_iff_of_nonneg (hf : ∀ i, 0 ≤ f i) : has_sum f 0 ↔ f = 0 :=
+begin
+  split,
+  { intros hf',
+    ext i,
+    by_contra hi',
+    have hi : 0 < f i := lt_of_le_of_ne (hf i) (ne.symm hi'),
+    simpa using has_sum_lt hf hi has_sum_zero hf' },
+  { rintros rfl,
+    exact has_sum_zero },
+end
+
 end ordered_topological_group
 
 section canonically_ordered
@@ -997,7 +1014,7 @@ lemma tsum_ne_zero_iff (hf : summable f) : ∑' i, f i ≠ 0 ↔ ∃ x, f x ≠ 
 by rw [ne.def, tsum_eq_zero_iff hf, not_forall]
 
 lemma is_lub_has_sum' (hf : has_sum f a) : is_lub (set.range (λ s : finset β, ∑ b in s, f b)) a :=
-is_lub_of_tendsto (finset.sum_mono_set f) hf
+is_lub_of_tendsto_at_top (finset.sum_mono_set f) hf
 
 end canonically_ordered
 

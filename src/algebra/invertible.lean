@@ -209,15 +209,15 @@ variable [monoid_with_zero α]
 @[simp] lemma ring.inverse_invertible (x : α) [invertible x] : ring.inverse x = ⅟x :=
 ring.inverse_unit (unit_of_invertible _)
 
+lemma nonzero_of_invertible (a : α) [nontrivial α] [invertible a] : a ≠ 0 :=
+λ ha, zero_ne_one $ calc   0 = ⅟a * a : by simp [ha]
+                         ... = 1 : inv_of_mul_self a
+
 end monoid_with_zero
 
 section group_with_zero
 
 variable [group_with_zero α]
-
-lemma nonzero_of_invertible (a : α) [invertible a] : a ≠ 0 :=
-λ ha, zero_ne_one $ calc   0 = ⅟a * a : by simp [ha]
-                         ... = 1 : inv_of_mul_self a
 
 /-- `a⁻¹` is an inverse of `a` if `a ≠ 0` -/
 def invertible_of_nonzero {a : α} (h : a ≠ 0) : invertible a :=

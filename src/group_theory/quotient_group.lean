@@ -120,17 +120,14 @@ lemma coe_mul (a b : G) : ((a * b : G) : Q) = a * b := rfl
 @[simp, to_additive quotient_add_group.coe_neg]
 lemma coe_inv (a : G) : ((a⁻¹ : G) : Q) = a⁻¹ := rfl
 
--- TODO: make it `rfl`
 @[simp, to_additive quotient_add_group.coe_sub]
-lemma coe_div (a b : G) : ((a / b : G) : Q) = a / b := by simp [div_eq_mul_inv]
+lemma coe_div (a b : G) : ((a / b : G) : Q) = a / b := rfl
 
 @[simp, to_additive quotient_add_group.coe_nsmul]
-lemma coe_pow (a : G) (n : ℕ) : ((a ^ n : G) : Q) = a ^ n :=
-(mk' N).map_pow a n
+lemma coe_pow (a : G) (n : ℕ) : ((a ^ n : G) : Q) = a ^ n := rfl
 
 @[simp, to_additive quotient_add_group.coe_zsmul]
-lemma coe_zpow (a : G) (n : ℤ) : ((a ^ n : G) : Q) = a ^ n :=
-(mk' N).map_zpow a n
+lemma coe_zpow (a : G) (n : ℤ) : ((a ^ n : G) : Q) = a ^ n := rfl
 
 /-- A group homomorphism `φ : G →* H` with `N ⊆ ker(φ)` descends (i.e. `lift`s) to a
 group homomorphism `G/N →* H`. -/
@@ -195,7 +192,7 @@ lift_mk _ _ _
 lemma ker_lift_mk' (g : G) : (ker_lift φ) (mk g) = φ g :=
 lift_mk' _ _ _
 
-@[to_additive quotient_add_group.injective_ker_lift]
+@[to_additive quotient_add_group.ker_lift_injective]
 lemma ker_lift_injective : injective (ker_lift φ) :=
 assume a b, quotient.induction_on₂' a b $
   assume a b (h : φ a = φ b), quotient.sound' $

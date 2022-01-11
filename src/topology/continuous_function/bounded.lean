@@ -715,7 +715,7 @@ of_normed_group f continuous_of_discrete_topology C H
 /-- Taking the pointwise norm of a bounded continuous function with values in a `normed_group`,
 yields a bounded continuous function with values in ℝ. -/
 def norm_comp : α →ᵇ ℝ :=
-of_normed_group (norm ∘ f) (by continuity) ∥f∥ (λ x, by simp only [f.norm_coe_le_norm, norm_norm])
+f.comp norm lipschitz_with_one_norm
 
 @[simp] lemma coe_norm_comp : (f.norm_comp : α → ℝ) = norm ∘ f := rfl
 
@@ -771,6 +771,11 @@ by { rw dist_eq_norm, exact (f - g).norm_coe_le_norm x }
 
 lemma coe_le_coe_add_dist {f g : α →ᵇ ℝ} : f x ≤ g x + dist f g :=
 sub_le_iff_le_add'.1 $ (abs_le.1 $ @dist_coe_le_dist _ _ _ _ f g x).2
+
+lemma norm_comp_continuous_le [topological_space γ] (f : α →ᵇ β) (g : C(γ, α)) :
+  ∥f.comp_continuous g∥ ≤ ∥f∥ :=
+((lipschitz_comp_continuous g).dist_le_mul f 0).trans $
+  by rw [nnreal.coe_one, one_mul, dist_zero_right]
 
 end normed_group
 

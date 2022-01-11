@@ -163,7 +163,7 @@ begin
     exact ⟨n, hn.le⟩ },
 end
 
-lemma _root_.is_compact.exists_inf_edist_eq_edist (hs : is_compact s) (hne : s.nonempty) :
+lemma _root_.is_compact.exists_inf_edist_eq_edist (hs : is_compact s) (hne : s.nonempty) (x : α) :
   ∃ y ∈ s, inf_edist x s = edist x y :=
 begin
   have A : continuous (λ y, edist x y) := continuous_const.edist continuous_id,
@@ -454,16 +454,17 @@ begin
     { simp [ennreal.add_eq_top, inf_edist_ne_top hs, edist_ne_top] }}
 end
 
+lemma not_mem_of_dist_lt_inf_dist (h : dist x y < inf_dist x s) : y ∉ s :=
+λ hy, h.not_le $ inf_dist_le_dist_of_mem hy
+
+lemma disjoint_ball_inf_dist : disjoint (ball x (inf_dist x s)) s :=
+disjoint_left.2 $ λ y hy, not_mem_of_dist_lt_inf_dist $
+  calc dist x y = dist y x : dist_comm _ _
+  ... < inf_dist x s : hy
+
 lemma disjoint_closed_ball_of_lt_inf_dist {r : ℝ} (h : r < inf_dist x s) :
   disjoint (closed_ball x r) s :=
-begin
-  rw disjoint_left,
-  assume y hy h'y,
-  apply lt_irrefl (inf_dist x s),
-  calc inf_dist x s ≤ dist x y : inf_dist_le_dist_of_mem h'y
-  ... ≤ r : by rwa [mem_closed_ball, dist_comm] at hy
-  ... < inf_dist x s : h
-end
+disjoint_ball_inf_dist.mono_left $ closed_ball_subset_ball h
 
 variable (s)
 
@@ -512,6 +513,67 @@ end
 lemma inf_dist_image (hΦ : isometry Φ) :
   inf_dist (Φ x) (Φ '' t) = inf_dist x t :=
 by simp [inf_dist, inf_edist_image hΦ]
+
+lemma inf_dist_inter_closed_ball_of_mem (h : y ∈ s) :
+  inf_dist x (s ∩ closed_ball x (dist y x)) = inf_dist x s :=
+begin
+  replace h : y ∈ s ∩ closed_ball x (dist y x) := ⟨h, mem_closed_ball.2 le_rfl⟩,
+  refine le_antisymm _ (inf_dist_le_inf_dist_of_subset (inter_subset_left _ _) ⟨y, h⟩),
+  refine not_lt.1 (λ hlt, _),
+  rcases exists_dist_lt_of_inf_dist_lt hlt ⟨y, h.1⟩ with ⟨z, hzs, hz⟩,
+  cases le_or_lt (dist z x) (dist y x) with hle hlt,
+  { exact hz.not_le (inf_dist_le_dist_of_mem ⟨hzs, hle⟩) },
+  { rw [dist_comm z, dist_comm y] at hlt,
+    exact (hlt.trans hz).not_le (inf_dist_le_dist_of_mem h) }
+end
+
+lemma _root_.is_compact.exists_inf_dist_eq_dist (h : is_compact s) (hne : s.nonempty) (x : α) :
+  ∃ y ∈ s, inf_dist x s = dist x y :=
+let ⟨y, hys, hy⟩ := h.exists_inf_edist_eq_edist hne x
+in ⟨y, hys, by rw [inf_dist, dist_edist, hy]⟩
+
+lemma _root_.is_closed.exists_inf_dist_eq_dist [proper_space α]
+  (h : is_closed s) (hne : s.nonempty) (x : α) :
+  ∃ y ∈ s, inf_dist x s = dist x y :=
+begin
+  rcases hne with ⟨z, hz⟩,
+  rw ← inf_dist_inter_closed_ball_of_mem hz,
+  set t := s ∩ closed_ball x (dist z x),
+  have htc : is_compact t := (is_compact_closed_ball x (dist z x)).inter_left h,
+  have htne : t.nonempty := ⟨z, hz, mem_closed_ball.2 le_rfl⟩,
+  obtain ⟨y, ⟨hys, hyx⟩, hyd⟩ : ∃ y ∈ t, inf_dist x t = dist x y,
+    from htc.exists_inf_dist_eq_dist htne x,
+  exact ⟨y, hys, hyd⟩
+end
+
+lemma exists_mem_closure_inf_dist_eq_dist [proper_space α] (hne : s.nonempty) (x : α) :
+  ∃ y ∈ closure s, inf_dist x s = dist x y :=
+by simpa only [inf_dist_eq_closure] using is_closed_closure.exists_inf_dist_eq_dist hne.closure x
+
+lemma closed_ball_inf_dist_compl_subset_closure' {E : Type*} [semi_normed_group E]
+  [semi_normed_space ℝ E] {x : E} {s : set E} (hx : s ∈ 𝓝 x) (hs : s ≠ univ) :
+  closed_ball x (inf_dist x sᶜ) ⊆ closure s :=
+begin
+  have hne : sᶜ.nonempty, from nonempty_compl.2 hs,
+  have hpos : 0 < inf_dist x sᶜ,
+    by rwa [← inf_dist_eq_closure, ← is_closed_closure.not_mem_iff_inf_dist_pos hne.closure,
+      closure_compl, mem_compl_iff, not_not, mem_interior_iff_mem_nhds],
+  rw ← closure_ball x hpos,
+  apply closure_mono,
+  rw [← le_eq_subset, ← is_compl_compl.disjoint_right_iff],
+  exact disjoint_ball_inf_dist
+end
+
+lemma closed_ball_inf_dist_compl_subset_closure {E : Type*} [normed_group E] [normed_space ℝ E]
+  {x : E} {s : set E} (hx : x ∈ s) (hs : s ≠ univ) :
+  closed_ball x (inf_dist x sᶜ) ⊆ closure s :=
+begin
+  by_cases hx' : x ∈ closure sᶜ,
+  { rw [mem_closure_iff_inf_dist_zero (nonempty_compl.2 hs)] at hx',
+    simpa [hx'] using subset_closure hx },
+  { rw [closure_compl, mem_compl_iff, not_not, mem_interior_iff_mem_nhds] at hx',
+    exact closed_ball_inf_dist_compl_subset_closure' hx' hs }
+end
 
 /-! ### Distance of a point to a set as a function into `ℝ≥0`. -/
 

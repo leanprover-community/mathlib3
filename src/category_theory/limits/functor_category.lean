@@ -3,7 +3,6 @@ Copyright (c) 2018 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import category_theory.currying
 import category_theory.limits.preserves.limits
 
 /-!
@@ -204,6 +203,23 @@ begin
   simp,
 end
 
+@[simp, reassoc]
+lemma limit_map_limit_obj_iso_limit_comp_evaluation_hom
+  [has_limits_of_shape J C] {i j : K} (F : J ⥤ K ⥤ C) (f : i ⟶ j) :
+  (limit F).map f ≫ (limit_obj_iso_limit_comp_evaluation _ _).hom =
+  (limit_obj_iso_limit_comp_evaluation _ _).hom ≫
+  lim_map (whisker_left _ ((evaluation _ _).map f)) :=
+by { ext, dsimp, simp }
+
+@[simp, reassoc]
+lemma limit_obj_iso_limit_comp_evaluation_inv_limit_map
+  [has_limits_of_shape J C] {i j : K} (F : J ⥤ K ⥤ C) (f : i ⟶ j) :
+  (limit_obj_iso_limit_comp_evaluation _ _).inv ≫ (limit F).map f =
+  lim_map (whisker_left _ ((evaluation _ _).map f)) ≫
+  (limit_obj_iso_limit_comp_evaluation _ _).inv :=
+by rw [iso.inv_comp_eq, ← category.assoc, iso.eq_comp_inv,
+  limit_map_limit_obj_iso_limit_comp_evaluation_hom]
+
 @[ext]
 lemma limit_obj_ext {H : J ⥤ K ⥤ C} [has_limits_of_shape J C]
   {k : K} {W : C} {f g : W ⟶ (limit H).obj k}
@@ -249,6 +265,23 @@ begin
   rw ←iso.eq_comp_inv,
   simp,
 end
+
+@[simp, reassoc]
+lemma colimit_obj_iso_colimit_comp_evaluation_inv_colimit_map
+  [has_colimits_of_shape J C] (F : J ⥤ K ⥤ C) {i j : K} (f : i ⟶ j) :
+  (colimit_obj_iso_colimit_comp_evaluation _ _).inv ≫ (colimit F).map f =
+  colim_map (whisker_left _ ((evaluation _ _).map f)) ≫
+  (colimit_obj_iso_colimit_comp_evaluation _ _).inv :=
+by { ext, dsimp, simp }
+
+@[simp, reassoc]
+lemma colimit_map_colimit_obj_iso_colimit_comp_evaluation_hom
+  [has_colimits_of_shape J C] (F : J ⥤ K ⥤ C) {i j : K} (f : i ⟶ j) :
+  (colimit F).map f ≫ (colimit_obj_iso_colimit_comp_evaluation _ _).hom =
+  (colimit_obj_iso_colimit_comp_evaluation _ _).hom ≫
+  colim_map (whisker_left _ ((evaluation _ _).map f)) :=
+by rw [← iso.inv_comp_eq, ← category.assoc, ← iso.eq_comp_inv,
+  colimit_obj_iso_colimit_comp_evaluation_inv_colimit_map]
 
 @[ext]
 lemma colimit_obj_ext {H : J ⥤ K ⥤ C} [has_colimits_of_shape J C]
@@ -318,52 +351,51 @@ def preserves_colimits_of_evaluation (F : D ⥤ K ⥤ C)
     F L (λ k, preserves_colimits_of_size.preserves_colimits_of_shape)⟩
 open category_theory.prod
 
+/-- The limit of a diagram `F : J ⥤ K ⥤ C` is isomorphic to the functor given by
+the individual limits on objects. -/
+@[simps]
+def limit_iso_flip_comp_lim [has_limits_of_shape J C] (F : J ⥤ K ⥤ C) :
+  limit F ≅ F.flip ⋙ lim :=
+nat_iso.of_components (limit_obj_iso_limit_comp_evaluation F) $ by tidy
+
+/-- A variant of `limit_iso_flip_comp_lim` where the arguemnts of `F` are flipped. -/
+@[simps]
+def limit_flip_iso_comp_lim [has_limits_of_shape J C] (F : K ⥤ J ⥤ C) :
+  limit F.flip ≅ F ⋙ lim :=
+nat_iso.of_components (λ k,
+  limit_obj_iso_limit_comp_evaluation F.flip k ≪≫
+  has_limit.iso_of_nat_iso (flip_comp_evaluation _ _)) $ by tidy
+
 /--
 For a functor `G : J ⥤ K ⥤ C`, its limit `K ⥤ C` is given by `(G' : K ⥤ J ⥤ C) ⋙ lim`.
 Note that this does not require `K` to be small.
 -/
-@[simps] def limit_iso_swap_comp_lim [has_limits_of_shape J C] (G : J ⥤ K ⥤ C) [has_limit G] :
+@[simps] def limit_iso_swap_comp_lim [has_limits_of_shape J C] (G : J ⥤ K ⥤ C) :
   limit G ≅ curry.obj (swap K J ⋙ uncurry.obj G) ⋙ lim :=
-nat_iso.of_components (λ Y, limit_obj_iso_limit_comp_evaluation G Y ≪≫
-  (lim.map_iso (eq_to_iso (by
-  { apply functor.hext,
-    { intro X, simp },
-    { intros X₁ X₂ f, dsimp only [swap], simp }}))))
-  begin
-    intros Y₁ Y₂ f,
-    ext1 x,
-    dsimp only [swap],
-    simp only [limit_obj_iso_limit_comp_evaluation_hom_π_assoc, category.comp_id,
-      limit_obj_iso_limit_comp_evaluation_hom_π, eq_to_iso.hom, curry.obj_map_app,
-      nat_trans.naturality, category.id_comp, eq_to_hom_refl, functor.comp_map,
-      eq_to_hom_app, lim_map_π_assoc, lim_map_π, category.assoc,
-      uncurry.obj_map, lim_map_eq_lim_map, iso.trans_hom,
-      nat_trans.id_app, category_theory.functor.map_id, functor.map_iso_hom],
-    erw category.id_comp,
-  end
+limit_iso_flip_comp_lim G ≪≫ iso_whisker_right (flip_iso_curry_swap_uncurry _) _
+
+/-- The colimit of a diagram `F : J ⥤ K ⥤ C` is isomorphic to the functor given by
+the individual colimits on objects. -/
+@[simps]
+def colimit_iso_flip_comp_colim [has_colimits_of_shape J C] (F : J ⥤ K ⥤ C) :
+  colimit F ≅ F.flip ⋙ colim :=
+nat_iso.of_components (colimit_obj_iso_colimit_comp_evaluation F) $ by tidy
+
+/-- A variant of `colimit_iso_flip_comp_colim` where the arguemnts of `F` are flipped. -/
+@[simps]
+def colimit_flip_iso_comp_colim [has_colimits_of_shape J C] (F : K ⥤ J ⥤ C) :
+  colimit F.flip ≅ F ⋙ colim :=
+nat_iso.of_components (λ k,
+  colimit_obj_iso_colimit_comp_evaluation _ _ ≪≫
+  has_colimit.iso_of_nat_iso (flip_comp_evaluation _ _)) $ by tidy
 
 /--
 For a functor `G : J ⥤ K ⥤ C`, its colimit `K ⥤ C` is given by `(G' : K ⥤ J ⥤ C) ⋙ colim`.
 Note that this does not require `K` to be small.
 -/
 @[simps]
-def colimit_iso_swap_comp_colim [has_colimits_of_shape J C] (G : J ⥤ K ⥤ C) [has_colimit G] :
+def colimit_iso_swap_comp_colim [has_colimits_of_shape J C] (G : J ⥤ K ⥤ C) :
   colimit G ≅ curry.obj (swap K J ⋙ uncurry.obj G) ⋙ colim :=
-nat_iso.of_components (λ Y, colimit_obj_iso_colimit_comp_evaluation G Y ≪≫
-  (colim.map_iso (eq_to_iso (by
-  { apply functor.hext,
-    { intro X, simp },
-    { intros X Y f, dsimp only [swap], simp, } }))))
-  begin
-    intros Y₁ Y₂ f,
-    ext1 x,
-    rw ← (colimit.ι G x).naturality_assoc f,
-    dsimp only [swap],
-    simp only [eq_to_iso.hom, colimit_obj_iso_colimit_comp_evaluation_ι_app_hom_assoc,
-      curry.obj_map_app, colimit.ι_map, category.id_comp, eq_to_hom_refl, iso.trans_hom,
-      functor.comp_map, eq_to_hom_app, colimit.ι_map_assoc, functor.map_iso_hom,
-      category.assoc, uncurry.obj_map, nat_trans.id_app, category_theory.functor.map_id],
-    erw category.id_comp,
-  end
+colimit_iso_flip_comp_colim G ≪≫ iso_whisker_right (flip_iso_curry_swap_uncurry _) _
 
 end category_theory.limits

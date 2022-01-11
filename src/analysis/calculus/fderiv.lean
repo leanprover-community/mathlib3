@@ -451,6 +451,14 @@ lemma differentiable_on.has_fderiv_at (h : differentiable_on 𝕜 f s) (hs : s �
   has_fderiv_at f (fderiv 𝕜 f x) x :=
 ((h x (mem_of_mem_nhds hs)).differentiable_at hs).has_fderiv_at
 
+lemma differentiable_on.differentiable_at (h : differentiable_on 𝕜 f s) (hs : s ∈ 𝓝 x) :
+  differentiable_at 𝕜 f x :=
+(h.has_fderiv_at hs).differentiable_at
+
+lemma differentiable_on.eventually_differentiable_at (h : differentiable_on 𝕜 f s) (hs : s ∈ 𝓝 x) :
+  ∀ᶠ y in 𝓝 x, differentiable_at 𝕜 f y :=
+(eventually_eventually_nhds.2 hs).mono $ λ y, h.differentiable_at
+
 lemma has_fderiv_at.fderiv (h : has_fderiv_at f f' x) : fderiv 𝕜 f x = f' :=
 by { ext, rw h.unique h.differentiable_at.has_fderiv_at }
 

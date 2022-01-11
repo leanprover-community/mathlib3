@@ -774,6 +774,10 @@ lemma is_unit.neg [ring α] {a : α} : is_unit a → is_unit (-a)
 lemma is_unit.neg_iff [ring α] (a : α) : is_unit (-a) ↔ is_unit a :=
 ⟨λ h, neg_neg a ▸ h.neg, is_unit.neg⟩
 
+lemma is_unit.sub_iff [ring α] {x y : α} :
+  is_unit (x - y) ↔ is_unit (y - x) :=
+(is_unit.neg_iff _).symm.trans $ neg_sub x y ▸ iff.rfl
+
 namespace ring_hom
 
 /-- Ring homomorphisms preserve additive inverse. -/

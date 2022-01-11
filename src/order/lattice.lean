@@ -759,6 +759,50 @@ lemma map_inf [semilattice_inf α] [is_total α (≤)] [semilattice_inf β] {f :
 
 end monotone
 
+namespace antitone
+
+/-- Pointwise supremum of two monotone functions is a monotone function. -/
+protected lemma sup [preorder α] [semilattice_sup β] {f g : α → β} (hf : antitone f)
+  (hg : antitone g) : antitone (f ⊔ g) :=
+λ x y h, sup_le_sup (hf h) (hg h)
+
+/-- Pointwise infimum of two monotone functions is a monotone function. -/
+protected lemma inf [preorder α] [semilattice_inf β] {f g : α → β} (hf : antitone f)
+  (hg : antitone g) : antitone (f ⊓ g) :=
+λ x y h, inf_le_inf (hf h) (hg h)
+
+/-- Pointwise maximum of two monotone functions is a monotone function. -/
+protected lemma max [preorder α] [linear_order β] {f g : α → β} (hf : antitone f)
+  (hg : antitone g) : antitone (λ x, max (f x) (g x)) :=
+hf.sup hg
+
+/-- Pointwise minimum of two monotone functions is a monotone function. -/
+protected lemma min [preorder α] [linear_order β] {f g : α → β} (hf : antitone f)
+  (hg : antitone g) : antitone (λ x, min (f x) (g x)) :=
+hf.inf hg
+
+lemma map_sup_le [semilattice_sup α] [semilattice_inf β]
+  {f : α → β} (h : antitone f) (x y : α) :
+  f (x ⊔ y) ≤ f x ⊓ f y :=
+h.dual_right.le_map_sup x y
+
+lemma map_sup [semilattice_sup α] [is_total α (≤)] [semilattice_inf β] {f : α → β}
+  (hf : antitone f) (x y : α) :
+  f (x ⊔ y) = f x ⊓ f y :=
+hf.dual_right.map_sup x y
+
+lemma le_map_inf [semilattice_inf α] [semilattice_sup β]
+  {f : α → β} (h : antitone f) (x y : α) :
+  f x ⊔ f y ≤ f (x ⊓ y) :=
+h.dual_right.map_inf_le x y
+
+lemma map_inf [semilattice_inf α] [is_total α (≤)] [semilattice_sup β] {f : α → β}
+  (hf : antitone f) (x y : α) :
+  f (x ⊓ y) = f x ⊔ f y :=
+hf.dual_right.map_inf x y
+
+end antitone
+
 /-!
 ### Products of (semi-)lattices
 -/

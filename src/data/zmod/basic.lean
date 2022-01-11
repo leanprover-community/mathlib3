@@ -843,7 +843,7 @@ instance : field (zmod p) :=
 instance (p : ℕ) [hp : fact p.prime] : is_domain (zmod p) :=
 begin
   -- We need `cases p` here in order to resolve which `comm_ring` instance is being used.
-  unfreezingI { cases p, { exfalso, rcases hp with ⟨⟨⟨⟩⟩⟩, }, },
+  unfreezingI { cases p, { exact (nat.not_prime_zero hp.out).elim }, },
   exact @field.is_domain (zmod _) (zmod.field _)
 end
 

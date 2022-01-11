@@ -980,7 +980,7 @@ otherwise, it uses `classical.choice`.
 example (α) [nonempty α] : ∃ a : α, true :=
 begin
   inhabit α,
-  existsi default α,
+  existsi default,
   trivial
 end
 ```

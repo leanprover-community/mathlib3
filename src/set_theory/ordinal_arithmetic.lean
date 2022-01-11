@@ -124,6 +124,9 @@ by simp only [le_antisymm_iff, add_le_add_iff_left]
 theorem lt_succ {a b : ordinal} : a < succ b ↔ a ≤ b :=
 by rw [← not_le, succ_le, not_lt]
 
+theorem lt_one_iff_zero {a : ordinal} : a < 1 ↔ a = 0 :=
+by rw [←succ_zero, lt_succ, ordinal.le_zero]
+
 theorem add_lt_add_iff_left (a) {b c : ordinal} : a + b < a + c ↔ b < c :=
 by rw [← not_le, ← not_le, add_le_add_iff_left]
 
@@ -591,6 +594,12 @@ quotient.induction_on₃ a b c $ λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨γ, t, _⟩
   { exact prod.lex.right _ (f.to_rel_embedding.map_rel_iff.2 h') }
 end
 
+theorem le_mul_left (a : ordinal) {b : ordinal} (hb : 0 < b) : a ≤ a * b :=
+by { convert mul_le_mul_left a (one_le_iff_pos.2 hb), rw mul_one a }
+
+theorem le_mul_right (a : ordinal) {b : ordinal} (hb : 0 < b) : a ≤ b * a :=
+by { convert mul_le_mul_right a (one_le_iff_pos.2 hb), rw one_mul a }
+
 theorem mul_le_mul {a b c d : ordinal} (h₁ : a ≤ c) (h₂ : b ≤ d) : a * b ≤ c * d :=
 le_trans (mul_le_mul_left _ h₂) (mul_le_mul_right _ h₁)
 
@@ -840,6 +849,20 @@ by simp only [mod_def, div_self a0, mul_one, sub_self]
 @[simp] theorem mod_one (a : ordinal) : a % 1 = 0 :=
 by simp only [mod_def, div_one, one_mul, sub_self]
 
+theorem dvd_of_mod_eq_zero {a b : ordinal} (H : a % b = 0) : b ∣ a :=
+⟨a / b, by simpa [H] using (div_add_mod a b).symm⟩
+
+theorem mod_eq_zero_of_dvd {a b : ordinal} (H : b ∣ a) : a % b = 0 :=
+begin
+  rcases H with ⟨c, rfl⟩,
+  rcases eq_or_ne b 0 with rfl | hb,
+  { simp },
+  { simp [mod_def, hb] }
+end
+
+theorem dvd_iff_mod_eq_zero {a b : ordinal} : b ∣ a ↔ a % b = 0 :=
+⟨mod_eq_zero_of_dvd, dvd_of_mod_eq_zero⟩
+
 /-! ### Supremum of a family of ordinals -/
 
 /-- The supremum of a family of ordinals -/
@@ -1065,7 +1088,7 @@ begin
   { rw blsub_le_iff_lt,
     exact λ _, id },
   by_contra' h,
-  exact lt_irrefl (blsub.{u u} o (λ x _, x)) (lt_blsub _ _ h)
+  exact lt_irrefl _ (lt_blsub.{u u} (λ x _, x) _ h)
 end
 
 /-! ### Enumerating unbounded sets of ordinals with ordinals -/
@@ -1073,7 +1096,7 @@ end
 section
 variables {S : set ordinal.{u}} (hS : unbounded (<) S)
 
--- A more convenient characterization of unboundedness.
+-- A characterization of unboundedness that's more convenient to our purposes.
 private lemma unbounded_aux (hS : unbounded (<) S) (a) : ∃ b, b ∈ S ∧ a ≤ b :=
 by { rcases hS a with ⟨b, hb, hb'⟩, exact ⟨b, hb, le_of_not_gt hb'⟩ }
 
@@ -1151,8 +1174,8 @@ begin
   refine propext ⟨λ h s hs, _, λ h a, _⟩,
   { cases h ⟨s, hs⟩ with a ha,
     exact ⟨a, subtype.mk.inj ha⟩ },
-  cases h a.val a.prop with s hs,
-  exact ⟨s, subtype.eq hs⟩,
+  cases h a a.prop with s hs,
+  exact ⟨s, subtype.eq hs⟩
 end
 
 theorem enum_ord_range : range (enum_ord hS) = S :=
@@ -1372,7 +1395,7 @@ end
 /-! ### Ordinal logarithm -/
 
 /-- The ordinal logarithm is the solution `u` to the equation
-  `x = b ^ u * v + w` where `v < b` and `w < b`. -/
+  `x = b ^ u * v + w` where `v < b` and `w < b ^ u`. -/
 def log (b : ordinal) (x : ordinal) : ordinal :=
 if h : 1 < b then pred $
   omin {o | x < b^o} ⟨succ x, succ_le.1 (le_power_self _ h)⟩
@@ -1452,6 +1475,53 @@ if x0 : x = 0 then by simp only [x0, log_zero, ordinal.zero_le] else
 if b1 : 1 < b then
   le_trans (le_power_self _ b1) (power_log_le b (ordinal.pos_iff_ne_zero.2 x0))
 else by simp only [log_not_one_lt b1, ordinal.zero_le]
+
+@[simp] theorem log_one (b : ordinal) : log b 1 = 0 :=
+if hb : 1 < b then by rwa [←lt_one_iff_zero, log_lt hb zero_lt_one, power_one]
+else log_not_one_lt hb 1
+
+lemma power_mul_add_pos {b v : ordinal} (hb : 0 < b) (u) (hv : 0 < v) (w) :
+  0 < b ^ u * v + w :=
+(power_pos u hb).trans_le ((le_mul_left _ hv).trans (le_add_right _ _))
+
+lemma power_mul_add_lt_power_mul_succ {b u w : ordinal} (v : ordinal) (hw : w < b ^ u) :
+  b ^ u * v + w < b ^ u * v.succ :=
+by rwa [mul_succ, add_lt_add_iff_left]
+
+lemma power_mul_add_lt_power_succ {b u v w : ordinal} (hvb : v < b) (hw : w < b ^ u) :
+  b ^ u * v + w < b ^ u.succ :=
+begin
+  convert (power_mul_add_lt_power_mul_succ v hw).trans_le (mul_le_mul_left _ (succ_le.2 hvb)),
+  exact power_succ b u
+end
+
+theorem log_power_mul_add {b u v w : ordinal} (hb : 1 < b) (hv : 0 < v) (hvb : v < b)
+  (hw : w < b ^ u) : log b (b ^ u * v + w) = u :=
+begin
+  have hpos := power_mul_add_pos (zero_lt_one.trans hb) u hv w,
+  by_contra' hne,
+  cases lt_or_gt_of_ne hne with h h,
+  { rw log_lt hb hpos at h,
+    exact not_le_of_lt h ((le_mul_left _ hv).trans (le_add_right _ _)) },
+  { change _ < _ at h,
+    rw [←succ_le, le_log hb hpos] at h,
+    exact (not_lt_of_le h) (power_mul_add_lt_power_succ hvb hw) }
+end
+
+@[simp] theorem log_power {b : ordinal} (hb : 1 < b) (x : ordinal) : log b (b ^ x) = x :=
+begin
+  convert log_power_mul_add hb zero_lt_one hb (power_pos x (zero_lt_one.trans hb)),
+  rw [add_zero, mul_one]
+end
+
+theorem add_log_le_log_mul {x y : ordinal} (b : ordinal) (x0 : 0 < x) (y0 : 0 < y) :
+  log b x + log b y ≤ log b (x * y) :=
+begin
+  by_cases hb : 1 < b,
+  { rw [le_log hb (mul_pos x0 y0), power_add],
+    exact mul_le_mul (power_log_le b x0) (power_log_le b y0) },
+  simp only [log_not_one_lt hb, zero_add]
+end
 
 /-! ### The Cantor normal form -/
 

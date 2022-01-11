@@ -175,7 +175,7 @@ instance {A : Type*} [semiring A] [algebra ℝ A] : algebra ℝ≥0 A :=
 
 -- verify that the above produces instances we might care about
 example : algebra ℝ≥0 ℝ := by apply_instance
-example : distrib_mul_action (units ℝ≥0) ℝ := by apply_instance
+example : distrib_mul_action ℝ≥0ˣ ℝ := by apply_instance
 
 end actions
 
@@ -237,7 +237,7 @@ lemma nsmul_coe (r : ℝ≥0) (n : ℕ) : ↑(n • r) = n • (r:ℝ) :=
 by norm_cast
 
 @[simp, norm_cast] protected lemma coe_nat_cast (n : ℕ) : (↑(↑n : ℝ≥0) : ℝ) = n :=
-to_real_hom.map_nat_cast n
+map_nat_cast to_real_hom n
 
 noncomputable example : linear_order ℝ≥0 := by apply_instance
 

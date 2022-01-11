@@ -26,13 +26,13 @@ variables {α : Type*} (S : set (set α))
 /-- A structure encapsulating the fact that a set of sets is closed under finite intersection. -/
 structure has_finite_inter :=
 (univ_mem : set.univ ∈ S)
-(inter_mem {s t} : s ∈ S → t ∈ S → s ∩ t ∈ S)
+(inter_mem : ∀ ⦃s⦄, s ∈ S → ∀ ⦃t⦄, t ∈ S → s ∩ t ∈ S)
 
 namespace has_finite_inter
 
 -- Satisfying the inhabited linter...
 instance : inhabited (has_finite_inter ({set.univ} : set (set α))) :=
-⟨⟨by tauto, λ _ _ h1 h2, by simp [set.mem_singleton_iff.1 h1, set.mem_singleton_iff.1 h2]⟩⟩
+⟨⟨by tauto, λ _ h1 _ h2, by simp [set.mem_singleton_iff.1 h1, set.mem_singleton_iff.1 h2]⟩⟩
 
 /-- The smallest set of sets containing `S` which is closed under finite intersections. -/
 inductive finite_inter_closure : set (set α)
@@ -43,7 +43,7 @@ inductive finite_inter_closure : set (set α)
 /-- Defines `has_finite_inter` for `finite_inter_closure S`. -/
 def finite_inter_closure_has_finite_inter : has_finite_inter (finite_inter_closure S) :=
 { univ_mem := finite_inter_closure.univ,
-  inter_mem := λ _ _, finite_inter_closure.inter }
+  inter_mem := λ _ h _, finite_inter_closure.inter h }
 
 variable {S}
 lemma finite_inter_mem (cond : has_finite_inter S) (F : finset (set α)) :

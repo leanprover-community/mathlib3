@@ -20,24 +20,17 @@ some basic properties of these maps.
 contraction, dual module, tensor product
 -/
 
-universes u v
-
-
 section contraction
 
-open tensor_product
-open linear_map
-open matrix
-open_locale tensor_product
-open_locale big_operators
+open tensor_product linear_map matrix
+open_locale tensor_product big_operators
 
-section
+variables (R M N : Type*) [add_comm_group M] [add_comm_group N]
 
-variables (R : Type u) (M N : Type v)
-variables [comm_ring R] [add_comm_group M] [add_comm_group N] [module R M] [module R N]
-variables {ι : Type} [decidable_eq ι] [fintype ι]
-variables {κ : Type} [decidable_eq κ] [fintype κ]
-variables (b : basis ι R M) (c : basis κ R M)
+section comm_ring
+
+variables [comm_ring R] [module R M] [module R N]
+variables {ι : Type*} [decidable_eq ι] [fintype ι] (b : basis ι R M)
 
 /-- The natural left-handed pairing between a module and its dual. -/
 def contract_left : (module.dual R M) ⊗ M →ₗ[R] R := (uncurry _ _ _ _).to_fun linear_map.id
@@ -109,30 +102,29 @@ begin
     basis.coe_dual_basis, basis.sum_dual_apply_smul_coord],
 end
 
-@[simps] noncomputable
-def dual_tensor_hom_equiv_of_basis :
+/-- If `M` is free, the natural linear map $M^* ⊗ N → Hom(M, N)$ is an equivalence. This function
+provides this equivalence in return for a basis of `M`. -/
+@[simps] noncomputable def dual_tensor_hom_equiv_of_basis :
   (module.dual R M) ⊗[R] N ≃ₗ[R] M →ₗ[R] N :=
 linear_equiv.of_linear (dual_tensor_hom R M N) (hom_dual_tensor R M N b)
   (dual_tensor_hom_hom_dual_tensor b) (hom_dual_tensor_dual_tensor_hom b)
-
-lemma dual_tensor_hom_equiv_of_basis_eq : dual_tensor_hom_equiv_of_basis b =
-  (dual_tensor_hom_equiv_of_basis c : (module.dual R M) ⊗[R] N ≃ₗ[R] M →ₗ[R] N) :=
-by {ext x m, simp [dual_tensor_hom_equiv_of_basis] }
 
 @[simp] lemma dual_tensor_hom_equiv_of_basis_coe :
   ↑(dual_tensor_hom_equiv_of_basis b : (module.dual R M) ⊗[R] N ≃ₗ[R] M →ₗ[R] N) =
   dual_tensor_hom R M N :=
 by {ext x m, simp [dual_tensor_hom_equiv_of_basis] }
 
-end
+end comm_ring
 
-open finite_dimensional
-variables (R : Type u) (M N : Type v)
-variables [field R] [add_comm_group M] [add_comm_group N] [module R M] [module R N]
-variables [finite_dimensional R M]
+section field
 
-/-- `dual_tensor_hom` is an equivalence -/
+variables [field R] [module R M] [module R N] [finite_dimensional R M]
+
+/-- If `M` is finite-dimensional over a field, the natural map $M^* ⊗ N → Hom(M, N)$ is an
+equivalence. -/
 @[simp] noncomputable def dual_tensor_hom_equiv : (module.dual R M) ⊗[R] N ≃ₗ[R] M →ₗ[R] N :=
-dual_tensor_hom_equiv_of_basis (fin_basis R M)
+dual_tensor_hom_equiv_of_basis (finite_dimensional.fin_basis R M)
+
+end field
 
 end contraction

@@ -82,7 +82,7 @@ noncomputable def mk_span_singleton' (x : E) (y : F) (H : ∀ c : R, c • x = 0
       rw [← add_smul],
       apply H,
       simp only [add_smul, sub_smul, classical.some_spec (mem_span_singleton.1 _)],
-      apply coe_add
+      apply add_submonoid_class.coe_add
     end,
     map_smul' := λ c z, begin
       rw [smul_smul],
@@ -153,7 +153,7 @@ both `f` and `g` are defined at `x` and `f x = g x` form a submodule. -/
 def eq_locus (f g : linear_pmap R E F) : submodule R E :=
 { carrier   := {x | ∃ (hf : x ∈ f.domain) (hg : x ∈ g.domain), f ⟨x, hf⟩ = g ⟨x, hg⟩},
   zero_mem' := ⟨zero_mem _, zero_mem _, f.map_zero.trans g.map_zero.symm⟩,
-  add_mem'  := λ x y ⟨hfx, hgx, hx⟩ ⟨hfy, hgy, hy⟩, ⟨add_mem _ hfx hfy, add_mem _ hgx hgy,
+  add_mem'  := λ x y ⟨hfx, hgx, hx⟩ ⟨hfy, hgy, hy⟩, ⟨add_mem hfx hfy, add_mem hgx hgy,
     by erw [f.map_add ⟨x, hfx⟩ ⟨y, hfy⟩, g.map_add ⟨x, hgx⟩ ⟨y, hgy⟩, hx, hy]⟩,
   smul_mem' := λ c x ⟨hfx, hgx, hx⟩, ⟨smul_mem _ c hfx, smul_mem _ c hgx,
     by erw [f.map_smul c ⟨x, hfx⟩, g.map_smul c ⟨x, hgx⟩, hx]⟩ }
@@ -214,18 +214,19 @@ begin
     rw [add_comm, ← sub_eq_sub_iff_add_eq_add, eq_comm, ← map_sub, ← map_sub],
     apply h,
     simp only [← eq_sub_iff_add_eq] at hxy,
-    simp only [coe_sub, coe_mk, coe_mk, hxy, ← sub_add, ← sub_sub, sub_self, zero_sub, ← H],
+    simp only [add_subgroup_class.coe_sub, subtype.coe_mk, hxy, ← sub_add, ← sub_sub, sub_self,
+               zero_sub, ← H],
     apply neg_add_eq_sub },
   refine ⟨{ to_fun := fg, .. }, fg_eq⟩,
   { rintros ⟨z₁, hz₁⟩ ⟨z₂, hz₂⟩,
     rw [← add_assoc, add_right_comm (f _), ← map_add, add_assoc, ← map_add],
     apply fg_eq,
-    simp only [coe_add, coe_mk, ← add_assoc],
-    rw [add_right_comm (x _), hxy, add_assoc, hxy, coe_mk, coe_mk] },
+    simp only [add_submonoid_class.coe_add, subtype.coe_mk, ← add_assoc],
+    rw [add_right_comm (x _), hxy, add_assoc, hxy, subtype.coe_mk, subtype.coe_mk] },
   { intros c z,
     rw [smul_add, ← map_smul, ← map_smul],
     apply fg_eq,
-    simp only [coe_smul, coe_mk, ← smul_add, hxy, ring_hom.id_apply] },
+    simp only [coe_smul, subtype.coe_mk, ← smul_add, hxy, ring_hom.id_apply] },
 end
 
 /-- Given two partial linear maps that agree on the intersection of their domains,
@@ -254,7 +255,7 @@ begin
   refine ⟨le_sup_left, λ z₁ z₂ hz, _⟩,
   rw [← add_zero (f _), ← g.map_zero],
   refine (sup_apply h _ _ _ _).symm,
-  simpa
+  simpa only [add_submonoid_class.coe_zero, add_zero]
 end
 
 protected lemma right_le_sup (f g : linear_pmap R E F)
@@ -264,7 +265,7 @@ begin
   refine ⟨le_sup_right, λ z₁ z₂ hz, _⟩,
   rw [← zero_add (g _), ← f.map_zero],
   refine (sup_apply h _ _ _ _).symm,
-  simpa
+  simpa only [add_submonoid_class.coe_zero, zero_add]
 end
 
 protected lemma sup_le {f g h : linear_pmap R E F}
@@ -337,7 +338,7 @@ begin
     rw [f_eq ⟨p, hpc⟩ x x' rfl, f_eq ⟨p, hpc⟩ y y' rfl, f_eq ⟨p, hpc⟩ (x + y) (x' + y') rfl,
       map_add] },
   { intros c x,
-    simp [f_eq (P x).1 (c • x) (c • ⟨x, (P x).2⟩) rfl, ← map_smul] },
+    simp only [f_eq (P x).1 (c • x) (c • ⟨x, (P x).2⟩) rfl, ← map_smul, ring_hom.id_apply] },
   { intros p hpc,
     refine ⟨le_Sup $ mem_image_of_mem domain hpc, λ x y hxy, eq.symm _⟩,
     exact f_eq ⟨p, hpc⟩ _ _ hxy.symm }

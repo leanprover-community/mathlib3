@@ -1919,9 +1919,6 @@ theorem add_mul_limit {a b c : ordinal} (ba : b + a = a)
   (l : is_limit c) : (a + b) * c = a * c :=
 add_mul_limit_aux ba l (λ c' _, add_mul_succ c' ba)
 
-theorem add_mul_omega (a) : a + a * omega = a * omega :=
-by rw [←mul_one_add, one_add_omega]
-
 theorem mul_omega {a : ordinal} (a0 : 0 < a) (ha : a < omega) : a * omega = omega :=
 le_antisymm
   ((mul_le_of_limit omega_is_limit).2 $ λ b hb, le_of_lt (mul_lt_omega ha hb))
@@ -2118,7 +2115,7 @@ begin
   refine le_antisymm _ ((add_is_normal a).nfp_le_fp hba _),
   { rw mul_omega_nfp_add_zero,
     exact monotone.nfp (add_is_normal a).strict_mono.monotone (ordinal.zero_le b) },
-  rw add_mul_omega
+  by rw [←mul_one_add, one_add_omega]
 end
 
 theorem add_fp_iff_mul_omega_le {a b : ordinal} : a + b = b ↔ a * omega.{u} ≤ b :=
@@ -2130,7 +2127,7 @@ begin
     exact (deriv_is_normal _).strict_mono.monotone (ordinal.zero_le _) },
   have := ordinal.add_sub_cancel_of_le h,
   nth_rewrite 0 ←this,
-  rwa [←add_assoc, add_mul_omega]
+  rwa [←add_assoc, ←mul_one_add, one_add_omega]
 end
 
 theorem add_le_iff_mul_omega_le {a b : ordinal} : a + b ≤ b ↔ a * omega.{u} ≤ b :=

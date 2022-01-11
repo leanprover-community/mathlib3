@@ -252,10 +252,6 @@ iff.intro
   (assume h, let ⟨c, h⟩ := h.symm in h ▸ ⟨c, (one_mul _).symm⟩)
   (assume ⟨c, h⟩, associated.symm ⟨c, by simp [h]⟩)
 
-lemma is_unit_of_associated_is_unit [monoid α] {p q : α}
-  (h : associated p q) (hp : is_unit p) : is_unit q :=
-by { obtain ⟨a, rfl⟩:= h, exact is_unit.mul hp (units.is_unit a) }
-
 theorem associated_zero_iff_eq_zero [monoid_with_zero α] (a : α) : a ~ᵤ 0 ↔ a = 0 :=
 iff.intro
   (assume h, let ⟨u, h⟩ := h.symm in by simpa using h.symm)

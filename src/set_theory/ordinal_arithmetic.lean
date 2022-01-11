@@ -412,7 +412,7 @@ theorem is_normal.is_limit {f} (H : is_normal f) {o} (l : is_limit o) :
 λ a h, let ⟨b, h₁, h₂⟩ := (H.limit_lt l).1 h in
   lt_of_le_of_lt (succ_le.2 h₂) (H.lt_iff.2 h₁)⟩
 
-theorem is_normal.self_le_iff_eq {f} (H : is_normal f) {a} : f a ≤ a ↔ f a = a :=
+theorem is_normal.le_if_eqq {f} (H : is_normal f) {a} : f a ≤ a ↔ f a = a :=
 ⟨λ h, le_antisymm h (H.le_self a), le_of_eq⟩
 
 theorem add_le_of_limit {a b c : ordinal.{u}}
@@ -2097,7 +2097,7 @@ theorem is_normal.le_iff_deriv {f} (H : is_normal f) {a} : f a ≤ a ↔ ∃ o, 
 end, λ ⟨o, e⟩, e ▸ le_of_eq (H.deriv_fp _)⟩
 
 theorem is_normal.fp_iff_deriv {f} (H : is_normal f) {a} : f a = a ↔ ∃ o, deriv f o = a :=
-by rw [←H.le_iff_deriv, H.self_le_iff_eq]
+by rw [←H.le_iff_deriv, H.le_if_eqq]
 
 /-! ### Fixed points of addition -/
 
@@ -2134,7 +2134,7 @@ begin
 end
 
 theorem add_le_iff_mul_omega_le {a b : ordinal} : a + b ≤ b ↔ a * omega.{u} ≤ b :=
-by { rw ←add_fp_iff_mul_omega_le, exact (add_is_normal a).self_le_iff_eq }
+by { rw ←add_fp_iff_mul_omega_le, exact (add_is_normal a).le_if_eqq }
 
 theorem add_deriv_mul_omega_add (a b : ordinal.{u}) : deriv ((+) a) b = a * omega + b :=
 begin

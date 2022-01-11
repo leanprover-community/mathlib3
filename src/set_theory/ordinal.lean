@@ -762,10 +762,10 @@ by simp only [lt_iff_le_and_ne, ordinal.zero_le, true_and, ne.def, eq_comm]
 lemma eq_zero_of_out_empty (o : ordinal) [h : is_empty o.out.α] : o = 0 :=
 begin
   by_contra ho,
-  have : 0 < o := ordinal.pos_iff_ne_zero.2 ho,
-  rw ←type_out o at this,
-  have := enum o.out.r 0 this,
-  exact h.elim this
+  replace ho := ordinal.pos_iff_ne_zero.2 ho,
+  rw ←type_out o at ho,
+  have α := enum o.out.r 0 ho,
+  exact h.elim α
 end
 
 @[simp] theorem out_empty_iff_eq_zero {o : ordinal} : is_empty o.out.α ↔ o = 0 :=

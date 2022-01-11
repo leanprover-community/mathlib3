@@ -1057,12 +1057,15 @@ end
 lemma lsub_eq_zero {ι} [h : is_empty ι] (f : ι → ordinal) : lsub f = 0 :=
 by { rw [←ordinal.le_zero, lsub_le_iff_lt], exact h.elim }
 
+lemma zero_lt_lsub {ι} [h : nonempty ι] (f : ι → ordinal) : 0 < lsub f :=
+h.elim $ λ i, (ordinal.zero_le _).trans_lt (lt_lsub f i)
+
 @[simp] theorem lsub_eq_zero_iff {ι} {f : ι → ordinal} : lsub f = 0 ↔ is_empty ι :=
 begin
   refine ⟨λ h, ⟨λ i, _⟩, λ h, @lsub_eq_zero _ h _⟩,
-  have := lt_lsub f i,
+  have := @zero_lt_lsub _ ⟨i⟩ f,
   rw h at this,
-  exact @not_lt_bot _ _ _ (f i) this
+  exact lt_irrefl 0 this
 end
 
 /-- The bounded least strict upper bound of a family of ordinals. -/
@@ -1114,6 +1117,12 @@ by { rw [bsup_eq_sup, blsub_eq_lsub], exact sup_eq_lsub _ }
 
 @[simp] theorem blsub_eq_zero_iff {o} {f : Π a < o, ordinal} : blsub o f = 0 ↔ o = 0 :=
 by { rw [blsub_eq_lsub, lsub_eq_zero_iff], exact out_empty_iff_eq_zero }
+
+lemma blsub_eq_zero {o : ordinal} (ho : o = 0) (f : Π a < o, ordinal) : blsub o f = 0 :=
+by rwa blsub_eq_zero_iff
+
+lemma zero_lt_blsub {o : ordinal} (ho : 0 < o) (f : Π a < o, ordinal) : 0 < blsub o f :=
+(ordinal.zero_le _).trans_lt (lt_blsub f 0 ho)
 
 theorem blsub_type (r : α → α → Prop) [is_well_order α r] (f) :
   blsub (type r) f = lsub (λ a, f (typein r a) (typein_lt_type _ _)) :=

@@ -103,7 +103,7 @@ begin
   { simp },
   set mk1 := (sum.elim (λ i, (0 : fin 2)) (λ j, 1)) k1 with hmk1,
   set mk2 := (sum.elim (λ i, (0 : fin 2)) (λ j, 1)) k2 with hmk2,
-  fin_cases mk1; fin_cases mk2; rw [h, h_1] at hk12,
+  fin_cases mk1 using h; fin_cases mk2 using h_1; rw [h, h_1] at hk12,
   { exact absurd hk12 (nat.not_lt_zero 0) },
   { exact absurd hk12 (by norm_num) },
   { rw hmk1 at h,
@@ -231,7 +231,7 @@ begin
   have h2 : ∀ (j : {a // id a = i}), j = ⟨i, rfl⟩ :=
     λ (j : {a // id a = i}), subtype.ext j.property,
   haveI : unique {a // id a = i} := ⟨⟨⟨i, rfl⟩⟩, h2⟩,
-  simp [h2 (default {a // id a = i})]
+  simp [h2 default]
 end
 
 lemma det_of_lower_triangular {n : ℕ} (M : matrix (fin n) (fin n) R)

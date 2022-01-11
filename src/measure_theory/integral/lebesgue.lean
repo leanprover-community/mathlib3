@@ -104,7 +104,7 @@ f.range.exists_le.imp $ λ C, forall_range_iff.1
 def const (α) {β} [measurable_space α] (b : β) : α →ₛ β :=
 ⟨λ a, b, λ x, measurable_set.const _, finite_range_const⟩
 
-instance [inhabited β] : inhabited (α →ₛ β) := ⟨const _ (default _)⟩
+instance [inhabited β] : inhabited (α →ₛ β) := ⟨const _ default⟩
 
 theorem const_apply (a : α) (b : β) : (const α b) a = b := rfl
 
@@ -2017,6 +2017,16 @@ lemma set_lintegral_lt_top_of_is_compact [topological_space α] [opens_measurabl
   {s : set α} (hs : μ s ≠ ∞) (hsc : is_compact s) {f : α → ℝ≥0} (hf : continuous f) :
   ∫⁻ x in s, f x ∂μ < ∞ :=
 set_lintegral_lt_top_of_bdd_above hs hf.measurable (hsc.image hf).bdd_above
+
+lemma _root_.is_finite_measure.lintegral_lt_top_of_bounded_to_ennreal {α : Type*}
+  [measurable_space α] (μ : measure α) [μ_fin : is_finite_measure μ]
+  {f : α → ℝ≥0∞} (f_bdd : ∃ c : ℝ≥0, ∀ x, f x ≤ c) : ∫⁻ x, f x ∂μ < ∞ :=
+begin
+  cases f_bdd with c hc,
+  apply lt_of_le_of_lt (@lintegral_mono _ _ μ _ _ hc),
+  rw lintegral_const,
+  exact ennreal.mul_lt_top ennreal.coe_lt_top.ne μ_fin.measure_univ_lt_top.ne,
+end
 
 /-- Given a measure `μ : measure α` and a function `f : α → ℝ≥0∞`, `μ.with_density f` is the
 measure such that for a measurable set `s` we have `μ.with_density f s = ∫⁻ a in s, f a ∂μ`. -/

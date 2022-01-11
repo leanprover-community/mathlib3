@@ -451,6 +451,14 @@ lemma differentiable_on.has_fderiv_at (h : differentiable_on 𝕜 f s) (hs : s �
   has_fderiv_at f (fderiv 𝕜 f x) x :=
 ((h x (mem_of_mem_nhds hs)).differentiable_at hs).has_fderiv_at
 
+lemma differentiable_on.differentiable_at (h : differentiable_on 𝕜 f s) (hs : s ∈ 𝓝 x) :
+  differentiable_at 𝕜 f x :=
+(h.has_fderiv_at hs).differentiable_at
+
+lemma differentiable_on.eventually_differentiable_at (h : differentiable_on 𝕜 f s) (hs : s ∈ 𝓝 x) :
+  ∀ᶠ y in 𝓝 x, differentiable_at 𝕜 f y :=
+(eventually_eventually_nhds.2 hs).mono $ λ y, h.differentiable_at
+
 lemma has_fderiv_at.fderiv (h : has_fderiv_at f f' x) : fderiv 𝕜 f x = f' :=
 by { ext, rw h.unique h.differentiable_at.has_fderiv_at }
 
@@ -2463,7 +2471,7 @@ open normed_ring continuous_linear_map ring
 
 /-- At an invertible element `x` of a normed algebra `R`, the Fréchet derivative of the inversion
 operation is the linear map `λ t, - x⁻¹ * t * x⁻¹`. -/
-lemma has_fderiv_at_ring_inverse (x : units R) :
+lemma has_fderiv_at_ring_inverse (x : Rˣ) :
   has_fderiv_at ring.inverse (-lmul_left_right 𝕜 R ↑x⁻¹ ↑x⁻¹) x :=
 begin
   have h_is_o : is_o (λ (t : R), inverse (↑x + t) - ↑x⁻¹ + ↑x⁻¹ * t * ↑x⁻¹)
@@ -2483,10 +2491,10 @@ begin
     units.inv_mul, add_sub_cancel'_right, mul_sub, sub_mul, one_mul, sub_neg_eq_add]
 end
 
-lemma differentiable_at_inverse (x : units R) : differentiable_at 𝕜 (@ring.inverse R _) x :=
+lemma differentiable_at_inverse (x : Rˣ) : differentiable_at 𝕜 (@ring.inverse R _) x :=
 (has_fderiv_at_ring_inverse x).differentiable_at
 
-lemma fderiv_inverse (x : units R) :
+lemma fderiv_inverse (x : Rˣ) :
   fderiv 𝕜 (@ring.inverse R _) x = - lmul_left_right 𝕜 R ↑x⁻¹ ↑x⁻¹ :=
 (has_fderiv_at_ring_inverse x).fderiv
 

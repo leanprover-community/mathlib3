@@ -43,7 +43,7 @@ begin
   casesI is_empty_or_nonempty β with hβ hβ,
   { haveI : is_empty α, from function.is_empty f,
     exact ⟨_, ((equiv.equiv_empty α).trans (equiv.equiv_empty β).symm).bijective⟩ },
-  set F : set α →ₘ set α :=
+  set F : set α →o set α :=
   { to_fun := λ s, (g '' (f '' s)ᶜ)ᶜ,
     monotone' := λ s t hst, compl_subset_compl.mpr $ image_subset _ $
      compl_subset_compl.mpr $ image_subset _ hst },

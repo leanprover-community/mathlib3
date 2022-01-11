@@ -193,8 +193,8 @@ begin
   have h0 : ∀ i : fin (s.card - 1), ↑i < (s.sort (≤)).length :=
   λ i, lt_of_le_of_lt (nat.le_succ i) (h1 i),
   have p := λ i : fin (s.card - 1), h ((s.sort (≤)).nth_le i (h0 i))
-    ((s.sort (≤)).nth_le (i + 1) (h1 i))
     ((finset.mem_sort (≤)).mp (list.nth_le_mem _ _ (h0 i)))
+    ((s.sort (≤)).nth_le (i + 1) (h1 i))
     ((finset.mem_sort (≤)).mp (list.nth_le_mem _ _ (h1 i)))
     (s.sort_sorted_lt.rel_nth_le_of_lt (h0 i) (h1 i) (nat.lt_succ_self i)),
   let f : fin (s.card - 1) → t :=

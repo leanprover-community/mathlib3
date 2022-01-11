@@ -175,7 +175,7 @@ have h_ex : ∀ s ∈ 𝓤 (Cauchy α), ∃y:α, (f, pure_cauchy y) ∈ s, from
 begin
   simp only [closure_eq_cluster_pts, cluster_pt, nhds_eq_uniformity, lift'_inf_principal_eq,
     set.inter_comm _ (range pure_cauchy), mem_set_of_eq],
-  exact (lift'_ne_bot_iff $ monotone_inter monotone_const monotone_preimage).mpr
+  exact (lift'_ne_bot_iff $ monotone_const.inter monotone_preimage).mpr
     (assume s hs,
       let ⟨y, hy⟩ := h_ex s hs in
       have pure_cauchy y ∈ range pure_cauchy ∩ {y : Cauchy α | (f, y) ∈ s},
@@ -217,7 +217,7 @@ complete_space_extension
 end
 
 instance [inhabited α] : inhabited (Cauchy α) :=
-⟨pure_cauchy $ default α⟩
+⟨pure_cauchy default⟩
 
 instance [h : nonempty α] : nonempty (Cauchy α) :=
 h.rec_on $ assume a, nonempty.intro $ Cauchy.pure_cauchy a

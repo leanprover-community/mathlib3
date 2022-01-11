@@ -299,7 +299,6 @@ begin
   have hf₂ : closed_embedding (lc_row0_extend hcd) :=
     (lc_row0_extend hcd).to_continuous_linear_equiv.to_homeomorph.closed_embedding,
   convert hf₂.tendsto_cocompact.comp (hf₁.comp subtype.coe_injective.tendsto_cofinite) using 1,
-<<<<<<< HEAD
   funext g,
   obtain ⟨g, hg⟩ := g,
   funext j,
@@ -312,15 +311,6 @@ begin
         -special_linear_group.det_coe],
       ring } },
   { exact congr_arg (λ p, (coe : ℤ → ℝ) ∘ p) hg.symm }
-=======
-  ext ⟨g, rfl⟩ i j : 3,
-  fin_cases i; [fin_cases j, skip],
-  { simp [mB, f₁, mul_vec, dot_product, fin.sum_univ_two] },
-  { convert congr_arg (λ n : ℤ, (-n:ℝ)) g.det_coe.symm using 1,
-    simp [f₁, mul_vec, dot_product, mB, fin.sum_univ_two, matrix.det_fin_two],
-    ring },
-  { refl }
->>>>>>> origin/master
 end
 
 /-- This replaces `(g•z).re = a/c + *` in the standard theory with the following novel identity:

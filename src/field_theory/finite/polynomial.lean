@@ -124,7 +124,7 @@ lemma map_restrict_dom_evalₗ : (restrict_degree σ K (fintype.card K - 1)).map
 begin
   refine top_unique (set_like.le_def.2 $ assume e _, mem_map.2 _),
   refine ⟨∑ n : σ → K, e n • indicator n, _, _⟩,
-  { exact sum_mem _ (assume c _, smul_mem _ _ (indicator_mem_restrict_degree _)) },
+  { exact sum_mem (assume c _, smul_mem _ _ (indicator_mem_restrict_degree _)) },
   { ext n,
     simp only [linear_map.map_sum, @finset.sum_apply (σ → K) (λ_, K) _ _ _ _ _,
       pi.smul_apply, linear_map.map_smul],

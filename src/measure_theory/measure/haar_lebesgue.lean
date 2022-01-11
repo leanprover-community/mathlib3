@@ -475,11 +475,33 @@ begin
   { exact add_haar_sphere_of_ne_zero μ x h }
 end
 
+lemma tendsto_measure_inter_smul_one_of_tendsto_measure_inter_closed_ball_one_aux (s : set E) (x : E)
+  (h : tendsto (λ r, μ (s ∩ closed_ball x r) / μ (closed_ball x r)) (𝓝[>] 0) (𝓝 1))
+  (t : set E) (ht : measurable_set t) (h't : μ t ≠ 0) (h''t : μ t ≠ ∞)
+  (R : ℝ) (t_bound : t ⊆ closed_ball 0 1) :
+  tendsto (λ (r : ℝ), μ (s ∩ ({x} + r • t)) / μ ({x} + r • t)) (𝓝[>] 0) (𝓝 1) :=
+begin
+  have : tendsto (λ (r : ℝ), μ (({x} + r • t) \ s) / ennreal.of_real (r ^ finrank ℝ E))
+    (𝓝[>] 0) (𝓝 0),
+  { refine tendsto_order.2 ⟨λ a' ha', (ennreal.not_lt_zero ha').elim, λ ε εpos, _⟩,
+    have : (1 - ε : ℝ≥0∞) < 1 := sorry,
+    filter_upwards [(tendsto_order.1 h).1 _ this, self_mem_nhds_within],
+    assume r hr rpos,
+    have : μ (s ∩ closed_ball x r) + μ (({x} + r • t) \ s) ≤ μ (s ∩ closed_ball x r) +
+      ε * ennreal.of_real (r ^ finrank ℝ E)
+
+  }
+end
+
+#exit
+
 lemma tendsto_measure_inter_smul_one_of_tendsto_measure_inter_closed_ball_one (s : set E) (x : E)
   (h : tendsto (λ r, μ (s ∩ closed_ball x r) / μ (closed_ball x r)) (𝓝[>] 0) (𝓝 1))
   (t : set E) (ht : measurable_set t) (h't : μ t ≠ 0) (h''t : μ t ≠ ∞) :
   tendsto (λ (r : ℝ), μ (s ∩ ({x} + r • t)) / μ ({x} + r • t)) (𝓝[>] 0) (𝓝 1) :=
 sorry
+
+#exit
 
 lemma eventually_nonempty_inter_smul_of_tendsto_measure_inter_closed_ball_one (s : set E) (x : E)
   (h : tendsto (λ r, μ (s ∩ closed_ball x r) / μ (closed_ball x r)) (𝓝[>] 0) (𝓝 1))

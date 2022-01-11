@@ -139,26 +139,11 @@ universe u
 /- A (unital, associative) ring satisfies the (non-commutative) Jordan axioms-/
 @[priority 100] -- see Note [lower instance priority]
 instance ring_jordan (B : Type u) [ring B] : jordan (B) :=
-{ commL1R1 := begin
-    intros,
-    rw mul_assoc,
-  end,
-  commL1L2 := begin
-    intros,
-    rw [mul_assoc, mul_assoc],
-  end,
-  commL1R2 := begin
-    intros,
-    rw [mul_assoc],
-  end,
-  commL2R1 := begin
-    intros,
-    rw [←mul_assoc],
-  end,
-  commR1R2 := begin
-    intros,
-    rw [← mul_assoc, ← mul_assoc],
-  end, }
+{ commL1R1 := by { intros, rw mul_assoc },
+  commL1L2 := by { intros, [mul_assoc, mul_assoc] },
+  commL1R2 := by { intros, rw [mul_assoc] },
+  commL2R1 := by { intros, rw [←mul_assoc] },
+  commR1R2 := by { intros, rw [← mul_assoc, ← mul_assoc] } }
 
 variables (A : Type*) [non_unital_non_assoc_ring A]
 

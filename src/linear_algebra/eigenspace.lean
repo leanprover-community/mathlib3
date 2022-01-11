@@ -465,7 +465,7 @@ begin
   { rw [pow_zero, pow_zero, linear_map.one_eq_id],
     apply (submodule.ker_subtype _).symm },
   { erw [pow_succ', pow_succ', linear_map.ker_comp, linear_map.ker_comp, ih,
-      ← linear_map.ker_comp, ← linear_map.ker_comp, linear_map.comp_assoc] },
+      ← linear_map.ker_comp, linear_map.comp_assoc] },
 end
 
 /-- If `p` is an invariant submodule of an endomorphism `f`, then the `μ`-eigenspace of the

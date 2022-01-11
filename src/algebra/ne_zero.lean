@@ -50,12 +50,12 @@ instance char_zero [ne_zero n] [add_monoid M] [has_one M] [char_zero M] : ne_zer
 lemma of_map [has_zero R] [has_zero M] [zero_hom_class F R M] (f : F) [ne_zero (f r)] :
   ne_zero r := ⟨λ h, ne (f r) $ by convert map_zero f⟩
 
-lemma of_injective' {r : R} [has_zero R] [h : ne_zero r] [has_zero M] [zero_hom_class F R M]
+lemma of_injective {r : R} [has_zero R] [h : ne_zero r] [has_zero M] [zero_hom_class F R M]
   {f : F} (hf : function.injective f) : ne_zero (f r) :=
 ⟨by { rw ←map_zero f, exact hf.ne (ne r) }⟩
 
-lemma of_injective [non_assoc_semiring M] [non_assoc_semiring R] [h : ne_zero (n : R)]
-  {f : R →+* M} (hf : function.injective f) : ne_zero (n : M) :=
+lemma nat_of_injective [non_assoc_semiring M] [non_assoc_semiring R] [h : ne_zero (n : R)]
+  [ring_hom_class F R M] {f : F} (hf : function.injective f) : ne_zero (n : M) :=
  ⟨λ h, (ne_zero.ne' n R) $ hf $ by simpa⟩
 
 variables (R M)
@@ -65,7 +65,7 @@ lemma of_not_dvd [add_monoid M] [has_one M] [char_p M p] (h : ¬ p ∣ n) : ne_z
 
 lemma of_no_zero_smul_divisors [comm_ring R] [ne_zero (n : R)] [ring M] [nontrivial M]
   [algebra R M] [no_zero_smul_divisors R M] : ne_zero (n : M) :=
-of_injective $ no_zero_smul_divisors.algebra_map_injective R M
+nat_of_injective $ no_zero_smul_divisors.algebra_map_injective R M
 
 lemma of_ne_zero_coe [has_zero R] [has_one R] [has_add R] [h : ne_zero (n : R)] : ne_zero n :=
 ⟨by {casesI h, rintro rfl, contradiction}⟩

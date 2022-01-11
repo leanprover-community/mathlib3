@@ -2792,7 +2792,7 @@ lemma ae_measurable_of_subsingleton_codomain [subsingleton β] : ae_measurable f
 @[simp, measurability] lemma ae_measurable_zero_measure : ae_measurable f (0 : measure α) :=
 begin
   nontriviality α, inhabit α,
-  exact ⟨λ x, f (default α), measurable_const, rfl⟩
+  exact ⟨λ x, f default, measurable_const, rfl⟩
 end
 
 namespace ae_measurable
@@ -2827,7 +2827,7 @@ begin
     from measurable_set.Inter (λ i, measurable_set_to_measurable _ _),
   have hs : ∀ i x, x ∉ s i → f x = (h i).mk f x,
   { intros i x hx, contrapose! hx, exact subset_to_measurable _ _ hx },
-  set g : α → β := (⋂ i, s i).piecewise (const α (default β)) f,
+  set g : α → β := (⋂ i, s i).piecewise (const α default) f,
   refine ⟨g, measurable_of_restrict_of_restrict_compl hsm _ _, ae_sum_iff.mpr $ λ i, _⟩,
   { rw [restrict_piecewise], simp only [set.restrict, const], exact measurable_const },
   { rw [restrict_piecewise_compl, compl_Inter],
@@ -2891,7 +2891,7 @@ lemma subtype_mk (h : ae_measurable f μ) {s : set β} {hfs : ∀ x, f x ∈ s} 
 begin
   nontriviality α, inhabit α,
   rcases h with ⟨g, hgm, hg⟩,
-  rcases hs.exists_measurable_proj ⟨f (default α), hfs _⟩ with ⟨π, hπm, hπ⟩,
+  rcases hs.exists_measurable_proj ⟨f default, hfs _⟩ with ⟨π, hπm, hπ⟩,
   refine ⟨π ∘ g, hπm.comp hgm, hg.mono $ λ x hx, _⟩,
   rw [comp_apply, ← hx, ← coe_cod_restrict_apply f s hfs, hπ]
 end

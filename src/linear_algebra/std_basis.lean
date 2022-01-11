@@ -101,7 +101,7 @@ begin
     assume hiI,
     rw [std_basis_same],
     exact hb _ ((hu trivial).resolve_left hiI) },
-  exact sum_mem _ (assume i hiI, mem_supr_of_mem i $ mem_supr_of_mem hiI $
+  exact sum_mem (assume i hiI, mem_supr_of_mem i $ mem_supr_of_mem hiI $
     (std_basis R φ i).mem_range_self (b i))
 end
 

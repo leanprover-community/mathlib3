@@ -110,6 +110,7 @@ begin
   ring,
 end
 
+/-- The scalar quadruple product identity, related to the Binet-Cauchy identity. -/
 theorem cross_dot_cross (u v w x : fin 3 → R) :
   (u ×₃ v) ⬝ᵥ (w ×₃ x) = (u ⬝ᵥ w) * (v ⬝ᵥ x) - (u ⬝ᵥ x) * (v ⬝ᵥ w) :=
 begin

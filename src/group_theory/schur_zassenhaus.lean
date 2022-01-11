@@ -47,9 +47,10 @@ begin
   let ϕ : H →* H :=
   { to_fun := λ h, ⟨g.unop⁻¹ * h * g.unop,
       hH.mem_comm ((congr_arg (∈ H) (mul_inv_cancel_left _ _)).mpr (set_like.coe_mem _))⟩,
-    map_one' := by rw [subtype.ext_iff, coe_mk, coe_one, mul_one, inv_mul_self],
-    map_mul' := λ h₁ h₂, by rw [subtype.ext_iff, coe_mk, coe_mul, coe_mul, coe_mk, coe_mk,
-      mul_assoc, mul_assoc, mul_assoc, mul_assoc, mul_assoc, mul_inv_cancel_left] },
+    map_one' := by rw [subtype.ext_iff, coe_mk, submonoid_class.coe_one, mul_one, inv_mul_self],
+    map_mul' := λ h₁ h₂, by rw [subtype.ext_iff, coe_mk, submonoid_class.coe_mul,
+      submonoid_class.coe_mul, coe_mk, coe_mk, mul_assoc, mul_assoc, mul_assoc, mul_assoc,
+      mul_assoc, mul_inv_cancel_left] },
   refine eq.trans (finset.prod_bij' (λ q _, g⁻¹ • q) (λ q _, finset.mem_univ _)
     (λ q _, subtype.ext _) (λ q _, g • q) (λ q _, finset.mem_univ _) (λ q _, smul_inv_smul g q)
     (λ q _, inv_smul_smul g q)) (map_prod ϕ _ _).symm,
@@ -61,7 +62,8 @@ variables {H} [normal H]
 
 instance : mul_action G H.quotient_diff :=
 { smul := λ g, quotient.map' (λ α, op g⁻¹ • α) (λ α β h, subtype.ext (by rwa [smul_diff_smul',
-    coe_mk, coe_one, mul_eq_one_iff_eq_inv, mul_right_eq_self, ←coe_one, ←subtype.ext_iff])),
+    coe_mk, submonoid_class.coe_one, mul_eq_one_iff_eq_inv, mul_right_eq_self,
+    ←submonoid_class.coe_one, ←subtype.ext_iff])),
   mul_smul := λ g₁ g₂ q, quotient.induction_on' q (λ T, congr_arg quotient.mk'
     (by rw mul_inv_rev; exact mul_smul (op g₁⁻¹) (op g₂⁻¹) T)),
   one_smul := λ q, quotient.induction_on' q (λ T, congr_arg quotient.mk'
@@ -72,7 +74,8 @@ lemma smul_diff' (h : H) :
 begin
   rw [diff, diff, index_eq_card, ←finset.card_univ, ←finset.prod_const, ←finset.prod_mul_distrib],
   refine finset.prod_congr rfl (λ q _, _),
-  simp_rw [subtype.ext_iff, monoid_hom.id_apply, coe_mul, coe_mk, mul_assoc, mul_right_inj],
+  simp_rw [subtype.ext_iff, monoid_hom.id_apply, submonoid_class.coe_mul, coe_mk, mul_assoc,
+    mul_right_inj],
   rw [smul_apply_eq_smul_apply_inv_smul, smul_eq_mul_unop, unop_op,
       mul_left_inj, ←subtype.ext_iff, equiv.apply_eq_iff_eq, inv_smul_eq_iff],
   exact self_eq_mul_right.mpr ((quotient_group.eq_one_iff _).mpr h.2),

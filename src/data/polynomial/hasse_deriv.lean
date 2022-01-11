@@ -196,9 +196,9 @@ lemma nat_degree_hasse_deriv [no_zero_smul_divisors ℕ R] (p : polynomial R) (n
 begin
   cases lt_or_le p.nat_degree n with hn hn,
   { simpa [hasse_deriv_eq_zero_of_lt_nat_degree, hn] using (tsub_eq_zero_of_le hn.le).symm },
-  { refine map_nat_degree_eq_sub _ hn ((hasse_deriv n).map_zero) _ _ _,
+  -- { refine map_nat_degree_eq_sub _ hn ((hasse_deriv n).map_zero) _ _ _,
+  { refine map_nat_degree_eq_sub _ _,
     { exact λ h, hasse_deriv_eq_zero_of_lt_nat_degree _ _ },
-    { exact (hasse_deriv n).map_add },
     { classical,
       simp only [ite_eq_right_iff, ne.def, nat_degree_monomial, hasse_deriv_monomial],
       intros k c c0 hh,

@@ -78,12 +78,10 @@ by rw [taylor_coeff, hasse_deriv_one]
 @[simp] lemma nat_degree_taylor (p : polynomial R) (r : R) :
   nat_degree (taylor r p) = nat_degree p :=
 begin
-  refine map_nat_degree_eq_nat_degree (taylor r) p _ _ _,
-  { simp [map_zero] },
-  { simp [map_add] },
-  { nontriviality R,
-    intros n c c0,
-    simp [taylor_monomial, nat_degree_C_mul_eq_of_mul_ne_zero, nat_degree_pow_X_add_C, c0] }
+  refine map_nat_degree_eq_nat_degree _ _,
+  nontriviality R,
+  intros n c c0,
+  simp [taylor_monomial, nat_degree_C_mul_eq_of_mul_ne_zero, nat_degree_pow_X_add_C, c0]
 end
 
 @[simp] lemma taylor_mul {R} [comm_semiring R] (r : R) (p q : polynomial R) :

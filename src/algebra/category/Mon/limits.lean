@@ -135,7 +135,7 @@ by { change comm_monoid (F.obj j), apply_instance }
 @[to_additive]
 instance limit_comm_monoid (F : J ⥤ CommMon.{max v u}) :
   comm_monoid (types.limit_cone (F ⋙ forget CommMon.{max v u})).X :=
-@submonoid_class.to_comm_monoid (Π j, F.obj j) _ _ _
+@submonoid_class.to_comm_monoid (Π j, F.obj j) _ _ _ _
   (Mon.sections_submonoid (F ⋙ forget₂ CommMon Mon.{max v u}))
 
 /-- We show that the forgetful functor `CommMon ⥤ Mon` creates limits.

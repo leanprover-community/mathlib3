@@ -166,7 +166,7 @@ instance limit_comm_semiring (F : J ⥤ CommSemiRing.{max v u}) :
   comm_semiring (types.limit_cone (F ⋙ forget CommSemiRing.{max v u})).X :=
 @subsemiring_class.to_comm_semiring _
   (SemiRing.sections_subsemiring (F ⋙ forget₂ CommSemiRing SemiRing.{max v u}))
- (Π j, F.obj j) _ _
+  (Π j, F.obj j) _ _ _
 
 /--
 We show that the forgetful functor `CommSemiRing ⥤ SemiRing` creates limits.
@@ -357,7 +357,7 @@ instance limit_comm_ring (F : J ⥤ CommRing.{max v u}) :
   comm_ring (types.limit_cone (F ⋙ forget CommRing.{max v u})).X :=
 @subring_class.to_comm_ring _
   (Ring.sections_subring (F ⋙ forget₂ CommRing Ring.{max v u}))
-  (Π j, F.obj j) _
+  (Π j, F.obj j) _ _ _
 
 /--
 We show that the forgetful functor `CommRing ⥤ Ring` creates limits.

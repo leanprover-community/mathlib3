@@ -151,8 +151,7 @@ by { change comm_group (F.obj j), apply_instance }
 instance limit_comm_group (F : J ⥤ CommGroup.{max v u}) :
   comm_group (types.limit_cone (F ⋙ forget CommGroup.{max v u})).X :=
 @subgroup_class.to_comm_group _
-  (Group.sections_subgroup (F ⋙ forget₂ CommGroup Group.{max v u})) (Π j, F.obj j) _
-  subgroup.subgroup_class
+  (Group.sections_subgroup (F ⋙ forget₂ CommGroup Group.{max v u})) (Π j, F.obj j) _ _
 
 /--
 We show that the forgetful functor `CommGroup ⥤ Group` creates limits.

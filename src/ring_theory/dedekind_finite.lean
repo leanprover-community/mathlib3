@@ -23,6 +23,49 @@ import linear_algebra.finite_dimensional
   https://etd.ohiolink.edu/apexprod/rws_etd/send_file/send?accession=osu1586355818066608&disposition=inline
 
 -/
+
+
+namespace is_reduced
+variable (R : Type*)
+-- reduced for poly instance
+-- reduced for fields
+-- reduced for subrings, sums, pis
+-- reduced for int nat
+@[simp]
+lemma is_nilpotent_iff_zero [monoid_with_zero R] [is_reduced R] (a : R) : is_nilpotent a ↔ a = 0 :=
+⟨eq_zero a, λ h, h.symm ▸ is_nilpotent.zero⟩
+end is_reduced
+
+class is_reversible (R : Type*) [monoid_with_zero R] : Prop :=
+(zero_div_comm : ∀ a b : R, a * b = 0 → b * a = 0)
+namespace is_reversible
+variable (R : Type*)
+
+@[priority 100]
+instance is_reversible_of_domain [monoid_with_zero R] [no_zero_divisors R] : is_reversible R :=
+⟨λ a b h,
+  begin
+    rcases eq_zero_or_eq_zero_of_mul_eq_zero h with rfl | rfl,
+    { rw [mul_zero], },
+    { rw [zero_mul], },
+  end⟩
+
+
+@[priority 100]
+instance reversible_of_reduced [ring R] [is_reduced R] : is_reversible R :=
+⟨λ a b h,
+  begin
+    apply is_reduced.eq_zero (b * a),
+    use 2,
+    rw [pow_two, ← mul_assoc, mul_assoc b, h, mul_zero, zero_mul],
+  end⟩
+
+@[priority 100]
+instance reversible_of_comm_ring [comm_ring R] : is_reversible R :=
+⟨λ a b h, h ▸ mul_comm b a⟩
+
+end is_reversible
+
 namespace dedekind_finite
 
 section
@@ -58,48 +101,8 @@ variables (R : Type*)
 -- [is_subring S] : is_dedekind_finite S :=
 --by subtype_instance
 
--- def is_nilpotent {R : Type*} [ring R] (a : R) := ∃ n : ℕ, a^n = 0
-def nilpotents [ring R] : set R := { a : R | is_nilpotent a }
 -- TODO would be nice to set this up as the radical of the zero ideal but currently there doesn't
 --  seem to be much about one-sided ideals in non-comm rings
-
-class is_reduced_ring [ring R] : Prop :=
-(no_nilpotents : ∀ a : R, is_nilpotent a → a = 0)
-
-lemma nilpotents_of_reduced [ring R] [is_reduced_ring R] : nilpotents R = {0} :=
-begin
-  apply set.eq_of_subset_of_subset,
-  { rw set.subset_singleton_iff,
-    exact is_reduced_ring.no_nilpotents, },
-  { rw set.singleton_subset_iff,
-    exact submonoid.mem_powers 0, }
-end
-
-class is_reversible [monoid_with_zero R] : Prop :=
-(zero_div_comm : ∀ a b : R, a * b = 0 → b * a = 0)
-
-@[priority 100]
-instance is_reversible_of_domain [monoid_with_zero R] [no_zero_divisors R] : is_reversible R :=
-⟨λ a b h,
-  begin
-    rcases eq_zero_or_eq_zero_of_mul_eq_zero h with rfl | rfl,
-    { rw [mul_zero], },
-    { rw [zero_mul], },
-  end⟩
-
-
-@[priority 100]
-instance reversible_of_reduced [ring R] [is_reduced_ring R] : is_reversible R :=
-⟨λ a b h,
-  begin
-    apply is_reduced_ring.no_nilpotents (b * a),
-    use [2],
-    rw [pow_two, ← mul_assoc, mul_assoc b, h, mul_zero, zero_mul],
-  end⟩
-
-@[priority 100]
-instance reversible_of_comm_ring [comm_ring R] : is_reversible R :=
-⟨λ a b h, h ▸ mul_comm b a⟩
 
 @[priority 100]
 instance is_dedekind_finite_of_reversible [ring R] [is_reversible R] :
@@ -119,7 +122,7 @@ instance is_dedekind_finite_of_reversible [ring R] [is_reversible R] :
   end⟩
 
 @[priority 100]
-instance is_dedekind_finite_of_reduced [ring R] [is_reduced_ring R] : is_dedekind_finite R :=
+instance is_dedekind_finite_of_reduced [ring R] [is_reduced R] : is_dedekind_finite R :=
 by apply_instance
 
 
@@ -326,31 +329,29 @@ by rw [pow_two, e_orthogonal hab, if_neg (ne.symm hij)]
 
 open_locale classical
 
-lemma is_dedekind_finite_of_fin_nilpotents (R : Type*) [ring R] (h : (nilpotents R).finite) :
+lemma is_dedekind_finite_of_fin_nilpotents (R : Type*) [ring R] (h : {x : R | is_nilpotent x}.finite) :
   is_dedekind_finite R :=
 begin
   apply is_dedekind_finite.mk,
   contrapose! h,
-  rintro ⟨hinf⟩,
-  haveI : infinite (nilpotents R),
-  { rcases h with ⟨a, b, hab, hba⟩,
-    refine infinite.of_injective
-      (λ n, ⟨e a b (n + 1) 0, 2, e_pow_two_eq_zero_of_ne hab n.succ_ne_zero⟩) _,
-    intros n m hnm,
-    rw [subtype.mk_eq_mk] at hnm,
-    by_contradiction h,
-    have : e a b 0 (n + 1) * e a b (m + 1) 0 = 0,
-    { rw [e_orthogonal hab, if_neg],
-      intro hmn,
-      exact h ((add_left_inj 1).mp hmn) },
-    apply absurd _ hba.symm,
-    rw ← sub_eq_zero,
-    calc 1 - b * a
-         = e a b 0 0                         : by rw [e, pow_zero, pow_zero, mul_one, one_mul]
-    ...  = e a b 0 (n + 1) * e a b (n + 1) 0 : by rw [e_orthogonal hab, if_pos rfl]
-    ...  = e a b 0 (n + 1) * e a b (m + 1) 0 : by rw hnm
-    ...  = 0                                 : this, },
-  exact infinite.not_fintype hinf,
+  rw [← set.not_infinite, not_not, ← set.infinite_coe_iff],
+  rcases h with ⟨a, b, hab, hba⟩,
+  refine infinite.of_injective
+    (λ n, ⟨e a b (n + 1) 0, 2, e_pow_two_eq_zero_of_ne hab n.succ_ne_zero⟩) _,
+  intros n m hnm,
+  rw [subtype.mk_eq_mk] at hnm,
+  by_contradiction h,
+  have : e a b 0 (n + 1) * e a b (m + 1) 0 = 0,
+  { rw [e_orthogonal hab, if_neg],
+    intro hmn,
+    exact h ((add_left_inj 1).mp hmn) },
+  apply absurd _ hba.symm,
+  rw ← sub_eq_zero,
+  calc 1 - b * a
+       = e a b 0 0                         : by rw [e, pow_zero, pow_zero, mul_one, one_mul]
+  ...  = e a b 0 (n + 1) * e a b (n + 1) 0 : by rw [e_orthogonal hab, if_pos rfl]
+  ...  = e a b 0 (n + 1) * e a b (m + 1) 0 : by rw hnm
+  ...  = 0                                 : this,
 end
 
 end

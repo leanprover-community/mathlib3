@@ -75,7 +75,7 @@ begin
     exact submonoid.mem_powers 0, }
 end
 
-class is_reversible [monoid_with_zero R] :=
+class is_reversible [monoid_with_zero R] : Prop :=
 (zero_div_comm : ∀ a b : R, a * b = 0 → b * a = 0)
 
 @[priority 100]
@@ -275,8 +275,6 @@ end
 
 section
 
-private lemma aux1 {i j : ℕ} : j - i = j + 1 - (i + 1) := by simp
-
 variable {R : Type*}
 
 lemma pow_mul_pow_eq_pow_sub_mul_pow_sub_of_mul_eq_one [monoid R] {a b : R} (hab : a * b = 1) :
@@ -322,7 +320,7 @@ begin
     simp [H], },
 end
 
-lemma e_ne_pow_two [ring R] {a b : R} (hab : a * b = 1) {i j : ℕ} (hij : i ≠ j) :
+lemma e_pow_two_eq_zero_of_ne [ring R] {a b : R} (hab : a * b = 1) {i j : ℕ} (hij : i ≠ j) :
   e a b i j ^ 2 = 0 :=
 by rw [pow_two, e_orthogonal hab, if_neg (ne.symm hij)]
 
@@ -336,14 +334,15 @@ begin
   rintro ⟨hinf⟩,
   haveI : infinite (nilpotents R),
   { rcases h with ⟨a, b, hab, hba⟩,
-    refine infinite.of_injective (λ n, ⟨e a b (n + 1) 0, 2, e_ne_pow_two hab n.succ_ne_zero⟩) _,
+    refine infinite.of_injective
+      (λ n, ⟨e a b (n + 1) 0, 2, e_pow_two_eq_zero_of_ne hab n.succ_ne_zero⟩) _,
     intros n m hnm,
     rw [subtype.mk_eq_mk] at hnm,
     by_contradiction h,
     have : e a b 0 (n + 1) * e a b (m + 1) 0 = 0,
     { rw [e_orthogonal hab, if_neg],
-      intro a_2,
-      exact h ((add_left_inj 1).mp a_2) },
+      intro hmn,
+      exact h ((add_left_inj 1).mp hmn) },
     apply absurd _ hba.symm,
     rw ← sub_eq_zero,
     calc 1 - b * a

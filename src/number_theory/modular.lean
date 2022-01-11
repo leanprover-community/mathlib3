@@ -429,7 +429,7 @@ begin
   { -- case 2 ≤ |c|
     exfalso,
     have : 2^4 ≤ c^4,
-    { refine fourth_le_fourth _,
+    { refine pow_four_le_pow_four _,
       convert h using 1, },
     have : (2:ℝ)^4 ≤ c^4,
     { norm_cast,

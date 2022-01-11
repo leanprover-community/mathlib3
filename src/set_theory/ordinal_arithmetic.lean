@@ -869,7 +869,7 @@ There are two kinds of indexed families that naturally arise when dealing with o
 indexed by some type in the appropriate universe, and those indexed by ordinals less than another.
 The following API allows one to convert from one kind of family to the other.
 
-In many cases, this makes it possible to prove claims about one kind of family via the corresponding
+In many cases, this makes it easy to prove claims about one kind of family via the corresponding
 claim on the other. -/
 
 /-- Converts a family indexed by a `Type u` to one indexed by an `ordinal.{u}` using a specified
@@ -894,21 +894,21 @@ given by the axiom of choice. -/
 def family_of_bfamily (o : ordinal.{u}) (f : Π a < o, α) : o.out.α → α :=
 family_of_bfamily' o.out.r (type_out o) f
 
-theorem bfamily_of_family'_typein {ι} (r : ι → ι → Prop) [is_well_order ι r] (f : ι → α) (i) :
-  f i = bfamily_of_family' r f (typein r i) (typein_lt_type r i) :=
+@[simp] theorem bfamily_of_family'_typein {ι} (r : ι → ι → Prop) [is_well_order ι r] (f : ι → α)
+  (i) : bfamily_of_family' r f (typein r i) (typein_lt_type r i) = f i :=
 by simp only [bfamily_of_family', enum_typein]
 
-theorem bfamily_of_family_typein {ι} (f : ι → α) (i) :
-  f i = bfamily_of_family f (typein _ i) (typein_lt_type _ i) :=
+@[simp] theorem bfamily_of_family_typein {ι} (f : ι → α) (i) :
+  bfamily_of_family f (typein _ i) (typein_lt_type _ i) = f i :=
 bfamily_of_family'_typein  _ f i
 
-theorem family_of_bfamily'_enum {ι : Type u} (r : ι → ι → Prop) [is_well_order ι r] {o}
+@[simp] theorem family_of_bfamily'_enum {ι : Type u} (r : ι → ι → Prop) [is_well_order ι r] {o}
   (ho : type r = o) (f : Π a < o, α) (i hi) :
-  f i hi = family_of_bfamily' r ho f (enum r i (by rwa ho)) :=
+  family_of_bfamily' r ho f (enum r i (by rwa ho)) = f i hi :=
 by simp only [family_of_bfamily', typein_enum]
 
-theorem family_of_bfamily_enum (o : ordinal.{u}) (f : Π a < o, α) (i hi) :
-  f i hi = family_of_bfamily o f (enum o.out.r i (by { convert hi, exact type_out _ })) :=
+@[simp] theorem family_of_bfamily_enum (o : ordinal.{u}) (f : Π a < o, α) (i hi) :
+  family_of_bfamily o f (enum o.out.r i (by { convert hi, exact type_out _ })) = f i hi :=
 family_of_bfamily'_enum _ (type_out o) f _ _
 
 /-! ### Supremum of a family of ordinals -/

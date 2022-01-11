@@ -167,9 +167,8 @@ begin
   split,
   { intro hdn,
     set K := n.factorization - d.factorization with hK,
-    -- rw dvd_iff_exists_eq_mul_left,
     use K.prod pow,
-    rw [←(factorization_prod_pow_eq_self hn), ←(factorization_prod_pow_eq_self hd),
+    rw [←factorization_prod_pow_eq_self hn, ←factorization_prod_pow_eq_self hd,
         ←finsupp.prod_add_index pow_zero pow_add, hK, add_tsub_cancel_of_le hdn] },
   { rintro ⟨c, rfl⟩, rw factorization_mul hd (right_ne_zero_of_mul hn), simp },
 end

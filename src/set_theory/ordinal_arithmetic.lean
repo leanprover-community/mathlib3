@@ -2151,7 +2151,7 @@ theorem is_normal.fp_iff_deriv {f} (H : is_normal f) {a} : f a = a ↔ ∃ o, de
 by rw [←H.fp_iff_deriv', H.self_le_iff_eq]
 
 /-- `deriv f` is the fixed point enumerator of `f`. -/
-theorem deriv_eq_enum_fp {f} (H : is_normal f) : deriv f = enum_ord H.nfp_unbounded :=
+theorem deriv_eq_enum_fp {f} (H : is_normal f) : deriv f = enum_ord _ H.nfp_unbounded :=
 begin
   rw [←eq_enum_ord, range_eq_iff],
   use (deriv_is_normal f).strict_mono,
@@ -2188,7 +2188,7 @@ begin
 end
 
 theorem mul_omega_nfp_add_self (a) : a * omega = nfp ((+) a) a :=
-mul_omega_nfp_add_of_le_mul_omega (le_mul_left omega_pos)
+mul_omega_nfp_add_of_le_mul_omega (le_mul_left _ omega_pos)
 
 theorem add_fp_iff_mul_omega_le {a b : ordinal} : a + b = b ↔ a * omega.{u} ≤ b :=
 begin
@@ -2206,7 +2206,7 @@ theorem add_fp_iff_mul_omega_le' {a b : ordinal} : a + b ≤ b ↔ a * omega.{u}
 by { rw ←add_fp_iff_mul_omega_le, exact (add_is_normal a).self_le_iff_eq }
 
 /-- `deriv ((+) a)` enumerates the ordinals larger or equal to `a * ω`. -/
-theorem add_deriv_eq_enum_ge_mul_omega (a) : deriv ((+) a) = enum_ord (mul_omega_unbounded a) :=
+theorem add_deriv_eq_enum_ge_mul_omega (a) : deriv ((+) a) = enum_ord _ (mul_omega_unbounded a) :=
 begin
   rw ←eq_enum_ord,
   use (deriv_is_normal _).strict_mono,
@@ -2221,7 +2221,7 @@ end
 /-! ### Fixed points of multiplication -/
 
 theorem dvd_unbounded {a : ordinal} (ha : 0 < a) : unbounded (<) {b | a ∣ b} :=
-λ b, ⟨_, dvd_mul_right a b, not_lt_of_le (le_mul_right ha)⟩
+λ b, ⟨_, dvd_mul_right a b, not_lt_of_le (le_mul_right _ ha)⟩
 
 theorem dvd_power_omega_unbounded {a : ordinal} (ha : 0 < a) :
   unbounded (<) {b : ordinal | (a ^ ordinal.omega) ∣ b} :=
@@ -2318,7 +2318,7 @@ by { rw ←mul_fp_iff_dvd_power_omega, exact (mul_is_normal ha).self_le_iff_eq }
 
 /-- `deriv ((*) a)` enumerates the multiples of `a ^ ω`. -/
 theorem mul_deriv_eq_enum_dvd_power_omega {a : ordinal} (ha : 0 < a) :
-  deriv ((*) a) = enum_ord (dvd_power_omega_unbounded ha) :=
+  deriv ((*) a) = enum_ord _ (dvd_power_omega_unbounded ha) :=
 begin
   rw ←eq_enum_ord,
   use (deriv_is_normal _).strict_mono,

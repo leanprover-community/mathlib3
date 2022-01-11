@@ -241,7 +241,7 @@ theorem eq_aleph'_of_eq_card_ord {o : ordinal} (ho : o.card.ord = o) : ∃ a, (a
 ⟨cardinal.aleph_idx.rel_iso o.card, by { simp, exact ho }⟩
 
 /-- `ord ∘ aleph'` enumerates the ordinals that are cardinals. -/
-theorem ord_aleph'_eq_enum_card : ord ∘ aleph' = enum_ord ord_aleph'_unbounded :=
+theorem ord_aleph'_eq_enum_card : ord ∘ aleph' = enum_ord _ ord_aleph'_unbounded :=
 begin
   rw [←eq_enum_ord, range_eq_iff],
   exact ⟨aleph'_is_normal.strict_mono, ⟨(λ a, ord_mem), λ b hb, eq_aleph'_of_eq_card_ord hb⟩⟩
@@ -263,7 +263,7 @@ begin
 end
 
 /-- `ord ∘ aleph` enumerates the infinite ordinals that are cardinals. -/
-theorem ord_aleph_eq_enum_card : ord ∘ aleph = enum_ord ord_aleph_unbounded :=
+theorem ord_aleph_eq_enum_card : ord ∘ aleph = enum_ord _ ord_aleph_unbounded :=
 begin
   rw ←eq_enum_ord,
   use aleph_is_normal.strict_mono,

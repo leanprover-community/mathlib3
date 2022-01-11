@@ -112,7 +112,7 @@ linear_equiv.of_linear (dual_tensor_hom R M N) (hom_dual_tensor R M N b)
 @[simp] lemma dual_tensor_hom_equiv_of_basis_coe :
   ↑(dual_tensor_hom_equiv_of_basis b : (module.dual R M) ⊗[R] N ≃ₗ[R] M →ₗ[R] N) =
   dual_tensor_hom R M N :=
-by {ext x m, simp [dual_tensor_hom_equiv_of_basis] }
+rfl
 
 end comm_ring
 

@@ -226,7 +226,7 @@ protected lemma real.continuous_mul : continuous (λp : ℝ × ℝ, p.1 * p.2) :
 continuous_iff_continuous_at.2 $ λ ⟨a₁, a₂⟩,
 tendsto_of_uniform_continuous_subtype
   (real.uniform_continuous_mul
-    ({x | |x| < |a₁| + 1}.prod {x | |x| < |a₂| + 1})
+    ({x | |x| < |a₁| + 1} ×ˢ {x | |x| < |a₂| + 1})
     (λ x, id))
   (is_open.mem_nhds
     (((is_open_gt' (|a₁| + 1)).preimage continuous_abs).prod

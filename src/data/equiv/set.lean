@@ -101,7 +101,7 @@ lemma eq_preimage_iff_image_eq {α β} (e : α ≃ β) (s t) : s = e ⁻¹' t �
 set.eq_preimage_iff_image_eq e.bijective
 
 lemma prod_assoc_preimage {α β γ} {s : set α} {t : set β} {u : set γ} :
-  equiv.prod_assoc α β γ ⁻¹' s.prod (t.prod u) = (s.prod t).prod u :=
+  equiv.prod_assoc α β γ ⁻¹' (s ×ˢ (t ×ˢ u)) = (s ×ˢ t) ×ˢ u :=
 by { ext, simp [and_assoc] }
 
 /-- A set `s` in `α × β` is equivalent to the sigma-type `Σ x, {y | (x, y) ∈ s}`. -/
@@ -338,7 +338,7 @@ protected def compl {α : Type u} {β : Type v} {s : set α} {t : set β} [decid
 
 /-- The set product of two sets is equivalent to the type product of their coercions to types. -/
 protected def prod {α β} (s : set α) (t : set β) :
-  s.prod t ≃ s × t :=
+  ↥(s ×ˢ t) ≃ s × t :=
 @subtype_prod_equiv_prod α β s t
 
 /-- If a function `f` is injective on a set `s`, then `s` is equivalent to `f '' s`. -/

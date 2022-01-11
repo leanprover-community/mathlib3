@@ -1898,7 +1898,7 @@ lemma integral_has_fderiv_within_at_of_tendsto_ae
   (hmeas_a : measurable_at_filter f la) (hmeas_b : measurable_at_filter f lb)
   (ha : tendsto f (la ⊓ volume.ae) (𝓝 ca)) (hb : tendsto f (lb ⊓ volume.ae) (𝓝 cb)) :
   has_fderiv_within_at (λ p : ℝ × ℝ, ∫ x in p.1..p.2, f x)
-    ((snd ℝ ℝ ℝ).smul_right cb - (fst ℝ ℝ ℝ).smul_right ca) (s.prod t) (a, b) :=
+    ((snd ℝ ℝ ℝ).smul_right cb - (fst ℝ ℝ ℝ).smul_right ca) (s ×ˢ t) (a, b) :=
 begin
   rw [has_fderiv_within_at, nhds_within_prod_eq],
   have := integral_sub_integral_sub_linear_is_o_of_tendsto_ae hf hmeas_a hmeas_b ha hb
@@ -1928,7 +1928,7 @@ lemma integral_has_fderiv_within_at
   {s t : set ℝ} [FTC_filter a (𝓝[s] a) la] [FTC_filter b (𝓝[t] b) lb]
   (ha : tendsto f la (𝓝 $ f a)) (hb : tendsto f lb (𝓝 $ f b)) :
   has_fderiv_within_at (λ p : ℝ × ℝ, ∫ x in p.1..p.2, f x)
-    ((snd ℝ ℝ ℝ).smul_right (f b) - (fst ℝ ℝ ℝ).smul_right (f a)) (s.prod t) (a, b) :=
+    ((snd ℝ ℝ ℝ).smul_right (f b) - (fst ℝ ℝ ℝ).smul_right (f a)) (s ×ˢ t) (a, b) :=
 integral_has_fderiv_within_at_of_tendsto_ae hf hmeas_a hmeas_b (ha.mono_left inf_le_left)
   (hb.mono_left inf_le_left)
 
@@ -1940,7 +1940,7 @@ meta def unique_diff_within_at_Ici_Iic_univ : tactic unit :=
 
 /-- Let `f` be a measurable function integrable on `a..b`. Choose `s ∈ {Iic a, Ici a, univ}`
 and `t ∈ {Iic b, Ici b, univ}`. Suppose that `f` tends to `ca` and `cb` almost surely at the filters
-`la` and `lb` from the table below. Then `fderiv_within ℝ (λ p, ∫ x in p.1..p.2, f x) (s.prod t)`
+`la` and `lb` from the table below. Then `fderiv_within ℝ (λ p, ∫ x in p.1..p.2, f x) (s ×ˢ t)`
 is equal to `(u, v) ↦ u • cb - v • ca`.
 
 | `s`     | `la`     | `t`     | `lb`     |
@@ -1957,7 +1957,7 @@ lemma fderiv_within_integral_of_tendsto_ae
   (ha : tendsto f (la ⊓ volume.ae) (𝓝 ca)) (hb : tendsto f (lb ⊓ volume.ae) (𝓝 cb))
   (hs : unique_diff_within_at ℝ s a . unique_diff_within_at_Ici_Iic_univ)
   (ht : unique_diff_within_at ℝ t b . unique_diff_within_at_Ici_Iic_univ) :
-  fderiv_within ℝ (λ p : ℝ × ℝ, ∫ x in p.1..p.2, f x) (s.prod t) (a, b) =
+  fderiv_within ℝ (λ p : ℝ × ℝ, ∫ x in p.1..p.2, f x) (s ×ˢ t) (a, b) =
     ((snd ℝ ℝ ℝ).smul_right cb - (fst ℝ ℝ ℝ).smul_right ca) :=
 (integral_has_fderiv_within_at_of_tendsto_ae hf hmeas_a hmeas_b ha hb).fderiv_within $ hs.prod ht
 

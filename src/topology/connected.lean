@@ -309,7 +309,7 @@ hs.subset_left_of_subset_union hv hu huv.symm (union_comm u v ▸ hsuv) hsv
 
 theorem is_preconnected.prod [topological_space β] {s : set α} {t : set β}
   (hs : is_preconnected s) (ht : is_preconnected t) :
-  is_preconnected (s.prod t) :=
+  is_preconnected (s ×ˢ t) :=
 begin
   apply is_preconnected_of_forall_pair,
   rintro ⟨a₁, b₁⟩ ⟨ha₁, hb₁⟩ ⟨a₂, b₂⟩ ⟨ha₂, hb₂⟩,
@@ -322,7 +322,7 @@ begin
 end
 
 theorem is_connected.prod [topological_space β] {s : set α} {t : set β}
-  (hs : is_connected s) (ht : is_connected t) : is_connected (s.prod t) :=
+  (hs : is_connected s) (ht : is_connected t) : is_connected (s ×ˢ t) :=
 ⟨hs.1.prod ht.1, hs.2.prod ht.2⟩
 
 theorem is_preconnected_univ_pi [Π i, topological_space (π i)] {s : Π i, set (π i)}

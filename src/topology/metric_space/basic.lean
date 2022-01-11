@@ -1288,11 +1288,11 @@ lemma prod.dist_eq [pseudo_metric_space β] {x y : α × β} :
   dist x y = max (dist x.1 y.1) (dist x.2 y.2) := rfl
 
 theorem ball_prod_same [pseudo_metric_space β] (x : α) (y : β) (r : ℝ) :
-  (ball x r).prod (ball y r) = ball (x, y) r :=
+  ball x r ×ˢ ball y r = ball (x, y) r :=
 ext $ λ z, by simp [prod.dist_eq]
 
 theorem closed_ball_prod_same [pseudo_metric_space β] (x : α) (y : β) (r : ℝ) :
-  (closed_ball x r).prod (closed_ball y r) = closed_ball (x, y) r :=
+  closed_ball x r ×ˢ closed_ball y r = closed_ball (x, y) r :=
 ext $ λ z, by simp [prod.dist_eq]
 
 end prod

@@ -1633,7 +1633,7 @@ begin
   rw [filter.mem_map, mem_prod_iff] at this ⊢,
   obtain ⟨U, hU, V, hV, h⟩ := this,
   exact ⟨V, hV, U, hU, λ y hy, ((mul_comm y.2 y.1) ▸
-    h (⟨hy.2, hy.1⟩ : (prod.mk y.2 y.1) ∈ (U.prod V)) : y.1 * y.2 ∈ s)⟩,
+    h (⟨hy.2, hy.1⟩ : (prod.mk y.2 y.1) ∈ U ×ˢ V) : y.1 * y.2 ∈ s)⟩,
 end
 
 lemma nhds_eq_map_mul_left_nhds_one {x₀ : α} (hx₀ : x₀ ≠ 0) :

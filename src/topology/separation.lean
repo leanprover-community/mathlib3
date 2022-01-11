@@ -908,7 +908,7 @@ ext $ assume p, iff.intro
   (assume ⟨x, hx⟩, show p.1 = p.2, by rw ←hx)
 
 lemma prod_subset_compl_diagonal_iff_disjoint {α : Type*} {s t : set α} :
-  set.prod s t ⊆ {p:α×α | p.1 = p.2}ᶜ ↔ s ∩ t = ∅ :=
+  s ×ˢ t ⊆ {p:α×α | p.1 = p.2}ᶜ ↔ s ∩ t = ∅ :=
 by rw [eq_empty_iff_forall_not_mem, subset_compl_comm,
        diagonal_eq_range_diagonal_map, range_subset_iff]; simp
 

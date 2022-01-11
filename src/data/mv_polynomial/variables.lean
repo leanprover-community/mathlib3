@@ -640,6 +640,15 @@ begin
   refl
 end
 
+lemma mv_polynomial.total_degree_finset_sum {ι : Type*} [decidable_eq ι]
+  (s : finset ι) (f : ι → mv_polynomial σ R) :
+  (s.sum f).total_degree ≤ finset.sup s (mv_polynomial.total_degree ∘ f) :=
+finset.induction_on s (zero_le _)
+(λ a s has hind, by rw finset.sum_insert has;
+  exact le_trans (mv_polynomial.total_degree_add _ _)
+    ( by rw [max_le_iff, finset.sup_insert];
+      exact ⟨ le_sup_iff.mpr $ or.inl (le_of_eq rfl) , le_sup_iff.mpr $ or.inr hind ⟩))
+
 lemma exists_degree_lt [fintype σ] (f : mv_polynomial σ R) (n : ℕ)
   (h : f.total_degree < n * fintype.card σ) {d : σ →₀ ℕ} (hd : d ∈ f.support) :
   ∃ i, d i < n :=

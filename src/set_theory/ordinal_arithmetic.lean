@@ -1048,13 +1048,13 @@ end
 lemma lsub_eq_zero {ι} [h : is_empty ι] (f : ι → ordinal) : lsub f = 0 :=
 by { rw [←ordinal.le_zero, lsub_le_iff_lt], exact h.elim }
 
-lemma zero_lt_lsub {ι} [h : nonempty ι] (f : ι → ordinal) : 0 < lsub f :=
+lemma lsub_pos {ι} [h : nonempty ι] (f : ι → ordinal) : 0 < lsub f :=
 h.elim $ λ i, (ordinal.zero_le _).trans_lt (lt_lsub f i)
 
 @[simp] theorem lsub_eq_zero_iff {ι} {f : ι → ordinal} : lsub f = 0 ↔ is_empty ι :=
 begin
   refine ⟨λ h, ⟨λ i, _⟩, λ h, @lsub_eq_zero _ h _⟩,
-  have := @zero_lt_lsub _ ⟨i⟩ f,
+  have := @lsub_pos _ ⟨i⟩ f,
   rw h at this,
   exact lt_irrefl 0 this
 end

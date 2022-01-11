@@ -1112,7 +1112,7 @@ unbounded_aux hS _
 /-- The equation that characterizes `enum_ord` definitionally. This isn't the nicest expression to
 work with, so consider using `enum_ord_def` instead. -/
 theorem enum_ord_def' (o) :
-  enum_ord S hS o = omin (λ b, _ ∧ blsub.{u u} o (λ c _, enum_ord S hS c) ≤ b) enum_ord_def'_H :=
+  enum_ord S hS o = omin (S ∩ {b | blsub.{u u} o (λ c _, enum_ord S hS c) ≤ b}) enum_ord_def'_H :=
 wf.fix_eq _ _
 
 private theorem enum_ord_mem_aux (o) :
@@ -1130,12 +1130,12 @@ theorem enum_ord.strict_mono : strict_mono (enum_ord S hS) :=
 
 /-- The hypothesis that asserts that the `omin` from `enum_ord_def` exists. -/
 lemma enum_ord_def_H {hS : unbounded (<) S} {o} :
-  ∃ x, (λ b, b ∈ S ∧ ∀ c, c < o → enum_ord S hS c < b) x :=
+  ∃ x, x ∈ S ∧ ∀ c, c < o → enum_ord S hS c < x :=
 (⟨_, enum_ord_mem hS o, λ _ b, enum_ord.strict_mono hS b⟩)
 
 /-- A more workable definition for `enum_ord`. -/
 theorem enum_ord_def (o) :
-  enum_ord S hS o = omin (λ b, b ∈ S ∧ ∀ c, c < o → enum_ord S hS c < b) enum_ord_def_H :=
+  enum_ord S hS o = omin (S ∩ {b | ∀ c, c < o → enum_ord S hS c < b}) enum_ord_def_H :=
 begin
   rw enum_ord_def',
   convert rfl,

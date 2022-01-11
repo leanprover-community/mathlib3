@@ -604,10 +604,10 @@ quotient.induction_on₃ a b c $ λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨γ, t, _⟩
   { exact prod.lex.right _ (f.to_rel_embedding.map_rel_iff.2 h') }
 end
 
-theorem le_mul_left {a b : ordinal} (hb : 0 < b) : a ≤ a * b :=
+theorem le_mul_left (a : ordinal) {b : ordinal} (hb : 0 < b) : a ≤ a * b :=
 by { convert mul_le_mul_left a (one_le_iff_pos.2 hb), rw mul_one a }
 
-theorem le_mul_right {a b : ordinal} (hb : 0 < b) : a ≤ b * a :=
+theorem le_mul_right (a : ordinal) {b : ordinal} (hb : 0 < b) : a ≤ b * a :=
 by { convert mul_le_mul_right a (one_le_iff_pos.2 hb), rw one_mul a }
 
 theorem mul_le_mul {a b c d : ordinal} (h₁ : a ≤ c) (h₂ : b ≤ d) : a * b ≤ c * d :=
@@ -1534,9 +1534,9 @@ else by simp only [log_not_one_lt b1, ordinal.zero_le]
 if hb : 1 < b then by rwa [←lt_one_iff_zero, log_lt hb zero_lt_one, power_one]
 else log_not_one_lt hb 1
 
-lemma power_mul_add_pos {b v : ordinal} (u w : ordinal) (hb : 0 < b) (hv : 0 < v) :
+lemma power_mul_add_pos {b v : ordinal} (hb : 0 < b) (u) (hv : 0 < v) (w) :
   0 < b ^ u * v + w :=
-(power_pos u hb).trans_le ((le_mul_left hv).trans (le_add_right _ _))
+(power_pos u hb).trans_le ((le_mul_left _ hv).trans (le_add_right _ _))
 
 lemma power_mul_add_lt_power_mul_succ {b u w : ordinal} (v : ordinal) (hw : w < b ^ u) :
   b ^ u * v + w < b ^ u * v.succ :=
@@ -1552,20 +1552,29 @@ end
 theorem log_power_mul_add {b u v w : ordinal} (hb : 1 < b) (hv : 0 < v) (hvb : v < b)
   (hw : w < b ^ u) : log b (b ^ u * v + w) = u :=
 begin
-  have hpos := power_mul_add_pos u w (zero_lt_one.trans hb) hv,
+  have hpos := power_mul_add_pos (zero_lt_one.trans hb) u hv w,
   by_contra' hne,
   cases lt_or_gt_of_ne hne with h h,
   { rw log_lt hb hpos at h,
-    exact not_le_of_lt h ((le_mul_left hv).trans (le_add_right _ _)) },
-  change _ < _ at h,
-  rw [←succ_le, le_log hb hpos] at h,
-  exact (not_lt_of_le h) (power_mul_add_lt_power_succ hvb hw)
+    exact not_le_of_lt h ((le_mul_left _ hv).trans (le_add_right _ _)) },
+  { change _ < _ at h,
+    rw [←succ_le, le_log hb hpos] at h,
+    exact (not_lt_of_le h) (power_mul_add_lt_power_succ hvb hw) }
 end
 
-@[simp] theorem log_power {b : ordinal} (x : ordinal) (hb : 1 < b) : log b (b ^ x) = x :=
+@[simp] theorem log_power {b : ordinal} (hb : 1 < b) (x : ordinal) : log b (b ^ x) = x :=
 begin
   convert log_power_mul_add hb zero_lt_one hb (power_pos x (zero_lt_one.trans hb)),
   rw [add_zero, mul_one]
+end
+
+theorem add_log_le_log_mul {x y : ordinal} (b : ordinal) (x0 : 0 < x) (y0 : 0 < y) :
+  log b x + log b y ≤ log b (x * y) :=
+begin
+  by_cases hb : 1 < b,
+  { rw [le_log hb (mul_pos x0 y0), power_add],
+    exact mul_le_mul (power_log_le b x0) (power_log_le b y0) },
+  simp only [log_not_one_lt hb, zero_add]
 end
 
 /-! ### The Cantor normal form -/

@@ -702,11 +702,11 @@ begin
 end
 
 lemma is_path_connected.joined_in (h : is_path_connected F) : ∀ x y ∈ F, joined_in F x y :=
-λ x y x_in y_in, let ⟨b, b_in, hb⟩ := h in (hb x_in).symm.trans (hb y_in)
+λ x x_in x y_in, let ⟨b, b_in, hb⟩ := h in (hb x_in).symm.trans (hb y_in)
 
 lemma is_path_connected_iff : is_path_connected F ↔ F.nonempty ∧ ∀ x y ∈ F, joined_in F x y :=
 ⟨λ h, ⟨let ⟨b, b_in, hb⟩ := h in ⟨b, b_in⟩, h.joined_in⟩,
- λ ⟨⟨b, b_in⟩, h⟩, ⟨b, b_in, λ x x_in, h b x b_in x_in⟩⟩
+ λ ⟨⟨b, b_in⟩, h⟩, ⟨b, b_in, λ x x_in, h b b_in x x_in⟩⟩
 
 lemma is_path_connected.image {Y : Type*} [topological_space Y] (hF : is_path_connected F)
   {f : X → Y} (hf : continuous f) : is_path_connected (f '' F) :=
@@ -719,7 +719,7 @@ end
 
 lemma is_path_connected.mem_path_component (h : is_path_connected F) (x_in : x ∈ F) (y_in : y ∈ F) :
   y ∈ path_component x :=
-(h.joined_in x y x_in y_in).joined
+(h.joined_in x x_in y y_in).joined
 
 lemma is_path_connected.subset_path_component (h : is_path_connected F) (x_in : x ∈ F) :
   F ⊆ path_component x :=
@@ -731,8 +731,8 @@ begin
   rcases hUV with ⟨x, xU, xV⟩,
   use [x, or.inl xU],
   rintros y (yU | yV),
-  { exact (hU.joined_in x y xU yU).mono (subset_union_left U V) },
-  { exact (hV.joined_in x y xV yV).mono (subset_union_right U V) },
+  { exact (hU.joined_in x xU y yU).mono (subset_union_left U V) },
+  { exact (hV.joined_in x xV y yV).mono (subset_union_right U V) },
 end
 
 /-- If a set `W` is path-connected, then it is also path-connected when seen as a set in a smaller
@@ -764,7 +764,7 @@ begin
         { rintros i hi, rw nat.le_zero_iff.mp hi, exact ⟨0, rfl⟩ },
         { rw range_subset_iff, rintros x, exact hp' 0 (le_refl _) } } },
     { rcases hn (λ i hi, hp' i $ nat.le_succ_of_le hi) with ⟨γ₀, hγ₀⟩,
-      rcases h.joined_in (p' n) (p' $ n+1) (hp' n n.le_succ) (hp' (n+1) $ le_refl _) with ⟨γ₁, hγ₁⟩,
+      rcases h.joined_in (p' n) (hp' n n.le_succ) (p' $ n+1) (hp' (n+1) $ le_rfl) with ⟨γ₁, hγ₁⟩,
       let γ : path (p' 0) (p' $ n+1) := γ₀.trans γ₁,
       use γ,
       have range_eq : range γ = range γ₀ ∪ range γ₁ := γ₀.trans_range γ₁,
@@ -850,10 +850,10 @@ begin
   { rintro ⟨⟨x, x_in⟩, h⟩,
     refine ⟨⟨⟨x, x_in⟩⟩, _⟩,
     rintros ⟨y, y_in⟩ ⟨z, z_in⟩,
-    have H := h y z y_in z_in,
+    have H := h y y_in z z_in,
     rwa joined_in_iff_joined y_in z_in at H },
   { rintros ⟨⟨x, x_in⟩, H⟩,
-    refine ⟨⟨x, x_in⟩, λ y z y_in z_in, _⟩,
+    refine ⟨⟨x, x_in⟩, λ y y_in z z_in, _⟩,
     rw joined_in_iff_joined y_in z_in,
     apply H }
 end
@@ -863,8 +863,8 @@ begin
   split,
   { introI h,
     inhabit X,
-    refine ⟨default X, mem_univ _, _⟩,
-    simpa using path_connected_space.joined (default X) },
+    refine ⟨default, mem_univ _, _⟩,
+    simpa using path_connected_space.joined default },
   { intro h,
     have h' := h.joined_in,
     cases h with x h,
@@ -942,10 +942,8 @@ begin
   { introI h,
     apply_instance },
   { introI hX,
-    inhabit X,
-    let x₀ := default X,
     rw path_connected_space_iff_eq,
-    use x₀,
+    use (classical.arbitrary X),
     refine eq_univ_of_nonempty_clopen (by simp) ⟨_, _⟩,
     { rw is_open_iff_mem_nhds,
       intros y y_in,
@@ -957,7 +955,7 @@ begin
       intros y H,
       rcases (path_connected_basis y).ex_mem with ⟨U, ⟨U_in, hU⟩⟩,
       rcases H U U_in with ⟨z, hz, hz'⟩,
-      exact ((hU.joined_in z y hz $ mem_of_mem_nhds U_in).joined.mem_path_component hz') } },
+      exact ((hU.joined_in z hz y $ mem_of_mem_nhds U_in).joined.mem_path_component hz') } },
 end
 
 lemma path_connected_subset_basis [loc_path_connected_space X] {U : set X} (h : is_open U)

@@ -216,7 +216,7 @@ lemma ring_hom.char_p_iff_char_p {K L : Type*} [division_ring K] [semiring L] [n
 begin
   split;
   { introI _c, constructor, intro n,
-    rw [← @char_p.cast_eq_zero_iff _ _ _ p _c n, ← f.injective.eq_iff, f.map_nat_cast, f.map_zero] }
+    rw [← @char_p.cast_eq_zero_iff _ _ _ p _c n, ← f.injective.eq_iff, map_nat_cast f, f.map_zero] }
 end
 
 section frobenius
@@ -278,7 +278,7 @@ theorem frobenius_zero : frobenius R p 0 = 0 := (frobenius R p).map_zero
 theorem frobenius_add : frobenius R p (x + y) = frobenius R p x + frobenius R p y :=
 (frobenius R p).map_add x y
 
-theorem frobenius_nat_cast (n : ℕ) : frobenius R p n = n := (frobenius R p).map_nat_cast n
+theorem frobenius_nat_cast (n : ℕ) : frobenius R p n = n := map_nat_cast (frobenius R p) n
 
 open_locale big_operators
 variables {R}

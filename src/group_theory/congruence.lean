@@ -981,7 +981,7 @@ section units
 
 variables {α : Type*} [monoid M] {c : con M}
 
-/-- In order to define a function `units (con.quotient c) → α` on the units of `con.quotient c`,
+/-- In order to define a function `(con.quotient c)ˣ → α` on the units of `con.quotient c`,
 where `c : con M` is a multiplicative congruence on a monoid, it suffices to define a function `f`
 that takes elements `x y : M` with proofs of `c (x * y) 1` and `c (y * x) 1`, and returns an element
 of `α` provided that `f x y _ _ = f x' y' _ _` whenever `c x x'` and `c y y'`. -/
@@ -1001,7 +1001,7 @@ begin
   exact heq_of_eq (Hf _ _ _ _ _ _ _ _ hx hy)
 end
 
-/-- In order to define a function `units (con.quotient c) → α` on the units of `con.quotient c`,
+/-- In order to define a function `(con.quotient c)ˣ → α` on the units of `con.quotient c`,
 where `c : con M` is a multiplicative congruence on a monoid, it suffices to define a function `f`
 that takes elements `x y : M` with proofs of `c (x * y) 1` and `c (y * x) 1`, and returns an element
 of `α` provided that `f x y _ _ = f x' y' _ _` whenever `c x x'` and `c y y'`. -/

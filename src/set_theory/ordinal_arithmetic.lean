@@ -2167,9 +2167,6 @@ end
 
 /-! ### Fixed points of addition -/
 
-theorem mul_omega_unbounded (o) : unbounded (<) (set.Ici (o * ordinal.omega)) :=
-unbounded_lt_Ici _
-
 theorem add_iterate (a : ordinal) (n : ℕ) : a * n = (((+) a)^[n]) 0 :=
 begin
   induction n with n hn,

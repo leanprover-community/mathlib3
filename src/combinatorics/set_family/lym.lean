@@ -1,12 +1,13 @@
 /-
-Copyright (c) 2022 Bhavik Mehta. All rights reserved.
+Copyright (c) 2022 Bhavik Mehta, Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Bhavik Mehta, Alena Gusakov
+Authors: Bhavik Mehta, Alena Gusakov, Yaël Dillies
 -/
 import algebra.big_operators.ring
 import combinatorics.double_counting
 import combinatorics.set_family.shadow
 import data.rat.order
+import tactic.linarith
 
 /-!
 # Lubell-Yamamoto-Meshalkin inequality and Sperner's theorem
@@ -96,6 +97,12 @@ card_erase_of_mem ha
 lemma sdiff_nonempty [decidable_eq α] {s t : finset α} : (s \ t).nonempty ↔ ¬ s ⊆ t :=
 by rw [nonempty_iff_ne_empty, ne.def, sdiff_eq_empty_iff_subset]
 
+/-- An unbundled relation class stating that `r` is the nonstrict relation corresponding to the
+strict relation `s`. Compare `preorder.lt_iff_le_not_le`. This is mostly meant to be used for `(⊆)`
+and `(⊂)`. -/
+class is_nonstrict_strict_order (α : Type*) (r s : α → α → Prop) :=
+(right_iff_left_not_left {a b : α} : s a b ↔ r a b ∧ ¬ r b a)
+
 lemma exists_eq_insert_iff [decidable_eq α] {s t : finset α} :
   (∃ a ∉ s, insert a s = t) ↔ s ⊆ t ∧ s.card + 1 = t.card :=
 begin
@@ -110,6 +117,63 @@ begin
     rw ←ha,
     exact not_mem_sdiff_of_mem_right hs }
 end
+
+lemma ssubset_of_subset_of_ne {s t : finset α} (h₁ : s ⊆ t) (h₂ : s ≠ t) : s ⊂ t :=
+lt_iff_ssubset.1 $ lt_of_le_of_ne h₁ h₂
+
+lemma _root_.multiset.le_cons (m : multiset α) (a : α) : m ≤ a ::ₘ m :=
+quotient.induction_on m $ λ l, (list.sublist_cons _ _).subperm
+
+lemma _root_.multiset.lt_cons (m : multiset α) (a : α) : m < a ::ₘ m :=
+(m.le_cons _).lt_of_not_le begin
+  sorry
+end
+
+lemma _root_.multiset.subset_cons (m : multiset α) (a : α) : m ⊆ a ::ₘ m :=
+λ _, multiset.mem_cons_of_mem
+
+lemma _root_.multiset.ssubset_cons {m : multiset α} {a : α} (ha : a ∉ m) : m ⊂ a ::ₘ m :=
+λ _, multiset.mem_cons_of_mem
+
+
+lemma subset_cons {s : finset α} {a : α} (h : a ∉ s) : s ⊆ s.cons a h :=
+multiset.subset_cons _ _
+
+lemma ssubset_cons {s : finset α} {a : α} (h : a ∉ s) : s ⊂ s.cons a h :=
+⟨subset_cons h, λ hs, h $ hs $ mem_cons_self _ _⟩
+
+lemma ssubset_iff_exists_cons_subset {s t : finset α} :
+  s ⊂ t ↔ ∃ a (h : a ∉ s), s.cons a h ⊆ t :=
+begin
+  refine ⟨λ h, _, _⟩,
+  {
+    sorry
+  },
+  { rintro ⟨a, ha, h⟩,
+    exact ssubset_of_ssubset_of_subset (ssubset_cons _) h }
+end
+
+lemma ssubset_iff_exists_insert_subset [decidable_eq α] {s t : finset α} :
+  s ⊂ t ↔ ∃ a ∉ s, insert a s ⊆ t :=
+by simp_rw [ssubset_iff_exists_cons_subset, cons_eq_insert]
+
+lemma ssubset_iff_exists_subset_erase [decidable_eq α] {s t : finset α} :
+  s ⊂ t ↔ ∃ a ∈ t, s ⊆ t.erase a :=
+begin
+  sorry
+end
+
+lemma subset_singleton_iff' {s : finset α} {a : α} : s ⊆ {a} ↔ ∀ b ∈ s, b = a :=
+forall_congr $ λ b, forall_congr $ λ _, mem_singleton
+
+lemma _root_.has_mem.mem.ne_of_not_mem {β : Type*} [has_mem α β] {a b : α} {s : β} (ha : a ∈ s)
+  (hb : b ∉ s) :
+  a ≠ b :=
+ne_of_mem_of_not_mem ha hb
+
+lemma _root_.has_mem.mem.ne_of_not_mem' {β : Type*} [has_mem α β] {a : α} {s t : β} (h : a ∈ s) :
+  a ∉ t → s ≠ t :=
+mt $ λ e, e ▸ h
 
 /-! ### Local LYM inequality -/
 
@@ -169,70 +233,85 @@ end local_lym
 /-! ### LYM inequality -/
 
 section lym
-variables [fintype α]
+section falling
+variables [decidable_eq α] (k : ℕ) (𝒜 : finset (finset α))
 
-/-- An inductive definition, from the top down. `falling 𝒜 k` is all the sets with cardinality
-`card α - k` which are a subset of something in `𝒜`. -/
-def falling [decidable_eq α] (𝒜 : finset (finset α)) : Π (k : ℕ), finset (finset α)
-| 0       := 𝒜 # (fintype.card α)
-| (k + 1) := 𝒜 # (fintype.card α - (k + 1)) ∪ ∂ (falling k)
+/-- `falling k 𝒜` is all the finsets of cardinality `k` which are a subset of something in `𝒜`. -/
+def falling : finset (finset α) := 𝒜.sup $ powerset_len k
 
-lemma sized_falling [decidable_eq α] (𝒜 : finset (finset α)) (k : ℕ) :
-  (falling 𝒜 k : set (finset α)).sized (fintype.card α - k) :=
+variables {𝒜 k} {s : finset α}
+
+lemma mem_falling : s ∈ falling k 𝒜 ↔ (∃ t ∈ 𝒜, s ⊆ t) ∧ s.card = k :=
+by simp_rw [falling, mem_sup, mem_powerset_len, exists_and_distrib_right]
+
+variables (𝒜 k)
+
+lemma sized_falling : (falling k 𝒜 : set (finset α)).sized k := λ s hs, (mem_falling.1 hs).2
+
+lemma slice_subset_falling : 𝒜 # k ⊆ falling k 𝒜 :=
+λ s hs, mem_falling.2 $ (mem_slice.1 hs).imp_left $ λ h, ⟨s, h, subset.refl _⟩
+
+lemma falling_zero_subset : falling 0 𝒜 ⊆ {∅} :=
+subset_singleton_iff'.2 $ λ t ht, card_eq_zero.1 $ sized_falling _ _ ht
+
+lemma slice_union_shadow_falling_succ : 𝒜 # k ∪ ∂ (falling (k + 1) 𝒜) = falling k 𝒜 :=
 begin
-  induction k with k ih,
-  { exact sized_slice },
-  { rw [falling, coe_union],
-    exact set.sized_union.2 ⟨sized_slice, ih.shadow⟩ }
+  ext s,
+  simp_rw [mem_union, mem_slice, mem_shadow_iff, exists_prop, mem_falling],
+  split,
+  { rintro (h | ⟨s, ⟨⟨t, ht, hst⟩, hs⟩, a, ha, rfl⟩),
+    { exact ⟨⟨s, h.1, subset.refl _⟩, h.2⟩ },
+    refine ⟨⟨t, ht, (erase_subset _ _).trans hst⟩, _⟩,
+    rw [card_erase_of_mem ha, hs],
+    refl },
+  { rintro ⟨⟨t, ht, hst⟩, hs⟩,
+    by_cases s ∈ 𝒜,
+    { exact or.inl ⟨h, hs⟩ },
+    obtain ⟨a, ha, hst⟩ := ssubset_iff_exists_insert_subset.1
+      (ssubset_of_subset_of_ne hst (ht.ne_of_not_mem h).symm),
+    refine or.inr ⟨insert a s, ⟨⟨t, ht, hst⟩, _⟩, a, mem_insert_self _ _, erase_insert ha⟩,
+    rw [card_insert_of_not_mem ha, hs] }
 end
 
-lemma not_subset_of_mem_slice_of_mem_shadow_falling [decidable_eq α] {𝒜 : finset (finset α)}
-  {r k : ℕ} (hk : k ≤ fintype.card α) (hr : r < k) (h𝒜 : is_antichain (⊆) (𝒜 : set (finset α)))
-  {s t : finset α} (hs : s ∈ 𝒜 # (fintype.card α - k)) (ht : t ∈ ∂ (falling 𝒜 r)) :
-  ¬ s ⊆ t :=
+variables {𝒜 k}
+
+/-- The shadow of `falling m 𝒜` is disjoint from the `n`-sized elements of `𝒜`, thanks to the
+antichain property. -/
+lemma _root_.is_antichain.disjoint_slice_shadow_falling {m n : ℕ}
+  (h𝒜 : is_antichain (⊆) (𝒜 : set (finset α))) :
+  disjoint (𝒜 # m) (∂ (falling n 𝒜)) :=
+disjoint_right.2 $ λ s h₁ h₂,
 begin
-  intros hst,
-  obtain ⟨u, hu, htu⟩ := exists_subset_of_mem_shadow ht,
-  have hsu := hst.trans htu,
-  clear ht hst htu t,
-  induction r with r ih generalizing s u;
-  rw falling at hu,
-  any_goals { rw mem_union at hu, cases hu },
-  any_goals
-  { refine h𝒜 (mem_slice.1 hs).1 (mem_slice.1 hu).1 (ne_of_mem_slice hs hu $ ne_of_lt _) hsu },
-  { exact tsub_lt_self (hr.trans_le hk) hr },
-  { mono },
-  { obtain ⟨v, hv, huv⟩ := exists_subset_of_mem_shadow hu,
-    exact ih (lt_of_succ_lt hr) _ hs hv (hsu.trans huv) }
+  simp_rw [mem_shadow_iff, exists_prop, mem_falling] at h₁,
+  obtain ⟨s, ⟨⟨t, ht, hst⟩, hs⟩, a, ha, rfl⟩ := h₁,
+  refine h𝒜 (slice_subset h₂) ht _ ((erase_subset _ _).trans hst),
+  rintro rfl,
+  exact not_mem_erase _ _ (hst ha),
 end
 
-/-- `falling 𝒜 k` is disjoint from the` n - (k + 1)`-sized elements of `𝒜`, thanks to the antichain
-property. -/
-lemma _root_.is_antichain.disjoint_falling_slice [decidable_eq α] {𝒜 : finset (finset α)} {k : ℕ}
-  (h𝒜 : is_antichain (⊆) (𝒜 : set (finset α))) (hk : k < fintype.card α) :
-  disjoint (∂ (falling 𝒜 k)) (𝒜 # (fintype.card α - (k + 1))) :=
-disjoint_right.2 $ λ s hs ht,
-  not_subset_of_mem_slice_of_mem_shadow_falling hk (lt_add_one k) h𝒜 hs ht (subset.refl _)
-
-/-- A bound on any top part of the sum in LYM in terms of the size of `falling 𝒜 k`. -/
-lemma le_card_falling [decidable_eq α] {𝒜 : finset (finset α)} {k : ℕ} (hk : k ≤ fintype.card α)
+/-- A bound on any top part of the sum in LYM in terms of the size of `falling k 𝒜`. -/
+lemma le_card_falling [fintype α] (hk : k ≤ fintype.card α)
   (h𝒜 : is_antichain (⊆) (𝒜 : set (finset α))) :
   ∑ r in range (k + 1),
     ((𝒜 # (fintype.card α - r)).card : 𝕜) / (fintype.card α).choose (fintype.card α - r)
-    ≤ (falling 𝒜 k).card / (fintype.card α).choose (fintype.card α - k) :=
+    ≤ (falling (fintype.card α - k) 𝒜).card / (fintype.card α).choose (fintype.card α - k) :=
 begin
   induction k with k ih,
-  { simp [falling] },
-  rw [sum_range_succ, falling, union_comm, card_disjoint_union (h𝒜.disjoint_falling_slice hk),
-    cast_add, _root_.add_div],
-  exact add_le_add_right ((ih $ k.le_succ.trans hk).trans $
-    local_lym (tsub_pos_iff_lt.2 $nat.succ_le_iff.1 hk).ne' $ sized_falling _ _) _,
+  { simp only [tsub_zero, cast_one, cast_le, sum_singleton, div_one, choose_self, range_one],
+    exact card_le_of_subset (slice_subset_falling _ _) },
+  rw [sum_range_succ, ←slice_union_shadow_falling_succ,
+    card_disjoint_union h𝒜.disjoint_slice_shadow_falling, cast_add, _root_.add_div, add_comm],
+  convert add_le_add_left ((ih $ k.le_succ.trans hk).trans $
+    local_lym (tsub_pos_iff_lt.2 $ nat.succ_le_iff.1 hk).ne' $ sized_falling _ _) _,
 end
+
+end falling
+
+variables {𝒜 : finset (finset α)} {s : finset α} {k : ℕ}
 
 /-- The **Lubell-Yamamoto-Meshalkin inequality**. If `𝒜` is an antichain, then the sum of the
 proportion of elements it takes from each layer is less than `1`. -/
-lemma lubell_yamamoto_meshalkin {𝒜 : finset (finset α)}
-  (h𝒜 : is_antichain (⊆) (𝒜 : set (finset α))) :
+lemma lubell_yamamoto_meshalkin [fintype α] (h𝒜 : is_antichain (⊆) (𝒜 : set (finset α))) :
   ∑ r in range (fintype.card α + 1), ((𝒜 # r).card : 𝕜) / (fintype.card α).choose r ≤ 1 :=
 begin
   classical,
@@ -240,7 +319,7 @@ begin
   refine (le_card_falling le_rfl h𝒜).trans _,
   rw div_le_iff; norm_cast,
   { simpa only [mul_one, nat.choose_zero_right, nat.sub_self]
-      using (sized_falling 𝒜 (fintype.card α)).card_le },
+      using (sized_falling (fintype.card α) 𝒜).card_le },
   { rw [tsub_self, choose_zero_right],
     exact zero_lt_one }
 end

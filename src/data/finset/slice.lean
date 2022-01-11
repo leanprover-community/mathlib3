@@ -28,7 +28,11 @@ the set family made of its `r`-sets.
 open finset nat
 open_locale big_operators
 
-variables {α : Type*}
+variables {α β : Type*}
+
+@[simp] lemma coe_bUnion [decidable_eq β] {s : finset α} {f : α → finset β} :
+  ↑(s.bUnion f) = (⋃ x ∈ (↑s : set α), ↑(f x) : set β) :=
+by simp [set.ext_iff]
 
 namespace set
 variables {A B : set (finset α)} {r : ℕ}
@@ -46,6 +50,13 @@ lemma sized_union : (A ∪ B).sized r ↔ A.sized r ∧ B.sized r :=
 
 alias sized_union ↔ _ set.sized.union
 
+@[simp] lemma sized_bUnion {β : Type*} {f : β → set (finset α)} {s : set β} :
+  (⋃ x ∈ s, f x).sized r ↔ ∀ x ∈ s, (f x).sized r :=
+begin
+  simp_rw [set.sized, set.mem_Union, forall_exists_index],
+  exact ⟨λ h a ha s hs, h a ha hs, λ h s a ha hs, h a ha hs⟩,
+end
+
 protected lemma sized.is_antichain (hA : A.sized r) : is_antichain (⊆) A :=
 λ s hs t ht h hst, h $ eq_of_subset_of_card_le hst ((hA ht).trans (hA hs).symm).le
 
@@ -62,6 +73,9 @@ lemma sized.empty_mem_iff (hA : A.sized r) : ∅ ∈ A ↔ A = {∅} := hA.is_an
 
 lemma sized.univ_mem_iff [fintype α] (hA : A.sized r) : finset.univ ∈ A ↔ A = {finset.univ} :=
 hA.is_antichain.top_mem_iff
+
+lemma sized_powerset_len (s : finset α) (r : ℕ) : (powerset_len r s : set (finset α)).sized r :=
+λ t ht, (mem_powerset_len.1 ht).2
 
 end set
 

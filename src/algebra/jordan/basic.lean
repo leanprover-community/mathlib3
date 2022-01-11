@@ -160,7 +160,7 @@ lemma comm_jordan_operators  {A : Type*} [non_unital_non_assoc_ring A] [comm_jor
   (∀ a: A, L a = R a) ∧ (∀ a: A, ⁅L a, L (a*a)⁆ = 0) :=
 begin
   split,
-  { intro, ext b, simp, rw comm_jordan.comm, },
+  { intro, ext b, simp, rw mul_comm, },
   { intro,
     ext b,
     rw ring.lie_def,

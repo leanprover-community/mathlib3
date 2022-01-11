@@ -968,17 +968,16 @@ end
   (This is not a special case of `sup` over the subtype,
   because `{a // a < o} : Type (u+1)` and `sup` only works over
   families in `Type u`.) -/
-def bsup (o : ordinal.{u}) : (Π a < o, ordinal.{max u v}) → ordinal.{max u v} :=
-match o, o.out, o.out_eq with
-| _, ⟨α, r, _⟩, rfl, f := by exactI sup (λ a, f (typein r a) (typein_lt_type _ _))
-end
+def bsup (o : ordinal.{u}) (f : Π a < o, ordinal.{max u v}) : ordinal.{max u v} :=
+sup (family_of_bfamily o f)
 
 theorem bsup_le {o f a} : bsup.{u v} o f ≤ a ↔ ∀ i h, f i h ≤ a :=
-match o, o.out, o.out_eq, f :
- ∀ o w (e : ⟦w⟧ = o) (f : Π (a : ordinal.{u}), a < o → ordinal.{(max u v)}),
-   bsup._match_1 o w e f ≤ a ↔ ∀ i h, f i h ≤ a with
-| _, ⟨α, r, _⟩, rfl, f := by rw [bsup._match_1, sup_le]; exactI
-  ⟨λ H i h, by simpa only [typein_enum] using H (enum r i h), λ H b, H _ _⟩
+begin
+  unfold bsup,
+  rw sup_le,
+  refine ⟨λ h i hi, _, λ h i, h _ _⟩,
+  rw ←family_of_bfamily_enum o f,
+  exact h _
 end
 
 theorem le_bsup {o} (f : Π a < o, ordinal) (i h) : f i h ≤ bsup o f :=

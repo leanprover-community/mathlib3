@@ -152,7 +152,7 @@ variables {α β : Type*}
 
 namespace finset
 section preorder
-variables [preorder α] [locally_finite_order α] {a a₁ a₂ b b₁ b₂ x : α}
+variables [preorder α] [locally_finite_order α] {a b x : α}
 
 /-- The finset of elements `x` such that `a ≤ x` and `x ≤ b`. Basically `set.Icc a b` as a finset.
 -/

@@ -46,6 +46,12 @@ instance : subsemiring_class (subalgebra R A) A :=
   one_mem := one_mem',
   zero_mem := zero_mem' }
 
+instance : subsemiring_class (subalgebra R A) A :=
+{ add_mem := add_mem',
+  mul_mem := mul_mem',
+  one_mem := one_mem',
+  zero_mem := zero_mem' }
+
 @[simp]
 lemma mem_carrier {s : subalgebra R A} {x : A} : x ∈ s.carrier ↔ x ∈ s := iff.rfl
 

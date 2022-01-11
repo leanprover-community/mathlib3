@@ -139,7 +139,8 @@ begin
       work_on_goal 1 { intros, exact subset_span ⟨_, _, ‹_›, ‹_›, rfl⟩ } },
     all_goals { intros, simp only [mul_zero, zero_mul, zero_mem,
         left_distrib, right_distrib, mul_smul_comm, smul_mul_assoc],
-      try {apply add_mem _ _}, try {apply smul_mem _ _ _} }, assumption' },
+      solve_by_elim [add_mem _ _, zero_mem _, smul_mem _ _ _]
+        { max_depth := 4, discharger := tactic.interactive.apply_instance } } },
   { rw span_le, rintros _ ⟨a, b, ha, hb, rfl⟩,
     exact mul_mem_mul (subset_span ha) (subset_span hb) }
 end

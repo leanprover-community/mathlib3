@@ -11,6 +11,8 @@ universes w₁ w₂ w₃ v₁ v₂ v₃ u₁ u₂ u₃
 
 namespace bicategory
 
+open_locale bicategory
+
 structure equivalence {B : Type u₁} [bicategory.{w₁ v₁} B] (a b : B) :=
 (hom : a ⟶ b)
 (inv : b ⟶ a)

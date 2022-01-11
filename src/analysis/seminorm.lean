@@ -278,6 +278,8 @@ variables (p : seminorm 𝕜 E) (c : 𝕜) (x y : E) (r : ℝ)
 protected lemma smul : p (c • x) = ∥c∥ * p x := p.smul' _ _
 protected lemma triangle : p (x + y) ≤ p x + p y := p.triangle' _ _
 
+-- TODO: define `has_Sup` too, from the skeleton at
+-- https://github.com/leanprover-community/mathlib/pull/11329#issuecomment-1008915345
 noncomputable instance : has_sup (seminorm 𝕜 E) :=
 { sup := λ p q,
   { to_fun := p ⊔ q,
@@ -387,12 +389,19 @@ begin
   ...    < r   : by rwa mem_ball_zero at hy,
 end
 
-lemma finset_sup_ball_inter (p : ι → seminorm 𝕜 E) (s : finset ι) (e : E) (r : ℝ) (hr : 0 < r):
+lemma ball_finset_sup_eq_Inter (p : ι → seminorm 𝕜 E) (s : finset ι) (e : E) (r : ℝ) (hr : 0 < r) :
   ball (s.sup p) e r = ⋂ (i ∈ s), ball (p i) e r :=
 begin
   lift r to nnreal using hr.le,
   simp_rw [ball, Inter_set_of, finset_sup_apply, nnreal.coe_lt_coe,
     finset.sup_lt_iff (show ⊥ < r, from hr), ←nnreal.coe_lt_coe, subtype.coe_mk],
+end
+
+lemma ball_finset_sup_eq_finset_inf(p : ι → seminorm 𝕜 E) (s : finset ι) (e : E) (r : ℝ) (hr : 0 < r) :
+  ball (s.sup p) e r = s.inf (λ i, ball (p i) e r) :=
+begin
+  rw finset.inf_eq_infi,
+  exact ball_finset_sup_eq_Inter _ _ _ _ hr,
 end
 
 end module

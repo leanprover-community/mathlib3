@@ -270,12 +270,17 @@ lemma pos_iff_one_le {x : enat} : 0 < x ↔ 1 ≤ x :=
 enat.cases_on x (by simp only [iff_true, le_top, coe_lt_top, ← @nat.cast_zero enat]) $
   λ n, by { rw [← nat.cast_zero, ← nat.cast_one, enat.coe_lt_coe, enat.coe_le_coe], refl }
 
-noncomputable instance : linear_order enat :=
-{ le_total := λ x y, enat.cases_on x
+instance : is_total enat (≤) :=
+{ total := λ x y, enat.cases_on x
     (or.inr le_top) (enat.cases_on y (λ _, or.inl le_top)
       (λ x y, (le_total x y).elim (or.inr ∘ coe_le_coe.2)
-        (or.inl ∘ coe_le_coe.2))),
+        (or.inl ∘ coe_le_coe.2))) }
+
+noncomputable instance : linear_order enat :=
+{ le_total := is_total.total,
   decidable_le := classical.dec_rel _,
+  max := (⊔),
+  max_def := sup_eq_max_default,
   ..enat.partial_order }
 
 instance : bounded_order enat :=
@@ -288,12 +293,6 @@ noncomputable instance : lattice enat :=
   inf_le_right := min_le_right,
   le_inf := λ _ _ _, le_min,
   ..enat.semilattice_sup }
-
-lemma sup_eq_max {a b : enat} : a ⊔ b = max a b :=
-le_antisymm (sup_le (le_max_left _ _) (le_max_right _ _))
-  (max_le le_sup_left le_sup_right)
-
-lemma inf_eq_min {a b : enat} : a ⊓ b = min a b := rfl
 
 instance : ordered_add_comm_monoid enat :=
 { add_le_add_left := λ a b ⟨h₁, h₂⟩ c,

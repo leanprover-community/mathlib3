@@ -245,7 +245,7 @@ lemma subalgebra.is_field_of_algebraic (hKL : algebra.is_algebraic K L) : is_fie
         ⟨a⁻¹, A.inv_mem_of_algebraic (hKL a)⟩,
         subtype.ext (mul_inv_cancel (mt (subalgebra.coe_eq_zero _).mp ha))⟩,
   .. show nontrivial A, by apply_instance,
-  .. subalgebra.to_comm_ring A }
+  .. subring_class.to_comm_ring A }
 
 end field
 

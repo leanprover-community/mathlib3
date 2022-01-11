@@ -239,7 +239,8 @@ begin
   rw [←eq_inv_mul_iff_mul_eq, ←mul_assoc, ←mul_inv_eq_iff_eq_mul] at h,
   change ↑(x.2 * y.2⁻¹) = ↑(x.1⁻¹ * y.1) at h,
   rw [prod.ext_iff, ←@inv_mul_eq_one H _ x.1 y.1, ←@mul_inv_eq_one K _ x.2 y.2, subtype.ext_iff,
-      subtype.ext_iff, coe_one, coe_one, h, and_self, ←mem_bot, ←h2.eq_bot, mem_inf],
+      subtype.ext_iff, submonoid_class.coe_one, submonoid_class.coe_one, h, and_self,
+      ←mem_bot, ←h2.eq_bot, mem_inf],
   exact ⟨subtype.mem ((x.1)⁻¹ * (y.1)), (congr_arg (∈ K) h).mp (subtype.mem (x.2 * (y.2)⁻¹))⟩,
 end
 

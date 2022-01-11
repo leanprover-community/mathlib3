@@ -166,7 +166,7 @@ begin
   let R := λ i j : ι, (s i ∩ s j).nonempty ∧ i ∈ t,
   have P : ∀ (i j ∈ t), refl_trans_gen R i j →
     ∃ (p ⊆ t), i ∈ p ∧ j ∈ p ∧ is_preconnected (⋃ j ∈ p, s j),
-  { intros i j hi hj h,
+  { intros i hi j hj h,
     induction h,
     case refl
     { refine ⟨{i}, singleton_subset_iff.mpr hi, mem_singleton i, mem_singleton i, _⟩,
@@ -184,7 +184,7 @@ begin
   intros x y hx hy,
   obtain ⟨i: ι, hi : i ∈ t, hxi : x ∈ s i⟩ := mem_bUnion_iff.1 hx,
   obtain ⟨j: ι, hj : j ∈ t, hyj : y ∈ s j⟩ := mem_bUnion_iff.1 hy,
-  obtain ⟨p, hpt, hip, hjp, hp⟩ := P i j hi hj (K i j hi hj),
+  obtain ⟨p, hpt, hip, hjp, hp⟩ := P i hi j hj (K i hi j hj),
   exact ⟨⋃ j ∈ p, s j, bUnion_subset_bUnion_left hpt, mem_bUnion hip hxi, mem_bUnion hjp hyj, hp⟩
 end
 
@@ -215,43 +215,6 @@ theorem is_connected.Union_of_refl_trans_gen {ι : Type*} [nonempty ι] {s : ι 
 ⟨nonempty_Union.2 $ nonempty.elim ‹_› $ λ i : ι, ⟨i, (H _).nonempty⟩,
   is_preconnected.Union_of_refl_trans_gen (λ i, (H i).is_preconnected) K⟩
 
--- theorem is_preconnected.Union_of_refl_trans_gen {ι}
---   {r : ι → ι → Prop} (hr : ∀ i j, refl_trans_gen r i j)
---   {s : ι → set α}
---   (H : ∀ i, is_preconnected (s i))
---   (K : ∀ i j, r i j → (s i ∩ s j).nonempty) :
---   is_preconnected (⋃ i, s i) :=
--- is_preconnected.Union_of_trans_gen H $ λ i j hij, trans_gen.mono K $
---   (refl_trans_gen_iff_eq_or_trans_gen.mp $ hr i j).resolve_left hij.symm
-
--- theorem is_connected.Union_of_trans_gen {ι}
---   {r : ι → ι → Prop} (hr : ∀ i j, refl_trans_gen r i j)
---   [nonempty ι]
---   {s : ι → set α}
---   (H : ∀ i, is_connected (s i))
---   (K : ∀ i j, r i j → (s i ∩ s j).nonempty) :
---   is_connected (⋃ i, s i) :=
--- ⟨nonempty_Union.2 $ nonempty.elim ‹_› $ λ i : ι, ⟨i, (H _).nonempty⟩,
---   is_preconnected.Union_of_refl_trans_gen hr (λ i, (H i).is_preconnected) K⟩
-
--- lemma succ_gen_of_nat (m n : ℕ) : refl_trans_gen (λ i j : ℕ, j = i.succ ∨ i = j.succ) m n
---   :=
--- begin
---   wlog hmn : m ≤ n := le_total m n using [m n, n m],
---   { revert n,
---     refine nat.le_induction _ _ ,
---     { exact refl_trans_gen.refl , },
---     { intros n hmn hn,
---       apply (refl_trans_gen.cases_tail_iff _ m (n+1)).2,
---       apply or.intro_right _ , use n, split, exact hn,
---       apply or.intro_left, refl, },
---   },
---   { have this' : symmetric (λ i j:ℕ, j = i.succ ∨ i = j.succ),
---     { intros i j,  exact or.swap, },
---     apply (refl_trans_gen.symmetric this'),
---     exact this,   }
--- end
-
 /-- The Union of connected sets indexed by `ℕ` such that any two neighboring sets meet
 is preconnected. -/
 theorem is_preconnected.Union_nat_of_chain {s : ℕ → set α}
@@ -270,53 +233,6 @@ theorem is_connected.Union_nat_of_chain {s : ℕ → set α}
 is_connected.Union_of_refl_trans_gen H $
   λ i j, refl_trans_gen_nat _ (λ i _, K i) $ λ i _, by { rw inter_comm, exact K i }
 
-/- A lemma for relation and their restriction to a subset -/
--- lemma refl_trans_gen.on_subset {r : ι → ι → Prop} {I : set ι}
---   (hr : ∀ i j, r i j → i ∈ I ∧ j ∈ I) :
---   ∀ {i j} (hi : i ∈ I) (hj : j ∈ I),
---     refl_trans_gen r i j →
---     refl_trans_gen (λ i j : {i // i ∈ I}, r ↑i ↑j) ⟨i, hi⟩ ⟨j, hj⟩ :=
--- begin
---   intros i j,
---   intros hi hj hrij,
---   revert hi hj,
---   apply refl_trans_gen.head_induction_on hrij,
---   { intros _ _, exact refl_trans_gen.refl, },
---   intros a b hrab hrbj hrbj' ha hj,
---   refine refl_trans_gen.trans _ (hrbj' _ hj),
---   exact (hr a b hrab).2,
---   exact refl_trans_gen.single hrab,
--- end
-
--- /-- Connectedness of bounded unions -/
--- theorem is_connected.bUnion_of_trans_gen {ι}
---   {I : set ι} [nonempty I]
---   {r : ι → ι → Prop}
---   (hr : ∀ i j, i ∈ I → j ∈ I → refl_trans_gen r i j)
---   (hr' : ∀ i j, r i j → i ∈ I ∧ j ∈ I)
---   {s : ι → set α}
---   (H : ∀ i, i ∈ I → is_connected (s i))
---   (K : ∀ i j, r i j → (s i ∩ s j).nonempty) :
---   is_connected (⋃ i ∈ I, s i) :=
--- begin
---   let r' : ι → ι → Prop := λ i j, r i j ∧ i ∈ I ∧ j ∈ I,
---   suffices : is_connected (⋃ (i : { i // i ∈ I}), s i),
---   { rw Union_subtype at this,
---     exact this, },
---   refine is_connected.Union_of_trans_gen _ _ _,
---   { intros i j, exact (r ↑i ↑j), },
---   { intros i j, rw [← subtype.coe_eta i, ← subtype.coe_eta j],
---     refine refl_trans_gen.on_subset  _ i.prop j.prop (hr i j i.prop j.prop),
---     { intros i j hij, exact hr' i j hij } },
---   { intro i, exact H i i.prop, },
---   { intros i j hij, exact K ↑i ↑j hij, },
--- end
-
--- lemma trans_gen_int_of_ne (r : ℤ → ℤ → Prop) {n m : ℤ} {t : set ℤ} (ht : ord_connected t)
---   (h1 : ∀ i ∈ Ico n m, r i i.succ) (h2 : ∀ i ∈ Ico m n, r (i : ℤ).succ i)
---   (hnm : n ≠ m) : trans_gen r n m :=
--- (refl_trans_gen_iff_eq_or_trans_gen.mp (refl_trans_gen_int r h1 h2)).resolve_left hnm.symm
-
 /-- The Union of preconnected sets indexed by a subset of `ℤ` such that any two neighboring sets
 meet is preconnected. -/
 theorem is_preconnected.Union_int_of_chain {s : ℤ → set α}
@@ -331,7 +247,7 @@ begin
     ht.out hi hj ⟨hk.1.trans $ le_add_of_nonneg_right zero_le_one, int.add_one_le_iff.mpr hk.2⟩,
   have h3 : ∀ {i j k : ℤ}, i ∈ t → j ∈ t → k ∈ Ico i j → (s k ∩ s k.succ).nonempty :=
     λ i j k hi hj hk, K _ (h1 hi hj hk) (h2 hi hj hk),
-  refine is_preconnected.bUnion_of_refl_trans_gen H (λ i j hi hj, _),
+  refine is_preconnected.bUnion_of_refl_trans_gen H (λ i hi j hj, _),
   exact refl_trans_gen_int _ (λ k hk, ⟨h3 hi hj hk, h1 hi hj hk⟩)
     (λ k hk, ⟨by { rw [inter_comm], exact h3 hj hi hk }, h2 hj hi hk⟩),
 end

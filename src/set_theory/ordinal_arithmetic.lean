@@ -993,12 +993,21 @@ eq_of_forall_ge_iff $ λ o,
 by { rw [bsup_le, ordinal.sup_le], subst ho, exact
   ⟨λ H b, H _ _, λ H i h, by simpa only [family_of_bfamily', typein_enum] using H (enum r i h)⟩ }
 
+theorem sup_eq_sup {ι : Type u} (r r' : ι → ι → Prop) [is_well_order ι r] [is_well_order ι r'] {o}
+  (ho : type r = o) (ho' : type r' = o) (f : Π a < o, ordinal) :
+  sup (family_of_bfamily' r ho f) = sup (family_of_bfamily' r' ho' f) :=
+by rw [←bsup_eq_sup', ←bsup_eq_sup']
+
 theorem bsup_eq_sup {o} (f : Π a < o, ordinal) : bsup o f = sup (family_of_bfamily o f) :=
 bsup_eq_sup' _ _ f
 
 theorem sup_eq_bsup' {ι} (r : ι → ι → Prop) [is_well_order ι r] (f : ι → ordinal) :
   sup f = bsup _ (bfamily_of_family' r f) :=
 by simp only [bsup_eq_sup' r, enum_typein, family_of_bfamily', bfamily_of_family']
+
+theorem bsup_eq_bsup {ι : Type u} (r r' : ι → ι → Prop) [is_well_order ι r] [is_well_order ι r']
+  (f : ι → ordinal) : bsup _ (bfamily_of_family' r f) = bsup _ (bfamily_of_family' r' f) :=
+by rw [←sup_eq_bsup', ←sup_eq_bsup']
 
 theorem sup_eq_bsup {ι} (f : ι → ordinal) : sup f = bsup _ (bfamily_of_family f) :=
 sup_eq_bsup' _ f

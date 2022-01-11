@@ -42,7 +42,7 @@ variables {α : Type u} {β : Type v} {γ : Type*}
 @[pattern] def to_lex : α ≃ lex α := ⟨id, id, λ h, rfl, λ h, rfl⟩
 
 /-- `of_lex` is the identity function from the `lex` of a type.  -/
-def of_lex : lex α ≃ α := to_lex.symm
+@[pattern] def of_lex : lex α ≃ α := to_lex.symm
 
 @[simp] lemma to_lex_symm_eq : (@to_lex α).symm = of_lex := rfl
 @[simp] lemma of_lex_symm_eq : (@of_lex α).symm = to_lex := rfl
@@ -51,8 +51,8 @@ def of_lex : lex α ≃ α := to_lex.symm
 @[simp] lemma to_lex_inj {a b : α} : to_lex a = to_lex b ↔ a = b := iff.rfl
 @[simp] lemma of_lex_inj {a b : lex α} :  of_lex a = of_lex b ↔ a = b := iff.rfl
 
-/-- A recursion principle for `lex α`. Can be used as `induction x using lex.rec`. -/
-def lex.rec {P : lex α → Sort*} (h : Π a, P (to_lex a)) (a) : P a := h (of_lex a)
+/-- A recursor for `lex`. Use as `induction x using lex.rec`. -/
+protected def lex.rec {β : lex α → Sort*} (h : Π a, β (to_lex a)) : Π a, β a := λ a, h (of_lex a)
 
 namespace prod.lex
 

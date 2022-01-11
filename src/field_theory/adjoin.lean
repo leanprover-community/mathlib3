@@ -369,7 +369,8 @@ begin
     refine (eq_inv_of_mul_right_eq_one _).symm,
     apply_fun ϕ.symm at this,
     rw [alg_equiv.map_one, alg_equiv.map_mul, alg_equiv.symm_apply_apply] at this,
-    rw [←subsemiring.coe_one, ←this, subsemiring.coe_mul, subtype.coe_mk] },
+    rw [←submonoid_class.coe_one (algebra.adjoin _ _), ←this, submonoid_class.coe_mul,
+        subtype.coe_mk] },
 
   rw mul_inv_cancel (mt (λ key, _) h),
   rw ← ϕ.map_zero at key,

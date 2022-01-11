@@ -1,4 +1,5 @@
 import category_theory.bicategory.functor
+import category_theory.bicategory.strict
 import category_theory.discrete_category
 
 /-!

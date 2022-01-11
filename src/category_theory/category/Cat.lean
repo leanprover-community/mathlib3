@@ -63,6 +63,34 @@ instance bicategory.strict : bicategory.strict Cat.{v u} :=
 /-- Category structure on `Cat` -/
 instance category : large_category.{max v u} Cat.{v u} := strict_bicategory.category Cat.{v u}
 
+section
+open_locale bicategory
+variables {C D E : Cat.{v u}}
+
+@[simp] lemma id_obj (X : C) : (𝟙 C : C ⟶ C).obj X = X := rfl
+@[simp] lemma id_map {X Y : C} (f : X ⟶ Y) : (𝟙 C : C ⟶ C).map f = f := rfl
+
+@[simp]
+lemma comp_obj (F : C ⟶ D) (G : D ⟶ E) (X : C) : (F ≫ G).obj X = (F ⋙ G).obj X :=
+rfl
+
+@[simp]
+lemma comp_map (F : C ⟶ D) (G : D ⟶ E) {X Y : C} (f : X ⟶ Y) :
+  (F ≫ G).map f = (F ⋙ G).map f :=
+rfl
+
+@[simp]
+lemma whisker_left_app (F : C ⟶ D) {G H : D ⟶ E} (η : G ⟶ H) (X : C) :
+  (F ◁ η).app X = η.app (F.obj X) :=
+rfl
+
+@[simp]
+lemma whisker_right_app {F G : C ⟶ D} (η : F ⟶ G) {H : D ⟶ E} (X : C) :
+  (η ▷ H).app X = H.map (η.app X) :=
+rfl
+
+end
+
 /-- Functor that gets the set of objects of a category. It is not
 called `forget`, because it is not a faithful functor. -/
 def objects : Cat.{v u} ⥤ Type u :=

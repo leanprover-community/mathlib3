@@ -63,4 +63,40 @@ instance strict_bicategory.category [bicategory.strict B] : category B :=
   comp_id' := λ a b, bicategory.strict.comp_id,
   assoc' := λ a b c d, bicategory.strict.assoc }
 
+namespace bicategory
+
+variables {B}
+
+@[simp]
+lemma whisker_left_eq_to_hom {a b c : B} {f : a ⟶ b} {g h : b ⟶ c} (η : g = h) :
+  f ◁ eq_to_hom η = eq_to_hom (congr_arg2 (≫) rfl η) :=
+by { cases η, dsimp, simp only [whisker_left_id] }
+
+@[simp]
+lemma whisker_right_eq_to_hom {a b c : B} {f g : a ⟶ b} (η : f = g) (h : b ⟶ c) :
+  eq_to_hom η ▷ h = eq_to_hom (congr_arg2 (≫) η rfl) :=
+by { cases η, dsimp, simp only [whisker_right_id] }
+
+variables [strict B] {a b c d : B}
+
+@[reassoc, simp]
+lemma id_whisker_left {f g : a ⟶ b} (η : f ⟶ g) :
+  𝟙 a ◁ η = eq_to_hom (strict.id_comp f) ≫ η ≫ eq_to_hom (eq.symm (strict.id_comp g)) :=
+begin
+  slice_rhs 2 2 { rw ←left_unitor_conjugation η},
+  simp only [strict.left_unitor_eq_to_iso, eq_to_iso.inv, eq_to_hom_trans, category.id_comp,
+    eq_to_hom_refl, eq_to_hom_trans_assoc, eq_to_iso.hom, category.comp_id, category.assoc]
+end
+
+@[reassoc, simp]
+lemma id_whisker_right {f g : a ⟶ b} (η : f ⟶ g) :
+  η ▷ 𝟙 b = eq_to_hom (strict.comp_id f) ≫ η ≫ eq_to_hom (eq.symm (strict.comp_id g)) :=
+begin
+  slice_rhs 2 2 { rw ←right_unitor_conjugation η},
+  simp only [strict.right_unitor_eq_to_iso, eq_to_iso.inv, eq_to_hom_trans, category.id_comp,
+    eq_to_hom_refl, eq_to_hom_trans_assoc, eq_to_iso.hom, category.comp_id, category.assoc]
+end
+
+end bicategory
+
 end category_theory

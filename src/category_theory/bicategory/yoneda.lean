@@ -1,270 +1,291 @@
-/-
-Copyright (c) 2021 Yuma Mizuno. All rights reserved.
-Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Yuma Mizuno
--/
-import category_theory.bicategory.equivalence
-import category_theory.bicategory.opposites
-import category_theory.bicategory.natural_transformation
-import category_theory.category.Cat
+-- /-
+-- Copyright (c) 2021 Yuma Mizuno. All rights reserved.
+-- Released under Apache 2.0 license as described in the file LICENSE.
+-- Authors: Yuma Mizuno
+-- -/
+-- import category_theory.bicategory.equivalence
+-- import category_theory.bicategory.opposites
+-- import category_theory.bicategory.natural_transformation
+-- import category_theory.category.Cat
 
-open opposite
+-- open opposite
 
-namespace category_theory
+-- namespace category_theory
 
-universes w v u
+-- universes w v u
 
-open bicategory category
-open_locale bicategory
+-- open bicategory category
+-- open_locale bicategory
 
-namespace bicategory
+-- namespace bicategory
 
-section
+-- section
 
-variables {B : Type u} [bicategory.{w v} B] (a b c d : B)
+-- variables {B : Type u} [bicategory.{w v} B] (a b c d : B)
 
-/--
-Left composition of 1-morphisms as a functor.
--/
-@[simps]
-def lcomp : (a ⟶ b) ⥤ (b ⟶ c) ⥤ (a ⟶ c) :=
-{ obj := λ f,
-  { obj := λ g, f ≫ g,
-    map := λ g h η, f ◁ η },
-  map := λ f g η, { app := λ h, η ▷ h } }
+-- /--
+-- Left composition of 1-morphisms as a functor.
+-- -/
+-- @[simps]
+-- def lcomp : (a ⟶ b) ⥤ (b ⟶ c) ⥤ (a ⟶ c) :=
+-- { obj := λ f,
+--   { obj := λ g, f ≫ g,
+--     map := λ g h η, f ◁ η },
+--   map := λ f g η, { app := λ h, η ▷ h } }
 
-/--
-Right composition of 1-morphisms as a functor.
--/
-@[simps]
-def rcomp : (b ⟶ c) ⥤ (a ⟶ b) ⥤ (a ⟶ c) :=
-{ obj := λ f,
-  { obj := λ g, g ≫ f,
-    map := λ g h η, η ▷ f },
-  map := λ f g η, { app := λ h, h ◁ η } }
+-- -- @[simp]
+-- -- lemma lcomp_obj (f : a ⟶ b) :
+-- --   (lcomp a b c).obj f =
+-- --   { obj := λ g, f ≫ g,
+-- --     map := λ g h η, f ◁ η } := rfl
 
-variables {a b c d}
+-- /--
+-- Right composition of 1-morphisms as a functor.
+-- -/
+-- @[simps]
+-- def rcomp : (b ⟶ c) ⥤ (a ⟶ b) ⥤ (a ⟶ c) :=
+-- { obj := λ f,
+--   { obj := λ g, g ≫ f,
+--     map := λ g h η, η ▷ f },
+--   map := λ f g η, { app := λ h, h ◁ η } }
 
-/--
-Left component of an associator as a natural isomorphism.
--/
-@[simps]
-def associator_nat_iso_left (a) (g : b ⟶ c) (h : c ⟶ d) :
-  (rcomp a _ _).obj g ⋙ (rcomp a _ _).obj h
-  ≅ (rcomp a _ _).obj (g ≫ h) :=
-nat_iso.of_components
-  (λ f, α_ f g h)
-  (by { intros, apply associator_naturality_left })
+-- variables {a b c d}
 
-/--
-Middle component of an associator as a natural isomorphism.
--/
-@[simps]
-def associator_nat_iso_middle (f : a ⟶ b) (h : c ⟶ d) :
-  (lcomp _ _ _).obj f ⋙ (rcomp _ _ _).obj h
-  ≅ (rcomp _ _ _).obj h ⋙ (lcomp _ _ _).obj f :=
-nat_iso.of_components
-  (λ g, α_ f g h)
-  (by { intros, apply associator_naturality_middle })
+-- /--
+-- Left component of an associator as a natural isomorphism.
+-- -/
+-- @[simps]
+-- def associator_nat_iso_left (a) (g : b ⟶ c) (h : c ⟶ d) :
+--   (rcomp a _ _).obj g ⋙ (rcomp a _ _).obj h
+--   ≅ (rcomp a _ _).obj (g ≫ h) :=
+-- nat_iso.of_components
+--   (λ f, α_ f g h)
+--   (by { intros, apply associator_naturality_left })
 
-/--
-Right component of an associator as a natural isomorphism.
--/
-@[simps]
-def associator_nat_iso_right (d) (f : a ⟶ b) (g : b ⟶ c) :
-  (lcomp _ _ d).obj (f ≫ g)
-  ≅ (lcomp _ _ d).obj g ⋙ (lcomp _ _ d).obj f :=
-nat_iso.of_components
-  (λ h, α_ f g h)
-  (by { intros, apply associator_naturality_right })
+-- /--
+-- Middle component of an associator as a natural isomorphism.
+-- -/
+-- @[simps]
+-- def associator_nat_iso_middle (f : a ⟶ b) (h : c ⟶ d) :
+--   (lcomp _ _ _).obj f ⋙ (rcomp _ _ _).obj h
+--   ≅ (rcomp _ _ _).obj h ⋙ (lcomp _ _ _).obj f :=
+-- nat_iso.of_components
+--   (λ g, α_ f g h)
+--   (by { intros, apply associator_naturality_middle })
 
-/--
-Left unitor as a natural isomorphism.
--/
-@[simps]
-def left_unitor_nat_iso (a b : B) : (lcomp _ _ b).obj (𝟙 a) ≅ 𝟭 (a ⟶ b) :=
-nat_iso.of_components
-  (λ f, λ_ f)
-  (by { intros, apply left_unitor_naturality })
+-- /--
+-- Right component of an associator as a natural isomorphism.
+-- -/
+-- @[simps]
+-- def associator_nat_iso_right (d) (f : a ⟶ b) (g : b ⟶ c) :
+--   (lcomp _ _ d).obj (f ≫ g)
+--   ≅ (lcomp _ _ d).obj g ⋙ (lcomp _ _ d).obj f :=
+-- nat_iso.of_components
+--   (λ h, α_ f g h)
+--   (by { intros, apply associator_naturality_right })
 
-/--
-Right unitor as a natural isomorphism.
--/
-@[simps]
-def right_unitor_nat_iso (a b : B): (rcomp a _ _).obj (𝟙 b) ≅ 𝟭 (a ⟶ b) :=
-nat_iso.of_components
-  (λ f, ρ_ f)
-  (by { intros, apply right_unitor_naturality })
+-- /--
+-- Left unitor as a natural isomorphism.
+-- -/
+-- @[simps]
+-- def left_unitor_nat_iso (a b : B) : (lcomp _ _ b).obj (𝟙 a) ≅ 𝟭 (a ⟶ b) :=
+-- nat_iso.of_components
+--   (λ f, λ_ f)
+--   (by { intros, apply left_unitor_naturality })
 
-end
+-- /--
+-- Right unitor as a natural isomorphism.
+-- -/
+-- @[simps]
+-- def right_unitor_nat_iso (a b : B) : (rcomp a _ _).obj (𝟙 b) ≅ 𝟭 (a ⟶ b) :=
+-- nat_iso.of_components
+--   (λ f, ρ_ f)
+--   (by { intros, apply right_unitor_naturality })
 
-end bicategory
+-- end
 
-section
+-- end bicategory
 
-open bicategory
+-- section
 
-variables {B : Type u} [bicategory.{w v} B]
+-- open bicategory
 
-local attribute [simp] Cat.bicategory
+-- variables {B : Type u} [bicategory.{w v} B]
 
-namespace oplax_functor
+-- -- local attribute [simp] Cat.bicategory
 
-/--
-The Yoneda embedding at the level of objects.
--/
-@[simps]
-def yoneda_obj (a : B) : oplax_functor Bᵒᵖ Cat :=
-{ obj := λ s, Cat.of (unop s ⟶ a),
-  map := λ s t f, (lcomp (unop t) (unop s) a).obj f,
-  map₂ := λ s t f g β, (lcomp (unop t) (unop s) a).map β,
-  map_id   := λ s, (left_unitor_nat_iso (unop s) a).hom,
-  map_comp := λ s t r (p : unop t ⟶ unop s) (q : unop r ⟶ unop t), (associator_nat_iso_right a q p).hom,
-  map_comp_naturality_left'  := by { intros, ext, apply associator_naturality_middle },
-  map_comp_naturality_right' := by { intros, ext, apply associator_naturality_left },
-  map₂_id'    := by { intros, ext, apply bicategory.whisker_right_id },
-  map₂_comp'  := by { intros, ext, apply bicategory.whisker_right_comp },
-  map₂_associator'  := by { intros, ext, dsimp, rw [pentagon_inv_hom_hom_hom_hom, comp_id] },
-  map₂_left_unitor'   := by { intros, ext, dsimp, rw [triangle_assoc, comp_id] },
-  map₂_right_unitor'  := by { intros, ext, dsimp, rw [left_unitor_comp, comp_id, iso.hom_inv_id_assoc] } }
+-- namespace oplax_functor
 
-/--
-The Yoneda embedding at the level of 1-morphisms.
--/
-@[simps]
-def yoneda_map {a b : B} (f : a ⟶ b) : (yoneda_obj a) ⟶ (yoneda_obj b) :=
-{ app := λ s, (rcomp (unop s) a b).obj f,
-  naturality := λ (s t : Bᵒᵖ) (p : unop t ⟶ unop s), (associator_nat_iso_middle p f).hom,
-  naturality_naturality' := by { intros, ext, apply associator_naturality_left },
-  naturality_id' := by { intros, ext, dsimp, simp only [left_unitor_comp, iso.hom_inv_id_assoc, comp_id] },
-  naturality_comp' := by { intros, ext, dsimp, simp only [id_comp, comp_id, pentagon] } }
+-- /--
+-- The Yoneda embedding at the level of objects.
+-- -/
+-- @[simps]
+-- def yoneda_obj (a : B) : oplax_functor Bᵒᵖ Cat :=
+-- { obj := λ s, Cat.of (unop s ⟶ a),
+--   map := λ s t f, (lcomp (unop t) (unop s) a).obj f,
+--   map₂ := λ s t f g β, (lcomp (unop t) (unop s) a).map β,
+--   map_id   := λ s, (left_unitor_nat_iso (unop s) a).hom,
+--   map_comp := λ s t r (p : unop t ⟶ unop s) (q : unop r ⟶ unop t), (associator_nat_iso_right a q p).hom,
+--   map_comp_naturality_left'  := by { intros, ext, apply associator_naturality_middle },
+--   map_comp_naturality_right' := by { intros, ext, apply associator_naturality_left },
+--   map₂_id'    := by { intros, ext, apply bicategory.whisker_right_id },
+--   map₂_comp'  := by { intros, ext, apply bicategory.whisker_right_comp },
+--   map₂_associator'  := by { intros, dsimp, ext, dsimp,
+--     simp only [iso.refl_hom, strict.associator_eq_to_iso, nat_trans.id_app, eq_to_iso_refl],
+--     erw comp_id, rw pentagon_inv_hom_hom_hom_hom },
+--   map₂_left_unitor'   := by { intros, ext, dsimp,
+--     simp only [iso.refl_hom, strict.left_unitor_eq_to_iso, triangle_assoc, nat_trans.id_app, eq_to_iso_refl],
+--     erw comp_id },
+--   map₂_right_unitor'  := by { intros, ext, dsimp,
+--     simp only [iso.refl_hom, left_unitor_comp, strict.right_unitor_eq_to_iso, iso.hom_inv_id_assoc, nat_trans.id_app, assoc,
+--   eq_to_iso_refl],
+--   dsimp,
+--   simp only [comp_id],
+--   erw Cat.comp_obj,
+--   dsimp only [Cat.bicategory],
+--   dsimp,
+--   rw comp_id } }
 
-/--
-The Yoneda embedding at the level of 2-morphisms.
--/
-@[simps]
-def yoneda_map₂ {a b : B} {f g : a ⟶ b} (η : f ⟶ g) :
-  (yoneda_map f) ⟶ (yoneda_map g) :=
-{ app := λ s,
-  { app := λ h : unop s ⟶ a, h ◁ η,
-    naturality' := by { intros, dsimp, rw whisker_exchange } },
-  naturality' := by { intros, ext, dsimp, apply associator_naturality_right } }
+-- /--
+-- The Yoneda embedding at the level of 1-morphisms.
+-- -/
+-- @[simps]
+-- def yoneda_map {a b : B} (f : a ⟶ b) : (yoneda_obj a) ⟶ (yoneda_obj b) :=
+-- { app := λ s, (rcomp (unop s) a b).obj f,
+--   naturality := λ (s t : Bᵒᵖ) (p : unop t ⟶ unop s), (associator_nat_iso_middle p f).hom,
+--   naturality_naturality' := by { intros, ext, apply associator_naturality_left },
+--   naturality_id' := by { intros, ext, dsimp, simp only [left_unitor_comp, iso.hom_inv_id_assoc, comp_id] },
+--   naturality_comp' := by { intros, ext, dsimp,
+--     simp only [iso.refl_hom, strict.associator_eq_to_iso, iso.refl_inv, nat_trans.id_app, eq_to_iso_refl],
+--     dsimp, simp only [id_comp, comp_id],
+--     erw id_comp, rw pentagon } }
 
-@[simps]
-def yoneda_map_id_aux (a : B) : yoneda_map (𝟙 a) ⟶ 𝟙 (yoneda_obj a) :=
-oplax_nat_trans.modification.mk
-  (λ s : Bᵒᵖ, (right_unitor_nat_iso (unop s) a).hom)
-  (by { dsimp, intros, ext, dsimp, simp only [right_unitor_comp, comp_id] })
+-- /--
+-- The Yoneda embedding at the level of 2-morphisms.
+-- -/
+-- @[simps]
+-- def yoneda_map₂ {a b : B} {f g : a ⟶ b} (η : f ⟶ g) :
+--   (yoneda_map f) ⟶ (yoneda_map g) :=
+-- { app := λ s,
+--   { app := λ h : unop s ⟶ a, h ◁ η,
+--     naturality' := by { intros, dsimp, rw whisker_exchange } },
+--   naturality' := by { intros, ext, dsimp, apply associator_naturality_right } }
 
-@[simps]
-def yoneda_map_comp_aux (a b c : B) (f : a ⟶ b) (g : b ⟶ c) :
-  yoneda_map (f ≫ g) ⟶ yoneda_map f ≫ yoneda_map g :=
-oplax_nat_trans.modification.mk
-  (λ s : Bᵒᵖ, (associator_nat_iso_left (unop s) f g).inv)
-  (by { dsimp, intros, ext, dsimp, simp only [id_comp, comp_id], erw pentagon_inv_hom_hom_hom_inv })
+-- @[simps]
+-- def yoneda_map_id_aux (a : B) : yoneda_map (𝟙 a) ⟶ 𝟙 (yoneda_obj a) :=
+-- oplax_nat_trans.modification.mk
+--   (λ s : Bᵒᵖ, (right_unitor_nat_iso (unop s) a).hom)
+--   (by { dsimp, intros, ext, dsimp, simp only [right_unitor_comp, comp_id] })
 
-/--
-The Yoneda embedding as an oplax functor from `B` into 2-presheaves on `B`.
--/
-@[simps]
-def yoneda : oplax_functor B (oplax_functor Bᵒᵖ Cat) :=
-{ obj := yoneda_obj,
-  map := λ _ _, yoneda_map,
-  map₂ := λ _ _ _ _, yoneda_map₂,
-  map_id := yoneda_map_id_aux,
-  map_comp := yoneda_map_comp_aux,
-  map_comp_naturality_left'  := by { intros, ext, dsimp, apply associator_inv_naturality_middle },
-  map_comp_naturality_right' := by { intros, ext, dsimp, apply associator_inv_naturality_right },
-  map₂_id'    := by { intros, ext, dsimp, apply bicategory.whisker_left_id },
-  map₂_comp'  := by { intros, ext, dsimp, apply bicategory.whisker_left_comp },
-  map₂_associator'  := by { intros, ext, dsimp, simp only [pentagon_hom_inv_inv_inv_inv, comp_id] },
-  map₂_left_unitor'   := by { intros, ext, dsimp, simp only [triangle_assoc_comp_right, comp_id] },
-  map₂_right_unitor'  := by { intros, ext, dsimp, simp only [right_unitor_comp, iso.inv_hom_id_assoc, comp_id] } }
+-- @[simps]
+-- def yoneda_map_comp_aux (a b c : B) (f : a ⟶ b) (g : b ⟶ c) :
+--   yoneda_map (f ≫ g) ⟶ yoneda_map f ≫ yoneda_map g :=
+-- oplax_nat_trans.modification.mk
+--   (λ s : Bᵒᵖ, (associator_nat_iso_left (unop s) f g).inv)
+--   (by { dsimp, intros, ext, dsimp, simp only [id_comp, comp_id], erw pentagon_inv_hom_hom_hom_inv })
 
-end oplax_functor
+-- /--
+-- The Yoneda embedding as an oplax functor from `B` into 2-presheaves on `B`.
+-- -/
+-- @[simps]
+-- def yoneda : oplax_functor B (oplax_functor Bᵒᵖ Cat) :=
+-- { obj := yoneda_obj,
+--   map := λ _ _, yoneda_map,
+--   map₂ := λ _ _ _ _, yoneda_map₂,
+--   map_id := yoneda_map_id_aux,
+--   map_comp := yoneda_map_comp_aux,
+--   map_comp_naturality_left'  := by { intros, ext, dsimp, apply associator_inv_naturality_middle },
+--   map_comp_naturality_right' := by { intros, ext, dsimp, apply associator_inv_naturality_right },
+--   map₂_id'    := by { intros, ext, dsimp, apply bicategory.whisker_left_id },
+--   map₂_comp'  := by { intros, ext, dsimp, apply bicategory.whisker_left_comp },
+--   map₂_associator'  := by { intros, ext, dsimp, simp only [pentagon_hom_inv_inv_inv_inv, comp_id] },
+--   map₂_left_unitor'   := by { intros, ext, dsimp, simp only [triangle_assoc_comp_right, comp_id] },
+--   map₂_right_unitor'  := by { intros, ext, dsimp, simp only [right_unitor_comp, iso.inv_hom_id_assoc, comp_id] } }
 
-namespace pseudofunctor
+-- end oplax_functor
 
-/--
-The Yoneda embedding at the level of objects.
--/
-@[simps]
-def yoneda_obj (a : B) : pseudofunctor Bᵒᵖ Cat :=
-{ obj := λ s, Cat.of (unop s ⟶ a),
-  map := λ s t f, (lcomp (unop t) (unop s) a).obj f,
-  map₂ := λ s t f g β, (lcomp (unop t) (unop s) a).map β,
-  map_id   := λ s, (left_unitor_nat_iso (unop s) a).hom,
-  map_id_iso   := λ s, (left_unitor_nat_iso (unop s) a),
-  map_comp := λ s t r (p : unop t ⟶ unop s) (q : unop r ⟶ unop t), (associator_nat_iso_right a q p).hom,
-  map_comp_iso := λ s t r p q, (associator_nat_iso_right a q p),
-  map_comp_naturality_left'  := by { intros, ext, apply associator_naturality_middle },
-  map_comp_naturality_right' := by { intros, ext, apply associator_naturality_left },
-  map₂_id'    := by { intros, ext, apply bicategory.whisker_right_id },
-  map₂_comp'  := by { intros, ext, apply bicategory.whisker_right_comp },
-  map₂_associator'  := by { intros, ext, dsimp, simp only [pentagon_inv_hom_hom_hom_hom, comp_id] },
-  map₂_left_unitor'   := by { intros, ext, dsimp, simp only [triangle_assoc, comp_id] },
-  map₂_right_unitor'  := by { intros, ext, dsimp, simp only [left_unitor_comp, iso.hom_inv_id_assoc, comp_id] } }
+-- namespace pseudofunctor
 
-/--
-The Yoneda embedding at the level of 1-morphisms.
--/
-@[simps]
-def yoneda_map {a b : B} (f : a ⟶ b) : (yoneda_obj a) ⟶ (yoneda_obj b) :=
-{ app := λ s, (rcomp (unop s) a b).obj f,
-  naturality := λ (s t : Bᵒᵖ) (p : unop t ⟶ unop s), (associator_nat_iso_middle p f).hom,
-  naturality_iso := λ (s t : Bᵒᵖ) (p : unop t ⟶ unop s), associator_nat_iso_middle p f,
-  naturality_naturality' := by { intros, ext, apply associator_naturality_left },
-  naturality_id' := by { intros, ext, dsimp, simp only [left_unitor_comp, iso.hom_inv_id_assoc, comp_id] },
-  naturality_comp' := by { intros, ext, dsimp, simp only [id_comp, comp_id, pentagon] } }
+-- /--
+-- The Yoneda embedding at the level of objects.
+-- -/
+-- @[simps]
+-- def yoneda_obj (a : B) : pseudofunctor Bᵒᵖ Cat :=
+-- { obj := λ s, Cat.of (unop s ⟶ a),
+--   map := λ s t f, (lcomp (unop t) (unop s) a).obj f,
+--   map₂ := λ s t f g β, (lcomp (unop t) (unop s) a).map β,
+--   map_id   := λ s, (left_unitor_nat_iso (unop s) a).hom,
+--   map_id_iso   := λ s, (left_unitor_nat_iso (unop s) a),
+--   map_comp := λ s t r (p : unop t ⟶ unop s) (q : unop r ⟶ unop t), (associator_nat_iso_right a q p).hom,
+--   map_comp_iso := λ s t r p q, (associator_nat_iso_right a q p),
+--   map_comp_naturality_left'  := by { intros, ext, apply associator_naturality_middle },
+--   map_comp_naturality_right' := by { intros, ext, apply associator_naturality_left },
+--   map₂_id'    := by { intros, ext, apply bicategory.whisker_right_id },
+--   map₂_comp'  := by { intros, ext, apply bicategory.whisker_right_comp },
+--   map₂_associator'  := by { intros, ext, dsimp, simp only [pentagon_inv_hom_hom_hom_hom, comp_id] },
+--   map₂_left_unitor'   := by { intros, ext, dsimp, simp only [triangle_assoc, comp_id] },
+--   map₂_right_unitor'  := by { intros, ext, dsimp, simp only [left_unitor_comp, iso.hom_inv_id_assoc, comp_id] } }
 
-/--
-The Yoneda embedding at the level of 2-morphisms.
--/
-@[simps]
-def yoneda_map₂ {a b : B} {f g : a ⟶ b} (η : f ⟶ g) :
-  (yoneda_map f) ⟶ (yoneda_map g) :=
-{ app := λ s,
-  { app := λ h : unop s ⟶ a, h ◁ η,
-    naturality' := by { intros, dsimp, rw whisker_exchange } },
-  naturality' := by { intros, ext, dsimp, apply associator_naturality_right } }
+-- /--
+-- The Yoneda embedding at the level of 1-morphisms.
+-- -/
+-- @[simps]
+-- def yoneda_map {a b : B} (f : a ⟶ b) : (yoneda_obj a) ⟶ (yoneda_obj b) :=
+-- { app := λ s, (rcomp (unop s) a b).obj f,
+--   naturality := λ (s t : Bᵒᵖ) (p : unop t ⟶ unop s), (associator_nat_iso_middle p f).hom,
+--   naturality_iso := λ (s t : Bᵒᵖ) (p : unop t ⟶ unop s), associator_nat_iso_middle p f,
+--   naturality_naturality' := by { intros, ext, apply associator_naturality_left },
+--   naturality_id' := by { intros, ext, dsimp, simp only [left_unitor_comp, iso.hom_inv_id_assoc, comp_id] },
+--   naturality_comp' := by { intros, ext, dsimp, simp only [id_comp, comp_id, pentagon] } }
 
-@[simps]
-def yoneda_map_id_aux (a : B) : yoneda_map (𝟙 a) ≅ (𝟙 (yoneda_obj a)) :=
-pseudonat_trans.modification_iso.of_components
-  (λ s : Bᵒᵖ, (right_unitor_nat_iso (unop s) a))
-  (by { intros, ext, dsimp, simp only [right_unitor_comp, comp_id] })
+-- /--
+-- The Yoneda embedding at the level of 2-morphisms.
+-- -/
+-- @[simps]
+-- def yoneda_map₂ {a b : B} {f g : a ⟶ b} (η : f ⟶ g) :
+--   (yoneda_map f) ⟶ (yoneda_map g) :=
+-- { app := λ s,
+--   { app := λ h : unop s ⟶ a, h ◁ η,
+--     naturality' := by { intros, dsimp, rw whisker_exchange } },
+--   naturality' := by { intros, ext, dsimp, apply associator_naturality_right } }
+
+-- @[simps]
+-- def yoneda_map_id_aux (a : B) : yoneda_map (𝟙 a) ≅ (𝟙 (yoneda_obj a)) :=
+-- pseudonat_trans.modification_iso.of_components
+--   (λ s : Bᵒᵖ, (right_unitor_nat_iso (unop s) a))
+--   (by { intros, ext, dsimp, simp only [right_unitor_comp, comp_id] })
 
 
-@[simps]
-def yoneda_map_comp_aux (a b c : B) (f : a ⟶ b) (g : b ⟶ c) :
-  yoneda_map (f ≫ g) ≅ yoneda_map f ≫ yoneda_map g :=
-pseudonat_trans.modification_iso.of_components
-  (λ s : Bᵒᵖ, (associator_nat_iso_left (unop s) f g).symm)
-  (by { dsimp, intros, ext, dsimp, simp only [pentagon_inv_hom_hom_hom_inv, id_comp, comp_id] })
+-- @[simps]
+-- def yoneda_map_comp_aux (a b c : B) (f : a ⟶ b) (g : b ⟶ c) :
+--   yoneda_map (f ≫ g) ≅ yoneda_map f ≫ yoneda_map g :=
+-- pseudonat_trans.modification_iso.of_components
+--   (λ s : Bᵒᵖ, (associator_nat_iso_left (unop s) f g).symm)
+--   (by { dsimp, intros, ext, dsimp, simp only [pentagon_inv_hom_hom_hom_inv, id_comp, comp_id] })
 
-/--
-The Yoneda embedding as a pseudofunctor from `B` into 2-presheaves on `B`.
--/
-@[simps]
-def yoneda : pseudofunctor B (pseudofunctor Bᵒᵖ Cat) :=
-{ obj := yoneda_obj,
-  map := λ _ _, yoneda_map,
-  map₂ := λ _ _ _ _, yoneda_map₂,
-  map_id_iso := yoneda_map_id_aux,
-  map_id := λ a, (yoneda_map_id_aux a).hom,
-  map_comp_iso := yoneda_map_comp_aux,
-  map_comp := λ (a b c : B) (f : a ⟶ b) (g : b ⟶ c), (yoneda_map_comp_aux a b c f g).hom,
-  map_comp_naturality_left'  := by { intros, ext, dsimp, apply associator_inv_naturality_middle },
-  map_comp_naturality_right' := by { intros, ext, dsimp, apply associator_inv_naturality_right },
-  map₂_id'    := by { intros, ext, dsimp, apply bicategory.whisker_left_id },
-  map₂_comp'  := by { intros, ext, dsimp, apply bicategory.whisker_left_comp },
-  map₂_associator'  := by { intros, ext, dsimp, simp only [pentagon_hom_inv_inv_inv_inv, comp_id], },
-  map₂_left_unitor'   := by { intros, ext, dsimp, simp only [triangle_assoc_comp_right, comp_id]},
-  map₂_right_unitor'  := by { intros, ext, dsimp, simp only [right_unitor_comp, iso.inv_hom_id_assoc, comp_id] } }
+-- /--
+-- The Yoneda embedding as a pseudofunctor from `B` into 2-presheaves on `B`.
+-- -/
+-- @[simps]
+-- def yoneda : pseudofunctor B (pseudofunctor Bᵒᵖ Cat) :=
+-- { obj := yoneda_obj,
+--   map := λ _ _, yoneda_map,
+--   map₂ := λ _ _ _ _, yoneda_map₂,
+--   map_id_iso := yoneda_map_id_aux,
+--   map_id := λ a, (yoneda_map_id_aux a).hom,
+--   map_comp_iso := yoneda_map_comp_aux,
+--   map_comp := λ (a b c : B) (f : a ⟶ b) (g : b ⟶ c), (yoneda_map_comp_aux a b c f g).hom,
+--   map_comp_naturality_left'  := by { intros, ext, dsimp, apply associator_inv_naturality_middle },
+--   map_comp_naturality_right' := by { intros, ext, dsimp, apply associator_inv_naturality_right },
+--   map₂_id'    := by { intros, ext, dsimp, apply bicategory.whisker_left_id },
+--   map₂_comp'  := by { intros, ext, dsimp, apply bicategory.whisker_left_comp },
+--   map₂_associator'  := by { intros, ext, dsimp, simp only [pentagon_hom_inv_inv_inv_inv, comp_id], },
+--   map₂_left_unitor'   := by { intros, ext, dsimp, simp only [triangle_assoc_comp_right, comp_id]},
+--   map₂_right_unitor'  := by { intros, ext, dsimp, simp only [right_unitor_comp, iso.inv_hom_id_assoc, comp_id] } }
 
-end pseudofunctor
+-- end pseudofunctor
 
-end
+-- end
 
 -- section
 -- open bicategory pseudofunctor
@@ -299,7 +320,7 @@ end
 --   { simp only [functor.map_iso_inv, iso.app_hom, iso.symm_hom, functor.map_iso_hom, assoc, iso.trans_hom,
 --     pseudonat_trans.naturality_iso_hom],
 --     have naturality := congr_app (oplax_nat_trans.modification.naturality Γ f) (𝟙 (unop a)),
---     dsimp [Cat.bicategory] at ⊢ naturality,
+--     dsimp only [Cat.bicategory] at ⊢ naturality,
 --     rw [←naturality, nat_trans.naturality_assoc, nat_trans.naturality_assoc] })
 
 -- lemma yoneda_lemma_naturality_naturality_aux
@@ -703,4 +724,4 @@ end
 
 -- end
 
-end category_theory
+-- end category_theory

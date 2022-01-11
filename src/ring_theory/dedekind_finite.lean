@@ -63,7 +63,7 @@ def nilpotents [ring R] : set R := { a : R | is_nilpotent a }
 -- TODO would be nice to set this up as the radical of the zero ideal but currently there doesn't
 --  seem to be much about one-sided ideals in non-comm rings
 
-class is_reduced_ring [ring R] :=
+class is_reduced_ring [ring R] : Prop :=
 (no_nilpotents : ∀ a : R, is_nilpotent a → a = 0)
 
 lemma nilpotents_of_reduced [ring R] [is_reduced_ring R] : nilpotents R = {0} :=
@@ -119,8 +119,8 @@ instance is_dedekind_finite_of_reversible [ring R] [is_reversible R] :
   end⟩
 
 @[priority 100]
-instance is_dedekind_finite_of_reduced [ring R] [is_reduced_ring R] :
-  is_dedekind_finite R := by apply_instance
+instance is_dedekind_finite_of_reduced [ring R] [is_reduced_ring R] : is_dedekind_finite R :=
+by apply_instance
 
 
 variable [ring R]

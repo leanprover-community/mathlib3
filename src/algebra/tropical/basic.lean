@@ -191,15 +191,15 @@ instance : linear_order (tropical R) :=
   max := λ a b, trop (max (untrop a) (untrop b)),
   max_def := begin
     ext x y,
-    rw [max_default, max_def, apply_ite trop, trop_untrop, trop_untrop],
-    refl,
+    rw [max_default, max_def, apply_ite trop, trop_untrop, trop_untrop,
+      if_congr untrop_le_iff rfl rfl],
   end,
   min := (+),
   min_def := begin
     ext x y,
     dsimp only [has_add.add],
-    rw [min_default, min_def, apply_ite trop, trop_untrop, trop_untrop],
-    refl,
+    rw [min_default, min_def, apply_ite trop, trop_untrop, trop_untrop,
+      if_congr untrop_le_iff rfl rfl],
   end,
   ..tropical.partial_order }
 

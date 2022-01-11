@@ -186,6 +186,7 @@ instance : add_comm_semigroup (tropical R) :=
 @[simp] lemma untrop_add (x y : tropical R) : untrop (x + y) = min (untrop x) (untrop y) := rfl
 @[simp] lemma trop_min (x y : R) : trop (min x y) = trop x + trop y := rfl
 @[simp] lemma trop_inf (x y : R) : trop (x ⊓ y) = trop x + trop y := rfl
+
 lemma trop_add_def (x y : tropical R) : x + y = trop (min (untrop x) (untrop y)) := rfl
 
 instance : linear_order (tropical R) :=
@@ -211,6 +212,9 @@ instance : linear_order (tropical R) :=
 @[simp] lemma untrop_max (x y : tropical R) : untrop (max x y) = max (untrop x) (untrop y) := rfl
 @[simp] lemma min_eq_add : (min : tropical R → tropical R → tropical R) = (+) := rfl
 @[simp] lemma inf_eq_add : ((⊓) : tropical R → tropical R → tropical R) = (+) := rfl
+
+lemma trop_max_def (x y : tropical R) : max x y = trop (max (untrop x) (untrop y)) := rfl
+lemma trop_sup_def (x y : tropical R) : x ⊔ y = trop (untrop x ⊔ untrop y) := rfl
 
 @[simp] lemma add_eq_left ⦃x y : tropical R⦄ (h : x ≤ y) :
   x + y = x := untrop_injective (by simpa using h)

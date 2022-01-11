@@ -620,32 +620,32 @@ protected lemma single_apply (p) (i : α) (a : E i) (j : α) :
   lp.single p i a j = if h : j = i then eq.rec a h.symm else 0 :=
 rfl
 
-protected lemma single_apply_pos (p) (i : α) (a : E i) :
+protected lemma single_apply_self (p) (i : α) (a : E i) :
   lp.single p i a i = a :=
 by rw [lp.single_apply, dif_pos rfl]
 
-protected lemma single_apply_neg (p) (i : α) (a : E i) {j : α} (hij : j ≠ i) :
+protected lemma single_apply_ne (p) (i : α) (a : E i) {j : α} (hij : j ≠ i) :
   lp.single p i a j = 0 :=
 by rw [lp.single_apply, dif_neg hij]
 
-@[simp] protected lemma neg_single (p) (i : α) (a : E i) :
+@[simp] protected lemma single_neg (p) (i : α) (a : E i) :
   lp.single p i (- a) = - lp.single p i a :=
 begin
   ext j,
   by_cases hi : j = i,
   { subst hi,
-    simp [lp.single_apply_pos] },
-  { simp [lp.single_apply_neg p i _ hi] }
+    simp [lp.single_apply_self] },
+  { simp [lp.single_apply_ne p i _ hi] }
 end
 
-@[simp] protected lemma smul_single (p) (i : α) (a : E i) (c : 𝕜) :
+@[simp] protected lemma single_smul (p) (i : α) (a : E i) (c : 𝕜) :
   lp.single p i (c • a) = c • lp.single p i a :=
 begin
   ext j,
   by_cases hi : j = i,
   { subst hi,
-    simp [lp.single_apply_pos] },
-  { simp [lp.single_apply_neg p i _ hi] }
+    simp [lp.single_apply_self] },
+  { simp [lp.single_apply_ne p i _ hi] }
 end
 
 protected lemma norm_sum_single (hp : 0 < p.to_real) (f : Π i, E i) (s : finset α) :

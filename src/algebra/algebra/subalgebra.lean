@@ -37,10 +37,16 @@ variables [comm_semiring R]
 variables [semiring A] [algebra R A] [semiring B] [algebra R B] [semiring C] [algebra R C]
 include R
 
-instance : subsemiring_class (subalgebra R A) A :=
+instance : set_like (subalgebra R A) A :=
 { coe := subalgebra.carrier,
   coe_injective' := λ p q h, by cases p; cases q; congr',
   add_mem := add_mem',
+  mul_mem := mul_mem',
+  one_mem := one_mem',
+  zero_mem := zero_mem' }
+
+instance : subsemiring_class (subalgebra R A) A :=
+{ add_mem := add_mem',
   mul_mem := mul_mem',
   one_mem := one_mem',
   zero_mem := zero_mem' }

@@ -181,7 +181,7 @@ begin
       rw [inter_comm],
       refine inter_subset_inter subset.rfl (subset_bUnion_of_mem hjp) } },
   refine is_preconnected_of_forall_pair _,
-  intros x y hx hy,
+  intros x hx y hy,
   obtain ⟨i: ι, hi : i ∈ t, hxi : x ∈ s i⟩ := mem_bUnion_iff.1 hx,
   obtain ⟨j: ι, hj : j ∈ t, hyj : y ∈ s j⟩ := mem_bUnion_iff.1 hy,
   obtain ⟨p, hpt, hip, hjp, hp⟩ := P i hi j hj (K i hi j hj),
@@ -206,7 +206,7 @@ theorem is_preconnected.Union_of_refl_trans_gen {ι : Type*} {s : ι → set α}
   (K : ∀ i j, refl_trans_gen (λ i j : ι, (s i ∩ s j).nonempty) i j) :
   is_preconnected (⋃ n, s n) :=
 by { rw [← bUnion_univ], exact is_preconnected.bUnion_of_refl_trans_gen (λ i _, H i)
-  (λ i j _ _, by simpa [mem_univ] using K i j) }
+  (λ i _ j _, by simpa [mem_univ] using K i j) }
 
 theorem is_connected.Union_of_refl_trans_gen {ι : Type*} [nonempty ι] {s : ι → set α}
   (H : ∀ i, is_connected (s i))

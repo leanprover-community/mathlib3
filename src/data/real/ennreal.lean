@@ -84,7 +84,9 @@ localized "notation `ℝ≥0∞` := ennreal" in ennreal
 localized "notation `∞` := (⊤ : ennreal)" in ennreal
 
 noncomputable instance : linear_ordered_add_comm_monoid ℝ≥0∞ :=
-{ .. ennreal.canonically_ordered_comm_semiring,
+{ max_def := rfl,
+  min_def := rfl,
+  .. ennreal.canonically_ordered_comm_semiring,
   .. ennreal.complete_linear_order }
 
 -- TODO: why are the two covariant instances necessary? why aren't they inferred?

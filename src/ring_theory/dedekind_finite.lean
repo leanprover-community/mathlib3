@@ -5,14 +5,9 @@ Authors: Alex J. Best
 -/
 import tactic.subtype_instance
 import tactic.noncomm_ring
-import ring_theory.noetherian
 import ring_theory.adjoin
-import data.matrix.basic
-import data.polynomial.basic
 import ring_theory.nilpotent
-import data.polynomial.induction
 import order.filter.at_top_bot
-import tactic.omega
 import linear_algebra.finite_dimensional
 
 /-!
@@ -22,6 +17,7 @@ import linear_algebra.finite_dimensional
 
 ## References
 
+* Lam, First Course in Noncommutative Ring Theory
 * https://ysharifi.wordpress.com/2010/09/17/dedekind-finite-rings/
 * The Factorization Theory of Power Monoids - Antoniou,
   https://etd.ohiolink.edu/apexprod/rws_etd/send_file/send?accession=osu1586355818066608&disposition=inline
@@ -110,17 +106,16 @@ instance is_dedekind_finite_of_reversible [ring R] [is_reversible R] :
   is_dedekind_finite R :=
 ⟨λ a b h,
   begin
-    have :=
-    calc (b * a - 1) * b = b * (a * b) - b : by rw [sub_mul, one_mul, mul_assoc]
-                    ...  = 0               : by rw [h, mul_one, sub_self],
-    have : b * (b * a - 1) = 0 := is_reversible.zero_div_comm _ _ this,
+    have : b * (b * a - 1) = 0 := is_reversible.zero_div_comm _ _
+      (calc (b * a - 1) * b = b * (a * b) - b : by rw [sub_mul, one_mul, mul_assoc]
+                      ...  = 0               : by rw [h, mul_one, sub_self]),
     rw [mul_sub, mul_one, ← mul_assoc, ← pow_two, sub_eq_zero] at this,
-    have abba_eq_one := congr_arg ((*) a) this,
-    rw [h] at abba_eq_one,
-    calc b * a = (a * (b^2 * a)) * b * a : by simp [abba_eq_one]
-        ...    = (a * b^2) * (a * b) * a : by simp [mul_assoc] -- I feel like ac_refl should do this
-        ...    = (a * b^2 * a)           : by simp [h]
-        ...    = 1                       : by assoc_rw [abba_eq_one],
+    apply_fun ((*) a) at this,
+    rw [h] at this,
+    calc b * a = a * (b^2 * a) * b * a : by simp [this]
+        ...    = a * b^2 * (a * b) * a : by simp [mul_assoc] -- I feel like ac_refl should do this
+        ...    = a * b^2 * a           : by simp [h]
+        ...    = 1                     : by assoc_rw [this],
   end⟩
 
 @[priority 100]
@@ -285,25 +280,16 @@ private lemma aux1 {i j : ℕ} : j - i = j + 1 - (i + 1) := by simp
 variable {R : Type*}
 
 lemma pow_mul_pow_eq_pow_sub_mul_pow_sub_of_mul_eq_one [monoid R] {a b : R} (hab : a * b = 1) :
-  -- ∀ (i j : ℕ), a ^ i * b ^ j = if i ≤ j then b ^ (j - i) else a ^ (i - j)
-  ∀ (i j : ℕ), a ^ i * b ^ j = b ^ (j - i) * a ^ (i - j) -- TODO is this better?
+  ∀ (i j : ℕ), a ^ i * b ^ j = b ^ (j - i) * a ^ (i - j)
 | 0       0       := by simp
-| (i + 1) 0       := by simp [mul_one, nat.zero_sub, nat.le_zero_iff,
-                        add_eq_zero_iff, if_false, nat.sub_zero, one_ne_zero,
-                        pow_zero, and_false]
-| 0       (j + 1) := by simp [one_mul, if_true, nat.zero_sub, zero_le,
-                        nat.sub_zero, pow_zero]
+| (i + 1) 0       := by simp
+| 0       (j + 1) := by simp
 | (i + 1) (j + 1) := begin
-        rw pow_succ', rw pow_succ, assoc_rw hab,
-        rw mul_one, rw pow_mul_pow_eq_pow_sub_mul_pow_sub_of_mul_eq_one i j,
-        rw [nat.succ_sub_succ_eq_sub],
-        rw [nat.succ_sub_succ_eq_sub],
-        -- apply' if_congr (iff.symm nat.lt_succ_iff),
-        -- apply' congr_arg ((^) b),
-        -- exact aux1,
-        -- apply' congr_arg ((^) a),
-        -- exact aux1,
-    end
+  rw [pow_succ', pow_succ],
+  assoc_rw hab,
+  rw [mul_one, pow_mul_pow_eq_pow_sub_mul_pow_sub_of_mul_eq_one i j,
+      nat.succ_sub_succ_eq_sub, nat.succ_sub_succ_eq_sub],
+end
 
 private def e [ring R] (a b : R) (i j : ℕ) : R := b ^ i * (1 - b * a) * a ^ j
 lemma left_mul [ring R] {a b : R} (hab : a * b = 1) : a * (1 - b * a) = 0 :=
@@ -327,7 +313,7 @@ begin
         pow_succ],
     assoc_rw right_mul hab,
     simp [H], },
-  { simp,
+  { simp only [mul_one, if_true, eq_self_iff_true, tsub_self, pow_zero],
     assoc_rw idemp hab, },
   { rw [if_neg (ne_of_gt H),
         show j - k = j - k - 1 + 1, from (nat.succ_pred_eq_of_pos (tsub_pos_of_lt H)).symm,
@@ -360,10 +346,11 @@ begin
       exact h ((add_left_inj 1).mp a_2) },
     apply absurd _ hba.symm,
     rw ← sub_eq_zero,
-    calc 1 - b * a = e a b 0 0                         : by simp [e]
-              ...  = e a b 0 (n + 1) * e a b (n + 1) 0 : by rw [e_orthogonal hab, if_pos rfl]
-              ...  = e a b 0 (n + 1) * e a b (m + 1) 0 : by rw hnm
-              ...  = 0                                 : this, },
+    calc 1 - b * a
+         = e a b 0 0                         : by rw [e, pow_zero, pow_zero, mul_one, one_mul]
+    ...  = e a b 0 (n + 1) * e a b (n + 1) 0 : by rw [e_orthogonal hab, if_pos rfl]
+    ...  = e a b 0 (n + 1) * e a b (m + 1) 0 : by rw hnm
+    ...  = 0                                 : this, },
   exact infinite.not_fintype hinf,
 end
 

@@ -19,7 +19,7 @@ multiplication is said to be a special Jordan algebra.
 
 ## Main results
 
-- comm_jordan : The symmeterised algebra arising from an associative algebra is a commutative Jordan
+- `comm_jordan` : The symmeterised algebra arising from an associative algebra is a commutative Jordan
   algebra.
 
 ## Implementation notes

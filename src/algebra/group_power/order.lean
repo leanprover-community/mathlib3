@@ -356,12 +356,14 @@ end
 theorem abs_le_of_sq_le_sq' (h : x^2 ≤ y^2) (hy : 0 ≤ y) : -y ≤ x ∧ x ≤ y :=
 abs_le.mp $ abs_le_of_sq_le_sq h hy
 
-theorem fourth_le_fourth {x y : R} (h : |x| ≤ |y|) : x ^ 4 ≤ y ^ 4 :=
+
+theorem pow_four_le_pow_four {x y : R} (h : |x| ≤ |y|) : x ^ 4 ≤ y ^ 4 :=
 begin
-  have := sq_le_sq h,
-  rw [(by simp only [pow_bit0_abs, abs_pow] : x ^ 2 = |y ^ 2|),
-   (by simp only [pow_bit0_abs, abs_pow] : y ^ 2 = |y ^ 2|)] at this,
-  convert sq_le_sq this using 1; ring,
+  rw [(show 4 = 2 * 2, by refl), pow_mul, pow_mul],
+  apply sq_le_sq,
+  rw [←pow_abs, ←pow_abs],
+  apply sq_le_sq,
+  rwa [abs_abs, abs_abs],
 end
 
 end linear_ordered_ring

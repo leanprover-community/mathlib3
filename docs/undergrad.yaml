@@ -413,7 +413,7 @@ Topology:
   Normed vector spaces on $\R$ and $\C$:
     topology on a normed vector space: 'semi_normed_space.has_bounded_smul'
     equivalent norms: ''
-    Banach open mapping theorem: 'open_mapping'
+    Banach open mapping theorem: 'continuous_linear_map.is_open_map'
     equivalence of norms in finite dimension: 'linear_equiv.to_continuous_linear_equiv'
     norms $\lVert\cdot\rVert_p$ on $\R^n$ and $\C^n$: 'pi_Lp.normed_space'
     absolutely convergent series in Banach spaces: 'summable_of_summable_norm'

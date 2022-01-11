@@ -244,11 +244,7 @@ theorem not_subset : (¬ s ⊆ t) ↔ ∃a ∈ s, a ∉ t := by simp only [subse
 
 /-! ### Definition of strict subsets `s ⊂ t` and basic properties. -/
 
-instance : has_ssubset (set α) := ⟨(<)⟩
-
 @[simp] lemma lt_eq_ssubset : ((<) : set α → set α → Prop) = (⊂) := rfl
-
-theorem ssubset_def : (s ⊂ t) = (s ⊆ t ∧ ¬ (t ⊆ s)) := rfl
 
 theorem eq_or_ssubset_of_subset (h : s ⊆ t) : s = t ∨ s ⊂ t :=
 eq_or_lt_of_le h

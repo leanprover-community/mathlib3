@@ -56,7 +56,7 @@ lemma unbounded_gt_iff [linear_order α] : unbounded (>) s ↔ ∀ a, ∃ b ∈ 
 /-! #### Less and less or equal -/
 
 lemma bounded_le_of_bounded_lt [preorder α] (h : bounded (<) s) : bounded (≤) s :=
-exists.elim h $ λ a ha, ⟨a, λ b hb, le_of_lt (ha b hb)⟩
+let ⟨a, ha⟩ := h in ⟨a, λ b hb, le_of_lt (ha b hb)⟩
 
 lemma unbounded_lt_of_unbounded_le [preorder α] (h : unbounded (≤) s) :
   unbounded (<) s :=
@@ -82,7 +82,7 @@ end
 /-! #### Greater and greater or equal -/
 
 lemma bounded_ge_of_bounded_gt [preorder α] (h : bounded (>) s) : bounded (≥) s :=
-exists.elim h $ λ a ha, ⟨a, λ b hb, le_of_lt (ha b hb)⟩
+let ⟨a, ha⟩ := h in ⟨a, λ b hb, le_of_lt (ha b hb)⟩
 
 lemma unbounded_gt_of_unbounded_ge [preorder α] (h : unbounded (≥) s) : unbounded (>) s :=
 λ a, let ⟨b, hb, hba⟩ := h a in ⟨b, hb, λ hba', hba (le_of_lt hba')⟩
@@ -115,7 +115,7 @@ theorem bounded_lt_Iio [preorder α] (a : α) : bounded (<) (set.Iio a) :=
 bounded_r_r a
 
 theorem bounded_lt_Iic [preorder α] [no_top_order α] (a : α) : bounded (<) (set.Iic a) :=
-exists.elim (no_top a) $ λ b hab, ⟨b, λ c hca, lt_of_le_of_lt hca hab⟩
+let ⟨b, hab⟩ := no_top a in ⟨b, λ c hca, lt_of_le_of_lt hca hab⟩
 
 theorem bounded_le_Iio [preorder α] (a : α) : bounded (≤) (set.Iio a) :=
 bounded_le_of_bounded_lt (bounded_lt_Iio a)

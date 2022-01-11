@@ -183,7 +183,7 @@ variable {α}
 lemma const_apply' (a : α) (b : β) : (const α b : α → β) a = b := rfl
 
 /-- If the target space is inhabited, so is the space of bounded continuous functions -/
-instance [inhabited β] : inhabited (α →ᵇ β) := ⟨const α (default β)⟩
+instance [inhabited β] : inhabited (α →ᵇ β) := ⟨const α default⟩
 
 lemma lipschitz_evalx (x : α) : lipschitz_with 1 (λ f : α →ᵇ β, f x) :=
 lipschitz_with.mk_one $ λ f g, dist_coe_le_dist x

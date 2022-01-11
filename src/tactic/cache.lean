@@ -105,7 +105,7 @@ For performance reasons, Lean does not automatically update its database
 of class instances during a proof. The group of tactics described below
 helps to force such updates. For a simple (but very artificial) example,
 consider the function `default` from the core library. It has type
-`Π (α : Sort u) [inhabited α], α`, so one can use `default α` only if Lean
+`Π (α : Sort u) [inhabited α], α`, so one can use `default` only if Lean
 can find a registered instance of `inhabited α`. Because the database of
 such instance is not automatically updated during a proof, the following
 attempt won't work (Lean will not pick up the instance from the local
@@ -115,7 +115,7 @@ def my_id (α : Type) : α → α :=
 begin
   intro x,
   have : inhabited α := ⟨x⟩,
-  exact default α, -- Won't work!
+  exact default, -- Won't work!
 end
 ```
 However, it will work, producing the identity function, if one replaces `have`

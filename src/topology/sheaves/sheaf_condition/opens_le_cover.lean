@@ -50,7 +50,7 @@ The category of open sets contained in some element of the cover.
 def opens_le_cover : Type v := { V : opens X // ∃ i, V ≤ U i }
 
 instance [inhabited ι] : inhabited (opens_le_cover U) :=
-⟨⟨⊥, default ι, bot_le⟩⟩
+⟨⟨⊥, default, bot_le⟩⟩
 
 instance : category (opens_le_cover U) := category_theory.full_subcategory _
 

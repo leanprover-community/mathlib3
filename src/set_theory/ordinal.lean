@@ -1116,6 +1116,9 @@ le_min.trans set_coe.forall
 theorem omin_le {S H i} (h : i ∈ S) : omin S H ≤ i :=
 le_omin.1 (le_refl _) _ h
 
+theorem not_lt_omin {S H i} (h : i ∈ S) : ¬ i < omin S H :=
+not_lt_of_le (omin_le h)
+
 @[simp] theorem lift_min {ι} (I) (f : ι → ordinal) : lift (min I f) = min I (lift ∘ f) :=
 le_antisymm (le_min.2 $ λ a, lift_le.2 $ min_le _ a) $
 let ⟨i, e⟩ := min_eq I (lift ∘ f) in

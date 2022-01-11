@@ -206,10 +206,10 @@ lemma comap_of_ker_is_p_group {H : subgroup G} (hH : is_p_group p H) {K : Type*}
 begin
   intro g,
   obtain ⟨j, hj⟩ := hH ⟨ϕ g.1, g.2⟩,
-  rw [subtype.ext_iff, H.coe_pow, subtype.coe_mk, ←ϕ.map_pow] at hj,
+  rw [subtype.ext_iff, submonoid_class.coe_pow, subtype.coe_mk, ←ϕ.map_pow] at hj,
   obtain ⟨k, hk⟩ := hϕ ⟨g.1 ^ p ^ j, hj⟩,
-  rwa [subtype.ext_iff, ϕ.ker.coe_pow, subtype.coe_mk, ←pow_mul, ←pow_add] at hk,
-  exact ⟨j + k, by rwa [subtype.ext_iff, (H.comap ϕ).coe_pow]⟩,
+  rwa [subtype.ext_iff, submonoid_class.coe_pow, subtype.coe_mk, ←pow_mul, ←pow_add] at hk,
+  exact ⟨j + k, by rwa [subtype.ext_iff, submonoid_class.coe_pow]⟩,
 end
 
 lemma ker_is_p_group_of_injective {K : Type*} [group K] {ϕ : K →* G} (hϕ : function.injective ϕ) :

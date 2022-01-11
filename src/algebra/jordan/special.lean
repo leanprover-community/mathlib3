@@ -181,12 +181,9 @@ instance [has_mul α] [has_add α] [has_one α] [invertible (2 : α)] (a : α) [
 lemma unsym_mul [has_mul α] [has_add α] [has_one α] [invertible (2 : α)] (a b : αˢʸᵐ) :
   unsym (a * b) = ⅟2*(unsym a * unsym b + unsym b * unsym a) := by refl
 
-lemma sym_mul_sym [has_mul α] [has_add α] [has_one α] [invertible (2 : α)] (a b : α) : sym a * sym b
-  = sym (⅟2*(a * b + b * a)) :=
-begin
-  change sym ⅟(2)*(a * b + b * a) = sym ⅟(2)*(a * b + b * a),
-  refl,
-end
+lemma sym_mul_sym [has_mul α] [has_add α] [has_one α] [invertible (2 : α)] (a b : α) :
+  sym a * sym b = sym (⅟2*(a * b + b * a)) :=
+rfl
 
 /- The symmetrisation of a real (unital, associative) algebra is a non-associative ring -/
 instance [ring α] [invertible (2 : α)] : non_unital_non_assoc_ring (αˢʸᵐ) :=

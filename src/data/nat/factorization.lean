@@ -40,15 +40,17 @@ namespace nat
  mapping each prime factor of `n` to its multiplicity in `n`. -/
 noncomputable def factorization (n : ℕ) : ℕ →₀ ℕ := (n.factors : multiset ℕ).to_finsupp
 
-lemma factorization_eq_count {n p : ℕ} : n.factorization p = n.factors.count p :=
+@[simp] lemma factors_count_eq {n p : ℕ} : n.factors.count p = n.factorization p :=
 by simp [factorization]
--- TODO: As part of the unification mentioned in the TODO above,
--- consider making this a [simp] lemma from `n.factors.count` to `n.factorization`
+
+lemma eq_of_count_factors_eq {a b : ℕ} (ha : 0 < a) (hb : 0 < b)
+  (h : ∀ p : ℕ, a.factorization p = b.factorization p) : a = b :=
+eq_of_perm_factors ha hb (by simpa only [list.perm_iff_count, factors_count_eq] using h)
 
 /-- Every nonzero natural number has a unique prime factorization -/
 lemma factorization_inj : set.inj_on factorization { x : ℕ | x ≠ 0 } :=
 λ a ha b hb h, eq_of_count_factors_eq
-  (zero_lt_iff.mpr ha) (zero_lt_iff.mpr hb) (λ p, by simp [←factorization_eq_count, h])
+  (zero_lt_iff.mpr ha) (zero_lt_iff.mpr hb) (λ p, by simp [h])
 
 @[simp] lemma factorization_zero : factorization 0 = 0  :=
 by simp [factorization]
@@ -68,16 +70,74 @@ by simp only [support_factorization, list.mem_to_finset]
 lemma factorization_eq_zero_iff (n : ℕ) : n.factorization = 0 ↔ n = 0 ∨ n = 1 :=
 by simp [factorization, add_equiv.map_eq_zero_iff, multiset.coe_eq_zero]
 
+/-- For positive `a` and `b`, the power of `p` in `a * b` is the sum of the powers in `a` and `b` -/
+lemma count_factors_mul_of_pos {p a b : ℕ} (ha : 0 < a) (hb : 0 < b) :
+  list.count p (a * b).factors = list.count p a.factors + list.count p b.factors :=
+by rw [perm_iff_count.mp (perm_factors_mul_of_pos ha hb) p, count_append]
+
 /-- For nonzero `a` and `b`, the power of `p` in `a * b` is the sum of the powers in `a` and `b` -/
 @[simp] lemma factorization_mul {a b : ℕ} (ha : a ≠ 0) (hb : b ≠ 0) :
   (a * b).factorization = a.factorization + b.factorization :=
-by { ext p, simp only [add_apply, factorization_eq_count,
+by { ext p, simp only [add_apply, ←factorization_eq_count,
   count_factors_mul_of_pos (zero_lt_iff.mpr ha) (zero_lt_iff.mpr hb)] }
 
 /-- For any `p`, the power of `p` in `n^k` is `k` times the power in `n` -/
-lemma factorization_pow {n k : ℕ} :
+lemma factorization_pow (n k : ℕ) :
   factorization (n^k) = k • n.factorization :=
-by { ext p, simp [factorization_eq_count, factors_count_pow] }
+begin
+  induction k with k ih,
+  { simp },
+  rcases n.eq_zero_or_pos with rfl | hn,
+  { simp },
+  rw [pow_succ, factorization_mul hn.ne' (pow_ne_zero _ hn.ne'), ih, succ_eq_one_add, add_smul,
+    one_smul],
+end
+
+/-- For coprime `a` and `b`, the power of `p` in `a * b` is the sum of the powers in `a` and `b` -/
+lemma count_factors_mul_of_coprime {p a b : ℕ} (hab : coprime a b)  :
+  list.count p (a * b).factors = list.count p a.factors + list.count p b.factors :=
+by rw [perm_iff_count.mp (perm_factors_mul_of_coprime hab) p, count_append]
+
+/-- If `p` is a prime factor of `a` then the power of `p` in `a` is the same that in `a * b`,
+for any `b` coprime to `a`. -/
+lemma factors_count_eq_of_coprime_left {p a b : ℕ} (hab : coprime a b) (hpa : p ∈ a.factors) :
+  list.count p (a * b).factors = list.count p a.factors :=
+begin
+  rw count_factors_mul_of_coprime hab,
+  simpa only [count_eq_zero_of_not_mem (coprime_factors_disjoint hab hpa)],
+end
+
+lemma pow_factors_count_dvd (n p : ℕ) :
+  p ^ n.factors.count p ∣ n :=
+begin
+  by_cases hp : p.prime,
+  { apply dvd_of_factors_subperm (pow_ne_zero _ hp.ne_zero),
+    rw [hp.factors_pow, list.subperm_ext_iff],
+    intros q hq,
+    simp [list.eq_of_mem_repeat hq] },
+  { rw count_eq_zero_of_not_mem (mt prime_of_mem_factors hp),
+    simp },
+end
+
+/-- If `p` is a prime factor of `b` then the power of `p` in `b` is the same that in `a * b`,
+for any `a` coprime to `b`. -/
+lemma factors_count_eq_of_coprime_right {p a b : ℕ} (hab : coprime a b) (hpb : p ∈ b.factors) :
+  list.count p (a * b).factors = list.count p b.factors :=
+by { rw mul_comm, exact factors_count_eq_of_coprime_left (coprime_comm.mp hab) hpb }
+
+/-- For `b > 0`, the power of `p` in `a * b` is at least that in `a` -/
+lemma le_factors_count_mul_left {p a b : ℕ} (hb : 0 < b) :
+  list.count p a.factors ≤ list.count p (a * b).factors :=
+begin
+  rcases a.eq_zero_or_pos with rfl | ha,
+  { simp },
+  { rw [perm.count_eq (perm_factors_mul_of_pos ha hb) p, count_append p], simp },
+end
+
+/-- For `a > 0`, the power of `p` in `a * b` is at least that in `b` -/
+lemma le_factors_count_mul_right {p a b : ℕ} (ha : 0 < a) :
+  list.count p b.factors ≤ list.count p (a * b).factors :=
+by { rw mul_comm, apply le_factors_count_mul_left ha }
 
 /-- The only prime factor of prime `p` is `p` itself, with multiplicity `1` -/
 @[simp] lemma prime.factorization {p : ℕ} (hp : prime p) :

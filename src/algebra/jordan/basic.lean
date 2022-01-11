@@ -21,7 +21,7 @@ in `A`,
 i.e. the operators of multiplication by `a` and `a^2` commute. Every associative algebra can be
 equipped with a second  multiplication making it into a commutative Jordan algebra.
 Jordan algebras arising this way are said to be special. There are also exceptional Jordan algebras
-which can be shown not to be the symmetrisation of any associative algebra. The three by three
+which can be shown not to be the symmetrisation of any associative algebra. The 3x3
 matrices of octonions is the canonical example.
 
 Commutative Jordan algebras were introduced by Jordan, von Neumann and Wigner

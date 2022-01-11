@@ -629,14 +629,6 @@ noncomputable def bot_equiv (F R : Type*) [field F] [semiring R] [nontrivial R] 
   (⊥ : subalgebra F R) ≃ₐ[F] F :=
 bot_equiv_of_injective (ring_hom.injective _)
 
-<<<<<<< HEAD:src/algebra/algebra/subalgebra/basic.lean
-=======
-/-- The top subalgebra is isomorphic to the field. -/
-@[simps apply symm_apply {rhs_md := semireducible}]
-def top_equiv : (⊤ : subalgebra R A) ≃ₐ[R] A :=
-alg_equiv.of_alg_hom (subalgebra.val ⊤) to_top rfl $ alg_hom.ext $ λ x, subtype.ext rfl
-
->>>>>>> aeb63ac259 (refactor(*): remove duplicate subobject instances):src/algebra/algebra/subalgebra.lean
 end algebra
 
 namespace subalgebra
@@ -649,8 +641,9 @@ variables (S : subalgebra R A)
 /-- The top subalgebra is isomorphic to the algebra.
 
 This is the algebra version of `submodule.top_equiv`. -/
-@[simps] def top_equiv : (⊤ : subalgebra R A) ≃ₐ[R] A :=
-alg_equiv.of_alg_hom (subalgebra.val ⊤) to_top rfl $ alg_hom.ext $ λ _, subtype.ext rfl
+@[simps apply symm_apply {rhs_md := semireducible}]
+def top_equiv : (⊤ : subalgebra R A) ≃ₐ[R] A :=
+alg_equiv.of_alg_hom (subalgebra.val ⊤) to_top rfl $ alg_hom.ext $ λ x, subtype.ext rfl
 
 -- TODO[gh-6025]: make this an instance once safe to do so
 lemma subsingleton_of_subsingleton [subsingleton A] : subsingleton (subalgebra R A) :=

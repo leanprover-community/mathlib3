@@ -102,19 +102,20 @@ begin
   cases int.units_eq_one_or (sign π) with h h,
   { rw is_conj_iff,
     refine ⟨⟨π, mem_alternating_group.mp h⟩, subtype.val_injective _⟩,
-    simpa only [subtype.val_eq_coe, subgroup.coe_mul, coe_inv, coe_mk] using hπ },
+    simpa only [subtype.val_eq_coe, submonoid_class.coe_mul, subgroup_class.coe_inv, subtype.coe_mk]
+      using hπ },
   { have h2 : 2 ≤ σ.supportᶜ.card,
     { rw [finset.card_compl, le_tsub_iff_left σ.support.card_le_univ],
       exact hσ },
     obtain ⟨a, ha, b, hb, ab⟩ := finset.one_lt_card.1 h2,
     refine is_conj_iff.2 ⟨⟨π * swap a b, _⟩, subtype.val_injective _⟩,
     { rw [mem_alternating_group, monoid_hom.map_mul, h, sign_swap ab, int.units_mul_self] },
-    { simp only [←hπ, coe_mk, subgroup.coe_mul, subtype.val_eq_coe],
+    { simp only [←hπ, subtype.coe_mk, submonoid_class.coe_mul, subtype.val_eq_coe],
       have hd : disjoint (swap a b) σ,
       { rw [disjoint_iff_disjoint_support, support_swap ab, finset.disjoint_insert_left,
           finset.disjoint_singleton_left],
         exact ⟨finset.mem_compl.1 ha, finset.mem_compl.1 hb⟩ },
-      rw [mul_assoc π _ σ, hd.commute.eq, coe_inv, coe_mk],
+      rw [mul_assoc π _ σ, hd.commute.eq, subgroup_class.coe_inv, subtype.coe_mk],
       simp [mul_assoc] } }
 end
 
@@ -148,7 +149,7 @@ closure_eq_of_le _ (λ σ hσ, mem_alternating_group.2 hσ.sign) $ λ σ hσ, be
   obtain ⟨b, l, rfl⟩ := l.exists_of_length_succ hn,
   rw [list.prod_cons, list.prod_cons, ← mul_assoc],
   rw [list.length_cons, nat.succ_inj'] at hn,
-  exact mul_mem _ (is_swap.mul_mem_closure_three_cycles (hl a (list.mem_cons_self a _))
+  exact mul_mem (is_swap.mul_mem_closure_three_cycles (hl a (list.mem_cons_self a _))
     (hl b (list.mem_cons_of_mem a (l.mem_cons_self b))))
     (ih _ (λ g hg, hl g (list.mem_cons_of_mem _ (list.mem_cons_of_mem _ hg))) hn),
 end
@@ -221,8 +222,8 @@ eq_top_iff.2 begin
   have h : (⟨fin_rotate 5, fin_rotate_bit1_mem_alternating_group⟩ :
     alternating_group (fin 5)) ∈ normal_closure _ :=
     set_like.mem_coe.1 (subset_normal_closure (set.mem_singleton _)),
-  exact mul_mem _ (subgroup.normal_closure_normal.conj_mem _ h
-    ⟨fin.cycle_range 2, fin.is_three_cycle_cycle_range_two.mem_alternating_group⟩) (inv_mem _ h),
+  exact mul_mem (subgroup.normal_closure_normal.conj_mem _ h
+    ⟨fin.cycle_range 2, fin.is_three_cycle_cycle_range_two.mem_alternating_group⟩) (inv_mem h),
 end
 
 /-- The normal closure of $(04)(13)$ within $A_5$ is the whole group. This will be
@@ -238,14 +239,14 @@ begin
     alternating_group (fin 5)),
   have h5 : g1 * g2 * g1⁻¹ * g2⁻¹ = ⟨fin_rotate 5, fin_rotate_bit1_mem_alternating_group⟩,
   { rw subtype.ext_iff,
-    simp only [fin.coe_mk, subgroup.coe_mul, subgroup.coe_inv, fin.coe_mk],
+    simp only [fin.coe_mk, submonoid_class.coe_mul, subgroup_class.coe_inv, fin.coe_mk],
     dec_trivial },
   rw [eq_top_iff, ← normal_closure_fin_rotate_five],
   refine normal_closure_le_normal _,
   rw [set.singleton_subset_iff, set_like.mem_coe, ← h5],
   have h : g2 ∈ normal_closure {g2} :=
     set_like.mem_coe.1 (subset_normal_closure (set.mem_singleton _)),
-  exact mul_mem _ (subgroup.normal_closure_normal.conj_mem _ h g1) (inv_mem _ h),
+  exact mul_mem (subgroup.normal_closure_normal.conj_mem _ h g1) (inv_mem h),
 end
 
 /-- Shows that any non-identity element of $A_5$ whose cycle decomposition consists only of swaps
@@ -318,7 +319,7 @@ instance is_simple_group_five : is_simple_group (alternating_group (fin 5)) :=
     refine normal_closure_le_normal _,
     rw [set.singleton_subset_iff, set_like.mem_coe],
     have h := set_like.mem_coe.1 (subset_normal_closure (set.mem_singleton _)),
-    exact mul_mem _ h h },
+    exact mul_mem h h },
   { -- The case `n = 4` leads to contradiction, as no element of $A_5$ includes a 4-cycle.
     have con := mem_alternating_group.1 gA,
     contrapose! con,

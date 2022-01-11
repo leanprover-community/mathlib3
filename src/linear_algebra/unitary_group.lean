@@ -37,17 +37,31 @@ universes u v
 
 section
 
-variables (M : Type v) [monoid M] [star_monoid M]
+variables (M : Type v)
 
 /--
 In a `star_monoid M`, `unitary_submonoid M` is the submonoid consisting of all the elements of
 `M` such that `star A * A = 1`.
 -/
-def unitary_submonoid : submonoid M :=
+def unitary_submonoid [monoid M] [star_monoid M] : submonoid M :=
 { carrier := {A | star A * A = 1},
   one_mem' := by simp,
   mul_mem' := λ A B (hA : star A * A = 1) (hB : star B * B = 1), show star (A * B) * (A * B) = 1,
   by rwa [star_mul, ←mul_assoc, mul_assoc _ _ A, hA, mul_one] }
+
+variables {M}
+
+@[simp] lemma mem_unitary_submonoid [monoid M] [star_monoid M] {x : M} :
+  x ∈ unitary_submonoid M ↔ star x * x = 1 := iff.rfl
+
+instance [division_ring M] [star_ring M] : group (unitary_submonoid M) :=
+{ inv := λ x, ⟨x⁻¹, begin
+    rw mem_unitary_submonoid,
+    rw [star_inv', ←mul_inv_rev₀, inv_eq_one₀, star_mul_self_eq_one_comm,
+      mem_unitary_submonoid.mp x.prop],
+  end⟩,
+  mul_left_inv := λ x, subtype.ext $ mul_left_inv _,
+  ..submonoid.to_monoid _ }
 
 end
 

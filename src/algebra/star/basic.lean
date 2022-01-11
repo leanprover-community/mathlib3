@@ -184,6 +184,20 @@ variables {R}
   star (n • x) = n • star x :=
 (star_add_equiv : R ≃+ R).to_add_monoid_hom.map_zsmul _ _
 
+lemma star_mul_self_eq_one_comm [division_ring R] [star_add_monoid R] (x : R) :
+  star x * x = 1 ↔ x * star x = 1 :=
+begin
+  obtain rfl | hx := eq_or_ne x 0,
+  { simp only [star_zero, zero_ne_one, mul_zero] },
+  split,
+  { intro h,
+    apply mul_right_cancel₀ hx,
+    rw [mul_assoc, h, mul_one, one_mul], },
+  { intro h,
+    apply mul_left_cancel₀ hx,
+    rw [←mul_assoc, h, mul_one, one_mul], },
+end
+
 section
 open_locale big_operators
 

@@ -1602,6 +1602,10 @@ theorem rpow_neg (a b : ℝ) (b' : ℕ) (c c' : ℝ)
   (a0 : 0 ≤ a) (hb : b = b') (h : a ^ b' = c) (hc : c⁻¹ = c') : a ^ -b = c' :=
 by rw [← hc, ← h, hb, real.rpow_neg a0, real.rpow_nat_cast]
 
+/-- Evaluate `real.rpow a b` where `a` is a rational numeral and `b` is an integer.
+(This cannot go via the generalized version `prove_rpow'` because `rpow_pos` has a side condition;
+we do not attempt to evaluate `a ^ b` where `a` and `b` are both negative because it comes
+out to some garbage.) -/
 meta def prove_rpow (a b : expr) : tactic (expr × expr) := do
   na ← a.to_rat,
   ic ← mk_instance_cache `(ℝ),
@@ -1622,6 +1626,7 @@ meta def prove_rpow (a b : expr) : tactic (expr × expr) := do
     pure (c, (expr.const ``rpow_pos []).mk_app [a, b, b', c, hb, h])
   end
 
+/-- Generalized version of `prove_cpow`, `prove_nnrpow`, `prove_ennrpow`. -/
 meta def prove_rpow' (pos neg zero : name) (α β one a b : expr) : tactic (expr × expr) := do
   na ← a.to_rat,
   icα ← mk_instance_cache α,
@@ -1664,12 +1669,15 @@ theorem ennrpow_neg (a : ℝ≥0∞) (b : ℝ) (b' : ℕ) (c c' : ℝ≥0∞)
   (hb : b = b') (h : a ^ b' = c) (hc : c⁻¹ = c') : a ^ -b = c' :=
 by rw [← hc, ← h, hb, ennreal.rpow_neg, ennreal.rpow_nat_cast]
 
+/-- Evaluate `complex.cpow a b` where `a` is a rational numeral and `b` is an integer. -/
 meta def prove_cpow : expr → expr → tactic (expr × expr) :=
 prove_rpow' ``cpow_pos ``cpow_neg ``complex.cpow_zero `(ℂ) `(ℂ) `(1:ℂ)
 
+/-- Evaluate `nnreal.rpow a b` where `a` is a rational numeral and `b` is an integer. -/
 meta def prove_nnrpow : expr → expr → tactic (expr × expr) :=
 prove_rpow' ``nnrpow_pos ``nnrpow_neg ``nnreal.rpow_zero `(ℝ≥0) `(ℝ) `(1:ℝ≥0)
 
+/-- Evaluate `ennreal.rpow a b` where `a` is a rational numeral and `b` is an integer. -/
 meta def prove_ennrpow : expr → expr → tactic (expr × expr) :=
 prove_rpow' ``ennrpow_pos ``ennrpow_neg ``ennreal.rpow_zero `(ℝ≥0∞) `(ℝ) `(1:ℝ≥0∞)
 

@@ -108,7 +108,7 @@ instance is_dedekind_finite_of_reversible [ring R] [is_reversible R] :
   begin
     have : b * (b * a - 1) = 0 := is_reversible.zero_div_comm _ _
       (calc (b * a - 1) * b = b * (a * b) - b : by rw [sub_mul, one_mul, mul_assoc]
-                      ...  = 0               : by rw [h, mul_one, sub_self]),
+                       ...  = 0               : by rw [h, mul_one, sub_self]),
     rw [mul_sub, mul_one, ← mul_assoc, ← pow_two, sub_eq_zero] at this,
     apply_fun ((*) a) at this,
     rw [h] at this,

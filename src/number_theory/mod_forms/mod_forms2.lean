@@ -446,7 +446,6 @@ def hol_extn (f : ℍ → ℂ) : ℍ' → ℂ := λ (z : ℍ'), (f (z : ℍ) )
   (transf   :  f ∈ weakly_modular_submodule k Γ )
   (infinity : ∀ (A : (⊤ : subgroup SL(2,ℤ))), (f ∣[k] A) ∈ is_bound_at_infinity )
 
-
 lemma mk (Γ : subgroup SL(2,ℤ)) (k : ℤ) (f : ℍ → ℂ)
   (h : mdifferentiable 𝓘(ℂ) 𝓘(ℂ) (hol_extn f) )
   (h2: f ∈ weakly_modular_submodule k Γ )
@@ -455,8 +454,6 @@ lemma mk (Γ : subgroup SL(2,ℤ)) (k : ℤ) (f : ℍ → ℂ)
   hol := h,
   transf := h2,
   infinity := h3,}
-
-
 
 lemma mod_mem (Γ : subgroup SL(2,ℤ)) (k : ℤ) (f : ℍ → ℂ) : is_modular_form_of_lvl_and_weight Γ k f ↔
   mdifferentiable 𝓘(ℂ) 𝓘(ℂ) (hol_extn f) ∧

@@ -240,7 +240,7 @@ lemma mem_submonoid_of_factors_subset_of_units_subset (s : submonoid R)
 begin
   rcases ((factors_spec a ha).2) with ⟨c, hc⟩,
   rw [← hc],
-  exact submonoid.mul_mem _ (submonoid.multiset_prod_mem _ _ hfac) (hunit _),
+  exact mul_mem (multiset_prod_mem _ hfac) (hunit _)
 end
 
 /-- If a `ring_hom` maps all units and all factors of an element `a` into a submonoid `s`, then it

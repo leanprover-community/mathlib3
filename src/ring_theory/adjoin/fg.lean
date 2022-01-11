@@ -58,7 +58,7 @@ begin
     rcases hr with ⟨l, hlq, rfl⟩,
     have := @finsupp.total_apply A A (adjoin R s),
     rw [this, finsupp.sum],
-    refine sum_mem _ _,
+    refine sum_mem _,
     intros z hz, change (l z).1 * _ ∈ _,
     have : (l z).1 ∈ (adjoin R s).to_submodule := (l z).2,
     rw [← hp', ← set.image_id p, finsupp.mem_span_image_iff_total R] at this,
@@ -66,7 +66,7 @@ begin
     have := @finsupp.total_apply A A R,
     rw this at hl,
     rw [←hl, finsupp.sum_mul],
-    refine sum_mem _ _,
+    refine sum_mem _,
     intros t ht, change _ * _ ∈ _, rw smul_mul_assoc, refine smul_mem _ _ _,
     exact subset_span ⟨t, z, hlp ht, hlq hz, rfl⟩ }
 end

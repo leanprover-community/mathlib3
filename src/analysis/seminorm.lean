@@ -351,10 +351,6 @@ begin
         nnreal.coe_max, subtype.coe_mk, ih] }
 end
 
-lemma finset_le_sup (p : ι → seminorm 𝕜 E) (s : finset ι) (i : ι) (hi : i ∈ s) (x : E) :
-  p i x ≤ s.sup p x :=
-(finset.le_sup hi : p _ ≤ _) x
-
 end norm_one_class
 
 /-! ### Seminorm ball -/

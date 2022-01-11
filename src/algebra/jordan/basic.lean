@@ -96,12 +96,12 @@ open non_unital_non_assoc_ring
 /--
 A non unital, non-associative ring with a (non-commutative) Jordan multiplication.
 -/
-class jordan (A : Type*) [non_unital_non_assoc_ring A] :=
-(commL1R1: ∀ a b : A, (a * b) * a = a * (b * a))
-(commL1L2: ∀ a b : A, a * ((a * a) * b) = (a * a) * (a * b))
-(commL1R2: ∀ a b : A, a* (b * (a * a)) = (a * b) * (a * a) )
-(commL2R1: ∀ a b : A, (a * a) * (b * a) = ((a * a) * b) * a)
-(commR1R2: ∀ a b : A, (b * (a * a)) * a = (b * a) * (a * a))
+class jordan_algebra (A : Type*) [non_unital_non_assoc_ring A] :=
+(lmul_comm_rmul : ∀ a b : A, (a * b) * a = a * (b * a))
+(lmul_lmul_comm_lmul: ∀ a b : A, (a * a) * (a * b) = a * ((a * a) * b))
+(lmul_lmul_comm_rmul: ∀ a b : A, (a * a) * (b * a) = ((a * a) * b) * a)
+(lmul_comm_rmul_rmul: ∀ a b : A, (a * b) * (a * a) = a * (b * (a * a)))
+(rmul_comm_rmul_rmul: ∀ a b : A, (b * a) * (a * a) = (b * (a * a)) * a)
 
 lemma jordan_operators (A : Type*) [non_unital_non_assoc_ring A] [jordan A] (a : A) :
 (⁅L a, R a⁆ = 0) ∧ (⁅L a, L (a * a)⁆ = 0) ∧ (⁅L a, R (a * a)⁆ = 0) ∧ (⁅L (a * a), R a⁆ = 0) ∧

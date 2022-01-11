@@ -10,6 +10,7 @@ import field_theory.finite.basic
 import group_theory.perm.cycles
 import linear_algebra.matrix.charpoly.basic
 import linear_algebra.matrix.trace
+import linear_algebra.matrix.to_lin
 import ring_theory.polynomial.basic
 import ring_theory.power_basis
 

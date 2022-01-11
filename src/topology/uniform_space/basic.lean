@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Patrick Massot
 -/
 import order.filter.lift
-import topology.separation
+import topology.subset_properties
 /-!
 # Uniform spaces
 
@@ -271,6 +271,16 @@ lemma uniform_space.of_core_eq_to_core
   (u : uniform_space α) (t : topological_space α) (h : t = u.to_core.to_topological_space) :
   uniform_space.of_core_eq u.to_core t h = u :=
 uniform_space_eq rfl
+
+/-- Replace topology in a `uniform_space` instance with a propositionally (but possibly not
+definitionally) equal one. -/
+def uniform_space.replace_topology {α : Type*} [i : topological_space α] (u : uniform_space α)
+  (h : i = u.to_topological_space) : uniform_space α :=
+uniform_space.of_core_eq u.to_core i $ h.trans u.to_core_to_topological_space.symm
+
+lemma uniform_space.replace_topology_eq {α : Type*} [i : topological_space α] (u : uniform_space α)
+  (h : i = u.to_topological_space) : u.replace_topology h = u :=
+u.of_core_eq_to_core _ _
 
 section uniform_space
 variables [uniform_space α]
@@ -761,7 +771,7 @@ calc (a, b) ∈ closure t ↔ (𝓝 (a, b) ⊓ 𝓟 t ≠ ⊥) : mem_closure_iff
   ... ↔ (∀s ∈ 𝓤 α, (set.prod {y : α | (a, y) ∈ s} {x : α | (x, b) ∈ s} ∩ t).nonempty) :
   begin
     rw [lift'_inf_principal_eq, ← ne_bot_iff, lift'_ne_bot_iff],
-    exact monotone_inter (monotone_prod monotone_preimage monotone_preimage) monotone_const
+    exact (monotone_prod monotone_preimage monotone_preimage).inter monotone_const
   end
   ... ↔ (∀ s ∈ 𝓤 α, (a, b) ∈ s ○ (t ○ s)) :
     forall_congr $ assume s, forall_congr $ assume hs,
@@ -865,7 +875,7 @@ section
 variable (α)
 
 lemma uniform_space.has_seq_basis [is_countably_generated $ 𝓤 α] :
-  ∃ V : ℕ → set (α × α), has_antitone_basis (𝓤 α) (λ _, true) V ∧ ∀ n, symmetric_rel (V n) :=
+  ∃ V : ℕ → set (α × α), has_antitone_basis (𝓤 α) V ∧ ∀ n, symmetric_rel (V n) :=
 let ⟨U, hsym, hbasis⟩ :=  uniform_space.has_basis_symmetric.exists_antitone_subbasis
 in ⟨U, hbasis, λ n, (hsym n).2⟩
 
@@ -933,7 +943,8 @@ lemma filter.has_basis.uniform_continuous_on_iff [uniform_space β] {p : γ → 
   (hb : (𝓤 β).has_basis q t) {f : α → β} {S : set α} :
   uniform_continuous_on f S ↔
     ∀ i (hi : q i), ∃ j (hj : p j), ∀ x y ∈ S, (x, y) ∈ s j → (f x, f y) ∈ t i :=
-((ha.inf_principal (S.prod S)).tendsto_iff hb).trans $ by finish [prod.forall]
+((ha.inf_principal (S.prod S)).tendsto_iff hb).trans $
+by simp [prod.forall, set.inter_comm (s _), ball_mem_comm]
 
 end uniform_space
 
@@ -948,8 +959,8 @@ instance : partial_order (uniform_space α) :=
   le_trans    := assume a b c h₁ h₂, le_trans h₁ h₂ }
 
 instance : has_Inf (uniform_space α) :=
-⟨assume s, uniform_space.of_core {
-  uniformity := (⨅u∈s, @uniformity α u),
+⟨assume s, uniform_space.of_core
+{ uniformity := (⨅u∈s, @uniformity α u),
   refl       := le_infi $ assume u, le_infi $ assume hu, u.refl,
   symm       := le_infi $ assume u, le_infi $ assume hu,
     le_trans (map_mono $ infi_le_of_le _ $ infi_le _ hu) u.symm,
@@ -1019,7 +1030,7 @@ calc (u ⊓ v).uniformity = ((⨅i (h : i = u ∨ i = v), i) : uniform_space α)
 
 instance inhabited_uniform_space : inhabited (uniform_space α) := ⟨⊥⟩
 instance inhabited_uniform_space_core : inhabited (uniform_space.core α) :=
-⟨@uniform_space.to_core _ (default _)⟩
+⟨@uniform_space.to_core _ default⟩
 
 /-- Given `f : α → β` and a uniformity `u` on `β`, the inverse image of `u` under `f`
   is the inverse image in the filter sense of the induced function `α × α → β × β`. -/

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kexing Ying
 -/
 import measure_theory.measure.complex
+import measure_theory.decomposition.jordan
 import measure_theory.measure.with_density_vector_measure
 import measure_theory.function.ae_eq_of_integral
 
@@ -534,8 +535,8 @@ begin
   ext x,
   simp only [option.mem_def, ennreal.some_eq_coe],
   split; intro h; rw ← h, symmetry,
-  all_goals {
-    set c := (⨆ (k : ℕ) (hk : k ≤ m + 1), f k a) with hc,
+  all_goals
+  { set c := (⨆ (k : ℕ) (hk : k ≤ m + 1), f k a) with hc,
     set d := (f m.succ a ⊔ ⨆ (k : ℕ) (hk : k ≤ m), f k a) with hd,
     suffices : c ≤ d ∧ d ≤ c,
     { change c = d, -- removing this line breaks

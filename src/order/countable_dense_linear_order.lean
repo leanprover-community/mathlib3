@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: David Wärn
 -/
 import order.ideal
-import data.finset
 
 /-!
 # The back and forth method and countable dense linear orders
@@ -73,7 +72,7 @@ def partial_iso : Type* :=
 
 namespace partial_iso
 
-instance : inhabited (partial_iso α β) := ⟨⟨∅, λ p q h, h.elim⟩⟩
+instance : inhabited (partial_iso α β) := ⟨⟨∅, λ p h q, h.elim⟩⟩
 instance : preorder (partial_iso α β) := subtype.preorder _
 
 variables {α β}
@@ -88,7 +87,7 @@ lemma exists_across [densely_ordered β] [no_bot_order β] [no_top_order β] [no
   ∃ b : β, ∀ (p ∈ f.val), cmp (prod.fst p) a = cmp (prod.snd p) b :=
 begin
   by_cases h : ∃ b, (a, b) ∈ f.val,
-  { cases h with b hb, exact ⟨b, λ p hp, f.property _ _ hp hb⟩, },
+  { cases h with b hb, exact ⟨b, λ p hp, f.property _ hp _ hb⟩, },
   have : ∀ (x ∈ (f.val.filter (λ (p : α × β), p.fst < a)).image prod.snd)
            (y ∈ (f.val.filter (λ (p : α × β), a < p.fst)).image prod.snd),
     x < y,
@@ -97,7 +96,7 @@ begin
     rcases hx with ⟨p, hp1, rfl⟩,
     rcases hy with ⟨q, hq1, rfl⟩,
     rw finset.mem_filter at hp1 hq1,
-    rw ←lt_iff_lt_of_cmp_eq_cmp (f.property _ _ hp1.1 hq1.1),
+    rw ←lt_iff_lt_of_cmp_eq_cmp (f.property _ hp1.1 _ hq1.1),
     exact lt_trans hp1.right hq1.right, },
   cases exists_between_finsets _ _ this with b hb,
   use b,
@@ -114,9 +113,10 @@ end
 
 /-- A partial isomorphism between `α` and `β` is also a partial isomorphism between `β` and `α`. -/
 protected def comm : partial_iso α β → partial_iso β α :=
-subtype.map (finset.image (equiv.prod_comm _ _)) $ λ f hf p q hp hq,
-  eq.symm $ hf ((equiv.prod_comm α β).symm p) ((equiv.prod_comm α β).symm q)
+subtype.map (finset.image (equiv.prod_comm _ _)) $ λ f hf p hp q hq,
+  eq.symm $ hf ((equiv.prod_comm α β).symm p)
 (by { rw [←finset.mem_coe, finset.coe_image, equiv.image_eq_preimage] at hp, rwa ←finset.mem_coe })
+ ((equiv.prod_comm α β).symm q)
 (by { rw [←finset.mem_coe, finset.coe_image, equiv.image_eq_preimage] at hq, rwa ←finset.mem_coe })
 
 variable (β)
@@ -130,14 +130,14 @@ def defined_at_left [densely_ordered β] [no_bot_order β] [no_top_order β] [no
     intro f,
     cases exists_across f a with b a_b,
     refine ⟨⟨insert (a, b) f.val, _⟩, ⟨b, finset.mem_insert_self _ _⟩, finset.subset_insert _ _⟩,
-    intros p q hp hq,
+    intros p hp q hq,
     rw finset.mem_insert at hp hq,
     rcases hp with rfl | pf;
     rcases hq with rfl | qf,
     { simp },
     { rw cmp_eq_cmp_symm, exact a_b _ qf },
     { exact a_b _ pf },
-    { exact f.property _ _ pf qf },
+    { exact f.property _ pf _ qf },
   end }
 
 variables (α) {β}
@@ -186,7 +186,7 @@ variables (α β)
 def embedding_from_countable_to_dense
   [encodable α] [densely_ordered β] [no_bot_order β] [no_top_order β] [nonempty β] :
   α ↪o β :=
-let our_ideal : ideal (partial_iso α β) := ideal_of_cofinals (default _) (defined_at_left β) in
+let our_ideal : ideal (partial_iso α β) := ideal_of_cofinals default $ defined_at_left β in
 let F := λ a, fun_of_ideal a our_ideal (cofinal_meets_ideal_of_cofinals _ _ a) in
 order_embedding.of_strict_mono (λ a, (F a).val)
 begin
@@ -194,7 +194,7 @@ begin
   rcases (F a₁).property with ⟨f, hf, ha₁⟩,
   rcases (F a₂).property with ⟨g, hg, ha₂⟩,
   rcases our_ideal.directed _ hf _ hg with ⟨m, hm, fm, gm⟩,
-  exact (lt_iff_lt_of_cmp_eq_cmp $ m.property (a₁, _) (a₂, _) (fm ha₁) (gm ha₂)).mp
+  exact (lt_iff_lt_of_cmp_eq_cmp $ m.property (a₁, _) (fm ha₁) (a₂, _) (gm ha₂)).mp
 end
 
 /-- Any two countable dense, nonempty linear orders without endpoints are order isomorphic. -/
@@ -204,7 +204,7 @@ def iso_of_countable_dense
   α ≃o β :=
 let to_cofinal : α ⊕ β → cofinal (partial_iso α β) :=
   λ p, sum.rec_on p (defined_at_left β) (defined_at_right α) in
-let our_ideal : ideal (partial_iso α β) := ideal_of_cofinals (default _) to_cofinal in
+let our_ideal : ideal (partial_iso α β) := ideal_of_cofinals default to_cofinal in
 let F := λ a, fun_of_ideal a our_ideal (cofinal_meets_ideal_of_cofinals _ to_cofinal (sum.inl a)) in
 let G := λ b, inv_of_ideal b our_ideal (cofinal_meets_ideal_of_cofinals _ to_cofinal (sum.inr b)) in
 order_iso.of_cmp_eq_cmp (λ a, (F a).val) (λ b, (G b).val)
@@ -213,7 +213,7 @@ begin
   rcases (F a).property with ⟨f, hf, ha⟩,
   rcases (G b).property with ⟨g, hg, hb⟩,
   rcases our_ideal.directed _ hf _ hg with ⟨m, hm, fm, gm⟩,
-  exact m.property (a, _) (_, b) (fm ha) (gm hb)
+  exact m.property (a, _) (fm ha) (_, b) (gm hb)
 end
 
 end order

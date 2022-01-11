@@ -54,8 +54,9 @@ instance : locally_finite_order ℕ :=
       exact iff_of_false (λ hx, hx.2.not_le hx.1) (λ hx, h.not_le (hx.1.trans hx.2)) }
   end }
 
-namespace nat
 variables (a b c : ℕ)
+
+namespace nat
 
 lemma Icc_eq_range' : Icc a b = (list.range' a (b + 1 - a)).to_finset := rfl
 lemma Ico_eq_range' : Ico a b = (list.range' a (b - a)).to_finset := rfl
@@ -166,12 +167,30 @@ begin
         tsub_le_iff_right.1 hb⟩ } }
 end
 
+lemma Ico_succ_left_eq_erase_Ico : Ico a.succ b = erase (Ico a b) a :=
+begin
+  ext x,
+  rw [Ico_succ_left, mem_erase, mem_Ico, mem_Ioo, ←and_assoc, ne_comm, and_comm (a ≠ x),
+    lt_iff_le_and_ne],
+end
+
+end nat
+
+namespace finset
+
 lemma range_image_pred_top_sub (n : ℕ) : (finset.range n).image (λ j, n - 1 - j) = finset.range n :=
 begin
   cases n,
   { rw [range_zero, image_empty] },
-  { rw [finset.range_eq_Ico, Ico_image_const_sub_eq_Ico (zero_le _)],
+  { rw [finset.range_eq_Ico, nat.Ico_image_const_sub_eq_Ico (zero_le _)],
     simp_rw [succ_sub_succ, tsub_zero, tsub_self] }
 end
 
-end nat
+lemma range_add_eq_union : range (a + b) = range a ∪ (range b).map (add_left_embedding a) :=
+begin
+  rw [finset.range_eq_Ico, map_eq_image],
+  convert (Ico_union_Ico_eq_Ico a.zero_le le_self_add).symm,
+  exact image_add_left_Ico _ _ _,
+end
+
+end finset

@@ -3,10 +3,10 @@ Copyright (c) 2021 Shing Tak Lam. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Shing Tak Lam
 -/
-import topology.homotopy.path
-import category_theory.groupoid
 import category_theory.category.Groupoid
-import topology.category.Top
+import category_theory.groupoid
+import topology.category.Top.basic
+import topology.homotopy.path
 
 /-!
 # Fundamental groupoid of a space

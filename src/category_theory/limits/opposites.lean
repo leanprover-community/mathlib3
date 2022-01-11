@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Floris van Doorn
 -/
 import category_theory.limits.shapes.finite_products
-import category_theory.limits.shapes.kernels
 import category_theory.discrete_category
 
 /-!
@@ -68,7 +67,7 @@ local attribute [instance] has_limits_of_shape_op_of_has_colimits_of_shape
 /--
 If `C` has colimits, we can construct limits for `Cᵒᵖ`.
 -/
-lemma has_limits_op_of_has_colimits [has_colimits C] : has_limits Cᵒᵖ := {}
+lemma has_limits_op_of_has_colimits [has_colimits C] : has_limits Cᵒᵖ := ⟨infer_instance⟩
 
 /--
 If `F.left_op : Jᵒᵖ ⥤ C` has a limit, we can construct a colimit for `F : J ⥤ Cᵒᵖ`.
@@ -106,7 +105,7 @@ local attribute [instance] has_colimits_of_shape_op_of_has_limits_of_shape
 /--
 If `C` has limits, we can construct colimits for `Cᵒᵖ`.
 -/
-lemma has_colimits_op_of_has_limits [has_limits C] : has_colimits Cᵒᵖ := {}
+lemma has_colimits_op_of_has_limits [has_limits C] : has_colimits Cᵒᵖ := ⟨infer_instance⟩
 
 variables (X : Type v)
 /--

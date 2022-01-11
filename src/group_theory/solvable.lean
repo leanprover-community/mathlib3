@@ -184,7 +184,7 @@ begin
 end
 
 instance solvable_quotient_of_solvable (H : subgroup G) [H.normal] [h : is_solvable G] :
-  is_solvable (quotient_group.quotient H) :=
+  is_solvable (G ⧸ H) :=
 solvable_of_surjective (show function.surjective (quotient_group.mk' H), by tidy)
 
 lemma solvable_of_ker_le_range {G' G'' : Type*} [group G'] [group G''] (f : G' →* G)

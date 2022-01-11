@@ -4,9 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import topology.algebra.monoid
-import algebra.module.prod
-import topology.homeomorph
+import group_theory.group_action.prod
 import group_theory.group_action.basic
+import topology.homeomorph
 
 /-!
 # Continuous monoid action
@@ -23,9 +23,9 @@ In this file we define class `has_continuous_smul`. We say `has_continuous_smul 
   is a nonzero element of `G₀`, then scalar multiplication by `c` is a homeomorphism of `α`;
 * `homeomorph.smul`: scalar multiplication by an element of a group `G` acting on `α`
   is a homeomorphism of `α`.
-* `units.has_continuous_smul`: scalar multiplication by `units M` is continuous when scalar
+* `units.has_continuous_smul`: scalar multiplication by `Mˣ` is continuous when scalar
   multiplication by `M` is continuous. This allows `homeomorph.smul` to be used with on monoids
-  with `G = units M`.
+  with `G = Mˣ`.
 
 ## Main results
 
@@ -123,15 +123,22 @@ lemma continuous.const_smul (hg : continuous g) (c : M) :
   continuous (λ x, c • g x) :=
 continuous_smul.comp (continuous_const.prod_mk hg)
 
+/-- If a scalar is central, then its right action is continuous when its left action is. -/
+instance has_continuous_smul.op [has_scalar Mᵐᵒᵖ α] [is_central_scalar M α] :
+  has_continuous_smul Mᵐᵒᵖ α :=
+⟨ suffices continuous (λ p : M × α, mul_opposite.op p.fst • p.snd),
+  from this.comp (continuous_unop.prod_map continuous_id),
+  by simpa only [op_smul_eq_smul] using (continuous_smul : continuous (λ p : M × α, _)) ⟩
+
 end has_scalar
 
 section monoid
 
 variables [monoid M] [mul_action M α] [has_continuous_smul M α]
 
-instance units.has_continuous_smul : has_continuous_smul (units M) α :=
+instance units.has_continuous_smul : has_continuous_smul Mˣ α :=
 { continuous_smul :=
-    show continuous ((λ p : M × α, p.fst • p.snd) ∘ (λ p : units M × α, (p.1, p.2))),
+    show continuous ((λ p : M × α, p.fst • p.snd) ∘ (λ p : Mˣ × α, (p.1, p.2))),
     from continuous_smul.comp ((units.continuous_coe.comp continuous_fst).prod_mk continuous_snd) }
 
 @[to_additive]
@@ -316,7 +323,7 @@ instance [topological_space β] [has_scalar M α] [has_scalar M β] [has_continu
   (continuous_fst.smul (continuous_snd.comp continuous_snd))⟩
 
 @[to_additive]
-instance {ι : Type*} {γ : ι → Type}
+instance {ι : Type*} {γ : ι → Type*}
   [∀ i, topological_space (γ i)] [Π i, has_scalar M (γ i)] [∀ i, has_continuous_smul M (γ i)] :
   has_continuous_smul M (Π i, γ i) :=
 ⟨continuous_pi $ λ i,

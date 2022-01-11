@@ -109,8 +109,8 @@ from `exterior_algebra R M` to `A`.
 def lift : {f : M →ₗ[R] A // ∀ m, f m * f m = 0} ≃ (exterior_algebra R M →ₐ[R] A) :=
 { to_fun := λ f,
   ring_quot.lift_alg_hom R ⟨tensor_algebra.lift R (f : M →ₗ[R] A),
-    λ x y (h : rel R M x y), by {
-      induction h,
+    λ x y (h : rel R M x y), by
+    { induction h,
       rw [alg_hom.map_zero, alg_hom.map_mul, tensor_algebra.lift_ι_apply, f.prop] }⟩,
   inv_fun := λ F, ⟨F.to_linear_map.comp (ι R), λ m, by rw [
     linear_map.comp_apply, alg_hom.to_linear_map_apply, comp_ι_sq_zero]⟩,
@@ -176,8 +176,8 @@ lemma induction {C : exterior_algebra R M → Prop}
   C a :=
 begin
   -- the arguments are enough to construct a subalgebra, and a mapping into it from M
-  let s : subalgebra R (exterior_algebra R M) := {
-    carrier := C,
+  let s : subalgebra R (exterior_algebra R M) :=
+  { carrier := C,
     mul_mem' := h_mul,
     add_mem' := h_add,
     algebra_map_mem' := h_grade0, },
@@ -219,7 +219,7 @@ variables {M}
 /-- The canonical map from `exterior_algebra R M` into `triv_sq_zero_ext R M` that sends
 `exterior_algebra.ι` to `triv_sq_zero_ext.inr`. -/
 def to_triv_sq_zero_ext : exterior_algebra R M →ₐ[R] triv_sq_zero_ext R M :=
-lift R ⟨triv_sq_zero_ext.inr_hom R M, λ m, triv_sq_zero_ext.inr_mul_inr R _ m m⟩
+lift R ⟨triv_sq_zero_ext.inr_hom R M, λ m, triv_sq_zero_ext.inr_mul_inr R m m⟩
 
 @[simp] lemma to_triv_sq_zero_ext_ι (x : M) :
   to_triv_sq_zero_ext (ι R x) = triv_sq_zero_ext.inr x :=

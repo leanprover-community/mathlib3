@@ -161,7 +161,6 @@ do (n, p) ← derive e,
    tp ← infer_type e,
    n' ← tp.of_nat n, tgt ← to_expr ``(%%n' ≠ 0),
    (_, pn) ← solve_aux tgt `[norm_num, done],
-   infer_type p >>= trace, infer_type pn >>= trace,
    prod.mk n <$> mk_mapp ``cancel_factors_eq_div [none, none, n', none, none, p, pn]
 
 /--
@@ -199,7 +198,7 @@ do some (lhs, rhs, lem) ← return $ find_comp_lemma h | fail "cannot kill facto
    (_, gcd_pos) ← solve_aux gcd_pos `[norm_num, done],
    pf ← mk_app lem [lhs_p, rhs_p, al_pos, ar_pos, gcd_pos],
    pf_tp ← infer_type pf,
-   return ((find_comp_lemma pf_tp).elim (default _) (prod.fst ∘ prod.snd), pf)
+   return ((find_comp_lemma pf_tp).elim default (prod.fst ∘ prod.snd), pf)
 
 end cancel_factors
 

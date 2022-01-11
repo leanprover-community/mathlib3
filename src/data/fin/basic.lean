@@ -3,11 +3,10 @@ Copyright (c) 2017 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis, Keeley Hoek
 -/
-import data.nat.cast
-import data.int.basic
-import tactic.localized
 import tactic.apply_fun
+import data.nat.cast
 import order.rel_iso
+import tactic.localized
 
 /-!
 # The finite type with `n` elements
@@ -247,18 +246,23 @@ lemma last_val (n : ℕ) : (last n).val = n := rfl
 theorem le_last (i : fin (n+1)) : i ≤ last n :=
 le_of_lt_succ i.is_lt
 
-instance : bounded_lattice (fin (n + 1)) :=
+instance : bounded_order (fin (n + 1)) :=
 { top := last n,
   le_top := le_last,
   bot := 0,
-  bot_le := zero_le,
-  .. fin.linear_order, .. lattice_of_linear_order }
+  bot_le := zero_le }
+
+instance : lattice (fin (n + 1)) := linear_order.to_lattice
 
 lemma last_pos : (0 : fin (n + 2)) < last (n + 1) :=
 by simp [lt_iff_coe_lt_coe]
 
 lemma eq_last_of_not_lt {i : fin (n+1)} (h : ¬ (i : ℕ) < n) : i = last n :=
 le_antisymm (le_last i) (not_lt.1 h)
+
+lemma top_eq_last (n : ℕ) : ⊤ = fin.last n := rfl
+
+lemma bot_eq_zero (n : ℕ) : ⊥ = (0 : fin (n + 1)) := rfl
 
 section
 
@@ -576,7 +580,7 @@ set.ext (λ x, ⟨λ ⟨y, hy⟩, hy ▸ y.2, λ hx, ⟨⟨x, hx⟩, fin.ext rfl
   ((equiv.of_injective _ (cast_le h).injective).symm ⟨i, hi⟩ : ℕ) = i :=
 begin
   rw ← coe_cast_le,
-  exact congr_arg coe (equiv.apply_of_injective_symm _ _ _)
+  exact congr_arg coe (equiv.apply_of_injective_symm _ _)
 end
 
 @[simp] lemma cast_le_succ {m n : ℕ} (h : (m + 1) ≤ (n + 1)) (i : fin m) :
@@ -590,6 +594,9 @@ def cast (eq : n = m) : fin n ≃o fin m :=
 
 @[simp] lemma symm_cast (h : n = m) : (cast h).symm = cast h.symm := rfl
 
+/-- While `fin.coe_order_iso_apply` is a more general case of this, we mark this `simp` anyway
+as it is eligible for `dsimp`. -/
+@[simp]
 lemma coe_cast (h : n = m) (i : fin n) : (cast h i : ℕ) = i := rfl
 
 @[simp] lemma cast_mk (h : n = m) (i : ℕ) (hn : i < n) :
@@ -628,6 +635,28 @@ ext rfl
 @[simp] lemma cast_lt_cast_add (m : ℕ) (i : fin n) :
   cast_lt (cast_add m i) (cast_add_lt m i) = i :=
 ext rfl
+
+/-- For rewriting in the reverse direction, see `fin.cast_cast_add_left`. -/
+lemma cast_add_cast {n n' : ℕ} (m : ℕ) (i : fin n') (h : n' = n) :
+  cast_add m (fin.cast h i) = fin.cast (congr_arg _ h) (cast_add m i) :=
+ext rfl
+
+lemma cast_cast_add_left {n n' m : ℕ} (i : fin n') (h : n' + m = n + m) :
+  cast h (cast_add m i) = cast_add m (cast (add_right_cancel h) i) :=
+ext rfl
+
+@[simp] lemma cast_cast_add_right {n m m' : ℕ} (i : fin n) (h : n + m' = n + m) :
+  cast h (cast_add m' i) = cast_add m i :=
+ext rfl
+
+/-- The cast of the successor is the succesor of the cast. See `fin.succ_cast_eq` for rewriting in
+the reverse direction. -/
+@[simp] lemma cast_succ_eq {n' : ℕ} (i : fin n) (h : n.succ = n'.succ) :
+  cast h i.succ = (cast (nat.succ.inj h) i).succ :=
+ext $ by simp
+
+lemma succ_cast_eq {n' : ℕ} (i : fin n) (h : n = n') : (cast h i).succ = cast (by rw h) i.succ :=
+ext $ by simp
 
 /-- `cast_succ i` embeds `i : fin n` in `fin (n+1)`. -/
 def cast_succ : fin n ↪o fin (n + 1) := cast_add 1
@@ -708,7 +737,7 @@ range_cast_le _
   ((equiv.of_injective cast_succ (cast_succ_injective _)).symm ⟨i, hi⟩ : ℕ) = i :=
 begin
   rw ← coe_cast_succ,
-  exact congr_arg coe (equiv.apply_of_injective_symm _ _ _)
+  exact congr_arg coe (equiv.apply_of_injective_symm _ _)
 end
 
 lemma succ_cast_succ {n : ℕ} (i : fin n) :
@@ -727,6 +756,23 @@ lemma le_coe_add_nat (m : ℕ) (i : fin n) : m ≤ add_nat m i := nat.le_add_lef
 @[simp] lemma add_nat_mk (n i : ℕ) (hi : i < m) :
   add_nat n ⟨i, hi⟩ = ⟨i + n, add_lt_add_right hi n⟩ := rfl
 
+@[simp] lemma cast_add_nat_zero {n n' : ℕ} (i : fin n) (h : n + 0 = n') :
+  cast h (add_nat 0 i) = cast ((add_zero _).symm.trans h) i :=
+ext $ add_zero _
+
+/-- For rewriting in the reverse direction, see `fin.cast_add_nat_left`. -/
+lemma add_nat_cast {n n' m : ℕ} (i : fin n') (h : n' = n) :
+  add_nat m (cast h i) = cast (congr_arg _ h) (add_nat m i) :=
+ext rfl
+
+lemma cast_add_nat_left {n n' m : ℕ} (i : fin n') (h : n' + m = n + m) :
+  cast h (add_nat m i) = add_nat m (cast (add_right_cancel h) i) :=
+ext rfl
+
+@[simp] lemma cast_add_nat_right {n m m' : ℕ} (i : fin n) (h : n + m' = n + m) :
+  cast h (add_nat m' i) = add_nat m i :=
+ext $ (congr_arg ((+) (i : ℕ)) (add_left_cancel h) : _)
+
 /-- `nat_add n i` adds `n` to `i` "on the left". -/
 def nat_add (n) {m} : fin m ↪o fin (n + m) :=
 order_embedding.of_strict_mono (λ i, ⟨n + (i : ℕ), add_lt_add_left i.2 _⟩) $
@@ -741,6 +787,23 @@ lemma le_coe_nat_add (m : ℕ) (i : fin n) : m ≤ nat_add m i := nat.le_add_rig
 
 lemma nat_add_zero {n : ℕ} : fin.nat_add 0 = (fin.cast (zero_add n).symm).to_rel_embedding :=
 by { ext, apply zero_add }
+
+/-- For rewriting in the reverse direction, see `fin.cast_nat_add_right`. -/
+lemma nat_add_cast {n n' : ℕ} (m : ℕ) (i : fin n') (h : n' = n) :
+  nat_add m (cast h i) = cast (congr_arg _ h) (nat_add m i) :=
+ext rfl
+
+lemma cast_nat_add_right {n n' m : ℕ} (i : fin n') (h : m + n' = m + n) :
+  cast h (nat_add m i) = nat_add m (cast (add_left_cancel h) i) :=
+ext rfl
+
+@[simp] lemma cast_nat_add_left {n m m' : ℕ} (i : fin n) (h : m' + n = m + n) :
+  cast h (nat_add m' i) = nat_add m i :=
+ext $ (congr_arg (+ (i : ℕ)) (add_right_cancel h) : _)
+
+@[simp] lemma cast_nat_add_zero {n n' : ℕ} (i : fin n) (h : 0 + n = n') :
+  cast h (nat_add 0 i) = cast ((zero_add _).symm.trans h) i :=
+ext $ zero_add _
 
 @[simp] lemma cast_nat_add (n : ℕ) {m : ℕ} (i : fin m) :
   cast (add_comm _ _) (nat_add n i) = add_nat n i :=
@@ -950,6 +1013,9 @@ forall_fin_succ.trans $ and_congr_right $ λ _, forall_fin_one
 
 lemma exists_fin_two {p : fin 2 → Prop} : (∃ i, p i) ↔ p 0 ∨ p 1 :=
 exists_fin_succ.trans $ or_congr_right exists_fin_one
+
+lemma fin_two_eq_of_eq_zero_iff {a b : fin 2} (h : a = 0 ↔ b = 0) : a = b :=
+by { revert a b, simp [forall_fin_two] }
 
 /--
 Define `C i` by reverse induction on `i : fin (n + 1)` via induction on the underlying `nat` value.

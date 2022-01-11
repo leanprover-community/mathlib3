@@ -4,11 +4,18 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon, Patrick Massot, Eric Wieser
 -/
 import algebra.group.prod
+import group_theory.group_action.defs
 
 /-!
 # Prod instances for additive and multiplicative actions
 
-This file defines instances for binary product of additive and multiplicative actions
+This file defines instances for binary product of additive and multiplicative actions and provides
+scalar multiplication as a homomorphism from `α × β` to `β`.
+
+## Main declarations
+
+* `smul_mul_hom`/`smul_monoid_hom`: Scalar multiplication bundled as a multiplicative/monoid
+  homomorphism.
 -/
 
 variables {M N P α β : Type*}
@@ -33,6 +40,10 @@ instance [has_scalar M N] [is_scalar_tower M N α] [is_scalar_tower M N β] :
 @[to_additive] instance [smul_comm_class M N α] [smul_comm_class M N β] :
   smul_comm_class M N (α × β) :=
 { smul_comm := λ r s x, mk.inj_iff.mpr ⟨smul_comm _ _ _, smul_comm _ _ _⟩ }
+
+instance [has_scalar Mᵐᵒᵖ α] [has_scalar Mᵐᵒᵖ β] [is_central_scalar M α] [is_central_scalar M β] :
+  is_central_scalar M (α × β) :=
+⟨λ r m, prod.ext (op_smul_eq_smul _ _) (op_smul_eq_smul _ _)⟩
 
 @[to_additive has_faithful_vadd_left]
 instance has_faithful_scalar_left [has_faithful_scalar M α] [nonempty β] :
@@ -72,3 +83,25 @@ instance {R M N : Type*} {r : monoid R} [monoid M] [monoid N]
   smul_one := λ a, mk.inj_iff.mpr ⟨smul_one _, smul_one _⟩ }
 
 end prod
+
+/-! ### Scalar multiplication as a homomorphism -/
+
+section bundled_smul
+
+/-- Scalar multiplication as a multiplicative homomorphism. -/
+@[simps]
+def smul_mul_hom [monoid α] [has_mul β] [mul_action α β] [is_scalar_tower α β β]
+  [smul_comm_class α β β] :
+  mul_hom (α × β) β :=
+{ to_fun := λ a, a.1 • a.2,
+  map_mul' := λ a b, (smul_mul_smul _ _ _ _).symm }
+
+/-- Scalar multiplication as a monoid homomorphism. -/
+@[simps]
+def smul_monoid_hom [monoid α] [mul_one_class β] [mul_action α β] [is_scalar_tower α β β]
+  [smul_comm_class α β β] :
+  α × β →* β :=
+{ map_one' := one_smul _ _,
+  .. smul_mul_hom }
+
+end bundled_smul

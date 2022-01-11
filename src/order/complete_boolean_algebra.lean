@@ -64,6 +64,22 @@ theorem infi_sup_eq (f : ι → α) (a : α) : (⨅ i, f i) ⊔ a = ⨅ i, f i �
 theorem sup_infi_eq (a : α) (f : ι → α) : a ⊔ (⨅ i, f i) = ⨅ i, a ⊔ f i :=
 @inf_supr_eq (order_dual α) _ _ _ _
 
+theorem bsupr_inf_eq {p : α → Prop} {f : Π i (hi : p i), α} (a : α) :
+  (⨆ i hi, f i hi) ⊓ a = ⨆ i hi, f i hi ⊓ a :=
+by simp only [supr_inf_eq]
+
+theorem inf_bsupr_eq (a : α) {p : α → Prop} {f : Π i (hi : p i), α} :
+  a ⊓ (⨆ i hi, f i hi) = ⨆ i hi, a ⊓ f i hi :=
+by simp only [inf_supr_eq]
+
+theorem binfi_sup_eq {p : α → Prop} {f : Π i (hi : p i), α} (a : α) :
+  (⨅ i hi, f i hi) ⊔ a = ⨅ i hi, f i hi ⊔ a :=
+@bsupr_inf_eq (order_dual α) _ _ _ _
+
+theorem sup_binfi_eq (a : α) {p : α → Prop} {f : Π i (hi : p i), α} :
+  a ⊔ (⨅ i hi, f i hi) = ⨅ i hi, a ⊔ f i hi :=
+@inf_bsupr_eq (order_dual α) _ _ _ _
+
 instance pi.complete_distrib_lattice {ι : Type*} {π : ι → Type*}
   [∀ i, complete_distrib_lattice (π i)] : complete_distrib_lattice (Π i, π i) :=
 { infi_sup_le_sup_Inf := λ a s i,
@@ -110,8 +126,8 @@ by simpa only [disjoint.comm] using @supr_disjoint_iff _ _ _ a f
 end complete_distrib_lattice
 
 @[priority 100] -- see Note [lower instance priority]
-instance complete_distrib_lattice.bounded_distrib_lattice [d : complete_distrib_lattice α] :
-  bounded_distrib_lattice α :=
+instance complete_distrib_lattice.to_distrib_lattice [d : complete_distrib_lattice α] :
+  distrib_lattice α :=
 { le_sup_inf := λ x y z, by rw [← Inf_pair, ← Inf_pair, sup_Inf_eq, ← Inf_image, set.image_pair],
   ..d }
 

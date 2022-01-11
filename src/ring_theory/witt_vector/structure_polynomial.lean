@@ -5,7 +5,6 @@ Authors: Johan Commelin, Robert Y. Lewis
 -/
 
 import data.fin.vec_notation
-import field_theory.mv_polynomial
 import field_theory.finite.polynomial
 import number_theory.basic
 import ring_theory.witt_vector.witt_polynomial

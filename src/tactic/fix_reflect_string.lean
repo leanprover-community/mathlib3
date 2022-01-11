@@ -29,7 +29,7 @@ string.to_chunks (s.popn_back size) (s.backn size :: acc)
 section
 local attribute [semireducible] reflected
 meta instance {α} [has_reflect α] : has_reflect (thunk α) | a :=
-expr.lam `x binder_info.default (reflect unit) (reflect (a ()))
+expr.lam `x binder_info.default (reflect unit) (reflect $ a ())
 end
 
 @[priority 2000]

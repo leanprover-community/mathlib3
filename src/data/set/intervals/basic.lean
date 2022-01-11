@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Patrick Massot, Yury Kudryashov, Rémy Degenne
 -/
 import algebra.order.group
-import data.set.basic
 import order.rel_iso
 import order.order_dual
 
@@ -376,10 +375,20 @@ by rw [←not_nonempty_iff_eq_empty, not_iff_not, nonempty_Ioo]
 end intervals
 
 section partial_order
-variables {α : Type u} [partial_order α] {a b : α}
+variables {α : Type u} [partial_order α] {a b c : α}
 
 @[simp] lemma Icc_self (a : α) : Icc a a = {a} :=
 set.ext $ by simp [Icc, le_antisymm_iff, and_comm]
+
+@[simp] lemma Icc_eq_singleton_iff : Icc a b = {c} ↔ a = c ∧ b = c :=
+begin
+  refine ⟨λ h, _, _⟩,
+  { have hab : a ≤ b := nonempty_Icc.1 (h.symm.subst $ singleton_nonempty c),
+    exact ⟨eq_of_mem_singleton $ h.subst $ left_mem_Icc.2 hab,
+      eq_of_mem_singleton $ h.subst $ right_mem_Icc.2 hab⟩ },
+  { rintro ⟨rfl, rfl⟩,
+    exact Icc_self _ }
+end
 
 @[simp] lemma Icc_diff_left : Icc a b \ {a} = Ioc a b :=
 ext $ λ x, by simp [lt_iff_le_and_ne, eq_comm, and.right_comm]
@@ -1103,8 +1112,8 @@ begin
   cases le_total a b with hab hab; cases le_total c d with hcd hcd;
     simp only [min_eq_left, min_eq_right, max_eq_left, max_eq_right, hab, hcd] at h₁ h₂,
   { exact Ioo_union_Ioo' h₂ h₁ },
-  all_goals {
-    simp [*, min_eq_left_of_lt, min_eq_right_of_lt, max_eq_left_of_lt, max_eq_right_of_lt,
+  all_goals
+  { simp [*, min_eq_left_of_lt, min_eq_right_of_lt, max_eq_left_of_lt, max_eq_right_of_lt,
       le_of_lt h₂, le_of_lt h₁] },
 end
 
@@ -1170,7 +1179,7 @@ by simp only [Ioi_inter_Iio.symm, Ioi_inter_Ioi.symm, Iio_inter_Iio.symm]; ac_re
 
 end both
 
-lemma Icc_bot_top {α} [bounded_lattice α] : Icc (⊥ : α) ⊤ = univ := by simp
+lemma Icc_bot_top {α} [partial_order α] [bounded_order α] : Icc (⊥ : α) ⊤ = univ := by simp
 
 end lattice
 

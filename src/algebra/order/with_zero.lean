@@ -5,8 +5,6 @@ Authors: Kenny Lau, Johan Commelin, Patrick Massot
 -/
 
 import algebra.order.group
-import algebra.group_with_zero
-import algebra.group_with_zero.power
 import tactic.abel
 
 /-!
@@ -143,7 +141,7 @@ show (units.mk0 a ha) * (units.mk0 b hb)⁻¹ ≤ (units.mk0 c hc) * (units.mk0 
   (units.mk0 a ha) * (units.mk0 d hd) ≤ (units.mk0 c hc) * (units.mk0 b hb),
 from mul_inv_le_mul_inv_iff'
 
-@[simp] lemma units.zero_lt (u : units α) : (0 : α) < u :=
+@[simp] lemma units.zero_lt (u : αˣ) : (0 : α) < u :=
 zero_lt_iff.2 $ u.ne_zero
 
 lemma mul_lt_mul_of_lt_of_le₀ (hab : a ≤ b) (hb : b ≠ 0) (hcd : c < d) : a * c < b * d :=

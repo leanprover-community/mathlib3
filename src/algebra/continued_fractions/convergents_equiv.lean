@@ -361,8 +361,8 @@ begin
           obtain ⟨gp_m, mth_s_eq⟩ : ∃ gp_m, g.s.nth m = some gp_m, from
             g.s.ge_stable m.le_succ s_succ_mth_eq,
           -- we then plug them into the recurrence
-          suffices : 0 < gp_m.a ∧ 0 < gp_m.b + gp_succ_m.a / gp_succ_m.b, by {
-            have ot : g'.s.nth m = some ⟨gp_m.a, gp_m.b + gp_succ_m.a / gp_succ_m.b⟩, from
+          suffices : 0 < gp_m.a ∧ 0 < gp_m.b + gp_succ_m.a / gp_succ_m.b, by
+          { have ot : g'.s.nth m = some ⟨gp_m.a, gp_m.b + gp_succ_m.a / gp_succ_m.b⟩, from
               squash_seq_nth_of_not_terminated mth_s_eq s_succ_mth_eq,
             have : gp' = ⟨gp_m.a, gp_m.b + gp_succ_m.a / gp_succ_m.b⟩, by cc,
             rwa this },

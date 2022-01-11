@@ -5,7 +5,6 @@ Authors: Ruben Van de Velde, Stanislas Polu
 -/
 
 import data.real.basic
-import data.set.basic
 import analysis.normed_space.basic
 
 /-!

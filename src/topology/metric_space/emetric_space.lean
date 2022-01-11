@@ -55,8 +55,8 @@ def uniform_space_of_edist
   (edist_self : ∀ x : α, edist x x = 0)
   (edist_comm : ∀ x y : α, edist x y = edist y x)
   (edist_triangle : ∀ x y z : α, edist x z ≤ edist x y + edist y z) : uniform_space α :=
-uniform_space.of_core {
-  uniformity := (⨅ ε>0, 𝓟 {p:α×α | edist p.1 p.2 < ε}),
+uniform_space.of_core
+{ uniformity := (⨅ ε>0, 𝓟 {p:α×α | edist p.1 p.2 < ε}),
   refl       := le_infi $ assume ε, le_infi $
     by simp [set.subset_def, id_rel, edist_self, (>)] {contextual := tt},
   comp       :=
@@ -260,7 +260,7 @@ is_countably_generated_of_seq ⟨_, uniformity_basis_edist_inv_nat.eq_infi⟩
 /-- ε-δ characterization of uniform continuity on a set for pseudoemetric spaces -/
 theorem uniform_continuous_on_iff [pseudo_emetric_space β] {f : α → β} {s : set α} :
   uniform_continuous_on f s ↔ ∀ ε > 0, ∃ δ > 0,
-    ∀{a b}, a ∈ s → b ∈ s → edist a b < δ → edist (f a) (f b) < ε :=
+    ∀ {a b ∈ s}, edist a b < δ → edist (f a) (f b) < ε :=
 uniformity_basis_edist.uniform_continuous_on_iff uniformity_basis_edist
 
 /-- ε-δ characterization of uniform continuity on pseudoemetric spaces -/

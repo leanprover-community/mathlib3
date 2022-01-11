@@ -3,9 +3,8 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
-import topology.uniform_space.basic
 import topology.bases
-import data.set.intervals
+import topology.uniform_space.basic
 /-!
 # Theory of Cauchy filters in uniform spaces. Complete uniform spaces. Totally bounded subsets.
 -/
@@ -26,11 +25,11 @@ def cauchy (f : filter α) := ne_bot f ∧ f ×ᶠ f ≤ (𝓤 α)
 has a limit in `s` (formally, it satisfies `f ≤ 𝓝 x` for some `x ∈ s`). -/
 def is_complete (s : set α) := ∀f, cauchy f → f ≤ 𝓟 s → ∃x∈s, f ≤ 𝓝 x
 
-lemma filter.has_basis.cauchy_iff {p : β → Prop} {s : β → set (α × α)} (h : (𝓤 α).has_basis p s)
+lemma filter.has_basis.cauchy_iff {ι} {p : ι → Prop} {s : ι → set (α × α)} (h : (𝓤 α).has_basis p s)
   {f : filter α} :
   cauchy f ↔ (ne_bot f ∧ (∀ i, p i → ∃ t ∈ f, ∀ x y ∈ t, (x, y) ∈ s i)) :=
 and_congr iff.rfl $ (f.basis_sets.prod_self.le_basis_iff h).trans $
-  by simp only [subset_def, prod.forall, mem_prod_eq, and_imp, id]
+  by simp only [subset_def, prod.forall, mem_prod_eq, and_imp, id, ball_mem_comm]
 
 lemma cauchy_iff' {f : filter α} :
   cauchy f ↔ (ne_bot f ∧ (∀ s ∈ 𝓤 α, ∃t∈f, ∀ x y ∈ t, (x, y) ∈ s)) :=
@@ -38,8 +37,8 @@ lemma cauchy_iff' {f : filter α} :
 
 lemma cauchy_iff {f : filter α} :
   cauchy f ↔ (ne_bot f ∧ (∀ s ∈ 𝓤 α, ∃t∈f, (set.prod t t) ⊆ s)) :=
-(𝓤 α).basis_sets.cauchy_iff.trans $
-  by simp only [subset_def, prod.forall, mem_prod_eq, and_imp, id]
+cauchy_iff'.trans $ by simp only [subset_def, prod.forall, mem_prod_eq,
+                                  and_imp, id, ball_mem_comm]
 
 lemma cauchy_map_iff {l : filter β} {f : β → α} :
   cauchy (l.map f) ↔ (ne_bot l ∧ tendsto (λp:β×β, (f p.1, f p.2)) (l ×ᶠ l) (𝓤 α)) :=
@@ -56,16 +55,7 @@ lemma cauchy.mono' {f g : filter α} (h_c : cauchy f) (hg : ne_bot g) (h_le : g 
 h_c.mono h_le
 
 lemma cauchy_nhds {a : α} : cauchy (𝓝 a) :=
-⟨nhds_ne_bot,
-  calc 𝓝 a ×ᶠ 𝓝 a =
-    (𝓤 α).lift (λs:set (α×α), (𝓤 α).lift' (λt:set(α×α),
-      set.prod {y : α | (y, a) ∈ s} {y : α | (a, y) ∈ t})) : nhds_nhds_eq_uniformity_uniformity_prod
-    ... ≤ (𝓤 α).lift' (λs:set (α×α), comp_rel s s) :
-      le_infi $ assume s, le_infi $ assume hs,
-      infi_le_of_le s $ infi_le_of_le hs $ infi_le_of_le s $ infi_le_of_le hs $
-      principal_mono.mpr $
-      assume ⟨x, y⟩ ⟨(hx : (x, a) ∈ s), (hy : (a, y) ∈ s)⟩, ⟨a, hx, hy⟩
-    ... ≤ 𝓤 α : comp_le_uniformity⟩
+⟨nhds_ne_bot, nhds_prod_eq.symm.trans_le (nhds_le_uniformity a)⟩
 
 lemma cauchy_pure {a : α} : cauchy (pure a) :=
 cauchy_nhds.mono (pure_le_nhds a)
@@ -208,6 +198,11 @@ begin
   exact (hu.prod hv).mono (tendsto.prod_mk le_rfl le_rfl)
 end
 
+lemma cauchy_seq.eventually_eventually [semilattice_sup β] {u : β → α} (hu : cauchy_seq u)
+  {V : set (α × α)} (hV : V ∈ 𝓤 α) :
+  ∀ᶠ k in at_top, ∀ᶠ l in at_top, (u k, u l) ∈ V :=
+eventually_at_top_curry $ hu.tendsto_uniformity hV
+
 lemma uniform_continuous.comp_cauchy_seq {γ} [uniform_space β] [semilattice_sup γ]
   {f : α → β} (hf : uniform_continuous f) {u : γ → α} (hu : cauchy_seq u) :
   cauchy_seq (f ∘ u) :=
@@ -253,7 +248,7 @@ begin
   rw [cauchy_seq_iff_tendsto, ← prod_at_top_at_top_eq],
   refine (at_top_basis.prod_self.tendsto_iff h).trans _,
   simp only [exists_prop, true_and, maps_to, preimage, subset_def, prod.forall,
-    mem_prod_eq, mem_set_of_eq, mem_Ici, and_imp, prod.map]
+    mem_prod_eq, mem_set_of_eq, mem_Ici, and_imp, prod.map, ge_iff_le, @forall_swap (_ ≤ _) β]
 end
 
 lemma filter.has_basis.cauchy_seq_iff' {γ} [nonempty β] [semilattice_sup β] {u : β → α}
@@ -261,10 +256,10 @@ lemma filter.has_basis.cauchy_seq_iff' {γ} [nonempty β] [semilattice_sup β] {
   cauchy_seq u ↔ ∀ i, p i → ∃N, ∀n≥N, (u n, u N) ∈ s i :=
 begin
   refine H.cauchy_seq_iff.trans ⟨λ h i hi, _, λ h i hi, _⟩,
-  { exact (h i hi).imp (λ N hN n hn, hN n N hn (le_refl N)) },
+  { exact (h i hi).imp (λ N hN n hn, hN n hn N le_rfl) },
   { rcases comp_symm_of_uniformity (H.mem_of_mem hi) with ⟨t, ht, ht', hts⟩,
     rcases H.mem_iff.1 ht with ⟨j, hj, hjt⟩,
-    refine (h j hj).imp (λ N hN m n hm hn, hts ⟨u N, hjt _, ht' $ hjt _⟩),
+    refine (h j hj).imp (λ N hN m hm n hn, hts ⟨u N, hjt _, ht' $ hjt _⟩),
     { exact hN m hm },
     { exact hN n hn } }
 end
@@ -625,21 +620,22 @@ begin
   rcases exists_countable_dense α with ⟨s, hsc, hsd⟩,
   obtain ⟨t : ℕ → set (α × α),
     hto : ∀ (i : ℕ), t i ∈ (𝓤 α).sets ∧ is_open (t i) ∧ symmetric_rel (t i),
-    h_basis : (𝓤 α).has_antitone_basis (λ _, true) t⟩ :=
+      h_basis : (𝓤 α).has_antitone_basis t⟩ :=
     (@uniformity_has_basis_open_symmetric α _).exists_antitone_subbasis,
+  choose ht_mem hto hts using hto,
   refine ⟨⟨⋃ (x ∈ s), range (λ k, ball x (t k)), hsc.bUnion (λ x hx, countable_range _), _⟩⟩,
   refine (is_topological_basis_of_open_of_nhds _ _).eq_generate_from,
   { simp only [mem_bUnion_iff, mem_range],
     rintros _ ⟨x, hxs, k, rfl⟩,
-    exact is_open_ball x (hto k).2.1 },
+    exact is_open_ball x (hto k) },
   { intros x V hxV hVo,
     simp only [mem_bUnion_iff, mem_range, exists_prop],
     rcases uniform_space.mem_nhds_iff.1 (is_open.mem_nhds hVo hxV) with ⟨U, hU, hUV⟩,
     rcases comp_symm_of_uniformity hU with ⟨U', hU', hsymm, hUU'⟩,
     rcases h_basis.to_has_basis.mem_iff.1 hU' with ⟨k, -, hk⟩,
-    rcases hsd.inter_open_nonempty (ball x $ t k) (uniform_space.is_open_ball x (hto k).2.1)
-      ⟨x, uniform_space.mem_ball_self _ (hto k).1⟩ with ⟨y, hxy, hys⟩,
-    refine ⟨_, ⟨y, hys, k, rfl⟩, (hto k).2.2.subset hxy, λ z hz, _⟩,
+    rcases hsd.inter_open_nonempty (ball x $ t k) (is_open_ball x (hto k))
+      ⟨x, uniform_space.mem_ball_self _ (ht_mem k)⟩ with ⟨y, hxy, hys⟩,
+    refine ⟨_, ⟨y, hys, k, rfl⟩, (hts k).subset hxy, λ z hz, _⟩,
     exact hUV (ball_subset_of_comp_subset (hk hxy) hUU' (hk hz)) }
 end
 

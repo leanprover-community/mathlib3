@@ -197,7 +197,7 @@ begin
     exact ⟨z - x j, by simpa using hzs, by simpa using hz⟩ },
   choose! d' hd's hcd',
   refine ⟨c, λ n, function.update (d' n) i (d n), hd.mono (λ n hn j hj', _), hc,
-    tendsto_pi.2 $ λ j, _⟩,
+    tendsto_pi_nhds.2 $ λ j, _⟩,
   { rcases em (j = i) with rfl|hj; simp * },
   { rcases em (j = i) with rfl|hj,
     { simp [hy] },

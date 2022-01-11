@@ -216,7 +216,7 @@ def id_groupoid (H : Type u) [topological_space H] : structure_groupoid H :=
   end,
   symm' := λe he, begin
     cases (mem_union _ _ _).1 he with E E,
-    { finish },
+    { simp [mem_singleton_iff.mp E] },
     { right,
       simpa only [e.to_local_equiv.image_source_eq_target.symm] with mfld_simps using E},
   end,
@@ -404,8 +404,7 @@ def id_restr_groupoid : structure_groupoid H :=
   eq_on_source' := begin
     rintros e e' ⟨s, hs, hse⟩ hee',
     exact ⟨s, hs, setoid.trans hee' hse⟩,
-  end
-}
+  end }
 
 lemma id_restr_groupoid_mem {s : set H} (hs : is_open s) :
   of_set s hs ∈ @id_restr_groupoid H _ := ⟨s, hs, by refl⟩

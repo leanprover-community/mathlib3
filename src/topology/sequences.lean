@@ -235,13 +235,12 @@ open uniform_space prod
 variables [uniform_space β] {s : set β}
 
 lemma lebesgue_number_lemma_seq {ι : Type*} [is_countably_generated (𝓤 β)] {c : ι → set β}
-  (hs : is_seq_compact s) (hc₁ : ∀ i, is_open (c i)) (hc₂ : s ⊆ ⋃ i, c i)
-  :
+  (hs : is_seq_compact s) (hc₁ : ∀ i, is_open (c i)) (hc₂ : s ⊆ ⋃ i, c i) :
   ∃ V ∈ 𝓤 β, symmetric_rel V ∧ ∀ x ∈ s, ∃ i, ball x V ⊆ c i :=
 begin
   classical,
   obtain ⟨V, hV, Vsymm⟩ :
-    ∃ V : ℕ → set (β × β), (𝓤 β).has_antitone_basis (λ _, true) V ∧  ∀ n, swap ⁻¹' V n = V n,
+    ∃ V : ℕ → set (β × β), (𝓤 β).has_antitone_basis V ∧ ∀ n, swap ⁻¹' V n = V n,
       from uniform_space.has_seq_basis β,
   suffices : ∃ n, ∀ x ∈ s, ∃ i, ball x (V n) ⊆ c i,
   { cases this with n hn,
@@ -269,10 +268,10 @@ begin
     obtain ⟨N₂, h₂⟩ : ∃ N₂, V (φ N₂) ⊆ W,
     { rcases hV.to_has_basis.mem_iff.mp W_in with ⟨N, _, hN⟩,
       use N,
-      exact subset.trans (hV.decreasing trivial trivial $  φ_mono.id_le _) hN },
+      exact subset.trans (hV.antitone $ φ_mono.id_le _) hN },
     have : φ N₂ ≤ φ (max N₁ N₂),
       from φ_mono.le_iff_le.mpr (le_max_right _ _),
-    exact ⟨max N₁ N₂, h₁ _ (le_max_left _ _), trans (hV.decreasing trivial trivial this) h₂⟩ },
+    exact ⟨max N₁ N₂, h₁ _ (le_max_left _ _), trans (hV.antitone this) h₂⟩ },
   suffices : ball (x (φ N)) (V (φ N)) ⊆ c i₀,
     from hx (φ N) i₀ this,
   calc

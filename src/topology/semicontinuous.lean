@@ -3,10 +3,9 @@ Copyright (c) 2021 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-import topology.continuous_on
 import algebra.indicator_function
 import topology.algebra.group
-import topology.algebra.ordered.liminf_limsup
+import topology.continuous_on
 import topology.instances.ennreal
 
 /-!

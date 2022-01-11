@@ -171,8 +171,8 @@ lemma mem_inf {p p' : submonoid M} {x : M} : x ∈ p ⊓ p' ↔ x ∈ p ∧ x �
 
 @[to_additive]
 instance : has_Inf (submonoid M) :=
-⟨λ s, {
-  carrier := ⋂ t ∈ s, ↑t,
+⟨λ s,
+{ carrier := ⋂ t ∈ s, ↑t,
   one_mem' := set.mem_bInter $ λ i h, i.one_mem,
   mul_mem' := λ x y hx hy, set.mem_bInter $ λ i h,
     i.mul_mem (by apply set.mem_bInter_iff.1 hx i h) (by apply set.mem_bInter_iff.1 hy i h) }⟩
@@ -361,11 +361,13 @@ variables [monoid M] [monoid N] {s : set M}
 section is_unit
 
 /-- The submonoid consisting of the units of a monoid -/
+@[to_additive "The additive submonoid  consisting of the add units of an additive monoid"]
 def is_unit.submonoid (M : Type*) [monoid M] : submonoid M :=
 { carrier := set_of is_unit,
   one_mem' := by simp only [is_unit_one, set.mem_set_of_eq],
   mul_mem' := by { intros a b ha hb, rw set.mem_set_of_eq at *, exact is_unit.mul ha hb } }
 
+@[to_additive]
 lemma is_unit.mem_submonoid_iff {M : Type*} [monoid M] (a : M) :
   a ∈ is_unit.submonoid M ↔ is_unit a :=
 begin

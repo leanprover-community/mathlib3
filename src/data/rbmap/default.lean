@@ -279,15 +279,15 @@ begin
   rw [←h₁] at h₂ ⊢, rw [←h₂],
   cases m₁ with t₁ p₁; cases t₁; cases m₂ with t₂ p₂; cases t₂,
   { rw [h₂, h₁] },
-  iterate 2 {
-    rw [h₂],
+  iterate 2
+  { rw [h₂],
     conv { to_lhs, simp [find_entry] },
     rw [←h₂, insert, rbtree.find_insert_of_disj _ h', h₁],
     refl },
   any_goals { simp [insert] at h₂,
     exact absurd h₂ (rbtree.insert_ne_mk_rbtree m (k₁, v)) },
-  any_goals {
-    rw [h₂, h₁], simp [find_entry], rw [←h₂, ←h₁, insert, rbtree.find_insert_of_disj _ h'],
+  any_goals
+  { rw [h₂, h₁], simp [find_entry], rw [←h₂, ←h₁, insert, rbtree.find_insert_of_disj _ h'],
     apply rbtree.find_eq_find_of_eqv, apply eqv_entries }
 end
 
@@ -295,8 +295,8 @@ lemma find_entry_insert_of_not_eqv [is_strict_weak_order α lt] {k₁ k₂ : α}
   (v : β) : ¬ k₁ ≈[lt] k₂ → (m.insert k₁ v).find_entry k₂ = m.find_entry k₂ :=
 begin
   intro hn,
-  have he : lt k₁ k₂ ∨ lt k₂ k₁, {
-    simp [strict_weak_order.equiv, decidable.not_and_iff_or_not, decidable.not_not_iff] at hn,
+  have he : lt k₁ k₂ ∨ lt k₂ k₁,
+  { simp [strict_weak_order.equiv, decidable.not_and_iff_or_not, decidable.not_not_iff] at hn,
     assumption },
   apply find_entry_insert_of_disj _ _ he
 end

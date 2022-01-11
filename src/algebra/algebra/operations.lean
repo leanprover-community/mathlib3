@@ -329,8 +329,8 @@ which is equivalent to `x • J ⊆ I` (see `mem_div_iff_smul_subset`), but nice
 This is the general form of the ideal quotient, traditionally written $I : J$.
 -/
 instance : has_div (submodule R A) :=
-⟨ λ I J, {
-  carrier   := { x | ∀ y ∈ J, x * y ∈ I },
+⟨ λ I J,
+{ carrier   := { x | ∀ y ∈ J, x * y ∈ I },
   zero_mem' := λ y hy, by { rw zero_mul, apply submodule.zero_mem },
   add_mem'  := λ a b ha hb y hy, by { rw add_mul, exact submodule.add_mem _ (ha _ hy) (hb _ hy) },
   smul_mem' := λ r x hx y hy, by { rw algebra.smul_mul_assoc,

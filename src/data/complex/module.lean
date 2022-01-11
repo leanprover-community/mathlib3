@@ -3,7 +3,7 @@ Copyright (c) 2020 Alexander Bentkamp, Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alexander Bentkamp, Sébastien Gouëzel, Eric Wieser
 -/
-import algebra.order.module
+import algebra.order.smul
 import data.complex.basic
 import data.fin.vec_notation
 import field_theory.tower
@@ -61,6 +61,10 @@ instance [has_scalar R ℝ] [has_scalar S ℝ] [smul_comm_class R S ℝ] : smul_
 instance [has_scalar R S] [has_scalar R ℝ] [has_scalar S ℝ] [is_scalar_tower R S ℝ] :
   is_scalar_tower R S ℂ :=
 { smul_assoc := λ r s x, by ext; simp [smul_re, smul_im, smul_assoc] }
+
+instance [has_scalar R ℝ] [has_scalar Rᵐᵒᵖ ℝ] [is_central_scalar R ℝ] :
+  is_central_scalar R ℂ :=
+{ op_smul_eq_smul := λ r x, by ext; simp [smul_re, smul_im, op_smul_eq_smul] }
 
 instance [monoid R] [mul_action R ℝ] : mul_action R ℂ :=
 { one_smul := λ x, by ext; simp [smul_re, smul_im, one_smul],
@@ -121,7 +125,8 @@ basis.of_equiv_fun
   left_inv := λ z, by simp,
   right_inv := λ c, by { ext i, fin_cases i; simp },
   map_add' := λ z z', by simp,
-  map_smul' := λ c z, by simp }
+  -- why does `simp` not know how to apply `smul_cons`, which is a `@[simp]` lemma, here?
+  map_smul' := λ c z, by simp [matrix.smul_cons c z.re, matrix.smul_cons c z.im] }
 
 @[simp] lemma coe_basis_one_I_repr (z : ℂ) : ⇑(basis_one_I.repr z) = ![z.re, z.im] := rfl
 

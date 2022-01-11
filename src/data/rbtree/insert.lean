@@ -95,20 +95,20 @@ lemma ins.induction [decidable_rel lt] {p : rbnode α → Prop}
 begin
   induction t,
   case leaf { apply is_leaf },
-  case red_node : a y b {
-     cases h : cmp_using lt x y,
+  case red_node : a y b
+   { cases h : cmp_using lt x y,
      case ordering.lt { apply is_red_lt; assumption },
      case ordering.eq { apply is_red_eq; assumption },
      case ordering.gt { apply is_red_gt; assumption }, },
-  case black_node : a y b {
-    cases h : cmp_using lt x y,
-    case ordering.lt {
-      by_cases get_color a = red,
+  case black_node : a y b
+  { cases h : cmp_using lt x y,
+    case ordering.lt
+    { by_cases get_color a = red,
       { apply is_black_lt_red; assumption },
       { apply is_black_lt_not_red; assumption }, },
     case ordering.eq { apply is_black_eq; assumption },
-    case ordering.gt {
-      by_cases get_color b = red,
+    case ordering.gt
+    { by_cases get_color b = red,
       { apply is_black_gt_red; assumption },
       { apply is_black_gt_not_red; assumption }, } }
 end
@@ -261,23 +261,23 @@ lemma mem_ins_of_mem [decidable_rel lt] [is_strict_weak_order α lt] {t : rbnode
 begin
   with_cases { apply ins.induction lt t z; intros; simp [ins, *] at *; try { contradiction };
     blast_disjs },
-  case is_red_eq or.inr or.inl {
-    have := incomp_trans_of lt h ⟨hc.2, hc.1⟩, simp [this] },
-  case is_black_lt_red or.inl {
-    apply mem_balance1_node_of_mem_left, apply ih h },
-  case is_black_lt_red or.inr or.inl {
-    apply mem_balance1_node_of_incomp, cases h, all_goals { simp [*, ins_ne_leaf lt a z] } },
-  case is_black_lt_red or.inr or.inr {
-    apply mem_balance1_node_of_mem_right, assumption },
-  case is_black_eq or.inr or.inl {
-    have := incomp_trans_of lt hc ⟨h.2, h.1⟩, simp [this] },
-  case is_black_gt_red or.inl {
-    apply mem_balance2_node_of_mem_right, assumption },
-  case is_black_gt_red or.inr or.inl {
-    have := ins_ne_leaf lt a z, apply mem_balance2_node_of_incomp, cases h, simp [*],
+  case is_red_eq or.inr or.inl
+  { have := incomp_trans_of lt h ⟨hc.2, hc.1⟩, simp [this] },
+  case is_black_lt_red or.inl
+  { apply mem_balance1_node_of_mem_left, apply ih h },
+  case is_black_lt_red or.inr or.inl
+  { apply mem_balance1_node_of_incomp, cases h, all_goals { simp [*, ins_ne_leaf lt a z] } },
+  case is_black_lt_red or.inr or.inr
+  { apply mem_balance1_node_of_mem_right, assumption },
+  case is_black_eq or.inr or.inl
+  { have := incomp_trans_of lt hc ⟨h.2, h.1⟩, simp [this] },
+  case is_black_gt_red or.inl
+  { apply mem_balance2_node_of_mem_right, assumption },
+  case is_black_gt_red or.inr or.inl
+  { have := ins_ne_leaf lt a z, apply mem_balance2_node_of_incomp, cases h, simp [*],
       apply ins_ne_leaf },
-  case is_black_gt_red or.inr or.inr {
-    apply mem_balance2_node_of_mem_left, apply ih h },
+  case is_black_gt_red or.inr or.inr
+  { apply mem_balance2_node_of_mem_left, apply ih h },
   -- remaining cases are easy
   any_goals { intros, simp [h], done },
   all_goals { intros, simp [ih h], done },
@@ -320,12 +320,12 @@ lemma equiv_or_mem_of_mem_ins [decidable_rel lt] [is_strict_weak_order α lt] {t
 begin
   with_cases { apply ins.induction lt t z; intros; simp [ins, strict_weak_order.equiv, *] at *;
     blast_disjs },
-  case is_black_lt_red {
-     have h' := of_mem_balance1_node lt h, blast_disjs,
+  case is_black_lt_red
+   { have h' := of_mem_balance1_node lt h, blast_disjs,
      have := ih h', blast_disjs,
      all_goals { simp [h, *] } },
-  case is_black_gt_red {
-     have h' := of_mem_balance2_node lt h, blast_disjs,
+  case is_black_gt_red
+   { have h' := of_mem_balance2_node lt h, blast_disjs,
      have := ih h', blast_disjs,
      all_goals { simp [h, *] }},
   -- All other goals can be solved by the following tactics
@@ -447,10 +447,11 @@ end
 lemma weak_trichotomous (x y) {p : Prop} (is_lt : ∀ h : lt x y, p)
   (is_eqv : ∀ h : ¬ lt x y ∧ ¬ lt y x, p) (is_gt : ∀ h : lt y x, p) : p :=
 begin
-  by_cases lt x y; by_cases lt y x,
-  any_goals { apply is_lt; assumption },
-  any_goals { apply is_gt; assumption },
-  any_goals { apply is_eqv, constructor; assumption }
+  by_cases lt x y,
+  { apply is_lt, assumption },
+  by_cases lt y x,
+  { apply is_gt, assumption },
+  { apply is_eqv, constructor; assumption }
 end
 
 section find_ins_of_not_eqv
@@ -490,8 +491,8 @@ lemma find_balance1_lt {l r t v x y lo hi}
 begin
   with_cases { revert hl hr ht, apply balance.cases l v r; intros; simp [*]; is_searchable_tactic },
   case red_left : _ _ _ z r { apply weak_trichotomous lt z x; intros; simp [*] },
-  case red_right : l_left l_val l_right z r {
-    with_cases { apply weak_trichotomous lt z x; intro h' },
+  case red_right : l_left l_val l_right z r
+  { with_cases { apply weak_trichotomous lt z x; intro h' },
     case is_lt  { have := trans_of lt (lo_lt_hi hr_hs₁) h', simp [*] },
     case is_eqv { have : lt l_val x := lt_of_lt_of_incomp (lo_lt_hi hr_hs₁) h', simp [*] },
     case is_gt  { apply weak_trichotomous lt l_val x; intros; simp [*] } }
@@ -518,10 +519,10 @@ lemma find_balance1_gt {l r t v x y lo hi}
                        : find lt (balance1 l v r y t) x = find lt t x :=
 begin
   with_cases { revert hl hr ht, apply balance.cases l v r; intros; simp [*]; is_searchable_tactic },
-  case red_left : _ _ _ z {
-    have := trans_of lt (lo_lt_hi hr) h, simp [*] },
-  case red_right : _ _ _ z {
-    have := trans_of lt (lo_lt_hi hr_hs₂) h, simp [*] }
+  case red_left : _ _ _ z
+  { have := trans_of lt (lo_lt_hi hr) h, simp [*] },
+  case red_right : _ _ _ z
+  { have := trans_of lt (lo_lt_hi hr_hs₂) h, simp [*] }
 end
 
 lemma find_balance1_node_gt {t s x y lo hi} (h : lt x y)
@@ -542,11 +543,11 @@ lemma find_balance1_eqv {l r t v x y lo hi}
                         : find lt (balance1 l v r y t) x = some y :=
 begin
   with_cases { revert hl hr ht, apply balance.cases l v r; intros; simp [*]; is_searchable_tactic },
-  case red_left : _ _ _ z {
-    have : lt z x := lt_of_lt_of_incomp (lo_lt_hi hr) h.swap,
+  case red_left : _ _ _ z
+  { have : lt z x := lt_of_lt_of_incomp (lo_lt_hi hr) h.swap,
     simp [*] },
-  case red_right : _ _ _ z {
-    have : lt z x := lt_of_lt_of_incomp (lo_lt_hi hr_hs₂) h.swap,
+  case red_right : _ _ _ z
+  { have : lt z x := lt_of_lt_of_incomp (lo_lt_hi hr_hs₂) h.swap,
     simp [*] }
 end
 
@@ -593,13 +594,13 @@ lemma find_balance2_gt {l v r t x y lo hi}
                        : find lt (balance2 l v r y t) x = find lt (red_node l v r) x :=
 begin
   with_cases { revert hl hr ht, apply balance.cases l v r; intros; simp [*]; is_searchable_tactic },
-  case red_left : _ val _ z {
-    with_cases { apply weak_trichotomous lt val x; intro h'; simp [*] },
+  case red_left : _ val _ z
+  { with_cases { apply weak_trichotomous lt val x; intro h'; simp [*] },
     case is_lt { apply weak_trichotomous lt z x; intros; simp [*] },
     case is_eqv { have : lt x z := lt_of_incomp_of_lt h'.swap (lo_lt_hi hl_hs₂), simp [*] },
     case is_gt  { have := trans h' (lo_lt_hi hl_hs₂), simp [*] } },
-  case red_right : _ val {
-    apply weak_trichotomous lt val x; intros; simp [*] }
+  case red_right : _ val
+  { apply weak_trichotomous lt val x; intros; simp [*] }
 end
 
 lemma find_balance2_node_gt {s t x y lo hi}
@@ -656,9 +657,7 @@ begin
     { have := lt_of_lt_of_incomp hn hc,
       simp_fi } },
   { have := ih hs_hs₂ hc hlt₂,
-    cases hn,
-    { have := trans hc hn, simp_fi },
-    { simp_fi } },
+    simp_fi },
   { have ih := ih hs_hs₁ hlt₁ hc,
     cases hn,
     { cases hc' : cmp_using lt y y_1; simp at hc',
@@ -698,12 +697,8 @@ begin
       { have hsi := is_searchable_ins lt hs_hs₂ hc hlt₂,
         have := find_balance2_node_gt lt hc' hsi hs_hs₁,
         simp_fi } } },
-  { cases hn,
-    { have := trans hc hn,
-      have := ih hs_hs₂ hc hlt₂,
-      simp_fi },
-    { have ih := ih hs_hs₂ hc hlt₂,
-      simp_fi } }
+  { have ih := ih hs_hs₂ hc hlt₂,
+    simp_fi }
 end
 
 end find_ins_of_not_eqv
@@ -721,8 +716,8 @@ lemma find_insert_of_not_eqv [decidable_rel lt] [is_strict_weak_order α lt] {x 
 begin
   intro hs,
   simp [insert, find_mk_insert_result],
-  have he : lt x y ∨ lt y x, {
-    simp [strict_weak_order.equiv, decidable.not_and_iff_or_not, decidable.not_not_iff] at hn,
+  have he : lt x y ∨ lt y x,
+  { simp [strict_weak_order.equiv, decidable.not_and_iff_or_not, decidable.not_not_iff] at hn,
     assumption },
   apply find_ins_of_disj lt he hs; simp
 end

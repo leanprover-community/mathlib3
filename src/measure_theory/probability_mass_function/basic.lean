@@ -49,11 +49,9 @@ lemma summable_coe (p : pmf α) : summable p := (p.has_sum_coe_one).summable
 /-- The support of a `pmf` is the set where it is nonzero. -/
 def support (p : pmf α) : set α := function.support p
 
-@[simp] lemma mem_support_iff (p : pmf α) (a : α) :
-  a ∈ p.support ↔ p a ≠ 0 := iff.rfl
+@[simp] lemma mem_support_iff (p : pmf α) (a : α) : a ∈ p.support ↔ p a ≠ 0 := iff.rfl
 
-lemma apply_eq_zero_iff (p : pmf α) (a : α) :
-  p a = 0 ↔ a ∉ p.support :=
+lemma apply_eq_zero_iff (p : pmf α) (a : α) : p a = 0 ↔ a ∉ p.support :=
 by rw [mem_support_iff, not_not]
 
 lemma coe_le_one (p : pmf α) (a : α) : p a ≤ 1 :=
@@ -66,12 +64,15 @@ section pure
   The value of `pure a` is `1` at `a` and `0` elsewhere. -/
 def pure (a : α) : pmf α := ⟨λ a', if a' = a then 1 else 0, has_sum_ite_eq _ _⟩
 
-@[simp] lemma pure_apply (a a' : α) : pure a a' = (if a' = a then 1 else 0) := rfl
+variables (a a' : α)
 
-lemma mem_support_pure_iff (a a' : α) : a' ∈ (pure a).support ↔ a' = a :=
-by simp
+@[simp] lemma pure_apply : pure a a' = (if a' = a then 1 else 0) := rfl
 
-instance [inhabited α] : inhabited (pmf α) := ⟨pure (default α)⟩
+@[simp] lemma support_pure : (pure a).support = {a} := set.ext (λ a', by simp [mem_support_iff])
+
+lemma mem_support_pure_iff: a' ∈ (pure a).support ↔ a' = a := by simp
+
+instance [inhabited α] : inhabited (pmf α) := ⟨pure default⟩
 
 end pure
 
@@ -96,8 +97,15 @@ def bind (p : pmf α) (f : α → pmf β) : pmf β :=
       (ennreal.coe_tsum p.summable_coe).symm]
   end⟩
 
-@[simp] lemma bind_apply (p : pmf α) (f : α → pmf β) (b : β) : p.bind f b = ∑'a, p a * f a b :=
-rfl
+variables (p : pmf α) (f : α → pmf β)
+
+@[simp] lemma bind_apply (b : β) : p.bind f b = ∑'a, p a * f a b := rfl
+
+@[simp] lemma support_bind : (p.bind f).support = {b | ∃ a ∈ p.support, b ∈ (f a).support} :=
+set.ext (λ b, by simp [mem_support_iff, tsum_eq_zero_iff (bind.summable p f b), not_or_distrib])
+
+lemma mem_support_bind_iff (b : β) : b ∈ (p.bind f).support ↔ ∃ a ∈ p.support, b ∈ (f a).support :=
+by simp
 
 lemma coe_bind_apply (p : pmf α) (f : α → pmf β) (b : β) :
   (p.bind f b : ℝ≥0∞) = ∑'a, p a * f a b :=
@@ -185,7 +193,7 @@ lemma to_outer_measure_caratheodory (p : pmf α) :
 begin
   refine (eq_top_iff.2 $ le_trans (le_Inf $ λ x hx, _) (le_sum_caratheodory _)),
   obtain ⟨y, hy⟩ := hx,
-  exact ((le_of_eq (dirac_caratheodory _).symm).trans
+  exact ((le_of_eq (dirac_caratheodory y).symm).trans
     (le_smul_caratheodory _ _)).trans (le_of_eq hy),
 end
 

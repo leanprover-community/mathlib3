@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import algebra.star.basic
-import algebra.order.algebra
 import analysis.special_functions.pow
 
 /-!
@@ -227,8 +226,8 @@ begin
     -- just look at the coefficients now:
     congr,
     exact mul_left_cancel₀ (by norm_num) tsirelson_inequality_aux, },
-  have pos : 0 ≤ √2⁻¹ • (P^2 + Q^2), {
-    have P_sa : star P = P,
+  have pos : 0 ≤ √2⁻¹ • (P^2 + Q^2),
+  { have P_sa : star P = P,
     { dsimp [P],
       simp only [star_smul, star_add, star_sub, star_id_of_comm,
         T.A₀_sa, T.A₁_sa, T.B₀_sa, T.B₁_sa], },

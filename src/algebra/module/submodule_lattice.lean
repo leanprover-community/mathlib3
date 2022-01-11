@@ -123,8 +123,8 @@ eq_top_iff.trans ⟨λ h x, h trivial, λ h x _, h x⟩
   right_inv := by { intro x, refl, }, }
 
 instance : has_Inf (submodule R M) :=
-⟨λ S, {
-  carrier   := ⋂ s ∈ S, (s : set M),
+⟨λ S,
+{ carrier   := ⋂ s ∈ S, (s : set M),
   zero_mem' := by simp,
   add_mem'  := by simp [add_mem] {contextual := tt},
   smul_mem' := by simp [smul_mem] {contextual := tt} }⟩
@@ -136,8 +136,8 @@ private lemma le_Inf' {S : set (submodule R M)} {p} : (∀q ∈ S, p ≤ q) → 
 set.subset_bInter
 
 instance : has_inf (submodule R M) :=
-⟨λ p q, {
-  carrier   := p ∩ q,
+⟨λ p q,
+{ carrier   := p ∩ q,
   zero_mem' := by simp,
   add_mem'  := by simp [add_mem] {contextual := tt},
   smul_mem' := by simp [smul_mem] {contextual := tt} }⟩
@@ -225,6 +225,19 @@ sum_mem _ $ λ i hi, mem_supr_of_mem i $ mem_supr_of_mem hi (h i hi)
 lemma mem_Sup_of_mem {S : set (submodule R M)} {s : submodule R M}
   (hs : s ∈ S) : ∀ {x : M}, x ∈ s → x ∈ Sup S :=
 show s ≤ Sup S, from le_Sup hs
+
+theorem disjoint_def {p p' : submodule R M} :
+  disjoint p p' ↔ ∀ x ∈ p, x ∈ p' → x = (0:M) :=
+show (∀ x, x ∈ p ∧ x ∈ p' → x ∈ ({0} : set M)) ↔ _, by simp
+
+theorem disjoint_def' {p p' : submodule R M} :
+  disjoint p p' ↔ ∀ (x ∈ p) (y ∈ p'), x = y → x = (0:M) :=
+disjoint_def.trans ⟨λ h x hx y hy hxy, h x hx $ hxy.symm ▸ hy,
+  λ h x hx hx', h _ hx x hx' rfl⟩
+
+lemma eq_zero_of_coe_mem_of_disjoint (hpq : disjoint p q) {a : p} (ha : (a : M) ∈ q) :
+  a = 0 :=
+by exact_mod_cast disjoint_def.mp hpq a (coe_mem a) ha
 
 end submodule
 

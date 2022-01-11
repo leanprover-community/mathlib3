@@ -39,8 +39,8 @@ begin
     apply hm (fin.tail e),
     intro j,
     convert h (fin.cons i j),
-    iterate 2 {
-      rw curry_left_apply,
+    iterate 2
+    { rw curry_left_apply,
       congr' 1 with x,
       refine fin.cases rfl (λ x, _) x,
       dsimp [fin.tail],

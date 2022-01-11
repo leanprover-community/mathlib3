@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Jeremy Avigad, Yury Kudryashov
 -/
 import order.filter.cofinite
+import order.zorn
 
 /-!
 # Ultrafilters
@@ -147,7 +148,20 @@ instance : has_pure ultrafilter :=
 
 @[simp] lemma mem_pure {a : α} {s : set α} : s ∈ (pure a : ultrafilter α) ↔ a ∈ s := iff.rfl
 
-instance [inhabited α] : inhabited (ultrafilter α) := ⟨pure (default _)⟩
+instance [inhabited α] : inhabited (ultrafilter α) := ⟨pure default⟩
+instance [nonempty α] : nonempty (ultrafilter α) := nonempty.map pure infer_instance
+
+lemma eq_principal_of_finite_mem {f : ultrafilter α} {s : set α} (h : s.finite) (h' : s ∈ f) :
+  ∃ x ∈ s, (f : filter α) = pure x :=
+begin
+  rw ← bUnion_of_singleton s at h',
+  rcases (ultrafilter.finite_bUnion_mem_iff h).mp h' with ⟨a, has, haf⟩,
+  use [a, has],
+  change (f : filter α) = (pure a : ultrafilter α),
+  rw [ultrafilter.coe_inj, ← ultrafilter.coe_le_coe],
+  change (f : filter α) ≤ pure a,
+  rwa [← principal_singleton, le_principal_iff]
+end
 
 /-- Monadic bind for ultrafilters, coming from the one on filters
 defined in terms of map and join.-/
@@ -155,15 +169,15 @@ def bind (f : ultrafilter α) (m : α → ultrafilter β) : ultrafilter β :=
 of_compl_not_mem_iff (bind ↑f (λ x, ↑(m x))) $ λ s,
   by simp only [mem_bind', mem_coe, ← compl_mem_iff_not_mem, compl_set_of, compl_compl]
 
-instance ultrafilter.has_bind : has_bind ultrafilter := ⟨@ultrafilter.bind⟩
-instance ultrafilter.functor : functor ultrafilter := { map := @ultrafilter.map }
-instance ultrafilter.monad : monad ultrafilter := { map := @ultrafilter.map }
+instance has_bind : has_bind ultrafilter := ⟨@ultrafilter.bind⟩
+instance functor : functor ultrafilter := { map := @ultrafilter.map }
+instance monad : monad ultrafilter := { map := @ultrafilter.map }
 
 section
 
 local attribute [instance] filter.monad filter.is_lawful_monad
 
-instance ultrafilter.is_lawful_monad : is_lawful_monad ultrafilter :=
+instance is_lawful_monad : is_lawful_monad ultrafilter :=
 { id_map := assume α f, coe_injective (id_map f.1),
   pure_bind := assume α β a f, coe_injective (pure_bind a (coe ∘ f)),
   bind_assoc := assume α β γ f m₁ m₂, coe_injective (filter_eq rfl),

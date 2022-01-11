@@ -5,12 +5,11 @@ Authors: Patrick Massot, Johannes Hölzl
 -/
 import algebra.algebra.restrict_scalars
 import algebra.algebra.subalgebra
-import data.matrix.basic
-import topology.algebra.group_completion
-import topology.instances.ennreal
-import topology.metric_space.completion
-import topology.sequences
 import analysis.normed.group.infinite_sum
+import data.matrix.basic
+import topology.algebra.module.basic
+import topology.instances.ennreal
+import topology.sequences
 
 /-!
 # Normed spaces
@@ -202,7 +201,7 @@ section normed_ring
 
 variables [normed_ring α]
 
-lemma units.norm_pos [nontrivial α] (x : units α) : 0 < ∥(x:α)∥ :=
+lemma units.norm_pos [nontrivial α] (x : αˣ) : 0 < ∥(x:α)∥ :=
 norm_pos_iff.mpr (units.ne_zero x)
 
 /-- Normed ring structure on the product of two normed rings, using the sup norm. -/
@@ -360,7 +359,7 @@ by rwa norm_zpow⟩
 variable {α}
 
 @[instance]
-lemma punctured_nhds_ne_bot (x : α) : ne_bot (𝓝[{x}ᶜ] x) :=
+lemma punctured_nhds_ne_bot (x : α) : ne_bot (𝓝[≠] x) :=
 begin
   rw [← mem_closure_iff_nhds_within_ne_bot, metric.mem_closure_iff],
   rintros ε ε0,
@@ -417,7 +416,7 @@ This is a particular case of `module.punctured_nhds_ne_bot`. -/
 instance punctured_nhds_module_ne_bot
   {E : Type*} [add_comm_group E] [topological_space E] [has_continuous_add E] [nontrivial E]
   [module ℝ E] [has_continuous_smul ℝ E] (x : E) :
-  ne_bot (𝓝[{x}ᶜ] x) :=
+  ne_bot (𝓝[≠] x) :=
 module.punctured_nhds_ne_bot ℝ E x
 
 end real
@@ -650,32 +649,36 @@ theorem frontier_closed_ball [semi_normed_space ℝ E] (x : E) {r : ℝ} (hr : 0
 by rw [frontier, closure_closed_ball, interior_closed_ball x hr,
   closed_ball_diff_ball]
 
-theorem smul_ball {c : α} (hc : c ≠ 0) (x : E) (r : ℝ) :
-  c • ball x r = ball (c • x) (∥c∥ * r) :=
-begin
-  ext y,
-  rw mem_smul_set_iff_inv_smul_mem₀ hc,
-  conv_lhs { rw ←inv_smul_smul₀ hc x },
-  simp [← div_eq_inv_mul, div_lt_iff (norm_pos_iff.2 hc), mul_comm _ r, dist_smul],
-end
+/-- A (semi) normed real vector space is homeomorphic to the unit ball in the same space.
+This homeomorphism sends `x : E` to `(1 + ∥x∥)⁻¹ • x`.
 
-theorem smul_closed_ball' {c : α} (hc : c ≠ 0) (x : E) (r : ℝ) :
-  c • closed_ball x r = closed_ball (c • x) (∥c∥ * r) :=
-begin
-  ext y,
-  rw mem_smul_set_iff_inv_smul_mem₀ hc,
-  conv_lhs { rw ←inv_smul_smul₀ hc x },
-  simp [dist_smul, ← div_eq_inv_mul, div_le_iff (norm_pos_iff.2 hc), mul_comm _ r],
-end
-
-theorem smul_closed_ball {E : Type*} [normed_group E] [normed_space α E]
-  (c : α) (x : E) {r : ℝ} (hr : 0 ≤ r) :
-  c • closed_ball x r = closed_ball (c • x) (∥c∥ * r) :=
-begin
-  rcases eq_or_ne c 0 with rfl|hc,
-  { simp [hr, zero_smul_set, set.singleton_zero, ← nonempty_closed_ball] },
-  { exact smul_closed_ball' hc x r }
-end
+In many cases the actual implementation is not important, so we don't mark the projection lemmas
+`homeomorph_unit_ball_apply_coe` and `homeomorph_unit_ball_symm_apply` as `@[simp]`. -/
+@[simps { attrs := [] }]
+def homeomorph_unit_ball {E : Type*} [semi_normed_group E] [semi_normed_space ℝ E] :
+  E ≃ₜ ball (0 : E) 1 :=
+{ to_fun := λ x, ⟨(1 + ∥x∥)⁻¹ • x, begin
+    have : ∥x∥ < |1 + ∥x∥| := (lt_one_add _).trans_le (le_abs_self _),
+    rwa [mem_ball_zero_iff, norm_smul, real.norm_eq_abs, abs_inv, ← div_eq_inv_mul,
+      div_lt_one ((norm_nonneg x).trans_lt this)],
+  end⟩,
+  inv_fun := λ x, (1 - ∥(x : E)∥)⁻¹ • (x : E),
+  left_inv := λ x,
+    begin
+      have : 0 < 1 + ∥x∥ := (norm_nonneg x).trans_lt (lt_one_add _),
+      field_simp [this.ne', abs_of_pos this, norm_smul, smul_smul, real.norm_eq_abs, abs_div]
+    end,
+  right_inv := λ x, subtype.ext
+    begin
+      have : 0 < 1 - ∥(x : E)∥ := sub_pos.2 (mem_ball_zero_iff.1 x.2),
+      field_simp [norm_smul, smul_smul, real.norm_eq_abs, abs_div, abs_of_pos this, this.ne']
+    end,
+  continuous_to_fun := continuous_subtype_mk _ $
+    ((continuous_const.add continuous_norm).inv₀
+      (λ x, ((norm_nonneg x).trans_lt (lt_one_add _)).ne')).smul continuous_id,
+  continuous_inv_fun := continuous.smul
+    ((continuous_const.sub continuous_subtype_coe.norm).inv₀ $
+      λ x, (sub_pos.2 $ mem_ball_zero_iff.1 x.2).ne') continuous_subtype_coe }
 
 variables (α)
 
@@ -797,6 +800,46 @@ instance submodule.normed_space {𝕜 R : Type*} [has_scalar 𝕜 R] [normed_fie
 { ..submodule.semi_normed_space s }
 
 end normed_space
+
+section normed_space_nondiscrete
+
+variables (𝕜 E : Type*) [nondiscrete_normed_field 𝕜] [normed_group E] [normed_space 𝕜 E]
+  [nontrivial E]
+
+include 𝕜
+
+/-- If `E` is a nontrivial normed space over a nondiscrete normed field `𝕜`, then `E` is unbounded:
+for any `c : ℝ`, there exists a vector `x : E` with norm strictly greater than `c`. -/
+lemma normed_space.exists_lt_norm (c : ℝ) : ∃ x : E, c < ∥x∥ :=
+begin
+  rcases exists_ne (0 : E) with ⟨x, hx⟩,
+  rcases normed_field.exists_lt_norm 𝕜 (c / ∥x∥) with ⟨r, hr⟩,
+  use r • x,
+  rwa [norm_smul, ← div_lt_iff],
+  rwa norm_pos_iff
+end
+
+protected lemma normed_space.unbounded_univ : ¬bounded (set.univ : set E) :=
+λ h, let ⟨R, hR⟩ := bounded_iff_forall_norm_le.1 h, ⟨x, hx⟩ := normed_space.exists_lt_norm 𝕜 E R
+in hx.not_le (hR x trivial)
+
+/-- A normed vector space over a nondiscrete normed field is a noncompact space. This cannot be
+an instance because in order to apply it, Lean would have to search for `normed_space 𝕜 E` with
+unknown `𝕜`. We register this as an instance in two cases: `𝕜 = E` and `𝕜 = ℝ`. -/
+protected lemma normed_space.noncompact_space : noncompact_space E :=
+⟨λ h, normed_space.unbounded_univ 𝕜 _ h.bounded⟩
+
+@[priority 100]
+instance nondiscrete_normed_field.noncompact_space : noncompact_space 𝕜 :=
+normed_space.noncompact_space 𝕜 𝕜
+
+omit 𝕜
+
+@[priority 100]
+instance real_normed_space.noncompact_space [normed_space ℝ E] : noncompact_space E :=
+normed_space.noncompact_space ℝ E
+
+end normed_space_nondiscrete
 
 section normed_algebra
 
@@ -1069,3 +1112,22 @@ end
 end nat
 
 end cauchy_product
+
+section ring_hom_isometric
+
+variables {R₁ : Type*} {R₂ : Type*} {R₃ : Type*}
+
+/-- This class states that a ring homomorphism is isometric. This is a sufficient assumption
+for a continuous semilinear map to be bounded and this is the main use for this typeclass. -/
+class ring_hom_isometric [semiring R₁] [semiring R₂] [has_norm R₁] [has_norm R₂]
+  (σ : R₁ →+* R₂) : Prop :=
+(is_iso : ∀ {x : R₁}, ∥σ x∥ = ∥x∥)
+
+attribute [simp] ring_hom_isometric.is_iso
+
+variables [semi_normed_ring R₁] [semi_normed_ring R₂] [semi_normed_ring R₃]
+
+instance ring_hom_isometric.ids : ring_hom_isometric (ring_hom.id R₁) :=
+⟨λ x, rfl⟩
+
+end ring_hom_isometric

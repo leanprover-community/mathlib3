@@ -3,11 +3,10 @@ Copyright (c) 2021 Eric Wieser. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser
 -/
-import algebra.algebra.basic
-import algebra.algebra.operations
-import algebra.direct_sum.basic
 import group_theory.subgroup.basic
 import algebra.graded_monoid
+import algebra.direct_sum.basic
+import algebra.big_operators.pi
 
 /-!
 # Additively-graded multiplicative structures on `⨁ i, A i`
@@ -117,14 +116,14 @@ section one
 variables [has_zero ι] [graded_monoid.ghas_one A] [Π i, add_comm_monoid (A i)]
 
 instance : has_one (⨁ i, A i) :=
-{ one := direct_sum.of (λ i, A i) 0 graded_monoid.ghas_one.one}
+{ one := direct_sum.of (λ i, A i) 0 graded_monoid.ghas_one.one }
 
 end one
 
 section mul
 variables [has_add ι] [Π i, add_comm_monoid (A i)] [gnon_unital_non_assoc_semiring A]
 
-open add_monoid_hom (map_zero map_add flip_apply coe_comp comp_hom_apply_apply)
+open add_monoid_hom (flip_apply coe_comp comp_hom_apply_apply)
 
 /-- The piecewise multiplication from the `has_mul` instance, as a bundled homomorphism. -/
 @[simps]
@@ -146,10 +145,10 @@ instance : non_unital_non_assoc_semiring (⨁ i, A i) :=
 { mul := λ a b, mul_hom A a b,
   zero := 0,
   add := (+),
-  zero_mul := λ a, by simp only [map_zero, add_monoid_hom.zero_apply],
-  mul_zero := λ a, by simp only [map_zero],
-  left_distrib := λ a b c, by simp only [map_add],
-  right_distrib := λ a b c, by simp only [map_add, add_monoid_hom.add_apply],
+  zero_mul := λ a, by simp only [add_monoid_hom.map_zero, add_monoid_hom.zero_apply],
+  mul_zero := λ a, by simp only [add_monoid_hom.map_zero],
+  left_distrib := λ a b c, by simp only [add_monoid_hom.map_add],
+  right_distrib := λ a b c, by simp only [add_monoid_hom.map_add, add_monoid_hom.add_apply],
   .. direct_sum.add_comm_monoid _ _}
 
 variables {A}
@@ -206,8 +205,8 @@ begin
 end
 
 /-- The `semiring` structure derived from `gsemiring A`. -/
-instance semiring : semiring (⨁ i, A i) := {
-  one := 1,
+instance semiring : semiring (⨁ i, A i) :=
+{ one := 1,
   mul := (*),
   zero := 0,
   add := (+),
@@ -223,6 +222,38 @@ begin
   { exact of_eq_of_graded_monoid_eq (pow_zero $ graded_monoid.mk _ a).symm, },
   { rw [pow_succ, n_ih, of_mul_of],
     exact of_eq_of_graded_monoid_eq (pow_succ (graded_monoid.mk _ a) n).symm, },
+end
+
+lemma of_list_dprod {α} (l : list α) (fι : α → ι) (fA : Π a, A (fι a)) :
+  of A _ (l.dprod fι fA) = (l.map $ λ a, of A (fι a) (fA a)).prod :=
+begin
+  induction l,
+  { simp only [list.map_nil, list.prod_nil, list.dprod_nil],
+    refl },
+  { simp only [list.map_cons, list.prod_cons, list.dprod_cons, ←l_ih, direct_sum.of_mul_of],
+    refl },
+end
+
+lemma list_prod_of_fn_of_eq_dprod (n : ℕ) (fι : fin n → ι) (fA : Π a, A (fι a)) :
+  (list.of_fn $ λ a, of A (fι a) (fA a)).prod = of A _ ((list.fin_range n).dprod fι fA) :=
+by rw [list.of_fn_eq_map, of_list_dprod]
+
+open_locale big_operators
+
+/-- A heavily unfolded version of the definition of multiplication -/
+lemma mul_eq_sum_support_ghas_mul
+  [Π (i : ι) (x : A i), decidable (x ≠ 0)] (a a' : ⨁ i, A i) :
+  a * a' =
+    ∑ (ij : ι × ι) in (dfinsupp.support a).product (dfinsupp.support a'),
+      direct_sum.of _ _ (graded_monoid.ghas_mul.mul (a ij.fst) (a' ij.snd)) :=
+begin
+  change direct_sum.mul_hom _ a a' = _,
+  dsimp [direct_sum.mul_hom, direct_sum.to_add_monoid, dfinsupp.lift_add_hom_apply],
+  simp only [dfinsupp.sum_add_hom_apply, dfinsupp.sum, dfinsupp.finset_sum_apply,
+    add_monoid_hom.coe_sum, finset.sum_apply, add_monoid_hom.flip_apply,
+    add_monoid_hom.comp_hom_apply_apply, add_monoid_hom.comp_apply,
+    direct_sum.gmul_hom_apply_apply],
+  rw finset.sum_product,
 end
 
 end semiring
@@ -241,8 +272,8 @@ begin
 end
 
 /-- The `comm_semiring` structure derived from `gcomm_semiring A`. -/
-instance comm_semiring : comm_semiring (⨁ i, A i) := {
-  one := 1,
+instance comm_semiring : comm_semiring (⨁ i, A i) :=
+{ one := 1,
   mul := (*),
   zero := 0,
   add := (+),
@@ -255,8 +286,8 @@ section ring
 variables [Π i, add_comm_group (A i)] [add_comm_monoid ι] [gsemiring A]
 
 /-- The `ring` derived from `gsemiring A`. -/
-instance ring : ring (⨁ i, A i) := {
-  one := 1,
+instance ring : ring (⨁ i, A i) :=
+{ one := 1,
   mul := (*),
   zero := 0,
   add := (+),
@@ -271,8 +302,8 @@ section comm_ring
 variables [Π i, add_comm_group (A i)] [add_comm_monoid ι] [gcomm_semiring A]
 
 /-- The `comm_ring` derived from `gcomm_semiring A`. -/
-instance comm_ring : comm_ring (⨁ i, A i) := {
-  one := 1,
+instance comm_ring : comm_ring (⨁ i, A i) :=
+{ one := 1,
   mul := (*),
   zero := 0,
   add := (+),
@@ -387,9 +418,14 @@ then they are equal.
 
 See note [partially-applied ext lemmas]. -/
 @[ext]
-lemma ring_hom_ext' (F G : (⨁ i, A i) →+* R)
-  (h : ∀ i, (F : (⨁ i, A i) →+ R).comp (of _ i) = (G : (⨁ i, A i) →+ R).comp (of _ i)) : F = G :=
+lemma ring_hom_ext' ⦃F G : (⨁ i, A i) →+* R⦄
+  (h : ∀ i, (↑F : _ →+ R).comp (of A i) = (↑G : _ →+ R).comp (of A i)) : F = G :=
 ring_hom.coe_add_monoid_hom_injective $ direct_sum.add_hom_ext' h
+
+/-- Two `ring_hom`s out of a direct sum are equal if they agree on the generators. -/
+lemma ring_hom_ext ⦃f g : (⨁ i, A i) →+* R⦄ (h : ∀ i x, f (of A i x) = g (of A i x)) :
+  f = g :=
+ring_hom_ext' $ λ i, add_monoid_hom.ext $ h i
 
 /-- A family of `add_monoid_hom`s preserving `direct_sum.ghas_one.one` and `direct_sum.ghas_mul.mul`
 describes a `ring_hom`s on `⨁ i, A i`. This is a stronger version of `direct_sum.to_monoid`.
@@ -457,15 +493,6 @@ def lift_ring_hom :
       add_monoid_hom.mk_coe,
       add_monoid_hom.comp_apply, to_semiring_coe_add_monoid_hom],
   end}
-
-/-- Two `ring_hom`s out of a direct sum are equal if they agree on the generators.
-
-See note [partially-applied ext lemmas]. -/
-@[ext]
-lemma ring_hom_ext ⦃f g : (⨁ i, A i) →+* R⦄
-  (h : ∀ i, (↑f : (⨁ i, A i) →+ R).comp (of A i) = (↑g : (⨁ i, A i) →+ R).comp (of A i)) :
-  f = g :=
-direct_sum.lift_ring_hom.symm.injective $ subtype.ext $ funext h
 
 end to_semiring
 

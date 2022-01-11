@@ -135,8 +135,8 @@ def to_real_linear_isometry_equiv (f : E ≃ᵢ F) : E ≃ₗᵢ[ℝ] F :=
 normed vector spaces over `ℝ`, then `f` is an affine isometry equivalence. -/
 def to_real_affine_isometry_equiv (f : PE ≃ᵢ PF) : PE ≃ᵃⁱ[ℝ] PF :=
 affine_isometry_equiv.mk' f
-  (((vadd_const ℝ (classical.arbitrary PE)).to_isometric.trans $ f.trans
-    (vadd_const ℝ (f $ classical.arbitrary PE)).to_isometric.symm).to_real_linear_isometry_equiv)
+  (((vadd_const (classical.arbitrary PE)).trans $ f.trans
+    (vadd_const (f $ classical.arbitrary PE)).symm).to_real_linear_isometry_equiv)
   (classical.arbitrary PE) (λ p, by simp)
 
 @[simp] lemma coe_fn_to_real_affine_isometry_equiv (f : PE ≃ᵢ PF) :

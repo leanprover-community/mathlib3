@@ -228,6 +228,7 @@ instance : has_subset (finset α) := ⟨λ s₁ s₂, ∀ ⦃a⦄, a ∈ s₁ �
 theorem subset_def {s₁ s₂ : finset α} : s₁ ⊆ s₂ ↔ s₁.1 ⊆ s₂.1 := iff.rfl
 
 @[simp] theorem subset.refl (s : finset α) : s ⊆ s := subset.refl _
+protected lemma subset.rfl {s :finset α} : s ⊆ s := subset.refl _
 
 theorem subset_of_eq {s t : finset α} (h : s = t) : s ⊆ t := h ▸ subset.refl _
 
@@ -240,6 +241,8 @@ theorem superset.trans {s₁ s₂ s₃ : finset α} : s₁ ⊇ s₂ → s₂ ⊇
 local attribute [trans] subset.trans superset.trans
 
 theorem mem_of_subset {s₁ s₂ : finset α} {a : α} : s₁ ⊆ s₂ → a ∈ s₁ → a ∈ s₂ := mem_of_subset
+
+lemma not_mem_mono {s t : finset α} (h : s ⊆ t) {a : α} : a ∉ t → a ∉ s := mt $ @h _
 
 theorem subset.antisymm {s₁ s₂ : finset α} (H₁ : s₁ ⊆ s₂) (H₂ : s₂ ⊆ s₁) : s₁ = s₂ :=
 ext $ λ a, ⟨@H₁ a, @H₂ a⟩

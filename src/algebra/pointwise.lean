@@ -96,7 +96,7 @@ lemma mem_mul [has_mul α] : a ∈ s * t ↔ ∃ x y, x ∈ s ∧ y ∈ t ∧ x 
 lemma mul_mem_mul [has_mul α] (ha : a ∈ s) (hb : b ∈ t) : a * b ∈ s * t := mem_image2_of_mem ha hb
 
 @[to_additive add_image_prod]
-lemma image_mul_prod [has_mul α] : (λ x : α × α, x.fst * x.snd) '' s.prod t = s * t := image_prod _
+lemma image_mul_prod [has_mul α] : (λ x : α × α, x.fst * x.snd) '' (s ×ˢ t) = s * t := image_prod _
 
 @[simp, to_additive]
 lemma image_mul_left [group α] : (λ b, a * b) '' t = (λ b, a⁻¹ * b) ⁻¹' t :=
@@ -513,7 +513,7 @@ lemma mem_smul_of_mem [has_scalar α β] {t : set β} {a} {b} (ha : a ∈ s) (hb
 
 @[to_additive]
 lemma image_smul_prod [has_scalar α β] {t : set β} :
-  (λ x : α × β, x.fst • x.snd) '' s.prod t = s • t :=
+  (λ x : α × β, x.fst • x.snd) '' (s ×ˢ t) = s • t :=
 image_prod _
 
 @[to_additive]

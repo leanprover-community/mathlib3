@@ -259,6 +259,6 @@ lemma add_subgroup_is_internal.to_add_submonoid
   {M : Type*} [decidable_eq ι] [add_comm_group M] (A : ι → add_subgroup M) :
   add_subgroup_is_internal A ↔
     add_submonoid_is_internal (λ i, (A i).to_add_submonoid) :=
-iff.rfl
+⟨λ h, h, λ h, h⟩
 
 end direct_sum

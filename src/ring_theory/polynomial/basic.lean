@@ -208,7 +208,7 @@ ext $ λ i, subtype.eq $ by rw [coeff_restriction', coeff_one, coeff_one]; split
 variables {S : Type v} [ring S] {f : R →+* S} {x : S}
 
 theorem eval₂_restriction {p : polynomial R} :
-  eval₂ f x p = eval₂ (f.comp (subring.subtype _)) x p.restriction :=
+  eval₂ f x p = eval₂ (f.comp ((subring.closure ↑p.frange).subtype)) x p.restriction :=
 begin
   simp only [eval₂_eq_sum, sum, support_restriction, ←@coeff_restriction _ _ p],
   refl,
@@ -474,7 +474,8 @@ begin
   obtain ⟨x, hx'⟩ := x,
   obtain ⟨y, rfl⟩ := (ring_hom.mem_range).1 hx',
   refine subtype.eq _,
-  simp only [ring_hom.comp_apply, quotient.eq_zero_iff_mem, subring.coe_zero, subtype.val_eq_coe],
+  simp only [ring_hom.comp_apply, quotient.eq_zero_iff_mem, add_submonoid_class.coe_zero,
+    subtype.val_eq_coe],
   suffices : C (i y) ∈ (I.map (polynomial.map_ring_hom i)),
   { obtain ⟨f, hf⟩ := mem_image_of_mem_map_of_surjective (polynomial.map_ring_hom i)
       (polynomial.map_surjective _ (((quotient.mk I).comp C).range_restrict_surjective)) this,

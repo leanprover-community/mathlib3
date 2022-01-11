@@ -202,18 +202,6 @@ begin
       exact real.rpow_le_rpow_of_exponent_ge' (norm_nonneg _) hi.le hq.le hpq' } }
 end
 
-lemma _root_.mem_ℓp_single [decidable_eq α] (p) (i : α) (a : E i) :
-  @mem_ℓp α E _ (λ j, if h : j = i then eq.rec a h.symm else 0) p :=
-begin
-  refine (mem_ℓp_zero _).of_exponent_ge (zero_le p),
-  refine (set.finite_singleton i).subset _,
-  intros j,
-  simp only [forall_exists_index, set.mem_singleton_iff, ne.def, dite_eq_right_iff,
-    set.mem_set_of_eq, not_forall],
-  rintros rfl,
-  simp,
-end
-
 lemma add {f g : Π i, E i} (hf : mem_ℓp f p) (hg : mem_ℓp g p) : mem_ℓp (f + g) p :=
 begin
   rcases p.trichotomy with rfl | rfl | hp,
@@ -617,7 +605,16 @@ variables [decidable_eq α]
 
 /-- The element of `lp E p` which is `a : E i` at the index `i`, and zero elsewhere. -/
 protected def single (p) (i : α) (a : E i) : lp E p :=
-⟨_, mem_ℓp_single p i a⟩
+⟨ λ j, if h : j = i then eq.rec a h.symm else 0,
+  begin
+    refine (mem_ℓp_zero _).of_exponent_ge (zero_le p),
+    refine (set.finite_singleton i).subset _,
+    intros j,
+    simp only [forall_exists_index, set.mem_singleton_iff, ne.def, dite_eq_right_iff,
+      set.mem_set_of_eq, not_forall],
+    rintros rfl,
+    simp,
+  end ⟩
 
 protected lemma single_apply (p) (i : α) (a : E i) (j : α) :
   lp.single p i a j = if h : j = i then eq.rec a h.symm else 0 :=

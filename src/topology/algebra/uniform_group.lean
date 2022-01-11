@@ -152,7 +152,8 @@ open filter
 variables (G : Type*) [comm_group G] [topological_space G] [topological_group G]
 
 /-- The right uniformity on a topological group. -/
-@[to_additive] def topological_group.to_uniform_space : uniform_space G :=
+@[to_additive "The right uniformity on a topological group"]
+def topological_group.to_uniform_space : uniform_space G :=
 { uniformity          := comap (λp:G×G, p.2 / p.1) (𝓝 1),
   refl                :=
     by refine map_le_iff_le_comap.1 (le_trans _ (pure_le_nhds 1));

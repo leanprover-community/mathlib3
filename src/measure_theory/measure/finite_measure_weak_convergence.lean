@@ -290,7 +290,7 @@ def probability_measure (α : Type*) [measurable_space α] : Type* :=
 namespace probability_measure
 
 instance [inhabited α] : inhabited (probability_measure α) :=
-⟨⟨measure.dirac (default α), measure.dirac.is_probability_measure⟩⟩
+⟨⟨measure.dirac default, measure.dirac.is_probability_measure⟩⟩
 
 /-- A probability measure can be interpreted as a measure. -/
 instance : has_coe (probability_measure α) (measure_theory.measure α) := coe_subtype

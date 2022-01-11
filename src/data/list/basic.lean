@@ -2022,7 +2022,7 @@ variable [inhabited α]
 | 0     l := rfl
 | (n+1) l := congr_arg succ (take'_length _ _)
 
-@[simp] theorem take'_nil : ∀ n, take' n (@nil α) = repeat (default _) n
+@[simp] theorem take'_nil : ∀ n, take' n (@nil α) = repeat default n
 | 0     := rfl
 | (n+1) := congr_arg (cons _) (take'_nil _)
 

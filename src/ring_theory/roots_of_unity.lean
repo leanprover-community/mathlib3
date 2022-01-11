@@ -116,7 +116,7 @@ end
   ↑(ζ ^ m) = (ζ ^ m : R) :=
 begin
   change ↑(↑(ζ ^ m) : Rˣ) = ↑(ζ : Rˣ) ^ m,
-  rw [subgroup.coe_pow, units.coe_pow],
+  rw [submonoid_class.coe_pow, units.coe_pow],
 end
 
 section comm_semiring
@@ -133,7 +133,8 @@ let h : ∀ ξ : roots_of_unity n R, (σ ξ) ^ (n : ℕ) = 1 := λ ξ, by
 { to_fun := λ ξ, ⟨@unit_of_invertible _ _ _ (invertible_of_pow_eq_one _ _ (h ξ) n.2),
     by { ext, rw units.coe_pow, exact h ξ }⟩,
   map_one' := by { ext, exact map_one σ },
-  map_mul' := λ ξ₁ ξ₂, by { ext, rw [subgroup.coe_mul, units.coe_mul], exact map_mul σ _ _ } }
+  map_mul' := λ ξ₁ ξ₂, by { ext, rw [submonoid_class.coe_mul, units.coe_mul],
+                            exact map_mul σ _ _ } }
 
 @[simp] lemma restrict_roots_of_unity_coe_apply [ring_hom_class F R S] (σ : F)
   (ζ : roots_of_unity k R) : ↑(restrict_roots_of_unity σ k ζ) = σ ↑ζ :=

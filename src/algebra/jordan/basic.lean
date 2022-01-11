@@ -96,14 +96,14 @@ open non_unital_non_assoc_ring
 /--
 A non unital, non-associative ring with a (non-commutative) Jordan multiplication.
 -/
-class jordan_algebra (A : Type*) [non_unital_non_assoc_ring A] :=
+class jordan_ring(A : Type*) [non_unital_non_assoc_ring A] :=
 (lmul_comm_rmul : ∀ a b : A, (a * b) * a = a * (b * a))
 (lmul_lmul_comm_lmul: ∀ a b : A, (a * a) * (a * b) = a * ((a * a) * b))
 (lmul_lmul_comm_rmul: ∀ a b : A, (a * a) * (b * a) = ((a * a) * b) * a)
 (lmul_comm_rmul_rmul: ∀ a b : A, (a * b) * (a * a) = a * (b * (a * a)))
 (rmul_comm_rmul_rmul: ∀ a b : A, (b * a) * (a * a) = (b * (a * a)) * a)
 
-lemma jordan_operators (A : Type*) [non_unital_non_assoc_ring A] [jordan A] (a : A) :
+lemma jordan_operators (A : Type*) [non_unital_non_assoc_ring A] [jordan_ring A] (a : A) :
 (⁅L a, R a⁆ = 0) ∧ (⁅L a, L (a * a)⁆ = 0) ∧ (⁅L a, R (a * a)⁆ = 0) ∧ (⁅L (a * a), R a⁆ = 0) ∧
 (⁅R a, R (a * a)⁆ = 0) :=
 begin
@@ -112,38 +112,38 @@ begin
   { ext b,
     simp only [add_monoid_hom.zero_apply, add_monoid_hom.sub_apply, function.comp_app,
       R_apply_apply, add_monoid.coe_mul, L_apply_apply],
-    rw jordan.commL1R1, rw sub_self, },
+    rw jordan_ring.lmul_comm_rmul, rw sub_self, },
   split,
   { ext b,
     simp only [add_monoid_hom.zero_apply, add_monoid_hom.sub_apply, function.comp_app,
       R_apply_apply, add_monoid.coe_mul, L_apply_apply],
-    rw jordan.commL1L2, rw sub_self, },
+    rw jordan_ring.lmul_lmul_comm_lmul, rw sub_self, },
   split,
   { ext b,
     simp only [add_monoid_hom.zero_apply, add_monoid_hom.sub_apply, function.comp_app,
       R_apply_apply, add_monoid.coe_mul, L_apply_apply],
-    rw jordan.commL1R2, rw sub_self, },
+    rw jordan_ring.lmul_comm_rmul_rmul, rw sub_self, },
   split,
   { ext b,
     simp only [add_monoid_hom.zero_apply, add_monoid_hom.sub_apply, function.comp_app,
       R_apply_apply, add_monoid.coe_mul, L_apply_apply],
-    rw jordan.commL2R1, rw sub_self, },
+    rw jordan_ring.lmul_lmul_comm_rmul, rw sub_self, },
   { ext b,
     simp only [add_monoid_hom.zero_apply, add_monoid_hom.sub_apply, function.comp_app,
       R_apply_apply, add_monoid.coe_mul, L_apply_apply],
-    rw jordan.commR1R2, rw sub_self, },
+    rw jordan_ring.rmul_comm_rmul_rmul, rw sub_self, },
 end
 
 universe u
 
 /- A (unital, associative) ring satisfies the (non-commutative) Jordan axioms-/
 @[priority 100] -- see Note [lower instance priority]
-instance ring_jordan (B : Type u) [ring B] : jordan (B) :=
-{ commL1R1 := by { intros, rw mul_assoc },
-  commL1L2 := by { intros, [mul_assoc, mul_assoc] },
-  commL1R2 := by { intros, rw [mul_assoc] },
-  commL2R1 := by { intros, rw [←mul_assoc] },
-  commR1R2 := by { intros, rw [← mul_assoc, ← mul_assoc] } }
+instance ring_jordan (B : Type u) [ring B] : jordan_ring (B) :=
+{ lmul_comm_rmul := by { intros, rw mul_assoc },
+  lmul_lmul_comm_lmul := by { intros, rw [mul_assoc, mul_assoc] },
+  lmul_comm_rmul_rmul := by { intros, rw [mul_assoc] },
+  lmul_lmul_comm_rmul := by { intros, rw [←mul_assoc] },
+  rmul_comm_rmul_rmul := by { intros, rw [← mul_assoc, ← mul_assoc] } }
 
 variables (A : Type*) [non_unital_non_assoc_ring A]
 
@@ -156,34 +156,39 @@ class comm_jordan :=
 
 variable [comm_jordan A]
 
+/-
 instance : comm_monoid A :=
 { mul_comm := λ a b, comm_jordan.mul_comm a b,
   .. (show non_unital_non_assoc_ring A, by apply_instance) }
+-/
 
 lemma comm_jordan_operators  {A : Type*} [non_unital_non_assoc_ring A] [comm_jordan A] :
   (∀ a: A, L a = R a) ∧ (∀ a: A, ⁅L a, L (a*a)⁆ = 0) :=
 begin
   split,
-  { intro, ext b, simp, rw mul_comm, },
+  { intro, ext b, simp, rw comm_jordan.mul_comm, },
   { intro,
     ext b,
     rw ring.lie_def,
     simp only [add_monoid_hom.zero_apply, add_monoid_hom.sub_apply, function.comp_app,
       add_monoid.coe_mul, L_apply_apply],
-    rw [comm_jordan.comm (a * a) (a * b), comm_jordan.jordan, comm_jordan.comm b (a * a),
+    rw [comm_jordan.mul_comm (a * a) (a * b), comm_jordan.jordan, comm_jordan.mul_comm b (a * a),
     sub_self], }
 end
 
 -- A (commutative) Jordan multiplication is also a Jordan multipication
 @[priority 100] -- see Note [lower instance priority]
-instance jordan_of_comm_jordan : jordan A :=
-{ commL1R1 := λ a b, by rw [comm_jordan.comm, comm_jordan.comm a b],
-  commL1L2 := λ a b, by rw [comm_jordan.comm (a * a) (a * b), comm_jordan.jordan,
-    comm_jordan.comm b (a * a)],
-  commL1R2 := λ a b, by rw [comm_jordan.comm, comm_jordan.jordan, comm_jordan.comm],
-  commL2R1 :=  λ a b, by rw [comm_jordan.comm (a * a) (b * a), comm_jordan.comm b a,
-    comm_jordan.jordan, comm_jordan.comm, comm_jordan.comm b (a * a)],
-  commR1R2 := λ a b, by rw [comm_jordan.comm b a, comm_jordan.jordan, comm_jordan.comm], }
+instance jordan_of_comm_jordan : jordan_ring A :=
+{ lmul_comm_rmul := λ a b, by rw [comm_jordan.mul_comm, comm_jordan.mul_comm a b],
+  lmul_lmul_comm_lmul := λ a b, by rw [comm_jordan.mul_comm (a * a) (a * b), comm_jordan.jordan,
+    comm_jordan.mul_comm b (a * a)],
+  lmul_comm_rmul_rmul := λ a b, by rw [comm_jordan.mul_comm, ←comm_jordan.jordan,
+    comm_jordan.mul_comm],
+  lmul_lmul_comm_rmul :=  λ a b, by rw [comm_jordan.mul_comm (a * a) (b * a),
+    comm_jordan.mul_comm b a, comm_jordan.jordan, comm_jordan.mul_comm,
+    comm_jordan.mul_comm b (a * a)],
+  rmul_comm_rmul_rmul := λ a b, by rw [comm_jordan.mul_comm b a, comm_jordan.jordan,
+    comm_jordan.mul_comm], }
 
 /- Linearise the Jordan axiom with two variables-/
 lemma mul_op_com1 (a b : A) :
@@ -193,7 +198,7 @@ begin
   calc 0 = ⁅L (a+b), L ((a+b)*(a+b))⁆ : by rw (comm_jordan_operators.2 (a + b))
     ... = ⁅L a + L b, L (a*a+a*b+(b*a+b*b))⁆ : by rw [add_mul, mul_add, mul_add, map_add]
     ... = ⁅L a + L b, L (a*a) + L(a*b) + (L(a*b) + L(b*b))⁆ :
-      by rw [map_add, map_add, map_add, comm_jordan.comm b a]
+      by rw [map_add, map_add, map_add, comm_jordan.mul_comm b a]
     ... = ⁅L a + L b, L (a*a) + (2:ℤ)•L(a*b) + L(b*b)⁆ : by abel
     ... = ⁅L a, L (a*a)⁆ + ⁅L a, (2:ℤ)•L(a*b)⁆ + ⁅L a, L(b*b)⁆
       + (⁅L b, L (a*a)⁆ + ⁅L b,(2:ℤ)•L(a*b)⁆ + ⁅L b,L(b*b)⁆) :
@@ -215,7 +220,7 @@ begin
       map_add, map_add, map_add, map_add, map_add, map_add, map_add, map_add, map_add, map_add]
   ... = ⁅L a + L b + L c,
     L (a*a) + L(a*b) + L (a*c) + (L(a*b) + L(b*b) + L(b*c)) + (L(a*c) + L(b*c) + L(c*c))⁆ :
-    by rw [comm_jordan.comm b a, comm_jordan.comm c a, comm_jordan.comm c b]
+    by rw [comm_jordan.mul_comm b a, comm_jordan.mul_comm c a, comm_jordan.mul_comm c b]
   ... = ⁅L a + L b + L c, L (a*a) + L(b*b) + L(c*c) + (2:ℤ)•L(a*b) + (2:ℤ)•L(a*c) + (2:ℤ)•L(b*c) ⁆ :
     by abel
   ... = ⁅L a, L (a*a)⁆ + ⁅L a, L(b*b)⁆ + ⁅L a, L(c*c)⁆ + ⁅L a, (2:ℤ)•L(a*b)⁆ + ⁅L a, (2:ℤ)•L(a*c)⁆

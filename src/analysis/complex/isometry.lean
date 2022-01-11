@@ -165,6 +165,6 @@ begin
   simp [←norm_sq_apply]
 end
 
-/-- The determinant of `rotation`, as a linear equiv. -/
+/-- The determinant of `rotation` (as a linear equiv) is equal to `1`. -/
 @[simp] lemma linear_equiv_det_rotation (a : circle) : (rotation a).to_linear_equiv.det = 1 :=
 by rw [←units.eq_iff, linear_equiv.coe_det, det_rotation, units.coe_one]

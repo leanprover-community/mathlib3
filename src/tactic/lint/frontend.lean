@@ -111,8 +111,6 @@ meta def print_warning (decl_name : name) (warning : string) : format :=
 private def workflow_command_replacements : char → string
 | '%' := "%25"
 | '\n' := "%0A"
-| ':' := "%3A"
-| ',' := "%2C"
 | c := to_string c
 
 /--

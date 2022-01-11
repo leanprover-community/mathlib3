@@ -69,7 +69,8 @@ let α' := (equiv.of_bijective _ (mem_left_transversals_iff_bijective.mp α.2)).
 
 @[to_additive] lemma diff_mul_diff [normal H] : diff α β * diff β γ = diff α γ :=
 finset.prod_mul_distrib.symm.trans (finset.prod_congr rfl (λ x hx, subtype.ext
-  (by rw [coe_mul, coe_mk, coe_mk, coe_mk, mul_assoc, inv_mul_cancel_left])))
+  (by rw [submonoid_class.coe_mul, subtype.coe_mk, subtype.coe_mk, subtype.coe_mk,
+          mul_assoc, inv_mul_cancel_left])))
 
 @[to_additive] lemma diff_self [normal H] : diff α α = 1 :=
 mul_right_eq_self.mp (diff_mul_diff α α α)
@@ -82,9 +83,9 @@ lemma smul_diff_smul [hH : normal H] (g : G) :
 begin
   let ϕ : H →* H :=
   { to_fun := λ h, ⟨g * h * g⁻¹, hH.conj_mem h.1 h.2 g⟩,
-    map_one' := subtype.ext (by rw [coe_mk, coe_one, mul_one, mul_inv_self]),
-    map_mul' := λ h₁ h₂, subtype.ext (by rw [coe_mk, coe_mul, coe_mul, coe_mk, coe_mk, mul_assoc,
-      mul_assoc, mul_assoc, mul_assoc, mul_assoc, inv_mul_cancel_left]) },
+    map_one' := subtype.ext (by rw [subtype.coe_mk, submonoid_class.coe_one, mul_one, mul_inv_self]),
+    map_mul' := λ h₁ h₂, subtype.ext (by simp only [subtype.coe_mk, submonoid_class.coe_mul,
+      mul_assoc, inv_mul_cancel_left]) },
   refine eq.trans (finset.prod_bij' (λ q _, (↑g)⁻¹ * q) (λ _ _, finset.mem_univ _)
     (λ q _, subtype.ext _) (λ q _, ↑g * q) (λ _ _, finset.mem_univ _)
     (λ q _, mul_inv_cancel_left g q) (λ q _, inv_mul_cancel_left g q)) (ϕ.map_prod _ _).symm,
@@ -98,9 +99,10 @@ lemma smul_diff [H.normal] (h : H) :
 begin
   rw [diff, diff, index_eq_card, ←finset.card_univ, ←finset.prod_const, ←finset.prod_mul_distrib],
   refine finset.prod_congr rfl (λ q _, _),
-  rw [subtype.ext_iff, coe_mul, coe_mk, coe_mk, ←mul_assoc, mul_right_cancel_iff],
-  rw [show h • α = (h : G) • α, from rfl, smul_symm_apply_eq_mul_symm_apply_inv_smul],
-  rw [mul_left_cancel_iff, ←subtype.ext_iff, equiv.apply_eq_iff_eq, inv_smul_eq_iff],
+  rw [subtype.ext_iff, submonoid_class.coe_mul, subtype.coe_mk, subtype.coe_mk,
+      ←mul_assoc, mul_right_cancel_iff, show h • α = (h : G) • α, from rfl,
+      smul_symm_apply_eq_mul_symm_apply_inv_smul, mul_left_cancel_iff, ←subtype.ext_iff,
+      equiv.apply_eq_iff_eq, inv_smul_eq_iff],
   exact self_eq_mul_left.mpr ((quotient_group.eq_one_iff _).mpr h.2),
 end
 

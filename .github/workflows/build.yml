@@ -153,7 +153,7 @@ jobs:
       - name: lint
         run: |
           ./scripts/mk_all.sh
-          lean --run scripts/lint_mathlib.lean
+          lean --run scripts/lint_mathlib.lean --github
 
   tests:
     name: Run tests

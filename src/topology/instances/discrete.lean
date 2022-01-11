@@ -43,7 +43,7 @@ end
 
 @[priority 100]
 instance discrete_topology.order_topology_of_pred_succ' [h : discrete_topology α] [partial_order α]
-  [succ_order α] [pred_order α] [no_top_order α] [no_bot_order α] :
+  [succ_order α] [pred_order α] [no_max_order α] [no_min_order α] :
   order_topology α :=
 begin
   constructor,

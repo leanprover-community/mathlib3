@@ -436,7 +436,7 @@ begin
     rcases V_nhd with ⟨V', V'_nhd, V'_sub⟩,
 
     rw [mem_map, mem_comap, nhds_prod_eq],
-    existsi set.prod (set.prod U' V') (set.prod U' V'),
+    existsi (U' ×ˢ V') ×ˢ (U' ×ˢ V'),
     rw mem_prod_same_iff,
 
     simp only [exists_prop],

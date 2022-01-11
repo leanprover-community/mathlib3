@@ -39,11 +39,7 @@ include R
 
 instance : set_like (subalgebra R A) A :=
 { coe := subalgebra.carrier,
-  coe_injective' := λ p q h, by cases p; cases q; congr',
-  add_mem := add_mem',
-  mul_mem := mul_mem',
-  one_mem := one_mem',
-  zero_mem := zero_mem' }
+  coe_injective' := λ p q h, by cases p; cases q; congr' }
 
 instance : subsemiring_class (subalgebra R A) A :=
 { add_mem := add_mem',
@@ -122,8 +118,7 @@ protected theorem prod_mem {R : Type u} {A : Type v} [comm_semiring R] [comm_sem
 prod_mem h
 
 instance {R A : Type*} [comm_ring R] [ring A] [algebra R A] : subring_class (subalgebra R A) A :=
-{ coe := subalgebra.carrier,
-  neg_mem := λ S x hx, neg_one_smul R x ▸ S.smul_mem hx _,
+{ neg_mem := λ S x hx, neg_one_smul R x ▸ S.smul_mem hx _,
   .. subalgebra.subsemiring_class }
 
 protected theorem neg_mem {R : Type u} {A : Type v} [comm_ring R] [ring A]
@@ -267,10 +262,11 @@ begin
   apply le_antisymm,
   { rw submodule.mul_le,
     intros y hy z hz,
+    show y * z ∈ S,
     exact mul_mem hy hz },
   { intros x hx1,
     rw ← mul_one x,
-    exact submodule.mul_mem_mul hx1 (one_mem S) }
+    exact submodule.mul_mem_mul hx1 (show (1 : A) ∈ S, from one_mem S) }
 end
 
 /-- Linear equivalence between `S : submodule R A` and `S`. Though these types are equal,
@@ -621,7 +617,7 @@ variables (S : subalgebra R A)
 
 -- TODO[gh-6025]: make this an instance once safe to do so
 lemma subsingleton_of_subsingleton [subsingleton A] : subsingleton (subalgebra R A) :=
-⟨λ B C, ext (λ x, by { simp only [subsingleton.elim x 0, zero_mem] })⟩
+⟨λ B C, ext (λ x, by { simp only [subsingleton.elim x 0, zero_mem B, zero_mem C] })⟩
 
 /--
 For performance reasons this is not an instance. If you need this instance, add

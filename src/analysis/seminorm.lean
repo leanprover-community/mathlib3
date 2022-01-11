@@ -389,7 +389,7 @@ begin
   ...    < r   : by rwa mem_ball_zero at hy,
 end
 
-lemma ball_finset_sup_eq_Inter (p : ι → seminorm 𝕜 E) (s : finset ι) (e : E) (r : ℝ) (hr : 0 < r) :
+lemma ball_finset_sup_eq_Inter (p : ι → seminorm 𝕜 E) (s : finset ι) (e : E) {r : ℝ} (hr : 0 < r) :
   ball (s.sup p) e r = ⋂ (i ∈ s), ball (p i) e r :=
 begin
   lift r to nnreal using hr.le,
@@ -397,11 +397,11 @@ begin
     finset.sup_lt_iff (show ⊥ < r, from hr), ←nnreal.coe_lt_coe, subtype.coe_mk],
 end
 
-lemma ball_finset_sup_eq_finset_inf (p : ι → seminorm 𝕜 E) (s : finset ι) (e : E) (r : ℝ)
+lemma ball_finset_sup_eq_finset_inf (p : ι → seminorm 𝕜 E) (s : finset ι) (e : E) {r : ℝ}
   (hr : 0 < r) : ball (s.sup p) e r = s.inf (λ i, ball (p i) e r) :=
 begin
   rw finset.inf_eq_infi,
-  exact ball_finset_sup_eq_Inter _ _ _ _ hr,
+  exact ball_finset_sup_eq_Inter _ _ _ hr,
 end
 
 end module

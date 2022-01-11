@@ -156,7 +156,7 @@ local notation `I` := (Icc 0 1 : set α)
 
 lemma continuous_on.comp_fract' {β γ : Type*} [order_topology α]
   [topological_add_group α] [topological_space β] [topological_space γ] {f : β → α → γ}
-  (h : continuous_on (uncurry f) $ (univ : set β).prod I) (hf : ∀ s, f s 0 = f s 1) :
+  (h : continuous_on (uncurry f) $ (univ : set β) ×ˢ I) (hf : ∀ s, f s 0 = f s 1) :
   continuous (λ st : β × α, f st.1 $ fract st.2) :=
 begin
   change continuous ((uncurry f) ∘ (prod.map id (fract))),
@@ -165,7 +165,7 @@ begin
   by_cases ht : t = floor t,
   { rw ht,
     rw ← continuous_within_at_univ,
-    have : (univ : set (β × α)) ⊆ (set.prod univ (Iio $ floor t)) ∪ (set.prod univ (Ici $ floor t)),
+    have : (univ : set (β × α)) ⊆ ((univ : set β) ×ˢ Iio ↑⌊t⌋) ∪ ((univ : set β) ×ˢ Ici ↑⌊t⌋),
     { rintros p -,
       rw ← prod_union,
       exact ⟨true.intro, lt_or_le _ _⟩ },
@@ -203,7 +203,7 @@ lemma continuous_on.comp_fract {β : Type*} [order_topology α]
   (h : continuous_on f I) (hf : f 0 = f 1) : continuous (f ∘ fract) :=
 begin
   let f' : unit → α → β := λ x y, f y,
-  have : continuous_on (uncurry f') ((univ : set unit).prod I),
+  have : continuous_on (uncurry f') ((univ : set unit) ×ˢ I),
   { rintros ⟨s, t⟩ ⟨-, ht : t ∈ I⟩,
     simp only [continuous_within_at, uncurry, nhds_within_prod_eq, nhds_within_univ, f'],
     rw tendsto_prod_iff,

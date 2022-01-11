@@ -435,9 +435,11 @@ def mk (s : finset ι) (x : Π i : (↑s : set ι), β (i : ι)) : Π₀ i, β i
 ⟦⟨λ i, if H : i ∈ s then x ⟨i, H⟩ else 0, s.1,
 λ i, if H : i ∈ s then or.inl H else or.inr $ dif_neg H⟩⟧
 
-@[simp] lemma mk_apply {s : finset ι} {x : Π i : (↑s : set ι), β i} {i : ι} :
-  (mk s x : Π i, β i) i = if H : i ∈ s then x ⟨i, H⟩ else 0 :=
-rfl
+variables {s : finset ι} {x : Π i : (↑s : set ι), β i} {i : ι}
+
+@[simp] lemma mk_apply : (mk s x : Π i, β i) i = if H : i ∈ s then x ⟨i, H⟩ else 0 := rfl
+lemma mk_of_mem (hi : i ∈ s) : (mk s x : Π i, β i) i = x ⟨i, hi⟩ := dif_pos hi
+lemma mk_of_not_mem (hi : i ∉ s) : (mk s x : Π i, β i) i = 0 := dif_neg hi
 
 theorem mk_injective (s : finset ι) : function.injective (@mk ι β _ _ s) :=
 begin
@@ -619,7 +621,7 @@ by rw [erase_single, if_neg h]
 
 section update
 
-variables (f : Π₀ i, β i) (i : ι) (b : β i) [decidable (b = 0)]
+variables (f : Π₀ i, β i) (i) (b : β i) [decidable (b = 0)]
 
 /-- Replace the value of a `Π₀ i, β i` at a given point `i : ι` by a given value `b : β i`.
 If `b = 0`, this amounts to removing `i` from the support.
@@ -896,8 +898,10 @@ end
 
 @[simp] lemma support_zero : (0 : Π₀ i, β i).support = ∅ := rfl
 
-lemma mem_support_iff (f : Π₀ i, β i) : ∀i:ι, i ∈ f.support ↔ f i ≠ 0 :=
-f.mem_support_to_fun
+lemma mem_support_iff {f : Π₀ i, β i} {i : ι} : i ∈ f.support ↔ f i ≠ 0 := f.mem_support_to_fun _
+
+lemma not_mem_support_iff {f : Π₀ i, β i} {i : ι} : i ∉ f.support ↔ f i = 0 :=
+not_iff_comm.1 mem_support_iff.symm
 
 @[simp] lemma support_eq_empty {f : Π₀ i, β i} : f.support = ∅ ↔ f = 0 :=
 ⟨λ H, ext $ by simpa [finset.ext_iff] using H, by simp {contextual:=tt}⟩
@@ -1033,8 +1037,8 @@ instance [Π i, has_zero (β i)] [Π i, decidable_eq (β i)] : decidable_eq (Π�
 assume f g, decidable_of_iff (f.support = g.support ∧ (∀i∈f.support, f i = g i))
   ⟨assume ⟨h₁, h₂⟩, ext $ assume i,
       if h : i ∈ f.support then h₂ i h else
-        have hf : f i = 0, by rwa [f.mem_support_iff, not_not] at h,
-        have hg : g i = 0, by rwa [h₁, g.mem_support_iff, not_not] at h,
+        have hf : f i = 0, by rwa [mem_support_iff, not_not] at h,
+        have hg : g i = 0, by rwa [h₁, mem_support_iff, not_not] at h,
         by rw [hf, hg],
     by intro h; subst h; simp⟩
 
@@ -1112,7 +1116,7 @@ have ∀i₁ : ι, f.sum (λ (i : ι₁) (b : β₁ i), (g i b) i₁) ≠ 0 →
     (∃ (i : ι₁), f i ≠ 0 ∧ ¬ (g i (f i)) i₁ = 0),
   from assume i₁ h,
   let ⟨i, hi, ne⟩ := finset.exists_ne_zero_of_sum_ne_zero h in
-  ⟨i, (f.mem_support_iff i).mp hi, ne⟩,
+  ⟨i, mem_support_iff.1 hi, ne⟩,
 by simpa [finset.subset_iff, mem_support_iff, finset.mem_bUnion, sum_apply] using this
 
 @[simp, to_additive] lemma prod_one [Π i, add_comm_monoid (β i)] [Π i (x : β i), decidable (x ≠ 0)]
@@ -1154,7 +1158,7 @@ calc ∏ i in (f + g).support, h i ((f + g) i) =
 lemma _root_.submonoid.dfinsupp_prod_mem [Π i, has_zero (β i)] [Π i (x : β i), decidable (x ≠ 0)]
   [comm_monoid γ] (S : submonoid γ)
   (f : Π₀ i, β i) (g : Π i, β i → γ) (h : ∀ c, f c ≠ 0 → g c (f c) ∈ S) : f.prod g ∈ S :=
-S.prod_mem $ λ i hi, h _ $ (f.mem_support_iff _).mp hi
+S.prod_mem $ λ i hi, h _ $ mem_support_iff.1 hi
 
 @[simp, to_additive] lemma prod_eq_prod_fintype [fintype ι] [Π i, has_zero (β i)]
   [Π (i : ι) (x : β i), decidable (x ≠ 0)] [comm_monoid γ] (v : Π₀ i, β i) {f : Π i, β i → γ}

@@ -1158,6 +1158,13 @@ end group_with_zero
 
 end monoid_with_zero_hom
 
+/-- Inversion on a commutative group with zero, considered as a monoid with zero homomorphism. -/
+def inv_monoid_with_zero_hom {G₀ : Type*} [comm_group_with_zero G₀] : monoid_with_zero_hom G₀ G₀ :=
+{ to_fun := has_inv.inv,
+  map_zero' := inv_zero,
+  map_one' := inv_one,
+  map_mul' := λ _ _, mul_inv₀ }
+
 @[simp] lemma monoid_hom.map_units_inv {M G₀ : Type*} [monoid M] [group_with_zero G₀]
   (f : M →* G₀) (u : Mˣ) : f ↑u⁻¹ = (f u)⁻¹ :=
 by rw [← units.coe_map, ← units.coe_map, ← units.coe_inv', monoid_hom.map_inv]

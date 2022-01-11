@@ -73,7 +73,7 @@ lemma unsym_surjective : surjective (unsym : αˢʸᵐ → α) := unsym_bijectiv
 @[simp] lemma unsym_inj {a b : αˢʸᵐ} : unsym a = unsym b ↔ a = b := unsym_injective.eq_iff
 
 instance [nontrivial α] : nontrivial αˢʸᵐ := sym_injective.nontrivial
-instance [inhabited α] : inhabited αˢʸᵐ := ⟨sym (default α)⟩
+instance [inhabited α] : inhabited αˢʸᵐ := ⟨sym default⟩
 instance [subsingleton α] : subsingleton αˢʸᵐ := unsym_injective.subsingleton
 instance [unique α] : unique αˢʸᵐ := unique.mk' _
 instance [is_empty α] : is_empty αˢʸᵐ := function.is_empty unsym

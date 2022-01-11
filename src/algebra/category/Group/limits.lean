@@ -132,7 +132,7 @@ by { change comm_group (F.obj j), apply_instance }
 instance limit_comm_group (F : J ⥤ CommGroup) :
   comm_group (types.limit_cone (F ⋙ forget CommGroup.{u})).X :=
 @subgroup_class.to_comm_group _
-  (Group.sections_subgroup (F ⋙ forget₂ CommGroup Group.{u})) (Π j, F.obj j) _
+  (Group.sections_subgroup (F ⋙ forget₂ CommGroup Group.{u})) (Π j, F.obj j) _ _
   subgroup.subgroup_class
 
 /--

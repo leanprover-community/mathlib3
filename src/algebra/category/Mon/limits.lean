@@ -127,7 +127,7 @@ by { change comm_monoid (F.obj j), apply_instance }
 @[to_additive]
 instance limit_comm_monoid (F : J ⥤ CommMon) :
   comm_monoid (types.limit_cone (F ⋙ forget CommMon.{u})).X :=
-@submonoid_class.to_comm_monoid (Π j, F.obj j) _ _ _
+@submonoid_class.to_comm_monoid (Π j, F.obj j) _ _ _ _
   (Mon.sections_submonoid (F ⋙ forget₂ CommMon Mon.{u}))
 
 /--

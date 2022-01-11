@@ -275,14 +275,47 @@ end
 
 end
 
+lemma foo (μ : measure α) [is_finite_measure μ] {p : ℝ≥0∞} (hp : p ≠ 0) (hp' : p ≠ ∞)
+  {s : set α} (hs : measurable_set[m] s)
+  {f g : α → β} {c : ℝ} (hc : 0 ≤ c) (hf : ∀ x ∈ s, dist (f x) (g x) ≤ c) :
+  snorm (s.indicator (f - g)) p μ ≤ ennreal.of_real c * μ s ^ (1 / p.to_real) :=
+begin
+  have : ∀ x, ∥s.indicator (f - g) x∥ ≤ ∥s.indicator (λ x, c) x∥,
+  { intro x,
+    by_cases hx : x ∈ s,
+    { rw [indicator_of_mem hx, indicator_of_mem hx, pi.sub_apply, ← dist_eq_norm,
+          real.norm_eq_abs, abs_of_nonneg hc],
+      exact hf x hx },
+    { simp [indicator_of_not_mem hx] } },
+  refine le_trans (snorm_mono this) _,
+  rw snorm_indicator_const hs hp hp',
+  by_cases hμs : μ s = 0,
+  { rw [hμs, ennreal.zero_rpow_of_pos, mul_zero, mul_zero],
+    { exact le_rfl },
+    { rw one_div_pos,
+      exact ennreal.to_real_pos hp hp' } },
+  { rw [ennreal.mul_le_mul_right, real.nnnorm_of_nonneg hc, ennreal.coe_nnreal_eq],
+    { exact le_rfl },
+    { intro h,
+      obtain (h' | h') := ennreal.rpow_eq_zero_iff.1 h,
+      { exact hμs h'.1 },
+      { exact (measure_lt_top μ s).ne h'.1 } },
+    { intro h,
+      obtain (h' | h') := ennreal.rpow_eq_top_iff.1 h,
+      { exact hμs h'.1 },
+      { exact (measure_lt_top μ s).ne h'.1 } } }
+end
 
 /- The next three lemmas together is known as **the Vitali convergence theorem**. -/
 
 -- We can remove the measurability assumption so this lemma should be private once we have
 -- generalized it
-lemma tendsto_Lp_of_unif_integrable (hp : 1 ≤ p) {f : ℕ → α → β} {g : α → β}
+
+/-- The forward direction of the Vitali convergence theorem: A sequence of uniformly integrable
+functions which converges μ-a.e. converges in Lp. -/
+lemma tendsto_Lp_of_unif_integrable (hp : 1 ≤ p) (hp' : p ≠ ∞) {f : ℕ → α → β} {g : α → β}
   (hf : ∀ n, measurable[m] (f n)) (hg : measurable g)
-  (hf' : ∀ n, mem_ℒp (f n) p μ) (hg' : mem_ℒp g p μ) (hui : unif_integrable f p μ)
+  (hg' : mem_ℒp g p μ) (hui : unif_integrable f p μ)
   (hfg : ∀ᵐ x ∂μ, tendsto (λ n, f n x) at_top (𝓝 (g x))) :
   tendsto (λ n, snorm (f n - g) p μ) at_top (𝓝 0) :=
 begin
@@ -294,14 +327,18 @@ begin
     { exact ⟨0, λ n hn, by simp [hμ]⟩ },
     have hε' : 0 < ε.to_real / 3 :=
       div_pos (ennreal.to_real_pos (gt_iff_lt.1 hε).ne.symm h.ne) (by norm_num),
+    have hdivp : 0 ≤ 1 / p.to_real,
+    { refine one_div_nonneg.2 _,
+      rw [← ennreal.zero_to_real, ennreal.to_real_le_to_real ennreal.zero_ne_top hp'],
+      exact le_trans ennreal.zero_lt_one.le hp },
+    have hpow : 0 < (measure_univ_nnreal μ) ^ (1 / p.to_real) :=
+      real.rpow_pos_of_pos (measure_univ_nnreal_pos hμ) _,
     obtain ⟨δ₁, hδ₁, hsnorm₁⟩ := hui hε',
     obtain ⟨δ₂, hδ₂, hsnorm₂⟩ := hg'.snorm_lt_measure hε',
-    have hδ : 0 < min δ₁ δ₂ := lt_min hδ₁ hδ₂, -- golf?
-    obtain ⟨t, htm, ht₁, ht₂⟩ := tendsto_uniformly_on_of_ae_tendsto' hf hg hfg hδ,
+    obtain ⟨t, htm, ht₁, ht₂⟩ := tendsto_uniformly_on_of_ae_tendsto' hf hg hfg (lt_min hδ₁ hδ₂),
     rw metric.tendsto_uniformly_on_iff at ht₂,
-    specialize ht₂ (ε.to_real / (3 * measure_univ_nnreal μ))
-      (div_pos (ennreal.to_real_pos (gt_iff_lt.1 hε).ne.symm h.ne)
-      (mul_pos (by norm_num) (measure_univ_nnreal_pos hμ))),
+    specialize ht₂ (ε.to_real / (3 * measure_univ_nnreal μ ^ (1 / p.to_real)))
+      (div_pos (ennreal.to_real_pos (gt_iff_lt.1 hε).ne.symm h.ne) (mul_pos (by norm_num) hpow)),
     obtain ⟨N, hN⟩ := eventually_at_top.1 ht₂, clear ht₂,
     refine ⟨N, λ n hn, _⟩,
     simp only [mem_Icc, true_and, zero_tsub, zero_le, zero_add],
@@ -319,15 +356,31 @@ begin
     { refine hsnorm₂ t htm (le_trans ht₁ _),
       rw ennreal.of_real_le_of_real_iff hδ₂.le,
       exact min_le_right _ _ },
-    have hlt : snorm (tᶜ.indicator (f n + -g)) p μ < ennreal.of_real (ε.to_real / 3),
-    {
-      sorry },
+    have hlt : snorm (tᶜ.indicator (f n - g)) p μ ≤ ennreal.of_real (ε.to_real / 3),
+    { specialize hN n hn,
+      have := foo μ ((lt_of_lt_of_le ennreal.zero_lt_one hp).ne.symm) hp' htm.compl _
+        (λ x hx, (dist_comm (g x) (f n x) ▸ (hN x hx).le :
+        dist (f n x) (g x) ≤ ε.to_real / (3 * measure_univ_nnreal μ ^ (1 / p.to_real)))),
+      refine le_trans this _,
+      rw [div_mul_eq_div_mul_one_div, ← ennreal.of_real_to_real (measure_lt_top μ tᶜ).ne,
+          ennreal.of_real_rpow_of_nonneg ennreal.to_real_nonneg hdivp, ← ennreal.of_real_mul,
+          mul_assoc],
+      { refine ennreal.of_real_le_of_real (mul_le_of_le_one_right hε'.le _),
+        rw [mul_comm, mul_one_div, div_le_one],
+        { refine real.rpow_le_rpow ennreal.to_real_nonneg
+            (ennreal.to_real_le_of_le_of_real (measure_univ_nnreal_pos hμ).le _) hdivp,
+          rw [ennreal.of_real_coe_nnreal, coe_measure_univ_nnreal],
+          exact measure_mono (subset_univ _) },
+        { exact real.rpow_pos_of_pos (measure_univ_nnreal_pos hμ) _ } },
+      { refine mul_nonneg (hε').le (one_div_nonneg.2 hpow.le) },
+      { rw div_mul_eq_div_mul_one_div,
+        exact mul_nonneg hε'.le (one_div_nonneg.2 hpow.le) } },
     have : ennreal.of_real (ε.to_real / 3) = ε / 3,
     { rw [ennreal.of_real_div_of_pos (show (0 : ℝ) < 3, by norm_num), ennreal.of_real_to_real h.ne],
       simp },
     rw this at hnf hng hlt,
-    rw [snorm_neg, ← ennreal.add_three ε],
-    exact add_le_add_three hnf.le hng.le hlt.le },
+    rw [snorm_neg, ← ennreal.add_three ε, ← sub_eq_add_neg],
+    exact add_le_add_three hnf.le hng.le hlt },
   { rw [not_lt, top_le_iff] at h,
     exact ⟨0, λ n hn, by simp [h]⟩ }
 end

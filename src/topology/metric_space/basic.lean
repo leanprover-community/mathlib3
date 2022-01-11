@@ -749,7 +749,9 @@ theorem tendsto_nhds_within_nhds_within [pseudo_metric_space β] {t : set β} {f
   tendsto f (𝓝[s] a) (𝓝[t] b) ↔
     ∀ ε > 0, ∃ δ > 0, ∀{x:α}, x ∈ s → dist x a < δ → f x ∈ t ∧ dist (f x) b < ε :=
 (nhds_within_basis_ball.tendsto_iff nhds_within_basis_ball).trans $
-  by simp only [inter_comm, mem_inter_iff, and_imp, mem_ball]
+  forall_congr $ λ ε, forall_congr $ λ hε,
+  exists_congr $ λ δ, exists_congr $ λ hδ,
+  forall_congr $ λ x, by simp; itauto
 
 theorem tendsto_nhds_within_nhds [pseudo_metric_space β] {f : α → β} {a b} :
   tendsto f (𝓝[s] a) (𝓝 b) ↔

@@ -748,6 +748,19 @@ def map (f : α → β) (s : multiset α) : multiset β :=
 quot.lift_on s (λ l : list α, (l.map f : multiset β))
   (λ l₁ l₂ p, quot.sound (p.map f))
 
+@[congr]
+theorem map_congr {f g : α → β} {s t : multiset α} :
+  s = t → (∀ x ∈ t, f x = g x) → map f s = map g t :=
+begin
+  rintros rfl h,
+  induction s using quot.induction_on,
+  exact congr_arg coe (map_congr h)
+end
+
+lemma map_hcongr {β' : Type*} {m : multiset α} {f : α → β} {f' : α → β'}
+  (h : β = β') (hf : ∀a∈m, f a == f' a) : map f m == map f' m :=
+begin subst h, simp at hf, simp [map_congr rfl hf] end
+
 theorem forall_mem_map_iff {f : α → β} {p : β → Prop} {s : multiset α} :
   (∀ y ∈ s.map f, p y) ↔ (∀ x ∈ s, p (f x)) :=
 quotient.induction_on' s $ λ L, list.forall_mem_map_iff
@@ -758,6 +771,9 @@ quotient.induction_on' s $ λ L, list.forall_mem_map_iff
 
 @[simp] theorem map_cons (f : α → β) (a s) : map f (a ::ₘ s) = f a ::ₘ map f s :=
 quot.induction_on s $ λ l, rfl
+
+theorem map_comp_cons (f : α → β) (t) : map f ∘ cons t = cons (f t) ∘ map f :=
+by { ext, simp }
 
 @[simp] theorem map_singleton (f : α → β) (a : α) : ({a} : multiset α).map f = {f a} := rfl
 
@@ -827,14 +843,6 @@ quot.induction_on s $ λ l, congr_arg coe $ map_id _
 
 @[simp] theorem map_const (s : multiset α) (b : β) : map (function.const α b) s = repeat b s.card :=
 quot.induction_on s $ λ l, congr_arg coe $ map_const _ _
-
-@[congr] theorem map_congr {f g : α → β} {s : multiset α} :
-  (∀ x ∈ s, f x = g x) → map f s = map g s :=
-quot.induction_on s $ λ l H, congr_arg coe $ map_congr H
-
-lemma map_hcongr {β' : Type*} {m : multiset α} {f : α → β} {f' : α → β'}
-  (h : β = β') (hf : ∀a∈m, f a == f' a) : map f m == map f' m :=
-begin subst h, simp at hf, simp [map_congr hf] end
 
 theorem eq_of_mem_map_const {b₁ b₂ : β} {l : list α} (h : b₁ ∈ map (function.const α b₂) l) :
   b₁ = b₂ :=
@@ -1280,7 +1288,7 @@ quot.lift_on s (λ l, (filter p l : multiset α))
 
 lemma filter_congr {p q : α → Prop} [decidable_pred p] [decidable_pred q]
   {s : multiset α} : (∀ x ∈ s, p x ↔ q x) → filter p s = filter q s :=
-quot.induction_on s $ λ l h, congr_arg coe $ filter_congr h
+quot.induction_on s $ λ l h, congr_arg coe $ filter_congr' h
 
 @[simp] theorem filter_add (s t : multiset α) : filter p (s + t) = filter p s + filter p t :=
 quotient.induction_on₂ s t $ λ l₁ l₂, congr_arg coe $ filter_append _ _
@@ -1747,7 +1755,7 @@ begin
 end
 
 lemma filter_eq (s : multiset α) (b : α) : s.filter (eq b) = repeat b (count b s) :=
-by { simp_rw [←filter_eq', eq_comm], congr }
+by simp_rw [←filter_eq', eq_comm]
 
 end
 

@@ -1004,11 +1004,7 @@ leading_coeff_X_pow_add_C hn
 
 @[simp] lemma leading_coeff_pow_X_add_C (r : R) (i : ℕ) :
   leading_coeff ((X + C r) ^ i) = 1 :=
-begin
-  nontriviality,
-  rw leading_coeff_pow';
-  simp
-end
+by { nontriviality, rw leading_coeff_pow'; simp }
 
 end semiring
 

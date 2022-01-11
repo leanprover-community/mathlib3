@@ -806,7 +806,7 @@ lemma is_unit_iff {I : ideal R} :
 is_unit_iff_dvd_one.trans ((@one_eq_top R _).symm ▸
  ⟨λ h, eq_top_iff.mpr (ideal.le_of_dvd h), λ h, ⟨⊤, by rw [mul_top, h]⟩⟩)
 
-instance unique_units : unique (units (ideal R)) :=
+instance unique_units : unique ((ideal R)ˣ) :=
 { default := 1,
   uniq := λ u, units.ext
     (show (u : ideal R) = 1, by rw [is_unit_iff.mp u.is_unit, one_eq_top]) }

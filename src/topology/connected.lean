@@ -105,7 +105,7 @@ theorem is_preconnected_of_forall_pair {s : set α}
   is_preconnected s :=
 begin
   rcases eq_empty_or_nonempty s with (rfl|⟨x, hx⟩),
-  exacts [is_preconnected_empty, is_preconnected_of_forall x (λ y, H x y hx)],
+  exacts [is_preconnected_empty, is_preconnected_of_forall x $ λ y, H x hx y],
 end
 
 /-- A union of a family of preconnected sets with a common point is preconnected as well. -/
@@ -442,7 +442,7 @@ theorem is_preconnected.prod [topological_space β] {s : set α} {t : set β}
   is_preconnected (s.prod t) :=
 begin
   apply is_preconnected_of_forall_pair,
-  rintro ⟨a₁, b₁⟩ ⟨a₂, b₂⟩ ⟨ha₁, hb₁⟩ ⟨ha₂, hb₂⟩,
+  rintro ⟨a₁, b₁⟩ ⟨ha₁, hb₁⟩ ⟨a₂, b₂⟩ ⟨ha₂, hb₂⟩,
   refine ⟨prod.mk a₁ '' t ∪ flip prod.mk b₂ '' s, _,
     or.inl ⟨b₁, hb₁, rfl⟩, or.inr ⟨a₂, ha₂, rfl⟩, _⟩,
   { rintro _ (⟨y, hy, rfl⟩|⟨x, hx, rfl⟩),
@@ -1226,7 +1226,7 @@ by { rw not_iff_not, exact connected_component_rel_iff }
 def connected_components (α : Type u) [topological_space α] :=
   quotient (connected_component_setoid α)
 
-instance [inhabited α] : inhabited (connected_components α) := ⟨quotient.mk (default _)⟩
+instance [inhabited α] : inhabited (connected_components α) := ⟨quotient.mk default⟩
 instance connected_components.topological_space : topological_space (connected_components α) :=
   quotient.topological_space
 

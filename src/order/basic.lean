@@ -651,7 +651,7 @@ variables {s : β → β → Prop} {t : γ → γ → Prop}
 def as_linear_order (α : Type u) := α
 
 instance {α} [inhabited α] : inhabited (as_linear_order α) :=
-⟨ (default α : α) ⟩
+⟨ (default : α) ⟩
 
 noncomputable instance as_linear_order.linear_order {α} [partial_order α] [is_total α (≤)] :
   linear_order (as_linear_order α) :=

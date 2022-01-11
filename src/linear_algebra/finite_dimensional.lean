@@ -588,15 +588,15 @@ noncomputable def basis_singleton (ι : Type*) [unique ι]
   basis ι K V :=
 let b := basis_unique ι h in
 b.map (linear_equiv.smul_of_unit (units.mk0
-  (b.repr v (default ι))
+  (b.repr v default)
   (mt basis_unique.repr_eq_zero_iff.mp hv)))
 
 @[simp] lemma basis_singleton_apply (ι : Type*) [unique ι]
   (h : finrank K V = 1) (v : V) (hv : v ≠ 0) (i : ι) :
   basis_singleton ι h v hv i = v :=
 calc basis_singleton ι h v hv i
-    = (((basis_unique ι h).repr) v) (default ι) • (basis_unique ι h) (default ι) :
-      by simp [subsingleton.elim i (default ι), basis_singleton, linear_equiv.smul_of_unit]
+    = (((basis_unique ι h).repr) v) default • (basis_unique ι h) default :
+      by simp [subsingleton.elim i default, basis_singleton, linear_equiv.smul_of_unit]
 ... = v : by rw [← finsupp.total_unique K (basis.repr _ v), basis.total_repr]
 
 @[simp] lemma range_basis_singleton (ι : Type*) [unique ι]
@@ -803,7 +803,7 @@ end
 /-- Pushforwards of finite-dimensional submodules along a `linear_equiv` have the same finrank. -/
 lemma finrank_map_eq (f : V ≃ₗ[K] V₂) (p : submodule K V) [finite_dimensional K p] :
   finrank K (p.map (f : V →ₗ[K] V₂)) = finrank K p :=
-(f.of_submodule p).finrank_eq.symm
+(f.submodule_map p).finrank_eq.symm
 
 end linear_equiv
 

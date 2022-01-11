@@ -262,10 +262,10 @@ Pi_congr_right (λ _, e)
 
 /-- An embedding `e : α ↪ β` defines an embedding `(α → γ) ↪ (β → γ)` for any inhabited type `γ`.
 This embedding sends each `f : α → γ` to a function `g : β → γ` such that `g ∘ e = f` and
-`g y = default γ` whenever `y ∉ range e`. -/
+`g y = default` whenever `y ∉ range e`. -/
 noncomputable def arrow_congr_left {α : Sort u} {β : Sort v} {γ : Sort w} [inhabited γ]
   (e : α ↪ β) : (α → γ) ↪ (β → γ) :=
-⟨λ f, extend e f (λ _, default γ), λ f₁ f₂ h, funext $ λ x,
+⟨λ f, extend e f (λ _, default), λ f₁ f₂ h, funext $ λ x,
   by simpa only [extend_apply e.injective] using congr_fun h (e x)⟩
 
 /-- Restrict both domain and codomain of an embedding. -/

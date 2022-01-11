@@ -125,9 +125,8 @@ set.ext $ λ x, and_comm _ _
 @[simp] lemma nonempty_Ioo [densely_ordered α] : (Ioo a b).nonempty ↔ a < b :=
 ⟨λ ⟨x, ha, hb⟩, ha.trans hb, exists_between⟩
 
-@[simp] lemma nonempty_Ioi [no_top_order α] : (Ioi a).nonempty := no_top a
-
-@[simp] lemma nonempty_Iio [no_bot_order α] : (Iio a).nonempty := no_bot a
+@[simp] lemma nonempty_Ioi [no_max_order α] : (Ioi a).nonempty := exists_gt a
+@[simp] lemma nonempty_Iio [no_min_order α] : (Iio a).nonempty := exists_lt a
 
 lemma nonempty_Icc_subtype (h : a ≤ b) : nonempty (Icc a b) :=
 nonempty.to_subtype (nonempty_Icc.mpr h)
@@ -149,12 +148,12 @@ nonempty.to_subtype nonempty_Iic
 lemma nonempty_Ioo_subtype [densely_ordered α] (h : a < b) : nonempty (Ioo a b) :=
 nonempty.to_subtype (nonempty_Ioo.mpr h)
 
-/-- In a `no_top_order`, the intervals `Ioi` are nonempty. -/
-instance nonempty_Ioi_subtype [no_top_order α] : nonempty (Ioi a) :=
+/-- In an order without maximal elements, the intervals `Ioi` are nonempty. -/
+instance nonempty_Ioi_subtype [no_max_order α] : nonempty (Ioi a) :=
 nonempty.to_subtype nonempty_Ioi
 
-/-- In a `no_bot_order`, the intervals `Iio` are nonempty. -/
-instance nonempty_Iio_subtype [no_bot_order α] : nonempty (Iio a) :=
+/-- In an order without minimal elements, the intervals `Iio` are nonempty. -/
+instance nonempty_Iio_subtype [no_min_order α] : nonempty (Iio a) :=
 nonempty.to_subtype nonempty_Iio
 
 @[simp] lemma Icc_eq_empty (h : ¬a ≤ b) : Icc a b = ∅ :=
@@ -1240,20 +1239,20 @@ section prod
 
 variables {α β : Type*} [preorder α] [preorder β]
 
-@[simp] lemma Iic_prod_Iic (a : α) (b : β) : (Iic a).prod (Iic b) = Iic (a, b) := rfl
+@[simp] lemma Iic_prod_Iic (a : α) (b : β) : Iic a ×ˢ Iic b = Iic (a, b) := rfl
 
-@[simp] lemma Ici_prod_Ici (a : α) (b : β) : (Ici a).prod (Ici b) = Ici (a, b) := rfl
+@[simp] lemma Ici_prod_Ici (a : α) (b : β) : Ici a ×ˢ Ici b = Ici (a, b) := rfl
 
-lemma Ici_prod_eq (a : α × β) : Ici a = (Ici a.1).prod (Ici a.2) := rfl
+lemma Ici_prod_eq (a : α × β) : Ici a = Ici a.1 ×ˢ Ici a.2 := rfl
 
-lemma Iic_prod_eq (a : α × β) : Iic a = (Iic a.1).prod (Iic a.2) := rfl
+lemma Iic_prod_eq (a : α × β) : Iic a = Iic a.1 ×ˢ Iic a.2 := rfl
 
 @[simp] lemma Icc_prod_Icc (a₁ a₂ : α) (b₁ b₂ : β) :
-  (Icc a₁ a₂).prod (Icc b₁ b₂) = Icc (a₁, b₁) (a₂, b₂) :=
+  Icc a₁ a₂ ×ˢ Icc b₁ b₂ = Icc (a₁, b₁) (a₂, b₂) :=
 by { ext ⟨x, y⟩, simp [and.assoc, and_comm, and.left_comm] }
 
 lemma Icc_prod_eq (a b : α × β) :
-  Icc a b = (Icc a.1 b.1).prod (Icc a.2 b.2) :=
+  Icc a b = Icc a.1 b.1 ×ˢ Icc a.2 b.2 :=
 by simp
 
 end prod

@@ -629,7 +629,7 @@ end distrib_lattice
 -/
 
 @[priority 100] -- see Note [lower instance priority]
-instance lattice_of_linear_order {α : Type u} [o : linear_order α] :
+instance linear_order.to_lattice {α : Type u} [o : linear_order α] :
   lattice α :=
 { sup          := max,
   le_sup_left  := le_max_left,
@@ -665,14 +665,14 @@ See note [reducible non-instances]. -/
   .. ‹lattice α› }
 
 @[priority 100] -- see Note [lower instance priority]
-instance distrib_lattice_of_linear_order {α : Type u} [o : linear_order α] :
+instance linear_order.to_distrib_lattice {α : Type u} [o : linear_order α] :
   distrib_lattice α :=
 { le_sup_inf := assume a b c,
     match le_total b c with
     | or.inl h := inf_le_of_left_le $ sup_le_sup_left (le_inf (le_refl b) h) _
     | or.inr h := inf_le_of_right_le $ sup_le_sup_left (le_inf h (le_refl c)) _
     end,
-  ..lattice_of_linear_order }
+  ..linear_order.to_lattice }
 
 instance nat.distrib_lattice : distrib_lattice ℕ :=
 by apply_instance

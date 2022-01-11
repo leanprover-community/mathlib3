@@ -292,11 +292,16 @@ instance : partial_order (multiset α) :=
   le_trans    := by rintros ⟨l₁⟩ ⟨l₂⟩ ⟨l₃⟩; exact @subperm.trans _ _ _ _,
   le_antisymm := by rintros ⟨l₁⟩ ⟨l₂⟩ h₁ h₂; exact quot.sound (subperm.antisymm h₁ h₂) }
 
-theorem subset_of_le {s t : multiset α} : s ≤ t → s ⊆ t :=
-quotient.induction_on₂ s t $ λ l₁ l₂, subperm.subset
+section
+variables {s t : multiset α} {a : α}
 
-theorem mem_of_le {s t : multiset α} {a : α} (h : s ≤ t) : a ∈ s → a ∈ t :=
-mem_of_subset (subset_of_le h)
+lemma subset_of_le : s ≤ t → s ⊆ t := quotient.induction_on₂ s t $ λ l₁ l₂, subperm.subset
+
+alias subset_of_le ← multiset.le.subset
+
+lemma mem_of_le (h : s ≤ t) : a ∈ s → a ∈ t := mem_of_subset (subset_of_le h)
+
+lemma not_mem_mono (h : s ⊆ t) : a ∉ t → a ∉ s := mt $ @h _
 
 @[simp] theorem coe_le {l₁ l₂ : list α} : (l₁ : multiset α) ≤ l₂ ↔ l₁ <+~ l₂ := iff.rfl
 
@@ -309,8 +314,7 @@ quotient.induction_on₂ s t (λ l₁ l₂ ⟨l, p, s⟩,
 theorem zero_le (s : multiset α) : 0 ≤ s :=
 quot.induction_on s $ λ l, (nil_sublist l).subperm
 
-theorem le_zero {s : multiset α} : s ≤ 0 ↔ s = 0 :=
-⟨λ h, le_antisymm h (zero_le _), le_of_eq⟩
+lemma le_zero : s ≤ 0 ↔ s = 0 := ⟨λ h, le_antisymm h (zero_le _), le_of_eq⟩
 
 theorem lt_cons_self (s : multiset α) (a : α) : s < a ::ₘ s :=
 quot.induction_on s $ λ l,
@@ -322,13 +326,12 @@ suffices l <+~ a :: l ∧ (¬l ~ a :: l),
 theorem le_cons_self (s : multiset α) (a : α) : s ≤ a ::ₘ s :=
 le_of_lt $ lt_cons_self _ _
 
-theorem cons_le_cons_iff (a : α) {s t : multiset α} : a ::ₘ s ≤ a ::ₘ t ↔ s ≤ t :=
+lemma cons_le_cons_iff (a : α) : a ::ₘ s ≤ a ::ₘ t ↔ s ≤ t :=
 quotient.induction_on₂ s t $ λ l₁ l₂, subperm_cons a
 
-theorem cons_le_cons (a : α) {s t : multiset α} : s ≤ t → a ::ₘ s ≤ a ::ₘ t :=
-(cons_le_cons_iff a).2
+lemma cons_le_cons (a : α) : s ≤ t → a ::ₘ s ≤ a ::ₘ t := (cons_le_cons_iff a).2
 
-theorem le_cons_of_not_mem {a : α} {s t : multiset α} (m : a ∉ s) : s ≤ a ::ₘ t ↔ s ≤ t :=
+lemma le_cons_of_not_mem (m : a ∉ s) : s ≤ a ::ₘ t ↔ s ≤ t :=
 begin
   refine ⟨_, λ h, le_trans h $ le_cons_self _ _⟩,
   suffices : ∀ {t'} (_ : s ≤ t') (_ : a ∈ t'), a ::ₘ s ≤ t',
@@ -338,6 +341,8 @@ begin
   rcases mem_split m₂ with ⟨r₁, r₂, rfl⟩,
   exact perm_middle.subperm_left.2 ((subperm_cons _).2 $
     ((sublist_or_mem_of_sublist s).resolve_right m₁).subperm)
+end
+
 end
 
 /-! ### Singleton -/

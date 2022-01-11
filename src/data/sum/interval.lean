@@ -9,8 +9,7 @@ import order.locally_finite
 /-!
 # Finite intervals in a disjoint union
 
-This file provides the `locally_finite_order` instance for the disjoint sum of two orders and
-calculates the cardinality of its finite intervals.
+This file provides the `locally_finite_order` instance for the disjoint sum of two orders.
 
 ## TODO
 
@@ -29,19 +28,19 @@ variables (f f₁ g₁ : α₁ → β₁ → finset γ₁) (g f₂ g₂ : α₂ 
 `α₁ ⊕ α₂ → β₁ ⊕ β₂ → finset (γ₁ ⊕ γ₂)`. Could be generalized to alternative monads if we can make
 sure to keep computability and universe polymorphism. -/
 def sum_lift₂ : Π (a : α₁ ⊕ α₂) (b : β₁ ⊕ β₂), finset (γ₁ ⊕ γ₂)
-| (inl a) (inl b) := (f a b).map ⟨_, inl_injective⟩
+| (inl a) (inl b) := (f a b).map embedding.inl
 | (inl a) (inr b) := ∅
 | (inr a) (inl b) := ∅
-| (inr a) (inr b) := (g a b).map ⟨_, inr_injective⟩
+| (inr a) (inr b) := (g a b).map embedding.inr
 
 @[simp] lemma sum_lift₂_inl_inl (a : α₁) (b : β₁) :
-  sum_lift₂ f g (inl a) (inl b) = (f a b).map ⟨_, inl_injective⟩ := rfl
+  sum_lift₂ f g (inl a) (inl b) = (f a b).map embedding.inl := rfl
 
 @[simp] lemma sum_lift₂_inl_inr (a : α₁) (b : β₂) : sum_lift₂ f g (inl a) (inr b) = ∅ := rfl
 @[simp] lemma sum_lift₂_inr_inl (a : α₂) (b : β₁) : sum_lift₂ f g (inr a) (inl b) = ∅ := rfl
 
 @[simp] lemma sum_lift₂_inr_inr (a : α₂) (b : β₂) :
-  sum_lift₂ f g (inr a) (inr b) = (g a b).map ⟨_, inr_injective⟩ := rfl
+  sum_lift₂ f g (inr a) (inr b) = (g a b).map embedding.inr := rfl
 
 variables {f f₁ g₁ g f₂ g₂} {a : α₁ ⊕ α₂} {b : β₁ ⊕ β₂} {c : γ₁ ⊕ γ₂}
 
@@ -108,16 +107,12 @@ begin
   { exact map_eq_empty.2 (h.2 _ _ rfl rfl) }
 end
 
-lemma sum_lift₂_mono (h₁ : ∀ a b, f₁ a b ⊆ g₁ a b) (h₂ : ∀ a b, f₂ a b ⊆ g₂ a b) (a : α₁ ⊕ α₂)
-  (b : β₁ ⊕ β₂) :
-  sum_lift₂ f₁ f₂ a b ⊆ sum_lift₂ g₁ g₂ a b :=
-begin
-  cases a; cases b,
-  { exact map_subset_map.2 (h₁ _ _) },
-  { exact subset.refl _},
-  { exact subset.refl _},
-  { exact map_subset_map.2 (h₂ _ _) }
-end
+lemma sum_lift₂_mono (h₁ : ∀ a b, f₁ a b ⊆ g₁ a b) (h₂ : ∀ a b, f₂ a b ⊆ g₂ a b) :
+  ∀ a b, sum_lift₂ f₁ f₂ a b ⊆ sum_lift₂ g₁ g₂ a b
+| (inl a) (inl b) := map_subset_map.2 (h₁ _ _)
+| (inl a) (inr b) := subset.refl _
+| (inr a) (inl b) := subset.refl _
+| (inr a) (inr b) := map_subset_map.2 (h₂ _ _)
 
 end sum_lift₂
 end finset
@@ -144,10 +139,10 @@ instance : locally_finite_order (α ⊕ β) :=
 
 variables (a₁ a₂ : α) (b₁ b₂ : β) (a b : α ⊕ β)
 
-lemma Icc_inl_inl : Icc (inl a₁ : α ⊕ β) (inl a₂) = (Icc a₁ a₂).map ⟨_, inl_injective⟩ := rfl
-lemma Ico_inl_inl : Ico (inl a₁ : α ⊕ β) (inl a₂) = (Ico a₁ a₂).map ⟨_, inl_injective⟩ := rfl
-lemma Ioc_inl_inl : Ioc (inl a₁ : α ⊕ β) (inl a₂) = (Ioc a₁ a₂).map ⟨_, inl_injective⟩ := rfl
-lemma Ioo_inl_inl : Ioo (inl a₁ : α ⊕ β) (inl a₂) = (Ioo a₁ a₂).map ⟨_, inl_injective⟩ := rfl
+lemma Icc_inl_inl : Icc (inl a₁ : α ⊕ β) (inl a₂) = (Icc a₁ a₂).map embedding.inl := rfl
+lemma Ico_inl_inl : Ico (inl a₁ : α ⊕ β) (inl a₂) = (Ico a₁ a₂).map embedding.inl := rfl
+lemma Ioc_inl_inl : Ioc (inl a₁ : α ⊕ β) (inl a₂) = (Ioc a₁ a₂).map embedding.inl := rfl
+lemma Ioo_inl_inl : Ioo (inl a₁ : α ⊕ β) (inl a₂) = (Ioo a₁ a₂).map embedding.inl := rfl
 @[simp] lemma Icc_inl_inr : Icc (inl a₁) (inr b₂) = ∅ := rfl
 @[simp] lemma Ico_inl_inr : Ico (inl a₁) (inr b₂) = ∅ := rfl
 @[simp] lemma Ioc_inl_inr : Ioc (inl a₁) (inr b₂) = ∅ := rfl
@@ -156,10 +151,10 @@ lemma Ioo_inl_inl : Ioo (inl a₁ : α ⊕ β) (inl a₂) = (Ioo a₁ a₂).map 
 @[simp] lemma Ico_inr_inl : Ico (inr b₁) (inl a₂) = ∅ := rfl
 @[simp] lemma Ioc_inr_inl : Ioc (inr b₁) (inl a₂) = ∅ := rfl
 @[simp] lemma Ioo_inr_inl : Ioo (inr b₁) (inl a₂) = ∅ := rfl
-lemma Icc_inr_inr : Icc (inr b₁ : α ⊕ β) (inr b₂) = (Icc b₁ b₂).map ⟨_, inr_injective⟩ := rfl
-lemma Ico_inr_inr : Ico (inr b₁ : α ⊕ β) (inr b₂) = (Ico b₁ b₂).map ⟨_, inr_injective⟩ := rfl
-lemma Ioc_inr_inr : Ioc (inr b₁ : α ⊕ β) (inr b₂) = (Ioc b₁ b₂).map ⟨_, inr_injective⟩ := rfl
-lemma Ioo_inr_inr : Ioo (inr b₁ : α ⊕ β) (inr b₂) = (Ioo b₁ b₂).map ⟨_, inr_injective⟩ := rfl
+lemma Icc_inr_inr : Icc (inr b₁ : α ⊕ β) (inr b₂) = (Icc b₁ b₂).map embedding.inr := rfl
+lemma Ico_inr_inr : Ico (inr b₁ : α ⊕ β) (inr b₂) = (Ico b₁ b₂).map embedding.inr := rfl
+lemma Ioc_inr_inr : Ioc (inr b₁ : α ⊕ β) (inr b₂) = (Ioc b₁ b₂).map embedding.inr := rfl
+lemma Ioo_inr_inr : Ioo (inr b₁ : α ⊕ β) (inr b₂) = (Ioo b₁ b₂).map embedding.inr := rfl
 
 end disjoint
 end sum

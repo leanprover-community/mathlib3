@@ -1754,7 +1754,8 @@ by rw [count, countp_eq_card_filter]
 Mapping a multiset through a predicate and counting the `true`s yields the cardinality of the set
 filtered by the predicate. Note that this uses the notion of a multiset of `Prop`s - due to the
 decidability requirements of `count`, the decidability instance on the LHS is different from the
-RHS. See [here](https://github.com/leanprover-community/mathlib/pull/11306#discussion_r782286812)
+RHS. In particular, the decidability instance on the left leaks `classical.dec_eq`.
+See [here](https://github.com/leanprover-community/mathlib/pull/11306#discussion_r782286812)
 for more discussion.
 -/
 @[simp] lemma map_count_true_eq_filter_card (s : multiset α) (p : α → Prop) [decidable_pred p] :

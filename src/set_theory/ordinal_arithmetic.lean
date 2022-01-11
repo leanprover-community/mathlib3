@@ -1112,7 +1112,7 @@ by { rw [blsub_eq_lsub, lsub_eq_zero_iff], exact out_empty_iff_eq_zero }
 lemma blsub_eq_zero {o : ordinal} (ho : o = 0) (f : Π a < o, ordinal) : blsub o f = 0 :=
 by rwa blsub_eq_zero_iff
 
-lemma zero_lt_blsub {o : ordinal} (ho : 0 < o) (f : Π a < o, ordinal) : 0 < blsub o f :=
+lemma blsub_pos {o : ordinal} (ho : 0 < o) (f : Π a < o, ordinal) : 0 < blsub o f :=
 (ordinal.zero_le _).trans_lt (lt_blsub f 0 ho)
 
 theorem blsub_type (r : α → α → Prop) [is_well_order α r] (f) :

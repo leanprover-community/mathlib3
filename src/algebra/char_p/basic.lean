@@ -120,24 +120,17 @@ variable {R}
 theorem add_pow_prime_eq_pow_add_pow_add_prime_mul_of_commute [semiring R] {p : ℕ}
   (hp : p.prime) (x y : R) (h : commute x y) : ∃ r : R, (x + y) ^ p = x ^ p + y ^ p + p * r :=
 begin
-  have : p = p - 1 + 1 := (nat.succ_pred_prime hp).symm,
-  rw [commute.add_pow h, finset.sum_range_succ_comm, tsub_self, pow_zero, nat.choose_self,
-    nat.cast_one, mul_one, mul_one, this, finset.sum_range_succ'],
-  simp only [this.symm, tsub_zero, mul_one, one_mul, nat.choose_zero_right, nat.cast_one, pow_zero],
-  rw add_comm _ (y ^ p),
-  simp_rw add_assoc,
+  have : finset.range p = finset.range (p - 1 + 1) := congr_arg _ (nat.succ_pred_prime hp).symm,
   use (finset.range (p - 1)).sum
     (λ (n : ℕ), x ^ (n + 1) * y ^ (p - (n + 1)) * ↑(p.choose (n + 1) / p)),
-  rw finset.mul_sum,
-  congr' 2,
-  apply finset.sum_congr rfl,
+  rw [commute.add_pow h, finset.sum_range_succ_comm, this, finset.sum_range_succ'],
+  simp only [tsub_zero, tsub_self, nat.cast_one, nat.choose_zero_right, nat.choose_self,
+    mul_one, one_mul, pow_zero, ← add_assoc, add_right_comm _ _ (y ^ p), finset.mul_sum],
+  rw finset.sum_congr rfl,
   intros i hi,
   rw [finset.mem_range] at hi,
-  rw [nat.cast_comm, mul_assoc, mul_assoc, mul_assoc],
-  congr,
-  norm_cast,
-  rw nat.div_mul_cancel,
-  exact nat.prime.dvd_choose_self (nat.succ_pos _) (lt_tsub_iff_right.mp hi) hp,
+  rw [nat.cast_comm, mul_assoc, mul_assoc, mul_assoc, ← nat.cast_mul, nat.div_mul_cancel],
+  exact hp.dvd_choose_self (nat.succ_pos _) (lt_tsub_iff_right.mp hi),
 end
 
 theorem add_pow_prime_eq_pow_add_pow_add_prime_mul [comm_semiring R] {p : ℕ}

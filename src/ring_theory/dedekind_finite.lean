@@ -3,12 +3,8 @@ Copyright (c) 2021 Alex J. Best. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alex J. Best
 -/
-import tactic.subtype_instance
-import tactic.noncomm_ring
-import ring_theory.adjoin
-import ring_theory.nilpotent
-import order.filter.at_top_bot
 import linear_algebra.finite_dimensional
+import ring_theory.nilpotent
 
 /-!
 
@@ -222,4 +218,3 @@ end⟩
 
 end
 end dedekind_finite
-#lint

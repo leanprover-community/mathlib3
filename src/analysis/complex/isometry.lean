@@ -158,7 +158,7 @@ begin
   fin_cases i; fin_cases j; simp
 end
 
-/-- The determinant of `rotation`, as a linear map. -/
+/-- The determinant of `rotation` (as a linear map) is equal to `1`. -/
 @[simp] lemma det_rotation (a : circle) : ((rotation a).to_linear_equiv : ℂ →ₗ[ℝ] ℂ).det = 1 :=
 begin
   rw [←linear_map.det_to_matrix basis_one_I, to_matrix_rotation, matrix.det_fin_two],

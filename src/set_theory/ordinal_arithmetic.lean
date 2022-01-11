@@ -911,6 +911,23 @@ by simp only [family_of_bfamily', typein_enum]
   family_of_bfamily o f (enum o.out.r i (by { convert hi, exact type_out _ })) = f i hi :=
 family_of_bfamily'_enum _ (type_out o) f _ _
 
+theorem comp_bfamily_of_family' {ι : Type u} (r : ι → ι → Prop) [is_well_order ι r] (f : ι → α)
+  (g : α → β) : (λ i hi, g (bfamily_of_family' r f i hi)) = bfamily_of_family' r (g ∘ f) :=
+rfl
+
+theorem comp_bfamily_of_family {ι : Type u} (f : ι → α) (g : α → β) :
+  (λ i hi, g (bfamily_of_family f i hi)) = bfamily_of_family (g ∘ f) :=
+rfl
+
+theorem comp_family_of_bfamily' {ι : Type u} (r : ι → ι → Prop) [is_well_order ι r] {o}
+  (ho : type r = o) (f : Π a < o, α) (g : α → β) :
+  g ∘ (family_of_bfamily' r ho f) = family_of_bfamily' r ho (λ i hi, g (f i hi)) :=
+rfl
+
+theorem comp_family_of_bfamily {ι : Type u} {o} (f : Π a < o, α) (g : α → β) :
+  g ∘ (family_of_bfamily o f) = family_of_bfamily o (λ i hi, g (f i hi)) :=
+rfl
+
 /-! ### Supremum of a family of ordinals -/
 
 /-- The supremum of a family of ordinals -/
@@ -963,6 +980,28 @@ begin
   apply le_of_lt, rw typein_lt_typein, apply hx, apply mem_range_self
 end
 
+private theorem sup_le_sup {ι ι' : Type u} (r : ι → ι → Prop) (r' : ι' → ι' → Prop)
+  [is_well_order ι r] [is_well_order ι' r'] {o} (ho : type r = o) (ho' : type r' = o)
+  (f : Π a < o, ordinal) : sup (family_of_bfamily' r ho f) ≤ sup (family_of_bfamily' r' ho' f) :=
+begin
+  rw sup_le,
+  intro i,
+  unfold family_of_bfamily',
+  have : ∃ j, typein r' j = typein r i := begin
+    apply typein_surj,
+    rw [ho', ←ho],
+    exact typein_lt_type r i
+  end,
+  cases this with j hj,
+  simp_rw ←hj,
+  apply le_sup
+end
+
+theorem sup_eq_sup {ι ι' : Type u} (r : ι → ι → Prop) (r' : ι' → ι' → Prop)
+  [is_well_order ι r] [is_well_order ι' r'] {o} (ho : type r = o) (ho' : type r' = o)
+  (f : Π a < o, ordinal) : sup (family_of_bfamily' r ho f) = sup (family_of_bfamily' r' ho' f) :=
+le_antisymm (sup_le_sup r r' ho ho' f) (sup_le_sup r' r ho' ho f)
+
 /-- The supremum of a family of ordinals indexed by the set
   of ordinals less than some `o : ordinal.{u}`.
   (This is not a special case of `sup` over the subtype,
@@ -971,34 +1010,12 @@ end
 def bsup (o : ordinal.{u}) (f : Π a < o, ordinal.{max u v}) : ordinal.{max u v} :=
 sup (family_of_bfamily o f)
 
-theorem bsup_le {o f a} : bsup.{u v} o f ≤ a ↔ ∀ i h, f i h ≤ a :=
-begin
-  unfold bsup,
-  rw sup_le,
-  refine ⟨λ h i hi, _, λ h i, h _ _⟩,
-  rw ←family_of_bfamily_enum o f,
-  exact h _
-end
-
-theorem le_bsup {o} (f : Π a < o, ordinal) (i h) : f i h ≤ bsup o f :=
-bsup_le.1 (le_refl _) _ _
-
-theorem lt_bsup {o} (f : Π a < o, ordinal) {a} : a < bsup o f ↔ ∃ i hi, a < f i hi :=
-by simpa only [not_forall, not_le] using not_congr (@bsup_le _ f a)
+theorem bsup_eq_sup {o} (f : Π a < o, ordinal) : bsup o f = sup (family_of_bfamily o f) :=
+rfl
 
 theorem bsup_eq_sup' {o ι} (r : ι → ι → Prop) [is_well_order ι r] (ho : type r = o) (f) :
   bsup o f = sup (family_of_bfamily' r ho f) :=
-eq_of_forall_ge_iff $ λ o,
-by { rw [bsup_le, ordinal.sup_le], subst ho, exact
-  ⟨λ H b, H _ _, λ H i h, by simpa only [family_of_bfamily', typein_enum] using H (enum r i h)⟩ }
-
-theorem sup_eq_sup {ι : Type u} (r r' : ι → ι → Prop) [is_well_order ι r] [is_well_order ι r'] {o}
-  (ho : type r = o) (ho' : type r' = o) (f : Π a < o, ordinal) :
-  sup (family_of_bfamily' r ho f) = sup (family_of_bfamily' r' ho' f) :=
-by rw [←bsup_eq_sup', ←bsup_eq_sup']
-
-theorem bsup_eq_sup {o} (f : Π a < o, ordinal) : bsup o f = sup (family_of_bfamily o f) :=
-bsup_eq_sup' _ _ f
+sup_eq_sup _ r _ ho f
 
 theorem sup_eq_bsup' {ι} (r : ι → ι → Prop) [is_well_order ι r] (f : ι → ordinal) :
   sup f = bsup _ (bfamily_of_family' r f) :=
@@ -1010,6 +1027,20 @@ by rw [←sup_eq_bsup', ←sup_eq_bsup']
 
 theorem sup_eq_bsup {ι} (f : ι → ordinal) : sup f = bsup _ (bfamily_of_family f) :=
 sup_eq_bsup' _ f
+
+theorem bsup_le {o f a} : bsup.{u v} o f ≤ a ↔ ∀ i h, f i h ≤ a :=
+begin
+  rw [bsup_eq_sup, sup_le],
+  refine ⟨λ h i hi, _, λ h i, h _ _⟩,
+  rw ←family_of_bfamily_enum o f,
+  exact h _
+end
+
+theorem le_bsup {o} (f : Π a < o, ordinal) (i h) : f i h ≤ bsup o f :=
+bsup_le.1 (le_refl _) _ _
+
+theorem lt_bsup {o} (f : Π a < o, ordinal) {a} : a < bsup o f ↔ ∃ i hi, a < f i hi :=
+by simpa only [not_forall, not_le] using not_congr (@bsup_le _ f a)
 
 theorem is_normal.bsup {f} (H : is_normal f) {o} :
   ∀ (g : Π a < o, ordinal) (h : o ≠ 0), f (bsup o g) = bsup o (λ a h, f (g a h)) :=
@@ -1052,7 +1083,7 @@ by { rw [←is_normal.bsup.{u u} H (λ x _, x) h.1, bsup_id h] }
 
 /-- The least strict upper bound of a family of ordinals. -/
 def lsub {ι} (f : ι → ordinal) : ordinal :=
-sup (λ i, (f i).succ)
+sup (ordinal.succ ∘ f)
 
 theorem lsub_le_iff_lt {ι} {f : ι → ordinal} {a} : lsub f ≤ a ↔ ∀ i, f i < a :=
 by { convert sup_le, simp [succ_le] }
@@ -1111,13 +1142,26 @@ begin
   exact lt_irrefl 0 this
 end
 
+theorem lsub_eq_lsub {ι ι' : Type u} (r : ι → ι → Prop) (r' : ι' → ι' → Prop)
+  [is_well_order ι r] [is_well_order ι' r'] {o} (ho : type r = o) (ho' : type r' = o)
+  (f : Π a < o, ordinal) : lsub (family_of_bfamily' r ho f) = lsub (family_of_bfamily' r' ho' f) :=
+begin
+  unfold lsub,
+  rw [comp_family_of_bfamily', comp_family_of_bfamily'],
+  apply sup_eq_sup
+end
+
 /-- The bounded least strict upper bound of a family of ordinals. -/
 def blsub (o : ordinal.{u}) (f : Π a < o, ordinal.{max u v}) : ordinal.{max u v} :=
 o.bsup (λ a ha, (f a ha).succ)
 
 theorem lsub_eq_blsub' {ι} (r : ι → ι → Prop) [is_well_order ι r] (f : ι → ordinal) :
-  sup f = bsup _ (bfamily_of_family' r f) :=
+  lsub f = blsub _ (bfamily_of_family' r f) :=
 sup_eq_bsup' r _
+
+theorem blsub_eq_blsub {ι : Type u} (r r' : ι → ι → Prop) [is_well_order ι r] [is_well_order ι r']
+  (f : ι → ordinal) : blsub _ (bfamily_of_family' r f) = blsub _ (bfamily_of_family' r' f) :=
+by rw [←lsub_eq_blsub', ←lsub_eq_blsub']
 
 theorem lsub_eq_blsub {ι} (f : ι → ordinal) : lsub f = blsub _ (bfamily_of_family f) :=
 sup_eq_bsup _

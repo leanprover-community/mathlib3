@@ -319,10 +319,9 @@ by omega  --zify [this, H]; linarith
 
 private def e (a b : R) [ring R] (i j : ℕ) : R := b ^ i * a ^ j - b ^ (i + 1) * a ^ (j + 1)
 
-lemma e_orthogonal [ring R] {a b : R} (hab : a * b = 1) :
-  ∀ {i j k l : ℕ}, e a b i j * e a b k l = if j = k then e a b i l else (0 : R) :=
+lemma e_orthogonal [ring R] {a b : R} (hab : a * b = 1) {i j k l : ℕ} :
+  e a b i j * e a b k l = if j = k then e a b i l else (0 : R) :=
 begin
-  intros,
   rw [e, e, e, mul_sub, sub_mul, sub_mul, sub_right_comm, mul_assoc, mul_assoc, mul_assoc,
     mul_assoc, ← sub_add, ← mul_sub (b ^ i), ← sub_sub_assoc_swap, ← mul_sub (b ^ (i + 1)),
     ← mul_assoc, ← mul_assoc, ← mul_assoc, ← mul_assoc,
@@ -344,7 +343,9 @@ begin
     -- rw if_pos (nat.succ_le_iff.mpr H),
     -- rw if_pos (le_add_right H : j + 1 ≤ k + 1),
     rw ← nat.succ_pred_eq_of_pos (tsub_pos_of_lt H),
-    rw ← nat.succ_pred_eq_of_pos (_ : k + 1 - j > 0),
+
+    have : 0 < k + 1 - j := nat.sub_pos_of_lt (H.trans (lt_add_one k)),
+    rw ← nat.succ_pred_eq_of_pos this,
     rw pow_succ,
     rw pow_succ,
     rw mul_assoc,
@@ -363,37 +364,9 @@ begin
     rw nat.sub_sub,
     rw add_comm j 1,
     rw ← nat.sub_sub,
-    simp,
-    { apply nat.sub_pos_of_lt,
-      transitivity k,
-      exact H,
-      exact lt_add_one k,}, },
+    simp, },
   { conv_rhs {rw if_pos,},
-    simp,
-
-    -- rw if_pos (le_refl j),
-    -- rw if_pos (nat.le_succ j),
-    -- rw if_neg (by exact nat.lt_irrefl j : ¬j + 1 ≤ j),
-    -- rw if_pos (le_refl (j + 1)),
-
-    -- rw nat.sub_self,
-    -- rw pow_zero,
-    -- rw one_mul,
-    -- rw (add_tsub_cancel_left j 1),
-    -- rw ← pow_add,
-    -- rw pow_one,
-    -- rw nat.sub_self,
-    -- rw pow_zero,
-    -- rw one_mul,
-    -- rw add_comm,
-    -- rw sub_self,
-    -- rw mul_zero,
-    -- rw sub_zero,
-    -- rw mul_sub,
-    -- rw ← mul_assoc,
-    simp [add_comm, mul_sub, mul_assoc, pow_succ', ← pow_succ],
-    -- rw ← pow_succ',
-    },
+    simp [add_comm, mul_sub, mul_assoc, pow_succ', ← pow_succ], },
   sorry; { conv_rhs {rw if_neg (ne_of_gt H),},
     rw if_neg (not_le.mpr H),
     have : ite (j ≤ k + 1) (b ^ (k + 1 - j)) (a ^ (j - (k + 1))) = a ^ (j - (k + 1)),
@@ -422,26 +395,24 @@ lemma is_dedekind_finite_of_fin_nilpotents (R : Type*) [ring R] (h : (nilpotents
 begin
   apply is_dedekind_finite.mk,
   contrapose! h,
-  rcases h with ⟨a, b, hab, hba⟩,
+  rintro ⟨hinf⟩,
   haveI : infinite (nilpotents R),
-  { let e1 : ℕ → nilpotents R := λ n, ⟨e a b 0 (n + 1), 2, e_ne_pow_two hab n.succ_ne_zero.symm⟩,
-    refine infinite.of_injective e1 _,
+  { rcases h with ⟨a, b, hab, hba⟩,
+    refine infinite.of_injective (λ n, ⟨e a b (n + 1) 0, 2, e_ne_pow_two hab n.succ_ne_zero⟩) _,
     intros n m hnm,
+    rw [subtype.mk_eq_mk] at hnm,
     by_contradiction h,
-    simp only [subtype.mk_eq_mk] at hnm,
-    have : e a b 0 (m + 1) * e a b (n + 1) 0 = 0,
+    have : e a b 0 (n + 1) * e a b (m + 1) 0 = 0,
     { rw [e_orthogonal hab, if_neg],
       intro a_2,
-      exact h ((add_left_inj 1).mp a_2.symm) },
-    have :=
+      exact h ((add_left_inj 1).mp a_2) },
+    apply absurd _ hba.symm,
+    rw ← sub_eq_zero,
     calc 1 - b * a = e a b 0 0                         : by simp [e]
               ...  = e a b 0 (n + 1) * e a b (n + 1) 0 : by rw [e_orthogonal hab, if_pos rfl]
-              ...  = e a b 0 (m + 1) * e a b (n + 1) 0 : by rw hnm
-              ...  = 0                                 : this,
-    rw sub_eq_zero at this,
-    exact absurd this.symm hba, },
-  intro hinf,
-  exact infinite.not_fintype hinf.fintype,
+              ...  = e a b 0 (n + 1) * e a b (m + 1) 0 : by rw hnm
+              ...  = 0                                 : this, },
+  exact infinite.not_fintype hinf,
 end
 
 end

@@ -424,7 +424,7 @@ A subset of a topological space is homeomorphic to its image under a homeomorphi
 -/
 def image (e : α ≃ₜ β) (s : set α) : s ≃ₜ e '' s :=
 { continuous_to_fun := by continuity!,
-  continuous_inv_fun := by { dsimp, continuity! },
+  continuous_inv_fun := by { dsimp [equiv.set.image_of_left_inv_on], continuity! },
   ..e.to_equiv.image s, }
 
 end homeomorph

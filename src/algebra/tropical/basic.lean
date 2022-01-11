@@ -107,6 +107,9 @@ as a term of `tropical R` via `trop x`. -/
 def trop_rec {F : Π (X : tropical R), Sort v} (h : Π X, F (trop X)) : Π X, F X :=
 λ X, h (untrop X)
 
+instance [decidable_eq R] : decidable_eq (tropical R) :=
+λ x y, decidable_of_iff _ injective_untrop.eq_iff
+
 section order
 
 instance [has_le R] : has_le (tropical R) :=
@@ -115,11 +118,19 @@ instance [has_le R] : has_le (tropical R) :=
 @[simp] lemma untrop_le_iff [has_le R] {x y : tropical R} :
   untrop x ≤ untrop y ↔ x ≤ y := iff.rfl
 
+instance decidable_le [has_le R] [decidable_rel ((≤) : R → R → Prop)] :
+  decidable_rel ((≤) : tropical R → tropical R → Prop) :=
+λ x y, ‹decidable_rel (≤)› (untrop x) (untrop y)
+
 instance [has_lt R] : has_lt (tropical R) :=
 { lt := λ x y, untrop x < untrop y }
 
 @[simp] lemma untrop_lt_iff [has_lt R] {x y : tropical R} :
   untrop x < untrop y ↔ x < y := iff.rfl
+
+instance decidable_lt [has_lt R] [decidable_rel ((<) : R → R → Prop)] :
+  decidable_rel ((<) : tropical R → tropical R → Prop) :=
+λ x y, ‹decidable_rel (<)› (untrop x) (untrop y)
 
 instance [preorder R] : preorder (tropical R) :=
 { le_refl := λ _, le_refl _,
@@ -174,7 +185,21 @@ instance : add_comm_semigroup (tropical R) :=
 
 instance : linear_order (tropical R) :=
 { le_total := λ a b, le_total (untrop a) (untrop b),
-  decidable_le := λ x y, if h : (untrop x) ≤ (untrop y) then is_true h else is_false h,
+  decidable_le := tropical.decidable_le,
+  decidable_lt := tropical.decidable_lt,
+  decidable_eq := tropical.decidable_eq,
+  max := λ a b, trop (max (untrop a) (untrop b)),
+  max_def := begin
+    ext x y,
+    rw [max_default, max_def, apply_ite trop, trop_untrop, trop_untrop],
+    refl,
+  end,
+  min := λ a b, trop (min (untrop a) (untrop b)),
+  min_def := begin
+    ext x y,
+    rw [min_default, min_def, apply_ite trop, trop_untrop, trop_untrop],
+    refl,
+  end,
   ..tropical.partial_order }
 
 @[simp] lemma untrop_add (x y : tropical R) : untrop (x + y) = min (untrop x) (untrop y) := rfl

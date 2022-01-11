@@ -184,19 +184,23 @@ variables {R}
   star (n • x) = n • star x :=
 (star_add_equiv : R ≃+ R).to_add_monoid_hom.map_zsmul _ _
 
-lemma star_mul_self_eq_one_comm [division_ring R] [star_add_monoid R] (x : R) :
-  star x * x = 1 ↔ x * star x = 1 :=
+lemma star_mul_self_eq_comm [ring R] [no_zero_divisors R] [star_add_monoid R] (x : R) (y : R)
+  (h : commute x y) :
+  star x * x = y ↔ x * star x = y :=
 begin
+  letI : cancel_monoid_with_zero R := no_zero_divisors.to_cancel_monoid_with_zero,
   obtain rfl | hx := eq_or_ne x 0,
   { simp only [star_zero, zero_ne_one, mul_zero] },
   split,
-  { intro h,
+  { intro heq,
     apply mul_right_cancel₀ hx,
-    rw [mul_assoc, h, mul_one, one_mul], },
-  { intro h,
+    rw [mul_assoc, heq, h.eq], },
+  { intro heq,
     apply mul_left_cancel₀ hx,
-    rw [←mul_assoc, h, mul_one, one_mul], },
+    rw [←mul_assoc, heq, h.eq], },
 end
+
+#print is_domain.to_cancel_monoid_with_zero
 
 section
 open_locale big_operators

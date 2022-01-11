@@ -1,5 +1,8 @@
 import analysis.normed_space.basic
 import analysis.seminorm
+import topology.algebra.filter_basis
+
+open_locale topological_space big_operators filter
 
 variables {𝕜 : Type*} {E : Type*} [normed_field 𝕜] [add_comm_group E] [module 𝕜 E]
 variables {ι : Type*} [decidable_eq ι]
@@ -41,14 +44,40 @@ instance (s : ι → seminorm 𝕜 E) : topological_add_group (with_seminorms s)
   (with_seminorms_add_group_top s).to_topological_add_group
 
 
-/-instance (s : ι → seminorm 𝕜 E) : has_continuous_smul 𝕜 (with_seminorms s) :=
+
+#check has_continuous_smul.of_nhds_zero
+
+lemma filter_hmul_aux (s : ι → seminorm 𝕜 E) :
+  filter.tendsto (λ (p : 𝕜 × (with_seminorms s)), p.fst • p.snd) (𝓝 0 ×ᶠ 𝓝 0) (𝓝 0) :=
 begin
+  rw filter.tendsto_def,
+  dunfold with_seminorms,
+  intros x hx,
   sorry,
-end-/
+end
+
+lemma filter_hmul_left_aux (s : ι → seminorm 𝕜 E) (y : (with_seminorms s)) :
+  filter.tendsto (λ (a : 𝕜), a • y) (𝓝 0) (𝓝 0) :=
+begin
+  rw filter.tendsto_def,
+  dunfold with_seminorms,
+  dunfold with_seminorms at y,
+  intros x hx,
+  sorry,
+end
+
+lemma filter_hmul_right_aux (s : ι → seminorm 𝕜 E) (a : 𝕜) :
+  filter.tendsto (λ (m : with_seminorms s), a • m) (𝓝 0) (𝓝 0) :=
+begin
+  rw filter.tendsto_def,
+  dunfold with_seminorms,
+  intros x hx,
+  sorry,
+end
 
 variables (s : ι → seminorm 𝕜 E) (i : ι)
 #check (s i).seminormed_top_group
 #check (s)
-
+#check module_filter_basis
 
 -- Todo: local convexity

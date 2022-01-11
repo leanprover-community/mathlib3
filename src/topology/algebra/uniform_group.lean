@@ -205,7 +205,7 @@ section topological_add_comm_group
 universes u v w x
 open filter
 
-variables (G : Type u) [add_comm_group G] [topological_space G] [topological_add_group G]
+variables (G : Type*) [add_comm_group G] [topological_space G] [topological_add_group G]
 
 section
 local attribute [instance] topological_add_group.to_uniform_space
@@ -267,7 +267,7 @@ end
 
 end
 
-lemma to_uniform_space_eq {G : Type u} [u : uniform_space G] [add_comm_group G]
+lemma to_uniform_space_eq {G : Type*} [u : uniform_space G] [add_comm_group G]
   [uniform_add_group G] :
   topological_add_group.to_uniform_space G = u :=
 begin

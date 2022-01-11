@@ -218,8 +218,10 @@ theorem restrict_dom_comp_subtype (s : set α) :
   (restrict_dom M R s).comp (submodule.subtype _) = linear_map.id :=
 begin
   ext l a,
-  by_cases a ∈ s; simp [h],
-  exact ((mem_supported' R l.1).1 l.2 a h).symm
+  simp only [restrict_dom_apply, submodule.subtype_apply, id_coe, id.def,
+    coe_comp, function.comp_app],
+  by_cases h : a ∈ s, { simp only [finsupp.filter_apply_pos, h] },
+  exact (finsupp.filter_apply_neg (∈ s) _ h).trans ((mem_supported' R l.1).1 l.2 a h).symm
 end
 
 theorem range_restrict_dom (s : set α) :

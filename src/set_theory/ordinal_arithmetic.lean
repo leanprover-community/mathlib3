@@ -1138,10 +1138,9 @@ theorem enum_ord_def (o) :
   enum_ord S hS o = omin (S ∩ {b | ∀ c, c < o → enum_ord S hS c < b}) enum_ord_def_H :=
 begin
   rw enum_ord_def',
-  convert rfl,
-  funext,
-  convert rfl,
-  exact propext ⟨λ h a hao, (lt_blsub.{u u} _ _ hao).trans_le h, λ h, blsub_le_iff_lt.2 h⟩
+  congr,
+  ext,
+  exact ⟨λ h a hao, (lt_blsub.{u u} _ _ hao).trans_le h, λ h, blsub_le_iff_lt.2 h⟩
 end
 
 theorem enum_ord.surjective : ∀ s ∈ S, ∃ a, enum_ord S hS a = s :=

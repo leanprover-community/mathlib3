@@ -1210,17 +1210,19 @@ end
 lemma inv_two_add_inv_two : (2:ℝ≥0∞)⁻¹ + 2⁻¹ = 1 :=
 by rw [← two_mul, ← div_eq_mul_inv, div_self two_ne_zero two_ne_top]
 
+lemma inv_three_add_inv_three : (3 : ℝ≥0∞)⁻¹ + 3⁻¹ +3⁻¹ = 1 :=
+begin
+  rw [show (3 : ℝ≥0∞)⁻¹ + 3⁻¹ + 3⁻¹ = 3 * 3⁻¹, by ring, ← div_eq_mul_inv, ennreal.div_self];
+  simp,
+end
+
 @[simp]
 lemma add_halves (a : ℝ≥0∞) : a / 2 + a / 2 = a :=
 by rw [div_eq_mul_inv, ← mul_add, inv_two_add_inv_two, mul_one]
 
 @[simp]
 lemma add_thrids (a : ℝ≥0∞) : a / 3 + a / 3 + a / 3 = a :=
-begin
-  rw [div_eq_mul_inv, ← mul_add, ← mul_add, show a * (3⁻¹ + 3⁻¹ + 3⁻¹) = 3 * 3⁻¹ * a, by ring,
-    ← div_eq_mul_inv, ennreal.div_self, one_mul];
-  simp,
-end
+by rw [div_eq_mul_inv, ← mul_add, ← mul_add, inv_three_add_inv_three, mul_one]
 
 @[simp] lemma div_zero_iff : a / b = 0 ↔ a = 0 ∨ b = ∞ :=
 by simp [div_eq_mul_inv]

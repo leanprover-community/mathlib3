@@ -251,14 +251,13 @@ end
 theorem ord_aleph_unbounded : unbounded (<) {b : ordinal | b.card.ord = b ∧ ordinal.omega ≤ b} :=
 (unbounded_lt_iff_unbounded_inter_le ordinal.omega).1 ord_aleph'_unbounded
 
-theorem eq_aleph_of_eq_card_ord {o : ordinal} (ho : o.card.ord = o ∧ ordinal.omega ≤ o) :
+theorem eq_aleph_of_eq_card_ord {o : ordinal} (ho : o.card.ord = o) (ho' : ordinal.omega ≤ o) :
   ∃ a, (aleph a).ord = o :=
 begin
-  cases ho with hol hor,
-  cases eq_aleph'_of_eq_card_ord hol with a ha,
+  cases eq_aleph'_of_eq_card_ord ho with a ha,
   use a - ordinal.omega,
   unfold aleph,
-  rwa ordinal.add_sub_cancel_of_le ,
+  rwa ordinal.add_sub_cancel_of_le,
   rwa [←omega_le_aleph', ←ord_le_ord, ha, ord_omega],
 end
 
@@ -268,7 +267,7 @@ begin
   rw ←eq_enum_ord,
   use aleph_is_normal.strict_mono,
   rw range_eq_iff,
-  refine ⟨(λ a, ⟨_, _⟩), λ b hb, eq_aleph_of_eq_card_ord hb⟩,
+  refine ⟨(λ a, ⟨_, _⟩), λ b hb, eq_aleph_of_eq_card_ord hb.1 hb.2⟩,
   { rw card_ord },
   { rw [←ord_omega, ord_le_ord],
     exact omega_le_aleph _ }

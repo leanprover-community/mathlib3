@@ -161,7 +161,7 @@ by simpa only using (multiplicative_factorization id (by simp) (by simp) hn).sym
 
 /-! ### Factorization and divisibility -/
 
-lemma factorization_dvd_iff {d n : ℕ} (hd : d ≠ 0) (hn : n ≠ 0) :
+lemma factorization_le_iff_dvd {d n : ℕ} (hd : d ≠ 0) (hn : n ≠ 0) :
   d.factorization ≤ n.factorization ↔ d ∣ n :=
 begin
   split,

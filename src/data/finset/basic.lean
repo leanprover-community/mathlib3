@@ -1857,6 +1857,9 @@ by {ext, simp}
 @[simp] lemma to_finset_inter (l l' : list α) : (l ∩ l').to_finset = l.to_finset ∩ l'.to_finset :=
 by {ext, simp}
 
+@[simp] lemma to_finset_eq_empty_iff (l : list α) : l.to_finset = ∅ ↔ l = nil :=
+by { cases l; simp }
+
 end list
 
 namespace finset
@@ -2541,6 +2544,10 @@ lemma disjoint_filter_filter {s t : finset α} {p q : α → Prop} [decidable_pr
   [decidable_pred q] :
   (disjoint s t) → disjoint (s.filter p) (t.filter q) :=
 disjoint.mono (filter_subset _ _) (filter_subset _ _)
+
+lemma disjoint_filter_filter_neg (s : finset α) (p : α → Prop) [decidable_pred p] :
+  disjoint (s.filter p) (s.filter $ λ a, ¬ p a) :=
+(disjoint_filter.2 $ λ a _, id).symm
 
 lemma disjoint_iff_disjoint_coe {α : Type*} {a b : finset α} [decidable_eq α] :
   disjoint a b ↔ disjoint (↑a : set α) (↑b : set α) :=

@@ -701,6 +701,12 @@ lemma tendsto_nhds_unique_of_eventually_eq [t2_space α] {f g : β → α} {l : 
   a = b :=
 tendsto_nhds_unique (ha.congr' hfg) hb
 
+lemma tendsto_nhds_unique_of_frequently_eq [t2_space α] {f g : β → α} {l : filter β} {a b : α}
+  (ha : tendsto f l (𝓝 a)) (hb : tendsto g l (𝓝 b)) (hfg : ∃ᶠ x in l, f x = g x) :
+  a = b :=
+have ∃ᶠ z : α × α in 𝓝 (a, b), z.1 = z.2 := (ha.prod_mk_nhds hb).frequently hfg,
+not_not.1 $ λ hne, this (is_closed_diagonal.is_open_compl.mem_nhds hne)
+
 lemma tendsto_const_nhds_iff [t2_space α] {l : filter α} [ne_bot l] {c d : α} :
   tendsto (λ x, c) l (𝓝 d) ↔ c = d :=
 ⟨λ h, tendsto_nhds_unique (tendsto_const_nhds) h, λ h, h ▸ tendsto_const_nhds⟩
@@ -1056,7 +1062,7 @@ begin
   { intro h,
     rw exists_eq_singleton_iff_nonempty_unique_mem,
     use h.1,
-    intros a b ha hb,
+    intros a ha b hb,
     injection @@subsingleton.elim ((is_preirreducible_iff_subsingleton _).mp h.2) ⟨_, ha⟩ ⟨_, hb⟩ },
   { rintro ⟨x, rfl⟩, exact is_irreducible_singleton }
 end
@@ -1158,8 +1164,8 @@ begin
   rcases t2_separation h with ⟨U₁, U₂, U₁_op, U₂_op, x_in, y_in, H⟩,
   rcases nhds_is_closed (is_open.mem_nhds U₁_op x_in) with ⟨V₁, V₁_in, h₁, V₁_closed⟩,
   rcases nhds_is_closed (is_open.mem_nhds U₂_op y_in) with ⟨V₂, V₂_in, h₂, V₂_closed⟩,
-  use [U₁, V₁, mem_of_superset V₁_in h₁, V₁_in,
-       U₂, V₂, mem_of_superset V₂_in h₂, V₂_in],
+  use [U₁, mem_of_superset V₁_in h₁, V₁, V₁_in,
+       U₂, mem_of_superset V₂_in h₂, V₂, V₂_in],
   tauto
 end
 

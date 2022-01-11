@@ -189,7 +189,6 @@ noncomputable instance : complete_linear_order enat :=
   bot := ⊥,
   le := (≤),
   lt := (<),
-  .. enat.bounded_order,
   .. enat.lattice,
   .. with_top_order_iso.symm.to_galois_insertion.lift_complete_lattice,
   .. enat.linear_order, }

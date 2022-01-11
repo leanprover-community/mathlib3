@@ -172,7 +172,7 @@ end
 
 -- A (commutative) Jordan multiplication is also a Jordan multipication
 @[priority 100] -- see Note [lower instance priority]
-instance comm_jordan_is_jordan : jordan A :=
+instance jordan_of_comm_jordan : jordan A :=
 { commL1R1 := λ a b, by rw [comm_jordan.comm, comm_jordan.comm a b],
   commL1L2 := λ a b, by rw [comm_jordan.comm (a * a) (a * b), comm_jordan.jordan,
     comm_jordan.comm b (a * a)],

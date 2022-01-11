@@ -183,6 +183,11 @@ instance : add_comm_semigroup (tropical R) :=
   add_assoc := λ _ _ _, untrop_injective (min_assoc _ _ _),
   add_comm := λ _ _, untrop_injective (min_comm _ _) }
 
+@[simp] lemma untrop_add (x y : tropical R) : untrop (x + y) = min (untrop x) (untrop y) := rfl
+@[simp] lemma trop_min (x y : R) : trop (min x y) = trop x + trop y := rfl
+@[simp] lemma trop_inf (x y : R) : trop (x ⊓ y) = trop x + trop y := rfl
+lemma trop_add_def (x y : tropical R) : x + y = trop (min (untrop x) (untrop y)) := rfl
+
 instance : linear_order (tropical R) :=
 { le_total := λ a b, le_total (untrop a) (untrop b),
   decidable_le := tropical.decidable_le,
@@ -197,23 +202,15 @@ instance : linear_order (tropical R) :=
   min := (+),
   min_def := begin
     ext x y,
-    dsimp only [has_add.add],
-    rw [min_default, min_def, apply_ite trop, trop_untrop, trop_untrop,
+    rw [trop_add_def, min_default, min_def, apply_ite trop, trop_untrop, trop_untrop,
       if_congr untrop_le_iff rfl rfl],
   end,
   ..tropical.partial_order }
 
-@[simp] lemma untrop_add (x y : tropical R) : untrop (x + y) = min (untrop x) (untrop y) := rfl
 @[simp] lemma untrop_sup (x y : tropical R) : untrop (x ⊔ y) = untrop x ⊔ untrop y := rfl
 @[simp] lemma untrop_max (x y : tropical R) : untrop (max x y) = max (untrop x) (untrop y) := rfl
-@[simp] lemma trop_min (x y : R) : trop (min x y) = trop x + trop y := rfl
-@[simp] lemma trop_inf (x y : R) : trop (x ⊓ y) = trop x + trop y := rfl
 @[simp] lemma min_eq_add : (min : tropical R → tropical R → tropical R) = (+) := rfl
 @[simp] lemma inf_eq_add : ((⊓) : tropical R → tropical R → tropical R) = (+) := rfl
-
-lemma trop_add_def (x y : tropical R) : x + y = trop (min (untrop x) (untrop y)) := rfl
-lemma trop_max_def (x y : tropical R) : max x y = trop (max (untrop x) (untrop y)) := rfl
-lemma trop_sup_def (x y : tropical R) : x ⊔ y = trop (untrop x ⊔ untrop y) := rfl
 
 @[simp] lemma add_eq_left ⦃x y : tropical R⦄ (h : x ≤ y) :
   x + y = x := untrop_injective (by simpa using h)

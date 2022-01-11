@@ -20,94 +20,47 @@ variables {α : Type*} {r : α → α → Prop} {s t : set α}
 /-! ### Subsets of bounded and unbounded sets -/
 
 theorem bounded_of_subset_bounded (hst : s ⊆ t) (hs : bounded r t) : bounded r s :=
-begin
-  cases hs with a ha,
-  exact ⟨a, λ b hb, ha b (hst hb)⟩
-end
+hs.imp $ λ a ha b hb, ha b (hst hb)
 
 theorem unbounded_of_unbounded_subset (hst : s ⊆ t) (hs : unbounded r s) : unbounded r t :=
-begin
-  intro a,
-  rcases hs a with ⟨b, hb, hb'⟩,
-  exact ⟨b, hst hb, hb'⟩
-end
+λ a, let ⟨b, hb, hb'⟩ := hs a in ⟨b, hst hb, hb'⟩
 
 /-! ### Alternate characterizations of unboundedness on orders -/
 
 lemma unbounded_le_of_forall_ex_lt [preorder α] (h : ∀ a, ∃ b ∈ s, a < b) : unbounded (≤) s :=
-begin
-  intro a,
-  rcases h a with ⟨b, hb, hb'⟩,
-  exact ⟨b, hb, λ hba, not_lt_of_ge hba hb'⟩
-end
+λ a, let ⟨b, hb, hb'⟩ := h a in ⟨b, hb, λ hba, not_lt_of_ge hba hb'⟩
 
 lemma unbounded_le_iff [linear_order α] : unbounded (≤) s ↔ ∀ a, ∃ b ∈ s, a < b :=
-begin
-  refine ⟨λ h a, _, unbounded_le_of_forall_ex_lt⟩,
-  rcases h a with ⟨b, hb, hba⟩,
-  exact ⟨b, hb, lt_of_not_ge hba⟩
-end
+⟨λ h a, let ⟨b, hb, hba⟩ := h a in ⟨b, hb, lt_of_not_ge hba⟩, unbounded_le_of_forall_ex_lt⟩
 
 lemma unbounded_lt_of_forall_ex_le [preorder α] (h : ∀ a, ∃ b ∈ s, a ≤ b) : unbounded (<) s :=
-begin
-  intro a,
-  rcases h a with ⟨b, hb, hb'⟩,
-  exact ⟨b, hb, λ hba, not_le_of_gt hba hb'⟩
-end
+λ a, let ⟨b, hb, hb'⟩ := h a in ⟨b, hb, λ hba, not_le_of_gt hba hb'⟩
 
 lemma unbounded_lt_iff [linear_order α] : unbounded (<) s ↔ ∀ a, ∃ b ∈ s, a ≤ b :=
-begin
-  refine ⟨λ h a, _, unbounded_lt_of_forall_ex_le⟩,
-  rcases h a with ⟨b, hb, hba⟩,
-  exact ⟨b, hb, le_of_not_gt hba⟩
-end
+⟨λ h a, let ⟨b, hb, hba⟩ := h a in ⟨b, hb, le_of_not_gt hba⟩, unbounded_lt_of_forall_ex_le⟩
 
 lemma unbounded_ge_of_forall_ex_gt [preorder α] (h : ∀ a, ∃ b ∈ s, b < a) : unbounded (≥) s :=
-begin
-  intro a,
-  rcases h a with ⟨b, hb, hb'⟩,
-  exact ⟨b, hb, λ hba, not_lt_of_ge hba hb'⟩
-end
+λ a, let ⟨b, hb, hb'⟩ := h a in ⟨b, hb, λ hba, not_lt_of_ge hba hb'⟩
 
 lemma unbounded_ge_iff [linear_order α] : unbounded (≥) s ↔ ∀ a, ∃ b ∈ s, b < a :=
-begin
-  refine ⟨λ h a, _, unbounded_ge_of_forall_ex_gt⟩,
-  rcases h a with ⟨b, hb, hba⟩,
-  exact ⟨b, hb, lt_of_not_ge hba⟩
-end
+⟨λ h a, let ⟨b, hb, hba⟩ := h a in ⟨b, hb, lt_of_not_ge hba⟩, unbounded_ge_of_forall_ex_gt⟩
 
 lemma unbounded_gt_of_forall_ex_ge [preorder α] (h : ∀ a, ∃ b ∈ s, b ≤ a) : unbounded (>) s :=
-begin
-  intro a,
-  rcases h a with ⟨b, hb, hb'⟩,
-  exact ⟨b, hb, λ hba, not_le_of_gt hba hb'⟩
-end
+λ a, let ⟨b, hb, hb'⟩ := h a in ⟨b, hb, λ hba, not_le_of_gt hba hb'⟩
 
 lemma unbounded_gt_iff [linear_order α] : unbounded (>) s ↔ ∀ a, ∃ b ∈ s, b ≤ a :=
-begin
-  refine ⟨λ h a, _, unbounded_gt_of_forall_ex_ge⟩,
-  rcases h a with ⟨b, hb, hba⟩,
-  exact ⟨b, hb, le_of_not_gt hba⟩
-end
+⟨λ h a, let ⟨b, hb, hba⟩ := h a in ⟨b, hb, le_of_not_gt hba⟩, unbounded_gt_of_forall_ex_ge⟩
 
 /-! ### Relation between boundedness by strict and nonstrict orders. -/
 
 /-! #### Less and less or equal -/
 
-lemma bounded_le_of_bounded_lt [preorder α] (h : bounded (<) s) :
-  bounded (≤) s :=
-begin
-  cases h with a ha,
-  exact ⟨a, λ b hb, le_of_lt (ha b hb)⟩
-end
+lemma bounded_le_of_bounded_lt [preorder α] (h : bounded (<) s) : bounded (≤) s :=
+exists.elim h $ λ a ha, ⟨a, λ b hb, le_of_lt (ha b hb)⟩
 
 lemma unbounded_lt_of_unbounded_le [preorder α] (h : unbounded (≤) s) :
   unbounded (<) s :=
-begin
-  intro a,
-  rcases h a with ⟨b, hb, hba⟩,
-  exact ⟨b, hb, λ hba', hba (le_of_lt hba')⟩
-end
+λ a, let ⟨b, hb, hba⟩ := h a in ⟨b, hb, λ hba', hba (le_of_lt hba')⟩
 
 lemma bounded_le_iff_bounded_lt [preorder α] [no_top_order α] : bounded (≤) s ↔ bounded (<) s :=
 begin
@@ -129,17 +82,10 @@ end
 /-! #### Greater and greater or equal -/
 
 lemma bounded_ge_of_bounded_gt [preorder α] (h : bounded (>) s) : bounded (≥) s :=
-begin
-  cases h with a ha,
-  exact ⟨a, λ b hb, le_of_lt (ha b hb)⟩
-end
+exists.elim h $ λ a ha, ⟨a, λ b hb, le_of_lt (ha b hb)⟩
 
 lemma unbounded_gt_of_unbounded_ge [preorder α] (h : unbounded (≥) s) : unbounded (>) s :=
-begin
-  intro a,
-  rcases h a with ⟨b, hb, hba⟩,
-  exact ⟨b, hb, λ hba', hba (le_of_lt hba')⟩
-end
+λ a, let ⟨b, hb, hba⟩ := h a in ⟨b, hb, λ hba', hba (le_of_lt hba')⟩
 
 lemma bounded_ge_iff_bounded_gt [preorder α] [no_bot_order α] : bounded (≥) s ↔ bounded (>) s :=
 begin
@@ -169,10 +115,7 @@ theorem bounded_lt_Iio [preorder α] (a : α) : bounded (<) (set.Iio a) :=
 bounded_r_r a
 
 theorem bounded_lt_Iic [preorder α] [no_top_order α] (a : α) : bounded (<) (set.Iic a) :=
-begin
-  cases no_top a with b hab,
-  exact ⟨b, λ c hca, lt_of_le_of_lt hca hab⟩
-end
+exists.elim (no_top a) $ λ b hab, ⟨b, λ c hca, lt_of_le_of_lt hca hab⟩
 
 theorem bounded_le_Iio [preorder α] (a : α) : bounded (≤) (set.Iio a) :=
 bounded_le_of_bounded_lt (bounded_lt_Iio a)
@@ -184,10 +127,7 @@ theorem bounded_gt_Ioi [preorder α] (a : α) : bounded (>) (set.Ioi a) :=
 bounded_r_r a
 
 theorem bounded_gt_Ici [preorder α] [no_bot_order α] (a : α) : bounded (>) (set.Ici a) :=
-begin
-  cases no_bot a with b hab,
-  exact ⟨b, λ c hca, lt_of_lt_of_le hab hca⟩
-end
+exists.elim (no_bot a) $ λ b hab, ⟨b, λ c hca, lt_of_lt_of_le hab hca⟩
 
 theorem bounded_ge_Ioi [preorder α] (a : α) : bounded (≥) (set.Ioi a) :=
 bounded_ge_of_bounded_gt (bounded_gt_Ioi a)
@@ -248,11 +188,8 @@ bounded_of_subset_bounded set.Icc_subset_Ici_self (bounded_ge_Ici a)
 /-! #### Unbounded intervals -/
 
 theorem unbounded_le_Ioi [semilattice_sup α] [no_top_order α] (a : α) : unbounded (≤) (set.Ioi a) :=
-begin
-  intro b,
-  cases no_top (a ⊔ b) with c hc,
-  exact ⟨c, le_sup_left.trans_lt hc, not_le_of_gt (le_sup_right.trans_lt hc)⟩
-end
+λ b, let ⟨c, hc⟩ := no_top (a ⊔ b) in
+  ⟨c, le_sup_left.trans_lt hc, not_le_of_gt (le_sup_right.trans_lt hc)⟩
 
 theorem unbounded_le_Ici [semilattice_sup α] [no_top_order α] (a : α) : unbounded (≤) (set.Ici a) :=
 unbounded_of_unbounded_subset set.Ioi_subset_Ici_self (unbounded_le_Ioi a)

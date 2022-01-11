@@ -751,6 +751,10 @@ lemma continuous_quotient_lift {f : α → β} (hs : ∀ a b, a ≈ b → f a = 
   (h : continuous f) : continuous (quotient.lift f hs : quotient s → β) :=
 continuous_coinduced_dom h
 
+lemma continuous_quotient_lift_on' {f : α → β} (hs : ∀ a b, a ≈ b → f a = f b)
+  (h : continuous f) : continuous (λ x, quotient.lift_on' x f hs : quotient s → β) :=
+continuous_coinduced_dom h
+
 end quotient
 
 section pi

@@ -1282,7 +1282,7 @@ end normality
 
 /-- In a compact t2 space, the connected component of a point equals the intersection of all
 its clopen neighbourhoods. -/
-lemma connected_component_eq_Inter_clopen [t2_space α] [compact_space α] {x : α} :
+lemma connected_component_eq_Inter_clopen [t2_space α] [compact_space α] (x : α) :
   connected_component x = ⋂ Z : {Z : set α // is_clopen Z ∧ x ∈ Z}, Z :=
 begin
   apply eq_of_subset_of_subset connected_component_subset_Inter_clopen,
@@ -1358,7 +1358,7 @@ variables [t2_space α]
 
 /-- A Hausdorff space with a clopen basis is totally separated. -/
 lemma tot_sep_of_zero_dim (h : is_topological_basis {s : set α | is_clopen s}) :
-    totally_separated_space α :=
+  totally_separated_space α :=
 begin
   constructor,
   rintros x - y - hxy,
@@ -1377,7 +1377,7 @@ variables [compact_space α]
 /-- A compact Hausdorff space is totally disconnected if and only if it is totally separated, this
   is also true for locally compact spaces. -/
 theorem compact_t2_tot_disc_iff_tot_sep :
-totally_disconnected_space α ↔ totally_separated_space α :=
+  totally_disconnected_space α ↔ totally_separated_space α :=
 begin
   split,
   { intro h, constructor,
@@ -1499,47 +1499,28 @@ end
 
 end locally_compact
 
-section connected_component_setoid
-local attribute [instance] connected_component_setoid
-
 /-- `connected_components α` is Hausdorff when `α` is Hausdorff and compact -/
 instance connected_components.t2 [t2_space α] [compact_space α] :
   t2_space (connected_components α) :=
 begin
   -- Proof follows that of: https://stacks.math.columbia.edu/tag/0900
   -- Fix 2 distinct connected components, with points a and b
-  refine ⟨λ x y, quotient.induction_on x (quotient.induction_on y (λ a b ne, _))⟩,
-  rw connected_component_nrel_iff at ne,
+  refine ⟨connected_components.surjective_coe.forall₂.2 $ λ a b ne, _⟩,
+  rw connected_components.coe_ne_coe at ne,
   have h := connected_component_disjoint ne,
-  -- write ⟦b⟧ as the intersection of all clopen subsets containing it
-  rw [connected_component_eq_Inter_clopen, disjoint_iff_inter_eq_empty, inter_comm] at h,
-  -- Now we show that this can be reduced to some clopen containing ⟦b⟧ being disjoint to ⟦a⟧
-  cases is_closed_connected_component.is_compact.elim_finite_subfamily_closed _ _ h
-    with fin_a ha,
-  swap, { exact λ Z, Z.2.1.2 },
-  set U : set α := (⋂ (i : {Z // is_clopen Z ∧ b ∈ Z}) (H : i ∈ fin_a), i) with hU,
-  rw ←hU at ha,
-  have hu_clopen : is_clopen U := is_clopen_bInter (λ i j, i.2.1),
-  -- This clopen and its complement will separate the points corresponding to ⟦a⟧ and ⟦b⟧
-  use [quotient.mk '' U, quotient.mk '' Uᶜ],
-  -- Using the fact that clopens are unions of connected components, we show that
-  -- U and Uᶜ is the preimage of a clopen set in the quotient
-  have hu : quotient.mk ⁻¹' (quotient.mk '' U) = U :=
-    (connected_components_preimage_image U ▸ eq.symm) hu_clopen.eq_union_connected_components,
-  have huc : quotient.mk ⁻¹' (quotient.mk '' Uᶜ) = Uᶜ :=
-    (connected_components_preimage_image Uᶜ ▸ eq.symm)
-      (is_clopen.compl hu_clopen).eq_union_connected_components,
-  -- showing that U and Uᶜ are open and separates ⟦a⟧ and ⟦b⟧
-  refine ⟨_,_,_,_,_⟩,
-  { rw [(quotient_map_iff.1 quotient_map_quotient_mk).2 _, hu],
-    exact hu_clopen.1 },
-  { rw [(quotient_map_iff.1 quotient_map_quotient_mk).2 _, huc],
-    exact is_open_compl_iff.2 hu_clopen.2 },
-  { exact mem_image_of_mem _ (mem_Inter.2 (λ Z, mem_Inter.2 (λ Zmem, Z.2.2))) },
-  { apply mem_image_of_mem,
-    exact mem_of_subset_of_mem (subset_compl_iff_disjoint.2 ha) (@mem_connected_component _ _ a) },
-  apply preimage_injective.2 (@surjective_quotient_mk _ _),
-  rw [preimage_inter, preimage_empty, hu, huc, inter_compl_self _],
+  -- write ↑b as the intersection of all clopen subsets containing it
+  rw [connected_component_eq_Inter_clopen b, disjoint_iff_inter_eq_empty] at h,
+  -- Now we show that this can be reduced to some clopen containing `↑b` being disjoint to `↑a`
+  obtain ⟨U, V, hU, ha, hb, rfl⟩ : ∃ (U : set α) (V : set (connected_components α)), is_clopen U ∧
+    connected_component a ∩ U = ∅ ∧ connected_component b ⊆ U ∧ coe ⁻¹' V = U,
+  { cases is_closed_connected_component.is_compact.elim_finite_subfamily_closed _ _ h with fin_a ha,
+    swap, { exact λ Z, Z.2.1.2 },
+    -- This clopen and its complement will separate the connected components of `a` and `b`
+    set U : set α := (⋂ (i : {Z // is_clopen Z ∧ b ∈ Z}) (H : i ∈ fin_a), i),
+    have hU : is_clopen U := is_clopen_bInter (λ i j, i.2.1),
+    exact ⟨U, coe '' U, hU, ha, subset_bInter (λ Z _, Z.2.1.connected_component_subset Z.2.2),
+      (connected_components_preimage_image U).symm ▸ hU.bUnion_connected_component_eq⟩ },
+  rw connected_components.quotient_map_coe.is_clopen_preimage at hU,
+  refine ⟨Vᶜ, V, hU.compl.is_open, hU.is_open, _, hb mem_connected_component, compl_inter_self _⟩,
+  exact λ h, flip set.nonempty.ne_empty ha ⟨a, mem_connected_component, h⟩,
 end
-
-end connected_component_setoid

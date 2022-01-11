@@ -125,9 +125,8 @@ set.ext $ λ x, and_comm _ _
 @[simp] lemma nonempty_Ioo [densely_ordered α] : (Ioo a b).nonempty ↔ a < b :=
 ⟨λ ⟨x, ha, hb⟩, ha.trans hb, exists_between⟩
 
-@[simp] lemma nonempty_Ioi [no_top_order α] : (Ioi a).nonempty := no_top a
-
-@[simp] lemma nonempty_Iio [no_bot_order α] : (Iio a).nonempty := no_bot a
+@[simp] lemma nonempty_Ioi [no_max_order α] : (Ioi a).nonempty := exists_gt a
+@[simp] lemma nonempty_Iio [no_min_order α] : (Iio a).nonempty := exists_lt a
 
 lemma nonempty_Icc_subtype (h : a ≤ b) : nonempty (Icc a b) :=
 nonempty.to_subtype (nonempty_Icc.mpr h)
@@ -149,12 +148,12 @@ nonempty.to_subtype nonempty_Iic
 lemma nonempty_Ioo_subtype [densely_ordered α] (h : a < b) : nonempty (Ioo a b) :=
 nonempty.to_subtype (nonempty_Ioo.mpr h)
 
-/-- In a `no_top_order`, the intervals `Ioi` are nonempty. -/
-instance nonempty_Ioi_subtype [no_top_order α] : nonempty (Ioi a) :=
+/-- In an order without maximal elements, the intervals `Ioi` are nonempty. -/
+instance nonempty_Ioi_subtype [no_max_order α] : nonempty (Ioi a) :=
 nonempty.to_subtype nonempty_Ioi
 
-/-- In a `no_bot_order`, the intervals `Iio` are nonempty. -/
-instance nonempty_Iio_subtype [no_bot_order α] : nonempty (Iio a) :=
+/-- In an order without minimal elements, the intervals `Iio` are nonempty. -/
+instance nonempty_Iio_subtype [no_min_order α] : nonempty (Iio a) :=
 nonempty.to_subtype nonempty_Iio
 
 @[simp] lemma Icc_eq_empty (h : ¬a ≤ b) : Icc a b = ∅ :=

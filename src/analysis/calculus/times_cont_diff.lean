@@ -2764,7 +2764,7 @@ lemma has_ftaylor_series_up_to_on.exists_lipschitz_on_with {E F : Type*}
   {p : E → formal_multilinear_series ℝ E F} {s : set E} {x : E}
   (hf : has_ftaylor_series_up_to_on 1 f p (insert x s)) (hs : convex ℝ s) :
   ∃ K (t ∈ 𝓝[s] x), lipschitz_on_with K f t :=
-(no_top _).imp $ hf.exists_lipschitz_on_with_of_nnnorm_lt hs
+(exists_gt _).imp $ hf.exists_lipschitz_on_with_of_nnnorm_lt hs
 
 /-- If `f` is `C^1` within a conves set `s` at `x`, then it is Lipschitz on a neighborhood of `x`
 within `s`. -/

@@ -102,19 +102,20 @@ begin
   cases int.units_eq_one_or (sign π) with h h,
   { rw is_conj_iff,
     refine ⟨⟨π, mem_alternating_group.mp h⟩, subtype.val_injective _⟩,
-    simpa only [subtype.val_eq_coe, subgroup.coe_mul, coe_inv, coe_mk] using hπ },
+    simpa only [subtype.val_eq_coe, submonoid_class.coe_mul, subgroup_class.coe_inv, subtype.coe_mk]
+      using hπ },
   { have h2 : 2 ≤ σ.supportᶜ.card,
     { rw [finset.card_compl, le_tsub_iff_left σ.support.card_le_univ],
       exact hσ },
     obtain ⟨a, ha, b, hb, ab⟩ := finset.one_lt_card.1 h2,
     refine is_conj_iff.2 ⟨⟨π * swap a b, _⟩, subtype.val_injective _⟩,
     { rw [mem_alternating_group, monoid_hom.map_mul, h, sign_swap ab, int.units_mul_self] },
-    { simp only [←hπ, coe_mk, subgroup.coe_mul, subtype.val_eq_coe],
+    { simp only [←hπ, subtype.coe_mk, submonoid_class.coe_mul, subtype.val_eq_coe],
       have hd : disjoint (swap a b) σ,
       { rw [disjoint_iff_disjoint_support, support_swap ab, finset.disjoint_insert_left,
           finset.disjoint_singleton_left],
         exact ⟨finset.mem_compl.1 ha, finset.mem_compl.1 hb⟩ },
-      rw [mul_assoc π _ σ, hd.commute.eq, coe_inv, coe_mk],
+      rw [mul_assoc π _ σ, hd.commute.eq, subgroup_class.coe_inv, subtype.coe_mk],
       simp [mul_assoc] } }
 end
 
@@ -239,7 +240,7 @@ begin
     alternating_group (fin 5)),
   have h5 : g1 * g2 * g1⁻¹ * g2⁻¹ = ⟨fin_rotate 5, fin_rotate_bit1_mem_alternating_group⟩,
   { rw subtype.ext_iff,
-    simp only [fin.coe_mk, subgroup.coe_mul, subgroup.coe_inv, fin.coe_mk],
+    simp only [fin.coe_mk, submonoid_class.coe_mul, subgroup_class.coe_inv, fin.coe_mk],
     dec_trivial },
   rw [eq_top_iff, ← normal_closure_fin_rotate_five],
   refine normal_closure_le_normal _,

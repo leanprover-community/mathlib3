@@ -863,7 +863,14 @@ end
 theorem dvd_iff_mod_eq_zero {a b : ordinal} : b ∣ a ↔ a % b = 0 :=
 ⟨mod_eq_zero_of_dvd, dvd_of_mod_eq_zero⟩
 
-/-! ### Families of ordinals -/
+/-! ### Families of ordinals
+
+There are two kinds of indexed families that naturally arise when dealing with ordinals: those
+indexed by some type in the appropriate universe, and those indexed by ordinals less than another.
+The following API allows one to convert from one kind of family to the other.
+
+In many cases, this makes it possible to prove claims about one kind of family via the corresponding
+claim on the other. -/
 
 /-- Converts a family indexed by a `Type u` to one indexed by an `ordinal.{u}` using a specified
 well-ordering. -/

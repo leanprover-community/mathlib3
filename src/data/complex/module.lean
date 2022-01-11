@@ -7,7 +7,6 @@ import algebra.order.smul
 import data.complex.basic
 import data.fin.vec_notation
 import field_theory.tower
-import linear_algebra.determinant
 
 /-!
 # Complex number as a vector space over `ℝ`
@@ -228,18 +227,6 @@ begin
   simp [linear_map.to_matrix_apply],
   fin_cases i; fin_cases j; simp
 end
-
-/-- The determinant of `conj_ae`, as a linear map. -/
-@[simp] lemma det_conj_ae : conj_ae.to_linear_map.det = -1 :=
-begin
-  rw [←linear_map.det_to_matrix basis_one_I, to_matrix_conj_ae, matrix.det_fin_two],
-  simp
-end
-
-/-- The determinant of `conj_ae`, as a linear equiv. -/
-@[simp] lemma linear_equiv_det_conj_ae : conj_ae.to_linear_equiv.det = -1 :=
-by rw [←units.eq_iff, linear_equiv.coe_det, ←linear_equiv.to_linear_map_eq_coe,
-       alg_equiv.to_linear_equiv_to_linear_map, det_conj_ae, units.coe_neg_one]
 
 section lift
 

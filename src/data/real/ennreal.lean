@@ -1221,7 +1221,7 @@ lemma add_halves (a : ℝ≥0∞) : a / 2 + a / 2 = a :=
 by rw [div_eq_mul_inv, ← mul_add, inv_two_add_inv_two, mul_one]
 
 @[simp]
-lemma add_thrids (a : ℝ≥0∞) : a / 3 + a / 3 + a / 3 = a :=
+lemma add_thirds (a : ℝ≥0∞) : a / 3 + a / 3 + a / 3 = a :=
 by rw [div_eq_mul_inv, ← mul_add, ← mul_add, inv_three_add_inv_three, mul_one]
 
 @[simp] lemma div_zero_iff : a / b = 0 ↔ a = 0 ∨ b = ∞ :=

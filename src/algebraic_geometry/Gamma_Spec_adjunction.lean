@@ -5,7 +5,7 @@ Authors: Junyan Xu
 -/
 import algebraic_geometry.Scheme
 import category_theory.adjunction.limits
-import category_theory.adjunction.fully_faithful
+import category_theory.adjunction.reflective
 
 /-!
 # Adjunction between `Γ` and `Spec`
@@ -361,5 +361,11 @@ instance : faithful Spec.to_LocallyRingedSpace :=
 R_faithful_of_counit_is_iso Γ_Spec.LocallyRingedSpace_adjunction
 instance Spec.faithful : faithful Scheme.Spec :=
 R_faithful_of_counit_is_iso Γ_Spec.adjunction
+
+instance : is_right_adjoint Spec.to_LocallyRingedSpace := ⟨_, Γ_Spec.LocallyRingedSpace_adjunction⟩
+instance : is_right_adjoint Scheme.Spec := ⟨_, Γ_Spec.adjunction⟩
+
+instance : reflective Spec.to_LocallyRingedSpace := ⟨⟩
+instance Spec.reflective : reflective Scheme.Spec := ⟨⟩
 
 end algebraic_geometry

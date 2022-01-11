@@ -889,11 +889,11 @@ lemma inter_eq_Inter {s₁ s₂ : set α} : s₁ ∩ s₂ = ⋂ b : bool, cond b
 inf_eq_infi s₁ s₂
 
 lemma sInter_union_sInter {S T : set (set α)} :
-  (⋂₀ S) ∪ (⋂₀ T) = (⋂ p ∈ S.prod T, (p : (set α) × (set α)).1 ∪ p.2) :=
+  (⋂₀ S) ∪ (⋂₀ T) = (⋂ p ∈ S ×ˢ T, (p : (set α) × (set α)).1 ∪ p.2) :=
 Inf_sup_Inf
 
 lemma sUnion_inter_sUnion {s t : set (set α)} :
-  (⋃₀ s) ∩ (⋃₀ t) = (⋃ p ∈ s.prod t, (p : (set α) × (set α )).1 ∩ p.2) :=
+  (⋃₀ s) ∩ (⋃₀ t) = (⋃ p ∈ s ×ˢ t, (p : (set α) × (set α )).1 ∩ p.2) :=
 Sup_inf_Sup
 
 lemma bUnion_Union (s : ι → set α) (t : α → set β) :
@@ -1219,38 +1219,38 @@ end preimage
 section prod
 
 theorem monotone_prod [preorder α] {f : α → set β} {g : α → set γ}
-  (hf : monotone f) (hg : monotone g) : monotone (λ x, (f x).prod (g x)) :=
+  (hf : monotone f) (hg : monotone g) : monotone (λ x, f x ×ˢ g x) :=
 λ a b h, prod_mono (hf h) (hg h)
 
 alias monotone_prod ← monotone.set_prod
 
-lemma prod_Union {ι} {s : set α} {t : ι → set β} : s.prod (⋃ i, t i) = ⋃ i, s.prod (t i) :=
+lemma prod_Union {ι} {s : set α} {t : ι → set β} : s ×ˢ (⋃ i, t i) = ⋃ i, s ×ˢ (t i) :=
 by { ext, simp }
 
 lemma prod_bUnion {ι} {u : set ι} {s : set α} {t : ι → set β} :
-  s.prod (⋃ i ∈ u, t i) = ⋃ i ∈ u, s.prod (t i) :=
+  s ×ˢ (⋃ i ∈ u, t i) = ⋃ i ∈ u, s ×ˢ (t i) :=
 by simp_rw [prod_Union]
 
-lemma prod_sUnion {s : set α} {C : set (set β)} : s.prod (⋃₀ C) = ⋃₀ ((λ t, s.prod t) '' C) :=
+lemma prod_sUnion {s : set α} {C : set (set β)} : s ×ˢ (⋃₀ C) = ⋃₀ ((λ t, s ×ˢ t) '' C) :=
 by { simp only [sUnion_eq_bUnion, prod_bUnion, bUnion_image] }
 
-lemma Union_prod_const {ι} {s : ι → set α} {t : set β} : (⋃ i, s i).prod t = ⋃ i, (s i).prod t :=
+lemma Union_prod_const {ι} {s : ι → set α} {t : set β} : (⋃ i, s i) ×ˢ t = ⋃ i, s i ×ˢ t :=
 by { ext, simp }
 
 lemma bUnion_prod_const {ι} {u : set ι} {s : ι → set α} {t : set β} :
-  (⋃ i ∈ u, s i).prod t = ⋃ i ∈ u, (s i).prod t :=
+  (⋃ i ∈ u, s i) ×ˢ t = ⋃ i ∈ u, s i ×ˢ t :=
 by simp_rw [Union_prod_const]
 
 lemma sUnion_prod_const {C : set (set α)} {t : set β} :
-  (⋃₀ C).prod t = ⋃₀ ((λ s : set α, s.prod t) '' C) :=
+  (⋃₀ C) ×ˢ t = ⋃₀ ((λ s : set α, s ×ˢ t) '' C) :=
 by { simp only [sUnion_eq_bUnion, bUnion_prod_const, bUnion_image] }
 
-lemma Union_prod {ι α β} (s : ι → set α) (t : ι → set β) :
-  (⋃ (x : ι × ι), (s x.1).prod (t x.2)) = (⋃ (i : ι), s i).prod (⋃ (i : ι), t i) :=
+lemma Union_prod {ι ι' α β} (s : ι → set α) (t : ι' → set β) :
+  (⋃ (x : ι × ι'), s x.1 ×ˢ t x.2) = (⋃ (i : ι), s i) ×ˢ (⋃ (i : ι'), t i) :=
 by { ext, simp }
 
 lemma Union_prod_of_monotone [semilattice_sup α] {s : α → set β} {t : α → set γ}
-  (hs : monotone s) (ht : monotone t) : (⋃ x, (s x).prod (t x)) = (⋃ x, (s x)).prod (⋃ x, (t x)) :=
+  (hs : monotone s) (ht : monotone t) : (⋃ x, s x ×ˢ t x) = (⋃ x, s x) ×ˢ (⋃ x, t x) :=
 begin
   ext ⟨z, w⟩, simp only [mem_prod, mem_Union, exists_imp_distrib, and_imp, iff_def], split,
   { intros x hz hw, exact ⟨⟨x, hz⟩, x, hw⟩ },
@@ -1324,7 +1324,7 @@ lemma image_seq {f : β → γ} {s : set (α → β)} {t : set α} :
   f '' seq s t = seq ((∘) f '' s) t :=
 by rw [← singleton_seq, ← singleton_seq, seq_seq, image_singleton]
 
-lemma prod_eq_seq {s : set α} {t : set β} : s.prod t = (prod.mk '' s).seq t :=
+lemma prod_eq_seq {s : set α} {t : set β} : s ×ˢ t = (prod.mk '' s).seq t :=
 begin
   ext ⟨a, b⟩,
   split,
@@ -1434,9 +1434,11 @@ disjoint_iff
 lemma not_disjoint_iff : ¬disjoint s t ↔ ∃ x, x ∈ s ∧ x ∈ t :=
 not_forall.trans $ exists_congr $ λ x, not_not
 
-lemma not_disjoint_iff_nonempty_inter {α : Type*} {s t : set α} :
-  ¬disjoint s t ↔ (s ∩ t).nonempty :=
+lemma not_disjoint_iff_nonempty_inter : ¬disjoint s t ↔ (s ∩ t).nonempty :=
 by simp [set.not_disjoint_iff, set.nonempty_def]
+
+lemma disjoint_or_nonempty_inter (s t : set α) : disjoint s t ∨ (s ∩ t).nonempty :=
+(em _).imp_right not_disjoint_iff_nonempty_inter.mp
 
 lemma disjoint_left : disjoint s t ↔ ∀ {a}, a ∈ s → a ∉ t :=
 show (∀ x, ¬(x ∈ s ∩ t)) ↔ _, from ⟨λ h a, not_and.1 $ h a, λ h a, not_and.2 $ h a⟩

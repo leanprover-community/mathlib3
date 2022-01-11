@@ -159,8 +159,8 @@ variables (G : Type*) [comm_group G] [topological_space G] [topological_group G]
       simp [set.subset_def] {contextual := tt},
   symm                :=
   begin
-    suffices : tendsto ((λp, p⁻¹) ∘ (λp:G×G, p.2 / p.1)) (comap (λp:G×G, p.2 / p.1) (𝓝 1)) (𝓝 (1⁻¹)),
-    { simpa [(∘), tendsto_comap_iff] },
+    suffices : tendsto (λp:G×G, (p.2 / p.1)⁻¹) (comap (λp:G×G, p.2 / p.1) (𝓝 1)) (𝓝 1⁻¹),
+    { simpa [tendsto_comap_iff], },
     exact tendsto.comp (tendsto.inv tendsto_id) tendsto_comap
   end,
   comp                :=

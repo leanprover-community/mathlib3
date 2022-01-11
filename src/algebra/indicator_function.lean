@@ -216,6 +216,10 @@ funext $ λa, mul_indicator_union_of_not_mem_inter (λ ha, h ha) _
   mul_indicator s (λa, f a * g a) = λa, mul_indicator s f a * mul_indicator s g a :=
 by { funext, simp only [mul_indicator], split_ifs, { refl }, rw mul_one }
 
+@[to_additive] lemma mul_indicator_mul' (s : set α) (f g : α → M) :
+  mul_indicator s (f * g) = mul_indicator s f * mul_indicator s g :=
+mul_indicator_mul s f g
+
 @[simp, to_additive] lemma mul_indicator_compl_mul_self_apply (s : set α) (f : α → M) (a : α) :
   mul_indicator sᶜ f a * mul_indicator s f a = f a :=
 classical.by_cases (λ ha : a ∈ s, by simp [ha]) (λ ha, by simp [ha])
@@ -287,6 +291,10 @@ mul_indicator_inv' s f
 lemma indicator_sub {G} [add_group G] (s : set α) (f g : α → G) :
   indicator s (λa, f a - g a) = λa, indicator s f a - indicator s g a :=
 (indicator_hom G s).map_sub f g
+
+lemma indicator_sub' {G} [add_group G] (s : set α) (f g : α → G) :
+  indicator s (f - g) = indicator s f - indicator s g :=
+indicator_sub s f g
 
 @[to_additive indicator_compl'] lemma mul_indicator_compl (s : set α) (f : α → G) :
   mul_indicator sᶜ f = f * (mul_indicator s f)⁻¹ :=

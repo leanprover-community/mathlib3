@@ -278,7 +278,7 @@ theorem smul_mem_span_smul_of_mem {s : set S} {t : set A} {k : S} (hks : k ∈ s
   {x : A} (hx : x ∈ t) : k • x ∈ span R (s • t) :=
 span_induction hks (λ c hc, subset_span $ set.mem_smul.2 ⟨c, x, hc, hx, rfl⟩)
   (by { rw zero_smul, exact zero_mem _ })
-  (λ c₁ c₂ ih₁ ih₂, by { rw add_smul, exact add_mem _ ih₁ ih₂ })
+  (λ c₁ c₂ ih₁ ih₂, by { rw add_smul, exact add_mem ih₁ ih₂ })
   (λ b c hc, by { rw is_scalar_tower.smul_assoc, exact smul_mem _ _ hc })
 
 theorem smul_mem_span_smul {s : set S} (hs : span R s = ⊤) {t : set A} {k : S}
@@ -286,7 +286,7 @@ theorem smul_mem_span_smul {s : set S} (hs : span R s = ⊤) {t : set A} {k : S}
   k • x ∈ span R (s • t) :=
 span_induction hx (λ x hx, smul_mem_span_smul_of_mem (hs.symm ▸ mem_top) hx)
   (by { rw smul_zero, exact zero_mem _ })
-  (λ x y ihx ihy, by { rw smul_add, exact add_mem _ ihx ihy })
+  (λ x y ihx ihy, by { rw smul_add, exact add_mem ihx ihy })
   (λ c x hx, smul_comm c k x ▸ smul_mem _ _ hx)
 
 theorem smul_mem_span_smul' {s : set S} (hs : span R s = ⊤) {t : set A} {k : S}
@@ -295,7 +295,7 @@ theorem smul_mem_span_smul' {s : set S} (hs : span R s = ⊤) {t : set A} {k : S
 span_induction hx (λ x hx, let ⟨p, q, hp, hq, hpq⟩ := set.mem_smul.1 hx in
     by { rw [← hpq, smul_smul], exact smul_mem_span_smul_of_mem (hs.symm ▸ mem_top) hq })
   (by { rw smul_zero, exact zero_mem _ })
-  (λ x y ihx ihy, by { rw smul_add, exact add_mem _ ihx ihy })
+  (λ x y ihx ihy, by { rw smul_add, exact add_mem ihx ihy })
   (λ c x hx, smul_comm c k x ▸ smul_mem _ _ hx)
 
 theorem span_smul {s : set S} (hs : span R s = ⊤) (t : set A) :
@@ -304,7 +304,7 @@ le_antisymm (span_le.2 $ λ x hx, let ⟨p, q, hps, hqt, hpqx⟩ := set.mem_smul
   hpqx ▸ (span S t).smul_mem p (subset_span hqt)) $
 λ p hp, span_induction hp (λ x hx, one_smul S x ▸ smul_mem_span_smul hs (subset_span hx))
   (zero_mem _)
-  (λ _ _, add_mem _)
+  (λ _ _, add_mem)
   (λ k x hx, smul_mem_span_smul' hs hx)
 
 end submodule

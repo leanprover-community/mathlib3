@@ -984,7 +984,7 @@ lemma support_update (f : Π₀ i, β i) (i : ι) (b : β i) [decidable (b = 0)]
 begin
   ext j,
   split_ifs with hb,
-  { simp only [hb, update_eq_erase, support_erase] },
+  { substI hb, simp [update_eq_erase, support_erase] },
   { rw [support_update_ne_zero f _ hb] }
 end
 
@@ -1003,8 +1003,7 @@ by ext i; by_cases h : p i; simp [h]
 
 lemma subtype_domain_def (f : Π₀ i, β i) :
   f.subtype_domain p = mk (f.support.subtype p) (λ i, f i) :=
-by { ext i; by_cases h2 : f i ≠ 0; try {simp at h2};
-  dsimp; simp [h2, ← subtype.val_eq_coe], }
+by ext i; by_cases h2 : f i ≠ 0; try {simp at h2}; dsimp; simp [h2]
 
 @[simp] lemma support_subtype_domain {f : Π₀ i, β i} :
   (subtype_domain p f).support = f.support.subtype p :=

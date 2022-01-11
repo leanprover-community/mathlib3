@@ -498,8 +498,7 @@ begin
         function.update_apply, function.update_apply,
         dif_pos h],
     have h_coe : (⟨i, h⟩ : s) = e j ↔ i = e j := subtype.ext_iff.trans (by rw subtype.coe_mk),
-    simp_rw h_coe,
-    congr, },
+    simp_rw h_coe },
   { have : i ≠ e j,
       by { contrapose! h, have : (e j : α) ∈ s := (e j).2, rwa ← h at this },
     simp [h, this] }

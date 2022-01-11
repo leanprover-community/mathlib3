@@ -231,7 +231,7 @@ by split_ifs; rw extend_extends
   (γ.trans γ').symm = γ'.symm.trans γ.symm :=
 begin
   ext t,
-  simp only [trans_apply, one_div, symm_apply, not_le, comp_app],
+  simp only [trans_apply, ← one_div, symm_apply, not_le, comp_app],
   split_ifs with h h₁ h₂ h₃ h₄; rw [coe_symm_eq] at h,
   { have ht : (t : ℝ) = 1/2,
     { linarith [unit_interval.nonneg t, unit_interval.le_one t] },

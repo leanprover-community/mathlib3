@@ -2319,7 +2319,7 @@ begin
 end
 
 theorem mul_fp_iff_dvd_power_omega' {a b : ordinal} (ha : 0 < a) : a * b ≤ b ↔ (a ^ omega) ∣ b :=
-by { rw ←mul_fp_iff_dvd_power_omega, exact (mul_is_normal ha).self_le_iff_eq }
+by { rw ←mul_fp_iff_dvd_power_omega, exact (mul_is_normal ha).le_iff_eq }
 
 /-- `deriv ((*) a)` enumerates the multiples of `a ^ ω`. -/
 theorem mul_deriv_eq_enum_dvd_power_omega {a : ordinal} (ha : 0 < a) :

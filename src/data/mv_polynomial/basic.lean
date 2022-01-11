@@ -236,10 +236,13 @@ lemma monomial_eq_C_mul_X {s : σ} {a : R} {n : ℕ} :
   monomial (single s n) a = C a * (X s)^n :=
 by rw [← zero_add (single s n), monomial_add_single, C_apply]
 
-@[simp] lemma monomial_zero {s : σ →₀ ℕ}: monomial s (0 : R) = 0 :=
+@[simp] lemma monomial_zero {s : σ →₀ ℕ} : monomial s (0 : R) = 0 :=
 single_zero
 
 @[simp] lemma monomial_zero' : (monomial (0 : σ →₀ ℕ) : R → mv_polynomial σ R) = C := rfl
+
+@[simp] lemma monomial_eq_zero {s : σ →₀ ℕ} {b : R} : monomial s b = 0 ↔ b = 0 :=
+finsupp.single_eq_zero
 
 @[simp] lemma sum_monomial_eq {A : Type*} [add_comm_monoid A]
   {u : σ →₀ ℕ} {r : R} {b : (σ →₀ ℕ) → R → A} (w : b u 0 = 0) :

@@ -1141,18 +1141,29 @@ section span
 
 open submodule
 
+variable (K)
+
+
+/-- The rank of a set of vectors as a natural number. -/
+protected noncomputable def set.finrank (s : set V) : ℕ := finrank K (span K s)
+
+variable {K}
+
+lemma set.finrank_mono [finite_dimensional K V] {s t : set V} (h : s ⊆ t) :
+  s.finrank K ≤ t.finrank K := finrank_mono (span_mono h)
+
 lemma finrank_span_le_card (s : set V) [fin : fintype s] :
   finrank K (span K s) ≤ s.to_finset.card :=
 begin
   haveI := span_of_finite K ⟨fin⟩,
   have : module.rank K (span K s) ≤ #s := dim_span_le s,
   rw [←finrank_eq_dim, cardinal.mk_fintype, ←set.to_finset_card] at this,
-  exact_mod_cast this
+  exact_mod_cast this,
 end
 
 lemma finrank_span_finset_le_card (s : finset V)  :
-  finrank K (span K (s : set V)) ≤ s.card :=
-calc finrank K (span K (s : set V)) ≤ (s : set V).to_finset.card : finrank_span_le_card s
+  (s : set V).finrank K ≤ s.card :=
+calc (s : set V).finrank K ≤ (s : set V).to_finset.card : finrank_span_le_card s
                                 ... = s.card : by simp
 
 lemma finrank_span_eq_card {ι : Type*} [fintype ι] {b : ι → V}
@@ -1172,7 +1183,7 @@ begin
   haveI := span_of_finite K ⟨fin⟩,
   have : module.rank K (span K s) = #s := dim_span_set hs,
   rw [←finrank_eq_dim, cardinal.mk_fintype, ←set.to_finset_card] at this,
-  exact_mod_cast this
+  exact_mod_cast this,
 end
 
 lemma finrank_span_finset_eq_card (s : finset V)
@@ -1181,7 +1192,7 @@ lemma finrank_span_finset_eq_card (s : finset V)
 begin
   convert finrank_span_set_eq_card ↑s hs,
   ext,
-  simp
+  simp,
 end
 
 lemma span_lt_of_subset_of_card_lt_finrank {s : set V} [fintype s] {t : submodule K V}
@@ -1257,7 +1268,7 @@ end
 /-- A finite family of vectors is linearly independent if and only if
 its cardinality equals the dimension of its span. -/
 lemma linear_independent_iff_card_eq_finrank_span {ι : Type*} [fintype ι] {b : ι → V} :
-  linear_independent K b ↔ fintype.card ι = finrank K (span K (set.range b)) :=
+  linear_independent K b ↔ fintype.card ι = (set.range b).finrank K :=
 begin
   split,
   { intro h,

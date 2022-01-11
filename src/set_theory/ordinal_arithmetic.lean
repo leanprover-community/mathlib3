@@ -568,7 +568,7 @@ quotient.sound ⟨⟨sum_prod_distrib _ _ _, begin
 end⟩⟩
 
 @[simp] theorem mul_add_one (a b : ordinal) : a * (b + 1) = a * b + a :=
-by simp only [mul_add, mul_one]
+by rw [mul_add, mul_one]
 
 @[simp] theorem mul_succ (a b : ordinal) : a * succ b = a * b + a := mul_add_one _ _
 
@@ -890,6 +890,14 @@ begin
   exact hao.not_le (sup_le.2 (λ i, lt_succ.1 ((lt_of_le_of_ne (le_sup _ _) (hf i)).trans_le hoa)))
 end
 
+@[simp] theorem sup_eq_zero_iff {ι} {f : ι → ordinal} : sup f = 0 ↔ ∀ i, f i = 0 :=
+begin
+  refine ⟨λ h i, _, λ h, le_antisymm
+    (sup_le.2 (λ i, ordinal.le_zero.2 (h i))) (ordinal.zero_le _)⟩,
+  rw [←ordinal.le_zero, ←h],
+  exact le_sup f i
+end
+
 theorem is_normal.sup {f} (H : is_normal f)
   {ι} {g : ι → ordinal} (h : nonempty ι) : f (sup g) = sup (f ∘ g) :=
 eq_of_forall_ge_iff $ λ a,
@@ -969,6 +977,14 @@ theorem bsup_not_succ_of_ne_bsup {o} {f : Π a < o, ordinal}
   a < bsup o f → succ a < bsup o f :=
 by { rw bsup_eq_sup at *, exact sup_not_succ_of_ne_sup (λ i, hf _) }
 
+@[simp] theorem bsup_eq_zero_iff {o} {f : Π a < o, ordinal} : bsup o f = 0 ↔ ∀ i hi, f i hi = 0 :=
+begin
+  refine ⟨λ h i hi, _, λ h, le_antisymm
+    (bsup_le.2 (λ i hi, ordinal.le_zero.2 (h i hi))) (ordinal.zero_le _)⟩,
+  rw [←ordinal.le_zero, ←h],
+  exact le_bsup f i hi,
+end
+
 theorem lt_bsup_of_limit {o : ordinal} {f : Π a < o, ordinal}
   (hf : ∀ {a a'} (ha : a < o) (ha' : a' < o), a < a' → f a ha < f a' ha')
   (ho : o.is_limit) (i h) : f i h < bsup o f :=
@@ -1029,6 +1045,20 @@ begin
   exact lt_irrefl _ this
 end
 
+lemma lsub_eq_zero {ι} [h : is_empty ι] (f : ι → ordinal) : lsub f = 0 :=
+by { rw [←ordinal.le_zero, lsub_le_iff_lt], exact h.elim }
+
+lemma lsub_pos {ι} [h : nonempty ι] (f : ι → ordinal) : 0 < lsub f :=
+h.elim $ λ i, (ordinal.zero_le _).trans_lt (lt_lsub f i)
+
+@[simp] theorem lsub_eq_zero_iff {ι} {f : ι → ordinal} : lsub f = 0 ↔ is_empty ι :=
+begin
+  refine ⟨λ h, ⟨λ i, _⟩, λ h, @lsub_eq_zero _ h _⟩,
+  have := @lsub_pos _ ⟨i⟩ f,
+  rw h at this,
+  exact lt_irrefl 0 this
+end
+
 /-- The bounded least strict upper bound of a family of ordinals. -/
 def blsub (o : ordinal.{u}) (f : Π a < o, ordinal.{max u v}) : ordinal.{max u v} :=
 o.bsup (λ a ha, (f a ha).succ)
@@ -1076,6 +1106,15 @@ theorem bsup_eq_blsub {o} (f : Π a < o, ordinal) :
   bsup o f = blsub o f ↔ ∀ a < blsub o f, succ a < blsub o f :=
 by { rw [bsup_eq_sup, blsub_eq_lsub], exact sup_eq_lsub _ }
 
+@[simp] theorem blsub_eq_zero_iff {o} {f : Π a < o, ordinal} : blsub o f = 0 ↔ o = 0 :=
+by { rw [blsub_eq_lsub, lsub_eq_zero_iff], exact out_empty_iff_eq_zero }
+
+lemma blsub_eq_zero {o : ordinal} (ho : o = 0) (f : Π a < o, ordinal) : blsub o f = 0 :=
+by rwa blsub_eq_zero_iff
+
+lemma blsub_pos {o : ordinal} (ho : 0 < o) (f : Π a < o, ordinal) : 0 < blsub o f :=
+(ordinal.zero_le _).trans_lt (lt_blsub f 0 ho)
+
 theorem blsub_type (r : α → α → Prop) [is_well_order α r] (f) :
   blsub (type r) f = lsub (λ a, f (typein r a) (typein_lt_type _ _)) :=
 eq_of_forall_ge_iff $ λ o,
@@ -1089,6 +1128,123 @@ begin
     exact λ _, id },
   by_contra' h,
   exact lt_irrefl _ (lt_blsub.{u u} (λ x _, x) _ h)
+end
+
+/-! ### Enumerating unbounded sets of ordinals with ordinals -/
+
+section
+variables {S : set ordinal.{u}} (hS : unbounded (<) S)
+
+-- A characterization of unboundedness that's more convenient to our purposes.
+private lemma unbounded_aux (hS : unbounded (<) S) (a) : ∃ b, b ∈ S ∧ a ≤ b :=
+by { rcases hS a with ⟨b, hb, hb'⟩, exact ⟨b, hb, le_of_not_gt hb'⟩ }
+
+/-- Enumerator function for an unbounded set of ordinals. -/
+def enum_ord : ordinal.{u} → ordinal.{u} :=
+wf.fix (λ o f, omin _ (unbounded_aux hS (blsub.{u u} o f)))
+
+/-- The hypothesis that asserts that the `omin` from `enum_ord_def'` exists. -/
+lemma enum_ord_def'_H {hS : unbounded (<) S} {o} :
+  ∃ x, x ∈ S ∧ blsub.{u u} o (λ c _, enum_ord hS c) ≤ x :=
+unbounded_aux hS _
+
+/-- The equation that characterizes `enum_ord` definitionally. This isn't the nicest expression to
+work with, so consider using `enum_ord_def` instead. -/
+theorem enum_ord_def' (o) :
+  enum_ord hS o = omin (λ b, b ∈ S ∧ blsub.{u u} o (λ c _, enum_ord hS c) ≤ b) enum_ord_def'_H :=
+wf.fix_eq _ _
+
+private theorem enum_ord_mem_aux (o) :
+  S (enum_ord hS o) ∧ blsub.{u u} o (λ c _, enum_ord hS c) ≤ (enum_ord hS o) :=
+by { rw enum_ord_def', exact omin_mem (λ _, _ ∧ _) _ }
+
+theorem enum_ord_mem (o) : enum_ord hS o ∈ S := (enum_ord_mem_aux hS o).left
+
+theorem blsub_le_enum_ord (o) : blsub.{u u} o (λ c _, enum_ord hS c) ≤ enum_ord hS o :=
+(enum_ord_mem_aux hS o).right
+
+theorem enum_ord.strict_mono {hS : unbounded (<) S} : strict_mono (enum_ord hS) :=
+λ _ _ h, lt_of_lt_of_le (lt_blsub.{u u} _ _ h) (blsub_le_enum_ord hS _)
+
+/-- The hypothesis that asserts that the `omin` from `enum_ord_def` exists. -/
+lemma enum_ord_def_H {hS : unbounded (<) S} {o} :
+  ∃ x, (λ b, b ∈ S ∧ ∀ c, c < o → enum_ord hS c < b) x :=
+(⟨_, enum_ord_mem hS o, λ _ b, enum_ord.strict_mono b⟩)
+
+/-- A more workable definition for `enum_ord`. -/
+theorem enum_ord_def (o) :
+  enum_ord hS o = omin (λ b, b ∈ S ∧ ∀ c, c < o → enum_ord hS c < b) enum_ord_def_H :=
+begin
+  rw enum_ord_def',
+  have : (λ b, b ∈ S ∧ blsub.{u u} o (λ c _, enum_ord hS c) ≤ b) =
+    (λ b, b ∈ S ∧ ∀ c, c < o → _ < b) :=
+  funext (λ _, propext ⟨λ ⟨hl, hr⟩, ⟨hl, λ _ h, lt_of_lt_of_le (lt_blsub.{u u} _ _ h) hr⟩,
+    λ ⟨hl, hr⟩, ⟨hl, blsub_le_iff_lt.2 hr⟩⟩),
+  simp_rw this,
+  refl
+end
+
+theorem enum_ord.surjective {hS : unbounded (<) S} : ∀ s ∈ S, ∃ a, enum_ord hS a = s :=
+begin
+  by_contra' H,
+  cases omin_mem _ H with hal har,
+  apply har (omin (λ b, omin _ H ≤ enum_ord hS b)
+    ⟨_, well_founded.self_le_of_strict_mono wf enum_ord.strict_mono _⟩),
+  rw enum_ord_def,
+  refine le_antisymm (omin_le ⟨hal, λ b hb, _⟩) _,
+  { by_contra' h,
+    exact not_lt_of_le (@omin_le _ _ b h) hb },
+  rw le_omin,
+  rintros b ⟨hb, hbr⟩,
+  by_contra' hba,
+  refine @not_lt_omin _ H _ ⟨hb, (λ d hdb, ne_of_lt (hbr d _) hdb)⟩ hba,
+  by_contra' hcd,
+  apply not_le_of_lt hba,
+  rw ←hdb,
+  refine le_trans _ (enum_ord.strict_mono.monotone hcd),
+  exact omin_mem (λ _, omin _ H ≤ _) _
+end
+
+/-- An order isomorphism between an unbounded set of ordinals and the ordinals. -/
+def enum_ord.order_iso : ordinal.{u} ≃o S :=
+strict_mono.order_iso_of_surjective (λ o, ⟨_, enum_ord_mem hS o⟩) enum_ord.strict_mono
+begin
+  convert @enum_ord.surjective _ hS,
+  refine propext ⟨λ h s hs, _, λ h a, _⟩,
+  { cases h ⟨s, hs⟩ with a ha,
+    exact ⟨a, subtype.mk.inj ha⟩ },
+  cases h a a.prop with s hs,
+  exact ⟨s, subtype.eq hs⟩
+end
+
+theorem enum_ord_range : range (enum_ord hS) = S :=
+by { rw range_eq_iff, exact ⟨enum_ord_mem hS, enum_ord.surjective⟩ }
+
+/-- A characterization of `enum_ord`: it is the unique strict monotonic function with range `S`. -/
+theorem eq_enum_ord (f : ordinal.{u} → ordinal.{u}) :
+  strict_mono f ∧ range f = S ↔ f = enum_ord hS :=
+begin
+  split, swap,
+  { rintro ⟨h⟩,
+    exact ⟨enum_ord.strict_mono, enum_ord_range hS⟩ },
+  rw range_eq_iff,
+  rintro ⟨h, hl, hr⟩,
+  refine funext (λ a, _),
+  apply wf.induction a,
+  refine λ b H, le_antisymm _ _,
+  { cases hr _ (enum_ord_mem hS b) with d hd,
+    rw ←hd,
+    apply h.monotone,
+    by_contra' hbd,
+    have := enum_ord.strict_mono hbd,
+    rw ←(H d hbd) at this,
+    exact ne_of_lt this hd },
+  rw enum_ord_def,
+  refine omin_le ⟨hl b, λ c hc, _⟩,
+  rw ←(H c hc),
+  exact h hc
+end
+
 end
 
 /-! ### Ordinal exponential -/
@@ -1437,7 +1593,7 @@ by rw [CNF_rec, dif_neg o0]
   in the base-`b` expansion of `o`.
 
     CNF b (b ^ u₁ * v₁ + b ^ u₂ * v₂) = [(u₁, v₁), (u₂, v₂)] -/
-noncomputable def CNF (b := omega) (o : ordinal) : list (ordinal × ordinal) :=
+def CNF (b := omega) (o : ordinal) : list (ordinal × ordinal) :=
 if b0 : b = 0 then [] else
 CNF_rec b0 [] (λ o o0 h IH, (log b o, o / b ^ log b o) :: IH) o
 

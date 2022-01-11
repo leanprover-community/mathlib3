@@ -194,7 +194,7 @@ is_topological_basis_of_open_of_nhds (by tauto) (by tauto)
 
 protected lemma is_topological_basis.prod {β} [topological_space β] {B₁ : set (set α)}
   {B₂ : set (set β)} (h₁ : is_topological_basis B₁) (h₂ : is_topological_basis B₂) :
-  is_topological_basis (image2 set.prod B₁ B₂) :=
+  is_topological_basis (image2 (×ˢ) B₁ B₂) :=
 begin
   refine is_topological_basis_of_open_of_nhds _ _,
   { rintro _ ⟨u₁, u₂, hu₁, hu₂, rfl⟩,
@@ -202,7 +202,7 @@ begin
   { rintro ⟨a, b⟩ u hu uo,
     rcases (h₁.nhds_has_basis.prod_nhds h₂.nhds_has_basis).mem_iff.1 (is_open.mem_nhds uo hu)
       with ⟨⟨s, t⟩, ⟨⟨hs, ha⟩, ht, hb⟩, hu⟩,
-    exact ⟨s.prod t, mem_image2_of_mem hs ht, ⟨ha, hb⟩, hu⟩ }
+    exact ⟨s ×ˢ t, mem_image2_of_mem hs ht, ⟨ha, hb⟩, hu⟩ }
 end
 
 protected lemma is_topological_basis.inducing {β} [topological_space β]

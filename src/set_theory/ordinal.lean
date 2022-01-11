@@ -3,8 +3,10 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Floris van Doorn
 -/
-import set_theory.cardinal
+import data.sum.order
 import order.conditionally_complete_lattice
+import order.succ_pred
+import set_theory.cardinal
 
 /-!
 # Ordinals
@@ -757,6 +759,23 @@ by simp only [le_antisymm_iff, ordinal.zero_le, and_true]
 protected theorem pos_iff_ne_zero {o : ordinal} : 0 < o ↔ o ≠ 0 :=
 by simp only [lt_iff_le_and_ne, ordinal.zero_le, true_and, ne.def, eq_comm]
 
+lemma eq_zero_of_out_empty (o : ordinal) [h : is_empty o.out.α] : o = 0 :=
+begin
+  by_contra ho,
+  replace ho := ordinal.pos_iff_ne_zero.2 ho,
+  rw ←type_out o at ho,
+  have α := enum o.out.r 0 ho,
+  exact h.elim α
+end
+
+@[simp] theorem out_empty_iff_eq_zero {o : ordinal} : is_empty o.out.α ↔ o = 0 :=
+begin
+  refine ⟨@eq_zero_of_out_empty o, λ h, ⟨λ i, _⟩⟩,
+  have := typein_lt_self i,
+  subst h,
+  exact not_lt_of_le (ordinal.zero_le _) this
+end
+
 instance : has_one ordinal :=
 ⟨⟦⟨punit, empty_relation, by apply_instance⟩⟧⟩
 
@@ -913,7 +932,7 @@ the addition, together with properties of the other operations, are proved in
   every element of `o₁` is smaller than every element of `o₂`. -/
 instance : has_add ordinal.{u} :=
 ⟨λo₁ o₂, quotient.lift_on₂ o₁ o₂
-  (λ ⟨α, r, wo⟩ ⟨β, s, wo'⟩, ⟦⟨α ⊕ β, sum.lex r s, by exactI sum.lex.is_well_order⟩⟧
+  (λ ⟨α, r, wo⟩ ⟨β, s, wo'⟩, ⟦⟨α ⊕ β, sum.lex r s, by exactI sum.lex.is_well_order _ _⟩⟧
     : Well_order → Well_order → ordinal) $
 λ ⟨α₁, r₁, o₁⟩ ⟨α₂, r₂, o₂⟩ ⟨β₁, s₁, p₁⟩ ⟨β₂, s₂, p₂⟩ ⟨f⟩ ⟨g⟩,
 quot.sound ⟨rel_iso.sum_lex_congr f g⟩⟩
@@ -944,7 +963,7 @@ instance : add_monoid ordinal.{u} :=
     λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨γ, t, _⟩, quot.sound
     ⟨⟨sum_assoc _ _ _, λ a b,
     begin rcases a with ⟨a|a⟩|a; rcases b with ⟨b|b⟩|b;
-      simp only [sum_assoc_apply_in1, sum_assoc_apply_in2, sum_assoc_apply_in3,
+      simp only [sum_assoc_apply_inl_inl, sum_assoc_apply_inl_inr, sum_assoc_apply_inr,
         sum.lex_inl_inl, sum.lex_inr_inr, sum.lex.sep, sum.lex_inr_inl] end⟩⟩ }
 
 theorem add_le_add_left {a b : ordinal} : a ≤ b → ∀ c, c + a ≤ c + b :=
@@ -1030,6 +1049,8 @@ instance : linear_order ordinal :=
 
 instance : is_well_order ordinal (<) := ⟨wf⟩
 
+instance : succ_order ordinal := succ_order.of_succ_le_iff succ (λ _ _, succ_le)
+
 @[simp] lemma typein_le_typein (r : α → α → Prop) [is_well_order α r] {x x' : α} :
   typein r x ≤ typein r x' ↔ ¬r x' x :=
 by rw [←not_lt, typein_lt_typein]
@@ -1112,6 +1133,9 @@ le_min.trans set_coe.forall
 theorem omin_le {S H i} (h : i ∈ S) : omin S H ≤ i :=
 le_omin.1 (le_refl _) _ h
 
+theorem not_lt_omin {S H i} (h : i ∈ S) : ¬ i < omin S H :=
+not_lt_of_le (omin_le h)
+
 @[simp] theorem lift_min {ι} (I) (f : ι → ordinal) : lift (min I f) = min I (lift ∘ f) :=
 le_antisymm (le_min.2 $ λ a, lift_le.2 $ min_le _ a) $
 let ⟨i, e⟩ := min_eq I (lift ∘ f) in
@@ -1123,6 +1147,9 @@ wf.conditionally_complete_linear_order_with_bot 0 $ le_antisymm (ordinal.zero_le
   not_lt.1 (wf.not_lt_min set.univ ⟨0, mem_univ _⟩ (mem_univ 0))
 
 @[simp] lemma bot_eq_zero : (⊥ : ordinal) = 0 := rfl
+
+protected theorem not_lt_zero (o : ordinal) : ¬ o < 0 :=
+not_lt_bot
 
 lemma Inf_eq_omin {s : set ordinal} (hs : s.nonempty) :
   Inf s = omin s hs :=
@@ -1137,7 +1164,7 @@ lemma Inf_mem {s : set ordinal} (hs : s.nonempty) :
   Inf s ∈ s :=
 by { rw Inf_eq_omin hs, exact omin_mem _ hs }
 
-instance : no_top_order ordinal :=
+instance : no_max_order ordinal :=
 ⟨λ a, ⟨a.succ, lt_succ_self a⟩⟩
 
 end ordinal

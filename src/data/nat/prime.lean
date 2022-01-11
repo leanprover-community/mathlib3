@@ -545,25 +545,6 @@ begin
   { rw pow_succ at h, exact (pp.dvd_mul.1 h).elim id IH }
 end
 
-lemma prime.pow_dvd_of_dvd_mul_right {p n a b : ℕ} (hp : p.prime) (h : p ^ n ∣ a * b)
-  (hpb : ¬ p ∣ b) : p ^ n ∣ a :=
-begin
-  induction n with n ih,
-  { simp only [one_dvd, pow_zero] },
-  { rw [pow_succ'] at *,
-    rcases ih ((dvd_mul_right _ _).trans h) with ⟨c, rfl⟩,
-    rw [mul_assoc] at h,
-    rcases hp.dvd_mul.1 (nat.dvd_of_mul_dvd_mul_left (pow_pos hp.pos _) h)
-      with ⟨d, rfl⟩|⟨d, rfl⟩,
-    { rw [← mul_assoc],
-      exact dvd_mul_right _ _ },
-    { exact (hpb (dvd_mul_right _ _)).elim } }
-end
-
-lemma prime.pow_dvd_of_dvd_mul_left {p n a b : ℕ} (hp : p.prime) (h : p ^ n ∣ a * b)
-  (hpb : ¬ p ∣ a) : p ^ n ∣ b :=
-by rw [mul_comm] at h; exact hp.pow_dvd_of_dvd_mul_right h hpb
-
 lemma prime.pow_not_prime {x n : ℕ} (hn : 2 ≤ n) : ¬ (x ^ n).prime :=
 λ hp, (hp.eq_one_or_self_of_dvd x $ dvd_trans ⟨x, sq _⟩ (pow_dvd_pow _ hn)).elim
   (λ hx1, hp.ne_one $ hx1.symm ▸ one_pow _)
@@ -819,6 +800,18 @@ begin
   rw [←list.prod_append,
       list.perm.prod_eq $ list.subperm_append_diff_self_of_count_le $ list.subperm_ext_iff.mp h,
       nat.prod_factors hb]
+end
+
+lemma pow_factors_count_dvd (n p : ℕ) :
+  p ^ n.factors.count p ∣ n :=
+begin
+  by_cases hp : p.prime,
+  { apply dvd_of_factors_subperm (pow_ne_zero _ hp.ne_zero),
+    rw [hp.factors_pow, list.subperm_ext_iff],
+    intros q hq,
+    simp [list.eq_of_mem_repeat hq] },
+  { rw count_eq_zero_of_not_mem (mt prime_of_mem_factors hp),
+    simp },
 end
 
 end

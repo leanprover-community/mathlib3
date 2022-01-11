@@ -183,7 +183,7 @@ begin
   by_cases hq : q = 0,
   { subst hq,
     simp only [mk_zero, f0, ← localization.mk_zero 1, localization.lift_on_mk,
-               lift_on_of_fraction_ring_mk, submonoid.coe_one], },
+               lift_on_of_fraction_ring_mk, submonoid_class.coe_one], },
   { simp only [mk_eq_localization_mk _ hq, localization.lift_on_mk, lift_on_of_fraction_ring_mk,
                set_like.coe_mk] }
 end
@@ -206,7 +206,6 @@ begin
          ... = f p' q' : H hq' hp
 end
 
--- f
 /-- Non-dependent recursion principle for `ratfunc K`: if `f p q : P` for all `p q`,
 such that `f (a * p) (a * q) = f p q`, then we can find a value of `P`
 for all elements of `ratfunc K` by setting `lift_on' (p / q) f _ = f p q`.

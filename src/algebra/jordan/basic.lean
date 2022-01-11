@@ -156,6 +156,10 @@ class comm_jordan :=
 
 variable [comm_jordan A]
 
+instance : comm_monoid A :=
+{ mul_comm := λ a b, comm_jordan.mul_comm a b,
+  .. (show non_unital_non_assoc_ring A, by apply_instance) }
+
 lemma comm_jordan_operators  {A : Type*} [non_unital_non_assoc_ring A] [comm_jordan A] :
   (∀ a: A, L a = R a) ∧ (∀ a: A, ⁅L a, L (a*a)⁆ = 0) :=
 begin

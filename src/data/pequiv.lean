@@ -202,7 +202,7 @@ end
   intro,
   rw [← mem_of_set_self_iff, h],
   exact rfl
-end, λ h, by simp only [of_set_univ.symm, h]; congr⟩
+end, λ h, by simp only [← of_set_univ, h]⟩
 
 end of_set
 

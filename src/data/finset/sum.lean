@@ -46,10 +46,10 @@ lemma disj_sum_mono (hs : s₁ ⊆ s₂) (ht : t₁ ⊆ t₂) : s₁.disj_sum t�
 val_le_iff.1 $ disj_sum_mono (val_le_iff.2 hs) (val_le_iff.2 ht)
 
 lemma disj_sum_mono_left (hs : s₁ ⊆ s₂) (t : finset β) : s₁.disj_sum t ⊆ s₂.disj_sum t :=
-disj_sum_mono hs subset_rfl
+disj_sum_mono hs subset.rfl
 
 lemma disj_sum_mono_right (s : finset α) : monotone (s.disj_sum : finset β → finset (α ⊕ β)) :=
-λ t₁ t₂, disj_sum_mono subset_rfl
+λ t₁ t₂, disj_sum_mono subset.rfl
 
 lemma disj_sum_ssubset_disj_sum_of_ssubset_of_subset (hs : s₁ ⊂ s₂) (ht : t₁ ⊆ t₂) :
   s₁.disj_sum t₁ ⊂ s₂.disj_sum t₂ :=

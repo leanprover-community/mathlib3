@@ -280,7 +280,7 @@ noncomputable instance : linear_order enat :=
 { le_total := is_total.total,
   decidable_le := classical.dec_rel _,
   max := (⊔),
-  max_def := sup_eq_max_default,
+  max_def := @sup_eq_max_default _ _ (id _) _,
   ..enat.partial_order }
 
 instance : bounded_order enat :=

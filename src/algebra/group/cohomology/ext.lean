@@ -22,6 +22,48 @@ variables (G : Type u) [group G] (M : Type u) [add_comm_group M]
 
 noncomputable theory
 
+open category_theory category_theory.limits
+open_locale zero_object
+def homology_to_op_unop {C : Type*} [category C] [abelian C] {X Y Z : C}
+  (f : X ⟶ Y) (g : Y ⟶ Z) (w : f ≫ g = 0) :
+  homology f g w ⟶ (homology g.op f.op (by rw [←op_comp, w, op_zero])).unop :=
+homology.desc f g w (kernel.lift (image_to_kernel g.op f.op _).unop
+  ((limits.kernel_subobject g).arrow ≫ cokernel.π f ≫ (kernel_op_unop f).inv
+  ≫ (kernel_subobject_iso f.op).hom.unop) sorry ≫
+  (kernel_unop_unop (image_to_kernel g.op f.op _)).hom) sorry
+
+instance {C : Type*} [category C] [abelian C] {X Y Z : C}
+  (f : X ⟶ Y) (g : Y ⟶ Z) (w : f ≫ g = 0) :
+  is_iso (homology_to_op_unop f g w) :=
+@abelian.is_iso_of_mono_of_epi _ _ _ _ _ (homology_to_op_unop f g w) sorry sorry
+example {C : Type*} [category C] [abelian C] : has_zero C := by apply_instance
+
+/- I get fighting has_zero_object instances later in the file unless I add `h` here. But
+ I swear adding `h` here is not a good idea -/
+def chain_complex.homology_of_rel {C : Type*} [category C] [abelian C] {h : has_zero_object C}
+  (X : chain_complex C ℕ)
+  {i : ℕ} (j : ℕ) {k : ℕ} (hj : j + 1 = i) (hk : k + 1 = j) :
+  homology (X.d i j) (X.d j k) sorry ≅ (homology_functor _ _ j).obj X :=
+homology.map_iso _ _ (arrow.iso_mk (X.X_prev_iso hj).symm (eq_to_iso rfl) sorry)
+  (arrow.iso_mk (eq_to_iso rfl) (X.X_next_iso hk).symm sorry) sorry
+
+def chain_complex.homology_zero {C : Type*} [category C] [abelian C] (X : chain_complex C ℕ) :
+  homology (X.d 1 0) (0 : X.X 0 ⟶ 0) sorry ≅ (homology_functor _ _ 0).obj X :=
+homology.map_iso _ _ (arrow.iso_mk (X.X_prev_iso rfl).symm (eq_to_iso rfl) sorry)
+  (arrow.iso_mk (eq_to_iso rfl) (X.X_next_iso_zero chain_complex.next_nat_zero).symm sorry) sorry
+
+def cochain_complex.homology_of_rel {C : Type*} [category C] [abelian C] {h : has_zero_object C}
+  (X : cochain_complex C ℕ) {i : ℕ} (j : ℕ) {k : ℕ} (hj : i + 1 = j) (hk : j + 1 = k) :
+  homology (X.d i j) (X.d j k) sorry ≅ (homology_functor _ _ j).obj X :=
+homology.map_iso _ _ (arrow.iso_mk (X.X_prev_iso hj).symm (eq_to_iso rfl) sorry)
+  (arrow.iso_mk (eq_to_iso rfl) (X.X_next_iso hk).symm sorry) sorry
+
+def cochain_complex.homology_zero {C : Type*} [category C] [abelian C] (X : cochain_complex C ℕ) :
+  homology (0 : 0 ⟶ X.X 0) (X.d 0 1) sorry ≅ (homology_functor _ _ 0).obj X :=
+homology.map_iso _ _ (arrow.iso_mk (X.X_prev_iso_zero
+  cochain_complex.prev_nat_zero).symm (eq_to_iso rfl) sorry)
+  (arrow.iso_mk (eq_to_iso rfl) (X.X_next_iso rfl).symm sorry) sorry
+
 def cochain_succ.complex : cochain_complex (Module ℤ) ℕ :=
 cochain_complex.of (λ n, Module.of ℤ $ cochain_succ G M (n + 1))
  (λ i, (cochain_succ.d rfl).to_int_linear_map)
@@ -33,38 +75,17 @@ local attribute [instance] group_ring.to_module
 `ℤ[G]`-linear homs `ℤ[Gⁿ] → M`. -/
 def cochain_succ_add_equiv : cochain_succ G M n ≃+ (group_ring (fin n → G) →ₗ[group_ring G] M) :=
 { to_fun := λ f,
-  { map_smul' := λ g x,
-    by {
-    refine g.induction_on _ _ _,
-    { intro g,
-      refine x.induction_on _ _ _,
-      { intro x,
-        simp only [finsupp.lift_add_hom_apply_single, finsupp.lift_add_hom_apply, one_zsmul,
-          add_monoid_hom.to_fun_eq_coe, zmultiples_hom_apply, group_ring.of_apply],
-        erw [group_ring.of_smul_of, finsupp.sum_single_index],
-        { rw finsupp.sum_single_index,
-          { show _ = finsupp.total _ _ _ _ _,
-            simp only [zmultiples_hom_apply, one_smul, f.smul_apply,
-              finsupp.total_single, ring_hom.id_apply],
-            refl,},
-          { exact add_monoid_hom.map_zero _}},
+  { map_smul' := λ g x, by { refine group_ring.map_smul_of_map_of_smul_of
+        (finsupp.lift_add_hom (λ v, zmultiples_hom M (f v))) _ _ _,
+      intros g x,
+      simp only [finsupp.lift_add_hom_apply_single, finsupp.lift_add_hom_apply, one_zsmul,
+        add_monoid_hom.to_fun_eq_coe, zmultiples_hom_apply, group_ring.of_apply],
+      erw [group_ring.of_smul_of, finsupp.sum_single_index],
+      { rw finsupp.sum_single_index,
+        { show _ = finsupp.total _ _ _ _ _, by simpa },
         { exact add_monoid_hom.map_zero _}},
-      { intros f g hf hg,
-        simp only [smul_add, add_monoid_hom.to_fun_eq_coe, add_monoid_hom.map_add] at hf hg ⊢,
-        rw [hf, hg] },
-      { intros r f hf,
-        rw smul_comm,
-        simp only [add_monoid_hom.to_fun_eq_coe, add_monoid_hom.map_zsmul] at hf ⊢,
-        rw [hf, smul_comm] }},
-    { intros f g hf hg,
-      simp only [add_smul, add_monoid_hom.to_fun_eq_coe, map_add] at hf hg ⊢,
-      rw [hf, hg] },
-    { intros r f hf,
-      rw smul_assoc,
-      simp only [add_monoid_hom.to_fun_eq_coe, add_monoid_hom.map_zsmul] at hf ⊢,
-      rw [hf, ←smul_assoc],
-      refl }
-    }, ..finsupp.lift_add_hom (λ v, zmultiples_hom M (f v)) },
+      { exact add_monoid_hom.map_zero _}},
+    ..finsupp.lift_add_hom (λ v, zmultiples_hom M (f v)) },
   inv_fun := λ f,
   { to_fun := f ∘ group_ring.of (fin n → G),
     smul_apply' := λ s g, by
@@ -77,22 +98,19 @@ def cochain_succ_add_equiv : cochain_succ G M n ≃+ (group_ring (fin n → G) �
   left_inv := λ x, by
   { ext w,
     show finsupp.lift_add_hom (λ v, zmultiples_hom M (x v)) (finsupp.single w 1) = x w,
-    rw [finsupp.lift_add_hom_apply_single, zmultiples_hom_apply, one_smul]
-   },
+    rw [finsupp.lift_add_hom_apply_single, zmultiples_hom_apply, one_smul] },
   right_inv := λ f, by
   { ext x,
-    refine x.induction_on _ _ _,
+    refine x.induction_on _ (λ v w hv hw, _) (λ r v hv, _),
     { intro x,
       show finsupp.lift_add_hom (λ v, zmultiples_hom M (f _)) _ = _,
       rw [group_ring.of_apply, finsupp.lift_add_hom_apply_single,
         zmultiples_hom_apply, one_smul],
       refl },
-    { intros v w hv hw,
-      erw add_monoid_hom.map_add,
+    { erw add_monoid_hom.map_add,
       rw [linear_map.map_add, ←hv, ←hw],
       refl },
-    { intros r v hv,
-      erw add_monoid_hom.map_zsmul,
+    { erw add_monoid_hom.map_zsmul,
       rw [linear_map.map_smul_of_tower, ←hv],
       refl }},
   map_add' := λ x y, by
@@ -137,9 +155,9 @@ def chain_op_to_cochain {V : Type*} [category V] [preadditive V]
 
 /-- The chain complex of elements of `(Module ℤ)ᵒᵖ` given by
 `Hom(ℤ[G], M) → Hom(ℤ[G²], M) → ...` -/
-def map_std_resn := (functor.map_homological_complex ((linear_yoneda ℤ (Module (group_ring G))).obj
+def map_std_resn := ((functor.map_homological_complex ((linear_yoneda ℤ (Module (group_ring G))).obj
   (group_ring.Module_of G M)).right_op (complex_shape.down ℕ)).obj
-  (group_ring.std_resn G).complex
+  (group_ring.std_resn G).complex)
 
 /-- A tautological isomorphism to help Lean out, I think -/
 def yoneda_equiv_hom (R : Type u) [ring R] (M N : Module R) :
@@ -163,40 +181,6 @@ begin
   dsimp,
   erw chain_complex.of_d,
   refl,
-end
-
-section
-variables {A B C A' B' C' : AddCommGroup.{u}}
-  (FA : A ≅ A') (FB : B ≅ B') (FC : C ≅ C') {j : A ⟶ B} {k : B ⟶ C} (w : j ≫ k = 0)
-  {j' : A' ⟶ B'} {k' : B' ⟶ C'} (w' : j' ≫ k' = 0) (hj : FA.hom ≫ j' = j ≫ FB.hom)
-  (hk : FB.hom ≫ k' = k ≫ FC.hom)
-
-def homology_iso_of_iso : homology j k w ≅ homology j' k' w' :=
-{ hom := homology.map _ _ { left := FA.hom, right := FB.hom, w' := hj }
-    { left := FB.hom, right := FC.hom, w' := hk } rfl,
-  inv := homology.map _ _ { left := FA.inv, right := FB.inv, w' :=
-    by { dsimp, rw [iso.inv_comp_eq, ←category.assoc, hj], simp }}
-    { left := FB.inv, right := FC.inv, w' :=
-    by { dsimp, rw [iso.inv_comp_eq, ←category.assoc, hk], simp }} rfl,
-  hom_inv_id' :=
-  begin
-    ext,
-    sorry,
-    /- simp_rw [category.comp_id, homology.π_map_assoc, homology.π_map,
-      ←category.assoc, ←limits.kernel_subobject_map_comp],
-    convert category.id_comp _,
-    convert limits.kernel_subobject_map_id,
-    ext; simp, -/
-  end,
-  inv_hom_id' :=
-  begin
-    ext,
-    sorry,
-    /- simp_rw [category.comp_id, homology.π_map_assoc, homology.π_map,
-      ←category.assoc, ←limits.kernel_subobject_map_comp],
-    sorry, -/
-  end }
-
 end
 
 lemma cochain_succ_comm_aux (x : cochain_succ G M (n + 1)) :
@@ -294,12 +278,19 @@ homology_obj_iso_of_homotopy_equiv (homotopy_equiv_cochain_succ G M) _
 
 /-- taking homology "commutes with op" -/
 def homology_op :
-  (homology_functor _ _ n).obj (map_std_resn_cochain G M) ≅
-  (opposite.unop $ (homology_functor _ _ n).obj (map_std_resn G M)) :=
-sorry
+  (homology_functor _ _ (n + 1)).obj (map_std_resn_cochain G M) ≅
+  (opposite.unop $ (homology_functor _ _ (n + 1)).obj (map_std_resn G M)) :=
+(cochain_complex.homology_of_rel (map_std_resn_cochain G M) (n + 1) rfl rfl).symm.trans
+  ((as_iso $ homology_to_op_unop _ _ _).trans (chain_complex.homology_of_rel
+  (map_std_resn G M) (n + 1) rfl rfl).symm.unop)
+#check ProjectiveResolution.category_theory.has_projective_resolutions
 
-instance : has_projective_resolutions (Module (group_ring G)) := sorry
-
+#exit
+instance why : enough_projectives (Module (group_ring G)) :=
+Module.Module_enough_projectives
+#check @functor.left_derived (Module (group_ring G)) _ (Module ℤ) _ _ _ _ _ (@ProjectiveResolution.category_theory.has_projective_resolutions)
+--instance : has_projective_resolutions (Module (group_ring G)) :=
+--@ProjectiveResolution.category_theory.has_projective_resolutions (Module (group_ring G)) _ _ (why G)
 /- Ext without some 'left_op', so it takes values in `(Module ℤ)ᵒᵖ` -/
 abbreviation Extish := (((linear_yoneda ℤ (Module (group_ring G))).obj
   (group_ring.Module_of G M)).right_op.left_derived n).obj (group_ring.trivial G)

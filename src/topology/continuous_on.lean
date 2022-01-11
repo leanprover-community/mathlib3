@@ -26,7 +26,7 @@ equipped with the subspace topology.
 
 -/
 
-open set filter
+open set filter function
 open_locale topological_space filter
 
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
@@ -218,6 +218,10 @@ lemma insert_mem_nhds_within_insert {a : α} {s t : set α} (h : t ∈ 𝓝[s] a
   insert a t ∈ 𝓝[insert a s] a :=
 by simp [mem_of_superset h]
 
+lemma insert_mem_nhds_iff {a : α} {s : set α} : insert a s ∈ 𝓝 a ↔ s ∈ 𝓝[≠] a :=
+by simp only [nhds_within, mem_inf_principal, mem_compl_iff, mem_singleton_iff,
+  or_iff_not_imp_left, insert_def]
+
 @[simp] theorem nhds_within_compl_singleton_sup_pure (a : α) : 𝓝[≠] a ⊔ pure a = 𝓝 a :=
 by rw [← nhds_within_singleton, ← nhds_within_union, compl_union_self, nhds_within_univ]
 
@@ -244,7 +248,7 @@ lemma nhds_within_pi_eq {ι : Type*} {α : ι → Type*} [Π i, topological_spac
     ⨅ (i ∉ I), comap (λ x, x i) (𝓝 (x i)) :=
 begin
   simp only [nhds_within, nhds_pi, filter.pi, pi_def, ← infi_principal_finite hI, comap_inf,
-    comap_principal, function.eval],
+    comap_principal, eval],
   rw [infi_split _ (λ i, i ∈ I), inf_right_comm],
   simp only [infi_inf_eq]
 end
@@ -594,16 +598,22 @@ lemma continuous_within_at.diff_iff {f : α → β} {s t : set α} {x : α}
   continuous_within_at f (s \ {x}) x ↔ continuous_within_at f s x :=
 continuous_within_at_singleton.diff_iff
 
-lemma continuous_within_at_update_same [decidable_eq α] {f : α → β} {s : set α} {x : α} {y : β} :
-  continuous_within_at (function.update f x y) s x ↔ tendsto f (𝓝[s \ {x}] x) (𝓝 y) :=
-calc continuous_within_at (function.update f x y) s x
-    ↔ continuous_within_at (function.update f x y) (s \ {x}) x :
-  continuous_within_at_diff_self.symm
-... ↔ tendsto (function.update f x y) (𝓝[s \ {x}] x) (𝓝 y) :
-  by rw [continuous_within_at, function.update_same]
+@[simp] lemma continuous_within_at_compl_self {f : α → β} {a : α} :
+  continuous_within_at f {a}ᶜ a ↔ continuous_at f a :=
+by rw [compl_eq_univ_diff, continuous_within_at_diff_self, continuous_within_at_univ]
+
+@[simp] lemma continuous_within_at_update_same [decidable_eq α] {f : α → β}
+  {s : set α} {x : α} {y : β} :
+  continuous_within_at (update f x y) s x ↔ tendsto f (𝓝[s \ {x}] x) (𝓝 y) :=
+calc continuous_within_at (update f x y) s x ↔ tendsto (update f x y) (𝓝[s \ {x}] x) (𝓝 y) :
+  by rw [← continuous_within_at_diff_self, continuous_within_at, function.update_same]
 ... ↔ tendsto f (𝓝[s \ {x}] x) (𝓝 y) :
-  tendsto_congr' $ mem_of_superset self_mem_nhds_within $
-    λ z hz, by rw [mem_set_of_eq, function.update_noteq hz.2]
+  tendsto_congr' $ eventually_nhds_within_iff.2 $ eventually_of_forall $
+    λ z hz, update_noteq hz.2 _ _
+
+@[simp] lemma continuous_at_update_same [decidable_eq α] {f : α → β} {x : α} {y : β} :
+  continuous_at (function.update f x y) x ↔ tendsto f (𝓝[≠] x) (𝓝 y) :=
+by rw [← continuous_within_at_univ, continuous_within_at_update_same, compl_eq_univ_diff]
 
 theorem is_open_map.continuous_on_image_of_left_inv_on {f : α → β} {s : set α}
   (h : is_open_map (s.restrict f)) {finv : β → α} (hleft : left_inv_on finv f s) :
@@ -646,12 +656,13 @@ lemma continuous_at.continuous_within_at {f : α → β} {s : set α} {x : α} (
   continuous_within_at f s x :=
 continuous_within_at.mono ((continuous_within_at_univ f x).2 h) (subset_univ _)
 
+lemma continuous_within_at_iff_continuous_at {f : α → β} {s : set α} {x : α} (h : s ∈ 𝓝 x) :
+  continuous_within_at f s x ↔ continuous_at f x :=
+by rw [← univ_inter s, continuous_within_at_inter h, continuous_within_at_univ]
+
 lemma continuous_within_at.continuous_at {f : α → β} {s : set α} {x : α}
   (h : continuous_within_at f s x) (hs : s ∈ 𝓝 x) : continuous_at f x :=
-begin
-  have : s = univ ∩ s, by rw univ_inter,
-  rwa [this, continuous_within_at_inter hs, continuous_within_at_univ] at h
-end
+(continuous_within_at_iff_continuous_at hs).mp h
 
 lemma continuous_on.continuous_at {f : α → β} {s : set α} {x : α}
   (h : continuous_on f s) (hx : s ∈ 𝓝 x) : continuous_at f x :=

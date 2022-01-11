@@ -103,31 +103,40 @@ class neg_mem_class (S G : Type*) [has_neg G] [set_like S G] :=
 export neg_mem_class (neg_mem)
 
 /-- `subgroup_class S G` states `S` is a type of subsets `s ⊆ G` that are subgroups of `G`. -/
-class subgroup_class (S G : Type*) [group G] [set_like S G]
+class subgroup_class (S G : Type*) [div_inv_monoid G] [set_like S G]
   extends submonoid_class S G :=
 (inv_mem : ∀ {s : S} {x}, x ∈ s → x⁻¹ ∈ s)
 
 /-- `add_subgroup_class S G` states `S` is a type of subsets `s ⊆ G` that are
 additive subgroups of `G`. -/
-class add_subgroup_class (S G : Type*) [add_group G] [set_like S G]
+class add_subgroup_class (S G : Type*) [sub_neg_monoid G] [set_like S G]
   extends add_submonoid_class S G :=
 (neg_mem : ∀ {s : S} {x}, x ∈ s → -x ∈ s)
 
 attribute [to_additive] inv_mem_class subgroup_class
 
-variables (S : Type*) (G) [set_like S G] [hSG : subgroup_class S G]
-include hSG
+variables (M S : Type*) [div_inv_monoid M] [set_like S M] [hSM : subgroup_class S M]
+include hSM
 
 @[to_additive, priority 100] -- See note [lower instance priority]
-instance subgroup_class.to_inv_mem_class : inv_mem_class S G :=
-{ .. hSG }
+instance subgroup_class.to_inv_mem_class : inv_mem_class S M :=
+{ .. hSM }
 
-variables {S G} {H K : S}
+variables {S M} {H K : S}
 
 /-- A subgroup is closed under division. -/
 @[to_additive "An `add_subgroup` is closed under subtraction."]
-theorem div_mem {x y : G} (hx : x ∈ H) (hy : y ∈ H) : x / y ∈ H :=
+theorem div_mem {x y : M} (hx : x ∈ H) (hy : y ∈ H) : x / y ∈ H :=
 by simpa only [div_eq_mul_inv] using mul_mem hx (inv_mem hy)
+
+@[to_additive]
+lemma zpow_mem {x : M} (hx : x ∈ K) : ∀ n : ℤ, x ^ n ∈ K
+| (n : ℕ) := by { rw [zpow_coe_nat], exact pow_mem hx n }
+| -[1+ n] := by { rw [zpow_neg_succ_of_nat], exact inv_mem (pow_mem hx n.succ) }
+
+omit hSM
+variables [set_like S G] [hSG : subgroup_class S G]
+include hSG
 
 @[simp, to_additive] theorem inv_mem_iff {x : G} : x⁻¹ ∈ H ↔ x ∈ H :=
 ⟨λ h, inv_inv x ▸ inv_mem h, inv_mem⟩
@@ -151,11 +160,6 @@ lemma mul_mem_cancel_right {x y : G} (h : x ∈ H) : y * x ∈ H ↔ y ∈ H :=
 @[to_additive]
 lemma mul_mem_cancel_left {x y : G} (h : x ∈ H) : x * y ∈ H ↔ y ∈ H :=
 ⟨λ hab, by simpa using mul_mem (inv_mem h) hab, mul_mem h⟩
-
-@[to_additive]
-lemma zpow_mem {x : G} (hx : x ∈ K) : ∀ n : ℤ, x ^ n ∈ K
-| (n : ℕ) := by { rw [zpow_coe_nat], exact pow_mem hx n }
-| -[1+ n] := by { rw [zpow_neg_succ_of_nat], exact inv_mem (pow_mem hx n.succ) }
 
 namespace subgroup_class
 

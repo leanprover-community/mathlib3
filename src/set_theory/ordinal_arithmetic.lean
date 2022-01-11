@@ -2115,7 +2115,7 @@ begin
   refine le_antisymm _ ((add_is_normal a).nfp_le_fp hba _),
   { rw mul_omega_nfp_add_zero,
     exact monotone.nfp (add_is_normal a).strict_mono.monotone (ordinal.zero_le b) },
-  by rw [←mul_one_add, one_add_omega]
+  rw [←mul_one_add, one_add_omega]
 end
 
 theorem add_fp_iff_mul_omega_le {a b : ordinal} : a + b = b ↔ a * omega.{u} ≤ b :=
@@ -2141,11 +2141,12 @@ begin
   { rw [deriv_succ, h, add_succ],
     apply nfp_eq_self,
     rw add_fp_iff_mul_omega_le,
-    exact (le_trans (le_add_right _ _) (le_of_lt (lt_succ_self _))) },
+    exact (le_add_right _ _).trans (le_of_lt (lt_succ_self _)) },
   { rw [←is_normal.bsup_eq.{u u} (add_is_normal _) ho,
       ←is_normal.bsup_eq.{u u} (deriv_is_normal _) ho],
-    convert rfl,
-    exact funext (λ a, funext (λ hao, (h a hao).symm)) }
+    congr,
+    ext a hao,
+    exact h a hao }
 end
 
 end ordinal

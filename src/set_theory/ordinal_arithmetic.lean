@@ -1101,7 +1101,7 @@ private lemma unbounded_aux (hS : unbounded (<) S) (a) : ∃ b, b ∈ S ∧ a �
 let ⟨b, hb, hb'⟩ := hS a in ⟨b, hb, le_of_not_gt hb'⟩
 
 /-- Enumerator function for an unbounded set of ordinals. -/
-def enum_ord (S : set ordinal.{u}) (hS : unbounded (<) S) : ordinal → ordinal :=
+def enum_ord (S : set ordinal) (hS : unbounded (<) S) : ordinal → ordinal :=
 wf.fix (λ o f, omin _ (unbounded_aux hS (blsub.{u u} o f)))
 
 /-- The hypothesis that asserts that the `omin` from `enum_ord_def'` exists. -/

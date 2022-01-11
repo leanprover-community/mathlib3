@@ -243,7 +243,7 @@ universe u
 /- The symmetrisation of a real (unital, associative) algebra multiplication is a commutative
 Jordan non-associative ring -/
 instance (α : Type u) [ring α] [invertible (2 : α)] : comm_jordan (αˢʸᵐ) :=
-{ comm := λ a,
+{ mul_comm := λ a,
   begin
     intro,
     change ⅟2 * (unsym a * unsym b + unsym b * unsym a) =

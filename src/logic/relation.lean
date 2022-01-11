@@ -390,6 +390,10 @@ lemma trans_gen.closed {p : α → α → Prop} :
   (∀ a b, r a b → trans_gen p a b) → trans_gen r a b → trans_gen p a b :=
 trans_gen.lift' id
 
+lemma trans_gen.mono {p : α → α → Prop} :
+  (∀ a b, r a b → p a b) → trans_gen r a b → trans_gen p a b :=
+trans_gen.lift id
+
 end trans_gen
 
 section refl_trans_gen

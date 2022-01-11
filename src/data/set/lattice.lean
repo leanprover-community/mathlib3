@@ -406,6 +406,10 @@ variables {s : ι → set α}
 @[simp] lemma nonempty_Union : (⋃ i, s i).nonempty ↔ ∃ i, (s i).nonempty :=
 by simp [← ne_empty_iff_nonempty]
 
+@[simp] lemma nonempty_bUnion {t : set α} {s : α → set β} :
+  (⋃ i ∈ t, s i).nonempty ↔ ∃ i ∈ t, (s i).nonempty :=
+by simp [← ne_empty_iff_nonempty]
+
 lemma Union_nonempty_index (s : set α) (t : s.nonempty → set β) :
   (⋃ h, t h) = ⋃ x ∈ s, t ⟨x, ‹_›⟩ :=
 supr_exists

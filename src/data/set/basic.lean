@@ -3,7 +3,6 @@ Copyright (c) 2014 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura
 -/
-import logic.unique
 import order.boolean_algebra
 
 /-!
@@ -76,18 +75,6 @@ universes u v w x
 
 run_cmd do e ← tactic.get_env,
   tactic.set_env $ e.mk_protected `set.compl
-
-lemma has_subset.subset.trans {α : Type*} [has_subset α] [is_trans α (⊆)]
-  {a b c : α} (h : a ⊆ b) (h' : b ⊆ c) : a ⊆ c := trans h h'
-
-lemma has_subset.subset.antisymm {α : Type*} [has_subset α] [is_antisymm α (⊆)]
-  {a b : α} (h : a ⊆ b) (h' : b ⊆ a) : a = b := antisymm h h'
-
-lemma has_ssubset.ssubset.trans {α : Type*} [has_ssubset α] [is_trans α (⊂)]
-  {a b c : α} (h : a ⊂ b) (h' : b ⊂ c) : a ⊂ c := trans h h'
-
-lemma has_ssubset.ssubset.asymm {α : Type*} [has_ssubset α] [is_asymm α (⊂)]
-  {a b : α} (h : a ⊂ b) : ¬(b ⊂ a) := asymm h
 
 namespace set
 
@@ -173,9 +160,6 @@ end set_coe
 /-- See also `subtype.prop` -/
 lemma subtype.mem {α : Type*} {s : set α} (p : s) : (p : α) ∈ s := p.prop
 
-lemma eq.subset {α} {s t : set α} : s = t → s ⊆ t :=
-by { rintro rfl x hx, exact hx }
-
 namespace set
 
 variables {α : Type u} {β : Type v} {γ : Type w} {ι : Sort x} {a : α} {s t : set α}
@@ -217,10 +201,21 @@ lemma set_of_and {p q : α → Prop} : {a | p a ∧ q a} = {a | p a} ∩ {a | q 
 
 lemma set_of_or {p q : α → Prop} : {a | p a ∨ q a} = {a | p a} ∪ {a | q a} := rfl
 
-/-! ### Lemmas about subsets -/
+/-! ### Subset and strict subset relations -/
+
+instance : has_ssubset (set α) := ⟨(<)⟩
+
+instance : is_refl (set α) (⊆) := has_le.le.is_refl
+instance : is_trans (set α) (⊆) := has_le.le.is_trans
+instance : is_antisymm (set α) (⊆) := has_le.le.is_antisymm
+instance : is_irrefl (set α) (⊂) := has_lt.lt.is_irrefl
+instance : is_trans (set α) (⊂) := has_lt.lt.is_trans
+instance : is_asymm (set α) (⊂) := has_lt.lt.is_asymm
+instance : is_nonstrict_strict_order (set α) (⊆) (⊂) := ⟨λ _ _, iff.rfl⟩
 
 -- TODO(Jeremy): write a tactic to unfold specific instances of generic notation?
-theorem subset_def {s t : set α} : (s ⊆ t) = ∀ x, x ∈ s → x ∈ t := rfl
+lemma subset_def : (s ⊆ t) = ∀ x, x ∈ s → x ∈ t := rfl
+lemma ssubset_def : s ⊂ t = (s ⊆ t ∧ ¬ t ⊆ s) := rfl
 
 @[refl] theorem subset.refl (a : set α) : a ⊆ a := assume x, id
 theorem subset.rfl {s : set α} : s ⊆ s := subset.refl s

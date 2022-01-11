@@ -19,7 +19,7 @@ multiplication is said to be a special Jordan algebra.
 
 ## Main results
 
-- `comm_jordan` : The symmeterised algebra arising from an associative algebra is a commutative
+- `comm_jordan_ring` : The symmeterised algebra arising from an associative algebra is a commutative
   Jordan algebra.
 
 ## Implementation notes
@@ -242,7 +242,7 @@ universe u
 
 /- The symmetrisation of a real (unital, associative) algebra multiplication is a commutative
 Jordan non-associative ring -/
-instance (α : Type u) [ring α] [invertible (2 : α)] : comm_jordan (αˢʸᵐ) :=
+instance (α : Type u) [ring α] [invertible (2 : α)] : comm_jordan_ring (αˢʸᵐ) :=
 { mul_comm := λ a,
   begin
     intro,

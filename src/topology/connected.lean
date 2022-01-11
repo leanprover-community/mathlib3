@@ -1096,7 +1096,7 @@ by { rw not_iff_not, exact connected_component_rel_iff }
 def connected_components (α : Type u) [topological_space α] :=
   quotient (connected_component_setoid α)
 
-instance [inhabited α] : inhabited (connected_components α) := ⟨quotient.mk (default _)⟩
+instance [inhabited α] : inhabited (connected_components α) := ⟨quotient.mk default⟩
 instance connected_components.topological_space : topological_space (connected_components α) :=
   quotient.topological_space
 

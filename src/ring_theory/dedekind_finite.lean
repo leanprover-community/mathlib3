@@ -50,7 +50,6 @@ instance is_reversible_of_domain [monoid_with_zero R] [no_zero_divisors R] : is_
     { rw [zero_mul], },
   end⟩
 
-
 @[priority 100]
 instance reversible_of_reduced [ring R] [is_reduced R] : is_reversible R :=
 ⟨λ a b h,
@@ -100,9 +99,6 @@ variables (R : Type*)
 --instance subring.is_dedekind_finite [ring R] [is_dedekind_finite R] (S : set R)
 -- [is_subring S] : is_dedekind_finite S :=
 --by subtype_instance
-
--- TODO would be nice to set this up as the radical of the zero ideal but currently there doesn't
---  seem to be much about one-sided ideals in non-comm rings
 
 @[priority 100]
 instance is_dedekind_finite_of_reversible [ring R] [is_reversible R] :
@@ -210,53 +206,20 @@ open_locale classical
 --   exact strict_monotone_inc_subseq_spec (λ n, (f ^ n).ker) h_ker_lt hab,
 -- end
 
-
 @[priority 100]
 instance is_dedekind_finite_of_noetherian [is_noetherian_ring R] : is_dedekind_finite R :=
 ⟨λ a b h,
   begin
-    have : is_linear_map R _ := is_linear_map.is_linear_map_smul' b,
-    set f : R →ₗ[R] R := is_linear_map.mk' _ this,
+    set f : R →ₗ[R] R := (is_linear_map.is_linear_map_smul' b).mk' _,
     have f_surj : function.surjective f := λ x, ⟨x * a, by simp [mul_assoc, h]⟩,
-    have f_inj := is_noetherian.injective_of_surjective_endomorphism f f_surj,
-    exact sub_eq_zero.mp (f_inj (
-        calc f (b * a - 1) = (b * a - 1) * b : by simp only [is_linear_map.mk'_apply,
-                                                              smul_eq_mul, sub_eq_add_neg]
-                       ... = b * a * b - b   : by rw [sub_mul, one_mul]
-                       ... = 0               : by rw [mul_assoc, h, mul_one, sub_self]
-                       ... = f 0             : by simp only [zero_mul, is_linear_map.mk'_apply,
-                                                              smul_eq_mul])),
-    /-
-    have := well_founded_submodule_gt R R,
-    rw order_embedding.well_founded_iff_no_descending_seq at this,
-    set ordf : ℕ → submodule R R := λ n, linear_map.ker (iterate f n),
-
-    suffices : ∃ n, ordf n = ordf (n + 1),
-    begin
-        obtain ⟨n, hn⟩ := this,
-        have pow_surj := iterate_surj f_surj n,
-        obtain ⟨c, hc⟩ := pow_surj (b * a - 1),
-        have :=
-        calc iterate f (n + 1) c = f (b * a - 1)   : by rw [iterate_succ', comp_apply, hc]
-                            ...  = (b * a - 1) * b : by simp [f]
-                            ...  = 0               : by rw [sub_mul, one_mul, mul_assoc, h,
-                                                              mul_one, sub_self],
-        rw ← linear_map.mem_ker at this,
-        dsimp only [ordf] at hn,
-        rw ← hn at this,
-        rw linear_map.mem_ker at this,
-        rw this at hc,
-        exact sub_eq_zero.mp (eq.symm hc),
-    end,
-
-    by_contradiction ho,
-    apply this,
-    push_neg at ho,
-    have : ∀ n, ordf n ≤ ordf (n + 1),
-    { intros n x hx, simp [ordf, iterate_succ'] at hx ⊢, rw [hx, zero_mul], },
-    have : ∀ n, ordf (n + 1) > ordf n := λ n, lt_of_le_of_ne (this n) (ho n),
-    have := order_embedding.nat_gt _ this,
-    exact nonempty.intro this,-/
+    rw ← sub_eq_zero,
+    apply is_noetherian.injective_of_surjective_endomorphism f f_surj,
+    calc f (b * a - 1) = (b * a - 1) * b : by simp only [is_linear_map.mk'_apply,
+                                                         smul_eq_mul, sub_eq_add_neg]
+                    ... = b * a * b - b   : by rw [sub_mul, one_mul]
+                    ... = 0               : by rw [mul_assoc, h, mul_one, sub_self]
+                    ... = f 0             : by simp only [zero_mul, is_linear_map.mk'_apply,
+                                                          smul_eq_mul],
   end⟩
 
 
@@ -304,7 +267,7 @@ begin
 end
 
 lemma e_orthogonal [ring R] {a b : R} (hab : a * b = 1) {i j k l : ℕ} :
-  e a b i j * e a b k l = if j = k then e a b i l else (0 : R) :=
+  e a b i j * e a b k l = if j = k then e a b i l else 0 :=
 begin
   rw [e, e, e],
   assoc_rw [pow_mul_pow_eq_pow_sub_mul_pow_sub_of_mul_eq_one hab],
@@ -329,7 +292,7 @@ by rw [pow_two, e_orthogonal hab, if_neg (ne.symm hij)]
 
 open_locale classical
 
-lemma is_dedekind_finite_of_fin_nilpotents (R : Type*) [ring R] (h : {x : R | is_nilpotent x}.finite) :
+lemma is_dedekind_finite_of_fin_nilpotents [ring R] (h : {x : R | is_nilpotent x}.finite) :
   is_dedekind_finite R :=
 begin
   apply is_dedekind_finite.mk,

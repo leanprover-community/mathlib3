@@ -1248,6 +1248,15 @@ lemma one_lt_four : (1 : ℝ) < 4 := by linarith
 
 lemma log_four_pos : 0 < log 4 := log_pos one_lt_four
 
+lemma log_1024_div_log_4 : log 1024 / log 4 = 5 :=
+begin
+  rw div_eq_iff,
+  have h : (1024 : ℝ) = 4 ^ (5 : ℝ), norm_num,
+  rw h,
+  rw log_rpow,
+  linarith,
+  linarith [log_four_pos],
+end
 
 lemma inequality1 {x : ℝ} (n_large : 1024 < x) : log (2 * x + 1) / (x * log 4) ≤ 1/30 :=
 begin
@@ -1299,6 +1308,8 @@ begin
             rw div_div_eq_div_mul,
             rw mul_comm,
             rw <-div_div_eq_div_mul,
+            rw log_1024_div_log_4,
+            norm_num,
             -- TODO log_base
           end,
   norm_num1,
@@ -1375,11 +1386,110 @@ begin
   linarith,
 end
 
+-- example (a b c : ℝ) (hc : 0 < c) : (exp a) ^ b = exp (a * b) := by library_search
+
+lemma log_div_sqrt_decreasing {x y : ℝ} (hex : real.exp 2 ≤ x) (hxy : x ≤ y) : log y / sqrt y ≤ log x / sqrt x :=
+begin
+  have hltx : 0 < x, exact lt_of_lt_of_le ( (exp_pos 2)) hex,
+  have hlty : 0 < y, linarith,
+  have hx : 0 ≤ x, exact le_trans (le_of_lt (exp_pos 2)) hex,
+  have hy : 0 ≤ y, linarith,
+  conv_lhs
+  begin
+    congr,
+    rw <-sq_sqrt hy,
+  end,
+  conv_rhs
+  begin
+    congr,
+    rw <-sq_sqrt hx,
+  end,
+  rw <-real.rpow_nat_cast,
+  rw <-real.rpow_nat_cast,
+  rw log_rpow,
+  rw log_rpow,
+  rw mul_div_assoc,
+  rw mul_div_assoc,
+  rw mul_le_mul_left,
+  apply log_div_self_antitone_on,
+  simp,
+  rw le_sqrt,
+  rw <-exp_nat_mul,
+  simp [hex],
+  swap 3,
+  simp,
+  rw le_sqrt,
+  rw <-exp_nat_mul,
+  simp,
+  exact le_trans hex hxy,
+  exact le_of_lt (exp_pos 1),
+  exact hy,
+  exact le_of_lt (exp_pos 1),
+  exact hx,
+  exact sqrt_le_sqrt hxy,
+  norm_num,
+
+  exact sqrt_pos.mpr hltx,
+  rw sqrt_pos,
+  exact hlty,
+end
+
+-- example (a b : ℝ) (ha : 0 ≤ a) (hb : 0 ≤ b) : a ^ 2 ≤ b^2 -> a ≤ b := by library_search
+
 lemma inequality3 {x : ℝ} (n_large : 1024 < x) : sqrt 2 * sqrt x * log x / (x * log 4) ≤ 1/4 :=
 begin
   rw [inequality3' n_large],
   -- Get the log x in the second term to be 2 log sqrt x. and split the 1/x i n that term to
-  sorry
+  calc sqrt 2 / log 4 * log x / sqrt x
+       = sqrt 2 / log 4 * (log x / sqrt x) : by rw mul_div_assoc
+  ...  ≤ sqrt 2 / log 4 * (log 1024 / sqrt 1024) :
+          begin
+            rw mul_le_mul_left,
+            have n_larger := le_of_lt n_large,
+            apply log_div_sqrt_decreasing,
+            calc exp 2 = (exp 1) ^ 2 :
+              begin
+                rw <-exp_nat_mul,
+                simp,
+              end
+            ... ≤ 2.7182818286 ^ 2 :
+              begin
+                apply pow_le_pow_of_le_left,
+                apply le_of_lt,
+                exact exp_pos 1,
+                apply le_of_lt,
+                exact exp_one_lt_d9,
+              end
+            ... ≤ 1024 : by norm_num,
+            exact n_larger,
+            apply div_pos,
+            rw sqrt_pos,
+            linarith,
+            exact log_four_pos,
+          end
+  ...  = log 1024 / log 4 * sqrt 2 / sqrt 1024 :
+          begin
+            ring,
+          end
+  ...  = 5 * sqrt 2 / sqrt 1024 :
+          begin
+            congr,
+            rw log_1024_div_log_4,
+          end
+  ... ≤ 1 / 4 :
+          begin
+            rw mul_div_assoc,
+            rw <-sqrt_div,
+            rw mul_comm,
+            rw <-le_div_iff,
+            rw sqrt_le_iff,
+            split,
+            norm_num,
+            norm_num,
+            linarith,
+            linarith,
+          end,
+
 end
 
 lemma equality4 {x : ℝ} (n_large : 1024 < x) : 2 * x / 3 * log 4 / (x * log 4) = 2 / 3 :=

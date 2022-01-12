@@ -304,10 +304,6 @@ theorem map_zpow [group G] [group H] [monoid_hom_class F G H] (f : F) (g : G) (n
   f (g ^ n) = (f g) ^ n :=
 map_zpow' f (map_inv f) g n
 
-@[to_additive] lemma monoid_hom.map_eq_one_iff (f : M →* N) (hf : function.injective f) {x : M} :
-  f x = 1 ↔ x = 1 :=
-one_hom_class.map_eq_one_iff f hf
-
 end mul_one
 
 section mul_zero_one
@@ -347,14 +343,6 @@ instance monoid_with_zero_hom.monoid_with_zero_hom_class :
   map_mul := monoid_with_zero_hom.map_mul',
   map_one := monoid_with_zero_hom.map_one',
   map_zero := monoid_with_zero_hom.map_zero' }
-
-lemma monoid_with_zero_hom.map_eq_one_iff (f : monoid_with_zero_hom M N)
-  (hf : function.injective f) {x : M} : f x = 1 ↔ x = 1 :=
-one_hom_class.map_eq_one_iff f hf
-
-lemma monoid_with_zero_hom.map_eq_zero_iff (f : monoid_with_zero_hom M N)
-  (hf : function.injective f) {x : M} : f x = 0 ↔ x = 0 :=
-zero_hom_class.map_eq_zero_iff f hf
 
 end mul_zero_one
 

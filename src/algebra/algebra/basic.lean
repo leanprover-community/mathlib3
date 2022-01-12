@@ -571,12 +571,6 @@ lemma map_one : φ 1 = 1 := map_one _
 lemma map_pow (x : A) (n : ℕ) : φ (x ^ n) = (φ x) ^ n :=
 map_pow _ _ _
 
-lemma map_eq_one_iff (hf : function.injective φ) {x : A} : φ x = 1 ↔ x = 1 :=
-one_hom_class.map_eq_one_iff _ hf
-
-lemma map_eq_zero_iff (hf : function.injective φ) {x : A} : φ x = 0 ↔ x = 0 :=
-zero_hom_class.map_eq_zero_iff _ hf
-
 @[simp] lemma map_smul (r : R) (x : A) : φ (r • x) = r • φ x :=
 by simp only [algebra.smul_def, map_mul, commutes]
 

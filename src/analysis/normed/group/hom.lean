@@ -452,8 +452,8 @@ variables [semi_normed_group V] [semi_normed_group W] [semi_normed_group V₁] [
 /-- The inclusion of an `add_subgroup`, as bounded group homomorphism. -/
 @[simps] def incl (s : add_subgroup V) : normed_group_hom s V :=
 { to_fun := (coe : s → V),
-  map_add' := λ v w, add_subgroup.coe_add _ _ _,
-  bound' := ⟨1, λ v, by { rw [one_mul], refl }⟩ }
+  map_add' := λ v w, add_submonoid_class.coe_add _ _ _,
+  bound' := ⟨1, λ v, by { rw one_mul, refl }⟩ }
 
 lemma norm_incl {V' : add_subgroup V} (x : V') : ∥incl _ x∥ = ∥x∥ :=
 rfl
@@ -606,7 +606,7 @@ def lift (φ : normed_group_hom V₁ V) (h : f.comp φ = g.comp φ) :
   normed_group_hom V₁ (f.equalizer g) :=
 { to_fun := λ v, ⟨φ v, show (f - g) (φ v) = 0,
     by rw [normed_group_hom.sub_apply, sub_eq_zero, ← comp_apply, h, comp_apply]⟩,
-  map_add' := λ v₁ v₂, by { ext, simp only [map_add, add_subgroup.coe_add, subtype.coe_mk] },
+  map_add' := λ v₁ v₂, by { ext, simp only [map_add, add_submonoid_class.coe_add, subtype.coe_mk] },
   bound' := by { obtain ⟨C, C_pos, hC⟩ := φ.bound, exact ⟨C, hC⟩ } }
 
 @[simp] lemma ι_comp_lift (φ : normed_group_hom V₁ V) (h : f.comp φ = g.comp φ) :

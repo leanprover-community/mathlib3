@@ -116,26 +116,13 @@ begin
     (D.to_Top_glue_data.ι_open_embedding i)
 end
 
-lemma pullback_fst_preimage_snd_image (X Y Z : Top) (f : X ⟶ Z) (g : Y ⟶ Z) (U : set X) :
-  (pullback.snd : pullback f g ⟶ _) '' ((pullback.fst : pullback f g ⟶ _) ⁻¹' U) =
-    g ⁻¹' (f '' U) :=
-begin
-  ext x,
-  split,
-  { rintros ⟨y, hy, rfl⟩,
-    exact ⟨(pullback.fst : pullback f g ⟶ _) y, hy,
-     concrete_category.congr_hom pullback.condition y⟩ },
-  { rintros ⟨y, hy, eq⟩,
-     exact ⟨(Top.pullback_iso_prod_subtype f g).inv ⟨⟨_,_⟩,eq⟩, by simpa, by simp⟩ },
-end
-
 lemma pullback_base (i j k : D.J)  (S : set (D.V (i, j)).carrier) :
   (π₂ i, j, k) '' ((π₁ i, j, k) ⁻¹' S) = D.f i k ⁻¹' (D.f i j '' S) :=
 begin
   have eq₁ : _ = (π₁ i, j, k).base := preserves_pullback.iso_hom_fst (forget C) _ _,
   have eq₂ : _ = (π₂ i, j, k).base := preserves_pullback.iso_hom_snd (forget C) _ _,
   rw [coe_to_fun_eq, coe_to_fun_eq, ← eq₁, ← eq₂, coe_comp, set.image_comp, coe_comp,
-    set.preimage_comp, set.image_preimage_eq, pullback_fst_preimage_snd_image],
+    set.preimage_comp, set.image_preimage_eq, Top.pullback_snd_image_fst_preimage],
   refl,
   rw ← Top.epi_iff_surjective,
   apply_instance

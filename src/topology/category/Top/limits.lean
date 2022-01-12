@@ -638,6 +638,32 @@ begin
   refl
 end
 
+lemma pullback_snd_image_fst_preimage (f : X ⟶ Z) (g : Y ⟶ Z) (U : set X) :
+  (pullback.snd : pullback f g ⟶ _) '' ((pullback.fst : pullback f g ⟶ _) ⁻¹' U) =
+    g ⁻¹' (f '' U) :=
+begin
+  ext x,
+  split,
+  { rintros ⟨y, hy, rfl⟩,
+    exact ⟨(pullback.fst : pullback f g ⟶ _) y, hy,
+    concrete_category.congr_hom pullback.condition y⟩ },
+  { rintros ⟨y, hy, eq⟩,
+    exact ⟨(Top.pullback_iso_prod_subtype f g).inv ⟨⟨_,_⟩, eq⟩, by simpa, by simp⟩ },
+end
+
+lemma pullback_fst_image_snd_preimage (f : X ⟶ Z) (g : Y ⟶ Z) (U : set Y) :
+  (pullback.fst : pullback f g ⟶ _) '' ((pullback.snd : pullback f g ⟶ _) ⁻¹' U) =
+    f ⁻¹' (g '' U) :=
+begin
+  ext x,
+  split,
+  { rintros ⟨y, hy, rfl⟩,
+    exact ⟨(pullback.snd : pullback f g ⟶ _) y, hy,
+    (concrete_category.congr_hom pullback.condition y).symm⟩ },
+  { rintros ⟨y, hy, eq⟩,
+    exact ⟨(Top.pullback_iso_prod_subtype f g).inv ⟨⟨_,_⟩,eq.symm⟩, by simpa, by simp⟩ },
+end
+
 end pullback
 
 --TODO: Add analogous constructions for `coprod` and `pushout`.

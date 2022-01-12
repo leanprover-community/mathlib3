@@ -110,85 +110,85 @@ end b_pos_and_ne_one
 
 section one_lt_b
 
-variable (one_lt_b : 1 < b)
-include one_lt_b
+variable (hb : 1 < b)
+include hb
 
 @[simp] lemma logb_le_logb (h : 0 < x) (h₁ : 0 < y) :
   logb b x ≤ logb b y ↔ x ≤ y :=
-by { rw [logb, logb, div_le_div_right (log_pos one_lt_b), log_le_log h h₁], }
+by { rw [logb, logb, div_le_div_right (log_pos hb), log_le_log h h₁], }
 
 lemma logb_lt_logb (hx : 0 < x) (hxy : x < y) : logb b x < logb b y :=
-by { rw [logb, logb, div_lt_div_right (log_pos one_lt_b)], exact log_lt_log hx hxy, }
+by { rw [logb, logb, div_lt_div_right (log_pos hb)], exact log_lt_log hx hxy, }
 
 @[simp] lemma logb_lt_logb_iff (hx : 0 < x) (hy : 0 < y) :
   logb b x < logb b y ↔ x < y :=
-by { rw [logb, logb, div_lt_div_right (log_pos one_lt_b)], exact log_lt_log_iff hx hy, }
+by { rw [logb, logb, div_lt_div_right (log_pos hb)], exact log_lt_log_iff hx hy, }
 
 lemma logb_le_iff_le_rpow (hx : 0 < x) : logb b x ≤ y ↔ x ≤ b ^ y :=
-by { rw [←rpow_le_rpow_left_iff one_lt_b, rpow_logb], linarith, linarith, exact hx, }
+by { rw [←rpow_le_rpow_left_iff hb, rpow_logb], linarith, linarith, exact hx, }
 
 lemma logb_lt_iff_lt_rpow (hx : 0 < x) : logb b x < y ↔ x < b ^ y :=
-by { rw [←rpow_lt_rpow_left_iff one_lt_b, rpow_logb], linarith, linarith, exact hx, }
+by { rw [←rpow_lt_rpow_left_iff hb, rpow_logb], linarith, linarith, exact hx, }
 
 lemma le_logb_iff_rpow_le (hy : 0 < y) : x ≤ logb b y ↔ b ^ x ≤ y :=
-by { rw [←rpow_le_rpow_left_iff one_lt_b, rpow_logb], linarith, linarith, exact hy, }
+by { rw [←rpow_le_rpow_left_iff hb, rpow_logb], linarith, linarith, exact hy, }
 
 lemma lt_logb_iff_rpow_lt (hy : 0 < y) : x < logb b y ↔ b ^ x < y :=
-by { rw [←rpow_lt_rpow_left_iff one_lt_b, rpow_logb], linarith, linarith, exact hy, }
+by { rw [←rpow_lt_rpow_left_iff hb, rpow_logb], linarith, linarith, exact hy, }
 
 lemma logb_pos_iff (hx : 0 < x) : 0 < logb b x ↔ 1 < x :=
-by { rw ← @logb_one b, rw logb_lt_logb_iff one_lt_b zero_lt_one hx, }
+by { rw ← @logb_one b, rw logb_lt_logb_iff hb zero_lt_one hx, }
 
 lemma logb_pos (hx : 1 < x) : 0 < logb b x :=
-by { rw logb_pos_iff one_lt_b (lt_trans zero_lt_one hx), exact hx, }
+by { rw logb_pos_iff hb (lt_trans zero_lt_one hx), exact hx, }
 
 lemma logb_neg_iff (h : 0 < x) : logb b x < 0 ↔ x < 1 :=
-by { rw ← logb_one, exact logb_lt_logb_iff one_lt_b h zero_lt_one, }
+by { rw ← logb_one, exact logb_lt_logb_iff hb h zero_lt_one, }
 
 lemma logb_neg (h0 : 0 < x) (h1 : x < 1) : logb b x < 0 :=
-(logb_neg_iff one_lt_b h0).2 h1
+(logb_neg_iff hb h0).2 h1
 
 lemma logb_nonneg_iff (hx : 0 < x) : 0 ≤ logb b x ↔ 1 ≤ x :=
-by rw [← not_lt, logb_neg_iff one_lt_b hx, not_lt]
+by rw [← not_lt, logb_neg_iff hb hx, not_lt]
 
 lemma logb_nonneg (hx : 1 ≤ x) : 0 ≤ logb b x :=
-(logb_nonneg_iff one_lt_b (zero_lt_one.trans_le hx)).2 hx
+(logb_nonneg_iff hb (zero_lt_one.trans_le hx)).2 hx
 
 lemma logb_nonpos_iff (hx : 0 < x) : logb b x ≤ 0 ↔ x ≤ 1 :=
-by rw [← not_lt, logb_pos_iff one_lt_b hx, not_lt]
+by rw [← not_lt, logb_pos_iff hb hx, not_lt]
 
 lemma logb_nonpos_iff' (hx : 0 ≤ x) : logb b x ≤ 0 ↔ x ≤ 1 :=
 begin
   rcases hx.eq_or_lt with (rfl|hx),
   { simp [le_refl, zero_le_one] },
-  exact logb_nonpos_iff one_lt_b hx,
+  exact logb_nonpos_iff hb hx,
 end
 
 lemma logb_nonpos (hx : 0 ≤ x) (h'x : x ≤ 1) : logb b x ≤ 0 :=
-(logb_nonpos_iff' one_lt_b hx).2 h'x
+(logb_nonpos_iff' hb hx).2 h'x
 
 lemma strict_mono_on_logb : strict_mono_on (logb b) (set.Ioi 0) :=
-λ x hx y hy hxy, logb_lt_logb one_lt_b hx hxy
+λ x hx y hy hxy, logb_lt_logb hb hx hxy
 
 lemma strict_anti_on_logb : strict_anti_on (logb b) (set.Iio 0) :=
 begin
   rintros x (hx : x < 0) y (hy : y < 0) hxy,
   rw [← logb_abs y, ← logb_abs x],
-  refine logb_lt_logb one_lt_b (abs_pos.2 hy.ne) _,
+  refine logb_lt_logb hb (abs_pos.2 hy.ne) _,
   rwa [abs_of_neg hy, abs_of_neg hx, neg_lt_neg_iff],
 end
 
 lemma logb_inj_on_pos : set.inj_on (logb b) (set.Ioi 0) :=
-(strict_mono_on_logb one_lt_b).inj_on
+(strict_mono_on_logb hb).inj_on
 
 lemma eq_one_of_pos_of_logb_eq_zero (h₁ : 0 < x) (h₂ : logb b x = 0) :
 x = 1 :=
-logb_inj_on_pos one_lt_b (set.mem_Ioi.2 h₁) (set.mem_Ioi.2 zero_lt_one)
+logb_inj_on_pos hb (set.mem_Ioi.2 h₁) (set.mem_Ioi.2 zero_lt_one)
   (h₂.trans real.logb_one.symm)
 
 lemma logb_ne_zero_of_pos_of_ne_one (hx_pos : 0 < x) (hx : x ≠ 1) :
   logb b x ≠ 0 :=
-mt (eq_one_of_pos_of_logb_eq_zero one_lt_b hx_pos) hx
+mt (eq_one_of_pos_of_logb_eq_zero hb hx_pos) hx
 
 end one_lt_b
 

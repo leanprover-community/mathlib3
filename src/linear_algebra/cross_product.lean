@@ -74,17 +74,17 @@ lemma cross_product_anticomm' (v w : fin 3 → R) :
   v ×₃ w + w ×₃ v = 0 :=
 by rw [add_eq_zero_iff_eq_neg, cross_product_anticomm]
 
-lemma cross_product_self (v : fin 3 → R) :
+@[simp] lemma cross_product_self (v : fin 3 → R) :
   v ×₃ v = 0 :=
 by simp [cross_product_apply, mul_comm]
 
 /-- The cross product of two vectors is perpendicular to the first vector. -/
-lemma dot_self_cross_product (v w : fin 3 → R) :
+@[simp] lemma dot_self_cross_product (v w : fin 3 → R) :
   v ⬝ᵥ (v ×₃ w) = 0 :=
 by simp [cross_product_apply, vec3_dot_product, mul_sub, mul_assoc, mul_left_comm]
 
 /-- The cross product of two vectors is perpendicular to the second vector. -/
-lemma dot_cross_product_self (v w : fin 3 → R) :
+@[simp] lemma dot_cross_product_self (v w : fin 3 → R) :
   w ⬝ᵥ (v ×₃ w) = 0 :=
 by rw [← cross_product_anticomm, matrix.dot_product_neg, dot_self_cross_product, neg_zero]
 
@@ -151,7 +151,7 @@ lie_lie u v w
 
 /-- For a cross product of three vectors, their sum over the three even permutations is equal
     to the zero vector. -/
-theorem jacobi_identity (u v w : fin 3 → R) :
+theorem jacobi_cross (u v w : fin 3 → R) :
   u ×₃ (v ×₃ w) + v ×₃ (w ×₃ u) + w ×₃ (u ×₃ v) = 0 :=
 lie_jacobi u v w
 

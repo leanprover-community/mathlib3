@@ -178,25 +178,12 @@ instance : comm_monoid A :=
   .. (show non_unital_non_assoc_ring A, by apply_instance) }
 -/
 
-lemma is_comm_jordan_operators : (∀ a: A, L a = R a) ∧ (∀ a: A, ⁅L a, L (a*a)⁆ = 0) :=
-begin
-  split,
-  { intro, ext b, simp, rw is_comm_jordan.mul_comm, },
-  { intro,
-    ext b,
-    rw ring.lie_def,
-    simp only [add_monoid_hom.zero_apply, add_monoid_hom.sub_apply, function.comp_app,
-      function.End.L_apply_apply, add_monoid.coe_mul],
-    rw [is_comm_jordan.mul_comm (a * a) (a * b), is_comm_jordan.jordan,
-      is_comm_jordan.mul_comm b (a * a), sub_self], }
-end
-
 /- Linearise the Jordan axiom with two variables-/
 lemma mul_op_com1 (a b : A) :
   ⁅L a, L (b*b)⁆ + ⁅L b, L (a*a)⁆ + (2:ℤ)•⁅L a, L (a*b)⁆ + (2:ℤ)•⁅L b, L (a*b)⁆  = 0 :=
 begin
   symmetry,
-  calc 0 = ⁅L (a+b), L ((a+b)*(a+b))⁆ : by rw (is_comm_jordan_operators.2 (a + b))
+  calc 0 = ⁅L (a+b), L ((a+b)*(a+b))⁆ : by rw (lmul_lmul_sq_comm (a + b))
     ... = ⁅L a + L b, L (a*a+a*b+(b*a+b*b))⁆ : by rw [add_mul, mul_add, mul_add, map_add]
     ... = ⁅L a + L b, L (a*a) + L(a*b) + (L(a*b) + L(b*b))⁆ :
       by rw [map_add, map_add, map_add, is_comm_jordan.mul_comm b a]
@@ -205,7 +192,7 @@ begin
       + (⁅L b, L (a*a)⁆ + ⁅L b,(2:ℤ)•L(a*b)⁆ + ⁅L b,L(b*b)⁆) :
         by rw [add_lie, lie_add, lie_add, lie_add, lie_add]
     ... = (2:ℤ)•⁅L a, L(a*b)⁆ + ⁅L a, L(b*b)⁆ + (⁅L b, L (a*a)⁆ + (2:ℤ)•⁅L b,L(a*b)⁆) :
-      by rw [is_comm_jordan_operators.2 a, is_comm_jordan_operators.2 b, lie_smul, lie_smul,
+      by rw [lmul_lmul_sq_comm a, lmul_lmul_sq_comm b, lie_smul, lie_smul,
         zero_add, add_zero]
     ... = ⁅L a, L (b*b)⁆ + ⁅L b, L (a*a)⁆ + (2:ℤ)•⁅L a, L (a*b)⁆ + (2:ℤ)•⁅L b, L (a*b)⁆: by abel
 end
@@ -214,7 +201,7 @@ end
 lemma lin_jordan (a b c : A) : (2:ℤ)•(⁅L a, L (b*c)⁆ + ⁅L b, L (a*c)⁆ + ⁅L c, L (a*b)⁆) = 0 :=
 begin
   symmetry,
-  calc 0 = ⁅L (a+b+c), L ((a+b+c)*(a+b+c))⁆ : by rw (is_comm_jordan_operators.2 (a + b + c))
+  calc 0 = ⁅L (a+b+c), L ((a+b+c)*(a+b+c))⁆ : by rw (lmul_lmul_sq_comm (a + b + c))
   ... = ⁅L a + L b + L c,
     L (a*a) + L(a*b) + L (a*c) + (L(b*a) + L(b*b) + L(b*c)) + (L(c*a) + L(c*b) + L(c*c))⁆ :
     by rw [add_mul, add_mul, mul_add, mul_add, mul_add, mul_add, mul_add, mul_add,
@@ -239,8 +226,8 @@ begin
           + ⁅L b, (2:ℤ)•L(b*c)⁆)
         + (⁅L c, L (a*a)⁆ + ⁅L c, L(b*b)⁆ + ⁅L c, (2:ℤ)•L(a*b)⁆ + ⁅L c, (2:ℤ)•L(a*c)⁆
           + ⁅L c, (2:ℤ)•L(b*c)⁆) :
-    by rw [is_comm_jordan_operators.2 a, is_comm_jordan_operators.2 b,
-      is_comm_jordan_operators.2 c, zero_add, add_zero, add_zero]
+    by rw [lmul_lmul_sq_comm a, lmul_lmul_sq_comm b,
+      lmul_lmul_sq_comm c, zero_add, add_zero, add_zero]
   ... = ⁅L a, L(b*b)⁆ + ⁅L a, L(c*c)⁆ + (2:ℤ)•⁅L a, L(a*b)⁆ + (2:ℤ)•⁅L a, L(a*c)⁆
           + (2:ℤ)•⁅L a, L(b*c)⁆
         + (⁅L b, L (a*a)⁆ + ⁅L b, L(c*c)⁆ + (2:ℤ)•⁅L b, L(a*b)⁆ + (2:ℤ)•⁅L b, L(a*c)⁆

@@ -51,11 +51,10 @@ structure oplax_nat_trans (F G : oplax_functor B C) :=
       (naturality f ▷ G.map g) ≫ (α_ _ _ _).hom . obviously)
 
 restate_axiom oplax_nat_trans.naturality_naturality'
-attribute [simp, reassoc] oplax_nat_trans.naturality_naturality
 restate_axiom oplax_nat_trans.naturality_comp'
-attribute [simp, reassoc] oplax_nat_trans.naturality_comp
 restate_axiom oplax_nat_trans.naturality_id'
-attribute [simp, reassoc] oplax_nat_trans.naturality_id
+attribute [simp, reassoc] oplax_nat_trans.naturality_naturality
+  oplax_nat_trans.naturality_comp oplax_nat_trans.naturality_id
 
 namespace oplax_nat_trans
 

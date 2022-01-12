@@ -67,7 +67,7 @@ by by_cases p; by_cases q; simp *
 
 lemma not_ff : ¬ ff := ff_ne_tt
 
-@[simp] theorem default_bool : default bool = ff := rfl
+@[simp] theorem default_bool : default = ff := rfl
 
 theorem dichotomy (b : bool) : b = ff ∨ b = tt :=
 by cases b; simp

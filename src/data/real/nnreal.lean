@@ -237,7 +237,7 @@ lemma nsmul_coe (r : ℝ≥0) (n : ℕ) : ↑(n • r) = n • (r:ℝ) :=
 by norm_cast
 
 @[simp, norm_cast] protected lemma coe_nat_cast (n : ℕ) : (↑(↑n : ℝ≥0) : ℝ) = n :=
-to_real_hom.map_nat_cast n
+map_nat_cast to_real_hom n
 
 noncomputable example : linear_order ℝ≥0 := by apply_instance
 
@@ -280,7 +280,7 @@ noncomputable example : linear_ordered_comm_monoid_with_zero ℝ≥0 := by apply
 noncomputable example : linear_ordered_comm_group_with_zero ℝ≥0 := by apply_instance
 example : canonically_ordered_comm_semiring ℝ≥0 := by apply_instance
 example : densely_ordered ℝ≥0 := by apply_instance
-example : no_top_order ℝ≥0 := by apply_instance
+example : no_max_order ℝ≥0 := by apply_instance
 
 lemma bdd_above_coe {s : set ℝ≥0} : bdd_above ((coe : ℝ≥0 → ℝ) '' s) ↔ bdd_above s :=
 iff.intro

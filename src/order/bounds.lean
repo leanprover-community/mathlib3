@@ -517,17 +517,17 @@ lemma is_least_univ [preorder γ] [order_bot γ] : is_least (univ : set γ) ⊥ 
 lemma is_glb_univ [preorder γ] [order_bot γ] : is_glb (univ : set γ) ⊥ :=
 is_least_univ.is_glb
 
-@[simp] lemma no_top_order.upper_bounds_univ [no_top_order α] : upper_bounds (univ : set α) = ∅ :=
-eq_empty_of_subset_empty $ λ b hb, let ⟨x, hx⟩ := no_top b in
+@[simp] lemma no_max_order.upper_bounds_univ [no_max_order α] : upper_bounds (univ : set α) = ∅ :=
+eq_empty_of_subset_empty $ λ b hb, let ⟨x, hx⟩ := exists_gt b in
 not_le_of_lt hx (hb trivial)
 
-@[simp] lemma no_bot_order.lower_bounds_univ [no_bot_order α] : lower_bounds (univ : set α) = ∅ :=
-@no_top_order.upper_bounds_univ (order_dual α) _ _
+@[simp] lemma no_min_order.lower_bounds_univ [no_min_order α] : lower_bounds (univ : set α) = ∅ :=
+@no_max_order.upper_bounds_univ (order_dual α) _ _
 
-@[simp] lemma not_bdd_above_univ [no_top_order α] : ¬bdd_above (univ : set α) :=
+@[simp] lemma not_bdd_above_univ [no_max_order α] : ¬bdd_above (univ : set α) :=
 by simp [bdd_above]
 
-@[simp] lemma not_bdd_below_univ [no_bot_order α] : ¬bdd_below (univ : set α) :=
+@[simp] lemma not_bdd_below_univ [no_min_order α] : ¬bdd_below (univ : set α) :=
 @not_bdd_above_univ (order_dual α) _ _
 
 /-!
@@ -552,13 +552,13 @@ by simp only [is_glb, lower_bounds_empty, is_greatest_univ]
 lemma is_lub_empty [preorder γ] [order_bot γ] : is_lub ∅ (⊥:γ) :=
 @is_glb_empty (order_dual γ) _ _
 
-lemma is_lub.nonempty [no_bot_order α] (hs : is_lub s a) : s.nonempty :=
-let ⟨a', ha'⟩ := no_bot a in
+lemma is_lub.nonempty [no_min_order α] (hs : is_lub s a) : s.nonempty :=
+let ⟨a', ha'⟩ := exists_lt a in
 ne_empty_iff_nonempty.1 $ assume h,
 have a ≤ a', from hs.right $ by simp only [h, upper_bounds_empty],
 not_le_of_lt ha' this
 
-lemma is_glb.nonempty [no_top_order α] (hs : is_glb s a) : s.nonempty := hs.dual.nonempty
+lemma is_glb.nonempty [no_max_order α] (hs : is_glb s a) : s.nonempty := hs.dual.nonempty
 
 lemma nonempty_of_not_bdd_above [ha : nonempty α] (h : ¬bdd_above s) : s.nonempty :=
 nonempty.elim ha $ λ x, (not_bdd_above_iff'.1 h x).imp $ λ a ha, ha.fst

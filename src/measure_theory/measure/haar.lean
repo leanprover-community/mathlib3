@@ -658,9 +658,7 @@ begin
   have K : positive_compacts G := classical.choice (topological_space.nonempty_positive_compacts G),
   have : c^2 * μ K.1 = 1^2 * μ K.1,
     by { conv_rhs { rw μeq },
-         -- use `change` instead of `simp` to avoid `to_additive` issues
-         change c ^ 2 * μ K.1 = 1 ^ 2 * (c ^ 2 * μ K.1),
-         rw [one_pow, one_mul] },
+         simp, },
   have : c^2 = 1^2 :=
     (ennreal.mul_eq_mul_right (haar_pos_of_nonempty_interior _ K.2.2).ne'
       (is_compact.measure_lt_top K.2.1).ne).1 this,

@@ -1166,7 +1166,7 @@ local_of_nonunits_ideal
         htz.symm ▸ I.zero_mem))
     end)
   (begin
-    intros x y hx hy hu,
+    intros x hx y hy hu,
     cases is_unit_iff_exists_inv.1 hu with z hxyz,
     have : ∀ {r : R} {s : I.prime_compl}, mk' S r s ∈ nonunits S → r ∈ I, from
       λ (r : R) (s : I.prime_compl), not_imp_comm.1
@@ -1421,8 +1421,11 @@ section localization_localization
 
 variable (M)
 
-variables (N : submonoid S) (T : Type*) [comm_ring T] [algebra S T]
-variables [algebra R T] [is_scalar_tower R S T]
+variables (N : submonoid S) (T : Type*) [comm_ring T] [algebra R T]
+
+section
+
+variables [algebra S T] [is_scalar_tower R S T]
 
 /--
 Localizing wrt `M ⊆ R` and then wrt `N ⊆ S = M⁻¹R` is equal to the localization of `R` wrt this
@@ -1558,6 +1561,92 @@ noncomputable
 def localization_localization_at_prime_iso_localization (p : ideal (localization M)) [p.is_prime] :
   localization.at_prime (p.comap (algebra_map R _)) ≃ₐ[R] localization.at_prime p :=
 is_localization.alg_equiv (p.comap (algebra_map R _)).prime_compl _ _
+
+end
+
+variables (S)
+
+/-- Given submonoids `M ≤ N` of `R`, this is the canonical algebra structure
+of `M⁻¹S` acting on `N⁻¹S`. -/
+noncomputable
+def localization_algebra_of_submonoid_le
+  (M N : submonoid R) (h : M ≤ N) [is_localization M S] [is_localization N T] :
+  algebra S T :=
+(is_localization.lift (λ y, (map_units T ⟨↑y, h y.prop⟩ : _)) : S →+* T).to_algebra
+
+/-- If `M ≤ N` are submonoids of `R`, then the natural map `M⁻¹S →+* N⁻¹S` commutes with the
+localization maps -/
+lemma localization_is_scalar_tower_of_submonoid_le
+  (M N : submonoid R) (h : M ≤ N) [is_localization M S] [is_localization N T] :
+  @@is_scalar_tower R S T _ (localization_algebra_of_submonoid_le S T M N h).to_has_scalar _ :=
+begin
+  letI := localization_algebra_of_submonoid_le S T M N h,
+  exact is_scalar_tower.of_algebra_map_eq' (is_localization.lift_comp _).symm
+end
+
+noncomputable
+instance (x : ideal R) [H : x.is_prime] [is_domain R] :
+  algebra (localization.at_prime x) (localization (non_zero_divisors R)) :=
+localization_algebra_of_submonoid_le _ _ x.prime_compl (non_zero_divisors R)
+  (by { intros a ha, rw mem_non_zero_divisors_iff_ne_zero, exact λ h, ha (h.symm ▸ x.zero_mem) })
+
+/-- If `M ≤ N` are submonoids of `R`, then `N⁻¹S` is also the localization of `M⁻¹S` at `N`. -/
+lemma is_localization_of_submonoid_le
+  (M N : submonoid R) (h : M ≤ N) [is_localization M S] [is_localization N T]
+  [algebra S T] [is_scalar_tower R S T] :
+  is_localization (N.map (algebra_map R S).to_monoid_hom) T :=
+{ map_units := begin
+    rintro ⟨_, ⟨y, hy, rfl⟩⟩,
+    convert is_localization.map_units T ⟨y, hy⟩,
+    exact (is_scalar_tower.algebra_map_apply _ _ _ _).symm
+  end,
+  surj := λ y, begin
+    obtain ⟨⟨x, s⟩, e⟩ := is_localization.surj N y,
+    refine ⟨⟨algebra_map _ _ x, _, _, s.prop, rfl⟩, _⟩,
+    simpa [← is_scalar_tower.algebra_map_apply] using e
+  end,
+  eq_iff_exists := λ x₁ x₂, begin
+    obtain ⟨⟨y₁, s₁⟩, e₁⟩ := is_localization.surj M x₁,
+    obtain ⟨⟨y₂, s₂⟩, e₂⟩ := is_localization.surj M x₂,
+    refine iff.trans _ (set.exists_image_iff (algebra_map R S) N (λ c, x₁ * c = x₂ * c)).symm,
+    dsimp only at e₁ e₂ ⊢,
+    suffices : algebra_map R T (y₁ * s₂) = algebra_map R T (y₂ * s₁) ↔
+      ∃ (a : N), algebra_map R S (a * (y₁ * s₂)) = algebra_map R S (a * (y₂ * s₁)),
+    { have h₁ := (is_localization.map_units T ⟨_, h s₁.prop⟩).mul_left_inj,
+      have h₂ := (is_localization.map_units T ⟨_, h s₂.prop⟩).mul_left_inj,
+      simp only [is_scalar_tower.algebra_map_apply R S T, subtype.coe_mk] at h₁ h₂,
+      simp only [is_scalar_tower.algebra_map_apply R S T, map_mul, ← e₁, ← e₂, ← mul_assoc,
+        mul_right_comm _ (algebra_map R S s₂),
+        mul_right_comm _ (algebra_map S T (algebra_map R S s₂)),
+        (is_localization.map_units S s₁).mul_left_inj,
+        (is_localization.map_units S s₂).mul_left_inj] at this,
+      rw [h₂, h₁] at this,
+      simpa only [mul_comm] using this },
+    simp_rw [is_localization.eq_iff_exists N T, is_localization.eq_iff_exists M S],
+    split,
+    { rintro ⟨a, e⟩, exact ⟨a, 1, by { convert e using 1; simp; ring }⟩ },
+    { rintro ⟨a, b, e⟩, exact ⟨a * (⟨_, h b.prop⟩ : N), by { convert e using 1; simp; ring }⟩ }
+  end }
+
+/-- If `M ≤ N` are submonoids of `R` such that `∀ x : N, ∃ m : R, m * x ∈ M`, then the
+localization at `N` is equal to the localizaton of `M`. -/
+lemma is_localization_of_is_exists_mul_mem (M N : submonoid R) [is_localization M S] (h : M ≤ N)
+    (h' : ∀ x : N, ∃ m : R, m * x ∈ M) : is_localization N S :=
+{ map_units := λ y, begin
+    obtain ⟨m, hm⟩ := h' y,
+    have := is_localization.map_units S ⟨_, hm⟩,
+    erw map_mul at this,
+    exact (is_unit.mul_iff.mp this).2
+  end,
+  surj := λ z, by { obtain ⟨⟨y, s⟩, e⟩ := is_localization.surj M z, exact ⟨⟨y, _, h s.prop⟩, e⟩ },
+  eq_iff_exists := λ x₁ x₂, begin
+    rw is_localization.eq_iff_exists M,
+    refine ⟨λ ⟨x, hx⟩, ⟨⟨_, h x.prop⟩, hx⟩, _⟩,
+    rintros ⟨x, h⟩,
+    obtain ⟨m, hm⟩ := h' x,
+    refine ⟨⟨_, hm⟩, _⟩,
+    simp [mul_comm m, ← mul_assoc, h]
+  end }
 
 end localization_localization
 
@@ -2017,6 +2106,9 @@ is_localization.coe_submodule_le_coe_submodule (le_refl _)
 lemma coe_submodule_strict_mono :
   strict_mono (coe_submodule K : ideal R → submodule R K) :=
 strict_mono_of_le_iff_le (λ _ _, coe_submodule_le_coe_submodule.symm)
+
+@[priority 100] instance [no_zero_divisors K] : no_zero_smul_divisors R K :=
+no_zero_smul_divisors.of_algebra_map_injective $ is_fraction_ring.injective R K
 
 variables (R K)
 

@@ -153,12 +153,13 @@ variables {R : Type u} {M : Type v}
 [module R M] [has_continuous_smul R M]
 
 lemma submodule.closure_smul_self_subset (s : submodule R M) :
-  (λ p : R × M, p.1 • p.2) '' ((set.univ : set R).prod (closure (s : set M)))
+  (λ p : R × M, p.1 • p.2) '' ((set.univ : set R) ×ˢ closure (s : set M))
   ⊆ closure (s : set M) :=
 calc
-(λ p : R × M, p.1 • p.2) '' ((set.univ : set R).prod (closure (s : set M)))
-    = (λ p : R × M, p.1 • p.2) '' (closure ((set.univ : set R).prod s)) : by simp [closure_prod_eq]
-... ⊆ closure ((λ p : R × M, p.1 • p.2) '' ((set.univ : set R).prod s)) :
+(λ p : R × M, p.1 • p.2) '' ((set.univ : set R) ×ˢ closure (s : set M))
+    = (λ p : R × M, p.1 • p.2) '' (closure ((set.univ : set R) ×ˢ (s : set M))) :
+  by simp [closure_prod_eq]
+... ⊆ closure ((λ p : R × M, p.1 • p.2) '' ((set.univ : set R) ×ˢ (s : set M))) :
   image_closure_subset_closure_image continuous_smul
 ... = closure s : begin
   congr,
@@ -169,7 +170,7 @@ calc
 end
 
 lemma submodule.closure_smul_self_eq (s : submodule R M) :
-  (λ p : R × M, p.1 • p.2) '' ((set.univ : set R).prod (closure (s : set M)))
+  (λ p : R × M, p.1 • p.2) '' ((set.univ : set R) ×ˢ closure (s : set M))
   = closure (s : set M) :=
 set.subset.antisymm s.closure_smul_self_subset
   (λ x hx, ⟨⟨1, x⟩, ⟨set.mem_univ _, hx⟩, one_smul R _⟩)
@@ -431,7 +432,7 @@ end
 instance: has_zero (M₁ →SL[σ₁₂] M₂) := ⟨⟨0, continuous_zero⟩⟩
 instance : inhabited (M₁ →SL[σ₁₂] M₂) := ⟨0⟩
 
-@[simp] lemma default_def : default (M₁ →SL[σ₁₂] M₂) = 0 := rfl
+@[simp] lemma default_def : (default : M₁ →SL[σ₁₂] M₂) = 0 := rfl
 @[simp] lemma zero_apply : (0 : M₁ →SL[σ₁₂] M₂) x = 0 := rfl
 @[simp, norm_cast] lemma coe_zero : ((0 : M₁ →SL[σ₁₂] M₂) : M₁ →ₛₗ[σ₁₂] M₂) = 0 := rfl
 /- no simp attribute on the next line as simp does not always simplify `0 x` to `0`
@@ -1104,6 +1105,9 @@ instance : module S₃ (M →SL[σ₁₃] M₃) :=
 { zero_smul := λ _, ext $ λ _, zero_smul _ _,
   add_smul  := λ _ _ _, ext $ λ _, add_smul _ _ _ }
 
+instance [module S₃ᵐᵒᵖ M₃] [is_central_scalar S₃ M₃] : is_central_scalar S₃ (M →SL[σ₁₃] M₃) :=
+{ op_smul_eq_smul := λ _ _, ext $ λ _, op_smul_eq_smul _ _ }
+
 variables (S) [has_continuous_add N₃]
 
 /-- `continuous_linear_map.prod` as a `linear_equiv`. -/
@@ -1728,7 +1732,7 @@ def fun_unique : (ι → M) ≃L[R] M :=
 
 variables {ι R M}
 
-@[simp] lemma coe_fun_unique : ⇑(fun_unique ι R M) = function.eval (default ι) := rfl
+@[simp] lemma coe_fun_unique : ⇑(fun_unique ι R M) = function.eval default := rfl
 @[simp] lemma coe_fun_unique_symm : ⇑(fun_unique ι R M).symm = function.const ι := rfl
 
 variables (R M)

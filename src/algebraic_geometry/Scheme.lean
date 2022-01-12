@@ -179,7 +179,7 @@ RingedSpace.basic_open_mul _ _ _
 
 @[simp]
 lemma basic_open_of_is_unit {f : X.presheaf.obj (op U)} (hf : is_unit f) : X.basic_open f = U :=
-RingedSpace.basic_open_of_is_unit _ _
+RingedSpace.basic_open_of_is_unit _ hf
 
 lemma basic_open_eq_of_affine {R : CommRing} (f : R) :
   (Scheme.Spec.obj $ op R).basic_open ((Spec_Γ_identity.app R).inv f) =

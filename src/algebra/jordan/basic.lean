@@ -129,45 +129,48 @@ lemma lmul_rmul_comm [is_jordan A] (a : A) : ⁅L a, R a⁆ = 0 :=
 begin
   ext b,
   rw ring.lie_def,
-  simp only [add_monoid_hom.zero_apply, add_monoid_hom.sub_apply, function.comp_app,
-      function.End.L_apply_apply, add_monoid.coe_mul, function.End.R_apply_apply],
-    rw is_jordan.lmul_comm_rmul, rw sub_self,
+  apply sub_eq_zero_of_eq,
+  simp only [function.comp_app, function.End.L_apply_apply, add_monoid.coe_mul,
+    function.End.R_apply_apply],
+  rw is_jordan.lmul_comm_rmul,
 end
 
 lemma lmul_lmul_sq_comm [is_jordan A] (a : A) : ⁅L a, L (a * a)⁆ = 0 :=
 begin
   ext b,
   rw ring.lie_def,
-  simp only [add_monoid_hom.zero_apply, add_monoid_hom.sub_apply, function.comp_app,
-    function.End.L_apply_apply, add_monoid.coe_mul],
-  rw is_jordan.lmul_lmul_comm_lmul, rw sub_self,
+  apply sub_eq_zero_of_eq,
+  simp only [function.comp_app, function.End.L_apply_apply, add_monoid.coe_mul],
+  rw is_jordan.lmul_lmul_comm_lmul,
 end
 
 lemma lmul_rmul_sq_comm [is_jordan A] (a : A) : ⁅L a, R (a * a)⁆ = 0 :=
 begin
   ext b,
   rw ring.lie_def,
-  simp only [add_monoid_hom.zero_apply, add_monoid_hom.sub_apply, function.comp_app,
-    function.End.L_apply_apply, add_monoid.coe_mul, function.End.R_apply_apply],
-  rw is_jordan.lmul_comm_rmul_rmul, rw sub_self,
+  apply sub_eq_zero_of_eq,
+  simp only [function.comp_app, function.End.L_apply_apply, add_monoid.coe_mul,
+    function.End.R_apply_apply],
+  rw is_jordan.lmul_comm_rmul_rmul,
 end
 
 lemma lmul_sq_rmul_comm [is_jordan A] (a : A) : ⁅L (a * a), R a⁆ = 0 :=
 begin
   ext b,
   rw ring.lie_def,
-  simp only [add_monoid_hom.zero_apply, add_monoid_hom.sub_apply, function.comp_app,
-    function.End.L_apply_apply, add_monoid.coe_mul, function.End.R_apply_apply],
-  rw is_jordan.lmul_lmul_comm_rmul, rw sub_self,
+  apply sub_eq_zero_of_eq,
+  simp only [function.comp_app, function.End.L_apply_apply, add_monoid.coe_mul,
+    function.End.R_apply_apply],
+  rw is_jordan.lmul_lmul_comm_rmul,
 end
 
 lemma rmul_rmul_sq_comm [is_jordan A] (a : A) : ⁅R a, R (a * a)⁆ = 0 :=
 begin
   ext b,
   rw ring.lie_def,
-  simp only [add_monoid_hom.zero_apply, add_monoid_hom.sub_apply, function.comp_app,
-    add_monoid.coe_mul, function.End.R_apply_apply],
-  rw is_jordan.rmul_comm_rmul_rmul, rw sub_self,
+  apply sub_eq_zero_of_eq,
+  simp only [function.comp_app, add_monoid.coe_mul, function.End.R_apply_apply],
+  rw is_jordan.rmul_comm_rmul_rmul,
 end
 
 variable [is_comm_jordan A]

@@ -21,9 +21,16 @@ import ring_theory.nilpotent
 -/
 
 
+@[priority 80] -- see Note [lower instance priority]
+instance ring.is_noetherian_ring_of_fintype (R) [fintype R] [ring R] :
+  is_noetherian_ring R := by rw is_noetherian_ring_iff; refine ring.is_noetherian_of_fintype R R
+-- TODO this should be global
+
+
 -- reduced for poly instance
 -- reduced for subrings, sums, pis
 -- opposites
+
 
 /-- A `monoid_with_zero` is reversible if two elements whose product is 0 necessarily still have
 product zero when the order of the multiplication is reversed. -/
@@ -59,9 +66,6 @@ end⟩
 instance comm_ring.is_reversible [comm_ring R] : is_reversible R :=
 ⟨λ a b h, h ▸ mul_comm b a⟩
 
-namespace dedekind_finite
-
-section
 
 /-- A (noncommutative) monoid is Dedekind-finite if for any pair of elements `a b : R` with
   `a * b = 1` we have `b * a = 1`, i.e. multiplication is commutative on inverse pairs.
@@ -72,29 +76,35 @@ section
 class is_dedekind_finite [monoid R] : Prop :=
 (inv_comm : ∀ a b : R, a * b = 1 → b * a = 1)
 
-end
-section
+namespace dedekind_finite
 
-instance is_dedekind_finite_pi {ι : Type*} {α : ι → Type*} [∀ i, monoid $ α i]
+instance {ι : Type*} {α : ι → Type*} [∀ i, monoid $ α i]
   [∀ i, is_dedekind_finite $ α i] : is_dedekind_finite (Π i, α i) :=
 by pi_instance
-
-end
-
-section
 
 --instance subring.is_dedekind_finite [ring R] [is_dedekind_finite R] (S : set R)
 -- [is_subring S] : is_dedekind_finite S :=
 --by subtype_instance
+variable {R}
+
+lemma left_mul [ring R] {a b : R} (hab : a * b = 1) : a * (1 - b * a) = 0 :=
+by rw [mul_sub, ← mul_assoc, hab, mul_one, one_mul, sub_self]
+lemma right_mul [ring R] {a b : R} (hab : a * b = 1) : (1 - b * a) * b = 0 :=
+by rw [sub_mul, mul_assoc, hab, mul_one, one_mul, sub_self]
+lemma idemp [ring R] {a b : R} (hab : a * b = 1) : (1 - b * a) * (1 - b * a) = (1 - b * a) :=
+begin
+  assoc_rw [sub_mul, mul_sub, mul_sub, hab],
+  simp,
+end
 
 @[priority 100]
 instance is_reversible.is_dedekind_finite [ring R] [is_reversible R] : is_dedekind_finite R :=
 ⟨λ a b h,
   begin
-    have : b * (b * a - 1) = 0 := is_reversible.mul_eq_zero_of_mul_swap_eq_zero
-      (calc (b * a - 1) * b = b * (a * b) - b : by rw [sub_mul, one_mul, mul_assoc]
-                       ...  = 0               : by rw [h, mul_one, sub_self]),
-    rw [mul_sub, mul_one, ← mul_assoc, ← pow_two, sub_eq_zero] at this,
+    have := right_mul h,
+    rw [← neg_sub, neg_mul_eq_neg_mul_symm, neg_eq_zero,
+      is_reversible.mul_eq_zero_iff_mul_swap_eq_zero, mul_sub, mul_one,
+      ← mul_assoc, ← pow_two, sub_eq_zero] at this,
     apply_fun ((*) a) at this,
     rw [h] at this,
     calc b * a = a * (b^2 * a) * b * a : by simp [this]
@@ -103,18 +113,22 @@ instance is_reversible.is_dedekind_finite [ring R] [is_reversible R] : is_dedeki
         ...    = 1                     : by assoc_rw [this],
   end⟩
 
-
-variable [ring R]
-
+section
 open linear_map
 open function
-
--- TODO artinian version of ring stuff?
-open_locale classical
 
 -- we have ker_id already but neither seems to be simp normal
 @[simp] theorem ker_one {R : Type*} [ring R] {M : Type*} [add_comm_group M] [module R M] :
   ker (1 : M →ₗ[R] M) = ⊥ := rfl
+end
+
+-- TODO artinian version of ring stuff?
+
+section
+
+variable [ring R]
+
+open_locale classical
 
 @[priority 100]
 instance is_dedekind_finite_of_noetherian [is_noetherian_ring R] : is_dedekind_finite R :=
@@ -124,18 +138,8 @@ instance is_dedekind_finite_of_noetherian [is_noetherian_ring R] : is_dedekind_f
     have f_surj : function.surjective f := λ x, ⟨x * a, by simp [mul_assoc, h]⟩,
     rw ← sub_eq_zero,
     apply is_noetherian.injective_of_surjective_endomorphism f f_surj,
-    calc f (b * a - 1) = (b * a - 1) * b : by simp only [is_linear_map.mk'_apply,
-                                                         smul_eq_mul, sub_eq_add_neg]
-                   ... = b * a * b - b   : by rw [sub_mul, one_mul]
-                   ... = 0               : by rw [mul_assoc, h, mul_one, sub_self]
-                   ... = f 0             : by simp only [zero_mul, is_linear_map.mk'_apply,
-                                                         smul_eq_mul],
+    simp [sub_mul, mul_assoc, h],
   end⟩
-
-@[priority 80] -- see Note [lower instance priority]
-instance ring.is_noetherian_ring_of_fintype (R) [fintype R] [ring R] :
-  is_noetherian_ring R := by rw is_noetherian_ring_iff; refine ring.is_noetherian_of_fintype R R
--- TODO this should be global
 
 end
 
@@ -156,15 +160,6 @@ lemma pow_mul_pow_eq_pow_sub_mul_pow_sub_of_mul_eq_one [monoid R] {a b : R} (hab
 end
 
 private def e [ring R] (a b : R) (i j : ℕ) : R := b ^ i * (1 - b * a) * a ^ j
-lemma left_mul [ring R] {a b : R} (hab : a * b = 1) : a * (1 - b * a) = 0 :=
-by rw [mul_sub, ← mul_assoc, hab, mul_one, one_mul, sub_self]
-lemma right_mul [ring R] {a b : R} (hab : a * b = 1) : (1 - b * a) * b = 0 :=
-by rw [sub_mul, mul_assoc, hab, mul_one, one_mul, sub_self]
-lemma idemp [ring R] {a b : R} (hab : a * b = 1) : (1 - b * a) * (1 - b * a) = (1 - b * a) :=
-begin
-  assoc_rw [sub_mul, mul_sub, mul_sub, hab],
-  simp,
-end
 
 lemma e_orthogonal [ring R] {a b : R} (hab : a * b = 1) {i j k l : ℕ} :
   e a b i j * e a b k l = if j = k then e a b i l else 0 :=

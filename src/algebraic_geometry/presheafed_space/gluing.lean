@@ -269,6 +269,8 @@ abbreviation diagram_over_open {i : D.J} (U : opens (D.U i).carrier) :
   (walking_multispan _ _)ᵒᵖ ⥤ C :=
 componentwise_diagram 𝖣 .diagram.multispan ((D.ι_open_embedding i).is_open_map.functor.obj U)
 
+/-- (Implementation)
+The projection from the limit of `diagram_over_open` to a component of `D.U j`. -/
 abbreviation diagram_over_open_π {i : D.J} (U : opens (D.U i).carrier) (j : D.J) :=
 limit.π (D.diagram_over_open U) (op (walking_multispan.right j))
 

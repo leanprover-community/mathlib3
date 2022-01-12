@@ -121,6 +121,10 @@ begin
   simp [discr],
 end
 
+/-- Over a field, if `b` is a basis, then `algebra.discr K b` is a unit. -/
+lemma discr_is_unit_of_basis (b : basis ι K L) : is_unit (discr K b) :=
+is_unit.mk0 _ (discr_not_zero_of_basis _ _)
+
 variables (b : ι → L) (pb : power_basis K L)
 
 /-- If `L/K` is a field extension and `b : ι → L`, then `discr K b` is the square of the

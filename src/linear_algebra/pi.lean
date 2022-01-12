@@ -428,13 +428,23 @@ def linear_map.vec_cons_apply {n} (f : M →ₗ[R] M₂) (g : M →ₗ[R] (fin n
 
 end semiring
 
+/-- Non-dependent version of `pi.has_scalar`. Lean gets confused by the dependent instance if this
+is not present. -/
+instance function.has_scalar {ι R M : Type*} [has_scalar R M] :
+  has_scalar R (ι → M) :=
+pi.has_scalar
+
+/-- Non-dependent version of `pi.smul_comm_class`. Lean gets confused by the dependent instance if this
+is not present. -/
+instance function.smul_comm_class {ι α β M : Type*}
+  [has_scalar α M] [has_scalar β M] [smul_comm_class α β M]:
+  smul_comm_class α β (ι → M) :=
+pi.smul_comm_class
+
 section comm_semiring
 
 variables [comm_semiring R] [add_comm_monoid M] [add_comm_monoid M₂] [add_comm_monoid M₃]
 variables [module R M] [module R M₂] [module R M₃]
-
-instance wat {n} : smul_comm_class R R (fin n → M₃) :=
-@pi.smul_comm_class _ (λ _ : fin n, M₃) R R _ _ (λ _, by apply_instance)
 
 /-- The empty bilinear map defeq to `matrix.vec_empty` -/
 @[simps]

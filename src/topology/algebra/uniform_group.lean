@@ -3,10 +3,12 @@ Copyright (c) 2018 Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Johannes Hölzl
 -/
-import topology.uniform_space.uniform_embedding
-import topology.uniform_space.complete_separated
-import topology.algebra.group
+
 import tactic.abel
+import topology.algebra.group
+import topology.uniform_space.complete_separated
+import topology.uniform_space.uniform_convergence
+import topology.uniform_space.uniform_embedding
 
 /-!
 # Uniform structure on topological groups
@@ -198,6 +200,15 @@ def topological_group.to_uniform_space : uniform_space G :=
     { rintros h ⟨x, y⟩ hx rfl, exact h hx },
     { rintros h x hx, exact @h (a, x) hx rfl }
   end }
+
+variables {G}
+
+@[to_additive] lemma topological_group.tends_uniformly_to
+  {ι α : Type*} (F : ι → α → G) (f : α → G) (p : filter ι) (s : set α) :
+  @tendsto_uniformly_on α G ι (topological_group.to_uniform_space G) F f p s
+    ↔ ∀ u ∈ nhds (1 : G), {i : ι | ∀ a ∈ s, F i a / f a ∈ u} ∈ p :=
+⟨λ h u hu, h _ ⟨u, hu, set.subset.rfl⟩, λ h v ⟨u, hu, hv⟩,
+  p.sets_of_superset (h u hu) (λ i hi a ha, hv (by exact hi a ha))⟩
 
 end topological_comm_group
 

@@ -122,7 +122,7 @@ rfl
     by_cases h : 0 ≤ z.order,
     { refine ⟨⟨power_series.X ^ (int.nat_abs z.order) * power_series_part z, 1⟩, _⟩,
       simp only [ring_hom.map_one, mul_one, ring_hom.map_mul, coe_algebra_map,
-        of_power_series_X_pow, submonoid.coe_one, int.nat_cast_eq_coe_nat],
+        of_power_series_X_pow, submonoid_class.coe_one, int.nat_cast_eq_coe_nat],
       rw [int.nat_abs_of_nonneg h, ← coe_power_series, single_order_mul_power_series_part] },
     { refine ⟨⟨power_series_part z, power_series.X ^ (int.nat_abs z.order), ⟨_, rfl⟩⟩, _⟩,
       simp only [coe_algebra_map, of_power_series_power_series_part],

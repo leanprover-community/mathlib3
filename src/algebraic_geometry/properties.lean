@@ -3,7 +3,7 @@ Copyright (c) 2021 Andrew Yang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andrew Yang
 -/
-import algebraic_geometry.open_immersion
+import algebraic_geometry.AffineScheme
 import ring_theory.nilpotent
 import topology.sheaves.sheaf_condition.sites
 import category_theory.limits.constructions.binary_products
@@ -121,31 +121,6 @@ begin
   { change _root_.is_reduced ((Scheme.Spec.obj $ op R).presheaf.obj $ op ⊤), apply_instance },
   exact is_reduced_of_injective (to_Spec_Γ R)
     ((as_iso $ to_Spec_Γ R).CommRing_iso_to_ring_equiv.injective)
-end
-
-lemma basic_open_eq_of_affine {R : CommRing} (f : R) :
-  RingedSpace.basic_open (Spec.to_SheafedSpace.obj (op R)) ((Spec_Γ_identity.app R).inv f) =
-    prime_spectrum.basic_open f :=
-begin
-  ext,
-  change ↑(⟨x, trivial⟩ : (⊤ : opens _)) ∈
-    RingedSpace.basic_open (Spec.to_SheafedSpace.obj (op R)) _ ↔ _,
-  rw RingedSpace.mem_basic_open,
-  suffices : is_unit (structure_sheaf.to_stalk R x f) ↔ f ∉ prime_spectrum.as_ideal x,
-  { exact this },
-  erw [← is_unit_map_iff (structure_sheaf.stalk_to_fiber_ring_hom R x),
-    structure_sheaf.stalk_to_fiber_ring_hom_to_stalk],
-  exact (is_localization.at_prime.is_unit_to_map_iff
-    (localization.at_prime (prime_spectrum.as_ideal x)) (prime_spectrum.as_ideal x) f : _)
-end
-
-lemma basic_open_eq_of_affine' {R : CommRing}
-  (f : (Spec.to_SheafedSpace.obj (op R)).presheaf.obj (op ⊤)) :
-  RingedSpace.basic_open (Spec.to_SheafedSpace.obj (op R)) f =
-    prime_spectrum.basic_open ((Spec_Γ_identity.app R).hom f) :=
-begin
-  convert basic_open_eq_of_affine ((Spec_Γ_identity.app R).hom f),
-  exact (coe_hom_inv_id _ _).symm
 end
 
 /-- To show that a statement `P` holds for all open subsets of all schemes, it suffices to show that

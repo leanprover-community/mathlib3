@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andrew Yang
 -/
 import algebraic_geometry.properties
+import algebraic_geometry.AffineScheme
 
 /-!
 # Function field of integral schemes
@@ -39,6 +40,11 @@ X.presheaf.germ ⟨generic_point X.carrier,
   ((generic_point_spec X.carrier).mem_open_set_iff U.prop).mpr (by simpa using h)⟩
 
 noncomputable
+instance [irreducible_space X.carrier] (U : opens X.carrier) [nonempty U] :
+  algebra (X.presheaf.obj (op U)) X.function_field :=
+(X.germ_to_function_field U).to_algebra
+
+noncomputable
 instance [is_integral X] : field X.function_field :=
 begin
   apply field_of_is_unit_or_eq_zero,
@@ -72,6 +78,56 @@ end
 lemma Scheme.germ_to_function_field_injective [is_integral X] (U : opens X.carrier)
   [nonempty U] : function.injective (X.germ_to_function_field U) :=
 germ_injective_of_is_integral _ _
+
+lemma generic_point_eq_of_is_open_immersion {X Y : Scheme} (f : X ⟶ Y) [H : is_open_immersion f]
+  [hX : is_integral X] [is_integral Y] :
+    f.1.base (generic_point X.carrier : _) = (generic_point Y.carrier : _) :=
+begin
+  apply ((generic_point_spec _).eq _).symm,
+  show t0_space Y.carrier, by apply_instance,
+  convert (generic_point_spec X.carrier).image (show continuous f.1.base, by continuity),
+  symmetry,
+  rw [eq_top_iff, set.top_eq_univ, set.top_eq_univ],
+  convert subset_closure_inter_of_is_preirreducible_of_is_open _ H.base_open.open_range _,
+  rw [set.univ_inter, set.image_univ],
+  apply_with preirreducible_space.is_preirreducible_univ { instances := ff },
+  show preirreducible_space Y.carrier, by apply_instance,
+  exact ⟨_, trivial, set.mem_range_self hX.1.some⟩,
+end
+
+noncomputable
+def function_field_iso_of_open_immersion {X Y : Scheme} (f : X ⟶ Y) [H : is_open_immersion f]
+  [hX : is_integral X] [is_integral Y] : X.function_field ≅ Y.function_field :=
+begin
+  refine (as_iso $ PresheafedSpace.stalk_map f.val _).symm.trans (eq_to_iso _),
+  rw generic_point_eq_of_is_open_immersion,
+end
+
+instance {X Y : Scheme} (f : X ⟶ Y) [H : is_open_immersion f] [hX : is_integral X]
+  [is_integral Y] (U : opens Y.carrier) [hU : nonempty U] :
+    nonempty ((opens.map f.val.base).obj U) :=
+begin
+  obtain ⟨_, hx, x, rfl⟩ := nonempty_preirreducible_inter U.prop H.base_open.open_range _ _,
+  exacts [⟨⟨_, hx⟩⟩, ⟨_, hU.some.prop⟩, ⟨_, set.mem_range_self hX.1.some⟩],
+end
+
+@[simp, reassoc]
+lemma germ_function_field_iso_of_open_immersion {X Y : Scheme} (f : X ⟶ Y)
+  [is_open_immersion f] [is_integral X] [is_integral Y] (U : opens Y.carrier) [nonempty U] :
+    Y.germ_to_function_field U ≫ (function_field_iso_of_open_immersion f).inv =
+    f.1.c.app _ ≫ X.germ_to_function_field ((opens.map f.1.base).obj U) :=
+begin
+  delta function_field_iso_of_open_immersion,
+  simp only [iso.symm_inv, iso.trans_inv, eq_to_iso.inv, as_iso_hom],
+  rw [← PresheafedSpace.stalk_map_germ, ← category.assoc],
+  congr,
+  delta Scheme.germ_to_function_field,
+  have : ∀ (x y : U) (h : x.1 = y.1), Y.presheaf.germ x ≫ eq_to_hom (by { congr, exact h }) =
+    Y.presheaf.germ y,
+  { rintros ⟨x, _⟩ ⟨y, _⟩ (rfl : x = y), exact category.comp_id _ },
+  apply this ⟨_, _⟩ ⟨_, _⟩,
+  exact (generic_point_eq_of_is_open_immersion f).symm
+end
 
 noncomputable
 instance stalk_function_field_algebra [is_integral X] (x : X.carrier) :
@@ -109,7 +165,10 @@ begin
   dsimp,
   exact structure_sheaf.to_stalk_comp_stalk_to_fiber_ring_hom R _,
 end
-.
+
+lemma function_field_is_fraction_ring_of_is_affine_open [is_integral X] (U : opens X.carrier)
+  (hU : is_affine_open U) [nonempty U] :
+  is_fraction_ring (X.presheaf.obj $ op U) X.function_field := sorry
 
 lemma affine_function_field_is_fraction_ring_of_stalk_aux
   (R : CommRing) [is_domain R] (x : prime_spectrum R) :
@@ -176,55 +235,6 @@ begin
     all_goals { apply_instance } }
 end
 .
-lemma generic_point_eq_of_is_open_immersion {X Y : Scheme} (f : X ⟶ Y) [H : is_open_immersion f]
-  [hX : is_integral X] [is_integral Y] :
-    f.1.base (generic_point X.carrier : _) = (generic_point Y.carrier : _) :=
-begin
-  apply ((generic_point_spec _).eq _).symm,
-  show t0_space Y.carrier, by apply_instance,
-  convert (generic_point_spec X.carrier).image (show continuous f.1.base, by continuity),
-  symmetry,
-  rw [eq_top_iff, set.top_eq_univ, set.top_eq_univ],
-  convert subset_closure_inter_of_is_preirreducible_of_is_open _ H.base_open.open_range _,
-  rw [set.univ_inter, set.image_univ],
-  apply_with preirreducible_space.is_preirreducible_univ { instances := ff },
-  show preirreducible_space Y.carrier, by apply_instance,
-  exact ⟨_, trivial, set.mem_range_self hX.1.some⟩,
-end
-
-noncomputable
-def function_field_iso_of_open_immersion {X Y : Scheme} (f : X ⟶ Y) [H : is_open_immersion f]
-  [hX : is_integral X] [is_integral Y] : X.function_field ≅ Y.function_field :=
-begin
-  refine (as_iso $ PresheafedSpace.stalk_map f.val _).symm.trans (eq_to_iso _),
-  rw generic_point_eq_of_is_open_immersion,
-end
-
-instance {X Y : Scheme} (f : X ⟶ Y) [H : is_open_immersion f] [hX : is_integral X]
-  [is_integral Y] (U : opens Y.carrier) [hU : nonempty U] :
-    nonempty ((opens.map f.val.base).obj U) :=
-begin
-  obtain ⟨_, hx, x, rfl⟩ := nonempty_preirreducible_inter U.prop H.base_open.open_range _ _,
-  exacts [⟨⟨_, hx⟩⟩, ⟨_, hU.some.prop⟩, ⟨_, set.mem_range_self hX.1.some⟩],
-end
-
-@[simp, reassoc]
-lemma germ_function_field_iso_of_open_immersion {X Y : Scheme} (f : X ⟶ Y)
-  [is_open_immersion f] [is_integral X] [is_integral Y] (U : opens Y.carrier) [nonempty U] :
-    Y.germ_to_function_field U ≫ (function_field_iso_of_open_immersion f).inv =
-    f.1.c.app _ ≫ X.germ_to_function_field ((opens.map f.1.base).obj U) :=
-begin
-  delta function_field_iso_of_open_immersion,
-  simp only [iso.symm_inv, iso.trans_inv, eq_to_iso.inv, as_iso_hom],
-  rw [← PresheafedSpace.stalk_map_germ, ← category.assoc],
-  congr,
-  delta Scheme.germ_to_function_field,
-  have : ∀ (x y : U) (h : x.1 = y.1), Y.presheaf.germ x ≫ eq_to_hom (by { congr, exact h }) =
-    Y.presheaf.germ y,
-  { rintros ⟨x, _⟩ ⟨y, _⟩ (rfl : x = y), exact category.comp_id _ },
-  apply this ⟨_, _⟩ ⟨_, _⟩,
-  exact (generic_point_eq_of_is_open_immersion f).symm
-end
 
 instance affine_cover_is_integral [is_integral X] (x : X.carrier) :
   is_integral (X.affine_cover.obj x) :=

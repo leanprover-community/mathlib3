@@ -93,6 +93,20 @@ end
   factorization (p^k) = single p k :=
 by simp [factorization_pow, hp.factorization]
 
+/-- For any `p : ℕ` and any function `g : α → ℕ` that's non-zero on `S : finset α`,
+the power of `p` in `S.prod g` equals the sum over `x ∈ S` of the powers of `p` in `g x`.
+Generalises `factorization_mul`, which is the special case where `S.card = 2` and `g = id`. -/
+lemma factorization_prod {α : Type*} {S : finset α} {g : α → ℕ} (hS : ∀ x ∈ S, g x ≠ 0) :
+  (S.prod g).factorization = S.sum (λ x, (g x).factorization) :=
+begin
+  classical,
+  ext p,
+  apply finset.induction_on' S, { simp },
+  { intros x T hxS hTS hxT IH,
+    have hT : T.prod g ≠ 0 := prod_ne_zero_iff.mpr (λ x hx, hS x (hTS hx)),
+    simp [prod_insert hxT, sum_insert hxT, ←IH, factorization_mul (hS x hxS) hT] }
+end
+
 /-! ### Factorizations of pairs of coprime numbers -/
 
 /-- The prime factorizations of coprime `a` and `b` are disjoint -/

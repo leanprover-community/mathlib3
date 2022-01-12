@@ -274,7 +274,7 @@ end
 /-- Let `K` be the fraction field of an integrally closed domain `R` and let `L` be a finite
 separable extension of `K`. Let `α : L` be integral over `R` and let `pb` the power basis of `K⟮α⟯`,
 given by `α`. Then for all `z : K⟮α⟯` we have `(discr K pb) * z ∈ adjoin R {α}`. -/
-lemma discr_mul_is_integral_mem_adjoin [is_domain R] [is_integrally_closed R] [is_separable K L]
+lemma discr_mul_is_integral_mem_adjoin [is_domain R] [is_integrally_closed R]
   [is_fraction_ring R K] {α : L} (hα : is_integral R α) {z : K⟮α⟯} (hz : is_integral R z) :
   ((discr K (adjoin.power_basis
   (is_integral_of_is_scalar_tower α hα : is_integral K α)).basis) • z : L) ∈

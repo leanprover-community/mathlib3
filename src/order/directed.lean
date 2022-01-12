@@ -17,7 +17,7 @@ directed iff each pair of elements has a shared upper bound.
 * `directed r f`: Predicate stating that the indexed family `f` is `r`-directed.
 * `directed_on r s`: Predicate stating that the set `s` is `r`-directed.
 * `is_directed α r`: Prop-valued mixin stating that `α` is `r`-directed. Follows the style of the
-  unbundled relation classes.
+  unbundled relation classes such as `is_total`.
 -/
 
 open function

@@ -160,6 +160,13 @@ def vcomp (η : oplax_nat_trans F G) (θ : oplax_nat_trans G H) : oplax_nat_tran
     simp only [left_unitor_comp, triangle_assoc, inv_hom_whisker_right_assoc, assoc,
       right_unitor_comp_inv] } }
 
+variables (B C)
+
+instance : category_struct (oplax_functor B C) :=
+{ hom := λ F G, oplax_nat_trans F G,
+  id := oplax_nat_trans.id,
+  comp := λ F G H, oplax_nat_trans.vcomp }
+
 end
 
 section
@@ -172,7 +179,7 @@ A modification `Γ` between oplax natural transformations `η` and `θ` consists
 for each 1-morphism `f : a ⟶ b`.
 -/
 @[ext]
-structure modification (η θ : oplax_nat_trans F G) :=
+structure modification (η θ : F ⟶ G) :=
 (app (a : B) : η.app a ⟶ θ.app a)
 (naturality' : ∀ {a b : B} (f : a ⟶ b),
   (F.map f ◁ app b) ≫ θ.naturality f = η.naturality f ≫ (app a ▷ G.map f) . obviously)
@@ -182,7 +189,7 @@ attribute [simp, reassoc] modification.naturality
 
 namespace modification
 
-variables (η : oplax_nat_trans F G)
+variables (η : F ⟶ G)
 
 /-- The identity modification. -/
 @[simps]
@@ -190,7 +197,7 @@ def id : modification η η := { app := λ a, 𝟙 (η.app a) }
 
 instance : inhabited (modification η η) := ⟨modification.id η⟩
 
-variables {η} {θ ι : oplax_nat_trans F G}
+variables {η} {θ ι : F ⟶ G}
 
 section
 variables (Γ : modification η θ) {a b c : B} {a' : C}
@@ -218,7 +225,7 @@ end modification
 
 /-- Category structure on the oplax natural transformations between oplax_functors. -/
 @[simps]
-instance category (F G : oplax_functor B C) : category (oplax_nat_trans F G) :=
+instance category (F G : oplax_functor B C) : category (F ⟶ G) :=
 { hom  := modification,
   id   := modification.id,
   comp := λ η θ ι, modification.vcomp }

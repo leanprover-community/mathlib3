@@ -34,10 +34,7 @@ lemma covers.lt (h : a ⋖ b) : a < b := h.1
 lemma not_covers_iff (h : a < b) : ¬a ⋖ b ↔ ∃ c, a < c ∧ c < b :=
 by { simp_rw [covers, not_and, not_forall, exists_prop, not_not], exact imp_iff_right h }
 
-/-- If `x < y` but `y` does not cover `x`, then there's an element in between. -/
-lemma exists_lt_lt_of_not_covers (hab : a < b) (h : ¬ a ⋖ b) : ∃ c, a < c ∧ c < b :=
-(not_covers_iff hab).1 h
-
+alias not_covers_iff ↔ exists_lt_lt_of_not_covers _
 alias exists_lt_lt_of_not_covers ← has_lt.lt.exists_lt_lt
 
 /-- In a dense order, nothing covers anything. -/
@@ -68,10 +65,10 @@ lemma covers.le (h : a ⋖ b) : a ≤ b := h.1.le
 protected lemma covers.ne (h : a ⋖ b) : a ≠ b := h.lt.ne
 lemma covers.ne' (h : a ⋖ b) : b ≠ a := h.lt.ne'
 
+instance covers.is_irrefl : is_irrefl α (⋖) := ⟨λ a ha, ha.ne rfl⟩
+
 lemma covers.Ioo_eq (h : a ⋖ b) : Ioo a b = ∅ :=
 eq_empty_iff_forall_not_mem.2 $ λ x hx, h.2 hx.1 hx.2
-
-instance covers.is_irrefl : is_irrefl α (⋖) := ⟨λ a ha, ha.ne rfl⟩
 
 lemma covers.of_image (h : f a ⋖ f b) : a ⋖ b :=
 begin

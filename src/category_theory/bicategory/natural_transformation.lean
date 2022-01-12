@@ -131,7 +131,7 @@ def vcomp (η : oplax_nat_trans F G) (θ : oplax_nat_trans G H) : oplax_nat_tran
 { app := λ a, η.app a ≫ θ.app a,
   naturality := λ a b f,
     (α_ _ _ _).inv ≫ (η.naturality f ▷ θ.app b) ≫ (α_ _ _ _).hom ≫
-    (η.app a ◁ θ.naturality f) ≫ (α_ _ _ _).inv,
+      (η.app a ◁ θ.naturality f) ≫ (α_ _ _ _).inv,
   naturality_naturality' := λ a b f g ι, by
   { simp only [whisker_right_comp, assoc, whisker_left_comp],
     rw [←associator_inv_naturality_right, ←whisker_left_naturality_naturality_assoc,
@@ -187,9 +187,11 @@ structure modification (η θ : F ⟶ G) :=
 restate_axiom modification.naturality'
 attribute [simp, reassoc] modification.naturality
 
+variables {η θ ι : F ⟶ G}
+
 namespace modification
 
-variables (η : F ⟶ G)
+variables (η)
 
 /-- The identity modification. -/
 @[simps]
@@ -197,7 +199,7 @@ def id : modification η η := { app := λ a, 𝟙 (η.app a) }
 
 instance : inhabited (modification η η) := ⟨modification.id η⟩
 
-variables {η} {θ ι : F ⟶ G}
+variables {η}
 
 section
 variables (Γ : modification η θ) {a b c : B} {a' : C}
@@ -230,14 +232,12 @@ instance category (F G : oplax_functor B C) : category (F ⟶ G) :=
   id   := modification.id,
   comp := λ η θ ι, modification.vcomp }
 
-end
-
 /--
 Construct a modification isomorphism between oplax natural transformations
 by giving object level isomorphisms, and checking naturality only in the forward direction.
 -/
 @[simps]
-def modification_iso.of_components {F G : oplax_functor B C} {η θ : oplax_nat_trans F G}
+def modification_iso.of_components
   (app : ∀ a, η.app a ≅ θ.app a)
   (naturality : ∀ {a b} (f : a ⟶ b),
     (_ ◁ (app b).hom) ≫ (θ.naturality f) = (η.naturality f) ≫ ((app a).hom ▷ _)) :
@@ -247,9 +247,9 @@ def modification_iso.of_components {F G : oplax_functor B C} {η θ : oplax_nat_
   { app := λ a, (app a).inv,
     naturality' := λ a b f, by
     { have h := congr_arg (λ f, (_ ◁ (app b).inv) ≫ f ≫ ((app a).inv ▷ _)) (naturality f).symm,
-      simp only [category.comp_id, inv_hom_whisker_left_assoc, category.assoc,
-        hom_inv_whisker_right] at h,
-      exact h } } }
+      simpa using h } } }
+
+end
 
 end oplax_nat_trans
 

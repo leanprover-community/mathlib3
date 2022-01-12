@@ -187,10 +187,6 @@ begin
   { rintro ⟨c, rfl⟩, rw factorization_mul hd (right_ne_zero_of_mul hn), simp },
 end
 
--- This is in `PR #11395`
-lemma factorization_prod {α : Type*} {S : finset α} {g : α → ℕ} (hS : ∀ x ∈ S, g x ≠ 0) :
-   (S.prod g).factorization = S.sum (λ x, (g x).factorization) := sorry
-
 /-- The positive natural numbers are bijective with finsupps `ℕ →₀ ℕ` with support in the primes -/
 noncomputable
 def factorization_equiv : pnat ≃ {f : ℕ →₀ ℕ | ∀ p ∈ f.support, prime p} :=

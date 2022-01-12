@@ -614,6 +614,14 @@ begin
     ... = (n+1) * a.total_degree : by rw [add_mul, one_mul, add_comm]
 end
 
+@[simp] lemma total_degree_monomial (s : σ →₀ ℕ) {c : R} (hc : c ≠ 0) :
+  (monomial s c : mv_polynomial σ R).total_degree = s.sum (λ _ e, e) :=
+by simp [total_degree, support_monomial, if_neg hc]
+
+@[simp] lemma total_degree_X_pow [nontrivial R] (s : σ) (n : ℕ) :
+  (X s ^ n : mv_polynomial σ R).total_degree = n :=
+by simp [X_pow_eq_monomial, one_ne_zero]
+
 lemma total_degree_list_prod :
   ∀(s : list (mv_polynomial σ R)), s.prod.total_degree ≤ (s.map mv_polynomial.total_degree).sum
 | []        := by rw [@list.prod_nil (mv_polynomial σ R) _, total_degree_one]; refl

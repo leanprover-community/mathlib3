@@ -24,9 +24,12 @@ section monoid
 variables [monoid M] [monoid N] [add_monoid A] [add_monoid B]
 
 @[simp] theorem nsmul_one [has_one A] : ∀ n : ℕ, n • (1 : A) = n :=
-add_monoid_hom.eq_nat_cast
-  ⟨λ n, n • (1 : A), zero_nsmul _, λ _ _, add_nsmul _ _ _⟩
-  (one_nsmul _)
+begin
+  refine eq_nat_cast' (⟨_, _, _⟩ : ℕ →+ A) _,
+  { simp [zero_nsmul] },
+  { simp [add_nsmul] },
+  { simp }
+end
 
 @[simp, norm_cast, to_additive]
 lemma units.coe_pow (u : Mˣ) (n : ℕ) : ((u ^ n : Mˣ) : M) = u ^ n :=

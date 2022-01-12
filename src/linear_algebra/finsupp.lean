@@ -437,7 +437,7 @@ theorem apply_total (f : M →ₗ[R] M') (v) (l : α →₀ R) :
 by apply finsupp.induction_linear l; simp { contextual := tt, }
 
 theorem total_unique [unique α] (l : α →₀ R) (v) :
-  finsupp.total α M R v l = l (default α) • v (default α) :=
+  finsupp.total α M R v l = l default • v default :=
 by rw [← total_single, ← unique_single l]
 
 lemma total_surjective (h : function.surjective v) : function.surjective (finsupp.total α M R v) :=

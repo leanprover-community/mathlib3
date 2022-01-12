@@ -1288,7 +1288,7 @@ quot.lift_on s (λ l, (filter p l : multiset α))
 
 lemma filter_congr {p q : α → Prop} [decidable_pred p] [decidable_pred q]
   {s : multiset α} : (∀ x ∈ s, p x ↔ q x) → filter p s = filter q s :=
-quot.induction_on s $ λ l h, congr_arg coe $ filter_congr h
+quot.induction_on s $ λ l h, congr_arg coe $ list.filter_congr h
 
 @[simp] theorem filter_add (s t : multiset α) : filter p (s + t) = filter p s + filter p t :=
 quotient.induction_on₂ s t $ λ l₁ l₂, congr_arg coe $ filter_append _ _

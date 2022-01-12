@@ -69,14 +69,13 @@ instance locally_discrete_bicategory : bicategory (locally_discrete C) :=
 instance locally_discrete_bicategory.strict : strict (locally_discrete C) := { }
 
 variables {I : Type u₁} [category.{v₁} I] {B : Type u₂} [bicategory.{w₂ v₂} B] [strict B]
-variables (F : I ⥤ B)
 
 /--
-If `B` is a strict bicategory, any functor `I → B` can be promoted to an oplax functor
+If `B` is a strict bicategory, any functor `I ⥤ B` can be promoted to an oplax functor
 from `locally_discrete I` to `B`.
 -/
 @[simps]
-def functor.to_oplax_functor : oplax_functor (locally_discrete I) B :=
+def functor.to_oplax_functor (F : I ⥤ B) : oplax_functor (locally_discrete I) B :=
 { map₂ := λ i j f g η, eq_to_hom (congr_arg _ (eq_of_hom η)),
   map_id := λ i, eq_to_hom (F.map_id i),
   map_comp := λ i j k f g, eq_to_hom (F.map_comp f g),

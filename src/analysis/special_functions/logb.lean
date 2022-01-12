@@ -54,7 +54,12 @@ by simp_rw [logb, log_div hx hy, sub_div]
 
 section b_pos_and_ne_one
 
-@[simp] lemma logb_rpow (b_pos : 0 < b) (b_ne_one : b ≠ 1) :
+variable (b_pos : 0 < b)
+variable (b_ne_one : b ≠ 1)
+include b_pos b_ne_one
+
+
+@[simp] lemma logb_rpow :
   logb b (b ^ x) = x :=
 begin
   rw [logb, div_eq_iff, log_rpow b_pos],
@@ -63,7 +68,7 @@ begin
   simp [b_ne_one, b_ne_zero, b_ne_minus_one],
 end
 
-lemma rpow_logb_eq_abs (b_pos : 0 < b) (b_ne_one : b ≠ 1) (hx : x ≠ 0) : b ^ (logb b x) = |x| :=
+lemma rpow_logb_eq_abs (hx : x ≠ 0) : b ^ (logb b x) = |x| :=
 begin
   apply log_inj_on_pos,
   simp only [set.mem_Ioi],
@@ -78,22 +83,22 @@ begin
   field_simp [ne_of_lt b_pos],
 end
 
-@[simp] lemma rpow_logb (b_pos : 0 < b) (b_ne_one : b ≠ 1) (hx : 0 < x) : b ^ (logb b x) = x :=
+@[simp] lemma rpow_logb (hx : 0 < x) : b ^ (logb b x) = x :=
 by { rw rpow_logb_eq_abs b_pos b_ne_one (hx.ne'), exact abs_of_pos hx, }
 
-lemma rpow_logb_of_neg (b_pos : 0 < b) (b_ne_one : b ≠ 1) (hx : x < 0) : b ^ (logb b x) = -x :=
+lemma rpow_logb_of_neg (hx : x < 0) : b ^ (logb b x) = -x :=
 by { rw rpow_logb_eq_abs b_pos b_ne_one (ne_of_lt hx), exact abs_of_neg hx }
 
-lemma surj_on_logb (b_pos : 0 < b) (b_ne_one : b ≠ 1) : surj_on (logb b) (Ioi 0) univ :=
+lemma surj_on_logb : surj_on (logb b) (Ioi 0) univ :=
 λ x _, ⟨rpow b x, rpow_pos_of_pos b_pos x, logb_rpow b_pos b_ne_one⟩
 
-lemma logb_surjective (b_pos : 0 < b) (b_ne_one : b ≠ 1) : surjective (logb b) :=
+lemma logb_surjective : surjective (logb b) :=
 λ x, ⟨b ^ x, logb_rpow b_pos b_ne_one⟩
 
-@[simp] lemma range_logb (b_pos : 0 < b) (b_ne_one : b ≠ 1) : range (logb b) = univ :=
+@[simp] lemma range_logb : range (logb b) = univ :=
 (logb_surjective b_pos b_ne_one).range_eq
 
-lemma surj_on_logb' (b_pos : 0 < b) (b_ne_one : b ≠ 1) : surj_on (logb b) (Iio 0) univ :=
+lemma surj_on_logb' : surj_on (logb b) (Iio 0) univ :=
 begin
   intros x x_in_univ,
   use -b ^ x,
@@ -106,66 +111,67 @@ end b_pos_and_ne_one
 
 section one_lt_b
 
-variable {one_lt_b : 1 < b}
+variable (one_lt_b : 1 < b)
+include one_lt_b
 
-@[simp] lemma logb_le_logb {one_lt_b} (h : 0 < x) (h₁ : 0 < y) :
+@[simp] lemma logb_le_logb (h : 0 < x) (h₁ : 0 < y) :
   logb b x ≤ logb b y ↔ x ≤ y :=
 by { rw [logb, logb, div_le_div_right (log_pos one_lt_b), log_le_log h h₁], }
 
-lemma logb_lt_logb (one_lt_b : 1 < b) (hx : 0 < x) (hxy : x < y) : logb b x < logb b y :=
+lemma logb_lt_logb (hx : 0 < x) (hxy : x < y) : logb b x < logb b y :=
 by { rw [logb, logb, div_lt_div_right (log_pos one_lt_b)], exact log_lt_log hx hxy, }
 
-@[simp] lemma logb_lt_logb_iff (one_lt_b : 1 < b) (hx : 0 < x) (hy : 0 < y) :
+@[simp] lemma logb_lt_logb_iff (hx : 0 < x) (hy : 0 < y) :
   logb b x < logb b y ↔ x < y :=
 by { rw [logb, logb, div_lt_div_right (log_pos one_lt_b)], exact log_lt_log_iff hx hy, }
 
-lemma logb_le_iff_le_rpow (one_lt_b : 1 < b) (hx : 0 < x) : logb b x ≤ y ↔ x ≤ b ^ y :=
+lemma logb_le_iff_le_rpow (hx : 0 < x) : logb b x ≤ y ↔ x ≤ b ^ y :=
 by { rw [←rpow_le_rpow_left_iff one_lt_b, rpow_logb], linarith, linarith, exact hx, }
 
-lemma logb_lt_iff_lt_rpow (one_lt_b : 1 < b) (hx : 0 < x) : logb b x < y ↔ x < b ^ y :=
+lemma logb_lt_iff_lt_rpow (hx : 0 < x) : logb b x < y ↔ x < b ^ y :=
 by { rw [←rpow_lt_rpow_left_iff one_lt_b, rpow_logb], linarith, linarith, exact hx, }
 
-lemma le_logb_iff_rpow_le (one_lt_b : 1 < b) (hy : 0 < y) : x ≤ logb b y ↔ b ^ x ≤ y :=
+lemma le_logb_iff_rpow_le (hy : 0 < y) : x ≤ logb b y ↔ b ^ x ≤ y :=
 by { rw [←rpow_le_rpow_left_iff one_lt_b, rpow_logb], linarith, linarith, exact hy, }
 
-lemma lt_logb_iff_rpow_lt (one_lt_b : 1 < b) (hy : 0 < y) : x < logb b y ↔ b ^ x < y :=
+lemma lt_logb_iff_rpow_lt (hy : 0 < y) : x < logb b y ↔ b ^ x < y :=
 by { rw [←rpow_lt_rpow_left_iff one_lt_b, rpow_logb], linarith, linarith, exact hy, }
 
-lemma logb_pos_iff (one_lt_b : 1 < b) (hx : 0 < x) : 0 < logb b x ↔ 1 < x :=
+lemma logb_pos_iff (hx : 0 < x) : 0 < logb b x ↔ 1 < x :=
 by { rw ← @logb_one b, rw logb_lt_logb_iff one_lt_b zero_lt_one hx, }
 
-lemma logb_pos (one_lt_b : 1 < b) (hx : 1 < x) : 0 < logb b x :=
+lemma logb_pos (hx : 1 < x) : 0 < logb b x :=
 by { rw logb_pos_iff one_lt_b (lt_trans zero_lt_one hx), exact hx, }
 
-lemma logb_neg_iff (one_lt_b : 1 < b) (h : 0 < x) : logb b x < 0 ↔ x < 1 :=
+lemma logb_neg_iff (h : 0 < x) : logb b x < 0 ↔ x < 1 :=
 by { rw ← logb_one, exact logb_lt_logb_iff one_lt_b h zero_lt_one, }
 
-lemma logb_neg (one_lt_b : 1 < b) (h0 : 0 < x) (h1 : x < 1) : logb b x < 0 :=
+lemma logb_neg (h0 : 0 < x) (h1 : x < 1) : logb b x < 0 :=
 (logb_neg_iff one_lt_b h0).2 h1
 
-lemma logb_nonneg_iff (one_lt_b : 1 < b) (hx : 0 < x) : 0 ≤ logb b x ↔ 1 ≤ x :=
+lemma logb_nonneg_iff (hx : 0 < x) : 0 ≤ logb b x ↔ 1 ≤ x :=
 by rw [← not_lt, logb_neg_iff one_lt_b hx, not_lt]
 
-lemma logb_nonneg (one_lt_b : 1 < b) (hx : 1 ≤ x) : 0 ≤ logb b x :=
+lemma logb_nonneg (hx : 1 ≤ x) : 0 ≤ logb b x :=
 (logb_nonneg_iff one_lt_b (zero_lt_one.trans_le hx)).2 hx
 
-lemma logb_nonpos_iff (one_lt_b : 1 < b) (hx : 0 < x) : logb b x ≤ 0 ↔ x ≤ 1 :=
+lemma logb_nonpos_iff (hx : 0 < x) : logb b x ≤ 0 ↔ x ≤ 1 :=
 by rw [← not_lt, logb_pos_iff one_lt_b hx, not_lt]
 
-lemma logb_nonpos_iff' (one_lt_b : 1 < b) (hx : 0 ≤ x) : logb b x ≤ 0 ↔ x ≤ 1 :=
+lemma logb_nonpos_iff' (hx : 0 ≤ x) : logb b x ≤ 0 ↔ x ≤ 1 :=
 begin
   rcases hx.eq_or_lt with (rfl|hx),
   { simp [le_refl, zero_le_one] },
   exact logb_nonpos_iff one_lt_b hx,
 end
 
-lemma logb_nonpos (one_lt_b : 1 < b) (hx : 0 ≤ x) (h'x : x ≤ 1) : logb b x ≤ 0 :=
+lemma logb_nonpos (hx : 0 ≤ x) (h'x : x ≤ 1) : logb b x ≤ 0 :=
 (logb_nonpos_iff' one_lt_b hx).2 h'x
 
-lemma strict_mono_on_logb (one_lt_b : 1 < b) : strict_mono_on (logb b) (set.Ioi 0) :=
+lemma strict_mono_on_logb : strict_mono_on (logb b) (set.Ioi 0) :=
 λ x hx y hy hxy, logb_lt_logb one_lt_b hx hxy
 
-lemma strict_anti_on_logb (one_lt_b : 1 < b) : strict_anti_on (logb b) (set.Iio 0) :=
+lemma strict_anti_on_logb : strict_anti_on (logb b) (set.Iio 0) :=
 begin
   rintros x (hx : x < 0) y (hy : y < 0) hxy,
   rw [← logb_abs y, ← logb_abs x],
@@ -173,15 +179,15 @@ begin
   rwa [abs_of_neg hy, abs_of_neg hx, neg_lt_neg_iff],
 end
 
-lemma logb_inj_on_pos (one_lt_b : 1 < b) : set.inj_on (logb b) (set.Ioi 0) :=
+lemma logb_inj_on_pos : set.inj_on (logb b) (set.Ioi 0) :=
 (strict_mono_on_logb one_lt_b).inj_on
 
-lemma eq_one_of_pos_of_logb_eq_zero (one_lt_b : 1 < b) (h₁ : 0 < x) (h₂ : logb b x = 0) :
+lemma eq_one_of_pos_of_logb_eq_zero (h₁ : 0 < x) (h₂ : logb b x = 0) :
 x = 1 :=
 logb_inj_on_pos one_lt_b (set.mem_Ioi.2 h₁) (set.mem_Ioi.2 zero_lt_one)
   (h₂.trans real.logb_one.symm)
 
-lemma logb_ne_zero_of_pos_of_ne_one (one_lt_b : 1 < b) (hx_pos : 0 < x) (hx : x ≠ 1) :
+lemma logb_ne_zero_of_pos_of_ne_one (hx_pos : 0 < x) (hx : x ≠ 1) :
   logb b x ≠ 0 :=
 mt (eq_one_of_pos_of_logb_eq_zero one_lt_b hx_pos) hx
 
@@ -194,7 +200,7 @@ begin
   tauto,
 end
 
-lemma tendsto_logb_at_top (one_lt_b : 1 < b) : tendsto (logb b) at_top at_top :=
+lemma tendsto_logb_at_top (hb : 1 < b) : tendsto (logb b) at_top at_top :=
 begin
   rw tendsto_at_top_at_top,
   intro e,
@@ -202,7 +208,7 @@ begin
   intro a,
   simp only [and_imp, sup_le_iff],
   intro ha,
-  rw le_logb_iff_rpow_le one_lt_b,
+  rw le_logb_iff_rpow_le hb,
   tauto,
   exact lt_of_lt_of_le zero_lt_one ha,
 end

@@ -332,6 +332,11 @@ protected def det : (M ≃ₗ[R] M) →* Rˣ :=
 
 @[simp] lemma det_symm (f : M ≃ₗ[R] M) : f.symm.det = f.det⁻¹ := map_inv _ f
 
+/-- Conjugating a linear equiv by a linear equiv does not change its determinant. -/
+@[simp] lemma det_conj (f : M ≃ₗ[R] M) (e : M ≃ₗ[R] M') :
+  ((e.symm.trans f).trans e).det = f.det :=
+by rw [←units.eq_iff, coe_det, coe_det, ←comp_coe, ←comp_coe, linear_map.det_conj]
+
 end linear_equiv
 
 /-- The determinants of a `linear_equiv` and its inverse multiply to 1. -/

@@ -3,7 +3,7 @@ Copyright (c) 2021 Bhavik Mehta, Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta, Alena Gusakov, Yaël Dillies
 -/
-import data.fintype.basic
+import algebra.big_operators.basic
 import order.antichain
 
 /-!
@@ -26,8 +26,9 @@ the set family made of its `r`-sets.
 -/
 
 open finset nat
+open_locale big_operators
 
-variables {α : Type*}
+variables {α β : Type*}
 
 namespace set
 variables {A B : set (finset α)} {r : ℕ}
@@ -45,8 +46,29 @@ lemma sized_union : (A ∪ B).sized r ↔ A.sized r ∧ B.sized r :=
 
 alias sized_union ↔ _ set.sized.union
 
+@[simp] lemma sized_bUnion {β : Type*} {f : β → set (finset α)} {s : set β} :
+  (⋃ x ∈ s, f x).sized r ↔ ∀ x ∈ s, (f x).sized r :=
+begin
+  simp_rw [set.sized, set.mem_Union, forall_exists_index],
+  exact ⟨λ h a ha s hs, h a ha hs, λ h s a ha hs, h a ha hs⟩,
+end
+
 protected lemma sized.is_antichain (hA : A.sized r) : is_antichain (⊆) A :=
 λ s hs t ht h hst, h $ eq_of_subset_of_card_le hst ((hA ht).trans (hA hs).symm).le
+
+protected lemma sized.subsingleton (hA : A.sized 0) : A.subsingleton :=
+subsingleton_of_forall_eq ∅ $ λ s hs, card_eq_zero.1 $ hA hs
+
+lemma sized.subsingleton' [fintype α] (hA : A.sized (fintype.card α)) : A.subsingleton :=
+subsingleton_of_forall_eq finset.univ $ λ s hs, s.card_eq_iff_eq_univ.1 $ hA hs
+
+lemma sized.empty_mem_iff (hA : A.sized r) : ∅ ∈ A ↔ A = {∅} := hA.is_antichain.bot_mem_iff
+
+lemma sized.univ_mem_iff [fintype α] (hA : A.sized r) : finset.univ ∈ A ↔ A = {finset.univ} :=
+hA.is_antichain.top_mem_iff
+
+lemma sized_powerset_len (s : finset α) (r : ℕ) : (powerset_len r s : set (finset α)).sized r :=
+λ t ht, (mem_powerset_len.1 ht).2
 
 end set
 
@@ -94,10 +116,20 @@ lemma eq_of_mem_slice (h₁ : A ∈ 𝒜 # r₁) (h₂ : A ∈ 𝒜 # r₂) : r�
 lemma ne_of_mem_slice (h₁ : A₁ ∈ 𝒜 # r₁) (h₂ : A₂ ∈ 𝒜 # r₂) : r₁ ≠ r₂ → A₁ ≠ A₂ :=
 mt $ λ h, (sized_slice h₁).symm.trans ((congr_arg card h).trans (sized_slice h₂))
 
-variables [decidable_eq α]
-
-lemma pairwise_disjoint_slice : (set.univ : set ℕ).pairwise_disjoint (slice 𝒜) :=
+lemma pairwise_disjoint_slice [decidable_eq α] : (set.univ : set ℕ).pairwise_disjoint (slice 𝒜) :=
 λ m _ n _ hmn, disjoint_filter.2 $ λ s hs hm hn, hmn $ hm.symm.trans hn
+
+variables [fintype α]
+
+@[simp] lemma bUnion_slice [decidable_eq α] (𝒜 : finset (finset α)) :
+  (range $ fintype.card α + 1).bUnion 𝒜.slice = 𝒜 :=
+subset.antisymm (bUnion_subset.2 $ λ r _, slice_subset) $ λ s hs,
+  mem_bUnion.2 ⟨s.card, mem_range.2 $ lt_succ_iff.2 $ s.card_le_univ, mem_slice.2 $ ⟨hs, rfl⟩⟩
+
+@[simp] lemma sum_card_slice (𝒜 : finset (finset α)) :
+  ∑ r in range (fintype.card α + 1), (𝒜 # r).card = 𝒜.card :=
+by { rw [←card_bUnion (finset.pairwise_disjoint_slice.subset (set.subset_univ _)), bUnion_slice],
+  exact classical.dec_eq _ }
 
 end slice
 end finset

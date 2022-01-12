@@ -58,6 +58,9 @@ lemma mem_upper_bounds : a ∈ upper_bounds s ↔ ∀ x ∈ s, x ≤ a := iff.rf
 
 lemma mem_lower_bounds : a ∈ lower_bounds s ↔ ∀ x ∈ s, a ≤ x := iff.rfl
 
+lemma bot_mem_lower_bounds [order_bot α] (s : set α) : ⊥ ∈ lower_bounds s := λ _ _, bot_le
+lemma top_mem_upper_bounds [order_top α] (s : set α) : ⊤ ∈ upper_bounds s := λ _ _, le_top
+
 /-- A set `s` is not bounded above if and only if for each `x` there exists `y ∈ s` such that `x`
 is not greater than or equal to `y`. This version only assumes `preorder` structure and uses
 `¬(y ≤ x)`. A version for linear orders is called `not_bdd_above_iff`. -/

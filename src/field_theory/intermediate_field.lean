@@ -305,8 +305,7 @@ lemma aeval_coe {R : Type*} [comm_ring R] [algebra R K] [algebra R L]
   [is_scalar_tower R K L] (x : S) (P : polynomial R) : aeval (x : L) P = aeval x P :=
 begin
   refine polynomial.induction_on' P (λ f g hf hg, _) (λ n r, _),
-  { simp only [aeval_add, coe_add],
-    rw [hf, hg] },
+  { rw [aeval_add, aeval_add, coe_add, hf, hg] },
   { letI : is_scalar_tower R S L := is_scalar_tower.of_algebra_map_eq (congr_fun rfl),
     simp only [coe_mul, aeval_monomial, coe_pow, mul_eq_mul_right_iff],
     left,

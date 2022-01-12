@@ -148,7 +148,11 @@ begin
   apply of_affine_open_cover (λ (U : opens Y.carrier), is_compact (f.val.base ⁻¹' U.1)),
   { intros U r hr hU,
     change is_compact ↑((opens.map f.val.base).obj (Y.basic_open r)),
-    rw LocallyRingedSpace.preimage_basic_open f r, }
+    rw LocallyRingedSpace.preimage_basic_open f r,
+    exact is_compact_basic_open X hU _ },
+  { intros S hS,
+    simp only [opens.supr_s, set.preimage_Union, subtype.val_eq_coe],
+    exact compact_Union hS }
 end
 
 end algebraic_geometry

@@ -1,0 +1,80 @@
+import category_theory.discrete_category
+import category_theory.bicategory.functor
+import category_theory.bicategory.strict
+
+/-!
+# Locally discrete bicategories
+
+A category `C` can be promoted to a strict bicategory `locally_discrete C` by defining equalities
+between morphisms as 2-morphisms. In other words, the category consisting of the 1-morphisms from
+`X` to `Y` for each pair of objects `X` and `Y` in `locally_discrete C` is defined as the discrete
+category associated with the type `X ⟶ Y`.
+-/
+
+namespace category_theory
+
+open bicategory
+open_locale bicategory
+
+universes w₂ v v₁ v₂ u u₁ u₂
+
+variables (C : Type u)
+
+/--
+A type alias for promoting any category to a bicategory,
+with the only 2-morphisms being equalities.
+-/
+def locally_discrete := C
+
+namespace locally_discrete
+
+instance : Π [inhabited C], inhabited (locally_discrete C) := id
+
+instance : Π [category_struct.{v} C], category_struct (locally_discrete C) := id
+
+variables {C} [category_struct.{v} C]
+
+instance (X Y : locally_discrete C) : small_category (X ⟶ Y) :=
+category_theory.discrete_category (X ⟶ Y)
+
+/-- Extract the equation from a 2-morphism in a locally discrete bicategory. -/
+lemma eq_of_hom {X Y : locally_discrete C} {f g : X ⟶ Y} (η : f ⟶ g) : f = g :=
+η.down.down
+
+end locally_discrete
+
+open locally_discrete
+
+variables (C) [category.{v} C]
+
+/--
+The locally discrete bicategory associated with a category is a bicategory whose 2-morphisms
+are equalities.
+-/
+instance locally_discrete_bicategory : bicategory (locally_discrete C) :=
+{ whisker_left  := λ X Y Z f g h η, eq_to_hom (congr_arg2 (≫) rfl (eq_of_hom η)),
+  whisker_right := λ X Y Z f g η h, eq_to_hom (congr_arg2 (≫) (eq_of_hom η) rfl),
+  associator := λ W X Y Z f g h, eq_to_iso (category.assoc f g h),
+  left_unitor  := λ X Y f, eq_to_iso (category.id_comp f),
+  right_unitor := λ X Y f, eq_to_iso (category.comp_id f) }
+
+/--
+A locally discrete bicategory is strict.
+-/
+instance locally_discrete_bicategory.strict : strict (locally_discrete C) := { }
+
+variables {I : Type u₁} [category.{v₁} I] {B : Type u₂} [bicategory.{w₂ v₂} B] [strict B]
+variables (F : I ⥤ B)
+
+/--
+If `B` is a strict bicategory, any functor `I → B` can be promoted to an oplax functor
+from `locally_discrete I` to `B`.
+-/
+@[simps]
+def functor.to_oplax_functor : oplax_functor (locally_discrete I) B :=
+{ map₂ := λ i j f g η, eq_to_hom (congr_arg _ (eq_of_hom η)),
+  map_id := λ i, eq_to_hom (F.map_id i),
+  map_comp := λ i j k f g, eq_to_hom (F.map_comp f g),
+  .. F }
+
+end category_theory

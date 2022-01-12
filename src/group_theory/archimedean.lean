@@ -3,8 +3,8 @@ Copyright (c) 2020 Heather Macbeth, Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Heather Macbeth, Patrick Massot
 -/
-import group_theory.subgroup
-import algebra.archimedean
+import algebra.order.archimedean
+import group_theory.subgroup.basic
 
 /-!
 # Archimedean groups
@@ -14,8 +14,8 @@ This file proves a few facts about ordered groups which satisfy the `archimedean
 `(arch : ∀ (x : α) {y}, 0 < y → ∃ n : ℕ, x ≤ n • y)`
 
 They are placed here in a separate file (rather than incorporated as a continuation of
-`algebra.archimedean`) because they rely on some imports from `group_theory` -- bundled subgroups
-in particular.
+`algebra.order.archimedean`) because they rely on some imports from `group_theory` -- bundled
+subgroups in particular.
 
 The main result is `add_subgroup.cyclic_of_min`:  a subgroup of a decidable archimedean abelian
 group is cyclic, if its set of positive elements has a minimal element.
@@ -40,13 +40,13 @@ begin
   obtain ⟨⟨a_in, a_pos⟩, a_min⟩ := ha,
   refine le_antisymm _ (H.closure_le.mpr $ by simp [a_in]),
   intros g g_in,
-  obtain ⟨k, nonneg, lt⟩ : ∃ k, 0 ≤ g - k • a ∧ g - k • a < a :=
-    exists_int_smul_near_of_pos' a_pos g,
+  obtain ⟨k, ⟨nonneg, lt⟩, _⟩ : ∃! k, 0 ≤ g - k • a ∧ g - k • a < a :=
+    exists_unique_zsmul_near_of_pos' a_pos g,
   have h_zero : g - k • a = 0,
   { by_contra h,
     have h : a ≤ g - k • a,
     { refine a_min ⟨_, _⟩,
-      { exact add_subgroup.sub_mem H g_in (add_subgroup.gsmul_mem H a_in k) },
+      { exact add_subgroup.sub_mem H g_in (add_subgroup.zsmul_mem H a_in k) },
       { exact lt_of_le_of_ne nonneg (ne.symm h) } },
     have h' : ¬ (a ≤ g - k • a) := not_le.mpr lt,
     contradiction },

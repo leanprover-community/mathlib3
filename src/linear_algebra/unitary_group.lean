@@ -3,9 +3,8 @@ Copyright (c) 2021 Shing Tak Lam. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Shing Tak Lam
 -/
-import linear_algebra.matrix.nonsingular_inverse
 import linear_algebra.matrix.to_lin
-import data.complex.basic
+import linear_algebra.matrix.nonsingular_inverse
 
 /-!
 # The Unitary Group
@@ -76,7 +75,7 @@ namespace unitary_submonoid
 
 lemma star_mem {A : matrix n n α} (h : A ∈ unitary_submonoid (matrix n n α)) :
   star A ∈ unitary_submonoid (matrix n n α) :=
-matrix.nonsing_inv_left_right $ (star_star A).symm ▸ h
+mul_eq_one_comm.mp $ (star_star A).symm ▸ h
 
 @[simp]
 lemma star_mem_iff {A : matrix n n α} :
@@ -89,9 +88,8 @@ namespace unitary_group
 
 instance coe_matrix : has_coe (unitary_group n α) (matrix n n α) := ⟨subtype.val⟩
 
-instance coe_fun : has_coe_to_fun (unitary_group n α) :=
-{ F   := λ _, n → n → α,
-  coe := λ A, A.val }
+instance coe_fun : has_coe_to_fun (unitary_group n α) (λ _, n → n → α) :=
+{ coe := λ A, A.val }
 
 /--
 `to_lin' A` is matrix multiplication of vectors by `A`, as a linear map.

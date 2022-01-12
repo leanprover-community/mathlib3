@@ -33,13 +33,13 @@ general limits can be used.
 
 noncomputable theory
 
-universes v u u₂
+universes w v u u₂
 
 open category_theory
 
 namespace category_theory.limits
 
-variables {β : Type v}
+variables {β : Type w}
 variables {C : Type u} [category.{v} C]
 
 -- We don't need an analogue of `pair` (for binary products), `parallel_pair` (for equalizers),

@@ -15,7 +15,8 @@ variables {α : Type*}
 
 /-! ### sup -/
 section sup
-variables [semilattice_sup_bot α]
+-- can be defined with just `[has_bot α]` where some lemmas hold without requiring `[order_bot α]`
+variables [semilattice_sup α] [order_bot α]
 
 /-- Supremum of a multiset: `sup {a, b, c} = a ⊔ b ⊔ c` -/
 def sup (s : multiset α) : α := s.fold (⊔) ⊥
@@ -27,7 +28,8 @@ fold_zero _ _
   (a ::ₘ s).sup = a ⊔ s.sup :=
 fold_cons_left _ _ _ _
 
-@[simp] lemma sup_singleton {a : α} : (a ::ₘ 0).sup = a := by simp
+@[simp] lemma sup_singleton {a : α} : ({a} : multiset α).sup = a :=
+sup_bot_eq
 
 @[simp] lemma sup_add (s₁ s₂ : multiset α) : (s₁ + s₂).sup = s₁.sup ⊔ s₂.sup :=
 eq.trans (by simp [sup]) (fold_add _ _ _ _ _)
@@ -72,7 +74,8 @@ end sup
 
 /-! ### inf -/
 section inf
-variables [semilattice_inf_top α]
+-- can be defined with just `[has_top α]` where some lemmas hold without requiring `[order_top α]`
+variables [semilattice_inf α] [order_top α]
 
 /-- Infimum of a multiset: `inf {a, b, c} = a ⊓ b ⊓ c` -/
 def inf (s : multiset α) : α := s.fold (⊓) ⊤
@@ -84,7 +87,8 @@ fold_zero _ _
   (a ::ₘ s).inf = a ⊓ s.inf :=
 fold_cons_left _ _ _ _
 
-@[simp] lemma inf_singleton {a : α} : (a ::ₘ 0).inf = a := by simp
+@[simp] lemma inf_singleton {a : α} : ({a} : multiset α).inf = a :=
+inf_top_eq
 
 @[simp] lemma inf_add (s₁ s₂ : multiset α) : (s₁ + s₂).inf = s₁.inf ⊓ s₂.inf :=
 eq.trans (by simp [inf]) (fold_add _ _ _ _ _)

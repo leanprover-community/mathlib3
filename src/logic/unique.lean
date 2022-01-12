@@ -43,7 +43,7 @@ universes u v w
 
 variables {α : Sort u} {β : Sort v} {γ : Sort w}
 
-/-- `unique α` expresses that `α` is a type with a unique term `default α`.
+/-- `unique α` expresses that `α` is a type with a unique term `default`.
 
 This is implemented as a type, rather than a `Prop`-valued predicate,
 for good definitional properties of the default term. -/
@@ -79,7 +79,7 @@ lemma fin.eq_zero : ∀ n : fin 1, n = 0
 instance {n : ℕ} : inhabited (fin n.succ) := ⟨0⟩
 instance inhabited_fin_one_add (n : ℕ) : inhabited (fin (1 + n)) := ⟨⟨0, nat.zero_lt_one_add n⟩⟩
 
-@[simp] lemma fin.default_eq_zero (n : ℕ) : default (fin n.succ) = 0 := rfl
+@[simp] lemma fin.default_eq_zero (n : ℕ) : (default : fin n.succ) = 0 := rfl
 
 instance fin.unique : unique (fin 1) :=
 { uniq := fin.eq_zero, .. fin.inhabited }
@@ -94,18 +94,18 @@ variables [unique α]
 @[priority 100] -- see Note [lower instance priority]
 instance : inhabited α := to_inhabited ‹unique α›
 
-lemma eq_default (a : α) : a = default α := uniq _ a
+lemma eq_default (a : α) : a = default := uniq _ a
 
-lemma default_eq (a : α) : default α = a := (uniq _ a).symm
+lemma default_eq (a : α) : default = a := (uniq _ a).symm
 
 @[priority 100] -- see Note [lower instance priority]
 instance : subsingleton α := subsingleton_of_forall_eq _ eq_default
 
-lemma forall_iff {p : α → Prop} : (∀ a, p a) ↔ p (default α) :=
+lemma forall_iff {p : α → Prop} : (∀ a, p a) ↔ p default :=
 ⟨λ h, h _, λ h x, by rwa [unique.eq_default x]⟩
 
-lemma exists_iff {p : α → Prop} : Exists p ↔ p (default α) :=
-⟨λ ⟨a, ha⟩, eq_default a ▸ ha, exists.intro (default α)⟩
+lemma exists_iff {p : α → Prop} : Exists p ↔ p default :=
+⟨λ ⟨a, ha⟩, eq_default a ▸ ha, exists.intro default⟩
 
 end
 
@@ -117,18 +117,16 @@ instance subsingleton_unique : subsingleton (unique α) :=
 
 /-- Construct `unique` from `inhabited` and `subsingleton`. Making this an instance would create
 a loop in the class inheritance graph. -/
-def mk' (α : Sort u) [h₁ : inhabited α] [subsingleton α] : unique α :=
+@[reducible] def mk' (α : Sort u) [h₁ : inhabited α] [subsingleton α] : unique α :=
 { uniq := λ x, subsingleton.elim _ _, .. h₁ }
 
 end unique
 
 @[simp] lemma pi.default_def {β : Π a : α, Sort v} [Π a, inhabited (β a)] :
-  default (Π a, β a) = λ a, default (β a) :=
-rfl
+  @default (Π a, β a) _ = λ a : α, @default (β a) _ := rfl
 
 lemma pi.default_apply {β : Π a : α, Sort v} [Π a, inhabited (β a)] (a : α) :
-  default (Π a, β a) a = default (β a) :=
-rfl
+  @default (Π a, β a) _ a = default := rfl
 
 instance pi.unique {β : Π a : α, Sort v} [Π a, unique (β a)] : unique (Π a, β a) :=
 { uniq := λ f, funext $ λ x, unique.eq_default _,
@@ -147,7 +145,7 @@ variable {f : α → β}
 /-- If the domain of a surjective function is a singleton,
 then the codomain is a singleton as well. -/
 protected def surjective.unique (hf : surjective f) [unique α] : unique β :=
-{ default := f (default _),
+{ default := f default,
   uniq := λ b, let ⟨a, ha⟩ := hf b in ha ▸ congr_arg f (unique.eq_default _) }
 
 /-- If the codomain of an injective function is a subsingleton, then the domain
@@ -161,6 +159,17 @@ protected def injective.unique [inhabited α] [subsingleton β] (hf : injective 
 @unique.mk' _ _ hf.subsingleton
 
 end function
+
+namespace option
+
+/-- `option α` is a `subsingleton` if and only if `α` is empty. -/
+lemma subsingleton_iff_is_empty {α} : subsingleton (option α) ↔ is_empty α :=
+⟨λ h, ⟨λ x, option.no_confusion $ @subsingleton.elim _ h x none⟩,
+  λ h, ⟨λ x y, option.cases_on x (option.cases_on y rfl (λ x, h.elim x)) (λ x, h.elim x)⟩⟩
+
+instance {α} [is_empty α] : unique (option α) := @unique.mk' _ _ (subsingleton_iff_is_empty.2 ‹_›)
+
+end option
 
 section subtype
 

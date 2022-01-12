@@ -54,13 +54,13 @@ involute_involutive
 end involute
 
 section reverse
-open opposite
+open mul_opposite
 
 /-- Grade reversion, inverting the multiplication order of basis vectors.
 Also called *transpose* in some literature. -/
 def reverse : clifford_algebra Q →ₗ[R] clifford_algebra Q :=
 (op_linear_equiv R).symm.to_linear_map.comp (
-  clifford_algebra.lift Q ⟨(opposite.op_linear_equiv R).to_linear_map.comp (ι Q),
+  clifford_algebra.lift Q ⟨(mul_opposite.op_linear_equiv R).to_linear_map.comp (ι Q),
     λ m, unop_injective $ by simp⟩).to_linear_map
 
 @[simp] lemma reverse_ι (m : M) : reverse (ι Q m) = ι Q m :=
@@ -105,8 +105,8 @@ begin
   induction x using clifford_algebra.induction,
   case h_grade0 : { simp },
   case h_grade1 : { simp },
-  case h_mul : a b ha hb { simp [ha, hb], },
-  case h_add : a b ha hb { simp [ha, hb], },
+  case h_mul : a b ha hb { simp only [ha, hb, reverse.map_mul, alg_hom.map_mul], },
+  case h_add : a b ha hb { simp only [ha, hb, reverse.map_add, alg_hom.map_add], },
 end
 
 /-- `clifford_algebra.reverse` and `clifford_algebra.inverse` commute. Note that the composition

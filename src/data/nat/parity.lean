@@ -118,14 +118,14 @@ lemma two_not_dvd_two_mul_sub_one : Π {n} (w : 0 < n), ¬(2 ∣ 2 * n - 1)
 
 @[parity_simps] theorem even_sub (h : n ≤ m) : even (m - n) ↔ (even m ↔ even n) :=
 begin
-  conv { to_rhs, rw [←nat.sub_add_cancel h, even_add] },
+  conv { to_rhs, rw [←tsub_add_cancel_of_le h, even_add] },
   by_cases h : even n; simp [h]
 end
 
 theorem even.sub_even (hm : even m) (hn : even n) : even (m - n) :=
 (le_total n m).elim
   (λ h, by simp only [even_sub h, *])
-  (λ h, by simp only [sub_eq_zero_of_le h, even_zero])
+  (λ h, by simp only [tsub_eq_zero_iff_le.mpr h, even_zero])
 
 theorem even_sub' (h : n ≤ m) : even (m - n) ↔ (odd m ↔ odd n) :=
 by rw [even_sub h, even_iff_not_odd, even_iff_not_odd, not_iff_not]
@@ -133,7 +133,7 @@ by rw [even_sub h, even_iff_not_odd, even_iff_not_odd, not_iff_not]
 theorem odd.sub_odd (hm : odd m) (hn : odd n) : even (m - n) :=
 (le_total n m).elim
   (λ h, by simp only [even_sub' h, *])
-  (λ h, by simp only [sub_eq_zero_of_le h, even_zero])
+  (λ h, by simp only [tsub_eq_zero_iff_le.mpr h, even_zero])
 
 @[parity_simps] theorem even_succ : even (succ n) ↔ ¬ even n :=
 by rw [succ_eq_add_one, even_add]; simp [not_even_one]
@@ -206,6 +206,17 @@ begin
   convert n.even_or_odd,
   simp with parity_simps
 end
+
+lemma even_mul_self_pred (n : ℕ) : even (n * (n - 1)) :=
+begin
+  cases n,
+  { exact even_zero },
+  { rw mul_comm,
+    apply even_mul_succ_self }
+end
+
+lemma even_sub_one_of_prime_ne_two {p : ℕ} (hp : prime p) (hodd : p ≠ 2) : even (p - 1) :=
+odd.sub_odd (odd_iff.2 $ hp.eq_two_or_odd.resolve_left hodd) (odd_iff.2 rfl)
 
 variables {R : Type*} [ring R]
 

@@ -3,7 +3,7 @@ Copyright (c) 2019 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
-import data.finset.basic
+import data.finset.card
 import data.multiset.nat_antidiagonal
 
 /-!
@@ -72,6 +72,22 @@ begin
   refine ⟨congr_arg prod.fst, (λ h, prod.ext h ((add_right_inj q.fst).mp _))⟩,
   rw mem_antidiagonal at hp hq,
   rw [hq, ← h, hp],
+end
+
+lemma antidiagonal.fst_le {n : ℕ} {kl : ℕ × ℕ} (hlk : kl ∈ antidiagonal n) :
+  kl.1 ≤ n :=
+begin
+  rw le_iff_exists_add,
+  use kl.2,
+  rwa [mem_antidiagonal, eq_comm] at hlk
+end
+
+lemma antidiagonal.snd_le {n : ℕ} {kl : ℕ × ℕ} (hlk : kl ∈ antidiagonal n) :
+  kl.2 ≤ n :=
+begin
+  rw le_iff_exists_add,
+  use kl.1,
+  rwa [mem_antidiagonal, eq_comm, add_comm] at hlk
 end
 
 section equiv_prod

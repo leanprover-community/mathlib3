@@ -34,6 +34,7 @@ universe polymorphism functor
 -/
 
 universes u₀ u₁ v₀ v₁ v₂ w w₀ w₁
+variables {s : Type u₀} {s' : Type u₁} {r r' w w' : Type*}
 
 /-- Given a universe polymorphic type family `M.{u} : Type u₁ → Type
 u₂`, this class convert between instantiations, from
@@ -75,7 +76,7 @@ def up_map {F : Type u₀ → Type u₁} {G : Type.{max u₀ v₀} → Type v₁
 functor.map (f ∘ ulift.down) (up x)
 
 /-- map function that moves down universes -/
-def down_map {F : Type.{max u₀ v₀} → Type u₁} {G : Type → Type v₁} [inst : uliftable G F]
+def down_map {F : Type.{max u₀ v₀} → Type u₁} {G : Type u₀ → Type v₁} [inst : uliftable G F]
   [functor F] {α β} (f : α → β) (x : F α) : G β :=
 down (functor.map (ulift.up ∘ f) x : F (ulift β))
 
@@ -97,8 +98,7 @@ instance : uliftable id id :=
 { congr := λ α β F, F }
 
 /-- for specific state types, this function helps to create a uliftable instance -/
-def state_t.uliftable' {s : Type u₀} {s' : Type u₁}
-  {m : Type u₀ → Type v₀} {m' : Type u₁ → Type v₁}
+def state_t.uliftable' {m : Type u₀ → Type v₀} {m' : Type u₁ → Type v₁}
   [uliftable m m']
   (F : s ≃ s') :
   uliftable (state_t s m) (state_t s' m') :=
@@ -106,41 +106,37 @@ def state_t.uliftable' {s : Type u₀} {s' : Type u₁}
     λ α β G, state_t.equiv $ equiv.Pi_congr F $
       λ _, uliftable.congr _ _ $ equiv.prod_congr G F }
 
-instance {s m m'}
-  [uliftable m m'] :
+instance {m m'} [uliftable m m'] :
   uliftable (state_t s m) (state_t (ulift s) m') :=
 state_t.uliftable' equiv.ulift.symm
 
 /-- for specific reader monads, this function helps to create a uliftable instance -/
-def reader_t.uliftable' {s s' m m'}
-  [uliftable m m']
+def reader_t.uliftable' {m m'} [uliftable m m']
   (F : s ≃ s') :
   uliftable (reader_t s m) (reader_t s' m') :=
 { congr :=
     λ α β G, reader_t.equiv $ equiv.Pi_congr F $
       λ _, uliftable.congr _ _ G }
 
-instance {s m m'} [uliftable m m'] : uliftable (reader_t s m) (reader_t (ulift s) m') :=
+instance {m m'} [uliftable m m'] : uliftable (reader_t s m) (reader_t (ulift s) m') :=
 reader_t.uliftable' equiv.ulift.symm
 
 /-- for specific continuation passing monads, this function helps to create a uliftable instance -/
-def cont_t.uliftable' {r r' m m'}
-  [uliftable m m']
+def cont_t.uliftable' {m m'} [uliftable m m']
   (F : r ≃ r') :
   uliftable (cont_t r m) (cont_t r' m') :=
 { congr :=
-    λ α β, cont_t.equiv (uliftable.congr _ _ F)  }
+    λ α β, cont_t.equiv (uliftable.congr _ _ F) }
 
 instance {s m m'} [uliftable m m'] : uliftable (cont_t s m) (cont_t (ulift s) m') :=
 cont_t.uliftable' equiv.ulift.symm
 
 /-- for specific writer monads, this function helps to create a uliftable instance -/
-def writer_t.uliftable' {w w' m m'}
-  [uliftable m m']
+def writer_t.uliftable' {m m'} [uliftable m m']
   (F : w ≃ w') :
   uliftable (writer_t w m) (writer_t w' m') :=
 { congr :=
     λ α β G, writer_t.equiv $ uliftable.congr _ _ $ equiv.prod_congr G F }
 
-instance {s m m'} [uliftable m m'] : uliftable (writer_t s m) (writer_t (ulift s) m') :=
+instance {m m'} [uliftable m m'] : uliftable (writer_t s m) (writer_t (ulift s) m') :=
 writer_t.uliftable' equiv.ulift.symm

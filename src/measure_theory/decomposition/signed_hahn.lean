@@ -3,15 +3,15 @@ Copyright (c) 2021 Kexing Ying. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kexing Ying
 -/
-import measure_theory.vector_measure
+import measure_theory.measure.vector_measure
 import order.symm_diff
 
 /-!
 # Hahn decomposition
 
-This file prove the Hahn decomposition theorem (signed version). The Hahn decomposition theorem
-states that, given a signed measure `s`, there exist complement, measurable sets `i` and `j`,
-such that `i` is positive and `j` is negative with repsect to `s`; that is, `s` restricted on `i`
+This file proves the Hahn decomposition theorem (signed version). The Hahn decomposition theorem
+states that, given a signed measure `s`, there exist complementary, measurable sets `i` and `j`,
+such that `i` is positive and `j` is negative with respect to `s`; that is, `s` restricted on `i`
 is non-negative and `s` restricted on `j` is non-positive.
 
 The Hahn decomposition theorem leads to many other results in measure theory, most notably,
@@ -19,9 +19,10 @@ the Jordan decomposition theorem, the Lebesgue decomposition theorem and the Rad
 
 ## Main results
 
-* `signed_measure.exists_disjoint_positive_negative_union_eq` : the Hahn decomposition theorem.
-* `signed_measure.exists_subset_restrict_nonpos` : A measurable set of negative measure contains
-  a negative subset.
+* `measure_theory.signed_measure.exists_is_compl_positive_negative` : the Hahn decomposition
+  theorem.
+* `measure_theory.signed_measure.exists_subset_restrict_nonpos` : A measurable set of negative
+  measure contains a negative subset.
 
 ## Notation
 
@@ -341,7 +342,7 @@ begin
   refine find_exists_one_div_lt_min (hn' k)
     (buffer.lt_aux_2 hk₁) ⟨E, set.subset.trans hE₂ hA', hE₁, _⟩,
   convert hk₂, norm_cast,
-  exact nat.sub_add_cancel hk₁
+  exact tsub_add_cancel_of_le hk₁
 end
 
 end exists_subset_restrict_nonpos
@@ -381,8 +382,8 @@ begin
   exact lt_irrefl _ ((neg_lt.1 hn).trans_le (hfalse n)),
 end
 
-/-- Alternative formulation of `exists_is_compl_positive_negative` (the Hahn decomposition
-theorem) using set complements. -/
+/-- Alternative formulation of `measure_theory.signed_measure.exists_is_compl_positive_negative`
+(the Hahn decomposition theorem) using set complements. -/
 lemma exists_compl_positive_negative (s : signed_measure α) :
   ∃ i : set α, measurable_set i ∧ 0 ≤[i] s ∧ s ≤[iᶜ] 0 :=
 begin
@@ -430,7 +431,7 @@ theorem exists_is_compl_positive_negative (s : signed_measure α) :
 let ⟨i, hi₁, hi₂, hi₃⟩ := exists_compl_positive_negative s in
   ⟨i, iᶜ, hi₁, hi₂, hi₁.compl, hi₃, is_compl_compl⟩
 
-/-- The symmetric difference of two Hahn decompositions have measure zero. -/
+/-- The symmetric difference of two Hahn decompositions has measure zero. -/
 lemma of_symm_diff_compl_positive_negative {s : signed_measure α}
   {i j : set α} (hi : measurable_set i) (hj : measurable_set j)
   (hi' : 0 ≤[i] s ∧ s ≤[iᶜ] 0) (hj' : 0 ≤[j] s ∧ s ≤[jᶜ] 0) :

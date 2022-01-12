@@ -3,10 +3,9 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Bhavik Mehta
 -/
-import category_theory.limits.preserves.basic
-import category_theory.limits.shapes.equalizers
-import category_theory.limits.shapes.strong_epi
 import category_theory.limits.shapes.pullbacks
+import category_theory.limits.shapes.strong_epi
+import category_theory.limits.shapes.equalizers
 
 /-!
 # Definitions and basic properties of regular monomorphisms and epimorphisms.

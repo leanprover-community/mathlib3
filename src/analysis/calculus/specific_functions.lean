@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 import analysis.calculus.iterated_deriv
-import analysis.normed_space.euclidean_dist
+import analysis.inner_product_space.euclidean_dist
 
 /-!
 # Infinitely smooth bump function
@@ -68,10 +68,10 @@ if x ≤ 0 then 0 else (P_aux n).eval x * exp (-x⁻¹) / x^(2 * n)
 /-- The `0`-th auxiliary function `f_aux 0` coincides with `exp_neg_inv_glue`, by definition. -/
 lemma f_aux_zero_eq : f_aux 0 = exp_neg_inv_glue :=
 begin
-   ext x,
-   by_cases h : x ≤ 0,
-   { simp [exp_neg_inv_glue, f_aux, h] },
-   { simp [h, exp_neg_inv_glue, f_aux, ne_of_gt (not_le.1 h), P_aux] }
+  ext x,
+  by_cases h : x ≤ 0,
+  { simp [exp_neg_inv_glue, f_aux, h] },
+  { simp [h, exp_neg_inv_glue, f_aux, ne_of_gt (not_le.1 h), P_aux] }
 end
 
 /-- For positive values, the derivative of the `n`-th auxiliary function `f_aux n`
@@ -83,7 +83,7 @@ lemma f_aux_deriv (n : ℕ) (x : ℝ) (hx : x ≠ 0) :
 begin
   have A : ∀k:ℕ, 2 * (k + 1) - 1 = 2 * k + 1,
   { assume k,
-    rw nat.sub_eq_iff_eq_add,
+    rw tsub_eq_iff_eq_add_of_le,
     { ring },
     { simpa [mul_add] using add_le_add (zero_le (2 * k)) one_le_two } },
   convert (((P_aux n).has_deriv_at x).mul
@@ -109,11 +109,11 @@ end
 is `0`, to be able to apply general differentiability extension theorems. This limit is checked in
 this lemma. -/
 lemma f_aux_limit (n : ℕ) :
-  tendsto (λx, (P_aux n).eval x * exp (-x⁻¹) / x^(2 * n)) (𝓝[Ioi 0] 0) (𝓝 0) :=
+  tendsto (λx, (P_aux n).eval x * exp (-x⁻¹) / x^(2 * n)) (𝓝[>] 0) (𝓝 0) :=
 begin
-  have A : tendsto (λx, (P_aux n).eval x) (𝓝[Ioi 0] 0) (𝓝 ((P_aux n).eval 0)) :=
+  have A : tendsto (λx, (P_aux n).eval x) (𝓝[>] 0) (𝓝 ((P_aux n).eval 0)) :=
   (P_aux n).continuous_within_at,
-  have B : tendsto (λx, exp (-x⁻¹) / x^(2 * n)) (𝓝[Ioi 0] 0) (𝓝 0),
+  have B : tendsto (λx, exp (-x⁻¹) / x^(2 * n)) (𝓝[>] 0) (𝓝 0),
   { convert (tendsto_pow_mul_exp_neg_at_top_nhds_0 (2 * n)).comp tendsto_inv_zero_at_top,
     ext x,
     field_simp },
@@ -140,12 +140,12 @@ begin
     -- extension results.
     apply has_deriv_at_interval_left_endpoint_of_tendsto_deriv diff _ self_mem_nhds_within,
     { refine (f_aux_limit (n+1)).congr' _,
-      apply mem_sets_of_superset self_mem_nhds_within (λx hx, _),
+      apply mem_of_superset self_mem_nhds_within (λx hx, _),
       simp [(f_aux_deriv_pos n x hx).deriv] },
     { have : f_aux n 0 = 0, by simp [f_aux, le_refl],
       simp only [continuous_within_at, this],
       refine (f_aux_limit n).congr' _,
-      apply mem_sets_of_superset self_mem_nhds_within (λx hx, _),
+      apply mem_of_superset self_mem_nhds_within (λx hx, _),
       have : ¬(x ≤ 0), by simpa using hx,
       simp [f_aux, this] } },
   simpa using A.union B,
@@ -291,7 +291,7 @@ function instead. -/
 def to_fun (f : times_cont_diff_bump_of_inner c) : E → ℝ :=
 λ x, real.smooth_transition ((f.R - dist x c) / (f.R - f.r))
 
-instance : has_coe_to_fun (times_cont_diff_bump_of_inner c) := ⟨_, to_fun⟩
+instance : has_coe_to_fun (times_cont_diff_bump_of_inner c) (λ _, E → ℝ) := ⟨to_fun⟩
 
 open real (smooth_transition) real.smooth_transition metric
 
@@ -312,7 +312,7 @@ lt_one_of_lt_one $ (div_lt_one (sub_pos.2 f.r_lt_R)).2 $ sub_lt_sub_left h _
 lemma zero_of_le_dist (hx : f.R ≤ dist x c) : f x = 0 :=
 zero_of_nonpos $ div_nonpos_of_nonpos_of_nonneg (sub_nonpos.2 hx) (sub_nonneg.2 f.r_lt_R.le)
 
-lemma support_eq : support ⇑f = metric.ball c f.R :=
+lemma support_eq : support (f : E → ℝ) = metric.ball c f.R :=
 begin
   ext x,
   suffices : f x ≠ 0 ↔ dist x c < f.R, by simpa [mem_support],
@@ -372,10 +372,9 @@ variables [normed_group E] [normed_space ℝ E] [finite_dimensional ℝ E] {c x 
 instead. -/
 def to_fun (f : times_cont_diff_bump c) : E → ℝ := f.to_times_cont_diff_bump_of_inner ∘ to_euclidean
 
-instance : has_coe_to_fun (times_cont_diff_bump c) :=
-⟨λ f, E → ℝ, to_fun⟩
+instance : has_coe_to_fun (times_cont_diff_bump c) (λ _, E → ℝ) := ⟨to_fun⟩
 
-instance (c : E) : inhabited (times_cont_diff_bump c) := ⟨⟨default _⟩⟩
+instance (c : E) : inhabited (times_cont_diff_bump c) := ⟨⟨default⟩⟩
 
 lemma R_pos : 0 < f.R := f.to_times_cont_diff_bump_of_inner.R_pos
 
@@ -398,7 +397,7 @@ f.to_times_cont_diff_bump_of_inner.lt_one_of_lt_dist h
 lemma zero_of_le_dist (hx : f.R ≤ euclidean.dist x c) : f x = 0 :=
 f.to_times_cont_diff_bump_of_inner.zero_of_le_dist hx
 
-lemma support_eq : support ⇑f = euclidean.ball c f.R :=
+lemma support_eq : support (f : E → ℝ) = euclidean.ball c f.R :=
 by rw [euclidean.ball_eq_preimage, ← f.to_times_cont_diff_bump_of_inner.support_eq,
   ← support_comp_eq_preimage, coe_eq_comp]
 
@@ -406,7 +405,7 @@ lemma closure_support_eq : closure (support f) = euclidean.closed_ball c f.R :=
 by rw [f.support_eq, euclidean.closure_ball _ f.R_pos]
 
 lemma compact_closure_support : is_compact (closure (support f)) :=
-by { rw f.closure_support_eq, exact euclidean.compact_ball }
+by { rw f.closure_support_eq, exact euclidean.is_compact_closed_ball }
 
 lemma eventually_eq_one_of_mem_ball (h : x ∈ euclidean.ball c f.r) :
   f =ᶠ[𝓝 x] 1 :=

@@ -5,7 +5,7 @@ Authors: Sébastien Gouëzel, Yourong Zang
 -/
 import analysis.calculus.times_cont_diff
 import analysis.complex.conformal
-import analysis.calculus.conformal
+import analysis.calculus.conformal.normed_space
 
 /-! # Real differentiability of complex-differentiable functions
 
@@ -79,11 +79,48 @@ theorem times_cont_diff.real_of_complex {n : with_top ℕ} (h : times_cont_diff 
 times_cont_diff_iff_times_cont_diff_at.2 $ λ x,
   h.times_cont_diff_at.real_of_complex
 
+variables {E : Type*} [normed_group E] [normed_space ℂ E]
+
+lemma has_strict_deriv_at.complex_to_real_fderiv' {f : ℂ → E} {x : ℂ} {f' : E}
+  (h : has_strict_deriv_at f f' x) :
+  has_strict_fderiv_at f (re_clm.smul_right f' + I • im_clm.smul_right f') x :=
+by simpa only [complex.restrict_scalars_one_smul_right']
+  using h.has_strict_fderiv_at.restrict_scalars ℝ
+
+lemma has_deriv_at.complex_to_real_fderiv' {f : ℂ → E} {x : ℂ} {f' : E} (h : has_deriv_at f f' x) :
+  has_fderiv_at f (re_clm.smul_right f' + I • im_clm.smul_right f') x :=
+by simpa only [complex.restrict_scalars_one_smul_right']
+  using h.has_fderiv_at.restrict_scalars ℝ
+
+lemma has_deriv_within_at.complex_to_real_fderiv' {f : ℂ → E} {s : set ℂ} {x : ℂ} {f' : E}
+  (h : has_deriv_within_at f f' s x) :
+  has_fderiv_within_at f (re_clm.smul_right f' + I • im_clm.smul_right f') s x :=
+by simpa only [complex.restrict_scalars_one_smul_right']
+  using h.has_fderiv_within_at.restrict_scalars ℝ
+
+lemma has_strict_deriv_at.complex_to_real_fderiv {f : ℂ → ℂ} {f' x : ℂ}
+  (h : has_strict_deriv_at f f' x) :
+  has_strict_fderiv_at f (f' • (1 : ℂ →L[ℝ] ℂ)) x :=
+by simpa only [complex.restrict_scalars_one_smul_right]
+  using h.has_strict_fderiv_at.restrict_scalars ℝ
+
+lemma has_deriv_at.complex_to_real_fderiv {f : ℂ → ℂ} {f' x : ℂ} (h : has_deriv_at f f' x) :
+  has_fderiv_at f (f' • (1 : ℂ →L[ℝ] ℂ)) x :=
+by simpa only [complex.restrict_scalars_one_smul_right]
+  using h.has_fderiv_at.restrict_scalars ℝ
+
+lemma has_deriv_within_at.complex_to_real_fderiv {f : ℂ → ℂ} {s : set ℂ} {f' x : ℂ}
+  (h : has_deriv_within_at f f' s x) :
+  has_fderiv_within_at f (f' • (1 : ℂ →L[ℝ] ℂ)) s x :=
+by simpa only [complex.restrict_scalars_one_smul_right]
+  using h.has_fderiv_within_at.restrict_scalars ℝ
+
 end real_deriv_of_complex
 
 section conformality
 /-! ### Conformality of real-differentiable complex maps -/
 open complex continuous_linear_map
+open_locale complex_conjugate
 
 variables
 
@@ -92,7 +129,7 @@ variables
     This is a version of the Cauchy-Riemann equations. -/
 lemma differentiable_at.conformal_at {E : Type*}
   [normed_group E] [normed_space ℝ E] [normed_space ℂ E]
-  [is_scalar_tower ℝ ℂ E] {z : ℂ} {f : ℂ → E}
+  {z : ℂ} {f : ℂ → E}
   (hf' : fderiv ℝ f z ≠ 0) (h : differentiable_at ℂ f z) :
   conformal_at f z :=
 begin

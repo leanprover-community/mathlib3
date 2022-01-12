@@ -4,6 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Damiano Testa
 -/
 import algebra.group_power.basic
+import algebra.ring.opposite
+import group_theory.group_action.opposite
+import group_theory.group_action.prod
 
 /-!
 # Introduce `smul_with_zero`
@@ -25,6 +28,10 @@ Thus, the action is required to be compatible with
 We also add an `instance`:
 
 * any `monoid_with_zero` has a `mul_action_with_zero R R` acting on itself.
+
+## Main declarations
+
+* `smul_monoid_with_zero_hom`: Scalar multiplication bundled as a morphism of monoids with zero.
 -/
 
 variables {R R' M M' : Type*}
@@ -43,6 +50,12 @@ instance mul_zero_class.to_smul_with_zero [mul_zero_class R] : smul_with_zero R 
 { smul := (*),
   smul_zero := mul_zero,
   zero_smul := zero_mul }
+
+/-- Like `mul_zero_class.to_smul_with_zero`, but multiplies on the right. -/
+instance mul_zero_class.to_opposite_smul_with_zero [mul_zero_class R] : smul_with_zero Rᵐᵒᵖ R :=
+{ smul := (•),
+  smul_zero := λ r, zero_mul _,
+  zero_smul := mul_zero }
 
 instance add_monoid.to_smul_with_zero [add_monoid M] : smul_with_zero ℕ M :=
 { smul_zero := nsmul_zero,
@@ -106,9 +119,16 @@ instance mul_action_with_zero.to_smul_with_zero [m : mul_action_with_zero R M] :
   smul_with_zero R M :=
 {..m}
 
+/-- See also `semiring.to_module` -/
 instance monoid_with_zero.to_mul_action_with_zero : mul_action_with_zero R R :=
 { ..mul_zero_class.to_smul_with_zero R,
   ..monoid.to_mul_action R }
+
+/-- Like `monoid_with_zero.to_mul_action_with_zero`, but multiplies on the right. See also
+`semiring.to_opposite_module` -/
+instance monoid_with_zero.to_opposite_mul_action_with_zero : mul_action_with_zero Rᵐᵒᵖ R :=
+{ ..mul_zero_class.to_opposite_smul_with_zero R,
+  ..monoid.to_opposite_mul_action R }
 
 variables {R M} [mul_action_with_zero R M] [has_zero M'] [has_scalar R M']
 
@@ -139,3 +159,11 @@ def mul_action_with_zero.comp_hom (f : monoid_with_zero_hom R' R) :
   .. smul_with_zero.comp_hom M f.to_zero_hom}
 
 end monoid_with_zero
+
+/-- Scalar multiplication as a monoid homomorphism with zero. -/
+@[simps]
+def smul_monoid_with_zero_hom {α β : Type*} [monoid_with_zero α] [mul_zero_one_class β]
+  [mul_action_with_zero α β] [is_scalar_tower α β β] [smul_comm_class α β β] :
+  monoid_with_zero_hom (α × β) β :=
+{ map_zero' := smul_zero' _ _,
+  .. smul_monoid_hom }

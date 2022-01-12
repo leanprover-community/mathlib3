@@ -7,8 +7,10 @@ Authors: Kevin Buzzard, Calle Sönne
 import topology.category.CompHaus
 import topology.connected
 import topology.subset_properties
+import topology.locally_constant.basic
 import category_theory.adjunction.reflective
 import category_theory.monad.limits
+import category_theory.limits.constructions.epi_mono
 import category_theory.Fintype
 
 /-!
@@ -39,7 +41,7 @@ profinite
 
 -/
 
-universe variable u
+universe u
 
 open category_theory
 
@@ -63,7 +65,7 @@ instance category : category Profinite := induced_category.category to_CompHaus
 instance concrete_category : concrete_category Profinite := induced_category.concrete_category _
 instance has_forget₂ : has_forget₂ Profinite Top := induced_category.has_forget₂ _
 
-instance : has_coe_to_sort Profinite := ⟨Type*, λ X, X.to_CompHaus⟩
+instance : has_coe_to_sort Profinite Type* := ⟨λ X, X.to_CompHaus⟩
 instance {X : Profinite} : totally_disconnected_space X := X.is_totally_disconnected
 
 -- We check that we automatically infer that Profinite sets are compact and Hausdorff.
@@ -94,7 +96,6 @@ def Profinite.to_Top : Profinite ⥤ Top := forget₂ _ _
 rfl
 
 section Profinite
-local attribute [instance] connected_component_setoid
 
 /--
 (Implementation) The object part of the connected_components functor from compact Hausdorff spaces
@@ -116,13 +117,11 @@ spaces in compact Hausdorff spaces.
 -/
 def Profinite.to_CompHaus_equivalence (X : CompHaus.{u}) (Y : Profinite.{u}) :
   (CompHaus.to_Profinite_obj X ⟶ Y) ≃ (X ⟶ Profinite_to_CompHaus.obj Y) :=
-{ to_fun := λ f,
-  { to_fun := f.1 ∘ quotient.mk,
-    continuous_to_fun := continuous.comp f.2 (continuous_quotient_mk) },
+{ to_fun := λ f, f.comp ⟨quotient.mk', continuous_quotient_mk⟩,
   inv_fun := λ g,
     { to_fun := continuous.connected_components_lift g.2,
       continuous_to_fun := continuous.connected_components_lift_continuous g.2},
-  left_inv := λ f, continuous_map.ext $ λ x, quotient.induction_on x $ λ a, rfl,
+  left_inv := λ f, continuous_map.ext $ connected_components.surjective_coe.forall.2 $ λ a, rfl,
   right_inv := λ f, continuous_map.ext $ λ x, rfl }
 
 /--
@@ -223,7 +222,7 @@ noncomputable def iso_of_bijective (bij : function.bijective f) : X ≅ Y :=
 by letI := Profinite.is_iso_of_bijective f bij; exact as_iso f
 
 instance forget_reflects_isomorphisms : reflects_isomorphisms (forget Profinite) :=
-⟨by introsI A B f hf; exact Profinite.is_iso_of_bijective _ ((is_iso_iff_bijective ⇑f).mp hf)⟩
+⟨by introsI A B f hf; exact Profinite.is_iso_of_bijective _ ((is_iso_iff_bijective f).mp hf)⟩
 
 /-- Construct an isomorphism from a homeomorphism. -/
 @[simps hom inv] def iso_of_homeo (f : X ≃ₜ Y) : X ≅ Y :=
@@ -248,5 +247,48 @@ of topological spaces. -/
   inv_fun := iso_of_homeo,
   left_inv := λ f, by { ext, refl },
   right_inv := λ f, by { ext, refl } }
+
+lemma epi_iff_surjective {X Y : Profinite.{u}} (f : X ⟶ Y) : epi f ↔ function.surjective f :=
+begin
+  split,
+  { contrapose!,
+    rintros ⟨y, hy⟩ hf,
+    let C := set.range f,
+    have hC : is_closed C := (is_compact_range f.continuous).is_closed,
+    let U := Cᶜ,
+    have hU : is_open U := is_open_compl_iff.mpr hC,
+    have hyU : y ∈ U,
+    { refine set.mem_compl _, rintro ⟨y', hy'⟩, exact hy y' hy' },
+    have hUy : U ∈ nhds y := hU.mem_nhds hyU,
+    obtain ⟨V, hV, hyV, hVU⟩ := is_topological_basis_clopen.mem_nhds_iff.mp hUy,
+    classical,
+    letI : topological_space (ulift.{u} $ fin 2) := ⊥,
+    let Z := of (ulift.{u} $ fin 2),
+    let g : Y ⟶ Z := ⟨(locally_constant.of_clopen hV).map ulift.up, locally_constant.continuous _⟩,
+    let h : Y ⟶ Z := ⟨λ _, ⟨1⟩, continuous_const⟩,
+    have H : h = g,
+    { rw ← cancel_epi f,
+      ext x, dsimp [locally_constant.of_clopen],
+      rw if_neg, { refl },
+      refine mt (λ α, hVU α) _,
+      simp only [set.mem_range_self, not_true, not_false_iff, set.mem_compl_eq], },
+    apply_fun (λ e, (e y).down) at H,
+    dsimp [locally_constant.of_clopen] at H,
+    rw if_pos hyV at H,
+    exact top_ne_bot H },
+  { rw ← category_theory.epi_iff_surjective,
+    apply faithful_reflects_epi (forget Profinite) },
+end
+
+lemma mono_iff_injective {X Y : Profinite.{u}} (f : X ⟶ Y) : mono f ↔ function.injective f :=
+begin
+  split,
+  { intro h,
+    haveI : limits.preserves_limits Profinite_to_CompHaus := infer_instance,
+    haveI : mono (Profinite_to_CompHaus.map f) := infer_instance,
+    rwa ← CompHaus.mono_iff_injective },
+  { rw ← category_theory.mono_iff_injective,
+    apply faithful_reflects_mono (forget Profinite) }
+end
 
 end Profinite

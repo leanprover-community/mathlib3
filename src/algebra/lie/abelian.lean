@@ -172,10 +172,10 @@ on it is trivial. -/
 def max_triv_linear_map_equiv_lie_module_hom :
   (max_triv_submodule R L (M →ₗ[R] N)) ≃ₗ[R] (M →ₗ⁅R,L⁆ N) :=
 { to_fun    := λ f,
-    { map_lie' := λ x m, by
+    { to_linear_map := f.val,
+      map_lie' := λ x m, by
       { have hf : ⁅x, f.val⁆ m = 0, { rw [f.property x, linear_map.zero_apply], },
-        rw [lie_hom.lie_apply, sub_eq_zero, ← linear_map.to_fun_eq_coe] at hf, exact hf.symm, },
-      ..f.val, },
+        rw [lie_hom.lie_apply, sub_eq_zero, ← linear_map.to_fun_eq_coe] at hf, exact hf.symm, }, },
   map_add'  := λ f g, by { ext, simp, },
   map_smul' := λ F G, by { ext, simp, },
   inv_fun   := λ F, ⟨F, λ x, by { ext, simp, }⟩,
@@ -213,7 +213,9 @@ abbreviation center : lie_ideal R L := lie_module.max_triv_submodule R L L
 
 instance : is_lie_abelian (center R L) := infer_instance
 
-lemma center_eq_adjoint_kernel : center R L = lie_module.ker R L L :=
+@[simp] lemma ad_ker_eq_self_module_ker : (ad R L).ker = lie_module.ker R L L := rfl
+
+@[simp] lemma self_module_ker_eq_center : lie_module.ker R L L = center R L :=
 begin
   ext y,
   simp only [lie_module.mem_max_triv_submodule, lie_module.mem_ker, ← lie_skew _ y, neg_eq_zero],

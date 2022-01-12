@@ -160,3 +160,8 @@ supr_disjointed f
 lemma disjointed_eq_inter_compl (f : ℕ → set α) (n : ℕ) :
   disjointed f n = f n ∩ (⋂ i < n, (f i)ᶜ) :=
 disjointed_eq_inf_compl f n
+
+lemma preimage_find_eq_disjointed (s : ℕ → set α) (H : ∀ x, ∃ n, x ∈ s n)
+  [∀ x n, decidable (x ∈ s n)] (n : ℕ) :
+  (λ x, nat.find (H x)) ⁻¹' {n} = disjointed s n :=
+by { ext x, simp [nat.find_eq_iff, disjointed_eq_inter_compl] }

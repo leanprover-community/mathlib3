@@ -161,6 +161,10 @@ def equiv_range_encode (α : Type*) [encodable α] : α ≃ set.range (@encode �
     rw [encode_injective.eq_iff, ← option.some_inj, option.some_get, ← hx, encodek₂],
   end }
 
+/-- A type with unique element is encodable. This is not an instance to avoid diamonds. -/
+def _root_.unique.encodable [unique α] : encodable α :=
+⟨λ _, 0, λ _, some default, unique.forall_iff.2 rfl⟩
+
 section sum
 variables [encodable α] [encodable β]
 
@@ -209,6 +213,9 @@ begin
   cases exists_eq_succ_of_ne_zero (ne_of_gt this) with m e,
   simp [decode_sum]; cases bodd n; simp [decode_sum]; rw e; refl
 end
+
+noncomputable instance «Prop» : encodable Prop :=
+of_equiv bool equiv.Prop_equiv_bool
 
 section sigma
 variables {γ : α → Type*} [encodable α] [∀ a, encodable (γ a)]
@@ -324,7 +331,7 @@ variables {α}
 /-- Lowers an `a : α` into `ulower α`. -/
 def down (a : α) : ulower α := equiv α a
 
-instance [inhabited α] : inhabited (ulower α) := ⟨down (default _)⟩
+instance [inhabited α] : inhabited (ulower α) := ⟨down default⟩
 
 /-- Lifts an `a : ulower α` into `α`. -/
 def up (a : ulower α) : α := (equiv α).symm a
@@ -419,7 +426,7 @@ variables {α : Type*} {β : Type*} [encodable α] [inhabited α]
 construct a noncomputable sequence such that `r (f (x n)) (f (x (n + 1)))`
 and `r (f a) (f (x (encode a + 1))`. -/
 protected noncomputable def sequence {r : β → β → Prop} (f : α → β) (hf : directed r f) : ℕ → α
-| 0       := default α
+| 0       := default
 | (n + 1) :=
   let p := sequence n in
   match decode α n with

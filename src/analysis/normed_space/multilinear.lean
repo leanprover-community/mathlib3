@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 import analysis.normed_space.operator_norm
-import topology.algebra.multilinear
+import topology.algebra.module.multilinear
 
 /-!
 # Operator norm on the space of continuous multilinear maps
@@ -118,11 +118,10 @@ positive. -/
 theorem exists_bound_of_continuous (hf : continuous f) :
   ∃ (C : ℝ), 0 < C ∧ (∀ m, ∥f m∥ ≤ C * ∏ i, ∥m i∥) :=
 begin
-  by_cases hι : nonempty ι, swap,
+  casesI is_empty_or_nonempty ι,
   { refine ⟨∥f 0∥ + 1, add_pos_of_nonneg_of_pos (norm_nonneg _) zero_lt_one, λ m, _⟩,
-    obtain rfl : m = 0, from funext (λ i, (hι ⟨i⟩).elim),
-    simp [univ_eq_empty.2 hι, zero_le_one] },
-  resetI,
+    obtain rfl : m = 0, from funext (is_empty.elim ‹_›),
+    simp [univ_eq_empty, zero_le_one] },
   obtain ⟨ε : ℝ, ε0 : 0 < ε, hε : ∀ m : Π i, E i, ∥m - 0∥ < ε → ∥f m - f 0∥ < 1⟩ :=
     normed_group.tendsto_nhds_nhds.1 (hf.tendsto 0) 1 zero_lt_one,
   simp only [sub_zero, f.map_zero] at hε,
@@ -131,7 +130,7 @@ begin
   refine ⟨_, this, _⟩,
   refine f.bound_of_shell (λ _, ε0) (λ _, hc) (λ m hcm hm, _),
   refine (hε m ((pi_norm_lt_iff ε0).2 hm)).le.trans _,
-  rw [← div_le_iff' this, one_div, ← inv_pow', inv_div, fintype.card, ← prod_const],
+  rw [← div_le_iff' this, one_div, ← inv_pow₀, inv_div, fintype.card, ← prod_const],
   exact prod_le_prod (λ _ _, div_nonneg ε0.le (norm_nonneg _)) (λ i _, hcm i)
 end
 
@@ -447,8 +446,8 @@ def prodL :
 /-- `continuous_multilinear_map.pi` as a `linear_isometry_equiv`. -/
 def piₗᵢ {ι' : Type v'} [fintype ι'] {E' : ι' → Type wE'} [Π i', normed_group (E' i')]
   [Π i', normed_space 𝕜 (E' i')] :
-  @linear_isometry_equiv 𝕜 (Π i', continuous_multilinear_map 𝕜 E (E' i'))
-    (continuous_multilinear_map 𝕜 E (Π i, E' i)) _ _ _
+  @linear_isometry_equiv 𝕜 𝕜 _ _ (ring_hom.id 𝕜) _ _ _
+    (Π i', continuous_multilinear_map 𝕜 E (E' i')) (continuous_multilinear_map 𝕜 E (Π i, E' i)) _ _
       (@pi.module ι' _ 𝕜 _ _ (λ i', infer_instance)) _ :=
 { to_linear_equiv :=
   -- note: `pi_linear_equiv` does not unify correctly here, presumably due to issues with dependent
@@ -677,9 +676,9 @@ multilinear_map.mk_continuous
   (multilinear_map.mk_pi_algebra 𝕜 ι A) (if nonempty ι then 1 else ∥(1 : A)∥) $
   begin
     intro m,
-    by_cases hι : nonempty ι,
-    { resetI, simp [hι, norm_prod_le' univ univ_nonempty] },
-    { simp [eq_empty_of_not_nonempty hι univ, hι] }
+    casesI is_empty_or_nonempty ι with hι hι,
+    { simp [eq_empty_of_is_empty univ, not_nonempty_iff.2 hι] },
+    { simp [norm_prod_le' univ univ_nonempty, hι] }
   end
 
 variables {A 𝕜 ι}
@@ -788,43 +787,24 @@ lemma mk_pi_field_apply_one_eq_self (f : continuous_multilinear_map 𝕜 (λ(i :
   continuous_multilinear_map.mk_pi_field 𝕜 ι (f (λi, 1)) = f :=
 to_multilinear_map_inj f.to_multilinear_map.mk_pi_ring_apply_one_eq_self
 
+@[simp] lemma norm_mk_pi_field (z : G) : ∥continuous_multilinear_map.mk_pi_field 𝕜 ι z∥ = ∥z∥ :=
+(multilinear_map.mk_continuous_norm_le _ (norm_nonneg z) _).antisymm $
+  by simpa using (continuous_multilinear_map.mk_pi_field 𝕜 ι z).le_op_norm (λ _, 1)
+
 variables (𝕜 ι G)
 
 /-- Continuous multilinear maps on `𝕜^n` with values in `G` are in bijection with `G`, as such a
 continuous multilinear map is completely determined by its value on the constant vector made of
-ones. We register this bijection as a linear equivalence in
-`continuous_multilinear_map.pi_field_equiv_aux`. The continuous linear equivalence is
+ones. We register this bijection as a linear isometry in
 `continuous_multilinear_map.pi_field_equiv`. -/
-protected def pi_field_equiv_aux : G ≃ₗ[𝕜] (continuous_multilinear_map 𝕜 (λ(i : ι), 𝕜) G) :=
+protected def pi_field_equiv : G ≃ₗᵢ[𝕜] (continuous_multilinear_map 𝕜 (λ(i : ι), 𝕜) G) :=
 { to_fun    := λ z, continuous_multilinear_map.mk_pi_field 𝕜 ι z,
   inv_fun   := λ f, f (λi, 1),
   map_add'  := λ z z', by { ext m, simp [smul_add] },
   map_smul' := λ c z, by { ext m, simp [smul_smul, mul_comm] },
   left_inv  := λ z, by simp,
-  right_inv := λ f, f.mk_pi_field_apply_one_eq_self }
-
-/-- Continuous multilinear maps on `𝕜^n` with values in `G` are in bijection with `G`, as such a
-continuous multilinear map is completely determined by its value on the constant vector made of
-ones. We register this bijection as a continuous linear equivalence in
-`continuous_multilinear_map.pi_field_equiv`. -/
-protected def pi_field_equiv : G ≃L[𝕜] (continuous_multilinear_map 𝕜 (λ(i : ι), 𝕜) G) :=
-{ continuous_to_fun := begin
-    refine (continuous_multilinear_map.pi_field_equiv_aux 𝕜 ι G).to_linear_map.continuous_of_bound
-      (1 : ℝ) (λz, _),
-    rw one_mul,
-    change ∥continuous_multilinear_map.mk_pi_field 𝕜 ι z∥ ≤ ∥z∥,
-    exact multilinear_map.mk_continuous_norm_le _ (norm_nonneg _) _
-  end,
-  continuous_inv_fun := begin
-    refine
-      (continuous_multilinear_map.pi_field_equiv_aux 𝕜 ι G).symm.to_linear_map.continuous_of_bound
-      (1 : ℝ) (λf, _),
-    rw one_mul,
-    change ∥f (λi, 1)∥ ≤ ∥f∥,
-    apply @continuous_multilinear_map.unit_le_op_norm 𝕜 ι (λ (i : ι), 𝕜) G _ _ _ _ _ _ _ f,
-    simp [pi_norm_le_iff zero_le_one, le_refl]
-  end,
-  .. continuous_multilinear_map.pi_field_equiv_aux 𝕜 ι G }
+  right_inv := λ f, f.mk_pi_field_apply_one_eq_self,
+  norm_map' := norm_mk_pi_field }
 
 end continuous_multilinear_map
 
@@ -853,7 +833,8 @@ multilinear_map.mk_continuous
   { to_fun := λ m, linear_map.mk_continuous
       { to_fun := λ x, f x m,
         map_add' := λ x y, by simp only [map_add, continuous_multilinear_map.add_apply],
-        map_smul' := λ c x, by simp only [continuous_multilinear_map.smul_apply, map_smul]}
+        map_smul' := λ c x, by simp only [continuous_multilinear_map.smul_apply, map_smul,
+                                          ring_hom.id_apply] }
       (∥f∥ * ∏ i, ∥m i∥) $ λ x,
       by { rw mul_right_comm, exact (f x).le_of_op_norm_le _ (f.le_op_norm x) },
     map_add' := λ m i x y,
@@ -1423,7 +1404,7 @@ linear_isometry_equiv.of_bounds
     map_smul' := λ c f, by { ext, refl },
     left_inv := λ f, by { ext m, exact congr_arg f (sum.elim_comp_inl_inr m) },
     right_inv := λ f, by { ext m₁ m₂, change f _ _ = f _ _,
-      rw [sum.elim_comp_inl, sum.elim_comp_inr]  } }
+      rw [sum.elim_comp_inl, sum.elim_comp_inr] } }
   (λ f, multilinear_map.mk_continuous_multilinear_norm_le _ (norm_nonneg f) _)
   (λ f, multilinear_map.mk_continuous_norm_le _ (norm_nonneg f) _)
 

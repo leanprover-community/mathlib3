@@ -680,13 +680,13 @@ variables {α}
 
 open normed_field
 
-/-- The product of two seminormed spaces is a seminormed space, with the sup norm. -/
+/-- The product of two normed spaces is a normed space, with the sup norm. -/
 instance prod.normed_space : normed_space α (E × F) :=
 { norm_smul_le := λ s x, le_of_eq $ by simp [prod.semi_norm_def, norm_smul, mul_max_of_nonneg],
   ..prod.normed_group,
   ..prod.module }
 
-/-- The product of finitely many seminormed spaces is a seminormed space, with the sup norm. -/
+/-- The product of finitely many normed spaces is a normed space, with the sup norm. -/
 instance pi.normed_space {E : ι → Type*} [fintype ι] [∀i, semi_normed_group (E i)]
   [∀i, normed_space α (E i)] : normed_space α (Πi, E i) :=
 { norm_smul_le := λ a f, le_of_eq $
@@ -694,7 +694,7 @@ instance pi.normed_space {E : ι → Type*} [fintype ι] [∀i, semi_normed_grou
       ∥a∥₊ * ↑(finset.sup finset.univ (λ (b : ι), ∥f b∥₊)),
     by simp only [(nnreal.coe_mul _ _).symm, nnreal.mul_finset_sup, nnnorm_smul] }
 
-/-- A subspace of a seminormed space is also a normed space, with the restriction of the norm. -/
+/-- A subspace of a normed space is also a normed space, with the restriction of the norm. -/
 instance submodule.normed_space {𝕜 R : Type*} [has_scalar 𝕜 R] [normed_field 𝕜] [ring R]
   {E : Type*} [semi_normed_group E] [normed_space 𝕜 E] [module R E]
   [is_scalar_tower 𝕜 R E] (s : submodule R E) :
@@ -775,14 +775,6 @@ lemma rescale_to_shell {c : α} (hc : 1 < ∥c∥) {ε : ℝ} (εpos : 0 < ε) {
   ∃d:α, d ≠ 0 ∧ ∥d • x∥ < ε ∧ (ε/∥c∥ ≤ ∥d • x∥) ∧ (∥d∥⁻¹ ≤ ε⁻¹ * ∥c∥ * ∥x∥) :=
 rescale_to_shell_semi_normed hc εpos (ne_of_lt (norm_pos_iff.2 hx)).symm
 
-/-- The product of two normed spaces is a normed space, with the sup norm. -/
-instance : normed_space α (E × F) := { ..prod.normed_space }
-
-/-- The product of finitely many normed spaces is a normed space, with the sup norm. -/
-instance pi.normed_space {E : ι → Type*} [fintype ι] [∀i, normed_group (E i)]
-  [∀i, normed_space α (E i)] : normed_space α (Πi, E i) :=
-{ ..pi.normed_space }
-
 section
 local attribute [instance] matrix.normed_group
 
@@ -794,13 +786,6 @@ def matrix.normed_space {α : Type*} [normed_field α] {n m : Type*} [fintype n]
 pi.normed_space
 
 end
-
-/-- A subspace of a normed space is also a normed space, with the restriction of the norm. -/
-instance submodule.normed_space {𝕜 R : Type*} [has_scalar 𝕜 R] [normed_field 𝕜] [ring R]
-  {E : Type*} [normed_group E] [normed_space 𝕜 E] [module R E]
-  [is_scalar_tower 𝕜 R E] (s : submodule R E) :
-  normed_space 𝕜 s :=
-{ ..submodule.normed_space s }
 
 end normed_space
 
@@ -924,7 +909,7 @@ variables (𝕜 : Type*) (𝕜' : Type*) [normed_field 𝕜] [normed_field 𝕜'
 /-- Warning: This declaration should be used judiciously.
 Please consider using `is_scalar_tower` instead.
 
-`𝕜`-seminormed space structure induced by a `𝕜'`-seminormed space structure when `𝕜'` is a
+`𝕜`-normed space structure induced by a `𝕜'`-normed space structure when `𝕜'` is a
 seminormed algebra over `𝕜`. Not registered as an instance as `𝕜'` can not be inferred.
 
 The type synonym `module.restrict_scalars 𝕜 𝕜' E` will be endowed with this instance by default.

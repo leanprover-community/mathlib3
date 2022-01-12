@@ -293,7 +293,7 @@ include fact_one_le_p
 
 variables (𝕜 : Type*) [normed_field 𝕜]
 
-/-- The product of finitely many seminormed spaces is a seminormed space, with the `L^p` norm. -/
+/-- The product of finitely many normed spaces is a normed space, with the `L^p` norm. -/
 instance normed_space [∀i, semi_normed_group (β i)] [∀i, normed_space 𝕜 (β i)] :
   normed_space 𝕜 (pi_Lp p β) :=
 { norm_smul_le :=
@@ -306,11 +306,6 @@ instance normed_space [∀i, semi_normed_group (β i)] [∀i, normed_space 𝕜 
     exact finset.sum_nonneg (λ i hi, rpow_nonneg_of_nonneg (norm_nonneg _) _)
   end,
   .. pi.module ι β 𝕜 }
-
-/-- The product of finitely many normed spaces is a normed space, with the `L^p` norm. -/
-instance normed_space [∀i, normed_group (α i)] [∀i, normed_space 𝕜 (α i)] :
-  normed_space 𝕜 (pi_Lp p α) :=
-{ ..pi_Lp.normed_space p α 𝕜 }
 
 /- Register simplification lemmas for the applications of `pi_Lp` elements, as the usual lemmas
 for Pi types will not trigger. -/

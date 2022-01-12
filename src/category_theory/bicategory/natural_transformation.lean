@@ -162,6 +162,7 @@ def vcomp (η : oplax_nat_trans F G) (θ : oplax_nat_trans G H) : oplax_nat_tran
 
 variables (B C)
 
+@[simps]
 instance : category_struct (oplax_functor B C) :=
 { hom := λ F G, oplax_nat_trans F G,
   id := oplax_nat_trans.id,

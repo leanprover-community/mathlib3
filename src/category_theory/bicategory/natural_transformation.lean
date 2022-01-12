@@ -88,13 +88,13 @@ variables {a b c : B} {a' : C}
 lemma whisker_left_naturality_naturality (f : a' ⟶ G.obj a) {g h : a ⟶ b} (β : g ⟶ h) :
   (f ◁ (G.map₂ β ▷ θ.app b)) ≫ (f ◁ θ.naturality h) =
     (f ◁ θ.naturality g) ≫ (f ◁ (θ.app a ◁ H.map₂ β)) :=
-by { simp only [←whisker_left_comp], rw naturality_naturality }
+by simp only [←whisker_left_comp, naturality_naturality]
 
 @[simp, reassoc]
 lemma whisker_right_naturality_naturality {f g : a ⟶ b} (β : f ⟶ g) (h : G.obj b ⟶ a') :
   ((F.map₂ β ▷ η.app b) ▷ h) ≫ (η.naturality g ▷ h) =
     (η.naturality f ▷ h) ≫ ((η.app a ◁ G.map₂ β) ▷ h) :=
-by { simp only [←whisker_right_comp], rw naturality_naturality }
+by simp only [←whisker_right_comp, naturality_naturality]
 
 @[simp, reassoc]
 lemma whisker_left_naturality_comp (f : a' ⟶ G.obj a) (g : a ⟶ b) (h : b ⟶ c) :
@@ -102,7 +102,7 @@ lemma whisker_left_naturality_comp (f : a' ⟶ G.obj a) (g : a ⟶ b) (h : b ⟶
     (f ◁ (G.map_comp g h ▷ _)) ≫(f ◁ (α_ _ _ _).hom) ≫
       (f ◁ (_ ◁ θ.naturality h)) ≫ (f ◁ (α_ _ _ _).inv) ≫
         (f ◁ (θ.naturality g ▷ H.map h)) ≫ (f ◁ (α_ _ _ _).hom) :=
-by { simp only [←whisker_left_comp], rw naturality_comp }
+by simp only [←whisker_left_comp, naturality_comp]
 
 @[simp, reassoc]
 lemma whisker_right_naturality_comp (f : a ⟶ b) (g : b ⟶ c) (h : G.obj c ⟶ a') :
@@ -110,19 +110,19 @@ lemma whisker_right_naturality_comp (f : a ⟶ b) (g : b ⟶ c) (h : G.obj c ⟶
     ((F.map_comp f g ▷ _) ▷ h) ≫ ((α_ _ _ _).hom ▷ h) ≫
       ((_ ◁ η.naturality g) ▷ h) ≫ ((α_ _ _ _).inv ▷ h) ≫
         ((η.naturality f ▷ G.map g) ▷ h) ≫ ((α_ _ _ _).hom ▷ h) :=
-by { simp only [←whisker_right_comp], rw naturality_comp }
+by simp only [←whisker_right_comp, naturality_comp]
 
 @[simp, reassoc]
 lemma whisker_left_naturality_id (f : a' ⟶ G.obj a) :
   (f ◁ θ.naturality (𝟙 a)) ≫ (f ◁ (_ ◁ H.map_id a)) =
     (f ◁ G.map_id a ▷ _) ≫ (f ◁ (λ_ _).hom) ≫ (f ◁ (ρ_ _).inv) :=
-by { simp only [←whisker_left_comp], rw naturality_id }
+by simp only [←whisker_left_comp, naturality_id]
 
 @[simp, reassoc]
 lemma whisker_right_naturality_id (f : G.obj a ⟶ a') :
   (η.naturality (𝟙 a) ▷ f) ≫ ((_ ◁ G.map_id a) ▷ f) =
     ((F.map_id a ▷ _) ▷ f) ≫ ((λ_ _).hom ▷ f) ≫ ((ρ_ _).inv ▷ f) :=
-by { simp only [←whisker_right_comp], rw naturality_id }
+by simp only [←whisker_right_comp, naturality_id]
 
 end
 

@@ -109,10 +109,10 @@ lemma is_min_iff_forall_not_lt : is_min a ↔ ∀ b, ¬ b < a :=
 lemma is_max_iff_forall_not_lt : is_max a ↔ ∀ b, ¬ a < b :=
 ⟨λ h _, h.not_lt, λ h b hba, of_not_not $ λ hab, h _ $ hba.lt_of_not_le hab⟩
 
-@[simp] lemma not_is_min [no_bot_order α] (a : α) : ¬ is_min a := λ h, let ⟨b, hb⟩ :=
+@[simp] lemma not_is_min [no_min_order α] (a : α) : ¬ is_min a := λ h, let ⟨b, hb⟩ :=
 no_bot a in h.not_lt hb
 
-@[simp] lemma not_is_max [no_top_order α] (a : α) : ¬ is_max a := λ h, let ⟨b, hb⟩ :=
+@[simp] lemma not_is_max [no_max_order α] (a : α) : ¬ is_max a := λ h, let ⟨b, hb⟩ :=
 no_top a in h.not_lt hb
 
 protected lemma subsingleton.is_bot [subsingleton α] (a : α) : is_bot a :=
@@ -426,7 +426,7 @@ lemma is_simple_order.grade_top [partial_order α] [bounded_order α] [is_simple
   [grade_order α] : grade (⊤ : α) = 1 :=
 by { rw [←bot_covers_top.grade, grade_bot], apply_instance }
 
-instance : grade_order bool := is_simple_order.to_grade_order
+instance : grade_order bool := is_simple_order.to_grade_order _
 
 @[simp] protected lemma bool.grade_top : grade (⊤ : bool) = 1 := is_simple_order.grade_top
 

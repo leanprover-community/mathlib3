@@ -535,21 +535,14 @@ class semi_normed_space (α : Type*) (β : Type*) [normed_field α] [semi_normed
   extends module α β :=
 (norm_smul_le : ∀ (a:α) (b:β), ∥a • b∥ ≤ ∥a∥ * ∥b∥)
 
-set_option extends_priority 920
--- Here, we set a rather high priority for the instance `[normed_space α β] : module α β`
--- to take precedence over `semiring.to_module` as this leads to instance paths with better
--- unification properties.
 /-- A normed space over a normed field is a vector space endowed with a norm which satisfies the
 equality `∥c • x∥ = ∥c∥ ∥x∥`. We require only `∥c • x∥ ≤ ∥c∥ ∥x∥` in the definition, then prove
 `∥c • x∥ = ∥c∥ ∥x∥` in `norm_smul`. -/
 class normed_space (α : Type*) (β : Type*) [normed_field α] [normed_group β]
-  extends module α β :=
-(norm_smul_le : ∀ (a:α) (b:β), ∥a • b∥ ≤ ∥a∥ * ∥b∥)
+  extends semi_normed_space α β.
 
 /-- A normed space is a seminormed space. -/
-@[priority 100] -- see Note [lower instance priority]
-instance normed_space.to_semi_normed_space [normed_field α] [normed_group β]
-  [γ : normed_space α β] : semi_normed_space α β := { ..γ }
+add_decl_doc normed_space.to_semi_normed_space
 
 end prio
 

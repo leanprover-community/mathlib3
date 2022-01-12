@@ -41,7 +41,7 @@ We will refer to ![this diagram](https://i.imgur.com/P0phrwr.png) in the followi
 The `X` is the glued space, and the dotted arrow is a partial inverse guaranteed by the fact
 that it is an open immersion. The map `Γ(𝒪_{U_i}, U) ⟶ Γ(𝒪_{U_j}, _)` is given by the red arrows,
 and the map `Γ(𝒪_{U_i}, U) ⟶ Γ(𝒪_{V_{jk}}, _)` is given by the blue arrows.
-To lift this into a map from `Γ(𝒪_X, ι i '' U)`, we also need to show that these commutes with the
+To lift this into a map from `Γ(𝒪_X, ι i '' U)`, we also need to show that these commute with the
 maps in the diagram (the green arrows), which is just a lengthy diagram-chasing.
 
 -/
@@ -128,7 +128,7 @@ begin
   apply_instance
 end
 
-/-- The red and the blue in ![this diagram](https://i.imgur.com/0GiBUh6.png) commutes. -/
+/-- The red and the blue arrows in ![this diagram](https://i.imgur.com/0GiBUh6.png) commute. -/
 @[simp, reassoc]
 lemma f_inv_app_f_app (i j k : D.J)  (U : (opens (D.V (i, j)).carrier)) :
   (D.f_open i j).inv_app U ≫ (D.f i k).c.app _ =
@@ -184,7 +184,7 @@ begin
   rw [is_iso.inv_comp_eq, 𝖣 .t_fac_assoc, 𝖣 .t_inv, category.comp_id]
 end
 
-/-- The red and the blue in ![this diagram](https://i.imgur.com/q6X1GJ9.png) commutes. -/
+/-- The red and the blue arrows in ![this diagram](https://i.imgur.com/q6X1GJ9.png) commute. -/
 @[simp, reassoc]
 lemma snd_inv_app_t_app (i j k : D.J) (U : opens (pullback (D.f i j) (D.f i k)).carrier) :
   (π₂⁻¹ i, j, k) U ≫ (D.t k i).c.app _ = (D.t' k i j).c.app _ ≫ (π₁⁻¹ k, j, i) (unop _) ≫
@@ -307,7 +307,7 @@ limit.lift (D.diagram_over_open U)
     erw category.id_comp,
     -- It remains to show that the blue is equal to red + green in the original diagram.
     -- The proof strategy is illustrated in ![this diagram](https://i.imgur.com/mBzV1Rx.png)
-    -- where we proof red = pink = light-blue = green = blue.
+    -- where we prove red = pink = light-blue = green = blue.
     change D.opens_image_preimage_map i j U ≫ (D.f j k).c.app _ ≫
       (D.V (j, k)).presheaf.map (eq_to_hom _) = D.opens_image_preimage_map _ _ _ ≫
       ((D.f k j).c.app _ ≫ (D.t j k).c.app _) ≫ (D.V (j, k)).presheaf.map (eq_to_hom _),

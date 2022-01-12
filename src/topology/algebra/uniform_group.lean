@@ -203,7 +203,7 @@ def topological_group.to_uniform_space : uniform_space G :=
 
 variables {G}
 
-@[to_additive] lemma topological_group.tendsto_uniformly_on
+@[to_additive] lemma topological_group.tendsto_uniformly_on_iff
   {ι α : Type*} (F : ι → α → G) (f : α → G) (p : filter ι) (s : set α) :
   @tendsto_uniformly_on α G ι (topological_group.to_uniform_space G) F f p s
     ↔ ∀ u ∈ nhds (1 : G), {i : ι | ∀ a ∈ s, F i a / f a ∈ u} ∈ p :=

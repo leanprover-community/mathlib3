@@ -523,6 +523,10 @@ multiset.card_map _ _
 theorem card_congr {α β} [fintype α] [fintype β] (f : α ≃ β) : card α = card β :=
 by rw ← of_equiv_card f; congr
 
+@[congr]
+lemma card_congr' {α β} [fintype α] [fintype β] (h : α = β) : card α = card β :=
+card_congr (by rw h)
+
 section
 
 variables [fintype α] [fintype β]
@@ -620,6 +624,11 @@ namespace set
 def to_finset (s : set α) [fintype s] : finset α :=
 ⟨(@finset.univ s _).1.map subtype.val,
  multiset.nodup_map (λ a b, subtype.eq) finset.univ.2⟩
+
+@[congr]
+lemma to_finset_congr {s t : set α} [fintype s] [fintype t] (h : s = t) :
+  to_finset s = to_finset t :=
+by cc
 
 @[simp] theorem mem_to_finset {s : set α} [fintype s] {a : α} : a ∈ s.to_finset ↔ a ∈ s :=
 by simp [to_finset]

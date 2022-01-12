@@ -33,7 +33,7 @@ Related files are:
 
 ## TODO
 
-Prove that a sigma type is a `no_top_order`, `no_bot_order`, `densely_ordered` when its summands
+Prove that a sigma type is a `no_max_order`, `no_min_order`, `densely_ordered` when its summands
 are.
 
 Upgrade `equiv.sigma_congr_left`, `equiv.sigma_congr`, `equiv.sigma_assoc`,

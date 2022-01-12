@@ -248,6 +248,7 @@ lemma subset_def : s ⊆ t ↔ s.1 ⊆ t.1 := iff.rfl
 lemma ssubset_def : s ⊂ t ↔ s ⊆ t ∧ ¬ t ⊆ s := iff.rfl
 
 @[simp] theorem subset.refl (s : finset α) : s ⊆ s := subset.refl _
+protected lemma subset.rfl {s :finset α} : s ⊆ s := subset.refl _
 
 protected theorem subset_of_eq {s t : finset α} (h : s = t) : s ⊆ t := h ▸ subset.refl _
 
@@ -260,6 +261,8 @@ theorem superset.trans {s₁ s₂ s₃ : finset α} : s₁ ⊇ s₂ → s₂ ⊇
 local attribute [trans] subset.trans superset.trans
 
 theorem mem_of_subset {s₁ s₂ : finset α} {a : α} : s₁ ⊆ s₂ → a ∈ s₁ → a ∈ s₂ := mem_of_subset
+
+lemma not_mem_mono {s t : finset α} (h : s ⊆ t) {a : α} : a ∉ t → a ∉ s := mt $ @h _
 
 theorem subset.antisymm {s₁ s₂ : finset α} (H₁ : s₁ ⊆ s₂) (H₂ : s₂ ⊆ s₁) : s₁ = s₂ :=
 ext $ λ a, ⟨@H₁ a, @H₂ a⟩
@@ -1310,7 +1313,8 @@ by { ext i, simp [piecewise] }
 
 variable [∀j, decidable (j ∈ s)]
 
-@[norm_cast] lemma piecewise_coe [∀j, decidable (j ∈ (s : set α))] :
+-- TODO: fix this in norm_cast
+@[norm_cast move] lemma piecewise_coe [∀j, decidable (j ∈ (s : set α))] :
   (s : set α).piecewise f g = s.piecewise f g :=
 by { ext, congr }
 
@@ -1335,8 +1339,7 @@ lemma piecewise_insert [decidable_eq α] (j : α) [∀i, decidable (i ∈ insert
   (insert j s).piecewise f g = update (s.piecewise f g) j (f j) :=
 begin
   classical,
-  rw [← piecewise_coe, ← piecewise_coe, ← set.piecewise_insert, ← coe_insert j s],
-  congr
+  simp only [← piecewise_coe, coe_insert, ← set.piecewise_insert],
 end
 
 lemma piecewise_cases {i} (p : δ i → Prop) (hf : p (f i)) (hg : p (g i)) : p (s.piecewise f g i) :=

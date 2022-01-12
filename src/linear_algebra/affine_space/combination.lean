@@ -802,9 +802,7 @@ begin
   obtain ⟨s, w, hw, rfl⟩ := eq_affine_combination_of_mem_affine_span h,
   refine ⟨(s : set ι).indicator w, _, finset.affine_combination_indicator_subset w p s.subset_univ⟩,
   simp only [finset.mem_coe, set.indicator_apply, ← hw],
-  convert fintype.sum_extend_by_zero s w,
-  ext i,
-  congr,
+  rw fintype.sum_extend_by_zero s w,
 end
 
 variables (k V)

@@ -155,13 +155,15 @@ begin
   linarith,
 end
 
+instance : has_set_prod (set  ℂ) (set ℝ) (set (ℂ × ℝ )) := infer_instance
+
 lemma fbounded' (R r : ℝ) (hR: 0 < R) (hr : r < R) (hr' : 0 ≤  r)  (z : ℂ) :
- ∃ (x : (closed_ball z r).prod (interval 0 (2*π))) ,
- ∀ (y : (closed_ball z r).prod (interval 0 (2*π))),
+ ∃ (x :  ((closed_ball z r) ×ˢ  (interval 0 (2*π)) : set (ℂ × ℝ)) ),
+ ∀ (y :  ((closed_ball z r) ×ˢ  (interval 0 (2*π)) : set (ℂ × ℝ)) ),
  complex.abs (fbound' R  z  y) ≤ complex.abs(fbound' R z  x):=
 begin
   have cts: continuous_on  (complex.abs ∘ (fbound' R z ))
-  ((closed_ball z r).prod (interval 0 (2*π))),
+  ( ((closed_ball z r) ×ˢ   (interval 0 (2*π))) : set (ℂ × ℝ)),
   by {simp_rw fbound',
   have c1:= continuous_abs, have c2: continuous_on abs ⊤, by {apply continuous.continuous_on c1},
   apply continuous_on.comp c2,
@@ -220,11 +222,11 @@ begin
   simp_rw hrr at hx1,
   linarith [hrr, hr],
   simp only [preimage_univ, top_eq_univ, subset_univ],},
-  have comp : is_compact ((closed_ball z r).prod (interval 0 (2*π))),
+  have comp : is_compact   ( ((closed_ball z r) ×ˢ   (interval 0 (2*π))) : set (ℂ × ℝ)),
   by {apply is_compact.prod,
   exact proper_space.is_compact_closed_ball z r,
   apply is_compact_interval,},
-  have none : ((closed_ball z r).prod (interval 0 (2*π))).nonempty ,
+  have none :   ( ((closed_ball z r) ×ˢ   (interval 0 (2*π))) : set (ℂ × ℝ)).nonempty ,
   by {apply nonempty.prod,
   simp only [hr', zero_le_mul_left, nonempty_closed_ball, zero_lt_bit0, zero_lt_one, inv_pos],
   simp only [nonempty_interval], },

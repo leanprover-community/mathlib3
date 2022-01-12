@@ -208,8 +208,6 @@ theorem mem_def {a : α} {s : set α} : a ∈ s ↔ s a := iff.rfl
 
 lemma set_of_bijective : bijective (set_of : (α → Prop) → set α) := bijective_id
 
-instance decidable_set_of (p : α → Prop) [H : decidable_pred p] : decidable_pred (∈ {a | p a}) := H
-
 @[simp] theorem set_of_subset_set_of {p q : α → Prop} :
   {a | p a} ⊆ {a | q a} ↔ (∀a, p a → q a) := iff.rfl
 
@@ -433,9 +431,6 @@ eq_univ_of_univ_subset $ hs ▸ h
 
 lemma exists_mem_of_nonempty (α) : ∀ [nonempty α], ∃x:α, x ∈ (univ : set α)
 | ⟨x⟩ := ⟨x, trivial⟩
-
-instance univ_decidable : decidable_pred (∈ @set.univ α) :=
-λ x, is_true trivial
 
 lemma ne_univ_iff_exists_not_mem {α : Type*} (s : set α) : s ≠ univ ↔ ∃ a, a ∉ s :=
 by rw [←not_forall, ←eq_univ_iff_forall]
@@ -794,6 +789,9 @@ theorem eq_sep_of_subset {s t : set α} (h : s ⊆ t) : s = {x ∈ t | x ∈ s} 
 (inter_eq_self_of_subset_right h).symm
 
 @[simp] theorem sep_subset (s : set α) (p : α → Prop) : {x ∈ s | p x} ⊆ s := λ x, and.left
+
+@[simp] lemma sep_empty (p : α → Prop) : {x ∈ (∅ : set α) | p x} = ∅ :=
+by { ext, exact false_and _ }
 
 theorem forall_not_of_sep_empty {s : set α} {p : α → Prop} (H : {x ∈ s | p x} = ∅)
   (x) : x ∈ s → ¬ p x := not_and.1 (eq_empty_iff_forall_not_mem.1 H x : _)
@@ -2404,3 +2402,31 @@ lemma mem_iff_nonempty {α : Type*} [subsingleton α] {s : set α} {x : α} :
 ⟨λ hx, ⟨x, hx⟩, λ ⟨y, hy⟩, subsingleton.elim y x ▸ hy⟩
 
 end subsingleton
+
+/-! ### Decidability instances for sets -/
+
+namespace set
+variables {α : Type u} (s t : set α) (a : α)
+
+instance decidable_sdiff [decidable (a ∈ s)] [decidable (a ∈ t)] : decidable (a ∈ s \ t) :=
+(by apply_instance : decidable (a ∈ s ∧ a ∉ t))
+
+instance decidable_inter [decidable (a ∈ s)] [decidable (a ∈ t)] : decidable (a ∈ s ∩ t) :=
+(by apply_instance : decidable (a ∈ s ∧ a ∈ t))
+
+instance decidable_union [decidable (a ∈ s)] [decidable (a ∈ t)] : decidable (a ∈ s ∪ t) :=
+(by apply_instance : decidable (a ∈ s ∨ a ∈ t))
+
+instance decidable_compl [decidable (a ∈ s)] : decidable (a ∈ sᶜ) :=
+(by apply_instance : decidable (a ∉ s))
+
+instance decidable_emptyset : decidable_pred (∈ (∅ : set α)) :=
+λ _, decidable.is_false (by simp)
+
+instance decidable_univ : decidable_pred (∈ (set.univ : set α)) :=
+λ _, decidable.is_true (by simp)
+
+instance decidable_set_of (p : α → Prop) [decidable (p a)] : decidable (a ∈ {a | p a}) :=
+by assumption
+
+end set

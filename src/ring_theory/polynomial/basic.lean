@@ -717,6 +717,8 @@ theorem exists_irreducible_of_nat_degree_ne_zero
   {f : polynomial R} (hf : f.nat_degree ≠ 0) : ∃ g, irreducible g ∧ g ∣ f :=
 exists_irreducible_of_nat_degree_pos $ nat.pos_of_ne_zero hf
 
+variables [module Rᵐᵒᵖ M] [is_central_scalar R M]
+
 lemma linear_independent_powers_iff_aeval
   (f : M →ₗ[R] M) (v : M) :
   linear_independent R (λ n : ℕ, (f ^ n) v)

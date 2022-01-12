@@ -501,7 +501,7 @@ begin
   apply riesum',
 end
 
-lemma Eisenstein_series_is_summable  (k : ℕ) (z : ℍ) (h : 3 ≤ k) : summable (Eise k z) :=
+lemma Eisenstein_series_is_summable (k : ℕ) (z : ℍ) (h : 3 ≤ k) : summable (Eise k z) :=
 begin
 let f:=(Eise k z),
 have sum_Eq:  summable (λ x, abs (f x)) → summable f, by {apply summable_if_complex_abs_summable,},
@@ -533,7 +533,7 @@ def Eisen_partial_sums (k: ℤ) (n : ℕ): ℍ → ℂ:=
 λ z, ∑ x in (finset.range n), (eisen_square k x z)
 
 def upper_half_space_slice (A B : ℝ) :=
-  {z: ℍ | complex.abs(z.1.1) ≤ A ∧ complex.abs(z.1.2) ≥ B  }
+  {z : ℍ | complex.abs(z.1.1) ≤ A ∧ complex.abs(z.1.2) ≥ B  }
 
 instance upper_half_space_slice_to_uhs (A B : ℝ) :
   has_coe (upper_half_space_slice A B) ℍ := ⟨λ z, z.1⟩
@@ -845,7 +845,7 @@ end
 def Eisen_square_slice (k : ℤ) (A B : ℝ)  (n : ℕ) :
   (upper_half_space_slice A B) → ℂ := λ x, (eisen_square k n x)
 
-def Eisen_par_sum_slice (k : ℤ)  (A B : ℝ) (n : ℕ) :
+def Eisen_par_sum_slice (k : ℤ) (A B : ℝ) (n : ℕ) :
   (upper_half_space_slice A B) → ℂ :=
   λ z, ∑ x in (finset.range n), (Eisen_square_slice k A B  x z)
 
@@ -855,7 +855,7 @@ instance : has_coe ℍ ℍ' :=
 instance slice_coe (A B : ℝ) (hb : 0 < B) : has_coe (upper_half_space_slice A B) ℍ' :=
 ⟨λ (x : (upper_half_space_slice A B)), (x : ℍ')  ⟩
 
-def Eisenstein_series_restrict (k : ℤ) (A B : ℝ) (hb : 0 < B) : (upper_half_space_slice A B) → ℂ :=
+def Eisenstein_series_restrict (k : ℤ) (A B : ℝ) : (upper_half_space_slice A B) → ℂ :=
 λ x, Eisenstein_series_of_weight_ k x
 
 instance  nonemp (A B : ℝ) (ha : 0 ≤  A) (hb : 0 < B) : nonempty (upper_half_space_slice A B):=
@@ -877,7 +877,7 @@ end
 
 lemma Eisenstein_series_is_sum_eisen_squares_slice (k: ℕ) (h : 3 ≤ k) (A B : ℝ) (hb : 0 < B)
  (z: (upper_half_space_slice A B)) :
-  (Eisenstein_series_restrict k A B hb z) = ∑' (n : ℕ), (Eisen_square_slice k A B n z):=
+  (Eisenstein_series_restrict k A B z) = ∑' (n : ℕ), (Eisen_square_slice k A B n z):=
 begin
   rw Eisenstein_series_restrict, simp_rw Eisen_square_slice,
   have HI:=Squares_cover_all,
@@ -890,7 +890,7 @@ begin
 end
 
 lemma Eisen_partial_tends_to_uniformly (k: ℕ) (h : 3 ≤ k) (A B : ℝ) (ha : 0 ≤ A) (hb : 0 < B) :
-tendsto_uniformly (Eisen_par_sum_slice k A B ) (Eisenstein_series_restrict k A B hb) filter.at_top:=
+tendsto_uniformly (Eisen_par_sum_slice k A B ) (Eisenstein_series_restrict k A B) filter.at_top:=
 begin
   let M : ℕ → ℝ := λ x,   (8/(rfunct (lbpoint A B hb) )^k)* (rie  (k-1) x),
   have:= M_test_uniform _ (Eisen_square_slice k A B ) M,

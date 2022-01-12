@@ -29,8 +29,6 @@ This file introduces abstract configurations of points and lines, and proves som
 Together, these four statements say that any two of the following properties imply the third:
 (a) `has_lines`, (b) `has_points`, (c) `|P| = |L|`.
 
-## Todo
-* Abstract projective planes.
 -/
 
 open_locale big_operators

@@ -61,6 +61,18 @@ def forget_to_LocallyRingedSpace : Scheme ⥤ LocallyRingedSpace :=
 def forget_to_Top : Scheme ⥤ Top :=
   Scheme.forget_to_LocallyRingedSpace ⋙ LocallyRingedSpace.forget_to_Top
 
+@[reassoc, simp]
+lemma Scheme.comp_val_c_app {X Y Z : Scheme} (f : X ⟶ Y) (g : Y ⟶ Z) (U) :
+  (f ≫ g).val.c.app U = g.val.c.app U ≫ f.val.c.app _ := rfl
+
+lemma Scheme.congr_app {X Y : Scheme} {f g : X ⟶ Y} (e : f = g) (U) :
+  f.val.c.app U = g.val.c.app U ≫ X.presheaf.map (eq_to_hom (by subst e)) :=
+by { subst e, dsimp, simp, }
+
+instance is_LocallyRingedSpace_iso {X Y : Scheme} (f : X ⟶ Y) [is_iso f] :
+  @is_iso LocallyRingedSpace _ _ _ f :=
+Scheme.forget_to_LocallyRingedSpace.map_is_iso f
+
 /--
 The spectrum of a commutative ring, as a scheme.
 -/
@@ -124,10 +136,49 @@ lemma Γ_obj_op (X : Scheme) : Γ.obj (op X) = X.presheaf.obj (op ⊤) := rfl
 lemma Γ_map_op {X Y : Scheme} (f : X ⟶ Y) :
   Γ.map f.op = f.1.c.app (op ⊤) := rfl
 
--- PROJECTS:
--- 1. Construct `Spec ≫ Γ ≅ functor.id _`.
--- 2. Adjunction between `Γ` and `Spec`.
---
+section basic_open
+
+variable (X : Scheme)
+
+/-- The subset of the underlying space where the given section does not vanish. -/
+def basic_open {U : opens X.carrier} (f : X.presheaf.obj (op U)) :
+  opens X.carrier := X.to_LocallyRingedSpace.to_RingedSpace.basic_open f
+
+@[simp] def mem_basic_open {U : opens X.carrier} (f : X.presheaf.obj (op U)) (x : U) :
+  ↑x ∈ X.basic_open f ↔ is_unit (X.presheaf.germ x f) :=
+RingedSpace.mem_basic_open _ _ _
+
+@[simp] def mem_basic_open_top (f : X.presheaf.obj (op ⊤)) (x : X.carrier) :
+  x ∈ X.basic_open f ↔ is_unit (X.presheaf.germ (⟨x, trivial⟩ : (⊤ : opens _)) f) :=
+RingedSpace.mem_basic_open _ f ⟨x, trivial⟩
+
+lemma basic_open_eq_of_affine {R : CommRing} (f : R) :
+  (Scheme.Spec.obj $ op R).basic_open ((Spec_Γ_identity.app R).inv f) =
+    prime_spectrum.basic_open f :=
+begin
+  ext,
+  change (⟨x, trivial⟩ : (⊤ : opens _)) ∈
+    RingedSpace.basic_open (Spec.to_SheafedSpace.obj (op R)) _ ↔ _,
+  rw RingedSpace.mem_basic_open,
+  suffices : is_unit (structure_sheaf.to_stalk R x f) ↔ f ∉ prime_spectrum.as_ideal x,
+  { exact this },
+  erw [← is_unit_map_iff (structure_sheaf.stalk_to_fiber_ring_hom R x),
+    structure_sheaf.stalk_to_fiber_ring_hom_to_stalk],
+  exact (is_localization.at_prime.is_unit_to_map_iff
+    (localization.at_prime (prime_spectrum.as_ideal x)) (prime_spectrum.as_ideal x) f : _)
+end
+
+@[simp]
+lemma basic_open_eq_of_affine' {R : CommRing}
+  (f : (Spec.to_SheafedSpace.obj (op R)).presheaf.obj (op ⊤)) :
+  (Scheme.Spec.obj $ op R).basic_open f =
+    prime_spectrum.basic_open ((Spec_Γ_identity.app R).hom f) :=
+begin
+  convert basic_open_eq_of_affine ((Spec_Γ_identity.app R).hom f),
+  exact (coe_hom_inv_id _ _).symm
+end
+
+end basic_open
 
 end Scheme
 

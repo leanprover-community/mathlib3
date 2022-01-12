@@ -114,6 +114,10 @@ def inr : continuous_monoid_hom B (A × B) := prod (one B A) (id B)
 @[to_additive "The continuous homomorphism given by the diagonal embedding.", simps]
 def diag : continuous_monoid_hom A (A × A) := prod (id A) (id A)
 
+/-- The continuous homomorphism given by swapping components. -/
+@[to_additive "The continuous homomorphism given by swapping components.", simps]
+def swap : continuous_monoid_hom (A × B) (B × A) := prod (snd A B) (fst A B)
+
 /-- The continuous homomorphism given by multiplication. -/
 @[to_additive "The continuous homomorphism given by addition.", simps]
 def mul : continuous_monoid_hom (E × E) E :=

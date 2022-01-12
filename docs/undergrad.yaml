@@ -232,7 +232,7 @@ Bilinear and Quadratic Forms Over a Vector Space:
     polar decompositions in $\mathrm{GL}(n, \R)$: 'https://en.wikipedia.org/wiki/Polar_decomposition'
     polar decompositions in $\mathrm{GL}(n, \C)$: 'https://en.wikipedia.org/wiki/Polar_decomposition'
   Low dimensions:
-    cross product: 'https://en.wikipedia.org/wiki/Cross_product'
+    cross product: 'cross_product'
     triple product: 'https://en.wikipedia.org/wiki/Triple_product'
     classification of elements of $\mathrm{O}(2, \R)$: ''
     classification of elements of $\mathrm{O}(3, \R)$: ''

@@ -10,9 +10,20 @@ import algebra.big_operators.order
 
 This file gathers a few double counting arguments.
 
-## Main declarations
+## Bipartite graphs
 
-* `card_mul_le_card_mul`: Double counting the edges of a bipartite graph from below and from above.
+In a bipartite graph (considered as a relation `r : α → β → Prop`), we can bound the number of edges
+between `s : finset α` and `t : finset β` by the minimum/maximum of edges over all `a ∈ s` times the
+the size of `s`. Similarly for `t`. Combining those two yields inequalities between the sizes of `s`
+and `t`.
+
+* `bipartite_below`: `s.bipartite_below r b` are the elements of `s` below `b` wrt to `r`. Its size
+  is the number of edges of `b` in `s`.
+* `bipartite_above`: `t.bipartite_above r a` are the elements of `t` above `a` wrt to `r`. Its size
+  is the number of edges of `a` in `t`.
+* `card_mul_le_card_mul`, `card_mul_le_card_mul'`: Double counting the edges of a bipartite graph
+  from below and from above.
+* `card_mul_eq_card_mul`: Equality combination of the previous.
 -/
 
 open finset function

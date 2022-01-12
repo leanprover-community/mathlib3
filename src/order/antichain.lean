@@ -92,25 +92,6 @@ lemma insert_of_symmetric (hs : is_antichain r s) (hr : symmetric r)
   is_antichain r (insert a s) :=
 (is_antichain_insert_of_symmetric hr).2 ⟨hs, h⟩
 
-/-- Turns a set into an antichain by keeping only the "maximal" elements. -/
-protected def mk (r : α → α → Prop) (s : set α) : set α := {a ∈ s | ∀ ⦃b⦄, b ∈ s → r a b → a = b}
-
-lemma mk_is_antichain (r : α → α → Prop) (s : set α) : is_antichain r (is_antichain.mk r s) :=
-λ a ha b hb hab h, hab $ ha.2 hb.1 h
-
-lemma mk_subset : is_antichain.mk r s ⊆ s := sep_subset _ _
-
-/-- If `is_antichain.mk r s` is included in but *shadows* the antichain `t`, then it is actually
-equal to `t`. -/
-lemma mk_max (ht : is_antichain r t) (h : is_antichain.mk r s ⊆ t)
-  (hs : ∀ ⦃a⦄, a ∈ t → ∃ b ∈ is_antichain.mk r s, r a b) :
-  t = is_antichain.mk r s :=
-begin
-  refine subset.antisymm (λ a ha, _) h,
-  obtain ⟨b, hb, hr⟩ := hs ha,
-  rwa of_not_not (λ hab, ht ha (h hb) hab hr),
-end
-
 end is_antichain
 
 lemma is_antichain_singleton (a : α) (r : α → α → Prop) : is_antichain r {a} :=

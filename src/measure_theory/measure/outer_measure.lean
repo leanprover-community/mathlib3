@@ -1100,7 +1100,7 @@ lemma induced_outer_measure_eq_infi (s : set α) :
   induced_outer_measure m P0 m0 s = ⨅ (t : set α) (ht : P t) (h : s ⊆ t), m t ht :=
 begin
   apply le_antisymm,
-  { simp only [le_infi_iff], intros t ht, simp only [le_infi_iff], intro hs,
+  { simp only [le_infi_iff], intros t ht hs,
     refine le_trans (mono' _ hs) _,
     exact le_of_eq (induced_outer_measure_eq' _ msU m_mono _) },
   { refine le_infi _, intro f, refine le_infi _, intro hf,

@@ -413,6 +413,26 @@ begin
   rw [trace_matrix, trace_form_apply, trace_form_to_matrix]
 end
 
+lemma trace_matrix_of_basis_mul_vec (b : basis ι A B) (z : B) :
+  (trace_matrix A b).mul_vec (b.equiv_fun z) = (λ i, trace A B (z * (b i))) :=
+begin
+  ext i,
+  rw [← col_apply ((trace_matrix A b).mul_vec (b.equiv_fun z)) i unit.star, col_mul_vec,
+    matrix.mul_apply, trace_matrix_def],
+  simp only [col_apply, trace_form_apply],
+  conv_lhs
+  { congr, skip, funext,
+    rw [mul_comm _ (b.equiv_fun z _), ← smul_eq_mul, ← linear_map.map_smul] },
+    rw [← linear_map.map_sum],
+    congr,
+    conv_lhs
+    { congr, skip, funext,
+      rw [← mul_smul_comm] },
+    rw [← finset.mul_sum, mul_comm z],
+    congr,
+    rw [b.sum_equiv_fun ]
+end
+
 variable (A)
 /-- `embeddings_matrix A C b : matrix κ (B →ₐ[A] C) C` is the matrix whose `(i, σ)` coefficient is
   `σ (b i)`. It is mostly useful for fields when `fintype.card κ = finrank A B` and `C` is

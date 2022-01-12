@@ -356,6 +356,7 @@ begin
     Γ_Spec.adjunction_counit_app] at this,
   rw [← op_inv, nat_iso.inv_inv_app, quiver.hom.op_inj.eq_iff] at this,
   exact this
+end
 
 end Γ_Spec
 

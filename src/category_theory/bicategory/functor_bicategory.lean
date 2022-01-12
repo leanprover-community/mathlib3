@@ -74,9 +74,7 @@ begin
   simp only [iso.hom_inv_id_assoc, inv_hom_whisker_right_assoc, assoc, whisker_exchange_assoc]
 end
 
-/--
-Right unitor for the vertical composition of oplax natural transformations.
--/
+/-- Right unitor for the vertical composition of oplax natural transformations. -/
 @[simps]
 def right_unitor (η : F ⟶ G) : η ≫ 𝟙 G ≅ η :=
 modification_iso.of_components (λ a, ρ_ (η.app a))

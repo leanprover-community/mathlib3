@@ -521,7 +521,9 @@ W.dual_restrict_left_inverse.injective
 noncomputable def quot_annihilator_equiv (W : subspace K V) :
   (module.dual K V ⧸ W.dual_annihilator) ≃ₗ[K] module.dual K W :=
 (quot_equiv_of_eq _ _ W.dual_restrict_ker_eq_dual_annihilator).symm.trans $
-  W.dual_restrict.quot_ker_equiv_of_surjective dual_restrict_surjective
+W.dual_restrict.quot_ker_equiv_of_surjective $
+-- TODO: why does this timeout?
+by have := dual_restrict_surjective; convert this
 
 /-- The natural isomorphism forom the dual of a subspace `W` to `W.dual_lift.range`. -/
 noncomputable def dual_equiv_dual (W : subspace K V) :

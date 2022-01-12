@@ -36,9 +36,9 @@ Given an `A`-algebra `B` and `b`, an `ι`-indexed family of elements of `B`, we 
 * `discr_is_integral` : if `K` and `L` are fields and `is_scalar_tower R K L`, is `b : ι → L`
   satisfies ` ∀ i, is_integral R (b i)`, then `is_integral R (discr K b)`.
 * `discr_mul_is_integral_mem_adjoin` : let `K` be the fraction field of an integrally closed domain
-  `R` and let `L` be a finite separable extension of `K`. Let `α : L` be integral over `R` and let
-  `pb` the power basis of `K⟮α⟯`, given by `α`. Then for all `z : K⟮α⟯` we have
-  `(discr K pb) * z ∈ adjoin R {α}`.
+  `R` and let `L` be a finite separable extension of `K`. Let `B : power_basis K L` be such that
+  `is_integral R B.gen`. Then for all `z : L` we have
+  `(discr K B.basis) • z ∈ adjoin R ({B.gen} : set L)`.
 
 ## Implementation details
 
@@ -272,37 +272,33 @@ begin
 end
 
 /-- Let `K` be the fraction field of an integrally closed domain `R` and let `L` be a finite
-separable extension of `K`. Let `α : L` be integral over `R` and let `pb` the power basis of `K⟮α⟯`,
-given by `α`. Then for all `z : K⟮α⟯` we have `(discr K pb) * z ∈ adjoin R {α}`. -/
+separable extension of `K`. Let `B : power_basis K L` be such that `is_integral R B.gen`. Then for
+all `z : L` we have `(discr K B.basis) • z ∈ adjoin R ({B.gen} : set L)`. -/
 lemma discr_mul_is_integral_mem_adjoin [is_domain R] [is_integrally_closed R]
-  [is_fraction_ring R K] {α : L} (hα : is_integral R α) {z : K⟮α⟯} (hz : is_integral R z) :
-  ((discr K (adjoin.power_basis
-  (is_integral_of_is_scalar_tower α hα : is_integral K α)).basis) • z : L) ∈
-  adjoin R ({α} : set L) :=
+  [is_fraction_ring R K] {B : power_basis K L} (hint : is_integral R B.gen) {z : L}
+  (hz : is_integral R z) : (discr K B.basis) • z ∈ adjoin R ({B.gen} : set L) :=
 begin
-  let B := adjoin.power_basis (is_integral_of_is_scalar_tower α hα : is_integral K α),
   letI := power_basis.finite_dimensional B,
-  letI : is_separable K K⟮α⟯ := is_separable_tower_bot_of_is_separable _ _ L,
 
   have hinv : is_unit (trace_matrix K B.basis).det,
   { rw [← discr_def], exact discr_is_unit_of_basis _ B.basis },
 
   have H : (trace_matrix K B.basis).det • (trace_matrix K B.basis).mul_vec (B.basis.equiv_fun z) =
-    (trace_matrix K B.basis).det • (λ i, trace K K⟮α⟯ (z * B.basis i)),
+    (trace_matrix K B.basis).det • (λ i, trace K L (z * B.basis i)),
   { congr, exact trace_matrix_of_basis_mul_vec _ _ },
-  have cramer := mul_vec_cramer (trace_matrix K B.basis) (λ i, trace K K⟮α⟯ (z * B.basis i)),
+  have cramer := mul_vec_cramer (trace_matrix K B.basis) (λ i, trace K L (z * B.basis i)),
 
   suffices : ∀ i, ((trace_matrix K B.basis).det • (B.basis.equiv_fun z)) i ∈ (⊥ : subalgebra R K),
-  { rw [← basis.sum_repr B.basis z, coe_sum, finset.smul_sum],
+  { rw [← basis.sum_repr B.basis z, finset.smul_sum],
     refine subalgebra.sum_mem _ (λ i hi, _),
     replace this := this i,
     rw [← discr_def, pi.smul_apply, mem_bot] at this,
     obtain ⟨r, hr⟩ := this,
     rw [basis.equiv_fun_apply] at hr,
-    rw [coe_smul, ← smul_assoc, ← hr, algebra_map_smul],
+    rw [← smul_assoc, ← hr, algebra_map_smul],
     refine subalgebra.smul_mem _ _ _,
-    rw [B.basis_eq_pow i, intermediate_field.adjoin.power_basis_gen, coe_pow],
-    exact subalgebra.pow_mem _ (subset_adjoin (by simpa)) _ },
+    rw [B.basis_eq_pow i],
+    refine subalgebra.pow_mem _ (subset_adjoin (set.mem_singleton B.gen)) _},
   intro i,
   rw [← H, ← mul_vec_smul] at cramer,
   replace cramer := congr_arg (mul_vec (trace_matrix K B.basis)⁻¹) cramer,
@@ -314,12 +310,11 @@ begin
   by_cases hji : j = i,
   { simp only [hji, if_true, eq_self_iff_true, adjoin.power_basis_gen, power_basis.coe_basis],
     exact mem_bot.2 (is_integrally_closed.is_integral_iff.1 (is_integral_trace (is_integral_mul hz
-      (is_integral.pow ((coe_is_integral_iff _).1 hα) _)))) },
+      (is_integral.pow hint _)))) },
   { simp only [hji, if_false, trace_form_apply, trace_matrix, adjoin.power_basis_gen,
       power_basis.coe_basis],
-    exact mem_bot.2 (is_integrally_closed.is_integral_iff.1 (is_integral_trace (is_integral_mul
-      (is_integral.pow ((coe_is_integral_iff _).1 hα) _)
-      ((is_integral.pow ((coe_is_integral_iff _).1 hα) _))))) }
+    exact mem_bot.2 (is_integrally_closed.is_integral_iff.1 (is_integral_trace
+      (is_integral_mul (is_integral.pow hint _) ((is_integral.pow hint _))))) }
 end
 
 end integral

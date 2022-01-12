@@ -14,6 +14,18 @@ This file defines `self_adjoint R`, where `R` is a star additive monoid, as the 
 containing the elements that satisfy `star x = x`. This includes, for instance, Hermitian
 operators on Hilbert spaces.
 
+## Implementation notes
+
+* When `R` is a `star_module R₂ R`, then `self_adjoint R` has a natural
+  `module (self_adjoint R₂) (self_adjoint R)` structure. However, doing this literally would be
+  undesirable since in the main case of interest (`R₂ = ℂ`) we want `module ℝ (self_adjoint R)`
+  and not `module (self_adjoint ℂ) (self_adjoint R)`. We solve this issue by adding the typeclass
+  `[has_trivial_star R₃]`, of which `ℝ` is an instance (registered in `data/real/basic`), and then
+  add a `[module R₃ (self_adjoint R)]` instance whenever we have
+  `[module R₃ R] [has_trivial_star R₃]`. (Another approach would have been to define
+  `[star_invariant_scalars R₃ R]` to express the fact that `star (x • v) = x • star v`, but
+  this typeclass would have the disadvantage of taking two type arguments.)
+
 ## TODO
 
 * Define `λ z x, z * x * star z` (i.e. conjugation by `z`) as a monoid action of `R` on `R`

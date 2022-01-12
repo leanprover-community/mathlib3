@@ -244,6 +244,22 @@ begin
     all_goals { simp } }
 end
 
+section integral
+
+variables {R : Type z} [comm_ring R] [algebra R K] [algebra R L] [is_scalar_tower R K L]
+
+local notation `is_integral` := _root_.is_integral
+
+lemma discr_is_integral {b : ι → L} (h : ∀ i, is_integral R (b i)) :
+  is_integral R (discr K b) :=
+begin
+  classical,
+  rw [discr_def],
+  exact is_integral.det (λ i j, is_integral_trace (is_integral_mul (h i) (h j)))
+end
+
+end integral
+
 end field
 
 end discr

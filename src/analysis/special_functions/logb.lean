@@ -58,14 +58,18 @@ variable (b_pos : 0 < b)
 variable (b_ne_one : b ≠ 1)
 include b_pos b_ne_one
 
+private lemma log_b_ne_zero : log b ≠ 0 :=
+begin
+  have b_ne_zero : b ≠ 0, linarith,
+  have b_ne_minus_one : b ≠ -1, linarith,
+  simp [b_ne_one, b_ne_zero, b_ne_minus_one],
+end
 
 @[simp] lemma logb_rpow :
   logb b (b ^ x) = x :=
 begin
   rw [logb, div_eq_iff, log_rpow b_pos],
-  have b_ne_zero : b ≠ 0, linarith,
-  have b_ne_minus_one : b ≠ -1, linarith,
-  simp [b_ne_one, b_ne_zero, b_ne_minus_one],
+  exact log_b_ne_zero b_pos b_ne_one,
 end
 
 lemma rpow_logb_eq_abs (hx : x ≠ 0) : b ^ (logb b x) = |x| :=
@@ -77,10 +81,7 @@ begin
   rw log_rpow b_pos,
   rw logb,
   rw log_abs,
-  have b_ne_zero : b ≠ 0, linarith,
-  have b_ne_minus_one : b ≠ -1, linarith,
-  have log_b_ne_zero : log b ≠ 0, simp [b_ne_one, b_ne_zero, b_ne_minus_one],
-  field_simp [ne_of_lt b_pos],
+  field_simp [log_b_ne_zero b_pos b_ne_one],
 end
 
 @[simp] lemma rpow_logb (hx : 0 < x) : b ^ (logb b x) = x :=

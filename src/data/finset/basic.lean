@@ -232,9 +232,9 @@ instance : has_ssubset (finset α) := ⟨λ s t, s ⊆ t ∧ ¬ t ⊆ s⟩
 instance : partial_order (finset α) :=
 { le := (⊆),
   lt := (⊂),
-  le_refl := subset_refl,
-  le_trans := @subset_trans (set α),
-  le_antisymm := @subset_antisymm (set α) }
+  le_refl := λ s a, id,
+  le_trans := λ s t u hst htu a ha, htu $ hst ha,
+  le_antisymm := λ s t hst hts, ext $ λ a, ⟨@hst _, @hts _⟩ }
 
 instance : is_refl (finset α) (⊆) := has_le.le.is_refl
 instance : is_trans (finset α) (⊆) := has_le.le.is_trans
@@ -257,9 +257,6 @@ theorem subset.trans {s₁ s₂ s₃ : finset α} : s₁ ⊆ s₂ → s₂ ⊆ s
 theorem superset.trans {s₁ s₂ s₃ : finset α} : s₁ ⊇ s₂ → s₂ ⊇ s₃ → s₁ ⊇ s₃ :=
 λ h' h, subset.trans h h'
 
--- TODO: these should be global attributes, but this will require fixing other files
-local attribute [trans] subset.trans superset.trans
-
 theorem mem_of_subset {s₁ s₂ : finset α} {a : α} : s₁ ⊆ s₂ → a ∈ s₁ → a ∈ s₂ := mem_of_subset
 
 lemma not_mem_mono {s t : finset α} (h : s ⊆ t) {a : α} : a ∉ t → a ∉ s := mt $ @h _
@@ -273,12 +270,6 @@ theorem subset_iff {s₁ s₂ : finset α} : s₁ ⊆ s₂ ↔ ∀ ⦃x⦄, x �
   (s₁ : set α) ⊆ s₂ ↔ s₁ ⊆ s₂ := iff.rfl
 
 @[simp] theorem val_le_iff {s₁ s₂ : finset α} : s₁.1 ≤ s₂.1 ↔ s₁ ⊆ s₂ := le_iff_subset s₁.2
-
-
-/-- Coercion to `set α` as an `order_embedding`. -/
-def coe_emb : finset α ↪o set α := ⟨⟨coe, coe_injective⟩, λ s t, coe_subset⟩
-
-@[simp] lemma coe_coe_emb : ⇑(coe_emb : finset α ↪o set α) = coe := rfl
 
 theorem subset.antisymm_iff {s₁ s₂ : finset α} : s₁ = s₂ ↔ s₁ ⊆ s₂ ∧ s₂ ⊆ s₁ :=
 le_antisymm_iff
@@ -316,6 +307,18 @@ set.ssubset_of_subset_of_ssubset hs₁s₂ hs₂s₃
 lemma exists_of_ssubset {s₁ s₂ : finset α} (h : s₁ ⊂ s₂) :
   ∃ x ∈ s₂, x ∉ s₁ :=
 set.exists_of_ssubset h
+
+end subset
+
+-- TODO: these should be global attributes, but this will require fixing other files
+local attribute [trans] subset.trans superset.trans
+
+/-! ### Order embedding from `finset α` to `set α` -/
+
+/-- Coercion to `set α` as an `order_embedding`. -/
+def coe_emb : finset α ↪o set α := ⟨⟨coe, coe_injective⟩, λ s t, coe_subset⟩
+
+@[simp] lemma coe_coe_emb : ⇑(coe_emb : finset α ↪o set α) = coe := rfl
 
 /-! ### Nonempty -/
 
@@ -1559,7 +1562,7 @@ theorem sdiff_eq_self (s₁ s₂ : finset α) :
   s₁ \ s₂ = s₁ ↔ s₁ ∩ s₂ ⊆ ∅ :=
 by { simp [subset.antisymm_iff],
      split; intro h,
-     { transitivity' ((s₁ \ s₂) ∩ s₂), mono, simp },
+     { transitivity ((s₁ \ s₂) ∩ s₂), mono, simp },
      { calc  s₁ \ s₂
            ⊇ s₁ \ (s₁ ∩ s₂) : by simp [(⊇)]
        ... ⊇ s₁ \ ∅         : by mono using [(⊇)]

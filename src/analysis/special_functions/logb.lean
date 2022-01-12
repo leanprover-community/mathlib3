@@ -113,6 +113,10 @@ section one_lt_b
 variable (hb : 1 < b)
 include hb
 
+private lemma b_pos : 0 < b := by linarith
+
+private lemma b_ne_one : b ≠ 1 := by linarith
+
 @[simp] lemma logb_le_logb (h : 0 < x) (h₁ : 0 < y) :
   logb b x ≤ logb b y ↔ x ≤ y :=
 by { rw [logb, logb, div_le_div_right (log_pos hb), log_le_log h h₁], }
@@ -125,16 +129,16 @@ by { rw [logb, logb, div_lt_div_right (log_pos hb)], exact log_lt_log hx hxy, }
 by { rw [logb, logb, div_lt_div_right (log_pos hb)], exact log_lt_log_iff hx hy, }
 
 lemma logb_le_iff_le_rpow (hx : 0 < x) : logb b x ≤ y ↔ x ≤ b ^ y :=
-by { rw [←rpow_le_rpow_left_iff hb, rpow_logb], linarith, linarith, exact hx, }
+by rw [←rpow_le_rpow_left_iff hb, rpow_logb (b_pos hb) (b_ne_one hb) hx]
 
 lemma logb_lt_iff_lt_rpow (hx : 0 < x) : logb b x < y ↔ x < b ^ y :=
-by { rw [←rpow_lt_rpow_left_iff hb, rpow_logb], linarith, linarith, exact hx, }
+by rw [←rpow_lt_rpow_left_iff hb, rpow_logb (b_pos hb) (b_ne_one hb) hx]
 
 lemma le_logb_iff_rpow_le (hy : 0 < y) : x ≤ logb b y ↔ b ^ x ≤ y :=
-by { rw [←rpow_le_rpow_left_iff hb, rpow_logb], linarith, linarith, exact hy, }
+by rw [←rpow_le_rpow_left_iff hb, rpow_logb (b_pos hb) (b_ne_one hb) hy]
 
 lemma lt_logb_iff_rpow_lt (hy : 0 < y) : x < logb b y ↔ b ^ x < y :=
-by { rw [←rpow_lt_rpow_left_iff hb, rpow_logb], linarith, linarith, exact hy, }
+by rw [←rpow_lt_rpow_left_iff hb, rpow_logb (b_pos hb) (b_ne_one hb) hy]
 
 lemma logb_pos_iff (hx : 0 < x) : 0 < logb b x ↔ 1 < x :=
 by { rw ← @logb_one b, rw logb_lt_logb_iff hb zero_lt_one hx, }

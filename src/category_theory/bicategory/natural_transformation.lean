@@ -202,23 +202,6 @@ def vcomp (Γ : modification η θ) (Δ : modification θ ι) : modification η 
   naturality' := λ a b f, by
   { simp only [naturality_assoc, naturality, whisker_right_comp, assoc, whisker_left_comp] } }
 
-section
-variables (Γ : modification η θ) {a b c : B} {a' : C}
-
-@[reassoc]
-lemma whisker_left_naturality (f : a' ⟶ F.obj b) (g : b ⟶ c) :
-  (f ◁ (_ ◁ Γ.app c)) ≫ (f ◁ (θ.naturality g)) =
-    (f ◁ (η.naturality g)) ≫ (f ◁ (Γ.app b ▷ _)) :=
-by { simp only [←whisker_left_comp], rw modification.naturality }
-
-@[reassoc]
-lemma whisker_right_naturality (f : a ⟶ b) (g : G.obj b ⟶ a') :
-  ((_ ◁ Γ.app b) ▷ g) ≫ ((θ.naturality f) ▷ g) =
-    ((η.naturality f) ▷ g) ≫ ((Γ.app a ▷ _) ▷ g) :=
-by { simp only [←whisker_right_comp], rw modification.naturality }
-
-end
-
 end modification
 
 /-- Category structure on the oplax natural transformations between oplax_functors. -/

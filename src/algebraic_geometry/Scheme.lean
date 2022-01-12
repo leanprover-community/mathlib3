@@ -190,7 +190,7 @@ lemma basic_open_eq_of_affine {R : CommRing} (f : R) :
     prime_spectrum.basic_open f :=
 begin
   ext,
-  erw mem_basic_open_top,
+  erw Scheme.mem_basic_open_top,
   suffices : is_unit (structure_sheaf.to_stalk R x f) ↔ f ∉ prime_spectrum.as_ideal x,
   { exact this },
   erw [← is_unit_map_iff (structure_sheaf.stalk_to_fiber_ring_hom R x),

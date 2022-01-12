@@ -33,12 +33,12 @@ provided.
 Almost the whole file is dedicated to showing tht `ι i` is an open immersion. The fact that
 this is an open embedding of topological spaces follows from `topology.gluing.lean`, and it remains
 to construct `Γ(𝒪_{U_i}, U) ⟶ Γ(𝒪_X, ι i '' U)` for each `U ⊆ U i`.
-Since `Γ(𝒪_X, ι i '' U)` is the the limit of the components of the structure sheafs of the
-spaces in the gluing diagram, we need to construct a map `Γ(𝒪_{U_i}, U) ⟶ Γ(𝒪_V, U_V)` for each
-`V` in the gluing diagram (`ι_inv_app_π_app`). This is easy once we know that the `U_V` always falls
-in `U_i ∩ V`, and the restriction map suffices. The hard part is to verify that these restriction
-maps and transition maps indeed commute, which involves quite some diagram chasing and invoking the
-cocycle identity.
+Since `Γ(𝒪_X, ι i '' U)` is the the limit of `diagram_over_open`, the components of the structure
+sheafs of the spaces in the gluing diagram, we need to construct a map
+`ι_inv_app_π_app : Γ(𝒪_{U_i}, U) ⟶ Γ(𝒪_V, U_V)` for each `V` in the gluing diagram.
+This is easy once we know that the `U_V` always falls in `U_i ∩ V`, so the restriction map suffices.
+The hard part is to verify that these restriction maps and transition maps indeed commute, which
+involves quite some diagram chasing and uses the cocycle identity.
 
 -/
 
@@ -157,6 +157,10 @@ begin
   refl
 end
 
+/--
+We can prove the `eq` along with the lemma. Thus this is bundled together here, and the
+lemma itself is separated below.
+-/
 lemma snd_inv_app_t_app' (i j k : D.J) (U : opens (pullback (D.f i j) (D.f i k)).carrier) :
   ∃ eq, (is_open_immersion.pullback_snd_of_left (D.f i j) (D.f i k)).inv_app U ≫
   (D.t _ _).c.app _ ≫ (D.V (k, i)).presheaf.map (eq_to_hom eq) = (D.t' _ _ _).c.app _ ≫
@@ -233,10 +237,6 @@ def opens_image_preimage_map (i j : D.J) (U : opens (D.U i).carrier) :
   (D.f_open j i).inv_app (unop _) ≫ (𝖣 .U j).presheaf.map
     (eq_to_hom (D.ι_image_preimage_eq i j U)).op
 
-/--
-We can prove the `eq` along with the lemma. Thus this is bundled together here, and the
-lemma itself is separated below.
--/
 lemma opens_image_preimage_map_app' (i j k : D.J) (U : opens (D.U i).carrier) :
   ∃ eq, D.opens_image_preimage_map i j U ≫ (D.f j k).c.app _ =
     (pullback.fst ≫ D.t j i ≫ D.f i j : pullback (D.f j i) (D.f j k) ⟶ _).c.app (op U) ≫
@@ -272,12 +272,16 @@ lemma opens_image_preimage_map_app_assoc (i j k : D.J) (U : opens (D.U i).carrie
 by { simp_rw ← category.assoc, congr' 1, simp_rw category.assoc,
   convert opens_image_preimage_map_app _ _ _ _ _ }
 
+/-- (Implementation) Given a open subset of one of the spaces `U ⊆ Uᵢ`, The sheaf component of
+the image `ι '' U` in the glued space is the limit of this diagram. -/
+abbreviation diagram_over_open {i : D.J} (U : opens (D.U i).carrier) :
+  (walking_multispan _ _)ᵒᵖ ⥤ C :=
+componentwise_diagram 𝖣 .diagram.multispan ((D.ι_open_embedding i).is_open_map.functor.obj U)
+
 /-- (Implementation) We construct the map `Γ(𝒪_{U_i}, U) ⟶ Γ(𝒪_V, U_V)` for each `V` in the gluing
 diagram. We will lift these maps into `ι_inv_app`. -/
 def ι_inv_app_π_app (i : D.J) (U : opens (D.U i).carrier) (j) :
-  (𝖣 .U i).presheaf.obj (op U) ⟶ (𝖣 .diagram.multispan.obj j).presheaf.obj
-    (op ((opens.map (colimit.ι 𝖣 .diagram.multispan j).base).obj
-      ((D.ι_open_embedding i).is_open_map.functor.obj U))) :=
+  (𝖣 .U i).presheaf.obj (op U) ⟶ (D.diagram_over_open U).obj (op j) :=
 begin
   rcases j with (⟨j, k⟩|j),
   { refine D.opens_image_preimage_map i j U ≫ (D.f j k).c.app _ ≫
@@ -294,10 +298,8 @@ end
 /-- (Implementation) The natural map `Γ(𝒪_{U_i}, U) ⟶ Γ(𝒪_X, 𝖣.ι i '' U)`.
 This forms the inverse of `(𝖣.ι i).c.app (op U)`. -/
 def ι_inv_app (i : D.J) (U : opens (D.U i).carrier) :
-  (D.U i).presheaf.obj (op U) ⟶ limit (componentwise_diagram 𝖣 .diagram.multispan
-    ((D.ι_open_embedding i).is_open_map.functor.obj U)) :=
-limit.lift (componentwise_diagram 𝖣 .diagram.multispan
-    ((D.ι_open_embedding i).is_open_map.functor.obj U))
+  (D.U i).presheaf.obj (op U) ⟶ limit (D.diagram_over_open U) :=
+limit.lift (D.diagram_over_open U)
 { X := (D.U i).presheaf.obj (op U),
   π := { app := λ j, D.ι_inv_app_π_app i U (unop j),
   naturality' := λ X Y f', begin
@@ -309,12 +311,9 @@ limit.lift (componentwise_diagram 𝖣 .diagram.multispan
       rw category.comp_id },
     { erw category.id_comp, congr' 1 },
     erw category.id_comp,
-    change D.opens_image_preimage_map i j U ≫
-      (D.f j k).c.app _ ≫
-        (D.V (j, k)).presheaf.map (eq_to_hom _) =
-          D.opens_image_preimage_map _ _ _ ≫
-            ((D.f k j).c.app _ ≫ (D.t j k).c.app _) ≫
-              (D.V (j, k)).presheaf.map (eq_to_hom _),
+    change D.opens_image_preimage_map i j U ≫ (D.f j k).c.app _ ≫
+      (D.V (j, k)).presheaf.map (eq_to_hom _) = D.opens_image_preimage_map _ _ _ ≫
+      ((D.f k j).c.app _ ≫ (D.t j k).c.app _) ≫ (D.V (j, k)).presheaf.map (eq_to_hom _),
     erw opens_image_preimage_map_app_assoc,
     simp_rw category.assoc,
     erw [opens_image_preimage_map_app_assoc, (D.t j k).c.naturality_assoc],
@@ -341,8 +340,7 @@ limit.lift (componentwise_diagram 𝖣 .diagram.multispan
   end } }
 
 lemma ι_inv_app_π (i : D.J) (U : opens (D.U i).carrier) :
-  ∃ eq, D.ι_inv_app i U ≫ limit.π (componentwise_diagram 𝖣 .diagram.multispan
-    ((D.ι_open_embedding i).is_open_map.functor.obj U)) (op (walking_multispan.right i)) =
+  ∃ eq, D.ι_inv_app i U ≫ limit.π (D.diagram_over_open U) (op (walking_multispan.right i)) =
     (D.U i).presheaf.map (eq_to_hom eq) :=
 begin
   split,
@@ -360,11 +358,10 @@ begin
 end
 
 lemma π_ι_inv_app_π (i j : D.J) (U : opens (D.U i).carrier) :
-  limit.π (componentwise_diagram 𝖣 .diagram.multispan
-    ((D.ι_open_embedding i).is_open_map.functor.obj U)) (op (walking_multispan.right i)) ≫
-  (D.U i).presheaf.map (eq_to_hom (D.ι_inv_app_π i U).some.symm) ≫
-  D.ι_inv_app i U ≫ limit.π _ (op (walking_multispan.right j)) =
-    limit.π _ (op (walking_multispan.right j)) :=
+  limit.π (D.diagram_over_open U) (op (walking_multispan.right i)) ≫
+    (D.U i).presheaf.map (eq_to_hom (D.ι_inv_app_π i U).some.symm) ≫
+    D.ι_inv_app i U ≫ limit.π (D.diagram_over_open U) (op (walking_multispan.right j)) =
+  limit.π (D.diagram_over_open U) (op (walking_multispan.right j)) :=
 begin
   rw ← cancel_mono ((componentwise_diagram 𝖣 .diagram.multispan _).map
     (quiver.hom.op (walking_multispan.hom.snd (i, j))) ≫ (𝟙 _)),
@@ -392,10 +389,8 @@ begin
 end
 
 lemma π_ι_inv_app_eq_id (i : D.J) (U : opens (D.U i).carrier) :
-  limit.π (componentwise_diagram 𝖣 .diagram.multispan
-    ((D.ι_open_embedding i).is_open_map.functor.obj U)) (op (walking_multispan.right i)) ≫
-  (D.U i).presheaf.map (eq_to_hom (D.ι_inv_app_π i U).some.symm) ≫
-  D.ι_inv_app i U = 𝟙 _ :=
+  limit.π (D.diagram_over_open U) (op (walking_multispan.right i)) ≫
+    (D.U i).presheaf.map (eq_to_hom (D.ι_inv_app_π i U).some.symm) ≫ D.ι_inv_app i U = 𝟙 _ :=
 begin
   ext j,
   induction j using opposite.rec,
@@ -411,8 +406,7 @@ begin
 end
 
 instance componentwise_diagram_π_is_iso (i : D.J) (U : opens (D.U i).carrier) :
-  is_iso (limit.π (componentwise_diagram 𝖣 .diagram.multispan
-    ((D.ι_open_embedding i).is_open_map.functor.obj U)) (op (walking_multispan.right i))) :=
+  is_iso (limit.π (D.diagram_over_open U) (op (walking_multispan.right i))) :=
 begin
   use (D.U i).presheaf.map (eq_to_hom (D.ι_inv_app_π i U).some.symm) ≫
     D.ι_inv_app i U,

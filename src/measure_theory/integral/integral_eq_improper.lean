@@ -404,7 +404,7 @@ variables {α ι E : Type*}
           [measurable_space E] [normed_group E] [borel_space E]
           {a b : ι → α} {f : α → E}
 
-lemma integrable_of_interval_integral_norm_tendsto [no_min_order α] [nonempty α]
+lemma integrable_of_interval_integral_norm_bounded [no_min_order α] [nonempty α]
   (I : ℝ) (hfi : ∀ i, integrable_on f (Ioc (a i) (b i)) μ)
   (ha : tendsto a l at_bot) (hb : tendsto b l at_top)
   (h : ∀ᶠ i in l, ∫ x in a i .. b i, ∥f x∥ ∂μ ≤ I) :
@@ -425,7 +425,7 @@ lemma integrable_of_interval_integral_norm_tendsto [no_min_order α] [nonempty �
   integrable f μ :=
 let ⟨I', hI'⟩ := h.is_bounded_under_le in
   integrable_of_interval_integral_norm_bounded I' hfi ha hb hI'
-  
+
 lemma integrable_on_Iic_of_interval_integral_norm_bounded [no_min_order α] (I : ℝ) (b : α)
   (hfi : ∀ i, integrable_on f (Ioc (a i) b) μ) (ha : tendsto a l at_bot)
   (h : ∀ᶠ i in l, (∫ x in a i .. b, ∥f x∥ ∂μ) ≤ I) :

@@ -159,4 +159,18 @@ end
 @[simp] lemma factorization_prod_pow_eq_self {n : ℕ} (hn : n ≠ 0) : n.factorization.prod pow = n :=
 by simpa only using (multiplicative_factorization id (by simp) (by simp) hn).symm
 
+/-! ### Factorization and divisibility -/
+
+lemma factorization_le_iff_dvd {d n : ℕ} (hd : d ≠ 0) (hn : n ≠ 0) :
+  d.factorization ≤ n.factorization ↔ d ∣ n :=
+begin
+  split,
+  { intro hdn,
+    set K := n.factorization - d.factorization with hK,
+    use K.prod pow,
+    rw [←factorization_prod_pow_eq_self hn, ←factorization_prod_pow_eq_self hd,
+        ←finsupp.prod_add_index pow_zero pow_add, hK, add_tsub_cancel_of_le hdn] },
+  { rintro ⟨c, rfl⟩, rw factorization_mul hd (right_ne_zero_of_mul hn), simp },
+end
+
 end nat

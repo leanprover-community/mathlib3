@@ -1094,10 +1094,10 @@ lemma times_cont_diff_on.continuous_on_fderiv_of_open {n : with_top ℕ}
 continuous. -/
 lemma times_cont_diff_on.continuous_on_fderiv_within_apply
   {n : with_top ℕ} (h : times_cont_diff_on 𝕜 n f s) (hs : unique_diff_on 𝕜 s) (hn : 1 ≤ n) :
-  continuous_on (λp : E × E, (fderiv_within 𝕜 f s p.1 : E → F) p.2) (set.prod s univ) :=
+  continuous_on (λp : E × E, (fderiv_within 𝕜 f s p.1 : E → F) p.2) (s ×ˢ (univ : set E)) :=
 begin
   have A : continuous (λq : (E →L[𝕜] F) × E, q.1 q.2) := is_bounded_bilinear_map_apply.continuous,
-  have B : continuous_on (λp : E × E, (fderiv_within 𝕜 f s p.1, p.2)) (set.prod s univ),
+  have B : continuous_on (λp : E × E, (fderiv_within 𝕜 f s p.1, p.2)) (s ×ˢ (univ : set E)),
   { apply continuous_on.prod _ continuous_snd.continuous_on,
     exact continuous_on.comp (h.continuous_on_fderiv_within hs hn) continuous_fst.continuous_on
       (prod_subset_preimage_fst _ _) },
@@ -2156,17 +2156,17 @@ hg.comp_times_cont_diff_within_at hf
 lemma times_cont_diff_on_fderiv_within_apply {m n : with_top  ℕ} {s : set E}
   {f : E → F} (hf : times_cont_diff_on 𝕜 n f s) (hs : unique_diff_on 𝕜 s) (hmn : m + 1 ≤ n) :
   times_cont_diff_on 𝕜 m (λp : E × E, (fderiv_within 𝕜 f s p.1 : E →L[𝕜] F) p.2)
-  (set.prod s (univ : set E)) :=
+  (s ×ˢ (univ : set E)) :=
 begin
   have A : times_cont_diff 𝕜 m (λp : (E →L[𝕜] F) × E, p.1 p.2),
   { apply is_bounded_bilinear_map.times_cont_diff,
     exact is_bounded_bilinear_map_apply },
   have B : times_cont_diff_on 𝕜 m
-    (λ (p : E × E), ((fderiv_within 𝕜 f s p.fst), p.snd)) (set.prod s univ),
+    (λ (p : E × E), ((fderiv_within 𝕜 f s p.fst), p.snd)) (s ×ˢ univ),
   { apply times_cont_diff_on.prod _ _,
     { have I : times_cont_diff_on 𝕜 m (λ (x : E), fderiv_within 𝕜 f s x) s :=
         hf.fderiv_within hs hmn,
-      have J : times_cont_diff_on 𝕜 m (λ (x : E × E), x.1) (set.prod s univ) :=
+      have J : times_cont_diff_on 𝕜 m (λ (x : E × E), x.1) (s ×ˢ univ) :=
         times_cont_diff_fst.times_cont_diff_on,
       exact times_cont_diff_on.comp I J (prod_subset_preimage_fst _ _) },
     { apply times_cont_diff.times_cont_diff_on _ ,
@@ -2415,14 +2415,14 @@ within the product set at the product point. -/
 lemma times_cont_diff_within_at.prod_map'
   {s : set E} {t : set E'} {f : E → F} {g : E' → F'} {p : E × E'}
   (hf : times_cont_diff_within_at 𝕜 n f s p.1) (hg : times_cont_diff_within_at 𝕜 n g t p.2) :
-  times_cont_diff_within_at 𝕜 n (prod.map f g) (set.prod s t) p :=
+  times_cont_diff_within_at 𝕜 n (prod.map f g) (s ×ˢ t) p :=
 (hf.comp p times_cont_diff_within_at_fst (prod_subset_preimage_fst _ _)).prod
   (hg.comp p times_cont_diff_within_at_snd (prod_subset_preimage_snd _ _))
 
 lemma times_cont_diff_within_at.prod_map
   {s : set E} {t : set E'} {f : E → F} {g : E' → F'} {x : E} {y : E'}
   (hf : times_cont_diff_within_at 𝕜 n f s x) (hg : times_cont_diff_within_at 𝕜 n g t y) :
-  times_cont_diff_within_at 𝕜 n (prod.map f g) (set.prod s t) (x, y) :=
+  times_cont_diff_within_at 𝕜 n (prod.map f g) (s ×ˢ t) (x, y) :=
 times_cont_diff_within_at.prod_map' hf hg
 
 /-- The product map of two `C^n` functions on a set is `C^n` on the product set. -/
@@ -2430,7 +2430,7 @@ lemma times_cont_diff_on.prod_map {E' : Type*} [normed_group E'] [normed_space �
   {F' : Type*} [normed_group F'] [normed_space 𝕜 F']
   {s : set E} {t : set E'} {n : with_top ℕ} {f : E → F} {g : E' → F'}
   (hf : times_cont_diff_on 𝕜 n f s) (hg : times_cont_diff_on 𝕜 n g t) :
-  times_cont_diff_on 𝕜 n (prod.map f g) (set.prod s t) :=
+  times_cont_diff_on 𝕜 n (prod.map f g) (s ×ˢ t) :=
 (hf.comp times_cont_diff_on_fst (prod_subset_preimage_fst _ _)).prod
   (hg.comp (times_cont_diff_on_snd) (prod_subset_preimage_snd _ _))
 
@@ -2764,7 +2764,7 @@ lemma has_ftaylor_series_up_to_on.exists_lipschitz_on_with {E F : Type*}
   {p : E → formal_multilinear_series ℝ E F} {s : set E} {x : E}
   (hf : has_ftaylor_series_up_to_on 1 f p (insert x s)) (hs : convex ℝ s) :
   ∃ K (t ∈ 𝓝[s] x), lipschitz_on_with K f t :=
-(no_top _).imp $ hf.exists_lipschitz_on_with_of_nnnorm_lt hs
+(exists_gt _).imp $ hf.exists_lipschitz_on_with_of_nnnorm_lt hs
 
 /-- If `f` is `C^1` within a conves set `s` at `x`, then it is Lipschitz on a neighborhood of `x`
 within `s`. -/

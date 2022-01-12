@@ -54,7 +54,8 @@ end
 lemma disj_sum_mono (hs : s₁ ≤ s₂) (ht : t₁ ≤ t₂) : s₁.disj_sum t₁ ≤ s₂.disj_sum t₂ :=
 add_le_add (map_le_map hs) (map_le_map ht)
 
-lemma disj_sum_mono_left (hs : s₁ ≤ s₂) (t : multiset β) : s₁.disj_sum t ≤ s₂.disj_sum t :=
+lemma disj_sum_mono_left (t : multiset β) : monotone (λ s, s.disj_sum t) :=
+λ _ _ hs,
 add_le_add_right (map_le_map hs) _
 
 lemma disj_sum_mono_right (s : multiset α) :

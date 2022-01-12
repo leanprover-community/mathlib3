@@ -173,4 +173,51 @@ begin
   { rintro ⟨c, rfl⟩, rw factorization_mul hd (right_ne_zero_of_mul hn), simp },
 end
 
+-- This is in `PR #11395`
+lemma factorization_prod {α : Type*} {S : finset α} {g : α → ℕ} (hS : ∀ x ∈ S, g x ≠ 0) :
+   (S.prod g).factorization = S.sum (λ x, (g x).factorization) := sorry
+
+/-- The positive natural numbers are bijective with finsupps `ℕ →₀ ℕ` with support in the primes -/
+noncomputable
+def factorization_equiv : pnat ≃ {f : ℕ →₀ ℕ | ∀ p ∈ f.support, prime p} :=
+{
+  to_fun    := λ ⟨n, hn⟩,
+    by { use n.factorization,
+         intros p,
+         simp only [support_factorization, mem_to_finset],
+         exact prime_of_mem_factors },
+  inv_fun   := λ ⟨f, hf⟩, by {
+    use f.prod pow,
+    refine prod_pos _,
+    intros p hp,
+    suffices : p ^ f p ≠ 0, { exact zero_lt_iff.mpr this },
+    apply pow_ne_zero,
+    apply prime.ne_zero,
+    exact hf p hp,
+  },
+  left_inv  := by {
+    rintros ⟨x, hx⟩,
+    unfold factorization_equiv._match_1,
+    unfold factorization_equiv._match_2,
+    simp [factorization_prod_pow_eq_self hx.ne.symm],
+  },
+  right_inv := by {
+    rintros ⟨f, hf⟩,
+    rw set.mem_set_of_eq at hf,
+    have h1 : ∀ (x : ℕ), x ∈ f.support → x ^ f x ≠ 0,
+    { exact λ p hp, pow_ne_zero _ (prime.ne_zero (hf p hp)) },
+    unfold factorization_equiv._match_2,
+    unfold factorization_equiv._match_1,
+    simp only [subtype.mk_eq_mk],
+    unfold finsupp.prod,
+    rw factorization_prod h1,
+    simp only [],
+    sorry,
+
+  },
+}
+
+-- TODO: add `prime_of_mem_factorization` and `pos_of_mem_factorization` —
+--    these are sufficiently useful to be worth having
+
 end nat

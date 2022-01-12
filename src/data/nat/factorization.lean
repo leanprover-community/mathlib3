@@ -175,9 +175,9 @@ end
 
 /-- For any `p : ℕ` and any function `g : α → ℕ` that's positive on `S : finset α`,
 the power of `p` in `S.prod g` equals the sum over `x ∈ S` of the powers of `p` in `g x`.
-Generalises `count_factors_mul_of_pos`, which is the special case where `S.card = 2`. -/
+Generalises `factorization_mul`, which is the special case where `S.card = 2`. -/
 
-lemma count_factors_prod {α : Type*} {S : finset α} {p : ℕ} {g : α → ℕ} (hS: ∀ x ∈ S, 0 < g x) :
+lemma factorization_prod {α : Type*} {S : finset α} {p : ℕ} {g : α → ℕ} (hS: ∀ x ∈ S, 0 < g x) :
   (S.prod g).factorization p = S.sum (λ x, (g x).factorization p) :=
 begin
   simp only [factorization_eq_count],

@@ -923,7 +923,8 @@ end monoid_algebra
 end monoid_algebra
 
 section vasconcelos
-variables {R : Type*} [comm_ring R] {M : Type*} [add_comm_group M] [module R M] (f : M →ₗ[R] M)
+variables {R : Type*} [comm_ring R] {M : Type*}
+variables [add_comm_group M] [module R M] [module Rᵐᵒᵖ M] [is_central_scalar R M](f : M →ₗ[R] M)
 
 noncomputable theory
 
@@ -935,7 +936,7 @@ module.comp_hom M (polynomial.aeval f).to_ring_hom
 
 include f
 lemma module_polynomial_of_endo.is_scalar_tower : @is_scalar_tower R (polynomial R) M _
-  (by { letI := module_polynomial_of_endo f, apply_instance }) _ :=
+  (by { haveI := module_polynomial_of_endo f, apply_instance }) _ :=
 begin
   letI := module_polynomial_of_endo f,
   constructor,

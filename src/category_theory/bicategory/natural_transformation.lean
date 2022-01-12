@@ -207,13 +207,13 @@ variables (Γ : modification η θ) {a b c : B} {a' : C}
 lemma whisker_left_naturality (f : a' ⟶ F.obj b) (g : b ⟶ c) :
   (f ◁ (_ ◁ Γ.app c)) ≫ (f ◁ θ.naturality g) =
     (f ◁ η.naturality g) ≫ (f ◁ (Γ.app b ▷ _)) :=
-by { simp only [←bicategory.whisker_left_comp], rw naturality }
+by simp only [←bicategory.whisker_left_comp, naturality]
 
 @[reassoc]
 lemma whisker_right_naturality (f : a ⟶ b) (g : G.obj b ⟶ a') :
   ((_ ◁ Γ.app b) ▷ g) ≫ (θ.naturality f ▷ g) =
     (η.naturality f ▷ g) ≫ ((Γ.app a ▷ _) ▷ g) :=
-by { simp only [←bicategory.whisker_right_comp], rw naturality }
+by simp only [←bicategory.whisker_right_comp, naturality]
 
 end
 

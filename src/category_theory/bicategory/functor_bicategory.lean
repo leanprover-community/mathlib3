@@ -1,10 +1,18 @@
  /-
-Copyright (c) 2021 Yuma Mizuno. All rights reserved.
+Copyright (c) 2022 Yuma Mizuno. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yuma Mizuno
 -/
 import category_theory.bicategory.natural_transformation
 
+/-!
+# The bicategory of oplax functors between two bicategories
+
+Given bicategories `B` and `C`, we give a bicategory structure on `oplax_functor B C` whose
+* objects are oplax functors,
+* 1-morphisms are oplax natural transformations, and
+* 2-morphisms are modifications.
+-/
 
 namespace category_theory
 
@@ -18,9 +26,7 @@ variables {F G H I : oplax_functor B C}
 
 namespace oplax_nat_trans
 
-/--
-Left whiskering of a pseudonatural transformation and a modification.
--/
+/-- Left whiskering of an oplax natural transformation and a modification. -/
 @[simps]
 def whisker_left (η : F ⟶ G) {θ ι : G ⟶ H} (Γ : θ ⟶ ι) : η ≫ θ ⟶ η ≫ ι :=
 { app := λ a, η.app a ◁ Γ.app a,
@@ -31,9 +37,7 @@ def whisker_left (η : F ⟶ G) {θ ι : G ⟶ H} (Γ : θ ⟶ ι) : η ≫ θ �
         associator_naturality_right_assoc, Γ.whisker_left_naturality_assoc,
         associator_inv_naturality_middle] } }
 
-/--
-Right whiskering of a pseudonatural transformation and a modification.
--/
+/-- Right whiskering of an oplax natural transformation and a modification. -/
 @[simps]
 def whisker_right {η θ : F ⟶ G} (Γ : η ⟶ θ) (ι : G ⟶ H) : η ≫ ι ⟶ θ ≫ ι :=
 { app := λ a, Γ.app a ▷ ι.app a,
@@ -44,9 +48,7 @@ def whisker_right {η θ : F ⟶ G} (Γ : η ⟶ θ) (ι : G ⟶ H) : η ≫ ι 
         associator_naturality_left_assoc, ←whisker_exchange_assoc,
         associator_inv_naturality_left] } }
 
-/--
-Associator for the vertical composition between pseudonatural transformations.
--/
+/-- Associator for the vertical composition of oplax natural transformations. -/
 @[simps]
 def associator (η : F ⟶ G) (θ : G ⟶ H) (ι : H ⟶ I) : (η ≫ θ) ≫ ι ≅ η ≫ (θ ≫ ι) :=
 modification_iso.of_components (λ a, α_ (η.app a) (θ.app a) (ι.app a))
@@ -60,24 +62,20 @@ begin
       pentagon_hom_inv_inv_inv_hom]
 end
 
-
-
-/--
-Left unitor for the vertical composition between pseudonatural transformations.
--/
+/-- Left unitor for the vertical composition of oplax natural transformations. -/
 @[simps]
 def left_unitor (η : F ⟶ G) : 𝟙 F ≫ η ≅ η :=
 modification_iso.of_components (λ a, λ_ (η.app a))
 begin
   intros a b f,
   dsimp,
-  simp [triangle_assoc_comp_right_assoc],
+  simp only [triangle_assoc_comp_right_assoc, whisker_right_comp, assoc, whisker_exchange_assoc],
   rw [←left_unitor_comp, left_unitor_naturality, left_unitor_comp],
   simp only [iso.hom_inv_id_assoc, inv_hom_whisker_right_assoc, assoc, whisker_exchange_assoc]
 end
 
 /--
-Right unitor for the vertical composition between pseudonatural transformations.
+Right unitor for the vertical composition of oplax natural transformations.
 -/
 @[simps]
 def right_unitor (η : F ⟶ G) : η ≫ 𝟙 G ≅ η :=
@@ -85,7 +83,8 @@ modification_iso.of_components (λ a, ρ_ (η.app a))
 begin
   intros a b f,
   dsimp,
-  simp [triangle_assoc_comp_right_assoc],
+  simp only [triangle_assoc_comp_left_inv, inv_hom_whisker_right_assoc, whisker_exchange,
+    assoc, whisker_left_comp],
   rw [←right_unitor_comp, right_unitor_naturality, right_unitor_comp],
   simp only [iso.inv_hom_id_assoc, assoc]
 end
@@ -94,11 +93,7 @@ end oplax_nat_trans
 
 variables (B C)
 
-/--
-A bicategory structure on the oplax_functors between bicategories. The 1-morphisms in this bicategory are
-the pseudonatural transformations, and the composition of 1-morphisms is the vertical composition
-of pseudonatural transformations. The 2-morphisms are the modifications.
--/
+/-- A bicategory structure on the oplax functors between bicategories. -/
 @[simps]
 instance oplax_functor.bicategory : bicategory (oplax_functor B C) :=
 { whisker_left  := λ F G H η _ _ Γ, oplax_nat_trans.whisker_left η Γ,

@@ -123,10 +123,6 @@ Right multiplication operator
   add_monoid_hom.flip (L  : A →+ add_monoid.End A)
 local notation `R` := function.End.R
 
-lemma L_def (a b : A) : L a b = a*b := rfl
-
-lemma R_def (a b : A) : R a b = b*a := rfl
-
 lemma jordan_operators (A : Type*) [non_unital_non_assoc_ring A] [is_jordan A] (a : A) :
 (⁅L a, R a⁆ = 0) ∧ (⁅L a, L (a * a)⁆ = 0) ∧ (⁅L a, R (a * a)⁆ = 0) ∧ (⁅L (a * a), R a⁆ = 0) ∧
 (⁅R a, R (a * a)⁆ = 0) :=

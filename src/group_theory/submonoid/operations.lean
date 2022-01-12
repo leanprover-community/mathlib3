@@ -503,13 +503,13 @@ of `M × N`. -/
 @[to_additive prod "Given `add_submonoid`s `s`, `t` of `add_monoid`s `A`, `B` respectively, `s × t`
 as an `add_submonoid` of `A × B`."]
 def prod (s : submonoid M) (t : submonoid N) : submonoid (M × N) :=
-{ carrier := (s : set M).prod t,
+{ carrier := (s : set M) ×ˢ (t : set N),
   one_mem' := ⟨s.one_mem, t.one_mem⟩,
   mul_mem' := λ p q hp hq, ⟨s.mul_mem hp.1 hq.1, t.mul_mem hp.2 hq.2⟩ }
 
 @[to_additive coe_prod]
 lemma coe_prod (s : submonoid M) (t : submonoid N) :
- (s.prod t : set (M × N)) = (s : set M).prod (t : set N) :=
+ (s.prod t : set (M × N)) = (s : set M) ×ˢ (t : set N) :=
 rfl
 
 @[to_additive mem_prod]
@@ -748,9 +748,9 @@ def submonoid_comap (f : M →* N) (N' : submonoid N) :
   map_mul' := λ x y, subtype.eq (f.map_mul x y) }
 
 /-- The `monoid_hom` from a submonoid to its image.
-See `mul_equiv.submonoid_equiv_map` for a variant for `mul_equiv`s. -/
+See `mul_equiv.submonoid_map` for a variant for `mul_equiv`s. -/
 @[to_additive "the `add_monoid_hom` from an additive submonoid to its image. See
-`add_equiv.add_submonoid_equiv_map` for a variant for `add_equiv`s.", simps]
+`add_equiv.add_submonoid_map` for a variant for `add_equiv`s.", simps]
 def submonoid_map (f : M →* N) (M' : submonoid M) :
   M' →* M'.map f :=
 { to_fun := λ x, ⟨f x, ⟨x, x.prop, rfl⟩⟩,
@@ -860,7 +860,7 @@ See `monoid_hom.submonoid_map` for a variant for `monoid_hom`s. -/
 @[to_additive "An `add_equiv` `φ` between two additive monoids `M` and `N` induces an `add_equiv`
 between a submonoid `S ≤ M` and the submonoid `φ(S) ≤ N`. See `add_monoid_hom.add_submonoid_map`
 for a variant for `add_monoid_hom`s.", simps]
-def submonoid_equiv_map (e : M ≃* N) (S : submonoid M) : S ≃* S.map e.to_monoid_hom :=
+def submonoid_map (e : M ≃* N) (S : submonoid M) : S ≃* S.map e.to_monoid_hom :=
 { to_fun := λ x, ⟨e x, _⟩,
   inv_fun := λ x, ⟨e.symm x, _⟩, -- we restate this for `simps` to avoid `⇑e.symm.to_equiv x`
   ..e.to_monoid_hom.submonoid_map S,

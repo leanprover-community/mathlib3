@@ -96,7 +96,6 @@ def Profinite.to_Top : Profinite ⥤ Top := forget₂ _ _
 rfl
 
 section Profinite
-local attribute [instance] connected_component_setoid
 
 /--
 (Implementation) The object part of the connected_components functor from compact Hausdorff spaces
@@ -118,13 +117,11 @@ spaces in compact Hausdorff spaces.
 -/
 def Profinite.to_CompHaus_equivalence (X : CompHaus.{u}) (Y : Profinite.{u}) :
   (CompHaus.to_Profinite_obj X ⟶ Y) ≃ (X ⟶ Profinite_to_CompHaus.obj Y) :=
-{ to_fun := λ f,
-  { to_fun := f.1 ∘ quotient.mk,
-    continuous_to_fun := continuous.comp f.2 (continuous_quotient_mk) },
+{ to_fun := λ f, f.comp ⟨quotient.mk', continuous_quotient_mk⟩,
   inv_fun := λ g,
     { to_fun := continuous.connected_components_lift g.2,
       continuous_to_fun := continuous.connected_components_lift_continuous g.2},
-  left_inv := λ f, continuous_map.ext $ λ x, quotient.induction_on x $ λ a, rfl,
+  left_inv := λ f, continuous_map.ext $ connected_components.surjective_coe.forall.2 $ λ a, rfl,
   right_inv := λ f, continuous_map.ext $ λ x, rfl }
 
 /--

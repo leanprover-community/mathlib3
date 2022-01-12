@@ -64,9 +64,9 @@ variables {ι ι' : Type*} {α : ι → Type*}
 lemma is_pi_system.pi {C : Π i, set (set (α i))} (hC : ∀ i, is_pi_system (C i)) :
   is_pi_system (pi univ '' pi univ C) :=
 begin
-  rintro _ _ ⟨s₁, hs₁, rfl⟩ ⟨s₂, hs₂, rfl⟩ hst,
+  rintro _ ⟨s₁, hs₁, rfl⟩ _ ⟨s₂, hs₂, rfl⟩ hst,
   rw [← pi_inter_distrib] at hst ⊢, rw [univ_pi_nonempty_iff] at hst,
-  exact mem_image_of_mem _ (λ i _, hC i _ _ (hs₁ i (mem_univ i)) (hs₂ i (mem_univ i)) (hst i))
+  exact mem_image_of_mem _ (λ i _, hC i _ (hs₁ i (mem_univ i)) _ (hs₂ i (mem_univ i)) (hst i))
 end
 
 /-- Boxes form a π-system. -/
@@ -124,7 +124,7 @@ lemma generate_from_eq_pi [h : Π i, measurable_space (α i)]
   generate_from (pi univ '' pi univ C) = measurable_space.pi :=
 by rw [← funext hC, generate_from_pi_eq h2C]
 
-/-- The product σ-algebra is generated from boxes, i.e. `s.prod t` for sets `s : set α` and
+/-- The product σ-algebra is generated from boxes, i.e. `s ×ˢ t` for sets `s : set α` and
   `t : set β`. -/
 lemma generate_from_pi [Π i, measurable_space (α i)] :
   generate_from (pi univ '' pi univ (λ i, { s : set (α i) | measurable_set s})) =
@@ -453,6 +453,10 @@ lemma pi_Ioo_ae_eq_pi_Icc {s : set ι} {f g : Π i, α i} :
   pi s (λ i, Ioo (f i) (g i)) =ᵐ[measure.pi μ] pi s (λ i, Icc (f i) (g i)) :=
 ae_eq_set_pi $ λ i hi, Ioo_ae_eq_Icc
 
+lemma pi_Ioo_ae_eq_pi_Ioc {s : set ι} {f g : Π i, α i} :
+  pi s (λ i, Ioo (f i) (g i)) =ᵐ[measure.pi μ] pi s (λ i, Ioc (f i) (g i)) :=
+ae_eq_set_pi $ λ i hi, Ioo_ae_eq_Ioc
+
 lemma univ_pi_Ioo_ae_eq_Icc {f g : Π i, α i} :
   pi univ (λ i, Ioo (f i) (g i)) =ᵐ[measure.pi μ] Icc f g :=
 by { rw ← pi_univ_Icc, exact pi_Ioo_ae_eq_pi_Icc }
@@ -505,7 +509,7 @@ lemma map_pi_equiv_pi_subtype_prod_symm (p : ι → Prop) [decidable_pred p] :
 begin
   refine (measure.pi_eq (λ s hs, _)).symm,
   have A : (equiv.pi_equiv_pi_subtype_prod p α).symm ⁻¹' (set.pi set.univ (λ (i : ι), s i)) =
-    set.prod (set.pi set.univ (λ i, s i)) (set.pi set.univ (λ i, s i)),
+    (set.pi set.univ (λ i : {i // p i}, s i)) ×ˢ (set.pi set.univ (λ i : {i // ¬p i}, s i)),
   { ext x,
     simp only [equiv.pi_equiv_pi_subtype_prod_symm_apply, mem_prod, mem_univ_pi, mem_preimage,
       subtype.forall],

@@ -135,27 +135,4 @@ lemma prime.dvd_finsupp_prod_iff  {f: α →₀ M} {g : α → M → ℕ} {p : �
   p ∣ f.prod g ↔ ∃ a ∈ f.support, p ∣ g a (f a) :=
 prime.dvd_finset_prod_iff pp _
 
-/-- Prime `p` divides the product of a list `L` iff it divides some `a ∈ L` -/
-lemma prime.dvd_prod_iff {p : M} {L : list M} (pp : prime p) :
-p ∣ L.prod ↔ ∃ a ∈ L, p ∣ a :=
-begin
-  split,
-  { intros h,
-    induction L,
-    { simp only [list.prod_nil] at h, exact absurd h (prime.not_dvd_one pp) },
-    { rw list.prod_cons at h,
-      cases (prime.dvd_or_dvd pp) h, { use L_hd, simp [h_1] },
-      { rcases L_ih h_1 with ⟨x, hx1, hx2⟩, use x, simp [list.mem_cons_iff, hx1, hx2] } } },
-  { exact λ ⟨a, ha1, ha2⟩, dvd_trans ha2 (list.dvd_prod ha1) },
-end
-
 end comm_monoid_with_zero
-
-lemma nat.prime.dvd_finset_prod_iff {α : Type*} {S : finset α} {p : ℕ}
-  (pp : prime p) (g : α → ℕ) : p ∣ S.prod g ↔ ∃ a ∈ S, p ∣ g a :=
-by apply prime.dvd_finset_prod_iff pp
-
-lemma nat.prime.dvd_finsupp_prod_iff {α M : Type*} [has_zero M] {f: α →₀ M}
-  {g : α → M → ℕ} {p : ℕ} (pp : prime p) :
-p ∣ f.prod g ↔ ∃ a ∈ f.support, p ∣ g a (f a) :=
-nat.prime.dvd_finset_prod_iff pp _

@@ -10,10 +10,11 @@ import category_theory.bicategory.strict
 /-!
 # Locally discrete bicategories
 
-A category `C` can be promoted to a strict bicategory `locally_discrete C` by defining equalities
-between morphisms as 2-morphisms. In other words, the category consisting of the 1-morphisms from
-`X` to `Y` for each pair of objects `X` and `Y` in `locally_discrete C` is defined as the discrete
-category associated with the type `X ⟶ Y`.
+A category `C` can be promoted to a strict bicategory `locally_discrete C`. The objects and the
+1-morphisms in `locally_discrete C` are the same as the objects and the morphisms, respectively,
+in `C`, and the 2-morphisms in `locally_discrete C` are the equalities between 1-morphisms. In
+other words, the category consisting of the 1-morphisms between each pair of objects `X` and `Y`
+in `locally_discrete C` is defined as the discrete category associated with the type `X ⟶ Y`.
 -/
 
 namespace category_theory
@@ -42,7 +43,7 @@ variables {C} [category_struct.{v} C]
 instance (X Y : locally_discrete C) : small_category (X ⟶ Y) :=
 category_theory.discrete_category (X ⟶ Y)
 
-/-- Extract the equation from a 2-morphism in a locally discrete bicategory. -/
+/-- Extract the equality from a 2-morphism in a locally discrete bicategory. -/
 lemma eq_of_hom {X Y : locally_discrete C} {f g : X ⟶ Y} (η : f ⟶ g) : f = g :=
 η.down.down
 
@@ -53,8 +54,9 @@ open locally_discrete
 variables (C) [category.{v} C]
 
 /--
-The locally discrete bicategory associated with a category is a bicategory whose 2-morphisms
-are equalities.
+The locally discrete bicategory on a category is a bicategory in which the objects and the
+1-morphisms are the same as those in the underlying category, and the 2-morphisms are the
+equalities between 1-morphisms.
 -/
 instance locally_discrete_bicategory : bicategory (locally_discrete C) :=
 { whisker_left  := λ X Y Z f g h η, eq_to_hom (congr_arg2 (≫) rfl (eq_of_hom η)),

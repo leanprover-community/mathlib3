@@ -182,6 +182,12 @@ begin
     exact tendsto_pow_at_top_nhds_0_of_lt_1 one_half_pos.le one_half_lt_one }
 end
 
+/-- This instance is just `pi.module`, but lean can't find it when it needs it. -/
+instance pi.module_of_normed_group_of_semi_normed_space {ι : Type*} {E : ι → Type*}
+  [Π i, normed_group (E i)] [Π i, semi_normed_space 𝕜 (E i)] :
+  module 𝕜 (Π i, E i) :=
+@pi.module ι E 𝕜 (by apply_instance) (λ _, by apply_instance) (λ _, by apply_instance)
+
 /-- The tangent cone of a product contains the tangent cone of each factor. -/
 lemma maps_to_tangent_cone_pi {ι : Type*} [decidable_eq ι] {E : ι → Type*}
   [Π i, normed_group (E i)] [Π i, normed_space 𝕜 (E i)]

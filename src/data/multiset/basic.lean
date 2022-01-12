@@ -1288,7 +1288,7 @@ quot.lift_on s (λ l, (filter p l : multiset α))
 
 lemma filter_congr {p q : α → Prop} [decidable_pred p] [decidable_pred q]
   {s : multiset α} : (∀ x ∈ s, p x ↔ q x) → filter p s = filter q s :=
-quot.induction_on s $ λ l h, congr_arg coe $ list.filter_congr h
+quot.induction_on s $ λ l h, congr_arg coe $ filter_congr' h
 
 @[simp] theorem filter_add (s t : multiset α) : filter p (s + t) = filter p s + filter p t :=
 quotient.induction_on₂ s t $ λ l₁ l₂, congr_arg coe $ filter_append _ _
@@ -1755,7 +1755,7 @@ begin
 end
 
 lemma filter_eq (s : multiset α) (b : α) : s.filter (eq b) = repeat b (count b s) :=
-by { simp_rw [←filter_eq', eq_comm], congr, }
+by simp_rw [←filter_eq', eq_comm]
 
 end
 
@@ -1773,11 +1773,7 @@ for more discussion.
 -/
 @[simp] lemma map_count_true_eq_filter_card (s : multiset α) (p : α → Prop) [decidable_pred p] :
   (s.map p).count true = (s.filter p).card :=
-begin
-  simp only [count_eq_card_filter_eq, map_filter, card_map, function.comp.left_id, eq_true_eq_id],
-  congr,
-end
-
+by simp only [count_eq_card_filter_eq, map_filter, card_map, function.comp.left_id, eq_true_eq_id]
 
 /-! ### Lift a relation to `multiset`s -/
 

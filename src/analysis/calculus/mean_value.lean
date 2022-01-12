@@ -554,7 +554,7 @@ lemma exists_nhds_within_lipschitz_on_with_of_has_fderiv_within_at
   (hs : convex ℝ s) {f : E → G} (hder : ∀ᶠ y in 𝓝[s] x, has_fderiv_within_at f (f' y) s y)
   (hcont : continuous_within_at f' s x) :
   ∃ K (t ∈ 𝓝[s] x), lipschitz_on_with K f t :=
-(no_top _).imp $
+(exists_gt _).imp $
   hs.exists_nhds_within_lipschitz_on_with_of_has_fderiv_within_at_of_nnnorm_lt hder hcont
 
 /-- The mean value theorem on a convex set: if the derivative of a function within this set is

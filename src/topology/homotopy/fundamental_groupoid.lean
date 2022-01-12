@@ -217,25 +217,22 @@ begin
   simp only [trans_assoc_reparam_aux, path.trans_apply, mul_inv_cancel_left₀, not_le,
              function.comp_app, ne.def, not_false_iff, bit0_eq_zero, one_ne_zero, mul_ite,
              subtype.coe_mk, path.coe_to_fun],
+  -- TODO: why does split_ifs not reduce the ifs??????
   split_ifs with h₁ h₂ h₃ h₄ h₅,
-  { simp only [one_div, subtype.coe_mk] at h₂,
-    simp [h₂, h₃] },
-  { exfalso,
-    simp only [subtype.coe_mk] at h₂,
-    linarith },
-  { exfalso,
-    simp only [subtype.coe_mk] at h₂,
-    linarith },
+  { simp [h₂, h₃, -one_div] },
+  { exfalso, linarith },
+  { exfalso, linarith },
   { have h : ¬ (x : ℝ) + 1/4 ≤ 1/2, by linarith,
     have h' : 2 * ((x : ℝ) + 1/4) - 1 ≤ 1/2, by linarith,
     have h'' : 2 * (2 * (x : ℝ)) - 1 = 2 * (2 * (↑x + 1/4) - 1), by linarith,
-    simp only [one_div, subtype.coe_mk] at h h' h'' h₂,
-    simp [h₁, h₂, h₄, h, h', h''] },
+    simp only [h₄, h₁, h, h', h'',
+      dif_neg (show ¬ false, from id), dif_pos true.intro, if_false, if_true] },
   { exfalso,
     linarith },
   { have h : ¬ (1 / 2 : ℝ) * (x + 1) ≤ 1/2, by linarith,
-    simp only [one_div] at h h₁,
-    simp [h₁, h₅, h] }
+    have h' : ¬ 2 * ((1 / 2 : ℝ) * (x + 1)) - 1 ≤ 1/2, by linarith,
+    simp only [h₁, h₅, h, h', if_false, dif_neg (show ¬ false, from id)],
+    congr, ring }
 end
 
 /--
@@ -270,8 +267,7 @@ local attribute [instance] path.homotopic.setoid
 instance : category_theory.groupoid (fundamental_groupoid X) :=
 { hom := λ x y, path.homotopic.quotient x y,
   id := λ x, ⟦path.refl x⟧,
-  comp := λ x y z, quotient.map₂ path.trans
-    (λ (p₀ : path x y) p₁ hp q₀ q₁ hq, path.homotopic.hcomp hp hq),
+  comp := λ x y z, path.homotopic.quotient.comp,
   id_comp' := λ x y f, quotient.induction_on f
     (λ a, show ⟦(path.refl x).trans a⟧ = ⟦a⟧,
           from quotient.sound ⟨path.homotopy.refl_trans a⟩ ),
@@ -294,9 +290,7 @@ instance : category_theory.groupoid (fundamental_groupoid X) :=
           from quotient.sound ⟨(path.homotopy.refl_trans_symm a).symm⟩) }
 
 lemma comp_eq (x y z : fundamental_groupoid X) (p : x ⟶ y) (q : y ⟶ z) :
-  p ≫ q = quotient.map₂ path.trans
-    (λ (p₀ : path x y) p₁ hp q₀ q₁ hq, path.homotopic.hcomp hp hq) p q := rfl
-
+  p ≫ q = p.comp q := rfl
 /--
 The functor sending a topological space `X` to its fundamental groupoid.
 -/
@@ -304,17 +298,17 @@ def fundamental_groupoid_functor : Top ⥤ category_theory.Groupoid :=
 { obj := λ X, { α := fundamental_groupoid X },
   map := λ X Y f,
   { obj := f,
-    map := λ x y, quotient.map
-      (λ (q : path x y), q.map f.continuous) (λ p₀ p₁ h, path.homotopic.map h f),
+    map := λ x y p, p.map_fn f,
     map_id' := λ X, rfl,
-    map_comp' := λ x y z p q, quotient.induction_on₂ p q $ λ a b, by simp [comp_eq] },
+    map_comp' := λ x y z p q, quotient.induction_on₂ p q $ λ a b,
+      by simp [comp_eq, ← path.homotopic.map_lift, ← path.homotopic.comp_lift] },
   map_id' := begin
     intro X,
     change _ = (⟨_, _, _, _⟩ : fundamental_groupoid X ⥤ fundamental_groupoid X),
     congr',
     ext x y p,
     refine quotient.induction_on p (λ q, _),
-    rw [quotient.map_mk],
+    rw [← path.homotopic.map_lift],
     conv_rhs { rw [←q.map_id] },
     refl,
   end,

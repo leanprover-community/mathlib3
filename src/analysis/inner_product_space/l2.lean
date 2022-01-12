@@ -154,7 +154,7 @@ begin
   convert (↑(b.repr.symm.to_continuous_linear_equiv) : ℓ²(ι, 𝕜) →L[𝕜] E).has_sum this,
   ext i,
   apply b.repr.injective,
-  have : lp.single 2 i (f i * 1) = _ := lp.smul_single 2 i (1:𝕜) (f i),
+  have : lp.single 2 i (f i * 1) = _ := lp.single_smul 2 i (1:𝕜) (f i),
   rw mul_one at this,
   rw [linear_isometry_equiv.map_smul, b.repr_self, ← this, continuous_linear_equiv.coe_coe,
     linear_isometry_equiv.coe_to_continuous_linear_equiv],

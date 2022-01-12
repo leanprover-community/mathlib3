@@ -182,8 +182,7 @@ begin
   exact is_unit.mul_iff,
 end
 
-lemma RingedSpace.basic_open_of_is_unit {U : opens X} {f : X.presheaf.obj (op U)}
-  (hf : is_unit f) :
+lemma basic_open_of_is_unit {U : opens X} {f : X.presheaf.obj (op U)} (hf : is_unit f) :
   X.basic_open f = U :=
 begin
   apply le_antisymm,

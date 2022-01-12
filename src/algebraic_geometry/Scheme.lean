@@ -138,28 +138,55 @@ lemma Γ_map_op {X Y : Scheme} (f : X ⟶ Y) :
 
 section basic_open
 
-variable (X : Scheme)
+variables (X : Scheme) {V U : opens X.carrier} (f g : X.presheaf.obj (op U))
 
 /-- The subset of the underlying space where the given section does not vanish. -/
-def basic_open {U : opens X.carrier} (f : X.presheaf.obj (op U)) :
-  opens X.carrier := X.to_LocallyRingedSpace.to_RingedSpace.basic_open f
+def basic_open : opens X.carrier := X.to_LocallyRingedSpace.to_RingedSpace.basic_open f
 
-@[simp] def mem_basic_open {U : opens X.carrier} (f : X.presheaf.obj (op U)) (x : U) :
-  ↑x ∈ X.basic_open f ↔ is_unit (X.presheaf.germ x f) :=
+@[simp]
+lemma mem_basic_open (x : U) : ↑x ∈ X.basic_open f ↔ is_unit (X.presheaf.germ x f) :=
 RingedSpace.mem_basic_open _ _ _
 
-@[simp] def mem_basic_open_top (f : X.presheaf.obj (op ⊤)) (x : X.carrier) :
+@[simp]
+lemma mem_basic_open_top (f : X.presheaf.obj (op ⊤)) (x : X.carrier) :
   x ∈ X.basic_open f ↔ is_unit (X.presheaf.germ (⟨x, trivial⟩ : (⊤ : opens _)) f) :=
 RingedSpace.mem_basic_open _ f ⟨x, trivial⟩
+
+@[simp]
+lemma basic_open_res (i : V ⟶ U) :
+  X.basic_open (X.presheaf.map i.op f) = V ∩ X.basic_open f :=
+RingedSpace.basic_open_res _ i.op f
+
+@[simp, priority 1100]
+lemma basic_open_res_eq (i : V ⟶ U) [is_iso i] :
+  X.basic_open (X.presheaf.map i.op f) = X.basic_open f :=
+RingedSpace.basic_open_res_eq _ i.op f
+
+@[simp]
+lemma preimage_basic_open {X Y : Scheme} (f : X ⟶ Y) {U : opens Y.carrier}
+  (r : Y.presheaf.obj $ op U) :
+  (opens.map f.1.base).obj (Y.basic_open r) =
+    @Scheme.basic_open X ((opens.map f.1.base).obj U) (f.1.c.app _ r) :=
+LocallyRingedSpace.preimage_basic_open f r
+
+@[simp]
+lemma basic_open_zero (U : opens X.carrier) : X.basic_open (0 : X.presheaf.obj $ op U) = ∅ :=
+LocallyRingedSpace.basic_open_zero _ U
+
+@[simp]
+lemma basic_open_mul : X.basic_open (f * g) = X.basic_open f ⊓ X.basic_open g :=
+RingedSpace.basic_open_mul _ _ _
+
+@[simp]
+lemma basic_open_of_is_unit {f : X.presheaf.obj (op U)} (hf : is_unit f) : X.basic_open f = U :=
+RingedSpace.basic_open_of_is_unit _ _
 
 lemma basic_open_eq_of_affine {R : CommRing} (f : R) :
   (Scheme.Spec.obj $ op R).basic_open ((Spec_Γ_identity.app R).inv f) =
     prime_spectrum.basic_open f :=
 begin
   ext,
-  change (⟨x, trivial⟩ : (⊤ : opens _)) ∈
-    RingedSpace.basic_open (Spec.to_SheafedSpace.obj (op R)) _ ↔ _,
-  rw RingedSpace.mem_basic_open,
+  erw mem_basic_open_top,
   suffices : is_unit (structure_sheaf.to_stalk R x f) ↔ f ∉ prime_spectrum.as_ideal x,
   { exact this },
   erw [← is_unit_map_iff (structure_sheaf.stalk_to_fiber_ring_hom R x),

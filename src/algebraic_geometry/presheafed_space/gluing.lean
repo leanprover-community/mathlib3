@@ -36,9 +36,13 @@ to construct `Γ(𝒪_{U_i}, U) ⟶ Γ(𝒪_X, ι i '' U)` for each `U ⊆ U i`.
 Since `Γ(𝒪_X, ι i '' U)` is the the limit of `diagram_over_open`, the components of the structure
 sheafs of the spaces in the gluing diagram, we need to construct a map
 `ι_inv_app_π_app : Γ(𝒪_{U_i}, U) ⟶ Γ(𝒪_V, U_V)` for each `V` in the gluing diagram.
-This is easy once we know that the `U_V` always falls in `U_i ∩ V`, so the restriction map suffices.
-The hard part is to verify that these restriction maps and transition maps indeed commute, which
-involves quite some diagram chasing and uses the cocycle identity.
+
+We will refer to ![this diagram](https://i.imgur.com/P0phrwr.png) in the following doc strings.
+The `X` is the glued space, and the dotted arrow is a partial inverse guaranteed by the fact
+that it is an open immersion. The map `Γ(𝒪_{U_i}, U) ⟶ Γ(𝒪_{U_j}, _)` is given by the red arrows,
+and the map `Γ(𝒪_{U_i}, U) ⟶ Γ(𝒪_{V_{jk}}, _)` is given by the blue arrows.
+To lift this into a map from `Γ(𝒪_X, ι i '' U)`, we also need to show that these commutes with the
+maps in the diagram (the green arrows), which is just a lengthy diagram-chasing.
 
 -/
 
@@ -130,6 +134,7 @@ begin
   apply_instance
 end
 
+/-- The red and the blue in ![this diagram](https://i.imgur.com/0GiBUh6.png) commutes. -/
 @[simp, reassoc]
 lemma f_inv_app_f_app (i j k : D.J)  (U : (opens (D.V (i, j)).carrier)) :
   (D.f_open i j).inv_app U ≫ (D.f i k).c.app _ =
@@ -188,6 +193,7 @@ begin
   rw [is_iso.inv_comp_eq, 𝖣 .t_fac_assoc, 𝖣 .t_inv, category.comp_id]
 end
 
+/-- The red and the blue in ![this diagram](https://i.imgur.com/q6X1GJ9.png) commutes. -/
 @[simp, reassoc]
 lemma snd_inv_app_t_app (i j k : D.J) (U : opens (pullback (D.f i j) (D.f i k)).carrier) :
   (is_open_immersion.pullback_snd_of_left (D.f i j) (D.f i k)).inv_app U ≫
@@ -229,7 +235,7 @@ begin
     apply_instance }
 end
 
-/-- (Implementation). The map `Γ(𝒪_{U_i}, U) ⟶ Γ(𝒪_{U_j}, 𝖣.ι j ⁻¹' (𝖣.ι i '' U))`. -/
+/-- (Implementation). The map `Γ(𝒪_{U_i}, U) ⟶ Γ(𝒪_{U_j}, 𝖣.ι j ⁻¹' (𝖣.ι i '' U))` -/
 def opens_image_preimage_map (i j : D.J) (U : opens (D.U i).carrier) :
   (D.U i).presheaf.obj (op U) ⟶ (D.U j).presheaf.obj
     (op ((opens.map (𝖣 .ι j).base).obj ((D.ι_open_embedding i).is_open_map.functor.obj U))) :=
@@ -256,6 +262,7 @@ begin
   congr
 end
 
+/-- The red and the blue in ![this diagram](https://i.imgur.com/mBzV1Rx.png) commutes. -/
 lemma opens_image_preimage_map_app (i j k : D.J) (U : opens (D.U i).carrier) :
   D.opens_image_preimage_map i j U ≫ (D.f j k).c.app _ =
   (pullback.fst ≫ D.t j i ≫ D.f i j : pullback (D.f j i) (D.f j k) ⟶ _).c.app (op U) ≫
@@ -263,6 +270,7 @@ lemma opens_image_preimage_map_app (i j k : D.J) (U : opens (D.U i).carrier) :
   (D.V (j, k)).presheaf.map (eq_to_hom ((opens_image_preimage_map_app' D i j k U).some)) :=
 (opens_image_preimage_map_app' D i j k U).some_spec
 
+-- This is proved separately since `reassoc` somehow timeouts.
 lemma opens_image_preimage_map_app_assoc (i j k : D.J) (U : opens (D.U i).carrier)
   {X' : C} (f' : _ ⟶ X') :
   D.opens_image_preimage_map i j U ≫ (D.f j k).c.app _ ≫ f' =
@@ -311,6 +319,9 @@ limit.lift (D.diagram_over_open U)
       rw category.comp_id },
     { erw category.id_comp, congr' 1 },
     erw category.id_comp,
+    -- It remains to show that the blue is equal to red + green in the original diagram.
+    -- The proof strategy is illustrated in ![this diagram](https://i.imgur.com/mBzV1Rx.png)
+    -- where we proof red = pink = light-blue = green = blue.
     change D.opens_image_preimage_map i j U ≫ (D.f j k).c.app _ ≫
       (D.V (j, k)).presheaf.map (eq_to_hom _) = D.opens_image_preimage_map _ _ _ ≫
       ((D.f k j).c.app _ ≫ (D.t j k).c.app _) ≫ (D.V (j, k)).presheaf.map (eq_to_hom _),
@@ -319,6 +330,8 @@ limit.lift (D.diagram_over_open U)
     erw [opens_image_preimage_map_app_assoc, (D.t j k).c.naturality_assoc],
     rw snd_inv_app_t_app_assoc,
     erw ← PresheafedSpace.comp_c_app_assoc,
+    -- light-blue = green is relatively easy since the part that differs does not involve
+    -- partial inverses.
     have : D.t' j k i ≫ pullback.fst ≫ D.t k i ≫ 𝖣 .f i k =
       (pullback_symmetry _ _).hom ≫ pullback.fst ≫ D.t j i ≫ D.f i j,
     { rw [← 𝖣 .t_fac_assoc, 𝖣 .t'_comp_eq_pullback_symmetry_assoc,
@@ -339,6 +352,7 @@ limit.lift (D.diagram_over_open U)
     congr,
   end } }
 
+/-- `ι_inv_app` is the left inverse of `D.ι i` on `U`. -/
 lemma ι_inv_app_π (i : D.J) (U : opens (D.U i).carrier) :
   ∃ eq, D.ι_inv_app i U ≫ limit.π (D.diagram_over_open U) (op (walking_multispan.right i)) =
     (D.U i).presheaf.map (eq_to_hom eq) :=
@@ -357,6 +371,7 @@ begin
     apply_instance }
 end
 
+/-- `ι_inv_app` is the right inverse of `D.ι i` on `U`. -/
 lemma π_ι_inv_app_π (i j : D.J) (U : opens (D.U i).carrier) :
   limit.π (D.diagram_over_open U) (op (walking_multispan.right i)) ≫
     (D.U i).presheaf.map (eq_to_hom (D.ι_inv_app_π i U).some.symm) ≫
@@ -388,6 +403,7 @@ begin
     all_goals { apply_instance } },
 end
 
+/-- `ι_inv_app` is the inverse of `D.ι i` on `U`. -/
 lemma π_ι_inv_app_eq_id (i : D.J) (U : opens (D.U i).carrier) :
   limit.π (D.diagram_over_open U) (op (walking_multispan.right i)) ≫
     (D.U i).presheaf.map (eq_to_hom (D.ι_inv_app_π i U).some.symm) ≫ D.ι_inv_app i U = 𝟙 _ :=

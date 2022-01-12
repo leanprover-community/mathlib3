@@ -210,8 +210,8 @@ by rw [to_measure_apply_eq_to_outer_measure_apply p s hs, to_outer_measure_apply
 
 /-- The measure associated to a `pmf` by `to_measure` is a probability measure -/
 instance to_measure.is_probability_measure (p : pmf α) : is_probability_measure (p.to_measure) :=
-⟨by simpa only [measurable_set.univ, to_measure_apply_eq_to_outer_measure_apply, set.indicator_univ,
-  to_outer_measure_apply', ennreal.coe_eq_one] using tsum_coe p⟩
+⟨by simpa only [measurable_set.univ, to_measure_apply_eq_to_outer_measure_apply,
+  set.indicator_univ, to_outer_measure_apply', ennreal.coe_eq_one] using tsum_coe p⟩
 
 section finite
 

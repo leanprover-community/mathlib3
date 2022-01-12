@@ -151,8 +151,8 @@ calc (pa.bind pb).to_outer_measure s
 
 /-- The measure of a set under `pa.bind pb` is the sum over `a : α`
   of the probability of `a` under `pa` times the measure of the set under `pb a` -/
-lemma to_measure_bind_apply [measurable_space β] (pa : pmf α) (pb : α → pmf β) (s : set β) (hs : measurable_set s) :
-  (pa.bind pb).to_measure s = ∑' (a : α), pa a * (pb a).to_measure s :=
+lemma to_measure_bind_apply [measurable_space β] (pa : pmf α) (pb : α → pmf β) (s : set β)
+  (hs : measurable_set s) : (pa.bind pb).to_measure s = ∑' (a : α), pa a * (pb a).to_measure s :=
 (to_measure_apply_eq_to_outer_measure_apply (pa.bind pb) s hs).trans
   ((to_outer_measure_bind_apply pa pb s).trans (tsum_congr (λ a, congr_arg (λ x, pa a * x)
   (to_measure_apply_eq_to_outer_measure_apply (pb a) s hs).symm)))

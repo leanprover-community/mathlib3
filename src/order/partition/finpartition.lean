@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Bhavik Mehta
 -/
 import algebra.big_operators.basic
+import order.locally_finite
 import order.atoms
 import order.sup_indep
 
@@ -166,7 +167,8 @@ def _root_.is_atom.unique_finpartition (ha : is_atom a) : unique (finpartition a
     exact hc,
   end,  }
 
-instance [fintype α] [decidable_eq α] : fintype (finpartition a) :=
+instance [fintype α] [decidable_eq α] (a : α) :
+  fintype (finpartition a) :=
 @fintype.of_surjective {p : finset α // p.sup_indep id ∧ p.sup id = a ∧ ⊥ ∉ p} (finpartition a) _
   (subtype.fintype _) (λ i, ⟨i.1, i.2.1, i.2.2.1, i.2.2.2⟩) (λ ⟨_, y, z, w⟩, ⟨⟨_, y, z, w⟩, rfl⟩)
 
@@ -177,6 +179,15 @@ variables (a)
 
 /-- We say that `P ≤ Q` if `P` refines `Q`: each part of `P` is less than some part of `Q`. -/
 instance : has_le (finpartition a) := ⟨λ P Q, ∀ ⦃b⦄, b ∈ P.parts → ∃ c ∈ Q.parts, b ≤ c⟩
+
+def finpartition.Ici_aux_parts {α : Type*} [distrib_lattice α] [decidable_eq α] [order_bot α]
+  (a : α) (P : finpartition a) :
+  finset (finpartition a) :=
+(P.parts.powerset.powerset.filter
+  (λ (i : finset (finset α)), i.sup_indep id ∧ i.sup id = P.parts ∧ ∅ ∉ i)).attach.image $ λ j,
+{ parts := (j : finset (finset α)).image (λ k, finset.sup k id),
+
+} -- yucky but I think it'll work
 
 instance : partial_order (finpartition a) :=
 { le_refl := λ P b hb, ⟨b, hb, le_rfl⟩,
@@ -225,7 +236,7 @@ instance {α : Type*} [decidable_eq α] [distrib_lattice α] [order_bot α] (a :
   end
   begin
     rw [sup_image, comp.left_id, sup_product_left],
-    simp_rw [sup_inf_left, sup_inf_right],
+    simp_rw [finset.sup_inf_left, finset.sup_inf_right],
     erw [P.sup_parts, Q.sup_parts, inf_idem],
   end⟩
 

@@ -369,6 +369,14 @@ theorem mem_integral_closure_iff_mem_fg {r : A} :
 
 variables {R} {A}
 
+lemma adjoin_le_integral_closure {x : A} (hx : is_integral R x) :
+  algebra.adjoin R {x} ≤ integral_closure R A :=
+begin
+  rw [algebra.adjoin_le_iff],
+  simp only [set_like.mem_coe, set.singleton_subset_iff],
+  exact hx
+end
+
 lemma le_integral_closure_iff_is_integral {S : subalgebra R A} :
   S ≤ integral_closure R A ↔ algebra.is_integral R S :=
 set_like.forall.symm.trans (forall_congr (λ x, show is_integral R (algebra_map S A x)

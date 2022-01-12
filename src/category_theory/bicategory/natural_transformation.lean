@@ -15,7 +15,7 @@ transformations.
 
 ## Main definitions
 
-* `oplax_nat_trans F G` : an oplax natural transformation between oplax functors `F` and `G`
+* `oplax_nat_trans F G` : oplax natural transformations between oplax functors `F` and `G`
 * `oplax_nat_trans.vcomp η θ` : the vertical composition of oplax natural transformations `η`
   and `θ`
 * `oplax_nat_trans.category F G` : the category structure on the oplax natural transformations

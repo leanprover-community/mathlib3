@@ -45,7 +45,7 @@ namespace sym_alg
 variables {α : Type*}
 
 /-- The element of `sym_alg α` that represents `a : α`. -/
-@[pp_nodot]
+@[pattern,pp_nodot]
 def sym : α → αˢʸᵐ := id
 
 /-- The element of `α` represented by `x : αˢʸᵐ`. -/
@@ -197,21 +197,17 @@ instance [ring α] [invertible (2 : α)] : non_unital_non_assoc_ring (αˢʸᵐ)
     rw [mul_def, unsym_zero, zero_mul, mul_zero, add_zero, mul_zero, sym_zero],
     exact rfl,
   end,
-  left_distrib := λ a b c, begin
-    change ⅟2 * (unsym a *(unsym b + unsym c) + (unsym b + unsym c) *unsym a) =
-      ⅟2 * (unsym a * unsym b + unsym b * unsym a) + (⅟2) * (unsym a * unsym c + unsym c * unsym a),
-    rw [←mul_add, mul_add (unsym a), add_mul, ← add_assoc, ← add_assoc, ← sub_eq_zero, ← mul_sub,
-      add_sub_add_right_eq_sub, add_assoc, add_assoc, add_sub_add_left_eq_sub],
-    abel,
-    rw mul_zero,
+  left_distrib := λ a b c, match a, b, c with
+    | sym a, sym b, sym c := begin
+      rw [sym_mul_sym, sym_mul_sym, ←sym_add, sym_mul_sym, ←sym_add, mul_add a, add_mul _ _ a,
+        add_add_add_comm, mul_add],
+    end
   end,
-  right_distrib := λ a b c, begin
-    change ⅟2 * ((unsym a + unsym b) * unsym c + unsym c * (unsym a + unsym b)) =
-      ⅟2 *(unsym a * unsym c + unsym c * unsym a) + ⅟2 * (unsym b * unsym c + unsym c * unsym b),
-    rw [←mul_add, add_mul, mul_add (unsym c), ←add_assoc, ←add_assoc, ← sub_eq_zero, ← mul_sub,
-      add_sub_add_right_eq_sub, add_assoc, add_assoc, add_sub_add_left_eq_sub],
-    abel,
-    rw mul_zero,
+  right_distrib := λ a b c, match a, b, c with
+    | sym a, sym b, sym c := begin
+      rw [sym_mul_sym, sym_mul_sym, ←sym_add, sym_mul_sym, ←sym_add, mul_add c, add_mul _ _ c,
+        add_add_add_comm, mul_add],
+    end
   end,
   ..sym_alg.has_mul,
   ..sym_alg.add_comm_group, }

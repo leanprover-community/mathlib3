@@ -5,6 +5,7 @@ Authors: Yaël Dillies
 -/
 import data.sigma.lex
 import order.bounded_order
+import order.lexicographic
 
 /-!
 # Orders on a sigma type
@@ -15,10 +16,28 @@ This file defines two orders on a sigma type:
 * The lexicographical order. `a` is less than `b` if its summand is strictly less than the summand
   of `b` or they are in the same summand and `a` is less than `b` there.
 
-## Implementation notes
+We make the disjoint sum of orders the default set of instances. The lexicographic order goes on a
+type synonym.
 
-We declare the disjoint sum of orders as the default instances. The lexicographical order can
-override it in local by opening locale `lex`.
+## Notation
+
+* `Σₗ i, α i`: Sigma type equipped with the lexicographic order. Type synonym of `Σ i, α i`.
+
+## See also
+
+Related files are:
+* `data.finset.colex`: Colexicographic order on finite sets.
+* `data.list.lex`: Lexicographic order on lists.
+* `data.psigma.order`: Lexicographic order on `Σₗ' i, α i`. Basically a twin of this file.
+* `order.lexicographic`: Lexicographic order on `α × β`.
+
+## TODO
+
+Prove that a sigma type is a `no_max_order`, `no_min_order`, `densely_ordered` when its summands
+are.
+
+Upgrade `equiv.sigma_congr_left`, `equiv.sigma_congr`, `equiv.sigma_assoc`,
+`equiv.sigma_prod_of_equiv`, `equiv.sigma_equiv_prod`, ... to order isomorphisms.
 -/
 
 namespace sigma
@@ -51,23 +70,18 @@ instance [Π i, partial_order (α i)] : partial_order (Σ i, α i) :=
 
 namespace lex
 
-localized "attribute [-instance] sigma.has_le" in lex
-localized "attribute [-instance] sigma.preorder" in lex
-localized "attribute [-instance] sigma.partial_order" in lex
+notation `Σₗ` binders `, ` r:(scoped p, _root_.lex (sigma p)) := r
 
-/-- The lexicographical `≤` on a sigma type. Turn this on by opening locale `lex`. -/
-protected def has_le [has_lt ι] [Π i, has_le (α i)] : has_le (Σ i, α i) := ⟨lex (<) (λ i, (≤))⟩
+/-- The lexicographical `≤` on a sigma type. -/
+instance has_le [has_lt ι] [Π i, has_le (α i)] : has_le (Σₗ i, α i) := ⟨lex (<) (λ i, (≤))⟩
 
-/-- The lexicographical `<` on a sigma type. Turn this on by opening locale `lex`. -/
-protected def has_lt [has_lt ι] [Π i, has_lt (α i)] : has_lt (Σ i, α i) := ⟨lex (<) (λ i, (<))⟩
+/-- The lexicographical `<` on a sigma type. -/
+instance has_lt [has_lt ι] [Π i, has_lt (α i)] : has_lt (Σₗ i, α i) := ⟨lex (<) (λ i, (<))⟩
 
-localized "attribute [instance] sigma.lex.has_le" in lex
-localized "attribute [instance] sigma.lex.has_lt" in lex
-
-/-- The lexicographical preorder on a sigma type. Turn this on by opening locale `lex`. -/
-protected def preorder [preorder ι] [Π i, preorder (α i)] : preorder (Σ i, α i) :=
+/-- The lexicographical preorder on a sigma type. -/
+instance preorder [preorder ι] [Π i, preorder (α i)] : preorder (Σₗ i, α i) :=
 { le_refl := λ ⟨i, a⟩, lex.right a a le_rfl,
-  le_trans := λ _ _ _, trans,
+  le_trans := λ _ _ _, trans_of (lex (<) $ λ _, (≤)),
   lt_iff_le_not_le := begin
     refine λ a b, ⟨λ hab, ⟨hab.mono_right (λ i a b, le_of_lt), _⟩, _⟩,
     { rintro (⟨j, i, b, a, hji⟩ | ⟨i, b, a, hba⟩);
@@ -83,29 +97,23 @@ protected def preorder [preorder ι] [Π i, preorder (α i)] : preorder (Σ i, �
   .. lex.has_le,
   .. lex.has_lt }
 
-localized "attribute [instance] sigma.lex.preorder" in lex
-
-/-- The lexicographical partial order on a sigma type. Turn this on by opening locale `lex`. -/
-protected def partial_order [preorder ι] [Π i, partial_order (α i)] :
-  partial_order (Σ i, α i) :=
-{ le_antisymm := λ _ _, antisymm,
+/-- The lexicographical partial order on a sigma type. -/
+instance partial_order [preorder ι] [Π i, partial_order (α i)] :
+  partial_order (Σₗ i, α i) :=
+{ le_antisymm := λ _ _, antisymm_of (lex (<) $ λ _, (≤)),
   .. lex.preorder }
 
-localized "attribute [instance] sigma.lex.partial_order" in lex
-
-/-- The lexicographical linear order on a sigma type. Turn this on by opening locale `lex`. -/
-protected def linear_order [linear_order ι] [Π i, linear_order (α i)] :
-  linear_order (Σ i, α i) :=
-{ le_total := total_of _,
+/-- The lexicographical linear order on a sigma type. -/
+instance linear_order [linear_order ι] [Π i, linear_order (α i)] :
+  linear_order (Σₗ i, α i) :=
+{ le_total := total_of (lex (<) $ λ _, (≤)),
   decidable_eq := sigma.decidable_eq,
   decidable_le := lex.decidable _ _,
   .. lex.partial_order }
 
-localized "attribute [instance] sigma.lex.linear_order" in lex
-
-/-- The lexicographical linear order on a sigma type. Turn this on by opening locale `lex`. -/
-protected def order_bot [partial_order ι] [order_bot ι] [Π i, preorder (α i)] [order_bot (α ⊥)] :
-  order_bot (Σ i, α i) :=
+/-- The lexicographical linear order on a sigma type. -/
+instance order_bot [partial_order ι] [order_bot ι] [Π i, preorder (α i)] [order_bot (α ⊥)] :
+  order_bot (Σₗ i, α i) :=
 { bot := ⟨⊥, ⊥⟩,
   bot_le := λ ⟨a, b⟩, begin
     obtain rfl | ha := eq_bot_or_bot_lt a,
@@ -113,11 +121,9 @@ protected def order_bot [partial_order ι] [order_bot ι] [Π i, preorder (α i)
     { exact lex.left _ _ ha }
   end }
 
-localized "attribute [instance] sigma.lex.order_bot" in lex
-
-/-- The lexicographical linear order on a sigma type. Turn this on by opening locale `lex`. -/
-protected def order_top [partial_order ι] [order_top ι] [Π i, preorder (α i)] [order_top (α ⊤)] :
-  order_top (Σ i, α i) :=
+/-- The lexicographical linear order on a sigma type. -/
+instance order_top [partial_order ι] [order_top ι] [Π i, preorder (α i)] [order_top (α ⊤)] :
+  order_top (Σₗ i, α i) :=
 { top := ⟨⊤, ⊤⟩,
   le_top := λ ⟨a, b⟩, begin
     obtain rfl | ha := eq_top_or_lt_top a,
@@ -125,15 +131,11 @@ protected def order_top [partial_order ι] [order_top ι] [Π i, preorder (α i)
     { exact lex.left _ _ ha }
   end }
 
-localized "attribute [instance] sigma.lex.order_top" in lex
-
-/-- The lexicographical linear order on a sigma type. Turn this on by opening locale `lex`. -/
-protected def bounded_order [partial_order ι] [bounded_order ι] [Π i, preorder (α i)]
+/-- The lexicographical linear order on a sigma type. -/
+instance bounded_order [partial_order ι] [bounded_order ι] [Π i, preorder (α i)]
   [order_bot (α ⊥)] [order_top (α ⊤)] :
-  bounded_order (Σ i, α i) :=
+  bounded_order (Σₗ i, α i) :=
 { .. lex.order_bot, .. lex.order_top }
-
-localized "attribute [instance] sigma.lex.bounded_order" in lex
 
 end lex
 end sigma

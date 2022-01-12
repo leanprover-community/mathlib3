@@ -217,25 +217,22 @@ begin
   simp only [trans_assoc_reparam_aux, path.trans_apply, mul_inv_cancel_left₀, not_le,
              function.comp_app, ne.def, not_false_iff, bit0_eq_zero, one_ne_zero, mul_ite,
              subtype.coe_mk, path.coe_to_fun],
+  -- TODO: why does split_ifs not reduce the ifs??????
   split_ifs with h₁ h₂ h₃ h₄ h₅,
-  { simp only [one_div, subtype.coe_mk] at h₂,
-    simp [h₂, h₃] },
-  { exfalso,
-    simp only [subtype.coe_mk] at h₂,
-    linarith },
-  { exfalso,
-    simp only [subtype.coe_mk] at h₂,
-    linarith },
+  { simp [h₂, h₃, -one_div] },
+  { exfalso, linarith },
+  { exfalso, linarith },
   { have h : ¬ (x : ℝ) + 1/4 ≤ 1/2, by linarith,
     have h' : 2 * ((x : ℝ) + 1/4) - 1 ≤ 1/2, by linarith,
     have h'' : 2 * (2 * (x : ℝ)) - 1 = 2 * (2 * (↑x + 1/4) - 1), by linarith,
-    simp only [one_div, subtype.coe_mk] at h h' h'' h₂,
-    simp [h₁, h₂, h₄, h, h', h''] },
+    simp only [h₄, h₁, h, h', h'',
+      dif_neg (show ¬ false, from id), dif_pos true.intro, if_false, if_true] },
   { exfalso,
     linarith },
   { have h : ¬ (1 / 2 : ℝ) * (x + 1) ≤ 1/2, by linarith,
-    simp only [one_div] at h h₁,
-    simp [h₁, h₅, h] }
+    have h' : ¬ 2 * ((1 / 2 : ℝ) * (x + 1)) - 1 ≤ 1/2, by linarith,
+    simp only [h₁, h₅, h, h', if_false, dif_neg (show ¬ false, from id)],
+    congr, ring }
 end
 
 /--

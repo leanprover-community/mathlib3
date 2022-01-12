@@ -218,7 +218,7 @@ else or.inl $ tendsto_at_top_at_top_of_monotone' h_mono H
 
 lemma tendsto_iff_tendsto_subseq_of_monotone {ι₁ ι₂ α : Type*} [semilattice_sup ι₁] [preorder ι₂]
   [nonempty ι₁] [topological_space α] [conditionally_complete_linear_order α] [order_topology α]
-  [no_top_order α] {f : ι₂ → α} {φ : ι₁ → ι₂} {l : α} (hf : monotone f)
+  [no_max_order α] {f : ι₂ → α} {φ : ι₁ → ι₂} {l : α} (hf : monotone f)
   (hg : tendsto φ at_top at_top) :
   tendsto f at_top (𝓝 l) ↔ tendsto (f ∘ φ) at_top (𝓝 l) :=
 begin

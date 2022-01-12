@@ -182,7 +182,9 @@ begin
       exact H } },
   { intros R hX s hs x,
     erw [basic_open_eq_of_affine', prime_spectrum.basic_open_eq_bot_iff] at hs,
-    replace hs := (hs.map (Spec_Γ_identity.app R).inv).eq_zero,
+    replace hs := (hs.map (Spec_Γ_identity.app R).inv),
+    -- what the hell?!
+    replace hs := @is_nilpotent.eq_zero _ _ _ _ (show _, from _) hs,
     rw coe_hom_inv_id at hs,
     rw [hs, map_zero],
     exact @@is_reduced.component_reduced hX ⊤ }

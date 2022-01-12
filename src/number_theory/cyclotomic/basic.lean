@@ -300,7 +300,7 @@ lemma splitting_field_cyclotomic : is_splitting_field K L (cyclotomic n K) :=
     rw [← ((iff_adjoin_eq_top {n} K L).1 infer_instance).2],
     letI := classical.dec_eq L,
     obtain ⟨ζ, hζ⟩ := @is_cyclotomic_extension.exists_root {n} K L _ _ _ _ _ (mem_singleton n),
-    haveI : ne_zero ((n : ℕ) : L) := ne_zero.of_injective (algebra_map K L).injective,
+    haveI : ne_zero ((n : ℕ) : L) := ne_zero.nat_of_injective (algebra_map K L).injective,
     rw [aeval_def, eval₂_eq_eval_map, map_cyclotomic, ← is_root.def, is_root_cyclotomic_iff] at hζ,
     refine adjoin_roots_cyclotomic_eq_adjoin_nth_roots n hζ
   end }

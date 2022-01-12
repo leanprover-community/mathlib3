@@ -146,7 +146,7 @@ noncomputable def hom_of_path : Π {a : G}, path (root T) a → (root' T ⟶ a)
 | a (path.cons p f) := hom_of_path p ≫ sum.rec_on f.val (λ e, of e) (λ e, inv (of e))
 
 /-- For every vertex `a`, there is a canonical hom from the root, given by the path in the tree. -/
-def tree_hom (a : G) : root' T ⟶ a := hom_of_path T (default _)
+def tree_hom (a : G) : root' T ⟶ a := hom_of_path T default
 
 /-- Any path to `a` gives `tree_hom T a`, since paths in the tree are unique. -/
 lemma tree_hom_eq {a : G} (p : path (root T) a) : tree_hom T a = hom_of_path T p :=
@@ -166,8 +166,8 @@ lemma loop_of_hom_eq_id {a b : generators G} (e ∈ wide_subquiver_symmetrify T 
 begin
   rw [loop_of_hom, ←category.assoc, is_iso.comp_inv_eq, category.id_comp],
   cases H,
-  { rw [tree_hom_eq T (path.cons (default _) ⟨sum.inl e, H⟩), hom_of_path], refl },
-  { rw [tree_hom_eq T (path.cons (default _) ⟨sum.inr e, H⟩), hom_of_path],
+  { rw [tree_hom_eq T (path.cons default ⟨sum.inl e, H⟩), hom_of_path], refl },
+  { rw [tree_hom_eq T (path.cons default ⟨sum.inr e, H⟩), hom_of_path],
     simp only [is_iso.inv_hom_id, category.comp_id, category.assoc, tree_hom] }
 end
 

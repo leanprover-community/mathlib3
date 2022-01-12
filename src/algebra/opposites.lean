@@ -86,7 +86,7 @@ def op_equiv : α ≃ αᵐᵒᵖ := ⟨op, unop, unop_op, op_unop⟩
 variable (α)
 
 @[to_additive] instance [nontrivial α] : nontrivial αᵐᵒᵖ := op_injective.nontrivial
-@[to_additive] instance [inhabited α] : inhabited αᵐᵒᵖ := ⟨op (default α)⟩
+@[to_additive] instance [inhabited α] : inhabited αᵐᵒᵖ := ⟨op default⟩
 @[to_additive] instance [subsingleton α] : subsingleton αᵐᵒᵖ := unop_injective.subsingleton
 @[to_additive] instance [unique α] : unique αᵐᵒᵖ := unique.mk' _
 @[to_additive] instance [is_empty α] : is_empty αᵐᵒᵖ := function.is_empty unop

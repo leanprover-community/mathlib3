@@ -61,77 +61,6 @@ namespace is_self_adjoint
 -- move this
 instance [complete_space E] {T : E →ₗ[𝕜] E} (μ : 𝕜) : complete_space (eigenspace T μ) := sorry
 
-lemma biff {E : Type*} {ι : Type*} [normed_group E] [decidable_eq ι] {A : ι → Type*}
-  [Π (i : ι), normed_group (A i)] [Π (i : ι) (v : A i), decidable (v ≠ 0)]
-  (f : Π (i : ι), A i →+ E) (W₀ : Π₀ (i : ι), A i) :
-  has_sum (λ i, f i (W₀.sum (lp.single 2) i)) (W₀.sum (λ i, f i)) :=
-begin
-  refine @dfinsupp.induction ι A _ _ _ W₀ _ _,
-  { have H₁ := @dfinsupp.sum_zero_index ι (lp A 2) A _ _ _ _ (lp.single 2),
-    have H₂ := @dfinsupp.sum_zero_index ι E A _ _ _ _ (λ i, f i),
-    simp [H₁, H₂],
-    exact has_sum_zero, },
-  intros i a W hW ha hWf,
-  have H₁ := @dfinsupp.sum_add_index _ _ A _ _ _ _ (dfinsupp.single i a) W (lp.single 2) _ _,
-  have H₂ := @dfinsupp.sum_add_index _ _ A _ _ _ _ (dfinsupp.single i a) W (λ i, f i) _ _,
-  have H₃ := @dfinsupp.sum_single_index _ _ A _ _ _ _ i a (lp.single 2) _,
-  simp [H₁, H₂, H₃, dfinsupp.sum_single_index],
-  have H₄ : has_sum (λ j, f j (lp.single 2 i a j)) (f i a),
-  { convert has_sum_ite_eq i (f i a),
-    ext j,
-    split_ifs,
-    { subst h,
-      simp [lp.single_apply_pos] },
-    { simp [lp.single_apply_neg 2 i a h] } },
-  exact H₄.add hWf,
-  repeat { sorry } -- the rest amount to `f i` and `lp.single 2 i` being `add_monoid_hom`s
-end
-
-
-noncomputable
-def baz [complete_space E] {ι : Type*} {A : ι → Type*} [Π i, inner_product_space 𝕜 (A i)]
-  [Π i, complete_space (A i)] [Π i, Π v : A i, decidable (v ≠ 0)] {f : Π i, A i →ₗᵢ[𝕜] E}
-  (hf : orthogonal_family 𝕜 f) (hf' : (⨆ i, (f i).to_linear_map.range).topological_closure = ⊤) :
-  E ≃ₗᵢ[𝕜] lp A 2 :=
-linear_isometry_equiv.symm $
-linear_isometry_equiv.of_surjective
-hf.linear_isometry
-begin
-  refine linear_map.range_eq_top.mp _,
-  rw ← hf',
-  rw hf.range_linear_isometry,
-end
-
-lemma baz_symm_apply [complete_space E] {ι : Type*} {A : ι → Type*}
-  [Π i, inner_product_space 𝕜 (A i)]
-  [Π i, complete_space (A i)] [Π i, Π v : A i, decidable (v ≠ 0)] {f : Π i, A i →ₗᵢ[𝕜] E}
-  (hf : orthogonal_family 𝕜 f) (hf' : (⨆ i, (f i).to_linear_map.range).topological_closure = ⊤)
-  (w : lp A 2) :
-  (baz hf hf').symm w = ∑' i, f i (w i) :=
-by simp [baz, orthogonal_family.linear_isometry_apply]
-
-lemma has_sum_baz_symm [complete_space E] {ι : Type*} {A : ι → Type*}
-  [Π i, inner_product_space 𝕜 (A i)]
-  [Π i, complete_space (A i)] [Π i, Π v : A i, decidable (v ≠ 0)] {f : Π i, A i →ₗᵢ[𝕜] E}
-  (hf : orthogonal_family 𝕜 f) (hf' : (⨆ i, (f i).to_linear_map.range).topological_closure = ⊤)
-  (w : lp A 2) :
-  has_sum (λ i, f i (w i)) ((baz hf hf').symm w) :=
-sorry
-
-lemma foo [complete_space E] {ι : Type*} [decidable_eq ι] {A : ι → Type*}
-  [Π i, inner_product_space 𝕜 (A i)]
-  [Π i, complete_space (A i)] [Π i, Π v : A i, decidable (v ≠ 0)] {f : Π i, A i →ₗᵢ[𝕜] E}
-  (hf : orthogonal_family 𝕜 f) (hf' : (⨆ i, (f i).to_linear_map.range).topological_closure = ⊤)
-  (W : Π₀ i, A i) :
-  (baz hf hf') (W.sum (λ i v, f i v)) = W.sum (lp.single 2) :=
-begin
-  refine (baz hf hf').symm.injective _,
-  simp,
-  symmetry,
-  refine (has_sum_baz_symm hf hf' (W.sum (lp.single 2))).unique _,
-  convert biff (λ i, (f i).to_linear_map.to_add_monoid_hom) W,
-end
-
 variables {T : E →ₗ[𝕜] E} (hT : is_self_adjoint T)
 include hT
 
@@ -351,23 +280,27 @@ end
 /-- Isometry from a Hilbert space `E` to the Hilbert sum of the eigenspaces of some compact
 self-adjoint operator `T` on `E`. -/
 noncomputable def diagonalization' : E ≃ₗᵢ[𝕜] lp (λ μ, eigenspace T μ) 2 :=
-linear_isometry_equiv.symm $
-linear_isometry_equiv.of_surjective
-hT.orthogonal_family_eigenspaces.linear_isometry
-begin
-  refine linear_map.range_eq_top.mp _,
-  rw ← hT.supr_eigenspaces_dense hT_cpct,
-  rw hT.orthogonal_family_eigenspaces.range_linear_isometry,
-  simp,
+hT.orthogonal_family_eigenspaces.linear_isometry_equiv begin
+  convert hT.supr_eigenspaces_dense hT_cpct,
+  ext i,
+  simp
 end
 
 @[simp] lemma diagonalization_symm_apply' (w : lp (λ μ, eigenspace T μ) 2) :
   (hT.diagonalization' hT_cpct).symm w = ∑' μ, w μ :=
-by simp [diagonalization', orthogonal_family.linear_isometry_apply]
+orthogonal_family.linear_isometry_equiv_symm_apply _ _ _
 
 lemma has_sum_diagonalization_symm (w : lp (λ μ, eigenspace T μ) 2) :
   has_sum (λ μ, (w μ : E)) ((hT.diagonalization' hT_cpct).symm w) :=
-sorry
+orthogonal_family.has_sum_linear_isometry_equiv_symm  _ _ _
+
+@[simp] lemma diagonalization_apply_dfinsupp_sum_single [decidable_eq E]
+  (w : Π₀ μ, eigenspace T μ) :
+  (hT.diagonalization' hT_cpct (w.sum (λ i v, (v : E))) : Π μ, eigenspace T μ) = w :=
+begin
+  -- have := hT.orthogonal_family_eigenspaces.linear_isometry_equiv_apply_dfinsupp_sum_single _ w,
+  sorry -- why don't these match?
+end
 
 local attribute [-instance] char_p.subsingleton unique.subsingleton is_empty.subsingleton
 
@@ -390,7 +323,9 @@ begin
     let _i : add_comm_monoid (Π₀ ν, eigenspace T ν) :=
       @dfinsupp.add_comm_monoid _ (λ ν, eigenspace T ν) _,
     have : ∀ W : Π₀ ν, eigenspace T ν, F (W.sum eig_coe) μ = W μ,
-    { sorry }, -- this is `foo`
+    { intros W,
+      rw ← hT.diagonalization_apply_dfinsupp_sum_single hT_cpct W,
+      congr },
     simp,
     let f₁ : Π μ : 𝕜, eigenspace T μ → E := λ μ, T ∘ (coe : eigenspace T μ → E),
     let f₂ : Π μ : 𝕜, eigenspace T μ →ₗ[𝕜] eigenspace T μ := λ μ, μ • linear_map.id,
@@ -407,7 +342,6 @@ begin
     rw [this, this],
     simp }
 end
-
 
 end is_self_adjoint
 end inner_product_space

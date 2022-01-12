@@ -76,7 +76,9 @@ lemma to_outer_measure_apply' : p.to_outer_measure s = ↑(∑' (x : α), s.indi
 by simp only [ennreal.coe_tsum (nnreal.indicator_summable (summable_coe p) s),
   ennreal.coe_indicator, to_outer_measure_apply]
 
-lemma to_outer_measure_mono' {s t : set α} (h : s ∩ p.support ⊆ t) :
+/-- This is slightly stronger than `outer_measure.mono`,
+  since the hypothesis includes an intersection with `p.support` -/
+lemma to_outer_measure_mono {s t : set α} (h : s ∩ p.support ⊆ t) :
   p.to_outer_measure s ≤ p.to_outer_measure t :=
 begin
   rw [to_outer_measure_apply' p, to_outer_measure_apply' p, ennreal.coe_le_coe],
@@ -90,14 +92,10 @@ begin
   { exact (set.indicator_of_not_mem hxs p).symm ▸ (zero_le (t.indicator p x)) }
 end
 
-lemma to_outer_measure_mono {s t : set α} (h : s ⊆ t) :
-  p.to_outer_measure s ≤ p.to_outer_measure t :=
-to_outer_measure_mono' p (trans (set.inter_subset_left s p.support) h)
-
 lemma to_outer_measure_apply_eq_of_inter_support_eq {s t : set α}
   (h : s ∩ p.support = t ∩ p.support) : p.to_outer_measure s = p.to_outer_measure t :=
-le_antisymm (p.to_outer_measure_mono' (h.symm ▸ (set.inter_subset_left t p.support)))
-  (p.to_outer_measure_mono' (h ▸ (set.inter_subset_left s p.support)))
+le_antisymm (p.to_outer_measure_mono (h.symm ▸ (set.inter_subset_left t p.support)))
+  (p.to_outer_measure_mono (h ▸ (set.inter_subset_left s p.support)))
 
 lemma to_outer_measure_apply_inter_support :
   p.to_outer_measure (s ∩ p.support) = p.to_outer_measure s :=
@@ -180,13 +178,9 @@ lemma to_measure_apply' (hs : measurable_set s) :
 (p.to_measure_apply_eq_to_outer_measure_apply s hs).trans (p.to_outer_measure_apply' s)
 
 /-- To show that the measure of one set is less than another set,
-  It suffices to show that elements of `s` in `p.support` are also in `t`-/
-lemma to_measure_apply_mono' {s t : set α} (hs : measurable_set s) (ht : measurable_set t)
-  (hst : s ∩ p.support ⊆ t) : p.to_measure s ≤ p.to_measure t :=
-by simpa [to_measure_apply_eq_to_outer_measure_apply, hs, ht] using to_outer_measure_mono' p hst
-
+  It suffices to show that elements of `s` in `p.support` are also in `t`. -/
 lemma to_measure_apply_mono {s t : set α} (hs : measurable_set s) (ht : measurable_set t)
-  (hst : s ⊆ t) : p.to_measure s ≤ p.to_measure t :=
+  (hst : s ∩ p.support ⊆ t) : p.to_measure s ≤ p.to_measure t :=
 by simpa [to_measure_apply_eq_to_outer_measure_apply, hs, ht] using to_outer_measure_mono p hst
 
 /-- Two sets having the same intersection with the support of a `pmf` have the same measure -/

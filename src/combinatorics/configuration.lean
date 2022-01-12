@@ -301,8 +301,8 @@ let this := @has_lines.has_points (dual L) (dual P) _ _ _ _ h.symm in
 
 variables (P L)
 
-/-- A nondegenerate configuration satisfying `has_points`, `has_lines`, and an additional
-  nondegeneracy condition. -/
+/-- A projective plane is a nondegenerate configuration in which every pair of lines has
+  an intersection point, every pair of points has a line through them. -/
 class projective_plane extends nondegenerate P L : Type u :=
 (mk_point : ∀ {l₁ l₂ : L} (h : l₁ ≠ l₂), P)
 (mk_point_ax : ∀ {l₁ l₂ : L} (h : l₁ ≠ l₂), mk_point h ∈ l₁ ∧ mk_point h ∈ l₂)

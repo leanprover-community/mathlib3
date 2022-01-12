@@ -93,6 +93,20 @@ end
   factorization (p^k) = single p k :=
 by simp [factorization_pow, hp.factorization]
 
+/-- For any `p : ℕ` and any function `g : α → ℕ` that's positive on `S : finset α`,
+the power of `p` in `S.prod g` equals the sum over `x ∈ S` of the powers of `p` in `g x`.
+Generalises `factorization_mul`, which is the special case where `S.card = 2`. -/
+lemma factorization_prod {α : Type*} {S : finset α} {p : ℕ} {g : α → ℕ} (hS: ∀ x ∈ S, g x ≠ 0) :
+  (S.prod g).factorization = S.sum (λ x, (g x).factorization) :=
+begin
+  classical,
+  ext p,
+  apply finset.induction_on' S, { simp },
+  { intros x T hxS hTS hxT IH,
+    have hT : T.prod g ≠ 0 := prod_ne_zero_iff.mpr (λ x hx, hS x (hTS hx)),
+    simp [prod_insert hxT, sum_insert hxT, ←IH, factorization_mul (hS x hxS) hT] }
+end
+
 /-! ### Factorizations of pairs of coprime numbers -/
 
 /-- The prime factorizations of coprime `a` and `b` are disjoint -/
@@ -173,20 +187,6 @@ begin
   { rintro ⟨c, rfl⟩, rw factorization_mul hd (right_ne_zero_of_mul hn), simp },
 end
 
-/-- For any `p : ℕ` and any function `g : α → ℕ` that's positive on `S : finset α`,
-the power of `p` in `S.prod g` equals the sum over `x ∈ S` of the powers of `p` in `g x`.
-Generalises `factorization_mul`, which is the special case where `S.card = 2`. -/
-
-lemma factorization_prod {α : Type*} {S : finset α} {p : ℕ} {g : α → ℕ} (hS: ∀ x ∈ S, 0 < g x) :
-  (S.prod g).factorization p = S.sum (λ x, (g x).factorization p) :=
-begin
-  simp only [factorization_eq_count],
-  classical,
-  apply finset.induction_on' S, { simp },
-  { intros x T hxS hTS hxT IH,
-    rw [prod_insert hxT, sum_insert hxT, ←IH],
-    exact count_factors_mul_of_pos (hS x hxS) (finset.prod_pos (λ a ha, hS a (hTS ha))) },
-end
 
 
 end nat

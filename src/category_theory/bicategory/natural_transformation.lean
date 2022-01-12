@@ -1,5 +1,5 @@
  /-
-Copyright (c) 2021 Yuma Mizuno. All rights reserved.
+Copyright (c) 2022 Yuma Mizuno. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yuma Mizuno
 -/
@@ -8,37 +8,35 @@ import category_theory.bicategory.functor
 /-!
 # Oplax natural transformations
 
-Just as there are natural transformations between functors, there are oplax natural
-transformations between oplax functors. The equality in the naturality of natural
-transformations is replaced by a specified isomorphism
-`F.map f ≫ app b ≅ app a ≫ G.map f`
-in the case of oplax natural transformations.
+Just as there are natural transformations between functors, there are oplax natural transformations
+between oplax functors. The equality in the naturality of natural transformations is replaced by a
+specified 2-morphism `F.map f ≫ app b ⟶ app a ≫ G.map f` in the case of oplax natural
+transformations.
 
 ## Main definitions
 
 * `oplax_nat_trans F G` : an oplax natural transformation between oplax functors `F` and `G`
-* `oplax_nat_trans.vcomp η θ` : the vertical composition of oplax natural transformations
-  `η` and `θ`
+* `oplax_nat_trans.vcomp η θ` : the vertical composition of oplax natural transformations `η`
+  and `θ`
 * `oplax_nat_trans.category F G` : the category structure on the oplax natural transformations
   between `F` and `G`
 -/
 
 namespace category_theory
 
-universes w₁ w₂ v₁ v₂ u₁ u₂
-
 open category bicategory
 open_locale bicategory
 
-variables
-{B : Type u₁} [bicategory.{w₁ v₁} B]
-{C : Type u₂} [bicategory.{w₂ v₂} C]
+universes w₁ w₂ v₁ v₂ u₁ u₂
+
+variables {B : Type u₁} [bicategory.{w₁ v₁} B] {C : Type u₂} [bicategory.{w₂ v₂} C]
 
 /--
 If `η` is an oplax natural transformation between `F` and `G`, we have a 1-morphism
-`η.app a : F.obj a ⟶ G.obj a` for each object `a : B`. We also have an isomorphism
-`η.naturality f : F.map f ≫ app b ≅ app a ≫ G.map f` for each 1-morphisms `f : a ⟶ b`.
-This family of isomorphisms satisfies certain equations.
+`η.app a : F.obj a ⟶ G.obj a` for each object `a : B`. We also have a 2-morphism
+`η.naturality f : F.map f ≫ app b ⟶ app a ≫ G.map f` for each 1-morphism `f : a ⟶ b`.
+These 2-morphisms satisfies the naturality condition, and preserve the identities and
+the compositions modulo some adjustments of domains and codomains of 2-morphisms.
 -/
 structure oplax_nat_trans (F G : oplax_functor B C) :=
 (app (a : B) : F.obj a ⟶ G.obj a)
@@ -46,8 +44,7 @@ structure oplax_nat_trans (F G : oplax_functor B C) :=
 (naturality_naturality' : ∀ {a b : B} {f g : a ⟶ b} (η : f ⟶ g),
   (F.map₂ η ▷ _) ≫ naturality g = naturality f ≫ (_ ◁ G.map₂ η) . obviously)
 (naturality_id' : ∀ a : B,
-  naturality (𝟙 a) ≫ (_ ◁ G.map_id a) = (F.map_id a ▷ _) ≫ (λ_ _).hom  ≫ (ρ_ _).inv
-    . obviously)
+  naturality (𝟙 a) ≫ (_ ◁ G.map_id a) = (F.map_id a ▷ _) ≫ (λ_ _).hom ≫ (ρ_ _).inv . obviously)
 (naturality_comp' : ∀ {a b c : B} (f : a ⟶ b) (g : b ⟶ c),
   naturality (f ≫ g) ≫ (_ ◁ (G.map_comp f g)) =
     (F.map_comp f g ▷ _) ≫ (α_ _ _ _).hom ≫ (_ ◁ naturality g) ≫ (α_ _ _ _).inv ≫
@@ -108,7 +105,7 @@ lemma whisker_left_naturality_comp (f : a' ⟶ G.obj a) (g : a ⟶ b) (h : b ⟶
 by { simp only [←whisker_left_comp], rw naturality_comp }
 
 @[simp, reassoc]
-lemma whisker_right_naturality_comp (f : a ⟶ b) (g : b ⟶ c) (h : G.obj c ⟶ a')  :
+lemma whisker_right_naturality_comp (f : a ⟶ b) (g : b ⟶ c) (h : G.obj c ⟶ a') :
   (η.naturality (f ≫ g) ▷ h) ≫ ((_ ◁ G.map_comp f g) ▷ h) =
     ((F.map_comp f g ▷ _) ▷ h) ≫ ((α_ _ _ _).hom ▷ h) ≫
       ((_ ◁ η.naturality g) ▷ h) ≫ ((α_ _ _ _).inv ▷ h) ≫
@@ -118,12 +115,12 @@ by { simp only [←whisker_right_comp], rw naturality_comp }
 @[simp, reassoc]
 lemma whisker_left_naturality_id (f : a' ⟶ G.obj a) :
   (f ◁ θ.naturality (𝟙 a)) ≫ (f ◁ (_ ◁ H.map_id a)) =
-    (f ◁ (G.map_id a ▷ _)) ≫ (f ◁ (λ_ _).hom) ≫ (f ◁ (ρ_ _).inv) :=
+    (f ◁ G.map_id a ▷ _) ≫ (f ◁ (λ_ _).hom) ≫ (f ◁ (ρ_ _).inv) :=
 by { simp only [←whisker_left_comp], rw naturality_id }
 
 @[simp, reassoc]
 lemma whisker_right_naturality_id (f : G.obj a ⟶ a') :
-  ((η.naturality (𝟙 a)) ▷ f)≫ ((_ ◁ (G.map_id a)) ▷ f) =
+  (η.naturality (𝟙 a) ▷ f) ≫ ((_ ◁ G.map_id a) ▷ f) =
     ((F.map_id a ▷ _) ▷ f) ≫ ((λ_ _).hom ▷ f) ≫ ((ρ_ _).inv ▷ f) :=
 by { simp only [←whisker_right_comp], rw naturality_id }
 
@@ -171,17 +168,17 @@ variables {F G : oplax_functor B C}
 /--
 A modification `Γ` between oplax natural transformations `η` and `θ` consists of a family of
 2-morphisms `Γ.app a : η.app a ⟶ θ.app a`, which satisfies the equation
-`(F.map f ◁ app b) ≫ (θ.naturality f).hom = (η.naturality f).hom ≫ (app a ▷ G.map f)`
+`(F.map f ◁ app b) ≫ θ.naturality f = η.naturality f ≫ (app a ▷ G.map f)`
 for each 1-morphism `f : a ⟶ b`.
 -/
 @[ext]
 structure modification (η θ : oplax_nat_trans F G) :=
 (app (a : B) : η.app a ⟶ θ.app a)
 (naturality' : ∀ {a b : B} (f : a ⟶ b),
-  (F.map f ◁ app b) ≫ (θ.naturality f) = (η.naturality f) ≫ (app a ▷ G.map f) . obviously)
+  (F.map f ◁ app b) ≫ θ.naturality f = η.naturality f ≫ (app a ▷ G.map f) . obviously)
 
 restate_axiom modification.naturality'
-attribute [reassoc] modification.naturality
+attribute [simp, reassoc] modification.naturality
 
 namespace modification
 
@@ -198,18 +195,16 @@ variables {η} {θ ι : oplax_nat_trans F G}
 /-- Vertical composition of modifications. -/
 @[simps]
 def vcomp (Γ : modification η θ) (Δ : modification θ ι) : modification η ι :=
-{ app := λ a, Γ.app a ≫ Δ.app a,
-  naturality' := λ a b f, by
-  { simp only [naturality_assoc, naturality, whisker_right_comp, assoc, whisker_left_comp] } }
+{ app := λ a, Γ.app a ≫ Δ.app a }
 
 end modification
 
 /-- Category structure on the oplax natural transformations between oplax_functors. -/
 @[simps]
 instance category (F G : oplax_functor B C) : category (oplax_nat_trans F G) :=
-{ hom   := modification,
-  id    := modification.id,
-  comp  := λ η θ ι, modification.vcomp }
+{ hom  := modification,
+  id   := modification.id,
+  comp := λ η θ ι, modification.vcomp }
 
 end
 

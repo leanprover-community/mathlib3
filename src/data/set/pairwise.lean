@@ -71,6 +71,9 @@ lemma pairwise.mono (h : t ⊆ s) (hs : s.pairwise r) : t.pairwise r :=
 
 lemma pairwise.mono' (H : r ≤ p) (hr : s.pairwise r) : s.pairwise p := hr.imp H
 
+protected lemma pairwise.eq (hs : s.pairwise r) (ha : a ∈ s) (hb : b ∈ s) (h : ¬ r a b) : a = b :=
+of_not_not $ λ hab, h $ hs ha hb hab
+
 lemma pairwise_top (s : set α) : s.pairwise ⊤ := pairwise_of_forall s _ (λ a b, trivial)
 
 protected lemma subsingleton.pairwise (h : s.subsingleton) (r : α → α → Prop) :
@@ -272,7 +275,7 @@ pairwise_sUnion h
 lemma pairwise_disjoint.elim (hs : s.pairwise_disjoint f) {i j : ι} (hi : i ∈ s) (hj : j ∈ s)
   (h : ¬ disjoint (f i) (f j)) :
   i = j :=
-of_not_not $ λ hij, h $ hs hi hj hij
+hs.eq hi hj h
 
 -- classical
 lemma pairwise_disjoint.elim' (hs : s.pairwise_disjoint f) {i j : ι} (hi : i ∈ s) (hj : j ∈ s)

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
 import data.set.pairwise
+import order.ideal
 
 /-!
 # Antichains
@@ -18,7 +19,7 @@ relation is `G.adj` for `G : simple_graph α`, this corresponds to independent s
 * `is_antichain.mk r s`: Turns `s` into an antichain by keeping only the "maximal" elements.
 -/
 
-open function set
+open function order set
 
 variables {α β : Type*} {r r₁ r₂ : α → α → Prop} {r' : β → β → Prop} {s t : set α} {a : α}
 
@@ -54,7 +55,7 @@ begin
   obtain hab | hab | hab := trichotomous_of r a b,
   { exact h.eq_of_related ha hb hab },
   { exact hab },
-  { exact (h.eq_of_related hb ha hab).symm }
+  { exact h.eq_of_related' ha hb hab }
 end
 
 protected lemma flip (hs : is_antichain r s) : is_antichain (flip r) s :=
@@ -95,4 +96,78 @@ lemma insert_of_symmetric (hs : is_antichain r s) (hr : symmetric r)
 end is_antichain
 
 lemma set.subsingleton.is_antichain (hs : s.subsingleton) (r : α → α → Prop): is_antichain r s :=
+hs.pairwise _
+
+section preorder
+variables [preorder α]
+
+def ideal_equiv_antichain : ideal α ≃ {s : set α // is_antichain (≤) s} :=
+sorry
+
+
+end preorder
+
+/-! ### Strong antichains -/
+
+/-- An antichain is a set such that no two distinct elements are related. -/
+def is_strong_antichain (r : α → α → Prop) (s : set α) : Prop :=
+s.pairwise $ λ a b, ∀ c, ¬ r a c ∨ ¬ r b c
+
+namespace is_strong_antichain
+
+protected lemma subset (hs : is_strong_antichain r s) (h : t ⊆ s) : is_strong_antichain r t :=
+hs.mono h
+
+lemma mono (hs : is_strong_antichain r₁ s) (h : r₂ ≤ r₁) : is_strong_antichain r₂ s :=
+hs.mono' $ λ a b hab c, (hab c).imp (compl_le_compl h _ _) (compl_le_compl h _ _)
+
+lemma eq (hs : is_strong_antichain r s) {a b c : α} (ha : a ∈ s) (hb : b ∈ s) (hac : r a c)
+  (hbc : r b c) :
+  a = b :=
+hs.eq ha hb $ λ h, false.elim $ (h c).elim (not_not_intro hac) (not_not_intro hbc)
+
+protected lemma is_antichain [is_refl α r] (h : is_strong_antichain r s) : is_antichain r s :=
+h.imp $ λ a b hab, (hab b).resolve_right (not_not_intro $ refl _)
+
+protected lemma subsingleton [is_directed α r] (h : is_strong_antichain r s) : s.subsingleton :=
+begin
+  rintro a ha b hb,
+  obtain ⟨c, hac, hbc⟩ := directed_of r a b,
+  exact h.eq ha hb hac hbc,
+end
+
+protected lemma flip [is_symm α r] (hs : is_strong_antichain r s) :
+  is_strong_antichain (flip r) s :=
+λ a ha b hb h c, (hs ha hb h c).imp (mt $ symm_of r) (mt $ symm_of r)
+
+lemma swap [is_symm α r] (hs : is_strong_antichain r s) : is_strong_antichain (swap r) s := hs.flip
+
+lemma image (hs : is_strong_antichain r s) {f : α → β} (hf : surjective f)
+  (h : ∀ a b, r' (f a) (f b) → r a b) :
+  is_strong_antichain r' (f '' s) :=
+begin
+  rintro _ ⟨a, ha, rfl⟩ _ ⟨b, hb, rfl⟩ hab c,
+  obtain ⟨c, rfl⟩ := hf c,
+  exact (hs ha hb (ne_of_apply_ne _ hab) _).imp (mt $ h _ _) (mt $ h _ _),
+end
+
+lemma preimage (hs : is_strong_antichain r s) {f : β → α} (hf : injective f)
+  (h : ∀ a b, r' a b → r (f a) (f b)) :
+  is_strong_antichain r' (f ⁻¹' s) :=
+λ a ha b hb hab c, (hs ha hb (hf.ne hab) _).imp (mt $ h _ _) (mt $ h _ _)
+
+lemma _root_.is_strong_antichain_insert :
+  is_strong_antichain r (insert a s) ↔ is_strong_antichain r s ∧
+    ∀ ⦃b⦄, b ∈ s → a ≠ b → ∀ c, ¬ r a c ∨ ¬ r b c :=
+set.pairwise_insert_of_symmetric $ λ a b h c, (h c).symm
+
+protected lemma insert (hs : is_strong_antichain r s)
+  (h : ∀ ⦃b⦄, b ∈ s → a ≠ b → ∀ c, ¬ r a c ∨ ¬ r b c) :
+  is_strong_antichain r (insert a s) :=
+is_strong_antichain_insert.2 ⟨hs, h⟩
+
+end is_strong_antichain
+
+lemma set.subsingleton.is_strong_antichain (hs : s.subsingleton) (r : α → α → Prop) :
+  is_strong_antichain r s :=
 hs.pairwise _

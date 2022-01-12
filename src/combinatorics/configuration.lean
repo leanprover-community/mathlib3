@@ -301,4 +301,37 @@ let this := @has_lines.has_points (dual L) (dual P) _ _ _ _ h.symm in
 { mk_line := this.mk_point,
   mk_line_ax := this.mk_point_ax }
 
+variables (P L)
+
+/-- A nondegenerate configuration satisfying `has_points`, `has_lines`, and an additional
+  nondegeneracy condition. -/
+class projective_plane extends nondegenerate P L : Type u :=
+(mk_point : ∀ {l₁ l₂ : L} (h : l₁ ≠ l₂), P)
+(mk_point_ax : ∀ {l₁ l₂ : L} (h : l₁ ≠ l₂), mk_point h ∈ l₁ ∧ mk_point h ∈ l₂)
+(mk_line : ∀ {p₁ p₂ : P} (h : p₁ ≠ p₂), L)
+(mk_line_ax : ∀ {p₁ p₂ : P} (h : p₁ ≠ p₂), p₁ ∈ mk_line h ∧ p₂ ∈ mk_line h)
+(exists_config : ∃ (p₁ p₂ p₃ : P) (l₁ l₂ l₃ : L), p₁ ∈ l₁ ∧ p₁ ∉ l₂ ∧ p₁ ∉ l₃ ∧
+  p₂ ∉ l₁ ∧ p₂ ∈ l₂ ∧ p₂ ∈ l₃ ∧ p₃ ∉ l₁ ∧ p₃ ∈ l₂ ∧ p₃ ∉ l₃)
+
+namespace projective_plane
+
+@[priority 100] -- see Note [lower instance priority]
+instance has_points [h : projective_plane P L] : has_points P L := { .. h }
+
+@[priority 100] -- see Note [lower instance priority]
+instance has_lines [h : projective_plane P L] : has_lines P L := { .. h }
+
+instance [projective_plane P L] : projective_plane (dual L) (dual P) :=
+{ mk_line := @mk_point P L _ _,
+  mk_line_ax := λ _ _, mk_point_ax,
+  mk_point := @mk_line P L _ _,
+  mk_point_ax := λ _ _, mk_line_ax,
+  exists_config := by
+  { obtain ⟨p₁, p₂, p₃, l₁, l₂, l₃, h₁₁, h₁₂, h₁₃, h₂₁, h₂₂, h₂₃, h₃₁, h₃₂, h₃₃⟩ :=
+    @exists_config P L _ _,
+    exact ⟨l₁, l₂, l₃, p₁, p₂, p₃, h₁₁, h₂₁, h₃₁, h₁₂, h₂₂, h₃₂, h₁₃, h₂₃, h₃₃⟩ },
+  .. dual.nondegenerate P L }
+
+end projective_plane
+
 end configuration

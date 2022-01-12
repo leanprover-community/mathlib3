@@ -314,16 +314,16 @@ instance [nonempty α] [nontrivial M] : nontrivial (α →₀ M) :=
 begin
   inhabit α,
   rcases exists_ne (0 : M) with ⟨x, hx⟩,
-  exact nontrivial_of_ne (single (default α) x) 0 (mt single_eq_zero.1 hx)
+  exact nontrivial_of_ne (single default x) 0 (mt single_eq_zero.1 hx)
 end
 
-lemma unique_single [unique α] (x : α →₀ M) : x = single (default α) (x (default α)) :=
+lemma unique_single [unique α] (x : α →₀ M) : x = single default (x default) :=
 ext $ unique.forall_iff.2 single_eq_same.symm
 
-lemma unique_ext [unique α] {f g : α →₀ M} (h : f (default α) = g (default α)) : f = g :=
+lemma unique_ext [unique α] {f g : α →₀ M} (h : f default = g default) : f = g :=
 ext $ λ a, by rwa [unique.eq_default a]
 
-lemma unique_ext_iff [unique α] {f g : α →₀ M} : f = g ↔  f (default α) = g (default α) :=
+lemma unique_ext_iff [unique α] {f g : α →₀ M} : f = g ↔  f default = g default :=
 ⟨λ h, h ▸ rfl, unique_ext⟩
 
 @[simp] lemma unique_single_eq_iff [unique α] {b' : M} :
@@ -2294,6 +2294,12 @@ variables {α M} {R}
 lemma support_smul {_ : monoid R} [add_monoid M] [distrib_mul_action R M] {b : R} {g : α →₀ M} :
   (b • g).support ⊆ g.support :=
 λ a, by { simp only [smul_apply, mem_support_iff, ne.def], exact mt (λ h, h.symm ▸ smul_zero _) }
+
+@[simp]
+lemma support_smul_eq [semiring R] [add_comm_monoid M] [module R M]
+  [no_zero_smul_divisors R M] {b : R} (hb : b ≠ 0) {g : α →₀ M} :
+  (b • g).support = g.support :=
+finset.ext (λ a, by simp [finsupp.smul_apply, hb])
 
 section
 

@@ -627,23 +627,23 @@ have acc_bot : acc ((<) : with_bot α → with_bot α → Prop) ⊥ :=
   from λ b ih hba, acc.intro _ (λ c, option.rec_on c (λ _, acc_bot)
     (λ c hc, ih _ (some_lt_some.1 hc) (lt_trans hc hba)))))))⟩
 
-instance densely_ordered [has_lt α] [densely_ordered α] [no_bot_order α] :
+instance densely_ordered [has_lt α] [densely_ordered α] [no_min_order α] :
   densely_ordered (with_bot α) :=
 ⟨ λ a b,
   match a, b with
   | a,      none   := λ h : a < ⊥, (not_lt_none _ h).elim
-  | none,   some b := λ h, let ⟨a, ha⟩ := no_bot b in ⟨a, bot_lt_coe a, coe_lt_coe.2 ha⟩
+  | none,   some b := λ h, let ⟨a, ha⟩ := exists_lt b in ⟨a, bot_lt_coe a, coe_lt_coe.2 ha⟩
   | some a, some b := λ h, let ⟨a, ha₁, ha₂⟩ := exists_between (coe_lt_coe.1 h) in
     ⟨a, coe_lt_coe.2 ha₁, coe_lt_coe.2 ha₂⟩
   end⟩
 
-instance {α : Type*} [has_lt α] [no_top_order α] [nonempty α] : no_top_order (with_bot α) :=
+instance [has_lt α] [no_max_order α] [nonempty α] : no_max_order (with_bot α) :=
 ⟨begin
   apply with_bot.rec_bot_coe,
   { apply ‹nonempty α›.elim,
     exact λ a, ⟨a, with_bot.bot_lt_coe a⟩, },
   { intro a,
-    obtain ⟨b, ha⟩ := no_top a,
+    obtain ⟨b, ha⟩ := exists_gt a,
     exact ⟨b, with_bot.coe_lt_coe.mpr ha⟩, }
 end⟩
 
@@ -874,29 +874,29 @@ have acc_some : ∀ a : α, acc ((<) : with_top α → with_top α → Prop) (so
 ⟨λ a, option.rec_on a (acc.intro _ (λ y, option.rec_on y (λ h, (lt_irrefl _ h).elim)
   (λ _ _, acc_some _))) acc_some⟩
 
-instance densely_ordered [has_lt α] [densely_ordered α] [no_top_order α] :
+instance densely_ordered [has_lt α] [densely_ordered α] [no_max_order α] :
   densely_ordered (with_top α) :=
 ⟨ λ a b,
   match a, b with
   | none,   a   := λ h : ⊤ < a, (not_none_lt _ h).elim
-  | some a, none := λ h, let ⟨b, hb⟩ := no_top a in ⟨b, coe_lt_coe.2 hb, coe_lt_top b⟩
+  | some a, none := λ h, let ⟨b, hb⟩ := exists_gt a in ⟨b, coe_lt_coe.2 hb, coe_lt_top b⟩
   | some a, some b := λ h, let ⟨a, ha₁, ha₂⟩ := exists_between (coe_lt_coe.1 h) in
     ⟨a, coe_lt_coe.2 ha₁, coe_lt_coe.2 ha₂⟩
   end⟩
 
-lemma lt_iff_exists_coe_btwn [partial_order α] [densely_ordered α] [no_top_order α]
+lemma lt_iff_exists_coe_btwn [partial_order α] [densely_ordered α] [no_max_order α]
   {a b : with_top α} :
   (a < b) ↔ (∃ x : α, a < ↑x ∧ ↑x < b) :=
 ⟨λ h, let ⟨y, hy⟩ := exists_between h, ⟨x, hx⟩ := lt_iff_exists_coe.1 hy.2 in ⟨x, hx.1 ▸ hy⟩,
  λ ⟨x, hx⟩, lt_trans hx.1 hx.2⟩
 
-instance {α : Type*} [has_lt α] [no_bot_order α] [nonempty α] : no_bot_order (with_top α) :=
+instance [has_lt α] [no_min_order α] [nonempty α] : no_min_order (with_top α) :=
 ⟨begin
   apply with_top.rec_top_coe,
   { apply ‹nonempty α›.elim,
     exact λ a, ⟨a, with_top.coe_lt_top a⟩, },
   { intro a,
-    obtain ⟨b, ha⟩ := no_bot a,
+    obtain ⟨b, ha⟩ := exists_lt a,
     exact ⟨b, with_top.coe_lt_coe.mpr ha⟩, }
 end⟩
 

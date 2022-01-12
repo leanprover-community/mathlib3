@@ -44,7 +44,7 @@ open_locale big_operators
 structure linear_recurrence (α : Type*) [comm_semiring α] := (order : ℕ) (coeffs : fin order → α)
 
 instance (α : Type*) [comm_semiring α] : inhabited (linear_recurrence α) :=
-⟨⟨0, default _⟩⟩
+⟨⟨0, default⟩⟩
 
 namespace linear_recurrence
 

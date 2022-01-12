@@ -26,6 +26,13 @@ This lemma matches the lemmas from lean core in `init.algebra.classes`, but is m
 @[elab_simple]
 lemma antisymm_of (r : α → α → Prop) [is_antisymm α r] {a b : α} : r a b → r b a → a = b := antisymm
 
+lemma comm [is_symm α r] {a b : α} : r a b ↔ r b a := ⟨symm, symm⟩
+
+/-- A version of `comm` with `r` explicit.
+
+This lemma matches the lemmas from lean core in `init.algebra.classes`, but is missing there.  -/
+lemma comm_of (r : α → α → Prop) [is_symm α r] {a b : α} : r a b ↔ r b a := comm
+
 theorem is_refl.swap (r) [is_refl α r] : is_refl α (swap r) := ⟨refl_of r⟩
 theorem is_irrefl.swap (r) [is_irrefl α r] : is_irrefl α (swap r) := ⟨irrefl_of r⟩
 theorem is_trans.swap (r) [is_trans α r] : is_trans α (swap r) :=

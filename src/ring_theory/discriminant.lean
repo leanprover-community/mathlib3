@@ -25,7 +25,7 @@ Given an `A`-algebra `B` and `b`, an `ι`-indexed family of elements of `B`, we 
 * `algebra.discr_of_matrix_vec_mul` and `discr_of_matrix_mul_vec` : formulas relating
   `algebra.discr A ι b` with `algebra.discr A ((P.map (algebra_map A B)).vec_mul b)` and
   `algebra.discr A ((P.map (algebra_map A B)).mul_vec b)`.
-* `algebra.discr_not_zero_of_linear_independent` : over a field, if `b` is linear independent, then
+* `algebra.discr_not_zero_of_basis` : over a field, if `b` is a basis, then
   `algebra.discr K b ≠ 0`.
 * `algebra.discr_eq_det_embeddings_matrix_reindex_pow_two` : if `L/K` is a field extension and
   `b : ι → L`, then `discr K b` is the square of the determinant of the matrix whose `(i, j)`
@@ -105,19 +105,23 @@ section field
 variables (K : Type u) {L : Type v} (E : Type z) [field K] [field L] [field E]
 variables [algebra K L] [algebra K E]
 variables [module.finite K L] [is_separable K L] [is_alg_closed E]
-variables (b : ι → L) (pb : power_basis K L)
 
-/-- Over a field, if `b` is linear independent, then `algebra.discr K b ≠ 0`. -/
-lemma discr_not_zero_of_linear_independent [nonempty ι]
-  (hcard : fintype.card ι = finrank K L) (hli : linear_independent K b) : discr K b ≠ 0 :=
+/-- Over a field, if `b` is a basis, then `algebra.discr K b ≠ 0`. -/
+lemma discr_not_zero_of_basis (b : basis ι K L) : discr K b ≠ 0 :=
 begin
-  classical,
-  have := span_eq_top_of_linear_independent_of_card_eq_finrank hli hcard,
-  rw [discr_def, trace_matrix_def],
-  simp_rw [← basis.mk_apply hli this],
-  rw [← trace_matrix_def, trace_matrix_of_basis, ← bilin_form.nondegenerate_iff_det_ne_zero],
-  exact trace_form_nondegenerate _ _
+  by_cases h : nonempty ι,
+  { classical,
+    have := span_eq_top_of_linear_independent_of_card_eq_finrank b.linear_independent
+      (finrank_eq_card_basis b).symm,
+    rw [discr_def, trace_matrix_def],
+    simp_rw [← basis.mk_apply b.linear_independent this],
+    rw [← trace_matrix_def, trace_matrix_of_basis, ← bilin_form.nondegenerate_iff_det_ne_zero],
+    exact trace_form_nondegenerate _ _  },
+  letI := not_nonempty_iff.1 h,
+  simp [discr],
 end
+
+variables (b : ι → L) (pb : power_basis K L)
 
 /-- If `L/K` is a field extension and `b : ι → L`, then `discr K b` is the square of the
 determinant of the matrix whose `(i, j)` coefficient is `σⱼ (b i)`, where `σⱼ : L →ₐ[K] E` is the

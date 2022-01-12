@@ -437,5 +437,5 @@ lemma add_torsor.subsingleton_iff (G P : Type*) [add_group G] [add_torsor G P] :
   subsingleton G ↔ subsingleton P :=
 begin
   inhabit P,
-  exact (equiv.vadd_const (default P)).subsingleton_congr,
+  exact (equiv.vadd_const default).subsingleton_congr,
 end

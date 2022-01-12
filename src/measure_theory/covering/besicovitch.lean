@@ -124,7 +124,7 @@ class has_besicovitch_covering (α : Type*) [metric_space α] : Prop :=
 /-- There is always a satellite configuration with a single point. -/
 instance {α : Type*} {τ : ℝ} [inhabited α] [metric_space α] :
   inhabited (besicovitch.satellite_config α 0 τ) :=
-⟨{ c := λ i, default α,
+⟨{ c := λ i, default,
   r := λ i, 1,
   rpos := λ i, zero_lt_one,
   h := λ i j hij, (hij (subsingleton.elim i j)).elim,
@@ -475,7 +475,7 @@ begin
         using p.mem_Union_up_to_last_step b,
     simp only [exists_prop, mem_Union, mem_ball, mem_singleton_iff, bUnion_and', exists_eq_left,
       Union_exists, exists_and_distrib_left],
-    exact ⟨⟨p.color a, p.color_lt ha.1 hN⟩, p.index a, ⟨a, rfl, ha.1, rfl⟩, ha.2⟩ }
+    exact ⟨⟨p.color a, p.color_lt ha.1 hN⟩, a, rfl, ha⟩ }
 end
 
 /-!

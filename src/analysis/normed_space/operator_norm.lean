@@ -14,7 +14,7 @@ Define the operator norm on the space of continuous (semi)linear maps between no
 prove its basic properties. In particular, show that this space is itself a normed space.
 
 Since a lot of elementary properties don't require `∥x∥ = 0 → x = 0` we start setting up the
-theory for `normed_space` and we specialize to `normed_space` at the end.
+theory for `semi_normed_group` and we specialize to `normed_group` at the end.
 
 Note that most of statements that apply to semilinear maps only hold when the ring homomorphism
 is isometric, as expressed by the typeclass `[ring_hom_isometric σ]`.

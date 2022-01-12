@@ -94,7 +94,7 @@ add_decl_doc linear_map.to_add_hom
 
 notation M ` →ₛₗ[`:25 σ:25 `] `:0 M₂:0 := linear_map σ M M₂
 notation M ` →ₗ[`:25 R:25 `] `:0 M₂:0 := linear_map (ring_hom.id R) M M₂
-notation M ` →ₗ⋆[`:25 R:25 `] `:0 M₂:0 := linear_map (@star_ring_aut R _ _ : R →+* R) M M₂
+notation M ` →ₗ⋆[`:25 R:25 `] `:0 M₂:0 := linear_map (star_ring_aut R : R →+* R) M M₂
 
 namespace linear_map
 

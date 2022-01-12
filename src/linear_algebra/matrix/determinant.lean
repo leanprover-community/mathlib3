@@ -286,7 +286,7 @@ f.to_alg_hom.map_det _
 end hom_map
 
 @[simp] lemma det_conj_transpose [star_ring R] (M : matrix m m R) : det (Mᴴ) = star (det M) :=
-((star_ring_aut : ring_aut R).map_det _).symm.trans $ congr_arg star M.det_transpose
+((star_ring_aut R).map_det _).symm.trans $ congr_arg star M.det_transpose
 
 section det_zero
 /-!

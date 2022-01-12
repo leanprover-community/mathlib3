@@ -306,11 +306,10 @@ begin
   refine subalgebra.sum_mem _ (λ σ _, subalgebra.zsmul_mem _ (subalgebra.prod_mem _ (λ j _, _)) _),
   rw [update_column_apply],
   by_cases hji : j = i,
-  { simp only [hji, if_true, eq_self_iff_true, adjoin.power_basis_gen, power_basis.coe_basis],
+  { simp only [hji, if_true, eq_self_iff_true, power_basis.coe_basis],
     exact mem_bot.2 (is_integrally_closed.is_integral_iff.1 $ is_integral_trace $
       is_integral_mul hz $ is_integral.pow hint _) },
-  { simp only [hji, if_false, trace_form_apply, trace_matrix, adjoin.power_basis_gen,
-      power_basis.coe_basis],
+  { simp only [hji, if_false, trace_form_apply, trace_matrix, power_basis.coe_basis],
     exact mem_bot.2 (is_integrally_closed.is_integral_iff.1 $ is_integral_trace
       $ is_integral_mul (is_integral.pow hint _) (is_integral.pow hint _)) }
 end

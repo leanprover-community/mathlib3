@@ -98,15 +98,6 @@ end is_antichain
 lemma set.subsingleton.is_antichain (hs : s.subsingleton) (r : α → α → Prop): is_antichain r s :=
 hs.pairwise _
 
-section preorder
-variables [preorder α]
-
-def ideal_equiv_antichain : ideal α ≃ {s : set α // is_antichain (≤) s} :=
-sorry
-
-
-end preorder
-
 /-! ### Strong antichains -/
 
 /-- An antichain is a set such that no two distinct elements are related. -/

@@ -86,13 +86,22 @@ structure glue_data extends glue_data (PresheafedSpace C) :=
 
 attribute [instance] glue_data.f_open
 
+instance (X Y : PresheafedSpace C) : has_coe_to_fun (X ⟶ Y) (λ _, X → Y) :=
+⟨λ f, f.base⟩
+
+lemma coe_to_fun_eq {X Y : PresheafedSpace C} (f : X ⟶ Y) : (f : X → Y) = f.base := rfl
+
 namespace glue_data
 
 variables {C} (D : glue_data C)
 
 local notation `𝖣` := D.to_glue_data
-local notation `π₁` f `,` g := @pullback.fst _ _ _ _ _ f g _
-local notation `π₂` f `,` g := @pullback.snd _ _ _ _ _ f g _
+local notation `π₁` i `,` j `,` k := @pullback.fst _ _ _ _ _ (D.f i j) (D.f i k) _
+local notation `π₂` i `,` j `,` k := @pullback.snd _ _ _ _ _ (D.f i j) (D.f i k) _
+local notation `π₁⁻¹` i `,` j `,` k :=
+(PresheafedSpace.is_open_immersion.pullback_fst_of_right (D.f i j) (D.f i k)).inv_app
+local notation `π₂⁻¹` i `,` j `,` k :=
+(PresheafedSpace.is_open_immersion.pullback_snd_of_left (D.f i j) (D.f i k)).inv_app
 
 /-- The glue data of topological spaces associated to a family of glue data of PresheafedSpaces. -/
 abbreviation to_Top_glue_data : Top.glue_data :=
@@ -108,25 +117,25 @@ begin
 end
 
 lemma pullback_fst_preimage_snd_image (X Y Z : Top) (f : X ⟶ Z) (g : Y ⟶ Z) (U : set X) :
-  (π₂ f , g) '' ((π₁ f , g) ⁻¹' U) = g ⁻¹' (f '' U) :=
+  (pullback.snd : pullback f g ⟶ _) '' ((pullback.fst : pullback f g ⟶ _) ⁻¹' U) =
+    g ⁻¹' (f '' U) :=
 begin
   ext x,
   split,
   { rintros ⟨y, hy, rfl⟩,
-    exact ⟨(π₁ f , g) y, hy,
+    exact ⟨(pullback.fst : pullback f g ⟶ _) y, hy,
      concrete_category.congr_hom pullback.condition y⟩ },
   { rintros ⟨y, hy, eq⟩,
      exact ⟨(Top.pullback_iso_prod_subtype f g).inv ⟨⟨_,_⟩,eq⟩, by simpa, by simp⟩ },
 end
 
 lemma pullback_base (i j k : D.J)  (S : set (D.V (i, j)).carrier) :
-  ((π₂ (D.f i j) , (D.f i k)).base) '' (((π₁ (D.f i j) , (D.f i k)).base) ⁻¹' S) =
-    (D.f i k).base ⁻¹' ((D.f i j).base '' S) :=
+  (π₂ i, j, k) '' ((π₁ i, j, k) ⁻¹' S) = D.f i k ⁻¹' (D.f i j '' S) :=
 begin
-  have eq₁ : _ = (π₁ (D.f i j) , (D.f i k)).base := preserves_pullback.iso_hom_fst (forget C) _ _,
-  have eq₂ : _ = (π₂ (D.f i j) , (D.f i k)).base := preserves_pullback.iso_hom_snd (forget C) _ _,
-  rw [← eq₁, ← eq₂, coe_comp, set.image_comp, coe_comp, set.preimage_comp,
-    set.image_preimage_eq, pullback_fst_preimage_snd_image],
+  have eq₁ : _ = (π₁ i, j, k).base := preserves_pullback.iso_hom_fst (forget C) _ _,
+  have eq₂ : _ = (π₂ i, j, k).base := preserves_pullback.iso_hom_snd (forget C) _ _,
+  rw [coe_to_fun_eq, coe_to_fun_eq, ← eq₁, ← eq₂, coe_comp, set.image_comp, coe_comp,
+    set.preimage_comp, set.image_preimage_eq, pullback_fst_preimage_snd_image],
   refl,
   rw ← Top.epi_iff_surjective,
   apply_instance
@@ -136,10 +145,8 @@ end
 @[simp, reassoc]
 lemma f_inv_app_f_app (i j k : D.J)  (U : (opens (D.V (i, j)).carrier)) :
   (D.f_open i j).inv_app U ≫ (D.f i k).c.app _ =
-    (π₁ (D.f i j) , (D.f i k)).c.app (op U) ≫
-    (PresheafedSpace.is_open_immersion.pullback_snd_of_left (D.f i j) (D.f i k)).inv_app (unop _)
-    ≫ (D.V _).presheaf.map (eq_to_hom (
-      begin
+    (π₁ i, j, k).c.app (op U) ≫ (π₂⁻¹ i, j, k) (unop _) ≫ (D.V _).presheaf.map (eq_to_hom
+      (begin
         delta is_open_immersion.open_functor,
         dsimp only [functor.op, is_open_map.functor, opens.map, unop_op],
         congr,
@@ -151,7 +158,7 @@ begin
   rw [← cancel_epi (inv ((D.f_open i j).inv_app U)), is_iso.inv_hom_id_assoc,
     is_open_immersion.inv_inv_app],
   simp_rw category.assoc,
-  erw [(π₁ (D.f i j) , (D.f i k)).c.naturality_assoc,
+  erw [(π₁ i, j, k).c.naturality_assoc,
     reassoc_of this, ← functor.map_comp_assoc, is_open_immersion.inv_naturality_assoc,
     is_open_immersion.app_inv_app_assoc, ← (D.V (i, k)).presheaf.map_comp,
     ← (D.V (i, k)).presheaf.map_comp],
@@ -165,9 +172,8 @@ We can prove the `eq` along with the lemma. Thus this is bundled together here, 
 lemma itself is separated below.
 -/
 lemma snd_inv_app_t_app' (i j k : D.J) (U : opens (pullback (D.f i j) (D.f i k)).carrier) :
-  ∃ eq, (is_open_immersion.pullback_snd_of_left (D.f i j) (D.f i k)).inv_app U ≫
-  (D.t _ _).c.app _ ≫ (D.V (k, i)).presheaf.map (eq_to_hom eq) = (D.t' _ _ _).c.app _ ≫
-    (is_open_immersion.pullback_fst_of_right (D.f k j) (D.f k i)).inv_app (unop _) :=
+  ∃ eq, (π₂⁻¹ i, j, k) U ≫ (D.t k i).c.app _ ≫ (D.V (k, i)).presheaf.map (eq_to_hom eq) =
+    (D.t' k i j).c.app _ ≫ (π₁⁻¹ k, j, i) (unop _) :=
 begin
   split,
   rw [← is_iso.eq_inv_comp, is_open_immersion.inv_inv_app, category.assoc,
@@ -182,11 +188,11 @@ begin
     eq_to_hom_map (functor.op _), eq_to_hom_op, eq_to_hom_trans],
   rintros x ⟨y, hy, eq⟩,
   replace eq := concrete_category.congr_arg ((𝖣 .t i k).base) eq,
-  change ((π₂ _, _) ≫ D.t i k).base y = (D.t k i ≫ D.t i k).base x at eq,
+  change ((π₂ i, j, k) ≫ D.t i k).base y = (D.t k i ≫ D.t i k).base x at eq,
   rw [𝖣 .t_inv, id_base, Top.id_app] at eq,
   subst eq,
   use (inv (D.t' k i j)).base y,
-  change ((inv (D.t' k i j)) ≫ (π₁ _, _)).base y = _,
+  change ((inv (D.t' k i j)) ≫ (π₁ k, i, j)).base y = _,
   congr' 2,
   rw [is_iso.inv_comp_eq, 𝖣 .t_fac_assoc, 𝖣 .t_inv, category.comp_id]
 end
@@ -194,10 +200,8 @@ end
 /-- The red and the blue in ![this diagram](https://i.imgur.com/q6X1GJ9.png) commutes. -/
 @[simp, reassoc]
 lemma snd_inv_app_t_app (i j k : D.J) (U : opens (pullback (D.f i j) (D.f i k)).carrier) :
-  (is_open_immersion.pullback_snd_of_left (D.f i j) (D.f i k)).inv_app U ≫
-  (D.t _ _).c.app _ = (D.t' _ _ _).c.app _ ≫
-  (is_open_immersion.pullback_fst_of_right (D.f k j) (D.f k i)).inv_app (unop _) ≫
-  (D.V (k, i)).presheaf.map (eq_to_hom (D.snd_inv_app_t_app' i j k U).some.symm) :=
+  (π₂⁻¹ i, j, k) U ≫ (D.t k i).c.app _ = (D.t' k i j).c.app _ ≫ (π₁⁻¹ k, j, i) (unop _) ≫
+    (D.V (k, i)).presheaf.map (eq_to_hom (D.snd_inv_app_t_app' i j k U).some.symm) :=
 begin
   have e := (D.snd_inv_app_t_app' i j k U).some_spec,
   reassoc! e,
@@ -208,10 +212,9 @@ end
 variable [has_limits C]
 
 lemma ι_image_preimage_eq (i j : D.J) (U : opens (D.U i).carrier) :
-  (opens.map (𝖣 .ι j).base).obj
-    ((D.ι_open_embedding i).is_open_map.functor.obj U) =
-      (D.f_open j i).open_functor.obj ((opens.map (𝖣 .t j i).base).obj
-        ((opens.map (𝖣 .f i j).base).obj U)) :=
+  (opens.map (𝖣 .ι j).base).obj ((D.ι_open_embedding i).is_open_map.functor.obj U) =
+  (D.f_open j i).open_functor.obj ((opens.map (𝖣 .t j i).base).obj
+    ((opens.map (𝖣 .f i j).base).obj U)) :=
 begin
   dsimp only [opens.map, is_open_map.functor],
   congr' 1,
@@ -235,16 +238,13 @@ end
 
 /-- (Implementation). The map `Γ(𝒪_{U_i}, U) ⟶ Γ(𝒪_{U_j}, 𝖣.ι j ⁻¹' (𝖣.ι i '' U))` -/
 def opens_image_preimage_map (i j : D.J) (U : opens (D.U i).carrier) :
-  (D.U i).presheaf.obj (op U) ⟶ (D.U j).presheaf.obj
-    (op ((opens.map (𝖣 .ι j).base).obj ((D.ι_open_embedding i).is_open_map.functor.obj U))) :=
-(D.f i j).c.app (op U) ≫ (D.t j i).c.app _ ≫
-  (D.f_open j i).inv_app (unop _) ≫ (𝖣 .U j).presheaf.map
-    (eq_to_hom (D.ι_image_preimage_eq i j U)).op
+  (D.U i).presheaf.obj (op U) ⟶ (D.U j).presheaf.obj _ :=
+(D.f i j).c.app (op U) ≫ (D.t j i).c.app _ ≫ (D.f_open j i).inv_app (unop _) ≫
+  (𝖣 .U j).presheaf.map (eq_to_hom (D.ι_image_preimage_eq i j U)).op
 
 lemma opens_image_preimage_map_app' (i j k : D.J) (U : opens (D.U i).carrier) :
   ∃ eq, D.opens_image_preimage_map i j U ≫ (D.f j k).c.app _ =
-    ((π₁ (D.f j i) , (D.f j k)) ≫ D.t j i ≫ D.f i j).c.app (op U) ≫
-     (is_open_immersion.pullback_snd_of_left (D.f j i) (D.f j k)).inv_app (unop _) ≫
+    ((π₁ j, i, k) ≫ D.t j i ≫ D.f i j).c.app (op U) ≫ (π₂⁻¹ j, i, k) (unop _) ≫
       (D.V (j, k)).presheaf.map (eq_to_hom eq) :=
 begin
   split,
@@ -263,17 +263,15 @@ end
 /-- The red and the blue in ![this diagram](https://i.imgur.com/mBzV1Rx.png) commutes. -/
 lemma opens_image_preimage_map_app (i j k : D.J) (U : opens (D.U i).carrier) :
   D.opens_image_preimage_map i j U ≫ (D.f j k).c.app _ =
-  ((π₁ (D.f j i) , (D.f j k)) ≫ D.t j i ≫ D.f i j).c.app (op U) ≫
-  (is_open_immersion.pullback_snd_of_left (D.f j i) (D.f j k)).inv_app (unop _) ≫
-  (D.V (j, k)).presheaf.map (eq_to_hom ((opens_image_preimage_map_app' D i j k U).some)) :=
+  ((π₁ j, i, k) ≫ D.t j i ≫ D.f i j).c.app (op U) ≫ (π₂⁻¹ j, i, k) (unop _) ≫
+    (D.V (j, k)).presheaf.map (eq_to_hom ((opens_image_preimage_map_app' D i j k U).some)) :=
 (opens_image_preimage_map_app' D i j k U).some_spec
 
 -- This is proved separately since `reassoc` somehow timeouts.
 lemma opens_image_preimage_map_app_assoc (i j k : D.J) (U : opens (D.U i).carrier)
   {X' : C} (f' : _ ⟶ X') :
   D.opens_image_preimage_map i j U ≫ (D.f j k).c.app _ ≫ f' =
-    ((π₁ (D.f j i) , (D.f j k)) ≫ D.t j i ≫ D.f i j).c.app (op U) ≫
-    (is_open_immersion.pullback_snd_of_left (D.f j i) (D.f j k)).inv_app (unop _) ≫
+    ((π₁ j, i, k) ≫ D.t j i ≫ D.f i j).c.app (op U) ≫ (π₂⁻¹ j, i, k) (unop _) ≫
     (D.V (j, k)).presheaf.map (eq_to_hom ((opens_image_preimage_map_app' D i j k U).some)) ≫ f' :=
 by simpa only [category.assoc]
   using congr_arg (λ g, g ≫ f') (opens_image_preimage_map_app D i j k U)
@@ -284,9 +282,12 @@ abbreviation diagram_over_open {i : D.J} (U : opens (D.U i).carrier) :
   (walking_multispan _ _)ᵒᵖ ⥤ C :=
 componentwise_diagram 𝖣 .diagram.multispan ((D.ι_open_embedding i).is_open_map.functor.obj U)
 
+abbreviation diagram_over_open_π {i : D.J} (U : opens (D.U i).carrier) (j : D.J) :=
+limit.π (D.diagram_over_open U) (op (walking_multispan.right j))
+
 /-- (Implementation) We construct the map `Γ(𝒪_{U_i}, U) ⟶ Γ(𝒪_V, U_V)` for each `V` in the gluing
 diagram. We will lift these maps into `ι_inv_app`. -/
-def ι_inv_app_π_app (i : D.J) (U : opens (D.U i).carrier) (j) :
+def ι_inv_app_π_app {i : D.J} (U : opens (D.U i).carrier) (j) :
   (𝖣 .U i).presheaf.obj (op U) ⟶ (D.diagram_over_open U).obj (op j) :=
 begin
   rcases j with (⟨j, k⟩|j),
@@ -303,11 +304,11 @@ end
 
 /-- (Implementation) The natural map `Γ(𝒪_{U_i}, U) ⟶ Γ(𝒪_X, 𝖣.ι i '' U)`.
 This forms the inverse of `(𝖣.ι i).c.app (op U)`. -/
-def ι_inv_app (i : D.J) (U : opens (D.U i).carrier) :
+def ι_inv_app {i : D.J} (U : opens (D.U i).carrier) :
   (D.U i).presheaf.obj (op U) ⟶ limit (D.diagram_over_open U) :=
 limit.lift (D.diagram_over_open U)
 { X := (D.U i).presheaf.obj (op U),
-  π := { app := λ j, D.ι_inv_app_π_app i U (unop j),
+  π := { app := λ j, D.ι_inv_app_π_app U (unop j),
   naturality' := λ X Y f', begin
     induction X using opposite.rec,
     induction Y using opposite.rec,
@@ -330,8 +331,8 @@ limit.lift (D.diagram_over_open U)
     erw ← PresheafedSpace.comp_c_app_assoc,
     -- light-blue = green is relatively easy since the part that differs does not involve
     -- partial inverses.
-    have : D.t' j k i ≫ (π₁ _, _) ≫ D.t k i ≫ 𝖣 .f i k =
-      (pullback_symmetry _ _).hom ≫ (π₁ _, _) ≫ D.t j i ≫ D.f i j,
+    have : D.t' j k i ≫ (π₁ k, i, j) ≫ D.t k i ≫ 𝖣 .f i k =
+      (pullback_symmetry _ _).hom ≫ (π₁ j, i, k) ≫ D.t j i ≫ D.f i j,
     { rw [← 𝖣 .t_fac_assoc, 𝖣 .t'_comp_eq_pullback_symmetry_assoc,
         pullback_symmetry_hom_comp_snd_assoc, pullback.condition, 𝖣 .t_fac_assoc] },
     rw congr_app this,
@@ -349,16 +350,10 @@ limit.lift (D.diagram_over_open U)
     repeat { erw ← (D.V (j, k)).presheaf.map_comp },
     congr,
   end } }
-.
-
--- needs a docstring and a better name
-abbreviation foo (i j : D.J) (U : opens (D.U i).carrier) :=
-limit.π (D.diagram_over_open U) (op (walking_multispan.right j))
 
 /-- `ι_inv_app` is the left inverse of `D.ι i` on `U`. -/
-lemma ι_inv_app_π (i : D.J) (U : opens (D.U i).carrier) :
-  ∃ eq, D.ι_inv_app i U ≫ (D.foo i i U) =
-    (D.U i).presheaf.map (eq_to_hom eq) :=
+lemma ι_inv_app_π {i : D.J} (U : opens (D.U i).carrier) :
+  ∃ eq, D.ι_inv_app U ≫ D.diagram_over_open_π U i = (D.U i).presheaf.map (eq_to_hom eq) :=
 begin
   split,
   delta ι_inv_app,
@@ -374,13 +369,14 @@ begin
     apply_instance }
 end
 
--- needs a docstring and a better name
-abbreviation bar (i : D.J) (U : opens (D.U i).carrier) :=
-(D.U i).presheaf.map (eq_to_iso (D.ι_inv_app_π i U).some).inv
+/-- The `eq_to_hom` given by `ι_inv_app_π`. -/
+abbreviation ι_inv_app_π_eq_map {i : D.J} (U : opens (D.U i).carrier) :=
+(D.U i).presheaf.map (eq_to_iso (D.ι_inv_app_π U).some).inv
 
 /-- `ι_inv_app` is the right inverse of `D.ι i` on `U`. -/
 lemma π_ι_inv_app_π (i j : D.J) (U : opens (D.U i).carrier) :
-  (D.foo i i U) ≫ D.bar i U ≫ D.ι_inv_app i U ≫ (D.foo i j U) = D.foo i j U :=
+  D.diagram_over_open_π U i ≫ D.ι_inv_app_π_eq_map U ≫ D.ι_inv_app U ≫
+    D.diagram_over_open_π U j = D.diagram_over_open_π U j :=
 begin
   rw ← cancel_mono ((componentwise_diagram 𝖣 .diagram.multispan _).map
     (quiver.hom.op (walking_multispan.hom.snd (i, j))) ≫ (𝟙 _)),
@@ -409,7 +405,7 @@ end
 
 /-- `ι_inv_app` is the inverse of `D.ι i` on `U`. -/
 lemma π_ι_inv_app_eq_id (i : D.J) (U : opens (D.U i).carrier) :
-  D.foo i i U ≫ D.bar i U ≫ D.ι_inv_app i U = 𝟙 _ :=
+  D.diagram_over_open_π U i ≫ D.ι_inv_app_π_eq_map U ≫ D.ι_inv_app U = 𝟙 _ :=
 begin
   ext j,
   induction j using opposite.rec,
@@ -425,12 +421,12 @@ begin
 end
 
 instance componentwise_diagram_π_is_iso (i : D.J) (U : opens (D.U i).carrier) :
-  is_iso (D.foo i i U) :=
+  is_iso (D.diagram_over_open_π U i) :=
 begin
-  use D.bar i U ≫ D.ι_inv_app i U,
+  use D.ι_inv_app_π_eq_map U ≫ D.ι_inv_app U,
   split,
   { apply π_ι_inv_app_eq_id },
-  { rw [category.assoc, (D.ι_inv_app_π _ _).some_spec],
+  { rw [category.assoc, (D.ι_inv_app_π _).some_spec],
     exact iso.inv_hom_id ((D.to_glue_data.U i).presheaf.map_iso (eq_to_iso _)) }
 end
 

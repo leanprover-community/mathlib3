@@ -78,9 +78,7 @@ begin
   simp only [set.mem_Ioi],
   apply rpow_pos_of_pos b_pos,
   simp only [abs_pos, mem_Ioi, ne.def, hx, not_false_iff],
-  rw log_rpow b_pos,
-  rw logb,
-  rw log_abs,
+  rw [log_rpow b_pos, logb, log_abs],
   field_simp [log_b_ne_zero b_pos b_ne_one],
 end
 

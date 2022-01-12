@@ -5,6 +5,7 @@ Authors: Jeremy Avigad, Yury Kudryashov
 -/
 import analysis.normed_space.basic
 import topology.local_homeomorph
+import topology.algebra.ordered.liminf_limsup
 
 /-!
 # Asymptotics
@@ -811,16 +812,20 @@ lemma is_o_id_const {c : F'} (hc : c ≠ 0) :
   is_o (λ (x : E'), x) (λ x, c) (𝓝 0) :=
 (is_o_const_iff hc).mpr (continuous_id.tendsto 0)
 
+theorem _root_.filter.is_bounded_under.is_O_const (h : is_bounded_under (≤) l (norm ∘ f'))
+  {c : F'} (hc : c ≠ 0) : is_O f' (λ x, c) l :=
+begin
+  rcases h with ⟨C, hC⟩,
+  refine (is_O.of_bound 1 _).trans (is_O_const_const C hc l),
+  refine (eventually_map.1 hC).mono (λ x h, _),
+  calc ∥f' x∥ ≤ C : h
+  ... ≤ abs C : le_abs_self C
+  ... = 1 * ∥C∥ : (one_mul _).symm
+end
+
 theorem is_O_const_of_tendsto {y : E'} (h : tendsto f' l (𝓝 y)) {c : F'} (hc : c ≠ 0) :
   is_O f' (λ x, c) l :=
-begin
-  refine is_O.trans _ (is_O_const_const (∥y∥ + 1) hc l),
-  refine is_O.of_bound 1 _,
-  simp only [is_O_with, one_mul],
-  have : tendsto (λx, ∥f' x∥) l (𝓝 ∥y∥), from (continuous_norm.tendsto _).comp h,
-  have Iy : ∥y∥ < ∥∥y∥ + 1∥, from lt_of_lt_of_le (lt_add_one _) (le_abs_self _),
-  exact this (ge_mem_nhds Iy)
-end
+h.norm.is_bounded_under_le.is_O_const hc
 
 section
 

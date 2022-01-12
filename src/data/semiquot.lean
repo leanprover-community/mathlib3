@@ -35,8 +35,12 @@ def mk {a : α} {s : set α} (h : a ∈ s) : semiquot α :=
 ⟨s, trunc.mk ⟨a, h⟩⟩
 
 theorem ext_s {q₁ q₂ : semiquot α} : q₁ = q₂ ↔ q₁.s = q₂.s :=
-⟨congr_arg _,
- λ h, by cases q₁; cases q₂; congr; exact h⟩
+begin
+  refine ⟨congr_arg _, λ h, _⟩,
+  cases q₁,
+  cases q₂,
+  cc,
+end
 
 theorem ext {q₁ q₂ : semiquot α} : q₁ = q₂ ↔ ∀ a, a ∈ q₁ ↔ a ∈ q₂ :=
 ext_s.trans set.ext_iff
@@ -181,7 +185,7 @@ theorem is_pure_of_subsingleton [subsingleton α] (q : semiquot α) : is_pure q
 
 /-- `univ : semiquot α` represents an unspecified element of `univ : set α`. -/
 def univ [inhabited α] : semiquot α :=
-mk $ set.mem_univ (default _)
+mk $ set.mem_univ default
 
 instance [inhabited α] : inhabited (semiquot α) := ⟨univ⟩
 

@@ -374,7 +374,7 @@ def to_fun (f : times_cont_diff_bump c) : E → ℝ := f.to_times_cont_diff_bump
 
 instance : has_coe_to_fun (times_cont_diff_bump c) (λ _, E → ℝ) := ⟨to_fun⟩
 
-instance (c : E) : inhabited (times_cont_diff_bump c) := ⟨⟨default _⟩⟩
+instance (c : E) : inhabited (times_cont_diff_bump c) := ⟨⟨default⟩⟩
 
 lemma R_pos : 0 < f.R := f.to_times_cont_diff_bump_of_inner.R_pos
 

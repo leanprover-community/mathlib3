@@ -192,6 +192,23 @@ instance : inhabited (modification η η) := ⟨modification.id η⟩
 
 variables {η} {θ ι : oplax_nat_trans F G}
 
+section
+variables (Γ : modification η θ) {a b c : B} {a' : C}
+
+@[reassoc]
+lemma whisker_left_naturality (f : a' ⟶ F.obj b) (g : b ⟶ c) :
+  (f ◁ (_ ◁ Γ.app c)) ≫ (f ◁ θ.naturality g) =
+    (f ◁ η.naturality g) ≫ (f ◁ (Γ.app b ▷ _)) :=
+by { simp only [←bicategory.whisker_left_comp], rw naturality }
+
+@[reassoc]
+lemma whisker_right_naturality (f : a ⟶ b) (g : G.obj b ⟶ a') :
+  ((_ ◁ Γ.app b) ▷ g) ≫ (θ.naturality f ▷ g) =
+    (η.naturality f ▷ g) ≫ ((Γ.app a ▷ _) ▷ g) :=
+by { simp only [←bicategory.whisker_right_comp], rw naturality }
+
+end
+
 /-- Vertical composition of modifications. -/
 @[simps]
 def vcomp (Γ : modification η θ) (Δ : modification θ ι) : modification η ι :=
@@ -207,6 +224,25 @@ instance category (F G : oplax_functor B C) : category (oplax_nat_trans F G) :=
   comp := λ η θ ι, modification.vcomp }
 
 end
+
+/--
+Construct a modification isomorphism between oplax natural transformations
+by giving object level isomorphisms, and checking naturality only in the forward direction.
+-/
+@[simps]
+def modification_iso.of_components {F G : oplax_functor B C} {η θ : oplax_nat_trans F G}
+  (app : ∀ a, η.app a ≅ θ.app a)
+  (naturality : ∀ {a b} (f : a ⟶ b),
+    (_ ◁ (app b).hom) ≫ (θ.naturality f) = (η.naturality f) ≫ ((app a).hom ▷ _)) :
+      η ≅ θ :=
+{ hom := { app := λ a, (app a).hom },
+  inv :=
+  { app := λ a, (app a).inv,
+    naturality' := λ a b f, by
+    { have h := congr_arg (λ f, (_ ◁ (app b).inv) ≫ f ≫ ((app a).inv ▷ _)) (naturality f).symm,
+      simp only [category.comp_id, inv_hom_whisker_left_assoc, category.assoc,
+        hom_inv_whisker_right] at h,
+      exact h } } }
 
 end oplax_nat_trans
 

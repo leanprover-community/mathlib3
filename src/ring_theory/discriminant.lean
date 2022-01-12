@@ -278,8 +278,8 @@ lemma discr_mul_is_integral_mem_adjoin [is_domain R] [is_integrally_closed R]
   [is_fraction_ring R K] {B : power_basis K L} (hint : is_integral R B.gen) {z : L}
   (hz : is_integral R z) : (discr K B.basis) • z ∈ adjoin R ({B.gen} : set L) :=
 begin
-  have hinv : is_unit (trace_matrix K B.basis).det,
-  { rw [← discr_def], exact discr_is_unit_of_basis _ B.basis },
+  have hinv : is_unit (trace_matrix K B.basis).det :=
+    by simpa [← discr_def] using discr_is_unit_of_basis _ B.basis,
 
   have H : (trace_matrix K B.basis).det • (trace_matrix K B.basis).mul_vec (B.basis.equiv_fun z) =
     (trace_matrix K B.basis).det • (λ i, trace K L (z * B.basis i)),
@@ -304,12 +304,11 @@ begin
     one_mul_vec, one_mul_vec] at cramer,
   rw [← congr_fun cramer i, cramer_apply, det_apply],
   refine subalgebra.sum_mem _ (λ σ _, subalgebra.zsmul_mem _ (subalgebra.prod_mem _ (λ j _, _)) _),
-  rw [update_column_apply],
   by_cases hji : j = i,
-  { simp only [hji, if_true, eq_self_iff_true, power_basis.coe_basis],
+  { simp only [update_column_apply, hji, eq_self_iff_true, power_basis.coe_basis],
     exact mem_bot.2 (is_integrally_closed.is_integral_iff.1 $ is_integral_trace $
       is_integral_mul hz $ is_integral.pow hint _) },
-  { simp only [hji, if_false, trace_form_apply, trace_matrix, power_basis.coe_basis],
+  { simp only [update_column_apply, hji, power_basis.coe_basis],
     exact mem_bot.2 (is_integrally_closed.is_integral_iff.1 $ is_integral_trace
       $ is_integral_mul (is_integral.pow hint _) (is_integral.pow hint _)) }
 end

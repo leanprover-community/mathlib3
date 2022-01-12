@@ -257,26 +257,8 @@ begin
   sorry
 end
 
---move
-section
-
-variables {M : Type*} [mul_one_class M]
-
-@[to_additive] lemma mul_indicator_mul' (s : set α) (f g : α → M) :
-  mul_indicator s (f * g) = mul_indicator s f * mul_indicator s g :=
-mul_indicator_mul s f g
-
-lemma ennreal.add_three (a : ℝ≥0∞) : a / 3 + a / 3 + a / 3 = a:=
-begin
-  rw [div_eq_mul_inv, ← mul_add, ← mul_add, show a * (3⁻¹ + 3⁻¹ + 3⁻¹) = 3 * 3⁻¹ * a, by ring,
-    ← div_eq_mul_inv, ennreal.div_self, one_mul];
-  simp,
-end
-
-end
-
-lemma foo (μ : measure α) [is_finite_measure μ] {p : ℝ≥0∞} (hp : p ≠ 0) (hp' : p ≠ ∞)
-  {s : set α} (hs : measurable_set[m] s)
+lemma snorm_sub_le_of_dist_bdd (μ : measure α) [is_finite_measure μ]
+  {p : ℝ≥0∞} (hp : p ≠ 0) (hp' : p ≠ ∞) {s : set α} (hs : measurable_set[m] s)
   {f g : α → β} {c : ℝ} (hc : 0 ≤ c) (hf : ∀ x ∈ s, dist (f x) (g x) ≤ c) :
   snorm (s.indicator (f - g)) p μ ≤ ennreal.of_real c * μ s ^ (1 / p.to_real) :=
 begin
@@ -358,8 +340,8 @@ begin
       exact min_le_right _ _ },
     have hlt : snorm (tᶜ.indicator (f n - g)) p μ ≤ ennreal.of_real (ε.to_real / 3),
     { specialize hN n hn,
-      have := foo μ ((lt_of_lt_of_le ennreal.zero_lt_one hp).ne.symm) hp' htm.compl _
-        (λ x hx, (dist_comm (g x) (f n x) ▸ (hN x hx).le :
+      have := snorm_sub_le_of_dist_bdd μ ((lt_of_lt_of_le ennreal.zero_lt_one hp).ne.symm)
+        hp' htm.compl _ (λ x hx, (dist_comm (g x) (f n x) ▸ (hN x hx).le :
         dist (f n x) (g x) ≤ ε.to_real / (3 * measure_univ_nnreal μ ^ (1 / p.to_real)))),
       refine le_trans this _,
       rw [div_mul_eq_div_mul_one_div, ← ennreal.of_real_to_real (measure_lt_top μ tᶜ).ne,
@@ -379,7 +361,7 @@ begin
     { rw [ennreal.of_real_div_of_pos (show (0 : ℝ) < 3, by norm_num), ennreal.of_real_to_real h.ne],
       simp },
     rw this at hnf hng hlt,
-    rw [snorm_neg, ← ennreal.add_three ε, ← sub_eq_add_neg],
+    rw [snorm_neg, ← ennreal.add_thirds ε, ← sub_eq_add_neg],
     exact add_le_add_three hnf.le hng.le hlt },
   { rw [not_lt, top_le_iff] at h,
     exact ⟨0, λ n hn, by simp [h]⟩ }

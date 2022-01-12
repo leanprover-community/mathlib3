@@ -181,6 +181,10 @@ RingedSpace.basic_open_mul _ _ _
 lemma basic_open_of_is_unit {f : X.presheaf.obj (op U)} (hf : is_unit f) : X.basic_open f = U :=
 RingedSpace.basic_open_of_is_unit _ hf
 
+end basic_open
+
+end Scheme
+
 lemma basic_open_eq_of_affine {R : CommRing} (f : R) :
   (Scheme.Spec.obj $ op R).basic_open ((Spec_Γ_identity.app R).inv f) =
     prime_spectrum.basic_open f :=
@@ -204,9 +208,5 @@ begin
   convert basic_open_eq_of_affine ((Spec_Γ_identity.app R).hom f),
   exact (coe_hom_inv_id _ _).symm
 end
-
-end basic_open
-
-end Scheme
 
 end algebraic_geometry

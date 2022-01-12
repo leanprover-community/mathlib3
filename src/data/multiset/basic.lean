@@ -1755,7 +1755,7 @@ begin
 end
 
 lemma filter_eq (s : multiset α) (b : α) : s.filter (eq b) = repeat b (count b s) :=
-by simp_rw [←filter_eq', eq_comm]
+by { simp_rw [←filter_eq', eq_comm], congr, }
 
 end
 

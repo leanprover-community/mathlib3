@@ -141,10 +141,23 @@ instance : lie_ring (restrict_scalars R A L) := h
 
 variables [comm_ring A] [lie_algebra A L]
 
+-- TODO: these apply more generally, but the "fails quickly" linter rightfully rejects them
+-- due to loops or performance issues.
+
+instance restrict_scalars.lie_algebra_op_module_orig : module Aᵐᵒᵖ (restrict_scalars R A L) :=
+(by apply_instance : module Aᵐᵒᵖ L)
+
+instance restrict_scalars.lie_algebra_op_module [comm_ring R] [algebra R A] :
+  module Rᵐᵒᵖ (restrict_scalars R A L) :=
+module.comp_hom L (algebra_map R A).op
+
+instance restrict_scalars.lie_algebra_is_central_scalar [comm_ring R] [algebra R A]:
+  is_central_scalar R (restrict_scalars R A L) :=
+{ op_smul_eq_smul := λ r m, (op_smul_eq_smul (algebra_map R A r) m : _) }
+
 @[nolint unused_arguments]
 instance lie_algebra [comm_ring R] [algebra R A] : lie_algebra R (restrict_scalars R A L) :=
 { lie_smul := λ t x y, (lie_smul _ (show L, from x) (show L, from y) : _),
-  to_opposite_module := module.comp_hom M (algebra_map R S).op,
   .. (by apply_instance : module R (restrict_scalars R A L)), }
 
 end restrict_scalars

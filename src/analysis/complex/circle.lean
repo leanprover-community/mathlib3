@@ -63,7 +63,7 @@ instance : comm_group circle :=
 { inv := λ z, ⟨conj (z : ℂ), by simp⟩,
   mul_left_inv := λ z, subtype.ext $ by { simp [has_inv.inv, ← norm_sq_eq_conj_mul_self,
     ← mul_self_abs] },
-  .. circle.to_comm_monoid }
+  .. submonoid_class.to_comm_monoid circle }
 
 lemma coe_inv_circle_eq_conj (z : circle) : ↑(z⁻¹) = conj (z : ℂ) := rfl
 
@@ -104,11 +104,12 @@ def exp_map_circle : C(ℝ, circle) :=
 rfl
 
 @[simp] lemma exp_map_circle_zero : exp_map_circle 0 = 1 :=
-subtype.ext $ by rw [exp_map_circle_apply, of_real_zero, zero_mul, exp_zero, submonoid.coe_one]
+subtype.ext $ by rw [exp_map_circle_apply, of_real_zero, zero_mul, exp_zero,
+                     submonoid_class.coe_one]
 
 @[simp] lemma exp_map_circle_add (x y : ℝ) :
   exp_map_circle (x + y) = exp_map_circle x * exp_map_circle y :=
-subtype.ext $ by simp only [exp_map_circle_apply, submonoid.coe_mul, of_real_add, add_mul,
+subtype.ext $ by simp only [exp_map_circle_apply, submonoid_class.coe_mul, of_real_add, add_mul,
   complex.exp_add]
 
 /-- The map `λ t, exp (t * I)` from `ℝ` to the unit circle in `ℂ`, considered as a homomorphism of

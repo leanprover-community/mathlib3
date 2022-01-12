@@ -9,8 +9,8 @@ import algebra.jordan.basic
 /-!
 # Special Jordan algebras
 
-A commutative multiplication on a real or complex space can be constructed from any multiplicaion by
-"symmetrisation" i.e
+A commutative multiplication on a real or complex space can be constructed from any multiplication
+by "symmetrisation" i.e
 ```
 a∘b = 1/2(ab+ba).
 ```

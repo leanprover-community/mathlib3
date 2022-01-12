@@ -423,7 +423,7 @@ def linear_map.vec_cons {n} (f : M →ₗ[R] M₂) (g : M →ₗ[R] (fin n → M
   map_smul' := λ c x, by rw [f.map_smul, g.map_smul, ring_hom.id_apply, matrix.smul_cons c (f x)] }
 
 @[simp]
-def linear_map.vec_cons_apply {n} (f : M →ₗ[R] M₂) (g : M →ₗ[R] (fin n → M₂)) (m : M) :
+lemma linear_map.vec_cons_apply {n} (f : M →ₗ[R] M₂) (g : M →ₗ[R] (fin n → M₂)) (m : M) :
   f.vec_cons g m = matrix.vec_cons (f m) (g m) := rfl
 
 end semiring

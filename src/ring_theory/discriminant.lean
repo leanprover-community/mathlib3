@@ -37,7 +37,7 @@ Given an `A`-algebra `B` and `b`, an `ι`-indexed family of elements of `B`, we 
   satisfies ` ∀ i, is_integral R (b i)`, then `is_integral R (discr K b)`.
 * `discr_mul_is_integral_mem_adjoin` : let `K` be the fraction field of an integrally closed domain
   `R` and let `L` be a finite separable extension of `K`. Let `B : power_basis K L` be such that
-  `is_integral R B.gen`. Then for all `z : L` we have
+  `is_integral R B.gen`. Then for all, `z : L` we have
   `(discr K B.basis) • z ∈ adjoin R ({B.gen} : set L)`.
 
 ## Implementation details
@@ -273,13 +273,11 @@ end
 
 /-- Let `K` be the fraction field of an integrally closed domain `R` and let `L` be a finite
 separable extension of `K`. Let `B : power_basis K L` be such that `is_integral R B.gen`. Then for
-all `z : L` we have `(discr K B.basis) • z ∈ adjoin R ({B.gen} : set L)`. -/
+all, `z : L` we have `(discr K B.basis) • z ∈ adjoin R ({B.gen} : set L)`. -/
 lemma discr_mul_is_integral_mem_adjoin [is_domain R] [is_integrally_closed R]
   [is_fraction_ring R K] {B : power_basis K L} (hint : is_integral R B.gen) {z : L}
   (hz : is_integral R z) : (discr K B.basis) • z ∈ adjoin R ({B.gen} : set L) :=
 begin
-  letI := power_basis.finite_dimensional B,
-
   have hinv : is_unit (trace_matrix K B.basis).det,
   { rw [← discr_def], exact discr_is_unit_of_basis _ B.basis },
 
@@ -309,12 +307,12 @@ begin
   rw [update_column_apply],
   by_cases hji : j = i,
   { simp only [hji, if_true, eq_self_iff_true, adjoin.power_basis_gen, power_basis.coe_basis],
-    exact mem_bot.2 (is_integrally_closed.is_integral_iff.1 (is_integral_trace (is_integral_mul hz
-      (is_integral.pow hint _)))) },
+    exact mem_bot.2 (is_integrally_closed.is_integral_iff.1 $ is_integral_trace $
+      is_integral_mul hz $ is_integral.pow hint _) },
   { simp only [hji, if_false, trace_form_apply, trace_matrix, adjoin.power_basis_gen,
       power_basis.coe_basis],
-    exact mem_bot.2 (is_integrally_closed.is_integral_iff.1 (is_integral_trace
-      (is_integral_mul (is_integral.pow hint _) ((is_integral.pow hint _))))) }
+    exact mem_bot.2 (is_integrally_closed.is_integral_iff.1 $ is_integral_trace
+      $ is_integral_mul (is_integral.pow hint _) (is_integral.pow hint _)) }
 end
 
 end integral

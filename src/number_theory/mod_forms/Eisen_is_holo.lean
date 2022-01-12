@@ -129,7 +129,7 @@ end
 
 
 lemma Eisenstein_is_holomorphic (k: ℕ) (hk : 3 ≤ k):
-  is_holomorphic_on (Eisenstein_series_of_weight_ k):=
+  is_holomorphic_on (modular_forms.hol_extn (Eisenstein_series_of_weight_ k)):=
 begin
   rw ←  is_holomorphic_on_iff_differentiable_on,
   apply diff_on_diff,
@@ -360,7 +360,7 @@ intros z hz hz2,
 have trans := upp_half_translation ⟨z,hz⟩,
 obtain ⟨n, hn⟩:= trans,
 have mod_period := mod_form_periodic k (λ z : ℍ, Eisenstein_series_of_weight_ k z)
-  (Eisenstein_is_modular (⊤ : subgroup SL2Z) k) ⟨z, hz⟩ n,
+  (Eisenstein_is_wmodular (⊤ : subgroup SL2Z) k) ⟨z, hz⟩ n,
 simp only [coe_coe] at mod_period,
 simp_rw ← mod_period,
 set Z : ℍ := (((TN n) : matrix.GL_pos (fin 2) ℝ)  • ⟨z,hz⟩),
@@ -393,10 +393,10 @@ lemma Eisenstein_series_is_modular_form  (k: ℕ) (hk : 3 ≤ k) :
  modular_forms.is_modular_form_of_lvl_and_weight (⊤ : subgroup SL2Z) k
  (λ z : ℍ, Eisenstein_series_of_weight_ k z) :=
  {hol:= by {simp_rw modular_forms.hol_extn, rw mdiff_iff_holo, apply Eisenstein_is_holomorphic k hk, },
- transf := by {simp only, apply Eisenstein_is_modular (⊤ : subgroup SL2Z) k, },
+ transf := by {simp only, apply Eisenstein_is_wmodular (⊤ : subgroup SL2Z) k, },
  infinity := by {intros A,
  have := (modular_forms.wmodular_mem k (⊤ : subgroup SL2Z)
- (λ z : ℍ, Eisenstein_series_of_weight_ k z)).1 (Eisenstein_is_modular (⊤ : subgroup SL2Z) k) A,
+ (λ z : ℍ, Eisenstein_series_of_weight_ k z)).1 (Eisenstein_is_wmodular (⊤ : subgroup SL2Z) k) A,
  rw this,
  apply Eisenstein_is_bounded k hk,}}
 

@@ -43,13 +43,13 @@ def Eise_deriv (k: ℤ) (z : ℂ) : ℤ × ℤ →  ℂ:=
 
 
 /--The Eisenstein series of weight `k : ℤ` -/
-def Eisenstein_series_of_weight_ (k: ℤ) : ℍ' → ℂ:=
+def Eisenstein_series_of_weight_ (k: ℤ) : ℍ → ℂ:=
  λ z, ∑' (x : ℤ × ℤ), (Eise k z x)
 
-def real_Eisenstein_series_of_weight_ (k: ℤ) : ℍ' → ℝ:=
+def real_Eisenstein_series_of_weight_ (k: ℤ) : ℍ → ℝ:=
  λ z, ∑' (x : ℤ × ℤ), (real_Eise k z x)
 
-def Eisenstein_deriv_weight (k: ℤ) : ℍ' → ℂ:=
+def Eisenstein_deriv_weight (k: ℤ) : ℍ → ℂ:=
  λ z, ∑' (x : ℤ × ℤ), (Eise_deriv k z x)
 
 
@@ -134,7 +134,7 @@ begin
   apply upper_half_plane.denom_ne_zero A,
 end
 
-lemma Eisenstein_is_modular (Γ : subgroup SL2Z) (k: ℤ)  :
+lemma Eisenstein_is_wmodular (Γ : subgroup SL2Z) (k: ℤ)  :
  (Eisenstein_series_of_weight_ k) ∈ (modular_forms.weakly_modular_submodule k Γ) :=
 begin
 rw modular_forms.wmodular_mem',

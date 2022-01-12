@@ -430,7 +430,7 @@ end semiring
 
 /-- Non-dependent version of `pi.has_scalar`. Lean gets confused by the dependent instance if this
 is not present. -/
-@[to_additive]
+@[to_additive function.has_vadd]
 instance function.has_scalar {ι R M : Type*} [has_scalar R M] :
   has_scalar R (ι → M) :=
 pi.has_scalar

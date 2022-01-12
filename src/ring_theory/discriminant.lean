@@ -287,7 +287,7 @@ begin
   have cramer := mul_vec_cramer (trace_matrix K B.basis) (λ i, trace K L (z * B.basis i)),
 
   suffices : ∀ i, ((trace_matrix K B.basis).det • (B.basis.equiv_fun z)) i ∈ (⊥ : subalgebra R K),
-  { rw [← basis.sum_repr B.basis z, finset.smul_sum],
+  { rw [← B.basis.sum_repr z, finset.smul_sum],
     refine subalgebra.sum_mem _ (λ i hi, _),
     replace this := this i,
     rw [← discr_def, pi.smul_apply, mem_bot] at this,
@@ -296,7 +296,7 @@ begin
     rw [← smul_assoc, ← hr, algebra_map_smul],
     refine subalgebra.smul_mem _ _ _,
     rw [B.basis_eq_pow i],
-    refine subalgebra.pow_mem _ (subset_adjoin (set.mem_singleton B.gen)) _},
+    refine subalgebra.pow_mem _ (subset_adjoin (set.mem_singleton _)) _},
   intro i,
   rw [← H, ← mul_vec_smul] at cramer,
   replace cramer := congr_arg (mul_vec (trace_matrix K B.basis)⁻¹) cramer,

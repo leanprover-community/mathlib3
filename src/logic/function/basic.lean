@@ -5,6 +5,7 @@ Authors: Johannes Hölzl, Mario Carneiro
 -/
 import data.option.defs
 import logic.nonempty
+import tactic.cache
 
 /-!
 # Miscellaneous function constructions and lemmas
@@ -299,33 +300,6 @@ theorem partial_inv_left {α β} {f : α → β} (I : injective f) : ∀ x, part
 is_partial_inv_left (partial_inv_of_injective I)
 
 end
-
-section inv_fun_on
-variables {α : Type u} [n : nonempty α] {β : Sort v} {f : α → β} {s : set α} {a : α} {b : β}
-include n
-local attribute [instance, priority 10] classical.prop_decidable
-
-/-- Construct the inverse for a function `f` on domain `s`. This function is a right inverse of `f`
-on `f '' s`. For a computable version, see `function.injective.inv_of_mem_range`. -/
-noncomputable def inv_fun_on (f : α → β) (s : set α) (b : β) : α :=
-if h : ∃a, a ∈ s ∧ f a = b then classical.some h else classical.choice n
-
-theorem inv_fun_on_pos (h : ∃a∈s, f a = b) : inv_fun_on f s b ∈ s ∧ f (inv_fun_on f s b) = b :=
-by rw [bex_def] at h; rw [inv_fun_on, dif_pos h]; exact classical.some_spec h
-
-theorem inv_fun_on_mem (h : ∃a∈s, f a = b) : inv_fun_on f s b ∈ s := (inv_fun_on_pos h).left
-
-theorem inv_fun_on_eq (h : ∃a∈s, f a = b) : f (inv_fun_on f s b) = b := (inv_fun_on_pos h).right
-
-theorem inv_fun_on_eq' (h : ∀ (x ∈ s) (y ∈ s), f x = f y → x = y) (ha : a ∈ s) :
-  inv_fun_on f s (f a) = a :=
-have ∃a'∈s, f a' = f a, from ⟨a, ha, rfl⟩,
-h _ (inv_fun_on_mem this) _ ha (inv_fun_on_eq this)
-
-theorem inv_fun_on_neg (h : ¬ ∃a∈s, f a = b) : inv_fun_on f s b = classical.choice n :=
-by rw [bex_def] at h; rw [inv_fun_on, dif_neg h]
-
-end inv_fun_on
 
 section inv_fun
 

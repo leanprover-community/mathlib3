@@ -753,10 +753,17 @@ by classical; simp [finsupp.total_apply, finsupp.inner_sum, orthonormal_iff_ite.
 
 /-- The inner product of a linear combination of a set of orthonormal vectors with one of those
 vectors picks out the coefficient of that vector. -/
+lemma orthonormal.inner_right_sum
+  {v : ι → E} (hv : orthonormal 𝕜 v) (l : ι → 𝕜) {s : finset ι} {i : ι} (hi : i ∈ s) :
+  ⟪v i, ∑ i in s, (l i) • (v i)⟫ = l i :=
+by classical; simp [inner_sum, inner_smul_right, orthonormal_iff_ite.mp hv, hi]
+
+/-- The inner product of a linear combination of a set of orthonormal vectors with one of those
+vectors picks out the coefficient of that vector. -/
 lemma orthonormal.inner_right_fintype [fintype ι]
   {v : ι → E} (hv : orthonormal 𝕜 v) (l : ι → 𝕜) (i : ι) :
   ⟪v i, ∑ i : ι, (l i) • (v i)⟫ = l i :=
-by classical; simp [inner_sum, inner_smul_right, orthonormal_iff_ite.mp hv]
+hv.inner_right_sum l (finset.mem_univ _)
 
 /-- The inner product of a linear combination of a set of orthonormal vectors with one of those
 vectors picks out the coefficient of that vector. -/
@@ -766,10 +773,42 @@ by rw [← inner_conj_sym, hv.inner_right_finsupp]
 
 /-- The inner product of a linear combination of a set of orthonormal vectors with one of those
 vectors picks out the coefficient of that vector. -/
+lemma orthonormal.inner_left_sum
+  {v : ι → E} (hv : orthonormal 𝕜 v) (l : ι → 𝕜) {s : finset ι} {i : ι} (hi : i ∈ s) :
+  ⟪∑ i in s, (l i) • (v i), v i⟫ = conj (l i) :=
+by classical; simp [sum_inner, inner_smul_left, orthonormal_iff_ite.mp hv, hi]
+
+/-- The inner product of a linear combination of a set of orthonormal vectors with one of those
+vectors picks out the coefficient of that vector. -/
 lemma orthonormal.inner_left_fintype [fintype ι]
   {v : ι → E} (hv : orthonormal 𝕜 v) (l : ι → 𝕜) (i : ι) :
   ⟪∑ i : ι, (l i) • (v i), v i⟫ = conj (l i) :=
-by classical; simp [sum_inner, inner_smul_left, orthonormal_iff_ite.mp hv]
+hv.inner_left_sum l (finset.mem_univ _)
+
+/-- The inner product of two linear combinations of a set of orthonormal vectors, expressed as
+a sum over the first `finsupp`. -/
+lemma orthonormal.inner_finsupp_eq_sum_left
+  {v : ι → E} (hv : orthonormal 𝕜 v) (l₁ l₂ : ι →₀ 𝕜) :
+  ⟪finsupp.total ι E 𝕜 v l₁, finsupp.total ι E 𝕜 v l₂⟫ = l₁.sum (λ i y, conj y * l₂ i) :=
+by simp [finsupp.total_apply _ l₁, finsupp.sum_inner, hv.inner_right_finsupp]
+
+/-- The inner product of two linear combinations of a set of orthonormal vectors, expressed as
+a sum over the second `finsupp`. -/
+lemma orthonormal.inner_finsupp_eq_sum_right
+  {v : ι → E} (hv : orthonormal 𝕜 v) (l₁ l₂ : ι →₀ 𝕜) :
+  ⟪finsupp.total ι E 𝕜 v l₁, finsupp.total ι E 𝕜 v l₂⟫ = l₂.sum (λ i y, conj (l₁ i) * y) :=
+by simp [finsupp.total_apply _ l₂, finsupp.inner_sum, hv.inner_left_finsupp, mul_comm]
+
+/-- The inner product of two linear combinations of a set of orthonormal vectors, expressed as
+a sum. -/
+lemma orthonormal.inner_sum
+  {v : ι → E} (hv : orthonormal 𝕜 v) (l₁ l₂ : ι → 𝕜) (s : finset ι) :
+  ⟪∑ i in s, l₁ i • v i, ∑ i in s, l₂ i • v i⟫ = ∑ i in s, conj (l₁ i) * l₂ i :=
+begin
+  simp_rw [sum_inner, inner_smul_left],
+  refine finset.sum_congr rfl (λ i hi, _),
+  rw hv.inner_right_sum l₂ hi
+end
 
 /--
 The double sum of weighted inner products of pairs of vectors from an orthonormal sequence is the

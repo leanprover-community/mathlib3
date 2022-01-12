@@ -65,9 +65,7 @@ instance locally_discrete_bicategory : bicategory (locally_discrete C) :=
   left_unitor  := λ X Y f, eq_to_iso (category.id_comp f),
   right_unitor := λ X Y f, eq_to_iso (category.comp_id f) }
 
-/--
-A locally discrete bicategory is strict.
--/
+/-- A locally discrete bicategory is strict. -/
 instance locally_discrete_bicategory.strict : strict (locally_discrete C) := { }
 
 variables {I : Type u₁} [category.{v₁} I] {B : Type u₂} [bicategory.{w₂ v₂} B] [strict B]

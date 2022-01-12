@@ -960,10 +960,11 @@ and `hs` defines the inductive step using `C i.cast_succ`.
 begin
   rintro ⟨i, hi⟩,
   induction i with i IH,
-  { rwa [fin.mk_zero] },
+  { exact h0 },
   { refine hs ⟨i, lt_of_succ_lt_succ hi⟩ _,
     exact IH (lt_of_succ_lt hi) }
 end
+
 
 /--
 Define `C i` by induction on `i : fin (n + 1)` via induction on the underlying `nat` value.

@@ -6,6 +6,7 @@ Authors: Anne Baanen
 import data.fin.tuple
 import data.list.range
 import group_theory.group_action.pi
+import algebra.ring.pi
 
 /-!
 # Matrix and vector notation
@@ -332,33 +333,33 @@ by simp
 
 end sub
 
-section zero
+section one
 
-variables [has_zero α]
+variables [has_one α]
 
-@[simp] lemma zero_empty : (0 : fin 0 → α) = ![] :=
+@[simp, to_additive] lemma one_empty : (1 : fin 0 → α) = ![] :=
 empty_eq _
 
-@[simp] lemma cons_zero_zero : vec_cons (0 : α) (0 : fin n → α) = 0 :=
+@[simp, to_additive] lemma cons_one_one : vec_cons (1 : α) (1 : fin n → α) = 1 :=
 by { ext i j, refine fin.cases _ _ i, { refl }, simp }
 
-@[simp] lemma head_zero : vec_head (0 : fin n.succ → α) = 0 := rfl
+@[simp, to_additive] lemma head_one : vec_head (1 : fin n.succ → α) = 1 := rfl
 
-@[simp] lemma tail_zero : vec_tail (0 : fin n.succ → α) = 0 := rfl
+@[simp, to_additive] lemma tail_one : vec_tail (1 : fin n.succ → α) = 1 := rfl
 
-@[simp] lemma cons_eq_zero_iff {v : fin n → α} {x : α} :
-  vec_cons x v = 0 ↔ x = 0 ∧ v = 0 :=
+@[simp, to_additive] lemma cons_eq_one_iff {v : fin n → α} {x : α} :
+  vec_cons x v = 1 ↔ x = 1 ∧ v = 1 :=
 ⟨ λ h, ⟨ congr_fun h 0, by { convert congr_arg vec_tail h, simp } ⟩,
   λ ⟨hx, hv⟩, by simp [hx, hv] ⟩
 
 open_locale classical
 
-lemma cons_nonzero_iff {v : fin n → α} {x : α} :
-  vec_cons x v ≠ 0 ↔ (x ≠ 0 ∨ v ≠ 0) :=
-⟨ λ h, not_and_distrib.mp (h ∘ cons_eq_zero_iff.mpr),
-  λ h, mt cons_eq_zero_iff.mp (not_and_distrib.mpr h) ⟩
+lemma cons_ne_one_iff {v : fin n → α} {x : α} :
+  vec_cons x v ≠ 1 ↔ (x ≠ 1 ∨ v ≠ 1) :=
+⟨ λ h, not_and_distrib.mp (h ∘ cons_eq_one_iff.mpr),
+  λ h, mt cons_eq_one_iff.mp (not_and_distrib.mpr h) ⟩
 
-end zero
+end one
 
 section neg
 
@@ -375,5 +376,125 @@ by { ext i, refine fin.cases _ _ i; simp }
 @[simp] lemma tail_neg (a : fin n.succ → α) : vec_tail (-a) = -vec_tail a := rfl
 
 end neg
+
+section map
+
+variables {β γ : Type*}
+
+/-- `matrix.vec_map f v` is like composition, but `vec_map f ![a, b, c] = ![f a, f b, f c]` by
+definition. -/
+def vec_map (f : α → β) : ∀ {n}, (fin n → α) → (fin n → β)
+| 0 v := ![]
+| (n + 1) v := matrix.vec_cons (f (matrix.vec_head v)) (vec_map $ matrix.vec_tail v)
+
+example (f : α → β) (a b c : α) : vec_map f ![a, b, c] = ![f a, f b, f c] := rfl
+
+@[simp] lemma vec_map_nil (f : α → β) : vec_map f ![] = ![] := rfl
+@[simp] lemma vec_map_cons (f : α → β) (a : α) (v : fin n → α) :
+  vec_map f (vec_cons a v) = vec_cons (f a) (vec_map f v) :=
+by rw [vec_map, tail_cons, head_cons]
+
+lemma vec_map_eq_comp (f : α → β) : ∀ {n} (v : fin n → α), vec_map f v = f ∘ v
+| 0 v := subsingleton.elim _ _
+| (n + 1) v := (congr_arg2 _ rfl $ vec_map_eq_comp _).trans $ cons_head_tail (f ∘ v)
+
+@[simp] lemma vec_map_apply (f : α → β) {n} (v : fin n → α) (i : fin n) : vec_map f v i = f (v i) :=
+congr_fun (vec_map_eq_comp _ _) _
+
+@[simp, to_additive] lemma vec_map_one [has_one α] [has_one β] (f : α → β) (hf : f 1 = 1) {n}:
+  vec_map f (1 : fin n → α) = 1 :=
+(vec_map_eq_comp _ _).trans $ funext $ λ _, hf
+
+@[simp, to_additive] lemma vec_map_mul [has_mul α] [has_mul β] (f : α → β)
+  (hf : ∀ x y, f (x * y) = f x * f y) {n} (u v : fin n → α) :
+  vec_map f (u * v) = vec_map f u * vec_map f v :=
+begin
+  rw [vec_map_eq_comp, vec_map_eq_comp, vec_map_eq_comp],
+  ext x,
+  exact hf _ _,
+end
+
+lemma vec_map_smul {R S} [has_scalar R α] [has_scalar S β] (f : α → β)
+  (r : R) (s : S) (hf : ∀ x, f (r • x) = s • f x) {n} (u : fin n → α) :
+  vec_map f (r • u) = s • vec_map f u :=
+begin
+  rw [vec_map_eq_comp, vec_map_eq_comp],
+  ext x,
+  exact hf (u x),
+end
+
+
+/-- `matrix.vec_map₂ f v` is like composition, but `vec_map f ![a, b, c] = ![f a, f b, f c]` by
+definition. -/
+def vec_map₂ (f : α → β → γ) : ∀ {n}, (fin n → α) → (fin n → β) → (fin n → γ)
+| 0 u v := ![]
+| (n + 1) u v := matrix.vec_cons (f (matrix.vec_head u) (matrix.vec_head v))
+                                 (vec_map₂ (matrix.vec_tail u) (matrix.vec_tail v))
+
+example (f : α → β → γ) (a b : α) (c d : β) : vec_map₂ f ![a, b] ![c, d] = ![f a c, f b d] := rfl
+
+@[simp] lemma vec_map₂_nil (f : α → β → γ) : vec_map₂ f ![] ![] = ![] := rfl
+@[simp] lemma vec_map₂_cons (f : α → β → γ) (a : α) (u : fin n → α) (b : β) (v : fin n → β)  :
+  vec_map₂ f (vec_cons a u) (vec_cons b v) = vec_cons (f a b) (vec_map₂ f u v) :=
+by rw [vec_map₂, tail_cons, head_cons, tail_cons, head_cons]
+
+lemma vec_map₂_eq (f : α → β → γ) :
+  ∀ {n} (u : fin n → α) (v : fin n → β), vec_map₂ f u v = λ x, f (u x) (v x)
+| 0 u v := subsingleton.elim _ _
+| (n + 1) u v := (congr_arg2 _ rfl $ vec_map₂_eq _ _).trans $ cons_head_tail (λ x, f (u x) (v x))
+
+@[simp, to_additive] lemma vec_map_one [has_one α] [has_one β] (f : α → β) (hf : f 1 = 1) {n}:
+  vec_map f (1 : fin n → α) = 1 :=
+(vec_map_eq_comp _ _).trans $ funext $ λ _, hf
+
+@[simp, to_additive] lemma vec_map_mul [has_mul α] [has_mul β] (f : α → β)
+  (hf : ∀ x y, f (x * y) = f x * f y) {n} (u v : fin n → α) :
+  vec_map f (u * v) = vec_map f u * vec_map f v :=
+begin
+  rw [vec_map_eq_comp, vec_map_eq_comp, vec_map_eq_comp],
+  ext x,
+  exact hf _ _,
+end
+
+lemma vec_map_smul {R S} [has_scalar R α] [has_scalar S β] (f : α → β)
+  (r : R) (s : S) (hf : ∀ x, f (r • x) = s • f x) {n} (u : fin n → α) :
+  vec_map f (r • u) = s • vec_map f u :=
+begin
+  rw [vec_map_eq_comp, vec_map_eq_comp],
+  ext x,
+  exact hf (u x),
+end
+
+/-- `matrix.map_vec` preserves `monoid_hom` structures. -/
+@[to_additive /-" `matrix.map_vec` preserves `add_monoid_hom` structures. "-/,
+  simps {fully_applied := ff}]
+def _root_.monoid_hom.map_vec [mul_one_class α] [mul_one_class β] (f : α →* β) {n} :
+  (fin n → α) →* (fin n → β) :=
+{ to_fun := vec_map f,
+  map_one' := vec_map_one f f.map_one,
+  map_mul' := vec_map_mul f f.map_mul }
+
+/-- `matrix.map_vec` preserves `ring_hom` structures. -/
+@[simps {fully_applied := ff}]
+def _root_.ring_hom.map_vec [non_assoc_semiring α] [non_assoc_semiring β] (f : α →+* β) {n} :
+  (fin n → α) →+* (fin n → β) :=
+{ to_fun := vec_map f,
+  ..f.to_monoid_hom.map_vec,
+  ..f.to_add_monoid_hom.map_vec }
+
+variables [add_comm_monoid α] [add_comm_monoid β]
+
+example [add_comm_monoid α] [add_comm_monoid β] (f1 : α →+ β) (f2 : α →+ β) :
+  α →+ (fin 2 → β) :=
+begin
+  let : fin 2 → (α →+ β) := ![f1, f2],
+  let f := λ x : α, vec_map (add_monoid_hom.eval x) this,
+  have := (add_monoid_hom.eval).flip.map_vec this,
+end
+
+
+end
+
+end map
 
 end matrix

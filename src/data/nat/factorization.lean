@@ -96,7 +96,7 @@ by simp [factorization_pow, hp.factorization]
 /-- For any `p : ℕ` and any function `g : α → ℕ` that's non-zero on `S : finset α`,
 the power of `p` in `S.prod g` equals the sum over `x ∈ S` of the powers of `p` in `g x`.
 Generalises `factorization_mul`, which is the special case where `S.card = 2` and `g = id` -/
-lemma factorization_prod {α : Type*} {S : finset α} {p : ℕ} {g : α → ℕ} (hS: ∀ x ∈ S, g x ≠ 0) :
+lemma factorization_prod {α : Type*} {S : finset α} {g : α → ℕ} (hS: ∀ x ∈ S, g x ≠ 0) :
   (S.prod g).factorization = S.sum (λ x, (g x).factorization) :=
 begin
   classical,

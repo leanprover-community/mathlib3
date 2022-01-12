@@ -533,7 +533,12 @@ the equality `∥c • x∥ = ∥c∥ ∥x∥`. We require only `∥c • x∥ �
 `∥c • x∥ = ∥c∥ ∥x∥` in `norm_smul`. -/
 class semi_normed_space (α : Type*) (β : Type*) [normed_field α] [semi_normed_group β]
   extends module α β :=
+[to_opposite_module : module αᵐᵒᵖ β]
+[to_is_central_scalar : is_central_scalar α β]
 (norm_smul_le : ∀ (a:α) (b:β), ∥a • b∥ ≤ ∥a∥ * ∥b∥)
+
+attribute [instance, priority 920] semi_normed_space.to_opposite_module
+attribute [instance, priority 920] semi_normed_space.to_is_central_scalar
 
 set_option extends_priority 920
 -- Here, we set a rather high priority for the instance `[normed_space α β] : module α β`
@@ -543,13 +548,7 @@ set_option extends_priority 920
 equality `∥c • x∥ = ∥c∥ ∥x∥`. We require only `∥c • x∥ ≤ ∥c∥ ∥x∥` in the definition, then prove
 `∥c • x∥ = ∥c∥ ∥x∥` in `norm_smul`. -/
 class normed_space (α : Type*) (β : Type*) [normed_field α] [normed_group β]
-  extends module α β :=
-(norm_smul_le : ∀ (a:α) (b:β), ∥a • b∥ ≤ ∥a∥ * ∥b∥)
-
-/-- A normed space is a seminormed space. -/
-@[priority 100] -- see Note [lower instance priority]
-instance normed_space.to_semi_normed_space [normed_field α] [normed_group β]
-  [γ : normed_space α β] : semi_normed_space α β := { ..γ }
+  extends semi_normed_space α β.
 
 end prio
 
@@ -707,9 +706,10 @@ instance pi.semi_normed_space {E : ι → Type*} [fintype ι] [∀i, semi_normed
     by simp only [(nnreal.coe_mul _ _).symm, nnreal.mul_finset_sup, nnnorm_smul] }
 
 /-- A subspace of a seminormed space is also a normed space, with the restriction of the norm. -/
-instance submodule.semi_normed_space {𝕜 R : Type*} [has_scalar 𝕜 R] [normed_field 𝕜] [ring R]
+instance submodule.semi_normed_space {𝕜 R : Type*} [has_scalar 𝕜 R] [has_scalar 𝕜ᵐᵒᵖ R]
+  [normed_field 𝕜] [ring R]
   {E : Type*} [semi_normed_group E] [semi_normed_space 𝕜 E] [module R E]
-  [is_scalar_tower 𝕜 R E] (s : submodule R E) :
+  [is_scalar_tower 𝕜 R E] [is_scalar_tower 𝕜ᵐᵒᵖ R E] (s : submodule R E) :
   semi_normed_space 𝕜 s :=
 { norm_smul_le := λc x, le_of_eq $ norm_smul c (x : E) }
 
@@ -793,9 +793,10 @@ pi.normed_space
 end
 
 /-- A subspace of a normed space is also a normed space, with the restriction of the norm. -/
-instance submodule.normed_space {𝕜 R : Type*} [has_scalar 𝕜 R] [normed_field 𝕜] [ring R]
+instance submodule.normed_space {𝕜 R : Type*} [has_scalar 𝕜 R] [has_scalar 𝕜ᵐᵒᵖ R]
+  [normed_field 𝕜] [ring R]
   {E : Type*} [normed_group E] [normed_space 𝕜 E] [module R E]
-  [is_scalar_tower 𝕜 R E] (s : submodule R E) :
+  [is_scalar_tower 𝕜 R E] [is_scalar_tower 𝕜ᵐᵒᵖ R E] (s : submodule R E) :
   normed_space 𝕜 s :=
 { ..submodule.semi_normed_space s }
 

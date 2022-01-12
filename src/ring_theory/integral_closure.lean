@@ -7,6 +7,7 @@ import linear_algebra.finite_dimensional
 import ring_theory.adjoin.fg
 import ring_theory.polynomial.scale_roots
 import ring_theory.polynomial.tower
+import linear_algebra.matrix.determinant
 
 /-!
 # Integral closure of a subring.
@@ -442,6 +443,14 @@ lemma is_integral.prod {α : Type*} {s : finset α} (f : α → A) (h : ∀ x �
 lemma is_integral.sum {α : Type*} {s : finset α} (f : α → A) (h : ∀ x ∈ s, is_integral R (f x)) :
   is_integral R (∑ x in s, f x) :=
 (integral_closure R A).sum_mem h
+
+lemma is_integral.det {n : Type*} [fintype n] [decidable_eq n] {M : matrix n n A}
+  (h : ∀ i j, is_integral R (M i j)) :
+  is_integral R M.det :=
+begin
+  rw [matrix.det_apply],
+  exact is_integral.sum _ (λ σ hσ, is_integral.zsmul (is_integral.prod _ (λ i hi, h _ _)) _)
+end
 
 section
 

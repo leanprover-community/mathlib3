@@ -198,8 +198,8 @@ begin
   { refine ih _ _ hkl; simp only [finset.mem_coe, hk, hl], },
 end
 
-
--- what is the correct generality? It also works for `ℤ`
+/-- Note that while this lemma cannot be easily generalized to a type class, it holds for ℤ as
+well. See `int.image_Ico_mod` for the ℤ version. -/
 lemma image_Ico_mod (n a : ℕ) :
   (Ico n (n+a)).image (% a) = range a :=
 begin

@@ -26,10 +26,10 @@ def disj_sum : finset (α ⊕ β) := ⟨s.1.disj_sum t.1, s.2.disj_sum t.2⟩
 
 @[simp] lemma val_disj_sum : (s.disj_sum t).1 = s.1.disj_sum t.1 := rfl
 
-@[simp] lemma zero_disj_sum : (∅ : finset α).disj_sum t = t.map embedding.inr :=
+@[simp] lemma empty_disj_sum : (∅ : finset α).disj_sum t = t.map embedding.inr :=
 val_inj.1 $ multiset.zero_disj_sum _
 
-@[simp] lemma disj_sum_zero : s.disj_sum (∅ : finset β) = s.map embedding.inl :=
+@[simp] lemma disj_sum_empty : s.disj_sum (∅ : finset β) = s.map embedding.inl :=
 val_inj.1 $ multiset.disj_sum_zero _
 
 @[simp] lemma card_disj_sum : (s.disj_sum t).card = s.card + t.card := multiset.card_disj_sum _ _
@@ -55,7 +55,7 @@ lemma disj_sum_ssubset_disj_sum_of_ssubset_of_subset (hs : s₁ ⊂ s₂) (ht : 
   s₁.disj_sum t₁ ⊂ s₂.disj_sum t₂ :=
 val_lt_iff.1 $ disj_sum_lt_disj_sum_of_lt_of_le (val_lt_iff.2 hs) (val_le_iff.2 ht)
 
-lemma disj_sum_lt_disj_sum_of_le_of_lt (hs : s₁ ⊆ s₂) (ht : t₁ ⊂ t₂) :
+lemma disj_sum_ssubset_disj_sum_of_subset_of_ssubset (hs : s₁ ⊆ s₂) (ht : t₁ ⊂ t₂) :
   s₁.disj_sum t₁ ⊂ s₂.disj_sum t₂ :=
 val_lt_iff.1 $ disj_sum_lt_disj_sum_of_le_of_lt (val_le_iff.2 hs) (val_lt_iff.2 ht)
 

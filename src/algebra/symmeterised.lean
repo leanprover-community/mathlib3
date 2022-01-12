@@ -7,7 +7,7 @@ import algebra.module.basic
 import tactic.abel
 
 /-!
-# Special Jordan algebras
+# Symmetrised algebra
 
 A commutative multiplication on a real or complex space can be constructed from any multiplication
 by "symmetrisation" i.e

@@ -203,8 +203,8 @@ theorem unbounded_lt_Ici [semilattice_sup α] (a : α) : unbounded (<) (set.Ici 
 
 /-! ### Bounded initial segments -/
 
-theorem bounded_r_iff_bounded_inter_not_r (H : ∀ a b, ∃ m, ∀ c, r c a ∨ r c b → r c m) (a : α) :
-  bounded r s ↔ bounded r (s ∩ {b | ¬ r b a}) :=
+theorem bounded_inter_not (H : ∀ a b, ∃ m, ∀ c, r c a ∨ r c b → r c m) (a : α) :
+  bounded r (s ∩ {b | ¬ r b a}) ↔ bounded r s :=
 begin
   use bounded.mono (set.inter_subset_left s _),
   rintro ⟨b, hb⟩,

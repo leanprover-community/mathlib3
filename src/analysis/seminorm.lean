@@ -284,6 +284,8 @@ instance : has_add (seminorm 𝕜 E) :=
 
 lemma coe_add (p q : seminorm 𝕜 E) : ⇑(p + q) = p + q := rfl
 
+@[simp] lemma add_apply (p q : seminorm 𝕜 E) (x : E) : (p + q) x = p x + q x := rfl
+
 instance : has_scalar nnreal (seminorm 𝕜 E) :=
 { smul := λ r p,
   { to_fun := λ x, ↑r * p(x),

@@ -275,6 +275,27 @@ variables (p : seminorm 𝕜 E) (c : 𝕜) (x y : E) (r : ℝ)
 protected lemma smul : p (c • x) = ∥c∥ * p x := p.smul' _ _
 protected lemma triangle : p (x + y) ≤ p x + p y := p.triangle' _ _
 
+instance : has_add (seminorm 𝕜 E) :=
+  { add := λ p q, { to_fun := λ x, p x + q x,
+    smul' := λ a x, by rw [p.smul, q.smul, mul_add],
+    triangle' := λ _ _, has_le.le.trans_eq (add_le_add (p.triangle _ _) (q.triangle _ _))
+      (add_add_add_comm _ _ _ _) } }
+
+lemma coe_add (p q : seminorm 𝕜 E) : ⇑(p + q) = p + q := rfl
+
+instance : has_scalar nnreal (seminorm 𝕜 E) :=
+  {smul := λ r p, {
+    to_fun := λ x, ↑r * p(x),
+    smul' := λ _ _, by rw [p.smul, ←mul_assoc, ←mul_assoc, mul_comm ↑r ∥_∥],
+    triangle' := λ _ _, has_le.le.trans_eq (mul_le_mul_of_nonneg_left (p.triangle _ _) r.coe_nonneg)
+      (mul_add r _ _) } }
+
+lemma coe_smul (r' : nnreal) (p : seminorm 𝕜 E) : coe_fn (r' • p) = (↑r' : ℝ) • coe_fn p := rfl
+
+instance : mul_action nnreal (seminorm 𝕜 E) :=
+  { one_smul := λ p, ext $ (coe_smul 1 p).trans (one_smul _ _),
+  mul_smul := λ r c p, ext $ by rw [coe_smul, coe_smul, coe_smul, nnreal.coe_mul, mul_smul] }
+
 end has_scalar
 
 section smul_with_zero

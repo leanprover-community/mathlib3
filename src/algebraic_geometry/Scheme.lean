@@ -62,16 +62,16 @@ def forget_to_Top : Scheme ⥤ Top :=
   Scheme.forget_to_LocallyRingedSpace ⋙ LocallyRingedSpace.forget_to_Top
 
 @[reassoc, simp]
-lemma Scheme.comp_val_c_app {X Y Z : Scheme} (f : X ⟶ Y) (g : Y ⟶ Z) (U) :
+lemma comp_val_c_app {X Y Z : Scheme} (f : X ⟶ Y) (g : Y ⟶ Z) (U) :
   (f ≫ g).val.c.app U = g.val.c.app U ≫ f.val.c.app _ := rfl
 
-lemma Scheme.congr_app {X Y : Scheme} {f g : X ⟶ Y} (e : f = g) (U) :
+lemma congr_app {X Y : Scheme} {f g : X ⟶ Y} (e : f = g) (U) :
   f.val.c.app U = g.val.c.app U ≫ X.presheaf.map (eq_to_hom (by subst e)) :=
-by { subst e, dsimp, simp, }
+by { subst e, dsimp, simp }
 
 instance is_LocallyRingedSpace_iso {X Y : Scheme} (f : X ⟶ Y) [is_iso f] :
   @is_iso LocallyRingedSpace _ _ _ f :=
-Scheme.forget_to_LocallyRingedSpace.map_is_iso f
+forget_to_LocallyRingedSpace.map_is_iso f
 
 /--
 The spectrum of a commutative ring, as a scheme.
@@ -162,10 +162,17 @@ lemma basic_open_res_eq (i : V ⟶ U) [is_iso i] :
   X.basic_open (X.presheaf.map i.op f) = X.basic_open f :=
 RingedSpace.basic_open_res_eq _ i.op f
 
-@[simp]
 lemma preimage_basic_open {X Y : Scheme} (f : X ⟶ Y) {U : opens Y.carrier}
   (r : Y.presheaf.obj $ op U) :
   (opens.map f.1.base).obj (Y.basic_open r) =
+    @Scheme.basic_open X ((opens.map f.1.base).obj U) (f.1.c.app _ r) :=
+LocallyRingedSpace.preimage_basic_open f r
+
+@[simp]
+lemma preimage_basic_open' {X Y : Scheme} (f : X ⟶ Y) {U : opens Y.carrier}
+  (r : Y.presheaf.obj $ op U) :
+  (opens.map (PresheafedSpace.hom.base $ @coe _ _ (@@coe_to_lift $ @@coe_base coe_subtype) f)).obj
+    (Y.basic_open r) =
     @Scheme.basic_open X ((opens.map f.1.base).obj U) (f.1.c.app _ r) :=
 LocallyRingedSpace.preimage_basic_open f r
 

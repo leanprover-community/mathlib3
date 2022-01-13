@@ -19,4 +19,3 @@ attribute [elementwise]
   -- Note that the elementwise forms of `iso.hom_inv_id` and `iso.inv_hom_id` are already
   -- provided as `category_theory.coe_hom_inv_id` and `category_theory.coe_inv_hom_id`.
   is_iso.hom_inv_id is_iso.inv_hom_id
-  functor.map_comp

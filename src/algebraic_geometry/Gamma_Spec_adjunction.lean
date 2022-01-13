@@ -343,7 +343,7 @@ end
 -- This is just
 -- `(Γ_Spec.adjunction.unit.app X).1.c.app (op ⊤) = Spec_Γ_identity.hom.app (X.presheaf.obj (op ⊤))`
 -- But lean times out when trying to unify the types of the two sides.
-lemma Γ_Spec.adjunction.unit.app_app_top (X : Scheme) :
+lemma adjunction_unit_app_app_top (X : Scheme) :
   @eq ((Scheme.Spec.obj (op $ X.presheaf.obj (op ⊤))).presheaf.obj (op ⊤) ⟶
     ((Γ_Spec.adjunction.unit.app X).1.base _* X.presheaf).obj (op ⊤))
   ((Γ_Spec.adjunction.unit.app X).val.c.app (op ⊤))

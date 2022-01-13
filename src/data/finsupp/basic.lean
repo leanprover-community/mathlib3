@@ -1020,6 +1020,13 @@ instance : add_monoid (α →₀ M) :=
   nsmul_succ' := λ n v, by { ext i, simp [nat.succ_eq_one_add, add_nsmul] },
   .. finsupp.add_zero_class }
 
+/-- Coercion from a `finsupp` to a function type is an `add_monoid_hom`. -/
+noncomputable
+def coe_fn_add_monoid_hom {α M : Type*} [add_zero_class M] : (α →₀ M) →+ (α → M) :=
+{ to_fun := λ f, f,
+  map_zero' := by simp,
+  map_add' := by simp }
+
 end add_monoid
 
 end finsupp

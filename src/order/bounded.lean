@@ -55,8 +55,11 @@ lemma unbounded_gt_iff [linear_order α] : unbounded (>) s ↔ ∀ a, ∃ b ∈ 
 
 /-! #### Less and less or equal -/
 
+lemma bounded.rel_mono {r' : α → α → Prop} (h : bounded r s) (hrr' : r ≤ r') : bounded r' s :=
+let ⟨a, ha⟩ := h in ⟨a, λ b hb, hrr' b a (ha b hb)⟩
+
 lemma bounded_le_of_bounded_lt [preorder α] (h : bounded (<) s) : bounded (≤) s :=
-let ⟨a, ha⟩ := h in ⟨a, λ b hb, le_of_lt (ha b hb)⟩
+h.rel_mono $ λ _ _, le_of_lt
 
 lemma unbounded.rel_mono {r' : α → α → Prop} (hr : r' ≤ r) (h : unbounded r s) : unbounded r' s :=
 λ a, let ⟨b, hb, hba⟩ := h a in ⟨b, hb, λ hba', hba (hr b a hba')⟩

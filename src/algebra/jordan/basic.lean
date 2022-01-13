@@ -144,7 +144,7 @@ begin
   rw is_jordan.lmul_lmul_comm_lmul,
 end
 
-lemma lie_L_R_sq [is_jordan A] (a : A) : ⁅L a, R (a * a)⁆ = 0 :=
+@[simp] lemma lie_L_R_sq [is_jordan A] (a : A) : ⁅L a, R (a * a)⁆ = 0 :=
 begin
   ext b,
   rw ring.lie_def,
@@ -154,7 +154,7 @@ begin
   rw is_jordan.lmul_comm_rmul_rmul,
 end
 
-lemma lie_L_sq_R [is_jordan A] (a : A) : ⁅L (a * a), R a⁆ = 0 :=
+@[simp] lemma lie_L_sq_R [is_jordan A] (a : A) : ⁅L (a * a), R a⁆ = 0 :=
 begin
   ext b,
   rw ring.lie_def,
@@ -164,7 +164,7 @@ begin
   rw is_jordan.lmul_lmul_comm_rmul,
 end
 
-lemma lie_R_R_sq [is_jordan A] (a : A) : ⁅R a, R (a * a)⁆ = 0 :=
+@[simp] lemma lie_R_R_sq [is_jordan A] (a : A) : ⁅R a, R (a * a)⁆ = 0 :=
 begin
   ext b,
   rw ring.lie_def,

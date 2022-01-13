@@ -546,7 +546,7 @@ end
 @[simp] lemma rpow_le_rpow_left_iff (hx : 1 < x) : x ^ y ≤ x ^ z ↔ y ≤ z :=
 begin
   have x_pos : 0 < x := lt_trans zero_lt_one hx,
-  rw [<-log_le_log (rpow_pos_of_pos x_pos y) (rpow_pos_of_pos x_pos z),
+  rw [←log_le_log (rpow_pos_of_pos x_pos y) (rpow_pos_of_pos x_pos z),
       log_rpow x_pos, log_rpow x_pos, mul_le_mul_right (log_pos hx)],
 end
 
@@ -570,7 +570,7 @@ end
 @[simp] lemma rpow_le_rpow_left_iff_of_base_lt_one (hx0 : 0 < x) (hx1 : x < 1) :
   x ^ y ≤ x ^ z ↔ z ≤ y :=
 begin
-  rw [<-log_le_log (rpow_pos_of_pos hx0 y) (rpow_pos_of_pos hx0 z),
+  rw [←log_le_log (rpow_pos_of_pos hx0 y) (rpow_pos_of_pos hx0 z),
       log_rpow hx0, log_rpow hx0, mul_le_mul_right_of_neg (log_neg hx0 hx1)],
 end
 

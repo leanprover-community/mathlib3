@@ -64,6 +64,12 @@ by simpa [factorization, multiset.to_finsupp_support]
 lemma factor_iff_mem_factorization {n p : ℕ} : p ∈ n.factorization.support ↔ p ∈ n.factors :=
 by simp only [support_factorization, list.mem_to_finset]
 
+lemma prime_of_mem_factorization {n p : ℕ} : p ∈ n.factorization.support → p.prime :=
+(@prime_of_mem_factors n p) ∘ (@factor_iff_mem_factorization n p).mp
+
+lemma pos_of_mem_factorization {n p : ℕ} : p ∈ n.factorization.support → 0 < p:=
+(@prime.pos p) ∘ (@prime_of_mem_factorization n p)
+
 /-- The only numbers with empty prime factorization are `0` and `1` -/
 lemma factorization_eq_zero_iff (n : ℕ) : n.factorization = 0 ↔ n = 0 ∨ n = 1 :=
 by simp [factorization, add_equiv.map_eq_zero_iff, multiset.coe_eq_zero]
@@ -253,7 +259,6 @@ def factorization_equiv : pnat ≃ {f : ℕ →₀ ℕ | ∀ p ∈ f.support, pr
   },
 }
 
--- TODO: add `prime_of_mem_factorization` and `pos_of_mem_factorization` —
---    these are sufficiently useful to be worth having
+-- TODO: use `prime_of_mem_factorization` and `pos_of_mem_factorization`
 
 end nat

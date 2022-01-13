@@ -19,7 +19,7 @@ variables {α : Type*} {r : α → α → Prop} {s t : set α}
 
 /-! ### Subsets of bounded and unbounded sets -/
 
-theorem bounded_of_subset_bounded (hst : s ⊆ t) (hs : bounded r t) : bounded r s :=
+theorem bounded.mono (hst : s ⊆ t) (hs : bounded r t) : bounded r s :=
 hs.imp $ λ a ha b hb, ha b (hst hb)
 
 theorem unbounded.mono (hst : s ⊆ t) (hs : unbounded r s) : unbounded r t :=

@@ -1156,7 +1156,9 @@ lemma coe_finset_sum [add_comm_monoid N] (S : finset ι) (f : ι → α →₀ N
   ⇑(∑ i in S, f i) = ∑ i in S, f i :=
 (coe_fn_add_monoid_hom : (α →₀ N) →+ _).map_sum _ _
 
-#exit
+lemma coe_finsupp_sum [has_zero M] [add_comm_monoid N] (f : α →₀ M) (g : α → M →₀ N) :
+  ⇑(∑ i in f.support, g i) = ∑ i in f.support, g i :=
+coe_finset_sum _ _
 
 lemma support_sum [decidable_eq β] [has_zero M] [add_comm_monoid N]
   {f : α →₀ M} {g : α → M → (β →₀ N)} :

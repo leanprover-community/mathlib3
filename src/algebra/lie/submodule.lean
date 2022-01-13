@@ -185,21 +185,6 @@ namespace lie_subalgebra
 
 variables {L} (K : lie_subalgebra R L)
 
-/-- Given a Lie subalgebra `K ⊆ L`, a Lie module `M` of `L`, and a Lie submodule `N ⊆ M` for the
-action of `L`, we may also regard `N` as a Lie submodule for the action of `K`. -/
-def restrict_lie_submodule (N : lie_submodule R L M) :
-  lie_submodule R K M :=
-{ lie_mem := λ k m hm, N.lie_mem hm,
-  .. (N : submodule R M), }
-
-@[simp] lemma coe_restrict_lie_submodule (N : lie_submodule R L M) :
-  (K.restrict_lie_submodule N : submodule R M) = N :=
-rfl
-
-@[simp] lemma mem_restrict_lie_submodule {N : lie_submodule R L M} (m : M) :
-  m ∈ K.restrict_lie_submodule N ↔ m ∈ N :=
-iff.rfl
-
 /-- Given a Lie subalgebra `K ⊆ L`, if we view `L` as a `K`-module by restriction, it contains
 a distinguished Lie submodule for the action of `K`, namely `K` itself. -/
 def to_lie_submodule : lie_submodule R K L :=

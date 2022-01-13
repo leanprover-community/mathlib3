@@ -1004,6 +1004,13 @@ ext $ λ a, by simp only [hf', add_apply, map_range_apply]
   emb_domain f (v + w) = emb_domain f v + emb_domain f w :=
 (emb_domain.add_monoid_hom f).map_add v w
 
+/-- Coercion from a `finsupp` to a function type is an `add_monoid_hom`. -/
+noncomputable
+def coe_fn_add_monoid_hom {α M : Type*} [add_zero_class M] : (α →₀ M) →+ (α → M) :=
+{ to_fun := λ f, f,
+  map_zero' := by simp,
+  map_add' := by simp }
+
 end add_zero_class
 
 section add_monoid
@@ -1019,13 +1026,6 @@ instance : add_monoid (α →₀ M) :=
   nsmul_zero' := λ v, by { ext i, simp },
   nsmul_succ' := λ n v, by { ext i, simp [nat.succ_eq_one_add, add_nsmul] },
   .. finsupp.add_zero_class }
-
-/-- Coercion from a `finsupp` to a function type is an `add_monoid_hom`. -/
-noncomputable
-def coe_fn_add_monoid_hom {α M : Type*} [add_zero_class M] : (α →₀ M) →+ (α → M) :=
-{ to_fun := λ f, f,
-  map_zero' := by simp,
-  map_add' := by simp }
 
 end add_monoid
 

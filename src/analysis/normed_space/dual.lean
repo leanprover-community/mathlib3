@@ -146,7 +146,7 @@ lemma polar_eq_Inter (s : set E) :
   polar 𝕜 s = ⋂ z ∈ s, {x' : dual 𝕜 E | ∥x' z∥ ≤ 1} :=
 by simp only [polar, set_of_forall]
 
-@[simp] lemma polar_univ : polar 𝕜 (univ : set E) = {0} :=
+@[simp] lemma polar_univ : polar 𝕜 (univ : set E) = {(0 : dual 𝕜 E)} :=
 begin
   refine eq_singleton_iff_unique_mem.2 ⟨zero_mem_polar _ _, λ x' hx', _⟩,
   ext x,

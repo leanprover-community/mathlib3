@@ -132,8 +132,8 @@ meta def print_workflow_command (env : environment) (linter_name decl_name : nam
  (warning : string) : option string := do
   po ← env.decl_pos decl_name,
   ol ← env.decl_olean decl_name,
-  return $ sformat!"\n::error file={ol},line={po.line},col={po.column}::" ++
-    sformat!"The {linter_name} linter has flagged this declaration:%0A" ++
+  return $ sformat!"\n::error file={ol},line={po.line},col={po.column},title=" ++
+    sformat!"Warning from {linter_name} linter::" ++
     sformat!"{escape_workflow_command $ to_string decl_name} - {escape_workflow_command warning}"
 
 /-- Formats a map of linter warnings using `print_warning`, sorted by line number. -/

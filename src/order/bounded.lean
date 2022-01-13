@@ -214,10 +214,7 @@ end
 
 theorem unbounded_inter_not (H : ∀ a b, ∃ m, ∀ c, r c a ∨ r c b → r c m) (a : α) :
   unbounded r (s ∩ {b | ¬ r b a}) ↔ unbounded r s :=
-begin
-  rw [←not_bounded_iff, ←not_bounded_iff, not_iff_not],
-  exact bounded_inter_not H a
-end
+by simp_rw [← not_bounded_iff, bounded_inter_not H]
 
 /-! #### Less or equal -/
 
@@ -234,7 +231,7 @@ end
 
 theorem bounded_le_inter_lt [linear_order α] (a : α) :
   bounded (≤) (s ∩ {b | a < b}) ↔ bounded (≤) s :=
-by { convert bounded_le_inter_not_le a, ext, exact lt_iff_not_ge' }
+by simp_rw [← not_le, bounded_le_inter_not_le]
 
 theorem unbounded_le_inter_lt [linear_order α] (a : α) :
   unbounded (≤) (s ∩ {b | a < b}) ↔ unbounded (≤) s :=

@@ -198,6 +198,9 @@ instance : monoid (E →ₗᵢ[R] E) :=
 @[simp] lemma coe_one : ((1 : E →ₗᵢ[R] E) : E → E) = _root_.id := rfl
 @[simp] lemma coe_mul (f g : E →ₗᵢ[R] E) : ⇑(f * g) = f ∘ g := rfl
 
+lemma one_def : (1 : E →ₗᵢ[R] E) = id := rfl
+lemma mul_def (f g : E →ₗᵢ[R] E) : (f * g : E →ₗᵢ[R] E) = f.comp g := rfl
+
 end linear_isometry
 
 /-- Construct a `linear_isometry` from a `linear_map` satisfying `isometry`. -/
@@ -423,6 +426,10 @@ instance : group (E ≃ₗᵢ[R] E) :=
 @[simp] lemma coe_one : ⇑(1 : E ≃ₗᵢ[R] E) = id := rfl
 @[simp] lemma coe_mul (e e' : E ≃ₗᵢ[R] E) : ⇑(e * e') = e ∘ e' := rfl
 @[simp] lemma coe_inv (e : E ≃ₗᵢ[R] E) : ⇑(e⁻¹) = e.symm := rfl
+
+lemma one_def : (1 : E ≃ₗᵢ[R] E) = refl _ _ := rfl
+lemma mul_def (e e' : E ≃ₗᵢ[R] E) : (e * e' : E ≃ₗᵢ[R] E) = e'.trans e := rfl
+lemma inv_def (e : E ≃ₗᵢ[R] E) : (e⁻¹ : E ≃ₗᵢ[R] E) = e.symm := rfl
 
 include σ₂₁
 

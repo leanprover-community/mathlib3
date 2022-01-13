@@ -120,11 +120,11 @@ unsym_injective.eq_iff' rfl
 @[simp, to_additive] lemma sym_eq_one_iff [has_one α] (a : α) : sym a = 1 ↔ a = 1 :=
 sym_injective.eq_iff' rfl
 
-lemma unsym_ne_zero_iff [has_zero α] (a : αˢʸᵐ) : a.unsym ≠ (0 : α) ↔ a ≠ (0 : αˢʸᵐ) :=
-not_congr $ unsym_eq_zero_iff a
+@[to_additive] lemma unsym_ne_one_iff [has_one α] (a : αˢʸᵐ) : a.unsym ≠ (1 : α) ↔ a ≠ (1 : αˢʸᵐ) :=
+not_congr $ unsym_eq_one_iff a
 
-lemma sym_ne_zero_iff [has_zero α] (a : α) : sym a ≠ (0 : αˢʸᵐ) ↔ a ≠ (0 : α) :=
-not_congr $ sym_eq_zero_iff a
+@[to_additive] lemma sym_ne_one_iff [has_one α] (a : α) : sym a ≠ (1 : αˢʸᵐ) ↔ a ≠ (1 : α) :=
+not_congr $ sym_eq_one_iff a
 
 instance [add_comm_semigroup α] : add_comm_semigroup (αˢʸᵐ) :=
 unsym_injective.add_comm_semigroup _ (λ _ _, rfl)

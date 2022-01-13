@@ -276,7 +276,8 @@ protected lemma smul : p (c • x) = ∥c∥ * p x := p.smul' _ _
 protected lemma triangle : p (x + y) ≤ p x + p y := p.triangle' _ _
 
 instance : has_add (seminorm 𝕜 E) :=
-  { add := λ p q, { to_fun := λ x, p x + q x,
+{ add := λ p q,
+  { to_fun := λ x, p x + q x,
     smul' := λ a x, by rw [p.smul, q.smul, mul_add],
     triangle' := λ _ _, has_le.le.trans_eq (add_le_add (p.triangle _ _) (q.triangle _ _))
       (add_add_add_comm _ _ _ _) } }
@@ -292,7 +293,7 @@ instance : has_scalar nnreal (seminorm 𝕜 E) :=
 lemma coe_smul (r' : nnreal) (p : seminorm 𝕜 E) : coe_fn (r' • p) = (↑r' : ℝ) • coe_fn p := rfl
 
 instance : mul_action nnreal (seminorm 𝕜 E) :=
-  { one_smul := λ p, ext $ (coe_smul 1 p).trans (one_smul _ _),
+{ one_smul := λ p, ext $ (coe_smul 1 p).trans (one_smul _ _),
   mul_smul := λ r c p, ext $ by rw [coe_smul, coe_smul, coe_smul, nnreal.coe_mul, mul_smul] }
 
 end has_scalar

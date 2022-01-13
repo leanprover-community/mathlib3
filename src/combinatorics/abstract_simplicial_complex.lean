@@ -1,5 +1,6 @@
 import data.finset.basic
-import data.set.basic
+import data.set.finite
+import data.nat.enat
 
 universes u
 
@@ -157,5 +158,19 @@ instance : complete_distrib_lattice (ASC V) :=
   ..ASC.has_bot }
 
 end lattice
+
+def finite (K : ASC V) : Prop := K.faces.finite
+
+section classical
+
+open_locale classical
+
+noncomputable def dimension (K : ASC V) : enat :=
+  enat.find (λ n, ∀ ⦃s : finset V⦄, s ∈ K → s.card ≤ n + 1)
+
+def pure (K : ASC V) : Prop :=
+  ∀ ⦃s : finset V⦄, s ∈ K.facets → ((s.card - 1 : ℕ) : enat) = K.dimension
+
+end classical
 
 end ASC

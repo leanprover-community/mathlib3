@@ -222,7 +222,7 @@ subsheaf_to_Types (is_locally_fraction R)
 
 instance comm_ring_structure_sheaf_in_Type_obj (U : (opens (prime_spectrum.Top R))ᵒᵖ) :
   comm_ring ((structure_sheaf_in_Type R).1.obj U) :=
-(sections_subring R U).to_comm_ring
+subring_class.to_comm_ring (sections_subring R U)
 
 open _root_.prime_spectrum
 
@@ -335,7 +335,8 @@ rfl
 
 lemma const_zero (f : R) (U hu) : const R 0 f U hu = 0 :=
 subtype.eq $ funext $ λ x, is_localization.mk'_eq_iff_eq_mul.2 $
-by erw [ring_hom.map_zero, subtype.val_eq_coe, subring.coe_zero, pi.zero_apply, zero_mul]
+by erw [ring_hom.map_zero, subtype.val_eq_coe, add_submonoid_class.coe_zero, pi.zero_apply,
+        zero_mul]
 
 lemma const_self (f : R) (U hu) : const R f f U hu = 1 :=
 subtype.eq $ funext $ λ x, is_localization.mk'_self _ _
@@ -970,17 +971,21 @@ def comap (f : R →+* S) (U : opens (prime_spectrum.Top R))
   (structure_sheaf R).1.obj (op U) →+* (structure_sheaf S).1.obj (op V) :=
 { to_fun := λ s, ⟨comap_fun f U V hUV s.1, comap_fun_is_locally_fraction f U V hUV s.1 s.2⟩,
   map_one' := subtype.ext $ funext $ λ p, by
-    { rw [subtype.coe_mk, subtype.val_eq_coe, comap_fun, (sections_subring R (op U)).coe_one,
-      pi.one_apply, ring_hom.map_one], refl },
+    { rw [subtype.coe_mk, subtype.val_eq_coe, comap_fun,
+        submonoid_class.coe_one (sections_subring R (op U)), pi.one_apply, ring_hom.map_one],
+      refl },
   map_zero' := subtype.ext $ funext $ λ p, by
-    { rw [subtype.coe_mk, subtype.val_eq_coe, comap_fun, (sections_subring R (op U)).coe_zero,
-      pi.zero_apply, ring_hom.map_zero], refl },
+    { rw [subtype.coe_mk, subtype.val_eq_coe, comap_fun,
+        add_submonoid_class.coe_zero (sections_subring R (op U)), pi.zero_apply, ring_hom.map_zero],
+      refl },
   map_add' := λ s t, subtype.ext $ funext $ λ p, by
-    { rw [subtype.coe_mk, subtype.val_eq_coe, comap_fun, (sections_subring R (op U)).coe_add,
-      pi.add_apply, ring_hom.map_add], refl },
+    { rw [subtype.coe_mk, subtype.val_eq_coe, comap_fun,
+        add_submonoid_class.coe_add (sections_subring R (op U)), pi.add_apply, ring_hom.map_add],
+      refl },
   map_mul' := λ s t, subtype.ext $ funext $ λ p, by
-    { rw [subtype.coe_mk, subtype.val_eq_coe, comap_fun, (sections_subring R (op U)).coe_mul,
-      pi.mul_apply, ring_hom.map_mul], refl } }
+    { rw [subtype.coe_mk, subtype.val_eq_coe, comap_fun,
+        submonoid_class.coe_mul (sections_subring R (op U)), pi.mul_apply, ring_hom.map_mul],
+      refl } }
 
 @[simp]
 lemma comap_apply (f : R →+* S) (U : opens (prime_spectrum.Top R))

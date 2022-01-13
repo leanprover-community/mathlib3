@@ -5,6 +5,7 @@ Authors: Yury Kudryashov, Frédéric Dupuis, Heather Macbeth
 -/
 import analysis.normed.group.basic
 import topology.algebra.module.basic
+import linear_algebra.basis
 
 /-!
 # (Semi-)linear isometries
@@ -459,3 +460,17 @@ rfl
 rfl
 
 end linear_isometry_equiv
+
+/-- Two linear isometries are equal if they are equal on basis vectors. -/
+lemma basis.ext_linear_isometry {ι : Type*} (b : basis ι R E) {f₁ f₂ : E →ₛₗᵢ[σ₁₂] E₂}
+  (h : ∀ i, f₁ (b i) = f₂ (b i)) : f₁ = f₂ :=
+linear_isometry.to_linear_map_injective $ b.ext h
+
+include σ₂₁
+
+/-- Two linear isometric equivalences are equal if they are equal on basis vectors. -/
+lemma basis.ext_linear_isometry_equiv {ι : Type*} (b : basis ι R E) {f₁ f₂ : E ≃ₛₗᵢ[σ₁₂] E₂}
+  (h : ∀ i, f₁ (b i) = f₂ (b i)) : f₁ = f₂ :=
+linear_isometry_equiv.to_linear_equiv_injective $ b.ext' h
+
+omit σ₂₁

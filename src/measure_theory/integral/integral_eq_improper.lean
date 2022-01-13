@@ -113,7 +113,7 @@ variables [linear_order α] [topological_space α] [order_closed_topology α]
   [opens_measurable_space α] {a b : ι → α}
   (ha : tendsto a l at_bot) (hb : tendsto b l at_top)
 
-lemma ae_cover_Ioo [no_bot_order α] [no_top_order α] :
+lemma ae_cover_Ioo [no_min_order α] [no_max_order α] :
   ae_cover μ l (λ i, Ioo (a i) (b i)) :=
 { ae_eventually_mem := ae_of_all μ (λ x,
     (ha.eventually $ eventually_lt_at_bot x).mp $
@@ -121,28 +121,28 @@ lemma ae_cover_Ioo [no_bot_order α] [no_top_order α] :
     λ i hbi hai, ⟨hai, hbi⟩ ),
   measurable := λ i, measurable_set_Ioo }
 
-lemma ae_cover_Ioc [no_bot_order α] : ae_cover μ l (λ i, Ioc (a i) (b i)) :=
+lemma ae_cover_Ioc [no_min_order α] : ae_cover μ l (λ i, Ioc (a i) (b i)) :=
 { ae_eventually_mem := ae_of_all μ (λ x,
     (ha.eventually $ eventually_lt_at_bot x).mp $
     (hb.eventually $ eventually_ge_at_top x).mono $
     λ i hbi hai, ⟨hai, hbi⟩ ),
   measurable := λ i, measurable_set_Ioc }
 
-lemma ae_cover_Ico [no_top_order α] : ae_cover μ l (λ i, Ico (a i) (b i)) :=
+lemma ae_cover_Ico [no_max_order α] : ae_cover μ l (λ i, Ico (a i) (b i)) :=
 { ae_eventually_mem := ae_of_all μ (λ x,
     (ha.eventually $ eventually_le_at_bot x).mp $
     (hb.eventually $ eventually_gt_at_top x).mono $
     λ i hbi hai, ⟨hai, hbi⟩ ),
   measurable := λ i, measurable_set_Ico }
 
-lemma ae_cover_Ioi [no_bot_order α] :
+lemma ae_cover_Ioi [no_min_order α] :
   ae_cover μ l (λ i, Ioi $ a i) :=
 { ae_eventually_mem := ae_of_all μ (λ x,
     (ha.eventually $ eventually_lt_at_bot x).mono $
     λ i hai, hai ),
   measurable := λ i, measurable_set_Ioi }
 
-lemma ae_cover_Iio [no_top_order α] :
+lemma ae_cover_Iio [no_max_order α] :
   ae_cover μ l (λ i, Iio $ b i) :=
 { ae_eventually_mem := ae_of_all μ (λ x,
     (hb.eventually $ eventually_gt_at_top x).mono $
@@ -374,7 +374,7 @@ variables {α ι E : Type*}
           [measurable_space E] [normed_group E] [borel_space E]
           {a b : ι → α} {f : α → E}
 
-lemma integrable_of_interval_integral_norm_tendsto [no_bot_order α] [nonempty α]
+lemma integrable_of_interval_integral_norm_tendsto [no_min_order α] [nonempty α]
   (I : ℝ) (hfi : ∀ i, integrable_on f (Ioc (a i) (b i)) μ)
   (ha : tendsto a l at_bot) (hb : tendsto b l at_top)
   (h : tendsto (λ i, ∫ x in a i .. b i, ∥f x∥ ∂μ) l (𝓝 $ I)) :
@@ -389,7 +389,7 @@ begin
   exact interval_integral.integral_of_le (hai.trans hbi)
 end
 
-lemma integrable_on_Iic_of_interval_integral_norm_tendsto [no_bot_order α] (I : ℝ) (b : α)
+lemma integrable_on_Iic_of_interval_integral_norm_tendsto [no_min_order α] (I : ℝ) (b : α)
   (hfi : ∀ i, integrable_on f (Ioc (a i) b) μ) (ha : tendsto a l at_bot)
   (h : tendsto (λ i, ∫ x in a i .. b, ∥f x∥ ∂μ) l (𝓝 $ I)) :
   integrable_on f (Iic b) μ :=
@@ -438,7 +438,7 @@ variables {α ι E : Type*}
           [complete_space E] [second_countable_topology E]
           {a b : ι → α} {f : α → E}
 
-lemma interval_integral_tendsto_integral [no_bot_order α] [nonempty α]
+lemma interval_integral_tendsto_integral [no_min_order α] [nonempty α]
   (hfi : integrable f μ) (ha : tendsto a l at_bot) (hb : tendsto b l at_top) :
   tendsto (λ i, ∫ x in a i .. b i, f x ∂μ) l (𝓝 $ ∫ x, f x ∂μ) :=
 begin
@@ -451,7 +451,7 @@ begin
   exact (interval_integral.integral_of_le (hai.trans hbi)).symm
 end
 
-lemma interval_integral_tendsto_integral_Iic [no_bot_order α] (b : α)
+lemma interval_integral_tendsto_integral_Iic [no_min_order α] (b : α)
   (hfi : integrable_on f (Iic b) μ) (ha : tendsto a l at_bot) :
   tendsto (λ i, ∫ x in a i .. b, f x ∂μ) l (𝓝 $ ∫ x in Iic b, f x ∂μ) :=
 begin

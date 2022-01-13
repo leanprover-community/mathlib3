@@ -524,7 +524,7 @@ lemma convex_Inter {ι : Sort*} {s : ι → set E} (h : ∀ i : ι, convex 𝕜 
 (sInter_range s) ▸ convex_sInter $ forall_range_iff.2 h
 
 lemma convex.prod {s : set E} {t : set F} (hs : convex 𝕜 s) (ht : convex 𝕜 t) :
-  convex 𝕜 (s.prod t) :=
+  convex 𝕜 (s ×ˢ t) :=
 begin
   intros x y hx hy a b ha hb hab,
   apply mem_prod.2,

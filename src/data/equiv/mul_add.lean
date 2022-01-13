@@ -399,7 +399,7 @@ h.to_add_monoid_hom.map_sub x y
 
 /-- A group is isomorphic to its group of units. -/
 @[to_additive to_add_units "An additive group is isomorphic to its group of additive units"]
-def to_units [group G] : G ≃* units G :=
+def to_units [group G] : G ≃* Gˣ :=
 { to_fun := λ x, ⟨x, x⁻¹, mul_inv_self _, inv_mul_self _⟩,
   inv_fun := coe,
   left_inv := λ x, rfl,
@@ -413,7 +413,7 @@ protected lemma group.is_unit {G} [group G] (x : G) : is_unit x := (to_units x).
 
 namespace units
 
-@[simp, to_additive] lemma coe_inv [group G] (u : units G) :
+@[simp, to_additive] lemma coe_inv [group G] (u : Gˣ) :
   ↑u⁻¹ = (u⁻¹ : G) :=
 to_units.symm.map_inv u
 
@@ -421,7 +421,7 @@ variables [monoid M] [monoid N] [monoid P]
 
 /-- A multiplicative equivalence of monoids defines a multiplicative equivalence
 of their groups of units. -/
-def map_equiv (h : M ≃* N) : units M ≃* units N :=
+def map_equiv (h : M ≃* N) : Mˣ ≃* Nˣ :=
 { inv_fun := map h.symm.to_monoid_hom,
   left_inv := λ u, ext $ h.left_inv u,
   right_inv := λ u, ext $ h.right_inv u,
@@ -430,35 +430,35 @@ def map_equiv (h : M ≃* N) : units M ≃* units N :=
 /-- Left multiplication by a unit of a monoid is a permutation of the underlying type. -/
 @[to_additive "Left addition of an additive unit is a permutation of the underlying type.",
   simps apply {fully_applied := ff}]
-def mul_left (u : units M) : equiv.perm M :=
+def mul_left (u : Mˣ) : equiv.perm M :=
 { to_fun    := λx, u * x,
   inv_fun   := λx, ↑u⁻¹ * x,
   left_inv  := u.inv_mul_cancel_left,
   right_inv := u.mul_inv_cancel_left }
 
 @[simp, to_additive]
-lemma mul_left_symm (u : units M) : u.mul_left.symm = u⁻¹.mul_left :=
+lemma mul_left_symm (u : Mˣ) : u.mul_left.symm = u⁻¹.mul_left :=
 equiv.ext $ λ x, rfl
 
 @[to_additive]
-lemma mul_left_bijective (a : units M) : function.bijective ((*) a : M → M) :=
+lemma mul_left_bijective (a : Mˣ) : function.bijective ((*) a : M → M) :=
 (mul_left a).bijective
 
 /-- Right multiplication by a unit of a monoid is a permutation of the underlying type. -/
 @[to_additive "Right addition of an additive unit is a permutation of the underlying type.",
   simps apply {fully_applied := ff}]
-def mul_right (u : units M) : equiv.perm M :=
+def mul_right (u : Mˣ) : equiv.perm M :=
 { to_fun    := λx, x * u,
   inv_fun   := λx, x * ↑u⁻¹,
   left_inv  := λ x, mul_inv_cancel_right x u,
   right_inv := λ x, inv_mul_cancel_right x u }
 
 @[simp, to_additive]
-lemma mul_right_symm (u : units M) : u.mul_right.symm = u⁻¹.mul_right :=
+lemma mul_right_symm (u : Mˣ) : u.mul_right.symm = u⁻¹.mul_right :=
 equiv.ext $ λ x, rfl
 
 @[to_additive]
-lemma mul_right_bijective (a : units M) : function.bijective ((* a) : M → M) :=
+lemma mul_right_bijective (a : Mˣ) : function.bijective ((* a) : M → M) :=
 (mul_right a).bijective
 
 end units

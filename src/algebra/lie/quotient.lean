@@ -147,7 +147,7 @@ def mk' : M →ₗ⁅R,L⁆ M ⧸ N :=
 @[simp] lemma mk_eq_zero {m : M} : mk' N m = 0 ↔ m ∈ N :=
 submodule.quotient.mk_eq_zero N.to_submodule
 
-lemma mk'_ker : (mk' N).ker = N :=
+@[simp] lemma mk'_ker : (mk' N).ker = N :=
 by { ext, simp, }
 
 @[simp] lemma map_mk'_eq_bot_le : map (mk' N) N' = ⊥ ↔ N' ≤ N :=

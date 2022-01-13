@@ -206,157 +206,138 @@ theorem unbounded_lt_Ici [semilattice_sup α] (a : α) : unbounded (<) (set.Ici 
 theorem bounded_inter_not (H : ∀ a b, ∃ m, ∀ c, r c a ∨ r c b → r c m) (a : α) :
   bounded r (s ∩ {b | ¬ r b a}) ↔ bounded r s :=
 begin
-  use bounded.mono (set.inter_subset_left s _),
+  refine ⟨_, bounded.mono (set.inter_subset_left s _)⟩,
   rintro ⟨b, hb⟩,
   cases H a b with m hm,
   exact ⟨m, λ c hc, hm c (or_iff_not_imp_left.2 (λ hca, (hb c ⟨hc, hca⟩)))⟩
 end
 
-theorem unbounded_r_iff_unbounded_inter_not_r (H : ∀ a b, ∃ m, ∀ c, r c a ∨ r c b → r c m) (a : α) :
-  unbounded r s ↔ unbounded r (s ∩ {b | ¬ r b a}) :=
+theorem unbounded_inter_not (H : ∀ a b, ∃ m, ∀ c, r c a ∨ r c b → r c m) (a : α) :
+  unbounded r (s ∩ {b | ¬ r b a}) ↔ unbounded r s :=
 begin
   rw [←not_bounded_iff, ←not_bounded_iff, not_iff_not],
-  exact bounded_r_iff_bounded_inter_not_r H a
+  exact bounded_inter_not H a
 end
 
 /-! #### Less or equal -/
 
-theorem bounded_le_iff_bounded_inter_not_le [semilattice_sup α] (a : α) :
-  bounded (≤) s ↔ bounded (≤) (s ∩ {b | ¬ b ≤ a}) :=
-bounded_r_iff_bounded_inter_not_r
-  (λ x y, ⟨x ⊔ y, λ z h, h.elim le_sup_of_le_left le_sup_of_le_right⟩) a
+theorem bounded_le_inter_not_le [semilattice_sup α] (a : α) :
+  bounded (≤) (s ∩ {b | ¬ b ≤ a}) ↔ bounded (≤) s :=
+bounded_inter_not (λ x y, ⟨x ⊔ y, λ z h, h.elim le_sup_of_le_left le_sup_of_le_right⟩) a
 
-theorem unbounded_le_iff_unbounded_inter_not_le [semilattice_sup α] (a : α) :
-  unbounded (≤) s ↔ unbounded (≤) (s ∩ {b | ¬ b ≤ a}) :=
+theorem unbounded_le_inter_not_le [semilattice_sup α] (a : α) :
+  unbounded (≤) (s ∩ {b | ¬ b ≤ a}) ↔ unbounded (≤) s :=
 begin
   rw [←not_bounded_iff, ←not_bounded_iff, not_iff_not],
-  exact bounded_le_iff_bounded_inter_not_le a
+  exact bounded_le_inter_not_le a
 end
 
-theorem bounded_le_iff_bounded_inter_lt [linear_order α] (a : α) :
-  bounded (≤) s ↔ bounded (≤) (s ∩ {b | a < b}) :=
-by { convert bounded_le_iff_bounded_inter_not_le a, ext, exact lt_iff_not_ge' }
+theorem bounded_le_inter_lt [linear_order α] (a : α) :
+  bounded (≤) (s ∩ {b | a < b}) ↔ bounded (≤) s :=
+by { convert bounded_le_inter_not_le a, ext, exact lt_iff_not_ge' }
 
-theorem unbounded_le_iff_unbounded_inter_lt [linear_order α] (a : α) :
-  unbounded (≤) s ↔ unbounded (≤) (s ∩ {b | a < b}) :=
-by { convert unbounded_le_iff_unbounded_inter_not_le a, ext, exact lt_iff_not_ge' }
+theorem unbounded_le_inter_lt [linear_order α] (a : α) :
+  unbounded (≤) (s ∩ {b | a < b}) ↔ unbounded (≤) s :=
+by { convert unbounded_le_inter_not_le a, ext, exact lt_iff_not_ge' }
 
-theorem bounded_le_iff_bounded_inter_le [linear_order α] (a : α) :
-  bounded (≤) s ↔ bounded (≤) (s ∩ {b | a ≤ b}) :=
-by simp_rw [← not_lt, bounded_inter_not_lt]
+theorem bounded_le_inter_le [linear_order α] (a : α) :
+  bounded (≤) (s ∩ {b | a ≤ b}) ↔ bounded (≤) s :=
+begin
+  refine ⟨_, bounded.mono (set.inter_subset_left s _)⟩,
+  rw ←@bounded_le_inter_lt _ s _ a,
+  exact bounded.mono (λ x ⟨hx, hx'⟩, ⟨hx, le_of_lt hx'⟩)
+end
 
-theorem unbounded_le_iff_unbounded_inter_le [linear_order α] (a : α) :
-  unbounded (≤) s ↔ unbounded (≤) (s ∩ {b | a ≤ b}) :=
+theorem unbounded_le_inter_le [linear_order α] (a : α) :
+  unbounded (≤) (s ∩ {b | a ≤ b}) ↔ unbounded (≤) s :=
 begin
   rw [←not_bounded_iff, ←not_bounded_iff, not_iff_not],
-  exact bounded_le_iff_bounded_inter_le a
+  exact bounded_le_inter_le a
 end
 
 /-! #### Less than -/
 
-theorem bounded_lt_iff_bounded_inter_not_lt [semilattice_sup α] (a : α) :
-  bounded (<) s ↔ bounded (<) (s ∩ {b | ¬ b < a}) :=
-bounded_r_iff_bounded_inter_not_r
-  (λ x y, ⟨x ⊔ y, λ z h, h.elim lt_sup_of_lt_left lt_sup_of_lt_right⟩) a
+theorem bounded_lt_inter_not_lt [semilattice_sup α] (a : α) :
+  bounded (<) (s ∩ {b | ¬ b < a}) ↔ bounded (<) s :=
+bounded_inter_not (λ x y, ⟨x ⊔ y, λ z h, h.elim lt_sup_of_lt_left lt_sup_of_lt_right⟩) a
 
-theorem unbounded_lt_iff_unbounded_inter_not_lt [semilattice_sup α] (a : α) :
-  unbounded (<) s ↔ unbounded (<) (s ∩ {b | ¬ b < a}) :=
+theorem unbounded_lt_inter_not_lt [semilattice_sup α] (a : α) :
+  unbounded (<) (s ∩ {b | ¬ b < a}) ↔ unbounded (<) s :=
 begin
   rw [←not_bounded_iff, ←not_bounded_iff, not_iff_not],
-  exact bounded_lt_iff_bounded_inter_not_lt a
+  exact bounded_lt_inter_not_lt a
 end
 
-theorem bounded_lt_iff_bounded_inter_le [linear_order α] (a : α) :
-  bounded (<) s ↔ bounded (<) (s ∩ {b | a ≤ b}) :=
-by { convert bounded_lt_iff_bounded_inter_not_lt a, ext, exact not_lt.symm }
+theorem bounded_lt_inter_le [linear_order α] (a : α) :
+  bounded (<) (s ∩ {b | a ≤ b}) ↔ bounded (<) s :=
+by { convert bounded_lt_inter_not_lt a, ext, exact not_lt.symm }
 
-theorem unbounded_lt_iff_unbounded_inter_le [linear_order α] (a : α) :
-  unbounded (<) s ↔ unbounded (<) (s ∩ {b | a ≤ b}) :=
-by { convert unbounded_lt_iff_unbounded_inter_not_lt a, ext, exact not_lt.symm }
+theorem unbounded_lt_inter_le [linear_order α] (a : α) :
+  unbounded (<) (s ∩ {b | a ≤ b}) ↔ unbounded (<) s :=
+by { convert unbounded_lt_inter_not_lt a, ext, exact not_lt.symm }
 
-theorem bounded_lt_iff_bounded_inter_lt [linear_order α] [no_max_order α] (a : α) :
-  bounded (<) s ↔ bounded (<) (s ∩ {b | a < b}) :=
+theorem bounded_lt_inter_lt [linear_order α] [no_max_order α] (a : α) :
+  bounded (<) (s ∩ {b | a < b}) ↔ bounded (<) s :=
 begin
   rw [←bounded_le_iff_bounded_lt, ←bounded_le_iff_bounded_lt],
-  exact bounded_le_iff_bounded_inter_lt a
+  exact bounded_le_inter_lt a
 end
 
-theorem unbounded_lt_iff_unbounded_inter_lt [linear_order α] [no_max_order α] (a : α) :
-  unbounded (<) s ↔ unbounded (<) (s ∩ {b | a < b}) :=
+theorem unbounded_lt_inter_lt [linear_order α] [no_max_order α] (a : α) :
+  unbounded (<) (s ∩ {b | a < b}) ↔ unbounded (<) s :=
 begin
   rw [←not_bounded_iff, ←not_bounded_iff, not_iff_not],
-  exact bounded_lt_iff_bounded_inter_lt a
+  exact bounded_lt_inter_lt a
 end
 
 /-! #### Greater or equal -/
 
-theorem bounded_ge_iff_bounded_inter_not_ge [semilattice_inf α] (a : α) :
-  bounded (≥) s ↔ bounded (≥) (s ∩ {b | ¬ a ≤ b}) :=
-bounded_r_iff_bounded_inter_not_r
-  (λ x y, ⟨x ⊓ y, λ z h, h.elim inf_le_of_left_le inf_le_of_right_le⟩) a
+theorem bounded_ge_inter_not_ge [semilattice_inf α] (a : α) :
+  bounded (≥) (s ∩ {b | ¬ a ≤ b}) ↔ bounded (≥) s :=
+@bounded_le_inter_not_le (order_dual α) s _ a
 
-theorem unbounded_ge_iff_unbounded_inter_not_ge [semilattice_inf α] (a : α) :
-  unbounded (≥) s ↔ unbounded (≥) (s ∩ {b | ¬ a ≤ b}) :=
-begin
-  rw [←not_bounded_iff, ←not_bounded_iff, not_iff_not],
-  exact bounded_ge_iff_bounded_inter_not_ge a
-end
+theorem unbounded_ge_inter_not_ge [semilattice_inf α] (a : α) :
+  unbounded (≥) (s ∩ {b | ¬ a ≤ b}) ↔ unbounded (≥) s :=
+@unbounded_le_inter_not_le (order_dual α) s _ a
 
-theorem bounded_ge_iff_bounded_inter_gt [linear_order α] (a : α) :
-  bounded (≥) s ↔ bounded (≥) (s ∩ {b | b < a}) :=
-by { convert bounded_ge_iff_bounded_inter_not_ge a, ext, exact lt_iff_not_ge' }
+theorem bounded_ge_inter_gt [linear_order α] (a : α) :
+  bounded (≥) (s ∩ {b | b < a}) ↔ bounded (≥) s :=
+@bounded_le_inter_lt (order_dual α) s _ a
 
-theorem unbounded_ge_iff_unbounded_inter_gt [linear_order α] (a : α) :
-  unbounded (≥) s ↔ unbounded (≥) (s ∩ {b | b < a}) :=
-by { convert unbounded_ge_iff_unbounded_inter_not_ge a, ext, exact lt_iff_not_ge' }
+theorem unbounded_ge_inter_gt [linear_order α] (a : α) :
+  unbounded (≥) (s ∩ {b | b < a}) ↔ unbounded (≥) s :=
+@unbounded_le_inter_lt (order_dual α) s _ a
 
-theorem bounded_ge_iff_bounded_inter_ge [linear_order α] (a : α) :
-  bounded (≥) s ↔ bounded (≥) (s ∩ {b | b ≤ a}) :=
-begin
-  use bounded.mono (set.inter_subset_left s _),
-  rw @bounded_ge_iff_bounded_inter_gt _ s _ a,
-  exact bounded.mono (λ x ⟨hx, hx'⟩, ⟨hx, le_of_lt hx'⟩)
-end
+theorem bounded_ge_inter_ge [linear_order α] (a : α) :
+  bounded (≥) (s ∩ {b | b ≤ a}) ↔ bounded (≥) s :=
+@bounded_le_inter_le (order_dual α) s _ a
 
 theorem unbounded_ge_iff_unbounded_inter_ge [linear_order α] (a : α) :
-  unbounded (≥) s ↔ unbounded (≥) (s ∩ {b | b ≤ a}) :=
-begin
-  rw [←not_bounded_iff, ←not_bounded_iff, not_iff_not],
-  exact bounded_ge_iff_bounded_inter_ge a
-end
+  unbounded (≥) (s ∩ {b | b ≤ a}) ↔ unbounded (≥) s :=
+@unbounded_le_inter_le (order_dual α) s _ a
 
 /-! #### Greater than -/
 
-theorem bounded_gt_iff_bounded_inter_not_gt [semilattice_inf α] (a : α) :
-  bounded (>) s ↔ bounded (>) (s ∩ {b | ¬ a < b}) :=
-bounded_r_iff_bounded_inter_not_r
-  (λ x y, ⟨x ⊓ y, λ z h, h.elim inf_lt_of_left_lt inf_lt_of_right_lt⟩) a
+theorem bounded_gt_inter_not_gt [semilattice_inf α] (a : α) :
+  bounded (>) (s ∩ {b | ¬ a < b}) ↔ bounded (>) s :=
+@bounded_lt_inter_not_lt (order_dual α) s _ a
 
-theorem unbounded_gt_iff_unbounded_inter_not_gt [semilattice_inf α] (a : α) :
-  unbounded (>) s ↔ unbounded (>) (s ∩ {b | ¬ a < b}) :=
-begin
-  rw [←not_bounded_iff, ←not_bounded_iff, not_iff_not],
-  exact bounded_gt_iff_bounded_inter_not_gt a
-end
+theorem unbounded_gt_inter_not_gt [semilattice_inf α] (a : α) :
+  unbounded (>) (s ∩ {b | ¬ a < b}) ↔ unbounded (>) s :=
+@unbounded_lt_inter_not_lt (order_dual α) s _ a
 
-theorem bounded_gt_iff_bounded_inter_ge [linear_order α] (a : α) :
-  bounded (>) s ↔ bounded (>) (s ∩ {b | b ≤ a}) :=
-by { convert bounded_gt_iff_bounded_inter_not_gt a, ext, exact not_lt.symm }
+theorem bounded_gt_inter_ge [linear_order α] (a : α) :
+  bounded (>) (s ∩ {b | b ≤ a}) ↔ bounded (>) s :=
+@bounded_lt_inter_le (order_dual α) s _ a
 
-theorem unbounded_gt_iff_unbounded_inter_ge [linear_order α] (a : α) :
-  unbounded (>) s ↔ unbounded (>) (s ∩ {b | b ≤ a}) :=
-by { convert unbounded_gt_iff_unbounded_inter_not_gt a, ext, exact not_lt.symm }
+theorem unbounded_inter_ge [linear_order α] (a : α) :
+  unbounded (>) (s ∩ {b | b ≤ a}) ↔ unbounded (>) s :=
+@unbounded_lt_inter_le (order_dual α) s _ a
 
-theorem bounded_gt_iff_bounded_inter_gt [linear_order α] [no_min_order α] (a : α) :
-  bounded (>) s ↔ bounded (>) (s ∩ {b | b < a}) :=
-begin
-  rw [←bounded_ge_iff_bounded_gt, ←bounded_ge_iff_bounded_gt],
-  exact bounded_ge_iff_bounded_inter_gt a
-end
+theorem bounded_gt_inter_gt [linear_order α] [no_min_order α] (a : α) :
+  bounded (>) (s ∩ {b | b < a}) ↔ bounded (>) s :=
+@bounded_lt_inter_lt (order_dual α) s _ _ a
 
-theorem unbounded_gt_iff_unbounded_inter_gt [linear_order α] [no_min_order α] (a : α) :
-  unbounded (>) s ↔ unbounded (>) (s ∩ {b | b < a}) :=
-begin
-  rw [←not_bounded_iff, ←not_bounded_iff, not_iff_not],
-  exact bounded_gt_iff_bounded_inter_gt a
-end
+theorem unbounded_gt_inter_gt [linear_order α] [no_min_order α] (a : α) :
+  unbounded (>) (s ∩ {b | b < a}) ↔ unbounded (>) s :=
+@unbounded_lt_inter_lt (order_dual α) s _ _ a

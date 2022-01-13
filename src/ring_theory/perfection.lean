@@ -69,16 +69,16 @@ variables (R : Type u₁) [comm_semiring R] (p : ℕ) [hp : fact p.prime] [char_
 include hp
 
 instance : comm_semiring (ring.perfection R p) :=
-(ring.perfection_subsemiring R p).to_comm_semiring
+subsemiring_class.to_comm_semiring (ring.perfection_subsemiring R p)
 
 instance : char_p (ring.perfection R p) p :=
 char_p.subsemiring (ℕ → R) p (ring.perfection_subsemiring R p)
 
 instance ring (R : Type u₁) [comm_ring R] [char_p R p] : ring (ring.perfection R p) :=
-(ring.perfection_subring R p).to_ring
+subring_class.to_ring (ring.perfection_subring R p)
 
 instance comm_ring (R : Type u₁) [comm_ring R] [char_p R p] : comm_ring (ring.perfection R p) :=
-(ring.perfection_subring R p).to_comm_ring
+subring_class.to_comm_ring (ring.perfection_subring R p)
 
 instance : inhabited (ring.perfection R p) := ⟨0⟩
 

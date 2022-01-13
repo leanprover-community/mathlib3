@@ -41,8 +41,8 @@ lemma filter_multiset_Ico_card_eq_of_periodic (n a : ℕ) (p : ℕ → Prop) [de
   (multiset.filter p (multiset.Ico n (n+a))).card = a.count p :=
 begin
   rw [count_eq_card_filter_range, finset.card, finset.filter_val, finset.range_coe,
-    ← multiset_Ico_map_mod n, <-multiset.map_count_true_eq_filter_card,
-    multiset.<-map_count_true_eq_filter_card, multiset.map_map, function.comp],
+    ←multiset_Ico_map_mod n, ←multiset.map_count_true_eq_filter_card,
+    ←multiset.map_count_true_eq_filter_card, multiset.map_map, function.comp],
   simp only [pp.map_mod_nat],
 end
 

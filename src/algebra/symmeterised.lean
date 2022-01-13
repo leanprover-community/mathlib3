@@ -95,9 +95,6 @@ instance [has_add α] [has_mul α] [has_one α] [invertible (2 : α)] : has_mul(
 instance (R : Type*) [has_scalar R α] : has_scalar R αˢʸᵐ :=
 { smul := λ r a, sym (r • unsym a) }
 
-@[simp] lemma sym_zero [has_zero α] : sym (0 : α) = 0 := rfl
-@[simp] lemma unsym_zero [has_zero α] : unsym (0 : αˢʸᵐ) = 0 := rfl
-
 @[simp, to_additive] lemma sym_one [has_one α] : sym (1 : α) = 1 := rfl
 @[simp, to_additive] lemma unsym_one [has_one α] : unsym (1 : αˢʸᵐ) = 1 := rfl
 
@@ -117,11 +114,10 @@ instance (R : Type*) [has_scalar R α] : has_scalar R αˢʸᵐ :=
 @[simp] lemma unsym_smul {R : Type*} [has_scalar R α] (c : R) (a : αˢʸᵐ) :
   unsym (c • a) = c • unsym a := rfl
 
-
-@[simp] lemma unsym_eq_zero_iff {α} [has_zero α] (a : αˢʸᵐ) : a.unsym = (0 : α) ↔ a = (0 : αˢʸᵐ) :=
+@[simp, to_additive] lemma unsym_eq_one_iff [has_one α] (a : αˢʸᵐ) : a.unsym = 1 ↔ a = 1 :=
 unsym_injective.eq_iff' rfl
 
-@[simp] lemma sym_eq_zero_iff [has_zero α] (a : α) : sym a = (0 : αˢʸᵐ) ↔ a = (0 : α) :=
+@[simp, to_additive] lemma sym_eq_one_iff [has_one α] (a : α) : sym a = 1 ↔ a = 1 :=
 sym_injective.eq_iff' rfl
 
 lemma unsym_ne_zero_iff [has_zero α] (a : αˢʸᵐ) : a.unsym ≠ (0 : α) ↔ a ≠ (0 : αˢʸᵐ) :=
@@ -129,12 +125,6 @@ not_congr $ unsym_eq_zero_iff a
 
 lemma sym_ne_zero_iff [has_zero α] (a : α) : sym a ≠ (0 : αˢʸᵐ) ↔ a ≠ (0 : α) :=
 not_congr $ sym_eq_zero_iff a
-
-@[simp] lemma unsym_eq_one_iff [has_one α] (a : αˢʸᵐ) : a.unsym = 1 ↔ a = 1 :=
-unsym_injective.eq_iff' rfl
-
-@[simp] lemma sym_eq_one_iff [has_one α] (a : α) : sym a = 1 ↔ a = 1 :=
-sym_injective.eq_iff' rfl
 
 instance [add_comm_semigroup α] : add_comm_semigroup (αˢʸᵐ) :=
 unsym_injective.add_comm_semigroup _ (λ _ _, rfl)

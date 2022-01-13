@@ -46,8 +46,9 @@ variables {M : Type*} [cancel_comm_monoid_with_zero M]
 
 lemma pow_prime_has_chain {p : associates M} (n : ℕ) (hn : 1 ≤ n) (hp : prime p) :
   ∃ c : finset.range (n + 1) → associates M,
-  c ⟨1, finset.mem_range.2 (nat.lt_succ_of_le hn)⟩ = p ∧ strict_mono c ∧ ∀ {r : associates M},
-  r ≤ p^n ↔ ∃ i ≤ n, r = c ⟨i, finset.mem_range.2 (nat.lt_succ_of_le H)⟩ :=
+  c ⟨1, finset.mem_range.2 (nat.lt_succ_of_le hn)⟩ = p ∧
+  strict_mono c ∧
+  ∀ {r : associates M}, r ≤ p^n ↔ ∃ i ≤ n, r = c ⟨i, finset.mem_range.2 (nat.lt_succ_of_le H)⟩ :=
 begin
   refine ⟨λ i, p^(i : ℕ), by simp, λ n m h, _, λ y, ⟨_, _⟩⟩,
   { exact associates.dvd_not_unit_iff_lt.mp ⟨pow_ne_zero n hp.ne_zero, p^(m - n : ℕ),

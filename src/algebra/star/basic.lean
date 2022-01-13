@@ -213,9 +213,20 @@ def star_ring_equiv [semiring R] [star_ring R] : R ≃+* Rᵐᵒᵖ :=
   ..star_add_equiv.trans (mul_opposite.op_add_equiv : R ≃+ Rᵐᵒᵖ),
   ..star_mul_equiv }
 
+/-- `star` as a ring automorphism, for commutative `R`. -/
+def star_ring_aut [comm_semiring R] [star_ring R] : ring_aut R :=
+{ to_fun := star,
+  ..star_add_equiv,
+  ..star_mul_aut }
+
 variables (R)
 /-- `star` as a ring endomorphism, for commutative `R`. This is used to denote complex
-conjugation, and is available under the notation `conj` in the locale `complex_conjugate` -/
+conjugation, and is available under the notation `conj` in the locale `complex_conjugate`.
+
+Note that this is the preferred form (over `star_ring_aut`, available under the same hypotheses)
+because the notation `E →ₗ⋆[R] F` for an `R`-conjugate-linear map (short for
+`E →ₛₗ[star_ring_end R] F`) does not pretty-print if there is a coercion involved, as would be the
+case for `(↑star_ring_aut : R →* R)`. -/
 def star_ring_end [comm_semiring R] [star_ring R] : R →+* R :=
 { to_fun := star,
   map_one' := star_one R,

@@ -72,7 +72,7 @@ lemma bounded_le_iff_bounded_lt [preorder α] [no_max_order α] : bounded (≤) 
 begin
   refine ⟨λ h, _, bounded_le_of_bounded_lt⟩,
   cases h with a ha,
-  cases no_top a with b hb,
+  cases exists_gt a with b hb,
   exact ⟨b, λ c hc, lt_of_le_of_lt (ha c hc) hb⟩
 end
 
@@ -92,7 +92,7 @@ lemma bounded_ge_iff_bounded_gt [preorder α] [no_min_order α] : bounded (≥) 
 begin
   refine ⟨λ h, _, bounded_ge_of_bounded_gt⟩,
   cases h with a ha,
-  cases no_bot a with b hb,
+  cases exists_lt a with b hb,
   exact ⟨b, λ c hc, lt_of_lt_of_le hb (ha c hc)⟩
 end
 
@@ -100,7 +100,7 @@ lemma unbounded_ge_iff_unbounded_gt [preorder α] [no_min_order α] :
   unbounded (≥) s ↔ unbounded (>) s :=
 begin
   refine ⟨unbounded_gt_of_unbounded_ge, λ h a, _⟩,
-  cases no_bot a with c hc,
+  cases exists_lt a with c hc,
   rcases h c with ⟨b, hb, hbc⟩,
   exact ⟨b, hb, λ hba, hbc (lt_of_lt_of_le hc hba)⟩
 end
@@ -116,7 +116,7 @@ theorem bounded_lt_Iio [preorder α] (a : α) : bounded (<) (set.Iio a) :=
 bounded_r_r a
 
 theorem bounded_lt_Iic [preorder α] [no_max_order α] (a : α) : bounded (<) (set.Iic a) :=
-let ⟨b, hab⟩ := no_top a in ⟨b, λ c hca, lt_of_le_of_lt hca hab⟩
+let ⟨b, hab⟩ := exists_gt a in ⟨b, λ c hca, lt_of_le_of_lt hca hab⟩
 
 theorem bounded_le_Iio [preorder α] (a : α) : bounded (≤) (set.Iio a) :=
 bounded_le_of_bounded_lt (bounded_lt_Iio a)
@@ -128,7 +128,7 @@ theorem bounded_gt_Ioi [preorder α] (a : α) : bounded (>) (set.Ioi a) :=
 bounded_r_r a
 
 theorem bounded_gt_Ici [preorder α] [no_min_order α] (a : α) : bounded (>) (set.Ici a) :=
-exists.elim (no_bot a) $ λ b hab, ⟨b, λ c hca, lt_of_lt_of_le hab hca⟩
+exists.elim (exists_lt a) $ λ b hab, ⟨b, λ c hca, lt_of_lt_of_le hab hca⟩
 
 theorem bounded_ge_Ioi [preorder α] (a : α) : bounded (≥) (set.Ioi a) :=
 bounded_ge_of_bounded_gt (bounded_gt_Ioi a)
@@ -189,7 +189,7 @@ bounded_of_subset_bounded set.Icc_subset_Ici_self (bounded_ge_Ici a)
 /-! #### Unbounded intervals -/
 
 theorem unbounded_le_Ioi [semilattice_sup α] [no_max_order α] (a : α) : unbounded (≤) (set.Ioi a) :=
-λ b, let ⟨c, hc⟩ := no_top (a ⊔ b) in
+λ b, let ⟨c, hc⟩ := exists_gt (a ⊔ b) in
   ⟨c, le_sup_left.trans_lt hc, not_le_of_gt (le_sup_right.trans_lt hc)⟩
 
 theorem unbounded_le_Ici [semilattice_sup α] [no_max_order α] (a : α) : unbounded (≤) (set.Ici a) :=

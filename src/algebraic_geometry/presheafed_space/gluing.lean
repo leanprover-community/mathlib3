@@ -39,10 +39,10 @@ sheafs of the spaces in the gluing diagram, we need to construct a map
 
 We will refer to ![this diagram](https://i.imgur.com/P0phrwr.png) in the following doc strings.
 The `X` is the glued space, and the dotted arrow is a partial inverse guaranteed by the fact
-that it is an open immersion. The map `Γ(𝒪_{U_i}, U) ⟶ Γ(𝒪_{U_j}, _)` is given by the composition of the red arrows,
-and the map `Γ(𝒪_{U_i}, U) ⟶ Γ(𝒪_{V_{jk}}, _)` is given by the composition of the blue arrows.
-To lift this into a map from `Γ(𝒪_X, ι i '' U)`, we also need to show that these commute with the
-maps in the diagram (the green arrows), which is just a lengthy diagram-chasing.
+that it is an open immersion. The map `Γ(𝒪_{U_i}, U) ⟶ Γ(𝒪_{U_j}, _)` is given by the composition
+of the red arrows, and the map `Γ(𝒪_{U_i}, U) ⟶ Γ(𝒪_{V_{jk}}, _)` is given by the composition of the
+blue arrows. To lift this into a map from `Γ(𝒪_X, ι i '' U)`, we also need to show that these commute
+with the maps in the diagram (the green arrows), which is just a lengthy diagram-chasing.
 
 -/
 

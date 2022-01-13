@@ -1143,18 +1143,14 @@ by rw [update_eq_erase_add_single, erase_eq_sub_single]
 
 /-- Given a family of functions `f i : α → N` indexed over `S : finset ι`, the sum of this family
   over `S` is a function `α → N` whose value at `p : α` is `∑ (i : ι) in S, (f i) p` -/
-lemma finset_sum_apply [add_comm_monoid N] {S : finset ι} {p : α} {f : ι → α → N} :
-  (S.sum f) p = ∑ (i : ι) in S, (f i) p :=
-begin
-  classical,
-  apply finset.induction_on' S, { simp },
-  { intros i T hi hST hiT h, simp [finset.sum_insert hiT, h] }
-end
+lemma finset_sum_apply [add_comm_monoid N] (S : finset ι) (a : α) (f : ι → α →₀ N) :
+  (S.sum f) a = ∑ (i : ι) in S, (f i) a :=
+(apply_add_hom a : (α →₀ N) →+ _).map_sum _ _
 
 @[simp] lemma sum_apply [has_zero M] [add_comm_monoid N]
   {f : α →₀ M} {g : α → M → β →₀ N} {a₂ : β} :
   (f.sum g) a₂ = f.sum (λa₁ b, g a₁ b a₂) :=
-(apply_add_hom a₂ : (β →₀ N) →+ _).map_sum _ _
+finset_sum_apply _ _ _
 
 lemma support_sum [decidable_eq β] [has_zero M] [add_comm_monoid N]
   {f : α →₀ M} {g : α → M → (β →₀ N)} :

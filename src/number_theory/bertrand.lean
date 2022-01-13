@@ -464,23 +464,14 @@ begin
   rw <-div_le_iff,
   rw le_sqrt,
   rw div_pow,
-  -- simp only [one_div, div_pow],
   rw real.sq_sqrt,
   field_simp,
-  -- repeat {apply ne_of_gt},
   repeat {apply mul_pos},
   repeat {apply log_pos},
   repeat {apply div_nonneg},
-  -- repeat {apply rpow_pos_of_pos},
   repeat {norm_num,},
   repeat {linarith,},
   apply sqrt_nonneg,
-
-  -- suffices : sqrt 2 ≤  sqrt x * (1 / 25) * 2,
-  -- {
-  --   rw mul_comm,
-  -- },
-
 end
 
 lemma inequality3' {x : ℝ} (n_large : 1024 < x) : sqrt 2 * sqrt x * log x / (x * log 4) = (sqrt 2 / log 4) * log x / sqrt x :=
@@ -499,8 +490,6 @@ begin
   ring,
   linarith,
 end
-
--- example (a b c : ℝ) (hc : 0 < c) : (exp a) ^ b = exp (a * b) := by library_search
 
 lemma log_div_sqrt_decreasing {x y : ℝ} (hex : real.exp 2 ≤ x) (hxy : x ≤ y) : log y / sqrt y ≤ log x / sqrt x :=
 begin

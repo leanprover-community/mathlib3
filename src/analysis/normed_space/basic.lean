@@ -100,7 +100,7 @@ See note [implicit instance arguments]. -/
 instance subalgebra.semi_normed_ring {𝕜 : Type*} {_ : comm_ring 𝕜}
   {E : Type*} [semi_normed_ring E] {_ : algebra 𝕜 E} (s : subalgebra 𝕜 E) : semi_normed_ring s :=
 { norm_mul := λ a b, norm_mul_le a.1 b.1,
-  ..s.to_submodule.semi_normed_group }
+  ..add_subgroup.semi_normed_group s }
 
 /-- A subalgebra of a normed ring is also a normed ring, with the restriction of the norm.
 

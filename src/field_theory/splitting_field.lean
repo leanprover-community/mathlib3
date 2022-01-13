@@ -505,7 +505,7 @@ begin
   rw [eval_multiset_prod_X_sub_C_derivative hr]
 end
 
-/-- If `P` is a monic polynomial that splits, than `coeff P 0` equals the product of the roots. -/
+/-- If `P` is a monic polynomial that splits, then `coeff P 0` equals the product of the roots. -/
 lemma prod_roots_eq_coeff_zero_of_monic_of_split {P : polynomial K} (hmo : P.monic)
   (hP : P.splits (ring_hom.id K)) : coeff P 0 = (-1) ^ P.nat_degree * P.roots.prod :=
 begin

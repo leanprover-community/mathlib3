@@ -12,7 +12,8 @@ import algebra.lie.basic
 /-!
 # Cross products
 
-This module defines the cross product of vectors in $R^3$ for $R$ a commutative ring.
+This module defines the cross product of vectors in $R^3$ for $R$ a commutative ring,
+as a bilinear map.
 
 ## Main definitions
 
@@ -22,7 +23,7 @@ This module defines the cross product of vectors in $R^3$ for $R$ a commutative 
 
 * `triple_product_eq_det`
 * `cross_dot_cross`
-* `jacobi_identity`
+* `jacobi_cross`
 
 ## Notation
 

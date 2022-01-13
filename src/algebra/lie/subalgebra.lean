@@ -164,9 +164,7 @@ instance : lie_ring_module L' M :=
 variables [module R M] [lie_module R L M]
 
 /-- Given a Lie algebra `L` containing a Lie subalgebra `L' ⊆ L`, together with a Lie module `M` of
-`L`, we may regard `M` as a Lie module of `L'` by restriction.
-
-See also `lie_subalgebra.restrict_lie_submodule` for restricting Lie submodules. -/
+`L`, we may regard `M` as a Lie module of `L'` by restriction. -/
 instance : lie_module R L' M :=
 { smul_lie := λ t x m, by simp only [coe_bracket_of_module, smul_lie, submodule.coe_smul_of_tower],
   lie_smul := λ t x m, by simp only [coe_bracket_of_module, lie_smul], }

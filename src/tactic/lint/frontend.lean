@@ -120,8 +120,6 @@ https://github.com/actions/toolkit/blob/7257597d731b34d14090db516d9ea53439300e98
 def escape_workflow_command (s : string) : string :=
 "".intercalate $ s.to_list.map workflow_command_replacements
 
-def test (n : ℕ) := 4
-
 /--
 Prints a workflow command to emit an error understood by github in an actions workflow.
 This enables CI to tag the parts of the file where linting failed with annotations, and makes it

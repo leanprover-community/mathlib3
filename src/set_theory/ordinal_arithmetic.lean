@@ -1184,11 +1184,6 @@ theorem blsub_eq_lsub' {ι} (r : ι → ι → Prop) [is_well_order ι r] {o} (h
   blsub o f = lsub (family_of_bfamily' r ho f) :=
 bsup_eq_sup' r ho _
 
-theorem lsub_eq_lsub {ι : Type u} (r r' : ι → ι → Prop) [is_well_order ι r] [is_well_order ι r'] {o}
-  (ho : type r = o) (ho' : type r' = o) (f : Π a < o, ordinal) :
-  lsub (family_of_bfamily' r ho f) = lsub (family_of_bfamily' r' ho' f) :=
-by rw [←blsub_eq_lsub', ←blsub_eq_lsub']
-
 theorem blsub_eq_lsub {o} (f : Π a < o, ordinal) : blsub o f = lsub (family_of_bfamily o f) :=
 bsup_eq_sup _
 

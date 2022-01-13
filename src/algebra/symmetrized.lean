@@ -195,7 +195,7 @@ instance [ring α] [invertible (2 : α)] : non_unital_non_assoc_ring (αˢʸᵐ)
   ..sym_alg.add_comm_group, }
 
 /- The squaring operation coincides for both multiplications -/
-lemma sym_squares [ring α] [invertible (2 : α)] (a : αˢʸᵐ) : unsym(a*a) = unsym a * unsym a :=
+lemma unsym_mul_self [ring α] [invertible (2 : α)] (a : αˢʸᵐ) : unsym (a*a) = unsym a * unsym a :=
 begin
   rw [mul_def, unsym_sym],
   abel,

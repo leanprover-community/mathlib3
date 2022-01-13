@@ -620,26 +620,6 @@ begin
           end,
 end
 
-lemma more_restrictive_filter_means_smaller_subset {a : _} {S : finset a} {f : _} {g : _}
-[decidable_pred f] [decidable_pred g] (p : ∀ i, f i → g i)
-  : finset.filter f S ⊆ finset.filter g S :=
-begin
-  intros h prop,
-  simp only [finset.mem_filter] at prop,
-  simp only [finset.mem_filter],
-  exact ⟨prop.1, p h prop.2⟩,
-end
-
-lemma filter_to_subset {a : _} {S : finset a} {T : finset a} {p : _} [decidable_pred p]
-(prop : ∀ i, p i → i ∈ T)
-  : finset.filter p S ⊆ T :=
-begin
-  suffices : ∀ x, x ∈ finset.filter p S → x ∈ T, by exact finset.subset_iff.mpr this,
-  intros x hyp,
-  simp only [finset.mem_filter] at hyp,
-  exact prop x hyp.2
-end
-
 lemma foo {n : ℕ} :
 (finset.filter (λ (p : ℕ), p ^ 2 < 2 * n)
   (finset.filter nat.prime (finset.range (2 * n / 3 + 1)))).card ≤ nat.sqrt (2 * n) :=
@@ -655,7 +635,7 @@ begin
   have v : finset.filter (λ p, p ^ 2 < 2 * n)
             (finset.filter nat.prime (finset.range (2 * n / 3 + 1))) ⊆
     finset.filter (λ p, p ^ 2 ≤ 2 * n) (finset.filter nat.prime (finset.range (2 * n / 3 + 1))) :=
-    more_restrictive_filter_means_smaller_subset u,
+    by { apply finset.monotone_filter_right, exact u, },
 
   have w' : finset.filter (λ p, p ^ 2 ≤ 2 * n)
               (finset.filter nat.prime (finset.range (2 * n / 3 + 1))) =
@@ -702,9 +682,9 @@ begin
             ⊆ finset.Ico 2 (nat.sqrt (2 * n) + 1)
     ,
   by
-  { apply filter_to_subset _,
-    intros i hyp,
-    simp,
+  { simp [finset.subset_iff],
+    intros i hyp hyp2 primei hyp3 hyp4,
+    -- simp,
     split,
     { cases le_or_gt 2 i,
       { exact h, },
@@ -713,7 +693,7 @@ begin
         { cases i,
           { linarith, },
           { exact dec_trivial, }, } }, },
-    { have : i ≤ nat.sqrt (2 * n) := nat.le_sqrt'.mpr hyp.2,
+    { have : i ≤ nat.sqrt (2 * n) := nat.le_sqrt'.mpr hyp4,
       linarith, }, },
 
   calc (finset.filter (λ (p : ℕ), p ^ 2 < 2 * n)

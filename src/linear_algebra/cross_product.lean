@@ -46,12 +46,15 @@ begin
   apply linear_map.mk₂ R (λ (a b : fin 3 → R),
     ![a 1 * b 2 - a 2 * b 1,
       a 2 * b 0 - a 0 * b 2,
-      a 0 * b 1 - a 1 * b 0]);
-  intros;
-  simp only [@vec3_add R _ _ _ _ _ _ _, pi.add_apply, algebra.id.smul_eq_mul, smul_vec3];
-  apply vec3_eq;
-  simp [add_comm, add_assoc, add_left_comm, mul_comm, mul_assoc, mul_left_comm, add_mul, mul_add,
-    sub_eq_add_neg],
+      a 0 * b 1 - a 1 * b 0]),
+  { intros,
+    simp [@vec3_add R _ _ _ _ _ _ _, add_comm, add_assoc, add_left_comm, add_mul, sub_eq_add_neg] },
+  { intros,
+    simp [smul_vec3, mul_comm, mul_assoc, mul_left_comm, add_mul, mul_add, sub_eq_add_neg] },
+  { intros,
+    simp [@vec3_add R _ _ _ _ _ _ _, add_comm, add_assoc, add_left_comm, mul_add, sub_eq_add_neg] },
+  { intros,
+    simp [smul_vec3, mul_comm, mul_assoc, mul_left_comm, add_mul, mul_add, sub_eq_add_neg] },
 end
 
 localized "infixl ` ×₃ `: 74 := cross_product" in matrix

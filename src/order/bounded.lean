@@ -22,7 +22,7 @@ variables {α : Type*} {r : α → α → Prop} {s t : set α}
 theorem bounded_of_subset_bounded (hst : s ⊆ t) (hs : bounded r t) : bounded r s :=
 hs.imp $ λ a ha b hb, ha b (hst hb)
 
-theorem unbounded_of_unbounded_subset (hst : s ⊆ t) (hs : unbounded r s) : unbounded r t :=
+theorem unbounded.mono (hst : s ⊆ t) (hs : unbounded r s) : unbounded r t :=
 λ a, let ⟨b, hb, hb'⟩ := hs a in ⟨b, hst hb, hb'⟩
 
 /-! ### Alternate characterizations of unboundedness on orders -/

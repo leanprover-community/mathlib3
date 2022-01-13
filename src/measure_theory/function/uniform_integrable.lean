@@ -43,17 +43,17 @@ This definition is useful for Egorov's theorem. -/
 def not_convergent_seq (f : ℕ → α → β) (g : α → β) (i j : ℕ) : set α :=
 ⋃ k (hk : j ≤ k), {x | (1 / (i + 1 : ℝ)) < dist (f k x) (g x)}
 
-variables {f : ℕ → α → β} {g : α → β}
+variables {i j : ℕ} {s : set α} {ε : ℝ} {f : ℕ → α → β} {g : α → β}
 
-lemma mem_not_convergent_seq_iff {i j : ℕ} {x : α} : x ∈ not_convergent_seq f g i j ↔
+lemma mem_not_convergent_seq_iff {x : α} : x ∈ not_convergent_seq f g i j ↔
   ∃ k (hk : j ≤ k), (1 / (i + 1 : ℝ)) < dist (f k x) (g x) :=
 by { simp_rw [not_convergent_seq, mem_Union], refl }
 
-lemma not_convergent_seq_antitone {i : ℕ} :
+lemma not_convergent_seq_antitone :
   antitone (not_convergent_seq f g i) :=
 λ j k hjk, bUnion_subset_bUnion (λ l hl, ⟨l, le_trans hjk hl, subset.refl _⟩)
 
-lemma measure_inter_not_convergent_seq_eq_zero {s : set α}
+lemma measure_inter_not_convergent_seq_eq_zero
   (hfg : ∀ᵐ x ∂μ, x ∈ s → tendsto (λ n, f n x) at_top (𝓝 (g x))) (i : ℕ) :
   μ (s ∩ ⋂ j, not_convergent_seq f g i j) = 0 :=
 begin
@@ -71,14 +71,13 @@ end
 variables [second_countable_topology β] [measurable_space β] [borel_space β]
 
 lemma not_convergent_seq_measurable_set
-  (hf : ∀ n, measurable[m] (f n)) (hg : measurable g)
-  {i j : ℕ} : measurable_set (not_convergent_seq f g i j) :=
+  (hf : ∀ n, measurable[m] (f n)) (hg : measurable g) :
+  measurable_set (not_convergent_seq f g i j) :=
 measurable_set.Union (λ k, measurable_set.Union_Prop $ λ hk,
   measurable_set_lt measurable_const $ (hf k).dist hg)
 
 lemma measure_not_convergent_seq_tendsto_zero
-  (hf : ∀ n, measurable[m] (f n)) (hg : measurable g)
-  {s : set α} (hsm : measurable_set s) (hs : μ s ≠ ∞)
+  (hf : ∀ n, measurable[m] (f n)) (hg : measurable g) (hsm : measurable_set s) (hs : μ s ≠ ∞)
   (hfg : ∀ᵐ x ∂μ, x ∈ s → tendsto (λ n, f n x) at_top (𝓝 (g x))) (i : ℕ) :
   tendsto (λ j, μ (s ∩ not_convergent_seq f g i j)) at_top (𝓝 0) :=
 begin
@@ -88,9 +87,9 @@ begin
     ⟨0, (lt_of_le_of_lt (measure_mono $ inter_subset_left _ _) (lt_top_iff_ne_top.2 hs)).ne⟩
 end
 
-lemma exists_not_convergent_seq_lt {ε : ℝ} (hε : 0 < ε)
+lemma exists_not_convergent_seq_lt (hε : 0 < ε)
   (hf : ∀ n, measurable[m] (f n)) (hg : measurable g)
-  {s : set α} (hsm : measurable_set s) (hs : μ s ≠ ∞)
+  (hsm : measurable_set s) (hs : μ s ≠ ∞)
   (hfg : ∀ᵐ x ∂μ, x ∈ s → tendsto (λ n, f n x) at_top (𝓝 (g x))) (i : ℕ) :
   ∃ j : ℕ, μ (s ∩ not_convergent_seq f g i j) ≤ ennreal.of_real (ε * 2⁻¹ ^ i) :=
 begin
@@ -108,15 +107,15 @@ end
 `ε * 2⁻¹ ^ i`.
 
 This definition is useful for Egorov's theorem. -/
-def not_convergent_seq_lt_index {ε : ℝ} (hε : 0 < ε)
+def not_convergent_seq_lt_index (hε : 0 < ε)
   (hf : ∀ n, measurable[m] (f n)) (hg : measurable g)
-  {s : set α} (hsm : measurable_set s) (hs : μ s ≠ ∞)
+  (hsm : measurable_set s) (hs : μ s ≠ ∞)
   (hfg : ∀ᵐ x ∂μ, x ∈ s → tendsto (λ n, f n x) at_top (𝓝 (g x))) (i : ℕ) : ℕ :=
 classical.some $ exists_not_convergent_seq_lt hε hf hg hsm hs hfg i
 
-lemma not_convergent_seq_lt_index_spec {ε : ℝ} (hε : 0 < ε)
+lemma not_convergent_seq_lt_index_spec (hε : 0 < ε)
   (hf : ∀ n, measurable[m] (f n)) (hg : measurable g)
-  {s : set α} (hsm : measurable_set s) (hs : μ s ≠ ∞)
+  (hsm : measurable_set s) (hs : μ s ≠ ∞)
   (hfg : ∀ᵐ x ∂μ, x ∈ s → tendsto (λ n, f n x) at_top (𝓝 (g x))) (i : ℕ) :
   μ (s ∩ not_convergent_seq f g i (not_convergent_seq_lt_index hε hf hg hsm hs hfg i)) ≤
   ennreal.of_real (ε * 2⁻¹ ^ i) :=
@@ -126,22 +125,19 @@ classical.some_spec $ exists_not_convergent_seq_lt hε hf hg hsm hs hfg i
 specific indicies such that `Union_not_convergent_seq` has measure less equal than `ε`.
 
 This definition is useful for Egorov's theorem. -/
-def Union_not_convergent_seq {ε : ℝ} (hε : 0 < ε)
-  (hf : ∀ n, measurable[m] (f n)) (hg : measurable g)
-  {s : set α} (hsm : measurable_set s) (hs : μ s ≠ ∞)
+def Union_not_convergent_seq (hε : 0 < ε)
+  (hf : ∀ n, measurable[m] (f n)) (hg : measurable g) (hsm : measurable_set s) (hs : μ s ≠ ∞)
   (hfg : ∀ᵐ x ∂μ, x ∈ s → tendsto (λ n, f n x) at_top (𝓝 (g x))) : set α :=
 ⋃ i, s ∩ not_convergent_seq f g i (not_convergent_seq_lt_index (half_pos hε) hf hg hsm hs hfg i)
 
-lemma Union_not_convergent_seq_measurable_set {ε : ℝ} (hε : 0 < ε)
-  (hf : ∀ n, measurable[m] (f n)) (hg : measurable g)
-  {s : set α} (hsm : measurable_set s) (hs : μ s ≠ ∞)
+lemma Union_not_convergent_seq_measurable_set (hε : 0 < ε)
+  (hf : ∀ n, measurable[m] (f n)) (hg : measurable g) (hsm : measurable_set s) (hs : μ s ≠ ∞)
   (hfg : ∀ᵐ x ∂μ, x ∈ s → tendsto (λ n, f n x) at_top (𝓝 (g x))) :
   measurable_set $ Union_not_convergent_seq hε hf hg hsm hs hfg :=
 measurable_set.Union (λ n, hsm.inter $ not_convergent_seq_measurable_set hf hg)
 
-lemma measure_Union_not_convergent_seq {ε : ℝ} (hε : 0 < ε)
-  (hf : ∀ n, measurable[m] (f n)) (hg : measurable g)
-  {s : set α} (hsm : measurable_set s) (hs : μ s ≠ ∞)
+lemma measure_Union_not_convergent_seq (hε : 0 < ε)
+  (hf : ∀ n, measurable[m] (f n)) (hg : measurable g) (hsm : measurable_set s) (hs : μ s ≠ ∞)
   (hfg : ∀ᵐ x ∂μ, x ∈ s → tendsto (λ n, f n x) at_top (𝓝 (g x))) :
   μ (Union_not_convergent_seq hε hf hg hsm hs hfg) ≤ ennreal.of_real ε :=
 begin
@@ -157,9 +153,8 @@ begin
     exact summable_geometric_two },
 end
 
-lemma Union_not_convergent_seq_subset {ε : ℝ} (hε : 0 < ε)
-  (hf : ∀ n, measurable[m] (f n)) (hg : measurable g)
-  {s : set α} (hsm : measurable_set s) (hs : μ s ≠ ∞)
+lemma Union_not_convergent_seq_subset (hε : 0 < ε)
+  (hf : ∀ n, measurable[m] (f n)) (hg : measurable g) (hsm : measurable_set s) (hs : μ s ≠ ∞)
   (hfg : ∀ᵐ x ∂μ, x ∈ s → tendsto (λ n, f n x) at_top (𝓝 (g x))) :
   Union_not_convergent_seq hε hf hg hsm hs hfg ⊆ s :=
 begin

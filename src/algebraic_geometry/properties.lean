@@ -193,7 +193,7 @@ end
 @[simp]
 lemma basic_open_eq_bot_iff {X : Scheme} [is_reduced X] {U : opens X.carrier}
   (s : X.presheaf.obj $ op U) :
-  X.to_LocallyRingedSpace.to_RingedSpace.basic_open s = ⊥ ↔ s = 0 :=
+  X.basic_open s = ⊥ ↔ s = 0 :=
 begin
   refine ⟨eq_zero_of_basic_open_empty s, _⟩,
   rintro rfl,
@@ -264,8 +264,7 @@ begin
     push_neg at h,
     exfalso,
     obtain ⟨_, ⟨x, hx₁, rfl⟩, ⟨x, hx₂, e'⟩⟩ := @@nonempty_preirreducible_inter _ H.1
-      (X.to_LocallyRingedSpace.to_RingedSpace.basic_open a).2
-      (X.to_LocallyRingedSpace.to_RingedSpace.basic_open b).2
+      (X.basic_open a).2 (X.basic_open b).2
       h.1 h.2,
     replace e' := subtype.eq e',
     subst e',
@@ -319,10 +318,10 @@ begin
   rw ring_hom.injective_iff,
   intros x hx,
   rw ← basic_open_eq_bot_iff at ⊢ hx,
-  erw RingedSpace.basic_open_res at hx,
+  rw Scheme.basic_open_res at hx,
   revert hx,
   contrapose!,
-  simp_rw [← opens.not_nonempty_iff_eq_bot, not_not, unop_op],
+  simp_rw [← opens.not_nonempty_iff_eq_bot, not_not],
   apply nonempty_preirreducible_inter U.prop (RingedSpace.basic_open _ _).prop,
   simpa using H
 end

@@ -98,7 +98,7 @@ lemma topological_space.is_topological_basis.borel_eq_generate_from [topological
 borel_eq_generate_from_of_subbasis hs.eq_generate_from
 
 lemma is_pi_system_is_open [topological_space α] : is_pi_system (is_open : set α → Prop) :=
-λ s t hs ht hst, is_open.inter hs ht
+λ s hs t ht hst, is_open.inter hs ht
 
 lemma borel_eq_generate_from_is_closed [topological_space α] :
   borel α = generate_from {s | is_closed s} :=
@@ -489,7 +489,7 @@ begin
 end
 
 lemma dense.borel_eq_generate_from_Ico_mem {α : Type*} [topological_space α] [linear_order α]
-  [order_topology α] [second_countable_topology α] [densely_ordered α] [no_bot_order α]
+  [order_topology α] [second_countable_topology α] [densely_ordered α] [no_min_order α]
   {s : set α} (hd : dense s) :
   borel α = generate_from {S : set α | ∃ (l ∈ s) (u ∈ s) (h : l < u), Ico l u = S} :=
 hd.borel_eq_generate_from_Ico_mem_aux (by simp) $
@@ -516,7 +516,7 @@ begin
 end
 
 lemma dense.borel_eq_generate_from_Ioc_mem {α : Type*} [topological_space α] [linear_order α]
-  [order_topology α] [second_countable_topology α] [densely_ordered α] [no_top_order α]
+  [order_topology α] [second_countable_topology α] [densely_ordered α] [no_max_order α]
   {s : set α} (hd : dense s) :
   borel α = generate_from {S : set α | ∃ (l ∈ s) (u ∈ s) (h : l < u), Ioc l u = S} :=
 hd.borel_eq_generate_from_Ioc_mem_aux (by simp) $
@@ -565,7 +565,7 @@ end
 closed-open intervals. -/
 lemma ext_of_Ico' {α : Type*} [topological_space α] {m : measurable_space α}
   [second_countable_topology α] [linear_order α] [order_topology α] [borel_space α]
-  [no_top_order α] (μ ν : measure α) (hμ : ∀ ⦃a b⦄, a < b → μ (Ico a b) ≠ ∞)
+  [no_max_order α] (μ ν : measure α) (hμ : ∀ ⦃a b⦄, a < b → μ (Ico a b) ≠ ∞)
   (h : ∀ ⦃a b⦄, a < b → μ (Ico a b) = ν (Ico a b)) : μ = ν :=
 begin
   rcases exists_countable_dense_bot_top α with ⟨s, hsc, hsd, hsb, hst⟩,
@@ -589,7 +589,7 @@ end
 open-closed intervals. -/
 lemma ext_of_Ioc' {α : Type*} [topological_space α] {m : measurable_space α}
   [second_countable_topology α] [linear_order α] [order_topology α] [borel_space α]
-  [no_bot_order α] (μ ν : measure α) (hμ : ∀ ⦃a b⦄, a < b → μ (Ioc a b) ≠ ∞)
+  [no_min_order α] (μ ν : measure α) (hμ : ∀ ⦃a b⦄, a < b → μ (Ioc a b) ≠ ∞)
   (h : ∀ ⦃a b⦄, a < b → μ (Ioc a b) = ν (Ioc a b)) : μ = ν :=
 begin
   refine @ext_of_Ico' (order_dual α) _ _ _ _ _ ‹_› _ μ ν _ _;
@@ -601,7 +601,7 @@ end
 closed-open intervals. -/
 lemma ext_of_Ico {α : Type*} [topological_space α] {m : measurable_space α}
   [second_countable_topology α] [conditionally_complete_linear_order α] [order_topology α]
-  [borel_space α] [no_top_order α] (μ ν : measure α) [is_locally_finite_measure μ]
+  [borel_space α] [no_max_order α] (μ ν : measure α) [is_locally_finite_measure μ]
   (h : ∀ ⦃a b⦄, a < b → μ (Ico a b) = ν (Ico a b)) : μ = ν :=
 μ.ext_of_Ico' ν (λ a b hab, measure_Ico_lt_top.ne) h
 
@@ -609,7 +609,7 @@ lemma ext_of_Ico {α : Type*} [topological_space α] {m : measurable_space α}
 open-closed intervals. -/
 lemma ext_of_Ioc {α : Type*} [topological_space α] {m : measurable_space α}
   [second_countable_topology α] [conditionally_complete_linear_order α] [order_topology α]
-  [borel_space α] [no_bot_order α] (μ ν : measure α) [is_locally_finite_measure μ]
+  [borel_space α] [no_min_order α] (μ ν : measure α) [is_locally_finite_measure μ]
   (h : ∀ ⦃a b⦄, a < b → μ (Ioc a b) = ν (Ioc a b)) : μ = ν :=
 μ.ext_of_Ioc' ν (λ a b hab, measure_Ioc_lt_top.ne) h
 

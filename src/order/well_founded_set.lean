@@ -278,7 +278,7 @@ partially_well_ordered_on_insert.2 h
 protected theorem partially_well_ordered_on.prod [is_refl α r] [is_trans α r] {β}
   {rb : β → β → Prop} {t : set β}
   (hs : partially_well_ordered_on s r) (ht : partially_well_ordered_on t rb) :
-  partially_well_ordered_on (s.prod t) (λ x y, r x.1 y.1 ∧ rb x.2 y.2) :=
+  partially_well_ordered_on (s ×ˢ t) (λ x y, r x.1 y.1 ∧ rb x.2 y.2) :=
 begin
   intros f hf,
   obtain ⟨g₁, h₁⟩ := hs.exists_monotone_subseq (prod.fst ∘ f) (λ n, (hf n).1),
@@ -304,7 +304,7 @@ protected lemma is_pwo.is_wf (h : s.is_pwo) : s.is_wf :=
 by simpa only [← lt_iff_le_not_le] using h.well_founded_on
 
 lemma is_pwo.prod {β : Type*} [preorder β] {t : set β} (hs : s.is_pwo) (ht : t.is_pwo) :
-  (s.prod t).is_pwo :=
+  (s ×ˢ t).is_pwo :=
 hs.prod ht
 
 theorem is_pwo.image_of_monotone_on {β : Type*} [preorder β] (hs : s.is_pwo) {f : α → β}

@@ -5,7 +5,7 @@ Authors: Rémy Degenne, Kexing Ying
 -/
 
 import probability_theory.stopping
-import measure_theory.function.conditional_expectation
+import probability_theory.notation
 
 /-!
 # Martingales
@@ -37,7 +37,7 @@ The definitions of filtration and adapted can be found in `probability_theory.st
 -/
 
 open topological_space filter
-open_locale nnreal ennreal measure_theory
+open_locale nnreal ennreal measure_theory probability_theory big_operators
 
 namespace measure_theory
 
@@ -75,14 +75,17 @@ variables {E}
 
 namespace martingale
 
+@[protected]
 lemma adapted (hf : martingale f ℱ μ) : adapted ℱ f := hf.1
 
+@[protected]
 lemma measurable (hf : martingale f ℱ μ) (i : ι) : measurable[ℱ i] (f i) := hf.adapted i
 
 lemma condexp_ae_eq (hf : martingale f ℱ μ) {i j : ι} (hij : i ≤ j) :
   μ[f j | ℱ i, ℱ.le i] =ᵐ[μ] f i :=
 hf.2 i j hij
 
+@[protected]
 lemma integrable (hf : martingale f ℱ μ) (i : ι) : integrable (f i) μ :=
 integrable_condexp.congr (hf.condexp_ae_eq (le_refl i))
 
@@ -137,11 +140,14 @@ lemma martingale_condexp (f : α → E) (ℱ : filtration ι m0) (μ : measure �
 
 namespace supermartingale
 
+@[protected]
 lemma adapted [has_le E] (hf : supermartingale f ℱ μ) : adapted ℱ f := hf.1
 
+@[protected]
 lemma measurable [has_le E] (hf : supermartingale f ℱ μ) (i : ι) : measurable[ℱ i] (f i) :=
 hf.adapted i
 
+@[protected]
 lemma integrable [has_le E] (hf : supermartingale f ℱ μ) (i : ι) : integrable (f i) μ := hf.2.2 i
 
 lemma condexp_ae_le [has_le E] (hf : supermartingale f ℱ μ) {i j : ι} (hij : i ≤ j) :
@@ -187,11 +193,14 @@ end supermartingale
 
 namespace submartingale
 
+@[protected]
 lemma adapted [has_le E] (hf : submartingale f ℱ μ) : adapted ℱ f := hf.1
 
+@[protected]
 lemma measurable [has_le E] (hf : submartingale f ℱ μ) (i : ι) : measurable[ℱ i] (f i) :=
 hf.adapted i
 
+@[protected]
 lemma integrable [has_le E] (hf : submartingale f ℱ μ) (i : ι) : integrable (f i) μ := hf.2.2 i
 
 lemma ae_le_condexp [has_le E] (hf : submartingale f ℱ μ) {i j : ι} (hij : i ≤ j) :
@@ -306,5 +315,52 @@ end
 end
 
 end submartingale
+
+section nat
+
+variables {𝒢 : filtration ℕ m0} [sigma_finite_filtration μ 𝒢]
+
+namespace submartingale
+
+lemma integrable_stopped_value [has_le E] {f : ℕ → α → E} (hf : submartingale f 𝒢 μ) {τ : α → ℕ}
+  (hτ : is_stopping_time 𝒢 τ) {N : ℕ} (hbdd : ∀ x, τ x ≤ N) :
+  integrable (stopped_value f τ) μ :=
+integrable_stopped_value hτ hf.integrable hbdd
+
+-- We may generalize the below lemma to functions taking value in a `normed_lattice_add_comm_group`.
+-- Similarly, generalize `(super/)submartingale.set_integral_le`.
+
+/-- Given a submartingale `f` and bounded stopping times `τ` and `π` such that `τ ≤ π`, the
+expectation of `stopped_value f τ` is less or equal to the expectation of `stopped_value f π`.
+This is the forward direction of the optional stopping theorem. -/
+lemma expected_stopped_value_mono {f : ℕ → α → ℝ} (hf : submartingale f 𝒢 μ) {τ π : α → ℕ}
+  (hτ : is_stopping_time 𝒢 τ) (hπ : is_stopping_time 𝒢 π) (hle : τ ≤ π)
+  {N : ℕ} (hbdd : ∀ x, π x ≤ N) :
+  μ[stopped_value f τ] ≤ μ[stopped_value f π] :=
+begin
+  rw [← sub_nonneg, ← integral_sub', stopped_value_sub_eq_sum' hle hbdd],
+  { simp only [finset.sum_apply],
+    have : ∀ i, measurable_set[𝒢 i] {x : α | τ x ≤ i ∧ i < π x},
+    { intro i,
+      refine (hτ i).inter _,
+      convert (hπ i).compl,
+      ext x,
+      simpa },
+    rw integral_finset_sum,
+    { refine finset.sum_nonneg (λ i hi, _),
+      rw [integral_indicator (𝒢.le _ _ (this _)), integral_sub', sub_nonneg],
+      { exact hf.set_integral_le (nat.le_succ i) (this _) },
+      { exact (hf.integrable _).integrable_on },
+      { exact (hf.integrable _).integrable_on } },
+    intros i hi,
+    exact integrable.indicator (integrable.sub (hf.integrable _) (hf.integrable _))
+      (𝒢.le _ _ (this _)) },
+  { exact hf.integrable_stopped_value hπ hbdd },
+  { exact hf.integrable_stopped_value hτ (λ x, le_trans (hle x) (hbdd x)) }
+end
+
+end submartingale
+
+end nat
 
 end measure_theory

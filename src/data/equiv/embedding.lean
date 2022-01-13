@@ -76,7 +76,7 @@ def sum_embedding_equiv_sigma_embedding_restricted {α β γ : Type*} :
 
 /-- Embeddings from a single-member type are equivalent to members of the target type. -/
 def unique_embedding_equiv_result {α β : Type*} [unique α] : (α ↪ β) ≃ β :=
-{ to_fun := λ f, f (default α),
+{ to_fun := λ f, f default,
   inv_fun := λ x, ⟨λ _, x, λ _ _ _, subsingleton.elim _ _⟩,
   left_inv := λ _, by { ext, simp_rw [function.embedding.coe_fn_mk], congr },
   right_inv := λ _, by simp }

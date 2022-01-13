@@ -28,10 +28,10 @@ class two_pointed (α : Type*) :=
 section two_pointed
 variables (α) [two_pointed α] [two_pointed β]
 
-/-- The first pointed element of 𝒶 pointed type. -/
+/-- The first pointed element of a pointed type. -/
 def pointed_fst : α := two_pointed.fst
 
-/-- The first pointed element of 𝒶 pointed type. -/
+/-- The second pointed element of a pointed type. -/
 def pointed_snd : α := two_pointed.snd
 
 lemma pointed_fst_ne_snd : pointed_fst α ≠ pointed_snd α := two_pointed.fst_ne_snd
@@ -44,7 +44,11 @@ instance two_pointed.to_nontrivial : nontrivial α :=
 /-- Swaps the two pointed elements. -/
 def two_pointed_swap : two_pointed α := ⟨pointed_snd α, pointed_fst α, pointed_snd_ne_fst α⟩
 
+instance : two_pointed bool := ⟨ff, tt, bool.ff_ne_tt⟩
+
 end two_pointed
+
+/-! ### Pointed sum -/
 
 namespace pointed_sum
 variables {𝒶 a : α} {𝒷 b : β} {x y z : α ⊕ β}
@@ -52,25 +56,45 @@ variables {𝒶 a : α} {𝒷 b : β} {x y z : α ⊕ β}
 /-- Glues `sum.inl 𝒶` and `sum.inr 𝒷` and nothing else. -/
 inductive rel (𝒶 : α) (𝒷 : β) : α ⊕ β → α ⊕ β → Prop
 | refl (x : α ⊕ β) : rel x x
-| glue_left : rel (inl 𝒶) (inr 𝒷)
-| glue_right : rel (inr 𝒷) (inl 𝒶)
+| inl_inr : rel (inl 𝒶) (inr 𝒷)
+| inr_inl : rel (inr 𝒷) (inl 𝒶)
 
 attribute [refl] rel.refl
 
 @[symm] lemma rel.symm : rel 𝒶 𝒷 x y → rel 𝒶 𝒷 y x := by rintro (_ | _ | _); constructor
 
+lemma rel_comm : rel 𝒶 𝒷 x y ↔ rel 𝒶 𝒷 y x := ⟨rel.symm, rel.symm⟩
+
 @[trans] lemma rel.trans : ∀ {x y z}, rel 𝒶 𝒷 x y → rel 𝒶 𝒷 y z → rel 𝒶 𝒷 x z
-| _ _ _ (rel.refl _)   (rel.refl _)   := rel.refl _
-| _ _ _ (rel.refl _)   rel.glue_left  := rel.glue_left
-| _ _ _ (rel.refl _)   rel.glue_right := rel.glue_right
-| _ _ _ rel.glue_left  (rel.refl _) := rel.glue_left
-| _ _ _ rel.glue_right (rel.refl _) := rel.glue_right
-| _ _ _ rel.glue_left  rel.glue_right := rel.refl _
-| _ _ _ rel.glue_right rel.glue_left  := rel.refl _
+| _ _ _ (rel.refl _) (rel.refl _)   := rel.refl _
+| _ _ _ (rel.refl _) rel.inl_inr  := rel.inl_inr
+| _ _ _ (rel.refl _) rel.inr_inl  := rel.inr_inl
+| _ _ _ rel.inl_inr  (rel.refl _) := rel.inl_inr
+| _ _ _ rel.inr_inl  (rel.refl _) := rel.inr_inl
+| _ _ _ rel.inl_inr  rel.inr_inl  := rel.refl _
+| _ _ _ rel.inr_inl  rel.inl_inr  := rel.refl _
 
 lemma rel.equivalence : equivalence (rel 𝒶 𝒷) := by tidy; apply rel.trans; assumption
 
+@[simp] lemma rel_inl_inl_iff {a b : α} : rel 𝒶 𝒷 (inl a) (inl b) ↔ a = b :=
+⟨λ h, by { cases h, refl }, by { rintro rfl, exact rel.refl _ }⟩
+
+@[simp] lemma rel_inl_inr_iff {a : α} {b : β} : rel 𝒶 𝒷 (inl a) (inr b) ↔ a = 𝒶 ∧ b = 𝒷 :=
+⟨λ h, by { cases h, exact ⟨rfl, rfl⟩ }, by { rintro ⟨rfl, rfl⟩, exact rel.inl_inr }⟩
+
+@[simp] lemma rel_inr_inl_iff {a : α} {b : β} : rel 𝒶 𝒷 (inr b) (inl a) ↔ a = 𝒶 ∧ b = 𝒷 :=
+⟨λ h, by { cases h, exact ⟨rfl, rfl⟩ }, by { rintro ⟨rfl, rfl⟩, exact rel.inr_inl }⟩
+
+@[simp] lemma rel_inr_inr_iff {a b : β} : rel 𝒶 𝒷 (inr a) (inr b) ↔ a = b :=
+⟨λ h, by { cases h, refl }, by { rintro rfl, exact rel.refl _ }⟩
+
 variables (𝒶 𝒷)
+
+instance [decidable_eq α] [decidable_eq β] : decidable_rel (rel 𝒶 𝒷)
+| (sum.inl a) (sum.inl b) := decidable_of_iff' _ rel_inl_inl_iff
+| (sum.inl a) (sum.inr b) := decidable_of_iff' _ rel_inl_inr_iff
+| (sum.inr a) (sum.inl b) := decidable_of_iff' _ rel_inr_inl_iff
+| (sum.inr a) (sum.inr b) := decidable_of_iff' _ rel_inr_inr_iff
 
 /-- The quotient of `α ⊕ β` by `sum.inl 𝒶 = sum.inr 𝒷`. -/
 def rel.setoid : setoid (α ⊕ β) := ⟨rel 𝒶 𝒷, rel.equivalence⟩
@@ -80,28 +104,44 @@ def _root_.pointed_sum : Type* := quotient (pointed_sum.rel.setoid 𝒶 𝒷)
 
 notation 𝒶 ` ⊕ₚ `:30 𝒷:29 := pointed_sum 𝒶 𝒷
 
+/-- The map to the left component of `𝒶 ⊕ₚ 𝒷`. -/
 def inl (a : α) : 𝒶 ⊕ₚ 𝒷 := @quotient.mk _ (rel.setoid _ _) (inl a)
 
+/-- The map to the right component of `𝒶 ⊕ₚ 𝒷`. -/
 def inr (b : β) : 𝒶 ⊕ₚ 𝒷 := @quotient.mk _ (rel.setoid _ _) (inr b)
 
-lemma inl_injective : injective (inl 𝒶 𝒷) := sorry
+instance : inhabited (𝒶 ⊕ₚ 𝒷) := ⟨inl 𝒶 𝒷 𝒶⟩
 
-lemma inr_injective : injective (inr 𝒶 𝒷) := sorry
-
-lemma inl_eq_inr : inl 𝒶 𝒷 𝒶 = inr 𝒶 𝒷 𝒷 := sorry
+instance [decidable_eq α] [decidable_eq β] : decidable_eq (𝒶 ⊕ₚ 𝒷) :=
+@quotient.decidable_eq _ (pointed_sum.rel.setoid 𝒶 𝒷) $ rel.decidable_rel _ _
 
 variables {𝒶 𝒷 a b}
 
-lemma inl_eq_inr_iff : inl 𝒶 𝒷 a = inr 𝒶 𝒷 b ↔ a = 𝒶 ∧ b = 𝒷 :=
-begin
-  split,
-  sorry,
-  rintro ⟨rfl, rfl⟩,
-  exact inl_eq_inr _ _,
-end
+@[simp] lemma inl_inj {b : α} : inl 𝒶 𝒷 a = inl 𝒶 𝒷 b ↔ a = b :=
+(@quotient.eq _ (rel.setoid 𝒶 𝒷) _ _).trans rel_inl_inl_iff
 
-lemma inl_ne_inr_left (h : a ≠ 𝒶) : inl 𝒶 𝒷 a ≠ inr 𝒶 𝒷 b := sorry
-lemma inl_ne_inr_right (h : b ≠ 𝒷) : inl 𝒶 𝒷 a ≠ inr 𝒶 𝒷 b := sorry
+@[simp] lemma inl_eq_inr_iff : inl 𝒶 𝒷 a = inr 𝒶 𝒷 b ↔ a = 𝒶 ∧ b = 𝒷 :=
+(@quotient.eq _ (rel.setoid 𝒶 𝒷) _ _).trans rel_inl_inr_iff
+
+@[simp] lemma inr_inj {a b : β} : inr 𝒶 𝒷 a = inr 𝒶 𝒷 b ↔ a = b :=
+(@quotient.eq _ (rel.setoid 𝒶 𝒷) _ _).trans rel_inr_inr_iff
+
+@[simp] lemma inr_eq_inl_iff : inr 𝒶 𝒷 b = inl 𝒶 𝒷 a ↔ a = 𝒶 ∧ b = 𝒷 :=
+(@quotient.eq _ (rel.setoid 𝒶 𝒷) _ _).trans rel_inr_inl_iff
+
+lemma inl_injective : injective (inl 𝒶 𝒷) := λ _ _, inl_inj.1
+lemma inr_injective : injective (inr 𝒶 𝒷) := λ _ _, inr_inj.1
+
+lemma inl_eq_inr : inl 𝒶 𝒷 𝒶 = inr 𝒶 𝒷 𝒷 := @quotient.sound _ (rel.setoid 𝒶 𝒷) _ _ rel.inl_inr
+lemma inr_eq_inl : inr 𝒶 𝒷 𝒷 = inl 𝒶 𝒷 𝒶 := @quotient.sound _ (rel.setoid 𝒶 𝒷) _ _ rel.inr_inl
+
+lemma inl_ne_inr_left (h : a ≠ 𝒶) : inl 𝒶 𝒷 a ≠ inr 𝒶 𝒷 b := λ hab, h (inl_eq_inr_iff.1 hab).1
+lemma inl_ne_inr_right (h : b ≠ 𝒷) : inl 𝒶 𝒷 a ≠ inr 𝒶 𝒷 b := λ hab, h (inl_eq_inr_iff.1 hab).2
+
+@[elab_as_eliminator]
+protected lemma ind {f : 𝒶 ⊕ₚ 𝒷 → Prop} (h𝒶 : ∀ a, f (inl 𝒶 𝒷 a)) (h𝒷 : ∀ b, f (inr 𝒶 𝒷 b)) :
+  ∀ i, f i :=
+@quotient.ind _ (rel.setoid 𝒶 𝒷) _ $ by { refine sum.rec _ _, exacts [h𝒶, h𝒷] }
 
 notation α ` ⊕ₚₚ `:30 β:29 := pointed_snd α ⊕ₚ pointed_fst β
 
@@ -122,9 +162,23 @@ instance two_pointed_right : two_pointed (𝒶 ⊕ₚ pointed_fst β) :=
 
 end two_pointed
 
+section fintype
+variables (α 𝒷) [decidable_eq α] [decidable_eq β] [fintype α] [fintype β]
+
+instance : fintype (𝒶 ⊕ₚ 𝒷) := @quotient.fintype _ _ (rel.setoid 𝒶 𝒷) $ rel.decidable_rel 𝒶 𝒷
+
+lemma _root_.fintype.card_pointed_sum :
+  fintype.card (𝒶 ⊕ₚ 𝒷) = fintype.card α + fintype.card β - 1 :=
+begin
+  sorry
+end
+
+end fintype
+
 section lift_rel
 variables (𝒶 𝒷) (r : α → α → Prop) (s : β → β → Prop)
 
+/-- Lifts a relation to `𝒶 ⊕ₚ 𝒷` summand-wise. -/
 inductive lift_rel : 𝒶 ⊕ₚ 𝒷 → 𝒶 ⊕ₚ 𝒷 → Prop
 | inl {a b} : r a b → lift_rel (inl _ _ a) (inl _ _ b)
 | inr {a b} : s a b → lift_rel (inr _ _ a) (inr _ _ b)
@@ -134,6 +188,7 @@ end lift_rel
 section lift_trans_rel
 variables (𝒶 𝒷) (r : α → α → Prop) (s : β → β → Prop)
 
+/-- Lifts a relation to `𝒶 ⊕ₚ 𝒷` summand-wise while making sure it stays transitive. -/
 inductive lift_trans_rel : 𝒶 ⊕ₚ 𝒷 → 𝒶 ⊕ₚ 𝒷 → Prop
 | inl {a b} : r a b → lift_trans_rel (inl _ _ a) (inl _ _ b)
 | inr {a b} : s a b → lift_trans_rel (inr _ _ a) (inr _ _ b)
@@ -196,7 +251,8 @@ instance [preorder α] [preorder β] : preorder (𝒶 ⊕ₚ 𝒷) :=
 instance [partial_order α] [partial_order β] : partial_order (𝒶 ⊕ₚ 𝒷) :=
 { le := (≤),
   lt := (<),
-  le_antisymm := λ _ _, antisymm_of (lift_trans_rel _ _ (≤) (≤)) }
+  le_antisymm := λ _ _, antisymm_of (lift_trans_rel _ _ (≤) (≤)),
+  .. pointed_sum.preorder 𝒶 𝒷 }
 
 end order
 
@@ -207,12 +263,24 @@ namespace category_theory
 /-- The category of two-pointed types. -/
 def Twop : Type* := bundled two_pointed
 
-/-- A sq-coalgebra on a two-pointed type `α` is a map `α → α ⊕ₚₚ α`. -/
-class sq_coalgebra (α : Type*) :=
+instance : inhabited Twop := ⟨bundled.of bool⟩
+
+/-- A square coalgebra on a two-pointed type `α` is a map `α → α ⊕ₚₚ α`. -/
+structure sq_coalgebra (α : Type*) :=
 [two_pointed : two_pointed α]
 (double_map : α → α ⊕ₚₚ α)
 
-/-- The category of sq-coalgebras. -/
+/-- `pointed_sum.inl` as a square coalgebra. -/
+def sq_coalgebra.inl (α : Type*) [two_pointed α] : sq_coalgebra α := ⟨pointed_sum.inl _ _⟩
+
+/-- `pointed_sum.inr` as a square coalgebra. -/
+def sq_coalgebra.inr (α : Type*) [two_pointed α] : sq_coalgebra α := ⟨pointed_sum.inl _ _⟩
+
+instance [two_pointed α] : inhabited (sq_coalgebra α) := ⟨sq_coalgebra.inl α⟩
+
+/-- The category of square coalgebras. -/
 def SqCoalgebra : Type* := bundled sq_coalgebra
+
+instance : inhabited SqCoalgebra := ⟨@bundled.of _ bool default⟩
 
 end category_theory

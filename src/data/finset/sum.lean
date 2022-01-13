@@ -45,8 +45,8 @@ multiset.mem_disj_sum
 lemma disj_sum_mono (hs : s₁ ⊆ s₂) (ht : t₁ ⊆ t₂) : s₁.disj_sum t₁ ⊆ s₂.disj_sum t₂ :=
 val_le_iff.1 $ disj_sum_mono (val_le_iff.2 hs) (val_le_iff.2 ht)
 
-lemma disj_sum_mono_left (t : finset β) : monotone (λ s, s.disj_sum t) :=
-λ _ _ hs, disj_sum_mono hs subset.rfl
+lemma disj_sum_mono_left (t : finset β) : monotone (λ s : finset α, s.disj_sum t) :=
+λ s₁ s₂ hs, disj_sum_mono hs subset.rfl
 
 lemma disj_sum_mono_right (s : finset α) : monotone (s.disj_sum : finset β → finset (α ⊕ β)) :=
 λ t₁ t₂, disj_sum_mono subset.rfl
@@ -58,5 +58,12 @@ val_lt_iff.1 $ disj_sum_lt_disj_sum_of_lt_of_le (val_lt_iff.2 hs) (val_le_iff.2 
 lemma disj_sum_ssubset_disj_sum_of_subset_of_ssubset (hs : s₁ ⊆ s₂) (ht : t₁ ⊂ t₂) :
   s₁.disj_sum t₁ ⊂ s₂.disj_sum t₂ :=
 val_lt_iff.1 $ disj_sum_lt_disj_sum_of_le_of_lt (val_le_iff.2 hs) (val_lt_iff.2 ht)
+
+lemma disj_sum_strict_mono_left (t : finset β) : strict_mono (λ s : finset α, s.disj_sum t) :=
+λ s₁ s₂ hs, disj_sum_ssubset_disj_sum_of_ssubset_of_subset hs subset.rfl
+
+lemma disj_sum_strict_mono_right (s : finset α) :
+  strict_mono (s.disj_sum : finset β → finset (α ⊕ β)) :=
+λ s₁ s₂, disj_sum_ssubset_disj_sum_of_subset_of_ssubset subset.rfl
 
 end finset

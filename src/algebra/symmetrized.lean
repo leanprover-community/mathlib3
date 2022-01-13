@@ -208,15 +208,4 @@ begin
   abel,
 end
 
-/- 2 commutes with every element of a ring -/
-lemma two_commute [ring α] (a : α) : commute 2 a := begin
-  --convert commute.semiconj_by 2 a,
-  unfold _root_.commute,
-  rw [semiconj_by, mul_two, two_mul],
-end
-
-/- If 2 is invertible, ⅟2 commutes with every element of a ring -/
-lemma half_commute [ring α] [invertible (2 : α)] (a : α) : commute (⅟2) a :=
-  commute.inv_of_left (two_commute a)
-
 end sym_alg

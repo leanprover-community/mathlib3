@@ -3,12 +3,11 @@ Copyright (c) 2018 Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Johannes Hölzl
 -/
-
-import tactic.abel
-import topology.algebra.group
-import topology.uniform_space.complete_separated
 import topology.uniform_space.uniform_convergence
 import topology.uniform_space.uniform_embedding
+import topology.uniform_space.complete_separated
+import topology.algebra.group
+import tactic.abel
 
 /-!
 # Uniform structure on topological groups
@@ -203,10 +202,17 @@ def topological_group.to_uniform_space : uniform_space G :=
 
 variables {G}
 
+@[to_additive] lemma topological_group.tendsto_uniformly_iff
+  {ι α : Type*} (F : ι → α → G) (f : α → G) (p : filter ι) :
+  @tendsto_uniformly α G ι (topological_group.to_uniform_space G) F f p
+    ↔ ∀ u ∈ 𝓝 (1 : G), {i : ι | ∀ a, F i a / f a ∈ u} ∈ p :=
+⟨λ h u hu, h _ ⟨u, hu, set.subset.rfl⟩, λ h v ⟨u, hu, hv⟩,
+  p.sets_of_superset (h u hu) (λ i hi a, hv (by exact hi a))⟩
+
 @[to_additive] lemma topological_group.tendsto_uniformly_on_iff
   {ι α : Type*} (F : ι → α → G) (f : α → G) (p : filter ι) (s : set α) :
   @tendsto_uniformly_on α G ι (topological_group.to_uniform_space G) F f p s
-    ↔ ∀ u ∈ nhds (1 : G), {i : ι | ∀ a ∈ s, F i a / f a ∈ u} ∈ p :=
+    ↔ ∀ u ∈ 𝓝 (1 : G), {i : ι | ∀ a ∈ s, F i a / f a ∈ u} ∈ p :=
 ⟨λ h u hu, h _ ⟨u, hu, set.subset.rfl⟩, λ h v ⟨u, hu, hv⟩,
   p.sets_of_superset (h u hu) (λ i hi a ha, hv (by exact hi a ha))⟩
 

@@ -518,11 +518,7 @@ begin
     rw nat.cast_lt,
     linarith, },
   have fact2 : 0 < 2 * (n : ℝ),
-  { rw <-nat.cast_zero,
-    rw <-nat.cast_two,
-    rw <-nat.cast_mul,
-    rw nat.cast_lt,
-    linarith, },
+  { linarith, },
   simp only [nat.cast_bit0, nat.cast_add, nat.cast_one, nat.cast_mul, nat.cast_pow],
   simp only [<-rpow_nat_cast],
   calc (n : ℝ) * (2 * (n : ℝ)) ^ (nat.sqrt (2 * n) : ℝ) * 4 ^ (((2 * n / 3) : ℕ) : ℝ)

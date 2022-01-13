@@ -172,8 +172,6 @@ lemma lc_row0_apply' (a b : ℝ) (c d : ℤ) (v : fin 2 → ℝ) :
   lc_row0 ![c, d] ![![a, b], v] = c * a + d * b :=
 by simp
 
-#exit
-
 /-- Linear map sending the matrix [a, b; c, d] to the matrix [ac₀ + bd₀, - ad₀ + bc₀; c, d], for
 some fixed `(c₀, d₀)`. -/
 @[simps] def lc_row0_extend {cd : fin 2 → ℤ} (hcd : is_coprime (cd 0) (cd 1)) :
@@ -186,7 +184,7 @@ linear_equiv.Pi_congr_right
     rw neg_sq,
     exact hcd.sq_add_sq_ne_zero
   end,
-  (linear_equiv.refl _ _)]
+  linear_equiv.refl ℝ (fin 2 → ℝ)]
 
 /-- The map `lc_row0` is proper, that is, preimages of cocompact sets are finite in
 `[[* , *], [c, d]]`.-/

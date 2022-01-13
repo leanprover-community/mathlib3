@@ -18,15 +18,20 @@ open_locale nnreal ennreal topological_space pointwise
 variables {E : Type*} [normed_group E] [normed_space ℝ E] [finite_dimensional ℝ E]
   [measurable_space E] [borel_space E] (μ : measure E) [is_add_haar_measure μ]
 
+
+@[reducible] noncomputable def continuous_linear_map.det (A : E →L[ℝ] E) : ℝ :=
+(A : E →ₗ[ℝ] E).det
+
+
 /-- Let `f` be a function which is sufficiently close (in the Lipschitz sense) to a given linear
 map `A`. Then it expands the volume of any set by at most `m` for any `m > det A`. -/
 lemma measure_image_le_mul_of_det_lt
-  (A : E →L[ℝ] E) {m : ℝ≥0} (hm : ennreal.of_real (abs (A : E →ₗ[ℝ] E).det) < m) :
+  (A : E →L[ℝ] E) {m : ℝ≥0} (hm : ennreal.of_real (|A.det|) < m) :
   ∀ᶠ δ in 𝓝[>] (0 : ℝ≥0), ∀ (s : set E) (f : E → E) (hf : approximates_linear_on f A s δ),
   μ (f '' s) ≤ m * μ s :=
 begin
   apply nhds_within_le_nhds,
-  let d := ennreal.of_real (abs (A : E →ₗ[ℝ] E).det),
+  let d := ennreal.of_real (|A.det|),
   -- construct a small neighborhood of `A '' (closed_ball 0 1)` with measure comparable to
   -- the determinant of `A`.
   obtain ⟨ε, hε, εpos⟩ : ∃ (ε : ℝ),
@@ -126,7 +131,7 @@ end
 /-- Let `f` be a function which is sufficiently close (in the Lipschitz sense) to a given linear
 map `A`. Then it expands the volume of any set by at least `m` for any `m < det A`. -/
 lemma mul_le_measure_image_of_lt_det
-  (A : E →L[ℝ] E) {m : ℝ≥0} (hm : (m : ℝ≥0∞) < ennreal.of_real (abs (A : E →ₗ[ℝ] E).det)) :
+  (A : E →L[ℝ] E) {m : ℝ≥0} (hm : (m : ℝ≥0∞) < ennreal.of_real (|A.det|)) :
   ∀ᶠ δ in 𝓝[>] (0 : ℝ≥0), ∀ (s : set E) (f : E → E) (hf : approximates_linear_on f A s δ),
   (m : ℝ≥0∞) * μ s ≤ μ (f '' s) :=
 begin
@@ -138,7 +143,7 @@ begin
   rcases eq_or_lt_of_le (zero_le m) with rfl|mpos,
   { apply eventually_of_forall,
     simp only [forall_const, zero_mul, implies_true_iff, zero_le, ennreal.coe_zero] },
-  have hA : (A : E →ₗ[ℝ] E).det ≠ 0,
+  have hA : A.det ≠ 0,
   { assume h, simpa only [h, ennreal.not_lt_zero, ennreal.of_real_zero, abs_zero] using hm },
   -- let `B` be the continuous linear equiv version of `A`.
   let B := ((A : E →ₗ[ℝ] E).equiv_of_det_ne_zero hA).to_continuous_linear_equiv,
@@ -147,7 +152,7 @@ begin
     simp only [linear_equiv.of_is_unit_det_apply, continuous_linear_equiv.coe_coe,
       continuous_linear_map.coe_coe, linear_equiv.coe_to_continuous_linear_equiv'] },
   -- the determinant of `B.symm` is bounded by `m⁻¹`
-  have I : ennreal.of_real (abs (B.symm : E →ₗ[ℝ] E).det) < (m⁻¹ : ℝ≥0),
+  have I : ennreal.of_real (|(B.symm : E →ₗ[ℝ] E).det|) < (m⁻¹ : ℝ≥0),
   { simp only [linear_equiv.coe_to_continuous_linear_equiv_symm, linear_equiv.det_coe_symm, abs_inv,
                linear_equiv.coe_of_is_unit_det, ennreal.of_real, ennreal.coe_lt_coe,
                real.to_nnreal_inv] at ⊢ hm,
@@ -366,10 +371,10 @@ begin
   refine le_antisymm _ (zero_le _),
   have : ∀ (A : E →L[ℝ] E), ∃ (δ : ℝ≥0), 0 < δ ∧
     ∀ (t : set E) (g : E → E) (hf : approximates_linear_on g A t δ),
-     μ (g '' t) ≤ (real.to_nnreal ((abs (A : E →ₗ[ℝ] E).det)) + 1 : ℝ≥0) * μ t,
+     μ (g '' t) ≤ (real.to_nnreal ((|A.det|)) + 1 : ℝ≥0) * μ t,
   { assume A,
-    let m : ℝ≥0 := real.to_nnreal ((abs (A : E →ₗ[ℝ] E).det)) + 1,
-    have I : ennreal.of_real (abs (A : E →ₗ[ℝ] E).det) < m,
+    let m : ℝ≥0 := real.to_nnreal ((|A.det|)) + 1,
+    have I : ennreal.of_real (|A.det|) < m,
       by simp only [ennreal.of_real, m, lt_add_iff_pos_right, zero_lt_one, ennreal.coe_lt_coe],
     rcases ((measure_image_le_mul_of_det_lt μ A I).and self_mem_nhds_within).exists with ⟨δ, h, h'⟩,
     exact ⟨δ, h', h⟩ },
@@ -381,20 +386,20 @@ begin
         exists_partition_approximates_linear_on_of_has_fderiv_within_at f s
         (fderiv_within ℝ f s) (λ x xs, (hf x xs).has_fderiv_within_at) δ (λ A, (hδ A).1.ne'),
   calc μ (f '' s)
-      ≤ μ (⋃ n, f '' (s ∩ (t n))) :
+      ≤ μ (⋃ n, f '' (s ∩ t n)) :
     begin
       apply measure_mono,
       rw [← image_Union, ← inter_Union],
       exact image_subset f (subset_inter subset.rfl t_cover)
     end
-  ... ≤ ∑' n, μ (f '' (s ∩ (t n))) : measure_Union_le _
-  ... ≤ ∑' n, (real.to_nnreal ((abs (A n : E →ₗ[ℝ] E).det)) + 1 : ℝ≥0) * μ (s ∩ (t n)) :
+  ... ≤ ∑' n, μ (f '' (s ∩ t n)) : measure_Union_le _
+  ... ≤ ∑' n, (real.to_nnreal (|(A n).det|) + 1 : ℝ≥0) * μ (s ∩ t n) :
     begin
       apply ennreal.tsum_le_tsum (λ n, _),
       apply (hδ (A n)).2,
       exact ht n,
     end
-  ... ≤ ∑' n, (real.to_nnreal ((abs (A n : E →ₗ[ℝ] E).det)) + 1 : ℝ≥0) * 0 :
+  ... ≤ ∑' n, (real.to_nnreal (|(A n).det|) + 1 : ℝ≥0) * 0 :
     begin
       refine ennreal.tsum_le_tsum (λ n, ennreal.mul_le_mul le_rfl _),
       exact le_trans (measure_mono (inter_subset_left _ _)) (le_of_eq hs),
@@ -408,16 +413,16 @@ Here, we give an auxiliary statement towards this result. -/
 lemma add_haar_image_zero_of_fderiv_not_onto_aux
   (f : E → E) (s : set E) (f' : E → (E →L[ℝ] E)) (hf' : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x)
   (R : ℝ) (hs : s ⊆ closed_ball 0 R) (ε : ℝ≥0) (εpos : 0 < ε)
-  (h'f' : ∀ x ∈ s, (f' x : E →ₗ[ℝ] E).det = 0) :
+  (h'f' : ∀ x ∈ s, (f' x).det = 0) :
   μ (f '' s) ≤ ε * μ (closed_ball 0 R) :=
 begin
   rcases eq_empty_or_nonempty s with rfl|h's, { simp only [measure_empty, zero_le, image_empty] },
   have : ∀ (A : E →L[ℝ] E), ∃ (δ : ℝ≥0), 0 < δ ∧
     ∀ (t : set E) (g : E → E) (hf : approximates_linear_on g A t δ),
-     μ (g '' t) ≤ (real.to_nnreal ((abs (A : E →ₗ[ℝ] E).det)) + ε : ℝ≥0) * μ t,
+     μ (g '' t) ≤ (real.to_nnreal ((|A.det|)) + ε : ℝ≥0) * μ t,
   { assume A,
-    let m : ℝ≥0 := real.to_nnreal ((abs (A : E →ₗ[ℝ] E).det)) + ε,
-    have I : ennreal.of_real (abs (A : E →ₗ[ℝ] E).det) < m,
+    let m : ℝ≥0 := real.to_nnreal ((|A.det|)) + ε,
+    have I : ennreal.of_real (|A.det|) < m,
       by simp only [ennreal.of_real, m, lt_add_iff_pos_right, εpos, ennreal.coe_lt_coe],
     rcases ((measure_image_le_mul_of_det_lt μ A I).and self_mem_nhds_within).exists with ⟨δ, h, h'⟩,
     exact ⟨δ, h', h⟩ },
@@ -436,7 +441,7 @@ begin
       exact image_subset f (subset_inter subset.rfl t_cover)
     end
   ... ≤ ∑' n, μ (f '' (s ∩ t n)) : measure_Union_le _
-  ... ≤ ∑' n, (real.to_nnreal ((abs (A n : E →ₗ[ℝ] E).det)) + ε : ℝ≥0) * μ (s ∩ t n) :
+  ... ≤ ∑' n, (real.to_nnreal ((|(A n).det|)) + ε : ℝ≥0) * μ (s ∩ t n) :
     begin
       apply ennreal.tsum_le_tsum (λ n, _),
       apply (hδ (A n)).2,
@@ -474,7 +479,7 @@ end
 a set where the differential is not invertible, then the image of this set has zero measure. -/
 lemma add_haar_image_zero_of_fderiv_not_onto
   (f : E → E) (s : set E) (f' : E → (E →L[ℝ] E)) (hf' : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x)
-  (h'f' : ∀ x ∈ s, (f' x : E →ₗ[ℝ] E).det = 0) :
+  (h'f' : ∀ x ∈ s, (f' x).det = 0) :
   μ (f '' s) = 0 :=
 begin
   suffices H : ∀ R, μ (f '' (s ∩ closed_ball 0 R)) = 0,
@@ -598,7 +603,7 @@ end
 with respect to Lebesgue measure. Note that, in general, it is not genuinely measurable there,
 as `f'` is not unique (but only on a set of measure `0`, as the argument shows). -/
 lemma ae_measurable_fderiv_within
-  (f : E → E) (s : set E) (hs : measurable_set s) (f' : E → (E →L[ℝ] E))
+  {f : E → E} {s : set E} (hs : measurable_set s) {f' : E → (E →L[ℝ] E)}
   (hf' : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x) :
   ae_measurable f' (μ.restrict s) :=
 begin
@@ -654,27 +659,52 @@ begin
   exact hx1,
 end
 
-lemma add_haar_image_le_of_fderiv (f : E → E) (s : set E) (f' : E → (E →L[ℝ] E))
-  (hf' : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x)
-  (R : ℝ) (hs : s ⊆ closed_ball 0 R) (ε : ℝ≥0) (εpos : 0 < ε) :
-  μ (f '' s) ≤ ∫⁻ x in s, ennreal.of_real (abs (f' x : E →ₗ[ℝ] E).det) ∂μ
-                + ε * μ (closed_ball 0 R) :=
+lemma ae_measurable_of_real_abs_det_fderiv_within
+  {f : E → E} {s : set E} (hs : measurable_set s) {f' : E → (E →L[ℝ] E)}
+  (hf' : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x) :
+  ae_measurable (λ x, ennreal.of_real (|(f' x).det|)) (μ.restrict s) :=
+begin
+  apply ennreal.measurable_of_real.comp_ae_measurable,
+  refine continuous_abs.measurable.comp_ae_measurable _,
+  refine continuous_linear_map.continuous_det.measurable.comp_ae_measurable _,
+  exact ae_measurable_fderiv_within μ hs hf'
+end
+
+lemma add_haar_image_le_of_fderiv_aux1 {f : E → E} {s : set E} (hs : measurable_set s)
+  {f' : E → (E →L[ℝ] E)} (hf' : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x)
+  {ε : ℝ≥0} (εpos : 0 < ε) :
+  μ (f '' s) ≤ ∫⁻ x in s, ennreal.of_real (|(f' x).det|) ∂μ + 2 * ε * μ s :=
 begin
   rcases eq_empty_or_nonempty s with rfl|h's, { simp only [measure_empty, zero_le, image_empty] },
   have : ∀ (A : E →L[ℝ] E), ∃ (δ : ℝ≥0), 0 < δ ∧
+    (∀ (B : E →L[ℝ] E), ∥B - A∥ ≤ δ → |B.det - A.det| ≤ ε) ∧
     ∀ (t : set E) (g : E → E) (hf : approximates_linear_on g A t δ),
-     μ (g '' t) ≤ (real.to_nnreal ((abs (A : E →ₗ[ℝ] E).det)) + ε : ℝ≥0) * μ t,
+     μ (g '' t) ≤ (ennreal.of_real (|A.det|) + ε) * μ t,
   { assume A,
-    let m : ℝ≥0 := real.to_nnreal ((abs (A : E →ₗ[ℝ] E).det)) + ε,
-    have I : ennreal.of_real (abs (A : E →ₗ[ℝ] E).det) < m,
+    let m : ℝ≥0 := real.to_nnreal (|A.det|) + ε,
+    have I : ennreal.of_real (|A.det|) < m,
       by simp only [ennreal.of_real, m, lt_add_iff_pos_right, εpos, ennreal.coe_lt_coe],
-    rcases ((measure_image_le_mul_of_det_lt μ A I).and self_mem_nhds_within).exists with ⟨δ, h, h'⟩,
-    exact ⟨δ, h', h⟩ },
+    rcases ((measure_image_le_mul_of_det_lt μ A I).and self_mem_nhds_within).exists
+      with ⟨δ, h, δpos⟩,
+    obtain ⟨δ', δ'pos, hδ'⟩ :
+      ∃ (δ' : ℝ) (H : 0 < δ'), ∀ B, dist B A < δ' → dist B.det A.det < ↑ε :=
+        continuous_at_iff.1 continuous_linear_map.continuous_det.continuous_at ε εpos,
+    let δ'' : ℝ≥0 := ⟨δ' / 2, (half_pos δ'pos).le⟩,
+    refine ⟨min δ δ'', lt_min δpos (half_pos δ'pos), _, _⟩,
+    { assume B hB,
+      rw ← real.dist_eq,
+      apply (hδ' B _).le,
+      rw dist_eq_norm,
+      calc ∥B - A∥ ≤ (min δ δ'' : ℝ≥0) : hB
+      ... ≤ δ'' : by simp only [le_refl, nnreal.coe_min, min_le_iff, or_true]
+      ... < δ' : half_lt_self δ'pos },
+    { assume t g htg,
+      exact h t g (htg.mono_num (min_le_left _ _)) } },
   choose δ hδ using this,
-  obtain ⟨t, A, t_disj, t_meas, t_cover, ht, Af'⟩ : ∃ (t : ℕ → set E) (A : ℕ → (E →L[ℝ] E)),
+  obtain ⟨t, A, t_disj, t_meas, t_cover, ht, -⟩ : ∃ (t : ℕ → set E) (A : ℕ → (E →L[ℝ] E)),
     pairwise (disjoint on t) ∧ (∀ (n : ℕ), measurable_set (t n)) ∧ (s ⊆ ⋃ (n : ℕ), t n)
     ∧ (∀ (n : ℕ), approximates_linear_on f (A n) (s ∩ t n) (δ (A n)))
-    ∧  (s.nonempty → ∀ n, ∃ y ∈ s, A n = f' y) :=
+    ∧ (s.nonempty → ∀ n, ∃ y ∈ s, A n = f' y) :=
       exists_partition_approximates_linear_on_of_has_fderiv_within_at f s
       f' hf' δ (λ A, (hδ A).1.ne'),
   calc μ (f '' s)
@@ -685,42 +715,101 @@ begin
       exact image_subset f (subset_inter subset.rfl t_cover)
     end
   ... ≤ ∑' n, μ (f '' (s ∩ t n)) : measure_Union_le _
-  ... ≤ ∑' n, (real.to_nnreal ((abs (A n : E →ₗ[ℝ] E).det)) + ε : ℝ≥0) * μ (s ∩ t n) :
+  ... ≤ ∑' n, (ennreal.of_real (|(A n).det|) + ε) * μ (s ∩ t n) :
     begin
       apply ennreal.tsum_le_tsum (λ n, _),
-      apply (hδ (A n)).2,
+      apply (hδ (A n)).2.2,
       exact ht n,
     end
-  ... = ∑' n, ∫⁻ x in s ∩ t n, ↑(real.to_nnreal ((abs (A n : E →ₗ[ℝ] E).det)) + ε : ℝ≥0) ∂μ :
+  ... = ∑' n, ∫⁻ x in s ∩ t n, ennreal.of_real (|(A n).det|) + ε ∂μ :
     by simp only [lintegral_const, measurable_set.univ, measure.restrict_apply, univ_inter]
-  ... ≤ ∑' n, ∫⁻ x in s ∩ t n, (ennreal.of_real (abs (f' x : E →ₗ[ℝ] E).det) + 2 * ε) ∂μ :
+  ... ≤ ∑' n, ∫⁻ x in s ∩ t n, ennreal.of_real (|(f' x).det|) + 2 * ε ∂μ :
     begin
       apply ennreal.tsum_le_tsum (λ n, _),
       apply lintegral_mono_ae,
-      have Z := (ht n).norm_fderiv_sub_le μ f' (λ x hx, (hf' x hx.1).mono (inter_subset_left _ _)),
-      have : ∀ᵐ (x : E) ∂μ.restrict (s ∩ t n),
-        abs ((f' x : E →ₗ[ℝ] E).det - (A n : E →ₗ[ℝ] E).det) ≤ ε, sorry,
-      filter_upwards [this],
+      filter_upwards [(ht n).norm_fderiv_sub_le μ (hs.inter (t_meas n)) f'
+          (λ x hx, (hf' x hx.1).mono (inter_subset_left _ _))],
       assume x hx,
-      rw [ennreal.of_real],
-      sorry,
-
-
+      have I : |(A n).det| ≤ |(f' x).det| + ε := calc
+        |(A n).det| = |(f' x).det - ((f' x).det - (A n).det)| : by { congr' 1, abel }
+        ... ≤ |(f' x).det| + |(f' x).det - (A n).det| : abs_sub _ _
+        ... ≤ |(f' x).det| + ε : add_le_add le_rfl ((hδ (A n)).2.1 _ hx),
+      calc ennreal.of_real (|(A n).det|) + ε
+          ≤ ennreal.of_real (|(f' x).det| + ε) + ε :
+        add_le_add (ennreal.of_real_le_of_real I) le_rfl
+      ... = ennreal.of_real (|(f' x).det|) + 2 * ε :
+        by simp only [ennreal.of_real_add, abs_nonneg, two_mul, add_assoc, nnreal.zero_le_coe,
+                      ennreal.of_real_coe_nnreal],
     end
-/-  ... ≤ ε * ∑' n, μ (closed_ball 0 R ∩ t n) :
+  ... = ∫⁻ x in ⋃ n, s ∩ t n, ennreal.of_real (|(f' x).det|) + 2 * ε ∂μ :
     begin
-      rw ennreal.tsum_mul_left,
-      refine ennreal.mul_le_mul le_rfl (ennreal.tsum_le_tsum (λ n, measure_mono _)),
-      exact inter_subset_inter_left _ hs,
+      have M : ∀ (n : ℕ), measurable_set (s ∩ t n) := λ n, hs.inter (t_meas n),
+      rw lintegral_Union M,
+      exact pairwise_disjoint.mono t_disj (λ n, inter_subset_right _ _),
     end
-  ... = ε * μ (⋃ n, closed_ball 0 R ∩ t n) :
+  ... = ∫⁻ x in s, ennreal.of_real (|(f' x).det|) + 2 * ε ∂μ :
     begin
-      rw measure_Union,
-      { rw ← pairwise_univ at ⊢ t_disj,
-        refine pairwise_disjoint.mono t_disj (λ n, inter_subset_right _ _) },
-      { assume n,
-        exact measurable_set_closed_ball.inter (t_meas n) }
-    end -/
-  ... ≤ ∫⁻ x in s, ennreal.of_real (abs (f' x : E →ₗ[ℝ] E).det) ∂μ
-                + ε * μ (closed_ball 0 R) : sorry
+      have : s = ⋃ n, s ∩ t n,
+      { rw ← inter_Union,
+        exact subset.antisymm (subset_inter subset.rfl t_cover) (inter_subset_left _ _) },
+      rw ← this,
+    end
+  ... = ∫⁻ x in s, ennreal.of_real (|(f' x).det|) ∂μ + 2 * ε * μ s :
+    begin
+      rw lintegral_add' (ae_measurable_of_real_abs_det_fderiv_within μ hs hf') ae_measurable_const,
+      simp only [lintegral_const, measurable_set.univ, measure.restrict_apply, univ_inter],
+    end
+end
+
+lemma add_haar_image_le_of_fderiv_aux2 {f : E → E} {s : set E}
+  (hs : measurable_set s) (h's : μ s ≠ ∞)
+  (f' : E → (E →L[ℝ] E)) (hf' : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x) :
+  μ (f '' s) ≤ ∫⁻ x in s, ennreal.of_real (|(f' x).det|) ∂μ :=
+begin
+  have : tendsto (λ (ε : ℝ≥0), ∫⁻ x in s, ennreal.of_real (|(f' x).det|) ∂μ + 2 * ε * μ s)
+    (𝓝[>] 0) (𝓝 (∫⁻ x in s, ennreal.of_real (|(f' x).det|) ∂μ + 2 * (0 : ℝ≥0) * μ s)),
+  { apply tendsto.mono_left _ nhds_within_le_nhds,
+    refine tendsto_const_nhds.add _,
+    refine ennreal.tendsto.mul_const _ (or.inr h's),
+    exact ennreal.tendsto.const_mul (ennreal.tendsto_coe.2 tendsto_id)
+      (or.inr ennreal.coe_ne_top) },
+  simp only [add_zero, zero_mul, mul_zero, ennreal.coe_zero] at this,
+  apply ge_of_tendsto this,
+  filter_upwards [self_mem_nhds_within],
+  rintros ε (εpos : 0 < ε),
+  exact add_haar_image_le_of_fderiv_aux1 μ hs hf' εpos,
+end
+
+lemma add_haar_image_le_of_fderiv {f : E → E} {s : set E} (hs : measurable_set s)
+  {f' : E → (E →L[ℝ] E)} (hf' : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x) :
+  μ (f '' s) ≤ ∫⁻ x in s, ennreal.of_real (|(f' x).det|) ∂μ :=
+begin
+  let u := λ n, disjointed (spanning_sets μ) n,
+  have u_meas : ∀ n, measurable_set (u n),
+  { assume n,
+    apply measurable_set.disjointed (λ i, _),
+    exact measurable_spanning_sets μ i },
+  have A : s = ⋃ n, s ∩ u n,
+    by rw [← inter_Union, Union_disjointed, Union_spanning_sets, inter_univ],
+  calc μ (f '' s) ≤ ∑' n, μ (f '' (s ∩ u n)) :
+    begin
+      conv_lhs { rw [A, image_Union] },
+      exact measure_Union_le _,
+    end
+  ... ≤ ∑' n, ∫⁻ x in s ∩ u n, ennreal.of_real (|(f' x).det|) ∂μ :
+    begin
+      apply ennreal.tsum_le_tsum (λ n, _),
+      apply add_haar_image_le_of_fderiv_aux2 μ (hs.inter (u_meas n)) _ f'
+        (λ x hx, (hf' x hx.1).mono (inter_subset_left _ _)),
+      have : μ (u n) < ∞ :=
+        lt_of_le_of_lt (measure_mono (disjointed_subset _ _)) (measure_spanning_sets_lt_top μ n),
+      exact ne_of_lt (lt_of_le_of_lt (measure_mono (inter_subset_right _ _)) this),
+    end
+  ... = ∫⁻ x in s, ennreal.of_real (|(f' x).det|) ∂μ :
+    begin
+      conv_rhs { rw A },
+      rw lintegral_Union,
+      { assume n, exact hs.inter (u_meas n) },
+      { exact pairwise_disjoint.mono (disjoint_disjointed _) (λ n, inter_subset_right _ _) }
+    end
 end

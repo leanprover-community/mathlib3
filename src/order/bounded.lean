@@ -33,23 +33,23 @@ lemma unbounded_le_of_forall_exists_lt [preorder α] (h : ∀ a, ∃ b ∈ s, a 
 lemma unbounded_le_iff [linear_order α] : unbounded (≤) s ↔ ∀ a, ∃ b ∈ s, a < b :=
 by simp only [unbounded, not_le]
 
-lemma unbounded_lt_of_forall_ex_le [preorder α] (h : ∀ a, ∃ b ∈ s, a ≤ b) : unbounded (<) s :=
+lemma unbounded_lt_of_forall_exists_le [preorder α] (h : ∀ a, ∃ b ∈ s, a ≤ b) : unbounded (<) s :=
 λ a, let ⟨b, hb, hb'⟩ := h a in ⟨b, hb, λ hba, not_le_of_gt hba hb'⟩
 
 lemma unbounded_lt_iff [linear_order α] : unbounded (<) s ↔ ∀ a, ∃ b ∈ s, a ≤ b :=
 by simp only [unbounded, not_lt]
 
-lemma unbounded_ge_of_forall_ex_gt [preorder α] (h : ∀ a, ∃ b ∈ s, b < a) : unbounded (≥) s :=
-@unbounded_le_of_forall_ex_lt (order_dual α) _ _ h
+lemma unbounded_ge_of_forall_exists_gt [preorder α] (h : ∀ a, ∃ b ∈ s, b < a) : unbounded (≥) s :=
+@unbounded_le_of_forall_exists_lt (order_dual α) _ _ h
 
 lemma unbounded_ge_iff [linear_order α] : unbounded (≥) s ↔ ∀ a, ∃ b ∈ s, b < a :=
-⟨λ h a, let ⟨b, hb, hba⟩ := h a in ⟨b, hb, lt_of_not_ge hba⟩, unbounded_ge_of_forall_ex_gt⟩
+⟨λ h a, let ⟨b, hb, hba⟩ := h a in ⟨b, hb, lt_of_not_ge hba⟩, unbounded_ge_of_forall_exists_gt⟩
 
-lemma unbounded_gt_of_forall_ex_ge [preorder α] (h : ∀ a, ∃ b ∈ s, b ≤ a) : unbounded (>) s :=
+lemma unbounded_gt_of_forall_exists_ge [preorder α] (h : ∀ a, ∃ b ∈ s, b ≤ a) : unbounded (>) s :=
 λ a, let ⟨b, hb, hb'⟩ := h a in ⟨b, hb, λ hba, not_le_of_gt hba hb'⟩
 
 lemma unbounded_gt_iff [linear_order α] : unbounded (>) s ↔ ∀ a, ∃ b ∈ s, b ≤ a :=
-⟨λ h a, let ⟨b, hb, hba⟩ := h a in ⟨b, hb, le_of_not_gt hba⟩, unbounded_gt_of_forall_ex_ge⟩
+⟨λ h a, let ⟨b, hb, hba⟩ := h a in ⟨b, hb, le_of_not_gt hba⟩, unbounded_gt_of_forall_exists_ge⟩
 
 /-! ### Relation between boundedness by strict and nonstrict orders. -/
 

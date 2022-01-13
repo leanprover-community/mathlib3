@@ -486,24 +486,16 @@ end
 lemma fin_succ_equiv_support {n : ℕ} (f : mv_polynomial (fin (n + 1)) R) :
   (fin_succ_equiv R n f).support = finset.image (λ m : fin (n + 1)→₀ ℕ, m 0) f.support :=
 begin
-  apply finset.subset.antisymm,
-  { intros i hi,
-    rw finset.mem_image,
-    rw [polynomial.mem_support_iff, nonzero_iff_exists] at hi,
-    cases hi with m hm,
-    use cons i m,
-    apply and.intro,
-    { rw ← support_coeff_fin_succ_equiv,
-      simpa using hm },
-    { rw cons_zero } },
-  { intros i hi,
-    rw polynomial.mem_support_iff,
-    rw finset.mem_image at hi,
-    cases hi with m hm,
-    cases hm with h hm,
-    rw nonzero_iff_exists,
-    use tail m,
-    rwa [← coeff, ← mem_support_iff, support_coeff_fin_succ_equiv, ← hm, cons_tail] },
+  ext i,
+  rw [polynomial.mem_support_iff, finset.mem_image, nonzero_iff_exists],
+  split,
+  { rintro ⟨m, hm⟩,
+    refine ⟨cons i m, _, cons_zero _ _⟩,
+    rw ← support_coeff_fin_succ_equiv,
+    simpa using hm, },
+  { rintro ⟨m, h, rfl⟩,
+    refine ⟨tail m, _⟩,
+    rwa [← coeff, ← mem_support_iff, support_coeff_fin_succ_equiv, cons_tail] },
 end
 
 lemma fin_succ_equiv_support' {n : ℕ} {f : mv_polynomial (fin (n + 1)) R} {i : ℕ} :

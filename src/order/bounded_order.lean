@@ -72,14 +72,14 @@ section has_le
 variables [has_le α] [order_top α] {a : α}
 
 @[simp] lemma le_top : a ≤ ⊤ := order_top.le_top a
-@[simp] lemma top_is_top : is_top (⊤ : α) := λ _, le_top
+@[simp] lemma is_top_top : is_top (⊤ : α) := λ _, le_top
 
 end has_le
 
 section preorder
 variables [preorder α] [order_top α] {a b : α}
 
-@[simp] lemma top_is_max : is_max (⊤ : α) := top_is_top.is_max
+@[simp] lemma top_is_max : is_max (⊤ : α) := is_top_top.is_max
 @[simp] lemma not_top_lt : ¬ ⊤ < a := top_is_max.not_lt
 
 lemma ne_top_of_lt (h : a < b) : a ≠ ⊤ := (h.trans_le le_top).ne
@@ -89,6 +89,8 @@ alias ne_top_of_lt ← has_lt.lt.ne_top
 end preorder
 
 variables [partial_order α] [order_top α] {a b : α}
+
+theorem is_top_top {α : Type u} [has_le α] [order_top α] : is_top (⊤ : α) := λ _, le_top
 
 theorem top_unique (h : ⊤ ≤ a) : a = ⊤ :=
 le_top.antisymm h
@@ -116,14 +118,7 @@ top_le_iff.1 $ h₂ ▸ h
 
 lemma lt_top_iff_ne_top : a < ⊤ ↔ a ≠ ⊤ := le_top.lt_iff_ne
 
-lemma eq_top_or_lt_top (a : α) : a = ⊤ ∨ a < ⊤ :=
-begin
-  by_cases h : a = ⊤,
-  { exact or.inl h },
-  right,
-  rw lt_top_iff_ne_top,
-  exact h,
-end
+lemma eq_top_or_lt_top (a : α) : a = ⊤ ∨ a < ⊤ := le_top.eq_or_lt
 
 theorem ne_top_of_le_ne_top {a b : α} (hb : b ≠ ⊤) (hab : a ≤ b) : a ≠ ⊤ :=
 λ ha, hb $ top_unique $ ha ▸ hab
@@ -167,14 +162,14 @@ section has_le
 variables [has_le α] [order_bot α] {a : α}
 
 @[simp] lemma bot_le : ⊥ ≤ a := order_bot.bot_le a
-@[simp] lemma bot_is_bot : is_bot (⊥ : α) := λ _, bot_le
+@[simp] lemma is_bot_bot : is_bot (⊥ : α) := λ _, bot_le
 
 end has_le
 
 section preorder
 variables [preorder α] [order_bot α] {a b : α}
 
-@[simp] lemma bot_is_min : is_min (⊥ : α) := bot_is_bot.is_min
+@[simp] lemma bot_is_min : is_min (⊥ : α) := is_bot_bot.is_min
 @[simp] lemma not_lt_bot : ¬ a < ⊥ := bot_is_min.not_lt
 
 lemma ne_bot_of_gt (h : a < b) : b ≠ ⊥ := (bot_le.trans_lt h).ne'
@@ -219,14 +214,7 @@ begin
   simp only [lt_iff_le_not_le, not_iff_not.mpr le_bot_iff, true_and, bot_le],
 end
 
-lemma eq_bot_or_bot_lt (a : α) : a = ⊥ ∨ ⊥ < a :=
-begin
-  by_cases h : a = ⊥,
-  { exact or.inl h },
-  right,
-  rw bot_lt_iff_ne_bot,
-  exact h,
-end
+lemma eq_bot_or_bot_lt (a : α) : a = ⊥ ∨ ⊥ < a := bot_le.eq_or_lt
 
 lemma eq_bot_of_minimal (h : ∀ b, ¬ b < a) : a = ⊥ :=
 or.elim (lt_or_eq_of_le bot_le) (λ hlt, absurd hlt (h ⊥)) (λ he, he.symm)

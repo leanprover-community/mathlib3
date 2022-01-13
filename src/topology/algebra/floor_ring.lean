@@ -168,7 +168,7 @@ begin
     have : (univ : set (β × α)) ⊆ ((univ : set β) ×ˢ Iio ↑⌊t⌋) ∪ ((univ : set β) ×ˢ Ici ↑⌊t⌋),
     { rintros p -,
       rw ← prod_union,
-      exact ⟨true.intro, lt_or_le _ _⟩ },
+      exact ⟨trivial, lt_or_le p.2 _⟩ },
     refine continuous_within_at.mono _ this,
     refine continuous_within_at.union _ _,
     { simp only [continuous_within_at, fract_coe, nhds_within_prod_eq,

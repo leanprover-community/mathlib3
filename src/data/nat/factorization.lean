@@ -246,7 +246,7 @@ def factorization_equiv : pnat ≃ {f : ℕ →₀ ℕ | ∀ p ∈ f.support, pr
       intros p hp,
       rw prime.factorization_pow (hf p hp),
     },
-    exact finsupp_sum_single f,
+    exact (sum_single f).symm,
   },
 }
 

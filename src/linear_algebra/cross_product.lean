@@ -148,7 +148,7 @@ def cross.lie_ring : lie_ring (fin 3 → R) :=
 
 local attribute [instance] cross.lie_ring
 
-lemma cross_cross  (u v w : fin 3 → R) :
+lemma cross_cross (u v w : fin 3 → R) :
   (u ×₃ v) ×₃ w = u ×₃ (v ×₃ w) - v ×₃ (u ×₃ w) :=
 lie_lie u v w
 

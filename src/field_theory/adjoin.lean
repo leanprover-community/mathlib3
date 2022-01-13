@@ -826,8 +826,8 @@ begin
     { obtain ⟨y, h⟩ := this.mul_inv_cancel hx',
       exact (congr_arg (∈ S1 ⊔ S2) (eq_inv_of_mul_right_eq_one (subtype.ext_iff.mp h))).mp y.2 } },
   refine is_field_of_is_integral_of_is_field' _ (field.to_is_field K),
-  have h1 : algebra.is_algebraic K E1 := algebra.is_algebraic_of_finite,
-  have h2 : algebra.is_algebraic K E2 := algebra.is_algebraic_of_finite,
+  have h1 := @algebra.is_algebraic_of_finite K E1 _ _ _ _,
+  have h2 := @algebra.is_algebraic_of_finite K E2 _ _ _ _,
   rw is_algebraic_iff_is_integral' at h1 h2,
   exact is_integral_sup.mpr ⟨h1, h2⟩,
 end

@@ -39,8 +39,8 @@ sheafs of the spaces in the gluing diagram, we need to construct a map
 
 We will refer to ![this diagram](https://i.imgur.com/P0phrwr.png) in the following doc strings.
 The `X` is the glued space, and the dotted arrow is a partial inverse guaranteed by the fact
-that it is an open immersion. The map `Γ(𝒪_{U_i}, U) ⟶ Γ(𝒪_{U_j}, _)` is given by the red arrows,
-and the map `Γ(𝒪_{U_i}, U) ⟶ Γ(𝒪_{V_{jk}}, _)` is given by the blue arrows.
+that it is an open immersion. The map `Γ(𝒪_{U_i}, U) ⟶ Γ(𝒪_{U_j}, _)` is given by the composition of the red arrows,
+and the map `Γ(𝒪_{U_i}, U) ⟶ Γ(𝒪_{V_{jk}}, _)` is given by the composition of the blue arrows.
 To lift this into a map from `Γ(𝒪_X, ι i '' U)`, we also need to show that these commute with the
 maps in the diagram (the green arrows), which is just a lengthy diagram-chasing.
 
@@ -247,7 +247,7 @@ begin
   congr
 end
 
-/-- The red and the blue in ![this diagram](https://i.imgur.com/mBzV1Rx.png) commutes. -/
+/-- The red and the blue arrows in ![this diagram](https://i.imgur.com/mBzV1Rx.png) commute. -/
 lemma opens_image_preimage_map_app (i j k : D.J) (U : opens (D.U i).carrier) :
   D.opens_image_preimage_map i j U ≫ (D.f j k).c.app _ =
   ((π₁ j, i, k) ≫ D.t j i ≫ D.f i j).c.app (op U) ≫ (π₂⁻¹ j, i, k) (unop _) ≫
@@ -263,7 +263,7 @@ lemma opens_image_preimage_map_app_assoc (i j k : D.J) (U : opens (D.U i).carrie
 by simpa only [category.assoc]
   using congr_arg (λ g, g ≫ f') (opens_image_preimage_map_app D i j k U)
 
-/-- (Implementation) Given a open subset of one of the spaces `U ⊆ Uᵢ`, The sheaf component of
+/-- (Implementation) Given an open subset of one of the spaces `U ⊆ Uᵢ`, the sheaf component of
 the image `ι '' U` in the glued space is the limit of this diagram. -/
 abbreviation diagram_over_open {i : D.J} (U : opens (D.U i).carrier) :
   (walking_multispan _ _)ᵒᵖ ⥤ C :=

@@ -267,8 +267,7 @@ local attribute [instance] path.homotopic.setoid
 instance : category_theory.groupoid (fundamental_groupoid X) :=
 { hom := λ x y, path.homotopic.quotient x y,
   id := λ x, ⟦path.refl x⟧,
-  comp := λ x y z, quotient.map₂ path.trans
-    (λ (p₀ : path x y) p₁ hp q₀ q₁ hq, path.homotopic.hcomp hp hq),
+  comp := λ x y z, path.homotopic.quotient.comp,
   id_comp' := λ x y f, quotient.induction_on f
     (λ a, show ⟦(path.refl x).trans a⟧ = ⟦a⟧,
           from quotient.sound ⟨path.homotopy.refl_trans a⟩ ),
@@ -291,9 +290,7 @@ instance : category_theory.groupoid (fundamental_groupoid X) :=
           from quotient.sound ⟨(path.homotopy.refl_trans_symm a).symm⟩) }
 
 lemma comp_eq (x y z : fundamental_groupoid X) (p : x ⟶ y) (q : y ⟶ z) :
-  p ≫ q = quotient.map₂ path.trans
-    (λ (p₀ : path x y) p₁ hp q₀ q₁ hq, path.homotopic.hcomp hp hq) p q := rfl
-
+  p ≫ q = p.comp q := rfl
 /--
 The functor sending a topological space `X` to its fundamental groupoid.
 -/
@@ -301,17 +298,17 @@ def fundamental_groupoid_functor : Top ⥤ category_theory.Groupoid :=
 { obj := λ X, { α := fundamental_groupoid X },
   map := λ X Y f,
   { obj := f,
-    map := λ x y, quotient.map
-      (λ (q : path x y), q.map f.continuous) (λ p₀ p₁ h, path.homotopic.map h f),
+    map := λ x y p, p.map_fn f,
     map_id' := λ X, rfl,
-    map_comp' := λ x y z p q, quotient.induction_on₂ p q $ λ a b, by simp [comp_eq] },
+    map_comp' := λ x y z p q, quotient.induction_on₂ p q $ λ a b,
+      by simp [comp_eq, ← path.homotopic.map_lift, ← path.homotopic.comp_lift] },
   map_id' := begin
     intro X,
     change _ = (⟨_, _, _, _⟩ : fundamental_groupoid X ⥤ fundamental_groupoid X),
     congr',
     ext x y p,
     refine quotient.induction_on p (λ q, _),
-    rw [quotient.map_mk],
+    rw [← path.homotopic.map_lift],
     conv_rhs { rw [←q.map_id] },
     refl,
   end,

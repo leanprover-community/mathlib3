@@ -388,6 +388,9 @@ iff_true_intro $ λ x, false.elim
 instance (α : Type u) : is_empty.{u+1} (∅ : set α) :=
 ⟨λ x, x.2⟩
 
+@[simp] lemma empty_ssubset : ∅ ⊂ s ↔ s.nonempty :=
+(@bot_lt_iff_ne_bot (set α) _ _ _).trans ne_empty_iff_nonempty
+
 /-!
 
 ### Universal set.

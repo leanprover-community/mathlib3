@@ -16,12 +16,15 @@ directed iff each pair of elements has a shared upper bound.
 
 * `directed r f`: Predicate stating that the indexed family `f` is `r`-directed.
 * `directed_on r s`: Predicate stating that the set `s` is `r`-directed.
-* `directed_order α`: Typeclass extending `preorder` for stating that `α` is `≤`-directed.
+* `is_directed α r`: Prop-valued mixin stating that `α` is `r`-directed. Follows the style of the
+  unbundled relation classes such as `is_total`.
 -/
+
+open function
 
 universes u v w
 
-variables {α : Type u} {β : Type v} {ι : Sort w} (r : α → α → Prop)
+variables {α : Type u} {β : Type v} {ι : Sort w} (r s : α → α → Prop)
 local infix ` ≼ ` : 50 := r
 
 /-- A family of elements of α is directed (with respect to a relation `≼` on α)
@@ -74,11 +77,42 @@ lemma directed_of_inf [semilattice_inf α] {r : β → β → Prop} {f : α → 
   (hf : ∀ a₁ a₂, a₁ ≤ a₂ → r (f a₂) (f a₁)) : directed r f :=
 λ x y, ⟨x ⊓ y, hf _ _ inf_le_left, hf _ _ inf_le_right⟩
 
-/-- A `preorder` is a `directed_order` if for any two elements `i`, `j`
-there is an element `k` such that `i ≤ k` and `j ≤ k`. -/
-class directed_order (α : Type u) extends preorder α :=
-(directed : ∀ i j : α, ∃ k, i ≤ k ∧ j ≤ k)
+/-- `is_directed α r` states that for any elements `a`, `b` there exists an element `c` such that
+`r a c` and `r b c`. -/
+class is_directed (α : Type*) (r : α → α → Prop) : Prop :=
+(directed (a b : α) : ∃ c, r a c ∧ r b c)
+
+lemma directed_of (r : α → α → Prop) [is_directed α r] (a b : α) : ∃ c, r a c ∧ r b c :=
+is_directed.directed _ _
+
+lemma directed_id [is_directed α r] : directed r id := by convert directed_of r
+lemma directed_id_iff_is_directed : directed r id ↔ is_directed α r := ⟨λ h, ⟨h⟩, @directed_id _ _⟩
 
 @[priority 100]  -- see Note [lower instance priority]
-instance linear_order.to_directed_order (α) [linear_order α] : directed_order α :=
-⟨λ i j, or.cases_on (le_total i j) (λ hij, ⟨j, hij, le_refl j⟩) (λ hji, ⟨i, le_refl i, hji⟩)⟩
+instance is_total.to_is_directed [is_total α r] : is_directed α r :=
+⟨λ a b, or.cases_on (total_of r a b) (λ h, ⟨b, h, refl _⟩) (λ h, ⟨a, refl _, h⟩)⟩
+
+lemma is_directed_mono [is_directed α r] (h : ∀ ⦃a b⦄, r a b → s a b) : is_directed α s :=
+⟨λ a b, let ⟨c, ha, hb⟩ := is_directed.directed a b in ⟨c, h ha, h hb⟩⟩
+
+lemma exists_ge_ge [has_le α] [is_directed α (≤)] (a b : α) : ∃ c, a ≤ c ∧ b ≤ c :=
+directed_of (≤) a b
+
+lemma exists_le_le [has_le α] [is_directed α (swap (≤))] (a b : α) : ∃ c, c ≤ a ∧ c ≤ b :=
+directed_of (swap (≤)) a b
+
+instance order_dual.is_directed_ge [has_le α] [is_directed α (≤)] :
+  is_directed (order_dual α) (swap (≤)) :=
+by assumption
+
+instance order_dual.is_directed_le [has_le α] [is_directed α (swap (≤))] :
+  is_directed (order_dual α) (≤) :=
+by assumption
+
+@[priority 100]  -- see Note [lower instance priority]
+instance semilattice_sup.to_is_directed_le [semilattice_sup α] : is_directed α (≤) :=
+⟨λ a b, ⟨a ⊔ b, le_sup_left, le_sup_right⟩⟩
+
+@[priority 100]  -- see Note [lower instance priority]
+instance semilattice_inf.to_is_directed_ge [semilattice_inf α] : is_directed α (swap (≤)) :=
+⟨λ a b, ⟨a ⊓ b, inf_le_left, inf_le_right⟩⟩

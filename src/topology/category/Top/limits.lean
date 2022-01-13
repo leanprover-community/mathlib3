@@ -790,7 +790,8 @@ We give this in a more general form, which is that cofiltered limits
 of nonempty compact Hausdorff spaces are nonempty
 (`nonempty_limit_cone_of_compact_t2_cofiltered_system`).
 
-This also applies to inverse limits, where `{J : Type u} [directed_order J]` and `F : Jᵒᵖ ⥤ Top`.
+This also applies to inverse limits, where `{J : Type u} [preorder J] [is_directed J (≤)]` and
+`F : Jᵒᵖ ⥤ Top`.
 
 The theorem is specialized to nonempty finite types (which are compact Hausdorff with the
 discrete topology) in `nonempty_sections_of_fintype_cofiltered_system` and
@@ -956,7 +957,7 @@ To specialize: given a locally finite connected graph, take `Jᵒᵖ` to be `ℕ
 `F j` to be length-`j` paths that start from an arbitrary fixed vertex.
 Elements of `F.sections` can be read off as infinite rays in the graph. -/
 theorem nonempty_sections_of_fintype_inverse_system
-  {J : Type u} [directed_order J] (F : Jᵒᵖ ⥤ Type v)
+  {J : Type u} [preorder J] [is_directed J (≤)] (F : Jᵒᵖ ⥤ Type v)
   [Π (j : Jᵒᵖ), fintype (F.obj j)] [Π (j : Jᵒᵖ), nonempty (F.obj j)] :
   F.sections.nonempty :=
 begin

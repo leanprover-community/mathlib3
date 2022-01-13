@@ -220,7 +220,7 @@ begin
   { simp [pow_succ, ih] }
 end
 
-@[simp]
+@[simp, norm_cast]
 lemma coe_sum {ι : Type*} [fintype ι] (f : ι → S) : (↑∑ i, f i : L) = ∑ i, (f i : L) :=
 begin
   classical,
@@ -229,7 +229,7 @@ begin
   { rw [finset.sum_insert hi, coe_add, H, finset.sum_insert hi] }
 end
 
-@[simp]
+@[simp, norm_cast]
 lemma coe_prod {ι : Type*} [fintype ι] (f : ι → S) : (↑∏ i, f i : L) = ∏ i, (f i : L) :=
 begin
   classical,

@@ -518,6 +518,16 @@ begin
     splits_iff_card_roots.1 hP]
 end
 
+/-- If `P` is a monic polynomial that splits, then `P.next_coeff` equals the sum of the roots. -/
+lemma sum_roots_eq_next_coeff_of_monic_of_split {P : polynomial K} (hmo : P.monic)
+  (hP : P.splits (ring_hom.id K)) : P.next_coeff = - P.roots.sum :=
+begin
+  nth_rewrite 0 [eq_prod_roots_of_monic_of_splits_id hmo hP],
+  rw [monic.next_coeff_multiset_prod _ _ (λ a ha, _)],
+  { simp_rw [next_coeff_X_sub_C, multiset.sum_map_neg] },
+  { exact monic_X_sub_C a }
+end
+
 end splits
 
 end polynomial

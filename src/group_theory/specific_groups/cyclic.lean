@@ -340,7 +340,7 @@ let c := fintype.card α in
 have hc0 : 0 < c, from fintype.card_pos_iff.2 ⟨1⟩,
 lt_irrefl c $
   calc c = (univ.filter (λ a : α, a ^ c = 1)).card :
-    congr_arg card $ by simp [finset.ext_iff, c]
+    congr_arg finset.card $ by simp [finset.ext_iff, c]
   ... = ∑ m in (range c.succ).filter (∣ c),
       (univ.filter (λ a : α, order_of a = m)).card :
     (sum_card_order_of_eq_card_pow_eq_one hc0).symm

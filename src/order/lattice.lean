@@ -144,7 +144,7 @@ theorem le_sup_of_le_right (h : c ≤ b) : c ≤ a ⊔ b :=
 le_trans h le_sup_right
 
 theorem lt_sup_of_lt_left (h : c < a) : c < a ⊔ b :=
-lt_of_lt_of_le h le_sup_left
+h.trans_le le_sup_left
 
 theorem lt_sup_of_lt_right (h : c < b) : c < a ⊔ b :=
 h.trans_le le_sup_right

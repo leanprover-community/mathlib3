@@ -10,6 +10,7 @@ import topology.uniform_space.uniform_embedding
 import algebra.algebra.basic
 import linear_algebra.projection
 import linear_algebra.pi
+import linear_algebra.determinant
 
 /-!
 # Theory of topological modules and continuous linear maps.
@@ -1170,6 +1171,9 @@ variables [topological_add_group M₂] [has_continuous_smul R M₂]
 
 instance : algebra R (M₂ →L[R] M₂) :=
 algebra.of_module smul_comp (λ _ _ _, comp_smul _ _ _)
+
+@[reducible] noncomputable def continuous_linear_map.det [is_domain R] (A : M →L[R] M) : R :=
+linear_map.det (A : M →ₗ[R] M)
 
 end comm_ring
 

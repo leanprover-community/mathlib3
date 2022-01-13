@@ -7,17 +7,18 @@ import algebra.module.basic
 import tactic.abel
 
 /-!
-# Symmetrised algebra
+# Symmetrized algebra
 
 A commutative multiplication on a real or complex space can be constructed from any multiplication
-by "symmetrisation" i.e
+by "symmetrization" i.e
 ```
 a∘b = 1/2(ab+ba).
 ```
 
 ## Implementation notes
 
-The approach taken here is inspired by algebra.opposites.
+The approach taken here is inspired by algebra.opposites. We use Oxford Spellings
+(IETF en-GB-oxendict).
 
 ## References
 
@@ -27,7 +28,7 @@ The approach taken here is inspired by algebra.opposites.
 open function
 
 /--
-The symmetrised algebra has the same underlying space as the original algebra.
+The symmetrized algebra has the same underlying space as the original algebra.
 -/
 def sym_alg (α : Type*) : Type* := α
 
@@ -82,7 +83,7 @@ instance [has_sub α] : has_sub αˢʸᵐ := { sub := λ a b, sym (unsym a - uns
 instance [has_neg α] : has_neg αˢʸᵐ :=
 { neg := λ a, sym (-unsym a) }
 
-/- Introduce the symmetrised multiplication-/
+/- Introduce the symmetrized multiplication-/
 instance [has_add α] [has_mul α] [has_one α] [invertible (2 : α)] : has_mul(αˢʸᵐ) :=
 { mul := λ a b, sym (⅟2 * (unsym a * unsym b + unsym b * unsym a)) }
 
@@ -166,7 +167,7 @@ lemma sym_mul_sym [has_mul α] [has_add α] [has_one α] [invertible (2 : α)] (
   sym a * sym b = sym (⅟2*(a * b + b * a)) :=
 rfl
 
-/- The symmetrisation of a real (unital, associative) algebra is a non-associative ring -/
+/- The symmetrization of a real (unital, associative) algebra is a non-associative ring -/
 instance [ring α] [invertible (2 : α)] : non_unital_non_assoc_ring (αˢʸᵐ) :=
 { zero_mul := λ _,
   begin

@@ -27,7 +27,7 @@ theorem unbounded_of_unbounded_subset (hst : s ⊆ t) (hs : unbounded r s) : unb
 
 /-! ### Alternate characterizations of unboundedness on orders -/
 
-lemma unbounded_le_of_forall_ex_lt [preorder α] (h : ∀ a, ∃ b ∈ s, a < b) : unbounded (≤) s :=
+lemma unbounded_le_of_forall_exists_lt [preorder α] (h : ∀ a, ∃ b ∈ s, a < b) : unbounded (≤) s :=
 λ a, let ⟨b, hb, hb'⟩ := h a in ⟨b, hb, λ hba, not_lt_of_ge hba hb'⟩
 
 lemma unbounded_le_iff [linear_order α] : unbounded (≤) s ↔ ∀ a, ∃ b ∈ s, a < b :=

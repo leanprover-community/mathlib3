@@ -872,7 +872,7 @@ def apply_add_hom (a : α) : (α →₀ M) →+ M := ⟨λ g, g a, zero_apply, �
 
 /-- Coercion from a `finsupp` to a function type is an `add_monoid_hom`. -/
 @[simps]
-noncomputable def coe_fn_add_monoid_hom : (α →₀ M) →+ (α → M) :=
+noncomputable def coe_fn_add_hom : (α →₀ M) →+ (α → M) :=
 { to_fun := coe_fn,
   map_zero' := coe_zero,
   map_add' := coe_add }

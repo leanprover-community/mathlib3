@@ -8,6 +8,7 @@ import data.nat.prime
 import data.finset.interval
 import data.nat.multiplicity
 import data.nat.choose.sum
+import data.nat.choose.central
 import number_theory.padics.padic_norm
 import data.complex.exponential_bounds
 import ring_theory.multiplicity
@@ -257,7 +258,7 @@ begin
 end
 
 
-lemma even_prime_is_two {p : ℕ} (pr: nat.prime p) (div: 2 ∣ p) : p = 2 :=
+lemma even_prime_is_two {p : ℕ} (pr: p.prime) (div: 2 ∣ p) : p = 2 :=
 ((nat.prime_dvd_prime_iff_eq nat.prime_two pr).mp div).symm
 
 lemma even_prime_is_small {a n : ℕ} (a_prime : nat.prime a) (n_big : 2 < n)
@@ -292,42 +293,32 @@ begin
   linarith [log_four_pos],
 end
 
-lemma inequality1 {x : ℝ} (n_large : 1024 < x) : log (2 * x + 1) / (x * log 4) ≤ 1/30 :=
+lemma inequality1 {x : ℝ} (n_large : 1024 < x) : log (x) / (x * log 4) ≤ 1/30 :=
 begin
-  suffices : log (4 * x) / (x * log 4) ≤ 1 / 30,
-  apply trans _ this,
-  rw div_le_div_right,
-  rw log_le_log,
-  repeat {linarith,},
-  apply mul_pos,
-  linarith,
-  apply log_pos,
-  exact one_lt_four,
-  rw log_mul,
-  rw add_div,
+  -- suffices : log (4 * x) / (x * log 4) ≤ 1 / 30,
+  -- { apply trans _ this,
+  --   rw div_le_div_right,
+  --   rw log_le_log,
+  --   repeat {linarith,},
+  --   apply mul_pos,
+  --   linarith,
+  --   apply log_pos,
+  --   exact one_lt_four, },
+  -- rw log_mul,
+  -- rw add_div,
   have h4 : 0 < x,
     linarith only [n_large],
   have x_ne_zero : x ≠ 0, exact ne_of_gt h4,
   have h1: log 4 ≠ 0 := real.log_ne_zero_of_pos_of_ne_one (by norm_num) (by norm_num),
   have h2: log 4 * sqrt x ≠ 0, apply mul_ne_zero h1, exact sqrt_ne_zero'.mpr h4,
 
-  have h3 : log 4 / (x * log 4) + log x / (x * log 4) = 1 / x + (log x / x) / log 4,
+  have h3 : log x / (x * log 4) = (log x / x) / log 4,
     field_simp,
-  ring,
+  -- ring,
   rw h3,
-  calc 1 / x + log x / x / log 4 ≤ 1 / 1024 + log x / x / log 4 :
+  calc log x / x / log 4 ≤ log 1024 / 1024 / log 4 :
           begin
-            simp,
-            rw inv_le,
-            simp,
-            apply le_of_lt,
-            assumption,
-            exact h4,
-            norm_num,
-          end
-  ... ≤ 1 / 1024 + log 1024 / 1024 / log 4 :
-          begin
-            simp,
+            -- simp,
             rw div_le_div_right,
             apply log_div_self_antitone_on,
             simp,
@@ -345,8 +336,8 @@ begin
             rw log_1024_div_log_4,
             norm_num,
           end,
-  norm_num1,
-  linarith,
+  -- norm_num1,
+  -- linarith,
 end
 
 lemma four_eq_two_rpow_two : (4 : ℝ) = 2 ^ (2 : ℝ) :=
@@ -516,7 +507,7 @@ begin
 end
 
 lemma real_false_inequality_is_false {x : ℝ} (n_large : (1024 : ℝ) < x)
-  : (2 * x + 1) * (2 * x) ^ (real.sqrt (2 * x)) * 4 ^ (2 * x / 3) < 4 ^ x :=
+  : x * (2 * x) ^ (real.sqrt (2 * x)) * 4 ^ (2 * x / 3) < 4 ^ x :=
 begin
   apply (log_lt_log_iff _ _).1,
   rw [log_mul, log_mul, log_rpow, log_rpow, log_rpow, log_mul],
@@ -538,23 +529,23 @@ end
 
 -- Take the approach of immediately reifying
 lemma false_inequality_is_false {n : ℕ} (n_large : 1024 < n)
-  : 4 ^ n ≤ (2 * n + 1) * (2 * n) ^ (nat.sqrt (2 * n)) * 4 ^ (2 * n / 3) → false :=
+  : 4 ^ n ≤ n * (2 * n) ^ (nat.sqrt (2 * n)) * 4 ^ (2 * n / 3) → false :=
 begin
   rw imp_false,
   rw not_le,
   rw <-@nat.cast_lt ℝ,
-  have fact1 : 0 < 2 * (n : ℝ) + 1,
+  have fact1 : 0 < (n : ℝ),
   { rw <-nat.cast_zero,
-    conv
-    begin
-      to_rhs,
-      congr,
-      skip,
-      rw <-nat.cast_one,
-    end,
-    rw <-nat.cast_two,
-    rw <-nat.cast_mul,
-    rw <-nat.cast_add,
+    -- conv
+    -- begin
+    --   to_rhs,
+    --   congr,
+    --   skip,
+    --   rw <-nat.cast_one,
+    -- end,
+    -- rw <-nat.cast_two,
+    -- rw <-nat.cast_mul,
+    -- rw <-nat.cast_add,
     rw nat.cast_lt,
     linarith, },
   have fact2 : 0 < 2 * (n : ℝ),
@@ -565,8 +556,8 @@ begin
     linarith, },
   simp only [nat.cast_bit0, nat.cast_add, nat.cast_one, nat.cast_mul, nat.cast_pow],
   simp only [<-rpow_nat_cast],
-  calc (2 * (n : ℝ) + 1) * (2 * (n : ℝ)) ^ (nat.sqrt (2 * n) : ℝ) * 4 ^ (((2 * n / 3) : ℕ) : ℝ)
-      ≤ (2 * (n : ℝ) + 1) * (2 * n : ℝ) ^ (real.sqrt (2 * (n : ℝ))) * 4 ^ (((2 * n / 3) : ℕ) : ℝ) :
+  calc (n : ℝ) * (2 * (n : ℝ)) ^ (nat.sqrt (2 * n) : ℝ) * 4 ^ (((2 * n / 3) : ℕ) : ℝ)
+      ≤ (n : ℝ) * (2 * n : ℝ) ^ (real.sqrt (2 * (n : ℝ))) * 4 ^ (((2 * n / 3) : ℕ) : ℝ) :
           begin
             rw mul_le_mul_right,
             rw mul_le_mul_left,
@@ -592,7 +583,7 @@ begin
             apply rpow_pos_of_pos,
             norm_num,
           end
-     ... ≤ (2 * (n : ℝ) + 1) * (2 * n : ℝ) ^ (real.sqrt (2 * (n : ℝ))) * 4 ^ (2 * (n : ℝ) / 3) :
+     ... ≤ (n : ℝ) * (2 * n : ℝ) ^ (real.sqrt (2 * (n : ℝ))) * 4 ^ (2 * (n : ℝ) / 3) :
           begin
             -- sorry
             rw mul_le_mul_left,
@@ -714,7 +705,7 @@ begin
 end
 
 lemma central_binom_factorization_small (n : nat) (n_big : 1024 < n)
-  (no_prime: ¬∃ (p : ℕ), nat.prime p ∧ n < p ∧ p ≤ 2 * n) :
+  (no_prime: ¬∃ (p : ℕ), p.prime ∧ n < p ∧ p ≤ 2 * n) :
   ∏ p in finset.filter nat.prime (finset.range (2 * n / 3 + 1)),
     p ^ (padic_val_nat p ((2 * n).choose n))
   =
@@ -758,14 +749,15 @@ begin
       exact x_le_two_mul_n, },
 end
 
-
-lemma bertrand_eventually (n : nat) (n_big : 1024 < n) : ∃ p, nat.prime p ∧ n < p ∧ p ≤ 2 * n :=
+/--
+Proves that Bertrand's postulate holds for all sufficiently large `n`.
+-/
+lemma bertrand_eventually (n : nat) (n_big : 1024 < n) : ∃ (p : ℕ), p.prime ∧ n < p ∧ p ≤ 2 * n :=
 begin
+  -- Assume there is no prime in the range
   by_contradiction no_prime,
-
-  have double_pow_pos: ∀ (i : ℕ), 0 < (2 * n) ^ i,
-  { intros _, exact pow_pos (by linarith) _ },
-
+  -- If not, then by decomposing the prime factorization of `(2 * n).choose n`,
+  -- we get an upper bound on the size of this central binomial coefficient.
   have binom_inequality
     : (2 * n).choose n ≤ (2 * n) ^ (nat.sqrt (2 * n)) * 4 ^ (2 * n / 3), by
     calc (2 * n).choose n
@@ -906,22 +898,23 @@ begin
                 *
               4 ^ (2 * n / 3)
                     : nat.mul_le_mul_left _ (primorial_le_4_pow (2 * n / 3)),
-
+  -- We now couple this bound with a lower bound on the central binomial coefficient, yielding an
+  -- inequality which we have seen is false for large enough n.
   have false_inequality
-    : 4 ^ n ≤ (2 * n + 1) * (2 * n) ^ (nat.sqrt (2 * n)) * 4 ^ (2 * n / 3), by
-    calc 4 ^ n ≤ (2 * n + 1) * (2 * n).choose n
-                  :  nat.four_pow_le_two_mul_add_one_mul_central_binom n
-      ...      ≤ (2 * n + 1) * ((2 * n) ^ (nat.sqrt (2 * n)) * 4 ^ (2 * n / 3))
+    : 4 ^ n < n * (2 * n) ^ (nat.sqrt (2 * n)) * 4 ^ (2 * n / 3), by
+    calc 4 ^ n < n * (2 * n).choose n
+                  :  nat.four_pow_lt_mul_central_binom n (by linarith)
+      ...      ≤ n * ((2 * n) ^ (nat.sqrt (2 * n)) * 4 ^ (2 * n / 3))
                   :
                   begin
                     apply mul_le_mul_of_nonneg_left,
                     exact binom_inequality,
                     linarith,
                   end
-      ...      = (2 * n + 1) * (2 * n) ^ (nat.sqrt (2 * n)) * 4 ^ (2 * n / 3) : by ring,
+      ...      = n * (2 * n) ^ (nat.sqrt (2 * n)) * 4 ^ (2 * n / 3) : by ring,
 
   exfalso,
-  exact false_inequality_is_false n_big false_inequality,
+  exact false_inequality_is_false n_big (le_of_lt false_inequality),
 end
 
 /--
@@ -934,7 +927,7 @@ lemma bertrand_initial (n : ℕ) (hn0 : 0 < n) (plist : list ℕ)
   (covering : ∀ a b, (a, b) ∈ list.zip plist (list.tail (plist ++ [2])) →
         a ≤ 2 * b)
    (hn : n < (plist ++ [2]).head) :
-  ∃ p, nat.prime p ∧ n < p ∧ p ≤ 2 * n :=
+  ∃ (p : ℕ), p.prime ∧ n < p ∧ p ≤ 2 * n :=
 begin
   tactic.unfreeze_local_instances,
   induction plist,

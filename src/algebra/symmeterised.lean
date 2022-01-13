@@ -71,9 +71,6 @@ instance [subsingleton α] : subsingleton αˢʸᵐ := unsym_injective.subsingle
 instance [unique α] : unique αˢʸᵐ := unique.mk' _
 instance [is_empty α] : is_empty αˢʸᵐ := function.is_empty unsym
 
-
-instance [has_zero α] : has_zero (αˢʸᵐ) := { zero := sym 0 }
-
 @[to_additive]
 instance [has_one α] : has_one αˢʸᵐ := { one := sym 1 }
 

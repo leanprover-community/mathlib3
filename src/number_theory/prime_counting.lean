@@ -24,7 +24,7 @@ The main definitions for this file are
 - `prime_counting`: The prime counting function π
 - `prime_counting'`: π(n - 1)
 
-We then prove that these are monotone. The last main theorem is an upper bound on π(n) which arises
+We then prove that these are monotone. The last main theorem is an upper bound on `π'` which arises
 by observing that all numbers greater than `k` and not coprime to `k` are not prime, and so only at
 most `φ(k)/k` fraction of the numbers from `k` to `n` are prime.
 
@@ -57,7 +57,6 @@ lemma monotone_prime_counting' : monotone prime_counting' := count_monotone prim
 lemma monotone_prime_counting : monotone prime_counting :=
 λ a b a_le_b, monotone_prime_counting' (add_le_add_right a_le_b 1)
 
--- TODO: a better general lemma would be to have this for Ico 0 n
 private lemma filter_coprime_bound (a n : ℕ) (a_pos : 0 < a) :
   (filter (a.coprime) (Ico a n)).card ≤ totient a * (n / a) :=
 begin
@@ -139,7 +138,7 @@ begin
   { exact le_add_right (le_add_right (monotone_prime_counting' n_le_k))},
 end
 
-/-- A linear upper bound on the size of the `prime_counting'` function -/
+/-- An explicit linear upper bound on the size of the `prime_counting'` function -/
 lemma linear_prime_counting_bound_6 (n : ℕ) :
   π' n ≤ 4 + 2 * (n / 6) :=
 begin
@@ -147,12 +146,9 @@ begin
   suffices : 4 + 2 * (n / 6) = prime_counting' 6 + 1 + totient 6 * (n / 6),
   { rwa this, },
   congr,
-  { -- TODO add a tactic (or perhaps an add-on to `norm_num`) to brute force `π` and `π'`
-    -- calculation.
-    simp [prime_counting', count_succ],
+  { simp [prime_counting', count_succ],
     norm_num, },
-  { -- TODO add a tactic (or perhaps an add-on to `norm_num`) to brute force totient calculation.
-    have : 6 = 2 * 3 := by norm_num,
+  { have : 6 = 2 * 3 := by norm_num,
     rw [this, totient_mul, totient_prime, totient_prime]; norm_num, },
 end
 

@@ -26,7 +26,7 @@ TODO (optional)
 L-function, totally disconnected, locally constant, ...
 -/
 
-def clopen_sets (H : Type*) [topological_space H] := {s : set H // is_clopen s}
+--def clopen_sets (H : Type*) [topological_space H] := {s : set H // is_clopen s}
 
 variables (X : Type*)
 variables [topological_space X] [compact_space X] [t2_space X] [totally_disconnected_space X]
@@ -68,16 +68,16 @@ instance [nonempty X] : has_continuous_smul A C(X, A) :=
   continuity,
 end⟩
 
-noncomputable def char_fn {R : Type*} [topological_space R] [ring R] [topological_ring R]
-  (U : clopen_sets X) : locally_constant X R :=
+noncomputable def char_fn (R : Type*) [topological_space R] [ring R] [topological_ring R]
+ {U : set X} (hU : is_clopen U) : locally_constant X R :=
 {
-  to_fun := λ x, by classical; exact if (x ∈ U.val) then 1 else 0,
+  to_fun := λ x, by classical; exact if (x ∈ U) then 1 else 0,
   is_locally_constant :=
     begin
       rw is_locally_constant.iff_exists_open, rintros x,
-      by_cases x ∈ U.val,
-      { refine ⟨U.val, ((U.prop).1), h, _⟩, rintros y hy, simp [h, hy], },
-      { rw ←set.mem_compl_iff at h, refine ⟨(U.val)ᶜ, (is_clopen.compl U.prop).1, h, _⟩,
+      by_cases x ∈ U,
+      { refine ⟨U, hU.1, h, _⟩, rintros y hy, simp [h, hy], },
+      { rw ←set.mem_compl_iff at h, refine ⟨Uᶜ, (is_clopen.compl hU).1, h, _⟩,
         rintros y hy, rw set.mem_compl_iff at h, rw set.mem_compl_iff at hy, simp [h, hy], },
     end,
 }
@@ -261,7 +261,7 @@ begin
   apply (classical.some_spec (dense_C_suff X ε f t ht)).1, apply hs,
 end
 
-def c := λ (s : set X) (H : s ∈ (T' X ε f t ht)), (⟨s, (ht1 X f ε t ht s H).1⟩ : clopen_sets X)
+--def c := λ (s : set X) (H : s ∈ (T' X ε f t ht)), (⟨s, (ht1 X f ε t ht s H).1⟩ : clopen_sets X)
 
 noncomputable def c' := λ (s : set X) (H : s ∈ (T' X ε f t ht) ∧ nonempty s), classical.choice (H.2)
 
@@ -393,7 +393,7 @@ begin
 end
 --end of density section
 
-instance union : semilattice_inf_bot (clopen_sets X) :=
+/-instance union : semilattice_inf_bot (clopen_sets X) :=
 begin
   constructor,
   swap 5, use ⟨∅, is_clopen_empty⟩,
@@ -419,16 +419,16 @@ structure  distribution {R : Type*} [add_monoid R] :=
 (phi : clopen_sets X → R)
 (count_add ⦃f : ℕ → clopen_sets X⦄ :
   (∀ (S T : clopen_sets X), S ⊓ T = ⊥ →
-  phi(S ⊔ T) = phi S + phi T))
+  phi(S ⊔ T) = phi S + phi T))-/
 
 -- A distribution is an A-linear map φ : locally_constant X A →[A] A
--- Here X is profinite and A is a normed ring 
+-- Here X is profinite and A is a normed ring
 structure distribution' :=
 (phi : linear_map A (locally_constant X A) A)
 
 variables (v : valuation A nnreal) (A)
 
-def measures := {φ : distribution X // ∀ S : clopen_sets X, ∃ K : ℝ, (v (φ.phi S) : ℝ) ≤ K }
+--def measures := {φ : distribution X // ∀ S : clopen_sets X, ∃ K : ℝ, (v (φ.phi S) : ℝ) ≤ K }
 
 def measures' :=
   {φ : distribution' X //

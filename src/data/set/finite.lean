@@ -567,9 +567,6 @@ variables {s : finset α}
 lemma finite_to_set (s : finset α) : set.finite (↑s : set α) :=
 set.finite_mem_finset s
 
-@[simp] lemma coe_bUnion {f : α → finset β} : ↑(s.bUnion f) = (⋃x ∈ (↑s : set α), ↑(f x) : set β) :=
-by simp [set.ext_iff]
-
 @[simp] lemma finite_to_set_to_finset {α : Type*} (s : finset α) :
   (finite_to_set s).to_finset = s :=
 by { ext, rw [set.finite.mem_to_finset, mem_coe] }

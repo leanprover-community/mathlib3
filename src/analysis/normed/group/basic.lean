@@ -651,13 +651,14 @@ def semi_normed_group.induced {E} [add_comm_group E] (f : E →+ F) : semi_norme
 
 /-- A subgroup of a seminormed group is also a seminormed group,
 with the restriction of the norm. -/
-instance add_subgroup.semi_normed_group (s : add_subgroup E) : semi_normed_group s :=
-semi_normed_group.induced s.subtype
+instance add_subgroup.semi_normed_group {S : Type*} [set_like S E] [add_subgroup_class S E]
+  (s : S) : semi_normed_group s :=
+semi_normed_group.induced (add_submonoid_class.subtype s)
 
 /-- If `x` is an element of a subgroup `s` of a seminormed group `E`, its norm in `s` is equal to
 its norm in `E`. -/
-@[simp] lemma add_subgroup.coe_norm {E : Type*} [semi_normed_group E]
-  {s : add_subgroup E} (x : s) :
+@[simp] lemma add_subgroup.coe_norm {S E : Type*} [semi_normed_group E]
+  [set_like S E] [add_subgroup_class S E] {s : S} (x : s) :
   ∥(x : s)∥ = ∥(x:E)∥ :=
 rfl
 
@@ -667,36 +668,8 @@ its norm in `E`.
 This is a reversed version of the `simp` lemma `add_subgroup.coe_norm` for use by `norm_cast`.
 -/
 
-@[norm_cast] lemma add_subgroup.norm_coe {E : Type*} [semi_normed_group E] {s : add_subgroup E}
-  (x : s) :
-  ∥(x : E)∥ = ∥(x : s)∥ :=
-rfl
-
-/-- A submodule of a seminormed group is also a seminormed group, with the restriction of the norm.
-
-See note [implicit instance arguments]. -/
-instance submodule.semi_normed_group {𝕜 : Type*} {_ : ring 𝕜}
-  {E : Type*} [semi_normed_group E] {_ : module 𝕜 E} (s : submodule 𝕜 E) : semi_normed_group s :=
-{ norm := λx, norm (x : E),
-  dist_eq := λx y, dist_eq_norm (x : E) (y : E) }
-
-/-- If `x` is an element of a submodule `s` of a normed group `E`, its norm in `s` is equal to its
-norm in `E`.
-
-See note [implicit instance arguments]. -/
-@[simp] lemma submodule.coe_norm {𝕜 : Type*} {_ : ring 𝕜}
-  {E : Type*} [semi_normed_group E] {_ : module 𝕜 E} {s : submodule 𝕜 E} (x : s) :
-  ∥(x : s)∥ = ∥(x : E)∥ :=
-rfl
-
-/-- If `x` is an element of a submodule `s` of a normed group `E`, its norm in `E` is equal to its
-norm in `s`.
-
-This is a reversed version of the `simp` lemma `submodule.coe_norm` for use by `norm_cast`.
-
-See note [implicit instance arguments]. -/
-@[norm_cast] lemma submodule.norm_coe {𝕜 : Type*} {_ : ring 𝕜}
-  {E : Type*} [semi_normed_group E] {_ : module 𝕜 E} {s : submodule 𝕜 E} (x : s) :
+@[norm_cast] lemma add_subgroup.norm_coe {S E : Type*} [semi_normed_group E]
+  [set_like S E] [add_subgroup_class S E] {s : S} (x : s) :
   ∥(x : E)∥ = ∥(x : s)∥ :=
 rfl
 
@@ -990,15 +963,9 @@ def normed_group.induced {E} [add_comm_group E]
   .. metric_space.induced f h normed_group.to_metric_space, }
 
 /-- A subgroup of a normed group is also a normed group, with the restriction of the norm. -/
-instance add_subgroup.normed_group (s : add_subgroup E) : normed_group s :=
-normed_group.induced s.subtype subtype.coe_injective
-
-/-- A submodule of a normed group is also a normed group, with the restriction of the norm.
-
-See note [implicit instance arguments]. -/
-instance submodule.normed_group {𝕜 : Type*} {_ : ring 𝕜}
-  {E : Type*} [normed_group E] {_ : module 𝕜 E} (s : submodule 𝕜 E) : normed_group s :=
-{ ..submodule.semi_normed_group s }
+instance add_subgroup_class.normed_group {S : Type*} [set_like S E] [add_subgroup_class S E]
+  (s : S) : normed_group s :=
+normed_group.induced (add_subgroup_class.subtype s) subtype.coe_injective
 
 /-- normed group instance on the product of two normed groups, using the sup norm. -/
 noncomputable instance prod.normed_group : normed_group (E × F) := { ..prod.semi_normed_group }

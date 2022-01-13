@@ -31,6 +31,17 @@ multiplication is said to be a special Jordan algebra.
 
 open sym_alg
 
+/- 2 commutes with every element of a ring -/
+lemma two_commute (α : Type*) [ring α] (a : α) : commute 2 a := begin
+  --convert commute.semiconj_by 2 a,
+  unfold _root_.commute,
+  rw [semiconj_by, mul_two, two_mul],
+end
+
+/- If 2 is invertible, ⅟2 commutes with every element of a ring -/
+lemma half_commute (α : Type*) [ring α] [invertible (2 : α)] (a : α) : commute (⅟2) a :=
+  commute.inv_of_left (two_commute a)
+
 /- The symmetrisation of a real (unital, associative) algebra multiplication is a commutative
 Jordan non-associative ring -/
 instance (α : Type*) [ring α] [invertible (2 : α)] : is_comm_jordan (αˢʸᵐ) :=

@@ -251,6 +251,14 @@ by rw [cons_add_cons, cons_add_cons, cons_add_cons, empty_add_empty]
 
 variable [semiring α]
 
+lemma smul_vec2 (x : α) (a₀ a₁ : α) :
+  x • ![a₀, a₁] = ![x • a₀, x • a₁] :=
+by rw [smul_cons, smul_cons, smul_empty]
+
+lemma smul_vec3 (x : α) (a₀ a₁ a₂ : α) :
+  x • ![a₀, a₁, a₂] = ![x • a₀, x • a₁, x • a₂] :=
+by rw [smul_cons, smul_cons, smul_cons, smul_empty]
+
 lemma vec2_dot_product' {a₀ a₁ b₀ b₁ : α} :
   ![a₀, a₁] ⬝ᵥ ![b₀, b₁] = a₀ * b₀ + a₁ * b₁ :=
 by rw [cons_dot_product_cons, cons_dot_product_cons, dot_product_empty, add_zero]

@@ -514,9 +514,10 @@ def simple_func : add_subgroup (Lp E p μ) :=
 { carrier := {f : Lp E p μ | ∃ (s : α →ₛ E), (ae_eq_fun.mk s s.ae_measurable : α →ₘ[μ] E) = f},
   zero_mem' := ⟨0, rfl⟩,
   add_mem' := λ f g ⟨s, hs⟩ ⟨t, ht⟩, ⟨s + t,
-      by simp only [←hs, ←ht, mk_add_mk, add_subgroup.coe_add, mk_eq_mk, simple_func.coe_add]⟩,
+      by simp only [←hs, ←ht, mk_add_mk, add_submonoid_class.coe_add, mk_eq_mk,
+        simple_func.coe_add]⟩,
   neg_mem' := λ f ⟨s, hs⟩, ⟨-s,
-      by simp only [←hs, neg_mk, simple_func.coe_neg, mk_eq_mk, add_subgroup.coe_neg]⟩ }
+      by simp only [←hs, neg_mk, simple_func.coe_neg, mk_eq_mk, add_subgroup_class.coe_neg]⟩ }
 
 variables {E p μ}
 
@@ -659,7 +660,7 @@ lemma add_to_simple_func (f g : Lp.simple_func E p μ) :
 begin
   filter_upwards [to_simple_func_eq_to_fun (f + g), to_simple_func_eq_to_fun f,
     to_simple_func_eq_to_fun g, Lp.coe_fn_add (f :  Lp E p μ) g] with _,
-  simp only [← coe_coe, add_subgroup.coe_add, pi.add_apply],
+  simp only [← coe_coe, add_submonoid_class.coe_add, pi.add_apply],
   iterate 4 { assume h, rw h, },
 end
 
@@ -668,7 +669,7 @@ lemma neg_to_simple_func (f : Lp.simple_func E p μ) :
 begin
   filter_upwards [to_simple_func_eq_to_fun (-f), to_simple_func_eq_to_fun f,
     Lp.coe_fn_neg (f : Lp E p μ)] with _,
-  simp only [pi.neg_apply, add_subgroup.coe_neg, ← coe_coe],
+  simp only [pi.neg_apply, add_subgroup_class.coe_neg, ← coe_coe],
   repeat { assume h, rw h, },
 end
 
@@ -677,7 +678,7 @@ lemma sub_to_simple_func (f g : Lp.simple_func E p μ) :
 begin
   filter_upwards [to_simple_func_eq_to_fun (f - g), to_simple_func_eq_to_fun f,
     to_simple_func_eq_to_fun g, Lp.coe_fn_sub (f : Lp E p μ) g] with _,
-  simp only [add_subgroup.coe_sub, pi.sub_apply, ← coe_coe],
+  simp only [add_subgroup_class.coe_sub, pi.sub_apply, ← coe_coe],
   repeat { assume h, rw h, },
 end
 

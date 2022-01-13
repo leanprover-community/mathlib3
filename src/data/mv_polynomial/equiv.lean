@@ -451,21 +451,9 @@ lemma coeff_eval_eq_eval_coeff {n : ℕ} (s' : fin n → R) (f : polynomial (mv_
   (i : ℕ) : polynomial.coeff (polynomial.map (eval s') f) i =  eval s' (polynomial.coeff f i) :=
 by simp only [polynomial.coeff_map]
 
-/- TODO: what is a good name for this one? -/
-lemma support_eval {n : ℕ} (s' : fin n → R)
-  (f : polynomial (mv_polynomial (fin n) R)) : (polynomial.map (eval s') f).support ⊆ f.support :=
-begin
-  intros i hi,
-  simp only [polynomial.mem_support_iff, polynomial.coeff_map, ne.def] at hi,
-  by_contradiction c,
-  simp only [polynomial.mem_support_iff, not_not, ne.def] at c,
-  rw c at hi,
-  simpa using hi,
-end
-
 lemma degree_eval_le_degree {n : ℕ} (s' : fin n → R) (f : polynomial (mv_polynomial (fin n) R)) :
   polynomial.degree (polynomial.map (eval s') f) ≤ polynomial.degree f :=
-polynomial.degree_mono (support_eval s' f)
+polynomial.degree_mono (polynomial.support_map_subset _ f)
 
 lemma nat_degree_eval_le_nat_degree {n : ℕ} (s : fin n → R)
   (f : polynomial (mv_polynomial (fin n) R)) :

@@ -50,11 +50,11 @@ begin
   { intros,
     simp [@vec3_add R _ _ _ _ _ _ _, add_comm, add_assoc, add_left_comm, add_mul, sub_eq_add_neg] },
   { intros,
-    simp [smul_vec3, mul_comm, mul_assoc, mul_left_comm, add_mul, mul_add, sub_eq_add_neg] },
+    simp [smul_vec3, mul_comm, mul_assoc, mul_left_comm, mul_add, sub_eq_add_neg] },
   { intros,
     simp [@vec3_add R _ _ _ _ _ _ _, add_comm, add_assoc, add_left_comm, mul_add, sub_eq_add_neg] },
   { intros,
-    simp [smul_vec3, mul_comm, mul_assoc, mul_left_comm, add_mul, mul_add, sub_eq_add_neg] },
+    simp [smul_vec3, mul_comm, mul_assoc, mul_left_comm, mul_add, sub_eq_add_neg] },
 end
 
 localized "infixl ` ×₃ `: 74 := cross_product" in matrix
@@ -151,8 +151,8 @@ lemma cross_cross  (u v w : fin 3 → R) :
   (u ×₃ v) ×₃ w = u ×₃ (v ×₃ w) - v ×₃ (u ×₃ w) :=
 lie_lie u v w
 
-/-- For a cross product of three vectors, their sum over the three even permutations is equal
-    to the zero vector. -/
+/-- Jacobi identity: For a cross product of three vectors,
+    their sum over the three even permutations is equal to the zero vector. -/
 theorem jacobi_cross (u v w : fin 3 → R) :
   u ×₃ (v ×₃ w) + v ×₃ (w ×₃ u) + w ×₃ (u ×₃ v) = 0 :=
 lie_jacobi u v w

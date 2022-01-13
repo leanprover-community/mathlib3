@@ -65,34 +65,32 @@ begin
     to_lhs,
     rw ←nat.mod_add_div n a,
   end,
-  induction n / a,
+  induction n / a with k ih,
   { simp [le_of_lt (mod_lt n a_pos)], },
-  { simp only [mul_succ],
-    rw ←add_assoc,
-    suffices : (filter a.coprime (Ico a (n % a + a * n_1 + a))).card
-        ≤ (filter a.coprime (Ico a (n % a + a * n_1))).card + a.totient,
-    { exact le_add_of_le_add_right this ih, },
-    calc (filter a.coprime (Ico a (n % a + a * n_1 + a))).card
-        ≤ (filter a.coprime (Ico a (n % a + a * n_1)
-                              ∪ Ico (n % a + a * n_1) (n % a + a * n_1 + a))).card :
-          begin
-            apply card_le_of_subset,
-            apply filter_subset_filter,
-            rw [subset_iff],
-            intro x,
-            simp only [mem_Ico, and_imp, mem_union],
-            intros h1 h2,
-            by_cases x < n % a + a * n_1,
-            { left,
-              exact ⟨h1, h⟩, },
-            { right,
-              exact ⟨le_of_not_lt h, h2⟩, },
-          end
-    ... ≤ (filter a.coprime (Ico a (n % a + a * n_1))).card + a.totient :
-          begin
-            rw [filter_union, ←filter_coprime_Ico_eq_totient a (n % a + a * n_1)],
-            apply card_union_le,
-          end },
+  simp only [mul_succ],
+  rw ←add_assoc,
+  calc (filter a.coprime (Ico a (n % a + a * k + a))).card
+      ≤ (filter a.coprime (Ico a (n % a + a * k)
+                            ∪ Ico (n % a + a * k) (n % a + a * k + a))).card :
+        begin
+          apply card_le_of_subset,
+          apply filter_subset_filter,
+          rw [subset_iff],
+          intro x,
+          simp only [mem_Ico, and_imp, mem_union],
+          intros h1 h2,
+          by_cases x < n % a + a * k,
+          { left,
+            exact ⟨h1, h⟩, },
+          { right,
+            exact ⟨le_of_not_lt h, h2⟩, },
+        end
+  ... ≤ (filter a.coprime (Ico a (n % a + a * k))).card + a.totient :
+        begin
+          rw [filter_union, ←filter_coprime_Ico_eq_totient a (n % a + a * k)],
+          apply card_union_le,
+        end
+  ... ≤ a.totient * k + a.totient : add_le_add_right ih (totient a),
 end
 
 /-- A linear upper bound on the size of the `prime_counting'` function -/

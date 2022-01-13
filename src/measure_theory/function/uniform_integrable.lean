@@ -159,26 +159,11 @@ begin
   exact inter_subset_left _ _,
 end
 
-end egorov
-
-variables [second_countable_topology β] [measurable_space β] [borel_space β]
-  {f : ℕ → α → β} {g : α → β} {s : set α}
-
-/-- **Egorov's theorem**: If `f : ℕ → α → β` is a sequence of measurable functions that converges
-to `g : α → β` almost everywhere on a measurable set `s` of finite measure, then for all `ε > 0`,
-there exists a subset `t ⊆ s` such that `μ t ≤ ε` and `f` converges to `g` uniformly on `s \ t`.
-
-In other words, a sequence of almost everywhere convergent functions converges uniformly except on
-an arbitrarily small set. -/
-theorem tendsto_uniformly_on_of_ae_tendsto
+lemma tendsto_uniformly_on_diff_Union_not_convergent_seq (hε : 0 < ε)
   (hf : ∀ n, measurable (f n)) (hg : measurable g) (hsm : measurable_set s) (hs : μ s ≠ ∞)
-  (hfg : ∀ᵐ x ∂μ, x ∈ s → tendsto (λ n, f n x) at_top (𝓝 (g x))) {ε : ℝ} (hε : 0 < ε) :
-  ∃ t ⊆ s, measurable_set t ∧ μ t ≤ ennreal.of_real ε ∧ tendsto_uniformly_on f g at_top (s \ t) :=
+  (hfg : ∀ᵐ x ∂μ, x ∈ s → tendsto (λ n, f n x) at_top (𝓝 (g x))) :
+  tendsto_uniformly_on f g at_top (s \ egorov.Union_not_convergent_seq hε hf hg hsm hs hfg) :=
 begin
-  refine ⟨egorov.Union_not_convergent_seq hε hf hg hsm hs hfg,
-    egorov.Union_not_convergent_seq_subset hε hf hg hsm hs hfg,
-    egorov.Union_not_convergent_seq_measurable_set hε hf hg hsm hs hfg,
-    egorov.measure_Union_not_convergent_seq hε hf hg hsm hs hfg, _⟩,
   rw metric.tendsto_uniformly_on_iff,
   intros δ hδ,
   obtain ⟨N, hN⟩ := exists_nat_one_div_lt hδ,
@@ -193,6 +178,28 @@ begin
   rw dist_comm,
   exact lt_of_le_of_lt (hx n hn) hN,
 end
+
+end egorov
+
+variables [second_countable_topology β] [measurable_space β] [borel_space β]
+  {f : ℕ → α → β} {g : α → β} {s : set α}
+
+
+/-- **Egorov's theorem**: If `f : ℕ → α → β` is a sequence of measurable functions that converges
+to `g : α → β` almost everywhere on a measurable set `s` of finite measure, then for all `ε > 0`,
+there exists a subset `t ⊆ s` such that `μ t ≤ ε` and `f` converges to `g` uniformly on `s \ t`.
+
+In other words, a sequence of almost everywhere convergent functions converges uniformly except on
+an arbitrarily small set. -/
+theorem tendsto_uniformly_on_of_ae_tendsto
+  (hf : ∀ n, measurable (f n)) (hg : measurable g) (hsm : measurable_set s) (hs : μ s ≠ ∞)
+  (hfg : ∀ᵐ x ∂μ, x ∈ s → tendsto (λ n, f n x) at_top (𝓝 (g x))) {ε : ℝ} (hε : 0 < ε) :
+  ∃ t ⊆ s, measurable_set t ∧ μ t ≤ ennreal.of_real ε ∧ tendsto_uniformly_on f g at_top (s \ t) :=
+⟨egorov.Union_not_convergent_seq hε hf hg hsm hs hfg,
+ egorov.Union_not_convergent_seq_subset hε hf hg hsm hs hfg,
+ egorov.Union_not_convergent_seq_measurable_set hε hf hg hsm hs hfg,
+ egorov.measure_Union_not_convergent_seq hε hf hg hsm hs hfg,
+ egorov.tendsto_uniformly_on_diff_Union_not_convergent_seq hε hf hg hsm hs hfg⟩
 
 /-- Egorov's theorem for finite measure spaces. -/
 lemma tendsto_uniformly_on_of_ae_tendsto' [is_finite_measure μ]

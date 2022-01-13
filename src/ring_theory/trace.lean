@@ -197,8 +197,7 @@ variables [algebra K S] [algebra K F]
 
 /-- Given `pb : power_basis K S`, then the trace of `pb.gen` is
 `-((minpoly K pb.gen).map (algebra_map K F)).next_coeff`. -/
-lemma power_basis.trace_gen_eq_next_coeff_minpoly [nontrivial S] (pb : power_basis K S)
-  (hf : (minpoly K pb.gen).splits (algebra_map K F)) :
+lemma power_basis.trace_gen_eq_next_coeff_minpoly [nontrivial S] (pb : power_basis K S) :
   algebra_map K F (trace K S pb.gen) =
     -((minpoly K pb.gen).map (algebra_map K F)).next_coeff :=
 begin
@@ -218,7 +217,7 @@ lemma power_basis.trace_gen_eq_sum_roots [nontrivial S] (pb : power_basis K S)
   algebra_map K F (trace K S pb.gen) =
     ((minpoly K pb.gen).map (algebra_map K F)).roots.sum :=
 begin
-  rw [power_basis.trace_gen_eq_next_coeff_minpoly _ hf, sum_roots_eq_next_coeff_of_monic_of_split
+  rw [power_basis.trace_gen_eq_next_coeff_minpoly, sum_roots_eq_next_coeff_of_monic_of_split
     (monic_map _ (minpoly.monic (power_basis.is_integral_gen _)))
     ((splits_id_iff_splits _).2 hf), neg_neg]
 end

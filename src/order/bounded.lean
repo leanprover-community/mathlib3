@@ -115,26 +115,26 @@ theorem bounded_self (a : α) : bounded r {b | r b a} :=
 theorem bounded_lt_Iio [preorder α] (a : α) : bounded (<) (set.Iio a) :=
 bounded_self a
 
-theorem bounded_lt_Iic [preorder α] [no_max_order α] (a : α) : bounded (<) (set.Iic a) :=
-let ⟨b, hab⟩ := exists_gt a in ⟨b, λ c hca, lt_of_le_of_lt hca hab⟩
-
 theorem bounded_le_Iio [preorder α] (a : α) : bounded (≤) (set.Iio a) :=
 bounded_le_of_bounded_lt (bounded_lt_Iio a)
 
 theorem bounded_le_Iic [preorder α] (a : α) : bounded (≤) (set.Iic a) :=
 bounded_self a
 
+theorem bounded_lt_Iic [preorder α] [no_max_order α] (a : α) : bounded (<) (set.Iic a) :=
+by simp only [← bounded_le_iff_bounded_lt, bounded_le_Iic]
+
 theorem bounded_gt_Ioi [preorder α] (a : α) : bounded (>) (set.Ioi a) :=
 bounded_self a
-
-theorem bounded_gt_Ici [preorder α] [no_min_order α] (a : α) : bounded (>) (set.Ici a) :=
-exists.elim (exists_lt a) $ λ b hab, ⟨b, λ c hca, lt_of_lt_of_le hab hca⟩
 
 theorem bounded_ge_Ioi [preorder α] (a : α) : bounded (≥) (set.Ioi a) :=
 bounded_ge_of_bounded_gt (bounded_gt_Ioi a)
 
 theorem bounded_ge_Ici [preorder α] (a : α) : bounded (≥) (set.Ici a) :=
 bounded_self a
+
+theorem bounded_gt_Ici [preorder α] [no_min_order α] (a : α) : bounded (>) (set.Ici a) :=
+by simp only [← bounded_ge_iff_bounded_gt, bounded_ge_Ici]
 
 /-! #### Other bounded intervals -/
 

@@ -128,8 +128,8 @@ alias is_top_of_dual_iff ↔ _ is_bot.of_dual
 alias is_min_of_dual_iff ↔ _ is_max.of_dual
 alias is_max_of_dual_iff ↔ _ is_min.of_dual
 
-@[simp] protected lemma is_bot.is_min (h : is_bot a) : is_min a := λ b _, h b
-@[simp] protected lemma is_top.is_max (h : is_top a) : is_max a := λ b _, h b
+protected lemma is_bot.is_min (h : is_bot a) : is_min a := λ b _, h b
+protected lemma is_top.is_max (h : is_top a) : is_max a := λ b _, h b
 
 end has_le
 

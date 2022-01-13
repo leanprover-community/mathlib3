@@ -187,18 +187,23 @@ begin
   { rintro ⟨c, rfl⟩, rw factorization_mul hd (right_ne_zero_of_mul hn), simp },
 end
 
+------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------
+section temp_11423
+-- This is in `PR #11423`
+variables {N ι α M β : Type*}
+lemma finset_sum_apply [add_comm_monoid N] (S : finset ι) (f : ι → α →₀ N) (a : α) :
+   (∑ i in S, f i) a = ∑ i in S, f i a := sorry
+end temp_11423
+------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------
 
-lemma finset_sum_finsupp_apply {ι α : Type*} {S : finset ι} {p : α} {f : ι → α →₀ ℕ} :
-  (S.sum f) p = ∑ (i : ι) in S, (f i) p := sorry
 
-lemma finsupp_sum_single (f : ℕ →₀ ℕ) : f = ∑ (p : ℕ) in f.support, single p (f p) :=
-begin
-  ext q,
-  rw finset_sum_finsupp_apply,
-  simp_rw single_apply,
-  by_cases h : f q = 0;
-  simp [h],
-end
+variables {α M : Type*} [add_comm_monoid M]
+lemma finsupp_sum_single (f : α →₀ M) : f = ∑ (p : α) in f.support, single p (f p) :=
+by { classical, ext q, simp only [finset_sum_apply, single_apply], by_cases h : f q = 0; simp [h] }
 
 /-- The positive natural numbers are bijective with finsupps `ℕ →₀ ℕ` with support in the primes -/
 noncomputable

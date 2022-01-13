@@ -7,6 +7,7 @@ import algebra.big_operators.basic
 import data.nat.prime
 import data.zmod.basic
 import ring_theory.multiplicity
+import data.nat.periodic
 
 /-!
 # Euler's totient function
@@ -57,7 +58,11 @@ lemma totient_pos : ∀ {n : ℕ}, 0 < n → 0 < φ n
 | (n+2) := λ h, card_pos.2 ⟨1, mem_filter.2 ⟨mem_range.2 dec_trivial, coprime_one_right _⟩⟩
 
 lemma filter_coprime_Ico_eq_totient (a n : ℕ) :
-  (filter (a.coprime) (Ico n (n+a))).card = totient a := by simp [totient]
+  (filter (a.coprime) (Ico n (n+a))).card = totient a :=
+begin
+  rw [totient, filter_Ico_card_eq_of_periodic, count_eq_card_filter_range],
+  exact periodic_coprime a,
+end
 
 open zmod
 

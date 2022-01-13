@@ -40,7 +40,7 @@ lemma unbounded_lt_iff [linear_order α] : unbounded (<) s ↔ ∀ a, ∃ b ∈ 
 ⟨λ h a, let ⟨b, hb, hba⟩ := h a in ⟨b, hb, le_of_not_gt hba⟩, unbounded_lt_of_forall_ex_le⟩
 
 lemma unbounded_ge_of_forall_ex_gt [preorder α] (h : ∀ a, ∃ b ∈ s, b < a) : unbounded (≥) s :=
-λ a, let ⟨b, hb, hb'⟩ := h a in ⟨b, hb, λ hba, not_lt_of_ge hba hb'⟩
+@unbounded_le_of_forall_ex_lt (order_dual α) _ _ h
 
 lemma unbounded_ge_iff [linear_order α] : unbounded (≥) s ↔ ∀ a, ∃ b ∈ s, b < a :=
 ⟨λ h a, let ⟨b, hb, hba⟩ := h a in ⟨b, hb, lt_of_not_ge hba⟩, unbounded_ge_of_forall_ex_gt⟩

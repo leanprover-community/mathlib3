@@ -871,11 +871,11 @@ See `finsupp.lapply` for the stronger version as a linear map. -/
 def apply_add_hom (a : α) : (α →₀ M) →+ M := ⟨λ g, g a, zero_apply, λ _ _, add_apply _ _ _⟩
 
 /-- Coercion from a `finsupp` to a function type is an `add_monoid_hom`. -/
-noncomputable
-def coe_fn_add_monoid_hom {α M : Type*} [add_zero_class M] : (α →₀ M) →+ (α → M) :=
-{ to_fun := λ f, f,
-  map_zero' := by simp,
-  map_add' := by simp }
+@[simps]
+noncomputable def coe_fn_add_monoid_hom : (α →₀ M) →+ (α → M) :=
+{ to_fun := coe_fn,
+  map_zero' := coe_zero,
+  map_add' := coe_add }
 
 lemma update_eq_single_add_erase (f : α →₀ M) (a : α) (b : M) :
   f.update a b = single a b + f.erase a :=

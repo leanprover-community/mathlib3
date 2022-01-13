@@ -7,6 +7,7 @@ import data.set.finite
 import order.well_founded
 import order.order_iso_nat
 import algebra.pointwise
+import group_theory.submonoid.membership
 
 /-!
 # Well-founded sets
@@ -77,8 +78,7 @@ begin
   let Q : s → Prop := λ y, P y,
   change Q ⟨x, hx⟩,
   refine well_founded.induction hs ⟨x, hx⟩ _,
-  rintros ⟨y, ys⟩ ih,
-  exact hP _ ys (λ z zs zy, ih ⟨z, zs⟩ zy),
+  simpa only [subtype.forall]
 end
 
 instance is_strict_order.subset {s : set α} {r : α → α → Prop} [is_strict_order α r] :
@@ -662,18 +662,8 @@ namespace is_pwo
 lemma submonoid_closure [ordered_cancel_comm_monoid α] {s : set α} (hpos : ∀ x : α, x ∈ s → 1 ≤ x)
   (h : s.is_pwo) : is_pwo ((submonoid.closure s) : set α) :=
 begin
-  have hl : ((submonoid.closure s) : set α) ⊆ list.prod '' { l : list α | ∀ x, x ∈ l → x ∈ s },
-  { intros x hx,
-    rw set_like.mem_coe at hx,
-    refine submonoid.closure_induction hx (λ x hx, ⟨_, λ y hy, _, list.prod_singleton⟩)
-      ⟨_, λ y hy, (list.not_mem_nil _ hy).elim, list.prod_nil⟩ _,
-    { rwa list.mem_singleton.1 hy },
-    rintros _ _ ⟨l, hl, rfl⟩ ⟨l', hl', rfl⟩,
-    refine ⟨_, λ y hy, _, list.prod_append⟩,
-    cases list.mem_append.1 hy with hy hy,
-    { exact hl _ hy },
-    { exact hl' _ hy } },
-  apply ((h.partially_well_ordered_on_sublist_forall₂ (≤)).image_of_monotone_on _).mono hl,
+  rw submonoid.closure_eq_image_prod,
+  refine (h.partially_well_ordered_on_sublist_forall₂ (≤)).image_of_monotone_on _,
   intros l1 l2 hl1 hl2 h12,
   obtain ⟨l, hll1, hll2⟩ := list.sublist_forall₂_iff.1 h12,
   refine le_trans (list.rel_prod (le_refl 1) (λ a b ab c d cd, mul_le_mul' ab cd) hll1) _,

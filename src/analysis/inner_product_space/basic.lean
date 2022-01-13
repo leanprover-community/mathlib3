@@ -467,29 +467,17 @@ lemma finsupp.inner_sum {ι : Type*} (l : ι →₀ 𝕜) (v : ι → E) (x : E)
   ⟪x, l.sum (λ (i : ι) (a : 𝕜), a • v i)⟫ = l.sum (λ (i : ι) (a : 𝕜), a • ⟪x, v i⟫) :=
 by { convert inner_sum l.support (λ a, l a • v a) x, simp [inner_smul_right, finsupp.sum] }
 
--- move this
-theorem dfinsupp.comp_sum {ι : Type*} {γ : Type*} {β : ι → Type*} [dec : decidable_eq ι]
-  {δ : Type*} [Π (i : ι), add_zero_class (β i)] [Π i (x : β i), decidable (x ≠ 0)]
-  [add_comm_monoid γ] [add_comm_monoid δ] (g : γ →+ δ)
-  (f : Π (i : ι), β i → γ) (l : Π₀ i, β i) :
-  g (l.sum f) = l.sum (λ i, g ∘ (f i)) :=
-begin
-  apply dfinsupp.induction l,
-  { simp },
-  { simp },
-end
-
 lemma dfinsupp.sum_inner {ι : Type*} [dec : decidable_eq ι] {α : ι → Type*}
   [Π i, add_zero_class (α i)] [Π i (x : α i), decidable (x ≠ 0)]
   (f : Π i, α i → E) (l : Π₀ i, α i) (x : E) :
   ⟪l.sum f, x⟫ = l.sum (λ i a, ⟪f i a, x⟫) :=
-l.comp_sum (sesq_form_of_inner x).to_add_monoid_hom f
+by simp [dfinsupp.sum, sum_inner] {contextual := tt}
 
 lemma dfinsupp.inner_sum {ι : Type*} [dec : decidable_eq ι] {α : ι → Type*}
   [Π i, add_zero_class (α i)] [Π i (x : α i), decidable (x ≠ 0)]
   (f : Π i, α i → E) (l : Π₀ i, α i) (x : E) :
   ⟪x, l.sum f⟫ = l.sum (λ i a, ⟪x, f i a⟫) :=
-l.comp_sum (linear_map.flip sesq_form_of_inner x).to_add_monoid_hom f
+by simp [dfinsupp.sum, inner_sum] {contextual := tt}
 
 @[simp] lemma inner_zero_left {x : E} : ⟪0, x⟫ = 0 :=
 by rw [← zero_smul 𝕜 (0:E), inner_smul_left, ring_equiv.map_zero, zero_mul]
@@ -1766,7 +1754,7 @@ begin
   { intros hf ε hε,
     obtain ⟨a, H⟩ := hf _ (sqrt_pos.mpr hε),
     use a,
-    intros s₁ s₂ hs₁ hs₂,
+    intros s₁ hs₁ s₂ hs₂,
     rw ← finset.sum_sdiff_sub_sum_sdiff,
     refine (_root_.abs_sub _ _).trans_lt _,
     have : ∀ i, 0 ≤ ∥f i∥ ^ 2 := λ i : ι, sq_nonneg _,
@@ -1775,25 +1763,25 @@ begin
     { rw ← hV.norm_sq_diff_sum,
       apply sq_lt_sq,
       rw _root_.abs_of_nonneg (norm_nonneg _),
-      exact H s₁ s₂ hs₁ hs₂ },
+      exact H s₁ hs₁ s₂ hs₂ },
     have hη := sq_sqrt (le_of_lt hε),
     linarith },
   { intros hf ε hε,
     have hε' : 0 < ε ^ 2 / 2 := half_pos (sq_pos_of_pos hε),
     obtain ⟨a, H⟩ := hf _ hε',
     use a,
-    intros s₁ s₂ hs₁ hs₂,
+    intros s₁ hs₁ s₂ hs₂,
     refine (abs_lt_of_sq_lt_sq' _ (le_of_lt hε)).2,
     have has : a ≤ s₁ ⊓ s₂ := le_inf hs₁ hs₂,
     rw hV.norm_sq_diff_sum,
     have Hs₁ : ∑ (x : ι) in s₁ \ s₂, ∥f x∥ ^ 2 < ε ^ 2 / 2,
-    { convert H _ _ hs₁ has,
+    { convert H _ hs₁ _ has,
       have : s₁ ⊓ s₂ ⊆ s₁ := finset.inter_subset_left _ _,
       rw [← finset.sum_sdiff this, add_tsub_cancel_right, finset.abs_sum_of_nonneg'],
       { simp },
       { exact λ i, sq_nonneg _ } },
     have Hs₂ : ∑ (x : ι) in s₂ \ s₁, ∥f x∥ ^ 2 < ε ^ 2 /2,
-    { convert H _ _ hs₂ has,
+    { convert H _ hs₂ _ has,
       have : s₁ ⊓ s₂ ⊆ s₂ := finset.inter_subset_right _ _,
       rw [← finset.sum_sdiff this, add_tsub_cancel_right, finset.abs_sum_of_nonneg'],
       { simp },
@@ -1833,80 +1821,6 @@ lemma direct_sum.submodule_is_internal.collected_basis_orthonormal {V : ι → s
   {v_family : Π i, basis (α i) 𝕜 (V i)} (hv_family : ∀ i, orthonormal 𝕜 (v_family i)) :
   orthonormal 𝕜 (hV_sum.collected_basis v_family) :=
 by simpa using hV.orthonormal_sigma_orthonormal hv_family
-
-lemma orthogonal_family.norm_sq_diff_sum (f : Π i, V i) (s₁ s₂ : finset ι) :
-  ∥∑ i in s₁, (f i : E) - ∑ i in s₂, f i∥ ^ 2
-  = ∑ i in s₁ \ s₂, ∥f i∥ ^ 2 + ∑ i in s₂ \ s₁, ∥f i∥ ^ 2 :=
-begin
-  rw [← finset.sum_sdiff_sub_sum_sdiff, sub_eq_add_neg, ← finset.sum_neg_distrib],
-  let F : Π i, V i := λ i, if i ∈ s₁ then f i else - (f i),
-  have hF₁ : ∀ i ∈ s₁ \ s₂, F i = f i := λ i hi, if_pos (finset.sdiff_subset _ _ hi),
-  have hF₂ : ∀ i ∈ s₂ \ s₁, F i = - f i := λ i hi, if_neg (finset.mem_sdiff.mp hi).2,
-  have hF : ∀ i, ∥F i∥ = ∥f i∥,
-  { intros i,
-    dsimp [F],
-    split_ifs;
-    simp, },
-  have : ∥∑ i in s₁ \ s₂, (F i : E) + ∑ i in s₂ \ s₁, F i∥ ^ 2 =
-    ∑ i in s₁ \ s₂, ∥F i∥ ^ 2 + ∑ i in s₂ \ s₁, ∥F i∥ ^ 2,
-  { have hs : disjoint (s₁ \ s₂) (s₂ \ s₁) := disjoint_sdiff_sdiff,
-    simpa only [finset.sum_union hs] using hV.norm_sum F (s₁ \ s₂ ∪ s₂ \ s₁) },
-  convert this using 4,
-  { refine finset.sum_congr rfl (λ i hi, _),
-    simp [hF₁ i hi] },
-  { refine finset.sum_congr rfl (λ i hi, _),
-    simp [hF₂ i hi] },
-  { simp [hF] },
-  { simp [hF] },
-end
-
-omit dec_ι
-
-/-- A family `f` of mutually-orthogonal elements of `E` is summable, if and only if
-`(λ i, ∥f i∥ ^ 2)` is summable. -/
-lemma orthogonal_family.summable_iff_norm_sq_summable [complete_space E] (f : Π i, V i) :
-  summable (λ i, (f i : E)) ↔ summable (λ i, ∥f i∥ ^ 2) :=
-begin
-  classical,
-  simp only [summable_iff_cauchy_seq_finset, normed_group.cauchy_seq_iff, real.norm_eq_abs],
-  split,
-  { intros hf ε hε,
-    obtain ⟨a, H⟩ := hf _ (sqrt_pos.mpr hε),
-    use a,
-    intros s₁ hs₁ s₂ hs₂,
-    rw ← finset.sum_sdiff_sub_sum_sdiff,
-    refine (_root_.abs_sub _ _).trans_lt _,
-    have : ∀ i, 0 ≤ ∥f i∥ ^ 2 := λ i : ι, sq_nonneg _,
-    simp only [finset.abs_sum_of_nonneg' this],
-    have : ∑ i in s₁ \ s₂, ∥f i∥ ^ 2 + ∑ i in s₂ \ s₁, ∥f i∥ ^ 2 < (sqrt ε) ^ 2,
-    { rw ← hV.norm_sq_diff_sum,
-      apply sq_lt_sq,
-      rw _root_.abs_of_nonneg (norm_nonneg _),
-      exact H s₁ hs₁ s₂ hs₂ },
-    have hη := sq_sqrt (le_of_lt hε),
-    linarith },
-  { intros hf ε hε,
-    have hε' : 0 < ε ^ 2 / 2 := half_pos (sq_pos_of_pos hε),
-    obtain ⟨a, H⟩ := hf _ hε',
-    use a,
-    intros s₁ hs₁ s₂ hs₂,
-    refine (abs_lt_of_sq_lt_sq' _ (le_of_lt hε)).2,
-    have has : a ≤ s₁ ⊓ s₂ := le_inf hs₁ hs₂,
-    rw hV.norm_sq_diff_sum,
-    have Hs₁ : ∑ (x : ι) in s₁ \ s₂, ∥f x∥ ^ 2 < ε ^ 2 / 2,
-    { convert H _ hs₁ _ has,
-      have : s₁ ⊓ s₂ ⊆ s₁ := finset.inter_subset_left _ _,
-      rw [← finset.sum_sdiff this, add_tsub_cancel_right, finset.abs_sum_of_nonneg'],
-      { simp },
-      { exact λ i, sq_nonneg _ } },
-    have Hs₂ : ∑ (x : ι) in s₂ \ s₁, ∥f x∥ ^ 2 < ε ^ 2 /2,
-    { convert H _ hs₂ _ has,
-      have : s₁ ⊓ s₂ ⊆ s₂ := finset.inter_subset_right _ _,
-      rw [← finset.sum_sdiff this, add_tsub_cancel_right, finset.abs_sum_of_nonneg'],
-      { simp },
-      { exact λ i, sq_nonneg _ } },
-    linarith },
-end
 
 end orthogonal_family
 

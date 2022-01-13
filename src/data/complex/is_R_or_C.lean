@@ -750,7 +750,7 @@ linear_map.mk_continuous im_lm 1 $ by
 /-- Conjugate as an `ℝ`-algebra equivalence -/
 noncomputable def conj_ae : K ≃ₐ[ℝ] K :=
 { commutes' := conj_of_real,
-  .. star_ring_aut }
+  .. star_ring_aut K }
 
 @[simp] lemma conj_ae_coe : (conj_ae : K → K) = conj := rfl
 

@@ -218,17 +218,9 @@ lemma power_basis.trace_gen_eq_sum_roots [nontrivial S] (pb : power_basis K S)
   algebra_map K F (trace K S pb.gen) =
     ((minpoly K pb.gen).map (algebra_map K F)).roots.sum :=
 begin
-  rw [power_basis.trace_gen_eq_coeff_minpoly _ hf],
-  -- Rewrite `minpoly K pb.gen` as a product over the roots.
-  conv_lhs { rw eq_prod_roots_of_splits hf },
-  rw [monic.next_coeff_mul, next_coeff_C_eq_zero, zero_add, monic.next_coeff_multiset_prod],
-  -- And conclude both sides are the same.
-  simp_rw [next_coeff_X_sub_C, multiset.sum_map_neg, neg_neg],
-  -- Now we deal with the side conditions.
-  { intros, apply monic_X_sub_C },
-  { convert monic_one, simp [(minpoly.monic pb.is_integral_gen).leading_coeff] },
-  { apply monic_multiset_prod_of_monic,
-    intros, apply monic_X_sub_C },
+  rw [power_basis.trace_gen_eq_next_coeff_minpoly _ hf, sum_roots_eq_next_coeff_of_monic_of_split
+    (monic_map _ (minpoly.monic (power_basis.is_integral_gen _)))
+    ((splits_id_iff_splits _).2 hf), neg_neg]
 end
 
 namespace intermediate_field.adjoin_simple

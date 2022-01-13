@@ -132,7 +132,8 @@ and nonempty. -/
 
 variable (P)
 
-/-- An order `P` has the `ideal_Inter_nonempty` property if the intersection of all ideals is nonempty. Most importantly, the ideals of a `semilattice_sup` with this property form a complete
+/-- An order `P` has the `ideal_Inter_nonempty` property if the intersection of all ideals is
+nonempty. Most importantly, the ideals of a `semilattice_sup` with this property form a complete
 lattice.
 
 TODO: This is equivalent to the existence of a bottom element and shouldn't be specialized to

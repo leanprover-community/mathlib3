@@ -119,7 +119,7 @@ begin
     obtain hnp | hnp := hn.eq_or_lt,
     { exact hnp },
     suffices hp : p (Inf {m | p m} - n + n),
-    { exact (h.subset hp).elim },
+    { have := h.subset, exact (this hp).elim },
     rw tsub_add_cancel_of_le hn,
     exact Inf_mem (nonempty_of_pos_Inf $ n.zero_le.trans_lt hnp) },
   { have hp : ∃ n, n ∈ {m | p m} := ⟨_, hm⟩,

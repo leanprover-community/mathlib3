@@ -85,8 +85,8 @@ instance : has_bot (ASC V) :=
 instance : has_Sup (ASC V) :=
 ⟨λ s,
 { faces := Sup $ faces '' s,
-  not_empty_mem := λ h, let ⟨k, ⟨K, hKs, rfl⟩, hk⟩ := h in K.not_empty_mem hk,
-  down_closed := λ k l hk hlk hl, let ⟨_, ⟨K, hKs, rfl⟩, hk⟩ := hk in
+  not_empty_mem := λ ⟨k, ⟨K, hKs, rfl⟩, hk⟩, K.not_empty_mem hk,
+  down_closed := λ k l ⟨_, ⟨K, hKs, rfl⟩, hk⟩ hlk hl,
     ⟨K.faces, ⟨K, hKs, rfl⟩, K.down_closed hk hlk hl⟩ }⟩
 
 lemma Sup_faces (s : set (ASC V)) : (Sup s).faces = Sup (faces '' s) := rfl
@@ -114,7 +114,7 @@ end
 -- Abstract simplicial complexes with vertices in `V` form a `complete_distrib_lattice`
 instance : complete_distrib_lattice (ASC V) :=
 { le_Sup := λ s K hK σ hσ, ⟨K.faces, ⟨K, hK, rfl⟩, hσ⟩,
-  Sup_le := λ s K h σ hσ, let ⟨_, ⟨L, hLs, rfl⟩, hσL⟩ := hσ in h _ hLs hσL,
+  Sup_le := λ s K h σ ⟨_, ⟨L, hLs, rfl⟩, hσL⟩, h _ hLs hσL,
   Inf_le := λ s K hK σ hσ, begin
     rw Inf_faces_of_nonempty ⟨K, hK⟩ at hσ,
     exact hσ K.faces ⟨K, hK, rfl⟩,

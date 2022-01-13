@@ -256,14 +256,15 @@ lemma all_one_of_le_one_le_of_prod_eq_one [ordered_comm_monoid α]
   x = 1 :=
 le_antisymm (hl₂ ▸ single_le_prod hl₁ _ hx) (hl₁ x hx)
 
-lemma sum_eq_zero_iff [canonically_ordered_add_monoid α] (l : list α) :
-  l.sum = 0 ↔ ∀ x ∈ l, x = (0 : α) :=
-⟨all_zero_of_le_zero_le_of_sum_eq_zero (λ _ _, zero_le _),
+@[to_additive]
+lemma prod_eq_one_iff [canonically_ordered_monoid α] (l : list α) :
+  l.prod = 1 ↔ ∀ x ∈ l, x = (1 : α) :=
+⟨all_one_of_le_one_le_of_prod_eq_one (λ _ _, one_le _),
 begin
   induction l,
   { simp },
   { intro h,
-    rw [sum_cons, add_eq_zero_iff],
+    rw [prod_cons, mul_eq_one_iff],
     rw forall_mem_cons at h,
     exact ⟨h.1, l_ih h.2⟩ },
 end⟩

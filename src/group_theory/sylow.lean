@@ -153,8 +153,10 @@ instance [hp : fact p.prime] [fintype (sylow p G)] : is_pretransitive G (sylow p
   calc 1 = card (fixed_points P (orbit G P)) : _
      ... ≡ card (orbit G P) [MOD p] : (P.2.card_modeq_card_fixed_points (orbit G P)).symm
      ... ≡ 0 [MOD p] : nat.modeq_zero_iff_dvd.mpr h,
-  convert (set.card_singleton (⟨P, mem_orbit_self P⟩ : orbit G P)).symm,
-  exact set.eq_singleton_iff_unique_mem.mpr ⟨H.mpr rfl, λ R h, subtype.ext (sylow.ext (H.mp h))⟩ }⟩
+  rw ← set.card_singleton (⟨P, mem_orbit_self P⟩ : orbit G P),
+  refine card_congr' (congr_arg _ (eq.symm _)),
+  rw set.eq_singleton_iff_unique_mem,
+  exact ⟨H.mpr rfl, λ R h, subtype.ext (sylow.ext (H.mp h))⟩ }⟩
 
 variables (p) (G)
 
@@ -163,12 +165,13 @@ variables (p) (G)
 lemma card_sylow_modeq_one [fact p.prime] [fintype (sylow p G)] : card (sylow p G) ≡ 1 [MOD p] :=
 begin
   refine sylow.nonempty.elim (λ P : sylow p G, _),
-  have := set.ext (λ Q : sylow p G, calc Q ∈ fixed_points P (sylow p G)
+  have : fixed_points P.1 (sylow p G) = {P} :=
+  set.ext (λ Q : sylow p G, calc Q ∈ fixed_points P (sylow p G)
       ↔ P.1 ≤ Q : P.2.sylow_mem_fixed_points_iff
   ... ↔ Q.1 = P.1 : ⟨P.3 Q.2, ge_of_eq⟩
   ... ↔ Q ∈ {P} : sylow.ext_iff.symm.trans set.mem_singleton_iff.symm),
-  haveI : fintype (fixed_points P.1 (sylow p G)) := by convert set.fintype_singleton P,
-  have : card (fixed_points P.1 (sylow p G)) = 1 := by convert set.card_singleton P,
+  haveI : fintype (fixed_points P.1 (sylow p G)), { rw this, apply_instance },
+  have : card (fixed_points P.1 (sylow p G)) = 1, { simp [this] },
   exact (P.2.card_modeq_card_fixed_points (sylow p G)).trans (by rw this),
 end
 

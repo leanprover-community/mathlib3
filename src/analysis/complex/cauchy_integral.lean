@@ -174,14 +174,13 @@ begin
   set F' : (ℝ × ℝ) → (ℝ × ℝ) →L[ℝ] E := λ p, (f' (e p)).comp (e : (ℝ × ℝ) →L[ℝ] ℂ),
   have hF' : ∀ p : ℝ × ℝ, (-(I • F' p)) (1, 0) + F' p (0, 1) = -(I • f' (e p) 1 - f' (e p) I),
   { rintro ⟨x, y⟩, simp [F', he₁, he₂, ← sub_eq_neg_add], },
-  set R : set (ℝ × ℝ) := [z.re, w.re].prod [w.im, z.im],
+  set R : set (ℝ × ℝ) := [z.re, w.re] ×ˢ [w.im, z.im],
   set t : set (ℝ × ℝ) := e ⁻¹' s,
   rw [interval_swap z.im] at Hc Hi, rw [min_comm z.im, max_comm z.im] at Hd,
   have hR : e ⁻¹' (re ⁻¹' [z.re, w.re] ∩ im ⁻¹' [w.im, z.im]) = R := rfl,
   have htc : continuous_on F R, from Hc.comp e.continuous_on hR.ge,
-  have htd : ∀ p ∈ (Ioo (min z.re w.re) (max z.re w.re)).prod
-    (Ioo (min w.im z.im) (max w.im z.im)) \ t, has_fderiv_at F (F' p) p,
-    from λ p hp, (Hd (e p) hp).comp p e.has_fderiv_at,
+  have htd : ∀ p ∈ Ioo (min z.re w.re) (max z.re w.re) ×ˢ Ioo (min w.im z.im) (max w.im z.im) \ t,
+    has_fderiv_at F (F' p) p := λ p hp, (Hd (e p) hp).comp p e.has_fderiv_at,
   simp_rw [← interval_integral.integral_smul, interval_integral.integral_symm w.im z.im,
     ← interval_integral.integral_neg, ← hF'],
   refine (integral2_divergence_prod_of_has_fderiv_within_at_off_countable

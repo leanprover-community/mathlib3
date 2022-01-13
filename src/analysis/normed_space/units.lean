@@ -271,7 +271,7 @@ begin
   rw [mem_map, mem_nhds_induced],
   rintros ⟨t, ht, hts⟩,
   obtain ⟨u, hu, v, hv, huvt⟩ :
-    ∃ (u : set R), u ∈ 𝓝 ↑x ∧ ∃ (v : set Rᵐᵒᵖ), v ∈ 𝓝 (op ↑x⁻¹) ∧ u.prod v ⊆ t,
+    ∃ (u : set R), u ∈ 𝓝 ↑x ∧ ∃ (v : set Rᵐᵒᵖ), v ∈ 𝓝 (op ↑x⁻¹) ∧ u ×ˢ v ⊆ t,
   { simpa [embed_product, mem_nhds_prod_iff] using ht },
   have : u ∩ (op ∘ ring.inverse) ⁻¹' v ∩ (set.range (coe : Rˣ → R)) ∈ 𝓝 ↑x,
   { refine inter_mem (inter_mem hu _) (units.nhds x),
@@ -279,7 +279,7 @@ begin
     simpa using hv },
   refine mem_of_superset this _,
   rintros _ ⟨⟨huy, hvy⟩, ⟨y, rfl⟩⟩,
-  have : embed_product R y ∈ u.prod v := ⟨huy, by simpa using hvy⟩,
+  have : embed_product R y ∈ u ×ˢ v := ⟨huy, by simpa using hvy⟩,
   simpa using hts (huvt this)
 end
 

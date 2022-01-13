@@ -179,8 +179,9 @@ some fixed `(c₀, d₀)`. -/
 linear_equiv.Pi_congr_right
 ![begin
     refine linear_map.general_linear_group.general_linear_equiv ℝ (fin 2 → ℝ)
-      (general_linear_group.to_linear (plane_conformal_matrix (cd 0 : ℝ) (cd 1 : ℝ) _)),
+      (general_linear_group.to_linear (plane_conformal_matrix (cd 0 : ℝ) (-(cd 1 : ℝ)) _)),
     norm_cast,
+    rw neg_sq,
     exact hcd.sq_add_sq_ne_zero
   end,
   (linear_equiv.refl _ _)]

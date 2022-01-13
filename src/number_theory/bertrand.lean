@@ -283,6 +283,8 @@ lemma one_lt_four : (1 : ℝ) < 4 := by linarith
 
 lemma log_four_pos : 0 < log 4 := log_pos one_lt_four
 
+lemma log_four_nonzero : log 4 ≠ 0 := by linarith [log_four_pos]
+
 lemma log_1024_div_log_4 : log 1024 / log 4 = 5 :=
 begin
   rw div_eq_iff,
@@ -298,8 +300,6 @@ begin
   have h4 : 0 < x,
     linarith only [n_large],
   have x_ne_zero : x ≠ 0, exact ne_of_gt h4,
-  have h1: log 4 ≠ 0 := real.log_ne_zero_of_pos_of_ne_one (by norm_num) (by norm_num),
-  -- have h2: log 4 * sqrt x ≠ 0, apply mul_ne_zero h1, exact sqrt_ne_zero'.mpr h4,
   calc log x / (x * log 4) = (log x / x) / log 4 : by field_simp
   ... ≤ log 1024 / 1024 / log 4 :
           begin
@@ -363,12 +363,12 @@ begin
     linarith, },
   have h4 : 0 < x,
     linarith,
-  have h1: log 4 ≠ 0 := real.log_ne_zero_of_pos_of_ne_one (by norm_num) (by norm_num),
-  have h2: log 4 * sqrt x ≠ 0, apply mul_ne_zero h1, exact sqrt_ne_zero'.mpr h4,
+  have h2: log 4 * sqrt x ≠ 0, apply mul_ne_zero log_four_nonzero, exact sqrt_ne_zero'.mpr h4,
   field_simp,
   ring_nf,
   apply eq.symm,
   rw @sq_sqrt x,
+  field_simp [log_four_nonzero],
   ring,
   linarith,
 end
@@ -483,8 +483,8 @@ begin
   have h : x ≠ 0,
   { apply ne_of_gt,
     linarith, },
-  have : log 4 ≠ 0 := real.log_ne_zero_of_pos_of_ne_one (by norm_num) (by norm_num),
-  field_simp,
+  -- have : log 4 ≠ 0 := real.log_ne_zero_of_pos_of_ne_one (by norm_num) (by norm_num),
+  field_simp [log_four_nonzero],
   ring,
 end
 

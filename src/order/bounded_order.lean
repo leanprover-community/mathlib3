@@ -83,6 +83,8 @@ end preorder
 
 variables [partial_order α] [order_top α] {a b : α}
 
+theorem is_top_top {α : Type u} [has_le α] [order_top α] : is_top (⊤ : α) := λ _, le_top
+
 theorem top_unique (h : ⊤ ≤ a) : a = ⊤ :=
 le_top.antisymm h
 
@@ -102,13 +104,7 @@ top_le_iff.1 $ h₂ ▸ h
 lemma lt_top_iff_ne_top : a < ⊤ ↔ a ≠ ⊤ := le_top.lt_iff_ne
 
 lemma eq_top_or_lt_top (a : α) : a = ⊤ ∨ a < ⊤ :=
-begin
-  by_cases h : a = ⊤,
-  { exact or.inl h },
-  right,
-  rw lt_top_iff_ne_top,
-  exact h,
-end
+le_top.eq_or_lt
 
 alias ne_top_of_lt ← has_lt.lt.ne_top
 
@@ -325,9 +321,11 @@ instance Prop.bounded_order : bounded_order Prop :=
   bot          := false,
   bot_le       := @false.elim }
 
+instance Prop.le_is_total : is_total Prop (≤) :=
+⟨λ p q, by { change (p → q) ∨ (q → p), tauto! }⟩
+
 noncomputable instance Prop.linear_order : linear_order Prop :=
-@lattice.to_linear_order Prop _ (classical.dec_eq _) (classical.dec_rel _) (classical.dec_rel _) $
-λ p q, by { change (p → q) ∨ (q → p), tauto! }
+by classical; exact lattice.to_linear_order Prop
 
 @[simp] lemma le_Prop_eq : ((≤) : Prop → Prop → Prop) = (→) := rfl
 @[simp] lemma sup_Prop_eq : (⊔) = (∨) := rfl
@@ -594,13 +592,16 @@ lemma coe_inf [semilattice_inf α] (a b : α) : ((a ⊓ b : α) : with_bot α) =
 instance lattice [lattice α] : lattice (with_bot α) :=
 { ..with_bot.semilattice_sup, ..with_bot.semilattice_inf }
 
-instance linear_order [linear_order α] : linear_order (with_bot α) :=
-lattice.to_linear_order _ $ λ o₁ o₂,
+instance le_is_total [preorder α] [is_total α (≤)] : is_total (with_bot α) (≤) :=
+⟨λ o₁ o₂,
 begin
   cases o₁ with a, {exact or.inl bot_le},
   cases o₂ with b, {exact or.inr bot_le},
-  simp [le_total]
-end
+  exact (total_of (≤) a b).imp some_le_some.mpr some_le_some.mpr,
+end⟩
+
+instance linear_order [linear_order α] : linear_order (with_bot α) :=
+lattice.to_linear_order _
 
 @[norm_cast] -- this is not marked simp because the corresponding with_top lemmas are used
 lemma coe_min [linear_order α] (x y : α) : ((min x y : α) : with_bot α) = min x y := rfl
@@ -842,13 +843,16 @@ lemma coe_sup [semilattice_sup α] (a b : α) : ((a ⊔ b : α) : with_top α) =
 instance lattice [lattice α] : lattice (with_top α) :=
 { ..with_top.semilattice_sup, ..with_top.semilattice_inf }
 
-instance linear_order [linear_order α] : linear_order (with_top α) :=
-lattice.to_linear_order _ $ λ o₁ o₂,
+instance le_is_total [preorder α] [is_total α (≤)] : is_total (with_top α) (≤) :=
+⟨λ o₁ o₂,
 begin
   cases o₁ with a, {exact or.inr le_top},
   cases o₂ with b, {exact or.inl le_top},
-  simp [le_total]
-end
+  exact (total_of (≤) a b).imp some_le_some.mpr some_le_some.mpr,
+end⟩
+
+instance linear_order [linear_order α] : linear_order (with_top α) :=
+lattice.to_linear_order _
 
 @[simp, norm_cast]
 lemma coe_min [linear_order α] (x y : α) : ((min x y : α) : with_top α) = min x y := rfl

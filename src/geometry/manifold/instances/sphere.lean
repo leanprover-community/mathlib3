@@ -339,7 +339,7 @@ begin
   have h_set : ∀ p : sphere (0:E) 1, p = v' ↔ ⟪(p:E), v'⟫_ℝ = 1,
   { simp [subtype.ext_iff, inner_eq_norm_mul_iff_of_norm_one] },
   ext,
-  simp [h_set, hUv, hU'v', stereographic, real_inner_comm]
+  simp [h_set, hUv, hU'v', stereographic, real_inner_comm, ← submodule.coe_norm]
 end
 
 /-- The inclusion map (i.e., `coe`) from the sphere in `E` to `E` is smooth.  -/

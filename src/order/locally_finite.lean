@@ -200,6 +200,9 @@ begin
   exact ⟨ha.trans hx.1, hx.2.trans_le hb⟩,
 end
 
+@[simp] lemma Ico_self {a : α} : Ico a a = ∅ :=
+by { ext, simp only [not_and, mem_Ico, iff_false, not_mem_empty], exact not_lt_of_le, }
+
 end preorder
 
 section order_top

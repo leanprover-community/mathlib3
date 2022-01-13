@@ -200,11 +200,13 @@ begin
   -- the core of the problem is these two algebraic identities:
   have h₁ : (2 ^ 2 / (1 - a) ^ 2 * ∥y∥ ^ 2 + 4)⁻¹ * 4 * (2 / (1 - a)) = 1,
   { field_simp,
+    simp only [submodule.coe_norm] at *,
     nlinarith },
   have h₂ : (2 ^ 2 / (1 - a) ^ 2 * ∥y∥ ^ 2 + 4)⁻¹ * (2 ^ 2 / (1 - a) ^ 2 * ∥y∥ ^ 2 - 4) = a,
   { field_simp,
     transitivity (1 - a) ^ 2 * (a * (2 ^ 2 * ∥y∥ ^ 2 + 4 * (1 - a) ^ 2)),
     { congr,
+      simp only [submodule.coe_norm] at *,
       nlinarith },
     ring },
   -- deduce the result

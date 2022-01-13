@@ -152,7 +152,7 @@ begin
 end
 
 lemma eq_zero_of_basic_open_empty {X : Scheme} [hX : is_reduced X] {U : opens X.carrier}
-  (s : X.presheaf.obj (op U)) (hs : X.to_LocallyRingedSpace.to_RingedSpace.basic_open s = ∅) :
+  (s : X.presheaf.obj (op U)) (hs : X.basic_open s = ∅) :
   s = 0 :=
 begin
   apply Top.presheaf.section_ext X.sheaf U,
@@ -163,7 +163,7 @@ begin
   { intros X U hx hX s hs x,
     obtain ⟨V, hx, i, H⟩ := hx x,
     specialize H (X.presheaf.map i.op s),
-    erw RingedSpace.basic_open_res at H,
+    erw Scheme.basic_open_res at H,
     rw [hs, ← subtype.coe_injective.eq_iff, opens.empty_eq, opens.inter_eq, inf_bot_eq] at H,
     specialize H rfl ⟨x, hx⟩,
     erw Top.presheaf.germ_res_apply at H,
@@ -175,7 +175,7 @@ begin
     rintros H hX s hs ⟨_, x, rfl⟩,
     haveI := is_reduced_of_open_immersion f,
     specialize H (f.1.c.app _ s) _ ⟨x, by { change x ∈ (f.val.base) ⁻¹' _, rw e, trivial }⟩,
-    { rw [← LocallyRingedSpace.preimage_basic_open, hs], ext1, simp [opens.map] },
+    { rw [← Scheme.preimage_basic_open, hs], ext1, simp [opens.map] },
     { erw ← PresheafedSpace.stalk_map_germ_apply f.1 ⟨_,_⟩ ⟨x,_⟩ at H,
       apply_fun (inv $ PresheafedSpace.stalk_map f.val x) at H,
       erw [category_theory.is_iso.hom_inv_id_apply, map_zero] at H,

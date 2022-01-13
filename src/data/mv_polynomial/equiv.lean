@@ -491,22 +491,24 @@ lemma fin_succ_equiv_support' {n : ℕ} {f : mv_polynomial (fin (n + 1)) R} {i :
    = f.support.filter(λ m, m 0 = i) :=
 begin
   ext m,
-  apply iff.intro,
+  rw [finset.mem_filter, finset.mem_image, mem_support_iff],
+  conv
+  begin
+    to_lhs,
+    congr,
+    funext,
+    rw [mem_support_iff, fin_succ_equiv_coeff_coeff, ne.def],
+  end,
+  split,
   { intro hm,
-    rw finset.mem_image at hm,
     cases hm with m' hm',
     cases hm' with h hm',
-    rw [mem_support_iff, fin_succ_equiv_coeff_coeff m' f i] at h,
-    simp only [←hm', mem_support_iff, ne.def, finset.mem_filter],
+    simp only [←hm'],
     exact ⟨h, by rw cons_zero⟩ },
   { intro h,
-    simp only [mem_support_iff, finset.mem_image, ne.def],
-    simp only [mem_support_iff, ne.def, finset.mem_filter] at h,
     use tail m,
-    apply and.intro,
-    { rw [mem_support_iff, fin_succ_equiv_coeff_coeff (tail m) f i, ← h.2, cons_tail],
-      exact h.1 },
-    { rw [← h.2, cons_tail] } },
+    rw [← h.2, cons_tail],
+    simp [h.1] }
 end
 
 lemma support_fin_succ_equiv_nonempty  {n : ℕ} {f : mv_polynomial (fin (n + 1)) R} (h : f ≠ 0) :

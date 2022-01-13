@@ -7,6 +7,7 @@ import measure_theory.measure.lebesgue
 import measure_theory.measure.haar
 import linear_algebra.finite_dimensional
 import analysis.normed_space.pointwise
+import measure_theory.group.pointwise
 
 /-!
 # Relationship between the Haar and Lebesgue measures
@@ -28,6 +29,10 @@ We deduce basic properties of any Haar measure on a finite dimensional real vect
 * `add_haar_closed_ball`: the measure of `closed_ball x r` is `r ^ dim * μ (ball 0 1)`.
 * `add_haar_sphere`: spheres have zero measure.
 
+We also show that a Lebesgue density point `x` of a set `s` (with respect to closed balls) has also
+density one for the rescaled copies `{x} + r • t` of a given set `t` with positive measure, in
+`tendsto_add_haar_inter_smul_one_of_density_one`. In particular, `s` intersects `{x} + r • t` for
+small `r`, see `eventually_nonempty_inter_smul_of_density_one`.
 -/
 
 open topological_space set filter metric
@@ -498,7 +503,31 @@ calc
     { simp only [ennreal.of_real_ne_top, ne.def, not_false_iff] }
   end
 
-lemma tendsto_measure_inter_smul_zero_of_tendsto_measure_inter_closed_ball_zero_aux1
+/-!
+### Density points
+
+Besicovitch covering theorem ensures that, for any locally finite measure on a finite-dimensional
+real vector space, almost every point of a set `s` is a density point, i.e.,
+`μ (s ∩ closed_ball x r) / μ (closed_ball x r)` tends to `1` as `r` tends to `0`
+(see `besicovitch.ae_tendsto_measure_inter_div`).
+When `μ` is a Haar measure, one can deduce the same property for any rescaling sequence of sets,
+of the form `{x} + r • t` where `t` is a set with positive finite measure, instead of the sequence
+of closed balls.
+
+We argue first for the dual property, i.e., if `s` has density `0` at `x`, then
+`μ (s ∩ ({x} + r • t)) / μ ({x} + r • t)` tends to `0`. First when `t` is contained in the ball
+of radius `1`, in `tendsto_add_haar_inter_smul_zero_of_density_zero_aux1`,
+(by arguing by inclusion). Then when `t` is bounded, reducing to the previous one by rescaling, in
+`tendsto_add_haar_inter_smul_zero_of_density_zero_aux2`.
+Then for a general set `t`, by cutting it into a bounded part and a part with small measure, in
+`tendsto_add_haar_inter_smul_zero_of_density_zero`.
+Going to the complement, one obtains the desired property at points of density `1`, first when
+`s` is measurable in `tendsto_add_haar_inter_smul_one_of_density_one_aux`, and then without this
+assumption in `tendsto_add_haar_inter_smul_one_of_density_one` by applying the previous lemma to
+the measurable hull `to_measurable μ s`
+-/
+
+lemma tendsto_add_haar_inter_smul_zero_of_density_zero_aux1
   (s : set E) (x : E)
   (h : tendsto (λ r, μ (s ∩ closed_ball x r) / μ (closed_ball x r)) (𝓝[>] 0) (𝓝 0))
   (t : set E) (u : set E) (h'u : μ u ≠ 0) (t_bound : t ⊆ closed_ball 0 1) :
@@ -508,8 +537,7 @@ begin
   { apply tendsto_of_tendsto_of_tendsto_of_le_of_le' tendsto_const_nhds h
       (eventually_of_forall (λ b, zero_le _)),
     filter_upwards [self_mem_nhds_within],
-    assume r rpos,
-    change 0 < r at rpos,
+    rintros r (rpos : 0 < r),
     apply ennreal.mul_le_mul (measure_mono (inter_subset_inter_right _ _)) le_rfl,
     assume y hy,
     have : y - x ∈ r • closed_ball (0 : E) 1,
@@ -521,8 +549,7 @@ begin
     (𝓝 (μ (closed_ball x 1) / μ ({x} + u))),
   { apply tendsto_const_nhds.congr' _,
     filter_upwards [self_mem_nhds_within],
-    assume r rpos,
-    change 0 < r at rpos,
+    rintros r (rpos : 0 < r),
     have : closed_ball x r = {x} + r • closed_ball 0 1,
       by simp only [smul_closed_ball, real.norm_of_nonneg rpos.le, zero_le_one, add_zero, mul_one,
         singleton_add_closed_ball, smul_zero],
@@ -538,8 +565,7 @@ begin
   simp only [zero_mul] at C,
   apply C.congr' _,
   filter_upwards [self_mem_nhds_within],
-  assume r rpos,
-  change 0 < r at rpos,
+  rintros r (rpos : 0 < r),
   calc μ (s ∩ ({x} + r • t)) / μ (closed_ball x r) * (μ (closed_ball x r) / μ ({x} + r • u))
     = (μ (closed_ball x r) * (μ (closed_ball x r))⁻¹) * (μ (s ∩ ({x} + r • t)) / μ ({x} + r • u)) :
       by { simp only [div_eq_mul_inv], ring }
@@ -548,8 +574,7 @@ begin
           measure_closed_ball_lt_top.ne, one_mul],
 end
 
-
-lemma tendsto_measure_inter_smul_zero_of_tendsto_measure_inter_closed_ball_zero_aux2
+lemma tendsto_add_haar_inter_smul_zero_of_density_zero_aux2
   (s : set E) (x : E)
   (h : tendsto (λ r, μ (s ∩ closed_ball x r) / μ (closed_ball x r)) (𝓝[>] 0) (𝓝 0))
   (t : set E) (u : set E) (h'u : μ u ≠ 0)
@@ -559,7 +584,7 @@ begin
   set t' := R⁻¹ • t with ht',
   set u' := R⁻¹ • u with hu',
   have A : tendsto (λ (r : ℝ), μ (s ∩ ({x} + r • t')) / μ ({x} + r • u')) (𝓝[>] 0) (𝓝 0),
-  { apply tendsto_measure_inter_smul_zero_of_tendsto_measure_inter_closed_ball_zero_aux1 μ s x h
+  { apply tendsto_add_haar_inter_smul_zero_of_density_zero_aux1 μ s x h
       t' u',
     { simp only [h'u, (pow_pos Rpos _).ne', abs_nonpos_iff, add_haar_smul, not_false_iff,
         ennreal.of_real_eq_zero, inv_eq_zero, inv_pow₀, ne.def, or_self, mul_eq_zero] },
@@ -576,8 +601,7 @@ begin
   rw mul_zero at B,
   apply (A.comp B).congr' _,
   filter_upwards [self_mem_nhds_within],
-  assume r rpos,
-  change 0 < r at rpos,
+  rintros r (rpos : 0 < r),
   have T : (R * r) • t' = r • t,
     by rw [mul_comm, ht', smul_smul, mul_assoc, mul_inv_cancel Rpos.ne', mul_one],
   have U : (R * r) • u' = r • u,
@@ -586,14 +610,16 @@ begin
   rw [T, U],
 end
 
-
-lemma tendsto_measure_inter_smul_zero_of_tendsto_measure_inter_closed_ball_zero
+/-- Consider a point `x` at which a set `s` has density zero, with respect to closed balls. Then it
+also has density zero with respect to any measurable set `t`: the proportion of points in `s`
+belonging to a rescaled copy `{x} + r • t` of `t` tends to zero as `r` tends to zero. -/
+lemma tendsto_add_haar_inter_smul_zero_of_density_zero
   (s : set E) (x : E)
   (h : tendsto (λ r, μ (s ∩ closed_ball x r) / μ (closed_ball x r)) (𝓝[>] 0) (𝓝 0))
   (t : set E) (ht : measurable_set t) (h''t : μ t ≠ ∞) :
   tendsto (λ (r : ℝ), μ (s ∩ ({x} + r • t)) / μ ({x} + r • t)) (𝓝[>] 0) (𝓝 0) :=
 begin
-  refine tendsto_order.2 ⟨λ a' ha', (ennreal.not_lt_zero ha').elim, λ ε εpos, _⟩,
+  refine tendsto_order.2 ⟨λ a' ha', (ennreal.not_lt_zero ha').elim, λ ε (εpos : 0 < ε), _⟩,
   rcases eq_or_ne (μ t) 0 with h't|h't,
   { apply eventually_of_forall (λ r, _),
     suffices H : μ (s ∩ ({x} + r • t)) = 0,
@@ -602,7 +628,6 @@ begin
     calc μ (s ∩ ({x} + r • t)) ≤ μ ({x} + r • t) : measure_mono (inter_subset_right _ _)
     ... = 0 : by simp only [h't, add_haar_smul, image_add_left, add_haar_preimage_add,
       singleton_add, mul_zero] },
-  change 0 < ε at εpos,
   obtain ⟨n, npos, hn⟩ : ∃ (n : ℕ), 0 < n ∧ μ (t \ closed_ball 0 n) < (ε / 2) * μ t,
   { have A : tendsto (λ (n : ℕ), μ (t \ closed_ball 0 n)) at_top
       (𝓝 (μ (⋂ (n : ℕ), t \ closed_ball 0 n))),
@@ -618,11 +643,10 @@ begin
     exact (eventually.and (Ioi_mem_at_top 0) ((tendsto_order.1 A).2 _ I)).exists },
   have L : tendsto (λ (r : ℝ), μ (s ∩ ({x} + r • (t ∩ closed_ball 0 n))) / μ ({x} + r • t))
     (𝓝[>] 0) (𝓝 0) :=
-      tendsto_measure_inter_smul_zero_of_tendsto_measure_inter_closed_ball_zero_aux2 μ s x h
+      tendsto_add_haar_inter_smul_zero_of_density_zero_aux2 μ s x h
         _ t h't n (nat.cast_pos.2 npos) (inter_subset_right _ _),
   filter_upwards [(tendsto_order.1 L).2 _ (ennreal.half_pos εpos.ne'), self_mem_nhds_within],
-  assume r hr rpos,
-  change 0 < r at rpos,
+  rintros r hr (rpos : 0 < r),
   have I : μ (s ∩ ({x} + r • t)) ≤
     μ (s ∩ ({x} + r • (t ∩ closed_ball 0 n))) + μ ({x} + r • (t \ closed_ball 0 n)) := calc
   μ (s ∩ ({x} + r • t))
@@ -645,33 +669,93 @@ begin
   ... = ε : ennreal.add_halves _
 end
 
-lemma tendsto_measure_inter_smul_one_of_tendsto_measure_inter_closed_ball_one_aux (s : set E) (x : E)
-  (h : tendsto (λ r, μ (s ∩ closed_ball x r) / μ (closed_ball x r)) (𝓝[>] 0) (𝓝 1))
-  (t : set E) (ht : measurable_set t) (h't : μ t ≠ 0) (h''t : μ t ≠ ∞)
-  (R : ℝ) (t_bound : t ⊆ closed_ball 0 1) :
-  tendsto (λ (r : ℝ), μ (s ∩ ({x} + r • t)) / μ ({x} + r • t)) (𝓝[>] 0) (𝓝 1) :=
-begin
-  have A : tendsto (λ r, μ (closed_ball x r) / μ (closed_ball x r)) (𝓝[>] 0) (𝓝 1),
-  { apply tendsto_const_nhds.congr' _,
-    filter_upwards [self_mem_nhds_within],
-    assume r hr,
-    rw [div_eq_mul_inv, ennreal.mul_inv_cancel],
-    { apply (add_haar_closed_ball_pos μ _ hr).ne' },
-    { exact measure_closed_ball_lt_top.ne } },
-  have B := ennreal.tendsto_coe_sub,
-end
-
-#exit
-
-lemma tendsto_measure_inter_smul_one_of_tendsto_measure_inter_closed_ball_one (s : set E) (x : E)
+lemma tendsto_add_haar_inter_smul_one_of_density_one_aux
+  (s : set E) (hs : measurable_set s) (x : E)
   (h : tendsto (λ r, μ (s ∩ closed_ball x r) / μ (closed_ball x r)) (𝓝[>] 0) (𝓝 1))
   (t : set E) (ht : measurable_set t) (h't : μ t ≠ 0) (h''t : μ t ≠ ∞) :
   tendsto (λ (r : ℝ), μ (s ∩ ({x} + r • t)) / μ ({x} + r • t)) (𝓝[>] 0) (𝓝 1) :=
-sorry
+begin
+  have I : ∀ u v, μ u ≠ 0 → μ u ≠ ∞ → measurable_set v →
+    μ u / μ u - μ (vᶜ ∩ u) / μ u = μ (v ∩ u) / μ u,
+  { assume u v uzero utop vmeas,
+    simp_rw [div_eq_mul_inv],
+    rw ← ennreal.sub_mul, swap,
+    { simp only [uzero, ennreal.inv_eq_top, implies_true_iff, ne.def, not_false_iff] },
+    congr' 1,
+    apply ennreal.sub_eq_of_add_eq
+      (lt_of_le_of_lt (measure_mono (inter_subset_right _ _)) utop.lt_top).ne,
+    rw [inter_comm _ u, inter_comm _ u],
+    exact measure_inter_add_diff u vmeas },
+  have L : tendsto (λ r, μ (sᶜ ∩ closed_ball x r) / μ (closed_ball x r)) (𝓝[>] 0) (𝓝 0),
+  { have A : tendsto (λ r, μ (closed_ball x r) / μ (closed_ball x r)) (𝓝[>] 0) (𝓝 1),
+    { apply tendsto_const_nhds.congr' _,
+      filter_upwards [self_mem_nhds_within],
+      assume r hr,
+      rw [div_eq_mul_inv, ennreal.mul_inv_cancel],
+      { apply (add_haar_closed_ball_pos μ _ hr).ne' },
+      { exact measure_closed_ball_lt_top.ne } },
+    have B := ennreal.tendsto.sub A h (or.inl ennreal.one_ne_top),
+    simp only [tsub_self] at B,
+    apply B.congr' _,
+    filter_upwards [self_mem_nhds_within],
+    rintros r (rpos : 0 < r),
+    convert I (closed_ball x r) sᶜ (add_haar_closed_ball_pos μ _ rpos).ne'
+      (measure_closed_ball_lt_top).ne hs.compl,
+    rw compl_compl },
+  have L' : tendsto (λ (r : ℝ), μ (sᶜ ∩ ({x} + r • t)) / μ ({x} + r • t)) (𝓝[>] 0) (𝓝 0) :=
+    tendsto_add_haar_inter_smul_zero_of_density_zero μ sᶜ x L t ht h''t,
+  have L'' : tendsto (λ (r : ℝ), μ ({x} + r • t) / μ ({x} + r • t)) (𝓝[>] 0) (𝓝 1),
+  { apply tendsto_const_nhds.congr' _,
+    filter_upwards [self_mem_nhds_within],
+    rintros r (rpos : 0 < r),
+    rw [add_haar_singleton_add_smul_div_singleton_add_smul μ rpos.ne', ennreal.div_self h't h''t] },
+  have := ennreal.tendsto.sub L'' L' (or.inl ennreal.one_ne_top),
+  simp only [tsub_zero] at this,
+  apply this.congr' _,
+  filter_upwards [self_mem_nhds_within],
+  rintros r (rpos : 0 < r),
+  refine I ({x} + r • t) s _ _ hs,
+  { simp only [h't, abs_of_nonneg rpos.le, pow_pos rpos, add_haar_smul, image_add_left,
+      ennreal.of_real_eq_zero, not_le, or_false, ne.def, add_haar_preimage_add, abs_pow,
+      singleton_add, mul_eq_zero] },
+  { simp only [h''t, ennreal.of_real_ne_top, add_haar_smul, image_add_left, with_top.mul_eq_top_iff,
+      ne.def, not_false_iff, add_haar_preimage_add, singleton_add, and_false, false_and, or_self] }
+end
 
-#exit
+/-- Consider a point `x` at which a set `s` has density one, with respect to closed balls (i.e.,
+a Lebesgue density point of `s`). Then `s` has also density one at `x` with respect to any
+measurable set `t`: the proportion of points in `s` belonging to a rescaled copy `{x} + r • t`
+of `t` tends to one as `r` tends to zero. -/
+lemma tendsto_add_haar_inter_smul_one_of_density_one
+  (s : set E) (x : E)
+  (h : tendsto (λ r, μ (s ∩ closed_ball x r) / μ (closed_ball x r)) (𝓝[>] 0) (𝓝 1))
+  (t : set E) (ht : measurable_set t) (h't : μ t ≠ 0) (h''t : μ t ≠ ∞) :
+  tendsto (λ (r : ℝ), μ (s ∩ ({x} + r • t)) / μ ({x} + r • t)) (𝓝[>] 0) (𝓝 1) :=
+begin
+  have : tendsto (λ (r : ℝ), μ (to_measurable μ s ∩ ({x} + r • t)) / μ ({x} + r • t))
+    (𝓝[>] 0) (𝓝 1),
+  { apply tendsto_add_haar_inter_smul_one_of_density_one_aux μ _
+      (measurable_set_to_measurable _ _) _ _ t ht h't h''t,
+    apply tendsto_of_tendsto_of_tendsto_of_le_of_le' h tendsto_const_nhds,
+    { apply eventually_of_forall (λ r, _),
+      apply ennreal.mul_le_mul _ le_rfl,
+      exact measure_mono (inter_subset_inter_left _ (subset_to_measurable _ _)) },
+    { filter_upwards [self_mem_nhds_within],
+      rintros r (rpos : 0 < r),
+      apply ennreal.div_le_of_le_mul,
+      rw one_mul,
+      exact measure_mono (inter_subset_right _ _) } },
+  apply this.congr (λ r, _),
+  congr' 1,
+  apply measure_to_measurable_inter_of_sigma_finite,
+  simp only [image_add_left, singleton_add],
+  apply (continuous_add_left (-x)).measurable (ht.const_smul₀ r)
+end
 
-lemma eventually_nonempty_inter_smul_of_tendsto_measure_inter_closed_ball_one (s : set E) (x : E)
+/-- Consider a point `x` at which a set `s` has density one, with respect to closed balls (i.e.,
+a Lebesgue density point of `s`). Then `s` intersects the rescaled copies `{x} + r • t` of a given
+set `t` with positive measure, for any small enough `r`. -/
+lemma eventually_nonempty_inter_smul_of_density_one (s : set E) (x : E)
   (h : tendsto (λ r, μ (s ∩ closed_ball x r) / μ (closed_ball x r)) (𝓝[>] 0) (𝓝 1))
   (t : set E) (ht : measurable_set t) (h't : μ t ≠ 0) :
   ∀ᶠ r in 𝓝[>] (0 : ℝ), (s ∩ ({x} + r • t)).nonempty :=
@@ -680,7 +764,7 @@ begin
     ∃ t', measurable_set t' ∧ t' ⊆ t ∧ 0 < μ t' ∧ μ t' < ⊤ :=
       exists_subset_measure_lt_top ht h't.bot_lt,
   filter_upwards [(tendsto_order.1
-    (tendsto_measure_inter_smul_one_of_tendsto_measure_inter_closed_ball_one μ s x h t'
+    (tendsto_add_haar_inter_smul_one_of_density_one μ s x h t'
       t'_meas t'pos.ne' t'top.ne)).1 0 ennreal.zero_lt_one],
   assume r hr,
   have : μ (s ∩ ({x} + r • t')) ≠ 0 :=

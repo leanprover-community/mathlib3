@@ -27,7 +27,7 @@ namespace lp
 lemma summable_inner (f g : lp G 2) : summable (λ i, ⟪f i, g i⟫) :=
 begin
   -- Apply the Direct Comparison Test, comparing with ∑' i, ∥f i∥ * ∥g i∥ (summable by Hölder)
-  refine summable_of_norm_bounded (λ i, ∥f i∥ * ∥g i∥) (lp.tsum_inner_mul_inner_le _ f g).1 _,
+  refine summable_of_norm_bounded (λ i, ∥f i∥ * ∥g i∥) (lp.summable_mul _ f g) _,
   { rw real.is_conjugate_exponent_iff;
     norm_num },
   intros i,

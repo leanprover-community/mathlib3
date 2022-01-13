@@ -728,7 +728,7 @@ lemma snorm_condexp_L2_le (hm : m ≤ m0) (f : α →₂[μ] E) :
   snorm (condexp_L2 𝕜 hm f) 2 μ ≤ snorm f 2 μ :=
 begin
   rw [Lp_meas_coe, ← ennreal.to_real_le_to_real (Lp.snorm_ne_top _) (Lp.snorm_ne_top _),
-    ← Lp.norm_def, ← Lp.norm_def, submodule.norm_coe],
+    ← Lp.norm_def, ← Lp.norm_def, add_subgroup.norm_coe],
   exact norm_condexp_L2_le hm f,
 end
 

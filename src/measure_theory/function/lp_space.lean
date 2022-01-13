@@ -1235,6 +1235,14 @@ def Lp {α} (E : Type*) {m : measurable_space α} [measurable_space E] [normed_g
 localized "notation α ` →₁[`:25 μ `] ` E := measure_theory.Lp E 1 μ" in measure_theory
 localized "notation α ` →₂[`:25 μ `] ` E := measure_theory.Lp E 2 μ" in measure_theory
 
+/-- Prefer to inherit `add_comm_group → add_comm_monoid` over `add_submonoid_class → _`.
+
+This speeds up some unifications, especially with the `normed_group` instance a whole lot,
+since those problems involve huge terms due to all the parameters.
+-/
+instance [borel_space E] [second_countable_topology E] : add_comm_monoid (Lp E p μ) :=
+add_comm_group.to_add_comm_monoid _
+
 namespace mem_ℒp
 
 variables [borel_space E] [second_countable_topology E]

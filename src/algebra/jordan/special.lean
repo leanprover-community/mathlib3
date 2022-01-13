@@ -3,7 +3,7 @@ Copyright (c) 2021 Christopher Hoskin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christopher Hoskin
 -/
-import algebra.symmeterised
+import algebra.symmetrized
 import algebra.jordan.basic
 
 /-!
@@ -32,14 +32,14 @@ multiplication is said to be a special Jordan algebra.
 open sym_alg
 
 /- 2 commutes with every element of a ring -/
-lemma two_commute (α : Type*) [ring α] (a : α) : commute 2 a := begin
+lemma two_commute {α : Type*} [ring α] (a : α) : commute 2 a := begin
   --convert commute.semiconj_by 2 a,
   unfold _root_.commute,
   rw [semiconj_by, mul_two, two_mul],
 end
 
 /- If 2 is invertible, ⅟2 commutes with every element of a ring -/
-lemma half_commute (α : Type*) [ring α] [invertible (2 : α)] (a : α) : commute (⅟2) a :=
+lemma half_commute {α : Type*} [ring α] [invertible (2 : α)] (a : α) : commute (⅟2) a :=
   commute.inv_of_left (two_commute a)
 
 /- The symmetrisation of a real (unital, associative) algebra multiplication is a commutative
@@ -68,7 +68,7 @@ instance (α : Type*) [ring α] [invertible (2 : α)] : is_comm_jordan (αˢʸ�
     nth_rewrite_rhs 0 mul_add (unsym a),
     rw [add_mul, ← add_assoc, ← mul_assoc, ← mul_assoc],
 
-    rw sym_squares,
+    rw unsym_mul_self,
     rw [← mul_assoc, ← mul_assoc, ← mul_assoc, ← mul_assoc, ← sub_eq_zero, ← mul_sub],
 
     convert mul_zero (⅟(2:α) * ⅟(2:α)),

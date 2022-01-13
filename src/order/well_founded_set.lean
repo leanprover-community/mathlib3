@@ -144,7 +144,7 @@ end has_lt
 section preorder
 variables [preorder α] {s t : set α} {a : α}
 
-theorem is_wf.union (hs : is_wf s) (ht : is_wf t) : is_wf (s ∪ t) := hs.union ht
+protected theorem is_wf.union (hs : is_wf s) (ht : is_wf t) : is_wf (s ∪ t) := hs.union ht
 
 @[simp] theorem is_wf_union : is_wf (s ∪ t) ↔ is_wf s ∧ is_wf t := well_founded_on_union
 
@@ -300,7 +300,7 @@ theorem is_pwo_iff_exists_monotone_subseq :
   s.is_pwo ↔ ∀ f : ℕ → α, (∀ n, f n ∈ s) → ∃ (g : ℕ ↪o ℕ), monotone (f ∘ g) :=
 partially_well_ordered_on_iff_exists_monotone_subseq
 
-lemma is_pwo.is_wf (h : s.is_pwo) : s.is_wf :=
+protected lemma is_pwo.is_wf (h : s.is_pwo) : s.is_wf :=
 by simpa only [← lt_iff_le_not_le] using h.well_founded_on
 
 lemma is_pwo.prod {β : Type*} [preorder β] {t : set β} (hs : s.is_pwo) (ht : t.is_pwo) :
@@ -317,12 +317,12 @@ theorem is_pwo.image_of_monotone {β : Type*} [preorder β] (hs : s.is_pwo) {f :
   is_pwo (f '' s) :=
 hs.image_of_monotone_on (hf.monotone_on _)
 
-theorem is_pwo.union (hs : is_pwo s) (ht : is_pwo t) : is_pwo (s ∪ t) := hs.union ht
+protected theorem is_pwo.union (hs : is_pwo s) (ht : is_pwo t) : is_pwo (s ∪ t) := hs.union ht
 
 @[simp] theorem is_pwo_union : is_pwo (s ∪ t) ↔ is_pwo s ∧ is_pwo t :=
 partially_well_ordered_on_union
 
-theorem finite.is_pwo (hs : finite s) : is_pwo s := hs.partially_well_ordered_on
+protected theorem finite.is_pwo (hs : finite s) : is_pwo s := hs.partially_well_ordered_on
 
 @[simp] theorem is_pwo_singleton (a : α) : is_pwo ({a} : set α) := (finite_singleton a).is_pwo
 
@@ -335,7 +335,7 @@ by simp only [← singleton_union, is_pwo_union, is_pwo_singleton, true_and]
 
 protected theorem is_pwo.insert (h : is_pwo s) (a : α) : is_pwo (insert a s) := is_pwo_insert.2 h
 
-theorem finite.is_wf (hs : finite s) : is_wf s := hs.is_pwo.is_wf
+protected theorem finite.is_wf (hs : finite s) : is_wf s := hs.is_pwo.is_wf
 @[simp] theorem is_wf_empty : is_wf (∅ : set α) := finite_empty.is_wf
 @[simp] theorem is_wf_singleton {a : α} : is_wf ({a} : set α) := (finite_singleton a).is_wf
 protected theorem subsingleton.is_wf (hs : s.subsingleton) : is_wf s := hs.is_pwo.is_wf
@@ -351,7 +351,7 @@ section well_founded_on
 
 variables {r : α → α → Prop} [is_strict_order α r] {s : set α} {a : α}
 
-theorem finite.well_founded_on (hs : finite s) :
+protected theorem finite.well_founded_on (hs : finite s) :
   set.well_founded_on s r :=
 by { letI := partial_order_of_SO r, exact hs.is_wf }
 

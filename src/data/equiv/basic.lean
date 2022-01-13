@@ -1136,8 +1136,8 @@ variables {α₁ β₁ β₂ : Type*} [decidable_eq α₁] (a : α₁) (e : perm
 def prod_extend_right : perm (α₁ × β₁) :=
 { to_fun := λ ab, if ab.fst = a then (a, e ab.snd) else ab,
   inv_fun := λ ab, if ab.fst = a then (a, e.symm ab.snd) else ab,
-  left_inv := by { rintros ⟨k', x⟩, simp only, split_ifs with h; simp [h] },
-  right_inv := by { rintros ⟨k', x⟩, simp only, split_ifs with h; simp [h] } }
+  left_inv := by { rintros ⟨k', x⟩, dsimp only, split_ifs with h; simp [h] },
+  right_inv := by { rintros ⟨k', x⟩, dsimp only, split_ifs with h; simp [h] } }
 
 @[simp] lemma prod_extend_right_apply_eq (b : β₁) :
   prod_extend_right a e (a, b) = (a, e b) := if_pos rfl

@@ -2,7 +2,7 @@ import data.finset.basic
 import data.set.finite
 import data.nat.enat
 
-universes u
+universes u v w
 
 @[ext]
 structure ASC (V : Type u) :=
@@ -174,3 +174,31 @@ def pure (K : ASC V) : Prop :=
 end classical
 
 end ASC
+
+@[ext]
+structure simplicial_map {U : Type u} {V : Type v} [decidable_eq V] (K : ASC U) (L : ASC V) :=
+(vertex_map : U → V)
+(face : ∀ s ∈ K, (s : finset U).image vertex_map ∈ L)
+
+notation K ` →ₛ ` L := simplicial_map K L
+
+namespace simplicial_map
+
+variables {U : Type u} {V : Type v} {W : Type w}
+variables [decidable_eq V] [decidable_eq W]
+variables {K : ASC U} {L : ASC V} {M : ASC W}
+
+def comp (g : L →ₛ M) (f : K →ₛ L) : K →ₛ M :=
+{ vertex_map := g.vertex_map ∘ f.vertex_map,
+  face := λ s hs, begin
+    rw ←finset.image_image,
+    apply g.face,
+    apply f.face,
+    exact hs
+  end }
+
+def id (L : ASC V) : L →ₛ L :=
+{ vertex_map := id,
+  face := λ s hs, by rwa finset.image_id }
+
+end simplicial_map

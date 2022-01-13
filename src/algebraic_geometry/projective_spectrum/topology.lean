@@ -10,6 +10,7 @@ import linear_algebra.finsupp
 import algebra.punit_instances
 import ring_theory.graded_algebra.homogeneous_ideal
 import algebra.direct_sum.ring
+
 /-!
 # Prime spectrum of a commutative ring
 
@@ -43,7 +44,7 @@ and Chris Hughes (on an earlier repository).
 -/
 
 noncomputable theory
-open_locale classical direct_sum big_operators pointwise
+open_locale direct_sum big_operators pointwise
 open direct_sum set_like
 
 variables {ι R A: Type*} [linear_ordered_cancel_add_comm_monoid ι]

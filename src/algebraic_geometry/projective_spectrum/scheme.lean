@@ -7,22 +7,23 @@ noncomputable theory
 
 namespace algebraic_geometry
 
-open_locale classical direct_sum big_operators pointwise big_operators
+open_locale direct_sum big_operators pointwise big_operators
 open direct_sum set_like
 
 variables {R A: Type}
 variables [comm_ring R] [comm_ring A] [algebra R A]
 
 variables (𝒜 : ℕ → submodule R A)
-  [@graded_algebra ℕ R A (λ (a b : ℕ), classical.prop_decidable (a = b))
-    (@ordered_add_comm_monoid.to_add_comm_monoid ℕ
-       (@ordered_cancel_add_comm_monoid.to_ordered_add_comm_monoid ℕ
-          (@linear_ordered_cancel_add_comm_monoid.to_ordered_cancel_add_comm_monoid ℕ
-             nat.linear_ordered_cancel_add_comm_monoid)))
-    (@comm_ring.to_comm_semiring R _inst_1)
-    (@comm_ring.to_ring A _inst_2)
-    _inst_3
-    𝒜] [graded_algebra 𝒜]
+  -- [@graded_algebra ℕ R A (λ (a b : ℕ), classical.prop_decidable (a = b))
+  --   (@ordered_add_comm_monoid.to_add_comm_monoid ℕ
+  --      (@ordered_cancel_add_comm_monoid.to_ordered_add_comm_monoid ℕ
+  --         (@linear_ordered_cancel_add_comm_monoid.to_ordered_cancel_add_comm_monoid ℕ
+  --            nat.linear_ordered_cancel_add_comm_monoid)))
+  --   (@comm_ring.to_comm_semiring R _inst_1)
+  --   (@comm_ring.to_ring A _inst_2)
+  --   _inst_3
+  --   𝒜]
+    [graded_algebra 𝒜]
 
 open Top
 open topological_space
@@ -46,7 +47,7 @@ begin
 end
 
 @[derive [comm_ring]]
-def degree_zero_part (f : A) (m : ℕ) (f_deg : f ∈ 𝒜 m) : Type* :=
+def degree_zero_part (f : A) (m : ℕ) (f_deg : f ∈ 𝒜 m) : subring (localization.away f) :=
   subring.mk
     { y : localization.away f | ∃ (n : ℕ) (a : A) (a_deg : a ∈ 𝒜 (m * n)),
       y = localization.mk a ⟨f^n, ⟨n, rfl⟩⟩ }
@@ -150,133 +151,266 @@ def isos.forward.carrier (f : A) (m : ℕ) (f_deg : f ∈ 𝒜 m)
 --     sorry
 --   end }
 
-def isos.backward.carrier (f : A) (m : ℕ) (f_deg : f ∈ 𝒜 m)
-  (q : (Spec (degree_zero_part _ f m f_deg)).to_SheafedSpace.to_PresheafedSpace.1) :
-  ideal A :=
-{ carrier := { a | localization.mk a 1 ∈
-    ideal.span { z : localization.away f | ∃ (c : q.1), z = c.1.1 } },
-  zero_mem' := begin
-    rw [set.mem_set_of_eq], apply ideal.subset_span,
-    use 0, rw localization.mk_zero, refl,
-  end,
-  add_mem' := λ a b ha hb, begin
-    rw [set.mem_set_of_eq] at ha hb ⊢,
-    have eq1 : localization.mk (a + b) 1 = localization.mk a 1 + localization.mk b 1,
-    { rw localization.add_mk, rw [←subtype.val_eq_coe],
-      have : (1 : submonoid.powers f).val = 1 := rfl,
-      erw [this, one_mul, mul_one],
-      congr' 1, rw [add_comm], congr,
-      convert (one_mul _).symm,  },
-    erw eq1, apply submodule.add_mem _ ha hb,
-  end,
-  smul_mem' := λ a b hb, begin
-    rw [set.mem_set_of_eq] at hb ⊢,
-    rw smul_eq_mul,
-    have eq1 : (localization.mk (a * b) 1 : localization.away f) =
-      localization.mk a 1 * localization.mk b 1,
-    { rw localization.mk_mul,
-      congr' 1, erw one_mul, },
-    erw eq1,
-    refine ideal.mul_mem_left (ideal.span {z : localization.away f | ∃ (c : q.val), z = c.1.1})
-      (localization.mk a 1) hb,
-  end }
-
-def isos.backward.carrier.homogeneous_prime (f : A) (m : ℕ) (f_deg : f ∈ 𝒜 m)
-  (q : (Spec (degree_zero_part _ f m f_deg)).to_SheafedSpace.to_PresheafedSpace.1) :
-  ideal.is_homogeneous 𝒜 (isos.backward.carrier _ f m f_deg q) ∧
-  ideal.is_prime (isos.backward.carrier _ f m f_deg q) :=
+lemma set_like.graded_monoid.pow_deg {f : A} {m} (f_deg : f ∈ 𝒜 m) (n : ℕ) : f ^ n ∈ 𝒜 (n * m) :=
 begin
-  have : ∀ y : degree_zero_part _ f m f_deg,
-      ∃ (n : ℕ) (a : A), a ∈ (𝒜 (m * n)) ∧ y.1 = localization.mk a ⟨f^n,⟨n,rfl⟩⟩,
-  { rintros ⟨y, n, a, a_mem, hy⟩,
-    refine ⟨n, a, a_mem, hy⟩, },
-  choose pick_degree h_pick_degree using this,
-  choose pick_num h_pick_num using h_pick_degree,
-  rw [isos.backward.carrier, ideal.is_homogeneous.iff_exists],
-  use {h | h.1 ∈ set.range pick_num},
+  induction n with n ih,
+  erw [pow_zero, zero_mul],
+  exact set_like.graded_monoid.one_mem,
 
-  -- ideal.span (coe '' {h : ↥(homogeneous_submonoid 𝒜) | h.val ∈ set.range pick_num})
-  -- this is a prime ideal
-  have ideal_is_prime : ideal.is_prime (ideal.span
-    (coe '' {h : (homogeneous_submonoid 𝒜) | h.val ∈ set.range pick_num}) : ideal A),
-  { split,
-    { -- ne_top
-      have ne_top1 := q.2.1,
-      replace ne_top1 : q.1.1 ≠ set.univ,
-      { intro rid,
-        have rid2 : (1 : degree_zero_part _ f m f_deg) ∈ q.1.1,
-        erw rid,
-        exact set.mem_univ _,
-        have : (1 : degree_zero_part _ f m f_deg) ∈ q.1,
-        exact rid2,
-        erw ←ideal.eq_top_iff_one at rid2,
-        apply q.2.1,
-        exact rid2, },
-      replace ne_top1 : ∃ a, a ∉ q.1,
-      { erw set.ne_univ_iff_exists_not_mem at ne_top1, exact ne_top1, },
-      obtain ⟨⟨y, hy⟩, y_not_in⟩ := ne_top1,
-      suffices :
-        (ideal.span (coe '' {h : (homogeneous_submonoid 𝒜) | h.val ∈ set.range pick_num})).carrier
-        ≠ set.univ,
-      { intro rid, erw rid at this, apply this, refl, },
-      erw set.ne_univ_iff_exists_not_mem,
-      induction y using localization.induction_on with data,
-      rcases data with ⟨a, ⟨_, ⟨n, rfl⟩⟩⟩,
-      dsimp only at hy,
-
-      use a, intros ha,
-      erw [←ideal.submodule_span_eq, finsupp.span_eq_range_total, set.mem_range] at ha,
-      obtain ⟨c, eq1⟩ := ha,
-      erw [finsupp.total_apply, finsupp.sum] at eq1,
-
-      have h1 : ∀ x : coe '' {h : (homogeneous_submonoid 𝒜) | h.val ∈ set.range pick_num},
-        ∃ (h : homogeneous_submonoid 𝒜), h.1 ∈ set.range pick_num ∧ h.1 = x.1,
-      { intros x, exact x.2, },
-      choose pick_hom_elm h_pick_hom_elm using h1,
-
-      have eq2 := calc
-              (localization.mk a ⟨f^n, ⟨_, rfl⟩⟩ : localization.away f)
-            = localization.mk (∑ i in c.support, c i * i.1) ⟨f^n, ⟨_, rfl⟩⟩
-            : by { rw ←eq1, refl }
-        ... = ∑ i in c.support, localization.mk (c i * i.1) ⟨f^n, ⟨_, rfl⟩⟩
-            : begin
-              induction c.support using finset.induction_on with a s ha ih,
-              { rw [finset.sum_empty, finset.sum_empty, localization.mk_zero], },
-              { erw [finset.sum_insert, finset.sum_insert, ←ih, localization.add_mk,
-                localization.mk_eq_mk', is_localization.eq],
-                refine ⟨1, _⟩,
-                erw [mul_one, mul_one, ←subtype.val_eq_coe, ←subtype.val_eq_coe,
-                  show ((⟨f ^ n, _⟩ : submonoid.powers f) * ⟨f ^ n, _⟩).val =
-                    (⟨f^n, _⟩ : submonoid.powers f).val * (⟨f^n, _⟩ : submonoid.powers f).val,
-                    from rfl], dsimp only, ring, exact ha, exact ha },
-            end
-        ... = ∑ i in c.support, (localization.mk (c i) 1 : localization.away f) *
-              (localization.mk i.1 ⟨f ^ n, ⟨_, rfl⟩⟩ : localization.away f)
-            : begin
-              rw [finset.sum_congr rfl (λ i hi, _)],
-              rw [localization.mk_mul, one_mul],
-            end,
-
-      sorry },
-    { -- mem_or_mem,
-      sorry
-    }, },
-
-
-  ext x, split; intros hx,
-  { replace hx : localization.mk x 1 ∈ ideal.span _ := hx,
-    erw [←ideal.submodule_span_eq, finsupp.span_eq_range_total, set.mem_range] at hx,
-    obtain ⟨c, eq1⟩ := hx,
-    erw [finsupp.total_apply, finsupp.sum] at eq1,
-
-    -- cancel denominator now
-    sorry },
-  { sorry },
-
-  sorry,
+  erw [mul_comm n.succ m, pow_succ', nat.mul_succ, mul_comm m n],
+  apply set_like.graded_monoid.mul_mem ih f_deg,
 end
 
-def isos.forward.carrer_ne_top (f : A) (m : ℕ) (f_deg : f ∈ 𝒜 m)
+lemma set_like.graded_monoid.nat_deg_zero (n : ℕ) : (n : A) ∈ 𝒜 0 :=
+begin
+  induction n with n ih,
+  exact submodule.zero_mem _,
+
+  rw nat.succ_eq_add_one,
+  have : (↑(n + 1) : A) = (n : A) + 1 := rfl,
+  erw this,
+  apply submodule.add_mem _ ih,
+  exact set_like.graded_monoid.one_mem,
+end
+
+def isos.backward.carrier (f : A) [decidable_eq (localization.away f)] (m : ℕ) (f_deg : f ∈ 𝒜 m)
+  (q : (Spec (degree_zero_part _ f m f_deg)).to_SheafedSpace.to_PresheafedSpace.1) :
+  ideal A :=
+{ carrier := ite (0 < m) ({a | ∀ (i : ℕ),
+    (⟨localization.mk ((graded_algebra.proj 𝒜 i a)^m) ⟨f^i, ⟨_, rfl⟩⟩,
+      i, ((graded_algebra.proj 𝒜 i a)^m),
+      (set_like.graded_monoid.pow_deg 𝒜 (submodule.coe_mem _) m), rfl⟩ :
+      degree_zero_part _ f m f_deg) ∈ q.1}) ({0}),
+  zero_mem' := begin
+    split_ifs,
+    { intros i,
+      simp only [linear_map.map_zero, zero_pow h, localization.mk_zero],
+      exact submodule.zero_mem _, },
+    { refine set.mem_singleton _, },
+  end,
+  add_mem' := λ a b ha hb, begin
+    split_ifs,
+    { intros i,
+      suffices : (⟨localization.mk ((graded_algebra.proj 𝒜 i (a + b))^m) ⟨f^i, ⟨_, rfl⟩⟩,
+      i, ((graded_algebra.proj 𝒜 i (a+b))^m),
+      (set_like.graded_monoid.pow_deg 𝒜 (submodule.coe_mem _) m), rfl⟩ :
+      degree_zero_part _ f m f_deg) * (⟨localization.mk ((graded_algebra.proj 𝒜 i (a+b))^m) ⟨f^i, ⟨_, rfl⟩⟩,
+      i, ((graded_algebra.proj 𝒜 i (a+b))^m),
+      (set_like.graded_monoid.pow_deg 𝒜 (submodule.coe_mem _) m), rfl⟩ :
+      degree_zero_part _ f m f_deg) ∈ q.1,
+      cases q.2.mem_or_mem this, assumption, assumption,
+
+      have eq1 : (⟨localization.mk ((graded_algebra.proj 𝒜 i (a + b))^m) ⟨f^i, ⟨_, rfl⟩⟩,
+      i, ((graded_algebra.proj 𝒜 i (a+b))^m),
+      (set_like.graded_monoid.pow_deg 𝒜 (submodule.coe_mem _) m), rfl⟩ :
+      degree_zero_part _ f m f_deg) * (⟨localization.mk ((graded_algebra.proj 𝒜 i (a+b))^m) ⟨f^i, ⟨_, rfl⟩⟩,
+      i, ((graded_algebra.proj 𝒜 i (a+b))^m),
+      (set_like.graded_monoid.pow_deg 𝒜 (submodule.coe_mem _) m), rfl⟩ :
+      degree_zero_part _ f m f_deg) = ⟨localization.mk ((graded_algebra.proj 𝒜 i (a + b))^(2*m))
+        ⟨f^(2*i), ⟨_, rfl⟩⟩, 2*i, (graded_algebra.proj 𝒜 i (a+b))^(2*m), begin
+          rw [←mul_assoc m 2 i, mul_comm m 2],
+          apply set_like.graded_monoid.pow_deg,
+          rw linear_map.map_add,
+          apply submodule.add_mem,
+          apply submodule.coe_mem,
+          apply submodule.coe_mem,
+        end, rfl⟩,
+      { rw [subtype.ext_iff_val],
+        rw show ((⟨localization.mk ((graded_algebra.proj 𝒜 i (a + b))^m) ⟨f^i, ⟨_, rfl⟩⟩,
+      i, ((graded_algebra.proj 𝒜 i (a+b))^m),
+      (set_like.graded_monoid.pow_deg 𝒜 (submodule.coe_mem _) m), rfl⟩ :
+      degree_zero_part _ f m f_deg) * (⟨localization.mk ((graded_algebra.proj 𝒜 i (a+b))^m) ⟨f^i, ⟨_, rfl⟩⟩,
+      i, ((graded_algebra.proj 𝒜 i (a+b))^m),
+      (set_like.graded_monoid.pow_deg 𝒜 (submodule.coe_mem _) m), rfl⟩ :
+      degree_zero_part _ f m f_deg)).val = (⟨localization.mk ((graded_algebra.proj 𝒜 i (a + b))^m) ⟨f^i, ⟨_, rfl⟩⟩,
+      i, ((graded_algebra.proj 𝒜 i (a+b))^m),
+      (set_like.graded_monoid.pow_deg 𝒜 (submodule.coe_mem _) m), rfl⟩ :
+      degree_zero_part _ f m f_deg).val * (⟨localization.mk ((graded_algebra.proj 𝒜 i (a+b))^m) ⟨f^i, ⟨_, rfl⟩⟩,
+      i, ((graded_algebra.proj 𝒜 i (a+b))^m),
+      (set_like.graded_monoid.pow_deg 𝒜 (submodule.coe_mem _) m), rfl⟩ :
+      degree_zero_part _ f m f_deg).val, from rfl,
+        dsimp only,
+
+        rw localization.mk_mul, congr' 1,
+        rw [two_mul, pow_add],
+
+        rw [subtype.ext_iff_val, show ((⟨f^i, _⟩ : submonoid.powers f) * ⟨f^i, _⟩).val = f^i * f^i, from rfl],
+        dsimp only, rw [two_mul, pow_add], },
+      erw eq1,
+
+      have eq2 := calc
+              (⟨localization.mk (((graded_algebra.proj 𝒜 i) (a + b)) ^ (2 * m)) ⟨f ^ (2 * i), ⟨_, rfl⟩⟩,
+              2*i, (((graded_algebra.proj 𝒜 i) (a + b)) ^ (2 * m)), begin
+                rw [←mul_assoc m 2 i, mul_comm m 2],
+                apply set_like.graded_monoid.pow_deg,
+                rw linear_map.map_add,
+                apply submodule.add_mem,
+                apply submodule.coe_mem,
+                apply submodule.coe_mem,
+              end, rfl⟩ : degree_zero_part _ f m f_deg)
+            = ⟨localization.mk ((∑ j in finset.range (2 * m + 1), ((graded_algebra.proj 𝒜 i) a)^j *
+                ((graded_algebra.proj 𝒜 i) b)^(2 * m - j) * (2 * m).choose j)) ⟨f ^ (2 * i), ⟨_, rfl⟩⟩,
+                2*i, ((∑ j in finset.range (2 * m + 1), ((graded_algebra.proj 𝒜 i) a)^j *
+                ((graded_algebra.proj 𝒜 i) b)^(2 * m - j) * (2 * m).choose j)), begin
+                  apply submodule.sum_mem,
+                  intros k hk,
+                  have mem1 : (graded_algebra.proj 𝒜 i) a ^ k ∈ 𝒜 (k * i),
+                  { apply set_like.graded_monoid.pow_deg,
+                    exact submodule.coe_mem _, },
+                  have mem2 : (graded_algebra.proj 𝒜 i) b ^ (2 * m - k) ∈ 𝒜 ((2*m-k) * i),
+                  { apply set_like.graded_monoid.pow_deg,
+                    exact submodule.coe_mem _, },
+                  have mem3 : ((2 * m).choose k : A) ∈ 𝒜 0,
+                  { exact set_like.graded_monoid.nat_deg_zero _ _, },
+
+                  have eq2 : m * (2 * i) = ((k*i) + (2*m-k)*i + 0),
+                  { zify,
+                    have eq3 : (↑(2 * m - k) : ℤ) = 2 * m - k,
+                    { sorry },
+                    erw [eq3, sub_mul], ring, },
+                  erw eq2,
+                  apply set_like.graded_monoid.mul_mem _ mem3,
+                  apply set_like.graded_monoid.mul_mem mem1 mem2,
+                end, rfl⟩
+            : begin
+              erw [subtype.ext_iff_val],
+              dsimp only,
+              erw [linear_map.map_add, add_pow],
+            end
+        ... = ∑ j in finset.range (2 * m + 1),
+                ⟨localization.mk (((graded_algebra.proj 𝒜 i) a)^j *
+                ((graded_algebra.proj 𝒜 i) b)^(2 * m - j) * (2 * m).choose j) ⟨f^(2 * i), ⟨2*i, rfl⟩⟩,
+                2*i, (((graded_algebra.proj 𝒜 i) a)^j *
+                ((graded_algebra.proj 𝒜 i) b)^(2 * m - j) * (2 * m).choose j), begin
+                  have mem1 : (graded_algebra.proj 𝒜 i) a ^ j ∈ 𝒜 (j * i),
+                  { apply set_like.graded_monoid.pow_deg,
+                    exact submodule.coe_mem _, },
+                  have mem2 : (graded_algebra.proj 𝒜 i) b ^ (2 * m - j) ∈ 𝒜 ((2*m-j) * i),
+                  { apply set_like.graded_monoid.pow_deg,
+                    exact submodule.coe_mem _, },
+                  have mem3 : ((2 * m).choose j : A) ∈ 𝒜 0,
+                  { exact set_like.graded_monoid.nat_deg_zero _ _, },
+
+                  have eq2 : m * (2 * i) = ((j*i) + (2*m-j)*i + 0),
+                  { zify,
+                    have eq3 : (↑(2 * m - j) : ℤ) = 2 * m - j,
+                    { sorry },
+                    erw [eq3, sub_mul], ring, },
+                  erw eq2,
+                  apply set_like.graded_monoid.mul_mem _ mem3,
+                  apply set_like.graded_monoid.mul_mem mem1 mem2,
+                end, rfl⟩
+            : begin
+              rw subtype.ext_iff_val,
+              dsimp only,
+              have : (∑ j in finset.range (2 * m + 1),
+                (⟨localization.mk (((graded_algebra.proj 𝒜 i) a)^j *
+                ((graded_algebra.proj 𝒜 i) b)^(2 * m - j) * (2 * m).choose j)
+                ⟨f^(2 * i), ⟨2*i, rfl⟩⟩, _⟩ : degree_zero_part _ f m f_deg)).val =
+                ∑ j in finset.range (2 * m + 1), (⟨localization.mk (((graded_algebra.proj 𝒜 i) a)^j *
+                ((graded_algebra.proj 𝒜 i) b)^(2 * m - j) * (2 * m).choose j)
+                ⟨f^(2 * i), ⟨2*i, rfl⟩⟩, _⟩ : degree_zero_part _ f m f_deg).val,
+              { induction finset.range (2*m+1) using finset.induction_on with b s hb ih,
+                { rw [finset.sum_empty, finset.sum_empty], refl, },
+                { rw [finset.sum_insert, finset.sum_insert, ←ih], refl,
+                  exact hb, exact hb, }, },
+              erw this, dsimp only,
+
+              induction finset.range (2*m+1) using finset.induction_on with c s hc ih,
+              { rw [finset.sum_empty, finset.sum_empty, localization.mk_zero], },
+              { rw [finset.sum_insert hc, finset.sum_insert hc, ←ih, localization.add_mk],
+                simp only [localization.mk_eq_mk', is_localization.eq],
+                use 1,
+                erw [mul_one, ←mul_add, mul_one],
+                conv_rhs { rw [mul_assoc, mul_comm, mul_assoc] },
+                congr' 1,
+                rw add_comm, },
+            end,
+      erw eq2, apply ideal.sum_mem,
+      intros k hk,
+      by_cases ineq : m ≤ k,
+      { -- use this part : (graded_algebra.proj 𝒜 i) a ^ k
+        sorry },
+      { -- k < m
+        -- so use this part : (graded_algebra.proj 𝒜 i) b ^ (2 * m - k)
+        sorry }, },
+    { split_ifs at ha,
+      split_ifs at hb,
+      rw set.mem_singleton_iff at ha hb,
+      rw [ha, hb, add_zero, set.mem_singleton_iff], },
+  end,
+  smul_mem' := λ c x hx, begin
+    split_ifs,
+    { split_ifs at hx,
+      intros i,
+      rw [smul_eq_mul],
+      -- have : (graded_algebra.proj 𝒜 i) (c * x) =
+      sorry },
+    { split_ifs at hx,
+      rw set.mem_singleton_iff at hx,
+      erw [hx, smul_zero],
+      apply set.mem_singleton, },
+  end }
+
+-- def isos.backward.carrier (f : A) (m : ℕ) (f_deg : f ∈ 𝒜 m)
+--   (q : (Spec (degree_zero_part _ f m f_deg)).to_SheafedSpace.to_PresheafedSpace.1) :
+--   ideal A :=
+-- { carrier := { a | localization.mk a 1 ∈
+--     ideal.span { z : localization.away f | ∃ (c : q.1), z = c.1.1 } },
+--   zero_mem' := begin
+--     rw [set.mem_set_of_eq], apply ideal.subset_span,
+--     use 0, rw localization.mk_zero, refl,
+--   end,
+--   add_mem' := λ a b ha hb, begin
+--     rw [set.mem_set_of_eq] at ha hb ⊢,
+--     have eq1 : localization.mk (a + b) 1 = localization.mk a 1 + localization.mk b 1,
+--     { rw localization.add_mk, rw [←subtype.val_eq_coe],
+--       have : (1 : submonoid.powers f).val = 1 := rfl,
+--       erw [this, one_mul, mul_one],
+--       congr' 1, rw [add_comm], congr,
+--       convert (one_mul _).symm,  },
+--     erw eq1, apply submodule.add_mem _ ha hb,
+--   end,
+--   smul_mem' := λ a b hb, begin
+--     rw [set.mem_set_of_eq] at hb ⊢,
+--     rw smul_eq_mul,
+--     have eq1 : (localization.mk (a * b) 1 : localization.away f) =
+--       localization.mk a 1 * localization.mk b 1,
+--     { rw localization.mk_mul,
+--       congr' 1, erw one_mul, },
+--     erw eq1,
+--     refine ideal.mul_mem_left (ideal.span {z : localization.away f | ∃ (c : q.val), z = c.1.1})
+--       (localization.mk a 1) hb,
+--   end }
+
+def isos.backward.carrier.homogeneous (f : A) [decidable_eq (localization.away f)]
+  (m : ℕ) (f_deg : f ∈ 𝒜 m)
+  (q : (Spec (degree_zero_part _ f m f_deg)).to_SheafedSpace.to_PresheafedSpace.1) :
+  ideal.is_homogeneous 𝒜 (isos.backward.carrier _ f m f_deg q) :=
+begin
+  -- have : ∀ y : degree_zero_part _ f m f_deg,
+  --     ∃ (n : ℕ) (a : A), a ∈ (𝒜 (m * n)) ∧ y.1 = localization.mk a ⟨f^n,⟨n,rfl⟩⟩,
+  -- { rintros ⟨y, n, a, a_mem, hy⟩,
+  --   refine ⟨n, a, a_mem, hy⟩, },
+  -- choose pick_degree h_pick_degree using this,
+  -- choose pick_num h_pick_num using h_pick_degree,
+  -- rw [isos.backward.carrier, ideal.is_homogeneous.iff_exists],
+  -- use {h | h.1 ∈ set.range pick_num},
+
+  -- ext x, split; intros hx,
+  -- { replace hx : localization.mk x 1 ∈ ideal.span _ := hx,
+  --   erw [←ideal.submodule_span_eq, finsupp.span_eq_range_total, set.mem_range] at hx,
+  --   obtain ⟨c, eq1⟩ := hx,
+  --   erw [finsupp.total_apply, finsupp.sum] at eq1,
+
+  --   -- cancel denominator now
+  --   sorry },
+  -- { sorry },
+
+  -- sorry,
+end
+
+def isos.forward.carrer_ne_top (f : A) [decidable_eq (localization.away f)] (m : ℕ) (f_deg : f ∈ 𝒜 m)
   (x : Proj .restrict (@opens.open_embedding (projective_spectrum.Top 𝒜)
     (projective_spectrum.basic_open 𝒜 f))) :
   ((x.1.as_homogeneous_ideal.1 : set A) ∩ (submonoid.powers f : set A)) = ∅ →
@@ -369,7 +503,7 @@ begin
 end
 
 -- forward direction `p ∈ Proj` so `p` is a prime ideal in `A`. Send it to `p S_f ∩ S_(f)`
-def isos.top_component.forward (f : A) (m : ℕ) (f_deg : f ∈ 𝒜 m) :
+def isos.top_component.forward (f : A) [decidable_eq (localization.away f)]  (m : ℕ) (f_deg : f ∈ 𝒜 m) :
   (Proj .restrict (@opens.open_embedding (projective_spectrum.Top 𝒜)
     (projective_spectrum.basic_open 𝒜 f))).to_SheafedSpace.to_PresheafedSpace.1 ⟶
   (Spec (degree_zero_part _ f m f_deg)).to_SheafedSpace.to_PresheafedSpace.1 :=
@@ -535,14 +669,14 @@ def isos.top_component.forward (f : A) (m : ℕ) (f_deg : f ∈ 𝒜 m) :
     sorry
   end }
 
-lemma isos.top_component.backward (f : A) (m : ℕ) (f_deg : f ∈ 𝒜 m) :
+lemma isos.top_component.backward (f : A) [decidable_eq (localization.away f)] (m : ℕ) (f_deg : f ∈ 𝒜 m) :
   (Spec (degree_zero_part _ f m f_deg)).to_SheafedSpace.to_PresheafedSpace.1 ⟶
   (Proj .restrict (@opens.open_embedding (projective_spectrum.Top 𝒜)
     (projective_spectrum.basic_open 𝒜 f))).to_SheafedSpace.to_PresheafedSpace.1 :=
 { to_fun := λ q, ⟨⟨⟨isos.backward.carrier _ f m f_deg q, sorry⟩, sorry⟩, sorry⟩,
   continuous_to_fun := sorry }
 
-def isos.top_component (f : A) (m : ℕ) (f_deg : f ∈ 𝒜 m) :
+def isos.top_component (f : A) [decidable_eq (localization.away f)] (m : ℕ) (f_deg : f ∈ 𝒜 m) :
   (Proj .restrict (@opens.open_embedding (projective_spectrum.Top 𝒜)
     (projective_spectrum.basic_open 𝒜 f))).to_SheafedSpace.to_PresheafedSpace.1 ≅
   (Spec (degree_zero_part _ f m f_deg)).to_SheafedSpace.to_PresheafedSpace.1 := sorry

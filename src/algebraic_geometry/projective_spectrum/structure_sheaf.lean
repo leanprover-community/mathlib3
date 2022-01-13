@@ -54,7 +54,7 @@ namespace algebraic_geometry
 
 universe u
 
-open_locale classical direct_sum big_operators pointwise
+open_locale direct_sum big_operators pointwise
 open direct_sum set_like
 
 variables {ι R A: Type.{u}} [linear_ordered_cancel_add_comm_monoid ι]

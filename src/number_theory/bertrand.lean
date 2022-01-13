@@ -240,19 +240,6 @@ lemma central_binom_factorization (n : ℕ) :
       = (2 * n).choose n :=
   prod_pow_prime_padic_val_nat _ (central_binom_nonzero n) _ (lt_add_one _)
 
-
-
-
--- lemma interchange_filters {α: _} {S: finset α} {f g: α → Prop}
--- [decidable_pred f] [decidable_pred g]
---   : (S.filter g).filter f = S.filter (λ i, g i ∧ f i) :=
--- by { ext1, simp only [finset.mem_filter, and_assoc] }
-
--- lemma interchange_and_in_filter {α: _} {S: finset α} {f g: α → Prop}
--- [decidable_pred f] [decidable_pred g]
---   : S.filter (λ i, g i ∧ f i) = S.filter (λ i, f i ∧ g i) :=
--- by { ext1, simp only [finset.mem_filter, and.comm, iff_self] }
-
 lemma intervening_sqrt {a n : ℕ} (small : (nat.sqrt n) ^ 2 ≤ a ^ 2) (big : a ^ 2 ≤ n)
   : a = nat.sqrt n :=
 begin
@@ -269,22 +256,6 @@ begin
         ... = a ^ 2 : (sq _).symm, },
 end
 
--- lemma filter_filter_card_le_filter_card {α: _} {S: finset α} {f g: α → Prop}
--- [_inst : decidable_pred f][_inst : decidable_pred g]
--- : ((S.filter g).filter f).card ≤ (S.filter f).card :=
--- begin
---   calc ((S.filter g).filter f).card = (S.filter (λ i, g i ∧ f i)).card
---             : congr_arg finset.card interchange_filters
---   ... = (S.filter (λ i, f i ∧ g i)).card: congr_arg finset.card interchange_and_in_filter
---   ... = ((S.filter f).filter g).card: congr_arg finset.card interchange_filters.symm
---   ... ≤ (S.filter f).card: (finset.filter f S).card_filter_le g,
--- end
-
-lemma filter_size {S : finset ℕ} {a : ℕ} : (finset.filter (λ p, p < a) S).card ≤ a :=
-have t : ∀ i, i ∈ (S.filter (λ p, p < a)) → i ∈ finset.range(a), by simp,
-have r: S.filter (λ p, p < a) ⊆ finset.range(a) := finset.subset_iff.mpr t,
-have s: (S.filter (λ p, p < a)).card ≤ (finset.range(a)).card := finset.card_le_of_subset r,
-by simpa only [finset.card_range] using s
 
 lemma even_prime_is_two {p : ℕ} (pr: nat.prime p) (div: 2 ∣ p) : p = 2 :=
 ((nat.prime_dvd_prime_iff_eq nat.prime_two pr).mp div).symm

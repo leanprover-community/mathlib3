@@ -121,7 +121,8 @@ lemma norm_gen_eq_prod_roots [algebra K S] (pb : power_basis K S)
 begin
   rw [norm_gen_eq_coeff_zero_minpoly _ hf, ← pb.nat_degree_minpoly,
     prod_roots_eq_coeff_zero_of_monic_of_split
-      (monic_map _ (minpoly.monic (power_basis.is_integral_gen _))) ((splits_id_iff_splits _).2 hf)],
+      (monic_map _ (minpoly.monic (power_basis.is_integral_gen _)))
+      ((splits_id_iff_splits _).2 hf)],
   simp only [power_basis.nat_degree_minpoly, nat_degree_map],
   rw [← mul_assoc, ← mul_pow],
   simp

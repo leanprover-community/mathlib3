@@ -998,7 +998,6 @@ theorem bertrand (n : nat) (n_pos : 0 < n) : ∃ p, nat.prime p ∧ n < p ∧ p 
 begin
   cases lt_or_le 1024 n,
   { exact bertrand_eventually n h },
-  have h' := nat.lt_succ_of_le h,
   -- Supply a list of primes to cover the initial cases
   apply bertrand_initial n n_pos [1031, 547, 277, 139, 73, 37, 19, 11, 7, 5, 3],
   -- Prove the list has the properties needed:

@@ -79,8 +79,8 @@ end has_le
 section preorder
 variables [preorder α] [order_top α] {a b : α}
 
-@[simp] lemma top_is_max : is_max (⊤ : α) := is_top_top.is_max
-@[simp] lemma not_top_lt : ¬ ⊤ < a := top_is_max.not_lt
+@[simp] lemma is_max_top : is_max (⊤ : α) := is_top_top.is_max
+@[simp] lemma not_top_lt : ¬ ⊤ < a := is_max_top.not_lt
 
 lemma ne_top_of_lt (h : a < b) : a ≠ ⊤ := (h.trans_le le_top).ne
 
@@ -167,8 +167,8 @@ end has_le
 section preorder
 variables [preorder α] [order_bot α] {a b : α}
 
-@[simp] lemma bot_is_min : is_min (⊥ : α) := is_bot_bot.is_min
-@[simp] lemma not_lt_bot : ¬ a < ⊥ := bot_is_min.not_lt
+@[simp] lemma is_min_bot : is_min (⊥ : α) := is_bot_bot.is_min
+@[simp] lemma not_lt_bot : ¬ a < ⊥ := is_min_bot.not_lt
 
 lemma ne_bot_of_gt (h : a < b) : b ≠ ⊥ := (bot_le.trans_lt h).ne'
 

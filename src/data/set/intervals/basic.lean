@@ -5,7 +5,6 @@ Authors: Johannes Hölzl, Mario Carneiro, Patrick Massot, Yury Kudryashov, Rémy
 -/
 import algebra.order.group
 import order.rel_iso
-import order.order_dual
 
 /-!
 # Intervals
@@ -513,7 +512,7 @@ begin
 end
 
 lemma _root_.is_max.Ici_eq (h : is_max a) : Ici a = {a} :=
-eq_singleton_iff_unique_mem.2 ⟨left_mem_Ici, λ b, h.le_of_eq⟩
+eq_singleton_iff_unique_mem.2 ⟨left_mem_Ici, λ b, h.eq_of_ge⟩
 
 lemma _root_.is_min.Iic_eq (h : is_min a) : Iic a = {a} := h.to_dual.Ici_eq
 

@@ -7,6 +7,7 @@ import algebra.group.cohomology.std_resn
 import algebra.group.cohomology.cochain_succ
 import category_theory.abelian.ext
 import algebra.category.Module.projective
+import algebra.group.cohomology.op_complex
 /-!
 
 # Ext
@@ -16,7 +17,7 @@ complex of explicit homogeneous cochains.
 
 -/
 open group_cohomology
-universes u v
+universes v u
 variables (G : Type u) [group G] (M : Type u) [add_comm_group M]
   [distrib_mul_action G M] (n : ℕ)
 
@@ -24,50 +25,13 @@ noncomputable theory
 
 open category_theory category_theory.limits
 open_locale zero_object
-def homology_to_op_unop {C : Type*} [category C] [abelian C] {X Y Z : C}
-  (f : X ⟶ Y) (g : Y ⟶ Z) (w : f ≫ g = 0) :
-  homology f g w ⟶ (homology g.op f.op (by rw [←op_comp, w, op_zero])).unop :=
-homology.desc f g w (kernel.lift (image_to_kernel g.op f.op _).unop
-  ((limits.kernel_subobject g).arrow ≫ cokernel.π f ≫ (kernel_op_unop f).inv
-  ≫ (kernel_subobject_iso f.op).hom.unop) sorry ≫
-  (kernel_unop_unop (image_to_kernel g.op f.op _)).hom) sorry
-
-instance {C : Type*} [category C] [abelian C] {X Y Z : C}
-  (f : X ⟶ Y) (g : Y ⟶ Z) (w : f ≫ g = 0) :
-  is_iso (homology_to_op_unop f g w) :=
-@abelian.is_iso_of_mono_of_epi _ _ _ _ _ (homology_to_op_unop f g w) sorry sorry
-example {C : Type*} [category C] [abelian C] : has_zero C := by apply_instance
-
-/- I get fighting has_zero_object instances later in the file unless I add `h` here. But
- I swear adding `h` here is not a good idea -/
-def chain_complex.homology_of_rel {C : Type*} [category C] [abelian C] {h : has_zero_object C}
-  (X : chain_complex C ℕ)
-  {i : ℕ} (j : ℕ) {k : ℕ} (hj : j + 1 = i) (hk : k + 1 = j) :
-  homology (X.d i j) (X.d j k) sorry ≅ (homology_functor _ _ j).obj X :=
-homology.map_iso _ _ (arrow.iso_mk (X.X_prev_iso hj).symm (eq_to_iso rfl) sorry)
-  (arrow.iso_mk (eq_to_iso rfl) (X.X_next_iso hk).symm sorry) sorry
-
-def chain_complex.homology_zero {C : Type*} [category C] [abelian C] (X : chain_complex C ℕ) :
-  homology (X.d 1 0) (0 : X.X 0 ⟶ 0) sorry ≅ (homology_functor _ _ 0).obj X :=
-homology.map_iso _ _ (arrow.iso_mk (X.X_prev_iso rfl).symm (eq_to_iso rfl) sorry)
-  (arrow.iso_mk (eq_to_iso rfl) (X.X_next_iso_zero chain_complex.next_nat_zero).symm sorry) sorry
-
-def cochain_complex.homology_of_rel {C : Type*} [category C] [abelian C] {h : has_zero_object C}
-  (X : cochain_complex C ℕ) {i : ℕ} (j : ℕ) {k : ℕ} (hj : i + 1 = j) (hk : j + 1 = k) :
-  homology (X.d i j) (X.d j k) sorry ≅ (homology_functor _ _ j).obj X :=
-homology.map_iso _ _ (arrow.iso_mk (X.X_prev_iso hj).symm (eq_to_iso rfl) sorry)
-  (arrow.iso_mk (eq_to_iso rfl) (X.X_next_iso hk).symm sorry) sorry
-
-def cochain_complex.homology_zero {C : Type*} [category C] [abelian C] (X : cochain_complex C ℕ) :
-  homology (0 : 0 ⟶ X.X 0) (X.d 0 1) sorry ≅ (homology_functor _ _ 0).obj X :=
-homology.map_iso _ _ (arrow.iso_mk (X.X_prev_iso_zero
-  cochain_complex.prev_nat_zero).symm (eq_to_iso rfl) sorry)
-  (arrow.iso_mk (eq_to_iso rfl) (X.X_next_iso rfl).symm sorry) sorry
 
 def cochain_succ.complex : cochain_complex (Module ℤ) ℕ :=
 cochain_complex.of (λ n, Module.of ℤ $ cochain_succ G M (n + 1))
  (λ i, (cochain_succ.d rfl).to_int_linear_map)
  (λ i, linear_map.ext $ cochain_succ.d_squared_eq_zero rfl rfl)
+
+variables {C : Type*} [category C] [abelian C] (X : cochain_complex C ℕ)
 
 local attribute [instance] group_ring.to_module
 
@@ -136,26 +100,10 @@ def group_ring.Module_of  (N : Type v) [add_comm_group N] [distrib_mul_action G 
   is_add_comm_group := by apply_instance,
   is_module := group_ring.to_module }
 
-open category_theory
-/-- Expresses a cochain complex as a chain complex in the opposite category. -/
-def cochain_to_chain_op {V : Type*} [category V] [preadditive V]
-  (C : cochain_complex V ℕ) : chain_complex Vᵒᵖ ℕ :=
-{ X := λ n, opposite.op (C.X n),
-  d := λ i j, (C.d j i).op,
-  shape' := λ i j hij, by rw [C.shape' _ _ hij, op_zero],
-  d_comp_d' := λ i j k hij hjk, by rw [←op_comp, C.d_comp_d, op_zero] }
-
-/-- Expresses a chain complex in the opposite category as a cochain complex. -/
-def chain_op_to_cochain {V : Type*} [category V] [preadditive V]
-  (C : chain_complex Vᵒᵖ ℕ) : cochain_complex V ℕ :=
-{ X := λ n, opposite.unop (C.X n),
-  d := λ i j, (C.d j i).unop,
-  shape' := λ i j hij, by rw [C.shape' _ _ hij, unop_zero],
-  d_comp_d' := λ i j k hij hjk, by rw [←unop_comp, C.d_comp_d, unop_zero] }
-
 /-- The chain complex of elements of `(Module ℤ)ᵒᵖ` given by
 `Hom(ℤ[G], M) → Hom(ℤ[G²], M) → ...` -/
-def map_std_resn := ((functor.map_homological_complex ((linear_yoneda ℤ (Module (group_ring G))).obj
+def map_std_resn : chain_complex.{u} (Module.{u} ℤ)ᵒᵖ ℕ := ((functor.map_homological_complex
+  ((linear_yoneda ℤ (Module.{u} (group_ring G))).obj
   (group_ring.Module_of G M)).right_op (complex_shape.down ℕ)).obj
   (group_ring.std_resn G).complex)
 
@@ -217,14 +165,10 @@ begin
   rw [add_equiv.symm_apply_eq, cochain_succ_comm, add_equiv.apply_symm_apply],
 end
 
-/-- The cochain complex of `AddCommGroup`s `Hom(ℤ[G], M) → Hom(ℤ[G²], M) → ...` -/
-abbreviation map_std_resn_cochain : cochain_complex.{u} (Module.{u} ℤ) ℕ :=
-(chain_op_to_cochain (map_std_resn G M))
-
 /-- The cochain map from our complex of homogeneous cochains to `Hom(-, M)` of our
   projective resolution of the trivial `ℤ[G]`-module `ℤ`. -/
 def cochain_succ_to_map_std_resn :
-  cochain_succ.complex G M ⟶ map_std_resn_cochain G M :=
+  cochain_succ.complex G M ⟶ (map_std_resn G M).unop_obj :=
 { f := λ i, (cochain_succ_add_equiv G M (i + 1)).to_add_monoid_hom.to_int_linear_map,
   comm' := λ i j hij,
   begin
@@ -238,7 +182,7 @@ def cochain_succ_to_map_std_resn :
 /-- The cochain map from `Hom(-, M)` of our projective resolution of the trivial `ℤ[G]`-module `ℤ`
   to our complex of homogeneous cochains. -/
 def map_std_resn_to_cochain_succ :
-  map_std_resn_cochain G M ⟶ cochain_succ.complex G M :=
+  (map_std_resn G M).unop_obj ⟶ cochain_succ.complex G M :=
 { f := λ i, ((cochain_succ_add_equiv G M (i + 1)).trans
     (hom_equiv_yoneda _ _ _)).symm.to_add_monoid_hom.to_int_linear_map,
   comm' := λ i j hij,
@@ -253,7 +197,7 @@ def map_std_resn_to_cochain_succ :
 /-- Homotopy equivalence between complex of homogeneous cochains and `Hom(-, M)`
   of our projective resolution of trivial `ℤ[G]`-module `ℤ`. -/
 def homotopy_equiv_cochain_succ :
-  homotopy_equiv (cochain_succ.complex G M) (map_std_resn_cochain G M) :=
+  homotopy_equiv (cochain_succ.complex G M) (map_std_resn G M).unop_obj :=
 { hom := cochain_succ_to_map_std_resn G M,
   inv := map_std_resn_to_cochain_succ G M,
   homotopy_hom_inv_id := homotopy.of_eq $
@@ -271,21 +215,44 @@ def homotopy_equiv_cochain_succ :
 
 /-- Isomorphism of cohomology of our complex of homogeneous cochains and `Hom(-, M)` of
   our proj res of `ℤ`. -/
-def cohomology_iso :
-  (homology_functor _ _ n).obj (cochain_succ.complex G M) ≅
-  (homology_functor _ _ n).obj (map_std_resn_cochain G M) :=
-homology_obj_iso_of_homotopy_equiv (homotopy_equiv_cochain_succ G M) _
+def cochain_succ_homology_iso :
+  (cochain_succ.complex G M).homology n ≅ (map_std_resn G M).unop_obj.homology n :=
+homology_obj_iso_of_homotopy_equiv (homotopy_equiv_cochain_succ G M) n
 
-/-- taking homology "commutes with op" -/
-def homology_op :
-  (homology_functor _ _ (n + 1)).obj (map_std_resn_cochain G M) ≅
-  (opposite.unop $ (homology_functor _ _ (n + 1)).obj (map_std_resn G M)) :=
-(cochain_complex.homology_of_rel (map_std_resn_cochain G M) (n + 1) rfl rfl).symm.trans
-  ((as_iso $ homology_to_op_unop _ _ _).trans (chain_complex.homology_of_rel
-  (map_std_resn G M) (n + 1) rfl rfl).symm.unop)
-#check ProjectiveResolution.category_theory.has_projective_resolutions
-
+/-- This has type
+  `opposite.op ((map_std_resn G M).unop_obj.homology n) ≅ (map_std_resn G M).homology n`,
+  saying homology 'commutes' with viewing `Hom(P., M)` as a cochain complex (instead of a chain
+  complex of AddCommGroupᵒᵖs). But Lean times out when I give a type ascription :) -/
+def map_std_resn_homology_iso := chain_complex.homology_unop (map_std_resn G M) n
 #exit
+instance gg : @has_projective_resolutions (Module.{u} (group_ring G)) _ abelian.has_zero_object _ _ _ :=
+@ProjectiveResolution.category_theory.has_projective_resolutions (Module.{u} (group_ring G)) _ _
+Module.Module_enough_projectives.{u}
+#check Ext
+
+def huhh (R : Type*) [ring R] (C : Type*) [category C] [abelian C] [linear R C]
+  [enough_projectives C] (n : ℕ) (X Y : C) :
+  (((linear_yoneda R C).obj Y).right_op.left_derived n).left_op.obj (opposite.op X)
+    ≅ ((Ext R C n).obj (opposite.op X)).obj Y := _
+#check functor.flip
+#check (@functor.left_derived (Module.{u} (group_ring G)) _ (Module.{u} ℤ)ᵒᵖ _ _
+  abelian.has_zero_object _ _ _ _ _ _ _ _ _ ((linear_yoneda ℤ (Module (group_ring G))).obj
+  (group_ring.Module_of G M)).right_op _ n).left_op
+#check ((linear_yoneda ℤ (Module (group_ring G))).obj
+  (group_ring.Module_of G M)).right_op
+abbreviation Extish := (((linear_yoneda ℤ (Module (group_ring G))).obj
+  (group_ring.Module_of G M)).right_op.left_derived n).obj (group_ring.trivial G)
+
+#check functor.left_op
+#check (@Ext ℤ _ (Module.{u} (group_ring G)) _ _ _ Module.Module_enough_projectives.{u} (n + 1)).obj
+  (opposite.op $ group_ring.trivial G)
+#exit
+
+#check (quiver.hom.op 0 : ((linear_yoneda ℤ (Module.{u u} (group_ring G))).obj
+  (group_ring.Module_of G M)).right_op.obj ((std_resn G).complex.X 0) ⟶ opposite.op 0) _
+--≅ opposite.unop ((homology_functor (Module ℤ)ᵒᵖ (complex_shape.down ℕ) 0).obj (map_std_resn G M))
+#check (@Ext ℤ _ (Module (group_ring G)) _ _ _ Module.Module_enough_projectives (n + 1)).obj
+  (opposite.op $ group_ring.trivial G)
 instance why : enough_projectives (Module (group_ring G)) :=
 Module.Module_enough_projectives
 #check @functor.left_derived (Module (group_ring G)) _ (Module ℤ) _ _ _ _ _ (@ProjectiveResolution.category_theory.has_projective_resolutions)

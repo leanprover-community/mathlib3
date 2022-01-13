@@ -116,16 +116,17 @@ begin
     simp only [linear_map.map_smul_of_tower, ha, smul_zero] }
 end
 
-instance trivial_action : distrib_mul_action G ℤ :=
+variables (G)
+
+def trivial_action : distrib_mul_action G ℤ :=
 by refine { smul := λ g n, n, .. }; {intros, refl}
 
-variables (G)
 /-- Don't want a `ℤ[G]`-module instance on `(ulift) ℤ` I don't think, so here's `ulift ℤ`
   with the trivial action as a `Module`. -/
 def trivial : Module (group_ring G) :=
 { carrier := (ulift ℤ : Type u),
   is_add_comm_group := ulift.add_comm_group,
-  is_module := @ulift.module' _ _ _ _ $ group_ring.to_module }
+  is_module := @ulift.module' _ _ _ _ $ @group_ring.to_module _ _ _ _ (trivial_action G) }
 
 open category_theory
 

@@ -77,9 +77,8 @@ open_locale classical cardinal
 
 open cardinal submodule module function
 
-/-- `finite_dimensional` vector spaces are defined to be noetherian modules.
-Use `finite_dimensional.iff_fg` or `finite_dimensional.of_fintype_basis` to prove finite dimension
-from another definition. -/
+/-- `finite_dimensional` vector spaces are defined to be finite modules.
+Use `finite_dimensional.of_fintype_basis` to prove finite dimension from another definition. -/
 @[reducible] def finite_dimensional (K V : Type*) [division_ring K]
   [add_comm_group V] [module K V] := module.finite K V
 
@@ -94,8 +93,6 @@ variables (K : Type u) (V : Type v) [division_ring K] [add_comm_group V] [module
 
 variables (K V)
 
--- Without this apparently redundant instance we get typeclass search errors
--- in `analysis.normed_space.finite_dimension`.
 instance finite_dimensional_pi {ι} [fintype ι] : finite_dimensional K (ι → K) :=
 iff_fg.1 is_noetherian_pi
 
@@ -149,7 +146,7 @@ end
 
 /-- A quotient of a finite-dimensional space is also finite-dimensional. -/
 instance finite_dimensional_quotient [finite_dimensional K V] (S : submodule K V) :
-  finite_dimensional K (quotient S) :=
+  finite_dimensional K (V ⧸ S) :=
 finite.of_surjective (submodule.mkq S) $ surjective_quot_mk _
 
 /-- The rank of a module as a natural number.
@@ -351,15 +348,16 @@ begin
   set b := basis.extend this with b_eq,
   letI : fintype (this.extend _) :=
     (finite_of_linear_independent (by simpa using b.linear_independent)).fintype,
-  letI : fintype (subtype.val '' basis.of_vector_space_index K S) :=
+  letI : fintype (coe '' basis.of_vector_space_index K S) :=
     (finite_of_linear_independent this).fintype,
   letI : fintype (basis.of_vector_space_index K S) :=
     (finite_of_linear_independent (by simpa using bS.linear_independent)).fintype,
-  have : subtype.val '' (basis.of_vector_space_index K S) = this.extend (set.subset_univ _),
+  have : coe '' (basis.of_vector_space_index K S) = this.extend (set.subset_univ _),
   from set.eq_of_subset_of_card_le (this.subset_extend _)
-    (by rw [set.card_image_of_injective _ subtype.val_injective, ← finrank_eq_card_basis bS,
+    (by rw [set.card_image_of_injective _ subtype.coe_injective, ← finrank_eq_card_basis bS,
          ← finrank_eq_card_basis b, h]; apply_instance),
-  rw [← b.span_eq, b_eq, basis.coe_extend, subtype.range_coe, ← this, ← subtype_eq_val, span_image],
+  rw [← b.span_eq, b_eq, basis.coe_extend, subtype.range_coe, ← this, ← submodule.coe_subtype,
+    span_image],
   have := bS.span_eq,
   rw [bS_eq, basis.coe_of_vector_space, subtype.range_coe] at this,
   rw [this, map_top (submodule.subtype S), range_subtype],
@@ -465,7 +463,7 @@ lemma exists_nontrivial_relation_of_dim_lt_card
   ∃ f : V → K, ∑ e in t, f e • e = 0 ∧ ∃ x ∈ t, f x ≠ 0 :=
 begin
   have := mt finset_card_le_finrank_of_linear_independent (by { simpa using h }),
-  rw linear_dependent_iff at this,
+  rw not_linear_independent_iff at this,
   obtain ⟨s, g, sum, z, zm, nonzero⟩ := this,
   -- Now we have to extend `g` to all of `t`, then to all of `V`.
   let f : V → K :=
@@ -590,15 +588,15 @@ noncomputable def basis_singleton (ι : Type*) [unique ι]
   basis ι K V :=
 let b := basis_unique ι h in
 b.map (linear_equiv.smul_of_unit (units.mk0
-  (b.repr v (default ι))
+  (b.repr v default)
   (mt basis_unique.repr_eq_zero_iff.mp hv)))
 
 @[simp] lemma basis_singleton_apply (ι : Type*) [unique ι]
   (h : finrank K V = 1) (v : V) (hv : v ≠ 0) (i : ι) :
   basis_singleton ι h v hv i = v :=
 calc basis_singleton ι h v hv i
-    = (((basis_unique ι h).repr) v) (default ι) • (basis_unique ι h) (default ι) :
-      by simp [subsingleton.elim i (default ι), basis_singleton, linear_equiv.smul_of_unit]
+    = (((basis_unique ι h).repr) v) default • (basis_unique ι h) default :
+      by simp [subsingleton.elim i default, basis_singleton, linear_equiv.smul_of_unit]
 ... = v : by rw [← finsupp.total_unique K (basis.repr _ v), basis.total_repr]
 
 @[simp] lemma range_basis_singleton (ι : Type*) [unique ι]
@@ -733,7 +731,7 @@ end
 /-- In a finite-dimensional vector space, the dimensions of a submodule and of the corresponding
 quotient add up to the dimension of the space. -/
 theorem finrank_quotient_add_finrank [finite_dimensional K V] (s : submodule K V) :
-  finrank K s.quotient + finrank K s = finrank K V :=
+  finrank K (V ⧸ s) + finrank K s = finrank K V :=
 begin
   have := dim_quotient_add_dim s,
   rw [← finrank_eq_dim, ← finrank_eq_dim, ← finrank_eq_dim] at this,
@@ -755,7 +753,7 @@ end
 
 /-- The dimension of a quotient is bounded by the dimension of the ambient space. -/
 lemma finrank_quotient_le [finite_dimensional K V] (s : submodule K V) :
-  finrank K s.quotient ≤ finrank K V :=
+  finrank K (V ⧸ s) ≤ finrank K V :=
 by { rw ← s.finrank_quotient_add_finrank, exact nat.le_add_right _ _ }
 
 /-- The sum of the dimensions of s + t and s ∩ t is the sum of the dimensions of s and t -/
@@ -805,7 +803,7 @@ end
 /-- Pushforwards of finite-dimensional submodules along a `linear_equiv` have the same finrank. -/
 lemma finrank_map_eq (f : V ≃ₗ[K] V₂) (p : submodule K V) [finite_dimensional K p] :
   finrank K (p.map (f : V →ₗ[K] V₂)) = finrank K p :=
-(f.of_submodule p).finrank_eq.symm
+(f.submodule_map p).finrank_eq.symm
 
 end linear_equiv
 
@@ -866,7 +864,7 @@ variables [finite_dimensional K V] [finite_dimensional K V₂]
   `p.quotient` is isomorphic to `q.quotient`. -/
 noncomputable def linear_equiv.quot_equiv_of_equiv
   {p : subspace K V} {q : subspace K V₂}
-  (f₁ : p ≃ₗ[K] q) (f₂ : V ≃ₗ[K] V₂) : p.quotient ≃ₗ[K] q.quotient :=
+  (f₁ : p ≃ₗ[K] q) (f₂ : V ≃ₗ[K] V₂) : (V ⧸ p) ≃ₗ[K] (V₂ ⧸ q) :=
 linear_equiv.of_finrank_eq _ _
 begin
   rw [← @add_right_cancel_iff _ _ (finrank K p), submodule.finrank_quotient_add_finrank,
@@ -876,7 +874,7 @@ end
 
 /-- Given the subspaces `p q`, if `p.quotient ≃ₗ[K] q`, then `q.quotient ≃ₗ[K] p` -/
 noncomputable def linear_equiv.quot_equiv_of_quot_equiv
-  {p q : subspace K V} (f : p.quotient ≃ₗ[K] q) : q.quotient ≃ₗ[K] p :=
+  {p q : subspace K V} (f : (V ⧸ p) ≃ₗ[K] q) : (V ⧸ q) ≃ₗ[K] p :=
 linear_equiv.of_finrank_eq _ _
 begin
   rw [← @add_right_cancel_iff _ _ (finrank K q), submodule.finrank_quotient_add_finrank,
@@ -977,7 +975,7 @@ end linear_equiv
 
 namespace linear_map
 
-lemma is_unit_iff [finite_dimensional K V] (f : V →ₗ[K] V): is_unit f ↔ f.ker = ⊥ :=
+lemma is_unit_iff_ker_eq_bot [finite_dimensional K V] (f : V →ₗ[K] V): is_unit f ↔ f.ker = ⊥ :=
 begin
   split,
   { rintro ⟨u, rfl⟩,
@@ -987,6 +985,9 @@ begin
       linear_equiv.of_injective_endo_right_inv f h_inj,
       linear_equiv.of_injective_endo_left_inv f h_inj⟩, rfl⟩ }
 end
+
+lemma is_unit_iff_range_eq_top [finite_dimensional K V] (f : V →ₗ[K] V): is_unit f ↔ f.range = ⊤ :=
+by rw [is_unit_iff_ker_eq_bot, ker_eq_bot_iff_range_eq_top]
 
 end linear_map
 
@@ -1140,18 +1141,29 @@ section span
 
 open submodule
 
+variable (K)
+
+
+/-- The rank of a set of vectors as a natural number. -/
+protected noncomputable def set.finrank (s : set V) : ℕ := finrank K (span K s)
+
+variable {K}
+
+lemma set.finrank_mono [finite_dimensional K V] {s t : set V} (h : s ⊆ t) :
+  s.finrank K ≤ t.finrank K := finrank_mono (span_mono h)
+
 lemma finrank_span_le_card (s : set V) [fin : fintype s] :
   finrank K (span K s) ≤ s.to_finset.card :=
 begin
   haveI := span_of_finite K ⟨fin⟩,
   have : module.rank K (span K s) ≤ #s := dim_span_le s,
   rw [←finrank_eq_dim, cardinal.mk_fintype, ←set.to_finset_card] at this,
-  exact_mod_cast this
+  exact_mod_cast this,
 end
 
 lemma finrank_span_finset_le_card (s : finset V)  :
-  finrank K (span K (s : set V)) ≤ s.card :=
-calc finrank K (span K (s : set V)) ≤ (s : set V).to_finset.card : finrank_span_le_card s
+  (s : set V).finrank K ≤ s.card :=
+calc (s : set V).finrank K ≤ (s : set V).to_finset.card : finrank_span_le_card s
                                 ... = s.card : by simp
 
 lemma finrank_span_eq_card {ι : Type*} [fintype ι] {b : ι → V}
@@ -1171,7 +1183,7 @@ begin
   haveI := span_of_finite K ⟨fin⟩,
   have : module.rank K (span K s) = #s := dim_span_set hs,
   rw [←finrank_eq_dim, cardinal.mk_fintype, ←set.to_finset_card] at this,
-  exact_mod_cast this
+  exact_mod_cast this,
 end
 
 lemma finrank_span_finset_eq_card (s : finset V)
@@ -1180,7 +1192,7 @@ lemma finrank_span_finset_eq_card (s : finset V)
 begin
   convert finrank_span_set_eq_card ↑s hs,
   ext,
-  simp
+  simp,
 end
 
 lemma span_lt_of_subset_of_card_lt_finrank {s : set V} [fintype s] {t : submodule K V}
@@ -1256,7 +1268,7 @@ end
 /-- A finite family of vectors is linearly independent if and only if
 its cardinality equals the dimension of its span. -/
 lemma linear_independent_iff_card_eq_finrank_span {ι : Type*} [fintype ι] {b : ι → V} :
-  linear_independent K b ↔ fintype.card ι = finrank K (span K (set.range b)) :=
+  linear_independent K b ↔ fintype.card ι = (set.range b).finrank K :=
 begin
   split,
   { intro h,

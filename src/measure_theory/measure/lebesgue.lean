@@ -67,11 +67,11 @@ ennreal.eq_top_of_forall_nnreal_le $ λ r,
 
 @[simp] lemma volume_ball (a r : ℝ) :
   volume (metric.ball a r) = of_real (2 * r) :=
-by rw [ball_eq, volume_Ioo, ← sub_add, add_sub_cancel', two_mul]
+by rw [ball_eq_Ioo, volume_Ioo, ← sub_add, add_sub_cancel', two_mul]
 
 @[simp] lemma volume_closed_ball (a r : ℝ) :
   volume (metric.closed_ball a r) = of_real (2 * r) :=
-by rw [closed_ball_eq, volume_Icc, ← sub_add, add_sub_cancel', two_mul]
+by rw [closed_ball_eq_Icc, volume_Icc, ← sub_add, add_sub_cancel', two_mul]
 
 @[simp] lemma volume_emetric_ball (a : ℝ) (r : ℝ≥0∞) :
   volume (emetric.ball a r) = 2 * r :=
@@ -430,7 +430,8 @@ variable {α : Type*}
 def region_between (f g : α → ℝ) (s : set α) : set (α × ℝ) :=
 {p : α × ℝ | p.1 ∈ s ∧ p.2 ∈ Ioo (f p.1) (g p.1)}
 
-lemma region_between_subset (f g : α → ℝ) (s : set α) : region_between f g s ⊆ s.prod univ :=
+lemma region_between_subset (f g : α → ℝ) (s : set α) :
+  region_between f g s ⊆ s ×ˢ (univ : set ℝ) :=
 by simpa only [prod_univ, region_between, set.preimage, set_of_subset_set_of] using λ a, and.left
 
 variables [measurable_space α] {μ : measure α} {f g : α → ℝ} {s : set α}
@@ -443,8 +444,7 @@ begin
   dsimp only [region_between, Ioo, mem_set_of_eq, set_of_and],
   refine measurable_set.inter _ ((measurable_set_lt (hf.comp measurable_fst) measurable_snd).inter
     (measurable_set_lt measurable_snd (hg.comp measurable_fst))),
-  convert hs.prod measurable_set.univ,
-  simp only [and_true, mem_univ],
+  exact measurable_fst hs
 end
 
 theorem volume_region_between_eq_lintegral'

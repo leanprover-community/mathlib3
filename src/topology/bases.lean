@@ -3,9 +3,8 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
-
-import topology.continuous_on
 import topology.constructions
+import topology.continuous_on
 
 /-!
 # Bases of topologies. Countability axioms.
@@ -112,7 +111,7 @@ lemma is_topological_basis.mem_nhds_iff {a : α} {s : set α} {b : set (set α)}
 begin
   change s ∈ (𝓝 a).sets ↔ ∃t∈b, a ∈ t ∧ t ⊆ s,
   rw [hb.eq_generate_from, nhds_generate_from, binfi_sets_eq],
-  { simp only [mem_bUnion_iff, exists_prop, mem_set_of_eq, and_assoc, and.left_comm], refl },
+  { simp [and_assoc, and.left_comm] },
   { exact assume s ⟨hs₁, hs₂⟩ t ⟨ht₁, ht₂⟩,
       have a ∈ s ∩ t, from ⟨hs₁, ht₁⟩,
       let ⟨u, hu₁, hu₂, hu₃⟩ := hb.1 _ hs₂ _ ht₂ _ this in
@@ -195,7 +194,7 @@ is_topological_basis_of_open_of_nhds (by tauto) (by tauto)
 
 protected lemma is_topological_basis.prod {β} [topological_space β] {B₁ : set (set α)}
   {B₂ : set (set β)} (h₁ : is_topological_basis B₁) (h₂ : is_topological_basis B₂) :
-  is_topological_basis (image2 set.prod B₁ B₂) :=
+  is_topological_basis (image2 (×ˢ) B₁ B₂) :=
 begin
   refine is_topological_basis_of_open_of_nhds _ _,
   { rintro _ ⟨u₁, u₂, hu₁, hu₂, rfl⟩,
@@ -203,7 +202,7 @@ begin
   { rintro ⟨a, b⟩ u hu uo,
     rcases (h₁.nhds_has_basis.prod_nhds h₂.nhds_has_basis).mem_iff.1 (is_open.mem_nhds uo hu)
       with ⟨⟨s, t⟩, ⟨⟨hs, ha⟩, ht, hb⟩, hu⟩,
-    exact ⟨s.prod t, mem_image2_of_mem hs ht, ⟨ha, hb⟩, hu⟩ }
+    exact ⟨s ×ˢ t, mem_image2_of_mem hs ht, ⟨ha, hb⟩, hu⟩ }
 end
 
 protected lemma is_topological_basis.inducing {β} [topological_space β]
@@ -309,7 +308,7 @@ begin
       rw hij,
       exact (hf j hj).1 },
     contrapose! this,
-    exact h i hi j hj this },
+    exact h hi hj this },
   apply countable_of_injective_of_countable_image f_inj,
   apply u_count.mono _,
   exact image_subset_iff.2 (λ i hi, (hf i hi).2)

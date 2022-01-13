@@ -109,6 +109,11 @@ jobs:
           name: ${{ steps.setup_precompiled.outputs.artifact_name }}
           path: workspace.tar
 
+      - name: cleanup after upload step
+        # cf. https://github.com/actions/upload-artifact/issues/256
+        if: always() && steps.build.outputs.started == 'true' && ${{ 1 }}
+        run: rm /tmp/tmp-* || true
+
   lint:
     name: Lint mathlib
     runs-on: bors

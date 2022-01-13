@@ -3,9 +3,9 @@ Copyright (c) 2021 Oliver Nash. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Oliver Nash
 -/
-import algebra.lie.ideal_operations
 import algebra.lie.abelian
-import order.preorder_hom
+import algebra.lie.ideal_operations
+import order.hom.basic
 
 /-!
 # Solvable Lie algebras
@@ -101,7 +101,7 @@ derived_series_of_ideal_le (le_refl I) h
 lemma derived_series_of_ideal_add_le_add (J : lie_ideal R L) (k l : ℕ) :
   D (k + l) (I + J) ≤ (D k I) + (D l J) :=
 begin
-  let D₁ : lie_ideal R L →ₘ lie_ideal R L :=
+  let D₁ : lie_ideal R L →o lie_ideal R L :=
   { to_fun    := λ I, ⁅I, I⁆,
     monotone' := λ I J h, lie_submodule.mono_lie I J I J h h, },
   have h₁ : ∀ (I J : lie_ideal R L), D₁ (I ⊔ J) ≤ (D₁ I) ⊔ J,
@@ -261,19 +261,15 @@ instance radical_is_solvable [is_noetherian R L] : is_solvable R (radical R L) :
 begin
   have hwf := lie_submodule.well_founded_of_noetherian R L L,
   rw ← complete_lattice.is_sup_closed_compact_iff_well_founded at hwf,
-  refine hwf { I : lie_ideal R L | is_solvable R I } _ _,
-  { use ⊥, exact lie_algebra.is_solvable_bot R L, },
-  { intros I J hI hJ, apply lie_algebra.is_solvable_add R L; [exact hI, exact hJ], },
+  refine hwf { I : lie_ideal R L | is_solvable R I } ⟨⊥, _⟩ (λ I hI J hJ, _),
+  { exact lie_algebra.is_solvable_bot R L, },
+  { apply lie_algebra.is_solvable_add R L, exacts [hI, hJ] },
 end
 
 /-- The `→` direction of this lemma is actually true without the `is_noetherian` assumption. -/
 lemma lie_ideal.solvable_iff_le_radical [is_noetherian R L] (I : lie_ideal R L) :
   is_solvable R I ↔ I ≤ radical R L :=
-begin
-  split; intros h,
-  { exact le_Sup h, },
-  { apply le_solvable_ideal_solvable h, apply_instance, },
-end
+⟨λ h, le_Sup h, λ h, le_solvable_ideal_solvable h infer_instance⟩
 
 lemma center_le_radical : center R L ≤ radical R L :=
 have h : is_solvable R (center R L), { apply_instance, }, le_Sup h

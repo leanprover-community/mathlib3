@@ -90,13 +90,13 @@ open quotient_group
 /-- The proof that `upper_central_series_step H` is the preimage of the centre of `G/H` under
 the canonical surjection. -/
 lemma upper_central_series_step_eq_comap_center :
-  upper_central_series_step H = subgroup.comap (mk' H) (center (quotient H)) :=
+  upper_central_series_step H = subgroup.comap (mk' H) (center (G ⧸ H)) :=
 begin
   ext,
   rw [mem_comap, mem_center_iff, forall_coe],
   apply forall_congr,
   intro y,
-  change x * y * x⁻¹ * y⁻¹ ∈ H ↔ ((y * x : G) : quotient H) = (x * y : G),
+  change x * y * x⁻¹ * y⁻¹ ∈ H ↔ ((y * x : G) : G ⧸ H) = (x * y : G),
   rw [eq_comm, eq_iff_div_mem, div_eq_mul_inv],
   congr' 2,
   group,

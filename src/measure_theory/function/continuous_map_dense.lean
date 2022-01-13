@@ -143,7 +143,7 @@ begin
   { refine (snorm_mono_ae (filter.eventually_of_forall gc_bd)).trans _,
     rw snorm_indicator_const (u_open.sdiff F_closed).measurable_set hp₀.ne' hp,
     push_cast [← ennreal.coe_rpow_of_nonneg _ hp₀'],
-    exact ennreal.mul_left_mono (ennreal.rpow_left_monotone_of_nonneg hp₀' h_μ_sdiff) },
+    exact ennreal.mul_left_mono (ennreal.monotone_rpow_of_nonneg hp₀' h_μ_sdiff) },
   have gc_cont : continuous (λ x, g x • c) := g.continuous.smul continuous_const,
   have gc_mem_ℒp : mem_ℒp (λ x, g x • c) p μ,
   { have : mem_ℒp ((λ x, g x • c) - s.indicator (λ x, c)) p μ :=

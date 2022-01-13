@@ -115,6 +115,17 @@ instance : lie_ring_module L N :=
   lie_add     := by { intros x m n, apply set_coe.ext, apply lie_add, },
   leibniz_lie := by { intros x y m, apply set_coe.ext, apply leibniz_lie, }, }
 
+instance module' {S : Type*} [semiring S] [has_scalar S R] [module S M] [is_scalar_tower S R M] :
+  module S N :=
+N.to_submodule.module'
+
+instance : module R N := N.to_submodule.module
+
+instance {S : Type*} [semiring S] [has_scalar S R] [has_scalar Sᵐᵒᵖ R] [module S M] [module Sᵐᵒᵖ M]
+  [is_scalar_tower S R M] [is_scalar_tower Sᵐᵒᵖ R M] [is_central_scalar S M] :
+  is_central_scalar S N :=
+N.to_submodule.is_central_scalar
+
 instance : lie_module R L N :=
 { lie_smul := by { intros t x y, apply set_coe.ext, apply lie_smul, },
   smul_lie := by { intros t x y, apply set_coe.ext, apply smul_lie, }, }
@@ -346,13 +357,12 @@ variables (R L M)
 
 lemma well_founded_of_noetherian [is_noetherian R M] :
   well_founded ((>) : lie_submodule R L M → lie_submodule R L M → Prop) :=
-begin
-  let f : ((>) : lie_submodule R L M → lie_submodule R L M → Prop) →r
-          ((>) : submodule R M → submodule R M → Prop) :=
-  { to_fun       := coe,
-    map_rel' := λ N N' h, h, },
-  apply f.well_founded, rw ← is_noetherian_iff_well_founded, apply_instance,
-end
+
+let f : ((>) : lie_submodule R L M → lie_submodule R L M → Prop) →r
+        ((>) : submodule R M → submodule R M → Prop) :=
+{ to_fun       := coe,
+  map_rel' := λ N N' h, h, }
+in rel_hom_class.well_founded f (is_noetherian_iff_well_founded.mp infer_instance)
 
 @[simp] lemma subsingleton_iff : subsingleton (lie_submodule R L M) ↔ subsingleton M :=
 have h : subsingleton (lie_submodule R L M) ↔ subsingleton (submodule R M),

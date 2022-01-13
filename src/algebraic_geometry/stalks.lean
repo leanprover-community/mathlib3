@@ -36,7 +36,7 @@ namespace algebraic_geometry.PresheafedSpace
 /--
 The stalk at `x` of a `PresheafedSpace`.
 -/
-def stalk (X : PresheafedSpace C) (x : X) : C := X.presheaf.stalk x
+abbreviation stalk (X : PresheafedSpace C) (x : X) : C := X.presheaf.stalk x
 
 /--
 A morphism of presheafed spaces induces a morphism of stalks.
@@ -82,6 +82,27 @@ lemma restrict_stalk_iso_inv_eq_germ {U : Top} (X : PresheafedSpace C) {f : U �
   X.presheaf.germ ⟨f x, show f x ∈ h.is_open_map.functor.obj V, from ⟨x, hx, rfl⟩⟩ ≫
   (restrict_stalk_iso X h x).inv = (X.restrict h).presheaf.germ ⟨x, hx⟩ :=
 by rw [← restrict_stalk_iso_hom_eq_germ, category.assoc, iso.hom_inv_id, category.comp_id]
+
+lemma restrict_stalk_iso_inv_eq_of_restrict {U : Top} (X : PresheafedSpace C)
+  {f : U ⟶ (X : Top.{v})} (h : open_embedding f) (x : U) :
+    (X.restrict_stalk_iso h x).inv = stalk_map (X.of_restrict h) x :=
+begin
+  ext V,
+  induction V using opposite.rec,
+  let i : (h.is_open_map.functor_nhds x).obj ((open_nhds.map f x).obj V) ⟶ V :=
+    hom_of_le (set.image_preimage_subset f _),
+  erw [iso.comp_inv_eq, colimit.ι_map_assoc, colimit.ι_map_assoc, colimit.ι_pre],
+  simp_rw category.assoc,
+  erw colimit.ι_pre ((open_nhds.inclusion (f x)).op ⋙ X.presheaf)
+    (h.is_open_map.functor_nhds x).op,
+  erw ← X.presheaf.map_comp_assoc,
+  exact (colimit.w ((open_nhds.inclusion (f x)).op ⋙ X.presheaf) i.op).symm,
+end
+
+instance of_restrict_stalk_map_is_iso {U : Top} (X : PresheafedSpace C)
+  {f : U ⟶ (X : Top.{v})} (h : open_embedding f) (x : U) :
+  is_iso (stalk_map (X.of_restrict h) x) :=
+by { rw ← restrict_stalk_iso_inv_eq_of_restrict, apply_instance }
 
 end restrict
 
@@ -166,6 +187,12 @@ An isomorphism between presheafed spaces induces an isomorphism of stalks.
 def stalk_iso {X Y : PresheafedSpace C} (α : X ≅ Y) (x : X) :
   Y.stalk (α.hom.base x) ≅ X.stalk x :=
 as_iso (stalk_map α.hom x)
+
+@[simp, reassoc, elementwise]
+lemma stalk_specializes_stalk_map {X Y : PresheafedSpace C} (f : X ⟶ Y) {x y : X} (h : x ⤳ y) :
+  Y.presheaf.stalk_specializes (f.base.map_specialization h) ≫ stalk_map f x =
+    stalk_map f y ≫ X.presheaf.stalk_specializes h :=
+by { delta PresheafedSpace.stalk_map, simp [stalk_map] }
 
 end stalk_map
 

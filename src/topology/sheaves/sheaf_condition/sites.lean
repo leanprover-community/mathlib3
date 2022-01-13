@@ -450,25 +450,25 @@ variables (C X)
 @[simps]
 def Sheaf_sites_to_sheaf_spaces : Sheaf (opens.grothendieck_topology X) C ⥤ sheaf C X :=
 { obj := λ F, ⟨F.1, is_sheaf_spaces_of_is_sheaf_sites F.1 F.2⟩,
-  map := λ F G f, f }
+  map := λ F G f, f.val }
 
 /-- Turn a sheaf on the space `X` into a sheaf on the site `opens X`. -/
 @[simps]
 def Sheaf_spaces_to_sheaf_sites : sheaf C X ⥤ Sheaf (opens.grothendieck_topology X) C :=
 { obj := λ F, ⟨F.1, is_sheaf_sites_of_is_sheaf_spaces F.1 F.2⟩,
-  map := λ F G f, f }
+  map := λ F G f, ⟨f⟩ }
 
 /--
 The equivalence of categories between sheaves on the site `opens X` and sheaves on the space `X`.
 -/
 @[simps]
 def Sheaf_spaces_equiv_sheaf_sites : Sheaf (opens.grothendieck_topology X) C ≌ sheaf C X :=
-begin
-  refine equivalence.mk (Sheaf_sites_to_sheaf_spaces C X) (Sheaf_spaces_to_sheaf_sites C X) _ _,
-  all_goals
-  { refine nat_iso.of_components (λ F, eq_to_iso (subtype.ext rfl)) (λ F G f, _),
-    ext, dsimp [eq_to_hom], simp },
-end
+{ functor := Sheaf_sites_to_sheaf_spaces C X,
+  inverse := Sheaf_spaces_to_sheaf_sites C X,
+  unit_iso := nat_iso.of_components (λ t, ⟨⟨𝟙 _⟩, ⟨𝟙 _⟩, by { ext1, simp }, by { ext1, simp }⟩) $
+    by { intros, ext1, dsimp, simp },
+  counit_iso := nat_iso.of_components (λ t, ⟨𝟙 _, 𝟙 _, by { ext, simp }, by { ext, simp }⟩) $
+    by { intros, ext, dsimp, simp } }
 
 /-- The two forgetful functors are isomorphic via `Sheaf_spaces_equiv_sheaf_sites`. -/
 def Sheaf_spaces_equiv_sheaf_sites_functor_forget :
@@ -513,6 +513,15 @@ open category_theory topological_space Top opposite
 variables {C : Type u} [category.{v} C] [limits.has_products C]
 variables {X : Top.{v}} {ι : Type*} {B : ι → opens X}
 variables (F : presheaf C X) (F' : sheaf C X) (h : opens.is_basis (set.range B))
+
+/-- The empty component of a sheaf is terminal -/
+def is_terminal_of_empty (F : sheaf C X) : limits.is_terminal (F.val.obj (op ∅)) :=
+((presheaf.Sheaf_spaces_to_sheaf_sites C X).obj F).is_terminal_of_bot_cover ∅ (by tidy)
+
+/-- A variant of `is_terminal_of_empty` that is easier to `apply`. -/
+def is_terminal_of_eq_empty (F : X.sheaf C) {U : opens X} (h : U = ∅) :
+  limits.is_terminal (F.val.obj (op U)) :=
+by convert F.is_terminal_of_empty
 
 /-- If a family `B` of open sets forms a basis of the topology on `X`, and if `F'`
     is a sheaf on `X`, then a homomorphism between a presheaf `F` on `X` and `F'`

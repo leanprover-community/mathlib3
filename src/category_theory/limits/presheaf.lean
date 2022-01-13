@@ -251,10 +251,23 @@ begin
   apply category_of_elements.costructured_arrow_yoneda_equivalence_naturality,
 end
 
+/-- extending `F ⋙ yoneda` along the yoneda embedding is isomorphic to `Lan F.op`. -/
+@[simps] def extend_of_comp_yoneda_iso_Lan {D : Type u₁} [small_category D] (F : C ⥤ D) :
+  extend_along_yoneda (F ⋙ yoneda) ≅ Lan F.op :=
+adjunction.nat_iso_of_right_adjoint_nat_iso
+  (yoneda_adjunction (F ⋙ yoneda))
+  (Lan.adjunction (Type u₁) F.op)
+  (iso_whisker_right curried_yoneda_lemma' ((whiskering_left Cᵒᵖ Dᵒᵖ (Type u₁)).obj F.op : _))
 
 end colimit_adj
 
 open colimit_adj
+
+/-- `F ⋙ yoneda` is naturally isomorphic to `yoneda ⋙ Lan F.op`. -/
+@[simps] def comp_yoneda_iso_yoneda_comp_Lan {D : Type u₁} [small_category D] (F : C ⥤ D) :
+  F ⋙ yoneda ≅ yoneda ⋙ Lan F.op :=
+(is_extension_along_yoneda (F ⋙ yoneda)).symm ≪≫
+  iso_whisker_left yoneda (extend_of_comp_yoneda_iso_Lan F)
 
 /--
 Since `extend_along_yoneda A` is adjoint to `restricted_yoneda A`, if we use `A = yoneda`

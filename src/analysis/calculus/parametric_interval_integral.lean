@@ -18,8 +18,7 @@ open_locale topological_space filter interval
 
 variables {α 𝕜 : Type*} [measurable_space α] [linear_order α] [topological_space α]
           [order_topology α] [opens_measurable_space α] {μ : measure α} [is_R_or_C 𝕜]
-          {E : Type*} [normed_group E] [normed_space ℝ E]
-          [normed_space 𝕜 E] [is_scalar_tower ℝ 𝕜 E]
+          {E : Type*} [normed_group E] [normed_space ℝ E] [normed_space 𝕜 E]
           [complete_space E] [second_countable_topology E]
           [measurable_space E] [borel_space E]
           {H : Type*} [normed_group H] [normed_space 𝕜 H] [second_countable_topology $ H →L[𝕜] E]

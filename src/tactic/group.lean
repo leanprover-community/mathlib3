@@ -24,15 +24,19 @@ group_theory
 -- The next four lemmas are not general purpose lemmas, they are intended for use only by
 -- the `group` tactic.
 
+@[to_additive]
 lemma tactic.group.zpow_trick {G : Type*} [group G] (a b : G) (n m : ℤ) : a*b^n*b^m = a*b^(n+m) :=
 by rw [mul_assoc, ← zpow_add]
 
+@[to_additive]
 lemma tactic.group.zpow_trick_one {G : Type*} [group G] (a b : G) (m : ℤ) : a*b*b^m = a*b^(m+1) :=
 by rw [mul_assoc, mul_self_zpow]
 
+@[to_additive]
 lemma tactic.group.zpow_trick_one' {G : Type*} [group G] (a b : G) (n : ℤ) : a*b^n*b = a*b^(n+1) :=
 by rw [mul_assoc, mul_zpow_self]
 
+@[to_additive]
 lemma tactic.group.zpow_trick_sub {G : Type*} [group G] (a b : G) (n m : ℤ) :
   a*b^n*b^(-m) = a*b^(n-m) :=
 by rw [mul_assoc, ← zpow_add] ; refl

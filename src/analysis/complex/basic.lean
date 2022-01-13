@@ -3,7 +3,7 @@ Copyright (c) Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-import data.complex.module
+import data.complex.determinant
 import data.complex.is_R_or_C
 
 /-!
@@ -142,6 +142,14 @@ def conj_lie : ℂ ≃ₗᵢ[ℝ] ℂ := ⟨conj_ae.to_linear_equiv, abs_conj⟩
 
 lemma isometry_conj : isometry (conj : ℂ → ℂ) := conj_lie.isometry
 
+/-- The determinant of `conj_lie`, as a linear map. -/
+@[simp] lemma det_conj_lie : (conj_lie.to_linear_equiv : ℂ →ₗ[ℝ] ℂ).det = -1 :=
+det_conj_ae
+
+/-- The determinant of `conj_lie`, as a linear equiv. -/
+@[simp] lemma linear_equiv_det_conj_lie : conj_lie.to_linear_equiv.det = -1 :=
+linear_equiv_det_conj_ae
+
 @[continuity] lemma continuous_conj : continuous (conj : ℂ → ℂ) := conj_lie.continuous
 
 /-- Continuous linear equiv version of the conj function, from `ℂ` to `ℂ`. -/
@@ -200,14 +208,17 @@ variables {α β γ : Type*}
   [add_comm_monoid α] [topological_space α] [add_comm_monoid γ] [topological_space γ]
 
 /-- The natural `add_equiv` from `ℂ` to `ℝ × ℝ`. -/
+@[simps apply symm_apply_re symm_apply_im { simp_rhs := tt }]
 def equiv_real_prod_add_hom : ℂ ≃+ ℝ × ℝ :=
 { map_add' := by simp, .. equiv_real_prod }
 
 /-- The natural `linear_equiv` from `ℂ` to `ℝ × ℝ`. -/
+@[simps apply symm_apply_re symm_apply_im { simp_rhs := tt }]
 def equiv_real_prod_add_hom_lm : ℂ ≃ₗ[ℝ] ℝ × ℝ :=
 { map_smul' := by simp [equiv_real_prod_add_hom], .. equiv_real_prod_add_hom }
 
 /-- The natural `continuous_linear_equiv` from `ℂ` to `ℝ × ℝ`. -/
+@[simps apply symm_apply_re symm_apply_im { simp_rhs := tt }]
 def equiv_real_prodₗ : ℂ ≃L[ℝ] ℝ × ℝ :=
 equiv_real_prod_add_hom_lm.to_continuous_linear_equiv
 
@@ -216,7 +227,9 @@ end
 lemma has_sum_iff {α} (f : α → ℂ) (c : ℂ) :
   has_sum f c ↔ has_sum (λ x, (f x).re) c.re ∧ has_sum (λ x, (f x).im) c.im :=
 begin
-  refine ⟨λ h, ⟨h.mapL re_clm, h.mapL im_clm⟩, _⟩,
+  -- For some reason, `continuous_linear_map.has_sum` is orders of magnitude faster than
+  -- `has_sum.mapL` here:
+  refine ⟨λ h, ⟨re_clm.has_sum h, im_clm.has_sum h⟩, _⟩,
   rintro ⟨h₁, h₂⟩,
   convert (h₁.prod_mk h₂).mapL equiv_real_prodₗ.symm.to_continuous_linear_map,
   { ext x; refl },

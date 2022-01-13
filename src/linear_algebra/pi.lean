@@ -215,11 +215,20 @@ def pi (I : set ι) (p : Π i, submodule R (φ i)) : submodule R (Π i, φ i) :=
   add_mem' := λ x y hx hy i hi, (p i).add_mem (hx i hi) (hy i hi),
   smul_mem' := λ c x hx i hi, (p i).smul_mem c (hx i hi) }
 
-variables {I : set ι} {p : Π i, submodule R (φ i)} {x : Π i, φ i}
+variables {I : set ι} {p q : Π i, submodule R (φ i)} {x : Π i, φ i}
 
 @[simp] lemma mem_pi : x ∈ pi I p ↔ ∀ i ∈ I, x i ∈ p i := iff.rfl
 
 @[simp, norm_cast] lemma coe_pi : (pi I p : set (Π i, φ i)) = set.pi I (λ i, p i) := rfl
+
+@[simp] lemma pi_empty (p : Π i, submodule R (φ i)) : pi ∅ p = ⊤ :=
+set_like.coe_injective $ set.empty_pi _
+
+@[simp] lemma pi_top (s : set ι) : pi s (λ i : ι, (⊤ : submodule R (φ i))) = ⊤ :=
+set_like.coe_injective $ set.pi_univ _
+
+lemma pi_mono {s : set ι} (h : ∀ i ∈ s, p i ≤ q i) : pi s p ≤ pi s q :=
+set.pi_mono h
 
 lemma binfi_comap_proj : (⨅ i ∈ I, comap (proj i) (p i)) = pi I p :=
 by { ext x, simp }

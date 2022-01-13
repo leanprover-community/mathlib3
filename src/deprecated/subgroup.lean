@@ -259,7 +259,6 @@ end is_subgroup
 -- Homomorphism subgroups
 namespace is_group_hom
 open is_submonoid is_subgroup
-open is_mul_hom (map_mul)
 
 /-- `ker f : set G` is the underlying subset of the kernel of a map `G → H`. -/
 @[to_additive "`ker f : set A` is the underlying subset of the kernel of a map `A → B`"]

@@ -49,6 +49,9 @@ variables [comm_semiring R] [add_comm_monoid M] [module R M]
 instance {S : Type*} [comm_ring S] {N : Type*} [add_comm_group N] [module S N] :
   add_comm_group (dual S N) := by {unfold dual, apply_instance}
 
+instance : add_monoid_hom_class (dual R M) M R :=
+linear_map.add_monoid_hom_class
+
 namespace dual
 
 instance : inhabited (dual R M) := by dunfold dual; apply_instance
@@ -516,7 +519,7 @@ W.dual_restrict_left_inverse.injective
 /-- The quotient by the `dual_annihilator` of a subspace is isomorphic to the
   dual of that subspace. -/
 noncomputable def quot_annihilator_equiv (W : subspace K V) :
-  W.dual_annihilator.quotient ≃ₗ[K] module.dual K W :=
+  (module.dual K V ⧸ W.dual_annihilator) ≃ₗ[K] module.dual K W :=
 (quot_equiv_of_eq _ _ W.dual_restrict_ker_eq_dual_annihilator).symm.trans $
   W.dual_restrict.quot_ker_equiv_of_surjective dual_restrict_surjective
 
@@ -550,13 +553,13 @@ linear_equiv.finrank_eq (basis.of_vector_space K V).to_dual_equiv.symm
 
 /-- The quotient by the dual is isomorphic to its dual annihilator.  -/
 noncomputable def quot_dual_equiv_annihilator (W : subspace K V) :
-  W.dual_lift.range.quotient ≃ₗ[K] W.dual_annihilator :=
+  (module.dual K V ⧸ W.dual_lift.range) ≃ₗ[K] W.dual_annihilator :=
 linear_equiv.quot_equiv_of_quot_equiv $
   linear_equiv.trans W.quot_annihilator_equiv W.dual_equiv_dual
 
 /-- The quotient by a subspace is isomorphic to its dual annihilator. -/
 noncomputable def quot_equiv_annihilator (W : subspace K V) :
-  W.quotient ≃ₗ[K] W.dual_annihilator :=
+  (V ⧸ W) ≃ₗ[K] W.dual_annihilator :=
 begin
   refine _ ≪≫ₗ W.quot_dual_equiv_annihilator,
   refine linear_equiv.quot_equiv_of_equiv _ (basis.of_vector_space K V).to_dual_equiv,

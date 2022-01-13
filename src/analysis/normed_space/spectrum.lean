@@ -5,6 +5,7 @@ Authors: Jireh Loreaux
 -/
 import algebra.algebra.spectrum
 import analysis.calculus.deriv
+import analysis.special_functions.pow
 /-!
 # The spectrum of elements in a complete normed algebra
 
@@ -87,14 +88,26 @@ metric.is_compact_of_is_closed_bounded (is_closed a) (is_bounded a)
 
 theorem spectral_radius_le_nnnorm (a : A) :
   spectral_radius 𝕜 a ≤ ∥a∥₊ :=
+by { refine bsupr_le (λ k hk, _), exact_mod_cast norm_le_norm_of_mem hk }
+
+open ennreal polynomial
+
+theorem spectral_radius_le_pow_nnnorm_pow_one_div (a : A) (n : ℕ) :
+  spectral_radius 𝕜 a ≤ ∥a ^ (n + 1)∥₊ ^ (1 / (n + 1) : ℝ) :=
 begin
-  suffices h : ∀ k ∈ σ a, (∥k∥₊ : ℝ≥0∞) ≤ ∥a∥₊,
-  { exact bsupr_le h, },
-  { by_cases ha : (σ a).nonempty,
-    { intros _ hk,
-      exact_mod_cast norm_le_norm_of_mem hk },
-    { rw set.not_nonempty_iff_eq_empty at ha,
-      simp [ha, set.ball_empty_iff] } }
+  refine bsupr_le (λ k hk, _),
+  /- apply easy direction of the spectral mapping theorem for polynomials -/
+  have pow_mem : k ^ (n + 1) ∈ σ (a ^ (n + 1)),
+    by simpa only [one_mul, algebra.algebra_map_eq_smul_one, one_smul, aeval_monomial, one_mul,
+      eval_monomial] using subset_polynomial_aeval a (monomial (n + 1) (1 : 𝕜)) ⟨k, hk, rfl⟩,
+  /- power of the norm is bounded by norm of the power -/
+  have nnnorm_pow_le : (↑(∥k∥₊ ^ (n + 1)) : ℝ≥0∞) ≤ ↑∥a ^ (n + 1)∥₊,
+    by simpa only [norm_to_nnreal, normed_field.nnnorm_pow k (n+1)]
+      using coe_mono (real.to_nnreal_mono (norm_le_norm_of_mem pow_mem)),
+  /- take (n + 1)ᵗʰ roots and clean up the left-hand side -/
+  have hn : 0 < ((n + 1) : ℝ), by exact_mod_cast nat.succ_pos',
+  convert monotone_rpow_of_nonneg (one_div_pos.mpr hn).le nnnorm_pow_le,
+  erw [coe_pow, ←rpow_nat_cast, ←rpow_mul, mul_one_div_cancel hn.ne', rpow_one],
 end
 
 end spectrum_compact

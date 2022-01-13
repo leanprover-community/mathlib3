@@ -144,7 +144,7 @@ begin
   rw is_jordan.lmul_lmul_comm_lmul,
 end
 
-lemma lmul_rmul_sq_comm [is_jordan A] (a : A) : ⁅L a, R (a * a)⁆ = 0 :=
+lemma lie_L_R_sq [is_jordan A] (a : A) : ⁅L a, R (a * a)⁆ = 0 :=
 begin
   ext b,
   rw ring.lie_def,
@@ -154,7 +154,7 @@ begin
   rw is_jordan.lmul_comm_rmul_rmul,
 end
 
-lemma lmul_sq_rmul_comm [is_jordan A] (a : A) : ⁅L (a * a), R a⁆ = 0 :=
+lemma lie_L_sq_R [is_jordan A] (a : A) : ⁅L (a * a), R a⁆ = 0 :=
 begin
   ext b,
   rw ring.lie_def,
@@ -164,7 +164,7 @@ begin
   rw is_jordan.lmul_lmul_comm_rmul,
 end
 
-lemma rmul_rmul_sq_comm [is_jordan A] (a : A) : ⁅R a, R (a * a)⁆ = 0 :=
+lemma lie_R_R_sq [is_jordan A] (a : A) : ⁅R a, R (a * a)⁆ = 0 :=
 begin
   ext b,
   rw ring.lie_def,
@@ -186,7 +186,7 @@ lemma mul_op_com1 (a b : A) :
   ⁅L a, L (b*b)⁆ + ⁅L b, L (a*a)⁆ + (2:ℤ)•⁅L a, L (a*b)⁆ + (2:ℤ)•⁅L b, L (a*b)⁆  = 0 :=
 begin
   symmetry,
-  calc 0 = ⁅L (a+b), L ((a+b)*(a+b))⁆ : by rw (lmul_lmul_sq_comm (a + b))
+  calc 0 = ⁅L (a+b), L ((a+b)*(a+b))⁆ : by rw (lie_L_L_sq (a + b))
     ... = ⁅L a + L b, L (a*a+a*b+(b*a+b*b))⁆ : by rw [add_mul, mul_add, mul_add, map_add]
     ... = ⁅L a + L b, L (a*a) + L(a*b) + (L(a*b) + L(b*b))⁆ :
       by rw [map_add, map_add, map_add, is_comm_jordan.mul_comm b a]
@@ -195,7 +195,7 @@ begin
       + (⁅L b, L (a*a)⁆ + ⁅L b,(2:ℤ)•L(a*b)⁆ + ⁅L b,L(b*b)⁆) :
         by rw [add_lie, lie_add, lie_add, lie_add, lie_add]
     ... = (2:ℤ)•⁅L a, L(a*b)⁆ + ⁅L a, L(b*b)⁆ + (⁅L b, L (a*a)⁆ + (2:ℤ)•⁅L b,L(a*b)⁆) :
-      by rw [lmul_lmul_sq_comm a, lmul_lmul_sq_comm b, lie_smul, lie_smul,
+      by rw [lie_L_L_sq a, lie_L_L_sq b, lie_smul, lie_smul,
         zero_add, add_zero]
     ... = ⁅L a, L (b*b)⁆ + ⁅L b, L (a*a)⁆ + (2:ℤ)•⁅L a, L (a*b)⁆ + (2:ℤ)•⁅L b, L (a*b)⁆: by abel
 end
@@ -204,7 +204,7 @@ end
 lemma lin_jordan (a b c : A) : (2:ℤ)•(⁅L a, L (b*c)⁆ + ⁅L b, L (a*c)⁆ + ⁅L c, L (a*b)⁆) = 0 :=
 begin
   symmetry,
-  calc 0 = ⁅L (a+b+c), L ((a+b+c)*(a+b+c))⁆ : by rw (lmul_lmul_sq_comm (a + b + c))
+  calc 0 = ⁅L (a+b+c), L ((a+b+c)*(a+b+c))⁆ : by rw (lie_L_L_sq (a + b + c))
   ... = ⁅L a + L b + L c,
     L (a*a) + L(a*b) + L (a*c) + (L(b*a) + L(b*b) + L(b*c)) + (L(c*a) + L(c*b) + L(c*c))⁆ :
     by rw [add_mul, add_mul, mul_add, mul_add, mul_add, mul_add, mul_add, mul_add,
@@ -229,8 +229,8 @@ begin
           + ⁅L b, (2:ℤ)•L(b*c)⁆)
         + (⁅L c, L (a*a)⁆ + ⁅L c, L(b*b)⁆ + ⁅L c, (2:ℤ)•L(a*b)⁆ + ⁅L c, (2:ℤ)•L(a*c)⁆
           + ⁅L c, (2:ℤ)•L(b*c)⁆) :
-    by rw [lmul_lmul_sq_comm a, lmul_lmul_sq_comm b,
-      lmul_lmul_sq_comm c, zero_add, add_zero, add_zero]
+    by rw [lie_L_L_sq a, lie_L_L_sq b,
+      lie_L_L_sq c, zero_add, add_zero, add_zero]
   ... = ⁅L a, L(b*b)⁆ + ⁅L a, L(c*c)⁆ + (2:ℤ)•⁅L a, L(a*b)⁆ + (2:ℤ)•⁅L a, L(a*c)⁆
           + (2:ℤ)•⁅L a, L(b*c)⁆
         + (⁅L b, L (a*a)⁆ + ⁅L b, L(c*c)⁆ + (2:ℤ)•⁅L b, L(a*b)⁆ + (2:ℤ)•⁅L b, L(a*c)⁆

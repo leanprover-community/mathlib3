@@ -641,7 +641,7 @@ continuous_induced_dom
 lemma continuous_subtype_coe : continuous (coe : subtype p → α) :=
 continuous_subtype_val
 
-lemma continuous.subtype_coe {f : β → subtype p} (hf : continuous f) :
+@[continuity] lemma continuous.subtype_coe {f : β → subtype p} (hf : continuous f) :
   continuous (λ x, (f x : α)) :=
 continuous_subtype_coe.comp hf
 

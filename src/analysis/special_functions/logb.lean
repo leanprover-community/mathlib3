@@ -194,16 +194,7 @@ lemma logb_ne_zero_of_pos_of_ne_one (hx_pos : 0 < x) (hx : x ≠ 1) :
   logb b x ≠ 0 :=
 mt (eq_one_of_pos_of_logb_eq_zero hb hx_pos) hx
 
-end one_lt_b
-
-@[simp] lemma logb_eq_zero :
-  logb b x = 0 ↔ b = 0 ∨ b = 1 ∨ b = -1 ∨ x = 0 ∨ x = 1 ∨ x = -1 :=
-begin
-  simp_rw [logb, div_eq_zero_iff, log_eq_zero],
-  tauto,
-end
-
-lemma tendsto_logb_at_top (hb : 1 < b) : tendsto (logb b) at_top at_top :=
+lemma tendsto_logb_at_top : tendsto (logb b) at_top at_top :=
 begin
   rw tendsto_at_top_at_top,
   intro e,
@@ -214,6 +205,107 @@ begin
   rw le_logb_iff_rpow_le hb,
   tauto,
   exact lt_of_lt_of_le zero_lt_one ha,
+end
+
+end one_lt_b
+
+section b_pos_and_b_lt_one
+
+variable (b_pos : 0 < b)
+variable (b_lt_one : b < 1)
+include b_lt_one
+
+private lemma b_ne_one : b ≠ 1 := by linarith
+
+include b_pos
+
+@[simp] lemma logb_le_logb_of_base_lt_one (h : 0 < x) (h₁ : 0 < y) :
+  logb b x ≤ logb b y ↔ y ≤ x :=
+by { rw [logb, logb, div_le_div_right_of_neg (log_neg b_pos b_lt_one), log_le_log h₁ h], }
+
+lemma logb_lt_logb_of_base_lt_one (hx : 0 < x) (hxy : x < y) : logb b y < logb b x :=
+by { rw [logb, logb, div_lt_div_right_of_neg (log_neg b_pos b_lt_one)], exact log_lt_log hx hxy, }
+
+@[simp] lemma logb_lt_logb_iff_of_base_lt_one (hx : 0 < x) (hy : 0 < y) :
+  logb b x < logb b y ↔ y < x :=
+by { rw [logb, logb, div_lt_div_right_of_neg (log_neg b_pos b_lt_one)], exact log_lt_log_iff hy hx, }
+
+lemma logb_le_iff_le_rpow_of_base_lt_one (hx : 0 < x) : logb b x ≤ y ↔ b ^ y ≤ x :=
+by rw [←rpow_le_rpow_left_iff_of_base_lt_one b_pos b_lt_one, rpow_logb b_pos (b_ne_one b_lt_one) hx]
+
+lemma logb_lt_iff_lt_rpow_of_base_lt_one (hx : 0 < x) : logb b x < y ↔ b ^ y < x :=
+by rw [←rpow_lt_rpow_left_iff_of_base_lt_one b_pos b_lt_one, rpow_logb b_pos (b_ne_one b_lt_one) hx]
+
+lemma le_logb_iff_rpow_le_of_base_lt_one (hy : 0 < y) : x ≤ logb b y ↔ y ≤ b ^ x :=
+by rw [←rpow_le_rpow_left_iff_of_base_lt_one b_pos b_lt_one, rpow_logb b_pos (b_ne_one b_lt_one) hy]
+
+lemma lt_logb_iff_rpow_lt_of_base_lt_one (hy : 0 < y) : x < logb b y ↔ y < b ^ x :=
+by rw [←rpow_lt_rpow_left_iff_of_base_lt_one b_pos b_lt_one, rpow_logb b_pos (b_ne_one b_lt_one) hy]
+
+lemma logb_pos_iff_of_base_lt_one (hx : 0 < x) : 0 < logb b x ↔ x < 1 :=
+by rw [← @logb_one b, logb_lt_logb_iff_of_base_lt_one b_pos b_lt_one zero_lt_one hx]
+
+lemma logb_pos_of_base_lt_one (hx : 0 < x) (hx' : x < 1) : 0 < logb b x :=
+by { rw logb_pos_iff_of_base_lt_one b_pos b_lt_one hx, exact hx', }
+
+lemma logb_neg_iff_of_base_lt_one (h : 0 < x) : logb b x < 0 ↔ 1 < x :=
+by rw [← @logb_one b, logb_lt_logb_iff_of_base_lt_one b_pos b_lt_one h zero_lt_one]
+
+lemma logb_neg_of_base_lt_one (h1 : 1 < x) : logb b x < 0 :=
+(logb_neg_iff_of_base_lt_one b_pos b_lt_one (lt_trans zero_lt_one h1)).2 h1
+
+lemma logb_nonneg_iff_of_base_lt_one (hx : 0 < x) : 0 ≤ logb b x ↔ x ≤ 1 :=
+by rw [← not_lt, logb_neg_iff_of_base_lt_one b_pos b_lt_one hx, not_lt]
+
+lemma logb_nonneg_of_base_lt_one (hx : 0 < x) (hx' : x ≤ 1) : 0 ≤ logb b x :=
+by {rw [logb_nonneg_iff_of_base_lt_one b_pos b_lt_one hx], exact hx' }
+
+lemma logb_nonpos_iff_of_base_lt_one (hx : 0 < x) : logb b x ≤ 0 ↔ 1 ≤ x :=
+by rw [← not_lt, logb_pos_iff_of_base_lt_one b_pos b_lt_one hx, not_lt]
+
+lemma strict_anti_on_logb_of_base_lt_one : strict_anti_on (logb b) (set.Ioi 0) :=
+λ x hx y hy hxy, logb_lt_logb_of_base_lt_one b_pos b_lt_one hx hxy
+
+lemma strict_mono_on_logb_of_base_lt_one : strict_mono_on (logb b) (set.Iio 0) :=
+begin
+  rintros x (hx : x < 0) y (hy : y < 0) hxy,
+  rw [← logb_abs y, ← logb_abs x],
+  refine logb_lt_logb_of_base_lt_one b_pos b_lt_one (abs_pos.2 hy.ne) _,
+  rwa [abs_of_neg hy, abs_of_neg hx, neg_lt_neg_iff],
+end
+
+lemma logb_inj_on_pos_of_base_lt_one : set.inj_on (logb b) (set.Ioi 0) :=
+(strict_anti_on_logb_of_base_lt_one b_pos b_lt_one).inj_on
+
+lemma eq_one_of_pos_of_logb_eq_zero_of_base_lt_one (h₁ : 0 < x) (h₂ : logb b x = 0) :
+x = 1 :=
+logb_inj_on_pos_of_base_lt_one b_pos b_lt_one (set.mem_Ioi.2 h₁) (set.mem_Ioi.2 zero_lt_one)
+  (h₂.trans real.logb_one.symm)
+
+lemma logb_ne_zero_of_pos_of_ne_one_of_base_lt_one (hx_pos : 0 < x) (hx : x ≠ 1) :
+  logb b x ≠ 0 :=
+mt (eq_one_of_pos_of_logb_eq_zero_of_base_lt_one b_pos b_lt_one hx_pos) hx
+
+lemma tendsto_logb_at_top_of_base_lt_one : tendsto (logb b) at_top at_bot :=
+begin
+  rw tendsto_at_top_at_bot,
+  intro e,
+  use 1 ⊔ b ^ e,
+  intro a,
+  simp only [and_imp, sup_le_iff],
+  intro ha,
+  rw logb_le_iff_le_rpow_of_base_lt_one b_pos b_lt_one,
+  tauto,
+  exact lt_of_lt_of_le zero_lt_one ha,
+end
+
+end b_pos_and_b_lt_one
+
+@[simp] lemma logb_eq_zero :
+  logb b x = 0 ↔ b = 0 ∨ b = 1 ∨ b = -1 ∨ x = 0 ∨ x = 1 ∨ x = -1 :=
+begin
+  simp_rw [logb, div_eq_zero_iff, log_eq_zero],
+  tauto,
 end
 
 /- TODO add other limits and continuous API lemmas analogous to those in log.lean -/

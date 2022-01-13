@@ -147,7 +147,7 @@ theorem lt_sup_of_lt_left (h : c < a) : c < a ⊔ b :=
 lt_of_lt_of_le h le_sup_left
 
 theorem lt_sup_of_lt_right (h : c < b) : c < a ⊔ b :=
-lt_of_lt_of_le h le_sup_right
+h.trans_le le_sup_right
 
 theorem sup_le : a ≤ c → b ≤ c → a ⊔ b ≤ c :=
 semilattice_sup.sup_le a b c

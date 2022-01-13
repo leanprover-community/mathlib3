@@ -1134,6 +1134,16 @@ lemma update_eq_sub_add_single [add_group G] (f : α →₀ G) (a : α) (b : G) 
   f.update a b = f - single a (f a) + single a b :=
 by rw [update_eq_erase_add_single, erase_eq_sub_single]
 
+/-- Given a family of functions `f i : α → ℕ` indexed over `S : finset ι`, the sum of this family
+  over `S` is a function `α → ℕ` whose value at `p : α` is `∑ (i : ι) in S, (f i) p` -/
+lemma finset_sum_apply {ι α : Type*} {S : finset ι} {p : α} {f : ι → α → ℕ} :
+  (S.sum f) p = ∑ (i : ι) in S, (f i) p :=
+begin
+  classical,
+  apply finset.induction_on' S, { simp },
+  { intros i T hi hST hiT h, simp [finset.sum_insert hiT, h] }
+end
+
 @[simp] lemma sum_apply [has_zero M] [add_comm_monoid N]
   {f : α →₀ M} {g : α → M → β →₀ N} {a₂ : β} :
   (f.sum g) a₂ = f.sum (λa₁ b, g a₁ b a₂) :=

@@ -6,6 +6,7 @@ Authors: Yaël Dillies
 import data.int.basic
 import algebra.char_zero
 import order.locally_finite
+import data.finset.locally_finite
 
 /-!
 # Finite intervals of integers

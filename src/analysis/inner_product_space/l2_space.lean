@@ -8,6 +8,24 @@ import analysis.normed_space.lp_space
 
 /-!
 # Inner product space structure on `lp 2`
+
+Given a family `(G : ι → Type*) [Π i, inner_product_space 𝕜 (G i)]` of inner product spaces, this
+file equips `lp G 2` with an inner product space structure, where `lp G 2` consists of those
+dependent functions `f : Π i, G i` for which `∑ i, ∥f i∥ ^ 2`, the sum of the norms-squared, is
+summable.  This construction is sometimes called the Hilbert sum of the family `G`.
+
+The space `lp G 2` already held a normed space structure, `lp.normed_space`, so the work in this
+file is to define the inner product and show it is compatible.
+
+If each `G i` is a Hilbert space (i.e., complete), then the Hilbert sum `lp G 2` is also a Hilbert
+space; again this follows from `lp.complete_space`, the case of general `p`.
+
+By choosing `G` to be `ι → 𝕜`, the Hilbert space `ℓ²(ι, 𝕜)` may be seen as a special case of this
+construction.
+
+## Keywords
+
+Hilbert space, Hilbert sum, l2
 -/
 
 open is_R_or_C

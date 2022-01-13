@@ -68,6 +68,11 @@ linear_map.coe_injective.comp to_linear_map_injective
 @[ext] lemma ext {f g : E →ₛₗᵢ[σ₁₂] E₂} (h : ∀ x, f x = g x) : f = g :=
 coe_fn_injective $ funext h
 
+protected lemma congr_arg {f : E →ₛₗᵢ[σ₁₂] E₂} : Π {x x' : E}, x = x' → f x = f x'
+| _ _ rfl := rfl
+
+protected lemma congr_fun {f g : E →ₛₗᵢ[σ₁₂] E₂} (h : f = g) (x : E) : f x = g x := h ▸ rfl
+
 @[simp] lemma map_zero : f 0 = 0 := f.to_linear_map.map_zero
 
 @[simp] lemma map_add (x y : E) : f (x + y) = f x + f y := f.to_linear_map.map_add x y

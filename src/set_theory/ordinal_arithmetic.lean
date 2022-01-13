@@ -638,7 +638,7 @@ begin
       simp only [subrel_val, prod.lex_def, e₂, prod.lex_def, dif_pos, subrel_val, eq_self_iff_true,
         or_false, dif_neg, not_false_iff, sum.lex_inr_inl, false_and] at h ⊢,
       cases h₂; [exact asymm h h₂_h, exact e₂ rfl] },
-    { simp only [e₂, dif_pos, eq_self_iff_true, dif_neg e₁, not_false_iff, sum.lex.sep] },
+    { simp [e₂, dif_neg e₁, show b₂ ≠ b₁, by cc] },
     { simpa only [dif_neg e₁, dif_neg e₂, prod.lex_def, subrel_val, subtype.mk_eq_mk,
         sum.lex_inl_inl] using h } }
 end
@@ -1042,6 +1042,31 @@ bsup_le.1 (le_refl _) _ _
 theorem lt_bsup {o} (f : Π a < o, ordinal) {a} : a < bsup o f ↔ ∃ i hi, a < f i hi :=
 by simpa only [not_forall, not_le] using not_congr (@bsup_le _ f a)
 
+theorem bsup_eq_sup' {o ι} (r : ι → ι → Prop) [is_well_order ι r] (ho : type r = o) (f) :
+  bsup o f = sup (family_of_bfamily' r ho f) :=
+eq_of_forall_ge_iff $ λ o,
+by { rw [bsup_le, ordinal.sup_le], subst ho, exact
+  ⟨λ H b, H _ _, λ H i h, by simpa only [family_of_bfamily', typein_enum] using H (enum r i h)⟩ }
+
+theorem sup_eq_sup {ι : Type u} (r r' : ι → ι → Prop) [is_well_order ι r] [is_well_order ι r'] {o}
+  (ho : type r = o) (ho' : type r' = o) (f : Π a < o, ordinal) :
+  sup (family_of_bfamily' r ho f) = sup (family_of_bfamily' r' ho' f) :=
+by rw [←bsup_eq_sup', ←bsup_eq_sup']
+
+theorem bsup_eq_sup {o} (f : Π a < o, ordinal) : bsup o f = sup (family_of_bfamily o f) :=
+bsup_eq_sup' _ _ f
+
+theorem sup_eq_bsup' {ι} (r : ι → ι → Prop) [is_well_order ι r] (f : ι → ordinal) :
+  sup f = bsup _ (bfamily_of_family' r f) :=
+by simp only [bsup_eq_sup' r, enum_typein, family_of_bfamily', bfamily_of_family']
+
+theorem bsup_eq_bsup {ι : Type u} (r r' : ι → ι → Prop) [is_well_order ι r] [is_well_order ι r']
+  (f : ι → ordinal) : bsup _ (bfamily_of_family' r f) = bsup _ (bfamily_of_family' r' f) :=
+by rw [←sup_eq_bsup', ←sup_eq_bsup']
+
+theorem sup_eq_bsup {ι} (f : ι → ordinal) : sup f = bsup _ (bfamily_of_family f) :=
+sup_eq_bsup' _ f
+
 theorem is_normal.bsup {f} (H : is_normal f) {o} :
   ∀ (g : Π a < o, ordinal) (h : o ≠ 0), f (bsup o g) = bsup o (λ a h, f (g a h)) :=
 induction_on o $ λ α r _ g h,
@@ -1158,6 +1183,11 @@ o.bsup (λ a ha, (f a ha).succ)
 theorem blsub_eq_lsub' {ι} (r : ι → ι → Prop) [is_well_order ι r] {o} (ho : type r = o) (f) :
   blsub o f = lsub (family_of_bfamily' r ho f) :=
 bsup_eq_sup' r ho _
+
+theorem lsub_eq_lsub {ι : Type u} (r r' : ι → ι → Prop) [is_well_order ι r] [is_well_order ι r'] {o}
+  (ho : type r = o) (ho' : type r' = o) (f : Π a < o, ordinal) :
+  lsub (family_of_bfamily' r ho f) = lsub (family_of_bfamily' r' ho' f) :=
+by rw [←blsub_eq_lsub', ←blsub_eq_lsub']
 
 theorem blsub_eq_lsub {o} (f : Π a < o, ordinal) : blsub o f = lsub (family_of_bfamily o f) :=
 bsup_eq_sup _

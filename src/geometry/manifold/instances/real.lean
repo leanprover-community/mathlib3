@@ -251,7 +251,7 @@ instance Icc_manifold (x y : ℝ) [fact (x < y)] : charted_space (euclidean_half
       apply lt_of_lt_of_le (fact.out (x < y)),
       simpa only [not_lt] using h'}
   end,
-  chart_mem_atlas := λz, by { by_cases h' : z.val < y; simp [h'] } }
+  chart_mem_atlas := λ z, by by_cases h' : (z : ℝ) < y; simp [h'] }
 
 /--
 The manifold structure on `[x, y]` is smooth.

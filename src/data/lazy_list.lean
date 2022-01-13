@@ -50,10 +50,10 @@ def to_list : lazy_list α → list α
 
 /--
 Returns the first element of the lazy list,
-or `default α` if the lazy list is empty.
+or `default` if the lazy list is empty.
 -/
 def head [inhabited α] : lazy_list α → α
-| nil        := default α
+| nil        := default
 | (cons h t) := h
 
 /--

@@ -3,8 +3,7 @@ Copyright (c) 2018 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-import topology.metric_space.isometry
-import topology.continuous_function.bounded
+import analysis.normed_space.lp_space
 import topology.compacts
 
 /-!
@@ -15,14 +14,14 @@ Any separable metric space can be embedded isometrically in `ℓ^∞(ℝ)`.
 
 noncomputable theory
 
-open set
+open set metric topological_space
+open_locale ennreal
+local notation `ℓ_infty_ℝ`:= lp (λ n : ℕ, ℝ) ∞
+
+local attribute [instance] fact_one_le_top_ennreal
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
-
-/-- The space of bounded sequences, with its sup norm -/
-@[reducible] def ℓ_infty_ℝ : Type := bounded_continuous_function ℕ ℝ
-open bounded_continuous_function metric topological_space
 
 namespace Kuratowski_embedding
 
@@ -34,8 +33,13 @@ variables {f g : ℓ_infty_ℝ} {n : ℕ} {C : ℝ} [metric_space α] (x : ℕ �
 a fixed countable set, if this set is dense. This map is given in `Kuratowski_embedding`,
 without density assumptions. -/
 def embedding_of_subset : ℓ_infty_ℝ :=
-of_normed_group_discrete (λn, dist a (x n) - dist (x 0) (x n)) (dist a (x 0))
-  (λ_, abs_dist_sub_le _ _ _)
+⟨ λ n, dist a (x n) - dist (x 0) (x n),
+  begin
+    apply mem_ℓp_infty,
+    use dist a (x 0),
+    rintros - ⟨n, rfl⟩,
+    exact abs_dist_sub_le _ _ _
+  end ⟩
 
 lemma embedding_of_subset_coe : embedding_of_subset x a n = dist a (x n) - dist (x 0) (x n) := rfl
 
@@ -43,8 +47,8 @@ lemma embedding_of_subset_coe : embedding_of_subset x a n = dist a (x n) - dist 
 lemma embedding_of_subset_dist_le (a b : α) :
   dist (embedding_of_subset x a) (embedding_of_subset x b) ≤ dist a b :=
 begin
-  refine (dist_le dist_nonneg).2 (λn, _),
-  simp only [embedding_of_subset_coe, real.dist_eq],
+  refine lp.norm_le_of_forall_le dist_nonneg (λn, _),
+  simp only [lp.coe_fn_sub, pi.sub_apply, embedding_of_subset_coe, real.dist_eq],
   convert abs_dist_sub_le a b (x n) using 2,
   ring
 end
@@ -67,7 +71,13 @@ begin
     ...    ≤ 2 * (e/2) + |embedding_of_subset x b n - embedding_of_subset x a n| :
       begin rw C, apply_rules [add_le_add, mul_le_mul_of_nonneg_left, hn.le, le_refl], norm_num end
     ...    ≤ 2 * (e/2) + dist (embedding_of_subset x b) (embedding_of_subset x a) :
-      by simp [← real.dist_eq, dist_coe_le_dist]
+    begin
+      have : |embedding_of_subset x b n - embedding_of_subset x a n|
+        ≤ dist (embedding_of_subset x b) (embedding_of_subset x a),
+      { simpa [dist_eq_norm] using lp.norm_apply_le_norm ennreal.top_ne_zero
+          (embedding_of_subset x b - embedding_of_subset x a) n },
+      nlinarith,
+    end
     ...    = dist (embedding_of_subset x b) (embedding_of_subset x a) + e : by ring,
   simpa [dist_comm] using this
 end

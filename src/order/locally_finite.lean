@@ -60,19 +60,20 @@ Instances for concrete types are proved in their respective files:
 * `ℕ+` is in `data.pnat.interval`
 * `fin n` is in `data.fin.interval`
 * `finset α` is in `data.finset.interval`
+* `Σ i, α i` is in `data.sigma.interval`
 Along, you will find lemmas about the cardinality of those finite intervals.
 
 ## TODO
 
-Provide the `locally_finite_order` instance for `lex α β` where `locally_finite_order α` and
+Provide the `locally_finite_order` instance for `α ×ₗ β` where `locally_finite_order α` and
 `fintype β`.
 
 Provide the `locally_finite_order` instance for `α →₀ β` where `β` is locally finite. Provide the
 `locally_finite_order` instance for `Π₀ i, β i` where all the `β i` are locally finite.
 
-From `linear_order α`, `no_top_order α`, `locally_finite_order α`, we can also define an
+From `linear_order α`, `no_max_order α`, `locally_finite_order α`, we can also define an
 order isomorphism `α ≃ ℕ` or `α ≃ ℤ`, depending on whether we have `order_bot α` or
-`no_bot_order α` and `nonempty α`. When `order_bot α`, we can match `a : α` to `(Iio a).card`.
+`no_min_order α` and `nonempty α`. When `order_bot α`, we can match `a : α` to `(Iio a).card`.
 
 We can provide `succ_order α` from `linear_order α` and `locally_finite_order α` using
 

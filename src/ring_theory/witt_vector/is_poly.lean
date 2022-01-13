@@ -613,9 +613,9 @@ end is_poly₂
 
 attribute [ghost_simps]
       alg_hom.map_zero alg_hom.map_one alg_hom.map_add alg_hom.map_mul
-      alg_hom.map_sub alg_hom.map_neg alg_hom.id_apply alg_hom.map_nat_cast
+      alg_hom.map_sub alg_hom.map_neg alg_hom.id_apply map_nat_cast
       ring_hom.map_zero ring_hom.map_one ring_hom.map_mul ring_hom.map_add
-      ring_hom.map_sub ring_hom.map_neg ring_hom.id_apply ring_hom.map_nat_cast
+      ring_hom.map_sub ring_hom.map_neg ring_hom.id_apply
       mul_add add_mul add_zero zero_add mul_one one_mul mul_zero zero_mul
       nat.succ_ne_zero add_tsub_cancel_right nat.succ_eq_add_one
       if_true eq_self_iff_true if_false forall_true_iff forall_2_true_iff forall_3_true_iff

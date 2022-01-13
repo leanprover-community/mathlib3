@@ -108,7 +108,8 @@ lemma norm_gen_eq_coeff_zero_minpoly [algebra K S] (pb : power_basis K S)
   (-1) ^ pb.dim * coeff ((minpoly K pb.gen).map (algebra_map K F)) 0 :=
 begin
   rw [norm_eq_matrix_det pb.basis, det_eq_sign_charpoly_coeff, charpoly_left_mul_matrix,
-      map_mul, map_pow, map_neg, map_one, ← coeff_map, fintype.card_fin],
+      ring_hom.map_mul, map_pow, ring_hom.map_neg, ring_hom.map_one, ← coeff_map,
+      fintype.card_fin],
 end
 
 /-- Given `pb : power_basis K S`, then the norm of `pb.gen` is

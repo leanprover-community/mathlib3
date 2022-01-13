@@ -7,17 +7,18 @@ import algebra.module.basic
 import tactic.abel
 
 /-!
-# Special Jordan algebras
+# Symmetrized algebra
 
-A commutative multiplication on a real or complex space can be constructed from any multiplicaion by
-"symmetrisation" i.e
+A commutative multiplication on a real or complex space can be constructed from any multiplication
+by "symmetrization" i.e
 ```
 a∘b = 1/2(ab+ba).
 ```
 
 ## Implementation notes
 
-The approach taken here is inspired by algebra.opposites.
+The approach taken here is inspired by algebra.opposites. We use Oxford Spellings
+(IETF en-GB-oxendict).
 
 ## References
 
@@ -27,7 +28,7 @@ The approach taken here is inspired by algebra.opposites.
 open function
 
 /--
-The symmetrised algebra has the same underlying space as the original algebra.
+The symmetrized algebra has the same underlying space as the original algebra.
 -/
 def sym_alg (α : Type*) : Type* := α
 
@@ -71,9 +72,7 @@ instance [subsingleton α] : subsingleton αˢʸᵐ := unsym_injective.subsingle
 instance [unique α] : unique αˢʸᵐ := unique.mk' _
 instance [is_empty α] : is_empty αˢʸᵐ := function.is_empty unsym
 
-
-instance [has_zero α] : has_zero (αˢʸᵐ) := { zero := sym 0 }
-
+@[to_additive]
 instance [has_one α] : has_one αˢʸᵐ := { one := sym 1 }
 
 instance [has_add α] : has_add αˢʸᵐ :=
@@ -84,7 +83,7 @@ instance [has_sub α] : has_sub αˢʸᵐ := { sub := λ a b, sym (unsym a - uns
 instance [has_neg α] : has_neg αˢʸᵐ :=
 { neg := λ a, sym (-unsym a) }
 
-/- Introduce the symmetrised multiplication-/
+/- Introduce the symmetrized multiplication-/
 instance [has_add α] [has_mul α] [has_one α] [invertible (2 : α)] : has_mul(αˢʸᵐ) :=
 { mul := λ a b, sym (⅟2 * (unsym a * unsym b + unsym b * unsym a)) }
 
@@ -93,9 +92,6 @@ instance [has_add α] [has_mul α] [has_one α] [invertible (2 : α)] : has_mul(
 
 instance (R : Type*) [has_scalar R α] : has_scalar R αˢʸᵐ :=
 { smul := λ r a, sym (r • unsym a) }
-
-@[simp] lemma sym_zero [has_zero α] : sym (0 : α) = 0 := rfl
-@[simp] lemma unsym_zero [has_zero α] : unsym (0 : αˢʸᵐ) = 0 := rfl
 
 @[simp, to_additive] lemma sym_one [has_one α] : sym (1 : α) = 1 := rfl
 @[simp, to_additive] lemma unsym_one [has_one α] : unsym (1 : αˢʸᵐ) = 1 := rfl
@@ -116,24 +112,17 @@ instance (R : Type*) [has_scalar R α] : has_scalar R αˢʸᵐ :=
 @[simp] lemma unsym_smul {R : Type*} [has_scalar R α] (c : R) (a : αˢʸᵐ) :
   unsym (c • a) = c • unsym a := rfl
 
-
-@[simp] lemma unsym_eq_zero_iff {α} [has_zero α] (a : αˢʸᵐ) : a.unsym = (0 : α) ↔ a = (0 : αˢʸᵐ) :=
+@[simp, to_additive] lemma unsym_eq_one_iff [has_one α] (a : αˢʸᵐ) : a.unsym = 1 ↔ a = 1 :=
 unsym_injective.eq_iff' rfl
 
-@[simp] lemma sym_eq_zero_iff [has_zero α] (a : α) : sym a = (0 : αˢʸᵐ) ↔ a = (0 : α) :=
+@[simp, to_additive] lemma sym_eq_one_iff [has_one α] (a : α) : sym a = 1 ↔ a = 1 :=
 sym_injective.eq_iff' rfl
 
-lemma unsym_ne_zero_iff [has_zero α] (a : αˢʸᵐ) : a.unsym ≠ (0 : α) ↔ a ≠ (0 : αˢʸᵐ) :=
-not_congr $ unsym_eq_zero_iff a
+@[to_additive] lemma unsym_ne_one_iff [has_one α] (a : αˢʸᵐ) : a.unsym ≠ (1 : α) ↔ a ≠ (1 : αˢʸᵐ) :=
+not_congr $ unsym_eq_one_iff a
 
-lemma sym_ne_zero_iff [has_zero α] (a : α) : sym a ≠ (0 : αˢʸᵐ) ↔ a ≠ (0 : α) :=
-not_congr $ sym_eq_zero_iff a
-
-@[simp] lemma unsym_eq_one_iff [has_one α] (a : αˢʸᵐ) : a.unsym = 1 ↔ a = 1 :=
-unsym_injective.eq_iff' rfl
-
-@[simp] lemma sym_eq_one_iff [has_one α] (a : α) : sym a = 1 ↔ a = 1 :=
-sym_injective.eq_iff' rfl
+@[to_additive] lemma sym_ne_one_iff [has_one α] (a : α) : sym a ≠ (1 : αˢʸᵐ) ↔ a ≠ (1 : α) :=
+not_congr $ sym_eq_one_iff a
 
 instance [add_comm_semigroup α] : add_comm_semigroup (αˢʸᵐ) :=
 unsym_injective.add_comm_semigroup _ (λ _ _, rfl)
@@ -178,7 +167,7 @@ lemma sym_mul_sym [has_mul α] [has_add α] [has_one α] [invertible (2 : α)] (
   sym a * sym b = sym (⅟2*(a * b + b * a)) :=
 rfl
 
-/- The symmetrisation of a real (unital, associative) algebra is a non-associative ring -/
+/- The symmetrization of a real (unital, associative) algebra is a non-associative ring -/
 instance [ring α] [invertible (2 : α)] : non_unital_non_assoc_ring (αˢʸᵐ) :=
 { zero_mul := λ _,
   begin
@@ -206,22 +195,17 @@ instance [ring α] [invertible (2 : α)] : non_unital_non_assoc_ring (αˢʸᵐ)
   ..sym_alg.add_comm_group, }
 
 /- The squaring operation coincides for both multiplications -/
-lemma sym_squares [ring α] [invertible (2 : α)] (a : αˢʸᵐ) : unsym(a*a) = unsym a * unsym a :=
+lemma unsym_mul_self [ring α] [invertible (2 : α)] (a : αˢʸᵐ) : unsym (a*a) = unsym a * unsym a :=
 begin
   rw [mul_def, unsym_sym],
   abel,
   simp only [int.cast_bit0, int.cast_one, inv_of_mul_self_assoc, zsmul_eq_mul],
 end
 
-/- 2 commutes with every element of a ring -/
-lemma two_commute [ring α] (a : α) : commute 2 a := begin
-  --convert commute.semiconj_by 2 a,
-  unfold _root_.commute,
-  rw [semiconj_by, mul_two, two_mul],
+lemma sym_mul_self [ring α] [invertible (2 : α)] (a : α) : sym a*a = sym a * sym a :=
+begin
+  rw sym_mul_sym,
+  abel,
 end
-
-/- If 2 is invertible, ⅟2 commutes with every element of a ring -/
-lemma half_commute [ring α] [invertible (2 : α)] (a : α) : commute (⅟2) a :=
-  commute.inv_of_left (two_commute a)
 
 end sym_alg

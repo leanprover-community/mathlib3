@@ -1152,6 +1152,12 @@ lemma finset_sum_apply [add_comm_monoid N] (S : finset ι) (a : α) (f : ι → 
   (f.sum g) a₂ = f.sum (λa₁ b, g a₁ b a₂) :=
 finset_sum_apply _ _ _
 
+lemma coe_finset_sum [add_comm_monoid N] (S : finset ι) (f : ι → α →₀ N) :
+  ⇑(∑ i in S, f i) = ∑ i in S, f i :=
+(coe_fn_add_monoid_hom : (α →₀ N) →+ _).map_sum _ _
+
+#exit
+
 lemma support_sum [decidable_eq β] [has_zero M] [add_comm_monoid N]
   {f : α →₀ M} {g : α → M → (β →₀ N)} :
   (f.sum g).support ⊆ f.support.bUnion (λa, (g a (f a)).support) :=

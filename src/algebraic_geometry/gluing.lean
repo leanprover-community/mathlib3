@@ -10,9 +10,6 @@ import algebraic_geometry.presheafed_space.gluing
 
 Given a family of gluing data of schemes, we may glue them together.
 
-The construction should be "sealed" and considered as a black box, while only using the API
-provided.
-
 ## Main definitions
 
 * `algebraic_geometry.Scheme.glue_data`: A structure containing the family of gluing data.

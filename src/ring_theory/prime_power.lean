@@ -44,26 +44,6 @@ open unique_factorization_monoid multiplicity irreducible
 
 variables {M : Type*} [cancel_comm_monoid_with_zero M]
 
---this should go in `ring_theory/unique_factorization_monoid.lean`
-lemma dvd_prime_pow  {p q : M} (hp : prime p) (n : ℕ) :
-  q ∣ p^n ↔ ∃ i ≤ n, associated q (p ^ i) :=
-begin
-  induction n with n ih generalizing q,
-  { simp [← is_unit_iff_dvd_one, associated_one_iff_is_unit] },
-  split,
-  { intro h,
-    rw pow_succ at h,
-    rcases hp.left_dvd_or_dvd_right_of_dvd_mul h with (⟨q, rfl⟩ | hno),
-    { rw [mul_dvd_mul_iff_left hp.ne_zero, ih] at h,
-      rcases h with ⟨i, hi, hq⟩,
-      { refine ⟨i + 1, nat.succ_le_succ hi, (hq.mul_left p).trans _⟩,
-        rw pow_succ } },
-    { obtain ⟨i, hi, hq⟩ := ih.mp hno,
-      exact ⟨i, hi.trans n.le_succ, hq⟩ } },
-  { rintro ⟨i, hi, hq⟩,
-    exact hq.dvd.trans (pow_dvd_pow p hi) },
-end
-
 lemma pow_prime_has_chain {p : associates M} (n : ℕ) (hn : 1 ≤ n) (hp : prime p) :
   ∃ c : finset.range (n + 1) → associates M,
   c ⟨1, finset.mem_range.2 (nat.lt_succ_of_le hn)⟩ = p ∧ strict_mono c ∧ ∀ {r : associates M},
@@ -94,19 +74,6 @@ begin
   rw [associates.is_unit_iff_eq_one, ← associates.le_one_iff, hr],
   exact h₁.monotone i.zero_le
 end
-
---this should be in another file
-lemma associates.is_atom_iff {p : associates M} (h₁ : p ≠ 0) : is_atom p ↔ irreducible p :=
-⟨λ hp, ⟨by simpa only [associates.is_unit_iff_eq_one] using hp.1,
-        λ a b h, (eq_bot_or_eq_of_le_atom hp ⟨_, h⟩).cases_on
-          (λ ha, or.inl (a.is_unit_iff_eq_one.mpr ha))
-          (λ ha, or.inr (show is_unit b, by {rw ha at h, apply is_unit_of_associated_mul
-          (show associated (p * b) p, by conv_rhs {rw h}) h₁ }))⟩,
- λ hp, ⟨by simpa only [associates.is_unit_iff_eq_one, associates.bot_eq_one] using hp.1,
-        λ b ⟨⟨a, hab⟩, hb⟩, (hp.is_unit_or_is_unit hab).cases_on
-          (λ hb, show b = ⊥, by rwa [associates.is_unit_iff_eq_one, ← associates.bot_eq_one] at hb)
-          (λ ha, absurd (show p ∣ b, from ⟨(ha.unit⁻¹ : units _), by simp [hab]; rw mul_assoc;
-            rw is_unit.mul_coe_inv ha; rw mul_one⟩) hb)⟩⟩
 
 lemma second_of_chain_is_irreducible {q : associates M} (n : ℕ) (hn : 1 ≤ n)
   (c : finset.range (n + 1) → associates M) (h₁ : strict_mono c)
@@ -222,21 +189,6 @@ end
 
 variable [unique_factorization_monoid M]
 
---this should go in `ring_theory/unique_factorization_monoid.lean`
-lemma associated_prime_pow_of_unique_normalized_factor [normalization_monoid M] {p r : M}
-  (h : ∀ {m}, m ∈ normalized_factors r → m = p ) (hr : r ≠ 0) : ∃ (i : ℕ), associated (p^i) r :=
-begin
-  have : ∃ (i : ℕ), normalized_factors r = multiset.repeat p i,
-  { use (normalized_factors r).card,
-    apply multiset.eq_repeat_of_mem,
-    exact (λ b hb, h hb)   },
-  obtain ⟨i, hi⟩ := this,
-  use i,
-  have := unique_factorization_monoid.normalized_factors_prod hr,
-  rw [hi, multiset.prod_repeat] at this,
-  exact this,
-end
-
 lemma mem_chain_eq_pow_second_of_chain {q r : associates M} (n : ℕ) (hn : 1 ≤ n)
   (c : finset.range (n + 1) → associates M) (h₁ : strict_mono c)
   (h₂ : ∀ {r}, r ≤ q ↔ ∃ i ≤ n, r = c ⟨i, finset.mem_range.2 (nat.lt_succ_of_le H)⟩) (hr : r ∣ q)
@@ -339,8 +291,8 @@ variables {N : Type*} [cancel_comm_monoid_with_zero N] [unique_factorization_mon
 
 lemma multiplicity_le_of_monotone {m p : associates M}
   {n : associates N} (hm : m ≠ 0) (hn : n ≠ 0) (hp : p ∈ normalized_factors m)
-  (d : { l : associates M // l ≤ m} ≃ {l : associates N // l ≤ n})
-  (hd : monotone d) (hd' : monotone d.symm):
+  (d : { l : associates M // l ≤ m} ≃ {l : associates N // l ≤ n}) (hd : monotone d)
+  (hd' : monotone d.symm) :
   multiplicity p m ≤ multiplicity ↑(d ⟨p, dvd_of_mem_normalized_factors hp⟩) n :=
 begin
   have : ∀ (s ≥ 1), p^s ≤ m → (d ⟨p, dvd_of_mem_normalized_factors hp⟩ : associates N)^s ≤ n,

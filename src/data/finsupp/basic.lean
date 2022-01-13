@@ -870,6 +870,13 @@ See `finsupp.lapply` for the stronger version as a linear map. -/
 @[simps apply]
 def apply_add_hom (a : α) : (α →₀ M) →+ M := ⟨λ g, g a, zero_apply, λ _ _, add_apply _ _ _⟩
 
+/-- Coercion from a `finsupp` to a function type is an `add_monoid_hom`. -/
+noncomputable
+def coe_fn_add_monoid_hom {α M : Type*} [add_zero_class M] : (α →₀ M) →+ (α → M) :=
+{ to_fun := λ f, f,
+  map_zero' := by simp,
+  map_add' := by simp }
+
 lemma update_eq_single_add_erase (f : α →₀ M) (a : α) (b : M) :
   f.update a b = single a b + f.erase a :=
 begin
@@ -1003,13 +1010,6 @@ ext $ λ a, by simp only [hf', add_apply, map_range_apply]
 @[simp] lemma emb_domain_add (f : α ↪ β) (v w : α →₀ M) :
   emb_domain f (v + w) = emb_domain f v + emb_domain f w :=
 (emb_domain.add_monoid_hom f).map_add v w
-
-/-- Coercion from a `finsupp` to a function type is an `add_monoid_hom`. -/
-noncomputable
-def coe_fn_add_monoid_hom {α M : Type*} [add_zero_class M] : (α →₀ M) →+ (α → M) :=
-{ to_fun := λ f, f,
-  map_zero' := by simp,
-  map_add' := by simp }
 
 end add_zero_class
 

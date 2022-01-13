@@ -49,11 +49,11 @@ begin
       a 2 * b 0 - a 0 * b 2,
       a 0 * b 1 - a 1 * b 0]),
   { intros,
-    simp [@vec3_add R _ _ _ _ _ _ _, add_comm, add_assoc, add_left_comm, add_mul, sub_eq_add_neg] },
+    simp [@vec3_add R _ _ _ _ _ _ _, add_comm, add_assoc, add_left_comm, add_mul, sub_eq_add_neg]},
   { intros,
     simp [smul_vec3, mul_comm, mul_assoc, mul_left_comm, mul_add, sub_eq_add_neg] },
   { intros,
-    simp [@vec3_add R _ _ _ _ _ _ _, add_comm, add_assoc, add_left_comm, mul_add, sub_eq_add_neg] },
+    simp [@vec3_add R _ _ _ _ _ _ _, add_comm, add_assoc, add_left_comm, mul_add, sub_eq_add_neg]},
   { intros,
     simp [smul_vec3, mul_comm, mul_assoc, mul_left_comm, mul_add, sub_eq_add_neg] },
 end

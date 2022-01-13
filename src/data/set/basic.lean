@@ -1612,13 +1612,11 @@ lemma subsingleton_of_univ_subsingleton (h : (univ : set α).subsingleton) : sub
 lemma subsingleton_of_subsingleton [subsingleton α] {s : set α} : set.subsingleton s :=
 subsingleton.mono subsingleton_univ (subset_univ s)
 
-lemma subsingleton_is_top (α : Type*) [partial_order α] :
-  set.subsingleton {x : α | is_top x} :=
-λ x hx y hy, hx.unique (hy x)
+lemma subsingleton_is_top (α : Type*) [partial_order α] : set.subsingleton {x : α | is_top x} :=
+λ x hx y hy, hx.is_max.eq_of_le (hy x)
 
-lemma subsingleton_is_bot (α : Type*) [partial_order α] :
-  set.subsingleton {x : α | is_bot x} :=
-λ x hx y hy, hx.unique (hy x)
+lemma subsingleton_is_bot (α : Type*) [partial_order α] : set.subsingleton {x : α | is_bot x} :=
+λ x hx y hy, hx.is_min.eq_of_ge (hy x)
 
 /-- `s`, coerced to a type, is a subsingleton type if and only if `s`
 is a subsingleton set. -/

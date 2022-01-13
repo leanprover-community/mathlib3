@@ -197,7 +197,7 @@ variables [algebra K S] [algebra K F]
 
 /-- Given `pb : power_basis K S`, then the trace of `pb.gen` is
 `-((minpoly K pb.gen).map (algebra_map K F)).next_coeff`. -/
-lemma power_basis.trace_gen_eq_coeff_minpoly [nontrivial S] (pb : power_basis K S)
+lemma power_basis.trace_gen_eq_next_coeff_minpoly [nontrivial S] (pb : power_basis K S)
   (hf : (minpoly K pb.gen).splits (algebra_map K F)) :
   algebra_map K F (trace K S pb.gen) =
     -((minpoly K pb.gen).map (algebra_map K F)).next_coeff :=

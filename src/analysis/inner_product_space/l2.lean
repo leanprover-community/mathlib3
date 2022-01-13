@@ -146,19 +146,10 @@ end
 @[simp] protected lemma linear_isometry_apply_dfinsupp_sum_single (W₀ : Π₀ (i : ι), G i) :
   hV.linear_isometry (W₀.sum (lp.single 2)) = W₀.sum (λ i, V i) :=
 begin
-  refine @dfinsupp.induction ι G _ _ _ W₀ _ _,
-  { have H₁ := @dfinsupp.sum_zero_index ι (lp G 2) G _ _ _ _ (lp.single 2),
-    have H₂ := @dfinsupp.sum_zero_index ι E G _ _ _ _ (λ i, V i),
-    simp [H₁, H₂] },
-  intros i a W hW ha hWV,
-  have h₁ : ∀ j, lp.single 2 j 0 = (0 : lp G 2) := lp.zero_single 2,
-  have h₂ : ∀ j, ∀ b₁ b₂ : G j, lp.single 2 j (b₁ + b₂) = _ := lp.add_single 2,
-  have h₃ : ∀ j, V j 0 = 0 := λ j, (V j).map_zero,
-  have h₄ : ∀ j, ∀ b₁ b₂ : G j, V j (b₁ + b₂) = V j b₁ + V j b₂ := λ j, (V j).map_add,
-  have H₁ := @dfinsupp.sum_add_index _ _ G _ _ _ _ (dfinsupp.single i a) W _ h₁ h₂,
-  have H₂ := @dfinsupp.sum_add_index _ _ G _ _ _ _ (dfinsupp.single i a) W (λ i, V i) h₃ h₄,
-  have H₃ := @dfinsupp.sum_single_index _ _ G _ _ _ _ i a (lp.single 2) (h₁ i),
-  simp [H₁, H₂, H₃, dfinsupp.sum_single_index, hWV],
+  have : hV.linear_isometry (∑ i in W₀.support, lp.single 2 i (W₀ i))
+    = ∑ i in W₀.support, hV.linear_isometry (lp.single 2 i (W₀ i)),
+  { exact hV.linear_isometry.to_linear_map.map_sum },
+  simp [dfinsupp.sum, this] {contextual := tt},
 end
 
 /-- The canonical linear isometry from the `lp 2` of a mutually orthogonal family of subspaces of
@@ -229,16 +220,7 @@ begin
   rw ← hV.linear_isometry_equiv_symm_apply_dfinsupp_sum_single hV',
   rw linear_isometry_equiv.apply_symm_apply,
   ext i,
-  let eval_i : lp G 2 →+ G i := (pi.eval_add_monoid_hom G i).comp (add_subgroup.subtype (lp G 2)),
-  have : W₀.sum (lp.single 2) i = W₀.sum (λ j, eval_i ∘ (lp.single 2 j)) :=
-    dfinsupp.comp_sum eval_i (lp.single 2) W₀,
-  rw this,
-  transitivity W₀.sum (λ j, λ v : G j, if h : j = i then (eq.rec v h : G i) else 0),
-  { congr,
-    ext j v,
-    -- simp [eval_i, lp.single_apply 2 j v],
-    sorry }, -- easy
-  sorry -- like `finsupp.sum_ite_self_eq'` but for `dfinsupp`
+  simp [dfinsupp.sum, lp.single_apply] {contextual := tt},
 end
 
 end orthogonal_family

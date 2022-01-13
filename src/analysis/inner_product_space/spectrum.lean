@@ -304,13 +304,15 @@ end
 
 local attribute [-instance] char_p.subsingleton unique.subsingleton is_empty.subsingleton
 
+set_option trace.simplify.rewrite true
+
 /-- **Spectral theorem**; version 1: A compact self-adjoint operator `T` on a Hilbert space `E` acts
 diagonally on the decomposition of `E` into the direct sum of the eigenspaces of `T`. -/
 lemma diagonalization_apply_self_apply' (v : E) (μ : 𝕜) :
   hT.diagonalization' hT_cpct (T v) μ = (μ : 𝕜) • hT.diagonalization' hT_cpct v μ :=
 begin
   classical,
-  set F := hT.diagonalization' hT_cpct,
+  set F := (hT.diagonalization' hT_cpct).to_linear_isometry.to_linear_map,
   show F (T v) μ = μ • F v μ,
   have : dense_range (coe : supr (eigenspace T) → E) := sorry,
   refine this.induction_on v _ _,
@@ -319,28 +321,37 @@ begin
   { rintros ⟨w, hw⟩,
     rw submodule.mem_supr_iff_exists_dfinsupp' at hw,
     obtain ⟨W, rfl⟩ := hw,
-    let eig_coe : Π μ : 𝕜, eigenspace T μ → E := λ μ, (coe : eigenspace T μ → E),
-    let _i : add_comm_monoid (Π₀ ν, eigenspace T ν) :=
-      @dfinsupp.add_comm_monoid _ (λ ν, eigenspace T ν) _,
-    have : ∀ W : Π₀ ν, eigenspace T ν, F (W.sum eig_coe) μ = W μ,
-    { intros W,
-      rw ← hT.diagonalization_apply_dfinsupp_sum_single hT_cpct W,
-      congr },
-    simp,
-    let f₁ : Π μ : 𝕜, eigenspace T μ → E := λ μ, T ∘ (coe : eigenspace T μ → E),
-    let f₂ : Π μ : 𝕜, eigenspace T μ →ₗ[𝕜] eigenspace T μ := λ μ, μ • linear_map.id,
-    have hf : f₁ = λ μ, eig_coe μ ∘ f₂ μ,
-    { ext μ v,
-      obtain ⟨v, hv⟩ := v,
-      dsimp [f₁, f₂],
-      rwa mem_eigenspace_iff at hv },
-    change F (W.sum f₁) μ = μ • F (W.sum eig_coe) μ,
-    rw hf,
-    transitivity F ((dfinsupp.map_range.linear_map f₂ W).sum eig_coe) μ,
-    { congr' 2,
-      sorry }, -- prob in the library somewhere, fact about `dfinsupp.map_range` and `dfinsupp.sum`
-    rw [this, this],
-    simp }
+    -- have h₁ : F (∑ i in W.support, T (W i)) = ∑ i in W.support, F (T (W i)) :=
+    --   F.to_linear_isometry.to_linear_map.map_sum,
+    -- have h₂ : F (∑ i in W.support, W i) = ∑ i in W.support, F (W i) :=
+    --   F.to_linear_isometry.to_linear_map.map_sum,
+    -- simp at this,
+    simp only [dfinsupp.sum, submodule.coe_mk, linear_map.map_sum] {contextual := tt},
+    -- rw [h₁, h₂],
+
+  },
+    -- let eig_coe : Π μ : 𝕜, eigenspace T μ → E := λ μ, (coe : eigenspace T μ → E),
+    -- let _i : add_comm_monoid (Π₀ ν, eigenspace T ν) :=
+    --   @dfinsupp.add_comm_monoid _ (λ ν, eigenspace T ν) _,
+    -- have : ∀ W : Π₀ ν, eigenspace T ν, F (W.sum eig_coe) μ = W μ,
+    -- { intros W,
+    --   rw ← hT.diagonalization_apply_dfinsupp_sum_single hT_cpct W,
+    --   congr },
+    -- simp,
+    -- let f₁ : Π μ : 𝕜, eigenspace T μ → E := λ μ, T ∘ (coe : eigenspace T μ → E),
+    -- let f₂ : Π μ : 𝕜, eigenspace T μ →ₗ[𝕜] eigenspace T μ := λ μ, μ • linear_map.id,
+    -- have hf : f₁ = λ μ, eig_coe μ ∘ f₂ μ,
+    -- { ext μ v,
+    --   obtain ⟨v, hv⟩ := v,
+    --   dsimp [f₁, f₂],
+    --   rwa mem_eigenspace_iff at hv },
+    -- change F (W.sum f₁) μ = μ • F (W.sum eig_coe) μ,
+    -- rw hf,
+    -- transitivity F ((dfinsupp.map_range.linear_map f₂ W).sum eig_coe) μ,
+    -- { congr' 2,
+    --   sorry }, -- prob in the library somewhere, fact about `dfinsupp.map_range` and `dfinsupp.sum`
+    -- rw [this, this],
+    -- simp }
 end
 
 end is_self_adjoint

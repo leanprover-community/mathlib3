@@ -187,6 +187,19 @@ begin
   { rintro ⟨c, rfl⟩, rw factorization_mul hd (right_ne_zero_of_mul hn), simp },
 end
 
+
+lemma finset_sum_finsupp_apply {ι α : Type*} {S : finset ι} {p : α} {f : ι → α →₀ ℕ} :
+  (S.sum f) p = ∑ (i : ι) in S, (f i) p := sorry
+
+lemma finsupp_sum_single (f : ℕ →₀ ℕ) : f = ∑ (p : ℕ) in f.support, single p (f p) :=
+begin
+  ext q,
+  rw finset_sum_finsupp_apply,
+  simp_rw single_apply,
+  by_cases h : f q = 0;
+  simp [h],
+end
+
 /-- The positive natural numbers are bijective with finsupps `ℕ →₀ ℕ` with support in the primes -/
 noncomputable
 def factorization_equiv : pnat ≃ {f : ℕ →₀ ℕ | ∀ p ∈ f.support, prime p} :=
@@ -222,8 +235,13 @@ def factorization_equiv : pnat ≃ {f : ℕ →₀ ℕ | ∀ p ∈ f.support, pr
     unfold finsupp.prod,
     rw factorization_prod h1,
     simp only [],
-    sorry,
-
+    suffices : f = ∑ p in f.support, single p (f p), {
+      nth_rewrite_rhs 0 this,
+      refine sum_congr rfl _,
+      intros p hp,
+      rw prime.factorization_pow (hf p hp),
+    },
+    exact finsupp_sum_single f,
   },
 }
 

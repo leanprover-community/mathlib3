@@ -659,10 +659,16 @@ with the restriction of the norm. -/
 instance add_subgroup.semi_normed_group (s : add_subgroup E) : semi_normed_group s :=
 semi_normed_group.induced s.subtype
 
-/-- If `x` is an element of a subgroup `s` of a seminormed group `E`, its norm in `s` is equal to
-its norm in `E`. -/
-@[simp] lemma coe_norm_subgroup {E : Type*} [semi_normed_group E] {s : add_subgroup E} (x : s) :
-  ∥x∥ = ∥(x:E)∥ :=
+/-- If `x` is an element of a subgroup `s` of a seminormed group `E`, its norm in `E` is equal to
+its norm in `s`. -/
+@[simp, norm_cast] lemma add_subgroup.norm_coe {E : Type*} [semi_normed_group E]
+  {s : add_subgroup E} (x : s) :
+  ∥(x : E)∥ = ∥x∥ :=
+rfl
+
+@[simp] lemma add_subgroup.norm_mk {E : Type*} [semi_normed_group E]
+  {s : add_subgroup E} (x : E) (hx : x ∈ s) :
+  ∥(⟨x, hx⟩ : s)∥ = ∥x∥ :=
 rfl
 
 /-- A submodule of a seminormed group is also a seminormed group, with the restriction of the norm.

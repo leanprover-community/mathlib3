@@ -420,8 +420,6 @@ begin
   exact hlty,
 end
 
--- example (a b : ℝ) (ha : 0 ≤ a) (hb : 0 ≤ b) : a ^ 2 ≤ b^2 -> a ≤ b := by library_search
-
 lemma inequality3 {x : ℝ} (n_large : 1024 < x) : sqrt 2 * sqrt x * log x / (x * log 4) ≤ 1/4 :=
 begin
   rw [inequality3' n_large],
@@ -483,7 +481,6 @@ begin
   have h : x ≠ 0,
   { apply ne_of_gt,
     linarith, },
-  -- have : log 4 ≠ 0 := real.log_ne_zero_of_pos_of_ne_one (by norm_num) (by norm_num),
   field_simp [log_four_nonzero],
   ring,
 end
@@ -518,16 +515,6 @@ begin
   rw <-@nat.cast_lt ℝ,
   have fact1 : 0 < (n : ℝ),
   { rw <-nat.cast_zero,
-    -- conv
-    -- begin
-    --   to_rhs,
-    --   congr,
-    --   skip,
-    --   rw <-nat.cast_one,
-    -- end,
-    -- rw <-nat.cast_two,
-    -- rw <-nat.cast_mul,
-    -- rw <-nat.cast_add,
     rw nat.cast_lt,
     linarith, },
   have fact2 : 0 < 2 * (n : ℝ),
@@ -567,12 +554,9 @@ begin
           end
      ... ≤ (n : ℝ) * (2 * n : ℝ) ^ (real.sqrt (2 * (n : ℝ))) * 4 ^ (2 * (n : ℝ) / 3) :
           begin
-            -- sorry
             rw mul_le_mul_left,
-            -- rw mul_le_mul_left,
             apply rpow_le_rpow_of_exponent_le,
             linarith,
-            -- simp,
             apply trans nat.cast_div_le,
             apply le_of_eq,
             congr,
@@ -657,7 +641,6 @@ begin
   by
   { simp [finset.subset_iff],
     intros i hyp hyp2 primei hyp3 hyp4,
-    -- simp,
     split,
     { cases le_or_gt 2 i,
       { exact h, },

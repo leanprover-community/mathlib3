@@ -120,6 +120,11 @@ instance : set_like (fractional_ideal S P) P :=
 { coe := λ I, ↑(I : submodule R P),
   coe_injective' := set_like.coe_injective.comp subtype.coe_injective }
 
+instance : add_subgroup_class (fractional_ideal S P) P :=
+{ add_mem := λ I x y hx hy, show x + y ∈ (I : submodule R P), from add_mem hx hy,
+  zero_mem := λ I, show (0 : P) ∈ (I : submodule R P), from zero_mem I,
+  neg_mem := λ I x hx, show -x ∈ (I : submodule R P), from neg_mem hx }
+
 @[simp] lemma mem_coe {I : fractional_ideal S P} {x : P} :
   x ∈ (I : submodule R P) ↔ x ∈ I :=
 iff.rfl

@@ -15,16 +15,26 @@ provided.
 
 ## Main definitions
 
-* `algebraic_geometry.PresheafedSpace.glue_data`: A structure containing the family of gluing data.
-* `category_theory.glue_data.glued`: The glued presheafed space.
+* `algebraic_geometry.Scheme.glue_data`: A structure containing the family of gluing data.
+* `algebraic_geometry.Scheme.glue_data.glued`: The glued scheme.
     This is defined as the multicoequalizer of `∐ V i j ⇉ ∐ U i`, so that the general colimit API
     can be used.
-* `category_theory.glue_data.ι`: The immersion `ι i : U i ⟶ glued` for each `i : J`.
+* `algebraic_geometry.Scheme.glue_data.ι`: The immersion `ι i : U i ⟶ glued` for each `i : J`.
+* `algebraic_geometry.Scheme.glue_data.iso_carrier`: The isomorphism between the underlying space
+  of the glued scheme and the gluing of the underlying topological spaces.
 
 ## Main results
 
-* `algebraic_geometry.PresheafedSpace.glue_data.ι_is_open_immersion`: The map `ι i : U i ⟶ glued`
+* `algebraic_geometry.Scheme.glue_data.ι_is_open_immersion`: The map `ι i : U i ⟶ glued`
   is an open immersion for each `i : J`.
+* `algebraic_geometry.Scheme.glue_data.ι_jointly_surjective` : The underlying maps of
+  `ι i : U i ⟶ glued` are jointly surjective.
+* `algebraic_geometry.Scheme.glue_data.V_pullback_cone_is_limit` : `V i j` is the pullback
+  (intersection) of `U i` and `U j` over the glued space.
+* `algebraic_geometry.Scheme.glue_data.ι_eq_iff_rel` : `ι i x = ι j y` if and only if they coincide
+  when restricted to `V i i`.
+* `algebraic_geometry.Scheme.glue_data.is_open_iff` : An subset of the glued scheme is open iff
+  all its preimages in `U i` are open.
 
 ## Implementation details
 

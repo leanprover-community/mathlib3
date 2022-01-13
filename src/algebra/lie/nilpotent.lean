@@ -61,7 +61,7 @@ end
 
 variables {R L M}
 
-lemma lower_central_series_map_le
+lemma map_lower_central_series_le
   {M₂ : Type w₁} [add_comm_group M₂] [module R M₂] [lie_ring_module L M₂] [lie_module R L M₂]
   (k : ℕ) (f : M →ₗ⁅R,L⁆ M₂) :
   lie_submodule.map f (lower_central_series R L M k) ≤ lower_central_series R L M₂ k :=
@@ -137,7 +137,7 @@ begin
   { replace this := lie_submodule.mono_lie_right _ _ ⊤ (le_trans this h₁),
     rwa [ideal_oper_max_triv_submodule_eq_bot, le_bot_iff] at this, },
   rw [← lie_submodule.quotient.map_mk'_eq_bot_le, ← le_bot_iff, ← hk],
-  exact lower_central_series_map_le k (lie_submodule.quotient.mk' N),
+  exact map_lower_central_series_le k (lie_submodule.quotient.mk' N),
 end
 
 end lie_module
@@ -184,7 +184,7 @@ open lie_module (lower_central_series)
 /-- Given an ideal `I` of a Lie algebra `L`, the lower central series of `L ⧸ I` is the same
 whether we regard `L ⧸ I` as an `L` module or an `L ⧸ I` module.
 
-This result obviously generalises but the generalisation requires the missing definition of
+TODO: This result obviously generalises but the generalisation requires the missing definition of
 morphisms between Lie modules over different Lie algebras. -/
 lemma coe_lower_central_series_ideal_quot_eq {I : lie_ideal R L} (k : ℕ) :
   (lower_central_series R L (L ⧸ I) k : submodule R (L ⧸ I)) =
@@ -215,7 +215,7 @@ begin
   simp [← lie_submodule.coe_to_submodule_eq_iff, coe_lower_central_series_ideal_quot_eq, hk],
 end
 
-lemma lie_ideal.lower_central_series_map_le (k : ℕ) {f : L →ₗ⁅R⁆ L'} :
+lemma lie_ideal.map_lower_central_series_le (k : ℕ) {f : L →ₗ⁅R⁆ L'} :
   lie_ideal.map f (lower_central_series R L L k) ≤ lower_central_series R L' L' k :=
 begin
   induction k with k ih,
@@ -243,7 +243,7 @@ lemma function.injective.lie_algebra_is_nilpotent [h₁ : is_nilpotent R L'] {f 
     tactic.unfreeze_local_instances, obtain ⟨k, hk⟩ := h₁,
     use k,
     apply lie_ideal.bot_of_map_eq_bot h₂, rw [eq_bot_iff, ← hk],
-    apply lie_ideal.lower_central_series_map_le,
+    apply lie_ideal.map_lower_central_series_le,
   end, }
 
 lemma function.surjective.lie_algebra_is_nilpotent [h₁ : is_nilpotent R L] {f : L →ₗ⁅R⁆ L'}

@@ -1253,18 +1253,18 @@ end
 
 /-- The product of two submodules is a submodule. -/
 def prod : submodule R (M × M') :=
-{ carrier   := set.prod p q₁,
+{ carrier   := (p : set M) ×ˢ (q₁ : set M'),
   smul_mem' := by rintro a ⟨x, y⟩ ⟨hx, hy⟩; exact ⟨smul_mem _ a hx, smul_mem _ a hy⟩,
   .. p.to_add_submonoid.prod q₁.to_add_submonoid }
 
 @[simp] lemma prod_coe :
-  (prod p q₁ : set (M × M')) = set.prod p q₁ := rfl
+  (prod p q₁ : set (M × M')) = (p : set M) ×ˢ (q₁ : set M') := rfl
 
 @[simp] lemma mem_prod {p : submodule R M} {q : submodule R M'} {x : M × M'} :
   x ∈ prod p q ↔ x.1 ∈ p ∧ x.2 ∈ q := set.mem_prod
 
 lemma span_prod_le (s : set M) (t : set M') :
-  span R (set.prod s t) ≤ prod (span R s) (span R t) :=
+  span R (s ×ˢ t) ≤ prod (span R s) (span R t) :=
 span_le.2 $ set.prod_mono subset_span subset_span
 
 @[simp] lemma prod_top : (prod ⊤ ⊤ : submodule R (M × M')) = ⊤ :=

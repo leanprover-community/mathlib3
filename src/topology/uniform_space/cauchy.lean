@@ -36,9 +36,8 @@ lemma cauchy_iff' {f : filter α} :
 (𝓤 α).basis_sets.cauchy_iff
 
 lemma cauchy_iff {f : filter α} :
-  cauchy f ↔ (ne_bot f ∧ (∀ s ∈ 𝓤 α, ∃t∈f, (set.prod t t) ⊆ s)) :=
-cauchy_iff'.trans $ by simp only [subset_def, prod.forall, mem_prod_eq,
-                                  and_imp, id, ball_mem_comm]
+  cauchy f ↔ (ne_bot f ∧ (∀ s ∈ 𝓤 α, ∃t∈f, t ×ˢ t ⊆ s)) :=
+cauchy_iff'.trans $ by simp only [subset_def, prod.forall, mem_prod_eq, and_imp, id, ball_mem_comm]
 
 lemma cauchy_map_iff {l : filter β} {f : β → α} :
   cauchy (l.map f) ↔ (ne_bot l ∧ tendsto (λp:β×β, (f p.1, f p.2)) (l ×ᶠ l) (𝓤 α)) :=
@@ -79,7 +78,7 @@ end
 one can choose a set `t ∈ f` of diameter `s` such that it contains a point `y`
 with `(x, y) ∈ s`, then `f` converges to `x`. -/
 lemma le_nhds_of_cauchy_adhp_aux {f : filter α} {x : α}
-  (adhs : ∀ s ∈ 𝓤 α, ∃ t ∈ f, (set.prod t t ⊆ s) ∧ ∃ y, (x, y) ∈ s ∧ y ∈ t) :
+  (adhs : ∀ s ∈ 𝓤 α, ∃ t ∈ f, (t ×ˢ t ⊆ s) ∧ ∃ y, (x, y) ∈ s ∧ y ∈ t) :
   f ≤ 𝓝 x :=
 begin
   -- Consider a neighborhood `s` of `x`
@@ -100,7 +99,7 @@ lemma le_nhds_of_cauchy_adhp {f : filter α} {x : α} (hf : cauchy f)
 le_nhds_of_cauchy_adhp_aux
 begin
   assume s hs,
-  obtain ⟨t, t_mem, ht⟩ : ∃ t ∈ f, set.prod t t ⊆ s,
+  obtain ⟨t, t_mem, ht⟩ : ∃ t ∈ f, t ×ˢ t ⊆ s,
     from (cauchy_iff.1 hf).2 s hs,
   use [t, t_mem, ht],
   exact (forall_mem_nonempty_iff_ne_bot.2 adhs _
@@ -423,7 +422,7 @@ lemma ultrafilter.cauchy_of_totally_bounded {s : set α} (f : ultrafilter α)
   have ∃y∈i, {x | (x,y) ∈ t'} ∈ f,
     from (ultrafilter.finite_bUnion_mem_iff hi).1 this,
   let ⟨y, hy, hif⟩ := this in
-  have set.prod {x | (x,y) ∈ t'} {x | (x,y) ∈ t'} ⊆ comp_rel t' t',
+  have {x | (x,y) ∈ t'} ×ˢ {x | (x,y) ∈ t'} ⊆ comp_rel t' t',
     from assume ⟨x₁, x₂⟩ ⟨(h₁ : (x₁, y) ∈ t'), (h₂ : (x₂, y) ∈ t')⟩,
       ⟨y, h₁, ht'_symm h₂⟩,
   mem_of_superset (prod_mem_prod hif hif) (subset.trans this ht'_t)⟩
@@ -513,11 +512,11 @@ open set finset
 noncomputable theory
 
 /-- An auxiliary sequence of sets approximating a Cauchy filter. -/
-def set_seq_aux (n : ℕ) : {s : set α // ∃ (_ : s ∈ f), s.prod s ⊆ U n } :=
+def set_seq_aux (n : ℕ) : {s : set α // ∃ (_ : s ∈ f), s ×ˢ s ⊆ U n } :=
 indefinite_description _ $ (cauchy_iff.1 hf).2 (U n) (U_mem n)
 
 /-- Given a Cauchy filter `f` and a sequence `U` of entourages, `set_seq` provides
-an antitone sequence of sets `s n ∈ f` such that `(s n).prod (s n) ⊆ U`. -/
+an antitone sequence of sets `s n ∈ f` such that `s n ×ˢ s n ⊆ U`. -/
 def set_seq (n : ℕ) : set α :=  ⋂ m ∈ Iic n, (set_seq_aux hf U_mem m).val
 
 lemma set_seq_mem (n : ℕ) : set_seq hf U_mem n ∈ f :=
@@ -530,7 +529,7 @@ lemma set_seq_sub_aux (n : ℕ) : set_seq hf U_mem n ⊆ set_seq_aux hf U_mem n 
 bInter_subset_of_mem right_mem_Iic
 
 lemma set_seq_prod_subset {N m n} (hm : N ≤ m) (hn : N ≤ n) :
-  (set_seq hf U_mem m).prod (set_seq hf U_mem n) ⊆ U N :=
+  set_seq hf U_mem m ×ˢ set_seq hf U_mem n ⊆ U N :=
 begin
   assume p hp,
   refine (set_seq_aux hf U_mem N).2.snd ⟨_, _⟩;

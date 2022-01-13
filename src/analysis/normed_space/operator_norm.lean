@@ -1127,10 +1127,6 @@ instance norm_one_class [nontrivial E] : norm_one_class (E →L[𝕜] E) := ⟨n
 instance to_normed_group : normed_group (E →SL[σ₁₂] F) :=
 normed_group.of_core _ ⟨op_norm_zero_iff, op_norm_add_le, op_norm_neg⟩
 
-instance to_normed_space {𝕜' : Type*} [normed_field 𝕜'] [normed_space 𝕜' F]
-  [smul_comm_class 𝕜₂ 𝕜' F] : normed_space 𝕜' (E →SL[σ₁₂] F) :=
-⟨op_norm_smul_le⟩
-
 /-- Continuous linear maps form a normed ring with respect to the operator norm. -/
 instance to_normed_ring : normed_ring (E →L[𝕜] E) :=
 { norm_mul := op_norm_comp_le,

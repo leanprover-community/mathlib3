@@ -242,11 +242,7 @@ by { convert unbounded_le_iff_unbounded_inter_not_le a, ext, exact lt_iff_not_ge
 
 theorem bounded_le_iff_bounded_inter_le [linear_order α] (a : α) :
   bounded (≤) s ↔ bounded (≤) (s ∩ {b | a ≤ b}) :=
-begin
-  use bounded_of_subset_bounded (set.inter_subset_left s _),
-  rw @bounded_le_iff_bounded_inter_lt _ s _ a,
-  exact bounded_of_subset_bounded (λ x ⟨hx, hx'⟩, ⟨hx, le_of_lt hx'⟩)
-end
+by simp_rw [← not_lt, bounded_inter_not_lt]
 
 theorem unbounded_le_iff_unbounded_inter_le [linear_order α] (a : α) :
   unbounded (≤) s ↔ unbounded (≤) (s ∩ {b | a ≤ b}) :=

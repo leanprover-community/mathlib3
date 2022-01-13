@@ -571,6 +571,9 @@ lemma is_top.unique {α : Type u} [partial_order α] {a b : α} (ha : is_top a) 
   a = b :=
 le_antisymm hb (ha b)
 
+lemma is_top_or_exists_gt [linear_order α] (a : α) : is_top a ∨ ∃ b, a < b :=
+by simpa only [or_iff_not_imp_left, is_top, not_forall, not_le] using id
+
 /-- Order without a minimal element. Sometimes called coinitial or dense. -/
 class no_min_order (α : Type u) [has_lt α] : Prop :=
 (exists_lt (a : α) : ∃ b, b < a)
@@ -590,6 +593,9 @@ def is_bot {α : Type u} [has_le α] (a : α) : Prop := ∀ b, a ≤ b
 lemma is_bot.unique {α : Type u} [partial_order α] {a b : α} (ha : is_bot a) (hb : b ≤ a) :
   a = b :=
 le_antisymm (ha b) hb
+
+lemma is_bot_or_exists_lt [linear_order α] (a : α) : is_bot a ∨ ∃ b, b < a :=
+@is_top_or_exists_gt (order_dual α) _ a
 
 instance order_dual.no_max_order (α : Type u) [has_lt α] [no_min_order α] :
   no_max_order (order_dual α) :=

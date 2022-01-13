@@ -150,7 +150,7 @@ submodule.quotient.mk_eq_zero N.to_submodule
 lemma mk'_ker : (mk' N).ker = N :=
 by { ext, simp, }
 
-@[simp] lemma le_iff : N' ≤ N ↔ map (mk' N) N' = ⊥ :=
+@[simp] lemma map_mk'_eq_bot_le : map (mk' N) N' = ⊥ ↔ N' ≤ N :=
 by rw [← lie_module_hom.le_ker_iff_map, mk'_ker]
 
 /-- Two `lie_module_hom`s from a quotient lie module are equal if their compositions with

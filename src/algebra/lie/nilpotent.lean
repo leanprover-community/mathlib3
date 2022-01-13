@@ -136,7 +136,7 @@ begin
   suffices : lower_central_series R L M k ≤ N,
   { replace this := lie_submodule.mono_lie_right _ _ ⊤ (le_trans this h₁),
     rwa [ideal_oper_max_triv_submodule_eq_bot, le_bot_iff] at this, },
-  rw [lie_submodule.quotient.le_iff, ← le_bot_iff, ← hk],
+  rw [← lie_submodule.quotient.map_mk'_eq_bot_le, ← le_bot_iff, ← hk],
   exact lower_central_series_map_le k (lie_submodule.quotient.mk' N),
 end
 

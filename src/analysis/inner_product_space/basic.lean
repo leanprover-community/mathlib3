@@ -467,29 +467,17 @@ lemma finsupp.inner_sum {ι : Type*} (l : ι →₀ 𝕜) (v : ι → E) (x : E)
   ⟪x, l.sum (λ (i : ι) (a : 𝕜), a • v i)⟫ = l.sum (λ (i : ι) (a : 𝕜), a • ⟪x, v i⟫) :=
 by { convert inner_sum l.support (λ a, l a • v a) x, simp [inner_smul_right, finsupp.sum] }
 
--- move this
-theorem dfinsupp.comp_sum {ι : Type*} {γ : Type*} {β : ι → Type*} [dec : decidable_eq ι]
-  {δ : Type*} [Π (i : ι), add_zero_class (β i)] [Π i (x : β i), decidable (x ≠ 0)]
-  [add_comm_monoid γ] [add_comm_monoid δ] (g : γ →+ δ)
-  (f : Π (i : ι), β i → γ) (l : Π₀ i, β i) :
-  g (l.sum f) = l.sum (λ i, g ∘ (f i)) :=
-begin
-  apply dfinsupp.induction l,
-  { simp },
-  { simp },
-end
-
 lemma dfinsupp.sum_inner {ι : Type*} [dec : decidable_eq ι] {α : ι → Type*}
   [Π i, add_zero_class (α i)] [Π i (x : α i), decidable (x ≠ 0)]
   (f : Π i, α i → E) (l : Π₀ i, α i) (x : E) :
   ⟪l.sum f, x⟫ = l.sum (λ i a, ⟪f i a, x⟫) :=
-l.comp_sum (sesq_form_of_inner x).to_add_monoid_hom f
+by simp [dfinsupp.sum, sum_inner] {contextual := tt}
 
 lemma dfinsupp.inner_sum {ι : Type*} [dec : decidable_eq ι] {α : ι → Type*}
   [Π i, add_zero_class (α i)] [Π i (x : α i), decidable (x ≠ 0)]
   (f : Π i, α i → E) (l : Π₀ i, α i) (x : E) :
   ⟪x, l.sum f⟫ = l.sum (λ i a, ⟪x, f i a⟫) :=
-l.comp_sum (linear_map.flip sesq_form_of_inner x).to_add_monoid_hom f
+by simp [dfinsupp.sum, inner_sum] {contextual := tt}
 
 @[simp] lemma inner_zero_left {x : E} : ⟪0, x⟫ = 0 :=
 by rw [← zero_smul 𝕜 (0:E), inner_smul_left, ring_equiv.map_zero, zero_mul]
@@ -1691,10 +1679,8 @@ calc ⟪∑ i in s, V i (l₁ i), ∑ j in s, V j (l₂ j)⟫
     = ∑ j in s, ∑ i in s, ⟪V i (l₁ i), V j (l₂ j)⟫ :  by { simp [sum_inner, inner_sum], }
 ... = ∑ j in s, ∑ i in s, ite (i = j) ⟪V i (l₁ i), V j (l₂ j)⟫ 0 :
 begin
-  congr,
-  ext i,
-  congr,
-  ext j,
+  congr' with i,
+  congr' with j,
   apply hV.eq_ite,
 end
 ... = ∑ i in s, ⟪l₁ i, l₂ i⟫ : by simp [finset.sum_ite_of_true]

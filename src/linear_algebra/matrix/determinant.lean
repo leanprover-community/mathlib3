@@ -103,7 +103,7 @@ Although `unique` implies `decidable_eq` and `fintype`, the instances might
 not be syntactically equal. Thus, we need to fill in the args explicitly. -/
 @[simp]
 lemma det_unique {n : Type*} [unique n] [decidable_eq n] [fintype n] (A : matrix n n R) :
-  det A = A (default n) (default n) :=
+  det A = A default default :=
 by simp [det_apply, univ_unique]
 
 lemma det_eq_elem_of_subsingleton [subsingleton n] (A : matrix n n R) (k : n) :

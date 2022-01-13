@@ -1057,9 +1057,10 @@ lemma restrict_finset_bUnion_congr {s : finset ι} {t : ι → set α}
     ∀ i ∈ s, μ.restrict (t i) = ν.restrict (t i) :=
 begin
   induction s using finset.induction_on with i s hi hs, { simp },
-  simp only [finset.mem_insert, or_imp_distrib, forall_and_distrib, forall_eq] at htm ⊢,
-  simp only [finset.set_bUnion_insert, ← hs htm.2],
-  exact restrict_union_congr htm.1 (s.measurable_set_bUnion htm.2)
+  simp only [forall_eq_or_imp, Union_Union_eq_or_left, finset.mem_insert],
+  rw restrict_union_congr (htm _ (finset.mem_insert_self i s)),
+  rw ← hs (λ i hi, htm _ (finset.mem_insert_of_mem hi)),
+  exact s.measurable_set_bUnion (λ i hi, htm _ (finset.mem_insert_of_mem hi))
 end
 
 lemma restrict_Union_congr [encodable ι] {s : ι → set α} (hm : ∀ i, measurable_set (s i)) :
@@ -1170,7 +1171,7 @@ begin
   { intros t ht, rw [h_gen], exact generate_measurable.basic _ (h_sub ht) },
   { intros t ht s hs, cases (s ∩ t).eq_empty_or_nonempty with H H,
     { simp only [H, measure_empty] },
-    { exact h_eq _ (h_inter _ _ hs (h_sub ht) H) } }
+    { exact h_eq _ (h_inter _ hs _ (h_sub ht) H) } }
 end
 
 /-- Two measures are equal if they are equal on the π-system generating the σ-algebra,
@@ -2792,7 +2793,7 @@ lemma ae_measurable_of_subsingleton_codomain [subsingleton β] : ae_measurable f
 @[simp, measurability] lemma ae_measurable_zero_measure : ae_measurable f (0 : measure α) :=
 begin
   nontriviality α, inhabit α,
-  exact ⟨λ x, f (default α), measurable_const, rfl⟩
+  exact ⟨λ x, f default, measurable_const, rfl⟩
 end
 
 namespace ae_measurable
@@ -2827,7 +2828,7 @@ begin
     from measurable_set.Inter (λ i, measurable_set_to_measurable _ _),
   have hs : ∀ i x, x ∉ s i → f x = (h i).mk f x,
   { intros i x hx, contrapose! hx, exact subset_to_measurable _ _ hx },
-  set g : α → β := (⋂ i, s i).piecewise (const α (default β)) f,
+  set g : α → β := (⋂ i, s i).piecewise (const α default) f,
   refine ⟨g, measurable_of_restrict_of_restrict_compl hsm _ _, ae_sum_iff.mpr $ λ i, _⟩,
   { rw [restrict_piecewise], simp only [set.restrict, const], exact measurable_const },
   { rw [restrict_piecewise_compl, compl_Inter],
@@ -2891,7 +2892,7 @@ lemma subtype_mk (h : ae_measurable f μ) {s : set β} {hfs : ∀ x, f x ∈ s} 
 begin
   nontriviality α, inhabit α,
   rcases h with ⟨g, hgm, hg⟩,
-  rcases hs.exists_measurable_proj ⟨f (default α), hfs _⟩ with ⟨π, hπm, hπ⟩,
+  rcases hs.exists_measurable_proj ⟨f default, hfs _⟩ with ⟨π, hπm, hπ⟩,
   refine ⟨π ∘ g, hπm.comp hgm, hg.mono $ λ x hx, _⟩,
   rw [comp_apply, ← hx, ← coe_cod_restrict_apply f s hfs, hπ]
 end

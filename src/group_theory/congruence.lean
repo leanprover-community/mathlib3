@@ -476,7 +476,7 @@ variables (M)
     binary relations on `M`. -/
 @[to_additive "There is a Galois insertion of additive congruence relations on a type with
 an addition `M` into binary relations on `M`."]
-protected noncomputable def gi :
+protected def gi :
   @galois_insertion (M → M → Prop) (con M) _ _ con_gen coe_fn :=
 { choice := λ r h, con_gen r,
   gc := λ r c, ⟨λ H _ _ h, H $ con_gen.rel.of _ _ h, λ H, con_gen_of_con c ▸ con_gen_mono H⟩,

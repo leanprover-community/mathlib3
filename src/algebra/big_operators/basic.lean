@@ -1369,13 +1369,13 @@ end comm_group_with_zero
 @[to_additive]
 lemma prod_unique_nonempty {α β : Type*} [comm_monoid β] [unique α]
   (s : finset α) (f : α → β) (h : s.nonempty) :
-  (∏ x in s, f x) = f (default α) :=
+  (∏ x in s, f x) = f default :=
 begin
   obtain ⟨a, ha⟩ := h,
   have : s = {a},
   { ext b,
     simpa [subsingleton.elim a b] using ha },
-  rw [this, finset.prod_singleton, subsingleton.elim a (default α)]
+  rw [this, finset.prod_singleton, subsingleton.elim a default]
 end
 
 end finset
@@ -1423,7 +1423,7 @@ lemma prod_finset_coe [comm_monoid β] :
 
 @[to_additive]
 lemma prod_unique {α β : Type*} [comm_monoid β] [unique α] (f : α → β) :
-  (∏ x : α, f x) = f (default α) :=
+  (∏ x : α, f x) = f default :=
 by rw [univ_unique, prod_singleton]
 
 @[to_additive] lemma prod_empty {α β : Type*} [comm_monoid β] [is_empty α] (f : α → β) :

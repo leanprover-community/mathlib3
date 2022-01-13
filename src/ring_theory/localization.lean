@@ -1166,7 +1166,7 @@ local_of_nonunits_ideal
         htz.symm ▸ I.zero_mem))
     end)
   (begin
-    intros x y hx hy hu,
+    intros x hx y hy hu,
     cases is_unit_iff_exists_inv.1 hu with z hxyz,
     have : ∀ {r : R} {s : I.prime_compl}, mk' S r s ∈ nonunits S → r ∈ I, from
       λ (r : R) (s : I.prime_compl), not_imp_comm.1
@@ -2106,6 +2106,9 @@ is_localization.coe_submodule_le_coe_submodule (le_refl _)
 lemma coe_submodule_strict_mono :
   strict_mono (coe_submodule K : ideal R → submodule R K) :=
 strict_mono_of_le_iff_le (λ _ _, coe_submodule_le_coe_submodule.symm)
+
+@[priority 100] instance [no_zero_divisors K] : no_zero_smul_divisors R K :=
+no_zero_smul_divisors.of_algebra_map_injective $ is_fraction_ring.injective R K
 
 variables (R K)
 

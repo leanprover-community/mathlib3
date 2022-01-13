@@ -1144,7 +1144,7 @@ by rw [update_eq_erase_add_single, erase_eq_sub_single]
 /-- Given a family of functions `f i : α → N` indexed over `S : finset ι`, the sum of this family
   over `S` is a function `α → N` whose value at `p : α` is `∑ (i : ι) in S, (f i) p` -/
 lemma finset_sum_apply [add_comm_monoid N] (S : finset ι) (a : α) (f : ι → α →₀ N) :
-  (S.sum f) a = ∑ (i : ι) in S, (f i) a :=
+  (∑ i in S, f i) a = ∑ i in S, f i a :=
 (apply_add_hom a : (α →₀ N) →+ _).map_sum _ _
 
 @[simp] lemma sum_apply [has_zero M] [add_comm_monoid N]

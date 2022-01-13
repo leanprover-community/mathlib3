@@ -523,10 +523,8 @@ begin
   rw <-div_lt_one,
   simp only [add_div, mul_add, add_mul, add_div, <-add_assoc],
   simp,
-  {
-    rw [equality4 n_large],
-    linarith only [inequality1 n_large, inequality2 n_large, inequality3 n_large],
-  },
+  { rw [equality4 n_large],
+    linarith only [inequality1 n_large, inequality2 n_large, inequality3 n_large], },
   repeat {apply ne_of_gt},
   repeat {apply mul_pos},
   repeat {apply rpow_pos_of_pos},
@@ -662,10 +660,8 @@ begin
   have w' : finset.filter (λ p, p ^ 2 ≤ 2 * n)
               (finset.filter nat.prime (finset.range (2 * n / 3 + 1))) =
     finset.filter (λ p, p ^ 2 ≤ 2 * n) (finset.filter nat.prime (finset.Ico 0 (2 * n / 3 + 1))) :=
-    by {
-      apply congr_arg (λ i, finset.filter (λ p, p ^ 2 ≤ 2 * n) (finset.filter nat.prime i)),
-      rw finset.range_eq_Ico,
-    },
+    by { apply congr_arg (λ i, finset.filter (λ p, p ^ 2 ≤ 2 * n) (finset.filter nat.prime i)),
+         rw finset.range_eq_Ico, },
 
   have w : finset.filter (λ p, p ^ 2 ≤ 2 * n)
             (finset.filter nat.prime (finset.Ico 0 (2 * n / 3 + 1))) =
@@ -704,21 +700,21 @@ begin
   have h : (finset.filter (λ p, 2 ≤ p ^ 2 ∧ p ^ 2 ≤ 2 * n)
               (finset.filter nat.prime (finset.Ico 2 (2 * n / 3 + 1))))
             ⊆ finset.Ico 2 (nat.sqrt (2 * n) + 1)
-    , by {
-      apply filter_to_subset _,
-      intros i hyp,
-      simp,
-      split,
-      { cases le_or_gt 2 i,
-        { exact h, },
+    ,
+  by
+  { apply filter_to_subset _,
+    intros i hyp,
+    simp,
+    split,
+    { cases le_or_gt 2 i,
+      { exact h, },
+      { cases i,
+        { linarith, },
         { cases i,
           { linarith, },
-          { cases i,
-            { linarith, },
-            { exact dec_trivial, }, } }, },
-      { have : i ≤ nat.sqrt (2 * n) := nat.le_sqrt'.mpr hyp.2,
-        linarith, },
-    },
+          { exact dec_trivial, }, } }, },
+    { have : i ≤ nat.sqrt (2 * n) := nat.le_sqrt'.mpr hyp.2,
+      linarith, }, },
 
   calc (finset.filter (λ (p : ℕ), p ^ 2 < 2 * n)
           (finset.filter nat.prime (finset.range (2 * n / 3 + 1)))).card
@@ -863,8 +859,7 @@ begin
                       split,
                       { intro h, simp at h, simp, split,
                         exact h.1, exact even_prime_is_small h.1.2 (by linarith) h.2, },
-                      { intro h, simp at h, simp, split, exact h.1, linarith, }
-                     },
+                      { intro h, simp at h, simp, split, exact h.1, linarith, } },
                    end
       ...     ≤ (2 * n) ^ (nat.sqrt (2 * n))
                  *

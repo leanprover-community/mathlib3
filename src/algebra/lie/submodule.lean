@@ -511,6 +511,10 @@ def map : lie_submodule R L M' :=
     { norm_cast at hfm, simp [hfm], }, },
   ..(N : submodule R M).map (f : M →ₗ[R] M') }
 
+@[simp] lemma coe_submodule_map :
+  (N.map f : submodule R M') = (N : submodule R M).map (f : M →ₗ[R] M') :=
+rfl
+
 /-- A morphism of Lie modules `f : M → M'` pulls back Lie submodules of `M'` to Lie submodules of
 `M`. -/
 def comap : lie_submodule R L M :=

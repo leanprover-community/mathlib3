@@ -155,9 +155,8 @@ lemma map_bracket_eq
   (f : M →ₗ⁅R,L⁆ M₂) :
   map f ⁅I, N⁆ = ⁅I, map f N⁆ :=
 begin
-  rw ← coe_to_submodule_eq_iff,
-  change (↑⁅I, N⁆ : submodule R M).map (f : M →ₗ[R] M₂) = _,
-  rw [lie_ideal_oper_eq_linear_span, lie_ideal_oper_eq_linear_span, submodule.map_span],
+  rw [← coe_to_submodule_eq_iff, coe_submodule_map, lie_ideal_oper_eq_linear_span,
+    lie_ideal_oper_eq_linear_span, submodule.map_span],
   congr,
   ext m,
   split,

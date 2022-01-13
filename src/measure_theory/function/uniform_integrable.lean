@@ -182,9 +182,8 @@ begin
   rw metric.tendsto_uniformly_on_iff,
   intros δ hδ,
   obtain ⟨N, hN⟩ := exists_nat_one_div_lt hδ,
-  rw eventually_iff_exists_mem,
-  refine ⟨Ioi (egorov.not_convergent_seq_lt_index (half_pos hε) hf hg hsm hs hfg N),
-    Ioi_mem_at_top _, λ n hn x hx, _⟩,
+  rw eventually_at_top,
+  refine ⟨egorov.not_convergent_seq_lt_index (half_pos hε) hf hg hsm hs hfg N, λ n hn x hx, _⟩,
   simp only [mem_diff, egorov.Union_not_convergent_seq, not_exists, mem_Union, mem_inter_eq,
     not_and, exists_and_distrib_left] at hx,
   obtain ⟨hxs, hx⟩ := hx,
@@ -192,7 +191,7 @@ begin
   rw egorov.mem_not_convergent_seq_iff at hx,
   push_neg at hx,
   rw dist_comm,
-  exact lt_of_le_of_lt (hx n (mem_Ioi.1 hn).le) hN,
+  exact lt_of_le_of_lt (hx n hn) hN,
 end
 
 /-- Egorov's theorem for finite measure spaces. -/

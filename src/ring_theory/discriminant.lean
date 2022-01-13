@@ -274,7 +274,7 @@ end
 /-- Let `K` be the fraction field of an integrally closed domain `R` and let `L` be a finite
 separable extension of `K`. Let `B : power_basis K L` be such that `is_integral R B.gen`. Then for
 all, `z : L` we have `(discr K B.basis) • z ∈ adjoin R ({B.gen} : set L)`. -/
-lemma discr_mul_is_integral_mem_adjoin [is_domain R] [is_integrally_closed R] [is_separable K L]
+lemma discr_mul_is_integral_mem_adjoin [is_domain R] [is_separable K L] [is_integrally_closed R]
   [is_fraction_ring R K] {B : power_basis K L} (hint : is_integral R B.gen) {z : L}
   (hz : is_integral R z) : (discr K B.basis) • z ∈ adjoin R ({B.gen} : set L) :=
 begin

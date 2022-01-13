@@ -125,7 +125,7 @@ local notation `R` := function.End.R
 
 -- The Jordan axioms can be expressed in terms of commuting multiplication operators
 
-lemma lmul_rmul_comm [is_jordan A] (a : A) : ⁅L a, R a⁆ = 0 :=
+@[simp] lemma lie_L_R [is_jordan A] (a : A) : ⁅L a, R a⁆ = 0 :=
 begin
   ext b,
   rw ring.lie_def,

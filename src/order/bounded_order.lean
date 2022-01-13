@@ -90,8 +90,6 @@ end preorder
 
 variables [partial_order α] [order_top α] {a b : α}
 
-theorem is_top_top {α : Type u} [has_le α] [order_top α] : is_top (⊤ : α) := λ _, le_top
-
 theorem top_unique (h : ⊤ ≤ a) : a = ⊤ :=
 le_top.antisymm h
 
@@ -198,8 +196,8 @@ theorem eq_bot_iff : a = ⊥ ↔ a ≤ ⊥ :=
 
 lemma is_bot_iff_is_min' : is_bot a ↔ is_min a := is_bot_iff_eq_bot.trans is_min_iff_eq_bot.symm
 
-alias is_max_iff_eq_top ↔ _ is_max.eq_top
-alias is_top_iff_eq_top ↔ _ is_top.eq_top
+alias is_min_iff_eq_bot ↔ _ is_min.eq_bot
+alias is_bot_iff_eq_bot ↔ _ is_bot.eq_bot
 
 theorem ne_bot_of_le_ne_bot {a b : α} (hb : b ≠ ⊥) (hab : b ≤ a) : a ≠ ⊥ :=
 λ ha, hb $ bot_unique $ ha ▸ hab
@@ -214,7 +212,7 @@ begin
   simp only [lt_iff_le_not_le, not_iff_not.mpr le_bot_iff, true_and, bot_le],
 end
 
-lemma eq_bot_or_bot_lt (a : α) : a = ⊥ ∨ ⊥ < a := bot_le.eq_or_lt
+lemma eq_bot_or_bot_lt (a : α) : a = ⊥ ∨ ⊥ < a := bot_le.eq_or_gt
 
 lemma eq_bot_of_minimal (h : ∀ b, ¬ b < a) : a = ⊥ :=
 or.elim (lt_or_eq_of_le bot_le) (λ hlt, absurd hlt (h ⊥)) (λ he, he.symm)
@@ -611,6 +609,14 @@ lemma coe_inf [semilattice_inf α] (a b : α) : ((a ⊓ b : α) : with_bot α) =
 instance lattice [lattice α] : lattice (with_bot α) :=
 { ..with_bot.semilattice_sup, ..with_bot.semilattice_inf }
 
+instance le_is_total [preorder α] [is_total α (≤)] : is_total (with_bot α) (≤) :=
+⟨λ o₁ o₂,
+begin
+  cases o₁ with a, {exact or.inl bot_le},
+  cases o₂ with b, {exact or.inr bot_le},
+  exact (total_of (≤) a b).imp some_le_some.mpr some_le_some.mpr,
+end⟩
+
 instance linear_order [linear_order α] : linear_order (with_bot α) :=
 lattice.to_linear_order _
 
@@ -853,6 +859,14 @@ lemma coe_sup [semilattice_sup α] (a b : α) : ((a ⊔ b : α) : with_top α) =
 
 instance lattice [lattice α] : lattice (with_top α) :=
 { ..with_top.semilattice_sup, ..with_top.semilattice_inf }
+
+instance le_is_total [preorder α] [is_total α (≤)] : is_total (with_top α) (≤) :=
+⟨λ o₁ o₂,
+begin
+  cases o₁ with a, {exact or.inr le_top},
+  cases o₂ with b, {exact or.inl le_top},
+  exact (total_of (≤) a b).imp some_le_some.mpr some_le_some.mpr,
+end⟩
 
 instance linear_order [linear_order α] : linear_order (with_top α) :=
 lattice.to_linear_order _

@@ -1631,10 +1631,8 @@ calc ⟪∑ i in s, (l₁ i : E), ∑ j in s, (l₂ j : E)⟫
     = ∑ j in s, ∑ i in s, ⟪(l₁ i : E), l₂ j⟫ :  by { simp [sum_inner, inner_sum], }
 ... = ∑ j in s, ∑ i in s, ite (i = j) ⟪(l₁ i : E), l₂ j⟫ 0 :
 begin
-  congr,
-  ext i,
-  congr,
-  ext j,
+  congr' with i,
+  congr' with j,
   apply hV.eq_ite,
 end
 ... = ∑ i in s, ⟪l₁ i, l₂ i⟫ : by simp [finset.sum_ite_of_true]

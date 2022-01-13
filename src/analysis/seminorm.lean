@@ -285,7 +285,8 @@ instance : has_add (seminorm 𝕜 E) :=
 lemma coe_add (p q : seminorm 𝕜 E) : ⇑(p + q) = p + q := rfl
 
 instance : has_scalar nnreal (seminorm 𝕜 E) :=
-  { smul := λ r p, { to_fun := λ x, ↑r * p(x),
+{ smul := λ r p,
+  { to_fun := λ x, ↑r * p(x),
     smul' := λ _ _, by rw [p.smul, ←mul_assoc, ←mul_assoc, mul_comm ↑r ∥_∥],
     triangle' := λ _ _, has_le.le.trans_eq (mul_le_mul_of_nonneg_left (p.triangle _ _) r.coe_nonneg)
       (mul_add r _ _) } }

@@ -262,7 +262,8 @@ def complete_lattice_of_complete_semilattice_Sup (α : Type*) [complete_semilatt
 complete_lattice_of_Sup α (λ s, is_lub_Sup s)
 
 /-- A complete linear order is a linear order whose lattice structure is complete. -/
-class complete_linear_order (α : Type*) extends complete_lattice α, linear_order α
+class complete_linear_order (α : Type*) extends complete_lattice α,
+  linear_order α renaming max → sup min → inf
 
 namespace order_dual
 variable (α)

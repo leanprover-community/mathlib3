@@ -17,7 +17,7 @@ dicyclic groups, with elements `a i` and `xa i` for `i : zmod n`. The (generalis
 groups can be defined by the presentation
 $\langle a, x | a^{2n} = 1, x^2 = a^n, x^{-1}ax=a^{-1}\rangle$. We write `a i` for
 $a^i$ and `xa i` for $x * a^i$. For `n=2` the quaternion group `quaternion_group 2` is isomorphic to
-the unit integral quaternions `units (quaternion ℤ)`.
+the unit integral quaternions `(quaternion ℤ)ˣ`.
 
 ## Main definition
 
@@ -39,7 +39,7 @@ inconvenient to carry around this condition we define `quaternion_group` also fo
 
 ## TODO
 
-Show that `quaternion_group 2 ≃* units (quaternion ℤ)`.
+Show that `quaternion_group 2 ≃* (quaternion ℤ)ˣ`.
 
 -/
 

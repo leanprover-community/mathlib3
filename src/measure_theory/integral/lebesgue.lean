@@ -96,7 +96,7 @@ by simpa only [mem_range, exists_prop] using set.exists_range_iff
 lemma preimage_eq_empty_iff (f : α →ₛ β) (b : β) : f ⁻¹' {b} = ∅ ↔ b ∉ f.range :=
 preimage_singleton_eq_empty.trans $ not_congr mem_range.symm
 
-lemma exists_forall_le [nonempty β] [directed_order β] (f : α →ₛ β) :
+lemma exists_forall_le [nonempty β] [preorder β] [is_directed β (≤)] (f : α →ₛ β) :
   ∃ C, ∀ x, f x ≤ C :=
 f.range.exists_le.imp $ λ C, forall_range_iff.1
 
@@ -104,7 +104,7 @@ f.range.exists_le.imp $ λ C, forall_range_iff.1
 def const (α) {β} [measurable_space α] (b : β) : α →ₛ β :=
 ⟨λ a, b, λ x, measurable_set.const _, finite_range_const⟩
 
-instance [inhabited β] : inhabited (α →ₛ β) := ⟨const _ (default _)⟩
+instance [inhabited β] : inhabited (α →ₛ β) := ⟨const _ default⟩
 
 theorem const_apply (a : α) (b : β) : (const α b) a = b := rfl
 
@@ -301,7 +301,7 @@ def pair (f : α →ₛ β) (g : α →ₛ γ) : α →ₛ (β × γ) := (f.map 
 @[simp] lemma pair_apply (f : α →ₛ β) (g : α →ₛ γ) (a) : pair f g a = (f a, g a) := rfl
 
 lemma pair_preimage (f : α →ₛ β) (g : α →ₛ γ) (s : set β) (t : set γ) :
-  (pair f g) ⁻¹' (set.prod s t) = (f ⁻¹' s) ∩ (g ⁻¹' t) := rfl
+  (pair f g) ⁻¹' (s ×ˢ t) = (f ⁻¹' s) ∩ (g ⁻¹' t) := rfl
 
 /- A special form of `pair_preimage` -/
 lemma pair_preimage_singleton (f : α →ₛ β) (g : α →ₛ γ) (b : β) (c : γ) :
@@ -828,8 +828,8 @@ open finset function
 
 lemma support_eq [measurable_space α] [has_zero β] (f : α →ₛ β) :
   support f = ⋃ y ∈ f.range.filter (λ y, y ≠ 0), f ⁻¹' {y} :=
-set.ext $ λ x, by simp only [finset.set_bUnion_preimage_singleton, mem_support, set.mem_preimage,
-  finset.mem_coe, mem_filter, mem_range_self, true_and]
+set.ext $ λ x, by simp only [mem_support, set.mem_preimage, mem_filter, mem_range_self, true_and,
+  exists_prop, mem_Union, set.mem_range, mem_singleton_iff, exists_eq_right']
 
 variables {m : measurable_space α} [has_zero β] [has_zero γ] {μ : measure α} {f : α →ₛ β}
 

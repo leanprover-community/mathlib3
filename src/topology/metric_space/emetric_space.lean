@@ -260,7 +260,7 @@ is_countably_generated_of_seq ⟨_, uniformity_basis_edist_inv_nat.eq_infi⟩
 /-- ε-δ characterization of uniform continuity on a set for pseudoemetric spaces -/
 theorem uniform_continuous_on_iff [pseudo_emetric_space β] {f : α → β} {s : set α} :
   uniform_continuous_on f s ↔ ∀ ε > 0, ∃ δ > 0,
-    ∀{a b}, a ∈ s → b ∈ s → edist a b < δ → edist (f a) (f b) < ε :=
+    ∀ {a b ∈ s}, edist a b < δ → edist (f a) (f b) < ε :=
 uniformity_basis_edist.uniform_continuous_on_iff uniformity_basis_edist
 
 /-- ε-δ characterization of uniform continuity on pseudoemetric spaces -/
@@ -569,11 +569,11 @@ theorem closed_ball_mem_nhds (x : α) {ε : ℝ≥0∞} (ε0 : 0 < ε) : closed_
 mem_of_superset (ball_mem_nhds x ε0) ball_subset_closed_ball
 
 theorem ball_prod_same [pseudo_emetric_space β] (x : α) (y : β) (r : ℝ≥0∞) :
-  (ball x r).prod (ball y r) = ball (x, y) r :=
+  ball x r ×ˢ ball y r = ball (x, y) r :=
 ext $ λ z, max_lt_iff.symm
 
 theorem closed_ball_prod_same [pseudo_emetric_space β] (x : α) (y : β) (r : ℝ≥0∞) :
-  (closed_ball x r).prod (closed_ball y r) = closed_ball (x, y) r :=
+  closed_ball x r ×ˢ closed_ball y r = closed_ball (x, y) r :=
 ext $ λ z, max_le_iff.symm
 
 /-- ε-characterization of the closure in pseudoemetric spaces -/

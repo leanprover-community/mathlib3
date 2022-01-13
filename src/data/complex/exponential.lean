@@ -475,7 +475,7 @@ begin
   rw [← lim_conj],
   refine congr_arg lim (cau_seq.ext (λ _, _)),
   dsimp [exp', function.comp, cau_seq_conj],
-  rw (star_ring_aut _).map_sum,
+  rw (star_ring_end _).map_sum,
   refine sum_congr rfl (λ n hn, _),
   rw [ring_equiv.map_div, ring_equiv.map_pow, ← of_real_nat_cast, conj_of_real]
 end

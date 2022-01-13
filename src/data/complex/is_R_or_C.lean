@@ -664,13 +664,13 @@ noncomputable instance real.is_R_or_C : is_R_or_C ℝ :=
   mul_re_ax := λ z w,
     by simp only [sub_zero, mul_zero, add_monoid_hom.zero_apply, add_monoid_hom.id_apply],
   mul_im_ax := λ z w, by simp only [add_zero, zero_mul, mul_zero, add_monoid_hom.zero_apply],
-  conj_re_ax := λ z, by simp only [star_ring_aut_apply, star_id_of_comm],
+  conj_re_ax := λ z, by simp only [star_ring_end_apply, star_id_of_comm],
   conj_im_ax := λ z, by simp only [neg_zero, add_monoid_hom.zero_apply],
   conj_I_ax := by simp only [ring_equiv.map_zero, neg_zero],
   norm_sq_eq_def_ax := λ z, by simp only [sq, norm, ←abs_mul, abs_mul_self z, add_zero,
     mul_zero, add_monoid_hom.zero_apply, add_monoid_hom.id_apply],
   mul_im_I_ax := λ z, by simp only [mul_zero, add_monoid_hom.zero_apply],
-  inv_def_ax := λ z, by simp only [star_ring_aut_apply, star, sq, real.norm_eq_abs,
+  inv_def_ax := λ z, by simp only [star_ring_end_apply, star, sq, real.norm_eq_abs,
     abs_mul_abs_self, ←div_eq_mul_inv, algebra.id.map_eq_id, id.def, ring_hom.id_apply,
     div_self_mul_self'],
   div_I_ax := λ z, by simp only [div_zero, mul_zero, neg_zero]}
@@ -750,7 +750,7 @@ linear_map.mk_continuous im_lm 1 $ by
 /-- Conjugate as an `ℝ`-algebra equivalence -/
 noncomputable def conj_ae : K ≃ₐ[ℝ] K :=
 { commutes' := conj_of_real,
-  .. star_ring_aut K }
+  .. star_ring_end K }
 
 @[simp] lemma conj_ae_coe : (conj_ae : K → K) = conj := rfl
 

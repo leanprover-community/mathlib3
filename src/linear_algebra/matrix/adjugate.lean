@@ -346,7 +346,7 @@ lemma adjugate_conj_transpose [star_ring α] (A : matrix n n α) : A.adjugateᴴ
 begin
   dsimp only [conj_transpose],
   have : Aᵀ.adjugate.map star = adjugate (Aᵀ.map star) :=
-    ((star_ring_aut α).to_ring_hom.map_adjugate Aᵀ),
+    ((star_ring_end α).to_ring_hom.map_adjugate Aᵀ),
   rw [A.adjugate_transpose, this],
 end
 

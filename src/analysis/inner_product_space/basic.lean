@@ -152,7 +152,7 @@ local notation `norm_sqK` := @is_R_or_C.norm_sq 𝕜 _
 local notation `reK` := @is_R_or_C.re 𝕜 _
 local notation `absK` := @is_R_or_C.abs 𝕜 _
 local notation `ext_iff` := @is_R_or_C.ext_iff 𝕜 _
-local postfix `†`:90 := star_ring_aut _
+local postfix `†`:90 := star_ring_end _
 
 /-- Inner product defined by the `inner_product_space.core` structure. -/
 def to_has_inner : has_inner 𝕜 F := { inner := c.inner }
@@ -386,7 +386,7 @@ local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
 local notation `IK` := @is_R_or_C.I 𝕜 _
 local notation `absR` := has_abs.abs
 local notation `absK` := @is_R_or_C.abs 𝕜 _
-local postfix `†`:90 := star_ring_aut _
+local postfix `†`:90 := star_ring_end _
 
 export inner_product_space (norm_sq_eq_inner)
 
@@ -432,7 +432,7 @@ by { rw [inner_smul_right, algebra.smul_def], refl }
 /-- The inner product as a sesquilinear form. -/
 @[simps]
 def sesq_form_of_inner : E →ₗ[𝕜] E →ₗ⋆[𝕜] 𝕜 :=
-linear_map.mk₂'ₛₗ (ring_hom.id 𝕜) ((star_ring_aut _).to_ring_hom)
+linear_map.mk₂'ₛₗ (ring_hom.id 𝕜) ((star_ring_end _).to_ring_hom)
   (λ x y, ⟪y, x⟫)
   (λ x y z, inner_add_right)
   (λ r x y, inner_smul_right)
@@ -1481,7 +1481,7 @@ end
 
 /-- The inner product as a continuous sesquilinear map, with the two arguments flipped. -/
 def innerSL_flip : E →L[𝕜] E →L⋆[𝕜] 𝕜 :=
-continuous_linear_map.flipₗᵢ' E E 𝕜 (ring_hom.id 𝕜) (star_ring_aut 𝕜 : 𝕜 →+* 𝕜) innerSL
+continuous_linear_map.flipₗᵢ' E E 𝕜 (ring_hom.id 𝕜) (star_ring_end 𝕜 : 𝕜 →+* 𝕜) innerSL
 
 @[simp] lemma innerSL_flip_apply {x y : E} : innerSL_flip x y = ⟪y, x⟫ := rfl
 
@@ -1493,7 +1493,7 @@ variables  {E' : Type*} [inner_product_space 𝕜 E']
 as a continuous linear map. -/
 def to_sesq_form : (E →L[𝕜] E') →L[𝕜] E' →L⋆[𝕜] E →L[𝕜] 𝕜 :=
 ↑((continuous_linear_map.flipₗᵢ' E E' 𝕜
-  (↑(star_ring_aut 𝕜 : 𝕜 ≃+* 𝕜) : 𝕜 →+* 𝕜) (ring_hom.id 𝕜)).to_continuous_linear_equiv) ∘L
+  (↑(star_ring_end 𝕜 : 𝕜 ≃+* 𝕜) : 𝕜 →+* 𝕜) (ring_hom.id 𝕜)).to_continuous_linear_equiv) ∘L
 (continuous_linear_map.compSL E E' (E' →L⋆[𝕜] 𝕜) (ring_hom.id 𝕜) (ring_hom.id 𝕜) innerSL_flip)
 
 @[simp] lemma to_sesq_form_apply_coe (f : E →L[𝕜] E') (x : E') :

@@ -48,7 +48,7 @@ structure linear_isometry (σ₁₂ : R →+* R₂) (E E₂ : Type*) [semi_norme
 
 notation E ` →ₛₗᵢ[`:25 σ₁₂:25 `] `:0 E₂:0 := linear_isometry σ₁₂ E E₂
 notation E ` →ₗᵢ[`:25 R:25 `] `:0 E₂:0 := linear_isometry (ring_hom.id R) E E₂
-notation E ` →ₗᵢ⋆[`:25 R:25 `] `:0 E₂:0 := linear_isometry (star_ring_aut R : R →+* R) E E₂
+notation E ` →ₗᵢ⋆[`:25 R:25 `] `:0 E₂:0 := linear_isometry (star_ring_end R : R →+* R) E E₂
 
 namespace linear_isometry
 
@@ -216,7 +216,7 @@ structure linear_isometry_equiv (σ₁₂ : R →+* R₂) {σ₂₁ : R₂ →+*
 notation E ` ≃ₛₗᵢ[`:25 σ₁₂:25 `] `:0 E₂:0 := linear_isometry_equiv σ₁₂ E E₂
 notation E ` ≃ₗᵢ[`:25 R:25 `] `:0 E₂:0 := linear_isometry_equiv (ring_hom.id R) E E₂
 notation E ` ≃ₗᵢ⋆[`:25 R:25 `] `:0 E₂:0 :=
-  linear_isometry_equiv (star_ring_aut R : R →+* R) E E₂
+  linear_isometry_equiv (star_ring_end R : R →+* R) E E₂
 
 namespace linear_isometry_equiv
 

@@ -231,7 +231,7 @@ structure continuous_linear_map
 
 notation M ` →SL[`:25 σ `] ` M₂ := continuous_linear_map σ M M₂
 notation M ` →L[`:25 R `] ` M₂ := continuous_linear_map (ring_hom.id R) M M₂
-notation M ` →L⋆[`:25 R `] ` M₂ := continuous_linear_map (star_ring_aut R : R →+* R) M M₂
+notation M ` →L⋆[`:25 R `] ` M₂ := continuous_linear_map (star_ring_end R : R →+* R) M M₂
 
 /-- Continuous linear equivalences between modules. We only put the type classes that are necessary
 for the definition, although in applications `M` and `M₂` will be topological modules over the
@@ -249,7 +249,7 @@ structure continuous_linear_equiv
 
 notation M ` ≃SL[`:50 σ `] ` M₂ := continuous_linear_equiv σ M M₂
 notation M ` ≃L[`:50 R `] ` M₂ := continuous_linear_equiv (ring_hom.id R) M M₂
-notation M ` ≃L⋆[`:50 R `] ` M₂ := continuous_linear_equiv (star_ring_aut R : R →+* R) M M₂
+notation M ` ≃L⋆[`:50 R `] ` M₂ := continuous_linear_equiv (star_ring_end R : R →+* R) M M₂
 
 section pointwise_limits
 

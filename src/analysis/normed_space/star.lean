@@ -95,8 +95,8 @@ lemma continuous_within_at.star {f : α → E} {s : set α} {x : α}
 
 end normed_star_monoid
 
-instance ring_hom_isometric.star_ring_aut [normed_comm_ring E] [star_ring E]
-   [normed_star_monoid E] : ring_hom_isometric (star_ring_aut E : E →+* E) :=
+instance ring_hom_isometric.star_ring_end [normed_comm_ring E] [star_ring E]
+   [normed_star_monoid E] : ring_hom_isometric (star_ring_end E : E →+* E) :=
 ⟨λ _, norm_star⟩
 
 namespace cstar_ring

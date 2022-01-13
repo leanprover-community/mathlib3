@@ -186,7 +186,7 @@ by rw [pow_bit1', I_mul_I]
 /-! ### Complex conjugation -/
 
 /-- This defines the complex conjugate as the `star` operation of the `star_ring ℂ`. It
-is recommended to use the ring automorphism version `star_ring_aut`, available under the
+is recommended to use the ring automorphism version `star_ring_end`, available under the
 notation `conj` in the locale `complex_conjugate`. -/
 instance : star_ring ℂ :=
 { star := λ z, ⟨z.re, -z.im⟩,

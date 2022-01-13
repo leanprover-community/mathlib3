@@ -99,8 +99,8 @@ instance [preorder α] [order_bot α] : order_bot (Iic a) :=
 
 @[simp] lemma coe_bot [preorder α] [order_bot α] {a : α} : ↑(⊥ : Iic a) = (⊥ : α) := rfl
 
-instance [partial_order α] [no_bot_order α] {a : α} : no_bot_order (Iic a) :=
-⟨λ x, let ⟨y, hy⟩ := no_bot x.1 in ⟨⟨y, le_trans hy.le x.2⟩, hy⟩ ⟩
+instance [partial_order α] [no_min_order α] {a : α} : no_min_order (Iic a) :=
+⟨λ x, let ⟨y, hy⟩ := exists_lt x.1 in ⟨⟨y, le_trans hy.le x.2⟩, hy⟩ ⟩
 
 instance [preorder α] [bounded_order α] : bounded_order (Iic a) :=
 { .. Iic.order_top,
@@ -134,8 +134,8 @@ instance [preorder α] [order_top α] : order_top (Ici a) :=
 
 @[simp] lemma coe_top [preorder α] [order_top α] {a : α} : ↑(⊤ : Ici a) = (⊤ : α) := rfl
 
-instance [partial_order α] [no_top_order α] {a : α} : no_top_order (Ici a) :=
-⟨λ x, let ⟨y, hy⟩ := no_top x.1 in ⟨⟨y, le_trans x.2 hy.le⟩, hy⟩ ⟩
+instance [partial_order α] [no_max_order α] {a : α} : no_max_order (Ici a) :=
+⟨λ x, let ⟨y, hy⟩ := exists_gt x.1 in ⟨⟨y, le_trans x.2 hy.le⟩, hy⟩ ⟩
 
 instance [preorder α] [bounded_order α] : bounded_order (Ici a) :=
 { .. Ici.order_top,

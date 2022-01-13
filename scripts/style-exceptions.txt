@@ -45,7 +45,7 @@ src/tactic/elide.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/tactic/ext.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/tactic/find.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/tactic/hint.lean : line 9 : ERR_MOD : Module docstring missing, or too late
-src/tactic/interactive.lean : line 9 : ERR_MOD : Module docstring missing, or too late
+src/tactic/interactive.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/tactic/lint/default.lean : line 11 : ERR_MOD : Module docstring missing, or too late
 src/tactic/local_cache.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/tactic/monotonicity/basic.lean : line 8 : ERR_MOD : Module docstring missing, or too late

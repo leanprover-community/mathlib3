@@ -179,8 +179,9 @@ some fixed `(c₀, d₀)`. -/
 linear_equiv.Pi_congr_right
 ![begin
     refine linear_map.general_linear_group.general_linear_equiv ℝ (fin 2 → ℝ)
-      (general_linear_group.to_linear (plane_conformal_matrix (cd 0 : ℝ) (cd 1 : ℝ) _)),
+      (general_linear_group.to_linear (plane_conformal_matrix (cd 0 : ℝ) (-(cd 1 : ℝ)) _)),
     norm_cast,
+    rw neg_sq,
     exact hcd.sq_add_sq_ne_zero
   end,
   (linear_equiv.refl _ _)]
@@ -192,39 +193,29 @@ theorem tendsto_lc_row0 {cd : fin 2 → ℤ} (hcd : is_coprime (cd 0) (cd 1)) :
 begin
   let mB : ℝ → (matrix (fin 2) (fin 2)  ℝ) := λ t, ![![t, (-(1:ℤ):ℝ)], coe ∘ cd],
   have hmB : continuous mB,
-  { refine continuous_pi (λ i, _),
-    fin_cases i,
-    { refine continuous_pi (λ j, _),
-      fin_cases j,
-      { exact continuous_id },
-      { exact @continuous_const _ _ _ _ (-(1:ℤ):ℝ) } },
-    exact @continuous_const _ _ _ _ (coe ∘ cd) },
-  convert filter.tendsto.of_tendsto_comp _ (comap_cocompact hmB),
+  { simp only [continuous_pi_iff, fin.forall_fin_two],
+    have : ∀ c : ℝ, continuous (λ x : ℝ, c) := λ c, continuous_const,
+    exact ⟨⟨continuous_id, @this (-1 : ℤ)⟩, ⟨this (cd 0), this (cd 1)⟩⟩ },
+  refine filter.tendsto.of_tendsto_comp _ (comap_cocompact hmB),
   let f₁ : SL(2, ℤ) → matrix (fin 2) (fin 2) ℝ :=
     λ g, matrix.map (↑g : matrix _ _ ℤ) (coe : ℤ → ℝ),
   have cocompact_ℝ_to_cofinite_ℤ_matrix :
     tendsto (λ m : matrix (fin 2) (fin 2) ℤ, matrix.map m (coe : ℤ → ℝ)) cofinite (cocompact _),
-  { convert tendsto.pi_map_Coprod (λ i, tendsto.pi_map_Coprod (λ j, int.tendsto_coe_cofinite)),
-    { simp [Coprod_cofinite] },
-    { simp only [Coprod_cocompact],
-      refl } },
+  { simpa only [Coprod_cofinite, Coprod_cocompact]
+      using tendsto.pi_map_Coprod (λ i : fin 2, tendsto.pi_map_Coprod
+        (λ j : fin 2, int.tendsto_coe_cofinite)) },
   have hf₁ : tendsto f₁ cofinite (cocompact _) :=
     cocompact_ℝ_to_cofinite_ℤ_matrix.comp subtype.coe_injective.tendsto_cofinite,
   have hf₂ : closed_embedding (lc_row0_extend hcd) :=
     (lc_row0_extend hcd).to_continuous_linear_equiv.to_homeomorph.closed_embedding,
   convert hf₂.tendsto_cocompact.comp (hf₁.comp subtype.coe_injective.tendsto_cofinite) using 1,
-  funext g,
-  obtain ⟨g, hg⟩ := g,
-  funext j,
-  fin_cases j,
-  { ext i,
-    fin_cases i,
-    { simp [mB, f₁, matrix.mul_vec, matrix.dot_product, fin.sum_univ_succ] },
-    { convert congr_arg (λ n : ℤ, (-n:ℝ)) g.det_coe.symm using 1,
-      simp [f₁, ← hg, matrix.mul_vec, matrix.dot_product, fin.sum_univ_succ, matrix.det_fin_two,
-        -special_linear_group.det_coe],
-      ring } },
-  { exact congr_arg (λ p, (coe : ℤ → ℝ) ∘ p) hg.symm }
+  ext ⟨g, rfl⟩ i j : 3,
+  fin_cases i; [fin_cases j, skip],
+  { simp [mB, f₁, mul_vec, dot_product, fin.sum_univ_two] },
+  { convert congr_arg (λ n : ℤ, (-n:ℝ)) g.det_coe.symm using 1,
+    simp [f₁, mul_vec, dot_product, mB, fin.sum_univ_two, matrix.det_fin_two],
+    ring },
+  { refl }
 end
 
 /-- This replaces `(g•z).re = a/c + *` in the standard theory with the following novel identity:
@@ -320,7 +311,7 @@ def S : SL(2,ℤ) := ⟨![![0, -1], ![1, 0]], by norm_num [matrix.det_fin_two]�
 def fundamental_domain : set ℍ :=
 {z | 1 ≤ (complex.norm_sq z) ∧ |z.re| ≤ (1 : ℝ) / 2}
 
-localized "notation `𝒟` := fundamental_domain" in modular
+localized "notation `𝒟` := modular_group.fundamental_domain" in modular
 
 /-- If `|z|<1`, then applying `S` strictly decreases `im` -/
 lemma im_lt_im_S_smul {z : ℍ} (h: norm_sq z < 1) : z.im < (S • z).im :=

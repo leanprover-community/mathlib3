@@ -65,6 +65,9 @@ namespace subgraph
 
 variables {V : Type u} {G : simple_graph V}
 
+protected lemma loopless (G' : subgraph G) : irreflexive G'.adj :=
+λ v h, G.loopless v (G'.adj_sub h)
+
 lemma adj_comm (G' : subgraph G) (v w : V) : G'.adj v w ↔ G'.adj w v :=
 ⟨λ x, G'.symm x, λ x, G'.symm x⟩
 
@@ -93,8 +96,8 @@ In general, this adds in all vertices from `V` as isolated vertices. -/
   symm := G'.symm,
   loopless := λ v hv, G.loopless v (G'.adj_sub hv) }
 
-@[simp] lemma spanning_coe_adj_sub (H : subgraph G) (u v : H.verts) (h : H.spanning_coe.adj u v) :
-  G.adj u v := H.adj_sub h
+@[simp] lemma adj.of_spanning_coe {G' : subgraph G} {u v : G'.verts}
+  (h : G'.spanning_coe.adj u v) : G.adj u v := G'.adj_sub h
 
 /-- `spanning_coe` is equivalent to `coe` for a subgraph that `is_spanning`.  -/
 @[simps] def spanning_coe_equiv_coe_of_spanning (G' : subgraph G) (h : G'.is_spanning) :
@@ -122,6 +125,9 @@ def neighbor_set (G' : subgraph G) (v : V) : set V := set_of (G'.adj v)
 
 lemma neighbor_set_subset (G' : subgraph G) (v : V) : G'.neighbor_set v ⊆ G.neighbor_set v :=
 λ w h, G'.adj_sub h
+
+lemma neighbor_set_subset_verts (G' : subgraph G) (v : V) : G'.neighbor_set v ⊆ G'.verts :=
+λ _ h, G'.edge_vert (adj_symm G' h)
 
 @[simp] lemma mem_neighbor_set (G' : subgraph G) (v w : V) : w ∈ G'.neighbor_set v ↔ G'.adj v w :=
 iff.rfl
@@ -215,7 +221,7 @@ def top : subgraph G :=
 /-- The `bot` subgraph is the subgraph with no vertices or edges. -/
 def bot : subgraph G :=
 { verts := ∅,
-  adj := λ v w, false,
+  adj := ⊥,
   adj_sub := λ v w h, false.rec _ h,
   edge_vert := λ v w h, false.rec _ h,
   symm := λ u v h, h }
@@ -262,8 +268,27 @@ instance : bounded_order (subgraph G) :=
 
 @[simp] lemma not_bot_adj {v w : V} : ¬(⊥ : subgraph G).adj v w := not_false
 
+@[simp] lemma inf_adj {H₁ H₂ : subgraph G} {v w : V} :
+  (H₁ ⊓ H₂).adj v w ↔ H₁.adj v w ∧ H₂.adj v w := iff.rfl
+
+@[simp] lemma sup_adj {H₁ H₂ : subgraph G} {v w : V} :
+  (H₁ ⊔ H₂).adj v w ↔ H₁.adj v w ∨ H₂.adj v w := iff.rfl
+
+@[simp] lemma edge_set_top : (⊤ : subgraph G).edge_set = G.edge_set := rfl
+
+@[simp] lemma edge_set_bot : (⊥ : subgraph G).edge_set = ∅ :=
+set.ext $ sym2.ind (by simp)
+
+@[simp] lemma edge_set_inf {H₁ H₂ : subgraph G} : (H₁ ⊓ H₂).edge_set = H₁.edge_set ∩ H₂.edge_set :=
+set.ext $ sym2.ind (by simp)
+
+@[simp] lemma edge_set_sup {H₁ H₂ : subgraph G} : (H₁ ⊔ H₂).edge_set = H₁.edge_set ∪ H₂.edge_set :=
+set.ext $ sym2.ind (by simp)
+
 @[simp] lemma spanning_coe_top : (⊤ : subgraph G).spanning_coe = G :=
 by { ext, refl }
+
+@[simp] lemma spanning_coe_bot : (⊥ : subgraph G).spanning_coe = ⊥ := rfl
 
 /-- Turn a subgraph of a `simple_graph` into a member of its subgraph type. -/
 @[simps] def _root_.simple_graph.to_subgraph (H : simple_graph V) (h : H ≤ G) : G.subgraph :=
@@ -279,7 +304,7 @@ rel.dom_mono h.2
 lemma _root_.simple_graph.to_subgraph.is_spanning (H : simple_graph V) (h : H ≤ G) :
   (H.to_subgraph h).is_spanning := set.mem_univ
 
-lemma spanning_coe.is_subgraph_of_is_subgraph {H H' : subgraph G} (h : H ≤ H') :
+lemma spanning_coe_le_of_le {H H' : subgraph G} (h : H ≤ H') :
   H.spanning_coe ≤ H'.spanning_coe := h.2
 
 /-- The top of the `subgraph G` lattice is equivalent to the graph itself. -/
@@ -298,6 +323,13 @@ def bot_equiv : (⊥ : subgraph G).coe ≃g (⊥ : simple_graph empty) :=
   left_inv := λ ⟨_, h⟩, h.elim,
   right_inv := λ v, v.elim,
   map_rel_iff' := λ a b, iff.rfl }
+
+lemma edge_set_mono {H₁ H₂ : subgraph G} (h : H₁ ≤ H₂) : H₁.edge_set ≤ H₂.edge_set :=
+λ e, sym2.ind h.2 e
+
+lemma _root_.disjoint.edge_set {H₁ H₂ : subgraph G}
+  (h : disjoint H₁ H₂) : disjoint H₁.edge_set H₂.edge_set :=
+by simpa using edge_set_mono h
 
 /-- Given two subgraphs, one a subgraph of the other, there is an induced injective homomorphism of
 the subgraphs as graphs. -/
@@ -348,13 +380,24 @@ def finite_at_of_subgraph {G' G'' : subgraph G} [decidable_rel G'.adj]
    fintype (G'.neighbor_set v) :=
 set.fintype_subset (G''.neighbor_set v) (neighbor_set_subset_of_subgraph h v)
 
+instance (G' : subgraph G) [fintype G'.verts]
+  (v : V) [decidable_pred (∈ G'.neighbor_set v)] : fintype (G'.neighbor_set v) :=
+set.fintype_subset G'.verts (neighbor_set_subset_verts G' v)
+
 instance coe_finite_at {G' : subgraph G} (v : G'.verts) [fintype (G'.neighbor_set v)] :
   fintype (G'.coe.neighbor_set v) :=
 fintype.of_equiv _ (coe_neighbor_set_equiv v).symm
 
-/-- The degree of a vertex in a subgraph.  Is zero for vertices outside the subgraph. -/
+lemma is_spanning.card_verts [fintype V] {G' : subgraph G} [fintype G'.verts]
+  (h : G'.is_spanning) : G'.verts.to_finset.card = fintype.card V :=
+by { rw is_spanning_iff at h, simpa [h] }
+
+/-- The degree of a vertex in a subgraph. It's zero for vertices outside the subgraph. -/
 def degree (G' : subgraph G) (v : V) [fintype (G'.neighbor_set v)] : ℕ :=
 fintype.card (G'.neighbor_set v)
+
+lemma finset_card_neighbor_set_eq_degree {G' : subgraph G} {v : V} [fintype (G'.neighbor_set v)] :
+  (G'.neighbor_set v).to_finset.card = G'.degree v := by rw [degree, set.to_finset_card]
 
 lemma degree_le (G' : subgraph G) (v : V)
   [fintype (G'.neighbor_set v)] [fintype (G.neighbor_set v)] :
@@ -375,6 +418,18 @@ set.card_le_of_subset (neighbor_set_subset_of_subgraph h v)
 begin
   rw ←card_neighbor_set_eq_degree,
   exact fintype.card_congr (coe_neighbor_set_equiv v),
+end
+
+@[simp] lemma degree_spanning_coe {G' : G.subgraph} (v : V) [fintype (G'.neighbor_set v)]
+  [fintype (G'.spanning_coe.neighbor_set v)] :
+  G'.spanning_coe.degree v = G'.degree v :=
+by { rw [← card_neighbor_set_eq_degree, subgraph.degree], congr }
+
+lemma degree_eq_one_iff_unique_adj {G' : subgraph G} {v : V} [fintype (G'.neighbor_set v)] :
+  G'.degree v = 1 ↔ ∃! (w : V), G'.adj v w :=
+begin
+  rw [← finset_card_neighbor_set_eq_degree, finset.card_eq_one, finset.singleton_iff_unique_mem],
+  simp only [set.mem_to_finset, mem_neighbor_set],
 end
 
 end subgraph

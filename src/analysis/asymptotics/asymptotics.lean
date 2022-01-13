@@ -5,6 +5,7 @@ Authors: Jeremy Avigad, Yury Kudryashov
 -/
 import analysis.normed_space.basic
 import topology.local_homeomorph
+import topology.algebra.ordered.liminf_limsup
 
 /-!
 # Asymptotics
@@ -811,16 +812,20 @@ lemma is_o_id_const {c : F'} (hc : c ≠ 0) :
   is_o (λ (x : E'), x) (λ x, c) (𝓝 0) :=
 (is_o_const_iff hc).mpr (continuous_id.tendsto 0)
 
+theorem _root_.filter.is_bounded_under.is_O_const (h : is_bounded_under (≤) l (norm ∘ f'))
+  {c : F'} (hc : c ≠ 0) : is_O f' (λ x, c) l :=
+begin
+  rcases h with ⟨C, hC⟩,
+  refine (is_O.of_bound 1 _).trans (is_O_const_const C hc l),
+  refine (eventually_map.1 hC).mono (λ x h, _),
+  calc ∥f' x∥ ≤ C : h
+  ... ≤ abs C : le_abs_self C
+  ... = 1 * ∥C∥ : (one_mul _).symm
+end
+
 theorem is_O_const_of_tendsto {y : E'} (h : tendsto f' l (𝓝 y)) {c : F'} (hc : c ≠ 0) :
   is_O f' (λ x, c) l :=
-begin
-  refine is_O.trans _ (is_O_const_const (∥y∥ + 1) hc l),
-  refine is_O.of_bound 1 _,
-  simp only [is_O_with, one_mul],
-  have : tendsto (λx, ∥f' x∥) l (𝓝 ∥y∥), from (continuous_norm.tendsto _).comp h,
-  have Iy : ∥y∥ < ∥∥y∥ + 1∥, from lt_of_lt_of_le (lt_add_one _) (le_abs_self _),
-  exact this (ge_mem_nhds Iy)
-end
+h.norm.is_bounded_under_le.is_O_const hc
 
 section
 
@@ -865,7 +870,7 @@ theorem is_O.const_mul_left {f : α → R} (h : is_O f g l) (c' : R) :
   is_O (λ x, c' * f x) g l :=
 let ⟨c, hc⟩ := h.is_O_with in (hc.const_mul_left c').is_O
 
-theorem is_O_with_self_const_mul' (u : units R) (f : α → R) (l : filter α) :
+theorem is_O_with_self_const_mul' (u : Rˣ) (f : α → R) (l : filter α) :
   is_O_with ∥(↑u⁻¹:R)∥ f (λ x, ↑u * f x) l :=
 (is_O_with_const_mul_self ↑u⁻¹ _ l).congr_left $ λ x, u.inv_mul_cancel_left (f x)
 
@@ -912,7 +917,7 @@ theorem is_O.of_const_mul_right {g : α → R} {c : R}
   is_O f g l :=
 let ⟨c, cnonneg, hc⟩ := h.exists_nonneg in (hc.of_const_mul_right cnonneg).is_O
 
-theorem is_O_with.const_mul_right' {g : α → R} {u : units R} {c' : ℝ} (hc' : 0 ≤ c')
+theorem is_O_with.const_mul_right' {g : α → R} {u : Rˣ} {c' : ℝ} (hc' : 0 ≤ c')
   (h : is_O_with c' f g l) :
   is_O_with (c' * ∥(↑u⁻¹:R)∥) f (λ x, ↑u * g x) l :=
 h.trans (is_O_with_self_const_mul' _ _ _) hc'
@@ -1024,6 +1029,27 @@ begin
   induction n with n ihn, { simpa only [pow_one] },
   convert h.mul ihn; simp [pow_succ]
 end
+
+/-! ### Inverse -/
+
+theorem is_O_with.inv_rev {f : α → 𝕜} {g : α → 𝕜'} (h : is_O_with c f g l)
+  (h₀ : ∀ᶠ x in l, f x ≠ 0) : is_O_with c (λ x, (g x)⁻¹) (λ x, (f x)⁻¹) l :=
+begin
+  refine is_O_with.of_bound (h.bound.mp (h₀.mono $ λ x h₀ hle, _)),
+  cases le_or_lt c 0 with hc hc,
+  { refine (h₀ $ norm_le_zero_iff.1 _).elim,
+    exact hle.trans (mul_nonpos_of_nonpos_of_nonneg hc $ norm_nonneg _) },
+  { replace hle := inv_le_inv_of_le (norm_pos_iff.2 h₀) hle,
+    simpa only [normed_field.norm_inv, mul_inv₀, ← div_eq_inv_mul, div_le_iff hc] using hle }
+end
+
+theorem is_O.inv_rev {f : α → 𝕜} {g : α → 𝕜'} (h : is_O f g l)
+  (h₀ : ∀ᶠ x in l, f x ≠ 0) : is_O (λ x, (g x)⁻¹) (λ x, (f x)⁻¹) l :=
+let ⟨c, hc⟩ := h.is_O_with in (hc.inv_rev h₀).is_O
+
+theorem is_o.inv_rev {f : α → 𝕜} {g : α → 𝕜'} (h : is_o f g l)
+  (h₀ : ∀ᶠ x in l, f x ≠ 0) : is_o (λ x, (g x)⁻¹) (λ x, (f x)⁻¹) l :=
+is_o.of_is_O_with $ λ c hc, (h.def' hc).inv_rev h₀
 
 /-! ### Scalar multiplication -/
 

@@ -146,7 +146,8 @@ binary_fan.mk (CommRing.of_hom $ ring_hom.fst A B) (CommRing.of_hom $ ring_hom.s
 /-- The product in `CommRing` is the cartesian product. -/
 def prod_fan_is_limit : is_limit (prod_fan A B) :=
 { lift := λ c, ring_hom.prod (c.π.app walking_pair.left) (c.π.app walking_pair.right),
-  fac' := λ c j, by { ext, cases j; simpa [of_hom] },
+  fac' := λ c j, by { ext, cases j;
+    simpa only [binary_fan.π_app_left, binary_fan.π_app_right, comp_apply, ring_hom.prod_apply] },
   uniq' := λ s m h, by { ext, { simpa using congr_hom (h walking_pair.left) x },
     { simpa using congr_hom (h walking_pair.right) x } } }
 

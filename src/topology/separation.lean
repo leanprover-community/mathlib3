@@ -172,6 +172,9 @@ lemma subtype_indistinguishable_iff {α : Type u} [topological_space α] {U : se
   indistinguishable x y ↔ indistinguishable (x : α) y :=
 by { simp_rw [indistinguishable_iff_closure, closure_subtype, image_singleton] }
 
+lemma indistinguishable.eq [hα : t0_space α] {x y : α} (h : indistinguishable x y) : x = y :=
+not_imp_not.mp ((t0_space_iff_distinguishable _).mp hα x y) h
+
 /-- Given a closed set `S` in a compact T₀ space,
 there is some `x ∈ S` such that `{x}` is closed. -/
 theorem is_closed.exists_closed_singleton {α : Type*} [topological_space α]
@@ -279,6 +282,13 @@ class t1_space (α : Type u) [topological_space α] : Prop :=
 lemma is_closed_singleton [t1_space α] {x : α} : is_closed ({x} : set α) :=
 t1_space.t1 x
 
+lemma finite.is_closed [t1_space α] {s : set α} (hs : set.finite s) :
+  is_closed s :=
+begin
+  rw ← bUnion_of_singleton s,
+  exact is_closed_bUnion hs (λ i hi, is_closed_singleton)
+end
+
 lemma is_open_compl_singleton [t1_space α] {x : α} : is_open ({x}ᶜ : set α) :=
 is_closed_singleton.is_open_compl
 
@@ -289,6 +299,45 @@ lemma ne.nhds_within_compl_singleton [t1_space α] {x y : α} (h : x ≠ y) :
   𝓝[{y}ᶜ] x = 𝓝 x :=
 is_open_ne.nhds_within_eq h
 
+lemma ne.nhds_within_diff_singleton [t1_space α] {x y : α} (h : x ≠ y) (s : set α) :
+  𝓝[s \ {y}] x = 𝓝[s] x :=
+begin
+  rw [diff_eq, inter_comm, nhds_within_inter_of_mem],
+  exact mem_nhds_within_of_mem_nhds (is_open_ne.mem_nhds h)
+end
+
+@[priority 100] -- see Note [lower instance priority]
+instance t1_space_cofinite {α : Type*} : @t1_space α (cofinite_topology α) :=
+begin
+  letI := cofinite_topology α,
+  constructor,
+  intros x,
+  rw ← is_open_compl_iff,
+  intro h,
+  simp,
+end
+
+lemma t1_space_antimono {α : Type*} : antitone (@t1_space α) :=
+begin
+  rintros t t' h ⟨ht⟩,
+  constructor,
+  intros x,
+  specialize ht x,
+  rw ← is_open_compl_iff at *,
+  exact h _ ht
+end
+
+lemma t1_space_iff_le_cofinite {α : Type*} [t : topological_space α] :
+  t1_space α ↔ t ≤ cofinite_topology α :=
+begin
+  split,
+  { introsI h U U_op,
+    rcases U.eq_empty_or_nonempty with rfl | hU,
+    { exact is_open_empty },
+    { exact (@is_closed_compl_iff α t U).mp (finite.is_closed $ U_op hU) } },
+  { exact λ h, t1_space_antimono h t1_space_cofinite }
+end
+
 lemma continuous_within_at_update_of_ne [t1_space α] [decidable_eq α] [topological_space β]
   {f : α → β} {s : set α} {x y : α} {z : β} (hne : y ≠ x) :
   continuous_within_at (function.update f x z) s y ↔ continuous_within_at f s y :=
@@ -296,6 +345,11 @@ eventually_eq.congr_continuous_within_at
   (mem_nhds_within_of_mem_nhds $ mem_of_superset (is_open_ne.mem_nhds hne) $
     λ y' hy', function.update_noteq hy' _ _)
   (function.update_noteq hne _ _)
+
+lemma continuous_at_update_of_ne [t1_space α] [decidable_eq α] [topological_space β]
+  {f : α → β} {x y : α} {z : β} (hne : y ≠ x) :
+  continuous_at (function.update f x z) y ↔ continuous_at f y :=
+by simp only [← continuous_within_at_univ, continuous_within_at_update_of_ne hne]
 
 lemma continuous_on_update_iff [t1_space α] [decidable_eq α] [topological_space β]
   {f : α → β} {s : set α} {x : α} {y : β} :
@@ -365,13 +419,6 @@ lemma is_closed_map_const {α β} [topological_space α] [topological_space β] 
   is_closed_map (function.const α y) :=
 begin
   apply is_closed_map.of_nonempty, intros s hs h2s, simp_rw [h2s.image_const, is_closed_singleton]
-end
-
-lemma finite.is_closed [t1_space α] {s : set α} (hs : set.finite s) :
-  is_closed s :=
-begin
-  rw ← bUnion_of_singleton s,
-  exact is_closed_bUnion hs (λ i hi, is_closed_singleton)
 end
 
 lemma bInter_basis_nhds [t1_space α] {ι : Sort*} {p : ι → Prop} {s : ι → set α} {x : α}
@@ -666,6 +713,12 @@ lemma tendsto_nhds_unique_of_eventually_eq [t2_space α] {f g : β → α} {l : 
   a = b :=
 tendsto_nhds_unique (ha.congr' hfg) hb
 
+lemma tendsto_nhds_unique_of_frequently_eq [t2_space α] {f g : β → α} {l : filter β} {a b : α}
+  (ha : tendsto f l (𝓝 a)) (hb : tendsto g l (𝓝 b)) (hfg : ∃ᶠ x in l, f x = g x) :
+  a = b :=
+have ∃ᶠ z : α × α in 𝓝 (a, b), z.1 = z.2 := (ha.prod_mk_nhds hb).frequently hfg,
+not_not.1 $ λ hne, this (is_closed_diagonal.is_open_compl.mem_nhds hne)
+
 lemma tendsto_const_nhds_iff [t2_space α] {l : filter α} [ne_bot l] {c d : α} :
   tendsto (λ x, c) l (𝓝 d) ↔ c = d :=
 ⟨λ h, tendsto_nhds_unique (tendsto_const_nhds) h, λ h, h ▸ tendsto_const_nhds⟩
@@ -867,7 +920,7 @@ ext $ assume p, iff.intro
   (assume ⟨x, hx⟩, show p.1 = p.2, by rw ←hx)
 
 lemma prod_subset_compl_diagonal_iff_disjoint {α : Type*} {s t : set α} :
-  set.prod s t ⊆ {p:α×α | p.1 = p.2}ᶜ ↔ s ∩ t = ∅ :=
+  s ×ˢ t ⊆ {p:α×α | p.1 = p.2}ᶜ ↔ s ∩ t = ∅ :=
 by rw [eq_empty_iff_forall_not_mem, subset_compl_comm,
        diagonal_eq_range_diagonal_map, range_subset_iff]; simp
 
@@ -998,6 +1051,34 @@ begin
   exact ⟨t, h2t, h3t, compact_closure_of_subset_compact hKc h1t⟩
 end
 
+lemma is_preirreducible_iff_subsingleton [t2_space α] (S : set α) :
+  is_preirreducible S ↔ subsingleton S :=
+begin
+  split,
+  { intro h,
+    constructor,
+    intros x y,
+    ext,
+    by_contradiction e,
+    obtain ⟨U, V, hU, hV, hxU, hyV, h'⟩ := t2_separation e,
+    have := h U V hU hV ⟨x, x.prop, hxU⟩ ⟨y, y.prop, hyV⟩,
+    rw [h', inter_empty] at this,
+    exact this.some_spec },
+  { exact @@is_preirreducible_of_subsingleton _ _ }
+end
+
+lemma is_irreducible_iff_singleton [t2_space α] (S : set α) :
+  is_irreducible S ↔ ∃ x, S = {x} :=
+begin
+  split,
+  { intro h,
+    rw exists_eq_singleton_iff_nonempty_unique_mem,
+    use h.1,
+    intros a ha b hb,
+    injection @@subsingleton.elim ((is_preirreducible_iff_subsingleton _).mp h.2) ⟨_, ha⟩ ⟨_, hb⟩ },
+  { rintro ⟨x, rfl⟩, exact is_irreducible_singleton }
+end
+
 end separation
 
 section regularity
@@ -1095,8 +1176,8 @@ begin
   rcases t2_separation h with ⟨U₁, U₂, U₁_op, U₂_op, x_in, y_in, H⟩,
   rcases nhds_is_closed (is_open.mem_nhds U₁_op x_in) with ⟨V₁, V₁_in, h₁, V₁_closed⟩,
   rcases nhds_is_closed (is_open.mem_nhds U₂_op y_in) with ⟨V₂, V₂_in, h₂, V₂_closed⟩,
-  use [U₁, V₁, mem_of_superset V₁_in h₁, V₁_in,
-       U₂, V₂, mem_of_superset V₂_in h₂, V₂_in],
+  use [U₁, mem_of_superset V₁_in h₁, V₁, V₁_in,
+       U₂, mem_of_superset V₂_in h₂, V₂, V₂_in],
   tauto
 end
 
@@ -1201,7 +1282,7 @@ end normality
 
 /-- In a compact t2 space, the connected component of a point equals the intersection of all
 its clopen neighbourhoods. -/
-lemma connected_component_eq_Inter_clopen [t2_space α] [compact_space α] {x : α} :
+lemma connected_component_eq_Inter_clopen [t2_space α] [compact_space α] (x : α) :
   connected_component x = ⋂ Z : {Z : set α // is_clopen Z ∧ x ∈ Z}, Z :=
 begin
   apply eq_of_subset_of_subset connected_component_subset_Inter_clopen,
@@ -1277,7 +1358,7 @@ variables [t2_space α]
 
 /-- A Hausdorff space with a clopen basis is totally separated. -/
 lemma tot_sep_of_zero_dim (h : is_topological_basis {s : set α | is_clopen s}) :
-    totally_separated_space α :=
+  totally_separated_space α :=
 begin
   constructor,
   rintros x - y - hxy,
@@ -1296,7 +1377,7 @@ variables [compact_space α]
 /-- A compact Hausdorff space is totally disconnected if and only if it is totally separated, this
   is also true for locally compact spaces. -/
 theorem compact_t2_tot_disc_iff_tot_sep :
-totally_disconnected_space α ↔ totally_separated_space α :=
+  totally_disconnected_space α ↔ totally_separated_space α :=
 begin
   split,
   { intro h, constructor,
@@ -1418,47 +1499,28 @@ end
 
 end locally_compact
 
-section connected_component_setoid
-local attribute [instance] connected_component_setoid
-
 /-- `connected_components α` is Hausdorff when `α` is Hausdorff and compact -/
 instance connected_components.t2 [t2_space α] [compact_space α] :
   t2_space (connected_components α) :=
 begin
   -- Proof follows that of: https://stacks.math.columbia.edu/tag/0900
   -- Fix 2 distinct connected components, with points a and b
-  refine ⟨λ x y, quotient.induction_on x (quotient.induction_on y (λ a b ne, _))⟩,
-  rw connected_component_nrel_iff at ne,
+  refine ⟨connected_components.surjective_coe.forall₂.2 $ λ a b ne, _⟩,
+  rw connected_components.coe_ne_coe at ne,
   have h := connected_component_disjoint ne,
-  -- write ⟦b⟧ as the intersection of all clopen subsets containing it
-  rw [connected_component_eq_Inter_clopen, disjoint_iff_inter_eq_empty, inter_comm] at h,
-  -- Now we show that this can be reduced to some clopen containing ⟦b⟧ being disjoint to ⟦a⟧
-  cases is_closed_connected_component.is_compact.elim_finite_subfamily_closed _ _ h
-    with fin_a ha,
-  swap, { exact λ Z, Z.2.1.2 },
-  set U : set α := (⋂ (i : {Z // is_clopen Z ∧ b ∈ Z}) (H : i ∈ fin_a), i) with hU,
-  rw ←hU at ha,
-  have hu_clopen : is_clopen U := is_clopen_bInter (λ i j, i.2.1),
-  -- This clopen and its complement will separate the points corresponding to ⟦a⟧ and ⟦b⟧
-  use [quotient.mk '' U, quotient.mk '' Uᶜ],
-  -- Using the fact that clopens are unions of connected components, we show that
-  -- U and Uᶜ is the preimage of a clopen set in the quotient
-  have hu : quotient.mk ⁻¹' (quotient.mk '' U) = U :=
-    (connected_components_preimage_image U ▸ eq.symm) hu_clopen.eq_union_connected_components,
-  have huc : quotient.mk ⁻¹' (quotient.mk '' Uᶜ) = Uᶜ :=
-    (connected_components_preimage_image Uᶜ ▸ eq.symm)
-      (is_clopen.compl hu_clopen).eq_union_connected_components,
-  -- showing that U and Uᶜ are open and separates ⟦a⟧ and ⟦b⟧
-  refine ⟨_,_,_,_,_⟩,
-  { rw [(quotient_map_iff.1 quotient_map_quotient_mk).2 _, hu],
-    exact hu_clopen.1 },
-  { rw [(quotient_map_iff.1 quotient_map_quotient_mk).2 _, huc],
-    exact is_open_compl_iff.2 hu_clopen.2 },
-  { exact mem_image_of_mem _ (mem_Inter.2 (λ Z, mem_Inter.2 (λ Zmem, Z.2.2))) },
-  { apply mem_image_of_mem,
-    exact mem_of_subset_of_mem (subset_compl_iff_disjoint.2 ha) (@mem_connected_component _ _ a) },
-  apply preimage_injective.2 (@surjective_quotient_mk _ _),
-  rw [preimage_inter, preimage_empty, hu, huc, inter_compl_self _],
+  -- write ↑b as the intersection of all clopen subsets containing it
+  rw [connected_component_eq_Inter_clopen b, disjoint_iff_inter_eq_empty] at h,
+  -- Now we show that this can be reduced to some clopen containing `↑b` being disjoint to `↑a`
+  obtain ⟨U, V, hU, ha, hb, rfl⟩ : ∃ (U : set α) (V : set (connected_components α)), is_clopen U ∧
+    connected_component a ∩ U = ∅ ∧ connected_component b ⊆ U ∧ coe ⁻¹' V = U,
+  { cases is_closed_connected_component.is_compact.elim_finite_subfamily_closed _ _ h with fin_a ha,
+    swap, { exact λ Z, Z.2.1.2 },
+    -- This clopen and its complement will separate the connected components of `a` and `b`
+    set U : set α := (⋂ (i : {Z // is_clopen Z ∧ b ∈ Z}) (H : i ∈ fin_a), i),
+    have hU : is_clopen U := is_clopen_bInter (λ i j, i.2.1),
+    exact ⟨U, coe '' U, hU, ha, subset_bInter (λ Z _, Z.2.1.connected_component_subset Z.2.2),
+      (connected_components_preimage_image U).symm ▸ hU.bUnion_connected_component_eq⟩ },
+  rw connected_components.quotient_map_coe.is_clopen_preimage at hU,
+  refine ⟨Vᶜ, V, hU.compl.is_open, hU.is_open, _, hb mem_connected_component, compl_inter_self _⟩,
+  exact λ h, flip set.nonempty.ne_empty ha ⟨a, mem_connected_component, h⟩,
 end
-
-end connected_component_setoid

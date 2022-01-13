@@ -111,10 +111,10 @@ section field
 
 variables (K : Type u) {L : Type v} (E : Type z) [field K] [field L] [field E]
 variables [algebra K L] [algebra K E]
-variables [module.finite K L] [is_separable K L] [is_alg_closed E]
+variables [module.finite K L]  [is_alg_closed E]
 
 /-- Over a field, if `b` is a basis, then `algebra.discr K b ≠ 0`. -/
-lemma discr_not_zero_of_basis (b : basis ι K L) : discr K b ≠ 0 :=
+lemma discr_not_zero_of_basis [is_separable K L] (b : basis ι K L) : discr K b ≠ 0 :=
 begin
   by_cases h : nonempty ι,
   { classical,
@@ -129,7 +129,7 @@ begin
 end
 
 /-- Over a field, if `b` is a basis, then `algebra.discr K b` is a unit. -/
-lemma discr_is_unit_of_basis (b : basis ι K L) : is_unit (discr K b) :=
+lemma discr_is_unit_of_basis [is_separable K L] (b : basis ι K L) : is_unit (discr K b) :=
 is_unit.mk0 _ (discr_not_zero_of_basis _ _)
 
 variables (b : ι → L) (pb : power_basis K L)
@@ -138,14 +138,14 @@ variables (b : ι → L) (pb : power_basis K L)
 determinant of the matrix whose `(i, j)` coefficient is `σⱼ (b i)`, where `σⱼ : L →ₐ[K] E` is the
 embedding in an algebraically closed field `E` corresponding to `j : ι` via a bijection
 `e : ι ≃ (L →ₐ[K] E)`. -/
-lemma discr_eq_det_embeddings_matrix_reindex_pow_two [decidable_eq ι]
+lemma discr_eq_det_embeddings_matrix_reindex_pow_two [decidable_eq ι] [is_separable K L]
   (e : ι ≃ (L →ₐ[K] E)) : algebra_map K E (discr K b) =
   (embeddings_matrix_reindex K E b e).det ^ 2 :=
 by rw [discr_def, ring_hom.map_det, ring_hom.map_matrix_apply,
     trace_matrix_eq_embeddings_matrix_reindex_mul_trans, det_mul, det_transpose, pow_two]
 
 /-- The discriminant of a power basis. -/
-lemma discr_power_basis_eq_prod (e : fin pb.dim ≃ (L →ₐ[K] E)) :
+lemma discr_power_basis_eq_prod (e : fin pb.dim ≃ (L →ₐ[K] E)) [is_separable K L] :
   algebra_map K E (discr K pb.basis) =
   ∏ i : fin pb.dim, ∏ j in finset.univ.filter (λ j, i < j), (e j pb.gen- (e i pb.gen)) ^ 2 :=
 begin
@@ -156,7 +156,7 @@ begin
 end
 
 /-- A variation of `of_power_basis_eq_prod`. -/
-lemma of_power_basis_eq_prod' (e : fin pb.dim ≃ (L →ₐ[K] E)) :
+lemma of_power_basis_eq_prod' [is_separable K L] (e : fin pb.dim ≃ (L →ₐ[K] E)) :
   algebra_map K E (discr K pb.basis) =
   ∏ i : fin pb.dim, ∏ j in finset.univ.filter (λ j, i < j),
   -((e j pb.gen- (e i pb.gen)) * (e i pb.gen- (e j pb.gen))) :=
@@ -169,7 +169,7 @@ end
 local notation `n` := finrank K L
 
 /-- A variation of `of_power_basis_eq_prod`. -/
-lemma of_power_basis_eq_prod'' (e : fin pb.dim ≃ (L →ₐ[K] E)) :
+lemma of_power_basis_eq_prod'' [is_separable K L] (e : fin pb.dim ≃ (L →ₐ[K] E)) :
   algebra_map K E (discr K pb.basis) =
   (-1) ^ (n * (n - 1) / 2) * ∏ i : fin pb.dim, ∏ j in finset.univ.filter (λ j, i < j),
   ((e j pb.gen- (e i pb.gen)) * (e i pb.gen- (e j pb.gen))) :=
@@ -202,7 +202,7 @@ begin
 end
 
 /-- Formula for the discriminant of a power basis using the norm of the field extension. -/
-lemma of_power_basis_eq_norm : discr K pb.basis =
+lemma of_power_basis_eq_norm [is_separable K L] : discr K pb.basis =
   (-1) ^ (n * (n - 1) / 2) * (norm K (aeval pb.gen (minpoly K pb.gen).derivative)) :=
 begin
   let E := algebraic_closure L,
@@ -274,7 +274,7 @@ end
 /-- Let `K` be the fraction field of an integrally closed domain `R` and let `L` be a finite
 separable extension of `K`. Let `B : power_basis K L` be such that `is_integral R B.gen`. Then for
 all, `z : L` we have `(discr K B.basis) • z ∈ adjoin R ({B.gen} : set L)`. -/
-lemma discr_mul_is_integral_mem_adjoin [is_domain R] [is_integrally_closed R]
+lemma discr_mul_is_integral_mem_adjoin [is_domain R] [is_integrally_closed R] [is_separable K L]
   [is_fraction_ring R K] {B : power_basis K L} (hint : is_integral R B.gen) {z : L}
   (hz : is_integral R z) : (discr K B.basis) • z ∈ adjoin R ({B.gen} : set L) :=
 begin

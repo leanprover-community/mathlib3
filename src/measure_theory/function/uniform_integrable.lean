@@ -77,7 +77,7 @@ measurable_set.Union (λ k, measurable_set.Union_Prop $ λ hk,
   measurable_set_lt measurable_const $ (hf k).dist hg)
 
 lemma measure_not_convergent_seq_tendsto_zero
-  (hf : ∀ n, measurable[m] (f n)) (hg : measurable g) (hsm : measurable_set s) (hs : μ s ≠ ∞)
+  (hf : ∀ n, measurable (f n)) (hg : measurable g) (hsm : measurable_set s) (hs : μ s ≠ ∞)
   (hfg : ∀ᵐ x ∂μ, x ∈ s → tendsto (λ n, f n x) at_top (𝓝 (g x))) (i : ℕ) :
   tendsto (λ j, μ (s ∩ not_convergent_seq f g i j)) at_top (𝓝 0) :=
 begin
@@ -88,8 +88,7 @@ begin
 end
 
 lemma exists_not_convergent_seq_lt (hε : 0 < ε)
-  (hf : ∀ n, measurable[m] (f n)) (hg : measurable g)
-  (hsm : measurable_set s) (hs : μ s ≠ ∞)
+  (hf : ∀ n, measurable (f n)) (hg : measurable g) (hsm : measurable_set s) (hs : μ s ≠ ∞)
   (hfg : ∀ᵐ x ∂μ, x ∈ s → tendsto (λ n, f n x) at_top (𝓝 (g x))) (i : ℕ) :
   ∃ j : ℕ, μ (s ∩ not_convergent_seq f g i j) ≤ ennreal.of_real (ε * 2⁻¹ ^ i) :=
 begin
@@ -108,14 +107,12 @@ end
 
 This definition is useful for Egorov's theorem. -/
 def not_convergent_seq_lt_index (hε : 0 < ε)
-  (hf : ∀ n, measurable[m] (f n)) (hg : measurable g)
-  (hsm : measurable_set s) (hs : μ s ≠ ∞)
+  (hf : ∀ n, measurable (f n)) (hg : measurable g) (hsm : measurable_set s) (hs : μ s ≠ ∞)
   (hfg : ∀ᵐ x ∂μ, x ∈ s → tendsto (λ n, f n x) at_top (𝓝 (g x))) (i : ℕ) : ℕ :=
 classical.some $ exists_not_convergent_seq_lt hε hf hg hsm hs hfg i
 
 lemma not_convergent_seq_lt_index_spec (hε : 0 < ε)
-  (hf : ∀ n, measurable[m] (f n)) (hg : measurable g)
-  (hsm : measurable_set s) (hs : μ s ≠ ∞)
+  (hf : ∀ n, measurable (f n)) (hg : measurable g) (hsm : measurable_set s) (hs : μ s ≠ ∞)
   (hfg : ∀ᵐ x ∂μ, x ∈ s → tendsto (λ n, f n x) at_top (𝓝 (g x))) (i : ℕ) :
   μ (s ∩ not_convergent_seq f g i (not_convergent_seq_lt_index hε hf hg hsm hs hfg i)) ≤
   ennreal.of_real (ε * 2⁻¹ ^ i) :=
@@ -126,18 +123,18 @@ specific indicies such that `Union_not_convergent_seq` has measure less equal th
 
 This definition is useful for Egorov's theorem. -/
 def Union_not_convergent_seq (hε : 0 < ε)
-  (hf : ∀ n, measurable[m] (f n)) (hg : measurable g) (hsm : measurable_set s) (hs : μ s ≠ ∞)
+  (hf : ∀ n, measurable (f n)) (hg : measurable g) (hsm : measurable_set s) (hs : μ s ≠ ∞)
   (hfg : ∀ᵐ x ∂μ, x ∈ s → tendsto (λ n, f n x) at_top (𝓝 (g x))) : set α :=
 ⋃ i, s ∩ not_convergent_seq f g i (not_convergent_seq_lt_index (half_pos hε) hf hg hsm hs hfg i)
 
 lemma Union_not_convergent_seq_measurable_set (hε : 0 < ε)
-  (hf : ∀ n, measurable[m] (f n)) (hg : measurable g) (hsm : measurable_set s) (hs : μ s ≠ ∞)
+  (hf : ∀ n, measurable (f n)) (hg : measurable g) (hsm : measurable_set s) (hs : μ s ≠ ∞)
   (hfg : ∀ᵐ x ∂μ, x ∈ s → tendsto (λ n, f n x) at_top (𝓝 (g x))) :
   measurable_set $ Union_not_convergent_seq hε hf hg hsm hs hfg :=
 measurable_set.Union (λ n, hsm.inter $ not_convergent_seq_measurable_set hf hg)
 
 lemma measure_Union_not_convergent_seq (hε : 0 < ε)
-  (hf : ∀ n, measurable[m] (f n)) (hg : measurable g) (hsm : measurable_set s) (hs : μ s ≠ ∞)
+  (hf : ∀ n, measurable (f n)) (hg : measurable g) (hsm : measurable_set s) (hs : μ s ≠ ∞)
   (hfg : ∀ᵐ x ∂μ, x ∈ s → tendsto (λ n, f n x) at_top (𝓝 (g x))) :
   μ (Union_not_convergent_seq hε hf hg hsm hs hfg) ≤ ennreal.of_real ε :=
 begin
@@ -154,7 +151,7 @@ begin
 end
 
 lemma Union_not_convergent_seq_subset (hε : 0 < ε)
-  (hf : ∀ n, measurable[m] (f n)) (hg : measurable g) (hsm : measurable_set s) (hs : μ s ≠ ∞)
+  (hf : ∀ n, measurable (f n)) (hg : measurable g) (hsm : measurable_set s) (hs : μ s ≠ ∞)
   (hfg : ∀ᵐ x ∂μ, x ∈ s → tendsto (λ n, f n x) at_top (𝓝 (g x))) :
   Union_not_convergent_seq hε hf hg hsm hs hfg ⊆ s :=
 begin
@@ -165,7 +162,7 @@ end
 end egorov
 
 variables [second_countable_topology β] [measurable_space β] [borel_space β]
-  {f : ℕ → α → β} {g : α → β}
+  {f : ℕ → α → β} {g : α → β} {s : set α}
 
 /-- **Egorov's theorem**: If `f : ℕ → α → β` is a sequence of measurable functions that converges
 to `g : α → β` almost everywhere on a measurable set `s` of finite measure, then for all `ε > 0`,
@@ -173,8 +170,8 @@ there exists a subset `t ⊆ s` such that `μ t ≤ ε` and `f` converges to `g`
 
 In other words, a sequence of almost everywhere convergent functions converges uniformly except on
 an arbitrarily small set. -/
-theorem tendsto_uniformly_on_of_ae_tendsto (hf : ∀ n, measurable[m] (f n)) (hg : measurable g)
-  {s : set α} (hsm : measurable_set s) (hs : μ s ≠ ∞)
+theorem tendsto_uniformly_on_of_ae_tendsto
+  (hf : ∀ n, measurable (f n)) (hg : measurable g) (hsm : measurable_set s) (hs : μ s ≠ ∞)
   (hfg : ∀ᵐ x ∂μ, x ∈ s → tendsto (λ n, f n x) at_top (𝓝 (g x))) {ε : ℝ} (hε : 0 < ε) :
   ∃ t ⊆ s, measurable_set t ∧ μ t ≤ ennreal.of_real ε ∧ tendsto_uniformly_on f g at_top (s \ t) :=
 begin
@@ -200,7 +197,7 @@ end
 
 /-- Egorov's theorem for finite measure spaces. -/
 lemma tendsto_uniformly_on_of_ae_tendsto' [is_finite_measure μ]
-  (hf : ∀ n, measurable[m] (f n)) (hg : measurable g)
+  (hf : ∀ n, measurable (f n)) (hg : measurable g)
   (hfg : ∀ᵐ x ∂μ, tendsto (λ n, f n x) at_top (𝓝 (g x))) {ε : ℝ} (hε : 0 < ε) :
   ∃ t, measurable_set t ∧ μ t ≤ ennreal.of_real ε ∧ tendsto_uniformly_on f g at_top tᶜ :=
 begin

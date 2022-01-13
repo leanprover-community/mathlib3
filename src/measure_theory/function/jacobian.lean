@@ -533,7 +533,7 @@ begin
   -- for small enough `r`, the rescaled ball `r • closed_ball z ε` intersects `s`, as `x` is a
   -- density point
   have B₁ : ∀ᶠ r in 𝓝[>] (0 : ℝ), (s ∩ ({x} + r • closed_ball z ε)).nonempty :=
-    eventually_nonempty_inter_smul_of_tendsto_measure_inter_closed_ball_one μ s x hx
+    eventually_nonempty_inter_smul_of_density_one μ s x hx
       _ measurable_set_closed_ball (add_haar_closed_ball_pos μ z εpos).ne',
   obtain ⟨ρ, ρpos, hρ⟩ :
     ∃ ρ > 0, ball x ρ ∩ s ⊆ {y : E | ∥f y - f x - (f' x) (y - x)∥ ≤ ε * ∥y - x∥} :=
@@ -595,8 +595,8 @@ begin
 end
 
 /-- The derivative of a function on a measurable set is almost everywhere measurable on this set
-with respect to Lebesgue measure. Note that, in general, it is not measurable there, as `f'` is not
-unique (but only on a set of measure `0`). -/
+with respect to Lebesgue measure. Note that, in general, it is not genuinely measurable there,
+as `f'` is not unique (but only on a set of measure `0`, as the argument shows). -/
 lemma ae_measurable_fderiv_within
   (f : E → E) (s : set E) (hs : measurable_set s) (f' : E → (E →L[ℝ] E))
   (hf' : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x) :

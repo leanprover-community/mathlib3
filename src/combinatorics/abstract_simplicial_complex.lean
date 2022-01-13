@@ -7,21 +7,14 @@ universes u v w
 @[ext]
 structure ASC (V : Type u) :=
 (faces : set (finset V))
-(not_empty_mem : ∅ ∉ faces)
-(down_closed : ∀ {s t}, s ∈ faces → t ⊆ s → t ≠ ∅ → t ∈ faces)
+(nonempty_of_mem : ∀ {s : finset V}, s ∈ faces → s.nonempty)
+(down_closed : ∀ {s t : finset V}, s ∈ faces → t ⊆ s → t.nonempty → t ∈ faces)
 
 namespace ASC
 
 variables {V : Type u}
 
 instance : has_mem (finset V) (ASC V) := ⟨λ s K, s ∈ K.faces⟩
-
-lemma ne_empty_of_mem {s : finset V} {K : ASC V} (hsK : s ∈ K) : s ≠ ∅ :=
-begin
-  intro h,
-  rw h at hsK,
-  exact K.not_empty_mem hsK
-end
 
 def vertices (K : ASC V) : set V := {v : V | {v} ∈ K}
 
@@ -33,7 +26,7 @@ begin
   refine ⟨λ h, set.mem_bUnion h $ finset.mem_coe.2 $ finset.mem_singleton_self _, λ h, _⟩,
   obtain ⟨s, hs, hv⟩ := set.mem_bUnion_iff.1 h,
   exact K.down_closed hs (finset.singleton_subset_iff.2 $ finset.mem_coe.1 hv)
-    (finset.singleton_ne_empty _)
+    (finset.singleton_nonempty _)
 end
 
 def facets (K : ASC V) : set (finset V) := {s : finset V | ∀ ⦃t⦄, t ∈ K → s ⊆ t → s = t}
@@ -45,7 +38,7 @@ instance : partial_order (ASC V) := partial_order.lift faces ext
 instance : has_inf (ASC V) :=
 ⟨λ K L,
 { faces := K.faces ∩ L.faces,
-  not_empty_mem := λ h, K.not_empty_mem h.1,
+  nonempty_of_mem := λ s hs, K.nonempty_of_mem hs.1,
   down_closed := λ s t ⟨hsK, hsL⟩ hts ht, ⟨K.down_closed hsK hts ht, L.down_closed hsL hts ht⟩ }⟩
 
 lemma inf_faces {K L : ASC V} : (K ⊓ L).faces = K.faces ⊓ L.faces := rfl
@@ -53,7 +46,7 @@ lemma inf_faces {K L : ASC V} : (K ⊓ L).faces = K.faces ⊓ L.faces := rfl
 instance : has_sup (ASC V) :=
 ⟨λ K L,
 { faces := K.faces ∪ L.faces,
-  not_empty_mem := λ h, h.cases_on K.not_empty_mem L.not_empty_mem,
+  nonempty_of_mem := λ s hs, hs.cases_on (λ h, K.nonempty_of_mem h) (λ h, L.nonempty_of_mem h),
   down_closed := λ s t hs hts ht, hs.cases_on
     (λ hsK, or.inl $ K.down_closed hsK hts ht)
     (λ hsL, or.inr $ L.down_closed hsL hts ht) }⟩
@@ -73,19 +66,19 @@ instance : distrib_lattice (ASC V) :=
   ..ASC.has_inf }
 
 instance : has_top (ASC V) :=
-⟨{ faces := {s : finset V | s ≠ ∅},
-  not_empty_mem := λ h, h rfl,
+⟨{ faces := {s : finset V | s.nonempty},
+  nonempty_of_mem := λ s hs, hs,
   down_closed := λ s t hs hts ht, ht }⟩
 
 instance : has_bot (ASC V) :=
 ⟨{ faces := ∅,
-  not_empty_mem := set.not_mem_empty _,
+  nonempty_of_mem := λ s hs, hs.rec _,
   down_closed := λ s t hs, hs.rec _ }⟩
 
 instance : has_Sup (ASC V) :=
 ⟨λ s,
 { faces := Sup $ faces '' s,
-  not_empty_mem := λ ⟨k, ⟨K, hKs, rfl⟩, hk⟩, K.not_empty_mem hk,
+  nonempty_of_mem := λ σ ⟨k, ⟨K, hK, rfl⟩, h⟩, K.nonempty_of_mem h,
   down_closed := λ k l ⟨_, ⟨K, hKs, rfl⟩, hk⟩ hlk hl,
     ⟨K.faces, ⟨K, hKs, rfl⟩, K.down_closed hk hlk hl⟩ }⟩
 
@@ -93,22 +86,29 @@ lemma Sup_faces (s : set (ASC V)) : (Sup s).faces = Sup (faces '' s) := rfl
 
 instance : has_Inf (ASC V) :=
 ⟨λ s,
-{ faces := (Inf $ faces '' s) \ {∅},
-  not_empty_mem := λ ⟨_, h⟩, h $ set.mem_singleton _,
-  down_closed := λ k l ⟨hk₁, (hk₂ : k ≠ ∅)⟩ hlk hl, ⟨begin
+{ faces := {t ∈ Inf $ faces '' s | t.nonempty},
+  nonempty_of_mem := λ σ ⟨_, hσ⟩, hσ,
+  down_closed := λ k l ⟨hk₁, (hk₂ : k.nonempty)⟩ hlk hl, ⟨begin
     rintros m ⟨M, hM, rfl⟩,
     exact M.down_closed (hk₁ M.faces ⟨M, hM, rfl⟩) hlk hl,
   end, hl⟩ }⟩
 
-lemma Inf_faces (s : set (ASC V)) : (Inf s).faces = Inf (faces '' s) \ {∅} := rfl
+lemma Inf_faces (s : set (ASC V)) : (Inf s).faces = {t ∈ Inf $ faces '' s | t.nonempty} :=
+rfl
+
+-- TODO: Move
+lemma set.sep_eq_iff_forall {α : Type*} {s : set α} {p : α → Prop} :
+  {x ∈ s | p x} = s ↔ ∀ x ∈ s, p x :=
+⟨λ h x hx, by { rw ←h at hx, exact hx.2 },
+λ h, set.subset.antisymm (set.sep_subset _ _) (λ x hx, ⟨hx, h _ hx⟩)⟩
 
 lemma Inf_faces_of_nonempty {s : set (ASC V)} (h : s.nonempty) :
   faces (Inf s) = Inf (faces '' s) :=
 begin
-  rw [Inf_faces, set.diff_eq_self],
-  rintro t ⟨(rfl : t = ∅), ht⟩,
+  rw [Inf_faces, set.sep_eq_iff_forall],
+  intros σ hσ,
   obtain ⟨K, hK⟩ := h,
-  exact K.not_empty_mem (ht K.faces ⟨K, hK, rfl⟩),
+  exact K.nonempty_of_mem (hσ K.faces ⟨K, hK, rfl⟩),
 end
 
 -- Abstract simplicial complexes with vertices in `V` form a `complete_distrib_lattice`
@@ -123,14 +123,14 @@ instance : complete_distrib_lattice (ASC V) :=
     split,
     { rintros l ⟨L, hL, rfl⟩,
       exact h _ hL hσ },
-    { exact ne_empty_of_mem hσ}
+    { exact K.nonempty_of_mem hσ}
   end,
-  le_top := λ K σ hσ, ne_empty_of_mem hσ,
+  le_top := λ K σ hσ, K.nonempty_of_mem hσ,
   bot_le := λ K σ hσ, hσ.rec _,
   infi_sup_le_sup_Inf := λ K s σ hσ, begin
     classical, -- we need prop decidable
     rw [infi, Inf_faces] at hσ,
-    obtain ⟨hσ₁, hσ₂ : σ ≠ ∅⟩ := hσ,
+    obtain ⟨hσ₁, hσ₂ : σ.nonempty⟩ := hσ,
     rw [sup_faces, Inf_faces],
     by_cases hσK : σ ∈ K,
     { left,

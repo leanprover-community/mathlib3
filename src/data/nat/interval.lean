@@ -220,12 +220,11 @@ begin
       rw [mul_add, mul_one, ← add_assoc, hn], },
     { rw [nat.add_mul_mod_self_left, nat.mod_eq_of_lt hia], } },
   { refine ⟨i + a * (n/a), ⟨_, _⟩, _⟩,
-    { push_neg at hi,
-      exact hn.symm.le.trans  (add_le_add_right hi _), },
+    { exact hn.symm.le.trans  (add_le_add_right hi _), },
     { rw [add_comm n a],
       refine add_lt_add_of_lt_of_le hia (le_trans _ hn.le),
       simp only [zero_le, le_add_iff_nonneg_left], },
-    { rw [nat.add_mul_mod_self_left, nat.mod_eq_of_lt hia], } }
+    { rw [nat.add_mul_mod_self_left, nat.mod_eq_of_lt hia], } },
 end
 
 section multiset

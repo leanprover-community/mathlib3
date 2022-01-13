@@ -26,7 +26,7 @@ namespace nat
 
 /-- Euler's totient function. This counts the number of naturals strictly less than `n` which are
 coprime with `n`. -/
-def totient (n : ℕ) : ℕ := ((range n).filter (nat.coprime n)).card
+def totient (n : ℕ) : ℕ := ((range n).filter n.coprime).card
 
 localized "notation `φ` := nat.totient" in nat
 
@@ -35,7 +35,7 @@ localized "notation `φ` := nat.totient" in nat
 @[simp] theorem totient_one : φ 1 = 1 :=
 by simp [totient]
 
-lemma totient_eq_card_coprime (n : ℕ) : φ n = ((range n).filter (nat.coprime n)).card := rfl
+lemma totient_eq_card_coprime (n : ℕ) : φ n = ((range n).filter n.coprime).card := rfl
 
 lemma totient_le (n : ℕ) : φ n ≤ n :=
 calc totient n ≤ (range n).card : card_filter_le _ _
@@ -58,7 +58,7 @@ lemma totient_pos : ∀ {n : ℕ}, 0 < n → 0 < φ n
 | (n+2) := λ h, card_pos.2 ⟨1, mem_filter.2 ⟨mem_range.2 dec_trivial, coprime_one_right _⟩⟩
 
 lemma filter_coprime_Ico_eq_totient (a n : ℕ) :
-  (filter (a.coprime) (Ico n (n+a))).card = totient a :=
+  ((Ico n (n+a)).filter a.coprime).card = totient a :=
 begin
   rw [totient, filter_Ico_card_eq_of_periodic, count_eq_card_filter_range],
   exact periodic_coprime a,

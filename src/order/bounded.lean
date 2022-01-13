@@ -31,7 +31,7 @@ lemma unbounded_le_of_forall_exists_lt [preorder α] (h : ∀ a, ∃ b ∈ s, a 
 λ a, let ⟨b, hb, hb'⟩ := h a in ⟨b, hb, λ hba, not_lt_of_ge hba hb'⟩
 
 lemma unbounded_le_iff [linear_order α] : unbounded (≤) s ↔ ∀ a, ∃ b ∈ s, a < b :=
-⟨λ h a, let ⟨b, hb, hba⟩ := h a in ⟨b, hb, lt_of_not_ge hba⟩, unbounded_le_of_forall_ex_lt⟩
+by simp only [unbounded, not_le]
 
 lemma unbounded_lt_of_forall_ex_le [preorder α] (h : ∀ a, ∃ b ∈ s, a ≤ b) : unbounded (<) s :=
 λ a, let ⟨b, hb, hb'⟩ := h a in ⟨b, hb, λ hba, not_le_of_gt hba hb'⟩

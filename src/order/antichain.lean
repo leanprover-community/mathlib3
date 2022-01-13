@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
 import data.set.pairwise
-import order.ideal
 
 /-!
 # Antichains
@@ -40,24 +39,24 @@ lemma mono_on (hs : is_antichain r₁ s) (h : s.pairwise (λ ⦃a b⦄, r₂ a b
   is_antichain r₂ s :=
 hs.imp_on $ h.imp $ λ a b h h₁ h₂, h₁ $ h h₂
 
-lemma eq_of_related (hs : is_antichain r s) {a b : α} (ha : a ∈ s) (hb : b ∈ s) (h : r a b) :
+protected lemma eq (hs : is_antichain r s) {a b : α} (ha : a ∈ s) (hb : b ∈ s) (h : r a b) :
   a = b :=
-of_not_not $ λ hab, hs ha hb hab h
+hs.eq ha hb $ not_not_intro h
 
-lemma eq_of_related' (hs : is_antichain r s) {a b : α} (ha : a ∈ s) (hb : b ∈ s) (h : r b a) :
+protected lemma eq' (hs : is_antichain r s) {a b : α} (ha : a ∈ s) (hb : b ∈ s) (h : r b a) :
   a = b :=
-(hs.eq_of_related hb ha h).symm
+(hs.eq hb ha h).symm
 
 protected lemma is_antisymm (h : is_antichain r univ) : is_antisymm α r :=
-⟨λ a b ha _, h.eq_of_related trivial trivial ha⟩
+⟨λ a b ha _, h.eq trivial trivial ha⟩
 
 protected lemma subsingleton [is_trichotomous α r] (h : is_antichain r s) : s.subsingleton :=
 begin
   rintro a ha b hb,
   obtain hab | hab | hab := trichotomous_of r a b,
-  { exact h.eq_of_related ha hb hab },
+  { exact h.eq ha hb hab },
   { exact hab },
-  { exact h.eq_of_related' ha hb hab }
+  { exact h.eq' ha hb hab }
 end
 
 protected lemma flip (hs : is_antichain r s) : is_antichain (flip r) s :=

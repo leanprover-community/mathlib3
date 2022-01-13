@@ -288,13 +288,13 @@ begin
       { exact (measure_lt_top μ s).ne h'.1 } } }
 end
 
-/- The next three lemmas together is known as **the Vitali convergence theorem**. -/
-
 -- We can remove the measurability assumption so this lemma should be private once we have
 -- generalized it
 
-/-- The forward direction of the Vitali convergence theorem: A sequence of uniformly integrable
-functions which converges μ-a.e. converges in Lp. -/
+-- To generalize the below to convergence in measure we need that convergence in measure implies
+-- existence of convergent a.e. subsequence
+
+/-- A sequence of uniformly integrable functions which converges μ-a.e. converges in Lp. -/
 lemma tendsto_Lp_of_unif_integrable (hp : 1 ≤ p) (hp' : p ≠ ∞) {f : ℕ → α → β} {g : α → β}
   (hf : ∀ n, measurable[m] (f n)) (hg : measurable g)
   (hg' : mem_ℒp g p μ) (hui : unif_integrable f p μ)
@@ -375,7 +375,8 @@ begin
   sorry
 end
 
--- should be a standard result
+-- should be convergence in measure instead over convergence a.e.
+-- statement in current form is **false**
 lemma ae_tendsto_of_tendsto_Lp {f : ℕ → α → β} {g : α → β}
   (hf : ∀ n, mem_ℒp (f n) p μ) (hg : mem_ℒp g p μ)
   (hfg : tendsto (λ n, snorm (f n - g) p μ) at_top (𝓝 0)) :

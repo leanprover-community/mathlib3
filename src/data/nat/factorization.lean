@@ -187,6 +187,23 @@ begin
   { rintro ⟨c, rfl⟩, rw factorization_mul hd (right_ne_zero_of_mul hn), simp },
 end
 
+lemma factorization_prod_pow_inv (f : ℕ →₀ ℕ) (hf : ∀ (p : ℕ), p ∈ f.support → prime p) :
+  (f.prod pow).factorization = f :=
+begin
+  have h1 : ∀ (x : ℕ), x ∈ f.support → x ^ f x ≠ 0,
+  { exact λ p hp, pow_ne_zero _ (prime.ne_zero (hf p hp)) },
+  unfold finsupp.prod,
+  rw factorization_prod h1,
+  simp only [],
+  suffices : f = ∑ p in f.support, single p (f p), {
+    nth_rewrite_rhs 0 this,
+    refine sum_congr rfl _,
+    intros p hp,
+    rw prime.factorization_pow (hf p hp),
+  },
+  exact (sum_single f).symm,
+end
+
 
 /-- The positive natural numbers are bijective with finsupps `ℕ →₀ ℕ` with support in the primes -/
 noncomputable
@@ -213,7 +230,10 @@ def factorization_equiv : pnat ≃ {f : ℕ →₀ ℕ | ∀ p ∈ f.support, pr
     simp [factorization_prod_pow_eq_self hx.ne.symm],
   },
   right_inv := by {
+
+
     rintros ⟨f, hf⟩,
+    have := factorization_prod_pow_inv f,
     rw set.mem_set_of_eq at hf,
     have h1 : ∀ (x : ℕ), x ∈ f.support → x ^ f x ≠ 0,
     { exact λ p hp, pow_ne_zero _ (prime.ne_zero (hf p hp)) },

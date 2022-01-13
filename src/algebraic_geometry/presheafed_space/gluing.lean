@@ -89,7 +89,7 @@ that the `U i`'s are open subspaces of the glued space.
 -/
 @[nolint has_inhabited_instance]
 structure glue_data extends glue_data (PresheafedSpace C) :=
-  (f_open : ∀ i j, is_open_immersion (f i j))
+(f_open : ∀ i j, is_open_immersion (f i j))
 
 attribute [instance] glue_data.f_open
 
@@ -490,7 +490,7 @@ that the `U i`'s are open subspaces of the glued space.
 -/
 @[nolint has_inhabited_instance]
 structure glue_data extends glue_data (SheafedSpace C) :=
-  (f_open : ∀ i j, SheafedSpace.is_open_immersion (f i j))
+(f_open : ∀ i j, SheafedSpace.is_open_immersion (f i j))
 
 attribute [instance] glue_data.f_open
 
@@ -562,7 +562,7 @@ that the `U i`'s are open subspaces of the glued space.
 -/
 @[nolint has_inhabited_instance]
 structure glue_data extends glue_data LocallyRingedSpace :=
-  (f_open : ∀ i j, LocallyRingedSpace.is_open_immersion (f i j))
+(f_open : ∀ i j, LocallyRingedSpace.is_open_immersion (f i j))
 
 attribute [instance] glue_data.f_open
 

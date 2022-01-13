@@ -74,7 +74,7 @@ that the `U i`'s are open subschemes of the glued space.
 -/
 @[nolint has_inhabited_instance]
 structure glue_data extends category_theory.glue_data Scheme :=
-  (f_open : ∀ i j, is_open_immersion (f i j))
+(f_open : ∀ i j, is_open_immersion (f i j))
 
 attribute [instance] glue_data.f_open
 

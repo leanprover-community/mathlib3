@@ -28,13 +28,13 @@ theorem unbounded.mono (hst : s ⊆ t) (hs : unbounded r s) : unbounded r t :=
 /-! ### Alternate characterizations of unboundedness on orders -/
 
 lemma unbounded_le_of_forall_exists_lt [preorder α] (h : ∀ a, ∃ b ∈ s, a < b) : unbounded (≤) s :=
-λ a, let ⟨b, hb, hb'⟩ := h a in ⟨b, hb, λ hba, not_lt_of_ge hba hb'⟩
+λ a, let ⟨b, hb, hb'⟩ := h a in ⟨b, hb, λ hba, hba.not_lt hb'⟩
 
 lemma unbounded_le_iff [linear_order α] : unbounded (≤) s ↔ ∀ a, ∃ b ∈ s, a < b :=
 by simp only [unbounded, not_le]
 
 lemma unbounded_lt_of_forall_exists_le [preorder α] (h : ∀ a, ∃ b ∈ s, a ≤ b) : unbounded (<) s :=
-λ a, let ⟨b, hb, hb'⟩ := h a in ⟨b, hb, λ hba, not_le_of_gt hba hb'⟩
+λ a, let ⟨b, hb, hb'⟩ := h a in ⟨b, hb, λ hba, hba.not_le hb'⟩
 
 lemma unbounded_lt_iff [linear_order α] : unbounded (<) s ↔ ∀ a, ∃ b ∈ s, a ≤ b :=
 by simp only [unbounded, not_lt]
@@ -190,7 +190,7 @@ theorem bounded_ge_Icc [preorder α] (a b : α) : bounded (≥) (set.Icc a b) :=
 
 theorem unbounded_le_Ioi [semilattice_sup α] [no_max_order α] (a : α) : unbounded (≤) (set.Ioi a) :=
 λ b, let ⟨c, hc⟩ := exists_gt (a ⊔ b) in
-  ⟨c, le_sup_left.trans_lt hc, not_le_of_gt (le_sup_right.trans_lt hc)⟩
+  ⟨c, le_sup_left.trans_lt hc, (le_sup_right.trans_lt hc).not_le⟩
 
 theorem unbounded_le_Ici [semilattice_sup α] [no_max_order α] (a : α) : unbounded (≤) (set.Ici a) :=
 (unbounded_le_Ioi a).mono set.Ioi_subset_Ici_self
@@ -199,7 +199,7 @@ theorem unbounded_lt_Ioi [semilattice_sup α] [no_max_order α] (a : α) : unbou
 unbounded_lt_of_unbounded_le (unbounded_le_Ioi a)
 
 theorem unbounded_lt_Ici [semilattice_sup α] (a : α) : unbounded (<) (set.Ici a) :=
-λ b, ⟨a ⊔ b, le_sup_left, not_lt_of_ge le_sup_right⟩
+λ b, ⟨a ⊔ b, le_sup_left, le_sup_right.not_lt⟩
 
 /-! ### Bounded initial segments -/
 

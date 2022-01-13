@@ -1,7 +1,17 @@
+/-
+Copyright (c) 2022 Yury Kudryashov. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Yury Kudryashov
+-/
 import logic.embedding
 import data.nat.pairing
 
 /-!
+# Countable `Sort*`s and `Type*`s
+
+In this file we define a typeclass saying that a given `Sort*` is countable. See also `encodable`
+for a version that singles out a specific encoding of elements of `α` by natural numbers.
+
 -/
 
 universes u v
@@ -122,11 +132,3 @@ equiv.pprod_equiv_prod.symm.countable
 
 instance {π : α → Type*} [countable α] [∀ a, countable (π a)] : countable (Σ a, π a) :=
 (equiv.psigma_equiv_sigma π).symm.countable
-
-/-!
-### Set operations
--/
-
-variables {s t : set α}
-
-lemma countable.union (hs : countable s) (ht : countable t) : countable (s ∪ t)

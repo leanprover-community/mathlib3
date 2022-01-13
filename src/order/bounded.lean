@@ -37,7 +37,7 @@ lemma unbounded_lt_of_forall_ex_le [preorder α] (h : ∀ a, ∃ b ∈ s, a ≤ 
 λ a, let ⟨b, hb, hb'⟩ := h a in ⟨b, hb, λ hba, not_le_of_gt hba hb'⟩
 
 lemma unbounded_lt_iff [linear_order α] : unbounded (<) s ↔ ∀ a, ∃ b ∈ s, a ≤ b :=
-⟨λ h a, let ⟨b, hb, hba⟩ := h a in ⟨b, hb, le_of_not_gt hba⟩, unbounded_lt_of_forall_ex_le⟩
+by simp only [unbounded, not_lt]
 
 lemma unbounded_ge_of_forall_ex_gt [preorder α] (h : ∀ a, ∃ b ∈ s, b < a) : unbounded (≥) s :=
 @unbounded_le_of_forall_ex_lt (order_dual α) _ _ h

@@ -35,13 +35,10 @@ local notation `|` x `|` := complex.abs x
 rotation. This is an auxiliary construction; use `rotation`, which has more structure, by
 preference. -/
 def rotation_aux (a : circle) : ℂ ≃ₗᵢ[ℝ] ℂ :=
-{ to_fun := λ z, a * z,
-  map_add' := mul_add ↑a,
+{ map_add' := mul_add ↑a,
   map_smul' := λ t z, by { simp only [real_smul, ring_hom.id_apply], ring },
-  inv_fun := λ z, a⁻¹ * z,
-  left_inv := λ z, by { field_simp [nonzero_of_mem_circle], ring },
-  right_inv := λ z, by { field_simp [nonzero_of_mem_circle], ring },
-  norm_map' := by simp }
+  norm_map' := by simp,
+  ..units.mul_left (circle.to_units a) }
 
 /-- An element of the unit circle defines a `linear_isometry_equiv` from `ℂ` to itself, by
 rotation. -/

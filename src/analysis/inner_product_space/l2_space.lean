@@ -11,7 +11,7 @@ import analysis.normed_space.lp_space
 
 Given a family `(G : ι → Type*) [Π i, inner_product_space 𝕜 (G i)]` of inner product spaces, this
 file equips `lp G 2` with an inner product space structure, where `lp G 2` consists of those
-dependent functions `f : Π i, G i` for which `∑ i, ∥f i∥ ^ 2`, the sum of the norms-squared, is
+dependent functions `f : Π i, G i` for which `∑' i, ∥f i∥ ^ 2`, the sum of the norms-squared, is
 summable.  This construction is sometimes called the Hilbert sum of the family `G`.
 
 The space `lp G 2` already held a normed space structure, `lp.normed_space`, so the work in this

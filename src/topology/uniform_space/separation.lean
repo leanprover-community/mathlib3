@@ -191,7 +191,7 @@ instance separated_regular [separated_space α] : regular_space α :=
     let ⟨d, hd, h⟩ := comp_mem_uniformity_sets this in
     let e := {y:α| (a, y) ∈ d} in
     have hae : a ∈ closure e, from subset_closure $ refl_mem_uniformity hd,
-    have set.prod (closure e) (closure e) ⊆ comp_rel d (comp_rel (set.prod e e) d),
+    have closure e ×ˢ closure e ⊆ comp_rel d (comp_rel (e ×ˢ e) d),
     begin
       rw [←closure_prod_eq, closure_eq_inter_uniformity],
       change (⨅d' ∈ 𝓤 α, _) ≤ comp_rel d (comp_rel _ d),
@@ -242,7 +242,7 @@ def is_separated (s : set α) : Prop := ∀ x y ∈ s, (x, y) ∈ 𝓢 α → x 
 lemma is_separated_def (s : set α) : is_separated s ↔ ∀ x y ∈ s, (x, y) ∈ 𝓢 α → x = y :=
 iff.rfl
 
-lemma is_separated_def' (s : set α) : is_separated s ↔ (s.prod s) ∩ 𝓢 α ⊆ id_rel :=
+lemma is_separated_def' (s : set α) : is_separated s ↔ (s ×ˢ s) ∩ 𝓢 α ⊆ id_rel :=
 begin
   rw is_separated_def,
   split,
@@ -517,7 +517,7 @@ separated_def.2 $ assume x y H, prod.ext
   (eq_of_separated_of_uniform_continuous uniform_continuous_snd H)
 
 lemma _root_.is_separated.prod {s : set α} {t : set β} (hs : is_separated s) (ht : is_separated t) :
-  is_separated (s.prod t) :=
+  is_separated (s ×ˢ t) :=
 (is_separated_def _).mpr $ λ x hx y hy H, prod.ext
   (hs.eq_of_uniform_continuous hx.1 hy.1 uniform_continuous_fst H)
   (ht.eq_of_uniform_continuous hx.2 hy.2 uniform_continuous_snd H)

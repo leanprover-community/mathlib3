@@ -85,3 +85,8 @@ end order_dual
 
 alias order_dual.to_dual_lt_to_dual ↔ _ has_lt.lt.dual
 alias order_dual.to_dual_le_to_dual ↔ _ has_le.le.dual
+
+open order_dual
+
+lemma is_top.to_dual [has_le α] {a : α} (h : is_top a) : is_bot (to_dual a) := h
+lemma is_bot.to_dual [has_le α] {a : α} (h : is_bot a) : is_top (to_dual a) := h

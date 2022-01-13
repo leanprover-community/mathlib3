@@ -195,7 +195,7 @@ e.nonempty_congr.mpr ‹_›
 
 /-- If `α ≃ β` and `β` is inhabited, then so is `α`. -/
 protected def inhabited [inhabited β] (e : α ≃ β) : inhabited α :=
-⟨e.symm (default _)⟩
+⟨e.symm default⟩
 
 /-- If `α ≃ β` and `β` is a singleton type, then so is `α`. -/
 protected def unique [unique β] (e : α ≃ β) : unique α :=
@@ -528,7 +528,7 @@ def arrow_punit_equiv_punit (α : Sort*) : (α → punit.{v}) ≃ punit.{w} :=
 
 /-- If `α` has a unique term, then the type of function `α → β` is equivalent to `β`. -/
 @[simps { fully_applied := ff }] def fun_unique (α β) [unique α] : (α → β) ≃ β :=
-{ to_fun := eval (default α),
+{ to_fun := eval default,
   inv_fun := const α,
   left_inv := λ f, funext $ λ a, congr_arg f $ subsingleton.elim _ _,
   right_inv := λ b, rfl }
@@ -1136,8 +1136,8 @@ variables {α₁ β₁ β₂ : Type*} [decidable_eq α₁] (a : α₁) (e : perm
 def prod_extend_right : perm (α₁ × β₁) :=
 { to_fun := λ ab, if ab.fst = a then (a, e ab.snd) else ab,
   inv_fun := λ ab, if ab.fst = a then (a, e.symm ab.snd) else ab,
-  left_inv := by { rintros ⟨k', x⟩, simp only, split_ifs with h; simp [h] },
-  right_inv := by { rintros ⟨k', x⟩, simp only, split_ifs with h; simp [h] } }
+  left_inv := by { rintros ⟨k', x⟩, dsimp only, split_ifs with h; simp [h] },
+  right_inv := by { rintros ⟨k', x⟩, dsimp only, split_ifs with h; simp [h] } }
 
 @[simp] lemma prod_extend_right_apply_eq (b : β₁) :
   prod_extend_right a e (a, b) = (a, e b) := if_pos rfl
@@ -1963,8 +1963,8 @@ funext $ λ z, hf.swap_apply _ _ _
 
 /-- If both `α` and `β` are singletons, then `α ≃ β`. -/
 def equiv_of_unique_of_unique [unique α] [unique β] : α ≃ β :=
-{ to_fun := λ _, default β,
-  inv_fun := λ _, default α,
+{ to_fun := λ _, default,
+  inv_fun := λ _, default,
   left_inv := λ _, subsingleton.elim _ _,
   right_inv := λ _, subsingleton.elim _ _ }
 

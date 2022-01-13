@@ -8,7 +8,7 @@ import data.finset.option
 import data.finset.prod
 import data.multiset.lattice
 import order.complete_lattice
-
+import order.lexicographic
 /-!
 # Lattice operations on finsets
 -/
@@ -85,6 +85,11 @@ begin
   { exact sup_empty },
   { exact sup_const hs _ }
 end
+
+lemma sup_ite (p : β → Prop) [decidable_pred p] :
+  s.sup (λ i, ite (p i) (f i) (g i)) =
+    (s.filter p).sup f ⊔ (s.filter (λ i, ¬ p i)).sup g :=
+fold_ite _
 
 lemma sup_le {a : α} : (∀b ∈ s, f b ≤ a) → s.sup f ≤ a :=
 sup_le_iff.2
@@ -960,6 +965,48 @@ lemma induction_on_min [decidable_eq α] {p : finset α → Prop} (s : finset α
 @induction_on_max (order_dual α) _ _ _ s h0 step
 
 end max_min
+
+section max_min_induction_value
+
+variables {ι : Type*} [linear_order α] [linear_order β]
+
+/-- Induction principle for `finset`s in any type from which a given function `f` maps to a linearly
+ordered type : a predicate is true on all `s : finset α` provided that:
+
+* it is true on the empty `finset`,
+* for every `s : finset α` and an element `a` such that for elements of `s` denoted by `x` we have
+  `f x ≤ f a`, `p s` implies `p (insert a s)`. -/
+@[elab_as_eliminator]
+lemma induction_on_max_value [decidable_eq ι] (f : ι → α)
+  {p : finset ι → Prop} (s : finset ι) (h0 : p ∅)
+  (step : ∀ a s, a ∉ s → (∀ x ∈ s, f x ≤ f a) → p s → p (insert a s)) : p s :=
+begin
+  induction s using finset.strong_induction_on with s ihs,
+  rcases (s.image f).eq_empty_or_nonempty with hne|hne,
+  { simp only [image_eq_empty] at hne,
+    simp only [hne, h0] },
+  { have H : (s.image f).max' hne ∈ (s.image f), from max'_mem (s.image f) hne,
+    simp only [mem_image, exists_prop] at H,
+    rcases H with ⟨a, has, hfa⟩,
+    rw ← insert_erase has,
+    refine step _ _ (not_mem_erase a s) (λ x hx, _) (ihs _ $ erase_ssubset has),
+    rw hfa,
+    exact le_max' _ _ (mem_image_of_mem _ $ mem_of_mem_erase hx) }
+end
+
+/-- Induction principle for `finset`s in any type from which a given function `f` maps to a linearly
+ordered type : a predicate is true on all `s : finset α` provided that:
+
+* it is true on the empty `finset`,
+* for every `s : finset α` and an element `a` such that for elements of `s` denoted by `x` we have
+  `f a ≤ f x`, `p s` implies `p (insert a s)`. -/
+@[elab_as_eliminator]
+lemma induction_on_min_value [decidable_eq ι] (f : ι → α)
+  {p : finset ι → Prop} (s : finset ι) (h0 : p ∅)
+  (step : ∀ a s, a ∉ s → (∀ x ∈ s, f a ≤ f x) → p s → p (insert a s)) : p s :=
+@induction_on_max_value (order_dual α) ι _ _ _ _ s h0 step
+
+end max_min_induction_value
 
 section exists_max_min
 

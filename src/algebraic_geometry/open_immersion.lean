@@ -1297,6 +1297,23 @@ end to_Scheme
 
 end PresheafedSpace.is_open_immersion
 
+/-- The restriction of a Scheme along an open embedding. -/
+@[simps]
+def Scheme.restrict {U : Top} (X : Scheme) {f : U ⟶ Top.of X.carrier} (h : open_embedding f) :
+  Scheme :=
+{ to_PresheafedSpace := X.to_PresheafedSpace.restrict h,
+  ..(PresheafedSpace.is_open_immersion.to_Scheme X (X.to_PresheafedSpace.of_restrict h)) }
+
+/-- The canonical map from the restriction to the supspace. -/
+@[simps]
+def Scheme.of_restrict {U : Top} (X : Scheme) {f : U ⟶ Top.of X.carrier} (h : open_embedding f) :
+  X.restrict h ⟶ X :=
+X.to_LocallyRingedSpace.of_restrict h
+
+instance is_open_immersion.of_restrict {U : Top} (X : Scheme) {f : U ⟶ Top.of X.carrier}
+  (h : open_embedding f) : is_open_immersion (X.of_restrict h) :=
+show PresheafedSpace.is_open_immersion (X.to_PresheafedSpace.of_restrict h), by apply_instance
+
 namespace is_open_immersion
 
 variables {X Y Z : Scheme.{u}} (f : X ⟶ Z) (g : Y ⟶ Z)
@@ -1306,6 +1323,10 @@ variable [H : is_open_immersion f]
 instance of_is_iso [is_iso g] :
   is_open_immersion g := @@LocallyRingedSpace.is_open_immersion.of_is_iso _
 (show is_iso ((induced_functor _).map g), by apply_instance)
+
+/-- A open immersion induces an isomorphism from the domain onto the image -/
+def iso_restrict : X ≅ (Z.restrict H.base_open : _) :=
+⟨H.iso_restrict.hom, H.iso_restrict.inv, H.iso_restrict.hom_inv_id, H.iso_restrict.inv_hom_id⟩
 
 include H
 
@@ -1404,6 +1425,31 @@ end
 
 instance forget_to_Top_preserves_of_right :
   preserves_limit (cospan g f) Scheme.forget_to_Top := preserves_pullback_symmetry _ _ _
+
+/--
+The universal property of open immersions:
+For an open immersion `f : X ⟶ Z`, given any morphism of schemes `g : Y ⟶ Z` whose topological
+image is contained in the image of `f`, we can lift this morphism to a unique `Y ⟶ X` that
+commutes with these maps.
+-/
+def lift (H' : set.range g.1.base ⊆ set.range f.1.base) : Y ⟶ X :=
+LocallyRingedSpace.is_open_immersion.lift f g H'
+
+@[simp, reassoc] lemma lift_fac (H' : set.range g.1.base ⊆ set.range f.1.base) :
+  lift f g H' ≫ f = g :=
+LocallyRingedSpace.is_open_immersion.lift_fac f g H'
+
+lemma lift_uniq (H' : set.range g.1.base ⊆ set.range f.1.base) (l : Y ⟶ X)
+  (hl : l ≫ f = g) : l = lift f g H' :=
+LocallyRingedSpace.is_open_immersion.lift_uniq f g H' l hl
+
+/-- Two open immersions with equal range is isomorphic. -/
+@[simps] def iso_of_range_eq [is_open_immersion g] (e : set.range f.1.base = set.range g.1.base) :
+  X ≅ Y :=
+{ hom := lift g f (le_of_eq e),
+  inv := lift f g (le_of_eq e.symm),
+  hom_inv_id' := by { rw ← cancel_mono f, simp },
+  inv_hom_id' := by { rw ← cancel_mono g, simp } }
 
 end is_open_immersion
 

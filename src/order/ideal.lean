@@ -87,7 +87,7 @@ def principal (p : P) : ideal P :=
   mem_of_le := λ x y hxy hy, le_trans hxy hy, }
 
 instance [inhabited P] : inhabited (ideal P) :=
-⟨ideal.principal $ default P⟩
+⟨ideal.principal default⟩
 
 /-- An ideal of `P` can be viewed as a subset of `P`. -/
 instance : has_coe (ideal P) (set P) := ⟨carrier⟩

@@ -243,15 +243,15 @@ lemma central_binom_factorization (n : ℕ) :
 
 
 
-lemma interchange_filters {α: _} {S: finset α} {f g: α → Prop}
-[decidable_pred f] [decidable_pred g]
-  : (S.filter g).filter f = S.filter (λ i, g i ∧ f i) :=
-by { ext1, simp only [finset.mem_filter, and_assoc] }
+-- lemma interchange_filters {α: _} {S: finset α} {f g: α → Prop}
+-- [decidable_pred f] [decidable_pred g]
+--   : (S.filter g).filter f = S.filter (λ i, g i ∧ f i) :=
+-- by { ext1, simp only [finset.mem_filter, and_assoc] }
 
-lemma interchange_and_in_filter {α: _} {S: finset α} {f g: α → Prop}
-[decidable_pred f] [decidable_pred g]
-  : S.filter (λ i, g i ∧ f i) = S.filter (λ i, f i ∧ g i) :=
-by { ext1, simp only [finset.mem_filter, and.comm, iff_self] }
+-- lemma interchange_and_in_filter {α: _} {S: finset α} {f g: α → Prop}
+-- [decidable_pred f] [decidable_pred g]
+--   : S.filter (λ i, g i ∧ f i) = S.filter (λ i, f i ∧ g i) :=
+-- by { ext1, simp only [finset.mem_filter, and.comm, iff_self] }
 
 lemma intervening_sqrt {a n : ℕ} (small : (nat.sqrt n) ^ 2 ≤ a ^ 2) (big : a ^ 2 ≤ n)
   : a = nat.sqrt n :=
@@ -269,16 +269,16 @@ begin
         ... = a ^ 2 : (sq _).symm, },
 end
 
-lemma filter_filter_card_le_filter_card {α: _} {S: finset α} {f g: α → Prop}
-[_inst : decidable_pred f][_inst : decidable_pred g]
-: ((S.filter g).filter f).card ≤ (S.filter f).card :=
-begin
-  calc ((S.filter g).filter f).card = (S.filter (λ i, g i ∧ f i)).card
-            : congr_arg finset.card interchange_filters
-  ... = (S.filter (λ i, f i ∧ g i)).card: congr_arg finset.card interchange_and_in_filter
-  ... = ((S.filter f).filter g).card: congr_arg finset.card interchange_filters.symm
-  ... ≤ (S.filter f).card: (finset.filter f S).card_filter_le g,
-end
+-- lemma filter_filter_card_le_filter_card {α: _} {S: finset α} {f g: α → Prop}
+-- [_inst : decidable_pred f][_inst : decidable_pred g]
+-- : ((S.filter g).filter f).card ≤ (S.filter f).card :=
+-- begin
+--   calc ((S.filter g).filter f).card = (S.filter (λ i, g i ∧ f i)).card
+--             : congr_arg finset.card interchange_filters
+--   ... = (S.filter (λ i, f i ∧ g i)).card: congr_arg finset.card interchange_and_in_filter
+--   ... = ((S.filter f).filter g).card: congr_arg finset.card interchange_filters.symm
+--   ... ≤ (S.filter f).card: (finset.filter f S).card_filter_le g,
+-- end
 
 lemma filter_size {S : finset ℕ} {a : ℕ} : (finset.filter (λ p, p < a) S).card ≤ a :=
 have t : ∀ i, i ∈ (S.filter (λ p, p < a)) → i ∈ finset.range(a), by simp,
@@ -474,7 +474,8 @@ begin
   apply sqrt_nonneg,
 end
 
-lemma inequality3' {x : ℝ} (n_large : 1024 < x) : sqrt 2 * sqrt x * log x / (x * log 4) = (sqrt 2 / log 4) * log x / sqrt x :=
+lemma inequality3' {x : ℝ} (n_large : 1024 < x) :
+  sqrt 2 * sqrt x * log x / (x * log 4) = (sqrt 2 / log 4) * log x / sqrt x :=
 begin
   have h : x ≠ 0,
   { apply ne_of_gt,
@@ -491,7 +492,8 @@ begin
   linarith,
 end
 
-lemma log_div_sqrt_decreasing {x y : ℝ} (hex : real.exp 2 ≤ x) (hxy : x ≤ y) : log y / sqrt y ≤ log x / sqrt x :=
+lemma log_div_sqrt_decreasing {x y : ℝ} (hex : real.exp 2 ≤ x) (hxy : x ≤ y) :
+  log y / sqrt y ≤ log x / sqrt x :=
 begin
   have hltx : 0 < x, exact lt_of_lt_of_le ( (exp_pos 2)) hex,
   have hlty : 0 < y, linarith,
@@ -663,7 +665,7 @@ begin
   simp only [nat.cast_bit0, nat.cast_add, nat.cast_one, nat.cast_mul, nat.cast_pow],
   simp only [<-rpow_nat_cast],
   calc (2 * (n : ℝ) + 1) * (2 * (n : ℝ)) ^ (nat.sqrt (2 * n) : ℝ) * 4 ^ (((2 * n / 3) : ℕ) : ℝ)
-        ≤ (2 * (n : ℝ) + 1) * (2 * n : ℝ) ^ (real.sqrt (2 * (n : ℝ))) * 4 ^ (((2 * n / 3) : ℕ) : ℝ) :
+      ≤ (2 * (n : ℝ) + 1) * (2 * n : ℝ) ^ (real.sqrt (2 * (n : ℝ))) * 4 ^ (((2 * n / 3) : ℕ) : ℝ) :
           begin
             rw mul_le_mul_right,
             rw mul_le_mul_left,
@@ -1041,8 +1043,9 @@ begin
 end
 
 /--
-Proves that Bertrand's postulate holds over all positive naturals less than n by identifying a descending list of
-primes, each no more than twice the next, such that the list contains a witness for each number ≤ n.
+Proves that Bertrand's postulate holds over all positive naturals less than n by identifying a
+descending list of primes, each no more than twice the next, such that the list contains a witness
+for each number ≤ n.
 -/
 lemma bertrand_initial (n : ℕ) (hn0 : 0 < n) (plist : list ℕ)
   (primeplist : ∀ p ∈ plist, nat.prime p)
@@ -1084,7 +1087,10 @@ begin
 end
 
 
-/-- Bertrand's Postulate: For any positive natural number, there is a prime which is greater than it, but no more than twice as large. -/
+/--
+Bertrand's Postulate: For any positive natural number, there is a prime which is greater than
+it, but no more than twice as large.
+-/
 theorem bertrand (n : nat) (n_pos : 0 < n) : ∃ p, nat.prime p ∧ n < p ∧ p ≤ 2 * n :=
 begin
   cases lt_or_le 1024 n,

@@ -4,16 +4,19 @@ import number_theory.padics.padic_integers
 
 variables {X : Type*} [topological_space X] (R : Type*) [mul_zero_one_class R]
 
+/-
 /-- Bundled version of `is_clopen` -/
-def clopen_sets (H : Type*) [topological_space H] := {s : set H // is_clopen s}
+def clopens (H : Type*) [topological_space H] := {s : set H // is_clopen s}
 
 variables {H : Type*} [topological_space H]
-instance : inhabited (clopen_sets H) :=
+instance : inhabited (clopens H) :=
 {
   default := ⟨∅, is_clopen_empty⟩
 }
 
-instance : semilattice_inf_bot (clopen_sets X) :=
+instance : order_bot (clopens X) :=
+
+instance : semilattice_inf (clopens X) :=
 begin
   constructor,
   swap 5, use ⟨∅, is_clopen_empty⟩,
@@ -28,31 +31,32 @@ begin
   { rintros a b ab ba, apply subtype.eq, apply set.subset.antisymm ab ba, },
 end
 
-instance : lattice (clopen_sets X) :=
+instance : lattice (clopens X) :=
 begin
   refine subtype.lattice _ _,
   { rintros x y, apply is_clopen.union, },
   { rintros x y, apply is_clopen.inter, },
 end
+-/
 
 /-- Characteristic functions are locally constant functions taking `x : X` to `1` if `x ∈ U`,
   where `U` is a clopen set, and `0` otherwise. -/
-noncomputable def char_fn (U : clopen_sets X) : locally_constant X R :=
+noncomputable def char_fn {U : set X} (hU : is_clopen U) : locally_constant X R :=
 {
-  to_fun := λ x, by classical; exact if (x ∈ U.val) then 1 else 0,
+  to_fun := λ x, by classical; exact if (x ∈ U) then 1 else 0,
   is_locally_constant :=
     begin
       rw is_locally_constant.iff_exists_open, rintros x,
-      by_cases x ∈ U.val,
-      { refine ⟨U.val, ((U.prop).1), h, _⟩, rintros y hy, simp [h, hy], },
-      { rw ←set.mem_compl_iff at h, refine ⟨(U.val)ᶜ, (is_clopen.compl U.prop).1, h, _⟩,
+      by_cases x ∈ U,
+      { refine ⟨U, hU.1, h, _⟩, rintros y hy, simp [h, hy], },
+      { rw ←set.mem_compl_iff at h, refine ⟨Uᶜ, (is_clopen.compl hU).1, h, _⟩,
         rintros y hy, rw set.mem_compl_iff at h, rw set.mem_compl_iff at hy,
         simp [h, hy], },
     end,
 }
 
-lemma char_fn_one [nontrivial R] (x : X) (U : clopen_sets X) :
-  x ∈ U.val ↔ char_fn R U x = (1 : R) :=
+lemma char_fn_one [nontrivial R] (x : X) {U : set X} (hU : is_clopen U) :
+  x ∈ U ↔ char_fn R hU x = (1 : R) :=
 begin
   rw char_fn, simp only [locally_constant.coe_mk, ite_eq_left_iff],
   split, any_goals { intro h, },
@@ -64,17 +68,21 @@ begin
     { symmetry, apply h, apply h', }, },
 end
 
-lemma char_fn_zero [nontrivial R] (x : X) (U : clopen_sets X) :
-  x ∈ U.val → false ↔ char_fn R U x = (0 : R) :=
+lemma char_fn_zero [nontrivial R] (x : X) {U : set X} (hU : is_clopen U) :
+  x ∈ U → false ↔ char_fn R hU x = (0 : R) :=
 begin
   rw char_fn,
   simp only [ite_eq_right_iff, one_ne_zero, locally_constant.coe_mk],
 end
 
-lemma char_fn_inj [nontrivial R] : function.injective (@char_fn X _ R _) :=
+lemma char_fn_inj [nontrivial R] {U V : set X} (hU : is_clopen U) (hV : is_clopen V)
+  (h : char_fn R hU = char_fn R hV) : U = V :=
 begin
-  rintros U V h, ext,
+  ext,
   rw locally_constant.ext_iff at h, specialize h x,
   split,
-  any_goals { intros h', apply (char_fn_one R _ _).2, rw (char_fn_one R _ _).1 h' at h, rw h, },
+  { intros h', apply (char_fn_one R _ _).2,
+    { rw (char_fn_one R _ _).1 h' at h, rw h.symm, }, },
+  { intros h', apply (char_fn_one R _ _).2,
+    { rw (char_fn_one R _ _).1 h' at h, rw h, }, },
 end

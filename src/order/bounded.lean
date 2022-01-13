@@ -107,13 +107,13 @@ end
 
 /-! ### Bounded and unbounded intervals -/
 
-theorem bounded_r_r (a : α) : bounded r {b | r b a} :=
+theorem bounded_self (a : α) : bounded r {b | r b a} :=
 ⟨a, λ x, id⟩
 
 /-! #### Half-open bounded intervals -/
 
 theorem bounded_lt_Iio [preorder α] (a : α) : bounded (<) (set.Iio a) :=
-bounded_r_r a
+bounded_self a
 
 theorem bounded_lt_Iic [preorder α] [no_max_order α] (a : α) : bounded (<) (set.Iic a) :=
 let ⟨b, hab⟩ := exists_gt a in ⟨b, λ c hca, lt_of_le_of_lt hca hab⟩
@@ -122,10 +122,10 @@ theorem bounded_le_Iio [preorder α] (a : α) : bounded (≤) (set.Iio a) :=
 bounded_le_of_bounded_lt (bounded_lt_Iio a)
 
 theorem bounded_le_Iic [preorder α] (a : α) : bounded (≤) (set.Iic a) :=
-bounded_r_r a
+bounded_self a
 
 theorem bounded_gt_Ioi [preorder α] (a : α) : bounded (>) (set.Ioi a) :=
-bounded_r_r a
+bounded_self a
 
 theorem bounded_gt_Ici [preorder α] [no_min_order α] (a : α) : bounded (>) (set.Ici a) :=
 exists.elim (exists_lt a) $ λ b hab, ⟨b, λ c hca, lt_of_lt_of_le hab hca⟩
@@ -134,57 +134,57 @@ theorem bounded_ge_Ioi [preorder α] (a : α) : bounded (≥) (set.Ioi a) :=
 bounded_ge_of_bounded_gt (bounded_gt_Ioi a)
 
 theorem bounded_ge_Ici [preorder α] (a : α) : bounded (≥) (set.Ici a) :=
-bounded_r_r a
+bounded_self a
 
 /-! #### Other bounded intervals -/
 
 theorem bounded_lt_Ioo [preorder α] (a b : α) : bounded (<) (set.Ioo a b) :=
-bounded_of_subset_bounded set.Ioo_subset_Iio_self (bounded_lt_Iio b)
+(bounded_lt_Iio b).mono set.Ioo_subset_Iio_self
 
 theorem bounded_lt_Ico [preorder α] (a b : α) : bounded (<) (set.Ico a b) :=
-bounded_of_subset_bounded set.Ico_subset_Iio_self (bounded_lt_Iio b)
+(bounded_lt_Iio b).mono set.Ico_subset_Iio_self
 
 theorem bounded_lt_Ioc [preorder α] [no_max_order α] (a b : α) : bounded (<) (set.Ioc a b) :=
-bounded_of_subset_bounded set.Ioc_subset_Iic_self (bounded_lt_Iic b)
+(bounded_lt_Iic b).mono set.Ioc_subset_Iic_self
 
 theorem bounded_lt_Icc [preorder α] [no_max_order α] (a b : α) : bounded (<) (set.Icc a b) :=
-bounded_of_subset_bounded set.Icc_subset_Iic_self (bounded_lt_Iic b)
+(bounded_lt_Iic b).mono set.Icc_subset_Iic_self
 
 theorem bounded_le_Ioo [preorder α] (a b : α) : bounded (≤) (set.Ioo a b) :=
-bounded_of_subset_bounded set.Ioo_subset_Iio_self (bounded_le_Iio b)
+(bounded_le_Iio b).mono set.Ioo_subset_Iio_self
 
 theorem bounded_le_Ico [preorder α] (a b : α) : bounded (≤) (set.Ico a b) :=
-bounded_of_subset_bounded set.Ico_subset_Iio_self (bounded_le_Iio b)
+(bounded_le_Iio b).mono set.Ico_subset_Iio_self
 
 theorem bounded_le_Ioc [preorder α] (a b : α) : bounded (≤) (set.Ioc a b) :=
-bounded_of_subset_bounded set.Ioc_subset_Iic_self (bounded_le_Iic b)
+(bounded_le_Iic b).mono set.Ioc_subset_Iic_self
 
 theorem bounded_le_Icc [preorder α] (a b : α) : bounded (≤) (set.Icc a b) :=
-bounded_of_subset_bounded set.Icc_subset_Iic_self (bounded_le_Iic b)
+(bounded_le_Iic b).mono set.Icc_subset_Iic_self
 
 theorem bounded_gt_Ioo [preorder α] (a b : α) : bounded (>) (set.Ioo a b) :=
-bounded_of_subset_bounded set.Ioo_subset_Ioi_self (bounded_gt_Ioi a)
+(bounded_gt_Ioi a).mono set.Ioo_subset_Ioi_self
 
 theorem bounded_gt_Ioc [preorder α] (a b : α) : bounded (>) (set.Ioc a b) :=
-bounded_of_subset_bounded set.Ioc_subset_Ioi_self (bounded_gt_Ioi a)
+(bounded_gt_Ioi a).mono set.Ioc_subset_Ioi_self
 
 theorem bounded_gt_Ico [preorder α] [no_min_order α] (a b : α) : bounded (>) (set.Ico a b) :=
-bounded_of_subset_bounded set.Ico_subset_Ici_self (bounded_gt_Ici a)
+(bounded_gt_Ici a).mono set.Ico_subset_Ici_self
 
 theorem bounded_gt_Icc [preorder α] [no_min_order α] (a b : α) : bounded (>) (set.Icc a b) :=
-bounded_of_subset_bounded set.Icc_subset_Ici_self (bounded_gt_Ici a)
+(bounded_gt_Ici a).mono set.Icc_subset_Ici_self
 
 theorem bounded_ge_Ioo [preorder α] (a b : α) : bounded (≥) (set.Ioo a b) :=
-bounded_of_subset_bounded set.Ioo_subset_Ioi_self (bounded_ge_Ioi a)
+(bounded_ge_Ioi a).mono set.Ioo_subset_Ioi_self
 
 theorem bounded_ge_Ioc [preorder α] (a b : α) : bounded (≥) (set.Ioc a b) :=
-bounded_of_subset_bounded set.Ioc_subset_Ioi_self (bounded_ge_Ioi a)
+(bounded_ge_Ioi a).mono set.Ioc_subset_Ioi_self
 
 theorem bounded_ge_Ico [preorder α] (a b : α) : bounded (≥) (set.Ico a b) :=
-bounded_of_subset_bounded set.Ico_subset_Ici_self (bounded_ge_Ici a)
+(bounded_ge_Ici a).mono set.Ico_subset_Ici_self
 
 theorem bounded_ge_Icc [preorder α] (a b : α) : bounded (≥) (set.Icc a b) :=
-bounded_of_subset_bounded set.Icc_subset_Ici_self (bounded_ge_Ici a)
+(bounded_ge_Ici a).mono set.Icc_subset_Ici_self
 
 /-! #### Unbounded intervals -/
 
@@ -193,7 +193,7 @@ theorem unbounded_le_Ioi [semilattice_sup α] [no_max_order α] (a : α) : unbou
   ⟨c, le_sup_left.trans_lt hc, not_le_of_gt (le_sup_right.trans_lt hc)⟩
 
 theorem unbounded_le_Ici [semilattice_sup α] [no_max_order α] (a : α) : unbounded (≤) (set.Ici a) :=
-unbounded_of_unbounded_subset set.Ioi_subset_Ici_self (unbounded_le_Ioi a)
+(unbounded_le_Ioi a).mono set.Ioi_subset_Ici_self
 
 theorem unbounded_lt_Ioi [semilattice_sup α] [no_max_order α] (a : α) : unbounded (<) (set.Ioi a) :=
 unbounded_lt_of_unbounded_le (unbounded_le_Ioi a)
@@ -206,7 +206,7 @@ theorem unbounded_lt_Ici [semilattice_sup α] (a : α) : unbounded (<) (set.Ici 
 theorem bounded_r_iff_bounded_inter_not_r (H : ∀ a b, ∃ m, ∀ c, r c a ∨ r c b → r c m) (a : α) :
   bounded r s ↔ bounded r (s ∩ {b | ¬ r b a}) :=
 begin
-  use bounded_of_subset_bounded (set.inter_subset_left s _),
+  use bounded.mono (set.inter_subset_left s _),
   rintro ⟨b, hb⟩,
   cases H a b with m hm,
   exact ⟨m, λ c hc, hm c (or_iff_not_imp_left.2 (λ hca, (hb c ⟨hc, hca⟩)))⟩
@@ -313,9 +313,9 @@ by { convert unbounded_ge_iff_unbounded_inter_not_ge a, ext, exact lt_iff_not_ge
 theorem bounded_ge_iff_bounded_inter_ge [linear_order α] (a : α) :
   bounded (≥) s ↔ bounded (≥) (s ∩ {b | b ≤ a}) :=
 begin
-  use bounded_of_subset_bounded (set.inter_subset_left s _),
+  use bounded.mono (set.inter_subset_left s _),
   rw @bounded_ge_iff_bounded_inter_gt _ s _ a,
-  exact bounded_of_subset_bounded (λ x ⟨hx, hx'⟩, ⟨hx, le_of_lt hx'⟩)
+  exact bounded.mono (λ x ⟨hx, hx'⟩, ⟨hx, le_of_lt hx'⟩)
 end
 
 theorem unbounded_ge_iff_unbounded_inter_ge [linear_order α] (a : α) :

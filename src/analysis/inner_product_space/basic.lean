@@ -432,7 +432,7 @@ by { rw [inner_smul_right, algebra.smul_def], refl }
 /-- The inner product as a sesquilinear form. -/
 @[simps]
 def sesq_form_of_inner : E →ₗ[𝕜] E →ₗ⋆[𝕜] 𝕜 :=
-linear_map.mk₂'ₛₗ (ring_hom.id 𝕜) ((star_ring_end _).to_ring_hom)
+linear_map.mk₂'ₛₗ (ring_hom.id 𝕜) (star_ring_end _)
   (λ x y, ⟪y, x⟫)
   (λ x y z, inner_add_right)
   (λ r x y, inner_smul_right)
@@ -1481,7 +1481,7 @@ end
 
 /-- The inner product as a continuous sesquilinear map, with the two arguments flipped. -/
 def innerSL_flip : E →L[𝕜] E →L⋆[𝕜] 𝕜 :=
-continuous_linear_map.flipₗᵢ' E E 𝕜 (ring_hom.id 𝕜) (star_ring_end 𝕜 : 𝕜 →+* 𝕜) innerSL
+continuous_linear_map.flipₗᵢ' E E 𝕜 (ring_hom.id 𝕜) (star_ring_end 𝕜) innerSL
 
 @[simp] lemma innerSL_flip_apply {x y : E} : innerSL_flip x y = ⟪y, x⟫ := rfl
 
@@ -1493,7 +1493,7 @@ variables  {E' : Type*} [inner_product_space 𝕜 E']
 as a continuous linear map. -/
 def to_sesq_form : (E →L[𝕜] E') →L[𝕜] E' →L⋆[𝕜] E →L[𝕜] 𝕜 :=
 ↑((continuous_linear_map.flipₗᵢ' E E' 𝕜
-  (↑(star_ring_end 𝕜 : 𝕜 ≃+* 𝕜) : 𝕜 →+* 𝕜) (ring_hom.id 𝕜)).to_continuous_linear_equiv) ∘L
+  (star_ring_end 𝕜) (ring_hom.id 𝕜)).to_continuous_linear_equiv) ∘L
 (continuous_linear_map.compSL E E' (E' →L⋆[𝕜] 𝕜) (ring_hom.id 𝕜) (ring_hom.id 𝕜) innerSL_flip)
 
 @[simp] lemma to_sesq_form_apply_coe (f : E →L[𝕜] E') (x : E') :

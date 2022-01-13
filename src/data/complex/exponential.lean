@@ -477,7 +477,7 @@ begin
   dsimp [exp', function.comp, cau_seq_conj],
   rw (star_ring_end _).map_sum,
   refine sum_congr rfl (λ n hn, _),
-  rw [ring_equiv.map_div, ring_equiv.map_pow, ← of_real_nat_cast, conj_of_real]
+  rw [ring_hom.map_div, ring_hom.map_pow, ← of_real_nat_cast, conj_of_real]
 end
 
 @[simp] lemma of_real_exp_of_real_re (x : ℝ) : ((exp x).re : ℂ) = exp x :=

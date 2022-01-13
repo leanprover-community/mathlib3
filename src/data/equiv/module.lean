@@ -14,7 +14,7 @@ In this file we define
 * `linear_equiv σ M M₂`, `M ≃ₛₗ[σ] M₂`: an invertible semilinear map. Here, `σ` is a `ring_hom`
   from `R` to `R₂` and an `e : M ≃ₛₗ[σ] M₂` satisfies `e (c • x) = (σ c) • (e x)`. The plain
   linear version, with `σ` being `ring_hom.id R`, is denoted by `M ≃ₗ[R] M₂`, and the
-  star-linear version (with `σ` begin `star_ring_end`) is denoted by `M ≃ₗ⋆[R] M₂`.
+  star-linear version (with `σ` being `star_ring_end`) is denoted by `M ≃ₗ⋆[R] M₂`.
 
 ## Implementation notes
 

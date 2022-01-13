@@ -228,7 +228,7 @@ by { rw [logb, logb, div_lt_div_right_of_neg (log_neg b_pos b_lt_one)], exact lo
 
 @[simp] lemma logb_lt_logb_iff_of_base_lt_one (hx : 0 < x) (hy : 0 < y) :
   logb b x < logb b y ↔ y < x :=
-by { rw [logb, logb, div_lt_div_right_of_neg (log_neg b_pos b_lt_one)], exact log_lt_log_iff hy hx, }
+by { rw [logb, logb, div_lt_div_right_of_neg (log_neg b_pos b_lt_one)], exact log_lt_log_iff hy hx }
 
 lemma logb_le_iff_le_rpow_of_base_lt_one (hx : 0 < x) : logb b x ≤ y ↔ b ^ y ≤ x :=
 by rw [←rpow_le_rpow_left_iff_of_base_lt_one b_pos b_lt_one, rpow_logb b_pos (b_ne_one b_lt_one) hx]

@@ -72,12 +72,7 @@ end
 
 lemma unbounded_lt_iff_unbounded_le [preorder α] [no_top_order α] :
   unbounded (<) s ↔ unbounded (≤) s :=
-begin
-  refine ⟨λ h a, _, unbounded_lt_of_unbounded_le⟩,
-  cases no_top a with c hc,
-  rcases h c with ⟨b, hb, hbc⟩,
-  exact ⟨b, hb, λ hba, hbc (lt_of_le_of_lt hba hc)⟩
-end
+by simp_rw [← not_bounded_iff, bounded_le_iff_bounded_lt] 
 
 /-! #### Greater and greater or equal -/
 

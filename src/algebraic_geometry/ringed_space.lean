@@ -165,7 +165,7 @@ begin
   apply le_antisymm,
   { rw X.basic_open_res i f, exact inf_le_right },
   { have := X.basic_open_res (inv i) (X.presheaf.map i f),
-    rw [← X.presheaf.map_comp_apply, is_iso.hom_inv_id, X.presheaf.map_id] at this,
+    rw [← comp_apply, ← X.presheaf.map_comp, is_iso.hom_inv_id, X.presheaf.map_id] at this,
     erw this,
     exact inf_le_right }
 end

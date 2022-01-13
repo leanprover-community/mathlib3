@@ -63,6 +63,10 @@ protected theorem is_asymm.is_irrefl [is_asymm α r] : is_irrefl α r :=
 protected theorem is_total.is_trichotomous (r) [is_total α r] : is_trichotomous α r :=
 ⟨λ a b, or.left_comm.1 (or.inr $ total_of r a b)⟩
 
+@[priority 100]  -- see Note [lower instance priority]
+instance is_total.to_is_refl (r) [is_total α r] : is_refl α r :=
+⟨λ a, (or_self _).1 $ total_of r a a⟩
+
 /- Convert algebraic structure style to explicit relation style typeclasses -/
 instance [preorder α] : is_refl α (≤) := ⟨le_refl⟩
 instance [preorder α] : is_refl α (≥) := is_refl.swap _

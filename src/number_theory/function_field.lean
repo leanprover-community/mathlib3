@@ -100,7 +100,7 @@ namespace ring_of_integers
 variables [algebra Fq[X] F]
 
 instance : is_domain (ring_of_integers Fq F) :=
-(ring_of_integers Fq F).is_domain
+subring_class.is_domain _
 
 instance : is_integral_closure (ring_of_integers Fq F) Fq[X] F :=
 integral_closure.is_integral_closure _ _

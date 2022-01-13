@@ -307,7 +307,8 @@ begin
   convert (submodule.span R (is_localization.finset_integer_multiple
     (submonoid.map (algebra_map R S : R →* S) M) s : set S)).smul_mem a hx' using 1,
   convert ha₂.symm,
-  { rw [mul_comm (y' • x), subtype.coe_mk, submonoid.smul_def, submonoid.coe_mul, ← smul_smul],
+  { rw [mul_comm (y' • x), subtype.coe_mk, submonoid.smul_def, submonoid_class.coe_mul,
+        ← smul_smul],
     exact algebra.smul_def _ _ },
   { rw mul_comm, exact algebra.smul_def _ _ }
 end
@@ -479,8 +480,8 @@ begin
   convert (algebra.adjoin R (is_localization.finset_integer_multiple
     (submonoid.map (algebra_map R S : R →* S) M) s : set S)).smul_mem hx' a using 1,
   convert ha₂.symm,
-  { rw [mul_comm (y' ^ n • x), subtype.coe_mk, submonoid.smul_def, submonoid.coe_mul, ← smul_smul,
-    algebra.smul_def, submonoid.coe_pow], refl },
+  { rw [mul_comm (y' ^ n • x), subtype.coe_mk, submonoid.smul_def, submonoid_class.coe_mul,
+        ← smul_smul, algebra.smul_def, submonoid_class.coe_pow], refl },
   { rw mul_comm, exact algebra.smul_def _ _ }
 end
 

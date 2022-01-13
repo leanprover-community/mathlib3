@@ -66,7 +66,7 @@ Absorbent and balanced sets in a vector space over a normed field.
 -/
 
 open normed_field set
-open_locale pointwise topological_space
+open_locale pointwise topological_space nnreal
 
 variables {𝕜 E : Type*}
 
@@ -286,18 +286,30 @@ lemma coe_add (p q : seminorm 𝕜 E) : ⇑(p + q) = p + q := rfl
 
 @[simp] lemma add_apply (p q : seminorm 𝕜 E) (x : E) : (p + q) x = p x + q x := rfl
 
-instance : has_scalar nnreal (seminorm 𝕜 E) :=
+/-- Any action on `ℝ` which factors through `ℝ≥0` applies to a seminorm. -/
+instance {R} [has_scalar R ℝ] [has_scalar R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ] :
+  has_scalar R (seminorm 𝕜 E) :=
 { smul := λ r p,
-  { to_fun := λ x, ↑r * p(x),
-    smul' := λ _ _, by rw [p.smul, ←mul_assoc, ←mul_assoc, mul_comm ↑r ∥_∥],
-    triangle' := λ _ _, has_le.le.trans_eq (mul_le_mul_of_nonneg_left (p.triangle _ _) r.coe_nonneg)
-      (mul_add r _ _) } }
+  { to_fun := λ x, r • p x,
+    smul' := λ _ _, begin
+      simp only [←smul_one_smul ℝ≥0 r (_ : ℝ), nnreal.smul_def, smul_eq_mul],
+      rw [p.smul, mul_left_comm],
+    end,
+    triangle' := λ _ _, begin
+      simp only [←smul_one_smul ℝ≥0 r (_ : ℝ), nnreal.smul_def, smul_eq_mul],
+      exact (mul_le_mul_of_nonneg_left (p.triangle _ _) (nnreal.coe_nonneg _)).trans_eq
+        (mul_add _ _ _),
+    end } }
 
-lemma coe_smul (r' : nnreal) (p : seminorm 𝕜 E) : coe_fn (r' • p) = (↑r' : ℝ) • coe_fn p := rfl
+lemma coe_smul {R} [has_scalar R ℝ] [has_scalar R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ]
+  (r : R) (p : seminorm 𝕜 E) : ⇑(r • p) = r • p := rfl
+
+@[simp] lemma smul_apply {R} [has_scalar R ℝ] [has_scalar R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ]
+  (r : R) (p : seminorm 𝕜 E) (x : E) : (r • p) x = r • p x := rfl
 
 instance : mul_action nnreal (seminorm 𝕜 E) :=
 { one_smul := λ p, ext $ (coe_smul 1 p).trans (one_smul _ _),
-  mul_smul := λ r c p, ext $ by rw [coe_smul, coe_smul, coe_smul, nnreal.coe_mul, mul_smul] }
+  mul_smul := λ r c p, ext $ by rw [coe_smul, coe_smul, coe_smul, mul_smul] }
 
 end has_scalar
 

@@ -77,15 +77,12 @@ variables {α : Type*} {β : Type*}
 @[derive [
   has_zero, add_comm_monoid,
   canonically_ordered_comm_semiring, complete_linear_order, densely_ordered, nontrivial,
-  canonically_linear_ordered_add_monoid, has_sub, has_ordered_sub]]
+  canonically_linear_ordered_add_monoid, has_sub, has_ordered_sub,
+  linear_ordered_add_comm_monoid_with_top]]
 def ennreal := with_top ℝ≥0
 
 localized "notation `ℝ≥0∞` := ennreal" in ennreal
 localized "notation `∞` := (⊤ : ennreal)" in ennreal
-
-noncomputable instance : linear_ordered_add_comm_monoid ℝ≥0∞ :=
-{ .. ennreal.canonically_ordered_comm_semiring,
-  .. ennreal.complete_linear_order }
 
 -- TODO: why are the two covariant instances necessary? why aren't they inferred?
 instance covariant_class_mul : covariant_class ℝ≥0∞ ℝ≥0∞ (*) (≤) :=
@@ -273,8 +270,8 @@ lemma supr_ennreal {α : Type*} [complete_lattice α] {f : ℝ≥0∞ → α} :
   (⨆ n, f n) = (⨆ n : ℝ≥0, f n) ⊔ f ∞ :=
 @infi_ennreal (order_dual α) _ _
 
-@[simp] lemma add_top : a + ∞ = ∞ := with_top.add_top
-@[simp] lemma top_add : ∞ + a = ∞ := with_top.top_add
+@[simp] lemma add_top : a + ∞ = ∞ := add_top _
+@[simp] lemma top_add : ∞ + a = ∞ := top_add _
 
 /-- Coercion `ℝ≥0 → ℝ≥0∞` as a `ring_hom`. -/
 noncomputable def of_nnreal_hom : ℝ≥0 →+* ℝ≥0∞ :=

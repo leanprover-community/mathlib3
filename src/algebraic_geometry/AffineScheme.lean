@@ -274,7 +274,7 @@ end
 
 lemma Scheme.map_prime_spectrum_basic_open_of_affine (X : Scheme) [is_affine X]
   (f : Scheme.Γ.obj (op X)) :
-  (opens.map X.iso_Spec.hom.1.base).obj (prime_spectrum.basic_open x) = X.basic_open f :=
+  (opens.map X.iso_Spec.hom.1.base).obj (prime_spectrum.basic_open ) = X.basic_open f :=
 begin
   rw ← basic_open_eq_of_affine,
   transitivity (opens.map X.iso_Spec.hom.1.base).obj ((Scheme.Spec.obj

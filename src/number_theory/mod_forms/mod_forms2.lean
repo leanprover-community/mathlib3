@@ -51,8 +51,7 @@ ring,
 end
 
 def slash_k : ℤ → GL(2, ℝ)⁺ → (ℍ → ℂ) → (ℍ → ℂ) :=
-λ k γ f,
-(λ (x : ℍ), f (γ • x) * (γ.1.det)^(k-1) * ((γ 1 0 *x + γ 1 1)^k)⁻¹)
+λ k γ f, (λ (x : ℍ), f (γ • x) * (γ.1.det)^(k-1) * ((γ 1 0 *x + γ 1 1)^k)⁻¹)
 
 namespace modular_forms
 

@@ -32,23 +32,13 @@ open_locale complex_conjugate
 local notation `|` x `|` := complex.abs x
 
 /-- An element of the unit circle defines a `linear_isometry_equiv` from `ℂ` to itself, by
-rotation. This is an auxiliary construction; use `rotation`, which has more structure, by
-preference. -/
-def rotation_aux (a : circle) : ℂ ≃ₗᵢ[ℝ] ℂ :=
-{ to_fun := λ z, a * z,
-  map_add' := mul_add ↑a,
-  map_smul' := λ t z, by { simp only [real_smul, ring_hom.id_apply], ring },
-  inv_fun := λ z, a⁻¹ * z,
-  left_inv := λ z, by { field_simp [nonzero_of_mem_circle], ring },
-  right_inv := λ z, by { field_simp [nonzero_of_mem_circle], ring },
-  norm_map' := by simp }
-
-/-- An element of the unit circle defines a `linear_isometry_equiv` from `ℂ` to itself, by
 rotation. -/
 def rotation : circle →* (ℂ ≃ₗᵢ[ℝ] ℂ) :=
-{ to_fun := rotation_aux,
-  map_one' := by { ext1, simp [rotation_aux] },
-  map_mul' := λ a b, by { ext1, simp [rotation_aux] } }
+{ to_fun := λ a,
+  { norm_map' := λ x, show |a * x| = |x|, by rw [complex.abs_mul, abs_coe_circle, one_mul],
+    ..distrib_mul_action.to_linear_equiv ℝ ℂ a },
+  map_one' := linear_isometry_equiv.ext $ one_smul _,
+  map_mul' := λ _ _, linear_isometry_equiv.ext $ mul_smul _ _ }
 
 @[simp] lemma rotation_apply (a : circle) (z : ℂ) : rotation a z = a * z := rfl
 

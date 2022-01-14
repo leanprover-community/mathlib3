@@ -157,6 +157,7 @@ lemma basic_open_res (i : V ⟶ U) :
   X.basic_open (X.presheaf.map i.op f) = V ∩ X.basic_open f :=
 RingedSpace.basic_open_res _ i.op f
 
+-- This should fire before `basic_open_res`.
 @[simp, priority 1100]
 lemma basic_open_res_eq (i : V ⟶ U) [is_iso i] :
   X.basic_open (X.presheaf.map i.op f) = X.basic_open f :=

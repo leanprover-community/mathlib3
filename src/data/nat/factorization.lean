@@ -217,40 +217,19 @@ end
 /-- The positive natural numbers are bijective with finsupps `ℕ →₀ ℕ` with support in the primes -/
 noncomputable
 def factorization_equiv : pnat ≃ {f : ℕ →₀ ℕ | ∀ p ∈ f.support, prime p} :=
-{
-  to_fun    := λ ⟨n, hn⟩, ⟨n.factorization, λ p, @prime_of_mem_factorization n p⟩,
+{ to_fun    := λ ⟨n, hn⟩, ⟨n.factorization, λ p, @prime_of_mem_factorization n p⟩,
   inv_fun   := λ ⟨f, hf⟩, ⟨f.prod pow,
     prod_pos (λ p hp, zero_lt_iff.mpr (pow_ne_zero _ (prime.ne_zero (hf p hp))))⟩,
-
   left_inv  := by {
     rintros ⟨x, hx⟩,
     unfold factorization_equiv._match_1,
     unfold factorization_equiv._match_2,
-    simp [factorization_prod_pow_eq_self hx.ne.symm],
-  },
+    simp [factorization_prod_pow_eq_self hx.ne.symm] },
   right_inv := by {
-
-
     rintros ⟨f, hf⟩,
-    have := factorization_prod_pow_inv f,
-    rw set.mem_set_of_eq at hf,
-    have h1 : ∀ (x : ℕ), x ∈ f.support → x ^ f x ≠ 0,
-    { exact λ p hp, pow_ne_zero _ (prime.ne_zero (hf p hp)) },
     unfold factorization_equiv._match_2,
     unfold factorization_equiv._match_1,
-    simp only [subtype.mk_eq_mk],
-    unfold finsupp.prod,
-    rw factorization_prod h1,
-    simp only [],
-    suffices : f = ∑ p in f.support, single p (f p), {
-      nth_rewrite_rhs 0 this,
-      refine sum_congr rfl _,
-      intros p hp,
-      rw prime.factorization_pow (hf p hp),
-    },
-    exact (sum_single f).symm,
-  },
-}
+    simp [subtype.mk_eq_mk, factorization_prod_pow_inv f hf] } }
 
 -- TODO: use `prime_of_mem_factorization` and `pos_of_mem_factorization`
 

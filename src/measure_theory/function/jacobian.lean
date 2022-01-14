@@ -18,11 +18,6 @@ open_locale nnreal ennreal topological_space pointwise
 variables {E : Type*} [normed_group E] [normed_space ℝ E] [finite_dimensional ℝ E]
   [measurable_space E] [borel_space E] (μ : measure E) [is_add_haar_measure μ]
 
-
-@[reducible] noncomputable def continuous_linear_map.det (A : E →L[ℝ] E) : ℝ :=
-(A : E →ₗ[ℝ] E).det
-
-
 /-- Let `f` be a function which is sufficiently close (in the Lipschitz sense) to a given linear
 map `A`. Then it expands the volume of any set by at most `m` for any `m > det A`. -/
 lemma measure_image_le_mul_of_det_lt

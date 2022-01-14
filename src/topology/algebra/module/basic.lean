@@ -1172,7 +1172,7 @@ variables [topological_add_group M₂] [has_continuous_smul R M₂]
 instance : algebra R (M₂ →L[R] M₂) :=
 algebra.of_module smul_comp (λ _ _ _, comp_smul _ _ _)
 
-@[reducible] noncomputable def continuous_linear_map.det [is_domain R] (A : M →L[R] M) : R :=
+@[reducible] noncomputable def det [is_domain R] (A : M →L[R] M) : R :=
 linear_map.det (A : M →ₗ[R] M)
 
 end comm_ring

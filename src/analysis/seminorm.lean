@@ -374,6 +374,12 @@ lemma mem_ball_zero : y ∈ ball p 0 r ↔ p y < r := by rw [mem_ball, sub_zero]
 
 lemma ball_zero_eq : ball p 0 r = { y : E | p y < r } := set.ext $ λ x, p.mem_ball_zero
 
+lemma zero_ball_eq_univ (hr : 0 < r) : ball (0 : seminorm 𝕜 E) x r = set.univ :=
+begin
+  rw [set.eq_univ_iff_forall, ball],
+  simp [hr],
+end
+
 end has_scalar
 
 section module

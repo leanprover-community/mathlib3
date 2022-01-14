@@ -331,7 +331,8 @@ instance [projective_plane P L] : projective_plane (dual L) (dual P) :=
     exact ⟨l₁, l₂, l₃, p₁, p₂, p₃, h₂₁, h₃₁, h₁₂, h₂₂, h₃₂, h₁₃, h₂₃, h₃₃⟩ },
   .. dual.nondegenerate P L }
 
-/-- Order of a projective plane. -/
+/-- The order of a projective plane is one less than the number of lines through an arbitrary point.
+Equivalently, it is one less than the number of points on an arbitrary line. -/
 noncomputable def order [projective_plane P L] : ℕ :=
 line_count L (classical.some (@exists_config P L _ _)) - 1
 

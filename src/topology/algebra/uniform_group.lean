@@ -205,16 +205,30 @@ variables {G}
 @[to_additive] lemma topological_group.tendsto_uniformly_iff
   {ι α : Type*} (F : ι → α → G) (f : α → G) (p : filter ι) :
   @tendsto_uniformly α G ι (topological_group.to_uniform_space G) F f p
-    ↔ ∀ u ∈ 𝓝 (1 : G), {i : ι | ∀ a, F i a / f a ∈ u} ∈ p :=
-⟨λ h u hu, h _ ⟨u, hu, set.subset.rfl⟩, λ h v ⟨u, hu, hv⟩,
-  p.sets_of_superset (h u hu) (λ i hi a, hv (by exact hi a))⟩
+    ↔ ∀ u ∈ 𝓝 (1 : G), ∀ᶠ i in p, ∀ a, F i a / f a ∈ u :=
+⟨λ h u hu, h _ ⟨u, hu, λ _, id⟩, λ h v ⟨u, hu, hv⟩,
+  mem_of_superset (h u hu) (λ i hi a, hv (by exact hi a))⟩
 
 @[to_additive] lemma topological_group.tendsto_uniformly_on_iff
   {ι α : Type*} (F : ι → α → G) (f : α → G) (p : filter ι) (s : set α) :
   @tendsto_uniformly_on α G ι (topological_group.to_uniform_space G) F f p s
     ↔ ∀ u ∈ 𝓝 (1 : G), {i : ι | ∀ a ∈ s, F i a / f a ∈ u} ∈ p :=
-⟨λ h u hu, h _ ⟨u, hu, set.subset.rfl⟩, λ h v ⟨u, hu, hv⟩,
-  p.sets_of_superset (h u hu) (λ i hi a ha, hv (by exact hi a ha))⟩
+⟨λ h u hu, h _ ⟨u, hu, λ _, id⟩, λ h v ⟨u, hu, hv⟩,
+  mem_of_superset (h u hu) (λ i hi a ha, hv (by exact hi a ha))⟩
+
+@[to_additive] lemma topological_group.tendsto_locally_uniformly_iff
+  {ι α : Type*} [topological_space α] (F : ι → α → G) (f : α → G) (p : filter ι) :
+  @tendsto_locally_uniformly α G ι (topological_group.to_uniform_space G) _ F f p
+    ↔ ∀ (u ∈ 𝓝 (1 : G)) (x : α), ∃ (t ∈ 𝓝 x), ∀ᶠ i in p, ∀ a ∈ t, F i a / f a ∈ u :=
+⟨λ h u hu, h _ ⟨u, hu, λ _, id⟩, λ h v ⟨u, hu, hv⟩ x, exists_imp_exists (by exact λ a,
+  exists_imp_exists (λ ha hp, mem_of_superset hp (λ i hi a ha, hv (by exact hi a ha)))) (h u hu x)⟩
+
+@[to_additive] lemma topological_group.tendsto_locally_uniformly_on_iff
+  {ι α : Type*} [topological_space α] (F : ι → α → G) (f : α → G) (p : filter ι) (s : set α) :
+  @tendsto_locally_uniformly_on α G ι (topological_group.to_uniform_space G) _ F f p s
+    ↔ ∀ (u ∈ 𝓝 (1 : G)) (x ∈ s), ∃ (t ∈ 𝓝[s] x), ∀ᶠ i in p, ∀ a ∈ t, F i a / f a ∈ u :=
+⟨λ h u hu, h _ ⟨u, hu, λ _, id⟩, λ h v ⟨u, hu, hv⟩ x, exists_imp_exists (by exact λ a,
+  exists_imp_exists (λ ha hp, mem_of_superset hp (λ i hi a ha, hv (by exact hi a ha)))) ∘ h u hu x⟩
 
 end topological_comm_group
 

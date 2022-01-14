@@ -148,17 +148,19 @@ begin
   simp at h,
   apply le_trans h,
   rw <-ek_h,
+  -- Brute force prime count
   simp [prime_counting', count_succ],
   norm_num,
-  have : 6 = 2 * 3 := by norm_num,
-  rw [this, totient_mul, totient_prime, totient_prime]; norm_num,
-  have h'' : 0 < 3, linarith,
-  rw <-mul_le_mul_left h'',
+  -- Brute force totient
+  have h1 : 6 = 2 * 3 := by norm_num,
+  rw [h1, totient_mul, totient_prime, totient_prime]; norm_num,
+  -- Linear reasoning to close goal
+  have h2 : 0 < 3, linarith,
+  rw <-mul_le_mul_left h2,
   ring_nf,
-  have hdam1 : 6 * (ek_w / 6) ≤ ek_w, exact mul_div_le ek_w 6,
-  have hdam2 := nat.div_add_mod (ek_w + 56) 3,
-  have mlt2 := @mod_lt (ek_w + 56) 3 (by dec_trivial),
-  have h12321 : ek_w + 56 < 3 * ((ek_w + 56) / 3) + 3, by linarith,
+  have h3 : 6 * (ek_w / 6) ≤ ek_w, exact mul_div_le ek_w 6,
+  have h4 := nat.div_add_mod (ek_w + 56) 3,
+  have h5 := @mod_lt (ek_w + 56) 3 (by dec_trivial),
   linarith,
 end
 

@@ -40,6 +40,12 @@ namespace nat
  mapping each prime factor of `n` to its multiplicity in `n`. -/
 noncomputable def factorization (n : ℕ) : ℕ →₀ ℕ := (n.factors : multiset ℕ).to_finsupp
 
+@[simp] lemma factorization_prod_pow_eq_self {n : ℕ} (hn : n ≠ 0) : n.factorization.prod pow = n :=
+begin
+  simp only [←prod_to_multiset, factorization, multiset.coe_prod, multiset.to_finsupp_to_multiset],
+  exact prod_factors hn.bot_lt,
+end
+
 lemma factorization_eq_count {n p : ℕ} : n.factorization p = n.factors.count p :=
 by simp [factorization]
 -- TODO: As part of the unification mentioned in the TODO above,
@@ -113,6 +119,36 @@ begin
     simp [prod_insert hxT, sum_insert hxT, ←IH, factorization_mul (hS x hxS) hT] }
 end
 
+/-- Any finsupp `f : ℕ →₀ ℕ` whose support is in the primes is equal to the factorization of
+the product `∏ (a : ℕ) in f.support, a ^ f a`. -/
+lemma factorization_prod_pow_inv {f : ℕ →₀ ℕ} (hf : ∀ (p : ℕ), p ∈ f.support → prime p) :
+  (f.prod pow).factorization = f :=
+begin
+  unfold finsupp.prod,
+  have h1 : ∀ (x : ℕ), x ∈ f.support → x ^ f x ≠ 0,
+  { exact λ p hp, pow_ne_zero _ (prime.ne_zero (hf p hp)) },
+  rw factorization_prod h1,
+  nth_rewrite_rhs 0 (sum_single f).symm,
+  exact sum_congr rfl (λ p hp, prime.factorization_pow (hf p hp)),
+end
+
+/-- The positive natural numbers are bijective with finsupps `ℕ →₀ ℕ` with support in the primes -/
+noncomputable
+def factorization_equiv : pnat ≃ {f : ℕ →₀ ℕ | ∀ p ∈ f.support, prime p} :=
+{ to_fun    := λ ⟨n, hn⟩, ⟨n.factorization, λ p, @prime_of_mem_factorization n p⟩,
+  inv_fun   := λ ⟨f, hf⟩, ⟨f.prod pow,
+    prod_pos (λ p hp, zero_lt_iff.mpr (pow_ne_zero _ (prime.ne_zero (hf p hp))))⟩,
+  left_inv  := by {
+    rintros ⟨x, hx⟩,
+    unfold factorization_equiv._match_1,
+    unfold factorization_equiv._match_2,
+    simp [factorization_prod_pow_eq_self hx.ne.symm] },
+  right_inv := by {
+    rintros ⟨f, hf⟩,
+    unfold factorization_equiv._match_2,
+    unfold factorization_equiv._match_1,
+    simp [subtype.mk_eq_mk, factorization_prod_pow_inv hf] } }
+
 /-! ### Factorizations of pairs of coprime numbers -/
 
 /-- The prime factorizations of coprime `a` and `b` are disjoint -/
@@ -176,9 +212,6 @@ begin
     convert (factorization_disjoint_of_coprime hab) },
 end
 
-@[simp] lemma factorization_prod_pow_eq_self {n : ℕ} (hn : n ≠ 0) : n.factorization.prod pow = n :=
-by simpa only using (multiplicative_factorization id (by simp) (by simp) hn).symm
-
 /-! ### Factorization and divisibility -/
 
 lemma factorization_le_iff_dvd {d n : ℕ} (hd : d ≠ 0) (hn : n ≠ 0) :
@@ -192,40 +225,5 @@ begin
         ←finsupp.prod_add_index pow_zero pow_add, hK, add_tsub_cancel_of_le hdn] },
   { rintro ⟨c, rfl⟩, rw factorization_mul hd (right_ne_zero_of_mul hn), simp },
 end
-
-
-
-/-- Any finsupp `f : ℕ →₀ ℕ` whose support is in the primes is equal to the factorization of
-the product `∏ (a : ℕ) in f.support, a ^ f a`. -/
-lemma factorization_prod_pow_inv {f : ℕ →₀ ℕ} (hf : ∀ (p : ℕ), p ∈ f.support → prime p) :
-  (f.prod pow).factorization = f :=
-begin
-  unfold finsupp.prod,
-  have h1 : ∀ (x : ℕ), x ∈ f.support → x ^ f x ≠ 0,
-  { exact λ p hp, pow_ne_zero _ (prime.ne_zero (hf p hp)) },
-  rw factorization_prod h1,
-  nth_rewrite_rhs 0 (sum_single f).symm,
-  exact sum_congr rfl (λ p hp, prime.factorization_pow (hf p hp)),
-end
-
-
-/-- The positive natural numbers are bijective with finsupps `ℕ →₀ ℕ` with support in the primes -/
-noncomputable
-def factorization_equiv : pnat ≃ {f : ℕ →₀ ℕ | ∀ p ∈ f.support, prime p} :=
-{ to_fun    := λ ⟨n, hn⟩, ⟨n.factorization, λ p, @prime_of_mem_factorization n p⟩,
-  inv_fun   := λ ⟨f, hf⟩, ⟨f.prod pow,
-    prod_pos (λ p hp, zero_lt_iff.mpr (pow_ne_zero _ (prime.ne_zero (hf p hp))))⟩,
-  left_inv  := by {
-    rintros ⟨x, hx⟩,
-    unfold factorization_equiv._match_1,
-    unfold factorization_equiv._match_2,
-    simp [factorization_prod_pow_eq_self hx.ne.symm] },
-  right_inv := by {
-    rintros ⟨f, hf⟩,
-    unfold factorization_equiv._match_2,
-    unfold factorization_equiv._match_1,
-    simp [subtype.mk_eq_mk, factorization_prod_pow_inv hf] } }
-
--- TODO: use `prime_of_mem_factorization` and `pos_of_mem_factorization`
 
 end nat

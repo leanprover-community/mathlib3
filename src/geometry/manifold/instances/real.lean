@@ -124,8 +124,12 @@ def model_with_corners_euclidean_quadrant (n : ℕ) :
   continuous_inv_fun := continuous_subtype_mk _ $ continuous_pi $ λ i,
     (continuous_id.max continuous_const).comp (continuous_apply i) }
 
-localized "notation `𝓡 `n := model_with_corners_self ℝ (euclidean_space ℝ (fin n))" in manifold
-localized "notation `𝓡∂ `n := model_with_corners_euclidean_half_space n" in manifold
+localized "notation `𝓡 `n :=
+  (model_with_corners_self ℝ (euclidean_space ℝ (fin n)) :
+    model_with_corners ℝ (euclidean_space ℝ (fin n)) (euclidean_space ℝ (fin n)))" in manifold
+localized "notation `𝓡∂ `n :=
+  (model_with_corners_euclidean_half_space n :
+    model_with_corners ℝ (euclidean_space ℝ (fin n)) (euclidean_half_space n))" in manifold
 
 /--
 The left chart for the topological space `[x, y]`, defined on `[x,y)` and sending `x` to `0` in
@@ -257,9 +261,7 @@ instance Icc_manifold (x y : ℝ) [fact (x < y)] : charted_space (euclidean_half
 The manifold structure on `[x, y]` is smooth.
 -/
 instance Icc_smooth_manifold (x y : ℝ) [fact (x < y)] :
-  smooth_manifold_with_corners
-    (𝓡∂ 1 : model_with_corners ℝ (euclidean_space ℝ (fin 1)) (euclidean_half_space 1))
-    (Icc x y) :=
+  smooth_manifold_with_corners (𝓡∂ 1) (Icc x y) :=
 begin
   have M : times_cont_diff_on ℝ ∞ (λz : euclidean_space ℝ (fin 1), - z + (λi, y - x)) univ,
   { rw times_cont_diff_on_univ,
@@ -308,8 +310,6 @@ lemma fact_zero_lt_one : fact ((0 : ℝ) < 1) := ⟨zero_lt_one⟩
 local attribute [instance] fact_zero_lt_one
 
 instance : charted_space (euclidean_half_space 1) (Icc (0 : ℝ) 1) := by apply_instance
-instance : smooth_manifold_with_corners
-  (𝓡∂ 1 : model_with_corners ℝ (euclidean_space ℝ (fin 1)) (euclidean_half_space 1))
-  (Icc (0 : ℝ) 1) := by apply_instance
+instance : smooth_manifold_with_corners (𝓡∂ 1) (Icc (0 : ℝ) 1) := by apply_instance
 
 end

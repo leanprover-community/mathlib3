@@ -257,7 +257,9 @@ instance Icc_manifold (x y : ℝ) [fact (x < y)] : charted_space (euclidean_half
 The manifold structure on `[x, y]` is smooth.
 -/
 instance Icc_smooth_manifold (x y : ℝ) [fact (x < y)] :
-  smooth_manifold_with_corners (𝓡∂ 1) (Icc x y) :=
+  smooth_manifold_with_corners
+    (𝓡∂ 1 : model_with_corners ℝ (euclidean_space ℝ (fin 1)) (euclidean_half_space 1))
+    (Icc x y) :=
 begin
   have M : times_cont_diff_on ℝ ∞ (λz : euclidean_space ℝ (fin 1), - z + (λi, y - x)) univ,
   { rw times_cont_diff_on_univ,

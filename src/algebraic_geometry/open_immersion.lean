@@ -1165,7 +1165,7 @@ def open_cover.bind (f : Π (x : 𝒰.J), open_cover (𝒰.obj x)) : open_cover 
     rw [hz, hy],
   end }
 
--- Related result : `open_cover.pullback_cover`, where we pullback a open cover on `X` along a
+-- Related result : `open_cover.pullback_cover`, where we pullback an open cover on `X` along a
 -- morphism `W ⟶ X`. This is provided at the end of the file since it needs some more results
 -- about open immersion (which in turn needs the open cover API).
 

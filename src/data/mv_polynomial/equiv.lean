@@ -492,13 +492,10 @@ lemma fin_succ_equiv_support' {n : ℕ} {f : mv_polynomial (fin (n + 1)) R} {i :
 begin
   ext m,
   rw [finset.mem_filter, finset.mem_image, mem_support_iff],
-  conv
-  begin
-    to_lhs,
+  conv_lhs {
     congr,
     funext,
-    rw [mem_support_iff, fin_succ_equiv_coeff_coeff, ne.def],
-  end,
+    rw [mem_support_iff, fin_succ_equiv_coeff_coeff, ne.def], },
   split,
   { intro hm,
     cases hm with m' hm',

@@ -272,10 +272,10 @@ begin
   congr' 2,
   rw iso.eq_inv_comp,
   erw hU.Spec_Γ_identity_hom_app_from_Spec,
-  congr
 end
 
-lemma map_prime_spectrum_basic_open_of_affine (X : Scheme) [is_affine X] (x : Scheme.Γ.obj (op X)) :
+lemma Scheme.map_prime_spectrum_basic_open_of_affine (X : Scheme) [is_affine X]
+  (x : Scheme.Γ.obj (op X)) :
   (opens.map X.iso_Spec.hom.1.base).obj (prime_spectrum.basic_open x) = X.basic_open x :=
 begin
   rw ← basic_open_eq_of_affine,

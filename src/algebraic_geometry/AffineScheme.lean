@@ -279,7 +279,7 @@ begin
   rw ← basic_open_eq_of_affine,
   transitivity (opens.map X.iso_Spec.hom.1.base).obj ((Scheme.Spec.obj
     (op (Scheme.Γ.obj (op X)))).basic_open ((inv (X.iso_Spec.hom.1.c.app
-      (op ((opens.map (inv X.iso_Spec.hom).val.base).obj ⊤)))) ((X.presheaf.map (eq_to_hom _)) x))),
+      (op ((opens.map (inv X.iso_Spec.hom).val.base).obj ⊤)))) ((X.presheaf.map (eq_to_hom _)) f))),
   congr,
   { rw [← is_iso.inv_eq_inv, is_iso.inv_inv, is_iso.iso.inv_inv, nat_iso.app_hom],
     erw ← Γ_Spec.adjunction_unit_app_app_top,

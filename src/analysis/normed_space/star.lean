@@ -144,7 +144,7 @@ begin
   have := calc
     ∥(U : E)∥^2 = ∥(U : E)∥ * ∥(U : E)∥ : pow_two _
            ...  = ∥(U⋆ * U : E)∥        : cstar_ring.norm_star_mul_self.symm
-           ...  = ∥(1 : E)∥             : by simp only [set_like.coe_mem, unitary.mem_star_mul_self]
+           ...  = ∥(1 : E)∥             : by rw unitary.coe_star_mul_self
            ...  = 1                     : cstar_ring.norm_one,
   refine (sq_eq_sq (norm_nonneg _) zero_le_one).mp _,
   rw [one_pow 2, this],

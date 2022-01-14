@@ -380,13 +380,18 @@ begin
   rw [set.eq_univ_iff_forall, ball],
   simp [hr],
 end
-
-lemma ball_sup (p : seminorm 𝕜 E) (q : seminorm 𝕜 E) (e : E) {r : ℝ} (hr : 0 ≤ r) :
+lemma ball_sup (p : seminorm 𝕜 E) (q : seminorm 𝕜 E) (e : E) (r : ℝ) :
   ball (p ⊔ q) e r = ball p e r ∩ ball q e r :=
+by simp_rw [ball, ←set.set_of_and, coe_sup, pi.sup_apply, sup_lt_iff]
+
+lemma ball_finset_sup' (p : ι → seminorm 𝕜 E) (s : finset ι) (H : s.nonempty) (e : E) (r : ℝ) :
+  ball (s.sup' H p) e r = s.inf' H (λ i, ball (p i) e r) :=
 begin
-  lift r to nnreal using hr,
-  simp_rw [ball, ←set.set_of_and],
-  simp,
+  induction s using finset.cons_induction_on with a s ha ih,
+  { exact false.elim (not_nonempty_empty H), },
+  { rcases s.eq_empty_or_nonempty with rfl | hs,
+    { classical, simp },
+    { rw [finset.sup'_cons hs, finset.inf'_cons hs, ball_sup, inf_eq_inter, ih] } },
 end
 
 end has_scalar

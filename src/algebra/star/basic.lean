@@ -214,6 +214,7 @@ def star_ring_equiv [semiring R] [star_ring R] : R ≃+* Rᵐᵒᵖ :=
   ..star_mul_equiv }
 
 /-- `star` as a ring automorphism, for commutative `R`. -/
+@[simps apply]
 def star_ring_aut [comm_semiring R] [star_ring R] : ring_aut R :=
 { to_fun := star,
   ..star_add_equiv,

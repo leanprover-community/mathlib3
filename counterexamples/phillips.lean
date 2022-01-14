@@ -112,7 +112,7 @@ def bounded_integrable_functions_integral_clm [measurable_space α]
 linear_map.mk_continuous
   { to_fun := λ f, ∫ x, f x ∂μ,
     map_add' := λ f g, integral_add f.2 g.2,
-    map_smul' := λ c f, integral_smul _ _ }
+    map_smul' := λ c f, (integral_smul c f).trans rfl }
   (μ univ).to_real
   begin
     assume f,

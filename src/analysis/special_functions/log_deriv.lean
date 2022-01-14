@@ -271,4 +271,171 @@ begin
       by simpa [pow_succ'] using mul_le_of_le_one_right (pow_nonneg (abs_nonneg x) i) (le_of_lt h) }
 end
 
+lemma sq_eq_sq_iff_abs_eq_abs {R : Type*} [linear_ordered_ring R] (x y : R) :
+  x^2 = y^2 ↔ |x| = |y| :=
+⟨λ h, (abs_le_abs_of_sq_le_sq h.le).antisymm (abs_le_abs_of_sq_le_sq h.ge),
+ λ h, by rw [←sq_abs, h, sq_abs]⟩
+
+@[simp] lemma sq_eq_one_iff {R : Type*} [linear_ordered_ring R] (x : R) :
+  x^2 = 1 ↔ x = 1 ∨ x = -1 :=
+by rw [←abs_eq_abs, ←sq_eq_sq_iff_abs_eq_abs, one_pow]
+
+lemma sq_ne_one_iff {R : Type*} [linear_ordered_ring R] (x : R) : x^2 ≠ 1 ↔ x ≠ 1 ∧ x ≠ -1 :=
+(not_iff_not.2 (sq_eq_one_iff _)).trans not_or_distrib
+
+@[simp] lemma sq_lt_one_iff {R : Type*} [linear_ordered_ring R] (x : R) : x^2 < 1 ↔ |x| < 1 :=
+⟨λ h, abs_lt_of_sq_lt_sq (by simp [h]) zero_le_one, λ h, by simpa using sq_lt_sq h⟩
+
+lemma newbound {x : ℝ} (h : |x| < 1) (n : ℕ) :
+  |(2*(∑ i in range n, x^(2*i+1)/(2*i+1)) - log ((1+x)/(1-x)))| ≤ 2 * (|x|)^(2*n+1) / (1 - x^2) :=
+begin
+  /- For the proof, we show that the derivative of the function to be estimated is small,
+  and then apply the mean value inequality. -/
+  let F : ℝ → ℝ := λ x, 2*(∑ i in range n, x^(2*i+1)/(2*i+1)) - log ((1+x)/(1-x)),
+  -- First step: compute the derivative of `F`
+  have A : ∀ y ∈ Ioo (-1 : ℝ) 1, deriv F y = - 2 * ((y^2)^n) / (1 - y^2),
+  { intros y hy,
+    have : (∑ i in range n, (2*↑i+1) * y ^ (2*i) / (2*i+1)) = (∑ i in range n, (y^2) ^ i),
+    { congr' with i,
+      have : 2 * (i : ℝ) + 1 ≠ 0 := by exact_mod_cast (nat.succ_ne_zero (2 * i)),
+      field_simp [this, mul_comm, ←pow_mul] },
+    have hy' : 0 < 1 + y, simpa [add_comm] using sub_pos_of_lt hy.1,
+    have hy'' : y^2 ≠ 1 := by simp [hy.1.ne', hy.2.ne],
+    field_simp [F, this, hy'.ne', hy'.ne, hy.2.ne, hy.2.ne', ←geom_sum_def, hy'', geom_sum_eq,
+      sub_ne_zero_of_ne, hy''.symm],
+    ring },
+  -- second step: show that the derivative of `F` is small
+  have B : ∀ y ∈ Icc (-|x|) (|x|), |deriv F y| ≤ 2 * |x|^(2*n) / (1 - x^2),
+  { intros y hy,
+    have : y ∈ Ioo (-(1 : ℝ)) 1 := ⟨(neg_lt_neg h).trans_le hy.1, hy.2.trans_lt h⟩,
+    rw [A y this, abs_div, abs_mul, ←pow_abs, ←pow_abs, pow_mul, abs_neg, abs_two, pow_bit0_abs,
+      pow_bit0_abs, abs_of_pos (show 0 < 1 - y^2, by simpa [abs_lt] using this)],
+    simp only [abs_div, ←pow_abs, abs_mul, pow_mul, pow_bit0_abs y, abs_neg, abs_two],
+    have : 0 < 1 - x^2, by simpa using h,
+    have yx : y^2 ≤ x^2,
+    { apply sq_le_sq,
+      rwa abs_le },
+    refine div_le_div (mul_nonneg zero_le_two (pow_nonneg (sq_nonneg _) _)) _ this
+      (sub_le_sub_left yx _),
+    exact mul_le_mul_of_nonneg_left (pow_le_pow_of_le_left (sq_nonneg _) yx _) zero_le_two },
+  -- third step: apply the mean value inequality
+  have C : ∥F x - F 0∥ ≤ (2 * |x|^(2*n) / (1 - x^2)) * ∥x - 0∥,
+  { have : ∀ y ∈ Icc (- |x|) (|x|), differentiable_at ℝ F y,
+    { intros y hy,
+      have hy' : 0 < 1 + y := neg_lt_iff_pos_add'.1 ((neg_lt_neg h).trans_le hy.1),
+      simp [F, sub_ne_zero_of_ne (hy.2.trans_lt h).ne', hy'.ne'] },
+    apply convex.norm_image_sub_le_of_norm_deriv_le this B (convex_Icc _ _) _ _,
+    { simpa using abs_nonneg x },
+    { simp [le_abs_self x, neg_le.mp (neg_le_abs_self x)] } },
+  simpa [F, norm_eq_abs, pow_succ', div_mul_eq_mul_div, mul_assoc] using C,
+end
+
+lemma log_two_near_10 : |log 2 - 836158 / 1206321| ≤ 1/10^10 :=
+begin
+  suffices : |log 2 - 836158 / 1206321| ≤ 1/17179869184 + (1/10^10 - 1/2^34),
+  { norm_num1 at *,
+    assumption },
+  have t : |(2⁻¹ : ℝ)| = 2⁻¹,
+  { rw abs_of_pos, norm_num },
+  have z := real.abs_log_sub_add_sum_range_le (show |(2⁻¹ : ℝ)| < 1, by { rw t, norm_num }) 34,
+  rw t at z,
+  norm_num1 at z,
+  rw [one_div (2:ℝ), log_inv, ←sub_eq_add_neg, _root_.abs_sub_comm] at z,
+  apply le_trans (_root_.abs_sub_le _ _ _) (add_le_add z _),
+  simp_rw [sum_range_succ],
+  norm_num,
+  rw abs_of_pos;
+  norm_num
+end
+
+-- {0, 1, 2/3, 7/10, 9/13, 61/88, 192/277, 253/365, 445/642, 1143/1649, 1588/2291, 2731/3940,
+--  4319/6231, 7050/10171, 25469/36744, 261740/377611, 287209/414355, 548949/791966,
+--  836158/1206321, 2221265/3204608, 3057423/4410929, 5278688/7615537, 8336111/12026466,
+--  13614799/19642003, 49180508/70952475, 111975815/161546953, 385107953/555593334,
+--  497083768/717140287, 6847196937/9878417065, 48427462327/69866059742}
+
+set_option profiler true
+
+lemma log_two_near_20 : |log 2 - 48427462327/69866059742| ≤ 9/10^21 :=
+begin
+  suffices : |log 2 - 48427462327/69866059742| ≤ 1/145891985508683145612 + (9/10^21 - 1/(4 * 3^41)),
+  { norm_num1 at *,
+    assumption },
+  have t : |(3⁻¹ : ℝ)| = 3⁻¹ := abs_of_pos (by norm_num1),
+  have z := newbound (show |(3⁻¹ : ℝ)| < 1, by { rw t, norm_num1 }) 21,
+  rw [t, _root_.abs_sub_comm] at z,
+  norm_num1 at z,
+  apply le_trans (_root_.abs_sub_le _ _ _) (add_le_add z _),
+  simp_rw [sum_range_succ, sum_range_zero],
+  norm_num1,
+  sorry,
+  -- rw [abs_neg, abs_of_pos],
+  -- by { norm_num1 },
+  -- by { norm_num1 },
+end
+
+#exit
+
+lemma log_two_gt_d20 : 0.69314718055994530940 < log 2 :=
+lt_of_lt_of_le (by norm_num1) (sub_le.1 (abs_sub_le_iff.1 log_two_near_20).2)
+
+lemma log_two_lt_d20 : log 2 < 0.69314718055994530943 :=
+lt_of_le_of_lt (sub_le_iff_le_add.1 (abs_sub_le_iff.1 log_two_near_20).1) (by norm_num)
+
+lemma log_three_div_two_near_20 : |log (3/2) - 10098979643/24907148460| ≤ 1/10^21 :=
+begin
+  suffices :
+    |log (3/2) - 10098979643/24907148460| ≤ 1/2235174179077148437500 + (1/10^21 - 1/(2^2*3*5^29)),
+  { norm_num1 at *,
+    assumption },
+  have t : |(5⁻¹ : ℝ)| = 5⁻¹ := abs_of_pos (by norm_num1),
+  have z := newbound (show |(5⁻¹ : ℝ)| < 1, by { rw t, norm_num1 }) 15,
+  rw [t, _root_.abs_sub_comm] at z,
+  norm_num1 at z,
+  apply le_trans (_root_.abs_sub_le _ _ _) (add_le_add z _),
+  simp_rw [sum_range_succ, sum_range_zero],
+  norm_num1,
+  rw [abs_of_pos],
+  { norm_num1 },
+  { norm_num1 },
+end.
+
+example : (130029316460388448573787 / 646081657495872133645625196314533858898489550 : ℝ) ≤ 78256967394537077627 / 36472996377170786403000000000000000000000 :=
+begin
+  rw div_le_div_iff,
+  { norm_num1 },
+  simp only [zero_lt_bit0, bit1_pos],
+  -- { norm_num1 },
+  -- norm_num1,
+  -- simp only [zero_lt_bit0, zero_lt_bit1, bit1_pos],
+  -- library_search,
+end
+
+#exit
+
+lemma log_log_two_approx : |log (log 2) - sorry| ≤ 1/10^20 :=
+begin
+  let l2 : ℝ := 48427462327/69866059742,
+  have := newbound,
+  -- have : log (log 2 / l2)
+  -- have := log_two_near_20,
+end
+
+-- lemma log_three_near_20 : |log 3 - sorry| ≤ 1/10^20 :=
+-- begin
+--   have : log (3/2) + log 2 = log 3,
+--   { rw [log_div, sub_add_cancel]; norm_num1 },
+--   rw ←this,
+
+-- end
+
+-- lemma exp_one_near_20 : |exp 1 - 363916618873/133877442384| ≤ 1/10^20 :=
+-- begin
+--   apply exp_approx_start,
+--   iterate 21 { refine exp_1_approx_succ_eq (by norm_num1; refl) (by norm_cast; refl) _ },
+--   norm_num1,
+--   refine exp_approx_end' _ (by norm_num1; refl) _ (by norm_cast; refl) (by simp) _,
+--   rw [_root_.abs_one, abs_of_pos]; norm_num1,
+-- end
+
 end real

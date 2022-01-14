@@ -368,7 +368,7 @@ lemma inf_sdiff_left {α β : Type*} [boolean_algebra α] {s : finset β} (hs : 
   (a : α) :
   s.inf (λ b, a \ f b) = a \ s.sup f :=
 begin
-  refine hs.cons_induction (λ b, _) (λ b t _ _ h, _),
+  induction hs using finset.nonempty.cons_induction with b b t _ _ h,
   { rw [sup_singleton, inf_singleton] },
   { rw [sup_cons, inf_cons, h, sdiff_sup] }
 end
@@ -377,7 +377,7 @@ lemma inf_sdiff_right {α β : Type*} [boolean_algebra α] {s : finset β} (hs :
   (a : α) :
   s.inf (λ b, f b \ a) = s.inf f \ a :=
 begin
-  refine hs.cons_induction (λ b, _) (λ b t _ _ h, _),
+  induction hs using finset.nonempty.cons_induction with b b t _ _ h,
   { rw [inf_singleton, inf_singleton] },
   { rw [inf_cons, inf_cons, h, inf_sdiff] }
 end

@@ -657,11 +657,11 @@ theorem induction_on' {α : Type*} {p : finset α → Prop} [decidable_eq α]
 singletons and that if it holds for nonempty `t : finset α`, then it also holds for the `finset`
 obtained by inserting an element in `t`. -/
 @[elab_as_eliminator]
-lemma nonempty.cons_induction {α : Type*} {s : finset α} (hs : s.nonempty)
+lemma nonempty.cons_induction {α : Type*}
   {p : Π s : finset α, s.nonempty → Prop}
   (h₀ : ∀ a, p {a} (singleton_nonempty _))
   (h₁ : ∀ ⦃a⦄ (s : finset α) (h : a ∉ s) (hs : s.nonempty),
-    p s hs → p (finset.cons a s h) (nonempty_cons h)) :
+    p s hs → p (finset.cons a s h) (nonempty_cons h)) {s : finset α} (hs : s.nonempty) :
   p s hs :=
 begin
   induction s using finset.cons_induction with a t ha h,

@@ -858,11 +858,11 @@ theorem sum_lt_sum_of_nonempty {s : finset α} (hs : s.nonempty)
   {f g : α → ℝ≥0∞} (Hlt : ∀ i ∈ s, f i < g i) :
   ∑ i in s, f i < ∑ i in s, g i :=
 begin
-  apply H.induction (λ a, _) (λ a s as hs IH, _),
+  induction hs using finset.nonempty.cons_induction with a a s as hs IH,
   { simp [Hlt _ (finset.mem_singleton_self _)] },
-  { simp only [as, finset.sum_insert, not_false_iff],
-    exact ennreal.add_lt_add (Hlt _ (finset.mem_insert_self _ _))
-      (IH h's (λ i hi, Hlt _ (finset.mem_insert_of_mem hi))) } }
+  { simp only [as, finset.sum_cons, not_false_iff],
+    exact ennreal.add_lt_add (Hlt _ (finset.mem_cons_self _ _))
+      (IH (λ i hi, Hlt _ (finset.mem_cons.2 $ or.inr hi))) }
 end
 
 theorem exists_le_of_sum_le {s : finset α} (hs : s.nonempty)

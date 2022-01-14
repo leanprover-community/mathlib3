@@ -219,15 +219,9 @@ noncomputable
 def factorization_equiv : pnat ≃ {f : ℕ →₀ ℕ | ∀ p ∈ f.support, prime p} :=
 {
   to_fun    := λ ⟨n, hn⟩, ⟨n.factorization, λ p, @prime_of_mem_factorization n p⟩,
-  inv_fun   := λ ⟨f, hf⟩, by {
-    use f.prod pow,
-    refine prod_pos _,
-    intros p hp,
-    suffices : p ^ f p ≠ 0, { exact zero_lt_iff.mpr this },
-    apply pow_ne_zero,
-    apply prime.ne_zero,
-    exact hf p hp,
-  },
+  inv_fun   := λ ⟨f, hf⟩, ⟨f.prod pow,
+    prod_pos (λ p hp, zero_lt_iff.mpr (pow_ne_zero _ (prime.ne_zero (hf p hp))))⟩,
+
   left_inv  := by {
     rintros ⟨x, hx⟩,
     unfold factorization_equiv._match_1,

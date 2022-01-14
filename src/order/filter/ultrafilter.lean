@@ -50,8 +50,11 @@ instance ne_bot (f : ultrafilter α) : ne_bot (f : filter α) := f.ne_bot'
 lemma coe_injective : injective (coe : ultrafilter α → filter α)
 | ⟨f, h₁, h₂⟩ ⟨g, h₃, h₄⟩ rfl := by congr
 
+lemma eq_of_le {f g : ultrafilter α} (h : (f : filter α) ≤ g) : f = g :=
+coe_injective (g.unique h)
+
 @[simp, norm_cast] lemma coe_le_coe {f g : ultrafilter α} : (f : filter α) ≤ g ↔ f = g :=
-⟨λ h, coe_injective $ g.unique h, λ h, h ▸ le_rfl⟩
+⟨λ h, eq_of_le h, λ h, h ▸ le_rfl⟩
 
 @[simp, norm_cast] lemma coe_inj : (f : filter α) = g ↔ f = g := coe_injective.eq_iff
 
@@ -313,3 +316,34 @@ compl_compl s ▸ hf.compl_mem_hyperfilter
 end hyperfilter
 
 end filter
+
+namespace ultrafilter
+
+def comap_inf_principal_ne_bot_of_image_mem {m : α → β} {s : set α} {g : ultrafilter β} (h : m '' s ∈ g) : (filter.comap m g ⊓ 𝓟 s).ne_bot :=
+filter.comap_inf_principal_ne_bot_of_image_mem g.ne_bot h
+
+noncomputable def of_comap_inf_principal {m : α → β} {s : set α} {g : ultrafilter β} (h : m '' s ∈ g) : ultrafilter α :=
+begin
+  haveI : (filter.comap m g ⊓ 𝓟 s).ne_bot := comap_inf_principal_ne_bot_of_image_mem h,
+  exact of (filter.comap m g ⊓ 𝓟 s)
+end
+
+lemma of_comap_inf_principal_mem {m : α → β} {s : set α} {g : ultrafilter β} (h : m '' s ∈ g) : s ∈ of_comap_inf_principal h :=
+begin
+  haveI : (filter.comap m g ⊓ 𝓟 s).ne_bot := comap_inf_principal_ne_bot_of_image_mem h,
+  have : s ∈ filter.comap m g ⊓ 𝓟 s := mem_inf_of_right (mem_principal_self s),
+  exact filter.le_def.mp (of_le _) s this
+end
+
+lemma of_comap_inf_principal_eq_of_map {m : α → β} {s : set α} {g : ultrafilter β} (h : m '' s ∈ g) : (of_comap_inf_principal h).map m = g :=
+begin
+  haveI : (filter.comap m g ⊓ 𝓟 s).ne_bot := comap_inf_principal_ne_bot_of_image_mem h,
+  apply eq_of_le,
+  calc filter.map m (of (filter.comap m g ⊓ 𝓟 s)) ≤ filter.map m (filter.comap m g ⊓ 𝓟 s) : filter.map_mono (of_le _)
+  ... ≤ (filter.map m $ filter.comap m g) ⊓ filter.map m (𝓟 s) : filter.map_inf_le
+  ... = (filter.map m $ filter.comap m g) ⊓ (𝓟 $ m '' s) : by rw filter.map_principal
+  ... ≤ g ⊓ (𝓟 $ m '' s) : inf_le_inf_right _ filter.map_comap_le
+  ... = g : inf_of_le_left (le_principal_iff.mpr h)
+end
+
+end ultrafilter

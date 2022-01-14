@@ -68,7 +68,7 @@ Absorbent and balanced sets in a vector space over a normed field.
 open normed_field set
 open_locale pointwise topological_space
 
-variables {𝕜 E : Type*}
+variables {𝕜 E ι : Type*}
 
 section semi_normed_ring
 variables [semi_normed_ring 𝕜]
@@ -267,7 +267,7 @@ instance : has_coe_to_fun (seminorm 𝕜 E) (λ _, E → ℝ) := ⟨λ p, p.to_f
 instance : has_zero (seminorm 𝕜 E) :=
 ⟨{ to_fun    := 0,
   smul'     := λ _ _, (mul_zero _).symm,
-  triangle' := λ _ _, by rw add_zero }⟩
+  triangle' := λ _ _, eq.ge (zero_add _) }⟩
 
 @[simp] lemma coe_zero : ⇑(0 : seminorm 𝕜 E) = 0 := rfl
 
@@ -315,7 +315,6 @@ end add_monoid
 
 section norm_one_class
 variables [norm_one_class 𝕜] [add_comm_group E] [module 𝕜 E] (p : seminorm 𝕜 E) (x y : E) (r : ℝ)
-variables {ι : Type*}
 
 @[simp]
 protected lemma neg : p (-x) = p x :=
@@ -378,7 +377,7 @@ lemma ball_zero_eq : ball p 0 r = { y : E | p y < r } := set.ext $ λ x, p.mem_b
 end has_scalar
 
 section module
-variables [norm_one_class 𝕜] [module 𝕜 E] (p : seminorm 𝕜 E) {ι : Type*}
+variables [norm_one_class 𝕜] [module 𝕜 E] (p : seminorm 𝕜 E)
 
 /-- Seminorm-balls at the origin are balanced. -/
 lemma balanced_ball_zero (r : ℝ): balanced 𝕜 (ball p 0 r) :=
@@ -397,7 +396,15 @@ begin
     finset.sup_lt_iff (show ⊥ < r, from hr), ←nnreal.coe_lt_coe, subtype.coe_mk],
 end
 
-lemma ball_finset_sup_eq_finset_inf (p : ι → seminorm 𝕜 E) (s : finset ι) (e : E) {r : ℝ}
+lemma ball_sup (p : seminorm 𝕜 E) (q : seminorm 𝕜 E) (e : E) {r : ℝ} (hr : 0 < r) :
+  ball (p ⊔ q) e r = (ball p e r) ⊓ (ball q e r) :=
+begin
+  lift r to nnreal using hr.le,
+  simp_rw [set.inf_eq_inter, ball, ←set.set_of_and],
+  simp,
+end
+
+lemma ball_finset_sup (p : ι → seminorm 𝕜 E) (s : finset ι) (e : E) {r : ℝ}
   (hr : 0 < r) : ball (s.sup p) e r = s.inf (λ i, ball (p i) e r) :=
 begin
   rw finset.inf_eq_infi,

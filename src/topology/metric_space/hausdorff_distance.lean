@@ -876,6 +876,43 @@ begin
   ... ≤ R + δ : add_le_add (hR zE) hz.le
 end
 
+lemma exists_disjoint_thickenings {s t : set X} (hs : is_compact s) (ht : is_closed t)
+  (hst : disjoint s t) :
+  ∃ δ, 0 < δ ∧ disjoint (thickening δ s) (thickening δ t) :=
+begin
+  obtain ⟨u, -, u_pos, u_lim⟩ := exists_seq_strict_anti_tendsto (0 : ℝ),
+  suffices h : ∃ (n : ℕ), disjoint (thickening (u n) s) (thickening (u n) t),
+  { obtain ⟨n, hn⟩ := h,
+    exact ⟨u n, u_pos n, hn⟩ },
+  by_contra' h,
+  -- have := hs.exists_forall_le,
+  simp only [not_disjoint_iff, mem_thickening_iff,
+    ← exists_and_distrib_left, ← exists_and_distrib_right, and_assoc] at h,
+  choose x y hy z hz hxy hxz using h,
+  obtain ⟨w, hw, φ, hφ, hyφ : tendsto (y ∘ _) _ _⟩ := hs.tendsto_subseq hy,
+  have h : ∀ n, dist (y n) (z n) ≤ u n + u n,
+    from λ n, (dist_triangle_left _ _ _).trans (add_le_add (hxy n).le (hxz n).le),
+  refine hst ⟨hw, mem_of_is_closed_sequential ht (λ n, hz (φ n)) $ (tendsto_iff_of_dist _).1 hyφ⟩,
+  refine squeeze_zero (λ _, dist_nonneg) (λ n, h _) _,
+  simp_rw ←two_mul,
+  rw ←mul_zero (2 : ℝ),
+  exact (u_lim.const_mul (2 : ℝ)).comp hφ.tendsto_at_top,
+end
+
+variables {E : Type*} [semi_normed_group E]
+
+@[simp] lemma add_ball (s : set X) (δ : ℝ) : s + ball 0 δ = thickening δ s :=
+begin
+  rw thickening_eq_bUnion_ball,
+  convert bUnion_add _ s (ball (0 : X) δ),
+  exact s.bUnion_of_singleton.symm,
+  ext x y,
+  simp_rw [singleton_add_ball, add_zero],
+end
+
+@[simp] lemma ball_add (s : set X) (δ : ℝ) : ball 0 δ + s = thickening δ s :=
+by rw [add_comm, add_ball]
+
 end thickening --section
 
 section cthickening

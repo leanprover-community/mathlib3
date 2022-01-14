@@ -395,6 +395,60 @@ variables (P) {L}
 lemma point_count_eq [projective_plane P L] (l : L) : point_count P l = order P L + 1 :=
 (line_count_eq (dual P) l).trans (congr_arg (λ n, n + 1) (dual.order P L))
 
+/-- An auxillary bijection for `card_points`. -/
+def card_points_aux (α β : Type u) (γ : β → Type u) [decidable_eq α] [Π b : β, decidable_eq (γ b)]
+  (f : ∀ {a₁ a₂ : α} (h : a₁ ≠ a₂), Σ b : β, γ b × γ b) (g : ∀ b : β, γ b → α)
+  (h1 : ∀ {a₁ a₂ : α} (h : a₁ ≠ a₂), g (f h).1 (f h).2.1 = a₁)
+  (h2 : ∀ {a₁ a₂ : α} (h : a₁ ≠ a₂), g (f h).1 (f h).2.2 = a₂)
+  (h3 : ∀ b : β, function.injective (g b))
+  (h4 : ∀ {b : Σ b : β, γ b × γ b} (h : b.2.1 ≠ b.2.2), f ((h3 b.1).ne h) = b) :
+  (α × α ⊕ Σ b : β, γ b) ≃ α ⊕ Σ b : β, γ b × γ b :=
+{ to_fun := sum.elim (λ a, if h : a.1 = a.2 then sum.inl a.1 else sum.inr (f h))
+    (λ b, sum.inr ⟨b.1, (b.2, b.2)⟩),
+  inv_fun := sum.elim (λ a, sum.inl (a, a))
+    (λ b, if h : b.2.1 = b.2.2 then sum.inr ⟨b.1, b.2.1⟩ else sum.inl (g b.1 b.2.1, g b.1 b.2.2)),
+  left_inv := by
+  { rintros (a | b),
+    { by_cases h : a.1 = a.2,
+      { rw [sum.elim_inl, dif_pos h, sum.elim_inl, sum.inl.inj_iff],
+        exact prod.ext rfl h },
+      { rw [sum.elim_inl, dif_neg h, sum.elim_inr, h1, h2, prod.mk.eta, dif_neg],
+        refine λ h', h _,
+        rw [←h1 h, h', h2] } },
+    { rw [sum.elim_inr, sum.elim_inr, dif_pos rfl, sigma.eta] }, },
+  right_inv := by
+  { rintros (a | b),
+    { rw [sum.elim_inl, sum.elim_inl, dif_pos rfl] },
+    { by_cases h : b.2.1 = b.2.2,
+      { rw [sum.elim_inr, dif_pos h, sum.elim_inr, sum.inr.inj_iff],
+        exact sigma.ext rfl (heq_of_eq (prod.ext rfl h)) },
+      { rw [sum.elim_inr, dif_neg h, sum.elim_inl, dif_neg ((h3 b.1).ne h), h4] } } } }
+
+variables (P L)
+
+lemma card_points [projective_plane P L] : fintype.card P = order P L ^ 2 + order P L + 1 :=
+begin
+  classical,
+  have h1 : ∀ l : L, fintype.card {p : P // p ∈ l} = order P L + 1 :=
+  λ l, nat.card_eq_fintype_card.symm.trans (point_count_eq P l),
+  let h := fintype.card_congr (card_points_aux P L (λ l, {p : P // p ∈ l})
+    (λ p₁ p₂ h, ⟨mk_line h, ⟨p₁, (mk_line_ax h).1⟩, ⟨p₂, (mk_line_ax h).2⟩⟩)
+    (λ l p, p) (λ p₁ p₂ h, rfl) (λ p₁ p₂ h, rfl) (λ l, subtype.coe_injective) _),
+  { simp_rw [fintype.card_sum, fintype.card_sigma, fintype.card_prod, h1,
+      finset.sum_const, smul_eq_mul, finset.card_univ, ←card_points_eq_card_lines] at h,
+    rwa [nat.mul_succ, ←add_assoc, add_comm, add_right_inj, ←mul_add, mul_right_inj',
+      nat.succ_mul_succ_eq, add_assoc, add_comm (order P L), ←add_assoc, add_left_inj, ←sq] at h,
+    exact (fintype.card_pos_iff.mpr (nonempty_of_exists (@exists_config P L _ _))).ne' },
+  { rintros ⟨l, ⟨p₁, hp₁⟩, ⟨p₂, hp₂⟩⟩ h,
+    rw [ne, subtype.ext_iff, subtype.coe_mk, subtype.coe_mk] at h,
+    have key := (eq_or_eq (mk_line_ax h).1 (mk_line_ax h).2 hp₁ hp₂).resolve_left h,
+    subst key,
+    refl },
+end
+
+lemma card_lines [projective_plane P L] : fintype.card L = order P L ^ 2 + order P L + 1 :=
+(card_points (dual L) (dual P)).trans (congr_arg (λ n, n ^ 2 + n + 1) (dual.order P L))
+
 end projective_plane
 
 end configuration

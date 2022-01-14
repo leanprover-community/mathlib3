@@ -295,7 +295,7 @@ begin
 end
 
 /-- The glue data associated with an open cover.
-There is a canonical isomorphism `𝒰.glued_cover.glued ⟶ X` (`𝒰.from_glued`). -/
+The canonical isomorphism `𝒰.glued_cover.glued ⟶ X` is provided by `𝒰.from_glued`. -/
 @[simps]
 def glued_cover : Scheme.glue_data.{u} :=
 { J := 𝒰.J,
@@ -311,8 +311,8 @@ def glued_cover : Scheme.glue_data.{u} :=
   cocycle := λ x y z, glued_cover_cocycle 𝒰 x y z,
   f_open := λ x, infer_instance }
 
-/-- The canonocial morphism from the gluing of an open cover of `X` into `X`.
-This is given an `is_iso` instance later. -/
+/-- The canonical morphism from the gluing of an open cover of `X` into `X`.
+This is an isomorphism, as witnessed by `is_iso` instance. -/
 def from_glued : 𝒰.glued_cover.glued ⟶ X :=
 begin
   fapply multicoequalizer.desc,
@@ -406,7 +406,7 @@ end
 such that these morphisms are compatible in the intersection (pullback), we may glue the morphisms
 together into a morphism `X ⟶ Y`.
 
-Note : If `X` exactly (defeq to) the gluing of `U i`, then using `multicoequalizer.desc` suffices.
+Note : If `X` is exactly (defeq to) the gluing of `U i`, then using `multicoequalizer.desc` suffices.
 -/
 def glue_morphisms {Y : Scheme} (f : ∀ x, 𝒰.obj x ⟶ Y)
   (hf : ∀ x y, (pullback.fst : pullback (𝒰.map x) (𝒰.map y) ⟶ _) ≫ f x = pullback.snd ≫ f y) :

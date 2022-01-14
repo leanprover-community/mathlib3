@@ -337,9 +337,7 @@ nonneg_of_mul_nonneg_left h zero_lt_two
 
 lemma sub_rev : p (x - y) = p (y - x) := by rw [←neg_sub, p.neg]
 
-instance : order_bot (seminorm 𝕜 E) :=
-{ bot := 0,
-  bot_le := nonneg }
+instance : order_bot (seminorm 𝕜 E) := ⟨0, nonneg⟩
 
 @[simp] lemma coe_bot : ⇑(⊥ : seminorm 𝕜 E) = 0 := rfl
 
@@ -387,6 +385,8 @@ end has_scalar
 
 section module
 variables [norm_one_class 𝕜] [module 𝕜 E] (p : seminorm 𝕜 E)
+
+lemma ball_bot {r : ℝ} (x : E) (hr : 0 < r) : ball (⊥ : seminorm 𝕜 E) x r = set.univ := ball_zero' x hr
 
 /-- Seminorm-balls at the origin are balanced. -/
 lemma balanced_ball_zero (r : ℝ): balanced 𝕜 (ball p 0 r) :=

@@ -14,7 +14,7 @@ In this file we construct the fibred product of schemes via gluing.
 We roughly follow [har77] Theorem 3.3.
 
 In particular, the main construction is to show that for an open cover `{ Uᵢ }` of `X`, if there
-exists fibred products `Uᵢ ×[Z] Y` for each `i`, then there exists a fibred product `X ×[Z] Y`.
+exist fibred products `Uᵢ ×[Z] Y` for each `i`, then there exists a fibred product `X ×[Z] Y`.
 
 Then, for constructing the fibred product for arbitrary schemes `X, Y, Z`, we can use the
 construction to reduce to the case where `X, Y, Z` are all affine, where the fibred products is
@@ -213,7 +213,7 @@ begin
   exact (t_fst_fst _ _ _ _ _).symm
 end
 
-/-- The first projection from the glued scheme into `Y`. -/
+/-- The second projection from the glued scheme into `Y`. -/
 def p2 : (gluing 𝒰 f g).glued ⟶ Y :=
 begin
   fapply multicoequalizer.desc,

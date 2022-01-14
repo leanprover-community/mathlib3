@@ -247,13 +247,11 @@ begin
   convert range_is_affine_open_of_open_immersion (Scheme.Spec.map (CommRing.of_hom
     (algebra_map (X.presheaf.obj (op U)) (localization.away f))).op ≫ hU.from_Spec),
   ext1,
-  rw subtype.coe_mk,
   have : hU.from_Spec.val.base '' (hU.from_Spec.val.base ⁻¹' (X.basic_open f : set X.carrier)) =
     (X.basic_open f : set X.carrier),
   { rw [set.image_preimage_eq_inter_range, set.inter_eq_left_iff_subset, hU.from_Spec_range],
     exact Scheme.basic_open_subset _ _ },
-  rw Scheme.comp_val_base,
-  rw [← this, coe_comp, set.range_comp],
+  rw [subtype.coe_mk, Scheme.comp_val_base, ← this, coe_comp, set.range_comp],
   congr' 1,
   refine (congr_arg coe $ Scheme.preimage_basic_open hU.from_Spec f).trans _,
   refine eq.trans _ (prime_spectrum.localization_away_comap_range (localization.away f) f).symm,

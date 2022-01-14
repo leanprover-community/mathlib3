@@ -168,10 +168,37 @@ open_locale classical
 noncomputable def dimension (K : ASC V) : enat :=
   enat.find (λ n, ∀ ⦃s : finset V⦄, s ∈ K → s.card ≤ n + 1)
 
+-- TODO: Check nat subtraction
 def pure (K : ASC V) : Prop :=
   ∀ ⦃s : finset V⦄, s ∈ K.facets → ((s.card - 1 : ℕ) : enat) = K.dimension
 
 end classical
+
+def skeleton (K : ASC V) (d : ℕ) : ASC V :=
+{ faces := {s ∈ K.faces | s.card ≤ d + 1},
+  nonempty_of_mem := λ s hs, K.nonempty_of_mem hs.1,
+  down_closed := λ s t ⟨hsK, hsd⟩ hts ht, ⟨K.down_closed hsK hts ht,
+    le_trans (finset.card_le_of_subset hts) hsd⟩}
+
+section
+
+variable [decidable_eq V]
+
+lemma finset.union_nonempty_left {s t : finset V} (hs : s.nonempty) : (s ∪ t).nonempty :=
+let ⟨x, hx⟩ := hs in ⟨x, finset.mem_union.2 $ or.inl hx⟩
+
+lemma finset.union_nonempty_right {s t : finset V} (ht : t.nonempty) : (s ∪ t).nonempty :=
+let ⟨x, hx⟩ := ht in ⟨x, finset.mem_union.2 $ or.inr hx⟩
+
+def link (K : ASC V) (s : finset V) : ASC V :=
+{ faces := {t ∈ K.faces | s ∩ t = ∅ ∧ s ∪ t ∈ K},
+  nonempty_of_mem := λ σ hσ, K.nonempty_of_mem hσ.1,
+  down_closed := λ σ τ ⟨hσK, hσint, hσunion⟩ hτσ hτ, ⟨K.down_closed hσK hτσ hτ,
+    eq_bot_iff.2 $ le_trans (finset.inter_subset_inter_left hτσ) (eq_bot_iff.1 hσint),
+    K.down_closed hσunion (finset.union_subset_union (finset.subset.refl _) hτσ)
+      (finset.union_nonempty_right hτ)⟩ }
+
+end
 
 end ASC
 

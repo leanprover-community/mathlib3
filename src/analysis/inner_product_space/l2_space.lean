@@ -1,5 +1,5 @@
 /-
-Copyright (c) 2021 Heather Macbeth. All rights reserved.
+Copyright (c) 2022 Heather Macbeth. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Heather Macbeth
 -/
@@ -7,15 +7,31 @@ import analysis.inner_product_space.projection
 import analysis.normed_space.lp_space
 
 /-!
-# Identifications of a Hilbert space with `ℓ²`; Hilbert bases
+# Inner product space structure on `lp 2`
+
+Given a family `(G : ι → Type*) [Π i, inner_product_space 𝕜 (G i)]` of inner product spaces, this
+file equips `lp G 2` with an inner product space structure, where `lp G 2` consists of those
+dependent functions `f : Π i, G i` for which `∑' i, ∥f i∥ ^ 2`, the sum of the norms-squared, is
+summable.  This construction is sometimes called the Hilbert sum of the family `G`.
+
+The space `lp G 2` already held a normed space structure, `lp.normed_space`, so the work in this
+file is to define the inner product and show it is compatible.
+
+If each `G i` is a Hilbert space (i.e., complete), then the Hilbert sum `lp G 2` is also a Hilbert
+space; again this follows from `lp.complete_space`, the case of general `p`.
+
+By choosing `G` to be `ι → 𝕜`, the Hilbert space `ℓ²(ι, 𝕜)` may be seen as a special case of this
+construction.
+
+## Keywords
+
+Hilbert space, Hilbert sum, l2
 -/
 
 open is_R_or_C submodule filter
 open_locale big_operators nnreal ennreal classical complex_conjugate
 
 local attribute [instance] fact_one_le_two_ennreal
-
-notation `ℓ²(` ι `,` 𝕜 `)` := lp (λ i : ι, 𝕜) 2
 
 noncomputable theory
 
@@ -24,14 +40,15 @@ variables {𝕜 : Type*} [is_R_or_C 𝕜] {E : Type*} [inner_product_space 𝕜 
 variables {G : ι → Type*} [Π i, inner_product_space 𝕜 (G i)]
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
 
+notation `ℓ²(` ι `,` 𝕜 `)` := lp (λ i : ι, 𝕜) 2
+
 namespace lp
 
 lemma summable_inner (f g : lp G 2) : summable (λ i, ⟪f i, g i⟫) :=
 begin
   -- Apply the Direct Comparison Test, comparing with ∑' i, ∥f i∥ * ∥g i∥ (summable by Hölder)
-  refine summable_of_norm_bounded (λ i, ∥f i∥ * ∥g i∥) (lp.tsum_inner_mul_inner_le _ f g).1 _,
-  { rw real.is_conjugate_exponent_iff;
-    norm_num },
+  refine summable_of_norm_bounded (λ i, ∥f i∥ * ∥g i∥) (lp.summable_mul _ f g) _,
+  { rw real.is_conjugate_exponent_iff; norm_num },
   intros i,
   -- Then apply Cauchy-Schwarz pointwise
   exact norm_inner_le_norm _ _,
@@ -98,6 +115,7 @@ end lp
 
 namespace orthogonal_family
 variables {V : Π i, G i →ₗᵢ[𝕜] E} (hV : orthogonal_family 𝕜 V)
+  --[dec_V : Π i (x : G i), decidable (x ≠ 0)]
 
 include hV
 

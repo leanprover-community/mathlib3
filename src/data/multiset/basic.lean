@@ -851,6 +851,16 @@ eq_of_mem_repeat $ by rwa map_const at h
 @[simp] theorem map_le_map {f : α → β} {s t : multiset α} (h : s ≤ t) : map f s ≤ map f t :=
 le_induction_on h $ λ l₁ l₂ h, (h.map f).subperm
 
+@[simp] lemma map_lt_map {f : α → β} {s t : multiset α} (h : s < t) : s.map f < t.map f :=
+begin
+  refine (map_le_map h.le).lt_of_not_le (λ H, h.ne $ eq_of_le_of_card_le h.le _),
+  rw [←s.card_map f, ←t.card_map f],
+  exact card_le_of_le H,
+end
+
+lemma map_mono (f : α → β) : monotone (map f) := λ _ _, map_le_map
+lemma map_strict_mono (f : α → β) : strict_mono (map f) := λ _ _, map_lt_map
+
 @[simp] theorem map_subset_map {f : α → β} {s t : multiset α} (H : s ⊆ t) : map f s ⊆ map f t :=
 λ b m, let ⟨a, h, e⟩ := mem_map.1 m in mem_map.2 ⟨a, H h, e⟩
 
@@ -1758,6 +1768,22 @@ lemma filter_eq (s : multiset α) (b : α) : s.filter (eq b) = repeat b (count b
 by simp_rw [←filter_eq', eq_comm]
 
 end
+
+lemma count_eq_card_filter_eq [decidable_eq α] (s : multiset α) (a : α) :
+  s.count a = (s.filter (eq a)).card :=
+by rw [count, countp_eq_card_filter]
+
+/--
+Mapping a multiset through a predicate and counting the `true`s yields the cardinality of the set
+filtered by the predicate. Note that this uses the notion of a multiset of `Prop`s - due to the
+decidability requirements of `count`, the decidability instance on the LHS is different from the
+RHS. In particular, the decidability instance on the left leaks `classical.dec_eq`.
+See [here](https://github.com/leanprover-community/mathlib/pull/11306#discussion_r782286812)
+for more discussion.
+-/
+@[simp] lemma map_count_true_eq_filter_card (s : multiset α) (p : α → Prop) [decidable_pred p] :
+  (s.map p).count true = (s.filter p).card :=
+by simp only [count_eq_card_filter_eq, map_filter, card_map, function.comp.left_id, eq_true_eq_id]
 
 /-! ### Lift a relation to `multiset`s -/
 

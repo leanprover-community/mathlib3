@@ -87,7 +87,7 @@ complete linear orders, we prefix Inf and Sup by a c everywhere. The same statem
 hold in both worlds, sometimes with additional assumptions of nonemptiness or
 boundedness.-/
 class conditionally_complete_linear_order (α : Type*)
-  extends conditionally_complete_lattice α, linear_order α
+  extends conditionally_complete_lattice α, linear_order α renaming max → sup min → inf
 
 /-- A conditionally complete linear order with `bot` is a linear order with least element, in which
 every nonempty subset which is bounded above has a supremum, and every nonempty subset (necessarily
@@ -352,6 +352,12 @@ is_greatest_singleton.cSup_eq
 /--The infimum of a singleton is the element of the singleton-/
 @[simp] theorem cInf_singleton (a : α) : Inf {a} = a :=
 is_least_singleton.cInf_eq
+
+@[simp] theorem cSup_pair (a b : α) : Sup {a, b} = a ⊔ b :=
+(@is_lub_pair _ _ a b).cSup_eq (nonempty_insert _ _)
+
+@[simp] theorem cInf_pair (a b : α) : Inf {a, b} = a ⊓ b :=
+(@is_glb_pair _ _ a b).cInf_eq (nonempty_insert _ _)
 
 /--If a set is bounded below and above, and nonempty, its infimum is less than or equal to
 its supremum.-/

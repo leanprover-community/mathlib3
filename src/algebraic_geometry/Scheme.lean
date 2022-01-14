@@ -61,13 +61,16 @@ def forget_to_LocallyRingedSpace : Scheme ⥤ LocallyRingedSpace :=
 def forget_to_Top : Scheme ⥤ Top :=
   Scheme.forget_to_LocallyRingedSpace ⋙ LocallyRingedSpace.forget_to_Top
 
+instance {X Y : Scheme} : has_lift_t (X ⟶ Y)
+  (X.to_SheafedSpace ⟶ Y.to_SheafedSpace) := (@@coe_to_lift $ @@coe_base coe_subtype)
+
 @[reassoc]
 lemma comp_val {X Y Z : Scheme} (f : X ⟶ Y) (g : Y ⟶ Z) :
   (f ≫ g).val = f.val ≫ g.val := rfl
 
 @[reassoc, simp]
 lemma comp_val_base {X Y Z : Scheme} (f : X ⟶ Y) (g : Y ⟶ Z) :
-  (f ≫ g).val.base = f.val.base ≫ g.val.base := rfl
+  (↑(f ≫ g) : X.to_SheafedSpace ⟶ Z.to_SheafedSpace).base = f.val.base ≫ g.val.base := rfl
 
 @[reassoc, simp]
 lemma comp_val_c_app {X Y Z : Scheme} (f : X ⟶ Y) (g : Y ⟶ Z) (U) :
@@ -183,8 +186,7 @@ LocallyRingedSpace.preimage_basic_open f r
 @[simp]
 lemma preimage_basic_open' {X Y : Scheme} (f : X ⟶ Y) {U : opens Y.carrier}
   (r : Y.presheaf.obj $ op U) :
-  (opens.map (PresheafedSpace.hom.base $ @coe _ _ (@@coe_to_lift $ @@coe_base coe_subtype) f)).obj
-    (Y.basic_open r) =
+  (opens.map (↑f : X.to_SheafedSpace ⟶ Y.to_SheafedSpace).base).obj (Y.basic_open r) =
     @Scheme.basic_open X ((opens.map f.1.base).obj U) (f.1.c.app _ r) :=
 LocallyRingedSpace.preimage_basic_open f r
 

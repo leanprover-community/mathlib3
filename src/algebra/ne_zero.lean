@@ -70,7 +70,7 @@ nat_of_injective $ no_zero_smul_divisors.algebra_map_injective R M
 lemma of_ne_zero_coe [has_zero R] [has_one R] [has_add R] [h : ne_zero (n : R)] : ne_zero n :=
 ⟨by {casesI h, rintro rfl, contradiction}⟩
 
-lemma not_dvd_char [add_monoid R] [has_one R] (p : ℕ) [char_p R p] (k : ℕ) [h : ne_zero (k : R)] :
+lemma not_char_dvd [add_monoid R] [has_one R] (p : ℕ) [char_p R p] (k : ℕ) [h : ne_zero (k : R)] :
   ¬ p ∣ k :=
 by rwa [←not_iff_not.mpr $ char_p.cast_eq_zero_iff R p k, ←ne.def, ←ne_zero_iff]
 

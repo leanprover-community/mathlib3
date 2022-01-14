@@ -5,6 +5,7 @@ Authors: Nathaniel Thomas, Jeremy Avigad, Johannes Hölzl, Mario Carneiro, Anne 
   Frédéric Dupuis, Heather Macbeth
 -/
 import algebra.module.linear_map
+import linear_algebra.basic
 
 /-!
 # (Semi)linear equivalences
@@ -477,3 +478,7 @@ def to_module_aut : S →* M ≃ₗ[R] M :=
   map_mul' := λ a b, linear_equiv.ext $ mul_smul _ _ }
 
 end distrib_mul_action
+
+def add_equiv.to_int_linear_equiv {α β : Type*} [add_comm_group α] [add_comm_group β]
+  (e : α ≃+ β) : α ≃ₗ[ℤ] β :=
+e.to_linear_equiv $ λ c a, by { erw e.to_add_monoid_hom.map_zsmul, refl }

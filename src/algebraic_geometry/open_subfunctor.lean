@@ -1,10 +1,19 @@
-import algebraic_geometry.Scheme
-import category_theory.limits.functor_category
-import algebraic_geometry.open_immersion
-import algebraic_geometry.presheafed_space.gluing
-import category_theory.limits.yoneda
+/-
+Copyright (c) 2022 Andrew Yang. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Andrew Yang
+-/
+import algebraic_geometry.gluing
 import category_theory.limits.opposites
+import algebraic_geometry.Gamma_Spec_adjunction
 
+/-!
+# Fibred products of schemes
+
+In this file we construct the fibred product of schemes via gluing.
+We roughly follow [har77] Theorem 3.3.
+
+-/
 universes v u
 noncomputable theory
 
@@ -18,8 +27,8 @@ variables [∀ x, has_pullback (𝒰.map x ≫ f) g]
 
 namespace open_cover
 
-include 𝒰
-
+/-- Given an open cover on `X`, we may pull them back along a morphism `W ⟶ X` to obtain
+an open cover of `W`. -/
 @[simps]
 def pullback_cover (𝒰 : open_cover X) {W : Scheme} (f : W ⟶ X) : open_cover W :=
 { J := 𝒰.J,
@@ -63,195 +72,7 @@ end
 instance [H : compact_space X.carrier] : fintype 𝒰.finite_subcover.J :=
 by { delta finite_subcover, apply_instance }
 
-def glued_cover_t' (x y z : 𝒰.J) :
-  pullback (pullback.fst : pullback (𝒰.map x) (𝒰.map y) ⟶ _)
-    (pullback.fst : pullback (𝒰.map x) (𝒰.map z) ⟶ _) ⟶
-  pullback (pullback.fst : pullback (𝒰.map y) (𝒰.map z) ⟶ _)
-    (pullback.fst : pullback (𝒰.map y) (𝒰.map x) ⟶ _) :=
-begin
-  refine (pullback_right_pullback_fst_iso _ _ _).hom ≫ _,
-  refine _ ≫ (pullback_symmetry _ _).hom,
-  refine _ ≫ (pullback_right_pullback_fst_iso _ _ _).inv,
-  refine pullback.map _ _ _ _ (pullback_symmetry _ _).hom (𝟙 _) (𝟙 _) _ _,
-  { simp [pullback.condition] },
-  { simp }
-end
-
-@[simp, reassoc]
-lemma glued_cover_t'_fst_fst (x y z : 𝒰.J) :
-  glued_cover_t' 𝒰 x y z ≫ pullback.fst ≫ pullback.fst = pullback.fst ≫ pullback.snd :=
-by { delta glued_cover_t', simp }
-
-@[simp, reassoc]
-lemma glued_cover_t'_fst_snd (x y z : 𝒰.J) :
-  glued_cover_t' 𝒰 x y z ≫ pullback.fst ≫ pullback.snd = pullback.snd ≫ pullback.snd :=
-by { delta glued_cover_t', simp }
-
-@[simp, reassoc]
-lemma glued_cover_t'_snd_fst (x y z : 𝒰.J) :
-  glued_cover_t' 𝒰 x y z ≫ pullback.snd ≫ pullback.fst = pullback.fst ≫ pullback.snd :=
-by { delta glued_cover_t', simp }
-
-@[simp, reassoc]
-lemma glued_cover_t'_snd_snd (x y z : 𝒰.J) :
-  glued_cover_t' 𝒰 x y z ≫ pullback.snd ≫ pullback.snd = pullback.fst ≫ pullback.fst :=
-by { delta glued_cover_t', simp }
-
-lemma glued_cover_cocycle_fst (x y z : 𝒰.J) :
-  glued_cover_t' 𝒰 x y z ≫ glued_cover_t' 𝒰 y z x ≫ glued_cover_t' 𝒰 z x y ≫ pullback.fst =
-    pullback.fst :=
-by apply pullback.hom_ext; simp
-
-lemma glued_cover_cocycle_snd (x y z : 𝒰.J) :
-  glued_cover_t' 𝒰 x y z ≫ glued_cover_t' 𝒰 y z x ≫ glued_cover_t' 𝒰 z x y ≫ pullback.snd =
-    pullback.snd :=
-by apply pullback.hom_ext; simp [pullback.condition]
-
-lemma glued_cover_cocycle (x y z : 𝒰.J) :
-  glued_cover_t' 𝒰 x y z ≫ glued_cover_t' 𝒰 y z x ≫ glued_cover_t' 𝒰 z x y = 𝟙 _ :=
-begin
-  apply pullback.hom_ext; simp_rw [category.id_comp, category.assoc],
-  apply glued_cover_cocycle_fst,
-  apply glued_cover_cocycle_snd,
-end
-
-@[simps]
-def glued_cover : Scheme.glue_data.{u} :=
-{ J := 𝒰.J,
-  U := 𝒰.obj,
-  V := λ ⟨x, y⟩, pullback (𝒰.map x) (𝒰.map y),
-  f := λ x y, pullback.fst,
-  f_id := λ x, infer_instance,
-  t := λ x y, (pullback_symmetry _ _).hom,
-  t_id := λ x, by simpa,
-  t' := λ x y z, glued_cover_t' 𝒰 x y z,
-  t_fac := λ x y z, by apply pullback.hom_ext; simp,
-  cocycle := λ x y z, glued_cover_cocycle 𝒰 x y z,
-  f_open := λ x, infer_instance }
-
-abbreviation glued := 𝒰.glued_cover.glued
-
-def from_glued : 𝒰.glued ⟶ X :=
-begin
-  fapply multicoequalizer.desc,
-  exact λ x, (𝒰.map x),
-  rintro ⟨x, y⟩,
-  change pullback.fst ≫ _ = ((pullback_symmetry _ _).hom ≫ pullback.fst) ≫ _,
-  simpa using pullback.condition
-end
-
-@[simp, reassoc]
-lemma ι_from_glued (x : 𝒰.J) :
-  𝒰.glued_cover.ι x ≫ 𝒰.from_glued = 𝒰.map x :=
-multicoequalizer.π_desc _ _ _ _ _
-
-lemma from_glued_injective : function.injective 𝒰.from_glued.1.base :=
-begin
-  intros x y h,
-  rcases 𝒰.glued_cover.ι_jointly_surjective x with ⟨i, x, rfl⟩,
-  rcases 𝒰.glued_cover.ι_jointly_surjective y with ⟨j, y, rfl⟩,
-  simp_rw [← comp_apply, ← SheafedSpace.comp_base, ← LocallyRingedSpace.comp_val] at h,
-  erw [ι_from_glued, ι_from_glued] at h,
-  let e := (Top.pullback_cone_is_limit _ _).cone_point_unique_up_to_iso
-    (is_limit_of_has_pullback_of_preserves_limit Scheme.forget_to_Top
-      (𝒰.map i) (𝒰.map j)),
-  rw 𝒰.glued_cover.ι_eq_iff,
-  right,
-  use e.hom ⟨⟨x,y⟩, h⟩,
-  simp_rw ← comp_apply,
-  split,
-  { erw is_limit.cone_point_unique_up_to_iso_hom_comp _ _ walking_cospan.left,
-    refl },
-  { erw pullback_symmetry_hom_comp_fst,
-    erw is_limit.cone_point_unique_up_to_iso_hom_comp _ _ walking_cospan.right,
-    refl }
-end
-
-instance from_glued_stalk_iso (x : 𝒰.glued_cover.glued.carrier) :
-  is_iso (PresheafedSpace.stalk_map 𝒰.from_glued.val x) :=
-begin
-  rcases 𝒰.glued_cover.ι_jointly_surjective x with ⟨i, x, rfl⟩,
-  have := PresheafedSpace.stalk_map.congr_hom _ _
-    (congr_arg subtype.val $ 𝒰.ι_from_glued i) x,
-  erw PresheafedSpace.stalk_map.comp at this,
-  rw ← is_iso.eq_comp_inv at this,
-  rw this,
-  apply_instance,
-end
-
-lemma from_glued_open_map : is_open_map 𝒰.from_glued.1.base :=
-begin
-  intros U hU,
-  rw is_open_iff_forall_mem_open,
-  intros x hx,
-  rw 𝒰.glued_cover.is_open_iff at hU,
-  use 𝒰.from_glued.val.base '' U ∩ set.range (𝒰.map (𝒰.f x)).1.base,
-  use set.inter_subset_left _ _,
-  split,
-  { rw ← set.image_preimage_eq_inter_range,
-    apply (show is_open_immersion (𝒰.map (𝒰.f x)), by apply_instance).base_open.is_open_map,
-    convert hU (𝒰.f x) using 1,
-    rw ← ι_from_glued, erw coe_comp, rw set.preimage_comp,
-    congr' 1,
-    refine set.preimage_image_eq _ 𝒰.from_glued_injective },
-  { exact ⟨hx, 𝒰.covers x⟩ }
-end
-
-lemma from_glued_open_embedding : open_embedding 𝒰.from_glued.1.base :=
-open_embedding_of_continuous_injective_open (by continuity) 𝒰.from_glued_injective
-  𝒰.from_glued_open_map
-
-instance : epi 𝒰.from_glued.val.base :=
-begin
-  rw Top.epi_iff_surjective,
-  intro x,
-  rcases 𝒰.covers x with ⟨y, h⟩,
-  use (𝒰.glued_cover.ι (𝒰.f x)).1.base y,
-  rw ← comp_apply,
-  rw ← 𝒰.ι_from_glued (𝒰.f x) at h,
-  exact h
-end
-
-instance from_glued_open_immersion : is_open_immersion 𝒰.from_glued :=
-SheafedSpace.is_open_immersion.of_stalk_iso _ 𝒰.from_glued_open_embedding
-
-instance : is_iso 𝒰.from_glued :=
-begin
-  apply is_iso_of_reflects_iso _ (Scheme.forget_to_LocallyRingedSpace ⋙
-    LocallyRingedSpace.forget_to_SheafedSpace ⋙ SheafedSpace.forget_to_PresheafedSpace),
-  change @is_iso (PresheafedSpace _) _ _ _ 𝒰.from_glued.val,
-  apply PresheafedSpace.is_open_immersion.to_iso,
-end
-
-def glue_morphism {Y : Scheme} (f : ∀ x, 𝒰.obj x ⟶ Y)
-  (hf : ∀ x y, (pullback.fst : pullback (𝒰.map x) (𝒰.map y) ⟶ _) ≫ f x = pullback.snd ≫ f y) :
-  X ⟶ Y :=
-begin
-  refine inv 𝒰.from_glued ≫ _,
-  fapply multicoequalizer.desc,
-  exact f,
-  rintro ⟨i, j⟩,
-  change pullback.fst ≫ f i = (_ ≫ _) ≫ f j,
-  erw pullback_symmetry_hom_comp_fst,
-  exact hf i j
-end
-
-lemma ι_glue_morphism {Y : Scheme} (f : ∀ x, 𝒰.obj x ⟶ Y)
-  (hf : ∀ x y, (pullback.fst : pullback (𝒰.map x) (𝒰.map y) ⟶ _) ≫ f x = pullback.snd ≫ f y)
-  (x : 𝒰.J) : (𝒰.map x) ≫ 𝒰.glue_morphism f hf = f x :=
-begin
-  rw [← ι_from_glued, category.assoc],
-  erw [is_iso.hom_inv_id_assoc, multicoequalizer.π_desc],
-end
-
 end open_cover
-
-def glue_data.open_cover (D : Scheme.glue_data) : open_cover D.glued :=
-{ J := D.J,
-  obj := D.U,
-  map := D.ι,
-  f := λ x, (D.ι_jointly_surjective x).some,
-  covers := λ x, ⟨_, (D.ι_jointly_surjective x).some_spec.some_spec⟩ }
 
 /-- (Xᵢ ×[Z] Y) ×[X] Xⱼ -/
 def V (x y : 𝒰.J) : Scheme :=
@@ -485,7 +306,7 @@ by { delta pullback_map, simp }
 
 def glued_lift : s.X ⟶ (gluing 𝒰 f g).glued :=
 begin
-  fapply (𝒰.pullback_cover s.fst).glue_morphism,
+  fapply (𝒰.pullback_cover s.fst).glue_morphisms,
   { exact λ x, (pullback_symmetry _ _).hom ≫
       pullback.map _ _ _ _ (𝟙 _) s.snd f (category.id_comp _).symm s.condition ≫
       (gluing 𝒰 f g).ι x },
@@ -522,7 +343,7 @@ begin
   erw multicoequalizer.π_desc_assoc,
   delta glued_lift,
   simp_rw ← category.assoc,
-  rw (𝒰.pullback_cover s.fst).ι_glue_morphism,
+  rw (𝒰.pullback_cover s.fst).ι_glue_morphisms,
   simp_rw category.assoc,
   erw [multicoequalizer.π_desc, pullback.lift_fst_assoc, pullback.condition, category.comp_id],
   rw pullback_symmetry_hom_comp_fst_assoc,
@@ -537,7 +358,7 @@ begin
   erw multicoequalizer.π_desc_assoc,
   delta glued_lift,
   simp_rw ← category.assoc,
-  rw (𝒰.pullback_cover s.fst).ι_glue_morphism,
+  rw (𝒰.pullback_cover s.fst).ι_glue_morphisms,
   simp_rw category.assoc,
   erw [multicoequalizer.π_desc, pullback.lift_snd],
   rw pullback_symmetry_hom_comp_snd_assoc,
@@ -653,7 +474,7 @@ begin
   rw open_cover.pullback_cover_map,
   have := pullback_right_pullback_fst_iso (p1 𝒰 f g) (𝒰.map x) m
     ≪≫ pullback.congr_hom h₁ rfl,
-  erw (𝒰.pullback_cover s.fst).ι_glue_morphism,
+  erw (𝒰.pullback_cover s.fst).ι_glue_morphisms,
   rw ← cancel_epi (pullback_right_pullback_fst_iso (p1 𝒰 f g) (𝒰.map x) m
     ≪≫ pullback.congr_hom h₁ rfl).hom,
   rw [iso.trans_hom, category.assoc, pullback.congr_hom_hom, pullback.lift_fst_assoc,
@@ -672,14 +493,8 @@ begin
     rw [← pullback.condition_assoc, h₂] }
 end
 
-section end
-
 lemma has_pullback_of_cover : has_pullback f g := ⟨⟨⟨_, glued_is_limit 𝒰 f g⟩⟩⟩
 
-instance Spec.preserves_limits : preserves_limits Spec := sorry
-instance Spec.full : full Spec := sorry
-instance Spec.faithful : faithful Spec := sorry
-instance : has_colimits CommRing := infer_instance
 instance : has_limits CommRingᵒᵖ := has_limits_op_of_has_colimits
 
 instance affine_has_pullback {A B C : CommRing}

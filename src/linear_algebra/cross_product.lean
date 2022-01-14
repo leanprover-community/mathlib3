@@ -51,11 +51,11 @@ begin
   { intros,
     simp [@vec3_add R _ _ _ _ _ _ _, add_comm, add_assoc, add_left_comm, add_mul, sub_eq_add_neg] },
   { intros,
-    simp [smul_vec3, mul_comm, mul_assoc, mul_left_comm, mul_add, sub_eq_add_neg] },
+    simp [@smul_vec3 R R _ _ _ _, mul_comm, mul_assoc, mul_left_comm, mul_add, sub_eq_add_neg] },
   { intros,
     simp [@vec3_add R _ _ _ _ _ _ _, add_comm, add_assoc, add_left_comm, mul_add, sub_eq_add_neg] },
   { intros,
-    simp [smul_vec3, mul_comm, mul_assoc, mul_left_comm, mul_add, sub_eq_add_neg] },
+    simp [@smul_vec3 R R _ _ _ _, mul_comm, mul_assoc, mul_left_comm, mul_add, sub_eq_add_neg] },
 end
 
 localized "infixl ` ×₃ `: 74 := cross_product" in matrix

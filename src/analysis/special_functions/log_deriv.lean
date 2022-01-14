@@ -354,8 +354,6 @@ end
 --  13614799/19642003, 49180508/70952475, 111975815/161546953, 385107953/555593334,
 --  497083768/717140287, 6847196937/9878417065, 48427462327/69866059742}
 
-set_option profiler true
-
 lemma log_two_near_20 : |log 2 - 48427462327/69866059742| ≤ 9/10^21 :=
 begin
   suffices : |log 2 - 48427462327/69866059742| ≤ 1/145891985508683145612 + (9/10^21 - 1/(4 * 3^41)),
@@ -366,15 +364,15 @@ begin
   rw [t, _root_.abs_sub_comm] at z,
   norm_num1 at z,
   apply le_trans (_root_.abs_sub_le _ _ _) (add_le_add z _),
-  simp_rw [sum_range_succ, sum_range_zero],
-  norm_num1,
-  sorry,
-  -- rw [abs_neg, abs_of_pos],
-  -- by { norm_num1 },
-  -- by { norm_num1 },
+  have : 2 * ∑ i in range 21, (1 / 3 : ℝ) ^ (2*i+1) / (2*i+1) - 48427462327 / 69866059742 =
+    -(130029316460388448573787 / 646081657495872133645625196314533858898489550),
+  { simp_rw [sum_range_succ, sum_range_zero],
+    norm_num1 },
+  rw this,
+  rw [abs_neg, abs_of_pos],
+  by { norm_num1 },
+  by { norm_num1 },
 end
-
-#exit
 
 lemma log_two_gt_d20 : 0.69314718055994530940 < log 2 :=
 lt_of_lt_of_le (by norm_num1) (sub_le.1 (abs_sub_le_iff.1 log_two_near_20).2)
@@ -400,23 +398,11 @@ begin
   { norm_num1 },
 end.
 
-example : (130029316460388448573787 / 646081657495872133645625196314533858898489550 : ℝ) ≤ 78256967394537077627 / 36472996377170786403000000000000000000000 :=
-begin
-  rw div_le_div_iff,
-  { norm_num1 },
-  simp only [zero_lt_bit0, bit1_pos],
-  -- { norm_num1 },
-  -- norm_num1,
-  -- simp only [zero_lt_bit0, zero_lt_bit1, bit1_pos],
-  -- library_search,
-end
-
-#exit
-
 lemma log_log_two_approx : |log (log 2) - sorry| ≤ 1/10^20 :=
 begin
   let l2 : ℝ := 48427462327/69866059742,
-  have := newbound,
+  have := real.abs_log_sub_add_sum_range_le,
+  -- have := newbound,
   -- have : log (log 2 / l2)
   -- have := log_two_near_20,
 end

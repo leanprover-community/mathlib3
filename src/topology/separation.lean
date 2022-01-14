@@ -87,7 +87,7 @@ If the space is also compact:
 https://en.wikipedia.org/wiki/Separation_axiom
 -/
 
-open set filter
+open set filter topological_space
 open_locale topological_space filter classical
 
 universes u v
@@ -1051,6 +1051,17 @@ begin
   exact ⟨t, h2t, h3t, compact_closure_of_subset_compact hKc h1t⟩
 end
 
+/--
+In a locally compact T₂ space, every compact set has an open neighborhood with compact closure.
+-/
+lemma exists_open_superset_and_is_compact_closure [locally_compact_space α] [t2_space α]
+  {K : set α} (hK : is_compact K) : ∃ V, is_open V ∧ K ⊆ V ∧ is_compact (closure V) :=
+begin
+  rcases exists_compact_superset hK with ⟨K', hK', hKK'⟩,
+  refine ⟨interior K', is_open_interior, hKK',
+    compact_closure_of_subset_compact hK' interior_subset⟩,
+end
+
 lemma is_preirreducible_iff_subsingleton [t2_space α] (S : set α) :
   is_preirreducible S ↔ subsingleton S :=
 begin
@@ -1181,6 +1192,42 @@ begin
   tauto
 end
 
+/--
+In a locally compact regular space, given a compact set `K` inside an open set `U`, we can find a
+compact set `K'` between these sets: `K` is inside the interior of `K'` and `K' ⊆ U`.
+-/
+lemma exists_compact_between [locally_compact_space α] [regular_space α]
+  {K U : set α} (hK : is_compact K) (hU : is_open U) (hKU : K ⊆ U) :
+  ∃ K', is_compact K' ∧ K ⊆ interior K' ∧ K' ⊆ U :=
+begin
+  choose C hxC hCU hC using λ x : K, nhds_is_closed (hU.mem_nhds $ hKU x.2),
+  choose L hL hxL using λ x : K, exists_compact_mem_nhds (x : α),
+  have : K ⊆ ⋃ x, interior (L x) ∩ interior (C x), from
+  λ x hx, mem_Union.mpr ⟨⟨x, hx⟩,
+    ⟨mem_interior_iff_mem_nhds.mpr (hxL _), mem_interior_iff_mem_nhds.mpr (hxC _)⟩⟩,
+  rcases hK.elim_finite_subcover _ _ this with ⟨t, ht⟩,
+  { refine ⟨⋃ x ∈ t, L x ∩ C x, t.compact_bUnion (λ x _, (hL x).inter_right (hC x)), λ x hx, _, _⟩,
+    { obtain ⟨y, hyt, hy : x ∈ interior (L y) ∩ interior (C y)⟩ := mem_bUnion_iff.mp (ht hx),
+      rw [← interior_inter] at hy,
+      refine interior_mono (subset_bUnion_of_mem hyt) hy },
+    { simp_rw [Union_subset_iff], rintro x -, exact (inter_subset_right _ _).trans (hCU _) } },
+  { exact λ _, is_open_interior.inter is_open_interior }
+end
+
+/--
+In a locally compact regular space, given a compact set `K` inside an open set `U`, we can find a
+open set `V` between these sets with compact closure: `K ⊆ V` and the closure of `V` is inside `U`.
+-/
+lemma exists_open_between_and_is_compact_closure [locally_compact_space α] [regular_space α]
+  {K U : set α} (hK : is_compact K) (hU : is_open U) (hKU : K ⊆ U) :
+  ∃ V, is_open V ∧ K ⊆ V ∧ closure V ⊆ U ∧ is_compact (closure V) :=
+begin
+  rcases exists_compact_between hK hU hKU with ⟨V, hV, hKV, hVU⟩,
+  refine ⟨interior V, is_open_interior, hKV,
+    (closure_minimal interior_subset hV.is_closed).trans hVU,
+    compact_closure_of_subset_compact hV interior_subset⟩,
+end
+
 end regularity
 
 section normality
@@ -1225,8 +1272,6 @@ begin
   simp only [disjoint_iff],
   exact compact_compact_separated hs.is_compact ht.is_compact st.eq_bot
 end
-
-open topological_space
 
 variable (α)
 
@@ -1352,8 +1397,6 @@ end
 
 section profinite
 
-open topological_space
-
 variables [t2_space α]
 
 /-- A Hausdorff space with a clopen basis is totally separated. -/
@@ -1442,8 +1485,6 @@ lemma compact_exists_clopen_in_open {x : α} {U : set α} (is_open : is_open U) 
 end profinite
 
 section locally_compact
-
-open topological_space
 
 variables {H : Type*} [topological_space H] [locally_compact_space H] [t2_space H]
 

@@ -52,11 +52,6 @@ def rotation : circle →* (ℂ ≃ₗᵢ[ℝ] ℂ) :=
 
 @[simp] lemma rotation_apply (a : circle) (z : ℂ) : rotation a z = a * z := rfl
 
-lemma linear_isometry_equiv.congr_fun {R E F}
-  [semiring R] [semi_normed_group E] [semi_normed_group F] [module R E] [module R F]
-  {f g : E ≃ₗᵢ[R] F} (h : f = g) (x : E) : f x = g x :=
-congr_arg _ h
-
 lemma rotation_ne_conj_lie (a : circle) : rotation a ≠ conj_lie :=
 begin
   intro h,

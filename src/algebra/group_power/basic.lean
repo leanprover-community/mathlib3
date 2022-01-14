@@ -381,6 +381,33 @@ by simp [sq]
 
 alias neg_sq ← neg_pow_two
 
+/- Copies of the above ring lemmas for `units R`. -/
+namespace units
+
+section
+variables (R)
+theorem neg_one_pow_eq_or : ∀ n : ℕ, (-1 : Rˣ)^n = 1 ∨ (-1 : Rˣ)^n = -1
+| 0     := or.inl (pow_zero _)
+| (n+1) := (neg_one_pow_eq_or n).swap.imp
+  (λ h, by rw [pow_succ, h, ←units.neg_eq_neg_one_mul, units.neg_neg])
+  (λ h, by rw [pow_succ, h, mul_one])
+
+end
+
+theorem neg_pow (a : Rˣ) (n : ℕ) : (- a) ^ n = (-1) ^ n * a ^ n :=
+(units.neg_eq_neg_one_mul a).symm ▸ (commute.units_neg_one_left a).mul_pow n
+
+@[simp] theorem neg_pow_bit0 (a : Rˣ) (n : ℕ) : (- a) ^ (bit0 n) = a ^ (bit0 n) :=
+by rw [pow_bit0', units.neg_mul_neg, pow_bit0']
+
+@[simp] theorem neg_pow_bit1 (a : Rˣ) (n : ℕ) : (- a) ^ (bit1 n) = - a ^ (bit1 n) :=
+by simp only [bit1, pow_succ, neg_pow_bit0, units.neg_mul_eq_neg_mul]
+
+@[simp] lemma neg_sq (a : Rˣ) : (-a)^2 = a^2 :=
+by simp [sq]
+
+end units
+
 end ring
 
 section comm_ring
@@ -399,6 +426,18 @@ lemma sub_sq (a b : R) : (a - b) ^ 2 = a ^ 2 - 2 * a * b + b ^ 2 :=
 by rw [sub_eq_add_neg, add_sq, neg_sq, mul_neg_eq_neg_mul_symm, ← sub_eq_add_neg]
 
 alias sub_sq ← sub_pow_two
+
+/- Copies of the above comm_ring lemmas for `units R`. -/
+namespace units
+
+lemma eq_or_eq_neg_of_sq_eq_sq [is_domain R] (a b : Rˣ) (h : a ^ 2 = b ^ 2) : a = b ∨ a = -b :=
+begin
+  refine (eq_or_eq_neg_of_sq_eq_sq _ _ _).imp (λ h, units.ext h) (λ h, units.ext h),
+  replace h := congr_arg (coe : Rˣ → R) h,
+  rwa [units.coe_pow, units.coe_pow] at h,
+end
+
+end units
 
 end comm_ring
 

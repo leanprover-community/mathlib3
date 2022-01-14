@@ -798,6 +798,22 @@ units.ext $ neg_mul_eq_neg_mul_symm _ _
 @[simp] protected theorem mul_neg (u₁ u₂ : αˣ) : u₁ * -u₂ = -(u₁ * u₂) :=
 units.ext $ (neg_mul_eq_mul_neg _ _).symm
 
+/-- `units` version of `neg_mul_eq_neg_mul`. -/
+lemma neg_mul_eq_neg_mul (a b : αˣ) : -(a * b) = -a * b :=
+by simp
+
+/-- `units` version of `neg_mul_eq_mul_neg`. -/
+lemma neg_mul_eq_mul_neg (a b : αˣ) : -(a * b) = a * -b :=
+by simp
+
+/-- `units` version of `neg_mul_eq_neg_mul_symm`. -/
+@[simp] lemma neg_mul_eq_neg_mul_symm (a b : αˣ) : - a * b = - (a * b) :=
+eq.symm (neg_mul_eq_neg_mul a b)
+
+/-- `units` version of `mul_neg_eq_neg_mul_symm`. -/
+@[simp] lemma mul_neg_eq_neg_mul_symm (a b : αˣ) : a * - b = - (a * b) :=
+eq.symm (neg_mul_eq_mul_neg a b)
+
 /-- Multiplication of the additive inverses of two elements of a ring's unit group equals
     multiplication of the two original elements. -/
 @[simp] protected theorem neg_mul_neg (u₁ u₂ : αˣ) : -u₁ * -u₂ = u₁ * u₂ := by simp
@@ -805,6 +821,10 @@ units.ext $ (neg_mul_eq_mul_neg _ _).symm
 /-- The additive inverse of an element of a ring's unit group equals the additive inverse of
     one times the original element. -/
 protected theorem neg_eq_neg_one_mul (u : αˣ) : -u = -1 * u := by simp
+
+lemma mul_neg_one (a : α) : a * -1 = -a := by simp
+
+lemma neg_one_mul (a : α) : -1 * a = -a := by simp
 
 end units
 
@@ -1134,6 +1154,7 @@ by simp only [semiconj_by, left_distrib, right_distrib, h.eq, h'.eq]
   semiconj_by (a + b) x y :=
 by simp only [semiconj_by, left_distrib, right_distrib, ha.eq, hb.eq]
 
+section
 variables [ring R] {a b x y x' y' : R}
 
 lemma neg_right (h : semiconj_by a x y) : semiconj_by a (-x) (-y) :=
@@ -1162,6 +1183,32 @@ by simpa only [sub_eq_add_neg] using h.add_right h'.neg_right
   semiconj_by (a - b) x y :=
 by simpa only [sub_eq_add_neg] using ha.add_left hb.neg_left
 
+end
+
+/- Copies of the above ring lemmas for `units R`. -/
+section units
+variables [ring R] {a b x y x' y' : Rˣ}
+
+lemma units_neg_right (h : semiconj_by a x y) : semiconj_by a (-x) (-y) :=
+by simp only [semiconj_by, h.eq, units.neg_mul_eq_neg_mul_symm, units.mul_neg_eq_neg_mul_symm]
+
+@[simp] lemma units_neg_right_iff : semiconj_by a (-x) (-y) ↔ semiconj_by a x y :=
+⟨λ h, units.neg_neg x ▸ units.neg_neg y ▸ h.units_neg_right, semiconj_by.units_neg_right⟩
+
+lemma units_neg_left (h : semiconj_by a x y) : semiconj_by (-a) x y :=
+by simp only [semiconj_by, h.eq, units.neg_mul_eq_neg_mul_symm, units.mul_neg_eq_neg_mul_symm]
+
+@[simp] lemma units_neg_left_iff : semiconj_by (-a) x y ↔ semiconj_by a x y :=
+⟨λ h, units.neg_neg a ▸ h.units_neg_left, semiconj_by.units_neg_left⟩
+
+@[simp] lemma units_neg_one_right (a : Rˣ) : semiconj_by a (-1) (-1) :=
+(one_right a).units_neg_right
+
+@[simp] lemma units_neg_one_left (x : Rˣ) : semiconj_by (-1) x x :=
+(semiconj_by.one_left x).units_neg_left
+
+end units
+
 end semiconj_by
 
 namespace commute
@@ -1186,6 +1233,7 @@ h.bit0_right.add_right (commute.one_right x)
 lemma bit1_left [semiring R] {x y : R} (h : commute x y) : commute (bit1 x) y :=
 h.bit0_left.add_left (commute.one_left y)
 
+section
 variables [ring R] {a b c : R}
 
 theorem neg_right : commute a b → commute a (- b) := semiconj_by.neg_right
@@ -1199,5 +1247,23 @@ theorem neg_left : commute a b → commute (- a) b := semiconj_by.neg_left
 
 @[simp] theorem sub_right : commute a b → commute a c → commute a (b - c) := semiconj_by.sub_right
 @[simp] theorem sub_left : commute a c → commute b c → commute (a - b) c := semiconj_by.sub_left
+
+end
+
+/- Copies of the above ring lemmas for `units R`. -/
+section units
+variables [ring R] {a b c : Rˣ}
+
+theorem units_neg_right : commute a b → commute a (- b) := semiconj_by.units_neg_right
+@[simp] theorem units_neg_right_iff : commute a (-b) ↔ commute a b :=
+semiconj_by.units_neg_right_iff
+
+theorem units_neg_left : commute a b → commute (- a) b := semiconj_by.units_neg_left
+@[simp] theorem units_neg_left_iff : commute (-a) b ↔ commute a b := semiconj_by.units_neg_left_iff
+
+@[simp] theorem units_neg_one_right (a : Rˣ) : commute a (-1) := semiconj_by.units_neg_one_right a
+@[simp] theorem units_neg_one_left (a : Rˣ) : commute (-1) a := semiconj_by.units_neg_one_left a
+
+end units
 
 end commute

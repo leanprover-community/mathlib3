@@ -43,6 +43,14 @@ variable {M}
 
 @[simp, to_additive] lemma coe_hom_apply (x : Mˣ) : coe_hom M x = ↑x := rfl
 
+@[simp, norm_cast, to_additive]
+lemma coe_pow (u : Mˣ) (n : ℕ) : ((u ^ n : Mˣ) : M) = u ^ n :=
+(units.coe_hom M).map_pow u n
+
+@[simp, norm_cast, to_additive]
+lemma coe_zpow {G} [group G] (u : Gˣ) (n : ℤ) : ((u ^ n : Gˣ) : G) = u ^ n :=
+(units.coe_hom G).map_zpow u n
+
 /-- If a map `g : M → Nˣ` agrees with a homomorphism `f : M →* N`, then
 this map is a monoid homomorphism too. -/
 @[to_additive "If a map `g : M → add_units N` agrees with a homomorphism `f : M →+ N`, then this map

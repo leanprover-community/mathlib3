@@ -170,10 +170,6 @@ theorem zpow_bit0 (a : G) (n : ℤ) : a ^ bit0 n = a ^ n * a ^ n := zpow_add _ _
 theorem zpow_bit1 (a : G) (n : ℤ) : a ^ bit1 n = a ^ n * a ^ n * a :=
 by rw [bit1, zpow_add, zpow_bit0, zpow_one]
 
-@[simp, norm_cast, to_additive]
-lemma units.coe_zpow (u : Gˣ) (n : ℤ) : ((u ^ n : Gˣ) : G) = u ^ n :=
-(units.coe_hom G).map_zpow u n
-
 end group
 
 section ordered_add_comm_group

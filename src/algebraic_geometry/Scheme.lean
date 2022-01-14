@@ -61,6 +61,14 @@ def forget_to_LocallyRingedSpace : Scheme ⥤ LocallyRingedSpace :=
 def forget_to_Top : Scheme ⥤ Top :=
   Scheme.forget_to_LocallyRingedSpace ⋙ LocallyRingedSpace.forget_to_Top
 
+@[reassoc]
+lemma comp_val {X Y Z : Scheme} (f : X ⟶ Y) (g : Y ⟶ Z) :
+  (f ≫ g).val = f.val ≫ g.val := rfl
+
+@[reassoc, simp]
+lemma comp_val_base {X Y Z : Scheme} (f : X ⟶ Y) (g : Y ⟶ Z) :
+  (f ≫ g).val.base = f.val.base ≫ g.val.base := rfl
+
 @[reassoc, simp]
 lemma comp_val_c_app {X Y Z : Scheme} (f : X ⟶ Y) (g : Y ⟶ Z) (U) :
   (f ≫ g).val.c.app U = g.val.c.app U ≫ f.val.c.app _ := rfl
@@ -153,15 +161,18 @@ lemma mem_basic_open_top (f : X.presheaf.obj (op ⊤)) (x : X.carrier) :
 RingedSpace.mem_basic_open _ f ⟨x, trivial⟩
 
 @[simp]
-lemma basic_open_res (i : V ⟶ U) :
-  X.basic_open (X.presheaf.map i.op f) = V ∩ X.basic_open f :=
-RingedSpace.basic_open_res _ i.op f
+lemma basic_open_res (i : op U ⟶ op V) :
+  X.basic_open (X.presheaf.map i f) = V ∩ X.basic_open f :=
+RingedSpace.basic_open_res _ i f
 
 -- This should fire before `basic_open_res`.
 @[simp, priority 1100]
-lemma basic_open_res_eq (i : V ⟶ U) [is_iso i] :
-  X.basic_open (X.presheaf.map i.op f) = X.basic_open f :=
-RingedSpace.basic_open_res_eq _ i.op f
+lemma basic_open_res_eq (i : op U ⟶ op V) [is_iso i] :
+  X.basic_open (X.presheaf.map i f) = X.basic_open f :=
+RingedSpace.basic_open_res_eq _ i f
+
+lemma basic_open_subset : X.basic_open f ⊆ U :=
+RingedSpace.basic_open_subset _ _
 
 lemma preimage_basic_open {X Y : Scheme} (f : X ⟶ Y) {U : opens Y.carrier}
   (r : Y.presheaf.obj $ op U) :

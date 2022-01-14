@@ -25,6 +25,7 @@ We also define predicates about affine schemes and affine open sets.
   `AffineScheme.Γ : AffineSchemeᵒᵖ ⥤ CommRing`.
 * `algebraic_geometry.is_affine_open`: An open subset of a scheme is affine if the open subscheme is
   affine.
+* `algebraic_geometry.is_affine_open.from_Spec`: The immersion `Spec 𝒪ₓ(U) ⟶ X` for an affine `U`.
 
 -/
 
@@ -134,6 +135,178 @@ begin
   refine ⟨⟨S, X.affine_basis_cover_is_basis.is_open hS⟩, _, hxS, hSU⟩,
   rcases hS with ⟨i, rfl⟩,
   exact range_is_affine_open_of_open_immersion _,
+end
+
+/-- The open immersion `Spec 𝒪ₓ(U) ⟶ X` for an affine `U`. -/
+def is_affine_open.from_Spec {X : Scheme} {U : opens X.carrier} (hU : is_affine_open U) :
+  Scheme.Spec.obj (op $ X.presheaf.obj $ op U) ⟶ X :=
+begin
+  haveI : is_affine (X.restrict U.open_embedding) := hU,
+  have : U.open_embedding.is_open_map.functor.obj ⊤ = U,
+  { ext1, exact set.image_univ.trans subtype.range_coe },
+  exact Scheme.Spec.map (X.presheaf.map (eq_to_hom this.symm).op).op ≫
+    (X.restrict U.open_embedding).iso_Spec.inv ≫ X.of_restrict _
+end
+
+instance is_affine_open.is_open_immersion_from_Spec {X : Scheme} {U : opens X.carrier}
+  (hU : is_affine_open U) :
+  is_open_immersion hU.from_Spec :=
+by { delta is_affine_open.from_Spec, apply_instance }
+
+lemma is_affine_open.from_Spec_range {X : Scheme} {U : opens X.carrier} (hU : is_affine_open U) :
+  set.range hU.from_Spec.1.base = (U : set X.carrier) :=
+begin
+  delta is_affine_open.from_Spec,
+  erw [← category.assoc, Scheme.comp_val_base],
+  rw [coe_comp, set.range_comp, set.range_iff_surjective.mpr, set.image_univ],
+  exact subtype.range_coe,
+  rw ← Top.epi_iff_surjective,
+  apply_instance
+end
+
+lemma is_affine_open.from_Spec_image_top {X : Scheme} {U : opens X.carrier}
+  (hU : is_affine_open U) :
+  hU.is_open_immersion_from_Spec.base_open.is_open_map.functor.obj ⊤ = U :=
+by { ext1, exact set.image_univ.trans hU.from_Spec_range }
+
+lemma is_affine_open.is_compact {X : Scheme} {U : opens X.carrier} (hU : is_affine_open U) :
+  is_compact (U : set X.carrier) :=
+begin
+  convert @is_compact.image _ _ _ _ set.univ hU.from_Spec.1.base
+    prime_spectrum.compact_space.1 (by continuity),
+  convert hU.from_Spec_range.symm,
+  exact set.image_univ
+end
+
+instance Scheme.quasi_compact_of_affine (X : Scheme) [is_affine X] : compact_space X.carrier :=
+⟨(top_is_affine_open X).is_compact⟩
+
+lemma is_affine_open.from_Spec_base_preimage
+  {X : Scheme} {U : opens X.carrier} (hU : is_affine_open U) :
+    (opens.map hU.from_Spec.val.base).obj U = ⊤ :=
+begin
+  ext1,
+  change hU.from_Spec.1.base ⁻¹' (U : set X.carrier) = set.univ,
+  rw [← hU.from_Spec_range, ← set.image_univ],
+  exact set.preimage_image_eq _ PresheafedSpace.is_open_immersion.base_open.inj
+end
+
+lemma Scheme.Spec_map_presheaf_map_eq_to_hom {X : Scheme} {U V : opens X.carrier} (h : U = V) (W) :
+  (Scheme.Spec.map (X.presheaf.map (eq_to_hom h).op).op).val.c.app W =
+    eq_to_hom (by { cases h, dsimp, induction W using opposite.rec, congr, ext1, simpa }) :=
+begin
+  have : Scheme.Spec.map (X.presheaf.map (𝟙 (op U))).op = 𝟙 _,
+  { rw [X.presheaf.map_id, op_id, Scheme.Spec.map_id]  },
+  cases h,
+  refine (Scheme.congr_app this _).trans _,
+  erw category.id_comp,
+  simpa
+end
+
+lemma is_affine_open.Spec_Γ_identity_hom_app_from_Spec {X : Scheme} {U : opens X.carrier}
+  (hU : is_affine_open U) :
+  (Spec_Γ_identity.hom.app (X.presheaf.obj $ op U)) ≫ hU.from_Spec.1.c.app (op U) =
+    (Scheme.Spec.obj _).presheaf.map (eq_to_hom hU.from_Spec_base_preimage).op :=
+begin
+  haveI : is_affine _ := hU,
+  have e₁ :=
+    Spec_Γ_identity.hom.naturality (X.presheaf.map (eq_to_hom U.open_embedding_obj_top).op),
+  rw ← is_iso.comp_inv_eq at e₁,
+  have e₂ := Γ_Spec.adjunction_unit_app_app_top (X.restrict U.open_embedding),
+  erw ← e₂ at e₁,
+  simp only [functor.id_map, quiver.hom.unop_op, functor.comp_map, ← functor.map_inv, ← op_inv,
+    LocallyRingedSpace.Γ_map, category.assoc, functor.right_op_map, inv_eq_to_hom] at e₁,
+  delta is_affine_open.from_Spec Scheme.iso_Spec,
+  rw [Scheme.comp_val_c_app, Scheme.comp_val_c_app, ← e₁],
+  simp_rw category.assoc,
+  erw ← X.presheaf.map_comp_assoc,
+  rw ← op_comp,
+  have e₃ : U.open_embedding.is_open_map.adjunction.counit.app U ≫
+    eq_to_hom U.open_embedding_obj_top.symm =
+    U.open_embedding.is_open_map.functor.map (eq_to_hom U.inclusion_map_eq_top) :=
+    subsingleton.elim _ _,
+  have e₄ : X.presheaf.map _ ≫ _ = _ :=
+    (as_iso (Γ_Spec.adjunction.unit.app (X.restrict U.open_embedding)))
+    .inv.1.c.naturality_assoc (eq_to_hom U.inclusion_map_eq_top).op _,
+  erw [e₃, e₄, ← Scheme.comp_val_c_app_assoc, iso.inv_hom_id],
+  simp only [eq_to_hom_map, eq_to_hom_op, Scheme.Spec_map_presheaf_map_eq_to_hom],
+  erw [Scheme.Spec_map_presheaf_map_eq_to_hom, category.id_comp],
+  simpa only [eq_to_hom_trans]
+end
+
+@[elementwise]
+lemma is_affine_open.from_Spec_app_eq {X : Scheme} {U : opens X.carrier}
+  (hU : is_affine_open U) :
+  hU.from_Spec.1.c.app (op U) = Spec_Γ_identity.inv.app (X.presheaf.obj $ op U) ≫
+    (Scheme.Spec.obj _).presheaf.map (eq_to_hom hU.from_Spec_base_preimage).op :=
+by rw [← hU.Spec_Γ_identity_hom_app_from_Spec, iso.inv_hom_id_app_assoc]
+
+lemma is_affine_open.basic_open_is_affine {X : Scheme} {U : opens X.carrier}
+  (hU : is_affine_open U) (f : X.presheaf.obj (op U)) : is_affine_open (X.basic_open f) :=
+begin
+  convert range_is_affine_open_of_open_immersion (Scheme.Spec.map (CommRing.of_hom
+    (algebra_map (X.presheaf.obj (op U)) (localization.away f))).op ≫ hU.from_Spec),
+  ext1,
+  rw subtype.coe_mk,
+  have : hU.from_Spec.val.base '' (hU.from_Spec.val.base ⁻¹' (X.basic_open f : set X.carrier)) =
+    (X.basic_open f : set X.carrier),
+  { rw [set.image_preimage_eq_inter_range, set.inter_eq_left_iff_subset, hU.from_Spec_range],
+    exact Scheme.basic_open_subset _ _ },
+  rw Scheme.comp_val_base,
+  rw [← this, coe_comp, set.range_comp],
+  congr' 1,
+  refine (congr_arg coe $ Scheme.preimage_basic_open hU.from_Spec f).trans _,
+  refine eq.trans _ (prime_spectrum.localization_away_comap_range (localization.away f) f).symm,
+  congr' 1,
+  have : (opens.map hU.from_Spec.val.base).obj U = ⊤,
+  { ext1,
+    change hU.from_Spec.1.base ⁻¹' (U : set X.carrier) = set.univ,
+    rw [← hU.from_Spec_range, ← set.image_univ],
+    exact set.preimage_image_eq _ PresheafedSpace.is_open_immersion.base_open.inj },
+  refine eq.trans _ (basic_open_eq_of_affine f),
+  have lm : ∀ s, (opens.map hU.from_Spec.val.base).obj U ⊓ s = s := λ s, this.symm ▸ top_inf_eq,
+  refine eq.trans _ (lm _),
+  refine eq.trans _
+    ((Scheme.Spec.obj $ op $ X.presheaf.obj $ op U).basic_open_res _ (eq_to_hom this).op),
+  rw ← comp_apply,
+  congr' 2,
+  rw iso.eq_inv_comp,
+  erw hU.Spec_Γ_identity_hom_app_from_Spec,
+  congr
+end
+
+lemma map_prime_spectrum_basic_open_of_affine (X : Scheme) [is_affine X] (x : Scheme.Γ.obj (op X)) :
+  (opens.map X.iso_Spec.hom.1.base).obj (prime_spectrum.basic_open x) = X.basic_open x :=
+begin
+  rw ← basic_open_eq_of_affine,
+  transitivity (opens.map X.iso_Spec.hom.1.base).obj ((Scheme.Spec.obj
+    (op (Scheme.Γ.obj (op X)))).basic_open ((inv (X.iso_Spec.hom.1.c.app
+      (op ((opens.map (inv X.iso_Spec.hom).val.base).obj ⊤)))) ((X.presheaf.map (eq_to_hom _)) x))),
+  congr,
+  { rw [← is_iso.inv_eq_inv, is_iso.inv_inv, is_iso.iso.inv_inv, nat_iso.app_hom],
+    erw ← Γ_Spec.adjunction_unit_app_app_top,
+    refl },
+  { rw eq_to_hom_map, refl },
+  { dsimp, congr },
+  { refine (Scheme.preimage_basic_open _ _).trans _,
+    rw [is_iso.inv_hom_id_apply, Scheme.basic_open_res_eq] }
+end
+
+lemma is_basis_basic_open (X : Scheme) [is_affine X] :
+  opens.is_basis (set.range (X.basic_open : X.presheaf.obj (op ⊤) → opens X.carrier)) :=
+begin
+  delta opens.is_basis,
+  convert prime_spectrum.is_basis_basic_opens.inducing
+    (Top.homeo_of_iso (Scheme.forget_to_Top.map_iso X.iso_Spec)).inducing using 1,
+  ext,
+  simp only [set.mem_image, exists_exists_eq_and],
+  split,
+  { rintro ⟨_, ⟨x, rfl⟩, rfl⟩,
+    refine ⟨_, ⟨_, ⟨x, rfl⟩, rfl⟩, _⟩,
+    exact congr_arg subtype.val (X.map_prime_spectrum_basic_open_of_affine x) },
+  { rintro ⟨_, ⟨_, ⟨x, rfl⟩, rfl⟩, rfl⟩,
+    refine ⟨_, ⟨x, rfl⟩, _⟩,
+    exact congr_arg subtype.val (X.map_prime_spectrum_basic_open_of_affine x).symm }
 end
 
 end algebraic_geometry

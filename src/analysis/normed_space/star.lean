@@ -7,6 +7,7 @@ Authors: Frédéric Dupuis
 import analysis.normed.group.hom
 import analysis.normed_space.basic
 import analysis.normed_space.linear_isometry
+import algebra.star.unitary
 
 /-!
 # Normed star rings and algebras
@@ -136,6 +137,28 @@ begin
   { exact h.symm },
   { exfalso,
     exact one_ne_zero (norm_eq_zero.mp h) }
+end
+
+@[simp] lemma norm_coe_unitary [nontrivial E] (U : unitary E) : ∥(U : E)∥ = 1 :=
+begin
+  have := calc
+    ∥(U : E)∥^2 = ∥(U : E)∥ * ∥(U : E)∥ : pow_two _
+           ...  = ∥(U⋆ * U : E)∥        : cstar_ring.norm_star_mul_self.symm
+           ...  = ∥(1 : E)∥             : by simp only [set_like.coe_mem, unitary.mem_star_mul_self]
+           ...  = 1                     : cstar_ring.norm_one,
+  refine (sq_eq_sq (norm_nonneg _) zero_le_one).mp _,
+  rw [one_pow 2, this],
+end
+
+@[simp] lemma norm_coe_unitary_mul [nontrivial E] (U : unitary E) (A : E) : ∥(U : E) * A∥ = ∥A∥ :=
+begin
+  refine le_antisymm _ _,
+  { calc _  ≤ ∥(U : E)∥ * ∥A∥     : norm_mul_le _ _
+        ... = ∥A∥                 : by rw [norm_coe_unitary, one_mul] },
+  { calc ∥A∥ = ∥(U : E)⋆ * U * A∥  : by { nth_rewrite_lhs 0 [←one_mul A],
+                                         rw [←unitary.coe_star_mul_self U, mul_assoc] }
+        ... ≤ ∥(U : E)⋆∥ * ∥(U : E) * A∥   : by { rw [mul_assoc], exact norm_mul_le _ _ }
+        ... = ∥(U : E) * A∥   : by simp only [one_mul, norm_coe_unitary, norm_star] }
 end
 
 end cstar_ring

@@ -59,6 +59,93 @@ variables {E F : Type*} [normed_group E] [normed_space ℝ E]
 
 include s_conv xs hx hf
 
+namespace  convex.taylor_approx_two_segment
+
+variables (h : ℝ) (v w : E)
+
+noncomputable def g :=
+λ t, f (x + h • v + (t * h) • w) - (t * h) • f' x w  - (t * h^2) • f'' v w
+    - ((t * h)^2/2) • f'' w w
+
+noncomputable def g' :=
+λ t, f' (x + h • v + (t * h) • w) (h • w) - h • f' x w
+    - h^2 • f'' v w - (t * h^2) • f'' w w
+
+lemma g_deriv
+  (xt_mem : ∀ t ∈ Icc (0 : ℝ) 1, x + h • v + (t * h) • w ∈ interior s) :
+  ∀ t ∈ Icc (0 : ℝ) 1,
+  has_deriv_within_at (g s_conv hf xs hx h v w) (g' s_conv hf xs hx h v w t) (Icc 0 1) t := by
+{ assume t ht,
+  apply_rules [has_deriv_within_at.sub, has_deriv_within_at.add],
+  { refine (hf _ _).comp_has_deriv_within_at _ _,
+    { exact xt_mem t ht },
+    apply_rules [has_deriv_at.has_deriv_within_at, has_deriv_at.const_add,
+      has_deriv_at.smul_const, has_deriv_at_mul_const] },
+  { apply_rules [has_deriv_at.has_deriv_within_at, has_deriv_at.smul_const,
+      has_deriv_at_mul_const] },
+  { apply_rules [has_deriv_at.has_deriv_within_at, has_deriv_at.smul_const,
+      has_deriv_at_mul_const] },
+  { suffices H : has_deriv_within_at (λ u, ((u * h) ^ 2 / 2) • f'' w w)
+      (((((2 : ℕ) : ℝ) * (t * h) ^ (2  - 1) * (1 * h))/2) • f'' w w) (Icc 0 1) t,
+    { convert H using 2,
+      simp only [one_mul, nat.cast_bit0, pow_one, nat.cast_one],
+      ring },
+    apply_rules [has_deriv_at.has_deriv_within_at, has_deriv_at.smul_const, has_deriv_at_id',
+      has_deriv_at.pow, has_deriv_at.mul_const] } }
+
+lemma g'_bound (h : ℝ) (v w : E) (ε : ℝ) (εpos : 0 < ε) (δ : ℝ) (hδ : h * (∥v∥ + ∥w∥) < δ)
+  (sδ : metric.ball x δ ∩ interior s ⊆
+    {x_1 : E | (λ (x_1 : E), ∥f' x_1 - f' x - f'' (x_1 - x)∥ ≤ ε * ∥x_1 - x∥) x_1}) (hpos : 0 < h)
+  (xt_mem : ∀ t ∈ Icc (0 : ℝ) 1, x + h • v + (t * h) • w ∈ interior s) : ∀ t ∈ Ico (0 : ℝ) 1,
+  ∥g' s_conv hf xs hx h v w t∥ ≤ ε * ((∥v∥ + ∥w∥) * ∥w∥) * h^2 := by
+{ assume t ht,
+  have I : ∥h • v + (t * h) • w∥ ≤ h * (∥v∥ + ∥w∥) := calc
+    ∥h • v + (t * h) • w∥ ≤ ∥h • v∥ + ∥(t * h) • w∥ : norm_add_le _ _
+    ... = h * ∥v∥ + t * (h * ∥w∥) :
+      by simp only [norm_smul, real.norm_eq_abs, hpos.le, abs_of_nonneg, abs_mul, ht.left,
+                    mul_assoc]
+    ... ≤ h * ∥v∥ + 1 * (h * ∥w∥) :
+      add_le_add (le_refl _) (mul_le_mul_of_nonneg_right ht.2.le
+        (mul_nonneg hpos.le (norm_nonneg _)))
+    ... = h * (∥v∥ + ∥w∥) : by ring,
+  calc ∥g' s_conv hf xs hx h v w t∥ = ∥(f' (x + h • v + (t * h) • w) - f' x - f'' (h • v + (t * h) • w)) (h • w)∥ :
+  begin
+    rw g',
+    have : h * (t * h) = t * (h * h), by ring,
+    simp only [continuous_linear_map.coe_sub', continuous_linear_map.map_add, pow_two,
+      continuous_linear_map.add_apply, pi.smul_apply, smul_sub, smul_add, smul_smul, ← sub_sub,
+      continuous_linear_map.coe_smul', pi.sub_apply, continuous_linear_map.map_smul, this]
+  end
+  ... ≤ ∥f' (x + h • v + (t * h) • w) - f' x - f'' (h • v + (t * h) • w)∥ * ∥h • w∥ :
+    continuous_linear_map.le_op_norm _ _
+  ... ≤ (ε * ∥h • v + (t * h) • w∥) * (∥h • w∥) :
+  begin
+    apply mul_le_mul_of_nonneg_right _ (norm_nonneg _),
+    have H : x + h • v + (t * h) • w ∈ metric.ball x δ ∩ interior s,
+    { refine ⟨_, xt_mem t ⟨ht.1, ht.2.le⟩⟩,
+      rw [add_assoc, add_mem_ball_iff_norm],
+      exact I.trans_lt hδ },
+    have := sδ H,
+    simp_rw [mem_set_of_eq, add_assoc x, add_sub_cancel', ←add_assoc x] at this,
+    exact this
+  end
+  ... ≤ (ε * (∥h • v∥ + ∥h • w∥)) * (∥h • w∥) :
+  begin
+    apply mul_le_mul_of_nonneg_right _ (norm_nonneg _),
+    apply mul_le_mul_of_nonneg_left _ (εpos.le),
+    apply (norm_add_le _ _).trans,
+    refine add_le_add (le_refl _) _,
+    simp only [norm_smul, real.norm_eq_abs, abs_mul, abs_of_nonneg, ht.1, hpos.le, mul_assoc],
+    exact mul_le_of_le_one_left (mul_nonneg hpos.le (norm_nonneg _)) ht.2.le,
+  end
+  ... = ε * ((∥v∥ + ∥w∥) * ∥w∥) * h^2 :
+    by { simp only [norm_smul, real.norm_eq_abs, abs_mul, abs_of_nonneg, hpos.le], ring } }
+
+end convex.taylor_approx_two_segment
+
+section
+open convex.taylor_approx_two_segment
+
 /-- Assume that `f` is differentiable inside a convex set `s`, and that its derivative `f'` is
 differentiable at a point `x`. Then, given two vectors `v` and `w` pointing inside `s`, one can
 Taylor-expand to order two the function `f` on the segment `[x + h v, x + h (v + w)]`, giving a
@@ -77,8 +164,9 @@ begin
   apply is_o.trans_is_O (is_o_iff.2 (λ ε εpos, _)) (is_O_const_mul_self ((∥v∥ + ∥w∥) * ∥w∥) _ _),
   -- consider a ball of radius `δ` around `x` in which the Taylor approximation for `f''` is
   -- good up to `δ`.
-  rw [has_fderiv_within_at, has_fderiv_at_filter, is_o_iff] at hx,
-  rcases metric.mem_nhds_within_iff.1 (hx εpos) with ⟨δ, δpos, sδ⟩,
+  have hx' := hx,
+  rw [has_fderiv_within_at, has_fderiv_at_filter, is_o_iff] at hx',
+  rcases metric.mem_nhds_within_iff.1 (hx' εpos) with ⟨δ, δpos, sδ⟩,
   have E1 : ∀ᶠ h in 𝓝[>] (0:ℝ), h * (∥v∥ + ∥w∥) < δ,
   { have : filter.tendsto (λ h, h * (∥v∥ + ∥w∥)) (𝓝[>] (0:ℝ)) (𝓝 (0 * (∥v∥ + ∥w∥))) :=
       (continuous_id.mul continuous_const).continuous_within_at,
@@ -111,68 +199,10 @@ begin
     - h^2 • f'' v w - (t * h^2) • f'' w w with hg',
   -- check that `g'` is the derivative of `g`, by a straightforward computation
   have g_deriv : ∀ t ∈ Icc (0 : ℝ) 1, has_deriv_within_at g (g' t) (Icc 0 1) t,
-  { assume t ht,
-    apply_rules [has_deriv_within_at.sub, has_deriv_within_at.add],
-    { refine (hf _ _).comp_has_deriv_within_at _ _,
-      { exact xt_mem t ht },
-      apply_rules [has_deriv_at.has_deriv_within_at, has_deriv_at.const_add,
-        has_deriv_at.smul_const, has_deriv_at_mul_const] },
-    { apply_rules [has_deriv_at.has_deriv_within_at, has_deriv_at.smul_const,
-        has_deriv_at_mul_const] },
-    { apply_rules [has_deriv_at.has_deriv_within_at, has_deriv_at.smul_const,
-        has_deriv_at_mul_const] },
-    { suffices H : has_deriv_within_at (λ u, ((u * h) ^ 2 / 2) • f'' w w)
-        (((((2 : ℕ) : ℝ) * (t * h) ^ (2  - 1) * (1 * h))/2) • f'' w w) (Icc 0 1) t,
-      { convert H using 2,
-        simp only [one_mul, nat.cast_bit0, pow_one, nat.cast_one],
-        ring },
-      apply_rules [has_deriv_at.has_deriv_within_at, has_deriv_at.smul_const, has_deriv_at_id',
-        has_deriv_at.pow, has_deriv_at.mul_const] } },
+  { refine g_deriv s_conv hf xs hx h v w xt_mem, },
   -- check that `g'` is uniformly bounded, with a suitable bound `ε * ((∥v∥ + ∥w∥) * ∥w∥) * h^2`.
   have g'_bound : ∀ t ∈ Ico (0 : ℝ) 1, ∥g' t∥ ≤ ε * ((∥v∥ + ∥w∥) * ∥w∥) * h^2,
-  { assume t ht,
-    have I : ∥h • v + (t * h) • w∥ ≤ h * (∥v∥ + ∥w∥) := calc
-      ∥h • v + (t * h) • w∥ ≤ ∥h • v∥ + ∥(t * h) • w∥ : norm_add_le _ _
-      ... = h * ∥v∥ + t * (h * ∥w∥) :
-        by simp only [norm_smul, real.norm_eq_abs, hpos.le, abs_of_nonneg, abs_mul, ht.left,
-                      mul_assoc]
-      ... ≤ h * ∥v∥ + 1 * (h * ∥w∥) :
-        add_le_add (le_refl _) (mul_le_mul_of_nonneg_right ht.2.le
-          (mul_nonneg hpos.le (norm_nonneg _)))
-      ... = h * (∥v∥ + ∥w∥) : by ring,
-    calc ∥g' t∥ = ∥(f' (x + h • v + (t * h) • w) - f' x - f'' (h • v + (t * h) • w)) (h • w)∥ :
-    begin
-      rw hg',
-      have : h * (t * h) = t * (h * h), by ring,
-      simp only [continuous_linear_map.coe_sub', continuous_linear_map.map_add, pow_two,
-        continuous_linear_map.add_apply, pi.smul_apply, smul_sub, smul_add, smul_smul, ← sub_sub,
-        continuous_linear_map.coe_smul', pi.sub_apply, continuous_linear_map.map_smul, this]
-    end
-    ... ≤ ∥f' (x + h • v + (t * h) • w) - f' x - f'' (h • v + (t * h) • w)∥ * ∥h • w∥ :
-      continuous_linear_map.le_op_norm _ _
-    ... ≤ (ε * ∥h • v + (t * h) • w∥) * (∥h • w∥) :
-    begin
-      apply mul_le_mul_of_nonneg_right _ (norm_nonneg _),
-      have H : x + h • v + (t * h) • w ∈ metric.ball x δ ∩ interior s,
-      { refine ⟨_, xt_mem t ⟨ht.1, ht.2.le⟩⟩,
-        rw [add_assoc, add_mem_ball_iff_norm],
-        exact I.trans_lt hδ },
-      have := sδ H,
-      simp only [mem_set_of_eq] at this,
-      convert this;
-      abel
-    end
-    ... ≤ (ε * (∥h • v∥ + ∥h • w∥)) * (∥h • w∥) :
-    begin
-      apply mul_le_mul_of_nonneg_right _ (norm_nonneg _),
-      apply mul_le_mul_of_nonneg_left _ (εpos.le),
-      apply (norm_add_le _ _).trans,
-      refine add_le_add (le_refl _) _,
-      simp only [norm_smul, real.norm_eq_abs, abs_mul, abs_of_nonneg, ht.1, hpos.le, mul_assoc],
-      exact mul_le_of_le_one_left (mul_nonneg hpos.le (norm_nonneg _)) ht.2.le,
-    end
-    ... = ε * ((∥v∥ + ∥w∥) * ∥w∥) * h^2 :
-      by { simp only [norm_smul, real.norm_eq_abs, abs_mul, abs_of_nonneg, hpos.le], ring } },
+  { refine g'_bound s_conv hf xs hx h v w ε εpos δ hδ sδ hpos xt_mem },
   -- conclude using the mean value inequality
   have I : ∥g 1 - g 0∥ ≤ ε * ((∥v∥ + ∥w∥) * ∥w∥) * h^2, by simpa only [mul_one, sub_zero] using
     norm_image_sub_le_of_norm_deriv_le_segment' g_deriv g'_bound 1 (right_mem_Icc.2 zero_le_one),
@@ -184,6 +214,7 @@ begin
     abel },
   { simp only [real.norm_eq_abs, abs_mul, add_nonneg (norm_nonneg v) (norm_nonneg w),
       abs_of_nonneg, mul_assoc, pow_bit0_abs, norm_nonneg, abs_pow] }
+end
 end
 
 /-- One can get `f'' v w` as the limit of `h ^ (-2)` times the alternate sum of the values of `f`

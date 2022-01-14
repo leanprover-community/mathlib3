@@ -3,7 +3,6 @@ Copyright (c) 2021 Grayson Burton. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Grayson Burton, Yaël Dillies, Violeta Hernández Palacios
 -/
-import category_theory.category.basic
 import data.dfinsupp.order
 import data.finsupp.order
 import data.nat.interval
@@ -37,7 +36,7 @@ notion of flags. These are separated into `flag.lean`.
 * `graded.ex_unique_of_grade`: graded linear orders have a unique element of each possible grade.
 -/
 
-open category_theory finset nat
+open finset nat
 open_locale big_operators
 
 variables {ι α β : Type*} {σ : ι → Type*}

@@ -345,12 +345,12 @@ instance : order_bot (seminorm 𝕜 E) :=
 
 lemma bot_eq_zero : (⊥ : seminorm 𝕜 E) = 0 := rfl
 
-
 lemma finset_sup_apply (p : ι → seminorm 𝕜 E) (s : finset ι) (x : E) :
   s.sup p x = ↑(s.sup (λ i, ⟨p i x, nonneg (p i) x⟩) : nnreal) :=
 begin
   induction s using finset.cons_induction_on with a s ha ih,
-  { rw [finset.sup_empty, finset.sup_empty, coe_bot, bot_eq_zero, pi.zero_apply, nonneg.coe_zero] },
+  { rw [finset.sup_empty, finset.sup_empty, coe_bot, _root_.bot_eq_zero, pi.zero_apply,
+        nonneg.coe_zero] },
   { rw [finset.sup_cons, finset.sup_cons, coe_sup, sup_eq_max, pi.sup_apply, sup_eq_max,
         nnreal.coe_max, subtype.coe_mk, ih] }
 end

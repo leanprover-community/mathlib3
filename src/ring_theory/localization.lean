@@ -2107,6 +2107,9 @@ lemma coe_submodule_strict_mono :
   strict_mono (coe_submodule K : ideal R → submodule R K) :=
 strict_mono_of_le_iff_le (λ _ _, coe_submodule_le_coe_submodule.symm)
 
+@[priority 100] instance [no_zero_divisors K] : no_zero_smul_divisors R K :=
+no_zero_smul_divisors.of_algebra_map_injective $ is_fraction_ring.injective R K
+
 variables (R K)
 
 lemma coe_submodule_injective :

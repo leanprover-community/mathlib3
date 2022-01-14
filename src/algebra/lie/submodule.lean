@@ -183,23 +183,25 @@ end
 
 namespace lie_subalgebra
 
-variables {L}
+variables {L} (K : lie_subalgebra R L)
 
 /-- Given a Lie subalgebra `K ⊆ L`, if we view `L` as a `K`-module by restriction, it contains
 a distinguished Lie submodule for the action of `K`, namely `K` itself. -/
-def to_lie_submodule (K : lie_subalgebra R L) : lie_submodule R K L :=
+def to_lie_submodule : lie_submodule R K L :=
 { lie_mem := λ x y hy, K.lie_mem x.property hy,
   .. (K : submodule R L) }
 
-@[simp] lemma coe_to_lie_submodule (K : lie_subalgebra R L) :
+@[simp] lemma coe_to_lie_submodule :
   (K.to_lie_submodule : submodule R L) = K :=
 by { rcases K with ⟨⟨⟩⟩, refl, }
 
-@[simp] lemma mem_to_lie_submodule {K : lie_subalgebra R L} (x : L) :
+variables {K}
+
+@[simp] lemma mem_to_lie_submodule (x : L) :
   x ∈ K.to_lie_submodule ↔ x ∈ K :=
 iff.rfl
 
-lemma exists_lie_ideal_coe_eq_iff (K : lie_subalgebra R L) :
+lemma exists_lie_ideal_coe_eq_iff :
   (∃ (I : lie_ideal R L), ↑I = K) ↔ ∀ (x y : L), y ∈ K → ⁅x, y⁆ ∈ K :=
 begin
   simp only [← coe_to_submodule_eq_iff, lie_ideal.coe_to_lie_subalgebra_to_submodule,
@@ -207,7 +209,7 @@ begin
   exact iff.rfl,
 end
 
-lemma exists_nested_lie_ideal_coe_eq_iff {K K' : lie_subalgebra R L} (h : K ≤ K') :
+lemma exists_nested_lie_ideal_coe_eq_iff {K' : lie_subalgebra R L} (h : K ≤ K') :
   (∃ (I : lie_ideal R K'), ↑I = of_le h) ↔ ∀ (x y : L), x ∈ K' → y ∈ K → ⁅x, y⁆ ∈ K :=
 begin
   simp only [exists_lie_ideal_coe_eq_iff, coe_bracket, mem_of_le],
@@ -493,6 +495,10 @@ def map : lie_submodule R L M' :=
     { apply N.lie_mem hm, },
     { norm_cast at hfm, simp [hfm], }, },
   ..(N : submodule R M).map (f : M →ₗ[R] M') }
+
+@[simp] lemma coe_submodule_map :
+  (N.map f : submodule R M') = (N : submodule R M).map (f : M →ₗ[R] M') :=
+rfl
 
 /-- A morphism of Lie modules `f : M → M'` pulls back Lie submodules of `M'` to Lie submodules of
 `M`. -/
@@ -837,6 +843,24 @@ variables [comm_ring R] [lie_ring L] [lie_algebra R L]
 variables [add_comm_group M] [module R M] [lie_ring_module L M] [lie_module R L M]
 variables [add_comm_group N] [module R N] [lie_ring_module L N] [lie_module R L N]
 variables (f : M →ₗ⁅R,L⁆ N)
+
+/-- The kernel of a morphism of Lie algebras, as an ideal in the domain. -/
+def ker : lie_submodule R L M := lie_submodule.comap f ⊥
+
+variables {f}
+
+@[simp] lemma mem_ker (m : M) : m ∈ f.ker ↔ f m = 0 := iff.rfl
+
+@[simp] lemma ker_id : (lie_module_hom.id : M →ₗ⁅R,L⁆ M).ker = ⊥ := rfl
+
+@[simp] lemma comp_ker_incl : f.comp f.ker.incl = 0 :=
+by { ext ⟨m, hm⟩, exact (mem_ker m).mp hm, }
+
+lemma le_ker_iff_map (M' : lie_submodule R L M) :
+  M' ≤ f.ker ↔ lie_submodule.map f M' = ⊥ :=
+by rw [ker, eq_bot_iff, lie_submodule.map_le_iff_le_comap]
+
+variables (f)
 
 /-- The range of a morphism of Lie modules `f : M → N` is a Lie submodule of `N`.
 See Note [range copy pattern]. -/

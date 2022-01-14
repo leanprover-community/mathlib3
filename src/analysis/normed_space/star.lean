@@ -139,7 +139,7 @@ begin
     exact one_ne_zero (norm_eq_zero.mp h) }
 end
 
-@[simp] lemma norm_coe_unitary [nontrivial E] (U : unitary E) : ∥(U : E)∥ = 1 :=
+lemma norm_coe_unitary [nontrivial E] (U : unitary E) : ∥(U : E)∥ = 1 :=
 begin
   have := calc
     ∥(U : E)∥^2 = ∥(U : E)∥ * ∥(U : E)∥ : pow_two _
@@ -168,7 +168,7 @@ begin
     rw [h_nontriv (U * A)] }
 end
 
-@[simp] lemma norm_mem_unitary_mul {U : E} (A : E) (hU : U ∈ unitary E) : ∥U * A∥ = ∥A∥ :=
+lemma norm_mem_unitary_mul {U : E} (A : E) (hU : U ∈ unitary E) : ∥U * A∥ = ∥A∥ :=
 norm_coe_unitary_mul ⟨U, hU⟩ A
 
 @[simp] lemma norm_mul_coe_unitary (A : E) (U : unitary E) : ∥A * U∥ = ∥A∥ :=
@@ -177,7 +177,7 @@ calc _ = ∥star (star (U : E) * star A)∥   : by simp only [star_star, star_mu
   ...  = ∥star A∥                         : norm_mem_unitary_mul (star A) (unitary.star_mem U.prop)
   ...  = ∥A∥                              : norm_star
 
-@[simp] lemma norm_mul_mem_unitary (A : E) {U : E} (hU : U ∈ unitary E) : ∥A * U∥ = ∥A∥ :=
+lemma norm_mul_mem_unitary (A : E) {U : E} (hU : U ∈ unitary E) : ∥A * U∥ = ∥A∥ :=
 norm_mul_coe_unitary A ⟨U, hU⟩
 
 end cstar_ring

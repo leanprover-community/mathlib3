@@ -75,6 +75,8 @@ instance : has_involutive_star (unitary R) :=
 instance : star_monoid (unitary R) :=
 ⟨λ _ _, by { ext, simp only [coe_star, submonoid.coe_mul, star_mul] }⟩
 
+instance : inhabited (unitary R) := ⟨1⟩
+
 lemma star_eq_inv (U : unitary R) : star U = U⁻¹ := rfl
 
 lemma star_mem {U : R} (hU : U ∈ unitary R) : star U ∈ unitary R :=

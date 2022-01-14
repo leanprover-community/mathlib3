@@ -193,6 +193,9 @@ begin
   { rintro ⟨c, rfl⟩, rw factorization_mul hd (right_ne_zero_of_mul hn), simp },
 end
 
+
+
+
 lemma factorization_prod_pow_inv (f : ℕ →₀ ℕ) (hf : ∀ (p : ℕ), p ∈ f.support → prime p) :
   (f.prod pow).factorization = f :=
 begin
@@ -215,11 +218,7 @@ end
 noncomputable
 def factorization_equiv : pnat ≃ {f : ℕ →₀ ℕ | ∀ p ∈ f.support, prime p} :=
 {
-  to_fun    := λ ⟨n, hn⟩,
-    by { use n.factorization,
-         intros p,
-         simp only [support_factorization, mem_to_finset],
-         exact prime_of_mem_factors },
+  to_fun    := λ ⟨n, hn⟩, ⟨n.factorization, λ p, @prime_of_mem_factorization n p⟩,
   inv_fun   := λ ⟨f, hf⟩, by {
     use f.prod pow,
     refine prod_pos _,

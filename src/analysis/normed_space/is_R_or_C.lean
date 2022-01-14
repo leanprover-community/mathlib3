@@ -71,7 +71,10 @@ begin
   apply mul_le_mul norm_f_z₁ rfl.le (norm_nonneg z) ((norm_nonneg _).trans norm_f_z₁),
 end
 
-lemma linear_map.bound_of_ball_bound {r : ℝ} (r_pos : 0 < r) (c : ℝ) (f : E →ₗ[𝕜] 𝕜)
+/--
+`linear_map.bound_of_ball_bound` is a version of this over arbitrary nondiscrete normed fields.
+It produces a less precise bound so we keep both versions. -/
+lemma linear_map.bound_of_ball_bound' {r : ℝ} (r_pos : 0 < r) (c : ℝ) (f : E →ₗ[𝕜] 𝕜)
   (h : ∀ z ∈ closed_ball (0 : E) r, ∥f z∥ ≤ c) (z : E) :
   ∥f z∥ ≤ c / r * ∥z∥ :=
 f.bound_of_sphere_bound r_pos c (λ z hz, h z hz.le) z
@@ -84,6 +87,6 @@ begin
   { apply div_nonneg _ r_pos.le,
     exact (norm_nonneg _).trans
           (h 0 (by simp only [norm_zero, mem_closed_ball, dist_zero_left, r_pos.le])), },
-  apply linear_map.bound_of_ball_bound r_pos,
+  apply linear_map.bound_of_ball_bound' r_pos,
   exact λ z hz, h z hz,
 end

@@ -83,7 +83,7 @@ def discrete_copy (α : Type u) : Type u := α
 
 instance : topological_space (discrete_copy α) := ⊥
 instance : discrete_topology (discrete_copy α) := ⟨rfl⟩
-instance [inhabited α] : inhabited (discrete_copy α) := ⟨id default α⟩
+instance [inhabited α] : inhabited (discrete_copy α) := ⟨show α, from default⟩
 
 namespace phillips_1940
 

@@ -176,6 +176,21 @@ instance : has_mem α (sym2 α) := ⟨mem⟩
 lemma mem_mk_left (x y : α) : x ∈ ⟦(x, y)⟧ := ⟨y, rfl⟩
 lemma mem_mk_right (x y : α) : y ∈ ⟦(x, y)⟧ := eq_swap.subst $ mem_mk_left y x
 
+@[simp] lemma mem_iff {a b c : α} : a ∈ ⟦(b, c)⟧ ↔ a = b ∨ a = c :=
+{ mp  := by { rintro ⟨_, h⟩, rw eq_iff at h, tidy },
+  mpr := by { rintro ⟨_⟩; subst a, { apply mem_mk_left }, apply mem_mk_right } }
+
+lemma out_fst_mem (e : sym2 α) : e.out.1 ∈ e := ⟨e.out.2, by rw [prod.mk.eta, e.out_eq]⟩
+lemma out_snd_mem (e : sym2 α) : e.out.2 ∈ e := ⟨e.out.1, by rw [eq_swap, prod.mk.eta, e.out_eq]⟩
+
+lemma ball {p : α → Prop} {a b : α} : (∀ c ∈ ⟦(a, b)⟧, p c) ↔ p a ∧ p b :=
+begin
+  refine ⟨λ h, ⟨h _ $ mem_mk_left _ _, h _ $ mem_mk_right _ _⟩, λ h c hc, _⟩,
+  obtain rfl | rfl := sym2.mem_iff.1 hc,
+  { exact h.1 },
+  { exact h.2 }
+end
+
 /--
 Given an element of the unordered pair, give the other element using `classical.some`.
 See also `mem.other'` for the computable version.
@@ -186,10 +201,6 @@ classical.some h
 @[simp]
 lemma other_spec {a : α} {z : sym2 α} (h : a ∈ z) : ⟦(a, h.other)⟧ = z :=
 by erw ← classical.some_spec h
-
-@[simp] lemma mem_iff {a b c : α} : a ∈ ⟦(b, c)⟧ ↔ a = b ∨ a = c :=
-{ mp  := by { rintro ⟨_, h⟩, rw eq_iff at h, tidy },
-  mpr := by { rintro ⟨_⟩; subst a, { apply mem_mk_left }, apply mem_mk_right } }
 
 lemma other_mem {a : α} {z : sym2 α} (h : a ∈ z) : h.other ∈ z :=
 by { convert mem_mk_right a h.other, rw other_spec h }
@@ -303,6 +314,19 @@ other_ne (from_rel_irreflexive.mp irrefl hz) h
 instance from_rel.decidable_pred (sym : symmetric r) [h : decidable_rel r] :
   decidable_pred (∈ sym2.from_rel sym) :=
 λ z, quotient.rec_on_subsingleton z (λ x, h _ _)
+
+/-- The inverse to `sym2.from_rel`. Given a set on `sym2 α`, give a symmetric relation on `α`
+(see `sym2.to_rel_symmetric`). -/
+def to_rel (s : set (sym2 α)) (x y : α) : Prop := ⟦(x, y)⟧ ∈ s
+
+@[simp] lemma to_rel_prop (s : set (sym2 α)) (x y : α) : to_rel s x y ↔ ⟦(x, y)⟧ ∈ s := iff.rfl
+
+lemma to_rel_symmetric (s : set (sym2 α)) : symmetric (to_rel s) := λ x y, by simp [eq_swap]
+
+lemma to_rel_from_rel (sym : symmetric r) : to_rel (from_rel sym) = r := rfl
+
+lemma from_rel_to_rel (s : set (sym2 α)) : from_rel (to_rel_symmetric s) = s :=
+set.ext (λ z, sym2.ind (λ x y, iff.rfl) z)
 
 end relations
 

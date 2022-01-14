@@ -757,12 +757,12 @@ variables (S₁ : subalgebra R B)
 
 /-- The product of two subalgebras is a subalgebra. -/
 def prod : subalgebra R (A × B) :=
-{ carrier := set.prod S S₁,
+{ carrier := (S : set A) ×ˢ (S₁ : set B),
   algebra_map_mem' := λ r, ⟨algebra_map_mem _ _, algebra_map_mem _ _⟩,
   .. S.to_subsemiring.prod S₁.to_subsemiring }
 
 @[simp] lemma coe_prod :
-  (prod S S₁ : set (A × B)) = set.prod S S₁ := rfl
+  (prod S S₁ : set (A × B)) = (S : set A) ×ˢ (S₁ : set B):= rfl
 
 lemma prod_to_submodule :
   (S.prod S₁).to_submodule = S.to_submodule.prod S₁.to_submodule := rfl

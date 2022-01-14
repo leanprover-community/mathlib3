@@ -77,15 +77,12 @@ variables {α : Type*} {β : Type*}
 @[derive [
   has_zero, add_comm_monoid,
   canonically_ordered_comm_semiring, complete_linear_order, densely_ordered, nontrivial,
-  canonically_linear_ordered_add_monoid, has_sub, has_ordered_sub]]
+  canonically_linear_ordered_add_monoid, has_sub, has_ordered_sub,
+  linear_ordered_add_comm_monoid_with_top]]
 def ennreal := with_top ℝ≥0
 
 localized "notation `ℝ≥0∞` := ennreal" in ennreal
 localized "notation `∞` := (⊤ : ennreal)" in ennreal
-
-noncomputable instance : linear_ordered_add_comm_monoid ℝ≥0∞ :=
-{ .. ennreal.canonically_ordered_comm_semiring,
-  .. ennreal.complete_linear_order }
 
 -- TODO: why are the two covariant instances necessary? why aren't they inferred?
 instance covariant_class_mul : covariant_class ℝ≥0∞ ℝ≥0∞ (*) (≤) :=
@@ -231,6 +228,19 @@ coe_one ▸ coe_two ▸ by exact_mod_cast (@one_lt_two ℕ _ _)
 lemma two_ne_zero : (2:ℝ≥0∞) ≠ 0 := (ne_of_lt zero_lt_two).symm
 lemma two_ne_top : (2:ℝ≥0∞) ≠ ∞ := coe_two ▸ coe_ne_top
 
+/-- `(1 : ℝ≥0∞) ≤ 1`, recorded as a `fact` for use with `Lp` spaces, see note [fact non-instances].
+-/
+lemma _root_.fact_one_le_one_ennreal : fact ((1 : ℝ≥0∞) ≤ 1) := ⟨le_refl _⟩
+
+/-- `(1 : ℝ≥0∞) ≤ 2`, recorded as a `fact` for use with `Lp` spaces, see note [fact non-instances].
+-/
+lemma _root_.fact_one_le_two_ennreal : fact ((1 : ℝ≥0∞) ≤ 2) :=
+⟨ennreal.coe_le_coe.2 (show (1 : ℝ≥0) ≤ 2, by norm_num)⟩
+
+/-- `(1 : ℝ≥0∞) ≤ ∞`, recorded as a `fact` for use with `Lp` spaces, see note [fact non-instances].
+-/
+lemma _root_.fact_one_le_top_ennreal : fact ((1 : ℝ≥0∞) ≤ ∞) := ⟨le_top⟩
+
 /-- The set of numbers in `ℝ≥0∞` that are not equal to `∞` is equivalent to `ℝ≥0`. -/
 def ne_top_equiv_nnreal : {a | a ≠ ∞} ≃ ℝ≥0 :=
 { to_fun := λ x, ennreal.to_nnreal x,
@@ -260,8 +270,8 @@ lemma supr_ennreal {α : Type*} [complete_lattice α] {f : ℝ≥0∞ → α} :
   (⨆ n, f n) = (⨆ n : ℝ≥0, f n) ⊔ f ∞ :=
 @infi_ennreal (order_dual α) _ _
 
-@[simp] lemma add_top : a + ∞ = ∞ := with_top.add_top
-@[simp] lemma top_add : ∞ + a = ∞ := with_top.top_add
+@[simp] lemma add_top : a + ∞ = ∞ := add_top _
+@[simp] lemma top_add : ∞ + a = ∞ := top_add _
 
 /-- Coercion `ℝ≥0 → ℝ≥0∞` as a `ring_hom`. -/
 noncomputable def of_nnreal_hom : ℝ≥0 →+* ℝ≥0∞ :=
@@ -308,7 +318,7 @@ noncomputable instance {A : Type*} [semiring A] [algebra ℝ≥0∞ A] : algebra
 
 -- verify that the above produces instances we might care about
 noncomputable example : algebra ℝ≥0 ℝ≥0∞ := by apply_instance
-noncomputable example : distrib_mul_action (units ℝ≥0) ℝ≥0∞ := by apply_instance
+noncomputable example : distrib_mul_action ℝ≥0ˣ ℝ≥0∞ := by apply_instance
 
 lemma coe_smul {R} (r : R) (s : ℝ≥0) [has_scalar R ℝ≥0] [has_scalar R ℝ≥0∞]
   [is_scalar_tower R ℝ≥0 ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ≥0∞] :
@@ -1197,8 +1207,19 @@ end
 lemma inv_two_add_inv_two : (2:ℝ≥0∞)⁻¹ + 2⁻¹ = 1 :=
 by rw [← two_mul, ← div_eq_mul_inv, div_self two_ne_zero two_ne_top]
 
+lemma inv_three_add_inv_three : (3 : ℝ≥0∞)⁻¹ + 3⁻¹ +3⁻¹ = 1 :=
+begin
+  rw [show (3 : ℝ≥0∞)⁻¹ + 3⁻¹ + 3⁻¹ = 3 * 3⁻¹, by ring, ← div_eq_mul_inv, ennreal.div_self];
+  simp,
+end
+
+@[simp]
 lemma add_halves (a : ℝ≥0∞) : a / 2 + a / 2 = a :=
 by rw [div_eq_mul_inv, ← mul_add, inv_two_add_inv_two, mul_one]
+
+@[simp]
+lemma add_thirds (a : ℝ≥0∞) : a / 3 + a / 3 + a / 3 = a :=
+by rw [div_eq_mul_inv, ← mul_add, ← mul_add, inv_three_add_inv_three, mul_one]
 
 @[simp] lemma div_zero_iff : a / b = 0 ↔ a = 0 ∨ b = ∞ :=
 by simp [div_eq_mul_inv]

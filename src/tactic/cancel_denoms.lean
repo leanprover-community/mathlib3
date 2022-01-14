@@ -198,7 +198,7 @@ do some (lhs, rhs, lem) ← return $ find_comp_lemma h | fail "cannot kill facto
    (_, gcd_pos) ← solve_aux gcd_pos `[norm_num, done],
    pf ← mk_app lem [lhs_p, rhs_p, al_pos, ar_pos, gcd_pos],
    pf_tp ← infer_type pf,
-   return ((find_comp_lemma pf_tp).elim (default _) (prod.fst ∘ prod.snd), pf)
+   return ((find_comp_lemma pf_tp).elim default (prod.fst ∘ prod.snd), pf)
 
 end cancel_factors
 

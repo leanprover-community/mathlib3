@@ -41,28 +41,25 @@ variables {R : Type*}
 namespace unitary
 variables [monoid R] [star_monoid R]
 
-@[simp] lemma mem_star_mul_self {U : R} (hU : U ∈ unitary R) : star U * U = 1 := hU.1
-@[simp] lemma mem_mul_star_self {U : R} (hU : U ∈ unitary R) : U * star U = 1 := hU.2
+@[simp] lemma star_mul_self_of_mem {U : R} (hU : U ∈ unitary R) : star U * U = 1 := hU.1
+@[simp] lemma mul_star_self_of_mem {U : R} (hU : U ∈ unitary R) : U * star U = 1 := hU.2
 
-instance : has_star (unitary R) :=
-⟨λ U, ⟨star U, ⟨by rw [star_star, mem_mul_star_self (subtype.mem U)],
-               by rw [star_star, mem_star_mul_self (subtype.mem U)]⟩⟩⟩
+lemma star_mem {U : R} (hU : U ∈ unitary R) : star U ∈ unitary R :=
+⟨by rw [star_star, mul_star_self_of_mem hU], by rw [star_star, star_mul_self_of_mem hU]⟩
 
-@[simp, norm_cast] lemma coe_star {U : unitary R} : (coe : unitary R → R) (star U) = star U := rfl
+@[simp] lemma star_mem_iff {U : R} : star U ∈ unitary R ↔ U ∈ unitary R :=
+⟨λ h, star_star U ▸ star_mem h, star_mem⟩
 
-@[simp] lemma star_mul_self (U : unitary R) : star U * U = 1 :=
-by { ext, simp only [coe_star, set_like.coe_mem, submonoid.coe_one, mem_star_mul_self,
-                      submonoid.coe_mul] }
+instance : has_star (unitary R) := ⟨λ U, ⟨star U, star_mem U.prop⟩⟩
 
-@[simp] lemma mul_star_self (U : unitary R) : U * star U = 1 :=
-by { ext, simp only [coe_star, set_like.coe_mem, mem_mul_star_self,
-                     submonoid.coe_one, submonoid.coe_mul], }
+@[simp, norm_cast] lemma coe_star {U : unitary R} : ↑(star U) = (star U : R) := rfl
 
-lemma coe_star_mul_self (U : unitary R) : (star U : R) * U = 1 :=
-by simp only [set_like.coe_mem, mem_star_mul_self]
+lemma coe_star_mul_self (U : unitary R) : (star U : R) * U = 1 := star_mul_self_of_mem U.prop
+lemma coe_mul_star_self (U : unitary R) :  (U : R) * star U = 1 := mul_star_self_of_mem U.prop
 
-lemma coe_mul_star_self (U : unitary R) :  (U : R) * star U = 1 :=
-by simp only [set_like.coe_mem, mem_mul_star_self]
+@[simp] lemma star_mul_self (U : unitary R) : star U * U = 1 := subtype.ext $ coe_star_mul_self U
+@[simp] lemma mul_star_self (U : unitary R) : U * star U = 1 := subtype.ext $ coe_mul_star_self U
+
 
 instance : group (unitary R) :=
 { inv := λ U, star U,
@@ -78,11 +75,5 @@ instance : star_monoid (unitary R) :=
 instance : inhabited (unitary R) := ⟨1⟩
 
 lemma star_eq_inv (U : unitary R) : star U = U⁻¹ := rfl
-
-lemma star_mem {U : R} (hU : U ∈ unitary R) : star U ∈ unitary R :=
-⟨by simp only [mem_mul_star_self hU, star_star], by simp only [mem_star_mul_self hU, star_star]⟩
-
-lemma star_mem_iff {U : R} : star U ∈ unitary R ↔ U ∈ unitary R :=
-⟨λ h, by { rw [←star_star U], exact star_mem h }, star_mem⟩
 
 end unitary

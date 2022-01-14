@@ -870,6 +870,13 @@ See `finsupp.lapply` for the stronger version as a linear map. -/
 @[simps apply]
 def apply_add_hom (a : α) : (α →₀ M) →+ M := ⟨λ g, g a, zero_apply, λ _ _, add_apply _ _ _⟩
 
+/-- Coercion from a `finsupp` to a function type is an `add_monoid_hom`. -/
+@[simps]
+noncomputable def coe_fn_add_hom : (α →₀ M) →+ (α → M) :=
+{ to_fun := coe_fn,
+  map_zero' := coe_zero,
+  map_add' := coe_add }
+
 lemma update_eq_single_add_erase (f : α →₀ M) (a : α) (b : M) :
   f.update a b = single a b + f.erase a :=
 begin
@@ -1134,10 +1141,22 @@ lemma update_eq_sub_add_single [add_group G] (f : α →₀ G) (a : α) (b : G) 
   f.update a b = f - single a (f a) + single a b :=
 by rw [update_eq_erase_add_single, erase_eq_sub_single]
 
+lemma finset_sum_apply [add_comm_monoid N] (S : finset ι) (f : ι → α →₀ N) (a : α) :
+  (∑ i in S, f i) a = ∑ i in S, f i a :=
+(apply_add_hom a : (α →₀ N) →+ _).map_sum _ _
+
 @[simp] lemma sum_apply [has_zero M] [add_comm_monoid N]
   {f : α →₀ M} {g : α → M → β →₀ N} {a₂ : β} :
   (f.sum g) a₂ = f.sum (λa₁ b, g a₁ b a₂) :=
-(apply_add_hom a₂ : (β →₀ N) →+ _).map_sum _ _
+finset_sum_apply _ _ _
+
+lemma coe_finset_sum [add_comm_monoid N] (S : finset ι) (f : ι → α →₀ N) :
+  ⇑(∑ i in S, f i) = ∑ i in S, f i :=
+(coe_fn_add_hom : (α →₀ N) →+ _).map_sum _ _
+
+lemma coe_sum [has_zero M] [add_comm_monoid N] (f : α →₀ M) (g : α → M → β →₀ N) :
+  ⇑(f.sum g) = f.sum (λ a₁ b, g a₁ b) :=
+coe_finset_sum _ _
 
 lemma support_sum [decidable_eq β] [has_zero M] [add_comm_monoid N]
   {f : α →₀ M} {g : α → M → (β →₀ N)} :
@@ -2294,6 +2313,12 @@ variables {α M} {R}
 lemma support_smul {_ : monoid R} [add_monoid M] [distrib_mul_action R M] {b : R} {g : α →₀ M} :
   (b • g).support ⊆ g.support :=
 λ a, by { simp only [smul_apply, mem_support_iff, ne.def], exact mt (λ h, h.symm ▸ smul_zero _) }
+
+@[simp]
+lemma support_smul_eq [semiring R] [add_comm_monoid M] [module R M]
+  [no_zero_smul_divisors R M] {b : R} (hb : b ≠ 0) {g : α →₀ M} :
+  (b • g).support = g.support :=
+finset.ext (λ a, by simp [finsupp.smul_apply, hb])
 
 section
 

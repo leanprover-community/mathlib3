@@ -858,14 +858,11 @@ theorem sum_lt_sum_of_nonempty {s : finset α} (hs : s.nonempty)
   {f g : α → ℝ≥0∞} (Hlt : ∀ i ∈ s, f i < g i) :
   ∑ i in s, f i < ∑ i in s, g i :=
 begin
-  classical,
-  induction s using finset.induction_on with a s as IH,
-  { exact (finset.not_nonempty_empty hs).elim },
-  { rcases finset.eq_empty_or_nonempty s with rfl|h's,
-    { simp [Hlt _ (finset.mem_singleton_self _)] },
-    { simp only [as, finset.sum_insert, not_false_iff],
-      exact ennreal.add_lt_add (Hlt _ (finset.mem_insert_self _ _))
-        (IH h's (λ i hi, Hlt _ (finset.mem_insert_of_mem hi))) } }
+  apply H.induction (λ a, _) (λ a s as hs IH, _),
+  { simp [Hlt _ (finset.mem_singleton_self _)] },
+  { simp only [as, finset.sum_insert, not_false_iff],
+    exact ennreal.add_lt_add (Hlt _ (finset.mem_insert_self _ _))
+      (IH h's (λ i hi, Hlt _ (finset.mem_insert_of_mem hi))) } }
 end
 
 theorem exists_le_of_sum_le {s : finset α} (hs : s.nonempty)

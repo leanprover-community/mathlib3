@@ -334,7 +334,7 @@ attribute [to_additive] is_haar_measure
 /- Record that a Haar measure on a locally compact space is a Haar measure. This is needed as the
 fact that a measure which is finite on compacts is locally finite is not registered as an instance,
 to avoid an instance loop. -/
-@[to_additive]
+@[priority 100, to_additive] -- see Note [lower instance priority]
 instance is_locally_finite_measure_of_is_haar_measure
   [group G] [measurable_space G] [topological_space G] [locally_compact_space G]
   (μ : measure G) [is_haar_measure μ] :

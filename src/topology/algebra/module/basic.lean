@@ -1160,6 +1160,12 @@ end smul_rightₗ
 
 section comm_ring
 
+/-- The determinant of a continuous linear map, mainly as a convenience device to be able to
+write `A.det` instead of `(A : M →ₗ[R] M).det`. -/
+@[reducible] noncomputable def det {R : Type*} [comm_ring R] [is_domain R]
+  {M : Type*} [topological_space M] [add_comm_group M] [module R M] (A : M →L[R] M) : R :=
+linear_map.det (A : M →ₗ[R] M)
+
 variables
 {R : Type*} [comm_ring R] [topological_space R]
 {M : Type*} [topological_space M] [add_comm_group M]
@@ -1171,9 +1177,6 @@ variables [topological_add_group M₂] [has_continuous_smul R M₂]
 
 instance : algebra R (M₂ →L[R] M₂) :=
 algebra.of_module smul_comp (λ _ _ _, comp_smul _ _ _)
-
-@[reducible] noncomputable def det [is_domain R] (A : M →L[R] M) : R :=
-linear_map.det (A : M →ₗ[R] M)
 
 end comm_ring
 

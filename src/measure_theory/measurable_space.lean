@@ -676,17 +676,19 @@ lemma measurable_set.univ_pi [encodable δ] {t : Π i : δ, set (π i)}
   (ht : ∀ i, measurable_set (t i)) : measurable_set (pi univ t) :=
 measurable_set.pi (countable_encodable _) (λ i _, ht i)
 
-lemma measurable_set_pi_of_nonempty [decidable_eq δ]
+lemma measurable_set_pi_of_nonempty
   {s : set δ} {t : Π i, set (π i)} (hs : countable s)
   (h : (pi s t).nonempty) : measurable_set (pi s t) ↔ ∀ i ∈ s, measurable_set (t i) :=
 begin
+  classical,
   rcases h with ⟨f, hf⟩, refine ⟨λ hst i hi, _, measurable_set.pi hs⟩,
   convert measurable_update f hst, rw [update_preimage_pi hi], exact λ j hj _, hf j hj
 end
 
-lemma measurable_set_pi [decidable_eq δ] {s : set δ} {t : Π i, set (π i)} (hs : countable s) :
+lemma measurable_set_pi {s : set δ} {t : Π i, set (π i)} (hs : countable s) :
   measurable_set (pi s t) ↔ (∀ i ∈ s, measurable_set (t i)) ∨ pi s t = ∅ :=
 begin
+  classical,
   cases (pi s t).eq_empty_or_nonempty with h h,
   { simp [h] },
   { simp [measurable_set_pi_of_nonempty hs, h, ← not_nonempty_iff_eq_empty] }

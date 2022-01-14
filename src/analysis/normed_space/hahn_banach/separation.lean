@@ -1,5 +1,5 @@
 /-
-Copyright (c) 2021 Bhavik Mehta All rights reserved.
+Copyright (c) 2022 Bhavik Mehta All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta, Yaël Dillies
 -/
@@ -35,32 +35,6 @@ variables {𝕜 E : Type*}
 section
 open filter
 open_locale topological_space
-
-lemma continuous_at_of_exists_open [normed_ring 𝕜] [normed_group E] [module 𝕜 E]
-  (f : E →ₗ[𝕜] 𝕜) {x : E}
-  (hf : ∀ ε, 0 < ε → ∃ (U : set E), x ∈ U ∧ is_open U ∧ ∀ y ∈ U, ∥f y - f x∥ < ε) :
-  continuous_at f x :=
-begin
-  intros U hU,
-  rw metric.nhds_basis_ball.1 at hU,
-  rcases hU with ⟨ε, hε₁, hε₂⟩,
-  simp only [filter.mem_map],
-  obtain ⟨V, hV₁, hV₂, hV₃⟩ := hf ε hε₁,
-  rw mem_nhds_iff,
-  refine ⟨V, λ y hy, hε₂ _, hV₂, hV₁⟩,
-  rw [metric.mem_ball, dist_eq_norm],
-  exact hV₃ _ hy,
-end
-
-lemma continuous_at_zero_of_exists_open [normed_ring 𝕜] [normed_group E] [module 𝕜 E]
-  (f : E →ₗ[𝕜] 𝕜) (hf : ∀ ε, 0 < ε → ∃ (U : set E), (0 : E) ∈ U ∧ is_open U ∧ ∀ y ∈ U, ∥f y∥ < ε) :
-  continuous_at f 0 :=
-begin
-  refine continuous_at_of_exists_open _ (λ ε hε, _),
-  obtain ⟨U, hU₀, hU, hUε⟩ := hf ε hε,
-  refine ⟨U, hU₀, hU, λ y hy, _⟩,
-  simpa only [f.map_zero, sub_zero] using hUε y hy,
-end
 
 lemma linear_map.exists_ne_zero {R₁ R₂ : Type*} [semiring R₁] [semiring R₂] {σ₁₂ : R₁ →+* R₂}
   {M₁ : Type*} [add_comm_monoid M₁] {M₂ : Type*} [add_comm_monoid M₂] [module R₁ M₁] [module R₂ M₂]
@@ -166,26 +140,30 @@ begin
   { simp_rw [linear_pmap.mk_span_singleton_apply, one_smul] },
   obtain ⟨φ, hφ₁, hφ₂⟩ := exists_extension_of_le_sublinear f (gauge C) _ _ _,
   { refine ⟨⟨φ, (φ.to_add_monoid_hom.uniform_continuous_of_continuous_at_zero _).continuous⟩, _, _⟩,
-    { refine continuous_at_zero_of_exists_open _ (λ ε hε, ⟨(ε • C) ∩ (-ε • C), ⟨_, _⟩, _, _⟩),
+    { change tendsto _ _ _,
+      rw (nhds_basis_opens (0:E)).tendsto_iff metric.nhds_basis_ball,
+      refine λ ε hε, ⟨(ε • C) ∩ (-ε • C), ⟨⟨_, _⟩, _⟩, _⟩,
       { exact mem_smul_set.mpr ⟨0, zero_mem, smul_zero _⟩ },
       { exact mem_smul_set.mpr ⟨0, zero_mem, smul_zero _⟩ },
       { exact (is_open_map_smul₀ hε.ne' _ hC₂).inter
-          (is_open_map_smul₀ (neg_ne_zero.mpr hε.ne.symm) _ hC₂), },
+          (is_open_map_smul₀ (neg_ne_zero.mpr hε.ne.symm) _ hC₂) },
       rintro x ⟨hx₁, hx₂⟩,
-      rw [real.norm_eq_abs, abs_lt, neg_lt, ←linear_map.map_neg],
-      split; apply (hφ₂ _).trans_lt,
-      { refine gauge_lt_of_mem_smul (-x) ε hε zero_mem hC hC₂ _,
-        rw [mem_smul_set_iff_inv_smul_mem₀ hε.ne', smul_neg],
-        rwa [mem_smul_set_iff_inv_smul_mem₀ (neg_ne_zero.mpr hε.ne'), inv_neg, neg_smul] at hx₂, },
-      { exact gauge_lt_of_mem_smul x ε hε zero_mem hC hC₂ hx₁, } },
+      have : ∥φ x∥ < ε,
+      { rw [real.norm_eq_abs, abs_lt, neg_lt, ←linear_map.map_neg],
+        split; apply (hφ₂ _).trans_lt,
+        { refine gauge_lt_of_mem_smul (-x) ε hε zero_mem hC hC₂ _,
+          rw [mem_smul_set_iff_inv_smul_mem₀ hε.ne', smul_neg],
+          rwa [mem_smul_set_iff_inv_smul_mem₀ (neg_ne_zero.mpr hε.ne'), inv_neg, neg_smul] at hx₂ },
+        { exact gauge_lt_of_mem_smul x ε hε zero_mem hC hC₂ hx₁ } },
+      simp [this] },
     { dsimp,
       have : x₀ ∈ f.domain := submodule.mem_span_singleton_self _,
       rw [←submodule.coe_mk x₀ this, hφ₁, ← hfx₀],
       congr,
-      rw one_smul, },
+      rw one_smul },
     { exact λ x hx, (hφ₂ x).trans_lt (gauge_lt_one_of_mem_of_open hC zero_mem hC₂ _ hx) } },
   { simp_rw ← smul_eq_mul,
-    exact λ c hc x, gauge_smul_of_nonneg hc.le x, },
+    exact λ c hc x, gauge_smul_of_nonneg hc.le x },
   { exact gauge_add_le hC (absorbent_nhds_zero (hC₂.mem_nhds zero_mem)) },
   { rintro ⟨x, hx⟩,
     obtain ⟨y, rfl⟩ := submodule.mem_span_singleton.1 hx,

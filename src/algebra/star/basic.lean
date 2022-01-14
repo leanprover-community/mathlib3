@@ -227,12 +227,7 @@ Note that this is the preferred form (over `star_ring_aut`, available under the 
 because the notation `E →ₗ⋆[R] F` for an `R`-conjugate-linear map (short for
 `E →ₛₗ[star_ring_end R] F`) does not pretty-print if there is a coercion involved, as would be the
 case for `(↑star_ring_aut : R →* R)`. -/
-def star_ring_end [comm_semiring R] [star_ring R] : R →+* R :=
-{ to_fun := star,
-  map_one' := star_one R,
-  map_mul' := star_mul',
-  map_zero' := star_zero R,
-  map_add' := star_add }
+def star_ring_end [comm_semiring R] [star_ring R] : R →+* R := @star_ring_aut R _ _
 variables {R}
 
 localized "notation `conj` := star_ring_end _" in complex_conjugate

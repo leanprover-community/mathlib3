@@ -381,6 +381,14 @@ begin
   simp [hr],
 end
 
+lemma ball_sup (p : seminorm 𝕜 E) (q : seminorm 𝕜 E) (e : E) {r : ℝ} (hr : 0 < r) :
+  ball (p ⊔ q) e r = ball p e r ∩ ball q e r :=
+begin
+  lift r to nnreal using hr.le,
+  simp_rw [ball, ←set.set_of_and],
+  simp,
+end
+
 end has_scalar
 
 section module
@@ -404,14 +412,6 @@ begin
   lift r to nnreal using hr.le,
   simp_rw [ball, Inter_set_of, finset_sup_apply, nnreal.coe_lt_coe,
     finset.sup_lt_iff (show ⊥ < r, from hr), ←nnreal.coe_lt_coe, subtype.coe_mk],
-end
-
-lemma ball_sup (p : seminorm 𝕜 E) (q : seminorm 𝕜 E) (e : E) {r : ℝ} (hr : 0 < r) :
-  ball (p ⊔ q) e r = ball p e r ∩ ball q e r :=
-begin
-  lift r to nnreal using hr.le,
-  simp_rw [ball, ←set.set_of_and],
-  simp,
 end
 
 lemma ball_finset_sup (p : ι → seminorm 𝕜 E) (s : finset ι) (e : E) {r : ℝ}

@@ -57,21 +57,35 @@ lemma monotone_prime_counting' : monotone prime_counting' := count_monotone prim
 lemma monotone_prime_counting : monotone prime_counting :=
 λ a b a_le_b, monotone_prime_counting' (add_le_add_right a_le_b 1)
 
-private lemma filter_coprime_bound (a n : ℕ) (a_pos : 0 < a) :
-  (filter (a.coprime) (Ico a n)).card ≤ totient a * (n / a) :=
+private lemma filter_coprime_bound (a k n : ℕ) (a_pos : 0 < a) :
+  ((Ico k (k + n)).filter (coprime a)).card ≤ totient a * (n / a + 1) :=
 begin
   conv
   begin
     to_lhs,
     rw ←nat.mod_add_div n a,
   end,
-  induction n / a with k ih,
-  { simp [le_of_lt (mod_lt n a_pos)], },
+  induction n / a with j ih,
+  { simp [le_of_lt (mod_lt n a_pos)],
+    transitivity (filter a.coprime (Ico k (k + a))).card,
+    { mono,
+      refine monotone_filter_left a.coprime _,
+      simp only [finset.le_eq_subset],
+      rw finset.subset_iff,
+      intro x,
+      simp only [and_imp, mem_Ico],
+      intros h1 h2,
+      split,
+      assumption,
+      have h3 : n % a < a, exact mod_lt n a_pos,
+      linarith, },
+    { rw filter_coprime_Ico_eq_totient, }, },
   simp only [mul_succ],
-  rw ←add_assoc,
-  calc (filter a.coprime (Ico a (n % a + a * k + a))).card
-      ≤ (filter a.coprime (Ico a (n % a + a * k)
-                            ∪ Ico (n % a + a * k) (n % a + a * k + a))).card :
+  simp_rw ←add_assoc,
+  simp_rw ←add_assoc at ih,
+  calc (filter a.coprime (Ico k (k + n % a + a * j + a))).card
+      ≤ (filter a.coprime (Ico k (k + n % a + a * j)
+                            ∪ Ico (k + n % a + a * j) (k + n % a + a * j + a))).card :
         begin
           apply card_le_of_subset,
           apply filter_subset_filter,
@@ -79,34 +93,34 @@ begin
           intro x,
           simp only [mem_Ico, and_imp, mem_union],
           intros h1 h2,
-          by_cases x < n % a + a * k,
+          by_cases x < k + n % a + a * j,
           { left,
             exact ⟨h1, h⟩, },
           { right,
             exact ⟨le_of_not_lt h, h2⟩, },
         end
-  ... ≤ (filter a.coprime (Ico a (n % a + a * k))).card + a.totient :
+  ... ≤ (filter a.coprime (Ico k (k + n % a + a * j))).card + a.totient :
         begin
-          rw [filter_union, ←filter_coprime_Ico_eq_totient a (n % a + a * k)],
+          rw [filter_union, ←filter_coprime_Ico_eq_totient a (k + n % a + a * j)],
           apply card_union_le,
         end
-  ... ≤ a.totient * k + a.totient : add_le_add_right ih (totient a),
+  ... ≤ a.totient * j + a.totient + a.totient : add_le_add_right ih (totient a),
 end
 
 /-- A linear upper bound on the size of the `prime_counting'` function -/
-lemma linear_prime_counting_bound (n k : ℕ) (h0 : 0 < k) :
-  π' n ≤ π' k + 1 + nat.totient k * (n / k) :=
+lemma linear_prime_counting_bound (n k a : ℕ) (h0 : 0 < a) (h1 : a < k) :
+  π' (k + n) ≤ π' k + nat.totient a * (n / a + 1) :=
 begin
-  cases lt_or_le k n with k_lt_n n_le_k,
-  { calc π' n ≤ ((range k).filter (prime)).card + ((Ico k n).filter (prime)).card :
+  -- cases lt_or_le k n with k_lt_n n_le_k,
+  calc π' (k + n) ≤ ((range k).filter (prime)).card + ((Ico k (k + n)).filter (prime)).card :
                 begin
                   rw [prime_counting', count_eq_card_filter_range, range_eq_Ico,
-                      ←Ico_union_Ico_eq_Ico (zero_le k) (le_of_lt k_lt_n), filter_union],
+                      ←Ico_union_Ico_eq_Ico (zero_le k) (le_self_add), filter_union],
                   apply card_union_le,
                 end
-        ... ≤ π' k + ((Ico k n).filter (prime)).card :
+        ... ≤ π' k + ((Ico k (k + n)).filter (prime)).card :
                 by rw [prime_counting', count_eq_card_filter_range]
-        ... ≤ π' k + ((Ico k n).filter (λ i, i = k ∨ coprime k i)).card :
+        ... ≤ π' k + ((Ico k (k + n)).filter (coprime a)).card :
                 begin
                   refine add_le_add_left (card_le_of_subset _) k.prime_counting',
                   simp only [subset_iff, and_imp, mem_filter, mem_Ico],
@@ -114,40 +128,38 @@ begin
                   split,
                   { exact ⟨succ_k_le_p, p_lt_n⟩, },
                   { rw coprime_comm,
-                    exact eq_or_coprime_of_le_prime h0 succ_k_le_p p_prime, },
+                    exact coprime_of_lt_prime h0 (gt_of_ge_of_gt succ_k_le_p h1) p_prime, },
                 end
-        ... = π' k + ({k} ∪ filter k.coprime (Ico k n)).card :
+        ... ≤ π' k + totient a * (n / a + 1) :
                 begin
-                  rw [filter_or, filter_eq'],
-                  congr,
-                  simp only [true_and, le_refl, not_lt, mem_Ico, ite_eq_left_iff],
-                  intro n_le_k,
-                  exfalso,
-                  exact lt_le_antisymm k_lt_n n_le_k,
-                end
-        ... ≤ π' k + (1 + nat.totient k * (n / k)) :
-                begin
-                  apply add_le_add_left,
-                  apply trans (card_union_le {k} (filter k.coprime (Ico k n))),
-                  simp only [add_le_add_iff_left, card_singleton],
-                  exact filter_coprime_bound k n h0,
-                end
-        ... = π' k + 1 + nat.totient k * (n / k) : by rw [add_assoc] },
-  { exact le_add_right (le_add_right (monotone_prime_counting' n_le_k))},
+                  rw [add_le_add_iff_left],
+                  exact filter_coprime_bound a k n h0,
+                end,
 end
 
 /-- An explicit linear upper bound on the size of the `prime_counting'` function -/
-lemma linear_prime_counting_bound_6 (n : ℕ) :
-  π' n ≤ 4 + 2 * (n / 6) :=
+lemma linear_prime_counting_bound_6 (n : ℕ) (n_big : 56 ≤ n) :
+  π' n ≤ n / 3 :=
 begin
-  have h := linear_prime_counting_bound n 6 (by linarith),
-  suffices : 4 + 2 * (n / 6) = prime_counting' 6 + 1 + totient 6 * (n / 6),
-  { rwa this, },
-  congr,
-  { simp [prime_counting', count_succ],
-    norm_num, },
-  { have : 6 = 2 * 3 := by norm_num,
-    rw [this, totient_mul, totient_prime, totient_prime]; norm_num, },
+  have ek : (∃ k, 56 + k = n), exact le.dest n_big,
+  rcases ek,
+  have h := linear_prime_counting_bound ek_w 56 6,
+  rw ek_h at h,
+  simp at h,
+  apply le_trans h,
+  rw <-ek_h,
+  simp [prime_counting', count_succ],
+  norm_num,
+  have : 6 = 2 * 3 := by norm_num,
+  rw [this, totient_mul, totient_prime, totient_prime]; norm_num,
+  have h'' : 0 < 3, linarith,
+  rw <-mul_le_mul_left h'',
+  ring_nf,
+  have hdam1 : 6 * (ek_w / 6) ≤ ek_w, exact mul_div_le ek_w 6,
+  have hdam2 := nat.div_add_mod (ek_w + 56) 3,
+  have mlt2 := @mod_lt (ek_w + 56) 3 (by dec_trivial),
+  have h12321 : ek_w + 56 < 3 * ((ek_w + 56) / 3) + 3, by linarith,
+  linarith,
 end
 
 end nat

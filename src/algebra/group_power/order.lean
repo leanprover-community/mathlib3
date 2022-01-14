@@ -312,6 +312,17 @@ pow_bit0_pos h 1
 
 alias sq_pos_of_ne_zero ← pow_two_pos_of_ne_zero
 
+theorem pow_bit0_pos_iff (a : R) {n : ℕ} (hn : n ≠ 0) : 0 < a ^ bit0 n ↔ a ≠ 0 :=
+begin
+  refine ⟨λ h, _, λ h, pow_bit0_pos h n⟩,
+  rintro rfl,
+  rw zero_pow (nat.zero_lt_bit0 hn) at h,
+  exact lt_irrefl _ h,
+end
+
+theorem sq_pos_iff (a : R) : 0 < a ^ 2 ↔ a ≠ 0 :=
+pow_bit0_pos_iff a one_ne_zero
+
 variables {x y : R}
 
 theorem sq_abs (x : R) : |x| ^ 2 = x ^ 2 :=

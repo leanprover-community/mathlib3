@@ -308,6 +308,8 @@ lemma fact_zero_lt_one : fact ((0 : ℝ) < 1) := ⟨zero_lt_one⟩
 local attribute [instance] fact_zero_lt_one
 
 instance : charted_space (euclidean_half_space 1) (Icc (0 : ℝ) 1) := by apply_instance
-instance : smooth_manifold_with_corners (𝓡∂ 1) (Icc (0 : ℝ) 1) := by apply_instance
+instance : smooth_manifold_with_corners
+  (𝓡∂ 1 : model_with_corners ℝ (euclidean_space ℝ (fin 1)) (euclidean_half_space 1))
+  (Icc (0 : ℝ) 1) := by apply_instance
 
 end

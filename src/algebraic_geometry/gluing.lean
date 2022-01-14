@@ -312,7 +312,7 @@ def glued_cover : Scheme.glue_data.{u} :=
   f_open := λ x, infer_instance }
 
 /-- The canonical morphism from the gluing of an open cover of `X` into `X`.
-This is an isomorphism, as witnessed by `is_iso` instance. -/
+This is an isomorphism, as witnessed by an `is_iso` instance. -/
 def from_glued : 𝒰.glued_cover.glued ⟶ X :=
 begin
   fapply multicoequalizer.desc,

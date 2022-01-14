@@ -138,16 +138,20 @@ def factorization_equiv : pnat ≃ {f : ℕ →₀ ℕ | ∀ p ∈ f.support, pr
 { to_fun    := λ ⟨n, hn⟩, ⟨n.factorization, λ p, @prime_of_mem_factorization n p⟩,
   inv_fun   := λ ⟨f, hf⟩, ⟨f.prod pow,
     prod_pos (λ p hp, zero_lt_iff.mpr (pow_ne_zero _ (prime.ne_zero (hf p hp))))⟩,
-  left_inv  := by {
+  left_inv  :=
+  begin
     rintros ⟨x, hx⟩,
     unfold factorization_equiv._match_1,
     unfold factorization_equiv._match_2,
-    simp [factorization_prod_pow_eq_self hx.ne.symm] },
-  right_inv := by {
+    simp [factorization_prod_pow_eq_self hx.ne.symm]
+  end,
+  right_inv :=
+  begin
     rintros ⟨f, hf⟩,
     unfold factorization_equiv._match_2,
     unfold factorization_equiv._match_1,
-    simp [subtype.mk_eq_mk, factorization_prod_pow_inv hf] } }
+    simp [subtype.mk_eq_mk, factorization_prod_pow_inv hf]
+  end }
 
 /-! ### Factorizations of pairs of coprime numbers -/
 

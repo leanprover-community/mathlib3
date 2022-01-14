@@ -52,6 +52,8 @@ by { rw [←add_subgroup.mem_carrier], exact iff.rfl }
 
 @[simp, norm_cast] lemma star_coe_eq {x : self_adjoint R} : star (x : R) = x := x.prop
 
+instance : inhabited (self_adjoint R) := ⟨0⟩
+
 end add_group
 
 instance [add_comm_group R] [star_add_monoid R] : add_comm_group (self_adjoint R) :=
@@ -64,6 +66,8 @@ variables [ring R] [star_ring R]
 instance : has_one (self_adjoint R) := ⟨⟨1, by rw [mem_iff, star_one]⟩⟩
 
 @[simp, norm_cast] lemma coe_one : (coe : self_adjoint R → R) (1 : self_adjoint R) = (1 : R) := rfl
+
+instance [nontrivial R] : nontrivial (self_adjoint R) := ⟨⟨0, 1, subtype.ne_of_val_ne zero_ne_one⟩⟩
 
 lemma one_mem : (1 : R) ∈ self_adjoint R := by simp only [mem_iff, star_one]
 

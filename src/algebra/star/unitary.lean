@@ -60,9 +60,8 @@ lemma coe_mul_star_self (U : unitary R) :  (U : R) * star U = 1 := mul_star_self
 @[simp] lemma star_mul_self (U : unitary R) : star U * U = 1 := subtype.ext $ coe_star_mul_self U
 @[simp] lemma mul_star_self (U : unitary R) : U * star U = 1 := subtype.ext $ coe_mul_star_self U
 
-
 instance : group (unitary R) :=
-{ inv := λ U, star U,
+{ inv := star,
   mul_left_inv := star_mul_self,
   ..submonoid.to_monoid _ }
 
@@ -75,5 +74,7 @@ instance : star_monoid (unitary R) :=
 instance : inhabited (unitary R) := ⟨1⟩
 
 lemma star_eq_inv (U : unitary R) : star U = U⁻¹ := rfl
+
+lemma star_eq_inv' : (star : unitary R → unitary R) = star := rfl
 
 end unitary

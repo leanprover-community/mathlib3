@@ -171,38 +171,10 @@ by { ext1, exact set.image_univ.trans hU.from_Spec_range }
 lemma is_affine_open.is_compact {X : Scheme} {U : opens X.carrier} (hU : is_affine_open U) :
   is_compact (U : set X.carrier) :=
 begin
-  convert @is_compact.image _ _ _ set.univ _ hU.from_Spec.1.base
+  convert @is_compact.image _ _ _ _ set.univ hU.from_Spec.1.base
     prime_spectrum.compact_space.1 (by continuity),
   convert hU.from_Spec_range.symm,
   exact set.image_univ
-end
-
-abbreviation Scheme.basic_open (X : Scheme) {U : opens X.carrier} (f : X.presheaf.obj (op U)) :
-  opens X.carrier := X.to_LocallyRingedSpace.to_RingedSpace.basic_open f
-
-lemma basic_open_eq_of_affine {R : CommRing} (f : R) :
-  RingedSpace.basic_open (Spec.to_SheafedSpace.obj (op R)) ((Spec_Γ_identity.app R).inv f) =
-    prime_spectrum.basic_open f :=
-begin
-  ext,
-  change ↑(⟨x, trivial⟩ : (⊤ : opens _)) ∈
-    RingedSpace.basic_open (Spec.to_SheafedSpace.obj (op R)) _ ↔ _,
-  rw RingedSpace.mem_basic_open,
-  suffices : is_unit (structure_sheaf.to_stalk R x f) ↔ f ∉ prime_spectrum.as_ideal x,
-  { exact this },
-  erw [← is_unit_map_iff (structure_sheaf.stalk_to_fiber_ring_hom R x),
-    structure_sheaf.stalk_to_fiber_ring_hom_to_stalk],
-  exact (is_localization.at_prime.is_unit_to_map_iff
-    (localization.at_prime (prime_spectrum.as_ideal x)) (prime_spectrum.as_ideal x) f : _)
-end
-
-lemma basic_open_eq_of_affine' {R : CommRing}
-  (f : (Spec.to_SheafedSpace.obj (op R)).presheaf.obj (op ⊤)) :
-  RingedSpace.basic_open (Spec.to_SheafedSpace.obj (op R)) f =
-    prime_spectrum.basic_open ((Spec_Γ_identity.app R).hom f) :=
-begin
-  convert basic_open_eq_of_affine ((Spec_Γ_identity.app R).hom f),
-  exact (coe_hom_inv_id _ _).symm
 end
 
 lemma is_affine_open.from_Spec_base_preimage
@@ -214,38 +186,6 @@ begin
   rw [← hU.from_Spec_range, ← set.image_univ],
   exact set.preimage_image_eq _ PresheafedSpace.is_open_immersion.base_open.inj
 end
-.
-
-lemma Γ_Spec.adjunction.unit.app_app_top (X : Scheme) :
-  @eq ((Scheme.Spec.obj (op $ X.presheaf.obj (op ⊤))).presheaf.obj (op ⊤) ⟶
-    ((Γ_Spec.adjunction.unit.app X).1.base _* X.presheaf).obj (op ⊤))
-  ((Γ_Spec.adjunction.unit.app X).val.c.app (op ⊤))
-    (Spec_Γ_identity.hom.app (X.presheaf.obj (op ⊤))) :=
-begin
-  have := congr_app Γ_Spec.adjunction.left_triangle X,
-  dsimp at this,
-  rw ← is_iso.eq_comp_inv at this,
-  simp only [Γ_Spec.LocallyRingedSpace_adjunction_counit, nat_trans.op_app, category.id_comp,
-    Γ_Spec.adjunction_counit_app] at this,
-  rw [← op_inv, nat_iso.inv_inv_app, quiver.hom.op_inj.eq_iff] at this,
-  exact this
-end
-.
-@[reassoc, simp]
-lemma Scheme.comp_val_c_app {X Y Z : Scheme} (f : X ⟶ Y) (g : Y ⟶ Z) (U) :
-  (f ≫ g).val.c.app U = g.val.c.app U ≫ f.val.c.app _ := rfl
-
-lemma Scheme.congr_app {X Y : Scheme} {f g : X ⟶ Y} (e : f = g) (U) :
-  f.val.c.app U = g.val.c.app U ≫ X.presheaf.map (eq_to_hom (by subst e)) :=
-by { subst e, dsimp, simp, }
-
-lemma _root_.topological_space.opens.open_embedding_obj_top {X : Top} (U : opens X) :
-  U.open_embedding.is_open_map.functor.obj ⊤ = U :=
-by { ext1, exact set.image_univ.trans subtype.range_coe }
-
-lemma _root_.topological_space.opens.inclusion_map_eq_top {X : Top} (U : opens X) :
-  (opens.map U.inclusion).obj U = ⊤ :=
-by { ext1, exact subtype.coe_preimage_self _ }
 
 lemma Scheme.Spec_map_presheaf_map_eq_to_hom {X : Scheme} {U V : opens X.carrier} (h : U = V) (W) :
   (Scheme.Spec.map (X.presheaf.map (eq_to_hom h).op).op).val.c.app W =
@@ -268,31 +208,28 @@ begin
   have e₁ :=
     Spec_Γ_identity.hom.naturality (X.presheaf.map (eq_to_hom U.open_embedding_obj_top).op),
   rw ← is_iso.comp_inv_eq at e₁,
-  have e₂ := Γ_Spec.adjunction.unit.app_app_top (X.restrict U.open_embedding),
+  have e₂ := Γ_Spec.adjunction_unit_app_app_top (X.restrict U.open_embedding),
   erw ← e₂ at e₁,
   simp only [functor.id_map, quiver.hom.unop_op, functor.comp_map, ← functor.map_inv, ← op_inv,
     LocallyRingedSpace.Γ_map, category.assoc, functor.right_op_map, inv_eq_to_hom] at e₁,
   delta is_affine_open.from_Spec Scheme.iso_Spec,
-  erw [LocallyRingedSpace.comp_val_c_app, LocallyRingedSpace.comp_val_c_app],
-  rw ← e₁,
+  rw [Scheme.comp_val_c_app, Scheme.comp_val_c_app, ← e₁],
   simp_rw category.assoc,
   erw ← X.presheaf.map_comp_assoc,
   rw ← op_comp,
-  have : U.open_embedding.is_open_map.adjunction.counit.app U ≫ eq_to_hom U.open_embedding_obj_top
-    .symm = U.open_embedding.is_open_map.functor.map (eq_to_hom U.inclusion_map_eq_top) :=
+  have e₃ : U.open_embedding.is_open_map.adjunction.counit.app U ≫
+    eq_to_hom U.open_embedding_obj_top.symm =
+    U.open_embedding.is_open_map.functor.map (eq_to_hom U.inclusion_map_eq_top) :=
     subsingleton.elim _ _,
-  erw this,
-  have : X.presheaf.map _ ≫ _ = _ :=
+  have e₄ : X.presheaf.map _ ≫ _ = _ :=
     (as_iso (Γ_Spec.adjunction.unit.app (X.restrict U.open_embedding)))
     .inv.1.c.naturality_assoc (eq_to_hom U.inclusion_map_eq_top).op _,
-  erw this,
-  erw ← Scheme.comp_val_c_app_assoc,
-  erw iso.inv_hom_id,
+  erw [e₃, e₄, ← Scheme.comp_val_c_app_assoc, iso.inv_hom_id],
   simp only [eq_to_hom_map, eq_to_hom_op, Scheme.Spec_map_presheaf_map_eq_to_hom],
   erw [Scheme.Spec_map_presheaf_map_eq_to_hom, category.id_comp],
   simpa only [eq_to_hom_trans]
 end
-.
+
 @[elementwise]
 lemma is_affine_open.from_Spec_app_eq {X : Scheme} {U : opens X.carrier}
   (hU : is_affine_open U) :
@@ -337,32 +274,6 @@ end
 instance Scheme.quasi_compact_of_affine (X : Scheme) [is_affine X] : compact_space X.carrier :=
 ⟨(top_is_affine_open X).is_compact⟩
 
-instance is_LocallyRingedSpace_iso {X Y : Scheme} (f : X ⟶ Y) [is_iso f] :
-  @is_iso LocallyRingedSpace _ _ _ f :=
-Scheme.forget_to_LocallyRingedSpace.map_is_iso f
-
-instance is_SheafedSpace_iso {X Y : LocallyRingedSpace} (f : X ⟶ Y) [is_iso f] :
-  is_iso f.1 :=
-LocallyRingedSpace.forget_to_SheafedSpace.map_is_iso f
-
-instance {C : Type*} [category C] [has_products C] {X Y : SheafedSpace C}
-  (f : X ⟶ Y) [is_iso f] : is_iso f.c :=
-@@PresheafedSpace.c_is_iso_of_iso _ f (SheafedSpace.forget_to_PresheafedSpace.map_is_iso f)
-
-attribute [elementwise] functor.map_comp
-
-lemma RingedSpace.basic_open_res_eq (X : RingedSpace) {U V : (opens X)ᵒᵖ} (i : U ⟶ V) [is_iso i]
-  (f : X.presheaf.obj U) :
-  @RingedSpace.basic_open X (unop V) (X.presheaf.map i f) = @RingedSpace.basic_open X (unop U) f :=
-begin
-  apply le_antisymm,
-  { rw X.basic_open_res i f, exact inf_le_right },
-  { have := X.basic_open_res (inv i) (X.presheaf.map i f),
-    rw [← X.presheaf.map_comp_apply, is_iso.hom_inv_id, X.presheaf.map_id] at this,
-    erw this,
-    exact inf_le_right }
-end
-
 lemma LocallyRingedSpace.preimage_basic_open_of_iso {X Y : LocallyRingedSpace} (f : X ⟶ Y)
   [is_iso f]
   {U : opens X} (r : X.presheaf.obj (op U)) :
@@ -400,7 +311,7 @@ begin
   rw [← basic_open_eq_of_affine, ← LocallyRingedSpace.preimage_basic_open_of_iso X.iso_Spec.hom],
   congr,
   { rw [← is_iso.inv_eq_inv, is_iso.inv_inv, is_iso.iso.inv_inv, nat_iso.app_hom],
-    erw ← Γ_Spec.adjunction.unit.app_app_top,
+    erw ← Γ_Spec.adjunction_unit_app_app_top,
     refl },
   { rw eq_to_hom_map, refl }
 end
@@ -448,10 +359,9 @@ begin
   have : U.open_embedding.is_open_map.functor.obj ((X.restrict U.open_embedding).basic_open r)
     = X.basic_open (X.presheaf.map (eq_to_hom U.open_embedding_obj_top.symm).op r),
   { refine (image_basic_open_of_is_open_immersion (X.of_restrict U.open_embedding) r).trans _,
-    delta Scheme.basic_open,
-    erw ← RingedSpace.basic_open_res_eq _ (eq_to_hom U.open_embedding_obj_top).op,
-    rw [← category_theory.functor.map_comp_apply, ← op_comp, eq_to_hom_trans, eq_to_hom_refl,
-      op_id, category_theory.functor.map_id],
+    erw ← Scheme.basic_open_res_eq _ _ (eq_to_hom U.open_embedding_obj_top),
+    rw [← comp_apply, ← category_theory.functor.map_comp, ← op_comp, eq_to_hom_trans,
+      eq_to_hom_refl, op_id, category_theory.functor.map_id],
     erw of_restrict_inv_app_apply,
     congr },
   use X.presheaf.map (eq_to_hom U.open_embedding_obj_top.symm).op r,
@@ -507,10 +417,6 @@ begin
   apply_instance
 end
 .
-
-@[simp]
-lemma Spec_Γ_identity_inv_app {X : CommRing} : Spec_Γ_identity.inv.app X = to_Spec_Γ X := rfl
-
 lemma is_localization_basic_open {X : Scheme} {U : opens X.carrier} (hU : is_affine_open U)
   (f : X.presheaf.obj (op U)) :
   is_localization.away f (X.presheaf.obj (op $ X.basic_open f)) :=
@@ -529,29 +435,6 @@ begin
   simp only [category.assoc, ← functor.map_comp, ← op_comp],
   apply structure_sheaf.to_open_res,
 end
-.
-lemma RingedSpace.basic_open_mul (X : RingedSpace) {U : opens X} (f g : X.presheaf.obj (op U)) :
-  X.basic_open (f * g) = X.basic_open f ⊓ X.basic_open g :=
-begin
-  ext1,
-  dsimp [RingedSpace.basic_open],
-  rw set.image_inter subtype.coe_injective,
-  congr,
-  ext,
-  simp_rw map_mul,
-  exact is_unit.mul_iff,
-end
-
-lemma RingedSpace.basic_open_of_is_unit (X : RingedSpace) {U : opens X} {f : X.presheaf.obj (op U)}
-  (hf : is_unit f) :
-  X.basic_open f = U :=
-begin
-  apply le_antisymm,
-  { exact X.basic_open_subset f },
-  intros x hx,
-  erw X.mem_basic_open f (⟨x, hx⟩ : U),
-  exact ring_hom.is_unit_map _ hf
-end
 
 lemma basic_open_basic_open_is_basic_open {X : Scheme} {U : opens X.carrier}
   (hU : is_affine_open U) (f : X.presheaf.obj (op U)) (g : X.presheaf.obj (op $ X.basic_open f)) :
@@ -560,12 +443,11 @@ begin
   haveI := is_localization_basic_open hU f,
   obtain ⟨x, ⟨_, n, rfl⟩, rfl⟩ := is_localization.surj' (submonoid.powers f) g,
   use f * x,
-  delta Scheme.basic_open,
-  rw [algebra.smul_def, RingedSpace.basic_open_mul, RingedSpace.basic_open_mul],
-  erw RingedSpace.basic_open_res,
+  rw [algebra.smul_def, Scheme.basic_open_mul, Scheme.basic_open_mul],
+  erw Scheme.basic_open_res,
   refine (inf_eq_left.mpr _).symm,
   convert inf_le_left using 1,
-  apply RingedSpace.basic_open_of_is_unit,
+  apply Scheme.basic_open_of_is_unit,
   apply submonoid.left_inv_le_is_unit _ (is_localization.to_inv_submonoid (submonoid.powers f)
     (X.presheaf.obj (op $ X.basic_open f)) _).prop
 end

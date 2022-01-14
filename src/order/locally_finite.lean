@@ -60,6 +60,7 @@ Instances for concrete types are proved in their respective files:
 * `ℕ+` is in `data.pnat.interval`
 * `fin n` is in `data.fin.interval`
 * `finset α` is in `data.finset.interval`
+* `Σ i, α i` is in `data.sigma.interval`
 Along, you will find lemmas about the cardinality of those finite intervals.
 
 ## TODO

@@ -872,7 +872,8 @@ begin
   { intros s hs hμs,
     rw [← Lp_meas_coe, integral_condexp_L2_eq_of_fin_meas_real _ hs hμs.ne,
       integral_congr_ae (ae_restrict_of_ae h_eq), Lp_meas_coe,
-      ← L2.inner_indicator_const_Lp_eq_set_integral_inner 𝕜 ↑(condexp_L2 E 𝕜 μ hm f) (hm s hs) c hμs.ne,
+      ← L2.inner_indicator_const_Lp_eq_set_integral_inner
+        𝕜 ↑(condexp_L2 E 𝕜 μ hm f) (hm s hs) c hμs.ne,
       ← inner_condexp_L2_left_eq_right, condexp_L2_indicator_of_measurable,
       L2.inner_indicator_const_Lp_eq_set_integral_inner 𝕜 f (hm s hs) c hμs.ne,
       set_integral_congr_ae (hm s hs)
@@ -952,7 +953,8 @@ end
 lemma condexp_L2_indicator_eq_to_span_singleton_comp (hm : m ≤ m0) (hs : measurable_set s)
   (hμs : μ s ≠ ∞) (x : E') :
   (condexp_L2 E' 𝕜 μ hm (indicator_const_Lp 2 hs hμs x) : α →₂[μ] E')
-    = (to_span_singleton ℝ x).comp_Lp (condexp_L2 ℝ ℝ μ hm (indicator_const_Lp 2 hs hμs (1 : ℝ))) :=
+    = (to_span_singleton ℝ x).comp_Lp
+      (condexp_L2 ℝ ℝ μ hm (indicator_const_Lp 2 hs hμs (1 : ℝ))) :=
 begin
   ext1,
   rw ← Lp_meas_coe,

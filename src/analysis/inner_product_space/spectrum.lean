@@ -5,6 +5,7 @@ Authors: Heather Macbeth
 -/
 import analysis.inner_product_space.rayleigh
 import analysis.inner_product_space.pi_L2
+import data.pi.abstract_diagonalization
 
 /-! # Spectral theory of self-adjoint operators
 
@@ -141,31 +142,35 @@ section version1
 
 /-- Isometry from an inner product space `E` to the direct sum of the eigenspaces of some
 self-adjoint operator `T` on `E`. -/
-noncomputable def diagonalization : E ≃ₗᵢ[𝕜] pi_Lp 2 (λ μ : eigenvalues T, eigenspace T μ) :=
+noncomputable def to_eigenspaces : E ≃ₗᵢ[𝕜] pi_Lp 2 (λ μ : eigenvalues T, eigenspace T μ) :=
 hT.direct_sum_submodule_is_internal.isometry_L2_of_orthogonal_family
   hT.orthogonal_family_eigenspaces'
 
-@[simp] lemma diagonalization_symm_apply (w : pi_Lp 2 (λ μ : eigenvalues T, eigenspace T μ)) :
-  hT.diagonalization.symm w = ∑ μ, w μ :=
+@[simp] lemma to_eigenspaces_symm_apply (w : pi_Lp 2 (λ μ : eigenvalues T, eigenspace T μ)) :
+  hT.to_eigenspaces.symm w = ∑ μ, w μ :=
 hT.direct_sum_submodule_is_internal.isometry_L2_of_orthogonal_family_symm_apply
   hT.orthogonal_family_eigenspaces' w
 
-/-- *Diagonalization theorem*, *spectral theorem*; version 1: A self-adjoint operator `T` on a
+/-- **Diagonalization theorem**, **spectral theorem**; version 1: A self-adjoint operator `T` on a
 finite-dimensional inner product space `E` acts diagonally on the decomposition of `E` into the
 direct sum of the eigenspaces of `T`. -/
-lemma diagonalization_apply_self_apply (v : E) (μ : eigenvalues T) :
-  hT.diagonalization (T v) μ = (μ : 𝕜) • hT.diagonalization v μ :=
-begin
-  suffices : ∀ w : pi_Lp 2 (λ μ : eigenvalues T, eigenspace T μ),
-    (T (hT.diagonalization.symm w)) = hT.diagonalization.symm (λ μ, (μ : 𝕜) • w μ),
-  { simpa [linear_isometry_equiv.symm_apply_apply, -is_self_adjoint.diagonalization_symm_apply]
-      using congr_arg (λ w, hT.diagonalization w μ) (this (hT.diagonalization v)) },
-  intros w,
-  have hwT : ∀ μ : eigenvalues T, T (w μ) = (μ : 𝕜) • w μ,
-  { intros μ,
-    simpa [mem_eigenspace_iff] using (w μ).prop },
-  simp [hwT],
-end
+noncomputable def has_diagonalization_to_eigenspaces
+  [Π μ : eigenvalues T, module ℝ (eigenspace T μ)]
+  [Π μ : eigenvalues T, is_scalar_tower ℝ 𝕜 (eigenspace T μ)] :
+  has_diagonalization T hT.to_eigenspaces ℝ :=
+{ eig_map := λ μ, is_R_or_C.re (μ : 𝕜),
+  diagonalizes := λ μ v, begin
+    sorry
+    -- suffices : ∀ w : pi_Lp 2 (λ μ : eigenvalues T, eigenspace T μ),
+    --   (T (hT.to_eigenspaces.symm w)) = hT.to_eigenspaces.symm (λ μ, (μ : 𝕜) • w μ),
+    -- { simpa [linear_isometry_equiv.symm_apply_apply, -is_self_adjoint.to_eigenspaces_symm_apply]
+    --     using congr_arg (λ w, hT.to_eigenspaces w μ) (this (hT.to_eigenspaces v)) },
+    -- intros w,
+    -- have hwT : ∀ μ : eigenvalues T, T (w μ) = (μ : 𝕜) • w μ,
+    -- { intros μ,
+    --   simpa [mem_eigenspace_iff] using (w μ).prop },
+    -- simp [hwT],
+  end }
 
 end version1
 

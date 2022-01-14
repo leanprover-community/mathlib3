@@ -29,7 +29,9 @@ To get a C⋆-algebra `E` over field `𝕜`, use
 
 -/
 
-local postfix `⋆`:1000 := star
+open_locale topological_space
+
+local postfix `⋆`:std.prec.max_plus := star
 
 /-- A normed star ring is a star ring endowed with a norm such that `star` is isometric. -/
 class normed_star_monoid (E : Type*) [normed_group E] [star_add_monoid E] :=
@@ -46,25 +48,63 @@ class cstar_ring (E : Type*) [normed_ring E] [star_ring E] :=
 noncomputable instance : cstar_ring ℝ :=
 { norm_star_mul_self := λ x, by simp only [star, id.def, normed_field.norm_mul] }
 
-variables {𝕜 E : Type*}
+variables {𝕜 E α : Type*}
+
+section normed_star_monoid
+variables [normed_group E] [star_add_monoid E] [normed_star_monoid E]
 
 /-- The `star` map in a normed star group is a normed group homomorphism. -/
-def star_normed_group_hom [normed_group E] [star_add_monoid E] [normed_star_monoid E] :
-  normed_group_hom E E :=
+def star_normed_group_hom : normed_group_hom E E :=
 { bound' := ⟨1, λ v, le_trans (norm_star.le) (one_mul _).symm.le⟩,
   .. star_add_equiv }
 
 /-- The `star` map in a normed star group is an isometry -/
-lemma star_isometry [normed_group E] [star_add_monoid E] [normed_star_monoid E] :
-  isometry (star : E → E) :=
-star_add_equiv.to_add_monoid_hom.isometry_of_norm (@normed_star_monoid.norm_star _ _ _ _)
+lemma star_isometry : isometry (star : E → E) :=
+star_add_equiv.to_add_monoid_hom.isometry_of_norm (λ _, norm_star)
 
-open cstar_ring
+lemma continuous_star : continuous (star : E → E) := star_isometry.continuous
+
+lemma continuous_on_star {s : set E} : continuous_on star s := continuous_star.continuous_on
+
+lemma continuous_at_star {x : E} : continuous_at star x := continuous_star.continuous_at
+
+lemma continuous_within_at_star {s : set E} {x : E} : continuous_within_at star s x :=
+continuous_star.continuous_within_at
+
+lemma tendsto_star (x : E) : filter.tendsto star (𝓝 x) (𝓝 x⋆) := continuous_star.tendsto x
+
+lemma filter.tendsto.star {f : α → E} {l : filter α} {y : E} (h : filter.tendsto f l (𝓝 y)) :
+  filter.tendsto (λ x, (f x)⋆) l (𝓝 y⋆) :=
+(continuous_star.tendsto y).comp h
+
+variables [topological_space α]
+
+lemma continuous.star {f : α → E} (hf : continuous f) : continuous (λ y, star (f y)) :=
+continuous_star.comp hf
+
+lemma continuous_at.star {f : α → E} {x : α} (hf : continuous_at f x) :
+  continuous_at (λ x, (f x)⋆) x :=
+continuous_at_star.comp hf
+
+lemma continuous_on.star {f : α → E} {s : set α} (hf : continuous_on f s) :
+  continuous_on (λ x, (f x)⋆) s :=
+continuous_star.comp_continuous_on hf
+
+lemma continuous_within_at.star {f : α → E} {s : set α} {x : α}
+  (hf : continuous_within_at f s x) : continuous_within_at (λ x, (f x)⋆) s x := hf.star
+
+end normed_star_monoid
+
+instance ring_hom_isometric.star_ring_aut [normed_comm_ring E] [star_ring E]
+   [normed_star_monoid E] : ring_hom_isometric ((star_ring_aut : ring_aut E) : E →+* E) :=
+⟨λ _, norm_star⟩
+
+namespace cstar_ring
+variables [normed_ring E] [star_ring E] [cstar_ring E]
 
 /-- In a C*-ring, star preserves the norm. -/
 @[priority 100] -- see Note [lower instance priority]
-instance cstar_ring.to_normed_star_monoid {E : Type*} [normed_ring E] [star_ring E] [cstar_ring E] :
-  normed_star_monoid E :=
+instance to_normed_star_monoid : normed_star_monoid E :=
 ⟨begin
   intro x,
   by_cases htriv : x = 0,
@@ -81,13 +121,24 @@ instance cstar_ring.to_normed_star_monoid {E : Type*} [normed_ring E] [star_ring
     exact le_antisymm (le_of_mul_le_mul_right h₂ hnt_star) (le_of_mul_le_mul_right h₁ hnt) },
 end⟩
 
-lemma cstar_ring.norm_self_mul_star [normed_ring E] [star_ring E] [cstar_ring E] {x : E} :
-  ∥x * x⋆∥ = ∥x∥ * ∥x∥ :=
+lemma norm_self_mul_star {x : E} : ∥x * x⋆∥ = ∥x∥ * ∥x∥ :=
 by { nth_rewrite 0 [←star_star x], simp only [norm_star_mul_self, norm_star] }
 
-lemma cstar_ring.norm_star_mul_self' [normed_ring E] [star_ring E] [cstar_ring E] {x : E} :
-  ∥x⋆ * x∥ = ∥x⋆∥ * ∥x∥ :=
+lemma norm_star_mul_self' {x : E} : ∥x⋆ * x∥ = ∥x⋆∥ * ∥x∥ :=
 by rw [norm_star_mul_self, norm_star]
+
+@[simp] lemma norm_one [nontrivial E] : ∥(1 : E)∥ = 1 :=
+begin
+  cases mul_eq_mul_right_iff.mp
+    (calc 1 * ∥(1 : E)∥ = ∥(1 : E)∥              : one_mul _
+                   ...  = ∥(1 : E)⋆ * 1∥         : by rw [mul_one, star_one]
+                   ...  = ∥(1 : E)∥ * ∥(1 : E)∥  : norm_star_mul_self) with h,
+  { exact h.symm },
+  { exfalso,
+    exact one_ne_zero (norm_eq_zero.mp h) }
+end
+
+end cstar_ring
 
 section starₗᵢ
 

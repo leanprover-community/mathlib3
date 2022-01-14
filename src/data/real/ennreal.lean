@@ -77,15 +77,12 @@ variables {α : Type*} {β : Type*}
 @[derive [
   has_zero, add_comm_monoid,
   canonically_ordered_comm_semiring, complete_linear_order, densely_ordered, nontrivial,
-  canonically_linear_ordered_add_monoid, has_sub, has_ordered_sub]]
+  canonically_linear_ordered_add_monoid, has_sub, has_ordered_sub,
+  linear_ordered_add_comm_monoid_with_top]]
 def ennreal := with_top ℝ≥0
 
 localized "notation `ℝ≥0∞` := ennreal" in ennreal
 localized "notation `∞` := (⊤ : ennreal)" in ennreal
-
-noncomputable instance : linear_ordered_add_comm_monoid ℝ≥0∞ :=
-{ .. ennreal.canonically_ordered_comm_semiring,
-  .. ennreal.complete_linear_order }
 
 -- TODO: why are the two covariant instances necessary? why aren't they inferred?
 instance covariant_class_mul : covariant_class ℝ≥0∞ ℝ≥0∞ (*) (≤) :=
@@ -231,6 +228,19 @@ coe_one ▸ coe_two ▸ by exact_mod_cast (@one_lt_two ℕ _ _)
 lemma two_ne_zero : (2:ℝ≥0∞) ≠ 0 := (ne_of_lt zero_lt_two).symm
 lemma two_ne_top : (2:ℝ≥0∞) ≠ ∞ := coe_two ▸ coe_ne_top
 
+/-- `(1 : ℝ≥0∞) ≤ 1`, recorded as a `fact` for use with `Lp` spaces, see note [fact non-instances].
+-/
+lemma _root_.fact_one_le_one_ennreal : fact ((1 : ℝ≥0∞) ≤ 1) := ⟨le_refl _⟩
+
+/-- `(1 : ℝ≥0∞) ≤ 2`, recorded as a `fact` for use with `Lp` spaces, see note [fact non-instances].
+-/
+lemma _root_.fact_one_le_two_ennreal : fact ((1 : ℝ≥0∞) ≤ 2) :=
+⟨ennreal.coe_le_coe.2 (show (1 : ℝ≥0) ≤ 2, by norm_num)⟩
+
+/-- `(1 : ℝ≥0∞) ≤ ∞`, recorded as a `fact` for use with `Lp` spaces, see note [fact non-instances].
+-/
+lemma _root_.fact_one_le_top_ennreal : fact ((1 : ℝ≥0∞) ≤ ∞) := ⟨le_top⟩
+
 /-- The set of numbers in `ℝ≥0∞` that are not equal to `∞` is equivalent to `ℝ≥0`. -/
 def ne_top_equiv_nnreal : {a | a ≠ ∞} ≃ ℝ≥0 :=
 { to_fun := λ x, ennreal.to_nnreal x,
@@ -260,8 +270,8 @@ lemma supr_ennreal {α : Type*} [complete_lattice α] {f : ℝ≥0∞ → α} :
   (⨆ n, f n) = (⨆ n : ℝ≥0, f n) ⊔ f ∞ :=
 @infi_ennreal (order_dual α) _ _
 
-@[simp] lemma add_top : a + ∞ = ∞ := with_top.add_top
-@[simp] lemma top_add : ∞ + a = ∞ := with_top.top_add
+@[simp] lemma add_top : a + ∞ = ∞ := add_top _
+@[simp] lemma top_add : ∞ + a = ∞ := top_add _
 
 /-- Coercion `ℝ≥0 → ℝ≥0∞` as a `ring_hom`. -/
 noncomputable def of_nnreal_hom : ℝ≥0 →+* ℝ≥0∞ :=
@@ -308,7 +318,7 @@ noncomputable instance {A : Type*} [semiring A] [algebra ℝ≥0∞ A] : algebra
 
 -- verify that the above produces instances we might care about
 noncomputable example : algebra ℝ≥0 ℝ≥0∞ := by apply_instance
-noncomputable example : distrib_mul_action (units ℝ≥0) ℝ≥0∞ := by apply_instance
+noncomputable example : distrib_mul_action ℝ≥0ˣ ℝ≥0∞ := by apply_instance
 
 lemma coe_smul {R} (r : R) (s : ℝ≥0) [has_scalar R ℝ≥0] [has_scalar R ℝ≥0∞]
   [is_scalar_tower R ℝ≥0 ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ≥0∞] :
@@ -939,7 +949,7 @@ le_antisymm
     by rintros b rfl; rwa [← coe_mul, ← coe_one, coe_le_coe, ← nnreal.inv_le hr] at hb)
   (Inf_le $ by simp; rw [← coe_mul, mul_inv_cancel hr]; exact le_refl 1)
 
-lemma coe_inv_le :  (↑r⁻¹ : ℝ≥0∞) ≤ (↑r)⁻¹ :=
+lemma coe_inv_le : (↑r⁻¹ : ℝ≥0∞) ≤ (↑r)⁻¹ :=
 if hr : r = 0 then by simp only [hr, inv_zero, coe_zero, le_top]
 else by simp only [coe_inv hr, le_refl]
 
@@ -1074,7 +1084,7 @@ begin
   by_cases hb : b ≠ 0,
   { have : (b : ℝ≥0∞) ≠ 0, by simp [hb],
     rw [← ennreal.mul_le_mul_left this coe_ne_top],
-    suffices : ↑b * a ≤ (↑b  * ↑b⁻¹) * c ↔ a * ↑b ≤ c,
+    suffices : ↑b * a ≤ (↑b * ↑b⁻¹) * c ↔ a * ↑b ≤ c,
     { simpa [some_eq_coe, div_eq_mul_inv, hb, mul_left_comm, mul_comm, mul_assoc] },
     rw [← coe_mul, mul_inv_cancel hb, coe_one, one_mul, mul_comm] },
   { simp at hb,
@@ -1197,8 +1207,19 @@ end
 lemma inv_two_add_inv_two : (2:ℝ≥0∞)⁻¹ + 2⁻¹ = 1 :=
 by rw [← two_mul, ← div_eq_mul_inv, div_self two_ne_zero two_ne_top]
 
+lemma inv_three_add_inv_three : (3 : ℝ≥0∞)⁻¹ + 3⁻¹ +3⁻¹ = 1 :=
+begin
+  rw [show (3 : ℝ≥0∞)⁻¹ + 3⁻¹ + 3⁻¹ = 3 * 3⁻¹, by ring, ← div_eq_mul_inv, ennreal.div_self];
+  simp,
+end
+
+@[simp]
 lemma add_halves (a : ℝ≥0∞) : a / 2 + a / 2 = a :=
 by rw [div_eq_mul_inv, ← mul_add, inv_two_add_inv_two, mul_one]
+
+@[simp]
+lemma add_thirds (a : ℝ≥0∞) : a / 3 + a / 3 + a / 3 = a :=
+by rw [div_eq_mul_inv, ← mul_add, ← mul_add, inv_three_add_inv_three, mul_one]
 
 @[simp] lemma div_zero_iff : a / b = 0 ↔ a = 0 ∨ b = ∞ :=
 by simp [div_eq_mul_inv]
@@ -1309,7 +1330,7 @@ begin
   lift y to ℝ≥0 using h'y,
   have A : y ≠ 0, by simpa only [ne.def, coe_eq_zero] using (ennreal.zero_lt_one.trans hy).ne',
   obtain ⟨n, hn, h'n⟩ : ∃ n : ℤ, y ^ n ≤ x ∧ x < y ^ (n + 1),
-  { refine nnreal.exists_mem_Ico_zpow _  (one_lt_coe_iff.1 hy),
+  { refine nnreal.exists_mem_Ico_zpow _ (one_lt_coe_iff.1 hy),
     simpa only [ne.def, coe_eq_zero] using hx },
   refine ⟨n, _, _⟩,
   { rwa [← ennreal.coe_zpow A, ennreal.coe_le_coe] },
@@ -1324,7 +1345,7 @@ begin
   lift y to ℝ≥0 using h'y,
   have A : y ≠ 0, by simpa only [ne.def, coe_eq_zero] using (ennreal.zero_lt_one.trans hy).ne',
   obtain ⟨n, hn, h'n⟩ : ∃ n : ℤ, y ^ n < x ∧ x ≤ y ^ (n + 1),
-  { refine nnreal.exists_mem_Ioc_zpow _  (one_lt_coe_iff.1 hy),
+  { refine nnreal.exists_mem_Ioc_zpow _ (one_lt_coe_iff.1 hy),
     simpa only [ne.def, coe_eq_zero] using hx },
   refine ⟨n, _, _⟩,
   { rwa [← ennreal.coe_zpow A, ennreal.coe_lt_coe] },
@@ -1440,21 +1461,51 @@ end
 lemma to_real_strict_mono (hb : b ≠ ∞) (h : a < b) : a.to_real < b.to_real :=
 (to_real_lt_to_real (h.trans (lt_top_iff_ne_top.2 hb)).ne hb).2 h
 
+lemma to_nnreal_mono (hb : b ≠ ∞) (h : a ≤ b) : a.to_nnreal ≤ b.to_nnreal :=
+by simpa [←ennreal.coe_le_coe, hb, (h.trans_lt hb.lt_top).ne]
+
+@[simp] lemma to_nnreal_le_to_nnreal (ha : a ≠ ∞) (hb : b ≠ ∞) :
+  a.to_nnreal ≤ b.to_nnreal ↔ a ≤ b :=
+begin
+  refine ⟨_, to_nnreal_mono hb⟩,
+  { intro h,
+    have key := ennreal.coe_le_coe.mpr h,
+    rwa [coe_to_nnreal ha, coe_to_nnreal hb] at key, },
+end
+
+lemma to_nnreal_strict_mono (hb : b ≠ ∞) (h : a < b) : a.to_nnreal < b.to_nnreal :=
+by simpa [←ennreal.coe_lt_coe, hb, (h.trans hb.lt_top).ne]
+
+@[simp] lemma to_nnreal_lt_to_nnreal (ha : a ≠ ∞) (hb : b ≠ ∞) :
+  a.to_nnreal < b.to_nnreal ↔ a < b :=
+begin
+  refine ⟨_, to_nnreal_strict_mono hb⟩,
+  { intro h,
+    have key := ennreal.coe_lt_coe.mpr h,
+    rwa [coe_to_nnreal ha, coe_to_nnreal hb] at key, },
+end
+
 lemma to_real_max (hr : a ≠ ∞) (hp : b ≠ ∞) :
   ennreal.to_real (max a b) = max (ennreal.to_real a) (ennreal.to_real b) :=
 (le_total a b).elim
   (λ h, by simp only [h, (ennreal.to_real_le_to_real hr hp).2 h, max_eq_right])
   (λ h, by simp only [h, (ennreal.to_real_le_to_real hp hr).2 h, max_eq_left])
 
-lemma to_nnreal_pos_iff : 0 < a.to_nnreal ↔ (0 < a ∧ a ≠ ∞) :=
+lemma to_nnreal_pos_iff : 0 < a.to_nnreal ↔ (0 < a ∧ a < ∞) :=
 begin
   cases a,
   { simp [none_eq_top] },
   { simp [some_eq_coe] }
 end
 
-lemma to_real_pos_iff : 0 < a.to_real ↔ (0 < a ∧ a ≠ ∞):=
+lemma to_nnreal_pos {a : ℝ≥0∞} (ha₀ : a ≠ 0) (ha_top : a ≠ ∞) : 0 < a.to_nnreal :=
+to_nnreal_pos_iff.mpr ⟨bot_lt_iff_ne_bot.mpr ha₀, lt_top_iff_ne_top.mpr ha_top⟩
+
+lemma to_real_pos_iff : 0 < a.to_real ↔ (0 < a ∧ a < ∞):=
 (nnreal.coe_pos).trans to_nnreal_pos_iff
+
+lemma to_real_pos {a : ℝ≥0∞} (ha₀ : a ≠ 0) (ha_top : a ≠ ∞) : 0 < a.to_real :=
+to_real_pos_iff.mpr ⟨bot_lt_iff_ne_bot.mpr ha₀, lt_top_iff_ne_top.mpr ha_top⟩
 
 lemma of_real_le_of_real {p q : ℝ} (h : p ≤ q) : ennreal.of_real p ≤ ennreal.of_real q :=
 by simp [ennreal.of_real, real.to_nnreal_le_to_nnreal h]
@@ -1580,6 +1631,37 @@ begin
     simp only [ennreal.to_real_mul_top, ennreal.top_to_real, smul_zero] },
   { rw [← coe_smul, ennreal.coe_to_real, ennreal.coe_to_real],
     refl }
+end
+
+protected lemma trichotomy (p : ℝ≥0∞) : p = 0 ∨ p = ∞ ∨ 0 < p.to_real :=
+begin
+  rcases eq_or_lt_of_le (bot_le : 0 ≤ p) with (rfl : 0 = p) | (hp : 0 < p),
+  { simp },
+  rcases eq_or_lt_of_le (le_top : p ≤ ⊤) with rfl | hp',
+  { simp },
+  simp [ennreal.to_real_pos_iff, hp, hp'],
+end
+
+protected lemma trichotomy₂ {p q : ℝ≥0∞} (hpq : p ≤ q) :
+  (p = 0 ∧ q = 0) ∨ (p = 0 ∧ q = ∞) ∨ (p = 0 ∧ 0 < q.to_real) ∨ (p = ∞ ∧ q = ∞)
+  ∨ (0 < p.to_real ∧ q = ∞) ∨ (0 < p.to_real ∧ 0 < q.to_real ∧ p.to_real ≤ q.to_real) :=
+begin
+  rcases eq_or_lt_of_le (bot_le : 0 ≤ p) with (rfl : 0 = p) | (hp : 0 < p),
+  { simpa using q.trichotomy },
+  rcases eq_or_lt_of_le (le_top : q ≤ ∞) with rfl | hq,
+  { simpa using p.trichotomy },
+  repeat { right },
+  have hq' : 0 < q := lt_of_lt_of_le hp hpq,
+  have hp' : p < ∞ := lt_of_le_of_lt hpq hq,
+  simp [ennreal.to_real_le_to_real hp'.ne hq.ne, ennreal.to_real_pos_iff, hpq, hp, hp', hq', hq],
+end
+
+protected lemma dichotomy (p : ℝ≥0∞) [fact (1 ≤ p)] : p = ∞ ∨ 1 ≤ p.to_real :=
+begin
+  tactic.unfreeze_local_instances,
+  have :  p = ⊤ ∨ 0 < p.to_real ∧ 1 ≤ p.to_real,
+  { simpa using ennreal.trichotomy₂ (fact.out _ : 1 ≤ p) },
+  exact this.imp_right (λ h, h.2)
 end
 
 /-- `ennreal.to_nnreal` as a `monoid_hom`. -/

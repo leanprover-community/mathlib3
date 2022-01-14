@@ -62,7 +62,7 @@ def special_linear_group := { A : matrix n n R // A.det = 1 }
 
 end
 
-localized "notation `SL(` n `,` R `)`:= special_linear_group (fin n) R" in matrix_groups
+localized "notation `SL(` n `,` R `)`:= matrix.special_linear_group (fin n) R" in matrix_groups
 
 namespace special_linear_group
 

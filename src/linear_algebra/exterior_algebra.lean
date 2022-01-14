@@ -209,17 +209,17 @@ lemma algebra_map_left_inverse :
 
 @[simp] lemma algebra_map_eq_zero_iff (x : R) :
   algebra_map R (exterior_algebra R M) x = 0 ↔ x = 0 :=
-by rw [←algebra_map_inj M x 0, ring_hom.map_zero]
+map_eq_zero_iff (algebra_map _ _) (algebra_map_left_inverse _).injective
 
 @[simp] lemma algebra_map_eq_one_iff (x : R) : algebra_map R (exterior_algebra R M) x = 1 ↔ x = 1 :=
-by rw [←algebra_map_inj M x 1, ring_hom.map_one]
+map_eq_one_iff (algebra_map _ _) (algebra_map_left_inverse _).injective
 
 variables {M}
 
 /-- The canonical map from `exterior_algebra R M` into `triv_sq_zero_ext R M` that sends
 `exterior_algebra.ι` to `triv_sq_zero_ext.inr`. -/
 def to_triv_sq_zero_ext : exterior_algebra R M →ₐ[R] triv_sq_zero_ext R M :=
-lift R ⟨triv_sq_zero_ext.inr_hom R M, λ m, triv_sq_zero_ext.inr_mul_inr R _ m m⟩
+lift R ⟨triv_sq_zero_ext.inr_hom R M, λ m, triv_sq_zero_ext.inr_mul_inr R m m⟩
 
 @[simp] lemma to_triv_sq_zero_ext_ι (x : M) :
   to_triv_sq_zero_ext (ι R x) = triv_sq_zero_ext.inr x :=

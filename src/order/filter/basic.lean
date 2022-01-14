@@ -838,12 +838,7 @@ by rwa [inf_principal_eq_bot, compl_compl] at h
 
 lemma diff_mem_inf_principal_compl {f : filter α} {s : set α} (hs : s ∈ f) (t : set α) :
   s \ t ∈ f ⊓ 𝓟 tᶜ :=
-begin
-  rw mem_inf_principal,
-  filter_upwards [hs],
-  intros a has hat,
-  exact ⟨has, hat⟩
-end
+inter_mem_inf hs $ mem_principal_self tᶜ
 
 lemma principal_le_iff {s : set α} {f : filter α} :
   𝓟 s ≤ f ↔ ∀ V ∈ f, s ⊆ V :=
@@ -1712,7 +1707,7 @@ lemma subtype_coe_map_comap (s : set α) (f : filter α) :
 by rw [map_comap, subtype.range_coe]
 
 lemma subtype_coe_map_comap_prod (s : set α) (f : filter (α × α)) :
-  map (coe : s × s → α × α) (comap (coe : s × s → α × α) f) = f ⊓ 𝓟 (s.prod s) :=
+  map (coe : s × s → α × α) (comap (coe : s × s → α × α) f) = f ⊓ 𝓟 (s ×ˢ s) :=
 have (coe : s × s → α × α) = (λ x, (x.1, x.2)), by ext ⟨x, y⟩; refl,
 by simp [this, map_comap, ← prod_range_range_eq]
 
@@ -2420,11 +2415,11 @@ f.comap prod.fst ⊓ g.comap prod.snd
 localized "infix ` ×ᶠ `:60 := filter.prod" in filter
 
 lemma prod_mem_prod {s : set α} {t : set β} {f : filter α} {g : filter β}
-  (hs : s ∈ f) (ht : t ∈ g) : set.prod s t ∈ f ×ᶠ g :=
+  (hs : s ∈ f) (ht : t ∈ g) : s ×ˢ t ∈ f ×ᶠ g :=
 inter_mem_inf (preimage_mem_comap hs) (preimage_mem_comap ht)
 
 lemma mem_prod_iff {s : set (α×β)} {f : filter α} {g : filter β} :
-  s ∈ f ×ᶠ g ↔ (∃ t₁ ∈ f, ∃ t₂ ∈ g, set.prod t₁ t₂ ⊆ s) :=
+  s ∈ f ×ᶠ g ↔ (∃ t₁ ∈ f, ∃ t₂ ∈ g, t₁ ×ˢ t₂ ⊆ s) :=
 begin
   simp only [filter.prod],
   split,
@@ -2436,7 +2431,7 @@ end
 
 @[simp] lemma prod_mem_prod_iff {s : set α} {t : set β} {f : filter α} {g : filter β}
   [f.ne_bot] [g.ne_bot] :
-  s.prod t ∈ f ×ᶠ g ↔ s ∈ f ∧ t ∈ g :=
+  s ×ˢ t ∈ f ×ᶠ g ↔ s ∈ f ∧ t ∈ g :=
 ⟨λ h, let ⟨s', hs', t', ht', H⟩ := mem_prod_iff.1 h in (prod_subset_prod_iff.1 H).elim
   (λ ⟨hs's, ht't⟩, ⟨mem_of_superset hs' hs's, mem_of_superset ht' ht't⟩)
   (λ h, h.elim
@@ -2545,7 +2540,7 @@ le_antisymm
   (λ s hs,
     let ⟨s₁, hs₁, s₂, hs₂, h⟩ := mem_prod_iff.mp hs in
     filter.sets_of_superset _ (prod_mem_prod (image_mem_map hs₁) (image_mem_map hs₂)) $
-      calc set.prod (m₁ '' s₁) (m₂ '' s₂) = (λ p : α₁×α₂, (m₁ p.1, m₂ p.2)) '' set.prod s₁ s₂ :
+      calc m₁ '' s₁ ×ˢ m₂ '' s₂ = (λ p : α₁×α₂, (m₁ p.1, m₂ p.2)) '' (s₁ ×ˢ s₂) :
           set.prod_image_image_eq
         ... ⊆ _ : by rwa [image_subset_iff])
   ((tendsto.comp le_rfl tendsto_fst).prod_mk (tendsto.comp le_rfl tendsto_snd))
@@ -2584,7 +2579,7 @@ by simp only [filter.prod, comap_inf, inf_comm, inf_assoc, inf_left_comm]
 @[simp] lemma bot_prod {g : filter β} : (⊥ : filter α) ×ᶠ g = ⊥ := by simp [filter.prod]
 
 @[simp] lemma prod_principal_principal {s : set α} {t : set β} :
-  (𝓟 s) ×ᶠ (𝓟 t) = 𝓟 (set.prod s t) :=
+  (𝓟 s) ×ᶠ (𝓟 t) = 𝓟 (s ×ˢ t) :=
 by simp only [filter.prod, comap_principal, principal_eq_iff_eq, comap_principal, inf_principal];
   refl
 
@@ -2656,7 +2651,7 @@ coprod_ne_bot_iff.2 (or.inl ⟨‹_›, ‹_›⟩)
 coprod_ne_bot_iff.2 (or.inr ⟨‹_›, ‹_›⟩)
 
 lemma principal_coprod_principal (s : set α) (t : set β) :
-  (𝓟 s).coprod (𝓟 t) = 𝓟 (sᶜ.prod tᶜ)ᶜ :=
+  (𝓟 s).coprod (𝓟 t) = 𝓟 (sᶜ ×ˢ tᶜ)ᶜ :=
 begin
   rw [filter.coprod, comap_principal, comap_principal, sup_principal],
   congr,
@@ -2682,7 +2677,7 @@ Together with the next lemma, `map_prod_map_const_id_principal_coprod_principal`
 example showing that the inequality in the lemma `map_prod_map_coprod_le` can be strict. -/
 lemma map_const_principal_coprod_map_id_principal {α β ι : Type*} (a : α) (b : β) (i : ι) :
   (map (λ _ : α, b) (𝓟 {a})).coprod (map id (𝓟 {i}))
-  = 𝓟 (({b} : set β).prod (univ : set ι) ∪ (univ : set β).prod {i}) :=
+  = 𝓟 (({b} : set β) ×ˢ (univ : set ι) ∪ (univ : set β) ×ˢ ({i} : set ι)) :=
 begin
   rw [map_principal, map_principal, principal_coprod_principal],
   congr,
@@ -2698,7 +2693,7 @@ identity function.  Together with the previous lemma,
 in the lemma `map_prod_map_coprod_le` can be strict. -/
 lemma map_prod_map_const_id_principal_coprod_principal {α β ι : Type*} (a : α) (b : β) (i : ι) :
   map (prod.map (λ _ : α, b) id) ((𝓟 {a}).coprod (𝓟 {i}))
-  = 𝓟 (({b} : set β).prod (univ : set ι)) :=
+  = 𝓟 (({b} : set β) ×ˢ (univ : set ι)) :=
 begin
   rw [principal_coprod_principal, map_principal],
   congr,

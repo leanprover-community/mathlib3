@@ -14,7 +14,7 @@ import linear_algebra.sesquilinear_form
 
 This file defines inner product spaces and proves the basic properties.  We do not formally
 define Hilbert spaces, but they can be obtained using the pair of assumptions
-`[inner_product_space E] [complete_space E]`.
+`[inner_product_space 𝕜 E] [complete_space E]`.
 
 An inner product space is a vector space endowed with an inner product. It generalizes the notion of
 dot product in `ℝ^n` and provides the means of defining the length of a vector and the angle between
@@ -30,7 +30,8 @@ product structure on `n → 𝕜` for `𝕜 = ℝ` or `ℂ`, see `euclidean_spac
 - We define the class `inner_product_space 𝕜 E` extending `normed_space 𝕜 E` with a number of basic
   properties, most notably the Cauchy-Schwarz inequality. Here `𝕜` is understood to be either `ℝ`
   or `ℂ`, through the `is_R_or_C` typeclass.
-- We show that the inner product is continuous, `continuous_inner`.
+- We show that the inner product is continuous, `continuous_inner`, and bundle it as the
+  the continuous sesquilinear map `innerSL` (see also `innerₛₗ` for the non-continuous version).
 - We define `orthonormal`, a predicate on a function `v : ι → E`, and prove the existence of a
   maximal orthonormal set, `exists_maximal_orthonormal`.  Bessel's inequality,
   `orthonormal.tsum_inner_products_le`, states that given an orthonormal set `v` and a vector `x`,
@@ -68,7 +69,7 @@ The Coq code is available at the following address: <http://www.lri.fr/~sboldo/e
 noncomputable theory
 
 open is_R_or_C real filter
-open_locale big_operators classical topological_space complex_conjugate
+open_locale big_operators topological_space complex_conjugate
 
 variables {𝕜 E F : Type*} [is_R_or_C 𝕜]
 
@@ -380,6 +381,7 @@ end
 /-! ### Properties of inner product spaces -/
 
 variables [inner_product_space 𝕜 E] [inner_product_space ℝ F]
+variables [dec_E : decidable_eq E]
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
 local notation `IK` := @is_R_or_C.I 𝕜 _
 local notation `absR` := has_abs.abs
@@ -429,12 +431,13 @@ by { rw [inner_smul_right, algebra.smul_def], refl }
 
 /-- The inner product as a sesquilinear form. -/
 @[simps]
-def sesq_form_of_inner : sesq_form 𝕜 E (conj_to_ring_equiv 𝕜) :=
-{ sesq := λ x y, ⟪y, x⟫,    -- Note that sesquilinear forms are linear in the first argument
-  sesq_add_left := λ x y z, inner_add_right,
-  sesq_add_right := λ x y z, inner_add_left,
-  sesq_smul_left := λ r x y, inner_smul_right,
-  sesq_smul_right := λ r x y, inner_smul_left }
+def sesq_form_of_inner : E →ₗ[𝕜] E →ₗ⋆[𝕜] 𝕜 :=
+linear_map.mk₂'ₛₗ (ring_hom.id 𝕜) (star_ring_aut.to_ring_hom)
+  (λ x y, ⟪y, x⟫)
+  (λ x y z, inner_add_right)
+  (λ r x y, inner_smul_right)
+  (λ x y z, inner_add_left)
+  (λ r x y, inner_smul_left)
 
 /-- The real inner product as a bilinear form. -/
 @[simps]
@@ -447,13 +450,11 @@ def bilin_form_of_real_inner : bilin_form ℝ F :=
 
 /-- An inner product with a sum on the left. -/
 lemma sum_inner {ι : Type*} (s : finset ι) (f : ι → E) (x : E) :
-  ⟪∑ i in s, f i, x⟫ = ∑ i in s, ⟪f i, x⟫ :=
-sesq_form.sum_right (sesq_form_of_inner) _ _ _
+  ⟪∑ i in s, f i, x⟫ = ∑ i in s, ⟪f i, x⟫ := (sesq_form_of_inner x).map_sum
 
 /-- An inner product with a sum on the right. -/
 lemma inner_sum {ι : Type*} (s : finset ι) (f : ι → E) (x : E) :
-  ⟪x, ∑ i in s, f i⟫ = ∑ i in s, ⟪x, f i⟫ :=
-sesq_form.sum_left (sesq_form_of_inner) _ _ _
+  ⟪x, ∑ i in s, f i⟫ = ∑ i in s, ⟪x, f i⟫ := (linear_map.flip sesq_form_of_inner x).map_sum
 
 /-- An inner product with a sum on the left, `finsupp` version. -/
 lemma finsupp.sum_inner {ι : Type*} (l : ι →₀ 𝕜) (v : ι → E) (x : E) :
@@ -667,7 +668,7 @@ end
 end basic_properties
 
 section orthonormal_sets
-variables {ι : Type*} (𝕜)
+variables {ι : Type*} [dec_ι : decidable_eq ι] (𝕜)
 
 include 𝕜
 
@@ -679,6 +680,7 @@ omit 𝕜
 
 variables {𝕜}
 
+include dec_ι
 /-- `if ... then ... else` characterization of an indexed set of vectors being orthonormal.  (Inner
 product equals Kronecker delta.) -/
 lemma orthonormal_iff_ite {v : ι → E} :
@@ -699,7 +701,9 @@ begin
     { intros i j hij,
       simpa [hij] using h i j } }
 end
+omit dec_ι
 
+include dec_E
 /-- `if ... then ... else` characterization of a set of vectors being orthonormal.  (Inner product
 equals Kronecker delta.) -/
 theorem orthonormal_subtype_iff_ite {s : set E} :
@@ -715,19 +719,27 @@ begin
     convert h v hv w hw using 1,
     simp }
 end
+omit dec_E
 
 /-- The inner product of a linear combination of a set of orthonormal vectors with one of those
 vectors picks out the coefficient of that vector. -/
 lemma orthonormal.inner_right_finsupp {v : ι → E} (hv : orthonormal 𝕜 v) (l : ι →₀ 𝕜) (i : ι) :
   ⟪v i, finsupp.total ι E 𝕜 v l⟫ = l i :=
-by simp [finsupp.total_apply, finsupp.inner_sum, orthonormal_iff_ite.mp hv]
+by classical; simp [finsupp.total_apply, finsupp.inner_sum, orthonormal_iff_ite.mp hv]
+
+/-- The inner product of a linear combination of a set of orthonormal vectors with one of those
+vectors picks out the coefficient of that vector. -/
+lemma orthonormal.inner_right_sum
+  {v : ι → E} (hv : orthonormal 𝕜 v) (l : ι → 𝕜) {s : finset ι} {i : ι} (hi : i ∈ s) :
+  ⟪v i, ∑ i in s, (l i) • (v i)⟫ = l i :=
+by classical; simp [inner_sum, inner_smul_right, orthonormal_iff_ite.mp hv, hi]
 
 /-- The inner product of a linear combination of a set of orthonormal vectors with one of those
 vectors picks out the coefficient of that vector. -/
 lemma orthonormal.inner_right_fintype [fintype ι]
   {v : ι → E} (hv : orthonormal 𝕜 v) (l : ι → 𝕜) (i : ι) :
   ⟪v i, ∑ i : ι, (l i) • (v i)⟫ = l i :=
-by simp [inner_sum, inner_smul_right, orthonormal_iff_ite.mp hv]
+hv.inner_right_sum l (finset.mem_univ _)
 
 /-- The inner product of a linear combination of a set of orthonormal vectors with one of those
 vectors picks out the coefficient of that vector. -/
@@ -737,10 +749,42 @@ by rw [← inner_conj_sym, hv.inner_right_finsupp]
 
 /-- The inner product of a linear combination of a set of orthonormal vectors with one of those
 vectors picks out the coefficient of that vector. -/
+lemma orthonormal.inner_left_sum
+  {v : ι → E} (hv : orthonormal 𝕜 v) (l : ι → 𝕜) {s : finset ι} {i : ι} (hi : i ∈ s) :
+  ⟪∑ i in s, (l i) • (v i), v i⟫ = conj (l i) :=
+by classical; simp [sum_inner, inner_smul_left, orthonormal_iff_ite.mp hv, hi]
+
+/-- The inner product of a linear combination of a set of orthonormal vectors with one of those
+vectors picks out the coefficient of that vector. -/
 lemma orthonormal.inner_left_fintype [fintype ι]
   {v : ι → E} (hv : orthonormal 𝕜 v) (l : ι → 𝕜) (i : ι) :
   ⟪∑ i : ι, (l i) • (v i), v i⟫ = conj (l i) :=
-by simp [sum_inner, inner_smul_left, orthonormal_iff_ite.mp hv]
+hv.inner_left_sum l (finset.mem_univ _)
+
+/-- The inner product of two linear combinations of a set of orthonormal vectors, expressed as
+a sum over the first `finsupp`. -/
+lemma orthonormal.inner_finsupp_eq_sum_left
+  {v : ι → E} (hv : orthonormal 𝕜 v) (l₁ l₂ : ι →₀ 𝕜) :
+  ⟪finsupp.total ι E 𝕜 v l₁, finsupp.total ι E 𝕜 v l₂⟫ = l₁.sum (λ i y, conj y * l₂ i) :=
+by simp [finsupp.total_apply _ l₁, finsupp.sum_inner, hv.inner_right_finsupp]
+
+/-- The inner product of two linear combinations of a set of orthonormal vectors, expressed as
+a sum over the second `finsupp`. -/
+lemma orthonormal.inner_finsupp_eq_sum_right
+  {v : ι → E} (hv : orthonormal 𝕜 v) (l₁ l₂ : ι →₀ 𝕜) :
+  ⟪finsupp.total ι E 𝕜 v l₁, finsupp.total ι E 𝕜 v l₂⟫ = l₂.sum (λ i y, conj (l₁ i) * y) :=
+by simp [finsupp.total_apply _ l₂, finsupp.inner_sum, hv.inner_left_finsupp, mul_comm]
+
+/-- The inner product of two linear combinations of a set of orthonormal vectors, expressed as
+a sum. -/
+lemma orthonormal.inner_sum
+  {v : ι → E} (hv : orthonormal 𝕜 v) (l₁ l₂ : ι → 𝕜) (s : finset ι) :
+  ⟪∑ i in s, l₁ i • v i, ∑ i in s, l₂ i • v i⟫ = ∑ i in s, conj (l₁ i) * l₂ i :=
+begin
+  simp_rw [sum_inner, inner_smul_left],
+  refine finset.sum_congr rfl (λ i hi, _),
+  rw hv.inner_right_sum l₂ hi
+end
 
 /--
 The double sum of weighted inner products of pairs of vectors from an orthonormal sequence is the
@@ -748,7 +792,7 @@ sum of the weights.
 -/
 lemma orthonormal.inner_left_right_finset {s : finset ι}  {v : ι → E} (hv : orthonormal 𝕜 v)
   {a : ι → ι → 𝕜} : ∑ i in s, ∑ j in s, (a i j) • ⟪v j, v i⟫ = ∑ k in s, a k k :=
-by simp [orthonormal_iff_ite.mp hv, finset.sum_ite_of_true]
+by classical; simp [orthonormal_iff_ite.mp hv, finset.sum_ite_of_true]
 
 /-- An orthonormal set is linearly independent. -/
 lemma orthonormal.linear_independent {v : ι → E} (hv : orthonormal 𝕜 v) :
@@ -767,6 +811,7 @@ lemma orthonormal.comp
   {ι' : Type*} {v : ι → E} (hv : orthonormal 𝕜 v) (f : ι' → ι) (hf : function.injective f) :
   orthonormal 𝕜 (v ∘ f) :=
 begin
+  classical,
   rw orthonormal_iff_ite at ⊢ hv,
   intros i j,
   convert hv (f i) (f j) using 1,
@@ -784,19 +829,32 @@ begin
   simp [hv.inner_left_finsupp, hl i hi],
 end
 
+/-- Given an orthonormal family, a second family of vectors is orthonormal if every vector equals
+the corresponding vector in the original family or its negation. -/
+lemma orthonormal.orthonormal_of_forall_eq_or_eq_neg {v w : ι → E} (hv : orthonormal 𝕜 v)
+  (hw : ∀ i, w i = v i ∨ w i = -(v i)) : orthonormal 𝕜 w :=
+begin
+  classical,
+  rw orthonormal_iff_ite at *,
+  intros i j,
+  cases hw i with hi hi; cases hw j with hj hj; split_ifs with h;
+    simpa [hi, hj, h] using hv i j
+end
+
 /- The material that follows, culminating in the existence of a maximal orthonormal subset, is
 adapted from the corresponding development of the theory of linearly independents sets.  See
 `exists_linear_independent` in particular. -/
 
 variables (𝕜 E)
 lemma orthonormal_empty : orthonormal 𝕜 (λ x, x : (∅ : set E) → E) :=
-by simp [orthonormal_subtype_iff_ite]
+by classical; simp [orthonormal_subtype_iff_ite]
 variables {𝕜 E}
 
 lemma orthonormal_Union_of_directed
   {η : Type*} {s : η → set E} (hs : directed (⊆) s) (h : ∀ i, orthonormal 𝕜 (λ x, x : s i → E)) :
   orthonormal 𝕜 (λ x, x : (⋃ i, s i) → E) :=
 begin
+  classical,
   rw orthonormal_subtype_iff_ite,
   rintros x ⟨_, ⟨i, rfl⟩, hxi⟩ y ⟨_, ⟨j, rfl⟩, hyj⟩,
   obtain ⟨k, hik, hjk⟩ := hs i j,
@@ -940,6 +998,9 @@ end
 
 lemma norm_inner_le_norm (x y : E) : ∥⟪x, y⟫∥ ≤ ∥x∥ * ∥y∥ :=
 (is_R_or_C.norm_eq_abs _).le.trans (abs_inner_le_norm x y)
+
+lemma re_inner_le_norm (x y : E) : re ⟪x, y⟫ ≤ ∥x∥ * ∥y∥ :=
+le_trans (re_le_abs (inner x y)) (abs_inner_le_norm x y)
 
 /-- Cauchy–Schwarz inequality with norm -/
 lemma abs_real_inner_le_norm (x y : F) : absR ⟪x, y⟫_ℝ ≤ ∥x∥ * ∥y∥ :=
@@ -1382,20 +1443,74 @@ by simp_rw [sum_inner, inner_sum, real_inner_smul_left, real_inner_smul_right,
             h₁, h₂, zero_mul, mul_zero, finset.sum_const_zero, zero_add, zero_sub, finset.mul_sum,
             neg_div, finset.sum_div, mul_div_assoc, mul_assoc]
 
-/-- The inner product with a fixed left element, as a continuous linear map.  This can be upgraded
-to a continuous map which is jointly conjugate-linear in the left argument and linear in the right
-argument, once (TODO) conjugate-linear maps have been defined. -/
-def inner_right (v : E) : E →L[𝕜] 𝕜 :=
-linear_map.mk_continuous
-  { to_fun := λ w, ⟪v, w⟫,
-    map_add' := λ x y, inner_add_right,
-    map_smul' := λ c x, inner_smul_right }
-  ∥v∥
-  (by simpa using norm_inner_le_norm v)
+/-- The inner product as a sesquilinear map. -/
+def innerₛₗ : E →ₗ⋆[𝕜] E →ₗ[𝕜] 𝕜 :=
+linear_map.mk₂'ₛₗ _ _ (λ v w, ⟪v, w⟫) (λ _ _ _, inner_add_left) (λ _ _ _, inner_smul_left)
+(λ _ _ _, inner_add_right) (λ _ _ _, inner_smul_right)
 
-@[simp] lemma inner_right_coe (v : E) : (inner_right v : E → 𝕜) = λ w, ⟪v, w⟫ := rfl
+@[simp] lemma innerₛₗ_apply_coe (v : E) : (innerₛₗ v : E → 𝕜) = λ w, ⟪v, w⟫ := rfl
 
-@[simp] lemma inner_right_apply (v w : E) : inner_right v w = ⟪v, w⟫ := rfl
+@[simp] lemma innerₛₗ_apply (v w : E) : innerₛₗ v w = ⟪v, w⟫ := rfl
+
+/-- The inner product as a continuous sesquilinear map. Note that `to_dual_map` (resp. `to_dual`)
+in `inner_product_space.dual` is a version of this given as a linear isometry (resp. linear
+isometric equivalence). -/
+def innerSL : E →L⋆[𝕜] E →L[𝕜] 𝕜 :=
+linear_map.mk_continuous₂ innerₛₗ 1
+(λ x y, by simp only [norm_inner_le_norm, one_mul, innerₛₗ_apply])
+
+@[simp] lemma innerSL_apply_coe (v : E) : (innerSL v : E → 𝕜) = λ w, ⟪v, w⟫ := rfl
+
+@[simp] lemma innerSL_apply (v w : E) : innerSL v w = ⟪v, w⟫ := rfl
+
+/-- `innerSL` is an isometry. Note that the associated `linear_isometry` is defined in
+`inner_product_space.dual` as `to_dual_map`.  -/
+@[simp] lemma innerSL_apply_norm {x : E} : ∥(innerSL x : E →L[𝕜] 𝕜)∥ = ∥x∥ :=
+begin
+  refine le_antisymm ((innerSL x).op_norm_le_bound (norm_nonneg _) (λ y, norm_inner_le_norm _ _)) _,
+  cases eq_or_lt_of_le (norm_nonneg x) with h h,
+  { have : x = 0 := norm_eq_zero.mp (eq.symm h),
+    simp [this] },
+  { refine (mul_le_mul_right h).mp _,
+    calc ∥x∥ * ∥x∥ = ∥x∥ ^ 2 : by ring
+    ... = re ⟪x, x⟫ : norm_sq_eq_inner _
+    ... ≤ abs ⟪x, x⟫ : re_le_abs _
+    ... = ∥innerSL x x∥ : by { rw [←is_R_or_C.norm_eq_abs], refl }
+    ... ≤ ∥innerSL x∥ * ∥x∥ : (innerSL x).le_op_norm _ }
+end
+
+/-- The inner product as a continuous sesquilinear map, with the two arguments flipped. -/
+def innerSL_flip : E →L[𝕜] E →L⋆[𝕜] 𝕜 :=
+continuous_linear_map.flipₗᵢ' E E 𝕜 (ring_hom.id 𝕜) (↑star_ring_aut : 𝕜 →+* 𝕜) innerSL
+
+@[simp] lemma innerSL_flip_apply {x y : E} : innerSL_flip x y = ⟪y, x⟫ := rfl
+
+namespace continuous_linear_map
+
+variables  {E' : Type*} [inner_product_space 𝕜 E']
+
+/-- Given `f : E →L[𝕜] E'`, construct the continuous sesquilinear form `λ x y, ⟪x, A y⟫`, given
+as a continuous linear map. -/
+def to_sesq_form : (E →L[𝕜] E') →L[𝕜] E' →L⋆[𝕜] E →L[𝕜] 𝕜 :=
+↑((continuous_linear_map.flipₗᵢ' E E' 𝕜
+  (↑(star_ring_aut : 𝕜 ≃+* 𝕜) : 𝕜 →+* 𝕜) (ring_hom.id 𝕜)).to_continuous_linear_equiv) ∘L
+(continuous_linear_map.compSL E E' (E' →L⋆[𝕜] 𝕜) (ring_hom.id 𝕜) (ring_hom.id 𝕜) innerSL_flip)
+
+@[simp] lemma to_sesq_form_apply_coe (f : E →L[𝕜] E') (x : E') :
+  to_sesq_form f x = (innerSL x).comp f := rfl
+
+lemma to_sesq_form_apply_norm_le {f : E →L[𝕜] E'} {v : E'} : ∥to_sesq_form f v∥ ≤ ∥f∥ * ∥v∥ :=
+begin
+  refine op_norm_le_bound _ (mul_nonneg (norm_nonneg _) (norm_nonneg _)) _,
+  intro x,
+  have h₁ : ∥f x∥ ≤ ∥f∥ * ∥x∥ := le_op_norm _ _,
+  have h₂ := @norm_inner_le_norm 𝕜 E' _ _ v (f x),
+  calc ∥⟪v, f x⟫∥ ≤ ∥v∥ * ∥f x∥       :  h₂
+              ... ≤ ∥v∥ * (∥f∥ * ∥x∥)  : mul_le_mul_of_nonneg_left h₁ (norm_nonneg v)
+              ... = ∥f∥ * ∥v∥ * ∥x∥    : by ring,
+end
+
+end continuous_linear_map
 
 /-- When an inner product space `E` over `𝕜` is considered as a real normed space, its inner
 product satisfies `is_bounded_bilinear_map`.
@@ -1415,6 +1530,7 @@ lemma is_bounded_bilinear_map_inner [normed_space ℝ E] :
     by simp only [← algebra_map_smul 𝕜 r y, algebra_map_eq_of_real, inner_smul_real_right],
   bound := ⟨1, zero_lt_one, λ x y,
     by { rw [one_mul], exact norm_inner_le_norm x y, }⟩ }
+
 end norm
 
 section bessels_inequality
@@ -1500,10 +1616,11 @@ open_locale direct_sum
 def orthogonal_family (V : ι → submodule 𝕜 E) : Prop :=
 ∀ ⦃i j⦄, i ≠ j → ∀ {v : E} (hv : v ∈ V i) {w : E} (hw : w ∈ V j), ⟪v, w⟫ = 0
 
-variables {𝕜} {V : ι → submodule 𝕜 E}
+variables {𝕜} {V : ι → submodule 𝕜 E} (hV : orthogonal_family 𝕜 V)
+  [dec_V : Π i (x : V i), decidable (x ≠ 0)]
 
-include dec_ι
-lemma orthogonal_family.eq_ite (hV : orthogonal_family 𝕜 V) {i j : ι} (v : V i) (w : V j) :
+include hV dec_ι
+lemma orthogonal_family.eq_ite {i j : ι} (v : V i) (w : V j) :
   ⟪(v:E), w⟫ = ite (i = j) ⟪(v:E), w⟫ 0 :=
 begin
   split_ifs,
@@ -1511,18 +1628,18 @@ begin
   { exact hV h v.prop w.prop }
 end
 
-lemma orthogonal_family.inner_right_dfinsupp (hV : orthogonal_family 𝕜 V)
-  (l : Π₀ i, V i) (i : ι) (v : V i) :
+include dec_V
+lemma orthogonal_family.inner_right_dfinsupp (l : ⨁ i, V i) (i : ι) (v : V i) :
   ⟪(v : E), dfinsupp.lsum ℕ (λ i, (V i).subtype) l⟫ = ⟪v, l i⟫ :=
 calc ⟪(v : E), dfinsupp.lsum ℕ (λ i, (V i).subtype) l⟫
     = l.sum (λ j, λ w, ⟪(v:E), w⟫) :
 begin
-  let F : E →+ 𝕜 := (@inner_right 𝕜 E _ _ v).to_linear_map.to_add_monoid_hom,
+  let F : E →+ 𝕜 := (@innerSL 𝕜 E _ _ v).to_linear_map.to_add_monoid_hom,
   have hF := congr_arg add_monoid_hom.to_fun
     (dfinsupp.comp_sum_add_hom F (λ j, (V j).subtype.to_add_monoid_hom)),
   convert congr_fun hF l using 1,
   simp only [dfinsupp.sum_add_hom_apply, continuous_linear_map.to_linear_map_eq_coe,
-    add_monoid_hom.coe_comp, inner_right_coe, add_monoid_hom.to_fun_eq_coe,
+    add_monoid_hom.coe_comp, innerSL_apply_coe, add_monoid_hom.to_fun_eq_coe,
     linear_map.to_add_monoid_hom_coe, continuous_linear_map.coe_coe],
   congr
 end
@@ -1535,23 +1652,44 @@ begin
   intros h,
   simp [h]
 end
-omit dec_ι
+omit dec_ι dec_V
 
-lemma orthogonal_family.inner_right_fintype
-  [fintype ι] (hV : orthogonal_family 𝕜 V) (l : Π i, V i) (i : ι) (v : V i) :
+lemma orthogonal_family.inner_right_fintype [fintype ι] (l : Π i, V i) (i : ι) (v : V i) :
   ⟪(v : E), ∑ j : ι, l j⟫ = ⟪v, l i⟫ :=
+by classical;
 calc ⟪(v : E), ∑ j : ι, l j⟫
     = ∑ j : ι, ⟪(v : E), l j⟫: by rw inner_sum
 ... = ∑ j, ite (i = j) ⟪(v : E), l j⟫ 0 :
   congr_arg (finset.sum finset.univ) $ funext $ λ j, (hV.eq_ite v (l j))
 ... = ⟪v, l i⟫ : by simp
 
+lemma orthogonal_family.inner_sum (l₁ l₂ : Π i, V i) (s : finset ι) :
+  ⟪∑ i in s, (l₁ i : E), ∑ j in s, (l₂ j : E)⟫ = ∑ i in s, ⟪l₁ i, l₂ i⟫ :=
+by classical;
+calc ⟪∑ i in s, (l₁ i : E), ∑ j in s, (l₂ j : E)⟫
+    = ∑ j in s, ∑ i in s, ⟪(l₁ i : E), l₂ j⟫ : by simp [sum_inner, inner_sum]
+... = ∑ j in s, ∑ i in s, ite (i = j) ⟪(l₁ i : E), l₂ j⟫ 0 :
+begin
+  congr' with i,
+  congr' with j,
+  apply hV.eq_ite,
+end
+... = ∑ i in s, ⟪l₁ i, l₂ i⟫ : by simp [finset.sum_ite_of_true]
+
+lemma orthogonal_family.norm_sum (l : Π i, V i) (s : finset ι) :
+  ∥∑ i in s, (l i : E)∥ ^ 2 = ∑ i in s, ∥l i∥ ^ 2 :=
+begin
+  have : (∥∑ i in s, (l i : E)∥ ^ 2 : 𝕜) = ∑ i in s, ∥l i∥ ^ 2,
+  { simp [← inner_self_eq_norm_sq_to_K, hV.inner_sum] },
+  exact_mod_cast this,
+end
+
 /-- An orthogonal family forms an independent family of subspaces; that is, any collection of
 elements each from a different subspace in the family is linearly independent. In particular, the
 pairwise intersections of elements of the family are 0. -/
-lemma orthogonal_family.independent (hV : orthogonal_family 𝕜 V) :
-  complete_lattice.independent V :=
+lemma orthogonal_family.independent : complete_lattice.independent V :=
 begin
+  classical,
   apply complete_lattice.independent_of_dfinsupp_lsum_injective,
   rw [← @linear_map.ker_eq_bot _ _ _ _ _ _ (direct_sum.add_comm_group (λ i, V i)),
     submodule.eq_bot_iff],
@@ -1566,13 +1704,12 @@ end
 
 /-- The composition of an orthogonal family of subspaces with an injective function is also an
 orthogonal family. -/
-lemma orthogonal_family.comp (hV : orthogonal_family 𝕜 V) {γ : Type*} {f : γ → ι}
-  (hf : function.injective f) :
+lemma orthogonal_family.comp {γ : Type*} {f : γ → ι} (hf : function.injective f) :
   orthogonal_family 𝕜 (V ∘ f) :=
 λ i j hij v hv w hw, hV (hf.ne hij) hv hw
 
-lemma orthogonal_family.orthonormal_sigma_orthonormal (hV : orthogonal_family 𝕜 V) {α : ι → Type*}
-  {v_family : Π i, (α i) → V i} (hv_family : ∀ i, orthonormal 𝕜 (v_family i)) :
+lemma orthogonal_family.orthonormal_sigma_orthonormal {α : ι → Type*} {v_family : Π i, (α i) → V i}
+  (hv_family : ∀ i, orthonormal 𝕜 (v_family i)) :
   orthonormal 𝕜 (λ a : Σ i, α i, (v_family a.1 a.2 : E)) :=
 begin
   split,
@@ -1587,12 +1724,85 @@ begin
 end
 
 include dec_ι
-lemma direct_sum.submodule_is_internal.collected_basis_orthonormal (hV : orthogonal_family 𝕜 V)
+lemma direct_sum.submodule_is_internal.collected_basis_orthonormal
   (hV_sum : direct_sum.submodule_is_internal V) {α : ι → Type*}
   {v_family : Π i, basis (α i) 𝕜 (V i)} (hv_family : ∀ i, orthonormal 𝕜 (v_family i)) :
   orthonormal 𝕜 (hV_sum.collected_basis v_family) :=
 by simpa using hV.orthonormal_sigma_orthonormal hv_family
+
+lemma orthogonal_family.norm_sq_diff_sum (f : Π i, V i) (s₁ s₂ : finset ι) :
+  ∥∑ i in s₁, (f i : E) - ∑ i in s₂, f i∥ ^ 2
+  = ∑ i in s₁ \ s₂, ∥f i∥ ^ 2 + ∑ i in s₂ \ s₁, ∥f i∥ ^ 2 :=
+begin
+  rw [← finset.sum_sdiff_sub_sum_sdiff, sub_eq_add_neg, ← finset.sum_neg_distrib],
+  let F : Π i, V i := λ i, if i ∈ s₁ then f i else - (f i),
+  have hF₁ : ∀ i ∈ s₁ \ s₂, F i = f i := λ i hi, if_pos (finset.sdiff_subset _ _ hi),
+  have hF₂ : ∀ i ∈ s₂ \ s₁, F i = - f i := λ i hi, if_neg (finset.mem_sdiff.mp hi).2,
+  have hF : ∀ i, ∥F i∥ = ∥f i∥,
+  { intros i,
+    dsimp [F],
+    split_ifs;
+    simp, },
+  have : ∥∑ i in s₁ \ s₂, (F i : E) + ∑ i in s₂ \ s₁, F i∥ ^ 2 =
+    ∑ i in s₁ \ s₂, ∥F i∥ ^ 2 + ∑ i in s₂ \ s₁, ∥F i∥ ^ 2,
+  { have hs : disjoint (s₁ \ s₂) (s₂ \ s₁) := disjoint_sdiff_sdiff,
+    simpa only [finset.sum_union hs] using hV.norm_sum F (s₁ \ s₂ ∪ s₂ \ s₁) },
+  convert this using 4,
+  { refine finset.sum_congr rfl (λ i hi, _),
+    simp [hF₁ i hi] },
+  { refine finset.sum_congr rfl (λ i hi, _),
+    simp [hF₂ i hi] },
+  { simp [hF] },
+  { simp [hF] },
+end
+
 omit dec_ι
+
+/-- A family `f` of mutually-orthogonal elements of `E` is summable, if and only if
+`(λ i, ∥f i∥ ^ 2)` is summable. -/
+lemma orthogonal_family.summable_iff_norm_sq_summable [complete_space E] (f : Π i, V i) :
+  summable (λ i, (f i : E)) ↔ summable (λ i, ∥f i∥ ^ 2) :=
+begin
+  classical,
+  simp only [summable_iff_cauchy_seq_finset, normed_group.cauchy_seq_iff, real.norm_eq_abs],
+  split,
+  { intros hf ε hε,
+    obtain ⟨a, H⟩ := hf _ (sqrt_pos.mpr hε),
+    use a,
+    intros s₁ hs₁ s₂ hs₂,
+    rw ← finset.sum_sdiff_sub_sum_sdiff,
+    refine (_root_.abs_sub _ _).trans_lt _,
+    have : ∀ i, 0 ≤ ∥f i∥ ^ 2 := λ i : ι, sq_nonneg _,
+    simp only [finset.abs_sum_of_nonneg' this],
+    have : ∑ i in s₁ \ s₂, ∥f i∥ ^ 2 + ∑ i in s₂ \ s₁, ∥f i∥ ^ 2 < (sqrt ε) ^ 2,
+    { rw ← hV.norm_sq_diff_sum,
+      apply sq_lt_sq,
+      rw _root_.abs_of_nonneg (norm_nonneg _),
+      exact H s₁ hs₁ s₂ hs₂ },
+    have hη := sq_sqrt (le_of_lt hε),
+    linarith },
+  { intros hf ε hε,
+    have hε' : 0 < ε ^ 2 / 2 := half_pos (sq_pos_of_pos hε),
+    obtain ⟨a, H⟩ := hf _ hε',
+    use a,
+    intros s₁ hs₁ s₂ hs₂,
+    refine (abs_lt_of_sq_lt_sq' _ (le_of_lt hε)).2,
+    have has : a ≤ s₁ ⊓ s₂ := le_inf hs₁ hs₂,
+    rw hV.norm_sq_diff_sum,
+    have Hs₁ : ∑ (x : ι) in s₁ \ s₂, ∥f x∥ ^ 2 < ε ^ 2 / 2,
+    { convert H _ hs₁ _ has,
+      have : s₁ ⊓ s₂ ⊆ s₁ := finset.inter_subset_left _ _,
+      rw [← finset.sum_sdiff this, add_tsub_cancel_right, finset.abs_sum_of_nonneg'],
+      { simp },
+      { exact λ i, sq_nonneg _ } },
+    have Hs₂ : ∑ (x : ι) in s₂ \ s₁, ∥f x∥ ^ 2 < ε ^ 2 /2,
+    { convert H _ hs₂ _ has,
+      have : s₁ ⊓ s₂ ⊆ s₂ := finset.inter_subset_right _ _,
+      rw [← finset.sum_sdiff this, add_tsub_cancel_right, finset.abs_sum_of_nonneg'],
+      { simp },
+      { exact λ i, sq_nonneg _ } },
+    linarith },
+end
 
 end orthogonal_family
 
@@ -1773,7 +1983,7 @@ by simp [disjoint_iff, K.inf_orthogonal_eq_bot]
 
 /-- `Kᗮ` can be characterized as the intersection of the kernels of the operations of
 inner product with each of the elements of `K`. -/
-lemma orthogonal_eq_inter : Kᗮ = ⨅ v : K, (inner_right (v:E)).ker :=
+lemma orthogonal_eq_inter : Kᗮ = ⨅ v : K, (innerSL (v:E)).ker :=
 begin
   apply le_antisymm,
   { rw le_infi_iff,
@@ -1788,7 +1998,7 @@ end
 lemma submodule.is_closed_orthogonal : is_closed (Kᗮ : set E) :=
 begin
   rw orthogonal_eq_inter K,
-  convert is_closed_Inter (λ v : K, (inner_right (v:E)).is_closed_ker),
+  convert is_closed_Inter (λ v : K, (innerSL (v:E)).is_closed_ker),
   simp
 end
 
@@ -1860,7 +2070,7 @@ end orthogonal
 
 /-! ### Self-adjoint operators -/
 
-section is_self_adjoint
+namespace inner_product_space
 
 /-- A (not necessarily bounded) operator on an inner product space is self-adjoint, if for all
 `x`, `y`, we have `⟪T x, y⟫ = ⟪x, T y⟫`. -/
@@ -1900,4 +2110,4 @@ lemma is_self_adjoint.restrict_invariant {T : E →ₗ[𝕜] E} (hT : is_self_ad
   is_self_adjoint (T.restrict hV) :=
 λ v w, hT v w
 
-end is_self_adjoint
+end inner_product_space

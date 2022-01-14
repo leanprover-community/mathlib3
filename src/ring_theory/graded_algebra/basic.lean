@@ -122,8 +122,7 @@ by rw [graded_algebra.decompose_of_mem _ hx, direct_sum.of_eq_of_ne _ _ _ _ hij,
 
 variable [Π (i : ι) (x : 𝒜 i), decidable (x ≠ 0)]
 
-lemma graded_algebra.mem_support_iff
-  (r : A) (i : ι) :
+lemma graded_algebra.mem_support_iff (r : A) (i : ι) :
   i ∈ graded_algebra.support 𝒜 r ↔ graded_algebra.proj 𝒜 i r ≠ 0 :=
 begin
   rw [graded_algebra.support, dfinsupp.mem_support_iff, graded_algebra.proj_apply],

@@ -5,6 +5,7 @@ Authors: Johan Commelin, Floris van Doorn
 -/
 import algebra.big_operators.basic
 import algebra.smul_with_zero
+import data.finset.preimage
 import data.set.finite
 import group_theory.group_action.group
 import group_theory.submonoid.basic
@@ -95,7 +96,7 @@ lemma mem_mul [has_mul α] : a ∈ s * t ↔ ∃ x y, x ∈ s ∧ y ∈ t ∧ x 
 lemma mul_mem_mul [has_mul α] (ha : a ∈ s) (hb : b ∈ t) : a * b ∈ s * t := mem_image2_of_mem ha hb
 
 @[to_additive add_image_prod]
-lemma image_mul_prod [has_mul α] : (λ x : α × α, x.fst * x.snd) '' s.prod t = s * t := image_prod _
+lemma image_mul_prod [has_mul α] : (λ x : α × α, x.fst * x.snd) '' (s ×ˢ t) = s * t := image_prod _
 
 @[simp, to_additive]
 lemma image_mul_left [group α] : (λ b, a * b) '' t = (λ b, a⁻¹ * b) ⁻¹' t :=
@@ -173,6 +174,7 @@ protected def comm_monoid [comm_monoid α] : comm_monoid (set α) :=
 localized "attribute [instance] set.mul_one_class set.add_zero_class set.semigroup set.add_semigroup
   set.monoid set.add_monoid set.comm_monoid set.add_comm_monoid" in pointwise
 
+@[to_additive nsmul_mem_nsmul]
 lemma pow_mem_pow [monoid α] (ha : a ∈ s) (n : ℕ) :
   a ^ n ∈ s ^ n :=
 begin
@@ -197,6 +199,7 @@ lemma empty_mul [has_mul α] : ∅ * s = ∅ := image2_empty_left
 @[simp, to_additive]
 lemma mul_empty [has_mul α] : s * ∅ = ∅ := image2_empty_right
 
+@[to_additive empty_smul]
 lemma empty_pow [monoid α] (n : ℕ) (hn : n ≠ 0) : (∅ : set α) ^ n = ∅ :=
 by rw [← tsub_add_cancel_of_le (nat.succ_le_of_lt $ nat.pos_of_ne_zero hn), pow_succ, empty_mul]
 
@@ -520,7 +523,7 @@ lemma mem_smul_of_mem [has_scalar α β] {t : set β} {a} {b} (ha : a ∈ s) (hb
 
 @[to_additive]
 lemma image_smul_prod [has_scalar α β] {t : set β} :
-  (λ x : α × β, x.fst • x.snd) '' s.prod t = s • t :=
+  (λ x : α × β, x.fst • x.snd) '' (s ×ˢ t) = s • t :=
 image_prod _
 
 @[to_additive]
@@ -676,6 +679,10 @@ lemma subsingleton_zero_smul_set [has_zero α] [has_zero β] [smul_with_zero α 
   ((0 : α) • s).subsingleton :=
 subsingleton_singleton.mono (zero_smul_subset s)
 
+lemma smul_add_set [monoid α] [add_monoid β] [distrib_mul_action α β] (c : α) (s t : set β) :
+  c • (s + t) = c • s + c • t :=
+image_add (distrib_mul_action.to_add_monoid_hom β c).to_add_hom
+
 section group
 variables [group α] [mul_action α β] {A B : set β} {a : α} {x : β}
 
@@ -754,6 +761,22 @@ end group_with_zero
 end
 
 namespace finset
+variables {a : α} {s s₁ s₂ t t₁ t₂ : finset α}
+
+/-- The finset `(1 : finset α)` is defined as `{1}` in locale `pointwise`. -/
+@[to_additive /-"The finset `(0 : finset α)` is defined as `{0}` in locale `pointwise`. "-/]
+protected def has_one [has_one α] : has_one (finset α) := ⟨{1}⟩
+
+localized "attribute [instance] finset.has_one finset.has_zero" in pointwise
+
+@[simp, to_additive]
+lemma mem_one [has_one α] : a ∈ (1 : finset α) ↔ a = 1 :=
+by simp [has_one.one]
+
+@[simp, to_additive]
+theorem one_subset [has_one α] : (1 : finset α) ⊆ s ↔ (1 : α) ∈ s := singleton_subset_iff
+
+section decidable_eq
 variables [decidable_eq α]
 
 /-- The pointwise product of two finite sets `s` and `t`:
@@ -766,7 +789,7 @@ protected def has_mul [has_mul α] : has_mul (finset α) :=
 localized "attribute [instance] finset.has_mul finset.has_add" in pointwise
 
 section has_mul
-variables [has_mul α] {s s₁ s₂ t t₁ t₂ : finset α}
+variables [has_mul α]
 
 @[to_additive]
 lemma mul_def : s * t = (s.product t).image (λ p : α × α, p.1 * p.2) := rfl
@@ -800,17 +823,135 @@ by simp [finset.mul_def]
 @[to_additive, mono] lemma mul_subset_mul  (hs : s₁ ⊆ s₂) (ht : t₁ ⊆ t₂) : s₁ * t₁ ⊆ s₂ * t₂ :=
 image_subset_image (product_subset_product hs ht)
 
+@[simp, to_additive]
+lemma mul_singleton (a : α) : s * {a} = s.image (* a) :=
+by { rw [mul_def, product_singleton, map_eq_image, image_image], refl }
+
+@[simp, to_additive]
+lemma singleton_mul (a : α) : {a} * s = s.image ((*) a) :=
+by { rw [mul_def, singleton_product, map_eq_image, image_image], refl }
+
+@[simp, to_additive]
+lemma singleton_mul_singleton (a b : α) : ({a} : finset α) * {b} = {a * b} :=
+by rw [mul_def, singleton_product_singleton, image_singleton]
+
 end has_mul
 
 section mul_zero_class
 variables [mul_zero_class α]
 
-lemma mul_singleton_zero_subset (s : finset α) : s * {0} ⊆ {0} := by simp [subset_iff, mem_mul]
+lemma mul_zero_subset (s : finset α) : s * 0 ⊆ 0 := by simp [subset_iff, mem_mul]
 
-lemma singleton_zero_mul_subset (s : finset α) : {(0 : α)} * s ⊆ {0} :=
+lemma zero_mul_subset (s : finset α) : 0 * s ⊆ 0 := by simp [subset_iff, mem_mul]
+
+lemma nonempty.mul_zero (hs : s.nonempty) : s * 0 = 0 :=
+s.mul_zero_subset.antisymm $ by simpa [finset.mem_mul] using hs
+
+lemma nonempty.zero_mul (hs : s.nonempty) : 0 * s = 0 :=
+s.zero_mul_subset.antisymm $ by simpa [finset.mem_mul] using hs
+
+lemma singleton_zero_mul (s : finset α) :
+  {(0 : α)} * s ⊆ {0} :=
 by simp [subset_iff, mem_mul]
 
 end mul_zero_class
+end decidable_eq
+
+open_locale pointwise
+variables {u : finset α} {b : α} {x y : β}
+
+@[to_additive]
+lemma singleton_one [has_one α] : ({1} : finset α) = 1 := rfl
+
+@[to_additive]
+lemma one_mem_one [has_one α] : (1 : α) ∈ (1 : finset α) := by simp [has_one.one]
+
+@[to_additive]
+theorem one_nonempty [has_one α] : (1 : finset α).nonempty := ⟨1, one_mem_one⟩
+
+@[simp, to_additive]
+theorem image_one [decidable_eq β] [has_one α] {f : α → β} : image f 1 = {f 1} :=
+image_singleton f 1
+
+@[to_additive add_image_prod]
+lemma image_mul_prod [decidable_eq α] [has_mul α] :
+  image (λ x : α × α, x.fst * x.snd) (s.product t) = s * t := rfl
+
+@[simp, to_additive]
+lemma image_mul_left [decidable_eq α] [group α] :
+  image (λ b, a * b) t = preimage t (λ b, a⁻¹ * b) (assume x hx y hy, (mul_right_inj a⁻¹).mp) :=
+coe_injective $ by simp
+
+@[simp, to_additive]
+lemma image_mul_right [decidable_eq α] [group α] :
+  image (λ a, a * b) t = preimage t (λ a, a * b⁻¹) (assume x hx y hy, (mul_left_inj b⁻¹).mp) :=
+coe_injective $ by simp
+
+@[to_additive]
+lemma image_mul_left' [decidable_eq α] [group α] :
+  image (λ b, a⁻¹ * b) t = preimage t (λ b, a * b) (assume x hx y hy, (mul_right_inj a).mp) :=
+by simp
+
+@[to_additive]
+lemma image_mul_right' [decidable_eq α] [group α] :
+  image (λ a, a * b⁻¹) t = preimage t (λ a, a * b) (assume x hx y hy, (mul_left_inj b).mp) :=
+by simp
+
+@[simp, to_additive]
+lemma preimage_mul_left_singleton [group α] :
+  preimage {b} ((*) a) (assume x hx y hy, (mul_right_inj a).mp) = {a⁻¹ * b} :=
+by { classical, rw [← image_mul_left', image_singleton] }
+
+@[simp, to_additive]
+lemma preimage_mul_right_singleton [group α] :
+  preimage {b} (* a) (assume x hx y hy, (mul_left_inj a).mp) = {b * a⁻¹} :=
+by { classical, rw [← image_mul_right', image_singleton] }
+
+@[simp, to_additive]
+lemma preimage_mul_left_one [group α] :
+  preimage 1 (λ b, a * b) (assume x hx y hy, (mul_right_inj a).mp) = {a⁻¹} :=
+by {classical, rw [← image_mul_left', image_one, mul_one] }
+
+@[simp, to_additive]
+lemma preimage_mul_right_one [group α] :
+  preimage 1 (λ a, a * b) (assume x hx y hy, (mul_left_inj b).mp) = {b⁻¹} :=
+by {classical, rw [← image_mul_right', image_one, one_mul] }
+
+@[to_additive]
+lemma preimage_mul_left_one' [group α] :
+  preimage 1 (λ b, a⁻¹ * b) (assume x hx y hy, (mul_right_inj _).mp) = {a} := by simp
+
+@[to_additive]
+lemma preimage_mul_right_one' [group α] :
+  preimage 1 (λ a, a * b⁻¹) (assume x hx y hy, (mul_left_inj _).mp) = {b} := by simp
+
+@[to_additive]
+protected lemma mul_comm [decidable_eq α] [comm_semigroup α] : s * t = t * s :=
+by exact_mod_cast @set.mul_comm _ (s : set α) t _
+
+/-- `finset α` is a `mul_one_class` under pointwise operations if `α` is. -/
+@[to_additive /-"`finset α` is an `add_zero_class` under pointwise operations if `α` is."-/]
+protected def mul_one_class [decidable_eq α] [mul_one_class α] : mul_one_class (finset α) :=
+function.injective.mul_one_class _ coe_injective (coe_singleton 1) (by simp)
+
+/-- `finset α` is a `semigroup` under pointwise operations if `α` is. -/
+@[to_additive /-"`finset α` is an `add_semigroup` under pointwise operations if `α` is. "-/]
+protected def semigroup [decidable_eq α] [semigroup α] : semigroup (finset α) :=
+function.injective.semigroup _ coe_injective (by simp)
+
+/-- `finset α` is a `monoid` under pointwise operations if `α` is. -/
+@[to_additive /-"`finset α` is an `add_monoid` under pointwise operations if `α` is. "-/]
+protected def monoid [decidable_eq α] [monoid α] : monoid (finset α) :=
+function.injective.monoid _ coe_injective (coe_singleton 1) (by simp)
+
+/-- `finset α` is a `comm_monoid` under pointwise operations if `α` is. -/
+@[to_additive /-"`finset α` is an `add_comm_monoid` under pointwise operations if `α` is. "-/]
+protected def comm_monoid [decidable_eq α] [comm_monoid α] : comm_monoid (finset α) :=
+function.injective.comm_monoid _ coe_injective (coe_singleton 1) (by simp)
+
+localized "attribute [instance] finset.mul_one_class finset.add_zero_class finset.semigroup
+  finset.add_semigroup finset.monoid finset.add_monoid finset.comm_monoid finset.add_comm_monoid"
+  in pointwise
 
 open_locale classical
 
@@ -878,6 +1019,21 @@ le_antisymm
     (λ k hk, subset_closure ⟨1, k, H.one_mem, hk, one_mul k⟩))
   (by conv_rhs { rw [← closure_eq H, ← closure_eq K] }; apply closure_mul_le)
 
+lemma pow_smul_mem_closure_smul {N : Type*} [comm_monoid N] [mul_action M N]
+  [is_scalar_tower M N N] (r : M) (s : set N) {x : N} (hx : x ∈ closure s) :
+  ∃ n : ℕ, r ^ n • x ∈ closure (r • s) :=
+begin
+  apply @closure_induction N _ s
+    (λ (x : N), ∃ n : ℕ, r ^ n • x ∈ closure (r • s)) _ hx,
+  { intros x hx,
+    exact ⟨1, subset_closure ⟨_, hx, by rw pow_one⟩⟩ },
+  { exact ⟨0, by simpa using one_mem _⟩ },
+  { rintros x y ⟨nx, hx⟩ ⟨ny, hy⟩,
+    use nx + ny,
+    convert mul_mem _ hx hy,
+    rw [pow_add, smul_mul_assoc, mul_smul, mul_comm, ← smul_mul_assoc, mul_comm] }
+end
+
 end submonoid
 
 namespace group
@@ -902,13 +1058,13 @@ end
 
 variables {G : Type*} [group G] [fintype G] (S : set G)
 
+@[to_additive]
 lemma card_pow_eq_card_pow_card_univ [∀ (k : ℕ), decidable_pred (∈ (S ^ k))] :
   ∀ k, fintype.card G ≤ k → fintype.card ↥(S ^ k) = fintype.card ↥(S ^ (fintype.card G)) :=
 begin
   have hG : 0 < fintype.card G := fintype.card_pos_iff.mpr ⟨1⟩,
   by_cases hS : S = ∅,
-  { intros k hk,
-    congr' 2,
+  { refine λ k hk, fintype.card_congr _,
     rw [hS, empty_pow _ (ne_of_gt (lt_of_lt_of_le hG hk)), empty_pow _ (ne_of_gt hG)] },
   obtain ⟨a, ha⟩ := set.ne_empty_iff_nonempty.mp hS,
   classical,

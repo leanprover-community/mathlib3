@@ -4,8 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Jens Wagemaker, Aaron Anderson
 -/
 
-import ring_theory.noetherian
+import algebra.big_operators.associated
 import algebra.gcd_monoid.basic
+import data.finsupp.multiset
+import ring_theory.noetherian
 import ring_theory.multiplicity
 
 /-!
@@ -100,7 +102,8 @@ wf_dvd_monoid.induction_on_irreducible a
   (λ u hu _, ⟨0, ⟨by simp [hu], associated.symm (by simp [hu, associated_one_iff_is_unit])⟩⟩)
   (λ a i ha0 hii ih hia0,
     let ⟨s, hs⟩ := ih ha0 in
-    ⟨i ::ₘ s, ⟨by clear _let_match; finish,
+    ⟨i ::ₘ s, ⟨by clear _let_match;
+    { intros b H, cases (multiset.mem_cons.mp H), { convert hii }, { exact hs.1 b h } },
       by { rw multiset.prod_cons,
            exact hs.2.mul_left _ }⟩⟩)
 
@@ -256,7 +259,9 @@ include pf
 lemma wf_dvd_monoid.of_exists_prime_factors : wf_dvd_monoid α :=
 ⟨begin
   classical,
-  apply rel_hom.well_founded (rel_hom.mk _ _) (with_top.well_founded_lt nat.lt_wf),
+  refine rel_hom_class.well_founded
+    (rel_hom.mk _ _ : (dvd_not_unit : α → α → Prop) →r ((<) : with_top ℕ → with_top ℕ → Prop))
+    (with_top.well_founded_lt nat.lt_wf),
   { intro a,
     by_cases h : a = 0, { exact ⊤ },
     exact (classical.some (pf a h)).card },
@@ -491,9 +496,9 @@ begin
   have h : (normalize : α → α) = associates.out ∘ associates.mk,
   { ext, rw [function.comp_apply, associates.out_mk], },
   rw [← multiset.map_id' (normalized_factors (x * y)), ← multiset.map_id' (normalized_factors x),
-    ← multiset.map_id' (normalized_factors y), ← multiset.map_congr normalize_normalized_factor,
-    ← multiset.map_congr normalize_normalized_factor,
-    ← multiset.map_congr normalize_normalized_factor,
+    ← multiset.map_id' (normalized_factors y), ← multiset.map_congr rfl normalize_normalized_factor,
+    ← multiset.map_congr rfl normalize_normalized_factor,
+    ← multiset.map_congr rfl normalize_normalized_factor,
     ← multiset.map_add, h, ← multiset.map_map associates.out, eq_comm,
     ← multiset.map_map associates.out],
   refine congr rfl _,
@@ -942,6 +947,22 @@ quotient.induction_on a $ assume a, decidable.by_cases
 theorem prod_factors [nontrivial α] (s : factor_set α) : s.prod.factors = s :=
 factor_set.unique $ factors_prod _
 
+@[nontriviality] lemma factors_subsingleton [subsingleton α] {a : associates α} :
+  a.factors = option.none :=
+by { convert factors_0; apply_instance }
+
+lemma factors_eq_none_iff_zero {a : associates α} :
+  a.factors = option.none ↔ a = 0 :=
+begin
+  nontriviality α,
+  exact ⟨λ h, by rwa [← factors_prod a, factor_set.prod_eq_zero_iff], λ h, h.symm ▸ factors_0⟩
+end
+
+lemma factors_eq_some_iff_ne_zero {a : associates α} :
+  (∃ (s : multiset {p : associates α // irreducible p}), a.factors = some s) ↔ a ≠ 0 :=
+by rw [← option.is_some_iff_exists, ← option.ne_none_iff_is_some, ne.def, ne.def,
+  factors_eq_none_iff_zero]
+
 theorem eq_of_factors_eq_factors {a b : associates α} (h : a.factors = b.factors) : a = b :=
 have a.factors.prod = b.factors.prod, by rw h,
 by rwa [factors_prod, factors_prod] at this
@@ -955,7 +976,28 @@ begin
   rwa [prod_factors, prod_factors] at this
 end
 
-include dec dec'
+include dec dec' dec_irr
+
+theorem eq_factors_of_eq_counts {a b : associates α} (ha : a ≠ 0) (hb : b ≠ 0)
+  (h : ∀ (p : associates α) (hp : irreducible p), p.count a.factors = p.count b.factors) :
+  a.factors = b.factors :=
+begin
+  obtain ⟨sa, h_sa⟩ := factors_eq_some_iff_ne_zero.mpr ha,
+  obtain ⟨sb, h_sb⟩ := factors_eq_some_iff_ne_zero.mpr hb,
+  rw [h_sa, h_sb] at h ⊢,
+  rw option.some_inj,
+  have h_count : ∀ (p : associates α) (hp : irreducible p), sa.count ⟨p, hp⟩ = sb.count ⟨p, hp⟩,
+  { intros p hp, rw [← count_some, ← count_some, h p hp] },
+  apply multiset.to_finsupp.injective,
+  ext ⟨p, hp⟩,
+  rw [multiset.to_finsupp_apply, multiset.to_finsupp_apply, h_count p hp]
+end
+
+theorem eq_of_eq_counts {a b : associates α} (ha : a ≠ 0) (hb  : b ≠ 0)
+  (h : ∀ (p : associates α), irreducible p → p.count a.factors = p.count b.factors) : a = b :=
+eq_of_factors_eq_factors (eq_factors_of_eq_counts ha hb h)
+
+omit dec_irr
 
 @[simp] theorem factors_mul [nontrivial α] (a b : associates α) :
   (a * b).factors = a.factors + b.factors :=
@@ -1136,6 +1178,18 @@ begin
   simpa only
 end
 
+theorem count_ne_zero_iff_dvd {a p : α} (ha0 : a ≠ 0) (hp : irreducible p) :
+  (associates.mk p).count (associates.mk a).factors ≠ 0 ↔ p ∣ a :=
+begin
+  nontriviality α,
+  rw ← associates.mk_le_mk_iff_dvd_iff,
+  refine ⟨λ h, associates.le_of_count_ne_zero (associates.mk_ne_zero.mpr ha0)
+    ((associates.irreducible_mk p).mpr hp) h, λ h, _⟩,
+  { rw [← pow_one (associates.mk p), associates.prime_pow_dvd_iff_le
+      (associates.mk_ne_zero.mpr ha0) ((associates.irreducible_mk p).mpr hp)] at h,
+    exact (zero_lt_one.trans_le h).ne' }
+end
+
 theorem count_mul [nontrivial α] {a : associates α} (ha : a ≠ 0) {b : associates α} (hb : b ≠ 0)
   {p : associates α} (hp : irreducible p) :
   count p (factors (a * b)) = count p a.factors + count p b.factors :=
@@ -1159,32 +1213,36 @@ begin
     (irreducible_iff_prime.mp hp)⟩,
 end
 
-theorem count_mul_of_coprime [nontrivial α] {a : associates α} (ha : a ≠ 0) {b : associates α}
+theorem count_mul_of_coprime [nontrivial α] {a : associates α} {b : associates α}
   (hb : b ≠ 0)
   {p : associates α} (hp : irreducible p) (hab : ∀ d, d ∣ a → d ∣ b → ¬ prime d) :
   count p a.factors = 0 ∨ count p a.factors = count p (a * b).factors :=
 begin
+  by_cases ha : a = 0,
+  { simp [ha], },
   cases count_of_coprime ha hb hab hp with hz hb0, { tauto },
   apply or.intro_right,
   rw [count_mul ha hb hp, hb0, add_zero]
 end
 
-theorem count_mul_of_coprime' [nontrivial α] {a : associates α} (ha : a ≠ 0) {b : associates α}
-  (hb : b ≠ 0)
+theorem count_mul_of_coprime' [nontrivial α] {a b : associates α}
   {p : associates α} (hp : irreducible p) (hab : ∀ d, d ∣ a → d ∣ b → ¬ prime d) :
   count p (a * b).factors = count p a.factors
   ∨ count p (a * b).factors = count p b.factors :=
 begin
+  by_cases ha : a = 0, { simp [ha], },
+  by_cases hb : b = 0, { simp [hb], },
   rw [count_mul ha hb hp],
   cases count_of_coprime ha hb hab hp with ha0 hb0,
   { apply or.intro_right, rw [ha0, zero_add] },
   { apply or.intro_left, rw [hb0, add_zero] }
 end
 
-theorem dvd_count_of_dvd_count_mul [nontrivial α] {a b : associates α} (ha : a ≠ 0) (hb : b ≠ 0)
+theorem dvd_count_of_dvd_count_mul [nontrivial α] {a b : associates α} (hb : b ≠ 0)
   {p : associates α} (hp : irreducible p) (hab : ∀ d, d ∣ a → d ∣ b → ¬ prime d)
   {k : ℕ} (habk : k ∣ count p (a * b).factors) : k ∣ count p a.factors :=
 begin
+  by_cases ha : a = 0, { simpa [*] using habk, },
   cases count_of_coprime ha hb hab hp with hz h,
   { rw hz, exact dvd_zero k },
   { rw [count_mul ha hb hp, h] at habk, exact habk }
@@ -1254,7 +1312,7 @@ begin
     apply (mul_eq_one_iff.1 h).1 },
   { refine is_pow_of_dvd_count ha _,
     intros p hp,
-    apply dvd_count_of_dvd_count_mul ha hb hp hab,
+    apply dvd_count_of_dvd_count_mul hb hp hab,
     rw h,
     apply dvd_count_pow _ hp,
     rintros rfl,
@@ -1327,7 +1385,7 @@ namespace unique_factorization_monoid
 /-- If `y` is a nonzero element of a unique factorization monoid with finitely
 many units (e.g. `ℤ`, `ideal (ring_of_integers K)`), it has finitely many divisors. -/
 noncomputable def fintype_subtype_dvd {M : Type*} [cancel_comm_monoid_with_zero M]
-  [unique_factorization_monoid M] [fintype (units M)]
+  [unique_factorization_monoid M] [fintype Mˣ]
   (y : M) (hy : y ≠ 0) :
   fintype {x // x ∣ y} :=
 begin
@@ -1335,10 +1393,10 @@ begin
   haveI : normalization_monoid M := unique_factorization_monoid.normalization_monoid,
   haveI := classical.dec_eq M,
   haveI := classical.dec_eq (associates M),
-  -- We'll show `λ (u : units M) (f ⊆ factors y) → u * Π f` is injective
+  -- We'll show `λ (u : Mˣ) (f ⊆ factors y) → u * Π f` is injective
   -- and has image exactly the divisors of `y`.
   refine fintype.of_finset
-    (((normalized_factors y).powerset.to_finset.product (finset.univ : finset (units M))).image
+    (((normalized_factors y).powerset.to_finset.product (finset.univ : finset Mˣ)).image
       (λ s, (s.snd : M) * s.fst.prod))
     (λ x, _),
   simp only [exists_prop, finset.mem_image, finset.mem_product, finset.mem_univ, and_true,
@@ -1363,3 +1421,46 @@ begin
 end
 
 end unique_factorization_monoid
+
+section finsupp
+variables [cancel_comm_monoid_with_zero α] [unique_factorization_monoid α]
+variables [normalization_monoid α] [decidable_eq α]
+
+open unique_factorization_monoid
+
+/-- This returns the multiset of irreducible factors as a `finsupp` -/
+noncomputable def factorization (n : α) : α →₀ ℕ := (normalized_factors n).to_finsupp
+
+lemma factorization_eq_count {n p : α} :
+  factorization n p = multiset.count p (normalized_factors n) :=
+by simp [factorization]
+
+@[simp] lemma factorization_zero : factorization (0 : α) = 0 := by simp [factorization]
+
+@[simp] lemma factorization_one : factorization (1 : α) = 0 := by simp [factorization]
+
+/-- The support of `factorization n` is exactly the finset of normalized factors -/
+@[simp] lemma support_factorization {n : α} :
+  (factorization n).support = (normalized_factors n).to_finset :=
+by simp [factorization, multiset.to_finsupp_support]
+
+/-- For nonzero `a` and `b`, the power of `p` in `a * b` is the sum of the powers in `a` and `b` -/
+@[simp] lemma factorization_mul {a b : α} (ha : a ≠ 0) (hb : b ≠ 0) :
+  factorization (a * b) = factorization a + factorization b :=
+by simp [factorization, normalized_factors_mul ha hb]
+
+/-- For any `p`, the power of `p` in `x^n` is `n` times the power in `x` -/
+lemma factorization_pow {x : α} {n : ℕ} :
+  factorization (x^n) = n • factorization x :=
+by { ext, simp [factorization] }
+
+lemma associated_of_factorization_eq (a b: α) (ha: a ≠ 0) (hb: b ≠ 0)
+  (h: factorization a = factorization b) : associated a b :=
+begin
+  simp only [factorization, add_equiv.apply_eq_iff_eq] at h,
+  have ha' := normalized_factors_prod ha,
+  rw h at ha',
+  exact associated.trans ha'.symm (normalized_factors_prod hb),
+end
+
+end finsupp

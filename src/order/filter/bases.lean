@@ -150,7 +150,8 @@ begin
   { rintros ⟨U, U_in⟩ ⟨V, V_in⟩,
     rcases B.inter_sets U_in V_in with ⟨W, W_in, W_sub⟩,
     use [W, W_in],
-    finish },
+    simp only [ge_iff_le, le_principal_iff, mem_principal, subtype.coe_mk],
+    exact subset_inter_iff.mp W_sub },
   ext U,
   simp [mem_filter_iff, mem_infi_of_directed this]
 end
@@ -564,7 +565,7 @@ lemma comap_has_basis (f : α → β) (l : filter β) :
 ⟨λ t, mem_comap⟩
 
 lemma has_basis.prod_self (hl : l.has_basis p s) :
-  (l ×ᶠ l).has_basis p (λ i, (s i).prod (s i)) :=
+  (l ×ᶠ l).has_basis p (λ i, s i ×ˢ s i) :=
 ⟨begin
   intro t,
   apply mem_prod_iff.trans,
@@ -576,7 +577,7 @@ lemma has_basis.prod_self (hl : l.has_basis p s) :
     exact ⟨s i, hl.mem_of_mem hi, s i, hl.mem_of_mem hi, H⟩ }
 end⟩
 
-lemma mem_prod_self_iff {s} : s ∈ l ×ᶠ l ↔ ∃ t ∈ l, set.prod t t ⊆ s :=
+lemma mem_prod_self_iff {s} : s ∈ l ×ᶠ l ↔ ∃ t ∈ l, t ×ˢ t ⊆ s :=
 l.basis_sets.prod_self.mem_iff
 
 lemma has_basis.sInter_sets (h : has_basis l p s) :
@@ -638,23 +639,23 @@ lemma tendsto.basis_both (H : tendsto f la lb) (hla : la.has_basis pa sa)
 (hla.tendsto_iff hlb).1 H
 
 lemma has_basis.prod'' (hla : la.has_basis pa sa) (hlb : lb.has_basis pb sb) :
-  (la ×ᶠ lb).has_basis (λ i : pprod ι ι', pa i.1 ∧ pb i.2) (λ i, (sa i.1).prod (sb i.2)) :=
+  (la ×ᶠ lb).has_basis (λ i : pprod ι ι', pa i.1 ∧ pb i.2) (λ i, sa i.1 ×ˢ sb i.2) :=
 (hla.comap prod.fst).inf' (hlb.comap prod.snd)
 
 lemma has_basis.prod {ι ι' : Type*} {pa : ι → Prop} {sa : ι → set α} {pb : ι' → Prop}
   {sb : ι' → set β} (hla : la.has_basis pa sa) (hlb : lb.has_basis pb sb) :
-  (la ×ᶠ lb).has_basis (λ i : ι × ι', pa i.1 ∧ pb i.2) (λ i, (sa i.1).prod (sb i.2)) :=
+  (la ×ᶠ lb).has_basis (λ i : ι × ι', pa i.1 ∧ pb i.2) (λ i, sa i.1 ×ˢ sb i.2) :=
 (hla.comap prod.fst).inf (hlb.comap prod.snd)
 
 lemma has_basis.prod' {la : filter α} {lb : filter β} {ι : Type*} {p : ι → Prop}
   {sa : ι → set α} {sb : ι → set β}
   (hla : la.has_basis p sa) (hlb : lb.has_basis p sb)
   (h_dir : ∀ {i j}, p i → p j → ∃ k, p k ∧ sa k ⊆ sa i ∧ sb k ⊆ sb j) :
-  (la ×ᶠ lb).has_basis p (λ i, (sa i).prod (sb i)) :=
+  (la ×ᶠ lb).has_basis p (λ i, sa i ×ˢ sb i) :=
 begin
   simp only [has_basis_iff, (hla.prod hlb).mem_iff],
   refine λ t, ⟨_, _⟩,
-  { rintros ⟨⟨i, j⟩, ⟨hi, hj⟩, hsub : (sa i).prod (sb j) ⊆ t⟩,
+  { rintros ⟨⟨i, j⟩, ⟨hi, hj⟩, hsub : sa i ×ˢ sb j ⊆ t⟩,
     rcases h_dir hi hj with ⟨k, hk, ki, kj⟩,
     exact ⟨k, hk, (set.prod_mono ki kj).trans hsub⟩ },
   { rintro ⟨i, hi, h⟩,
@@ -695,7 +696,7 @@ structure countable_filter_basis (α : Type*) extends filter_basis α :=
 -- For illustration purposes, the countable filter basis defining (at_top : filter ℕ)
 instance nat.inhabited_countable_filter_basis : inhabited (countable_filter_basis ℕ) :=
 ⟨{ countable := countable_range (λ n, Ici n),
-   ..(default $ filter_basis ℕ),}⟩
+   ..(default : filter_basis ℕ) }⟩
 
 lemma has_countable_basis.is_countably_generated {f : filter α} {p : ι → Prop} {s : ι → set α}
   (h : f.has_countable_basis p s) :

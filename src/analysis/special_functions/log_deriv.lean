@@ -181,10 +181,10 @@ namespace real
 lemma tendsto_mul_log_one_plus_div_at_top (t : ℝ) :
   tendsto (λ x, x * log (1 + t / x)) at_top (𝓝 t) :=
 begin
-  have h₁ : tendsto (λ h, h⁻¹ * log (1 + t * h)) (𝓝[{0}ᶜ] 0) (𝓝 t),
+  have h₁ : tendsto (λ h, h⁻¹ * log (1 + t * h)) (𝓝[≠] 0) (𝓝 t),
   { simpa [has_deriv_at_iff_tendsto_slope] using
       ((has_deriv_at_const _ 1).add ((has_deriv_at_id (0 : ℝ)).const_mul t)).log (by simp) },
-  have h₂ : tendsto (λ x : ℝ, x⁻¹) at_top (𝓝[{0}ᶜ] 0) :=
+  have h₂ : tendsto (λ x : ℝ, x⁻¹) at_top (𝓝[≠] 0) :=
     tendsto_inv_at_top_zero'.mono_right (nhds_within_mono _ (λ x hx, (set.mem_Ioi.mp hx).ne')),
   convert h₁.comp h₂,
   ext,

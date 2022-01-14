@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alexander Bentkamp, Yury Kudriashov, Yaël Dillies
 -/
 import algebra.order.module
+import linear_algebra.affine_space.midpoint
 import linear_algebra.affine_space.affine_subspace
 
 /-!
@@ -229,6 +230,36 @@ open_segment_translate_preimage 𝕜 a b c ▸ image_preimage_eq _ $ add_left_su
 
 end add_comm_group
 end ordered_ring
+
+section linear_ordered_ring
+variables [linear_ordered_ring 𝕜]
+
+section add_comm_group
+variables [add_comm_group E] [add_comm_group F] [module 𝕜 E] [module 𝕜 F]
+
+lemma midpoint_mem_segment [invertible (2 : 𝕜)] (x y : E) :
+  midpoint 𝕜 x y ∈ [x -[𝕜] y] :=
+begin
+  rw segment_eq_image_line_map,
+  exact ⟨⅟2, ⟨inv_of_nonneg.mpr zero_le_two, inv_of_le_one one_le_two⟩, rfl⟩,
+end
+
+lemma mem_segment_sub_add [invertible (2 : 𝕜)] (x y : E) :
+  x ∈ [x-y -[𝕜] x+y] :=
+begin
+  convert @midpoint_mem_segment 𝕜 _ _ _ _ _ _ _,
+  rw midpoint_sub_add
+end
+
+lemma mem_segment_add_sub [invertible (2 : 𝕜)] (x y : E) :
+  x ∈ [x+y -[𝕜] x-y] :=
+begin
+  convert @midpoint_mem_segment 𝕜 _ _ _ _ _ _ _,
+  rw midpoint_add_sub
+end
+
+end add_comm_group
+end linear_ordered_ring
 
 section linear_ordered_field
 variables [linear_ordered_field 𝕜]
@@ -474,7 +505,9 @@ iff.intro
   (λ h x y hx hy a b ha hb hab,
     (h ha hb hab) (set.add_mem_add ⟨_, hx, rfl⟩ ⟨_, hy, rfl⟩))
 
-lemma convex_empty : convex 𝕜 (∅ : set E) := by finish
+lemma convex_empty : convex 𝕜 (∅ : set E) :=
+by simp only [convex_iff_pointwise_add_subset, add_empty, forall_const, empty_subset,
+  implies_true_iff, smul_set_empty]
 
 lemma convex_univ : convex 𝕜 (set.univ : set E) := λ _ _ _ _ _ _ _ _ _, trivial
 
@@ -491,7 +524,7 @@ lemma convex_Inter {ι : Sort*} {s : ι → set E} (h : ∀ i : ι, convex 𝕜 
 (sInter_range s) ▸ convex_sInter $ forall_range_iff.2 h
 
 lemma convex.prod {s : set E} {t : set F} (hs : convex 𝕜 s) (ht : convex 𝕜 t) :
-  convex 𝕜 (s.prod t) :=
+  convex 𝕜 (s ×ˢ t) :=
 begin
   intros x y hx hy a b ha hb hab,
   apply mem_prod.2,
@@ -553,7 +586,7 @@ begin
   { rw [add_zero] at hab, rwa [hab, zero_smul, one_smul, add_zero] },
   obtain rfl | hxy := eq_or_ne x y,
   { rwa convex.combo_self hab },
-  exact h _ hx _ hy hxy ha' hb' hab,
+  exact h hx hy hxy ha' hb' hab,
 end
 
 lemma convex_iff_open_segment_subset :

@@ -406,7 +406,8 @@ end
 such that these morphisms are compatible in the intersection (pullback), we may glue the morphisms
 together into a morphism `X ⟶ Y`.
 
-Note : If `X` is exactly (defeq to) the gluing of `U i`, then using `multicoequalizer.desc` suffices.
+Note:
+If `X` is exactly (defeq to) the gluing of `U i`, then using `multicoequalizer.desc` suffices.
 -/
 def glue_morphisms {Y : Scheme} (f : ∀ x, 𝒰.obj x ⟶ Y)
   (hf : ∀ x y, (pullback.fst : pullback (𝒰.map x) (𝒰.map y) ⟶ _) ≫ f x = pullback.snd ≫ f y) :

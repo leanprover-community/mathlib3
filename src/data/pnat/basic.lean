@@ -23,6 +23,10 @@ instance : has_repr ℕ+ := ⟨λ n, repr n.1⟩
 /-- Predecessor of a `ℕ+`, as a `ℕ`. -/
 def pnat.nat_pred (i : ℕ+) : ℕ := i - 1
 
+lemma pnat.succ_nat_pred' (n : ℕ+) : 1 + n.nat_pred = n :=
+by rw [pnat.nat_pred, add_tsub_cancel_iff_le.mpr $ show 1 ≤ (n : ℕ), from n.2]
+lemma pnat.succ_nat_pred (n : ℕ+) : n.nat_pred + 1 = n := (add_comm _ _).trans n.succ_nat_pred'
+
 namespace nat
 
 /-- Convert a natural number to a positive natural number. The

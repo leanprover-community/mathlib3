@@ -343,6 +343,9 @@ instance : order_bot (seminorm 𝕜 E) :=
 
 @[simp] lemma coe_bot : ⇑(⊥ : seminorm 𝕜 E) = 0 := rfl
 
+lemma bot_eq_zero : (⊥ : seminorm 𝕜 E) = 0 := rfl
+
+
 lemma finset_sup_apply (p : ι → seminorm 𝕜 E) (s : finset ι) (x : E) :
   s.sup p x = ↑(s.sup (λ i, ⟨p i x, nonneg (p i) x⟩) : nnreal) :=
 begin

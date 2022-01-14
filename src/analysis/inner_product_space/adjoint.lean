@@ -5,6 +5,7 @@ Authors: Frédéric Dupuis, Heather Macbeth
 -/
 
 import analysis.inner_product_space.dual
+import algebra.star.self_adjoint
 
 /-!
 # Adjoint of operators on Hilbert spaces
@@ -280,6 +281,19 @@ instance : star_ring (E →ₗ[𝕜] E) := ⟨linear_equiv.map_add adjoint⟩
 instance : star_module 𝕜 (E →ₗ[𝕜] E) := ⟨linear_equiv.map_smulₛₗ adjoint⟩
 
 lemma star_eq_adjoint (A : E →ₗ[𝕜] E) : star A = A.adjoint := rfl
+
+lemma mem_self_adjoint_iff (A : E →ₗ[𝕜] E) : A ∈ self_adjoint (E →ₗ[𝕜] E) ↔ A.adjoint = A :=
+by simp only [←star_eq_adjoint, self_adjoint.mem_iff]
+
+lemma mem_self_adjoint_iff_is_self_adjoint (A : E →ₗ[𝕜] E) :
+  A ∈ self_adjoint (E →ₗ[𝕜] E) ↔ is_self_adjoint A :=
+begin
+  refine ⟨λ h x y, _,
+          λ h, (mem_self_adjoint_iff A).mpr (eq.symm ((eq_adjoint_iff _ _).mpr (λ _ _, h _ _)))⟩,
+  { rw [mem_self_adjoint_iff] at h,
+    nth_rewrite_lhs 0 [←h],
+    exact adjoint_inner_left _ _ _ }
+end
 
 section real
 

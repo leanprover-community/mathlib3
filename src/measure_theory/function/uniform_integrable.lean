@@ -230,7 +230,6 @@ snorm (s.indicator (f i)) p μ < ennreal.of_real ε
 section unif_integrable
 
 variables [borel_space β] [second_countable_topology β] [is_finite_measure μ] {p : ℝ≥0∞}
-
 -- useful lemmas:
 -- #check snorm_ess_sup_lt_top_of_ae_bound
 -- #check snorm_le_of_ae_bound

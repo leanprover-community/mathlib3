@@ -202,10 +202,11 @@ begin
   simp only [int.cast_bit0, int.cast_one, inv_of_mul_self_assoc, zsmul_eq_mul],
 end
 
-lemma sym_mul_self [ring α] [invertible (2 : α)] (a : α) : sym a*a = sym a * sym a :=
+lemma sym_mul_self [ring α] [invertible (2 : α)] (a : α) : sym (a*a) = sym a * sym a :=
 begin
   rw sym_mul_sym,
   abel,
+  simp only [int.cast_bit0, int.cast_one, inv_of_mul_self_assoc, zsmul_eq_mul],
 end
 
 end sym_alg

@@ -403,10 +403,10 @@ begin
 end
 
 lemma ball_sup (p : seminorm 𝕜 E) (q : seminorm 𝕜 E) (e : E) {r : ℝ} (hr : 0 < r) :
-  ball (p ⊔ q) e r = (ball p e r) ⊓ (ball q e r) :=
+  ball (p ⊔ q) e r = ball p e r ∩ ball q e r :=
 begin
   lift r to nnreal using hr.le,
-  simp_rw [set.inf_eq_inter, ball, ←set.set_of_and],
+  simp_rw [ball, ←set.set_of_and],
   simp,
 end
 

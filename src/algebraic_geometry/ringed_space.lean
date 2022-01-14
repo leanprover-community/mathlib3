@@ -157,7 +157,7 @@ begin
     { refl } }
 end
 
-/-- This should fire before `basic_open_res`. -/
+-- This should fire before `basic_open_res`.
 @[simp, priority 1100] lemma basic_open_res_eq {U V : (opens X)ᵒᵖ} (i : U ⟶ V) [is_iso i]
   (f : X.presheaf.obj U) :
   @basic_open X (unop V) (X.presheaf.map i f) = @RingedSpace.basic_open X (unop U) f :=

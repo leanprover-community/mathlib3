@@ -924,7 +924,7 @@ theorem comp_family_of_bfamily' {ι : Type u} (r : ι → ι → Prop) [is_well_
   g ∘ (family_of_bfamily' r ho f) = family_of_bfamily' r ho (λ i hi, g (f i hi)) :=
 rfl
 
-theorem comp_family_of_bfamily {ι : Type u} {o} (f : Π a < o, α) (g : α → β) :
+theorem comp_family_of_bfamily {o} (f : Π a < o, α) (g : α → β) :
   g ∘ (family_of_bfamily o f) = family_of_bfamily o (λ i hi, g (f i hi)) :=
 rfl
 

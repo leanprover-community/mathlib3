@@ -244,6 +244,7 @@ affine_map.continuous_linear_iff.1 f.linear.continuous_of_finite_dimensional
 lemma continuous_linear_map.continuous_det :
   continuous (λ (f : E →L[𝕜] E), f.det) :=
 begin
+  change continuous (λ (f : E →L[𝕜] E), (f : E →ₗ[𝕜] E).det),
   classical,
   by_cases h : ∃ (s : finset E), nonempty (basis ↥s 𝕜 E),
   { rcases h with ⟨s, ⟨b⟩⟩,
@@ -255,7 +256,7 @@ begin
     { change continuous ((linear_map.to_matrix b b).to_linear_map.comp
         (continuous_linear_map.coe_lm 𝕜)),
       exact linear_map.continuous_of_finite_dimensional _ },
-    convert (continuous_det.comp A),
+    convert continuous_det.comp A,
     ext f,
     congr },
   { unfold linear_map.det,

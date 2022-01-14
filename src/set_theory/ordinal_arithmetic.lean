@@ -1544,14 +1544,17 @@ begin
   exact ⟨s, subtype.eq hs⟩,
 end
 
+theorem enum_ord_range : range (enum_ord hS) = S :=
+by { rw range_eq_iff, exact ⟨enum_ord_mem hS, enum_ord.surjective⟩ }
+
 /-- A characterization of `enum_ord`: it is the unique strict monotonic function with range `S`. -/
 theorem eq_enum_ord (f : ordinal.{u} → ordinal.{u}) :
   strict_mono f ∧ range f = S ↔ f = enum_ord hS :=
 begin
-  rw range_eq_iff,
   split, swap,
   { rintro ⟨h⟩,
-    exact ⟨enum_ord.strict_mono, enum_ord_mem hS, enum_ord.surjective⟩ },
+    exact ⟨enum_ord.strict_mono, enum_ord_range hS⟩ },
+  rw range_eq_iff,
   rintro ⟨h, hl, hr⟩,
   refine funext (λ a, _),
   apply wf.induction a,
@@ -1569,6 +1572,7 @@ begin
   rw ←(H c hc),
   exact h hc,
 end
+
 
 end
 

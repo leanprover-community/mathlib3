@@ -52,8 +52,14 @@ end
 /-- A generalization of the fixed point lemma for normal functions: any family of normal functions
 has an unbounded set of common fixed points. -/
 theorem nfp_family_unbounded {f : ι → ordinal.{max u v} → ordinal} (Hf : ∀ i, is_normal (f i)) :
-  ∀ a, ∃ b, (∀ i, f i b = b) ∧ a ≤ b :=
-λ a, ⟨nfp_family f a, nfp_family_fp Hf a, le_nfp_family_self f a⟩
+  unbounded (<) (λ b, ∀ i, f i b = b) :=
+λ a, ⟨_, nfp_family_fp Hf a, not_lt_of_ge (le_nfp_family_self f a)⟩
+
+theorem nfp_family_is_normal {f : ι → ordinal.{max u v} → ordinal} (Hf : ∀ i, is_normal (f i)) :
+  is_normal (enum_ord (nfp_family_unbounded Hf)) :=
+begin
+  
+end
 
 /-- The next common fixed point above `a` for a family of normal functions indexed by ordinals. -/
 def nfp_bfamily (a o : ordinal.{u}) (f : Π b < o, ordinal.{max u v} → ordinal.{max u v}) :
@@ -65,7 +71,7 @@ has an unbounded set of common fixed points. -/
 -- Big thanks to Bhavik for this.
 theorem nfp_bfamily_unbounded {o : ordinal.{u}} {f : Π i < o, ordinal.{max u v} → ordinal}
   (Hf : ∀ i hi, is_normal (f i hi)) :
-  ∀ a, ∃ b, (∀ i hi, f i hi b = b) ∧ a ≤ b :=
+  unbounded (<) (λ b, ∀ i hi, f i hi b = b) :=
 begin
   induction o using ordinal.induction_on with α r hr,
   introI a,
@@ -74,3 +80,10 @@ begin
   convert hb₁ (ordinal.enum r i hi),
   simp
 end
+
+theorem nfp_bfamily_is_normal {o : ordinal.{u}} {f : Π i < o, ordinal.{max u v} → ordinal}
+  (Hf : ∀ i hi, is_normal (f i hi)) : is_normal (enum_ord (nfp_bfamily_unbounded Hf)) := sorry
+
+private def veblen_aux {f : ordinal.{u} → ordinal.{u}} (Hf : is_normal f) :
+  ordinal.{u} → {φ // is_normal φ} :=
+wf.fix (λ a φ, if a = 0 then ⟨f, Hf⟩ else ⟨_, nfp_bfamily_is_normal.{u u} (λ i hi, (φ i hi).prop)⟩)

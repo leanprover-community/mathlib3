@@ -105,6 +105,11 @@ begin
   apply classical.some_spec (mem_span_singleton.1 h),
 end
 
+@[simp] lemma mk_span_singleton_apply_self (x : E) (y : F) (H : ∀ c : R, c • x = 0 → c • y = 0)
+  (c : R) (h) :
+  mk_span_singleton' x y H ⟨x, h⟩ = y :=
+by convert mk_span_singleton_apply x y h; exact one_smul _ _
+
 /-- The unique `linear_pmap` on `span R {x}` that sends a non-zero vector `x` to `y`.
 This version works for modules over division rings. -/
 @[reducible] noncomputable def mk_span_singleton {K E F : Type*} [division_ring K]

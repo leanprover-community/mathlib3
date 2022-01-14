@@ -523,6 +523,10 @@ lemma convex_Inter {ι : Sort*} {s : ι → set E} (h : ∀ i : ι, convex 𝕜 
   convex 𝕜 (⋂ i, s i) :=
 (sInter_range s) ▸ convex_sInter $ forall_range_iff.2 h
 
+lemma convex_bInter {ι : Sort*} {f : ι → set E} {s : set ι} (h : ∀ i ∈ s, convex 𝕜 (f i)) :
+  convex 𝕜 (⋂ i ∈ s, f i) :=
+(sInter_image f s) ▸ convex_sInter h
+
 lemma convex.prod {s : set E} {t : set F} (hs : convex 𝕜 s) (ht : convex 𝕜 t) :
   convex 𝕜 (s ×ˢ t) :=
 begin
@@ -932,8 +936,8 @@ begin
   rw [convex.combo_affine_apply hab, hx'f, hy'f]
 end
 
-lemma convex.neg (hs : convex 𝕜 s) : convex 𝕜 ((λ z, -z) '' s) :=
-hs.is_linear_image is_linear_map.is_linear_map_neg
+lemma convex.neg (hs : convex 𝕜 s) : convex 𝕜 (-s) :=
+by { rw ←set.image_neg, exact hs.is_linear_image is_linear_map.is_linear_map_neg }
 
 lemma convex.neg_preimage (hs : convex 𝕜 s) : convex 𝕜 ((λ z, -z) ⁻¹' s) :=
 hs.is_linear_preimage is_linear_map.is_linear_map_neg

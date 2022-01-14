@@ -328,7 +328,7 @@ def ball (x : E) (r : ℝ) := { y : E | p (y - x) < r }
 
 variables {x y : E} {r : ℝ}
 
-lemma mem_ball : y ∈ ball p x r ↔ p (y - x) < r := iff.rfl
+@[simp] lemma mem_ball : y ∈ ball p x r ↔ p (y - x) < r := iff.rfl
 
 lemma mem_ball_zero : y ∈ ball p 0 r ↔ p y < r := by rw [mem_ball, sub_zero]
 

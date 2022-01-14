@@ -386,7 +386,8 @@ end has_scalar
 section module
 variables [norm_one_class 𝕜] [module 𝕜 E] (p : seminorm 𝕜 E)
 
-lemma ball_bot {r : ℝ} (x : E) (hr : 0 < r) : ball (⊥ : seminorm 𝕜 E) x r = set.univ := ball_zero' x hr
+@[simp] lemma ball_bot {r : ℝ} (x : E) (hr : 0 < r) : ball (⊥ : seminorm 𝕜 E) x r = set.univ :=
+ball_zero' x hr
 
 /-- Seminorm-balls at the origin are balanced. -/
 lemma balanced_ball_zero (r : ℝ): balanced 𝕜 (ball p 0 r) :=

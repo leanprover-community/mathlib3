@@ -195,8 +195,9 @@ end
 
 
 
-
-lemma factorization_prod_pow_inv (f : ℕ →₀ ℕ) (hf : ∀ (p : ℕ), p ∈ f.support → prime p) :
+/-- Any finsupp `f : ℕ →₀ ℕ` whose support is in the primes is equal to the factorization of
+the product `∏ (a : ℕ) in f.support, a ^ f a`. -/
+lemma factorization_prod_pow_inv {f : ℕ →₀ ℕ} (hf : ∀ (p : ℕ), p ∈ f.support → prime p) :
   (f.prod pow).factorization = f :=
 begin
   unfold finsupp.prod,
@@ -223,7 +224,7 @@ def factorization_equiv : pnat ≃ {f : ℕ →₀ ℕ | ∀ p ∈ f.support, pr
     rintros ⟨f, hf⟩,
     unfold factorization_equiv._match_2,
     unfold factorization_equiv._match_1,
-    simp [subtype.mk_eq_mk, factorization_prod_pow_inv f hf] } }
+    simp [subtype.mk_eq_mk, factorization_prod_pow_inv hf] } }
 
 -- TODO: use `prime_of_mem_factorization` and `pos_of_mem_factorization`
 

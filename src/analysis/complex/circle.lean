@@ -65,7 +65,7 @@ instance : comm_group circle :=
     ← mul_self_abs] },
   .. circle.to_comm_monoid }
 
-lemma coe_inv_circle_eq_conj (z : circle) : ↑(z⁻¹) = conj (z:ℂ) := rfl
+lemma coe_inv_circle_eq_conj (z : circle) : ↑(z⁻¹) = conj (z : ℂ) := rfl
 
 @[simp] lemma coe_inv_circle (z : circle) : ↑(z⁻¹) = (z : ℂ)⁻¹ :=
 begin

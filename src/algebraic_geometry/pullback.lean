@@ -25,55 +25,6 @@ variables {C : Type u} [category.{v} C]
 variables {X Y Z : Scheme.{u}} (𝒰 : open_cover.{u} X) (f : X ⟶ Z) (g : Y ⟶ Z)
 variables [∀ x, has_pullback (𝒰.map x ≫ f) g]
 
-namespace open_cover
-
-/-- Given an open cover on `X`, we may pull them back along a morphism `W ⟶ X` to obtain
-an open cover of `W`. -/
-@[simps]
-def pullback_cover (𝒰 : open_cover X) {W : Scheme} (f : W ⟶ X) : open_cover W :=
-{ J := 𝒰.J,
-  obj := λ x, pullback f (𝒰.map x),
-  map := λ x, pullback.fst,
-  f := λ x, 𝒰.f (f.1.base x),
-  covers := λ x, begin
-    rw ← (show _ = (pullback.fst : pullback f (𝒰.map (𝒰.f (f.1.base x))) ⟶ _).1.base,
-      from preserves_pullback.iso_hom_fst Scheme.forget_to_Top f
-      (𝒰.map (𝒰.f (f.1.base x)))),
-    rw [coe_comp, set.range_comp, set.range_iff_surjective.mpr, set.image_univ,
-      Top.pullback_fst_range],
-    rcases 𝒰.covers (f.1.base x) with ⟨y, h⟩,
-    exact ⟨y, h.symm⟩,
-    { rw ← Top.epi_iff_surjective, apply_instance }
-  end }
-
-/--
-Every open cover of a quasi-compact scheme can be refined into a finite subcover.
--/
-def finite_subcover (𝒰 : open_cover X) [H : compact_space X.carrier] : open_cover X :=
-begin
-  have := @@compact_space.elim_nhds_subcover _ H
-    (λ (x : X.carrier), set.range ((𝒰.map (𝒰.f x)).1.base))
-    (λ x, (is_open_immersion.open_range (𝒰.map (𝒰.f x))).mem_nhds (𝒰.covers x)),
-  let t := this.some,
-  have h : ∀ (x : X.carrier), ∃ (y : t), x ∈ set.range ((𝒰.map (𝒰.f y)).1.base),
-  { intro x,
-    have h' : x ∈ (⊤ : set X.carrier) := trivial,
-    rw [← classical.some_spec this, set.mem_Union] at h',
-    rcases h' with ⟨y,_,⟨hy,rfl⟩,hy'⟩,
-    exact ⟨⟨y,hy⟩,hy'⟩ },
-  exact
-  { J := t,
-    obj := λ x, 𝒰.obj (𝒰.f x.1),
-    map := λ x, 𝒰.map (𝒰.f x.1),
-    f := λ x, (h x).some,
-    covers := λ x, (h x).some_spec }
-end
-
-instance [H : compact_space X.carrier] : fintype 𝒰.finite_subcover.J :=
-by { delta finite_subcover, apply_instance }
-
-end open_cover
-
 /-- (Xᵢ ×[Z] Y) ×[X] Xⱼ -/
 def V (x y : 𝒰.J) : Scheme :=
 pullback ((pullback.fst : pullback ((𝒰.map x) ≫ f) g ⟶ _) ≫ (𝒰.map x)) (𝒰.map y)

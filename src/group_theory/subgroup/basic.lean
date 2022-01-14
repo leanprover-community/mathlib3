@@ -2484,6 +2484,43 @@ end subgroup
 
 end actions
 
+/-! ### Mul-opposite subgroups -/
+
+section mul_opposite
+
+namespace subgroup
+
+def subgroup.opposite {G : Type*} [group G] (H : subgroup G) : subgroup Gᵐᵒᵖ :=
+{ carrier := mul_opposite.unop ⁻¹' (H : set G),
+  one_mem' := H.one_mem,
+  mul_mem' := λ a b ha hb, H.mul_mem hb ha,
+  inv_mem' := λ a, H.inv_mem }
+
+@[simps]
+def subgroup.opposite_equiv {G : Type*} [group G] (H : subgroup G) :
+  H ≃ H.opposite :=
+mul_opposite.op_equiv.subtype_equiv $ λ _, iff.rfl
+
+instance {G : Type*} [group G] (H : subgroup G) [encodable H] : encodable H.opposite :=
+encodable.of_equiv H H.opposite_equiv.symm
+
+lemma left_right_mul (x g: G) (γ : ↥(Γ.opposite)) : γ • (g * x) = g * (γ • x) :=
+begin
+  obtain ⟨γ', hγ'⟩ := γ,
+  simp [(•), mul_assoc],
+end
+
+lemma left_right_mem_preimage (x g: G) (γ : ↥(Γ.opposite)) (s : set G) :
+  x ∈ (λ y, γ • y) '' (has_mul.mul g ⁻¹' s) ↔ g * x ∈ (λ y, γ • y) '' s:=
+begin
+  obtain ⟨γ', hγ'⟩ := γ,
+  simp [(•), mul_assoc],
+end
+
+end subgroup
+
+end mul_opposite
+
 /-! ### Saturated subgroups -/
 
 section saturated

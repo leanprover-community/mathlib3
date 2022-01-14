@@ -89,6 +89,17 @@ calc μ ((λ h, g * h) ⁻¹' A) = measure.map (λ h, g * h) μ A :
   ((homeomorph.mul_left g).to_measurable_equiv.map_apply A).symm
 ... = μ A : by rw map_mul_left_eq_self.2 h g
 
+
+theorem measure_theory.is_mul_right_invariant.measure_preimage_mul {G : Type u_1}
+[measurable_space G] [topological_space G] [group G] [topological_group G] [borel_space G]
+{μ : measure_theory.measure G} (h : measure_theory.is_mul_right_invariant μ) (g : G) (A : set G) :
+μ ((λ (h : G), h * g) ⁻¹' A) = μ A :=
+begin
+  calc μ ((λ h, h * g) ⁻¹' A) = measure.map (λ h, h * g) μ A :
+    ((homeomorph.mul_right g).to_measurable_equiv.map_apply A).symm
+  ... = μ A : by rw measure.map_mul_right_eq_self.2 h g,
+end
+
 @[to_additive]
 lemma map_mul_right_eq_self [topological_space G] [has_mul G] [has_continuous_mul G] [borel_space G]
   {μ : measure G} :

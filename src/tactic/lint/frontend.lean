@@ -126,21 +126,21 @@ This enables CI to tag the parts of the file where linting failed with annotatio
 easier for mathlib contributors to see what needs fixing.
 See https://docs.github.com/en/actions/learn-github-actions/workflow-commands-for-github-actions#setting-an-error-message
 -/
-meta def print_workflow_command (env : environment) (decl_name : name) (warning : string) :
-  option string :=
-do
+meta def print_workflow_command (env : environment) (linter_name decl_name : name)
+ (warning : string) : option string := do
   po ← env.decl_pos decl_name,
   ol ← env.decl_olean decl_name,
-  return $ sformat!"\n::error file={ol},line={po.line},col={po.column}::" ++
+  return $ sformat!"\n::error file={ol},line={po.line},col={po.column},title=" ++
+    sformat!"Warning from {linter_name} linter::" ++
     sformat!"{escape_workflow_command $ to_string decl_name} - {escape_workflow_command warning}"
 
 /-- Formats a map of linter warnings using `print_warning`, sorted by line number. -/
-meta def print_warnings (env : environment) (emit_workflow_commands : bool)
+meta def print_warnings (env : environment) (emit_workflow_commands : bool) (linter_name : name)
   (results : rb_map name string) : format :=
 format.intercalate format.line $ (sort_results env results).map $
   λ ⟨decl_name, warning⟩, let form := print_warning decl_name warning in
     if emit_workflow_commands then
-      form ++ (print_workflow_command env decl_name warning).get_or_else ""
+      form ++ (print_workflow_command env linter_name decl_name warning).get_or_else ""
     else form
 
 /--
@@ -174,9 +174,10 @@ let formatted_results := results.map $ λ ⟨linter_name, linter, results⟩,
   let report_str : format := to_fmt "/- The `" ++ to_fmt linter_name ++ "` linter reports: -/\n" in
   if ¬ results.empty then
     let warnings := match group_by_filename with
-      | none := print_warnings env emit_workflow_commands results
+      | none := print_warnings env emit_workflow_commands linter_name results
       | some dropped :=
-        grouped_by_filename env results dropped (print_warnings env emit_workflow_commands)
+        grouped_by_filename env results dropped
+          (print_warnings env emit_workflow_commands linter_name)
       end in
     report_str ++ "/- " ++ linter.errors_found ++ " -/\n" ++ warnings ++ "\n"
   else if verbose = lint_verbosity.high then

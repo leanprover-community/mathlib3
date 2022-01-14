@@ -2139,9 +2139,8 @@ begin
       filter_upwards [(hderiv t ⟨ht.2.1, ht.2.2⟩).limsup_slope_le'
         (not_mem_Ioi.2 le_rfl) g'_lt_y, self_mem_nhds_within],
       assume u hu t_lt_u,
-      have := hu.le,
-      rwa [← div_eq_inv_mul, div_le_iff'] at this,
-      exact sub_pos.2 t_lt_u },
+      have := mul_le_mul_of_nonneg_left hu.le (sub_pos.2 t_lt_u).le,
+      rwa [← smul_eq_mul, sub_smul_slope] at this },
     -- combine the previous two bounds to show that `g u - g a` increases less quickly than
     -- `∫ x in a..u, G' x`.
     have I3 : ∀ᶠ u in 𝓝[>] t, g u - g t ≤ ∫ w in t..u, (G' w).to_real,

@@ -118,8 +118,8 @@ def mul_equiv.abelianization_congr {G H : Type*} [group G] [group H] (e : G ≃*
   right_inv := by {rintros ⟨a⟩, simp,},
   map_mul' := by tidy }
 
-theorem abelianization_of_comm_group {H : Type*} [comm_group H]
-  : abelianization H ≃* H :=
+theorem abelianization_of_comm_group {H : Type*} [comm_group H] :
+  abelianization H ≃* H :=
 { to_fun := abelianization.lift (monoid_hom.id H),
   inv_fun := abelianization.of,
   left_inv := by {rintros ⟨a⟩, simp,},

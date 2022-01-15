@@ -392,6 +392,24 @@ begin
   { rw [finset.sup'_cons hs, finset.inf'_cons hs, ball_sup, inf_eq_inter, ih] },
 end
 
+lemma ball_mono {p : seminorm 𝕜 E} {r₁ r₂ : ℝ} (h : r₁ ≤ r₂) : p.ball x r₁ ⊆ p.ball x r₂ :=
+λ x (hx : _ < _), hx.trans_le h
+
+lemma ball_antimono {p q : seminorm 𝕜 E} (h : q ≤ p) : p.ball x r ⊆ q.ball x r :=
+λ x, (h _).trans_lt
+
+lemma add_ball_zero (p : seminorm 𝕜 E) (r : ℝ) :
+  ball p (0 : E) r + ball p (0 : E) r ⊆ ball p (0 : E) (2 * r) :=
+begin
+  rw set.subset_def,
+  intros x hx,
+  rw set.mem_add at hx,
+  rcases hx with ⟨y₁, y₂, hy₁, hy₂, hx⟩,
+  rw [←hx, mem_ball_zero, two_mul],
+  exact lt_of_le_of_lt (p.triangle y₁ y₂)
+    (add_lt_add (p.mem_ball_zero.mp hy₁) (p.mem_ball_zero.mp hy₂)),
+end
+
 end has_scalar
 
 section module
@@ -424,6 +442,17 @@ begin
   exact ball_finset_sup_eq_Inter _ _ _ hr,
 end
 
+lemma ball_smul_ball (p : seminorm 𝕜 E) (r₁ r₂ : ℝ) :
+  metric.ball (0:𝕜) r₁ • p.ball 0 r₂ ⊆ p.ball 0 (r₁ * r₂) :=
+begin
+  rw set.subset_def,
+  intros x hx,
+  rw set.mem_smul at hx,
+  rcases hx with ⟨a, y, ha, hy, hx⟩,
+  rw [←hx, mem_ball_zero, seminorm.smul],
+  exact mul_lt_mul'' (mem_ball_zero_iff.mp ha) (p.mem_ball_zero.mp hy) (norm_nonneg a) (p.nonneg y),
+end
+
 end module
 end add_comm_group
 end semi_normed_ring
@@ -454,6 +483,27 @@ end
 
 lemma symmetric_ball_zero (r : ℝ) (hx : x ∈ ball p 0 r) : -x ∈ ball p 0 r :=
 balanced_ball_zero p r (-1) (by rw [norm_neg, norm_one]) ⟨x, hx, by rw [neg_smul, one_smul]⟩
+
+@[simp]
+lemma preimage_sub_ball (p : seminorm 𝕜 E) (r : ℝ) :
+  (λ (x : E), -x) ⁻¹' (ball p (0 : E) r) = (ball p (0 : E) r) :=
+begin
+  ext,
+  rw mem_preimage,
+  refine ⟨_, p.symmetric_ball_zero r⟩,
+  intros hx,
+  rw ←neg_neg x,
+  exact (p.symmetric_ball_zero r hx),
+end
+
+@[simp]
+lemma preimage_smul_ball (p : seminorm 𝕜 E) (r : ℝ) (a : 𝕜) (ha : a ≠ 0) :
+  (λ (v : E), a • v) ⁻¹' p.ball 0 r = p.ball 0 (r/∥a∥) :=
+begin
+  ext,
+  rw [mem_preimage, mem_ball_zero, mem_ball_zero, p.smul, lt_div_iff (norm_pos_iff.mpr ha),
+    mul_comm],
+end
 
 end normed_field
 

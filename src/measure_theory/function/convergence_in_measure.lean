@@ -36,7 +36,7 @@ def tendsto_in_measure [preorder ι] [has_dist E] {m : measurable_space α}
 ∀ ε (hε : 0 < ε), tendsto (λ i, μ {x | ε ≤ dist (f i x) (g x)}) at_top (𝓝 0)
 
 section move
-
+-- PRed: #11475
 protected lemma ennreal.tendsto.rpow {f : filter α} {m : α → ℝ≥0∞} {a : ℝ≥0∞} (r : ℝ)
   (hm : tendsto m f (𝓝 a)) :
   tendsto (λ x, (m x) ^ r) f (𝓝 (a ^ r)) :=
@@ -45,7 +45,7 @@ protected lemma ennreal.tendsto.rpow {f : filter α} {m : α → ℝ≥0∞} {a 
 end move
 
 section Lp
-
+-- PRed: #11478
 variables [measurable_space E] [normed_group E] [borel_space E] {p : ℝ≥0∞} {f : α → E}
 
 variable (μ)

@@ -799,8 +799,138 @@ begin
       (set_like.graded_monoid.pow_deg 𝒜 (submodule.coe_mem _) m), rfl⟩ :
       degree_zero_part _ f m f_deg) ∈ q.1 at rid,
     specialize rid (nx + ny),
-    -- rw isos.backward.carrier.as_ideal at hx hy,
-    sorry },
+    have eqx : nx = ix,
+    { by_contra rid,
+      apply hix,
+      convert submodule.zero_mem _,
+      rw [graded_algebra.proj_apply, graded_algebra.decompose_of_mem_ne 𝒜 hnx rid, zero_pow hm,
+        localization.mk_zero], },
+    have eqy : ny = iy,
+    { by_contra rid,
+      apply hiy,
+      convert submodule.zero_mem _,
+      rw [graded_algebra.proj_apply, graded_algebra.decompose_of_mem_ne 𝒜 hny rid, zero_pow hm,
+        localization.mk_zero], },
+    erw ←eqx at hix,
+    erw ←eqy at hiy,
+    have eqx2 : (⟨localization.mk ((graded_algebra.proj 𝒜 nx) x ^ m) ⟨f ^ nx, ⟨_, rfl⟩⟩, begin
+      refine ⟨nx, _, _, rfl⟩,
+      apply set_like.graded_monoid.pow_deg,
+      rw [graded_algebra.proj_apply, graded_algebra.decompose_of_mem_same 𝒜 hnx],
+      exact hnx,
+    end⟩
+      : degree_zero_part _ f m f_deg) =
+      (⟨localization.mk (x^m) ⟨f^nx, ⟨_, rfl⟩⟩, begin
+        refine ⟨nx, _, _, rfl⟩,
+        apply set_like.graded_monoid.pow_deg,
+        exact hnx,
+      end⟩ : degree_zero_part _ f m f_deg),
+    { rw subtype.ext_iff_val,
+      dsimp only,
+      congr' 1,
+      rw [graded_algebra.proj_apply, graded_algebra.decompose_of_mem_same],
+      exact hnx },
+    erw eqx2 at hix,
+
+    have eqy2 : (⟨localization.mk ((graded_algebra.proj 𝒜 ny) y ^ m) ⟨f ^ ny, ⟨_, rfl⟩⟩, begin
+      refine ⟨ny, _, _, rfl⟩,
+      apply set_like.graded_monoid.pow_deg,
+      rw [graded_algebra.proj_apply, graded_algebra.decompose_of_mem_same 𝒜 hny],
+      exact hny,
+    end⟩
+      : degree_zero_part _ f m f_deg) =
+      (⟨localization.mk (y^m) ⟨f^ny, ⟨_, rfl⟩⟩, begin
+        refine ⟨ny, _, _, rfl⟩,
+        apply set_like.graded_monoid.pow_deg,
+        exact hny,
+      end⟩ : degree_zero_part _ f m f_deg),
+    { rw subtype.ext_iff_val,
+      dsimp only,
+      congr' 1,
+      rw [graded_algebra.proj_apply, graded_algebra.decompose_of_mem_same],
+      exact hny },
+    erw eqy2 at hiy,
+
+    have eq3 : (⟨localization.mk ((graded_algebra.proj 𝒜 (nx+ny)) (x*y) ^ m)
+      ⟨f^(nx+ny), ⟨_, rfl⟩⟩, begin
+        refine ⟨nx + ny, _, _, rfl⟩,
+        apply set_like.graded_monoid.pow_deg,
+        rw [graded_algebra.proj_apply, graded_algebra.decompose_of_mem_same],
+        apply set_like.graded_monoid.mul_mem hnx hny,
+        apply set_like.graded_monoid.mul_mem hnx hny,
+      end⟩
+      : degree_zero_part _ f m f_deg) =
+      (⟨localization.mk ((x*y)^m) ⟨f^(nx+ny), ⟨_, rfl⟩⟩, begin
+        refine ⟨nx + ny, _, _, rfl⟩,
+        apply set_like.graded_monoid.pow_deg,
+        apply set_like.graded_monoid.mul_mem hnx hny,
+      end⟩ : degree_zero_part _ f m f_deg),
+    { rw subtype.ext_iff_val,
+      dsimp only,
+      congr' 1,
+      rw [graded_algebra.proj_apply, graded_algebra.decompose_of_mem_same],
+      apply set_like.graded_monoid.mul_mem hnx hny, },
+    erw eq3 at rid,
+
+    have eq4 : (⟨localization.mk ((x*y)^m) ⟨f^(nx+ny), ⟨_, rfl⟩⟩, begin
+      refine ⟨nx + ny, _, _, rfl⟩,
+      apply set_like.graded_monoid.pow_deg,
+      apply set_like.graded_monoid.mul_mem hnx hny,
+    end⟩ : degree_zero_part _ f m f_deg)
+    = (⟨localization.mk (x^m) ⟨f^nx, ⟨_, rfl⟩⟩, begin
+        refine ⟨nx, _, _, rfl⟩,
+        apply set_like.graded_monoid.pow_deg,
+        exact hnx,
+    end⟩ : degree_zero_part _ f m f_deg) *
+      (⟨localization.mk (y^m) ⟨f^ny, ⟨_, rfl⟩⟩, begin
+        refine ⟨ny, _, _, rfl⟩,
+        apply set_like.graded_monoid.pow_deg,
+        exact hny,
+      end⟩ : degree_zero_part _ f m f_deg),
+    { rw [subtype.ext_iff_val, show ∀ (x y : degree_zero_part _ f m f_deg), (x * y).1 = x.1 * y.1,
+        from λ _ _, rfl],
+      dsimp only,
+      rw [localization.mk_mul],
+      congr',
+      rw mul_pow,
+      rw pow_add, },
+    erw eq4 at rid,
+
+    rcases ideal.is_prime.mem_or_mem (q.is_prime) rid with L | R,
+    apply hix, exact L,
+    apply hiy, exact R, },
+end
+
+lemma isos.backward.carrier.irrelavent (f : A) [decidable_eq (localization.away f)]
+  (m : ℕ) (hm : 0 < m) (f_deg : f ∈ 𝒜 m)
+  (q : (Spec (degree_zero_part _ f m f_deg)).to_SheafedSpace.to_PresheafedSpace.1) :
+  ¬(irrelavent_ideal 𝒜 ≤ ⟨isos.backward.carrier.as_ideal 𝒜 f m hm f_deg q,
+    isos.backward.carrier.homogeneous 𝒜 f m hm f_deg q⟩) :=
+begin
+  intro rid,
+  have mem1 : f ∉ isos.backward.carrier.as_ideal 𝒜 f m hm f_deg q,
+  { intro rid2,
+    specialize rid2 m,
+    apply q.is_prime.1,
+    rw ideal.eq_top_iff_one,
+    convert rid2,
+    rw [subtype.ext_iff_val, show (1 : degree_zero_part _ f m f_deg).1 = 1, from rfl],
+    dsimp only,
+    symmetry,
+    erw [graded_algebra.proj_apply, graded_algebra.decompose_of_mem_same],
+    convert localization.mk_self _,
+    refl,
+    exact f_deg,
+  },
+  apply mem1,
+  have mem2 : f ∈ irrelavent_ideal 𝒜,
+  { change graded_algebra.proj 𝒜 0 f = 0,
+    rw [graded_algebra.proj_apply, graded_algebra.decompose_of_mem_ne 𝒜 f_deg],
+    symmetry,
+    apply ne_of_lt,
+    exact hm,
+  },
+  apply rid mem2,
 end
 
 def isos.forward.carrer_ne_top (f : A) [decidable_eq (localization.away f)] (m : ℕ) (f_deg : f ∈ 𝒜 m)
@@ -1049,6 +1179,33 @@ def isos.top_component.forward.to_fun (f : A) [decidable_eq (localization.away f
       apply x.1.is_prime.mem_of_pow_mem k h3, },
   end⟩⟩
 
+
+def isos.top_component.backward.to_fun (f : A) [decidable_eq (localization.away f)] (m : ℕ)
+  (hm : 0 < m)
+  (f_deg : f ∈ 𝒜 m) :
+  (Spec (degree_zero_part _ f m f_deg)).to_SheafedSpace.to_PresheafedSpace.1 →
+  (Proj .restrict (@opens.open_embedding (projective_spectrum.Top 𝒜)
+    (projective_spectrum.basic_open 𝒜 f))).to_SheafedSpace.to_PresheafedSpace.1 :=
+λ q, ⟨⟨⟨isos.backward.carrier.as_ideal _ f m hm f_deg q,
+  isos.backward.carrier.homogeneous _ f m hm f_deg q⟩,
+  isos.backward.carrier.prime _ f m hm f_deg q,
+  isos.backward.carrier.irrelavent _ f m hm f_deg q⟩,
+  begin
+    erw projective_spectrum.mem_basic_open,
+    intro rid,
+    change ∀ i : ℕ, _ ∈ q.1 at rid,
+    specialize rid m,
+    apply q.is_prime.1,
+    rw ideal.eq_top_iff_one,
+    convert rid,
+    symmetry,
+    rw [subtype.ext_iff_val, show (1 : degree_zero_part _ f m f_deg).1 = 1, from rfl],
+    dsimp only,
+    rw [graded_algebra.proj_apply, graded_algebra.decompose_of_mem_same 𝒜 f_deg],
+    convert localization.mk_self _,
+    refl,
+end⟩
+
 def isos.top_component.forward (f : A) [decidable_eq (localization.away f)]
   (m : ℕ) (f_deg : f ∈ 𝒜 m) :
   (Proj .restrict (@opens.open_embedding (projective_spectrum.Top 𝒜)
@@ -1062,34 +1219,105 @@ def isos.top_component.forward (f : A) [decidable_eq (localization.away f)]
     induction g using localization.induction_on with data,
     obtain ⟨a, ⟨_, ⟨n, rfl⟩⟩⟩ := data,
     dsimp only,
-    -- we want to use `projective_spectrum.basic_open 𝒜 (f) = preimage`
-    have : set ((Proj .restrict (@opens.open_embedding (projective_spectrum.Top 𝒜)
-    (projective_spectrum.basic_open 𝒜 f))).to_SheafedSpace.to_PresheafedSpace.1) :=
-    { x | x.1 ∈ projective_spectrum.basic_open 𝒜 f },
     sorry
+    -- we want to use `projective_spectrum.basic_open 𝒜 (f) = preimage`
+    -- set set1 : set ((Proj .restrict (@opens.open_embedding (projective_spectrum.Top 𝒜)
+    -- (projective_spectrum.basic_open 𝒜 f))).to_SheafedSpace.to_PresheafedSpace.1) :=
+    -- { x | x.1 ∈ projective_spectrum.basic_open 𝒜 (f) } with set1_eq,
+    -- have o1 : is_open set1,
+    -- { rw is_open_induced_iff,
+    --   refine ⟨(projective_spectrum.basic_open 𝒜 f).1, (projective_spectrum.basic_open 𝒜 f).2, _⟩,
+    --   sorry },
+    -- suffices : set1 = isos.top_component.forward.to_fun 𝒜 f m f_deg ⁻¹'
+    --   (prime_spectrum.basic_open (⟨localization.mk a ⟨f ^ n, _⟩, hg⟩ : degree_zero_part _ f m f_deg)).1,
+    -- { erw ←this,
+    --   exact o1, },
+    -- { ext1 y, split; intros hy,
+    --   { erw set1_eq at hy,
+    --     change y.1 ∈ _ at hy,
+    --     erw projective_spectrum.mem_basic_open at hy,
+    --     rw [set.mem_preimage, isos.top_component.forward.to_fun],
+    --     dsimp only,
+    --     erw prime_spectrum.mem_basic_open,
+    --     intro rid,
+    --     unfold isos.forward.carrier at rid,
+    --     change _ ∈ _ at rid,
+    --     sorry },
+    --   { sorry }
+      --  },
   end }
 
-lemma isos.top_component.backward (f : A) [decidable_eq (localization.away f)] (m : ℕ)
+def isos.top_component.backward (f : A) [decidable_eq (localization.away f)] (m : ℕ)
   (hm : 0 < m)
   (f_deg : f ∈ 𝒜 m) :
   (Spec (degree_zero_part _ f m f_deg)).to_SheafedSpace.to_PresheafedSpace.1 ⟶
   (Proj .restrict (@opens.open_embedding (projective_spectrum.Top 𝒜)
     (projective_spectrum.basic_open 𝒜 f))).to_SheafedSpace.to_PresheafedSpace.1 :=
-{ to_fun := λ q, ⟨⟨⟨isos.backward.carrier.as_ideal _ f m hm f_deg q,
-    isos.backward.carrier.homogeneous _ f m hm f_deg q⟩, sorry, sorry⟩, sorry⟩,
+{ to_fun := isos.top_component.backward.to_fun _ f m hm f_deg,
   continuous_to_fun := sorry }
 
-def isos.top_component (f : A) [decidable_eq (localization.away f)] (m : ℕ) (f_deg : f ∈ 𝒜 m) :
+def isos.top_component (f : A) [decidable_eq (localization.away f)] (m : ℕ) (hm : 0 < m)
+  (f_deg : f ∈ 𝒜 m) :
   (Proj .restrict (@opens.open_embedding (projective_spectrum.Top 𝒜)
     (projective_spectrum.basic_open 𝒜 f))).to_SheafedSpace.to_PresheafedSpace.1 ≅
-  (Spec (degree_zero_part _ f m f_deg)).to_SheafedSpace.to_PresheafedSpace.1 := sorry
+  (Spec (degree_zero_part _ f m f_deg)).to_SheafedSpace.to_PresheafedSpace.1 :=
+{ hom := isos.top_component.forward 𝒜 f m f_deg,
+  inv := isos.top_component.backward 𝒜 f m hm f_deg,
+  hom_inv_id' := begin
+    ext1 x,
+    simp only [id_app, comp_app],
+    ext z, split; intros hz,
+    { change ∀ i, _ at hz,
+      erw ←graded_algebra.sum_support_decompose 𝒜 z,
+      apply ideal.sum_mem,
+      intros i hi,
+      specialize hz i,
+      change _ ∈ ideal.span _ at hz,
+      dsimp only at hz,
+      rw ←graded_algebra.proj_apply,
+      erw [←ideal.submodule_span_eq, finsupp.span_eq_range_total, set.mem_range] at hz,
+      obtain ⟨c, eq1⟩ := hz,
+      erw [finsupp.total_apply, finsupp.sum] at eq1,
+
+      obtain ⟨N, hN⟩ := clear_denominator _ f (finset.image c c.support), -- N is the common denom
+      choose after_clear_denominator hacd using hN,
+      have prop1 : ∀ i, i ∈ c.support → c i ∈ finset.image c c.support,
+      { intros i hi, rw finset.mem_image, refine ⟨_, hi, rfl⟩, },
 
 
-def isos.sheaf_component (f : A) [decidable_eq (localization.away f)] (m : ℕ) (f_deg : f ∈ 𝒜 m) :
-  (isos.top_component 𝒜 f m f_deg).hom _*
+      sorry },
+    { sorry },
+  end,
+  inv_hom_id' := sorry }
+
+def isos.sheaf_component.forward
+  (f : A) [decidable_eq (localization.away f)] (m : ℕ) (hm : 0 < m) (f_deg : f ∈ 𝒜 m) :
+  (isos.top_component 𝒜 f m hm f_deg).hom _*
+    ((Proj.to_LocallyRingedSpace 𝒜).restrict _).to_SheafedSpace.to_PresheafedSpace.presheaf ⟶
+  (Spec degree_zero_part (λ (m : ℕ), 𝒜 m) f m f_deg).to_SheafedSpace.to_PresheafedSpace.presheaf
+:=
+{ app := λ U,
+  { to_fun := λ hh, ⟨λ y, sorry, sorry⟩,
+    map_one' := sorry,
+    map_zero' := sorry,
+    map_add' := sorry,
+    map_mul' := sorry },
+  naturality' := sorry, }
+
+def isos.sheaf_component.backward
+  (f : A) [decidable_eq (localization.away f)] (m : ℕ) (hm : 0 < m) (f_deg : f ∈ 𝒜 m) :
+  (Spec degree_zero_part (λ (m : ℕ), 𝒜 m) f m f_deg).to_SheafedSpace.to_PresheafedSpace.presheaf ⟶
+  (isos.top_component 𝒜 f m hm f_deg).hom _*
+    ((Proj.to_LocallyRingedSpace 𝒜).restrict _).to_SheafedSpace.to_PresheafedSpace.presheaf := sorry
+
+def isos.sheaf_component (f : A) [decidable_eq (localization.away f)] (m : ℕ) (hm : 0 < m) (f_deg : f ∈ 𝒜 m) :
+  (isos.top_component 𝒜 f m hm f_deg).hom _*
     ((Proj.to_LocallyRingedSpace 𝒜).restrict _).to_SheafedSpace.to_PresheafedSpace.presheaf ≅
   (Spec degree_zero_part (λ (m : ℕ), 𝒜 m) f m f_deg).to_SheafedSpace.to_PresheafedSpace.presheaf :=
-sorry
+{ hom := isos.sheaf_component.forward 𝒜 f m hm f_deg,
+  inv := isos.sheaf_component.backward 𝒜 f m hm f_deg,
+  hom_inv_id' := sorry,
+  inv_hom_id' := sorry, }
 
 def isos (f : A) [decidable_eq (localization.away f)] (m : ℕ) (hm : 0 < m) (f_deg : f ∈ 𝒜 m) :
   Proj .restrict (@opens.open_embedding (projective_spectrum.Top 𝒜)
@@ -1099,7 +1327,7 @@ def isos (f : A) [decidable_eq (localization.away f)] (m : ℕ) (hm : 0 < m) (f_
     (Proj .restrict (@opens.open_embedding (projective_spectrum.Top 𝒜)
     (projective_spectrum.basic_open 𝒜 f))).to_SheafedSpace.to_PresheafedSpace
     (Spec (degree_zero_part _ f m f_deg)).to_SheafedSpace.to_PresheafedSpace
-    (isos.top_component _ f m f_deg) (isos.sheaf_component _ f m f_deg)
+    (isos.top_component _ f m hm f_deg) (isos.sheaf_component _ f m hm f_deg)
 
 def test.choose_element [Π (i : ℕ) (x : 𝒜 i), decidable (x ≠ 0)] (x : pst) :
   Σ' (n : ℕ) (hn : 0 < n) (f : A), f ∈ 𝒜 n ∧ f ∉ x.as_homogeneous_ideal.1 :=

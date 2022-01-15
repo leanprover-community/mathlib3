@@ -6,6 +6,21 @@ Authors: Violeta Hernández Palacios
 
 import set_theory.ordinal_arithmetic
 
+/-!
+# Fixed points of normal functions
+
+We prove various statements about the fixed points of normal ordinal functions. We state them in
+three forms: as statements about type-indexed families of normal functions, as statements about
+ordinal-indexed families of normal functions, and as statements about a single normal function. For
+the most part, the first case encompasses the others.
+
+## Main definitions and results
+
+* `nfp_family`, `nfp_bfamily`, `nfp`: the next fixed point of a (family of) normal function(s).
+* `nfp_family_unbounded`, `nfp_bfamily_unbounded`, `nfp_unbounded`: the (common) fixed points of a
+(family of) normal function(s) are unbounded in the ordinals.
+-/
+
 noncomputable theory
 
 universes u v
@@ -15,7 +30,6 @@ namespace ordinal
 /-! ### Fixed points of type-indexed families of ordinals -/
 
 section
-
 variable {ι : Type u}
 
 /-- Applies the functions specified by the indices of the list, in order, to a specified value. -/
@@ -250,6 +264,7 @@ theorem nfp_bfamily_eq_self {o} {f : Π b < o, ordinal → ordinal} (H : ∀ i h
   {a} (h : ∀ i hi, f i hi a = a) : nfp_bfamily o f a = a :=
 nfp_family_eq_self (λ _, h _ _)
 
+-- Todo (Vi): Maybe we should just use set-builder notation instead?
 theorem fixed_points_mem {o : ordinal.{u}} {f : Π b < o, ordinal.{max u v} → ordinal.{max u v}} (x) :
   x ∈ (⋂ i hi, function.fixed_points (f i hi)) ↔ ∀ i hi, f i hi x = x :=
 begin
@@ -381,9 +396,8 @@ theorem is_normal.le_nfp {f} (H : is_normal f) {a b} :
 theorem nfp_eq_self {f : ordinal → ordinal} {a} (h : f a = a) : nfp f a = a :=
 nfp_family_eq_self (λ _, h)
 
-/-- The derivative of a normal function `f` is
-  the sequence of fixed points of `f`. -/
-def deriv (f : ordinal.{u} → ordinal.{u}) : ordinal.{u} → ordinal.{u} :=
+/-- The derivative of a normal function `f` is the sequence of fixed points of `f`. -/
+def deriv (f : ordinal → ordinal) : ordinal → ordinal :=
 deriv_family (λ _ : unit, f)
 
 @[simp] theorem deriv_zero (f) : deriv f 0 = nfp f 0 :=

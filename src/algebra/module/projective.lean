@@ -6,7 +6,7 @@ Authors: Kevin Buzzard
 
 import algebra.module.basic
 import linear_algebra.finsupp
-import linear_algebra.free_module
+import linear_algebra.free_module.basic
 
 /-!
 
@@ -51,7 +51,6 @@ https://en.wikipedia.org/wiki/Projective_module
 
 - Direct sum of two projective modules is projective.
 - Arbitrary sum of projective modules is projective.
-- Any module admits a surjection from a projective module.
 
 All of these should be relatively straightforward.
 

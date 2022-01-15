@@ -156,8 +156,8 @@ end adjoint_action
 /-- A subalgebra of an associative algebra is a Lie subalgebra of the associated Lie algebra. -/
 def lie_subalgebra_of_subalgebra (R : Type u) [comm_ring R] (A : Type v) [ring A] [algebra R A]
   (A' : subalgebra R A) : lie_subalgebra R A :=
-{ lie_mem' := λ x y hx hy, by {
-    change ⁅x, y⁆ ∈ A', change x ∈ A' at hx, change y ∈ A' at hy,
+{ lie_mem' := λ x y hx hy, by
+  { change ⁅x, y⁆ ∈ A', change x ∈ A' at hx, change y ∈ A' at hy,
     rw lie_ring.of_associative_ring_bracket,
     have hxy := A'.mul_mem hx hy,
     have hyx := A'.mul_mem hy hx,

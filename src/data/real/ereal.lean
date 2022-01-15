@@ -52,7 +52,7 @@ See https://isabelle.in.tum.de/dist/library/HOL/HOL-Library/Extended_Real.html
 open_locale ennreal nnreal
 
 /-- ereal : The type `[-∞, ∞]` -/
-@[derive [order_bot, order_top, comm_monoid_with_zero,
+@[derive [has_top, comm_monoid_with_zero,
   has_Sup, has_Inf, complete_linear_order, linear_ordered_add_comm_monoid_with_top]]
 def ereal := with_top (with_bot ℝ)
 
@@ -61,6 +61,9 @@ a coercion, use the coercion instead. -/
 def real.to_ereal : ℝ → ereal := some ∘ some
 
 namespace ereal
+
+-- TODO: Provide explicitly, otherwise it is inferred noncomputably from `complete_linear_order`
+instance : has_bot ereal := ⟨some ⊥⟩
 
 @[simp] lemma bot_lt_top : (⊥ : ereal) < ⊤ := with_top.coe_lt_top _
 @[simp] lemma bot_ne_top : (⊥ : ereal) ≠ ⊤ := bot_lt_top.ne
@@ -83,12 +86,18 @@ instance has_coe_ennreal : has_coe ℝ≥0∞ ereal := ⟨ennreal.to_ereal⟩
 instance : has_zero ereal := ⟨(0 : ℝ)⟩
 instance : inhabited ereal := ⟨0⟩
 
-/-- A way to case on an element of `ereal`, separating the bot, real and top cases.
-A typical invocation looks like `rcases x.cases with rfl|⟨x, rfl⟩|rfl` -/
-protected lemma cases : ∀ (a : ereal), a = ⊥ ∨ (∃ (x : ℝ), a = x) ∨ a = ⊤
-| ⊤ := by simp
-| ⊥ := by simp
-| (a : ℝ) := by simp
+/-- A recursor for `ereal` in terms of the coercion.
+
+A typical invocation looks like `induction x using ereal.rec`. Note that using `induction`
+directly will unfold `ereal` to `option` which is undesirable.
+
+When working in term mode, note that pattern matching can be used directly. -/
+@[elab_as_eliminator]
+protected def rec {C : ereal → Sort*} (h_bot : C ⊥) (h_real : Π a : ℝ, C a) (h_top : C ⊤) :
+  ∀ a : ereal, C a
+| ⊥ := h_bot
+| (a : ℝ) := h_real a
+| ⊤ := h_top
 
 /-! ### Real coercion -/
 
@@ -97,7 +106,7 @@ instance : can_lift ereal ℝ :=
   cond := λ r, r ≠ ⊤ ∧ r ≠ ⊥,
   prf := λ x hx,
   begin
-    rcases x.cases with rfl|⟨x, rfl⟩|rfl,
+    induction x using ereal.rec,
     { simpa using hx },
     { simp },
     { simpa using hx }
@@ -159,10 +168,42 @@ end
 
 lemma coe_to_real {x : ereal} (hx : x ≠ ⊤) (h'x : x ≠ ⊥) : (x.to_real : ereal) = x :=
 begin
-  rcases x.cases with rfl|⟨x, rfl⟩|rfl,
+  induction x using ereal.rec,
   { simpa using h'x },
   { refl },
   { simpa using hx },
+end
+
+lemma le_coe_to_real {x : ereal} (h : x ≠ ⊤) : x ≤ x.to_real :=
+begin
+  by_cases h' : x = ⊥,
+  { simp only [h', bot_le] },
+  { simp only [le_refl, coe_to_real h h'] },
+end
+
+lemma coe_to_real_le {x : ereal} (h : x ≠ ⊥) : ↑x.to_real ≤ x :=
+begin
+  by_cases h' : x = ⊤,
+  { simp only [h', le_top] },
+  { simp only [le_refl, coe_to_real h' h] },
+end
+
+lemma eq_top_iff_forall_lt (x : ereal) : x = ⊤ ↔ ∀ (y : ℝ), (y : ereal) < x :=
+begin
+  split,
+  { rintro rfl, exact ereal.coe_lt_top },
+  { contrapose!,
+    intro h,
+    exact ⟨x.to_real, le_coe_to_real h⟩, },
+end
+
+lemma eq_bot_iff_forall_lt (x : ereal) : x = ⊥ ↔ ∀ (y : ℝ), x < (y : ereal) :=
+begin
+  split,
+  { rintro rfl, exact bot_lt_coe },
+  { contrapose!,
+    intro h,
+    exact ⟨x.to_real, coe_to_real_le h⟩, },
 end
 
 /-! ### ennreal coercion -/
@@ -270,7 +311,7 @@ lemma to_real_add : ∀ {x y : ereal} (hx : x ≠ ⊤) (h'x : x ≠ ⊥) (hy : y
 
 lemma add_lt_add_right_coe {x y : ereal} (h : x < y) (z : ℝ) : x + z < y + z :=
 begin
-  rcases x.cases with rfl|⟨x, rfl⟩|rfl; rcases y.cases with rfl|⟨y, rfl⟩|rfl,
+  induction x using ereal.rec; induction y using ereal.rec,
   { exact (lt_irrefl _ h).elim },
   { simp only [bot_lt_coe, bot_add_coe, ← coe_add] },
   { simp },
@@ -285,7 +326,7 @@ end
 lemma add_lt_add_of_lt_of_le {x y z t : ereal} (h : x < y) (h' : z ≤ t) (hz : z ≠ ⊥) (ht : t ≠ ⊤) :
   x + z < y + t :=
 begin
-  rcases z.cases with rfl|⟨z, rfl⟩|rfl,
+  induction z using ereal.rec,
   { simpa only using hz },
   { calc x + z < y + z : add_lt_add_right_coe h _
            ... ≤ y + t : add_le_add (le_refl _) h' },
@@ -297,7 +338,7 @@ by simpa [add_comm] using add_lt_add_right_coe h z
 
 lemma add_lt_add {x y z t : ereal} (h1 : x < y) (h2 : z < t) : x + z < y + t :=
 begin
-  rcases y.cases with rfl|⟨y, rfl⟩|rfl,
+  induction y using ereal.rec,
   { exact (lt_irrefl _ (bot_le.trans_lt h1)).elim },
   { calc x + z ≤ y + z : add_le_add h1.le (le_refl _)
     ... < y + t : add_lt_add_left_coe h2 _ },
@@ -306,7 +347,7 @@ end
 
 @[simp] lemma add_eq_top_iff {x y : ereal} : x + y = ⊤ ↔ x = ⊤ ∨ y = ⊤ :=
 begin
-  rcases x.cases with rfl|⟨x, rfl⟩|rfl; rcases y.cases with rfl|⟨x, rfl⟩|rfl;
+  induction x using ereal.rec; induction y using ereal.rec;
   simp [← ereal.coe_add],
 end
 

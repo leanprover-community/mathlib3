@@ -5,7 +5,7 @@ Authors: Jeremy Avigad, Leonardo de Moura, Floris van Doorn, Amelia Livingston, 
 Neil Strickland, Aaron Anderson
 -/
 
-import algebra.group_with_zero
+import algebra.group_with_zero.basic
 
 /-!
 # Divisibility
@@ -41,8 +41,8 @@ variables [monoid α] {a b c : α}
 instance monoid_has_dvd : has_dvd α :=
 has_dvd.mk (λ a b, ∃ c, b = a * c)
 
--- TODO: this used to not have c explicit, but that seems to be important
---       for use with tactics, similar to exist.intro
+-- TODO: this used to not have `c` explicit, but that seems to be important
+--       for use with tactics, similar to `exists.intro`
 theorem dvd.intro (c : α) (h : a * c = b) : a ∣ b :=
 exists.intro c h^.symm
 
@@ -54,7 +54,10 @@ theorem dvd.elim {P : Prop} {a b : α} (H₁ : a ∣ b) (H₂ : ∀ c, b = a * c
 exists.elim H₁ H₂
 
 @[refl, simp] theorem dvd_refl (a : α) : a ∣ a :=
-dvd.intro 1 (by simp)
+dvd.intro 1 (mul_one _)
+
+lemma dvd_rfl {a : α} : a ∣ a :=
+dvd_refl a
 
 local attribute [simp] mul_assoc mul_comm mul_left_comm
 
@@ -64,17 +67,31 @@ match h₁, h₂ with
   ⟨d * e, show c = a * (d * e), by simp [h₃, h₄]⟩
 end
 
-alias dvd_trans ← dvd.trans
+alias dvd_trans ← has_dvd.dvd.trans
 
-theorem one_dvd (a : α) : 1 ∣ a := dvd.intro a (by simp)
+theorem one_dvd (a : α) : 1 ∣ a := dvd.intro a (one_mul _)
 
 @[simp] theorem dvd_mul_right (a b : α) : a ∣ a * b := dvd.intro b rfl
 
 theorem dvd_mul_of_dvd_left (h : a ∣ b) (c : α) : a ∣ b * c :=
-dvd.elim h (λ d h', begin rw [h', mul_assoc], apply dvd_mul_right end)
+h.trans (dvd_mul_right b c)
+
+alias dvd_mul_of_dvd_left ← has_dvd.dvd.mul_right
 
 theorem dvd_of_mul_right_dvd (h : a * b ∣ c) : a ∣ c :=
-dvd.elim h (begin intros d h₁, rw [h₁, mul_assoc], apply dvd_mul_right end)
+(dvd_mul_right a b).trans h
+
+section map_dvd
+
+variables {M N : Type*}
+
+lemma mul_hom.map_dvd [monoid M] [monoid N] (f : mul_hom M N) {a b} : a ∣ b → f a ∣ f b
+| ⟨c, h⟩ := ⟨f c, h.symm ▸ f.map_mul a c⟩
+
+lemma monoid_hom.map_dvd [monoid M] [monoid N] (f : M →* N) {a b} : a ∣ b → f a ∣ f b :=
+f.to_mul_hom.map_dvd
+
+end map_dvd
 
 end monoid
 
@@ -90,13 +107,18 @@ alias dvd.intro_left ← dvd_of_mul_left_eq
 theorem exists_eq_mul_left_of_dvd (h : a ∣ b) : ∃ c, b = c * a :=
 dvd.elim h (assume c, assume H1 : b = a * c, exists.intro c (eq.trans H1 (mul_comm a c)))
 
+lemma dvd_iff_exists_eq_mul_left : a ∣ b ↔ ∃ c, b = c * a :=
+⟨exists_eq_mul_left_of_dvd, by { rintro ⟨c, rfl⟩, exact ⟨c, mul_comm _ _⟩, }⟩
+
 theorem dvd.elim_left {P : Prop} (h₁ : a ∣ b) (h₂ : ∀ c, b = c * a → P) : P :=
 exists.elim (exists_eq_mul_left_of_dvd h₁) (assume c, assume h₃ : b = c * a, h₂ c h₃)
 
 @[simp] theorem dvd_mul_left (a b : α) : a ∣ b * a := dvd.intro b (mul_comm a b)
 
 theorem dvd_mul_of_dvd_right (h : a ∣ b) (c : α) : a ∣ c * b :=
-begin rw mul_comm, exact dvd_mul_of_dvd_left h _ end
+begin rw mul_comm, exact h.mul_right _ end
+
+alias dvd_mul_of_dvd_right ← has_dvd.dvd.mul_left
 
 local attribute [simp] mul_assoc mul_comm mul_left_comm
 
@@ -138,7 +160,7 @@ exists_congr $ λ d, by rw [mul_assoc, mul_right_inj' ha]
 
 /-- Given two elements `a`, `b` of a commutative `cancel_monoid_with_zero` and a nonzero
   element `c`, `a*c` divides `b*c` iff `a` divides `b`. -/
-theorem mul_dvd_mul_iff_right [comm_cancel_monoid_with_zero α] {a b c : α} (hc : c ≠ 0) :
+theorem mul_dvd_mul_iff_right [cancel_comm_monoid_with_zero α] {a b c : α} (hc : c ≠ 0) :
   a * c ∣ b * c ↔ a ∣ b :=
 exists_congr $ λ d, by rw [mul_right_comm, mul_left_inj' hc]
 
@@ -149,7 +171,7 @@ exists_congr $ λ d, by rw [mul_right_comm, mul_left_inj' hc]
 namespace units
 
 section monoid
-variables [monoid α] {a b : α} {u : units α}
+variables [monoid α] {a b : α} {u : αˣ}
 
 /-- Elements of the unit group of a monoid represented as elements of the monoid
     divide any element of the monoid. -/
@@ -160,9 +182,9 @@ lemma coe_dvd : ↑u ∣ a := ⟨↑u⁻¹ * a, by simp⟩
 lemma dvd_mul_right : a ∣ b * u ↔ a ∣ b :=
 iff.intro
   (assume ⟨c, eq⟩, ⟨c * ↑u⁻¹, by rw [← mul_assoc, ← eq, units.mul_inv_cancel_right]⟩)
-  (assume ⟨c, eq⟩, eq.symm ▸ dvd_mul_of_dvd_left (dvd_mul_right _ _) _)
+  (assume ⟨c, eq⟩, eq.symm ▸ (dvd_mul_right _ _).mul_right _)
 
-/-- In a monoid, an element a divides an element b iff all associates of `a` divide `b`.-/
+/-- In a monoid, an element `a` divides an element `b` iff all associates of `a` divide `b`. -/
 lemma mul_right_dvd : a * u ∣ b ↔ a ∣ b :=
 iff.intro
   (λ ⟨c, eq⟩, ⟨↑u * c, eq.trans (mul_assoc _ _ _)⟩)
@@ -171,7 +193,7 @@ iff.intro
 end monoid
 
 section comm_monoid
-variables [comm_monoid α] {a b : α} {u : units α}
+variables [comm_monoid α] {a b : α} {u : αˣ}
 
 /-- In a commutative monoid, an element `a` divides an element `b` iff `a` divides all left
     associates of `b`. -/
@@ -243,3 +265,16 @@ begin
 end
 
 end comm_monoid_with_zero
+
+section monoid_with_zero
+
+variable [monoid_with_zero α]
+
+theorem ne_zero_of_dvd_ne_zero {p q : α} (h₁ : q ≠ 0)
+  (h₂ : p ∣ q) : p ≠ 0 :=
+begin
+  rcases h₂ with ⟨u, rfl⟩,
+  exact left_ne_zero_of_mul h₁,
+end
+
+end monoid_with_zero

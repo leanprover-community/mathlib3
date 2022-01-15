@@ -16,13 +16,15 @@ bounds `n^r/r^r ≤ n.choose r ≤ e^r n^r/r^r` in the future.
 
 ## Main declarations
 
-* `choose_le_pow`: `n.choose r ≤ n^r / r!`
-* `pow_le_choose`: `(n + 1 - r)^r / r! ≤ n.choose r`. Beware of the fishy ℕ-subtraction.
+* `nat.choose_le_pow`: `n.choose r ≤ n^r / r!`
+* `nat.pow_le_choose`: `(n + 1 - r)^r / r! ≤ n.choose r`. Beware of the fishy ℕ-subtraction.
 -/
 
 open_locale nat
 
 variables {α : Type*} [linear_ordered_field α]
+
+namespace nat
 
 lemma choose_le_pow (r n : ℕ) : (n.choose r : α) ≤ n^r / r! :=
 begin
@@ -42,3 +44,5 @@ begin
     exact n.pow_sub_le_desc_factorial r },
   exact_mod_cast r.factorial_pos,
 end
+
+end nat

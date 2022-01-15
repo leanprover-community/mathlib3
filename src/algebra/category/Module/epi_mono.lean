@@ -3,8 +3,9 @@ Copyright (c) 2021 Scott Morrison All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import algebra.category.Module.adjunctions
+import linear_algebra.quotient
 import category_theory.epi_mono
+import algebra.category.Module.basic
 
 /-!
 # Monomorphisms in `Module R`

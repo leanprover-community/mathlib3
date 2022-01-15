@@ -9,7 +9,7 @@ Because this file imports some complicated tactics, it has many transitive depen
 
 As (non-exhaustive) examples, these includes things like:
 * algebra.group_power
-* algebra.ordered_ring
+* algebra.order.ring
 * data.rat
 * data.nat.prime
 * data.list.perm

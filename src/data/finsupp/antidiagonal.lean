@@ -3,7 +3,7 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Yury Kudryashov
 -/
-import data.finsupp.basic
+import data.finsupp.multiset
 import data.multiset.antidiagonal
 
 /-!
@@ -51,8 +51,8 @@ begin
   suffices : a = g → (a + b = f ↔ g ≤ f ∧ b = f - g),
   { simpa [apply_ite ((∈) (a, b)), ← and.assoc, @and.right_comm _ (a = _), and.congr_left_iff] },
   unfreezingI {rintro rfl}, split,
-  { rintro rfl, exact ⟨le_add_right le_rfl, (nat_add_sub_cancel_left _ _).symm⟩ },
-  { rintro ⟨h, rfl⟩, exact nat_add_sub_of_le h }
+  { rintro rfl, exact ⟨le_add_right le_rfl, (add_tsub_cancel_left _ _).symm⟩ },
+  { rintro ⟨h, rfl⟩, exact add_tsub_cancel_of_le h }
 end
 
 lemma antidiagonal_filter_snd_eq (f g : α →₀ ℕ)
@@ -63,8 +63,8 @@ begin
   suffices : b = g → (a + b = f ↔ g ≤ f ∧ a = f - g),
   { simpa [apply_ite ((∈) (a, b)), ← and.assoc, and.congr_left_iff] },
   unfreezingI {rintro rfl}, split,
-  { rintro rfl, exact ⟨le_add_left le_rfl, (nat_add_sub_cancel _ _).symm⟩ },
-  { rintro ⟨h, rfl⟩, exact nat_sub_add_cancel h }
+  { rintro rfl, exact ⟨le_add_left le_rfl, (add_tsub_cancel_right _ _).symm⟩ },
+  { rintro ⟨h, rfl⟩, exact tsub_add_cancel_of_le h }
 end
 
 @[simp] lemma antidiagonal_zero : antidiagonal (0 : α →₀ ℕ) = singleton (0,0) :=

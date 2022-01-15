@@ -160,7 +160,7 @@ do tgt ← infer_type hyp,
 
 namespace interactive
 
-open lean.parser interactive interactive.types tactic
+setup_tactic_parser
 
 private meta def assoc_rw_goal (rs : list rw_rule) : tactic unit :=
 rs.mmap' $ λ r, do
@@ -204,7 +204,7 @@ example {α : Type*} (f : α → α → α) [is_associative α f] (a b c d x : �
   b ~ c = x → (a ~ b ~ c ~ d) = (a ~ x ~ d) :=
 begin
   intro h,
-  assoc_rw h, 
+  assoc_rw h,
 end
 ```
 -/

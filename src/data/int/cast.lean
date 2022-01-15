@@ -69,7 +69,7 @@ end
   ((int.sub_nat_nat m n : ℤ) : α) = m - n :=
 begin
   unfold sub_nat_nat, cases e : n - m,
-  { simp [sub_nat_nat, e, nat.le_of_sub_eq_zero e] },
+  { simp [sub_nat_nat, e, tsub_eq_zero_iff_le.mp e] },
   { rw [sub_nat_nat, cast_neg_succ_of_nat, ← nat.cast_succ, ← e,
         nat.cast_sub $ _root_.le_of_lt $ nat.lt_of_sub_eq_succ e, neg_sub] },
 end
@@ -186,10 +186,10 @@ monotone.map_min cast_mono
 monotone.map_max cast_mono
 
 @[simp, norm_cast] theorem cast_abs [linear_ordered_ring α] {q : ℤ} :
-  ((abs q : ℤ) : α) = abs q :=
-by simp [abs]
+  ((|q| : ℤ) : α) = |q| :=
+by simp [abs_eq_max_neg]
 
-lemma cast_nat_abs {R : Type*} [linear_ordered_ring R] : ∀ (n : ℤ), (n.nat_abs : R) = abs n
+lemma cast_nat_abs {R : Type*} [linear_ordered_ring R] : ∀ (n : ℤ), (n.nat_abs : R) = |n|
 | (n : ℕ) := by simp only [int.nat_abs_of_nat, int.cast_coe_nat, nat.abs_cast]
 | -[1+n]  := by simp only [int.nat_abs, int.cast_neg_succ_of_nat, abs_neg,
                            ← nat.cast_succ, nat.abs_cast]
@@ -202,6 +202,19 @@ end cast
 
 end int
 
+namespace prod
+
+variables {α : Type*} {β : Type*} [has_zero α] [has_one α] [has_add α] [has_neg α]
+  [has_zero β] [has_one β] [has_add β] [has_neg β]
+
+@[simp] lemma fst_int_cast (n : ℤ) : (n : α × β).fst = n :=
+by induction n; simp *
+
+@[simp] lemma snd_int_cast (n : ℤ) : (n : α × β).snd = n :=
+by induction n; simp *
+
+end prod
+
 open int
 
 namespace add_monoid_hom
@@ -211,7 +224,7 @@ variables {A : Type*}
 /-- Two additive monoid homomorphisms `f`, `g` from `ℤ` to an additive monoid are equal
 if `f 1 = g 1`. -/
 @[ext] theorem ext_int [add_monoid A] {f g : ℤ →+ A} (h1 : f 1 = g 1) : f = g :=
-have f.comp (int.of_nat_hom : ℕ →+ ℤ) = g.comp (int.of_nat_hom : ℕ →+ ℤ) := ext_nat h1,
+have f.comp (int.of_nat_hom : ℕ →+ ℤ) = g.comp (int.of_nat_hom : ℕ →+ ℤ) := ext_nat' _ _ h1,
 have ∀ n : ℕ, f n = g n := ext_iff.1 this,
 ext $ λ n, int.cases_on n this $ λ n, eq_on_neg (this $ n + 1)
 

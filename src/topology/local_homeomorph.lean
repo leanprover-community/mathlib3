@@ -70,7 +70,7 @@ namespace local_homeomorph
 
 variables (e : local_homeomorph α β) (e' : local_homeomorph β γ)
 
-instance : has_coe_to_fun (local_homeomorph α β) := ⟨_, λ e, e.to_local_equiv.to_fun⟩
+instance : has_coe_to_fun (local_homeomorph α β) (λ _, α → β) := ⟨λ e, e.to_fun⟩
 
 /-- The inverse of a local homeomorphism -/
 protected def symm : local_homeomorph β α :=
@@ -169,7 +169,7 @@ lemma eventually_right_inverse' (e : local_homeomorph α β) {x} (hx : x ∈ e.s
 e.eventually_right_inverse (e.map_source hx)
 
 lemma eventually_ne_nhds_within (e : local_homeomorph α β) {x} (hx : x ∈ e.source) :
-  ∀ᶠ x' in 𝓝[{x}ᶜ] x, e x' ≠ e x :=
+  ∀ᶠ x' in 𝓝[≠] x, e x' ≠ e x :=
 eventually_nhds_within_iff.2 $ (e.eventually_left_inverse hx).mono $
   λ x' hx', mt $ λ h, by rw [mem_singleton_iff, ← e.left_inv hx, ← h, hx']
 
@@ -868,7 +868,7 @@ on the left is continuous on the corresponding set. -/
 lemma continuous_on_iff_continuous_on_comp_left {f : γ → α} {s : set γ} (h : s ⊆ f ⁻¹' e.source) :
   continuous_on f s ↔ continuous_on (e ∘ f) s :=
 forall_congr $ λ x, forall_congr $ λ hx, e.continuous_within_at_iff_continuous_within_at_comp_left
-  (h hx) (mem_sets_of_superset self_mem_nhds_within h)
+  (h hx) (mem_of_superset self_mem_nhds_within h)
 
 end continuity
 

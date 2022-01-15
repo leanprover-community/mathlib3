@@ -27,8 +27,9 @@ structure TopCommRing :=
 
 namespace TopCommRing
 
-instance : has_coe_to_sort TopCommRing :=
-{ S := Type u, coe := TopCommRing.α }
+instance : inhabited TopCommRing := ⟨⟨punit⟩⟩
+
+instance : has_coe_to_sort TopCommRing (Type u) := ⟨TopCommRing.α⟩
 
 attribute [instance] is_comm_ring is_topological_space is_topological_ring
 
@@ -92,7 +93,7 @@ R.is_topological_ring
 The forgetful functors to `Type` do not reflect isomorphisms,
 but the forgetful functor from `TopCommRing` to `Top` does.
 -/
-instance : reflects_isomorphisms (forget₂ TopCommRing Top) :=
+instance : reflects_isomorphisms (forget₂ TopCommRing.{u} Top.{u}) :=
 { reflects := λ X Y f _,
   begin
     resetI,

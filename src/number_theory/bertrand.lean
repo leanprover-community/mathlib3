@@ -227,8 +227,6 @@ begin
   ... = (2 * (n + 1)).choose(n + 1): by simp only [nat.succ_pos', nat.mul_div_right]
 end
 
-lemma not_pos_iff_zero (n : ℕ) : ¬ 0 < n ↔ n = 0 := trans not_lt le_zero_iff
-
 lemma alskjhads_no_two (n x : ℕ) (h : n / 3 + 1 ≤ x) : n < 3 * x :=
 lt_of_lt_of_le
   ((nat.div_lt_iff_lt_mul' zero_lt_three).mp (nat.succ_le_iff.mp h))
@@ -695,7 +693,7 @@ begin
     { apply (@claim_4 x ⟨hx.right⟩ n),
       unfold α,
       by_contradiction h1,
-      rw not_pos_iff_zero at h1,
+      rw [not_lt, le_zero_iff] at h1,
       rw h1 at h,
       rw pow_zero at h,
       simp only [eq_self_iff_true, not_true] at h,

@@ -75,6 +75,6 @@ instance : inhabited (unitary R) := ⟨1⟩
 
 lemma star_eq_inv (U : unitary R) : star U = U⁻¹ := rfl
 
-lemma star_eq_inv' : (star : unitary R → unitary R) = star := rfl
+lemma star_eq_inv' : (star : unitary R → unitary R) = has_inv.inv := rfl
 
 end unitary

@@ -35,8 +35,6 @@ double there is a prime
 
 open_locale big_operators
 
-
-
 /-- The multiplicity of p in the nth central binomial coefficient-/
 private def α (n p : nat) [hp : fact p.prime] : nat :=
 padic_val_nat p ((2 * n).choose n)
@@ -227,14 +225,6 @@ begin
   ... = (2 * (n + 1)).choose(n + 1): by simp only [nat.succ_pos', nat.mul_div_right]
 end
 
-lemma alskjhads_no_two (n x : ℕ) (h : n / 3 + 1 ≤ x) : n < 3 * x :=
-lt_of_lt_of_le
-  ((nat.div_lt_iff_lt_mul' zero_lt_three).mp (nat.succ_le_iff.mp h))
-  (mul_comm _ _).le
-
-lemma alskjhads (n x : ℕ): 2 * n / 3 + 1 ≤ x -> 2 * n < 3 * x :=
-alskjhads_no_two (2 * n) x
-
 lemma central_binom_factorization (n : ℕ) :
       ∏ p in finset.filter nat.prime (finset.range ((2 * n).choose n + 1)),
         p ^ (padic_val_nat p ((2 * n).choose n))
@@ -299,8 +289,9 @@ lemma inequality1 {x : ℝ} (n_large : 1024 < x) : log (x) / (x * log 4) ≤ 1/3
 begin
   have h4 : 0 < x,
     linarith only [n_large],
-  have x_ne_zero : x ≠ 0, exact ne_of_gt h4,
-  calc log x / (x * log 4) = (log x / x) / log 4 : by field_simp
+  have x_ne_zero := ne_of_gt h4,
+  calc log x / (x * log 4)
+      = (log x / x) / log 4 : by field_simp
   ... ≤ log 1024 / 1024 / log 4 :
           begin
             rw div_le_div_right,
@@ -705,11 +696,13 @@ begin
   { split,
     { by_contradiction neg_n_le_x,
       simp only [not_lt] at neg_n_le_x,
-      have claim := @claim_3 x ⟨hx.right⟩ n (by linarith) (by linarith) (alskjhads n x h2x),
+      rw [nat.add_one, nat.succ_le_iff, nat.div_lt_iff_lt_mul', mul_comm x] at h2x,
+      have claim := @claim_3 x ⟨hx.right⟩ n (by linarith) (by linarith) (h2x),
       unfold α at claim,
       rw [claim, pow_zero] at h,
       simp only [eq_self_iff_true, not_true] at h,
-      exact h, },
+      exact h,
+      dec_trivial, },
     exact x_le_two_mul_n, },
 end
 

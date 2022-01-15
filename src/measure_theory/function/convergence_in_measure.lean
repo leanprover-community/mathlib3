@@ -45,35 +45,32 @@ begin
   exact λ i, measure_mono (λ x, by simp),
 end
 
-lemma congr_left [preorder ι] [has_dist E] {f f' : ι → α → E} {g : α → E}
-  (h : ∀ i, f i =ᵐ[μ] f' i) (h_tendsto : tendsto_in_measure μ f g) :
-  tendsto_in_measure μ f' g :=
+protected lemma congr [preorder ι] [has_dist E] {f f' : ι → α → E} {g g' : α → E}
+  (h_left : ∀ i, f i =ᵐ[μ] f' i) (h_right : g =ᵐ[μ] g') (h_tendsto : tendsto_in_measure μ f g) :
+  tendsto_in_measure μ f' g' :=
 begin
   intros ε hε,
   specialize h_tendsto ε hε,
-  suffices : (λ i, μ {x | ε ≤ dist (f' i x) (g x)}) = (λ i, μ {x | ε ≤ dist (f i x) (g x)}),
+  suffices : (λ i, μ {x | ε ≤ dist (f' i x) (g' x)}) = (λ i, μ {x | ε ≤ dist (f i x) (g x)}),
     by rwa this,
   ext1 i,
-  refine measure_congr ((h i).mono (λ x hx, _)),
+  refine measure_congr _,
+  refine (h_left i).mp _,
+  refine h_right.mono (λ x hxg hxf, _),
   rw eq_iff_iff,
-  change ε ≤ dist (f' i x) (g x) ↔ ε ≤ dist (f i x) (g x),
-  rw hx,
+  change ε ≤ dist (f' i x) (g' x) ↔ ε ≤ dist (f i x) (g x),
+  rw [hxg, hxf],
 end
+
+lemma congr_left [preorder ι] [has_dist E] {f f' : ι → α → E} {g : α → E}
+  (h : ∀ i, f i =ᵐ[μ] f' i) (h_tendsto : tendsto_in_measure μ f g) :
+  tendsto_in_measure μ f' g :=
+h_tendsto.congr h (eventually_eq.rfl)
 
 lemma congr_right [preorder ι] [has_dist E] {f : ι → α → E} {g g' : α → E}
   (h : g =ᵐ[μ] g') (h_tendsto : tendsto_in_measure μ f g) :
   tendsto_in_measure μ f g' :=
-begin
-  intros ε hε,
-  specialize h_tendsto ε hε,
-  suffices : (λ i, μ {x | ε ≤ dist (f i x) (g' x)}) = (λ i, μ {x | ε ≤ dist (f i x) (g x)}),
-    by rwa this,
-  ext1 i,
-  refine measure_congr (h.mono (λ x hx, _)),
-  rw eq_iff_iff,
-  change ε ≤ dist (f i x) (g' x) ↔ ε ≤ dist (f i x) (g x),
-  rw hx,
-end
+h_tendsto.congr (λ i, eventually_eq.rfl) h
 
 variables [metric_space E] [second_countable_topology E] [measurable_space E] [borel_space E]
 variables {f : ℕ → α → E} {g : α → E}

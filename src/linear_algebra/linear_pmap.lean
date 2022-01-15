@@ -106,9 +106,9 @@ begin
 end
 
 @[simp] lemma mk_span_singleton_apply_self (x : E) (y : F) (H : ∀ c : R, c • x = 0 → c • y = 0)
-  (c : R) (h) :
+  (h) :
   mk_span_singleton' x y H ⟨x, h⟩ = y :=
-by convert mk_span_singleton_apply x y h; exact one_smul _ _
+by convert mk_span_singleton_apply x y H 1 _; rwa one_smul
 
 /-- The unique `linear_pmap` on `span R {x}` that sends a non-zero vector `x` to `y`.
 This version works for modules over division rings. -/

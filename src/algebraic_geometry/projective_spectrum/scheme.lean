@@ -11,7 +11,7 @@ open_locale direct_sum big_operators pointwise big_operators
 open direct_sum set_like
 
 variables {R A: Type}
-variables [comm_ring R] [comm_ring A] [algebra R A]
+variables [comm_ring R] [comm_ring A] [algebra R A] [nontrivial A]
 
 variables (𝒜 : ℕ → submodule R A)
   -- [@graded_algebra ℕ R A (λ (a b : ℕ), classical.prop_decidable (a = b))
@@ -820,6 +820,48 @@ begin
     rw [ha, linear_map.map_zero, set.mem_singleton_iff], },
 end
 
+lemma isos.backward.carrier.prime (f : A) [decidable_eq (localization.away f)]
+  (m : ℕ) (f_deg : f ∈ 𝒜 m)
+  (q : (Spec (degree_zero_part _ f m f_deg)).to_SheafedSpace.to_PresheafedSpace.1) :
+  ideal.is_prime (isos.backward.carrier.as_ideal _ f m f_deg q) :=
+begin
+
+  rw [isos.backward.carrier.as_ideal],
+end
+-- { ne_top' := begin
+--     rw ideal.ne_top_iff_one,
+--     intro rid,
+--     rw isos.backward.carrier.as_ideal at rid,
+--     change (1 : A) ∈ isos.backward.carrier _ f m f_deg q at rid,
+--     rw isos.backward.carrier at rid,
+--     split_ifs at rid with H,
+--     { have ne_top1 := q.is_prime.1,
+--       rw ideal.ne_top_iff_one at ne_top1,
+--       specialize rid 0,
+--       have eq1 : graded_algebra.proj 𝒜 0 1 = 1,
+--       { rw [graded_algebra.proj_apply, graded_algebra.decompose_of_mem_same],
+--         exact set_like.graded_monoid.one_mem, },
+--       apply ne_top1,
+--       change (1 : degree_zero_part _ f m f_deg) ∈ q.1,
+--       convert rid,
+--       rw [subtype.ext_iff_val, show (1 : degree_zero_part _ f m f_deg).1 = 1, from rfl],
+--       dsimp only,
+--       erw [eq1],
+--       simp only [pow_zero, one_pow],
+--       symmetry,
+--       convert localization.mk_one, },
+--     { rw set.mem_singleton_iff at rid,
+--       sorry },
+--   end,
+--   mem_or_mem' := λ x y hxy, begin
+--     rw [isos.backward.carrier.as_ideal] at hxy,
+--     change x * y ∈ isos.backward.carrier _ f m f_deg q at hxy,
+--     rw isos.backward.carrier at hxy,
+--     split_ifs at hxy,
+--     { sorry },
+--     { sorry },
+--   end }
+
 def isos.forward.carrer_ne_top (f : A) [decidable_eq (localization.away f)] (m : ℕ) (f_deg : f ∈ 𝒜 m)
   (x : Proj .restrict (@opens.open_embedding (projective_spectrum.Top 𝒜)
     (projective_spectrum.basic_open 𝒜 f))) :
@@ -913,161 +955,165 @@ begin
 end
 
 -- forward direction `p ∈ Proj` so `p` is a prime ideal in `A`. Send it to `p S_f ∩ S_(f)`
-def isos.top_component.forward (f : A) [decidable_eq (localization.away f)]  (m : ℕ) (f_deg : f ∈ 𝒜 m) :
+def isos.top_component.forward.to_fun (f : A) [decidable_eq (localization.away f)]  (m : ℕ) (f_deg : f ∈ 𝒜 m) :
+  (Proj .restrict (@opens.open_embedding (projective_spectrum.Top 𝒜)
+    (projective_spectrum.basic_open 𝒜 f))).to_SheafedSpace.to_PresheafedSpace.1 →
+  (Spec (degree_zero_part _ f m f_deg)).to_SheafedSpace.to_PresheafedSpace.1 := λ x,
+⟨isos.forward.carrier _ f m f_deg x,
+  ⟨begin
+    apply isos.forward.carrer_ne_top, by_contra rid,
+    erw [←ne.def, set.ne_empty_iff_nonempty] at rid,
+    choose g hg using rid,
+    obtain ⟨hg1, ⟨k, rfl⟩⟩ := hg, by_cases k_ineq : 0 < k,
+    erw ideal.is_prime.pow_mem_iff_mem at hg1,
+    apply x.2, exact hg1, exact x.1.is_prime, exact k_ineq,
+    have k_eq : 0 = k, linarith,
+    erw [←k_eq, pow_zero, ←ideal.eq_top_iff_one] at hg1,
+    apply x.1.is_prime.1, exact hg1,
+  end, λ x1 x2 hx12, begin
+      -- sorry, -- the following works, but it is very slow to compile, so I comment them out,
+    rw isos.forward.carrier at hx12,
+    rcases x1 with ⟨x1, hx1⟩,
+    induction x1 using localization.induction_on with data_x1,
+    rcases data_x1 with ⟨a1, _, ⟨n1, rfl⟩⟩,
+    rcases x2 with ⟨x2, hx2⟩,
+    induction x2 using localization.induction_on with data_x2,
+    rcases data_x2 with ⟨a2, _, ⟨n2, rfl⟩⟩,
+    dsimp only at hx1 hx2 hx12,
+    have : (⟨localization.mk a1 ⟨f ^ n1, _⟩, hx1⟩ : degree_zero_part _ f m f_deg) *
+        ⟨localization.mk a2 ⟨f ^ n2, _⟩, hx2⟩ =
+    ⟨localization.mk a1 ⟨f ^ n1, _⟩ * localization.mk a2 ⟨f ^ n2, _⟩, _⟩ := rfl,
+    erw [this] at hx12, simp only [localization.mk_mul] at hx12,
+    replace hx12 : localization.mk (a1 * a2) (⟨f ^ n1, _⟩ * ⟨f ^ n2, _⟩) ∈ ideal.span {y :
+      localization (submonoid.powers f) | ∃ (g : A),
+        g ∈ (projective_spectrum.as_homogeneous_ideal x.val).val ∧ y = localization.mk g 1} :=
+        hx12,
+    erw [←ideal.submodule_span_eq, finsupp.span_eq_range_total, set.mem_range] at hx12,
+    obtain ⟨c, eq1⟩ := hx12,
+    erw [finsupp.total_apply, finsupp.sum] at eq1,
+    -- (a1 a2) / (f^(n + m)) = ∑ i in c.support, (c i) * i,
+
+    have prop1 : ∀ i, i ∈ c.support → c i ∈ finset.image c c.support,
+    { intros i hi, rw finset.mem_image, refine ⟨_, hi, rfl⟩, },
+    set g :=
+    λ (a : {y : localization (submonoid.powers f) | ∃ (g : A),
+      g ∈ (projective_spectrum.as_homogeneous_ideal x.val).val ∧ y = localization.mk g 1}),
+        classical.some a.2 with g_eq,
+    obtain ⟨N, hN⟩ := clear_denominator _ f (finset.image c c.support), -- N is the common denom
+    choose after_clear_denominator hacd using hN,
+    -- if x ∈ c.support, then `after_clear_denominator x = x * f ^ N`
+    have eq2 := calc
+            localization.mk (f^(n1+n2)) 1 * localization.mk (f^N) 1 *
+            ∑ i in c.support, c i • i.1
+          = localization.mk (f^(n1+n2)) 1 * localization.mk (f^N) 1 *
+            ∑ i in c.support.attach, c (i.1) • i.1.1
+          : begin
+          congr' 1, apply finset.sum_bij',
+          work_on_goal 5 { rintros a _, exact a.1, },
+          work_on_goal 3 { rintros a ha, exact ⟨a, ha⟩ },
+            { rintros, dsimp only, refl, },
+            { rintros, dsimp only, rw subtype.ext_iff, },
+            { rintros, dsimp only, rw subtype.ext_iff, refl, },
+            { rintros, dsimp only, apply finset.mem_attach, },
+            { rintros, dsimp only, exact a.2, },
+          end
+      ... = localization.mk (f^(n1+n2)) 1 * localization.mk (f^N) 1 *
+            ∑ i in c.support.attach, c (i.1) * i.1.1
+          : by congr' 1
+      ... = localization.mk (f^(n1+n2)) 1 *
+            ∑ i in c.support.attach, c (i.1) * localization.mk (f^N) 1 * i.1.1
+          : begin
+            erw [mul_assoc, finset.mul_sum, finset.sum_congr rfl (λ i hi, _)], ring,
+          end
+      ... = localization.mk (f^(n1+n2)) 1 * ∑ i in c.support.attach,
+              localization.mk (after_clear_denominator (c i.1) (prop1 i.1 i.2)) 1 * i.1.1
+          : begin
+            erw [finset.sum_congr rfl (λ i hi, _)],
+            erw ←(hacd _ _).2,
+          end
+      ... = localization.mk (f^(n1+n2)) 1 * ∑ i in c.support.attach,
+              localization.mk (after_clear_denominator (c i.1) (prop1 i.1 i.2)) 1 *
+              localization.mk (g i.1) 1
+          : begin
+            erw [finset.sum_congr rfl (λ i hi, _)],
+            rw (classical.some_spec i.1.2).2,
+          end
+      ... = localization.mk (f^(n1+n2)) 1 * ∑ i in c.support.attach,
+              localization.mk ((after_clear_denominator (c i.1) (prop1 i.1 i.2)) * (g i.1)) 1
+          : begin
+            erw [finset.sum_congr rfl (λ i hi, _)],
+            rw [localization.mk_mul, mul_one],
+          end
+      ... = localization.mk (f^(n1+n2)) 1 *
+            localization.mk (∑ i in c.support.attach, (after_clear_denominator (c i.1)
+              (prop1 i.1 i.2)) * (g i.1)) 1
+          : begin
+            congr' 1,
+            induction c.support.attach using finset.induction_on with a s ha ih,
+            { rw [finset.sum_empty, finset.sum_empty, localization.mk_zero], },
+            { rw [finset.sum_insert, finset.sum_insert, ih, localization.add_mk, mul_one],
+              congr' 1, erw [one_mul, one_mul, add_comm], exact ha, exact ha, }
+          end,
+    erw [eq1, localization.mk_mul, one_mul, localization.mk_mul, one_mul] at eq2,
+    have eq3 : (localization.mk (f ^ (n1 + n2) * f ^ N * (a1 * a2)) (⟨f ^ n1, _⟩ * ⟨f ^ n2, _⟩)
+      : localization.away f) = localization.mk (f^N * (a1 * a2)) 1,
+    { simp only [localization.mk_eq_mk'],
+      rw [is_localization.eq], use 1,
+      erw [←subtype.val_eq_coe, ←subtype.val_eq_coe, mul_one, mul_one, mul_one,
+        show (∀ (a b : submonoid.powers f), (a * b).val = a.val * b.val), from λ _ _, rfl,
+        pow_add], ring, },
+    erw [eq3, localization.mk_mul, mul_one] at eq2,
+    simp only [localization.mk_eq_mk'] at eq2,
+    erw [is_localization.eq] at eq2,
+    obtain ⟨⟨_, ⟨k, rfl⟩⟩, eq2⟩ := eq2,
+    erw [mul_one, mul_one, ←subtype.val_eq_coe] at eq2,
+    dsimp only at eq2,
+    have mem1 : f ^ N * (a1 * a2) * f ^ k ∈ x.1.as_homogeneous_ideal.1,
+    { rw eq2, apply ideal.mul_mem_right, apply ideal.mul_mem_left,
+      apply ideal.sum_mem, intros i hi,
+      apply ideal.mul_mem_left,
+      exact (classical.some_spec i.1.2).1, },
+    rcases x.1.is_prime.mem_or_mem mem1 with h1|h3,
+    rcases x.1.is_prime.mem_or_mem h1 with h1|h2,
+    { exfalso, apply x.2,
+      apply x.1.is_prime.mem_of_pow_mem N h1, },
+    { rcases x.1.is_prime.mem_or_mem h2,
+      { left, dsimp only,
+        rw isos.forward.carrier,
+        have eq3 : (localization.mk a1 ⟨f ^ n1, _⟩ : localization.away f) =
+          localization.mk a1 1 * localization.mk 1 ⟨f^n1, ⟨n1, rfl⟩⟩,
+        { erw [localization.mk_mul, mul_one, one_mul], },
+        suffices : _ ∈ ideal.span {y : localization (submonoid.powers f) | ∃ (g : A),
+            g ∈ (projective_spectrum.as_homogeneous_ideal x.val).val ∧ y = localization.mk g 1},
+        exact this, dsimp only,
+        erw eq3,
+        suffices : localization.mk a1 1 ∈ ideal.span _,
+        apply ideal.mul_mem_right _ _ this,
+        apply ideal.subset_span,
+        refine ⟨a1, h, rfl⟩, },
+      { right, dsimp only,
+        rw isos.forward.carrier,
+        have eq3 : (localization.mk a2 ⟨f ^ n2, _⟩ : localization.away f) =
+          localization.mk a2 1 * localization.mk 1 ⟨f^n2, ⟨n2, rfl⟩⟩,
+        { erw [localization.mk_mul, mul_one, one_mul], },
+        suffices : _ ∈ ideal.span {y : localization (submonoid.powers f) | ∃ (g : A),
+            g ∈ (projective_spectrum.as_homogeneous_ideal x.val).val ∧ y = localization.mk g 1},
+        exact this, dsimp only,
+        erw eq3,
+        suffices : localization.mk a2 1 ∈ ideal.span _,
+        apply ideal.mul_mem_right _ _ this,
+        apply ideal.subset_span,
+        refine ⟨a2, h, rfl⟩, } },
+    { exfalso, apply x.2,
+      apply x.1.is_prime.mem_of_pow_mem k h3, },
+  end⟩⟩
+
+def isos.top_component.forward (f : A) [decidable_eq (localization.away f)]
+  (m : ℕ) (f_deg : f ∈ 𝒜 m) :
   (Proj .restrict (@opens.open_embedding (projective_spectrum.Top 𝒜)
     (projective_spectrum.basic_open 𝒜 f))).to_SheafedSpace.to_PresheafedSpace.1 ⟶
   (Spec (degree_zero_part _ f m f_deg)).to_SheafedSpace.to_PresheafedSpace.1 :=
-{ to_fun := λ x,
-    ⟨isos.forward.carrier _ f m f_deg x,
-    ⟨begin
-      apply isos.forward.carrer_ne_top, by_contra rid,
-      erw [←ne.def, set.ne_empty_iff_nonempty] at rid,
-      choose g hg using rid,
-      obtain ⟨hg1, ⟨k, rfl⟩⟩ := hg, by_cases k_ineq : 0 < k,
-      erw ideal.is_prime.pow_mem_iff_mem at hg1,
-      apply x.2, exact hg1, exact x.1.is_prime, exact k_ineq,
-      have k_eq : 0 = k, linarith,
-      erw [←k_eq, pow_zero, ←ideal.eq_top_iff_one] at hg1,
-      apply x.1.is_prime.1, exact hg1,
-    end, λ x1 x2 hx12, begin
-      -- sorry, -- the following works, but it is very slow to compile, so I comment them out,
-      rw isos.forward.carrier at hx12,
-      rcases x1 with ⟨x1, hx1⟩,
-      induction x1 using localization.induction_on with data_x1,
-      rcases data_x1 with ⟨a1, _, ⟨n1, rfl⟩⟩,
-      rcases x2 with ⟨x2, hx2⟩,
-      induction x2 using localization.induction_on with data_x2,
-      rcases data_x2 with ⟨a2, _, ⟨n2, rfl⟩⟩,
-      dsimp only at hx1 hx2 hx12,
-      have : (⟨localization.mk a1 ⟨f ^ n1, _⟩, hx1⟩ : degree_zero_part _ f m f_deg) *
-          ⟨localization.mk a2 ⟨f ^ n2, _⟩, hx2⟩ =
-      ⟨localization.mk a1 ⟨f ^ n1, _⟩ * localization.mk a2 ⟨f ^ n2, _⟩, _⟩ := rfl,
-      erw [this] at hx12, simp only [localization.mk_mul] at hx12,
-      replace hx12 : localization.mk (a1 * a2) (⟨f ^ n1, _⟩ * ⟨f ^ n2, _⟩) ∈ ideal.span {y :
-        localization (submonoid.powers f) | ∃ (g : A),
-          g ∈ (projective_spectrum.as_homogeneous_ideal x.val).val ∧ y = localization.mk g 1} :=
-          hx12,
-      erw [←ideal.submodule_span_eq, finsupp.span_eq_range_total, set.mem_range] at hx12,
-      obtain ⟨c, eq1⟩ := hx12,
-      erw [finsupp.total_apply, finsupp.sum] at eq1,
-      -- (a1 a2) / (f^(n + m)) = ∑ i in c.support, (c i) * i,
-
-      have prop1 : ∀ i, i ∈ c.support → c i ∈ finset.image c c.support,
-      { intros i hi, rw finset.mem_image, refine ⟨_, hi, rfl⟩, },
-      set g :=
-      λ (a : {y : localization (submonoid.powers f) | ∃ (g : A),
-        g ∈ (projective_spectrum.as_homogeneous_ideal x.val).val ∧ y = localization.mk g 1}),
-          classical.some a.2 with g_eq,
-      obtain ⟨N, hN⟩ := clear_denominator _ f (finset.image c c.support), -- N is the common denom
-      choose after_clear_denominator hacd using hN,
-      -- if x ∈ c.support, then `after_clear_denominator x = x * f ^ N`
-      have eq2 := calc
-              localization.mk (f^(n1+n2)) 1 * localization.mk (f^N) 1 *
-              ∑ i in c.support, c i • i.1
-            = localization.mk (f^(n1+n2)) 1 * localization.mk (f^N) 1 *
-              ∑ i in c.support.attach, c (i.1) • i.1.1
-            : begin
-              congr' 1, apply finset.sum_bij',
-              work_on_goal 5 { rintros a _, exact a.1, },
-              work_on_goal 3 { rintros a ha, exact ⟨a, ha⟩ },
-              { rintros, dsimp only, refl, },
-              { rintros, dsimp only, rw subtype.ext_iff, },
-              { rintros, dsimp only, rw subtype.ext_iff, refl, },
-              { rintros, dsimp only, apply finset.mem_attach, },
-              { rintros, dsimp only, exact a.2, },
-            end
-        ... = localization.mk (f^(n1+n2)) 1 * localization.mk (f^N) 1 *
-              ∑ i in c.support.attach, c (i.1) * i.1.1
-            : by congr' 1
-        ... = localization.mk (f^(n1+n2)) 1 *
-              ∑ i in c.support.attach, c (i.1) * localization.mk (f^N) 1 * i.1.1
-            : begin
-              erw [mul_assoc, finset.mul_sum, finset.sum_congr rfl (λ i hi, _)], ring,
-            end
-        ... = localization.mk (f^(n1+n2)) 1 * ∑ i in c.support.attach,
-                localization.mk (after_clear_denominator (c i.1) (prop1 i.1 i.2)) 1 * i.1.1
-            : begin
-              erw [finset.sum_congr rfl (λ i hi, _)],
-              erw ←(hacd _ _).2,
-            end
-        ... = localization.mk (f^(n1+n2)) 1 * ∑ i in c.support.attach,
-                localization.mk (after_clear_denominator (c i.1) (prop1 i.1 i.2)) 1 *
-                localization.mk (g i.1) 1
-            : begin
-              erw [finset.sum_congr rfl (λ i hi, _)],
-              rw (classical.some_spec i.1.2).2,
-            end
-        ... = localization.mk (f^(n1+n2)) 1 * ∑ i in c.support.attach,
-                localization.mk ((after_clear_denominator (c i.1) (prop1 i.1 i.2)) * (g i.1)) 1
-            : begin
-              erw [finset.sum_congr rfl (λ i hi, _)],
-              rw [localization.mk_mul, mul_one],
-            end
-        ... = localization.mk (f^(n1+n2)) 1 *
-              localization.mk (∑ i in c.support.attach, (after_clear_denominator (c i.1)
-                (prop1 i.1 i.2)) * (g i.1)) 1
-            : begin
-              congr' 1,
-              induction c.support.attach using finset.induction_on with a s ha ih,
-              { rw [finset.sum_empty, finset.sum_empty, localization.mk_zero], },
-              { rw [finset.sum_insert, finset.sum_insert, ih, localization.add_mk, mul_one],
-                congr' 1, erw [one_mul, one_mul, add_comm], exact ha, exact ha, }
-            end,
-      erw [eq1, localization.mk_mul, one_mul, localization.mk_mul, one_mul] at eq2,
-      have eq3 : (localization.mk (f ^ (n1 + n2) * f ^ N * (a1 * a2)) (⟨f ^ n1, _⟩ * ⟨f ^ n2, _⟩)
-        : localization.away f) = localization.mk (f^N * (a1 * a2)) 1,
-      { simp only [localization.mk_eq_mk'],
-        rw [is_localization.eq], use 1,
-        erw [←subtype.val_eq_coe, ←subtype.val_eq_coe, mul_one, mul_one, mul_one,
-          show (∀ (a b : submonoid.powers f), (a * b).val = a.val * b.val), from λ _ _, rfl,
-          pow_add], ring, },
-      erw [eq3, localization.mk_mul, mul_one] at eq2,
-      simp only [localization.mk_eq_mk'] at eq2,
-      erw [is_localization.eq] at eq2,
-      obtain ⟨⟨_, ⟨k, rfl⟩⟩, eq2⟩ := eq2,
-      erw [mul_one, mul_one, ←subtype.val_eq_coe] at eq2,
-      dsimp only at eq2,
-
-      have mem1 : f ^ N * (a1 * a2) * f ^ k ∈ x.1.as_homogeneous_ideal.1,
-      { rw eq2, apply ideal.mul_mem_right, apply ideal.mul_mem_left,
-        apply ideal.sum_mem, intros i hi,
-        apply ideal.mul_mem_left,
-        exact (classical.some_spec i.1.2).1, },
-
-      rcases x.1.is_prime.mem_or_mem mem1 with h1|h3,
-      rcases x.1.is_prime.mem_or_mem h1 with h1|h2,
-      { exfalso, apply x.2,
-        apply x.1.is_prime.mem_of_pow_mem N h1, },
-      { rcases x.1.is_prime.mem_or_mem h2,
-        { left, dsimp only,
-          rw isos.forward.carrier,
-          have eq3 : (localization.mk a1 ⟨f ^ n1, _⟩ : localization.away f) =
-            localization.mk a1 1 * localization.mk 1 ⟨f^n1, ⟨n1, rfl⟩⟩,
-          { erw [localization.mk_mul, mul_one, one_mul], },
-          suffices : _ ∈ ideal.span {y : localization (submonoid.powers f) | ∃ (g : A),
-              g ∈ (projective_spectrum.as_homogeneous_ideal x.val).val ∧ y = localization.mk g 1},
-          exact this, dsimp only,
-          erw eq3,
-          suffices : localization.mk a1 1 ∈ ideal.span _,
-          apply ideal.mul_mem_right _ _ this,
-          apply ideal.subset_span,
-          refine ⟨a1, h, rfl⟩, },
-        { right, dsimp only,
-          rw isos.forward.carrier,
-          have eq3 : (localization.mk a2 ⟨f ^ n2, _⟩ : localization.away f) =
-            localization.mk a2 1 * localization.mk 1 ⟨f^n2, ⟨n2, rfl⟩⟩,
-          { erw [localization.mk_mul, mul_one, one_mul], },
-          suffices : _ ∈ ideal.span {y : localization (submonoid.powers f) | ∃ (g : A),
-              g ∈ (projective_spectrum.as_homogeneous_ideal x.val).val ∧ y = localization.mk g 1},
-          exact this, dsimp only,
-          erw eq3,
-          suffices : localization.mk a2 1 ∈ ideal.span _,
-          apply ideal.mul_mem_right _ _ this,
-          apply ideal.subset_span,
-          refine ⟨a2, h, rfl⟩, } },
-      { exfalso, apply x.2,
-        apply x.1.is_prime.mem_of_pow_mem k h3, },
-    end⟩⟩,
+{ to_fun := isos.top_component.forward.to_fun 𝒜 f m f_deg,
   continuous_to_fun := begin
     apply is_topological_basis.continuous,
     exact prime_spectrum.is_topological_basis_basic_opens,
@@ -1075,7 +1121,10 @@ def isos.top_component.forward (f : A) [decidable_eq (localization.away f)]  (m 
     induction g using localization.induction_on with data,
     obtain ⟨a, ⟨_, ⟨n, rfl⟩⟩⟩ := data,
     dsimp only,
-    -- we want to use `projective_spectrum.basic_open 𝒜 (a * f) = preimage`
+    -- we want to use `projective_spectrum.basic_open 𝒜 (f) = preimage`
+    have : set ((Proj .restrict (@opens.open_embedding (projective_spectrum.Top 𝒜)
+    (projective_spectrum.basic_open 𝒜 f))).to_SheafedSpace.to_PresheafedSpace.1) :=
+    { x | x.1 ∈ projective_spectrum.basic_open 𝒜 f },
     sorry
   end }
 

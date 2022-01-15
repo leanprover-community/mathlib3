@@ -38,10 +38,11 @@ their counterparts in `complex.lean` (which causes linter errors).
 
 open_locale big_operators
 
+local notation `conj` := star
+
 section
 
 local notation `𝓚` := algebra_map ℝ _
-open_locale complex_conjugate
 
 /--
 This typeclass captures properties shared by ℝ and ℂ, with an API that closely matches that of ℂ.
@@ -70,8 +71,6 @@ end
 
 namespace is_R_or_C
 variables {K : Type*} [is_R_or_C K]
-
-open_locale complex_conjugate
 
 /- The priority must be set at 900 to ensure that coercions are tried in the right order.
 See Note [coercion into rings], or `data/nat/cast.lean` for more details. -/
@@ -204,7 +203,7 @@ begin
       convert (re_add_im z).symm, simp [this] },
     contrapose! h,
     rw ← re_add_im z,
-    simp only [conj_of_real, ring_equiv.map_add, ring_equiv.map_mul, conj_I_ax],
+    simp only [conj_of_real, star_add, star_mul, conj_I_ax],
     rw [add_left_cancel_iff, ext_iff],
     simpa [neg_eq_iff_add_eq_zero, add_self_eq_zero] },
   { rintros ⟨r, rfl⟩, apply conj_of_real }
@@ -666,7 +665,7 @@ noncomputable instance real.is_R_or_C : is_R_or_C ℝ :=
   mul_im_ax := λ z w, by simp only [add_zero, zero_mul, mul_zero, add_monoid_hom.zero_apply],
   conj_re_ax := λ z, by simp only [star_ring_aut_apply, star_id_of_comm],
   conj_im_ax := λ z, by simp only [neg_zero, add_monoid_hom.zero_apply],
-  conj_I_ax := by simp only [ring_equiv.map_zero, neg_zero],
+  conj_I_ax := by simp only [star_zero, neg_zero],
   norm_sq_eq_def_ax := λ z, by simp only [sq, norm, ←abs_mul, abs_mul_self z, add_zero,
     mul_zero, add_monoid_hom.zero_apply, add_monoid_hom.id_apply],
   mul_im_I_ax := λ z, by simp only [mul_zero, add_monoid_hom.zero_apply],
@@ -678,8 +677,6 @@ noncomputable instance real.is_R_or_C : is_R_or_C ℝ :=
 end instances
 
 namespace is_R_or_C
-
-open_locale complex_conjugate
 
 section cleanup_lemmas
 

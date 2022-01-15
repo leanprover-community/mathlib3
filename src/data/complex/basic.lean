@@ -25,8 +25,6 @@ notation `ℂ` := complex
 
 namespace complex
 
-open_locale complex_conjugate
-
 noncomputable instance : decidable_eq ℂ := classical.dec_eq _
 
 /-- The equivalence between the complex numbers and `ℝ × ℝ`. -/
@@ -185,14 +183,26 @@ by rw [pow_bit1', I_mul_I]
 
 /-! ### Complex conjugation -/
 
-/-- This defines the complex conjugate as the `star` operation of the `star_ring ℂ`. It
-is recommended to use the ring automorphism version `star_ring_aut`, available under the
-notation `conj` in the locale `complex_conjugate`. -/
+/-- This defines the complex conjugate as the `star` operation of the `star_ring ℂ`. -/
 instance : star_ring ℂ :=
 { star := λ z, ⟨z.re, -z.im⟩,
   star_involutive := λ x, by simp only [eta, neg_neg],
   star_mul := λ a b, by ext; simp [add_comm]; ring,
   star_add := λ a b, by ext; simp [add_comm] }
+
+-- A more convenient name for complex conjugation
+localized "notation `conj` := star" in complex_conjugate
+open_locale complex_conjugate
+
+/-! Specializations of `star` lemmas for convenience. -/
+lemma conj_conj (z : ℂ) : conj (conj z) = z := star_star z
+lemma conj_zero : conj (0 : ℂ) = 0 := star_zero ℂ
+lemma conj_one : conj (1 : ℂ) = 1 := star_one ℂ
+lemma conj_add (z₁ z₂ : ℂ) : conj (z₁ + z₂) = conj z₁ + conj z₂ := star_add _ _
+lemma conj_sub (z₁ z₂ : ℂ) : conj (z₁ - z₂) = conj z₁ - conj z₂ := star_sub _ _
+lemma conj_neg (z : ℂ) : conj (-z) = -conj z := star_neg _
+@[simp] lemma conj_mul (z₁ z₂ : ℂ) : conj (z₁ * z₂) = conj z₁ * conj z₂ :=
+(star_ring_aut : ring_aut ℂ).map_mul z₁ z₂
 
 @[simp] lemma conj_re (z : ℂ) : (conj z).re = z.re := rfl
 @[simp] lemma conj_im (z : ℂ) : (conj z).im = -z.im := rfl
@@ -216,8 +226,6 @@ eq_conj_iff_real.trans ⟨by rintro ⟨r, rfl⟩; simp, λ h, ⟨_, h.symm⟩⟩
 lemma eq_conj_iff_im {z : ℂ} : conj z = z ↔ z.im = 0 :=
 ⟨λ h, add_self_eq_zero.mp (neg_eq_iff_add_eq_zero.mp (congr_arg im h)),
   λ h, ext rfl (neg_eq_iff_add_eq_zero.mpr (add_self_eq_zero.mpr h))⟩
-
-@[simp] lemma star_def : (has_star.star : ℂ → ℂ) = conj := rfl
 
 /-! ### Norm squared -/
 
@@ -657,7 +665,7 @@ by rw [lim_eq_lim_im_add_lim_re]; simp
 
 lemma is_cau_seq_conj (f : cau_seq ℂ abs) : is_cau_seq abs (λ n, conj (f n)) :=
 λ ε ε0, let ⟨i, hi⟩ := f.2 ε ε0 in
-⟨i, λ j hj, by rw [← ring_equiv.map_sub, abs_conj]; exact hi j hj⟩
+⟨i, λ j hj, by rw [← conj_sub, abs_conj]; exact hi j hj⟩
 
 /-- The complex conjugate of a complex Cauchy sequence, as a complex Cauchy sequence. -/
 noncomputable def cau_seq_conj (f : cau_seq ℂ abs) : cau_seq ℂ abs :=

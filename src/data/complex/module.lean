@@ -215,7 +215,7 @@ def conj_ae : ℂ ≃ₐ[ℝ] ℂ :=
   left_inv := star_star,
   right_inv := star_star,
   commutes' := conj_of_real,
-  .. conj }
+  .. star_ring_aut }
 
 @[simp] lemma conj_ae_coe : ⇑conj_ae = conj := rfl
 

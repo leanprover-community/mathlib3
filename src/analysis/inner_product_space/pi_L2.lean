@@ -71,7 +71,7 @@ instance pi_Lp.inner_product_space {ι : Type*} [fintype ι] (f : ι → Type*)
   begin
     intros x y,
     unfold inner,
-    rw ring_equiv.map_sum,
+    rw star_sum,
     apply finset.sum_congr rfl,
     rintros z -,
     apply inner_conj_sym,

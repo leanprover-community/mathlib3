@@ -152,7 +152,7 @@ local notation `norm_sqK` := @is_R_or_C.norm_sq 𝕜 _
 local notation `reK` := @is_R_or_C.re 𝕜 _
 local notation `absK` := @is_R_or_C.abs 𝕜 _
 local notation `ext_iff` := @is_R_or_C.ext_iff 𝕜 _
-local postfix `†`:90 := star_ring_aut
+local postfix `†`:90 := star
 
 /-- Inner product defined by the `inner_product_space.core` structure. -/
 def to_has_inner : has_inner 𝕜 F := { inner := c.inner }
@@ -177,7 +177,7 @@ lemma inner_add_left {x y z : F} : ⟪x + y, z⟫ = ⟪x, z⟫ + ⟪y, z⟫ :=
 c.add_left _ _ _
 
 lemma inner_add_right {x y z : F} : ⟪x, y + z⟫ = ⟪x, y⟫ + ⟪x, z⟫ :=
-by rw [←inner_conj_sym, inner_add_left, ring_equiv.map_add]; simp only [inner_conj_sym]
+by rw [←inner_conj_sym, inner_add_left, star_add]; simp only [inner_conj_sym]
 
 lemma inner_norm_sq_eq_inner_self (x : F) : (norm_sqF x : 𝕜) = ⟪x, x⟫ :=
 begin
@@ -195,13 +195,13 @@ lemma inner_smul_left {x y : F} {r : 𝕜} : ⟪r • x, y⟫ = r† * ⟪x, y�
 c.smul_left _ _ _
 
 lemma inner_smul_right {x y : F} {r : 𝕜} : ⟪x, r • y⟫ = r * ⟪x, y⟫ :=
-by rw [←inner_conj_sym, inner_smul_left]; simp only [conj_conj, inner_conj_sym, ring_equiv.map_mul]
+by rw [←inner_conj_sym, inner_smul_left]; simp only [star_star, inner_conj_sym, star_mul']
 
 lemma inner_zero_left {x : F} : ⟪0, x⟫ = 0 :=
-by rw [←zero_smul 𝕜 (0 : F), inner_smul_left]; simp only [zero_mul, ring_equiv.map_zero]
+by rw [←zero_smul 𝕜 (0 : F), inner_smul_left]; simp only [zero_mul, star_zero]
 
 lemma inner_zero_right {x : F} : ⟪x, 0⟫ = 0 :=
-by rw [←inner_conj_sym, inner_zero_left]; simp only [ring_equiv.map_zero]
+by rw [←inner_conj_sym, inner_zero_left]; simp only [star_zero]
 
 lemma inner_self_eq_zero {x : F} : ⟪x, x⟫ = 0 ↔ x = 0 :=
 iff.intro (c.definite _) (by { rintro rfl, exact inner_zero_left })
@@ -216,7 +216,7 @@ lemma inner_neg_left {x y : F} : ⟪-x, y⟫ = -⟪x, y⟫ :=
 by { rw [← neg_one_smul 𝕜 x, inner_smul_left], simp }
 
 lemma inner_neg_right {x y : F} : ⟪x, -y⟫ = -⟪x, y⟫ :=
-by rw [←inner_conj_sym, inner_neg_left]; simp only [ring_equiv.map_neg, inner_conj_sym]
+by rw [←inner_conj_sym, inner_neg_left]; simp only [star_neg, inner_conj_sym]
 
 lemma inner_sub_left {x y z : F} : ⟪x - y, z⟫ = ⟪x, z⟫ - ⟪y, z⟫ :=
 by { simp [sub_eq_add_neg, inner_add_left, inner_neg_left] }
@@ -273,7 +273,7 @@ begin
       ... = re ⟪x, x⟫ - re (T† * ⟪y, x⟫) - re (T * ⟪x, y⟫) + re (T * T† * ⟪y, y⟫)
                   : by simp only [inner_smul_left, inner_smul_right, mul_assoc]
       ... = re ⟪x, x⟫ - re (⟪x, y⟫ / ⟪y, y⟫ * ⟪y, x⟫)
-                  : by field_simp [-mul_re, inner_conj_sym, hT, ring_equiv.map_div, h₁, h₃]
+                  : by field_simp [-mul_re, inner_conj_sym, hT, star_div, h₁, h₃]
       ... = re ⟪x, x⟫ - re (⟪x, y⟫ * ⟪y, x⟫ / ⟪y, y⟫)
                   : by rw [div_mul_eq_mul_div_comm, ←mul_div_assoc]
       ... = re ⟪x, x⟫ - re (⟪x, y⟫ * ⟪y, x⟫ / re ⟪y, y⟫)
@@ -386,7 +386,7 @@ local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
 local notation `IK` := @is_R_or_C.I 𝕜 _
 local notation `absR` := has_abs.abs
 local notation `absK` := @is_R_or_C.abs 𝕜 _
-local postfix `†`:90 := star_ring_aut
+local postfix `†`:90 := star
 
 export inner_product_space (norm_sq_eq_inner)
 
@@ -407,7 +407,7 @@ lemma inner_add_left {x y z : E} : ⟪x + y, z⟫ = ⟪x, z⟫ + ⟪y, z⟫ :=
 inner_product_space.add_left _ _ _
 
 lemma inner_add_right {x y z : E} : ⟪x, y + z⟫ = ⟪x, y⟫ + ⟪x, z⟫ :=
-by { rw [←inner_conj_sym, inner_add_left, ring_equiv.map_add], simp only [inner_conj_sym] }
+by { rw [←inner_conj_sym, inner_add_left, star_add], simp only [inner_conj_sym] }
 
 lemma inner_re_symm {x y : E} : re ⟪x, y⟫ = re ⟪y, x⟫ :=
 by rw [←inner_conj_sym, conj_re]
@@ -423,7 +423,7 @@ lemma inner_smul_real_left {x y : E} {r : ℝ} : ⟪(r : 𝕜) • x, y⟫ = r �
 by { rw [inner_smul_left, conj_of_real, algebra.smul_def], refl }
 
 lemma inner_smul_right {x y : E} {r : 𝕜} : ⟪x, r • y⟫ = r * ⟪x, y⟫ :=
-by rw [←inner_conj_sym, inner_smul_left, ring_equiv.map_mul, conj_conj, inner_conj_sym]
+by rw [←inner_conj_sym, inner_smul_left, star_mul', star_star, inner_conj_sym]
 lemma real_inner_smul_right {x y : F} {r : ℝ} : ⟪x, r • y⟫_ℝ = r * ⟪x, y⟫_ℝ := inner_smul_right
 
 lemma inner_smul_real_right {x y : E} {r : ℝ} : ⟪x, (r : 𝕜) • y⟫ = r • ⟪x, y⟫ :=
@@ -480,13 +480,13 @@ lemma dfinsupp.inner_sum {ι : Type*} [dec : decidable_eq ι] {α : ι → Type*
 by simp [dfinsupp.sum, inner_sum] {contextual := tt}
 
 @[simp] lemma inner_zero_left {x : E} : ⟪0, x⟫ = 0 :=
-by rw [← zero_smul 𝕜 (0:E), inner_smul_left, ring_equiv.map_zero, zero_mul]
+by rw [← zero_smul 𝕜 (0:E), inner_smul_left, star_zero, zero_mul]
 
 lemma inner_re_zero_left {x : E} : re ⟪0, x⟫ = 0 :=
 by simp only [inner_zero_left, add_monoid_hom.map_zero]
 
 @[simp] lemma inner_zero_right {x : E} : ⟪x, 0⟫ = 0 :=
-by rw [←inner_conj_sym, inner_zero_left, ring_equiv.map_zero]
+by rw [←inner_conj_sym, inner_zero_left, star_zero]
 
 lemma inner_re_zero_right {x : E} : re ⟪x, 0⟫ = 0 :=
 by simp only [inner_zero_right, add_monoid_hom.map_zero]
@@ -553,7 +553,7 @@ by rw [←inner_conj_sym, abs_conj]
 by { rw [← neg_one_smul 𝕜 x, inner_smul_left], simp }
 
 @[simp] lemma inner_neg_right {x y : E} : ⟪x, -y⟫ = -⟪x, y⟫ :=
-by rw [←inner_conj_sym, inner_neg_left]; simp only [ring_equiv.map_neg, inner_conj_sym]
+by rw [←inner_conj_sym, inner_neg_left]; simp only [star_neg, inner_conj_sym]
 
 lemma inner_neg_neg {x y : E} : ⟪-x, -y⟫ = ⟪x, y⟫ := by simp
 
@@ -632,7 +632,7 @@ begin
       ... = re ⟪x, x⟫ - re (T† * ⟪y, x⟫) - re (T * ⟪x, y⟫) + re (T * T† * ⟪y, y⟫)
                   : by simp only [inner_smul_left, inner_smul_right, mul_assoc]
       ... = re ⟪x, x⟫ - re (⟪x, y⟫ / ⟪y, y⟫ * ⟪y, x⟫)
-                  : by field_simp [-mul_re, hT, ring_equiv.map_div, h₁, h₃, inner_conj_sym]
+                  : by field_simp [-mul_re, hT, star_div, h₁, h₃, inner_conj_sym]
       ... = re ⟪x, x⟫ - re (⟪x, y⟫ * ⟪y, x⟫ / ⟪y, y⟫)
                   : by rw [div_mul_eq_mul_div_comm, ←mul_div_assoc]
       ... = re ⟪x, x⟫ - re (⟪x, y⟫ * ⟪y, x⟫ / re ⟪y, y⟫)

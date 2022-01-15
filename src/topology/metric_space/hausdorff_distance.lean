@@ -899,20 +899,6 @@ begin
   exact (u_lim.const_mul (2 : ℝ)).comp hφ.tendsto_at_top,
 end
 
-variables {E : Type*} [semi_normed_group E]
-
-@[simp] lemma add_ball (s : set X) (δ : ℝ) : s + ball 0 δ = thickening δ s :=
-begin
-  rw thickening_eq_bUnion_ball,
-  convert bUnion_add _ s (ball (0 : X) δ),
-  exact s.bUnion_of_singleton.symm,
-  ext x y,
-  simp_rw [singleton_add_ball, add_zero],
-end
-
-@[simp] lemma ball_add (s : set X) (δ : ℝ) : ball 0 δ + s = thickening δ s :=
-by rw [add_comm, add_ball]
-
 end thickening --section
 
 section cthickening

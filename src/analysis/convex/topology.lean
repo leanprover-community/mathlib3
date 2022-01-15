@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alexander Bentkamp, Yury Kudryashov
 -/
 import analysis.convex.jensen
+import analysis.normed.group.pointwise
 import analysis.normed_space.finite_dimension
 import topology.path_connected
 import topology.algebra.affine
@@ -28,7 +29,7 @@ We prove the following facts:
 
 variables {ι : Type*} {E : Type*}
 
-open set
+open metric set
 open_locale pointwise
 
 lemma real.convex_iff_is_preconnected {s : set ℝ} : convex ℝ s ↔ is_preconnected s :=

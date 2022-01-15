@@ -1686,7 +1686,7 @@ lemma orthogonal_family.inner_sum (l₁ l₂ : Π i, G i) (s : finset ι) :
   ⟪∑ i in s, V i (l₁ i), ∑ j in s, V j (l₂ j)⟫ = ∑ i in s, ⟪l₁ i, l₂ i⟫ :=
 by classical;
 calc ⟪∑ i in s, V i (l₁ i), ∑ j in s, V j (l₂ j)⟫
-    = ∑ j in s, ∑ i in s, ⟪V i (l₁ i), V j (l₂ j)⟫ :  by { simp [sum_inner, inner_sum], }
+    = ∑ j in s, ∑ i in s, ⟪V i (l₁ i), V j (l₂ j)⟫ : by simp [sum_inner, inner_sum]
 ... = ∑ j in s, ∑ i in s, ite (i = j) ⟪V i (l₁ i), V j (l₂ j)⟫ 0 :
 begin
   congr' with i,

@@ -63,6 +63,9 @@ def of : G →* abelianization G :=
   map_one' := rfl,
   map_mul' := λ x y, rfl }
 
+@[simp] lemma mk_of {a : G} :
+  quot.mk (@setoid.r _ (quotient_group.left_rel (commutator G))) a = of a := rfl
+
 section lift
 -- So far we have built Gᵃᵇ and proved it's an abelian group.
 -- Furthremore we defined the canonical projection `of : G → Gᵃᵇ`
@@ -105,5 +108,14 @@ variables {A : Type v} [monoid A]
 theorem hom_ext (φ ψ : abelianization G →* A)
   (h : φ.comp of = ψ.comp of) : φ = ψ :=
 monoid_hom.ext $ λ x, quotient_group.induction_on x $ monoid_hom.congr_fun h
+
+/-- Equivalent groups have eqiuvalent abelianizations -/
+def mul_equiv.abelianization_congr {G H : Type*} [group G] [group H] (e : G ≃* H) :
+  abelianization G ≃* abelianization H :=
+{ to_fun := abelianization.lift $ abelianization.of.comp e.to_monoid_hom,
+  inv_fun := abelianization.lift $ abelianization.of.comp e.symm.to_monoid_hom,
+  left_inv := by {rintros ⟨a⟩, simp,},
+  right_inv := by {rintros ⟨a⟩, simp,},
+  map_mul' := by tidy }
 
 end abelianization

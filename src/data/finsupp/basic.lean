@@ -1565,13 +1565,49 @@ finset.subset.trans support_sum $
   finset.subset.trans (finset.bUnion_mono $ assume a ha, support_single_subset) $
   by rw [finset.bUnion_singleton]; exact subset.refl _
 
+lemma map_domain_apply' {α β M : Type*} [add_comm_monoid M] (S : set α) {f : α → β} (x : α →₀ M)
+  (hS : (x.support : set α) ⊆ S) (hf : set.inj_on f S) {a : α} (ha : a ∈ S) :
+  map_domain f x (f a) = x a :=
+begin
+  rw [map_domain, sum_apply, sum],
+  simp_rw single_apply,
+  have : ∀ (b : α) (ha1 : b ∈ x.support),
+    (if f b = f a then x b else 0) = if f b = f a then x a else 0,
+  { intros b hb,
+    refine if_ctx_congr iff.rfl (λ hh, _) (λ _, rfl),
+    rw hf (hS hb) ha hh, },
+  conv in (ite _ _ _)
+  { rw [this _ H], },
+  by_cases ha : a ∈ x.support,
+  { rw [← finset.add_sum_erase _ _ ha, if_pos rfl],
+    convert add_zero _,
+    have : ∀ i ∈ x.support.erase a, f i ≠ f a,
+    { intros i hi,
+      exact (finset.ne_of_mem_erase hi) ∘ (hf (hS $ finset.mem_of_mem_erase hi) (hS ha)), },
+    conv in (ite _ _ _)
+    { rw if_neg (this x H), },
+    exact finset.sum_const_zero, },
+  { rw [mem_support_iff, not_not] at ha,
+    simp [ha], }
+end
+
+lemma map_domain_support_of_inj_on [decidable_eq β] {f : α → β} (s : α →₀ M)
+  (hf : set.inj_on f s.support) : (map_domain f s).support = finset.image f s.support :=
+finset.subset.antisymm map_domain_support $ begin
+  intros x hx,
+  simp only [mem_image, exists_prop, mem_support_iff, ne.def] at hx,
+  rcases hx with ⟨hx_w, hx_h_left, rfl⟩,
+  simp only [mem_support_iff, ne.def],
+  rw map_domain_apply' (↑s.support : set _) _ _ hf,
+  { exact hx_h_left, },
+  { simp only [mem_coe, mem_support_iff, ne.def],
+    exact hx_h_left, },
+  { exact subset.refl _, },
+end
+
 lemma map_domain_support_of_injective [decidable_eq β] {f : α → β} (hf : function.injective f)
   (s : α →₀ M) : (map_domain f s).support = finset.image f s.support :=
-finset.subset.antisymm map_domain_support $ begin
-  rw finset.image_subset_iff_subset_preimage (hf.inj_on _),
-  intros x hx,
-  simp [map_domain_apply hf, mem_support_iff.mp hx],
-end
+map_domain_support_of_inj_on s (hf.inj_on _)
 
 @[to_additive]
 lemma prod_map_domain_index [comm_monoid N] {f : α → β} {s : α →₀ M}
@@ -1633,6 +1669,36 @@ lemma map_domain_map_range [add_comm_monoid N] (f : α → β) (v : α →₀ M)
   map_domain f (map_range g h0 v) = map_range g h0 (map_domain f v) :=
 let g' : M →+ N := { to_fun := g, map_zero' := h0, map_add' := hadd} in
 add_monoid_hom.congr_fun (map_domain.add_monoid_hom_comp_map_range f g') v
+
+
+-- TODO can any assumptions be weakened
+-- TODO version with monoid hom?
+lemma sum_update_add {α β : Type*} [add_comm_monoid α] [add_comm_monoid β]
+  (f : ι →₀ α) (i : ι) (a : α) (g : ι → α → β) (hg : ∀ i, g i 0 = 0)
+  (hgg : ∀ (j : ι) (b₁ b₂ : α), g j (b₁ + b₂) = g j b₁ + g j b₂) :
+  (f.update i a).sum g + g i (f i) = f.sum g + g i a :=
+begin
+  rw [update_eq_erase_add_single, sum_add_index hg hgg],
+  conv_rhs { rw ← finsupp.update_self f i },
+  rw [update_eq_erase_add_single, sum_add_index hg hgg, add_assoc, add_assoc],
+  congr' 1,
+  rw [add_comm, sum_single_index (hg _), sum_single_index (hg _)],
+end
+
+lemma map_domain_inj_on {α β M : Type*} [add_comm_monoid M] (S : set α) {f : α → β}
+  (hf : set.inj_on f S) :
+  set.inj_on (map_domain f : (α →₀ M) → (β →₀ M)) {w | (w.support : set α) ⊆ S} :=
+begin
+  intros v₁ hv₁ v₂ hv₂ eq,
+  ext a,
+  by_cases h : a ∈ v₁.support ∪ v₂.support,
+  { rw [← map_domain_apply' S _ hv₁ hf _, ← map_domain_apply' S _ hv₂ hf _, eq];
+    { apply set.union_subset hv₁ hv₂,
+      exact_mod_cast h, }, },
+  { simp only [decidable.not_or_iff_and_not, mem_union, not_not, mem_support_iff] at h,
+    simp [h], },
+end
+
 
 end map_domain
 
@@ -2313,14 +2379,7 @@ end
 
 lemma map_domain_smul {_ : monoid R} [add_comm_monoid M] [distrib_mul_action R M]
    {f : α → β} (b : R) (v : α →₀ M) : map_domain f (b • v) = b • map_domain f v :=
-begin
-  change map_domain f (map_range _ _ _) = map_range _ _ _,
-  apply finsupp.induction v, { simp only [map_domain_zero, map_range_zero] },
-  intros a b v' hv₁ hv₂ IH,
-  rw [map_range_add, map_domain_add, IH, map_domain_add, map_range_add,
-    map_range_single, map_domain_single, map_domain_single, map_range_single];
-  apply smul_add
-end
+map_domain_map_range _ _ _ _ (smul_add b)
 
 @[simp] lemma smul_single {_ : monoid R} [add_monoid M] [distrib_mul_action R M]
   (c : R) (a : α) (b : M) : c • finsupp.single a b = finsupp.single a (c • b) :=

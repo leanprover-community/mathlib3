@@ -428,6 +428,19 @@ lemma _root_.is_root_of_unity_iff {n : ℕ} (h : 0 < n) (R : Type*) [comm_ring R
 by rw [←mem_nth_roots h, nth_roots, mem_roots $ X_pow_sub_C_ne_zero h _,
        C_1, ←prod_cyclotomic_eq_X_pow_sub_one h, is_root_prod]; apply_instance
 
+lemma is_root_of_unity_of {n : ℕ} {R} [comm_ring R] {ζ : R} {i : ℕ}
+  (hi : i ∈ n.divisors) (h : (cyclotomic i R).is_root ζ) : ζ ^ n = 1 :=
+begin
+  rcases n.eq_zero_or_pos with rfl | hn,
+  { exact pow_zero _ },
+  have := congr_arg (eval ζ) (prod_cyclotomic_eq_X_pow_sub_one hn R).symm,
+  rw [eval_sub, eval_pow, eval_X, eval_one] at this,
+  convert eq_add_of_sub_eq' this,
+  convert (add_zero _).symm,
+  apply eval_eq_zero_of_dvd_of_eval_eq_zero _ h,
+  exact finset.dvd_prod_of_mem _ hi
+end
+
 section arithmetic_function
 open nat.arithmetic_function
 open_locale arithmetic_function
@@ -563,7 +576,22 @@ begin
       ←is_root_cyclotomic_iff']
 end
 
-/-- If `R` is of characterist zero, then `ζ` is a root of `cyclotomic n R` if and only if it is a
+lemma roots_cyclotomic_nodup {n : ℕ} {R : Type*} [comm_ring R] [is_domain R] [ne_zero (n : R)] :
+  (cyclotomic n R).roots.nodup :=
+begin
+  obtain h | ⟨ζ, hζ⟩ := (cyclotomic n R).roots.empty_or_exists_mem,
+  { exact h.symm ▸ multiset.nodup_zero },
+  rw [mem_roots $ cyclotomic_ne_zero n R, is_root_cyclotomic_iff] at hζ,
+  refine multiset.nodup_of_le (roots.le_of_dvd (X_pow_sub_C_ne_zero
+    (ne_zero.pos_of_ne_zero_coe R) 1) $ cyclotomic.dvd_X_pow_sub_one n R) hζ.nth_roots_nodup,
+end
+
+lemma _root_.primitive_roots_eq_roots_cyclotomic {n : ℕ} {R : Type*} [comm_ring R] [is_domain R]
+  [h : ne_zero (n : R)] : primitive_roots n R = ⟨(cyclotomic n R).roots, roots_cyclotomic_nodup⟩ :=
+by { ext, simp [cyclotomic_ne_zero n R, is_root_cyclotomic_iff,
+                mem_primitive_roots, ne_zero.pos_of_ne_zero_coe R] }
+
+/-- If `R` is of characteristic zero, then `ζ` is a root of `cyclotomic n R` if and only if it is a
 primitive `n`-th root of unity. -/
 lemma is_root_cyclotomic_iff_char_zero {n : ℕ} {R : Type*} [comm_ring R] [is_domain R]
   [char_zero R] {μ : R} (hn : 0 < n) :

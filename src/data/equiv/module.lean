@@ -477,3 +477,29 @@ def to_module_aut : S →* M ≃ₗ[R] M :=
   map_mul' := λ a b, linear_equiv.ext $ mul_smul _ _ }
 
 end distrib_mul_action
+
+namespace add_equiv
+variables [semiring R] [add_comm_monoid M] [module R M] [add_comm_monoid M₂] [module R M₂]
+
+/-- An additive equivalence whose underlying function preserves `smul` is a linear equivalence. -/
+def to_linear_equiv (e : M ≃+ M₂) (h : ∀ (c : R) x, e (c • x) = c • e x) : M ≃ₗ[R] M₂ :=
+{ map_smul' := h, .. e, }
+
+@[simp] lemma coe_to_linear_equiv (e : M ≃+ M₂) (h : ∀ (c : R) x, e (c • x) = c • e x) :
+  ⇑(e.to_linear_equiv h) = e :=
+rfl
+
+@[simp] lemma coe_to_linear_equiv_symm (e : M ≃+ M₂) (h : ∀ (c : R) x, e (c • x) = c • e x) :
+  ⇑(e.to_linear_equiv h).symm = e.symm :=
+rfl
+
+def to_int_linear_equiv {α β : Type*} [add_comm_group α] [add_comm_group β]
+  (e : α ≃+ β) : α ≃ₗ[ℤ] β :=
+e.to_linear_equiv $ λ c a, by { erw e.to_add_monoid_hom.map_zsmul, refl }
+
+def to_nat_linear_equiv {α β : Type*} [add_comm_monoid α] [add_comm_monoid β]
+  (e : α ≃+ β) : α ≃ₗ[ℕ] β :=
+e.to_linear_equiv $ λ c a, by { erw e.to_add_monoid_hom.map_nsmul, refl }
+
+
+end add_equiv

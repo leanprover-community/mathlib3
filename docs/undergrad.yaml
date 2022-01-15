@@ -427,7 +427,7 @@ Topology:
     Arzela-Ascoli theorem: 'bounded_continuous_function.arzela_ascoli'
   Hilbert spaces:
     Hilbert projection theorem: 'exists_norm_eq_infi_of_complete_convex'
-    orthogonal projection onto closed vector subspaces: 'orthogonal_projection_fn'
+    orthogonal projection onto closed vector subspaces: 'orthogonal_projection'
     dual space: 'normed_space.dual.normed_space'
     Riesz representation theorem: 'inner_product_space.to_dual'
     inner product space $l^2$: 'lp.inner_product_space'

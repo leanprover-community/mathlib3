@@ -272,79 +272,31 @@ begin
   push_cast [←(pow_sub_mul_pow ↑p hk), pow_one, mul_right_comm],
 end
 
-
-------------------------------------------------------------------------------------------------
-------------------------------------------------------------------------------------------------
-------------------------------------------------------------------------------------------------
--- This is in `PR #11353`
-section prod_add_index
-variables {α M N : Type*} [has_union (finset α)]
-lemma prod_add_index'' [add_zero_class M] [comm_monoid N] {f g : α →₀ M}
-   {h : α → M → N} (h_zero : ∀ a ∈ f.support ∪ g.support, h a 0 = 1)
-   (h_add : ∀ a b₁ b₂, h a (b₁ + b₂) = h a b₁ * h a b₂) :
-   (f + g).prod h = f.prod h * g.prod h := sorry
---  begin
---    rw [finsupp.prod_of_support_subset f (subset_union_left _ g.support) h h_zero,
---        finsupp.prod_of_support_subset g (subset_union_right f.support _) h h_zero,
---        ←finset.prod_mul_distrib,
---        finsupp.prod_of_support_subset (f + g) finsupp.support_add h h_zero],
---    exact finset.prod_congr rfl (λ x hx, (by apply h_add)),
---  end
-end prod_add_index
-------------------------------------------------------------------------------------------------
-------------------------------------------------------------------------------------------------
-------------------------------------------------------------------------------------------------
-
-
-
-example (f1 f2 : ℕ →₀ ℕ) : (f1.prod pow) * (f2.prod pow) = (f1 + f2).prod pow :=
-begin
-  rw prod_add_index'', {simp}, {apply pow_add},
-end
-
-
-
--- This is proved in another branch in `data/nat/factorization`
-lemma aux (n : ℕ) : n.factorization.prod (λ (p k : ℕ), p) ∣ n := sorry
-
-
 theorem totient_Euler_product_formula' (n : ℕ) :
   φ n = n / (n.factorization.prod (λ p k, p)) * (n.factorization.prod (λ p k, p - 1)) :=
--- theorem totient_Euler_product_formula' (n : ℕ) :
---   φ n = n / (n.factors.to_finset.prod id) * (n.factors.map pred).to_finset.prod id :=
 begin
-  rcases n.eq_zero_or_pos with rfl | hn0, { simp },
-  have h1 : 0 < n.factorization.prod (λ (p k : ℕ), p), {
-    unfold finsupp.prod,
-    apply prod_pos,
-    intros p hp,
-    rw factor_iff_mem_factorization at hp,
-    exact prime.pos (prime_of_mem_factors hp),
-    },
-  suffices : φ n = n * (n.factorization.prod (λ p k, p - 1)) / (n.factorization.prod (λ p k, p)),
-  {
-    rw this,
-    nth_rewrite_lhs 0 mul_comm,
-    nth_rewrite_rhs 0 mul_comm,
-    apply nat.mul_div_assoc (n.factorization.prod (λ (p k : ℕ), p - 1)),
-    exact aux n,
-   },
+  rcases em (n = 0) with rfl | hn0, { simp },
 
-  suffices : φ n * (n.factorization.prod (λ p k, p)) = n * (n.factorization.prod (λ p k, p - 1)),
-  {
-    rw ←this,
-    rw nat.mul_div_cancel _ h1,
-  },
-  rw multiplicative_factorization φ (λ a b, totient_mul) totient_one (ne_of_gt hn0),
-  nth_rewrite_rhs 0 ←(factorization_prod_pow_eq_self (ne_of_gt hn0)),
+  set P1 := (n.factorization.prod (λ p k, p)),
+  set P2 := (n.factorization.prod (λ p k, p - 1)),
+
+  have h1 : 0 < P1 := prod_pos (λ p hp, pos_of_mem_factorization hp),
+
+  have h2 : P1 ∣ n,
+  { rw ←factorization_prod_pow_eq_self hn0,
+    refine finset.prod_dvd_prod id (λ a, a ^ (n.factorization) a) (λ p hp, _),
+    apply dvd_pow _ (finsupp.mem_support_iff.mp hp),
+    simp },
+
+  suffices : φ n * P1 = n * P2,
+  { rw [(mul_div_left n.totient h1).symm, this, mul_comm, nat.mul_div_assoc P2 h2, mul_comm] },
+
+  rw multiplicative_factorization φ (λ a b, totient_mul) totient_one hn0,
+  nth_rewrite_rhs 0 ←(factorization_prod_pow_eq_self hn0),
   simp only [←finsupp.prod_mul],
-  apply prod_congr rfl,
-  intros p hp,
-  set k := n.factorization p,
-  simp,
-  have hpp : prime p := prime_of_mem_factors (factor_iff_mem_factorization.mp hp),
-  have hk : 0 < k := zero_lt_iff.mpr (finsupp.mem_support_iff.mp hp),
-  simp only [totient_prime_pow hpp hk],
+  refine prod_congr rfl (λ p hp, _),
+  have hk : 0 < n.factorization p := zero_lt_iff.mpr (finsupp.mem_support_iff.mp hp),
+  simp only [totient_prime_pow (prime_of_mem_factorization hp) hk],
   simp only [mul_right_comm, ←(pow_sub_mul_pow p hk), pow_one],
 end
 

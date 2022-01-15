@@ -182,7 +182,7 @@ begin
   exact h i
 end
 
-theorem deriv_family_eq_enum_ord {ι} {f : ι → ordinal → ordinal} (H : ∀ i, is_normal (f i)) :
+theorem deriv_family_eq_enum_ord {f : ι → ordinal → ordinal} (H : ∀ i, is_normal (f i)) :
   deriv_family f = enum_ord _ (nfp_family_unbounded H) :=
 begin
   rw ←eq_enum_ord,

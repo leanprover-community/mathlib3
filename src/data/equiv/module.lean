@@ -498,10 +498,21 @@ def to_int_linear_equiv {α β : Type*} [add_comm_group α] [add_comm_group β]
   (e : α ≃+ β) : α ≃ₗ[ℤ] β :=
 e.to_linear_equiv $ λ c a, by { erw e.to_add_monoid_hom.map_zsmul, refl }
 
+@[simp] lemma coe_to_int_linear_equiv {α β : Type*} [add_comm_group α] [add_comm_group β]
+  (e : α ≃+ β) : ⇑(e.to_int_linear_equiv) = e := rfl
+
+@[simp] lemma coe_to_int_linear_equiv_symm {α β : Type*} [add_comm_group α] [add_comm_group β]
+  (e : α ≃+ β) : ⇑(e.to_int_linear_equiv).symm = e.symm := rfl
+
 /-- An additive equivalence between commutative monoids is a linear equivalence between ℕ-modules -/
 def to_nat_linear_equiv {α β : Type*} [add_comm_monoid α] [add_comm_monoid β]
   (e : α ≃+ β) : α ≃ₗ[ℕ] β :=
 e.to_linear_equiv $ λ c a, by { erw e.to_add_monoid_hom.map_nsmul, refl }
 
+@[simp] lemma coe_to_nat_linear_equiv {α β : Type*} [add_comm_monoid α] [add_comm_monoid β]
+  (e : α ≃+ β) : ⇑(e.to_nat_linear_equiv) = e := rfl
+
+@[simp] lemma coe_to_nat_linear_equiv_symm {α β : Type*} [add_comm_monoid α] [add_comm_monoid β]
+  (e : α ≃+ β) : ⇑(e.to_nat_linear_equiv).symm = e.symm := rfl
 
 end add_equiv

@@ -49,7 +49,15 @@ lemma congr_left [preorder ι] [has_dist E] {f f' : ι → α → E} {g : α →
   (h : ∀ i, f i =ᵐ[μ] f' i) (h_tendsto : tendsto_in_measure μ f g) :
   tendsto_in_measure μ f' g :=
 begin
-  sorry
+  intros ε hε,
+  specialize h_tendsto ε hε,
+  suffices : (λ i, μ {x | ε ≤ dist (f' i x) (g x)}) = (λ i, μ {x | ε ≤ dist (f i x) (g x)}),
+    by rwa this,
+  ext1 i,
+  refine measure_congr ((h i).mono (λ x hx, _)),
+  rw eq_iff_iff,
+  change ε ≤ dist (f' i x) (g x) ↔ ε ≤ dist (f i x) (g x),
+  rw hx,
 end
 
 lemma congr_right [preorder ι] [has_dist E] {f : ι → α → E} {g g' : α → E}

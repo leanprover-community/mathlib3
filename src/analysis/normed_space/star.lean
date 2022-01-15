@@ -153,7 +153,7 @@ begin
   rw [one_pow 2, this],
 end
 
-@[simp] lemma norm_mem_unitary [nontrivial E] {U : E} (hU : U ∈ unitary E) : ∥U∥ = 1 :=
+@[simp] lemma norm_of_mem_unitary [nontrivial E] {U : E} (hU : U ∈ unitary E) : ∥U∥ = 1 :=
 norm_coe_unitary ⟨U, hU⟩
 
 @[simp] lemma norm_coe_unitary_mul (U : unitary E) (A : E) : ∥(U : E) * A∥ = ∥A∥ :=

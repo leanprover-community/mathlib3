@@ -419,12 +419,12 @@ begin
   exact hx.2,
 end
 
-lemma set_to_simple_func_smul_left [has_continuous_smul ℝ F'] {m : measurable_space α}
+lemma set_to_simple_func_smul_left {m : measurable_space α}
   (T : set α → F →L[ℝ] F') (c : ℝ) (f : α →ₛ F) :
   set_to_simple_func (λ s, c • (T s)) f = c • set_to_simple_func T f :=
 by simp_rw [set_to_simple_func, continuous_linear_map.smul_apply, smul_sum]
 
-lemma set_to_simple_func_smul_left' [has_continuous_smul ℝ F']
+lemma set_to_simple_func_smul_left'
   (T T' : set α → E →L[ℝ] F') (c : ℝ) (h_smul : ∀ s, measurable_set s → μ s < ∞ → T' s = c • (T s))
   {f : α →ₛ E} (hf : integrable f μ) :
   set_to_simple_func T' f = c • set_to_simple_func T f :=

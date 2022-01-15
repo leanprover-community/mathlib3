@@ -99,7 +99,7 @@ instance is_comm_jordan.to_is_jordan (A : Type*) [has_mul A] [is_comm_jordan A] 
 
 universe u
 
-/- A (unital, associative) ring satisfies the (non-commutative) Jordan axioms-/
+/-- Semigroup multiplication satisfies the (non-commutative) Jordan axioms-/
 @[priority 100] -- see Note [lower instance priority]
 instance semigroup.is_jordan (B : Type u) [semigroup B] : is_jordan B :=
 { lmul_comm_rmul := by { intros, rw mul_assoc },

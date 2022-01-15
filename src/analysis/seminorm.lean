@@ -278,33 +278,6 @@ variables (p : seminorm 𝕜 E) (c : 𝕜) (x y : E) (r : ℝ)
 protected lemma smul : p (c • x) = ∥c∥ * p x := p.smul' _ _
 protected lemma triangle : p (x + y) ≤ p x + p y := p.triangle' _ _
 
-instance : has_add (seminorm 𝕜 E) :=
-{ add := λ p q,
-  { to_fun := λ x, p x + q x,
-    smul' := λ a x, by rw [p.smul, q.smul, mul_add],
-    triangle' := λ _ _, has_le.le.trans_eq (add_le_add (p.triangle _ _) (q.triangle _ _))
-      (add_add_add_comm _ _ _ _) } }
-
-lemma coe_add (p q : seminorm 𝕜 E) : ⇑(p + q) = p + q := rfl
-
-@[simp] lemma add_apply (p q : seminorm 𝕜 E) (x : E) : (p + q) x = p x + q x := rfl
-
-instance : ordered_cancel_add_comm_monoid (seminorm 𝕜 E) :=
-fun_like.coe_injective.ordered_cancel_add_comm_monoid _ rfl coe_add
-
-/-- `coe_fn` as an `add_monoid_hom`. Helper definition for showing that `seminorm 𝕜 E` is
-a module. -/
-def coe_fn_add_monoid_hom (𝕜) (E) [semi_normed_ring 𝕜] [add_monoid E] [has_scalar 𝕜 E] :
-  add_monoid_hom (seminorm 𝕜 E) (E → ℝ) := ⟨coe_fn, coe_zero, coe_add⟩
-
-lemma coe_add_monoid_hom : ⇑(coe_fn_add_monoid_hom 𝕜 E) = coe_fn := rfl
-
-lemma coe_add_monoid_injective : function.injective (coe_fn_add_monoid_hom 𝕜 E) :=
-begin
-  rw coe_add_monoid_hom,
-  exact fun_like.coe_injective,
-end
-
 /-- Any action on `ℝ` which factors through `ℝ≥0` applies to a seminorm. -/
 instance {R} [has_scalar R ℝ] [has_scalar R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ] :
   has_scalar R (seminorm 𝕜 E) :=
@@ -325,6 +298,36 @@ lemma coe_smul {R} [has_scalar R ℝ] [has_scalar R ℝ≥0] [is_scalar_tower R 
 
 @[simp] lemma smul_apply {R} [has_scalar R ℝ] [has_scalar R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ]
   (r : R) (p : seminorm 𝕜 E) (x : E) : (r • p) x = r • p x := rfl
+
+instance : has_add (seminorm 𝕜 E) :=
+{ add := λ p q,
+  { to_fun := λ x, p x + q x,
+    smul' := λ a x, by rw [p.smul, q.smul, mul_add],
+    triangle' := λ _ _, has_le.le.trans_eq (add_le_add (p.triangle _ _) (q.triangle _ _))
+      (add_add_add_comm _ _ _ _) } }
+
+lemma coe_add (p q : seminorm 𝕜 E) : ⇑(p + q) = p + q := rfl
+
+@[simp] lemma add_apply (p q : seminorm 𝕜 E) (x : E) : (p + q) x = p x + q x := rfl
+
+instance : add_monoid (seminorm 𝕜 E) :=
+fun_like.coe_injective.add_monoid_smul _ rfl coe_add (λ p n, coe_smul n p)
+
+instance : ordered_cancel_add_comm_monoid (seminorm 𝕜 E) :=
+fun_like.coe_injective.ordered_cancel_add_comm_monoid _ rfl coe_add
+
+/-- `coe_fn` as an `add_monoid_hom`. Helper definition for showing that `seminorm 𝕜 E` is
+a module. -/
+def coe_fn_add_monoid_hom (𝕜) (E) [semi_normed_ring 𝕜] [add_monoid E] [has_scalar 𝕜 E] :
+  add_monoid_hom (seminorm 𝕜 E) (E → ℝ) := ⟨coe_fn, coe_zero, coe_add⟩
+
+lemma coe_add_monoid_hom : ⇑(coe_fn_add_monoid_hom 𝕜 E) = coe_fn := rfl
+
+lemma coe_add_monoid_injective : function.injective (coe_fn_add_monoid_hom 𝕜 E) :=
+begin
+  rw coe_add_monoid_hom,
+  exact fun_like.coe_injective,
+end
 
 instance : module (ℝ≥0) (seminorm 𝕜 E) :=
 begin

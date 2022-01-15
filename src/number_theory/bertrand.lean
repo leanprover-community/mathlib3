@@ -485,6 +485,9 @@ begin
   ring,
 end
 
+/--
+A reified version of the `bertrand_inequality` below.
+-/
 lemma real_bertrand_inequality {x : ℝ} (n_large : (1024 : ℝ) < x)
   : x * (2 * x) ^ (real.sqrt (2 * x)) * 4 ^ (2 * x / 3) < 4 ^ x :=
 begin
@@ -502,9 +505,7 @@ begin
   repeat {linarith,},
   apply log_pos,
   norm_num,
-
 end
-
 
 /--
 The inequality which contradicts Bertrand's postulate, for large enough `n`.
@@ -512,8 +513,6 @@ The inequality which contradicts Bertrand's postulate, for large enough `n`.
 lemma bertrand_inequality {n : ℕ} (n_large : 1024 < n)
   : n * (2 * n) ^ (nat.sqrt (2 * n)) * 4 ^ (2 * n / 3) ≤ 4 ^ n :=
 begin
-  -- rw imp_false,
-  -- rw not_le,
   rw <-@nat.cast_le ℝ,
   have fact1 : 0 < (n : ℝ),
   { rw <-nat.cast_zero,
@@ -940,20 +939,25 @@ it, but no more than twice as large.
 -/
 theorem bertrand (n : nat) (n_pos : 0 < n) : ∃ p, nat.prime p ∧ n < p ∧ p ≤ 2 * n :=
 begin
+  -- Split into cases whether `n` is large or small
   cases lt_or_le 1024 n,
+  -- If `n` is large, apply the theorem derived from the inequalities on the central binomial
+  -- coefficient.
   { exact bertrand_eventually n h },
-  -- Supply a list of primes to cover the initial cases
+  -- For small `n`, supply a list of primes to cover the initial cases.
   apply bertrand_initial n n_pos [1031, 547, 277, 139, 73, 37, 19, 11, 7, 5, 3],
   -- Prove the list has the properties needed:
-  { -- Prove the list consists of primes
+  { -- The list consists of primes
     intros p hp,
-    simp at hp,
+    simp only [list.mem_cons_iff, list.mem_singleton] at hp,
     iterate {cases hp <|> rw hp <|> norm_num}, },
-  { -- Prove each element of the list is at least half the previous.
+  { -- Each element of the list is at least half the previous.
     intros a b hab,
-    simp at hab,
+    simp only [list.zip_nil_right, list.mem_cons_iff, list.cons_append, prod.mk.inj_iff,
+               list.zip_cons_cons, list.tail, list.mem_singleton, list.singleton_append,
+               list.tail_cons] at hab,
     iterate {cases hab <|> rw [hab.left, hab.right] <|> linarith}, },
-  { -- Prove the first element of the list is large enough.
-    simp,
+  { -- The first element of the list is large enough.
+    simp only [list.head, list.cons_append],
     linarith, },
 end

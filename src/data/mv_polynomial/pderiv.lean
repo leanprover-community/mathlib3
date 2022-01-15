@@ -66,7 +66,7 @@ def pderiv (i : σ) : mv_polynomial σ R →ₗ[R] mv_polynomial σ R :=
     { intros s,
       simp only [monomial_zero, zero_mul] }
   end,
-  map_add' := λ f g, sum_add_index (by simp only [monomial_zero, forall_const, zero_mul])
+  map_add' := λ f g, sum_add_index'' (by simp [monomial_zero, forall_const, zero_mul])
     (by simp only [add_mul, forall_const, eq_self_iff_true, (monomial _).map_add]), }
 
 @[simp]

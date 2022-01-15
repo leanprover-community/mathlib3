@@ -262,7 +262,7 @@ lemma orthogonal_supr_eigenspaces_eq_bot_of_compact : (⨆ μ, eigenspace T μ)�
 begin
   have hT' : is_self_adjoint _ := hT.restrict_invariant hT.orthogonal_supr_eigenspaces_invariant,
   have hT_cpct' : compact_map _ :=
-    hT_cpct.restrict_invariant hT.orthogonal_supr_eigenspaces_invariant sorry,
+    hT_cpct.restrict_invariant' hT.orthogonal_supr_eigenspaces_invariant,
   -- a self-adjoint operator on a nontrivial inner product space has an eigenvalue
   haveI := hT'.subsingleton_of_no_eigenvalue_of_compact hT_cpct' hT.orthogonal_supr_eigenspaces,
   exact submodule.eq_bot_of_subsingleton _,

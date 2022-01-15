@@ -6,7 +6,7 @@ Authors: Heather Macbeth, Frédéric Dupuis
 import analysis.inner_product_space.calculus
 import analysis.inner_product_space.dual
 import analysis.calculus.lagrange_multipliers
-import analysis.normed_space.compact_operator
+import analysis.normed_space.compact_map
 import linear_algebra.eigenspace
 
 /-!

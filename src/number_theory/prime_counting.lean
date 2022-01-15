@@ -147,7 +147,7 @@ begin
   simp [hi] at h,
   apply le_trans h,
   rw ←hi,
-  -- Brute force prime count
+  -- Brute force evaluation of prime_counting'
   simp [prime_counting', count_succ],
   norm_num,
   -- Brute force totient

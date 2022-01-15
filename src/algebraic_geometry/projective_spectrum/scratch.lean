@@ -1,0 +1,28 @@
+
+-- { carrier := { a | localization.mk a 1 ∈
+--     ideal.span { z : localization.away f | ∃ (c : q.1), z = c.1.1 } },
+--   zero_mem' := begin
+--     rw [set.mem_set_of_eq], apply ideal.subset_span,
+--     use 0, rw localization.mk_zero, refl,
+--   end,
+--   add_mem' := λ a b ha hb, begin
+--     rw [set.mem_set_of_eq] at ha hb ⊢,
+--     have eq1 : localization.mk (a + b) 1 = localization.mk a 1 + localization.mk b 1,
+--     { rw localization.add_mk, rw [←subtype.val_eq_coe],
+--       have : (1 : submonoid.powers f).val = 1 := rfl,
+--       erw [this, one_mul, mul_one],
+--       congr' 1, rw [add_comm], congr,
+--       convert (one_mul _).symm,  },
+--     erw eq1, apply submodule.add_mem _ ha hb,
+--   end,
+--   smul_mem' := λ a b hb, begin
+--     rw [set.mem_set_of_eq] at hb ⊢,
+--     rw smul_eq_mul,
+--     have eq1 : (localization.mk (a * b) 1 : localization.away f) =
+--       localization.mk a 1 * localization.mk b 1,
+--     { rw localization.mk_mul,
+--       congr' 1, erw one_mul, },
+--     erw eq1,
+--     refine ideal.mul_mem_left (ideal.span {z : localization.away f | ∃ (c : q.val), z = c.1.1})
+--       (localization.mk a 1) hb,
+--   end }

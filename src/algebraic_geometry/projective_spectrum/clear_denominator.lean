@@ -1,10 +1,11 @@
 import ring_theory.localization
+import ring_theory.graded_algebra.basic
 
-open_locale classical big_operators
+open_locale  big_operators
 
 section clear_denominator
 
-variables (R : Type*) [comm_ring R] (f : R)
+variables (R : Type*) [comm_ring R] (f : R) [decidable_eq (localization.away f)]
 
 def clear_denominator (s : finset (localization.away f)) :
   ∃ (n : ℕ), ∀ (x : localization.away f), x ∈ s →
@@ -41,3 +42,36 @@ begin
 end
 
 end clear_denominator
+
+
+section homogeneous_induction
+
+universe u
+
+variables {ι R A: Type.{u}} [linear_ordered_cancel_add_comm_monoid ι]
+variables [comm_ring R] [comm_ring A] [algebra R A]
+variables (𝒜 : ι → submodule R A) [graded_algebra 𝒜]
+variable [Π (i : ι) (x : 𝒜 i), decidable (x ≠ 0)]
+
+@[elab_as_eliminator]
+lemma set_like.homogeneous_induction {P : A → Prop}
+  (a : A)
+  (h_zero : P 0)
+  (h_hom : ∀ (a : set_like.homogeneous_submonoid 𝒜), P a.1)
+  (h_add : ∀ (a b : A), P a → P b → P (a + b))
+  : P a :=
+begin
+  erw ←graded_algebra.sum_support_decompose 𝒜 a,
+  suffices : ∀ (i : graded_algebra.support 𝒜 a), P (graded_algebra.decompose 𝒜 a i.1 : A),
+  { induction (graded_algebra.support 𝒜 a) using finset.induction_on with x s hx ih,
+    erw finset.sum_empty, exact h_zero,
+
+    erw finset.sum_insert hx, apply h_add _ _ _ ih,
+    refine h_hom ⟨(graded_algebra.decompose 𝒜 a x), ⟨x, submodule.coe_mem _⟩⟩, },
+
+  rintros ⟨i, hi⟩,
+  refine h_hom ⟨(graded_algebra.decompose 𝒜 a i), ⟨i, submodule.coe_mem _⟩⟩,
+end
+
+
+end homogeneous_induction

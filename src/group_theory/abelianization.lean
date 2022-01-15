@@ -116,6 +116,6 @@ def mul_equiv.abelianization_congr {G H : Type*} [group G] [group H] (e : G ≃*
   abelianization G ≃* abelianization H :=
 { to_fun := abelianization.lift $ abelianization.of.comp e.to_monoid_hom,
   inv_fun := abelianization.lift $ abelianization.of.comp e.symm.to_monoid_hom,
-  left_inv := by {rintros ⟨a⟩, simp,},
-  right_inv := by {rintros ⟨a⟩, simp,},
+  left_inv := by { rintros ⟨a⟩, simp },
+  right_inv := by { rintros ⟨a⟩, simp },
   map_mul' := by tidy }

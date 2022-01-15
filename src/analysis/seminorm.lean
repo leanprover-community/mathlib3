@@ -289,6 +289,22 @@ lemma coe_add (p q : seminorm 𝕜 E) : ⇑(p + q) = p + q := rfl
 
 @[simp] lemma add_apply (p q : seminorm 𝕜 E) (x : E) : (p + q) x = p x + q x := rfl
 
+instance : add_comm_monoid (seminorm 𝕜 E) := fun_like.coe_injective.add_comm_monoid _ rfl coe_add
+
+instance : ordered_cancel_add_comm_monoid (seminorm 𝕜 E) :=
+fun_like.coe_injective.ordered_cancel_add_comm_monoid _ rfl coe_add
+
+def coe_add_monoid (𝕜) (E) [semi_normed_ring 𝕜] [add_monoid E] [has_scalar 𝕜 E] :
+  add_monoid_hom (seminorm 𝕜 E) (E → ℝ) := ⟨coe_fn, coe_zero, coe_add⟩
+
+lemma coe_coe_add_monoid : ⇑(coe_add_monoid 𝕜 E) = coe_fn := rfl
+
+lemma coe_add_monoid_injective : function.injective (coe_add_monoid 𝕜 E) :=
+begin
+  rw coe_coe_add_monoid,
+  exact fun_like.coe_injective,
+end
+
 /-- Any action on `ℝ` which factors through `ℝ≥0` applies to a seminorm. -/
 instance {R} [has_scalar R ℝ] [has_scalar R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ] :
   has_scalar R (seminorm 𝕜 E) :=
@@ -310,9 +326,12 @@ lemma coe_smul {R} [has_scalar R ℝ] [has_scalar R ℝ≥0] [is_scalar_tower R 
 @[simp] lemma smul_apply {R} [has_scalar R ℝ] [has_scalar R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ]
   (r : R) (p : seminorm 𝕜 E) (x : E) : (r • p) x = r • p x := rfl
 
-instance : mul_action nnreal (seminorm 𝕜 E) :=
-{ one_smul := λ p, ext $ (coe_smul 1 p).trans (one_smul _ _),
-  mul_smul := λ r c p, ext $ by rw [coe_smul, coe_smul, coe_smul, mul_smul] }
+instance : distrib_mul_action (ℝ≥0) (seminorm 𝕜 E) :=
+begin
+  refine function.injective.distrib_mul_action (coe_add_monoid 𝕜 E) coe_add_monoid_injective _,
+  rw coe_coe_add_monoid,
+  exact coe_smul,
+end
 
 -- TODO: define `has_Sup` too, from the skeleton at
 -- https://github.com/leanprover-community/mathlib/pull/11329#issuecomment-1008915345

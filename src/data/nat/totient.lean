@@ -255,8 +255,9 @@ theorem totient_Euler_product_formula (n : ℕ) :
    ↑(φ n) = ↑n * ∏ p in (n.factors.to_finset), (1 - p⁻¹ : ℚ) :=
 begin
   rcases n.eq_zero_or_pos with rfl | hn0, { simp },
-  nth_rewrite_rhs 0 ←(factorization_prod_pow_eq_self hn0),
-  rw multiplicative_factorization φ (λ a b, totient_mul) totient_one hn0,
+  have hn0' : n ≠ 0 := ne_of_gt hn0,
+  nth_rewrite_rhs 0 ←(factorization_prod_pow_eq_self hn0'),
+  rw multiplicative_factorization φ (λ a b, totient_mul) totient_one hn0',
   have : ∏ (p : ℕ) in n.factorization.support, (1 - (↑p)⁻¹ : ℚ) =
     n.factorization.prod (λ p k, 1 - (↑p)⁻¹), { refl },
   simp only [←support_factorization, cast_finsupp_prod, this, ←finsupp.prod_mul],
@@ -271,64 +272,41 @@ begin
   push_cast [←(pow_sub_mul_pow ↑p hk), pow_one, mul_right_comm],
 end
 
-lemma prod_pow_mul [add_zero_class M] [comm_monoid N] {f1 f2 : α →₀ M} {g : α → M → N}
-  (hg : ∀ i ∈ f1.support ∪ f2.support, g i 0 = 1)
-  (hg' : ∀ x : α, ∀ a b : M, g x a * g x b = g x (a + b)) :
-  (f1.prod g) * (f2.prod g) = (f1 + f2).prod g :=
-begin
-  rw [finsupp.prod_of_support_subset f1 (subset_union_left _ f2.support) g hg,
-      finsupp.prod_of_support_subset f2 (subset_union_right f1.support _) g hg,
-      ←finset.prod_mul_distrib,
-      finsupp.prod_of_support_subset (f1 + f2) finsupp.support_add g hg],
-  exact finset.prod_congr rfl (λ x hx, (by apply hg')),
-end
+
+------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------
+-- This is in `PR #11353`
+section prod_add_index
+variables {α M N : Type*} [has_union (finset α)]
+lemma prod_add_index'' [add_zero_class M] [comm_monoid N] {f g : α →₀ M}
+   {h : α → M → N} (h_zero : ∀ a ∈ f.support ∪ g.support, h a 0 = 1)
+   (h_add : ∀ a b₁ b₂, h a (b₁ + b₂) = h a b₁ * h a b₂) :
+   (f + g).prod h = f.prod h * g.prod h := sorry
+--  begin
+--    rw [finsupp.prod_of_support_subset f (subset_union_left _ g.support) h h_zero,
+--        finsupp.prod_of_support_subset g (subset_union_right f.support _) h h_zero,
+--        ←finset.prod_mul_distrib,
+--        finsupp.prod_of_support_subset (f + g) finsupp.support_add h h_zero],
+--    exact finset.prod_congr rfl (λ x hx, (by apply h_add)),
+--  end
+end prod_add_index
+------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------
+
+
 
 example (f1 f2 : ℕ →₀ ℕ) : (f1.prod pow) * (f2.prod pow) = (f1 + f2).prod pow :=
-prod_pow_mul (by simp) (λ x a b, (pow_add x a b).symm)
-
-
--- PREVIOUS DRAFT:
--- lemma prod_pow_mul (f1 f2 : ℕ →₀ ℕ) : (f1.prod pow) * (f2.prod pow) = (f1 + f2).prod pow :=
--- begin
---   have h1 := finsupp.prod_of_support_subset f1 (subset_union_left _ f2.support) pow (by simp),
---   have h2 := finsupp.prod_of_support_subset f2 (subset_union_right f1.support _) pow (by simp),
---   rw [h1, h2],
---   rw ←finset.prod_mul_distrib,
-
---   have h3 := @finsupp.support_add ℕ ℕ _ _ f1 f2,
---   have h4 := @finsupp.prod_of_support_subset ℕ ℕ _ _ _ _ _ h3 pow (by simp),
---   rw h4,
---   simp only [pi.add_apply, finset.prod_congr, finsupp.coe_add],
-
---   apply finset.prod_congr rfl,
---   intros x hx,
---   have := pow_add x (f1 x) (f2 x),
---   rw this,
--- end
-
--- TODO: Prove this in `data/nat/factorization`
-lemma aux (n : ℕ) : n.factorization.prod (λ (p k : ℕ), p) ∣ n :=
 begin
-  rcases n.eq_zero_or_pos with rfl | hn0, { simp },
-  apply factorization_dvd,
-  {
-    apply prod_pos,
-    intros p hp,
-    rw factor_iff_mem_factorization at hp,
-    exact prime.pos (prime_of_mem_factors hp),
-  },
-  {
-    unfold finsupp.prod,
-    rw finsupp.le_def,
-    intros q,
-
-    sorry },
-
-  -- nth_rewrite_rhs 0 ←(factorization_prod_pow_eq_self hn0),
-  -- unfold finsupp.prod,
-
-  -- have := dvd_prod_of_mem,
+  rw prod_add_index'', {simp}, {apply pow_add},
 end
+
+
+
+-- This is proved in another branch in `data/nat/factorization`
+lemma aux (n : ℕ) : n.factorization.prod (λ (p k : ℕ), p) ∣ n := sorry
+
 
 theorem totient_Euler_product_formula' (n : ℕ) :
   φ n = n / (n.factorization.prod (λ p k, p)) * (n.factorization.prod (λ p k, p - 1)) :=
@@ -357,8 +335,8 @@ begin
     rw ←this,
     rw nat.mul_div_cancel _ h1,
   },
-  rw multiplicative_factorization φ (λ a b, totient_mul) totient_one hn0,
-  nth_rewrite_rhs 0 ←(factorization_prod_pow_eq_self hn0),
+  rw multiplicative_factorization φ (λ a b, totient_mul) totient_one (ne_of_gt hn0),
+  nth_rewrite_rhs 0 ←(factorization_prod_pow_eq_self (ne_of_gt hn0)),
   simp only [←finsupp.prod_mul],
   apply prod_congr rfl,
   intros p hp,

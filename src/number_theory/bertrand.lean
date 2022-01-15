@@ -566,26 +566,6 @@ begin
           end,
 end
 
-lemma foo {n : ℕ} :
-(finset.filter (λ (p : ℕ), p ^ 2 < 2 * n)
-  (finset.filter nat.prime (finset.range (2 * n / 3 + 1)))).card ≤ nat.sqrt (2 * n) :=
-begin
-  have : (finset.Ico 1 (nat.sqrt (2 * n) + 1)).card = nat.sqrt (2 * n),
-  { simp, },
-  rw <-this,
-  clear this,
-  apply finset.card_mono,
-  simp,
-  rw finset.subset_iff,
-  simp,
-  intros x _ px h,
-  split,
-  { exact le_of_lt (nat.prime.one_lt px), },
-  { rw nat.lt_succ_iff,
-    rw nat.le_sqrt',
-    exact le_of_lt h, },
-end
-
 /--
 A lemma that tells us that, in the case where Bertrand's postulate does not hold, the prime
 factorization of the central binomial coefficent only has factors at most `2 * n / 3 + 1`.
@@ -734,7 +714,20 @@ calc (2 * n).choose n
                     : begin
                       refine (nat.mul_le_mul_right _ _),
                       refine pow_le_pow (by linarith) _,
-                      exact foo,
+                      have : (finset.Ico 1 (nat.sqrt (2 * n) + 1)).card = nat.sqrt (2 * n),
+                      { simp, },
+                      rw <-this,
+                      clear this,
+                      apply finset.card_mono,
+                      simp,
+                      rw finset.subset_iff,
+                      simp,
+                      intros x _ px h,
+                      split,
+                      { exact le_of_lt (nat.prime.one_lt px), },
+                      { rw nat.lt_succ_iff,
+                        rw nat.le_sqrt',
+                        exact le_of_lt h, },
                     end
     ...     ≤ (2 * n) ^ (nat.sqrt (2 * n))
                 *

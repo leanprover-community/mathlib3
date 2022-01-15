@@ -144,8 +144,7 @@ begin
   have ek : (∃ k, 56 + k = n), exact le.dest n_big,
   rcases ek,
   have h := linear_prime_counting_bound ek_w 56 6,
-  rw ek_h at h,
-  simp at h,
+  simp [ek_h] at h,
   apply le_trans h,
   rw <-ek_h,
   -- Brute force prime count

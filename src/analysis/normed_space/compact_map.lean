@@ -65,7 +65,7 @@ begin
   rcases f.is_bounded_linear_map.bound with ⟨M, hM, hMle⟩,
   cases hs with C hC,
   refine ⟨M*C, λ x y, _⟩,
-  specialize hC x y x.property y.property,
+  specialize hC x x.property y y.property,
   rw dist_eq_norm at hC ⊢,
   rw ← map_sub,
   refine le_trans (hMle _) _,

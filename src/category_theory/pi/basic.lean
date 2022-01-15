@@ -142,6 +142,16 @@ def pi (F : Π i, C i ⥤ D i) : (Π i, C i) ⥤ (Π i, D i) :=
 { obj := λ f i, (F i).obj (f i),
   map := λ f g α i, (F i).map (α i) }
 
+
+/--
+Similar to `pi`, but all functors come from the same category `A`
+-/
+@[simps]
+def pi' {A : Type u₁} [category.{u₁} A] (f : Π i, A ⥤ D i) :
+        A ⥤ Π i, D i :=
+{ obj := λ a i, (f i).obj a,
+  map := λ a₁ a₂ h i, (f i).map h, }
+
 -- One could add some natural isomorphisms showing
 -- how `functor.pi` commutes with `pi.eval` and `pi.comap`.
 

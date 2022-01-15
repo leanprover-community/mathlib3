@@ -321,4 +321,22 @@ def fundamental_groupoid_functor : Top ⥤ category_theory.Groupoid :=
     refl,
   end }
 
+/-- Help the typechecker by converting point in groupoid back to point in Top -/
+@[reducible]
+def to_top {X : Top} (x : (fundamental_groupoid_functor.obj X).α) : X := x
+
+/-- Help the typechecker by converting point in Top to a point in the fundamental groupoid -/
+@[reducible]
+def from_top {X : Top} (x : X) : (fundamental_groupoid_functor.obj X).α := x
+
+/-- Help the typechecker by converting a path in groupoid back to path.homotopic.quotient -/
+@[reducible]
+def to_path {X : Top} {x₀ x₁ : (fundamental_groupoid_functor.obj X).α} (p : x₀ ⟶ x₁) :
+  path.homotopic.quotient x₀ x₁ := p
+
+/-- Help the typechecker by convering a path.homotopic.quotient to an arrow in the
+    fundamental groupoid -/
+@[reducible]
+def from_path {X : Top} {x₀ x₁ : X} (p : path.homotopic.quotient x₀ x₁) : (x₀ ⟶ x₁) := p
+
 end fundamental_groupoid

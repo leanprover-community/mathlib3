@@ -289,8 +289,10 @@ instance : category_theory.groupoid (fundamental_groupoid X) :=
     (λ a, show ⟦a.trans a.symm⟧ = ⟦path.refl x⟧,
           from quotient.sound ⟨(path.homotopy.refl_trans_symm a).symm⟩) }
 
-lemma comp_eq (x y z : fundamental_groupoid X) (p : x ⟶ y) (q : y ⟶ z) :
-  p ≫ q = p.comp q := rfl
+lemma comp_eq (x y z : fundamental_groupoid X) (p : x ⟶ y) (q : y ⟶ z) : p ≫ q = p.comp q := rfl
+
+lemma id_eq_path_refl (x : fundamental_groupoid X) : 𝟙 x = ⟦path.refl x⟧ := rfl
+
 /--
 The functor sending a topological space `X` to its fundamental groupoid.
 -/

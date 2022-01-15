@@ -275,7 +275,6 @@ end path.homotopic
 
 namespace fundamental_groupoid
 
-local attribute [instance] path.homotopic.setoid
 private abbreviation π := fundamental_groupoid_functor
 universes u
 
@@ -304,8 +303,9 @@ def pi_fgrpd_to_fgrpd_pi :
   map_id' :=
   begin
     intro x,
-    change path.homotopic.pi (λ i, ⟦path.refl (to_top (x i) : X i)⟧) = ⟦path.refl x⟧,
-    rw path.homotopic.pi_lift, refl,
+    change path.homotopic.pi (λ i, 𝟙 (x i)) = _,
+    simp only [id_eq_path_refl, path.homotopic.pi_lift],
+    refl,
   end,
   map_comp' := λ x y z f g, (path.homotopic.comp_pi_eq_pi_comp f g).symm, }
 
@@ -365,10 +365,9 @@ def prod_fgrpd_to_fgrpd_prod : (π.obj A).α × (π.obj B).α ⥤ (π.obj (Top.o
   end,
   map_id' :=
   begin
-    intro x, cases x with x₀ x₁,
-    change path.homotopic.prod ⟦path.refl (to_top x₀ : A)⟧ ⟦path.refl (to_top x₁ : B)⟧
-      = ⟦path.refl (x₀, x₁)⟧,
-    rw path.homotopic.prod_lift, refl,
+    rintro ⟨x₀, x₁⟩,
+    simp only [category_theory.prod_id, id_eq_path_refl],
+    unfold_aux, rw path.homotopic.prod_lift, refl,
   end,
   map_comp' := λ x y z f g, match x, y, z, f, g with
     | (x₀, x₁), (y₀, y₁), (z₀, z₁), (f₀, f₁), (g₀, g₁) :=
@@ -388,7 +387,7 @@ def prod_fgrpd_iso_fgrpd_prod :
   begin
     change prod_fgrpd_to_fgrpd_prod ⋙ (proj_left.prod' proj_right) = 𝟭 _,
     apply category_theory.functor.hext, { intros, ext; simp; refl, },
-    intros x y f, cases x, cases y, cases f with f₀ f₁,
+    rintros ⟨x₀, x₁⟩ ⟨y₀, y₁⟩ ⟨f₀, f₁⟩,
     have := and.intro (path.homotopic.proj_left_prod f₀ f₁) (path.homotopic.proj_right_prod f₀ f₁),
     simpa,
   end,
@@ -396,7 +395,7 @@ def prod_fgrpd_iso_fgrpd_prod :
   begin
     change (proj_left.prod' proj_right) ⋙ prod_fgrpd_to_fgrpd_prod = 𝟭 _,
     apply category_theory.functor.hext, { intros, ext; simp; refl, },
-    intros x y f, cases x, cases y,
+    rintros ⟨x₀, x₁⟩ ⟨y₀, y₁⟩ f,
     have := path.homotopic.prod_proj_left_proj_right f,
     simpa,
   end }

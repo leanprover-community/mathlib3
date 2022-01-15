@@ -208,8 +208,7 @@ begin
   apply induction_on' φ,
   { intros u r,
     rw [rename_monomial, coeff_monomial, coeff_monomial],
-    simp only [(finsupp.map_domain_injective hf).eq_iff],
-    split_ifs; refl, },
+    simp only [(finsupp.map_domain_injective hf).eq_iff] },
   { intros, simp only [*, alg_hom.map_add, coeff_add], }
 end
 

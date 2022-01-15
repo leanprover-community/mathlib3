@@ -370,6 +370,9 @@ fintype.card_of_subtype G.edge_finset (mem_edge_finset _)
 @[simp] lemma mem_neighbor_set (v w : V) : w ∈ G.neighbor_set v ↔ G.adj v w :=
 iff.rfl
 
+@[simp] lemma mem_neighbor_set' (v w : V) : G.neighbor_set v w ↔ G.adj v w :=
+iff.rfl
+
 @[simp] lemma mem_incidence_set (v w : V) : ⟦(v, w)⟧ ∈ G.incidence_set v ↔ G.adj v w :=
 by simp [incidence_set]
 
@@ -780,10 +783,7 @@ end
 
 lemma card_common_neighbors_le_degree_right [decidable_rel G.adj] (v w : V) :
   fintype.card (G.common_neighbors v w) ≤ G.degree w :=
-begin
-  convert G.card_common_neighbors_le_degree_left w v using 3,
-  apply common_neighbors_symm,
-end
+by simp_rw [common_neighbors_symm _ v w, card_common_neighbors_le_degree_left]
 
 lemma card_common_neighbors_lt_card_verts [decidable_rel G.adj] (v w : V) :
   fintype.card (G.common_neighbors v w) < fintype.card V :=

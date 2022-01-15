@@ -59,11 +59,11 @@ by rw [mem_circle_iff_abs, complex.abs, real.sqrt_eq_one]
 
 lemma nonzero_of_mem_circle (z : circle) : (z:ℂ) ≠ 0 := nonzero_of_mem_unit_sphere z
 
-instance : group circle :=
+instance : comm_group circle :=
 { inv := λ z, ⟨conj (z : ℂ), by simp⟩,
   mul_left_inv := λ z, subtype.ext $ by { simp [has_inv.inv, ← norm_sq_eq_conj_mul_self,
     ← mul_self_abs] },
-  .. circle.to_monoid }
+  .. circle.to_comm_monoid }
 
 lemma coe_inv_circle_eq_conj (z : circle) : ↑(z⁻¹) = (conj : ring_aut ℂ) z := rfl
 
@@ -77,6 +77,13 @@ end
 
 @[simp] lemma coe_div_circle (z w : circle) : ↑(z / w) = (z:ℂ) / w :=
 show ↑(z * w⁻¹) = (z:ℂ) * w⁻¹, by simp
+
+/-- The elements of the circle embed into the units. -/
+@[simps]
+def circle.to_units : circle →* units ℂ :=
+{ to_fun := λ x, units.mk0 x $ nonzero_of_mem_circle _,
+  map_one' := units.ext rfl,
+  map_mul' := λ x y, units.ext rfl }
 
 instance : compact_space circle := metric.sphere.compact_space _ _
 

@@ -101,6 +101,40 @@ noncomputable def free_abelian_group.basis (α : Type*) :
   basis α ℤ (free_abelian_group α) :=
 ⟨add_equiv.to_int_linear_equiv (free_abelian_group.equiv_finsupp α)⟩
 
+/-- equivalent free ablians groups (as modules) have isomorphic bases -/
+def equiv.of_free_abelian_group_linear_equiv {α β : Type*}
+  (e : free_abelian_group α ≃ₗ[ℤ] free_abelian_group β) :
+  α ≃ β :=
+let t : basis α ℤ (free_abelian_group β) := (free_abelian_group.basis α).map e
+  in t.index_equiv $ free_abelian_group.basis _
+
+/-- equivalent free ablians groups (as additive groups) have isomorphic bases -/
+def equiv.of_free_abelian_group_equiv {α β : Type*}
+  (e : free_abelian_group α ≃+ free_abelian_group β) :
+  α ≃ β :=
+equiv.of_free_abelian_group_linear_equiv (add_equiv.to_int_linear_equiv e)
+
+/-- equivalent free groups have isomorphic bases -/
+def equiv.of_free_group_equiv {α β : Type*}
+  (e : free_group α ≃* free_group β) :
+  α ≃ β :=
+equiv.of_free_abelian_group_equiv (mul_equiv.to_additive (abelianization.mul_equiv.abelianization_congr e))
+
+/-- this tells us something about the basis of free groups -/
+def equiv.of_free_group_equiv {α β : Type*} (e : free_group α ≃* free_group β) :
+  α ≃ β :=
+begin
+  have H: free_abelian_group α ≃+ free_abelian_group β :=
+    (mul_equiv.to_additive $ abelianization.mul_equiv.abelianization_congr e),
+
+  have H2: free_abelian_group α ≃ₗ[ℤ] free_abelian_group β := H.to_int_linear_equiv,
+
+  let t : basis α ℤ (free_abelian_group β) :=
+      (free_abelian_group.basis α).map $ H2
+  in t.index_equiv $ free_abelian_group.basis _
+end
+
+
 variable {X}
 
 /-- `coeff x` is the additive group homomorphism `free_abelian_group X →+ ℤ`

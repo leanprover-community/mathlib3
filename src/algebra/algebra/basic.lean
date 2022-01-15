@@ -1312,7 +1312,6 @@ variables {R}
 instance int_algebra_subsingleton : subsingleton (algebra ℤ R) :=
 ⟨λ P Q, by { ext, simp, }⟩
 
-
 end int
 
 /-!

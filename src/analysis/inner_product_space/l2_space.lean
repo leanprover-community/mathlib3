@@ -115,19 +115,16 @@ end lp
 
 namespace orthogonal_family
 variables {V : Π i, G i →ₗᵢ[𝕜] E} (hV : orthogonal_family 𝕜 V)
-  --[dec_V : Π i (x : G i), decidable (x ≠ 0)]
 
-include hV
+include cplt hV
 
-protected lemma summable_of_lp [complete_space E] (f : lp G 2) : summable (λ i, V i (f i)) :=
+protected lemma summable_of_lp (f : lp G 2) : summable (λ i, V i (f i)) :=
 begin
   rw hV.summable_iff_norm_sq_summable,
   convert (lp.mem_ℓp f).summable _,
   { norm_cast },
   { norm_num }
 end
-
-include cplt
 
 /-- A mutually orthogonal family of subspaces of `E` induce a linear isometry from `lp 2` of the
 subspaces into `E`. -/
@@ -168,6 +165,15 @@ begin
   { simp }
 end
 
+@[simp] protected lemma linear_isometry_apply_dfinsupp_sum_single (W₀ : Π₀ (i : ι), G i) :
+  hV.linear_isometry (W₀.sum (lp.single 2)) = W₀.sum (λ i, V i) :=
+begin
+  have : hV.linear_isometry (∑ i in W₀.support, lp.single 2 i (W₀ i))
+    = ∑ i in W₀.support, hV.linear_isometry (lp.single 2 i (W₀ i)),
+  { exact hV.linear_isometry.to_linear_map.map_sum },
+  simp [dfinsupp.sum, this] {contextual := tt},
+end
+
 /-- The canonical linear isometry from the `lp 2` of a mutually orthogonal family of subspaces of
 `E` into E, has range the closure of the span of the subspaces. -/
 protected lemma range_linear_isometry [Π i, complete_space (G i)] :
@@ -190,28 +196,56 @@ begin
     exact hV.linear_isometry.isometry.uniform_inducing.is_complete_range.is_closed }
 end
 
-end orthogonal_family
+/-- A mutually orthogonal family of complete subspaces of `E`, whose range is dense in `E`, induces
+a linear isometry from E to `lp 2` of the subspaces.
 
-namespace orthonormal
-variables {v : ι → E} (hv : orthonormal 𝕜 v)
-
-include cplt
-
-@[simp] protected lemma linear_isometry_apply_single (i : ι) (x : 𝕜) :
-  hv.orthogonal_family.linear_isometry (lp.single 2 i x) = x • v i :=
-by simp [hv.orthogonal_family.linear_isometry_apply_single]
-
-/-- The canonical linear isometry from `ℓ²(ι, 𝕜)` to `E`, induced by an `ι`-indexed orthonormal
-set of vectors in `E`, has range the closure of the span of the vectors. -/
-protected lemma range_linear_isometry :
-  hv.orthogonal_family.linear_isometry.to_linear_map.range
-    = (span 𝕜 (set.range v)).topological_closure :=
+Note that this goes in the opposite direction from `orthogonal_family.linear_isometry`. -/
+noncomputable def linear_isometry_equiv [Π i, complete_space (G i)]
+  (hV' : (⨆ i, (V i).to_linear_map.range).topological_closure = ⊤) :
+  E ≃ₗᵢ[𝕜] lp G 2 :=
+linear_isometry_equiv.symm $
+linear_isometry_equiv.of_surjective
+hV.linear_isometry
 begin
-  rw hv.orthogonal_family.range_linear_isometry,
-  simp [← linear_map.span_singleton_eq_range, ← submodule.span_Union],
+  refine linear_map.range_eq_top.mp _,
+  rw ← hV',
+  rw hV.range_linear_isometry,
 end
 
-end orthonormal
+protected lemma linear_isometry_equiv_symm_apply [Π i, complete_space (G i)]
+  (hV' : (⨆ i, (V i).to_linear_map.range).topological_closure = ⊤) (w : lp G 2) :
+  (hV.linear_isometry_equiv hV').symm w = ∑' i, V i (w i) :=
+by simp [orthogonal_family.linear_isometry_equiv, orthogonal_family.linear_isometry_apply]
+
+protected lemma has_sum_linear_isometry_equiv_symm [Π i, complete_space (G i)]
+  (hV' : (⨆ i, (V i).to_linear_map.range).topological_closure = ⊤) (w : lp G 2) :
+  has_sum (λ i, V i (w i)) ((hV.linear_isometry_equiv hV').symm w) :=
+by simp [orthogonal_family.linear_isometry_equiv, orthogonal_family.has_sum_linear_isometry]
+
+@[simp] protected lemma linear_isometry_equiv_symm_apply_single [Π i, complete_space (G i)]
+  (hV' : (⨆ i, (V i).to_linear_map.range).topological_closure = ⊤) {i : ι} (x : G i) :
+  (hV.linear_isometry_equiv hV').symm (lp.single 2 i x) = V i x :=
+by simp [orthogonal_family.linear_isometry_equiv, orthogonal_family.linear_isometry_apply_single]
+
+@[simp] protected lemma linear_isometry_equiv_symm_apply_dfinsupp_sum_single
+  [Π i, complete_space (G i)]
+  (hV' : (⨆ i, (V i).to_linear_map.range).topological_closure = ⊤) (W₀ : Π₀ (i : ι), G i) :
+  (hV.linear_isometry_equiv hV').symm (W₀.sum (lp.single 2)) = (W₀.sum (λ i, V i)) :=
+by simp [orthogonal_family.linear_isometry_equiv,
+  orthogonal_family.linear_isometry_apply_dfinsupp_sum_single]
+
+@[simp] protected lemma linear_isometry_equiv_apply_dfinsupp_sum_single
+  [Π i, complete_space (G i)]
+  (hV' : (⨆ i, (V i).to_linear_map.range).topological_closure = ⊤) (W₀ : Π₀ (i : ι), G i) :
+  (hV.linear_isometry_equiv hV' (W₀.sum (λ i, V i)) : Π i, G i) = W₀ :=
+begin
+  rw ← hV.linear_isometry_equiv_symm_apply_dfinsupp_sum_single hV',
+  rw linear_isometry_equiv.apply_symm_apply,
+  ext i,
+  simp [dfinsupp.sum, lp.single_apply] {contextual := tt},
+end
+
+end orthogonal_family
 
 section
 variables (ι) (𝕜) (E)
@@ -294,13 +328,10 @@ include hv cplt
 protected def mk (hsp : (span 𝕜 (set.range v)).topological_closure = ⊤) :
   hilbert_basis ι 𝕜 E :=
 hilbert_basis.of_repr $
-linear_isometry_equiv.symm $
-linear_isometry_equiv.of_surjective
-hv.orthogonal_family.linear_isometry
+hv.orthogonal_family.linear_isometry_equiv
 begin
-  refine linear_map.range_eq_top.mp _,
-  rw ← hsp,
-  exact hv.range_linear_isometry
+  convert hsp,
+  simp [← linear_map.span_singleton_eq_range, ← submodule.span_Union],
 end
 
 @[simp] protected lemma mk_apply (hsp : (span 𝕜 (set.range v)).topological_closure = ⊤) (i : ι) :

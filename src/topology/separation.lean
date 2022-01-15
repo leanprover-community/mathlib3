@@ -401,7 +401,7 @@ begin
 end
 
 lemma compl_singleton_mem_nhds [t1_space α] {x y : α} (h : y ≠ x) : {x}ᶜ ∈ 𝓝 y :=
-is_open.mem_nhds is_open_compl_singleton $ by rwa [mem_compl_eq, mem_singleton_iff]
+is_open_compl_singleton.mem_nhds $ by rwa [mem_compl_eq, mem_singleton_iff]
 
 @[simp] lemma closure_singleton [t1_space α] {a : α} :
   closure ({a} : set α) = {a} :=
@@ -430,6 +430,17 @@ begin
   rcases h.mem_iff.1 (compl_singleton_mem_nhds hy.symm) with ⟨i, hi, hsub⟩,
   exact ⟨i, hi, λ h, hsub h rfl⟩
 end
+
+@[simp] lemma nhds_le_nhds_iff [t1_space α] {a b : α} : 𝓝 a ≤ 𝓝 b ↔ a = b :=
+begin
+  refine ⟨λ h, _, λ h, h ▸ le_rfl⟩,
+  by_contra hab,
+  have := h (compl_singleton_mem_nhds $ ne.symm hab),
+  refine mem_of_mem_nhds this (mem_singleton a)
+end
+
+@[simp] lemma nhds_eq_nhds_iff [t1_space α] {a b : α} : 𝓝 a = 𝓝 b ↔ a = b :=
+⟨λ h, nhds_le_nhds_iff.mp h.le, λ h, h ▸ rfl⟩
 
 /-- Removing a non-isolated point from a dense set, one still obtains a dense set. -/
 lemma dense.diff_singleton [t1_space α] {s : set α} (hs : dense s) (x : α) [ne_bot (𝓝[≠] x)] :
@@ -693,12 +704,6 @@ lemma point_disjoint_finset_opens_of_t2 [t2_space α] {x : α} {s : finset α} (
 by exact_mod_cast finset_disjoint_finset_opens_of_t2 {x} s (finset.disjoint_singleton_left.mpr h)
 
 end separated
-
-@[simp] lemma nhds_eq_nhds_iff {a b : α} [t2_space α] : 𝓝 a = 𝓝 b ↔ a = b :=
-⟨assume h, eq_of_nhds_ne_bot $ by rw [h, inf_idem]; exact nhds_ne_bot, assume h, h ▸ rfl⟩
-
-@[simp] lemma nhds_le_nhds_iff {a b : α} [t2_space α] : 𝓝 a ≤ 𝓝 b ↔ a = b :=
-⟨assume h, eq_of_nhds_ne_bot $ by rw [inf_of_le_left h]; exact nhds_ne_bot, assume h, h ▸ le_refl _⟩
 
 lemma tendsto_nhds_unique [t2_space α] {f : β → α} {l : filter β} {a b : α}
   [ne_bot l] (ha : tendsto f l (𝓝 a)) (hb : tendsto f l (𝓝 b)) : a = b :=

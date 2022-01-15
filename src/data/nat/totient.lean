@@ -151,7 +151,7 @@ calc ∑ m in (range n.succ).filter (∣ n), φ m
 ... = ((filter (∣ n) (range n.succ)).bUnion (λ d, (range n).filter (λ m, gcd n m = d))).card :
   (card_bUnion (by intros; apply disjoint_filter.2; cc)).symm
 ... = (range n).card :
-  congr_arg finset.card (finset.ext (λ m, ⟨by simp,
+  congr_arg card (finset.ext (λ m, ⟨by simp,
     λ hm, have h : m < n, from mem_range.1 hm,
       mem_bUnion.2 ⟨gcd n m, mem_filter.2
         ⟨mem_range.2 (lt_succ_of_le (le_of_dvd (lt_of_le_of_lt (zero_le _) h)
@@ -165,7 +165,7 @@ calc φ (p ^ (n + 1))
     = ((range (p ^ (n + 1))).filter (coprime (p ^ (n + 1)))).card :
   totient_eq_card_coprime _
 ... = (range (p ^ (n + 1)) \ ((range (p ^ n)).image (* p))).card :
-  congr_arg finset.card begin
+  congr_arg card begin
     rw [sdiff_eq_filter],
     apply filter_congr,
     simp only [mem_range, mem_filter, coprime_pow_left_iff n.succ_pos,

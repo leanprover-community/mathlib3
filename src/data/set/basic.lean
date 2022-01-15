@@ -1286,6 +1286,9 @@ theorem mem_image_eq (f : α → β) (s : set α) (y: β) : y ∈ f '' s = ∃ x
 @[simp] theorem mem_image (f : α → β) (s : set α) (y : β) :
   y ∈ f '' s ↔ ∃ x, x ∈ s ∧ f x = y := iff.rfl
 
+lemma forall_image_iff {f : α → β} {p : β → Prop} : (∀ b ∈ f '' s, p b) ↔ ∀ b ∈ s, p (f b) :=
+by simp only [mem_image, and_imp, forall_exists_index, forall_apply_eq_imp_iff₂]
+
 lemma image_eta (f : α → β) : f '' s = (λ x, f x) '' s := rfl
 
 theorem mem_image_of_mem (f : α → β) {x : α} {a : set α} (h : x ∈ a) : f x ∈ f '' a :=

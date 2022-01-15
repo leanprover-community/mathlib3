@@ -228,13 +228,11 @@ lemma mul_subset_mul_left [has_mul α] (h : t₁ ⊆ t₂) : s * t₁ ⊆ s * t�
 lemma mul_subset_mul_right [has_mul α] (h : s₁ ⊆ s₂) : s₁ * t ⊆ s₂ * t := image2_subset_right h
 
 @[to_additive]
-lemma subset_mul_left {α} [mul_one_class α] (s : set α) {t : set α} (ht : (1 : α) ∈ t) :
-  s ⊆ s * t :=
+lemma subset_mul_left [mul_one_class α] (s : set α) {t : set α} (ht : (1 : α) ∈ t) : s ⊆ s * t :=
 λ x hx, ⟨x, 1, hx, ht, mul_one _⟩
 
 @[to_additive]
-lemma subset_mul_right {α} [mul_one_class α] {s : set α} (t : set α) (hs : (1 : α) ∈ s) :
-  t ⊆ s * t :=
+lemma subset_mul_right [mul_one_class α] {s : set α} (t : set α) (hs : (1 : α) ∈ s) : t ⊆ s * t :=
 λ x hx, ⟨1, x, hs, hx, one_mul _⟩
 
 lemma pow_subset_pow [monoid α] (hst : s ⊆ t) (n : ℕ) :
@@ -270,6 +268,16 @@ image2_Union_left _ _ _
 lemma mul_Union {ι : Sort*} [has_mul α] (t : set α) (s : ι → set α) :
   t * (⋃ i, s i) = ⋃ i, (t * s i) :=
 image2_Union_right _ _ _
+
+@[to_additive]
+lemma bUnion_mul {ι : Sort*} [has_mul α] (f : ι → set α) (s : set ι) (t : set α) :
+  (⋃ i ∈ s, f i) * t = ⋃ i ∈ s, (f i * t) :=
+by simp_rw [Union_mul]
+
+@[to_additive]
+lemma mul_bUnion {ι : Sort*} [has_mul α] (f : ι → set α) (s : set ι) (t : set α) :
+  t * (⋃ i ∈ s, f i) = ⋃ i ∈ s, (t * f i) :=
+by simp_rw [mul_Union]
 
 @[simp, to_additive]
 lemma univ_mul_univ [monoid α] : (univ : set α) * univ = univ :=

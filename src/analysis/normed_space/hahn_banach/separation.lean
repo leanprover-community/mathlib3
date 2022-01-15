@@ -28,76 +28,13 @@ We provide many variations to stricten the result under more assumptions on the 
 * `geometric_hahn_banach_point_point`: Both sets are singletons. Strict separation.
 -/
 
-open function set
+open function metric set
 open_locale pointwise
 
 variables {𝕜 E : Type*}
 
-namespace set
-variables {α : Type*}
-
-@[to_additive]
-lemma bUnion_mul {ι : Sort*} [has_mul α] (f : ι → set α) (s : set ι) (t : set α) :
-  (⋃ i ∈ s, f i) * t = ⋃ i ∈ s, (f i * t) :=
-by simp_rw [Union_mul]
-
-@[to_additive]
-lemma mul_bUnion {ι : Sort*} [has_mul α] (f : ι → set α) (s : set ι) (t : set α) :
-  t * (⋃ i ∈ s, f i) = ⋃ i ∈ s, (t * f i) :=
-by simp_rw [mul_Union]
-
-end set
-
-open set
-
-namespace metric
-section
-variables [pseudo_metric_space E]
-
-open filter
-open_locale topological_space
-
-lemma exists_disjoint_thickenings {s t : set E} (hs : is_compact s) (ht : is_closed t)
-  (hst : disjoint s t) :
-  ∃ ε, 0 < ε ∧ disjoint (thickening ε s) (thickening ε t) :=
-begin
-  obtain ⟨u, -, u_pos, u_lim⟩ := exists_seq_strict_anti_tendsto (0 : ℝ),
-  suffices h : ∃ (n : ℕ), disjoint (thickening (u n) s) (thickening (u n) t),
-  { obtain ⟨n, hn⟩ := h,
-    exact ⟨u n, u_pos n, hn⟩ },
-  by_contra' h,
-  -- have := hs.exists_forall_le,
-  simp only [not_disjoint_iff, mem_thickening_iff,
-    ← exists_and_distrib_left, ← exists_and_distrib_right, and_assoc] at h,
-  choose x y hy z hz hxy hxz using h,
-  obtain ⟨w, hw, φ, hφ, hyφ : tendsto (y ∘ _) _ _⟩ := hs.tendsto_subseq hy,
-  have h : ∀ n, dist (y n) (z n) ≤ u n + u n,
-    from λ n, (dist_triangle_left _ _ _).trans (add_le_add (hxy n).le (hxz n).le),
-  refine hst ⟨hw, mem_of_is_closed_sequential ht (λ n, hz (φ n)) $ (tendsto_iff_of_dist _).1 hyφ⟩,
-  refine squeeze_zero (λ _, dist_nonneg) (λ n, h _) _,
-  simp_rw ←two_mul,
-  rw ←mul_zero (2 : ℝ),
-  exact (u_lim.const_mul (2 : ℝ)).comp hφ.tendsto_at_top,
-end
-
-end
-
-variables [semi_normed_group E]
-
-@[simp] lemma add_ball (s : set E) (ε : ℝ) : s + ball 0 ε = thickening ε s :=
-begin
-  rw thickening_eq_bUnion_ball,
-  convert bUnion_add _ s (ball (0 : E) ε),
-  exact s.bUnion_of_singleton.symm,
-  ext x y,
-  simp_rw [singleton_add_ball, add_zero],
-end
-
-@[simp] lemma ball_add (s : set E) (ε : ℝ) : ball 0 ε + s = thickening ε s :=
-by rw [add_comm, add_ball]
-
-
-variables (𝕜 E) [normed_field 𝕜] [semi_normed_space 𝕜 E] {r : ℝ}
+section seminorm
+variables (𝕜 E) [normed_field 𝕜] [semi_normed_group E] [semi_normed_space 𝕜 E] {r : ℝ}
 
 /-- The norm of a seminormed group as a seminorm. -/
 def _root_.norm_seminorm : seminorm 𝕜 E :=
@@ -120,23 +57,7 @@ by { convert (norm_seminorm _ _).absorbent_ball_zero hr, rw ball_norm_seminorm }
 lemma absorbent_ball {x : E} (hx : ∥x∥ < r) : absorbent 𝕜 (ball x r) :=
 by { convert (norm_seminorm _ _).absorbent_ball hx, rw ball_norm_seminorm }
 
-end metric
-
-open metric
-
-lemma convex.thickening [normed_group E] [normed_space ℝ E] {s : set E} (hs : convex ℝ s) (ε : ℝ) :
-  convex ℝ (thickening ε s) :=
-by { rw ←add_ball, exact hs.add (convex_ball 0 _) }
-
-lemma convex.cthickening [normed_group E] [normed_space ℝ E] {s : set E} (hs : convex ℝ s) (ε : ℝ) :
-  convex ℝ (cthickening ε s) :=
-begin
-  obtain hε | hε := le_total 0 ε,
-  { rw cthickening_eq_Inter_thickening hε,
-    exact convex_bInter (λ _ _, hs.thickening _) },
-  { rw cthickening_of_nonpos hε,
-    exact hs.closure }
-end
+end seminorm
 
 section
 open filter
@@ -379,18 +300,6 @@ end
 open filter
 open_locale topological_space
 
-/-- If `A`, `B` are disjoint convex sets, `A` is compact and `B` is closed then we can find open
-disjoint convex sets containing them. -/
--- TODO: This proof uses the normed space structure of `E`, but it could work for locally convex
--- topological vector spaces: instead of taking the balls around 0 with radius 1/n, we could show
--- there must be some convex neighbourhood `W` of 0 which make `A + W` and `B + W` disjoint?
-theorem closed_compact_separate {A B : set E} (hA₁ : convex ℝ A) (hA₂ : is_compact A)
-  (hB₁ : convex ℝ B) (hB₂ : is_closed B) (disj : disjoint A B) :
-  ∃ U V, is_open U ∧ is_open V ∧ convex ℝ U ∧ convex ℝ V ∧ A ⊆ U ∧ B ⊆ V ∧ disjoint U V :=
-let ⟨ε, hε, hAB⟩ := exists_disjoint_thickenings hA₂ hB₂ disj in
-  ⟨_, _, is_open_thickening, is_open_thickening, hA₁.thickening _, hB₁.thickening _,
-    self_subset_thickening hε _, self_subset_thickening hε _, hAB⟩
-
 /-- A version of the Hahn-Banach theorem: given disjoint convex sets `A`, `B` where `A` is compact
 and `B` is closed, there is a continuous linear functional which strongly separates them. -/
 theorem geometric_hahn_banach_compact_closed {A B : set E} (hA₁ : convex ℝ A) (hA₂ : is_compact A)
@@ -402,7 +311,8 @@ begin
   tactic.unfreeze_local_instances,
   obtain rfl | hB := B.eq_empty_or_nonempty,
   { exact ⟨0, 1, 2, λ a ha, by norm_num, by norm_num, by simp⟩ },
-  obtain ⟨U, V, hU, hV, hU₁, hV₁, AU, BV, disj'⟩ := closed_compact_separate hA₁ hA₂ hB₁ hB₂ disj,
+  obtain ⟨U, V, hU, hV, hU₁, hV₁, AU, BV, disj'⟩ :=
+    exists_disjoint_open_convexes hA₁ hA₂ hB₁ hB₂ disj,
   obtain ⟨f, s, hf₁, hf₂⟩ := geometric_hahn_banach_open_open hU₁ hU hV₁ hV disj',
   obtain ⟨x, hx₁, hx₂⟩ := hA₂.exists_forall_ge hA f.continuous.continuous_on,
   have : Sup (f '' A) = f x,

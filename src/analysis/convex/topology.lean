@@ -1,9 +1,10 @@
 /-
 Copyright (c) 2020 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Alexander Bentkamp, Yury Kudriashov
+Authors: Alexander Bentkamp, Yury Kudryashov
 -/
 import analysis.convex.jensen
+import analysis.normed.group.pointwise
 import analysis.normed_space.finite_dimension
 import topology.path_connected
 import topology.algebra.affine
@@ -28,7 +29,7 @@ We prove the following facts:
 
 variables {ι : Type*} {E : Type*}
 
-open set
+open metric set
 open_locale pointwise
 
 lemma real.convex_iff_is_preconnected {s : set ℝ} : convex ℝ s ↔ is_preconnected s :=
@@ -193,7 +194,7 @@ end has_continuous_smul
 /-! ### Normed vector space -/
 
 section normed_space
-variables [normed_group E] [normed_space ℝ E]
+variables [normed_group E] [normed_space ℝ E] {s : set E}
 
 lemma convex_on_dist (z : E) (s : set E) (hs : convex ℝ s) :
   convex_on ℝ s (λz', dist z' z) :=
@@ -215,6 +216,30 @@ by simpa only [metric.ball, sep_univ] using (convex_on_dist a _ convex_univ).con
 
 lemma convex_closed_ball (a : E) (r : ℝ) : convex ℝ (metric.closed_ball a r) :=
 by simpa only [metric.closed_ball, sep_univ] using (convex_on_dist a _ convex_univ).convex_le r
+
+lemma convex.thickening (hs : convex ℝ s) (ε : ℝ) : convex ℝ (thickening ε s) :=
+by { rw ←add_ball, exact hs.add (convex_ball 0 _) }
+
+lemma convex.cthickening (hs : convex ℝ s) (ε : ℝ) : convex ℝ (cthickening ε s) :=
+begin
+  obtain hε | hε := le_total 0 ε,
+  { rw cthickening_eq_Inter_thickening hε,
+    exact convex_bInter (λ _ _, hs.thickening _) },
+  { rw cthickening_of_nonpos hε,
+    exact hs.closure }
+end
+
+/-- If `s`, `t` are disjoint convex sets, `s` is compact and `t` is closed then we can find open
+disjoint convex sets containing them. -/
+-- TODO: This proof uses the normed space structure of `E`, but it could work for locally convex
+-- topological vector spaces: instead of looking at thickenings, we could show there must be some
+-- convex neighbourhood `u` of 0 which make `s + u` and `t + u` disjoint?
+lemma exists_disjoint_open_convexes {s t : set E} (hs₁ : convex ℝ s) (hs₂ : is_compact s)
+  (ht₁ : convex ℝ t) (ht₂ : is_closed t) (disj : disjoint s t) :
+  ∃ u v, is_open u ∧ is_open v ∧ convex ℝ u ∧ convex ℝ v ∧ s ⊆ u ∧ t ⊆ v ∧ disjoint u v :=
+let ⟨ε, hε, hst⟩ := exists_disjoint_thickenings hs₂ ht₂ disj in
+  ⟨_, _, is_open_thickening, is_open_thickening, hs₁.thickening _, ht₁.thickening _,
+    self_subset_thickening hε _, self_subset_thickening hε _, hst⟩
 
 /-- Given a point `x` in the convex hull of `s` and a point `y`, there exists a point
 of `s` at distance at least `dist x y` from `y`. -/

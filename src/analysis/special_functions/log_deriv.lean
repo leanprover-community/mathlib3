@@ -348,80 +348,128 @@ begin
   norm_num
 end
 
--- {0, 1, 2/3, 7/10, 9/13, 61/88, 192/277, 253/365, 445/642, 1143/1649, 1588/2291, 2731/3940,
---  4319/6231, 7050/10171, 25469/36744, 261740/377611, 287209/414355, 548949/791966,
---  836158/1206321, 2221265/3204608, 3057423/4410929, 5278688/7615537, 8336111/12026466,
---  13614799/19642003, 49180508/70952475, 111975815/161546953, 385107953/555593334,
---  497083768/717140287, 6847196937/9878417065, 48427462327/69866059742}
+set_option profiler true
 
-lemma log_two_near_20 : |log 2 - 48427462327/69866059742| ≤ 9/10^21 :=
+lemma log_two_near_20 : |log 2 - 48427462327/69866059742| < 9/10^21 :=
 begin
-  suffices : |log 2 - 48427462327/69866059742| ≤ 1/145891985508683145612 + (9/10^21 - 1/(4 * 3^41)),
-  { norm_num1 at *,
-    assumption },
   have t : |(3⁻¹ : ℝ)| = 3⁻¹ := abs_of_pos (by norm_num1),
   have z := newbound (show |(3⁻¹ : ℝ)| < 1, by { rw t, norm_num1 }) 21,
   rw [t, _root_.abs_sub_comm] at z,
   norm_num1 at z,
-  apply le_trans (_root_.abs_sub_le _ _ _) (add_le_add z _),
-  have : 2 * ∑ i in range 21, (1 / 3 : ℝ) ^ (2*i+1) / (2*i+1) - 48427462327 / 69866059742 =
-    -(130029316460388448573787 / 646081657495872133645625196314533858898489550),
-  { simp_rw [sum_range_succ, sum_range_zero],
-    norm_num1 },
-  rw this,
+  rw ←add_sub_cancel'_right _ ((9 : ℝ)/10^21),
+  apply (_root_.abs_sub_le _ _ _).trans_lt (add_lt_add_of_le_of_lt z _),
+  simp_rw [sum_range_succ, sum_range_zero],
+  norm_num1,
   rw [abs_neg, abs_of_pos],
   by { norm_num1 },
   by { norm_num1 },
 end
 
 lemma log_two_gt_d20 : 0.69314718055994530940 < log 2 :=
-lt_of_lt_of_le (by norm_num1) (sub_le.1 (abs_sub_le_iff.1 log_two_near_20).2)
+lt_of_le_of_lt (by norm_num1) (sub_lt.1 (abs_sub_lt_iff.1 log_two_near_20).2)
 
 lemma log_two_lt_d20 : log 2 < 0.69314718055994530943 :=
-lt_of_le_of_lt (sub_le_iff_le_add.1 (abs_sub_le_iff.1 log_two_near_20).1) (by norm_num)
+lt_of_lt_of_le (sub_lt_iff_lt_add.1 (abs_sub_lt_iff.1 log_two_near_20).1) (by norm_num)
 
-lemma log_three_div_two_near_20 : |log (3/2) - 10098979643/24907148460| ≤ 1/10^21 :=
+lemma log_three_div_two_near_20 : |log (3/2) - 31251726476/77076241213| < 1/10^22 :=
 begin
-  suffices :
-    |log (3/2) - 10098979643/24907148460| ≤ 1/2235174179077148437500 + (1/10^21 - 1/(2^2*3*5^29)),
-  { norm_num1 at *,
-    assumption },
   have t : |(5⁻¹ : ℝ)| = 5⁻¹ := abs_of_pos (by norm_num1),
-  have z := newbound (show |(5⁻¹ : ℝ)| < 1, by { rw t, norm_num1 }) 15,
+  have z := newbound (show |(5⁻¹ : ℝ)| < 1, by { rw t, norm_num1 }) 17,
   rw [t, _root_.abs_sub_comm] at z,
   norm_num1 at z,
-  apply le_trans (_root_.abs_sub_le _ _ _) (add_le_add z _),
+  rw ←add_sub_cancel'_right _ ((1 : ℝ)/10^22),
+  apply (_root_.abs_sub_le _ _ _).trans_lt (add_lt_add_of_le_of_lt z _),
   simp_rw [sum_range_succ, sum_range_zero],
   norm_num1,
-  rw [abs_of_pos],
+  rw [abs_neg, abs_of_pos],
   { norm_num1 },
   { norm_num1 },
 end.
 
-lemma log_log_two_approx : |log (log 2) - sorry| ≤ 1/10^20 :=
+lemma log_four_div_three_near_20 : |log (4/3) - 24566546791/85394778276| < 3/10^23 :=
 begin
-  let l2 : ℝ := 48427462327/69866059742,
-  have := real.abs_log_sub_add_sum_range_le,
-  -- have := newbound,
-  -- have : log (log 2 / l2)
-  -- have := log_two_near_20,
+  have t : |(7⁻¹ : ℝ)| = 7⁻¹ := abs_of_pos (by norm_num1),
+  have z := newbound (show |(7⁻¹ : ℝ)| < 1, by { rw t, norm_num1 }) 14,
+  rw [t, _root_.abs_sub_comm] at z,
+  norm_num1 at z,
+  rw ←add_sub_cancel'_right _ ((3 : ℝ)/10^23),
+  apply (_root_.abs_sub_le _ _ _).trans_lt (add_lt_add_of_le_of_lt z _),
+  simp_rw [sum_range_succ, sum_range_zero],
+  norm_num1,
+  rw [abs_neg, abs_of_pos],
+  { norm_num1 },
+  { norm_num1 },
+end.
+
+lemma log_nine_div_eight_near_20 : |log (9/8) - 128429616053/1090391458645| < 3/10^25 :=
+begin
+  have t : |(17⁻¹ : ℝ)| = 17⁻¹ := abs_of_pos (by norm_num1),
+  have z := newbound (show |(17⁻¹ : ℝ)| < 1, by { rw t, norm_num1 }) 11,
+  rw [t, _root_.abs_sub_comm] at z,
+  norm_num1 at z,
+  rw ←add_sub_cancel'_right _ ((3 : ℝ)/10^25),
+  apply (_root_.abs_sub_le _ _ _).trans_lt (add_lt_add_of_le_of_lt z _),
+  simp_rw [sum_range_succ, sum_range_zero],
+  norm_num1,
+  rw [abs_neg, abs_of_pos],
+  { norm_num1 },
+  { norm_num1 },
+end.
+
+lemma log_two_near_20' : |log 2 - 48427462327/69866059742| < 4/10^22 :=
+begin
+  have : (log 2 - (2*31251726476/77076241213 - 128429616053/1090391458645)) =
+    2*(log (3/2) - 31251726476/77076241213) - (log (9/8) - 128429616053/1090391458645),
+  { rw [mul_sub, ←sub_add, ←sub_add, add_right_cancel_iff, sub_sub, add_comm,
+      ←sub_sub, mul_div_assoc, sub_left_inj, two_mul, ←log_mul, ←log_div],
+    { congr' 1, norm_num1 },
+    all_goals { norm_num } },
+  rw [←sub_add_sub_cancel, this, sub_eq_add_neg],
+  apply (abs_add_three _ _ _).trans_lt _,
+  rw [abs_mul, abs_two, abs_neg],
+  have e₁ := mul_lt_mul_of_pos_left log_three_div_two_near_20 zero_lt_two,
+  apply (add_lt_add_right (add_lt_add e₁ log_nine_div_eight_near_20) _).trans_le _,
+  rw abs_of_nonneg,
+  { norm_num1 },
+  { norm_num1 },
 end
 
--- lemma log_three_near_20 : |log 3 - sorry| ≤ 1/10^20 :=
--- begin
---   have : log (3/2) + log 2 = log 3,
---   { rw [log_div, sub_add_cancel]; norm_num1 },
---   rw ←this,
+lemma log_two_near_20'' : |log 2 - 48427462327/69866059742| < 8/10^23 :=
+begin
+  have : (log 2 - (2*24566546791/85394778276 + 128429616053/1090391458645)) =
+    2*(log ((2*2)/3) - 24566546791/85394778276) + (log ((3*3)/(2*2*2)) - 128429616053/1090391458645),
+  { rw [mul_sub, ←sub_sub, add_sub_assoc', sub_left_inj, mul_div_assoc, sub_add_eq_add_sub,
+      sub_left_inj, log_div, log_div, log_mul, log_mul, log_mul, log_mul],
+    { ring },
+    all_goals { norm_num } },
+  rw [←sub_add_sub_cancel, this],
+  apply (abs_add_three _ _ _).trans_lt _,
+  rw [abs_mul, abs_two, (show (3 : ℝ) * 3 = 9, by norm_num1), (show (2 : ℝ) * 2 = 4, by norm_num1),
+    (show (4 : ℝ) * 2 = 8, by norm_num1)],
+  have e₁ := mul_lt_mul_of_pos_left log_four_div_three_near_20 zero_lt_two,
+  apply (add_lt_add_right (add_lt_add e₁ log_nine_div_eight_near_20) _).trans_le _,
+  rw abs_of_nonneg,
+  { norm_num1 },
+  { norm_num1 },
+end
 
--- end
-
--- lemma exp_one_near_20 : |exp 1 - 363916618873/133877442384| ≤ 1/10^20 :=
--- begin
---   apply exp_approx_start,
---   iterate 21 { refine exp_1_approx_succ_eq (by norm_num1; refl) (by norm_cast; refl) _ },
---   norm_num1,
---   refine exp_approx_end' _ (by norm_num1; refl) _ (by norm_cast; refl) (by simp) _,
---   rw [_root_.abs_one, abs_of_pos]; norm_num1,
--- end
+lemma log_three_near_20 :
+  |log 3 - 3384031111889/3080277862167| < 6/10^22 :=
+begin
+  have : (log 3 - (3*31251726476/77076241213 - 128429616053/1090391458645)) =
+    3*(log (3/2) - 31251726476/77076241213) - (log ((3*3)/(2*2*2)) - 128429616053/1090391458645),
+  { rw [mul_sub, ←sub_add, ←sub_add, add_right_cancel_iff, sub_sub, add_comm,
+      ←sub_sub, mul_div_assoc, sub_left_inj, log_div, log_div, log_mul, log_mul, log_mul],
+    { ring },
+    all_goals { norm_num } },
+  rw [←sub_add_sub_cancel, this, sub_eq_add_neg],
+  apply (abs_add_three _ _ _).trans_lt _,
+  rw [abs_mul, abs_of_pos (show (0 : ℝ) < 3, by norm_num1), (show (3 : ℝ) * 3 = 9, by norm_num1),
+    (show (2 : ℝ) * 2 * 2 = 8, by norm_num1), abs_neg],
+  have e₁ := mul_lt_mul_of_pos_left log_three_div_two_near_20 (show (0 : ℝ) < 3, by norm_num1),
+  apply (add_lt_add_right (add_lt_add e₁ log_nine_div_eight_near_20) _).trans_le _,
+  rw abs_of_nonneg;
+  norm_num1,
+end
 
 end real

@@ -68,7 +68,7 @@ namespace bicategory
 variables {B}
 
 @[simp]
-lemma whisker_left_eq_to_hom {a b c : B} {f : a ⟶ b} {g h : b ⟶ c} (η : g = h) :
+lemma whisker_left_eq_to_hom {a b c : B} (f : a ⟶ b) {g h : b ⟶ c} (η : g = h) :
   f ◁ eq_to_hom η = eq_to_hom (congr_arg2 (≫) rfl η) :=
 by { cases η, simp only [whisker_left_id, eq_to_hom_refl] }
 

@@ -18,24 +18,79 @@ namespace measure_theory
 
 variables {α ι E : Type*} {m : measurable_space α} {μ : measure α}
 
+/-
+Update undergrad.yaml
+- add Markov's inequality
+- add convergence in Lp and in measure
+-/
+
 /-- TODO -/
 def tendsto_in_measure [preorder ι] [has_dist E] {m : measurable_space α}
   (μ : measure α) (f : ι → α → E) (g : α → E) : Prop :=
 ∀ ε (hε : 0 < ε), tendsto (λ i, μ {x | ε ≤ dist (f i x) (g x)}) at_top (𝓝 0)
 
-namespace tendsto_in_measure
+section move
+
+protected lemma ennreal.tendsto.rpow {f : filter α} {m : α → ℝ≥0∞} {a : ℝ≥0∞} (r : ℝ)
+  (hm : tendsto m f (𝓝 a)) :
+  tendsto (λ x, (m x) ^ r) f (𝓝 (a ^ r)) :=
+(ennreal.continuous_rpow_const.tendsto a).comp hm
+
+end move
+
+section Lp
+
+variables [measurable_space E] [normed_group E] [borel_space E] {p : ℝ≥0∞} {f : α → E}
+
+variable (μ)
+
+lemma mul_meas_ge_pow_le_snorm
+  (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ∞) (hf : measurable f) (ε : ℝ≥0∞) :
+  (ε * μ {x | ε ≤ ∥f x∥₊ ^ p.to_real}) ^ (1 / p.to_real) ≤ snorm f p μ :=
+begin
+  rw snorm_eq_lintegral_rpow_nnnorm hp_ne_zero hp_ne_top,
+  exact ennreal.rpow_le_rpow (mul_meas_ge_le_lintegral
+      (measurable.pow_const (measurable.coe_nnreal_ennreal (hf.nnnorm)) _) ε)
+      (one_div_nonneg.2 ennreal.to_real_nonneg),
+end
+
+lemma mul_meas_ge_le_snorm_pow
+  (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ∞) (hf : measurable f) (ε : ℝ≥0∞) :
+  ε * μ {x | ε ≤ ∥f x∥₊ ^ p.to_real} ≤ snorm f p μ ^ p.to_real :=
+begin
+  have : 1 / p.to_real * p.to_real = 1,
+  { refine one_div_mul_cancel _,
+    rw [ne, ennreal.to_real_eq_zero_iff],
+    exact not_or hp_ne_zero hp_ne_top },
+  rw [← ennreal.rpow_one (ε * μ {x | ε ≤ ∥f x∥₊ ^ p.to_real}), ← this, ennreal.rpow_mul],
+  exact ennreal.rpow_le_rpow (mul_meas_ge_pow_le_snorm μ hp_ne_zero hp_ne_top hf ε)
+    ennreal.to_real_nonneg,
+end
+
+lemma mul_meas_ge_le_snorm_pow'
+  (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ∞) (hf : measurable f) (ε : ℝ≥0∞) :
+  ε ^ p.to_real * μ {x | ε ≤ ∥f x∥₊} ≤ snorm f p μ ^ p.to_real :=
+begin
+  convert mul_meas_ge_le_snorm_pow μ hp_ne_zero hp_ne_top hf  (ε ^ p.to_real),
+  ext x,
+  rw ennreal.rpow_le_rpow_iff (ennreal.to_real_pos hp_ne_zero hp_ne_top),
+end
+
+end Lp
+
+section -- TODO: fix sections and variables
 
 variables [metric_space E] [second_countable_topology E] [measurable_space E] [borel_space E]
 variables {f : ℕ → α → E} {g : α → E}
 
 /-- Convergence a.e. implies convergence in measure in a finite measure space. -/
-lemma of_tendsto_ae [is_finite_measure μ]
+lemma tendsto_in_measure_of_tendsto_ae [is_finite_measure μ]
   (hf : ∀ n, measurable (f n)) (hg : measurable g)
   (hfg : ∀ᵐ x ∂μ, tendsto (λ n, f n x) at_top (𝓝 (g x))) :
   tendsto_in_measure μ f g :=
 begin
   intros ε hε,
-  rw ennreal.tendsto_at_top ennreal.zero_ne_top,
+  rw ennreal.tendsto_at_top_zero,
   intros δ hδ,
   by_cases hδi : δ = ∞,
   { simp [hδi] },
@@ -53,9 +108,45 @@ begin
     specialize hN n hn x hx,
     rw dist_comm at hN,
     simpa },
-  { apply_instance }
 end
 
-end tendsto_in_measure
+end
+
+section
+
+variables [measurable_space E] [normed_group E] [borel_space E] [has_measurable_sub₂ E] {p : ℝ≥0∞}
+variables {f : ℕ → α → E} {g : α → E}
+
+/-- Convergence in Lp implies convergence in measure. -/
+lemma tendsto_in_measure_of_tendsto_snorm
+  (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ∞)
+  (hf : ∀ n, measurable (f n)) (hg : measurable g)
+  (hfg : tendsto (λ n, snorm (f n - g) p μ) at_top (𝓝 0)) :
+  tendsto_in_measure μ f g :=
+begin
+  intros ε hε,
+  replace hfg := ennreal.tendsto.const_mul (ennreal.tendsto.rpow p.to_real hfg)
+    (or.inr $ @ennreal.of_real_ne_top (1 / ε ^ (p.to_real))),
+  simp only [mul_zero, ennreal.zero_rpow_of_pos (ennreal.to_real_pos hp_ne_zero hp_ne_top)] at hfg,
+  rw ennreal.tendsto_at_top_zero at hfg ⊢,
+  intros δ hδ,
+  obtain ⟨N, hN⟩ := hfg δ hδ,
+  refine ⟨N, λ n hn, le_trans _ (hN n hn)⟩,
+  rw [ennreal.of_real_div_of_pos, ennreal.of_real_one, mul_comm, mul_one_div,
+      ennreal.le_div_iff_mul_le, mul_comm],
+  { convert mul_meas_ge_le_snorm_pow' μ hp_ne_zero hp_ne_top ((hf n).sub hg)
+      (ennreal.of_real ε),
+    { exact (ennreal.of_real_rpow_of_pos hε).symm },
+    { ext x,
+      rw [dist_eq_norm, ← ennreal.of_real_le_of_real_iff (norm_nonneg _),
+          of_real_norm_eq_coe_nnnorm] } },
+  { refine or.inl _,
+    rw [ne, ennreal.of_real_eq_zero, not_le],
+    exact real.rpow_pos_of_pos hε _ },
+  { exact or.inl (ennreal.of_real_ne_top) },
+  { exact real.rpow_pos_of_pos hε _ }
+end
+
+end
 
 end measure_theory

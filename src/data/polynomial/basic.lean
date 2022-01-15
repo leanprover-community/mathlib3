@@ -544,7 +544,7 @@ lemma sum_add_index {S : Type*} [add_comm_monoid S] (p q : polynomial R)
 begin
   rcases p, rcases q,
   simp only [add_to_finsupp, sum, support, coeff, pi.add_apply, coe_add],
-  exact finsupp.sum_add_index hf h_add,
+  exact finsupp.sum_add_index'' (λ a _, hf a) h_add,
 end
 
 lemma sum_add' {S : Type*} [add_comm_monoid S] (p : polynomial R) (f g : ℕ → R → S) :

@@ -113,7 +113,7 @@ variables {A : Type*} [non_unital_non_assoc_ring A]
 /--
 Left multiplication operator
 -/
-@[simps] def function.End.L : A →+ add_monoid.End A := add_monoid_hom.mul
+@[simps] def add_monoid.End.L : A →+ add_monoid.End A := add_monoid_hom.mul
 local notation `L` := function.End.L
 
 /--

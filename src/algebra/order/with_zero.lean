@@ -109,6 +109,11 @@ begin
   { exact (mul_one _).symm }
 end
 
+lemma left.pow_lt_one_iff {α: Type*} [monoid α] [linear_order α]
+  [covariant_class α α (*) (<)] {n : ℕ} {x : α} (n0 : 0 < n) :
+  x^n < 1 ↔ x < 1 :=
+⟨λ H, not_le.mp (λ k, not_le.mpr H (left.one_le_pow_of_le k)), left.pow_lt_one_of_lt n0⟩
+
 lemma right.pow_lt_one_of_lt [covariant_class α α (function.swap (*)) (<)] {n : ℕ} {x : α}
   (n0 : 0 < n) (H : x < 1) :
   x^n < 1 :=
@@ -119,25 +124,17 @@ begin
   { exact (one_mul _).symm }
 end
 
+lemma right.pow_lt_one_iff {α: Type*} [monoid α] [linear_order α]
+  [covariant_class α α (swap (*)) (<)] {n : ℕ} {x : α} (n0 : 0 < n) :
+  x^n < 1 ↔ x < 1 :=
+⟨λ H, not_le.mp (λ k, not_le.mpr H (right.one_le_pow_of_le k)), right.pow_lt_one_of_lt n0⟩
+
+
 end preorder
 
 section left_right
 variables [linear_order α]
   [covariant_class α α (*) (≤)] [covariant_class α α (function.swap (*)) (≤)]
-
-lemma eq_one_of_pow_eq_one {x : α} {n : ℕ} (hn : n ≠ 0) (H : x ^ n = 1) : x = 1 :=
-begin
-  rcases nat.exists_eq_succ_of_ne_zero hn with ⟨n, rfl⟩, clear hn,
-  induction n with n ih,
-  { exact (pow_one _).symm.trans H },
-  { cases le_total x 1 with h,
-    all_goals
-    { have h1 := mul_le_mul_right' h (x ^ (n + 1)),
-      rw pow_succ at H,
-      rw [H, one_mul] at h1 },
-    { exact ih (le_antisymm (pow_le_one' h (nat.succ n)) h1) },
-    { exact ih (le_antisymm h1 (one_le_pow_of_one_le' h _)) } }
-end
 
 end left_right
 

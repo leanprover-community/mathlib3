@@ -29,6 +29,9 @@ by rw [pnat.nat_pred, add_tsub_cancel_iff_le.mpr $ show 1 ≤ (n : ℕ), from n.
 @[simp] lemma pnat.nat_pred_add_one (n : ℕ+) : n.nat_pred + 1 = n :=
 (add_comm _ _).trans n.one_add_nat_pred
 
+@[simp] lemma pnat.nat_pred_eq_pred {n : ℕ} (h : 0 < n) :
+pnat.nat_pred (⟨n, h⟩ : ℕ+) = n.pred := rfl
+
 namespace nat
 
 /-- Convert a natural number to a positive natural number. The

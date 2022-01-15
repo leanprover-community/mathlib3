@@ -31,6 +31,36 @@ expectation of an integrable function in `measure_theory.function.conditional_ex
 - `set_to_fun μ T (hT : dominated_fin_meas_additive μ T C) (f : α → E) : F`: a version of the
   extension which applies to functions (with value 0 if the function is not integrable).
 
+## Properties
+
+For most properties of `set_to_fun`, we provide two lemmas. One version uses hypotheses valid on
+all sets, like `T = T'`, and a second version which uses a primed name uses hypotheses on
+measurable sets with finite measure, like `∀ s, measurable_set s → μ s < ∞ → T s = T' s`.
+
+The lemmas listed here don't show all hypotheses. Refer to the actual lemmas for details.
+
+Linearity:
+- `set_to_fun_zero_left : set_to_fun μ 0 hT f = 0`
+- `set_to_fun_add_left : set_to_fun μ (T + T') _ f = set_to_fun μ T hT f + set_to_fun μ T' hT' f`
+- `set_to_fun_smul_left : set_to_fun μ (λ s, c • (T s)) (hT.smul c) f = c • set_to_fun μ T hT f`
+- `set_to_fun_zero : set_to_fun μ T hT (0 : α → E) = 0`
+- `set_to_fun_neg : set_to_fun μ T hT (-f) = - set_to_fun μ T hT f`
+If `f` and `g` are integrable:
+- `set_to_fun_add : set_to_fun μ T hT (f + g) = set_to_fun μ T hT f + set_to_fun μ T hT g`
+- `set_to_fun_sub : set_to_fun μ T hT (f - g) = set_to_fun μ T hT f - set_to_fun μ T hT g`
+If `T` is verifies `∀ c : 𝕜, ∀ s x, T s (c • x) = c • T s x`:
+- `set_to_fun_smul : set_to_fun μ T hT (c • f) = c • set_to_fun μ T hT f`
+
+Other:
+- `set_to_fun_congr_ae (h : f =ᵐ[μ] g) : set_to_fun μ T hT f = set_to_fun μ T hT g`
+- `set_to_fun_measure_zero (h : μ = 0) : set_to_fun μ T hT f = 0`
+
+If the space is a `normed_lattice_add_comm_group` and `T` is such that `0 ≤ T s x` for `0 ≤ x`, we
+also prove order-related properties:
+- `set_to_fun_mono_left (h : ∀ s x, T s x ≤ T' s x) : set_to_fun μ T hT f ≤ set_to_fun μ T' hT' f`
+- `set_to_fun_nonneg (hf : 0 ≤ᵐ[μ] f) : 0 ≤ set_to_fun μ T hT f`
+- `set_to_fun_mono (hfg : f ≤ᵐ[μ] g) : set_to_fun μ T hT f ≤ set_to_fun μ T hT g`
+
 ## Implementation notes
 
 The starting object `T : set α → E →L[ℝ] F` matters only through its restriction on measurable sets
@@ -138,8 +168,8 @@ begin
   intros a s has h hps h_disj,
   rw [finset.sum_insert has, ← h],
   swap, { exact λ i hi, hps i (finset.mem_insert_of_mem hi), },
-  swap, { exact λ i j hi hj hij,
-    h_disj i j (finset.mem_insert_of_mem hi) (finset.mem_insert_of_mem hj) hij, },
+  swap, { exact λ i hi j hj hij,
+    h_disj i (finset.mem_insert_of_mem hi) j (finset.mem_insert_of_mem hj) hij, },
   rw ← h_add (S a) (⋃ i ∈ s, S i) (hS_meas a) (measurable_set_bUnion _ (λ i _, hS_meas i))
     (hps a (finset.mem_insert_self a s)),
   { congr, convert finset.supr_insert a s S, },
@@ -148,7 +178,7 @@ begin
   { simp_rw set.inter_Union,
     refine Union_eq_empty.mpr (λ i, Union_eq_empty.mpr (λ hi, _)),
     rw ← set.disjoint_iff_inter_eq_empty,
-    refine h_disj a i (finset.mem_insert_self a s) (finset.mem_insert_of_mem hi) (λ hai, _),
+    refine h_disj a (finset.mem_insert_self a s) i (finset.mem_insert_of_mem hi) (λ hai, _),
     rw ← hai at hi,
     exact has hi, },
 end

@@ -69,10 +69,9 @@ nonpos_iff_eq_zero.1 $ @edist_self _ _ x ▸ inf_edist_le_edist_of_mem h
 lemma inf_edist_le_inf_edist_of_subset (h : s ⊆ t) : inf_edist x t ≤ inf_edist x s :=
 infi_le_infi_of_subset h
 
-/-- If the edist to a set is `< r`, there exists a point in the set at edistance `< r` -/
-lemma exists_edist_lt_of_inf_edist_lt {r : ℝ≥0∞} (h : inf_edist x s < r) :
-  ∃y∈s, edist x y < r :=
-by simpa only [inf_edist, infi_lt_iff] using h
+/-- The edist to a set is `< r` iff there exists a point in the set at edistance `< r` -/
+lemma inf_edist_lt_iff {r : ℝ≥0∞} : inf_edist x s < r ↔ ∃ y ∈ s, edist x y < r :=
+by simp_rw [inf_edist, infi_lt_iff]
 
 /-- The edist of `x` to `s` is bounded by the sum of the edist of `y` to `s` and
 the edist from `x` to `y` -/
@@ -95,7 +94,7 @@ begin
   have ε0 : 0 < (ε / 2 : ℝ≥0∞) := by simpa [pos_iff_ne_zero] using εpos,
   have : inf_edist x (closure s) < inf_edist x (closure s) + ε/2,
     from ennreal.lt_add_right h.ne ε0.ne',
-  rcases exists_edist_lt_of_inf_edist_lt this with ⟨y, ycs, hy⟩,
+  rcases inf_edist_lt_iff.mp this with ⟨y, ycs, hy⟩,
   -- y : α,  ycs : y ∈ closure s,  hy : edist x y < inf_edist x (closure s) + ↑ε / 2
   rcases emetric.mem_closure_iff.1 ycs (ε/2) ε0 with ⟨z, zs, dyz⟩,
   -- z : α,  zs : z ∈ s,  dyz : edist y z < ↑ε / 2
@@ -107,8 +106,8 @@ end
 
 /-- A point belongs to the closure of `s` iff its infimum edistance to this set vanishes -/
 lemma mem_closure_iff_inf_edist_zero : x ∈ closure s ↔ inf_edist x s = 0 :=
-⟨λh, by rw ← inf_edist_closure; exact inf_edist_zero_of_mem h,
-λh, emetric.mem_closure_iff.2 $ λε εpos, exists_edist_lt_of_inf_edist_lt (by rwa h)⟩
+⟨λ h, by { rw ← inf_edist_closure, exact inf_edist_zero_of_mem h },
+λ h, emetric.mem_closure_iff.2 $ λ ε εpos, inf_edist_lt_iff.mp $ by rwa h⟩
 
 /-- Given a closed set `s`, a point belongs to `s` iff its infimum edistance to this set vanishes -/
 lemma mem_iff_inf_edist_zero_of_closed (h : is_closed s) : x ∈ s ↔ inf_edist x s = 0 :=
@@ -237,9 +236,8 @@ end
 /-- If the Hausdorff distance is `<r`, then any point in one of the sets has
 a corresponding point at distance `<r` in the other set -/
 lemma exists_edist_lt_of_Hausdorff_edist_lt {r : ℝ≥0∞} (h : x ∈ s)
-  (H : Hausdorff_edist s t < r) :
-  ∃y∈t, edist x y < r :=
-exists_edist_lt_of_inf_edist_lt $ calc
+  (H : Hausdorff_edist s t < r) : ∃ y ∈ t, edist x y < r :=
+inf_edist_lt_iff.mp $ calc
   inf_edist x t ≤ Hausdorff_edist s t : inf_edist_le_Hausdorff_edist_of_mem h
   ... < r : H
 
@@ -251,7 +249,7 @@ ennreal.le_of_forall_pos_le_add $ λε εpos h, begin
   have ε0 : (ε / 2 : ℝ≥0∞) ≠ 0 := by simpa [pos_iff_ne_zero] using εpos,
   have : inf_edist x s < inf_edist x s + ε/2 :=
     ennreal.lt_add_right (ennreal.add_lt_top.1 h).1.ne ε0,
-  rcases exists_edist_lt_of_inf_edist_lt this with ⟨y, ys, dxy⟩,
+  rcases inf_edist_lt_iff.mp this with ⟨y, ys, dxy⟩,
   -- y : α,  ys : y ∈ s,  dxy : edist x y < inf_edist x s + ↑ε / 2
   have : Hausdorff_edist s t < Hausdorff_edist s t + ε/2 :=
     ennreal.lt_add_right (ennreal.add_lt_top.1 h).2.ne ε0,
@@ -427,30 +425,22 @@ begin
   exact inf_edist_le_inf_edist_of_subset h
 end
 
-/-- If the minimal distance to a set is `<r`, there exists a point in this set at distance `<r` -/
-lemma exists_dist_lt_of_inf_dist_lt {r : real} (h : inf_dist x s < r) (hs : s.nonempty) :
-  ∃y∈s, dist x y < r :=
-begin
-  have rpos : 0 < r := lt_of_le_of_lt inf_dist_nonneg h,
-  have : inf_edist x s < ennreal.of_real r,
-  { rwa [inf_dist, ← ennreal.to_real_of_real (le_of_lt rpos),
-      ennreal.to_real_lt_to_real (inf_edist_ne_top hs)] at h,
-    simp },
-  rcases exists_edist_lt_of_inf_edist_lt this with ⟨y, ys, hy⟩,
-  rw [edist_dist, ennreal.of_real_lt_of_real_iff rpos] at hy,
-  exact ⟨y, ys, hy⟩,
-end
+/-- The minimal distance to a set is `< r` iff there exists a point in this set at distance `< r` -/
+lemma inf_dist_lt_iff {r : ℝ} (hs : s.nonempty) :
+  inf_dist x s < r ↔ ∃ y ∈ s, dist x y < r :=
+by simp_rw [inf_dist, ← ennreal.lt_of_real_iff_to_real_lt (inf_edist_ne_top hs), inf_edist_lt_iff,
+    ennreal.lt_of_real_iff_to_real_lt (edist_ne_top _ _), ← dist_edist]
 
 /-- The minimal distance from `x` to `s` is bounded by the distance from `y` to `s`, modulo
 the distance between `x` and `y` -/
 lemma inf_dist_le_inf_dist_add_dist : inf_dist x s ≤ inf_dist y s + dist x y :=
 begin
   cases s.eq_empty_or_nonempty with hs hs,
-  { by simp [hs, dist_nonneg] },
+  { simp [hs, dist_nonneg] },
   { rw [inf_dist, inf_dist, dist_edist,
         ← ennreal.to_real_add (inf_edist_ne_top hs) (edist_ne_top _ _),
         ennreal.to_real_le_to_real (inf_edist_ne_top hs)],
-    { apply inf_edist_le_inf_edist_add_edist },
+    { exact inf_edist_le_inf_edist_add_edist },
     { simp [ennreal.add_eq_top, inf_edist_ne_top hs, edist_ne_top] }}
 end
 
@@ -495,10 +485,7 @@ by simp [mem_closure_iff_inf_edist_zero, inf_dist, ennreal.to_real_eq_zero_iff, 
 /-- Given a closed set `s`, a point belongs to `s` iff its infimum distance to this set vanishes -/
 lemma _root_.is_closed.mem_iff_inf_dist_zero (h : is_closed s) (hs : s.nonempty) :
   x ∈ s ↔ inf_dist x s = 0 :=
-begin
-  have := @mem_closure_iff_inf_dist_zero _ _ s x hs,
-  rwa h.closure_eq at this
-end
+by rw [←mem_closure_iff_inf_dist_zero hs, h.closure_eq]
 
 /-- Given a closed set `s`, a point belongs to `s` iff its infimum distance to this set vanishes -/
 lemma _root_.is_closed.not_mem_iff_inf_dist_pos (h : is_closed s) (hs : s.nonempty) :
@@ -520,7 +507,7 @@ begin
   replace h : y ∈ s ∩ closed_ball x (dist y x) := ⟨h, mem_closed_ball.2 le_rfl⟩,
   refine le_antisymm _ (inf_dist_le_inf_dist_of_subset (inter_subset_left _ _) ⟨y, h⟩),
   refine not_lt.1 (λ hlt, _),
-  rcases exists_dist_lt_of_inf_dist_lt hlt ⟨y, h.1⟩ with ⟨z, hzs, hz⟩,
+  rcases (inf_dist_lt_iff ⟨y, h.1⟩).mp hlt with ⟨z, hzs, hz⟩,
   cases le_or_lt (dist z x) (dist y x) with hle hlt,
   { exact hz.not_le (inf_dist_le_dist_of_mem ⟨hzs, hle⟩) },
   { rw [dist_comm z, dist_comm y] at hlt,
@@ -541,8 +528,8 @@ begin
   set t := s ∩ closed_ball x (dist z x),
   have htc : is_compact t := (is_compact_closed_ball x (dist z x)).inter_left h,
   have htne : t.nonempty := ⟨z, hz, mem_closed_ball.2 le_rfl⟩,
-  obtain ⟨y, ⟨hys, hyx⟩, hyd⟩ : ∃ y ∈ t, inf_dist x t = dist x y,
-    from htc.exists_inf_dist_eq_dist htne x,
+  obtain ⟨y, ⟨hys, hyx⟩, hyd⟩ : ∃ y ∈ t, inf_dist x t = dist x y :=
+    htc.exists_inf_dist_eq_dist htne x,
   exact ⟨y, hys, hyd⟩
 end
 
@@ -556,8 +543,8 @@ lemma closed_ball_inf_dist_compl_subset_closure' {E : Type*} [semi_normed_group 
 begin
   have hne : sᶜ.nonempty, from nonempty_compl.2 hs,
   have hpos : 0 < inf_dist x sᶜ,
-    by rwa [← inf_dist_eq_closure, ← is_closed_closure.not_mem_iff_inf_dist_pos hne.closure,
-      closure_compl, mem_compl_iff, not_not, mem_interior_iff_mem_nhds],
+  { rwa [← inf_dist_eq_closure, ← is_closed_closure.not_mem_iff_inf_dist_pos hne.closure,
+      closure_compl, mem_compl_iff, not_not, mem_interior_iff_mem_nhds] },
   rw ← closure_ball x hpos,
   apply closure_mono,
   rw [← le_eq_subset, ← is_compl_compl.disjoint_right_iff],
@@ -658,11 +645,11 @@ lemma Hausdorff_dist_le_of_inf_dist {r : ℝ} (hr : 0 ≤ r)
   Hausdorff_dist s t ≤ r :=
 begin
   by_cases h1 : Hausdorff_edist s t = ⊤,
-    by rwa [Hausdorff_dist, h1, ennreal.top_to_real],
+  { rwa [Hausdorff_dist, h1, ennreal.top_to_real] },
   cases s.eq_empty_or_nonempty with hs hs,
-    by rwa [hs, Hausdorff_dist_empty'],
+  { rwa [hs, Hausdorff_dist_empty'] },
   cases t.eq_empty_or_nonempty with ht ht,
-    by rwa [ht, Hausdorff_dist_empty],
+  { rwa [ht, Hausdorff_dist_empty] },
   have : Hausdorff_edist s t ≤ ennreal.of_real r,
   { apply Hausdorff_edist_le_of_inf_edist _ _,
     { assume x hx,
@@ -721,8 +708,8 @@ lemma exists_dist_lt_of_Hausdorff_dist_lt {r : ℝ} (h : x ∈ s) (H : Hausdorff
 begin
   have r0 : 0 < r := lt_of_le_of_lt (Hausdorff_dist_nonneg) H,
   have : Hausdorff_edist s t < ennreal.of_real r,
-    by rwa [Hausdorff_dist, ← ennreal.to_real_of_real (le_of_lt r0),
-            ennreal.to_real_lt_to_real fin (ennreal.of_real_ne_top)] at H,
+  { rwa [Hausdorff_dist, ← ennreal.to_real_of_real (le_of_lt r0),
+      ennreal.to_real_lt_to_real fin (ennreal.of_real_ne_top)] at H },
   rcases exists_edist_lt_of_Hausdorff_edist_lt h this with ⟨y, hy, yr⟩,
   rw [edist_dist, ennreal.of_real_lt_of_real_iff r0] at yr,
   exact ⟨y, hy, yr⟩
@@ -767,7 +754,7 @@ begin
   { have Dtu : Hausdorff_edist t u < ⊤ := calc
       Hausdorff_edist t u ≤ Hausdorff_edist t s + Hausdorff_edist s u : Hausdorff_edist_triangle
       ... = Hausdorff_edist s t + Hausdorff_edist s u : by simp [Hausdorff_edist_comm]
-      ... < ⊤ : by simp [lt_top_iff_ne_top, *],
+      ... < ⊤ : lt_top_iff_ne_top.mpr $ ennreal.add_ne_top.mpr ⟨fin, h⟩,
     rw [Hausdorff_dist, Hausdorff_dist, Hausdorff_dist,
         ← ennreal.to_real_add fin Dtu.ne, ennreal.to_real_le_to_real h],
     { exact Hausdorff_edist_triangle },
@@ -811,7 +798,7 @@ by simp [Hausdorff_edist_zero_iff_closure_eq_closure.symm, Hausdorff_dist,
 /-- Two closed sets are at zero Hausdorff distance if and only if they coincide -/
 lemma _root_.is_closed.Hausdorff_dist_zero_iff_eq (hs : is_closed s) (ht : is_closed t)
   (fin : Hausdorff_edist s t ≠ ⊤) : Hausdorff_dist s t = 0 ↔ s = t :=
-by simp [(Hausdorff_edist_zero_iff_eq_of_closed hs ht).symm, Hausdorff_dist,
+by simp [←Hausdorff_edist_zero_iff_eq_of_closed hs ht, Hausdorff_dist,
          ennreal.to_real_eq_zero_iff, fin]
 
 end --section
@@ -851,16 +838,8 @@ lemma thickening_subset_of_subset (δ : ℝ) {E₁ E₂ : set α} (h : E₁ ⊆ 
 λ _ hx, lt_of_le_of_lt (inf_edist_le_inf_edist_of_subset h) hx
 
 lemma mem_thickening_iff_exists_edist_lt {δ : ℝ} (E : set α) (x : α) :
-  x ∈ thickening δ E ↔ (∃ z ∈ E, edist x z < ennreal.of_real δ) :=
-begin
-  simp only [exists_prop, mem_set_of_eq],
-  split,
-  { intros h,
-    rcases (exists_edist_lt_of_inf_edist_lt h) with ⟨z, ⟨hzE, hxz⟩⟩,
-    exact ⟨z, hzE, hxz⟩, },
-  { rintros ⟨z, ⟨hzE, hxz⟩⟩,
-    exact lt_of_le_of_lt (@inf_edist_le_edist_of_mem _ _ x _ _ hzE) hxz, },
-end
+  x ∈ thickening δ E ↔ ∃ z ∈ E, edist x z < ennreal.of_real δ :=
+inf_edist_lt_iff
 
 variables {X : Type u} [pseudo_metric_space X]
 
@@ -1016,7 +995,7 @@ lemma cthickening_eq_Inter_cthickening' {δ : ℝ}
   (s : set ℝ) (hsδ : s ⊆ Ioi δ) (hs : ∀ ε, δ < ε → (s ∩ (Ioc δ ε)).nonempty) (E : set α) :
   cthickening δ E = ⋂ ε ∈ s, cthickening ε E :=
 begin
-  apply le_antisymm,
+  apply subset.antisymm,
   { exact subset_bInter (λ _ hε, cthickening_mono (le_of_lt (hsδ hε)) E), },
   { unfold thickening cthickening,
     intros x hx,
@@ -1041,7 +1020,7 @@ lemma cthickening_eq_Inter_thickening' {δ : ℝ} (δ_nn : 0 ≤ δ)
   (s : set ℝ) (hsδ : s ⊆ Ioi δ) (hs : ∀ ε, δ < ε → (s ∩ (Ioc δ ε)).nonempty) (E : set α) :
   cthickening δ E = ⋂ ε ∈ s, thickening ε E :=
 begin
-  apply le_antisymm,
+  apply subset.antisymm,
   { apply subset_bInter,
     intros ε hε,
     rcases hs ε (mem_Ioi.mp (hsδ hε)) with ⟨ε', ⟨hsε', hε'⟩⟩,
@@ -1068,9 +1047,9 @@ lemma closure_eq_Inter_cthickening' (E : set α)
 begin
   by_cases hs₀ : s ⊆ Ioi 0,
   { rw ← cthickening_zero, apply cthickening_eq_Inter_cthickening' _ hs₀ hs, },
-  rcases not_subset.mp hs₀ with ⟨δ, ⟨hδs, δ_nonpos⟩⟩,
-  simp at δ_nonpos,
-  apply le_antisymm,
+  obtain ⟨δ, hδs, δ_nonpos⟩ := not_subset.mp hs₀,
+  rw [set.mem_Ioi, not_lt] at δ_nonpos,
+  apply subset.antisymm,
   { exact subset_bInter (λ ε _, closure_subset_cthickening ε E), },
   { rw ← cthickening_of_nonpos δ_nonpos E,
     exact bInter_subset_of_mem hδs, },
@@ -1086,7 +1065,7 @@ accumulating at zero. -/
 lemma closure_eq_Inter_thickening' (E : set α)
   (s : set ℝ) (hs₀ : s ⊆ Ioi 0) (hs : ∀ ε, 0 < ε → (s ∩ (Ioc 0 ε)).nonempty) :
   closure E = ⋂ δ ∈ s, thickening δ E :=
-by { rw ← cthickening_zero, apply cthickening_eq_Inter_thickening' rfl.ge _ hs₀ hs, }
+by { rw ← cthickening_zero, apply cthickening_eq_Inter_thickening' le_rfl _ hs₀ hs, }
 
 /-- The closure of a set equals the intersection of its (open) thickenings of positive radii. -/
 lemma closure_eq_Inter_thickening (E : set α) :
@@ -1099,7 +1078,7 @@ lemma frontier_thickening_subset (E : set α) {δ : ℝ} (δ_pos : 0 < δ) :
 begin
   have singleton_preim :
     {x : α | inf_edist x E = ennreal.of_real δ } = (λ x , inf_edist x E) ⁻¹' {ennreal.of_real δ},
-  by refl,
+  { simp only [preimage, mem_singleton_iff] },
   rw [thickening_eq_preimage_inf_edist, singleton_preim,
       ← (frontier_Iio' ⟨(0 : ℝ≥0∞), ennreal.of_real_pos.mpr δ_pos⟩)],
   exact continuous_inf_edist.frontier_preimage_subset (Iio (ennreal.of_real δ)),
@@ -1111,7 +1090,7 @@ lemma frontier_cthickening_subset (E : set α) {δ : ℝ} :
 begin
   have singleton_preim :
     {x : α | inf_edist x E = ennreal.of_real δ } = (λ x , inf_edist x E) ⁻¹' {ennreal.of_real δ},
-  by refl,
+  { simp only [preimage, mem_singleton_iff] },
   rw [cthickening_eq_preimage_inf_edist, singleton_preim,
       ← frontier_Iic' ⟨∞, ennreal.of_real_lt_top⟩],
   exact continuous_inf_edist.frontier_preimage_subset (Iic (ennreal.of_real δ)),

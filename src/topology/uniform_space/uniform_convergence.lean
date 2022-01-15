@@ -86,6 +86,11 @@ filter `p` if, for any entourage of the diagonal `u`, one has `p`-eventually
 def tendsto_uniformly (F : ι → α → β) (f : α → β) (p : filter ι) :=
 ∀ u ∈ 𝓤 β, ∀ᶠ n in p, ∀ x, (f x, F n x) ∈ u
 
+lemma tendsto_uniformly_on_iff_tendsto_uniformly_comp_coe :
+  tendsto_uniformly_on F f p s ↔
+  tendsto_uniformly (λ i (x : s), F i x) (f ∘ coe) p :=
+forall_congr (λ V, forall_congr (λ hV, by simp))
+
 /--
 A sequence of functions `Fₙ` converges uniformly to a limiting function `f` w.r.t.
 filter `p` iff the function `(n, x) ↦ (f x, Fₙ x)` converges along `p ×ᶠ ⊤` to the uniformity.
@@ -141,7 +146,7 @@ calc tendsto ↿F (p ×ᶠ ⊤) (𝓝 c)
 
 lemma uniform_continuous_on.tendsto_uniformly [uniform_space α] [uniform_space γ]
   {x : α} {U : set α} (hU : U ∈ 𝓝 x)
-  {F : α → β → γ} (hF : uniform_continuous_on ↿F (U.prod univ)) :
+  {F : α → β → γ} (hF : uniform_continuous_on ↿F (U ×ˢ (univ : set β))) :
   tendsto_uniformly F (F x) (𝓝 x) :=
 begin
   let φ := (λ q : α × β, ((x, q.2), q)),
@@ -167,15 +172,34 @@ variable [topological_space α]
 
 /-- A sequence of functions `Fₙ` converges locally uniformly on a set `s` to a limiting function
 `f` with respect to a filter `p` if, for any entourage of the diagonal `u`, for any `x ∈ s`, one
-has `p`-eventually `(f x, Fₙ x) ∈ u` for all `y` in a neighborhood of `x` in `s`. -/
+has `p`-eventually `(f y, Fₙ y) ∈ u` for all `y` in a neighborhood of `x` in `s`. -/
 def tendsto_locally_uniformly_on (F : ι → α → β) (f : α → β) (p : filter ι) (s : set α) :=
   ∀ u ∈ 𝓤 β, ∀ x ∈ s, ∃ t ∈ 𝓝[s] x, ∀ᶠ n in p, ∀ y ∈ t, (f y, F n y) ∈ u
 
 /-- A sequence of functions `Fₙ` converges locally uniformly to a limiting function `f` with respect
 to a filter `p` if, for any entourage of the diagonal `u`, for any `x`, one has `p`-eventually
-`(f x, Fₙ x) ∈ u` for all `y` in a neighborhood of `x`. -/
+`(f y, Fₙ y) ∈ u` for all `y` in a neighborhood of `x`. -/
 def tendsto_locally_uniformly (F : ι → α → β) (f : α → β) (p : filter ι) :=
   ∀ u ∈ 𝓤 β, ∀ (x : α), ∃ t ∈ 𝓝 x, ∀ᶠ n in p, ∀ y ∈ t, (f y, F n y) ∈ u
+
+lemma tendsto_locally_uniformly_on_iff_tendsto_locally_uniformly_comp_coe :
+  tendsto_locally_uniformly_on F f p s ↔
+  tendsto_locally_uniformly (λ i (x : s), F i x) (f ∘ coe) p :=
+begin
+  refine forall_congr (λ V, forall_congr (λ hV, _)),
+  simp only [exists_prop, function.comp_app, set_coe.forall, subtype.coe_mk],
+  refine forall_congr (λ x, forall_congr (λ hx, ⟨λ h, _, λ h, _⟩)),
+  { obtain ⟨t, ht₁, ht₂⟩ := h,
+    obtain ⟨u, hu₁, hu₂⟩ := mem_nhds_within_iff_exists_mem_nhds_inter.mp ht₁,
+    exact ⟨coe⁻¹' u,
+           (mem_nhds_subtype _ _ _).mpr ⟨u, hu₁, rfl.subset⟩,
+           ht₂.mono (λ i hi y hy₁ hy₂, hi y (hu₂ ⟨hy₂, hy₁⟩))⟩, },
+  { obtain ⟨t, ht₁, ht₂⟩ := h,
+    obtain ⟨u, hu₁, hu₂⟩ := (mem_nhds_subtype _ _ _).mp ht₁,
+    exact ⟨u ∩ s,
+           mem_nhds_within_iff_exists_mem_nhds_inter.mpr ⟨u, hu₁, rfl.subset⟩,
+           ht₂.mono (λ i hi y hy, hi y hy.2 (hu₂ (by simp [hy.1])))⟩, },
+end
 
 protected lemma tendsto_uniformly_on.tendsto_locally_uniformly_on
   (h : tendsto_uniformly_on F f p s) : tendsto_locally_uniformly_on F f p s :=
@@ -200,6 +224,33 @@ by simp [tendsto_locally_uniformly_on, tendsto_locally_uniformly, nhds_within_un
 protected lemma tendsto_locally_uniformly.tendsto_locally_uniformly_on
   (h : tendsto_locally_uniformly F f p) : tendsto_locally_uniformly_on F f p s :=
 (tendsto_locally_uniformly_on_univ.mpr h).mono (subset_univ _)
+
+/-- On a compact space, locally uniform convergence is just uniform convergence. -/
+lemma tendsto_locally_uniformly_iff_tendsto_uniformly_of_compact_space [compact_space α] :
+  tendsto_locally_uniformly F f p ↔ tendsto_uniformly F f p :=
+begin
+  refine ⟨λ h V hV, _, tendsto_uniformly.tendsto_locally_uniformly⟩,
+  choose U hU using h V hV,
+  obtain ⟨t, ht⟩ := compact_univ.elim_nhds_subcover' (λ k hk, U k) (λ k hk, (hU k).1),
+  replace hU := λ (x : t), (hU x).2,
+  rw ← eventually_all at hU,
+  refine hU.mono (λ i hi x, _),
+  specialize ht (mem_univ x),
+  simp only [exists_prop, mem_Union, set_coe.exists, exists_and_distrib_right,subtype.coe_mk] at ht,
+  obtain ⟨y, ⟨hy₁, hy₂⟩, hy₃⟩ := ht,
+  exact hi ⟨⟨y, hy₁⟩, hy₂⟩ x hy₃,
+end
+
+/-- For a compact set `s`, locally uniform convergence on `s` is just uniform convergence on `s`. -/
+lemma tendsto_locally_uniformly_on_iff_tendsto_uniformly_on_of_compact (hs : is_compact s) :
+  tendsto_locally_uniformly_on F f p s ↔ tendsto_uniformly_on F f p s :=
+begin
+  haveI : compact_space s := is_compact_iff_compact_space.mp hs,
+  refine ⟨λ h, _, tendsto_uniformly_on.tendsto_locally_uniformly_on⟩,
+  rwa [tendsto_locally_uniformly_on_iff_tendsto_locally_uniformly_comp_coe,
+    tendsto_locally_uniformly_iff_tendsto_uniformly_of_compact_space,
+    ← tendsto_uniformly_on_iff_tendsto_uniformly_comp_coe] at h,
+end
 
 lemma tendsto_locally_uniformly_on.comp [topological_space γ] {t : set γ}
   (h : tendsto_locally_uniformly_on F f p s)

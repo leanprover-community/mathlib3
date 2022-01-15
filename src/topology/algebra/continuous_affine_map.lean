@@ -5,7 +5,7 @@ Authors: Oliver Nash
 -/
 import linear_algebra.affine_space.affine_map
 import topology.continuous_function.basic
-import topology.algebra.module
+import topology.algebra.module.basic
 
 /-!
 # Continuous affine maps.

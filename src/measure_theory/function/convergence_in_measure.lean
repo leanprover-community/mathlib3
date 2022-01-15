@@ -98,6 +98,14 @@ begin
   exact hN n hn x hx,
 end
 
+lemma exists_seq_tendsto_ae [is_finite_measure μ]
+  (hf : ∀ n, measurable (f n)) (hg : measurable g)
+  (hfg : tendsto_in_measure μ f g) :
+  ∃ ns : ℕ → ℕ, ∀ᵐ x ∂μ, tendsto (λ i, f (ns i) x) at_top (𝓝 (g x)) :=
+begin
+  sorry
+end
+
 end tendsto_in_measure
 
 end measure_theory

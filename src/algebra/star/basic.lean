@@ -76,6 +76,15 @@ lemma star_injective [has_involutive_star R] : function.injective (star : R → 
 star_involutive.injective
 
 /--
+Typeclass for a trivial star operation. This is mostly meant for `ℝ`.
+-/
+class has_trivial_star (R : Type u) [has_star R] :=
+(star_trivial : ∀ (r : R), star r = r)
+
+export has_trivial_star (star_trivial)
+attribute [simp] star_trivial
+
+/--
 A `*`-monoid is a monoid `R` with an involutive operations `star`
 so `star (r * s) = star s * star r`.
 -/

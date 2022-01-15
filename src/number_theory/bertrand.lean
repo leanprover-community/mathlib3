@@ -29,6 +29,8 @@ double there is a prime
 
 -- TODO File Docstring
 -- TODO Cite "Proofs From THE BOOK"
+-- TODO Cite Tochiori's paper
+-- TODO edit 100.yml
 -/
 
 open_locale big_operators

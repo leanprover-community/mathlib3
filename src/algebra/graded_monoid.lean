@@ -518,6 +518,10 @@ variables {R S : Type*} [set_like S R]
 /-- An element `a : R` is said to be homogeneous if there is some `i : ι` such that `a ∈ A i`. -/
 def set_like.is_homogeneous (A : ι → S) (a : R) : Prop := ∃ i, a ∈ A i
 
+@[simp] lemma set_like.is_homogeneous_coe {A : ι → S} {i} (x : A i) :
+  set_like.is_homogeneous A (x : R) :=
+⟨i, x.prop⟩
+
 lemma set_like.is_homogeneous_one [has_zero ι] [has_one R]
   (A : ι → S) [set_like.has_graded_one A] : set_like.is_homogeneous A (1 : R) :=
 ⟨0, set_like.has_graded_one.one_mem⟩

@@ -109,7 +109,7 @@ theorem hom_ext (φ ψ : abelianization G →* A)
   (h : φ.comp of = ψ.comp of) : φ = ψ :=
 monoid_hom.ext $ λ x, quotient_group.induction_on x $ monoid_hom.congr_fun h
 
-/-- Equivalent groups have eqiuvalent abelianizations -/
+/-- Equivalent groups have equivalent abelianizations -/
 def mul_equiv.abelianization_congr {G H : Type*} [group G] [group H] (e : G ≃* H) :
   abelianization G ≃* abelianization H :=
 { to_fun := abelianization.lift $ abelianization.of.comp e.to_monoid_hom,

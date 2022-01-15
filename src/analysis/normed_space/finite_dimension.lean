@@ -325,17 +325,22 @@ end linear_equiv
 
 /-- Any `K`-Lipschitz map from a subset `s` of a metric space `α` to a finite-dimensional real
 vector space `E'` can be extended to a Lipschitz map on the whole space `α`, with a slightly worse
-constant `C K` where `C` only depends on `E'`. We record a working value for this constant `C`
+constant `C * K` where `C` only depends on `E'`. We record a working value for this constant `C`
 as `lipschitz_extension_constant E'`. -/
 @[irreducible] def lipschitz_extension_constant
   (E' : Type*) [normed_group E'] [normed_space ℝ E'] [finite_dimensional ℝ E'] : ℝ≥0 :=
 let A := (basis.of_vector_space ℝ E').equiv_fun.to_continuous_linear_equiv in
-  ∥A.symm.to_continuous_linear_map∥₊ * ∥A.to_continuous_linear_map∥₊
+  max (∥A.symm.to_continuous_linear_map∥₊ * ∥A.to_continuous_linear_map∥₊) 1
+
+lemma lipschitz_extension_constant_pos
+  (E' : Type*) [normed_group E'] [normed_space ℝ E'] [finite_dimensional ℝ E'] :
+  0 < lipschitz_extension_constant E' :=
+by { rw lipschitz_extension_constant, exact zero_lt_one.trans_le (le_max_right _ _) }
 
 /-- Any `K`-Lipschitz map from a subset `s` of a metric space `α` to a finite-dimensional real
 vector space `E'` can be extended to a Lipschitz map on the whole space `α`, with a slightly worse
 constant `lipschitz_extension_constant E' * K`. -/
-theorem lipschitz_on_with.extends_finite_dimension
+theorem lipschitz_on_with.extend_finite_dimension
   {α : Type*} [pseudo_metric_space α]
   {E' : Type*} [normed_group E'] [normed_space ℝ E'] [finite_dimensional ℝ E']
   {s : set α} {f : α → E'} {K : ℝ≥0} (hf : lipschitz_on_with K f s) :
@@ -353,8 +358,9 @@ begin
   refine ⟨A.symm ∘ g, _, _⟩,
   { have LAsymm : lipschitz_with (∥A.symm.to_continuous_linear_map∥₊) A.symm,
       by apply A.symm.lipschitz,
-    convert LAsymm.comp hg using 1,
-    rw [lipschitz_extension_constant, ← mul_assoc] },
+    apply (LAsymm.comp hg).weaken,
+    rw [lipschitz_extension_constant, ← mul_assoc],
+    refine mul_le_mul' (le_max_left _ _) le_rfl },
   { assume x hx,
     have : A (f x) = g x := gs hx,
     simp only [(∘), ← this, A.symm_apply_apply] }

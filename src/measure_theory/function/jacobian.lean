@@ -673,7 +673,7 @@ lemma glouk (A : E ≃L[ℝ] E) : ∀ᶠ δ in 𝓝[>] (0 : ℝ≥0), ∀ (s : s
 begin
   filter_upwards [self_mem_nhds_within],
   assume δ hδ s f hf,
-  have Z := hf.lipschitz_on_with,
+  have Z := hf.lipschitz_on_with.extend_finite_dimension,
 end
 
 #exit

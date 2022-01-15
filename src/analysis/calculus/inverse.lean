@@ -108,18 +108,6 @@ on a specific set. -/
 def approximates_linear_on (f : E → F) (f' : E →L[𝕜] F) (s : set E) (c : ℝ≥0) : Prop :=
 ∀ (x ∈ s) (y ∈ s), ∥f x - f y - f' (x - y)∥ ≤ c * ∥x - y∥
 
-lemma approximates_linear_on_iff_lipschitz_on_with
-  {f : E → F} {f' : E →L[𝕜] F} {s : set E} {c : ℝ≥0} :
-  approximates_linear_on f f' s c ↔ lipschitz_on_with c (f - f') s :=
-begin
-  have : ∀ x y, f x - f y - f' (x - y) = (f - f') x - (f - f') y,
-  { assume x y, simp only [map_sub, pi.sub_apply], abel },
-  simp only [this, lipschitz_on_with_iff_norm_sub_le, approximates_linear_on],
-end
-
-alias approximates_linear_on_iff_lipschitz_on_with ↔
-  approximates_linear_on.lipschitz_on_with lipschitz_on_with.approximates_linear_on
-
 @[simp] lemma approximates_linear_on_empty (f : E → F) (f' : E →L[𝕜] F) (c : ℝ≥0) :
   approximates_linear_on f f' ∅ c :=
 by simp [approximates_linear_on]
@@ -142,6 +130,18 @@ theorem mono_num (hc : c ≤ c') (hf : approximates_linear_on f f' s c) :
 theorem mono_set (hst : s ⊆ t) (hf : approximates_linear_on f f' t c) :
   approximates_linear_on f f' s c :=
 λ x hx y hy, hf x (hst hx) y (hst hy)
+
+lemma approximates_linear_on_iff_lipschitz_on_with
+  {f : E → F} {f' : E →L[𝕜] F} {s : set E} {c : ℝ≥0} :
+  approximates_linear_on f f' s c ↔ lipschitz_on_with c (f - f') s :=
+begin
+  have : ∀ x y, f x - f y - f' (x - y) = (f - f') x - (f - f') y,
+  { assume x y, simp only [map_sub, pi.sub_apply], abel },
+  simp only [this, lipschitz_on_with_iff_norm_sub_le, approximates_linear_on],
+end
+
+alias approximates_linear_on_iff_lipschitz_on_with ↔
+  approximates_linear_on.lipschitz_on_with lipschitz_on_with.approximates_linear_on
 
 lemma lipschitz_sub (hf : approximates_linear_on f f' s c) :
   lipschitz_with c (λ x : s, f x - f' x) :=
@@ -379,6 +379,32 @@ protected lemma inj_on (hf : approximates_linear_on f (f' : E →L[𝕜] F) s c)
   inj_on f s :=
 inj_on_iff_injective.2 $ hf.injective hc
 
+protected lemma surjective [complete_space E]
+  (hf : approximates_linear_on f (f' : E →L[𝕜] F) univ c) (hc : subsingleton E ∨ c < N⁻¹) :
+  surjective f :=
+begin
+  cases hc with hE hc,
+  { haveI : subsingleton F := (equiv.subsingleton_congr f'.to_linear_equiv.to_equiv).1 hE,
+    exact surjective_to_subsingleton _ },
+  { suffices H : ∀ (R : ℝ), 0 ≤ R → closed_ball (f 0) R ⊆ range f,
+    { have : (⋃ (n : ℕ), closed_ball (f 0) n) ⊆ range f :=
+        Union_subset (λ n, H n (nat.cast_nonneg _)),
+      rw Union_closed_ball_nat at this,
+      exact range_iff_surjective.1 (subset.antisymm (subset_univ _) this) },
+    assume R hR,
+    have hc' : (0 : ℝ) < N⁻¹ - c, by { rw sub_pos, exact hc },
+    set r := (N⁻¹ - c : ℝ) ⁻¹ * R with rdef,
+    have hr : 0 ≤ r := mul_nonneg (inv_nonneg.2 hc'.le) hR,
+    have rR : (N⁻¹ - c : ℝ) * r = R, by rw [rdef, ← mul_assoc, mul_inv_cancel hc'.ne', one_mul],
+    calc closed_ball (f 0) R ⊆ f '' (closed_ball 0 r) :
+      begin
+        rw ← rR,
+        exact hf.surj_on_closed_ball_of_nonlinear_right_inverse f'.to_nonlinear_right_inverse hr
+          (subset_univ (closed_ball (0 : E) r))
+      end
+    ... ⊆ range f : image_subset_range _ _ }
+end
+
 /-- A map approximating a linear equivalence on a set defines a local equivalence on this set.
 Should not be used outside of this file, because it is superseded by `to_local_homeomorph` below.
 
@@ -445,6 +471,46 @@ def to_local_homeomorph (hf : approximates_linear_on f (f' : E →L[𝕜] F) s c
     (by rwa f'.to_linear_equiv.to_equiv.subsingleton_congr at hc),
   continuous_to_fun := hf.continuous_on,
   continuous_inv_fun := hf.inverse_continuous_on hc }
+
+/-- A function `f` that approximates a linear equivalence on the whole space is a homeomorphism. -/
+def to_homeomorph (hf : approximates_linear_on f (f' : E →L[𝕜] F) univ c)
+  (hc : subsingleton E ∨ c < N⁻¹) :
+  E ≃ₜ F :=
+begin
+  refine (hf.to_local_homeomorph _ _ hc is_open_univ).to_homeomorph_of_source_eq_univ_target_eq_univ
+    rfl _,
+  change f '' univ = univ,
+  rw [image_univ, range_iff_surjective],
+  exact hf.surjective hc,
+end
+
+omit cs
+
+/-- In a real vector space, a function `f` that approximates a linear equivalence on a subset `s`
+can be extended to a homeomorphism of the whole space. -/
+lemma exists_homeomorph_extension {E : Type*} [normed_group E] [normed_space ℝ E]
+  {F : Type*} [normed_group F] [normed_space ℝ F] [finite_dimensional ℝ F]
+  (s : set E) (f : E → F) (f' : E ≃L[ℝ] F) (c : ℝ≥0)
+  (hf : approximates_linear_on f (f' : E →L[ℝ] F) s c)
+  (hc : subsingleton E ∨ lipschitz_extension_constant F * c < (∥(f'.symm : F →L[ℝ] E)∥₊)⁻¹) :
+  ∃ g : E ≃ₜ F, eq_on f g s :=
+begin
+  -- the difference `f - f'` is Lipschitz on `s`. It can be extended to a Lipschitz function `u`
+  -- on the whole space, with a slightly worse Lipschitz constant. Then `f' + u` will be the
+  -- desired homeomorphism.
+  obtain ⟨u, hu, uf⟩ : ∃ (u : E → F), lipschitz_with (lipschitz_extension_constant F * c) u
+    ∧ eq_on (f - f') u s := hf.lipschitz_on_with.extend_finite_dimension,
+  let g : E → F := λ x, f' x + u x,
+  have fg : eq_on f g s := λ x hx, by simp_rw [g, ← uf hx, pi.sub_apply, add_sub_cancel'_right],
+  have hg : approximates_linear_on g (f' : E →L[ℝ] F) univ (lipschitz_extension_constant F * c),
+  { apply lipschitz_on_with.approximates_linear_on,
+    rw lipschitz_on_univ,
+    convert hu,
+    ext x,
+    simp only [add_sub_cancel', continuous_linear_equiv.coe_coe, pi.sub_apply] },
+  haveI : finite_dimensional ℝ E := f'.symm.to_linear_equiv.finite_dimensional,
+  exact ⟨hg.to_homeomorph g hc, fg⟩,
+end
 
 end
 

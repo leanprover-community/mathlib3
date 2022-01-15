@@ -114,14 +114,14 @@ variables {A : Type*} [non_unital_non_assoc_ring A]
 Left multiplication operator
 -/
 @[simps] def add_monoid.End.L : A →+ add_monoid.End A := add_monoid_hom.mul
-local notation `L` := function.End.L
+local notation `L` := add_monoid.End.L
 
 /--
 Right multiplication operator
 -/
-@[simps] def function.End.R : A→+(add_monoid.End A) :=
+@[simps] def add_monoid.End.R : A→+(add_monoid.End A) :=
   add_monoid_hom.flip (L  : A →+ add_monoid.End A)
-local notation `R` := function.End.R
+local notation `R` := add_monoid.End.R
 
 -- The Jordan axioms can be expressed in terms of commuting multiplication operators
 
@@ -130,8 +130,8 @@ begin
   ext b,
   rw ring.lie_def,
   apply sub_eq_zero_of_eq,
-  simp only [function.comp_app, function.End.L_apply_apply, add_monoid.coe_mul,
-    function.End.R_apply_apply],
+  simp only [function.comp_app, add_monoid.End.L_apply_apply, add_monoid.coe_mul,
+    add_monoid.End.R_apply_apply],
   rw is_jordan.lmul_comm_rmul,
 end
 
@@ -140,7 +140,7 @@ begin
   ext b,
   rw ring.lie_def,
   apply sub_eq_zero_of_eq,
-  simp only [function.comp_app, function.End.L_apply_apply, add_monoid.coe_mul],
+  simp only [function.comp_app, add_monoid.End.L_apply_apply, add_monoid.coe_mul],
   rw is_jordan.lmul_lmul_comm_lmul,
 end
 
@@ -149,8 +149,8 @@ begin
   ext b,
   rw ring.lie_def,
   apply sub_eq_zero_of_eq,
-  simp only [function.comp_app, function.End.L_apply_apply, add_monoid.coe_mul,
-    function.End.R_apply_apply],
+  simp only [function.comp_app, add_monoid.End.L_apply_apply, add_monoid.coe_mul,
+    add_monoid.End.R_apply_apply],
   rw is_jordan.lmul_comm_rmul_rmul,
 end
 
@@ -159,8 +159,8 @@ begin
   ext b,
   rw ring.lie_def,
   apply sub_eq_zero_of_eq,
-  simp only [function.comp_app, function.End.L_apply_apply, add_monoid.coe_mul,
-    function.End.R_apply_apply],
+  simp only [function.comp_app, add_monoid.End.L_apply_apply, add_monoid.coe_mul,
+    add_monoid.End.R_apply_apply],
   rw is_jordan.lmul_lmul_comm_rmul,
 end
 
@@ -169,7 +169,7 @@ begin
   ext b,
   rw ring.lie_def,
   apply sub_eq_zero_of_eq,
-  simp only [function.comp_app, add_monoid.coe_mul, function.End.R_apply_apply],
+  simp only [function.comp_app, add_monoid.coe_mul, add_monoid.End.R_apply_apply],
   rw is_jordan.rmul_comm_rmul_rmul,
 end
 

@@ -19,11 +19,45 @@ namespace measure_theory
 variables {α ι E : Type*} {m : measurable_space α} {μ : measure α}
 
 /-- TODO -/
+def tendsto_locally_in_measure [preorder ι] [has_dist E] {m : measurable_space α}
+  (μ : measure α) (f : ι → α → E) (g : α → E) : Prop :=
+∀ s (hs : measurable_set s) (hμs : 0 < μ s), ∀ ε (hε : 0 < ε),
+  tendsto (λ i, μ {x ∈ s | ε ≤ dist (f i x) (g x)}) at_top (𝓝 0)
+
+/-- TODO -/
 def tendsto_in_measure [preorder ι] [has_dist E] {m : measurable_space α}
   (μ : measure α) (f : ι → α → E) (g : α → E) : Prop :=
 ∀ ε (hε : 0 < ε), tendsto (λ i, μ {x | ε ≤ dist (f i x) (g x)}) at_top (𝓝 0)
 
+lemma tendsto_in_measure_iff_norm [preorder ι] [semi_normed_group E] {f : ι → α → E} {g : α → E} :
+  tendsto_in_measure μ f g
+    ↔ ∀ ε (hε : 0 < ε), tendsto (λ i, μ {x | ε ≤ ∥f i x - g x∥}) at_top (𝓝 0) :=
+by simp_rw [tendsto_in_measure, dist_eq_norm]
+
 namespace tendsto_in_measure
+
+protected lemma tendsto_locally_in_measure [preorder ι] [has_dist E] {f : ι → α → E} {g : α → E}
+  (h : tendsto_in_measure μ f g) :
+  tendsto_locally_in_measure μ f g :=
+begin
+  intros s hs hμs ε hε,
+  refine tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds (h ε hε) (λ i, zero_le _) _,
+  exact λ i, measure_mono (λ x, by simp),
+end
+
+lemma congr_left [preorder ι] [has_dist E] {f f' : ι → α → E} {g : α → E}
+  (h : ∀ i, f i =ᵐ[μ] f' i) (h : tendsto_in_measure μ f g) :
+  tendsto_in_measure μ f' g :=
+begin
+  sorry
+end
+
+lemma congr_right [preorder ι] [has_dist E] {f : ι → α → E} {g g' : α → E}
+  (h : g =ᵐ[μ] g') (h : tendsto_in_measure μ f g) :
+  tendsto_in_measure μ f g' :=
+begin
+  sorry
+end
 
 variables [metric_space E] [second_countable_topology E] [measurable_space E] [borel_space E]
 variables {f : ℕ → α → E} {g : α → E}

@@ -66,6 +66,12 @@ end
 lemma sub_coe_pi_eq_add_coe_pi (θ : angle) : θ - π = θ + π :=
 by rw [sub_eq_add_neg, neg_coe_pi]
 
+@[simp] lemma two_nsmul_coe_pi : (2 : ℕ) • (π : angle) = 0 :=
+by simp [←coe_nat_mul_eq_nsmul]
+
+@[simp] lemma two_zsmul_coe_pi : (2 : ℤ) • (π : angle) = 0 :=
+by simp [←coe_int_mul_eq_zsmul]
+
 theorem cos_eq_iff_eq_or_eq_neg {θ ψ : ℝ} : cos θ = cos ψ ↔ (θ : angle) = ψ ∨ (θ : angle) = -ψ :=
 begin
   split,

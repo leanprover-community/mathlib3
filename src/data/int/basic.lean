@@ -234,12 +234,16 @@ end
 
 lemma is_zero_or_pm_one_of_le_one {n : ℤ} (h: |n| ≤ 1) : n = -1 ∨ n = 0 ∨ n = 1 :=
 begin
-  cases int.is_zero_or_one_of_nonneg_of_le_one (abs_nonneg _) h; cases abs_cases n,
-  -- This ought to be automated somehow
-  { right, left, linarith, },
-  { left, linarith, },
-  { right, right, linarith, },
-  { left, linarith, },
+  cases int.is_zero_or_one_of_nonneg_of_le_one (abs_nonneg _) h with h₁ h₁,
+  { right, left,
+    exact abs_eq_zero.mp h₁, },
+  rcases abs_cases n with ⟨h₂, h₃⟩ | ⟨h₂, h₃⟩,
+  { right, right,
+    rw h₂ at h₁,
+    exact h₁, },
+  { left,
+    rw h₂ at h₁,
+    exact eq_neg_of_eq_neg (eq.symm h₁), },
 end
 
 @[elab_as_eliminator] protected lemma induction_on {p : ℤ → Prop}

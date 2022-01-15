@@ -49,9 +49,7 @@ by simpa only [continuous_on_iff_continuous_restrict, set.restrict, set.indicato
 
 end
 
-
-
-def compact_map (T : E → F) : Prop :=
+def compact_operator (T : E → F) : Prop :=
 ∀ s : set E, metric.bounded s → is_compact (closure (T '' s))
 
 
@@ -74,10 +72,10 @@ begin
   nlinarith only [hC, hM]
 end
 
-lemma compact_map_continuous_comp_compact {E' F' : Type*} [normed_group E'] [normed_space 𝕜 E']
+lemma compact_operator_continuous_comp_compact {E' F' : Type*} [normed_group E'] [normed_space 𝕜 E']
   [normed_group F'] [normed_space 𝕜 F'] (f : E' →L[𝕜] E) (g : F → F') (u : E →ₗ[𝕜] F)
-  (hu : compact_map u) (hg :  continuous_on g (closure (u ∘ₗ f.to_linear_map).range)) :
-  compact_map (λ x, g ((u ∘ₗ f.to_linear_map) x)) :=
+  (hu : compact_operator u) (hg :  continuous_on g (closure (u ∘ₗ f.to_linear_map).range)) :
+  compact_operator (λ x, g ((u ∘ₗ f.to_linear_map) x)) :=
 begin
   intros s hs,
   have ufs_cpct : is_compact (closure (u '' (f '' s))) := hu _ (metric.bounded_image _ hs),
@@ -94,9 +92,9 @@ begin
 end
 
 /-- If a compact operator preserves a submodule, its restriction to that submodule is compact. -/
-lemma compact_map.restrict_invariant {T : E →ₗ[𝕜] E} (hT : compact_map T)
+lemma compact_operator.restrict_invariant {T : E →ₗ[𝕜] E} (hT : compact_operator T)
   {V : submodule 𝕜 E} (hV : ∀ v ∈ V, T v ∈ V) (h_closed : is_closed (V : set E)):
-  compact_map (T.restrict hV) :=
+  compact_operator (T.restrict hV) :=
 begin
   have : continuous_on V.indicator_id (closure ↑((T.comp V.subtypeL.to_linear_map).range)),
   { have : ((T.comp V.subtypeL.to_linear_map).range : set E) ⊆ V,
@@ -109,7 +107,7 @@ begin
     refine continuous_on.mono _ (closure_mono this),
     rw h_closed.closure_eq,
     exact V.indicator_id_continuous_on },
-  convert compact_map_continuous_comp_compact (V.subtypeL) _ T hT this,
+  convert compact_operator_continuous_comp_compact (V.subtypeL) _ T hT this,
   ext v,
   have htv : T v ∈ V := hV _ v.property,
   simp only [dif_pos, continuous_linear_map.to_linear_map_eq_coe, submodule.subtype_apply,

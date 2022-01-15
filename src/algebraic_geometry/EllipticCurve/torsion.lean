@@ -5,13 +5,14 @@ Authors: David Kurniadi Angdinata
 -/
 
 import algebraic_geometry.EllipticCurve.point
+import algebra.cubic_discriminant
 
 /-!
-# The torsion points of `E(K)`
+# Torsion points of an elliptic curve over a field
 -/
 
-open_locale classical
 noncomputable theory
+open_locale classical
 
 variables (n : ℕ)
 variables {F : Type*} [field F]
@@ -55,11 +56,11 @@ def mul_by' : E⟮L⟯ →+[L ≃ₐ[K] L] E⟮L⟯ :=
   map_add'  := mul_by.map_add n E L }
 
 /-- The multiplication by `n` isogeny. -/
-def mul_by : E⟮K⟯ →+ (E⟮K⟯) := mul_by' n E K K
+def mul_by : E⟮K⟯ →+ E⟮K⟯ := mul_by' n E K K
 
 notation E⟮K⟯[n] := (mul_by n E K).ker
 notation E⟮K⟯•n := (mul_by n E K).range
-notation E⟮K⟯/n := E⟮K⟯ ⧸ (E⟮K⟯•n)
+notation E⟮K⟯/n := E⟮K⟯ ⧸ E⟮K⟯•n
 
 end multiplication
 
@@ -71,7 +72,7 @@ section functoriality
 variables (φ : K →ₐ[F] L)
 
 /-- Set function `E(K)[n] → E(L)[n]`. -/
-def ker_hom.to_fun : E⟮K⟯[n] → (E⟮L⟯[n]) := λ ⟨P, hP⟩, ⟨point_hom E K L φ P,
+def ker_hom.to_fun : E⟮K⟯[n] → E⟮L⟯[n] := λ ⟨P, hP⟩, ⟨point_hom E K L φ P,
 by { change n • P = 0 at hP, change n • _ = (0 : E⟮L⟯), rw [← map_nsmul, hP], refl }⟩
 
 /-- `E(K)[n] → E(L)[n]` respects zero. -/
@@ -81,36 +82,34 @@ lemma ker_hom.map_zero : ker_hom.to_fun n E K L φ 0 = 0 := rfl
 lemma ker_hom.map_add (P Q : E⟮K⟯[n]) :
   ker_hom.to_fun n E K L φ (P + Q) = ker_hom.to_fun n E K L φ P + ker_hom.to_fun n E K L φ Q :=
 begin
-  cases P with P,
-  cases Q with Q,
-  change (⟨point_hom E K L φ (P + Q), _⟩ : E⟮L⟯[n]) = ⟨point_hom E K L φ P + point_hom E K L φ Q, _⟩,
+  rcases ⟨P, Q⟩ with ⟨⟨P, _⟩, ⟨Q, _⟩⟩,
+  change (⟨_, _⟩ : E⟮L⟯[n]) = ⟨_ + _, _⟩,
   simp only,
   apply point_hom.map_add
 end
 
 /-- Group homomorphism `E(K)[n] → E(L)[n]`. -/
-def ker_hom : E⟮K⟯[n] →+ (E⟮L⟯[n]) :=
+def ker_hom : E⟮K⟯[n] →+ E⟮L⟯[n] :=
 { to_fun    := ker_hom.to_fun n E K L φ,
   map_zero' := ker_hom.map_zero n E K L φ,
   map_add'  := ker_hom.map_add n E K L φ }
 
 /-- `K ↦ E(K)[n]` respects identity. -/
 lemma ker_hom.id (P : E⟮K⟯[n]) : ker_hom n E K K (K⟶[F]K) P = P :=
-by { cases P with P, cases P; refl }
+by rcases P with ⟨_ | _⟩; refl
 
 /-- `K ↦ E(K)[n]` respects composition. -/
 lemma ker_hom.comp (P : E⟮K⟯[n]) (M : Type*) [field M] [algebra F M] [algebra K M] [algebra L M]
   [is_scalar_tower F L M] [is_scalar_tower F K M] :
   ker_hom n E L M (L⟶[F]M) (ker_hom n E K L (K⟶[F]L) P)
     = ker_hom n E K M ((L⟶[F]M).comp (K⟶[F]L)) P :=
-by { cases P with P, cases P; refl }
+by rcases P with ⟨_ | _⟩; refl
 
 /-- `E(K)[n] → E(L)[n]` is injective. -/
-lemma ker_hom.injective : function.injective (ker_hom n E K L φ) :=
+lemma ker_hom.injective : function.injective $ ker_hom n E K L φ :=
 begin
   intros P Q hPQ,
-  cases P with P,
-  cases Q with Q,
+  rcases ⟨P, Q⟩ with ⟨⟨P, _⟩, ⟨Q, _⟩⟩,
   change (⟨point_hom E K L φ P, _⟩ : E⟮L⟯[n]) = ⟨point_hom E K L φ Q, _⟩ at hPQ,
   simp only at hPQ,
   rw [subtype.mk_eq_mk],
@@ -118,7 +117,7 @@ begin
 end
 
 /-- Canonical inclusion map `E(K)[n] ↪ E(L)[n]`. -/
-def ιₙ : E⟮K⟯[n] →+ (E⟮L⟯[n]) := ker_hom n E K L $ K⟶[F]L
+def ιₙ : E⟮K⟯[n] →+ E⟮L⟯[n] := ker_hom n E K L $ K⟶[F]L
 
 end functoriality
 
@@ -130,7 +129,7 @@ section galois
 variables (σ τ : L ≃ₐ[K] L)
 
 /-- The Galois action `Gal(L/K) ↷ E(L)[n]`. -/
-def ker_gal : E⟮L⟯[n] → (E⟮L⟯[n]) := λ ⟨P, hP⟩, ⟨σ • P,
+def ker_gal : E⟮L⟯[n] → E⟮L⟯[n] := λ ⟨P, hP⟩, ⟨σ • P,
 begin
   change n • P = 0 at hP,
   change n • σ • P = 0,
@@ -139,7 +138,7 @@ begin
 end⟩
 
 /-- `Gal(L/K) ↷ E(L)[n]` is a scalar action. -/
-instance : has_scalar (L ≃ₐ[K] L) (E⟮L⟯[n]) := ⟨ker_gal n E K L⟩
+instance : has_scalar (L ≃ₐ[K] L) E⟮L⟯[n] := ⟨ker_gal n E K L⟩
 
 /-- `Gal(L/K) ↷ E(L)[n]` respects scalar one. -/
 lemma ker_gal.one_smul (P : E⟮L⟯[n]) : (1 : L ≃ₐ[K] L) • P = P :=
@@ -158,21 +157,19 @@ begin
 end
 
 /-- `Gal(L/K) ↷ E(L)[n]` is a multiplicative action. -/
-instance : mul_action (L ≃ₐ[K] L) (E⟮L⟯[n]) :=
-⟨ker_gal.one_smul n E K L, ker_gal.mul_smul n E K L⟩
+instance : mul_action (L ≃ₐ[K] L) E⟮L⟯[n] := ⟨ker_gal.one_smul n E K L, ker_gal.mul_smul n E K L⟩
 
-local notation E⟮L⟯[n]^K := mul_action.fixed_points (L ≃ₐ[K] L) (E⟮L⟯[n])
+local notation E⟮L⟯[n]^K := mul_action.fixed_points (L ≃ₐ[K] L) E⟮L⟯[n]
 
 /-- Zero is in `E(L)[n]ᴷ`. -/
-lemma ker_gal.fixed.zero_mem : (0 : E⟮L⟯[n]) ∈ (E⟮L⟯[n]^K) := by { intro, refl }
+lemma ker_gal.fixed.zero_mem : (0 : E⟮L⟯[n]) ∈ E⟮L⟯[n]^K := by { intro, refl }
 
 /-- Addition is closed in `E(L)[n]ᴷ`. -/
 lemma ker_gal.fixed.add_mem (P Q : E⟮L⟯[n]) :
-  P ∈ (E⟮L⟯[n]^K) → Q ∈ (E⟮L⟯[n]^K) → P + Q ∈ (E⟮L⟯[n]^K) :=
+  P ∈ (E⟮L⟯[n]^K) → Q ∈ (E⟮L⟯[n]^K) → P + Q ∈ E⟮L⟯[n]^K :=
 begin
   intros hP hQ σ,
-  cases P with P,
-  cases Q with Q,
+  rcases ⟨P, Q⟩ with ⟨⟨P, _⟩, ⟨Q, _⟩⟩,
   change ∀ σ : L ≃ₐ[K] L, (⟨σ • P, _⟩ : E⟮L⟯[n]) = ⟨P, _⟩ at hP,
   change ∀ σ : L ≃ₐ[K] L, (⟨σ • Q, _⟩ : E⟮L⟯[n]) = ⟨Q, _⟩ at hQ,
   simp only at hP hQ,
@@ -182,7 +179,7 @@ begin
 end
 
 /-- Negation is closed in `E(L)[n]ᴷ`. -/
-lemma ker_gal.fixed.neg_mem (P : E⟮L⟯[n]) : P ∈ (E⟮L⟯[n]^K) → -P ∈ (E⟮L⟯[n]^K) :=
+lemma ker_gal.fixed.neg_mem (P : E⟮L⟯[n]) : P ∈ (E⟮L⟯[n]^K) → -P ∈ E⟮L⟯[n]^K :=
 begin
   intros hP σ,
   cases P with P,
@@ -194,7 +191,7 @@ begin
 end
 
 /-- The Galois invariant subgroup `E(L)[n]ᴷ` of `E(L)[n]` fixed by `Gal(L/K)`. -/
-def ker_gal.fixed : add_subgroup (E⟮L⟯[n]) :=
+def ker_gal.fixed : add_subgroup E⟮L⟯[n] :=
 { carrier   := E⟮L⟯[n]^K,
   zero_mem' := ker_gal.fixed.zero_mem n E K L,
   add_mem'  := ker_gal.fixed.add_mem n E K L,
@@ -203,7 +200,8 @@ def ker_gal.fixed : add_subgroup (E⟮L⟯[n]) :=
 notation E⟮L⟯[n`]^`K := ker_gal.fixed n E K L
 
 /-- `E(L)[n]ᴷ = ιₚ(E(K)[n])`. -/
-lemma ker_gal.fixed.eq [finite_dimensional K L] [is_galois K L] : (E⟮L⟯[n]^K) = (ιₙ n E K L).range :=
+lemma ker_gal.fixed.eq [finite_dimensional K L] [is_galois K L] :
+  (E⟮L⟯[n]^K) = (ιₙ n E K L).range :=
 begin
   ext P,
   cases P with P hP,
@@ -213,9 +211,8 @@ begin
   change P ∈ point_gal.fixed E K L ↔ _,
   rw [point_gal.fixed.eq],
   split,
-  { intro hP',
-    cases hP' with Q hQ,
-    existsi (⟨Q, _⟩ : E⟮K⟯[n]),
+  { rintro ⟨Q, hQ⟩,
+    existsi [(⟨Q, _⟩ : E⟮K⟯[n])],
     change (⟨ιₚ E K L Q, _⟩ : E⟮L⟯[n]) = _,
     simp only [hQ],
     rw [← hQ, ← map_nsmul] at hP,
@@ -223,17 +220,15 @@ begin
     apply_fun ιₚ E K L using point_hom.injective,
     rw [hP],
     refl },
-  { intro hP',
-    cases hP' with Q hQ,
-    cases Q with Q,
-    existsi Q,
+  { rintro ⟨⟨Q⟩, hQ⟩,
+    existsi [Q],
     injection hQ }
 end
 
 /-- `Gal(L/K)` fixes `ιₚ(E(K)[n])`. -/
 lemma ker_gal.fixed.smul (P : E⟮K⟯[n]) [finite_dimensional K L] [is_galois K L] :
   σ • ιₙ n E K L P = ιₙ n E K L P :=
-by { revert σ, change ιₙ n E K L P ∈ (E⟮L⟯[n]^K), rw [ker_gal.fixed.eq], use P }
+by { revert σ, change ιₙ n E K L P ∈ E⟮L⟯[n]^K, rw [ker_gal.fixed.eq], use P }
 
 end galois
 
@@ -242,120 +237,207 @@ end galois
 
 section E₂_finite
 
-variables [char_zero K]
-
 open polynomial
 
-/-- If `2 ≠ 0` in `K`, then `4 ≠ 0` in `K`. -/
-lemma four_ne_zero : 4 ≠ (0 : K) :=
-by { convert_to 2 * 2 ≠ (0 : K), { norm_num }, exact mul_ne_zero two_ne_zero' two_ne_zero' }
+/-- The cubic polynomial `ψ₂(x)` of the `x`-coordinate in `E(K)[2]`. -/
+def ψ₂_x : cubic K :=
+⟨4, (F↑K)E.a₁ ^ 2 + 4 * (F↑K)E.a₂, 4 * (F↑K)E.a₄ + 2 * (F↑K)E.a₁ * (F↑K)E.a₃,
+  (F↑K)E.a₃ ^ 2 + 4 * (F↑K)E.a₆⟩
+
+/-- `ψ₂(x)` in `K` is equal to `ψ₂(x)` in `F` mapped across `F ↪ K`. -/
+lemma ψ₂_x.eq_map : ψ₂_x E K = cubic.map (F↑K) (ψ₂_x E F) :=
+begin
+  rw [ψ₂_x, cubic.map, ψ₂_x],
+  simp only [ring_hom.map_add, ring_hom.map_mul, map_pow],
+  simp only [ring_hom.map_one, map_bit0, map_bit1, algebra.id.map_eq_self],
+  exact ⟨rfl, rfl, rfl, rfl⟩
+end
+
+/-- The cubic discriminant of `ψ₂(x)` is sixteen times the discriminant of `E`. -/
+lemma ψ₂_x.disc_eq_disc : (ψ₂_x E K).disc = 4 * 4 * (F↑K)E.disc :=
+begin
+  rw [cubic.disc, ψ₂_x, disc, disc_aux],
+  simp only [ring_hom.map_neg, ring_hom.map_add, ring_hom.map_sub, ring_hom.map_mul, map_pow],
+  simp only [ring_hom.map_one, map_bit0, map_bit1],
+  ring1
+end
+
+variables [invertible (2 : K)]
+
+/-- `2 ≠ 0` in `K`. -/
+private lemma two_ne_zero : 2 ≠ (0 : K) := nonzero_of_invertible 2
+
+/-- `4 ≠ 0` in `K`. -/
+private lemma four_ne_zero : 4 ≠ (0 : K) :=
+by { convert_to 2 * 2 ≠ (0 : K), { norm_num }, exact mul_ne_zero (two_ne_zero K) (two_ne_zero K) }
+
+/-- The leading coefficient of `ψ₂(x)` is not zero. -/
+lemma ψ₂_x.a_ne_zero : (ψ₂_x E K).a ≠ 0 := four_ne_zero K
+
+/-- `α ∈ ψ₂(x).roots` iff `ψ₂(α) = 0`. -/
+lemma ψ₂_x.mem_roots_iff (x : K) :
+  x ∈ (ψ₂_x E K).roots ↔ ((F↑K)E.a₁ * x + (F↑K)E.a₃) ^ 2 +
+                         4 * (x ^ 3 + (F↑K)E.a₂ * x ^ 2 + (F↑K)E.a₄ * x + (F↑K)E.a₆) = 0 :=
+begin
+  have rhs_rw : ∀ a₁ a₂ a₃ a₄ a₆ : K,
+    (a₁ * x + a₃) ^ 2 + 4 * (x ^ 3 + a₂ * x ^ 2 + a₄ * x + a₆)
+      = (a₃ ^ 2 + 4 * a₆) + (4 * a₄ + 2 * a₁ * a₃) * x + (a₁ ^ 2 + 4 * a₂) * x ^ 2 + 4 * x ^ 3 :=
+  by { intros, ring1 },
+  rw [cubic.mem_roots_iff $ ψ₂_x.a_ne_zero E K, ψ₂_x, rhs_rw]
+end
+
+/-- The discriminant of `ψ₂(x)` is not zero. -/
+lemma ψ₂_x.disc_ne_zero : (ψ₂_x E K).disc ≠ 0 :=
+begin
+  rw [ψ₂_x.disc_eq_disc],
+  apply mul_ne_zero,
+  apply mul_ne_zero,
+  any_goals { exact four_ne_zero K },
+  rw [ring_hom.map_ne_zero, disc, ← disc_unit_eq],
+  exact units.ne_zero E.disc_unit
+end
 
 /-- The `y`-coordinate in `E(K)[2]`. -/
-lemma E₂_y {x y w} : some x y w ∈ (E⟮K⟯[2]) ↔ y = -((F↑K)E.a1 * x + (F↑K)E.a3) / 2 :=
+lemma E₂_y {x y w} : some x y w ∈ E⟮K⟯[2] ↔ y = 2⁻¹ * -((F↑K)E.a₁ * x + (F↑K)E.a₃) :=
 begin
   change 2 • some x y w = 0 ↔ _,
-  rw [two_smul, add_eq_zero_iff_eq_neg, neg_some, eq_div_iff (two_ne_zero' : 2 ≠ (0 : K)), mul_two,
+  rw [two_smul, add_eq_zero_iff_eq_neg, neg_some, eq_inv_mul_iff_mul_eq₀ $ two_ne_zero K, two_mul,
       ← eq_neg_add_iff_add_eq, ← sub_eq_add_neg, sub_add_eq_sub_sub],
   simp only [true_and, eq_self_iff_true]
 end
 
-/-- The polynomial `ψ₂(x)` of the `x`-coordinate in `E(K)[2]`. -/
-def ψ₂_x : polynomial K :=
-(C ((F↑K)E.a1) * X + C ((F↑K)E.a3)) ^ 2
-+ C 4 * (X ^ 3 + C ((F↑K)E.a2) * X ^ 2 + C ((F↑K)E.a4) * X + C ((F↑K)E.a6))
-
-/-- `ψ₂(x)` has degree three. -/
-lemma ψ₂_x.degree_3 : degree (ψ₂_x E K) = ↑3 :=
+/-- The `x`-coordinate in `E(K)[2]`. -/
+lemma E₂_x {x y w} : some x y w ∈ E⟮K⟯[2] ↔ x ∈ (ψ₂_x E K).roots :=
 begin
-  rw [ψ₂_x],
-  convert_to degree (C ((F↑K)E.a3 ^ 2 + (F↑K)E.a6 * 4)
-                     + C ((F↑K)E.a1 * (F↑K)E.a3 * 2 + (F↑K)E.a4 * 4) * X
-                     + C ((F↑K)E.a1 ^ 2 + (F↑K)E.a2 * 4) * X ^ 2
-                     + C 4 * X ^ 3) = 3,
-  { simp only [C_add, C_mul, mul_two, pow_two],
-    ring },
-  rw [degree_add_eq_right_of_degree_lt],
-  { exact degree_C_mul_X_pow 3 (four_ne_zero K) },
-  rw [degree_C_mul_X_pow 3 (four_ne_zero K)],
-  apply lt_of_le_of_lt (degree_add_le _ _),
-  rw [max_lt_iff],
-  split,
-  { apply lt_of_le_of_lt (degree_add_le _ _),
-    rw [max_lt_iff],
-    split,
-    { apply lt_of_le_of_lt degree_C_le,
-      exact dec_trivial },
-    { apply lt_of_le_of_lt (degree_C_mul_X_le _),
-      exact dec_trivial } },
-  { apply lt_of_le_of_lt (degree_C_mul_X_pow_le 2 _),
-    exact dec_trivial }
+  have lhs_rw : ∀ a₁ a₃ : K,
+    (a₁ * x + a₃) ^ 2 + 4 * (y ^ 2 + a₁ * x * y + a₃ * y) = (2 * y + a₁ * x + a₃) ^ 2 :=
+  by { intros, ring1 },
+  rw [E₂_y, eq_inv_mul_iff_mul_eq₀ $ two_ne_zero K, eq_neg_iff_add_eq_zero,
+      ← add_semigroup.add_assoc, ψ₂_x.mem_roots_iff, ← w, lhs_rw, pow_eq_zero_iff],
+  refl,
+  exact dec_trivial
 end
 
-/-- `ψ₂(x)` is non-zero. -/
-lemma ψ₂_x.ne_zero : ψ₂_x E K ≠ 0 :=
-ne_zero_of_degree_gt (by { rw [ψ₂_x.degree_3, with_bot.coe_lt_coe], exact zero_lt_three })
-
-/-- `α ∈ ψ₂(x).roots` iff `ψ₂(α) = 0`. -/
-lemma ψ₂_x.roots_iff (x : K) :
-  x ∈ (ψ₂_x E K).roots ↔ ((F↑K)E.a1 * x + (F↑K)E.a3) ^ 2 +
-                         4 * (x ^ 3 + (F↑K)E.a2 * x ^ 2 + (F↑K)E.a4 * x + (F↑K)E.a6) = 0 :=
-begin
-  rw [mem_roots (ψ₂_x.ne_zero E K), is_root, ψ₂_x],
-  simp only [eval_C, eval_X, eval_add, eval_mul, eval_pow]
-end
-
-/-- The projection `E(K)[2] → {0} ∪ ψ₂(x).roots`. -/
-def E₂_of_ψ₂ : E⟮K⟯[2] → option ({x // x ∈ (ψ₂_x E K).roots})
+/-- The projection map `E₂_to_ψ₂ : E(K)[2] → {0} ∪ ψ₂(x).roots`. -/
+def E₂_to_ψ₂ : E⟮K⟯[2] → option ({x // x ∈ (ψ₂_x E K).roots})
 | ⟨0         , _⟩ := none
-| ⟨some x y w, h⟩ := some ⟨x, by { rw [ψ₂_x.roots_iff, ← w, (E₂_y E K).mp h], ring }⟩
+| ⟨some x y w, h⟩ := some ⟨x, (E₂_x E K).mp h⟩
 
-/-- `E(K)[2] → {0} ∪ ψ₂(x).roots` is injective. -/
-lemma E₂_of_ψ₂.injective : function.injective (E₂_of_ψ₂ E K) :=
+/-- `E₂_to_ψ₂` is injective. -/
+lemma E₂_to_ψ₂.injective : function.injective $ E₂_to_ψ₂ E K :=
 begin
-  intros P Q hPQ,
-  cases P with P hP,
-  cases Q with Q hQ,
-  cases P,
-  { cases Q,
-    { refl },
-    { contradiction } },
-  { cases Q,
-    { contradiction },
-    { simp only [E₂_of_ψ₂] at hPQ,
-      rw [E₂_y] at hP hQ,
-      substs hP hQ hPQ } }
+  rintro ⟨⟨_ | _⟩, hP⟩ ⟨⟨_ | _⟩, hQ⟩ hPQ,
+  any_goals { contradiction },
+  { refl },
+  { simp only [E₂_to_ψ₂] at hPQ,
+    rw [E₂_y] at hP hQ,
+    substs hP hQ hPQ }
 end
 
 /-- `E(K)[2]` is finite. -/
-instance : fintype (E⟮K⟯[2]) := fintype.of_injective (E₂_of_ψ₂ E K) (E₂_of_ψ₂.injective E K)
+instance : fintype E⟮K⟯[2] := fintype.of_injective (E₂_to_ψ₂ E K) (E₂_to_ψ₂.injective E K)
 
-/-- `E(K)[2] → {0} ∪ ψ₂(x).roots` is surjective. -/
-lemma E₂_of_ψ₂.surjective : function.surjective (E₂_of_ψ₂ E K) :=
+/-- `#E(K)[2] ≤ 4`. -/
+theorem E₂.card_le_four : fintype.card E⟮K⟯[2] ≤ 4 :=
 begin
-  intro x,
-  cases x,
-  { existsi (⟨0, (by { change 2 • (0 : E⟮K⟯) = 0, refl })⟩ : E⟮K⟯[2]),
+  change fintype.card E⟮K⟯[2] ≤ 3 + 1,
+  apply le_trans (fintype.card_le_of_injective (E₂_to_ψ₂ E K) (E₂_to_ψ₂.injective E K)),
+  rw [fintype.card_option, add_le_add_iff_right,
+      fintype.card_of_subtype (ψ₂_x E K).roots.to_finset $ λ x, multiset.mem_to_finset],
+  exact cubic.roots_card_le_three (ψ₂_x.a_ne_zero E K)
+end
+
+/-- `E₂_to_ψ₂` is surjective. -/
+lemma E₂_to_ψ₂.surjective : function.surjective $ E₂_to_ψ₂ E K :=
+begin
+  rintro (_ | ⟨x⟩),
+  { existsi [(⟨0, by { change 2 • (0 : E⟮K⟯) = 0, refl }⟩ : E⟮K⟯[2])],
     refl },
-  { existsi (⟨some x (-((F↑K)E.a1 * x + (F↑K)E.a3) / 2) _, _⟩ : E⟮K⟯[2]),
-    rw [E₂_of_ψ₂, subtype.coe_eta],
-    convert_to -((F↑K)E.a1 * x + (F↑K)E.a3) ^ 2 / 4
-               = x ^ 3 + (F↑K)E.a2 * x ^ 2 + (F↑K)E.a4 * x + (F↑K)E.a6,
-    { ring },
-    rw [div_eq_iff (four_ne_zero K), mul_comm _ (4 : K), neg_eq_iff_add_eq_zero, ← ψ₂_x.roots_iff],
+  { existsi [(⟨some x (2⁻¹ * -((F↑K)E.a₁ * x + (F↑K)E.a₃)) _, _⟩ : E⟮K⟯[2])],
+    rw [E₂_to_ψ₂, subtype.coe_eta],
+    convert_to 4⁻¹ * -((F↑K)E.a₁ * x + (F↑K)E.a₃) ^ 2
+               = x ^ 3 + (F↑K)E.a₂ * x ^ 2 + (F↑K)E.a₄ * x + (F↑K)E.a₆,
+    { have lhs_rw : ∀ a₁ a₃ t : K,
+      (t * -(a₁ * x + a₃)) ^ 2 + a₁ * x * (t * -(a₁ * x + a₃)) + a₃ * (t * -(a₁ * x + a₃))
+        = (1 - t) * t * -(a₁ * x + a₃) ^ 2 :=
+      by { intros, ring1 },
+      have half_sub_fourth : ((1 : K) - 2⁻¹) * 2⁻¹ = 4⁻¹ :=
+      by { nth_rewrite 0 [← mul_inv_cancel $ two_ne_zero K],
+           rw [two_mul, add_sub_cancel, ← mul_inv₀], norm_num1 },
+      rw [lhs_rw, half_sub_fourth] },
+    rw [inv_mul_eq_iff_eq_mul₀ $ four_ne_zero K, neg_eq_iff_add_eq_zero, ← ψ₂_x.mem_roots_iff],
     exact x.property,
     apply (E₂_y E K).mpr,
     refl }
 end
 
-/-- `E(K)[2] → {0} ∪ ψ₂(x).roots` is bijective. -/
-lemma E₂_of_ψ₂.bijective : function.bijective (E₂_of_ψ₂ E K) :=
-⟨E₂_of_ψ₂.injective E K, E₂_of_ψ₂.surjective E K⟩
+/-- `E₂_to_ψ₂` is bijective. -/
+lemma E₂_to_ψ₂.bijective : function.bijective $ E₂_to_ψ₂ E K :=
+⟨E₂_to_ψ₂.injective E K, E₂_to_ψ₂.surjective E K⟩
 
 /-- `E(K)[2] ≃ {0} ∪ ψ₂(x).roots`. -/
-def E₂_of_ψ₂.equiv : E⟮K⟯[2] ≃ option {x // x ∈ (ψ₂_x E K).roots} :=
-equiv.of_bijective (E₂_of_ψ₂ E K) (E₂_of_ψ₂.bijective E K)
+def E₂_to_ψ₂.equiv : E⟮K⟯[2] ≃ option {x // x ∈ (ψ₂_x E K).roots} :=
+equiv.of_bijective (E₂_to_ψ₂ E K) (E₂_to_ψ₂.bijective E K)
 
 end E₂_finite
+
+----------------------------------------------------------------------------------------------------
+/-! ## `E[2] ⊂ E(K)` -/
+
+section rational_E₂
+
+open polynomial
+
+notation F⟮E`[2]⟯` := (ψ₂_x E F).to_poly.splitting_field
+
+variables [algebra F⟮E[2]⟯ K] [is_scalar_tower F F⟮E[2]⟯ K]
+
+/-- `ψ₂(x)` splits over `K`. -/
+lemma ψ₂_x.splits : splits (F↑K) (ψ₂_x E F).to_poly :=
+begin
+  convert splits_comp_of_splits (F↑F⟮E[2]⟯) (F⟮E[2]⟯↑K) (splitting_field.splits (ψ₂_x E F).to_poly),
+  symmetry,
+  exact ring_hom.ext (alg_hom.commutes $ (ψ₂_x E F).to_poly.splitting_field⟶[F]K)
+end
+
+variables [invertible (2 : F)]
+
+/-- `ψ₂(x)` has no duplicate roots over `K`. -/
+lemma ψ₂_x.roots_nodup : (cubic.map (F↑K) (ψ₂_x E F)).roots.nodup :=
+begin
+  rcases cubic.roots_eq_three (ψ₂_x.a_ne_zero E F) (ψ₂_x.splits E K) with ⟨_, _, _, h3⟩,
+  rw [← cubic.disc_ne_zero_iff_roots_nodup (ψ₂_x.a_ne_zero E F) (ψ₂_x.splits E K) h3],
+  apply ψ₂_x.disc_ne_zero
+end
+
+variables [invertible (2 : K)]
+
+/-- `#E(K)[2] = 4`. -/
+theorem E₂.card_eq_four : fintype.card E⟮K⟯[2] = 4 :=
+begin
+  change fintype.card E⟮K⟯[2] = 3 + 1,
+  rw [fintype.card_congr $ E₂_to_ψ₂.equiv E K, fintype.card_option, add_left_inj,
+      fintype.card_of_subtype (ψ₂_x E K).roots.to_finset $ λ x, multiset.mem_to_finset, ψ₂_x.eq_map,
+      cubic.roots_card_eq_three_of_roots_nodup
+        (ψ₂_x.a_ne_zero E F) (ψ₂_x.splits E K) (ψ₂_x.roots_nodup E K)]
+end
+
+variables [algebra F⟮E[2]⟯ L] [is_scalar_tower F F⟮E[2]⟯ L] [invertible (2 : L)]
+
+/-- `E(K)[2] → E(L)[2]` is bijective. -/
+lemma ker_hom_2.bijective : function.bijective $ ιₙ 2 E K L :=
+begin
+  rw [fintype.bijective_iff_injective_and_card],
+  split,
+  { apply ker_hom.injective },
+  { rw [E₂.card_eq_four, E₂.card_eq_four] }
+end
+
+/-- `E(K)[2] ≃ E(L)[2]`. -/
+def ker_hom_2.equiv : E⟮K⟯[2] ≃ E⟮L⟯[2] :=
+equiv.of_bijective (ιₙ 2 E K L) (ker_hom_2.bijective E K L)
+
+end rational_E₂
 
 ----------------------------------------------------------------------------------------------------
 

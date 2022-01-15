@@ -171,6 +171,9 @@ begin
     rw [h_nontriv (U * A)] }
 end
 
+@[simp] lemma norm_unitary_smul (U : unitary E) (A : E) : ∥U • A∥ = ∥A∥ :=
+norm_coe_unitary_mul U A
+
 lemma norm_mem_unitary_mul {U : E} (A : E) (hU : U ∈ unitary E) : ∥U * A∥ = ∥A∥ :=
 norm_coe_unitary_mul ⟨U, hU⟩ A
 

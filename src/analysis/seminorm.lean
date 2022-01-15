@@ -326,9 +326,9 @@ lemma coe_smul {R} [has_scalar R ℝ] [has_scalar R ℝ≥0] [is_scalar_tower R 
 @[simp] lemma smul_apply {R} [has_scalar R ℝ] [has_scalar R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ]
   (r : R) (p : seminorm 𝕜 E) (x : E) : (r • p) x = r • p x := rfl
 
-instance : distrib_mul_action (ℝ≥0) (seminorm 𝕜 E) :=
+instance : module (ℝ≥0) (seminorm 𝕜 E) :=
 begin
-  refine function.injective.distrib_mul_action (coe_add_monoid 𝕜 E) coe_add_monoid_injective _,
+  refine function.injective.module (ℝ≥0) (coe_add_monoid 𝕜 E) coe_add_monoid_injective _,
   rw coe_coe_add_monoid,
   exact coe_smul,
 end

@@ -108,6 +108,11 @@ instance semigroup.is_jordan (B : Type u) [semigroup B] : is_jordan B :=
   lmul_lmul_comm_rmul := by { intros, rw [←mul_assoc] },
   rmul_comm_rmul_rmul := by { intros, rw [← mul_assoc, ← mul_assoc] } }
 
+@[priority 100] -- see Note [lower instance priority]
+instance comm_semigroup.is_comm_jordan (B : Type u) [comm_semigroup B] : is_comm_jordan B :=
+{ mul_comm := λ a b, by rw mul_comm,
+  jordan := λ a b, by rw mul_assoc, }
+
 variables {A : Type*} [non_unital_non_assoc_ring A]
 
 /--

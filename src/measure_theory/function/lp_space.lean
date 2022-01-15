@@ -939,6 +939,43 @@ begin
   end
 end
 
+variables (μ)
+
+lemma mul_meas_ge_pow_le_snorm {f : α → E}
+  (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ∞) (hf : measurable f) (ε : ℝ≥0∞) :
+  (ε * μ {x | ε ≤ ∥f x∥₊ ^ p.to_real}) ^ (1 / p.to_real) ≤ snorm f p μ :=
+begin
+  rw snorm_eq_lintegral_rpow_nnnorm hp_ne_zero hp_ne_top,
+  exact ennreal.rpow_le_rpow (mul_meas_ge_le_lintegral
+      (measurable.pow_const (measurable.coe_nnreal_ennreal (hf.nnnorm)) _) ε)
+      (one_div_nonneg.2 ennreal.to_real_nonneg),
+end
+
+lemma mul_meas_ge_le_snorm_pow {f : α → E}
+  (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ∞) (hf : measurable f) (ε : ℝ≥0∞) :
+  ε * μ {x | ε ≤ ∥f x∥₊ ^ p.to_real} ≤ snorm f p μ ^ p.to_real :=
+begin
+  have : 1 / p.to_real * p.to_real = 1,
+  { refine one_div_mul_cancel _,
+    rw [ne, ennreal.to_real_eq_zero_iff],
+    exact not_or hp_ne_zero hp_ne_top },
+  rw [← ennreal.rpow_one (ε * μ {x | ε ≤ ∥f x∥₊ ^ p.to_real}), ← this, ennreal.rpow_mul],
+  exact ennreal.rpow_le_rpow (mul_meas_ge_pow_le_snorm μ hp_ne_zero hp_ne_top hf ε)
+    ennreal.to_real_nonneg,
+end
+
+/-- A version of Markov's inequality using Lp-norms. -/
+lemma mul_meas_ge_le_snorm_pow' {f : α → E}
+  (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ∞) (hf : measurable f) (ε : ℝ≥0∞) :
+  ε ^ p.to_real * μ {x | ε ≤ ∥f x∥₊} ≤ snorm f p μ ^ p.to_real :=
+begin
+  convert mul_meas_ge_le_snorm_pow μ hp_ne_zero hp_ne_top hf (ε ^ p.to_real),
+  ext x,
+  rw ennreal.rpow_le_rpow_iff (ennreal.to_real_pos hp_ne_zero hp_ne_top),
+end
+
+variables {μ}
+
 lemma mem_ℒp.mem_ℒp_of_exponent_le {p q : ℝ≥0∞} [is_finite_measure μ] {f : α → E}
   (hfq : mem_ℒp f q μ) (hpq : p ≤ q) :
   mem_ℒp f p μ :=

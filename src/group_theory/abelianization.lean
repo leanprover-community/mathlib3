@@ -63,7 +63,7 @@ def of : G →* abelianization G :=
   map_one' := rfl,
   map_mul' := λ x y, rfl }
 
-@[simp] lemma mk_of {a : G} :
+@[simp] lemma mk_eq_of {a : G} :
   quot.mk (@setoid.r _ (quotient_group.left_rel (commutator G))) a = of a := rfl
 
 section lift

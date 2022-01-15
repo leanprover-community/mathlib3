@@ -775,6 +775,31 @@ begin
     convert localization.mk_one,
     rw pow_zero, },
   { -- homogeneously prime
+    rintros x y ⟨nx, hnx⟩ ⟨ny, hny⟩ hxy,
+    contrapose hxy,
+    rw not_or_distrib at hxy,
+    dsimp only at hxy,
+    rcases hxy with ⟨hx, hy⟩,
+    change x ∉ isos.backward.carrier _ f m hm f_deg q at hx,
+    change y ∉ isos.backward.carrier _ f m hm f_deg q at hy,
+    change ¬(∀ (i : ℕ), (⟨localization.mk ((graded_algebra.proj 𝒜 i x)^m) ⟨f^i, ⟨_, rfl⟩⟩,
+      i, ((graded_algebra.proj 𝒜 i x)^m),
+      (set_like.graded_monoid.pow_deg 𝒜 (submodule.coe_mem _) m), rfl⟩ :
+      degree_zero_part _ f m f_deg) ∈ q.1) at hx,
+    change ¬(∀ (i : ℕ), (⟨localization.mk ((graded_algebra.proj 𝒜 i y)^m) ⟨f^i, ⟨_, rfl⟩⟩,
+      i, ((graded_algebra.proj 𝒜 i y)^m),
+      (set_like.graded_monoid.pow_deg 𝒜 (submodule.coe_mem _) m), rfl⟩ :
+      degree_zero_part _ f m f_deg) ∈ q.1) at hy,
+    rw not_forall at hx hy,
+    obtain ⟨ix, hix⟩ := hx,
+    obtain ⟨iy, hiy⟩ := hy,
+    intro rid,
+    change ∀ (i : ℕ), (⟨localization.mk ((graded_algebra.proj 𝒜 i (x*y))^m) ⟨f^i, ⟨_, rfl⟩⟩,
+      i, ((graded_algebra.proj 𝒜 i (x*y))^m),
+      (set_like.graded_monoid.pow_deg 𝒜 (submodule.coe_mem _) m), rfl⟩ :
+      degree_zero_part _ f m f_deg) ∈ q.1 at rid,
+    specialize rid (nx + ny),
+    -- rw isos.backward.carrier.as_ideal at hx hy,
     sorry },
 end
 

@@ -1194,13 +1194,7 @@ end
 lemma prod_add_index [add_comm_monoid M] [comm_monoid N] {f g : α →₀ M}
   {h : α → M → N} (h_zero : ∀a, h a 0 = 1) (h_add : ∀a b₁ b₂, h a (b₁ + b₂) = h a b₁ * h a b₂) :
   (f + g).prod h = f.prod h * g.prod h :=
-have hf : f.prod h = ∏ a in f.support ∪ g.support, h a (f a),
-  from f.prod_of_support_subset (subset_union_left _ _) _ $ λ a ha, h_zero a,
-have hg : g.prod h = ∏ a in f.support ∪ g.support, h a (g a),
-  from g.prod_of_support_subset (subset_union_right _ _) _ $ λ a ha, h_zero a,
-have hfg : (f + g).prod h = ∏ a in f.support ∪ g.support, h a ((f + g) a),
-  from (f + g).prod_of_support_subset support_add _ $ λ a ha, h_zero a,
-by simp only [*, add_apply, prod_mul_distrib]
+prod_add_index'' (λ a ha, h_zero a) h_add
 
 @[simp]
 lemma sum_add_index' [add_comm_monoid M] [add_comm_monoid N] {f g : α →₀ M} (h : α → M →+ N) :

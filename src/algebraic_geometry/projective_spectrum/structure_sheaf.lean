@@ -52,19 +52,19 @@ noncomputable theory
 
 namespace algebraic_geometry
 
-universe u
-
 open_locale direct_sum big_operators pointwise
 open direct_sum set_like
 
-variables {ι R A: Type.{u}} [linear_ordered_cancel_add_comm_monoid ι]
+variables {R A: Type}
 variables [comm_ring R] [comm_ring A] [algebra R A]
-variables (𝒜 : ι → submodule R A) [graded_algebra 𝒜]
+variables (𝒜 : ℕ → submodule R A) [graded_algebra 𝒜]
 
 open Top
 open topological_space
 open category_theory
 open opposite
+
+variable [Π (i : ℕ) (x : 𝒜 i), decidable (x ≠ 0)]
 /--
 The prime spectrum, just as a topological space.
 -/
@@ -83,7 +83,7 @@ The type family over `prime_spectrum R` consisting of the localization over each
 structure hl.condition (x : projective_spectrum.Top 𝒜) :=
 (a b : A)
 (b_nin : b ∉ x.as_homogeneous_ideal)
-(i : ι) (a_hom : a ∈ 𝒜 i) (b_hom : b ∈ 𝒜 i)
+(i : ℕ) (a_hom : a ∈ 𝒜 i) (b_hom : b ∈ 𝒜 i)
 
 @[derive [comm_ring]]
 def hartshorne_localisation (x : projective_spectrum.Top 𝒜) : Type* :=
@@ -166,7 +166,7 @@ end
 
 lemma hartshorne_localisation.ext (x : projective_spectrum.Top 𝒜)
   -- (hxy : y.as_homogeneous_ideal ≤ x.as_homogeneous_ideal)
-  (a b : A) (i : ι) (a_hom : a ∈ 𝒜 i) (b_hom : b ∈ 𝒜 i)
+  (a b : A) (i : ℕ) (a_hom : a ∈ 𝒜 i) (b_hom : b ∈ 𝒜 i)
   (b_nin b_nin' : b ∉ x.as_homogeneous_ideal)
   -- (eq1 :
   --   (⟨localization.mk a ⟨b, b_ninx⟩, ⟨a, b, i, a_hom, b_hom, b_ninx, rfl⟩⟩ :
@@ -190,14 +190,14 @@ The predicate saying that a dependent function on an open `U` is realised as a f
 -/
 def is_fraction {U : opens (projective_spectrum.Top 𝒜)}
   (f : Π x : U, hartshorne_localisation 𝒜 x) : Prop :=
-∃ (r s : A) (i : ι) (r_hom : r ∈ 𝒜 i) (s_hom : s ∈ 𝒜 i),
+∃ (r s : A) (i : ℕ) (r_hom : r ∈ 𝒜 i) (s_hom : s ∈ 𝒜 i),
   ∀ x : U, ∃ (s_nin : ¬ (s ∈ x.1.as_homogeneous_ideal)),
   (f x).1 = localization.mk r ⟨s, s_nin⟩
 
 lemma is_fraction.eq_mk' {U : opens (projective_spectrum.Top 𝒜)}
   {f : Π x : U, hartshorne_localisation 𝒜 x}
   (hf : is_fraction f) :
-  ∃ (r s : A) (i : ι) (r_hom : r ∈ 𝒜 i) (s_hom : s ∈ 𝒜 i),
+  ∃ (r s : A) (i : ℕ) (r_hom : r ∈ 𝒜 i) (s_hom : s ∈ 𝒜 i),
     ∀ x : U, ∃ (s_nin : s ∉ x.1.as_homogeneous_ideal),
     (f x).1 = localization.mk r ⟨s, s_nin⟩ :=
 begin
@@ -428,7 +428,7 @@ end
 
 variables {𝒜}
 
-def hartshorne_localisation.i {x} (f : hartshorne_localisation 𝒜 x) : ι := (classical.some f.2).i
+def hartshorne_localisation.i {x} (f : hartshorne_localisation 𝒜 x) : ℕ := (classical.some f.2).i
 def hartshorne_localisation.num_hom {x} (f : hartshorne_localisation 𝒜 x) : f.num ∈ 𝒜 f.i :=
 (classical.some f.2).a_hom
 

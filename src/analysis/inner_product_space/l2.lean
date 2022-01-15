@@ -225,27 +225,6 @@ end
 
 end orthogonal_family
 
--- namespace orthonormal
--- variables {v : ι → E} (hv : orthonormal 𝕜 v)
-
--- include cplt
-
--- @[simp] protected lemma linear_isometry_apply_single (i : ι) (x : 𝕜) :
---   hv.orthogonal_family.linear_isometry (lp.single 2 i x) = x • v i :=
--- by simp [hv.orthogonal_family.linear_isometry_apply_single]
-
--- /-- The canonical linear isometry from `ℓ²(ι, 𝕜)` to `E`, induced by an `ι`-indexed orthonormal
--- set of vectors in `E`, has range the closure of the span of the vectors. -/
--- protected lemma range_linear_isometry :
---   hv.orthogonal_family.linear_isometry.to_linear_map.range
---     = (span 𝕜 (set.range v)).topological_closure :=
--- begin
---   rw hv.orthogonal_family.range_linear_isometry,
---   simp [← linear_map.span_singleton_eq_range, ← submodule.span_Union],
--- end
-
--- end orthonormal
-
 section
 variables (ι) (𝕜) (E)
 

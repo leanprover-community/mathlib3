@@ -316,8 +316,6 @@ begin
   convert hT.orthogonal_family_eigenspaces.linear_isometry_equiv_apply_dfinsupp_sum_single this w
 end
 
-local attribute [-instance] char_p.subsingleton unique.subsingleton is_empty.subsingleton
-
 /-- **Spectral theorem**; version 1: A compact self-adjoint operator `T` on a Hilbert space `E`
 acts diagonally on the decomposition of `E` into the direct sum of the eigenspaces of `T`. -/
 lemma diagonalization_apply_self_apply' (v : E) (μ : 𝕜) :
@@ -330,9 +328,23 @@ begin
   { simpa [dense_range_iff_closure_range] using
       congr_arg (coe : submodule 𝕜 E → set E) (supr_eigenspaces_dense hT hT_cpct) },
   refine this.induction_on v _ _,
-  { -- have := continuous_linear_map.is_closed_ker
-    sorry },
-  { rintros ⟨w, hw⟩,
+  { -- The set of vectors `v : E` at which the desired property holds is a closed subset of `E`
+    let φ : E →L[𝕜] lp (λ μ, eigenspace (T : E →ₗ[𝕜] E) μ) 2 :=
+      ↑(hT.diagonalization' hT_cpct) ∘L (T - μ • continuous_linear_map.id 𝕜 E),
+    convert ((lp.proj μ).comp φ).is_closed_ker using 1,
+    ext v,
+    rw [set_like.mem_coe, set.mem_set_of_eq, ← sub_eq_zero, continuous_linear_map.mem_ker],
+    refine eq.congr _ rfl,
+    simp only [continuous_linear_map.coe_comp', continuous_linear_map.coe_id',
+      continuous_linear_map.coe_smul', continuous_linear_map.coe_sub',
+      continuous_linear_map.comp_apply, eq_self_iff_true, function.comp_app, id.def,
+      linear_isometry.coe_to_linear_map, linear_isometry_equiv.coe_coe'',
+      linear_isometry_equiv.coe_to_linear_isometry, linear_isometry_equiv.map_smul,
+      linear_isometry_equiv.map_sub, lp.coe_fn_smul, lp.coe_fn_sub, lp.proj_apply, pi.smul_apply,
+      pi.sub_apply, sub_left_inj, φ] },
+  { -- We prove the desired property holds for finite sums of eigenvectors, which form a dense
+    -- subset of `E`
+    rintros ⟨w, hw⟩,
     rw submodule.mem_supr_iff_exists_dfinsupp' at hw,
     obtain ⟨W, rfl⟩ := hw,
     let eig_coe : Π μ : 𝕜, eigenspace (T : E →ₗ[𝕜] E) μ → E := λ μ, (coe : _ → E),

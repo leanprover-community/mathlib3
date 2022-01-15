@@ -108,13 +108,13 @@ def equiv.of_free_abelian_group_linear_equiv {α β : Type*}
 let t : basis α ℤ (free_abelian_group β) := (free_abelian_group.basis α).map e
   in t.index_equiv $ free_abelian_group.basis _
 
-/-- equivalent free ablians groups (as additive groups) have isomorphic bases -/
+/-- Isomorphic free abelian groups (as additive groups) have equivalent bases. -/
 def equiv.of_free_abelian_group_equiv {α β : Type*}
   (e : free_abelian_group α ≃+ free_abelian_group β) :
   α ≃ β :=
 equiv.of_free_abelian_group_linear_equiv (add_equiv.to_int_linear_equiv e)
 
-/-- equivalent free groups have isomorphic bases -/
+/-- Isomorphic free groups have equivalent bases. -/
 def equiv.of_free_group_equiv {α β : Type*}
   (e : free_group α ≃* free_group β) :
   α ≃ β :=

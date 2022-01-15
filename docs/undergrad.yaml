@@ -434,7 +434,7 @@ Topology:
     its completeness: 'lp.complete_space'
     inner product space $L^2$: 'measure_theory.L2.inner_product_space'
     its completeness: 'measure_theory.Lp.complete_space'
-    Hilbert bases: 'hilbert_basis' # the documentation specifies "in the separable case" but we don't require this
+    Hilbert bases: 'hilbert_basis' # the document specifies "in the separable case" but we don't require this
     example, the Hilbert basis of trigonometric polynomials: 'fourier_Lp'
     its orthonormality: 'orthonormal_fourier'
     its completeness: 'span_fourier_Lp_closure_eq_top'

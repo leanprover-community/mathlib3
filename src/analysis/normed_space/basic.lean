@@ -201,7 +201,7 @@ section normed_ring
 
 variables [normed_ring α]
 
-lemma units.norm_pos [nontrivial α] (x : units α) : 0 < ∥(x:α)∥ :=
+lemma units.norm_pos [nontrivial α] (x : αˣ) : 0 < ∥(x:α)∥ :=
 norm_pos_iff.mpr (units.ne_zero x)
 
 /-- Normed ring structure on the product of two normed rings, using the sup norm. -/
@@ -449,7 +449,7 @@ lemma normed_group.tendsto_at_top [nonempty α] [semilattice_sup α] {β : Type*
 A variant of `normed_group.tendsto_at_top` that
 uses `∃ N, ∀ n > N, ...` rather than `∃ N, ∀ n ≥ N, ...`
 -/
-lemma normed_group.tendsto_at_top' [nonempty α] [semilattice_sup α] [no_top_order α]
+lemma normed_group.tendsto_at_top' [nonempty α] [semilattice_sup α] [no_max_order α]
   {β : Type*} [semi_normed_group β]
   {f : α → β} {b : β} :
   tendsto f at_top (𝓝 b) ↔ ∀ ε, 0 < ε → ∃ N, ∀ n, N < n → ∥f n - b∥ < ε :=

@@ -176,6 +176,10 @@ lemma smul_apply (r : S) (D : derivation R A M) : (r • D) a = r • D a := rfl
 instance : distrib_mul_action S (derivation R A M) :=
 function.injective.distrib_mul_action coe_fn_add_monoid_hom coe_injective coe_smul
 
+instance [distrib_mul_action Sᵐᵒᵖ M] [is_central_scalar S M] :
+  is_central_scalar S (derivation R A M) :=
+{ op_smul_eq_smul := λ _ _, ext $ λ _, op_smul_eq_smul _ _}
+
 end scalar
 
 @[priority 100]

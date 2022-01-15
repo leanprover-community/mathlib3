@@ -21,12 +21,23 @@ These are implemented as "mixin" typeclasses, so to summon a star ring (for exam
 one needs to write `(R : Type) [ring R] [star_ring R]`.
 This avoids difficulties with diamond inheritance.
 
+We also define the class `star_ordered_ring R`, which says that the order on `R` respects the
+star operation, i.e. an element `r` is nonnegative iff there exists an `s` such that
+`r = star s * s`.
+
 For now we simply do not introduce notations,
 as different users are expected to feel strongly about the relative merits of
 `r^*`, `r†`, `rᘁ`, and so on.
 
 Our star rings are actually star semirings, but of course we can prove
 `star_neg : star (-r) = - star r` when the underlying semiring is a ring.
+
+## TODO
+
+* In a Banach star algebra without a well-defined square root, the natural ordering is given by the
+positive cone which is the closure of the sums of elements `star r * r`. A weaker version of
+`star_ordered_ring` could be defined for this case. Note that the current definition has the
+advantage of not requiring a topology.
 -/
 
 
@@ -266,18 +277,32 @@ def star_ring_of_comm {R : Type*} [comm_semiring R] : star_ring R :=
   ..star_monoid_of_comm }
 
 /--
-An ordered `*`-ring is a ring which is both an ordered ring and a `*`-ring,
-and `0 ≤ star r * r` for every `r`.
-
-(In a Banach algebra, the natural ordering is given by the positive cone
-which is the closure of the sums of elements `star r * r`.
-This ordering makes the Banach algebra an ordered `*`-ring.)
+An ordered `*`-ring is a ring which is both an `ordered_add_comm_group` and a `*`-ring,
+and `0 ≤ r ↔ ∃ s, r = star s * s`.
 -/
-class star_ordered_ring (R : Type u) [ordered_semiring R] extends star_ring R :=
-(star_mul_self_nonneg : ∀ r : R, 0 ≤ star r * r)
+class star_ordered_ring (R : Type u) [ring R] [partial_order R] extends star_ring R :=
+(add_le_add_left       : ∀ a b : R, a ≤ b → ∀ c : R, c + a ≤ c + b)
+(nonneg_iff            : ∀ r : R, 0 ≤ r ↔ ∃ s, r = star s * s)
 
-lemma star_mul_self_nonneg [ordered_semiring R] [star_ordered_ring R] {r : R} : 0 ≤ star r * r :=
-star_ordered_ring.star_mul_self_nonneg r
+namespace star_ordered_ring
+
+variables [ring R] [partial_order R] [star_ordered_ring R]
+
+@[priority 100] -- see note [lower instance priority]
+instance : ordered_add_comm_group R :=
+{ ..show ring R, by apply_instance,
+  ..show partial_order R, by apply_instance,
+  ..show star_ordered_ring R, by apply_instance }
+
+end star_ordered_ring
+
+lemma star_mul_self_nonneg [ring R] [partial_order R] [star_ordered_ring R] {r : R} :
+  0 ≤ star r * r :=
+(star_ordered_ring.nonneg_iff _).mpr ⟨r, rfl⟩
+
+lemma star_mul_self_nonneg' [ring R] [partial_order R] [star_ordered_ring R] {r : R} :
+  0 ≤ r * star r :=
+by { nth_rewrite_rhs 0 [←star_star r], exact star_mul_self_nonneg }
 
 /--
 A star module `A` over a star ring `R` is a module which is a star add monoid,
@@ -318,7 +343,7 @@ namespace units
 
 variables [monoid R] [star_monoid R]
 
-instance : star_monoid (units R) :=
+instance : star_monoid Rˣ :=
 { star := λ u,
   { val := star u,
     inv := star ↑u⁻¹,
@@ -327,10 +352,10 @@ instance : star_monoid (units R) :=
   star_involutive := λ u, units.ext (star_involutive _),
   star_mul := λ u v, units.ext (star_mul _ _) }
 
-@[simp] lemma coe_star (u : units R) : ↑(star u) = (star ↑u : R) := rfl
-@[simp] lemma coe_star_inv (u : units R) : ↑(star u)⁻¹ = (star ↑u⁻¹ : R) := rfl
+@[simp] lemma coe_star (u : Rˣ) : ↑(star u) = (star ↑u : R) := rfl
+@[simp] lemma coe_star_inv (u : Rˣ) : ↑(star u)⁻¹ = (star ↑u⁻¹ : R) := rfl
 
-instance {A : Type*} [has_star A] [has_scalar R A] [star_module R A] : star_module (units R) A :=
+instance {A : Type*} [has_star A] [has_scalar R A] [star_module R A] : star_module Rˣ A :=
 ⟨λ u a, (star_smul ↑u a : _)⟩
 
 end units

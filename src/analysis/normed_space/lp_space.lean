@@ -37,7 +37,7 @@ The space `lp E p` is the subtype of elements of `Π i : α, E i` which satisfy 
   `p`
 * `lp.mem_ℓp_of_tendsto`, `lp.norm_le_of_tendsto`: A pointwise limit of functions in `lp`, all with
   `lp` norm `≤ C`, is itself in `lp` and has `lp` norm `≤ C`.
-* `lp.tsum_inner_mul_inner_le`: basic form of Hölder's inequality
+* `lp.tsum_mul_le_mul_norm`: basic form of Hölder's inequality
 
 ## Implementation
 
@@ -47,8 +47,8 @@ say that `∥-f∥ = ∥f∥`, instead of the non-working `f.norm_neg`.
 ## TODO
 
 * More versions of Hölder's inequality (for example: the case `p = 1`, `q = ∞`; a version for normed
-  rings which has `∥∑' i, f i * g i∥` rather than `∑' i, ∥f i∥ * g i∥` on the RHS; a version for three
-  exponents satisfying `1 / r = 1 / p + 1 / q`)
+  rings which has `∥∑' i, f i * g i∥` rather than `∑' i, ∥f i∥ * g i∥` on the RHS; a version for
+  three exponents satisfying `1 / r = 1 / p + 1 / q`)
 * Equivalence with `pi_Lp`, for `α` finite
 * Equivalence with `measure_theory.Lp`, for `f : α → E` (i.e., functions rather than pi-types) and
   the counting measure on `α`
@@ -203,18 +203,6 @@ begin
       simp only [abs_of_nonneg, this] at hi,
       contrapose! hi,
       exact real.rpow_le_rpow_of_exponent_ge' (norm_nonneg _) hi.le hq.le hpq' } }
-end
-
-lemma _root_.mem_ℓp_single [decidable_eq α] (p) (i : α) (a : E i) :
-  @mem_ℓp α E _ (λ j, if h : j = i then eq.rec a h.symm else 0) p :=
-begin
-  refine (mem_ℓp_zero _).of_exponent_ge (zero_le p),
-  refine (set.finite_singleton i).subset _,
-  intros j,
-  simp only [forall_exists_index, set.mem_singleton_iff, ne.def, dite_eq_right_iff,
-    set.mem_set_of_eq, not_forall],
-  rintros rfl,
-  simp,
 end
 
 lemma add {f g : Π i, E i} (hf : mem_ℓp f p) (hg : mem_ℓp g p) : mem_ℓp (f + g) p :=
@@ -407,7 +395,7 @@ begin
     { rw lp.norm_eq_csupr,
       simp [real.csupr_empty] },
     inhabit α,
-    exact (norm_nonneg (f (default α))).trans ((lp.is_lub_norm f).1 ⟨default α, rfl⟩) },
+    exact (norm_nonneg (f default)).trans ((lp.is_lub_norm f).1 ⟨default, rfl⟩) },
   { rw lp.norm_eq_tsum_rpow hp f,
     refine real.rpow_nonneg_of_nonneg (tsum_nonneg _) _,
     exact λ i, real.rpow_nonneg_of_nonneg (norm_nonneg _) _ },
@@ -499,7 +487,7 @@ normed_group.of_core _
 -- TODO: define an `ennreal` version of `is_conjugate_exponent`, and then express this inequality
 -- in a better version which also covers the case `p = 1, q = ∞`.
 /-- Hölder inequality -/
-lemma tsum_inner_mul_inner_le {p q : ℝ≥0∞}
+protected lemma tsum_mul_le_mul_norm {p q : ℝ≥0∞}
   (hpq : p.to_real.is_conjugate_exponent q.to_real) (f : lp E p) (g : lp E q) :
   summable (λ i, ∥f i∥ * ∥g i∥) ∧ ∑' i, ∥f i∥ * ∥g i∥ ≤ ∥f∥ * ∥g∥ :=
 begin
@@ -512,6 +500,16 @@ begin
   rw ← hC.tsum_eq at hC',
   exact ⟨hC.summable, hC'⟩
 end
+
+protected lemma summable_mul {p q : ℝ≥0∞}
+  (hpq : p.to_real.is_conjugate_exponent q.to_real) (f : lp E p) (g : lp E q) :
+  summable (λ i, ∥f i∥ * ∥g i∥) :=
+(lp.tsum_mul_le_mul_norm hpq f g).1
+
+protected lemma tsum_mul_le_mul_norm' {p q : ℝ≥0∞}
+  (hpq : p.to_real.is_conjugate_exponent q.to_real) (f : lp E p) (g : lp E q) :
+  ∑' i, ∥f i∥ * ∥g i∥ ≤ ∥f∥ * ∥g∥ :=
+(lp.tsum_mul_le_mul_norm hpq f g).2
 
 section compare_pointwise
 
@@ -650,21 +648,30 @@ variables [decidable_eq α]
 
 /-- The element of `lp E p` which is `a : E i` at the index `i`, and zero elsewhere. -/
 protected def single (p) (i : α) (a : E i) : lp E p :=
-⟨_, mem_ℓp_single p i a⟩
+⟨ λ j, if h : j = i then eq.rec a h.symm else 0,
+  begin
+    refine (mem_ℓp_zero _).of_exponent_ge (zero_le p),
+    refine (set.finite_singleton i).subset _,
+    intros j,
+    simp only [forall_exists_index, set.mem_singleton_iff, ne.def, dite_eq_right_iff,
+      set.mem_set_of_eq, not_forall],
+    rintros rfl,
+    simp,
+  end ⟩
 
 protected lemma single_apply (p) (i : α) (a : E i) (j : α) :
   lp.single p i a j = if h : j = i then eq.rec a h.symm else 0 :=
 rfl
 
-protected lemma single_apply_pos (p) (i : α) (a : E i) :
+protected lemma single_apply_self (p) (i : α) (a : E i) :
   lp.single p i a i = a :=
 by rw [lp.single_apply, dif_pos rfl]
 
-protected lemma single_apply_neg (p) (i : α) (a : E i) {j : α} (hij : j ≠ i) :
+protected lemma single_apply_ne (p) (i : α) (a : E i) {j : α} (hij : j ≠ i) :
   lp.single p i a j = 0 :=
 by rw [lp.single_apply, dif_neg hij]
 
-@[simp] protected lemma zero_single (p) (i : α) : lp.single p i (0 : E i) = (0 : lp E p) :=
+@[simp] protected lemma single_zero (p) (i : α) : lp.single p i (0 : E i) = (0 : lp E p) :=
 begin
   ext j,
   by_cases hi : j = i,
@@ -673,7 +680,7 @@ begin
   { simp [lp.single_apply_neg p i _ hi] }
 end
 
-@[simp] protected lemma add_single (p) (i : α) (a₁ a₂ : E i) :
+@[simp] protected lemma single_add (p) (i : α) (a₁ a₂ : E i) :
   lp.single p i (a₁ + a₂) = lp.single p i a₁ + lp.single p i a₂ :=
 begin
   ext j,
@@ -683,24 +690,24 @@ begin
   { simp [lp.single_apply_neg p i _ hi] }
 end
 
-@[simp] protected lemma neg_single (p) (i : α) (a : E i) :
+@[simp] protected lemma single_neg (p) (i : α) (a : E i) :
   lp.single p i (- a) = - lp.single p i a :=
 begin
   ext j,
   by_cases hi : j = i,
   { subst hi,
-    simp [lp.single_apply_pos] },
-  { simp [lp.single_apply_neg p i _ hi] }
+    simp [lp.single_apply_self] },
+  { simp [lp.single_apply_ne p i _ hi] }
 end
 
-@[simp] protected lemma smul_single (p) (i : α) (a : E i) (c : 𝕜) :
+@[simp] protected lemma single_smul (p) (i : α) (a : E i) (c : 𝕜) :
   lp.single p i (c • a) = c • lp.single p i a :=
 begin
   ext j,
   by_cases hi : j = i,
   { subst hi,
-    simp [lp.single_apply_pos] },
-  { simp [lp.single_apply_neg p i _ hi] }
+    simp [lp.single_apply_self] },
+  { simp [lp.single_apply_ne p i _ hi] }
 end
 
 protected lemma norm_sum_single (hp : 0 < p.to_real) (f : Π i, E i) (s : finset α) :

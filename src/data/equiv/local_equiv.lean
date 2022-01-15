@@ -620,8 +620,8 @@ section prod
 
 /-- The product of two local equivs, as a local equiv on the product. -/
 def prod (e : local_equiv α β) (e' : local_equiv γ δ) : local_equiv (α × γ) (β × δ) :=
-{ source := set.prod e.source e'.source,
-  target := set.prod e.target e'.target,
+{ source := e.source ×ˢ e'.source,
+  target := e.target ×ˢ e'.target,
   to_fun := λp, (e p.1, e' p.2),
   inv_fun := λp, (e.symm p.1, e'.symm p.2),
   map_source' := λp hp, by { simp at hp, simp [hp] },
@@ -630,10 +630,10 @@ def prod (e : local_equiv α β) (e' : local_equiv γ δ) : local_equiv (α × �
   right_inv'  := λp hp, by { simp at hp, simp [hp] } }
 
 @[simp, mfld_simps] lemma prod_source (e : local_equiv α β) (e' : local_equiv γ δ) :
-  (e.prod e').source = set.prod e.source e'.source := rfl
+  (e.prod e').source = e.source ×ˢ e'.source := rfl
 
 @[simp, mfld_simps] lemma prod_target (e : local_equiv α β) (e' : local_equiv γ δ) :
-  (e.prod e').target = set.prod e.target e'.target := rfl
+  (e.prod e').target = e.target ×ˢ e'.target := rfl
 
 @[simp, mfld_simps] lemma prod_coe (e : local_equiv α β) (e' : local_equiv γ δ) :
   ((e.prod e') : α × γ → β × δ) = (λp, (e p.1, e' p.2)) := rfl

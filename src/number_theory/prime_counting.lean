@@ -142,12 +142,11 @@ end
 lemma linear_prime_counting_le_div_3 (n : ℕ) (n_big : 56 ≤ n) :
   π' n ≤ n / 3 :=
 begin
-  have ek : (∃ k, 56 + k = n), exact le.dest n_big,
-  rcases ek,
-  have h := linear_prime_counting_bound ek_w 56 6,
-  simp [ek_h] at h,
+  rcases (le.dest n_big) with ⟨i, hi⟩,
+  have h := linear_prime_counting_bound i 56 6,
+  simp [hi] at h,
   apply le_trans h,
-  rw ←ek_h,
+  rw ←hi,
   -- Brute force prime count
   simp [prime_counting', count_succ],
   norm_num,
@@ -158,9 +157,9 @@ begin
   have h2 : 0 < 3, linarith,
   rw ←mul_le_mul_left h2,
   ring_nf,
-  have h3 : 6 * (ek_w / 6) ≤ ek_w, exact mul_div_le ek_w 6,
-  have h4 := nat.div_add_mod (ek_w + 56) 3,
-  have h5 := @mod_lt (ek_w + 56) 3 (by dec_trivial),
+  have h3 : 6 * (i / 6) ≤ i, exact mul_div_le i 6,
+  have h4 := nat.div_add_mod (i + 56) 3,
+  have h5 := @mod_lt (i + 56) 3 (by dec_trivial),
   linarith,
 end
 

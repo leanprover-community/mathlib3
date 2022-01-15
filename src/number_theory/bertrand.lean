@@ -485,7 +485,7 @@ begin
   ring,
 end
 
-lemma real_false_inequality_is_false {x : ℝ} (n_large : (1024 : ℝ) < x)
+lemma real_bertrand_inequality {x : ℝ} (n_large : (1024 : ℝ) < x)
   : x * (2 * x) ^ (real.sqrt (2 * x)) * 4 ^ (2 * x / 3) < 4 ^ x :=
 begin
   apply (log_lt_log_iff _ _).1,
@@ -506,13 +506,15 @@ begin
 end
 
 
--- Take the approach of immediately reifying
-lemma false_inequality_is_false {n : ℕ} (n_large : 1024 < n)
-  : 4 ^ n ≤ n * (2 * n) ^ (nat.sqrt (2 * n)) * 4 ^ (2 * n / 3) → false :=
+/--
+The inequality which contradicts Bertrand's postulate, for large enough `n`.
+-/
+lemma bertrand_inequality {n : ℕ} (n_large : 1024 < n)
+  : n * (2 * n) ^ (nat.sqrt (2 * n)) * 4 ^ (2 * n / 3) ≤ 4 ^ n :=
 begin
-  rw imp_false,
-  rw not_le,
-  rw <-@nat.cast_lt ℝ,
+  -- rw imp_false,
+  -- rw not_le,
+  rw <-@nat.cast_le ℝ,
   have fact1 : 0 < (n : ℝ),
   { rw <-nat.cast_zero,
     rw nat.cast_lt,
@@ -521,6 +523,7 @@ begin
   { linarith, },
   simp only [nat.cast_bit0, nat.cast_add, nat.cast_one, nat.cast_mul, nat.cast_pow],
   simp only [<-rpow_nat_cast],
+  apply le_of_lt,
   calc (n : ℝ) * (2 * (n : ℝ)) ^ (nat.sqrt (2 * n) : ℝ) * 4 ^ (((2 * n / 3) : ℕ) : ℝ)
       ≤ (n : ℝ) * (2 * n : ℝ) ^ (real.sqrt (2 * (n : ℝ))) * 4 ^ (((2 * n / 3) : ℕ) : ℝ) :
           begin
@@ -566,7 +569,7 @@ begin
           end
     ... < 4 ^ (n : ℝ) :
           begin
-            apply real_false_inequality_is_false,
+            apply real_bertrand_inequality,
             rw <-@nat.cast_lt ℝ at n_large,
             have h : (1024) < (n : ℝ), convert n_large, simp,
             linarith,
@@ -665,6 +668,10 @@ begin
 
 end
 
+/--
+A lemma that tells us that, in the case where Bertrand's postulate does not hold, the prime
+factorization of the central binomial coefficent only has factors at most `2 * n / 3 + 1`.
+-/
 lemma central_binom_factorization_small (n : nat) (n_big : 1024 < n)
   (no_prime: ¬∃ (p : ℕ), p.prime ∧ n < p ∧ p ≤ 2 * n) :
   ∏ p in finset.filter nat.prime (finset.range (2 * n / 3 + 1)),
@@ -708,17 +715,20 @@ begin
 end
 
 /--
-Proves that Bertrand's postulate holds for all sufficiently large `n`.
+An upper bound on the central binomial coefficient used in the proof of Bertrand's postulate.
+The bound splits the prime factors of `(2 * n).choose n` into those
+1. At most `sqrt (2 * n)`, which contribute at most `2 * n` for each such prime.
+2. Between `sqrt (2 * n)` and `2 * n / 3`, which contribute at most `4^(2 * n / 3)` in total.
+3. Between `2 * n / 3` and `n`, which do not exist.
+4. Above `n`, which do not exist in the case where Bertrand's postulate is false.
 -/
-lemma bertrand_eventually (n : nat) (n_big : 1024 < n) : ∃ (p : ℕ), p.prime ∧ n < p ∧ p ≤ 2 * n :=
+lemma bertrand_central_binomial_upper_bound (n : ℕ) (n_big : 1024 < n)
+  (no_prime : ¬∃ (p : ℕ), nat.prime p ∧ n < p ∧ p ≤ 2 * n) :
+  (2 * n).choose n
+    ≤ (2 * n) ^ (nat.sqrt (2 * n))
+      * 4 ^ (2 * n / 3) :=
 begin
-  -- Assume there is no prime in the range
-  by_contradiction no_prime,
-  -- If not, then by decomposing the prime factorization of `(2 * n).choose n`,
-  -- we get an upper bound on the size of this central binomial coefficient.
-  have binom_inequality
-    : (2 * n).choose n ≤ (2 * n) ^ (nat.sqrt (2 * n)) * 4 ^ (2 * n / 3), by
-    calc (2 * n).choose n
+calc (2 * n).choose n
             = (∏ p in finset.filter nat.prime (finset.range ((2 * n).choose n + 1)),
                   p ^ (padic_val_nat p ((2 * n).choose n)))
                     : (central_binom_factorization n).symm
@@ -856,6 +866,16 @@ begin
                 *
               4 ^ (2 * n / 3)
                     : nat.mul_le_mul_left _ (primorial_le_4_pow (2 * n / 3)),
+end
+
+/--
+Proves that Bertrand's postulate holds for all sufficiently large `n`.
+-/
+lemma bertrand_eventually (n : nat) (n_big : 1024 < n) : ∃ (p : ℕ), p.prime ∧ n < p ∧ p ≤ 2 * n :=
+begin
+  -- Assume there is no prime in the range
+  by_contradiction no_prime,
+  -- If not, then we have the above upper bound on the size of this central binomial coefficient.
   -- We now couple this bound with a lower bound on the central binomial coefficient, yielding an
   -- inequality which we have seen is false for large enough n.
   have false_inequality
@@ -863,16 +883,10 @@ begin
     calc 4 ^ n < n * (2 * n).choose n
                   :  nat.four_pow_lt_mul_central_binom n (by linarith)
       ...      ≤ n * ((2 * n) ^ (nat.sqrt (2 * n)) * 4 ^ (2 * n / 3))
-                  :
-                  begin
-                    apply mul_le_mul_of_nonneg_left,
-                    exact binom_inequality,
-                    linarith,
-                  end
+                  : nat.mul_le_mul_of_nonneg_left
+                      (bertrand_central_binomial_upper_bound n n_big no_prime)
       ...      = n * (2 * n) ^ (nat.sqrt (2 * n)) * 4 ^ (2 * n / 3) : by ring,
-
-  exfalso,
-  exact false_inequality_is_false n_big (le_of_lt false_inequality),
+  exact not_le_of_lt false_inequality (bertrand_inequality n_big),
 end
 
 /--

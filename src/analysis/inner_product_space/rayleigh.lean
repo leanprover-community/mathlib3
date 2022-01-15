@@ -223,14 +223,14 @@ section compact
 variables [complete_space E] {T : E →ₗ[𝕜] E}
 
 lemma exists_eigenvalue_of_compact [nontrivial E] (hT : is_self_adjoint T)
-  (hT_cpct : compact_operator T) :
+  (hT_cpct : compact_map T) :
   ∃ c, has_eigenvalue T c :=
 begin
   sorry
 end
 
 lemma subsingleton_of_no_eigenvalue_of_compact (hT : is_self_adjoint T)
-  (hT_cpct : compact_operator T) (hT' : ∀ μ : 𝕜, module.End.eigenspace (T : E →ₗ[𝕜] E) μ = ⊥) :
+  (hT_cpct : compact_map T) (hT' : ∀ μ : 𝕜, module.End.eigenspace (T : E →ₗ[𝕜] E) μ = ⊥) :
   subsingleton E :=
 (subsingleton_or_nontrivial E).resolve_right
   (λ h, by exactI absurd (hT' _) (hT.exists_eigenvalue_of_compact hT_cpct).some_spec)

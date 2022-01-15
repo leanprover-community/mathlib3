@@ -80,13 +80,12 @@ begin
   exact ⟨l, lt_of_le_of_lt ((H i).le_self b) hl⟩
 end
 
-theorem nfp_family_le [nonempty ι] {f : ι → ordinal → ordinal} (H : ∀ i, is_normal (f i))
-  {a b} : (∃ i, nfp_family f a ≤ f i b) ↔ nfp_family f a ≤ b :=
+theorem nfp_family_le [nonempty ι] {f : ι → ordinal → ordinal} (H : ∀ i, is_normal (f i)) {a b} :
+  (∃ i, nfp_family f a ≤ f i b) ↔ nfp_family f a ≤ b :=
 by { rw ←not_iff_not, push_neg, exact lt_nfp_family H }
 
-theorem nfp_family_le_fp {f : ι → ordinal → ordinal} (H : ∀ i, is_normal (f i)) {a b}
-  (ab : a ≤ b) (h : ∀ i, f i b ≤ b) :
-  nfp_family f a ≤ b :=
+theorem nfp_family_le_fp {f : ι → ordinal → ordinal} (H : ∀ i, is_normal (f i)) {a b} (ab : a ≤ b)
+  (h : ∀ i, f i b ≤ b) : nfp_family f a ≤ b :=
 sup_le.2 $ λ i, begin
   by_cases hι : is_empty ι,
   { rwa @nfp_family_iterate_empty ι hι },

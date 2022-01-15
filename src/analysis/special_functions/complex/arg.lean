@@ -3,6 +3,7 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne, Benjamin Davidson
 -/
+import analysis.special_functions.trigonometric.angle
 import analysis.special_functions.trigonometric.inverse
 
 /-!
@@ -17,7 +18,7 @@ noncomputable theory
 
 namespace complex
 
-open_locale real topological_space
+open_locale complex_conjugate real topological_space
 open filter set
 
 /-- `arg` returns values in the range (-π, π], such that for `x ≠ 0`,
@@ -250,6 +251,43 @@ begin
   have h₀ : z ≠ 0, from mt (congr_arg im) hz.ne,
   rw [← cos_arg h₀, ← real.cos_neg, real.arccos_cos, neg_neg],
   exacts [neg_nonneg.2 (arg_neg_iff.2 hz).le, neg_le.2 (neg_pi_lt_arg z).le]
+end
+
+lemma arg_conj (x : ℂ) : arg (conj x) = if arg x = π then π else -arg x :=
+begin
+  simp_rw [arg_eq_pi_iff, arg, neg_im, conj_im, conj_re, abs_conj, neg_div, neg_neg,
+           real.arcsin_neg, apply_ite has_neg.neg, neg_add, neg_sub, neg_neg, ←sub_eq_add_neg,
+           sub_neg_eq_add, add_comm π],
+  rcases lt_trichotomy x.re 0 with (hr|hr|hr); rcases lt_trichotomy x.im 0 with (hi|hi|hi),
+  { simp [hr, hr.not_le, hi.le, hi.ne, not_le.2 hi] },
+  { simp [hr, hr.not_le, hi] },
+  { simp [hr, hr.not_le, hi.ne.symm, hi.le, not_le.2 hi] },
+  { simp [hr] },
+  { simp [hr] },
+  { simp [hr] },
+  { simp [hr, hr.le, hi.ne] },
+  { simp [hr, hr.le, hr.le.not_lt] },
+  { simp [hr, hr.le, hr.le.not_lt] },
+end
+
+lemma arg_inv (x : ℂ) : arg x⁻¹ = if arg x = π then π else -arg x :=
+begin
+  rw [←arg_conj, inv_def, mul_comm],
+  by_cases hx : x = 0,
+  { simp [hx] },
+  { exact arg_real_mul (conj x) (by simp [hx]) }
+end
+
+@[simp] lemma arg_conj_coe_angle (x : ℂ) : (arg (conj x) : real.angle) = -arg x :=
+begin
+  by_cases h : arg x = π;
+    simp [arg_conj, h]
+end
+
+@[simp] lemma arg_inv_coe_angle (x : ℂ) : (arg x⁻¹ : real.angle) = -arg x :=
+begin
+  by_cases h : arg x = π;
+    simp [arg_inv, h]
 end
 
 section continuity

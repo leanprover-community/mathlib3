@@ -103,7 +103,46 @@ lemma exists_seq_tendsto_ae [is_finite_measure μ]
   (hfg : tendsto_in_measure μ f g) :
   ∃ ns : ℕ → ℕ, ∀ᵐ x ∂μ, tendsto (λ i, f (ns i) x) at_top (𝓝 (g x)) :=
 begin
-  sorry
+  have : ∀ k : ℕ, ∃ N, ∀ n ≥ N, μ {x | 2⁻¹ ^ k < dist (f n x) (g x)} < 2⁻¹ ^ k,
+  { sorry, },
+  have h_lt_ε_real : ∀ ε : ℝ, ∃ k : ℕ, 2⁻¹ ^ (k + 1) < ε,
+  { sorry, },
+  let ns := λ k, (this k).some,
+  use ns,
+  let S := λ k, {x | 2⁻¹ ^ k < dist (f (ns k) x) (g x)},
+  have hμS_lt : ∀ k, μ (S k) < 2⁻¹ ^ k,
+  { sorry, },
+  let s := ⋂ k, ⋃ i (hik : k ≤ i), S i,
+  have hμs : μ s = 0,
+  { have : ∀ k, s ⊆ ⋃ i (hik : k ≤ i), S i, from λ k, infi_le (λ k, ⋃ i (hik : k ≤ i), S i) k,
+    have hμs_le : ∀ k, μ s ≤ ennreal.of_real (2⁻¹ ^ (k + 1)),
+    { refine λ k, (measure_mono (this k)).trans ((measure_Union_le _).trans _),
+      have hμ_if_eq : ∀ i, μ (⋃ (hik : k ≤ i), S i) = if k ≤ i then μ (S i) else 0,
+      sorry,
+      rw tsum_congr hμ_if_eq,
+      sorry,
+       },
+    refine le_antisymm _ (zero_le _),
+    refine ennreal.le_of_forall_pos_le_add (λ ε hε _, _),
+    rw zero_add,
+    obtain ⟨k, hk_lt_ε⟩ := h_lt_ε_real ε,
+    exact ((hμs_le k).trans (ennreal.of_real_le_of_real hk_lt_ε.le)).trans
+      (ennreal.of_real_coe_nnreal).le, },
+  have h_tendsto : ∀ x ∈ sᶜ, tendsto (λ i, f (ns i) x) at_top (𝓝 (g x)),
+  { refine λ x hx, metric.tendsto_at_top.mpr (λ ε hε, _),
+    simp_rw [s, set.compl_Inter, set.compl_Union, set.mem_Union, set.mem_Inter] at hx,
+    obtain ⟨N, hNx⟩ := hx,
+    obtain ⟨k, hk_lt_ε⟩ := h_lt_ε_real ε,
+    refine ⟨max N (k + 1), λ n hn_ge, lt_of_le_of_lt _ hk_lt_ε⟩,
+    specialize hNx n ((le_max_left _ _).trans hn_ge),
+    have h_inv_n_le_k : (2 : ℝ)⁻¹ ^ n ≤ 2⁻¹ ^ (k + 1),
+    { refine pow_le_pow_of_le_one _ _ ((le_max_right _ _).trans hn_ge); norm_num, },
+    refine le_trans _ h_inv_n_le_k,
+    rwa [set.mem_compl_iff, set.nmem_set_of_eq, not_lt] at hNx, },
+  rw ae_iff,
+  refine measure_mono_null (λ x, _) hμs,
+  rw [set.mem_set_of_eq, ← @not_not (x ∈ s), not_imp_not],
+  exact h_tendsto x,
 end
 
 end tendsto_in_measure

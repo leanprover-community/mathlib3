@@ -6,7 +6,7 @@ Authors: Eric Wieser, Utensil Song
 
 import algebra.ring_quot
 import linear_algebra.tensor_algebra
-import linear_algebra.exterior_algebra
+import linear_algebra.exterior_algebra.basic
 import linear_algebra.quadratic_form.basic
 
 /-!

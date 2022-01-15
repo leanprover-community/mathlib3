@@ -139,7 +139,7 @@ begin
 end
 
 /-- An explicit linear upper bound on the size of the `prime_counting'` function -/
-lemma linear_prime_counting_bound_6 (n : ℕ) (n_big : 56 ≤ n) :
+lemma linear_prime_counting_le_div_3 (n : ℕ) (n_big : 56 ≤ n) :
   π' n ≤ n / 3 :=
 begin
   have ek : (∃ k, 56 + k = n), exact le.dest n_big,

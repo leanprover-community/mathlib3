@@ -387,11 +387,9 @@ by simp_rw [ball, ←set.set_of_and, coe_sup, pi.sup_apply, sup_lt_iff]
 lemma ball_finset_sup' (p : ι → seminorm 𝕜 E) (s : finset ι) (H : s.nonempty) (e : E) (r : ℝ) :
   ball (s.sup' H p) e r = s.inf' H (λ i, ball (p i) e r) :=
 begin
-  induction s using finset.cons_induction_on with a s ha ih,
-  { exact false.elim (not_nonempty_empty H), },
-  { rcases s.eq_empty_or_nonempty with rfl | hs,
-    { classical, simp },
-    { rw [finset.sup'_cons hs, finset.inf'_cons hs, ball_sup, inf_eq_inter, ih] } },
+  induction H using finset.nonempty.cons_induction with a a s ha hs ih,
+  { classical, simp },
+  { rw [finset.sup'_cons hs, finset.inf'_cons hs, ball_sup, inf_eq_inter, ih] },
 end
 
 end has_scalar

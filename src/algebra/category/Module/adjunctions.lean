@@ -181,14 +181,14 @@ instance : preadditive (Free R C) :=
 { hom_group := λ X Y, finsupp.add_comm_group,
   add_comp' := λ X Y Z f f' g, begin
     dsimp,
-    rw [finsupp.sum_add_index];
+    rw [finsupp.sum_add_index''];
     { simp [add_mul], }
   end,
   comp_add' := λ X Y Z f g g', begin
     dsimp,
     rw ← finsupp.sum_add,
     congr, ext r h,
-    rw [finsupp.sum_add_index];
+    rw [finsupp.sum_add_index''];
     { simp [mul_add], },
   end, }
 
@@ -236,7 +236,7 @@ def lift (F : C ⥤ D) : Free R C ⥤ D :=
     { simp, },
     { intros f₁ f₂ w₁ w₂,
       rw add_comp,
-      rw [finsupp.sum_add_index, finsupp.sum_add_index],
+      rw [finsupp.sum_add_index'', finsupp.sum_add_index''],
       { simp [w₁, w₂, add_comp], },
       { simp, },
       { intros, simp only [add_smul], },
@@ -247,7 +247,7 @@ def lift (F : C ⥤ D) : Free R C ⥤ D :=
       { simp, },
       { intros f₁ f₂ w₁ w₂,
         rw comp_add,
-        rw [finsupp.sum_add_index, finsupp.sum_add_index],
+        rw [finsupp.sum_add_index'', finsupp.sum_add_index''],
         { simp [w₁, w₂, add_comp], },
         { simp, },
         { intros, simp only [add_smul], },
@@ -266,7 +266,7 @@ by simp
 instance lift_additive (F : C ⥤ D) : (lift R F).additive :=
 { map_add' := λ X Y f g, begin
     dsimp,
-    rw finsupp.sum_add_index; simp [add_smul]
+    rw finsupp.sum_add_index''; simp [add_smul]
   end, }
 
 instance lift_linear (F : C ⥤ D) : (lift R F).linear R :=

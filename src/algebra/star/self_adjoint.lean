@@ -8,11 +8,14 @@ import algebra.star.basic
 import group_theory.subgroup.basic
 
 /-!
-# Self-adjoint elements of a star additive group
+# Self-adjoint and normal elements of a star additive group
 
 This file defines `self_adjoint R`, where `R` is a star additive monoid, as the additive subgroup
 containing the elements that satisfy `star x = x`. This includes, for instance, Hermitian
 operators on Hilbert spaces.
+
+We also define `star_normal R` as the set of normal elements, i.e. those that satisfy
+`star x * x = x * star x`.
 
 ## TODO
 
@@ -40,6 +43,10 @@ def self_adjoint [add_group R] [star_add_monoid R] : add_subgroup R :=
   add_mem' := λ x y (hx : star x = x) (hy : star y = y),
                 show star (x + y) = x + y, by simp only [star_add x y, hx, hy],
   neg_mem' := λ x (hx : star x = x), show star (-x) = -x, by simp only [hx, star_neg] }
+
+/-- The normal elements of a star monoid, as a set. -/
+def star_normal [monoid R] [has_star R] := {x : R | star x * x = x * star x}
+
 variables {R}
 
 namespace self_adjoint
@@ -78,6 +85,12 @@ by simp only [mem_iff, star_mul, star_star, mem_iff.mp hx, mul_assoc]
 
 lemma conjugate' {x : R} (hx : x ∈ self_adjoint R) (z : R) : star z * x * z ∈ self_adjoint R :=
 by simp only [mem_iff, star_mul, star_star, mem_iff.mp hx, mul_assoc]
+
+lemma mem_star_normal_of_mem {x : R} (hx : x ∈ self_adjoint R) : x ∈ star_normal R :=
+show star x * x = x * star x, by { simp only [mem_iff] at hx, simp only [hx] }
+
+lemma mem_star_normal (x : self_adjoint R) : (x : R) ∈ star_normal R :=
+mem_star_normal_of_mem (set_like.coe_mem _)
 
 end ring
 
@@ -120,3 +133,20 @@ instance : field (self_adjoint R) :=
 end field
 
 end self_adjoint
+
+namespace star_normal
+
+lemma mem_iff [monoid R] [star_monoid R] {x : R} : x ∈ star_normal R ↔ star x * x = x * star x :=
+iff.rfl
+
+lemma zero_mem [semiring R] [star_ring R] : (0 : R) ∈ star_normal R :=
+by simp only [mem_iff, star_zero]
+
+lemma one_mem [monoid R] [star_monoid R] : (1 : R) ∈ star_normal R :=
+by simp only [mem_iff, star_one]
+
+lemma star_mem [monoid R] [star_monoid R] {x : R} (hx : x ∈ star_normal R) :
+  star x ∈ star_normal R :=
+by simp only [mem_iff, star_star, hx.symm]
+
+end star_normal

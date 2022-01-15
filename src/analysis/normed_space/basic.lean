@@ -749,6 +749,7 @@ example
 
 [This Zulip thread](https://leanprover.zulipchat.com/#narrow/stream/113488-general/topic/Typeclass.20resolution.20under.20binders/near/245151099)
 gives some more context. -/
+@[priority 100]
 instance normed_space.to_module' : module α F := normed_space.to_module
 
 theorem interior_closed_ball' [normed_space ℝ E] [nontrivial E] (x : E) (r : ℝ) :

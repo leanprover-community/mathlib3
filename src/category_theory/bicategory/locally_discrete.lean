@@ -71,8 +71,8 @@ instance locally_discrete_bicategory.strict : strict (locally_discrete C) := { }
 variables {I : Type u₁} [category.{v₁} I] {B : Type u₂} [bicategory.{w₂ v₂} B] [strict B]
 
 /--
-If `B` is a strict bicategory, any functor `I ⥤ B` can be promoted to an oplax functor
-from `locally_discrete I` to `B`.
+If `B` is a strict bicategory and `I` is a (1-)category, any functor (of 1-categories) `I ⥤ B` can
+be promoted to an oplax functor from `locally_discrete I` to `B`.
 -/
 @[simps]
 def functor.to_oplax_functor (F : I ⥤ B) : oplax_functor (locally_discrete I) B :=

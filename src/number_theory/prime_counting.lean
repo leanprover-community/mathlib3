@@ -154,7 +154,7 @@ begin
   have h1 : 6 = 2 * 3 := by norm_num,
   rw [h1, totient_mul, totient_prime, totient_prime]; norm_num,
   -- Linear reasoning to close goal
-  have h2 : 0 < 3, linarith,
+  have h2 : 0 < 3, dec_trivial,
   rw ←mul_le_mul_left h2,
   ring_nf,
   have h3 : 6 * (i / 6) ≤ i, exact mul_div_le i 6,

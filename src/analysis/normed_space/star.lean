@@ -139,6 +139,7 @@ begin
     exact one_ne_zero (norm_eq_zero.mp h) }
 end
 
+@[priority 100] -- see Note [lower instance priority]
 instance [nontrivial E] : norm_one_class E := ⟨norm_one⟩
 
 lemma norm_coe_unitary [nontrivial E] (U : unitary E) : ∥(U : E)∥ = 1 :=

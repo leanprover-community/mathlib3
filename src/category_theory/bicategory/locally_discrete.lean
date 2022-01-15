@@ -19,7 +19,7 @@ in `locally_discrete C` is defined as the discrete category associated with the 
 
 namespace category_theory
 
-open bicategory
+open bicategory discrete
 open_locale bicategory
 
 universes w₂ v v₁ v₂ u u₁ u₂
@@ -43,13 +43,7 @@ variables {C} [category_struct.{v} C]
 instance (X Y : locally_discrete C) : small_category (X ⟶ Y) :=
 category_theory.discrete_category (X ⟶ Y)
 
-/-- Extract the equality from a 2-morphism in a locally discrete bicategory. -/
-lemma eq_of_hom {X Y : locally_discrete C} {f g : X ⟶ Y} (η : f ⟶ g) : f = g :=
-η.down.down
-
 end locally_discrete
-
-open locally_discrete
 
 variables (C) [category.{v} C]
 

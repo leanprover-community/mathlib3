@@ -570,92 +570,20 @@ lemma foo {n : ℕ} :
 (finset.filter (λ (p : ℕ), p ^ 2 < 2 * n)
   (finset.filter nat.prime (finset.range (2 * n / 3 + 1)))).card ≤ nat.sqrt (2 * n) :=
 begin
-  have t : ∀ p, p ^ 2 ≤ 2 * n ↔ p ≤ nat.sqrt (2 * n),
-  { intro p,
-    exact nat.le_sqrt'.symm, },
-
-  have u : ∀ p, (p ^ 2 < 2 * n) → p ^ 2 ≤ 2 * n, by
-  { intros p hyp,
-    exact le_of_lt hyp, },
-
-  have v : finset.filter (λ p, p ^ 2 < 2 * n)
-            (finset.filter nat.prime (finset.range (2 * n / 3 + 1))) ⊆
-    finset.filter (λ p, p ^ 2 ≤ 2 * n) (finset.filter nat.prime (finset.range (2 * n / 3 + 1))) :=
-    by { apply finset.monotone_filter_right, exact u, },
-
-  have w' : finset.filter (λ p, p ^ 2 ≤ 2 * n)
-              (finset.filter nat.prime (finset.range (2 * n / 3 + 1))) =
-    finset.filter (λ p, p ^ 2 ≤ 2 * n) (finset.filter nat.prime (finset.Ico 0 (2 * n / 3 + 1))) :=
-    by { apply congr_arg (λ i, finset.filter (λ p, p ^ 2 ≤ 2 * n) (finset.filter nat.prime i)),
-         rw finset.range_eq_Ico, },
-
-  have w : finset.filter (λ p, p ^ 2 ≤ 2 * n)
-            (finset.filter nat.prime (finset.Ico 0 (2 * n / 3 + 1))) =
-    finset.filter (λ p, p ^ 2 ≤ 2 * n) (finset.filter nat.prime (finset.Ico 2 (2 * n / 3 + 1))),
-    { refine congr_arg (λ i, finset.filter (λ p, p ^ 2 ≤ 2 * n) i) _,
-      ext1,
-      split,
-      { intros hyp,
-        simp only [true_and, finset.mem_Ico, zero_le', finset.mem_filter] at hyp,
-        simp only [finset.mem_Ico, finset.mem_filter],
-        exact ⟨⟨nat.prime.two_le hyp.2, hyp.1⟩, hyp.2⟩, },
-      { intros hyp,
-        simp only [finset.mem_Ico, finset.mem_filter] at hyp,
-        simp only [true_and, finset.mem_Ico, zero_le', finset.mem_filter],
-        exact ⟨hyp.1.2, hyp.2⟩, }, },
-
-  have g : finset.filter (λ p, p ^ 2 ≤ 2 * n)
-            (finset.filter nat.prime (finset.Ico 2 (2 * n / 3 + 1))) =
-           finset.filter (λ p, 2 ≤ p ^ 2 ∧ p ^ 2 ≤ 2 * n)
-            (finset.filter nat.prime (finset.Ico 2 (2 * n / 3 + 1))),
-    { ext1,
-      split,
-      { intros hyp,
-        simp only [finset.mem_Ico, finset.mem_filter] at hyp,
-        simp only [finset.mem_Ico, finset.mem_filter],
-        have r : 2 ≤ a ^ 2 :=
-          by calc 2 ≤ a : nat.prime.two_le hyp.1.2
-          ... ≤ a * a : nat.le_mul_self a
-          ... = a ^ 2 : by ring,
-        exact ⟨hyp.1, ⟨r, hyp.2⟩⟩, },
-      { intros hyp,
-        simp only [finset.mem_Ico, finset.mem_filter] at hyp,
-        simp only [finset.mem_Ico, finset.mem_filter],
-        exact ⟨hyp.1, hyp.2.2⟩, }, },
-
-  have h : (finset.filter (λ p, 2 ≤ p ^ 2 ∧ p ^ 2 ≤ 2 * n)
-              (finset.filter nat.prime (finset.Ico 2 (2 * n / 3 + 1))))
-            ⊆ finset.Ico 2 (nat.sqrt (2 * n) + 1)
-    ,
-  by
-  { simp [finset.subset_iff],
-    intros i hyp hyp2 primei hyp3 hyp4,
-    split,
-    { cases le_or_gt 2 i,
-      { exact h, },
-      { cases i,
-        { linarith, },
-        { cases i,
-          { linarith, },
-          { exact dec_trivial, }, } }, },
-    { have : i ≤ nat.sqrt (2 * n) := nat.le_sqrt'.mpr hyp4,
-      linarith, }, },
-
-  calc (finset.filter (λ (p : ℕ), p ^ 2 < 2 * n)
-          (finset.filter nat.prime (finset.range (2 * n / 3 + 1)))).card
-      ≤ (finset.filter (λ p, p ^ 2 ≤ 2 * n)
-        (finset.filter nat.prime (finset.range (2 * n / 3 + 1)))).card: finset.card_le_of_subset v
-  ... = (finset.filter (λ p, p ^ 2 ≤ 2 * n)
-          (finset.filter nat.prime (finset.Ico 0 (2 * n / 3 + 1)))).card: congr_arg finset.card w'
-  ... = (finset.filter (λ p, p ^ 2 ≤ 2 * n)
-          (finset.filter nat.prime (finset.Ico 2 (2 * n / 3 + 1)))).card: congr_arg finset.card w
-  ... = (finset.filter (λ p, 2 ≤ p ^ 2 ∧ p ^ 2 ≤ 2 * n)
-          (finset.filter nat.prime (finset.Ico 2 (2 * n / 3 + 1)))).card: congr_arg finset.card g
-  ... ≤ (finset.Ico 2 (nat.sqrt (2 * n) + 1)).card: finset.card_le_of_subset h
-  ... = nat.sqrt (2 * n) + 1 - 2: nat.card_Ico 2 (nat.sqrt (2 * n) + 1)
-  ... = nat.sqrt (2 * n) - 1: by ring
-  ... ≤ nat.sqrt (2 * n): (nat.sqrt (2 * n)).sub_le 1,
-
+  have : (finset.Ico 1 (nat.sqrt (2 * n) + 1)).card = nat.sqrt (2 * n),
+  { simp, },
+  rw <-this,
+  clear this,
+  apply finset.card_mono,
+  simp,
+  rw finset.subset_iff,
+  simp,
+  intros x _ px h,
+  split,
+  { exact le_of_lt (nat.prime.one_lt px), },
+  { rw nat.lt_succ_iff,
+    rw nat.le_sqrt',
+    exact le_of_lt h, },
 end
 
 /--

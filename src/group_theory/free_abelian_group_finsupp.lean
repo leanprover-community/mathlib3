@@ -118,7 +118,8 @@ equiv.of_free_abelian_group_linear_equiv (add_equiv.to_int_linear_equiv e)
 def equiv.of_free_group_equiv {α β : Type*}
   (e : free_group α ≃* free_group β) :
   α ≃ β :=
-equiv.of_free_abelian_group_equiv (mul_equiv.to_additive (abelianization.mul_equiv.abelianization_congr e))
+equiv.of_free_abelian_group_equiv $
+  mul_equiv.to_additive (abelianization.mul_equiv.abelianization_congr e)
 
 /-- this tells us something about the basis of free groups -/
 def equiv.of_free_group_equiv {α β : Type*} (e : free_group α ≃* free_group β) :

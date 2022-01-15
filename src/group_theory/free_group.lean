@@ -532,7 +532,11 @@ by rintros ⟨L⟩; exact list.rec_on L g.map_one
   (show g (of x * mk t) = map f (of x * mk t),
      by simp [g.map_mul, hg, ih]))
 
-/-- Equivalent types give rise to equivalent free groups. -/
+/-- Equivalent types give rise to equivalent free groups.
+
+The converse can be found in `group_theory.free_abelian_group_finsupp`,
+as `equiv.of_free_group_equiv`
+ -/
 def free_group_congr {α β} (e : α ≃ β) : free_group α ≃ free_group β :=
 ⟨map e, map e.symm,
  λ x, by simp [function.comp, map.comp],

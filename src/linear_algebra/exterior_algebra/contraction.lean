@@ -68,4 +68,19 @@ begin
   rw algebra.algebra_map_eq_smul_one,
 end
 
+@[simp] lemma contract_algebra_map (r : R) : contract B (algebra_map R _ r) = 0 :=
+begin
+  dsimp [contract, g'],
+  simp only [alg_hom.commutes, prod.smul_mk, module.algebra_map_End_apply, smul_zero],
+end
+
+/-- TODO: generalize `ι R b` to an arbitrary element `b`. -/
+lemma contract_ι_mul_ι (a b : M) :
+  contract B (ι R a * ι R b) = contract B (ι R a) * ι R b - ι R a * contract B (ι R b) :=
+begin
+  dsimp [contract, g'],
+  simp_rw [alg_hom.map_mul, linear_map.mul_apply, lift_ι_apply, g_apply_apply, mul_zero, neg_zero,
+    zero_add, mul_smul_comm, smul_mul_assoc, mul_one, one_mul, neg_add_eq_sub],
+end
+
 end exterior_algebra

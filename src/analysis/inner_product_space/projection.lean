@@ -1007,7 +1007,8 @@ variables {ι : Type*}
 they provide an internal direct sum decomposition of `E`) if and only if their span has trivial
 orthogonal complement. -/
 lemma orthogonal_family.submodule_is_internal_iff_of_is_complete [decidable_eq ι]
-  {V : ι → submodule 𝕜 E} (hV : orthogonal_family 𝕜 V) (hc : is_complete (↑(supr V) : set E)) :
+  {V : ι → submodule 𝕜 E} (hV : @orthogonal_family 𝕜 _ _ _ _ (λ i, V i) _ (λ i, (V i).subtypeₗᵢ))
+  (hc : is_complete (↑(supr V) : set E)) :
   direct_sum.submodule_is_internal V ↔ (supr V)ᗮ = ⊥ :=
 begin
   haveI : complete_space ↥(supr V) := hc.complete_space_coe,
@@ -1019,7 +1020,7 @@ end
 they provide an internal direct sum decomposition of `E`) if and only if their span has trivial
 orthogonal complement. -/
 lemma orthogonal_family.submodule_is_internal_iff [decidable_eq ι] [finite_dimensional 𝕜 E]
-  {V : ι → submodule 𝕜 E} (hV : orthogonal_family 𝕜 V) :
+  {V : ι → submodule 𝕜 E} (hV : @orthogonal_family 𝕜 _ _ _ _ (λ i, V i) _ (λ i, (V i).subtypeₗᵢ)) :
   direct_sum.submodule_is_internal V ↔ (supr V)ᗮ = ⊥ :=
 begin
   haveI h := finite_dimensional.proper_is_R_or_C 𝕜 ↥(supr V),
@@ -1225,7 +1226,7 @@ def direct_sum.submodule_is_internal.subordinate_orthonormal_basis_index (a : fi
 
 /-- The basis constructed in `orthogonal_family.subordinate_orthonormal_basis` is orthonormal. -/
 lemma direct_sum.submodule_is_internal.subordinate_orthonormal_basis_orthonormal
-  (hV' : orthogonal_family 𝕜 V) :
+  (hV' : @orthogonal_family 𝕜 _ _ _ _ (λ i, V i) _ (λ i, (V i).subtypeₗᵢ)) :
   orthonormal 𝕜 (hV.subordinate_orthonormal_basis hn) :=
 begin
   simp only [direct_sum.submodule_is_internal.subordinate_orthonormal_basis, basis.coe_reindex],

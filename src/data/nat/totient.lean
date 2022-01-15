@@ -306,29 +306,6 @@ prod_pow_mul (by simp) (λ x a b, (pow_add x a b).symm)
 --   rw this,
 -- end
 
--- TODO: Upgrade this to an `iff`?
-lemma factorization_dvd (d n : ℕ) (hd : 0 < d) (hdn : d.factorization ≤ n.factorization) : d ∣ n :=
-begin
-  rcases n.eq_zero_or_pos with rfl | hn, { simp },
-  set K := n.factorization - d.factorization with hK,
-  rw dvd_iff_exists_eq_mul_left,
-  use K.prod pow,
-  rw ←(factorization_prod_pow_eq_self hd),
-  rw ←(factorization_prod_pow_eq_self hn),
-  rw prod_pow_mul K d.factorization,
-
-  rw hK,
-  suffices : n.factorization - d.factorization + d.factorization = n.factorization, { rw this },
-  rw add_comm,
-
-  ext p,
-  simp only [pi.add_apply, finsupp.coe_add, finsupp.coe_tsub, pi.sub_apply],
-  have h1 := finsupp.le_def.mp hdn p,
-  have h2 := nat.add_sub_assoc h1,
-  rw ←h2,
-  simp only [add_tsub_cancel_left, eq_self_iff_true],
-end
-
 -- TODO: Prove this in `data/nat/factorization`
 lemma aux (n : ℕ) : n.factorization.prod (λ (p k : ℕ), p) ∣ n :=
 begin

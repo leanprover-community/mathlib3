@@ -1624,7 +1624,17 @@ section orthogonal_family
 variables {ι : Type*} [dec_ι : decidable_eq ι] (𝕜)
 open_locale direct_sum
 
-/-- An indexed family of mutually-orthogonal subspaces of an inner product space `E`. -/
+/-- An indexed family of mutually-orthogonal subspaces of an inner product space `E`.
+
+The simple way to express this concept would be as a condition on `V : ι → submodule 𝕜 E`.  We
+We instead implement it as a condition on a family of inner product spaces each equipped with an
+isometric embedding into `E`, thus making it a property of morphisms rather than subobjects.
+
+This definition is less lightweight, but allows for better definitional properties when the inner
+product space structure on each of the submodules is important -- for example, when considering
+their Hilbert sum (`pi_lp V 2`).  For example, given an orthonormal set of vectors `v : ι → E`,
+we have an associated orthogonal family of one-dimensional subspaces of `E`, which it is convenient
+to be able to discuss using `ι → 𝕜` rather than `Π i : ι, span 𝕜 (v i)`. -/
 def orthogonal_family {G : ι → Type*} [Π i, inner_product_space 𝕜 (G i)] (V : Π i, G i →ₗᵢ[𝕜] E) :
   Prop :=
 ∀ ⦃i j⦄, i ≠ j → ∀ v : G i, ∀ w : G j, ⟪V i v, V j w⟫ = 0
@@ -1676,7 +1686,7 @@ lemma orthogonal_family.inner_sum (l₁ l₂ : Π i, G i) (s : finset ι) :
   ⟪∑ i in s, V i (l₁ i), ∑ j in s, V j (l₂ j)⟫ = ∑ i in s, ⟪l₁ i, l₂ i⟫ :=
 by classical;
 calc ⟪∑ i in s, V i (l₁ i), ∑ j in s, V j (l₂ j)⟫
-    = ∑ j in s, ∑ i in s, ⟪V i (l₁ i), V j (l₂ j)⟫ :  by { simp [sum_inner, inner_sum], }
+    = ∑ j in s, ∑ i in s, ⟪V i (l₁ i), V j (l₂ j)⟫ : by simp [sum_inner, inner_sum]
 ... = ∑ j in s, ∑ i in s, ite (i = j) ⟪V i (l₁ i), V j (l₂ j)⟫ 0 :
 begin
   congr' with i,

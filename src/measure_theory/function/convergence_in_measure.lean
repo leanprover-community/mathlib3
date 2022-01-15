@@ -34,9 +34,7 @@ lemma of_tendsto_ae [is_finite_measure μ]
   (hfg : ∀ᵐ x ∂μ, tendsto (λ n, f n x) at_top (𝓝 (g x))) :
   tendsto_in_measure μ f g :=
 begin
-  intros ε hε,
-  rw ennreal.tendsto_at_top_zero,
-  intros δ hδ,
+  refine λ ε hε, ennreal.tendsto_at_top_zero.mpr (λ δ hδ, _),
   by_cases hδi : δ = ∞,
   { simp only [hδi, implies_true_iff, le_top, exists_const], },
   lift δ to ℝ≥0 using hδi,

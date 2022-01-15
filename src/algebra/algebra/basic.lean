@@ -1307,6 +1307,8 @@ variables (R : Type*) [ring R]
   smul_def' := λ _ _, zsmul_eq_mul _ _,
   to_ring_hom := int.cast_ring_hom R }
 
+@[simp] lemma algebra_map_int_eq : algebra_map ℤ R = int.cast_ring_hom R := rfl
+
 variables {R}
 
 instance int_algebra_subsingleton : subsingleton (algebra ℤ R) :=

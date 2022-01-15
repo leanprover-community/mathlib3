@@ -348,6 +348,11 @@ lemma mem_map {S : subalgebra R A} {f : A →ₐ[R] B} {y : B} :
   y ∈ map S f ↔ ∃ x ∈ S, f x = y :=
 subsemiring.mem_map
 
+lemma map_to_submodule {S : subalgebra R A} {f : A →ₐ[R] B} :
+  (S.map f).to_submodule = S.to_submodule.map f.to_linear_map :=
+submodule.ext $ λ x, by simp only [subalgebra.mem_map, exists_prop, alg_hom.to_linear_map_apply,
+                                   submodule.mem_map, subalgebra.mem_to_submodule]
+
 @[simp] lemma coe_map (S : subalgebra R A) (f : A →ₐ[R] B) :
   (S.map f : set B) = f '' S :=
 rfl

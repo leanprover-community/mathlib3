@@ -1571,7 +1571,7 @@ begin
 end
 
 @[continuity]
-lemma continuous_rpow_const {y : ℝ} : continuous (λ a : ennreal, a ^ y) :=
+lemma continuous_rpow_const {y : ℝ} : continuous (λ a : ℝ≥0∞, a ^ y) :=
 begin
   apply continuous_iff_continuous_at.2 (λ x, _),
   rcases lt_trichotomy 0 y with hy|rfl|hy,
@@ -1582,6 +1582,11 @@ begin
     simp_rw [hz, rpow_neg],
     exact ennreal.continuous_inv.continuous_at.comp (continuous_at_rpow_const_of_pos z_pos) }
 end
+
+protected lemma tendsto.rpow {α : Type*} {f : filter α} {m : α → ℝ≥0∞} {a : ℝ≥0∞} (r : ℝ)
+  (hm : tendsto m f (𝓝 a)) :
+  tendsto (λ x, (m x) ^ r) f (𝓝 (a ^ r)) :=
+(continuous_rpow_const.tendsto a).comp hm
 
 lemma tendsto_const_mul_rpow_nhds_zero_of_pos {c : ℝ≥0∞} (hc : c ≠ ∞) {y : ℝ} (hy : 0 < y) :
   tendsto (λ x : ℝ≥0∞, c * x ^ y) (𝓝 0) (𝓝 0) :=

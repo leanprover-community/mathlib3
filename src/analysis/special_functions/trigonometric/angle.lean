@@ -63,6 +63,9 @@ begin
   simp [two_mul, sub_eq_add_neg]
 end
 
+lemma sub_coe_pi_eq_add_coe_pi (θ : angle) : θ - π = θ + π :=
+by rw [sub_eq_add_neg, neg_coe_pi]
+
 theorem cos_eq_iff_eq_or_eq_neg {θ ψ : ℝ} : cos θ = cos ψ ↔ (θ : angle) = ψ ∨ (θ : angle) = -ψ :=
 begin
   split,

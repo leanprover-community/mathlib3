@@ -92,9 +92,9 @@ instance induced_category.groupoid {C : Type u} (D : Type u₂) [groupoid.{v} D]
 
 section
 
-instance groupoid_pi {I : Type u} {J : I → Type u} [∀ i : I, groupoid.{u} (J i)] :
+instance groupoid_pi {I : Type u} {J : I → Type u} [∀ i, groupoid.{u} (J i)] :
   groupoid.{u} (Π i : I, J i) :=
-{ inv := λ (x y : Πi : I, J i) (f : Π i : I, x i ⟶ y i), (λ i : I, groupoid.inv (f i)), }
+{ inv := λ (x y : Π i, J i) (f : Π i, x i ⟶ y i), (λ i : I, groupoid.inv (f i)), }
 
 
 instance groupoid_prod {α β : Type u} [groupoid.{u} α] [groupoid.{u} β] : groupoid.{u} (α × β) :=

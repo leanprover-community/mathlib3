@@ -46,6 +46,15 @@ of products.
 
 - `path.homotopic.prod` The product of two path classes.
 
+## Fundamental groupoid preserves products
+  - `pi_fgrpd_iso_fgrpd_pi` An isomorphism between Π i, (π Xᵢ) and π (Πi, Xᵢ), whose
+    inverse is precisely the product of the maps π (Π i, Xᵢ) → π (Xᵢ), each induced by
+    the projection in `Top` Π i, Xᵢ → Xᵢ.
+
+  - `prod_fgrpd_iso_fgrpd_prod` An isomorphism between πX × πY and π (X × Y), whose inverse
+    is precisely the product of the maps π (X × Y) → πX and π (X × Y) → Y, each induced by
+    the projections X × Y → X and X × Y → Y
+
 ## Lemmas
 - `path.homotopic.comp_pi_eq_pi_comp` If Pᵢ and Qᵢ are families of path classes,
     then (∏ Pᵢ) ⬝ (∏ Qᵢ) = ∏ (Pᵢ ⬝ Qᵢ), where ⬝ denotes path composition.
@@ -304,6 +313,7 @@ def pi_fgrpd_to_fgrpd_pi :
 Shows `pi_fgrpd_to_fgrpd_pi` is an isomorphism, whose inverse is precisely the pi product
 of the induced projections. This shows that `fundamental_groupoid_functor` preserves products.
 -/
+@[simps]
 def pi_fgrpd_iso_fgrpd_pi :
   category_theory.Groupoid.of (Π i : I, (π.obj (X i)).α) ≅ (π.obj (Top.of (Π i, X i))) :=
 { hom := pi_fgrpd_to_fgrpd_pi,
@@ -369,6 +379,7 @@ def prod_fgrpd_to_fgrpd_prod : (π.obj A).α × (π.obj B).α ⥤ (π.obj (Top.o
 Shows `prod_fgrpd_to_fgrpd_prod` is an isomorphism, whose inverse is precisely the product
 of the induced left and right projections.
 -/
+@[simps]
 def prod_fgrpd_iso_fgrpd_prod :
   category_theory.Groupoid.of ((π.obj A).α × (π.obj B).α) ≅ (π.obj (Top.of (A × B))) :=
 { hom := prod_fgrpd_to_fgrpd_prod,
@@ -378,7 +389,7 @@ def prod_fgrpd_iso_fgrpd_prod :
     change prod_fgrpd_to_fgrpd_prod ⋙ (proj_left.prod' proj_right) = 𝟭 _,
     apply category_theory.functor.hext, { intros, ext; simp; refl, },
     intros x y f, cases x, cases y, cases f with f₀ f₁,
-    have : _ ∧ _ := ⟨path.homotopic.proj_left_prod f₀ f₁, path.homotopic.proj_right_prod f₀ f₁⟩,
+    have := and.intro (path.homotopic.proj_left_prod f₀ f₁) (path.homotopic.proj_right_prod f₀ f₁),
     simpa,
   end,
   inv_hom_id' :=
@@ -391,6 +402,5 @@ def prod_fgrpd_iso_fgrpd_prod :
   end }
 
 end prod
-
 
 end fundamental_groupoid

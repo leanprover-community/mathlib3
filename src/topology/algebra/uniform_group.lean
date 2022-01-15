@@ -230,7 +230,7 @@ variables {G}
 ⟨λ h u hu, h _ ⟨u, hu, λ _, id⟩, λ h v ⟨u, hu, hv⟩ x, exists_imp_exists (by exact λ a,
   exists_imp_exists (λ ha hp, mem_of_superset hp (λ i hi a ha, hv (by exact hi a ha)))) ∘ h u hu x⟩
 
-lemma topological_group.tendsto_uniformly_on_mul
+ @[to_additive] lemma topological_group.tendsto_uniformly_on_mul
   {ι₁ ι₂ α : Type*} (F₁ : ι₁ → α → G) (F₂ : ι₂ → α → G)
   (f₁ : α → G) (f₂ : α → G) (p₁ : filter ι₁) (p₂ : filter ι₂) (s : set α)
   (h₁ : @tendsto_uniformly_on α G ι₁ (topological_group.to_uniform_space G) F₁ f₁ p₁ s)
@@ -246,7 +246,7 @@ begin
     (div_mul_comm _ _ _ _)).mp (set.prod_subset_iff.mp h _ (hx.1 a ha) _ (hx.2 a ha))⟩,
 end
 
-lemma topological_group.tendsto_uniformly_on_inv {ι α : Type*} (F : ι → α → G)
+@[to_additive] lemma topological_group.tendsto_uniformly_on_inv {ι α : Type*} (F : ι → α → G)
   (f : α → G) (p : filter ι) (s : set α)
   (h : @tendsto_uniformly_on α G ι (topological_group.to_uniform_space G) F f p s) :
   @tendsto_uniformly_on α G ι (topological_group.to_uniform_space G) (λ i, (F i)⁻¹) f⁻¹ p s :=
@@ -257,7 +257,7 @@ begin
   simp only [pi.inv_apply, inv_div_inv, set.mem_preimage, inv_div'],
 end
 
-lemma topological_group.tendsto_uniformly_mul
+@[to_additive] lemma topological_group.tendsto_uniformly_mul
   {ι₁ ι₂ α : Type*} (F₁ : ι₁ → α → G) (F₂ : ι₂ → α → G)
   (f₁ : α → G) (f₂ : α → G) (p₁ : filter ι₁) (p₂ : filter ι₂)
   (h₁ : @tendsto_uniformly α G ι₁ (topological_group.to_uniform_space G) F₁ f₁ p₁)
@@ -269,7 +269,7 @@ begin
   exact topological_group.tendsto_uniformly_on_mul F₁ F₂ f₁ f₂ p₁ p₂ set.univ h₁ h₂,
 end
 
-lemma topological_group.tendsto_uniformly_inv {ι α : Type*} (F : ι → α → G)
+@[to_additive] lemma topological_group.tendsto_uniformly_inv {ι α : Type*} (F : ι → α → G)
   (f : α → G) (p : filter ι)
   (h : @tendsto_uniformly α G ι (topological_group.to_uniform_space G) F f p) :
   @tendsto_uniformly α G ι (topological_group.to_uniform_space G) (λ i, (F i)⁻¹) f⁻¹ p :=

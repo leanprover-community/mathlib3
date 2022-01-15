@@ -282,7 +282,7 @@ variables {α ι E : Type*} [measurable_space α] {μ : measure α} {l : filter 
 
 lemma ae_cover.integrable_of_lintegral_nnnorm_bounded [l.ne_bot] [l.is_countably_generated]
   {φ : ι → set α} (hφ : ae_cover μ l φ) {f : α → E} (I : ℝ) (hfm : ae_measurable f μ)
-  (hbounded : ∀ᶠ i in l, ∫⁻ x in φ i, nnnorm (f x) ∂μ ≤ ennreal.of_real I) :
+  (hbounded : ∀ᶠ i in l, ∫⁻ x in φ i, ∥f x∥₊ ∂μ ≤ ennreal.of_real I) :
   integrable f μ :=
 begin
   refine ⟨hfm, (le_of_tendsto _ hbounded).trans_lt ennreal.of_real_lt_top⟩,
@@ -293,7 +293,7 @@ end
 lemma ae_cover.integrable_of_lintegral_nnnorm_tendsto [l.ne_bot] [l.is_countably_generated]
   {φ : ι → set α} (hφ : ae_cover μ l φ) {f : α → E} (I : ℝ)
   (hfm : ae_measurable f μ)
-  (htendsto : tendsto (λ i, ∫⁻ x in φ i, nnnorm (f x) ∂μ) l (𝓝 $ ennreal.of_real I)) :
+  (htendsto : tendsto (λ i, ∫⁻ x in φ i, ∥f x∥₊ ∂μ) l (𝓝 $ ennreal.of_real I)) :
   integrable f μ :=
 begin
   refine hφ.integrable_of_lintegral_nnnorm_bounded (max 1 (I + 1)) hfm _,
@@ -304,7 +304,7 @@ end
 
 lemma ae_cover.integrable_of_lintegral_nnnorm_bounded' [l.ne_bot] [l.is_countably_generated]
   {φ : ι → set α} (hφ : ae_cover μ l φ) {f : α → E} (I : ℝ≥0) (hfm : ae_measurable f μ)
-  (hbounded : ∀ᶠ i in l, ∫⁻ x in φ i, nnnorm (f x) ∂μ ≤ I) :
+  (hbounded : ∀ᶠ i in l, ∫⁻ x in φ i, ∥f x∥₊ ∂μ ≤ I) :
   integrable f μ :=
 hφ.integrable_of_lintegral_nnnorm_bounded I hfm
   (by simpa only [ennreal.of_real_coe_nnreal] using hbounded)
@@ -312,7 +312,7 @@ hφ.integrable_of_lintegral_nnnorm_bounded I hfm
 lemma ae_cover.integrable_of_lintegral_nnnorm_tendsto' [l.ne_bot] [l.is_countably_generated]
   {φ : ι → set α} (hφ : ae_cover μ l φ) {f : α → E} (I : ℝ≥0)
   (hfm : ae_measurable f μ)
-  (htendsto : tendsto (λ i, ∫⁻ x in φ i, nnnorm (f x) ∂μ) l (𝓝 I)) :
+  (htendsto : tendsto (λ i, ∫⁻ x in φ i, ∥f x∥₊ ∂μ) l (𝓝 I)) :
   integrable f μ :=
 hφ.integrable_of_lintegral_nnnorm_tendsto I hfm
   (by simpa only [ennreal.of_real_coe_nnreal] using htendsto)

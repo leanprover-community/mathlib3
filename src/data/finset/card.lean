@@ -170,6 +170,8 @@ lemma fiber_card_ne_zero_iff_mem_image (s : finset α) (f : α → β) [decidabl
   (s.filter (λ x, f x = y)).card ≠ 0 ↔ y ∈ s.image f :=
 by { rw [←pos_iff_ne_zero, card_pos, fiber_nonempty_iff_mem_image] }
 
+@[simp] lemma card_map (f : α ↪ β) : (s.map f).card = s.card := multiset.card_map _ _
+
 @[simp] lemma card_subtype (p : α → Prop) [decidable_pred p] (s : finset α) :
   (s.subtype p).card = (s.filter p).card :=
 by simp [finset.subtype]
@@ -180,8 +182,6 @@ card_le_of_subset $ filter_subset _ _
 
 lemma eq_of_subset_of_card_le {s t : finset α} (h : s ⊆ t) (h₂ : t.card ≤ s.card) : s = t :=
 eq_of_veq $ multiset.eq_of_le_of_card_le (val_le_iff.mpr h) h₂
-
-@[simp] lemma card_map (f : α ↪ β) : (s.map f).card = s.card := multiset.card_map _ _
 
 lemma map_eq_of_subset {f : α ↪ α} (hs : s.map f ⊆ s) : s.map f = s :=
 eq_of_subset_of_card_le hs (card_map _).ge

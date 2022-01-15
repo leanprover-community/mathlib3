@@ -4,22 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Stevens, Bolton Bailey
 -/
 
-import data.nat.prime
-import data.finset.interval
 import data.nat.multiplicity
-import data.nat.choose.sum
 import data.nat.choose.central
 import number_theory.padics.padic_norm
 import data.complex.exponential_bounds
-import ring_theory.multiplicity
-import algebra.module
 import number_theory.primorial
 import analysis.special_functions.pow
-import analysis.special_functions.sqrt
-import analysis.calculus.local_extr
-import data.real.basic
-import data.real.sqrt
-import data.real.nnreal
 
 /-!
 # Bertrand's Postulate
@@ -265,9 +255,6 @@ begin
 end
 
 open real
-open_locale nnreal
-
-open set
 
 lemma one_lt_four : (1 : ℝ) < 4 := by linarith
 

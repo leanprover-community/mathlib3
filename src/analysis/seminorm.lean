@@ -289,8 +289,6 @@ lemma coe_add (p q : seminorm 𝕜 E) : ⇑(p + q) = p + q := rfl
 
 @[simp] lemma add_apply (p q : seminorm 𝕜 E) (x : E) : (p + q) x = p x + q x := rfl
 
-instance : add_comm_monoid (seminorm 𝕜 E) := fun_like.coe_injective.add_comm_monoid _ rfl coe_add
-
 instance : ordered_cancel_add_comm_monoid (seminorm 𝕜 E) :=
 fun_like.coe_injective.ordered_cancel_add_comm_monoid _ rfl coe_add
 

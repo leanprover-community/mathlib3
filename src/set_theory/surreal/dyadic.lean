@@ -215,10 +215,10 @@ def dyadic_map : localization.away (2 : ℤ) →+ surreal :=
     ... = a • pow_half b' + c • pow_half d' : add_comm _ _,
   end }
 
-lemma dyadic_map_apply (m : ℤ) (p : submonoid.powers (2 : ℤ)) :
+@[simp] lemma dyadic_map_apply (m : ℤ) (p : submonoid.powers (2 : ℤ)) :
   dyadic_map (localization.mk m p) = m • pow_half (submonoid.log p) := rfl
 
-lemma dyadic_map_apply_pow (m : ℤ) (n : ℕ) :
+@[simp] lemma dyadic_map_apply_pow (m : ℤ) (n : ℕ) :
   dyadic_map (localization.mk m (submonoid.pow 2 n)) = m • pow_half n :=
 by rw [dyadic_map_apply, @submonoid.log_pow_int_eq_self 2 one_lt_two]
 

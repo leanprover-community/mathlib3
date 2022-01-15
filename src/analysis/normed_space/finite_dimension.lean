@@ -46,7 +46,7 @@ universes u v w x
 noncomputable theory
 
 open set finite_dimensional topological_space filter asymptotics
-open_locale classical big_operators filter topological_space asymptotics
+open_locale classical big_operators filter topological_space asymptotics nnreal
 
 namespace linear_isometry
 
@@ -322,6 +322,43 @@ by { ext x, refl }
 by { ext x, refl }
 
 end linear_equiv
+
+/-- Any `K`-Lipschitz map from a subset `s` of a metric space `α` to a finite-dimensional real
+vector space `E'` can be extended to a Lipschitz map on the whole space `α`, with a slightly worse
+constant `C K` where `C` only depends on `E'`. We record a working value for this constant `C`
+as `lipschitz_extension_constant E'`. -/
+@[irreducible] def lipschitz_extension_constant
+  (E' : Type*) [normed_group E'] [normed_space ℝ E'] [finite_dimensional ℝ E'] : ℝ≥0 :=
+let A := (basis.of_vector_space ℝ E').equiv_fun.to_continuous_linear_equiv in
+  ∥A.symm.to_continuous_linear_map∥₊ * ∥A.to_continuous_linear_map∥₊
+
+/-- Any `K`-Lipschitz map from a subset `s` of a metric space `α` to a finite-dimensional real
+vector space `E'` can be extended to a Lipschitz map on the whole space `α`, with a slightly worse
+constant `lipschitz_extension_constant E' * K`. -/
+theorem lipschitz_on_with.extends_finite_dimension
+  {α : Type*} [pseudo_metric_space α]
+  {E' : Type*} [normed_group E'] [normed_space ℝ E'] [finite_dimensional ℝ E']
+  {s : set α} {f : α → E'} {K : ℝ≥0} (hf : lipschitz_on_with K f s) :
+  ∃ (g : α → E'), lipschitz_with (lipschitz_extension_constant E' * K) g ∧ eq_on f g s :=
+begin
+  /- This result is already known for spaces `ι → ℝ`. We use a continuous linear equiv between
+  `E'` and such a space to transfer the result to `E'`. -/
+  let ι : Type* := basis.of_vector_space_index ℝ E',
+  let A := (basis.of_vector_space ℝ E').equiv_fun.to_continuous_linear_equiv,
+  have LA : lipschitz_with (∥A.to_continuous_linear_map∥₊) A, by apply A.lipschitz,
+  have L : lipschitz_on_with (∥A.to_continuous_linear_map∥₊ * K) (A ∘ f) s :=
+    LA.comp_lipschitz_on_with hf,
+  obtain ⟨g, hg, gs⟩ : ∃ g : α → (ι → ℝ), lipschitz_with (∥A.to_continuous_linear_map∥₊ * K) g ∧
+    eq_on (A ∘ f) g s := L.extend_pi,
+  refine ⟨A.symm ∘ g, _, _⟩,
+  { have LAsymm : lipschitz_with (∥A.symm.to_continuous_linear_map∥₊) A.symm,
+      by apply A.symm.lipschitz,
+    convert LAsymm.comp hg using 1,
+    rw [lipschitz_extension_constant, ← mul_assoc] },
+  { assume x hx,
+    have : A (f x) = g x := gs hx,
+    simp only [(∘), ← this, A.symm_apply_apply] }
+end
 
 lemma linear_map.exists_antilipschitz_with [finite_dimensional 𝕜 E] (f : E →ₗ[𝕜] F)
   (hf : f.ker = ⊥) : ∃ K > 0, antilipschitz_with K f :=

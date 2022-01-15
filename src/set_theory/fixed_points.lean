@@ -32,27 +32,25 @@ namespace ordinal
 section
 variable {ι : Type u}
 
-/-- Applies the functions specified by the indices of the list, in order, to a specified value. -/
-def nfp_family_iterate (f : ι → ordinal.{max u v} → ordinal.{max u v})
-  (a : ordinal.{max u v}) : list ι → ordinal.{max u v}
+/-- Applies the functions specified by the indices of a list, in order, to a specified value. -/
+def nfp_family_iterate (f : ι → ordinal → ordinal) (a : ordinal) : list ι → ordinal
 | []       := a
 | (i :: l) := f i (nfp_family_iterate l)
 
-theorem nfp_family_iterate_nil (f : ι → ordinal → ordinal) (a) :
-  nfp_family_iterate f a [] = a :=
+theorem nfp_family_iterate_nil (f : ι → ordinal → ordinal) (a) : nfp_family_iterate f a [] = a :=
 rfl
 
 theorem nfp_family_iterate_append (f : ι → ordinal → ordinal) (i l a) :
   nfp_family_iterate f a (i :: l) = f i (nfp_family_iterate f a l) :=
 rfl
 
-theorem nfp_family_iterate_empty [is_empty ι] (f : ι → ordinal.{max u v} → ordinal.{max u v})
-  (a : ordinal.{max u v}) : Π l : list ι, nfp_family_iterate f a l = a
+theorem nfp_family_iterate_empty [is_empty ι] (f : ι → ordinal → ordinal) (a) :
+  Π l : list ι, nfp_family_iterate f a l = a
 | []       := rfl
 | (i :: l) := is_empty_elim i
 
-theorem nfp_family_iterate_fixed {f : ι → ordinal.{max u v} → ordinal.{max u v}}
-  {a : ordinal.{max u v}} (ha : ∀ i, f i a = a) : Π l : list ι, nfp_family_iterate f a l = a
+theorem nfp_family_iterate_fixed {f : ι → ordinal → ordinal} {a} (ha : ∀ i, f i a = a) :
+  Π l : list ι, nfp_family_iterate f a l = a
 | []       := rfl
 | (i :: l) := by { convert ha i, exact congr_arg (f i) (nfp_family_iterate_fixed l) }
 
@@ -214,8 +212,7 @@ end
 /-! ### Fixed points of ordinal-indexed families of ordinals -/
 
 /-- The next common fixed point above `a` for a family of normal functions indexed by ordinals. -/
-def nfp_bfamily (o : ordinal.{u}) (f : Π b < o, ordinal.{max u v} → ordinal.{max u v}) :
-  ordinal.{max u v} → ordinal.{max u v} :=
+def nfp_bfamily (o : ordinal) (f : Π b < o, ordinal → ordinal) : ordinal → ordinal :=
 nfp_family (family_of_bfamily o f)
 
 theorem le_nfp_bfamily_self {o : ordinal} (f : Π b < o, ordinal → ordinal) (a) :
@@ -264,7 +261,7 @@ theorem nfp_bfamily_eq_self {o} {f : Π b < o, ordinal → ordinal} (H : ∀ i h
 nfp_family_eq_self (λ _, h _ _)
 
 -- Todo (Vi): Maybe we should just use set-builder notation instead?
-theorem fixed_points_mem {o : ordinal.{u}} {f : Π b < o, ordinal.{max u v} → ordinal.{max u v}} (x) :
+theorem fixed_points_mem {o : ordinal} {f : Π b < o, ordinal → ordinal} (x) :
   x ∈ (⋂ i hi, function.fixed_points (f i hi)) ↔ ∀ i hi, f i hi x = x :=
 begin
   refine ⟨λ h i hi, _, λ h, _⟩,
@@ -286,8 +283,7 @@ theorem nfp_bfamily_unbounded {o : ordinal.{u}} {f : Π b < o, ordinal.{max u v}
   not_lt_of_ge (le_nfp_bfamily_self f a)⟩
 
 /-- The derivative of a family of normal functions is the sequence of their common fixed points. -/
-def deriv_bfamily (o : ordinal.{u}) (f : Π b < o, ordinal.{max u v} → ordinal.{max u v}) :
-  ordinal.{max u v} → ordinal.{max u v} :=
+def deriv_bfamily (o : ordinal) (f : Π b < o, ordinal → ordinal) : ordinal → ordinal :=
 deriv_family (family_of_bfamily o f)
 
 theorem deriv_bfamily_is_normal {o : ordinal} (f : Π b < o, ordinal → ordinal) :
@@ -339,11 +335,11 @@ end
 /-! ### Fixed points of a single function -/
 
 /-- The next fixed point function, the least fixed point of the normal function `f` above `a`. -/
-def nfp (f : ordinal.{u} → ordinal.{u}) : ordinal.{u} → ordinal.{u} :=
+def nfp (f : ordinal → ordinal) : ordinal → ordinal :=
 nfp_family (λ _ : unit, f)
 
-theorem nfp_family_iterate_eq_iterate {ι : Type u} (f : ordinal.{max u v} → ordinal.{max u v})
-  (a : ordinal.{max u v}) : Π l, nfp_family_iterate.{u v} (λ _ : ι, f) a l = (f^[l.length]) a
+theorem nfp_family_iterate_eq_iterate {ι : Type u} (f : ordinal → ordinal) (a) :
+  Π l, nfp_family_iterate (λ _ : ι, f) a l = (f^[l.length]) a
 | []       := rfl
 | (i :: l) := begin
   convert congr_arg f (nfp_family_iterate_eq_iterate l),

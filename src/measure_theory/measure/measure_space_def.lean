@@ -392,6 +392,11 @@ alias measure_mono_ae ← filter.eventually_le.measure_le
 lemma measure_congr (H : s =ᵐ[μ] t) : μ s = μ t :=
 le_antisymm H.le.measure_le H.symm.le.measure_le
 
+alias measure_congr ← filter.eventually_eq.measure_eq
+
+lemma measure_mono_null_ae (H : s ≤ᵐ[μ] t) (ht : μ t = 0) : μ s = 0 :=
+nonpos_iff_eq_zero.1 $ ht ▸ H.measure_le
+
 /-- A measurable set `t ⊇ s` such that `μ t = μ s`. It even satisifies `μ (t ∩ u) = μ (s ∩ u)` for
 any measurable set `u`, see `measure_to_measurable_inter`. If `s` is a null measurable set, then
 we also have `t =ᵐ[μ] s`, see `null_measurable_set.to_measurable_ae_eq`. -/

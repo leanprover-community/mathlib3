@@ -12,7 +12,7 @@ import linear_algebra.basic
 # Jordan algebras
 
 Let `A` be a non-associative algebra (i.e. a module equipped with a bilinear multiplication
-operation). Then `A` is said to be a (commutative) Jordan algebra if the multiplication is
+operation). Then `A` is said to be a (commutative, linear) Jordan algebra if the multiplication is
 commutative and satisfies a weak associativity law known as the Jordan Identity: for all `a` and `b`
 in `A`,
 ```
@@ -21,21 +21,24 @@ in `A`,
 i.e. the operators of multiplication by `a` and `a^2` commute. Every associative algebra can be
 equipped with a second  multiplication making it into a commutative Jordan algebra.
 Jordan algebras arising this way are said to be special. There are also exceptional Jordan algebras
-which can be shown not to be the symmetrisation of any associative algebra. The 3x3
+which can be shown not to be the symmetrization of any associative algebra. The 3x3
 matrices of octonions is the canonical example.
 
-Commutative Jordan algebras were introduced by Jordan, von Neumann and Wigner
-([jordanvonneumannwigner1934]) as a mathematical model for the observables of a quantum mechanical
-physical system (for a C*-algebra the self-adjoint part is closed under the symmetrised Jordan
-multiplication). Jordan algebras have subsequently been studied from the points of view of abstract
-algebra and functional analysis. They have connections to Lie algebras and differential geometry.
+Every Jordan algebra `A` has a triple product defined, for `a` `b` and `c` in `A` by
+```
+⦃a b c⦄ = (a * b) * c - (a * c) * b + a * (b * c).
+```
+Via this triple product Jordan algebras are related to a number of other mathematical structures:
+Jordan triples, partial Jordan triples, Jordan pairs and quadratic Jordan algebras. In addition to
+their considerable algebraic interest ([mccrimmon2004]) these structures have been shown to have
+deep connections to mathematical physics, functional analysis and differential geometry. For more
+information about these connections the interested reader is referred to [alfsenshultz2003],
+[chu2012], [friedmanscarr2005], [iordanescu2003] and [upmeier1987].
 
 A more general concept of a (non-commutative) Jordan algebra can also be defined, as a
 (non-commutative, non-associative) algebra `A` where, for each `a` in `A`, the operators of left and
 right multiplication by `a` and `a^2` commute. Such algebras have connected to the Vidav-Palmer
 theorem [cabreragarciarodriguezpalacios2014].
-
-A comprehensive overview of the algebraic theory can be found in [mccrimmon2004].
 
 A real Jordan algebra `A` can be introduced by
 ```

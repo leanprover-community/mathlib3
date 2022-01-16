@@ -353,7 +353,8 @@ end
 finite-dimensional inner product space is trivial. -/
 lemma orthogonal_supr_eigenspaces_eq_bot : (⨆ μ, eigenspace T μ)ᗮ = ⊥ :=
 begin
-  have hT' : _ ∈ star_normal _ := (star_normal.restrict_invariant hT) (orthogonal_supr_eigenspaces_invariant hT),
+  have hT' : _ ∈ star_normal _ := (star_normal.restrict_invariant hT)
+    (orthogonal_supr_eigenspaces_invariant hT),
   -- a normal operator on a nontrivial inner product space has an eigenvalue
   haveI := (subsingleton_of_no_eigenvalue_finite_dimensional hT') (orthogonal_supr_eigenspaces hT),
   exact submodule.eq_bot_of_subsingleton _,

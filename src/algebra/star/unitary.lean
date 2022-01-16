@@ -102,10 +102,10 @@ instance : comm_group (unitary R) :=
   ..submonoid.to_comm_monoid _ }
 
 lemma mem_iff_star_mul_self {U : R} : U ∈ unitary R ↔ star U * U = 1 :=
-mem_unitary_iff.trans $ and_iff_left_of_imp $ λ h, mul_comm (star U) U ▸ h
+mem_iff.trans $ and_iff_left_of_imp $ λ h, mul_comm (star U) U ▸ h
 
 lemma mem_iff_self_mul_star {U : R} : U ∈ unitary R ↔ U * star U = 1 :=
-mem_unitary_iff.trans $ and_iff_right_of_imp $ λ h, mul_comm U (star U) ▸ h
+mem_iff.trans $ and_iff_right_of_imp $ λ h, mul_comm U (star U) ▸ h
 
 end comm_monoid
 

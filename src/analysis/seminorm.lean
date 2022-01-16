@@ -383,6 +383,7 @@ end add_monoid
 section module
 variables [add_comm_group E] [add_comm_group F] [add_comm_group G]
 variables [module 𝕜 E] [module 𝕜 F] [module 𝕜 G]
+variables [semiring R] [module R ℝ] [has_scalar R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ]
 
 /-- Composition of a seminorm with a linear map is a seminorm. -/
 def comp (p : seminorm 𝕜 F) (f : E →ₗ[𝕜] F) : seminorm 𝕜 E :=
@@ -419,7 +420,7 @@ begin
   exact p.triangle _ _,
 end
 
-lemma smul_comp (p : seminorm 𝕜 F) (f : E →ₗ[𝕜] F) (c : ℝ≥0) : (c • p).comp f = c • (p.comp f) :=
+lemma smul_comp (p : seminorm 𝕜 F) (f : E →ₗ[𝕜] F) (c : R) : (c • p).comp f = c • (p.comp f) :=
 ext $ λ _, rfl
 
 lemma comp_mono {p : seminorm 𝕜 F} {q : seminorm 𝕜 F} (f : E →ₗ[𝕜] F) (hp : p ≤ q) :

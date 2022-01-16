@@ -68,7 +68,7 @@ Absorbent and balanced sets in a vector space over a normed field.
 open normed_field set
 open_locale pointwise topological_space
 
-variables {𝕜 E E' ι : Type*}
+variables {𝕜 E F G ι : Type*}
 
 section semi_normed_ring
 variables [semi_normed_ring 𝕜]
@@ -314,19 +314,27 @@ end smul_with_zero
 end add_monoid
 
 section module
-variables [add_comm_group E] [add_comm_group E'] [module 𝕜 E] [module 𝕜 E']
+variables [add_comm_group E] [add_comm_group F] [add_comm_group G]
+variables [module 𝕜 E] [module 𝕜 F] [module 𝕜 G]
 
 /-- Composition of a seminorm with a linear map is a seminorm. -/
-def comp (p : seminorm 𝕜 E') (f : E →ₗ[𝕜] E') : seminorm 𝕜 E :=
-  { to_fun := λ x, p(f x),
-    smul' := λ _ _, (congr_arg p (f.map_smul _ _)).trans (p.smul _ _),
-    triangle' := λ _ _, eq.trans_le (congr_arg p (f.map_add _ _)) (p.triangle _ _) }
+def comp (p : seminorm 𝕜 F) (f : E →ₗ[𝕜] F) : seminorm 𝕜 E :=
+{ to_fun := λ x, p(f x),
+  smul' := λ _ _, (congr_arg p (f.map_smul _ _)).trans (p.smul _ _),
+  triangle' := λ _ _, eq.trans_le (congr_arg p (f.map_add _ _)) (p.triangle _ _) }
 
-lemma coe_comp (p : seminorm 𝕜 E') (f : E →ₗ[𝕜] E') : ⇑(p.comp f) = p ∘ f := rfl
+lemma coe_comp (p : seminorm 𝕜 F) (f : E →ₗ[𝕜] F) : ⇑(p.comp f) = p ∘ f := rfl
 
-lemma comp_apply (p : seminorm 𝕜 E') (f : E →ₗ[𝕜] E') (x : E) : (p.comp f) x = p(f x) := rfl
+lemma comp_apply (p : seminorm 𝕜 F) (f : E →ₗ[𝕜] F) (x : E) : (p.comp f) x = p(f x) := rfl
 
-lemma comp_mono {p : seminorm 𝕜 E'} {q : seminorm 𝕜 E'} (f : E →ₗ[𝕜] E') (hp : p ≤ q) :
+@[simp] lemma comp_id (p : seminorm 𝕜 E) : p.comp linear_map.id = p :=
+ext $ λ _, rfl
+
+lemma comp_comp (p : seminorm 𝕜 G) (g : F →ₗ[𝕜] G) (f : E →ₗ[𝕜] F) :
+  p.comp (g.comp f) = (p.comp g).comp f :=
+ext $ λ _, by simp_rw [comp_apply, linear_map.comp_apply]
+
+lemma comp_mono {p : seminorm 𝕜 F} {q : seminorm 𝕜 F} (f : E →ₗ[𝕜] F) (hp : p ≤ q) :
   p.comp f ≤ q.comp f :=
 begin
   intros x,
@@ -419,9 +427,9 @@ end has_scalar
 section module
 
 variables [module 𝕜 E]
-variables [add_comm_group E'] [module 𝕜 E']
+variables [add_comm_group F] [module 𝕜 F]
 
-lemma comp_ball (p : seminorm 𝕜 E') (f : E →ₗ[𝕜] E') (x : E) (r : ℝ) :
+lemma ball_comp (p : seminorm 𝕜 F) (f : E →ₗ[𝕜] F) (x : E) (r : ℝ) :
   (p.comp f).ball x r = f ⁻¹' (p.ball (f x) r) :=
 begin
   ext,

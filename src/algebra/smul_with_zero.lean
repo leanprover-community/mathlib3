@@ -160,6 +160,22 @@ def mul_action_with_zero.comp_hom (f : monoid_with_zero_hom R' R) :
 
 end monoid_with_zero
 
+section group_with_zero
+variables {α β : Type*} [group_with_zero α] [group_with_zero β] [mul_action_with_zero α β]
+
+lemma smul_inv₀ [smul_comm_class α β β] [is_scalar_tower α β β] (c : α) (x : β) :
+  (c • x)⁻¹ = c⁻¹ • x⁻¹ :=
+begin
+  obtain rfl | hc := eq_or_ne c 0,
+  { simp only [inv_zero, zero_smul] },
+  obtain rfl | hx := eq_or_ne x 0,
+  { simp only [inv_zero, smul_zero'] },
+  { refine (eq_inv_of_mul_left_eq_one _).symm,
+    rw [smul_mul_smul, inv_mul_cancel hc, inv_mul_cancel hx, one_smul] }
+end
+
+end group_with_zero
+
 /-- Scalar multiplication as a monoid homomorphism with zero. -/
 @[simps]
 def smul_monoid_with_zero_hom {α β : Type*} [monoid_with_zero α] [mul_zero_one_class β]

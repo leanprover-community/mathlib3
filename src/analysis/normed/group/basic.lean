@@ -188,6 +188,8 @@ by { rw[←dist_zero_right], exact dist_nonneg }
 
 @[simp] lemma norm_zero : ∥(0 : E)∥ = 0 :=  by rw [← dist_zero_right, dist_self]
 
+lemma norm_ne_zero {g : E} : ∥g∥ ≠ 0 → g ≠ 0 := mt $ by { rintro rfl, exact norm_zero }
+
 @[nontriviality] lemma norm_of_subsingleton [subsingleton E] (x : E) : ∥x∥ = 0 :=
 by rw [subsingleton.elim x 0, norm_zero]
 
@@ -946,6 +948,8 @@ variables [normed_group E] [normed_group F]
 
 @[simp] lemma norm_eq_zero {g : E} : ∥g∥ = 0 ↔ g = 0 := norm_eq_zero_iff'
 
+lemma norm_ne_zero_iff {g : E} : ∥g∥ ≠ 0 ↔ g ≠ 0 := not_congr norm_eq_zero
+
 @[simp] lemma norm_pos_iff {g : E} : 0 < ∥ g ∥ ↔ g ≠ 0 := norm_pos_iff'
 
 @[simp] lemma norm_le_zero_iff {g : E} : ∥g∥ ≤ 0 ↔ g = 0 := norm_le_zero_iff'
@@ -961,6 +965,8 @@ norm_sub_eq_zero_iff.1 h
 
 @[simp] lemma nnnorm_eq_zero {a : E} : ∥a∥₊ = 0 ↔ a = 0 :=
 by rw [← nnreal.coe_eq_zero, coe_nnnorm, norm_eq_zero]
+
+lemma nnnorm_ne_zero_iff {g : E} : ∥g∥₊ ≠ 0 ↔ g ≠ 0 := not_congr nnnorm_eq_zero
 
 /-- An injective group homomorphism from an `add_comm_group` to a `normed_group` induces a
 `normed_group` structure on the domain.

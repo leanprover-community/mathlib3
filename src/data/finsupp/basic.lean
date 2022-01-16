@@ -1191,18 +1191,18 @@ begin
 end
 
 @[to_additive]
-lemma prod_add_index [add_comm_monoid M] [comm_monoid N] {f g : α →₀ M}
+lemma prod_add_index [add_zero_class M] [comm_monoid N] {f g : α →₀ M}
   {h : α → M → N} (h_zero : ∀a, h a 0 = 1) (h_add : ∀a b₁ b₂, h a (b₁ + b₂) = h a b₁ * h a b₂) :
   (f + g).prod h = f.prod h * g.prod h :=
 prod_add_index'' (λ a ha, h_zero a) h_add
 
 @[simp]
-lemma sum_add_index' [add_comm_monoid M] [add_comm_monoid N] {f g : α →₀ M} (h : α → M →+ N) :
+lemma sum_add_index' [add_zero_class M] [add_comm_monoid N] {f g : α →₀ M} (h : α → M →+ N) :
   (f + g).sum (λ x, h x) = f.sum (λ x, h x) + g.sum (λ x, h x) :=
 sum_add_index'' (λ a _, (h a).map_zero) (λ a, (h a).map_add)
 
 @[simp]
-lemma prod_add_index' [add_comm_monoid M] [comm_monoid N] {f g : α →₀ M}
+lemma prod_add_index' [add_zero_class M] [comm_monoid N] {f g : α →₀ M}
   (h : α → multiplicative M →* N) :
   (f + g).prod (λ a b, h a (multiplicative.of_add b)) =
     f.prod (λ a b, h a (multiplicative.of_add b)) * g.prod (λ a b, h a (multiplicative.of_add b)) :=
@@ -1210,7 +1210,7 @@ prod_add_index'' (λ a _, (h a).map_one) (λ a, (h a).map_mul)
 
 /-- The canonical isomorphism between families of additive monoid homomorphisms `α → (M →+ N)`
 and monoid homomorphisms `(α →₀ M) →+ N`. -/
-def lift_add_hom [add_comm_monoid M] [add_comm_monoid N] : (α → M →+ N) ≃+ ((α →₀ M) →+ N) :=
+def lift_add_hom [add_zero_class M] [add_comm_monoid N] : (α → M →+ N) ≃+ ((α →₀ M) →+ N) :=
 { to_fun := λ F,
   { to_fun := λ f, f.sum (λ x, F x),
     map_zero' := finset.sum_empty,

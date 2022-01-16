@@ -37,7 +37,7 @@ information about these connections the interested reader is referred to [alfsen
 
 A more general concept of a (non-commutative) Jordan algebra can also be defined, as a
 (non-commutative, non-associative) algebra `A` where, for each `a` in `A`, the operators of left and
-right multiplication by `a` and `a^2` commute. Such algebras have connected to the Vidav-Palmer
+right multiplication by `a` and `a^2` commute. Such algebras have connections to the Vidav-Palmer
 theorem [cabreragarciarodriguezpalacios2014].
 
 A real Jordan algebra `A` can be introduced by

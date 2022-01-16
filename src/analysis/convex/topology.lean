@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alexander Bentkamp, Yury Kudryashov
 -/
 import analysis.convex.jensen
+import analysis.convex.star
 import analysis.normed.group.pointwise
 import analysis.normed_space.finite_dimension
 import topology.path_connected
@@ -216,6 +217,15 @@ by simpa only [metric.ball, sep_univ] using (convex_on_dist a _ convex_univ).con
 
 lemma convex_closed_ball (a : E) (r : ℝ) : convex ℝ (metric.closed_ball a r) :=
 by simpa only [metric.closed_ball, sep_univ] using (convex_on_dist a _ convex_univ).convex_le r
+
+lemma star_convex_ball_self {E : Type u_2} [normed_group E] [normed_space ℝ E] (a : E) (r : ℝ) :
+  star_convex ℝ a (metric.ball a r) :=
+begin
+  obtain hr | hr := le_or_lt r 0,
+  { rw metric.ball_eq_empty.2 hr,
+    exact star_convex_empty _ },
+  { exact (convex_ball _ _).star_convex (mem_ball_self hr) }
+end
 
 lemma convex.thickening (hs : convex ℝ s) (ε : ℝ) : convex ℝ (thickening ε s) :=
 by { rw ←add_ball, exact hs.add (convex_ball 0 _) }

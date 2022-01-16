@@ -412,12 +412,7 @@ lemma add_comp (p q : seminorm 𝕜 F) (f : E →ₗ[𝕜] F) : (p + q).comp f =
 ext $ λ _, rfl
 
 lemma comp_triangle (p : seminorm 𝕜 F) (f g : E →ₗ[𝕜] F) : p.comp (f + g) ≤ p.comp f + p.comp g :=
-begin
-  simp_rw [le_def, coe_add, coe_comp],
-  refine pi.le_def.mpr _,
-  intros x,
-  exact p.triangle _ _,
-end
+λ _, p.triangle _ _
 
 lemma smul_comp (p : seminorm 𝕜 F) (f : E →ₗ[𝕜] F) (c : R) : (c • p).comp f = c • (p.comp f) :=
 ext $ λ _, rfl

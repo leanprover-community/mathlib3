@@ -260,26 +260,11 @@ theorem nfp_bfamily_eq_self {o} {f : Π b < o, ordinal → ordinal} {a} (h : ∀
   nfp_bfamily o f a = a :=
 nfp_family_eq_self (λ _, h _ _)
 
--- Todo (Vi): Maybe we should just use set-builder notation instead?
-theorem fixed_points_mem {o : ordinal} {f : Π b < o, ordinal → ordinal} (x) :
-  x ∈ (⋂ i hi, function.fixed_points (f i hi)) ↔ ∀ i hi, f i hi x = x :=
-begin
-  refine ⟨λ h i hi, _, λ h, _⟩,
-  { rw set.mem_Inter at h,
-    have hi' := h i,
-    rw set.mem_Inter at hi',
-    exact hi' hi },
-  rw set.mem_Inter,
-  intro i,
-  rw set.mem_Inter,
-  exact h i
-end
-
 /-- A generalization of the fixed point lemma for normal functions: any family of normal functions
 has an unbounded set of common fixed points. -/
 theorem nfp_bfamily_unbounded {o : ordinal.{u}} {f : Π b < o, ordinal.{max u v} → ordinal.{max u v}}
   (H : ∀ i hi, is_normal (f i hi)) : unbounded (<) (⋂ i hi, function.fixed_points (f i hi)) :=
-λ a, ⟨_, by { rw fixed_points_mem, exact λ _ _, nfp_bfamily_fp H _ _ _ },
+λ a, ⟨_, by { rw set.mem_Inter_Inter, exact λ _ _, nfp_bfamily_fp H _ _ _ },
   not_lt_of_ge (le_nfp_bfamily_self f a)⟩
 
 /-- The derivative of a family of normal functions is the sequence of their common fixed points. -/

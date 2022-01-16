@@ -418,7 +418,7 @@ lemma smul_comp (p : seminorm 𝕜 F) (f : E →ₗ[𝕜] F) (c : R) : (c • p)
 ext $ λ _, rfl
 
 lemma comp_mono {p : seminorm 𝕜 F} {q : seminorm 𝕜 F} (f : E →ₗ[𝕜] F) (hp : p ≤ q) :
-  p.comp f ≤ q.comp f := λ x, hp (f x)
+  p.comp f ≤ q.comp f := λ _, hp _
 
 section norm_one_class
 variables [norm_one_class 𝕜] (p : seminorm 𝕜 E) (x y : E) (r : ℝ)

@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2022 Daniel Roca González. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Daniel Roca González.
+Authors: Daniel Roca González
 -/
 import analysis.inner_product_space.projection
 import analysis.inner_product_space.dual
@@ -95,12 +95,15 @@ begin
   rw submodule.eq_top_iff', intro v,
   -- As the range of lax_milgram_map is closed, it is also complete
   haveI := (closed_range B).complete_space_coe,
-  -- Every vector can be decomposed uniquely as the sum of an element in the range and an element in the complement
-  have decompose_v := eq_sum_orthogonal_projection_self_orthogonal_complement (lax_milgram_map B).range v,
+  -- Every vector can be decomposed uniquely as the sum of an element in the range
+  -- and an element in the complement
+  have decompose_v :=
+    eq_sum_orthogonal_projection_self_orthogonal_complement (lax_milgram_map B).range v,
   -- We show the orthogonal component of v is 0
-  have zero_orthogonal_component : ↑((orthogonal_projection (lax_milgram_map B).rangeᗮ) v) = (0 : V),
+  have zero_orthogonal_component
+    : ↑((orthogonal_projection (lax_milgram_map B).rangeᗮ) v) = (0 : V),
   by begin
-    -- the orthogonal component of v is zero iff, for all w in the orthogonal complement, inner v w = 0
+    -- the orthogonal component of v is zero iff, for all w in the orthogonal complement ⟪v,w⟫=0
     refine eq_orthogonal_projection_of_mem_of_inner_eq_zero
       (submodule.zero_mem ((lax_milgram_map B).range)ᗮ) _,
     intros w mem_w_orthogonal,
@@ -108,8 +111,10 @@ begin
     rcases coercive with ⟨C, C_ge_0, coercivity⟩,
     have nonneg_C : 0 ≤ C, by linarith,
     have : 0 ≤ C * ∥w∥*∥w∥ := mul_nonneg (mul_nonneg nonneg_C (norm_nonneg w)) (norm_nonneg w),
-    have inner_product_eq_zero := (submodule.mem_orthogonal ((lax_milgram_map B).range) w).mp mem_w_orthogonal,
-    have : lax_milgram_map B w ∈ (lax_milgram_map B).range := by  simp [continuous_linear_map.mem_range],
+    have inner_product_eq_zero :=
+      (submodule.mem_orthogonal ((lax_milgram_map B).range) w).mp mem_w_orthogonal,
+    have : lax_milgram_map B w ∈ (lax_milgram_map B).range :=
+      by simp [continuous_linear_map.mem_range],
     have : C * ∥w∥*∥w∥ ≤ 0 :=
     calc C * ∥w∥*∥w∥
          ≤ B w w                          : coercivity w

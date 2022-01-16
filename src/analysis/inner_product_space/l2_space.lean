@@ -32,10 +32,10 @@ summable.  This construction is sometimes called the *Hilbert sum* of the family
   sum of `ι` copies of `𝕜`).  This parallels the definition of `basis`, in `linear_algebra.basis`,
   as an isomorphism of an `R`-module with `ι →₀ R`.
 
-* `hilbert_basis.coe_fn`: More conventionally a Hilbert basis is thought of as a family `ι → E` of
-  vectors in `E` satisfying certain properties (orthonormality, completeness).  We obtain this
-  interpretation of a Hilbert basis `b` by defining `⇑b`, of type `ι → E`, to be the image under
-  `b.repr` of `lp.single 2 i (1:𝕜)`.  This parallels the definition `basis.coe_fn` in
+* `hilbert_basis.has_coe_to_fun`: More conventionally a Hilbert basis is thought of as a family
+  `ι → E` of vectors in `E` satisfying certain properties (orthonormality, completeness).  We obtain
+  this interpretation of a Hilbert basis `b` by defining `⇑b`, of type `ι → E`, to be the image
+  under `b.repr` of `lp.single 2 i (1:𝕜)`.  This parallels the definition `basis.has_coe_to_fun` in
   `linear_algebra.basis`.
 
 * `hilbert_basis.mk`: Make a Hilbert basis of `E` from an orthonormal family `v : ι → E` of vectors
@@ -54,7 +54,7 @@ summable.  This construction is sometimes called the *Hilbert sum* of the family
 
 * `orthogonal_family.range_linear_isometry`: Given a family `G` of inner product spaces and a family
   `V : Π i, G i →ₗᵢ[𝕜] E` of isometric embeddings of the `G i` into `E` with mutually-orthogonal
-  images, the range of the embedding `orthogonal_family.linear_isometry` of the Hilbert sum of `G`
+  images, the image of the embedding `orthogonal_family.linear_isometry` of the Hilbert sum of `G`
   into `E` is the closure of the span of the images of the `G i`.
 
 * `hilbert_basis.repr_apply_apply`: Given a Hilbert basis `b` of `E`, the entry `b.repr x i` of
@@ -64,7 +64,7 @@ summable.  This construction is sometimes called the *Hilbert sum* of the family
   expressed as the "infinite linear combination" `∑' i, b.repr x i • b i` of the basis vectors
   `b i`, with coefficients given by the entries `b.repr x i` of `x`'s representation in `ℓ²(ι, 𝕜)`.
 
-* `orthonormal.exists_hilbert_basis`: A Hilbert space admits a Hilbert basis.
+* `exists_hilbert_basis`: A Hilbert space admits a Hilbert basis.
 
 ## Keywords
 
@@ -417,8 +417,10 @@ let ⟨w, hws, hw_ortho, hw_max⟩ := exists_maximal_orthonormal hs in
   hws,
   hilbert_basis.coe_of_orthogonal_eq_bot_mk _ _ ⟩
 
+variables (𝕜 E)
+
 /-- A Hilbert space admits a Hilbert basis. -/
-lemma _root_.orthonormal.exists_hilbert_basis :
+lemma _root_.exists_hilbert_basis :
   ∃ (w : set E) (b : hilbert_basis w 𝕜 E), ⇑b = (coe : w → E) :=
 let ⟨w, hw, hw', hw''⟩ := (orthonormal_empty 𝕜 E).exists_hilbert_basis_extension in ⟨w, hw, hw''⟩
 

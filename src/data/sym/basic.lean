@@ -57,8 +57,6 @@ namespace sym
 
 variables {α : Type u} {n : ℕ} {s : sym α n} {a b : α}
 
-instance has_coe (α : Type*) (n : ℕ) : has_coe (sym α n) (multiset α) := coe_subtype
-
 lemma coe_injective : injective (coe : sym α n → multiset α) := subtype.coe_injective
 
 @[simp, norm_cast] lemma coe_inj {s₁ s₂ : sym α n} : (s₁ : multiset α) = s₂ ↔ s₁ = s₂ :=
@@ -211,7 +209,7 @@ lemma exists_eq_cons_of_succ (s : sym α n.succ) : ∃ (a : α) (s' : sym α n),
 begin
   obtain ⟨a, ha⟩ := exists_mem s,
   classical,
-  exact ⟨a, s.erase a ha, (s.cons_erase _ _).symm⟩,
+  exact ⟨a, s.erase a ha, (@cons_erase _ _ _ s _ _).symm⟩,
 end
 
 lemma eq_repeat {a : α} {n : ℕ} {s : sym α n} : s = repeat a n ↔ ∀ b ∈ s, b = a :=
@@ -272,21 +270,21 @@ by simp [sym.map]
 by simp [map, cons]
 
 @[congr] lemma map_congr {β : Type*} {f g : α → β} {s : sym α n} (h: ∀ x ∈ s, f x = g x) :
-  map f s = map g s := subtype.ext $ multiset.map_congr h
+  map f s = map g s := subtype.ext $ multiset.map_congr rfl h
 
 @[simp] lemma map_mk {β : Type*} {f : α → β} {m : multiset α} {hc : m.card = n} :
   map f (mk m hc) = mk (m.map f) (by simp [hc]) := rfl
 
-@[simp] lemma coe_map (s : sym α n) (f : α → β) : (s.map f : multiset β) = multiset.map f s := rfl
+@[simp] lemma coe_map {β : Type*} (s : sym α n) (f : α → β) : ↑(s.map f) = multiset.map f s := rfl
 
-lemma map_injective {f : α → β} (hf : injective f) (n : ℕ) :
+lemma map_injective {β : Type*} {f : α → β} (hf : injective f) (n : ℕ) :
   injective (map f : sym α n → sym β n) :=
 λ s t h, coe_injective $ multiset.map_injective hf $ coe_inj.2 h
 
 /-- Mapping an equivalence `α ≃ β` using `sym.map` gives an equivalence between `sym α n` and
 `sym β n`. -/
 @[simps]
-def equiv_congr (e : α ≃ β) : sym α n ≃ sym β n :=
+def equiv_congr {α β : Type*} (e : α ≃ β) : sym α n ≃ sym β n :=
 { to_fun := map e,
   inv_fun := map e.symm,
   left_inv := λ x, by rw [map_map, equiv.symm_comp_self, map_id],

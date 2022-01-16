@@ -148,9 +148,9 @@ Inhabited types are equivalent to `option β` for some `β` by identifying `defa
 -/
 def {u} sigma_equiv_option_of_nonempty (α : Type u) [inhabited α] [decidable_eq α] :
   Σ (β : Type u), α ≃ option β :=
-⟨{x : α // x ≠ default α},
-  { to_fun := λ (x : α), if h : x = default α then none else some ⟨x, h⟩,
-    inv_fun := λ o, option.elim o (default α) coe,
+⟨{x : α // x ≠ default},
+  { to_fun := λ (x : α), if h : x = default then none else some ⟨x, h⟩,
+    inv_fun := λ o, option.elim o (default) coe,
     left_inv := λ x, by { dsimp only, split_ifs; simp [*] },
     right_inv := begin
       rintro (_|⟨x,h⟩),

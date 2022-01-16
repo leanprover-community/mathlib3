@@ -70,7 +70,6 @@ open_locale pointwise topological_space nnreal
 
 variables {R 𝕜 E F G ι : Type*}
 
-
 section semi_normed_ring
 variables [semi_normed_ring 𝕜]
 
@@ -399,14 +398,29 @@ lemma coe_comp (p : seminorm 𝕜 F) (f : E →ₗ[𝕜] F) : ⇑(p.comp f) = p 
 ext $ λ _, rfl
 
 @[simp] lemma comp_zero (p : seminorm 𝕜 F) : p.comp (0 : E →ₗ[𝕜] F) = 0 :=
-ext $ λ _, by rw [comp_apply, linear_map.zero_apply, seminorm.zero, seminorm.zero_apply]
+ext $ λ _, seminorm.zero _
 
 @[simp] lemma zero_comp (f : E →ₗ[𝕜] F) : (0 : seminorm 𝕜 F).comp f = 0 :=
-ext $ λ _, by simp_rw [comp_apply, seminorm.zero_apply]
+ext $ λ _, rfl
 
 lemma comp_comp (p : seminorm 𝕜 G) (g : F →ₗ[𝕜] G) (f : E →ₗ[𝕜] F) :
   p.comp (g.comp f) = (p.comp g).comp f :=
 ext $ λ _, by simp_rw [comp_apply, linear_map.comp_apply]
+
+lemma add_comp (p q : seminorm 𝕜 F) (f : E →ₗ[𝕜] F) : (p + q).comp f = p.comp f + q.comp f :=
+ext $ λ _, rfl
+
+lemma comp_triangle (p : seminorm 𝕜 F) (f g : E →ₗ[𝕜] F) : p.comp (f + g) ≤ p.comp f + p.comp g :=
+begin
+  simp_rw [le_def, coe_add, coe_comp],
+  refine pi.le_def.mpr _,
+  intros x,
+  simp,
+  exact p.triangle _ _,
+end
+
+lemma smul_comp (p : seminorm 𝕜 F) (f : E →ₗ[𝕜] F) (c : ℝ≥0) : (c • p).comp f = c • (p.comp f) :=
+ext $ λ _, rfl
 
 lemma comp_mono {p : seminorm 𝕜 F} {q : seminorm 𝕜 F} (f : E →ₗ[𝕜] F) (hp : p ≤ q) :
   p.comp f ≤ q.comp f :=

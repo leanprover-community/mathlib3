@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Shing Tak Lam, Frédéric Dupuis
 -/
 import algebra.star.basic
-import group_theory.submonoid.operations
+import group_theory.submonoid.membership
 
 /-!
 # Unitary elements of a star monoid
@@ -41,8 +41,11 @@ def unitary (R : Type*) [monoid R] [star_monoid R] : submonoid R :=
 variables {R : Type*}
 
 namespace unitary
+
+section monoid
 variables [monoid R] [star_monoid R]
 
+lemma mem_iff {U : R} : U ∈ unitary R ↔ star U * U = 1 ∧ U * star U = 1 := iff.rfl
 @[simp] lemma star_mul_self_of_mem {U : R} (hU : U ∈ unitary R) : star U * U = 1 := hU.1
 @[simp] lemma mul_star_self_of_mem {U : R} (hU : U ∈ unitary R) : U * star U = 1 := hU.2
 
@@ -78,5 +81,50 @@ instance : inhabited (unitary R) := ⟨1⟩
 lemma star_eq_inv (U : unitary R) : star U = U⁻¹ := rfl
 
 lemma star_eq_inv' : (star : unitary R → unitary R) = has_inv.inv := rfl
+
+/-- The unitary elements embed into the units. -/
+@[simps]
+def to_units : unitary R →* Rˣ :=
+{ to_fun := λ x, ⟨x, ↑(x⁻¹), coe_mul_star_self x, coe_star_mul_self x⟩,
+  map_one' := units.ext rfl,
+  map_mul' := λ x y, units.ext rfl }
+
+lemma to_units_injective : function.injective (to_units : unitary R → Rˣ) :=
+λ x y h, subtype.ext $ units.ext_iff.mp h
+
+end monoid
+
+section comm_monoid
+variables [comm_monoid R] [star_monoid R]
+
+instance : comm_group (unitary R) :=
+{ ..unitary.group,
+  ..submonoid.to_comm_monoid _ }
+
+lemma mem_iff_star_mul_self {U : R} : U ∈ unitary R ↔ star U * U = 1 :=
+mem_unitary_iff.trans $ and_iff_left_of_imp $ λ h, mul_comm (star U) U ▸ h
+
+lemma mem_iff_self_mul_star {U : R} : U ∈ unitary R ↔ U * star U = 1 :=
+mem_unitary_iff.trans $ and_iff_right_of_imp $ λ h, mul_comm U (star U) ▸ h
+
+end comm_monoid
+
+section group_with_zero
+variables [group_with_zero R] [star_monoid R]
+
+@[norm_cast] lemma coe_inv (U : unitary R) : ↑(U⁻¹) = (U⁻¹ : R) :=
+eq_inv_of_mul_right_eq_one (coe_mul_star_self _)
+
+@[norm_cast] lemma coe_div (U₁ U₂ : unitary R) : ↑(U₁ / U₂) = (U₁ / U₂ : R) :=
+by simp only [div_eq_mul_inv, coe_inv, submonoid.coe_mul]
+
+@[norm_cast] lemma coe_zpow (U : unitary R) (z : ℤ) : ↑(U ^ z) = (U ^ z : R) :=
+begin
+  induction z,
+  { simp [submonoid.coe_pow], },
+  { simp [coe_inv] },
+end
+
+end group_with_zero
 
 end unitary

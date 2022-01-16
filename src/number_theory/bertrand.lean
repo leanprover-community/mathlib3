@@ -685,20 +685,14 @@ calc
       (∏ p in ((finset.range (2 * n / 3 + 1)).filter nat.prime).filter (> nat.sqrt (2 * n)),
           p ^ (padic_val_nat p ((2 * n).choose n))) :
         begin
-          refine (nat.mul_left_inj _).2 _,
-          { refine finset.prod_pos _,
-            intros p hyp,
-            simp only [finset.mem_filter, finset.mem_range] at hyp,
-            exact pow_pos (nat.prime.pos hyp.1.2) (padic_val_nat p ((2 * n).choose n)), },
-          { refine congr_arg (λ i, (2 * n) ^ i) _,
-            refine congr_arg (λ s, finset.card s) _,
-            ext1,
-            split,
-            { intro h, simp at h, simp, split,
-              exact h.1, exact even_prime_is_small h.1.2 (by linarith) h.2, },
-            { intro h, simp at h, simp, cases h, split,
-              exact h_left,
-              rw nat.le_sqrt', exact le_of_lt h_right, } },
+          congr' 3,
+          ext1,
+          split,
+          { intro h, simp at h, simp, split,
+            exact h.1, exact even_prime_is_small h.1.2 (by linarith) h.2, },
+          { intro h, simp at h, simp, cases h, split,
+            exact h_left,
+            rw nat.le_sqrt', exact le_of_lt h_right, },
         end
 ... ≤ (2 * n) ^ (nat.sqrt (2 * n))
         *

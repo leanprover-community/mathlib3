@@ -645,7 +645,8 @@ calc
     = (∏ p in (finset.range ((2 * n).choose n + 1)).filter nat.prime,
           p ^ (padic_val_nat p ((2 * n).choose n))) : (central_binom_factorization n).symm
 ... = (∏ p in (finset.range (2 * n / 3 + 1)).filter nat.prime,
-          p ^ (padic_val_nat p ((2 * n).choose n))) : (central_binom_factorization_small n n_big no_prime).symm
+          p ^ (padic_val_nat p ((2 * n).choose n))) :
+        (central_binom_factorization_small n n_big no_prime).symm
 ... = (∏ p in (finset.range (2 * n / 3 + 1)).filter nat.prime,
           if p ≤ nat.sqrt (2 * n)
           then p ^ (padic_val_nat p ((2 * n).choose n))
@@ -659,14 +660,14 @@ calc
                   (finset.range (2 * n / 3 + 1)).filter nat.prime).filter (≤ nat.sqrt (2 * n)),
           p ^ (padic_val_nat p ((2 * n).choose n)))
         *
-      (∏ p in ((finset.range (2 * n / 3 + 1)).filter nat.prime).filter (λ p, nat.sqrt (2 * n) < p),
+      (∏ p in ((finset.range (2 * n / 3 + 1)).filter nat.prime).filter (> nat.sqrt (2 * n)),
           p ^ (padic_val_nat p ((2 * n).choose n))) :
         by simp only [not_le, finset.filter_congr_decidable]
 ... ≤ (∏ p in (
                   (finset.range (2 * n / 3 + 1)).filter nat.prime).filter (≤ nat.sqrt (2 * n)),
           2 * n)
         *
-      (∏ p in ((finset.range (2 * n / 3 + 1)).filter nat.prime).filter (λ p, nat.sqrt (2 * n) < p),
+      (∏ p in ((finset.range (2 * n / 3 + 1)).filter nat.prime).filter (> nat.sqrt (2 * n)),
           p ^ (padic_val_nat p ((2 * n).choose n))) :
         begin
           refine (nat.mul_le_mul_right _ _),
@@ -677,11 +678,11 @@ calc
         end
 ... = (2 * n) ^ (((finset.range (2 * n / 3 + 1)).filter nat.prime).filter (≤ nat.sqrt (2 * n))).card
       *
-      (∏ p in ((finset.range (2 * n / 3 + 1)).filter nat.prime).filter (λ p, nat.sqrt (2 * n) < p),
+      (∏ p in ((finset.range (2 * n / 3 + 1)).filter nat.prime).filter (> nat.sqrt (2 * n)),
           p ^ (padic_val_nat p ((2 * n).choose n))) : by simp only [finset.prod_const]
 ... = (2 * n) ^ (((finset.range (2 * n / 3 + 1)).filter nat.prime).filter (λ p, p ^ 2 < 2 * n)).card
       *
-      (∏ p in ((finset.range (2 * n / 3 + 1)).filter nat.prime).filter (λ p, nat.sqrt (2 * n) < p),
+      (∏ p in ((finset.range (2 * n / 3 + 1)).filter nat.prime).filter (> nat.sqrt (2 * n)),
           p ^ (padic_val_nat p ((2 * n).choose n))) :
         begin
           refine (nat.mul_left_inj _).2 _,
@@ -701,7 +702,7 @@ calc
         end
 ... ≤ (2 * n) ^ (nat.sqrt (2 * n))
         *
-      (∏ p in ((finset.range (2 * n / 3 + 1)).filter nat.prime).filter (λ p, nat.sqrt (2 * n) < p),
+      (∏ p in ((finset.range (2 * n / 3 + 1)).filter nat.prime).filter (> nat.sqrt (2 * n)),
           p ^ (padic_val_nat p ((2 * n).choose n))) :
         begin
           refine (nat.mul_le_mul_right _ _),
@@ -723,7 +724,7 @@ calc
         end
 ... ≤ (2 * n) ^ (nat.sqrt (2 * n))
         *
-      (∏ p in ((finset.range (2 * n / 3 + 1)).filter nat.prime).filter (λ p, nat.sqrt (2 * n) < p),
+      (∏ p in ((finset.range (2 * n / 3 + 1)).filter nat.prime).filter (> nat.sqrt (2 * n)),
           p ^ 1) :
       begin
         refine nat.mul_le_mul_left _ _,

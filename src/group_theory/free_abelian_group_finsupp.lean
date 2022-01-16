@@ -132,15 +132,6 @@ equiv.of_free_group_equiv $
   mul_equiv.trans ((to_free_group G).symm) $
   mul_equiv.trans e $
   to_free_group H
-/-
-Why does this not work? Universes? Can I make it work in a pretty way?
-begin
-  have H := calc free_group (generators G) ≃* G : (to_free_group G).symm
-    ... ≃* H : e
-    ... ≃* free_group (generators H) : to_free_group H,
-  exact H,
-end
--/
 
 variable {X}
 

@@ -184,7 +184,7 @@ linear_equiv.Pi_congr_right
     rw neg_sq,
     exact hcd.sq_add_sq_ne_zero
   end,
-  (linear_equiv.refl _ _)]
+  linear_equiv.refl ℝ (fin 2 → ℝ)]
 
 /-- The map `lc_row0` is proper, that is, preimages of cocompact sets are finite in
 `[[* , *], [c, d]]`.-/

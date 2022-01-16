@@ -227,7 +227,7 @@ begin
   exact (norm_add_le _ _).trans (add_le_add (hT.2 s hs hμs) (hT'.2 s hs hμs)),
 end
 
-lemma smul [normed_field 𝕜] [semi_normed_space 𝕜 β] (hT : dominated_fin_meas_additive μ T C)
+lemma smul [normed_field 𝕜] [normed_space 𝕜 β] (hT : dominated_fin_meas_additive μ T C)
   (c : 𝕜) :
   dominated_fin_meas_additive μ (λ s, c • (T s)) (∥c∥ * C) :=
 begin
@@ -443,12 +443,12 @@ begin
   exact hx.2,
 end
 
-lemma set_to_simple_func_smul_left [has_continuous_smul ℝ F'] {m : measurable_space α}
+lemma set_to_simple_func_smul_left {m : measurable_space α}
   (T : set α → F →L[ℝ] F') (c : ℝ) (f : α →ₛ F) :
   set_to_simple_func (λ s, c • (T s)) f = c • set_to_simple_func T f :=
 by simp_rw [set_to_simple_func, continuous_linear_map.smul_apply, smul_sum]
 
-lemma set_to_simple_func_smul_left' [has_continuous_smul ℝ F']
+lemma set_to_simple_func_smul_left'
   (T T' : set α → E →L[ℝ] F') (c : ℝ) (h_smul : ∀ s, measurable_set s → μ s < ∞ → T' s = c • (T s))
   {f : α →ₛ E} (hf : integrable f μ) :
   set_to_simple_func T' f = c • set_to_simple_func T f :=

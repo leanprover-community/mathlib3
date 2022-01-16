@@ -140,11 +140,11 @@ semiconj_by_unop.2 h
 @[to_additive] lemma commute.unop [has_mul α] {x y : αᵐᵒᵖ} (h : commute x y) :
   commute (unop x) (unop y) := h.unop
 
-@[to_additive, simp] lemma commute_op [has_mul α] {x y : α} :
+@[simp, to_additive] lemma commute_op [has_mul α] {x y : α} :
   commute (op x) (op y) ↔ commute x y :=
 semiconj_by_op
 
-@[to_additive, simp] lemma commute_unop [has_mul α] {x y : αᵐᵒᵖ} :
+@[simp, to_additive] lemma commute_unop [has_mul α] {x y : αᵐᵒᵖ} :
   commute (unop x) (unop y) ↔ commute x y :=
 semiconj_by_unop
 

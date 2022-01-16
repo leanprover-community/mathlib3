@@ -76,6 +76,8 @@ order_top.le_top a
 @[simp] theorem not_top_lt {α : Type u} [preorder α] [order_top α] {a : α} : ¬ ⊤ < a :=
 λ h, lt_irrefl a (lt_of_le_of_lt le_top h)
 
+theorem is_top_top {α : Type u} [has_le α] [order_top α] : is_top (⊤ : α) := λ _, le_top
+
 theorem top_unique (h : ⊤ ≤ a) : a = ⊤ :=
 le_top.antisymm h
 
@@ -95,13 +97,7 @@ top_le_iff.1 $ h₂ ▸ h
 lemma lt_top_iff_ne_top : a < ⊤ ↔ a ≠ ⊤ := le_top.lt_iff_ne
 
 lemma eq_top_or_lt_top (a : α) : a = ⊤ ∨ a < ⊤ :=
-begin
-  by_cases h : a = ⊤,
-  { exact or.inl h },
-  right,
-  rw lt_top_iff_ne_top,
-  exact h,
-end
+le_top.eq_or_lt
 
 lemma ne_top_of_lt (h : a < b) : a ≠ ⊤ :=
 lt_top_iff_ne_top.1 $ lt_of_lt_of_le h le_top
@@ -149,6 +145,8 @@ section order_bot
 variables [partial_order α] [order_bot α] {a b : α}
 
 @[simp] theorem bot_le {α : Type u} [has_le α] [order_bot α] {a : α} : ⊥ ≤ a := order_bot.bot_le a
+
+lemma is_bot_bot {α : Type u} [has_le α] [order_bot α] : is_bot (⊥ : α) := λ _, bot_le
 
 @[simp] theorem not_lt_bot {α : Type u} [preorder α] [order_bot α] {a : α} : ¬ a < ⊥ :=
 λ h, lt_irrefl a (lt_of_lt_of_le h bot_le)

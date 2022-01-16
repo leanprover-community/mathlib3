@@ -85,7 +85,7 @@ open affine_map
 variables {𝕜 : Type*} {V₁ V₂  : Type*} {P₁ P₂ : Type*}
   [normed_field 𝕜]
   [normed_group V₁] [semi_normed_group V₂]
-  [normed_space 𝕜 V₁] [semi_normed_space 𝕜 V₂]
+  [normed_space 𝕜 V₁] [normed_space 𝕜 V₂]
   [metric_space P₁] [pseudo_metric_space P₂]
   [normed_add_torsor V₁ P₁] [semi_normed_add_torsor V₂ P₂]
 

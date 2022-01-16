@@ -299,7 +299,9 @@ variables (ι) (𝕜) (E)
 
 /-- A Hilbert basis on `ι` for an inner product space `E` is an identification of `E` with the `lp`
 space `ℓ²(ι, 𝕜)`. -/
-structure hilbert_basis := of_repr :: (repr : E ≃ₗᵢ[𝕜] ℓ²(ι, 𝕜))
+-- `nolint` because (of course) whether `E` has a Hilbert basis indexed by `ι` depends on the
+-- cardinality of `ι`.
+@[nolint has_inhabited_instance] structure hilbert_basis := of_repr :: (repr : E ≃ₗᵢ[𝕜] ℓ²(ι, 𝕜))
 
 end
 
@@ -382,23 +384,19 @@ begin
   simp [← linear_map.span_singleton_eq_range, ← submodule.span_Union],
 end
 
-@[simp] protected lemma mk_apply (hsp : (span 𝕜 (set.range v)).topological_closure = ⊤) (i : ι) :
-  hilbert_basis.mk hv hsp i = v i :=
-show (hilbert_basis.mk hv hsp).repr.symm _ = v i, by simp [hilbert_basis.mk]
-
 @[simp] protected lemma coe_mk (hsp : (span 𝕜 (set.range v)).topological_closure = ⊤) :
   ⇑(hilbert_basis.mk hv hsp) = v :=
-by ext; simp
+begin
+  ext i,
+  show (hilbert_basis.mk hv hsp).repr.symm _ = v i,
+  simp [hilbert_basis.mk]
+end
 
 /-- An orthonormal family of vectors whose span has trivial orthogonal complement is a Hilbert
 basis. -/
 protected def mk_of_orthogonal_eq_bot (hsp : (span 𝕜 (set.range v))ᗮ = ⊥) : hilbert_basis ι 𝕜 E :=
 hilbert_basis.mk hv
 (by rw [← orthogonal_orthogonal_eq_closure, orthogonal_eq_top_iff, hsp])
-
-@[simp] protected lemma mk_of_orthogonal_eq_bot_apply (hsp : (span 𝕜 (set.range v))ᗮ = ⊥) (i : ι) :
-  hilbert_basis.mk_of_orthogonal_eq_bot hv hsp i = v i :=
-hilbert_basis.mk_apply hv _ _
 
 @[simp] protected lemma coe_of_orthogonal_eq_bot_mk (hsp : (span 𝕜 (set.range v))ᗮ = ⊥) :
   ⇑(hilbert_basis.mk_of_orthogonal_eq_bot hv hsp) = v :=

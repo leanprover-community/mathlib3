@@ -246,9 +246,8 @@ def modification_iso.of_components
 { hom := { app := λ a, (app a).hom },
   inv :=
   { app := λ a, (app a).inv,
-    naturality' := λ a b f, by
-    { have h := congr_arg (λ f, (_ ◁ (app b).inv) ≫ f ≫ ((app a).inv ▷ _)) (naturality f).symm,
-      simpa using h } } }
+    naturality' := λ a b f, by simpa using
+      congr_arg (λ f, (_ ◁ (app b).inv) ≫ f ≫ ((app a).inv ▷ _)) (naturality f).symm } }
 
 end
 

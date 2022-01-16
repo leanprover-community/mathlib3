@@ -69,22 +69,18 @@ and substitution instead.
 
 -/
 
-/--
-A (non-commutative) Jordan multiplication.
--/
+/-- A (non-commutative) Jordan multiplication. -/
 class is_jordan (A : Type*) [has_mul A] :=
 (lmul_comm_rmul : ∀ a b : A, (a * b) * a = a * (b * a))
-(lmul_lmul_comm_lmul: ∀ a b : A, (a * a) * (a * b) = a * ((a * a) * b))
-(lmul_lmul_comm_rmul: ∀ a b : A, (a * a) * (b * a) = ((a * a) * b) * a)
-(lmul_comm_rmul_rmul: ∀ a b : A, (a * b) * (a * a) = a * (b * (a * a)))
-(rmul_comm_rmul_rmul: ∀ a b : A, (b * a) * (a * a) = (b * (a * a)) * a)
+(lmul_lmul_comm_lmul : ∀ a b : A, (a * a) * (a * b) = a * ((a * a) * b))
+(lmul_lmul_comm_rmul : ∀ a b : A, (a * a) * (b * a) = ((a * a) * b) * a)
+(lmul_comm_rmul_rmul : ∀ a b : A, (a * b) * (a * a) = a * (b * (a * a)))
+(rmul_comm_rmul_rmul : ∀ a b : A, (b * a) * (a * a) = (b * (a * a)) * a)
 
-/--
-A commutative Jordan multipication
--/
+/-- A commutative Jordan multipication -/
 class is_comm_jordan (A : Type*) [has_mul A]:=
-(mul_comm: ∀ a b : A, a * b = b * a)
-(jordan: ∀ a b : A, (a * b) * (a * a) = a * (b * (a *a)))
+(mul_comm : ∀ a b : A, a * b = b * a)
+(jordan : ∀ a b : A, (a * b) * (a * a) = a * (b * (a *a)))
 
 -- A (commutative) Jordan multiplication is also a Jordan multipication
 @[priority 100] -- see Note [lower instance priority]
@@ -113,73 +109,39 @@ instance semigroup.is_jordan (B : Type u) [semigroup B] : is_jordan B :=
 
 @[priority 100] -- see Note [lower instance priority]
 instance comm_semigroup.is_comm_jordan (B : Type u) [comm_semigroup B] : is_comm_jordan B :=
-{ mul_comm := λ a b, by rw mul_comm,
-  jordan := λ a b, by rw mul_assoc, }
+{ mul_comm := mul_comm,
+  jordan := λ a b, mul_assoc _ _ _, }
 
 variables {A : Type*} [non_unital_non_assoc_ring A]
 
-/--
-Left multiplication operator
--/
+/-- Left multiplication operator. This is a variant of `add_monoid_hom.mul_left`. -/
 @[simps] def add_monoid.End.L : A →+ add_monoid.End A := add_monoid_hom.mul
 local notation `L` := add_monoid.End.L
 
-/--
-Right multiplication operator
--/
-@[simps] def add_monoid.End.R : A→+(add_monoid.End A) :=
-  add_monoid_hom.flip (L  : A →+ add_monoid.End A)
+/-- Right multiplication operator. This is a variant of `add_monoid_hom.mul_right`. -/
+@[simps] def add_monoid.End.R : A →+ add_monoid.End A := (L : A →+ add_monoid.End A).flip
 local notation `R` := add_monoid.End.R
 
--- The Jordan axioms can be expressed in terms of commuting multiplication operators
+/-! The Jordan axioms can be expressed in terms of commuting multiplication operators -/
+section lie
+variables [is_jordan A]
 
-@[simp] lemma lie_L_R [is_jordan A] (a : A) : ⁅L a, R a⁆ = 0 :=
-begin
-  ext b,
-  rw ring.lie_def,
-  apply sub_eq_zero_of_eq,
-  simp only [function.comp_app, add_monoid.End.L_apply_apply, add_monoid.coe_mul,
-    add_monoid.End.R_apply_apply],
-  rw is_jordan.lmul_comm_rmul,
-end
+@[simp] lemma lie_L_R (a : A) : ⁅L a, R a⁆ = 0 :=
+add_monoid_hom.ext $ λ b, sub_eq_zero_of_eq (is_jordan.lmul_comm_rmul _ _).symm
 
-@[simp] lemma lie_L_L_sq [is_jordan A] (a : A) : ⁅L a, L (a * a)⁆ = 0 :=
-begin
-  ext b,
-  rw ring.lie_def,
-  apply sub_eq_zero_of_eq,
-  simp only [function.comp_app, add_monoid.End.L_apply_apply, add_monoid.coe_mul],
-  rw is_jordan.lmul_lmul_comm_lmul,
-end
+@[simp] lemma lie_L_L_sq (a : A) : ⁅L a, L (a * a)⁆ = 0 :=
+add_monoid_hom.ext $ λ b, sub_eq_zero_of_eq (is_jordan.lmul_lmul_comm_lmul _ _).symm
 
-@[simp] lemma lie_L_R_sq [is_jordan A] (a : A) : ⁅L a, R (a * a)⁆ = 0 :=
-begin
-  ext b,
-  rw ring.lie_def,
-  apply sub_eq_zero_of_eq,
-  simp only [function.comp_app, add_monoid.End.L_apply_apply, add_monoid.coe_mul,
-    add_monoid.End.R_apply_apply],
-  rw is_jordan.lmul_comm_rmul_rmul,
-end
+@[simp] lemma lie_L_R_sq (a : A) : ⁅L a, R (a * a)⁆ = 0 :=
+add_monoid_hom.ext $ λ b, sub_eq_zero_of_eq (is_jordan.lmul_comm_rmul_rmul _ _).symm
 
-@[simp] lemma lie_L_sq_R [is_jordan A] (a : A) : ⁅L (a * a), R a⁆ = 0 :=
-begin
-  ext b,
-  rw ring.lie_def,
-  apply sub_eq_zero_of_eq,
-  simp only [function.comp_app, add_monoid.End.L_apply_apply, add_monoid.coe_mul,
-    add_monoid.End.R_apply_apply],
-  rw is_jordan.lmul_lmul_comm_rmul,
-end
+@[simp] lemma lie_L_sq_R (a : A) : ⁅L (a * a), R a⁆ = 0 :=
+add_monoid_hom.ext $ λ b, sub_eq_zero_of_eq (is_jordan.lmul_lmul_comm_rmul _ _)
 
-@[simp] lemma lie_R_R_sq [is_jordan A] (a : A) : ⁅R a, R (a * a)⁆ = 0 :=
-begin
-  ext b,
-  rw ring.lie_def,
-  apply sub_eq_zero_of_eq,
-  simp only [function.comp_app, add_monoid.coe_mul, add_monoid.End.R_apply_apply],
-  rw is_jordan.rmul_comm_rmul_rmul,
-end
+@[simp] lemma lie_R_R_sq (a : A) : ⁅R a, R (a * a)⁆ = 0 :=
+add_monoid_hom.ext $ λ b, sub_eq_zero_of_eq (is_jordan.rmul_comm_rmul_rmul _ _).symm
+
+end lie
 
 variable [is_comm_jordan A]
 
@@ -189,9 +151,9 @@ instance : comm_monoid A :=
   .. (show non_unital_non_assoc_ring A, by apply_instance) }
 -/
 
-/- Linearise the Jordan axiom with two variables-/
+/-- Linearise the Jordan axiom with two variables -/
 lemma mul_op_com1 (a b : A) :
-  ⁅L a, L (b*b)⁆ + ⁅L b, L (a*a)⁆ + (2:ℤ)•⁅L a, L (a*b)⁆ + (2:ℤ)•⁅L b, L (a*b)⁆  = 0 :=
+  ⁅L a, L (b*b)⁆ + ⁅L b, L (a*a)⁆ + (2:ℤ)•⁅L a, L (a*b)⁆ + (2:ℤ)•⁅L b, L (a*b)⁆ = 0 :=
 begin
   symmetry,
   calc 0 = ⁅L (a+b), L ((a+b)*(a+b))⁆ : by rw (lie_L_L_sq (a + b))
@@ -208,7 +170,7 @@ begin
     ... = ⁅L a, L (b*b)⁆ + ⁅L b, L (a*a)⁆ + (2:ℤ)•⁅L a, L (a*b)⁆ + (2:ℤ)•⁅L b, L (a*b)⁆: by abel
 end
 
-/- Linearise the Jordan axiom with three variables-/
+/-- Linearise the Jordan axiom with three variables -/
 lemma lin_jordan (a b c : A) : (2:ℤ)•(⁅L a, L (b*c)⁆ + ⁅L b, L (a*c)⁆ + ⁅L c, L (a*b)⁆) = 0 :=
 begin
   symmetry,

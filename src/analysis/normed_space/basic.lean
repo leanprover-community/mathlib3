@@ -84,8 +84,8 @@ instance normed_ring.to_normed_group [β : normed_ring α] : normed_group α := 
 instance semi_normed_ring.to_semi_normed_group [β : semi_normed_ring α] :
   semi_normed_group α := { ..β }
 
-instance prod.norm_one_class [normed_group α] [has_one α] [norm_one_class α]
-  [normed_group β] [has_one β] [norm_one_class β] :
+instance prod.norm_one_class [semi_normed_group α] [has_one α] [norm_one_class α]
+  [semi_normed_group β] [has_one β] [norm_one_class β] :
   norm_one_class (α × β) :=
 ⟨by simp [prod.norm_def]⟩
 

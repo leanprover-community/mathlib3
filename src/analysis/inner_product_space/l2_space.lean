@@ -7,25 +7,68 @@ import analysis.inner_product_space.projection
 import analysis.normed_space.lp_space
 
 /-!
-# Inner product space structure on `lp 2`
+# Hilbert sum of a family of inner product spaces
 
 Given a family `(G : ι → Type*) [Π i, inner_product_space 𝕜 (G i)]` of inner product spaces, this
 file equips `lp G 2` with an inner product space structure, where `lp G 2` consists of those
 dependent functions `f : Π i, G i` for which `∑' i, ∥f i∥ ^ 2`, the sum of the norms-squared, is
-summable.  This construction is sometimes called the Hilbert sum of the family `G`.
+summable.  This construction is sometimes called the *Hilbert sum* of the family `G`.  By choosing
+`G` to be `ι → 𝕜`, the Hilbert space `ℓ²(ι, 𝕜)` may be seen as a special case of this construction.
 
-The space `lp G 2` already held a normed space structure, `lp.normed_space`, so the work in this
-file is to define the inner product and show it is compatible.
+## Main definitions
 
-If each `G i` is a Hilbert space (i.e., complete), then the Hilbert sum `lp G 2` is also a Hilbert
-space; again this follows from `lp.complete_space`, the case of general `p`.
+* `orthogonal_family.linear_isometry`: Given a Hilbert space `E`, a family `G` of inner product
+  spaces and a family `V : Π i, G i →ₗᵢ[𝕜] E` of isometric embeddings of the `G i` into `E` with
+  mutually-orthogonal images, there is an induced isometric embedding of the Hilbert sum of `G`
+  into `E`.
 
-By choosing `G` to be `ι → 𝕜`, the Hilbert space `ℓ²(ι, 𝕜)` may be seen as a special case of this
-construction.
+* `orthogonal_family.linear_isometry_equiv`: Given a Hilbert space `E`, a family `G` of inner
+  product spaces and a family `V : Π i, G i →ₗᵢ[𝕜] E` of isometric embeddings of the `G i` into `E`
+  with mutually-orthogonal images whose span is dense in `E`, there is an induced isometric
+  isomorphism of the Hilbert sum of `G` with `E`.
+
+* `hilbert_basis`: We define a *Hilbert basis* of a Hilbert space `E` to be a structure whose single
+  field `hilbert_basis.repr` is an isometric isomorphism of `E` with `ℓ²(ι, 𝕜)` (i.e., the Hilbert
+  sum of `ι` copies of `𝕜`).  This parallels the definition of `basis`, in `linear_algebra.basis`,
+  as an isomorphism of an `R`-module with `ι →₀ R`.
+
+* `hilbert_basis.has_coe_to_fun`: More conventionally a Hilbert basis is thought of as a family
+  `ι → E` of vectors in `E` satisfying certain properties (orthonormality, completeness).  We obtain
+  this interpretation of a Hilbert basis `b` by defining `⇑b`, of type `ι → E`, to be the image
+  under `b.repr` of `lp.single 2 i (1:𝕜)`.  This parallels the definition `basis.has_coe_to_fun` in
+  `linear_algebra.basis`.
+
+* `hilbert_basis.mk`: Make a Hilbert basis of `E` from an orthonormal family `v : ι → E` of vectors
+  in `E` whose span is dense.  This parallels the definition `basis.mk` in `linear_algebra.basis`.
+
+* `hilbert_basis.mk_of_orthogonal_eq_bot`: Make a Hilbert basis of `E` from an orthonormal family
+  `v : ι → E` of vectors in `E` whose span has trivial orthogonal complement.
+
+## Main results
+
+* `lp.inner_product_space`: Construction of the inner product space instance on the Hilbert sum
+  `lp G 2`.  Note that from the file `analysis.normed_space.lp_space`, the space `lp G 2` already
+  held a normed space instance (`lp.normed_space`), and if each `G i` is a Hilbert space (i.e.,
+  complete), then `lp G 2` was already known to be complete (`lp.complete_space`).  So the work
+  here is to define the inner product and show it is compatible.
+
+* `orthogonal_family.range_linear_isometry`: Given a family `G` of inner product spaces and a family
+  `V : Π i, G i →ₗᵢ[𝕜] E` of isometric embeddings of the `G i` into `E` with mutually-orthogonal
+  images, the image of the embedding `orthogonal_family.linear_isometry` of the Hilbert sum of `G`
+  into `E` is the closure of the span of the images of the `G i`.
+
+* `hilbert_basis.repr_apply_apply`: Given a Hilbert basis `b` of `E`, the entry `b.repr x i` of
+  `x`'s representation in `ℓ²(ι, 𝕜)` is the inner product `⟪b i, x⟫`.
+
+* `hilbert_basis.has_sum_repr`: Given a Hilbert basis `b` of `E`, a vector `x` in `E` can be
+  expressed as the "infinite linear combination" `∑' i, b.repr x i • b i` of the basis vectors
+  `b i`, with coefficients given by the entries `b.repr x i` of `x`'s representation in `ℓ²(ι, 𝕜)`.
+
+* `exists_hilbert_basis`: A Hilbert space admits a Hilbert basis.
 
 ## Keywords
 
-Hilbert space, Hilbert sum, l2
+Hilbert space, Hilbert sum, l2, Hilbert basis, unitary equivalence, isometric isomorphism
 -/
 
 open is_R_or_C submodule filter
@@ -41,6 +84,8 @@ variables {G : ι → Type*} [Π i, inner_product_space 𝕜 (G i)]
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
 
 notation `ℓ²(` ι `,` 𝕜 `)` := lp (λ i : ι, 𝕜) 2
+
+/-! ### Inner product space structure on `lp G 2` -/
 
 namespace lp
 
@@ -112,6 +157,8 @@ lemma inner_single_right (i : ι) (a : G i) (f : lp G 2) : ⟪f, lp.single 2 i a
 by simpa [inner_conj_sym] using congr_arg conj (inner_single_left i a f)
 
 end lp
+
+/-! ### Identification of a general Hilbert space `E` with a Hilbert sum -/
 
 namespace orthogonal_family
 variables {V : Π i, G i →ₗᵢ[𝕜] E} (hV : orthogonal_family 𝕜 V)
@@ -252,7 +299,9 @@ variables (ι) (𝕜) (E)
 
 /-- A Hilbert basis on `ι` for an inner product space `E` is an identification of `E` with the `lp`
 space `ℓ²(ι, 𝕜)`. -/
-structure hilbert_basis := of_repr :: (repr : E ≃ₗᵢ[𝕜] ℓ²(ι, 𝕜))
+-- `nolint` because (of course) whether `E` has a Hilbert basis indexed by `ι` depends on the
+-- cardinality of `ι`.
+@[nolint has_inhabited_instance] structure hilbert_basis := of_repr :: (repr : E ≃ₗᵢ[𝕜] ℓ²(ι, 𝕜))
 
 end
 
@@ -286,23 +335,24 @@ begin
   simp,
 end
 
--- why does this proof show as timing out?
 protected lemma has_sum_repr_symm (b : hilbert_basis ι 𝕜 E) (f : ℓ²(ι, 𝕜)) :
   has_sum (λ i, f i • b i) (b.repr.symm f) :=
 begin
-  have : has_sum (λ (i : ι), lp.single 2 i (f i)) f := lp.has_sum_single ennreal.two_ne_top f,
-  convert (↑(b.repr.symm.to_continuous_linear_equiv) : ℓ²(ι, 𝕜) →L[𝕜] E).has_sum this,
+  suffices H : (λ (i : ι), f i • b i) =
+    (λ (b_1 : ι), (b.repr.symm.to_continuous_linear_equiv) ((λ (i : ι), lp.single 2 i (f i)) b_1)),
+  { rw H,
+    have : has_sum (λ (i : ι), lp.single 2 i (f i)) f := lp.has_sum_single ennreal.two_ne_top f,
+    exact (↑(b.repr.symm.to_continuous_linear_equiv) : ℓ²(ι, 𝕜) →L[𝕜] E).has_sum this },
   ext i,
   apply b.repr.injective,
   have : lp.single 2 i (f i * 1) = _ := lp.single_smul 2 i (1:𝕜) (f i),
   rw mul_one at this,
-  rw [linear_isometry_equiv.map_smul, b.repr_self, ← this, continuous_linear_equiv.coe_coe,
+  rw [linear_isometry_equiv.map_smul, b.repr_self, ← this,
     linear_isometry_equiv.coe_to_continuous_linear_equiv],
-  -- exact (b.repr.apply_symm_apply (lp.single 2 i (f i))).symm,
-  sorry
+  exact (b.repr.apply_symm_apply (lp.single 2 i (f i))).symm,
 end
 
-protected lemma has_sum_repr_symm' (b : hilbert_basis ι 𝕜 E) (x : E) :
+protected lemma has_sum_repr (b : hilbert_basis ι 𝕜 E) (x : E) :
   has_sum (λ i, b.repr x i • b i) x :=
 by simpa using b.has_sum_repr_symm (b.repr x)
 
@@ -312,7 +362,7 @@ begin
   classical,
   rw eq_top_iff,
   rintros x -,
-  refine mem_closure_of_tendsto (b.has_sum_repr_symm' x) (eventually_of_forall _),
+  refine mem_closure_of_tendsto (b.has_sum_repr x) (eventually_of_forall _),
   intros s,
   simp only [set_like.mem_coe],
   refine sum_mem _ _,
@@ -334,23 +384,19 @@ begin
   simp [← linear_map.span_singleton_eq_range, ← submodule.span_Union],
 end
 
-@[simp] protected lemma mk_apply (hsp : (span 𝕜 (set.range v)).topological_closure = ⊤) (i : ι) :
-  hilbert_basis.mk hv hsp i = v i :=
-show (hilbert_basis.mk hv hsp).repr.symm _ = v i, by simp [hilbert_basis.mk]
-
 @[simp] protected lemma coe_mk (hsp : (span 𝕜 (set.range v)).topological_closure = ⊤) :
   ⇑(hilbert_basis.mk hv hsp) = v :=
-by ext; simp
+begin
+  ext i,
+  show (hilbert_basis.mk hv hsp).repr.symm _ = v i,
+  simp [hilbert_basis.mk]
+end
 
 /-- An orthonormal family of vectors whose span has trivial orthogonal complement is a Hilbert
 basis. -/
 protected def mk_of_orthogonal_eq_bot (hsp : (span 𝕜 (set.range v))ᗮ = ⊥) : hilbert_basis ι 𝕜 E :=
 hilbert_basis.mk hv
 (by rw [← orthogonal_orthogonal_eq_closure, orthogonal_eq_top_iff, hsp])
-
-@[simp] protected lemma mk_of_orthogonal_eq_bot_apply (hsp : (span 𝕜 (set.range v))ᗮ = ⊥) (i : ι) :
-  hilbert_basis.mk_of_orthogonal_eq_bot hv hsp i = v i :=
-hilbert_basis.mk_apply hv _ _
 
 @[simp] protected lemma coe_of_orthogonal_eq_bot_mk (hsp : (span 𝕜 (set.range v))ᗮ = ⊥) :
   ⇑(hilbert_basis.mk_of_orthogonal_eq_bot hv hsp) = v :=
@@ -369,8 +415,10 @@ let ⟨w, hws, hw_ortho, hw_max⟩ := exists_maximal_orthonormal hs in
   hws,
   hilbert_basis.coe_of_orthogonal_eq_bot_mk _ _ ⟩
 
+variables (𝕜 E)
+
 /-- A Hilbert space admits a Hilbert basis. -/
-lemma _root_.orthonormal.exists_hilbert_basis :
+lemma _root_.exists_hilbert_basis :
   ∃ (w : set E) (b : hilbert_basis w 𝕜 E), ⇑b = (coe : w → E) :=
 let ⟨w, hw, hw', hw''⟩ := (orthonormal_empty 𝕜 E).exists_hilbert_basis_extension in ⟨w, hw, hw''⟩
 

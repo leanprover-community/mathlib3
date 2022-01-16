@@ -25,23 +25,7 @@ inductive μ_recursive : ℕ -> Type
 | μ {k : ℕ} (f : μ_recursive (k + 1)) : μ_recursive k
 
 
-
-
-
 open nat.partrec.code
-
--- inductive code_time_bound : code -> (ℕ -> ℕ) -> Prop
--- | bound_zero : code_time_bound code.zero (λ n, 1)
--- | bound_succ : code_time_bound code.succ (λ n, n)
--- | bound_left : code_time_bound code.left (λ n, n)
--- | bound_right : code_time_bound code.right (λ n, n)
--- | bound_right : code_time_bound code.right (λ n, n)
-
-
-def my_swap {α : Type*} {β : Type*} {γ : Type*} (f : α -> β -> γ) := λ a b, f b a
-
-instance {α : Type*} [has_add α] : has_add (part α) := {add := bind ((λ f a b, f b a) (λ a, part.map (λ b, a + b)))}
-
 
 def time : nat.partrec.code → ℕ →. ℕ
 | zero         := pure 0
@@ -49,9 +33,9 @@ def time : nat.partrec.code → ℕ →. ℕ
 | left         := nat.log 2
 | right        := nat.log 2
 | (pair cf cg) := λ n, ((nat.log 2) <$> (eval cf n)) + ((nat.log 2) <$> (eval cg n)) + time cf n + time cg n
-| (comp cf cg) := λ n, sorry
-| (prec cf cg) := sorry
-| (rfind' cf)  := sorry
+| (comp cf cg) := λ n, time cg n + ((eval cg n) >>= time cf)
+| (prec cf cg) := λ n, sorry -- todo, when depaired to 0 is time of f, otherwise recurse
+| (rfind' cf)  := λ n, sorry
 
 
 end nat.partrec

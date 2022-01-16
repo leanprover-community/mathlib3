@@ -82,14 +82,12 @@ union_left_iff.mpr ⟨hs, ht⟩
 lemma union_right (ht : ae_disjoint μ s t) (hu : ae_disjoint μ s u) : ae_disjoint μ s (t ∪ u) :=
 union_right_iff.2 ⟨ht, hu⟩
 
-lemma disjoint_diff (h : ae_disjoint μ s t) : disjoint (s \ to_measurable μ (s ∩ t)) t :=
-disjoint_left.2 $ λ x ⟨hxs, hx⟩ hxt, hx $ subset_to_measurable _ _ ⟨hxs, hxt⟩
-
 /-- If `s` and `t` are `μ`-a.e. disjoint, then `s \ u` and `t` are disjoint for some measurable null
 set `u`. See also `measure_theory.ae_disjoint.disjoint_diff`. -/
 lemma exists_disjoint_diff (h : ae_disjoint μ s t) :
   ∃ u, measurable_set u ∧ μ u = 0 ∧ disjoint (s \ u) t :=
-⟨_, measurable_set_to_measurable _ _, (measure_to_measurable _).trans h, h.disjoint_diff⟩
+⟨to_measurable μ (s ∩ t), measurable_set_to_measurable _ _, (measure_to_measurable _).trans h,
+  disjoint_diff.symm.mono_left (λ x hx, ⟨hx.1, λ hxt, hx.2 $ subset_to_measurable _ _ ⟨hx.1, hxt⟩⟩)⟩
 
 lemma of_null_right (h : μ t = 0) : ae_disjoint μ s t :=
 measure_mono_null (inter_subset_right _ _) h

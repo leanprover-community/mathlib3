@@ -433,8 +433,8 @@ by { unfold is_O, exact exists_congr (λ _, is_O_with_norm_left) }
 alias is_O_norm_left ↔ asymptotics.is_O.of_norm_left asymptotics.is_O.norm_left
 
 @[simp] theorem is_o_norm_left : is_o (λ x, ∥f' x∥) g l ↔ is_o f' g l :=
-by { unfold is_o, exact forall₂_congr (λ _ _, is_O_with_norm_left
-) }
+by { unfold is_o, exact forall₂_congr (λ _ _, is_O_with_norm_left) }
+
 alias is_o_norm_left ↔ asymptotics.is_o.of_norm_left asymptotics.is_o.norm_left
 
 theorem is_O_with_norm_norm :
@@ -468,8 +468,8 @@ by { unfold is_O, exact exists_congr (λ _, is_O_with_neg_right) }
 alias is_O_neg_right ↔ asymptotics.is_O.of_neg_right asymptotics.is_O.neg_right
 
 @[simp] theorem is_o_neg_right : is_o f (λ x, -(g' x)) l ↔ is_o f g' l :=
-by { unfold is_o, exact forall₂_congr (λ _ _, is_O_with_neg_right
-) }
+by { unfold is_o, exact forall₂_congr (λ _ _, is_O_with_neg_right) }
+
 alias is_o_neg_right ↔ asymptotics.is_o.of_neg_right asymptotics.is_o.neg_right
 
 @[simp] theorem is_O_with_neg_left : is_O_with c (λ x, -(f' x)) g l ↔ is_O_with c f' g l :=
@@ -483,8 +483,8 @@ by { unfold is_O, exact exists_congr (λ _, is_O_with_neg_left) }
 alias is_O_neg_left ↔ asymptotics.is_O.of_neg_left asymptotics.is_O.neg_left
 
 @[simp] theorem is_o_neg_left : is_o (λ x, -(f' x)) g l ↔ is_o f' g l :=
-by { unfold is_o, exact forall₂_congr (λ _ _, is_O_with_neg_left
-) }
+by { unfold is_o, exact forall₂_congr (λ _ _, is_O_with_neg_left) }
+
 alias is_o_neg_left ↔ asymptotics.is_o.of_neg_right asymptotics.is_o.neg_left
 
 /-! ### Product of functions (right) -/

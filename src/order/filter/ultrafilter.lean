@@ -319,6 +319,8 @@ end filter
 
 namespace ultrafilter
 
+open filter
+
 variables {m : α → β} {s : set α} {g : ultrafilter β}
 
 lemma comap_inf_principal_ne_bot_of_image_mem (h : m '' s ∈ g) :
@@ -327,18 +329,14 @@ filter.comap_inf_principal_ne_bot_of_image_mem g.ne_bot h
 
 /-- Ultrafilter extending the inf of a comapped ultrafilter and a principal ultrafilter. -/
 noncomputable def of_comap_inf_principal (h : m '' s ∈ g) : ultrafilter α :=
-begin
-  let f := filter.comap m g ⊓ 𝓟 s,
-  haveI : f.ne_bot := comap_inf_principal_ne_bot_of_image_mem h,
-  exact of f
-end
+@of _ (filter.comap m g ⊓ 𝓟 s) (comap_inf_principal_ne_bot_of_image_mem h)
 
 lemma of_comap_inf_principal_mem (h : m '' s ∈ g) : s ∈ of_comap_inf_principal h :=
 begin
   let f := filter.comap m g ⊓ 𝓟 s,
   haveI : f.ne_bot := comap_inf_principal_ne_bot_of_image_mem h,
   have : s ∈ f := mem_inf_of_right (mem_principal_self s),
-  exact filter.le_def.mp (of_le _) s this
+  exact le_def.mp (of_le _) s this
 end
 
 lemma of_comap_inf_principal_eq_of_map (h : m '' s ∈ g) :
@@ -347,10 +345,10 @@ begin
   let f := filter.comap m g ⊓ 𝓟 s,
   haveI : f.ne_bot := comap_inf_principal_ne_bot_of_image_mem h,
   apply eq_of_le,
-  calc filter.map m (of f) ≤ filter.map m f : filter.map_mono (of_le _)
-  ... ≤ (filter.map m $ filter.comap m g) ⊓ filter.map m (𝓟 s) : filter.map_inf_le
-  ... = (filter.map m $ filter.comap m g) ⊓ (𝓟 $ m '' s) : by rw filter.map_principal
-  ... ≤ g ⊓ (𝓟 $ m '' s) : inf_le_inf_right _ filter.map_comap_le
+  calc filter.map m (of f) ≤ filter.map m f : map_mono (of_le _)
+  ... ≤ (filter.map m $ filter.comap m g) ⊓ filter.map m (𝓟 s) : map_inf_le
+  ... = (filter.map m $ filter.comap m g) ⊓ (𝓟 $ m '' s) : by rw map_principal
+  ... ≤ g ⊓ (𝓟 $ m '' s) : inf_le_inf_right _ map_comap_le
   ... = g : inf_of_le_left (le_principal_iff.mpr h)
 end
 

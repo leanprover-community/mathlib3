@@ -56,23 +56,18 @@ variables {𝓕 : set G} (h𝓕 : is_fundamental_domain Γ.opposite 𝓕 μ)
 
 section
 
--- FROM OTHER PR'ed BRANCH -- move to has_continuous_smul₂  file
-class has_continuous_smul₂ (Γ : Type*) (T : Type*) [topological_space T] [has_scalar Γ T]
- : Prop :=
-(continuous_smul₂ : ∀ γ : Γ, continuous (λ x : T, γ • x))
-
--- move to has_continuous_smul₂  file
-export has_continuous_smul₂ (continuous_smul₂)
-
--- move to has_continuous_smul₂  file
-instance quotient_group.has_continuous_smul₂ : has_continuous_smul₂ G (G ⧸ Γ) :=
+-- where to put?
+@[to_additive]
+instance quotient_group.has_continuous_smul₂ {G : Type*} [group G] [topological_space G]
+  [topological_group G] (Γ : subgroup G) :
+  has_continuous_smul₂ G (G ⧸ Γ) :=
 { continuous_smul₂ := λ g₀, begin
     apply continuous_coinduced_dom,
     change continuous (λ g : G, quotient_group.mk (g₀ * g)),
     exact continuous_coinduced_rng.comp (continuous_mul_left g₀),
   end }
 
--- move to has_continuous_smul₂  file
+-- where to put?
 lemma quotient_group.continuous_smul₁ (x : G ⧸ Γ) : continuous (λ g : G, g • x) :=
 begin
   obtain ⟨g₀, rfl⟩ : ∃ g₀, quotient_group.mk g₀ = x,
@@ -104,7 +99,7 @@ lemma measure_theory.is_fundamental_domain.smul (g : G)
     change μ {x : G | ¬∃ (γ : ↥(Γ.opposite)), g * γ • x ∈ 𝓕} = 0,
     have : {x : G | ¬∃ (γ : ↥(Γ.opposite)), g * γ • x ∈ 𝓕} = has_mul.mul g ⁻¹' s,
     { ext,
-      simp [s, left_right_mul], },
+      simp [s, subgroup.left_right_mul], },
     rw [this, hμL.measure_preimage_mul g s, μs_eq_zero],
   end,
   ae_disjoint := begin
@@ -116,7 +111,7 @@ lemma measure_theory.is_fundamental_domain.smul (g : G)
     { ext,
       simp only [mem_inter_eq, image_smul, and.congr_left_iff, mem_preimage],
       intros gx,
-      convert left_right_mem_preimage x g γ 𝓕, },
+      convert subgroup.left_right_mem_preimage x g γ 𝓕, },
     rw [this, hμL.measure_preimage_mul g _, μs_eq_zero],
   end }
 

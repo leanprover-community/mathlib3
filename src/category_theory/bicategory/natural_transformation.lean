@@ -115,7 +115,7 @@ by simp only [←whisker_right_comp, naturality_comp]
 @[simp, reassoc]
 lemma whisker_left_naturality_id (f : a' ⟶ G.obj a) :
   (f ◁ θ.naturality (𝟙 a)) ≫ (f ◁ (_ ◁ H.map_id a)) =
-    (f ◁ G.map_id a ▷ _) ≫ (f ◁ (λ_ _).hom) ≫ (f ◁ (ρ_ _).inv) :=
+    (f ◁ (G.map_id a ▷ _)) ≫ (f ◁ (λ_ _).hom) ≫ (f ◁ (ρ_ _).inv) :=
 by simp only [←whisker_left_comp, naturality_id]
 
 @[simp, reassoc]

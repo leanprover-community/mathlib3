@@ -2490,30 +2490,30 @@ section mul_opposite
 
 namespace subgroup
 
-def subgroup.opposite {G : Type*} [group G] (H : subgroup G) : subgroup Gᵐᵒᵖ :=
+/-- A subgroup `H` of `G` determines a subgroup `H.opposite` of the opposite group `Gᵐᵒᵖ`. -/
+def opposite (H : subgroup G) : subgroup Gᵐᵒᵖ :=
 { carrier := mul_opposite.unop ⁻¹' (H : set G),
   one_mem' := H.one_mem,
   mul_mem' := λ a b ha hb, H.mul_mem hb ha,
   inv_mem' := λ a, H.inv_mem }
 
-@[simps]
-def subgroup.opposite_equiv {G : Type*} [group G] (H : subgroup G) :
-  H ≃ H.opposite :=
+/-- Bijection between a subgroup `H` and its opposite. -/
+@[simps] def opposite_equiv (H : subgroup G) : H ≃ H.opposite :=
 mul_opposite.op_equiv.subtype_equiv $ λ _, iff.rfl
 
-instance {G : Type*} [group G] (H : subgroup G) [encodable H] : encodable H.opposite :=
+instance (H : subgroup G) [encodable H] : encodable H.opposite :=
 encodable.of_equiv H H.opposite_equiv.symm
 
-lemma left_right_mul (x g: G) (γ : ↥(Γ.opposite)) : γ • (g * x) = g * (γ • x) :=
+lemma left_right_mul {H : subgroup G} (x g : G) (h : H.opposite) : h • (g * x) = g * (h • x) :=
 begin
-  obtain ⟨γ', hγ'⟩ := γ,
+  cases h,
   simp [(•), mul_assoc],
 end
 
-lemma left_right_mem_preimage (x g: G) (γ : ↥(Γ.opposite)) (s : set G) :
-  x ∈ (λ y, γ • y) '' (has_mul.mul g ⁻¹' s) ↔ g * x ∈ (λ y, γ • y) '' s:=
+lemma left_right_mem_preimage {H : subgroup G} (x g : G) (h : H.opposite) (s : set G) :
+  x ∈ (λ y, h • y) '' (has_mul.mul g ⁻¹' s) ↔ g * x ∈ (λ y, h • y) '' s :=
 begin
-  obtain ⟨γ', hγ'⟩ := γ,
+  cases h,
   simp [(•), mul_assoc],
 end
 

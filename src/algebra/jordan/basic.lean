@@ -64,7 +64,6 @@ and substitution instead.
 * [Cabrera García and Rodríguez Palacios, Non-associative normed algebras. Volume 1]
   [cabreragarciarodriguezpalacios2014]
 * [Hanche-Olsen and Størmer, Jordan Operator Algebras][hancheolsenstormer1984]
-* [Jordan, von Neumann and Wigner, 1934][jordanvonneumannwigner1934]
 * [McCrimmon, A taste of Jordan algebras][mccrimmon2004]
 
 -/

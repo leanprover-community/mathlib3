@@ -256,8 +256,8 @@ begin
   exact (H i hi).strict_mono.monotone h
 end
 
-theorem nfp_bfamily_eq_self {o} {f : Π b < o, ordinal → ordinal} (H : ∀ i hi, is_normal (f i hi))
-  {a} (h : ∀ i hi, f i hi a = a) : nfp_bfamily o f a = a :=
+theorem nfp_bfamily_eq_self {o} {f : Π b < o, ordinal → ordinal} {a} (h : ∀ i hi, f i hi a = a) :
+  nfp_bfamily o f a = a :=
 nfp_family_eq_self (λ _, h _ _)
 
 -- Todo (Vi): Maybe we should just use set-builder notation instead?

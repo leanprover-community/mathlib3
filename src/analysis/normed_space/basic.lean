@@ -525,17 +525,16 @@ section semi_normed_group
 
 section prio
 set_option extends_priority 920
-
--- Here, we set a rather high priority for the instance `[semi_normed_space α β] : module α β`
+-- Here, we set a rather high priority for the instance `[normed_space α β] : module α β`
 -- to take precedence over `semiring.to_module` as this leads to instance paths with better
 -- unification properties.
-/-- A seminormed space over a normed field is a vector space endowed with a seminorm which satisfies
+/-- A normed space over a normed field is a vector space endowed with a norm which satisfies
 the equality `∥c • x∥ = ∥c∥ ∥x∥`. We require only `∥c • x∥ ≤ ∥c∥ ∥x∥` in the definition, then prove
 `∥c • x∥ = ∥c∥ ∥x∥` in `norm_smul`.
 
 Note that since this requires `semi_normed_group` and not `normed_group`, this typeclass can be
 used for "semi normed spaces" too, just as `module` can be used for "semi modules". -/
-class semi_normed_space (α : Type*) (β : Type*) [normed_field α] [semi_normed_group β]
+class normed_space (α : Type*) (β : Type*) [normed_field α] [semi_normed_group β]
   extends module α β :=
 [to_opposite_module : module αᵐᵒᵖ β]
 [to_is_central_scalar : is_central_scalar α β]
@@ -699,10 +698,10 @@ instance pi.normed_space {E : ι → Type*} [fintype ι] [∀i, semi_normed_grou
       ∥a∥₊ * ↑(finset.sup finset.univ (λ (b : ι), ∥f b∥₊)),
     by simp only [(nnreal.coe_mul _ _).symm, nnreal.mul_finset_sup, nnnorm_smul] }
 
-/-- A subspace of a seminormed space is also a normed space, with the restriction of the norm. -/
-instance submodule.semi_normed_space {𝕜 R : Type*} [has_scalar 𝕜 R] [has_scalar 𝕜ᵐᵒᵖ R]
+/-- A subspace of a normed space is also a normed space, with the restriction of the norm. -/
+instance submodule.normed_space {𝕜 R : Type*} [has_scalar 𝕜 R] [has_scalar 𝕜ᵐᵒᵖ R]
   [normed_field 𝕜] [ring R]
-  {E : Type*} [semi_normed_group E] [semi_normed_space 𝕜 E] [module R E]
+  {E : Type*} [semi_normed_group E] [normed_space 𝕜 E] [module R E]
   [is_scalar_tower 𝕜 R E] [is_scalar_tower 𝕜ᵐᵒᵖ R E] (s : submodule R E) :
   semi_normed_space 𝕜 s :=
 { norm_smul_le := λc x, le_of_eq $ norm_smul c (x : E) }

@@ -1528,6 +1528,18 @@ lemma disjoint_iff_subset_compl_left :
   disjoint s t ↔ t ⊆ sᶜ :=
 disjoint_right
 
+lemma _root_.disjoint.image {s t u : set α} {f : α → β} (h : disjoint s t) (hf : inj_on f u)
+  (hs : s ⊆ u) (ht : t ⊆ u) : disjoint (f '' s) (f '' t) :=
+begin
+  apply disjoint_left.2,
+  rintros x ⟨y, ys, hy⟩ ⟨z, zt, hz⟩,
+  have : y = z,
+  { apply hf (hs ys) (ht zt),
+    rwa ← hz at hy },
+  rw ← this at zt,
+  exact disjoint_left.1 h ys zt,
+end
+
 end set
 
 end disjoint

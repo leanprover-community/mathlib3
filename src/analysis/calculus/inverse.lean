@@ -490,7 +490,7 @@ omit cs
 can be extended to a homeomorphism of the whole space. -/
 lemma exists_homeomorph_extension {E : Type*} [normed_group E] [normed_space ℝ E]
   {F : Type*} [normed_group F] [normed_space ℝ F] [finite_dimensional ℝ F]
-  (s : set E) (f : E → F) (f' : E ≃L[ℝ] F) (c : ℝ≥0)
+  {s : set E} {f : E → F} {f' : E ≃L[ℝ] F} {c : ℝ≥0}
   (hf : approximates_linear_on f (f' : E →L[ℝ] F) s c)
   (hc : subsingleton E ∨ lipschitz_extension_constant F * c < (∥(f'.symm : F →L[ℝ] E)∥₊)⁻¹) :
   ∃ g : E ≃ₜ F, eq_on f g s :=

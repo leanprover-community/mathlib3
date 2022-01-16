@@ -406,7 +406,7 @@ ext $ λ _, rfl
 
 lemma comp_comp (p : seminorm 𝕜 G) (g : F →ₗ[𝕜] G) (f : E →ₗ[𝕜] F) :
   p.comp (g.comp f) = (p.comp g).comp f :=
-ext $ λ _, by simp_rw [comp_apply, linear_map.comp_apply]
+ext $ λ _, rfl
 
 lemma add_comp (p q : seminorm 𝕜 F) (f : E →ₗ[𝕜] F) : (p + q).comp f = p.comp f + q.comp f :=
 ext $ λ _, rfl
@@ -416,7 +416,6 @@ begin
   simp_rw [le_def, coe_add, coe_comp],
   refine pi.le_def.mpr _,
   intros x,
-  simp,
   exact p.triangle _ _,
 end
 
@@ -424,12 +423,7 @@ lemma smul_comp (p : seminorm 𝕜 F) (f : E →ₗ[𝕜] F) (c : R) : (c • p)
 ext $ λ _, rfl
 
 lemma comp_mono {p : seminorm 𝕜 F} {q : seminorm 𝕜 F} (f : E →ₗ[𝕜] F) (hp : p ≤ q) :
-  p.comp f ≤ q.comp f :=
-begin
-  intros x,
-  simp_rw comp_apply,
-  exact hp (f x),
-end
+  p.comp f ≤ q.comp f := λ x, hp (f x)
 
 section norm_one_class
 variables [norm_one_class 𝕜] (p : seminorm 𝕜 E) (x y : E) (r : ℝ)

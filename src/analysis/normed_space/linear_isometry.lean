@@ -88,6 +88,8 @@ protected lemma congr_fun {f g : E →ₛₗᵢ[σ₁₂] E₂} (h : f = g) (x :
 
 @[simp] lemma map_add (x y : E) : f (x + y) = f x + f y := f.to_linear_map.map_add x y
 
+@[simp] lemma map_neg (x : E) : f (- x) = - f x := f.to_linear_map.map_neg x
+
 @[simp] lemma map_sub (x y : E) : f (x - y) = f x - f y := f.to_linear_map.map_sub x y
 
 @[simp] lemma map_smulₛₗ (c : R) (x : E) : f (c • x) = σ₁₂ c • f x := f.to_linear_map.map_smulₛₗ c x
@@ -197,6 +199,9 @@ instance : monoid (E →ₗᵢ[R] E) :=
 
 @[simp] lemma coe_one : ((1 : E →ₗᵢ[R] E) : E → E) = _root_.id := rfl
 @[simp] lemma coe_mul (f g : E →ₗᵢ[R] E) : ⇑(f * g) = f ∘ g := rfl
+
+lemma one_def : (1 : E →ₗᵢ[R] E) = id := rfl
+lemma mul_def (f g : E →ₗᵢ[R] E) : (f * g : E →ₗᵢ[R] E) = f.comp g := rfl
 
 end linear_isometry
 
@@ -423,6 +428,10 @@ instance : group (E ≃ₗᵢ[R] E) :=
 @[simp] lemma coe_one : ⇑(1 : E ≃ₗᵢ[R] E) = id := rfl
 @[simp] lemma coe_mul (e e' : E ≃ₗᵢ[R] E) : ⇑(e * e') = e ∘ e' := rfl
 @[simp] lemma coe_inv (e : E ≃ₗᵢ[R] E) : ⇑(e⁻¹) = e.symm := rfl
+
+lemma one_def : (1 : E ≃ₗᵢ[R] E) = refl _ _ := rfl
+lemma mul_def (e e' : E ≃ₗᵢ[R] E) : (e * e' : E ≃ₗᵢ[R] E) = e'.trans e := rfl
+lemma inv_def (e : E ≃ₗᵢ[R] E) : (e⁻¹ : E ≃ₗᵢ[R] E) = e.symm := rfl
 
 include σ₂₁
 

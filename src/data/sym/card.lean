@@ -171,13 +171,12 @@ lemma multichoose_eq (α : Type*) [hα : fintype α] (k : ℕ) [fintype (sym α 
   multichoose (card α) k = card (sym α k) :=
 begin
   classical,
-  tactic.unfreeze_local_instances,
   generalize hn : card α + k = n,
-  induction n with n ih generalizing α k,
-  { obtain ⟨hn, rfl⟩ := add_eq_zero_iff.mp hn,
+  unfreezingI { induction n with n ih generalizing α k },
+  { unfreezingI { obtain ⟨hn, rfl⟩ := add_eq_zero_iff.mp hn },
     simp [multichoose, hn], },
   { have : 0 < card α + k := by convert nat.succ_pos',
-    cases k,
+    unfreezingI { cases k },
     { haveI hne : nonempty α := card_pos_iff.mp this,
       simp [multichoose], },
     { obtain (hi|hi) := is_empty_or_nonempty α; haveI := hi,

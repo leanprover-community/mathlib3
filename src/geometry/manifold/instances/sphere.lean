@@ -73,27 +73,27 @@ the orthogonal complement of an element `v` of `E`. It is smooth away from the a
 through `v` parallel to the orthogonal complement.  It restricts on the sphere to the stereographic
 projection. -/
 def stereo_to_fun [complete_space E] (x : E) : (ℝ ∙ v)ᗮ :=
-(2 / ((1:ℝ) - inner_right v x)) • orthogonal_projection (ℝ ∙ v)ᗮ x
+(2 / ((1:ℝ) - innerSL v x)) • orthogonal_projection (ℝ ∙ v)ᗮ x
 
 variables {v}
 
 @[simp] lemma stereo_to_fun_apply [complete_space E] (x : E) :
-  stereo_to_fun v x = (2 / ((1:ℝ) - inner_right v x)) • orthogonal_projection (ℝ ∙ v)ᗮ x :=
+  stereo_to_fun v x = (2 / ((1:ℝ) - innerSL v x)) • orthogonal_projection (ℝ ∙ v)ᗮ x :=
 rfl
 
 lemma times_cont_diff_on_stereo_to_fun [complete_space E] :
-  times_cont_diff_on ℝ ⊤ (stereo_to_fun v) {x : E | inner_right v x ≠ (1:ℝ)} :=
+  times_cont_diff_on ℝ ⊤ (stereo_to_fun v) {x : E | innerSL v x ≠ (1:ℝ)} :=
 begin
   refine times_cont_diff_on.smul _
     (orthogonal_projection ((ℝ ∙ v)ᗮ)).times_cont_diff.times_cont_diff_on,
   refine times_cont_diff_const.times_cont_diff_on.div _ _,
-  { exact (times_cont_diff_const.sub (inner_right v).times_cont_diff).times_cont_diff_on },
+  { exact (times_cont_diff_const.sub (innerSL v).times_cont_diff).times_cont_diff_on },
   { intros x h h',
     exact h (sub_eq_zero.mp h').symm }
 end
 
 lemma continuous_on_stereo_to_fun [complete_space E] :
-  continuous_on (stereo_to_fun v) {x : E | inner_right v x ≠ (1:ℝ)} :=
+  continuous_on (stereo_to_fun v) {x : E | innerSL v x ≠ (1:ℝ)} :=
 times_cont_diff_on_stereo_to_fun.continuous_on
 
 variables (v)
@@ -176,7 +176,7 @@ begin
   ext,
   simp only [stereo_to_fun_apply, stereo_inv_fun_apply, smul_add],
   -- name two frequently-occuring quantities and write down their basic properties
-  set a : ℝ := inner_right v x,
+  set a : ℝ := innerSL v x,
   set y := orthogonal_projection (ℝ ∙ v)ᗮ x,
   have split : ↑x = a • v + ↑y,
   { convert eq_sum_orthogonal_projection_self_orthogonal_complement (ℝ ∙ v) x,
@@ -228,8 +228,8 @@ begin
       orthogonal_projection_orthogonal_complement_singleton_eq_zero v,
     have h₂ : orthogonal_projection (ℝ ∙ v)ᗮ w = w :=
       orthogonal_projection_mem_subspace_eq_self w,
-    have h₃ : inner_right v w = (0:ℝ) := inner_right_of_mem_orthogonal_singleton v w.2,
-    have h₄ : inner_right v v = (1:ℝ) := by simp [real_inner_self_eq_norm_mul_norm, hv],
+    have h₃ : innerSL v w = (0:ℝ) := inner_right_of_mem_orthogonal_singleton v w.2,
+    have h₄ : innerSL v v = (1:ℝ) := by simp [real_inner_self_eq_norm_mul_norm, hv],
     simp [h₁, h₂, h₃, h₄, continuous_linear_map.map_add, continuous_linear_map.map_smul,
       mul_smul] },
   { simp }

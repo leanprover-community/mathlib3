@@ -1112,8 +1112,6 @@ begin
       exact dec_trivial },
     replace H3 := H3p l0,
     rcases hr.3.1.resolve_left (hlp l0) with ⟨hb₁, hb₂⟩,
-    cases nat.eq_zero_or_pos (size rl) with rl0 rl0,
-    { rw rl0 at hb₂, cases not_le_of_gt rr0 hb₂ },
     refine ⟨or.inr ⟨_, _⟩, or.inr ⟨_, _⟩⟩,
     { exact valid'.rotate_l_lemma₁ H2 hb₂ },
     { exact nat.le_of_lt_succ (valid'.rotate_l_lemma₂ H3 h) },

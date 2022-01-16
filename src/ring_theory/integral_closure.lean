@@ -3,6 +3,7 @@ Copyright (c) 2019 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
+import linear_algebra.finite_dimensional
 import ring_theory.adjoin.fg
 import ring_theory.polynomial.scale_roots
 import ring_theory.polynomial.tower
@@ -367,6 +368,15 @@ theorem mem_integral_closure_iff_mem_fg {r : A} :
 
 variables {R} {A}
 
+lemma le_integral_closure_iff_is_integral {S : subalgebra R A} :
+  S ≤ integral_closure R A ↔ algebra.is_integral R S :=
+set_like.forall.symm.trans (forall_congr (λ x, show is_integral R (algebra_map S A x)
+  ↔ is_integral R x, from is_integral_algebra_map_iff subtype.coe_injective))
+
+lemma is_integral_sup {S T : subalgebra R A} :
+  algebra.is_integral R ↥(S ⊔ T) ↔ algebra.is_integral R S ∧ algebra.is_integral R T :=
+by simp only [←le_integral_closure_iff_is_integral, sup_le_iff]
+
 /-- Mapping an integral closure along an `alg_equiv` gives the integral closure. -/
 lemma integral_closure_map_alg_equiv (f : A ≃ₐ[R] B) :
   (integral_closure R A).map (f : A →ₐ[R] B) = integral_closure R B :=
@@ -432,6 +442,122 @@ lemma is_integral.prod {α : Type*} {s : finset α} (f : α → A) (h : ∀ x �
 lemma is_integral.sum {α : Type*} {s : finset α} (f : α → A) (h : ∀ x ∈ s, is_integral R (f x)) :
   is_integral R (∑ x in s, f x) :=
 (integral_closure R A).sum_mem h
+
+section
+
+variables (p : polynomial R) (x : S)
+
+/--  The monic polynomial whose roots are `p.leading_coeff * x` for roots `x` of `p`. -/
+noncomputable
+def normalize_scale_roots (p : polynomial R) : polynomial R :=
+∑ i in p.support, monomial i
+  (if i = p.nat_degree then 1 else p.coeff i * p.leading_coeff ^ (p.nat_degree - 1 - i))
+
+lemma normalize_scale_roots_coeff_mul_leading_coeff_pow (i : ℕ) (hp : 1 ≤ nat_degree p) :
+  (normalize_scale_roots p).coeff i * p.leading_coeff ^ i =
+    p.coeff i * p.leading_coeff ^ (p.nat_degree - 1) :=
+begin
+  simp only [normalize_scale_roots, finset_sum_coeff, coeff_monomial, finset.sum_ite_eq', one_mul,
+    zero_mul, mem_support_iff, ite_mul, ne.def, ite_not],
+  split_ifs with h₁ h₂,
+  { simp [h₁], },
+  { rw [h₂, leading_coeff, ← pow_succ, tsub_add_cancel_of_le hp], },
+  { rw [mul_assoc, ← pow_add, tsub_add_cancel_of_le],
+    apply nat.le_pred_of_lt,
+    rw lt_iff_le_and_ne,
+    exact ⟨le_nat_degree_of_ne_zero h₁, h₂⟩, },
+end
+
+lemma leading_coeff_smul_normalize_scale_roots (p : polynomial R) :
+  p.leading_coeff • normalize_scale_roots p = scale_roots p p.leading_coeff :=
+begin
+  ext,
+  simp only [coeff_scale_roots, normalize_scale_roots, coeff_monomial, coeff_smul, finset.smul_sum,
+    ne.def, finset.sum_ite_eq', finset_sum_coeff, smul_ite, smul_zero, mem_support_iff],
+  split_ifs with h₁ h₂,
+  { simp [*] },
+  { simp [*] },
+  { rw [algebra.id.smul_eq_mul, mul_comm, mul_assoc, ← pow_succ', tsub_right_comm,
+      tsub_add_cancel_of_le],
+    rw nat.succ_le_iff,
+    exact tsub_pos_of_lt (lt_of_le_of_ne (le_nat_degree_of_ne_zero h₁) h₂) },
+end
+
+lemma normalize_scale_roots_support :
+  (normalize_scale_roots p).support ≤ p.support :=
+begin
+  intro x,
+  contrapose,
+  simp only [not_mem_support_iff, normalize_scale_roots, finset_sum_coeff, coeff_monomial,
+    finset.sum_ite_eq', mem_support_iff, ne.def, not_not, ite_eq_right_iff],
+  intros h₁ h₂,
+  exact (h₂ h₁).rec _,
+end
+
+lemma normalize_scale_roots_degree :
+  (normalize_scale_roots p).degree = p.degree :=
+begin
+  apply le_antisymm,
+  { exact finset.sup_mono (normalize_scale_roots_support p) },
+  { rw [← degree_scale_roots, ← leading_coeff_smul_normalize_scale_roots],
+    exact degree_smul_le _ _ }
+end
+
+lemma normalize_scale_roots_eval₂_leading_coeff_mul (h : 1 ≤ p.nat_degree) (f : R →+* S) (x : S) :
+  (normalize_scale_roots p).eval₂ f (f p.leading_coeff * x) =
+    f p.leading_coeff ^ (p.nat_degree - 1) * (p.eval₂ f x) :=
+begin
+  rw [eval₂_eq_sum_range, eval₂_eq_sum_range, finset.mul_sum],
+  apply finset.sum_congr,
+  { rw nat_degree_eq_of_degree_eq (normalize_scale_roots_degree p) },
+  intros n hn,
+  rw [mul_pow, ← mul_assoc, ← f.map_pow, ← f.map_mul,
+    normalize_scale_roots_coeff_mul_leading_coeff_pow _ _ h, f.map_mul, f.map_pow],
+  ring,
+end
+
+lemma normalize_scale_roots_monic (h : p ≠ 0) : (normalize_scale_roots p).monic :=
+begin
+  delta monic leading_coeff,
+  rw nat_degree_eq_of_degree_eq (normalize_scale_roots_degree p),
+  suffices : p = 0 → (0 : R) = 1,
+  { simpa [normalize_scale_roots, coeff_monomial] },
+  exact λ h', (h h').rec _,
+end
+
+/-- Given a `p : polynomial R` and a `x : S` such that `p.eval₂ f x = 0`,
+`f p.leading_coeff * x` is integral. -/
+lemma ring_hom.is_integral_elem_leading_coeff_mul (h : p.eval₂ f x = 0) :
+  f.is_integral_elem (f p.leading_coeff * x) :=
+begin
+  by_cases h' : 1 ≤ p.nat_degree,
+  { use normalize_scale_roots p,
+    have : p ≠ 0 := λ h'', by { rw [h'', nat_degree_zero] at h', exact nat.not_succ_le_zero 0 h' },
+    use normalize_scale_roots_monic p this,
+    rw [normalize_scale_roots_eval₂_leading_coeff_mul p h' f x, h, mul_zero] },
+  { by_cases hp : p.map f = 0,
+    { apply_fun (λ q, coeff q p.nat_degree) at hp,
+      rw [coeff_map, coeff_zero, coeff_nat_degree] at hp,
+      rw [hp, zero_mul],
+      exact f.is_integral_zero },
+    { rw [nat.one_le_iff_ne_zero, not_not] at h',
+      rw [eq_C_of_nat_degree_eq_zero h', eval₂_C] at h,
+      suffices : p.map f = 0,
+      { exact (hp this).rec _ },
+      rw [eq_C_of_nat_degree_eq_zero h', map_C, h, C_eq_zero] } }
+end
+
+/-- Given a `p : polynomial R` and a root `x : S`,
+then `p.leading_coeff • x : S` is integral over `R`. -/
+lemma is_integral_leading_coeff_smul [algebra R S] (h : aeval x p = 0) :
+  is_integral R (p.leading_coeff • x) :=
+begin
+  rw aeval_def at h,
+  rw algebra.smul_def,
+  exact (algebra_map R S).is_integral_elem_leading_coeff_mul p x h,
+end
+
+end
 
 end
 
@@ -669,7 +795,7 @@ end
 
 /-- If the integral extension `R → S` is injective, and `S` is a field, then `R` is also a field. -/
 lemma is_field_of_is_integral_of_is_field
-  {R S : Type*} [comm_ring R] [is_domain R] [comm_ring S] [is_domain S]
+  {R S : Type*} [comm_ring R] [nontrivial R] [comm_ring S] [is_domain S]
   [algebra R S] (H : is_integral R S) (hRS : function.injective (algebra_map R S))
   (hS : is_field S) : is_field R :=
 begin
@@ -709,6 +835,28 @@ begin
   have : 1 ≤ p.nat_degree - i := le_tsub_of_add_le_left (finset.mem_range.mp hi),
   rw [mul_assoc, ← pow_succ', tsub_add_cancel_of_le this]
 end
+
+lemma is_field_of_is_integral_of_is_field'
+  {R S : Type*} [comm_ring R] [comm_ring S] [is_domain S] [algebra R S]
+  (H : algebra.is_integral R S) (hR : is_field R) :
+  is_field S :=
+begin
+  letI := hR.to_field R,
+  refine ⟨⟨0, 1, zero_ne_one⟩, mul_comm, λ x hx, _⟩,
+  let A := algebra.adjoin R ({x} : set S),
+  haveI : is_noetherian R A :=
+  is_noetherian_of_fg_of_noetherian A.to_submodule (fg_adjoin_singleton_of_integral x (H x)),
+  haveI : module.finite R A := module.is_noetherian.finite R A,
+  obtain ⟨y, hy⟩ := linear_map.surjective_of_injective (@lmul_left_injective R A _ _ _ _
+    ⟨x, subset_adjoin (set.mem_singleton x)⟩ (λ h, hx (subtype.ext_iff.mp h))) 1,
+  exact ⟨y, subtype.ext_iff.mp hy⟩,
+end
+
+lemma is_integral.is_field_iff_is_field
+  {R S : Type*} [comm_ring R] [nontrivial R] [comm_ring S] [is_domain S] [algebra R S]
+  (H : algebra.is_integral R S) (hRS : function.injective (algebra_map R S)) :
+  is_field R ↔ is_field S :=
+⟨is_field_of_is_integral_of_is_field' H, is_field_of_is_integral_of_is_field H hRS⟩
 
 end algebra
 

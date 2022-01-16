@@ -144,8 +144,8 @@ end
 
 section preserves
 variables (F : C ⥤ D)
-variables [preserves_limits_of_shape (discrete walking_pair) F]
-variables [preserves_limits_of_shape (discrete pempty) F]
+variables [preserves_limits_of_shape (discrete.{v} walking_pair) F]
+variables [preserves_limits_of_shape (discrete.{v} pempty) F]
 variables [has_finite_products.{v} C]
 
 /--
@@ -153,11 +153,11 @@ If `F` preserves the terminal object and binary products, then it preserves prod
 `ulift (fin n)` for any `n`.
 -/
 noncomputable def preserves_fin_of_preserves_binary_and_terminal  :
-  Π (n : ℕ) (f : ulift (fin n) → C), preserves_limit (discrete.functor f) F
+  Π (n : ℕ) (f : ulift.{v} (fin n) → C), preserves_limit (discrete.functor f) F
 | 0 := λ f,
   begin
     letI : preserves_limits_of_shape (discrete (ulift (fin 0))) F :=
-      preserves_limits_of_shape_of_equiv
+      preserves_limits_of_shape_of_equiv.{v v}
         (discrete.equivalence (equiv.ulift.trans fin_zero_equiv').symm) _,
     apply_instance,
   end
@@ -206,7 +206,8 @@ begin
   classical,
   let e := fintype.equiv_fin J,
   haveI := preserves_ulift_fin_of_preserves_binary_and_terminal F (fintype.card J),
-  apply preserves_limits_of_shape_of_equiv (discrete.equivalence (e.trans equiv.ulift.symm)).symm,
+  apply preserves_limits_of_shape_of_equiv.{v v}
+    (discrete.equivalence (e.trans equiv.ulift.symm)).symm,
 end
 
 end preserves
@@ -323,8 +324,8 @@ end
 
 section preserves
 variables (F : C ⥤ D)
-variables [preserves_colimits_of_shape (discrete walking_pair) F]
-variables [preserves_colimits_of_shape (discrete pempty) F]
+variables [preserves_colimits_of_shape (discrete.{v} walking_pair) F]
+variables [preserves_colimits_of_shape (discrete.{v} pempty) F]
 variables [has_finite_coproducts.{v} C]
 
 /--
@@ -332,11 +333,11 @@ If `F` preserves the initial object and binary coproducts, then it preserves pro
 `ulift (fin n)` for any `n`.
 -/
 noncomputable def preserves_fin_of_preserves_binary_and_initial  :
-  Π (n : ℕ) (f : ulift (fin n) → C), preserves_colimit (discrete.functor f) F
+  Π (n : ℕ) (f : ulift.{v} (fin n) → C), preserves_colimit (discrete.functor f) F
 | 0 := λ f,
   begin
     letI : preserves_colimits_of_shape (discrete (ulift (fin 0))) F :=
-      preserves_colimits_of_shape_of_equiv
+      preserves_colimits_of_shape_of_equiv.{v v}
         (discrete.equivalence (equiv.ulift.trans fin_zero_equiv').symm) _,
     apply_instance,
   end
@@ -384,7 +385,8 @@ begin
   classical,
   let e := fintype.equiv_fin J,
   haveI := preserves_ulift_fin_of_preserves_binary_and_initial F (fintype.card J),
-  apply preserves_colimits_of_shape_of_equiv (discrete.equivalence (e.trans equiv.ulift.symm)).symm,
+  apply preserves_colimits_of_shape_of_equiv.{v v}
+    (discrete.equivalence (e.trans equiv.ulift.symm)).symm,
 end
 
 end preserves

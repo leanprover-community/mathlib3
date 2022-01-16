@@ -364,6 +364,11 @@ begin
   case h_X : p i hp { exact S.mul_mem hp (algebra.subset_adjoin $ mem_range_self _) }
 end
 
+@[ext] lemma linear_map_ext {M : Type*} [add_comm_monoid M] [module R M]
+  {f g : mv_polynomial σ R →ₗ[R] M} (h : ∀ s, f ∘ₗ monomial s = g ∘ₗ monomial s) :
+  f = g :=
+finsupp.lhom_ext' h
+
 section support
 
 /--
@@ -384,6 +389,11 @@ lemma support_add : (p + q).support ⊆ p.support ∪ q.support := finsupp.suppo
 
 lemma support_X [nontrivial R] : (X n : mv_polynomial σ R).support = {single n 1} :=
 by rw [X, support_monomial, if_neg]; exact one_ne_zero
+
+@[simp] lemma support_zero : (0 : mv_polynomial σ R).support = ∅ := rfl
+
+lemma support_sum {α : Type*} {s : finset α} {f : α → mv_polynomial σ R} :
+  (∑ x in s, f x).support ⊆ s.bUnion (λ x, (f x).support) := finsupp.support_finset_sum
 
 end support
 

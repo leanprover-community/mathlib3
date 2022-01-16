@@ -89,11 +89,52 @@ by simp [dist_eq_norm_vsub V _ x]
 @[simp] lemma dist_vadd_right (v : V) (x : P) : dist x (v +ᵥ x) = ∥v∥ :=
 by rw [dist_comm, dist_vadd_left]
 
+/-- Isometry between the tangent space `V` of a (semi)normed add torsor `P` and `P` given by
+addition/subtraction of `x : P`. -/
+@[simps] def isometric.vadd_const (x : P) : V ≃ᵢ P :=
+{ to_equiv := equiv.vadd_const x,
+  isometry_to_fun := isometry_emetric_iff_metric.2 $ λ _ _, dist_vadd_cancel_right _ _ _ }
+
+section
+
+variable (P)
+
+/-- Self-isometry of a (semi)normed add torsor given by addition of a constant vector `x`. -/
+@[simps] def isometric.const_vadd (x : V) : P ≃ᵢ P :=
+{ to_equiv := equiv.const_vadd P x,
+  isometry_to_fun := isometry_emetric_iff_metric.2 $ λ _ _, dist_vadd_cancel_left _ _ _ }
+
+end
+
 @[simp] lemma dist_vsub_cancel_left (x y z : P) : dist (x -ᵥ y) (x -ᵥ z) = dist y z :=
 by rw [dist_eq_norm, vsub_sub_vsub_cancel_left, dist_comm, dist_eq_norm_vsub V]
 
+/-- Isometry between the tangent space `V` of a (semi)normed add torsor `P` and `P` given by
+subtraction from `x : P`. -/
+@[simps] def isometric.const_vsub (x : P) : P ≃ᵢ V :=
+{ to_equiv := equiv.const_vsub x,
+  isometry_to_fun := isometry_emetric_iff_metric.2 $ λ y z, dist_vsub_cancel_left _ _ _ }
+
 @[simp] lemma dist_vsub_cancel_right (x y z : P) : dist (x -ᵥ z) (y -ᵥ z) = dist x y :=
-by rw [dist_eq_norm, vsub_sub_vsub_cancel_right, dist_eq_norm_vsub V]
+(isometric.vadd_const z).symm.dist_eq x y
+
+section pointwise
+
+open_locale pointwise
+
+@[simp] lemma vadd_ball (x : V) (y : P) (r : ℝ) :
+  x +ᵥ metric.ball y r = metric.ball (x +ᵥ y) r :=
+(isometric.const_vadd P x).image_ball y r
+
+@[simp] lemma vadd_closed_ball (x : V) (y : P) (r : ℝ) :
+  x +ᵥ metric.closed_ball y r = metric.closed_ball (x +ᵥ y) r :=
+(isometric.const_vadd P x).image_closed_ball y r
+
+@[simp] lemma vadd_sphere (x : V) (y : P) (r : ℝ) :
+  x +ᵥ metric.sphere y r = metric.sphere (x +ᵥ y) r :=
+(isometric.const_vadd P x).image_sphere y r
+
+end pointwise
 
 lemma dist_vadd_vadd_le (v v' : V) (p p' : P) :
   dist (v +ᵥ p) (v' +ᵥ p') ≤ dist v v' + dist p p' :=

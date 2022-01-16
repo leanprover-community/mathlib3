@@ -49,7 +49,7 @@ begin
   rw [not_imp, not_lt] at hi,
   existsi i,
   assume j hj,
-  have hfij : f j ≤ f i := forall_ge_le_of_forall_le_succ f hnm hi.1 hj,
+  have hfij : f j ≤ f i := (nat.rel_of_forall_rel_succ_of_le_of_le (≥) hnm hi.1 hj).le,
   rw [abs_of_nonpos (sub_nonpos.2 hfij), neg_sub, sub_lt_iff_lt_add'],
   calc f i ≤ a - (nat.pred l) • ε : hi.2
     ... = a - l • ε + ε :
@@ -205,7 +205,7 @@ begin
   rw [← sum_sdiff (@filter_subset _ (λ k, n ≤ k) _ (range m)),
     sub_eq_iff_eq_add, ← eq_sub_iff_add_eq, add_sub_cancel'],
   refine finset.sum_congr
-    (finset.ext $ λ a, ⟨λ h, by simp at *; finish,
+    (finset.ext $ λ a, ⟨λ h, by simp at *; tauto,
     λ h, have ham : a < m := lt_of_lt_of_le (mem_range.1 h) hnm,
       by simp * at *⟩)
     (λ _ _, rfl),
@@ -265,10 +265,10 @@ have hsumlesum : ∑ i in range (max N M + 1), abv (a i) *
       abv (∑ k in range (K - i), b k - ∑ k in range K, b k) ≤
     ∑ i in range (max N M + 1), abv (a i) * (ε / (2 * P)),
   from sum_le_sum (λ m hmJ, mul_le_mul_of_nonneg_left
-    (le_of_lt (hN (K - m) K
+    (le_of_lt (hN (K - m)
       (le_tsub_of_add_le_left (le_trans
         (by rw two_mul; exact add_le_add (le_of_lt (mem_range.1 hmJ))
-          (le_trans (le_max_left _ _) (le_of_lt (lt_add_one _)))) hK))
+          (le_trans (le_max_left _ _) (le_of_lt (lt_add_one _)))) hK)) K
       (le_of_lt hKN))) (abv_nonneg abv _)),
 have hsumltP : ∑ n in range (max N M + 1), abv (a n) < P :=
   calc ∑ n in range (max N M + 1), abv (a n)
@@ -303,7 +303,7 @@ begin
         exact add_pos (lt_of_le_of_lt (abv_nonneg _ _) (hQ 0))
           (lt_of_le_of_lt (abv_nonneg _ _) (hQ 0))).2
         (lt_of_le_of_lt (le_abs_self _)
-          (hM _ _ (le_trans (nat.le_succ_of_le (le_max_right _ _)) (le_of_lt hNMK))
+          (hM _ (le_trans (nat.le_succ_of_le (le_max_right _ _)) (le_of_lt hNMK)) _
             (nat.le_succ_of_le (le_max_right _ _))))
 end⟩
 

@@ -838,12 +838,7 @@ by rwa [inf_principal_eq_bot, compl_compl] at h
 
 lemma diff_mem_inf_principal_compl {f : filter α} {s : set α} (hs : s ∈ f) (t : set α) :
   s \ t ∈ f ⊓ 𝓟 tᶜ :=
-begin
-  rw mem_inf_principal,
-  filter_upwards [hs],
-  intros a has hat,
-  exact ⟨has, hat⟩
-end
+inter_mem_inf hs $ mem_principal_self tᶜ
 
 lemma principal_le_iff {s : set α} {f : filter α} :
   𝓟 s ≤ f ↔ ∀ V ∈ f, s ⊆ V :=

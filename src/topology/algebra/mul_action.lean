@@ -7,6 +7,7 @@ import topology.algebra.monoid
 import group_theory.group_action.prod
 import group_theory.group_action.basic
 import topology.homeomorph
+import topology.algebra.mul_action2
 
 /-!
 # Continuous monoid action
@@ -23,9 +24,9 @@ In this file we define class `has_continuous_smul`. We say `has_continuous_smul 
   is a nonzero element of `G₀`, then scalar multiplication by `c` is a homeomorphism of `α`;
 * `homeomorph.smul`: scalar multiplication by an element of a group `G` acting on `α`
   is a homeomorphism of `α`.
-* `units.has_continuous_smul`: scalar multiplication by `units M` is continuous when scalar
+* `units.has_continuous_smul`: scalar multiplication by `Mˣ` is continuous when scalar
   multiplication by `M` is continuous. This allows `homeomorph.smul` to be used with on monoids
-  with `G = units M`.
+  with `G = Mˣ`.
 
 ## Main results
 
@@ -61,6 +62,10 @@ variables {M α β : Type*} [topological_space M] [topological_space α]
 section has_scalar
 
 variables [has_scalar M α] [has_continuous_smul M α]
+
+@[priority 100, to_additive] instance has_continuous_smul.has_continuous_smul₂ :
+  has_continuous_smul₂ M α :=
+{ continuous_smul₂ := λ _, continuous_smul.comp (continuous_const.prod_mk continuous_id) }
 
 @[to_additive]
 lemma filter.tendsto.smul {f : β → M} {g : β → α} {l : filter β} {c : M} {a : α}
@@ -123,15 +128,22 @@ lemma continuous.const_smul (hg : continuous g) (c : M) :
   continuous (λ x, c • g x) :=
 continuous_smul.comp (continuous_const.prod_mk hg)
 
+/-- If a scalar is central, then its right action is continuous when its left action is. -/
+instance has_continuous_smul.op [has_scalar Mᵐᵒᵖ α] [is_central_scalar M α] :
+  has_continuous_smul Mᵐᵒᵖ α :=
+⟨ suffices continuous (λ p : M × α, mul_opposite.op p.fst • p.snd),
+  from this.comp (continuous_unop.prod_map continuous_id),
+  by simpa only [op_smul_eq_smul] using (continuous_smul : continuous (λ p : M × α, _)) ⟩
+
 end has_scalar
 
 section monoid
 
 variables [monoid M] [mul_action M α] [has_continuous_smul M α]
 
-instance units.has_continuous_smul : has_continuous_smul (units M) α :=
+instance units.has_continuous_smul : has_continuous_smul Mˣ α :=
 { continuous_smul :=
-    show continuous ((λ p : M × α, p.fst • p.snd) ∘ (λ p : units M × α, (p.1, p.2))),
+    show continuous ((λ p : M × α, p.fst • p.snd) ∘ (λ p : Mˣ × α, (p.1, p.2))),
     from continuous_smul.comp ((units.continuous_coe.comp continuous_fst).prod_mk continuous_snd) }
 
 @[to_additive]
@@ -177,23 +189,6 @@ tendsto_const_smul_iff c
 lemma continuous_const_smul_iff (c : G) :
   continuous (λ x, c • f x) ↔ continuous f :=
 by simp only [continuous_iff_continuous_at, continuous_at_const_smul_iff]
-
-/-- Scalar multiplication by an element of a group `G` acting on `α` is a homeomorphism from `α`
-to itself. -/
-protected def homeomorph.smul (c : G) : α ≃ₜ α :=
-{ to_equiv := mul_action.to_perm_hom G α c,
-  continuous_to_fun  := continuous_id.const_smul _,
-  continuous_inv_fun := continuous_id.const_smul _ }
-
-/-- Affine-addition of an element of an additive group `G` acting on `α` is a homeomorphism
-from `α` to itself. -/
-protected def homeomorph.vadd {G : Type*} [topological_space G] [add_group G] [add_action G α]
-  [has_continuous_vadd G α] (c : G) : α ≃ₜ α :=
-{ to_equiv := add_action.to_perm_hom α G c,
-  continuous_to_fun  := continuous_id.const_vadd _,
-  continuous_inv_fun := continuous_id.const_vadd _ }
-
-attribute [to_additive] homeomorph.smul
 
 @[to_additive]
 lemma is_open_map_smul (c : G) : is_open_map (λ x : α, c • x) :=
@@ -316,7 +311,7 @@ instance [topological_space β] [has_scalar M α] [has_scalar M β] [has_continu
   (continuous_fst.smul (continuous_snd.comp continuous_snd))⟩
 
 @[to_additive]
-instance {ι : Type*} {γ : ι → Type}
+instance {ι : Type*} {γ : ι → Type*}
   [∀ i, topological_space (γ i)] [Π i, has_scalar M (γ i)] [∀ i, has_continuous_smul M (γ i)] :
   has_continuous_smul M (Π i, γ i) :=
 ⟨continuous_pi $ λ i,

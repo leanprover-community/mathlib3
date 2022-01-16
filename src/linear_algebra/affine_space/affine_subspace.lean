@@ -343,8 +343,8 @@ begin
 end
 
 /-- Two affine subspaces are equal if they have the same points. -/
-@[ext] lemma ext {s1 s2 : affine_subspace k P} (h : (s1 : set P) = s2) : s1 = s2 :=
-begin
+@[ext] lemma coe_injective : function.injective (coe : affine_subspace k P → set P) :=
+λ s1 s2 h, begin
   cases s1,
   cases s2,
   congr,
@@ -353,7 +353,7 @@ end
 
 @[simp] lemma ext_iff (s₁ s₂ : affine_subspace k P) :
   (s₁ : set P) = s₂ ↔ s₁ = s₂ :=
-⟨ext, by tidy⟩
+⟨λ h, coe_injective h, by tidy⟩
 
 /-- Two affine subspaces with the same direction and nonempty
 intersection are equal. -/
@@ -554,7 +554,7 @@ instance : complete_lattice (affine_subspace k P) :=
   Sup_le := λ _ _ h, span_points_subset_coe_of_subset_coe (set.bUnion_subset h),
   Inf_le := λ _ _, set.bInter_subset_of_mem,
   le_Inf := λ _ _, set.subset_bInter,
-  .. partial_order.lift (coe : affine_subspace k P → set P) (λ _ _, ext) }
+  .. partial_order.lift (coe : affine_subspace k P → set P) coe_injective }
 
 instance : inhabited (affine_subspace k P) := ⟨⊤⟩
 
@@ -1192,12 +1192,15 @@ end
 
 end affine_subspace
 
-section maps
+section map_comap
 
-variables {k V₁ P₁ V₂ P₂ : Type*} [ring k]
+variables {k V₁ P₁ V₂ P₂ V₃ P₃ : Type*} [ring k]
 variables [add_comm_group V₁] [module k V₁] [add_torsor V₁ P₁]
 variables [add_comm_group V₂] [module k V₂] [add_torsor V₂ P₂]
+variables [add_comm_group V₃] [module k V₃] [add_torsor V₃ P₃]
 include V₁ V₂
+
+section
 
 variables (f : P₁ →ᵃ[k] P₂)
 
@@ -1218,10 +1221,26 @@ def map (s : affine_subspace k P₁) : affine_subspace k P₂ :=
       exact s.smul_vsub_vadd_mem t h₁ h₂ h₃,
     end }
 
-@[simp] lemma map_coe (s : affine_subspace k P₁) : (s.map f : set P₂) = f '' s := rfl
+@[simp] lemma coe_map (s : affine_subspace k P₁) : (s.map f : set P₂) = f '' s := rfl
+
+@[simp] lemma mem_map {f : P₁ →ᵃ[k] P₂} {x : P₂} {s : affine_subspace k P₁} :
+  x ∈ s.map f ↔ ∃ y ∈ s, f y = x := mem_image_iff_bex
 
 @[simp] lemma map_bot : (⊥ : affine_subspace k P₁).map f = ⊥ :=
-by { rw ← ext_iff, exact image_empty f, }
+coe_injective $ image_empty f
+
+omit V₂
+
+@[simp] lemma map_id (s : affine_subspace k P₁) : s.map (affine_map.id k P₁) = s :=
+coe_injective $ image_id _
+
+include V₂ V₃
+
+lemma map_map (s : affine_subspace k P₁) (f : P₁ →ᵃ[k] P₂) (g : P₂ →ᵃ[k] P₃) :
+  (s.map f).map g = s.map (g.comp f) :=
+coe_injective $ image_image _ _ _
+
+omit V₃
 
 @[simp] lemma map_direction (s : affine_subspace k P₁) :
   (s.map f).direction = s.direction.map f.linear :=
@@ -1264,4 +1283,74 @@ begin
   exact (e.symm : P₂ →ᵃ[k] P₁).span_eq_top_of_surjective e.symm.surjective h,
 end
 
-end maps
+end
+
+namespace affine_subspace
+
+/-- The preimage of an affine subspace under an affine map as an affine subspace. -/
+def comap (f : P₁ →ᵃ[k] P₂) (s : affine_subspace k P₂) : affine_subspace k P₁ :=
+{ carrier := f ⁻¹' s,
+  smul_vsub_vadd_mem := λ t p₁ p₂ p₃ (hp₁ : f p₁ ∈ s) (hp₂ : f p₂ ∈ s) (hp₃ : f p₃ ∈ s),
+    show f _ ∈ s, begin
+      rw [affine_map.map_vadd, linear_map.map_smul, affine_map.linear_map_vsub],
+      apply s.smul_vsub_vadd_mem _ hp₁ hp₂ hp₃,
+    end }
+
+@[simp] lemma coe_comap (f : P₁ →ᵃ[k] P₂) (s : affine_subspace k P₂) :
+  (s.comap f : set P₁) = f ⁻¹' ↑s := rfl
+
+@[simp] lemma mem_comap {f : P₁ →ᵃ[k] P₂} {x : P₁} {s : affine_subspace k P₂} :
+  x ∈ s.comap f ↔ f x ∈ s := iff.rfl
+
+lemma comap_mono {f : P₁ →ᵃ[k] P₂} {s t : affine_subspace k P₂} : s ≤ t → s.comap f ≤ t.comap f :=
+preimage_mono
+
+@[simp] lemma comap_top {f : P₁ →ᵃ[k] P₂} : (⊤ : affine_subspace k P₂).comap f = ⊤ :=
+by { rw ← ext_iff, exact preimage_univ, }
+
+omit V₂
+
+@[simp] lemma comap_id (s : affine_subspace k P₁) : s.comap (affine_map.id k P₁) = s :=
+coe_injective rfl
+
+include V₂ V₃
+
+lemma comap_comap (s : affine_subspace k P₃) (f : P₁ →ᵃ[k] P₂) (g : P₂ →ᵃ[k] P₃) :
+  (s.comap g).comap f = s.comap (g.comp f) :=
+coe_injective rfl
+
+omit V₃
+
+-- lemmas about map and comap derived from the galois connection
+
+lemma map_le_iff_le_comap {f : P₁ →ᵃ[k] P₂} {s : affine_subspace k P₁} {t : affine_subspace k P₂} :
+  s.map f ≤ t ↔ s ≤ t.comap f :=
+image_subset_iff
+
+lemma gc_map_comap (f : P₁ →ᵃ[k] P₂) : galois_connection (map f) (comap f) :=
+λ _ _, map_le_iff_le_comap
+
+lemma map_comap_le (f : P₁ →ᵃ[k] P₂) (s : affine_subspace k P₂) : (s.comap f).map f ≤ s :=
+(gc_map_comap f).l_u_le _
+
+lemma le_comap_map (f : P₁ →ᵃ[k] P₂) (s : affine_subspace k P₁) : s ≤ (s.map f).comap f :=
+(gc_map_comap f).le_u_l _
+
+lemma map_sup (s t : affine_subspace k P₁) (f : P₁ →ᵃ[k] P₂) : (s ⊔ t).map f = s.map f ⊔ t.map f :=
+(gc_map_comap f).l_sup
+
+lemma map_supr {ι : Sort*} (f : P₁ →ᵃ[k] P₂) (s : ι → affine_subspace k P₁) :
+  (supr s).map f = ⨆ i, (s i).map f :=
+(gc_map_comap f).l_supr
+
+lemma comap_inf (s t : affine_subspace k P₂) (f : P₁ →ᵃ[k] P₂) :
+  (s ⊓ t).comap f = s.comap f ⊓ t.comap f :=
+(gc_map_comap f).u_inf
+
+lemma comap_supr {ι : Sort*} (f : P₁ →ᵃ[k] P₂) (s : ι → affine_subspace k P₂) :
+  (infi s).comap f = ⨅ i, (s i).comap f :=
+(gc_map_comap f).u_infi
+
+end affine_subspace
+
+end map_comap

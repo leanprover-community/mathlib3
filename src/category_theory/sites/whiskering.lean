@@ -104,9 +104,9 @@ variable (J)
 between sheaf categories. -/
 @[simps]
 def Sheaf_compose : Sheaf J A ⥤ Sheaf J B :=
-{ obj := λ G, ⟨↑G ⋙ F, presheaf.is_sheaf.comp _ G.2⟩,
-  map := λ G H η, whisker_right η _,
-  map_id' := λ G, whisker_right_id _,
-  map_comp' := λ G H W f g, whisker_right_comp _ _ _ }
+{ obj := λ G, ⟨G.val ⋙ F, presheaf.is_sheaf.comp _ G.2⟩,
+  map := λ G H η, ⟨whisker_right η.val _⟩,
+  map_id' := λ G, Sheaf.hom.ext _ _ $ whisker_right_id _,
+  map_comp' := λ G H W f g, Sheaf.hom.ext _ _ $ whisker_right_comp _ _ _ }
 
 end category_theory

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov, Frédéric Dupuis, Heather Macbeth
 -/
 import analysis.normed.group.basic
-import topology.algebra.module
+import topology.algebra.module.basic
 
 /-!
 # (Semi-)linear isometries

@@ -281,6 +281,25 @@ by rw [map_mul, map_inv]
   (f : F) (x y : G) : f (x / y) = f x / f y :=
 by rw [div_eq_mul_inv, div_eq_mul_inv, map_mul_inv]
 
+@[simp, to_additive map_nsmul] theorem map_pow [monoid G] [monoid H] [monoid_hom_class F G H]
+  (f : F) (a : G) :
+  ∀ (n : ℕ), f (a ^ n) = (f a) ^ n
+| 0     := by rw [pow_zero, pow_zero, map_one]
+| (n+1) := by rw [pow_succ, pow_succ, map_mul, map_pow]
+
+@[to_additive]
+theorem map_zpow' [div_inv_monoid G] [div_inv_monoid H] [monoid_hom_class F G H]
+  (f : F) (hf : ∀ (x : G), f (x⁻¹) = (f x)⁻¹) (a : G) :
+  ∀ n : ℤ, f (a ^ n) = (f a) ^ n
+| (n : ℕ) := by rw [zpow_coe_nat, map_pow, zpow_coe_nat]
+| -[1+n]  := by rw [zpow_neg_succ_of_nat, hf, map_pow, ← zpow_neg_succ_of_nat]
+
+/-- Group homomorphisms preserve integer power. -/
+@[simp, to_additive /-" Additive group homomorphisms preserve integer scaling. "-/]
+theorem map_zpow [group G] [group H] [monoid_hom_class F G H] (f : F) (g : G) (n : ℤ) :
+  f (g ^ n) = (f g) ^ n :=
+map_zpow' f (map_inv f) g n
+
 end mul_one
 
 section mul_zero_one
@@ -760,18 +779,16 @@ monoid_with_zero_hom.ext $ λ x, rfl
   (f : monoid_with_zero_hom M N) : (monoid_with_zero_hom.id N).comp f = f :=
 monoid_with_zero_hom.ext $ λ x, rfl
 
-@[simp, to_additive add_monoid_hom.map_nsmul]
-theorem monoid_hom.map_pow [monoid M] [monoid N] (f : M →* N) (a : M) :
-  ∀(n : ℕ), f (a ^ n) = (f a) ^ n
-| 0     := by rw [pow_zero, pow_zero, f.map_one]
-| (n+1) := by rw [pow_succ, pow_succ, f.map_mul, monoid_hom.map_pow]
+@[to_additive add_monoid_hom.map_nsmul]
+protected theorem monoid_hom.map_pow [monoid M] [monoid N] (f : M →* N) (a : M) (n : ℕ) :
+  f (a ^ n) = (f a) ^ n :=
+map_pow f a n
 
 @[to_additive]
-theorem monoid_hom.map_zpow' [div_inv_monoid M] [div_inv_monoid N] (f : M →* N)
-  (hf : ∀ x, f (x⁻¹) = (f x)⁻¹) (a : M) :
-  ∀ n : ℤ, f (a ^ n) = (f a) ^ n
-| (n : ℕ) := by rw [zpow_coe_nat, f.map_pow, zpow_coe_nat]
-| -[1+n]  := by rw [zpow_neg_succ_of_nat, hf, f.map_pow, ← zpow_neg_succ_of_nat]
+protected theorem monoid_hom.map_zpow' [div_inv_monoid M] [div_inv_monoid N] (f : M →* N)
+  (hf : ∀ x, f (x⁻¹) = (f x)⁻¹) (a : M) (n : ℤ) :
+  f (a ^ n) = (f a) ^ n :=
+map_zpow' f hf a n
 
 @[to_additive]
 theorem monoid_hom.map_div' [div_inv_monoid M] [div_inv_monoid N] (f : M →* N)
@@ -926,9 +943,10 @@ protected theorem map_inv {G H} [group G] [group H] (f : G →* H) (g : G) : f g
 map_inv f g
 
 /-- Group homomorphisms preserve integer power. -/
-@[simp, to_additive /-" Additive group homomorphisms preserve integer scaling. "-/]
-theorem map_zpow {G H} [group G] [group H] (f : G →* H) (g : G) (n : ℤ) : f (g ^ n) = (f g) ^ n :=
-f.map_zpow' f.map_inv g n
+@[to_additive /-" Additive group homomorphisms preserve integer scaling. "-/]
+protected theorem map_zpow {G H} [group G] [group H] (f : G →* H) (g : G) (n : ℤ) :
+  f (g ^ n) = (f g) ^ n :=
+map_zpow f g n
 
 /-- Group homomorphisms preserve division. -/
 @[to_additive /-" Additive group homomorphisms preserve subtraction. "-/]
@@ -1042,14 +1060,16 @@ end monoid_hom
 
 section commute
 
-variables [mul_one_class M] [mul_one_class N] {a x y : M}
+variables [has_mul M] [has_mul N] {a x y : M}
 
 @[simp, to_additive]
-protected lemma semiconj_by.map (h : semiconj_by a x y) (f : M →* N) :
+protected lemma semiconj_by.map [mul_hom_class F M N] (h : semiconj_by a x y) (f : F) :
   semiconj_by (f a) (f x) (f y) :=
-by simpa only [semiconj_by, f.map_mul] using congr_arg f h
+by simpa only [semiconj_by, map_mul] using congr_arg f h
 
 @[simp, to_additive]
-protected lemma commute.map (h : commute x y) (f : M →* N) : commute (f x) (f y) := h.map f
+protected lemma commute.map [mul_hom_class F M N] (h : commute x y) (f : F) :
+  commute (f x) (f y) :=
+h.map f
 
 end commute

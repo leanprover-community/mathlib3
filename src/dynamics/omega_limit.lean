@@ -47,8 +47,8 @@ def omega_limit [topological_space β] (f : filter τ) (ϕ : τ → α → β) (
 
 localized "notation `ω` := omega_limit" in omega_limit
 
-localized "notation `ω⁺` := omega_limit at_top" in omega_limit
-localized "notation `ω⁻` := omega_limit at_bot" in omega_limit
+localized "notation `ω⁺` := omega_limit filter.at_top" in omega_limit
+localized "notation `ω⁻` := omega_limit filter.at_bot" in omega_limit
 
 variables [topological_space β]
 variables (f : filter τ) (ϕ : τ → α → β) (s s₁ s₂: set α)

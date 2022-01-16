@@ -133,20 +133,20 @@ lemma is_extr_on.is_local_extr (hf : is_extr_on f s a) (hs : s ∈ 𝓝 a) : is_
 hf.localize.is_local_extr hs
 
 lemma is_local_min_on.not_nhds_le_map [topological_space β]
-  (hf : is_local_min_on f s a) [ne_bot (𝓝[Iio (f a)] (f a))] :
+  (hf : is_local_min_on f s a) [ne_bot (𝓝[<] (f a))] :
   ¬𝓝 (f a) ≤ map f (𝓝[s] a) :=
 λ hle,
-have ∀ᶠ y in 𝓝[Iio (f a)] (f a), f a ≤ y,
+have ∀ᶠ y in 𝓝[<] (f a), f a ≤ y,
   from (eventually_map.2 hf).filter_mono (inf_le_left.trans hle),
 let ⟨y, hy⟩ := (this.and self_mem_nhds_within).exists in hy.1.not_lt hy.2
 
 lemma is_local_max_on.not_nhds_le_map [topological_space β]
-  (hf : is_local_max_on f s a) [ne_bot (𝓝[Ioi (f a)] (f a))] :
+  (hf : is_local_max_on f s a) [ne_bot (𝓝[>] (f a))] :
   ¬𝓝 (f a) ≤ map f (𝓝[s] a) :=
 @is_local_min_on.not_nhds_le_map α (order_dual β) _ _ _ _ _ ‹_› hf ‹_›
 
 lemma is_local_extr_on.not_nhds_le_map [topological_space β]
-  (hf : is_local_extr_on f s a) [ne_bot (𝓝[Iio (f a)] (f a))] [ne_bot (𝓝[Ioi (f a)] (f a))] :
+  (hf : is_local_extr_on f s a) [ne_bot (𝓝[<] (f a))] [ne_bot (𝓝[>] (f a))] :
   ¬𝓝 (f a) ≤ map f (𝓝[s] a) :=
 hf.elim (λ h, h.not_nhds_le_map) (λ h, h.not_nhds_le_map)
 

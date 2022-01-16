@@ -5,6 +5,7 @@ Authors: Johan Commelin
 -/
 
 import group_theory.free_abelian_group
+import group_theory.is_free_group
 import data.finsupp.basic
 import data.equiv.module
 import linear_algebra.dimension
@@ -120,6 +121,26 @@ def equiv.of_free_group_equiv {α β : Type*}
   α ≃ β :=
 equiv.of_free_abelian_group_equiv $
   mul_equiv.to_additive (abelianization.mul_equiv.abelianization_congr e)
+
+open is_free_group
+/-- Isomorphic free groups have equivalent bases (`is_free_group` variant`). -/
+def equiv.of_is_free_group_equiv {G H : Type*}
+  [group G] [group H] [is_free_group G] [is_free_group H]
+  (e : G ≃* H) :
+  generators G ≃ generators H :=
+equiv.of_free_group_equiv $
+  mul_equiv.trans ((to_free_group G).symm) $
+  mul_equiv.trans e $
+  to_free_group H
+/-
+Why does this not work? Universes? Can I make it work in a pretty way?
+begin
+  have H := calc free_group (generators G) ≃* G : (to_free_group G).symm
+    ... ≃* H : e
+    ... ≃* free_group (generators H) : to_free_group H,
+  exact H,
+end
+-/
 
 variable {X}
 

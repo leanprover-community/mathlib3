@@ -149,8 +149,9 @@ end lie
 
 variables [non_unital_non_assoc_ring A] [is_comm_jordan A]
 
-/-- Linearise the Jordan axiom with two variables -/
-lemma mul_op_com1 (a b : A) :
+/-- Linearise the operator form of the Jordan axiom (lie_L_L_sq) by substituting in a → a + b and
+expanding. -/
+lemma lie_L_L_sq_add_lie_L_L_sq_add_two_lie_L_L_mul_add_two_lie_L_L_mul (a b : A) :
   ⁅L a, L (b*b)⁆ + ⁅L b, L (a*a)⁆ + (2:ℤ)•⁅L a, L (a*b)⁆ + (2:ℤ)•⁅L b, L (a*b)⁆ = 0 :=
 begin
   symmetry,
@@ -168,8 +169,11 @@ begin
     ... = ⁅L a, L (b*b)⁆ + ⁅L b, L (a*a)⁆ + (2:ℤ)•⁅L a, L (a*b)⁆ + (2:ℤ)•⁅L b, L (a*b)⁆: by abel
 end
 
-/-- Linearise the Jordan axiom with three variables -/
-lemma lin_jordan (a b c : A) : (2:ℤ)•(⁅L a, L (b*c)⁆ + ⁅L b, L (a*c)⁆ + ⁅L c, L (a*b)⁆) = 0 :=
+/-- Linearise the operator form of the Jordan axiom (lie_L_L_sq) by substituting in a → a + b + c
+and expanding. When the Jordan axiom holds in all scalar extensions of `A`, an alternative proof is
+to substitute in a → a + λb + μc and equate coefficients of λμ.-/
+lemma two_lie_L_L_mul_add_lie_L_L_mul_add_lie_L_L_mul (a b c : A) :
+  (2:ℤ)•(⁅L a, L (b*c)⁆ + ⁅L b, L (a*c)⁆ + ⁅L c, L (a*b)⁆) = 0 :=
 begin
   symmetry,
   calc 0 = ⁅L (a+b+c), L ((a+b+c)*(a+b+c))⁆ : by rw (lie_L_L_sq (a + b + c))
@@ -211,6 +215,9 @@ begin
         + (⁅L b, L(c*c)⁆ + ⁅L c, L(b*b)⁆ + (2:ℤ)•⁅L b, L(b*c)⁆ + (2:ℤ)•⁅L c, L(b*c)⁆)
         + ((2:ℤ)•⁅L a, L(b*c)⁆ + (2:ℤ)•⁅L b, L(a*c)⁆ + (2:ℤ)•⁅L c, L(a*b)⁆) : by abel
   ... = (2:ℤ)•⁅L a, L(b*c)⁆ + (2:ℤ)•⁅L b, L(a*c)⁆ + (2:ℤ)•⁅L c, L(a*b)⁆ :
-    by rw [mul_op_com1,mul_op_com1, mul_op_com1, zero_add, zero_add, zero_add]
+    by rw [lie_L_L_sq_add_lie_L_L_sq_add_two_lie_L_L_mul_add_two_lie_L_L_mul,
+      lie_L_L_sq_add_lie_L_L_sq_add_two_lie_L_L_mul_add_two_lie_L_L_mul,
+      lie_L_L_sq_add_lie_L_L_sq_add_two_lie_L_L_mul_add_two_lie_L_L_mul, zero_add, zero_add,
+      zero_add]
   ... = (2:ℤ)•(⁅L a, L (b*c)⁆ + ⁅L b, L (a*c)⁆ + ⁅L c, L (a*b)⁆) : by rw [smul_add, smul_add]
 end

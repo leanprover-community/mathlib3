@@ -333,20 +333,21 @@ begin
   simp,
 end
 
--- why does this proof show as timing out?
 protected lemma has_sum_repr_symm (b : hilbert_basis ι 𝕜 E) (f : ℓ²(ι, 𝕜)) :
   has_sum (λ i, f i • b i) (b.repr.symm f) :=
 begin
-  have : has_sum (λ (i : ι), lp.single 2 i (f i)) f := lp.has_sum_single ennreal.two_ne_top f,
-  convert (↑(b.repr.symm.to_continuous_linear_equiv) : ℓ²(ι, 𝕜) →L[𝕜] E).has_sum this,
+  suffices H : (λ (i : ι), f i • b i) =
+    (λ (b_1 : ι), (b.repr.symm.to_continuous_linear_equiv) ((λ (i : ι), lp.single 2 i (f i)) b_1)),
+  { rw H,
+    have : has_sum (λ (i : ι), lp.single 2 i (f i)) f := lp.has_sum_single ennreal.two_ne_top f,
+    exact (↑(b.repr.symm.to_continuous_linear_equiv) : ℓ²(ι, 𝕜) →L[𝕜] E).has_sum this },
   ext i,
   apply b.repr.injective,
   have : lp.single 2 i (f i * 1) = _ := lp.single_smul 2 i (1:𝕜) (f i),
   rw mul_one at this,
-  rw [linear_isometry_equiv.map_smul, b.repr_self, ← this, continuous_linear_equiv.coe_coe,
+  rw [linear_isometry_equiv.map_smul, b.repr_self, ← this,
     linear_isometry_equiv.coe_to_continuous_linear_equiv],
-  -- exact (b.repr.apply_symm_apply (lp.single 2 i (f i))).symm,
-  sorry
+  exact (b.repr.apply_symm_apply (lp.single 2 i (f i))).symm,
 end
 
 protected lemma has_sum_repr (b : hilbert_basis ι 𝕜 E) (x : E) :
@@ -359,7 +360,7 @@ begin
   classical,
   rw eq_top_iff,
   rintros x -,
-  refine mem_closure_of_tendsto (b.has_sum_repr_symm' x) (eventually_of_forall _),
+  refine mem_closure_of_tendsto (b.has_sum_repr x) (eventually_of_forall _),
   intros s,
   simp only [set_like.mem_coe],
   refine sum_mem _ _,

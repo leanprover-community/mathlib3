@@ -675,7 +675,7 @@ lemma pos_def.add (Q Q' : quadratic_form R₂ M) (hQ : pos_def Q) (hQ' : pos_def
 lemma lin_mul_lin_self_pos_def {R} [linear_ordered_comm_ring R] [module R M]
   (f : M →ₗ[R] R) (hf : linear_map.ker f = ⊥) :
   pos_def (lin_mul_lin f f) :=
-λ x hx, mul_self_pos (λ h, hx (linear_map.ker_eq_bot.mp hf (by rw [h, linear_map.map_zero])))
+λ x hx, mul_self_pos.2 (λ h, hx (linear_map.ker_eq_bot.mp hf (by rw [h, linear_map.map_zero])))
 
 end pos_def
 end quadratic_form
@@ -979,7 +979,7 @@ let ⟨v, hv₁⟩ := exists_orthogonal_basis (associated_is_symm _ Q) in
 
 lemma equivalent_weighted_sum_squares_units_of_nondegenerate'
   (Q : quadratic_form K V) (hQ : (associated Q).nondegenerate) :
-  ∃ w : fin (finite_dimensional.finrank K V) → units K,
+  ∃ w : fin (finite_dimensional.finrank K V) → Kˣ,
     equivalent Q (weighted_sum_squares K w) :=
 begin
   obtain ⟨v, hv₁⟩ := exists_orthogonal_basis (associated_is_symm _ Q),

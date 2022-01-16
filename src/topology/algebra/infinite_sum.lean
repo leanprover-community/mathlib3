@@ -891,7 +891,7 @@ ge_of_tendsto hf (eventually_at_top.2 ⟨s, λ t hst,
 
 lemma is_lub_has_sum (h : ∀ b, 0 ≤ f b) (hf : has_sum f a) :
   is_lub (set.range (λ s : finset β, ∑ b in s, f b)) a :=
-is_lub_of_tendsto (finset.sum_mono_set_of_nonneg h) hf
+is_lub_of_tendsto_at_top (finset.sum_mono_set_of_nonneg h) hf
 
 lemma le_has_sum (hf : has_sum f a) (b : β) (hb : ∀ b' ≠ b, 0 ≤ f b') : f b ≤ a :=
 calc f b = ∑ b in {b}, f b : finset.sum_singleton.symm
@@ -1014,7 +1014,7 @@ lemma tsum_ne_zero_iff (hf : summable f) : ∑' i, f i ≠ 0 ↔ ∃ x, f x ≠ 
 by rw [ne.def, tsum_eq_zero_iff hf, not_forall]
 
 lemma is_lub_has_sum' (hf : has_sum f a) : is_lub (set.range (λ s : finset β, ∑ b in s, f b)) a :=
-is_lub_of_tendsto (finset.sum_mono_set f) hf
+is_lub_of_tendsto_at_top (finset.sum_mono_set f) hf
 
 end canonically_ordered
 
@@ -1232,6 +1232,22 @@ calc summable (λ x, |f x|) ↔
 ... ↔ _ : by simp only [summable_neg_iff, summable_subtype_and_compl]
 
 alias summable_abs_iff ↔ summable.of_abs summable.abs
+
+lemma finite_of_summable_const [linear_ordered_add_comm_group β] [archimedean β]
+  [topological_space β] [order_closed_topology β] {b : β} (hb : 0 < b)
+  (hf : summable (λ a : α, b)) :
+  set.finite (set.univ : set α) :=
+begin
+  have H : ∀ s : finset α, s.card • b ≤ ∑' a : α, b,
+  { intros s,
+    simpa using sum_le_has_sum s (λ a ha, hb.le) hf.has_sum },
+  obtain ⟨n, hn⟩ := archimedean.arch (∑' a : α, b) hb,
+  have : ∀ s : finset α, s.card ≤ n,
+  { intros s,
+    simpa [nsmul_le_nsmul_iff hb] using (H s).trans hn },
+  haveI : fintype α := fintype_of_finset_card_le n this,
+  exact set.finite_univ
+end
 
 end linear_order
 

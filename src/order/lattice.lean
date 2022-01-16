@@ -629,7 +629,7 @@ end distrib_lattice
 -/
 
 @[priority 100] -- see Note [lower instance priority]
-instance lattice_of_linear_order {α : Type u} [o : linear_order α] :
+instance linear_order.to_lattice {α : Type u} [o : linear_order α] :
   lattice α :=
 { sup          := max,
   le_sup_left  := le_max_left,
@@ -645,34 +645,43 @@ instance lattice_of_linear_order {α : Type u} [o : linear_order α] :
 theorem sup_eq_max [linear_order α] {x y : α} : x ⊔ y = max x y := rfl
 theorem inf_eq_min [linear_order α] {x y : α} : x ⊓ y = min x y := rfl
 
+lemma sup_eq_max_default [semilattice_sup α] [decidable_rel ((≤) : α → α → Prop)]
+  [is_total α (≤)] : (⊔) = (max_default : α → α → α) :=
+begin
+  ext x y,
+  dunfold max_default,
+  split_ifs with h',
+  exacts [sup_of_le_left h', sup_of_le_right $ (total_of (≤) x y).resolve_right h']
+end
+
+lemma inf_eq_min_default [semilattice_inf α] [decidable_rel ((≤) : α → α → Prop)]
+  [is_total α (≤)] : (⊓) = (min_default : α → α → α) :=
+@sup_eq_max_default (order_dual α) _ _ _
+
 /-- A lattice with total order is a linear order.
 
 See note [reducible non-instances]. -/
 @[reducible] def lattice.to_linear_order (α : Type u) [lattice α] [decidable_eq α]
   [decidable_rel ((≤) : α → α → Prop)] [decidable_rel ((<) : α → α → Prop)]
-  (h : ∀ x y : α, x ≤ y ∨ y ≤ x) :
+  [is_total α (≤)] :
   linear_order α :=
 { decidable_le := ‹_›, decidable_eq := ‹_›, decidable_lt := ‹_›,
-  le_total := h,
+  le_total := total_of (≤),
   max := (⊔),
-  max_def := by
-  { funext x y, dunfold max_default,
-    split_ifs with h', exacts [sup_of_le_left h', sup_of_le_right $ (h x y).resolve_right h'] },
+  max_def := sup_eq_max_default,
   min := (⊓),
-  min_def := by
-  { funext x y, dunfold min_default,
-    split_ifs with h', exacts [inf_of_le_left h', inf_of_le_right $ (h x y).resolve_left h'] },
-  .. ‹lattice α› }
+  min_def := inf_eq_min_default,
+  ..‹lattice α› }
 
 @[priority 100] -- see Note [lower instance priority]
-instance distrib_lattice_of_linear_order {α : Type u} [o : linear_order α] :
+instance linear_order.to_distrib_lattice {α : Type u} [o : linear_order α] :
   distrib_lattice α :=
 { le_sup_inf := assume a b c,
     match le_total b c with
     | or.inl h := inf_le_of_left_le $ sup_le_sup_left (le_inf (le_refl b) h) _
     | or.inr h := inf_le_of_right_le $ sup_le_sup_left (le_inf h (le_refl c)) _
     end,
-  ..lattice_of_linear_order }
+  ..linear_order.to_lattice }
 
 instance nat.distrib_lattice : distrib_lattice ℕ :=
 by apply_instance

@@ -203,7 +203,7 @@ lemma to_span_singleton_homothety (x : E) (c : 𝕜) :
 by {rw mul_comm, exact norm_smul _ _}
 
 /-- Given an element `x` of a normed space `E` over a field `𝕜`, the natural continuous
-    linear map from `E` to the span of `x`.-/
+    linear map from `𝕜` to `E` by taking multiples of `x`.-/
 def to_span_singleton (x : E) : 𝕜 →L[𝕜] E :=
 of_homothety (linear_map.to_span_singleton 𝕜 E x) ∥x∥ (to_span_singleton_homothety 𝕜 x)
 
@@ -222,6 +222,22 @@ by { ext1, rw [to_span_singleton_apply, smul_apply, to_span_singleton_apply, smu
 lemma to_span_singleton_smul (c : 𝕜) (x : E) :
   to_span_singleton 𝕜 (c • x) = c • to_span_singleton 𝕜 x :=
 to_span_singleton_smul' 𝕜 𝕜 c x
+
+variables (𝕜 E)
+/-- Given a unit-length element `x` of a normed space `E` over a field `𝕜`, the natural linear
+    isometry map from `𝕜` to `E` by taking multiples of `x`.-/
+def _root_.linear_isometry.to_span_singleton {v : E} (hv : ∥v∥ = 1) : 𝕜 →ₗᵢ[𝕜] E :=
+{ norm_map' := λ x, by simp [norm_smul, hv],
+  .. linear_map.to_span_singleton 𝕜 E v }
+variables {𝕜 E}
+
+@[simp] lemma _root_.linear_isometry.to_span_singleton_apply {v : E} (hv : ∥v∥ = 1) (a : 𝕜) :
+  linear_isometry.to_span_singleton 𝕜 E hv a = a • v :=
+rfl
+
+@[simp] lemma _root_.linear_isometry.coe_to_span_singleton {v : E} (hv : ∥v∥ = 1) :
+  (linear_isometry.to_span_singleton 𝕜 E hv).to_linear_map = linear_map.to_span_singleton 𝕜 E v :=
+rfl
 
 end
 

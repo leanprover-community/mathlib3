@@ -52,10 +52,10 @@ structure oplax_nat_trans (F G : oplax_functor B C) :=
       (naturality f ▷ G.map g) ≫ (α_ _ _ _).hom . obviously)
 
 restate_axiom oplax_nat_trans.naturality_naturality'
-restate_axiom oplax_nat_trans.naturality_comp'
 restate_axiom oplax_nat_trans.naturality_id'
+restate_axiom oplax_nat_trans.naturality_comp'
 attribute [simp, reassoc] oplax_nat_trans.naturality_naturality
-  oplax_nat_trans.naturality_comp oplax_nat_trans.naturality_id
+  oplax_nat_trans.naturality_id oplax_nat_trans.naturality_comp
 
 namespace oplax_nat_trans
 
@@ -99,7 +99,7 @@ by simp only [←whisker_right_comp, naturality_naturality]
 @[simp, reassoc]
 lemma whisker_left_naturality_comp (f : a' ⟶ G.obj a) (g : a ⟶ b) (h : b ⟶ c) :
   (f ◁ θ.naturality (g ≫ h)) ≫ (f ◁ (_ ◁ H.map_comp g h)) =
-    (f ◁ (G.map_comp g h ▷ _)) ≫(f ◁ (α_ _ _ _).hom) ≫
+    (f ◁ (G.map_comp g h ▷ _)) ≫ (f ◁ (α_ _ _ _).hom) ≫
       (f ◁ (_ ◁ θ.naturality h)) ≫ (f ◁ (α_ _ _ _).inv) ≫
         (f ◁ (θ.naturality g ▷ H.map h)) ≫ (f ◁ (α_ _ _ _).hom) :=
 by simp only [←whisker_left_comp, naturality_comp]
@@ -241,8 +241,8 @@ by giving object level isomorphisms, and checking naturality only in the forward
 def modification_iso.of_components
   (app : ∀ a, η.app a ≅ θ.app a)
   (naturality : ∀ {a b} (f : a ⟶ b),
-    (_ ◁ (app b).hom) ≫ (θ.naturality f) = (η.naturality f) ≫ ((app a).hom ▷ _)) :
-      η ≅ θ :=
+    (_ ◁ (app b).hom) ≫ θ.naturality f = η.naturality f ≫ ((app a).hom ▷ _)) :
+  η ≅ θ :=
 { hom := { app := λ a, (app a).hom },
   inv :=
   { app := λ a, (app a).inv,

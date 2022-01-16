@@ -41,6 +41,29 @@ begin
       refine ⟨_, set.mem_univ _, rfl⟩, } }
 end
 
+lemma localization.mk_pow (m n : ℕ) (hm : 0 < m) (α : R) :
+  (localization.mk α ⟨f^n, ⟨n, rfl⟩⟩ : localization.away f)^m
+  = (localization.mk (α ^ m) ⟨f^(m * n), ⟨_, rfl⟩⟩) :=
+begin
+  induction m with m ih,
+  { exfalso, apply lt_irrefl 0 hm, },
+  { by_cases ineq : m = 0,
+    { rw [ineq, pow_one, pow_one, one_mul], },
+    { replace ineq : 0 < m,
+      { by_contra,
+        rw not_lt at h,
+        have ineq2 := lt_of_le_of_ne h ineq,
+        linarith, },
+      { specialize ih ineq,
+        rw [pow_succ, ih, pow_succ, nat.succ_mul, localization.mk_mul],
+        congr',
+
+        rw [subtype.ext_iff_val, show ∀ (a b : submonoid.powers f), (a * b).1 = a.1 * b.1,
+          from λ _ _, rfl],
+        dsimp only,
+        rw [mul_comm, pow_add], }, }, },
+end
+
 end clear_denominator
 
 
@@ -75,3 +98,19 @@ end
 
 
 end homogeneous_induction
+
+
+section mem_span
+
+universe u
+variables (R : Type u) [comm_ring R]
+
+lemma ideal.mem_span.smul_mem (s : set R) (r a : R) (ha : a ∈ s) : r • a ∈ ideal.span s :=
+begin
+  rw ideal.mem_span,
+  intros J hs,
+  apply ideal.mul_mem_left,
+  exact hs ha,
+end
+
+end mem_span

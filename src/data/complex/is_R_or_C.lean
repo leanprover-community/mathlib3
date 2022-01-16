@@ -362,7 +362,7 @@ by simp only [←sqrt_norm_sq_eq_norm, norm_sq_conj]
 /-! ### Cast lemmas -/
 
 @[simp, norm_cast, priority 900] theorem of_real_nat_cast (n : ℕ) : ((n : ℝ) : K) = n :=
-of_real_hom.map_nat_cast n
+show (algebra_map ℝ K) n = n, from map_nat_cast of_real_hom n
 
 @[simp, norm_cast] lemma nat_cast_re (n : ℕ) : re (n : K) = n :=
 by rw [← of_real_nat_cast, of_real_re]

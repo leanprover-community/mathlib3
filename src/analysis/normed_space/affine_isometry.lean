@@ -545,8 +545,8 @@ lemma affine_map.continuous_linear_iff {f : P →ᵃ[𝕜] P₂} :
 begin
   inhabit P,
   have : (f.linear : V → V₂) =
-    (affine_isometry_equiv.vadd_const 𝕜 $ f $ default P).to_homeomorph.symm ∘ f ∘
-      (affine_isometry_equiv.vadd_const 𝕜 $ default P).to_homeomorph,
+    (affine_isometry_equiv.vadd_const 𝕜 $ f default).to_homeomorph.symm ∘ f ∘
+      (affine_isometry_equiv.vadd_const 𝕜 default).to_homeomorph,
   { ext v, simp },
   rw this,
   simp only [homeomorph.comp_continuous_iff, homeomorph.comp_continuous_iff'],
@@ -558,8 +558,8 @@ lemma affine_map.is_open_map_linear_iff {f : P →ᵃ[𝕜] P₂} :
 begin
   inhabit P,
   have : (f.linear : V → V₂) =
-    (affine_isometry_equiv.vadd_const 𝕜 $ f $ default P).to_homeomorph.symm ∘ f ∘
-      (affine_isometry_equiv.vadd_const 𝕜 $ default P).to_homeomorph,
+    (affine_isometry_equiv.vadd_const 𝕜 $ f default).to_homeomorph.symm ∘ f ∘
+      (affine_isometry_equiv.vadd_const 𝕜 default).to_homeomorph,
   { ext v, simp },
   rw this,
   simp only [homeomorph.comp_is_open_map_iff, homeomorph.comp_is_open_map_iff'],

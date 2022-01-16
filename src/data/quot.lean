@@ -31,7 +31,7 @@ namespace quot
 variables {ra : α → α → Prop} {rb : β → β → Prop} {φ : quot ra → quot rb → Sort*}
 local notation `⟦`:max a `⟧` := quot.mk _ a
 
-instance [inhabited α] : inhabited (quot ra) := ⟨⟦default _⟧⟩
+instance [inhabited α] : inhabited (quot ra) := ⟨⟦default⟧⟩
 
 /-- Recursion on two `quotient` arguments `a` and `b`, result type depends on `⟦a⟧` and `⟦b⟧`. -/
 protected def hrec_on₂ (qa : quot ra) (qb : quot rb) (f : Π a b, φ ⟦a⟧ ⟦b⟧)
@@ -136,7 +136,7 @@ namespace quotient
 variables [sa : setoid α] [sb : setoid β]
 variables {φ : quotient sa → quotient sb → Sort*}
 
-instance [inhabited α] : inhabited (quotient sa) := ⟨⟦default _⟧⟩
+instance [inhabited α] : inhabited (quotient sa) := ⟨⟦default⟧⟩
 
 /-- Induction on two `quotient` arguments `a` and `b`, result type depends on `⟦a⟧` and `⟦b⟧`. -/
 protected def hrec_on₂ (qa : quotient sa) (qb : quotient sb) (f : Π a b, φ ⟦a⟧ ⟦b⟧)
@@ -297,7 +297,7 @@ namespace trunc
 /-- Constructor for `trunc α` -/
 def mk (a : α) : trunc α := quot.mk _ a
 
-instance [inhabited α] : inhabited (trunc α) := ⟨mk (default _)⟩
+instance [inhabited α] : inhabited (trunc α) := ⟨mk default⟩
 
 /-- Any constant function lifts to a function out of the truncation -/
 def lift (f : α → β) (c : ∀ a b : α, f a = f b) : trunc α → β :=

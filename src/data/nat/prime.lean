@@ -3,7 +3,7 @@ Copyright (c) 2015 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
-import algebra.associated
+import data.list.prime
 import data.list.sort
 import data.nat.gcd
 import data.nat.sqrt
@@ -538,53 +538,12 @@ theorem prime_iff {p : ℕ} : p.prime ↔ _root_.prime p :=
 theorem irreducible_iff_prime {p : ℕ} : irreducible p ↔ _root_.prime p :=
 by rw [←prime_iff, prime]
 
-/-- Prime `p` divides the product of `L : list ℕ` iff it divides some `a ∈ L` -/
-lemma prime.dvd_prod_iff {p : ℕ} {L : list ℕ} (pp : p.prime) :
-  p ∣ L.prod ↔ ∃ a ∈ L, p ∣ a :=
-begin
-  split,
-  { intros h,
-    induction L,
-    { simp only [list.prod_nil] at h, exact absurd h (prime.not_dvd_one pp) },
-    { rw list.prod_cons at h,
-      cases (prime.dvd_mul pp).mp h,
-      { use L_hd, simp [h_1] },
-      { rcases L_ih h_1 with ⟨x, hx1, hx2⟩, use x, simp [list.mem_cons_iff, hx1, hx2] } } },
-  { exact λ ⟨a, ha1, ha2⟩, dvd_trans ha2 (list.dvd_prod ha1) },
-end
--- TODO: This proof duplicates a more general proof in `algebra/associated`.
--- The two proofs should be integrated after the merger of `nat.prime` and `prime`
--- that's about to occur. (2021-12-17)
-
-lemma prime.not_dvd_prod {p : ℕ} {L : list ℕ} (pp : prime p) (hL : ∀ a ∈ L, ¬ p ∣ a) :
-  ¬ p ∣ L.prod :=
-mt (prime.dvd_prod_iff pp).mp (not_bex.mpr hL)
-
 theorem prime.dvd_of_dvd_pow {p m n : ℕ} (pp : prime p) (h : p ∣ m^n) : p ∣ m :=
 begin
   induction n with n IH,
   { exact pp.not_dvd_one.elim h },
   { rw pow_succ at h, exact (pp.dvd_mul.1 h).elim id IH }
 end
-
-lemma prime.pow_dvd_of_dvd_mul_right {p n a b : ℕ} (hp : p.prime) (h : p ^ n ∣ a * b)
-  (hpb : ¬ p ∣ b) : p ^ n ∣ a :=
-begin
-  induction n with n ih,
-  { simp only [one_dvd, pow_zero] },
-  { rw [pow_succ'] at *,
-    rcases ih ((dvd_mul_right _ _).trans h) with ⟨c, rfl⟩,
-    rw [mul_assoc] at h,
-    rcases hp.dvd_mul.1 (nat.dvd_of_mul_dvd_mul_left (pow_pos hp.pos _) h)
-      with ⟨d, rfl⟩|⟨d, rfl⟩,
-    { rw [← mul_assoc],
-      exact dvd_mul_right _ _ },
-    { exact (hpb (dvd_mul_right _ _)).elim } }
-end
-
-lemma prime.pow_dvd_of_dvd_mul_left {p n a b : ℕ} (hp : p.prime) (h : p ^ n ∣ a * b)
-  (hpb : ¬ p ∣ a) : p ^ n ∣ b :=
-by rw [mul_comm] at h; exact hp.pow_dvd_of_dvd_mul_right h hpb
 
 lemma prime.pow_not_prime {x n : ℕ} (hn : 2 ≤ n) : ¬ (x ^ n).prime :=
 λ hp, (hp.eq_one_or_self_of_dvd x $ dvd_trans ⟨x, sq _⟩ (pow_dvd_pow _ hn)).elim
@@ -723,17 +682,12 @@ by simpa using not_iff_not.mpr ne_one_iff_exists_prime_dvd
 section
 open list
 
-lemma mem_list_primes_of_dvd_prod {p : ℕ} (hp : prime p) :
-  ∀ {l : list ℕ}, (∀ p ∈ l, prime p) → p ∣ prod l → p ∈ l :=
-begin
-  intros L hL hpL,
-  rcases (prime.dvd_prod_iff hp).mp hpL with ⟨x, hx1, hx2⟩,
-  rwa ((prime_dvd_prime_iff_eq hp (hL x hx1)).mp hx2)
-end
-
 lemma mem_factors_iff_dvd {n p : ℕ} (hn : 0 < n) (hp : prime p) : p ∈ factors n ↔ p ∣ n :=
 ⟨λ h, prod_factors hn ▸ list.dvd_prod h,
- λ h, mem_list_primes_of_dvd_prod hp (@prime_of_mem_factors n) ((prod_factors hn).symm ▸ h)⟩
+  λ h, mem_list_primes_of_dvd_prod
+    (prime_iff.mp hp)
+    (λ p h, prime_iff.mp (prime_of_mem_factors h))
+    ((prod_factors hn).symm ▸ h)⟩
 
 lemma dvd_of_mem_factors {n p : ℕ} (h : p ∈ n.factors) : p ∣ n :=
 begin
@@ -746,36 +700,18 @@ lemma mem_factors {n p} (hn : 0 < n) : p ∈ factors n ↔ prime p ∧ p ∣ n :
 ⟨λ h, ⟨prime_of_mem_factors h, (mem_factors_iff_dvd hn $ prime_of_mem_factors h).mp h⟩,
  λ ⟨hprime, hdvd⟩, (mem_factors_iff_dvd hn hprime).mpr hdvd⟩
 
-lemma perm_of_prod_eq_prod : ∀ {l₁ l₂ : list ℕ}, prod l₁ = prod l₂ →
-  (∀ p ∈ l₁, prime p) → (∀ p ∈ l₂, prime p) → l₁ ~ l₂
-| []        []        _  _  _  := perm.nil
-| []        (a :: l)  h₁ h₂ h₃ :=
-  have ha : a ∣ 1 := @prod_nil ℕ _ ▸ h₁.symm ▸ (@prod_cons _ _ l a).symm ▸ dvd_mul_right _ _,
-  absurd ha (prime.not_dvd_one (h₃ a (mem_cons_self _ _)))
-| (a :: l)  []        h₁ h₂ h₃ :=
-  have ha : a ∣ 1 := @prod_nil ℕ _ ▸ h₁ ▸ (@prod_cons _ _ l a).symm ▸ dvd_mul_right _ _,
-  absurd ha (prime.not_dvd_one (h₂ a (mem_cons_self _ _)))
-| (a :: l₁) (b :: l₂) h hl₁ hl₂ :=
-  have hl₁' : ∀ p ∈ l₁, prime p := λ p hp, hl₁ p (mem_cons_of_mem _ hp),
-  have hl₂' : ∀ p ∈ (b :: l₂).erase a, prime p := λ p hp, hl₂ p (mem_of_mem_erase hp),
-  have ha : a ∈ (b :: l₂) := mem_list_primes_of_dvd_prod (hl₁ a (mem_cons_self _ _)) hl₂
-    (h ▸ by rw prod_cons; exact dvd_mul_right _ _),
-  have hb : b :: l₂ ~ a :: (b :: l₂).erase a := perm_cons_erase ha,
-  have hl : prod l₁ = prod ((b :: l₂).erase a) :=
-  (nat.mul_right_inj (prime.pos (hl₁ a (mem_cons_self _ _)))).1 $
-    by rwa [← prod_cons, ← prod_cons, ← hb.prod_eq],
-  perm.trans ((perm_of_prod_eq_prod hl hl₁' hl₂').cons _) hb.symm
-
 /-- **Fundamental theorem of arithmetic**-/
 lemma factors_unique {n : ℕ} {l : list ℕ} (h₁ : prod l = n) (h₂ : ∀ p ∈ l, prime p) :
   l ~ factors n :=
 begin
-  refine perm_of_prod_eq_prod _ h₂ (λ p, prime_of_mem_factors),
-  rw h₁,
-  refine (prod_factors (nat.pos_of_ne_zero _)).symm,
-  rintro rfl,
-  rw prod_eq_zero_iff at h₁,
-  exact prime.ne_zero (h₂ 0 h₁) rfl,
+  refine perm_of_prod_eq_prod _ _ _,
+  { rw h₁,
+    refine (prod_factors (nat.pos_of_ne_zero _)).symm,
+    rintro rfl,
+    rw prod_eq_zero_iff at h₁,
+    exact prime.ne_zero (h₂ 0 h₁) rfl },
+  { simp_rw ←prime_iff, exact h₂ },
+  { simp_rw ←prime_iff, exact (λ p, prime_of_mem_factors) },
 end
 
 lemma prime.factors_pow {p : ℕ} (hp : p.prime) (n : ℕ) :
@@ -864,6 +800,18 @@ begin
   rw [←list.prod_append,
       list.perm.prod_eq $ list.subperm_append_diff_self_of_count_le $ list.subperm_ext_iff.mp h,
       nat.prod_factors hb]
+end
+
+lemma pow_factors_count_dvd (n p : ℕ) :
+  p ^ n.factors.count p ∣ n :=
+begin
+  by_cases hp : p.prime,
+  { apply dvd_of_factors_subperm (pow_ne_zero _ hp.ne_zero),
+    rw [hp.factors_pow, list.subperm_ext_iff],
+    intros q hq,
+    simp [list.eq_of_mem_repeat hq] },
+  { rw count_eq_zero_of_not_mem (mt prime_of_mem_factors hp),
+    simp },
 end
 
 end

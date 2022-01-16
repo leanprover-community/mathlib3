@@ -658,7 +658,7 @@ begin
     have : 0 ≤ μ.to_box_additive J, from ennreal.to_real_nonneg,
     rw [norm_smul, real.norm_eq_abs, abs_of_nonneg this, ← dist_eq_norm],
     refine mul_le_mul_of_nonneg_left _ this,
-    refine Hδ _ _ (tagged_prepartition.tag_mem_Icc _ _) (tagged_prepartition.tag_mem_Icc _ _) _,
+    refine Hδ _ (tagged_prepartition.tag_mem_Icc _ _) _ (tagged_prepartition.tag_mem_Icc _ _) _,
     rw [← add_halves δ],
     refine (dist_triangle_left _ _ J.upper).trans (add_le_add (h₁.1 _ _ _) (h₂.1 _ _ _)),
     { exact prepartition.bUnion_index_mem _ hJ },

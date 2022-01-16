@@ -349,7 +349,7 @@ topological_space.of_closed (set.range prime_spectrum.zero_locus)
     simp only [hf],
     exact ⟨_, zero_locus_Union _⟩
   end
-  (by { rintro _ _ ⟨s, rfl⟩ ⟨t, rfl⟩, exact ⟨_, (union_zero_locus s t).symm⟩ })
+  (by { rintro _ ⟨s, rfl⟩ _ ⟨t, rfl⟩, exact ⟨_, (union_zero_locus s t).symm⟩ })
 
 lemma is_open_iff (U : set (prime_spectrum R)) :
   is_open U ↔ ∃ s, Uᶜ = zero_locus s :=

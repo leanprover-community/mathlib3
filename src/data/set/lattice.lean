@@ -77,9 +77,15 @@ notation `⋂` binders `, ` r:(scoped f, Inter f) := r
 ⟨λ ⟨t, ⟨⟨a, (t_eq : s a = t)⟩, (h : x ∈ t)⟩⟩, ⟨a, t_eq.symm ▸ h⟩,
   λ ⟨a, h⟩, ⟨s a, ⟨⟨a, rfl⟩, h⟩⟩⟩
 
+theorem mem_Union_Union {x : γ} {s : α → β → set γ} : x ∈ (⋃ a b, s a b) ↔ ∃ a b, x ∈ s a b :=
+by simp only [set.mem_Union]
+
 @[simp] theorem mem_Inter {x : β} {s : ι → set β} : x ∈ Inter s ↔ ∀ i, x ∈ s i :=
 ⟨λ (h : ∀ a ∈ {a : set β | ∃ i, s i = a}, x ∈ a) a, h (s a) ⟨a, rfl⟩,
   λ h t ⟨a, (eq : s a = t)⟩, eq ▸ h a⟩
+
+theorem mem_Inter_Inter {x : γ} {s : α → β → set γ} : x ∈ (⋂ a b, s a b) ↔ ∀ a b, x ∈ s a b :=
+by simp only [set.mem_Inter]
 
 theorem mem_sUnion {x : α} {S : set (set α)} : x ∈ ⋃₀ S ↔ ∃ t ∈ S, x ∈ t := iff.rfl
 

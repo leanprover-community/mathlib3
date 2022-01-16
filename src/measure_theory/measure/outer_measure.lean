@@ -1224,7 +1224,7 @@ le_of_function.trans $ forall_congr $ λ s, le_infi_iff
 
 theorem trim_le_trim_iff {m₁ m₂ : outer_measure α} :
   m₁.trim ≤ m₂.trim ↔ ∀ s, measurable_set s → m₁ s ≤ m₂ s :=
-le_trim_iff.trans $ forall_congr $ λ s, forall_congr $ λ hs, by rw [trim_eq _ hs]
+le_trim_iff.trans $ forall₂_congr $ λ s hs, by rw [trim_eq _ hs]
 
 theorem trim_eq_trim_iff {m₁ m₂ : outer_measure α} :
   m₁.trim = m₂.trim ↔ ∀ s, measurable_set s → m₁ s = m₂ s :=

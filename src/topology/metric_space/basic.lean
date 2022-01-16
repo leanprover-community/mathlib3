@@ -153,21 +153,19 @@ pseudo_metric_space α :=
     intros s,
     change is_open s ↔ _,
     rw H s,
-    apply forall_congr, intro x,
-    apply forall_congr, intro x_in,
+    refine forall₂_congr (λ x x_in, _),
     erw (has_basis_binfi_principal _ nonempty_Ioi).mem_iff,
-    { apply exists_congr, intros ε,
-      apply exists_congr, intros ε_pos,
+    { refine exists₂_congr (λ ε ε_pos, _),
       simp only [prod.forall, set_of_subset_set_of],
       split,
       { rintros h _ y H rfl,
         exact h y H },
       { intros h y hxy,
         exact h _ _ hxy rfl } },
-      { exact λ r (hr : 0 < r) p (hp : 0 < p), ⟨min r p, lt_min hr hp,
-        λ x (hx : dist _ _ < _), lt_of_lt_of_le hx (min_le_left r p),
-        λ x (hx : dist _ _ < _), lt_of_lt_of_le hx (min_le_right r p)⟩ },
-      { apply_instance }
+    { exact λ r (hr : 0 < r) p (hp : 0 < p), ⟨min r p, lt_min hr hp,
+      λ x (hx : dist _ _ < _), lt_of_lt_of_le hx (min_le_left r p),
+      λ x (hx : dist _ _ < _), lt_of_lt_of_le hx (min_le_right r p)⟩ },
+    { apply_instance }
     end,
     ..uniform_space.core_of_dist dist dist_self dist_comm dist_triangle },
   uniformity_dist := rfl }
@@ -749,8 +747,7 @@ theorem tendsto_nhds_within_nhds_within [pseudo_metric_space β] {t : set β} {f
   tendsto f (𝓝[s] a) (𝓝[t] b) ↔
     ∀ ε > 0, ∃ δ > 0, ∀{x:α}, x ∈ s → dist x a < δ → f x ∈ t ∧ dist (f x) b < ε :=
 (nhds_within_basis_ball.tendsto_iff nhds_within_basis_ball).trans $
-  forall_congr $ λ ε, forall_congr $ λ hε,
-  exists_congr $ λ δ, exists_congr $ λ hδ,
+  forall₂_congr $ λ ε hε, exists₂_congr $ λ δ hδ,
   forall_congr $ λ x, by simp; itauto
 
 theorem tendsto_nhds_within_nhds [pseudo_metric_space β] {f : α → β} {a b} :

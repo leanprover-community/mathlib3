@@ -821,30 +821,41 @@ variables {α : Sort*}
 
 section congr
 variables {β : α → Sort*} {γ : Π a, β a → Sort*} {δ : Π a b, γ a b → Sort*}
+  {ε : Π a b c, δ a b c → Sort*}
 
 lemma forall₂_congr {p q : Π a, β a → Prop} (h : ∀ a b, p a b ↔ q a b) :
   (∀ a b, p a b) ↔ ∀ a b, q a b :=
-forall_congr (λ a, forall_congr (h a))
+forall_congr $ λ a, forall_congr $ h a
 
 lemma forall₃_congr {p q : Π a b, γ a b → Prop} (h : ∀ a b c, p a b c ↔ q a b c) :
   (∀ a b c, p a b c) ↔ ∀ a b c, q a b c :=
-forall_congr (λ a, forall₂_congr (h a))
+forall_congr $ λ a, forall₂_congr $ h a
 
 lemma forall₄_congr {p q : Π a b c, δ a b c → Prop} (h : ∀ a b c d, p a b c d ↔ q a b c d) :
   (∀ a b c d, p a b c d) ↔ ∀ a b c d, q a b c d :=
-forall_congr (λ a, forall₃_congr (h a))
+forall_congr $ λ a, forall₃_congr $ h a
+
+lemma forall₅_congr {p q : Π a b c d, ε a b c d → Prop}
+  (h : ∀ a b c d e, p a b c d e ↔ q a b c d e) :
+  (∀ a b c d e, p a b c d e) ↔ ∀ a b c d e, q a b c d e :=
+forall_congr $ λ a, forall₄_congr $ h a
 
 lemma exists₂_congr {p q : Π a, β a → Prop}  (h : ∀ a b, p a b ↔ q a b) :
   (∃ a b, p a b) ↔ ∃ a b, q a b :=
-exists_congr (λ a, exists_congr (h a))
+exists_congr $ λ a, exists_congr $ h a
 
 lemma exists₃_congr {p q : Π a b, γ a b → Prop} (h : ∀ a b c, p a b c ↔ q a b c) :
   (∃ a b c, p a b c) ↔ ∃ a b c, q a b c :=
-exists_congr (λ a, exists₂_congr (h a))
+exists_congr $ λ a, exists₂_congr $ h a
 
 lemma exists₄_congr {p q : Π a b c, δ a b c → Prop} (h : ∀ a b c d, p a b c d ↔ q a b c d) :
   (∃ a b c d, p a b c d) ↔ ∃ a b c d, q a b c d :=
-exists_congr (λ a, exists₃_congr (h a))
+exists_congr $ λ a, exists₃_congr $ h a
+
+lemma exists₅_congr {p q : Π a b c d, ε a b c d → Prop}
+  (h : ∀ a b c d e, p a b c d e ↔ q a b c d e) :
+  (∃ a b c d e, p a b c d e) ↔ ∃ a b c d e, q a b c d e :=
+exists_congr $ λ a, exists₄_congr $ h a
 
 end congr
 

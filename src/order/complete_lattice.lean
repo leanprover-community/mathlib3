@@ -1344,7 +1344,7 @@ lemma set_independent_iff {α : Type*} [complete_lattice α] (s : set α) :
   set_independent s ↔ independent (coe : s → α) :=
 begin
   simp_rw [independent, set_independent, set_coe.forall, Sup_eq_supr],
-  apply forall_congr, intro a, apply forall_congr, intro ha,
+  refine forall₂_congr (λ a ha, _),
   congr' 2,
   convert supr_subtype.symm,
   simp [supr_and],

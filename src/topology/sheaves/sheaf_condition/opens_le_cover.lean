@@ -218,7 +218,7 @@ in terms of a limit diagram over `U i` and `U i ⊓ U j`.
 -/
 lemma is_sheaf_opens_le_cover_iff_is_sheaf_pairwise_intersections (F : presheaf C X) :
   F.is_sheaf_opens_le_cover ↔ F.is_sheaf_pairwise_intersections :=
-forall_congr (λ ι, forall_congr (λ U, equiv.nonempty_congr $
+forall₂_congr (λ ι U, equiv.nonempty_congr $
   calc is_limit (F.map_cone (opens_le_cover_cocone U).op)
     ≃ is_limit ((F.map_cone (opens_le_cover_cocone U).op).whisker (pairwise_to_opens_le_cover U).op)
         : (functor.initial.is_limit_whisker_equiv (pairwise_to_opens_le_cover U).op _).symm

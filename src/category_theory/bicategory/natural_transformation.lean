@@ -44,10 +44,11 @@ structure oplax_nat_trans (F G : oplax_functor B C) :=
 (naturality_naturality' : ∀ {a b : B} {f g : a ⟶ b} (η : f ⟶ g),
   (F.map₂ η ▷ _) ≫ naturality g = naturality f ≫ (_ ◁ G.map₂ η) . obviously)
 (naturality_id' : ∀ a : B,
-  naturality (𝟙 a) ≫ (_ ◁ G.map_id a) = (F.map_id a ▷ _) ≫ (λ_ _).hom ≫ (ρ_ _).inv . obviously)
+  naturality (𝟙 a) ≫ (_ ◁ G.map_id a) =
+    (F.map_id a ▷ _) ≫ (λ_ (app a)).hom ≫ (ρ_ (app a)).inv . obviously)
 (naturality_comp' : ∀ {a b c : B} (f : a ⟶ b) (g : b ⟶ c),
   naturality (f ≫ g) ≫ (_ ◁ (G.map_comp f g)) =
-    (F.map_comp f g ▷ _) ≫ (α_ _ _ _).hom ≫ (_ ◁ naturality g) ≫ (α_ _ _ _).inv ≫
+    (F.map_comp f g ▷ _) ≫ (α_ _ _ _).hom ≫ (F.map f ◁ naturality g) ≫ (α_ _ _ _).inv ≫
       (naturality f ▷ G.map g) ≫ (α_ _ _ _).hom . obviously)
 
 restate_axiom oplax_nat_trans.naturality_naturality'

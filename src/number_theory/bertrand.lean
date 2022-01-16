@@ -650,20 +650,20 @@ calc
           if p ≤ nat.sqrt (2 * n)
           then p ^ (padic_val_nat p ((2 * n).choose n))
           else p ^ (padic_val_nat p ((2 * n).choose n))) : by simp only [if_t_t]
-... = (∏ p in ((finset.range (2 * n / 3 + 1)).filter nat.prime).filter (λ p, p ≤ nat.sqrt (2 * n)),
+... = (∏ p in ((finset.range (2 * n / 3 + 1)).filter nat.prime).filter (≤ nat.sqrt (2 * n)),
           p ^ (padic_val_nat p ((2 * n).choose n)))
         *
       (∏ p in ((finset.range (2 * n / 3 + 1)).filter nat.prime).filter (λ p, ¬p ≤ nat.sqrt (2 * n)),
           p ^ (padic_val_nat p ((2 * n).choose n))) : finset.prod_ite _ _
 ... = (∏ p in (
-                  (finset.range (2 * n / 3 + 1)).filter nat.prime).filter (λ p, p ≤ nat.sqrt (2 * n)),
+                  (finset.range (2 * n / 3 + 1)).filter nat.prime).filter (≤ nat.sqrt (2 * n)),
           p ^ (padic_val_nat p ((2 * n).choose n)))
         *
       (∏ p in ((finset.range (2 * n / 3 + 1)).filter nat.prime).filter (λ p, nat.sqrt (2 * n) < p),
           p ^ (padic_val_nat p ((2 * n).choose n))) :
         by simp only [not_le, finset.filter_congr_decidable]
 ... ≤ (∏ p in (
-                  (finset.range (2 * n / 3 + 1)).filter nat.prime).filter (λ p, p ≤ nat.sqrt (2 * n)),
+                  (finset.range (2 * n / 3 + 1)).filter nat.prime).filter (≤ nat.sqrt (2 * n)),
           2 * n)
         *
       (∏ p in ((finset.range (2 * n / 3 + 1)).filter nat.prime).filter (λ p, nat.sqrt (2 * n) < p),
@@ -675,7 +675,7 @@ calc
           simp only [finset.mem_filter, finset.mem_range] at hyp,
           exact @claim_1 i (fact_iff.2 hyp.1.2) n (by linarith),
         end
-... = (2 * n) ^ (((finset.range (2 * n / 3 + 1)).filter nat.prime).filter (λ p, p ≤ nat.sqrt (2 * n))).card
+... = (2 * n) ^ (((finset.range (2 * n / 3 + 1)).filter nat.prime).filter (≤ nat.sqrt (2 * n))).card
       *
       (∏ p in ((finset.range (2 * n / 3 + 1)).filter nat.prime).filter (λ p, nat.sqrt (2 * n) < p),
           p ^ (padic_val_nat p ((2 * n).choose n))) : by simp only [finset.prod_const]

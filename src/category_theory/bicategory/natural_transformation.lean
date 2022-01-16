@@ -42,14 +42,15 @@ structure oplax_nat_trans (F G : oplax_functor B C) :=
 (app (a : B) : F.obj a ⟶ G.obj a)
 (naturality {a b : B} (f : a ⟶ b) : F.map f ≫ app b ⟶ app a ≫ G.map f)
 (naturality_naturality' : ∀ {a b : B} {f g : a ⟶ b} (η : f ⟶ g),
-  (F.map₂ η ▷ _) ≫ naturality g = naturality f ≫ (_ ◁ G.map₂ η) . obviously)
+  (F.map₂ η ▷ app b) ≫ naturality g = naturality f ≫ (app a ◁ G.map₂ η) . obviously)
 (naturality_id' : ∀ a : B,
-  naturality (𝟙 a) ≫ (_ ◁ G.map_id a) =
-    (F.map_id a ▷ _) ≫ (λ_ (app a)).hom ≫ (ρ_ (app a)).inv . obviously)
+  naturality (𝟙 a) ≫ (app a ◁ G.map_id a) =
+    (F.map_id a ▷ app a) ≫ (λ_ (app a)).hom ≫ (ρ_ (app a)).inv . obviously)
 (naturality_comp' : ∀ {a b c : B} (f : a ⟶ b) (g : b ⟶ c),
-  naturality (f ≫ g) ≫ (_ ◁ G.map_comp f g) =
-    (F.map_comp f g ▷ _) ≫ (α_ _ _ _).hom ≫ (F.map f ◁ naturality g) ≫ (α_ _ _ _).inv ≫
-      (naturality f ▷ G.map g) ≫ (α_ _ _ _).hom . obviously)
+  naturality (f ≫ g) ≫ (app a ◁ G.map_comp f g) =
+    (F.map_comp f g ▷ app c) ≫ (α_ _ _ _).hom ≫
+      (F.map f ◁ naturality g) ≫ (α_ _ _ _).inv ≫
+        (naturality f ▷ G.map g) ≫ (α_ _ _ _).hom . obviously)
 
 restate_axiom oplax_nat_trans.naturality_naturality'
 restate_axiom oplax_nat_trans.naturality_id'

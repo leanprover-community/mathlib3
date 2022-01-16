@@ -1583,11 +1583,6 @@ begin
     exact ennreal.continuous_inv.continuous_at.comp (continuous_at_rpow_const_of_pos z_pos) }
 end
 
-protected lemma tendsto.rpow {α : Type*} {f : filter α} {m : α → ℝ≥0∞} {a : ℝ≥0∞} (r : ℝ)
-  (hm : tendsto m f (𝓝 a)) :
-  tendsto (λ x, (m x) ^ r) f (𝓝 (a ^ r)) :=
-(continuous_rpow_const.tendsto a).comp hm
-
 lemma tendsto_const_mul_rpow_nhds_zero_of_pos {c : ℝ≥0∞} (hc : c ≠ ∞) {y : ℝ} (hy : 0 < y) :
   tendsto (λ x : ℝ≥0∞, c * x ^ y) (𝓝 0) (𝓝 0) :=
 begin
@@ -1597,6 +1592,11 @@ begin
 end
 
 end ennreal
+
+lemma filter.tendsto.ennrpow_const {α : Type*} {f : filter α} {m : α → ℝ≥0∞} {a : ℝ≥0∞} (r : ℝ)
+  (hm : tendsto m f (𝓝 a)) :
+  tendsto (λ x, (m x) ^ r) f (𝓝 (a ^ r)) :=
+(ennreal.continuous_rpow_const.tendsto a).comp hm
 
 namespace norm_num
 open tactic

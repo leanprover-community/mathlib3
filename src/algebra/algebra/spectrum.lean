@@ -329,3 +329,16 @@ end
 end scalar_field
 
 end spectrum
+
+namespace alg_hom
+
+variables {R : Type*} {A : Type*} [comm_ring R] [ring A] [algebra R A]
+local notation `σ` := spectrum R
+local notation `↑ₐ` := algebra_map R A
+
+lemma apply_mem_spectrum (φ : A →ₐ[R] R) (a : A) : φ a ∈ σ a :=
+begin
+  sorry
+end
+
+end alg_hom

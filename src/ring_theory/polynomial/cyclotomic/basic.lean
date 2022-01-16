@@ -915,11 +915,11 @@ begin
   rcases k.eq_zero_or_pos with rfl | hk,
   { rw [pow_zero, one_mul, is_root_cyclotomic_iff] },
   refine ⟨λ h, _, λ h, _⟩,
-  { rw [is_root.def, cyclotomic_mul_prime_pow_eq R (ne_zero.not_dvd_char R p m) hk, eval_pow] at h,
+  { rw [is_root.def, cyclotomic_mul_prime_pow_eq R (ne_zero.not_char_dvd R p m) hk, eval_pow] at h,
     replace h := pow_eq_zero h,
     rwa [← is_root.def, is_root_cyclotomic_iff] at h },
   { rw [← is_root_cyclotomic_iff, is_root.def] at h,
-    rw [cyclotomic_mul_prime_pow_eq R (ne_zero.not_dvd_char R p m) hk,
+    rw [cyclotomic_mul_prime_pow_eq R (ne_zero.not_char_dvd R p m) hk,
         is_root.def, eval_pow, h, zero_pow],
     simp only [tsub_pos_iff_lt],
     apply strict_mono_pow hp.out.one_lt (nat.pred_lt hk.ne') }

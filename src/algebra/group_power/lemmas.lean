@@ -31,10 +31,6 @@ begin
   { simp }
 end
 
-@[simp, norm_cast, to_additive]
-lemma units.coe_pow (u : Mˣ) (n : ℕ) : ((u ^ n : Mˣ) : M) = u ^ n :=
-(units.coe_hom M).map_pow u n
-
 instance invertible_pow (m : M) [invertible m] (n : ℕ) : invertible (m ^ n) :=
 { inv_of := ⅟ m ^ n,
   inv_of_mul_self := by rw [← (commute_inv_of m).symm.mul_pow, inv_of_mul_self, one_pow],

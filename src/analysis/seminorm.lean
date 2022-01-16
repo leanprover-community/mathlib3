@@ -393,10 +393,10 @@ begin
 end
 
 lemma ball_mono {p : seminorm 𝕜 E} {r₁ r₂ : ℝ} (h : r₁ ≤ r₂) : p.ball x r₁ ⊆ p.ball x r₂ :=
-λ x (hx : _ < _), hx.trans_le h
+λ _ (hx : _ < _), hx.trans_le h
 
 lemma ball_antimono {p q : seminorm 𝕜 E} (h : q ≤ p) : p.ball x r ⊆ q.ball x r :=
-λ x, (h _).trans_lt
+λ _, (h _).trans_lt
 
 lemma add_ball_zero (p : seminorm 𝕜 E) (r : ℝ) :
   ball p (0 : E) r + ball p (0 : E) r ⊆ ball p (0 : E) (2 * r) :=
@@ -499,7 +499,7 @@ end
 @[simp]
 lemma preimage_smul_ball (p : seminorm 𝕜 E) (r : ℝ) (a : 𝕜) (ha : a ≠ 0) :
   (λ (v : E), a • v) ⁻¹' p.ball 0 r = p.ball 0 (r / ∥a∥) :=
-set.ext $ λ x, by rw [mem_preimage, mem_ball_zero, mem_ball_zero, p.smul,
+set.ext $ λ _, by rw [mem_preimage, mem_ball_zero, mem_ball_zero, p.smul,
   lt_div_iff (norm_pos_iff.mpr ha), mul_comm]
 
 end normed_field

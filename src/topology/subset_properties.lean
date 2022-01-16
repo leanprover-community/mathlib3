@@ -301,7 +301,7 @@ assume f hfn hfs, classical.by_contradiction $ assume : ¬ (∃ x ∈ s, cluster
     from mem_of_superset this $ assume x ⟨hxs, hx⟩,
     let ⟨i, hit, hxi⟩ := (show ∃ i ∈ t, x ∉ closure (subtype.val i),
       by { rw [eq_empty_iff_forall_not_mem] at ht, simpa [hxs, not_forall] using ht x }) in
-    have x ∈ closure i.val, from subset_closure (mem_Inter₂.mp hx i hit),
+    have x ∈ closure i.val, from subset_closure (by { rw mem_Inter₂ at hx, exact hx i hit }),
     show false, from hxi this,
   hfn.ne $ by rwa [empty_mem_iff_bot] at this
 

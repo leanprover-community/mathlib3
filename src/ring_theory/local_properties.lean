@@ -103,8 +103,8 @@ lemma ring_hom.of_localization_span_iff_finite :
   ring_hom.of_localization_span @P ↔ ring_hom.of_localization_finite_span @P :=
 begin
   delta ring_hom.of_localization_span ring_hom.of_localization_finite_span,
-  refine forall₅_congr (λ _ _ _ _ _, _),
-  resetI,
+  apply forall₅_congr, -- TODO: Using `refine` here breaks `resetI`.
+  introsI,
   split,
   { intros h s, exact h s },
   { intros h s hs hs',

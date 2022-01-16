@@ -149,12 +149,6 @@ end lie
 
 variables [non_unital_non_assoc_ring A] [is_comm_jordan A]
 
-/-
-instance : comm_monoid A :=
-{ mul_comm := λ a b, is_comm_jordan.mul_comm a b,
-  .. (show non_unital_non_assoc_ring A, by apply_instance) }
--/
-
 /-- Linearise the Jordan axiom with two variables -/
 lemma mul_op_com1 (a b : A) :
   ⁅L a, L (b*b)⁆ + ⁅L b, L (a*a)⁆ + (2:ℤ)•⁅L a, L (a*b)⁆ + (2:ℤ)•⁅L b, L (a*b)⁆ = 0 :=

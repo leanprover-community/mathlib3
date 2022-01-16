@@ -89,17 +89,6 @@ calc μ ((λ h, g * h) ⁻¹' A) = measure.map (λ h, g * h) μ A :
   ((homeomorph.mul_left g).to_measurable_equiv.map_apply A).symm
 ... = μ A : by rw map_mul_left_eq_self.2 h g
 
-
-theorem measure_theory.is_mul_right_invariant.measure_preimage_mul {G : Type u_1}
-[measurable_space G] [topological_space G] [group G] [topological_group G] [borel_space G]
-{μ : measure_theory.measure G} (h : measure_theory.is_mul_right_invariant μ) (g : G) (A : set G) :
-μ ((λ (h : G), h * g) ⁻¹' A) = μ A :=
-begin
-  calc μ ((λ h, h * g) ⁻¹' A) = measure.map (λ h, h * g) μ A :
-    ((homeomorph.mul_right g).to_measurable_equiv.map_apply A).symm
-  ... = μ A : by rw measure.map_mul_right_eq_self.2 h g,
-end
-
 @[to_additive]
 lemma map_mul_right_eq_self [topological_space G] [has_mul G] [has_continuous_mul G] [borel_space G]
   {μ : measure G} :
@@ -108,6 +97,15 @@ begin
   apply forall_congr, intro g, rw [measure.ext_iff], apply forall_congr, intro A,
   apply forall_congr, intro hA, rw [map_apply (measurable_mul_const g) hA]
 end
+
+@[to_additive]
+lemma _root_.measure_theory.is_mul_right_invariant.measure_preimage_mul
+  [topological_space G] [group G] [topological_group G] [borel_space G]
+  {μ : measure G} (h : is_mul_right_invariant μ) (g : G) (A : set G) :
+  μ ((λ (h : G), h * g) ⁻¹' A) = μ A :=
+calc μ ((λ h, h * g) ⁻¹' A) = measure.map (λ h, h * g) μ A :
+  ((homeomorph.mul_right g).to_measurable_equiv.map_apply A).symm
+... = μ A : by rw measure.map_mul_right_eq_self.2 h g
 
 /-- The measure `A ↦ μ (A⁻¹)`, where `A⁻¹` is the pointwise inverse of `A`. -/
 @[to_additive "The measure `A ↦ μ (- A)`, where `- A` is the pointwise negation of `A`."]

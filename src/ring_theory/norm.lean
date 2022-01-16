@@ -42,7 +42,7 @@ universes u v w
 variables {R S T : Type*} [comm_ring R] [is_domain R] [comm_ring S]
 variables [algebra R S]
 variables {K L F : Type*} [field K] [field L] [field F]
-variables [algebra K L] [algebra L F] [algebra K F]
+variables [algebra K L] [algebra K F]
 variables {ι : Type w} [fintype ι]
 
 open finite_dimensional
@@ -201,8 +201,8 @@ begin
   { exact intermediate_field.subset_adjoin K _ (set.mem_singleton x) }
 end
 
-lemma _root_.intermediate_field.adjoin_simple.norm_gen_eq_prod_roots [algebra K L] [algebra K F]
-  (x : L) (hf : (minpoly K x).splits (algebra_map K F)) :
+lemma _root_.intermediate_field.adjoin_simple.norm_gen_eq_prod_roots (x : L)
+  (hf : (minpoly K x).splits (algebra_map K F)) :
   (algebra_map K F) (norm K (intermediate_field.adjoin_simple.gen K x)) =
   ((minpoly K x).map (algebra_map K F)).roots.prod :=
 begin
@@ -226,7 +226,7 @@ section eq_prod_embeddings
 
 open intermediate_field intermediate_field.adjoin_simple polynomial
 
-variables (E : Type*) [field E] [algebra K E] [is_scalar_tower K L F]
+variables (E : Type*) [field E] [algebra K E]
 
 lemma norm_eq_prod_embeddings_gen
   (pb : power_basis K L)
@@ -243,33 +243,34 @@ begin
   { intro σ, rw [power_basis.lift_equiv'_apply_coe, id.def] }
 end
 
-lemma norm_eq_prod_roots [algebra K L] [algebra K F] [is_separable K L] [finite_dimensional K L]
+lemma norm_eq_prod_roots [is_separable K L] [finite_dimensional K L]
   {x : L} (hF : splits (algebra_map K F) (minpoly K x)) :
   (algebra_map K F) (norm K x) =
   ((minpoly K x).map (algebra_map K F)).roots.prod ^ finrank (K⟮x⟯) L :=
 by rw [norm_eq_norm_adjoin K x, ring_hom.map_pow,
   intermediate_field.adjoin_simple.norm_gen_eq_prod_roots _ hF]
 
-lemma is_integral_norm [algebra R L] [algebra R K] [algebra K L] [is_scalar_tower R K L]
-  [is_separable K L] [finite_dimensional K L] {x : L} (hx : _root_.is_integral R x) :
-  _root_.is_integral R (norm K x) :=
+lemma is_integral_norm [algebra S L] [algebra S K] [is_scalar_tower S K L]
+  [is_separable K L] [finite_dimensional K L] {x : L} (hx : _root_.is_integral S x) :
+  _root_.is_integral S (norm K x) :=
 begin
   have hx' : _root_.is_integral K x := is_integral_of_is_scalar_tower _ hx,
   rw [← is_integral_algebra_map_iff (algebra_map K (algebraic_closure L)).injective,
       norm_eq_prod_roots],
   { refine (is_integral.multiset_prod (λ y hy, _)).pow _,
     rw mem_roots_map (minpoly.ne_zero hx') at hy,
-    use [minpoly R x, minpoly.monic hx],
+    use [minpoly S x, minpoly.monic hx],
     rw ← aeval_def at ⊢ hy,
-    exact minpoly.aeval_of_is_scalar_tower R x y hy },
+    exact minpoly.aeval_of_is_scalar_tower S x y hy },
   { apply is_alg_closed.splits_codomain },
   { apply_instance }
 end
 
 variable (F)
 
-lemma prod_embeddings_eq_finrank_pow [is_alg_closed E] [is_separable K F] [finite_dimensional K F]
-  (pb : power_basis K L) : ∏ σ : F →ₐ[K] E, σ (algebra_map L F pb.gen) =
+lemma prod_embeddings_eq_finrank_pow [algebra L F] [is_scalar_tower K L F][is_alg_closed E]
+  [is_separable K F] [finite_dimensional K F] (pb : power_basis K L) :
+  ∏ σ : F →ₐ[K] E, σ (algebra_map L F pb.gen) =
   ((@@finset.univ (power_basis.alg_hom.fintype pb)).prod
     (λ σ : L →ₐ[K] E, σ pb.gen)) ^ finrank L F :=
 begin

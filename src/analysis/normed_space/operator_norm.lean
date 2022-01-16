@@ -438,7 +438,7 @@ end
 @[simp] lemma op_norm_prod (f : E →L[𝕜] Fₗ) (g : E →L[𝕜] Gₗ) : ∥f.prod g∥ = ∥(f, g)∥ :=
 le_antisymm
   (op_norm_le_bound _ (norm_nonneg _) $ λ x,
-    by simpa only [prod_apply, prod.semi_norm_def, max_mul_of_nonneg, norm_nonneg]
+    by simpa only [prod_apply, prod.norm_def, max_mul_of_nonneg, norm_nonneg]
       using max_le_max (le_op_norm f x) (le_op_norm g x)) $
   max_le
     (op_norm_le_bound _ (norm_nonneg _) $ λ x, (le_max_left _ _).trans ((f.prod g).le_op_norm x))

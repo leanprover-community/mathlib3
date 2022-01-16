@@ -190,10 +190,10 @@ pi.semi_normed_group
 
 local attribute [instance] matrix.semi_normed_group
 
-lemma semi_norm_matrix_le_iff {n m : Type*} [fintype n] [fintype m] {r : ℝ} (hr : 0 ≤ r)
+lemma norm_matrix_le_iff {n m : Type*} [fintype n] [fintype m] {r : ℝ} (hr : 0 ≤ r)
   {A : matrix n m α} :
   ∥A∥ ≤ r ↔ ∀ i j, ∥A i j∥ ≤ r :=
-by simp [pi_semi_norm_le_iff hr]
+by simp [pi_norm_le_iff hr]
 
 end semi_normed_ring
 
@@ -680,7 +680,7 @@ open normed_field
 
 /-- The product of two normed spaces is a normed space, with the sup norm. -/
 instance prod.normed_space : normed_space α (E × F) :=
-{ norm_smul_le := λ s x, le_of_eq $ by simp [prod.semi_norm_def, norm_smul, mul_max_of_nonneg],
+{ norm_smul_le := λ s x, le_of_eq $ by simp [prod.norm_def, norm_smul, mul_max_of_nonneg],
   ..prod.normed_group,
   ..prod.module }
 

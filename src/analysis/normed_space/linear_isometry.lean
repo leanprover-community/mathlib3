@@ -531,7 +531,7 @@ noncomputable def prod_assoc [module R E₂] [module R E₃] : (E × E₂) × E�
   norm_map' :=
     begin
       rintros ⟨⟨e, f⟩, g⟩,
-      simp only [linear_equiv.coe_mk, equiv.prod_assoc_apply, prod.semi_norm_def, max_assoc],
+      simp only [linear_equiv.coe_mk, equiv.prod_assoc_apply, prod.norm_def, max_assoc],
     end,
   .. equiv.prod_assoc E E₂ E₃, }
 

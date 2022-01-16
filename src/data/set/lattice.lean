@@ -490,18 +490,6 @@ by simp only [Inter_or, Inter_inter_distrib, Inter_Inter_eq_left]
 
 /-! ### Bounded unions and intersections -/
 
-theorem mem_bUnion_iff {s : set α} {t : α → set β} {y : β} :
-  y ∈ (⋃ x ∈ s, t x) ↔ ∃ x ∈ s, y ∈ t x :=
-mem_Union₂
-
-lemma mem_bUnion_iff' {p : α → Prop} {t : α → set β} {y : β} :
-  y ∈ (⋃ i (h : p i), t i) ↔ ∃ i (h : p i), y ∈ t i :=
-mem_Union₂
-
-theorem mem_bInter_iff {s : set α} {t : α → set β} {y : β} :
-  y ∈ (⋂ x ∈ s, t x) ↔ ∀ x ∈ s, y ∈ t x :=
-mem_Inter₂
-
 theorem mem_bUnion {s : set α} {t : α → set β} {x : α} {y : β} (xs : x ∈ s) (ytx : y ∈ t x) :
   y ∈ ⋃ x ∈ s, t x :=
 mem_Union₂.2 ⟨x, ⟨xs, ytx⟩⟩

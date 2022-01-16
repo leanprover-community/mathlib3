@@ -111,11 +111,11 @@ lemma mem_inf {x} : x ∈ S ⊓ T ↔ x ∈ S ∧ x ∈ T := iff.rfl
 
 instance : has_Inf (convex_cone 𝕜 E) :=
 ⟨λ S, ⟨⋂ s ∈ S, ↑s,
-  λ c hc x hx, mem_bInter $ λ s hs, s.smul_mem hc $ by apply mem_bInter_iff.1 hx s hs,
-  λ x hx y hy, mem_bInter $ λ s hs, s.add_mem (by apply mem_bInter_iff.1 hx s hs)
-    (by apply mem_bInter_iff.1 hy s hs)⟩⟩
+  λ c hc x hx, mem_bInter $ λ s hs, s.smul_mem hc $ by apply mem_Inter₂.1 hx s hs,
+  λ x hx y hy, mem_bInter $ λ s hs, s.add_mem (by apply mem_Inter₂.1 hx s hs)
+    (by apply mem_Inter₂.1 hy s hs)⟩⟩
 
-lemma mem_Inf {x : E} {S : set (convex_cone 𝕜 E)} : x ∈ Inf S ↔ ∀ s ∈ S, x ∈ s := mem_bInter_iff
+lemma mem_Inf {x : E} {S : set (convex_cone 𝕜 E)} : x ∈ Inf S ↔ ∀ s ∈ S, x ∈ s := mem_Inter₂
 
 variables (𝕜)
 

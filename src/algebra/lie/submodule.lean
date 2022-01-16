@@ -418,7 +418,7 @@ def lie_span : lie_submodule R L M := Inf {N | s ⊆ N}
 variables {R L s}
 
 lemma mem_lie_span {x : M} : x ∈ lie_span R L s ↔ ∀ N : lie_submodule R L M, s ⊆ N → x ∈ N :=
-by { change x ∈ (lie_span R L s : set M) ↔ _, erw Inf_coe, exact mem_bInter_iff, }
+by { change x ∈ (lie_span R L s : set M) ↔ _, erw Inf_coe, exact mem_Inter₂, }
 
 lemma subset_lie_span : s ⊆ lie_span R L s :=
 by { intros m hm, erw mem_lie_span, intros N hN, exact hN hm, }

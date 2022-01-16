@@ -793,7 +793,7 @@ end
 
 variables {s t : set M}
 lemma mem_span : x ∈ span R s ↔ ∀ p : submodule R M, s ⊆ p → x ∈ p :=
-mem_bInter_iff
+mem_Inter₂
 
 lemma subset_span : s ⊆ span R s :=
 λ x h, mem_span.2 $ λ p hp, hp h

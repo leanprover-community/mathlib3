@@ -304,9 +304,9 @@ begin
           begin
             rw div_le_div_right,
             apply log_div_self_antitone_on,
-            simp,
+            simp only [set.mem_set_of_eq],
             linarith only [exp_one_lt_d9],
-            simp,
+            simp only [set.mem_set_of_eq],
             linarith only [exp_one_lt_d9, n_large],
             exact le_of_lt n_large,
             exact log_four_pos,
@@ -399,15 +399,15 @@ begin
   rw mul_div_assoc,
   rw mul_le_mul_left,
   apply log_div_self_antitone_on,
-  simp,
+  simp only [set.mem_set_of_eq],
   rw le_sqrt,
   rw <-exp_nat_mul,
   simp [hex],
   swap 3,
-  simp,
+  simp only [set.mem_set_of_eq],
   rw le_sqrt,
   rw <-exp_nat_mul,
-  simp,
+  simp only [mul_one, nat.cast_bit0, nat.cast_one],
   exact le_trans hex hxy,
   exact le_of_lt (exp_pos 1),
   exact hy,
@@ -498,7 +498,7 @@ begin
   rw [log_mul, log_mul, log_rpow, log_rpow, log_rpow, log_mul],
   rw <-div_lt_one,
   simp only [add_div, mul_add, add_mul, add_div, <-add_assoc],
-  simp,
+  simp only [zero_le_one, sqrt_mul, zero_le_bit0],
   { rw [equality4 n_large],
     linarith only [inequality1 n_large, inequality2 n_large, inequality3 n_large], },
   repeat {apply ne_of_gt},
@@ -534,7 +534,7 @@ begin
             rw mul_le_mul_left,
             apply rpow_le_rpow_of_exponent_le,
             rw <-@nat.cast_lt ℝ at n_large,
-            have h : (1024) < (n : ℝ), convert n_large, simp,
+            have h : (1024) < (n : ℝ), {convert n_large, simp},
             linarith,
             rw le_sqrt,
             rw <-nat.cast_pow,
@@ -562,8 +562,8 @@ begin
             apply trans nat.cast_div_le,
             apply le_of_eq,
             congr,
-            simp,
-            simp,
+            simp only [nat.cast_bit0, nat.cast_one, nat.cast_mul],
+            simp only [nat.cast_bit1, nat.cast_one],
             exact is_trans.swap (λ (x y : ℝ), y ≤ x),
             apply mul_pos,
             exact fact1,
@@ -574,7 +574,7 @@ begin
           begin
             apply real_bertrand_inequality,
             rw <-@nat.cast_lt ℝ at n_large,
-            have h : (1024) < (n : ℝ), convert n_large, simp,
+            have h : (1024) < (n : ℝ), {convert n_large, simp},
             linarith,
           end,
 end
@@ -642,11 +642,9 @@ lemma bertrand_central_binomial_upper_bound (n : ℕ) (n_big : 1024 < n)
       * 4 ^ (2 * n / 3) :=
 calc
 (2 * n).choose n
-    = (∏ p in (finset.range ((2 * n).choose n + 1)).filter nat.prime,
-          p ^ (padic_val_nat p ((2 * n).choose n))) : (central_binom_factorization n).symm
-... = (∏ p in (finset.range (2 * n / 3 + 1)).filter nat.prime,
+    = (∏ p in (finset.range (2 * n / 3 + 1)).filter nat.prime,
           p ^ (padic_val_nat p ((2 * n).choose n))) :
-        (central_binom_factorization_small n n_big no_prime).symm
+          by rw [(central_binom_factorization_small n n_big no_prime),  central_binom_factorization]
 ... = (∏ p in (finset.range (2 * n / 3 + 1)).filter nat.prime,
           if p ≤ nat.sqrt (2 * n)
           then p ^ (padic_val_nat p ((2 * n).choose n))
@@ -656,16 +654,13 @@ calc
         *
       (∏ p in ((finset.range (2 * n / 3 + 1)).filter nat.prime).filter (λ p, ¬p ≤ nat.sqrt (2 * n)),
           p ^ (padic_val_nat p ((2 * n).choose n))) : finset.prod_ite _ _
-... = (∏ p in (
-                  (finset.range (2 * n / 3 + 1)).filter nat.prime).filter (≤ nat.sqrt (2 * n)),
+... = (∏ p in ((finset.range (2 * n / 3 + 1)).filter nat.prime).filter (≤ nat.sqrt (2 * n)),
           p ^ (padic_val_nat p ((2 * n).choose n)))
         *
       (∏ p in ((finset.range (2 * n / 3 + 1)).filter nat.prime).filter (> nat.sqrt (2 * n)),
           p ^ (padic_val_nat p ((2 * n).choose n))) :
         by simp only [not_le, finset.filter_congr_decidable]
-... ≤ (∏ p in (
-                  (finset.range (2 * n / 3 + 1)).filter nat.prime).filter (≤ nat.sqrt (2 * n)),
-          2 * n)
+... ≤ (∏ p in ((finset.range (2 * n / 3 + 1)).filter nat.prime).filter (≤ nat.sqrt (2 * n)), 2 * n)
         *
       (∏ p in ((finset.range (2 * n / 3 + 1)).filter nat.prime).filter (> nat.sqrt (2 * n)),
           p ^ (padic_val_nat p ((2 * n).choose n))) :
@@ -687,12 +682,11 @@ calc
         begin
           congr' 3,
           ext1,
+          simp only [and_imp, finset.mem_filter, finset.mem_range, and.congr_right_iff],
+          intros h pa,
           split,
-          { intro h, simp at h, simp, split,
-            exact h.1, exact even_prime_is_small h.1.2 (by linarith) h.2, },
-          { intro h, simp at h, simp, cases h, split,
-            exact h_left,
-            rw nat.le_sqrt', exact le_of_lt h_right, },
+          { exact even_prime_is_small pa (by linarith), },
+          { rw nat.le_sqrt', exact le_of_lt, },
         end
 ... ≤ (2 * n) ^ (nat.sqrt (2 * n))
         *
@@ -706,9 +700,8 @@ calc
           rw <-this,
           clear this,
           apply finset.card_mono,
-          simp,
-          rw finset.subset_iff,
-          simp,
+          rw [finset.le_eq_subset, finset.subset_iff],
+          simp only [and_imp, finset.mem_filter, finset.mem_range, finset.mem_Ico],
           intros x _ px h,
           split,
           { exact le_of_lt (nat.prime.one_lt px), },
@@ -812,7 +805,7 @@ begin
         cases plist_tl,
         { simp * at *, },
         { simp at hmem,
-          simp,
+          simp only [list.mem_cons_iff, list.cons_append, prod.mk.inj_iff, list.zip_cons_cons],
           right,
           assumption, }, },
       { cases plist_tl,

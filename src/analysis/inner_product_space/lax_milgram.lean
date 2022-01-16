@@ -64,12 +64,11 @@ end
 
 lemma injective (coercive : is_coercive B) : (lax_milgram_map B).ker = ⊥ :=
 begin
-  rw submodule.eq_bot_iff, intro v,
-  simp only [continuous_linear_map.mem_ker, submodule.mem_bot],
+  simp only [submodule.eq_bot_iff, continuous_linear_map.mem_ker],
+  intros v,
   contrapose,
-  simp_rw [←ne.def],
-  intro v_ne_0,
-  simp_rw [ ←norm_pos_iff] at ⊢ v_ne_0,
+  simp_rw [← ne.def, ← norm_pos_iff],
+  intros hv,
   rcases coercive with ⟨C, C_ge_0, coercivity⟩,
   have squared : C * ∥v∥ * ∥v∥ ≤ ∥lax_milgram_map B v ∥ * ∥v∥ :=
   calc C * ∥v∥*∥v∥
@@ -82,7 +81,7 @@ begin
 end
 
 
-lemma closed_range : @is_closed V infer_instance ↑(lax_milgram_map B).range :=
+lemma closed_range : is_closed ((lax_milgram_map B).range : set V) :=
 begin
   rw ←is_seq_closed_iff_is_closed,
   apply is_seq_closed_of_def,
@@ -137,7 +136,7 @@ begin
 end
 
 
-theorem lax_milgram (coercive : is_coercive B) : V ≃L[ℝ] V :=
+def lax_milgram (coercive : is_coercive B) : V ≃L[ℝ] V :=
 continuous_linear_equiv.of_bijective
   (lax_milgram_map B)
   (injective B coercive)

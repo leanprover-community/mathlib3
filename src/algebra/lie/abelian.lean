@@ -116,6 +116,15 @@ iff.rfl
 instance : is_trivial L (max_triv_submodule R L M) :=
 { trivial := λ x m, subtype.ext (m.property x), }
 
+@[simp] lemma ideal_oper_max_triv_submodule_eq_bot (I : lie_ideal R L) :
+  ⁅I, max_triv_submodule R L M⁆ = ⊥ :=
+begin
+  rw [← lie_submodule.coe_to_submodule_eq_iff, lie_submodule.lie_ideal_oper_eq_linear_span,
+    lie_submodule.bot_coe_submodule, submodule.span_eq_bot],
+  rintros m ⟨⟨x, hx⟩, ⟨⟨m, hm⟩, rfl⟩⟩,
+  exact hm x,
+end
+
 lemma trivial_iff_le_maximal_trivial (N : lie_submodule R L M) :
   is_trivial L N ↔ N ≤ max_triv_submodule R L M :=
 ⟨ λ h m hm x, is_trivial.dcases_on h (λ h, subtype.ext_iff.mp (h x ⟨m, hm⟩)),

@@ -243,12 +243,12 @@ Topology:
 Analysis:
   Normed vector spaces/Banach spaces:
     normed vector space over a normed field: 'normed_space'
-    topology on a normed vector space: 'semi_normed_space.has_bounded_smul'
+    topology on a normed vector space: 'normed_space.has_bounded_smul'
     equivalence of norms in finite dimension: 'linear_equiv.to_continuous_linear_equiv'
     finite dimensional normed spaces over complete normed fields are complete: 'submodule.complete_of_finite_dimensional'
     Heine-Borel theorem (finite dimensional normed spaces are proper): 'finite_dimensional.proper'
     norm of a continuous linear map: 'linear_map.mk_continuous'
-    Banach open mapping theorem: 'open_mapping'
+    Banach open mapping theorem: 'continuous_linear_map.is_open_map'
     absolutely convergent series in Banach spaces: 'summable_of_summable_norm'
     Hahn-Banach theorem: 'exists_extension_norm_eq'
     dual of a normed space: 'normed_space.dual'

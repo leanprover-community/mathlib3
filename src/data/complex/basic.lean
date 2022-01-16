@@ -186,7 +186,7 @@ by rw [pow_bit1', I_mul_I]
 /-! ### Complex conjugation -/
 
 /-- This defines the complex conjugate as the `star` operation of the `star_ring ℂ`. It
-is recommended to use the ring automorphism version `star_ring_aut`, available under the
+is recommended to use the ring endomorphism version `star_ring_end`, available under the
 notation `conj` in the locale `complex_conjugate`. -/
 instance : star_ring ℂ :=
 { star := λ z, ⟨z.re, -z.im⟩,
@@ -301,7 +301,7 @@ ext_iff.2 $ by simp [two_mul, sub_eq_add_neg]
 lemma norm_sq_sub (z w : ℂ) : norm_sq (z - w) =
   norm_sq z + norm_sq w - 2 * (z * conj w).re :=
 by { rw [sub_eq_add_neg, norm_sq_add],
-     simp only [ring_equiv.map_neg, mul_neg_eq_neg_mul_symm, neg_re,
+     simp only [ring_hom.map_neg, mul_neg_eq_neg_mul_symm, neg_re,
                 tactic.ring.add_neg_eq_sub, norm_sq_neg] }
 
 /-! ### Inversion -/
@@ -363,7 +363,7 @@ norm_sq.map_div z w
 /-! ### Cast lemmas -/
 
 @[simp, norm_cast] theorem of_real_nat_cast (n : ℕ) : ((n : ℝ) : ℂ) = n :=
-of_real.map_nat_cast n
+map_nat_cast of_real n
 
 @[simp, norm_cast] lemma nat_cast_re (n : ℕ) : (n : ℂ).re = n :=
 by rw [← of_real_nat_cast, of_real_re]
@@ -578,14 +578,21 @@ localized "attribute [instance] complex.ordered_comm_ring" in complex_order
 
 /--
 With `z ≤ w` iff `w - z` is real and nonnegative, `ℂ` is a star ordered ring.
-(That is, an ordered ring in which every element of the form `star z * z` is nonnegative.)
-
-In fact, the nonnegative elements are precisely those of this form.
-This hold in any `C^*`-algebra, e.g. `ℂ`,
-but we don't yet have `C^*`-algebras in mathlib.
+(That is, a star ring in which the nonnegative elements are those of the form `star z * z`.)
 -/
 protected def star_ordered_ring : star_ordered_ring ℂ :=
-{ star_mul_self_nonneg := λ z, ⟨by simp [add_nonneg, mul_self_nonneg], by simp [mul_comm]⟩ }
+{ nonneg_iff := λ r, by
+  { refine ⟨λ hr, ⟨real.sqrt r.re, _⟩, λ h, _⟩,
+    { have h₁ : 0 ≤ r.re := by { rw [le_def] at hr, exact hr.1 },
+      have h₂ : r.im = 0 := by { rw [le_def] at hr, exact hr.2.symm },
+      ext,
+      { simp only [of_real_im, star_def, of_real_re, sub_zero, conj_re, mul_re, mul_zero,
+                   ←real.sqrt_mul h₁ r.re, real.sqrt_mul_self h₁] },
+      { simp only [h₂, add_zero, of_real_im, star_def, zero_mul, conj_im,
+                   mul_im, mul_zero, neg_zero] } },
+    { obtain ⟨s, rfl⟩ := h,
+      simp only [←norm_sq_eq_conj_mul_self, norm_sq_nonneg, zero_le_real, star_def] } },
+  ..complex.ordered_comm_ring }
 
 localized "attribute [instance] complex.star_ordered_ring" in complex_order
 
@@ -650,7 +657,7 @@ by rw [lim_eq_lim_im_add_lim_re]; simp
 
 lemma is_cau_seq_conj (f : cau_seq ℂ abs) : is_cau_seq abs (λ n, conj (f n)) :=
 λ ε ε0, let ⟨i, hi⟩ := f.2 ε ε0 in
-⟨i, λ j hj, by rw [← ring_equiv.map_sub, abs_conj]; exact hi j hj⟩
+⟨i, λ j hj, by rw [← ring_hom.map_sub, abs_conj]; exact hi j hj⟩
 
 /-- The complex conjugate of a complex Cauchy sequence, as a complex Cauchy sequence. -/
 noncomputable def cau_seq_conj (f : cau_seq ℂ abs) : cau_seq ℂ abs :=

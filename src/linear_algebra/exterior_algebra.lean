@@ -210,10 +210,10 @@ lemma algebra_map_left_inverse :
 
 @[simp] lemma algebra_map_eq_zero_iff (x : R) :
   algebra_map R (exterior_algebra R M) x = 0 ↔ x = 0 :=
-by rw [←algebra_map_inj M x 0, ring_hom.map_zero]
+map_eq_zero_iff (algebra_map _ _) (algebra_map_left_inverse _).injective
 
 @[simp] lemma algebra_map_eq_one_iff (x : R) : algebra_map R (exterior_algebra R M) x = 1 ↔ x = 1 :=
-by rw [←algebra_map_inj M x 1, ring_hom.map_one]
+map_eq_one_iff (algebra_map _ _) (algebra_map_left_inverse _).injective
 
 variables {M}
 

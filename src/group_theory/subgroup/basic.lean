@@ -312,12 +312,12 @@ lemma zpow_mem {x : G} (hx : x ∈ K) : ∀ n : ℤ, x ^ n ∈ K
 /-- Construct a subgroup from a nonempty set that is closed under division. -/
 @[to_additive "Construct a subgroup from a nonempty set that is closed under subtraction"]
 def of_div (s : set G) (hsn : s.nonempty) (hs : ∀ x y ∈ s, x * y⁻¹ ∈ s) : subgroup G :=
-have one_mem : (1 : G) ∈ s, from let ⟨x, hx⟩ := hsn in by simpa using hs x x hx hx,
-have inv_mem : ∀ x, x ∈ s → x⁻¹ ∈ s, from λ x hx, by simpa using hs 1 x one_mem hx,
+have one_mem : (1 : G) ∈ s, from let ⟨x, hx⟩ := hsn in by simpa using hs x hx x hx,
+have inv_mem : ∀ x, x ∈ s → x⁻¹ ∈ s, from λ x hx, by simpa using hs 1 one_mem x hx,
 { carrier := s,
   one_mem' := one_mem,
   inv_mem' := inv_mem,
-  mul_mem' := λ x y hx hy, by simpa using hs x y⁻¹ hx (inv_mem y hy) }
+  mul_mem' := λ x y hx hy, by simpa using hs x hx y⁻¹ (inv_mem y hy) }
 
 /-- A subgroup of a group inherits a multiplication. -/
 @[to_additive "An `add_subgroup` of an `add_group` inherits an addition."]
@@ -1014,7 +1014,7 @@ def prod (H : subgroup G) (K : subgroup N) : subgroup (G × N) :=
 
 @[to_additive coe_prod]
 lemma coe_prod (H : subgroup G) (K : subgroup N) :
- (H.prod K : set (G × N)) = (H : set G).prod (K : set N) := rfl
+  (H.prod K : set (G × N)) = (H : set G) ×ˢ (K : set N) := rfl
 
 @[to_additive mem_prod]
 lemma mem_prod {H : subgroup G} {K : subgroup N} {p : G × N} :

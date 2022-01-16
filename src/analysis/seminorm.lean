@@ -68,7 +68,7 @@ Absorbent and balanced sets in a vector space over a normed field.
 open normed_field set
 open_locale pointwise topological_space nnreal
 
-variables {𝕜 E ι : Type*}
+variables {R 𝕜 E ι : Type*}
 
 section semi_normed_ring
 variables [semi_normed_ring 𝕜]
@@ -279,7 +279,7 @@ protected lemma smul : p (c • x) = ∥c∥ * p x := p.smul' _ _
 protected lemma triangle : p (x + y) ≤ p x + p y := p.triangle' _ _
 
 /-- Any action on `ℝ` which factors through `ℝ≥0` applies to a seminorm. -/
-instance {R} [has_scalar R ℝ] [has_scalar R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ] :
+instance [has_scalar R ℝ] [has_scalar R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ] :
   has_scalar R (seminorm 𝕜 E) :=
 { smul := λ r p,
   { to_fun := λ x, r • p x,
@@ -293,10 +293,10 @@ instance {R} [has_scalar R ℝ] [has_scalar R ℝ≥0] [is_scalar_tower R ℝ≥
         (mul_add _ _ _),
     end } }
 
-lemma coe_smul {R} [has_scalar R ℝ] [has_scalar R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ]
+lemma coe_smul [has_scalar R ℝ] [has_scalar R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ]
   (r : R) (p : seminorm 𝕜 E) : ⇑(r • p) = r • p := rfl
 
-@[simp] lemma smul_apply {R} [has_scalar R ℝ] [has_scalar R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ]
+@[simp] lemma smul_apply [has_scalar R ℝ] [has_scalar R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ]
   (r : R) (p : seminorm 𝕜 E) (x : E) : (r • p) x = r • p x := rfl
 
 instance : has_add (seminorm 𝕜 E) :=
@@ -314,27 +314,34 @@ instance : add_monoid (seminorm 𝕜 E) :=
 fun_like.coe_injective.add_monoid_smul _ rfl coe_add (λ p n, coe_smul n p)
 
 instance : ordered_cancel_add_comm_monoid (seminorm 𝕜 E) :=
-fun_like.coe_injective.ordered_cancel_add_comm_monoid _ rfl coe_add
+{ nsmul := (•),  -- to avoid introducing a diamond
+  ..seminorm.add_monoid,
+  ..(fun_like.coe_injective.ordered_cancel_add_comm_monoid _ rfl coe_add
+      : ordered_cancel_add_comm_monoid (seminorm 𝕜 E)) }
+
+instance [monoid R] [mul_action R ℝ] [has_scalar R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ] :
+  mul_action R (seminorm 𝕜 E) :=
+fun_like.coe_injective.mul_action _ coe_smul
+
+variables (𝕜 E)
 
 /-- `coe_fn` as an `add_monoid_hom`. Helper definition for showing that `seminorm 𝕜 E` is
 a module. -/
-def coe_fn_add_monoid_hom (𝕜) (E) [semi_normed_ring 𝕜] [add_monoid E] [has_scalar 𝕜 E] :
-  add_monoid_hom (seminorm 𝕜 E) (E → ℝ) := ⟨coe_fn, coe_zero, coe_add⟩
+@[simps]
+def coe_fn_add_monoid_hom : add_monoid_hom (seminorm 𝕜 E) (E → ℝ) := ⟨coe_fn, coe_zero, coe_add⟩
 
-lemma coe_add_monoid_hom : ⇑(coe_fn_add_monoid_hom 𝕜 E) = coe_fn := rfl
+lemma coe_fn_add_monoid_hom_injective : function.injective (coe_fn_add_monoid_hom 𝕜 E) :=
+show @function.injective (seminorm 𝕜 E) (E → ℝ) coe_fn, from fun_like.coe_injective
 
-lemma coe_add_monoid_injective : function.injective (coe_fn_add_monoid_hom 𝕜 E) :=
-begin
-  rw coe_add_monoid_hom,
-  exact fun_like.coe_injective,
-end
+variables {𝕜 E}
 
-instance : module (ℝ≥0) (seminorm 𝕜 E) :=
-begin
-  refine function.injective.module (ℝ≥0) (coe_fn_add_monoid_hom 𝕜 E) coe_add_monoid_injective _,
-  rw coe_add_monoid_hom,
-  exact coe_smul,
-end
+instance [monoid R] [distrib_mul_action R ℝ] [has_scalar R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ] :
+  distrib_mul_action R (seminorm 𝕜 E) :=
+(coe_fn_add_monoid_hom_injective 𝕜 E).distrib_mul_action _ coe_smul
+
+instance [semiring R] [module R ℝ] [has_scalar R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ] :
+  module R (seminorm 𝕜 E) :=
+(coe_fn_add_monoid_hom_injective 𝕜 E).module R _ coe_smul
 
 -- TODO: define `has_Sup` too, from the skeleton at
 -- https://github.com/leanprover-community/mathlib/pull/11329#issuecomment-1008915345

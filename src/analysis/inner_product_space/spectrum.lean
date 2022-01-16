@@ -5,6 +5,8 @@ Authors: Heather Macbeth
 -/
 import analysis.inner_product_space.rayleigh
 import analysis.inner_product_space.pi_L2
+import algebra.star.self_adjoint
+import analysis.inner_product_space.adjoint
 
 /-! # Spectral theory of self-adjoint operators
 
@@ -46,6 +48,7 @@ variables {𝕜 : Type*} [is_R_or_C 𝕜] [dec_𝕜 : decidable_eq 𝕜]
 variables {E : Type*} [inner_product_space 𝕜 E]
 
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 E _ x y
+local postfix `†`:std.prec.max_plus := linear_map.adjoint
 
 local attribute [instance] fact_one_le_two_real
 
@@ -109,6 +112,92 @@ begin
   have H₂ : p ≤ (eigenspace T μ)ᗮ := submodule.orthogonal_le (le_supr _ _),
   exact (eigenspace T μ).orthogonal_disjoint.mono_right H₂
 end
+
+end is_self_adjoint
+
+namespace star_normal
+
+variables [finite_dimensional 𝕜 E] {T : E →ₗ[𝕜] E} (hT : T ∈ star_normal (E →ₗ[𝕜] E))
+include hT
+
+local attribute [instance, priority 20] finite_dimensional.complete
+
+lemma adjoint_apply_mem_eigenspace_of_mem_eigenspace (μ : 𝕜) (v : E) (hv : v ∈ eigenspace T μ) :
+  T† v ∈ eigenspace T μ :=
+mem_eigenspace_iff.mpr $
+calc _ = (T * T†) v     : linear_map.mul_apply T T† v
+    ... = (T† * T) v    : by rw [←linear_map.star_eq_adjoint, star_normal.mem_iff.mp hT]
+    ... = T† (T v)      : linear_map.mul_apply T† T v
+    ... = T† (μ • v)    : by rw [mem_eigenspace_iff.mp hv]
+    ... = μ • (T† v)    : by simp only [ring_hom.id_apply, linear_map.map_smulₛₗ]
+
+/-- An eigenvector of a normal operator is also an eigenvector of its adjoint. -/
+lemma mem_eigenspace_adjoint (μ : 𝕜) (v : E) (hv : v ∈ eigenspace T μ) :
+  v ∈ eigenspace T† (conj μ) :=
+begin
+  rw [mem_eigenspace_iff],
+  let v' : eigenspace T μ := ⟨v, hv⟩,
+  let Tdagv' : eigenspace T μ := ⟨T† v, adjoint_apply_mem_eigenspace_of_mem_eigenspace hT μ v hv⟩,
+  have : Tdagv' = (conj μ) • v',
+  { refine ext_inner_left 𝕜 (λ w, _),
+    dsimp [inner],
+    rw [linear_map.adjoint_inner_right, mem_eigenspace_iff.mp w.prop, inner_smul_left,
+        inner_smul_right] },
+  rwa subtype.ext_iff_val at this,
+end
+
+/-- A normal operator preserves orthogonal complements of its eigenspaces. -/
+lemma invariant_orthogonal_eigenspace (μ : 𝕜) (v : E) (hv : v ∈ (eigenspace T μ)ᗮ) :
+  T v ∈ (eigenspace T μ)ᗮ :=
+λ w hw, by rw [←linear_map.adjoint_inner_left,
+               hv (T† w) (adjoint_apply_mem_eigenspace_of_mem_eigenspace hT μ w hw)]
+
+/-- The eigenspaces of a normal operator are mutually orthogonal. -/
+lemma orthogonal_family_eigenspaces : orthogonal_family 𝕜 (eigenspace T) :=
+begin
+  intros μ ν hμν v hv w hw,
+  by_cases hv' : v = 0,
+  { simp [hv'] },
+  rw mem_eigenspace_iff at hw,
+  have hv' := mem_eigenspace_adjoint hT μ v hv,
+  rw mem_eigenspace_iff at hv',
+  refine or.resolve_left _ hμν.symm,
+  have h₁ : ⟪v, T w⟫ = ν * ⟪v, w⟫ := by rw [hw, inner_smul_right],
+  have h₂ : ⟪v, T w⟫ = μ * ⟪v, w⟫ := by rw [←linear_map.adjoint_inner_left, hv', inner_smul_left,
+                                            is_R_or_C.conj_conj],
+  rw [h₁] at h₂,
+  exact mul_eq_mul_right_iff.mp h₂,
+end
+
+lemma orthogonal_family_eigenspaces' : orthogonal_family 𝕜 (λ μ : eigenvalues T, eigenspace T μ) :=
+(orthogonal_family_eigenspaces hT).comp subtype.coe_injective
+
+/-- The mutual orthogonal complement of the eigenspaces of a normal operator on an inner
+product space is an invariant subspace of the operator. -/
+lemma orthogonal_supr_eigenspaces_invariant ⦃v : E⦄ (hv : v ∈ (⨆ μ, eigenspace T μ)ᗮ) :
+  T v ∈ (⨆ μ, eigenspace T μ)ᗮ :=
+begin
+  rw ← submodule.infi_orthogonal at ⊢ hv,
+  exact T.infi_invariant (invariant_orthogonal_eigenspace hT) v hv
+end
+
+/-- The mutual orthogonal complement of the eigenspaces of a normal operator on an inner
+product space has no eigenvalues. -/
+lemma orthogonal_supr_eigenspaces (μ : 𝕜) :
+  eigenspace (T.restrict (orthogonal_supr_eigenspaces_invariant hT)) μ = ⊥ :=
+begin
+  set p : submodule 𝕜 E := (⨆ μ, eigenspace T μ)ᗮ,
+  refine eigenspace_restrict_eq_bot (orthogonal_supr_eigenspaces_invariant hT) _,
+  have H₂ : p ≤ (eigenspace T μ)ᗮ := submodule.orthogonal_le (le_supr _ _),
+  exact (eigenspace T μ).orthogonal_disjoint.mono_right H₂
+end
+
+end star_normal
+
+namespace is_self_adjoint
+
+variables {T : E →ₗ[𝕜] E} (hT : is_self_adjoint T)
+include hT
 
 /-! ### Finite-dimensional theory -/
 

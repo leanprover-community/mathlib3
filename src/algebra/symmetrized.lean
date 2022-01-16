@@ -125,14 +125,14 @@ not_congr $ unsym_eq_one_iff a
 not_congr $ sym_eq_one_iff a
 
 instance [add_comm_semigroup α] : add_comm_semigroup (αˢʸᵐ) :=
-unsym_injective.add_comm_semigroup _ (λ _ _, rfl)
+unsym_injective.add_comm_semigroup _ unsym_add
 
 instance [add_monoid α] : add_monoid (αˢʸᵐ) :=
-unsym_injective.add_monoid_smul _ rfl (λ _ _, rfl) (λ _ _, rfl)
+unsym_injective.add_monoid_smul _ unsym_zero unsym_add (λ _ _, rfl)
 
 instance [add_group α] : add_group (αˢʸᵐ) :=
-unsym_injective.add_group_smul _ rfl
-  (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
+unsym_injective.add_group_smul _ unsym_zero
+  unsym_add unsym_neg unsym_sub (λ _ _, rfl) (λ _ _, rfl)
 
 instance [add_comm_monoid α] : add_comm_monoid (αˢʸᵐ) :=
 { ..sym_alg.add_comm_semigroup, ..sym_alg.add_monoid }
@@ -141,24 +141,10 @@ instance [add_comm_group α] : add_comm_group (αˢʸᵐ) :=
 { ..sym_alg.add_comm_monoid, ..sym_alg.add_group }
 
 instance {R : Type*} [semiring R] [add_comm_monoid α] [module R α] : module R αˢʸᵐ :=
-function.injective.module R ⟨unsym, rfl, λ _ _, rfl⟩ (λ _ _, id) (λ _ _, rfl)
+function.injective.module R ⟨unsym, unsym_zero, unsym_add⟩ unsym_injective unsym_smul
 
 lemma mul_def [ring α] [invertible (2 : α)] (a b : αˢʸᵐ) :
   a * b = sym (⅟2*(unsym a * unsym b + unsym b * unsym a)) := by refl
-
-instance [has_mul α] [has_add α] [has_one α] [invertible (2 : α)] (a : α) [invertible a] :
-  invertible (sym a) :=
-{ inv_of := sym ⅟a,
-  inv_of_mul_self := begin
-    change ⅟2 * (⅟a * a + a * ⅟a) = 1,
-    rw [mul_inv_of_self, inv_of_mul_self],
-    exact mul_inv_of_self (⅟ 2),
-  end,
-  mul_inv_of_self := begin
-    change ⅟2 * (a* ⅟a + ⅟a * a)=1,
-    rw [mul_inv_of_self, inv_of_mul_self],
-    exact mul_inv_of_self (⅟ 2),
-  end }
 
 lemma unsym_mul [has_mul α] [has_add α] [has_one α] [invertible (2 : α)] (a b : αˢʸᵐ) :
   unsym (a * b) = ⅟2*(unsym a * unsym b + unsym b * unsym a) := by refl
@@ -167,18 +153,25 @@ lemma sym_mul_sym [has_mul α] [has_add α] [has_one α] [invertible (2 : α)] (
   sym a * sym b = sym (⅟2*(a * b + b * a)) :=
 rfl
 
+instance [has_mul α] [has_add α] [has_one α] [invertible (2 : α)] (a : α) [invertible a] :
+  invertible (sym a) :=
+{ inv_of := sym (⅟a),
+  inv_of_mul_self := begin
+    rw [sym_mul_sym, mul_inv_of_self, inv_of_mul_self, ←bit0, inv_of_mul_self, sym_one],
+  end,
+  mul_inv_of_self := begin
+    rw [sym_mul_sym, mul_inv_of_self, inv_of_mul_self, ←bit0, inv_of_mul_self, sym_one],
+  end }
+
+@[simp] lemma inv_of_sym [has_mul α] [has_add α] [has_one α] [invertible (2 : α)] (a : α)
+  [invertible a] : ⅟(sym a) = sym (⅟a) := rfl
+
 /- The symmetrization of a real (unital, associative) algebra is a non-associative ring -/
 instance [ring α] [invertible (2 : α)] : non_unital_non_assoc_ring (αˢʸᵐ) :=
-{ zero_mul := λ _,
-  begin
-    rw [mul_def, unsym_zero, zero_mul, mul_zero, add_zero, mul_zero, sym_zero],
-    exact rfl,
-  end,
-  mul_zero :=  λ _,
-  begin
-    rw [mul_def, unsym_zero, zero_mul, mul_zero, add_zero, mul_zero, sym_zero],
-    exact rfl,
-  end,
+{ mul := (*),
+  zero := (0),
+  zero_mul := λ _, by rw [mul_def, unsym_zero, zero_mul, mul_zero, add_zero, mul_zero, sym_zero],
+  mul_zero := λ _, by rw [mul_def, unsym_zero, zero_mul, mul_zero, add_zero, mul_zero, sym_zero],
   left_distrib := λ a b c, match a, b, c with
     | sym a, sym b, sym c := begin
       rw [sym_mul_sym, sym_mul_sym, ←sym_add, sym_mul_sym, ←sym_add, mul_add a, add_mul _ _ a,
@@ -191,7 +184,6 @@ instance [ring α] [invertible (2 : α)] : non_unital_non_assoc_ring (αˢʸᵐ)
         add_add_add_comm, mul_add],
     end
   end,
-  ..sym_alg.has_mul,
   ..sym_alg.add_comm_group, }
 
 /- The squaring operation coincides for both multiplications -/

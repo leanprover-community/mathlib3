@@ -9,7 +9,7 @@ import group_theory.submonoid.operations
 /-!
 # Unitary elements of a star monoid
 
-This file defines `unitary R`, where `R` is a star monoid, as the submonoid containing the elements
+This file defines `unitary R`, where `R` is a star monoid, as the submonoid made of the elements
 that satisfy `star U * U = 1` and `U * star U = 1`, and these form a group.
 This includes, for instance, unitary operators on Hilbert spaces.
 

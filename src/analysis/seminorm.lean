@@ -443,7 +443,7 @@ begin
 end
 
 lemma ball_smul_ball (p : seminorm 𝕜 E) (r₁ r₂ : ℝ) :
-  metric.ball (0:𝕜) r₁ • p.ball 0 r₂ ⊆ p.ball 0 (r₁ * r₂) :=
+  metric.ball (0 : 𝕜) r₁ • p.ball 0 r₂ ⊆ p.ball 0 (r₁ * r₂) :=
 begin
   rw set.subset_def,
   intros x hx,
@@ -498,12 +498,9 @@ end
 
 @[simp]
 lemma preimage_smul_ball (p : seminorm 𝕜 E) (r : ℝ) (a : 𝕜) (ha : a ≠ 0) :
-  (λ (v : E), a • v) ⁻¹' p.ball 0 r = p.ball 0 (r/∥a∥) :=
-begin
-  ext,
-  rw [mem_preimage, mem_ball_zero, mem_ball_zero, p.smul, lt_div_iff (norm_pos_iff.mpr ha),
-    mul_comm],
-end
+  (λ (v : E), a • v) ⁻¹' p.ball 0 r = p.ball 0 (r / ∥a∥) :=
+set.ext $ λ x, by rw [mem_preimage, mem_ball_zero, mem_ball_zero, p.smul,
+  lt_div_iff (norm_pos_iff.mpr ha), mul_comm]
 
 end normed_field
 

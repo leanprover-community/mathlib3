@@ -99,7 +99,7 @@ def equiv_finsupp : free_abelian_group X ≃+ (X →₀ ℤ) :=
  /-- we now obtain that `A` is a basis for `free_abelian_group X`. -/
 noncomputable def basis (α : Type*) :
   basis α ℤ (free_abelian_group α) :=
-⟨add_equiv.to_int_linear_equiv (free_abelian_group.equiv_finsupp α)⟩
+⟨(free_abelian_group.equiv_finsupp α).to_int_linear_equiv ⟩
 
 variable {X}
 

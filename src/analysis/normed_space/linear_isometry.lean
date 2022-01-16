@@ -88,6 +88,8 @@ protected lemma congr_fun {f g : E →ₛₗᵢ[σ₁₂] E₂} (h : f = g) (x :
 
 @[simp] lemma map_add (x y : E) : f (x + y) = f x + f y := f.to_linear_map.map_add x y
 
+@[simp] lemma map_neg (x : E) : f (- x) = - f x := f.to_linear_map.map_neg x
+
 @[simp] lemma map_sub (x y : E) : f (x - y) = f x - f y := f.to_linear_map.map_sub x y
 
 @[simp] lemma map_smulₛₗ (c : R) (x : E) : f (c • x) = σ₁₂ c • f x := f.to_linear_map.map_smulₛₗ c x

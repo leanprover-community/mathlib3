@@ -40,7 +40,7 @@ def nfp_family_iterate (f : ι → ordinal → ordinal) (a : ordinal) : list ι 
 theorem nfp_family_iterate_nil (f : ι → ordinal → ordinal) (a) : nfp_family_iterate f a [] = a :=
 rfl
 
-theorem nfp_family_iterate_append (f : ι → ordinal → ordinal) (i l a) :
+theorem nfp_family_iterate_cons (f : ι → ordinal → ordinal) (i l a) :
   nfp_family_iterate f a (i :: l) = f i (nfp_family_iterate f a l) :=
 rfl
 
@@ -121,8 +121,7 @@ le_antisymm (sup_le.2 (λ l, (by rw nfp_family_iterate_fixed h))) (le_nfp_family
 has an unbounded set of common fixed points. -/
 theorem nfp_family_unbounded {f : ι → ordinal.{max u v} → ordinal.{max u v}}
   (H : ∀ i, is_normal (f i)) : unbounded (<) (⋂ i, function.fixed_points (f i)) :=
-λ a, ⟨_, begin
-  rintros S ⟨i, hi⟩,
+λ a, ⟨_, λ s ⟨i, hi⟩, begin
   rw ←hi,
   exact nfp_family_fp H i a
 end, not_lt_of_ge (le_nfp_family_self f a)⟩

@@ -45,11 +45,12 @@ noncomputable def spectral_radius (𝕜 : Type*) {A : Type*} [normed_field 𝕜]
   [algebra 𝕜 A] (a : A) : ℝ≥0∞ :=
 ⨆ k ∈ spectrum 𝕜 a, ∥k∥₊
 
+variables {𝕜 : Type*} {A : Type*}
+
 namespace spectrum
 
 section spectrum_compact
 
-variables {𝕜 : Type*} {A : Type*}
 variables [normed_field 𝕜] [normed_ring A] [normed_algebra 𝕜 A] [complete_space A]
 
 local notation `σ` := spectrum 𝕜
@@ -114,7 +115,6 @@ end spectrum_compact
 
 section resolvent_deriv
 
-variables {𝕜 : Type*} {A : Type*}
 variables [nondiscrete_normed_field 𝕜] [normed_ring A] [normed_algebra 𝕜 A] [complete_space A]
 
 local notation `ρ` := resolvent_set 𝕜
@@ -132,3 +132,33 @@ end
 end resolvent_deriv
 
 end spectrum
+
+namespace alg_hom
+
+section normed_field
+variables [normed_field 𝕜] [normed_ring A] [normed_algebra 𝕜 A] [complete_space A]
+local notation `↑ₐ` := algebra_map 𝕜 A
+
+/-- An algebra homomorphism into the base field, as a continuous linear map (since it is
+automatically bounded). -/
+@[simps] def to_continuous_linear_map (φ : A →ₐ[𝕜] 𝕜) : A →L[𝕜] 𝕜 :=
+φ.to_linear_map.mk_continuous_of_exists_bound $
+  ⟨1, λ a, (one_mul ∥a∥).symm ▸ spectrum.norm_le_norm_of_mem (φ.apply_mem_spectrum _)⟩
+
+lemma continuous (φ : A →ₐ[𝕜] 𝕜) : continuous φ := φ.to_continuous_linear_map.continuous
+
+end normed_field
+
+section nondiscrete_normed_field
+variables [nondiscrete_normed_field 𝕜] [normed_ring A] [normed_algebra 𝕜 A] [complete_space A]
+local notation `↑ₐ` := algebra_map 𝕜 A
+
+lemma to_continuous_linear_map_norm [norm_one_class A] (φ : A →ₐ[𝕜] 𝕜) :
+  ∥φ.to_continuous_linear_map∥ = 1 :=
+continuous_linear_map.op_norm_eq_of_bounds zero_le_one
+  (λ a, (one_mul ∥a∥).symm ▸ spectrum.norm_le_norm_of_mem (φ.apply_mem_spectrum _))
+  (λ _ _ h, by simpa only [to_continuous_linear_map_apply, mul_one, map_one, norm_one] using h 1)
+
+end nondiscrete_normed_field
+
+end alg_hom

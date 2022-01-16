@@ -271,6 +271,8 @@ instance : has_zero (seminorm 𝕜 E) :=
 
 @[simp] lemma coe_zero : ⇑(0 : seminorm 𝕜 E) = 0 := rfl
 
+@[simp] lemma zero_apply (x : E) : (0 : seminorm 𝕜 E) x = 0 := rfl
+
 instance : inhabited (seminorm 𝕜 E) := ⟨0⟩
 
 variables (p : seminorm 𝕜 E) (c : 𝕜) (x y : E) (r : ℝ)
@@ -329,6 +331,12 @@ lemma comp_apply (p : seminorm 𝕜 F) (f : E →ₗ[𝕜] F) (x : E) : (p.comp 
 
 @[simp] lemma comp_id (p : seminorm 𝕜 E) : p.comp linear_map.id = p :=
 ext $ λ _, rfl
+
+@[simp] lemma comp_zero (p : seminorm 𝕜 F) : p.comp (0 : E →ₗ[𝕜] F) = 0 :=
+ext $ λ _, by rw [comp_apply, linear_map.zero_apply, seminorm.zero, seminorm.zero_apply]
+
+@[simp] lemma zero_comp (f : E →ₗ[𝕜] F) : (0 : seminorm 𝕜 F).comp f = 0 :=
+ext $ λ _, by simp_rw [comp_apply, seminorm.zero_apply]
 
 lemma comp_comp (p : seminorm 𝕜 G) (g : F →ₗ[𝕜] G) (f : E →ₗ[𝕜] F) :
   p.comp (g.comp f) = (p.comp g).comp f :=

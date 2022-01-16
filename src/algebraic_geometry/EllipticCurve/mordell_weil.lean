@@ -21,6 +21,51 @@ variables (E : EllipticCurve F)
 variables (K : Type*) [field K] [algebra F K]
 
 ----------------------------------------------------------------------------------------------------
+/-! ## Group theory -/
+
+section group_theory
+
+variables {G H : Type*} [add_comm_group G] [add_comm_group H]
+
+/-- For an exact sequence `0 → K → G → H`, if `K` and `H` are finite, then `G` is finite. -/
+def fintype.of_fintype_ker_codom {f : G →+ H} : fintype f.ker → fintype H → fintype G :=
+λ hK hH, @fintype.of_equiv _ _
+  (@prod.fintype _ _ (@fintype.of_injective _ _ hH _ $ quotient_add_group.ker_lift_injective f) hK)
+  add_subgroup.add_group_equiv_quotient_times_add_subgroup.symm
+
+local notation n`⬝`G := (distrib_mul_action.to_add_monoid_hom G n).range
+local notation G/n := G ⧸ (n⬝G)
+
+/-- If `G ≃ H`, then `G / nG ≃ H / nH`. -/
+def quotient_add_group.quotient_equiv_of_equiv (n : ℕ) (hGH : G ≃+ H) : G/n ≃+ H/n :=
+begin
+  have ker_eq_range : (n⬝G) = ((quotient_add_group.mk' (n⬝H)).comp hGH.to_add_monoid_hom).ker :=
+  begin
+    ext g,
+    change (∃ h : G, n • h = g) ↔ ↑(hGH.to_add_monoid_hom g) = (0 : H/n),
+    rw [quotient_add_group.eq_zero_iff],
+    change _ ↔ ∃ h : H, n • h = hGH.to_add_monoid_hom g,
+    split,
+    { intro hg,
+      existsi [hGH.to_add_monoid_hom hg.some],
+      rw [← map_nsmul, hg.some_spec] },
+    { intro hg,
+      existsi [hGH.symm.to_add_monoid_hom hg.some],
+      rw [← map_nsmul, hg.some_spec],
+      exact hGH.left_inv g }
+  end,
+  rw [ker_eq_range],
+  apply quotient_add_group.quotient_ker_equiv_of_surjective,
+  intro g,
+  existsi [hGH.inv_fun $ quot.out g],
+  change ↑(hGH.to_fun $ hGH.inv_fun $ quot.out g) = g,
+  rw [hGH.right_inv],
+  exact quot.out_eq g
+end
+
+end group_theory
+
+----------------------------------------------------------------------------------------------------
 
 namespace EllipticCurve
 
@@ -94,26 +139,10 @@ begin
   exact hQ
 end
 
-/-- For an exact sequence `0 → K → G → H`, if `K` and `H` are finite, then `G` is finite. -/
-def fintype.of_codom_of_ker {G H : Type*} [add_comm_group G] [add_comm_group H] {f : G →+ H} :
-  fintype f.ker → fintype H → fintype G :=
-λ hK hH, @fintype.of_equiv _ _
-  (@prod.fintype _ _ (@fintype.of_injective _ _ hH _ $ quotient_add_group.ker_lift_injective f) hK)
-  add_subgroup.add_group_equiv_quotient_times_add_subgroup.symm
-
-/-- `E(K)[2]` is finite. -/
-instance ker.fintype.of_algebra [h2 : invertible (2 : F)] : fintype E⟮K⟯[2] :=
-begin
-  rw [← algebra.id.map_eq_self (2 : F)] at h2,
-  replace h2 := @is_scalar_tower.invertible.algebra_tower _ _ K _ _ _ _ _ _ _ _ h2,
-  rw [map_bit0, ring_hom.map_one] at h2,
-  exact @ker.fintype _ _ _ _ _ _ h2
-end
-
 /-- If `E(K)/2E(K)` is finite, then `E(F)/2E(F)` is finite. -/
 def fintype.of_coker_2_hom [invertible (2 : F)] [finite_dimensional F K] [is_galois F K] :
   fintype (E⟮K⟯/2) → fintype E⟮F⟯/2 :=
-fintype.of_codom_of_ker $ fintype.of_injective (δ E K 2) (δ.injective E K 2)
+fintype.of_fintype_ker_codom $ fintype.of_injective (δ E K 2) (δ.injective E K 2)
 
 end reduction
 
@@ -124,13 +153,18 @@ section weak_mordell_weil
 
 variables [number_field F]
 
-instance invertible_two_of_number_field : invertible (2 : F) := invertible_of_nonzero two_ne_zero'
+/-- `2` is invertible in a number field. -/
+instance number_field.invertible_two : invertible (2 : F) := invertible_of_nonzero two_ne_zero'
 
 /-- A splitting field of a number field is Galois. -/
-instance : is_galois F F⟮E[2]⟯ := ⟨⟩
+instance number_field.splitting_field_is_galois : is_galois F F⟮E[2]⟯ := ⟨⟩
+
+lemma fintype.of_covₘ_coker_2 : fintype E.covₘ⟮F⟮E[2]⟯⟯/2 := sorry
 
 /-- The weak Mordell-Weil theorem for `n = 2`: `E(F)/2E(F)` is finite. -/
-instance : fintype E⟮F⟯/2 := fintype.of_coker_2_hom E (F⟮E[2]⟯) sorry
+instance fintype.of_coker_2 : fintype E⟮F⟯/2 :=
+fintype.of_coker_2_hom _ _ $ @fintype.of_equiv _ _ (fintype.of_covₘ_coker_2 E)
+  (quotient_add_group.quotient_equiv_of_equiv 2 $ covₘ.equiv_add E F⟮E[2]⟯).to_equiv
 
 end weak_mordell_weil
 

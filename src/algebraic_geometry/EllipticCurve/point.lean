@@ -628,5 +628,108 @@ by { revert σ, change ιₚ E K L P ∈ E⟮L⟯^K, rw [point_gal.fixed.eq], us
 end galois
 
 ----------------------------------------------------------------------------------------------------
+/-! ## Isomorphism on `E(K)` induced by a linear change of variables -/
+
+section change_of_variables
+
+variables (u : Fˣ) (r s t : F)
+
+/-- The function on `E(K)` induced by a linear change of variables
+  `(x, y) ↦ (u²x + r, u³y + u²sx + t)` for some `u ∈ Rˣ` and some `r, s, t ∈ R`. -/
+def cov.to_fun : (E.cov u r s t)⟮K⟯ → E⟮K⟯
+| 0            := 0
+| (some x y w) :=
+some ((F↑K)u.val ^ 2 * x + (F↑K)r) ((F↑K)u.val ^ 3 * y + (F↑K)u.val ^ 2 * (F↑K)s * x + (F↑K)t)
+begin
+  have w_rw : ∀ a₁ a₂ a₃ a₄ a₆ v i : K,
+    v ^ 6 * (y ^ 2 + i * a₁ * x * y + i ^ 3 * a₃ * y)
+    - v ^ 6 * (x ^ 3 + i ^ 2 * a₂ * x ^ 2 + i ^ 4 * a₄ * x + i ^ 6 * a₆)
+    = v ^ 6 * y ^ 2 + v ^ 5 * (v * i) * a₁ * x * y + v ^ 3 * (v * i) ^ 3 * a₃ * y - v ^ 6 * x ^ 3
+      - v ^ 4 * (v * i) ^ 2 * a₂ * x ^ 2 - v ^ 2 * (v * i) ^ 4 * a₄ * x - (v * i) ^ 6 * a₆ :=
+  by { intros, ring1 },
+  apply_fun ((*) ((F↑K)u.val ^ 6)) at w,
+  simp only [cov, algebra.id.map_eq_self] at w,
+  simp only [map_neg, map_add, map_sub, map_mul, map_pow] at w,
+  rw [← sub_eq_zero, w_rw, ← map_mul, u.val_inv] at w,
+  simp only [map_one, map_bit0, map_bit1] at w,
+  rw [← sub_eq_zero, ← w],
+  ring1
+end
+
+/-- The inverse function on `E(K)` induced by a linear change of variables
+  `(x, y) ↦ ((u⁻¹)²(x - r), (u⁻¹)³(y - sx + rs - t))` for some `u ∈ Rˣ` and some `r, s, t ∈ R`. -/
+def cov.inv_fun : E⟮K⟯ → (E.cov u r s t)⟮K⟯
+| 0            := 0
+| (some x y w) :=
+some ((F↑K)u.inv ^ 2 * (x - (F↑K)r)) ((F↑K)u.inv ^ 3 * (y - (F↑K)s * x + (F↑K)r * (F↑K)s - (F↑K)t))
+begin
+  apply_fun ((*) ((F↑K)u.inv ^ 6)) at w,
+  rw [← sub_eq_zero] at w,
+  simp only [cov, algebra.id.map_eq_self],
+  simp only [map_neg, map_add, map_sub, map_mul, map_pow],
+  simp only [map_one, map_bit0, map_bit1],
+  rw [← sub_eq_zero, ← w],
+  ring1
+end
+
+/-- `(x, y) ↦ ((u⁻¹)²(x - r), (u⁻¹)³(y - sx + rs - t))` is a left inverse of
+  `(x, y) ↦ (u²x + r, u³y + u²sx + t)` on `E(K)`. -/
+lemma cov.left_inv (P : (E.cov u r s t)⟮K⟯) :
+  cov.inv_fun E K u r s t (cov.to_fun E K u r s t P) = P :=
+begin
+  cases P with x y,
+  { refl },
+  { have x_rw : ∀ r v i : K, i ^ 2 * (v ^ 2 * x + r - r) = (i * v) ^ 2 * x := by { intros, ring1 },
+    have y_rw : ∀ r s t v i : K,
+      i ^ 3 * (v ^ 3 * y + v ^ 2 * s * x + t - s * (v ^ 2 * x + r) + r * s - t) = (i * v) ^ 3 * y :=
+    by { intros, ring1 },
+    simp only [cov.to_fun, cov.inv_fun],
+    rw [x_rw, y_rw, ← map_mul, u.inv_val],
+    simp only [one_mul, one_pow, map_one],
+    exact ⟨rfl, rfl⟩ }
+end
+
+/-- `(x, y) ↦ ((u⁻¹)²(x - r), (u⁻¹)³(y - sx + rs - t))` is a right inverse of
+  `(x, y) ↦ (u²x + r, u³y + u²sx + t)` on `E(K)`. -/
+lemma cov.right_inv (P : E⟮K⟯) : cov.to_fun E K u r s t (cov.inv_fun E K u r s t P) = P :=
+begin
+  cases P with x y,
+  { refl },
+  { have x_rw : ∀ r v i : K, v ^ 2 * (i ^ 2 * (x - r)) + r = (v * i) ^ 2 * (x - r) + r :=
+    by { intros, ring1 },
+    have y_rw : ∀ r s t v i : K,
+      v ^ 3 * (i ^ 3 * (y - s * x + r * s - t)) + v ^ 2 * s * (i ^ 2 * (x - r)) + t
+      = (v * i) ^ 3 * y + ((v * i) ^ 2 - (v * i) ^ 3) * (s * x - r * s) + (1 - (v * i) ^ 3) * t :=
+    by { intros, ring1 },
+    simp only [cov.to_fun, cov.inv_fun],
+    rw [x_rw, y_rw, ← map_mul, u.val_inv],
+    simp only [sub_self, sub_add_cancel, add_monoid.add_zero, zero_mul, one_mul, one_pow, map_one],
+    exact ⟨rfl, rfl⟩ }
+end
+
+/-- `(x, y) ↦ (u²x + r, u³y + u²sx + t)` is a group homomorphism on `E(K)`. -/
+lemma cov.map_add (P Q : (E.cov u r s t)⟮K⟯) :
+  cov.to_fun E K u r s t (P + Q) = cov.to_fun E K u r s t P + cov.to_fun E K u r s t Q :=
+begin
+  rcases ⟨P, Q⟩ with ⟨⟨_ | _⟩, ⟨_ | _⟩⟩,
+  any_goals { refl },
+  { sorry }
+end
+
+/-- `(x, y) ↦ (u²x + r, u³y + u²sx + t)` is a group isomorphism on `E(K)`. -/
+def cov.equiv_add : (E.cov u r s t)⟮K⟯ ≃+ E⟮K⟯ :=
+{ to_fun    := cov.to_fun E K u r s t,
+  inv_fun   := cov.inv_fun E K u r s t,
+  left_inv  := cov.left_inv E K u r s t,
+  right_inv := cov.right_inv E K u r s t,
+  map_add'  := cov.map_add E K u r s t }
+
+/-- Completing a square is a group isomorphism on `E(K)`. -/
+def covₘ.equiv_add [invertible (2 : F)] : E.covₘ⟮K⟯ ≃+ E⟮K⟯ :=
+cov.equiv_add E K 1 0 (-⅟2 * E.a₁) (-⅟2 * E.a₃)
+
+end change_of_variables
+
+----------------------------------------------------------------------------------------------------
 
 end EllipticCurve

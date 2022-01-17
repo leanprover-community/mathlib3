@@ -1208,6 +1208,16 @@ lemma prod_pow_boole [decidable_eq α] (s : finset α) (f : α → β) (a : α) 
   (∏ x in s, (f x)^(ite (a = x) 1 0)) = ite (a ∈ s) (f a) 1 :=
 by simp
 
+lemma finset_prod_dvd {S : finset α} (g1 g2 : α → β) (h : ∀ a ∈ S, g1 a ∣ g2 a) :
+  S.prod g1 ∣ S.prod g2 :=
+begin
+  classical,
+  apply @finset.induction_on' _ (λ S, S.prod g1 ∣ S.prod g2), { simp },
+  intros a T haS hTS haT IH,
+  repeat {rw finset.prod_insert haT},
+  exact mul_dvd_mul (h a haS) IH,
+end
+
 end comm_monoid
 
 /-- If `f = g = h` everywhere but at `i`, where `f i = g i + h i`, then the product of `f` over `s`
@@ -1558,15 +1568,4 @@ begin
   { intros i s his IH,
     simp only [his, finset.sum_insert, not_false_iff],
     exact (int.nat_abs_add_le _ _).trans (add_le_add le_rfl IH) }
-end
-
-lemma finset_prod_dvd {α N : Type*} [comm_monoid N] {S : finset α} (g1 g2 : α → N)
-  (h : ∀ a ∈ S, g1 a ∣ g2 a) :
-  S.prod g1 ∣ S.prod g2 :=
-begin
-  classical,
-  apply @finset.induction_on' _ (λ S, S.prod g1 ∣ S.prod g2), { simp },
-  intros a T haS hTS haT IH,
-  repeat {rw finset.prod_insert haT},
-  exact mul_dvd_mul (h a haS) IH,
 end

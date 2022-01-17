@@ -82,6 +82,17 @@ def roots_of_unity (k : ℕ+) (M : Type*) [comm_monoid M] : subgroup Mˣ :=
 @[simp] lemma mem_roots_of_unity (k : ℕ+) (ζ : Mˣ) :
   ζ ∈ roots_of_unity k M ↔ ζ ^ (k : ℕ) = 1 := iff.rfl
 
+/-- Make an element of `roots_of_unity` from a member of the base ring, and a proof that it has
+a positive power equal to one. -/
+@[simps coe_coe] def roots_of_unity.mk_of_pow_eq (ζ : M) {n : ℕ+} (h : ζ ^ (n : ℕ) = 1) :
+  roots_of_unity n M :=
+⟨units.mk_of_mul_eq_one ζ (ζ ^ n.nat_pred) $
+  by rwa [←pow_one ζ, ←pow_mul, ←pow_add, one_mul, pnat.one_add_nat_pred],
+units.ext $ by simpa⟩
+
+@[simp] lemma roots_of_unity.coe_mk_of_pow_eq {ζ : M} {n : ℕ+}
+  {h : ζ ^ (n : ℕ) = 1} : (roots_of_unity.mk_of_pow_eq _ h : M) = ζ := rfl
+
 lemma roots_of_unity_le_of_dvd (h : k ∣ l) : roots_of_unity k M ≤ roots_of_unity l M :=
 begin
   obtain ⟨d, rfl⟩ := h,

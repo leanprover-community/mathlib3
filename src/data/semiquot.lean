@@ -103,7 +103,7 @@ def map (f : α → β) (q : semiquot α) : semiquot β :=
 /-- Apply a function returning a `semiquot` to a `semiquot`. -/
 def bind (q : semiquot α) (f : α → semiquot β) : semiquot β :=
 ⟨⋃ a ∈ q.1, (f a).1,
- q.2.bind (λ a, (f a.1).2.map (λ b, ⟨b.1, set.mem_Union₂_of_mem a.2 b.2⟩))⟩
+ q.2.bind (λ a, (f a.1).2.map (λ b, ⟨b.1, set.mem_bUnion a.2 b.2⟩))⟩
 
 @[simp] theorem mem_bind (q : semiquot α) (f : α → semiquot β) (b : β) :
   b ∈ bind q f ↔ ∃ a ∈ q, b ∈ f a := set.mem_Union₂

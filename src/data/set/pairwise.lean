@@ -324,7 +324,7 @@ lemma bUnion_diff_bUnion_eq {s t : set ι} {f : ι → set α} (h : (s ∪ t).pa
   (⋃ i ∈ s, f i) \ (⋃ i ∈ t, f i) = (⋃ i ∈ s \ t, f i) :=
 begin
   refine (bUnion_diff_bUnion_subset f s t).antisymm
-    (Union₂_subset $ λ i hi a ha, (mem_diff _).2 ⟨mem_Union₂_of_mem hi.1 ha, _⟩),
+    (Union₂_subset $ λ i hi a ha, (mem_diff _).2 ⟨mem_bUnion hi.1 ha, _⟩),
   rw mem_Union₂, rintro ⟨j, hj, haj⟩,
   exact h (or.inl hi.1) (or.inr hj) (ne_of_mem_of_not_mem hj hi.2).symm ⟨ha, haj⟩,
 end

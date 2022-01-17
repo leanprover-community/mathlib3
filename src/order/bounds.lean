@@ -94,6 +94,16 @@ lemma is_lub.dual (h : is_lub s a) : is_glb (of_dual ⁻¹' s) (to_dual a) := h
 
 lemma is_glb.dual (h : is_glb s a) : is_lub (of_dual ⁻¹' s) (to_dual a) := h
 
+/-- If `a` is the least element of a set `s`, then subtype `s` is an order with bottom element. -/
+@[reducible] def is_least.order_bot (h : is_least s a) : order_bot s :=
+{ bot := ⟨a, h.1⟩,
+  bot_le := subtype.forall.2 h.2 }
+
+/-- If `a` is the greatest element of a set `s`, then subtype `s` is an order with top element. -/
+@[reducible] def is_greatest.order_top (h : is_greatest s a) : order_top s :=
+{ top := ⟨a, h.1⟩,
+  le_top := subtype.forall.2 h.2 }
+
 /-!
 ### Monotonicity
 -/

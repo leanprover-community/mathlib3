@@ -77,9 +77,17 @@ notation `⋂` binders `, ` r:(scoped f, Inter f) := r
 ⟨λ ⟨t, ⟨⟨a, (t_eq : s a = t)⟩, (h : x ∈ t)⟩⟩, ⟨a, t_eq.symm ▸ h⟩,
   λ ⟨a, h⟩, ⟨s a, ⟨⟨a, rfl⟩, h⟩⟩⟩
 
+theorem mem_Union₂ {x : γ} {β : α → Sort*} {s : Π a, β a → set γ} :
+  x ∈ (⋃ a b, s a b) ↔ ∃ a b, x ∈ s a b :=
+by simp only [set.mem_Union]
+
 @[simp] theorem mem_Inter {x : β} {s : ι → set β} : x ∈ Inter s ↔ ∀ i, x ∈ s i :=
 ⟨λ (h : ∀ a ∈ {a : set β | ∃ i, s i = a}, x ∈ a) a, h (s a) ⟨a, rfl⟩,
   λ h t ⟨a, (eq : s a = t)⟩, eq ▸ h a⟩
+
+theorem mem_Inter₂ {x : γ} {β : α → Sort*} {s : Π a, β a → set γ} :
+  x ∈ (⋂ a b, s a b) ↔ ∀ a b, x ∈ s a b :=
+by simp only [set.mem_Inter]
 
 theorem mem_sUnion {x : α} {S : set (set α)} : x ∈ ⋃₀ S ↔ ∃ t ∈ S, x ∈ t := iff.rfl
 
@@ -482,23 +490,13 @@ by simp only [Inter_or, Inter_inter_distrib, Inter_Inter_eq_left]
 
 /-! ### Bounded unions and intersections -/
 
-theorem mem_bUnion_iff {s : set α} {t : α → set β} {y : β} :
-  y ∈ (⋃ x ∈ s, t x) ↔ ∃ x ∈ s, y ∈ t x := by simp
-
-lemma mem_bUnion_iff' {p : α → Prop} {t : α → set β} {y : β} :
-  y ∈ (⋃ i (h : p i), t i) ↔ ∃ i (h : p i), y ∈ t i :=
-mem_bUnion_iff
-
-theorem mem_bInter_iff {s : set α} {t : α → set β} {y : β} :
-  y ∈ (⋂ x ∈ s, t x) ↔ ∀ x ∈ s, y ∈ t x := by simp
-
 theorem mem_bUnion {s : set α} {t : α → set β} {x : α} {y : β} (xs : x ∈ s) (ytx : y ∈ t x) :
   y ∈ ⋃ x ∈ s, t x :=
-mem_bUnion_iff.2 ⟨x, ⟨xs, ytx⟩⟩
+mem_Union₂.2 ⟨x, ⟨xs, ytx⟩⟩
 
 theorem mem_bInter {s : set α} {t : α → set β} {y : β} (h : ∀ x ∈ s, y ∈ t x) :
   y ∈ ⋂ x ∈ s, t x :=
-mem_bInter_iff.2 h
+mem_Inter₂.2 h
 
 theorem bUnion_subset {s : set α} {t : set β} {u : α → set β} (h : ∀ x ∈ s, u x ⊆ t) :
   (⋃ x ∈ s, u x) ⊆ t :=

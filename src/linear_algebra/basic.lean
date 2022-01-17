@@ -1199,6 +1199,31 @@ le_antisymm
   (supr_le $ assume i, subset.trans (assume m hm, set.mem_Union.mpr ⟨i, hm⟩) subset_span)
   (span_le.mpr $ Union_subset_iff.mpr $ assume i m hm, mem_supr_of_mem i hm)
 
+lemma supr_to_add_submonoid {ι : Sort*} (p : ι → submodule R M) :
+  (⨆ i, p i).to_add_submonoid = ⨆ i, (p i).to_add_submonoid :=
+begin
+  apply le_antisymm,
+  { intros x hx,
+    rw [mem_to_add_submonoid, supr_eq_span] at hx,
+    simp_rw [add_submonoid.supr_eq_closure, coe_to_add_submonoid],
+    refine submodule.span_induction hx (λ x hx, _) _ (λ x y hx hy, _) (λ r x hx, _),
+    { exact add_submonoid.subset_closure hx },
+    { exact add_submonoid.zero_mem _ },
+    { exact add_submonoid.add_mem _ hx hy },
+    { apply add_submonoid.closure_induction hx,
+      { rintros x ⟨_, ⟨i, rfl⟩, hix : x ∈ p i⟩,
+        apply add_submonoid.subset_closure (set.mem_Union.mpr ⟨i, _⟩),
+        exact smul_mem _ r hix },
+      { rw smul_zero,
+        exact add_submonoid.zero_mem _ },
+      { intros x y hx hy,
+        rw smul_add,
+        exact add_submonoid.add_mem _ hx hy, } } },
+  { refine supr_le (λ i, _),
+    refine to_add_submonoid_mono _,
+    exact le_supr _ i, }
+end
+
 lemma span_singleton_le_iff_mem (m : M) (p : submodule R M) : (R ∙ m) ≤ p ↔ m ∈ p :=
 by rw [span_le, singleton_subset_iff, set_like.mem_coe]
 

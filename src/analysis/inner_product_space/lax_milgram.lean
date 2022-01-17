@@ -92,48 +92,20 @@ end
 
 lemma surjective (coercive : is_coercive B): (lax_milgram_map B).range = ⊤ :=
 begin
-  rw submodule.eq_top_iff', intro v,
-  -- As the range of lax_milgram_map is closed, it is also complete
   haveI := (closed_range coercive).complete_space_coe,
-  -- Every vector can be decomposed uniquely as the sum of an element in the range
-  -- and an element in the complement
-  have decompose_v :=
-    eq_sum_orthogonal_projection_self_orthogonal_complement (lax_milgram_map B).range v,
-  -- We show the orthogonal component of v is 0
-  have zero_orthogonal_component
-    : ↑((orthogonal_projection (lax_milgram_map B).rangeᗮ) v) = (0 : V),
-  by begin
-    -- the orthogonal component of v is zero iff, for all w in the orthogonal complement ⟪v,w⟫=0
-    refine eq_orthogonal_projection_of_mem_of_inner_eq_zero
-      (submodule.zero_mem ((lax_milgram_map B).range)ᗮ) _,
-    intros w mem_w_orthogonal,
-    -- We show every element of the orthogonal complement is zero, by coercivity
-    rcases coercive with ⟨C, C_ge_0, coercivity⟩,
-    have nonneg_C : 0 ≤ C, by linarith,
-    have : 0 ≤ C * ∥w∥*∥w∥ := mul_nonneg (mul_nonneg nonneg_C (norm_nonneg w)) (norm_nonneg w),
-    have inner_product_eq_zero :=
-      (submodule.mem_orthogonal ((lax_milgram_map B).range) w).mp mem_w_orthogonal,
-    have : lax_milgram_map B w ∈ (lax_milgram_map B).range :=
-      by simp [continuous_linear_map.mem_range],
-    have : C * ∥w∥*∥w∥ ≤ 0 :=
-    calc C * ∥w∥*∥w∥
-         ≤ B w w                          : coercivity w
-    ...  = inner (lax_milgram_map B w) w  : by simp
-    ...  = 0                              : by {apply inner_product_eq_zero, assumption},
-    have zero_eq_C_norm_w_squared : C * ∥w∥*∥w∥ = 0 := by linarith,
-    have w_eq_zero : w = 0 := by begin
-      simp at zero_eq_C_norm_w_squared,
-      cases zero_eq_C_norm_w_squared, -- Either C or w is zero
-       -- if C = 0 we get a contradiction
-      exfalso, linarith,
-      -- if w = 0 we've shown what we wanted
-      assumption,
-    end,
-    simp [w_eq_zero],
-  end,
-  rw zero_orthogonal_component at decompose_v, simp at decompose_v,
-  rw ←orthogonal_projection_eq_self_iff,
-  symmetry, assumption,
+  rw ← (lax_milgram_map B).range.orthogonal_orthogonal,
+  rw submodule.eq_top_iff',
+  intros v w mem_w_orthogonal,
+  rcases coercive with ⟨C, C_ge_0, coercivity⟩,
+  have : C * ∥w∥ * ∥w∥ ≤ 0 :=
+  calc C * ∥w∥ * ∥w∥
+        ≤ B w w                          : coercivity w
+  ...  = inner (lax_milgram_map B w) w  : by simp
+  ...  = 0                              : mem_w_orthogonal _ ⟨w, rfl⟩,
+  have : ∥w∥ * ∥w∥ ≤ 0 := by nlinarith,
+  have h : ∥w∥ = 0 := by nlinarith [norm_nonneg w],
+  have w_eq_zero : w = 0 := by simpa using h,
+  simp [w_eq_zero],
 end
 
 

@@ -505,6 +505,12 @@ e.to_linear_equiv $ λ c a, by { erw e.to_add_monoid_hom.map_nsmul, refl }
 @[simp] lemma coe_to_nat_linear_equiv :
   ⇑(e.to_nat_linear_equiv) = e := rfl
 
+@[simp] lemma to_nat_linear_equiv_to_add_equiv :
+  e.to_nat_linear_equiv.to_add_equiv = e := by { ext, simp }
+
+@[simp] lemma _root_.linear_equiv.to_add_equiv_to_nat_linear_equiv
+  (e : M ≃ₗ[ℕ] M₂) : e.to_add_equiv.to_nat_linear_equiv = e := by { ext, simp }
+
 @[simp] lemma to_nat_linear_equiv_symm :
   (e.to_nat_linear_equiv).symm = e.symm.to_nat_linear_equiv := rfl
 
@@ -528,6 +534,12 @@ e.to_linear_equiv $ λ c a, e.to_add_monoid_hom.map_zsmul a c
 
 @[simp] lemma coe_to_int_linear_equiv :
   ⇑(e.to_int_linear_equiv) = e := rfl
+
+@[simp] lemma to_int_linear_equiv_to_add_equiv :
+  e.to_int_linear_equiv.to_add_equiv = e := by { ext, simp }
+
+@[simp] lemma _root_.linear_equiv.to_add_equiv_to_int_linear_equiv
+  (e : M ≃ₗ[ℤ] M₂) : e.to_add_equiv.to_int_linear_equiv = e := by { ext, simp }
 
 @[simp] lemma to_int_linear_equiv_symm :
   (e.to_int_linear_equiv).symm = e.symm.to_int_linear_equiv := rfl

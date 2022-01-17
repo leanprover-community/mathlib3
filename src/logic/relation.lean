@@ -170,9 +170,17 @@ attribute [refl] refl_trans_gen.refl
 
 attribute [refl] refl_gen.refl
 
-lemma refl_gen.to_refl_trans_gen : ∀ {a b}, refl_gen r a b → refl_trans_gen r a b
+namespace refl_gen
+
+lemma to_refl_trans_gen : ∀ {a b}, refl_gen r a b → refl_trans_gen r a b
+| a _ refl := by refl
+| a b (single h) := refl_trans_gen.tail refl_trans_gen.refl h
+
+lemma mono {p : α → α → Prop} (hp : ∀ a b, r a b → p a b) : ∀ {a b}, refl_gen r a b → refl_gen p a b
 | a _ refl_gen.refl := by refl
-| a b (refl_gen.single h) := refl_trans_gen.tail refl_trans_gen.refl h
+| a b (single h) := single (hp a b h)
+
+end refl_gen
 
 namespace refl_trans_gen
 

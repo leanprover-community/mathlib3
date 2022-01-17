@@ -2326,6 +2326,17 @@ begin
   rwa sUnion_image
 end
 
+/-- A measure which is finite on compact sets in a locally compact space is locally finite.
+Not registered as an instance to avoid a loop with the other direction. -/
+lemma is_locally_finite_measure_of_is_finite_measure_on_compacts [topological_space α]
+  [locally_compact_space α] [is_finite_measure_on_compacts μ] :
+  is_locally_finite_measure μ :=
+⟨begin
+  assume x,
+  rcases exists_compact_mem_nhds x with ⟨K, K_compact, K_mem⟩,
+  exact ⟨K, K_mem, K_compact.measure_lt_top⟩,
+end⟩
+
 /-- If a set has zero measure in a neighborhood of each of its points, then it has zero measure
 in a second-countable space. -/
 lemma null_of_locally_null [topological_space α] [topological_space.second_countable_topology α]

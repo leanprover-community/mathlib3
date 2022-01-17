@@ -735,7 +735,7 @@ begin
   { exact hs (or.inl $ or.inl $ add_sub_cancel' r s ▸ (f a).sub_mem ha hra) },
   { exact hs (or.inl $ or.inr $ add_sub_cancel' r s ▸ (f b).sub_mem hb hrb) },
   { exact hri (add_sub_cancel r s ▸ (f i).sub_mem hi hsi) },
-  { rw set.mem_bUnion_iff at ht, rcases ht with ⟨j, hjt, hj⟩,
+  { rw set.mem_Union₂ at ht, rcases ht with ⟨j, hjt, hj⟩,
     simp only [finset.inf_eq_infi, set_like.mem_coe, submodule.mem_infi] at hr,
     exact hs (or.inr $ set.mem_bUnion hjt $ add_sub_cancel' r s ▸ (f j).sub_mem hj $ hr j hjt) }
 end

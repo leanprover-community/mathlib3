@@ -271,6 +271,20 @@ begin
   exact λ i hi j hj hij x hx, H i hi j hj hij ⟨x, hx⟩
 end
 
+/-- If two sets `s` and `t` are included in a set `u`, and `μ s + μ t > μ u`,
+then `s` intersects `t`. -/
+lemma nonempty_inter_of_measure_lt_add
+  {m : measurable_space α} (μ : measure α)
+  {s t u : set α} (hs : measurable_set s) (ht : measurable_set t) (h's : s ⊆ u) (h't : t ⊆ u)
+  (h : μ u < μ s + μ t) :
+  (s ∩ t).nonempty :=
+begin
+  contrapose! h,
+  calc μ s + μ t = μ (s ∪ t) :
+    by { rw measure_union _ hs ht, exact λ x hx, h ⟨x, hx⟩ }
+  ... ≤ μ u : measure_mono (union_subset h's h't)
+end
+
 /-- Continuity from below: the measure of the union of a directed sequence of measurable sets
 is the supremum of the measures. -/
 lemma measure_Union_eq_supr [encodable ι] {s : ι → set α} (h : ∀ i, measurable_set (s i))
@@ -499,8 +513,8 @@ lemma measure_union_add_inter' (hs : measurable_set s) (t : set α) :
 by rw [union_comm, inter_comm, measure_union_add_inter t hs, add_comm]
 namespace measure
 
-/-- If `u` is a superset of `t` with the same measure (both sets possibly non-measurable), then
-for any measurable set `s` one also has `μ (t ∩ s) = μ (u ∩ s)`. -/
+/-- If `u` is a superset of `t` with the same (finite) measure (both sets possibly non-measurable),
+then for any measurable set `s` one also has `μ (t ∩ s) = μ (u ∩ s)`. -/
 lemma measure_inter_eq_of_measure_eq {s t u : set α} (hs : measurable_set s)
   (h : μ t = μ u) (htu : t ⊆ u) (ht_ne_top : μ t ≠ ∞) :
   μ (t ∩ s) = μ (u ∩ s) :=
@@ -517,6 +531,10 @@ begin
   exact ennreal.le_of_add_le_add_right B A
 end
 
+/-- The measurable superset `to_measurable μ t` of `t` (which has the same measure as `t`)
+satisfies, for any measurable set `s`, the equality `μ (to_measurable μ t ∩ s) = μ (u ∩ s)`.
+Here, we require that the measure of `t` is finite. The conclusion holds without this assumption
+when the measure is sigma_finite, see `measure_to_measurable_inter_of_sigma_finite`. -/
 lemma measure_to_measurable_inter {s t : set α} (hs : measurable_set s) (ht : μ t ≠ ∞) :
   μ (to_measurable μ t ∩ s) = μ (t ∩ s) :=
 (measure_inter_eq_of_measure_eq hs (measure_to_measurable t).symm
@@ -2145,6 +2163,80 @@ begin
   { exact directed_of_sup (monotone_spanning_sets μ) }
 end
 
+/-- In a sigma-finite space, any measurable set of measure `> r` contains a measurable subset of
+finite measure `> r`. -/
+lemma exists_subset_measure_lt_top [sigma_finite μ]
+  {r : ℝ≥0∞} (hs : measurable_set s) (h's : r < μ s) :
+  ∃ t, measurable_set t ∧ t ⊆ s ∧ r < μ t ∧ μ t < ∞ :=
+begin
+  rw [← supr_restrict_spanning_sets hs,
+      @lt_supr_iff _ _ _ r (λ (i : ℕ), μ.restrict (spanning_sets μ i) s)] at h's,
+  rcases h's with ⟨n, hn⟩,
+  simp only [restrict_apply hs] at hn,
+  refine ⟨s ∩ spanning_sets μ n, hs.inter (measurable_spanning_sets _ _), inter_subset_left _ _,
+    hn, _⟩,
+  exact (measure_mono (inter_subset_right _ _)).trans_lt (measure_spanning_sets_lt_top _ _),
+end
+
+/-- The measurable superset `to_measurable μ t` of `t` (which has the same measure as `t`)
+satisfies, for any measurable set `s`, the equality `μ (to_measurable μ t ∩ s) = μ (t ∩ s)`.
+This only holds when `μ` is sigma-finite. For a version without this assumption (but requiring
+that `t` has finite measure), see `measure_to_measurable_inter`. -/
+lemma measure_to_measurable_inter_of_sigma_finite
+  [sigma_finite μ] {s : set α} (hs : measurable_set s) (t : set α) :
+  μ (to_measurable μ t ∩ s) = μ (t ∩ s) :=
+begin
+  -- we show that there is a measurable superset of `t` satisfying the conclusion for any
+  -- measurable set `s`. It is built on each member of a spanning family using `to_measurable`
+  -- (which is well behaved for finite measure sets thanks to `measure_to_measurable_inter`), and
+  -- the desired property passes to the union.
+  have A : ∃ t' ⊇ t, measurable_set t' ∧ (∀ u, measurable_set u → μ (t' ∩ u) = μ (t ∩ u)),
+  { set t' := ⋃ n, to_measurable μ (t ∩ disjointed (spanning_sets μ) n) with ht',
+    have tt' : t ⊆ t' := calc
+      t ⊆ ⋃ n, t ∩ disjointed (spanning_sets μ) n :
+        by rw [← inter_Union, Union_disjointed, Union_spanning_sets, inter_univ]
+      ... ⊆ ⋃ n, to_measurable μ (t ∩ disjointed (spanning_sets μ) n) :
+        Union_subset_Union (λ n, subset_to_measurable _ _),
+    refine ⟨t', tt', measurable_set.Union (λ n, measurable_set_to_measurable μ _), λ u hu, _⟩,
+    apply le_antisymm _ (measure_mono (inter_subset_inter tt' subset.rfl)),
+    calc μ (t' ∩ u) ≤ ∑' n, μ (to_measurable μ (t ∩ disjointed (spanning_sets μ) n) ∩ u) :
+      by { rw [ht', Union_inter], exact measure_Union_le _ }
+    ... = ∑' n, μ ((t ∩ disjointed (spanning_sets μ) n) ∩ u) :
+      begin
+        congr' 1,
+        ext1 n,
+        apply measure_to_measurable_inter hu,
+        apply ne_of_lt,
+        calc μ (t ∩ disjointed (spanning_sets μ) n)
+            ≤ μ (disjointed (spanning_sets μ) n) : measure_mono (inter_subset_right _ _)
+        ... ≤ μ (spanning_sets μ n) : measure_mono (disjointed_le (spanning_sets μ) n)
+        ... < ∞ : measure_spanning_sets_lt_top _ _
+      end
+    ... = ∑' n, μ.restrict (t ∩ u) (disjointed (spanning_sets μ) n) :
+      begin
+        congr' 1,
+        ext1 n,
+        rw [restrict_apply, inter_comm t _, inter_assoc],
+        exact measurable_set.disjointed (measurable_spanning_sets _) _
+      end
+    ... = μ.restrict (t ∩ u) (⋃ n, disjointed (spanning_sets μ) n) :
+      begin
+        rw measure_Union,
+        { exact disjoint_disjointed _ },
+        { assume i, exact measurable_set.disjointed (measurable_spanning_sets _) _ }
+      end
+    ... = μ (t ∩ u) :
+      by rw [Union_disjointed, Union_spanning_sets, restrict_apply measurable_set.univ,
+             univ_inter] },
+  -- thanks to the definition of `to_measurable`, the previous property will also be shared
+  -- by `to_measurable μ t`, which is enough to conclude the proof.
+  rw [to_measurable],
+  split_ifs with ht,
+  { apply measure_congr,
+    exact ae_eq_set_inter ht.some_spec.snd.2 (ae_eq_refl _) },
+  { exact A.some_spec.snd.2 s hs },
+end
+
 namespace finite_spanning_sets_in
 
 variables {C D : set (set α)}
@@ -2325,6 +2417,17 @@ begin
   refine measure.sigma_finite_of_countable (htc.image s) (ball_image_iff.2 $ λ x hx, hsμ x) _,
   rwa sUnion_image
 end
+
+/-- A measure which is finite on compact sets in a locally compact space is locally finite.
+Not registered as an instance to avoid a loop with the other direction. -/
+lemma is_locally_finite_measure_of_is_finite_measure_on_compacts [topological_space α]
+  [locally_compact_space α] [is_finite_measure_on_compacts μ] :
+  is_locally_finite_measure μ :=
+⟨begin
+  assume x,
+  rcases exists_compact_mem_nhds x with ⟨K, K_compact, K_mem⟩,
+  exact ⟨K, K_mem, K_compact.measure_lt_top⟩,
+end⟩
 
 /-- If a set has zero measure in a neighborhood of each of its points, then it has zero measure
 in a second-countable space. -/
@@ -3005,15 +3108,17 @@ lemma measure_lt_top_of_nhds_within (h : is_compact s) (hμ : ∀ x ∈ s, μ.fi
 is_compact.induction_on h (by simp) (λ s t hst ht, (measure_mono hst).trans_lt ht)
   (λ s t hs ht, (measure_union_le s t).trans_lt (ennreal.add_lt_top.2 ⟨hs, ht⟩)) hμ
 
-@[priority 100] -- see Note [lower instance priority]
-instance {μ : measure α} [is_locally_finite_measure μ] : is_finite_measure_on_compacts μ :=
-⟨λ s hs, hs.measure_lt_top_of_nhds_within $ λ x hx, μ.finite_at_nhds_within _ _⟩
-
 lemma measure_zero_of_nhds_within (hs : is_compact s) :
   (∀ a ∈ s, ∃ t ∈ 𝓝[s] a, μ t = 0) → μ s = 0 :=
 by simpa only [← compl_mem_ae_iff] using hs.compl_mem_sets_of_nhds_within
 
 end is_compact
+
+@[priority 100] -- see Note [lower instance priority]
+instance is_finite_measure_on_compacts_of_is_locally_finite_measure
+  [topological_space α] {m : measurable_space α} {μ : measure α}
+  [is_locally_finite_measure μ] : is_finite_measure_on_compacts μ :=
+⟨λ s hs, hs.measure_lt_top_of_nhds_within $ λ x hx, μ.finite_at_nhds_within _ _⟩
 
 /-- Compact covering of a `σ`-compact topological space as
 `measure_theory.measure.finite_spanning_sets_in`. -/

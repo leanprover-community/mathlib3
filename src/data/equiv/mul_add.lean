@@ -415,7 +415,7 @@ namespace units
 
 @[simp, to_additive] lemma coe_inv [group G] (u : Gˣ) :
   ↑u⁻¹ = (u⁻¹ : G) :=
-to_units.symm.map_inv u
+(to_units : G ≃* Gˣ).symm.map_inv u
 
 variables [monoid M] [monoid N] [monoid P]
 

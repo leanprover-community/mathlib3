@@ -398,7 +398,7 @@ begin
   exact eq_bot_iff.mpr (hn ▸ (lower_central_series.map f n)),
 end
 
-lemma derived_in_lower_central (n : ℕ) : derived_series G n ≤ lower_central_series G n :=
+lemma derived_le_lower_central (n : ℕ) : derived_series G n ≤ lower_central_series G n :=
 by { induction n with i ih, simp, exact (general_commutator_mono ih (by simp)) }
 
 theorem is_nilpotent.is_solvable (h : is_nilpotent G): is_solvable G :=
@@ -407,6 +407,6 @@ begin
   rcases h with ⟨n, hn⟩,
   use n,
   apply le_bot_iff.mp,
-  calc derived_series G n ≤ lower_central_series G n : derived_in_lower_central n
+  calc derived_series G n ≤ lower_central_series G n : derived_le_lower_central n
     ... = ⊥ : hn
 end

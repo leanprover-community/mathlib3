@@ -155,16 +155,18 @@ lemma vadd_eq_vadd_iff_neg_add_eq_vsub {v₁ v₂ : G} {p₁ p₂ : P} :
   v₁ +ᵥ p₁ = v₂ +ᵥ p₂ ↔ - v₁ + v₂ = p₁ -ᵥ p₂ :=
 by rw [eq_vadd_iff_vsub_eq, vadd_vsub_assoc, ← add_right_inj (-v₁), neg_add_cancel_left, eq_comm]
 
+namespace set
 open_locale pointwise
 
-@[simp] lemma set.singleton_vsub_self (p : P) : ({p} : set P) -ᵥ {p} = {(0:G)} :=
-by simp only [set.singleton_vsub_self]
+@[simp] lemma singleton_vsub_self (p : P) : ({p} : set P) -ᵥ {p} = {(0:G)} :=
+by rw [set.singleton_vsub_singleton, vsub_self]
 
-instance set.add_action : add_action (set G) (set P) :=
+instance add_action : add_action (set G) (set P) :=
 { zero_vadd := λ s, by simp [has_vadd.vadd, ←singleton_zero, image2_singleton_left],
   add_vadd := λ s t p, by { apply image2_assoc, intros, apply add_vadd },
   ..(show has_vadd (set G) (set P), by apply_instance) }
 
+end set
 
 @[simp] lemma vadd_vsub_vadd_cancel_right (v₁ v₂ : G) (p : P) :
   (v₁ +ᵥ p) -ᵥ (v₂ +ᵥ p) = v₁ - v₂ :=

@@ -86,6 +86,21 @@ theorem mul_le : M * N ≤ P ↔ ∀ (m ∈ M) (n ∈ N), m * n ∈ P :=
   (hs : ∀ (r : R) x, C x → C (r • x)) : C r :=
 (@mul_le _ _ _ _ _ _ _ ⟨C, h0, ha, hs⟩).2 hm hr
 
+/-- A dependent version of `mul_induction_on`. -/
+@[elab_as_eliminator] protected theorem mul_induction_on'
+  {C : Π r, r ∈ M * N → Prop}
+  (hm : ∀ (m ∈ M) (n ∈ N), C (m * n) (mul_mem_mul ‹_› ‹_›))
+  (h0 : C 0 (zero_mem _))
+  (ha : ∀ x hx y hy, C x hx → C y hy → C (x + y) (add_mem _ ‹_› ‹_›))
+  (hs : ∀ (r : R) x hx, C x hx → C (r • x) (smul_mem _ _ ‹_›))
+  {r : A} (hr : r ∈ M * N) : C r hr :=
+begin
+  refine exists.elim _ (λ (hr : r ∈ M * N) (hc : C r hr), hc),
+  exact submodule.mul_induction_on hr
+    (λ x hx y hy, ⟨_, hm _ hx _ hy⟩)
+    ⟨_, h0⟩ (λ x y ⟨_, hx⟩ ⟨_, hy⟩, ⟨_, ha _ _ _ _ hx hy⟩) (λ r x ⟨_, hx⟩, ⟨_, hs _ _ _ hx⟩),
+end
+
 variables R
 theorem span_mul_span : span R S * span R T = span R (S * T) :=
 begin

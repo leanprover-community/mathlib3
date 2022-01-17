@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Heather Macbeth
 -/
 import analysis.complex.circle
-import analysis.inner_product_space.l2
+import analysis.inner_product_space.l2_space
 import measure_theory.function.continuous_map_dense
 import measure_theory.function.l2_space
 import measure_theory.measure.haar
@@ -221,13 +221,13 @@ hilbert_basis.mk orthonormal_fourier (span_fourier_Lp_closure_eq_top (by norm_nu
 /-- Under the isometric isomorphism `fourier_series` from `Lp ℂ 2 haar_circle` to `ℓ²(ℤ, ℂ)`, the
 `i`-th coefficient is the integral over the circle of `λ t, ⟪t ^ i, f t⟫`. -/
 lemma fourier_series_repr (f : Lp ℂ 2 haar_circle) (i : ℤ) :
-  fourier_series.repr f i = ∫ t : circle, ⟪fourier_Lp 2 i t, f t⟫_ℂ ∂ haar_circle :=
+  fourier_series.repr f i = ∫ t : circle, conj (fourier_Lp 2 i t) * f t ∂ haar_circle :=
 by simp [fourier_series.repr_apply_apply f i, measure_theory.L2.inner_def]
 
 /-- The Fourier series of an `L2` function `f` sums to `f`, in the `L2` topology on the circle. -/
 lemma has_sum_fourier_series (f : Lp ℂ 2 haar_circle) :
   has_sum (λ i, fourier_series.repr f i • fourier_Lp 2 i) f :=
-by simpa using hilbert_basis.has_sum_repr_symm' fourier_series f
+by simpa using hilbert_basis.has_sum_repr fourier_series f
 
 /-- **Parseval's identity**: the sum of the squared norms of the Fourier coefficients equals the
 `L2` norm of the function. -/

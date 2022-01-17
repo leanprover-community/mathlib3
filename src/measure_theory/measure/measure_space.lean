@@ -2317,7 +2317,7 @@ lemma exists_mem_forall_mem_nhds_within_pos_measure [topological_space α]
   ∃ x ∈ s, ∀ t ∈ 𝓝[s] x, 0 < μ t :=
 μ.to_outer_measure.exists_mem_forall_mem_nhds_within_pos hs
 
-lemma exists_ne_forall_mem_nhds_pos_measure_preimage [topological_space β] [t1_space β]
+lemma exists_ne_forall_mem_nhds_pos_measure_preimage {β} [topological_space β] [t1_space β]
   [second_countable_topology β] [nonempty β] {f : α → β} (h : ∀ b, ∃ᵐ x ∂μ, f x ≠ b) :
   ∃ a b : β, a ≠ b ∧ (∀ s ∈ 𝓝 a, 0 < μ (f ⁻¹' s)) ∧ (∀ t ∈ 𝓝 b, 0 < μ (f ⁻¹' t)) :=
 begin

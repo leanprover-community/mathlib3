@@ -99,6 +99,9 @@ theorem lift.unique
   φ x = lift f x :=
 quotient_group.induction_on x hφ
 
+@[simp] lemma lift_of : lift of = monoid_hom.id (abelianization G) :=
+lift.apply_symm_apply $ monoid_hom.id _
+
 end lift
 
 variables {A : Type v} [monoid A]
@@ -129,12 +132,7 @@ lemma coe_abelianization_congr_of
 @[simp]
 lemma abelianization_congr_refl {G : Type*} [group G] :
   (mul_equiv.refl G).abelianization_congr = mul_equiv.refl (abelianization G) :=
-begin
-  apply mul_equiv.to_monoid_hom_injective,
-  apply abelianization.hom_ext,
-  ext,
-  simp,
-end
+mul_equiv.to_monoid_hom_injective abelianization.lift_of
 
 @[simp]
 lemma abelianization_congr_symm {G H : Type*} [group G] [group H] (e : G ≃* H) :
@@ -147,6 +145,5 @@ lemma abelianization_congr_trans
 begin
   apply mul_equiv.to_monoid_hom_injective,
   apply abelianization.hom_ext,
-  ext,
-  simp,
+  refl,
 end

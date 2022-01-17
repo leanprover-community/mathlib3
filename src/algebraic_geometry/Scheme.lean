@@ -61,6 +61,33 @@ def forget_to_LocallyRingedSpace : Scheme ⥤ LocallyRingedSpace :=
 def forget_to_Top : Scheme ⥤ Top :=
   Scheme.forget_to_LocallyRingedSpace ⋙ LocallyRingedSpace.forget_to_Top
 
+instance {X Y : Scheme} : has_lift_t (X ⟶ Y)
+  (X.to_SheafedSpace ⟶ Y.to_SheafedSpace) := (@@coe_to_lift $ @@coe_base coe_subtype)
+
+@[reassoc]
+lemma comp_val {X Y Z : Scheme} (f : X ⟶ Y) (g : Y ⟶ Z) :
+  (f ≫ g).val = f.val ≫ g.val := rfl
+
+@[reassoc, simp]
+lemma comp_coe_base {X Y Z : Scheme} (f : X ⟶ Y) (g : Y ⟶ Z) :
+  (↑(f ≫ g) : X.to_SheafedSpace ⟶ Z.to_SheafedSpace).base = f.val.base ≫ g.val.base := rfl
+
+@[reassoc]
+lemma comp_val_base {X Y Z : Scheme} (f : X ⟶ Y) (g : Y ⟶ Z) :
+  (f ≫ g).val.base = f.val.base ≫ g.val.base := rfl
+
+@[reassoc, simp]
+lemma comp_val_c_app {X Y Z : Scheme} (f : X ⟶ Y) (g : Y ⟶ Z) (U) :
+  (f ≫ g).val.c.app U = g.val.c.app U ≫ f.val.c.app _ := rfl
+
+lemma congr_app {X Y : Scheme} {f g : X ⟶ Y} (e : f = g) (U) :
+  f.val.c.app U = g.val.c.app U ≫ X.presheaf.map (eq_to_hom (by subst e)) :=
+by { subst e, dsimp, simp }
+
+instance is_LocallyRingedSpace_iso {X Y : Scheme} (f : X ⟶ Y) [is_iso f] :
+  @is_iso LocallyRingedSpace _ _ _ f :=
+forget_to_LocallyRingedSpace.map_is_iso f
+
 /--
 The spectrum of a commutative ring, as a scheme.
 -/
@@ -124,11 +151,87 @@ lemma Γ_obj_op (X : Scheme) : Γ.obj (op X) = X.presheaf.obj (op ⊤) := rfl
 lemma Γ_map_op {X Y : Scheme} (f : X ⟶ Y) :
   Γ.map f.op = f.1.c.app (op ⊤) := rfl
 
--- PROJECTS:
--- 1. Construct `Spec ≫ Γ ≅ functor.id _`.
--- 2. Adjunction between `Γ` and `Spec`.
---
+section basic_open
+
+variables (X : Scheme) {V U : opens X.carrier} (f g : X.presheaf.obj (op U))
+
+/-- The subset of the underlying space where the given section does not vanish. -/
+def basic_open : opens X.carrier := X.to_LocallyRingedSpace.to_RingedSpace.basic_open f
+
+@[simp]
+lemma mem_basic_open (x : U) : ↑x ∈ X.basic_open f ↔ is_unit (X.presheaf.germ x f) :=
+RingedSpace.mem_basic_open _ _ _
+
+@[simp]
+lemma mem_basic_open_top (f : X.presheaf.obj (op ⊤)) (x : X.carrier) :
+  x ∈ X.basic_open f ↔ is_unit (X.presheaf.germ (⟨x, trivial⟩ : (⊤ : opens _)) f) :=
+RingedSpace.mem_basic_open _ f ⟨x, trivial⟩
+
+@[simp]
+lemma basic_open_res (i : op U ⟶ op V) :
+  X.basic_open (X.presheaf.map i f) = V ∩ X.basic_open f :=
+RingedSpace.basic_open_res _ i f
+
+-- This should fire before `basic_open_res`.
+@[simp, priority 1100]
+lemma basic_open_res_eq (i : op U ⟶ op V) [is_iso i] :
+  X.basic_open (X.presheaf.map i f) = X.basic_open f :=
+RingedSpace.basic_open_res_eq _ i f
+
+lemma basic_open_subset : X.basic_open f ⊆ U :=
+RingedSpace.basic_open_subset _ _
+
+lemma preimage_basic_open {X Y : Scheme} (f : X ⟶ Y) {U : opens Y.carrier}
+  (r : Y.presheaf.obj $ op U) :
+  (opens.map f.1.base).obj (Y.basic_open r) =
+    @Scheme.basic_open X ((opens.map f.1.base).obj U) (f.1.c.app _ r) :=
+LocallyRingedSpace.preimage_basic_open f r
+
+@[simp]
+lemma preimage_basic_open' {X Y : Scheme} (f : X ⟶ Y) {U : opens Y.carrier}
+  (r : Y.presheaf.obj $ op U) :
+  (opens.map (↑f : X.to_SheafedSpace ⟶ Y.to_SheafedSpace).base).obj (Y.basic_open r) =
+    @Scheme.basic_open X ((opens.map f.1.base).obj U) (f.1.c.app _ r) :=
+LocallyRingedSpace.preimage_basic_open f r
+
+@[simp]
+lemma basic_open_zero (U : opens X.carrier) : X.basic_open (0 : X.presheaf.obj $ op U) = ∅ :=
+LocallyRingedSpace.basic_open_zero _ U
+
+@[simp]
+lemma basic_open_mul : X.basic_open (f * g) = X.basic_open f ⊓ X.basic_open g :=
+RingedSpace.basic_open_mul _ _ _
+
+@[simp]
+lemma basic_open_of_is_unit {f : X.presheaf.obj (op U)} (hf : is_unit f) : X.basic_open f = U :=
+RingedSpace.basic_open_of_is_unit _ hf
+
+end basic_open
 
 end Scheme
+
+lemma basic_open_eq_of_affine {R : CommRing} (f : R) :
+  (Scheme.Spec.obj $ op R).basic_open ((Spec_Γ_identity.app R).inv f) =
+    prime_spectrum.basic_open f :=
+begin
+  ext,
+  erw Scheme.mem_basic_open_top,
+  suffices : is_unit (structure_sheaf.to_stalk R x f) ↔ f ∉ prime_spectrum.as_ideal x,
+  { exact this },
+  erw [← is_unit_map_iff (structure_sheaf.stalk_to_fiber_ring_hom R x),
+    structure_sheaf.stalk_to_fiber_ring_hom_to_stalk],
+  exact (is_localization.at_prime.is_unit_to_map_iff
+    (localization.at_prime (prime_spectrum.as_ideal x)) (prime_spectrum.as_ideal x) f : _)
+end
+
+@[simp]
+lemma basic_open_eq_of_affine' {R : CommRing}
+  (f : (Spec.to_SheafedSpace.obj (op R)).presheaf.obj (op ⊤)) :
+  (Scheme.Spec.obj $ op R).basic_open f =
+    prime_spectrum.basic_open ((Spec_Γ_identity.app R).hom f) :=
+begin
+  convert basic_open_eq_of_affine ((Spec_Γ_identity.app R).hom f),
+  exact (coe_hom_inv_id _ _).symm
+end
 
 end algebraic_geometry

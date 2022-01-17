@@ -70,7 +70,7 @@ end
 lemma mem_lift_sets (hg : monotone g) {s : set β} :
   s ∈ f.lift g ↔ ∃t∈f, s ∈ g t :=
 (f.basis_sets.mem_lift_iff (λ s, (g s).basis_sets) hg).trans $
-  by simp only [id, ← exists_mem_subset_iff]
+  by simp only [id, exists_mem_subset_iff]
 
 lemma mem_lift {s : set β} {t : set α} (ht : t ∈ f) (hs : s ∈ g t) :
   s ∈ f.lift g :=

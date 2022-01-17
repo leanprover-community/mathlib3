@@ -556,6 +556,10 @@ def map (f : M →ₛₗ[σ₁₂] M₂) (p : submodule R M) : submodule R₂ M�
 @[simp] lemma map_coe (f : M →ₛₗ[σ₁₂] M₂) (p : submodule R M) :
   (map f p : set M₂) = f '' p := rfl
 
+lemma map_to_add_submonoid (f : M →ₛₗ[σ₁₂] M₂) (p : submodule R M) :
+  (S.map f).to_add_submonoid = S.to_add_submonoid.map f :=
+set_like.coe_injective rfl
+
 @[simp] lemma mem_map {f : M →ₛₗ[σ₁₂] M₂} {p : submodule R M} {x : M₂} :
   x ∈ map f p ↔ ∃ y, y ∈ p ∧ f y = x := iff.rfl
 
@@ -1021,8 +1025,27 @@ by rintro ⟨y, hy, z, hz, rfl⟩; exact add_mem _
 lemma mem_sup' : x ∈ p ⊔ p' ↔ ∃ (y : p) (z : p'), (y:M) + z = x :=
 mem_sup.trans $ by simp only [set_like.exists, coe_mk]
 
+variables (p p')
+
 lemma coe_sup : ↑(p ⊔ p') = (p + p' : set M) :=
 by { ext, rw [set_like.mem_coe, mem_sup, set.mem_add], simp, }
+
+lemma sup_to_add_submonoid :
+  (p ⊔ p').to_add_submonoid = p.to_add_submonoid ⊔ p'.to_add_submonoid :=
+begin
+  ext x,
+  rw [mem_to_add_submonoid, mem_sup, add_submonoid.mem_sup],
+  refl,
+end
+
+lemma sup_to_add_subgroup {R M : Type*} [ring R] [add_comm_group M] [module R M]
+  (p p' : submodule R M) :
+  (p ⊔ p').to_add_subgroup = p.to_add_subgroup ⊔ p'.to_add_subgroup :=
+begin
+  ext x,
+  rw [mem_to_add_subgroup, mem_sup, add_subgroup.mem_sup],
+  refl,
+end
 
 end
 

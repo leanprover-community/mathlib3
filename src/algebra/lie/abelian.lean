@@ -123,7 +123,7 @@ begin
   exact hm x,
 end
 
-lemma le_maximal_trivial_iff_bracket_eq_bot {N : lie_submodule R L M} :
+lemma le_max_triv_iff_bracket_eq_bot {N : lie_submodule R L M} :
   N ≤ max_triv_submodule R L M ↔ ⁅(⊤ : lie_ideal R L), N⁆ = ⊥ :=
 begin
   refine ⟨λ h, _, λ h m hm, _⟩,

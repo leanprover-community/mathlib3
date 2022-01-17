@@ -41,9 +41,9 @@ def lower_central_series (k : ℕ) : lie_submodule R L M := (λ I, ⁅(⊤ : lie
   lower_central_series R L M (k + 1) = ⁅(⊤ : lie_ideal R L), lower_central_series R L M k⁆ :=
 function.iterate_succ_apply' (λ I, ⁅(⊤ : lie_ideal R L), I⁆) k ⊤
 
-lemma lower_central_series_antitone {k l : ℕ} (h : l ≤ k) :
-  lower_central_series R L M k ≤ lower_central_series R L M l :=
+lemma antitone_lower_central_series : antitone $ lower_central_series R L M :=
 begin
+  intros l k,
   revert l,
   induction k with k ih;
   intros l h,
@@ -183,7 +183,7 @@ begin
   change Inf s = k + 1 ↔ k + 1 ∈ s ∧ k ∉ s,
   have hs : ∀ k₁ k₂, k₁ ≤ k₂ → k₁ ∈ s → k₂ ∈ s,
   { rintros k₁ k₂ h₁₂ (h₁ : lower_central_series R L M k₁ = ⊥),
-    exact eq_bot_iff.mpr (h₁ ▸ lower_central_series_antitone R L M h₁₂), },
+    exact eq_bot_iff.mpr (h₁ ▸ antitone_lower_central_series R L M h₁₂), },
   exact nat.Inf_upward_closed_eq_succ_iff hs k,
 end
 
@@ -192,27 +192,27 @@ end
 non-trivial term).
 
 For a trivial or non-nilpotent module, this is the bottom submodule, `⊥`. -/
-noncomputable def lower_central_series_tail : lie_submodule R L M :=
+noncomputable def lower_central_series_last : lie_submodule R L M :=
 match nilpotency_length R L M with
 | 0     := ⊥
 | k + 1 := lower_central_series R L M k
 end
 
-lemma lower_central_series_tail_le_max_triv :
-  lower_central_series_tail R L M ≤ max_triv_submodule R L M :=
+lemma lower_central_series_last_le_max_triv :
+  lower_central_series_last R L M ≤ max_triv_submodule R L M :=
 begin
-  rw lower_central_series_tail,
+  rw lower_central_series_last,
   cases h : nilpotency_length R L M with k,
   { exact bot_le, },
-  { rw le_maximal_trivial_iff_bracket_eq_bot,
+  { rw le_max_triv_iff_bracket_eq_bot,
     rw [nilpotency_length_eq_succ_iff, lower_central_series_succ] at h,
     exact h.1, },
 end
 
-lemma nontrivial_lower_central_series_tail [nontrivial M] [is_nilpotent R L M] :
-  nontrivial (lower_central_series_tail R L M) :=
+lemma nontrivial_lower_central_series_last [nontrivial M] [is_nilpotent R L M] :
+  nontrivial (lower_central_series_last R L M) :=
 begin
-  rw [lie_submodule.nontrivial_iff_ne_bot, lower_central_series_tail],
+  rw [lie_submodule.nontrivial_iff_ne_bot, lower_central_series_last],
   cases h : nilpotency_length R L M,
   { rw [nilpotency_length_eq_zero_iff, ← not_nontrivial_iff_subsingleton] at h,
     contradiction, },
@@ -220,11 +220,11 @@ begin
     exact h.2, },
 end
 
-lemma nontrivial_max_triv_submodule_of_is_nilpotent [nontrivial M] [is_nilpotent R L M] :
+lemma nontrivial_max_triv_of_is_nilpotent [nontrivial M] [is_nilpotent R L M] :
   nontrivial (max_triv_submodule R L M) :=
 set.nontrivial_mono
-  (lower_central_series_tail_le_max_triv R L M)
-  (nontrivial_lower_central_series_tail R L M)
+  (lower_central_series_last_le_max_triv R L M)
+  (nontrivial_lower_central_series_last R L M)
 
 end lie_module
 

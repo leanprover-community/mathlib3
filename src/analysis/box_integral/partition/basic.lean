@@ -182,7 +182,7 @@ by simp [← injective_boxes.eq_iff, finset.ext_iff, prepartition.Union, imp_fal
 
 lemma subset_Union (h : J ∈ π) : ↑J ⊆ π.Union := subset_bUnion_of_mem h
 
-lemma Union_subset : π.Union ⊆ I := bUnion_subset π.le_of_mem'
+lemma Union_subset : π.Union ⊆ I := Union₂_subset π.le_of_mem'
 
 @[mono] lemma Union_mono (h : π₁ ≤ π₂) : π₁.Union ⊆ π₂.Union :=
 λ x hx, let ⟨J₁, hJ₁, hx⟩ := π₁.mem_Union.1 hx, ⟨J₂, hJ₂, hle⟩ := h hJ₁

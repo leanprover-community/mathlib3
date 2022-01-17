@@ -987,9 +987,8 @@ theorem nonempty_sections_of_fintype_inverse_system
   [Π (j : Jᵒᵖ), fintype (F.obj j)] [Π (j : Jᵒᵖ), nonempty (F.obj j)] :
   F.sections.nonempty :=
 begin
-  tactic.unfreeze_local_instances,
   by_cases h : nonempty J,
-  { apply nonempty_sections_of_fintype_cofiltered_system, },
+  { exactI nonempty_sections_of_fintype_cofiltered_system _, },
   { rw not_nonempty_iff_imp_false at h,
     exact ⟨λ j, false.elim (h j.unop), λ j, false.elim (h j.unop)⟩, },
 end

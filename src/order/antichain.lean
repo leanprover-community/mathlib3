@@ -123,12 +123,6 @@ lemma is_least.antichain_iff (hs : is_least s a) : is_antichain (≤) s ↔ s = 
 lemma is_greatest.antichain_iff (hs : is_greatest s a) : is_antichain (≤) s ↔ s = {a} :=
 (and_iff_left hs).symm.trans is_antichain_and_greatest_iff
 
-@[simp] lemma is_least_bot_iff [order_bot α] : is_least s ⊥ ↔ ⊥ ∈ s :=
-and_iff_left $ bot_mem_lower_bounds _
-
-@[simp] lemma is_greatest_top_iff [order_top α] : is_greatest s ⊤ ↔ ⊤ ∈ s :=
-and_iff_left $ top_mem_upper_bounds _
-
 lemma is_antichain.bot_mem_iff [order_bot α] (hs : is_antichain (≤) s) : ⊥ ∈ s ↔ s = {⊥} :=
 is_least_bot_iff.symm.trans hs.least_iff
 

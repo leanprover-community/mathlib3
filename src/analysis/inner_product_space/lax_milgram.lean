@@ -61,6 +61,7 @@ begin
   simp,
 end
 
+variables {B}
 
 lemma injective (coercive : is_coercive B) : (lax_milgram_map B).ker = ⊥ :=
 begin
@@ -75,13 +76,13 @@ begin
        ≤ B v v                         : coercivity v
   ...  = inner (lax_milgram_map B v) v : by simp
   ...  ≤ ∥lax_milgram_map B v ∥ * ∥v∥    : real_inner_le_norm (lax_milgram_map B v) v,
-  have coerced := (mul_le_mul_right v_ne_0).mp squared,
+  have coerced := (mul_le_mul_right hv).mp squared,
   exact calc 0 < C * ∥v∥                  : mul_pos C_ge_0 v_ne_0
   ...          ≤ ∥(lax_milgram_map B) v∥  : coerced,
 end
 
 
-lemma closed_range : is_closed ((lax_milgram_map B).range : set V) :=
+lemma closed_range (coercive : is_coercive B) : is_closed ((lax_milgram_map B).range : set V) :=
 begin
   rw ←is_seq_closed_iff_is_closed,
   apply is_seq_closed_of_def,
@@ -93,7 +94,7 @@ lemma surjective (coercive : is_coercive B): (lax_milgram_map B).range = ⊤ :=
 begin
   rw submodule.eq_top_iff', intro v,
   -- As the range of lax_milgram_map is closed, it is also complete
-  haveI := (closed_range B).complete_space_coe,
+  haveI := (closed_range coercive).complete_space_coe,
   -- Every vector can be decomposed uniquely as the sum of an element in the range
   -- and an element in the complement
   have decompose_v :=
@@ -139,8 +140,8 @@ end
 def lax_milgram (coercive : is_coercive B) : V ≃L[ℝ] V :=
 continuous_linear_equiv.of_bijective
   (lax_milgram_map B)
-  (injective B coercive)
-  (surjective B coercive)
+  (injective coercive)
+  (surjective coercive)
 
 
 end lax_milgram

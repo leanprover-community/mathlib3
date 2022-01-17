@@ -1559,3 +1559,14 @@ begin
     simp only [his, finset.sum_insert, not_false_iff],
     exact (int.nat_abs_add_le _ _).trans (add_le_add le_rfl IH) }
 end
+
+lemma finset_prod_dvd {α N : Type*} [comm_monoid N] {S : finset α} (g1 g2 : α → N)
+  (h : ∀ a ∈ S, g1 a ∣ g2 a) :
+  S.prod g1 ∣ S.prod g2 :=
+begin
+  classical,
+  apply @finset.induction_on' _ (λ S, S.prod g1 ∣ S.prod g2), { simp },
+  intros a T haS hTS haT IH,
+  repeat {rw finset.prod_insert haT},
+  exact mul_dvd_mul (h a haS) IH,
+end

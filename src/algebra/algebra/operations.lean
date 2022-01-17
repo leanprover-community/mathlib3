@@ -86,6 +86,20 @@ theorem mul_le : M * N ≤ P ↔ ∀ (m ∈ M) (n ∈ N), m * n ∈ P :=
   (hs : ∀ (r : R) x, C x → C (r • x)) : C r :=
 (@mul_le _ _ _ _ _ _ _ ⟨C, h0, ha, hs⟩).2 hm hr
 
+/-- A dependent version of `mul_induction_on`. -/
+@[elab_as_eliminator] protected theorem mul_induction_on'
+  {C : Π r, r ∈ M * N → Prop}
+  (hm : ∀ (m ∈ M) (n ∈ N), C (m * n) (mul_mem_mul ‹_› ‹_›))
+  (h0 : C 0 (zero_mem _)) (ha : ∀ x hx y hy, C x hx → C y hy → C (x + y) (add_mem _ ‹_› ‹_›))
+  (hs : ∀ (r : R) x hx, C x hx → C (r • x) (smul_mem _ _ ‹_›))
+  {r : A} (hr : r ∈ M * N) : C r hr :=
+begin
+  refine exists.elim _ (λ (hr : r ∈ M * N) (hc : C r hr), hc),
+  exact submodule.mul_induction_on hr
+    (λ x hx y hy, ⟨_, hm _ hx _ hy⟩)
+    ⟨_, h0⟩ (λ x y ⟨_, hx⟩ ⟨_, hy⟩, ⟨_, ha _ _ _ _ hx hy⟩) (λ r x ⟨_, hx⟩, ⟨_, hs _ _ _ hx⟩),
+end
+
 variables R
 theorem span_mul_span : span R S * span R T = span R (S * T) :=
 begin
@@ -237,6 +251,30 @@ begin
   { rw [pow_succ, pow_succ],
     refine set.subset.trans (set.mul_subset_mul (subset.refl _) ih) _,
     apply mul_subset_mul }
+end
+
+
+protected theorem pow_induction_on
+  {C : Π (n : ℕ) x, x ∈ M ^ n → Prop}
+  (hmul : ∀ (m ∈ M) i x hx, C i x hx → C (i.succ) (m * x) (by simpa using mul_mem_mul H hx))
+  (hadd : ∀ x y i hx hy, C i x hx → C i y hy → C i (x + y) (add_mem _ ‹_› ‹_›))
+  (hr : ∀ r : R, C 0 (algebra_map _ _ r) (algebra_map_mem r))
+  {x : A} {n : ℕ} (hx : x ∈ M ^ n) : C n x hx :=
+begin
+  have h0 : C 0 0 _ := by simpa using hr 0,
+  have h1 : C 0 1 _ := by simpa using hr 1,
+  induction n generalizing x,
+  { rw pow_zero at hx,
+    obtain ⟨r, rfl⟩ := hx,
+    exact hr r, },
+  rw pow_succ at hx,
+  refine submodule.mul_induction_on' _ _ _ _ hx, --(λ m hm n ih,_) h0 hadd (λ r x hx, _),
+  refine  hmul _ hm _ (n_ih ih),
+  rw [algebra.smul_def, algebra.commutes],
+  apply hmul,
+  { have := hmul  _ hm _ h1,
+
+  }
 end
 
 /-- `span` is a semiring homomorphism (recall multiplication is pointwise multiplication of subsets

@@ -192,8 +192,7 @@ instance is_solvable_bot : is_solvable R ↥(⊥ : lie_ideal R L) :=
 instance is_solvable_add {I J : lie_ideal R L} [hI : is_solvable R I] [hJ : is_solvable R J] :
   is_solvable R ↥(I + J) :=
 begin
-  unfreezingI { obtain ⟨k, hk⟩ := hI },
-  unfreezingI { obtain ⟨l, hl⟩ := hJ },
+  unfreezingI { obtain ⟨k, hk⟩ := hI, obtain ⟨l, hl⟩ := hJ },
   exact ⟨⟨k+l, lie_ideal.derived_series_add_eq_bot hk hl⟩⟩,
 end
 

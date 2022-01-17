@@ -64,7 +64,7 @@ def of : G →* abelianization G :=
   map_mul' := λ x y, rfl }
 
 @[simp] lemma mk_eq_of {a : G} :
-  quot.mk (@setoid.r _ (quotient_group.left_rel (commutator G))) a = of a := rfl
+  quot.mk _ a = of a := rfl
 
 section lift
 -- So far we have built Gᵃᵇ and proved it's an abelian group.
@@ -127,7 +127,7 @@ lemma coe_abelianization_congr_of
   (e.abelianization_congr) (abelianization.of x) = abelianization.of (e x) := rfl
 
 @[simp]
-lemma abelianization_congr_ref {G : Type*} [group G] :
+lemma abelianization_congr_refl {G : Type*} [group G] :
   (mul_equiv.refl G).abelianization_congr = mul_equiv.refl (abelianization G) :=
 begin
   apply mul_equiv.to_monoid_hom_injective,

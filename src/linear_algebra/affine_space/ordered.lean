@@ -12,9 +12,9 @@ import tactic.field_simp
 # Ordered modules as affine spaces
 
 In this file we prove some theorems about `slope` and `line_map` in the case when the module `E`
-acting on the codomain `PE` of a function is an ordered module over its domain `k`. In the third part of
-this file we prove inequalities that will be used in `analysis.convex.function` to link convexity of
-a function on an interval to monotonicity of the slope, see section docstring below for details.
+acting on the codomain `PE` of a function is an ordered module over its domain `k`. We also prove
+inequalities that can be used to link convexity of a function on an interval to monotonicity of the
+slope, see section docstring below for details.
 
 ## Implementation notes
 
@@ -186,8 +186,7 @@ For each inequality between `f c` and `line_map (f a) (f b) r` we provide 3 lemm
 * `*_right` relates it to an inequality on `slope f a b` and `slope f c b`;
 * no-suffix version relates it to an inequality on `slope f a c` and `slope f c b`.
 
-Later these inequalities will be used in to restate `convex_on` in terms of monotonicity of the
-slope.
+These inequalities can by used in to restate `convex_on` in terms of monotonicity of the slope.
 -/
 
 variables {f : k → E} {a b r : k}

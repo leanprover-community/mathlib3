@@ -26,7 +26,7 @@ This file proves statements about limits and continuity of functions involving `
 open filter function int set
 open_locale topological_space
 
-variables {α : Type*} [linear_ordered_ring α] [floor_ring α]
+variables {α β γ : Type*} [linear_ordered_ring α] [floor_ring α]
 
 lemma tendsto_floor_at_top : tendsto (floor : α → ℤ) at_top at_top :=
 floor_mono.tendsto_at_top_at_top $ λ b, ⟨(b + 1 : ℤ), by { rw floor_coe, exact (lt_add_one _).le }⟩
@@ -154,8 +154,10 @@ tendsto_nhds_within_of_tendsto_nhds_of_eventually_within _
 
 local notation `I` := (Icc 0 1 : set α)
 
-lemma continuous_on.comp_fract' {β γ : Type*} [order_topology α]
-  [topological_add_group α] [topological_space β] [topological_space γ] {f : β → α → γ}
+variables [order_topology α] [topological_add_group α] [topological_space β] [topological_space γ]
+
+/-- Do not use this, use `continuous_on.comp_fract` instead. -/
+lemma continuous_on.comp_fract' {f : β → α → γ}
   (h : continuous_on (uncurry f) $ (univ : set β) ×ˢ I) (hf : ∀ s, f s 0 = f s 1) :
   continuous (λ st : β × α, f st.1 $ fract st.2) :=
 begin
@@ -168,7 +170,7 @@ begin
     have : (univ : set (β × α)) ⊆ ((univ : set β) ×ˢ Iio ↑⌊t⌋) ∪ ((univ : set β) ×ˢ Ici ↑⌊t⌋),
     { rintros p -,
       rw ← prod_union,
-      exact ⟨true.intro, lt_or_le _ _⟩ },
+      exact ⟨trivial, lt_or_le p.2 _⟩ },
     refine continuous_within_at.mono _ this,
     refine continuous_within_at.union _ _,
     { simp only [continuous_within_at, fract_coe, nhds_within_prod_eq,
@@ -198,23 +200,17 @@ begin
               (eventually_of_forall (λ x, ⟨fract_nonneg _, (fract_lt_one _).le⟩)) ) }
 end
 
-lemma continuous_on.comp_fract {β : Type*} [order_topology α]
-  [topological_add_group α] [topological_space β] {f : α → β}
-  (h : continuous_on f I) (hf : f 0 = f 1) : continuous (f ∘ fract) :=
-begin
-  let f' : unit → α → β := λ x y, f y,
-  have : continuous_on (uncurry f') ((univ : set unit) ×ˢ I),
-  { rintros ⟨s, t⟩ ⟨-, ht : t ∈ I⟩,
-    simp only [continuous_within_at, uncurry, nhds_within_prod_eq, nhds_within_univ, f'],
-    rw tendsto_prod_iff,
-    intros W hW,
-    specialize h t ht hW,
-    rw mem_map_iff_exists_image at h,
-    rcases h with ⟨V, hV, hVW⟩,
-    rw image_subset_iff at hVW,
-    use [univ, univ_mem, V, hV],
-    intros x y hx hy,
-    exact hVW hy },
-  have key : continuous (λ s, ⟨unit.star, s⟩ : α → unit × α) := by continuity,
-  exact (this.comp_fract' (λ s, hf)).comp key
-end
+lemma continuous_on.comp_fract
+  {s : β → α}
+  {f : β → α → γ}
+  (h : continuous_on (uncurry f) $ (univ : set β) ×ˢ (Icc 0 1 : set α))
+  (hs : continuous s)
+  (hf : ∀ s, f s 0 = f s 1) :
+  continuous (λ x : β, f x $ int.fract (s x)) :=
+(h.comp_fract' hf).comp (continuous_id.prod_mk hs)
+
+/-- A special case of `continuous_on.comp_fract`. -/
+lemma continuous_on.comp_fract'' {f : α → β} (h : continuous_on f I) (hf : f 0 = f 1) :
+  continuous (f ∘ fract) :=
+continuous_on.comp_fract (h.comp continuous_on_snd $ λ x hx, (mem_prod.mp hx).2)
+  continuous_id (λ _, hf)

@@ -7,6 +7,14 @@ import analysis.calculus.deriv
 import linear_algebra.affine_space.slope
 
 /-!
+# Slope of a differentiable function
+
+Given a function `f : 𝕜 → E` from a nondiscrete normed field to a normed space over this field,
+`dslope f a b` is defined as `slope f a b = (b - a)⁻¹ • (f b - f a)` for `a ≠ b` and as `deriv f a`
+for `a = b`.
+
+In this file we define `dslope` and prove some basic lemmas about its continuity and
+differentiability.
 -/
 
 open_locale classical topological_space filter
@@ -14,8 +22,8 @@ open function set filter
 
 variables {𝕜 E : Type*} [nondiscrete_normed_field 𝕜] [normed_group E] [normed_space 𝕜 E]
 
-/-- `dslope f a b` is defined as `(a - b)⁻¹ • (f a - f b)` for `a ≠ b` and `deriv f a` for
-`a = b`. -/
+/-- `dslope f a b` is defined as `slope f a b = (b - a)⁻¹ • (f b - f a)` for `a ≠ b` and
+`deriv f a` for `a = b`. -/
 noncomputable def dslope (f : 𝕜 → E) (a : 𝕜) : 𝕜 → E := update (slope f a) a (deriv f a)
 
 @[simp] lemma dslope_same (f : 𝕜 → E) (a : 𝕜) : dslope f a a = deriv f a := update_same _ _ _
@@ -40,12 +48,12 @@ by rcases eq_or_ne b a with rfl | hne; simp [dslope_of_ne, *]
 lemma dslope_sub_smul_of_ne (f : 𝕜 → E) (h : b ≠ a) : dslope (λ x, (x - a) • f x) a b = f b :=
 by rw [dslope_of_ne _ h, slope_sub_smul _ h.symm]
 
-lemma eq_on_dslope_sub_smul_of_ne (f : 𝕜 → E) (a : 𝕜) : eq_on (dslope (λ x, (x - a) • f x) a) f {a}ᶜ :=
+lemma eq_on_dslope_sub_smul (f : 𝕜 → E) (a : 𝕜) : eq_on (dslope (λ x, (x - a) • f x) a) f {a}ᶜ :=
 λ b, dslope_sub_smul_of_ne f
 
 lemma dslope_sub_smul [decidable_eq 𝕜] (f : 𝕜 → E) (a : 𝕜) :
   dslope (λ x, (x - a) • f x) a = update f a (deriv (λ x, (x - a) • f x) a) :=
-eq_update_iff.2 ⟨dslope_same _ _, eq_on_dslope_sub_smul_of_ne f a⟩
+eq_update_iff.2 ⟨dslope_same _ _, eq_on_dslope_sub_smul f a⟩
 
 @[simp] lemma continuous_at_dslope_same : continuous_at (dslope f a) a ↔ differentiable_at 𝕜 f a :=
 by simp only [dslope, continuous_at_update_same, ← has_deriv_at_deriv_iff,

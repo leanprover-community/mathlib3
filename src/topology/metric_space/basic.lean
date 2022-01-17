@@ -1680,7 +1680,7 @@ begin
   refine emetric.second_countable_of_almost_dense_set (λ ε ε0, _),
   rcases ennreal.lt_iff_exists_nnreal_btwn.1 ε0 with ⟨ε', ε'0, ε'ε⟩,
   choose s hsc y hys hyx using H ε' (by exact_mod_cast ε'0),
-  refine ⟨s, hsc, bUnion_eq_univ_iff.2 (λ x, ⟨y x, hys _, le_trans _ ε'ε.le⟩)⟩,
+  refine ⟨s, hsc, Union₂_eq_univ_iff.2 (λ x, ⟨y x, hys _, le_trans _ ε'ε.le⟩)⟩,
   exact_mod_cast hyx x
 end
 

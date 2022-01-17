@@ -363,7 +363,7 @@ lemma bsupr_measure_Iic {μ : measure α} {s : set α} (hsc : countable s)
   (⨆ x ∈ s, μ (Iic x)) = μ univ :=
 begin
   rw ← measure_bUnion_eq_supr hsc,
-  { congr, exact bUnion_eq_univ_iff.2 hst },
+  { congr, exact Union₂_eq_univ_iff.2 hst },
   { exact λ _ _, measurable_set_Iic },
   { exact directed_on_iff_directed.2 (hdir.directed_coe.mono_comp _ $ λ x y, Iic_subset_Iic.2) }
 end

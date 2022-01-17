@@ -826,7 +826,7 @@ end
 lemma dense.bUnion_uniformity_ball {s : set α} {U : set (α × α)} (hs : dense s) (hU : U ∈ 𝓤 α) :
   (⋃ x ∈ s, ball x U) = univ :=
 begin
-  refine bUnion_eq_univ_iff.2 (λ y, _),
+  refine Union₂_eq_univ_iff.2 (λ y, _),
   rcases hs.inter_nhds_nonempty (mem_nhds_right y hU) with ⟨x, hxs, hxy : (x, y) ∈ U⟩,
   exact ⟨x, hxs, hxy⟩
 end

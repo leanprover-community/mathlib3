@@ -19,8 +19,6 @@ convergence in measure and other notions of convergence.
 
 * `measure_theory.tendsto_in_measure (μ : measure α) (f : ι → α → E) (g : α → E)`: `f` converges
   in `μ`-measure to `g`.
-* `measure_theory.tendsto_locally_in_measure (μ : measure α) (f : ι → α → E) (g : α → E)`:
-  `f` converges locally in `μ`-measure to `g`.
 
 ## Main results
 
@@ -46,14 +44,6 @@ infinity. -/
 def tendsto_in_measure [preorder ι] [has_dist E] {m : measurable_space α}
   (μ : measure α) (f : ι → α → E) (g : α → E) : Prop :=
 ∀ ε (hε : 0 < ε), tendsto (λ i, μ {x | ε ≤ dist (f i x) (g x)}) at_top (𝓝 0)
-
-/-- A sequence of functions `f` is said to converge locally in measure to some function `g` if
-for all sets `s` of finite measure, `f` converges in measure to `g` with respect to the measure
-restricted on `s`. -/
-def tendsto_locally_in_measure [preorder ι] [has_dist E] {m : measurable_space α}
-  (μ : measure α) (f : ι → α → E) (g : α → E) : Prop :=
-∀ s (hs : measurable_set s) (hμs : μ s < ∞), ∀ ε (hε : 0 < ε),
-  tendsto (λ i, μ {x ∈ s | ε ≤ dist (f i x) (g x)}) at_top (𝓝 0)
 
 section Lp
 -- PRed: #11478
@@ -102,15 +92,6 @@ by simp_rw [tendsto_in_measure, dist_eq_norm]
 
 namespace tendsto_in_measure
 
-protected lemma tendsto_locally_in_measure [preorder ι] [has_dist E] {f : ι → α → E} {g : α → E}
-  (h : tendsto_in_measure μ f g) :
-  tendsto_locally_in_measure μ f g :=
-begin
-  intros s hs hμs ε hε,
-  refine tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds (h ε hε) (λ i, zero_le _) _,
-  exact λ i, measure_mono (λ x, by simp),
-end
-
 protected lemma congr [preorder ι] [has_dist E] {f f' : ι → α → E} {g g' : α → E}
   (h_left : ∀ i, f i =ᵐ[μ] f' i) (h_right : g =ᵐ[μ] g') (h_tendsto : tendsto_in_measure μ f g) :
   tendsto_in_measure μ f' g' :=
@@ -139,16 +120,6 @@ lemma congr_right [preorder ι] [has_dist E] {f : ι → α → E} {g g' : α �
 h_tendsto.congr (λ i, eventually_eq.rfl) h
 
 end tendsto_in_measure
-
-lemma tendsto_locally_in_measure.tendsto_in_measure
-  [preorder ι] [has_dist E] [is_finite_measure μ]
-  {f : ι → α → E} {g : α → E} (h : tendsto_locally_in_measure μ f g) :
-  tendsto_in_measure μ f g :=
-begin
-  intros ε hε,
-  simp_rw ← set.sep_univ,
-  exact h set.univ measurable_set.univ (measure_lt_top μ _) ε hε,
-end
 
 section
 

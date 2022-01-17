@@ -277,12 +277,12 @@ lemma Union₂_mono {s t : Π i, κ i → set α} (h : ∀ i j, s i j ⊆ t i j)
   (⋃ i j, s i j) ⊆ ⋃ i j, t i j :=
 Union_mono $ λ i, Union_mono $ h i
 
-lemma Inter_subset_Inter {s t : ι → set α} (h : ∀ i, s i ⊆ t i) : (⋂ i, s i) ⊆ ⋂ i, t i :=
+lemma Inter_mono {s t : ι → set α} (h : ∀ i, s i ⊆ t i) : (⋂ i, s i) ⊆ ⋂ i, t i :=
 @infi_le_infi (set α) ι _ s t h
 
 lemma Inter₂_mono {s t : Π i, κ i → set α} (h : ∀ i j, s i j ⊆ t i j) :
   (⋂ i j, s i j) ⊆ ⋂ i j, t i j :=
-Inter_subset_Inter $ λ i, Inter_subset_Inter $ h i
+Inter_mono $ λ i, Inter_mono $ h i
 
 lemma Union_mono' {s : ι → set α} {t : ι₂ → set α} (h : ∀ i, ∃ j, s i ⊆ t j) :
   (⋃ i, s i) ⊆ ⋃ i, t i :=
@@ -306,7 +306,7 @@ lemma Union₂_subset_Union (κ : ι → Sort*) (s : ι → set α) : (⋃ i (j 
 Union_mono $ λ i, Union_subset $ λ h, by refl
 
 lemma Inter_subset_Inter₂ (κ : ι → Sort*) (s : ι → set α) : (⋂ i, s i) ⊆ ⋂ i (j : κ i), s i :=
-Inter_subset_Inter $ λ i, subset_Inter $ λ h, by refl
+Inter_mono $ λ i, subset_Inter $ λ h, by refl
 
 lemma Union_set_of (P : ι → α → Prop) : (⋃ i, {x : α | P i x}) = {x : α | ∃ i, P i x} :=
 by { ext, exact mem_Union }

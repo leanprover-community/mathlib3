@@ -655,7 +655,7 @@ begin
   rw [Union_eq_Union_finset f],
   apply linear_independent_Union_of_directed,
   { apply directed_of_sup,
-    exact (λ t₁ t₂ ht, Union_subset_Union $ λ i, Union_subset_Union_const $ λ h, ht h) },
+    exact (λ t₁ t₂ ht, Union_mono $ λ i, Union_subset_Union_const $ λ h, ht h) },
   assume t,
   induction t using finset.induction_on with i s his ih,
   { refine (linear_independent_empty _ _).mono _,

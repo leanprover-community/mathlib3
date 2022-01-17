@@ -1279,8 +1279,8 @@ begin
   { rw [← equiv.plift.surjective.infi_comp, mem_infi],
     refine ⟨t, ht, U, hUf, rfl⟩ },
   { haveI := ht.countable.to_encodable,
-    refine measurable_set.Inter (λ i, (hU i).1) },
-  { exact Inter_subset_Inter (λ i, (hU i).2) }
+    exact measurable_set.Inter (λ i, (hU i).1) },
+  { exact Inter_mono (λ i, (hU i).2) }
 end
 
 end filter

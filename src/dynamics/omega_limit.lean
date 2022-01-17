@@ -187,11 +187,8 @@ bInter_eq_Inter _ _
 lemma omega_limit_eq_bInter_inter {v : set τ} (hv : v ∈ f) :
   ω f ϕ s = ⋂ u ∈ f, closure (image2 ϕ (u ∩ v) s) :=
 subset.antisymm
-  (Inter_subset_Inter2 (λ u, ⟨u ∩ v,
-   Inter_subset_Inter2 (λ hu, ⟨inter_mem hu hv, subset.rfl⟩)⟩))
-  (Inter_subset_Inter (λ u,
-   Inter_subset_Inter (λ hu, closure_mono
-     (image2_subset (inter_subset_left _ _) subset.rfl))))
+  (Inter₂_mono' $ λ u hu, ⟨u ∩ v, inter_mem hu hv, subset.rfl⟩)
+  (Inter₂_mono $ λ u hu, closure_mono $ image2_subset (inter_subset_left _ _) subset.rfl)
 
 lemma omega_limit_eq_Inter_inter {v : set τ} (hv : v ∈ f) :
   ω f ϕ s = ⋂ (u : ↥f.sets), closure (image2 ϕ (u ∩ v) s) :=

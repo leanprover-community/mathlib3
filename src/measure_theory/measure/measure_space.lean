@@ -2057,7 +2057,7 @@ def measure.to_finite_spanning_sets_in (μ : measure α) [h : sigma_finite μ] :
 { set := λ n, to_measurable μ (h.out.some.set n),
   set_mem := λ n, measurable_set_to_measurable _ _,
   finite := λ n, by { rw measure_to_measurable, exact h.out.some.finite n },
-  spanning := eq_univ_of_subset (Union_subset_Union $ λ n, subset_to_measurable _ _)
+  spanning := eq_univ_of_subset (Union_mono $ λ n, subset_to_measurable _ _)
     h.out.some.spanning }
 
 /-- A noncomputable way to get a monotone collection of sets that span `univ` and have finite
@@ -3035,7 +3035,7 @@ def measure_theory.measure.finite_spanning_sets_in_open [topological_space α]
     ((is_compact_compact_covering α n).exists_open_superset_measure_lt_top μ).some_spec.snd.1,
   finite := λ n,
     ((is_compact_compact_covering α n).exists_open_superset_measure_lt_top μ).some_spec.snd.2,
-  spanning := eq_univ_of_subset (Union_subset_Union $ λ n,
+  spanning := eq_univ_of_subset (Union_mono $ λ n,
     ((is_compact_compact_covering α n).exists_open_superset_measure_lt_top μ).some_spec.fst)
     (Union_compact_covering α) }
 

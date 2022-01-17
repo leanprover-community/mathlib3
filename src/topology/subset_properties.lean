@@ -231,7 +231,7 @@ begin
   intro i₀,
   let Z' := λ i, Z i ∩ Z i₀,
   suffices : (⋂ i, Z' i).nonempty,
-  { exact nonempty.mono (Inter_subset_Inter $ assume i, inter_subset_left (Z i) (Z i₀)) this },
+  { exact this.mono (Inter_mono $ λ i, inter_subset_left (Z i) (Z i₀)) },
   rw ← ne_empty_iff_nonempty,
   intro H,
   obtain ⟨t, ht⟩ : ∃ (t : finset ι), ((Z i₀) ∩ ⋂ (i ∈ t), Z' i) = ∅,

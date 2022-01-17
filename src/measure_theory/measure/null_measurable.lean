@@ -231,7 +231,7 @@ begin
   choose s hsf hsm hs_eq using λ i, (h i).exists_measurable_subset_ae_eq,
   have hsd : pairwise (disjoint on s), from hn.mono (λ i j h, h.mono (hsf i) (hsf j)),
   simp only [← measure_congr (hs_eq _), ← measure_Union hsd hsm],
-  exact measure_mono (Union_subset_Union hsf)
+  exact measure_mono (Union_mono hsf)
 end
 
 lemma measure_union₀ (hs : null_measurable_set s μ) (ht : null_measurable_set t μ)

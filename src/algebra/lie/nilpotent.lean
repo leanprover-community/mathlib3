@@ -156,7 +156,7 @@ end
 /-- Given a nilpotent Lie module `M` with lower central series `M = C₀ ≥ C₁ ≥ ⋯ ≥ Cₖ = ⊥`, this is
 the natural number `k` (the number of inclusions).
 
-For a non-nilpotent module, we use the junk value is 0. -/
+For a non-nilpotent module, we use the junk value 0. -/
 noncomputable def nilpotency_length : ℕ :=
 Inf { k | lower_central_series R L M k = ⊥ }
 
@@ -191,7 +191,7 @@ end
 `M = C₀ ≥ C₁ ≥ ⋯ ≥ Cₖ = ⊥`, this is the `k-1`th term in the lower central series (the last
 non-trivial term).
 
-For a trivial or non-nilpotent module, this is the zero ideal, `⊥`. -/
+For a trivial or non-nilpotent module, this is the bottom submodule, `⊥`. -/
 noncomputable def lower_central_series_tail : lie_submodule R L M :=
 match nilpotency_length R L M with
 | 0     := ⊥

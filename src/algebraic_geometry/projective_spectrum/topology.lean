@@ -457,6 +457,39 @@ by { rw basic_open_mul 𝒜 f g, exact inf_le_right }
   basic_open 𝒜 (f ^ n) = basic_open 𝒜 f :=
 topological_space.opens.ext $ by simpa using zero_locus_singleton_pow 𝒜 f n hn
 
+lemma basic_open_as_union_of_projection (f : A) :
+  basic_open 𝒜 f = ⨆ (i : ℕ), basic_open 𝒜 (graded_algebra.proj 𝒜 i f) :=
+begin
+  ext z, split; intro hz,
+  { erw mem_basic_open at hz,
+    have : ∃ i, graded_algebra.proj 𝒜 i f ∉ z.as_homogeneous_ideal,
+    { by_contra rid,
+      erw [not_exists] at rid,
+      apply hz,
+      erw ←graded_algebra.sum_support_decompose 𝒜 f,
+      apply ideal.sum_mem,
+      intros i hi,
+      specialize rid i,
+      erw [graded_algebra.proj_apply] at rid,
+      simpa only [not_not] using rid,
+     },
+     obtain ⟨i, hi⟩ := this,
+    erw topological_space.opens.mem_Sup,
+    refine ⟨basic_open 𝒜 (graded_algebra.proj 𝒜 i f), ⟨i, rfl⟩, _⟩,
+    erw mem_basic_open,
+    exact hi, },
+  { erw mem_basic_open,
+    erw topological_space.opens.mem_Sup at hz,
+    obtain ⟨_, ⟨i, rfl⟩, hz⟩ := hz,
+    dsimp only at hz,
+    intro rid,
+    have mem2 := z.1.2 i rid,
+    erw mem_basic_open at hz,
+    apply hz,
+    erw graded_algebra.proj_apply,
+    exact mem2, },
+end
+
 lemma is_topological_basis_basic_opens : topological_space.is_topological_basis
   (set.range (λ (r : A), (basic_open 𝒜 r : set (projective_spectrum 𝒜)))) :=
 begin

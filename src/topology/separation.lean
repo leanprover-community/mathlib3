@@ -404,6 +404,9 @@ end
 lemma compl_singleton_mem_nhds [t1_space α] {x y : α} (h : y ≠ x) : {x}ᶜ ∈ 𝓝 y :=
 is_open_compl_singleton.mem_nhds $ by rwa [mem_compl_eq, mem_singleton_iff]
 
+lemma compl_singleton_mem_nhds_iff [t1_space α] {x y : α} : {x}ᶜ ∈ 𝓝 y ↔ y ≠ x :=
+is_open_compl_singleton.mem_nhds_iff
+
 @[simp] lemma closure_singleton [t1_space α] {a : α} :
   closure ({a} : set α) = {a} :=
 is_closed_singleton.closure_eq

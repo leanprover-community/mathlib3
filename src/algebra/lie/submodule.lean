@@ -379,7 +379,7 @@ not_iff_not.mp (
 
 instance [nontrivial M] : nontrivial (lie_submodule R L M) := (nontrivial_iff R L M).mpr ‹_›
 
-lemma nontrivial_iff_ne_bot [nontrivial M] {N : lie_submodule R L M} : nontrivial N ↔ N ≠ ⊥ :=
+lemma nontrivial_iff_ne_bot {N : lie_submodule R L M} : nontrivial N ↔ N ≠ ⊥ :=
 begin
   split;
   contrapose!,

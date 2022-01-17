@@ -551,7 +551,8 @@ begin
     let m : ℝ≥0 := real.to_nnreal ((|A.det|)) + 1,
     have I : ennreal.of_real (|A.det|) < m,
       by simp only [ennreal.of_real, m, lt_add_iff_pos_right, zero_lt_one, ennreal.coe_lt_coe],
-    rcases ((add_haar_image_le_mul_of_det_lt μ A I).and self_mem_nhds_within).exists with ⟨δ, h, h'⟩,
+    rcases ((add_haar_image_le_mul_of_det_lt μ A I).and self_mem_nhds_within).exists
+      with ⟨δ, h, h'⟩,
     exact ⟨δ, h', λ t ht, h t f ht⟩ },
   choose δ hδ using this,
   obtain ⟨t, A, t_disj, t_meas, t_cover, ht, -⟩ : ∃ (t : ℕ → set E) (A : ℕ → (E →L[ℝ] E)),
@@ -598,7 +599,8 @@ begin
     let m : ℝ≥0 := real.to_nnreal (|A.det|) + ε,
     have I : ennreal.of_real (|A.det|) < m,
       by simp only [ennreal.of_real, m, lt_add_iff_pos_right, εpos, ennreal.coe_lt_coe],
-    rcases ((add_haar_image_le_mul_of_det_lt μ A I).and self_mem_nhds_within).exists with ⟨δ, h, h'⟩,
+    rcases ((add_haar_image_le_mul_of_det_lt μ A I).and self_mem_nhds_within).exists
+      with ⟨δ, h, h'⟩,
     exact ⟨δ, h', λ t ht, h t f ht⟩ },
   choose δ hδ using this,
   obtain ⟨t, A, t_disj, t_meas, t_cover, ht, Af'⟩ : ∃ (t : ℕ → set E) (A : ℕ → (E →L[ℝ] E)),

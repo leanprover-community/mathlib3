@@ -52,7 +52,7 @@ for all sets `s` of finite measure, `f` converges in measure to `g` with respect
 restricted on `s`. -/
 def tendsto_locally_in_measure [preorder ι] [has_dist E] {m : measurable_space α}
   (μ : measure α) (f : ι → α → E) (g : α → E) : Prop :=
-∀ s (hs : measurable_set s) (hμs : 0 < μ s), ∀ ε (hε : 0 < ε),
+∀ s (hs : measurable_set s) (hμs : μ s < ∞), ∀ ε (hε : 0 < ε),
   tendsto (λ i, μ {x ∈ s | ε ≤ dist (f i x) (g x)}) at_top (𝓝 0)
 
 section Lp
@@ -139,6 +139,16 @@ lemma congr_right [preorder ι] [has_dist E] {f : ι → α → E} {g g' : α �
 h_tendsto.congr (λ i, eventually_eq.rfl) h
 
 end tendsto_in_measure
+
+lemma tendsto_locally_in_measure.tendsto_in_measure
+  [preorder ι] [has_dist E] [is_finite_measure μ]
+  {f : ι → α → E} {g : α → E} (h : tendsto_locally_in_measure μ f g) :
+  tendsto_in_measure μ f g :=
+begin
+  intros ε hε,
+  simp_rw ← set.sep_univ,
+  exact h set.univ measurable_set.univ (measure_lt_top μ _) ε hε,
+end
 
 section
 

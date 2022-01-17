@@ -83,7 +83,7 @@ lemma union_right (ht : ae_disjoint μ s t) (hu : ae_disjoint μ s u) : ae_disjo
 union_right_iff.2 ⟨ht, hu⟩
 
 /-- If `s` and `t` are `μ`-a.e. disjoint, then `s \ u` and `t` are disjoint for some measurable null
-set `u`. See also `measure_theory.ae_disjoint.disjoint_diff`. -/
+set `u`. -/
 lemma exists_disjoint_diff (h : ae_disjoint μ s t) :
   ∃ u, measurable_set u ∧ μ u = 0 ∧ disjoint (s \ u) t :=
 ⟨to_measurable μ (s ∩ t), measurable_set_to_measurable _ _, (measure_to_measurable _).trans h,

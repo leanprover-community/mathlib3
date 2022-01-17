@@ -861,7 +861,7 @@ exists_pred_iterate_of_le h
 lemma exists_pred_iterate_iff_le : (∃ n, pred^[n] b = a) ↔ a ≤ b :=
 @exists_succ_iterate_iff_le (order_dual α) _ _ _ _ _
 
-/-- Induction principle on a type with a `succ_order` for all elements above a given element `m`. -/
+/-- Induction principle on a type with a `pred_order` for all elements below a given element `m`. -/
 @[elab_as_eliminator] lemma pred.rec {P : α → Prop} {m : α}
   (h0 : P m) (h1 : ∀ n, n ≤ m → P n → P (pred n)) ⦃n : α⦄ (hmn : n ≤ m) : P n :=
 @succ.rec (order_dual α) _ _ _ _ _ h0 h1 _ hmn

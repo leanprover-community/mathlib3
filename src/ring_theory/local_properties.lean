@@ -419,7 +419,7 @@ begin
     is_scalar_tower.of_algebra_map_eq' (is_localization.map_comp _).symm,
   let fₐ : S →ₐ[R] S' := alg_hom.mk' (algebra_map S S') (λ c x, ring_hom.map_mul _ _ _),
 
-  unfreezingI { obtain ⟨T, hT⟩ := hf },
+  obtain ⟨T, hT⟩ := id hf,
   use T.image (algebra_map S S'),
   rw eq_top_iff,
   rintro x -,

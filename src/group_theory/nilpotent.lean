@@ -399,7 +399,7 @@ begin
 end
 
 lemma derived_le_lower_central (n : ℕ) : derived_series G n ≤ lower_central_series G n :=
-by { induction n with i ih, simp, exact (general_commutator_mono ih (by simp)) }
+by { induction n with i ih, { simp }, { apply general_commutator_mono ih, simp } }
 
 theorem is_nilpotent.is_solvable (h : is_nilpotent G): is_solvable G :=
 begin

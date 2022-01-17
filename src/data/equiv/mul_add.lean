@@ -299,6 +299,15 @@ rfl
   function.injective (to_monoid_hom : (M ≃* N) → M →* N) :=
 λ f g h, mul_equiv.ext (monoid_hom.ext_iff.1 h)
 
+/-- Proving equality on ≃* via equality on →* -/
+lemma eq_of_monoid_hom_eq
+  {M N : Type*} [mul_one_class M] [mul_one_class N] (f g : M ≃* N)
+  (h : f.to_monoid_hom = g.to_monoid_hom) : f = g :=
+begin
+  ext,
+  suffices : f.to_monoid_hom x = g.to_monoid_hom x, by simpa,
+  rw h,
+end
 
 /--
 A multiplicative analogue of `equiv.arrow_congr`,

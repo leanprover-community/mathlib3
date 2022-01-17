@@ -119,3 +119,34 @@ def mul_equiv.abelianization_congr {G H : Type*} [group G] [group H] (e : G ≃*
   left_inv := by { rintros ⟨a⟩, simp },
   right_inv := by { rintros ⟨a⟩, simp },
   map_mul' := by tidy }
+
+
+@[simp]
+lemma coe_abelianization_congr_of
+  {G H : Type*} [group G] [group H] (e : G ≃* H) { x : G } :
+  (e.abelianization_congr) (abelianization.of x) = abelianization.of (e x) := rfl
+
+@[simp]
+lemma abelianization_congr_ref {G : Type*} [group G] :
+  (mul_equiv.refl G).abelianization_congr = mul_equiv.refl (abelianization G) :=
+begin
+  apply mul_equiv.eq_of_monoid_hom_eq,
+  apply abelianization.hom_ext,
+  ext,
+  simp,
+end
+
+@[simp]
+lemma abelianization_congr_symm {G H : Type*} [group G] [group H] (e : G ≃* H) :
+  e.abelianization_congr.symm = e.symm.abelianization_congr := rfl
+
+@[simp]
+lemma abelianization_congr_trans
+  {G₁ G₂ G₃ : Type*} [group G₁] [group G₂] [group G₃] (e₁ : G₁ ≃* G₂) (e₂ : G₂ ≃* G₃) :
+  e₁.abelianization_congr.trans e₂.abelianization_congr = (e₁.trans e₂).abelianization_congr :=
+begin
+  apply mul_equiv.eq_of_monoid_hom_eq,
+  apply abelianization.hom_ext,
+  ext,
+  simp,
+end

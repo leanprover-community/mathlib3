@@ -167,6 +167,10 @@ the `Lp` space of functions on `circle` taking values in `ℂ`. -/
 abbreviation fourier_Lp (p : ℝ≥0∞) [fact (1 ≤ p)] (n : ℤ) : Lp ℂ p haar_circle :=
 to_Lp p haar_circle ℂ (fourier n)
 
+lemma coe_fn_fourier_Lp (p : ℝ≥0∞) [fact (1 ≤ p)] (n : ℤ) :
+  (to_Lp p haar_circle ℂ (fourier n) : circle → ℂ) =ᵐ[haar_circle] (fourier n : circle → ℂ) :=
+coe_fn_to_Lp haar_circle (fourier n)
+
 /-- For each `1 ≤ p < ∞`, the linear span of the monomials `z ^ n` is dense in
 `Lp ℂ p haar_circle`. -/
 lemma span_fourier_Lp_closure_eq_top {p : ℝ≥0∞} [fact (1 ≤ p)] (hp : p ≠ ∞) :
@@ -219,10 +223,18 @@ hilbert_basis.mk orthonormal_fourier (span_fourier_Lp_closure_eq_top (by norm_nu
 @[simp] lemma coe_fourier_series : ⇑fourier_series = fourier_Lp 2 := hilbert_basis.coe_mk _ _
 
 /-- Under the isometric isomorphism `fourier_series` from `Lp ℂ 2 haar_circle` to `ℓ²(ℤ, ℂ)`, the
-`i`-th coefficient is the integral over the circle of `λ t, ⟪t ^ i, f t⟫`. -/
+`i`-th coefficient is the integral over the circle of `λ t, t ^ (-i) * f t`. -/
 lemma fourier_series_repr (f : Lp ℂ 2 haar_circle) (i : ℤ) :
-  fourier_series.repr f i = ∫ t : circle, conj (fourier_Lp 2 i t) * f t ∂ haar_circle :=
-by simp [fourier_series.repr_apply_apply f i, measure_theory.L2.inner_def]
+  fourier_series.repr f i = ∫ t : circle, t ^ (-i) * f t ∂ haar_circle :=
+begin
+  transitivity ∫ t : circle, conj ((fourier_Lp 2 i : circle → ℂ) t) * f t ∂ haar_circle,
+  { simp [fourier_series.repr_apply_apply f i, measure_theory.L2.inner_def] },
+  apply integral_congr_ae,
+  filter_upwards [coe_fn_fourier_Lp 2 i],
+  intros t ht,
+  rw [ht, ← fourier_neg],
+  simp [-fourier_neg]
+end
 
 /-- The Fourier series of an `L2` function `f` sums to `f`, in the `L2` topology on the circle. -/
 lemma has_sum_fourier_series (f : Lp ℂ 2 haar_circle) :

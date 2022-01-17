@@ -10,7 +10,7 @@ import data.set.finite
 import group_theory.submonoid.basic
 
 /-!
-# Pointwise addition, multiplication, and scalar multiplication of sets.
+# Pointwise addition, multiplication, scalar multiplication and vector subtraction of sets.
 
 This file defines pointwise algebraic operations on sets.
 * For a type `α` with multiplication, multiplication is defined on `set α` by taking
@@ -151,8 +151,8 @@ lemma image_mul_prod : (λ x : α × α, x.fst * x.snd) '' (s ×ˢ t) = s * t :=
 @[simp, to_additive] lemma empty_mul : ∅ * s = ∅ := image2_empty_left
 @[simp, to_additive] lemma mul_empty : s * ∅ = ∅ := image2_empty_right
 
-@[simp, to_additive] lemma mul_singleton : s * {b} = (λ a, a * b) '' s := image2_singleton_right
-@[simp, to_additive] lemma singleton_mul : {a} * t = (λ b, a * b) '' t := image2_singleton_left
+@[simp, to_additive] lemma mul_singleton : s * {b} = (* b) '' s := image2_singleton_right
+@[simp, to_additive] lemma singleton_mul : {a} * t = ((*) a) '' t := image2_singleton_left
 
 @[simp, to_additive]
 lemma singleton_mul_singleton : ({a} : set α) * {b} = {a * b} := image2_singleton
@@ -220,18 +220,18 @@ def singleton_mul_hom : mul_hom α (set α) :=
 end has_mul
 
 @[simp, to_additive]
-lemma image_mul_left [group α] : (λ b, a * b) '' t = (λ b, a⁻¹ * b) ⁻¹' t :=
+lemma image_mul_left [group α] : ((*) a) '' t = ((*) a⁻¹) ⁻¹' t :=
 by { rw image_eq_preimage_of_inverse; intro c; simp }
 
 @[simp, to_additive]
-lemma image_mul_right [group α] : (λ a, a * b) '' t = (λ a, a * b⁻¹) ⁻¹' t :=
+lemma image_mul_right [group α] : (* b) '' t = (* b⁻¹) ⁻¹' t :=
 by { rw image_eq_preimage_of_inverse; intro c; simp }
 
 @[to_additive]
 lemma image_mul_left' [group α] : (λ b, a⁻¹ * b) '' t = (λ b, a * b) ⁻¹' t := by simp
 
 @[to_additive]
-lemma image_mul_right' [group α] : (λ a, a * b⁻¹) '' t = (λ a, a * b) ⁻¹' t := by simp
+lemma image_mul_right' [group α] : (* b⁻¹) '' t = (* b) ⁻¹' t := by simp
 
 @[simp, to_additive]
 lemma preimage_mul_left_singleton [group α] : ((*) a) ⁻¹' {b} = {a⁻¹ * b} :=
@@ -242,18 +242,18 @@ lemma preimage_mul_right_singleton [group α] : (* a) ⁻¹' {b} = {b * a⁻¹} 
 by rw [← image_mul_right', image_singleton]
 
 @[simp, to_additive]
-lemma preimage_mul_left_one [group α] : (λ b, a * b) ⁻¹' 1 = {a⁻¹} :=
+lemma preimage_mul_left_one [group α] : ((*) a) ⁻¹' 1 = {a⁻¹} :=
 by rw [← image_mul_left', image_one, mul_one]
 
 @[simp, to_additive]
-lemma preimage_mul_right_one [group α] : (λ a, a * b) ⁻¹' 1 = {b⁻¹} :=
+lemma preimage_mul_right_one [group α] : (* b) ⁻¹' 1 = {b⁻¹} :=
 by rw [← image_mul_right', image_one, one_mul]
 
 @[to_additive]
 lemma preimage_mul_left_one' [group α] : (λ b, a⁻¹ * b) ⁻¹' 1 = {a} := by simp
 
 @[to_additive]
-lemma preimage_mul_right_one' [group α] : (λ a, a * b⁻¹) ⁻¹' 1 = {b} := by simp
+lemma preimage_mul_right_one' [group α] : (* b⁻¹) ⁻¹' 1 = {b} := by simp
 
 @[to_additive]
 protected lemma mul_comm [comm_semigroup α] : s * t = t * s :=
@@ -557,11 +557,14 @@ localized "attribute [instance] set.has_scalar_set set.has_scalar" in pointwise
 localized "attribute [instance] set.has_vadd_set set.has_vadd" in pointwise
 
 section has_scalar
-variables {ι : Sort*} {κ : ι → Sort*} [has_scalar α β] {s s₁ s₂ : set α} {t t₁ t₂ : set β} {a : α}
+variables {ι : Sort*} {κ : ι → Sort*} [has_scalar α β] {s s₁ s₂ : set α} {t t₁ t₂ u : set β} {a : α}
   {b : β}
 
 @[simp, to_additive]
 lemma image2_smul : image2 has_scalar.smul s t = s • t := rfl
+
+@[to_additive add_image_prod]
+lemma image_smul_prod : (λ x : α × β, x.fst • x.snd) '' (s ×ˢ t) = s • t := image_prod _
 
 @[to_additive]
 lemma mem_smul : b ∈ s • t ↔ ∃ x y, x ∈ s ∧ y ∈ t ∧ x • y = b := iff.rfl
@@ -572,13 +575,12 @@ lemma smul_mem_smul (ha : a ∈ s) (hb : b ∈ t) : a • b ∈ s • t := mem_i
 @[to_additive]
 lemma smul_subset_smul (hs : s₁ ⊆ s₂) (ht : t₁ ⊆ t₂) : s₁ • t₁ ⊆ s₂ • t₂ := image2_subset hs ht
 
-@[to_additive add_image_prod]
-lemma image_smul_prod : (λ x : α × β, x.fst • x.snd) '' (s ×ˢ t) = s • t := image_prod _
+@[to_additive] lemma smul_subset_iff : s • t ⊆ u ↔ ∀ (a ∈ s) (b ∈ t), a • b ∈ u := image2_subset_iff
 
 @[simp, to_additive] lemma empty_smul : (∅ : set α) • t = ∅ := image2_empty_left
 @[simp, to_additive] lemma smul_empty : s • (∅ : set β) = ∅ := image2_empty_right
 
-@[simp, to_additive] lemma smul_singleton : s • {b} = (λ a, a • b) '' s := image2_singleton_right
+@[simp, to_additive] lemma smul_singleton : s • {b} = (• b) '' s := image2_singleton_right
 @[simp, to_additive] lemma singleton_smul : ({a} : set α) • t = a • t := image2_singleton_left
 
 @[simp, to_additive]
@@ -670,13 +672,15 @@ lemma smul_set_Union₂ (a : α) (s : Π i, κ i → set β) : a • (⋃ i j, s
 image_Union₂ _ _
 
 @[to_additive]
-lemma smul_set_Inter_subset (s : set α) (t : ι → set β) : a • (⋂ i, t i) ⊆ ⋂ i, a • t i :=
+lemma smul_set_Inter_subset (a : α) (t : ι → set β) : a • (⋂ i, t i) ⊆ ⋂ i, a • t i :=
 image_Inter_subset _ _
 
 @[to_additive]
-lemma smul_set_Inter₂_subset (s : set α) (t : Π i, κ i → set β) :
+lemma smul_set_Inter₂_subset (a : α) (t : Π i, κ i → set β) :
   a • (⋂ i j, t i j) ⊆ ⋂ i j, a • t i j :=
 image_Inter₂_subset _ _
+
+@[to_additive] lemma finite.smul_set (hs : finite s) : finite (a • s) := hs.image _
 
 end has_scalar_set
 
@@ -747,6 +751,77 @@ instance is_central_scalar [has_scalar α β] [has_scalar αᵐᵒᵖ β] [is_ce
 ⟨λ a S, congr_arg (λ f, f '' S) $ by exact funext (λ _, op_smul_eq_smul _ _)⟩
 
 end smul
+
+section vsub
+variables {ι : Sort*} {κ : ι → Sort*} [has_vsub α β] {s s₁ s₂ t t₁ t₂ : set β} {a : α}
+  {b c : β}
+include α
+
+instance has_vsub : has_vsub (set α) (set β) := ⟨image2 (-ᵥ)⟩
+
+@[simp] lemma image2_vsub : (image2 has_vsub.vsub s t : set α) = s -ᵥ t := rfl
+
+lemma image_vsub_prod : (λ x : β × β, x.fst -ᵥ x.snd) '' (s ×ˢ t) = s -ᵥ t := image_prod _
+
+lemma mem_vsub : a ∈ s -ᵥ t ↔ ∃ x y, x ∈ s ∧ y ∈ t ∧ x -ᵥ y = a := iff.rfl
+
+lemma vsub_mem_vsub (hb : b ∈ s) (hc : c ∈ t) : b -ᵥ c ∈ s -ᵥ t := mem_image2_of_mem hb hc
+
+lemma vsub_subset_vsub (hs : s₁ ⊆ s₂) (ht : t₁ ⊆ t₂) : s₁ -ᵥ t₁ ⊆ s₂ -ᵥ t₂ := image2_subset hs ht
+
+lemma vsub_subset_iff {u : set α} : s -ᵥ t ⊆ u ↔ ∀ (x ∈ s) (y ∈ t), x -ᵥ y ∈ u := image2_subset_iff
+
+@[simp] lemma empty_vsub (t : set β) : ∅ -ᵥ t = ∅ := image2_empty_left
+@[simp] lemma vsub_empty (s : set β) : s -ᵥ ∅ = ∅ := image2_empty_right
+
+@[simp] lemma vsub_singleton (s : set β) (b : β) : s -ᵥ {b} = (-ᵥ b) '' s := image2_singleton_right
+@[simp] lemma singleton_vsub (t : set β) (b : β) : {b} -ᵥ t = ((-ᵥ) b) '' t := image2_singleton_left
+
+@[simp] lemma singleton_vsub_singleton : ({b} : set β) -ᵥ {c} = {b -ᵥ c} := image2_singleton
+
+lemma vsub_subset_vsub_left (h : t₁ ⊆ t₂) : s -ᵥ t₁ ⊆ s -ᵥ t₂ := image2_subset_left h
+lemma vsub_subset_vsub_right (h : s₁ ⊆ s₂) : s₁ -ᵥ t ⊆ s₂ -ᵥ t := image2_subset_right h
+
+lemma union_vsub : (s₁ ∪ s₂) -ᵥ t = s₁ -ᵥ t ∪ (s₂ -ᵥ t) := image2_union_left
+lemma vsub_union : s -ᵥ (t₁ ∪ t₂) = s -ᵥ t₁ ∪ (s -ᵥ t₂) := image2_union_right
+
+lemma inter_vsub_subset : s₁ ∩ s₂ -ᵥ t ⊆ (s₁ -ᵥ t) ∩ (s₂ -ᵥ t) := image2_inter_subset_left
+lemma vsub_inter_subset : s -ᵥ t₁ ∩ t₂ ⊆ (s -ᵥ t₁) ∩ (s -ᵥ t₂) := image2_inter_subset_right
+
+lemma Union_vsub_left_image : (⋃ a ∈ s, ((-ᵥ) a) '' t) = s -ᵥ t := Union_image_left _
+lemma Union_vsub_right_image : (⋃ a ∈ t, (-ᵥ a) '' s) = s -ᵥ t := Union_image_right _
+
+lemma Union_vsub (s : ι → set β) (t : set β) : (⋃ i, s i) -ᵥ t = ⋃ i, s i -ᵥ t :=
+image2_Union_left _ _ _
+
+lemma vsub_Union (s : set β) (t : ι → set β) : s -ᵥ (⋃ i, t i) = ⋃ i, s -ᵥ t i :=
+image2_Union_right _ _ _
+
+lemma Union₂_vsub (s : Π i, κ i → set β) (t : set β) : (⋃ i j, s i j) -ᵥ t = ⋃ i j, s i j -ᵥ t :=
+image2_Union₂_left _ _ _
+
+lemma vsub_Union₂ (s : set β) (t : Π i, κ i → set β) : s -ᵥ (⋃ i j, t i j) = ⋃ i j, s -ᵥ t i j :=
+image2_Union₂_right _ _ _
+
+lemma Inter_vsub_subset (s : ι → set β) (t : set β) : (⋂ i, s i) -ᵥ t ⊆ ⋂ i, s i -ᵥ t :=
+image2_Inter_subset_left _ _ _
+
+lemma vsub_Inter_subset (s : set β) (t : ι → set β) : s -ᵥ (⋂ i, t i) ⊆ ⋂ i, s -ᵥ t i :=
+image2_Inter_subset_right _ _ _
+
+lemma Inter₂_vsub_subset (s : Π i, κ i → set β) (t : set β) :
+  (⋂ i j, s i j) -ᵥ t ⊆ ⋂ i j, s i j -ᵥ t :=
+image2_Inter₂_subset_left _ _ _
+
+lemma vsub_Inter₂_subset (s : set β) (t : Π i, κ i → set β) :
+  s -ᵥ (⋂ i j, t i j) ⊆ ⋂ i j, s -ᵥ t i j :=
+image2_Inter₂_subset_right _ _ _
+
+lemma finite.vsub (hs : finite s) (ht : finite t) : finite (s -ᵥ t) := hs.image2 _ ht
+
+lemma vsub_self_mono (h : s ⊆ t) : s -ᵥ s ⊆ t -ᵥ t := vsub_subset_vsub h h
+
+end vsub
 
 open_locale pointwise
 
@@ -1103,7 +1178,7 @@ coe_injective $ by simp
 
 @[simp, to_additive]
 lemma image_mul_right [decidable_eq α] [group α] :
-  image (λ a, a * b) t = preimage t (λ a, a * b⁻¹) (assume x hx y hy, (mul_left_inj b⁻¹).mp) :=
+  image (* b) t = preimage t (* b⁻¹) (assume x hx y hy, (mul_left_inj b⁻¹).mp) :=
 coe_injective $ by simp
 
 @[to_additive]
@@ -1113,7 +1188,7 @@ by simp
 
 @[to_additive]
 lemma image_mul_right' [decidable_eq α] [group α] :
-  image (λ a, a * b⁻¹) t = preimage t (λ a, a * b) (assume x hx y hy, (mul_left_inj b).mp) :=
+  image (* b⁻¹) t = preimage t (* b) (assume x hx y hy, (mul_left_inj b).mp) :=
 by simp
 
 @[simp, to_additive]
@@ -1133,7 +1208,7 @@ by {classical, rw [← image_mul_left', image_one, mul_one] }
 
 @[simp, to_additive]
 lemma preimage_mul_right_one [group α] :
-  preimage 1 (λ a, a * b) (assume x hx y hy, (mul_left_inj b).mp) = {b⁻¹} :=
+  preimage 1 (* b) (assume x hx y hy, (mul_left_inj b).mp) = {b⁻¹} :=
 by {classical, rw [← image_mul_right', image_one, one_mul] }
 
 @[to_additive]
@@ -1142,7 +1217,7 @@ lemma preimage_mul_left_one' [group α] :
 
 @[to_additive]
 lemma preimage_mul_right_one' [group α] :
-  preimage 1 (λ a, a * b⁻¹) (assume x hx y hy, (mul_left_inj _).mp) = {b} := by simp
+  preimage 1 (* b⁻¹) (assume x hx y hy, (mul_left_inj _).mp) = {b} := by simp
 
 @[to_additive]
 protected lemma mul_comm [decidable_eq α] [comm_semigroup α] : s * t = t * s :=

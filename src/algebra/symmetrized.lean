@@ -11,9 +11,9 @@ import tactic.abel
 
 A commutative multiplication on a real or complex space can be constructed from any multiplication
 by "symmetrization" i.e
-```
-a∘b = 1/2(ab+ba).
-```
+$$
+a \circ b = \frac{1}{2}(ab + ba)
+$$
 
 ## Implementation notes
 

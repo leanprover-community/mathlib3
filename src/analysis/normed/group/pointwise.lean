@@ -3,8 +3,8 @@ Copyright (c) 2021 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-
 import analysis.normed.group.basic
+import topology.metric_space.hausdorff_distance
 
 /-!
 # Properties of pointwise addition of sets in normed groups.
@@ -79,5 +79,26 @@ by simp
 lemma closed_ball_zero_add_singleton (x : E) (r : ℝ) :
   closed_ball 0 r + {x} = closed_ball x r :=
 by simp
+
+lemma is_compact.cthickening_eq_add_closed_ball
+  {s : set E} (hs : is_compact s) {r : ℝ} (hr : 0 ≤ r) :
+  cthickening r s = s + closed_ball 0 r :=
+begin
+  rcases eq_empty_or_nonempty s with rfl|hne, { simp only [cthickening_empty, empty_add] },
+  apply subset.antisymm,
+  { assume x hx,
+    obtain ⟨y, ys, hy⟩ : ∃ y ∈ s, emetric.inf_edist x s = edist x y :=
+      hs.exists_inf_edist_eq_edist hne _,
+    have D1 : edist x y ≤ ennreal.of_real r := (le_of_eq hy.symm).trans hx,
+    have D2 : dist x y ≤ r,
+    { rw edist_dist at D1,
+      exact (ennreal.of_real_le_of_real_iff hr).1 D1 },
+    refine set.mem_add.2 ⟨y, x - y, ys, _, add_sub_cancel'_right _ _⟩,
+    simpa only [dist_eq_norm, mem_closed_ball_zero_iff] using D2 },
+  { assume x hx,
+    rcases set.mem_add.1 hx with ⟨y, z, ys, hz, rfl⟩,
+    apply mem_cthickening_of_dist_le (y + z) y _ _ ys,
+    simpa only [dist_eq_norm, add_sub_cancel', mem_closed_ball_zero_iff] using hz }
+end
 
 end semi_normed_group

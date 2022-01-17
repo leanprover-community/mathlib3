@@ -403,6 +403,15 @@ begin
   exact (eq_rn_deriv hf mutually_singular.zero_left this).symm,
 end
 
+/-- The Radon-Nikodym derivative of the restriction of a measure to a measurable set is the
+indicator function of this set. -/
+theorem rn_deriv_restrict (ν : measure α) [sigma_finite ν] {s : set α} (hs : measurable_set s) :
+  (ν.restrict s).rn_deriv ν =ᵐ[ν] s.indicator 1 :=
+begin
+  rw ← with_density_indicator_one hs,
+  exact rn_deriv_with_density _ (measurable_one.indicator hs)
+end
+
 open vector_measure signed_measure
 
 /-- If two finite measures `μ` and `ν` are not mutually singular, there exists some `ε > 0` and

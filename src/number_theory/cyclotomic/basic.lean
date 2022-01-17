@@ -498,12 +498,10 @@ instance [ne_zero ((n : ℕ) : A)] :
   eq_iff_exists := λ x y, ⟨λ h, ⟨1, by rw adjoin_algebra_injective n A K h⟩,
     λ ⟨c, hc⟩, by rw mul_right_cancel₀ (non_zero_divisors.ne_zero c.prop) hc⟩ }
 
-lemma eq_adjoin_single (μ : (cyclotomic_field n K))
-  (h : μ ∈ primitive_roots n ((cyclotomic_field n K))) :
+lemma eq_adjoin_primitive_root {μ : (cyclotomic_field n K)} (h : is_primitive_root μ n) :
   cyclotomic_ring n A K = adjoin A ({μ} : set ((cyclotomic_field n K))) :=
 begin
   letI := classical.prop_decidable,
-  rw [mem_primitive_roots n.pos] at h,
   rw [←is_cyclotomic_extension.adjoin_roots_cyclotomic_eq_adjoin_root_cyclotomic n μ h,
       is_cyclotomic_extension.adjoin_roots_cyclotomic_eq_adjoin_nth_roots n h],
   simp [cyclotomic_ring]

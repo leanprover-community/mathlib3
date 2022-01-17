@@ -102,6 +102,16 @@ begin
 end
 variables {R}
 
+lemma mul_to_add_submonoid : (M * N).to_add_submonoid = M.to_add_submonoid * N.to_add_submonoid :=
+begin
+  dsimp [has_mul.mul],
+  simp_rw [←algebra.lmul_left_to_add_monoid_hom R, algebra.lmul_left, ←map_to_add_submonoid],
+  -- apply le_antisymm,
+  -- { refine supr_le (λ i, _),
+  --   sorry }
+
+end
+
 variables (M N P Q)
 protected theorem mul_assoc : (M * N) * P = M * (N * P) :=
 le_antisymm (mul_le.2 $ λ mn hmn p hp,

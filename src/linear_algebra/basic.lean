@@ -557,7 +557,7 @@ def map (f : M →ₛₗ[σ₁₂] M₂) (p : submodule R M) : submodule R₂ M�
   (map f p : set M₂) = f '' p := rfl
 
 lemma map_to_add_submonoid (f : M →ₛₗ[σ₁₂] M₂) (p : submodule R M) :
-  (S.map f).to_add_submonoid = S.to_add_submonoid.map f :=
+  (p.map f).to_add_submonoid = p.to_add_submonoid.map f :=
 set_like.coe_injective rfl
 
 @[simp] lemma mem_map {f : M →ₛₗ[σ₁₂] M₂} {p : submodule R M} {x : M₂} :

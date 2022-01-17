@@ -190,7 +190,7 @@ variable {K}
 
 section intermediate_field
 
-lemma _root_.intermediate_field.adjoin_simple.norm_gen_eq_one  {x : L}
+lemma _root_.intermediate_field.adjoin_simple.norm_gen_eq_one {x : L}
   (hx : ¬_root_.is_integral K x) : norm K (adjoin_simple.gen K x) = 1 :=
 begin
   rw [norm_eq_one_of_not_exists_basis],

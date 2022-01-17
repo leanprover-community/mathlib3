@@ -157,8 +157,7 @@ begin
   exact hN n hn x hx,
 end
 
-lemma tendsto_in_measure.exists_seq_tendsto_ae [is_finite_measure μ]
-  (hf : ∀ n, measurable (f n)) (hg : measurable g)
+lemma tendsto_in_measure.exists_seq_tendsto_ae (hf : ∀ n, measurable (f n)) (hg : measurable g)
   (hfg : tendsto_in_measure μ f g) :
   ∃ ns : ℕ → ℕ, ∀ᵐ x ∂μ, tendsto (λ i, f (ns i) x) at_top (𝓝 (g x)) :=
 begin
@@ -177,7 +176,7 @@ begin
   let ns := λ k, (this k).some,
   use ns,
   let S := λ k, {x | 2⁻¹ ^ k ≤ dist (f (ns k) x) (g x)},
-  have hμS_lt : ∀ k, μ (S k) ≤ 2⁻¹ ^ k,
+  have hμS_le : ∀ k, μ (S k) ≤ 2⁻¹ ^ k,
   { have h_ns_k : ∀ k, ∀ n, n ≥ ns k → μ {x | 2⁻¹ ^ k ≤ dist (f n x) (g x)} ≤ 2⁻¹ ^ k,
       from λ k, (this k).some_spec,
     exact λ k, h_ns_k k (ns k) (le_rfl), },
@@ -190,6 +189,30 @@ begin
       { intro i, split_ifs; simp only [h, measure_empty, set.Union_true, set.Union_false], },
       rw tsum_congr hμ_if_eq,
       dsimp only,
+      have tsum_le_tsum : ∑' i, ite (k ≤ i) (μ (S i)) 0
+        ≤ ∑' i, ite (k ≤ i) (2⁻¹ ^ i) 0,
+      { refine tsum_le_tsum (λ i, _) ennreal.summable ennreal.summable,
+        split_ifs; simp only [hμS_le i, nonpos_iff_eq_zero], },
+      refine tsum_le_tsum.trans _,
+      have tsum_eq_of_real_tsum : ∑' i, ite (k ≤ i) ((2 : ℝ≥0∞)⁻¹ ^ i) 0
+        = ennreal.of_real (∑' i, ite (k ≤ i) (2⁻¹ ^ i) 0),
+      { rw ennreal.of_real_tsum_of_nonneg,
+        swap, { intro n,
+          split_ifs,
+          { refine pow_nonneg _ _, norm_num, },
+          { exact le_rfl, }, },
+        swap, { refine summable.summable_of_eq_zero_or_self summable_geometric_two (λ i, _),
+          split_ifs,
+          { simp only [one_div, eq_self_iff_true, or_true], },
+          { exact or.inl rfl, }, },
+        refine tsum_congr (λ i, _),
+        split_ifs,
+        swap, simp only [ennreal.of_real_zero],
+        rw [ennreal.of_real_pow (inv_nonneg.mpr zero_le_two) i,
+          ← ennreal.of_real_inv_of_pos zero_lt_two, ennreal.of_real_bit0 zero_le_one,
+          ennreal.of_real_one], },
+      rw tsum_eq_of_real_tsum,
+      refine ennreal.of_real_le_of_real (le_of_eq _),
       sorry, },
     refine le_antisymm _ (zero_le _),
     refine ennreal.le_of_forall_pos_le_add (λ ε hε _, _),

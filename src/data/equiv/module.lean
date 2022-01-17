@@ -479,6 +479,9 @@ def to_module_aut : S →* M ≃ₗ[R] M :=
 end distrib_mul_action
 
 namespace add_equiv
+
+section add_comm_monoid
+
 variables [semiring R] [add_comm_monoid M] [module R M] [add_comm_monoid M₂] [module R M₂]
 
 variable (e : M ≃+ M₂)
@@ -511,9 +514,9 @@ e.to_linear_equiv $ λ c a, by { erw e.to_add_monoid_hom.map_nsmul, refl }
 @[simp] lemma to_nat_linear_equiv_trans [add_comm_monoid M₃] (e₂ : M₂ ≃+ M₃) :
   (e.to_nat_linear_equiv).trans (e₂.to_nat_linear_equiv) = (e.trans e₂).to_nat_linear_equiv := rfl
 
-end add_equiv
+end add_comm_monoid
 
-namespace add_equiv -- reopen namespace to clear variables
+section add_comm_group
 
 variables [add_comm_group M] [add_comm_group M₂]
 
@@ -535,5 +538,7 @@ e.to_linear_equiv $ λ c a, e.to_add_monoid_hom.map_zsmul a c
 @[simp] lemma to_int_linear_equiv_trans [add_comm_group M₃] (e₂ : M₂ ≃+ M₃)  :
   (e.to_int_linear_equiv).trans (e₂.to_int_linear_equiv) = (e.trans e₂).to_int_linear_equiv :=
 rfl
+
+end add_comm_group
 
 end add_equiv

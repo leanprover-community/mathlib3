@@ -481,55 +481,59 @@ end distrib_mul_action
 namespace add_equiv
 variables [semiring R] [add_comm_monoid M] [module R M] [add_comm_monoid M₂] [module R M₂]
 
+variable (e : M ≃+ M₂)
+
 /-- An additive equivalence whose underlying function preserves `smul` is a linear equivalence. -/
-def to_linear_equiv (e : M ≃+ M₂) (h : ∀ (c : R) x, e (c • x) = c • e x) : M ≃ₗ[R] M₂ :=
+def to_linear_equiv (h : ∀ (c : R) x, e (c • x) = c • e x) : M ≃ₗ[R] M₂ :=
 { map_smul' := h, .. e, }
 
-@[simp] lemma coe_to_linear_equiv (e : M ≃+ M₂) (h : ∀ (c : R) x, e (c • x) = c • e x) :
+@[simp] lemma coe_to_linear_equiv (h : ∀ (c : R) x, e (c • x) = c • e x) :
   ⇑(e.to_linear_equiv h) = e :=
 rfl
 
-@[simp] lemma coe_to_linear_equiv_symm (e : M ≃+ M₂) (h : ∀ (c : R) x, e (c • x) = c • e x) :
+@[simp] lemma coe_to_linear_equiv_symm (h : ∀ (c : R) x, e (c • x) = c • e x) :
   ⇑(e.to_linear_equiv h).symm = e.symm :=
 rfl
 
-/-- An additive equivalence between commutative groups is a linear equivalence between ℤ-modules -/
-def to_int_linear_equiv {α β : Type*} [add_comm_group α] [add_comm_group β]
-  (e : α ≃+ β) : α ≃ₗ[ℤ] β :=
-e.to_linear_equiv $ λ c a, by { erw e.to_add_monoid_hom.map_zsmul, refl }
-
-@[simp] lemma coe_to_int_linear_equiv {α β : Type*} [add_comm_group α] [add_comm_group β]
-  (e : α ≃+ β) : ⇑(e.to_int_linear_equiv) = e := rfl
-
-@[simp] lemma to_int_linear_equiv_symm {α β : Type*} [add_comm_group α] [add_comm_group β]
-  (e : α ≃+ β) : (e.to_int_linear_equiv).symm = e.symm.to_int_linear_equiv := rfl
-
-@[simp] lemma to_int_linear_equiv_refl {α : Type*} [add_comm_group α]:
-  ((add_equiv.refl α).to_int_linear_equiv) = linear_equiv.refl ℤ α := rfl
-
-@[simp] lemma to_int_linear_equiv_trans
-  {α β γ : Type*} [add_comm_group α] [add_comm_group β] [add_comm_group γ]
-  (e₁ : α ≃+ β) (e₂ : β ≃+ γ) :
-  (e₁.to_int_linear_equiv).trans (e₂.to_int_linear_equiv) = (e₁.trans e₂).to_int_linear_equiv :=
-rfl
-
 /-- An additive equivalence between commutative monoids is a linear equivalence between ℕ-modules -/
-def to_nat_linear_equiv {α β : Type*} [add_comm_monoid α] [add_comm_monoid β]
-  (e : α ≃+ β) : α ≃ₗ[ℕ] β :=
+def to_nat_linear_equiv  : M ≃ₗ[ℕ] M₂ :=
 e.to_linear_equiv $ λ c a, by { erw e.to_add_monoid_hom.map_nsmul, refl }
 
-@[simp] lemma coe_to_nat_linear_equiv {α β : Type*} [add_comm_monoid α] [add_comm_monoid β]
-  (e : α ≃+ β) : ⇑(e.to_nat_linear_equiv) = e := rfl
+@[simp] lemma coe_to_nat_linear_equiv :
+  ⇑(e.to_nat_linear_equiv) = e := rfl
 
-@[simp] lemma to_nat_linear_equiv_symm {α β : Type*} [add_comm_monoid α] [add_comm_monoid β]
-  (e : α ≃+ β) : (e.to_nat_linear_equiv).symm = e.symm.to_nat_linear_equiv := rfl
+@[simp] lemma to_nat_linear_equiv_symm :
+  (e.to_nat_linear_equiv).symm = e.symm.to_nat_linear_equiv := rfl
 
-@[simp] lemma to_nat_linear_equiv_refl {α : Type*} [add_comm_group α]:
-  ((add_equiv.refl α).to_nat_linear_equiv) = linear_equiv.refl ℕ α := rfl
+@[simp] lemma to_nat_linear_equiv_refl :
+  ((add_equiv.refl M).to_nat_linear_equiv) = linear_equiv.refl ℕ M := rfl
 
-@[simp] lemma to_nat_linear_equiv_trans
-  {α β γ : Type*} [add_comm_monoid α] [add_comm_monoid β] [add_comm_monoid γ]
-  (e₁ : α ≃+ β) (e₂ : β ≃+ γ) :
-  (e₁.to_nat_linear_equiv).trans (e₂.to_nat_linear_equiv) = (e₁.trans e₂).to_nat_linear_equiv := rfl
+@[simp] lemma to_nat_linear_equiv_trans [add_comm_monoid M₃] (e₂ : M₂ ≃+ M₃) :
+  (e.to_nat_linear_equiv).trans (e₂.to_nat_linear_equiv) = (e.trans e₂).to_nat_linear_equiv := rfl
+
+end add_equiv
+
+namespace add_equiv -- reopen namespace to clear variables
+
+variables [add_comm_group M] [add_comm_group M₂]
+
+variable (e : M ≃+ M₂)
+
+/-- An additive equivalence between commutative groups is a linear equivalence between ℤ-modules -/
+def to_int_linear_equiv : M ≃ₗ[ℤ] M₂ :=
+e.to_linear_equiv $ λ c a, e.to_add_monoid_hom.map_zsmul a c
+
+@[simp] lemma coe_to_int_linear_equiv :
+  ⇑(e.to_int_linear_equiv) = e := rfl
+
+@[simp] lemma to_int_linear_equiv_symm :
+  (e.to_int_linear_equiv).symm = e.symm.to_int_linear_equiv := rfl
+
+@[simp] lemma to_int_linear_equiv_refl :
+  ((add_equiv.refl M).to_int_linear_equiv) = linear_equiv.refl ℤ M := rfl
+
+@[simp] lemma to_int_linear_equiv_trans [add_comm_group M₃] (e₂ : M₂ ≃+ M₃)  :
+  (e.to_int_linear_equiv).trans (e₂.to_int_linear_equiv) = (e.trans e₂).to_int_linear_equiv :=
+rfl
 
 end add_equiv

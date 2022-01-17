@@ -830,11 +830,14 @@ begin
   exact id_le_iterate_of_id_le le_succ n a,
 end
 
-lemma succ.rec {p : α → Prop} (hsucc : ∀ a, p a → p (succ a)) {a b : α} (h : a ≤ b) (ha : p a) :
-  p b :=
+/-- Induction principle on a type with a `succ_order` for all elements above a given element `m`. -/
+@[elab_as_eliminator] lemma succ.rec {P : α → Prop} {m : α}
+  (h0 : P m) (h1 : ∀ n, m ≤ n → P n → P (succ n)) ⦃n : α⦄ (hmn : m ≤ n) : P n :=
 begin
-  obtain ⟨n, rfl⟩ := h.exists_succ_iterate,
-  exact iterate.rec _ hsucc ha n,
+  obtain ⟨n, rfl⟩ := hmn.exists_succ_iterate, clear hmn,
+  induction n with n ih,
+  { exact h0 },
+  { rw [function.iterate_succ_apply'], exact h1 _ (id_le_iterate_of_id_le le_succ n m) ih }
 end
 
 lemma succ.rec_iff {p : α → Prop} (hsucc : ∀ a, p a ↔ p (succ a)) {a b : α} (h : a ≤ b) :
@@ -858,9 +861,10 @@ exists_pred_iterate_of_le h
 lemma exists_pred_iterate_iff_le : (∃ n, pred^[n] b = a) ↔ a ≤ b :=
 @exists_succ_iterate_iff_le (order_dual α) _ _ _ _ _
 
-lemma pred.rec {p : α → Prop} (hsucc : ∀ a, p a → p (pred a)) {a b : α} (h : b ≤ a) (ha : p a) :
-  p b :=
-@succ.rec (order_dual α) _ _ _ _ hsucc _ _ h ha
+/-- Induction principle on a type with a `succ_order` for all elements above a given element `m`. -/
+@[elab_as_eliminator] lemma pred.rec {P : α → Prop} {m : α}
+  (h0 : P m) (h1 : ∀ n, n ≤ m → P n → P (pred n)) ⦃n : α⦄ (hmn : n ≤ m) : P n :=
+@succ.rec (order_dual α) _ _ _ _ _ h0 h1 _ hmn
 
 lemma pred.rec_iff {p : α → Prop} (hsucc : ∀ a, p a ↔ p (pred a)) {a b : α} (h : a ≤ b) :
   p a ↔ p b :=
@@ -899,7 +903,7 @@ section order_bot
 variables [preorder α] [order_bot α] [succ_order α] [is_succ_archimedean α]
 
 lemma succ.rec_bot (p : α → Prop) (hbot : p ⊥) (hsucc : ∀ a, p a → p (succ a)) (a : α) : p a :=
-succ.rec hsucc bot_le hbot
+succ.rec hbot (λ x _ h, hsucc x h) (bot_le : ⊥ ≤ a)
 
 end order_bot
 
@@ -907,6 +911,6 @@ section order_top
 variables [preorder α] [order_top α] [pred_order α] [is_pred_archimedean α]
 
 lemma pred.rec_top (p : α → Prop) (htop : p ⊤) (hpred : ∀ a, p a → p (pred a)) (a : α) : p a :=
-pred.rec hpred le_top htop
+pred.rec htop (λ x _ h, hpred x h) (le_top : a ≤ ⊤)
 
 end order_top

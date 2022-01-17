@@ -391,15 +391,30 @@ assume y (hy : _ < _), le_of_lt hy
 theorem sphere_subset_closed_ball : sphere x ε ⊆ closed_ball x ε :=
 λ y, le_of_eq
 
-lemma ball_disjoint_ball (x y : α) (rx ry : ℝ) (h : rx + ry ≤ dist x y) :
-  disjoint (ball x rx) (ball y ry) :=
+lemma closed_ball_disjoint_ball (x y : α) (rx ry : ℝ) (h : rx + ry ≤ dist x y) :
+  disjoint (closed_ball x rx) (ball y ry) :=
 begin
   rw disjoint_left,
-  assume a ax ay,
+  intros a ax ay,
   apply lt_irrefl (dist x y),
-  calc dist x y ≤ dist x a + dist a y : dist_triangle _ _ _
-  ... < rx + ry : add_lt_add (mem_ball'.1 ax) (mem_ball.1 ay)
+  calc dist x y ≤ dist a x + dist a y : dist_triangle_left _ _ _
+  ... < rx + ry : add_lt_add_of_le_of_lt (mem_closed_ball.1 ax) (mem_ball.1 ay)
   ... ≤ dist x y : h
+end
+
+lemma ball_disjoint_ball (x y : α) (rx ry : ℝ) (h : rx + ry ≤ dist x y) :
+  disjoint (ball x rx) (ball y ry) :=
+(closed_ball_disjoint_ball x y rx ry h).mono_left ball_subset_closed_ball
+
+lemma closed_ball_disjoint_closed_ball {x y : α} {rx ry : ℝ} (h : rx + ry < dist x y) :
+  disjoint (closed_ball x rx) (closed_ball y ry) :=
+begin
+  rw disjoint_left,
+  intros a ax ay,
+  apply lt_irrefl (dist x y),
+  calc dist x y ≤ dist a x + dist a y : dist_triangle_left _ _ _
+  ... ≤ rx + ry : add_le_add ax ay
+  ... < dist x y : h
 end
 
 theorem sphere_disjoint_ball : disjoint (sphere x ε) (ball x ε) :=
@@ -472,14 +487,6 @@ dist_lt_add_of_nonempty_closed_ball_inter_ball $
 
 @[simp] lemma Union_closed_ball_nat (x : α) : (⋃ n : ℕ, closed_ball x n) = univ :=
 Union_eq_univ_iff.2 $ λ y, exists_nat_ge (dist y x)
-
-theorem ball_disjoint (h : ε₁ + ε₂ ≤ dist x y) : ball x ε₁ ∩ ball y ε₂ = ∅ :=
-eq_empty_iff_forall_not_mem.2 $ λ z ⟨h₁, h₂⟩,
-not_lt_of_le (dist_triangle_left x y z)
-  (lt_of_lt_of_le (add_lt_add h₁ h₂) h)
-
-theorem ball_disjoint_same (h : ε ≤ dist x y / 2) : ball x ε ∩ ball y ε = ∅ :=
-ball_disjoint $ by rwa [← two_mul, ← le_div_iff' (@zero_lt_two ℝ _ _)]
 
 theorem ball_subset (h : dist x y ≤ ε₂ - ε₁) : ball x ε₁ ⊆ ball y ε₂ :=
 λ z zx, by rw ← add_sub_cancel'_right ε₁ ε₂; exact

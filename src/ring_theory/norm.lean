@@ -249,22 +249,6 @@ lemma norm_eq_prod_roots [is_separable K L] [finite_dimensional K L]
 by rw [norm_eq_norm_adjoin K x, ring_hom.map_pow,
   intermediate_field.adjoin_simple.norm_gen_eq_prod_roots _ hF]
 
-lemma is_integral_norm [algebra S L] [algebra S K] [is_scalar_tower S K L]
-  [is_separable K L] [finite_dimensional K L] {x : L} (hx : _root_.is_integral S x) :
-  _root_.is_integral S (norm K x) :=
-begin
-  have hx' : _root_.is_integral K x := is_integral_of_is_scalar_tower _ hx,
-  rw [← is_integral_algebra_map_iff (algebra_map K (algebraic_closure L)).injective,
-      norm_eq_prod_roots],
-  { refine (is_integral.multiset_prod (λ y hy, _)).pow _,
-    rw mem_roots_map (minpoly.ne_zero hx') at hy,
-    use [minpoly S x, minpoly.monic hx],
-    rw ← aeval_def at ⊢ hy,
-    exact minpoly.aeval_of_is_scalar_tower S x y hy },
-  { apply is_alg_closed.splits_codomain },
-  { apply_instance }
-end
-
 variable (F)
 
 lemma prod_embeddings_eq_finrank_pow [algebra L F] [is_scalar_tower K L F][is_alg_closed E]
@@ -303,6 +287,22 @@ begin
   { exact (prod_embeddings_eq_finrank_pow L E (adjoin.power_basis hx)).symm },
   { haveI := is_separable_tower_bot_of_is_separable K K⟮x⟯ L,
     exact is_separable.separable K _ }
+end
+
+lemma is_integral_norm [algebra S L] [algebra S K] [is_scalar_tower S K L]
+  [is_separable K L] [finite_dimensional K L] {x : L} (hx : _root_.is_integral S x) :
+  _root_.is_integral S (norm K x) :=
+begin
+  have hx' : _root_.is_integral K x := is_integral_of_is_scalar_tower _ hx,
+  rw [← is_integral_algebra_map_iff (algebra_map K (algebraic_closure L)).injective,
+      norm_eq_prod_roots],
+  { refine (is_integral.multiset_prod (λ y hy, _)).pow _,
+    rw mem_roots_map (minpoly.ne_zero hx') at hy,
+    use [minpoly S x, minpoly.monic hx],
+    rw ← aeval_def at ⊢ hy,
+    exact minpoly.aeval_of_is_scalar_tower S x y hy },
+  { apply is_alg_closed.splits_codomain },
+  { apply_instance }
 end
 
 end eq_prod_embeddings

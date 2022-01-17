@@ -102,14 +102,52 @@ begin
 end
 variables {R}
 
+lemma supr_eq_closure {M ι : Type*} [add_comm_monoid M] (p : ι → add_submonoid M) :
+  (⨆ (i : ι), p i) = add_submonoid.closure (⋃ (i : ι), ↑(p i)) :=
+begin
+  rw add_submonoid.closure_Union,
+  simp_rw add_submonoid.closure_eq,
+end
+
+lemma supr_to_add_submonoid {R M ι : Type*} [semiring R]
+  [add_comm_monoid M] [module R M] (p : ι → submodule R M) :
+  (⨆ i, p i).to_add_submonoid = ⨆ i, (p i).to_add_submonoid :=
+begin
+  apply le_antisymm,
+  { intros x hx,
+    rw [mem_to_add_submonoid, supr_eq_span] at hx,
+    simp_rw [supr_eq_closure, coe_to_add_submonoid],
+    refine submodule.span_induction hx (λ x hx, _) _ (λ x y hx hy, _) (λ r x hx, _),
+    { exact add_submonoid.subset_closure hx },
+    { exact add_submonoid.zero_mem _ },
+    { exact add_submonoid.add_mem _ hx hy },
+    { apply add_submonoid.closure_induction hx,
+      { rintros x ⟨_, ⟨i, rfl⟩, hix : x ∈ p i⟩,
+        apply add_submonoid.subset_closure (set.mem_Union.mpr ⟨i, _⟩),
+        exact smul_mem _ r hix },
+      { rw smul_zero,
+        exact add_submonoid.zero_mem _ },
+      { intros x y hx hy,
+        rw smul_add,
+        exact add_submonoid.add_mem _ hx hy, } } },
+  { refine supr_le (λ i, _),
+    refine to_add_submonoid_mono _,
+    exact le_supr _ i, }
+end
+
 lemma mul_to_add_submonoid : (M * N).to_add_submonoid = M.to_add_submonoid * N.to_add_submonoid :=
 begin
   dsimp [has_mul.mul],
   simp_rw [←algebra.lmul_left_to_add_monoid_hom R, algebra.lmul_left, ←map_to_add_submonoid],
-  -- apply le_antisymm,
-  -- { refine supr_le (λ i, _),
-  --   sorry }
-
+  apply le_antisymm,
+  { rw le_supr_iff,
+    intros b hb x hx,
+    rw [mem_to_add_submonoid, mem_supr] at hx,
+    have := hx (submodule.span R b),
+    sorry },
+  { refine supr_le (λ i, _),
+    refine to_add_submonoid_mono _,
+    exact le_supr _ i, }
 end
 
 variables (M N P Q)

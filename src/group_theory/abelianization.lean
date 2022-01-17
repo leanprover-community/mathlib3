@@ -63,8 +63,7 @@ def of : G →* abelianization G :=
   map_one' := rfl,
   map_mul' := λ x y, rfl }
 
-@[simp] lemma mk_eq_of {a : G} :
-  quot.mk _ a = of a := rfl
+@[simp] lemma mk_eq_of (a : G) : quot.mk _ a = of a := rfl
 
 section lift
 -- So far we have built Gᵃᵇ and proved it's an abelian group.

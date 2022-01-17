@@ -143,8 +143,7 @@ lemma is_solvable_of_comm {G : Type*} [hG : group G]
   (h : ∀ a b : G, a * b = b * a) : is_solvable G :=
 begin
   letI hG' : comm_group G := { mul_comm := h .. hG },
-  tactic.unfreeze_local_instances,
-  cases hG,
+  unfreezingI { cases hG },
   exact comm_group.is_solvable,
 end
 
@@ -191,10 +190,9 @@ lemma solvable_of_ker_le_range {G' G'' : Type*} [group G'] [group G''] (f : G' �
   (g : G →* G'') (hfg : g.ker ≤ f.range) [hG' : is_solvable G'] [hG'' : is_solvable G''] :
   is_solvable G :=
 begin
-  tactic.unfreeze_local_instances,
-  obtain ⟨n, hn⟩ := hG'',
+  unfreezingI { obtain ⟨n, hn⟩ := hG'' },
   suffices : ∀ k : ℕ, derived_series G (n + k) ≤ (derived_series G' k).map f,
-  { obtain ⟨m, hm⟩ := hG',
+  { unfreezingI { obtain ⟨m, hm⟩ := hG' },
     use n + m,
     specialize this m,
     rwa [hm, map_bot, le_bot_iff] at this },

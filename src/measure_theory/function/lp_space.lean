@@ -2430,8 +2430,11 @@ end complete_space
 
 open_locale bounded_continuous_function
 open bounded_continuous_function
-variables [borel_space E] [second_countable_topology E] [topological_space α] [borel_space α]
+variables [borel_space E] [second_countable_topology E]
 
+section
+
+variables [topological_space α] [borel_space α]
 variables (E p μ)
 
 /-- An additive subgroup of `Lp E p μ`, consisting of the equivalence classes which contain a
@@ -2597,6 +2600,8 @@ by { rw to_Lp_norm_eq_to_Lp_norm_coe, exact bounded_continuous_function.to_Lp_no
 end continuous_map
 --(to_Lp p μ 𝕜 : (α →ᵇ E) →L[𝕜] (Lp E p μ))
 
+end
+
 namespace measure_theory
 
 namespace Lp
@@ -2615,7 +2620,7 @@ lemma mul_meas_ge_le_norm_pow (f : Lp E p μ)
 
 /-- A version of Markov's inequality with elements of Lp. -/
 lemma mul_meas_ge_le_norm_pow' (f : Lp E p μ)
-  (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ∞) (hf : measurable f) (ε : ℝ≥0∞) :
+  (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ∞) (ε : ℝ≥0∞) :
   ε ^ p.to_real * μ {x | ε ≤ ∥f x∥₊} ≤ (ennreal.of_real ∥f∥) ^ p.to_real :=
 (ennreal.of_real_to_real (snorm_ne_top f)).symm ▸
   mul_meas_ge_le_snorm_pow' μ hp_ne_zero hp_ne_top (Lp.measurable f) ε

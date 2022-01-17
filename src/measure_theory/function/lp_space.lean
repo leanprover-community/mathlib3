@@ -941,7 +941,7 @@ end
 
 variables (μ)
 
-lemma mul_meas_ge_pow_le_snorm {f : α → E}
+lemma pow_mul_meas_ge_le_snorm {f : α → E}
   (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ∞) (hf : measurable f) (ε : ℝ≥0∞) :
   (ε * μ {x | ε ≤ ∥f x∥₊ ^ p.to_real}) ^ (1 / p.to_real) ≤ snorm f p μ :=
 begin
@@ -960,7 +960,7 @@ begin
     rw [ne, ennreal.to_real_eq_zero_iff],
     exact not_or hp_ne_zero hp_ne_top },
   rw [← ennreal.rpow_one (ε * μ {x | ε ≤ ∥f x∥₊ ^ p.to_real}), ← this, ennreal.rpow_mul],
-  exact ennreal.rpow_le_rpow (mul_meas_ge_pow_le_snorm μ hp_ne_zero hp_ne_top hf ε)
+  exact ennreal.rpow_le_rpow (pow_mul_meas_ge_le_snorm μ hp_ne_zero hp_ne_top hf ε)
     ennreal.to_real_nonneg,
 end
 
@@ -2596,3 +2596,30 @@ by { rw to_Lp_norm_eq_to_Lp_norm_coe, exact bounded_continuous_function.to_Lp_no
 
 end continuous_map
 --(to_Lp p μ 𝕜 : (α →ᵇ E) →L[𝕜] (Lp E p μ))
+
+namespace measure_theory
+
+namespace Lp
+
+lemma pow_mul_meas_ge_le_norm (f : Lp E p μ)
+  (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ∞) (ε : ℝ≥0∞) :
+  (ε * μ {x | ε ≤ ∥f x∥₊ ^ p.to_real}) ^ (1 / p.to_real) ≤ (ennreal.of_real ∥f∥) :=
+(ennreal.of_real_to_real (snorm_ne_top f)).symm ▸
+  pow_mul_meas_ge_le_snorm μ hp_ne_zero hp_ne_top (Lp.measurable f) ε
+
+lemma mul_meas_ge_le_norm_pow (f : Lp E p μ)
+  (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ∞) (ε : ℝ≥0∞) :
+  ε * μ {x | ε ≤ ∥f x∥₊ ^ p.to_real} ≤ (ennreal.of_real ∥f∥) ^ p.to_real :=
+(ennreal.of_real_to_real (snorm_ne_top f)).symm ▸
+  mul_meas_ge_le_snorm_pow μ hp_ne_zero hp_ne_top (Lp.measurable f) ε
+
+/-- A version of Markov's inequality with elements of Lp. -/
+lemma mul_meas_ge_le_norm_pow' (f : Lp E p μ)
+  (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ∞) (hf : measurable f) (ε : ℝ≥0∞) :
+  ε ^ p.to_real * μ {x | ε ≤ ∥f x∥₊} ≤ (ennreal.of_real ∥f∥) ^ p.to_real :=
+(ennreal.of_real_to_real (snorm_ne_top f)).symm ▸
+  mul_meas_ge_le_snorm_pow' μ hp_ne_zero hp_ne_top (Lp.measurable f) ε
+
+end Lp
+
+end measure_theory

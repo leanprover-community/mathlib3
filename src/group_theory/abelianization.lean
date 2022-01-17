@@ -20,7 +20,7 @@ groups, which can be found in `algebra/category/Group/adjunctions`.
   commutator subgroup.
 -/
 
-universes u v
+universes u v w
 
 -- Let G be a group.
 variables (G : Type u) [group G]
@@ -112,13 +112,32 @@ theorem hom_ext (φ ψ : abelianization G →* A)
   (h : φ.comp of = ψ.comp of) : φ = ψ :=
 monoid_hom.ext $ λ x, quotient_group.induction_on x $ monoid_hom.congr_fun h
 
+section map
+
+variables {H : Type v} [group H] (f : G →* H)
+
+def map : abelianization G →* abelianization H := lift (of.comp f)
+
+variables {f}
+
+@[simp]
+lemma map_apply {x : abelianization G} : map f x = lift (of.comp f) x := rfl
+
+@[simp]
+lemma map_id : map (monoid_hom.id G) = monoid_hom.id (abelianization G) := hom_ext _ _ rfl
+
+lemma map_comp {I : Type w} [group I] {g : H →* I} :
+  (map g).comp (map f) = map (g.comp f) := hom_ext _ _ rfl
+
+end map
+
 end abelianization
 
 /-- Equivalent groups have equivalent abelianizations -/
 def mul_equiv.abelianization_congr {G H : Type*} [group G] [group H] (e : G ≃* H) :
   abelianization G ≃* abelianization H :=
-{ to_fun := abelianization.lift $ abelianization.of.comp e.to_monoid_hom,
-  inv_fun := abelianization.lift $ abelianization.of.comp e.symm.to_monoid_hom,
+{ to_fun := abelianization.map e.to_monoid_hom,
+  inv_fun := abelianization.map e.symm.to_monoid_hom,
   left_inv := by { rintros ⟨a⟩, simp },
   right_inv := by { rintros ⟨a⟩, simp },
   map_mul' := by tidy }
@@ -142,8 +161,4 @@ lemma abelianization_congr_symm {G H : Type*} [group G] [group H] (e : G ≃* H)
 lemma abelianization_congr_trans
   {G₁ G₂ G₃ : Type*} [group G₁] [group G₂] [group G₃] (e₁ : G₁ ≃* G₂) (e₂ : G₂ ≃* G₃) :
   e₁.abelianization_congr.trans e₂.abelianization_congr = (e₁.trans e₂).abelianization_congr :=
-begin
-  apply mul_equiv.to_monoid_hom_injective,
-  apply abelianization.hom_ext,
-  refl,
-end
+mul_equiv.to_monoid_hom_injective (abelianization.hom_ext _ _ rfl)

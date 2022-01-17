@@ -10,6 +10,7 @@ import topology.uniform_space.uniform_embedding
 import algebra.algebra.basic
 import linear_algebra.projection
 import linear_algebra.pi
+import linear_algebra.determinant
 
 /-!
 # Theory of topological modules and continuous linear maps.
@@ -1158,6 +1159,12 @@ def smul_rightₗ (c : M →L[R] S) : M₂ →ₗ[T] (M →L[R] M₂) :=
 end smul_rightₗ
 
 section comm_ring
+
+/-- The determinant of a continuous linear map, mainly as a convenience device to be able to
+write `A.det` instead of `(A : M →ₗ[R] M).det`. -/
+@[reducible] noncomputable def det {R : Type*} [comm_ring R] [is_domain R]
+  {M : Type*} [topological_space M] [add_comm_group M] [module R M] (A : M →L[R] M) : R :=
+linear_map.det (A : M →ₗ[R] M)
 
 variables
 {R : Type*} [comm_ring R] [topological_space R]

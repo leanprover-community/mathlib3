@@ -625,8 +625,8 @@ is_partition_iff_Union_eq.2 $ by simp [h₁.Union_eq, h₂.Union_eq]
 end is_partition
 
 lemma Union_bUnion_partition (h : ∀ J ∈ π, (πi J).is_partition) : (π.bUnion πi).Union = π.Union :=
-(Union_bUnion _ _).trans $ Union_congr id surjective_id $ λ J, Union_congr id surjective_id $ λ hJ,
-  (h J hJ).Union_eq
+(Union_bUnion _ _).trans $ Union_congr_of_surjective id surjective_id $ λ J,
+  Union_congr_of_surjective id surjective_id $ λ hJ, (h J hJ).Union_eq
 
 lemma is_partition_disj_union_of_eq_diff (h : π₂.Union = I \ π₁.Union) :
   is_partition (π₁.disj_union π₂ (h.symm ▸ disjoint_diff)) :=

@@ -212,10 +212,9 @@ begin
   have hx' : _root_.is_integral K (adjoin_simple.gen K x),
   { rwa [← is_integral_algebra_map_iff injKxL, adjoin_simple.algebra_map_gen],
     apply_instance },
-  rw [← adjoin.power_basis_gen hx],
-  rw [power_basis.norm_gen_eq_prod_roots];
-  rw [adjoin.power_basis_gen hx, minpoly.eq_of_algebra_map_eq injKxL hx'];
-  try { simp only [adjoin_simple.algebra_map_gen _ _] },
+  rw [← adjoin.power_basis_gen hx, power_basis.norm_gen_eq_prod_roots];
+    rw [adjoin.power_basis_gen hx, minpoly.eq_of_algebra_map_eq injKxL hx'];
+    try { simp only [adjoin_simple.algebra_map_gen _ _] },
   exact hf
 end
 
@@ -245,7 +244,7 @@ end
 lemma norm_eq_prod_roots [is_separable K L] [finite_dimensional K L]
   {x : L} (hF : (minpoly K x).splits (algebra_map K F)) :
   algebra_map K F (norm K x) = ((minpoly K x).map (algebra_map K F)).roots.prod ^ finrank K⟮x⟯ L :=
-by rw [norm_eq_norm_adjoin K x, ring_hom.map_pow,
+by rw [norm_eq_norm_adjoin K x, map_pow,
   intermediate_field.adjoin_simple.norm_gen_eq_prod_roots _ hF]
 
 variable (F)

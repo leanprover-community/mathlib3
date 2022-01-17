@@ -684,7 +684,8 @@ lemma exists_open_set_nhds {s U : set α} (h : ∀ x ∈ s, U ∈ 𝓝 x) :
 begin
   have := λ x hx, (nhds_basis_opens x).mem_iff.1 (h x hx),
   choose! Z hZ hZ' using this,
-  refine ⟨⋃ x ∈ s, Z x, λ x hx, mem_bUnion hx (hZ x hx).1, is_open_Union $ x, _, Union₂_subset hZ'⟩,
+  refine ⟨⋃ x ∈ s, Z x, λ x hx, mem_bUnion hx (hZ x hx).1, is_open_Union _, Union₂_subset hZ'⟩,
+  intro x,
   by_cases hx : x ∈ s ; simp [hx],
   exact (hZ x hx).2,
 end
@@ -1188,7 +1189,7 @@ end
 lemma locally_finite.closure_Union {f : β → set α} (h : locally_finite f) :
   closure (⋃ i, f i) = ⋃ i, closure (f i) :=
 subset.antisymm
-  (closure_minimal (Union_subset_Union $ λ _, subset_closure) $
+  (closure_minimal (Union_mono $ λ _, subset_closure) $
     h.closure.is_closed_Union $ λ _, is_closed_closure)
   (Union_subset $ λ i, closure_mono $ subset_Union _ _)
 

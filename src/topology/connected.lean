@@ -780,8 +780,8 @@ subset_Inter $ λ Z, Z.2.1.connected_component_subset Z.2.2
 /-- A clopen set is the union of its connected components. -/
 lemma is_clopen.bUnion_connected_component_eq {Z : set α} (h : is_clopen Z) :
   (⋃ x ∈ Z, connected_component x) = Z :=
-(Union₂_subset $ λ x, h.connected_component_subset).antisymm $
-  λ x hx, mem_bUnion hx mem_connected_component
+subset.antisymm (Union₂_subset $ λ x, h.connected_component_subset) $
+  λ x hx, mem_Union₂_of_mem hx mem_connected_component
 
 /-- The preimage of a connected component is preconnected if the function has connected fibers
 and a subset is closed iff the preimage is. -/
@@ -1165,7 +1165,7 @@ by { ext y, simp [connected_components.coe_eq_coe'] }
 is the union of the connected components of the elements in it. -/
 lemma connected_components_preimage_image (U : set α) :
   coe ⁻¹' (coe '' U : set (connected_components α)) = ⋃ x ∈ U, connected_component x :=
-by simp only [connected_components_preimage_singleton, preimage_bUnion, image_eq_Union]
+by simp only [connected_components_preimage_singleton, preimage_Union₂, image_eq_Union]
 
 instance connected_components.totally_disconnected_space :
   totally_disconnected_space (connected_components α) :=

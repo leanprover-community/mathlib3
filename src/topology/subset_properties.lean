@@ -245,8 +245,7 @@ begin
     exact subset_inter (subset.trans hi₁ (hi j hj)) hi₁₀ },
   suffices : ((Z i₀) ∩ ⋂ (i ∈ t), Z' i).nonempty,
   { rw ← ne_empty_iff_nonempty at this, contradiction },
-  refine nonempty.mono _ (hZn i₁),
-  exact subset_inter hi₁.left (subset_bInter hi₁.right)
+  exact (hZn i₁).mono (subset_inter hi₁.left $ subset_Inter₂ hi₁.right),
 end
 
 /-- Cantor's intersection theorem for sequences indexed by `ℕ`:
@@ -646,8 +645,8 @@ in ⟨t, univ_subset_iff.1 ht⟩
 
 lemma finite_cover_nhds [compact_space α] {U : α → set α} (hU : ∀ x, U x ∈ 𝓝 x) :
   ∃ t : finset α, (⋃ x ∈ t, U x) = univ :=
-let ⟨t, ht⟩ := finite_cover_nhds_interior hU in ⟨t, univ_subset_iff.1 $
-  ht ▸ Union₂_mono $ λ x hx, interior_subset⟩
+let ⟨t, ht⟩ := finite_cover_nhds_interior hU in ⟨t, univ_subset_iff.1 $ ht.symm.subset.trans $
+  Union₂_mono $ λ x hx, interior_subset⟩
 
 /-- If `α` is a compact space, then a locally finite family of sets of `α` can have only finitely
 many nonempty elements. -/
@@ -1230,7 +1229,7 @@ begin
   { exact subset.trans (exists_compact_superset (K n).2).some_spec.2
       (interior_mono $ subset_union_left _ _) },
   { refine univ_subset_iff.1 (Union_compact_covering X ▸ _),
-    exact Union_subset_Union2 (λ n, ⟨n + 1, subset_union_right _ _⟩) }
+    exact Union_mono' (λ n, ⟨n + 1, subset_union_right _ _⟩) }
 end
 
 noncomputable instance [locally_compact_space α] [sigma_compact_space α] :

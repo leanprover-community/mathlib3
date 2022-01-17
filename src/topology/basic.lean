@@ -398,7 +398,7 @@ subset.antisymm
     is_closed.union is_closed_closure is_closed_closure)
   ((monotone_closure α).le_map_sup s t)
 
-@[simp] lemma finset.closure_Union {ι : Type*} (s : finset ι) (f : ι → set α) :
+@[simp] lemma finset.closure_bUnion {ι : Type*} (s : finset ι) (f : ι → set α) :
   closure (⋃ i ∈ s, f i) = ⋃ i ∈ s, closure (f i) :=
 begin
   classical,
@@ -409,7 +409,7 @@ end
 
 @[simp] lemma closure_Union_of_fintype {ι : Type*} [fintype ι] (f : ι → set α) :
   closure (⋃ i, f i) = ⋃ i, closure (f i) :=
-by { convert finset.univ.closure_Union f; simp, }
+by { convert finset.univ.closure_bUnion f; simp, }
 
 lemma interior_subset_closure {s : set α} : interior s ⊆ closure s :=
 subset.trans interior_subset subset_closure
@@ -1221,6 +1221,9 @@ lemma continuous_def {f : α → β} : continuous f ↔ (∀s, is_open s → is_
 lemma is_open.preimage {f : α → β} (hf : continuous f) {s : set β} (h : is_open s) :
   is_open (f ⁻¹' s) :=
 hf.is_open_preimage s h
+
+lemma continuous.congr {f g : α → β} (h : continuous f) (h' : ∀ x, f x = g x) : continuous g :=
+by { convert h, ext, rw h' }
 
 /-- A function between topological spaces is continuous at a point `x₀`
 if `f x` tends to `f x₀` when `x` tends to `x₀`. -/

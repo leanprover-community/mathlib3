@@ -1,7 +1,7 @@
 /-
-Copyright (c) 2022 Rémy Degenne. All rights reserved.
+Copyright (c) 2022 Rémy Degenne, Kexing Ying. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Rémy Degenne
+Authors: Rémy Degenne, Kexing Ying
 -/
 
 import measure_theory.function.uniform_integrable
@@ -9,6 +9,26 @@ import measure_theory.function.uniform_integrable
 /-!
 # Convergence in measure
 
+We define convergence in measure which is one of the many notions of convergence in probability.
+Convergence in measure is most notably used in the formulation of the weak law of large numbers
+and is also useful in theorems such as the Vitali convergence theorem. This file provides some
+basic lemmas for working with convergence in measure and establishes some relations between
+convergence in measure and other notions of convergence.
+
+## Main definitions
+
+* `measure_theory.tendsto_in_measure (μ : measure α) (f : ι → α → E) (g : α → E)`: `f` converges
+  in `μ`-measure to `g`.
+
+## Main results
+
+* `measure_theory.tendsto_in_measure_of_tendsto_ae`: convergence almost everywhere in a finite
+  measure space implies convergence in measure.
+* `measure_theory.tendsto_in_measure.exists_seq_tendsto_ae`: in a finite measure space, `f`
+  converges in measure to `g` implies `f` has a subsequence which convergence almost everywhere
+  to `g`.
+* `measure_theory.tendsto_in_measure_of_tendsto_snorm`: convergence in Lp implies convergence
+  in measure.
 -/
 
 open topological_space filter
@@ -18,31 +38,12 @@ namespace measure_theory
 
 variables {α ι E : Type*} {m : measurable_space α} {μ : measure α}
 
-/-
-Update undergrad.yaml
-- add Markov's inequality
-- add convergence in Lp and in measure
--/
-
-/-- TODO -/
-def tendsto_locally_in_measure [preorder ι] [has_dist E] {m : measurable_space α}
-  (μ : measure α) (f : ι → α → E) (g : α → E) : Prop :=
-∀ s (hs : measurable_set s) (hμs : 0 < μ s), ∀ ε (hε : 0 < ε),
-  tendsto (λ i, μ {x ∈ s | ε ≤ dist (f i x) (g x)}) at_top (𝓝 0)
-
-/-- TODO -/
+/-- A sequence of functions `f` is said to converge in measure to some function `g` if for all
+`ε > 0`, the measure of the set `{x | ε ≤ dist (f i x) (g x)}` tends to 0 as `i` tends to
+infinity. -/
 def tendsto_in_measure [preorder ι] [has_dist E] {m : measurable_space α}
   (μ : measure α) (f : ι → α → E) (g : α → E) : Prop :=
 ∀ ε (hε : 0 < ε), tendsto (λ i, μ {x | ε ≤ dist (f i x) (g x)}) at_top (𝓝 0)
-
-section move
--- PRed: #11475
-protected lemma ennreal.tendsto.rpow {f : filter α} {m : α → ℝ≥0∞} {a : ℝ≥0∞} (r : ℝ)
-  (hm : tendsto m f (𝓝 a)) :
-  tendsto (λ x, (m x) ^ r) f (𝓝 (a ^ r)) :=
-(ennreal.continuous_rpow_const.tendsto a).comp hm
-
-end move
 
 section Lp
 -- PRed: #11478
@@ -90,15 +91,6 @@ lemma tendsto_in_measure_iff_norm [preorder ι] [semi_normed_group E] {f : ι �
 by simp_rw [tendsto_in_measure, dist_eq_norm]
 
 namespace tendsto_in_measure
-
-protected lemma tendsto_locally_in_measure [preorder ι] [has_dist E] {f : ι → α → E} {g : α → E}
-  (h : tendsto_in_measure μ f g) :
-  tendsto_locally_in_measure μ f g :=
-begin
-  intros s hs hμs ε hε,
-  refine tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds (h ε hε) (λ i, zero_le _) _,
-  exact λ i, measure_mono (λ x, by simp),
-end
 
 protected lemma congr [preorder ι] [has_dist E] {f f' : ι → α → E} {g g' : α → E}
   (h_left : ∀ i, f i =ᵐ[μ] f' i) (h_right : g =ᵐ[μ] g') (h_tendsto : tendsto_in_measure μ f g) :
@@ -253,7 +245,7 @@ lemma tendsto_in_measure_of_tendsto_snorm
   tendsto_in_measure μ f g :=
 begin
   intros ε hε,
-  replace hfg := ennreal.tendsto.const_mul (ennreal.tendsto.rpow p.to_real hfg)
+  replace hfg := ennreal.tendsto.const_mul (tendsto.ennrpow_const p.to_real hfg)
     (or.inr $ @ennreal.of_real_ne_top (1 / ε ^ (p.to_real))),
   simp only [mul_zero, ennreal.zero_rpow_of_pos (ennreal.to_real_pos hp_ne_zero hp_ne_top)] at hfg,
   rw ennreal.tendsto_at_top_zero at hfg ⊢,

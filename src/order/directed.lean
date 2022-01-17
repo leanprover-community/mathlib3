@@ -72,6 +72,20 @@ lemma monotone.directed_le [semilattice_sup α] [preorder β] {f : α → β} :
   monotone f → directed (≤) f :=
 directed_of_sup
 
+lemma directed.extend_bot [preorder α] [order_bot α] {e : ι → β} {f : ι → α}
+  (hf : directed (≤) f) (he : function.injective e) :
+  directed (≤) (function.extend e f ⊥) :=
+begin
+  intros a b,
+  rcases (em (∃ i, e i = a)).symm with ha | ⟨i, rfl⟩,
+  { use b, simp [function.extend_apply' _ _ _ ha] },
+  rcases (em (∃ i, e i = b)).symm with hb | ⟨j, rfl⟩,
+  { use e i, simp [function.extend_apply' _ _ _ hb] },
+  rcases hf i j with ⟨k, hi, hj⟩,
+  use (e k),
+  simp only [function.extend_apply he, *, true_and]
+end
+
 /-- An antitone function on an inf-semilattice is directed. -/
 lemma directed_of_inf [semilattice_inf α] {r : β → β → Prop} {f : α → β}
   (hf : ∀ a₁ a₂, a₁ ≤ a₂ → r (f a₂) (f a₁)) : directed r f :=

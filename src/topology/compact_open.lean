@@ -142,7 +142,7 @@ begin
   simp only [← generate_from_Union, induced_generate_from_eq, continuous_map.compact_open],
   apply generate_from_mono,
   rintros _ ⟨s, hs, u, hu, rfl⟩,
-  rw mem_bUnion_iff',
+  rw mem_Union₂,
   refine ⟨s, hs, _, ⟨univ, is_compact_iff_is_compact_univ.mp hs, u, hu, rfl⟩, _⟩,
   ext f,
   simp only [compact_open.gen, mem_set_of_eq, mem_preimage, continuous_map.coe_restrict],

@@ -440,6 +440,6 @@ theorem bind_defined {f : part α} {g : α → part β} :
 @[simp] theorem bind_dom {f : part α} {g : α → part β} :
   (f.bind g).dom ↔ ∃ h : f.dom, (g (f.get h)).dom := iff.rfl
 
-instance [has_add α] : has_add (part α) := { add := λ a b, b >>= (λ y, map (+ y) a) }
+instance [has_add α] : has_add (part α) := { add := λ a b, (+) <$> a <*> b }
 
 end part

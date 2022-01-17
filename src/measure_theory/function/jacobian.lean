@@ -128,7 +128,7 @@ begin
       { rw hT,
         refine mem_Union.2 ⟨⟨x, xs⟩, _⟩,
         simpa only [mem_ball, subtype.coe_mk, dist_self] using (rpos (f' x)).bot_lt },
-      rwa mem_bUnion_iff at this },
+      rwa mem_Union₂ at this },
     obtain ⟨ε, εpos, hε⟩ : ∃ (ε : ℝ), 0 < ε ∧ ∥f' x - f' z∥ + ε ≤ r (f' z),
     { refine ⟨r (f' z) - ∥f' x - f' z∥, _, le_of_eq (by abel)⟩,
       simpa only [sub_pos] using mem_ball_iff_norm.mp hz },

@@ -83,14 +83,18 @@ theorem mul_le : M * N ≤ P ↔ ∀ (m ∈ M) (n ∈ N), m * n ∈ P :=
   {C : A → Prop} {r : A} (hr : r ∈ M * N)
   (hm : ∀ (m ∈ M) (n ∈ N), C (m * n))
   (h0 : C 0) (ha : ∀ x y, C x → C y → C (x + y))
-  (hs : ∀ (r : R) x, C x → C (r • x)) : C r :=
+  (hs : ∀ (r : R) x, C x → C (r • x))
+   : C r :=
 (@mul_le _ _ _ _ _ _ _ ⟨C, h0, ha, hs⟩).2 hm hr
+
+∑ᵢ mᵢnᵢ m∈ M n ∈ M
 
 /-- A dependent version of `mul_induction_on`. -/
 @[elab_as_eliminator] protected theorem mul_induction_on'
   {C : Π r, r ∈ M * N → Prop}
   (hm : ∀ (m ∈ M) (n ∈ N), C (m * n) (mul_mem_mul ‹_› ‹_›))
-  (h0 : C 0 (zero_mem _)) (ha : ∀ x hx y hy, C x hx → C y hy → C (x + y) (add_mem _ ‹_› ‹_›))
+  (h0 : C 0 (zero_mem _))
+  (ha : ∀ x hx y hy, C x hx → C y hy → C (x + y) (add_mem _ ‹_› ‹_›))
   (hs : ∀ (r : R) x hx, C x hx → C (r • x) (smul_mem _ _ ‹_›))
   {r : A} (hr : r ∈ M * N) : C r hr :=
 begin
@@ -98,6 +102,35 @@ begin
   exact submodule.mul_induction_on hr
     (λ x hx y hy, ⟨_, hm _ hx _ hy⟩)
     ⟨_, h0⟩ (λ x y ⟨_, hx⟩ ⟨_, hy⟩, ⟨_, ha _ _ _ _ hx hy⟩) (λ r x ⟨_, hx⟩, ⟨_, hs _ _ _ hx⟩),
+end
+
+
+/-- A dependent version of `mul_induction_on`. -/
+@[elab_as_eliminator] protected theorem mul_induction_on''
+  {C : Π r, r ∈ M * N → Prop}
+  (hm : ∀ (m ∈ M) (n ∈ N), C (m * n) (mul_mem_mul ‹_› ‹_›))
+  (h0 : C 0 (zero_mem _))
+  (ha : ∀ x hx y hy, C x hx → C y hy → C (x + y) (add_mem _ ‹_› ‹_›))
+  {r : A} (hr : r ∈ M * N) : C r hr :=
+begin
+  rw mem_span_mul_finite_of_mem_mul at
+  -- refine submodule.mul_induction_on' hm h0 ha _ hr; clear hr r,
+  -- intros r x hx,
+  -- suffices : ∃ y hy (hy' : y = r • x), C y hy,
+  -- { obtain ⟨y, hy, rfl, h⟩ := this,
+  --   exact h },
+  -- revert Cx,
+  -- refine submodule.mul_induction_on'
+  --   (λ m hm' n hn' Cmn, _) (λ C0, _) (λ x hx y hy Cx Cy, _)
+  --   (λ r x hx ih, _) hx,
+  -- { simp_rw ←smul_mul_assoc,
+  --   refine ⟨_, _, rfl, hm _ (smul_mem _ _ hm') _ hn'⟩, sorry },
+  -- { simp_rw smul_zero, sorry; exact C0 },
+  -- { simp_rw smul_add,
+  --   have := ha _ (smul_mem _ _ hx) _ (smul_mem _ _ hy);
+  --   sorry },
+  -- { simp_rw smul_comm r,
+  --   apply ih, }
 end
 
 variables R
@@ -225,6 +258,53 @@ lemma mem_span_mul_finite_of_mem_mul {P Q : submodule R A} {x : A} (hx : x ∈ P
 submodule.mem_span_mul_finite_of_mem_span_mul
   (by rwa [← submodule.span_eq P, ← submodule.span_eq Q, submodule.span_mul_span] at hx)
 
+/-- A dependent version of `mul_induction_on`. -/
+@[elab_as_eliminator] protected theorem mul_induction_on'''
+  {C : Π r, r ∈ M * N → Prop}
+  (hm : ∀ (m ∈ M) (n ∈ N), C (m * n) (mul_mem_mul ‹_› ‹_›))
+  (h0 : C 0 (zero_mem _))
+  (ha : ∀ x hx y hy, C x hx → C y hy → C (x + y) (add_mem _ ‹_› ‹_›))
+  {r : A} (hr : r ∈ M * N) : C r hr :=
+begin
+  obtain ⟨sM, sN, hsM, hsN, h⟩ := mem_span_mul_finite_of_mem_mul hr,
+  rw span_eq_supr_of_singleton_spans at h,
+  have := calc
+    (⨆ (x : A) (H : x ∈ ↑sM * ↑sN), span R {x} : submodule R A) =
+    (⨆ (x₁ x₂ : A) (H : x₁ ∈ sM ∧ x₂ ∈ sN), span R {x₁ * x₂}) : by {
+      simp_rw [set.mem_mul],
+    }
+    ... =  (⨆ (x₁ x₂ : A) (H : (x₁, x₂) ∈ sM.product sN), span R {x₁ * x₂}) : by {
+      simp_rw finset.mem_product,
+    }
+     ... = (⨆ (x : A × A) (H : x ∈ sM.product sN), span R {x.1 * x.2}) : by rw supr_prod,
+  begin
+
+  end,
+  simp_rw set.mem_mul at h,
+  simp at h,
+  rw add_submonoid.mem_bsupr_iff_exists_dfinsupp,
+  -- refine submodule.mul_induction_on' hm h0 ha _ hr; clear hr r,
+  -- intros r x hx,
+  -- suffices : ∃ y hy (hy' : y = r • x), C y hy,
+  -- { obtain ⟨y, hy, rfl, h⟩ := this,
+  --   exact h },
+  -- revert Cx,
+  -- refine submodule.mul_induction_on'
+  --   (λ m hm' n hn' Cmn, _) (λ C0, _) (λ x hx y hy Cx Cy, _)
+  --   (λ r x hx ih, _) hx,
+  -- { simp_rw ←smul_mul_assoc,
+  --   refine ⟨_, _, rfl, hm _ (smul_mem _ _ hm') _ hn'⟩, sorry },
+  -- { simp_rw smul_zero, sorry; exact C0 },
+  -- { simp_rw smul_add,
+  --   have := ha _ (smul_mem _ _ hx) _ (smul_mem _ _ hy);
+  --   sorry },
+  -- { simp_rw smul_comm r,
+  --   apply ih, }
+end
+
+#check set.mem_mul
+
+
 variables {M N P}
 
 /-- Sub-R-modules of an R-algebra form a semiring. -/
@@ -261,15 +341,24 @@ protected theorem pow_induction_on
   (hr : ∀ r : R, C 0 (algebra_map _ _ r) (algebra_map_mem r))
   {x : A} {n : ℕ} (hx : x ∈ M ^ n) : C n x hx :=
 begin
-  have h0 : C 0 0 _ := by simpa using hr 0,
+  have hh0 : ∀ i, (0 : A) ∈ M ^ i := λ i, zero_mem _,
+  have h0 : ∀ i, C i 0 (hh0 i),
+  { intro i,
+    induction i with i ih,
+    { simpa using hr 0, },
+    simpa using hmul (0 : A) (zero_mem _) i 0 _ ih },
   have h1 : C 0 1 _ := by simpa using hr 1,
-  induction n generalizing x,
+  induction n with n n_ih generalizing x,
   { rw pow_zero at hx,
     obtain ⟨r, rfl⟩ := hx,
     exact hr r, },
-  rw pow_succ at hx,
-  refine submodule.mul_induction_on' _ _ _ _ hx, --(λ m hm n ih,_) h0 hadd (λ r x hx, _),
-  refine  hmul _ hm _ (n_ih ih),
+  refine submodule.mul_induction_on' (λ m hm x ih, _) _ _ _ hx, --(λ m hm n ih,_) h0 hadd (λ r x hx, _),
+  { exact hmul _ hm _ _ _ (n_ih ih), },
+  { apply h0 },
+  { intros x hx y hy Cx Cy,
+    apply hadd _ _ _ _ _ Cx Cy, },
+  { intros r x hx Cx,
+    sorry },
   rw [algebra.smul_def, algebra.commutes],
   apply hmul,
   { have := hmul  _ hm _ h1,

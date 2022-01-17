@@ -1306,7 +1306,8 @@ begin
   intros,
   induction n with n ih,
   { exactI (const_linear_equiv_of_is_empty R N M₂ : _).finite_dimensional, },
-  { resetI, suffices : finite_dimensional R (N 0 →ₗ[R] multilinear_map R (λ (i : fin n), N i.succ) M₂),
+  { resetI,
+    suffices : finite_dimensional R (N 0 →ₗ[R] multilinear_map R (λ (i : fin n), N i.succ) M₂),
     { exact (multilinear_curry_left_equiv R N M₂).finite_dimensional, },
     apply linear_map.finite_dimensional, },
 end

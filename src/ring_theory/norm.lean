@@ -203,7 +203,7 @@ end
 
 lemma _root_.intermediate_field.adjoin_simple.norm_gen_eq_prod_roots (x : L)
   (hf : (minpoly K x).splits (algebra_map K F)) :
-  (algebra_map K F) (norm K (intermediate_field.adjoin_simple.gen K x)) =
+  (algebra_map K F) (norm K (adjoin_simple.gen K x)) =
   ((minpoly K x).map (algebra_map K F)).roots.prod :=
 begin
   have injKKx : function.injective (algebra_map K K⟮x⟯) := ring_hom.injective _,

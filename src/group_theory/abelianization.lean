@@ -156,6 +156,6 @@ def abelianization_of_comm_group {H : Type*} [comm_group H] :
   abelianization H ≃* H :=
 { to_fun := abelianization.lift (monoid_hom.id H),
   inv_fun := abelianization.of,
-  left_inv := by {rintros ⟨a⟩, simp,},
-  right_inv := by {intros a, simp,},
+  left_inv := by {rintros ⟨a⟩, simp },
+  right_inv := by {intros a, simp },
   map_mul' := by tidy }

@@ -206,8 +206,8 @@ theorem partially_well_ordered_on.image_of_monotone_on {s : set α}
     exact (classical.some_spec (h n)).1 }
 end
 
-lemma _root_.is_antichain.finite {s : set α} {r : α → α → Prop} (ha : is_antichain r s)
-  (hp : s.partially_well_ordered_on r) :
+lemma _root_.is_antichain.finite_of_partially_well_ordered_on {s : set α} {r : α → α → Prop}
+  (ha : is_antichain r s) (hp : s.partially_well_ordered_on r) :
   s.finite :=
 begin
   refine finite_or_infinite.resolve_right (λ hi, _),
@@ -229,13 +229,13 @@ end
 lemma _root_.is_antichain.partially_well_ordered_on_iff {s : set α} {r : α → α → Prop} [is_refl α r]
   (hs : is_antichain r s) :
   s.partially_well_ordered_on r ↔ s.finite :=
-⟨hs.finite, finite.partially_well_ordered_on⟩
+⟨hs.finite_of_partially_well_ordered_on, finite.partially_well_ordered_on⟩
 
 lemma partially_well_ordered_on_iff_finite_antichains {s : set α} {r : α → α → Prop} [is_refl α r]
   [is_symm α r] :
   s.partially_well_ordered_on r ↔ ∀ t ⊆ s, is_antichain r t → t.finite :=
 begin
-  refine ⟨λ h t ht hrt, hrt.finite (h.mono ht), _⟩,
+  refine ⟨λ h t ht hrt, hrt.finite_of_partially_well_ordered_on (h.mono ht), _⟩,
   rintro hs f hf,
   by_contra' H,
   refine set.infinite_range_of_injective (λ m n hmn, _) (hs _ hf _),
@@ -402,7 +402,7 @@ end set
 namespace finset
 
 @[simp] lemma partially_well_ordered_on {r : α → α → Prop} [is_refl α r] (s : finset α) :
-  set.partially_well_ordered_on (s : set α) r :=
+  (s : set α).partially_well_ordered_on r :=
 s.finite_to_set.partially_well_ordered_on
 
 @[simp]

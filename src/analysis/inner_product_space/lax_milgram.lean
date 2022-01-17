@@ -77,7 +77,7 @@ begin
   ...  = inner (lax_milgram_map B v) v : by simp
   ...  ≤ ∥lax_milgram_map B v ∥ * ∥v∥    : real_inner_le_norm (lax_milgram_map B v) v,
   have coerced := (mul_le_mul_right hv).mp squared,
-  exact calc 0 < C * ∥v∥                  : mul_pos C_ge_0 v_ne_0
+  exact calc 0 < C * ∥v∥                  : mul_pos C_ge_0 hv
   ...          ≤ ∥(lax_milgram_map B) v∥  : coerced,
 end
 

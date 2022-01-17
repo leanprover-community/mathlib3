@@ -836,7 +836,7 @@ begin
     obtain ⟨i : ι , hic : i ∈ c, hti : (t : set α) ⊆ f i⟩ :=
       htc (set.subset.trans (t.subset_insert b) hbtc),
     obtain ⟨j, hjc, hbj⟩ : ∃ j ∈ c, b ∈ f j,
-      by simpa [set.mem_bUnion_iff] using hbtc (t.mem_insert_self b),
+      by simpa [set.mem_Union₂] using hbtc (t.mem_insert_self b),
     rcases hc j hjc i hic with ⟨k, hkc, hk, hk'⟩,
     use [k, hkc],
     rw [coe_insert, set.insert_subset],

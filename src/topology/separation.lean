@@ -1212,7 +1212,7 @@ begin
     ⟨mem_interior_iff_mem_nhds.mpr (hxL _), mem_interior_iff_mem_nhds.mpr (hxC _)⟩⟩,
   rcases hK.elim_finite_subcover _ _ this with ⟨t, ht⟩,
   { refine ⟨⋃ x ∈ t, L x ∩ C x, t.compact_bUnion (λ x _, (hL x).inter_right (hC x)), λ x hx, _, _⟩,
-    { obtain ⟨y, hyt, hy : x ∈ interior (L y) ∩ interior (C y)⟩ := mem_bUnion_iff.mp (ht hx),
+    { obtain ⟨y, hyt, hy : x ∈ interior (L y) ∩ interior (C y)⟩ := mem_Union₂.mp (ht hx),
       rw [← interior_inter] at hy,
       refine interior_mono (subset_bUnion_of_mem hyt) hy },
     { simp_rw [Union_subset_iff], rintro x -, exact (inter_subset_right _ _).trans (hCU _) } },
@@ -1312,12 +1312,12 @@ begin
     is_open_bUnion $ λ u hu, (is_open_of_mem_countable_basis u.2).sdiff (hVc _),
     is_open_bUnion $ λ v hv, (is_open_of_mem_countable_basis v.2).sdiff (hUc _),
     λ x hx, _, λ x hx, _, _⟩,
-  { rcases mem_bUnion_iff.1 (hsU hx) with ⟨u, huU, hxu⟩,
+  { rcases mem_Union₂.1 (hsU hx) with ⟨u, huU, hxu⟩,
     refine mem_bUnion huU ⟨hxu, _⟩,
     simp only [mem_Union],
     rintro ⟨v, hvV, -, hxv⟩,
     exact hVd v hvV ⟨hxv, hx⟩ },
-  { rcases mem_bUnion_iff.1 (htV hx) with ⟨v, hvV, hxv⟩,
+  { rcases mem_Union₂.1 (htV hx) with ⟨v, hvV, hxv⟩,
     refine mem_bUnion hvV ⟨hxv, _⟩,
     simp only [mem_Union],
     rintro ⟨u, huU, -, hxu⟩,
@@ -1396,7 +1396,7 @@ begin
   cases H1 huv_union with Zi H2,
   refine ⟨(⋂ (U ∈ Zi), subtype.val U), _, _, _⟩,
   { exact is_clopen_bInter (λ Z hZ, Z.2.1) },
-  { exact mem_bInter_iff.2 (λ Z hZ, Z.2.2) },
+  { exact mem_Inter₂.2 (λ Z hZ, Z.2.2) },
   { rwa [not_nonempty_iff_eq_empty, inter_comm, ←subset_compl_iff_disjoint, compl_compl] at H2 }
 end
 

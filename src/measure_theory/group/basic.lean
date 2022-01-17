@@ -331,7 +331,7 @@ class is_add_haar_measure {G : Type*} [add_group G] [topological_space G] [measu
 
 attribute [to_additive] is_haar_measure
 
-/- Record that a Haar measure on a locally compact space is a Haar measure. This is needed as the
+/- Record that a Haar measure on a locally compact space is locally finite. This is needed as the
 fact that a measure which is finite on compacts is locally finite is not registered as an instance,
 to avoid an instance loop. -/
 @[priority 100, to_additive] -- see Note [lower instance priority]

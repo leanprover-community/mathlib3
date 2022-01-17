@@ -169,7 +169,7 @@ begin
     ... = ⁅L a, L (b*b)⁆ + ⁅L b, L (a*a)⁆ + (2:ℤ)•⁅L a, L (a*b)⁆ + (2:ℤ)•⁅L b, L (a*b)⁆: by abel
 end
 
-/-- Linearise the operator form of the Jordan axiom (lie_L_L_sq) by substituting in a → a + b + c
+/-- Linearise the operator form of the Jordan axiom (`lie_L_L_sq`) by substituting in a → a + b + c
 and expanding. When the Jordan axiom holds in all scalar extensions of `A`, an alternative proof is
 to substitute in a → a + λb + μc and equate coefficients of λμ.-/
 lemma two_lie_L_L_mul_add_lie_L_L_mul_add_lie_L_L_mul (a b c : A) :

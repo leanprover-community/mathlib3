@@ -246,5 +246,4 @@ begin
   { exact L2.integrable_inner f f },
 end
 
-
 end fourier

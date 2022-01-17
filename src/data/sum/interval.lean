@@ -25,22 +25,13 @@ section sum_lift₂
 variables (f f₁ g₁ : α₁ → β₁ → finset γ₁) (g f₂ g₂ : α₂ → β₂ → finset γ₂)
 
 /-- Lifts maps `α₁ → β₁ → finset γ₁` and `α₂ → β₂ → finset γ₂` to a map
-`α₁ ⊕ α₂ → β₁ ⊕ β₂ → finset (γ₁ ⊕ γ₂)`. Could be generalized to alternative monads if we can make
-sure to keep computability and universe polymorphism. -/
-def sum_lift₂ : Π (a : α₁ ⊕ α₂) (b : β₁ ⊕ β₂), finset (γ₁ ⊕ γ₂)
+`α₁ ⊕ α₂ → β₁ ⊕ β₂ → finset (γ₁ ⊕ γ₂)`. Could be generalized to alternative functors if we can
+make sure to keep computability and universe polymorphism. -/
+@[simp] def sum_lift₂ : Π (a : α₁ ⊕ α₂) (b : β₁ ⊕ β₂), finset (γ₁ ⊕ γ₂)
 | (inl a) (inl b) := (f a b).map embedding.inl
 | (inl a) (inr b) := ∅
 | (inr a) (inl b) := ∅
 | (inr a) (inr b) := (g a b).map embedding.inr
-
-@[simp] lemma sum_lift₂_inl_inl (a : α₁) (b : β₁) :
-  sum_lift₂ f g (inl a) (inl b) = (f a b).map embedding.inl := rfl
-
-@[simp] lemma sum_lift₂_inl_inr (a : α₁) (b : β₂) : sum_lift₂ f g (inl a) (inr b) = ∅ := rfl
-@[simp] lemma sum_lift₂_inr_inl (a : α₂) (b : β₁) : sum_lift₂ f g (inr a) (inl b) = ∅ := rfl
-
-@[simp] lemma sum_lift₂_inr_inr (a : α₂) (b : β₂) :
-  sum_lift₂ f g (inr a) (inr b) = (g a b).map embedding.inr := rfl
 
 variables {f f₁ g₁ g f₂ g₂} {a : α₁ ⊕ α₂} {b : β₁ ⊕ β₂} {c : γ₁ ⊕ γ₂}
 
@@ -79,27 +70,12 @@ begin
   exact inr_ne_inl h,
 end
 
-lemma sum_lift₂_nonempty :
-  (sum_lift₂ f g a b).nonempty ↔ (∃ a₁ b₁, a = inl a₁ ∧ b = inl b₁ ∧ (f a₁ b₁).nonempty)
-    ∨ ∃ a₂ b₂, a = inr a₂ ∧ b = inr b₂ ∧ (g a₂ b₂).nonempty :=
-begin
-  split,
-  { rintro ⟨c | c, hc⟩,
-    { rw inl_mem_sum_lift₂ at hc,
-      obtain ⟨a, b, ha, hb, hc⟩ := hc,
-      exact or.inl ⟨a, b, ha, hb, c, hc⟩ },
-    { rw inr_mem_sum_lift₂ at hc,
-      obtain ⟨a, b, ha, hb, hc⟩ := hc,
-      exact or.inr ⟨a, b, ha, hb, c, hc⟩ } },
-  { rintro (⟨a, b, rfl, rfl, h⟩ | ⟨a, b, rfl, rfl, h⟩); exact h.map }
-end
-
 lemma sum_lift₂_eq_empty :
   (sum_lift₂ f g a b) = ∅ ↔ (∀ a₁ b₁, a = inl a₁ → b = inl b₁ → f a₁ b₁ = ∅)
     ∧ ∀ a₂ b₂, a = inr a₂ → b = inr b₂ → g a₂ b₂ = ∅ :=
 begin
-  refine ⟨λ h, ⟨_, _⟩, λ h, _⟩,
-  any_goals { rintro a b rfl rfl, exact map_eq_empty.1 h },
+  refine ⟨λ h, _, λ h, _⟩,
+  { split; { rintro a b rfl rfl, exact map_eq_empty.1 h } },
   cases a; cases b,
   { exact map_eq_empty.2 (h.1 _ _ rfl rfl) },
   { refl },
@@ -107,11 +83,16 @@ begin
   { exact map_eq_empty.2 (h.2 _ _ rfl rfl) }
 end
 
+lemma sum_lift₂_nonempty :
+  (sum_lift₂ f g a b).nonempty ↔ (∃ a₁ b₁, a = inl a₁ ∧ b = inl b₁ ∧ (f a₁ b₁).nonempty)
+    ∨ ∃ a₂ b₂, a = inr a₂ ∧ b = inr b₂ ∧ (g a₂ b₂).nonempty :=
+by simp [nonempty_iff_ne_empty, sum_lift₂_eq_empty, not_and_distrib]
+
 lemma sum_lift₂_mono (h₁ : ∀ a b, f₁ a b ⊆ g₁ a b) (h₂ : ∀ a b, f₂ a b ⊆ g₂ a b) :
   ∀ a b, sum_lift₂ f₁ f₂ a b ⊆ sum_lift₂ g₁ g₂ a b
 | (inl a) (inl b) := map_subset_map.2 (h₁ _ _)
-| (inl a) (inr b) := subset.refl _
-| (inr a) (inl b) := subset.refl _
+| (inl a) (inr b) := subset.rfl
+| (inr a) (inl b) := subset.rfl
 | (inr a) (inr b) := map_subset_map.2 (h₂ _ _)
 
 end sum_lift₂

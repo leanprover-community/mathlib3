@@ -49,7 +49,7 @@ subgroup `G` of `G`, and `⊥` denotes the trivial subgroup `{1}`.
 * `nilpotent_iff_finite_descending_central_series` : `G` is nilpotent iff some descending central
     series reaches `⊥`.
 * `nilpotent_iff_lower` : `G` is nilpotent iff the lower central series reaches `⊥`.
-* `solvable_of_nilpotent`: If `G` is nilpotent, it is solvable.
+* `is_nilpotent.is_solvable`: If `G` is nilpotent, it is solvable.
 
 ## Warning
 
@@ -401,7 +401,7 @@ end
 lemma derived_in_lower_central (n : ℕ) : derived_series G n ≤ lower_central_series G n :=
 by { induction n with i ih, simp, exact (general_commutator_mono ih (by simp)) }
 
-theorem solvable_of_nilpotent (h : is_nilpotent G): is_solvable G :=
+theorem is_nilpotent.is_solvable (h : is_nilpotent G): is_solvable G :=
 begin
   rw nilpotent_iff_lower_central_series at *,
   rcases h with ⟨n, hn⟩,

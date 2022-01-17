@@ -157,6 +157,6 @@ lemma is_open.re_prod_im {s t : set ℝ} (hs : is_open s) (ht : is_open t) :
   is_open (re ⁻¹' s ∩ im ⁻¹' t) :=
 (hs.preimage continuous_re).inter (ht.preimage continuous_im)
 
-lemma is_closed.prod_im {s t : set ℝ} (hs : is_closed s) (ht : is_closed t) :
+lemma is_closed.re_prod_im {s t : set ℝ} (hs : is_closed s) (ht : is_closed t) :
   is_closed (re ⁻¹' s ∩ im ⁻¹' t) :=
 (hs.preimage continuous_re).inter (ht.preimage continuous_im)

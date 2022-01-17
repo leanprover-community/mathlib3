@@ -244,9 +244,8 @@ begin
 end
 
 lemma norm_eq_prod_roots [is_separable K L] [finite_dimensional K L]
-  {x : L} (hF : splits (algebra_map K F) (minpoly K x)) :
-  (algebra_map K F) (norm K x) =
-  ((minpoly K x).map (algebra_map K F)).roots.prod ^ finrank (K⟮x⟯) L :=
+  {x : L} (hF : (minpoly K x).splits (algebra_map K F)) :
+  algebra_map K F (norm K x) = ((minpoly K x).map (algebra_map K F)).roots.prod ^ finrank K⟮x⟯ L :=
 by rw [norm_eq_norm_adjoin K x, ring_hom.map_pow,
   intermediate_field.adjoin_simple.norm_gen_eq_prod_roots _ hF]
 

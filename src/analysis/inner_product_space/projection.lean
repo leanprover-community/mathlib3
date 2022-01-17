@@ -27,12 +27,13 @@ defined in `analysis.inner_product_space.basic`); the lemma
 `submodule.sup_orthogonal_of_is_complete`, stating that for a complete subspace `K` of `E` we have
 `K ⊔ Kᗮ = ⊤`, is a typical example.
 
-The last section covers orthonormal bases, Hilbert bases, etc. The lemma
-`maximal_orthonormal_iff_dense_span`, whose proof requires the theory on the orthogonal complement
-developed earlier in this file, states that an orthonormal set in an inner product space is
-maximal, if and only if its span is dense (i.e., iff it is Hilbert basis, although we do not make
-that definition).  Various consequences are stated, including that if `E` is finite-dimensional
-then a maximal orthonormal set is a basis (`maximal_orthonormal_iff_basis_of_finite_dimensional`).
+The last section covers orthonormal bases, etc. The lemma
+`maximal_orthonormal_iff_orthogonal_complement_eq_bot` states that an orthonormal set in an inner
+product space is maximal, if and only the orthogonal complement of its span is trivial.
+Various consequences are stated for finite-dimensional `E`, including that if a maximal orthonormal
+set is a basis (`maximal_orthonormal_iff_basis_of_finite_dimensional`); these consequences require
+the theory on the orthogonal complement developed earlier in this file.  For consequences in
+infinite dimension (Hilbert bases, etc.), see th file `analysis.inner_product_space.l2_space`.
 
 ## References
 
@@ -1032,7 +1033,7 @@ end orthogonal_family
 
 section orthonormal_basis
 
-/-! ### Existence of Hilbert basis, orthonormal basis, etc. -/
+/-! ### Existence of orthonormal basis, etc. -/
 
 variables {𝕜 E} {v : set E}
 
@@ -1102,31 +1103,6 @@ begin
         simp [huv, inter_eq_self_of_subset_left, hy] },
       exact hu.inner_finsupp_eq_zero hxv' hl }
 end
-
-/-- An orthonormal set in an `inner_product_space` is maximal, if and only if the closure of its
-span is the whole space. -/
-lemma maximal_orthonormal_iff_dense_span [complete_space E] (hv : orthonormal 𝕜 (coe : v → E)) :
-  (∀ u ⊇ v, orthonormal 𝕜 (coe : u → E) → u = v) ↔ (span 𝕜 v).topological_closure = ⊤ :=
-by rw [maximal_orthonormal_iff_orthogonal_complement_eq_bot hv, ← submodule.orthogonal_eq_top_iff,
-  (span 𝕜 v).orthogonal_orthogonal_eq_closure]
-
-/-- Any orthonormal subset can be extended to an orthonormal set whose span is dense. -/
-lemma exists_subset_is_orthonormal_dense_span
-  [complete_space E] (hv : orthonormal 𝕜 (coe : v → E)) :
-  ∃ u ⊇ v, orthonormal 𝕜 (coe : u → E) ∧ (span 𝕜 u).topological_closure = ⊤ :=
-begin
-  obtain ⟨u, hus, hu, hu_max⟩ := exists_maximal_orthonormal hv,
-  rw maximal_orthonormal_iff_dense_span hu at hu_max,
-  exact ⟨u, hus, hu, hu_max⟩
-end
-
-variables (𝕜 E)
-/-- An inner product space admits an orthonormal set whose span is dense. -/
-lemma exists_is_orthonormal_dense_span [complete_space E] :
-  ∃ u : set E, orthonormal 𝕜 (coe : u → E) ∧ (span 𝕜 u).topological_closure = ⊤ :=
-let ⟨u, hus, hu, hu_max⟩ := exists_subset_is_orthonormal_dense_span (orthonormal_empty 𝕜 E) in
-⟨u, hu, hu_max⟩
-variables {𝕜 E}
 
 section finite_dimensional
 

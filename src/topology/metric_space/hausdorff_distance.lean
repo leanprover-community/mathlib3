@@ -1027,8 +1027,7 @@ begin
     have ss := cthickening_subset_thickening' (lt_of_le_of_lt δ_nn hε'.1) hε'.1 E,
     exact ss.trans (thickening_mono hε'.2 E), },
   { rw cthickening_eq_Inter_cthickening' s hsδ hs E,
-    apply bInter_mono,
-    exact λ ε hε, thickening_subset_cthickening ε E, },
+    exact Inter₂_mono (λ ε hε, thickening_subset_cthickening ε E) }
 end
 
 lemma cthickening_eq_Inter_thickening {δ : ℝ} (δ_nn : 0 ≤ δ) (E : set α) :

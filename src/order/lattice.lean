@@ -645,24 +645,33 @@ instance linear_order.to_lattice {α : Type u} [o : linear_order α] :
 theorem sup_eq_max [linear_order α] {x y : α} : x ⊔ y = max x y := rfl
 theorem inf_eq_min [linear_order α] {x y : α} : x ⊓ y = min x y := rfl
 
+lemma sup_eq_max_default [semilattice_sup α] [decidable_rel ((≤) : α → α → Prop)]
+  [is_total α (≤)] : (⊔) = (max_default : α → α → α) :=
+begin
+  ext x y,
+  dunfold max_default,
+  split_ifs with h',
+  exacts [sup_of_le_left h', sup_of_le_right $ (total_of (≤) x y).resolve_right h']
+end
+
+lemma inf_eq_min_default [semilattice_inf α] [decidable_rel ((≤) : α → α → Prop)]
+  [is_total α (≤)] : (⊓) = (min_default : α → α → α) :=
+@sup_eq_max_default (order_dual α) _ _ _
+
 /-- A lattice with total order is a linear order.
 
 See note [reducible non-instances]. -/
 @[reducible] def lattice.to_linear_order (α : Type u) [lattice α] [decidable_eq α]
   [decidable_rel ((≤) : α → α → Prop)] [decidable_rel ((<) : α → α → Prop)]
-  (h : ∀ x y : α, x ≤ y ∨ y ≤ x) :
+  [is_total α (≤)] :
   linear_order α :=
 { decidable_le := ‹_›, decidable_eq := ‹_›, decidable_lt := ‹_›,
-  le_total := h,
+  le_total := total_of (≤),
   max := (⊔),
-  max_def := by
-  { funext x y, dunfold max_default,
-    split_ifs with h', exacts [sup_of_le_left h', sup_of_le_right $ (h x y).resolve_right h'] },
+  max_def := sup_eq_max_default,
   min := (⊓),
-  min_def := by
-  { funext x y, dunfold min_default,
-    split_ifs with h', exacts [inf_of_le_left h', inf_of_le_right $ (h x y).resolve_left h'] },
-  .. ‹lattice α› }
+  min_def := inf_eq_min_default,
+  ..‹lattice α› }
 
 @[priority 100] -- see Note [lower instance priority]
 instance linear_order.to_distrib_lattice {α : Type u} [o : linear_order α] :

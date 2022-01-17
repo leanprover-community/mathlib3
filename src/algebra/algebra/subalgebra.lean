@@ -348,6 +348,14 @@ lemma mem_map {S : subalgebra R A} {f : A →ₐ[R] B} {y : B} :
   y ∈ map S f ↔ ∃ x ∈ S, f x = y :=
 subsemiring.mem_map
 
+lemma map_to_submodule {S : subalgebra R A} {f : A →ₐ[R] B} :
+  (S.map f).to_submodule = S.to_submodule.map f.to_linear_map :=
+set_like.coe_injective rfl
+
+lemma map_to_subsemiring {S : subalgebra R A} {f : A →ₐ[R] B} :
+  (S.map f).to_subsemiring = S.to_subsemiring.map f.to_ring_hom :=
+set_like.coe_injective rfl
+
 @[simp] lemma coe_map (S : subalgebra R A) (f : A →ₐ[R] B) :
   (S.map f : set B) = f '' S :=
 rfl

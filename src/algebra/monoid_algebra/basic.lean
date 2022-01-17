@@ -304,8 +304,8 @@ calc (f * g) x = (∑ a₁ in f.support, ∑ a₂ in g.support, F (a₁, a₂)) 
 
 lemma support_mul [has_mul G] (a b : monoid_algebra k G) :
   (a * b).support ⊆ a.support.bUnion (λa₁, b.support.bUnion $ λa₂, {a₁ * a₂}) :=
-subset.trans support_sum $ Union₂_mono $ λ a₁ _,
-  subset.trans support_sum $ Union₂_mono $ λ a₂ _, support_single_subset
+subset.trans support_sum $ bUnion_mono $ λ a₁ _,
+  subset.trans support_sum $ bUnion_mono $ λ a₂ _, support_single_subset
 
 @[simp] lemma single_mul_single [has_mul G] {a₁ a₂ : G} {b₁ b₂ : k} :
   (single a₁ b₁ : monoid_algebra k G) * single a₂ b₂ = single (a₁ * a₂) (b₁ * b₂) :=

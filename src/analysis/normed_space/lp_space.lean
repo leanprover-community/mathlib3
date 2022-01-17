@@ -459,8 +459,7 @@ instance [hp : fact (1 ≤ p)] : normed_group (lp E p) :=
 normed_group.of_core _
 { norm_eq_zero_iff := norm_eq_zero_iff,
   triangle := λ f g, begin
-    tactic.unfreeze_local_instances,
-    rcases p.dichotomy with rfl | hp',
+    unfreezingI { rcases p.dichotomy with rfl | hp' },
     { cases is_empty_or_nonempty α; resetI,
       { simp [lp.eq_zero' f] },
       refine (lp.is_lub_norm (f + g)).2 _,
@@ -827,8 +826,7 @@ lemma mem_ℓp_of_tendsto {F : ι → lp E p} (hF : metric.bounded (set.range F)
 begin
   obtain ⟨C, hC, hCF'⟩ := hF.exists_pos_norm_le,
   have hCF : ∀ k, ∥F k∥ ≤ C := λ k, hCF' _ ⟨k, rfl⟩,
-  tactic.unfreeze_local_instances,
-  rcases eq_top_or_lt_top p with rfl | hp,
+  unfreezingI { rcases eq_top_or_lt_top p with rfl | hp },
   { apply mem_ℓp_infty,
     use C,
     rintros _ ⟨a, rfl⟩,

@@ -130,7 +130,7 @@ lemma coe_abelianization_congr_of
 lemma abelianization_congr_ref {G : Type*} [group G] :
   (mul_equiv.refl G).abelianization_congr = mul_equiv.refl (abelianization G) :=
 begin
-  apply mul_equiv.eq_of_monoid_hom_eq,
+  apply mul_equiv.to_monoid_hom_injective,
   apply abelianization.hom_ext,
   ext,
   simp,
@@ -145,7 +145,7 @@ lemma abelianization_congr_trans
   {G₁ G₂ G₃ : Type*} [group G₁] [group G₂] [group G₃] (e₁ : G₁ ≃* G₂) (e₂ : G₂ ≃* G₃) :
   e₁.abelianization_congr.trans e₂.abelianization_congr = (e₁.trans e₂).abelianization_congr :=
 begin
-  apply mul_equiv.eq_of_monoid_hom_eq,
+  apply mul_equiv.to_monoid_hom_injective,
   apply abelianization.hom_ext,
   ext,
   simp,

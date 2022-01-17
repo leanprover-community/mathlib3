@@ -39,7 +39,7 @@ namespace order
     before `hi`. Then there is an element of `α` strictly between `lo`
     and `hi`. -/
 lemma exists_between_finsets {α : Type*} [linear_order α]
-  [densely_ordered α] [no_bot_order α] [no_top_order α] [nonem : nonempty α]
+  [densely_ordered α] [no_min_order α] [no_max_order α] [nonem : nonempty α]
   (lo hi : finset α) (lo_lt_hi : ∀ (x ∈ lo) (y ∈ hi), x < y) :
   ∃ m : α, (∀ x ∈ lo, x < m) ∧ (∀ y ∈ hi, m < y) :=
 if nlo : lo.nonempty then
@@ -47,13 +47,13 @@ if nlo : lo.nonempty then
     exists.elim (exists_between (lo_lt_hi _ (finset.max'_mem _ nlo) _ (finset.min'_mem _ nhi)))
       (λ m hm, ⟨m, λ x hx, lt_of_le_of_lt (finset.le_max' lo x hx) hm.1,
                    λ y hy, lt_of_lt_of_le hm.2 (finset.min'_le hi y hy)⟩)
-  else -- upper set is empty, use no_top_order
-    exists.elim (no_top (finset.max' lo nlo)) (λ m hm,
+  else -- upper set is empty, use `no_max_order`
+    exists.elim (exists_gt (finset.max' lo nlo)) (λ m hm,
     ⟨m, λ x hx, lt_of_le_of_lt (finset.le_max' lo x hx) hm,
         λ y hy, (nhi ⟨y, hy⟩).elim⟩)
 else
-  if nhi : hi.nonempty then -- lower set is empty, use no_bot_order
-    exists.elim (no_bot (finset.min' hi nhi)) (λ m hm,
+  if nhi : hi.nonempty then -- lower set is empty, use `no_min_order`
+    exists.elim (exists_lt (finset.min' hi nhi)) (λ m hm,
     ⟨m, λ x hx, (nlo ⟨x, hx⟩).elim,
         λ y hy, lt_of_lt_of_le hm (finset.min'_le hi y hy)⟩)
   else -- both sets are empty, use nonempty
@@ -82,7 +82,7 @@ the domain of `f` is `b`'s relation to the image of `f`.
 
 Thus, if `a` is not already in `f`, then we can extend `f` by sending `a` to `b`.
 -/
-lemma exists_across [densely_ordered β] [no_bot_order β] [no_top_order β] [nonempty β]
+lemma exists_across [densely_ordered β] [no_min_order β] [no_max_order β] [nonempty β]
   (f : partial_iso α β) (a : α) :
   ∃ b : β, ∀ (p ∈ f.val), cmp (prod.fst p) a = cmp (prod.snd p) b :=
 begin
@@ -122,7 +122,7 @@ subtype.map (finset.image (equiv.prod_comm _ _)) $ λ f hf p hp q hq,
 variable (β)
 /-- The set of partial isomorphisms defined at `a : α`, together with a proof that any
     partial isomorphism can be extended to one defined at `a`. -/
-def defined_at_left [densely_ordered β] [no_bot_order β] [no_top_order β] [nonempty β]
+def defined_at_left [densely_ordered β] [no_min_order β] [no_max_order β] [nonempty β]
   (a : α) : cofinal (partial_iso α β) :=
 { carrier := λ f, ∃ b : β, (a, b) ∈ f.val,
   mem_gt :=
@@ -143,7 +143,7 @@ def defined_at_left [densely_ordered β] [no_bot_order β] [no_top_order β] [no
 variables (α) {β}
 /-- The set of partial isomorphisms defined at `b : β`, together with a proof that any
     partial isomorphism can be extended to include `b`. We prove this by symmetry. -/
-def defined_at_right [densely_ordered α] [no_bot_order α] [no_top_order α] [nonempty α]
+def defined_at_right [densely_ordered α] [no_min_order α] [no_max_order α] [nonempty α]
   (b : β) : cofinal (partial_iso α β) :=
 { carrier := λ f, ∃ a, (a, b) ∈ f.val,
   mem_gt :=
@@ -165,14 +165,14 @@ variable {α}
 
 /-- Given an ideal which intersects `defined_at_left β a`, pick `b : β` such that
     some partial function in the ideal maps `a` to `b`. -/
-def fun_of_ideal [densely_ordered β] [no_bot_order β] [no_top_order β] [nonempty β]
+def fun_of_ideal [densely_ordered β] [no_min_order β] [no_max_order β] [nonempty β]
   (a : α) (I : ideal (partial_iso α β)) :
   (∃ f, f ∈ defined_at_left β a ∧ f ∈ I) → { b // ∃ f ∈ I, (a, b) ∈ subtype.val f } :=
 classical.indefinite_description _ ∘ (λ ⟨f, ⟨b, hb⟩, hf⟩, ⟨b, f, hf, hb⟩)
 
 /-- Given an ideal which intersects `defined_at_right α b`, pick `a : α` such that
     some partial function in the ideal maps `a` to `b`. -/
-def inv_of_ideal [densely_ordered α] [no_bot_order α] [no_top_order α] [nonempty α]
+def inv_of_ideal [densely_ordered α] [no_min_order α] [no_max_order α] [nonempty α]
   (b : β) (I : ideal (partial_iso α β)) :
   (∃ f, f ∈ defined_at_right α b ∧ f ∈ I) → { a // ∃ f ∈ I, (a, b) ∈ subtype.val f } :=
 classical.indefinite_description _ ∘ (λ ⟨f, ⟨a, ha⟩, hf⟩, ⟨a, f, hf, ha⟩)
@@ -184,7 +184,7 @@ variables (α β)
 
 /-- Any countable linear order embeds in any nonempty dense linear order without endpoints. -/
 def embedding_from_countable_to_dense
-  [encodable α] [densely_ordered β] [no_bot_order β] [no_top_order β] [nonempty β] :
+  [encodable α] [densely_ordered β] [no_min_order β] [no_max_order β] [nonempty β] :
   α ↪o β :=
 let our_ideal : ideal (partial_iso α β) := ideal_of_cofinals default $ defined_at_left β in
 let F := λ a, fun_of_ideal a our_ideal (cofinal_meets_ideal_of_cofinals _ _ a) in
@@ -199,8 +199,8 @@ end
 
 /-- Any two countable dense, nonempty linear orders without endpoints are order isomorphic. -/
 def iso_of_countable_dense
-  [encodable α] [densely_ordered α] [no_bot_order α] [no_top_order α] [nonempty α]
-  [encodable β] [densely_ordered β] [no_bot_order β] [no_top_order β] [nonempty β] :
+  [encodable α] [densely_ordered α] [no_min_order α] [no_max_order α] [nonempty α]
+  [encodable β] [densely_ordered β] [no_min_order β] [no_max_order β] [nonempty β] :
   α ≃o β :=
 let to_cofinal : α ⊕ β → cofinal (partial_iso α β) :=
   λ p, sum.rec_on p (defined_at_left β) (defined_at_right α) in

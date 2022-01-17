@@ -348,6 +348,14 @@ lemma mem_map {S : subalgebra R A} {f : A →ₐ[R] B} {y : B} :
   y ∈ map S f ↔ ∃ x ∈ S, f x = y :=
 subsemiring.mem_map
 
+lemma map_to_submodule {S : subalgebra R A} {f : A →ₐ[R] B} :
+  (S.map f).to_submodule = S.to_submodule.map f.to_linear_map :=
+set_like.coe_injective rfl
+
+lemma map_to_subsemiring {S : subalgebra R A} {f : A →ₐ[R] B} :
+  (S.map f).to_subsemiring = S.to_subsemiring.map f.to_ring_hom :=
+set_like.coe_injective rfl
+
 @[simp] lemma coe_map (S : subalgebra R A) (f : A →ₐ[R] B) :
   (S.map f : set B) = f '' S :=
 rfl
@@ -757,12 +765,12 @@ variables (S₁ : subalgebra R B)
 
 /-- The product of two subalgebras is a subalgebra. -/
 def prod : subalgebra R (A × B) :=
-{ carrier := set.prod S S₁,
+{ carrier := (S : set A) ×ˢ (S₁ : set B),
   algebra_map_mem' := λ r, ⟨algebra_map_mem _ _, algebra_map_mem _ _⟩,
   .. S.to_subsemiring.prod S₁.to_subsemiring }
 
 @[simp] lemma coe_prod :
-  (prod S S₁ : set (A × B)) = set.prod S S₁ := rfl
+  (prod S S₁ : set (A × B)) = (S : set A) ×ˢ (S₁ : set B):= rfl
 
 lemma prod_to_submodule :
   (S.prod S₁).to_submodule = S.to_submodule.prod S₁.to_submodule := rfl

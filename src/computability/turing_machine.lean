@@ -293,8 +293,7 @@ begin
   { cases i,
     { rw if_neg (nat.succ_ne_zero _).symm,
       simp only [list_blank.nth_zero, list_blank.head_cons, list_blank.modify_nth] },
-    { simp only [IH, list_blank.modify_nth, list_blank.nth_succ, list_blank.tail_cons],
-      congr } }
+    { simp only [IH, list_blank.modify_nth, list_blank.nth_succ, list_blank.tail_cons] } }
 end
 
 /-- A pointed map of `inhabited` types is a map that sends one default value to the other. -/

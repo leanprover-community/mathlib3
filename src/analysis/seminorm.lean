@@ -398,16 +398,17 @@ lemma ball_mono {p : seminorm 𝕜 E} {r₁ r₂ : ℝ} (h : r₁ ≤ r₂) : p.
 lemma ball_antimono {p q : seminorm 𝕜 E} (h : q ≤ p) : p.ball x r ⊆ q.ball x r :=
 λ _, (h _).trans_lt
 
-lemma add_ball_zero (p : seminorm 𝕜 E) (r : ℝ) :
-  ball p (0 : E) r + ball p (0 : E) r ⊆ ball p (0 : E) (2 * r) :=
+lemma ball_add (p : seminorm 𝕜 E) (r₁ r₂ : ℝ) (x₁ x₂ : E):
+  p.ball (x₁ : E) r₁ + p.ball (x₂ : E) r₂ ⊆ p.ball (x₁ + x₂) (r₁ + r₂) :=
 begin
   rw set.subset_def,
   intros x hx,
   rw set.mem_add at hx,
   rcases hx with ⟨y₁, y₂, hy₁, hy₂, hx⟩,
-  rw [←hx, mem_ball_zero, two_mul],
-  exact lt_of_le_of_lt (p.triangle y₁ y₂)
-    (add_lt_add (p.mem_ball_zero.mp hy₁) (p.mem_ball_zero.mp hy₂)),
+  rw [←hx, mem_ball],
+  rw add_sub_comm,
+  exact lt_of_le_of_lt (p.triangle (y₁ - x₁) (y₂ - x₂))
+    (add_lt_add (p.mem_ball.mp hy₁) (p.mem_ball.mp hy₂)),
 end
 
 end has_scalar
@@ -485,7 +486,7 @@ lemma symmetric_ball_zero (r : ℝ) (hx : x ∈ ball p 0 r) : -x ∈ ball p 0 r 
 balanced_ball_zero p r (-1) (by rw [norm_neg, norm_one]) ⟨x, hx, by rw [neg_smul, one_smul]⟩
 
 @[simp]
-lemma preimage_sub_ball (p : seminorm 𝕜 E) (r : ℝ) :
+lemma preimage_neg_ball (p : seminorm 𝕜 E) (r : ℝ) :
   (λ (x : E), -x) ⁻¹' (ball p (0 : E) r) = (ball p (0 : E) r) :=
 begin
   ext,

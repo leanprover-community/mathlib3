@@ -111,7 +111,7 @@ function.update_apply 0 i x i'
 /-- On non-dependent functions, `pi.single` is symmetric in the two indices. -/
 lemma single_comm {β : Sort*} [has_zero β] (i : I) (x : β) (i' : I) :
   single i x i' = single i' x i :=
-by simp only [single_apply, eq_comm]; congr -- deal with `decidable_eq`
+by simp [single_apply, eq_comm]
 
 lemma apply_single (f' : Π i, f i → g i) (hf' : ∀ i, f' i 0 = 0) (i : I) (x : f i) (j : I):
   f' j (single i x j) = single i (f' i x) j :=

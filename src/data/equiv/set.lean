@@ -478,7 +478,7 @@ by { ext x, simp [(equiv.set.congr f).symm.exists_congr_left] }
 end equiv
 
 /-- If a function is a bijection between two sets `s` and `t`, then it induces an
-equivalence between the types `↥s` and ``↥t`. -/
+equivalence between the types `↥s` and `↥t`. -/
 noncomputable def set.bij_on.equiv {α : Type*} {β : Type*} {s : set α} {t : set β} (f : α → β)
   (h : set.bij_on f s t) : s ≃ t :=
 equiv.of_bijective _ h.bijective
@@ -498,8 +498,7 @@ begin
         function.update_apply, function.update_apply,
         dif_pos h],
     have h_coe : (⟨i, h⟩ : s) = e j ↔ i = e j := subtype.ext_iff.trans (by rw subtype.coe_mk),
-    simp_rw h_coe,
-    congr, },
+    simp_rw h_coe },
   { have : i ≠ e j,
       by { contrapose! h, have : (e j : α) ∈ s := (e j).2, rwa ← h at this },
     simp [h, this] }

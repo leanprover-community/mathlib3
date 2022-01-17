@@ -65,7 +65,7 @@ instance : comm_group circle :=
     ← mul_self_abs] },
   .. circle.to_comm_monoid }
 
-lemma coe_inv_circle_eq_conj (z : circle) : ↑(z⁻¹) = (conj : ring_aut ℂ) z := rfl
+lemma coe_inv_circle_eq_conj (z : circle) : ↑(z⁻¹) = conj (z : ℂ) := rfl
 
 @[simp] lemma coe_inv_circle (z : circle) : ↑(z⁻¹) = (z : ℂ)⁻¹ :=
 begin
@@ -77,6 +77,13 @@ end
 
 @[simp] lemma coe_div_circle (z w : circle) : ↑(z / w) = (z:ℂ) / w :=
 show ↑(z * w⁻¹) = (z:ℂ) * w⁻¹, by simp
+
+/-- The elements of the circle embed into the units. -/
+@[simps]
+def circle.to_units : circle →* units ℂ :=
+{ to_fun := λ x, units.mk0 x $ nonzero_of_mem_circle _,
+  map_one' := units.ext rfl,
+  map_mul' := λ x y, units.ext rfl }
 
 instance : compact_space circle := metric.sphere.compact_space _ _
 

@@ -62,8 +62,7 @@ lemma omega_limit_def : ω f ϕ s = ⋂ u ∈ f, closure (image2 ϕ u s) := rfl
 lemma omega_limit_subset_of_tendsto {m : τ → τ} {f₁ f₂ : filter τ} (hf : tendsto m f₁ f₂) :
   ω f₁ (λ t x, ϕ (m t) x) s ⊆ ω f₂ ϕ s :=
 begin
-  apply Inter_subset_Inter2, intro u,  use m ⁻¹' u,
-  apply Inter_subset_Inter2, intro hu, use tendsto_def.mp hf _ hu,
+  refine Inter₂_mono' (λ u hu, ⟨m ⁻¹' u, tendsto_def.mp hf _ hu, _⟩),
   rw ←image2_image_left,
   exact closure_mono (image2_subset (image_preimage_subset _ _) subset.rfl),
 end

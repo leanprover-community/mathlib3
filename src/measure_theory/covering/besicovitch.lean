@@ -218,9 +218,7 @@ lemma monotone_Union_up_to : monotone p.Union_up_to :=
 begin
   assume i j hij,
   simp only [Union_up_to],
-  apply Union_subset_Union2,
-  assume r,
-  exact ⟨⟨r, r.2.trans_le hij⟩, subset.refl _⟩,
+  exact Union_mono' (λ r, ⟨⟨r, r.2.trans_le hij⟩, subset.rfl⟩),
 end
 
 /-- Supremum of the radii of balls whose centers are not yet covered at step `i`. -/

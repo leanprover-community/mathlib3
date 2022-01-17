@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn, Patrick Massot
 -/
 import topology.basic
-/-
+/-!
 # Neighborhoods of a set
 
 In this file we define the filter `𝓝ˢ s` or `nhds_set s` consisting of all neighborhoods of a set

@@ -34,12 +34,35 @@ Note that a group `G` with Haar measure that is both left and right invariant is
 
 open set measure_theory topological_space
 
-variables {G : Type*} [group G] [measurable_space G] [topological_space G] [t2_space G]
+-- move this stuff, but where to?
+section topological_stuff
+variables {G : Type*} [group G] [topological_space G] [topological_group G] {Γ : subgroup G}
+
+@[to_additive]
+instance quotient_group.has_continuous_smul₂ {G : Type*} [group G] [topological_space G]
+  [topological_group G] (Γ : subgroup G) :
+  has_continuous_smul₂ G (G ⧸ Γ) :=
+{ continuous_smul₂ := λ g₀, begin
+    apply continuous_coinduced_dom,
+    change continuous (λ g : G, quotient_group.mk (g₀ * g)),
+    exact continuous_coinduced_rng.comp (continuous_mul_left g₀),
+  end }
+
+@[to_additive]
+lemma quotient_group.continuous_smul₁ (x : G ⧸ Γ) : continuous (λ g : G, g • x) :=
+begin
+  obtain ⟨g₀, rfl⟩ : ∃ g₀, quotient_group.mk g₀ = x,
+  { exact @quotient.exists_rep _ (quotient_group.left_rel Γ) x },
+  change continuous (λ g, quotient_group.mk (g * g₀)),
+  exact continuous_coinduced_rng.comp (continuous_mul_right g₀)
+end
+
+end topological_stuff
+
+variables {G : Type*} [group G] [measurable_space G] [topological_space G]
   [topological_group G] [borel_space G]
   {μ : measure G}
   {Γ : subgroup G}
-
-variables [measurable_space (G ⧸ Γ)] [borel_space (G ⧸ Γ)]
 
 /-- Given a subgroup `Γ` of `G` and a right invariant measure `μ` on `G`, the measure is also
   invariant under the action of `Γ` on `G` by **right** multiplication -/
@@ -52,39 +75,14 @@ begin
   refine hμ.measure_preimage_mul (mul_opposite.unop c) s,
 end}
 
-variables {𝓕 : set G} (h𝓕 : is_fundamental_domain Γ.opposite 𝓕 μ)
-
-section
-
--- where to put?
-@[to_additive]
-instance quotient_group.has_continuous_smul₂ {G : Type*} [group G] [topological_space G]
-  [topological_group G] (Γ : subgroup G) :
-  has_continuous_smul₂ G (G ⧸ Γ) :=
-{ continuous_smul₂ := λ g₀, begin
-    apply continuous_coinduced_dom,
-    change continuous (λ g : G, quotient_group.mk (g₀ * g)),
-    exact continuous_coinduced_rng.comp (continuous_mul_left g₀),
-  end }
-
--- where to put?
-lemma quotient_group.continuous_smul₁ (x : G ⧸ Γ) : continuous (λ g : G, g • x) :=
-begin
-  obtain ⟨g₀, rfl⟩ : ∃ g₀, quotient_group.mk g₀ = x,
-  { exact @quotient.exists_rep _ (quotient_group.left_rel Γ) x },
-  change continuous (λ g, quotient_group.mk (g * g₀)),
-  exact continuous_coinduced_rng.comp (continuous_mul_right g₀)
-end
-
 /-- Measurability of the action of the topological group `G` on the left-coset space `G/Γ`. -/
-instance quotient_group.has_measurable_smul : has_measurable_smul G (G ⧸ Γ) :=
+instance quotient_group.has_measurable_smul [measurable_space (G ⧸ Γ)] [borel_space (G ⧸ Γ)] :
+  has_measurable_smul G (G ⧸ Γ) :=
 { measurable_const_smul := λ g, (continuous_smul₂ g).measurable,
   measurable_smul_const := λ x, (quotient_group.continuous_smul₁ x).measurable }
 
-end
-
+variables {𝓕 : set G} (h𝓕 : is_fundamental_domain Γ.opposite 𝓕 μ)
 include h𝓕
-variables [encodable Γ]
 
 /-- If `𝓕` is a fundamental domain for the action by right multiplication of a subgroup `Γ` of a
   topological group `G`, then its left-translate by an element of `g` is also a fundamental
@@ -114,6 +112,8 @@ lemma measure_theory.is_fundamental_domain.smul (g : G)
       convert subgroup.left_right_mem_preimage x g γ 𝓕, },
     rw [this, hμL.measure_preimage_mul g _, μs_eq_zero],
   end }
+
+variables [encodable Γ] [measurable_space (G ⧸ Γ)] [borel_space (G ⧸ Γ)]
 
 /-- The pushforward to the coset space `G ⧸ Γ` of the restriction of a both left- and right-
   invariant measure on `G` to a fundamental domain `𝓕` is a `G`-invariant measure on `G ⧸ Γ`. -/
@@ -169,14 +169,12 @@ begin
   refl,
 end
 
-
 variables [t2_space (G ⧸ Γ)] [topological_space.second_countable_topology (G ⧸ Γ)]
-
-variables (K : topological_space.positive_compacts (G ⧸ Γ))
+  (K : topological_space.positive_compacts (G ⧸ Γ))
 
 /-- Given a normal subgroup `Γ` of a topological group `G` with Haar measure `μ`, which is also
   right-invariant, and a finite volume fundamental domain `𝓕`, the pushforward to the quotient
-  group `G ⧸ Γ` of the restriction of `μ` to `𝓕` is a multiple of Haar measure on `G/Γ`. -/
+  group `G ⧸ Γ` of the restriction of `μ` to `𝓕` is a multiple of Haar measure on `G ⧸ Γ`. -/
 lemma measure_theory.is_fundamental_domain.map_restrict_quotient [subgroup.normal Γ]
   [measure_theory.measure.is_haar_measure μ] (hμR : measure_theory.is_mul_right_invariant μ)
   (h𝓕_finite : μ 𝓕 < ⊤) : measure.map (quotient_group.mk' Γ) (μ.restrict 𝓕)

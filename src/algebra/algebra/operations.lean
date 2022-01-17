@@ -258,6 +258,8 @@ lemma mem_span_mul_finite_of_mem_mul {P Q : submodule R A} {x : A} (hx : x ∈ P
 submodule.mem_span_mul_finite_of_mem_span_mul
   (by rwa [← submodule.span_eq P, ← submodule.span_eq Q, submodule.span_mul_span] at hx)
 
+lemma to_add_submonoid_mul : span R (↑M * ↑N)
+
 /-- A dependent version of `mul_induction_on`. -/
 @[elab_as_eliminator] protected theorem mul_induction_on'''
   {C : Π r, r ∈ M * N → Prop}
@@ -266,23 +268,39 @@ submodule.mem_span_mul_finite_of_mem_span_mul
   (ha : ∀ x hx y hy, C x hx → C y hy → C (x + y) (add_mem _ ‹_› ‹_›))
   {r : A} (hr : r ∈ M * N) : C r hr :=
 begin
-  obtain ⟨sM, sN, hsM, hsN, h⟩ := mem_span_mul_finite_of_mem_mul hr,
-  rw span_eq_supr_of_singleton_spans at h,
-  have := calc
-    (⨆ (x : A) (H : x ∈ ↑sM * ↑sN), span R {x} : submodule R A) =
-    (⨆ (x₁ x₂ : A) (H : x₁ ∈ sM ∧ x₂ ∈ sN), span R {x₁ * x₂}) : by {
-      simp_rw [set.mem_mul],
-    }
-    ... =  (⨆ (x₁ x₂ : A) (H : (x₁, x₂) ∈ sM.product sN), span R {x₁ * x₂}) : by {
-      simp_rw finset.mem_product,
-    }
-     ... = (⨆ (x : A × A) (H : x ∈ sM.product sN), span R {x.1 * x.2}) : by rw supr_prod,
-  begin
+  have hr' := hr,
+  rw mul_eq_span_mul_set at hr',
+  simp_rw ←set.image_mul_prod at hr',
+  rw span_eq_supr_of_singleton_spans at hr',
+  simp [-prod.exists, @supr_and _ _ _ (_ = _), eq_comm] at hr' {contextual := tt},
+  simp_rw @supr_comm _ A at hr',
+  simp_rw supr_supr_eq_left at hr',
+  rw ←mem_to_add_submonoid at hr',
+  -- dunfold set.image2 at  hr',
+  -- change r ∈ span R {x | ∃ x y↑M * ↑N) at hr',
+  -- rw
+  -- rw span_eq_supr_of_singleton_spans at hr',
+  -- refine exists.elim _ (λ (hr : r ∈ M * N) (hc : C r hr), hc),
+  -- apply submodule.span_induction hr',
+  -- sorry,
+  -- rw mem_span
+  -- obtain ⟨sM, sN, hsM, hsN, h⟩ := mem_span_mul_finite_of_mem_mul hr,
+  -- rw span_eq_supr_of_singleton_spans at h,
+  -- have := calc
+  --   (⨆ (x : A) (H : x ∈ ↑sM * ↑sN), span R {x} : submodule R A) =
+  --   (⨆ (x₁ x₂ : A) (H : x₁ ∈ sM ∧ x₂ ∈ sN), span R {x₁ * x₂}) : by {
+  --     simp_rw [set.mem_mul],
+  --   }
+  --   ... =  (⨆ (x₁ x₂ : A) (H : (x₁, x₂) ∈ sM.product sN), span R {x₁ * x₂}) : by {
+  --     simp_rw finset.mem_product,
+  --   }
+  --    ... = (⨆ (x : A × A) (H : x ∈ sM.product sN), span R {x.1 * x.2}) : by rw supr_prod,
+  -- begin
 
-  end,
-  simp_rw set.mem_mul at h,
-  simp at h,
-  rw add_submonoid.mem_bsupr_iff_exists_dfinsupp,
+  -- end,
+  -- simp_rw set.mem_mul at h,
+  -- simp at h,
+  -- rw add_submonoid.mem_bsupr_iff_exists_dfinsupp,
   -- refine submodule.mul_induction_on' hm h0 ha _ hr; clear hr r,
   -- intros r x hx,
   -- suffices : ∃ y hy (hy' : y = r • x), C y hy,

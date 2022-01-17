@@ -37,6 +37,8 @@ the bundled version, see `rel`.
   terms of rewriting systems, this means that `a` and `b` can be rewritten to the same term.
 -/
 
+open function
+
 variables {α β γ δ : Type*}
 
 section ne_imp
@@ -402,6 +404,14 @@ lemma trans_gen.mono {p : α → α → Prop} :
   (∀ a b, r a b → p a b) → trans_gen r a b → trans_gen p a b :=
 trans_gen.lift id
 
+lemma trans_gen_swap : trans_gen (swap r) a b ↔ trans_gen r b a :=
+begin
+  have : ∀{r} {a b : α}, trans_gen (swap r) a b → trans_gen r b a,
+  { intros r a b h, induction h with b h b c hab hbc ih, { exact trans_gen.single h },
+    exact ih.head hbc },
+  exact ⟨this, this⟩
+end
+
 end trans_gen
 
 section refl_trans_gen
@@ -455,6 +465,13 @@ by simpa [refl_trans_gen_idem] using hab.lift f h
 lemma refl_trans_gen_closed {p : α → α → Prop} :
   (∀ a b, r a b → refl_trans_gen p a b) → refl_trans_gen r a b → refl_trans_gen p a b :=
 refl_trans_gen.lift' id
+
+lemma refl_trans_gen_swap : refl_trans_gen (swap r) a b ↔ refl_trans_gen r b a :=
+begin
+  have : ∀{r} {a b : α}, refl_trans_gen (swap r) a b → refl_trans_gen r b a,
+  { intros r a b h, induction h with b c hab hbc ih, { refl }, exact ih.head hbc },
+  exact ⟨this, this⟩
+end
 
 end refl_trans_gen
 

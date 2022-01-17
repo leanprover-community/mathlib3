@@ -431,8 +431,8 @@ begin
   { refine set.finite_of_forall_between_eq_endpoints (s \ u) (λ x hx y hy z hz hxy hyz, _),
     by_contra h,
     push_neg at h,
-    exact hy.2 (mem_bUnion_iff.mpr ⟨x, hx.1,
-      mem_bUnion_iff.mpr ⟨z, hz.1, lt_of_le_of_ne hxy h.1, lt_of_le_of_ne hyz h.2⟩⟩) },
+    exact hy.2 (mem_Union₂.mpr ⟨x, hx.1,
+      mem_Union₂.mpr ⟨z, hz.1, lt_of_le_of_ne hxy h.1, lt_of_le_of_ne hyz h.2⟩⟩) },
   have : u ⊆ s :=
     bUnion_subset (λ x hx, bUnion_subset (λ y hy, Ioo_subset_Icc_self.trans (h.out hx hy))),
   rw ← union_diff_cancel this,

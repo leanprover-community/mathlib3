@@ -2106,7 +2106,7 @@ lemma with_density_indicator {s : set α} (hs : measurable_set s) (f : α → �
 begin
   ext1 t ht,
   rw [with_density_apply _ ht, lintegral_indicator _ hs,
-      restrict_comm hs ht, ← with_density_apply _ ht]
+      restrict_comm hs, ← with_density_apply _ ht]
 end
 
 lemma with_density_indicator_one {s : set α} (hs : measurable_set s) :

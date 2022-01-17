@@ -79,6 +79,9 @@ instance : has_one ℂ := ⟨(1 : ℝ)⟩
 @[simp] lemma one_im : (1 : ℂ).im = 0 := rfl
 @[simp, norm_cast] lemma of_real_one : ((1 : ℝ) : ℂ) = 1 := rfl
 
+@[simp] theorem of_real_eq_one {z : ℝ} : (z : ℂ) = 1 ↔ z = 1 := of_real_inj
+theorem of_real_ne_one {z : ℝ} : (z : ℂ) ≠ 1 ↔ z ≠ 1 := not_congr of_real_eq_one
+
 instance : has_add ℂ := ⟨λ z w, ⟨z.re + w.re, z.im + w.im⟩⟩
 
 @[simp] lemma add_re (z w : ℂ) : (z + w).re = z.re + w.re := rfl

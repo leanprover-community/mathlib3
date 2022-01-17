@@ -329,7 +329,7 @@ lemma bUnion_diff_bUnion_eq {s t : set ι} {f : ι → set α} (h : (s ∪ t).pa
 begin
   refine (bUnion_diff_bUnion_subset f s t).antisymm
     (bUnion_subset $ λ i hi a ha, (mem_diff _).2 ⟨mem_bUnion hi.1 ha, _⟩),
-  rw mem_bUnion_iff, rintro ⟨j, hj, haj⟩,
+  rw mem_Union₂, rintro ⟨j, hj, haj⟩,
   exact h (or.inl hi.1) (or.inr hj) (ne_of_mem_of_not_mem hj hi.2).symm ⟨ha, haj⟩,
 end
 

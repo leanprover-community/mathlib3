@@ -223,15 +223,15 @@ lemma measure_Union_null [encodable β] {s : β → set α} :
 
 @[simp] lemma measure_Union_null_iff [encodable ι] {s : ι → set α} :
   μ (⋃ i, s i) = 0 ↔ ∀ i, μ (s i) = 0 :=
-⟨λ h i, measure_mono_null (subset_Union _ _) h, measure_Union_null⟩
+μ.to_outer_measure.Union_null_iff
 
 lemma measure_bUnion_null_iff {s : set ι} (hs : countable s) {t : ι → set α} :
   μ (⋃ i ∈ s, t i) = 0 ↔ ∀ i ∈ s, μ (t i) = 0 :=
-by { haveI := hs.to_encodable, rw [bUnion_eq_Union, measure_Union_null_iff, set_coe.forall], refl }
+μ.to_outer_measure.bUnion_null_iff hs
 
 lemma measure_sUnion_null_iff {S : set (set α)} (hS : countable S) :
   μ (⋃₀ S) = 0 ↔ ∀ s ∈ S, μ s = 0 :=
-by rw [sUnion_eq_bUnion, measure_bUnion_null_iff hS]
+μ.to_outer_measure.sUnion_null_iff hS
 
 theorem measure_union_le (s₁ s₂ : set α) : μ (s₁ ∪ s₂) ≤ μ s₁ + μ s₂ :=
 μ.to_outer_measure.union _ _
@@ -239,14 +239,14 @@ theorem measure_union_le (s₁ s₂ : set α) : μ (s₁ ∪ s₂) ≤ μ s₁ +
 lemma measure_union_null : μ s₁ = 0 → μ s₂ = 0 → μ (s₁ ∪ s₂) = 0 :=
 μ.to_outer_measure.union_null
 
-lemma measure_union_null_iff : μ (s₁ ∪ s₂) = 0 ↔ μ s₁ = 0 ∧ μ s₂ = 0:=
+@[simp] lemma measure_union_null_iff : μ (s₁ ∪ s₂) = 0 ↔ μ s₁ = 0 ∧ μ s₂ = 0:=
 ⟨λ h, ⟨measure_mono_null (subset_union_left _ _) h, measure_mono_null (subset_union_right _ _) h⟩,
   λ h, measure_union_null h.1 h.2⟩
 
 lemma measure_union_lt_top (hs : μ s < ∞) (ht : μ t < ∞) : μ (s ∪ t) < ∞ :=
 (measure_union_le s t).trans_lt (ennreal.add_lt_top.mpr ⟨hs, ht⟩)
 
-lemma measure_union_lt_top_iff : μ (s ∪ t) < ∞ ↔ μ s < ∞ ∧ μ t < ∞ :=
+@[simp] lemma measure_union_lt_top_iff : μ (s ∪ t) < ∞ ↔ μ s < ∞ ∧ μ t < ∞ :=
 begin
   refine ⟨λ h, ⟨_, _⟩, λ h, measure_union_lt_top h.1 h.2⟩,
   { exact (measure_mono (set.subset_union_left s t)).trans_lt h, },
@@ -254,7 +254,11 @@ begin
 end
 
 lemma measure_union_ne_top (hs : μ s ≠ ∞) (ht : μ t ≠ ∞) : μ (s ∪ t) ≠ ∞ :=
-((measure_union_le s t).trans_lt (lt_top_iff_ne_top.mpr (ennreal.add_ne_top.mpr ⟨hs, ht⟩))).ne
+(measure_union_lt_top hs.lt_top ht.lt_top).ne
+
+@[simp] lemma measure_union_eq_top_iff : μ (s ∪ t) = ∞ ↔ μ s = ∞ ∨ μ t = ∞ :=
+not_iff_not.1 $ by simp only [← lt_top_iff_ne_top, ← ne.def, not_or_distrib,
+  measure_union_lt_top_iff]
 
 lemma exists_measure_pos_of_not_measure_Union_null [encodable β] {s : β → set α}
   (hs : μ (⋃ n, s n) ≠ 0) : ∃ n, 0 < μ (s n) :=
@@ -412,6 +416,11 @@ alias measure_mono_ae ← filter.eventually_le.measure_le
 /-- If two sets are equal modulo a set of measure zero, then `μ s = μ t`. -/
 lemma measure_congr (H : s =ᵐ[μ] t) : μ s = μ t :=
 le_antisymm H.le.measure_le H.symm.le.measure_le
+
+alias measure_congr ← filter.eventually_eq.measure_eq
+
+lemma measure_mono_null_ae (H : s ≤ᵐ[μ] t) (ht : μ t = 0) : μ s = 0 :=
+nonpos_iff_eq_zero.1 $ ht ▸ H.measure_le
 
 /-- A measurable set `t ⊇ s` such that `μ t = μ s`. It even satisfies `μ (t ∩ u) = μ (s ∩ u)` for
 any measurable set `u` if `μ s ≠ ∞`, see `measure_to_measurable_inter`.

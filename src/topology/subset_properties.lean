@@ -206,7 +206,7 @@ begin
   rcases hs.elim_nhds_subcover U (λ x _, hxU x) with ⟨t, -, hsU⟩,
   refine (t.finite_to_set.bUnion (λ x _, hUf x)).subset _,
   rintro i ⟨x, hx⟩,
-  rcases mem_bUnion_iff.1 (hsU hx.2) with ⟨c, hct, hcx⟩,
+  rcases mem_Union₂.1 (hsU hx.2) with ⟨c, hct, hcx⟩,
   exact mem_bUnion hct ⟨x, hx.1, hcx⟩
 end
 
@@ -301,7 +301,7 @@ assume f hfn hfs, classical.by_contradiction $ assume : ¬ (∃ x ∈ s, cluster
     from mem_of_superset this $ assume x ⟨hxs, hx⟩,
     let ⟨i, hit, hxi⟩ := (show ∃ i ∈ t, x ∉ closure (subtype.val i),
       by { rw [eq_empty_iff_forall_not_mem] at ht, simpa [hxs, not_forall] using ht x }) in
-    have x ∈ closure i.val, from subset_closure (mem_bInter_iff.mp hx i hit),
+    have x ∈ closure i.val, from subset_closure (by { rw mem_Inter₂ at hx, exact hx i hit }),
     show false, from hxi this,
   hfn.ne $ by rwa [empty_mem_iff_bot] at this
 
@@ -973,7 +973,7 @@ begin
     from λ x hx, mem_Union.2 ⟨⟨x, hx⟩, mem_interior_iff_mem_nhds.2 (hxU _)⟩,
   rcases hK.elim_finite_subcover _ _ this with ⟨t, ht⟩,
   { refine ⟨_, t.compact_bUnion (λ x _, hUc x), λ x hx, _⟩,
-    rcases mem_bUnion_iff.1 (ht hx) with ⟨y, hyt, hy⟩,
+    rcases mem_Union₂.1 (ht hx) with ⟨y, hyt, hy⟩,
     exact interior_mono (subset_bUnion_of_mem hyt) hy },
   { exact λ _, is_open_interior }
 end
@@ -1136,9 +1136,9 @@ begin
   choose t ht hsub using λ n, ((is_compact_compact_covering α n).inter_right hs).elim_nhds_subcover
     _ (λ x hx, hf x hx.right),
   refine ⟨⋃ n, (t n : set α), Union_subset $ λ n x hx, (ht n x hx).2,
-    countable_Union $ λ n, (t n).countable_to_set, λ x hx, mem_bUnion_iff.2 _⟩,
+    countable_Union $ λ n, (t n).countable_to_set, λ x hx, mem_Union₂.2 _⟩,
   rcases exists_mem_compact_covering x with ⟨n, hn⟩,
-  rcases mem_bUnion_iff.1 (hsub n ⟨hn, hx⟩) with ⟨y, hyt : y ∈ t n, hyf : x ∈ s → x ∈ f y⟩,
+  rcases mem_Union₂.1 (hsub n ⟨hn, hx⟩) with ⟨y, hyt : y ∈ t n, hyf : x ∈ s → x ∈ f y⟩,
   exact ⟨y, mem_Union.2 ⟨n, hyt⟩, hyf hx⟩
 end
 

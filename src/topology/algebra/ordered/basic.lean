@@ -2158,9 +2158,9 @@ begin
   rcases hs.elim_finite_subcover_image (λ x (_ : x ∈ s), @is_open_Ioi _ _ _ _ x) _
     with ⟨t, st, ft, ht⟩,
   { refine H (ft.bdd_below.imp $ λ C hC y hy, _),
-    rcases mem_bUnion_iff.1 (ht hy) with ⟨x, hx, xy⟩,
+    rcases mem_Union₂.1 (ht hy) with ⟨x, hx, xy⟩,
     exact le_trans (hC hx) (le_of_lt xy) },
-  { refine λ x hx, mem_bUnion_iff.2 (not_imp_comm.1 _ H),
+  { refine λ x hx, mem_Union₂.2 (not_imp_comm.1 _ H),
     exact λ h, ⟨x, λ y hy, le_of_not_lt (h.imp $ λ ys, ⟨_, hy, ys⟩)⟩ }
 end
 

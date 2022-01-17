@@ -293,7 +293,7 @@ begin
   simp only [← finset.set_bUnion_option_to_finset, ← finset.set_bUnion_bUnion],
   generalize : (finset.range n).bUnion (λ k, (encodable.decode₂ ι k).to_finset) = t,
   rcases hd.finset_le t with ⟨i, hi⟩,
-  exact le_supr_of_le i (measure_mono $ bUnion_subset hi)
+  exact le_supr_of_le i (measure_mono $ Union₂_subset hi)
 end
 
 lemma measure_bUnion_eq_supr {s : ι → set α} {t : set ι} (ht : countable t)

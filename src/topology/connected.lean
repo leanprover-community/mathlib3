@@ -780,7 +780,7 @@ subset_Inter $ λ Z, Z.2.1.connected_component_subset Z.2.2
 /-- A clopen set is the union of its connected components. -/
 lemma is_clopen.bUnion_connected_component_eq {Z : set α} (h : is_clopen Z) :
   (⋃ x ∈ Z, connected_component x) = Z :=
-(bUnion_subset $ λ x, h.connected_component_subset).antisymm $
+(Union₂_subset $ λ x, h.connected_component_subset).antisymm $
   λ x hx, mem_bUnion hx mem_connected_component
 
 /-- The preimage of a connected component is preconnected if the function has connected fibers
@@ -824,7 +824,7 @@ begin
   have T₁_u : f ⁻¹' T₁ = (f ⁻¹' connected_component t) ∩ u,
   { apply eq_of_subset_of_subset,
     { rw ←bUnion_preimage_singleton,
-      refine bUnion_subset (λ t' ht', subset_inter _ ht'.2),
+      refine Union₂_subset (λ t' ht', subset_inter _ ht'.2),
       rw [hf.preimage_subset_preimage_iff, singleton_subset_iff],
       exact ht'.1 },
     rintros a ⟨hat, hau⟩,
@@ -840,7 +840,7 @@ begin
   have T₂_v : f ⁻¹' T₂ = (f ⁻¹' connected_component t) ∩ v,
   { apply eq_of_subset_of_subset,
     { rw ←bUnion_preimage_singleton,
-      refine bUnion_subset (λ t' ht', subset_inter _ ht'.2),
+      refine Union₂_subset (λ t' ht', subset_inter _ ht'.2),
       rw [hf.preimage_subset_preimage_iff, singleton_subset_iff],
       exact ht'.1 },
     rintros a ⟨hat, hav⟩,

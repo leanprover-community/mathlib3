@@ -434,7 +434,7 @@ begin
     exact hy.2 (mem_Union₂.mpr ⟨x, hx.1,
       mem_Union₂.mpr ⟨z, hz.1, lt_of_le_of_ne hxy h.1, lt_of_le_of_ne hyz h.2⟩⟩) },
   have : u ⊆ s :=
-    bUnion_subset (λ x hx, bUnion_subset (λ y hy, Ioo_subset_Icc_self.trans (h.out hx hy))),
+    Union₂_subset (λ x hx, Union₂_subset (λ y hy, Ioo_subset_Icc_self.trans (h.out hx hy))),
   rw ← union_diff_cancel this,
   exact humeas.union hfinite.measurable_set
 end

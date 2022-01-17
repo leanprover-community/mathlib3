@@ -379,7 +379,7 @@ is_compact_of_finite_subcover $ assume ι U hUo hsU,
   let ⟨finite_subcovers, h⟩ := axiom_of_choice this in
   by haveI : fintype (subtype s) := hs.fintype; exact
   let t := finset.bUnion finset.univ finite_subcovers in
-  have (⋃ i ∈ s, f i) ⊆ (⋃ i ∈ t, U i), from bUnion_subset $
+  have (⋃ i ∈ s, f i) ⊆ (⋃ i ∈ t, U i), from Union₂_subset $
     assume i hi, calc
     f i ⊆ (⋃ j ∈ finite_subcovers ⟨i, hi⟩, U j) : (h ⟨i, hi⟩)
     ... ⊆ (⋃ j ∈ t, U j) : bUnion_subset_bUnion_left $
@@ -545,7 +545,7 @@ let u := ⋃(i ∈ s0), (uvs i).1 in
 let v := ⋂(i ∈ s0), (uvs i).2 in
 have is_open u, from is_open_bUnion (λi _, (h i).1),
 have is_open v, from is_open_bInter s0.finite_to_set (λi _, (h i).2.1),
-have t ⊆ v, from subset_bInter (λi _, (h i).2.2.2.1),
+have t ⊆ v, from subset_Inter₂ (λi _, (h i).2.2.2.1),
 have u ×ˢ v ⊆ n, from assume ⟨x',y'⟩ ⟨hx',hy'⟩,
   have ∃ i ∈ s0, x' ∈ (uvs i).1, by simpa using hx',
   let ⟨i,is0,hi⟩ := this in

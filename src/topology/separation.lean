@@ -1564,7 +1564,7 @@ begin
     -- This clopen and its complement will separate the connected components of `a` and `b`
     set U : set α := (⋂ (i : {Z // is_clopen Z ∧ b ∈ Z}) (H : i ∈ fin_a), i),
     have hU : is_clopen U := is_clopen_bInter (λ i j, i.2.1),
-    exact ⟨U, coe '' U, hU, ha, subset_bInter (λ Z _, Z.2.1.connected_component_subset Z.2.2),
+    exact ⟨U, coe '' U, hU, ha, subset_Inter₂ (λ Z _, Z.2.1.connected_component_subset Z.2.2),
       (connected_components_preimage_image U).symm ▸ hU.bUnion_connected_component_eq⟩ },
   rw connected_components.quotient_map_coe.is_clopen_preimage at hU,
   refine ⟨Vᶜ, V, hU.compl.is_open, hU.is_open, _, hb mem_connected_component, compl_inter_self _⟩,

@@ -996,7 +996,7 @@ lemma cthickening_eq_Inter_cthickening' {δ : ℝ}
   cthickening δ E = ⋂ ε ∈ s, cthickening ε E :=
 begin
   apply subset.antisymm,
-  { exact subset_bInter (λ _ hε, cthickening_mono (le_of_lt (hsδ hε)) E), },
+  { exact subset_Inter₂ (λ _ hε, cthickening_mono (le_of_lt (hsδ hε)) E), },
   { unfold thickening cthickening,
     intros x hx,
     simp only [mem_Inter, mem_set_of_eq] at *,
@@ -1050,7 +1050,7 @@ begin
   obtain ⟨δ, hδs, δ_nonpos⟩ := not_subset.mp hs₀,
   rw [set.mem_Ioi, not_lt] at δ_nonpos,
   apply subset.antisymm,
-  { exact subset_bInter (λ ε _, closure_subset_cthickening ε E), },
+  { exact subset_Inter₂ (λ ε _, closure_subset_cthickening ε E), },
   { rw ← cthickening_of_nonpos δ_nonpos E,
     exact bInter_subset_of_mem hδs, },
 end

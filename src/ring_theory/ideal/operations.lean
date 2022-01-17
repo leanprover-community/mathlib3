@@ -173,7 +173,7 @@ le_antisymm (smul_le.2 $ λ r hrS n hnT, span_induction hrS
   ((zero_smul R n).symm ▸ submodule.zero_mem _)
   (λ r s, (add_smul r s n).symm ▸ submodule.add_mem _)
   (λ c r, by rw [smul_eq_mul, mul_smul]; exact submodule.smul_mem _ _)) $
-span_le.2 $ set.bUnion_subset $ λ r hrS, set.bUnion_subset $ λ n hnT, set.singleton_subset_iff.2 $
+span_le.2 $ set.Union₂_subset $ λ r hrS, set.Union₂_subset $ λ n hnT, set.singleton_subset_iff.2 $
 smul_mem_smul (subset_span hrS) (subset_span hnT)
 
 lemma union_eq_smul_set (r : R) (T : set M) :
@@ -1180,8 +1180,8 @@ le_antisymm (map_le_iff_le_comap.2 $ mul_le.2 $ λ r hri s hsj,
   show f (r * s) ∈ _, by rw f.map_mul;
   exact mul_mem_mul (mem_map_of_mem f hri) (mem_map_of_mem f hsj))
 (trans_rel_right _ (span_mul_span _ _) $ span_le.2 $
-  set.bUnion_subset $ λ i ⟨r, hri, hfri⟩,
-  set.bUnion_subset $ λ j ⟨s, hsj, hfsj⟩,
+  set.Union₂_subset $ λ i ⟨r, hri, hfri⟩,
+  set.Union₂_subset $ λ j ⟨s, hsj, hfsj⟩,
   set.singleton_subset_iff.2 $ hfri ▸ hfsj ▸
   by rw [← f.map_mul];
   exact mem_map_of_mem f (mul_mem_mul hri hsj))

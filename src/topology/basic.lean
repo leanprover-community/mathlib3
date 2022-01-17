@@ -684,14 +684,9 @@ lemma exists_open_set_nhds {s U : set α} (h : ∀ x ∈ s, U ∈ 𝓝 x) :
 begin
   have := λ x hx, (nhds_basis_opens x).mem_iff.1 (h x hx),
   choose! Z hZ hZ' using this,
-  refine ⟨⋃ x ∈ s, Z x, _, _, bUnion_subset hZ'⟩,
-  { intros x hx,
-    simp only [mem_Union],
-    exact ⟨x, hx, (hZ x hx).1⟩ },
-  { apply is_open_Union,
-    intros x,
-    by_cases hx : x ∈ s ; simp [hx],
-    exact (hZ x hx).2 }
+  refine ⟨⋃ x ∈ s, Z x, λ x hx, mem_bUnion hx (hZ x hx).1, is_open_Union $ x, _, Union₂_subset hZ'⟩,
+  by_cases hx : x ∈ s ; simp [hx],
+  exact (hZ x hx).2,
 end
 
 /-- If `U` is a neighborhood of each point of a set `s` then it is a neighborhood of s:

@@ -133,32 +133,36 @@ end map
 
 end abelianization
 
+section abelianization_congr
+
+variables {G} {H : Type v} [group H] (e : G ≃* H)
+
 /-- Equivalent groups have equivalent abelianizations -/
-def mul_equiv.abelianization_congr {G H : Type*} [group G] [group H] (e : G ≃* H) :
-  abelianization G ≃* abelianization H :=
+def mul_equiv.abelianization_congr : abelianization G ≃* abelianization H :=
 { to_fun := abelianization.map e.to_monoid_hom,
   inv_fun := abelianization.map e.symm.to_monoid_hom,
   left_inv := by { rintros ⟨a⟩, simp },
   right_inv := by { rintros ⟨a⟩, simp },
   map_mul' := by tidy }
 
+variables {e}
 
 @[simp]
-lemma coe_abelianization_congr_of
-  {G H : Type*} [group G] [group H] (e : G ≃* H) { x : G } :
+lemma coe_abelianization_congr_of { x : G } :
   (e.abelianization_congr) (abelianization.of x) = abelianization.of (e x) := rfl
 
 @[simp]
-lemma abelianization_congr_refl {G : Type*} [group G] :
+lemma abelianization_congr_refl :
   (mul_equiv.refl G).abelianization_congr = mul_equiv.refl (abelianization G) :=
 mul_equiv.to_monoid_hom_injective abelianization.lift_of
 
 @[simp]
-lemma abelianization_congr_symm {G H : Type*} [group G] [group H] (e : G ≃* H) :
+lemma abelianization_congr_symm  :
   e.abelianization_congr.symm = e.symm.abelianization_congr := rfl
 
 @[simp]
-lemma abelianization_congr_trans
-  {G₁ G₂ G₃ : Type*} [group G₁] [group G₂] [group G₃] (e₁ : G₁ ≃* G₂) (e₂ : G₂ ≃* G₃) :
-  e₁.abelianization_congr.trans e₂.abelianization_congr = (e₁.trans e₂).abelianization_congr :=
+lemma abelianization_congr_trans {I : Type v} [group I] {e₂ : H ≃* I} :
+  e.abelianization_congr.trans e₂.abelianization_congr = (e.trans e₂).abelianization_congr :=
 mul_equiv.to_monoid_hom_injective (abelianization.hom_ext _ _ rfl)
+
+end abelianization_congr

@@ -86,19 +86,37 @@ calc ⦃a + c, b, a + c⦄ = ⦃a, b, a⦄ + ⦃a, b, c⦄ + ⦃c, b, a⦄ + ⦃
   map_add' := radd _ _,
 }
 
-/-
-def D₁ (a : A): A  →+  add_monoid.End A := {
-  to_fun := λ b, D₂ a b,
+/--
+For a in A, the map b → D a b is an additive monoid homomorphism from A to add_monoid.End A
+-/
+@[simps] lemma D_madd (a:A) : A  →+  add_monoid.End A :=  {
+  to_fun := λ b, D a b,
   map_zero' := begin
     ext c,
-    rw [D₂_apply, mzero, add_monoid_hom.zero_apply],
+    rw [D_apply, mzero, add_monoid_hom.zero_apply],
   end,
   map_add' := λ b₁ b₂, begin
     ext c,
-    rw [D₂_apply, madd, add_monoid_hom.add_apply, D₂_apply, D₂_apply],
+    rw [D_apply, madd, add_monoid_hom.add_apply, D_apply, D_apply],
   end,
 }
+
+/--
+The map a → D a is an additive monoid homomorphism from A to (A  →+  add_monoid.End A)
 -/
+@[simps] lemma D_ladd : A  →+ (A  →+  add_monoid.End A) := {
+  to_fun := λ a, D_madd a,
+  map_zero' := begin
+    ext b c,
+    rw [D_madd_apply, D_apply, add_monoid_hom.zero_apply,  add_monoid_hom.zero_apply, lzero ],
+  end,
+  map_add' := λ a₁ a₂, begin
+    ext b c,
+    simp,
+    rw ladd,
+  end
+}
+
 
 end is_tp
 
@@ -113,3 +131,6 @@ begin
   simp only [add_monoid_hom.sub_apply, function.comp_app, is_tp.D_apply, add_monoid.coe_mul],
   rw [sub_eq_iff_eq_add, is_jordan_tp.jordan],
 end
+
+def lebnitz (D : A → A) (D'  : A → A) :=
+  ∀ (a b c : A),  D ⦃ a, b, c ⦄  = ⦃ D a, b, c⦄ + ⦃a, D' b, c⦄ + ⦃a, b, D c⦄

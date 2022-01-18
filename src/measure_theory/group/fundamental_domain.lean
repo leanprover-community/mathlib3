@@ -209,7 +209,7 @@ begin
     calc ∫ x in s, f x ∂μ = ∫ x in ⋃ g : G, g • t, f x ∂(μ.restrict s) :
       by rw [restrict_congr_set (hac ht.Union_smul_ae_eq), restrict_univ]
     ... = ∑' g : G, ∫ x in g • t, f x ∂(μ.restrict s) :
-      integral_Union_of_null_inter ht.measurable_set_smul
+      integral_Union_of_null_inter (λ g, (ht.measurable_set_smul g).null_measurable_set)
         (ht.pairwise_ae_disjoint.mono $ λ i j h, hac h) hfs.integrable.integrable_on
     ... = ∑' g : G, ∫ x in s ∩ g • t, f x ∂μ :
       by simp only [restrict_restrict (ht.measurable_set_smul _), inter_comm]
@@ -222,7 +222,7 @@ begin
     ... = ∑' g : G, ∫ x in g • s, f x ∂(μ.restrict t) :
       by simp only [hf, restrict_restrict (hs.measurable_set_smul _)]
     ... = ∫ x in ⋃ g : G, g • s, f x ∂(μ.restrict t) :
-      (integral_Union_of_null_inter hs.measurable_set_smul
+      (integral_Union_of_null_inter (λ g, (hs.measurable_set_smul g).null_measurable_set)
         (hs.pairwise_ae_disjoint.mono $ λ i j h, hac h) hft.integrable.integrable_on).symm
     ... = ∫ x in t, f x ∂μ :
       by rw [restrict_congr_set (hac hs.Union_smul_ae_eq), restrict_univ] },

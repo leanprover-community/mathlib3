@@ -203,15 +203,21 @@ by { ext1 x, simp_rw weighted_smul_apply, congr' 2, }
 lemma weighted_smul_null {s : set α} (h_zero : μ s = 0) : (weighted_smul μ s : F →L[ℝ] F) = 0 :=
 by { ext1 x, rw [weighted_smul_apply, h_zero], simp, }
 
-lemma weighted_smul_union (s t : set α) (hs : measurable_set s) (ht : measurable_set t)
+lemma weighted_smul_union' (s t : set α) (ht : measurable_set t)
   (hs_finite : μ s ≠ ∞) (ht_finite : μ t ≠ ∞) (h_inter : s ∩ t = ∅) :
   (weighted_smul μ (s ∪ t) : F →L[ℝ] F) = weighted_smul μ s + weighted_smul μ t :=
 begin
   ext1 x,
   simp_rw [add_apply, weighted_smul_apply,
-    measure_union (set.disjoint_iff_inter_eq_empty.mpr h_inter) hs ht,
+    measure_union (set.disjoint_iff_inter_eq_empty.mpr h_inter) ht,
     ennreal.to_real_add hs_finite ht_finite, add_smul],
 end
+
+@[nolint unused_args]
+lemma weighted_smul_union (s t : set α) (hs : measurable_set s) (ht : measurable_set t)
+  (hs_finite : μ s ≠ ∞) (ht_finite : μ t ≠ ∞) (h_inter : s ∩ t = ∅) :
+  (weighted_smul μ (s ∪ t) : F →L[ℝ] F) = weighted_smul μ s + weighted_smul μ t :=
+weighted_smul_union' s t ht hs_finite ht_finite h_inter
 
 lemma weighted_smul_smul [normed_field 𝕜] [normed_space 𝕜 F] [smul_comm_class ℝ 𝕜 F]
   (c : 𝕜) (s : set α) (x : F) :

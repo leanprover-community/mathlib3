@@ -268,14 +268,13 @@ begin
     exact ⟨U, AU, U_open, hU.le⟩ }
 end
 
-lemma _root_.measurable_set.exists_is_open_diff_lt [opens_measurable_space α]
-  [outer_regular μ] {A : set α} (hA : measurable_set A)
-  (hA' : μ A ≠ ∞) {ε : ℝ≥0∞} (hε : ε ≠ 0) :
+lemma _root_.measurable_set.exists_is_open_diff_lt [outer_regular μ] {A : set α}
+  (hA : measurable_set A) (hA' : μ A ≠ ∞) {ε : ℝ≥0∞} (hε : ε ≠ 0) :
   ∃ U ⊇ A, is_open U ∧ μ U < ∞ ∧ μ (U \ A) < ε :=
 begin
   rcases A.exists_is_open_lt_add hA' hε with ⟨U, hAU, hUo, hU⟩,
   use [U, hAU, hUo, hU.trans_le le_top],
-  exact measure_diff_lt_of_lt_add hA hUo.measurable_set hAU hA' hU,
+  exact measure_diff_lt_of_lt_add hA hAU hA' hU,
 end
 
 protected lemma map [opens_measurable_space α] [measurable_space β] [topological_space β]
@@ -496,7 +495,7 @@ lemma _root_.measurable_set.exists_is_compact_diff_lt [opens_measurable_space α
   ∃ K ⊆ A, is_compact K ∧ μ (A \ K) < ε :=
 begin
   rcases hA.exists_is_compact_lt_add h'A hε with ⟨K, hKA, hKc, hK⟩,
-  exact ⟨K, hKA, hKc, measure_diff_lt_of_lt_add hKc.measurable_set hA hKA
+  exact ⟨K, hKA, hKc, measure_diff_lt_of_lt_add hKc.measurable_set hKA
     (ne_top_of_le_ne_top h'A $ measure_mono hKA) hK⟩
 end
 
@@ -576,7 +575,7 @@ lemma _root_.measurable_set.exists_is_closed_diff_lt [opens_measurable_space α]
   ∃ F ⊆ A, is_closed F ∧ μ (A \ F) < ε :=
 begin
   rcases hA.exists_is_closed_lt_add h'A hε with ⟨F, hFA, hFc, hF⟩,
-  exact ⟨F, hFA, hFc, measure_diff_lt_of_lt_add hFc.measurable_set hA hFA
+  exact ⟨F, hFA, hFc, measure_diff_lt_of_lt_add hFc.measurable_set hFA
     (ne_top_of_le_ne_top h'A $ measure_mono hFA) hF⟩
 end
 

@@ -5,6 +5,9 @@ Authors: Christopher Hoskin
 -/
 
 import algebra.module
+import algebra.ring.basic
+import algebra.lie.of_associative
+import linear_algebra.basic
 
 class has_tp (A : Type*) := (tp : A → A → A → A )
 
@@ -15,12 +18,16 @@ class is_tp (A : Type*) [has_tp A] [has_add A] :=
 (ladd : ∀ (a b c d : A), ⦃ (a+b), c, d ⦄ = ⦃ a, c, d ⦄ + ⦃ b, c, d ⦄)
 (madd : ∀ (a b c d : A), ⦃ a, (b+c), d ⦄ = ⦃ a, b, d ⦄ + ⦃ a, c, d ⦄)
 
+class is_jordan_tp (A : Type*) [has_tp A] [has_add A] [has_sub A] :=
+(jordan : ∀ (a b c d e: A), ⦃ a, b, ⦃ c, d, e ⦄ ⦄  =
+  ⦃ ⦃ a, b, c ⦄, d, e ⦄ - ⦃ c, ⦃ b, a, d ⦄,  e ⦄ + ⦃ c, d, ⦃ a, b, e ⦄ ⦄)
+
 namespace is_tp
 
 lemma radd {A : Type*} [has_tp A] [has_add A] [is_tp A] (a b c d : A) :
   ⦃ a, b, c + d ⦄ = ⦃ a, b, c ⦄ + ⦃ a, b, d ⦄ := by rw [comm, ladd, comm, comm d]
 
-variables {A : Type*} [has_tp A] [add_group A] [is_tp A]
+variables {A : Type*} [has_tp A] [add_comm_group A] [is_tp A]
 
 lemma lzero (b c : A) : ⦃0, b, c⦄ = 0 :=
 (add_monoid_hom.mk' (λ (a : A), ⦃a, b, c⦄) (λ a₁ a₂, ladd a₁ a₂ b c )).map_zero
@@ -58,8 +65,51 @@ by rw [eq_sub_iff_add_eq, ← madd, sub_add_cancel]
 lemma rsub (a b c d : A) : ⦃a, b, c - d⦄ = ⦃a, b, c⦄ - ⦃a, b, d⦄ :=
 by rw [comm, lsub, comm, comm d]
 
+lemma lr_bilinear (a₁ a₂ b c₁ c₂ : A) : ⦃a₁ + a₂, b, c₁ + c₂⦄ =
+  ⦃a₁, b, c₁⦄ + ⦃a₁, b, c₂⦄ + ⦃a₂, b, c₁⦄ + ⦃a₂, b, c₂⦄ :=
+calc ⦃a₁ + a₂, b, c₁ + c₂⦄ = ⦃a₁, b, c₁ + c₂⦄ + ⦃a₂, b, c₁ + c₂⦄ : by rw ladd
+... = ⦃a₁, b, c₁⦄ + ⦃a₁, b, c₂⦄ + ⦃a₂, b, c₁ + c₂⦄ : by rw radd
+... = ⦃a₁, b, c₁⦄ + ⦃a₁, b, c₂⦄ + (⦃a₂, b, c₁⦄ + ⦃a₂, b, c₂⦄) : by rw radd
+... = ⦃a₁, b, c₁⦄ + ⦃a₁, b, c₂⦄ + ⦃a₂, b, c₁⦄ + ⦃a₂, b, c₂⦄ : by rw ← add_assoc
+
+lemma polar (a b c : A) : ⦃a + c, b, a + c⦄ = ⦃a, b, a⦄ + 2•⦃a, b, c⦄ + ⦃c, b, c⦄ :=
+calc ⦃a + c, b, a + c⦄ = ⦃a, b, a⦄ + ⦃a, b, c⦄ + ⦃c, b, a⦄ + ⦃c, b, c⦄ :
+  by rw lr_bilinear a c b a c
+... = ⦃a, b, a⦄ + ⦃a, b, c⦄ + ⦃a, b, c⦄ + ⦃c, b, c⦄ : by rw comm c b a
+... = ⦃a, b, a⦄ + (⦃a, b, c⦄ + ⦃a, b, c⦄)  + ⦃c, b, c⦄ : by rw ← add_assoc
+... = ⦃a, b, a⦄ + 2•⦃a, b, c⦄ + ⦃c, b, c⦄ : by rw two_nsmul
+
+@[simps] def D (a b : A) : add_monoid.End A :=
+{
+  to_fun := λ c, ⦃a, b, c⦄,
+  map_zero' := rzero _ _,
+  map_add' := radd _ _,
+}
+
+/-
+def D₁ (a : A): A  →+  add_monoid.End A := {
+  to_fun := λ b, D₂ a b,
+  map_zero' := begin
+    ext c,
+    rw [D₂_apply, mzero, add_monoid_hom.zero_apply],
+  end,
+  map_add' := λ b₁ b₂, begin
+    ext c,
+    rw [D₂_apply, madd, add_monoid_hom.add_apply, D₂_apply, D₂_apply],
+  end,
+}
+-/
+
 end is_tp
 
-class is_jordan_tp (A : Type*) [has_tp A] [has_add A] [has_sub A] :=
-(jordan : ∀ (a b c d e: A), ⦃ a, b, ⦃ c, d, e ⦄ ⦄  =
-  ⦃ ⦃ a, b, c ⦄, d, e ⦄ - ⦃ c, ⦃ b, a, d ⦄,  e ⦄ + ⦃ c, d, ⦃ a, b, e ⦄ ⦄)
+variables {A : Type*} [has_tp A] [add_comm_group A] [is_tp A]
+
+open is_tp (D)
+
+lemma lie_D_D [is_jordan_tp A] (a b c d: A) : ⁅D a b, D c d⁆ = D ⦃a, b, c⦄ d - D c ⦃b, a, d⦄ :=
+begin
+  ext e,
+  rw ring.lie_def,
+  simp only [add_monoid_hom.sub_apply, function.comp_app, is_tp.D_apply, add_monoid.coe_mul],
+  rw [sub_eq_iff_eq_add, is_jordan_tp.jordan],
+end

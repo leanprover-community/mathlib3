@@ -351,8 +351,8 @@ nat.find (is_nilpotent.nilpotent G)
 
 variable {G}
 
-/-- Equivalently, the nilpotency class is the smallest `n` for which any ascending
-central series reaches `G` in its `n`'th term -/
+/-- The nilpotency class of a nilpotent `G` is equal to the smallest `n` for which an ascending
+central series reaches `G` in its `n`'th term. -/
 lemma least_ascending_central_series_length_eq_nilpotency_class :
   nat.find ((nilpotent_iff_finite_ascending_central_series G).mp hG) = group.nilpotency_class G :=
 begin
@@ -365,6 +365,8 @@ begin
     exact (ascending_central_series_le_upper H hH n), }
 end
 
+/-- The nilpotency class of a nilpotent `G` is equal to the smallest `n` for which a descending
+central series reaches `⊥` in its `n`'th term. -/
 lemma least_descending_central_series_length_eq_nilpotency_class :
   nat.find ((nilpotent_iff_finite_descending_central_series G).mp hG) = group.nilpotency_class G :=
 begin
@@ -382,6 +384,7 @@ begin
     { simp, exact hH.1 } },
 end
 
+/-- The nilpotency class of a nilpotent `G` is equal to the length of the lower central series. -/
 lemma lower_central_series_length_eq_nilpotency_class :
   nat.find (nilpotent_iff_lower_central_series.mp hG) = @group.nilpotency_class G _ _ :=
 begin

@@ -11,7 +11,8 @@ import ring_theory.graded_algebra.basic
 /-!
 # Results about the generators and grading structure of the clifford algebra
 
-Many of these results are copied with minimal modification from the tensor algebra
+The main result is `exterior_algebra.graded_algebra`, which says that the clifford algebra is a
+ℤ₂-graded algebra (or "superalgebra").
 -/
 
 namespace clifford_algebra
@@ -85,60 +86,110 @@ begin
   refine direct_sum.of_eq_of_graded_monoid_eq (sigma.subtype_ext rfl $ ι_sq_scalar _ _),
 end
 
+#check submodule.mul_induction_on'
+
+@[elab_as_eliminator, to_additive]
+lemma _root_.submonoid.supr_induction {M : Type*} {ι : Sort*} [monoid M]
+  (p : ι → submonoid M) {C : M → Prop} {x : M} (hx : x ∈ ⨆ i, p i)
+  (hp : ∀ i (x ∈ p i), C x)
+  (h1 : C 1)
+  (hmul : ∀ x y, C x → C y → C (x * y)) : C x :=
+begin
+  rw submonoid.supr_eq_closure at hx,
+  refine submonoid.closure_induction hx (λ x hx, _) h1 hmul,
+  obtain ⟨i, hi⟩ := set.mem_Union.mp hx,
+  exact hp _ _ hi,
+end
+
+@[elab_as_eliminator, to_additive]
+lemma _root_.submonoid.supr_induction' {M : Type*} {ι : Sort*} [monoid M]
+  (p : ι → submonoid M) {C : Π x, (x ∈ ⨆ i, p i) → Prop}
+  (hp : ∀ i (x ∈ p i), C x (submonoid.mem_supr_of_mem i ‹_›))
+  (h1 : C 1 (submonoid.one_mem _))
+  (hmul : ∀ x y hx hy, C x hx → C y hy → C (x * y) (submonoid.mul_mem _ ‹_› ‹_›))
+  {x : M} (hx : x ∈ ⨆ i, p i) : C x hx :=
+begin
+  refine exists.elim _ (λ (hx : x ∈ ⨆ i, p i) (hc : C x hx), hc),
+  refine submonoid.supr_induction p hx (λ i x hx, _) _ (λ x y, _),
+  { exact ⟨_, hp _ _ hx⟩ },
+  { exact ⟨_, h1⟩ },
+  { rintro ⟨_, Cx⟩ ⟨_, Cy⟩,
+    refine ⟨_, hmul _ _ _ _ Cx Cy⟩ },
+end
+
+
+@[elab_as_eliminator]
+lemma _root_.submodule.supr_induction {R M : Type*} {ι : Sort*}
+  [semiring R] [add_comm_monoid M] [module R M]
+  (p : ι → submodule R M) {C : M → Prop} {x : M} (hx : x ∈ ⨆ i, p i)
+  (hp : ∀ i (x ∈ p i), C x)
+  (h0 : C 0)
+  (hadd : ∀ x y, C x → C y → C (x + y)) : C x :=
+begin
+  rw [←submodule.mem_to_add_submonoid, submodule.supr_to_add_submonoid] at hx,
+  exact add_submonoid.supr_induction _ hx hp h0 hadd,
+end
+
+@[elab_as_eliminator]
+lemma _root_.submodule.supr_induction' {R M : Type*} {ι : Sort*}
+  [semiring R] [add_comm_monoid M] [module R M]
+  (p : ι → submodule R M) {C : Π x, (x ∈ ⨆ i, p i) → Prop}
+  (hp : ∀ i (x ∈ p i), C x (submodule.mem_supr_of_mem i ‹_›))
+  (h0 : C 0 (submodule.zero_mem _))
+  (hadd : ∀ x y hx hy, C x hx → C y hy → C (x + y) (submodule.add_mem _ ‹_› ‹_›))
+  {x : M} (hx : x ∈ ⨆ i, p i) : C x hx :=
+begin
+  refine exists.elim _ (λ (hx : x ∈ ⨆ i, p i) (hc : C x hx), hc),
+  refine submodule.supr_induction p hx (λ i x hx, _) _ (λ x y, _),
+  { exact ⟨_, hp _ _ hx⟩ },
+  { exact ⟨_, h0⟩ },
+  { rintro ⟨_, Cx⟩ ⟨_, Cy⟩,
+    refine ⟨_, hadd _ _ _ _ Cx Cy⟩ },
+end
+
 /-- The exterior algebra is graded by the powers of the submodule `(exterior_algebra.ι R).range`. -/
 instance graded_algebra :
   graded_algebra (even_odd Q) :=
 graded_algebra.of_alg_hom _
   (lift _ $ ⟨graded_algebra.ι Q, graded_algebra.ι_sq_scalar Q⟩)
-  -- the proof from here onward is identical to the `tensor_algebra` case
+  -- the proof from here onward is mostly similar to the `tensor_algebra` case, with some extra
+  -- handling for the `supr` in `even_odd`.
   (begin
     ext m,
     dsimp only [linear_map.comp_apply, alg_hom.to_linear_map_apply, alg_hom.comp_apply,
       alg_hom.id_apply],
     rw [lift_ι_apply, graded_algebra.ι_apply, direct_sum.submodule_coe_alg_hom_of, subtype.coe_mk],
   end)
-  (λ i x, begin
-    cases x with x hx,
+  (λ i' x', begin
+    cases x' with x' hx',
     dsimp only [subtype.coe_mk, direct_sum.lof_eq_of],
-    simp_rw [even_odd, submodule.supr_eq_span] at hx,
-    sorry,
-    -- apply submodule.pow_induction_on' _
-    --   (λ r, _) (λ x y i hx hy ihx ihy, _) (λ m hm i x hx ih, _) hx,
-    -- { rw [alg_hom.commutes, direct_sum.algebra_map_apply], refl },
-    -- { rw [alg_hom.map_add, ihx, ihy, ←map_add], refl },
-    -- { obtain ⟨_, rfl⟩ := hm,
-    --   rw [alg_hom.map_mul, ih, lift_ι_apply, graded_algebra.ι_apply, direct_sum.of_mul_of],
-    --   exact direct_sum.of_eq_of_graded_monoid_eq (sigma.subtype_ext (add_comm _ _) rfl) }
+    refine submodule.supr_induction' _ (λ i x hx, _) _ (λ x y hx hy ihx ihy, _) hx',
+    { obtain ⟨i, rfl⟩ := i,
+      dsimp only [subtype.coe_mk] at hx,
+      refine submodule.pow_induction_on' _
+        (λ r, _) (λ x y i hx hy ihx ihy, _) (λ m hm i x hx ih, _) hx,
+      { rw [alg_hom.commutes, direct_sum.algebra_map_apply], refl },
+      { rw [alg_hom.map_add, ihx, ihy, ←map_add], refl },
+      { obtain ⟨_, rfl⟩ := hm,
+        rw [alg_hom.map_mul, ih, lift_ι_apply, graded_algebra.ι_apply, direct_sum.of_mul_of],
+        refine direct_sum.of_eq_of_graded_monoid_eq (sigma.subtype_ext _ _),
+          dsimp only [graded_monoid.mk, subtype.coe_mk],
+        { rw [nat.succ_eq_add_one, add_comm], refl },
+        refl } },
+    { rw alg_hom.map_zero,
+      apply eq.symm,
+      apply dfinsupp.single_eq_zero.mpr, refl, },
+    { rw [alg_hom.map_add, ihx, ihy, ←map_add], refl },
   end)
+
 
 lemma supr_ι_range_eq_top : (⨆ i : ℕ, (ι Q).range ^ i) = ⊤ :=
 begin
-  rw [submodule.supr_pow_eq_top_iff, subsemiring.eq_top_iff'],
-  intro x,
-  rw ring_hom.mem_srange,
-  induction x using clifford_algebra.induction,
-  case h_grade0 : r {
-    refine ⟨direct_sum.of _ 0 _, _⟩,
-    refine ⟨algebra_map _ _ r, _⟩,
-    { simp only [pow_zero, submodule.mem_one, exists_apply_eq_apply], },
-    rw [direct_sum.to_semiring_of],
-    refl },
-  case h_grade1 : m {
-    refine ⟨direct_sum.of _ 1 _, _⟩,
-    refine ⟨ι Q m, _⟩,
-    { simp only [pow_one, linear_map.mem_range, exists_apply_eq_apply], },
-    rw [direct_sum.to_semiring_of],
-    refl },
-  case h_add : x y hx hy {
-    obtain ⟨fx, rfl⟩ := hx,
-    obtain ⟨fy, rfl⟩ := hy,
-    rw ←ring_hom.map_add,
-    exact ⟨_, rfl⟩, },
-  case h_mul : x y hx hy {
-    obtain ⟨fx, rfl⟩ := hx,
-    obtain ⟨fy, rfl⟩ := hy,
-    rw ←ring_hom.map_mul,
-    exact ⟨_, rfl⟩, },
+  rw [← (graded_algebra.is_internal $ λ i, even_odd Q i).supr_eq_top, eq_comm],
+  dunfold even_odd,
+  calc    (⨆ (i : zmod 2) (j : {n // ↑n = i}), (ι Q).range ^ ↑j)
+        = (⨆ (i : Σ i : zmod 2, {n : ℕ // ↑n = i}), (ι Q).range ^ (i.2 : ℕ)) : by rw supr_sigma
+    ... = (⨆ (i : ℕ), (ι Q).range ^ i) : supr_congr (λ i, i.2) (λ i, ⟨⟨_, i, rfl⟩, rfl⟩) (λ _, rfl),
 end
 
 end clifford_algebra

@@ -135,7 +135,7 @@ end
 /-- The positive natural numbers are bijective with finsupps `ℕ →₀ ℕ` with support in the primes -/
 noncomputable
 def factorization_equiv : pnat ≃ {f : ℕ →₀ ℕ | ∀ p ∈ f.support, prime p} :=
-{ to_fun    := λ ⟨n, hn⟩, ⟨n.factorization, λ p, @prime_of_mem_factorization n p⟩,
+{ to_fun    := λ ⟨n, hn⟩, ⟨n.factorization, λ _, prime_of_mem_factorization⟩,
   inv_fun   := λ ⟨f, hf⟩, ⟨f.prod pow,
     prod_pos (λ p hp, zero_lt_iff.mpr (pow_ne_zero _ (prime.ne_zero (hf p hp))))⟩,
   left_inv  :=

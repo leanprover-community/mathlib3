@@ -22,7 +22,8 @@ minimized when `g ∘ σ` antivaries with `f`.
 In fact, we don't need much compatibility between the addition and multiplication of `α`, so we can
 actually decouple them by replacing multiplication with scalar multiplication and making `f` and `g`
 land in different types.
-As a bonus, this makes the dual statement trivial.
+As a bonus, this makes the dual statement trivial. The multiplication versions are provided for
+convenience.
 
 The case for `monotone`/`antitone` pairs of functions over a `linear_order` is not deduced in this
 file because it is easily deducible from the `monovary` API.
@@ -31,13 +32,17 @@ file because it is easily deducible from the `monovary` API.
 open equiv equiv.perm finset order_dual
 open_locale big_operators
 
-variables {ι α β : Type*} [linear_ordered_ring α] [linear_ordered_add_comm_group β] [module α β]
+variables {ι α β : Type*}
+
+/-! ### Scalar multiplication versions -/
+
+section smul
+variables [linear_ordered_ring α] [linear_ordered_add_comm_group β] [module α β]
   [ordered_smul α β] {s : finset ι} {σ : perm ι} {f : ι → α} {g : ι → β}
 
-
-/-- **Rearrangement Inequality**: Pointwise multiplication of `f` and `g` is maximized when `f` and
-`g` vary together. Stated by permuting the entries of `g`.  -/
-theorem monovary_on.sum_smul_comp_perm_le_sum_smul (hfg : monovary_on f g s)
+/-- **Rearrangement Inequality**: Pointwise scalar multiplication of `f` and `g` is maximized when
+`f` and `g` vary together. Stated by permuting the entries of `g`.  -/
+lemma monovary_on.sum_smul_comp_perm_le_sum_smul (hfg : monovary_on f g s)
   (hσ : {x | σ x ≠ x} ⊆ s) :
   ∑ i in s, f i • g (σ i) ≤ ∑ i in s, f i • g i :=
 begin
@@ -94,9 +99,9 @@ begin
     exact has hx.2 }
 end
 
-/-- **Rearrangement Inequality**: Pointwise multiplication of `f` and `g` is maximized when `f` and
-`g` vary together. Stated by permuting the entries of `f`. -/
-theorem monovary_on.sum_comp_perm_smul_le_sum_smul (hfg : monovary_on f g s)
+/-- **Rearrangement Inequality**: Pointwise scalar multiplication of `f` and `g` is maximized when
+`f` and `g` vary together. Stated by permuting the entries of `f`. -/
+lemma monovary_on.sum_comp_perm_smul_le_sum_smul (hfg : monovary_on f g s)
   (hσ : {x | σ x ≠ x} ⊆ s) :
   ∑ i in s, f (σ i) • g i ≤ ∑ i in s, f i • g i :=
 begin
@@ -105,20 +110,53 @@ begin
   exact σ.sum_comp' s (λ i j, f i • g j) hσ,
 end
 
-/-- **Rearrangement Inequality**: Pointwise multiplication of `f` and `g` is minimized when `f` and
-`g` antivary together. Stated by permuting the entries of `g`.-/
-theorem antivary_on.sum_smul_le_sum_smul_comp_perm (hfg : antivary_on f g s)
+/-- **Rearrangement Inequality**: Pointwise scalar multiplication of `f` and `g` is minimized when
+`f` and `g` antivary together. Stated by permuting the entries of `g`.-/
+lemma antivary_on.sum_smul_le_sum_smul_comp_perm (hfg : antivary_on f g s)
   (hσ : {x | σ x ≠ x} ⊆ s) :
   ∑ i in s, f i • g i ≤ ∑ i in s, f i • g (σ i) :=
 hfg.dual_right.sum_smul_comp_perm_le_sum_smul hσ
 
-/-- **Rearrangement Inequality**: Pointwise multiplication of `f` and `g` is minimized when `f` and
-`g` antivary together. Stated by permuting the entries of `f`. -/
-theorem antivary_on.sum_smul_le_sum_comp_perm_smul (hfg : antivary_on f g s)
+/-- **Rearrangement Inequality**: Pointwise scalar multiplication of `f` and `g` is minimized when
+`f` and `g` antivary together. Stated by permuting the entries of `f`. -/
+lemma antivary_on.sum_smul_le_sum_comp_perm_smul (hfg : antivary_on f g s)
   (hσ : {x | σ x ≠ x} ⊆ s) :
   ∑ i in s, f i • g i ≤ ∑ i in s, f (σ i) • g i :=
-begin
-  convert hfg.sum_smul_le_sum_smul_comp_perm
-    (show {x | σ⁻¹ x ≠ x} ⊆ s, by simp only [set_support_inv_eq, hσ]) using 1,
-  exact σ.sum_comp' s (λ i j, f i • g j) hσ,
-end
+hfg.dual_right.sum_comp_perm_smul_le_sum_smul hσ
+
+end smul
+
+/-!
+### Multiplication versions
+
+Special cases of the above when scalar multiplication is actually multiplication.
+-/
+
+section mul
+variables [linear_ordered_ring α] {s : finset ι} {σ : perm ι} {f g : ι → α}
+
+/-- **Rearrangement Inequality**: Pointwise multiplication of `f` and `g` is maximized when `f` and
+`g` vary together. Stated by permuting the entries of `g`.  -/
+lemma monovary_on.sum_mul_comp_perm_le_sum_mul (hfg : monovary_on f g s) (hσ : {x | σ x ≠ x} ⊆ s) :
+  ∑ i in s, f i * g (σ i) ≤ ∑ i in s, f i * g i :=
+hfg.sum_smul_comp_perm_le_sum_smul hσ
+
+/-- **Rearrangement Inequality**: Pointwise multiplication of `f` and `g` is maximized when `f` and
+`g` vary together. Stated by permuting the entries of `f`. -/
+lemma monovary_on.sum_comp_perm_mul_le_sum_mul (hfg : monovary_on f g s) (hσ : {x | σ x ≠ x} ⊆ s) :
+  ∑ i in s, f (σ i) • g i ≤ ∑ i in s, f i • g i :=
+hfg.sum_comp_perm_smul_le_sum_smul hσ
+
+/-- **Rearrangement Inequality**: Pointwise multiplication of `f` and `g` is minimized when `f` and
+`g` antivary together. Stated by permuting the entries of `g`.-/
+lemma antivary_on.sum_mul_le_sum_mul_comp_perm (hfg : antivary_on f g s) (hσ : {x | σ x ≠ x} ⊆ s) :
+  ∑ i in s, f i • g i ≤ ∑ i in s, f i • g (σ i) :=
+hfg.sum_smul_le_sum_smul_comp_perm hσ
+
+/-- **Rearrangement Inequality**: Pointwise multiplication of `f` and `g` is minimized when `f` and
+`g` antivary together. Stated by permuting the entries of `f`. -/
+lemma antivary_on.sum_mul_le_sum_comp_perm_mul (hfg : antivary_on f g s) (hσ : {x | σ x ≠ x} ⊆ s) :
+  ∑ i in s, f i • g i ≤ ∑ i in s, f (σ i) • g i :=
+hfg.sum_smul_le_sum_comp_perm_smul hσ
+
+end mul

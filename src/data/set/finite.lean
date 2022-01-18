@@ -420,11 +420,11 @@ theorem infinite.exists_lt_map_eq_of_maps_to [linear_order α] {s : set α} {t :
 let ⟨x, hx, y, hy, hxy, hf⟩ := hs.exists_ne_map_eq_of_maps_to hf ht
 in hxy.lt_or_lt.elim (λ hxy, ⟨x, hx, y, hy, hxy, hf⟩) (λ hyx, ⟨y, hy, x, hx, hyx, hf.symm⟩)
 
-lemma finite.exists_lt_map_eq_of_range_subset [linear_order α] [_root_.infinite α] {t : set β}
-  {f : α → β} (hf : range f ⊆ t) (ht : finite t) :
+lemma finite.exists_lt_map_eq_of_forall_mem [linear_order α] [_root_.infinite α] {t : set β}
+  {f : α → β} (hf : ∀ x, f x ∈ t) (ht : finite t) :
   ∃ a b, a < b ∧ f a = f b :=
 begin
-  rw [range_subset_iff, ←maps_univ_to] at hf,
+  rw ← maps_univ_to at hf,
   obtain ⟨a, -, b, -, h⟩ := (@infinite_univ α _).exists_lt_map_eq_of_maps_to hf ht,
   exact ⟨a, b, h⟩,
 end

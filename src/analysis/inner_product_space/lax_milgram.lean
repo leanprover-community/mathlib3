@@ -44,7 +44,6 @@ def is_coercive
   {V : Type u} [inner_product_space ℝ V] [complete_space V] (B : V →L[ℝ] V →L[ℝ] ℝ) : Prop :=
 ∃ C, (0 < C) ∧ ∀ u, C * ∥u∥ * ∥u∥ ≤ B u u
 
-
 namespace lax_milgram
 variables {V : Type u} [inner_product_space ℝ V] [complete_space V]
 variables (B : V →L[ℝ] V →L[ℝ] ℝ)
@@ -56,38 +55,101 @@ def lax_milgram_map (B : V →L[ℝ] V →L[ℝ] ℝ) : V →L[ℝ] V :=
 
 @[simp]
 lemma lax_milgram_map_apply (v w : V) : B v w = inner (lax_milgram_map B v) w :=
+by {dunfold lax_milgram_map, simp,}
+
+lemma unique_lax_milgram_map (v f : V)
+  (is_lax_milgram : (∀ w, inner f w = B v w)) :
+  f = lax_milgram_map B v :=
 begin
-  dunfold lax_milgram_map,
-  simp,
+  refine inner_product_space.ext_inner_right ℝ _,
+  intro w,
+  rw ←lax_milgram_map_apply,
+  exact is_lax_milgram w,
 end
 
 variables {B}
+
+lemma bounded_below (coercive : is_coercive B) : ∃ C, 0 < C ∧ ∀ v, C * ∥v∥ ≤ ∥lax_milgram_map B v∥ :=
+begin
+  rcases coercive with ⟨C, C_ge_0, coercivity⟩,
+  use C,
+  split, exact C_ge_0,
+  intro v,
+  by_cases h : 0 < ∥v∥,
+  begin
+    have squared : C * ∥v∥ * ∥v∥ ≤ ∥lax_milgram_map B v ∥ * ∥v∥ :=
+    calc C * ∥v∥ * ∥v∥
+          ≤ B v v                         : coercivity v
+    ...  = inner (lax_milgram_map B v) v : by simp
+    ...  ≤ ∥lax_milgram_map B v ∥ * ∥v∥    : real_inner_le_norm (lax_milgram_map B v) v,
+    refine (mul_le_mul_right h).mp squared,
+  end,
+  begin
+    have : v  = 0 := by simpa using h,
+    simp [this],
+  end
+end
 
 lemma injective (coercive : is_coercive B) : (lax_milgram_map B).ker = ⊥ :=
 begin
   simp only [submodule.eq_bot_iff, continuous_linear_map.mem_ker],
   intros v,
-  contrapose,
-  simp_rw [← ne.def, ← norm_pos_iff],
-  intros hv,
-  rcases coercive with ⟨C, C_ge_0, coercivity⟩,
-  have squared : C * ∥v∥ * ∥v∥ ≤ ∥lax_milgram_map B v ∥ * ∥v∥ :=
-  calc C * ∥v∥*∥v∥
-       ≤ B v v                         : coercivity v
-  ...  = inner (lax_milgram_map B v) v : by simp
-  ...  ≤ ∥lax_milgram_map B v ∥ * ∥v∥    : real_inner_le_norm (lax_milgram_map B v) v,
-  have coerced := (mul_le_mul_right hv).mp squared,
-  exact calc 0 < C * ∥v∥                  : mul_pos C_ge_0 hv
-  ...          ≤ ∥(lax_milgram_map B) v∥  : coerced,
+  intro zero_of_image,
+  rw ←norm_le_zero_iff,
+  rcases bounded_below coercive with ⟨C, C_pos, bound⟩,
+  have := bound v,
+  rw [zero_of_image, norm_zero] at this,
+  nlinarith,
 end
-
 
 lemma closed_range (coercive : is_coercive B) : is_closed ((lax_milgram_map B).range : set V) :=
 begin
   rw ←is_seq_closed_iff_is_closed,
   apply is_seq_closed_of_def,
-  intros x y mem_range_x tendsto_y,
-  sorry,
+  intros y Y mem_range_y tendsto_y,
+  obtain ⟨x, preimage_of_x⟩ : ∃ (x : ℕ → V), ∀ n, lax_milgram_map B (x n) = y n,
+  begin
+    have := λ n, classical.indefinite_description
+      (λ x1, lax_milgram_map B x1 = y n)
+      (linear_map.mem_range.mp $ mem_range_y n),
+    use λ n, ↑(this n),
+    intro n,
+    exact (this n).property,
+  end,
+  have : cauchy_seq x,
+  begin
+      rw normed_group.cauchy_seq_iff,
+      intros ε pos_ε,
+      rw normed_group.tendsto_at_top' at tendsto_y,
+      rcases bounded_below coercive with ⟨C, C_pos, bound⟩,
+      have : 0 < C / 2 * ε := by nlinarith,
+      rcases tendsto_y (C / 2 * ε) this with ⟨N, h⟩,
+      use N+1,
+      intros m _ n _,
+      have N_lt_m : N < m := by linarith,
+      have N_lt_n : N < n := by linarith,
+      rw ←mul_lt_mul_left C_pos,
+      exact calc C * ∥x m - x n∥
+                 ≤ ∥lax_milgram_map B (x m - x n)∥ : bound (x m - x n)
+      ...        = ∥y m - y n∥                     : by simp [preimage_of_x]
+      ...        = ∥(y m - Y) + (Y - y n)∥         : by simp
+      ...        ≤ ∥y m - Y∥ + ∥Y - y n∥            : norm_add_le (y m - Y) (Y - y n)
+      ...        = ∥y m - Y∥ + ∥y n - Y∥            : by {rw ←norm_neg (Y - y n), simp}
+      ...        < C / 2 * ε + C / 2 * ε          : by {exact add_lt_add (h m N_lt_m) (h n N_lt_n)}
+      ...        = C * ε                          : by nlinarith,
+  end,
+  obtain ⟨X, tendsto_X⟩ : ∃ X, filter.tendsto x filter.at_top (nhds X)
+    := cauchy_seq_tendsto_of_complete this,
+  have : lax_milgram_map B X = Y,
+  begin
+    have tendsto_AX
+      := filter.tendsto.comp (continuous.tendsto (lax_milgram_map B).continuous X) tendsto_X,
+    have y_eq_comp : ⇑(lax_milgram_map B) ∘ x = y := by {ext n, simp [preimage_of_x],},
+    rw y_eq_comp at tendsto_AX,
+    exact tendsto_nhds_unique tendsto_AX tendsto_y,
+  end,
+  simp only [continuous_linear_map.mem_range, set_like.mem_coe],
+  use X, assumption,
 end
 
 lemma surjective (coercive : is_coercive B): (lax_milgram_map B).range = ⊤ :=
@@ -99,7 +161,7 @@ begin
   rcases coercive with ⟨C, C_ge_0, coercivity⟩,
   have : C * ∥w∥ * ∥w∥ ≤ 0 :=
   calc C * ∥w∥ * ∥w∥
-        ≤ B w w                          : coercivity w
+        ≤ B w w                         : coercivity w
   ...  = inner (lax_milgram_map B w) w  : by simp
   ...  = 0                              : mem_w_orthogonal _ ⟨w, rfl⟩,
   have : ∥w∥ * ∥w∥ ≤ 0 := by nlinarith,

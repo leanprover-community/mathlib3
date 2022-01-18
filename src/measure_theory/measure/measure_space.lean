@@ -264,17 +264,30 @@ begin
 end
 
 /-- If two sets `s` and `t` are included in a set `u`, and `μ s + μ t > μ u`,
-then `s` intersects `t`. -/
+then `s` intersects `t`. Version assuming that `t` is measurable. -/
 lemma nonempty_inter_of_measure_lt_add
-  {m : measurable_space α} (μ : measure α)
-  {s t u : set α} (hs : measurable_set s) (ht : measurable_set t) (h's : s ⊆ u) (h't : t ⊆ u)
+  {m : measurable_space α} {μ : measure α}
+  {s t u : set α} (ht : measurable_set t) (h's : s ⊆ u) (h't : t ⊆ u)
   (h : μ u < μ s + μ t) :
   (s ∩ t).nonempty :=
 begin
   contrapose! h,
   calc μ s + μ t = μ (s ∪ t) :
-    by { rw measure_union _ hs ht, exact λ x hx, h ⟨x, hx⟩ }
+    by { rw measure_union _ ht, exact λ x hx, h ⟨x, hx⟩ }
   ... ≤ μ u : measure_mono (union_subset h's h't)
+end
+
+/-- If two sets `s` and `t` are included in a set `u`, and `μ s + μ t > μ u`,
+then `s` intersects `t`. Version assuming that `s` is measurable. -/
+lemma nonempty_inter_of_measure_lt_add'
+  {m : measurable_space α} (μ : measure α)
+  {s t u : set α} (hs : measurable_set s) (h's : s ⊆ u) (h't : t ⊆ u)
+  (h : μ u < μ s + μ t) :
+  (s ∩ t).nonempty :=
+begin
+  rw add_comm at h,
+  rw inter_comm,
+  exact nonempty_inter_of_measure_lt_add hs h't h's h
 end
 
 /-- Continuity from below: the measure of the union of a directed sequence of measurable sets

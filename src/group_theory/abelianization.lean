@@ -20,7 +20,7 @@ groups, which can be found in `algebra/category/Group/adjunctions`.
   commutator subgroup.
 -/
 
-universes u v
+universes u v w
 
 -- Let G be a group.
 variables (G : Type u) [group G]
@@ -63,8 +63,7 @@ def of : G →* abelianization G :=
   map_one' := rfl,
   map_mul' := λ x y, rfl }
 
-@[simp] lemma mk_eq_of {a : G} :
-  quot.mk _ a = of a := rfl
+@[simp] lemma mk_eq_of (a : G) : quot.mk _ a = of a := rfl
 
 section lift
 -- So far we have built Gᵃᵇ and proved it's an abelian group.
@@ -99,6 +98,9 @@ theorem lift.unique
   φ x = lift f x :=
 quotient_group.induction_on x hφ
 
+@[simp] lemma lift_of : lift of = monoid_hom.id (abelianization G) :=
+lift.apply_symm_apply $ monoid_hom.id _
+
 end lift
 
 variables {A : Type v} [monoid A]
@@ -109,44 +111,58 @@ theorem hom_ext (φ ψ : abelianization G →* A)
   (h : φ.comp of = ψ.comp of) : φ = ψ :=
 monoid_hom.ext $ λ x, quotient_group.induction_on x $ monoid_hom.congr_fun h
 
+section map
+
+variables {H : Type v} [group H] (f : G →* H)
+
+/-- The map operation of the `abelianization` functor -/
+def map : abelianization G →* abelianization H := lift (of.comp f)
+
+variables {f}
+
+@[simp]
+lemma map_apply {x : abelianization G} : map f x = lift (of.comp f) x := rfl
+
+@[simp]
+lemma map_id : map (monoid_hom.id G) = monoid_hom.id (abelianization G) := hom_ext _ _ rfl
+
+lemma map_comp {I : Type w} [group I] {g : H →* I} :
+  (map g).comp (map f) = map (g.comp f) := hom_ext _ _ rfl
+
+end map
+
 end abelianization
 
+section abelianization_congr
+
+variables {G} {H : Type v} [group H] (e : G ≃* H)
+
 /-- Equivalent groups have equivalent abelianizations -/
-def mul_equiv.abelianization_congr {G H : Type*} [group G] [group H] (e : G ≃* H) :
-  abelianization G ≃* abelianization H :=
-{ to_fun := abelianization.lift $ abelianization.of.comp e.to_monoid_hom,
-  inv_fun := abelianization.lift $ abelianization.of.comp e.symm.to_monoid_hom,
+def mul_equiv.abelianization_congr : abelianization G ≃* abelianization H :=
+{ to_fun := abelianization.map e.to_monoid_hom,
+  inv_fun := abelianization.map e.symm.to_monoid_hom,
   left_inv := by { rintros ⟨a⟩, simp },
   right_inv := by { rintros ⟨a⟩, simp },
   map_mul' := by tidy }
 
+variables {e}
 
 @[simp]
-lemma coe_abelianization_congr_of
-  {G H : Type*} [group G] [group H] (e : G ≃* H) { x : G } :
+lemma coe_abelianization_congr_of { x : G } :
   (e.abelianization_congr) (abelianization.of x) = abelianization.of (e x) := rfl
 
 @[simp]
-lemma abelianization_congr_refl {G : Type*} [group G] :
+lemma abelianization_congr_refl :
   (mul_equiv.refl G).abelianization_congr = mul_equiv.refl (abelianization G) :=
-begin
-  apply mul_equiv.to_monoid_hom_injective,
-  apply abelianization.hom_ext,
-  ext,
-  simp,
-end
+mul_equiv.to_monoid_hom_injective abelianization.lift_of
 
 @[simp]
-lemma abelianization_congr_symm {G H : Type*} [group G] [group H] (e : G ≃* H) :
+lemma abelianization_congr_symm  :
   e.abelianization_congr.symm = e.symm.abelianization_congr := rfl
 
 @[simp]
-lemma abelianization_congr_trans
-  {G₁ G₂ G₃ : Type*} [group G₁] [group G₂] [group G₃] (e₁ : G₁ ≃* G₂) (e₂ : G₂ ≃* G₃) :
-  e₁.abelianization_congr.trans e₂.abelianization_congr = (e₁.trans e₂).abelianization_congr :=
-begin
-  apply mul_equiv.to_monoid_hom_injective,
-  apply abelianization.hom_ext,
-  ext,
-  simp,
-end
+lemma abelianization_congr_trans {I : Type v} [group I] {e₂ : H ≃* I} :
+  e.abelianization_congr.trans e₂.abelianization_congr = (e.trans e₂).abelianization_congr :=
+mul_equiv.to_monoid_hom_injective (abelianization.hom_ext _ _ rfl)
+
+end abelianization_congr

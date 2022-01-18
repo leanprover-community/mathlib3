@@ -1148,10 +1148,9 @@ end pi
 lemma disjoint_nhds_at_top [no_max_order α] (x : α) :
   disjoint (𝓝 x) at_top :=
 begin
-  rw filter.disjoint_iff,
-  cases exists_gt x with a ha,
-  use [Iio a, Iio_mem_nhds ha, Ici a, mem_at_top a],
-  rw [inter_comm, Ici_inter_Iio, Ico_self]
+  rcases exists_gt x with ⟨y, hy : x < y⟩,
+  refine disjoint_of_disjoint_of_mem _ (Iio_mem_nhds hy) (mem_at_top y),
+  exact disjoint_left.mpr (λ z, not_le.2)
 end
 
 @[simp] lemma inf_nhds_at_top [no_max_order α] (x : α) :
@@ -1183,7 +1182,7 @@ hf.not_tendsto (disjoint_nhds_at_bot x).symm
 
 lemma not_tendsto_at_bot_of_tendsto_nhds [no_min_order α]
   {F : filter β} [ne_bot F] {f : β → α} {x : α} (hf : tendsto f F (𝓝 x)) :
-  ¬  tendsto f F at_bot :=
+  ¬ tendsto f F at_bot :=
 hf.not_tendsto (disjoint_nhds_at_bot x)
 
 /-!

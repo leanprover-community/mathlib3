@@ -395,6 +395,30 @@ variables (P) {L}
 lemma point_count_eq [projective_plane P L] (l : L) : point_count P l = order P L + 1 :=
 (line_count_eq (dual P) l).trans (congr_arg (λ n, n + 1) (dual.order P L))
 
+variables (P L)
+
+lemma one_lt_order [projective_plane P L] : 1 < order P L :=
+begin
+  obtain ⟨p₁, p₂, p₃, l₁, l₂, l₃, -, -, h₂₁, h₂₂, h₂₃, h₃₁, h₃₂, h₃₃⟩ := @exists_config P L _ _,
+  classical,
+  rw [←add_lt_add_iff_right, ←point_count_eq, point_count, nat.card_eq_fintype_card],
+  exact let h_ne : l₁ ≠ l₂ := λ h, h₂₁ ((congr_arg _ h).mpr h₂₂) in let h := mk_point_ax h_ne in
+  fintype.two_lt_card_iff.mpr ⟨⟨p₂, h₂₂⟩, ⟨p₃, h₃₂⟩, ⟨mk_point h_ne, h.2⟩,
+    λ h_eq, h₃₃ ((congr_arg (∈ l₃) (subtype.ext_iff.mp h_eq)).mp h₂₃),
+    λ h_eq, h₂₁ ((congr_arg (∈ l₁) (subtype.ext_iff.mp h_eq)).mpr h.1),
+    λ h_eq, h₃₁ ((congr_arg (∈ l₁) (subtype.ext_iff.mp h_eq)).mpr h.1)⟩,
+end
+
+variables {P} (L)
+
+lemma two_lt_line_count [projective_plane P L] (p : P) : 2 < line_count L p :=
+by simpa only [line_count_eq L p, nat.succ_lt_succ_iff] using one_lt_order P L
+
+variables (P) {L}
+
+lemma two_lt_point_count [projective_plane P L] (l : L) : 2 < point_count P l :=
+by simpa only [point_count_eq P l, nat.succ_lt_succ_iff] using one_lt_order P L
+
 end projective_plane
 
 end configuration

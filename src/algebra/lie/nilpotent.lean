@@ -45,7 +45,7 @@ lemma antitone_lower_central_series : antitone $ lower_central_series R L M :=
 begin
   intros l k,
   induction k with k ih generalizing l;
-  intros h
+  intros h,
   { exact (le_zero_iff.mp h).symm ▸ le_refl _, },
   { rcases nat.of_le_succ h with hk | hk,
     { rw lower_central_series_succ,

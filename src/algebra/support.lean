@@ -213,7 +213,7 @@ end
 
 lemma support_prod_subset [comm_monoid_with_zero A] (s : finset α) (f : α → β → A) :
   support (λ x, ∏ i in s, f i x) ⊆ ⋂ i ∈ s, support (f i) :=
-λ x hx, mem_bInter_iff.2 $ λ i hi H, hx $ finset.prod_eq_zero hi H
+λ x hx, mem_Inter₂.2 $ λ i hi H, hx $ finset.prod_eq_zero hi H
 
 lemma support_prod [comm_monoid_with_zero A] [no_zero_divisors A] [nontrivial A]
   (s : finset α) (f : α → β → A) :

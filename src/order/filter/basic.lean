@@ -122,15 +122,18 @@ filter.ext_iff.2
 @[simp] lemma univ_mem : univ ∈ f :=
 f.univ_sets
 
-lemma mem_of_superset : ∀ {x y : set α}, x ∈ f → x ⊆ y → y ∈ f :=
-f.sets_of_superset
+lemma mem_of_superset {x y : set α} (hx : x ∈ f) (hxy : x ⊆ y) : y ∈ f :=
+f.sets_of_superset hx hxy
 
-lemma inter_mem : ∀ {s t}, s ∈ f → t ∈ f → s ∩ t ∈ f :=
-f.inter_sets
+lemma inter_mem {s t : set α} (hs : s ∈ f) (ht : t ∈ f) : s ∩ t ∈ f :=
+f.inter_sets hs ht
 
-@[simp] lemma inter_mem_iff {s t} : s ∩ t ∈ f ↔ s ∈ f ∧ t ∈ f :=
+@[simp] lemma inter_mem_iff {s t : set α} : s ∩ t ∈ f ↔ s ∈ f ∧ t ∈ f :=
 ⟨λ h, ⟨mem_of_superset h (inter_subset_left s t),
   mem_of_superset h (inter_subset_right s t)⟩, and_imp.2 inter_mem⟩
+
+lemma diff_mem {s t : set α} (hs : s ∈ f) (ht : tᶜ ∈ f) : s \ t ∈ f :=
+inter_mem hs ht
 
 lemma univ_mem' (h : ∀ a, a ∈ s) : s ∈ f :=
 mem_of_superset univ_mem (λ x _, h x)
@@ -401,7 +404,7 @@ instance : complete_lattice (filter α) := original_complete_lattice.copy
                            (@inf_le_right (filter α) _ _ _ _ hb)
        end)
   end
-  /- Sup -/ (join ∘ 𝓟) (by { ext s x, exact (@mem_bInter_iff _ _ s filter.sets x).symm.trans
+  /- Sup -/ (join ∘ 𝓟) (by { ext s x, exact mem_Inter₂.symm.trans
     (set.ext_iff.1 (sInter_image _ _) x).symm})
   /- Inf -/ _ rfl
 
@@ -2443,13 +2446,10 @@ lemma mem_prod_principal {f : filter α} {s : set (α × β)} {t : set β}:
   s ∈ f ×ᶠ 𝓟 t ↔ {a | ∀ b ∈ t, (a, b) ∈ s} ∈ f :=
 begin
   rw [← @exists_mem_subset_iff _ f, mem_prod_iff],
-  apply exists_congr, intro u, apply exists_congr, intro u_in,
-  split,
+  refine exists₂_congr (λ u u_in, ⟨_, λ h, ⟨t, mem_principal_self t, _⟩⟩),
   { rintros ⟨v, v_in, hv⟩ a a_in b b_in,
     exact hv (mk_mem_prod a_in $ v_in b_in) },
-  { intro h,
-    refine ⟨t, mem_principal_self t, _⟩,
-    rintros ⟨x, y⟩ ⟨hx, hy⟩,
+  { rintro ⟨x, y⟩ ⟨hx, hy⟩,
     exact h hx y hy }
 end
 

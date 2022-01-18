@@ -1114,7 +1114,7 @@ begin
 end
 
 /-- If `a`,`b` are positive the prime divisors of `(a * b)` are the union of those of `a` and `b` -/
-lemma factors_mul_of_pos {a b : ℕ} (ha : 0 < a) (hb : 0 < b) :
+lemma factors_mul_to_finset_of_pos {a b : ℕ} (ha : 0 < a) (hb : 0 < b) :
   (a * b).factors.to_finset = a.factors.to_finset ∪ b.factors.to_finset :=
 by { ext p, simp only [finset.mem_union, list.mem_to_finset, mem_factors_mul_of_pos ha hb p] }
 
@@ -1125,7 +1125,8 @@ begin
   { simp },
   induction k with k ih,
   { simp },
-  rw [pow_succ, factors_mul_of_pos hn.bot_lt (pow_pos hn.bot_lt _), ih, finset.union_idempotent],
+  rw [pow_succ, factors_mul_to_finset_of_pos hn.bot_lt (pow_pos hn.bot_lt _), ih,
+    finset.union_idempotent],
 end
 
 lemma pow_factors_to_finset (n : ℕ) {k : ℕ} (hk : k ≠ 0) :
@@ -1145,7 +1146,7 @@ begin
   exact prime_of_mem_factors hqa
 end
 
-lemma factors_mul_of_coprime {a b : ℕ} (hab : coprime a b) (p:ℕ):
+lemma mem_factors_mul_of_coprime {a b : ℕ} (hab : coprime a b) (p : ℕ) :
   p ∈ (a * b).factors ↔ p ∈ a.factors ∪ b.factors :=
 begin
   rcases a.eq_zero_or_pos with rfl | ha,
@@ -1157,7 +1158,7 @@ end
 
 lemma factors_mul_to_finset_of_coprime {a b : ℕ} (hab : coprime a b) :
   (a * b).factors.to_finset = a.factors.to_finset ∪ b.factors.to_finset :=
-by { ext p, simp [factors_mul_of_coprime hab] }
+by { ext p, simp [mem_factors_mul_of_coprime hab] }
 
 open list
 

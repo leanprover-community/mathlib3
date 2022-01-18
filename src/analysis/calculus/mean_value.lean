@@ -84,9 +84,8 @@ Let `f` and `B` be continuous functions on `[a, b]` such that
 Then `f x ≤ B x` everywhere on `[a, b]`. -/
 lemma image_le_of_liminf_slope_right_lt_deriv_boundary' {f f' : ℝ → ℝ} {a b : ℝ}
   (hf : continuous_on f (Icc a b))
-  -- `hf'` actually says `liminf (z - x)⁻¹ * (f z - f x) ≤ f' x`
-  (hf' : ∀ x ∈ Ico a b, ∀ r, f' x < r →
-    ∃ᶠ z in 𝓝[>] x, (z - x)⁻¹ * (f z - f x) < r)
+  -- `hf'` actually says `liminf (f z - f x) / (z - x) ≤ f' x`
+  (hf' : ∀ x ∈ Ico a b, ∀ r, f' x < r → ∃ᶠ z in 𝓝[>] x, slope f x z < r)
   {B B' : ℝ → ℝ} (ha : f a ≤ B a) (hB : continuous_on B (Icc a b))
   (hB' : ∀ x ∈ Ico a b, has_deriv_within_at B (B' x) (Ici x) x)
   (bound : ∀ x ∈ Ico a b, f x = B x → f' x < B' x) :
@@ -111,15 +110,16 @@ begin
     exact this.mono (λ y, le_of_lt) },
   { rcases exists_between (bound x xab hxB) with ⟨r, hfr, hrB⟩,
     specialize hf' x xab r hfr,
-    have HB : ∀ᶠ z in 𝓝[>] x, r < (z - x)⁻¹ * (B z - B x),
+    have HB : ∀ᶠ z in 𝓝[>] x, r < slope B x z,
       from (has_deriv_within_at_iff_tendsto_slope' $ lt_irrefl x).1
         (hB' x xab).Ioi_of_Ici (Ioi_mem_nhds hrB),
-    obtain ⟨z, ⟨hfz, hzB⟩, hz⟩ :
-      ∃ z, ((z - x)⁻¹ * (f z - f x) < r ∧ r < (z - x)⁻¹ * (B z - B x)) ∧ z ∈ Ioc x y,
-      from ((hf'.and_eventually HB).and_eventually (Ioc_mem_nhds_within_Ioi ⟨le_rfl, hy⟩)).exists,
+    obtain ⟨z, hfz, hzB, hz⟩ :
+      ∃ z, slope f x z < r ∧ r < slope B x z ∧ z ∈ Ioc x y,
+      from (hf'.and_eventually (HB.and (Ioc_mem_nhds_within_Ioi ⟨le_rfl, hy⟩))).exists,
     refine ⟨z, _, hz⟩,
     have := (hfz.trans hzB).le,
-    rwa [mul_le_mul_left (inv_pos.2 $ sub_pos.2 hz.1), hxB, sub_le_sub_iff_right] at this }
+    rwa [slope_def_field, slope_def_field, div_le_div_right (sub_pos.2 hz.1), hxB,
+      sub_le_sub_iff_right] at this }
 end
 
 /-- General fencing theorem for continuous functions with an estimate on the derivative.
@@ -134,9 +134,8 @@ Let `f` and `B` be continuous functions on `[a, b]` such that
 Then `f x ≤ B x` everywhere on `[a, b]`. -/
 lemma image_le_of_liminf_slope_right_lt_deriv_boundary {f f' : ℝ → ℝ} {a b : ℝ}
   (hf : continuous_on f (Icc a b))
-  -- `hf'` actually says `liminf (z - x)⁻¹ * (f z - f x) ≤ f' x`
-  (hf' : ∀ x ∈ Ico a b, ∀ r, f' x < r →
-    ∃ᶠ z in 𝓝[>] x, (z - x)⁻¹ * (f z - f x) < r)
+  -- `hf'` actually says `liminf (f z - f x) / (z - x) ≤ f' x`
+  (hf' : ∀ x ∈ Ico a b, ∀ r, f' x < r → ∃ᶠ z in 𝓝[>] x, slope f x z < r)
   {B B' : ℝ → ℝ} (ha : f a ≤ B a) (hB : ∀ x, has_deriv_at B (B' x) x)
   (bound : ∀ x ∈ Ico a b, f x = B x → f' x < B' x) :
   ∀ ⦃x⦄, x ∈ Icc a b → f x ≤ B x :=
@@ -157,9 +156,8 @@ lemma image_le_of_liminf_slope_right_le_deriv_boundary {f : ℝ → ℝ} {a b : 
   (hf : continuous_on f (Icc a b))
   {B B' : ℝ → ℝ} (ha : f a ≤ B a) (hB : continuous_on B (Icc a b))
   (hB' : ∀ x ∈ Ico a b, has_deriv_within_at B (B' x) (Ici x) x)
-  -- `bound` actually says `liminf (z - x)⁻¹ * (f z - f x) ≤ B' x`
-  (bound : ∀ x ∈ Ico a b, ∀ r, B' x < r →
-    ∃ᶠ z in 𝓝[>] x, (z - x)⁻¹ * (f z - f x) < r) :
+  -- `bound` actually says `liminf (f z - f x) / (z - x) ≤ B' x`
+  (bound : ∀ x ∈ Ico a b, ∀ r, B' x < r → ∃ᶠ z in 𝓝[>] x, slope f x z < r) :
   ∀ ⦃x⦄, x ∈ Icc a b → f x ≤ B x :=
 begin
   have Hr : ∀ x ∈ Icc a b, ∀ r > 0, f x ≤ B x + r * (x - a),
@@ -255,9 +253,9 @@ Let `f` and `B` be continuous functions on `[a, b]` such that
 Then `∥f x∥ ≤ B x` everywhere on `[a, b]`. -/
 lemma image_norm_le_of_liminf_right_slope_norm_lt_deriv_boundary {E : Type*} [normed_group E]
   {f : ℝ → E} {f' : ℝ → ℝ} (hf : continuous_on f (Icc a b))
-  -- `hf'` actually says `liminf ∥z - x∥⁻¹ * (∥f z∥ - ∥f x∥) ≤ f' x`
+  -- `hf'` actually says `liminf (∥f z∥ - ∥f x∥) / (z - x) ≤ f' x`
   (hf' : ∀ x ∈ Ico a b, ∀ r, f' x < r →
-    ∃ᶠ z in 𝓝[>] x, (z - x)⁻¹ * (∥f z∥ - ∥f x∥) < r)
+    ∃ᶠ z in 𝓝[>] x, slope (norm ∘ f) x z < r)
   {B B' : ℝ → ℝ} (ha : ∥f a∥ ≤ B a) (hB : continuous_on B (Icc a b))
   (hB' : ∀ x ∈ Ico a b, has_deriv_within_at B (B' x) (Ici x) x)
   (bound : ∀ x ∈ Ico a b, ∥f x∥ = B x → f' x < B' x) :
@@ -1303,6 +1301,6 @@ lemma has_strict_deriv_at_of_has_deriv_at_of_continuous_at {f f' : 𝕜 → G} {
   (hder : ∀ᶠ y in 𝓝 x, has_deriv_at f (f' y) y) (hcont : continuous_at f' x) :
   has_strict_deriv_at f (f' x) x :=
 has_strict_fderiv_at_of_has_fderiv_at_of_continuous_at (hder.mono (λ y hy, hy.has_fderiv_at)) $
-  (smul_rightL 𝕜 _ _ 1).continuous.continuous_at.comp hcont
+  (smul_rightL 𝕜 𝕜 G 1).continuous.continuous_at.comp hcont
 
 end is_R_or_C

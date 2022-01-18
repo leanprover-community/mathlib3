@@ -47,7 +47,7 @@ variables {ι : Type w} [fintype ι]
 
 open finite_dimensional
 open linear_map
-open matrix
+open matrix polynomial
 
 open_locale big_operators
 open_locale matrix
@@ -100,24 +100,31 @@ end
 
 section eq_prod_roots
 
-lemma norm_gen_eq_prod_roots [algebra K S] (pb : power_basis K S)
+/-- Given `pb : power_basis K S`, then the norm of `pb.gen` is
+`(-1) ^ pb.dim * coeff ((minpoly K pb.gen).map (algebra_map K F)) 0`. -/
+lemma power_basis.norm_gen_eq_coeff_zero_minpoly [algebra K S] (pb : power_basis K S) :
+  (algebra_map K F) (norm K pb.gen) =
+  (-1) ^ pb.dim * coeff ((minpoly K pb.gen).map (algebra_map K F)) 0 :=
+begin
+  rw [norm_eq_matrix_det pb.basis, det_eq_sign_charpoly_coeff, charpoly_left_mul_matrix,
+      ring_hom.map_mul, map_pow, ring_hom.map_neg, ring_hom.map_one, ← coeff_map,
+      fintype.card_fin],
+end
+
+/-- Given `pb : power_basis K S`, then the norm of `pb.gen` is
+`((minpoly K pb.gen).map (algebra_map K F)).roots.prod`. -/
+lemma power_basis.norm_gen_eq_prod_roots [algebra K S] (pb : power_basis K S)
   (hf : (minpoly K pb.gen).splits (algebra_map K F)) :
   algebra_map K F (norm K pb.gen) =
     ((minpoly K pb.gen).map (algebra_map K F)).roots.prod :=
 begin
-  -- Write the LHS as the 0'th coefficient of `minpoly K pb.gen`
-  rw [norm_eq_matrix_det pb.basis, det_eq_sign_charpoly_coeff, charpoly_left_mul_matrix,
-      ring_hom.map_mul, ring_hom.map_pow, ring_hom.map_neg, ring_hom.map_one,
-      ← polynomial.coeff_map, fintype.card_fin],
-  -- Rewrite `minpoly K pb.gen` as a product over the roots.
-  conv_lhs { rw polynomial.eq_prod_roots_of_splits hf },
-  rw [polynomial.coeff_C_mul, polynomial.coeff_zero_multiset_prod, multiset.map_map,
-      (minpoly.monic pb.is_integral_gen).leading_coeff, ring_hom.map_one, one_mul],
-  -- Incorporate the `-1` from the `charpoly` back into the product.
-  rw [← multiset.prod_repeat (-1 : F), ← pb.nat_degree_minpoly,
-      polynomial.nat_degree_eq_card_roots hf, ← multiset.map_const, ← multiset.prod_map_mul],
-  -- And conclude that both sides are the same.
-  congr, convert multiset.map_id _, ext f, simp
+  rw [power_basis.norm_gen_eq_coeff_zero_minpoly, ← pb.nat_degree_minpoly,
+    prod_roots_eq_coeff_zero_of_monic_of_split
+      (monic_map _ (minpoly.monic (power_basis.is_integral_gen _)))
+      ((splits_id_iff_splits _).2 hf)],
+  simp only [power_basis.nat_degree_minpoly, nat_degree_map],
+  rw [← mul_assoc, ← mul_pow],
+  simp
 end
 
 end eq_prod_roots
@@ -194,8 +201,8 @@ lemma norm_eq_prod_embeddings_gen
     (@@finset.univ (power_basis.alg_hom.fintype pb)).prod (λ σ, σ pb.gen) :=
 begin
   letI := classical.dec_eq E,
-  rw [norm_gen_eq_prod_roots pb hE, fintype.prod_equiv pb.lift_equiv', finset.prod_mem_multiset,
-    finset.prod_eq_multiset_prod, multiset.to_finset_val,
+  rw [power_basis.norm_gen_eq_prod_roots pb hE, fintype.prod_equiv pb.lift_equiv',
+    finset.prod_mem_multiset, finset.prod_eq_multiset_prod, multiset.to_finset_val,
     multiset.erase_dup_eq_self.mpr, multiset.map_id],
   { exact nodup_roots ((separable_map _).mpr hfx) },
   { intro x, refl },

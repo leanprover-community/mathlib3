@@ -96,7 +96,7 @@ by simpa only [mem_range, exists_prop] using set.exists_range_iff
 lemma preimage_eq_empty_iff (f : α →ₛ β) (b : β) : f ⁻¹' {b} = ∅ ↔ b ∉ f.range :=
 preimage_singleton_eq_empty.trans $ not_congr mem_range.symm
 
-lemma exists_forall_le [nonempty β] [directed_order β] (f : α →ₛ β) :
+lemma exists_forall_le [nonempty β] [preorder β] [is_directed β (≤)] (f : α →ₛ β) :
   ∃ C, ∀ x, f x ≤ C :=
 f.range.exists_le.imp $ λ C, forall_range_iff.1
 
@@ -2106,7 +2106,7 @@ lemma with_density_indicator {s : set α} (hs : measurable_set s) (f : α → �
 begin
   ext1 t ht,
   rw [with_density_apply _ ht, lintegral_indicator _ hs,
-      restrict_comm hs ht, ← with_density_apply _ ht]
+      restrict_comm hs, ← with_density_apply _ ht]
 end
 
 lemma with_density_of_real_mutually_singular {f : α → ℝ} (hf : measurable f) :

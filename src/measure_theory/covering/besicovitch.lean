@@ -585,7 +585,7 @@ begin
       { rw [finset.set_bUnion_finset_image],
         exact le_trans (measure_mono (diff_subset_diff so (subset.refl _))) H },
     rw [← diff_inter_self_eq_diff,
-      measure_diff_le_iff_le_add _ omeas (inter_subset_right _ _) ((measure_lt_top μ _).ne)], swap,
+      measure_diff_le_iff_le_add _ (inter_subset_right _ _) ((measure_lt_top μ _).ne)], swap,
     { apply measurable_set.inter _ omeas,
       haveI : encodable (u i) := (u_count i).to_encodable,
       exact measurable_set.Union
@@ -994,7 +994,7 @@ begin
       { have A : x ∈ range q.c, by simpa only [not_exists, exists_prop, mem_Union, mem_closed_ball,
           not_and, not_le, mem_set_of_eq, subtype.range_coe_subtype, mem_diff] using h'x,
         simpa only [mem_Union, mem_image] using hS A },
-      refine mem_bUnion_iff.2 ⟨y, or.inr _, _⟩,
+      refine mem_Union₂.2 ⟨y, or.inr _, _⟩,
       { simp only [mem_Union, mem_image],
         exact ⟨i, y, ySi, rfl⟩ },
       { have : (y : α) ∈ s' := y.2,
@@ -1002,7 +1002,7 @@ begin
         exact ball_subset_closed_ball xy } },
     { obtain ⟨y, yt0, hxy⟩ : ∃ (y : α), y ∈ t0 ∧ x ∈ closed_ball y (r0 y),
         by simpa [hx, -mem_closed_ball] using h'x,
-      refine mem_bUnion_iff.2 ⟨y, or.inl yt0, _⟩,
+      refine mem_Union₂.2 ⟨y, or.inl yt0, _⟩,
       rwa r_t0 _ yt0 } },
   -- the only nontrivial property is the measure control, which we check now
   { -- the sets in the first step have measure at most `μ s + ε / 2`

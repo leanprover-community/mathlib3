@@ -333,32 +333,28 @@ end is_self_adjoint
 
 namespace star_normal
 
-variables [finite_dimensional 𝕜 E] {T : E →ₗ[𝕜] E} (hT : T ∈ star_normal (E →ₗ[𝕜] E))
+variables [finite_dimensional 𝕜 E] [is_alg_closed 𝕜]
+
+lemma subsingleton_of_no_eigenvalue_finite_dimensional' (T : E →ₗ[𝕜] E)
+  (hT' : ∀ μ : 𝕜, module.End.eigenspace (T : E →ₗ[𝕜] E) μ = ⊥) :
+  subsingleton E :=
+(subsingleton_or_nontrivial E).resolve_right
+  (λ h, by exactI absurd (hT' _) (classical.some_spec $ exists_eigenvalue T))
+
+
+variables {T : E →ₗ[𝕜] E} (hT : T ∈ star_normal (E →ₗ[𝕜] E))
 include hT
 
 /-! ### Finite-dimensional theory for normal operators -/
-
-/-- If a normal operator preserves a submodule, its restriction to that submodule is
-normal. -/
-lemma star_normal.restrict_invariant {V : submodule 𝕜 E} (hV : ∀ v ∈ V, T v ∈ V) :
-  (T.restrict hV) ∈ star_normal (V →ₗ[𝕜] V) :=
---λ v w, hT v w
-begin
-  rw [star_normal.mem_iff],
-  ext v,
-  sorry,
-end
 
 /-- The mutual orthogonal complement of the eigenspaces of a normal operator on a
 finite-dimensional inner product space is trivial. -/
 lemma orthogonal_supr_eigenspaces_eq_bot : (⨆ μ, eigenspace T μ)ᗮ = ⊥ :=
 begin
-  have hT' : _ ∈ star_normal _ := (star_normal.restrict_invariant hT)
-    (orthogonal_supr_eigenspaces_invariant hT),
-  -- a normal operator on a nontrivial inner product space has an eigenvalue
-  --haveI := (subsingleton_of_no_eigenvalue_finite_dimensional hT') (orthogonal_supr_eigenspaces hT),
-  --exact submodule.eq_bot_of_subsingleton _,
-  sorry
+  let T' := T.restrict (orthogonal_supr_eigenspaces_invariant hT),
+  -- an operator on a nontrivial inner product space has an eigenvalue
+  haveI := (subsingleton_of_no_eigenvalue_finite_dimensional' T') (orthogonal_supr_eigenspaces hT),
+  exact submodule.eq_bot_of_subsingleton _,
 end
 
 lemma orthogonal_supr_eigenspaces_eq_bot' : (⨆ μ : eigenvalues T, eigenspace T μ)ᗮ = ⊥ :=

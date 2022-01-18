@@ -74,7 +74,7 @@ variables (P : Cᵒᵖ ⥤ A) {X : C} (S : sieve X)
 { to_fun := λ π, ⟨λ Y f h, π.app (op ⟨over.mk f, h⟩), λ Y Z f g hf, by
     { refine (id_comp _).symm.trans _, dsimp,
       convert π.naturality (quiver.hom.op _),
-      swap 5, apply over.hom_mk, refl, refl, refl, refl }⟩,
+      refl, refl, refl, swap, apply over.hom_mk, refl }⟩,
   inv_fun := λ x, { app := λ f, x.1 f.unop.1.hom f.unop.2,
     naturality' := λ f₁ f₂ g, by
     { refine eq.trans _ (x.2 f₁.unop.1.hom g.unop.left f₁.unop.2),
@@ -83,7 +83,7 @@ variables (P : Cᵒᵖ ⥤ A) {X : C} (S : sieve X)
     rw op_eq_iff_eq_unop, ext, symmetry, apply costructured_arrow.eq_mk },
   right_inv := λ x, by { ext, refl } }
 
-def hom_equiv_is_amalgamation (E : Aᵒᵖ)
+def hom_equiv_amalgamation (E : Aᵒᵖ)
   (x : family_of_elements (P ⋙ coyoneda.obj E) S) (hx : x.sieve_compatible) :
   cone_morphism {X := E.unop, π := (cones_equiv_sieve_compatible_family P S E).inv_fun ⟨x,hx⟩}
     (P.map_cone S.arrows.cocone.op) ≃ {t // x.is_amalgamation t} :=
@@ -98,7 +98,7 @@ def is_limit_iff_is_sheaf_for :
 begin
   dsimp [is_sheaf_for], simp_rw compatible_iff_sieve_compatible,
   split,
-  { rintro ⟨hl⟩ E x hx, rw compatible_iff_sieve_compatible at hx,
+  { rintro ⟨hl⟩ E x hx,
 
   },
 end

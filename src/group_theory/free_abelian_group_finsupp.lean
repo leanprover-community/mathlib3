@@ -106,7 +106,7 @@ noncomputable def basis (α : Type*) :
 def equiv.of_free_abelian_group_linear_equiv {α β : Type*}
   (e : free_abelian_group α ≃ₗ[ℤ] free_abelian_group β) :
   α ≃ β :=
-let t : basis α ℤ (free_abelian_group β) := (free_abelian_group.basis α).map e
+let t : _root_.basis α ℤ (free_abelian_group β) := (free_abelian_group.basis α).map e
   in t.index_equiv $ free_abelian_group.basis _
 
 /-- Isomorphic free abelian groups (as additive groups) have equivalent bases. -/
@@ -119,8 +119,7 @@ equiv.of_free_abelian_group_linear_equiv (add_equiv.to_int_linear_equiv e)
 def equiv.of_free_group_equiv {α β : Type*}
   (e : free_group α ≃* free_group β) :
   α ≃ β :=
-equiv.of_free_abelian_group_equiv $
-  mul_equiv.to_additive (abelianization.mul_equiv.abelianization_congr e)
+equiv.of_free_abelian_group_equiv (mul_equiv.to_additive e.abelianization_congr)
 
 open is_free_group
 /-- Isomorphic free groups have equivalent bases (`is_free_group` variant`). -/

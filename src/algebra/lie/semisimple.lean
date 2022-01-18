@@ -39,7 +39,6 @@ namespace lie_algebra
 variables (R : Type u) (L : Type v)
 variables [comm_ring R] [lie_ring L] [lie_algebra R L]
 
-set_option old_structure_cmd true
 /-- A Lie algebra is simple if it is irreducible as a Lie module over itself via the adjoint
 action, and it is non-Abelian. -/
 class is_simple extends lie_module.is_irreducible R L L : Prop :=
@@ -78,7 +77,7 @@ instance is_semisimple_of_is_simple [h : is_simple R L] : is_semisimple R L :=
 begin
   rw is_semisimple_iff_no_abelian_ideals,
   intros I hI,
-  tactic.unfreeze_local_instances, obtain ⟨h₁, h₂⟩ := h,
+  tactic.unfreeze_local_instances, obtain ⟨⟨h₁⟩, h₂⟩ := h,
   by_contradiction contra,
   rw [h₁ I contra, lie_abelian_iff_equiv_lie_abelian lie_ideal.top_equiv_self] at hI,
   exact h₂ hI,

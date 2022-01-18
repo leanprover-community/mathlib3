@@ -31,7 +31,7 @@ local attribute [mono] prod_mono
 derivative converges to a limit `f'` at a point on the boundary, then `f` is differentiable there
 with derivative `f'`. -/
 theorem has_fderiv_at_boundary_of_tendsto_fderiv {f : E → F} {s : set E} {x : E} {f' : E →L[ℝ] F}
-  (f_diff : differentiable_on ℝ f s) (s_conv : convex s) (s_open : is_open s)
+  (f_diff : differentiable_on ℝ f s) (s_conv : convex ℝ s) (s_open : is_open s)
   (f_cont : ∀y ∈ closure s, continuous_within_at f s y)
   (h : tendsto (λy, fderiv ℝ f y) (𝓝[s] x) (𝓝 f')) :
   has_fderiv_within_at f f' (closure s) x :=
@@ -53,17 +53,17 @@ begin
   set B := ball x δ,
   suffices : ∀ y ∈ B ∩ (closure s), ∥f y - f x - (f' y - f' x)∥ ≤ ε * ∥y - x∥,
     from mem_nhds_within_iff.2 ⟨δ, δ_pos, λy hy, by simpa using this y hy⟩,
-  suffices : ∀ p : E × E, p ∈ closure ((B ∩ s).prod (B ∩ s)) → ∥f p.2 - f p.1 - (f' p.2 - f' p.1)∥
+  suffices : ∀ p : E × E, p ∈ closure ((B ∩ s) ×ˢ (B ∩ s)) → ∥f p.2 - f p.1 - (f' p.2 - f' p.1)∥
     ≤ ε * ∥p.2 - p.1∥,
   { rw closure_prod_eq at this,
     intros y y_in,
     apply this ⟨x, y⟩,
     have : B ∩ closure s ⊆ closure (B ∩ s), from closure_inter_open is_open_ball,
     exact ⟨this ⟨mem_ball_self δ_pos, hx⟩, this y_in⟩ },
-  have key : ∀ p : E × E, p ∈ (B ∩ s).prod (B ∩ s) → ∥f p.2 - f p.1 - (f' p.2 - f' p.1)∥
+  have key : ∀ p : E × E, p ∈ (B ∩ s) ×ˢ (B ∩ s) → ∥f p.2 - f p.1 - (f' p.2 - f' p.1)∥
     ≤ ε * ∥p.2 - p.1∥,
   { rintros ⟨u, v⟩ ⟨u_in, v_in⟩,
-    have conv : convex (B ∩ s) := (convex_ball _ _).inter s_conv,
+    have conv : convex ℝ (B ∩ s) := (convex_ball _ _).inter s_conv,
     have diff : differentiable_on ℝ f (B ∩ s) := f_diff.mono (inter_subset_right _ _),
     have bound : ∀ z ∈ (B ∩ s), ∥fderiv_within ℝ f (B ∩ s) z - f'∥ ≤ ε,
     { intros z z_in,
@@ -78,7 +78,7 @@ begin
   { intros y y_in,
     exact tendsto.sub (f_cont y y_in) (f'.cont.continuous_within_at) },
   all_goals { -- common start for both continuity proofs
-    have : (B ∩ s).prod (B ∩ s) ⊆ s.prod s, by mono ; exact inter_subset_right _ _,
+    have : (B ∩ s) ×ˢ (B ∩ s) ⊆ s ×ˢ s, by mono ; exact inter_subset_right _ _,
     obtain ⟨u_in, v_in⟩ : u ∈ closure s ∧ v ∈ closure s,
       by simpa [closure_prod_eq] using closure_mono this uv_in,
     apply continuous_within_at.mono _ this,
@@ -99,8 +99,8 @@ end
 its derivative also converges at `a`, then `f` is differentiable on the right at `a`. -/
 lemma has_deriv_at_interval_left_endpoint_of_tendsto_deriv {s : set ℝ} {e : E} {a : ℝ} {f : ℝ → E}
   (f_diff : differentiable_on ℝ f s) (f_lim : continuous_within_at f s a)
-  (hs : s ∈ 𝓝[Ioi a] a)
-  (f_lim' : tendsto (λx, deriv f x) (𝓝[Ioi a] a) (𝓝 e)) :
+  (hs : s ∈ 𝓝[>] a)
+  (f_lim' : tendsto (λx, deriv f x) (𝓝[>] a) (𝓝 e)) :
   has_deriv_within_at f e (Ici a) a :=
 begin
   /- This is a specialization of `has_fderiv_at_boundary_of_tendsto_fderiv`. To be in the setting of
@@ -111,7 +111,7 @@ begin
   let t := Ioo a b,
   have ts : t ⊆ s := subset.trans Ioo_subset_Ioc_self sab,
   have t_diff : differentiable_on ℝ f t := f_diff.mono ts,
-  have t_conv : convex t := convex_Ioo a b,
+  have t_conv : convex ℝ t := convex_Ioo a b,
   have t_open : is_open t := is_open_Ioo,
   have t_closure : closure t = Icc a b := closure_Ioo ab,
   have t_cont : ∀y ∈ closure t, continuous_within_at f t y,
@@ -136,8 +136,8 @@ end
 its derivative also converges at `a`, then `f` is differentiable on the left at `a`. -/
 lemma has_deriv_at_interval_right_endpoint_of_tendsto_deriv {s : set ℝ} {e : E} {a : ℝ} {f : ℝ → E}
   (f_diff : differentiable_on ℝ f s) (f_lim : continuous_within_at f s a)
-  (hs : s ∈ 𝓝[Iio a] a)
-  (f_lim' : tendsto (λx, deriv f x) (𝓝[Iio a] a) (𝓝 e)) :
+  (hs : s ∈ 𝓝[<] a)
+  (f_lim' : tendsto (λx, deriv f x) (𝓝[<] a) (𝓝 e)) :
   has_deriv_within_at f e (Iic a) a :=
 begin
   /- This is a specialization of `has_fderiv_at_boundary_of_differentiable`. To be in the setting of
@@ -148,7 +148,7 @@ begin
   let t := Ioo b a,
   have ts : t ⊆ s := subset.trans Ioo_subset_Ico_self sab,
   have t_diff : differentiable_on ℝ f t := f_diff.mono ts,
-  have t_conv : convex t := convex_Ioo b a,
+  have t_conv : convex ℝ t := convex_Ioo b a,
   have t_open : is_open t := is_open_Ioo,
   have t_closure : closure t = Icc b a := closure_Ioo ba,
   have t_cont : ∀y ∈ closure t, continuous_within_at f t y,
@@ -183,7 +183,7 @@ begin
     -- extension results.
     apply has_deriv_at_interval_left_endpoint_of_tendsto_deriv diff hf.continuous_within_at
       self_mem_nhds_within,
-    have : tendsto g (𝓝[Ioi x] x) (𝓝 (g x)) := tendsto_inf_left hg,
+    have : tendsto g (𝓝[>] x) (𝓝 (g x)) := tendsto_inf_left hg,
     apply this.congr' _,
     apply mem_of_superset self_mem_nhds_within (λy hy, _),
     exact (f_diff y (ne_of_gt hy)).deriv.symm },
@@ -194,7 +194,7 @@ begin
     -- extension results.
     apply has_deriv_at_interval_right_endpoint_of_tendsto_deriv diff hf.continuous_within_at
       self_mem_nhds_within,
-    have : tendsto g (𝓝[Iio x] x) (𝓝 (g x)) := tendsto_inf_left hg,
+    have : tendsto g (𝓝[<] x) (𝓝 (g x)) := tendsto_inf_left hg,
     apply this.congr' _,
     apply mem_of_superset self_mem_nhds_within (λy hy, _),
     exact (f_diff y (ne_of_lt hy)).deriv.symm },

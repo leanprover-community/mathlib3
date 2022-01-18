@@ -3,10 +3,10 @@ Copyright (c) 2021 Aaron Anderson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson
 -/
-import data.set.finite
-import order.well_founded
-import order.order_iso_nat
 import algebra.pointwise
+import order.antichain
+import order.order_iso_nat
+import order.well_founded
 
 /-!
 # Well-founded sets
@@ -38,6 +38,10 @@ A well-founded subset of an ordered type is one on which the relation `<` is wel
  * `set.is_wf.mono` shows that a subset of a well-founded subset is well-founded.
  * `set.is_wf.union` shows that the union of two well-founded subsets is well-founded.
  * `finset.is_wf` shows that all `finset`s are well-founded.
+
+## TODO
+
+Prove that `s` is partial well ordered iff it has no infinite descending chain or antichain.
 
 ## References
  * [Higman, *Ordering by Divisibility in Abstract Algebras*][Higman52]
@@ -90,13 +94,11 @@ theorem well_founded_on_iff_no_descending_seq {s : set α} {r : α → α → Pr
   s.well_founded_on r ↔ ∀ (f : ((>) : ℕ → ℕ → Prop) ↪r r), ¬ (range f) ⊆ s :=
 begin
   rw [well_founded_on_iff, rel_embedding.well_founded_iff_no_descending_seq],
-  refine ⟨λ h f con, h begin
-    use f,
-      { exact f.injective },
-      { intros a b,
-        simp only [con (mem_range_self a), con (mem_range_self b), and_true, gt_iff_lt,
-          function.embedding.coe_fn_mk, f.map_rel_iff] }
-    end, λ h con, _⟩,
+  refine ⟨λ h f con, begin
+      refine h.elim' ⟨⟨f, f.injective⟩, λ a b, _⟩,
+       simp only [con (mem_range_self a), con (mem_range_self b), and_true, gt_iff_lt,
+        function.embedding.coe_fn_mk, f.map_rel_iff]
+    end, λ h, ⟨λ con, _⟩⟩,
   rcases con with ⟨f, hf⟩,
   have hfs' : ∀ n : ℕ, f n ∈ s := λ n, (hf.2 n.lt_succ_self).2.2,
   refine h ⟨f, λ a b, _⟩ (λ n hn, _),
@@ -132,10 +134,9 @@ variables [partial_order α] {s t : set α} {a : α}
 theorem is_wf_iff_no_descending_seq :
   is_wf s ↔ ∀ (f : (order_dual ℕ) ↪o α), ¬ (range f) ⊆ s :=
 begin
-  haveI : is_strict_order α (λ (a b : α), a < b ∧ a ∈ s ∧ b ∈ s) := {
-    to_is_irrefl := ⟨λ x con, lt_irrefl x con.1⟩,
-    to_is_trans := ⟨λ a b c ab bc, ⟨lt_trans ab.1 bc.1, ab.2.1, bc.2.2⟩⟩,
-  },
+  haveI : is_strict_order α (λ (a b : α), a < b ∧ a ∈ s ∧ b ∈ s) :=
+  { to_is_irrefl := ⟨λ x con, lt_irrefl x con.1⟩,
+    to_is_trans := ⟨λ a b c ab bc, ⟨lt_trans ab.1 bc.1, ab.2.1, bc.2.2⟩⟩, },
   rw [is_wf, well_founded_on_iff_no_descending_seq],
   exact ⟨λ h f, h f.lt_embedding, λ h f, h (order_embedding.of_strict_mono
     f (λ _ _, f.map_rel_iff.2))⟩,
@@ -205,6 +206,53 @@ theorem partially_well_ordered_on.image_of_monotone_on {s : set α}
     exact (classical.some_spec (h n)).1 }
 end
 
+lemma _root_.is_antichain.finite_of_partially_well_ordered_on {s : set α} {r : α → α → Prop}
+  (ha : is_antichain r s) (hp : s.partially_well_ordered_on r) :
+  s.finite :=
+begin
+  refine finite_or_infinite.resolve_right (λ hi, _),
+  obtain ⟨m, n, hmn, h⟩ := hp (λ n, hi.nat_embedding _ n) (range_subset_iff.2 $
+    λ n, (hi.nat_embedding _ n).2),
+  exact hmn.ne ((hi.nat_embedding _).injective $ subtype.val_injective $
+    ha.eq_of_related (hi.nat_embedding _ m).2 (hi.nat_embedding _ n).2 h),
+end
+
+lemma finite.partially_well_ordered_on {s : set α} {r : α → α → Prop} [is_refl α r]
+  (hs : s.finite) :
+  s.partially_well_ordered_on r :=
+begin
+  intros f hf,
+  obtain ⟨m, n, hmn, h⟩ := hs.exists_lt_map_eq_of_range_subset hf,
+  exact ⟨m, n, hmn, h.subst $ refl (f m)⟩,
+end
+
+lemma _root_.is_antichain.partially_well_ordered_on_iff {s : set α} {r : α → α → Prop} [is_refl α r]
+  (hs : is_antichain r s) :
+  s.partially_well_ordered_on r ↔ s.finite :=
+⟨hs.finite_of_partially_well_ordered_on, finite.partially_well_ordered_on⟩
+
+lemma partially_well_ordered_on_iff_finite_antichains {s : set α} {r : α → α → Prop} [is_refl α r]
+  [is_symm α r] :
+  s.partially_well_ordered_on r ↔ ∀ t ⊆ s, is_antichain r t → t.finite :=
+begin
+  refine ⟨λ h t ht hrt, hrt.finite_of_partially_well_ordered_on (h.mono ht), _⟩,
+  rintro hs f hf,
+  by_contra' H,
+  refine set.infinite_range_of_injective (λ m n hmn, _) (hs _ hf _),
+  { obtain h | h | h := lt_trichotomy m n,
+    { refine (H _ _ h _).elim,
+      rw hmn,
+      exact refl _ },
+    { exact h },
+    { refine (H _ _ h _).elim,
+      rw hmn,
+      exact refl _ } },
+  rintro _ ⟨m, hm, rfl⟩ _ ⟨n, hn, rfl⟩ hmn,
+  obtain h | h  := (ne_of_apply_ne _ hmn).lt_or_lt,
+  { exact H _ _ h },
+  { exact mt symm (H _ _ h) }
+end
+
 section partial_order
 variables {s : set α} {t : set α} {r : α → α → Prop}
 
@@ -271,7 +319,7 @@ partially_well_ordered_on_iff_exists_monotone_subseq
 
 lemma is_pwo.prod (hs : s.is_pwo)
   (ht : t.is_pwo) :
-  (s.prod t).is_pwo :=
+  (s ×ˢ t : set _).is_pwo :=
 begin
   classical,
   rw is_pwo_iff_exists_monotone_subseq at *,
@@ -353,22 +401,9 @@ end set
 
 namespace finset
 
-@[simp]
-theorem partially_well_ordered_on {r : α → α → Prop} [is_refl α r] (f : finset α) :
-  set.partially_well_ordered_on (↑f : set α) r :=
-begin
-  intros g hg,
-  by_cases hinj : function.injective g,
-  { exact (set.infinite_of_injective_forall_mem hinj (set.range_subset_iff.1 hg)
-      f.finite_to_set).elim },
-  { rw [function.injective] at hinj,
-    push_neg at hinj,
-    obtain ⟨m, n, gmgn, hne⟩ := hinj,
-    cases lt_or_gt_of_ne hne with hlt hlt;
-    { refine ⟨_, _, hlt, _⟩,
-      rw gmgn,
-      exact refl_of r _, } }
-end
+@[simp] lemma partially_well_ordered_on {r : α → α → Prop} [is_refl α r] (s : finset α) :
+  (s : set α).partially_well_ordered_on r :=
+s.finite_to_set.partially_well_ordered_on
 
 @[simp]
 theorem is_pwo [partial_order α] (f : finset α) :
@@ -622,7 +657,7 @@ begin
     exact λ n, hf1.1 (set.mem_range_self n) _ (list.head_mem_self (hnil n)) },
   have hf' := hf2 (g 0) (λ n, if n < g 0 then f n else list.tail (f (g (n - g 0))))
     (λ m hm, (if_pos hm).symm) _,
-  swap, { simp only [if_neg (lt_irrefl (g 0)), nat.sub_self],
+  swap, { simp only [if_neg (lt_irrefl (g 0)), tsub_self],
     rw [list.length_tail, ← nat.pred_eq_sub_one],
     exact nat.pred_lt (λ con, hnil _ (list.length_eq_zero.1 con)) },
   rw [is_bad_seq] at hf',
@@ -637,11 +672,11 @@ begin
   { apply hf1.2 m n mn,
     rwa [if_pos hn, if_pos (mn.trans hn)] at hmn },
   { obtain ⟨n', rfl⟩ := le_iff_exists_add.1 (not_lt.1 hn),
-    rw [if_neg hn, add_comm (g 0) n', nat.add_sub_cancel] at hmn,
+    rw [if_neg hn, add_comm (g 0) n', add_tsub_cancel_right] at hmn,
     split_ifs at hmn with hm hm,
     { apply hf1.2 m (g n') (lt_of_lt_of_le hm (g.monotone n'.zero_le)),
       exact trans hmn (list.tail_sublist_forall₂_self _) },
-    { rw [← (nat.sub_lt_left_iff_lt_add (le_of_not_lt hm))] at mn,
+    { rw [← (tsub_lt_iff_left (le_of_not_lt hm))] at mn,
       apply hf1.2 _ _ (g.lt_iff_lt.2 mn),
       rw [← list.cons_head_tail (hnil (g (m - g 0))), ← list.cons_head_tail (hnil (g n'))],
       exact list.sublist_forall₂.cons (hg _ _ (le_of_lt mn)) hmn, } }

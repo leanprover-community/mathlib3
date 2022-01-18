@@ -119,7 +119,10 @@ begin
 end
 
 lemma not_first_wins (G : pgame) [G.impartial] : ¬G.first_wins ↔ G.first_loses :=
-by cases winner_cases G; finish using [not_first_loses_of_first_wins]
+begin
+  cases winner_cases G; -- `finish using [not_first_loses_of_first_wins]` can close these goals
+  simp [not_first_loses_of_first_wins, not_first_wins_of_first_loses, h]
+end
 
 lemma not_first_loses (G : pgame) [G.impartial] : ¬G.first_loses ↔ G.first_wins :=
 iff.symm $ iff_not_comm.1 $ iff.symm $ not_first_wins G
@@ -138,11 +141,11 @@ begin
     split,
     { rw le_iff_sub_nonneg,
       exact le_trans hGHp.2
-        (le_trans add_comm_le $ le_of_le_of_equiv (le_refl _) $ add_congr (equiv_refl _)
+        (le_trans add_comm_le $ le_of_le_of_equiv (pgame.le_refl _) $ add_congr (equiv_refl _)
         (neg_equiv_self G)) },
     { rw le_iff_sub_nonneg,
       exact le_trans hGHp.2
-        (le_of_le_of_equiv (le_refl _) $ add_congr (equiv_refl _) (neg_equiv_self H)) } }
+        (le_of_le_of_equiv (pgame.le_refl _) $ add_congr (equiv_refl _) (neg_equiv_self H)) } }
 end
 
 lemma le_zero_iff {G : pgame} [G.impartial] : G ≤ 0 ↔ 0 ≤ G :=

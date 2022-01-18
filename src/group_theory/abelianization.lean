@@ -33,7 +33,7 @@ subgroup.normal_closure {x | ∃ p q, p * q * p⁻¹ * q⁻¹ = x}
 
 /-- The abelianization of G is the quotient of G by its commutator subgroup. -/
 def abelianization : Type u :=
-quotient_group.quotient (commutator G)
+G ⧸ (commutator G)
 
 namespace abelianization
 
@@ -50,6 +50,10 @@ instance : comm_group (abelianization G) :=
 .. quotient_group.quotient.group _ }
 
 instance : inhabited (abelianization G) := ⟨1⟩
+
+instance [fintype G] [decidable_pred (∈ commutator G)] :
+  fintype (abelianization G) :=
+quotient_group.fintype (commutator G)
 
 variable {G}
 

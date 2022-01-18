@@ -85,7 +85,11 @@ list.reverse_rec_on l (by simp [eq_comm])
     cases hf : foldl (argmax₂ f) (some a) tl,
     { simp {contextual := tt} },
     { dsimp only, split_ifs,
-      { finish [ih _ _ hf] },
+      { -- `finish [ih _ _ hf]` closes this goal
+        rcases ih _ _ hf with rfl | H,
+        { simp only [mem_cons_iff, mem_append, mem_singleton, option.mem_def], tauto },
+        { apply λ hm, or.inr (list.mem_append.mpr $ or.inl _),
+          exact (option.mem_some_iff.mp hm ▸ H)} },
       { simp {contextual := tt} } }
   end
 
@@ -242,7 +246,7 @@ begin
   { rw [max_eq_left], refl, exact bot_le },
   change (coe : α → with_bot α) with some,
   rw [max_comm],
-  simp [max]
+  simp [max_def]
 end
 
 theorem minimum_concat (a : α) (l : list α) : minimum (l ++ [a]) = min (minimum l) a :=
@@ -275,7 +279,7 @@ section fold
 
 variables {M : Type*} [canonically_linear_ordered_add_monoid M]
 
-/-! Note: since there is no typeclass for both `linear_order` and `has_top`, nor a typeclass dual
+/-! Note: since there is no typeclass typeclass dual
 to `canonically_linear_ordered_add_monoid α` we cannot express these lemmas generally for
 `minimum`; instead we are limited to doing so on `order_dual α`. -/
 

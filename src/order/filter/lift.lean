@@ -70,7 +70,7 @@ end
 lemma mem_lift_sets (hg : monotone g) {s : set β} :
   s ∈ f.lift g ↔ ∃t∈f, s ∈ g t :=
 (f.basis_sets.mem_lift_iff (λ s, (g s).basis_sets) hg).trans $
-  by simp only [id, ← exists_mem_subset_iff]
+  by simp only [id, exists_mem_subset_iff]
 
 lemma mem_lift {s : set β} {t : set α} (ht : t ∈ f) (hs : s ∈ g t) :
   s ∈ f.lift g :=
@@ -372,9 +372,9 @@ filter.ext $ λ s, (mem_lift'_sets monotone_preimage).symm
 lemma lift'_infi_powerset {f : ι → filter α} :
   (infi f).lift' powerset = (⨅i, (f i).lift' powerset) :=
 begin
-  by_cases hι : nonempty ι,
-  { exactI (lift'_infi $ λ _ _, (powerset_inter _ _).symm) },
-  { rw [infi_of_empty hι, infi_of_empty hι, lift'_top, powerset_univ, principal_univ] }
+  casesI is_empty_or_nonempty ι,
+  { rw [infi_of_empty f, infi_of_empty, lift'_top, powerset_univ, principal_univ] },
+  { exact (lift'_infi $ λ _ _, (powerset_inter _ _).symm) },
 end
 
 lemma lift'_inf_powerset (f g : filter α) :
@@ -388,8 +388,8 @@ eventually_lift'_iff monotone_powerset
 lemma eventually_lift'_powerset' {f : filter α} {p : set α → Prop}
   (hp : ∀ ⦃s t⦄, s ⊆ t → p t → p s) :
   (∀ᶠ s in f.lift' powerset, p s) ↔ ∃ s ∈ f, p s :=
-eventually_lift'_powerset.trans $ exists_congr $ λ s, exists_congr $
-  λ hsf, ⟨λ H, H s (subset.refl s), λ hs t ht, hp ht hs⟩
+eventually_lift'_powerset.trans $ exists₂_congr $ λ s hsf,
+  ⟨λ H, H s (subset.refl s), λ hs t ht, hp ht hs⟩
 
 instance lift'_powerset_ne_bot (f : filter α) : ne_bot (f.lift' powerset) :=
 (lift'_ne_bot_iff monotone_powerset).2 $ λ _ _, powerset_nonempty
@@ -416,16 +416,16 @@ calc _ ↔ ∃ s ∈ f, ∀ᶠ x in g, x ∈ s → p x :
   eventually_lift'_powerset' $ λ s t hst ht, ht.mono $ λ x hx hs, hx (hst hs)
 ... ↔ ∃ (s ∈ f) (t ∈ g), ∀ x, x ∈ t → x ∈ s → p x :
   by simp only [eventually_iff_exists_mem]
-... ↔ ∀ᶠ x in f ⊓ g, p x : by { rw eventually_inf, finish }
+... ↔ ∀ᶠ x in f ⊓ g, p x : by simp only [eventually_inf, and_comm, mem_inter_iff, ←and_imp]
 
 end lift'
 
 section prod
 variables {f : filter α}
 
-lemma prod_def {f : filter α} {g : filter β} : f ×ᶠ g = (f.lift $ λs, g.lift' $ set.prod s) :=
+lemma prod_def {f : filter α} {g : filter β} : f ×ᶠ g = (f.lift $ λ s, g.lift' $ λ t, s ×ˢ t) :=
 have ∀(s:set α) (t : set β),
-    𝓟 (set.prod s t) = (𝓟 s).comap prod.fst ⊓ (𝓟 t).comap prod.snd,
+    𝓟 (s ×ˢ t) = (𝓟 s).comap prod.fst ⊓ (𝓟 t).comap prod.snd,
   by simp only [principal_eq_iff_eq, comap_principal, inf_principal]; intros; refl,
 begin
   simp only [filter.lift', function.comp, this, lift_inf, lift_const, lift_inf],
@@ -433,14 +433,14 @@ begin
   simp only [filter.prod, lift_principal2, eq_self_iff_true]
 end
 
-lemma prod_same_eq : f ×ᶠ f = f.lift' (λt, set.prod t t) :=
+lemma prod_same_eq : f ×ᶠ f = f.lift' (λ t : set α, t ×ˢ t) :=
 by rw [prod_def];
 from lift_lift'_same_eq_lift'
   (assume s, set.monotone_prod monotone_const monotone_id)
   (assume t, set.monotone_prod monotone_id monotone_const)
 
 lemma mem_prod_same_iff {s : set (α×α)} :
-  s ∈ f ×ᶠ f ↔ (∃t∈f, set.prod t t ⊆ s) :=
+  s ∈ f ×ᶠ f ↔ (∃t∈f, t ×ˢ t ⊆ s) :=
 by rw [prod_same_eq, mem_lift'_sets]; exact set.monotone_prod monotone_id monotone_id
 
 lemma tendsto_prod_self_iff {f : α × α → β} {x : filter α} {y : filter β} :
@@ -468,7 +468,7 @@ end
 lemma prod_lift'_lift'
   {f₁ : filter α₁} {f₂ : filter α₂} {g₁ : set α₁ → set β₁} {g₂ : set α₂ → set β₂}
   (hg₁ : monotone g₁) (hg₂ : monotone g₂) :
-  f₁.lift' g₁ ×ᶠ f₂.lift' g₂ = f₁.lift (λs, f₂.lift' (λt, (g₁ s).prod (g₂ t))) :=
+  f₁.lift' g₁ ×ᶠ f₂.lift' g₂ = f₁.lift (λs, f₂.lift' (λt, g₁ s ×ˢ g₂ t)) :=
 begin
   rw [prod_def, lift_lift'_assoc],
   apply congr_arg, funext x,

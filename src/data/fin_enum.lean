@@ -5,6 +5,7 @@ Authors: Simon Hudon
 -/
 import control.monad.basic
 import data.fintype.basic
+import data.list.prod_sigma
 
 /-!
 Type class for finitely enumerable types. The property is stronger
@@ -12,7 +13,7 @@ than `fintype` in that it assigns each element a rank in a finite
 enumeration.
 -/
 
-universe variables u v
+universes u v
 open finset
 
 /-- `fin_enum α` means that `α` is finite and can be enumerated in some order,
@@ -114,7 +115,7 @@ begin
     { right, apply h, subst a, exact hx, },
     { simp only [h', mem_union, mem_singleton] at hx ⊢, cases hx,
       { exact or.inl hx },
-      { exact or.inr (h _ hx) }  },
+      { exact or.inr (h _ hx) } },
     intro h, existsi s \ ({xs_hd} : finset α),
     simp only [and_imp, union_comm, mem_sdiff, mem_singleton],
     simp only [or_iff_not_imp_left] at h,

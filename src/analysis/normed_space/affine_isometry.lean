@@ -5,7 +5,6 @@ Authors: Heather Macbeth
 -/
 import analysis.normed_space.add_torsor
 import analysis.normed_space.linear_isometry
-import linear_algebra.affine_space.affine_subspace
 
 /-!
 # Affine isometries
@@ -35,8 +34,8 @@ variables (𝕜 : Type*) {V V₁ V₂ V₃ V₄ : Type*} {P₁ : Type*} (P P₂ 
     [normed_field 𝕜]
   [semi_normed_group V] [normed_group V₁] [semi_normed_group V₂] [semi_normed_group V₃]
     [semi_normed_group V₄]
-  [semi_normed_space 𝕜 V] [normed_space 𝕜 V₁] [semi_normed_space 𝕜 V₂] [semi_normed_space 𝕜 V₃]
-    [semi_normed_space 𝕜 V₄]
+  [normed_space 𝕜 V] [normed_space 𝕜 V₁] [normed_space 𝕜 V₂] [normed_space 𝕜 V₃]
+    [normed_space 𝕜 V₄]
   [pseudo_metric_space P] [metric_space P₁] [pseudo_metric_space P₂] [pseudo_metric_space P₃]
     [pseudo_metric_space P₄]
   [semi_normed_add_torsor V P] [normed_add_torsor V₁ P₁] [semi_normed_add_torsor V₂ P₂]
@@ -67,7 +66,7 @@ protected def linear_isometry : V →ₗᵢ[𝕜] V₂ :=
 by { ext, refl }
 
 include V V₂
-instance : has_coe_to_fun (P →ᵃⁱ[𝕜] P₂) := ⟨_, λ f, f.to_fun⟩
+instance : has_coe_to_fun (P →ᵃⁱ[𝕜] P₂) (λ _, P → P₂) := ⟨λ f, f.to_fun⟩
 omit V V₂
 
 @[simp] lemma coe_to_affine_map : ⇑f.to_affine_map = f := rfl
@@ -157,7 +156,7 @@ include V
 /-- The identity affine isometry. -/
 def id : P →ᵃⁱ[𝕜] P := ⟨affine_map.id 𝕜 P, λ x, rfl⟩
 
-@[simp] lemma coe_id : ⇑(id : P →ᵃⁱ[𝕜] P) = id := rfl
+@[simp] lemma coe_id : ⇑(id : P →ᵃⁱ[𝕜] P) = _root_.id := rfl
 
 @[simp] lemma id_apply (x : P) : (affine_isometry.id : P →ᵃⁱ[𝕜] P) x = x := rfl
 
@@ -193,7 +192,7 @@ instance : monoid (P →ᵃⁱ[𝕜] P) :=
   one_mul := id_comp,
   mul_one := comp_id }
 
-@[simp] lemma coe_one : ⇑(1 : P →ᵃⁱ[𝕜] P) = id := rfl
+@[simp] lemma coe_one : ⇑(1 : P →ᵃⁱ[𝕜] P) = _root_.id := rfl
 @[simp] lemma coe_mul (f g : P →ᵃⁱ[𝕜] P) : ⇑(f * g) = f ∘ g := rfl
 
 end affine_isometry
@@ -228,7 +227,7 @@ protected def linear_isometry_equiv : V ≃ₗᵢ[𝕜] V₂ :=
 by { ext, refl }
 
 include V V₂
-instance : has_coe_to_fun (P ≃ᵃⁱ[𝕜] P₂) := ⟨_, λ f, f.to_fun⟩
+instance : has_coe_to_fun (P ≃ᵃⁱ[𝕜] P₂) (λ _, P → P₂) := ⟨λ f, f.to_fun⟩
 
 @[simp] lemma coe_mk (e : P ≃ᵃ[𝕜] P₂) (he : ∀ x, ∥e.linear x∥ = ∥x∥) :
   ⇑(mk e he) = e :=
@@ -356,8 +355,8 @@ omit V V₂ V₃
 
 @[simp] lemma trans_refl : e.trans (refl 𝕜 P₂) = e := ext $ λ x, rfl
 @[simp] lemma refl_trans : (refl 𝕜 P).trans e = e := ext $ λ x, rfl
-@[simp] lemma trans_symm : e.trans e.symm = refl 𝕜 P := ext e.symm_apply_apply
-@[simp] lemma symm_trans : e.symm.trans e = refl 𝕜 P₂ := ext e.apply_symm_apply
+@[simp] lemma self_trans_symm : e.trans e.symm = refl 𝕜 P := ext e.symm_apply_apply
+@[simp] lemma symm_trans_self : e.symm.trans e = refl 𝕜 P₂ := ext e.apply_symm_apply
 
 include V V₂ V₃
 @[simp] lemma coe_symm_trans (e₁ : P ≃ᵃⁱ[𝕜] P₂) (e₂ : P₂ ≃ᵃⁱ[𝕜] P₃) :
@@ -378,7 +377,7 @@ instance : group (P ≃ᵃⁱ[𝕜] P) :=
   one_mul := trans_refl,
   mul_one := refl_trans,
   mul_assoc := λ _ _ _, trans_assoc _ _ _,
-  mul_left_inv := trans_symm }
+  mul_left_inv := self_trans_symm }
 
 @[simp] lemma coe_one : ⇑(1 : P ≃ᵃⁱ[𝕜] P) = id := rfl
 @[simp] lemma coe_mul (e e' : P ≃ᵃⁱ[𝕜] P) : ⇑(e * e') = e ∘ e' := rfl
@@ -426,27 +425,142 @@ e.isometry.comp_continuous_on_iff
   continuous (e ∘ f) ↔ continuous f :=
 e.isometry.comp_continuous_iff
 
+section constructions
+
+variables (𝕜)
+/-- The map `v ↦ v +ᵥ p` as an affine isometric equivalence between `V` and `P`. -/
+def vadd_const (p : P) : V ≃ᵃⁱ[𝕜] P :=
+{ norm_map := λ x, rfl,
+  .. affine_equiv.vadd_const 𝕜 p }
+variables {𝕜}
+
+include V
+@[simp] lemma coe_vadd_const (p : P) : ⇑(vadd_const 𝕜 p) = λ v, v +ᵥ p := rfl
+
+@[simp] lemma coe_vadd_const_symm (p : P) : ⇑(vadd_const 𝕜 p).symm = λ p', p' -ᵥ p :=
+rfl
+
+@[simp] lemma vadd_const_to_affine_equiv (p : P) :
+  (vadd_const 𝕜 p).to_affine_equiv = affine_equiv.vadd_const 𝕜 p :=
+rfl
+omit V
+
+variables (𝕜)
+/-- `p' ↦ p -ᵥ p'` as an affine isometric equivalence. -/
+def const_vsub (p : P) : P ≃ᵃⁱ[𝕜] V :=
+{ norm_map := norm_neg,
+  .. affine_equiv.const_vsub 𝕜 p }
+variables {𝕜}
+
+include V
+@[simp] lemma coe_const_vsub (p : P) : ⇑(const_vsub 𝕜 p) = (-ᵥ) p := rfl
+
+@[simp] lemma symm_const_vsub (p : P) :
+  (const_vsub 𝕜 p).symm
+  = (linear_isometry_equiv.neg 𝕜).to_affine_isometry_equiv.trans (vadd_const 𝕜 p) :=
+by { ext, refl }
+omit V
+
+variables (𝕜 P)
+/-- Translation by `v` (that is, the map `p ↦ v +ᵥ p`) as an affine isometric automorphism of `P`.
+-/
+def const_vadd (v : V) : P ≃ᵃⁱ[𝕜] P :=
+{ norm_map := λ x, rfl,
+  .. affine_equiv.const_vadd 𝕜 P v }
+variables {𝕜 P}
+
+@[simp] lemma coe_const_vadd (v : V) : ⇑(const_vadd 𝕜 P v : P ≃ᵃⁱ[𝕜] P) = (+ᵥ) v := rfl
+
+@[simp] lemma const_vadd_zero : const_vadd 𝕜 P (0:V) = refl 𝕜 P := ext $ zero_vadd V
+
+include 𝕜 V
+/-- The map `g` from `V` to `V₂` corresponding to a map `f` from `P` to `P₂`, at a base point `p`,
+is an isometry if `f` is one. -/
+lemma vadd_vsub {f : P → P₂} (hf : isometry f) {p : P} {g : V → V₂}
+  (hg : ∀ v, g v = f (v +ᵥ p) -ᵥ f p) : isometry g :=
+begin
+  convert (vadd_const 𝕜 (f p)).symm.isometry.comp (hf.comp (vadd_const 𝕜 p).isometry),
+  exact funext hg
+end
+omit 𝕜
+
+variables (𝕜)
+/-- Point reflection in `x` as an affine isometric automorphism. -/
+def point_reflection (x : P) : P ≃ᵃⁱ[𝕜] P := (const_vsub 𝕜 x).trans (vadd_const 𝕜 x)
+variables {𝕜}
+
+lemma point_reflection_apply (x y : P) : (point_reflection 𝕜 x) y = x -ᵥ y +ᵥ x := rfl
+
+@[simp] lemma point_reflection_to_affine_equiv (x : P) :
+  (point_reflection 𝕜 x).to_affine_equiv = affine_equiv.point_reflection 𝕜 x := rfl
+
+@[simp] lemma point_reflection_self (x : P) : point_reflection 𝕜 x x = x :=
+affine_equiv.point_reflection_self 𝕜 x
+
+lemma point_reflection_involutive (x : P) : function.involutive (point_reflection 𝕜 x) :=
+equiv.point_reflection_involutive x
+
+@[simp] lemma point_reflection_symm (x : P) : (point_reflection 𝕜 x).symm = point_reflection 𝕜 x :=
+to_affine_equiv_injective $ affine_equiv.point_reflection_symm 𝕜 x
+
+@[simp] lemma dist_point_reflection_fixed (x y : P) :
+  dist (point_reflection 𝕜 x y) x = dist y x :=
+by rw [← (point_reflection 𝕜 x).dist_map y x, point_reflection_self]
+
+lemma dist_point_reflection_self' (x y : P) :
+  dist (point_reflection 𝕜 x y) y = ∥bit0 (x -ᵥ y)∥ :=
+by rw [point_reflection_apply, dist_eq_norm_vsub V, vadd_vsub_assoc, bit0]
+
+lemma dist_point_reflection_self (x y : P) :
+  dist (point_reflection 𝕜 x y) y = ∥(2:𝕜)∥ * dist x y :=
+by rw [dist_point_reflection_self', ← two_smul' 𝕜 (x -ᵥ y), norm_smul, ← dist_eq_norm_vsub V]
+
+lemma point_reflection_fixed_iff [invertible (2:𝕜)] {x y : P} :
+  point_reflection 𝕜 x y = y ↔ y = x :=
+affine_equiv.point_reflection_fixed_iff_of_module 𝕜
+
+variables [normed_space ℝ V]
+
+lemma dist_point_reflection_self_real (x y : P) :
+  dist (point_reflection ℝ x y) y = 2 * dist x y :=
+by { rw [dist_point_reflection_self, real.norm_two] }
+
+@[simp] lemma point_reflection_midpoint_left (x y : P) :
+  point_reflection ℝ (midpoint ℝ x y) x = y :=
+affine_equiv.point_reflection_midpoint_left x y
+
+@[simp] lemma point_reflection_midpoint_right (x y : P) :
+  point_reflection ℝ (midpoint ℝ x y) y = x :=
+affine_equiv.point_reflection_midpoint_right x y
+
+end constructions
+
 end affine_isometry_equiv
 
-namespace affine_isometry
+include V V₂
 
-open finite_dimensional affine_map
+/-- If `f` is an affine map, then its linear part is continuous iff `f` is continuous. -/
+lemma affine_map.continuous_linear_iff {f : P →ᵃ[𝕜] P₂} :
+  continuous f.linear ↔ continuous f :=
+begin
+  inhabit P,
+  have : (f.linear : V → V₂) =
+    (affine_isometry_equiv.vadd_const 𝕜 $ f default).to_homeomorph.symm ∘ f ∘
+      (affine_isometry_equiv.vadd_const 𝕜 default).to_homeomorph,
+  { ext v, simp },
+  rw this,
+  simp only [homeomorph.comp_continuous_iff, homeomorph.comp_continuous_iff'],
+end
 
-variables [finite_dimensional 𝕜 V₁] [finite_dimensional 𝕜 V₂]
-
-/-- A affine isometry between finite dimensional spaces of equal dimension can be upgraded
-    to an affine isometry equivalence. -/
-noncomputable def to_affine_isometry_equiv [inhabited P₁]
-  (li : P₁ →ᵃⁱ[𝕜] P₂) (h : finrank 𝕜 V₁ = finrank 𝕜 V₂) : P₁ ≃ᵃⁱ[𝕜] P₂ :=
-affine_isometry_equiv.mk' li (li.linear_isometry.to_linear_isometry_equiv h) (arbitrary P₁)
-  (λ p, by simp)
-
-@[simp] lemma coe_to_affine_isometry_equiv [inhabited P₁]
-  (li : P₁ →ᵃⁱ[𝕜] P₂) (h : finrank 𝕜 V₁ = finrank 𝕜 V₂) :
-  (li.to_affine_isometry_equiv h : P₁ → P₂) = li := rfl
-
-@[simp] lemma to_affine_isometry_equiv_apply [inhabited P₁]
-  (li : P₁ →ᵃⁱ[𝕜] P₂) (h : finrank 𝕜 V₁ = finrank 𝕜 V₂) (x : P₁) :
-  (li.to_affine_isometry_equiv h) x = li x := rfl
-
-end affine_isometry
+/-- If `f` is an affine map, then its linear part is an open map iff `f` is an open map. -/
+lemma affine_map.is_open_map_linear_iff {f : P →ᵃ[𝕜] P₂} :
+  is_open_map f.linear ↔ is_open_map f :=
+begin
+  inhabit P,
+  have : (f.linear : V → V₂) =
+    (affine_isometry_equiv.vadd_const 𝕜 $ f default).to_homeomorph.symm ∘ f ∘
+      (affine_isometry_equiv.vadd_const 𝕜 default).to_homeomorph,
+  { ext v, simp },
+  rw this,
+  simp only [homeomorph.comp_is_open_map_iff, homeomorph.comp_is_open_map_iff'],
+end

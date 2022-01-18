@@ -3,9 +3,9 @@ Copyright (c) 2019 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-import geometry.manifold.algebra.smooth_functions
 import linear_algebra.finite_dimensional
-import analysis.normed_space.pi_Lp
+import geometry.manifold.smooth_manifold_with_corners
+import analysis.inner_product_space.pi_L2
 
 /-!
 # Constructing examples of manifolds over ℝ
@@ -40,6 +40,7 @@ typeclass. We provide it as `[fact (x < y)]`.
 noncomputable theory
 open set function
 open_locale manifold
+local attribute [instance] fact_one_le_two_real
 
 /--
 The half-space in `ℝ^n`, used to model manifolds with boundary. We only define it when
@@ -123,8 +124,12 @@ def model_with_corners_euclidean_quadrant (n : ℕ) :
   continuous_inv_fun := continuous_subtype_mk _ $ continuous_pi $ λ i,
     (continuous_id.max continuous_const).comp (continuous_apply i) }
 
-localized "notation `𝓡 `n := model_with_corners_self ℝ (euclidean_space ℝ (fin n))" in manifold
-localized "notation `𝓡∂ `n := model_with_corners_euclidean_half_space n" in manifold
+localized "notation `𝓡 `n :=
+  (model_with_corners_self ℝ (euclidean_space ℝ (fin n)) :
+    model_with_corners ℝ (euclidean_space ℝ (fin n)) (euclidean_space ℝ (fin n)))" in manifold
+localized "notation `𝓡∂ `n :=
+  (model_with_corners_euclidean_half_space n :
+    model_with_corners ℝ (euclidean_space ℝ (fin n)) (euclidean_half_space n))" in manifold
 
 /--
 The left chart for the topological space `[x, y]`, defined on `[x,y)` and sending `x` to `0` in
@@ -250,7 +255,7 @@ instance Icc_manifold (x y : ℝ) [fact (x < y)] : charted_space (euclidean_half
       apply lt_of_lt_of_le (fact.out (x < y)),
       simpa only [not_lt] using h'}
   end,
-  chart_mem_atlas := λz, by { by_cases h' : z.val < y; simp [h'] } }
+  chart_mem_atlas := λ z, by by_cases h' : (z : ℝ) < y; simp [h'] }
 
 /--
 The manifold structure on `[x, y]` is smooth.
@@ -260,7 +265,7 @@ instance Icc_smooth_manifold (x y : ℝ) [fact (x < y)] :
 begin
   have M : times_cont_diff_on ℝ ∞ (λz : euclidean_space ℝ (fin 1), - z + (λi, y - x)) univ,
   { rw times_cont_diff_on_univ,
-    exact times_cont_diff_id.neg.add times_cont_diff_const  },
+    exact times_cont_diff_id.neg.add times_cont_diff_const },
   apply smooth_manifold_with_corners_of_times_cont_diff_on,
   assume e e' he he',
   simp only [atlas, mem_singleton_iff, mem_insert_iff] at he he',

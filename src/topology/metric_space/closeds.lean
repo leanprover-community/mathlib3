@@ -200,7 +200,7 @@ instance closeds.compact_space [compact_space α] : compact_space (closeds α) :
     refine Hausdorff_edist_le_of_mem_edist _ _,
     { assume x hx,
       have : x ∈ ⋃y ∈ s, ball y δ := hs (by simp),
-      rcases mem_bUnion_iff.1 this with ⟨y, ys, dy⟩,
+      rcases mem_Union₂.1 this with ⟨y, ys, dy⟩,
       have : edist y x < δ := by simp at dy; rwa [edist_comm] at dy,
       exact ⟨y, ⟨ys, ⟨x, hx, this⟩⟩, le_of_lt dy⟩ },
     { rintros x ⟨hx1, ⟨y, yu, hy⟩⟩,
@@ -223,7 +223,7 @@ instance closeds.compact_space [compact_space α] : compact_space (closeds α) :
     let t : closeds α := ⟨t0, this⟩,
     have : t ∈ F := t0s,
     have : edist u t < ε := lt_of_le_of_lt Dut0 δlt,
-    apply mem_bUnion_iff.2,
+    apply mem_Union₂.2,
     exact ⟨t, ‹t ∈ F›, this⟩ }
 end⟩
 
@@ -259,18 +259,18 @@ begin
     -- since `t` is nonempty, so is `s`
     exact nonempty_of_Hausdorff_edist_ne_top ht.1 (ne_of_lt Dst) },
   { refine compact_iff_totally_bounded_complete.2 ⟨_, s.property.is_complete⟩,
-    refine totally_bounded_iff.2 (λε εpos, _),
+    refine totally_bounded_iff.2 (λε (εpos : 0 < ε), _),
     -- we have to show that s is covered by finitely many eballs of radius ε
     -- pick a nonempty compact set t at distance at most ε/2 of s
-    rcases mem_closure_iff.1 hs (ε/2) (ennreal.half_pos εpos) with ⟨t, ht, Dst⟩,
+    rcases mem_closure_iff.1 hs (ε/2) (ennreal.half_pos εpos.ne') with ⟨t, ht, Dst⟩,
     -- cover this space with finitely many balls of radius ε/2
     rcases totally_bounded_iff.1 (compact_iff_totally_bounded_complete.1 ht.2).1 (ε/2)
-      (ennreal.half_pos εpos) with ⟨u, fu, ut⟩,
+      (ennreal.half_pos εpos.ne') with ⟨u, fu, ut⟩,
     refine ⟨u, ⟨fu, λx hx, _⟩⟩,
     -- u : set α,  fu : finite u,  ut : t.val ⊆ ⋃ (y : α) (H : y ∈ u), eball y (ε / 2)
     -- then s is covered by the union of the balls centered at u of radius ε
     rcases exists_edist_lt_of_Hausdorff_edist_lt hx Dst with ⟨z, hz, Dxz⟩,
-    rcases mem_bUnion_iff.1 (ut hz) with ⟨y, hy, Dzy⟩,
+    rcases mem_Union₂.1 (ut hz) with ⟨y, hy, Dzy⟩,
     have : edist x y < ε := calc
       edist x y ≤ edist x z + edist z y : edist_triangle _ _ _
       ... < ε/2 + ε/2 : ennreal.add_lt_add Dxz Dzy
@@ -311,34 +311,30 @@ begin
     let v0 := {t : set α | finite t ∧ t ⊆ s},
     let v : set (nonempty_compacts α) := {t : nonempty_compacts α | t.val ∈ v0},
     refine  ⟨⟨v, ⟨_, _⟩⟩⟩,
-    { have : countable (subtype.val '' v),
-      { refine (countable_set_of_finite_subset cs).mono (λx hx, _),
-        rcases (mem_image _ _ _).1 hx with ⟨y, ⟨hy, yx⟩⟩,
-        rw ← yx,
-        exact hy },
-      apply countable_of_injective_of_countable_image _ this,
-      apply subtype.val_injective.inj_on },
+    { have : countable v0, from countable_set_of_finite_subset cs,
+      exact this.preimage subtype.coe_injective },
     { refine λt, mem_closure_iff.2 (λε εpos, _),
       -- t is a compact nonempty set, that we have to approximate uniformly by a a set in `v`.
       rcases exists_between εpos with ⟨δ, δpos, δlt⟩,
+      have δpos' : 0 < δ / 2, from ennreal.half_pos δpos.ne',
       -- construct a map F associating to a point in α an approximating point in s, up to δ/2.
       have Exy : ∀x, ∃y, y ∈ s ∧ edist x y < δ/2,
       { assume x,
-        rcases mem_closure_iff.1 (s_dense x) (δ/2) (ennreal.half_pos δpos) with ⟨y, ys, hy⟩,
+        rcases mem_closure_iff.1 (s_dense x) (δ/2) δpos' with ⟨y, ys, hy⟩,
         exact ⟨y, ⟨ys, hy⟩⟩ },
       let F := λx, some (Exy x),
       have Fspec : ∀x, F x ∈ s ∧ edist x (F x) < δ/2 := λx, some_spec (Exy x),
 
       -- cover `t` with finitely many balls. Their centers form a set `a`
-      have : totally_bounded t.val := (compact_iff_totally_bounded_complete.1 t.property.2).1,
-      rcases totally_bounded_iff.1 this (δ/2) (ennreal.half_pos δpos) with ⟨a, af, ta⟩,
+      have : totally_bounded t.val := t.property.2.totally_bounded,
+      rcases totally_bounded_iff.1 this (δ/2) δpos' with ⟨a, af, ta⟩,
       -- a : set α,  af : finite a,  ta : t.val ⊆ ⋃ (y : α) (H : y ∈ a), eball y (δ / 2)
       -- replace each center by a nearby approximation in `s`, giving a new set `b`
       let b := F '' a,
       have : finite b := af.image _,
       have tb : ∀x ∈ t.val, ∃y ∈ b, edist x y < δ,
       { assume x hx,
-        rcases mem_bUnion_iff.1 (ta hx) with ⟨z, za, Dxz⟩,
+        rcases mem_Union₂.1 (ta hx) with ⟨z, za, Dxz⟩,
         existsi [F z, mem_image_of_mem _ za],
         calc edist x (F z) ≤ edist x z + edist z (F z) : edist_triangle _ _ _
              ... < δ/2 + δ/2 : ennreal.add_lt_add Dxz (Fspec z).2
@@ -377,7 +373,7 @@ begin
       -- we have proved that `d` is a good approximation of `t` as requested
       exact ⟨d, ‹d ∈ v›, Dtc⟩ },
   end,
-  apply second_countable_of_separable,
+  apply uniform_space.second_countable_of_separable,
 end
 
 end --section

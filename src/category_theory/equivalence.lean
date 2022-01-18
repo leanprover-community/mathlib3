@@ -392,6 +392,8 @@ mk' ::
 
 restate_axiom is_equivalence.functor_unit_iso_comp'
 
+attribute [simp, reassoc] is_equivalence.functor_unit_iso_comp
+
 namespace is_equivalence
 
 instance of_equivalence (F : C ≌ D) : is_equivalence F.functor :=
@@ -432,6 +434,12 @@ is_equivalence.of_equivalence F.as_equivalence.symm
 
 @[simp] lemma as_equivalence_inverse (F : C ⥤ D) [is_equivalence F] :
   F.as_equivalence.inverse = inv F := rfl
+
+@[simp] lemma as_equivalence_unit {F : C ⥤ D} [h : is_equivalence F] :
+  F.as_equivalence.unit_iso = @@is_equivalence.unit_iso _ _ h := rfl
+
+@[simp] lemma as_equivalence_counit {F : C ⥤ D} [is_equivalence F] :
+  F.as_equivalence.counit_iso = is_equivalence.counit_iso := rfl
 
 @[simp] lemma inv_inv (F : C ⥤ D) [is_equivalence F] :
   inv (inv F) = F := rfl
@@ -549,33 +557,11 @@ noncomputable
 instance induced_functor_of_equiv {C' : Type*} (e : C' ≃ D) : is_equivalence (induced_functor e) :=
 equivalence.of_fully_faithfully_ess_surj _
 
+noncomputable
+instance fully_faithful_to_ess_image (F : C ⥤ D) [full F] [faithful F] :
+  is_equivalence F.to_ess_image :=
+of_fully_faithfully_ess_surj F.to_ess_image
+
 end equivalence
-
-section partial_order
-variables {α β : Type*} [partial_order α] [partial_order β]
-
-/--
-A categorical equivalence between partial orders is just an order isomorphism.
--/
-def equivalence.to_order_iso (e : α ≌ β) : α ≃o β :=
-{ to_fun := e.functor.obj,
-  inv_fun := e.inverse.obj,
-  left_inv := λ a, (e.unit_iso.app a).to_eq.symm,
-  right_inv := λ b, (e.counit_iso.app b).to_eq,
-  map_rel_iff' := λ a a',
-    ⟨λ h, ((equivalence.unit e).app a ≫ e.inverse.map h.hom ≫ (equivalence.unit_inv e).app a').le,
-     λ (h : a ≤ a'), (e.functor.map h.hom).le⟩, }
-
--- `@[simps]` on `equivalence.to_order_iso` produces lemmas that fail the `simp_nf` linter,
--- so we provide them by hand:
-@[simp]
-lemma equivalence.to_order_iso_apply (e : α ≌ β) (a : α) :
-  e.to_order_iso a = e.functor.obj a := rfl
-
-@[simp]
-lemma equivalence.to_order_iso_symm_apply (e : α ≌ β) (b : β) :
-  e.to_order_iso.symm b = e.inverse.obj b := rfl
-
-end partial_order
 
 end category_theory

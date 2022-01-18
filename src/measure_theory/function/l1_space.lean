@@ -148,21 +148,13 @@ has_finite_integral_congr' $ h.fun_comp norm
 
 lemma has_finite_integral_const_iff {c : β} :
   has_finite_integral (λ x : α, c) μ ↔ c = 0 ∨ μ univ < ∞ :=
-begin
-  simp only [has_finite_integral, lintegral_const],
-  by_cases hc : c = 0,
-  { simp [hc] },
-  { simp only [hc, false_or],
-    refine ⟨λ h, _, λ h, mul_lt_top coe_lt_top h⟩,
-    replace h := mul_lt_top (@coe_lt_top $ (nnnorm c)⁻¹) h,
-    rwa [← mul_assoc, ← coe_mul, _root_.inv_mul_cancel, coe_one, one_mul] at h,
-    rwa [ne.def, nnnorm_eq_zero] }
-end
+by simp [has_finite_integral, lintegral_const, lt_top_iff_ne_top, or_iff_not_imp_left]
 
-lemma has_finite_integral_const [finite_measure μ] (c : β) : has_finite_integral (λ x : α, c) μ :=
+lemma has_finite_integral_const [is_finite_measure μ] (c : β) :
+  has_finite_integral (λ x : α, c) μ :=
 has_finite_integral_const_iff.2 (or.inr $ measure_lt_top _ _)
 
-lemma has_finite_integral_of_bounded [finite_measure μ] {f : α → β} {C : ℝ}
+lemma has_finite_integral_of_bounded [is_finite_measure μ] {f : α → β} {C : ℝ}
   (hC : ∀ᵐ a ∂μ, ∥f a∥ ≤ C) : has_finite_integral f μ :=
 (has_finite_integral_const C).mono' hC
 
@@ -190,10 +182,10 @@ h.mono_measure $ measure.le_add_left $ le_refl _
 ⟨λ h, ⟨h.left_of_add_measure, h.right_of_add_measure⟩, λ h, h.1.add_measure h.2⟩
 
 lemma has_finite_integral.smul_measure {f : α → β} (h : has_finite_integral f μ) {c : ℝ≥0∞}
-  (hc : c < ∞) : has_finite_integral f (c • μ) :=
+  (hc : c ≠ ∞) : has_finite_integral f (c • μ) :=
 begin
   simp only [has_finite_integral, lintegral_smul_measure] at *,
-  exact mul_lt_top hc h
+  exact mul_lt_top hc h.ne
 end
 
 @[simp] lemma has_finite_integral_zero_measure {m : measurable_space α} (f : α → β) :
@@ -222,6 +214,28 @@ by { rwa [has_finite_integral, eq] }
 lemma has_finite_integral_norm_iff (f : α → β) :
   has_finite_integral (λa, ∥f a∥) μ ↔ has_finite_integral f μ :=
 has_finite_integral_congr' $ eventually_of_forall $ λ x, norm_norm (f x)
+
+lemma has_finite_integral_to_real_of_lintegral_ne_top
+  {f : α → ℝ≥0∞} (hf : ∫⁻ x, f x ∂μ ≠ ∞) :
+  has_finite_integral (λ x, (f x).to_real) μ :=
+begin
+  have : ∀ x, (∥(f x).to_real∥₊ : ℝ≥0∞) =
+    @coe ℝ≥0 ℝ≥0∞ _ (⟨(f x).to_real, ennreal.to_real_nonneg⟩ : ℝ≥0),
+  { intro x, rw real.nnnorm_of_nonneg },
+  simp_rw [has_finite_integral, this],
+  refine lt_of_le_of_lt (lintegral_mono (λ x, _)) (lt_top_iff_ne_top.2 hf),
+  by_cases hfx : f x = ∞,
+  { simp [hfx] },
+  { lift f x to ℝ≥0 using hfx with fx,
+    simp [← h] }
+end
+
+lemma is_finite_measure_with_density_of_real {f : α → ℝ} (hfi : has_finite_integral f μ) :
+  is_finite_measure (μ.with_density (λ x, ennreal.of_real $ f x)) :=
+begin
+  refine is_finite_measure_with_density ((lintegral_mono $ λ x, _).trans_lt hfi).ne,
+  exact real.of_real_le_ennnorm (f x)
+end
 
 section dominated_convergence
 
@@ -270,12 +284,12 @@ lemma tendsto_lintegral_norm_of_dominated_convergence [measurable_space β]
   [borel_space β] [second_countable_topology β]
   {F : ℕ → α → β} {f : α → β} {bound : α → ℝ}
   (F_measurable : ∀ n, ae_measurable (F n) μ)
-  (f_measurable : ae_measurable f μ)
   (bound_has_finite_integral : has_finite_integral bound μ)
   (h_bound : ∀ n, ∀ᵐ a ∂μ, ∥F n a∥ ≤ bound a)
   (h_lim : ∀ᵐ a ∂μ, tendsto (λ n, F n a) at_top (𝓝 (f a))) :
   tendsto (λn, ∫⁻ a, (ennreal.of_real ∥F n a - f a∥) ∂μ) at_top (𝓝 0) :=
-let b := λa, 2 * ennreal.of_real (bound a) in
+have f_measurable : ae_measurable f μ := ae_measurable_of_tendsto_metric_ae F_measurable h_lim,
+let b := λ a, 2 * ennreal.of_real (bound a) in
 /- `∥F n a∥ ≤ bound a` and `F n a --> f a` implies `∥f a∥ ≤ bound a`, and thus by the
   triangle inequality, have `∥F n a - f a∥ ≤ 2 * (bound a). -/
 have hb : ∀ n, ∀ᵐ a ∂μ, ennreal.of_real ∥F n a - f a∥ ≤ b a,
@@ -312,7 +326,7 @@ begin
   { rw has_finite_integral_iff_of_real at bound_has_finite_integral,
     { calc ∫⁻ a, b a ∂μ = 2 * ∫⁻ a, ennreal.of_real (bound a) ∂μ :
         by { rw lintegral_const_mul', exact coe_ne_top }
-        ... < ∞ : mul_lt_top (coe_lt_top) bound_has_finite_integral },
+        ... ≠ ∞ : mul_ne_top coe_ne_top bound_has_finite_integral.ne },
     filter_upwards [h_bound 0] λ a h, le_trans (norm_nonneg _) h },
   -- Show `∥f a - F n a∥ --> 0`
   { exact h }
@@ -330,7 +344,7 @@ hf.mono $ eventually_of_forall $ λ x, by simp [real.norm_eq_abs, abs_le, abs_no
 lemma has_finite_integral.min_zero {f : α → ℝ} (hf : has_finite_integral f μ) :
   has_finite_integral (λa, min (f a) 0) μ :=
 hf.mono $ eventually_of_forall $ λ x,
-  by simp [real.norm_eq_abs, abs_le, abs_nonneg, neg_le, neg_le_abs_self]
+  by simp [real.norm_eq_abs, abs_le, abs_nonneg, neg_le, neg_le_abs_self, abs_eq_max_neg, le_total]
 
 end pos_part
 
@@ -347,7 +361,7 @@ begin
     ... < ∞ :
     begin
       rw lintegral_const_mul',
-      exacts [mul_lt_top coe_lt_top hfi, coe_ne_top]
+      exacts [mul_lt_top coe_ne_top hfi.ne, coe_ne_top]
     end
 end
 
@@ -367,6 +381,7 @@ lemma has_finite_integral.const_mul {f : α → ℝ} (h : has_finite_integral f 
 lemma has_finite_integral.mul_const {f : α → ℝ} (h : has_finite_integral f μ) (c : ℝ) :
   has_finite_integral (λ x, f x * c) μ :=
 by simp_rw [mul_comm, h.const_mul _]
+
 end normed_space
 
 /-! ### The predicate `integrable` -/
@@ -377,6 +392,9 @@ variables [measurable_space β] [measurable_space γ] [measurable_space δ]
   `integrable f` means `integrable f volume`. -/
 def integrable {α} {m : measurable_space α} (f : α → β) (μ : measure α . volume_tac) : Prop :=
 ae_measurable f μ ∧ has_finite_integral f μ
+
+lemma mem_ℒp_one_iff_integrable {f : α → β} : mem_ℒp f 1 μ ↔ integrable f μ :=
+by simp_rw [integrable, has_finite_integral, mem_ℒp, snorm_one_eq_lintegral_nnnorm]
 
 lemma integrable.ae_measurable {f : α → β} (hf : integrable f μ) : ae_measurable f μ := hf.1
 lemma integrable.has_finite_integral {f : α → β} (hf : integrable f μ) : has_finite_integral f μ :=
@@ -412,11 +430,16 @@ begin
   rw [integrable, and_iff_right this, has_finite_integral_const_iff]
 end
 
-lemma integrable_const [finite_measure μ] (c : β) : integrable (λ x : α, c) μ :=
+lemma integrable_const [is_finite_measure μ] (c : β) : integrable (λ x : α, c) μ :=
 integrable_const_iff.2 $ or.inr $ measure_lt_top _ _
 
 lemma integrable.mono_measure {f : α → β} (h : integrable f ν) (hμ : μ ≤ ν) : integrable f μ :=
 ⟨h.ae_measurable.mono_measure hμ, h.has_finite_integral.mono_measure hμ⟩
+
+lemma integrable.of_measure_le_smul {μ' : measure α} (c : ℝ≥0∞) (hc : c ≠ ∞)
+  (hμ'_le : μ' ≤ c • μ) {f : α → β} (hf : integrable f μ) :
+  integrable f μ' :=
+by { rw ← mem_ℒp_one_iff_integrable at hf ⊢, exact hf.of_measure_le_smul c hc hμ'_le, }
 
 lemma integrable.add_measure {f : α → β} (hμ : integrable f μ) (hν : integrable f ν) :
   integrable f (μ + ν) :=
@@ -433,7 +456,7 @@ h.mono_measure $ measure.le_add_left $ le_refl _
   integrable f (μ + ν) ↔ integrable f μ ∧ integrable f ν :=
 ⟨λ h, ⟨h.left_of_add_measure, h.right_of_add_measure⟩, λ h, h.1.add_measure h.2⟩
 
-lemma integrable.smul_measure {f : α → β} (h : integrable f μ) {c : ℝ≥0∞} (hc : c < ∞) :
+lemma integrable.smul_measure {f : α → β} (h : integrable f μ) {c : ℝ≥0∞} (hc : c ≠ ∞) :
   integrable f (c • μ) :=
 ⟨h.ae_measurable.smul_measure c, h.has_finite_integral.smul_measure hc⟩
 
@@ -441,6 +464,25 @@ lemma integrable_map_measure [opens_measurable_space β] {f : α → δ} {g : δ
   (hg : ae_measurable g (measure.map f μ)) (hf : measurable f) :
   integrable g (measure.map f μ) ↔ integrable (g ∘ f) μ :=
 by simp [integrable, hg, hg.comp_measurable hf, has_finite_integral, lintegral_map' hg.ennnorm hf]
+
+lemma _root_.measurable_embedding.integrable_map_iff {f : α → δ} (hf : measurable_embedding f)
+  {g : δ → β} :
+  integrable g (measure.map f μ) ↔ integrable (g ∘ f) μ :=
+by simp only [integrable, hf.ae_measurable_map_iff, has_finite_integral, hf.lintegral_map]
+
+lemma integrable_map_equiv (f : α ≃ᵐ δ) (g : δ → β) :
+  integrable g (measure.map f μ) ↔ integrable (g ∘ f) μ :=
+f.measurable_embedding.integrable_map_iff
+
+lemma measure_preserving.integrable_comp [opens_measurable_space β] {ν : measure δ} {g : δ → β}
+  {f : α → δ} (hf : measure_preserving f μ ν) (hg : ae_measurable g ν) :
+  integrable (g ∘ f) μ ↔ integrable g ν :=
+by { rw ← hf.map_eq at hg ⊢, exact (integrable_map_measure hg hf.measurable).symm }
+
+lemma measure_preserving.integrable_comp_emb {f : α → δ} {ν} (h₁ : measure_preserving f μ ν)
+  (h₂ : measurable_embedding f) {g : δ → β} :
+  integrable (g ∘ f) μ ↔ integrable g ν :=
+h₁.map_eq ▸ iff.symm h₂.integrable_map_iff
 
 lemma lintegral_edist_lt_top [second_countable_topology β] [opens_measurable_space β] {f g : α → β}
   (hf : integrable f μ) (hg : integrable g μ) :
@@ -469,18 +511,18 @@ lemma integrable.add [borel_space β] [second_countable_topology β]
 ⟨hf.ae_measurable.add hg.ae_measurable, hf.add' hg⟩
 
 lemma integrable_finset_sum {ι} [borel_space β] [second_countable_topology β] (s : finset ι)
-  {f : ι → α → β} (hf : ∀ i, integrable (f i) μ) : integrable (λ a, ∑ i in s, f i a) μ :=
+  {f : ι → α → β} (hf : ∀ i ∈ s, integrable (f i) μ) : integrable (λ a, ∑ i in s, f i a) μ :=
 begin
-  refine finset.induction_on s _ _,
-  { simp only [finset.sum_empty, integrable_zero] },
-  { assume i s his ih, simp only [his, finset.sum_insert, not_false_iff],
-    exact (hf _).add ih }
+  simp only [← finset.sum_apply],
+  exact finset.sum_induction f (λ g, integrable g μ) (λ _ _, integrable.add)
+    (integrable_zero _ _ _) hf,
 end
 
 lemma integrable.neg [borel_space β] {f : α → β} (hf : integrable f μ) : integrable (-f) μ :=
 ⟨hf.ae_measurable.neg, hf.has_finite_integral.neg⟩
 
-@[simp] lemma integrable_neg_iff [borel_space β] {f : α → β} : integrable (-f) μ ↔ integrable f μ :=
+@[simp] lemma integrable_neg_iff [borel_space β] {f : α → β} :
+  integrable (-f) μ ↔ integrable f μ :=
 ⟨λ h, neg_neg f ▸ h.neg, integrable.neg⟩
 
 lemma integrable.sub' [opens_measurable_space β] {f g : α → β}
@@ -526,10 +568,7 @@ lemma integrable.prod_mk [opens_measurable_space β] [opens_measurable_space γ]
   calc max ∥f x∥ ∥g x∥ ≤ ∥f x∥ + ∥g x∥   : max_le_add_of_nonneg (norm_nonneg _) (norm_nonneg _)
                  ... ≤ ∥(∥f x∥ + ∥g x∥)∥ : le_abs_self _⟩
 
-lemma mem_ℒp_one_iff_integrable {f : α → β} : mem_ℒp f 1 μ ↔ integrable f μ :=
-by simp_rw [integrable, has_finite_integral, mem_ℒp, snorm_one_eq_lintegral_nnnorm]
-
-lemma mem_ℒp.integrable [borel_space β] {q : ℝ≥0∞} (hq1 : 1 ≤ q) {f : α → β} [finite_measure μ]
+lemma mem_ℒp.integrable [borel_space β] {q : ℝ≥0∞} (hq1 : 1 ≤ q) {f : α → β} [is_finite_measure μ]
   (hfq : mem_ℒp f q μ) : integrable f μ :=
 mem_ℒp_one_iff_integrable.mp (hfq.mem_ℒp_of_exponent_le hq1)
 
@@ -549,6 +588,52 @@ begin
   assume x,
   simp [real.norm_eq_abs, ennreal.of_real_le_of_real, abs_le, abs_nonneg, le_abs_self],
 end
+
+lemma of_real_to_real_ae_eq {f : α → ℝ≥0∞} (hf : ∀ᵐ x ∂μ, f x < ∞) :
+  (λ x, ennreal.of_real (f x).to_real) =ᵐ[μ] f :=
+begin
+  rw ae_iff at hf,
+  rw [filter.eventually_eq, ae_iff],
+  have : {x | ¬ ennreal.of_real (f x).to_real = f x} = {x | f x = ∞},
+  { ext x,
+    simp only [ne.def, set.mem_set_of_eq],
+    split; intro hx,
+    { by_contra hntop,
+      exact hx (ennreal.of_real_to_real hntop) },
+    { rw hx, simp } },
+  rw this,
+  simpa using hf,
+end
+
+lemma integrable_with_density_iff {f : α → ℝ≥0∞} (hf : measurable f)
+  (hflt : ∀ᵐ x ∂μ, f x < ∞) {g : α → ℝ} (hg : measurable g) :
+  integrable g (μ.with_density f) ↔ integrable (λ x, g x * (f x).to_real) μ :=
+begin
+  simp only [integrable, has_finite_integral, hg.ae_measurable.mul hf.ae_measurable.ennreal_to_real,
+    hg.ae_measurable, true_and, coe_mul, normed_field.nnnorm_mul],
+  suffices h_int_eq : ∫⁻ a, ∥g a∥₊ ∂μ.with_density f = ∫⁻ a, ∥g a∥₊ * ∥(f a).to_real∥₊ ∂μ,
+    by rw h_int_eq,
+  rw lintegral_with_density_eq_lintegral_mul _ hf hg.nnnorm.coe_nnreal_ennreal,
+  refine lintegral_congr_ae _,
+  rw mul_comm,
+  refine filter.eventually_eq.mul (ae_eq_refl _) ((of_real_to_real_ae_eq hflt).symm.trans _),
+  convert ae_eq_refl _,
+  ext1 x,
+  exact real.ennnorm_eq_of_real ennreal.to_real_nonneg,
+end
+
+lemma mem_ℒ1_to_real_of_lintegral_ne_top
+  {f : α → ℝ≥0∞} (hfm : ae_measurable f μ) (hfi : ∫⁻ x, f x ∂μ ≠ ∞) :
+  mem_ℒp (λ x, (f x).to_real) 1 μ :=
+begin
+  rw [mem_ℒp, snorm_one_eq_lintegral_nnnorm],
+  exact ⟨ae_measurable.ennreal_to_real hfm, has_finite_integral_to_real_of_lintegral_ne_top hfi⟩
+end
+
+lemma integrable_to_real_of_lintegral_ne_top
+  {f : α → ℝ≥0∞} (hfm : ae_measurable f μ) (hfi : ∫⁻ x, f x ∂μ ≠ ∞) :
+  integrable (λ x, (f x).to_real) μ :=
+mem_ℒp_one_iff_integrable.1 $ mem_ℒ1_to_real_of_lintegral_ne_top hfm hfi
 
 section pos_part
 /-! ### Lemmas used for defining the positive part of a `L¹` function -/
@@ -571,12 +656,14 @@ lemma integrable.smul [borel_space β] (c : 𝕜) {f : α → β}
 
 lemma integrable_smul_iff [borel_space β] {c : 𝕜} (hc : c ≠ 0) (f : α → β) :
   integrable (c • f) μ ↔ integrable f μ :=
-and_congr (ae_measurable_const_smul_iff' hc) (has_finite_integral_smul_iff hc f)
+and_congr (ae_measurable_const_smul_iff₀ hc) (has_finite_integral_smul_iff hc f)
 
-lemma integrable.const_mul {f : α → ℝ} (h : integrable f μ) (c : ℝ) : integrable (λ x, c * f x) μ :=
+lemma integrable.const_mul {f : α → ℝ} (h : integrable f μ) (c : ℝ) :
+  integrable (λ x, c * f x) μ :=
 integrable.smul c h
 
-lemma integrable.mul_const {f : α → ℝ} (h : integrable f μ) (c : ℝ) : integrable (λ x, f x * c) μ :=
+lemma integrable.mul_const {f : α → ℝ} (h : integrable f μ) (c : ℝ) :
+  integrable (λ x, f x * c) μ :=
 by simp_rw [mul_comm, h.const_mul _]
 
 end normed_space
@@ -598,7 +685,16 @@ end
 end normed_space_over_complete_field
 
 section is_R_or_C
-variables {𝕜 : Type*} [is_R_or_C 𝕜] [measurable_space 𝕜] [opens_measurable_space 𝕜] {f : α → 𝕜}
+variables {𝕜 : Type*} [is_R_or_C 𝕜] {f : α → 𝕜}
+
+lemma integrable.of_real {f : α → ℝ} (hf : integrable f μ) :
+  integrable (λ x, (f x : 𝕜)) μ :=
+by { rw ← mem_ℒp_one_iff_integrable at hf ⊢, exact hf.of_real }
+
+lemma integrable.re_im_iff :
+  integrable (λ x, is_R_or_C.re (f x)) μ ∧ integrable (λ x, is_R_or_C.im (f x)) μ ↔
+  integrable f μ :=
+by { simp_rw ← mem_ℒp_one_iff_integrable, exact mem_ℒp_re_im_iff }
 
 lemma integrable.re (hf : integrable f μ) : integrable (λ x, is_R_or_C.re (f x)) μ :=
 by { rw ← mem_ℒp_one_iff_integrable at hf ⊢, exact hf.re, }
@@ -609,8 +705,7 @@ by { rw ← mem_ℒp_one_iff_integrable at hf ⊢, exact hf.im, }
 end is_R_or_C
 
 section inner_product
-variables {𝕜 E : Type*} [is_R_or_C 𝕜] [measurable_space 𝕜] [borel_space 𝕜]
-  [inner_product_space 𝕜 E]
+variables {𝕜 E : Type*} [is_R_or_C 𝕜] [inner_product_space 𝕜 E]
   [measurable_space E] [opens_measurable_space E] [second_countable_topology E]
   {f : α → E}
 
@@ -667,7 +762,7 @@ lemma integrable_of_forall_fin_meas_le [sigma_finite μ]
   (C : ℝ≥0∞) (hC : C < ∞) {f : α → E} (hf_meas : ae_measurable f μ)
   (hf : ∀ s : set α, measurable_set s → μ s ≠ ∞ → ∫⁻ x in s, nnnorm (f x) ∂μ ≤ C) :
   integrable f μ :=
-@integrable_of_forall_fin_meas_le' _ _ _ _ _ _ _ _ le_rfl (by rwa trim_eq_self) C hC _ hf_meas hf
+@integrable_of_forall_fin_meas_le' _ _ _ _ _ _ _ _ _ (by rwa trim_eq_self) C hC _ hf_meas hf
 
 end sigma_finite
 
@@ -781,8 +876,7 @@ end
 
 lemma of_real_norm_eq_lintegral (f : α →₁[μ] β) :
   ennreal.of_real ∥f∥ = ∫⁻ x, (nnnorm (f x) : ℝ≥0∞) ∂μ :=
-by { rw [norm_def, ennreal.of_real_to_real], rw [← ennreal.lt_top_iff_ne_top],
-  exact has_finite_integral_coe_fn f }
+by { rw [norm_def, ennreal.of_real_to_real], exact ne_of_lt (has_finite_integral_coe_fn f) }
 
 /-- Computing the norm of a difference between two L¹-functions. Note that this is not a
   special case of `of_real_norm_eq_lintegral` since `(f - g) x` and `f x - g x` are not equal
@@ -853,7 +947,10 @@ variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 β] [measurable_
   [opens_measurable_space 𝕜]
 
 lemma to_L1_smul (f : α → β) (hf : integrable f μ) (k : 𝕜) :
-  to_L1 (λa, k • f a) (hf.smul k) = k • to_L1 f hf := rfl
+  to_L1 (λ a, k • f a) (hf.smul k) = k • to_L1 f hf := rfl
+
+lemma to_L1_smul' (f : α → β) (hf : integrable f μ) (k : 𝕜) :
+  to_L1 (k • f) (hf.smul k) = k • to_L1 f hf := rfl
 
 end integrable
 
@@ -869,19 +966,18 @@ begin
   refl,
 end
 
-variables {E : Type*} [normed_group E] [measurable_space E] [borel_space E] [normed_space ℝ E]
-          {H : Type*} [normed_group H] [normed_space ℝ H]
+variables {E : Type*} [normed_group E] [measurable_space E] [borel_space E]
+          {𝕜 : Type*} [nondiscrete_normed_field 𝕜] [normed_space 𝕜 E]
+          {H : Type*} [normed_group H] [normed_space 𝕜 H]
 
-lemma measure_theory.integrable.apply_continuous_linear_map {φ : α → H →L[ℝ] E}
+lemma measure_theory.integrable.apply_continuous_linear_map {φ : α → H →L[𝕜] E}
   (φ_int : integrable φ μ) (v : H) : integrable (λ a, φ a v) μ :=
 (φ_int.norm.mul_const ∥v∥).mono' (φ_int.ae_measurable.apply_continuous_linear_map v)
   (eventually_of_forall $ λ a, (φ a).le_op_norm v)
 
-variables {𝕜 : Type*} [is_R_or_C 𝕜]
-  {G : Type*} [normed_group G] [normed_space 𝕜 G] [measurable_space G] [borel_space G]
-  {F : Type*} [normed_group F] [normed_space 𝕜 F] [measurable_space F] [opens_measurable_space F]
+variables [measurable_space H] [opens_measurable_space H]
 
-lemma continuous_linear_map.integrable_comp {φ : α → F} (L : F →L[𝕜] G)
+lemma continuous_linear_map.integrable_comp {φ : α → H} (L : H →L[𝕜] E)
   (φ_int : integrable φ μ) : integrable (λ (a : α), L (φ a)) μ :=
 ((integrable.norm φ_int).const_mul ∥L∥).mono' (L.measurable.comp_ae_measurable φ_int.ae_measurable)
   (eventually_of_forall $ λ a, L.le_op_norm (φ a))

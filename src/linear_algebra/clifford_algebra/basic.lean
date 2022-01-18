@@ -7,7 +7,7 @@ Authors: Eric Wieser, Utensil Song
 import algebra.ring_quot
 import linear_algebra.tensor_algebra.basic
 import linear_algebra.exterior_algebra.basic
-import linear_algebra.quadratic_form
+import linear_algebra.quadratic_form.basic
 
 /-!
 # Clifford Algebras
@@ -104,8 +104,8 @@ def lift :
   {f : M →ₗ[R] A // ∀ m, f m * f m = algebra_map _ _ (Q m)} ≃ (clifford_algebra Q →ₐ[R] A) :=
 { to_fun := λ f,
   ring_quot.lift_alg_hom R ⟨tensor_algebra.lift R (f : M →ₗ[R] A),
-    (λ x y (h : rel Q x y), by {
-      induction h,
+    (λ x y (h : rel Q x y), by
+    { induction h,
       rw [alg_hom.commutes, alg_hom.map_mul, tensor_algebra.lift_ι_apply, f.prop], })⟩,
   inv_fun := λ F, ⟨F.to_linear_map.comp (ι Q), λ m, by rw [
     linear_map.comp_apply, alg_hom.to_linear_map_apply, comp_ι_sq_scalar]⟩,
@@ -176,8 +176,8 @@ lemma induction {C : clifford_algebra Q → Prop}
   C a :=
 begin
   -- the arguments are enough to construct a subalgebra, and a mapping into it from M
-  let s : subalgebra R (clifford_algebra Q) := {
-    carrier := C,
+  let s : subalgebra R (clifford_algebra Q) :=
+  { carrier := C,
     mul_mem' := h_mul,
     add_mem' := h_add,
     algebra_map_mem' := h_grade0, },
@@ -196,10 +196,22 @@ end
 /-- A Clifford algebra with a zero quadratic form is isomorphic to an `exterior_algebra` -/
 def as_exterior : clifford_algebra (0 : quadratic_form R M) ≃ₐ[R] exterior_algebra R M :=
 alg_equiv.of_alg_hom
-  (clifford_algebra.lift 0 ⟨(exterior_algebra.ι R), by simp⟩)
-  (exterior_algebra.lift R ⟨(ι (0 : quadratic_form R M)), by simp⟩)
-  (by { ext, simp, })
-  (by { ext, simp, })
+  (clifford_algebra.lift 0 ⟨(exterior_algebra.ι R),
+    by simp only [forall_const, ring_hom.map_zero,
+                  exterior_algebra.ι_sq_zero, quadratic_form.zero_apply]⟩)
+  (exterior_algebra.lift R ⟨(ι (0 : quadratic_form R M)),
+    by simp only [forall_const, ring_hom.map_zero,
+                  quadratic_form.zero_apply, ι_sq_scalar]⟩)
+  (exterior_algebra.hom_ext $ linear_map.ext $
+    by simp only [alg_hom.comp_to_linear_map, linear_map.coe_comp,
+                  function.comp_app, alg_hom.to_linear_map_apply,
+                  exterior_algebra.lift_ι_apply, clifford_algebra.lift_ι_apply,
+                  alg_hom.to_linear_map_id, linear_map.id_comp, eq_self_iff_true, forall_const])
+  (clifford_algebra.hom_ext $ linear_map.ext $
+    by simp only [alg_hom.comp_to_linear_map, linear_map.coe_comp,
+                  function.comp_app, alg_hom.to_linear_map_apply,
+                  clifford_algebra.lift_ι_apply, exterior_algebra.lift_ι_apply,
+                  alg_hom.to_linear_map_id, linear_map.id_comp, eq_self_iff_true, forall_const])
 
 /-- The symmetric product of vectors is a scalar -/
 lemma ι_mul_ι_add_swap (a b : M) :

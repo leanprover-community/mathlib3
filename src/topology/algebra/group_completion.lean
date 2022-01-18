@@ -2,12 +2,31 @@
 Copyright (c) 2018 Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Johannes Hölzl
-
-Completion of topological groups:
 -/
 import algebra.group.hom_instances
 import topology.uniform_space.completion
 import topology.algebra.uniform_group
+
+/-!
+# Completion of topological groups:
+
+This files endows the completion of a topological abelian group with a group structure.
+More precisely the instance `uniform_space.completion.add_group` builds an abelian group structure
+on the completion of an abelian group endowed with a compatible uniform structure.
+Then the instance `uniform_space.completion.uniform_add_group` proves this group structure is
+compatible with the completed uniform structure. The compatibility condition is `uniform_add_group`.
+
+## Main declarations:
+
+Beyond the instances explained above (that don't have to be explicitly invoked),
+the main constructions deal with continuous group morphisms.
+
+* `add_monoid_hom.extension`: extends a continuous group morphism from `G`
+  to a complete separated group `H` to `completion G`.
+* `add_monoid_hom.completion`: promotes a continuous group morphism
+  from `G` to `H` into a continuous group morphism
+  from `completion G` to `completion H`.
+-/
 
 noncomputable theory
 

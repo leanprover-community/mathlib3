@@ -47,8 +47,8 @@ def omega_limit [topological_space β] (f : filter τ) (ϕ : τ → α → β) (
 
 localized "notation `ω` := omega_limit" in omega_limit
 
-localized "notation `ω⁺` := omega_limit at_top" in omega_limit
-localized "notation `ω⁻` := omega_limit at_bot" in omega_limit
+localized "notation `ω⁺` := omega_limit filter.at_top" in omega_limit
+localized "notation `ω⁻` := omega_limit filter.at_bot" in omega_limit
 
 variables [topological_space β]
 variables (f : filter τ) (ϕ : τ → α → β) (s s₁ s₂: set α)
@@ -72,7 +72,7 @@ lemma omega_limit_mono_left {f₁ f₂ : filter τ} (hf : f₁ ≤ f₂) : ω f�
 omega_limit_subset_of_tendsto ϕ s (tendsto_id' hf)
 
 lemma omega_limit_mono_right {s₁ s₂ : set α} (hs : s₁ ⊆ s₂) : ω f ϕ s₁ ⊆ ω f ϕ s₂ :=
-bInter_subset_bInter_right $ λ u hu, closure_mono (image2_subset subset.rfl hs)
+bInter_mono $ λ u hu, closure_mono (image2_subset subset.rfl hs)
 
 lemma is_closed_omega_limit : is_closed (ω f ϕ s) :=
 is_closed_Inter $ λ u, is_closed_Inter $ λ hu, is_closed_closure
@@ -123,8 +123,7 @@ begin
   split,
   { intros h _ hn _ hu,
     rcases h _ hu _ hn with ⟨_, _, _, _, ht, hx, hϕtx⟩,
-    exact ⟨_, ht, _, hx, by rwa [mem_preimage, hϕtx]⟩,
-  },
+    exact ⟨_, ht, _, hx, by rwa [mem_preimage, hϕtx]⟩, },
   { intros h _ hu _ hn,
     rcases h _ hn hu with ⟨_, ht, _, hx, hϕtx⟩,
     exact  ⟨_, hϕtx, _, _, ht, hx, rfl⟩ }

@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 import data.finsupp.basic
-import linear_algebra.basic
 import linear_algebra.pi
 
 /-!
@@ -201,7 +200,7 @@ end
 variables (M R)
 
 /-- Interpret `finsupp.filter s` as a linear map from `α →₀ M` to `supported M R s`. -/
-def restrict_dom (s : set α) : (α →₀ M) →ₗ supported M R s :=
+def restrict_dom (s : set α) : (α →₀ M) →ₗ[R] supported M R s :=
 linear_map.cod_restrict _
   { to_fun := filter (∈ s),
     map_add' := λ l₁ l₂, filter_add,
@@ -212,7 +211,7 @@ variables {M R}
 
 section
 @[simp] theorem restrict_dom_apply (s : set α) (l : α →₀ M) :
-  ((restrict_dom M R s : (α →₀ M) →ₗ supported M R s) l : α →₀ M) = finsupp.filter (∈ s) l := rfl
+  ((restrict_dom M R s : (α →₀ M) →ₗ[R] supported M R s) l : α →₀ M) = finsupp.filter (∈ s) l := rfl
 end
 
 theorem restrict_dom_comp_subtype (s : set α) :
@@ -304,8 +303,8 @@ variables (S) [module S N] [smul_comm_class R S N]
 See note [bundled maps over different rings] for why separate `R` and `S` semirings are used.
 -/
 def lsum : (α → M →ₗ[R] N) ≃ₗ[S] ((α →₀ M) →ₗ[R] N) :=
-{ to_fun := λ F, {
-    to_fun := λ d, d.sum (λ i, F i),
+{ to_fun := λ F,
+  { to_fun := λ d, d.sum (λ i, F i),
     map_add' := (lift_add_hom (λ x, (F x).to_add_monoid_hom)).map_add,
     map_smul' := λ c f, by simp [sum_smul_index', smul_sum] },
   inv_fun := λ F x, F.comp (lsingle x),
@@ -337,7 +336,7 @@ A slight rearrangement from `lsum` gives us
 the bijection underlying the free-forgetful adjunction for R-modules.
 -/
 noncomputable def lift : (X → M) ≃+ ((X →₀ R) →ₗ[R] M) :=
-(add_equiv.arrow_congr (equiv.refl X) (ring_lmap_equiv_self R M ℕ).to_add_equiv.symm).trans
+(add_equiv.arrow_congr (equiv.refl X) (ring_lmap_equiv_self R ℕ M).to_add_equiv.symm).trans
   (lsum _ : _ ≃ₗ[ℕ] _).to_add_equiv
 
 @[simp]
@@ -383,7 +382,7 @@ begin
     le_trans (supported_mono $ set.subset_preimage_image _ _)
        (supported_comap_lmap_domain _ _ _ _)) _,
   intros l hl,
-  refine ⟨(lmap_domain M R (function.inv_fun_on f s) : (α' →₀ M) →ₗ α →₀ M) l, λ x hx, _, _⟩,
+  refine ⟨(lmap_domain M R (function.inv_fun_on f s) : (α' →₀ M) →ₗ[R] α →₀ M) l, λ x hx, _, _⟩,
   { rcases finset.mem_image.1 (map_domain_support hx) with ⟨c, hc, rfl⟩,
     exact function.inv_fun_on_mem (by simpa using hl hc) },
   { rw [← linear_map.comp_apply, ← lmap_domain_comp],
@@ -403,7 +402,7 @@ begin
   { have : finsupp.sum l (λ a, finsupp.single (f a)) (f x) = 0, {rw h₂, refl},
     rw [finsupp.sum_apply, finsupp.sum, finset.sum_eq_single x] at this,
     { simpa [finsupp.single_apply] },
-    { intros y hy xy, simp [mt (H _ _ (h₁ hy) xs) xy] },
+    { intros y hy xy, simp [mt (H _ (h₁ hy) _ xs) xy] },
     { simp {contextual := tt} } },
   { by_contra h, exact xs (h₁ $ finsupp.mem_support_iff.2 h) }
 end
@@ -438,7 +437,7 @@ theorem apply_total (f : M →ₗ[R] M') (v) (l : α →₀ R) :
 by apply finsupp.induction_linear l; simp { contextual := tt, }
 
 theorem total_unique [unique α] (l : α →₀ R) (v) :
-  finsupp.total α M R v l = l (default α) • v (default α) :=
+  finsupp.total α M R v l = l default • v default :=
 by rw [← total_single, ← unique_single l]
 
 lemma total_surjective (h : function.surjective v) : function.surjective (finsupp.total α M R v) :=
@@ -635,8 +634,8 @@ noncomputable def congr {α' : Type*} (s : set α) (t : set α') (e : s ≃ t) :
 begin
   haveI := classical.dec_pred (λ x, x ∈ s),
   haveI := classical.dec_pred (λ x, x ∈ t),
-  refine linear_equiv.trans (finsupp.supported_equiv_finsupp s)
-      (linear_equiv.trans _ (finsupp.supported_equiv_finsupp t).symm),
+  refine (finsupp.supported_equiv_finsupp s) ≪≫ₗ
+      (_ ≪≫ₗ (finsupp.supported_equiv_finsupp t).symm),
   exact finsupp.dom_lcongr e
 end
 
@@ -677,7 +676,7 @@ lemma map_range.linear_equiv_refl :
 linear_equiv.ext map_range_id
 
 lemma map_range.linear_equiv_trans (f : M ≃ₗ[R] N) (f₂ : N ≃ₗ[R] P) :
-  (map_range.linear_equiv (f.trans f₂) : linear_equiv R (α →₀ _) _) =
+  (map_range.linear_equiv (f.trans f₂) : (α →₀ _) ≃ₗ[R] _) =
     (map_range.linear_equiv f).trans (map_range.linear_equiv f₂) :=
 linear_equiv.ext $ map_range_comp _ _ _ _ _
 
@@ -744,7 +743,8 @@ This is the `linear_equiv` version of `finsupp.sum_finsupp_equiv_prod_finsupp`. 
 { map_smul' :=
     by { intros, ext;
           simp only [add_equiv.to_fun_eq_coe, prod.smul_fst, prod.smul_snd, smul_apply,
-              snd_sum_finsupp_add_equiv_prod_finsupp, fst_sum_finsupp_add_equiv_prod_finsupp] },
+              snd_sum_finsupp_add_equiv_prod_finsupp, fst_sum_finsupp_add_equiv_prod_finsupp,
+              ring_hom.id_apply] },
   .. sum_finsupp_add_equiv_prod_finsupp }
 
 lemma fst_sum_finsupp_lequiv_prod_finsupp {α β : Type*}

@@ -27,7 +27,7 @@ variables {R : Type*}
 namespace polynomial
 
 section
-variables [semiring R] [topological_space R] [topological_semiring R]
+variables [semiring R] [topological_space R] [topological_ring R]
 
 /--
 Every polynomial with coefficients in a topological semiring gives a (bundled) continuous function.
@@ -52,7 +52,7 @@ end
 
 section
 variables {α : Type*} [topological_space α]
-  [comm_semiring R] [topological_space R] [topological_semiring R]
+  [comm_semiring R] [topological_space R] [topological_ring R]
 
 @[simp] lemma aeval_continuous_map_apply (g : polynomial R) (f : C(α, R)) (x : α) :
   ((polynomial.aeval f) g) x = g.eval (f x) :=
@@ -69,7 +69,7 @@ section
 
 noncomputable theory
 
-variables [comm_semiring R] [topological_space R] [topological_semiring R]
+variables [comm_semiring R] [topological_space R] [topological_ring R]
 
 /--
 The algebra map from `polynomial R` to continuous functions `C(R, R)`.
@@ -100,7 +100,7 @@ end
 end polynomial
 
 section
-variables [comm_semiring R] [topological_space R] [topological_semiring R]
+variables [comm_semiring R] [topological_space R] [topological_ring R]
 
 /--
 The subalgebra of polynomial functions in `C(X, R)`, for `X` a subset of some topological ring `R`.

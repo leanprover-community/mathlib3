@@ -16,7 +16,7 @@ The natural topology on `ℝ≥0` (the one induced from `ℝ`), and a basic API.
 Instances for the following typeclasses are defined:
 
 * `topological_space ℝ≥0`
-* `topological_semiring ℝ≥0`
+* `topological_ring ℝ≥0`
 * `second_countable_topology ℝ≥0`
 * `order_topology ℝ≥0`
 * `has_continuous_sub ℝ≥0`
@@ -52,7 +52,7 @@ open_locale nnreal big_operators filter
 
 instance : topological_space ℝ≥0 := infer_instance -- short-circuit type class inference
 
-instance : topological_semiring ℝ≥0 :=
+instance : topological_ring ℝ≥0 :=
 { continuous_mul := continuous_subtype_mk _ $
     (continuous_subtype_val.comp continuous_fst).mul (continuous_subtype_val.comp continuous_snd),
   continuous_add := continuous_subtype_mk _ $
@@ -96,7 +96,7 @@ lemma tendsto_of_real {f : filter α} {m : α → ℝ} {x : ℝ} (h : tendsto m 
 (continuous_of_real.tendsto _).comp h
 
 lemma nhds_zero : 𝓝 (0 : ℝ≥0) = ⨅a ≠ 0, 𝓟 (Iio a) :=
-nhds_bot_order.trans $ by simp [bot_lt_iff_ne_bot, Iio]
+nhds_bot_order.trans $ by simp [bot_lt_iff_ne_bot]
 
 lemma nhds_zero_basis : (𝓝 (0 : ℝ≥0)).has_basis (λ a : ℝ≥0, 0 < a) (λ a, Iio a) :=
 nhds_bot_basis
@@ -106,7 +106,7 @@ instance : has_continuous_sub ℝ≥0 :=
   ((continuous_coe.comp continuous_fst).sub
    (continuous_coe.comp continuous_snd)).max continuous_const⟩
 
-instance : has_continuous_inv' ℝ≥0 :=
+instance : has_continuous_inv₀ ℝ≥0 :=
 ⟨λ x hx, tendsto_coe.1 $ (real.tendsto_inv $ nnreal.coe_ne_zero.2 hx).comp
   continuous_coe.continuous_at⟩
 
@@ -204,5 +204,14 @@ end
 lemma tendsto_at_top_zero_of_summable {f : ℕ → ℝ≥0} (hf : summable f) :
   tendsto f at_top (𝓝 0) :=
 by { rw ←nat.cofinite_eq_at_top, exact tendsto_cofinite_zero_of_summable hf }
+
+/-- The sum over the complement of a finset tends to `0` when the finset grows to cover the whole
+space. This does not need a summability assumption, as otherwise all sums are zero. -/
+lemma tendsto_tsum_compl_at_top_zero {α : Type*} (f : α → ℝ≥0) :
+  tendsto (λ (s : finset α), ∑' b : {x // x ∉ s}, f b) at_top (𝓝 0) :=
+begin
+  simp_rw [← tendsto_coe, coe_tsum, nnreal.coe_zero],
+  exact tendsto_tsum_compl_at_top_zero (λ (a : α), (f a : ℝ))
+end
 
 end nnreal

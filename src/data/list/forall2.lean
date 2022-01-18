@@ -3,7 +3,7 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Johannes Hölzl
 -/
-import data.list.basic
+import data.list.infix
 
 /-!
 # Double universal quantification on a list
@@ -93,24 +93,24 @@ lemma forall₂_and_left {r : α → β → Prop} {p : α → Prop} :
 | _ (b :: u) := by simp only [map, forall₂_cons_right_iff, forall₂_map_right_iff]
 
 lemma left_unique_forall₂' (hr : left_unique r) :
-  ∀ {a b c}, forall₂ r a b → forall₂ r c b → a = c
+  ∀ {a b c}, forall₂ r a c → forall₂ r b c → a = b
 | a₀ nil a₁ forall₂.nil forall₂.nil := rfl
 | (a₀ :: l₀) (b :: l) (a₁ :: l₁) (forall₂.cons ha₀ h₀) (forall₂.cons ha₁ h₁) :=
-  hr.unique ha₀ ha₁ ▸ left_unique_forall₂' h₀ h₁ ▸ rfl
+  hr ha₀ ha₁ ▸ left_unique_forall₂' h₀ h₁ ▸ rfl
 
-lemma left_unique_forall₂ (hr : left_unique r) : left_unique (forall₂ r) :=
-⟨@left_unique_forall₂' _ _ _ hr⟩
+lemma _root_.relator.left_unique.forall₂ (hr : left_unique r) : left_unique (forall₂ r) :=
+@left_unique_forall₂' _ _ _ hr
 
 lemma right_unique_forall₂' (hr : right_unique r) : ∀ {a b c}, forall₂ r a b → forall₂ r a c → b = c
 | nil a₀ a₁ forall₂.nil forall₂.nil := rfl
 | (b :: l) (a₀ :: l₀) (a₁ :: l₁) (forall₂.cons ha₀ h₀) (forall₂.cons ha₁ h₁) :=
-  hr.unique ha₀ ha₁ ▸ right_unique_forall₂' h₀ h₁ ▸ rfl
+  hr ha₀ ha₁ ▸ right_unique_forall₂' h₀ h₁ ▸ rfl
 
-lemma right_unique_forall₂ (hr : right_unique r) : right_unique (forall₂ r) :=
-⟨@right_unique_forall₂' _ _ _ hr⟩
+lemma _root_.relator.right_unique.forall₂ (hr : right_unique r) : right_unique (forall₂ r) :=
+@right_unique_forall₂' _ _ _ hr
 
-lemma bi_unique_forall₂ (hr : bi_unique r) : bi_unique (forall₂ r) :=
-@@bi_unique.mk _ (left_unique_forall₂ hr.1) (right_unique_forall₂ hr.2)
+lemma _root_.relator.bi_unique.forall₂ (hr : bi_unique r) : bi_unique (forall₂ r) :=
+⟨hr.left.forall₂, hr.right.forall₂⟩
 
 theorem forall₂_length_eq {R : α → β → Prop} :
   ∀ {l₁ l₂}, forall₂ R l₁ l₂ → length l₁ = length l₂
@@ -211,15 +211,6 @@ lemma rel_filter {p : α → Prop} {q : β → Prop} [decidable_pred p] [decidab
       simp only [filter_cons_of_neg _ h, filter_cons_of_neg _ this, rel_filter h₂], },
   end
 
-theorem filter_map_cons (f : α → option β) (a : α) (l : list α) :
-  filter_map f (a :: l) = option.cases_on (f a) (filter_map f l) (λb, b :: filter_map f l) :=
-begin
-  generalize eq : f a = b,
-  cases b,
-  { rw filter_map_cons_none _ _ eq },
-  { rw filter_map_cons_some _ _ _ eq },
-end
-
 lemma rel_filter_map : ((r ⇒ option.rel p) ⇒ forall₂ r ⇒ forall₂ p) filter_map filter_map
 | f g hfg _ _ forall₂.nil := forall₂.nil
 | f g hfg (a :: as) (b :: bs) (forall₂.cons h₁ h₂) :=
@@ -249,7 +240,7 @@ begin
   { induction h with _ a b l1 l2 rab rll ih b l1 l2 hl ih,
     { exact ⟨nil, forall₂.nil, nil_sublist _⟩ },
     { obtain ⟨l, hl1, hl2⟩ := ih,
-      refine ⟨b :: l, forall₂.cons rab hl1, cons_sublist_cons b hl2⟩ },
+      refine ⟨b :: l, forall₂.cons rab hl1, hl2.cons_cons b⟩ },
     { obtain ⟨l, hl1, hl2⟩ := ih,
       exact ⟨l, hl1, hl2.trans (sublist.cons _ _ _ (sublist.refl _))⟩ } },
   { obtain ⟨l, hl1, hl2⟩ := h,

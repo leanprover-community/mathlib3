@@ -451,10 +451,7 @@ open auto
 namespace tactic
 namespace interactive
 
-open lean lean.parser interactive interactive.types
-
-local postfix `?`:9001 := optional
-local postfix *:9001 := many
+setup_tactic_parser
 
 /--
 `clarify [h1,...,hn] using [e1,...,en]` negates the goal, normalizes hypotheses

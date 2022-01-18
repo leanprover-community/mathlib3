@@ -1,7 +1,7 @@
 import topology.tactic
 import topology.algebra.monoid
 import topology.instances.real
-import analysis.special_functions.trigonometric
+import analysis.special_functions.trigonometric.basic
 
 example {X Y : Type*} [topological_space X] [topological_space Y]
   (f₁ f₂ : X → Y) (hf₁ : continuous f₁) (hf₂ : continuous f₂)

@@ -35,9 +35,9 @@ def contract_right : M ⊗ (module.dual R M) →ₗ[R] R :=
 (uncurry _ _ _ _).to_fun (linear_map.flip linear_map.id)
 
 /-- The natural map associating a linear map to the tensor product of two modules. -/
-def dual_tensor_hom : (module.dual R M) ⊗ N →ₗ M →ₗ N :=
+def dual_tensor_hom : (module.dual R M) ⊗ N →ₗ[R] M →ₗ[R] N :=
   let M' := module.dual R M in
-  (uncurry R M' N (M →ₗ[R] N) : _ → M' ⊗ N →ₗ M →ₗ N) linear_map.smul_rightₗ
+  (uncurry R M' N (M →ₗ[R] N) : _ → M' ⊗ N →ₗ[R] M →ₗ[R] N) linear_map.smul_rightₗ
 
 variables {R M N}
 

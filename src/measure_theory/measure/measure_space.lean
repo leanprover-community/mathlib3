@@ -89,6 +89,7 @@ measure, almost everywhere, measure space, completion, null set, null measurable
 noncomputable theory
 
 open classical set filter (hiding map) function measurable_space
+  topological_space (second_countable_topology)
 open_locale classical topological_space big_operators filter ennreal nnreal
 
 variables {α β γ δ ι : Type*}
@@ -2294,7 +2295,7 @@ omit m0
 
 @[priority 100] -- see Note [lower instance priority]
 instance sigma_finite_of_locally_finite [topological_space α]
-  [topological_space.second_countable_topology α] [is_locally_finite_measure μ] :
+  [second_countable_topology α] [is_locally_finite_measure μ] :
   sigma_finite μ :=
 begin
   choose s hsx hsμ using μ.finite_at_nhds,
@@ -2305,17 +2306,30 @@ end
 
 /-- If a set has zero measure in a neighborhood of each of its points, then it has zero measure
 in a second-countable space. -/
-lemma null_of_locally_null [topological_space α] [topological_space.second_countable_topology α]
-  (s : set α) (hs : ∀ x ∈ s, ∃ u ∈ 𝓝[s] x, μ (s ∩ u) = 0) :
+lemma null_of_locally_null [topological_space α] [second_countable_topology α]
+  (s : set α) (hs : ∀ x ∈ s, ∃ u ∈ 𝓝[s] x, μ u = 0) :
   μ s = 0 :=
+μ.to_outer_measure.null_of_locally_null s hs
+
+lemma exists_mem_forall_mem_nhds_within_pos_measure [topological_space α]
+  [second_countable_topology α] {s : set α} (hs : μ s ≠ 0) :
+  ∃ x ∈ s, ∀ t ∈ 𝓝[s] x, 0 < μ t :=
+μ.to_outer_measure.exists_mem_forall_mem_nhds_within_pos hs
+
+lemma exists_ne_forall_mem_nhds_pos_measure_preimage {β} [topological_space β] [t1_space β]
+  [second_countable_topology β] [nonempty β] {f : α → β} (h : ∀ b, ∃ᵐ x ∂μ, f x ≠ b) :
+  ∃ a b : β, a ≠ b ∧ (∀ s ∈ 𝓝 a, 0 < μ (f ⁻¹' s)) ∧ (∀ t ∈ 𝓝 b, 0 < μ (f ⁻¹' t)) :=
 begin
-  choose! u hu using hs,
-  obtain ⟨t, ts, t_count, ht⟩ : ∃ t ⊆ s, t.countable ∧ s ⊆ ⋃ x ∈ t, u x :=
-    topological_space.countable_cover_nhds_within (λ x hx, (hu x hx).1),
-  replace ht : s ⊆ ⋃ x ∈ t, s ∩ u x,
-    by { rw ← inter_bUnion, exact subset_inter (subset.refl _) ht },
-  apply measure_mono_null ht,
-  exact (measure_bUnion_null_iff t_count).2 (λ x hx, (hu x (ts hx)).2),
+  -- We use an `outer_measure` so that the proof works without `measurable f`
+  set m : outer_measure β := outer_measure.map f μ.to_outer_measure,
+  replace h : ∀ b : β, m {b}ᶜ ≠ 0 := λ b, not_eventually.mpr (h b),
+  inhabit β,
+  have : m univ ≠ 0, from ne_bot_of_le_ne_bot (h default) (m.mono' $ subset_univ _),
+  rcases m.exists_mem_forall_mem_nhds_within_pos this with ⟨b, -, hb⟩,
+  simp only [nhds_within_univ] at hb,
+  rcases m.exists_mem_forall_mem_nhds_within_pos (h b) with ⟨a, hab : a ≠ b, ha⟩,
+  simp only [is_open_compl_singleton.nhds_within_eq hab] at ha,
+  exact ⟨a, b, hab, ha, hb⟩
 end
 
 /-- If two finite measures give the same mass to the whole space and coincide on a π-system made

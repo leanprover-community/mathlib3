@@ -390,9 +390,6 @@ begin
   { intros x y hx hy,
     rw smul_add,
     apply is_integer_add hx hy },
-  { intros r x hx,
-    rw smul_comm,
-    exact is_integer_smul hx },
 end
 
 /-- `fractional_ideal.mul` is the product of two fractional ideals,
@@ -437,9 +434,8 @@ submodule.mul_le
   {I J : fractional_ideal S P}
   {C : P → Prop} {r : P} (hr : r ∈ I * J)
   (hm : ∀ (i ∈ I) (j ∈ J), C (i * j))
-  (h0 : C 0) (ha : ∀ x y, C x → C y → C (x + y))
-  (hs : ∀ (r : R) x, C x → C (r • x)) : C r :=
-submodule.mul_induction_on hr hm h0 ha hs
+  (h0 : C 0) (ha : ∀ x y, C x → C y → C (x + y)) : C r :=
+submodule.mul_induction_on hr hm h0 ha
 
 instance comm_semiring : comm_semiring (fractional_ideal S P) :=
 { add_assoc := λ I J K, sup_assoc,
@@ -473,13 +469,11 @@ instance comm_semiring : comm_semiring (fractional_ideal S P) :=
   mul_zero := λ I, eq_zero_iff.mpr (λ x hx, submodule.mul_induction_on hx
     (λ x hx y hy, by simp [(mem_zero_iff S).mp hy])
     rfl
-    (λ x y hx hy, by simp [hx, hy])
-    (λ r x hx, by simp [hx])),
+    (λ x y hx hy, by simp [hx, hy])),
   zero_mul := λ I, eq_zero_iff.mpr (λ x hx, submodule.mul_induction_on hx
     (λ x hx y hy, by simp [(mem_zero_iff S).mp hx])
     rfl
-    (λ x y hx hy, by simp [hx, hy])
-    (λ r x hx, by simp [hx])),
+    (λ x y hx hy, by simp [hx, hy])),
   left_distrib := λ I J K, coe_to_submodule_injective (mul_add _ _ _),
   right_distrib := λ I J K, coe_to_submodule_injective (add_mul _ _ _),
   ..fractional_ideal.has_zero S,
@@ -1131,8 +1125,6 @@ begin
     { exact ⟨0, submodule.zero_mem I, (mul_zero x).symm⟩ },
     { rintros _ _ ⟨y, hy, rfl⟩ ⟨y', hy', rfl⟩,
       exact ⟨y + y', submodule.add_mem I hy hy', (mul_add _ _ _).symm⟩ },
-    { rintros r _ ⟨y', hy', rfl⟩,
-      exact ⟨r • y', submodule.smul_mem I r hy', (algebra.mul_smul_comm _ _ _).symm ⟩ } },
   { rintros ⟨y', hy', rfl⟩,
     exact mul_mem_mul ((mem_span_singleton S).mpr ⟨1, one_smul _ _⟩) hy' }
 end

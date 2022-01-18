@@ -79,12 +79,21 @@ theorem mul_le : M * N ≤ P ↔ ∀ (m ∈ M) (n ∈ N), m * n ∈ P :=
 ⟨λ H m hm n hn, H $ mul_mem_mul hm hn,
 λ H, supr_le $ λ ⟨m, hm⟩, map_le_iff_le_comap.2 $ λ n hn, H m hm n hn⟩
 
+lemma mul_to_add_submonoid : (M * N).to_add_submonoid = M.to_add_submonoid * N.to_add_submonoid :=
+begin
+  dsimp [has_mul.mul],
+  simp_rw [←algebra.lmul_left_to_add_monoid_hom R, algebra.lmul_left, ←map_to_add_submonoid],
+  rw supr_to_add_submonoid,
+  refl,
+end
+
 @[elab_as_eliminator] protected theorem mul_induction_on
   {C : A → Prop} {r : A} (hr : r ∈ M * N)
-  (hm : ∀ (m ∈ M) (n ∈ N), C (m * n))
-  (h0 : C 0) (ha : ∀ x y, C x → C y → C (x + y))
-  (hs : ∀ (r : R) x, C x → C (r • x)) : C r :=
-(@mul_le _ _ _ _ _ _ _ ⟨C, h0, ha, hs⟩).2 hm hr
+  (hm : ∀ (m ∈ M) (n ∈ N), C (m * n)) (h0 : C 0) (ha : ∀ x y, C x → C y → C (x + y)) : C r :=
+begin
+  rw [←mem_to_add_submonoid, mul_to_add_submonoid] at hr,
+  exact add_submonoid.mul_induction_on hr hm h0 ha,
+end
 
 variables R
 theorem span_mul_span : span R S * span R T = span R (S * T) :=
@@ -102,53 +111,6 @@ begin
 end
 variables {R}
 
-lemma supr_eq_closure {M ι : Type*} [add_comm_monoid M] (p : ι → add_submonoid M) :
-  (⨆ (i : ι), p i) = add_submonoid.closure (⋃ (i : ι), ↑(p i)) :=
-begin
-  rw add_submonoid.closure_Union,
-  simp_rw add_submonoid.closure_eq,
-end
-
-lemma supr_to_add_submonoid {R M ι : Type*} [semiring R]
-  [add_comm_monoid M] [module R M] (p : ι → submodule R M) :
-  (⨆ i, p i).to_add_submonoid = ⨆ i, (p i).to_add_submonoid :=
-begin
-  apply le_antisymm,
-  { intros x hx,
-    rw [mem_to_add_submonoid, supr_eq_span] at hx,
-    simp_rw [supr_eq_closure, coe_to_add_submonoid],
-    refine submodule.span_induction hx (λ x hx, _) _ (λ x y hx hy, _) (λ r x hx, _),
-    { exact add_submonoid.subset_closure hx },
-    { exact add_submonoid.zero_mem _ },
-    { exact add_submonoid.add_mem _ hx hy },
-    { apply add_submonoid.closure_induction hx,
-      { rintros x ⟨_, ⟨i, rfl⟩, hix : x ∈ p i⟩,
-        apply add_submonoid.subset_closure (set.mem_Union.mpr ⟨i, _⟩),
-        exact smul_mem _ r hix },
-      { rw smul_zero,
-        exact add_submonoid.zero_mem _ },
-      { intros x y hx hy,
-        rw smul_add,
-        exact add_submonoid.add_mem _ hx hy, } } },
-  { refine supr_le (λ i, _),
-    refine to_add_submonoid_mono _,
-    exact le_supr _ i, }
-end
-
-lemma mul_to_add_submonoid : (M * N).to_add_submonoid = M.to_add_submonoid * N.to_add_submonoid :=
-begin
-  dsimp [has_mul.mul],
-  simp_rw [←algebra.lmul_left_to_add_monoid_hom R, algebra.lmul_left, ←map_to_add_submonoid],
-  apply le_antisymm,
-  { rw le_supr_iff,
-    intros b hb x hx,
-    rw [mem_to_add_submonoid, mem_supr] at hx,
-    have := hx (submodule.span R b),
-    sorry },
-  { refine supr_le (λ i, _),
-    refine to_add_submonoid_mono _,
-    exact le_supr _ i, }
-end
 
 variables (M N P Q)
 protected theorem mul_assoc : (M * N) * P = M * (N * P) :=

@@ -189,13 +189,12 @@ end
 /-- A group `G` is nilpotent iff there exists an ascending central series which reaches `G` in
   finitely many steps. -/
 theorem nilpotent_iff_finite_ascending_central_series :
-  is_nilpotent G ↔ ∃ H : ℕ → subgroup G, is_ascending_central_series H ∧ ∃ n : ℕ, H n = ⊤ :=
+  is_nilpotent G ↔ ∃ n : ℕ, ∃ H : ℕ → subgroup G, is_ascending_central_series H ∧ H n = ⊤ :=
 begin
   split,
-  { intro h,
-    use upper_central_series G,
-    refine ⟨upper_central_series_is_ascending_central_series G, h.1⟩ },
-  { rintro ⟨H, hH, n, hn⟩,
+  { rintro ⟨n, nH⟩,
+    refine ⟨_, _, upper_central_series_is_ascending_central_series G, nH⟩ },
+  { rintro ⟨n, H, hH, hn⟩,
     use n,
     have := ascending_central_series_le_upper H hH n,
     rw hn at this,
@@ -244,20 +243,20 @@ end
 /-- A group `G` is nilpotent iff there exists a descending central series which reaches the
   trivial group in a finite time. -/
 theorem nilpotent_iff_finite_descending_central_series :
-  is_nilpotent G ↔ ∃ H : ℕ → subgroup G, is_descending_central_series H ∧ ∃ n : ℕ, H n = ⊥ :=
+  is_nilpotent G ↔ ∃ n : ℕ, ∃ H : ℕ → subgroup G, is_descending_central_series H ∧ H n = ⊥ :=
 begin
   rw nilpotent_iff_finite_ascending_central_series,
   split,
-  { rintro ⟨H, hasc, n, hn⟩,
-    use (λ m, H (n - m)),
+  { rintro ⟨n, H, hH, hn⟩,
+    use n, use (λ m, H (n - m)),
     split,
-    { apply (is_decending_rev_series_of_is_ascending G hn hasc) },
-    { use n, simp, exact hasc.1 } },
-  { rintro ⟨H, hdesc, n, hn⟩,
-    use (λ m, H (n - m)),
+    { apply (is_decending_rev_series_of_is_ascending G hn hH) },
+    { simp, exact hH.1 } },
+  { rintro ⟨n, H, hH, hn⟩,
+    use n, use (λ m, H (n - m)),
     split,
-    { apply (is_ascending_rev_series_of_is_descending G hn hdesc) },
-    { use n, simp, exact hdesc.1 } },
+    { apply (is_ascending_rev_series_of_is_descending G hn hH) },
+    { simp, exact hH.1 } },
 end
 
 /-- The lower central series of a group `G` is a sequence `H n` of subgroups of `G`, defined
@@ -327,13 +326,13 @@ theorem nilpotent_iff_lower_central_series : is_nilpotent G ↔ ∃ n, lower_cen
 begin
   rw nilpotent_iff_finite_descending_central_series,
   split,
-  { rintro ⟨H, ⟨h0, hs⟩, n, hn⟩,
+  { rintro ⟨n, H, ⟨h0, hs⟩, hn⟩,
     use n,
     have := descending_central_series_ge_lower H ⟨h0, hs⟩ n,
     rw hn at this,
     exact eq_bot_iff.mpr this },
-  { intro h,
-    use [lower_central_series G, lower_central_series_is_descending_central_series, h] },
+  { rintro ⟨n, hn⟩,
+    use [n, lower_central_series G, lower_central_series_is_descending_central_series, hn] },
 end
 
 section classical
@@ -343,37 +342,34 @@ open_locale classical
 variables [hG : is_nilpotent G]
 include hG
 
+variable (G)
+
 /-- The nilpotency class of a nilpotent group is the small natural `n` such that
 the `n`'th term of the upper central series is `G`. -/
 noncomputable def group.nilpotency_class : ℕ :=
 nat.find (is_nilpotent.nilpotent G)
 
+variable {G}
+
 /-- Equivalently, the nilpotency class is the smallest `n` for which any ascending
 central series reaches `G` in its `n`'th term -/
-lemma least_ascending_central_series_length_eq_nilpotency_class
-  (h : ∃ n : ℕ, ∃ H : ℕ → subgroup G, (is_ascending_central_series H ∧ H n = ⊤)) :
-  nat.find h = @group.nilpotency_class G _ _ :=
+lemma least_ascending_central_series_length_eq_nilpotency_class :
+  nat.find ((nilpotent_iff_finite_ascending_central_series G).mp hG) = group.nilpotency_class G :=
 begin
-  refine le_antisymm (nat.find_mono _) (nat.find_mono _); clear h,
-  { rintros n h,
-    refine ⟨upper_central_series G, ⟨upper_central_series_is_ascending_central_series G, h⟩⟩ },
-  { rintros n ⟨H, ⟨hasc, hn⟩⟩,
+  refine le_antisymm (nat.find_mono _) (nat.find_mono _),
+  { intros n hn,
+    exact ⟨upper_central_series G, upper_central_series_is_ascending_central_series G, hn ⟩, },
+  { rintros n ⟨H, ⟨hH, hn⟩⟩,
     apply top_le_iff.mp,
     rw ← hn,
-    exact (ascending_central_series_le_upper H hasc n), }
+    exact (ascending_central_series_le_upper H hH n), }
 end
 
-lemma least_descending_central_series_length_eq_nilpotency_class
-  (h : ∃ n : ℕ, ∃ H : ℕ → subgroup G, (is_descending_central_series H ∧ H n = ⊥)) :
-  nat.find h = @group.nilpotency_class G _ _ :=
+lemma least_descending_central_series_length_eq_nilpotency_class :
+  nat.find ((nilpotent_iff_finite_descending_central_series G).mp hG) = group.nilpotency_class G :=
 begin
-  have h₂ : ∃ n : ℕ, ∃ H : ℕ → subgroup G, (is_ascending_central_series H ∧ H n = ⊤) :=
-  begin
-    obtain ⟨H, ⟨hH, ⟨n, hn⟩⟩⟩ := (nilpotent_iff_finite_ascending_central_series G).mp hG,
-    refine ⟨n, H, hH, hn⟩,
-  end,
-  rw ← least_ascending_central_series_length_eq_nilpotency_class h₂,
-  refine le_antisymm (nat.find_mono _) (nat.find_mono _); clear h h₂,
+  rw ← least_ascending_central_series_length_eq_nilpotency_class,
+  refine le_antisymm (nat.find_mono _) (nat.find_mono _),
   { rintros n ⟨H, ⟨hH, hn⟩⟩,
     use (λ m, H (n - m)),
     split,
@@ -386,17 +382,11 @@ begin
     { simp, exact hH.1 } },
 end
 
-lemma lower_central_series_length_eq_nilpotency_class
-  (h : ∃ n : ℕ, lower_central_series G n = ⊥) :
-  nat.find h = @group.nilpotency_class G _ _ :=
+lemma lower_central_series_length_eq_nilpotency_class :
+  nat.find (nilpotent_iff_lower_central_series.mp hG) = @group.nilpotency_class G _ _ :=
 begin
-  have h₂ : ∃ n : ℕ, ∃ H : ℕ → subgroup G, (is_descending_central_series H ∧ H n = ⊥) :=
-  begin
-    obtain ⟨H, ⟨hH, ⟨n, hn⟩⟩⟩ := (nilpotent_iff_finite_descending_central_series G).mp hG,
-    refine ⟨n, H, hH, hn⟩,
-  end,
-  rw ← least_descending_central_series_length_eq_nilpotency_class h₂,
-  refine le_antisymm (nat.find_mono _) (nat.find_mono _); clear h h₂,
+  rw ← least_descending_central_series_length_eq_nilpotency_class,
+  refine le_antisymm (nat.find_mono _) (nat.find_mono _),
   { rintros n ⟨H, ⟨hH, hn⟩⟩,
     apply le_bot_iff.mp,
     rw ← hn,
@@ -404,7 +394,6 @@ begin
   { rintros n h,
     refine ⟨lower_central_series G, ⟨lower_central_series_is_descending_central_series, h⟩⟩ },
 end
-
 
 end classical
 

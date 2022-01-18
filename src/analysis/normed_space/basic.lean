@@ -540,8 +540,8 @@ class normed_space (α : Type*) (β : Type*) [normed_field α] [semi_normed_grou
 [to_is_central_scalar : is_central_scalar α β]
 (norm_smul_le : ∀ (a:α) (b:β), ∥a • b∥ ≤ ∥a∥ * ∥b∥)
 
-attribute [instance, priority 920] semi_normed_space.to_opposite_module
-attribute [instance, priority 920] semi_normed_space.to_is_central_scalar
+attribute [instance, priority 920] normed_space.to_opposite_module
+attribute [instance, priority 920] normed_space.to_is_central_scalar
 
 end prio
 
@@ -703,7 +703,7 @@ instance submodule.normed_space {𝕜 R : Type*} [has_scalar 𝕜 R] [has_scalar
   [normed_field 𝕜] [ring R]
   {E : Type*} [semi_normed_group E] [normed_space 𝕜 E] [module R E]
   [is_scalar_tower 𝕜 R E] [is_scalar_tower 𝕜ᵐᵒᵖ R E] (s : submodule R E) :
-  semi_normed_space 𝕜 s :=
+  normed_space 𝕜 s :=
 { norm_smul_le := λc x, le_of_eq $ norm_smul c (x : E) }
 
 /-- If there is a scalar `c` with `∥c∥>1`, then any element with nonzero norm can be
@@ -911,20 +911,6 @@ section restrict_scalars
 variables (𝕜 : Type*) (𝕜' : Type*) [normed_field 𝕜] [normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
 (E : Type*) [semi_normed_group E] [normed_space 𝕜' E]
 
-/-- Warning: This declaration should be used judiciously.
-Please consider using `is_scalar_tower` instead.
-
-`𝕜`-normed space structure induced by a `𝕜'`-normed space structure when `𝕜'` is a
-normed algebra over `𝕜`. Not registered as an instance as `𝕜'` can not be inferred.
-
-The type synonym `restrict_scalars 𝕜 𝕜' E` will be endowed with this instance by default.
--/
-def normed_space.restrict_scalars : normed_space 𝕜 E :=
-{ norm_smul_le := λc x, le_of_eq $ begin
-    change ∥(algebra_map 𝕜 𝕜' c) • x∥ = ∥c∥ * ∥x∥,
-    simp [norm_smul]
-  end,
-  ..restrict_scalars.module 𝕜 𝕜' E }
 
 instance {𝕜 : Type*} {𝕜' : Type*} {E : Type*} [I : semi_normed_group E] :
   semi_normed_group (restrict_scalars 𝕜 𝕜' E) := I
@@ -937,7 +923,27 @@ instance module.restrict_scalars.normed_space_orig {𝕜 : Type*} {𝕜' : Type*
   normed_space 𝕜' (restrict_scalars 𝕜 𝕜' E) := I
 
 instance : normed_space 𝕜 (restrict_scalars 𝕜 𝕜' E) :=
-(normed_space.restrict_scalars 𝕜 𝕜' E : normed_space 𝕜 E)
+{ norm_smul_le := λc x, le_of_eq $ begin
+    change ∥(algebra_map 𝕜 𝕜' c) • x∥ = ∥c∥ * ∥x∥,
+    simp [norm_smul, -algebra_map_smul],
+  end,
+  to_opposite_module := module.comp_hom E (algebra_map 𝕜 𝕜').op,
+  to_is_central_scalar := begin
+    letI : module 𝕜ᵐᵒᵖ (restrict_scalars 𝕜 𝕜' E) := module.comp_hom E (algebra_map 𝕜 𝕜').op,
+    refine ⟨λ _ _, (op_smul_eq_smul (algebra_map _ _ _) _ : _)⟩,
+  end,
+  ..restrict_scalars.module 𝕜 𝕜' E }
+
+/-- Warning: This declaration should be used judiciously.
+Please consider using `is_scalar_tower` instead.
+
+`𝕜`-normed space structure induced by a `𝕜'`-normed space structure when `𝕜'` is a
+normed algebra over `𝕜`. Not registered as an instance as `𝕜'` can not be inferred.
+
+The type synonym `restrict_scalars 𝕜 𝕜' E` will be endowed with this instance by default.
+-/
+def normed_space.restrict_scalars : normed_space 𝕜 E :=
+restrict_scalars.normed_space _ 𝕜' _
 
 end restrict_scalars
 

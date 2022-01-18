@@ -148,7 +148,7 @@ def mul_equiv.abelianization_congr : abelianization G ≃* abelianization H :=
 variables {e}
 
 @[simp]
-lemma coe_abelianization_congr_of { x : G } :
+lemma abelianization_congr_of (x : G) :
   (e.abelianization_congr) (abelianization.of x) = abelianization.of (e x) := rfl
 
 @[simp]
@@ -161,7 +161,7 @@ lemma abelianization_congr_symm  :
   e.abelianization_congr.symm = e.symm.abelianization_congr := rfl
 
 @[simp]
-lemma abelianization_congr_trans {I : Type v} [group I] {e₂ : H ≃* I} :
+lemma abelianization_congr_trans {I : Type v} [group I] (e₂ : H ≃* I) :
   e.abelianization_congr.trans e₂.abelianization_congr = (e.trans e₂).abelianization_congr :=
 mul_equiv.to_monoid_hom_injective (abelianization.hom_ext _ _ rfl)
 

@@ -134,8 +134,7 @@ end
 noncomputable
 def factorization_equiv : pnat ≃ {f : ℕ →₀ ℕ | ∀ p ∈ f.support, prime p} :=
 { to_fun    := λ ⟨n, hn⟩, ⟨n.factorization, λ _, prime_of_mem_factorization⟩,
-  inv_fun   := λ ⟨f, hf⟩, ⟨f.prod pow,
-    prod_pos (λ p hp, (pow_ne_zero _ (prime.ne_zero (hf p hp))).bot_lt)⟩,
+  inv_fun   := λ ⟨f, hf⟩, ⟨f.prod pow, prod_pos (λ p hp, (pow_ne_zero _ (hf p hp).ne_zero).bot_lt)⟩,
   left_inv  := λ ⟨x, hx⟩, subtype.mk_eq_mk.mpr (factorization_prod_pow_eq_self hx.ne.symm),
   right_inv := λ ⟨f, hf⟩, subtype.mk_eq_mk.mpr (factorization_prod_pow_inv hf) }
 

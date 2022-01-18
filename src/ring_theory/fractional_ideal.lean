@@ -385,8 +385,6 @@ begin
     rw [mul_smul, mul_comm m, ← smul_mul_assoc, ← hn', ← algebra.smul_def],
     apply hI,
     exact submodule.smul_mem _ _ hm },
-  { rw smul_zero,
-    exact ⟨0, ring_hom.map_zero _⟩ },
   { intros x y hx hy,
     rw smul_add,
     apply is_integer_add hx hy },
@@ -434,8 +432,8 @@ submodule.mul_le
   {I J : fractional_ideal S P}
   {C : P → Prop} {r : P} (hr : r ∈ I * J)
   (hm : ∀ (i ∈ I) (j ∈ J), C (i * j))
-  (h0 : C 0) (ha : ∀ x y, C x → C y → C (x + y)) : C r :=
-submodule.mul_induction_on hr hm h0 ha
+  (ha : ∀ x y, C x → C y → C (x + y)) : C r :=
+submodule.mul_induction_on hr hm ha
 
 instance comm_semiring : comm_semiring (fractional_ideal S P) :=
 { add_assoc := λ I J K, sup_assoc,
@@ -468,11 +466,9 @@ instance comm_semiring : comm_semiring (fractional_ideal S P) :=
   end,
   mul_zero := λ I, eq_zero_iff.mpr (λ x hx, submodule.mul_induction_on hx
     (λ x hx y hy, by simp [(mem_zero_iff S).mp hy])
-    rfl
     (λ x y hx hy, by simp [hx, hy])),
   zero_mul := λ I, eq_zero_iff.mpr (λ x hx, submodule.mul_induction_on hx
     (λ x hx y hy, by simp [(mem_zero_iff S).mp hx])
-    rfl
     (λ x y hx hy, by simp [hx, hy])),
   left_distrib := λ I J K, coe_to_submodule_injective (mul_add _ _ _),
   right_distrib := λ I J K, coe_to_submodule_injective (add_mul _ _ _),
@@ -1122,7 +1118,6 @@ begin
       obtain ⟨a, ha⟩ := (mem_span_singleton S).mp hx',
       use [a • y', submodule.smul_mem I a hy'],
       rw [←ha, algebra.mul_smul_comm, algebra.smul_mul_assoc] },
-    { exact ⟨0, submodule.zero_mem I, (mul_zero x).symm⟩ },
     { rintros _ _ ⟨y, hy, rfl⟩ ⟨y', hy', rfl⟩,
       exact ⟨y + y', submodule.add_mem I hy hy', (mul_add _ _ _).symm⟩ } },
   { rintros ⟨y', hy', rfl⟩,

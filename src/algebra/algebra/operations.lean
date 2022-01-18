@@ -89,24 +89,22 @@ end
 
 @[elab_as_eliminator] protected theorem mul_induction_on
   {C : A → Prop} {r : A} (hr : r ∈ M * N)
-  (hm : ∀ (m ∈ M) (n ∈ N), C (m * n)) (h0 : C 0) (ha : ∀ x y, C x → C y → C (x + y)) : C r :=
+  (hm : ∀ (m ∈ M) (n ∈ N), C (m * n)) (ha : ∀ x y, C x → C y → C (x + y)) : C r :=
 begin
   rw [←mem_to_add_submonoid, mul_to_add_submonoid] at hr,
-  exact add_submonoid.mul_induction_on hr hm h0 ha,
+  exact add_submonoid.mul_induction_on hr hm ha,
 end
 
 /-- A dependent version of `mul_induction_on`. -/
 @[elab_as_eliminator] protected theorem mul_induction_on'
   {C : Π r, r ∈ M * N → Prop}
   (hm : ∀ (m ∈ M) (n ∈ N), C (m * n) (mul_mem_mul ‹_› ‹_›))
-  (h0 : C 0 (zero_mem _))
   (ha : ∀ x hx y hy, C x hx → C y hy → C (x + y) (add_mem _ ‹_› ‹_›))
   {r : A} (hr : r ∈ M * N) : C r hr :=
 begin
   refine exists.elim _ (λ (hr : r ∈ M * N) (hc : C r hr), hc),
   exact submodule.mul_induction_on hr
-    (λ x hx y hy, ⟨_, hm _ hx _ hy⟩)
-    ⟨_, h0⟩ (λ x y ⟨_, hx⟩ ⟨_, hy⟩, ⟨_, ha _ _ _ _ hx hy⟩),
+    (λ x hx y hy, ⟨_, hm _ hx _ hy⟩) (λ x y ⟨_, hx⟩ ⟨_, hy⟩, ⟨_, ha _ _ _ _ hx hy⟩),
 end
 
 variables R
@@ -271,20 +269,13 @@ protected theorem pow_induction_on'
   (hmul : ∀ (m ∈ M) i x hx, C i x hx → C (i.succ) (m * x) (mul_mem_mul H hx))
   {x : A} {n : ℕ} (hx : x ∈ M ^ n) : C n x hx :=
 begin
-  have h0 : ∀ i, C i 0 (zero_mem _),
-  { intro i,
-    induction i with i ih,
-    { simpa using hr 0, },
-    simpa using hmul (0 : A) (zero_mem _) i 0 _ ih },
   induction n with n n_ih generalizing x,
   { rw pow_zero at hx,
     obtain ⟨r, rfl⟩ := hx,
     exact hr r, },
-  refine submodule.mul_induction_on' (λ m hm x ih, _) _ _ hx,
-  { exact hmul _ hm _ _ _ (n_ih ih), },
-  { apply h0 },
-  { intros x hx y hy Cx Cy,
-    apply hadd _ _ _ _ _ Cx Cy, },
+  exact submodule.mul_induction_on'
+    (λ m hm x ih, hmul _ hm _ _ _ (n_ih ih))
+    (λ x hx y hy Cx Cy, hadd _ _ _ _ _ Cx Cy) hx,
 end
 /-- To show a property on elements of `M ^ n` holds, it suffices to show that it holds for scalars,
 is closed under addition, and holds for `m * x` where `m ∈ M` and it holds for `x` -/

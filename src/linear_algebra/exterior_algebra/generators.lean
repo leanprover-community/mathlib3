@@ -10,11 +10,14 @@ import ring_theory.graded_algebra.basic
 /-!
 # Results about the generators and grading structure of the exterior algebra
 
-Many of these results are copied with minimal modification from the tensor algebra
+Many of these results are copied with minimal modification from the tensor algebra.
+
+The main result is `exterior_algebra.graded_algebra`, which says that the exterior algebra is a
+ℕ-graded algebra.
 -/
 
 namespace exterior_algebra
-variables {R M : Type*} [comm_ring R] [add_comm_monoid M] [module R M]
+variables {R M : Type*} [comm_semiring R] [add_comm_monoid M] [module R M]
 variables (R M)
 
 open_locale direct_sum
@@ -32,16 +35,19 @@ lemma graded_algebra.ι_apply (m : M) :
 
 lemma graded_algebra.ι_sq_zero (m : M) : graded_algebra.ι R M m * graded_algebra.ι R M m = 0 :=
 begin
-  rw [graded_algebra.ι_apply, graded_algebra.ι_apply, of_mul_of]
+  rw [graded_algebra.ι_apply, direct_sum.of_mul_of],
+  refine dfinsupp.single_eq_zero.mpr (subtype.ext $ ι_sq_zero _),
 end
 
 variables {R M}
 
 /-- The exterior algebra is graded by the powers of the submodule `(exterior_algebra.ι R).range`. -/
 instance graded_algebra :
-  graded_algebra ((^) (ι R : M →ₗ[R] exterior_algebra R M).range : ℕ → submodule R _) :=
+  graded_algebra
+    ((^) (ι R : M →ₗ[R] exterior_algebra R M).range : ℕ → submodule R (exterior_algebra R M)) :=
 graded_algebra.of_alg_hom _
   (lift _ $ ⟨graded_algebra.ι R M, graded_algebra.ι_sq_zero R M⟩)
+  -- the proof from here onward is identical to the `tensor_algebra` case
   (begin
     ext m,
     dsimp only [linear_map.comp_apply, alg_hom.to_linear_map_apply, alg_hom.comp_apply,

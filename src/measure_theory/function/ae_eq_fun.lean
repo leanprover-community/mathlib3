@@ -352,7 +352,7 @@ coe_fn_mk _ _
 
 variable {α}
 
-instance [inhabited β] : inhabited (α →ₘ[μ] β) := ⟨const α (default β)⟩
+instance [inhabited β] : inhabited (α →ₘ[μ] β) := ⟨const α default⟩
 
 @[to_additive] instance [has_one β] : has_one (α →ₘ[μ] β) := ⟨const α 1⟩
 @[to_additive] lemma one_def [has_one β] :

@@ -9,6 +9,7 @@ import data.finset.option
 import data.finset.pi
 import data.finset.powerset
 import data.finset.prod
+import data.finset.sigma
 import data.list.nodup_equiv_fin
 import data.sym.basic
 import data.ulift
@@ -93,6 +94,8 @@ fintype.complete x
 
 @[simp] theorem mem_univ_val : ∀ x, x ∈ (univ : finset α).1 := mem_univ
 
+lemma eq_univ_iff_forall {s : finset α} : s = univ ↔ ∀ x, x ∈ s := by simp [ext_iff]
+
 @[simp] lemma coe_univ : ↑(univ : finset α) = (set.univ : set α) :=
 by ext; simp
 
@@ -107,8 +110,8 @@ by rw [← not_nonempty_iff, ← univ_nonempty_iff, not_nonempty_iff_eq_empty]
 
 @[simp] lemma univ_eq_empty [is_empty α] : (univ : finset α) = ∅ := univ_eq_empty_iff.2 ‹_›
 
-@[simp] lemma univ_unique [unique α] : (univ : finset α) = {default α} :=
-finset.ext $ λ x, iff_of_true (mem_univ _) $ mem_singleton.2 $ subsingleton.elim x $ default α
+@[simp] lemma univ_unique [unique α] : (univ : finset α) = {default} :=
+finset.ext $ λ x, iff_of_true (mem_univ _) $ mem_singleton.2 $ subsingleton.elim x default
 
 @[simp] theorem subset_univ (s : finset α) : s ⊆ univ := λ a _, mem_univ a
 
@@ -116,7 +119,10 @@ instance : order_top (finset α) :=
 { top := univ,
   le_top := subset_univ }
 
-instance [decidable_eq α] : boolean_algebra (finset α) :=
+section boolean_algebra
+variables [decidable_eq α] {s : finset α} {a : α}
+
+instance : boolean_algebra (finset α) :=
 { compl := λ s, univ \ s,
   inf_compl_le_bot := λ s x hx, by simpa using hx,
   top_le_sup_compl := λ s x hx, by simp,
@@ -125,33 +131,45 @@ instance [decidable_eq α] : boolean_algebra (finset α) :=
   ..finset.order_bot,
   ..finset.generalized_boolean_algebra }
 
-lemma compl_eq_univ_sdiff [decidable_eq α] (s : finset α) : sᶜ = univ \ s := rfl
+lemma compl_eq_univ_sdiff (s : finset α) : sᶜ = univ \ s := rfl
 
-@[simp] lemma mem_compl [decidable_eq α] {s : finset α} {x : α} : x ∈ sᶜ ↔ x ∉ s :=
-by simp [compl_eq_univ_sdiff]
+@[simp] lemma mem_compl : a ∈ sᶜ ↔ a ∉ s := by simp [compl_eq_univ_sdiff]
 
-@[simp, norm_cast] lemma coe_compl [decidable_eq α] (s : finset α) : ↑(sᶜ) = (↑s : set α)ᶜ :=
+lemma not_mem_compl : a ∉ sᶜ ↔ a ∈ s := by rw [mem_compl, not_not]
+
+@[simp, norm_cast] lemma coe_compl (s : finset α) : ↑(sᶜ) = (↑s : set α)ᶜ :=
 set.ext $ λ x, mem_compl
 
-@[simp] theorem union_compl [decidable_eq α] (s : finset α) : s ∪ sᶜ = finset.univ :=
-sup_compl_eq_top
+@[simp] lemma compl_empty : (∅ : finset α)ᶜ = univ := compl_bot
 
-@[simp] theorem insert_compl_self [decidable_eq α] (x : α) : insert x ({x}ᶜ : finset α) = univ :=
-by { ext y, simp [eq_or_ne] }
+@[simp] lemma union_compl (s : finset α) : s ∪ sᶜ = univ := sup_compl_eq_top
 
-@[simp] lemma compl_filter [decidable_eq α] (p : α → Prop) [decidable_pred p]
-  [Π x, decidable (¬p x)] :
+@[simp] lemma inter_compl (s : finset α) : s ∩ sᶜ = ∅ := inf_compl_eq_bot
+
+@[simp] lemma compl_union (s t : finset α) : (s ∪ t)ᶜ = sᶜ ∩ tᶜ := compl_sup
+
+@[simp] lemma compl_inter (s t : finset α) : (s ∩ t)ᶜ = sᶜ ∪ tᶜ := compl_inf
+
+@[simp] lemma compl_erase : (s.erase a)ᶜ = insert a sᶜ :=
+by { ext, simp only [or_iff_not_imp_left, mem_insert, not_and, mem_compl, mem_erase] }
+
+@[simp] lemma compl_insert : (insert a s)ᶜ = sᶜ.erase a :=
+by { ext, simp only [not_or_distrib, mem_insert, iff_self, mem_compl, mem_erase] }
+
+@[simp] lemma insert_compl_self (x : α) : insert x ({x}ᶜ : finset α) = univ :=
+by rw [←compl_erase, erase_singleton, compl_empty]
+
+@[simp] lemma compl_filter (p : α → Prop) [decidable_pred p] [Π x, decidable (¬p x)] :
   (univ.filter p)ᶜ = univ.filter (λ x, ¬p x) :=
 (filter_not _ _).symm
 
-theorem eq_univ_iff_forall {s : finset α} : s = univ ↔ ∀ x, x ∈ s :=
-by simp [ext_iff]
-
-lemma compl_ne_univ_iff_nonempty [decidable_eq α] (s : finset α) : sᶜ ≠ univ ↔ s.nonempty :=
+lemma compl_ne_univ_iff_nonempty (s : finset α) : sᶜ ≠ univ ↔ s.nonempty :=
 by simp [eq_univ_iff_forall, finset.nonempty]
 
-lemma compl_singleton [decidable_eq α] (a : α) : ({a} : finset α)ᶜ = univ.erase a :=
+lemma compl_singleton (a : α) : ({a} : finset α)ᶜ = univ.erase a :=
 by rw [compl_eq_univ_sdiff, sdiff_singleton_eq_erase]
+
+end boolean_algebra
 
 @[simp] lemma univ_inter [decidable_eq α] (s : finset α) :
   univ ∩ s = s := ext $ λ a, by simp
@@ -505,6 +523,10 @@ multiset.card_map _ _
 theorem card_congr {α β} [fintype α] [fintype β] (f : α ≃ β) : card α = card β :=
 by rw ← of_equiv_card f; congr
 
+@[congr]
+lemma card_congr' {α β} [fintype α] [fintype β] (h : α = β) : card α = card β :=
+card_congr (by rw h)
+
 section
 
 variables [fintype α] [fintype β]
@@ -569,7 +591,7 @@ arbitrary `fintype` instances, use either `fintype.card_le_one_iff_subsingleton`
 
 @[simp] theorem card_unique [unique α] [h : fintype α] :
   fintype.card α = 1 :=
-subsingleton.elim (of_subsingleton $ default α) h ▸ card_of_subsingleton _
+subsingleton.elim (of_subsingleton default) h ▸ card_of_subsingleton _
 
 @[priority 100] -- see Note [lower instance priority]
 instance of_is_empty [is_empty α] : fintype α := ⟨∅, is_empty_elim⟩
@@ -602,6 +624,11 @@ namespace set
 def to_finset (s : set α) [fintype s] : finset α :=
 ⟨(@finset.univ s _).1.map subtype.val,
  multiset.nodup_map (λ a b, subtype.eq) finset.univ.2⟩
+
+@[congr]
+lemma to_finset_congr {s t : set α} [fintype s] [fintype t] (h : s = t) :
+  to_finset s = to_finset t :=
+by cc
 
 @[simp] theorem mem_to_finset {s : set α} [fintype s] {a : α} : a ∈ s.to_finset ↔ a ∈ s :=
 by simp [to_finset]
@@ -736,7 +763,7 @@ lemma fin.univ_succ_above (n : ℕ) (p : fin (n + 1)) :
 by simp
 
 @[instance, priority 10] def unique.fintype {α : Type*} [unique α] : fintype α :=
-fintype.of_subsingleton (default α)
+fintype.of_subsingleton default
 
 /-- Short-circuit instance to decrease search for `unique.fintype`,
 since that relies on a subsingleton elimination for `unique`. -/
@@ -780,16 +807,16 @@ instance : fintype bool := ⟨⟨tt ::ₘ ff ::ₘ 0, by simp⟩, λ x, by cases
 
 @[simp] theorem fintype.univ_bool : @univ bool _ = {tt, ff} := rfl
 
-instance units_int.fintype : fintype (units ℤ) :=
+instance units_int.fintype : fintype ℤˣ :=
 ⟨{1, -1}, λ x, by cases int.units_eq_one_or x; simp *⟩
 
-@[simp] lemma units_int.univ : (finset.univ : finset (units ℤ)) = {1, -1} := rfl
+@[simp] lemma units_int.univ : (finset.univ : finset ℤˣ) = {1, -1} := rfl
 
 instance additive.fintype : Π [fintype α], fintype (additive α) := id
 
 instance multiplicative.fintype : Π [fintype α], fintype (multiplicative α) := id
 
-@[simp] theorem fintype.card_units_int : fintype.card (units ℤ) = 2 := rfl
+@[simp] theorem fintype.card_units_int : fintype.card ℤˣ = 2 := rfl
 
 @[simp] theorem fintype.card_bool : fintype.card bool = 2 := rfl
 
@@ -996,6 +1023,12 @@ fintype.card_eq_one_iff.2 ⟨i,h⟩
 lemma one_lt_card [h : nontrivial α] : 1 < fintype.card α :=
 fintype.one_lt_card_iff_nontrivial.mpr h
 
+lemma one_lt_card_iff : 1 < card α ↔ ∃ a b : α, a ≠ b :=
+one_lt_card_iff_nontrivial.trans nontrivial_iff
+
+lemma two_lt_card_iff : 2 < card α ↔ ∃ a b c : α, a ≠ b ∧ a ≠ c ∧ b ≠ c :=
+by simp_rw [←finset.card_univ, two_lt_card_iff, mem_univ, true_and]
+
 lemma injective_iff_surjective {f : α → α} : injective f ↔ surjective f :=
 by haveI := classical.prop_decidable; exact
 have ∀ {f : α → α}, injective f → surjective f,
@@ -1095,39 +1128,57 @@ instance Prop.fintype : fintype Prop :=
 instance subtype.fintype (p : α → Prop) [decidable_pred p] [fintype α] : fintype {x // p x} :=
 fintype.subtype (univ.filter p) (by simp)
 
+@[simp] lemma set.to_finset_univ [hu : fintype (set.univ : set α)] [fintype α] :
+  @set.to_finset _ (set.univ : set α) hu = finset.univ :=
+by { ext, simp only [set.mem_univ, mem_univ, set.mem_to_finset] }
+
+@[simp] lemma set.to_finset_eq_empty_iff {s : set α} [fintype s] : s.to_finset = ∅ ↔ s = ∅ :=
+by simp [ext_iff, set.ext_iff]
+
+@[simp] lemma set.to_finset_empty : (∅ : set α).to_finset = ∅ :=
+set.to_finset_eq_empty_iff.mpr rfl
+
+@[simp] lemma set.to_finset_range [decidable_eq α] [fintype β] (f : β → α) [fintype (set.range f)] :
+  (set.range f).to_finset = finset.univ.image f :=
+by simp [ext_iff]
+
 /-- A set on a fintype, when coerced to a type, is a fintype. -/
-def set_fintype {α} [fintype α] (s : set α) [decidable_pred (∈ s)] : fintype s :=
+def set_fintype [fintype α] (s : set α) [decidable_pred (∈ s)] : fintype s :=
 subtype.fintype (λ x, x ∈ s)
 
-lemma set_fintype_card_le_univ {α : Type*} [fintype α] (s : set α) [fintype ↥s] :
+lemma set_fintype_card_le_univ [fintype α] (s : set α) [fintype ↥s] :
   fintype.card ↥s ≤ fintype.card α :=
 fintype.card_le_of_embedding (function.embedding.subtype s)
+
+lemma set_fintype_card_eq_univ_iff [fintype α] (s : set α) [fintype ↥s] :
+  fintype.card s = fintype.card α ↔ s = set.univ :=
+by rw [←set.to_finset_card, finset.card_eq_iff_eq_univ, ←set.to_finset_univ, set.to_finset_inj]
 
 section
 variables (α)
 
-/-- The `units α` type is equivalent to a subtype of `α × α`. -/
+/-- The `αˣ` type is equivalent to a subtype of `α × α`. -/
 @[simps]
 def _root_.units_equiv_prod_subtype [monoid α] :
-  units α ≃ {p : α × α // p.1 * p.2 = 1 ∧ p.2 * p.1 = 1} :=
+  αˣ ≃ {p : α × α // p.1 * p.2 = 1 ∧ p.2 * p.1 = 1} :=
 { to_fun := λ u, ⟨(u, ↑u⁻¹), u.val_inv, u.inv_val⟩,
   inv_fun := λ p, units.mk (p : α × α).1 (p : α × α).2 p.prop.1 p.prop.2,
   left_inv := λ u, units.ext rfl,
   right_inv := λ p, subtype.ext $ prod.ext rfl rfl}
 
-/-- In a `group_with_zero` `α`, the unit group `units α` is equivalent to the subtype of nonzero
+/-- In a `group_with_zero` `α`, the unit group `αˣ` is equivalent to the subtype of nonzero
 elements. -/
 @[simps]
-def _root_.units_equiv_ne_zero [group_with_zero α] : units α ≃ {a : α // a ≠ 0} :=
+def _root_.units_equiv_ne_zero [group_with_zero α] : αˣ ≃ {a : α // a ≠ 0} :=
 ⟨λ a, ⟨a, a.ne_zero⟩, λ a, units.mk0 _ a.prop, λ _, units.ext rfl, λ _, subtype.ext rfl⟩
 
 end
 
-instance [monoid α] [fintype α] [decidable_eq α] : fintype (units α) :=
+instance [monoid α] [fintype α] [decidable_eq α] : fintype αˣ :=
 fintype.of_equiv _ (units_equiv_prod_subtype α).symm
 
-lemma fintype.card_units [group_with_zero α] [fintype α] [fintype (units α)] :
-  fintype.card (units α) = fintype.card α - 1 :=
+lemma fintype.card_units [group_with_zero α] [fintype α] [fintype αˣ] :
+  fintype.card αˣ = fintype.card α - 1 :=
 begin
   classical,
   rw [eq_comm, nat.sub_eq_iff_eq_add (fintype.card_pos_iff.2 ⟨(0 : α)⟩),
@@ -1273,6 +1324,10 @@ fintype.of_equiv _ sym.sym_equiv_sym'.symm
   fintype.card (finset α) = 2 ^ (fintype.card α) :=
 finset.card_powerset finset.univ
 
+lemma finset.mem_powerset_len_univ_iff [fintype α] {s : finset α} {k : ℕ} :
+  s ∈ powerset_len k (univ : finset α) ↔ card s = k :=
+mem_powerset_len.trans $ and_iff_right $ subset_univ _
+
 @[simp] lemma finset.univ_filter_card_eq (α : Type*) [fintype α] (k : ℕ) :
   (finset.univ : finset (finset α)).filter (λ s, s.card = k) = finset.univ.powerset_len k :=
 by { ext, simp [finset.mem_powerset_len] }
@@ -1280,22 +1335,6 @@ by { ext, simp [finset.mem_powerset_len] }
 @[simp] lemma fintype.card_finset_len [fintype α] (k : ℕ) :
   fintype.card {s : finset α // s.card = k} = nat.choose (fintype.card α) k :=
 by simp [fintype.subtype_card, finset.card_univ]
-
-@[simp] lemma set.to_finset_univ [fintype α] :
-  (set.univ : set α).to_finset = finset.univ :=
-by { ext, simp only [set.mem_univ, mem_univ, set.mem_to_finset] }
-
-@[simp] lemma set.to_finset_eq_empty_iff {s : set α} [fintype s] :
-  s.to_finset = ∅ ↔ s = ∅ :=
-by simp [ext_iff, set.ext_iff]
-
-@[simp] lemma set.to_finset_empty :
-  (∅ : set α).to_finset = ∅ :=
-set.to_finset_eq_empty_iff.mpr rfl
-
-@[simp] lemma set.to_finset_range [decidable_eq α] [fintype β] (f : β → α) [fintype (set.range f)] :
-  (set.range f).to_finset = finset.univ.image f :=
-by simp [ext_iff]
 
 theorem fintype.card_subtype_le [fintype α] (p : α → Prop) [decidable_pred p] :
   fintype.card {x // p x} ≤ fintype.card α :=
@@ -1740,7 +1779,7 @@ instance [infinite α] : infinite (finset α) := of_injective singleton finset.s
 instance [nonempty α] : infinite (multiset α) :=
 begin
   inhabit α,
-  exact of_injective (multiset.repeat (default α)) (multiset.repeat_injective _),
+  exact of_injective (multiset.repeat default) (multiset.repeat_injective _),
 end
 
 instance [nonempty α] : infinite (list α) :=

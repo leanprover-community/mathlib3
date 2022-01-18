@@ -81,6 +81,10 @@ by { simp only [polar, pi.smul_apply, smul_sub] }
 lemma polar_comm (f : M → R) (x y : M) : polar f x y = polar f y x :=
 by rw [polar, polar, add_comm, sub_sub, sub_sub, add_comm (f x) (f y)]
 
+lemma polar_comp {F : Type*} [ring S] [add_monoid_hom_class F R S] (f : M → R) (g : F) (x y : M) :
+  polar (g ∘ f) x y = g (polar f x y) :=
+by simp only [polar, pi.smul_apply, function.comp_apply, map_sub]
+
 end quadratic_form
 
 variables [module R M] [module R₁ M]
@@ -176,6 +180,11 @@ end
 section of_tower
 
 variables [comm_semiring S] [algebra S R] [module S M] [is_scalar_tower S R M]
+
+variables (Q)
+
+lemma map_smul_of_tower (a : S) (x : M) : Q (a • x) = (a * a) • Q x :=
+by rw [←is_scalar_tower.algebra_map_smul R a x, map_smul, ←ring_hom.map_mul, algebra.smul_def]
 
 @[simp]
 lemma polar_smul_left_of_tower (a : S) (x y : M) :
@@ -355,6 +364,20 @@ def comp (Q : quadratic_form R N) (f : M →ₗ[R] N) :
 
 @[simp] lemma comp_apply (Q : quadratic_form R N) (f : M →ₗ[R] N) (x : M) :
   (Q.comp f) x = Q (f x) := rfl
+
+/-- Compose a quadratic form with a linear function on the left. -/
+@[simps {simp_rhs := tt}]
+def _root_.linear_map.comp_quadratic_form {S : Type*}
+  [comm_ring S] [algebra S R] [module S M] [is_scalar_tower S R M]
+  (f : R →ₗ[S] S) (Q : quadratic_form R M) :
+  quadratic_form S M :=
+{ to_fun := f ∘ Q,
+  to_fun_smul := λ b x, by rw [function.comp_apply, Q.map_smul_of_tower b x, f.map_smul,
+                               smul_eq_mul],
+  polar_add_left' := λ x x' y, by simp only [polar_comp, f.map_add, polar_add_left],
+  polar_smul_left' := λ b x y, by simp only [polar_comp, f.map_smul, polar_smul_left_of_tower],
+  polar_add_right' := λ x y y', by simp only [polar_comp, f.map_add, polar_add_right],
+  polar_smul_right' := λ b x y, by simp only [polar_comp, f.map_smul, polar_smul_right_of_tower], }
 
 end comp
 
@@ -688,7 +711,7 @@ lemma pos_def.add (Q Q' : quadratic_form R₂ M) (hQ : pos_def Q) (hQ' : pos_def
 lemma lin_mul_lin_self_pos_def {R} [linear_ordered_comm_ring R] [module R M]
   (f : M →ₗ[R] R) (hf : linear_map.ker f = ⊥) :
   pos_def (lin_mul_lin f f) :=
-λ x hx, mul_self_pos (λ h, hx (linear_map.ker_eq_bot.mp hf (by rw [h, linear_map.map_zero])))
+λ x hx, mul_self_pos.2 (λ h, hx (linear_map.ker_eq_bot.mp hf (by rw [h, linear_map.map_zero])))
 
 end pos_def
 end quadratic_form
@@ -992,7 +1015,7 @@ let ⟨v, hv₁⟩ := exists_orthogonal_basis (associated_is_symm _ Q) in
 
 lemma equivalent_weighted_sum_squares_units_of_nondegenerate'
   (Q : quadratic_form K V) (hQ : (associated Q).nondegenerate) :
-  ∃ w : fin (finite_dimensional.finrank K V) → units K,
+  ∃ w : fin (finite_dimensional.finrank K V) → Kˣ,
     equivalent Q (weighted_sum_squares K w) :=
 begin
   obtain ⟨v, hv₁⟩ := exists_orthogonal_basis (associated_is_symm _ Q),

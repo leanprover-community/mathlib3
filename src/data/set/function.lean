@@ -692,11 +692,41 @@ theorem inv_on.bij_on (h : inv_on f' f s t) (hf : maps_to f s t) (hf' : maps_to 
   bij_on f s t :=
 ⟨hf, h.left.inj_on, h.right.surj_on hf'⟩
 
+end set
+
 /-! ### `inv_fun_on` is a left/right inverse -/
+
+namespace function
+
+variables [nonempty α] {s : set α} {f : α → β} {a : α} {b : β}
+local attribute [instance, priority 10] classical.prop_decidable
+
+/-- Construct the inverse for a function `f` on domain `s`. This function is a right inverse of `f`
+on `f '' s`. For a computable version, see `function.injective.inv_of_mem_range`. -/
+noncomputable def inv_fun_on (f : α → β) (s : set α) (b : β) : α :=
+if h : ∃a, a ∈ s ∧ f a = b then classical.some h else classical.choice ‹nonempty α›
+
+theorem inv_fun_on_pos (h : ∃a∈s, f a = b) : inv_fun_on f s b ∈ s ∧ f (inv_fun_on f s b) = b :=
+by rw [bex_def] at h; rw [inv_fun_on, dif_pos h]; exact classical.some_spec h
+
+theorem inv_fun_on_mem (h : ∃a∈s, f a = b) : inv_fun_on f s b ∈ s := (inv_fun_on_pos h).left
+
+theorem inv_fun_on_eq (h : ∃a∈s, f a = b) : f (inv_fun_on f s b) = b := (inv_fun_on_pos h).right
+
+theorem inv_fun_on_neg (h : ¬ ∃a∈s, f a = b) : inv_fun_on f s b = classical.choice ‹nonempty α› :=
+by rw [bex_def] at h; rw [inv_fun_on, dif_neg h]
+
+end function
+
+namespace set
+open function
+
+variables {s s₁ s₂ : set α} {t : set β} {f : α → β}
 
 theorem inj_on.left_inv_on_inv_fun_on [nonempty α] (h : inj_on f s) :
   left_inv_on (inv_fun_on f s) f s :=
-λ x hx, inv_fun_on_eq' h hx
+λ a ha, have ∃a'∈s, f a' = f a, from ⟨a, ha, rfl⟩,
+  h (inv_fun_on_mem this) ha (inv_fun_on_eq this)
 
 lemma inj_on.inv_fun_on_image [nonempty α] (h : inj_on f s₂) (ht : s₁ ⊆ s₂) :
   (inv_fun_on f s₂) '' (f '' s₁) = s₁ :=
@@ -921,8 +951,7 @@ lemma injective_piecewise_iff {f g : α → β} :
 begin
   rw [injective_iff_inj_on_univ, ← union_compl_self s, inj_on_union (@disjoint_compl_right _ s _),
     (piecewise_eq_on s f g).inj_on_iff, (piecewise_eq_on_compl s f g).inj_on_iff],
-  refine and_congr iff.rfl (and_congr iff.rfl $ forall_congr $ λ x, forall_congr $ λ hx,
-    forall_congr $ λ y, forall_congr $ λ hy, _),
+  refine and_congr iff.rfl (and_congr iff.rfl $ forall₄_congr $ λ x hx y hy, _),
   rw [piecewise_eq_of_mem s f g hx, piecewise_eq_of_not_mem s f g hy]
 end
 

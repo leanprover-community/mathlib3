@@ -30,7 +30,7 @@ dual, Fréchet-Riesz
 -/
 
 noncomputable theory
-open_locale classical
+open_locale classical complex_conjugate
 universes u v
 
 namespace inner_product_space
@@ -39,7 +39,7 @@ open is_R_or_C continuous_linear_map
 variables (𝕜 : Type*)
 variables (E : Type*) [is_R_or_C 𝕜] [inner_product_space 𝕜 E]
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 E _ x y
-local postfix `†`:90 := star_ring_aut
+local postfix `†`:90 := star_ring_end _
 
 /--
 An element `x` of an inner product space `E` induces an element of the dual space `dual 𝕜 E`,
@@ -96,7 +96,7 @@ begin
       exact sub_eq_zero.mp (eq.symm h₃) },
     have h₄ := calc
       ⟪((ℓ z)† / ⟪z, z⟫) • z, x⟫ = (ℓ z) / ⟪z, z⟫ * ⟪z, x⟫
-            : by simp [inner_smul_left, ring_equiv.map_div, conj_conj]
+            : by simp [inner_smul_left, ring_hom.map_div, conj_conj]
                             ... = (ℓ z) * ⟪z, x⟫ / ⟪z, z⟫
             : by rw [←div_mul_eq_mul_div]
                             ... = (ℓ x) * ⟪z, z⟫ / ⟪z, z⟫
@@ -120,6 +120,48 @@ variables {E}
 begin
   rw ← to_dual_apply,
   simp only [linear_isometry_equiv.apply_symm_apply],
+end
+
+variable (𝕜)
+include 𝕜
+lemma ext_inner_left {x y : E} (h : ∀ v, ⟪v, x⟫ = ⟪v, y⟫) : x = y :=
+begin
+  apply (to_dual 𝕜 E).map_eq_iff.mp,
+  ext v,
+  rw [to_dual_apply, to_dual_apply, ←inner_conj_sym],
+  nth_rewrite_rhs 0 [←inner_conj_sym],
+  exact congr_arg conj (h v)
+end
+
+lemma ext_inner_right {x y : E} (h : ∀ v, ⟪x, v⟫ = ⟪y, v⟫) : x = y :=
+begin
+  refine ext_inner_left 𝕜 (λ v, _),
+  rw [←inner_conj_sym],
+  nth_rewrite_rhs 0 [←inner_conj_sym],
+  exact congr_arg conj (h v)
+end
+omit 𝕜
+variable {𝕜}
+
+lemma ext_inner_left_basis {ι : Type*} {x y : E} (b : basis ι 𝕜 E)
+  (h : ∀ i : ι, ⟪b i, x⟫ = ⟪b i, y⟫) : x = y :=
+begin
+  apply (to_dual 𝕜 E).map_eq_iff.mp,
+  refine (function.injective.eq_iff continuous_linear_map.coe_injective).mp (basis.ext b _),
+  intro i,
+  simp only [to_dual_apply, continuous_linear_map.coe_coe],
+  rw [←inner_conj_sym],
+  nth_rewrite_rhs 0 [←inner_conj_sym],
+  exact congr_arg conj (h i)
+end
+
+lemma ext_inner_right_basis {ι : Type*} {x y : E} (b : basis ι 𝕜 E)
+  (h : ∀ i : ι, ⟪x, b i⟫ = ⟪y, b i⟫) : x = y :=
+begin
+  refine ext_inner_left_basis b (λ i, _),
+  rw [←inner_conj_sym],
+  nth_rewrite_rhs 0 [←inner_conj_sym],
+  exact congr_arg conj (h i)
 end
 
 end inner_product_space

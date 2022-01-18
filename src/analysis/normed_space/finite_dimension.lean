@@ -7,6 +7,7 @@ import analysis.normed_space.affine_isometry
 import analysis.normed_space.operator_norm
 import analysis.asymptotics.asymptotic_equivalent
 import linear_algebra.matrix.to_lin
+import topology.algebra.matrix
 
 /-!
 # Finite dimensional normed spaces over complete fields
@@ -84,7 +85,7 @@ open affine_map
 variables {𝕜 : Type*} {V₁ V₂  : Type*} {P₁ P₂ : Type*}
   [normed_field 𝕜]
   [normed_group V₁] [semi_normed_group V₂]
-  [normed_space 𝕜 V₁] [semi_normed_space 𝕜 V₂]
+  [normed_space 𝕜 V₁] [normed_space 𝕜 V₂]
   [metric_space P₁] [pseudo_metric_space P₂]
   [normed_add_torsor V₁ P₁] [semi_normed_add_torsor V₂ P₂]
 
@@ -240,6 +241,28 @@ theorem affine_map.continuous_of_finite_dimensional {PE PF : Type*}
   [finite_dimensional 𝕜 E] (f : PE →ᵃ[𝕜] PF) : continuous f :=
 affine_map.continuous_linear_iff.1 f.linear.continuous_of_finite_dimensional
 
+lemma continuous_linear_map.continuous_det :
+  continuous (λ (f : E →L[𝕜] E), f.det) :=
+begin
+  change continuous (λ (f : E →L[𝕜] E), (f : E →ₗ[𝕜] E).det),
+  classical,
+  by_cases h : ∃ (s : finset E), nonempty (basis ↥s 𝕜 E),
+  { rcases h with ⟨s, ⟨b⟩⟩,
+    haveI : finite_dimensional 𝕜 E := finite_dimensional.of_finset_basis b,
+    letI : normed_group (matrix s s 𝕜) := matrix.normed_group,
+    letI : normed_space 𝕜 (matrix s s 𝕜) := matrix.normed_space,
+    simp_rw linear_map.det_eq_det_to_matrix_of_finset b,
+    have A : continuous (λ (f : E →L[𝕜] E), linear_map.to_matrix b b f),
+    { change continuous ((linear_map.to_matrix b b).to_linear_map.comp
+        (continuous_linear_map.coe_lm 𝕜)),
+      exact linear_map.continuous_of_finite_dimensional _ },
+    convert continuous_det.comp A,
+    ext f,
+    congr },
+  { unfold linear_map.det,
+    simpa only [h, monoid_hom.one_apply, dif_neg, not_false_iff] using continuous_const }
+end
+
 namespace linear_map
 
 variables [finite_dimensional 𝕜 E]
@@ -266,6 +289,7 @@ end linear_map
 
 /-- The continuous linear equivalence induced by a linear equivalence on a finite dimensional
 space. -/
+@[simps]
 def linear_equiv.to_continuous_linear_equiv [finite_dimensional 𝕜 E] (e : E ≃ₗ[𝕜] F) : E ≃L[𝕜] F :=
 { continuous_to_fun := e.to_linear_map.continuous_of_finite_dimensional,
   continuous_inv_fun := begin
@@ -611,11 +635,24 @@ end proper_field
 
 /- Over the real numbers, we can register the previous statement as an instance as it will not
 cause problems in instance resolution since the properness of `ℝ` is already known. -/
+@[priority 900]
 instance finite_dimensional.proper_real
   (E : Type u) [normed_group E] [normed_space ℝ E] [finite_dimensional ℝ E] : proper_space E :=
 finite_dimensional.proper ℝ E
 
-attribute [instance, priority 900] finite_dimensional.proper_real
+/-- If `E` is a finite dimensional normed real vector space, `x : E`, and `s` is a neighborhood of
+`x` that is not equal to the whole space, then there exists a point `y ∈ frontier s` at distance
+`metric.inf_dist x sᶜ` from `x`. -/
+lemma exists_mem_frontier_inf_dist_compl_eq_dist {E : Type*} [normed_group E]
+  [normed_space ℝ E] [finite_dimensional ℝ E] {x : E} {s : set E} (hx : x ∈ s) (hs : s ≠ univ) :
+  ∃ y ∈ frontier s, metric.inf_dist x sᶜ = dist x y :=
+begin
+  rcases metric.exists_mem_closure_inf_dist_eq_dist (nonempty_compl.2 hs) x with ⟨y, hys, hyd⟩,
+  rw closure_compl at hys,
+  refine ⟨y, ⟨metric.closed_ball_inf_dist_compl_subset_closure hx hs $
+    metric.mem_closed_ball.2 $ ge_of_eq _, hys⟩, hyd⟩,
+  rwa dist_comm
+end
 
 /-- In a finite dimensional vector space over `ℝ`, the series `∑ x, ∥f x∥` is unconditionally
 summable if and only if the series `∑ x, f x` is unconditionally summable. One implication holds in

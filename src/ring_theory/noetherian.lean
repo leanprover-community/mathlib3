@@ -138,6 +138,11 @@ end
 theorem fg_bot : (⊥ : submodule R M).fg :=
 ⟨∅, by rw [finset.coe_empty, span_empty]⟩
 
+lemma _root_.subalgebra.fg_bot_to_submodule {R A : Type*}
+  [comm_semiring R] [semiring A] [algebra R A] :
+  (⊥ : subalgebra R A).to_submodule.fg :=
+⟨{1}, by simp [algebra.to_submodule_bot] ⟩
+
 theorem fg_span {s : set M} (hs : finite s) : fg (span R s) :=
 ⟨hs.to_finset, by rw [hs.coe_to_finset]⟩
 
@@ -516,7 +521,7 @@ by rw [is_noetherian_iff_well_founded, well_founded.well_founded_iff_has_max']
 
 /-- A module is Noetherian iff every increasing chain of submodules stabilizes. -/
 theorem monotone_stabilizes_iff_noetherian :
-  (∀ (f : ℕ →ₘ submodule R M), ∃ n, ∀ m, n ≤ m → f n = f m)
+  (∀ (f : ℕ →o submodule R M), ∃ n, ∀ m, n ≤ m → f n = f m)
     ↔ is_noetherian R M :=
 by rw [is_noetherian_iff_well_founded, well_founded.monotone_chain_condition]
 

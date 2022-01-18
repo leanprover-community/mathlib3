@@ -38,7 +38,7 @@ protected def product (s : finset α) (t : finset β) : finset (α × β) := ⟨
 @[simp] lemma mem_product {p : α × β} : p ∈ s.product t ↔ p.1 ∈ s ∧ p.2 ∈ t := mem_product
 
 @[simp, norm_cast] lemma coe_product (s : finset α) (t : finset β) :
-  (s.product t : set (α × β)) = (s : set α).prod t :=
+  (s.product t : set (α × β)) = (s : set α) ×ˢ (t : set β) :=
 set.ext $ λ x, finset.mem_product
 
 lemma subset_product [decidable_eq α] [decidable_eq β] {s : finset (α × β)} :
@@ -74,7 +74,8 @@ multiset.card_product _ _
 
 lemma filter_product (p : α → Prop) (q : β → Prop) [decidable_pred p] [decidable_pred q] :
   (s.product t).filter (λ (x : α × β), p x.1 ∧ q x.2) = (s.filter p).product (t.filter q) :=
-by { ext ⟨a, b⟩, simp only [mem_filter, mem_product], finish }
+by { ext ⟨a, b⟩, simp only [mem_filter, mem_product],
+     exact and_and_and_comm (a ∈ s) (b ∈ t) (p a) (q b) }
 
 lemma filter_product_card (s : finset α) (t : finset β)
   (p : α → Prop) (q : β → Prop) [decidable_pred p] [decidable_pred q] :
@@ -84,8 +85,12 @@ begin
   classical,
   rw [← card_product, ← card_product, ← filter_product, ← filter_product, ← card_union_eq],
   { apply congr_arg, ext ⟨a, b⟩, simp only [filter_union_right, mem_filter, mem_product],
-    split; intros; finish },
-  { rw disjoint_iff, change _ ∩ _ = ∅, ext ⟨a, b⟩, rw mem_inter, finish }
+    split; intros h; use h.1,
+    simp only [function.comp_app, and_self, h.2, em (q b)],
+    cases h.2; { try { simp at h_1 }, simp [h_1] } },
+  { rw disjoint_iff, change _ ∩ _ = ∅, ext ⟨a, b⟩, rw mem_inter,
+    simp only [and_imp, mem_filter, not_and, not_not, function.comp_app, iff_false, mem_product,
+     not_mem_empty], intros, assumption }
 end
 
 lemma empty_product (t : finset β) : (∅ : finset α).product t = ∅ := rfl
@@ -104,6 +109,10 @@ let ⟨xy, hxy⟩ := h in ⟨xy.2, (mem_product.1 hxy).2⟩
 
 @[simp] lemma nonempty_product : (s.product t).nonempty ↔ s.nonempty ∧ t.nonempty :=
 ⟨λ h, ⟨h.fst, h.snd⟩, λ h, h.1.product h.2⟩
+
+@[simp] lemma product_eq_empty {s : finset α} {t : finset β} : s.product t = ∅ ↔ s = ∅ ∨ t = ∅ :=
+by rw [←not_nonempty_iff_eq_empty, nonempty_product, not_and_distrib, not_nonempty_iff_eq_empty,
+  not_nonempty_iff_eq_empty]
 
 @[simp] lemma singleton_product {a : α} :
   ({a} : finset α).product t = t.map ⟨prod.mk a, prod.mk.inj_left _⟩ :=
@@ -139,21 +148,26 @@ for `a, b ∈ s`. -/
 def off_diag := (s.product s).filter (λ (a : α × α), a.fst ≠ a.snd)
 
 @[simp] lemma mem_diag (x : α × α) : x ∈ s.diag ↔ x.1 ∈ s ∧ x.1 = x.2 :=
-by { simp only [diag, mem_filter, mem_product], split; intros; finish }
+by { simp only [diag, mem_filter, mem_product], split; intros h;
+     simp only [h, and_true, eq_self_iff_true, and_self], rw ←h.2, exact h.1 }
 
 @[simp] lemma mem_off_diag (x : α × α) : x ∈ s.off_diag ↔ x.1 ∈ s ∧ x.2 ∈ s ∧ x.1 ≠ x.2 :=
-by { simp only [off_diag, mem_filter, mem_product], split; intros; finish }
+by { simp only [off_diag, mem_filter, mem_product], split; intros h;
+     simp only [h, ne.def, not_false_iff, and_self] }
 
 @[simp] lemma diag_card : (diag s).card = s.card :=
 begin
-  suffices : diag s = s.image (λ a, (a, a)), { rw this, apply card_image_of_inj_on, finish },
-  ext ⟨a₁, a₂⟩, rw mem_diag, split; intros; finish,
+  suffices : diag s = s.image (λ a, (a, a)),
+  { rw this, apply card_image_of_inj_on, exact λ x1 h1 x2 h2 h3, (prod.mk.inj h3).1 },
+  ext ⟨a₁, a₂⟩, rw mem_diag, split; intros h; rw finset.mem_image at *,
+  { use [a₁, h.1, prod.mk.inj_iff.mpr ⟨rfl, h.2⟩] },
+  { rcases h with ⟨a, h1, h2⟩, have h := prod.mk.inj h2, rw [←h.1, ←h.2], use h1 },
 end
 
 @[simp] lemma off_diag_card : (off_diag s).card = s.card * s.card - s.card :=
 begin
   suffices : (diag s).card + (off_diag s).card = s.card * s.card,
-  { nth_rewrite 2 ← s.diag_card, finish },
+  { nth_rewrite 2 ← s.diag_card, simp only [diag_card] at *, rw tsub_eq_of_eq_add_rev, rw this },
   rw ← card_product,
   apply filter_card_add_filter_neg_card_eq_card,
 end
@@ -161,6 +175,11 @@ end
 @[simp] lemma diag_empty : (∅ : finset α).diag = ∅ := rfl
 
 @[simp] lemma off_diag_empty : (∅ : finset α).off_diag = ∅ := rfl
+
+@[simp] lemma diag_union_off_diag : s.diag ∪ s.off_diag = s.product s :=
+filter_union_filter_neg_eq _ _
+
+@[simp] lemma disjoint_diag_off_diag : disjoint s.diag s.off_diag := disjoint_filter_filter_neg _ _
 
 end diag
 end finset

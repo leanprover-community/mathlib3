@@ -49,6 +49,13 @@ lemma mem_carrier {s : subalgebra R A} {x : A} : x ∈ s.carrier ↔ x ∈ s := 
 
 @[simp] lemma coe_to_subsemiring (S : subalgebra R A) : (↑S.to_subsemiring : set A) = S := rfl
 
+theorem to_subsemiring_injective :
+  function.injective (to_subsemiring : subalgebra R A → subsemiring A) :=
+λ S T h, ext $ λ x, by rw [← mem_to_subsemiring, ← mem_to_subsemiring, h]
+
+theorem to_subsemiring_inj {S U : subalgebra R A} : S.to_subsemiring = U.to_subsemiring ↔ S = U :=
+to_subsemiring_injective.eq_iff
+
 /-- Copy of a subalgebra with a new `carrier` equal to the old one. Useful to fix definitional
 equalities. -/
 protected def copy (S : subalgebra R A) (s : set A) (hs : s = ↑S) : subalgebra R A :=
@@ -161,6 +168,14 @@ def to_subring {R : Type u} {A : Type v} [comm_ring R] [ring A] [algebra R A] (S
 
 @[simp] lemma coe_to_subring {R : Type u} {A : Type v} [comm_ring R] [ring A] [algebra R A]
   (S : subalgebra R A) : (↑S.to_subring : set A) = S := rfl
+
+theorem to_subring_injective {R : Type u} {A : Type v} [comm_ring R] [ring A] [algebra R A] :
+  function.injective (to_subring : subalgebra R A → subring A) :=
+λ S T h, ext $ λ x, by rw [← mem_to_subring, ← mem_to_subring, h]
+
+theorem to_subring_inj {R : Type u} {A : Type v} [comm_ring R] [ring A] [algebra R A]
+  {S U : subalgebra R A} : S.to_subring = U.to_subring ↔ S = U :=
+to_subring_injective.eq_iff
 
 instance : inhabited S := ⟨(0 : S.to_subsemiring)⟩
 
@@ -348,6 +363,14 @@ lemma mem_map {S : subalgebra R A} {f : A →ₐ[R] B} {y : B} :
   y ∈ map S f ↔ ∃ x ∈ S, f x = y :=
 subsemiring.mem_map
 
+lemma map_to_submodule {S : subalgebra R A} {f : A →ₐ[R] B} :
+  (S.map f).to_submodule = S.to_submodule.map f.to_linear_map :=
+set_like.coe_injective rfl
+
+lemma map_to_subsemiring {S : subalgebra R A} {f : A →ₐ[R] B} :
+  (S.map f).to_subsemiring = S.to_subsemiring.map f.to_ring_hom :=
+set_like.coe_injective rfl
+
 @[simp] lemma coe_map (S : subalgebra R A) (f : A →ₐ[R] B) :
   (S.map f : set B) = f '' S :=
 rfl
@@ -530,6 +553,19 @@ set.mem_univ x
 
 @[simp] lemma top_to_subsemiring : (⊤ : subalgebra R A).to_subsemiring = ⊤ := rfl
 
+@[simp] lemma top_to_subring {R A : Type*} [comm_ring R] [ring A] [algebra R A] :
+  (⊤ : subalgebra R A).to_subring = ⊤ := rfl
+
+@[simp] lemma to_submodule_eq_top {S : subalgebra R A} : S.to_submodule = ⊤ ↔ S = ⊤ :=
+subalgebra.to_submodule_injective.eq_iff' top_to_submodule
+
+@[simp] lemma to_subsemiring_eq_top {S : subalgebra R A} : S.to_subsemiring = ⊤ ↔ S = ⊤ :=
+subalgebra.to_subsemiring_injective.eq_iff' top_to_subsemiring
+
+@[simp] lemma to_subring_eq_top {R A : Type*} [comm_ring R] [ring A] [algebra R A]
+  {S : subalgebra R A} : S.to_subring = ⊤ ↔ S = ⊤ :=
+subalgebra.to_subring_injective.eq_iff' top_to_subring
+
 lemma mem_sup_left {S T : subalgebra R A} : ∀ {x : A}, x ∈ S → x ∈ S ⊔ T :=
 show S ≤ S ⊔ T, from le_sup_left
 
@@ -559,7 +595,7 @@ lemma mem_inf {S T : subalgebra R A} {x : A} : x ∈ S ⊓ T ↔ x ∈ S ∧ x �
 lemma coe_Inf (S : set (subalgebra R A)) : (↑(Inf S) : set A) = ⋂ s ∈ S, ↑s := Inf_image
 
 lemma mem_Inf {S : set (subalgebra R A)} {x : A} : x ∈ Inf S ↔ ∀ p ∈ S, x ∈ p :=
-by simp only [← set_like.mem_coe, coe_Inf, set.mem_bInter_iff]
+by simp only [← set_like.mem_coe, coe_Inf, set.mem_Inter₂]
 
 @[simp] lemma Inf_to_submodule (S : set (subalgebra R A)) :
   (Inf S).to_submodule = Inf (subalgebra.to_submodule '' S) :=
@@ -633,14 +669,14 @@ alg_equiv.symm $ alg_equiv.of_bijective (algebra.of_id R _)
  λ ⟨y, hy⟩, let ⟨x, hx⟩ := algebra.mem_bot.1 hy in ⟨x, subtype.eq hx⟩⟩
 
 /-- The bottom subalgebra is isomorphic to the field. -/
+@[simps symm_apply]
 noncomputable def bot_equiv (F R : Type*) [field F] [semiring R] [nontrivial R] [algebra F R] :
   (⊥ : subalgebra F R) ≃ₐ[F] F :=
 bot_equiv_of_injective (ring_hom.injective _)
 
 /-- The top subalgebra is isomorphic to the field. -/
-noncomputable def top_equiv : (⊤ : subalgebra R A) ≃ₐ[R] A :=
-(alg_equiv.of_bijective to_top ⟨λ _ _, subtype.mk.inj,
-  λ x, ⟨x.val, by { ext, refl }⟩⟩ : A ≃ₐ[R] (⊤ : subalgebra R A)).symm
+@[simps] def top_equiv : (⊤ : subalgebra R A) ≃ₐ[R] A :=
+alg_equiv.of_alg_hom (subalgebra.val ⊤) to_top rfl $ alg_hom.ext $ λ x, subtype.ext rfl
 
 end algebra
 
@@ -757,12 +793,12 @@ variables (S₁ : subalgebra R B)
 
 /-- The product of two subalgebras is a subalgebra. -/
 def prod : subalgebra R (A × B) :=
-{ carrier := set.prod S S₁,
+{ carrier := (S : set A) ×ˢ (S₁ : set B),
   algebra_map_mem' := λ r, ⟨algebra_map_mem _ _, algebra_map_mem _ _⟩,
   .. S.to_subsemiring.prod S₁.to_subsemiring }
 
 @[simp] lemma coe_prod :
-  (prod S S₁ : set (A × B)) = set.prod S S₁ := rfl
+  (prod S S₁ : set (A × B)) = (S : set A) ×ˢ (S₁ : set B):= rfl
 
 lemma prod_to_submodule :
   (S.prod S₁).to_submodule = S.to_submodule.prod S₁.to_submodule := rfl
@@ -962,6 +998,42 @@ lemma smul_mem_pointwise_smul (m : R') (r : A) (S : subalgebra R A) : r ∈ S �
 (set.smul_mem_smul_set : _ → _ ∈ m • (S : set A))
 
 end pointwise
+
+section center
+
+lemma _root_.set.algebra_map_mem_center (r : R) : algebra_map R A r ∈ set.center A :=
+by simp [algebra.commutes, set.mem_center_iff]
+
+variables (R A)
+
+/-- The center of an algebra is the set of elements which commute with every element. They form a
+subalgebra. -/
+def center : subalgebra R A :=
+{ algebra_map_mem' := set.algebra_map_mem_center,
+  .. subsemiring.center A }
+
+lemma coe_center : (center R A : set A) = set.center A := rfl
+
+@[simp] lemma center_to_subsemiring :
+  (center R A).to_subsemiring = subsemiring.center A :=
+rfl
+
+@[simp] lemma center_to_subring (R A : Type*) [comm_ring R] [ring A] [algebra R A] :
+  (center R A).to_subring = subring.center A :=
+rfl
+
+@[simp] lemma center_eq_top (A : Type*) [comm_semiring A] [algebra R A] : center R A = ⊤ :=
+set_like.coe_injective (set.center_eq_univ A)
+
+variables {R A}
+
+instance : comm_semiring (center R A) := subsemiring.center.comm_semiring
+
+instance {A : Type*} [ring A] [algebra R A] : comm_ring (center R A) := subring.center.comm_ring
+
+lemma mem_center_iff {a : A} : a ∈ center R A ↔ ∀ (b : A), b*a = a*b := iff.rfl
+
+end center
 
 end subalgebra
 

@@ -366,7 +366,7 @@ lemma linear_map.to_matrix_mul (f g : M₁ →ₗ[R] M₁) :
 by { rw [show (@has_mul.mul (M₁ →ₗ[R] M₁) _) = linear_map.comp, from rfl,
          linear_map.to_matrix_comp v₁ v₁ v₁ f g] }
 
-@[simp] lemma linear_map.to_matrix_algebra_map (x : R) :
+@[simp] lemma linear_map.to_matrix_algebra_map [module Rᵐᵒᵖ M₁] [is_central_scalar R M₁] (x : R) :
   linear_map.to_matrix v₁ v₁ (algebra_map R (module.End R M₁) x) = scalar n x :=
 by simp [module.algebra_map_End_eq_smul_id, linear_map.to_matrix_id]
 
@@ -407,6 +407,8 @@ def matrix.to_lin_of_inv [decidable_eq m]
   left_inv := λ x, by rw [← matrix.to_lin_mul_apply, hM'M, matrix.to_lin_one, id_apply],
   right_inv := λ x, by rw [← matrix.to_lin_mul_apply, hMM', matrix.to_lin_one, id_apply],
   .. matrix.to_lin v₁ v₂ M }
+
+variables [module Rᵐᵒᵖ M₁] [is_central_scalar R M₁]
 
 /-- Given a basis of a module `M₁` over a commutative ring `R`, we get an algebra
 equivalence between linear maps `M₁ →ₗ M₁` and square matrices over `R` indexed by the basis. -/
@@ -629,6 +631,10 @@ def alg_equiv_matrix' [fintype n] : module.End R (n → R) ≃ₐ[R] matrix n n 
   commutes' := λ r, by { change (r • (linear_map.id : module.End R _)).to_matrix' = r • 1,
                          rw ←linear_map.to_matrix'_id, refl, apply_instance },
   ..linear_map.to_matrix' }
+
+variables [module Rᵐᵒᵖ M] [is_central_scalar R M]
+variables [module Rᵐᵒᵖ M₁] [is_central_scalar R M₁]
+variables [module Rᵐᵒᵖ M₂] [is_central_scalar R M₂]
 
 /-- A linear equivalence of two modules induces an equivalence of algebras of their
 endomorphisms. -/

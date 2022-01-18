@@ -95,6 +95,20 @@ begin
   exact add_submonoid.mul_induction_on hr hm h0 ha,
 end
 
+/-- A dependent version of `mul_induction_on`. -/
+@[elab_as_eliminator] protected theorem mul_induction_on'
+  {C : Π r, r ∈ M * N → Prop}
+  (hm : ∀ (m ∈ M) (n ∈ N), C (m * n) (mul_mem_mul ‹_› ‹_›))
+  (h0 : C 0 (zero_mem _))
+  (ha : ∀ x hx y hy, C x hx → C y hy → C (x + y) (add_mem _ ‹_› ‹_›))
+  {r : A} (hr : r ∈ M * N) : C r hr :=
+begin
+  refine exists.elim _ (λ (hr : r ∈ M * N) (hc : C r hr), hc),
+  exact submodule.mul_induction_on hr
+    (λ x hx y hy, ⟨_, hm _ hx _ hy⟩)
+    ⟨_, h0⟩ (λ x y ⟨_, hx⟩ ⟨_, hy⟩, ⟨_, ha _ _ _ _ hx hy⟩),
+end
+
 variables R
 theorem span_mul_span : span R S * span R T = span R (S * T) :=
 begin
@@ -248,6 +262,40 @@ begin
     refine set.subset.trans (set.mul_subset_mul (subset.refl _) ih) _,
     apply mul_subset_mul }
 end
+
+/-- Dependent version of `submodule.pow_induction_on`. -/
+protected theorem pow_induction_on'
+  {C : Π (n : ℕ) x, x ∈ M ^ n → Prop}
+  (hr : ∀ r : R, C 0 (algebra_map _ _ r) (algebra_map_mem r))
+  (hadd : ∀ x y i hx hy, C i x hx → C i y hy → C i (x + y) (add_mem _ ‹_› ‹_›))
+  (hmul : ∀ (m ∈ M) i x hx, C i x hx → C (i.succ) (m * x) (mul_mem_mul H hx))
+  {x : A} {n : ℕ} (hx : x ∈ M ^ n) : C n x hx :=
+begin
+  have h0 : ∀ i, C i 0 (zero_mem _),
+  { intro i,
+    induction i with i ih,
+    { simpa using hr 0, },
+    simpa using hmul (0 : A) (zero_mem _) i 0 _ ih },
+  induction n with n n_ih generalizing x,
+  { rw pow_zero at hx,
+    obtain ⟨r, rfl⟩ := hx,
+    exact hr r, },
+  refine submodule.mul_induction_on' (λ m hm x ih, _) _ _ hx,
+  { exact hmul _ hm _ _ _ (n_ih ih), },
+  { apply h0 },
+  { intros x hx y hy Cx Cy,
+    apply hadd _ _ _ _ _ Cx Cy, },
+end
+/-- To show a property on elements of `M ^ n` holds, it suffices to show that it holds for scalars,
+is closed under addition, and holds for `m * x` where `m ∈ M` and it holds for `x` -/
+protected theorem pow_induction_on
+  {C : A → Prop}
+  (hr : ∀ r : R, C (algebra_map _ _ r))
+  (hadd : ∀ x y, C x → C y → C (x + y))
+  (hmul : ∀ (m ∈ M) x, C x → C (m * x))
+  {x : A} {n : ℕ} (hx : x ∈ M ^ n) : C x :=
+submodule.pow_induction_on' M
+  (by exact hr) (λ x y i hx hy, hadd x y) (λ m hm i x hx, hmul _ hm _) hx
 
 /-- `span` is a semiring homomorphism (recall multiplication is pointwise multiplication of subsets
 on either side). -/

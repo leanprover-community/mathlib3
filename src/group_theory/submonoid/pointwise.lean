@@ -335,6 +335,7 @@ theorem mul_le {M N P : add_submonoid R} : M * N ≤ P ↔ ∀ (m ∈ M) (n ∈ 
 open_locale pointwise
 
 variables R
+-- this proof is copied directly from `submodule.span_mul_span`
 theorem closure_mul_closure (S T : set R) : closure S * closure T = closure (S * T) :=
 begin
   apply le_antisymm,

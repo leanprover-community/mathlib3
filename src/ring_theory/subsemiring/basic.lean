@@ -40,7 +40,7 @@ instance subsemiring_class.add_submonoid_class (S : Type*) (R : out_param $ Type
   add_submonoid_class S R :=
 { .. h }
 
-variables [non_assoc_semiring R] [set_like S R] [hSR : subsemiring_class S R] (s : S)
+variables [set_like S R] [hSR : subsemiring_class S R] (s : S)
 include hSR
 
 lemma coe_nat_mem (n : ℕ) : (n : R) ∈ s :=

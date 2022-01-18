@@ -331,6 +331,11 @@ begin
   simp only [closure_singleton_le_iff_mem],
 end
 
+@[to_additive]
+lemma supr_eq_closure {ι : Sort*} (p : ι → submonoid M) :
+  (⨆ (i : ι), p i) = submonoid.closure (⋃ (i : ι), ↑(p i)) :=
+by simp_rw [submonoid.closure_Union, submonoid.closure_eq]
+
 end submonoid
 
 namespace monoid_hom

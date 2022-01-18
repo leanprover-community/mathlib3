@@ -223,7 +223,7 @@ lemma sup_mem
   (s : set α) (w₁ : ⊥ ∈ s) (w₂ : ∀ x y ∈ s, x ⊔ y ∈ s)
   {ι : Type*} (t : finset ι) (p : ι → α) (h : ∀ i ∈ t, p i ∈ s) :
   t.sup p ∈ s :=
-@sup_induction _ _ _ _ _ _ (∈ s) w₁ w₂ h
+@sup_induction _ _ _ _ _ _ (∈ s) w₁ (λ x y hx hy, w₂ x hx y hy) h
 
 @[simp]
 lemma sup_eq_bot_iff (f : β → α)
@@ -400,7 +400,7 @@ lemma inf_mem
   (s : set α) (w₁ : ⊤ ∈ s) (w₂ : ∀ x y ∈ s, x ⊓ y ∈ s)
   {ι : Type*} (t : finset ι) (p : ι → α) (h : ∀ i ∈ t, p i ∈ s) :
   t.inf p ∈ s :=
-@inf_induction _ _ _ _ _ _ (∈ s) w₁ w₂ h
+@inf_induction _ _ _ _ _ _ (∈ s) w₁ (λ x y hx hy, w₂ x hx y hy) h
 
 @[simp]
 lemma inf_eq_top_iff (f : β → α)
@@ -531,7 +531,7 @@ lemma sup'_mem
   (s : set α) (w : ∀ x y ∈ s, x ⊔ y ∈ s)
   {ι : Type*} (t : finset ι) (H : t.nonempty) (p : ι → α) (h : ∀ i ∈ t, p i ∈ s) :
   t.sup' H p ∈ s :=
-sup'_induction H p w h
+sup'_induction H p (λ x y hx hy, w x hx y hy) h
 
 @[congr] lemma sup'_congr {t : finset β} {f g : β → α} (h₁ : s = t) (h₂ : ∀ x ∈ s, f x = g x) :
   s.sup' H f = t.sup' (h₁ ▸ H) g :=
@@ -613,7 +613,7 @@ lemma exists_mem_eq_inf' [is_total α (≤)] : ∃ b, b ∈ s ∧ s.inf' H f = f
 lemma inf'_mem (s : set α) (w : ∀ x y ∈ s, x ⊓ y ∈ s)
   {ι : Type*} (t : finset ι) (H : t.nonempty) (p : ι → α) (h : ∀ i ∈ t, p i ∈ s) :
   t.inf' H p ∈ s :=
-inf'_induction H p w h
+inf'_induction H p (λ x y hx hy, w x hx y hy) h
 
 @[congr] lemma inf'_congr {t : finset β} {f g : β → α} (h₁ : s = t) (h₂ : ∀ x ∈ s, f x = g x) :
   s.inf' H f = t.inf' (h₁ ▸ H) g :=

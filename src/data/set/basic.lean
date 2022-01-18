@@ -767,9 +767,9 @@ lemma exists_eq_singleton_iff_nonempty_unique_mem :
 begin
   refine ⟨_, λ h, _⟩,
   { rintros ⟨a, rfl⟩,
-    refine ⟨set.singleton_nonempty a, λ b c hb hc, hb.trans hc.symm⟩ },
+    refine ⟨set.singleton_nonempty a, λ b hb c hc, hb.trans hc.symm⟩ },
   { obtain ⟨a, ha⟩ := h.1,
-    refine ⟨a, set.eq_singleton_iff_unique_mem.mpr ⟨ha, λ b hb, (h.2 b a hb ha)⟩⟩ },
+    refine ⟨a, set.eq_singleton_iff_unique_mem.mpr ⟨ha, λ b hb, (h.2 b hb a ha)⟩⟩ },
 end
 
 -- while `simp` is capable of proving this, it is not capable of turning the LHS into the RHS.

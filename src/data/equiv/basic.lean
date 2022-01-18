@@ -195,7 +195,7 @@ e.nonempty_congr.mpr ‹_›
 
 /-- If `α ≃ β` and `β` is inhabited, then so is `α`. -/
 protected def inhabited [inhabited β] (e : α ≃ β) : inhabited α :=
-⟨e.symm (default _)⟩
+⟨e.symm default⟩
 
 /-- If `α ≃ β` and `β` is a singleton type, then so is `α`. -/
 protected def unique [unique β] (e : α ≃ β) : unique α :=
@@ -528,7 +528,7 @@ def arrow_punit_equiv_punit (α : Sort*) : (α → punit.{v}) ≃ punit.{w} :=
 
 /-- If `α` has a unique term, then the type of function `α → β` is equivalent to `β`. -/
 @[simps { fully_applied := ff }] def fun_unique (α β) [unique α] : (α → β) ≃ β :=
-{ to_fun := eval (default α),
+{ to_fun := eval default,
   inv_fun := const α,
   left_inv := λ f, funext $ λ a, congr_arg f $ subsingleton.elim _ _,
   right_inv := λ b, rfl }
@@ -679,21 +679,34 @@ noncomputable def Prop_equiv_bool : Prop ≃ bool :=
 
 /-- Sum of types is commutative up to an equivalence. -/
 @[simps apply]
-def sum_comm (α β : Sort*) : α ⊕ β ≃ β ⊕ α :=
+def sum_comm (α β : Type*) : α ⊕ β ≃ β ⊕ α :=
 ⟨sum.swap, sum.swap, sum.swap_swap, sum.swap_swap⟩
 
 @[simp] lemma sum_comm_symm (α β) : (sum_comm α β).symm = sum_comm β α := rfl
 
 /-- Sum of types is associative up to an equivalence. -/
-def sum_assoc (α β γ : Sort*) : (α ⊕ β) ⊕ γ ≃ α ⊕ (β ⊕ γ) :=
+def sum_assoc (α β γ : Type*) : (α ⊕ β) ⊕ γ ≃ α ⊕ (β ⊕ γ) :=
 ⟨sum.elim (sum.elim sum.inl (sum.inr ∘ sum.inl)) (sum.inr ∘ sum.inr),
   sum.elim (sum.inl ∘ sum.inl) $ sum.elim (sum.inl ∘ sum.inr) sum.inr,
   by rintros (⟨_ | _⟩ | _); refl,
   by rintros (_ | ⟨_ | _⟩); refl⟩
 
-@[simp] theorem sum_assoc_apply_in1 {α β γ} (a) : sum_assoc α β γ (inl (inl a)) = inl a := rfl
-@[simp] theorem sum_assoc_apply_in2 {α β γ} (b) : sum_assoc α β γ (inl (inr b)) = inr (inl b) := rfl
-@[simp] theorem sum_assoc_apply_in3 {α β γ} (c) : sum_assoc α β γ (inr c) = inr (inr c) := rfl
+@[simp] lemma sum_assoc_apply_inl_inl {α β γ} (a) : sum_assoc α β γ (inl (inl a)) = inl a := rfl
+
+@[simp] lemma sum_assoc_apply_inl_inr {α β γ} (b) : sum_assoc α β γ (inl (inr b)) = inr (inl b) :=
+rfl
+
+@[simp] lemma sum_assoc_apply_inr {α β γ} (c) : sum_assoc α β γ (inr c) = inr (inr c) := rfl
+
+@[simp] lemma sum_assoc_symm_apply_inl {α β γ} (a) : (sum_assoc α β γ).symm (inl a) = inl (inl a) :=
+rfl
+
+@[simp] lemma sum_assoc_symm_apply_inr_inl {α β γ} (b) :
+  (sum_assoc α β γ).symm (inr (inl b)) = inl (inr b) := rfl
+
+@[simp] lemma sum_assoc_symm_apply_inr_inr {α β γ} (c) :
+  (sum_assoc α β γ).symm (inr (inr c)) = inr c := rfl
+
 
 /-- Sum with `empty` is equivalent to the original type. -/
 @[simps symm_apply] def sum_empty (α β : Type*) [is_empty β] : α ⊕ β ≃ α :=
@@ -1123,8 +1136,8 @@ variables {α₁ β₁ β₂ : Type*} [decidable_eq α₁] (a : α₁) (e : perm
 def prod_extend_right : perm (α₁ × β₁) :=
 { to_fun := λ ab, if ab.fst = a then (a, e ab.snd) else ab,
   inv_fun := λ ab, if ab.fst = a then (a, e.symm ab.snd) else ab,
-  left_inv := by { rintros ⟨k', x⟩, simp only, split_ifs with h; simp [h] },
-  right_inv := by { rintros ⟨k', x⟩, simp only, split_ifs with h; simp [h] } }
+  left_inv := by { rintros ⟨k', x⟩, dsimp only, split_ifs with h; simp [h] },
+  right_inv := by { rintros ⟨k', x⟩, dsimp only, split_ifs with h; simp [h] } }
 
 @[simp] lemma prod_extend_right_apply_eq (b : β₁) :
   prod_extend_right a e (a, b) = (a, e b) := if_pos rfl
@@ -1950,8 +1963,8 @@ funext $ λ z, hf.swap_apply _ _ _
 
 /-- If both `α` and `β` are singletons, then `α ≃ β`. -/
 def equiv_of_unique_of_unique [unique α] [unique β] : α ≃ β :=
-{ to_fun := λ _, default β,
-  inv_fun := λ _, default α,
+{ to_fun := λ _, default,
+  inv_fun := λ _, default,
   left_inv := λ _, subsingleton.elim _ _,
   right_inv := λ _, subsingleton.elim _ _ }
 

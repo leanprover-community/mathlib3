@@ -228,6 +228,7 @@ instance : has_subset (finset α) := ⟨λ s₁ s₂, ∀ ⦃a⦄, a ∈ s₁ �
 theorem subset_def {s₁ s₂ : finset α} : s₁ ⊆ s₂ ↔ s₁.1 ⊆ s₂.1 := iff.rfl
 
 @[simp] theorem subset.refl (s : finset α) : s ⊆ s := subset.refl _
+protected lemma subset.rfl {s :finset α} : s ⊆ s := subset.refl _
 
 theorem subset_of_eq {s t : finset α} (h : s = t) : s ⊆ t := h ▸ subset.refl _
 
@@ -240,6 +241,8 @@ theorem superset.trans {s₁ s₂ s₃ : finset α} : s₁ ⊇ s₂ → s₂ ⊇
 local attribute [trans] subset.trans superset.trans
 
 theorem mem_of_subset {s₁ s₂ : finset α} {a : α} : s₁ ⊆ s₂ → a ∈ s₁ → a ∈ s₂ := mem_of_subset
+
+lemma not_mem_mono {s t : finset α} (h : s ⊆ t) {a : α} : a ∉ t → a ∉ s := mt $ @h _
 
 theorem subset.antisymm {s₁ s₂ : finset α} (H₁ : s₁ ⊆ s₂) (H₂ : s₂ ⊆ s₁) : s₁ = s₂ :=
 ext $ λ a, ⟨@H₁ a, @H₂ a⟩
@@ -651,18 +654,19 @@ theorem induction_on' {α : Type*} {p : finset α → Prop} [decidable_eq α]
   let ⟨hS, sS⟩ := finset.insert_subset.1 hs in h₂ hS sS has (hqs sS)) (finset.subset.refl S)
 
 /-- To prove a proposition about a nonempty `s : finset α`, it suffices to show it holds for all
-singletons and that if it holds for `t : finset α`, then it also holds for the `finset` obtained by
-inserting an element in `t`. -/
+singletons and that if it holds for nonempty `t : finset α`, then it also holds for the `finset`
+obtained by inserting an element in `t`. -/
 @[elab_as_eliminator]
-lemma nonempty.cons_induction {α : Type*} {s : finset α} (hs : s.nonempty) {p : finset α → Prop}
-  (h₀ : ∀ a, p {a}) (h₁ : ∀ ⦃a⦄ s (h : a ∉ s), p s → p (finset.cons a s h)) :
-  p s :=
+lemma nonempty.cons_induction {α : Type*} {p : Π s : finset α, s.nonempty → Prop}
+  (h₀ : ∀ a, p {a} (singleton_nonempty _))
+  (h₁ : ∀ ⦃a⦄ s (h : a ∉ s) hs, p s hs → p (finset.cons a s h) (nonempty_cons h))
+  {s : finset α} (hs : s.nonempty) : p s hs :=
 begin
   induction s using finset.cons_induction with a t ha h,
   { exact (not_nonempty_empty hs).elim, },
   obtain rfl | ht := t.eq_empty_or_nonempty,
   { exact h₀ a },
-  { exact h₁ t ha (h ht) }
+  { exact h₁ t ha ht (h ht) }
 end
 
 /-- Inserting an element to a finite set is equivalent to the option type. -/
@@ -832,7 +836,7 @@ begin
     obtain ⟨i : ι , hic : i ∈ c, hti : (t : set α) ⊆ f i⟩ :=
       htc (set.subset.trans (t.subset_insert b) hbtc),
     obtain ⟨j, hjc, hbj⟩ : ∃ j ∈ c, b ∈ f j,
-      by simpa [set.mem_bUnion_iff] using hbtc (t.mem_insert_self b),
+      by simpa [set.mem_Union₂] using hbtc (t.mem_insert_self b),
     rcases hc j hjc i hic with ⟨k, hkc, hk, hk'⟩,
     use [k, hkc],
     rw [coe_insert, set.insert_subset],
@@ -1299,7 +1303,8 @@ by { ext i, simp [piecewise] }
 
 variable [∀j, decidable (j ∈ s)]
 
-@[norm_cast] lemma piecewise_coe [∀j, decidable (j ∈ (s : set α))] :
+-- TODO: fix this in norm_cast
+@[norm_cast move] lemma piecewise_coe [∀j, decidable (j ∈ (s : set α))] :
   (s : set α).piecewise f g = s.piecewise f g :=
 by { ext, congr }
 
@@ -1324,8 +1329,7 @@ lemma piecewise_insert [decidable_eq α] (j : α) [∀i, decidable (i ∈ insert
   (insert j s).piecewise f g = update (s.piecewise f g) j (f j) :=
 begin
   classical,
-  rw [← piecewise_coe, ← piecewise_coe, ← set.piecewise_insert, ← coe_insert j s],
-  congr
+  simp only [← piecewise_coe, coe_insert, ← set.piecewise_insert],
 end
 
 lemma piecewise_cases {i} (p : δ i → Prop) (hf : p (f i)) (hg : p (g i)) : p (s.piecewise f g i) :=

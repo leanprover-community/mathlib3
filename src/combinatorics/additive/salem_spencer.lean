@@ -75,7 +75,7 @@ set.subsingleton_singleton.mul_salem_spencer
 
 @[to_additive]
 lemma mul_salem_spencer.prod {t : set β} (hs : mul_salem_spencer s) (ht : mul_salem_spencer t) :
-  mul_salem_spencer (s.prod t) :=
+  mul_salem_spencer (s ×ˢ t) :=
 λ a b c ha hb hc h,
   prod.ext (hs ha.1 hb.1 hc.1 (prod.ext_iff.1 h).1) (ht ha.2 hb.2 hc.2 (prod.ext_iff.1 h).2)
 
@@ -210,8 +210,7 @@ section nat
 lemma add_salem_spencer_iff_eq_right {s : set ℕ} :
   add_salem_spencer s ↔ ∀ ⦃a b c⦄, a ∈ s → b ∈ s → c ∈ s → a + b = c + c → a = c :=
 begin
-  refine forall_congr (λ a, forall_congr $ λ b, forall_congr $ λ c, forall_congr $
-    λ _, forall_congr $ λ _, forall_congr $ λ _,  forall_congr $ λ habc, ⟨_, _⟩),
+  refine forall₄_congr (λ a b c _, forall₃_congr $ λ _ _ habc, ⟨_, _⟩),
   { rintro rfl,
     simp_rw ←two_mul at habc,
     exact mul_left_cancel₀ two_ne_zero habc },

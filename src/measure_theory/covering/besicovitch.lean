@@ -124,7 +124,7 @@ class has_besicovitch_covering (α : Type*) [metric_space α] : Prop :=
 /-- There is always a satellite configuration with a single point. -/
 instance {α : Type*} {τ : ℝ} [inhabited α] [metric_space α] :
   inhabited (besicovitch.satellite_config α 0 τ) :=
-⟨{ c := λ i, default α,
+⟨{ c := λ i, default,
   r := λ i, 1,
   rpos := λ i, zero_lt_one,
   h := λ i j hij, (hij (subsingleton.elim i j)).elim,
@@ -475,7 +475,7 @@ begin
         using p.mem_Union_up_to_last_step b,
     simp only [exists_prop, mem_Union, mem_ball, mem_singleton_iff, bUnion_and', exists_eq_left,
       Union_exists, exists_and_distrib_left],
-    exact ⟨⟨p.color a, p.color_lt ha.1 hN⟩, p.index a, ⟨a, rfl, ha.1, rfl⟩, ha.2⟩ }
+    exact ⟨⟨p.color a, p.color_lt ha.1 hN⟩, a, rfl, ha⟩ }
 end
 
 /-!
@@ -994,7 +994,7 @@ begin
       { have A : x ∈ range q.c, by simpa only [not_exists, exists_prop, mem_Union, mem_closed_ball,
           not_and, not_le, mem_set_of_eq, subtype.range_coe_subtype, mem_diff] using h'x,
         simpa only [mem_Union, mem_image] using hS A },
-      refine mem_bUnion_iff.2 ⟨y, or.inr _, _⟩,
+      refine mem_Union₂.2 ⟨y, or.inr _, _⟩,
       { simp only [mem_Union, mem_image],
         exact ⟨i, y, ySi, rfl⟩ },
       { have : (y : α) ∈ s' := y.2,
@@ -1002,7 +1002,7 @@ begin
         exact ball_subset_closed_ball xy } },
     { obtain ⟨y, yt0, hxy⟩ : ∃ (y : α), y ∈ t0 ∧ x ∈ closed_ball y (r0 y),
         by simpa [hx, -mem_closed_ball] using h'x,
-      refine mem_bUnion_iff.2 ⟨y, or.inl yt0, _⟩,
+      refine mem_Union₂.2 ⟨y, or.inl yt0, _⟩,
       rwa r_t0 _ yt0 } },
   -- the only nontrivial property is the measure control, which we check now
   { -- the sets in the first step have measure at most `μ s + ε / 2`

@@ -310,18 +310,18 @@ begin
   exact mul_nonneg (ih _ $ mem_cons_self _ _) (hs $ λ a ha, ih _ $ mem_cons_of_mem ha),
 end
 
--- TODO: Additivize
-lemma sum_eq_zero_iff [canonically_ordered_add_monoid α] {m : multiset α} :
-  m.sum = 0 ↔ ∀ x ∈ m, x = (0 : α) :=
-quotient.induction_on m $ λ l, by simpa using list.sum_eq_zero_iff l
+@[to_additive]
+lemma prod_eq_one_iff [canonically_ordered_monoid α] {m : multiset α} :
+  m.prod = 1 ↔ ∀ x ∈ m, x = (1 : α) :=
+quotient.induction_on m $ λ l, by simpa using list.prod_eq_one_iff l
 
--- TODO: Additivize
-lemma le_sum_of_mem [canonically_ordered_add_monoid α] {m : multiset α} {a : α} (h : a ∈ m) :
-  a ≤ m.sum :=
+@[to_additive]
+lemma le_prod_of_mem [canonically_ordered_monoid α] {m : multiset α} {a : α} (h : a ∈ m) :
+  a ≤ m.prod :=
 begin
   obtain ⟨m', rfl⟩ := exists_cons_of_mem h,
-  rw [sum_cons],
-  exact _root_.le_add_right (le_refl a),
+  rw [prod_cons],
+  exact _root_.le_mul_right (le_refl a),
 end
 
 @[to_additive le_sum_of_subadditive_on_pred]

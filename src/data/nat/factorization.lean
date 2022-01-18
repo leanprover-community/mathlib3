@@ -93,4 +93,98 @@ end
   factorization (p^k) = single p k :=
 by simp [factorization_pow, hp.factorization]
 
+/-- For any `p : ℕ` and any function `g : α → ℕ` that's non-zero on `S : finset α`,
+the power of `p` in `S.prod g` equals the sum over `x ∈ S` of the powers of `p` in `g x`.
+Generalises `factorization_mul`, which is the special case where `S.card = 2` and `g = id`. -/
+lemma factorization_prod {α : Type*} {S : finset α} {g : α → ℕ} (hS : ∀ x ∈ S, g x ≠ 0) :
+  (S.prod g).factorization = S.sum (λ x, (g x).factorization) :=
+begin
+  classical,
+  ext p,
+  apply finset.induction_on' S, { simp },
+  { intros x T hxS hTS hxT IH,
+    have hT : T.prod g ≠ 0 := prod_ne_zero_iff.mpr (λ x hx, hS x (hTS hx)),
+    simp [prod_insert hxT, sum_insert hxT, ←IH, factorization_mul (hS x hxS) hT] }
+end
+
+/-! ### Factorizations of pairs of coprime numbers -/
+
+/-- The prime factorizations of coprime `a` and `b` are disjoint -/
+lemma factorization_disjoint_of_coprime {a b : ℕ} (hab : coprime a b) :
+  disjoint a.factorization.support b.factorization.support :=
+by simpa only [support_factorization]
+  using disjoint_to_finset_iff_disjoint.mpr (coprime_factors_disjoint hab)
+
+/-- For coprime `a` and `b`, the power of `p` in `a * b` is the sum of the powers in `a` and `b` -/
+lemma factorization_mul_of_coprime {a b : ℕ} (hab : coprime a b) :
+  (a * b).factorization = a.factorization + b.factorization :=
+begin
+  ext q,
+  simp only [finsupp.coe_add, add_apply, factorization_eq_count, count_factors_mul_of_coprime hab],
+end
+
+/-- For coprime `a` and `b` the prime factorization `a * b` is the union of those of `a` and `b` -/
+lemma factorization_mul_support_of_coprime {a b : ℕ} (hab : coprime a b) :
+  (a * b).factorization.support = a.factorization.support ∪ b.factorization.support :=
+begin
+  rw factorization_mul_of_coprime hab,
+  exact support_add_eq (factorization_disjoint_of_coprime hab),
+end
+
+lemma factorization_mul_support_of_pos {a b : ℕ} (ha : a ≠ 0) (hb : b ≠ 0) :
+  (a * b).factorization.support = a.factorization.support ∪ b.factorization.support :=
+begin
+  ext q,
+  simp only [finset.mem_union, factor_iff_mem_factorization],
+  rw mem_factors_mul_of_pos ha.bot_lt hb.bot_lt,
+end
+
+/-- For any multiplicative function `f` with `f 1 = 1` and any `n > 0`,
+we can evaluate `f n` by evaluating `f` at `p ^ k` over the factorization of `n` -/
+lemma multiplicative_factorization {β : Type*} [comm_monoid β] (f : ℕ → β)
+  (h_mult : ∀ x y : ℕ, coprime x y → f (x * y) = f x * f y) (hf : f 1 = 1) :
+  ∀ {n : ℕ}, n ≠ 0 → f n = n.factorization.prod (λ p k, f (p ^ k)) :=
+begin
+  apply' nat.rec_on_pos_prime_coprime,
+  { intros p k hp hk hpk, simp [prime.factorization_pow hp, finsupp.prod_single_index _, hf] },
+  { simp },
+  { rintros -, rw [factorization_one, hf], simp },
+  { intros a b hab ha hb hab_pos,
+    rw [h_mult a b hab, ha (left_ne_zero_of_mul hab_pos), hb (right_ne_zero_of_mul hab_pos),
+        factorization_mul_of_coprime hab, ←prod_add_index_of_disjoint],
+    convert (factorization_disjoint_of_coprime hab) },
+end
+
+/-- For any multiplicative function `f` with `f 1 = 1` and `f 0 = 1`,
+we can evaluate `f n` by evaluating `f` at `p ^ k` over the factorization of `n` -/
+lemma multiplicative_factorization' {β : Type*} [comm_monoid β] (f : ℕ → β)
+  (h_mult : ∀ x y : ℕ, coprime x y → f (x * y) = f x * f y) (hf0 : f 0 = 1) (hf1 : f 1 = 1) :
+  ∀ {n : ℕ}, f n = n.factorization.prod (λ p k, f (p ^ k)) :=
+begin
+  apply' nat.rec_on_pos_prime_coprime,
+  { intros p k hp hk, simp only [hp.factorization_pow], rw prod_single_index _, simp [hf1] },
+  { simp [hf0] },
+  { rw [factorization_one, hf1], simp },
+  { intros a b hab ha hb,
+    rw [h_mult a b hab, ha, hb, factorization_mul_of_coprime hab, ←prod_add_index_of_disjoint],
+    convert (factorization_disjoint_of_coprime hab) },
+end
+
+@[simp] lemma factorization_prod_pow_eq_self {n : ℕ} (hn : n ≠ 0) : n.factorization.prod pow = n :=
+by simpa only using (multiplicative_factorization id (by simp) (by simp) hn).symm
+
+/-! ### Factorization and divisibility -/
+
+lemma factorization_le_iff_dvd {d n : ℕ} (hd : d ≠ 0) (hn : n ≠ 0) :
+  d.factorization ≤ n.factorization ↔ d ∣ n :=
+begin
+  split,
+  { intro hdn,
+    set K := n.factorization - d.factorization with hK,
+    use K.prod pow,
+    rw [←factorization_prod_pow_eq_self hn, ←factorization_prod_pow_eq_self hd,
+        ←finsupp.prod_add_index pow_zero pow_add, hK, add_tsub_cancel_of_le hdn] },
+  { rintro ⟨c, rfl⟩, rw factorization_mul hd (right_ne_zero_of_mul hn), simp },
+end
+
 end nat

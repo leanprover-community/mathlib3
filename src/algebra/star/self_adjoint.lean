@@ -142,12 +142,12 @@ instance : mul_action R (self_adjoint A) :=
   mul_smul := λ r s x, by { ext, simp only [mul_smul, coe_smul] } }
 
 instance : distrib_mul_action R (self_adjoint A) :=
-{ smul_add := λ r x y, by { ext, simp only [smul_add, add_subgroup.coe_add, coe_smul] },
-  smul_zero := λ r, by { ext, simp only [smul_zero', coe_smul, add_subgroup.coe_zero] } }
+{ smul_add := λ r x y, by { ext, simp only [smul_add, add_submonoid_class.coe_add, coe_smul] },
+  smul_zero := λ r, by { ext, simp only [smul_zero', coe_smul, add_submonoid_class.coe_zero] } }
 
 instance : module R (self_adjoint A) :=
-{ add_smul := λ r s x, by { ext, simp only [add_smul, add_subgroup.coe_add, coe_smul] },
-  zero_smul := λ x, by { ext, simp only [coe_smul, zero_smul, add_subgroup.coe_zero] } }
+{ add_smul := λ r s x, by { ext, simp only [add_smul, add_submonoid_class.coe_add, coe_smul] },
+  zero_smul := λ x, by { ext, simp only [coe_smul, zero_smul, add_submonoid_class.coe_zero] } }
 
 end module
 

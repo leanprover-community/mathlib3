@@ -116,7 +116,10 @@ by simpa [hr] using eq_zero_or_no_irreducibles_and_squarefree_iff_irreducible_sq
 lemma squarefree_iff_irreducible_sq_not_dvd_of_exists_irreducible
   {r : R} [comm_monoid_with_zero R] [wf_dvd_monoid R] (hr : ∃ (x : R), irreducible x) :
   squarefree r ↔ ∀ x : R, irreducible x → ¬ x * x ∣ r :=
-by simpa [hr] using eq_zero_or_no_irreducibles_and_squarefree_iff_irreducible_sq_not_dvd r
+begin
+  rw [←eq_zero_or_no_irreducibles_and_squarefree_iff_irreducible_sq_not_dvd, ←not_exists],
+  simp only [hr, not_true, false_or, and_false],
+end
 
 namespace unique_factorization_monoid
 variables [cancel_comm_monoid_with_zero R] [nontrivial R] [unique_factorization_monoid R]

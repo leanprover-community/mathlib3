@@ -270,7 +270,7 @@ is_open_empty.interior_eq
 @[simp] lemma interior_univ : interior (univ : set α) = univ :=
 is_open_univ.interior_eq
 
-lemma interior_eq_univ {s : set α} : interior s = univ ↔ s = univ :=
+@[simp] lemma interior_eq_univ {s : set α} : interior s = univ ↔ s = univ :=
 ⟨λ h, univ_subset_iff.mp $ h.symm.trans_le interior_subset, λ h, h.symm ▸ interior_univ⟩
 
 @[simp] lemma interior_interior {s : set α} : interior (interior s) = interior s :=

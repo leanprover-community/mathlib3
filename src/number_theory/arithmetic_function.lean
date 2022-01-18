@@ -764,10 +764,21 @@ begin
   { rcases h with h | h; simp [h] }
 end
 
-lemma squarefree_mul_of_coprime {m n : ℕ} (hm : squarefree m) (hn : squarefree n)
-  (hmn : m.coprime n) : squarefree (m * n) :=
+example {x y z : ℕ} (hxy : y.coprime z) : x ∣ y * z → x ∣ y ∨ x ∣ z :=
 begin
-  intros k hk,
+  intro h,
+  -- x = 6
+  -- y = 2
+  -- z = 3
+
+end
+
+@[simp] lemma coprime.squarefree_mul_iff {m n : ℕ} (hmn : m.coprime n) :
+  squarefree (m * n) ↔ squarefree m ∧ squarefree n :=
+begin
+  split,
+  { sorry },
+  rintro ⟨hm, hn⟩ k hk,
 end
 
 lemma moebius_is_multiplicative :

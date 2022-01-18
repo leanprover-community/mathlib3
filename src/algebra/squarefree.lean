@@ -46,7 +46,7 @@ is_unit_one.squarefree
 lemma not_squarefree_zero [monoid_with_zero R] [nontrivial R] : ¬ squarefree (0 : R) :=
 begin
   erw [not_forall],
-  exact ⟨0, (by simp)⟩,
+  exact ⟨0, by simp⟩,
 end
 
 @[simp]
@@ -84,6 +84,39 @@ begin
 end
 
 end multiplicity
+
+lemma eq_zero_or_no_irreducibles_and_squarefree_iff_irreducible_sq_not_dvd
+  (r : R) [comm_monoid_with_zero R] [wf_dvd_monoid R] :
+  (r = 0 ∧ ∀ x : R, ¬irreducible x) ∨ squarefree r ↔ ∀ x : R, irreducible x → ¬ x * x ∣ r :=
+begin
+  split,
+  { rintro (⟨rfl, h⟩ | h),
+    { simpa using h },
+    intros x hx t,
+    exact hx.not_unit (h x t) },
+  intro h,
+  rcases eq_or_ne r 0 with rfl | hr,
+  { exact or.inl (by simpa using h) },
+  right,
+  intros x hx,
+  by_contra i,
+  have : x ≠ 0,
+  { rintro rfl,
+    apply hr,
+    simpa only [zero_dvd_iff, mul_zero] using hx},
+  obtain ⟨j, hj₁, hj₂⟩ := wf_dvd_monoid.exists_irreducible_factor i this,
+  exact h _ hj₁ ((mul_dvd_mul hj₂ hj₂).trans hx),
+end
+
+lemma squarefree_iff_irreducible_sq_not_dvd_of_ne_zero
+  {r : R} [comm_monoid_with_zero R] [wf_dvd_monoid R] (hr : r ≠ 0) :
+  squarefree r ↔ ∀ x : R, irreducible x → ¬ x * x ∣ r :=
+by simpa [hr] using eq_zero_or_no_irreducibles_and_squarefree_iff_irreducible_sq_not_dvd r
+
+lemma squarefree_iff_irreducible_sq_not_dvd_of_exists_irreducible
+  {r : R} [comm_monoid_with_zero R] [wf_dvd_monoid R] (hr : ∃ (x : R), irreducible x) :
+  squarefree r ↔ ∀ x : R, irreducible x → ¬ x * x ∣ r :=
+by simpa [hr] using eq_zero_or_no_irreducibles_and_squarefree_iff_irreducible_sq_not_dvd r
 
 namespace unique_factorization_monoid
 variables [cancel_comm_monoid_with_zero R] [nontrivial R] [unique_factorization_monoid R]

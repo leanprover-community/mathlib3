@@ -44,9 +44,8 @@ function.iterate_succ_apply' (λ I, ⁅(⊤ : lie_ideal R L), I⁆) k ⊤
 lemma antitone_lower_central_series : antitone $ lower_central_series R L M :=
 begin
   intros l k,
-  revert l,
-  induction k with k ih;
-  intros l h,
+  induction k with k ih generalizing l;
+  intros h
   { exact (le_zero_iff.mp h).symm ▸ le_refl _, },
   { rcases nat.of_le_succ h with hk | hk,
     { rw lower_central_series_succ,

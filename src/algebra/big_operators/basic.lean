@@ -1211,7 +1211,7 @@ by simp
 lemma prod_dvd {S : finset α} (g1 g2 : α → β) (h : ∀ a ∈ S, g1 a ∣ g2 a) : S.prod g1 ∣ S.prod g2 :=
 begin
   classical,
-  apply @finset.induction_on' _ (λ S, S.prod g1 ∣ S.prod g2), { simp },
+  apply finset.induction_on' S, { simp },
   intros a T haS _ haT IH,
   repeat {rw finset.prod_insert haT},
   exact mul_dvd_mul (h a haS) IH,

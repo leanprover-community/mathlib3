@@ -701,7 +701,7 @@ lemma map_sup_comap_of_surjective (p q : submodule R₂ M₂) :
   (p.comap f ⊔ q.comap f).map f = p ⊔ q :=
 (gi_map_comap hf).l_sup_u _ _
 
-lemma map_supr_comap_of_sujective (S : ι → submodule R₂ M₂) :
+lemma map_supr_comap_of_sujective {ι : Sort*} (S : ι → submodule R₂ M₂) :
   (⨆ i, (S i).comap f).map f = supr S :=
 (gi_map_comap hf).l_supr_u _
 
@@ -709,7 +709,7 @@ lemma map_inf_comap_of_surjective (p q : submodule R₂ M₂) :
   (p.comap f ⊓ q.comap f).map f = p ⊓ q :=
 (gi_map_comap hf).l_inf_u _ _
 
-lemma map_infi_comap_of_surjective (S : ι → submodule R₂ M₂) :
+lemma map_infi_comap_of_surjective {ι : Sort*} (S : ι → submodule R₂ M₂) :
   (⨅ i, (S i).comap f).map f = infi S :=
 (gi_map_comap hf).l_infi_u _
 
@@ -743,13 +743,15 @@ lemma map_injective_of_injective : function.injective (map f) :=
 lemma comap_inf_map_of_injective (p q : submodule R M) : (p.map f ⊓ q.map f).comap f = p ⊓ q :=
 (gci_map_comap hf).u_inf_l _ _
 
-lemma comap_infi_map_of_injective (S : ι → submodule R M) : (⨅ i, (S i).map f).comap f = infi S :=
+lemma comap_infi_map_of_injective {ι : Sort*} (S : ι → submodule R M) :
+  (⨅ i, (S i).map f).comap f = infi S :=
 (gci_map_comap hf).u_infi_l _
 
 lemma comap_sup_map_of_injective (p q : submodule R M) : (p.map f ⊔ q.map f).comap f = p ⊔ q :=
 (gci_map_comap hf).u_sup_l _ _
 
-lemma comap_supr_map_of_injective (S : ι → submodule R M) : (⨆ i, (S i).map f).comap f = supr S :=
+lemma comap_supr_map_of_injective {ι : Sort*} (S : ι → submodule R M) :
+  (⨆ i, (S i).map f).comap f = supr S :=
 (gci_map_comap hf).u_supr_l _
 
 lemma map_le_map_iff_of_injective (p q : submodule R M) : p.map f ≤ q.map f ↔ p ≤ q :=
@@ -776,7 +778,7 @@ lemma eq_zero_of_bot_submodule : ∀(b : (⊥ : submodule R M)), b = 0
 
 /-- The infimum of a family of invariant submodule of an endomorphism is also an invariant
 submodule. -/
-lemma _root_.linear_map.infi_invariant {σ : R →+* R} [ring_hom_surjective σ] {ι : Type*}
+lemma _root_.linear_map.infi_invariant {σ : R →+* R} [ring_hom_surjective σ] {ι : Sort*}
   (f : M →ₛₗ[σ] M) {p : ι → submodule R M} (hf : ∀ i, ∀ v ∈ (p i), f v ∈ p i) :
   ∀ v ∈ infi p, f v ∈ infi p :=
 begin

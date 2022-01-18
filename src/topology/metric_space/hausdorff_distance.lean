@@ -1117,22 +1117,22 @@ end
 /-- The closed ball of radius `δ` centered at a point of `E` is included in the closed
 thickening of `E`. -/
 lemma closed_ball_subset_cthickening {α : Type*} [pseudo_metric_space α]
-  (δ : ℝ) {E : set α} {x : α} (hx : x ∈ E) :
+  {x : α} {E : set α} (hx : x ∈ E) (δ : ℝ) :
   closed_ball x δ ⊆ cthickening δ E :=
 begin
   refine (closed_ball_subset_cthickening_singleton _ _).trans (cthickening_subset_of_subset _ _),
   simpa using hx,
 end
 
-/-- The closed thickening of a compact set `E` is the union of the balls `closed_balls x δ` over
-`x` in `E`. -/
+/-- The closed thickening of a compact set `E` is the union of the balls `closed_ball x δ` over
+`x ∈ E`. -/
 lemma _root_.is_compact.cthickening_eq_bUnion_closed_ball
   {α : Type*} [pseudo_metric_space α] {δ : ℝ} {E : set α} (hE : is_compact E) (hδ : 0 ≤ δ) :
   cthickening δ E = ⋃ x ∈ E, closed_ball x δ :=
 begin
   rcases eq_empty_or_nonempty E with rfl|hne,
   { simp only [cthickening_empty, Union_false, Union_empty] },
-  refine subset.antisymm (λ x hx, _) (bUnion_subset (λ x hx, closed_ball_subset_cthickening _ hx)),
+  refine subset.antisymm (λ x hx, _) (bUnion_subset (λ x hx, closed_ball_subset_cthickening hx _)),
   obtain ⟨y, yE, hy⟩ : ∃ y ∈ E, emetric.inf_edist x E = edist x y :=
     hE.exists_inf_edist_eq_edist hne _,
   have D1 : edist x y ≤ ennreal.of_real δ := (le_of_eq hy.symm).trans hx,

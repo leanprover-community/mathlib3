@@ -266,7 +266,7 @@ lemma is_sheaf_iff_multiequalizer
   (∀ (X : C) (S : J.cover X), is_iso (S.to_multiequalizer P)) :=
 begin
   rw is_sheaf_iff_multifork,
-  apply forall_congr (λ X, _), apply forall_congr (λ S, _), split,
+  refine forall₂_congr (λ X S, ⟨_, _⟩),
   { rintros ⟨h⟩,
     let e : P.obj (op X) ≅ multiequalizer (S.index P) :=
       h.cone_point_unique_up_to_iso (limit.is_limit _),

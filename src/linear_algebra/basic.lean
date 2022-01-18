@@ -792,8 +792,7 @@ def span (s : set M) : submodule R M := Inf {p | s ⊆ p}
 end
 
 variables {s t : set M}
-lemma mem_span : x ∈ span R s ↔ ∀ p : submodule R M, s ⊆ p → x ∈ p :=
-mem_bInter_iff
+lemma mem_span : x ∈ span R s ↔ ∀ p : submodule R M, s ⊆ p → x ∈ p := mem_Inter₂
 
 lemma subset_span : s ⊆ span R s :=
 λ x h, mem_span.2 $ λ p hp, hp h
@@ -2534,22 +2533,6 @@ def to_linear_equiv (e : M ≃ M₂) (h : is_linear_map R (e : M → M₂)) : M 
 
 end equiv
 
-namespace add_equiv
-variables [semiring R] [add_comm_monoid M] [module R M] [add_comm_monoid M₂] [module R M₂]
-
-/-- An additive equivalence whose underlying function preserves `smul` is a linear equivalence. -/
-def to_linear_equiv (e : M ≃+ M₂) (h : ∀ (c : R) x, e (c • x) = c • e x) : M ≃ₗ[R] M₂ :=
-{ map_smul' := h, .. e, }
-
-@[simp] lemma coe_to_linear_equiv (e : M ≃+ M₂) (h : ∀ (c : R) x, e (c • x) = c • e x) :
-  ⇑(e.to_linear_equiv h) = e :=
-rfl
-
-@[simp] lemma coe_to_linear_equiv_symm (e : M ≃+ M₂) (h : ∀ (c : R) x, e (c • x) = c • e x) :
-  ⇑(e.to_linear_equiv h).symm = e.symm :=
-rfl
-
-end add_equiv
 
 section fun_left
 variables (R M) [semiring R] [add_comm_monoid M] [module R M]

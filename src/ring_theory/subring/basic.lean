@@ -136,9 +136,9 @@ def subtype (s : S) : s →+* R :=
 
 @[simp] theorem coe_subtype : (subtype s : s → R) = coe := rfl
 @[simp, norm_cast] lemma coe_nat_cast (n : ℕ) : ((n : s) : R) = n :=
-(subtype s).map_nat_cast n
+map_nat_cast (subtype s) n
 @[simp, norm_cast] lemma coe_int_cast (n : ℤ) : ((n : s) : R) = n :=
-(subtype s : s →+* _).map_int_cast n
+(subtype s : s →+* R).map_int_cast n
 
 end subring_class
 

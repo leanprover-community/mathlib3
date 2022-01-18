@@ -168,7 +168,7 @@ abbreviation fourier_Lp (p : ℝ≥0∞) [fact (1 ≤ p)] (n : ℤ) : Lp ℂ p h
 to_Lp p haar_circle ℂ (fourier n)
 
 lemma coe_fn_fourier_Lp (p : ℝ≥0∞) [fact (1 ≤ p)] (n : ℤ) :
-  (to_Lp p haar_circle ℂ (fourier n) : circle → ℂ) =ᵐ[haar_circle] (fourier n : circle → ℂ) :=
+  ⇑(fourier_Lp p n) =ᵐ[haar_circle] fourier n :=
 coe_fn_to_Lp haar_circle (fourier n)
 
 /-- For each `1 ≤ p < ∞`, the linear span of the monomials `z ^ n` is dense in

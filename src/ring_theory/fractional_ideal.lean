@@ -1124,7 +1124,7 @@ begin
       rw [←ha, algebra.mul_smul_comm, algebra.smul_mul_assoc] },
     { exact ⟨0, submodule.zero_mem I, (mul_zero x).symm⟩ },
     { rintros _ _ ⟨y, hy, rfl⟩ ⟨y', hy', rfl⟩,
-      exact ⟨y + y', submodule.add_mem I hy hy', (mul_add _ _ _).symm⟩ },
+      exact ⟨y + y', submodule.add_mem I hy hy', (mul_add _ _ _).symm⟩ } },
   { rintros ⟨y', hy', rfl⟩,
     exact mul_mem_mul ((mem_span_singleton S).mpr ⟨1, one_smul _ _⟩) hy' }
 end

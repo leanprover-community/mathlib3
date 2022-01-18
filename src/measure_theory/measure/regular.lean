@@ -428,7 +428,7 @@ lemma of_pseudo_emetric_space {X : Type*} [pseudo_emetric_space X] [measurable_s
 begin
   intros U hU r hr,
   rcases hU.exists_Union_is_closed with ⟨F, F_closed, -, rfl, F_mono⟩,
-  rw measure_Union_eq_supr (λ n, (F_closed n).measurable_set) F_mono.directed_le at hr,
+  rw measure_Union_eq_supr F_mono.directed_le at hr,
   rcases lt_supr_iff.1 hr with ⟨n, hn⟩,
   exact ⟨F n, subset_Union _ _, F_closed n, hn⟩
 end
@@ -444,8 +444,8 @@ begin
   have hBU : (⋃ n, F ∩ B n) = F, by rw [← inter_Union, Union_compact_covering, set.inter_univ],
   have : μ F = ⨆ n, μ (F ∩ B n),
   { rw [← measure_Union_eq_supr, hBU],
-    exacts [λ n, (hBc n).measurable_set, monotone.directed_le $
-      λ m n h, inter_subset_inter_right _ (compact_covering_subset _ h)] },
+    exact  monotone.directed_le
+      (λ m n h, inter_subset_inter_right _ (compact_covering_subset _ h)) },
   rw this at hr, rcases lt_supr_iff.1 hr with ⟨n, hn⟩,
   exact ⟨_, inter_subset_left _ _, hBc n, hn⟩
 end

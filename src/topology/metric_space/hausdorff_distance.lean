@@ -133,18 +133,15 @@ lemma inf_edist_image (hΦ : isometry Φ) :
 by simp only [inf_edist, infi_image, hΦ.edist_eq]
 
 lemma _root_.is_open.exists_Union_is_closed {U : set α} (hU : is_open U) :
-  ∃ F : ℕ → set α, (∀ n, is_closed (F n)) ∧ (∀ n, F n ⊆ U) ∧ ((⋃ n, F n) = U) ∧ (monotone F) :=
+  ∃ F : ℕ → set α, (∀ n, is_closed (F n)) ∧ (∀ n, F n ⊆ U) ∧ ((⋃ n, F n) = U) ∧ monotone F :=
 begin
   obtain ⟨a, a_pos, a_lt_one⟩ : ∃ (a : ℝ≥0∞), 0 < a ∧ a < 1 := exists_between (ennreal.zero_lt_one),
   let F := λ (n : ℕ), (λ x, inf_edist x Uᶜ) ⁻¹' (Ici (a^n)),
   have F_subset : ∀ n, F n ⊆ U,
   { assume n x hx,
-    by_contra h,
-    rw [← mem_compl_iff,
-      mem_iff_inf_edist_zero_of_closed (is_open.is_closed_compl hU)] at h,
-    have : 0 < inf_edist x Uᶜ := lt_of_lt_of_le (ennreal.pow_pos a_pos _) hx,
-    rw h at this,
-    exact lt_irrefl _ this },
+    have : inf_edist x Uᶜ ≠ 0 := ((ennreal.pow_pos a_pos _).trans_le hx).ne',
+    contrapose! this,
+    exact inf_edist_zero_of_mem this },
   refine ⟨F, λ n, is_closed.preimage continuous_inf_edist is_closed_Ici, F_subset, _, _⟩,
   show monotone F,
   { assume m n hmn x hx,
@@ -153,7 +150,7 @@ begin
   show (⋃ n, F n) = U,
   { refine subset.antisymm (by simp only [Union_subset_iff, F_subset, forall_const]) (λ x hx, _),
     have : ¬(x ∈ Uᶜ), by simpa using hx,
-    rw mem_iff_inf_edist_zero_of_closed (is_open.is_closed_compl hU) at this,
+    rw mem_iff_inf_edist_zero_of_closed hU.is_closed_compl at this,
     have B : 0 < inf_edist x Uᶜ, by simpa [pos_iff_ne_zero] using this,
     have : filter.tendsto (λ n, a^n) at_top (𝓝 0) :=
       ennreal.tendsto_pow_at_top_nhds_0_of_lt_1 a_lt_one,

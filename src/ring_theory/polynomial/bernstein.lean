@@ -337,14 +337,14 @@ begin
 
   conv at h
   { to_lhs,
-    rw [add_pow, map_sum (pderiv tt), (mv_polynomial.aeval e).map_sum, finset.sum_mul],
+    rw [add_pow, (pderiv tt).map_sum, (mv_polynomial.aeval e).map_sum, finset.sum_mul],
     -- Step inside the sum:
     apply_congr, skip,
     simp [pderiv_mul, pderiv_tt_x, pderiv_tt_y, e, w], },
   -- On the right hand side, we'll just simplify.
   conv at h
   { to_rhs,
-    rw [(pderiv tt).leibniz_pow, (pderiv tt).map_add, pderiv_tt_x, pderiv_tt_y],
+    rw [pderiv_pow, (pderiv tt).map_add, pderiv_tt_x, pderiv_tt_y],
     simp [e] },
   simpa using h,
 end
@@ -390,7 +390,7 @@ begin
 
   conv at h
   { to_lhs,
-    rw [add_pow, map_sum (pderiv tt), map_sum (pderiv tt), (mv_polynomial.aeval e).map_sum,
+    rw [add_pow, (pderiv tt).map_sum, (pderiv tt).map_sum, (mv_polynomial.aeval e).map_sum,
       finset.sum_mul],
     -- Step inside the sum:
     apply_congr, skip,
@@ -398,8 +398,8 @@ begin
   -- On the right hand side, we'll just simplify.
   conv at h
   { to_rhs,
-    simp only [pderiv_one, pderiv_mul, (pderiv _).leibniz_pow, (pderiv _).map_coe_nat,
-      (pderiv tt).map_add, pderiv_tt_x, pderiv_tt_y],
+    simp only [pderiv_one, pderiv_mul, pderiv_pow, pderiv_nat_cast, (pderiv tt).map_add,
+      pderiv_tt_x, pderiv_tt_y],
     simp [e, smul_smul] },
   simpa using h,
 end

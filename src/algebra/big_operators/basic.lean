@@ -106,15 +106,11 @@ by simp only [sum_eq_multiset_sum, multiset.sum_map_singleton]
 
 end finset
 
+
 @[to_additive]
 lemma monoid_hom.map_prod [comm_monoid β] [comm_monoid γ] (g : β →* γ) (f : α → β) (s : finset α) :
   g (∏ x in s, f x) = ∏ x in s, g (f x) :=
 by simp only [finset.prod_eq_multiset_prod, g.map_multiset_prod, multiset.map_map]
-
-@[to_additive] lemma map_prod [comm_monoid β] [comm_monoid γ] {F : Type*} [monoid_hom_class F β γ]
-  (g : F) (f : α → β) (s : finset α) :
-  g (∏ x in s, f x) = ∏ x in s, g (f x) :=
-monoid_hom.map_prod ⟨g, map_one g, map_mul g⟩ f s
 
 @[to_additive]
 lemma mul_equiv.map_prod [comm_monoid β] [comm_monoid γ] (g : β ≃* γ) (f : α → β) (s : finset α) :

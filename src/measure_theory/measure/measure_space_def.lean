@@ -372,6 +372,9 @@ lemma diff_ae_eq_self : (s \ t : set α) =ᵐ[μ] s ↔ μ (s ∩ t) = 0 :=
 by simp [eventually_le_antisymm_iff, ae_le_set, diff_diff_right,
   diff_diff, diff_eq_empty.2 (set.subset_union_right _ _)]
 
+lemma diff_null_ae_eq_self (ht : μ t = 0) : (s \ t : set α) =ᵐ[μ] s :=
+diff_ae_eq_self.mpr (measure_mono_null (inter_subset_right _ _) ht)
+
 lemma ae_eq_set {s t : set α} :
   s =ᵐ[μ] t ↔ μ (s \ t) = 0 ∧ μ (t \ s) = 0 :=
 by simp [eventually_le_antisymm_iff, ae_le_set]
@@ -529,6 +532,5 @@ lemma ae_measurable_id' : ae_measurable (λ x, x) μ := measurable_id.ae_measura
 lemma measurable.comp_ae_measurable [measurable_space δ] {f : α → δ} {g : δ → β}
   (hg : measurable g) (hf : ae_measurable f μ) : ae_measurable (g ∘ f) μ :=
 ⟨g ∘ hf.mk f, hg.comp hf.measurable_mk, eventually_eq.fun_comp hf.ae_eq_mk _⟩
-
 
 end

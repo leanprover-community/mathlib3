@@ -200,7 +200,7 @@ begin
   apply null_of_locally_null s (λ x hx, _),
   obtain ⟨o, xo, o_open, μo⟩ : ∃ o : set α, x ∈ o ∧ is_open o ∧ μ o < ∞ :=
     measure.exists_is_open_measure_lt_top μ x,
-  refine ⟨o, mem_nhds_within_of_mem_nhds (o_open.mem_nhds xo), _⟩,
+  refine ⟨s ∩ o, inter_mem_nhds_within _ (o_open.mem_nhds xo), _⟩,
   let s' := s ∩ o,
   by_contra,
   apply lt_irrefl (ρ s'),
@@ -474,8 +474,8 @@ begin
   refine null_of_locally_null _ (λ x hx, _),
   obtain ⟨o, xo, o_open, μo⟩ : ∃ o : set α, x ∈ o ∧ is_open o ∧ ρ o < ∞ :=
     measure.exists_is_open_measure_lt_top ρ x,
-  refine ⟨o, mem_nhds_within_of_mem_nhds (o_open.mem_nhds xo), le_antisymm _ bot_le⟩,
   let s := {x : α | v.lim_ratio_meas hρ x = ∞} ∩ o,
+  refine ⟨s, inter_mem_nhds_within _ (o_open.mem_nhds xo), le_antisymm _ bot_le⟩,
   have ρs : ρ s ≠ ∞ := ((measure_mono (inter_subset_right _ _)).trans_lt μo).ne,
   have A : ∀ (q : ℝ≥0), 1 ≤ q → μ s ≤ q⁻¹ * ρ s,
   { assume q hq,
@@ -500,8 +500,8 @@ begin
   refine null_of_locally_null _ (λ x hx, _),
   obtain ⟨o, xo, o_open, μo⟩ : ∃ o : set α, x ∈ o ∧ is_open o ∧ μ o < ∞ :=
     measure.exists_is_open_measure_lt_top μ x,
-  refine ⟨o, mem_nhds_within_of_mem_nhds (o_open.mem_nhds xo), le_antisymm _ bot_le⟩,
   let s := {x : α | v.lim_ratio_meas hρ x = 0} ∩ o,
+  refine ⟨s, inter_mem_nhds_within _ (o_open.mem_nhds xo), le_antisymm _ bot_le⟩,
   have μs : μ s ≠ ∞ := ((measure_mono (inter_subset_right _ _)).trans_lt μo).ne,
   have A : ∀ (q : ℝ≥0), 0 < q → ρ s ≤ q * μ s,
   { assume q hq,

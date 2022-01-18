@@ -76,8 +76,10 @@ variables [measurable_space G]
 lemma map_mul_left_eq_self [topological_space G] [has_mul G] [has_continuous_mul G] [borel_space G]
   {μ : measure G} : (∀ g, measure.map ((*) g) μ = μ) ↔ is_mul_left_invariant μ :=
 begin
-  apply forall_congr, intro g, rw [measure.ext_iff], apply forall_congr, intro A,
-  apply forall_congr, intro hA, rw [map_apply (measurable_const_mul g) hA]
+  refine forall_congr (λ g, _),
+  rw measure.ext_iff,
+  refine forall₂_congr (λ A hA, _),
+  rw [map_apply (measurable_const_mul g) hA]
 end
 
 @[to_additive]
@@ -94,8 +96,10 @@ lemma map_mul_right_eq_self [topological_space G] [has_mul G] [has_continuous_mu
   {μ : measure G} :
   (∀ g, measure.map (λ h, h * g) μ = μ) ↔ is_mul_right_invariant μ :=
 begin
-  apply forall_congr, intro g, rw [measure.ext_iff], apply forall_congr, intro A,
-  apply forall_congr, intro hA, rw [map_apply (measurable_mul_const g) hA]
+  refine forall_congr (λ g, _),
+  rw measure.ext_iff,
+  refine forall₂_congr (λ A hA, _),
+  rw [map_apply (measurable_mul_const g) hA]
 end
 
 /-- The measure `A ↦ μ (A⁻¹)`, where `A⁻¹` is the pointwise inverse of `A`. -/

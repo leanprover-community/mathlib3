@@ -18,9 +18,9 @@ multiplication of bounded sets remain bounded.
 open metric set
 open_locale pointwise topological_space
 
-section semi_normed_space
+section normed_space
 
-variables {𝕜 : Type*} [normed_field 𝕜] {E : Type*} [semi_normed_group E] [semi_normed_space 𝕜 E]
+variables {𝕜 : Type*} [normed_field 𝕜] {E : Type*} [semi_normed_group E] [normed_space 𝕜 E]
 
 theorem smul_ball {c : 𝕜} (hc : c ≠ 0) (x : E) (r : ℝ) :
   c • ball x r = ball (c • x) (∥c∥ * r) :=
@@ -123,7 +123,7 @@ begin
   rw [smul_smul, inv_mul_cancel hc, one_smul],
 end
 
-end semi_normed_space
+end normed_space
 
 section normed_space
 

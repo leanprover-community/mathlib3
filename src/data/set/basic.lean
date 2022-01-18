@@ -719,6 +719,9 @@ theorem eq_of_mem_singleton {x y : α} (h : x ∈ ({y} : set α)) : x = y := h
 @[simp] theorem singleton_eq_singleton_iff {x y : α} : {x} = ({y} : set α) ↔ x = y :=
 ext_iff.trans eq_iff_eq_cancel_left
 
+lemma singleton_injective : injective (singleton : α → set α) :=
+λ _ _, singleton_eq_singleton_iff.mp
+
 theorem mem_singleton_of_eq {x y : α} (H : x = y) : x ∈ ({y} : set α) := H
 
 theorem insert_eq (x : α) (s : set α) : insert x s = ({x} : set α) ∪ s := rfl

@@ -26,21 +26,60 @@ lift _ $ (direct_sum.lof R ℕ (λ i, ↥((ι R : M →ₗ[_] _).range ^ i)) 1) 
       (⟨ι R m, by simpa only [pow_one] using linear_map.mem_range_self _ m⟩) :=
 lift_ι_apply _ _
 
-instance graded_algebra : graded_algebra (λ i : ℕ, ((ι R : M →ₗ[_] _).range ^ i)) :=
-graded_algebra.of_alg_hom to_direct_sum_ι_range
-  (begin
-    intros i ⟨x, hx⟩,
-    apply submodule.pow_induction' _ _ _ hx,
-    induction i,
-    -- { rw pow_zero at hx,
-    --   obtain ⟨r, rfl : algebra_map _ _ r = x⟩ := hx,
-    --   rw alg_hom.commutes,
-    --   refl, },
-    -- { rw pow_succ at hx,
-    --   refine submodule.mul_induction_on hx _ _ _ _,
-    --   rw submodule.mem_mul },
-  end)
-  _
+lemma to_direct_sum_ι_range_coe (i : ℕ) (x : ↥((ι R : M →ₗ[_] _).range ^ i)) :
+  to_direct_sum_ι_range (x : tensor_algebra R M) =
+    direct_sum.of (λ (i : ℕ), ↥((ι R).range ^ i)) i x :=
+begin
+  cases x with x hx,
+  dsimp only [subtype.coe_mk],
+  apply submodule.pow_induction_on' _ (λ r, _) (λ x y i hx hy ihx ihy, _) (λ m hm i x hx ih, _) hx,
+  { rw alg_hom.commutes, refl },
+  { rw [alg_hom.map_add, ihx, ihy, ←map_add], refl },
+  obtain ⟨_, rfl⟩ := hm,
+  rw [alg_hom.map_mul, ih, to_direct_sum_ι_range_ι, direct_sum.of_mul_of],
+  apply direct_sum.of_eq_of_graded_monoid_eq,
+  sorry
+end
+
+lemma submodule_coe_alg_hom_comp_to_direct_sum_ι_range :
+  (direct_sum.submodule_coe_alg_hom ((^) (ι R : M →ₗ[R] _).range : ℕ → submodule R _)).comp
+    to_direct_sum_ι_range = alg_hom.id R (tensor_algebra R M) :=
+begin
+  ext m,
+  dsimp,
+  rw [to_direct_sum_ι_range_ι, direct_sum.submodule_coe_alg_hom_of, subtype.coe_mk],
+end
+
+instance graded_algebra : graded_algebra ((^) (ι R : M →ₗ[R] _).range : ℕ → submodule R _) :=
+begin
+  refine graded_algebra.of_alg_hom _ (show tensor_algebra R M →ₐ[R] _, from to_direct_sum_ι_range) _ _,
+  swap,
+  dsimp,
+  -- convert submodule_coe_alg_hom_comp_to_direct_sum_ι_range using 1,
+  -- change _ = ι R m,
+  -- dsimp,
+  -- rw [to_direct_sum_ι_range_ι],
+  -- exact (to_direct_sum_ι_range : tensor_algebra R M →ₐ[R] (⨁ i : ℕ, ↥((ι R : M →ₗ[_] _).range ^ i)))
+  -- { sorry },
+  -- { sorry }
+end
+-- graded_algebra.of_alg_hom _
+--   (to_direct_sum_ι_range : tensor_algebra R M →ₐ[R] _)
+--   (begin
+--     rintros i ⟨x, hx⟩,
+--     -- apply submodule.pow_induction' _ _ _ hx,
+--     -- induction i,
+--     -- { rw pow_zero at hx,
+--     --   obtain ⟨r, rfl : algebra_map _ _ r = x⟩ := hx,
+--     --   rw alg_hom.commutes,
+--     --   refl, },
+--     -- { rw pow_succ at hx,
+--     --   refine submodule.mul_induction_on hx _ _ _ _,
+--     --   rw submodule.mem_mul },
+--   end)
+--   _
+
+#exit
 
 lemma supr_ι_range_eq_top : (⨆ i : ℕ, (ι R : M →ₗ[_] _).range ^ i) = ⊤ :=
 begin

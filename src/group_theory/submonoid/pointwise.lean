@@ -329,12 +329,13 @@ theorem mul_le {M N P : add_submonoid R} : M * N ≤ P ↔ ∀ (m ∈ M) (n ∈ 
   {M N : add_submonoid R}
   {C : R → Prop} {r : R} (hr : r ∈ M * N)
   (hm : ∀ (m ∈ M) (n ∈ N), C (m * n))
-  (h0 : C 0) (ha : ∀ x y, C x → C y → C (x + y)) : C r :=
-(@mul_le _ _ _ _ ⟨C, h0, ha⟩).2 hm hr
+  (ha : ∀ x y, C x → C y → C (x + y)) : C r :=
+(@mul_le _ _ _ _ ⟨C, by simpa only [zero_mul] using hm _ (zero_mem _) _ (zero_mem _), ha⟩).2 hm hr
 
 open_locale pointwise
 
 variables R
+-- this proof is copied directly from `submodule.span_mul_span`
 theorem closure_mul_closure (S T : set R) : closure S * closure T = closure (S * T) :=
 begin
   apply le_antisymm,

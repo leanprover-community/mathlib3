@@ -51,14 +51,16 @@ variables (R)
 def lmul_left (r : A) : A →ₗ[R] A :=
 lmul R A r
 
-lemma lmul_left_to_add_monoid_hom (r : A) : ↑(lmul_left R r) = add_monoid_hom.mul_left r :=
+@[simp] lemma lmul_left_to_add_monoid_hom (r : A) :
+  (lmul_left R r : A →+ A) = add_monoid_hom.mul_left r :=
 fun_like.coe_injective rfl
 
 /-- The multiplication on the right in an algebra is a linear map. -/
 def lmul_right (r : A) : A →ₗ[R] A :=
 (lmul R A).to_linear_map.flip r
 
-lemma lmul_right_to_add_monoid_hom (r : A) : ↑(lmul_right R r) = add_monoid_hom.mul_right r :=
+@[simp] lemma lmul_right_to_add_monoid_hom (r : A) :
+  (lmul_right R r : A →+ A) = add_monoid_hom.mul_right r :=
 fun_like.coe_injective rfl
 
 /-- Simultaneous multiplication on the left and right is a linear map. -/

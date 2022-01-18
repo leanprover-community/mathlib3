@@ -19,7 +19,7 @@ This file defines the predicate `separated`, and common separation axioms
   there is an open set that contains one, but not the other.
 * `t1_space`: A T₁/Fréchet space is a space where every singleton set is closed.
   This is equivalent to, for every pair `x ≠ y`, there existing an open set containing `x`
-  but not `y` (`t1_iff_exists_open` shows that these conditions are equivalent.)
+  but not `y` (`t1_space_iff_exists_open` shows that these conditions are equivalent.)
 * `t2_space`: A T₂/Hausdorff space is a space where, for every two points `x ≠ y`,
   there is two disjoint open sets, one containing `x`, and the other `y`.
 * `t2_5_space`: A T₂.₅/Urysohn space is a space where, for every two points `x ≠ y`,
@@ -249,15 +249,11 @@ theorem t0_space_iff_or_not_mem_closure (α : Type u) [topological_space α] :
   t0_space α ↔ (∀ a b : α, (a ≠ b) → (a ∉ closure ({b} : set α) ∨ b ∉ closure ({a} : set α))) :=
 begin
   simp only [← not_and_distrib, t0_space_def, not_and],
-  apply forall_congr, intro a,
-  apply forall_congr, intro b,
-  apply forall_congr, intro _,
-  split,
+  refine forall₃_congr (λ a b _, ⟨_, λ h, _⟩),
   { rintro ⟨s, h₁, (⟨h₂, h₃ : b ∈ sᶜ⟩|⟨h₂, h₃ : a ∈ sᶜ⟩)⟩ ha hb; rw ← is_closed_compl_iff at h₁,
     { exact (is_closed.closure_subset_iff h₁).mpr (set.singleton_subset_iff.mpr h₃) ha h₂ },
     { exact (is_closed.closure_subset_iff h₁).mpr (set.singleton_subset_iff.mpr h₃) hb h₂ } },
-  { intro h,
-    by_cases h' : a ∈ closure ({b} : set α),
+  { by_cases h' : a ∈ closure ({b} : set α),
     { exact ⟨(closure {a})ᶜ, is_closed_closure.1,
         or.inr ⟨h h', not_not.mpr (subset_closure (set.mem_singleton a))⟩⟩ },
     { exact ⟨(closure {b})ᶜ, is_closed_closure.1,
@@ -282,13 +278,6 @@ class t1_space (α : Type u) [topological_space α] : Prop :=
 lemma is_closed_singleton [t1_space α] {x : α} : is_closed ({x} : set α) :=
 t1_space.t1 x
 
-lemma finite.is_closed [t1_space α] {s : set α} (hs : set.finite s) :
-  is_closed s :=
-begin
-  rw ← bUnion_of_singleton s,
-  exact is_closed_bUnion hs (λ i hi, is_closed_singleton)
-end
-
 lemma is_open_compl_singleton [t1_space α] {x : α} : is_open ({x}ᶜ : set α) :=
 is_closed_singleton.is_open_compl
 
@@ -306,36 +295,78 @@ begin
   exact mem_nhds_within_of_mem_nhds (is_open_ne.mem_nhds h)
 end
 
-@[priority 100] -- see Note [lower instance priority]
-instance t1_space_cofinite {α : Type*} : @t1_space α (cofinite_topology α) :=
+protected lemma set.finite.is_closed [t1_space α] {s : set α} (hs : set.finite s) :
+  is_closed s :=
 begin
-  letI := cofinite_topology α,
-  constructor,
-  intros x,
-  rw ← is_open_compl_iff,
-  intro h,
-  simp,
+  rw ← bUnion_of_singleton s,
+  exact is_closed_bUnion hs (λ i hi, is_closed_singleton)
 end
 
-lemma t1_space_antimono {α : Type*} : antitone (@t1_space α) :=
+protected lemma finset.is_closed [t1_space α] (s : finset α) : is_closed (s : set α) :=
+s.finite_to_set.is_closed
+
+lemma t1_space_tfae (α : Type u) [t : topological_space α] :
+  tfae [t1_space α,
+    ∀ x, is_closed ({x} : set α),
+    ∀ x, is_open ({x}ᶜ : set α),
+    t ≤ cofinite_topology α,
+    ∀ ⦃x y : α⦄, x ≠ y → {y}ᶜ ∈ 𝓝 x,
+    ∀ ⦃x y : α⦄, x ≠ y → ∃ s ∈ 𝓝 x, y ∉ s,
+    ∀ ⦃x y : α⦄, x ≠ y → ∃ (U : set α) (hU : is_open U), x ∈ U ∧ y ∉ U,
+    ∀ ⦃x y : α⦄, x ≠ y → disjoint (𝓝 x) (pure y),
+    ∀ ⦃x y : α⦄, x ≠ y → disjoint (pure x) (𝓝 y)] :=
 begin
-  rintros t t' h ⟨ht⟩,
-  constructor,
-  intros x,
-  specialize ht x,
-  rw ← is_open_compl_iff at *,
-  exact h _ ht
+  tfae_have : 1 ↔ 2, from ⟨λ h, h.1, λ h, ⟨h⟩⟩,
+  tfae_have : 2 ↔ 3, by simp only [is_open_compl_iff],
+  tfae_have : 5 ↔ 3,
+  { refine forall_swap.trans _,
+    simp only [is_open_iff_mem_nhds, mem_compl_iff, mem_singleton_iff] },
+  tfae_have : 5 ↔ 6,
+    by simp only [← subset_compl_singleton_iff, exists_mem_subset_iff],
+  tfae_have : 5 ↔ 7,
+    by simp only [(nhds_basis_opens _).mem_iff, subset_compl_singleton_iff, exists_prop, and.assoc,
+      and.left_comm],
+  tfae_have : 5 ↔ 8,
+    by simp only [← principal_singleton, disjoint_principal_right],
+  tfae_have : 8 ↔ 9, from forall_swap.trans (by simp only [disjoint.comm, ne_comm]),
+  tfae_have : 1 → 4,
+  { introsI H s hs,
+    simp only [cofinite_topology, ← ne_empty_iff_nonempty, ne.def, ← or_iff_not_imp_left] at hs,
+    rcases hs with rfl | hs,
+    exacts [is_open_empty, compl_compl s ▸ hs.is_closed.is_open_compl] },
+  tfae_have : 4 → 3,
+  { refine λ h x, h _ (λ _, _), simp },
+  tfae_finish
 end
 
 lemma t1_space_iff_le_cofinite {α : Type*} [t : topological_space α] :
   t1_space α ↔ t ≤ cofinite_topology α :=
+(t1_space_tfae α).out 0 3
+
+lemma t1_space_iff_exists_open : t1_space α ↔
+  ∀ (x y), x ≠ y → (∃ (U : set α) (hU : is_open U), x ∈ U ∧ y ∉ U) :=
+(t1_space_tfae α).out 0 6
+
+lemma t1_space_iff_disjoint_pure_nhds : t1_space α ↔ ∀ ⦃x y : α⦄, x ≠ y → disjoint (pure x) (𝓝 y) :=
+(t1_space_tfae α).out 0 8
+
+lemma t1_space_iff_disjoint_nhds_pure : t1_space α ↔ ∀ ⦃x y : α⦄, x ≠ y → disjoint (𝓝 x) (pure y) :=
+(t1_space_tfae α).out 0 7
+
+lemma disjoint_pure_nhds [t1_space α] {x y : α} (h : x ≠ y) : disjoint (pure x) (𝓝 y) :=
+t1_space_iff_disjoint_pure_nhds.mp ‹_› h
+
+lemma disjoint_nhds_pure [t1_space α] {x y : α} (h : x ≠ y) : disjoint (𝓝 x) (pure y) :=
+t1_space_iff_disjoint_nhds_pure.mp ‹_› h
+
+@[priority 100] -- see Note [lower instance priority]
+instance t1_space_cofinite {α : Type*} : @t1_space α (cofinite_topology α) :=
+(@t1_space_iff_le_cofinite α (cofinite_topology α)).mpr le_rfl
+
+lemma t1_space_antitone {α : Type*} : antitone (@t1_space α) :=
 begin
-  split,
-  { introsI h U U_op,
-    rcases U.eq_empty_or_nonempty with rfl | hU,
-    { exact is_open_empty },
-    { exact (@is_closed_compl_iff α t U).mp (finite.is_closed $ U_op hU) } },
-  { exact λ h, t1_space_antimono h t1_space_cofinite }
+  simp only [antitone, t1_space_iff_le_cofinite],
+  exact λ t₁ t₂ h, h.trans
 end
 
 lemma continuous_within_at_update_of_ne [t1_space α] [decidable_eq α] [topological_space β]
@@ -375,30 +406,6 @@ instance subtype.t1_space {α : Type u} [topological_space α] [t1_space α] {p 
 @[priority 100] -- see Note [lower instance priority]
 instance t1_space.t0_space [t1_space α] : t0_space α :=
 ⟨λ x y h, ⟨{z | z ≠ y}, is_open_ne, or.inl ⟨h, not_not_intro rfl⟩⟩⟩
-
-lemma t1_iff_exists_open : t1_space α ↔
-  ∀ (x y), x ≠ y → (∃ (U : set α) (hU : is_open U), x ∈ U ∧ y ∉ U) :=
-begin
-  split,
-  { introsI t1 x y hxy,
-    exact ⟨{y}ᶜ, is_open_compl_iff.mpr (t1_space.t1 y),
-            mem_compl_singleton_iff.mpr hxy,
-            not_not.mpr rfl⟩},
-  { intro h,
-    constructor,
-    intro x,
-    rw ← is_open_compl_iff,
-    have p : ⋃₀ {U : set α | (x ∉ U) ∧ (is_open U)} = {x}ᶜ,
-    { apply subset.antisymm; intros t ht,
-      { rcases ht with ⟨A, ⟨hxA, hA⟩, htA⟩,
-        rw [mem_compl_eq, mem_singleton_iff],
-        rintro rfl,
-        contradiction },
-      { obtain ⟨U, hU, hh⟩ := h t x (mem_compl_singleton_iff.mp ht),
-        exact ⟨U, ⟨hh.2, hU⟩, hh.1⟩}},
-    rw ← p,
-    exact is_open_sUnion (λ B hB, hB.2) }
-end
 
 lemma compl_singleton_mem_nhds [t1_space α] {x y : α} (h : y ≠ x) : {x}ᶜ ∈ 𝓝 y :=
 is_open_compl_singleton.mem_nhds $ by rwa [mem_compl_eq, mem_singleton_iff]
@@ -489,20 +496,12 @@ infinite. -/
 lemma infinite_of_mem_nhds {α} [topological_space α] [t1_space α] (x : α) [hx : ne_bot (𝓝[≠] x)]
   {s : set α} (hs : s ∈ 𝓝 x) : set.infinite s :=
 begin
-  unfreezingI { contrapose! hx },
-  rw set.not_infinite at hx,
-  have A : is_closed (s \ {x}) := finite.is_closed (hx.subset (diff_subset _ _)),
-  have B : (s \ {x})ᶜ ∈ 𝓝 x,
-  { apply is_open.mem_nhds,
-    { apply is_open_compl_iff.2 A },
-    { simp only [not_true, not_false_iff, mem_diff, and_false, mem_compl_eq, mem_singleton] } },
-  have C : {x} ∈ 𝓝 x,
-  { apply filter.mem_of_superset (filter.inter_mem hs B),
-    assume y hy,
-    simp only [mem_singleton_iff, mem_inter_eq, not_and, not_not, mem_diff, mem_compl_eq] at hy,
-    simp only [hy.right hy.left, mem_singleton] },
-  have D : {x}ᶜ ∈ 𝓝[≠] x := self_mem_nhds_within,
-  simpa [← empty_mem_iff_bot] using filter.inter_mem (mem_nhds_within_of_mem_nhds C) D
+  intro hsf,
+  have A : {x} ⊆ s, by simp only [singleton_subset_iff, mem_of_mem_nhds hs],
+  have B : is_closed (s \ {x}) := (hsf.subset (diff_subset _ _)).is_closed,
+  have C : (s \ {x})ᶜ ∈ 𝓝 x, from B.is_open_compl.mem_nhds (λ h, h.2 rfl),
+  have D : {x} ∈ 𝓝 x, by simpa only [← diff_eq, diff_diff_cancel_left A] using inter_mem hs C,
+  rwa [← mem_interior_iff_mem_nhds, interior_singleton] at D
 end
 
 lemma discrete_of_t1_of_finite {X : Type*} [topological_space X] [t1_space X] [fintype X] :
@@ -511,7 +510,7 @@ begin
   apply singletons_open_iff_discrete.mp,
   intros x,
   rw [← is_closed_compl_iff],
-  exact finite.is_closed (finite.of_fintype _)
+  exact (finite.of_fintype _).is_closed
 end
 
 lemma singleton_mem_nhds_within_of_mem_discrete {s : set α} [discrete_topology s]
@@ -1108,7 +1107,7 @@ class regular_space (α : Type u) [topological_space α] extends t0_space α : P
 @[priority 100] -- see Note [lower instance priority]
 instance regular_space.t1_space [regular_space α] : t1_space α :=
 begin
-  rw t1_iff_exists_open,
+  rw t1_space_iff_exists_open,
   intros x y hxy,
   obtain ⟨U, hU, h⟩ := t0_space.t0 x y hxy,
   cases h,

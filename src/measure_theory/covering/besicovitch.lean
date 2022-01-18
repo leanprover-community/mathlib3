@@ -583,7 +583,7 @@ begin
       { rw [finset.set_bUnion_finset_image],
         exact le_trans (measure_mono (diff_subset_diff so (subset.refl _))) H },
     rw [← diff_inter_self_eq_diff,
-      measure_diff_le_iff_le_add _ omeas (inter_subset_right _ _) ((measure_lt_top μ _).ne)], swap,
+      measure_diff_le_iff_le_add _ (inter_subset_right _ _) ((measure_lt_top μ _).ne)], swap,
     { apply measurable_set.inter _ omeas,
       haveI : encodable (u i) := (u_count i).to_encodable,
       exact measurable_set.Union

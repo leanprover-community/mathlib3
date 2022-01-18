@@ -52,7 +52,7 @@ outer measure, Carathéodory-measurable, Carathéodory's criterion
 
 noncomputable theory
 
-open set finset function filter encodable
+open set finset function filter encodable topological_space (second_countable_topology)
 open_locale classical big_operators nnreal topological_space ennreal
 
 namespace measure_theory
@@ -110,6 +110,29 @@ rel_supr_sum m m.empty (≤) m.Union_nat s t
 protected lemma union (m : outer_measure α) (s₁ s₂ : set α) :
   m (s₁ ∪ s₂) ≤ m s₁ + m s₂ :=
 rel_sup_add m m.empty (≤) m.Union_nat s₁ s₂
+
+/-- If a set has zero measure in a neighborhood of each of its points, then it has zero measure
+in a second-countable space. -/
+lemma null_of_locally_null [topological_space α] [second_countable_topology α] (m : outer_measure α)
+  (s : set α) (hs : ∀ x ∈ s, ∃ u ∈ 𝓝[s] x, m u = 0) :
+  m s = 0 :=
+begin
+  choose! u hxu hu₀ using hs,
+  obtain ⟨t, ts, t_count, ht⟩ : ∃ t ⊆ s, t.countable ∧ s ⊆ ⋃ x ∈ t, u x :=
+    topological_space.countable_cover_nhds_within hxu,
+  apply m.mono_null ht,
+  exact (m.bUnion_null_iff t_count).2 (λ x hx, hu₀ x (ts hx))
+end
+
+/-- If `m s ≠ 0`, then for some point `x ∈ s` and any `t ∈ 𝓝[s] x` we have `0 < m t`. -/
+lemma exists_mem_forall_mem_nhds_within_pos [topological_space α] [second_countable_topology α]
+  (m : outer_measure α) {s : set α} (hs : m s ≠ 0) :
+  ∃ x ∈ s, ∀ t ∈ 𝓝[s] x, 0 < m t :=
+begin
+  contrapose! hs,
+  simp only [nonpos_iff_eq_zero, ← exists_prop] at hs,
+  exact m.null_of_locally_null s hs
+end
 
 /-- If `s : ι → set α` is a sequence of sets, `S = ⋃ n, s n`, and `m (S \ s n)` tends to zero along
 some nontrivial filter (usually `at_top` on `ι = ℕ`), then `m S = ⨆ n, m (s n)`. -/
@@ -1242,7 +1265,7 @@ le_of_function.trans $ forall_congr $ λ s, le_infi_iff
 
 theorem trim_le_trim_iff {m₁ m₂ : outer_measure α} :
   m₁.trim ≤ m₂.trim ↔ ∀ s, measurable_set s → m₁ s ≤ m₂ s :=
-le_trim_iff.trans $ forall_congr $ λ s, forall_congr $ λ hs, by rw [trim_eq _ hs]
+le_trim_iff.trans $ forall₂_congr $ λ s hs, by rw [trim_eq _ hs]
 
 theorem trim_eq_trim_iff {m₁ m₂ : outer_measure α} :
   m₁.trim = m₂.trim ↔ ∀ s, measurable_set s → m₁ s = m₂ s :=

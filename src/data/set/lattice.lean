@@ -1077,6 +1077,18 @@ by { rw sInter_eq_bInter, apply image_Inter₂_subset }
 
 /-! ### `inj_on` -/
 
+lemma inj_on.image_inter {f : α → β} {s t u : set α} (hf : inj_on f u) (hs : s ⊆ u) (ht : t ⊆ u) :
+  f '' (s ∩ t) = f '' s ∩ f '' t :=
+begin
+  apply subset.antisymm (image_inter_subset _ _ _),
+  rintros x ⟨⟨y, ys, hy⟩, ⟨z, zt, hz⟩⟩,
+  have : y = z,
+  { apply hf (hs ys) (ht zt),
+    rwa ← hz at hy },
+  rw ← this at zt,
+  exact ⟨y, ⟨ys, zt⟩, hy⟩,
+end
+
 lemma inj_on.image_Inter_eq [nonempty ι] {s : ι → set α} {f : α → β} (h : inj_on f (⋃ i, s i)) :
   f '' (⋂ i, s i) = ⋂ i, f '' (s i) :=
 begin
@@ -1586,6 +1598,13 @@ disjoint_left
 lemma disjoint_iff_subset_compl_left :
   disjoint s t ↔ t ⊆ sᶜ :=
 disjoint_right
+
+lemma _root_.disjoint.image {s t u : set α} {f : α → β} (h : disjoint s t) (hf : inj_on f u)
+  (hs : s ⊆ u) (ht : t ⊆ u) : disjoint (f '' s) (f '' t) :=
+begin
+  rw disjoint_iff_inter_eq_empty at h ⊢,
+  rw [← hf.image_inter hs ht, h, image_empty],
+end
 
 end set
 

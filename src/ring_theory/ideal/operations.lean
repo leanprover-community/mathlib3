@@ -1270,6 +1270,9 @@ by rw [ring_hom.ker_eq_comap_bot, ideal.comap_comap, ring_hom.ker_eq_comap_bot]
 lemma not_one_mem_ker [nontrivial S] (f : R →+* S) : (1:R) ∉ ker f :=
 by { rw [mem_ker, f.map_one], exact one_ne_zero }
 
+lemma ker_ne_top [nontrivial S] (f : R →+* S) : f.ker ≠ ⊤ :=
+(ideal.ne_top_iff_one _).mpr $ not_one_mem_ker f
+
 end semiring
 
 section ring

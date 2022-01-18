@@ -103,13 +103,34 @@ instance ae_is_measurably_generated : is_measurably_generated μ.ae :=
 ⟨λ s hs, let ⟨t, hst, htm, htμ⟩ := exists_measurable_superset_of_null hs in
   ⟨tᶜ, compl_mem_ae_iff.2 htμ, htm.compl, compl_subset_comm.1 hst⟩⟩
 
-lemma measure_union (hd : disjoint s₁ s₂) (h₁ : measurable_set s₁) (h₂ : measurable_set s₂) :
+lemma measure_union (hd : disjoint s₁ s₂) (h : measurable_set s₂) :
   μ (s₁ ∪ s₂) = μ s₁ + μ s₂ :=
-measure_union₀ h₁.null_measurable_set h₂.null_measurable_set hd
+measure_union₀ h.null_measurable_set hd.ae_disjoint
+
+lemma measure_union' (hd : disjoint s₁ s₂) (h : measurable_set s₁) :
+  μ (s₁ ∪ s₂) = μ s₁ + μ s₂ :=
+measure_union₀' h.null_measurable_set hd.ae_disjoint
+
+lemma measure_inter_add_diff (s : set α) (ht : measurable_set t) :
+  μ (s ∩ t) + μ (s \ t) = μ s :=
+measure_inter_add_diff₀ _ ht.null_measurable_set
+
+lemma measure_diff_add_inter (s : set α) (ht : measurable_set t) :
+  μ (s \ t) + μ (s ∩ t) = μ s :=
+(add_comm _ _).trans (measure_inter_add_diff s ht)
+
+lemma measure_union_add_inter (s : set α) (ht : measurable_set t) :
+  μ (s ∪ t) + μ (s ∩ t) = μ s + μ t :=
+by { rw [← measure_inter_add_diff (s ∪ t) ht, set.union_inter_cancel_right,
+  union_diff_right, ← measure_inter_add_diff s ht], ac_refl }
+
+lemma measure_union_add_inter' (hs : measurable_set s) (t : set α) :
+  μ (s ∪ t) + μ (s ∩ t) = μ s + μ t :=
+by rw [union_comm, inter_comm, measure_union_add_inter t hs, add_comm]
 
 lemma measure_add_measure_compl (h : measurable_set s) :
   μ s + μ sᶜ = μ univ :=
-by { rw [← union_compl_self s, measure_union _ h h.compl], exact disjoint_compl_right }
+by { rw [← measure_union' _ h, union_compl_self], exact disjoint_compl_right }
 
 lemma measure_bUnion {s : set β} {f : β → set α} (hs : countable s)
   (hd : s.pairwise (disjoint on f)) (h : ∀ b ∈ s, measurable_set (f b)) :
@@ -154,12 +175,11 @@ measure_congr $ diff_ae_eq_self.2 h
 lemma measure_diff_null (h : μ s₂ = 0) : μ (s₁ \ s₂) = μ s₁ :=
 measure_diff_null' $ measure_mono_null (inter_subset_right _ _) h
 
-lemma measure_diff (h : s₂ ⊆ s₁) (h₁ : measurable_set s₁) (h₂ : measurable_set s₂)
-  (h_fin : μ s₂ ≠ ∞) :
+lemma measure_diff (h : s₂ ⊆ s₁) (h₂ : measurable_set s₂) (h_fin : μ s₂ ≠ ∞) :
   μ (s₁ \ s₂) = μ s₁ - μ s₂ :=
 begin
   refine (ennreal.add_sub_self' h_fin).symm.trans _,
-  rw [← measure_union disjoint_diff h₂ (h₁.diff h₂), union_diff_cancel h]
+  rw [← measure_union' disjoint_diff h₂, union_diff_cancel h]
 end
 
 lemma le_measure_diff : μ s₁ - μ s₂ ≤ μ (s₁ \ s₂) :=
@@ -168,20 +188,20 @@ calc μ s₁ ≤ μ (s₂ ∪ s₁)        : measure_mono (subset_union_right _ 
       ... = μ (s₂ ∪ s₁ \ s₂)   : congr_arg μ union_diff_self.symm
       ... ≤ μ s₂ + μ (s₁ \ s₂) : measure_union_le _ _
 
-lemma measure_diff_lt_of_lt_add (hs : measurable_set s) (ht : measurable_set t) (hst : s ⊆ t)
+lemma measure_diff_lt_of_lt_add (hs : measurable_set s) (hst : s ⊆ t)
   (hs' : μ s ≠ ∞) {ε : ℝ≥0∞} (h : μ t < μ s + ε) : μ (t \ s) < ε :=
 begin
-  rw [measure_diff hst ht hs hs'], rw add_comm at h,
+  rw [measure_diff hst hs hs'], rw add_comm at h,
   exact ennreal.sub_lt_of_lt_add (measure_mono hst) h
 end
 
-lemma measure_diff_le_iff_le_add (hs : measurable_set s) (ht : measurable_set t) (hst : s ⊆ t)
+lemma measure_diff_le_iff_le_add (hs : measurable_set s) (hst : s ⊆ t)
   (hs' : μ s ≠ ∞) {ε : ℝ≥0∞} : μ (t \ s) ≤ ε ↔ μ t ≤ μ s + ε :=
-by rwa [measure_diff hst ht hs hs', tsub_le_iff_left]
+by rwa [measure_diff hst hs hs', tsub_le_iff_left]
 
-lemma measure_eq_measure_of_null_diff {s t : set α}
-  (hst : s ⊆ t) (h_nulldiff : μ (t.diff s) = 0) : μ s = μ t :=
-by { rw [←diff_diff_cancel_left hst, ←@measure_diff_null _ _ _ t _ h_nulldiff], refl, }
+lemma measure_eq_measure_of_null_diff {s t : set α} (hst : s ⊆ t) (h_nulldiff : μ (t \ s) = 0) :
+  μ s = μ t :=
+measure_congr (hst.eventually_le.antisymm $ ae_le_set.mpr h_nulldiff)
 
 lemma measure_eq_measure_of_between_null_diff {s₁ s₂ s₃ : set α}
   (h12 : s₁ ⊆ s₂) (h23 : s₂ ⊆ s₃) (h_nulldiff : μ (s₃ \ s₁) = 0) :
@@ -205,7 +225,7 @@ lemma measure_eq_measure_larger_of_between_null_diff {s₁ s₂ s₃ : set α}
 (measure_eq_measure_of_between_null_diff h12 h23 h_nulldiff).2
 
 lemma measure_compl (h₁ : measurable_set s) (h_fin : μ s ≠ ∞) : μ (sᶜ) = μ univ - μ s :=
-by { rw compl_eq_univ_diff, exact measure_diff (subset_univ s) measurable_set.univ h₁ h_fin }
+by { rw compl_eq_univ_diff, exact measure_diff (subset_univ s) h₁ h_fin }
 
 lemma sum_measure_le_measure_univ {s : finset ι} {t : ι → set α} (h : ∀ i ∈ s, measurable_set (t i))
   (H : set.pairwise ↑s (disjoint on t)) :
@@ -218,34 +238,6 @@ lemma tsum_measure_le_measure_univ {s : ι → set α} (hs : ∀ i, measurable_s
 begin
   rw [ennreal.tsum_eq_supr_sum],
   exact supr_le (λ s, sum_measure_le_measure_univ (λ i hi, hs i) (λ i hi j hj hij, H i j hij))
-end
-
-/-- If `sᵢ` is a countable family of measurable sets such that all pairwise intersections have
-measure `0`, then there exists a subordinate family `tᵢ ⊆ sᵢ` of measurable pairwise disjoint sets
-such that `tᵢ =ᵐ[μ] sᵢ`. -/
-lemma exists_subordinate_pairwise_disjoint [encodable ι] {s : ι → set α}
-  (h : ∀ i, measurable_set (s i)) (hd : pairwise (λ i j, μ (s i ∩ s j) = 0)) :
-  ∃ t : ι → set α, (∀ i, t i ⊆ s i) ∧ (∀ i, s i =ᵐ[μ] t i) ∧ (∀ i, measurable_set (t i)) ∧
-    pairwise (disjoint on t) :=
-begin
-  set t : ι → set α := λ i, s i \ ⋃ j ∈ ({i}ᶜ : set ι), s j,
-  refine ⟨t, λ i, diff_subset _ _, λ i, _, λ i, (h i).diff $
-    measurable_set.bUnion (countable_encodable _) $ λ j hj, h j, _⟩,
-  { refine eventually_le.antisymm _ (diff_subset _ _).eventually_le,
-    rw [ae_le_set, sdiff_sdiff_right_self, inf_eq_inter],
-    simp only [inter_Union, measure_bUnion_null_iff (countable_encodable _)],
-    exact λ j hj, hd _ _ (ne.symm hj) },
-  { rintros i j hne x ⟨⟨hsi, -⟩, -, Hj⟩,
-    exact Hj (mem_bUnion hne hsi) }
-end
-
-lemma measure_Union_of_null_inter [encodable ι] {f : ι → set α} (h : ∀ i, measurable_set (f i))
-  (hn : pairwise ((λ S T, μ (S ∩ T) = 0) on f)) : μ (⋃ i, f i) = ∑' i, μ (f i) :=
-begin
-  rcases exists_subordinate_pairwise_disjoint h hn with ⟨t, ht_sub, ht_eq, htm, htd⟩,
-  calc μ (⋃ i, f i) = μ (⋃ i, t i)  : measure_congr (eventually_eq.countable_Union ht_eq)
-                ... = ∑' i, μ (t i) : measure_Union htd htm
-                ... = ∑' i, μ (f i) : tsum_congr (λ i, measure_congr (ht_eq i).symm)
 end
 
 /-- Pigeonhole principle for measure spaces: if `∑' i, μ (s i) > μ univ`, then
@@ -316,16 +308,15 @@ begin
   have : ∀ t ⊆ s k, μ t ≠ ∞, from λ t ht, ne_top_of_le_ne_top hk (measure_mono ht),
   rw [← ennreal.sub_sub_cancel (by exact hk) (infi_le _ k), ennreal.sub_infi,
     ← ennreal.sub_sub_cancel (by exact hk) (measure_mono (Inter_subset _ k)),
-    ← measure_diff (Inter_subset _ k) (h k) (measurable_set.Inter h) (this _ (Inter_subset _ k)),
+    ← measure_diff (Inter_subset _ k) (measurable_set.Inter h) (this _ (Inter_subset _ k)),
     diff_Inter, measure_Union_eq_supr],
   { congr' 1,
     refine le_antisymm (supr_le_supr2 $ λ i, _) (supr_le_supr $ λ i, _),
     { rcases hd i k with ⟨j, hji, hjk⟩,
       use j,
-      rw [← measure_diff hjk (h _) (h _) (this _ hjk)],
+      rw [← measure_diff hjk (h _) (this _ hjk)],
       exact measure_mono (diff_subset_diff_right hji) },
-    { rw [tsub_le_iff_right, ← measure_union disjoint_diff.symm ((h k).diff (h i)) (h i),
-        set.union_comm],
+    { rw [tsub_le_iff_right, ← measure_union disjoint_diff.symm (h i), set.union_comm],
       exact measure_mono (diff_subset_iff.1 $ subset.refl _) } },
   { exact λ i, (h k).diff (h i) },
   { exact hd.mono_comp _ (λ _ _, diff_subset_diff_right) }
@@ -439,17 +430,7 @@ measure.of_measurable (λ s _, m s) m.empty
   (λ f hf hd, m.Union_eq_of_caratheodory (λ i, h _ (hf i)) hd)
 
 lemma le_to_outer_measure_caratheodory (μ : measure α) : ms ≤ μ.to_outer_measure.caratheodory :=
-begin
-  assume s hs,
-  rw to_outer_measure_eq_induced_outer_measure,
-  refine outer_measure.of_function_caratheodory (λ t, le_infi $ λ ht, _),
-  rw [← measure_eq_extend (ht.inter hs),
-    ← measure_eq_extend (ht.diff hs),
-    ← measure_union _ (ht.inter hs) (ht.diff hs),
-    inter_union_diff],
-  exact le_refl _,
-  exact λ x ⟨⟨_, h₁⟩, _, h₂⟩, h₂ h₁
-end
+λ s hs t, (measure_inter_add_diff _ hs).symm
 
 @[simp] lemma to_measure_to_outer_measure (m : outer_measure α) (h : ms ≤ m.caratheodory) :
   (m.to_measure h).to_outer_measure = m.trim := rfl
@@ -485,18 +466,6 @@ end outer_measure
 variables {m0 : measurable_space α} [measurable_space β] [measurable_space γ]
 variables {μ μ₁ μ₂ μ₃ ν ν' ν₁ ν₂ : measure α} {s s' t : set α}
 
-lemma measure_inter_add_diff (s : set α) (ht : measurable_set t) :
-  μ (s ∩ t) + μ (s \ t) = μ s :=
-(le_to_outer_measure_caratheodory μ _ ht _).symm
-
-lemma measure_union_add_inter (s : set α) (ht : measurable_set t) :
-  μ (s ∪ t) + μ (s ∩ t) = μ s + μ t :=
-by { rw [← measure_inter_add_diff (s ∪ t) ht, set.union_inter_cancel_right,
-  union_diff_right, ← measure_inter_add_diff s ht], ac_refl }
-
-lemma measure_union_add_inter' (hs : measurable_set s) (t : set α) :
-  μ (s ∪ t) + μ (s ∩ t) = μ s + μ t :=
-by rw [union_comm, inter_comm, measure_union_add_inter t hs, add_comm]
 namespace measure
 
 /-- If `u` is a superset of `t` with the same measure (both sets possibly non-measurable), then
@@ -953,30 +922,38 @@ by rw [measure.restrict_eq_zero, h]
 
 @[simp] lemma restrict_univ : μ.restrict univ = μ := ext $ λ s hs, by simp [hs]
 
-lemma restrict_union_apply (h : disjoint (t ∩ s) (t ∩ s')) (hs : measurable_set s)
-  (hs' : measurable_set s') (ht : measurable_set t) :
-  μ.restrict (s ∪ s') t = μ.restrict s t + μ.restrict s' t :=
-begin
-  simp only [restrict_apply, ht, set.inter_union_distrib_left],
-  exact measure_union h (ht.inter hs) (ht.inter hs'),
-end
-
-lemma restrict_union (h : disjoint s t) (hs : measurable_set s) (ht : measurable_set t) :
-  μ.restrict (s ∪ t) = μ.restrict s + μ.restrict t :=
-ext $ λ t' ht', restrict_union_apply (h.mono inf_le_right inf_le_right) hs ht ht'
-
-lemma restrict_union_add_inter (s : set α) (ht : measurable_set t) :
+lemma restrict_union_add_inter₀ (s : set α) (ht : null_measurable_set t μ) :
   μ.restrict (s ∪ t) + μ.restrict (s ∩ t) = μ.restrict s + μ.restrict t :=
 begin
   ext1 u hu,
   simp only [add_apply, restrict_apply hu, inter_union_distrib_left],
-  convert measure_union_add_inter (u ∩ s) (hu.inter ht) using 3,
+  convert measure_union_add_inter₀ (u ∩ s) (hu.null_measurable_set.inter ht) using 3,
   rw [set.inter_left_comm (u ∩ s), set.inter_assoc, ← set.inter_assoc u u, set.inter_self]
 end
 
+lemma restrict_union_add_inter (s : set α) (ht : measurable_set t) :
+  μ.restrict (s ∪ t) + μ.restrict (s ∩ t) = μ.restrict s + μ.restrict t :=
+restrict_union_add_inter₀ s ht.null_measurable_set
+
+lemma restrict_union_add_inter' (hs : measurable_set s) (t : set α) :
+  μ.restrict (s ∪ t) + μ.restrict (s ∩ t) = μ.restrict s + μ.restrict t :=
+by simpa only [union_comm, inter_comm, add_comm] using restrict_union_add_inter t hs
+
+lemma restrict_union₀ (h : ae_disjoint μ s t) (ht : null_measurable_set t μ) :
+  μ.restrict (s ∪ t) = μ.restrict s + μ.restrict t :=
+by simp [← restrict_union_add_inter₀ s ht, restrict_zero_set h]
+
+lemma restrict_union (h : disjoint s t) (ht : measurable_set t) :
+  μ.restrict (s ∪ t) = μ.restrict s + μ.restrict t :=
+restrict_union₀ h.ae_disjoint ht.null_measurable_set
+
+lemma restrict_union' (h : disjoint s t) (hs : measurable_set s) :
+  μ.restrict (s ∪ t) = μ.restrict s + μ.restrict t :=
+by rw [union_comm, restrict_union h.symm hs, add_comm]
+
 @[simp] lemma restrict_add_restrict_compl (hs : measurable_set s) :
   μ.restrict s + μ.restrict sᶜ = μ :=
-by rw [← restrict_union (@disjoint_compl_right (set α) _ _) hs hs.compl,
+by rw [← restrict_union (@disjoint_compl_right (set α) _ _) hs.compl,
     union_compl_self, restrict_univ]
 
 @[simp] lemma restrict_compl_add_restrict (hs : measurable_set s) :
@@ -992,19 +969,19 @@ begin
 end
 
 lemma restrict_Union_apply_ae [encodable ι] {s : ι → set α}
-  (hd : pairwise (λ i j, μ (s i ∩ s j) = 0))
+  (hd : pairwise (ae_disjoint μ on s))
   (hm : ∀ i, measurable_set (s i)) {t : set α} (ht : measurable_set t) :
   μ.restrict (⋃ i, s i) t = ∑' i, μ.restrict (s i) t :=
 begin
   simp only [restrict_apply, ht, inter_Union],
-  exact measure_Union_of_null_inter (λ i, ht.inter (hm _)) (λ i j hne, measure_mono_null
-    (inter_subset_inter (inter_subset_right _ _) (inter_subset_right _ _)) (hd i j hne))
+  exact measure_Union₀ (hd.mono $ λ i j h, h.mono (inter_subset_right _ _) (inter_subset_right _ _))
+    (λ i, (ht.inter (hm i)).null_measurable_set)
 end
 
 lemma restrict_Union_apply [encodable ι] {s : ι → set α} (hd : pairwise (disjoint on s))
   (hm : ∀ i, measurable_set (s i)) {t : set α} (ht : measurable_set t) :
   μ.restrict (⋃ i, s i) t = ∑' i, μ.restrict (s i) t :=
-restrict_Union_apply_ae (λ i j hij, by simp [set.disjoint_iff_inter_eq_empty.1 (hd i j hij)]) hm ht
+restrict_Union_apply_ae (hd.mono $ λ i j h, h.ae_disjoint) hm ht
 
 lemma restrict_Union_apply_eq_supr [encodable ι] {s : ι → set α}
   (hm : ∀ i, measurable_set (s i)) (hd : directed (⊆) s) {t : set α} (ht : measurable_set t) :

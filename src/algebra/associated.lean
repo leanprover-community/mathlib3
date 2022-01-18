@@ -625,8 +625,7 @@ begin
   apply and_congr mk_ne_zero,
   apply and_congr,
   { rw [is_unit_mk], },
-  apply forall_congr, assume a,
-  apply forall_congr, assume b,
+  refine forall₂_congr (λ a b, _),
   rw [mk_mul_mk, mk_dvd_mk, mk_dvd_mk, mk_dvd_mk],
 end
 

@@ -716,9 +716,7 @@ begin
   ext ⟨x, y⟩,
   simp_rw [mem_closure_iff_nhds_basis (uniform_space.has_basis_nhds_prod x y),
            mem_Inter, mem_set_of_eq],
-  apply forall_congr,
-  intro V,
-  apply forall_congr,
+  refine forall₂_congr (λ V, _),
   rintros ⟨V_in, V_symm⟩,
   simp_rw [mem_comp_comp V_symm, inter_comm, exists_prop],
   exact iff.rfl,
@@ -774,7 +772,7 @@ calc (a, b) ∈ closure t ↔ (𝓝 (a, b) ⊓ 𝓟 t ≠ ⊥) : mem_closure_iff
     exact (monotone_prod monotone_preimage monotone_preimage).inter monotone_const
   end
   ... ↔ (∀ s ∈ 𝓤 α, (a, b) ∈ s ○ (t ○ s)) :
-    forall_congr $ assume s, forall_congr $ assume hs,
+    forall₂_congr $ λ s hs,
     ⟨assume ⟨⟨x, y⟩, ⟨⟨hx, hy⟩, hxyt⟩⟩, ⟨x, hx, y, hxyt, hy⟩,
       assume ⟨x, hx, y, hxyt, hy⟩, ⟨⟨x, y⟩, ⟨⟨hx, hy⟩, hxyt⟩⟩⟩
   ... ↔ _ : by simp

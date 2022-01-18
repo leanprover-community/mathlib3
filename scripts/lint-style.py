@@ -351,7 +351,7 @@ def format_errors(errors):
         if errno == ERR_TAC:
             output_message(path, line_nr, "ERR_TAC", "Files in mathlib cannot import the whole tactic folder, nor tactic.omega or tactic.observe")
         if errno == ERR_UNF:
-            output_message(path, line_nr, "ERR_UNF", "Use of unfreeze_local_instances is discouraged and leads to performance problems")
+            output_message(path, line_nr, "ERR_UNF", "Use of unfreeze_local_instances is discouraged and leads to performance problems. Use unfreezingI instead.")
         if errno == WRN_IND:
             output_message(path, line_nr, "WRN_IND", "Probable indentation mistake in proof")
         if errno == WRN_BRC:

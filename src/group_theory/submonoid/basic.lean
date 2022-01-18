@@ -90,6 +90,8 @@ structure submonoid (M : Type*) [mul_one_class M] :=
 (one_mem' : (1 : M) ∈ carrier)
 (mul_mem' {a b} : a ∈ carrier → b ∈ carrier → a * b ∈ carrier)
 
+/-- `submonoid_class S M` says `S` is a type of subsets `s ≤ M` that contain `1`
+and are closed under `(*)` -/
 class submonoid_class (S : Type*) (M : out_param $ Type*) [mul_one_class M] [set_like S M]
   extends mul_mem_class S M :=
 (one_mem : ∀ (s : S), (1 : M) ∈ s)
@@ -101,6 +103,8 @@ structure add_submonoid (M : Type*) [add_zero_class M] :=
 (zero_mem' : (0 : M) ∈ carrier)
 (add_mem' {a b} : a ∈ carrier → b ∈ carrier → a + b ∈ carrier)
 
+/-- `add_submonoid_class S M` says `S` is a type of subsets `s ≤ M` that contain `0`
+and are closed under `(+)` -/
 class add_submonoid_class (S : Type*) (M : out_param $ Type*) [add_zero_class M] [set_like S M]
   extends add_mem_class S M :=
 (zero_mem : ∀ (s : S), (0 : M) ∈ s)

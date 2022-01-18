@@ -123,11 +123,12 @@ end tendsto_in_measure
 
 section
 
-variables [metric_space E] [second_countable_topology E] [measurable_space E] [borel_space E]
+variables [metric_space E]
 variables {f : ℕ → α → E} {g : α → E}
 
 /-- Convergence a.e. implies convergence in measure in a finite measure space. -/
-lemma tendsto_in_measure_of_tendsto_ae [is_finite_measure μ]
+lemma tendsto_in_measure_of_tendsto_ae
+  [measurable_space E] [second_countable_topology E] [borel_space E] [is_finite_measure μ]
   (hf : ∀ n, measurable (f n)) (hg : measurable g)
   (hfg : ∀ᵐ x ∂μ, tendsto (λ n, f n x) at_top (𝓝 (g x))) :
   tendsto_in_measure μ f g :=
@@ -149,7 +150,9 @@ begin
   exact hN n hn x hx,
 end
 
-lemma tendsto_in_measure.exists_seq_tendsto_ae (hf : ∀ n, measurable (f n)) (hg : measurable g)
+/-- If `f` is a sequence of functions which converges in measure to `g`, then there exists a
+subsequence of `f` which converges a.e. to `g`. -/
+lemma tendsto_in_measure.exists_seq_tendsto_ae
   (hfg : tendsto_in_measure μ f g) :
   ∃ ns : ℕ → ℕ, ∀ᵐ x ∂μ, tendsto (λ i, f (ns i) x) at_top (𝓝 (g x)) :=
 begin

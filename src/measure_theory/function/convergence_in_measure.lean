@@ -24,9 +24,9 @@ convergence in measure and other notions of convergence.
 
 * `measure_theory.tendsto_in_measure_of_tendsto_ae`: convergence almost everywhere in a finite
   measure space implies convergence in measure.
-* `measure_theory.tendsto_in_measure.exists_seq_tendsto_ae`: in a finite measure space, `f`
-  converges in measure to `g` implies `f` has a subsequence which convergence almost everywhere
-  to `g`.
+* `measure_theory.tendsto_in_measure.exists_seq_tendsto_ae`: if `f` is a sequence of functions
+  which converges in measure to `g`, then `f` has a subsequence which convergence almost
+  everywhere to `g`.
 * `measure_theory.tendsto_in_measure_of_tendsto_snorm`: convergence in Lp implies convergence
   in measure.
 -/

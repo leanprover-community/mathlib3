@@ -275,7 +275,7 @@
   author : Yury G. Kudryashov
 76:
   title  : Fourier Series
-  decl   :
+  decls   :
     - fourier_series_repr
     - has_sum_fourier_series
   author : Heather Macbeth

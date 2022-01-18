@@ -81,6 +81,7 @@ instance [semiring R] [module R ℝ] : module R ℂ :=
 instance [comm_semiring R] [algebra R ℝ] : algebra R ℂ :=
 { smul := (•),
   smul_def' := λ r x, by ext; simp [smul_re, smul_im, algebra.smul_def],
+  op_smul_def' := λ x r, by ext; simp [smul_re, smul_im, algebra.op_smul_def],
   commutes' := λ r ⟨xr, xi⟩, by ext; simp [smul_re, smul_im, algebra.commutes],
   ..complex.of_real.comp (algebra_map R ℝ) }
 

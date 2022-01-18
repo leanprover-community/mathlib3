@@ -368,6 +368,9 @@ lemma diff_ae_eq_self : (s \ t : set α) =ᵐ[μ] s ↔ μ (s ∩ t) = 0 :=
 by simp [eventually_le_antisymm_iff, ae_le_set, diff_diff_right,
   diff_diff, diff_eq_empty.2 (set.subset_union_right _ _)]
 
+lemma diff_null_ae_eq_self (ht : μ t = 0) : (s \ t : set α) =ᵐ[μ] s :=
+diff_ae_eq_self.mpr (measure_mono_null (inter_subset_right _ _) ht)
+
 lemma ae_eq_set {s t : set α} :
   s =ᵐ[μ] t ↔ μ (s \ t) = 0 ∧ μ (t \ s) = 0 :=
 by simp [eventually_le_antisymm_iff, ae_le_set]
@@ -395,6 +398,11 @@ alias measure_mono_ae ← filter.eventually_le.measure_le
 /-- If two sets are equal modulo a set of measure zero, then `μ s = μ t`. -/
 lemma measure_congr (H : s =ᵐ[μ] t) : μ s = μ t :=
 le_antisymm H.le.measure_le H.symm.le.measure_le
+
+alias measure_congr ← filter.eventually_eq.measure_eq
+
+lemma measure_mono_null_ae (H : s ≤ᵐ[μ] t) (ht : μ t = 0) : μ s = 0 :=
+nonpos_iff_eq_zero.1 $ ht ▸ H.measure_le
 
 /-- A measurable set `t ⊇ s` such that `μ t = μ s`. It even satisifies `μ (t ∩ u) = μ (s ∩ u)` for
 any measurable set `u`, see `measure_to_measurable_inter`. If `s` is a null measurable set, then
@@ -508,6 +516,5 @@ lemma ae_measurable_id' : ae_measurable (λ x, x) μ := measurable_id.ae_measura
 lemma measurable.comp_ae_measurable [measurable_space δ] {f : α → δ} {g : δ → β}
   (hg : measurable g) (hf : ae_measurable f μ) : ae_measurable (g ∘ f) μ :=
 ⟨g ∘ hf.mk f, hg.comp hf.measurable_mk, eventually_eq.fun_comp hf.ae_eq_mk _⟩
-
 
 end

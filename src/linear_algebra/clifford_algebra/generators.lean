@@ -11,7 +11,7 @@ import ring_theory.graded_algebra.basic
 /-!
 # Results about the generators and grading structure of the clifford algebra
 
-The main result is `exterior_algebra.graded_algebra`, which says that the clifford algebra is a
+The main result is `clifford_algebra.graded_algebra`, which says that the clifford algebra is a
 ℤ₂-graded algebra (or "superalgebra").
 -/
 
@@ -52,24 +52,14 @@ begin
   refine set.mem_Union.mpr ⟨⟨xi + yi, by simp only [nat.cast_add, xi.prop, yi.prop]⟩, _⟩,
   simp only [subtype.coe_mk, nat.cast_add, pow_add],
   exact submodule.mul_mem_mul hx' hy',
-  -- obtain rfl | hi := eq_or_ne ↑xi i; [obtain rfl | hj := eq_or_ne ↑yi j, skip];
-  --   simp only [eq_self_iff_true, set.Union_true, submodule.span_eq, set_like.mem_coe] at hx' hy' ⊢,
-  -- { exact submodule.mul_mem_mul hx' hy', },
-  -- { have : y = 0, by simpa [hj] using hy',
-  --   rw [this, mul_zero],
-  --   exact submodule.zero_mem _, },
-  -- { have : x = 0, by simpa [hi] using hx',
-  --   rw [this, zero_mul],
-  --   exact submodule.zero_mem _, },
 end
-
 
 instance even_odd.graded_monoid : set_like.graded_monoid (even_odd Q) :=
 { one_mem := submodule.one_le.mp (one_le_even_odd_zero Q),
   mul_mem := λ i j p q hp hq, submodule.mul_le.mp (even_odd_mul_le Q _ _) _ hp _ hq }
 
-/-- A version of `exterior_algebra.ι` that maps directly into the graded structure. This is
-primarily an auxiliary construction used to provide `exterior_algebra.graded_algebra`. -/
+/-- A version of `clifford_algebra.ι` that maps directly into the graded structure. This is
+primarily an auxiliary construction used to provide `clifford_algebra.graded_algebra`. -/
 def graded_algebra.ι : M →ₗ[R] ⨁ i : zmod 2, even_odd Q i :=
 direct_sum.lof R (zmod 2) (λ i, ↥(even_odd Q i)) 1
   ∘ₗ (ι Q).cod_restrict _ (λ m, range_ι_le_even_odd_one Q $ linear_map.mem_range_self _ m)
@@ -147,7 +137,7 @@ begin
     refine ⟨_, hadd _ _ _ _ Cx Cy⟩ },
 end
 
-/-- The exterior algebra is graded by the powers of the submodule `(exterior_algebra.ι R).range`. -/
+/-- The clifford algebra is graded by the even and odd parts. -/
 instance graded_algebra :
   graded_algebra (even_odd Q) :=
 graded_algebra.of_alg_hom _

@@ -210,8 +210,7 @@ section nat
 lemma add_salem_spencer_iff_eq_right {s : set ℕ} :
   add_salem_spencer s ↔ ∀ ⦃a b c⦄, a ∈ s → b ∈ s → c ∈ s → a + b = c + c → a = c :=
 begin
-  refine forall_congr (λ a, forall_congr $ λ b, forall_congr $ λ c, forall_congr $
-    λ _, forall_congr $ λ _, forall_congr $ λ _,  forall_congr $ λ habc, ⟨_, _⟩),
+  refine forall₄_congr (λ a b c _, forall₃_congr $ λ _ _ habc, ⟨_, _⟩),
   { rintro rfl,
     simp_rw ←two_mul at habc,
     exact mul_left_cancel₀ two_ne_zero habc },

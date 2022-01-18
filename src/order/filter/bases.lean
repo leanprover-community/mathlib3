@@ -499,7 +499,7 @@ by simp only [← principal_singleton, disjoint_principal_principal, disjoint_si
 
 lemma le_iff_forall_inf_principal_compl {f g : filter α} :
   f ≤ g ↔ ∀ V ∈ g, f ⊓ 𝓟 Vᶜ = ⊥ :=
-forall_congr $ λ _, forall_congr $ λ _, mem_iff_inf_principal_compl
+forall₂_congr $ λ _ _, mem_iff_inf_principal_compl
 
 lemma inf_ne_bot_iff_frequently_left {f g : filter α} :
   ne_bot (f ⊓ g) ↔ ∀ {p : α → Prop}, (∀ᶠ x in f, p x) → ∃ᶠ x in g, p x :=

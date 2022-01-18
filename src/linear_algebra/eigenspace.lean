@@ -533,7 +533,8 @@ lemma supr_generalized_eigenspace_eq_top [is_alg_closed K] [finite_dimensional K
   (⨆ (μ : K) (k : ℕ), f.generalized_eigenspace μ k) = ⊤ :=
 begin
   -- We prove the claim by strong induction on the dimension of the vector space.
-  unfreezingI { induction h_dim : finrank K V using nat.strong_induction_on with n ih generalizing V },
+  unfreezingI { induction h_dim : finrank K V using nat.strong_induction_on
+  with n ih generalizing V },
   cases n,
   -- If the vector space is 0-dimensional, the result is trivial.
   { rw ←top_le_iff,

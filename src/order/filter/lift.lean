@@ -388,8 +388,8 @@ eventually_lift'_iff monotone_powerset
 lemma eventually_lift'_powerset' {f : filter α} {p : set α → Prop}
   (hp : ∀ ⦃s t⦄, s ⊆ t → p t → p s) :
   (∀ᶠ s in f.lift' powerset, p s) ↔ ∃ s ∈ f, p s :=
-eventually_lift'_powerset.trans $ exists_congr $ λ s, exists_congr $
-  λ hsf, ⟨λ H, H s (subset.refl s), λ hs t ht, hp ht hs⟩
+eventually_lift'_powerset.trans $ exists₂_congr $ λ s hsf,
+  ⟨λ H, H s (subset.refl s), λ hs t ht, hp ht hs⟩
 
 instance lift'_powerset_ne_bot (f : filter α) : ne_bot (f.lift' powerset) :=
 (lift'_ne_bot_iff monotone_powerset).2 $ λ _ _, powerset_nonempty

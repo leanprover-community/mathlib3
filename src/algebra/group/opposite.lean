@@ -140,11 +140,11 @@ semiconj_by_unop.2 h
 @[to_additive] lemma commute.unop [has_mul α] {x y : αᵐᵒᵖ} (h : commute x y) :
   commute (unop x) (unop y) := h.unop
 
-@[to_additive, simp] lemma commute_op [has_mul α] {x y : α} :
+@[simp, to_additive] lemma commute_op [has_mul α] {x y : α} :
   commute (op x) (op y) ↔ commute x y :=
 semiconj_by_op
 
-@[to_additive, simp] lemma commute_unop [has_mul α] {x y : αᵐᵒᵖ} :
+@[simp, to_additive] lemma commute_unop [has_mul α] {x y : αᵐᵒᵖ} :
   commute (unop x) (unop y) ↔ commute x y :=
 semiconj_by_unop
 
@@ -251,7 +251,7 @@ def monoid_hom.from_opposite {M N : Type*} [mul_one_class M] [mul_one_class N] (
 /-- The units of the opposites are equivalent to the opposites of the units. -/
 @[to_additive "The additive units of the additive opposites are equivalent to the additive opposites
 of the additive units."]
-def units.op_equiv {M} [monoid M] : units Mᵐᵒᵖ ≃* (units M)ᵐᵒᵖ :=
+def units.op_equiv {M} [monoid M] : (Mᵐᵒᵖ)ˣ ≃* (Mˣ)ᵐᵒᵖ :=
 { to_fun := λ u, op ⟨unop u, unop ↑(u⁻¹), op_injective u.4, op_injective u.3⟩,
   inv_fun := mul_opposite.rec $ λ u, ⟨op ↑(u), op ↑(u⁻¹), unop_injective $ u.4, unop_injective u.3⟩,
   map_mul' := λ x y, unop_injective $ units.ext $ rfl,
@@ -259,12 +259,12 @@ def units.op_equiv {M} [monoid M] : units Mᵐᵒᵖ ≃* (units M)ᵐᵒᵖ :=
   right_inv := λ x, unop_injective $ units.ext $ rfl }
 
 @[simp, to_additive]
-lemma units.coe_unop_op_equiv {M} [monoid M] (u : units Mᵐᵒᵖ) :
+lemma units.coe_unop_op_equiv {M} [monoid M] (u : (Mᵐᵒᵖ)ˣ) :
   ((units.op_equiv u).unop : M) = unop (u : Mᵐᵒᵖ) :=
 rfl
 
 @[simp, to_additive]
-lemma units.coe_op_equiv_symm {M} [monoid M] (u : (units M)ᵐᵒᵖ) :
+lemma units.coe_op_equiv_symm {M} [monoid M] (u : (Mˣ)ᵐᵒᵖ) :
   (units.op_equiv.symm u : Mᵐᵒᵖ) = op (u.unop : M) :=
 rfl
 

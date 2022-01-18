@@ -79,14 +79,29 @@ instance : has_coe_to_fun (outer_measure α) (λ _, set α → ℝ≥0∞) := �
 theorem mono' (m : outer_measure α) {s₁ s₂}
   (h : s₁ ⊆ s₂) : m s₁ ≤ m s₂ := m.mono h
 
+theorem mono_null (m : outer_measure α) {s t} (h : s ⊆ t) (ht : m t = 0) : m s = 0 :=
+nonpos_iff_eq_zero.mp $ ht ▸ m.mono' h
+
 protected theorem Union (m : outer_measure α)
   {β} [encodable β] (s : β → set α) :
-  m (⋃i, s i) ≤ ∑'i, m (s i) :=
+  m (⋃ i, s i) ≤ ∑' i, m (s i) :=
 rel_supr_tsum m m.empty (≤) m.Union_nat s
 
-lemma Union_null (m : outer_measure α)
-  {β} [encodable β] {s : β → set α} (h : ∀ i, m (s i) = 0) : m (⋃i, s i) = 0 :=
+lemma Union_null [encodable β] (m : outer_measure α) {s : β → set α} (h : ∀ i, m (s i) = 0) :
+  m (⋃ i, s i) = 0 :=
 by simpa [h] using m.Union s
+
+@[simp] lemma Union_null_iff [encodable β] (m : outer_measure α) {s : β → set α} :
+  m (⋃ i, s i) = 0 ↔ ∀ i, m (s i) = 0 :=
+⟨λ h i, m.mono_null (subset_Union _ _) h, m.Union_null⟩
+
+lemma bUnion_null_iff (m : outer_measure α) {s : set β} (hs : countable s) {t : β → set α} :
+  m (⋃ i ∈ s, t i) = 0 ↔ ∀ i ∈ s, m (t i) = 0 :=
+by { haveI := hs.to_encodable, rw [bUnion_eq_Union, Union_null_iff, set_coe.forall'] }
+
+lemma sUnion_null_iff (m : outer_measure α) {S : set (set α)} (hS : countable S) :
+  m (⋃₀ S) = 0 ↔ ∀ s ∈ S, m s = 0 :=
+by rw [sUnion_eq_bUnion, m.bUnion_null_iff hS]
 
 protected lemma Union_finset (m : outer_measure α) (s : β → set α) (t : finset β) :
   m (⋃i ∈ t, s i) ≤ ∑ i in t, m (s i) :=
@@ -97,7 +112,7 @@ protected lemma union (m : outer_measure α) (s₁ s₂ : set α) :
 rel_sup_add m m.empty (≤) m.Union_nat s₁ s₂
 
 /-- If `s : ι → set α` is a sequence of sets, `S = ⋃ n, s n`, and `m (S \ s n)` tends to zero along
-some nontrivial filter (usually `at_top` on `α = ℕ`), then `m S = ⨆ n, m (s n)`. -/
+some nontrivial filter (usually `at_top` on `ι = ℕ`), then `m S = ⨆ n, m (s n)`. -/
 lemma Union_of_tendsto_zero {ι} (m : outer_measure α) {s : ι → set α}
   (l : filter ι) [ne_bot l] (h0 : tendsto (λ k, m ((⋃ n, s n) \ s k)) l (𝓝 0)) :
   m (⋃ n, s n) = ⨆ n, m (s n) :=
@@ -226,6 +241,9 @@ instance outer_measure.partial_order : partial_order (outer_measure α) :=
 instance outer_measure.order_bot : order_bot (outer_measure α) :=
 { bot_le      := assume a s, by simp only [coe_zero, pi.zero_apply, coe_bot, zero_le],
   ..outer_measure.has_bot }
+
+lemma univ_eq_zero_iff (m : outer_measure α) : m univ = 0 ↔ m = 0 :=
+⟨λ h, bot_unique $ λ s, (m.mono' $ subset_univ s).trans_eq h, λ h, h.symm ▸ rfl⟩
 
 section supremum
 
@@ -1100,7 +1118,7 @@ lemma induced_outer_measure_eq_infi (s : set α) :
   induced_outer_measure m P0 m0 s = ⨅ (t : set α) (ht : P t) (h : s ⊆ t), m t ht :=
 begin
   apply le_antisymm,
-  { simp only [le_infi_iff], intros t ht, simp only [le_infi_iff], intro hs,
+  { simp only [le_infi_iff], intros t ht hs,
     refine le_trans (mono' _ hs) _,
     exact le_of_eq (induced_outer_measure_eq' _ msU m_mono _) },
   { refine le_infi _, intro f, refine le_infi _, intro hf,

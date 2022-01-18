@@ -118,8 +118,12 @@ or equal to the corresponding summand `g i` of another finite sum, then
 `∑ i in s, f i ≤ ∑ i in s, g i`. -/
 add_decl_doc sum_le_sum
 
-@[to_additive sum_nonneg]  lemma one_le_prod' (h : ∀i ∈ s, 1 ≤ f i) : 1 ≤ (∏ i in s, f i) :=
+@[to_additive sum_nonneg] lemma one_le_prod' (h : ∀i ∈ s, 1 ≤ f i) : 1 ≤ (∏ i in s, f i) :=
 le_trans (by rw prod_const_one) (prod_le_prod'' h)
+
+@[to_additive finset.sum_nonneg']
+lemma one_le_prod'' (h : ∀ (i : ι), 1 ≤ f i) : 1 ≤ ∏ (i : ι) in s, f i :=
+finset.one_le_prod' (λ i hi, h i)
 
 @[to_additive sum_nonpos] lemma prod_le_one' (h : ∀i ∈ s, f i ≤ 1) : (∏ i in s, f i) ≤ 1 :=
 (prod_le_prod'' h).trans_eq (by rw prod_const_one)
@@ -206,6 +210,16 @@ end ordered_comm_monoid
 lemma abs_sum_le_sum_abs {G : Type*} [linear_ordered_add_comm_group G] (f : ι → G) (s : finset ι) :
   |∑ i in s, f i| ≤ ∑ i in s, |f i| :=
 le_sum_of_subadditive _ abs_zero abs_add s f
+
+lemma abs_sum_of_nonneg {G : Type*} [linear_ordered_add_comm_group G] {f : ι → G} {s : finset ι}
+  (hf : ∀ i ∈ s, 0 ≤ f i) :
+  |∑ (i : ι) in s, f i| = ∑ (i : ι) in s, f i :=
+by rw abs_of_nonneg (finset.sum_nonneg hf)
+
+lemma abs_sum_of_nonneg' {G : Type*} [linear_ordered_add_comm_group G] {f : ι → G} {s : finset ι}
+  (hf : ∀ i, 0 ≤ f i) :
+  |∑ (i : ι) in s, f i| = ∑ (i : ι) in s, f i :=
+by rw abs_of_nonneg (finset.sum_nonneg' hf)
 
 lemma abs_prod {R : Type*} [linear_ordered_comm_ring R] {f : ι → R} {s : finset ι} :
   |∏ x in s, f x| = ∏ x in s, |f x| :=

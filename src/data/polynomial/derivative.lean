@@ -214,10 +214,11 @@ theorem derivative_map [comm_semiring S] (p : polynomial R) (f : R →+* S) :
 polynomial.induction_on p
   (λ r, by rw [map_C, derivative_C, derivative_C, map_zero])
   (λ p q ihp ihq, by rw [map_add, derivative_add, ihp, ihq, derivative_add, map_add])
-  (λ n r ih, by rw [map_mul, map_C, polynomial.map_pow, map_X,
-      derivative_mul, derivative_pow_succ, derivative_C, zero_mul, zero_add, derivative_X, mul_one,
-      derivative_mul, derivative_pow_succ, derivative_C, zero_mul, zero_add, derivative_X, mul_one,
-      map_mul, map_C, map_mul, polynomial.map_pow, map_add, map_nat_cast, map_one, map_X])
+  (λ n r ih, by rw [map_mul, map_C, polynomial.map_pow, map_X, derivative_mul, derivative_pow_succ,
+                    derivative_C, zero_mul, zero_add, derivative_X, mul_one, derivative_mul,
+                    derivative_pow_succ, derivative_C, zero_mul, zero_add, derivative_X, mul_one,
+                    map_mul, map_C, map_mul, polynomial.map_pow, map_add,
+                    polynomial.map_nat_cast, map_one, map_X])
 
 @[simp]
 theorem iterate_derivative_map [comm_semiring S] (p : polynomial R) (f : R →+* S) (k : ℕ):
@@ -249,11 +250,8 @@ begin
   rw [h, ← add_monoid_hom.coe_mul_left, multiset.map_sum _ (add_monoid_hom.mul_left (f i)),
     add_monoid_hom.coe_mul_left],
   simp only [function.comp_app, multiset.map_map],
-  congr' 1,
-  refine multiset.map_congr (λ j hj, _),
-  simp only [function.comp_app],
+  refine congr_arg _ (multiset.map_congr rfl (λ j hj, _)),
   rw [← mul_assoc, ← multiset.prod_cons, ← multiset.map_cons],
-  congr' 1,
   by_cases hij : i = j,
   { simp [hij, ← multiset.prod_cons, ← multiset.map_cons, multiset.cons_erase hj] },
   { simp [hij] }
@@ -293,7 +291,7 @@ rfl
 
 @[simp] lemma derivative_cast_nat {n : ℕ} : derivative (n : polynomial R) = 0 :=
 begin
-  rw ← C.map_nat_cast n,
+  rw ← map_nat_cast C n,
   exact derivative_C,
 end
 

@@ -359,7 +359,7 @@ instance : has_Inf (subsemiring R) :=
 @[simp, norm_cast] lemma coe_Inf (S : set (subsemiring R)) :
   ((Inf S : subsemiring R) : set R) = ⋂ s ∈ S, ↑s := rfl
 
-lemma mem_Inf {S : set (subsemiring R)} {x : R} : x ∈ Inf S ↔ ∀ p ∈ S, x ∈ p := set.mem_bInter_iff
+lemma mem_Inf {S : set (subsemiring R)} {x : R} : x ∈ Inf S ↔ ∀ p ∈ S, x ∈ p := set.mem_Inter₂
 
 @[simp] lemma Inf_to_submonoid (s : set (subsemiring R)) :
   (Inf s).to_submonoid = ⨅ t ∈ s, subsemiring.to_submonoid t :=
@@ -591,12 +591,12 @@ lemma comap_infi {ι : Sort*} (f : R →+* S) (s : ι → subsemiring S) :
 /-- Given `subsemiring`s `s`, `t` of semirings `R`, `S` respectively, `s.prod t` is `s × t`
 as a subsemiring of `R × S`. -/
 def prod (s : subsemiring R) (t : subsemiring S) : subsemiring (R × S) :=
-{ carrier := (s : set R).prod t,
+{ carrier := (s : set R) ×ˢ (t : set S),
   .. s.to_submonoid.prod t.to_submonoid, .. s.to_add_submonoid.prod t.to_add_submonoid}
 
 @[norm_cast]
 lemma coe_prod (s : subsemiring R) (t : subsemiring S) :
-  (s.prod t : set (R × S)) = (s : set R).prod (t : set S) :=
+  (s.prod t : set (R × S)) = (s : set R) ×ˢ (t : set S) :=
 rfl
 
 lemma mem_prod {s : subsemiring R} {t : subsemiring S} {p : R × S} :
@@ -857,5 +857,5 @@ def pos_submonoid (R : Type*) [ordered_semiring R] [nontrivial R] : submonoid R 
   one_mem' := show (0 : R) < 1, from zero_lt_one,
   mul_mem' := λ x y (hx : 0 < x) (hy : 0 < y), mul_pos hx hy }
 
-@[simp] lemma mem_pos_monoid {R : Type*} [ordered_semiring R] [nontrivial R] (u : units R) :
+@[simp] lemma mem_pos_monoid {R : Type*} [ordered_semiring R] [nontrivial R] (u : Rˣ) :
   ↑u ∈ pos_submonoid R ↔ (0 : R) < u := iff.rfl

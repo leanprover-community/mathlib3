@@ -38,7 +38,7 @@ calc (l₁ ++ l₂).prod = foldl (*) (foldl (*) 1 l₁ * 1) l₂ : by simp [list
 
 @[to_additive]
 lemma prod_concat : (l.concat a).prod = l.prod * a :=
-by rw [concat_eq_append, prod_append, prod_cons, prod_nil, mul_one]
+by rw [concat_eq_append, prod_append, prod_singleton]
 
 @[simp, to_additive]
 lemma prod_join {l : list (list M)} : l.join.prod = (l.map list.prod).prod :=
@@ -168,6 +168,38 @@ lemma unop_map_prod {F : Type*} [monoid_hom_class F M Nᵐᵒᵖ] (f : F) (l : l
 by rw [l.map_prod f, mul_opposite.unop_list_prod, map_map]
 
 end monoid
+
+section monoid_with_zero
+
+variables [monoid_with_zero M₀]
+
+/-- If zero is an element of a list `L`, then `list.prod L = 0`. If the domain is a nontrivial
+monoid with zero with no divisors, then this implication becomes an `iff`, see
+`list.prod_eq_zero_iff`. -/
+lemma prod_eq_zero {L : list M₀} (h : (0 : M₀) ∈ L) : L.prod = 0 :=
+begin
+  induction L with a L ihL,
+  { exact absurd h (not_mem_nil _) },
+  { rw prod_cons,
+    cases (mem_cons_iff _ _ _).1 h with ha hL,
+    exacts [mul_eq_zero_of_left ha.symm _, mul_eq_zero_of_right _ (ihL hL)] }
+end
+
+/-- Product of elements of a list `L` equals zero if and only if `0 ∈ L`. See also
+`list.prod_eq_zero` for an implication that needs weaker typeclass assumptions. -/
+@[simp] lemma prod_eq_zero_iff [nontrivial M₀] [no_zero_divisors M₀] {L : list M₀} :
+  L.prod = 0 ↔ (0 : M₀) ∈ L :=
+begin
+  induction L with a L ihL,
+  { simp },
+  { rw [prod_cons, mul_eq_zero, ihL, mem_cons_iff, eq_comm] }
+end
+
+lemma prod_ne_zero [nontrivial M₀] [no_zero_divisors M₀] {L : list M₀} (hL : (0 : M₀) ∉ L) :
+  L.prod ≠ 0 :=
+mt prod_eq_zero_iff.1 hL
+
+end monoid_with_zero
 
 section group
 variables [group G]
@@ -392,7 +424,7 @@ end
 /-!
 Several lemmas about sum/head/tail for `list ℕ`.
 These are hard to generalize well, as they rely on the fact that `default ℕ = 0`.
-If desired, we could add a class stating that `default α = 0`.
+If desired, we could add a class stating that `default = 0`.
 -/
 
 /-- This relies on `default ℕ = 0`. -/
@@ -432,3 +464,36 @@ lemma sum_map_mul_right [non_unital_non_assoc_semiring R] (L : list α) (f : α 
 sum_map_hom L f $ add_monoid_hom.mul_right r
 
 end list
+
+namespace mul_opposite
+
+open list
+variables [monoid M]
+
+lemma op_list_prod : ∀ (l : list M), op (l.prod) = (l.map op).reverse.prod
+| [] := rfl
+| (x :: xs) := by rw [list.prod_cons, list.map_cons, list.reverse_cons', list.prod_concat, op_mul,
+                      op_list_prod]
+
+lemma _root_.mul_opposite.unop_list_prod (l : list Mᵐᵒᵖ) :
+  (l.prod).unop = (l.map unop).reverse.prod :=
+by rw [← op_inj, op_unop, mul_opposite.op_list_prod, map_reverse, map_map, reverse_reverse,
+  op_comp_unop, map_id]
+
+end mul_opposite
+
+namespace monoid_hom
+
+variables [monoid M] [monoid N]
+
+@[to_additive]
+lemma map_list_prod (f : M →* N) (l : list M) :
+  f l.prod = (l.map f).prod :=
+(l.prod_hom f).symm
+
+/-- A morphism into the opposite monoid acts on the product by acting on the reversed elements -/
+lemma unop_map_list_prod (f : M →* Nᵐᵒᵖ) (l : list M) :
+  (f l.prod).unop = (l.map (mul_opposite.unop ∘ f)).reverse.prod :=
+by rw [f.map_list_prod l, mul_opposite.unop_list_prod, list.map_map]
+
+end monoid_hom

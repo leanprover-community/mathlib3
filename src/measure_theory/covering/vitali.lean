@@ -466,20 +466,20 @@ protected def vitali_family [metric_space α] [measurable_space α] [opens_measu
       exact ⟨a, mem_bUnion xs xa, (fsubset x xs xa).1, hax⟩ },
     have A₂ : ∀ a ∈ t, (interior a).nonempty,
     { rintros a ha,
-      rcases mem_bUnion_iff.1 ha with ⟨x, xs, xa⟩,
+      rcases mem_Union₂.1 ha with ⟨x, xs, xa⟩,
       exact (fsubset x xs xa).2.2.1 },
     have A₃ : ∀ a ∈ t, is_closed a,
     { rintros a ha,
-      rcases mem_bUnion_iff.1 ha with ⟨x, xs, xa⟩,
+      rcases mem_Union₂.1 ha with ⟨x, xs, xa⟩,
       exact (fsubset x xs xa).2.1 },
     have A₄ : ∀ a ∈ t, ∃ x ∈ a, μ (closed_ball x (3 * diam a)) ≤ C * μ a,
     { rintros a ha,
-      rcases mem_bUnion_iff.1 ha with ⟨x, xs, xa⟩,
+      rcases mem_Union₂.1 ha with ⟨x, xs, xa⟩,
       exact ⟨x, (fsubset x xs xa).1, (fsubset x xs xa).2.2.2⟩ },
     obtain ⟨u, ut, u_count, u_disj, μu⟩ :
       ∃ u ⊆ t, u.countable ∧ u.pairwise disjoint ∧ μ (s \ ⋃ a ∈ u, a) = 0 :=
         exists_disjoint_covering_ae μ s t A₁ A₂ A₃ C A₄,
-    have : ∀ a ∈ u, ∃ x ∈ s, a ∈ f x := λ a ha, mem_bUnion_iff.1 (ut ha),
+    have : ∀ a ∈ u, ∃ x ∈ s, a ∈ f x := λ a ha, mem_Union₂.1 (ut ha),
     choose! x hx using this,
     have inj_on_x : inj_on x u,
     { assume a ha b hb hab,
@@ -496,15 +496,16 @@ protected def vitali_family [metric_space α] [measurable_space α] [opens_measu
       exact (hx a au).1 },
     { rw [inj_on_x.pairwise_disjoint_image],
       assume a ha b hb hab,
-      simp only [function.on_fun, function.inv_fun_on_eq' inj_on_x, ha, hb, (∘)],
+      simp only [function.on_fun, inj_on_x.left_inv_on_inv_fun_on ha,
+                 inj_on_x.left_inv_on_inv_fun_on hb, (∘)],
       exact u_disj ha hb hab },
     { assume y hy,
       rcases (mem_image _ _ _).1 hy with ⟨a, ha, rfl⟩,
-      rw function.inv_fun_on_eq' inj_on_x ha,
+      rw inj_on_x.left_inv_on_inv_fun_on ha,
       exact (hx a ha).2 },
     { rw [bUnion_image],
       convert μu using 3,
-      exact bUnion_congr (λ a ha, function.inv_fun_on_eq' inj_on_x ha) }
+      exact bUnion_congr (λ a ha, inj_on_x.left_inv_on_inv_fun_on ha) }
   end }
 
 end vitali

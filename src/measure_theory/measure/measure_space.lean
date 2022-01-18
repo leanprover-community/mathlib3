@@ -351,6 +351,50 @@ begin
   exact tendsto_at_top_infi (assume n m hnm, measure_mono $ hm hnm),
 end
 
+/-- The measure of the intersection of a decreasing sequence of measurable
+sets indexed by a linear order with first countable topology is the limit of the measures. -/
+lemma tendsto_measure_bInter_gt {ι : Type*} [linear_order ι] [topological_space ι]
+  [order_topology ι] [densely_ordered ι] [topological_space.first_countable_topology ι]
+  {s : ι → set α} {a : ι}
+  (hs : ∀ r > a, measurable_set (s r)) (hm : ∀ i j, a < i → i ≤ j → s i ⊆ s j)
+  (hf : ∃ r > a, μ (s r) ≠ ∞) :
+  tendsto (μ ∘ s) (𝓝[Ioi a] a) (𝓝 (μ (⋂ r > a, s r))) :=
+begin
+  refine tendsto_order.2 ⟨λ l hl, _, λ L hL, _⟩,
+  { filter_upwards [self_mem_nhds_within],
+    assume r hr,
+    exact hl.trans_le (measure_mono (bInter_subset_of_mem hr)) },
+  obtain ⟨u, u_anti, u_pos, u_lim⟩ : ∃ (u : ℕ → ι), strict_anti u ∧ (∀ (n : ℕ), a < u n)
+    ∧ tendsto u at_top (𝓝 a),
+  { rcases hf with ⟨r, ar, hr⟩,
+    rcases exists_seq_strict_anti_tendsto' ar with ⟨w, w_anti, w_mem, w_lim⟩,
+    exact ⟨w, w_anti, λ n, (w_mem n).1, w_lim⟩ },
+  have A : tendsto (μ ∘ (s ∘ u)) at_top (𝓝(μ (⋂ n, s (u n)))),
+  { refine tendsto_measure_Inter (λ n, hs _ (u_pos n)) _ _,
+    { assume m n hmn,
+      exact hm _ _ (u_pos n) (u_anti.antitone hmn) },
+    { rcases hf with ⟨r, rpos, hr⟩,
+      obtain ⟨n, hn⟩ : ∃ (n : ℕ), u n < r := ((tendsto_order.1 u_lim).2 r rpos).exists,
+      refine ⟨n, ne_of_lt (lt_of_le_of_lt _ hr.lt_top)⟩,
+      exact measure_mono (hm _ _ (u_pos n) hn.le) } },
+  have B : (⋂ n, s (u n)) = (⋂ r > a, s r),
+  { apply subset.antisymm,
+    { simp only [subset_Inter_iff, gt_iff_lt],
+      assume r rpos,
+      obtain ⟨n, hn⟩ : ∃ n, u n < r := ((tendsto_order.1 u_lim).2 _ rpos).exists,
+      exact subset.trans (Inter_subset _ n) (hm (u n) r (u_pos n) hn.le) },
+    { simp only [subset_Inter_iff, gt_iff_lt],
+      assume n,
+      apply bInter_subset_of_mem,
+      exact u_pos n } },
+  rw B at A,
+  obtain ⟨n, hn⟩ : ∃ n, μ (s (u n)) < L := ((tendsto_order.1 A).2 _ hL).exists,
+  have : Ioc a (u n) ∈ 𝓝[>] a := Ioc_mem_nhds_within_Ioi ⟨le_rfl, u_pos n⟩,
+  filter_upwards [this],
+  assume r hr,
+  exact lt_of_le_of_lt (measure_mono (hm _ _ hr.1 hr.2)) hn,
+end
+
 /-- One direction of the **Borel-Cantelli lemma**: if (sᵢ) is a sequence of sets such
 that `∑ μ sᵢ` is finite, then the limit superior of the `sᵢ` is a null set. -/
 lemma measure_limsup_eq_zero {s : ℕ → set α} (hs : ∑' i, μ (s i) ≠ ∞) : μ (limsup at_top s) = 0 :=
@@ -825,22 +869,37 @@ the measure to `s` equals the outer measure of `t ∩ s`. This is an alternate v
 by rw [← coe_to_outer_measure, measure.restrict_to_outer_measure_eq_to_outer_measure_restrict hs,
       outer_measure.restrict_apply s t _, coe_to_outer_measure]
 
-lemma restrict_eq_self' (hs : measurable_set s) (t_subset : t ⊆ s) :
-  μ.restrict s t = μ t :=
-by rw [restrict_apply' hs, set.inter_eq_self_of_subset_left t_subset]
+lemma restrict_le_self : μ.restrict s ≤ μ :=
+assume t ht,
+calc μ.restrict s t = μ (t ∩ s) : restrict_apply ht
+... ≤ μ t : measure_mono $ inter_subset_left t s
 
-lemma restrict_eq_self (h_meas_t : measurable_set t) (h : t ⊆ s) : μ.restrict s t = μ t :=
-by rw [restrict_apply h_meas_t, inter_eq_left_iff_subset.mpr h]
+variable (μ)
 
-lemma restrict_apply_self {m0 : measurable_space α} (μ : measure α) (h_meas_s : measurable_set s) :
-  (μ.restrict s) s = μ s := (restrict_eq_self h_meas_s (set.subset.refl _))
+lemma restrict_eq_self (h : s ⊆ t) : μ.restrict t s = μ s :=
+(le_iff'.1 restrict_le_self s).antisymm $
+calc μ s ≤ μ (to_measurable (μ.restrict t) s ∩ t) :
+  measure_mono (subset_inter (subset_to_measurable _ _) h)
+... =  μ.restrict t s :
+  by rw [← restrict_apply (measurable_set_to_measurable _ _), measure_to_measurable]
+
+@[simp] lemma restrict_apply_self (s : set α):
+  (μ.restrict s) s = μ s :=
+restrict_eq_self μ subset.rfl
+
+variable {μ}
 
 lemma restrict_apply_univ (s : set α) : μ.restrict s univ = μ s :=
 by rw [restrict_apply measurable_set.univ, set.univ_inter]
 
 lemma le_restrict_apply (s t : set α) :
   μ (t ∩ s) ≤ μ.restrict s t :=
-by { rw [restrict, restrictₗ], convert le_lift_linear_apply _ t, simp }
+calc μ (t ∩ s) = μ.restrict s (t ∩ s) : (restrict_eq_self μ (inter_subset_right _ _)).symm
+... ≤ μ.restrict s t : measure_mono (inter_subset_left _ _)
+
+lemma restrict_apply_superset (h : s ⊆ t) : μ.restrict s t = μ s :=
+((measure_mono (subset_univ _)).trans_eq $ restrict_apply_univ _).antisymm
+  ((restrict_apply_self μ s).symm.trans_le $ measure_mono h)
 
 @[simp] lemma restrict_add {m0 : measurable_space α} (μ ν : measure α) (s : set α) :
   (μ + ν).restrict s = μ.restrict s + ν.restrict s :=
@@ -858,9 +917,21 @@ by { rw [restrict, restrictₗ], convert le_lift_linear_apply _ t, simp }
   (μ.restrict t).restrict s = μ.restrict (s ∩ t) :=
 ext $ λ u hu, by simp [*, set.inter_assoc]
 
-lemma restrict_comm (hs : measurable_set s) (ht : measurable_set t) :
+lemma restrict_restrict_of_subset (h : s ⊆ t) :
+  (μ.restrict t).restrict s = μ.restrict s :=
+begin
+  ext1 u hu,
+  rw [restrict_apply hu, restrict_apply hu, restrict_eq_self],
+  exact (inter_subset_right _ _).trans h
+end
+
+lemma restrict_restrict' (ht : measurable_set t) :
+  (μ.restrict t).restrict s = μ.restrict (s ∩ t) :=
+ext $ λ u hu, by simp [*, set.inter_assoc]
+
+lemma restrict_comm (hs : measurable_set s) :
   (μ.restrict t).restrict s = (μ.restrict s).restrict t :=
-by rw [restrict_restrict hs, restrict_restrict ht, inter_comm]
+by rw [restrict_restrict hs, restrict_restrict' hs, inter_comm]
 
 lemma restrict_apply_eq_zero (ht : measurable_set t) : μ.restrict s t = 0 ↔ μ (t ∩ s) = 0 :=
 by rw [restrict_apply ht]
@@ -876,7 +947,7 @@ by rw [← measure_univ_eq_zero, restrict_apply_univ]
 
 lemma restrict_zero_set {s : set α} (h : μ s = 0) :
   μ.restrict s = 0 :=
-by simp only [measure.restrict_eq_zero, h]
+by rw [measure.restrict_eq_zero, h]
 
 @[simp] lemma restrict_empty : μ.restrict ∅ = 0 := restrict_zero_set measure_empty
 
@@ -964,11 +1035,6 @@ calc μ.restrict s t = μ (t ∩ s) : restrict_apply ht
   μ.restrict s ≤ ν.restrict s' :=
 restrict_mono' (ae_of_all _ hs) hμν
 
-lemma restrict_le_self : μ.restrict s ≤ μ :=
-assume t ht,
-calc μ.restrict s t = μ (t ∩ s) : restrict_apply ht
-... ≤ μ t : measure_mono $ inter_subset_left t s
-
 lemma restrict_mono_ae (h : s ≤ᵐ[μ] t) : μ.restrict s ≤ μ.restrict t :=
 restrict_mono' h (le_refl μ)
 
@@ -988,9 +1054,9 @@ lemma restrict_congr_meas (hs : measurable_set s) :
  λ H, ext $ λ t ht,
    by rw [restrict_apply ht, restrict_apply ht, H _ (inter_subset_right _ _) (ht.inter hs)]⟩
 
-lemma restrict_congr_mono (hs : s ⊆ t) (hm : measurable_set s) (h : μ.restrict t = ν.restrict t) :
+lemma restrict_congr_mono (hs : s ⊆ t) (h : μ.restrict t = ν.restrict t) :
   μ.restrict s = ν.restrict s :=
-by rw [← inter_eq_self_of_subset_left hs, ← restrict_restrict hm, h, restrict_restrict hm]
+by rw [← restrict_restrict_of_subset hs, h, restrict_restrict_of_subset hs]
 
 /-- If two measures agree on all measurable subsets of `s` and `t`, then they agree on all
 measurable subsets of `s ∪ t`. -/
@@ -998,8 +1064,8 @@ lemma restrict_union_congr (hsm : measurable_set s) (htm : measurable_set t) :
   μ.restrict (s ∪ t) = ν.restrict (s ∪ t) ↔
     μ.restrict s = ν.restrict s ∧ μ.restrict t = ν.restrict t :=
 begin
-  refine ⟨λ h, ⟨restrict_congr_mono (subset_union_left _ _) hsm h,
-    restrict_congr_mono (subset_union_right _ _) htm h⟩, _⟩,
+  refine ⟨λ h, ⟨restrict_congr_mono (subset_union_left _ _) h,
+    restrict_congr_mono (subset_union_right _ _) h⟩, _⟩,
   simp only [restrict_congr_meas, hsm, htm, hsm.union htm],
   rintros ⟨hs, ht⟩ u hu hum,
   rw [← measure_inter_add_diff u hsm, ← measure_inter_add_diff u hsm,
@@ -1013,16 +1079,17 @@ lemma restrict_finset_bUnion_congr {s : finset ι} {t : ι → set α}
     ∀ i ∈ s, μ.restrict (t i) = ν.restrict (t i) :=
 begin
   induction s using finset.induction_on with i s hi hs, { simp },
-  simp only [finset.mem_insert, or_imp_distrib, forall_and_distrib, forall_eq] at htm ⊢,
-  simp only [finset.set_bUnion_insert, ← hs htm.2],
-  exact restrict_union_congr htm.1 (s.measurable_set_bUnion htm.2)
+  simp only [forall_eq_or_imp, Union_Union_eq_or_left, finset.mem_insert],
+  rw restrict_union_congr (htm _ (finset.mem_insert_self i s)),
+  rw ← hs (λ i hi, htm _ (finset.mem_insert_of_mem hi)),
+  exact s.measurable_set_bUnion (λ i hi, htm _ (finset.mem_insert_of_mem hi))
 end
 
 lemma restrict_Union_congr [encodable ι] {s : ι → set α} (hm : ∀ i, measurable_set (s i)) :
   μ.restrict (⋃ i, s i) = ν.restrict (⋃ i, s i) ↔
     ∀ i, μ.restrict (s i) = ν.restrict (s i) :=
 begin
-  refine ⟨λ h i, restrict_congr_mono (subset_Union _ _) (hm i) h, λ h, _⟩,
+  refine ⟨λ h i, restrict_congr_mono (subset_Union _ _) h, λ h, _⟩,
   ext1 t ht,
   have M : ∀ t : finset ι, measurable_set (⋃ i ∈ t, s i) :=
     λ t, t.measurable_set_bUnion (λ i _, hm i),
@@ -1126,7 +1193,7 @@ begin
   { intros t ht, rw [h_gen], exact generate_measurable.basic _ (h_sub ht) },
   { intros t ht s hs, cases (s ∩ t).eq_empty_or_nonempty with H H,
     { simp only [H, measure_empty] },
-    { exact h_eq _ (h_inter _ _ hs (h_sub ht) H) } }
+    { exact h_eq _ (h_inter _ hs _ (h_sub ht) H) } }
 end
 
 /-- Two measures are equal if they are equal on the π-system generating the σ-algebra,
@@ -2487,8 +2554,8 @@ begin
         { rw add_apply,
           apply le_add_right _,
           rw add_apply,
-          rw ← @restrict_eq_self _ _ μ s _ h_meas_t_inter_s (set.inter_subset_right _ _),
-          rw ← @restrict_eq_self _ _ ν s _ h_meas_t_inter_s (set.inter_subset_right _ _),
+          rw [← restrict_eq_self μ (set.inter_subset_right _ _),
+            ← restrict_eq_self ν (set.inter_subset_right _ _)],
           apply h_ν'_in _ h_meas_t_inter_s },
         { rw add_apply,
           have h_meas_inter_compl :=
@@ -2515,11 +2582,7 @@ end
 lemma sub_apply_eq_zero_of_restrict_le_restrict
   (h_le : μ.restrict s ≤ ν.restrict s) (h_meas_s : measurable_set s) :
   (μ - ν) s = 0 :=
-begin
-  rw [← restrict_apply_self _ h_meas_s, restrict_sub_eq_restrict_sub_restrict,
-      sub_eq_zero_of_le],
-  repeat {simp [*]},
-end
+by rw [← restrict_apply_self, restrict_sub_eq_restrict_sub_restrict, sub_eq_zero_of_le]; simp *
 
 instance is_finite_measure_sub [is_finite_measure μ] : is_finite_measure (μ - ν) :=
 { measure_univ_lt_top := lt_of_le_of_lt
@@ -2748,7 +2811,7 @@ lemma ae_measurable_of_subsingleton_codomain [subsingleton β] : ae_measurable f
 @[simp, measurability] lemma ae_measurable_zero_measure : ae_measurable f (0 : measure α) :=
 begin
   nontriviality α, inhabit α,
-  exact ⟨λ x, f (default α), measurable_const, rfl⟩
+  exact ⟨λ x, f default, measurable_const, rfl⟩
 end
 
 namespace ae_measurable
@@ -2783,7 +2846,7 @@ begin
     from measurable_set.Inter (λ i, measurable_set_to_measurable _ _),
   have hs : ∀ i x, x ∉ s i → f x = (h i).mk f x,
   { intros i x hx, contrapose! hx, exact subset_to_measurable _ _ hx },
-  set g : α → β := (⋂ i, s i).piecewise (const α (default β)) f,
+  set g : α → β := (⋂ i, s i).piecewise (const α default) f,
   refine ⟨g, measurable_of_restrict_of_restrict_compl hsm _ _, ae_sum_iff.mpr $ λ i, _⟩,
   { rw [restrict_piecewise], simp only [set.restrict, const], exact measurable_const },
   { rw [restrict_piecewise_compl, compl_Inter],
@@ -2847,7 +2910,7 @@ lemma subtype_mk (h : ae_measurable f μ) {s : set β} {hfs : ∀ x, f x ∈ s} 
 begin
   nontriviality α, inhabit α,
   rcases h with ⟨g, hgm, hg⟩,
-  rcases hs.exists_measurable_proj ⟨f (default α), hfs _⟩ with ⟨π, hπm, hπ⟩,
+  rcases hs.exists_measurable_proj ⟨f default, hfs _⟩ with ⟨π, hπm, hπ⟩,
   refine ⟨π ∘ g, hπm.comp hgm, hg.mono $ λ x hx, _⟩,
   rw [comp_apply, ← hx, ← coe_cod_restrict_apply f s hfs, hπ]
 end

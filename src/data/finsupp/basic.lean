@@ -314,16 +314,16 @@ instance [nonempty α] [nontrivial M] : nontrivial (α →₀ M) :=
 begin
   inhabit α,
   rcases exists_ne (0 : M) with ⟨x, hx⟩,
-  exact nontrivial_of_ne (single (default α) x) 0 (mt single_eq_zero.1 hx)
+  exact nontrivial_of_ne (single default x) 0 (mt single_eq_zero.1 hx)
 end
 
-lemma unique_single [unique α] (x : α →₀ M) : x = single (default α) (x (default α)) :=
+lemma unique_single [unique α] (x : α →₀ M) : x = single default (x default) :=
 ext $ unique.forall_iff.2 single_eq_same.symm
 
-lemma unique_ext [unique α] {f g : α →₀ M} (h : f (default α) = g (default α)) : f = g :=
+lemma unique_ext [unique α] {f g : α →₀ M} (h : f default = g default) : f = g :=
 ext $ λ a, by rwa [unique.eq_default a]
 
-lemma unique_ext_iff [unique α] {f g : α →₀ M} : f = g ↔  f (default α) = g (default α) :=
+lemma unique_ext_iff [unique α] {f g : α →₀ M} : f = g ↔  f default = g default :=
 ⟨λ h, h ▸ rfl, unique_ext⟩
 
 @[simp] lemma unique_single_eq_iff [unique α] {b' : M} :
@@ -870,6 +870,13 @@ See `finsupp.lapply` for the stronger version as a linear map. -/
 @[simps apply]
 def apply_add_hom (a : α) : (α →₀ M) →+ M := ⟨λ g, g a, zero_apply, λ _ _, add_apply _ _ _⟩
 
+/-- Coercion from a `finsupp` to a function type is an `add_monoid_hom`. -/
+@[simps]
+noncomputable def coe_fn_add_hom : (α →₀ M) →+ (α → M) :=
+{ to_fun := coe_fn,
+  map_zero' := coe_zero,
+  map_add' := coe_add }
+
 lemma update_eq_single_add_erase (f : α →₀ M) (a : α) (b : M) :
   f.update a b = single a b + f.erase a :=
 begin
@@ -1121,10 +1128,22 @@ lemma update_eq_sub_add_single [add_group G] (f : α →₀ G) (a : α) (b : G) 
   f.update a b = f - single a (f a) + single a b :=
 by rw [update_eq_erase_add_single, erase_eq_sub_single]
 
+lemma finset_sum_apply [add_comm_monoid N] (S : finset ι) (f : ι → α →₀ N) (a : α) :
+  (∑ i in S, f i) a = ∑ i in S, f i a :=
+(apply_add_hom a : (α →₀ N) →+ _).map_sum _ _
+
 @[simp] lemma sum_apply [has_zero M] [add_comm_monoid N]
   {f : α →₀ M} {g : α → M → β →₀ N} {a₂ : β} :
   (f.sum g) a₂ = f.sum (λa₁ b, g a₁ b a₂) :=
-map_finsupp_sum (apply_add_hom a₂ : (β →₀ N) →+ N) f g
+finset_sum_apply _ _ _
+
+lemma coe_finset_sum [add_comm_monoid N] (S : finset ι) (f : ι → α →₀ N) :
+  ⇑(∑ i in S, f i) = ∑ i in S, f i :=
+(coe_fn_add_hom : (α →₀ N) →+ _).map_sum _ _
+
+lemma coe_sum [has_zero M] [add_comm_monoid N] (f : α →₀ M) (g : α → M → β →₀ N) :
+  ⇑(f.sum g) = f.sum (λ a₁ b, g a₁ b) :=
+coe_finset_sum _ _
 
 lemma support_sum [decidable_eq β] [has_zero M] [add_comm_monoid N]
   {f : α →₀ M} {g : α → M → (β →₀ N)} :
@@ -2290,6 +2309,12 @@ variables {α M} {R}
 lemma support_smul {_ : monoid R} [add_monoid M] [distrib_mul_action R M] {b : R} {g : α →₀ M} :
   (b • g).support ⊆ g.support :=
 λ a, by { simp only [smul_apply, mem_support_iff, ne.def], exact mt (λ h, h.symm ▸ smul_zero _) }
+
+@[simp]
+lemma support_smul_eq [semiring R] [add_comm_monoid M] [module R M]
+  [no_zero_smul_divisors R M] {b : R} (hb : b ≠ 0) {g : α →₀ M} :
+  (b • g).support = g.support :=
+finset.ext (λ a, by simp [finsupp.smul_apply, hb])
 
 section
 

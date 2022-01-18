@@ -265,10 +265,10 @@ have hsumlesum : ∑ i in range (max N M + 1), abv (a i) *
       abv (∑ k in range (K - i), b k - ∑ k in range K, b k) ≤
     ∑ i in range (max N M + 1), abv (a i) * (ε / (2 * P)),
   from sum_le_sum (λ m hmJ, mul_le_mul_of_nonneg_left
-    (le_of_lt (hN (K - m) K
+    (le_of_lt (hN (K - m)
       (le_tsub_of_add_le_left (le_trans
         (by rw two_mul; exact add_le_add (le_of_lt (mem_range.1 hmJ))
-          (le_trans (le_max_left _ _) (le_of_lt (lt_add_one _)))) hK))
+          (le_trans (le_max_left _ _) (le_of_lt (lt_add_one _)))) hK)) K
       (le_of_lt hKN))) (abv_nonneg abv _)),
 have hsumltP : ∑ n in range (max N M + 1), abv (a n) < P :=
   calc ∑ n in range (max N M + 1), abv (a n)
@@ -303,7 +303,7 @@ begin
         exact add_pos (lt_of_le_of_lt (abv_nonneg _ _) (hQ 0))
           (lt_of_le_of_lt (abv_nonneg _ _) (hQ 0))).2
         (lt_of_le_of_lt (le_abs_self _)
-          (hM _ _ (le_trans (nat.le_succ_of_le (le_max_right _ _)) (le_of_lt hNMK))
+          (hM _ (le_trans (nat.le_succ_of_le (le_max_right _ _)) (le_of_lt hNMK)) _
             (nat.le_succ_of_le (le_max_right _ _))))
 end⟩
 
@@ -480,7 +480,7 @@ begin
   dsimp [exp', function.comp, cau_seq_conj],
   rw map_sum,
   refine sum_congr rfl (λ n hn, _),
-  rw [ring_equiv.map_div, ring_equiv.map_pow, ← of_real_nat_cast, conj_of_real]
+  rw [ring_hom.map_div, ring_hom.map_pow, ← of_real_nat_cast, conj_of_real]
 end
 
 @[simp] lemma of_real_exp_of_real_re (x : ℝ) : ((exp x).re : ℂ) = exp x :=
@@ -543,8 +543,8 @@ lemma cosh_sub : cosh (x - y) = cosh x * cosh y - sinh x * sinh y :=
 by simp [sub_eq_add_neg, cosh_add, sinh_neg, cosh_neg]
 
 lemma sinh_conj : sinh (conj x) = conj (sinh x) :=
-by rw [sinh, ← ring_equiv.map_neg, exp_conj, exp_conj, ← ring_equiv.map_sub, sinh,
-  ring_equiv.map_div, conj_bit0, ring_equiv.map_one]
+by rw [sinh, ← ring_hom.map_neg, exp_conj, exp_conj, ← ring_hom.map_sub, sinh,
+  ring_hom.map_div, conj_bit0, ring_hom.map_one]
 
 @[simp] lemma of_real_sinh_of_real_re (x : ℝ) : ((sinh x).re : ℂ) = sinh x :=
 eq_conj_iff_re.1 $ by rw [← sinh_conj, conj_of_real]
@@ -559,8 +559,8 @@ lemma sinh_of_real_re (x : ℝ) : (sinh x).re = real.sinh x := rfl
 
 lemma cosh_conj : cosh (conj x) = conj (cosh x) :=
 begin
-  rw [cosh, ← ring_equiv.map_neg, exp_conj, exp_conj, ← ring_equiv.map_add, cosh,
-      ring_equiv.map_div, conj_bit0, ring_equiv.map_one]
+  rw [cosh, ← ring_hom.map_neg, exp_conj, exp_conj, ← ring_hom.map_add, cosh,
+      ring_hom.map_div, conj_bit0, ring_hom.map_one]
 end
 
 @[simp] lemma of_real_cosh_of_real_re (x : ℝ) : ((cosh x).re : ℂ) = cosh x :=
@@ -581,7 +581,7 @@ lemma tanh_eq_sinh_div_cosh : tanh x = sinh x / cosh x := rfl
 @[simp] lemma tanh_neg : tanh (-x) = -tanh x := by simp [tanh, neg_div]
 
 lemma tanh_conj : tanh (conj x) = conj (tanh x) :=
-by rw [tanh, sinh_conj, cosh_conj, ← ring_equiv.map_div, tanh]
+by rw [tanh, sinh_conj, cosh_conj, ← ring_hom.map_div, tanh]
 
 @[simp] lemma of_real_tanh_of_real_re (x : ℝ) : ((tanh x).re : ℂ) = tanh x :=
 eq_conj_iff_re.1 $ by rw [← tanh_conj, conj_of_real]
@@ -754,7 +754,7 @@ end
 
 lemma sin_conj : sin (conj x) = conj (sin x) :=
 by rw [← mul_left_inj' I_ne_zero, ← sinh_mul_I,
-       ← conj_neg_I, ← ring_equiv.map_mul, ← ring_equiv.map_mul, sinh_conj,
+       ← conj_neg_I, ← ring_hom.map_mul, ← ring_hom.map_mul, sinh_conj,
        mul_neg_eq_neg_mul_symm, sinh_neg, sinh_mul_I, mul_neg_eq_neg_mul_symm]
 
 @[simp] lemma of_real_sin_of_real_re (x : ℝ) : ((sin x).re : ℂ) = sin x :=
@@ -769,7 +769,7 @@ by rw [← of_real_sin_of_real_re, of_real_im]
 lemma sin_of_real_re (x : ℝ) : (sin x).re = real.sin x := rfl
 
 lemma cos_conj : cos (conj x) = conj (cos x) :=
-by rw [← cosh_mul_I, ← conj_neg_I, ← ring_equiv.map_mul, ← cosh_mul_I,
+by rw [← cosh_mul_I, ← conj_neg_I, ← ring_hom.map_mul, ← cosh_mul_I,
        cosh_conj, mul_neg_eq_neg_mul_symm, cosh_neg]
 
 @[simp] lemma of_real_cos_of_real_re (x : ℝ) : ((cos x).re : ℂ) = cos x :=
@@ -793,7 +793,7 @@ by rw [tan_eq_sin_div_cos, div_mul_cancel _ hx]
 @[simp] lemma tan_neg : tan (-x) = -tan x := by simp [tan, neg_div]
 
 lemma tan_conj : tan (conj x) = conj (tan x) :=
-by rw [tan, sin_conj, cos_conj, ← ring_equiv.map_div, tan]
+by rw [tan, sin_conj, cos_conj, ← ring_hom.map_div, tan]
 
 @[simp] lemma of_real_tan_of_real_re (x : ℝ) : ((tan x).re : ℂ) = tan x :=
 eq_conj_iff_re.1 $ by rw [← tan_conj, conj_of_real]

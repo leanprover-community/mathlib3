@@ -138,29 +138,4 @@ begin
           end,
 end
 
-/-- An explicit linear upper bound on the size of the `prime_counting'` function -/
-lemma linear_prime_counting_le_div_3 (n : ℕ) (n_big : 56 ≤ n) :
-  π' n ≤ n / 3 :=
-begin
-  rcases (le.dest n_big) with ⟨i, hi⟩,
-  have h := linear_prime_counting_bound i 56 6,
-  simp [hi] at h,
-  apply le_trans h,
-  rw ←hi,
-  -- Brute force evaluation of prime_counting'
-  simp [prime_counting', count_succ],
-  norm_num,
-  -- Brute force totient
-  have h1 : 6 = 2 * 3 := by norm_num,
-  rw [h1, totient_mul, totient_prime, totient_prime]; norm_num,
-  -- Linear reasoning to close goal
-  have h2 : 0 < 3, dec_trivial,
-  rw ←mul_le_mul_left h2,
-  ring_nf,
-  have h3 : 6 * (i / 6) ≤ i, exact mul_div_le i 6,
-  have h4 := nat.div_add_mod (i + 56) 3,
-  have h5 := @mod_lt (i + 56) 3 (by dec_trivial),
-  linarith,
-end
-
 end nat

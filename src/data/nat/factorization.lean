@@ -139,16 +139,12 @@ def factorization_equiv : pnat ≃ {f : ℕ →₀ ℕ | ∀ p ∈ f.support, pr
   left_inv  :=
   begin
     rintros ⟨x, hx⟩,
-    unfold factorization_equiv._match_1,
-    unfold factorization_equiv._match_2,
-    simp [factorization_prod_pow_eq_self hx.ne.symm]
+    exact subtype.mk_eq_mk.mpr (factorization_prod_pow_eq_self hx.ne.symm),
   end,
   right_inv :=
   begin
     rintros ⟨f, hf⟩,
-    unfold factorization_equiv._match_2,
-    unfold factorization_equiv._match_1,
-    simp [subtype.mk_eq_mk, factorization_prod_pow_inv hf]
+    exact subtype.mk_eq_mk.mpr (factorization_prod_pow_inv hf),
   end }
 
 /-! ### Factorizations of pairs of coprime numbers -/

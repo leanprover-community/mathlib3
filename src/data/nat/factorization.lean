@@ -40,12 +40,6 @@ namespace nat
  mapping each prime factor of `n` to its multiplicity in `n`. -/
 noncomputable def factorization (n : ℕ) : ℕ →₀ ℕ := (n.factors : multiset ℕ).to_finsupp
 
-@[simp] lemma factorization_prod_pow_eq_self {n : ℕ} (hn : n ≠ 0) : n.factorization.prod pow = n :=
-begin
-  simp only [←prod_to_multiset, factorization, multiset.coe_prod, multiset.to_finsupp_to_multiset],
-  exact prod_factors hn.bot_lt,
-end
-
 lemma factorization_eq_count {n p : ℕ} : n.factorization p = n.factors.count p :=
 by simp [factorization]
 -- TODO: As part of the unification mentioned in the TODO above,
@@ -69,12 +63,6 @@ by simpa [factorization, multiset.to_finsupp_support]
 
 lemma factor_iff_mem_factorization {n p : ℕ} : p ∈ n.factorization.support ↔ p ∈ n.factors :=
 by simp only [support_factorization, list.mem_to_finset]
-
-lemma prime_of_mem_factorization {n p : ℕ} : p ∈ n.factorization.support → p.prime :=
-(@prime_of_mem_factors n p) ∘ (@factor_iff_mem_factorization n p).mp
-
-lemma pos_of_mem_factorization {n p : ℕ} : p ∈ n.factorization.support → 0 < p:=
-(@prime.pos p) ∘ (@prime_of_mem_factorization n p)
 
 /-- The only numbers with empty prime factorization are `0` and `1` -/
 lemma factorization_eq_zero_iff (n : ℕ) : n.factorization = 0 ↔ n = 0 ∨ n = 1 :=
@@ -215,6 +203,9 @@ begin
     rw [h_mult a b hab, ha, hb, factorization_mul_of_coprime hab, ←prod_add_index_of_disjoint],
     convert (factorization_disjoint_of_coprime hab) },
 end
+
+@[simp] lemma factorization_prod_pow_eq_self {n : ℕ} (hn : n ≠ 0) : n.factorization.prod pow = n :=
+ by simpa only using (multiplicative_factorization id (by simp) (by simp) hn).symm
 
 /-! ### Factorization and divisibility -/
 

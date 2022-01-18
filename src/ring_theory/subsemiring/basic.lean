@@ -34,6 +34,7 @@ class subsemiring_class (S : Type*) (R : out_param $ Type u) [non_assoc_semiring
 (add_mem : ∀ {s : S} {a b : R}, a ∈ s → b ∈ s → a + b ∈ s)
 (zero_mem : ∀ (s : S), (0 : R) ∈ s)
 
+@[priority 100] -- See note [lower instance priority]
 instance subsemiring_class.add_submonoid_class (S : Type*) (R : out_param $ Type u)
   [non_assoc_semiring R] [set_like S R] [h : subsemiring_class S R] :
   add_submonoid_class S R :=

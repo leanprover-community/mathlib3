@@ -318,6 +318,24 @@ lemma closure_union (s t : set M) : closure (s ∪ t) = closure s ⊔ closure t 
 lemma closure_Union {ι} (s : ι → set M) : closure (⋃ i, s i) = ⨆ i, closure (s i) :=
 (submonoid.gi M).gc.l_supr
 
+@[to_additive]
+lemma closure_singleton_le_iff_mem (m : M) (p : submonoid M) :
+  closure {m} ≤ p ↔ m ∈ p :=
+by rw [closure_le, singleton_subset_iff, set_like.mem_coe]
+
+@[to_additive]
+lemma mem_supr {ι : Sort*} (p : ι → submonoid M) {m : M} :
+  (m ∈ ⨆ i, p i) ↔ (∀ N, (∀ i, p i ≤ N) → m ∈ N) :=
+begin
+  rw [← closure_singleton_le_iff_mem, le_supr_iff],
+  simp only [closure_singleton_le_iff_mem],
+end
+
+@[to_additive]
+lemma supr_eq_closure {ι : Sort*} (p : ι → submonoid M) :
+  (⨆ (i : ι), p i) = submonoid.closure (⋃ (i : ι), ↑(p i)) :=
+by simp_rw [submonoid.closure_Union, submonoid.closure_eq]
+
 end submonoid
 
 namespace monoid_hom

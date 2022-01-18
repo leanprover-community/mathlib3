@@ -286,7 +286,7 @@ begin
 end
 
 lemma squarefree_iff_irreducible_sq_not_dvd (n : ℕ) :
-  squarefree n ↔ ∀ x : ℕ, irreducible x → ¬ x * x ∣ n :=
+  squarefree n ↔ ∀ x : ℕ, x.prime → ¬ x * x ∣ n :=
 squarefree_iff_irreducible_sq_not_dvd_of_exists_irreducible
   ⟨2, (irreducible_iff_nat_prime _).2 prime_two⟩
 

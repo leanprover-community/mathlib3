@@ -20,7 +20,7 @@ def accumulate [has_le α] (s : α → set β) (x : α) : set β := ⋃ y ≤ x,
 variable {s}
 lemma accumulate_def [has_le α] {x : α} : accumulate s x = ⋃ y ≤ x, s y := rfl
 @[simp] lemma mem_accumulate [has_le α] {x : α} {z : β} : z ∈ accumulate s x ↔ ∃ y ≤ x, z ∈ s y :=
-mem_bUnion_iff
+mem_Union₂
 
 lemma subset_accumulate [preorder α] {x : α} : s x ⊆ accumulate s x :=
 λ z, mem_bUnion le_rfl

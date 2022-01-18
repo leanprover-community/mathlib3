@@ -862,7 +862,7 @@ end
 union of balls of radius `δ` centered at points of `E`. -/
 lemma thickening_eq_bUnion_ball {δ : ℝ} {E : set X} :
   thickening δ E = ⋃ x ∈ E, ball x δ :=
-by { ext x, rw mem_bUnion_iff, exact mem_thickening_iff E x, }
+by { ext x, rw mem_Union₂, exact mem_thickening_iff E x, }
 
 lemma bounded.thickening {δ : ℝ} {E : set X} (h : bounded E) :
   bounded (thickening δ E) :=

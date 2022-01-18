@@ -49,6 +49,13 @@ lemma mem_carrier {s : subalgebra R A} {x : A} : x ∈ s.carrier ↔ x ∈ s := 
 
 @[simp] lemma coe_to_subsemiring (S : subalgebra R A) : (↑S.to_subsemiring : set A) = S := rfl
 
+theorem to_subsemiring_injective :
+  function.injective (to_subsemiring : subalgebra R A → subsemiring A) :=
+λ S T h, ext $ λ x, by rw [← mem_to_subsemiring, ← mem_to_subsemiring, h]
+
+theorem to_subsemiring_inj {S U : subalgebra R A} : S.to_subsemiring = U.to_subsemiring ↔ S = U :=
+to_subsemiring_injective.eq_iff
+
 /-- Copy of a subalgebra with a new `carrier` equal to the old one. Useful to fix definitional
 equalities. -/
 protected def copy (S : subalgebra R A) (s : set A) (hs : s = ↑S) : subalgebra R A :=
@@ -161,6 +168,14 @@ def to_subring {R : Type u} {A : Type v} [comm_ring R] [ring A] [algebra R A] (S
 
 @[simp] lemma coe_to_subring {R : Type u} {A : Type v} [comm_ring R] [ring A] [algebra R A]
   (S : subalgebra R A) : (↑S.to_subring : set A) = S := rfl
+
+theorem to_subring_injective {R : Type u} {A : Type v} [comm_ring R] [ring A] [algebra R A] :
+  function.injective (to_subring : subalgebra R A → subring A) :=
+λ S T h, ext $ λ x, by rw [← mem_to_subring, ← mem_to_subring, h]
+
+theorem to_subring_inj {R : Type u} {A : Type v} [comm_ring R] [ring A] [algebra R A]
+  {S U : subalgebra R A} : S.to_subring = U.to_subring ↔ S = U :=
+to_subring_injective.eq_iff
 
 instance : inhabited S := ⟨(0 : S.to_subsemiring)⟩
 
@@ -538,6 +553,19 @@ set.mem_univ x
 
 @[simp] lemma top_to_subsemiring : (⊤ : subalgebra R A).to_subsemiring = ⊤ := rfl
 
+@[simp] lemma top_to_subring {R A : Type*} [comm_ring R] [ring A] [algebra R A] :
+  (⊤ : subalgebra R A).to_subring = ⊤ := rfl
+
+@[simp] lemma to_submodule_eq_top {S : subalgebra R A} : S.to_submodule = ⊤ ↔ S = ⊤ :=
+subalgebra.to_submodule_injective.eq_iff' top_to_submodule
+
+@[simp] lemma to_subsemiring_eq_top {S : subalgebra R A} : S.to_subsemiring = ⊤ ↔ S = ⊤ :=
+subalgebra.to_subsemiring_injective.eq_iff' top_to_subsemiring
+
+@[simp] lemma to_subring_eq_top {R A : Type*} [comm_ring R] [ring A] [algebra R A]
+  {S : subalgebra R A} : S.to_subring = ⊤ ↔ S = ⊤ :=
+subalgebra.to_subring_injective.eq_iff' top_to_subring
+
 lemma mem_sup_left {S T : subalgebra R A} : ∀ {x : A}, x ∈ S → x ∈ S ⊔ T :=
 show S ≤ S ⊔ T, from le_sup_left
 
@@ -567,7 +595,7 @@ lemma mem_inf {S T : subalgebra R A} {x : A} : x ∈ S ⊓ T ↔ x ∈ S ∧ x �
 lemma coe_Inf (S : set (subalgebra R A)) : (↑(Inf S) : set A) = ⋂ s ∈ S, ↑s := Inf_image
 
 lemma mem_Inf {S : set (subalgebra R A)} {x : A} : x ∈ Inf S ↔ ∀ p ∈ S, x ∈ p :=
-by simp only [← set_like.mem_coe, coe_Inf, set.mem_bInter_iff]
+by simp only [← set_like.mem_coe, coe_Inf, set.mem_Inter₂]
 
 @[simp] lemma Inf_to_submodule (S : set (subalgebra R A)) :
   (Inf S).to_submodule = Inf (subalgebra.to_submodule '' S) :=

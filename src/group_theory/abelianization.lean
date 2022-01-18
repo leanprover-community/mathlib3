@@ -115,6 +115,7 @@ section map
 
 variables {H : Type v} [group H] (f : G →* H)
 
+/-- The map operation of the `abelianization` functor -/
 def map : abelianization G →* abelianization H := lift (of.comp f)
 
 variables {f}

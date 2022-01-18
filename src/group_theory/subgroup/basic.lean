@@ -522,14 +522,14 @@ lemma mem_inf {p p' : subgroup G} {x : G} : x ∈ p ⊓ p' ↔ x ∈ p ∧ x ∈
 @[to_additive]
 instance : has_Inf (subgroup G) :=
 ⟨λ s,
-  { inv_mem' := λ x hx, set.mem_bInter $ λ i h, i.inv_mem (by apply set.mem_bInter_iff.1 hx i h),
+  { inv_mem' := λ x hx, set.mem_bInter $ λ i h, i.inv_mem (by apply set.mem_Inter₂.1 hx i h),
     .. (⨅ S ∈ s, subgroup.to_submonoid S).copy (⋂ S ∈ s, ↑S) (by simp) }⟩
 
 @[simp, norm_cast, to_additive]
 lemma coe_Inf (H : set (subgroup G)) : ((Inf H : subgroup G) : set G) = ⋂ s ∈ H, ↑s := rfl
 
 @[simp, to_additive]
-lemma mem_Inf {S : set (subgroup G)} {x : G} : x ∈ Inf S ↔ ∀ p ∈ S, x ∈ p := set.mem_bInter_iff
+lemma mem_Inf {S : set (subgroup G)} {x : G} : x ∈ Inf S ↔ ∀ p ∈ S, x ∈ p := set.mem_Inter₂
 
 @[to_additive]
 lemma mem_infi {ι : Sort*} {S : ι → subgroup G} {x : G} : (x ∈ ⨅ i, S i) ↔ ∀ i, x ∈ S i :=
@@ -1316,7 +1316,7 @@ the elements of `s`. -/
 def conjugates_of_set (s : set G) : set G := ⋃ a ∈ s, conjugates_of a
 
 lemma mem_conjugates_of_set_iff {x : G} : x ∈ conjugates_of_set s ↔ ∃ a ∈ s, is_conj a x :=
-set.mem_bUnion_iff
+set.mem_Union₂
 
 theorem subset_conjugates_of_set : s ⊆ conjugates_of_set s :=
 λ (x : G) (h : x ∈ s), mem_conjugates_of_set_iff.2 ⟨x, h, is_conj.refl _⟩

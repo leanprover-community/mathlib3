@@ -3,7 +3,7 @@ import tactic
 import data.nat.parity
 import data.multiset.basic
 
-lemma all_cycle_types_le_5 {m : multiset ℕ} (hm : ∀ {n : ℕ}, n ∈ m → 2 ≤ n)
+lemma all_cycle_types_le_5' {m : multiset ℕ} (hm : ∀ {n : ℕ}, n ∈ m → 2 ≤ n)
   (hs : m.sum ≤ 5) (hm0 : m ≠ 0) :
   m = {5} ∨ m = {4} ∨ m = {3} ∨ m = {2} ∨ m = {3,2} ∨ m = {2,2} :=
 begin
@@ -91,6 +91,42 @@ begin
     apply or.intro_right _, rw nat.eq_of_le_of_lt_succ b_ge_2 h,
     apply or.intro_left _, rw nat.le_antisymm _ h',
       apply  nat.le_of_add_le_add_right, refine le_trans hs _, rw ha }
+end
+
+lemma all_cycle_types_le_5 {m : multiset ℕ} (hm : ∀ {n : ℕ}, n ∈ m → 2 ≤ n)
+  (hs : m.sum ≤ 5) (hm0 : m ≠ 0) :
+  m = {5} ∨ m = {4} ∨ m = {3} ∨ m = {2} ∨ m = {3,2} ∨ m = {2,2} :=
+begin
+  have hcard : m.card ≤ 2,
+  { by_contra h,
+    push_neg at h,
+    replace h : 3 ≤ m.card := nat.succ_le_iff.mpr h,
+    have : m.card * 2 ≤ 5 := (multiset.card_nsmul_le_sum (λ n, hm)).trans hs,
+    linarith  },
+  have hm' : ∀ n ∈ m, n ≤ 5 := λ n hn, (multiset.le_sum_of_mem hn).trans hs,
+
+  /- BEGIN should be put in a tactic with input m, hcard, hm, hm' -/
+  induction m using multiset.induction with a₁ m H,
+  work_on_goal 1 {
+    have hm₁ : 2 ≤ a₁ := by simp only [hm, multiset.mem_cons, true_or, eq_self_iff_true, or_true],
+    have hm₁' : a₁ ≤ 5 := by simp only [hm', multiset.mem_cons, true_or, eq_self_iff_true, or_true],
+    induction m using multiset.induction with a₂ m H,
+    work_on_goal 1 {
+      have hm₂ : 2 ≤ a₂ := by simp only [hm, multiset.mem_cons, true_or, eq_self_iff_true, or_true],
+      have hm₂' : a₂ ≤ 5 := by simp only [hm', multiset.mem_cons, true_or, eq_self_iff_true, or_true],
+      obtain rfl : m = 0,
+      { simp at hcard,
+        change m.card + 2 ≤ 2 at hcard,
+        exact multiset.card_eq_zero.mp (nat.le_zero_iff.mp $ add_le_iff_nonpos_left.mp hcard) } } },
+  all_goals { clear hcard },
+
+  all_goals { try {interval_cases a₁} },
+  all_goals { try {interval_cases a₂} },
+  all_goals { clear hm hm', try { clear hm₁ hm₁' }, try { clear hm₂ hm₂' } },
+  all_goals { try {clear H} }, -- This line doesn't work, no idea why
+  /- END should be put in a tactic -/
+
+  all_goals { norm_num at hs ; dec_trivial },
 end
 
 def cycle_type_of_even' (m : multiset ℕ) :=

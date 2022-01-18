@@ -2336,7 +2336,7 @@ begin
   obtain ⟨t, ts, t_count, ht⟩ : ∃ t ⊆ s, t.countable ∧ s ⊆ ⋃ x ∈ t, u x :=
     topological_space.countable_cover_nhds_within (λ x hx, (hu x hx).1),
   replace ht : s ⊆ ⋃ x ∈ t, s ∩ u x,
-    by { rw ← inter_bUnion, exact subset_inter (subset.refl _) ht },
+    by { rw ← inter_Union₂, exact subset_inter subset.rfl ht },
   apply measure_mono_null ht,
   exact (measure_bUnion_null_iff t_count).2 (λ x hx, (hu x (ts hx)).2),
 end

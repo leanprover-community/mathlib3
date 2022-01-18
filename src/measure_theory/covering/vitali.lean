@@ -505,7 +505,7 @@ protected def vitali_family [metric_space α] [measurable_space α] [opens_measu
       exact (hx a ha).2 },
     { rw [bUnion_image],
       convert μu using 3,
-      exact bUnion_congr (λ a ha, inj_on_x.left_inv_on_inv_fun_on ha) }
+      exact Union₂_congr (λ a ha, inj_on_x.left_inv_on_inv_fun_on ha) }
   end }
 
 end vitali

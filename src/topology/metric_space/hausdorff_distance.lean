@@ -1020,10 +1020,8 @@ lemma cthickening_eq_Inter_thickening' {δ : ℝ} (δ_nn : 0 ≤ δ)
   (s : set ℝ) (hsδ : s ⊆ Ioi δ) (hs : ∀ ε, δ < ε → (s ∩ (Ioc δ ε)).nonempty) (E : set α) :
   cthickening δ E = ⋂ ε ∈ s, thickening ε E :=
 begin
-  apply subset.antisymm,
-  { apply subset_bInter,
-    intros ε hε,
-    rcases hs ε (mem_Ioi.mp (hsδ hε)) with ⟨ε', ⟨hsε', hε'⟩⟩,
+  refine (subset_Inter₂ $ λ ε hε, _).antisymm _,
+  { obtain ⟨ε', hsε', hε'⟩ := hs ε (hsδ hε),
     have ss := cthickening_subset_thickening' (lt_of_le_of_lt δ_nn hε'.1) hε'.1 E,
     exact ss.trans (thickening_mono hε'.2 E), },
   { rw cthickening_eq_Inter_cthickening' s hsδ hs E,

@@ -118,16 +118,18 @@ variables {H : Type v} [group H] (f : G →* H)
 /-- The map operation of the `abelianization` functor -/
 def map : abelianization G →* abelianization H := lift (of.comp f)
 
-variables {f}
-
 @[simp]
 lemma map_apply {x : abelianization G} : map f x = lift (of.comp f) x := rfl
 
 @[simp]
 lemma map_id : map (monoid_hom.id G) = monoid_hom.id (abelianization G) := hom_ext _ _ rfl
 
-lemma map_comp {I : Type w} [group I] {g : H →* I} :
+lemma map_comp {I : Type w} [group I] (g : H →* I) :
   (map g).comp (map f) = map (g.comp f) := hom_ext _ _ rfl
+
+@[simp]
+lemma map_map_apply {I : Type w} [group I] {g : H →* I} {x : abelianization G}:
+  map g (map f x) = map (g.comp f) x := monoid_hom.congr_fun (map_comp _ _) x
 
 end map
 
@@ -143,9 +145,7 @@ def mul_equiv.abelianization_congr : abelianization G ≃* abelianization H :=
   inv_fun := abelianization.map e.symm.to_monoid_hom,
   left_inv := by { rintros ⟨a⟩, simp },
   right_inv := by { rintros ⟨a⟩, simp },
-  map_mul' := by tidy }
-
-variables {e}
+  map_mul' := monoid_hom.map_mul _ }
 
 @[simp]
 lemma abelianization_congr_of (x : G) :

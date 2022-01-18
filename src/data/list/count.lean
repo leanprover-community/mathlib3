@@ -149,8 +149,8 @@ begin
   { simpa }
 end
 
-@[simp] lemma count_map_map {α β} [decidable_eq α] [decidable_eq β] (l : list α) (f : α → β)
-  (hf : function.injective f) (x : α) :
+@[simp] lemma count_map_of_injective {α β} [decidable_eq α] [decidable_eq β]
+  (l : list α) (f : α → β) (hf : function.injective f) (x : α) :
   count (f x) (map f l) = count x l :=
 begin
   induction l with y l IH generalizing x,
@@ -159,6 +159,15 @@ begin
     by_cases h : x = y,
     { simpa [h] using IH _ },
     { simpa [h, hf.ne h] using IH _ } }
+end
+
+lemma count_le_count_map [decidable_eq β] (l : list α) (f : α → β) (x : α) :
+  count x l ≤ count (f x) (map f l) :=
+begin
+  induction l with a as IH, { simp },
+  rcases eq_or_ne x a with rfl | hxa,
+  { simp [succ_le_succ IH] },
+  { simp [hxa, le_add_right IH, count_cons'] }
 end
 
 @[simp] lemma count_erase_self (a : α) :

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kexing Ying
 -/
 import measure_theory.constructions.borel_space
+import measure_theory.function.l1_space
 
 /-!
 # Filtration and stopping time
@@ -31,7 +32,7 @@ filtration, stopping time, stochastic process
 -/
 
 noncomputable theory
-open_locale classical measure_theory nnreal ennreal topological_space
+open_locale classical measure_theory nnreal ennreal topological_space big_operators
 
 namespace measure_theory
 
@@ -42,7 +43,7 @@ structure filtration {α : Type*} (ι : Type*) [preorder ι] (m : measurable_spa
 (mono : monotone seq)
 (le : ∀ i : ι, seq i ≤ m)
 
-variables {α β ι : Type*} {m : measurable_space α} [measurable_space β]
+variables {α β ι : Type*} {m : measurable_space α}
 
 open topological_space
 
@@ -73,6 +74,8 @@ instance sigma_finite_of_sigma_finite_filtration (μ : measure α) (f : filtrati
   [hf : sigma_finite_filtration μ f] (i : ι) :
   sigma_finite (μ.trim (f.le i)) :=
 by apply hf.sigma_finite -- can't exact here
+
+variable [measurable_space β]
 
 /-- A sequence of functions `u` is adapted to a filtration `f` if for all `i`,
 `u i` is `f i`-measurable. -/
@@ -118,8 +121,6 @@ lemma adapted_natural {u : ι → α → β} (hum : ∀ i, measurable[m] (u i)) 
 
 end filtration
 
-variables {μ : measure α} {f : filtration ι m}
-
 /-- A stopping time with respect to some filtration `f` is a function
 `τ` such that for all `i`, the preimage of `{j | j ≤ i}` along `τ` is measurable
 with respect to `f i`.
@@ -129,9 +130,14 @@ Intuitively, the stopping time `τ` describes some stopping rule such that at ti
 def is_stopping_time (f : filtration ι m) (τ : α → ι) :=
 ∀ i : ι, measurable_set[f i] $ {x | τ x ≤ i}
 
-lemma is_stopping_time.measurable_set_eq
-  {f : filtration ℕ m} {τ : α → ℕ} (hτ : is_stopping_time f τ) (i : ℕ) :
-  measurable_set[f i] $ {x | τ x = i} :=
+variables {f : filtration ℕ m} {τ : α → ℕ}
+
+lemma is_stopping_time.measurable_set_le (hτ : is_stopping_time f τ) (i : ℕ) :
+  measurable_set[f i] {x | τ x ≤ i} :=
+hτ i
+
+lemma is_stopping_time.measurable_set_eq (hτ : is_stopping_time f τ) (i : ℕ) :
+  measurable_set[f i] {x | τ x = i} :=
 begin
   cases i,
   { convert (hτ 0),
@@ -146,13 +152,29 @@ begin
         linarith } } }
 end
 
+lemma is_stopping_time.measurable_set_ge (hτ : is_stopping_time f τ) (i : ℕ) :
+  measurable_set[f i] {x | i ≤ τ x} :=
+begin
+  have : {a : α | i ≤ τ a} = (set.univ \ {a | τ a ≤ i}) ∪ {a | τ a = i},
+  { ext1 a,
+    simp only [true_and, set.mem_univ, set.mem_diff, not_le, set.mem_union_eq,
+      set.mem_set_of_eq],
+    rw le_iff_lt_or_eq,
+    by_cases h : τ a = i,
+    { simp [h], },
+    { simp only [h, ne.symm h, or_false, or_iff_left_iff_imp], }, },
+  rw this,
+  refine @measurable_set.union _ (f.seq i) _ _ _ (hτ.measurable_set_eq i),
+  exact @measurable_set.diff _ (f.seq i) _ _ (@measurable_set.univ _ (f.seq i)) (hτ i),
+end
+
 lemma is_stopping_time.measurable_set_eq_le
   {f : filtration ℕ m} {τ : α → ℕ} (hτ : is_stopping_time f τ) {i j : ℕ} (hle : i ≤ j) :
-  measurable_set[f j] $ {x | τ x = i} :=
+  measurable_set[f j] {x | τ x = i} :=
 f.mono hle _ $ hτ.measurable_set_eq i
 
 lemma is_stopping_time_of_measurable_set_eq
-  {f : filtration ℕ m} {τ : α → ℕ} (hτ : ∀ i, measurable_set[f i] $ {x | τ x = i}) :
+  {f : filtration ℕ m} {τ : α → ℕ} (hτ : ∀ i, measurable_set[f i] {x | τ x = i}) :
   is_stopping_time f τ :=
 begin
   intro i,
@@ -305,5 +327,122 @@ end
 end linear_order
 
 end is_stopping_time
+
+section linear_order
+
+/-- Given a map `u : ι → α → E`, its stopped value with respect to the stopping
+time `τ` is the map `x ↦ u (τ x) x`. -/
+def stopped_value (u : ι → α → β) (τ : α → ι) : α → β :=
+λ x, u (τ x) x
+
+variable [linear_order ι]
+
+/-- Given a map `u : ι → α → E`, the stopped process with respect to `τ` is `u i x` if
+`i ≤ τ x`, and `u (τ x) x` otherwise.
+
+Intuitively, the stopped process stops evolving once the stopping time has occured. -/
+def stopped_process (u : ι → α → β) (τ : α → ι) : ι → α → β :=
+λ i x, u (linear_order.min i (τ x)) x
+
+lemma stopped_process_eq_of_le {u : ι → α → β} {τ : α → ι}
+  {i : ι} {x : α} (h : i ≤ τ x) : stopped_process u τ i x = u i x :=
+by simp [stopped_process, min_eq_left h]
+
+lemma stopped_process_eq_of_ge {u : ι → α → β} {τ : α → ι}
+  {i : ι} {x : α} (h : τ x ≤ i) : stopped_process u τ i x = u (τ x) x :=
+by simp [stopped_process, min_eq_right h]
+
+-- We will need cadlag to generalize the following to continuous processes
+section nat
+
+open filtration
+
+variables {f : filtration ℕ m} {u : ℕ → α → β} {τ : α → ℕ}
+
+section add_comm_monoid
+
+variables [add_comm_monoid β]
+
+lemma stopped_process_eq (n : ℕ) :
+  stopped_process u τ n =
+  set.indicator {a | n ≤ τ a} (u n) +
+    ∑ i in finset.range n, set.indicator {a | τ a = i} (u i) :=
+begin
+  ext x,
+  rw [pi.add_apply, finset.sum_apply],
+  cases le_or_lt n (τ x),
+  { rw [stopped_process_eq_of_le h, set.indicator_of_mem, finset.sum_eq_zero, add_zero],
+    { intros m hm,
+      rw finset.mem_range at hm,
+      exact set.indicator_of_not_mem ((lt_of_lt_of_le hm h).ne.symm) _ },
+    { exact h } },
+  { rw [stopped_process_eq_of_ge (le_of_lt h), finset.sum_eq_single_of_mem (τ x)],
+    { rw [set.indicator_of_not_mem, zero_add, set.indicator_of_mem],
+      { exact rfl }, -- refl does not work
+      { exact not_le.2 h } },
+    { rwa [finset.mem_range] },
+    { intros b hb hneq,
+      rw set.indicator_of_not_mem,
+      exact hneq.symm } },
+end
+
+lemma adapted.stopped_process [measurable_space β] [has_measurable_add₂ β]
+  (hu : adapted f u) (hτ : is_stopping_time f τ) :
+  adapted f (stopped_process u τ) :=
+begin
+  intro i,
+  rw stopped_process_eq,
+  refine @measurable.add _ _ _ _ (f i) _ _ _ _ _,
+  { refine @measurable.indicator _ _ (f i) _ _ _ _ (hu i) _,
+    convert @measurable_set.union _ (f i) _ _
+      (@measurable_set.compl _ _ (f i) (hτ i)) (hτ.measurable_set_eq i),
+    ext x,
+    change i ≤ τ x ↔ ¬ τ x ≤ i ∨ τ x = i,
+    rw [not_le, le_iff_lt_or_eq, eq_comm] },
+  { refine @finset.measurable_sum' _ _ _ _ _ _ (f i) _ _ _,
+    refine λ j hij, @measurable.indicator _ _ (f i) _ _ _ _ _ _,
+    { rw finset.mem_range at hij,
+      exact measurable.le (f.mono hij.le) (hu j) },
+    { rw finset.mem_range at hij,
+      refine f.mono hij.le _ _,
+      convert hτ.measurable_set_eq j, } }
+end
+
+end add_comm_monoid
+
+section normed_group
+
+variables [measurable_space β] [normed_group β] [has_measurable_add₂ β]
+
+lemma measurable_stopped_process (hτ : is_stopping_time f τ) (hu : adapted f u) (n : ℕ) :
+  measurable (stopped_process u τ n) :=
+(hu.stopped_process hτ n).le (f.le _)
+
+lemma mem_ℒp_stopped_process {p : ℝ≥0∞} [borel_space β] {μ : measure α} (hτ : is_stopping_time f τ)
+  (hu : ∀ n, mem_ℒp (u n) p μ) (n : ℕ) :
+  mem_ℒp (stopped_process u τ n) p μ :=
+begin
+  rw stopped_process_eq,
+  refine mem_ℒp.add _ _,
+  { exact mem_ℒp.indicator (f.le n {a : α | n ≤ τ a} (hτ.measurable_set_ge n)) (hu n), },
+  { suffices : mem_ℒp (λ x, ∑ (i : ℕ) in finset.range n, {a : α | τ a = i}.indicator (u i) x) p μ,
+      by { convert this, ext1 x, simp only [finset.sum_apply], },
+    refine mem_ℒp_finset_sum _ (λ i hi, mem_ℒp.indicator _ (hu i)),
+    exact f.le i {a : α | τ a = i} (hτ.measurable_set_eq i) },
+end
+
+lemma integrable_stopped_process [borel_space β] {μ : measure α} (hτ : is_stopping_time f τ)
+  (hu : ∀ n, integrable (u n) μ) (n : ℕ) :
+  integrable (stopped_process u τ n) μ :=
+begin
+  simp_rw ← mem_ℒp_one_iff_integrable at hu ⊢,
+  exact mem_ℒp_stopped_process hτ hu n,
+end
+
+end normed_group
+
+end nat
+
+end linear_order
 
 end measure_theory

@@ -876,13 +876,18 @@ iterating this lemma, e.g., if we have `f : α × β × γ → M`. -/
 begin
   have : ∀ a, ∏ (i : β) in (s.filter (λ ab, prod.fst ab = a)).image prod.snd, f (a, i) =
     (finset.filter (λ ab, prod.fst ab = a) s).prod f,
-  { intros a, apply finset.prod_bij (λ b _, (a, b)); finish, },
+  { refine (λ a, finset.prod_bij (λ b _, (a, b)) _ _ _ _); -- `finish` closes these goals
+    try { simp, done },
+    suffices : ∀ a' b, (a', b) ∈ s → a' = a → (a, b) ∈ s ∧ a' = a, by simpa,
+    rintros a' b hp rfl,
+    exact ⟨hp, rfl⟩ },
   rw finprod_mem_finset_eq_prod,
   simp_rw [finprod_mem_finset_eq_prod, this],
   rw [finprod_eq_prod_of_mul_support_subset _
     (s.mul_support_of_fiberwise_prod_subset_image f prod.fst),
-    ← finset.prod_fiberwise_of_maps_to _ f],
-  finish,
+    ← finset.prod_fiberwise_of_maps_to _ f],  -- `finish` could close the goal here
+  simp only [finset.mem_image, prod.mk.eta],
+  exact λ x hx, ⟨x, hx, rfl⟩,
 end
 
 /-- See also `finprod_mem_finset_product'`. -/

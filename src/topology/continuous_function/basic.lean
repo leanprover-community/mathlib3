@@ -214,22 +214,39 @@ end lattice
 section prod
 
 variables {α₁ α₂ β₁ β₂ : Type*}
+          [topological_space α₁] [topological_space α₂]
+          [topological_space β₁] [topological_space β₂]
 
 /-- Given two continuous maps `f` and `g`, this is the continuous map `x ↦ (f x, g x)`. -/
-def prod_mk {α β₁ β₂ : Type*} [topological_space α] [topological_space β₁]
-  [topological_space β₂] (f : C(α, β₁)) (g : C(α, β₂)) :
+def prod_mk (f : C(α, β₁)) (g : C(α, β₂)) :
   C(α, β₁ × β₂) :=
 { to_fun := (λ x, (f x, g x)),
   continuous_to_fun := continuous.prod_mk f.continuous g.continuous }
 
 /-- Given two continuous maps `f` and `g`, this is the continuous map `(x, y) ↦ (f x, g y)`. -/
-def prod_map {α₁ α₂ β₁ β₂ : Type*} [topological_space α₁] [topological_space α₂]
-  [topological_space β₁] [topological_space β₂] (f : C(α₁, α₂)) (g : C(β₁, β₂)) :
+def prod_map (f : C(α₁, α₂)) (g : C(β₁, β₂)) :
   C(α₁ × β₁, α₂ × β₂) :=
 { to_fun := prod.map f g,
   continuous_to_fun := continuous.prod_map f.continuous g.continuous }
 
+@[simp] lemma prod_eval (f : C(α, β₁)) (g : C(α, β₂)) (a : α) :
+  (prod_mk f g) a = (f a, g a) := rfl
+
 end prod
+
+section pi
+
+variables {I A : Type*} {X : I → Type*}
+          [topological_space A] [∀ i, topological_space (X i)]
+
+/-- Abbreviation for product of continuous maps, which is continuous -/
+def pi (f : Π i, C(A, X i)) : C(A, Π i, X i) :=
+{ to_fun := λ (a : A) (i : I), f i a, }
+
+@[simp] lemma pi_eval (f : Π i, C(A, X i)) (a : A) :
+  (pi f) a = λ i : I, (f i) a := rfl
+
+end pi
 
 section restrict
 

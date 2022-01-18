@@ -70,7 +70,7 @@ begin
     { rw convex_hull_affine_basis_eq_nonneg_barycentric b, ext, simp, },
     ext,
     simp only [this, interior_Inter_of_fintype, ← is_open_map.preimage_interior_eq_interior_preimage
-      (continuous_barycentric_coord b _) (is_open_map_barycentric_coord b _),
+      (is_open_map_barycentric_coord b _) (continuous_barycentric_coord b _),
       interior_Ici, mem_Inter, mem_set_of_eq, mem_Ioi, mem_preimage], },
 end
 
@@ -103,7 +103,7 @@ begin
   have hεyq : ∀ (y ∉ s), ε / 2 / dist y q ≠ 0,
   { simp only [ne.def, div_eq_zero_iff, or_false, dist_eq_zero, bit0_eq_zero, one_ne_zero,
       not_or_distrib, ne_of_gt hε, true_and, not_false_iff],
-    finish, },
+    exact λ y h1 h2, h1 (h2.symm ▸ hq) },
   classical,
   let w : t → units ℝ := λ p, if hp : (p : P) ∈ s then 1 else units.mk0 _ (hεyq ↑p hp),
   refine ⟨set.range (λ (p : t), line_map q p (w p : ℝ)), _, _, _, _⟩,

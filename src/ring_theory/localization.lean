@@ -644,17 +644,6 @@ lemma ring_equiv_of_ring_equiv_mk' {j : R ≃+* P} (H : M.map j.to_monoid_hom = 
     mk' Q (j x) ⟨j y, show j y ∈ T, from H ▸ set.mem_image_of_mem j y.2⟩ :=
 map_mk' _ _ _
 
-lemma iso_comp {S T : CommRing}
-  [l : algebra R S] [h : is_localization M S] (f : S ≅ T) :
-  @is_localization _ _ M T _ (f.hom.comp l.to_ring_hom).to_algebra :=
-{ map_units := let hm := h.1 in
-    λ t, is_unit.map f.hom.to_monoid_hom (hm t),
-  surj := let hs := h.2 in λ t, let ⟨⟨r,s⟩,he⟩ := hs (f.inv t) in ⟨ ⟨r,s⟩,
-  by { convert congr_arg f.hom he, rw [ring_hom.map_mul,
-       ←category_theory.comp_apply, category_theory.iso.inv_hom_id], refl } ⟩,
-  eq_iff_exists := let he := h.3 in λ t t', by { rw ← he, split,
-    apply f.CommRing_iso_to_ring_equiv.injective, exact congr_arg f.hom } }
-
 end map
 
 section alg_equiv
@@ -685,6 +674,85 @@ map_mk' _ _ _
 end alg_equiv
 
 end is_localization
+
+section
+
+variables (M)
+
+lemma is_localization_of_alg_equiv [algebra R P] [is_localization M S] (h : S ≃ₐ[R] P) :
+  is_localization M P :=
+begin
+  constructor,
+  { intro y,
+    convert (is_localization.map_units S y).map h.to_alg_hom.to_ring_hom.to_monoid_hom,
+    exact (h.commutes y).symm },
+  { intro y,
+    obtain ⟨⟨x, s⟩, e⟩ := is_localization.surj M (h.symm y),
+    apply_fun h at e,
+    simp only [h.map_mul, h.apply_symm_apply, h.commutes] at e,
+    exact ⟨⟨x, s⟩, e⟩ },
+  { intros x y,
+    rw [← h.symm.to_equiv.injective.eq_iff, ← is_localization.eq_iff_exists M S,
+      ← h.symm.commutes, ← h.symm.commutes],
+    refl }
+end
+
+lemma is_localization_iff_of_alg_equiv [algebra R P] (h : S ≃ₐ[R] P) :
+  is_localization M S ↔ is_localization M P :=
+⟨λ _, by exactI is_localization_of_alg_equiv M h,
+  λ _, by exactI is_localization_of_alg_equiv M h.symm⟩
+
+lemma is_localization_iff_of_ring_equiv (h : S ≃+* P) :
+  is_localization M S ↔
+    @@is_localization _ M P _ (h.to_ring_hom.comp $ algebra_map R S).to_algebra :=
+begin
+  letI := (h.to_ring_hom.comp $ algebra_map R S).to_algebra,
+  exact is_localization_iff_of_alg_equiv M { commutes' := λ _, rfl, ..h },
+end
+
+variable (S)
+
+lemma is_localization_of_base_ring_equiv [is_localization M S] (h : R ≃+* P) :
+  @@is_localization _ (M.map h.to_monoid_hom) S _
+    ((algebra_map R S).comp h.symm.to_ring_hom).to_algebra :=
+begin
+  constructor,
+  { rintros ⟨_, ⟨y, hy, rfl⟩⟩,
+    convert is_localization.map_units S ⟨y, hy⟩,
+    dsimp only [ring_hom.algebra_map_to_algebra, ring_hom.comp_apply],
+    exact congr_arg _ (h.symm_apply_apply _) },
+  { intro y,
+    obtain ⟨⟨x, s⟩, e⟩ := is_localization.surj M y,
+    refine ⟨⟨h x, _, _, s.prop, rfl⟩, _⟩,
+    dsimp only [ring_hom.algebra_map_to_algebra, ring_hom.comp_apply] at ⊢ e,
+    convert e; exact h.symm_apply_apply _ },
+  { intros x y,
+    rw [ring_hom.algebra_map_to_algebra, ring_hom.comp_apply, ring_hom.comp_apply,
+      is_localization.eq_iff_exists M S],
+    simp_rw ← h.to_equiv.apply_eq_iff_eq,
+    change (∃ (c : M), h (h.symm x * c) = h (h.symm y * c)) ↔ _,
+    simp only [ring_equiv.apply_symm_apply, ring_equiv.map_mul],
+    exact ⟨λ ⟨c, e⟩, ⟨⟨_, _, c.prop, rfl⟩, e⟩, λ ⟨⟨_, c, h, e₁⟩, e₂⟩, ⟨⟨_, h⟩, e₁.symm ▸ e₂⟩⟩ }
+end
+
+lemma is_localization_iff_of_base_ring_equiv (h : R ≃+* P) :
+  is_localization M S ↔ @@is_localization _ (M.map h.to_monoid_hom) S _
+    ((algebra_map R S).comp h.symm.to_ring_hom).to_algebra :=
+begin
+  refine ⟨λ _, by exactI is_localization_of_base_ring_equiv _ _ h, _⟩,
+  letI := ((algebra_map R S).comp h.symm.to_ring_hom).to_algebra,
+  intro H,
+  convert @@is_localization_of_base_ring_equiv _ _ _ _ _ _ H h.symm,
+  { erw [submonoid.map_equiv_eq_comap_symm, submonoid.comap_map_eq_of_injective],
+    exact h.to_equiv.injective },
+  rw [ring_hom.algebra_map_to_algebra, ring_hom.comp_assoc],
+  simp only [ring_hom.comp_id, ring_equiv.symm_symm, ring_equiv.symm_to_ring_hom_comp_to_ring_hom],
+  apply algebra.algebra_ext,
+  intro r,
+  rw ring_hom.algebra_map_to_algebra
+end
+
+end
 
 section away
 
@@ -2173,6 +2241,29 @@ lemma is_unit_denom_of_num_eq_zero {x : K} (h : num A x = 0) : is_unit (denom A 
 num_denom_reduced A x (h.symm ▸ dvd_zero _) dvd_rfl
 
 end num_denom
+
+variables (S)
+
+lemma is_fraction_ring_iff_of_base_ring_equiv (h : R ≃+* P) :
+  is_fraction_ring R S ↔
+    @@is_fraction_ring P _ S _ ((algebra_map R S).comp h.symm.to_ring_hom).to_algebra :=
+begin
+  delta is_fraction_ring,
+  convert is_localization_iff_of_base_ring_equiv _ _ h,
+  ext x,
+  erw submonoid.map_equiv_eq_comap_symm,
+  simp only [mul_equiv.coe_to_monoid_hom,
+    ring_equiv.to_mul_equiv_eq_coe, submonoid.mem_comap],
+  split,
+  { rintros hx z (hz : z * h.symm x = 0),
+    rw ← h.map_eq_zero_iff,
+    apply hx,
+    simpa only [h.map_zero, h.apply_symm_apply, h.map_mul] using congr_arg h hz },
+  { rintros (hx : h.symm x ∈ _) z hz,
+    rw ← h.symm.map_eq_zero_iff,
+    apply hx,
+    rw [← h.symm.map_mul, hz, h.symm.map_zero] }
+end
 
 end is_fraction_ring
 

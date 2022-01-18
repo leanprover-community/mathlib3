@@ -362,6 +362,9 @@ lemma is_root.dvd {R : Type*} [comm_semiring R] {p q : polynomial R} {x : R}
   (h : p.is_root x) (hpq : p ∣ q) : q.is_root x :=
 by rwa [is_root, eval, eval₂_eq_zero_of_dvd_of_eval₂_eq_zero _ _ hpq]
 
+lemma not_is_root_C (r a : R) (hr : r ≠ 0) : ¬ is_root (C r) a :=
+by simpa using hr
+
 end eval
 
 section comp
@@ -593,7 +596,7 @@ ring_hom.ext $ λ x, map_id
 
 @[simp] lemma map_ring_hom_comp [semiring T] (f : S →+* T) (g : R →+* S) :
   (map_ring_hom f).comp (map_ring_hom g) = map_ring_hom (f.comp g) :=
-ring_hom.ext $ map_map g f
+ring_hom.ext $ polynomial.map_map g f
 
 lemma map_list_prod (L : list (polynomial R)) : L.prod.map f = (L.map $ map f).prod :=
 L.map_prod (map_ring_hom f)

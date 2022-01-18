@@ -162,23 +162,50 @@ end has_continuous_mul
 
 section pointwise_limits
 
-variables {M₁ M₂ : Type*} [topological_space M₂] [t2_space M₂] {l : filter α} {f : M₁ → M₂}
+variables (M₁ M₂ : Type*) [topological_space M₂] [t2_space M₂]
 
-/-- Construct a bundled monoid homomorphism from a pointwise limit of
-monoid homomorphisms -/
-@[to_additive "Construct a bundled additive monoid homomorphism from
-a pointwise limit of monoid homomorphisms", simps]
-def monoid_hom_of_tendsto [monoid M₁] [monoid M₂]
-  [has_continuous_mul M₂] (g : α → M₁ →* M₂) [l.ne_bot]
-  (h : tendsto (λ a x, g a x) l (𝓝 f)) : M₁ →* M₂ :=
+@[to_additive] lemma is_closed_set_of_map_one [has_one M₁] [has_one M₂] :
+  is_closed {f : M₁ → M₂ | f 1 = 1} :=
+is_closed_eq (continuous_apply 1) continuous_const
+
+@[to_additive] lemma is_closed_set_of_map_mul [has_mul M₁] [has_mul M₂] [has_continuous_mul M₂] :
+  is_closed {f : M₁ → M₂ | ∀ x y, f (x * y) = f x * f y} :=
+begin
+  simp only [set_of_forall],
+  exact is_closed_Inter (λ x, is_closed_Inter (λ y, is_closed_eq (continuous_apply _)
+    ((continuous_apply _).mul (continuous_apply _))))
+end
+
+variables {M₁ M₂} [mul_one_class M₁] [mul_one_class M₂] [has_continuous_mul M₂]
+  {F : Type*} [monoid_hom_class F M₁ M₂] {l : filter α}
+
+/-- Construct a bundled monoid homomorphism `M₁ →* M₂` from a function `f` and a proof that it
+belongs to the closure of the range of the coercion from `M₁ →* M₂` (or another type of bundled
+homomorphisms that has a `monoid_hom_class` instance) to `M₁ → M₂`. -/
+@[to_additive "/-- Construct a bundled additive monoid homomorphism `M₁ →+ M₂` from a function `f`
+and a proof that it belongs to the closure of the range of the coercion from `M₁ →+ M₂` (or another
+type of bundled homomorphisms that has a `add_monoid_hom_class` instance) to `M₁ → M₂`. -/",
+  simps { fully_applied := ff }]
+def monoid_hom_of_mem_closure_range_coe (f : M₁ → M₂)
+  (hf : f ∈ closure (range (λ (f : F) (x : M₁), f x))) : M₁ →* M₂ :=
 { to_fun := f,
-  map_one' := by
-    { refine tendsto_nhds_unique (tendsto_pi_nhds.mp h 1) _,
-      simpa only [monoid_hom.map_one] using tendsto_const_nhds },
-  map_mul' := λ x y, by
-    { rw tendsto_pi_nhds at h,
-      refine tendsto_nhds_unique (h (x * y)) _,
-      simpa only [monoid_hom.map_mul] using (h x).mul (h y) } }
+  map_one' := (is_closed_set_of_map_one M₁ M₂).closure_subset_iff.2 (range_subset_iff.2 map_one) hf,
+  map_mul' := (is_closed_set_of_map_mul M₁ M₂).closure_subset_iff.2
+    (range_subset_iff.2 map_mul) hf }
+
+/-- Construct a bundled monoid homomorphism from a pointwise limit of monoid homomorphisms. -/
+@[to_additive "Construct a bundled additive monoid homomorphism from a pointwise limit of additive
+monoid homomorphisms", simps { fully_applied := ff }]
+def monoid_hom_of_tendsto (f : M₁ → M₂) (g : α → F) [l.ne_bot]
+  (h : tendsto (λ a x, g a x) l (𝓝 f)) : M₁ →* M₂ :=
+monoid_hom_of_mem_closure_range_coe f $ mem_closure_of_tendsto h $
+  eventually_of_forall $ λ a, mem_range_self _
+
+variables (M₁ M₂)
+
+@[to_additive] lemma monoid_hom.is_closed_range_coe :
+  is_closed (range (coe_fn : (M₁ →* M₂) → (M₁ → M₂))) :=
+is_closed_of_closure_subset $ λ f hf, ⟨monoid_hom_of_mem_closure_range_coe f hf, rfl⟩
 
 end pointwise_limits
 

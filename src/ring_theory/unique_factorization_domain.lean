@@ -6,6 +6,7 @@ Authors: Johannes Hölzl, Jens Wagemaker, Aaron Anderson
 
 import algebra.big_operators.associated
 import algebra.gcd_monoid.basic
+import data.finsupp.multiset
 import ring_theory.noetherian
 import ring_theory.multiplicity
 

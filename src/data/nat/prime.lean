@@ -3,12 +3,12 @@ Copyright (c) 2015 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
+import algebra.associated
 import data.list.sort
 import data.nat.gcd
 import data.nat.sqrt
 import tactic.norm_num
 import tactic.wlog
-import algebra.associated
 
 /-!
 # Prime numbers
@@ -23,6 +23,8 @@ This file deals with prime numbers: natural numbers `p ≥ 2` whose only divisor
 - `nat.exists_infinite_primes`: Euclid's theorem that there exist infinitely many prime numbers
 - `nat.factors n`: the prime factorization of `n`
 - `nat.factors_unique`: uniqueness of the prime factorisation
+* `nat.prime_iff`: `nat.prime` coincides with the general definition of `prime`
+* `nat.irreducible_iff_prime`: a non-unit natural number is only divisible by `1` iff it is prime
 
 -/
 
@@ -35,6 +37,8 @@ namespace nat
   at least 2 whose only divisors are `p` and `1`. -/
 @[pp_nodot]
 def prime (p : ℕ) := _root_.irreducible p
+
+theorem _root_.irreducible_iff_nat_prime (a : ℕ) : irreducible a ↔ nat.prime a := iff.rfl
 
 theorem not_prime_zero : ¬ prime 0
 | h := h.ne_zero rfl
@@ -285,6 +289,9 @@ theorem prime_def_min_fac {p : ℕ} : prime p ↔ 2 ≤ p ∧ min_fac p = p :=
   ((dvd_prime pp).1 fd).resolve_left (ne_of_gt f2)⟩,
   λ ⟨p2, e⟩, e ▸ min_fac_prime (ne_of_gt p2)⟩
 
+@[simp] lemma prime.min_fac_eq {p : ℕ} (hp : prime p) : min_fac p = p :=
+(prime_def_min_fac.1 hp).2
+
 /--
 This instance is faster in the virtual machine than `decidable_prime_1`,
 but slower in the kernel.
@@ -525,6 +532,12 @@ theorem prime.not_dvd_mul {p m n : ℕ} (pp : prime p)
   (Hm : ¬ p ∣ m) (Hn : ¬ p ∣ n) : ¬ p ∣ m * n :=
 mt pp.dvd_mul.1 $ by simp [Hm, Hn]
 
+theorem prime_iff {p : ℕ} : p.prime ↔ _root_.prime p :=
+⟨λ h, ⟨h.ne_zero, h.not_unit, λ a b, h.dvd_mul.mp⟩, prime.irreducible⟩
+
+theorem irreducible_iff_prime {p : ℕ} : irreducible p ↔ _root_.prime p :=
+by rw [←prime_iff, prime]
+
 /-- Prime `p` divides the product of `L : list ℕ` iff it divides some `a ∈ L` -/
 lemma prime.dvd_prod_iff {p : ℕ} {L : list ℕ} (pp : p.prime) :
   p ∣ L.prod ↔ ∃ a ∈ L, p ∣ a :=
@@ -594,6 +607,19 @@ begin
   rw ←h at hp,
   rw [←h, hp.eq_one_of_pow, eq_self_iff_true, and_true, pow_one],
 end
+
+lemma pow_min_fac {n k : ℕ} (hk : k ≠ 0) : (n^k).min_fac = n.min_fac :=
+begin
+  rcases eq_or_ne n 1 with rfl | hn,
+  { simp },
+  have hnk : n ^ k ≠ 1 := λ hk', hn ((pow_eq_one_iff hk).1 hk'),
+  apply (min_fac_le_of_dvd (min_fac_prime hn).two_le ((min_fac_dvd n).pow hk)).antisymm,
+  apply min_fac_le_of_dvd (min_fac_prime hnk).two_le
+    ((min_fac_prime hnk).dvd_of_dvd_pow (min_fac_dvd _)),
+end
+
+lemma prime.pow_min_fac {p k : ℕ} (hp : p.prime) (hk : k ≠ 0) : (p^k).min_fac = p :=
+by rw [pow_min_fac hk, hp.min_fac_eq]
 
 lemma prime.mul_eq_prime_sq_iff {x y p : ℕ} (hp : p.prime) (hx : x ≠ 1) (hy : y ≠ 1) :
   x * y = p ^ 2 ↔ x = p ∧ y = p :=
@@ -720,24 +746,6 @@ lemma mem_factors {n p} (hn : 0 < n) : p ∈ factors n ↔ prime p ∧ p ∣ n :
 ⟨λ h, ⟨prime_of_mem_factors h, (mem_factors_iff_dvd hn $ prime_of_mem_factors h).mp h⟩,
  λ ⟨hprime, hdvd⟩, (mem_factors_iff_dvd hn hprime).mpr hdvd⟩
 
-lemma factors_subset_right {n k : ℕ} (h : k ≠ 0) : n.factors ⊆ (n * k).factors :=
-begin
-  cases n,
-  { rw zero_mul, refl },
-  cases n,
-  { rw factors_one, apply list.nil_subset },
-  intros p hp,
-  rw mem_factors succ_pos' at hp,
-  rw mem_factors (nat.mul_pos succ_pos' (nat.pos_of_ne_zero h)),
-  exact ⟨hp.1, hp.2.mul_right k⟩,
-end
-
-lemma factors_subset_of_dvd {n k : ℕ} (h : n ∣ k) (h' : k ≠ 0) : n.factors ⊆ k.factors :=
-begin
-  obtain ⟨a, rfl⟩ := h,
-  exact factors_subset_right (right_ne_zero_of_mul h'),
-end
-
 lemma perm_of_prod_eq_prod : ∀ {l₁ l₂ : list ℕ}, prod l₁ = prod l₂ →
   (∀ p ∈ l₁, prime p) → (∀ p ∈ l₂, prime p) → l₁ ~ l₂
 | []        []        _  _  _  := perm.nil
@@ -812,6 +820,27 @@ by rw [perm_iff_count.mp (perm_factors_mul_of_pos ha hb) p, count_append]
 lemma count_factors_mul_of_coprime {p a b : ℕ} (hab : coprime a b)  :
   list.count p (a * b).factors = list.count p a.factors + list.count p b.factors :=
 by rw [perm_iff_count.mp (perm_factors_mul_of_coprime hab) p, count_append]
+
+lemma factors_sublist_right {n k : ℕ} (h : k ≠ 0) : n.factors <+ (n * k).factors :=
+begin
+  cases n,
+  { rw zero_mul },
+  apply list.sublist_of_subperm_of_sorted _ (factors_sorted _) (factors_sorted _),
+  rw (perm_factors_mul_of_pos nat.succ_pos' (nat.pos_of_ne_zero h)).subperm_left,
+  exact (list.sublist_append_left _ _).subperm,
+end
+
+lemma factors_sublist_of_dvd {n k : ℕ} (h : n ∣ k) (h' : k ≠ 0) : n.factors <+ k.factors :=
+begin
+  obtain ⟨a, rfl⟩ := h,
+  exact factors_sublist_right (right_ne_zero_of_mul h'),
+end
+
+lemma factors_subset_right {n k : ℕ} (h : k ≠ 0) : n.factors ⊆ (n * k).factors :=
+(factors_sublist_right h).subset
+
+lemma factors_subset_of_dvd {n k : ℕ} (h : n ∣ k) (h' : k ≠ 0) : n.factors ⊆ k.factors :=
+(factors_sublist_of_dvd h h').subset
 
 /-- For any `p`, the power of `p` in `n^k` is `k` times the power in `n` -/
 lemma factors_count_pow {n k p : ℕ} : count p (n ^ k).factors = k * count p n.factors :=

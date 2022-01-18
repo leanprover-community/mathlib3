@@ -50,7 +50,7 @@ namespace multiset
 @[simp] lemma map_le_map_iff {f : α ↪ β} {s t : multiset α} : s.map f ≤ t.map f ↔ s ≤ t :=
 ⟨λ h, begin
   classical,
-  exact le_iff_count.mpr (λ a, by simpa [count_map_eq_count' ⇑f _ f.injective] using le_iff_count.mp
+  exact le_iff_count.mpr (λ a, by simpa [count_map_eq_count' f _ f.injective] using le_iff_count.mp
   h (f a)),
 end, map_le_map⟩
 

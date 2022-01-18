@@ -510,7 +510,7 @@ noncomputable def of_surjective (f : F →ₛₗᵢ[σ₁₂] E₂)
 
 @[simp] lemma coe_of_surjective (f : F →ₛₗᵢ[σ₁₂] E₂) (hfr : function.surjective f) :
   ⇑(linear_isometry_equiv.of_surjective f hfr) = f :=
-by ext; refl
+by { ext, refl }
 
 omit σ₂₁
 

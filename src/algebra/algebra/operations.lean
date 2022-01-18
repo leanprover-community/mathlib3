@@ -194,8 +194,7 @@ calc map f.to_linear_map (M * N)
       rw f.to_linear_map_apply at fy_eq,
       ext,
       simp only [fy_eq, alg_hom.to_linear_map_apply, coe_mk, lmul_apply, exists_exists_and_eq_and,
-                 mem_map, map_mul]
- }
+                 mem_map, map_mul] }
 end
 
 section decidable_eq

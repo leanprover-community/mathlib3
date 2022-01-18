@@ -83,7 +83,8 @@ lemma smul_diff_smul [hH : normal H] (g : G) :
 begin
   let ϕ : H →* H :=
   { to_fun := λ h, ⟨g * h * g⁻¹, hH.conj_mem h.1 h.2 g⟩,
-    map_one' := subtype.ext (by rw [subtype.coe_mk, submonoid_class.coe_one, mul_one, mul_inv_self]),
+    map_one' := subtype.ext
+      (by rw [subtype.coe_mk, submonoid_class.coe_one, mul_one, mul_inv_self]),
     map_mul' := λ h₁ h₂, subtype.ext (by simp only [subtype.coe_mk, submonoid_class.coe_mul,
       mul_assoc, inv_mul_cancel_left]) },
   refine eq.trans (finset.prod_bij' (λ q _, (↑g)⁻¹ * q) (λ _ _, finset.mem_univ _)

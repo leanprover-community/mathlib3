@@ -69,7 +69,8 @@ end
 
 variables {B}
 
-lemma bounded_below (coercive : is_coercive B) : ∃ C, 0 < C ∧ ∀ v, C * ∥v∥ ≤ ∥lax_milgram_map B v∥ :=
+lemma bounded_below (coercive : is_coercive B) :
+  ∃ C, 0 < C ∧ ∀ v, C * ∥v∥ ≤ ∥lax_milgram_map B v∥ :=
 begin
   rcases coercive with ⟨C, C_ge_0, coercivity⟩,
   use C,

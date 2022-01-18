@@ -68,13 +68,13 @@ lemma coe_mul_star_self (U : unitary R) :  (U : R) * star U = 1 := mul_star_self
 instance : group (unitary R) :=
 { inv := star,
   mul_left_inv := star_mul_self,
-  ..submonoid.to_monoid _ }
+  ..submonoid_class.to_monoid _ }
 
 instance : has_involutive_star (unitary R) :=
 ⟨λ _, by { ext, simp only [coe_star, star_star] }⟩
 
 instance : star_monoid (unitary R) :=
-⟨λ _ _, by { ext, simp only [coe_star, submonoid.coe_mul, star_mul] }⟩
+⟨λ _ _, by { ext, simp only [coe_star, submonoid_class.coe_mul, star_mul] }⟩
 
 instance : inhabited (unitary R) := ⟨1⟩
 
@@ -99,7 +99,7 @@ variables [comm_monoid R] [star_monoid R]
 
 instance : comm_group (unitary R) :=
 { ..unitary.group,
-  ..submonoid.to_comm_monoid _ }
+  ..submonoid_class.to_comm_monoid _ }
 
 lemma mem_iff_star_mul_self {U : R} : U ∈ unitary R ↔ star U * U = 1 :=
 mem_iff.trans $ and_iff_left_of_imp $ λ h, mul_comm (star U) U ▸ h
@@ -116,12 +116,12 @@ variables [group_with_zero R] [star_monoid R]
 eq_inv_of_mul_right_eq_one (coe_mul_star_self _)
 
 @[norm_cast] lemma coe_div (U₁ U₂ : unitary R) : ↑(U₁ / U₂) = (U₁ / U₂ : R) :=
-by simp only [div_eq_mul_inv, coe_inv, submonoid.coe_mul]
+by simp only [div_eq_mul_inv, coe_inv, submonoid_class.coe_mul]
 
 @[norm_cast] lemma coe_zpow (U : unitary R) (z : ℤ) : ↑(U ^ z) = (U ^ z : R) :=
 begin
   induction z,
-  { simp [submonoid.coe_pow], },
+  { simp [submonoid_class.coe_pow], },
   { simp [coe_inv] },
 end
 

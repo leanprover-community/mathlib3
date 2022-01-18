@@ -266,7 +266,7 @@ end
 /-- If two sets `s` and `t` are included in a set `u`, and `μ s + μ t > μ u`,
 then `s` intersects `t`. Version assuming that `t` is measurable. -/
 lemma nonempty_inter_of_measure_lt_add
-  {m : measurable_space α} {μ : measure α}
+  {m : measurable_space α} (μ : measure α)
   {s t u : set α} (ht : measurable_set t) (h's : s ⊆ u) (h't : t ⊆ u)
   (h : μ u < μ s + μ t) :
   (s ∩ t).nonempty :=
@@ -287,7 +287,7 @@ lemma nonempty_inter_of_measure_lt_add'
 begin
   rw add_comm at h,
   rw inter_comm,
-  exact nonempty_inter_of_measure_lt_add hs h't h's h
+  exact nonempty_inter_of_measure_lt_add μ hs h't h's h
 end
 
 /-- Continuity from below: the measure of the union of a directed sequence of measurable sets

@@ -422,8 +422,7 @@ end
 
 /-- In a metric space (or even a pseudo emetric space), an open set can be approximated from inside
 by closed sets. -/
-lemma of_pseudo_emetric_space {X : Type*} [pseudo_emetric_space X] [measurable_space X]
-  [opens_measurable_space X] (μ : measure X) :
+lemma of_pseudo_emetric_space {X : Type*} [pseudo_emetric_space X] [measurable_space X] (μ : measure X) :
   inner_regular μ is_closed is_open :=
 begin
   intros U hU r hr,
@@ -434,8 +433,8 @@ begin
 end
 
 /-- In a `σ`-compact space, any closed set can be approximated by a compact subset. -/
-lemma is_compact_is_closed {X : Type*} [topological_space X] [t2_space X]
-  [sigma_compact_space X] [measurable_space X] [opens_measurable_space X] (μ : measure X) :
+lemma is_compact_is_closed {X : Type*} [topological_space X]
+  [sigma_compact_space X] [measurable_space X] (μ : measure X) :
   inner_regular μ is_compact is_closed :=
 begin
   intros F hF r hr,

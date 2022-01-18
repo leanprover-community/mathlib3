@@ -7,6 +7,7 @@ import algebra.big_operators.ring
 import number_theory.divisors
 import algebra.squarefree
 import algebra.invertible
+import data.nat.factorization
 
 /-!
 # Arithmetic Functions and Dirichlet Convolution
@@ -555,6 +556,13 @@ lemma pmul [comm_semiring R] {f g : arithmetic_function R}
   simp only [pmul_apply, hf.map_mul_of_coprime cop, hg.map_mul_of_coprime cop],
   ring,
 end⟩
+
+/-- For any multiplicative function `f` and any `n > 0`,
+we can evaluate `f n` by evaluating `f` at `p ^ k` over the factorization of `n` -/
+lemma multiplicative_factorization [comm_monoid_with_zero R] (f : arithmetic_function R)
+  (hf : f.is_multiplicative) :
+  ∀ {n : ℕ}, n ≠ 0 → f n = n.factorization.prod (λ p k, f (p ^ k)) :=
+λ n hn, multiplicative_factorization f hf.2 hf.1 hn
 
 end is_multiplicative
 

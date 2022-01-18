@@ -181,6 +181,10 @@ instance one_hom.one_hom_class : one_hom_class (one_hom M N) M N :=
 @[simp, to_additive] lemma map_one [one_hom_class F M N] (f : F) : f 1 = 1 :=
 one_hom_class.map_one f
 
+@[to_additive] lemma map_eq_one_iff [one_hom_class F M N] (f : F)
+  (hf : function.injective f) {x : M} : f x = 1 ↔ x = 1 :=
+hf.eq_iff' (map_one f)
+
 end one
 
 section mul
@@ -967,7 +971,7 @@ its kernel is trivial. For the iff statement on the triviality of the kernel,
 see `add_monoid_hom.injective_iff'`. "-/]
 lemma injective_iff {G H} [group G] [mul_one_class H] (f : G →* H) :
   function.injective f ↔ (∀ a, f a = 1 → a = 1) :=
-⟨λ h x hfx, h $ hfx.trans f.map_one.symm,
+⟨λ h x, (map_eq_one_iff f h).mp,
  λ h x y hxy, mul_inv_eq_one.1 $ h _ $ by rw [f.map_mul, hxy, ← f.map_mul, mul_inv_self, f.map_one]⟩
 
 /-- A homomorphism from a group to a monoid is injective iff its kernel is trivial,

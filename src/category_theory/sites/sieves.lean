@@ -41,6 +41,12 @@ namespace presieve
 
 instance : inhabited (presieve X) := ⟨⊤⟩
 
+@[simp] def diagram (S : presieve X) : {f : over X // S f.hom} ⥤ C :=
+full_subcategory_inclusion _ ⋙ over.forget X
+
+@[simp] def cocone (S : presieve X) : cocone S.diagram :=
+(over.forget_cocone X).whisker (full_subcategory_inclusion _)
+
 /--
 Given a set of arrows `S` all with codomain `X`, and a set of arrows with codomain `Y` for each
 `f : Y ⟶ X` in `S`, produce a set of arrows with codomain `X`:

@@ -5,6 +5,7 @@ Authors: Yaël Dillies, Bhavik Mehta
 -/
 import algebra.big_operators.basic
 import data.finset.sym
+import tactic.slim_check
 
 /-!
 # Stars and bars
@@ -48,7 +49,9 @@ namespace multiset
 
 @[simp] lemma map_le_map_iff {f : α ↪ β} {s t : multiset α} : s.map f ≤ t.map f ↔ s ≤ t :=
 ⟨λ h, begin
-  sorry
+  classical,
+  exact le_iff_count.mpr (λ a, by simpa [count_map_eq_count' ⇑f _ f.injective] using le_iff_count.mp
+  h (f a)),
 end, map_le_map⟩
 
 /-- Associate to an embedding `f` from `α` to `β` the order embedding that maps a multiset to its

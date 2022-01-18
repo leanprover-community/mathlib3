@@ -922,22 +922,30 @@ by rw [measure.restrict_eq_zero, h]
 
 @[simp] lemma restrict_univ : μ.restrict univ = μ := ext $ λ s hs, by simp [hs]
 
-lemma restrict_union_add_inter (s : set α) (ht : measurable_set t) :
+lemma restrict_union_add_inter₀ (s : set α) (ht : null_measurable_set t μ) :
   μ.restrict (s ∪ t) + μ.restrict (s ∩ t) = μ.restrict s + μ.restrict t :=
 begin
   ext1 u hu,
   simp only [add_apply, restrict_apply hu, inter_union_distrib_left],
-  convert measure_union_add_inter (u ∩ s) (hu.inter ht) using 3,
+  convert measure_union_add_inter₀ (u ∩ s) (hu.null_measurable_set.inter ht) using 3,
   rw [set.inter_left_comm (u ∩ s), set.inter_assoc, ← set.inter_assoc u u, set.inter_self]
 end
+
+lemma restrict_union_add_inter (s : set α) (ht : measurable_set t) :
+  μ.restrict (s ∪ t) + μ.restrict (s ∩ t) = μ.restrict s + μ.restrict t :=
+restrict_union_add_inter₀ s ht.null_measurable_set
 
 lemma restrict_union_add_inter' (hs : measurable_set s) (t : set α) :
   μ.restrict (s ∪ t) + μ.restrict (s ∩ t) = μ.restrict s + μ.restrict t :=
 by simpa only [union_comm, inter_comm, add_comm] using restrict_union_add_inter t hs
 
+lemma restrict_union₀ (h : ae_disjoint μ s t) (ht : null_measurable_set t μ) :
+  μ.restrict (s ∪ t) = μ.restrict s + μ.restrict t :=
+by simp [← restrict_union_add_inter₀ s ht, restrict_zero_set h]
+
 lemma restrict_union (h : disjoint s t) (ht : measurable_set t) :
   μ.restrict (s ∪ t) = μ.restrict s + μ.restrict t :=
-by simp [← restrict_union_add_inter s ht, disjoint_iff_inter_eq_empty.1 h]
+restrict_union₀ h.ae_disjoint ht.null_measurable_set
 
 lemma restrict_union' (h : disjoint s t) (hs : measurable_set s) :
   μ.restrict (s ∪ t) = μ.restrict s + μ.restrict t :=

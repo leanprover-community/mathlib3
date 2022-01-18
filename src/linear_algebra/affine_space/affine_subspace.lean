@@ -177,15 +177,15 @@ variables (k : Type*) {V : Type*} (P : Type*) [ring k] [add_comm_group V] [modul
           [affine_space V P]
 include V
 
--- TODO Refactor to use `instance : set_like (affine_subspace k P) P :=` instead
-instance : has_coe (affine_subspace k P) (set P) := ⟨carrier⟩
-instance : has_mem P (affine_subspace k P) := ⟨λ p s, p ∈ (s : set P)⟩
+instance : set_like (affine_subspace k P) P :=
+{ coe := carrier,
+  coe_injective' := λ s t h, by { cases s, cases t, congr' } }
 
 /-- A point is in an affine subspace coerced to a set if and only if
 it is in that affine subspace. -/
-@[simp] lemma mem_coe (p : P) (s : affine_subspace k P) :
+lemma mem_coe (p : P) (s : affine_subspace k P) :
   p ∈ (s : set P) ↔ p ∈ s :=
-iff.rfl
+set_like.mem_coe
 
 variables {k P}
 

@@ -922,18 +922,6 @@ by rw [measure.restrict_eq_zero, h]
 
 @[simp] lemma restrict_univ : μ.restrict univ = μ := ext $ λ s hs, by simp [hs]
 
-lemma restrict_union_apply (h : disjoint (t ∩ s) (t ∩ s')) (hs : measurable_set s)
-  (hs' : measurable_set s') (ht : measurable_set t) :
-  μ.restrict (s ∪ s') t = μ.restrict s t + μ.restrict s' t :=
-begin
-  simp only [restrict_apply, ht, set.inter_union_distrib_left],
-  exact measure_union h (ht.inter hs'),
-end
-
-lemma restrict_union (h : disjoint s t) (hs : measurable_set s) (ht : measurable_set t) :
-  μ.restrict (s ∪ t) = μ.restrict s + μ.restrict t :=
-ext $ λ t' ht', restrict_union_apply (h.mono inf_le_right inf_le_right) hs ht ht'
-
 lemma restrict_union_add_inter (s : set α) (ht : measurable_set t) :
   μ.restrict (s ∪ t) + μ.restrict (s ∩ t) = μ.restrict s + μ.restrict t :=
 begin
@@ -943,9 +931,21 @@ begin
   rw [set.inter_left_comm (u ∩ s), set.inter_assoc, ← set.inter_assoc u u, set.inter_self]
 end
 
+lemma restrict_union_add_inter' (hs : measurable_set s) (t : set α) :
+  μ.restrict (s ∪ t) + μ.restrict (s ∩ t) = μ.restrict s + μ.restrict t :=
+by simpa only [union_comm, inter_comm, add_comm] using restrict_union_add_inter t hs
+
+lemma restrict_union (h : disjoint s t) (ht : measurable_set t) :
+  μ.restrict (s ∪ t) = μ.restrict s + μ.restrict t :=
+by simp [← restrict_union_add_inter s ht, disjoint_iff_inter_eq_empty.1 h]
+
+lemma restrict_union' (h : disjoint s t) (hs : measurable_set s) :
+  μ.restrict (s ∪ t) = μ.restrict s + μ.restrict t :=
+by rw [union_comm, restrict_union h.symm hs, add_comm]
+
 @[simp] lemma restrict_add_restrict_compl (hs : measurable_set s) :
   μ.restrict s + μ.restrict sᶜ = μ :=
-by rw [← restrict_union (@disjoint_compl_right (set α) _ _) hs hs.compl,
+by rw [← restrict_union (@disjoint_compl_right (set α) _ _) hs.compl,
     union_compl_self, restrict_univ]
 
 @[simp] lemma restrict_compl_add_restrict (hs : measurable_set s) :

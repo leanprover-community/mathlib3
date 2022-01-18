@@ -213,7 +213,7 @@ begin
     ennreal.to_real_add hs_finite ht_finite, add_smul],
 end
 
-@[nolint unused_args]
+@[nolint unused_arguments]
 lemma weighted_smul_union (s t : set α) (hs : measurable_set s) (ht : measurable_set t)
   (hs_finite : μ s ≠ ∞) (ht_finite : μ t ≠ ∞) (h_inter : s ∩ t = ∅) :
   (weighted_smul μ (s ∪ t) : F →L[ℝ] F) = weighted_smul μ s + weighted_smul μ t :=

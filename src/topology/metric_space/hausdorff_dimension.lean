@@ -304,7 +304,7 @@ begin
   choose! C t htn hC using hf,
   rcases countable_cover_nhds_within htn with ⟨u, hus, huc, huU⟩,
   replace huU := inter_eq_self_of_subset_left huU, rw inter_Union₂ at huU,
-  rw [← huU, image_bUnion, dimH_bUnion huc, dimH_bUnion huc], simp only [ennreal.supr_div],
+  rw [← huU, image_Union₂, dimH_bUnion huc, dimH_bUnion huc], simp only [ennreal.supr_div],
   exact bsupr_le_bsupr (λ x hx, ((hC x (hus hx)).mono (inter_subset_right _ _)).dimH_image_le hr)
 end
 

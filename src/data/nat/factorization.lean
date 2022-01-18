@@ -196,9 +196,9 @@ begin
   { rintro ⟨c, rfl⟩, rw factorization_mul hd (right_ne_zero_of_mul hn), simp },
 end
 
--- These are in `PR #11543`
-lemma prime_of_mem_factorization {n p : ℕ} : p ∈ n.factorization.support → p.prime := sorry
-lemma pos_of_mem_factorization {n p : ℕ} : p ∈ n.factorization.support → 0 < p:= sorry
+-- -- These are in `PR #11543`
+-- lemma prime_of_mem_factorization {n p : ℕ} : p ∈ n.factorization.support → p.prime := sorry
+-- lemma pos_of_mem_factorization {n p : ℕ} : p ∈ n.factorization.support → 0 < p:= sorry
 
 -- section PR11521
 -- -- This is in `PR #11521`

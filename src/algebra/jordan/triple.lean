@@ -19,7 +19,7 @@ class is_tp (A : Type*) [has_tp A] [has_add A] :=
 (madd : ∀ (a b c d : A), ⦃ a, (b+c), d ⦄ = ⦃ a, b, d ⦄ + ⦃ a, c, d ⦄)
 
 class is_jordan_tp (A : Type*) [has_tp A] [has_add A] [has_sub A] :=
-(jordan : ∀ (a b c d e: A), ⦃ a, b, ⦃ c, d, e ⦄ ⦄  =
+(lebintz : ∀ (a b c d e: A), ⦃ a, b, ⦃ c, d, e ⦄ ⦄  =
   ⦃ ⦃ a, b, c ⦄, d, e ⦄ - ⦃ c, ⦃ b, a, d ⦄,  e ⦄ + ⦃ c, d, ⦃ a, b, e ⦄ ⦄)
 
 namespace is_tp
@@ -129,8 +129,18 @@ begin
   ext e,
   rw ring.lie_def,
   simp only [add_monoid_hom.sub_apply, function.comp_app, is_tp.D_apply, add_monoid.coe_mul],
-  rw [sub_eq_iff_eq_add, is_jordan_tp.jordan],
+  rw [sub_eq_iff_eq_add, is_jordan_tp.lebintz],
 end
 
 def lebnitz (D : A → A) (D'  : A → A) :=
   ∀ (a b c : A),  D ⦃ a, b, c ⦄  = ⦃ D a, b, c⦄ + ⦃a, D' b, c⦄ + ⦃a, b, D c⦄
+
+/--
+For a and b in A, the pair D(a,b) and -D(b,a) are Lebintz
+-/
+lemma D_D_lebintz [is_jordan_tp A] (a b : A) : lebnitz (D a b) (-D b a) := begin
+  unfold lebnitz,
+  intros c d e,
+  rw [pi.neg_apply, is_tp.mneg, tactic.ring.add_neg_eq_sub, is_tp.D_apply, is_tp.D_apply,
+    is_tp.D_apply, is_tp.D_apply, is_jordan_tp.lebintz],
+end

@@ -2446,13 +2446,10 @@ lemma mem_prod_principal {f : filter α} {s : set (α × β)} {t : set β}:
   s ∈ f ×ᶠ 𝓟 t ↔ {a | ∀ b ∈ t, (a, b) ∈ s} ∈ f :=
 begin
   rw [← @exists_mem_subset_iff _ f, mem_prod_iff],
-  apply exists_congr, intro u, apply exists_congr, intro u_in,
-  split,
+  refine exists₂_congr (λ u u_in, ⟨_, λ h, ⟨t, mem_principal_self t, _⟩⟩),
   { rintros ⟨v, v_in, hv⟩ a a_in b b_in,
     exact hv (mk_mem_prod a_in $ v_in b_in) },
-  { intro h,
-    refine ⟨t, mem_principal_self t, _⟩,
-    rintros ⟨x, y⟩ ⟨hx, hy⟩,
+  { rintro ⟨x, y⟩ ⟨hx, hy⟩,
     exact h hx y hy }
 end
 

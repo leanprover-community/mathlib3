@@ -171,9 +171,8 @@ lemma continuous_within_at_const_smul_iff (c : G) :
 tendsto_const_smul_iff c
 
 @[to_additive]
-lemma continuous_on_const_smul_iff (c : G) :
-  continuous_on (λ x, c • f x) s ↔ continuous_on f s :=
-forall_congr $ λ b, forall_congr $ λ hb, continuous_within_at_const_smul_iff c
+lemma continuous_on_const_smul_iff (c : G) : continuous_on (λ x, c • f x) s ↔ continuous_on f s :=
+forall₂_congr $ λ b hb, continuous_within_at_const_smul_iff c
 
 @[to_additive]
 lemma continuous_at_const_smul_iff (c : G) :

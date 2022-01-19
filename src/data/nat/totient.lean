@@ -8,7 +8,6 @@ import data.nat.prime
 import data.zmod.basic
 import ring_theory.multiplicity
 import data.nat.factorization
-import tactic.field_simp
 import algebra.char_p.two
 
 /-!
@@ -298,20 +297,6 @@ begin
 end
 
 
-example (n a : ℕ) (hab : a ∣ n) : ↑(n/a) = (↑n:ℚ)/(↑a:ℚ) :=
-begin
-  exact rat.coe_nat_div n a hab,
-end
-
-example (n c B : ℚ) (hB : B ≠ 0) (hc : c ≠ 0): n / c * (B * c) = n * B :=
-begin
-  nth_rewrite_lhs 0 mul_comm,
-  rw mul_assoc,
-  nth_rewrite_rhs 0 mul_comm,
-  simp [hB],
-  exact mul_div_cancel' n hc,
-end
-
 
 theorem totient_Euler_product_formula' (n : ℕ) :
    ↑(φ n) = ↑n * ∏ p in (n.factors.to_finset), (1 - p⁻¹ : ℚ) :=
@@ -331,10 +316,6 @@ begin
     simp [one_mul, mul_comm, mul_inv_cancel p_pos', p_pos],
   },
 
-  have h2 : (∏ (x : ℕ) in n.factors.to_finset, x) ∣ n, { sorry },
-
-
-
   rw totient_Euler_product_formula n,
   unfold finsupp.prod,
   simp only [nat.cast_prod, nat.support_factorization, nat.cast_mul, finset.prod_congr],
@@ -342,10 +323,32 @@ begin
 
   set B := ∏ (p : ℕ) in n.factors.to_finset, (1 - (↑p:ℚ)⁻¹),
 
-  have hB : B ≠ 0, { sorry },
-  have hc : (n.factors.to_finset.prod coe : ℚ) ≠ 0, { sorry },
+  have hB : B ≠ 0, {
+    simp only [B],
+    apply ne_of_gt,
+    apply prod_pos,
+    intros p hp,
+    have : 1 < p,
+    { simp only [list.mem_to_finset] at hp, exact prime.one_lt (prime_of_mem_factors hp) },
+    simp only [sub_pos],
+    rw inv_lt,
+    simp,
+    exact this,
+    { simp, transitivity 1, simp, exact this },
+    { simp },
 
-  rw rat.coe_nat_div _ _ h2,
+  },
+
+  have hc : (n.factors.to_finset.prod coe : ℚ) ≠ 0, {
+    apply ne_of_gt,
+    apply prod_pos,
+    intros p hp,
+    suffices : 0 < p, { convert (@cast_pos ℚ _ _ p).mpr this },
+    simp at hp,
+    exact prime.pos (prime_of_mem_factors hp),
+  },
+
+  rw rat.coe_nat_div _ _ (prod_prime_factors_dvd n),
   push_cast,
 
   nth_rewrite_lhs 0 mul_comm,
@@ -353,28 +356,6 @@ begin
   nth_rewrite_rhs 0 mul_comm,
   simp [hB],
   exact mul_div_cancel' (n:ℚ) hc,
-
-
-
-
-
-
-  -- rcases n.eq_zero_or_pos with rfl | hn0, { simp },
-  -- have hn0' : n ≠ 0 := ne_of_gt hn0,
-  -- nth_rewrite_rhs 0 ←(factorization_prod_pow_eq_self hn0'),
-  -- rw multiplicative_factorization φ (λ a b, totient_mul) totient_one hn0',
-  -- have : ∏ (p : ℕ) in n.factorization.support, (1 - (↑p)⁻¹ : ℚ) =
-  --   n.factorization.prod (λ p k, 1 - (↑p)⁻¹), { refl },
-  -- simp only [←support_factorization, cast_finsupp_prod, this, ←finsupp.prod_mul],
-  -- apply prod_congr rfl,
-  -- intros p hp,
-  -- set k := n.factorization p,
-  -- have hpp : prime p := prime_of_mem_factors (factor_iff_mem_factorization.mp hp),
-  -- have : (p : ℚ) ≠ 0 := cast_ne_zero.mpr hpp.pos.ne',
-  -- have hk : 0 < k := zero_lt_iff.mpr (finsupp.mem_support_iff.mp hp),
-  -- simp only [nat.cast_pow, totient_prime_pow hpp hk],
-  -- field_simp [hpp.pos],
-  -- push_cast [←(pow_sub_mul_pow ↑p hk), pow_one, mul_right_comm],
 end
 
 

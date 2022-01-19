@@ -24,7 +24,8 @@ that is, the `lax_milgram_map` can be upgraded to a continuous equivalence `lax_
 
 ## References
 
-TODO cite the slides
+* We follow the notes of Peter Howard's Spring 2020 *M612: Partial Differential Equations* lecture,
+  see[howard]
 
 
 ## Tags

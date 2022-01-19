@@ -1146,7 +1146,7 @@ begin
       conv_rhs { rw s_eq },
       rw [image_Union, measure_Union₀], rotate,
       { assume i j hij,
-        apply disjoint.image _ hf (inter_subset_left _ _) (inter_subset_left _ _),
+        apply (disjoint.image _ hf (inter_subset_left _ _) (inter_subset_left _ _)).ae_disjoint,
         exact disjoint.mono (inter_subset_right _ _) (inter_subset_right _ _) (t_disj i j hij) },
       { assume i,
         exact null_measurable_image_of_fderiv_within μ (hs.inter (t_meas i)) (λ x hx,
@@ -1216,7 +1216,7 @@ begin
       conv_rhs { rw [A, image_Union] },
       rw measure_Union₀,
       { assume i j hij,
-        apply disjoint.image _ hf (inter_subset_left _ _) (inter_subset_left _ _),
+        apply (disjoint.image _ hf (inter_subset_left _ _) (inter_subset_left _ _)).ae_disjoint,
         exact disjoint.mono (inter_subset_right _ _) (inter_subset_right _ _)
           (disjoint_disjointed _ i j hij) },
       { assume i,
@@ -1225,6 +1225,9 @@ begin
     end
 end
 
+/-- Change of variable formula for differentiable functions, set version: if a function `f` is
+injective and differentiable on a measurable set `s`, then the measure of `f '' s` is given by the
+integral of `|(f' x).det|` on `s`. -/
 theorem lintegral_abs_det_fderiv_eq_add_haar_image {f : E → E} {s : set E} (hs : measurable_set s)
   {f' : E → (E →L[ℝ] E)} (hf' : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x) (hf : inj_on f s) :
   ∫⁻ x in s, ennreal.of_real (|(f' x).det|) ∂μ = μ (f '' s) :=

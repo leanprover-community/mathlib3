@@ -114,11 +114,32 @@ calc ⦃a + c, b, a + c⦄ = ⦃a, b, a⦄ + ⦃a, b, c⦄ + ⦃c, b, a⦄ + ⦃
 ... = ⦃a, b, a⦄ + (⦃a, b, c⦄ + ⦃a, b, c⦄)  + ⦃c, b, c⦄ : by rw ← add_assoc
 ... = ⦃a, b, a⦄ + 2•⦃a, b, c⦄ + ⦃c, b, c⦄ : by rw two_nsmul
 
+
+@[simps] def add_monoid_hom.tp : A →+ A →+ A →+ A :=
+{ to_fun := λ a, {
+    to_fun := λ b, {
+      to_fun := λ c, ⦃a, b, c⦄,
+      map_zero' := by rw rzero,
+      map_add' := λ _ _, by rw radd, },
+    map_zero' := add_monoid_hom.ext $ λ b, begin
+      simp only [add_monoid_hom.zero_apply, add_monoid_hom.coe_mk],
+      rw mzero,
+    end,
+    map_add' := λ a₁ a₂, add_monoid_hom.ext $ λ b, begin
+      simp only [add_monoid_hom.coe_mk, add_monoid_hom.add_apply],
+      rw madd,
+    end, },
+  map_zero' := add_monoid_hom.ext $ λ b, add_monoid_hom.ext $ λ c, begin
+    simp only [add_monoid_hom.zero_apply, add_monoid_hom.coe_mk],
+    rw lzero,
+  end,
+  map_add' := λ a₁ a₂, add_monoid_hom.ext $ λ b, add_monoid_hom.ext $ λ c, begin
+    simp only [add_monoid_hom.coe_mk, add_monoid_hom.add_apply],
+    rw ladd,
+  end, }
+
 /-- Define the multiplication operator `D` -/
-@[simps] def D (a b : A) : add_monoid.End A :=
-{ to_fun := λ c, ⦃a, b, c⦄,
-  map_zero' := rzero _ _,
-  map_add' := radd _ _, }
+@[simps] def D : A →+ A →+ add_monoid.End A := add_monoid_hom.tp
 
 /-- Define the Quadratic operator `Q` -/
 @[simps] def Q (a c : A) : add_monoid.End A :=
@@ -128,35 +149,6 @@ calc ⦃a + c, b, a + c⦄ = ⦃a, b, a⦄ + ⦃a, b, c⦄ + ⦃c, b, a⦄ + ⦃
     intros,
     rw madd _ _,
     exact _inst_3,
-  end }
-
-/--
-For a in A, the map b → D a b is an additive monoid homomorphism from A to add_monoid.End A
--/
-@[simps] def D_madd (a : A) : A  →+  add_monoid.End A :=
-{ to_fun := λ b, D a b,
-  map_zero' := begin
-    ext c,
-    rw [D_apply, mzero, add_monoid_hom.zero_apply],
-  end,
-  map_add' := λ b₁ b₂, begin
-    ext c,
-    rw [D_apply, madd, add_monoid_hom.add_apply, D_apply, D_apply],
-  end, }
-
-/--
-The map a → D a is an additive monoid homomorphism from A to (A  →+  add_monoid.End A)
--/
-@[simps] def D_ladd : A  →+ (A  →+  add_monoid.End A) :=
-{ to_fun := λ a, D_madd a,
-  map_zero' := begin
-    ext b c,
-    rw [D_madd_apply, D_apply, add_monoid_hom.zero_apply,  add_monoid_hom.zero_apply, lzero ],
-  end,
-  map_add' := λ a₁ a₂, begin
-    ext b c,
-    rw [D_madd_apply, D_apply, add_monoid_hom.add_apply, D_madd_apply, D_madd_apply,
-      add_monoid_hom.add_apply, D_apply, D_apply, ladd],
   end }
 
 /--
@@ -198,11 +190,10 @@ lemma lie_D_D [is_jordan_tp A] (a b c d: A) : ⁅D a b, D c d⁆ = D ⦃a, b, c�
 begin
   ext e,
   rw ring.lie_def,
-  simp only [add_monoid_hom.sub_apply, function.comp_app, is_tp.D_apply, add_monoid.coe_mul],
+  simp only [add_monoid_hom.sub_apply, function.comp_app, is_tp.D_apply_apply_apply,
+    add_monoid.coe_mul],
   rw [sub_eq_iff_eq_add, is_jordan_tp.leibniz],
 end
-
-
 
 /--
 For a and b in A, the pair D(a,b) and -D(b,a) are Leibniz
@@ -210,6 +201,6 @@ For a and b in A, the pair D(a,b) and -D(b,a) are Leibniz
 lemma D_D_leibniz [is_jordan_tp A] (a b : A) : leibniz (D a b) (-D b a) := begin
   unfold leibniz,
   intros c d e,
-  rw [pi.neg_apply, is_tp.mneg, tactic.ring.add_neg_eq_sub, is_tp.D_apply, is_tp.D_apply,
-    is_tp.D_apply, is_tp.D_apply, is_jordan_tp.leibniz],
+  rw [is_tp.D_apply_apply_apply, is_tp.D_apply_apply_apply, is_tp.D_apply_apply_apply, pi.neg_apply,
+  is_tp.D_apply_apply_apply, is_tp.mneg, tactic.ring.add_neg_eq_sub, is_jordan_tp.leibniz],
 end

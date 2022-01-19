@@ -24,7 +24,8 @@ such that `is_coercive B` iff
 
 Under the hypothesis that `B` i
 we prove the Lax-Milgram theorem:
-that is, the `lax_milgram_map` can be upgraded to a continuous equivalence `lax_milgram`
+that is, the `lax_milgram_map` can be upgraded
+to a continuous equivalence `lax_milgram_equiv : V ≃L[ℝ] V`.
 
 ## References
 
@@ -60,8 +61,8 @@ variables (B : V →L[ℝ] V →L[ℝ] ℝ)
 
 
 /--
-The Lax-;ilgram map of a bounded bilinear operator: for all `v : V`
-there exists an `lax_milgram_map B v` is the element of `V`
+The Lax-Milgram map of a bounded bilinear operator: for all `v : V`
+`lax_milgram_map B v` is the unique element of `V`
 such that `⟪lax_milgram_map B v, w⟫ = B v w`.
 This element is obtained using `inner_product_space.to_dual`.
 -/
@@ -141,12 +142,36 @@ begin
   simp [w_eq_zero],
 end
 
-
-def lax_milgram (coercive : is_coercive B) : V ≃L[ℝ] V :=
+/--
+The Lax-Milgram equivalence of a bounded bilinear operator: for all `v : V`
+`lax_milgram_equiv B v` is the unique element `V`
+such that `⟪lax_milgram_map B v, w⟫ = B v w`.
+The Lax-Milgram theorem states that this is an equivalence.
+-/
+def lax_milgram_equiv (coercive : is_coercive B) : V ≃L[ℝ] V :=
 continuous_linear_equiv.of_bijective
   (lax_milgram_map B)
   (injective coercive)
   (surjective coercive)
 
+@[simp]
+lemma lax_milgram_equiv_apply (coercive : is_coercive B) (v w : V) :
+  B v w = inner (lax_milgram_equiv coercive v) w :=
+begin
+  unfold lax_milgram_equiv continuous_linear_equiv.of_bijective lax_milgram_map,
+  simp,
+end
+
+lemma unique_lax_milgram_equiv (coercive : is_coercive B) (v f : V)
+  (is_lax_milgram : (∀ w, inner f w = B v w)) :
+  f = lax_milgram_equiv coercive v :=
+begin
+  have : (⇑(lax_milgram_equiv coercive) : V → V) = ⇑(lax_milgram_map B),
+  { ext v,
+    unfold lax_milgram_equiv continuous_linear_equiv.of_bijective lax_milgram_map,
+    simp, },
+  rw this,
+  exact unique_lax_milgram_map B v f is_lax_milgram,
+end
 
 end lax_milgram

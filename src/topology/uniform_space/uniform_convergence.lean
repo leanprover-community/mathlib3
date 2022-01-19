@@ -126,6 +126,17 @@ begin
   exact λ x, hn _
 end
 
+/-- Composing on the left by a uniformly continuous function preserves
+  uniform convergence on a set -/
+lemma tendsto_uniformly_on.comp' [uniform_space γ] {g : β → γ} (h : tendsto_uniformly_on F f p s)
+  (hg : uniform_continuous g) : tendsto_uniformly_on (λ i, g ∘ (F i)) (g ∘ f) p s :=
+λ u hu, h _ (hg hu)
+
+/-- Composing on the left by a uniformly continuous function preserves uniform convergence -/
+lemma tendsto_uniformly.comp' [uniform_space γ] {g : β → γ} (h : tendsto_uniformly F f p)
+  (hg : uniform_continuous g) : tendsto_uniformly (λ i, g ∘ (F i)) (g ∘ f) p :=
+λ u hu, h _ (hg hu)
+
 /-- Uniform convergence to a constant function is equivalent to convergence in `p ×ᶠ ⊤`. -/
 lemma tendsto_prod_top_iff {c : β} : tendsto ↿F (p ×ᶠ ⊤) (𝓝 c) ↔ tendsto_uniformly F (λ _, c) p :=
 let j : β → β × β := prod.mk c in

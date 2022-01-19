@@ -28,7 +28,7 @@ the set family made of its `r`-sets.
 open finset nat
 open_locale big_operators
 
-variables {α β : Type*}
+variables {α : Type*} {ι : Sort*} {κ : ι → Sort*}
 
 namespace set
 variables {A B : set (finset α)} {r : ℕ}
@@ -46,12 +46,15 @@ lemma sized_union : (A ∪ B).sized r ↔ A.sized r ∧ B.sized r :=
 
 alias sized_union ↔ _ set.sized.union
 
-@[simp] lemma sized_bUnion {β : Type*} {f : β → set (finset α)} {s : set β} :
-  (⋃ x ∈ s, f x).sized r ↔ ∀ x ∈ s, (f x).sized r :=
+@[simp] lemma sized_Union {f : ι → set (finset α)} : (⋃ i, f i).sized r ↔ ∀ i, (f i).sized r :=
 begin
   simp_rw [set.sized, set.mem_Union, forall_exists_index],
-  exact ⟨λ h a ha s hs, h a ha hs, λ h s a ha hs, h a ha hs⟩,
+  exact ⟨λ h a s hs, h a hs, λ h s a hs, h a hs⟩,
 end
+
+@[simp] lemma sized_Union₂ {f : Π i, κ i → set (finset α)} :
+  (⋃ i j, f i j).sized r ↔ ∀ i j, (f i j).sized r :=
+by simp_rw sized_Union
 
 protected lemma sized.is_antichain (hA : A.sized r) : is_antichain (⊆) A :=
 λ s hs t ht h hst, h $ eq_of_subset_of_card_le hst ((hA ht).trans (hA hs).symm).le
@@ -119,15 +122,13 @@ mt $ λ h, (sized_slice h₁).symm.trans ((congr_arg card h).trans (sized_slice 
 lemma pairwise_disjoint_slice [decidable_eq α] : (set.univ : set ℕ).pairwise_disjoint (slice 𝒜) :=
 λ m _ n _ hmn, disjoint_filter.2 $ λ s hs hm hn, hmn $ hm.symm.trans hn
 
-variables [fintype α]
+variables [fintype α] (𝒜)
 
-@[simp] lemma bUnion_slice [decidable_eq α] (𝒜 : finset (finset α)) :
-  (range $ fintype.card α + 1).bUnion 𝒜.slice = 𝒜 :=
+@[simp] lemma bUnion_slice [decidable_eq α] : (Iic $ fintype.card α).bUnion 𝒜.slice = 𝒜 :=
 subset.antisymm (bUnion_subset.2 $ λ r _, slice_subset) $ λ s hs,
-  mem_bUnion.2 ⟨s.card, mem_range.2 $ lt_succ_iff.2 $ s.card_le_univ, mem_slice.2 $ ⟨hs, rfl⟩⟩
+  mem_bUnion.2 ⟨s.card, mem_Iic.2 $ s.card_le_univ, mem_slice.2 $ ⟨hs, rfl⟩⟩
 
-@[simp] lemma sum_card_slice (𝒜 : finset (finset α)) :
-  ∑ r in range (fintype.card α + 1), (𝒜 # r).card = 𝒜.card :=
+@[simp] lemma sum_card_slice : ∑ r in range (fintype.card α + 1), (𝒜 # r).card = 𝒜.card :=
 by { rw [←card_bUnion (finset.pairwise_disjoint_slice.subset (set.subset_univ _)), bUnion_slice],
   exact classical.dec_eq _ }
 

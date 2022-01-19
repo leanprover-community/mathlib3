@@ -108,6 +108,14 @@ begin
   change x ∈ (⊥ : lie_ideal R L) at hx, rw mem_bot at hx, simp [hx],
 end
 
+lemma lie_eq_bot_iff : ⁅I, N⁆ = ⊥ ↔ ∀ (x ∈ I) (m ∈ N), ⁅(x : L), m⁆ = 0 :=
+begin
+  rw [lie_ideal_oper_eq_span, lie_submodule.lie_span_eq_bot_iff],
+  refine ⟨λ h x hx m hm, h ⁅x, m⁆ ⟨⟨x, hx⟩, ⟨m, hm⟩, rfl⟩, _⟩,
+  rintros h - ⟨⟨x, hx⟩, ⟨⟨n, hn⟩, rfl⟩⟩,
+  exact h x hx n hn,
+end
+
 lemma mono_lie (h₁ : I ≤ J) (h₂ : N ≤ N') : ⁅I, N⁆ ≤ ⁅J, N'⁆ :=
 begin
   intros m h,
@@ -149,6 +157,24 @@ by { rw le_inf_iff, split; apply mono_lie_right; [exact inf_le_left, exact inf_l
 
 @[simp] lemma inf_lie : ⁅I ⊓ J, N⁆ ≤ ⁅I, N⁆ ⊓ ⁅J, N⁆ :=
 by { rw le_inf_iff, split; apply mono_lie_left; [exact inf_le_left, exact inf_le_right], }
+
+lemma map_bracket_eq
+  {M₂ : Type w₁} [add_comm_group M₂] [module R M₂] [lie_ring_module L M₂] [lie_module R L M₂]
+  (f : M →ₗ⁅R,L⁆ M₂) :
+  map f ⁅I, N⁆ = ⁅I, map f N⁆ :=
+begin
+  rw [← coe_to_submodule_eq_iff, coe_submodule_map, lie_ideal_oper_eq_linear_span,
+    lie_ideal_oper_eq_linear_span, submodule.map_span],
+  congr,
+  ext m,
+  split,
+  { rintros ⟨-, ⟨⟨x, ⟨n, hn⟩, rfl⟩, hm⟩⟩,
+    simp only [lie_module_hom.coe_to_linear_map, lie_module_hom.map_lie] at hm,
+    exact ⟨x, ⟨f n, (mem_map (f n)).mpr ⟨n, hn, rfl⟩⟩, hm⟩, },
+  { rintros ⟨x, ⟨m₂, hm₂ : m₂ ∈ map f N⟩, rfl⟩,
+    obtain ⟨n, hn, rfl⟩ := (mem_map m₂).mp hm₂,
+    exact ⟨⁅x, n⁆, ⟨x, ⟨n, hn⟩, rfl⟩, by simp⟩, },
+end
 
 end lie_ideal_operations
 

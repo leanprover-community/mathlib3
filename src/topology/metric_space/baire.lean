@@ -86,7 +86,7 @@ begin
     induction n with n hn,
     exact lt_min εpos (Bpos 0),
     exact Hpos n (c n) (r n) hn.ne' },
-  have r0 : ∀ n, r n ≠ 0 := λ n, (rpos n).ne', 
+  have r0 : ∀ n, r n ≠ 0 := λ n, (rpos n).ne',
   have rB : ∀n, r n ≤ B n,
   { assume n,
     induction n with n hn,
@@ -260,12 +260,12 @@ begin
   show (⋂s∈S, g s) ⊆ (⋃s∈S, interior (f s)),
   assume x hx,
   have : x ∈ ⋃s∈S, f s, { have := mem_univ x, rwa ← hU at this },
-  rcases mem_bUnion_iff.1 this with ⟨s, hs, xs⟩,
-  have : x ∈ g s := mem_bInter_iff.1 hx s hs,
+  rcases mem_Union₂.1 this with ⟨s, hs, xs⟩,
+  have : x ∈ g s := mem_Inter₂.1 hx s hs,
   have : x ∈ interior (f s),
   { have : x ∈ f s \ (frontier (f s)) := mem_inter xs this,
     simpa [frontier, xs, (hc s hs).closure_eq] using this },
-  exact mem_bUnion_iff.2 ⟨s, ⟨hs, this⟩⟩
+  exact mem_Union₂.2 ⟨s, ⟨hs, this⟩⟩
 end
 
 /-- Baire theorem: if countably many closed sets cover the whole space, then their interiors

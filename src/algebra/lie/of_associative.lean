@@ -77,7 +77,10 @@ Note that this cannot be a global instance because it would create a diamond whe
 specifically we can build two mathematically-different `has_bracket A A`s:
  1. `@ring.has_bracket A _` which says `⁅a, b⁆ = a * b - b * a`
  2. `(@lie_ring_module.of_associative_module A _ A _ _).to_has_bracket` which says `⁅a, b⁆ = a • b`
-    (and thus `⁅a, b⁆ = a * b`) -/
+    (and thus `⁅a, b⁆ = a * b`)
+
+See note [reducible non-instances] -/
+@[reducible]
 def lie_ring_module.of_associative_module : lie_ring_module A M :=
 { bracket     := (•),
   add_lie     := add_smul,

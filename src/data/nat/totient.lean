@@ -319,21 +319,18 @@ begin
   rcases n.eq_zero_or_pos with rfl | hn0, { simp },
 
 
-  have h1 : (∏ (p : ℕ) in n.factors.to_finset, (1 - (↑p:ℚ)⁻¹)) * (∏ (x : ℕ) in n.factors.to_finset, ↑x) = ∏ (i : ℕ) in n.factors.to_finset, ↑(i - 1),
-    {
-      rw ←prod_mul_distrib,
+  have h1 : ∏ (i : ℕ) in n.factors.to_finset, ↑(i - 1) =
+    (∏ (p : ℕ) in n.factors.to_finset, (1 - (↑p:ℚ)⁻¹)) * (∏ (x : ℕ) in n.factors.to_finset, ↑x),
+  {
+    rw ←prod_mul_distrib,
+    refine prod_congr rfl (λ p hp, _),
+    rw ←support_factorization at hp,
+    have p_pos : 0 < p := pos_of_mem_factorization hp,
+    have p_pos' : (p:ℚ) ≠ 0 := cast_ne_zero.mpr p_pos.ne.symm,
+    rw sub_mul,
+    simp [one_mul, mul_comm, mul_inv_cancel p_pos', p_pos],
+  },
 
-      refine prod_congr rfl (λ p hp, _),
-      have p_pos : p ≠ 0, { sorry },
-      have p_pos''' : 0 < p, { sorry },
-      have p_pos' : (p:ℚ) ≠ 0, { sorry },
-      have p_pos'' : 0 < (p:ℚ), { sorry },
-
-      rw sub_mul,
-      simp only [one_mul, mul_comm],
-      rw mul_inv_cancel p_pos',
-      simp [p_pos'''],
-    },
   have h2 : (∏ (x : ℕ) in n.factors.to_finset, x) ∣ n, { sorry },
 
 
@@ -341,7 +338,7 @@ begin
   rw totient_Euler_product_formula n,
   unfold finsupp.prod,
   simp only [nat.cast_prod, nat.support_factorization, nat.cast_mul, finset.prod_congr],
-  rw ←h1, clear h1,
+  rw h1, clear h1,
 
   set B := ∏ (p : ℕ) in n.factors.to_finset, (1 - (↑p:ℚ)⁻¹),
 

@@ -1672,7 +1672,7 @@ add_monoid_hom.congr_fun (map_domain.add_monoid_hom_comp_map_range f g') v
 
 lemma sum_update_add [add_comm_monoid α] [add_comm_monoid β]
   (f : ι →₀ α) (i : ι) (a : α) (g : ι → α → β) (hg : ∀ i, g i 0 = 0)
-  (hgg : ∀ (j : ι) (b₁ b₂ : α), g j (b₁ + b₂) = g j b₁ + g j b₂) :
+  (hgg : ∀ (j : ι) (a₁ a₂ : α), g j (a₁ + a₂) = g j a₁ + g j a₂) :
   (f.update i a).sum g + g i (f i) = f.sum g + g i a :=
 begin
   rw [update_eq_erase_add_single, sum_add_index hg hgg],

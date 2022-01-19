@@ -297,65 +297,36 @@ begin
 end
 
 
-
 theorem totient_Euler_product_formula' (n : ℕ) :
    ↑(φ n) = ↑n * ∏ p in (n.factors.to_finset), (1 - p⁻¹ : ℚ) :=
 begin
-  rcases n.eq_zero_or_pos with rfl | hn0, { simp },
-
-
   have h1 : ∏ (i : ℕ) in n.factors.to_finset, ↑(i - 1) =
     (∏ (p : ℕ) in n.factors.to_finset, (1 - (↑p:ℚ)⁻¹)) * (∏ (x : ℕ) in n.factors.to_finset, ↑x),
-  {
-    rw ←prod_mul_distrib,
+  { simp only [←prod_mul_distrib],
     refine prod_congr rfl (λ p hp, _),
     rw ←support_factorization at hp,
     have p_pos : 0 < p := pos_of_mem_factorization hp,
     have p_pos' : (p:ℚ) ≠ 0 := cast_ne_zero.mpr p_pos.ne.symm,
-    rw sub_mul,
-    simp [one_mul, mul_comm, mul_inv_cancel p_pos', p_pos],
-  },
+    rw [sub_mul, one_mul, mul_comm, mul_inv_cancel p_pos', cast_pred p_pos] },
+
+  have h2 : ∏ (p : ℕ) in n.factors.to_finset, (1 - (↑p:ℚ)⁻¹) ≠ 0,
+  { refine ne_of_gt (prod_pos (λ p hp, _)),
+    have h : 1 < p := prime.one_lt (prime_of_mem_factors (list.mem_to_finset.mp hp)),
+    rw [sub_pos, @inv_lt ℚ _ _ 1 (nat.cast_pos.mpr (lt_trans one_pos h)) (by simp)],
+    simp [h] },
+
+  have h3 : (n.factors.to_finset.prod coe : ℚ) ≠ 0,
+  { refine ne_of_gt (prod_pos (λ p hp, _)),
+    convert (@cast_pos ℚ _ _ p).mpr (prime.pos (prime_of_mem_factors (list.mem_to_finset.mp hp))) },
 
   rw totient_Euler_product_formula n,
   unfold finsupp.prod,
-  simp only [nat.cast_prod, nat.support_factorization, nat.cast_mul, finset.prod_congr],
-  rw h1, clear h1,
-
-  set B := ∏ (p : ℕ) in n.factors.to_finset, (1 - (↑p:ℚ)⁻¹),
-
-  have hB : B ≠ 0, {
-    simp only [B],
-    apply ne_of_gt,
-    apply prod_pos,
-    intros p hp,
-    have : 1 < p,
-    { simp only [list.mem_to_finset] at hp, exact prime.one_lt (prime_of_mem_factors hp) },
-    simp only [sub_pos],
-    rw inv_lt,
-    simp,
-    exact this,
-    { simp, transitivity 1, simp, exact this },
-    { simp },
-
-  },
-
-  have hc : (n.factors.to_finset.prod coe : ℚ) ≠ 0, {
-    apply ne_of_gt,
-    apply prod_pos,
-    intros p hp,
-    suffices : 0 < p, { convert (@cast_pos ℚ _ _ p).mpr this },
-    simp at hp,
-    exact prime.pos (prime_of_mem_factors hp),
-  },
-
+  simp only [nat.cast_prod, nat.support_factorization, nat.cast_mul, finset.prod_congr, h1],
   rw rat.coe_nat_div _ _ (prod_prime_factors_dvd n),
-  push_cast,
-
   nth_rewrite_lhs 0 mul_comm,
-  rw mul_assoc,
   nth_rewrite_rhs 0 mul_comm,
-  simp [hB],
-  exact mul_div_cancel' (n:ℚ) hc,
+  rw mul_assoc,
+  simpa only [h2, mul_eq_mul_left_iff, cast_prod, or_false] using mul_div_cancel' (n:ℚ) h3,
 end
 
 

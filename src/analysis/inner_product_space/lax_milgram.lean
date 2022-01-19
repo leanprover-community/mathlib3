@@ -6,6 +6,7 @@ Authors: Daniel Roca González
 import analysis.inner_product_space.projection
 import analysis.inner_product_space.dual
 import analysis.normed_space.banach
+import topology.metric_space.antilipschitz
 
 /-!
 # The Lax-Milgram Theorem
@@ -84,19 +85,25 @@ end
 
 variables {B}
 
-lemma bounded_below (coercive : is_coercive B) :
-  ∃ C, 0 < C ∧ ∀ v, C * ∥v∥ ≤ ∥lax_milgram_map B v∥ :=
+lemma antilipschitz_of_lax_milgram (coercive : is_coercive B) :
+  ∃ C : ℝ, 0 < C ∧ antilipschitz_with C.to_nnreal (lax_milgram_map B) :=
 begin
-  rcases coercive with ⟨C, C_ge_0, coercivity⟩,
-  refine ⟨C, C_ge_0, _⟩,
-  intro v,
+  rcases coercive with ⟨C, C_pos, coercivity⟩,
+  refine ⟨C⁻¹, inv_pos.mpr C_pos, _⟩,
+  refine linear_map.antilipschitz_of_bound ↑(lax_milgram_map B) _,
+  intros v,
   by_cases h : 0 < ∥v∥,
   {
+    rw [←mul_le_mul_left C_pos, ←mul_assoc],
+    simp only [real.coe_to_nnreal', normed_group.dist_eq, max_eq_left_of_lt (inv_pos.mpr C_pos)],
+    rw [mul_inv_cancel, one_mul],
+    show C ≠ 0, by linarith,
     refine (mul_le_mul_right h).mp _,
-    exact calc C * ∥v∥ * ∥v∥
-               ≤ B v v                         : coercivity v
-    ...        = inner (lax_milgram_map B v) v : by simp
-    ...        ≤ ∥lax_milgram_map B v∥ * ∥v∥     : real_inner_le_norm (lax_milgram_map B v) v,
+    exact calc
+         C * ∥v∥ * ∥v∥
+         ≤ B v v                         : coercivity v
+    ...  = inner (lax_milgram_map B v) v : by simp
+    ...  ≤ ∥lax_milgram_map B v ∥ * ∥v∥    : real_inner_le_norm (lax_milgram_map B v) v,
   },
   {
     have : v = 0 := by simpa using h,
@@ -109,60 +116,15 @@ begin
   simp only [submodule.eq_bot_iff, continuous_linear_map.mem_ker],
   intros v zero_of_image,
   rw ←norm_le_zero_iff,
-  rcases bounded_below coercive with ⟨C, C_pos, bound⟩,
-  have := bound v,
-  rw [zero_of_image, norm_zero] at this,
-  nlinarith,
+  rcases antilipschitz_of_lax_milgram coercive with ⟨C, C_pos, antilipschitz⟩,
+  have :=  antilipschitz v 0,
+  simpa [edist_dist, zero_of_image, norm_zero] using this,
 end
 
 lemma closed_range (coercive : is_coercive B) : is_closed ((lax_milgram_map B).range : set V) :=
 begin
-  rw ←is_seq_closed_iff_is_closed,
-  apply is_seq_closed_of_def,
-  intros y Y mem_range_y tendsto_y,
-  obtain ⟨x, preimage_of_x⟩ : ∃ (x : ℕ → V), ∀ n, lax_milgram_map B (x n) = y n,
-  begin
-    have := λ n, classical.indefinite_description
-      (λ x1, lax_milgram_map B x1 = y n)
-      (linear_map.mem_range.mp $ mem_range_y n),
-    use λ n, ↑(this n),
-    intro n,
-    exact (this n).property,
-  end,
-  have : cauchy_seq x,
-  begin
-      rw normed_group.cauchy_seq_iff,
-      intros ε pos_ε,
-      rw normed_group.tendsto_at_top' at tendsto_y,
-      rcases bounded_below coercive with ⟨C, C_pos, bound⟩,
-      have : 0 < C / 2 * ε := by nlinarith,
-      rcases tendsto_y (C / 2 * ε) this with ⟨N, h⟩,
-      use N+1,
-      intros m _ n _,
-      have N_lt_m : N < m := by linarith,
-      have N_lt_n : N < n := by linarith,
-      rw ←mul_lt_mul_left C_pos,
-      exact calc C * ∥x m - x n∥
-                 ≤ ∥lax_milgram_map B (x m - x n)∥ : bound (x m - x n)
-      ...        = ∥y m - y n∥                     : by simp [preimage_of_x]
-      ...        = ∥(y m - Y) + (Y - y n)∥         : by simp
-      ...        ≤ ∥y m - Y∥ + ∥Y - y n∥            : norm_add_le (y m - Y) (Y - y n)
-      ...        = ∥y m - Y∥ + ∥y n - Y∥            : by {rw ←norm_neg (Y - y n), simp}
-      ...        < C / 2 * ε + C / 2 * ε          : by {exact add_lt_add (h m N_lt_m) (h n N_lt_n)}
-      ...        = C * ε                          : by nlinarith,
-  end,
-  obtain ⟨X, tendsto_X⟩ : ∃ X, filter.tendsto x filter.at_top (nhds X)
-    := cauchy_seq_tendsto_of_complete this,
-  have : lax_milgram_map B X = Y,
-  begin
-    have tendsto_AX
-      := filter.tendsto.comp (continuous.tendsto (lax_milgram_map B).continuous X) tendsto_X,
-    have y_eq_comp : ⇑(lax_milgram_map B) ∘ x = y := by {ext n, simp [preimage_of_x],},
-    rw y_eq_comp at tendsto_AX,
-    exact tendsto_nhds_unique tendsto_AX tendsto_y,
-  end,
-  simp only [continuous_linear_map.mem_range, set_like.mem_coe],
-  use X, assumption,
+  rcases antilipschitz_of_lax_milgram coercive with ⟨_, _, antilipschitz⟩,
+  exact antilipschitz.is_closed_range (lax_milgram_map B).uniform_continuous,
 end
 
 lemma surjective (coercive : is_coercive B): (lax_milgram_map B).range = ⊤ :=

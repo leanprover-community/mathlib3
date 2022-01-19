@@ -127,7 +127,6 @@ lemma map_id : map (monoid_hom.id G) = monoid_hom.id (abelianization G) := hom_e
 lemma map_comp {I : Type w} [group I] (g : H →* I) :
   (map g).comp (map f) = map (g.comp f) := hom_ext _ _ rfl
 
-@[simp]
 lemma map_map_apply {I : Type w} [group I] {g : H →* I} {x : abelianization G}:
   map g (map f x) = map (g.comp f) x := monoid_hom.congr_fun (map_comp _ _) x
 

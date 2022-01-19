@@ -88,8 +88,7 @@ lemma bounded_below (coercive : is_coercive B) :
   ∃ C, 0 < C ∧ ∀ v, C * ∥v∥ ≤ ∥lax_milgram_map B v∥ :=
 begin
   rcases coercive with ⟨C, C_ge_0, coercivity⟩,
-  use C,
-  split, exact C_ge_0,
+  refine ⟨C, C_ge_0, _⟩,
   intro v,
   by_cases h : 0 < ∥v∥,
   begin
@@ -101,7 +100,7 @@ begin
     refine (mul_le_mul_right h).mp squared,
   end,
   begin
-    have : v  = 0 := by simpa using h,
+    have : v = 0 := by simpa using h,
     simp [this],
   end
 end
@@ -109,8 +108,7 @@ end
 lemma injective (coercive : is_coercive B) : (lax_milgram_map B).ker = ⊥ :=
 begin
   simp only [submodule.eq_bot_iff, continuous_linear_map.mem_ker],
-  intros v,
-  intro zero_of_image,
+  intros v zero_of_image,
   rw ←norm_le_zero_iff,
   rcases bounded_below coercive with ⟨C, C_pos, bound⟩,
   have := bound v,

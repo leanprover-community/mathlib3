@@ -99,7 +99,7 @@ namespace mul_equiv_class
   to_additive]
 instance [has_mul M] [has_mul N] [h : mul_equiv_class F M N] : mul_hom_class F M N :=
 { coe := (coe : F → M → N),
-  coe_injective' := @equiv_like.coe_injective F _ _ _,
+  coe_injective' := @fun_like.coe_injective F _ _ _,
   .. h }
 
 @[priority 100, -- See note [lower instance priority]
@@ -114,8 +114,6 @@ instance [mul_one_class M] [mul_one_class N] [mul_equiv_class F M N] :
        ... = 1 : right_inv e 1,
   .. mul_equiv_class.mul_hom_class F }
 
-end mul_equiv_class
-
 variables {F}
 
 @[simp, to_additive]
@@ -129,6 +127,8 @@ lemma map_ne_one_iff {M N} [mul_one_class M] [mul_one_class N] [mul_equiv_class 
   (h : F) {x : M} :
   h x ≠ 1 ↔ x ≠ 1 :=
 ⟨mt (map_eq_one_iff h).2, mt (map_eq_one_iff h).1⟩
+
+end mul_equiv_class
 
 end mul_equiv_class
 
@@ -320,12 +320,12 @@ map_one h
 @[to_additive]
 protected lemma map_eq_one_iff {M N} [mul_one_class M] [mul_one_class N] (h : M ≃* N) {x : M} :
   h x = 1 ↔ x = 1 :=
-map_eq_one_iff h
+mul_equiv_class.map_eq_one_iff h
 
 @[to_additive]
 lemma map_ne_one_iff {M N} [mul_one_class M] [mul_one_class N] (h : M ≃* N) {x : M} :
   h x ≠ 1 ↔ x ≠ 1 :=
-map_ne_one_iff h
+mul_equiv_class.map_ne_one_iff h
 
 /-- A bijective `monoid` homomorphism is an isomorphism -/
 @[to_additive "A bijective `add_monoid` homomorphism is an isomorphism"]

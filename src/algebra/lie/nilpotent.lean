@@ -300,6 +300,10 @@ begin
   simp [← lie_submodule.coe_to_submodule_eq_iff, coe_lower_central_series_ideal_quot_eq, hk],
 end
 
+lemma lie_algebra.non_trivial_center_of_is_nilpotent [nontrivial L] [is_nilpotent R L] :
+  nontrivial $ center R L :=
+lie_module.nontrivial_max_triv_of_is_nilpotent R L L
+
 lemma lie_ideal.map_lower_central_series_le (k : ℕ) {f : L →ₗ⁅R⁆ L'} :
   lie_ideal.map f (lower_central_series R L L k) ≤ lower_central_series R L' L' k :=
 begin

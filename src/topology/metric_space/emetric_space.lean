@@ -429,7 +429,7 @@ a pseudoemetric space.
 This construction would also work for infinite products, but it would not give rise
 to the product topology. Hence, we only formalize it in the good situation of finitely many
 spaces. -/
-instance pseudo_emetric_space_pi [∀b, pseudo_emetric_space (π b)] :
+def pseudo_emetric_space_pi [∀b, pseudo_emetric_space (π b)] :
   pseudo_emetric_space (Πb, π b) :=
 { edist := λ f g, finset.sup univ (λb, edist (f b) (g b)),
   edist_self := assume f, bot_unique $ finset.sup_le $ by simp,
@@ -449,6 +449,8 @@ instance pseudo_emetric_space_pi [∀b, pseudo_emetric_space (π b)] :
     change 0 < ε at εpos,
     simp [set.ext_iff, εpos]
   end }
+
+local attribute [instance] pseudo_emetric_space_pi
 
 lemma edist_pi_def [Π b, pseudo_emetric_space (π b)] (f g : Π b, π b) :
   edist f g = finset.sup univ (λb, edist (f b) (g b)) := rfl
@@ -789,6 +791,8 @@ diam_le $ λa ha b hb, calc
 
 lemma diam_ball {r : ℝ≥0∞} : diam (ball x r) ≤ 2 * r :=
 le_trans (diam_mono ball_subset_closed_ball) diam_closed_ball
+
+local attribute [instance] pseudo_emetric_space_pi
 
 lemma diam_pi_le_of_le {π : β → Type*} [fintype β] [∀ b, pseudo_emetric_space (π b)]
   {s : Π (b : β), set (π b)} {c : ℝ≥0∞} (h : ∀ b, diam (s b) ≤ c) :

@@ -1417,8 +1417,10 @@ section pi
 open finset
 variables {π : β → Type*} [fintype β] [∀b, pseudo_metric_space (π b)]
 
+local attribute [instance] pseudo_emetric_space_pi
+
 /-- A finite product of pseudometric spaces is a pseudometric space, with the sup distance. -/
-noncomputable instance pseudo_metric_space_pi : pseudo_metric_space (Πb, π b) :=
+noncomputable def pseudo_metric_space_pi : pseudo_metric_space (Πb, π b) :=
 begin
   /- we construct the instance from the pseudoemetric space instance to avoid checking again that
   the uniformity is the same as the product uniformity, but we register nevertheless a nice formula
@@ -1436,6 +1438,8 @@ begin
     simp only [edist_nndist],
     norm_cast }
 end
+
+local attribute [instance] pseudo_metric_space_pi
 
 lemma nndist_pi_def (f g : Πb, π b) : nndist f g = sup univ (λb, nndist (f b) (g b)) :=
 subtype.eta _ _
@@ -1622,6 +1626,9 @@ instance complete_of_proper [proper_space α] : complete_space α :=
   exact ⟨y, hy⟩
 end⟩
 
+section
+local attribute [instance] pseudo_metric_space_pi
+
 /-- A finite product of proper spaces is proper. -/
 instance pi_proper_space {π : β → Type*} [fintype β] [∀b, pseudo_metric_space (π b)]
   [h : ∀b, proper_space (π b)] : proper_space (Πb, π b) :=
@@ -1630,6 +1637,8 @@ begin
   rw closed_ball_pi _ hr,
   apply is_compact_univ_pi (λb, _),
   apply (h b).is_compact_closed_ball
+end
+
 end
 
 variables [proper_space α] {x : α} {r : ℝ} {s : set α}
@@ -2301,6 +2310,7 @@ end prod
 section pi
 open finset
 variables {π : β → Type*} [fintype β] [∀b, metric_space (π b)]
+local attribute [instance] pseudo_metric_space_pi
 
 /-- A finite product of metric spaces is a metric space, with the sup distance. -/
 noncomputable instance metric_space_pi : metric_space (Πb, π b) :=

@@ -34,18 +34,28 @@ interested reader is referred to [alfsenshultz2003], [chu2012], [friedmanscarr20
 * [Chu, Jordan Structures in Geometry and Analysis][chu2012]
 -/
 
+/-- Notation class for the triple product -/
 class has_tp (A : Type*) := (tp : A → A → A → A )
 
 notation ⦃a, b, c⦄ := has_tp.tp a b c
 
+/-- A triple product is a trilinear map, symmetric in the first and third variable -/
 class is_tp (A : Type*) [has_tp A] [has_add A] :=
 (comm : ∀ (a b c : A), ⦃a, b, c⦄ = ⦃c, b, a⦄)
 (ladd : ∀ (a₁ a₂ b c : A), ⦃(a₁+a₂), b, c⦄ = ⦃a₁, b, c⦄ + ⦃a₂, b, c⦄)
 (madd : ∀ (a b₁ b₂ c : A), ⦃a, (b₁+b₂), c⦄ = ⦃a, b₁, c⦄ + ⦃a, b₂, c⦄)
 
+/-- A Jordan triple product satisfies a Lebintz law -/
 class is_jordan_tp (A : Type*) [has_tp A] [has_add A] [has_sub A] :=
 (lebintz : ∀ (a b c d e: A), ⦃a, b, ⦃c, d, e⦄⦄  =
   ⦃⦃a, b, c⦄, d, e⦄ - ⦃c, ⦃b, a, d⦄, e⦄ + ⦃c, d, ⦃a, b, e⦄⦄)
+
+/--
+We say that a pair of operators $(T,T^′)$ are Lebnitz if they satisfy a law reminiscent of
+differentiation.
+-/
+def lebnitz {A : Type*} [has_tp A] [has_add A] (T : A → A) (T'  : A → A) :=
+  ∀ (a b c : A),  T ⦃ a, b, c ⦄  = ⦃ T a, b, c⦄ + ⦃a, T' b, c⦄ + ⦃a, b, T c⦄
 
 namespace is_tp
 
@@ -104,11 +114,13 @@ calc ⦃a + c, b, a + c⦄ = ⦃a, b, a⦄ + ⦃a, b, c⦄ + ⦃c, b, a⦄ + ⦃
 ... = ⦃a, b, a⦄ + (⦃a, b, c⦄ + ⦃a, b, c⦄)  + ⦃c, b, c⦄ : by rw ← add_assoc
 ... = ⦃a, b, a⦄ + 2•⦃a, b, c⦄ + ⦃c, b, c⦄ : by rw two_nsmul
 
+/-- Define the multiplication operator `D` -/
 @[simps] def D (a b : A) : add_monoid.End A :=
 { to_fun := λ c, ⦃a, b, c⦄,
   map_zero' := rzero _ _,
   map_add' := radd _ _, }
 
+/-- Define the Quadratic operator `Q` -/
 @[simps] def Q (a c : A) : add_monoid.End A :=
 { to_fun := λ b, ⦃a, b, c⦄,
   map_zero' := mzero _ _,
@@ -147,6 +159,9 @@ The map a → D a is an additive monoid homomorphism from A to (A  →+  add_mon
       add_monoid_hom.add_apply, D_apply, D_apply, ladd],
   end }
 
+/--
+For a in A, the map c → Q a c is an additive monoid homomorphism from A to add_monoid.End A
+-/
 @[simps] def Q_radd (a : A) : (A  →+  add_monoid.End A) :=
 { _root_.add_monoid_hom . to_fun := λ c, Q a c,
   map_zero' := begin
@@ -158,6 +173,9 @@ The map a → D a is an additive monoid homomorphism from A to (A  →+  add_mon
     rw [add_monoid_hom.add_apply, Q_apply, Q_apply, Q_apply, radd],
   end, }
 
+/--
+The map a → Q a is an additive monoid homomorphism from A to (A  →+  add_monoid.End A)
+-/
 @[simps] def Q_ladd : A  →+ (A  →+  add_monoid.End A) :=
 { to_fun := λ a, Q_radd a,
   map_zero' := begin
@@ -184,8 +202,7 @@ begin
   rw [sub_eq_iff_eq_add, is_jordan_tp.lebintz],
 end
 
-def lebnitz (D : A → A) (D'  : A → A) :=
-  ∀ (a b c : A),  D ⦃ a, b, c ⦄  = ⦃ D a, b, c⦄ + ⦃a, D' b, c⦄ + ⦃a, b, D c⦄
+
 
 /--
 For a and b in A, the pair D(a,b) and -D(b,a) are Lebintz

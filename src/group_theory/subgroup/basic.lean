@@ -638,43 +638,30 @@ lemma closure_induction {p : G → Prop} {x} (h : x ∈ closure k)
   (Hinv : ∀ x, p x → p x⁻¹) : p x :=
 (@closure_le _ _ ⟨p, H1, Hmul, Hinv⟩ _).2 Hk h
 
-/-- An induction principle on elements of the subtype `subgroup.closure`.
-If `p` holds for `1` and all elements of `k`, and is preserved under multiplication and inverse,
-then `p` holds for all elements `x : closure k`.
-
-The difference with `subgroup.closure_induction` is that this acts on the subtype.
--/
-@[elab_as_eliminator, to_additive "An induction principle on elements of the subtype
-`add_subgroup.closure`.  If `p` holds for `0` and all elements of `k`, and is preserved under
-addition and negation, then `p` holds for all elements `x : closure k`.
-
-The difference with `add_subgroup.closure_induction` is that this acts on the subtype."]
-lemma closure_induction' (k : set G) {p : closure k → Prop}
-  (Hk : ∀ x (h : x ∈ k), p ⟨x, subset_closure h⟩)
-  (H1 : p 1)
-  (Hmul : ∀ x y, p x → p y → p (x * y))
-  (Hinv : ∀ x, p x → p x⁻¹)
-  (x : closure k) :
-  p x :=
-subtype.rec_on x $ λ x hx, begin
-  refine exists.elim _ (λ (hx : x ∈ closure k) (hc : p ⟨x, hx⟩), hc),
+/-- A dependent version of `subgroup.closure_induction`.  -/
+@[elab_as_eliminator, to_additive "A dependent version of `add_subgroup.closure_induction`. "]
+lemma closure_induction' {p : Π x, x ∈ closure k → Prop}
+  (Hs : ∀ x (h : x ∈ k), p x (subset_closure h))
+  (H1 : p 1 (one_mem _))
+  (Hmul : ∀ x hx y hy, p x hx → p y hy → p (x * y) (mul_mem _ hx hy))
+  (Hinv : ∀ x hx, p x hx → p x⁻¹ (inv_mem _ hx))
+  {x} (hx : x ∈ closure k) :
+  p x hx :=
+begin
+  refine exists.elim _ (λ (hx : x ∈ closure k) (hc : p x hx), hc),
   exact closure_induction hx
-    (λ x hx, ⟨subset_closure hx, Hk x hx⟩)
-    ⟨one_mem _, H1⟩
-    (λ x y hx hy, exists.elim hx $ λ hx' hx, exists.elim hy $ λ hy' hy,
-      ⟨mul_mem _ hx' hy', Hmul _ _ hx hy⟩)
-    (λ x hx, exists.elim hx $ λ hx' hx, ⟨inv_mem _ hx', Hinv _ hx⟩),
+    (λ x hx, ⟨_, Hs x hx⟩) ⟨_, H1⟩ (λ x y ⟨hx', hx⟩ ⟨hy', hy⟩, ⟨_, Hmul _ _ _ _ hx hy⟩)
+    (λ x ⟨hx', hx⟩, ⟨_, Hinv _ _ hx⟩),
 end
 
 @[simp, to_additive]
 lemma closure_closure_coe_preimage {k : set G} : closure ((coe : closure k → G) ⁻¹' k) = ⊤ :=
-begin
-  refine eq_top_iff.2 (λ x hx, closure_induction' (λ x, _) _ _ (λ g₁ g₂ hg₁ hg₂, _) (λ g hg, _) x),
-  { intros g hg,
-    exact subset_closure hg },
-  { exact subgroup.one_mem _ },
-  { exact subgroup.mul_mem _ hg₁ hg₂ },
-  { exact subgroup.inv_mem _ hg }
+eq_top_iff.2 $ λ x, subtype.rec_on x $ λ x hx _, begin
+  refine closure_induction' (λ g hg, _) _ (λ g₁ g₂ hg₁ hg₂, _) (λ g hg, _) hx,
+  { exact subset_closure hg },
+  { exact one_mem _ },
+  { exact mul_mem _ },
+  { exact inv_mem _ }
 end
 
 variable (G)

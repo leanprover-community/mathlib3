@@ -764,21 +764,15 @@ def subtype (S : L.substructure M) : S ↪[L] M :=
 
 @[simp] theorem coe_subtype : ⇑S.subtype = coe := rfl
 
-/-- An induction principle on elements of the type `substructure.closure L s`.
-If `p` holds for `1` and all elements of `s`, and is preserved under multiplication, then `p`
-holds for all elements of the closure of `s`.
-The difference with `substructure.closure_induction` is that this acts on the subtype.
--/
-@[elab_as_eliminator] lemma closure_induction' (s : set M) {p : closure L s → Prop}
-  (Hs : ∀ x (h : x ∈ s), p ⟨x, subset_closure h⟩)
-  (Hfun : ∀ {n : ℕ} (f : L.functions n), closed_under f (set_of p))
-  (x : closure L s) :
-  p x :=
-subtype.rec_on x $ λ x hx, begin
-  refine exists.elim _ (λ (hx : x ∈ closure L s) (hc : p ⟨x, hx⟩), hc),
-  exact closure_induction hx (λ x hx, ⟨subset_closure hx, Hs x hx⟩) (λ n f x hx,
-    ⟨(closure L s).fun_mem f _ (λ i, classical.some (hx i)),
-    Hfun f (λ i, ⟨x i, classical.some (hx i)⟩) (λ i, classical.some_spec (hx i))⟩),
+/-- A dependent version of `substructure.closure_induction`. -/
+@[elab_as_eliminator] lemma closure_induction' (s : set M) {p : Π x, x ∈ closure L s → Prop}
+  (Hs : ∀ x (h : x ∈ s), p x (subset_closure h))
+  (Hfun : ∀ {n : ℕ} (f : L.functions n), closed_under f {x | ∃ hx, p x hx})
+  {x} (hx : x ∈ closure L s) :
+  p x hx :=
+begin
+  refine exists.elim _ (λ (hx : x ∈ closure L s) (hc : p x hx), hc),
+  exact closure_induction hx (λ x hx, ⟨subset_closure hx, Hs x hx⟩) @Hfun
 end
 
 end substructure

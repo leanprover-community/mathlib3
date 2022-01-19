@@ -708,14 +708,19 @@ lemma semi_norm_prod_le_iff {x : E × F} {r : ℝ} :
   ∥x∥ ≤ r ↔ ∥x.1∥ ≤ r ∧ ∥x.2∥ ≤ r :=
 max_le_iff
 
+section pi
+local attribute [instance] pseudo_metric_space_pi
+
 /-- seminormed group instance on the product of finitely many seminormed groups,
 using the sup norm. -/
-noncomputable instance pi.semi_normed_group {π : ι → Type*} [fintype ι]
+noncomputable def pi.semi_normed_group {π : ι → Type*} [fintype ι]
   [Π i, semi_normed_group (π i)] : semi_normed_group (Π i, π i) :=
 { norm := λf, ((finset.sup finset.univ (λ b, ∥f b∥₊) : ℝ≥0) : ℝ),
   dist_eq := assume x y,
     congr_arg (coe : ℝ≥0 → ℝ) $ congr_arg (finset.sup finset.univ) $ funext $ assume a,
     show nndist (x a) (y a) = ∥x a - y a∥₊, from nndist_eq_nnnorm _ _ }
+
+local attribute [instance] pi.semi_normed_group
 
 /-- The seminorm of an element in a product space is `≤ r` if and only if the norm of each
 component is. -/
@@ -739,6 +744,8 @@ by simpa only [← dist_zero_right] using dist_pi_const a 0
 @[simp] lemma pi_nnsemi_norm_const [nonempty ι] [fintype ι] (a : E) :
   ∥(λ i : ι, a)∥₊ = ∥a∥₊ :=
 nnreal.eq $ pi_semi_norm_const a
+
+end pi
 
 lemma tendsto_iff_norm_tendsto_zero {f : α → E} {a : filter α} {b : E} :
   tendsto f a (𝓝 b) ↔ tendsto (λ e, ∥f e - b∥) a (𝓝 0) :=

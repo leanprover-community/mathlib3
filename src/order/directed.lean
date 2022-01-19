@@ -133,11 +133,10 @@ protected lemma is_min.is_bot [is_directed α (swap (≤))] (h : is_min a) : is_
 protected lemma is_max.is_top [is_directed α (≤)] (h : is_max a) : is_top a :=
 λ b, let ⟨c, hac, hbc⟩ := exists_ge_ge a b in hbc.trans $ h hac
 
-@[simp] lemma is_bot_iff_is_min [is_directed α (swap (≤))] : is_bot a ↔ is_min a :=
+lemma is_bot_iff_is_min [is_directed α (swap (≤))] : is_bot a ↔ is_min a :=
 ⟨is_bot.is_min, is_min.is_bot⟩
 
-@[simp] lemma is_top_iff_is_max [is_directed α (≤)] : is_top a ↔ is_max a :=
-⟨is_top.is_max, is_max.is_top⟩
+lemma is_top_iff_is_max [is_directed α (≤)] : is_top a ↔ is_max a := ⟨is_top.is_max, is_max.is_top⟩
 
 end preorder
 

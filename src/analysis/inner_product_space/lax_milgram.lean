@@ -71,7 +71,7 @@ def lax_milgram_map (B : V →L[ℝ] V →L[ℝ] ℝ) : V →L[ℝ] V :=
 
 
 @[simp]
-lemma lax_milgram_map_apply (v w : V) : B v w = inner (lax_milgram_map B v) w :=
+lemma lax_milgram_map_apply (v w : V) : inner (lax_milgram_map B v) w = B v w :=
 by {dunfold lax_milgram_map, simp,}
 
 lemma unique_lax_milgram_map (v f : V)
@@ -80,7 +80,7 @@ lemma unique_lax_milgram_map (v f : V)
 begin
   refine inner_product_space.ext_inner_right ℝ _,
   intro w,
-  rw ←lax_milgram_map_apply,
+  rw lax_milgram_map_apply,
   exact is_lax_milgram w,
 end
 
@@ -154,9 +154,10 @@ continuous_linear_equiv.of_bijective
   (injective coercive)
   (surjective coercive)
 
+
 @[simp]
 lemma lax_milgram_equiv_apply (coercive : is_coercive B) (v w : V) :
-  B v w = inner (lax_milgram_equiv coercive v) w :=
+  inner (lax_milgram_equiv coercive v) w = B v w :=
 begin
   unfold lax_milgram_equiv continuous_linear_equiv.of_bijective lax_milgram_map,
   simp,

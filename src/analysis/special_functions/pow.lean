@@ -1556,7 +1556,7 @@ begin
 end
 
 private lemma continuous_at_rpow_const_of_pos {x : ℝ≥0∞} {y : ℝ} (h : 0 < y) :
-  continuous_at (λ a : ennreal, a ^ y) x :=
+  continuous_at (λ a : ℝ≥0∞, a ^ y) x :=
 begin
   by_cases hx : x = ⊤,
   { rw [hx, continuous_at],
@@ -1571,7 +1571,7 @@ begin
 end
 
 @[continuity]
-lemma continuous_rpow_const {y : ℝ} : continuous (λ a : ennreal, a ^ y) :=
+lemma continuous_rpow_const {y : ℝ} : continuous (λ a : ℝ≥0∞, a ^ y) :=
 begin
   apply continuous_iff_continuous_at.2 (λ x, _),
   rcases lt_trichotomy 0 y with hy|rfl|hy,
@@ -1592,6 +1592,11 @@ begin
 end
 
 end ennreal
+
+lemma filter.tendsto.ennrpow_const {α : Type*} {f : filter α} {m : α → ℝ≥0∞} {a : ℝ≥0∞} (r : ℝ)
+  (hm : tendsto m f (𝓝 a)) :
+  tendsto (λ x, (m x) ^ r) f (𝓝 (a ^ r)) :=
+(ennreal.continuous_rpow_const.tendsto a).comp hm
 
 namespace norm_num
 open tactic

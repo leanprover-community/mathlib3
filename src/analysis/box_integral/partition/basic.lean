@@ -169,7 +169,7 @@ lemma Union_def : π.Union = ⋃ J ∈ π, ↑J := rfl
 
 lemma Union_def' : π.Union = ⋃ J ∈ π.boxes, ↑J := rfl
 
-@[simp] lemma mem_Union : x ∈ π.Union ↔ ∃ J ∈ π, x ∈ J := set.mem_bUnion_iff
+@[simp] lemma mem_Union : x ∈ π.Union ↔ ∃ J ∈ π, x ∈ J := set.mem_Union₂
 
 @[simp] lemma Union_single (h : J ≤ I) : (single I J h).Union = J := by simp [Union_def]
 

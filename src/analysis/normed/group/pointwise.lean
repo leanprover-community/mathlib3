@@ -3,7 +3,6 @@ Copyright (c) 2021 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-
 import analysis.normed.group.basic
 import topology.metric_space.hausdorff_distance
 
@@ -92,5 +91,24 @@ end
 
 @[simp] lemma ball_add (s : set E) (δ : ℝ) : ball 0 δ + s = thickening δ s :=
 by rw [add_comm, add_ball]
+
+
+--TODO: Also true with one `closed_ball` and one `ball`
+@[simp] lemma ball_add_ball (a b : E) (ε δ : ℝ) : ball a ε + ball b δ = ball (a + b) (ε + δ) :=
+sorry
+
+@[simp] lemma closed_ball_add_closed_ball (a b : E) (ε δ : ℝ) :
+  closed_ball a ε + closed_ball b δ = closed_ball (a + b) (ε + δ) :=
+sorry
+
+lemma is_compact.cthickening_eq_add_closed_ball
+  {s : set E} (hs : is_compact s) {r : ℝ} (hr : 0 ≤ r) :
+  cthickening r s = s + closed_ball 0 r :=
+begin
+  rw hs.cthickening_eq_bUnion_closed_ball hr,
+  ext x,
+  simp only [mem_add, dist_eq_norm, exists_prop, mem_Union, mem_closed_ball,
+    exists_and_distrib_left, mem_closed_ball_zero_iff, ← eq_sub_iff_add_eq', exists_eq_right],
+end
 
 end semi_normed_group

@@ -273,7 +273,7 @@ end
 
 section normed_space
 
-variables {𝕜 : Type*} [normed_field 𝕜] [semi_normed_space 𝕜 V]
+variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 V]
 
 open affine_map
 
@@ -324,7 +324,7 @@ end
 
 end normed_space
 
-variables [semi_normed_space ℝ V] [normed_space ℝ W]
+variables [normed_space ℝ V] [normed_space ℝ W]
 
 lemma dist_midpoint_midpoint_le (p₁ p₂ p₃ p₄ : V) :
   dist (midpoint ℝ p₁ p₂) (midpoint ℝ p₃ p₄) ≤ (dist p₁ p₃ + dist p₂ p₄) / 2 :=

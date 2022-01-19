@@ -404,7 +404,7 @@ noncomputable def function.surjective.module_left' {R S M : Type*}
   module S M :=
 let scalar : has_scalar S M := hf.has_scalar_left in
 { smul := @@has_scalar.smul scalar,
-  .. @@function.surjective.module_left _ _ _ _ scalar hf
+  .. @@function.surjective.module_left _ _ _ _ scalar f hf
     (λ c (x : M), hsmul (surj_inv_eq _ _) x) }
 
 lemma function.surjective.module_left'_smul {R S M : Type*}
@@ -447,11 +447,11 @@ include hfp
 
 /-- If `P` lies over `p`, then `R / p` has a canonical map to `S / P`. -/
 instance ideal.quotient.algebra_quotient_of_fact_le_comap :
-  algebra p.quotient P.quotient :=
+  algebra (R ⧸ p) (S ⧸ P) :=
 quotient.algebra_quotient_of_le_comap (fact.out (p ≤ comap f P))
 
 @[simp] lemma ideal.quotient.algebra_map_quotient_of_fact_le_comap (x : R) :
-  algebra_map p.quotient P.quotient (ideal.quotient.mk p x) = ideal.quotient.mk _ (f x) :=
+  algebra_map (R ⧸ p) (S ⧸ P) (ideal.quotient.mk p x) = ideal.quotient.mk _ (f x) :=
 rfl
 
 @[simp] lemma quotient.mk_smul_mk_quotient_map_quotient (x : R) (y : S) :
@@ -462,7 +462,8 @@ omit hfp
 
 @[simp] lemma map_quotient_mk_self {R : Type*} [comm_ring R] (I : ideal R) :
   map (ideal.quotient.mk I) I = ⊥ :=
-sorry
+by simp only [eq_bot_iff, ideal.map_le_iff_le_comap, ← ring_hom.ker_eq_comap_bot,
+  ideal.mk_ker, le_refl]
 
 variables (e : ℕ) [hfPe : fact (p ≤ comap f (P^e))]
 include hfPe
@@ -470,7 +471,7 @@ include hfPe
 /-- The inclusion `(P^(i + 1) / P^e) ⊂ (P^i / P^e)`. -/
 @[simps]
 def pow_quot_succ_inclusion (i : ℕ) :
-  ideal.map (P^e)^.quotient.mk (P ^ (i + 1)) →ₗ[p.quotient] ideal.map (P^e)^.quotient.mk (P ^ i) :=
+  ideal.map (P^e)^.quotient.mk (P ^ (i + 1)) →ₗ[R ⧸ p] ideal.map (P^e)^.quotient.mk (P ^ i) :=
 { to_fun := λ x, ⟨x, ideal.map_mono (ideal.pow_le_pow i.le_succ) x.2⟩,
   map_add' := λ x y, rfl,
   map_smul' := λ c x, rfl }
@@ -489,61 +490,316 @@ end
 instance [fact (e ≠ 0)] : fact (p ≤ comap f P) :=
 ⟨(fact.out $ p ≤ comap f (P^e)).trans (comap_mono (ideal.pow_le_self _ (fact.out _)))⟩
 
-def quotient_range_pow_quot_succ_inclusion [fact (e ≠ 0)] (i : ℕ) :
-  (pow_quot_succ_inclusion f p P e i).range.quotient ≃ₗ[p.quotient] submodule.quotient P :=
-sorry -- TODO: 3rd iso thm
+omit hfPe
+
+/-- Promote a surjective ring homomorphism to an equivalence by dividing out its kernel. -/
+noncomputable def ideal.lift_equiv {R S : Type*} [comm_ring R] [comm_ring S] (f : R →+* S)
+  (hf : function.surjective f)
+  (I : ideal R) (h : f.ker = I) : (R ⧸ I) ≃+* S :=
+ring_equiv.of_bijective (ideal.quotient.lift I f (λ x hx, f.mem_ker.mp (h.symm ▸ hx))) begin
+  split,
+  { rintro ⟨x⟩ ⟨y⟩ hxy,
+    simp only [submodule.quotient.quot_mk_eq_mk, ideal.quotient.mk_eq_mk] at *,
+    suffices : x - y ∈ I, { simpa only [ideal.quotient.eq, h] using this },
+    have : f (x - y) = 0, { simpa only [map_sub, sub_eq_zero] using hxy },
+    exact h ▸ f.mem_ker.mp this },
+  { intro y,
+    obtain ⟨x, hx⟩ := hf y,
+    use ideal.quotient.mk I x,
+    simpa using hx },
+end
+
+/-- Promote a surjective linear map to an equivalence by dividing out its kernel. -/
+noncomputable def submodule.lift_equiv {R S M N : Type*} [comm_ring R] [comm_ring S]
+  [add_comm_group M] [add_comm_group N] [module R M] [module R N]
+  [module S N]
+  (f : M →ₗ[R] N) (hf : function.surjective f)
+  (p : submodule R M) (h : f.ker = p) : (M ⧸ p) ≃ₗ[R] N :=
+linear_equiv.of_bijective (p.liftq f h.ge)
+  (by { rintro ⟨x⟩ ⟨y⟩ hxy, simp only [submodule.quotient.quot_mk_eq_mk] at *,
+        suffices : x - y ∈ p, { simpa only [submodule.quotient.eq, h] using this },
+        have : f (x - y) = 0, { simpa only [map_sub, sub_eq_zero] using hxy },
+        exact h ▸ linear_map.mem_ker.mp this })
+  (by { intro y, obtain ⟨x, hx⟩ := hf y, use p.mkq x, simpa using hx })
+
+include hfPe
+
+/-- `S ⧸ P` embeds into the quotient by `P^(i+1) ⧸ P^e` as a subspace of `P^i ⧸ P^e`.
+
+See `quotient_to_quotient_range_pow_quot_succ` for this as a linear map,
+and `quotient_range_pow_quot_succ_inclusion_equiv` for this as a linear equivalence.
+-/
+def quotient_to_quotient_range_pow_quot_succ_aux (i : ℕ) (a : S) (a_mem : a ∈ P^i) :
+  S ⧸ P → (_ ⧸ (pow_quot_succ_inclusion f p P e i).range) :=
+quotient.map' (λ (x : S), ⟨_, ideal.mem_map_of_mem _ (ideal.mul_mem_left _ x a_mem)⟩)
+  (λ x y (h : x - y ∈ P), show _ - _ ∈ _, begin
+    simp only [_root_.map_mul, linear_map.mem_range],
+    refine ⟨⟨_, ideal.mem_map_of_mem _ (ideal.mul_mem_mul h a_mem)⟩, _⟩,
+    ext,
+    rw [pow_quot_succ_inclusion_apply_coe, subtype.coe_mk, submodule.coe_sub, subtype.coe_mk,
+        subtype.coe_mk, _root_.map_mul, map_sub, sub_mul]
+  end)
+
+lemma quotient_to_quotient_range_pow_quot_succ_aux_mk (i : ℕ) (a : S) (a_mem : a ∈ P^i) (x : S) :
+  quotient_to_quotient_range_pow_quot_succ_aux f p P e i a a_mem (submodule.quotient.mk x) =
+    submodule.quotient.mk ⟨_, ideal.mem_map_of_mem _ (ideal.mul_mem_left _ x a_mem)⟩ :=
+by apply quotient.map'_mk'
+
+/-- `S ⧸ P` embeds into the quotient by `P^(i+1) ⧸ P^e` as a subspace of `P^i ⧸ P^e`. -/
+def quotient_to_quotient_range_pow_quot_succ [fact (e ≠ 0)] (i : ℕ) (a : S) (a_mem : a ∈ P^i) :
+  S ⧸ P →ₗ[R ⧸ p] (_ ⧸ (pow_quot_succ_inclusion f p P e i).range) :=
+{ to_fun := quotient_to_quotient_range_pow_quot_succ_aux f p P e i a a_mem, map_add' := begin
+  intros x y, refine quotient.induction_on' x (λ x, quotient.induction_on' y (λ y, _)),
+  simp only [submodule.quotient.mk'_eq_mk, ← submodule.quotient.mk_add,
+             quotient_to_quotient_range_pow_quot_succ_aux_mk, add_mul],
+  refine congr_arg submodule.quotient.mk _,
+  ext,
+  refl
+end, map_smul' := begin
+  intros x y, refine quotient.induction_on' x (λ x, quotient.induction_on' y (λ y, _)),
+  simp only [submodule.quotient.mk'_eq_mk, ← submodule.quotient.mk_add,
+             quotient_to_quotient_range_pow_quot_succ_aux_mk, ring_hom.id_apply],
+  refine congr_arg submodule.quotient.mk _,
+  ext,
+  simp only [subtype.coe_mk, _root_.map_mul, algebra.smul_def, submodule.coe_mk, mul_assoc,
+             ideal.quotient.mk_eq_mk, submodule.coe_smul_of_tower,
+             ideal.quotient.algebra_map_quotient_of_fact_le_comap]
+end }
+
+.
+
+lemma quotient_to_quotient_range_pow_quot_succ_mk [is_dedekind_domain S] [fact (e ≠ 0)]
+  [P.is_prime] (i : ℕ) (a : S) (a_mem : a ∈ P^i) (x : S) :
+  quotient_to_quotient_range_pow_quot_succ f p P e i a a_mem (submodule.quotient.mk x) =
+    submodule.quotient.mk ⟨_, ideal.mem_map_of_mem _ (ideal.mul_mem_left _ x a_mem)⟩ :=
+quotient_to_quotient_range_pow_quot_succ_aux_mk f p P e i a a_mem x
+
+section move_me
+
+omit hfPe
+
+theorem ideal.is_prime.mul_mem_iff {R : Type*} [comm_semiring R] {I : ideal R} (hI : I.is_prime)
+  {a b : R} : a * b ∈ I ↔ a ∈ I ∨ b ∈ I :=
+⟨hI.mem_or_mem, λ h, h.cases_on (I.mul_mem_right b) (I.mul_mem_left a)⟩
+
+-- TODO: assume `unique_factorization_monoid`?
+lemma prime.mul_dvd_pow {R : Type*} [comm_semiring R] (p a b : R) (hp : prime p)
+  {n : ℕ} (h : p^n ∣ a * b) : p ∣ a ∨ p^n ∣ b :=
+begin
+  refine or_iff_not_imp_left.mpr (λ ha, _),
+  induction n with n ih,
+  { simp },
+  sorry
+end
+
+lemma ideal.is_prime.mul_mem_pow {R : Type*} [comm_ring R] [is_domain R]
+  [is_dedekind_domain R]
+  (I : ideal R) [hI : I.is_prime]
+  {a b : R} {n : ℕ} (h : a * b ∈ I^n) : a ∈ I ∨ b ∈ I^n :=
+begin
+  cases n, { simp },
+  by_cases hI0 : I = ⊥, { simpa [pow_succ, hI0] using h },
+  simp only [← submodule.span_singleton_le_iff_mem, ideal.submodule_span_eq, ← ideal.dvd_iff_le,
+    ← ideal.span_singleton_mul_span_singleton] at h ⊢,
+  exact prime.mul_dvd_pow I _ _ ((ideal.prime_iff_is_prime hI0).mpr hI) h
+end
+
+@[simp]
+lemma ideal.quotient.mk_mem_map_mk {R : Type*} [comm_ring R] {I J : ideal R} {x : R} :
+  ideal.quotient.mk I x ∈ J.map I^.quotient.mk ↔ x ∈ J ⊔ I :=
+by rw [← ideal.mem_comap, ideal.comap_map_of_surjective _ ideal.quotient.mk_surjective,
+       ← ring_hom.ker_eq_comap_bot, ideal.mk_ker]
+
+@[simp] lemma multiset.repeat_inter {α : Type*} (x : α) (n : ℕ) (s : multiset α) :
+  multiset.repeat x n ∩ s = multiset.repeat x (min n (s.count x)) :=
+begin
+  refine le_antisymm _ _,
+  { simp only [multiset.le_iff_count, multiset.count_inter, multiset.count_repeat],
+    intro a,
+    split_ifs with h,
+    { rw h },
+    { rw [nat.zero_min] } },
+  simp only [multiset.le_inter_iff, ← multiset.le_count_iff_repeat_le, multiset.count_inter,
+    multiset.count_repeat_self],
+end
+
+@[simp] lemma multiset.inter_repeat {α : Type*} (s : multiset α) (x : α) (n : ℕ)  :
+  s ∩ multiset.repeat x n = multiset.repeat x (min (s.count x) n) :=
+by rw [multiset.inter_comm, multiset.repeat_inter, min_comm]
+
+lemma count_normalized_factors_eq {M : Type*} [cancel_comm_monoid_with_zero M]
+  [nontrivial M] [decidable_eq M] [decidable_rel ((∣) : M → M → Prop)]
+  [normalization_monoid M] [unique_factorization_monoid M]
+  {p x : M} (hp : prime p) (hnorm : normalize p = p) {n : ℕ}
+  (hle : p^n ∣ x) (hlt : ¬ (p^(n+1) ∣ x)) :
+  (normalized_factors x).count p = n :=
+begin
+  by_cases hx0 : x = 0,
+  { simp [hx0] at hlt, contradiction },
+  rw [← enat.coe_inj],
+  convert (multiplicity_eq_count_normalized_factors hp.irreducible hx0).symm,
+  { exact hnorm.symm },
+  exact (multiplicity.eq_coe_iff.mpr ⟨hle, hlt⟩).symm
+end
+
+lemma ideal.count_normalized_factors_eq {R : Type*} [comm_ring R] [is_domain R]
+  [is_dedekind_domain R] {p x : ideal R} (hp0 : p ≠ ⊥) [hp : p.is_prime] {n : ℕ}
+  (hle : x ≤ p^n) (hlt : ¬ (x ≤ p^(n+1))) :
+  (normalized_factors x).count p = n :=
+count_normalized_factors_eq ((ideal.prime_iff_is_prime hp0).mpr hp) (normalize_eq _)
+  (ideal.dvd_iff_le.mpr hle) (mt ideal.le_of_dvd hlt)
+
+end move_me
+
+lemma quotient_to_quotient_range_pow_quot_succ_injective [is_dedekind_domain S] [fact (e ≠ 0)]
+  [P.is_prime] (i : ℕ) (hi : i < e) (a : S) (a_mem : a ∈ P^i) (a_not_mem : a ∉ P^(i + 1)) :
+  function.injective (quotient_to_quotient_range_pow_quot_succ f p P e i a a_mem) :=
+λ x, quotient.induction_on' x $ λ x y, quotient.induction_on' y $ λ y h,
+begin
+  have Pe_le_Pi1 : P^e ≤ P^(i + 1) := ideal.pow_le_pow hi,
+  simp only [submodule.quotient.mk'_eq_mk, quotient_to_quotient_range_pow_quot_succ_mk,
+    submodule.quotient.eq, linear_map.mem_range, subtype.ext_iff, subtype.coe_mk,
+    submodule.coe_sub] at ⊢ h,
+  rcases h with ⟨⟨⟨z⟩, hz⟩, h⟩,
+  rw [submodule.quotient.quot_mk_eq_mk, ideal.quotient.mk_eq_mk, ideal.quotient.mk_mem_map_mk,
+      sup_eq_left.mpr Pe_le_Pi1] at hz,
+  rw [pow_quot_succ_inclusion_apply_coe, subtype.coe_mk, submodule.quotient.quot_mk_eq_mk,
+      ideal.quotient.mk_eq_mk, ← map_sub, ideal.quotient.eq, ← sub_mul] at h,
+  exact (ideal.is_prime.mul_mem_pow _
+    ((submodule.sub_mem_iff_right _ hz).mp (Pe_le_Pi1 h))).resolve_right a_not_mem,
+end
+
+.
+
+lemma quotient_to_quotient_range_pow_quot_succ_surjective [is_dedekind_domain S] [fact (e ≠ 0)]
+  (hP0 : P ≠ ⊥) [hP : P.is_prime] {i : ℕ} (hi : i < e)
+  {a : S} (a_mem : a ∈ P^i) (a_not_mem : a ∉ P^(i + 1)) :
+  function.surjective (quotient_to_quotient_range_pow_quot_succ f p P e i a a_mem) :=
+begin
+  rintro ⟨⟨⟨x⟩, hx⟩⟩,
+  have Pe_le_Pi : P^e ≤ P^i := ideal.pow_le_pow hi.le,
+  have Pe_le_Pi1 : P^e ≤ P^(i + 1) := ideal.pow_le_pow hi,
+  rw [submodule.quotient.quot_mk_eq_mk, ideal.quotient.mk_eq_mk, ideal.quotient.mk_mem_map_mk,
+      sup_eq_left.mpr Pe_le_Pi] at hx,
+  suffices hx' : x ∈ ideal.span {a} ⊔ P^(i+1),
+  { obtain ⟨y', hy', z, hz, rfl⟩ := submodule.mem_sup.mp hx',
+    obtain ⟨y, rfl⟩ := ideal.mem_span_singleton.mp hy',
+    refine ⟨submodule.quotient.mk y, _⟩,
+    simp only [submodule.quotient.quot_mk_eq_mk, quotient_to_quotient_range_pow_quot_succ_mk,
+        submodule.quotient.eq, linear_map.mem_range, subtype.ext_iff, subtype.coe_mk,
+        submodule.coe_sub],
+    refine ⟨⟨_, ideal.mem_map_of_mem _ (submodule.neg_mem _ hz)⟩, _⟩,
+    rw [pow_quot_succ_inclusion_apply_coe, subtype.coe_mk, ideal.quotient.mk_eq_mk, map_add,
+        mul_comm y a, sub_add_cancel', map_neg] },
+  rw [sup_eq_prod_inf_factors _ _ _ (pow_ne_zero _ hP0), normalized_factors_pow,
+      normalized_factors_irreducible ((ideal.prime_iff_is_prime hP0).mpr hP).irreducible,
+      normalize_eq, multiset.nsmul_singleton, multiset.inter_repeat, multiset.prod_repeat],
+  rw [← submodule.span_singleton_le_iff_mem, ideal.submodule_span_eq] at a_mem a_not_mem,
+  rwa [ideal.count_normalized_factors_eq hP0 a_mem a_not_mem, min_eq_left i.le_succ],
+  { intro ha,
+    rw ideal.span_singleton_eq_bot.mp ha at a_not_mem,
+    have := (P^(i+1)).zero_mem,
+    contradiction },
+end
+
+/-- The quotient by `P^(i+1) ⧸ P^e` as a subspace of `P^i ⧸ P^e` is `R ⧸ p`-linear to `S ⧸ P`. -/
+noncomputable def quotient_range_pow_quot_succ_inclusion_equiv [is_dedekind_domain S] [fact (e ≠ 0)]
+  [P.is_prime] (hP : P ≠ ⊥) (i : ℕ) (hi : i < e) :
+  (_ ⧸ (pow_quot_succ_inclusion f p P e i).range) ≃ₗ[R ⧸ p] S ⧸ P :=
+begin
+  choose a a_mem a_not_mem using set_like.exists_of_lt (ideal.pow_succ_lt P hP i),
+  refine (linear_equiv.of_bijective
+    (quotient_to_quotient_range_pow_quot_succ f p P e i a a_mem)
+    (quotient_to_quotient_range_pow_quot_succ_injective f p P e i hi a a_mem a_not_mem)
+    (quotient_to_quotient_range_pow_quot_succ_surjective f p P e i hi a a_mem a_not_mem)).symm,
+end
 
 /-- Since the inclusion `(P^(i + 1) / P^e) ⊂ (P^i / P^e)` has a kernel isomorphic to `P / S`,
 `[P^i / P^e : R / p] = [P^(i+1) / P^e : R / p] + [P / S : R / p]` -/
-lemma dim_pow_quot_aux [p.is_maximal] {i : ℕ} [fact (e ≠ 0)] (hi : i < e) :
-  module.rank p.quotient (ideal.map (P^e)^.quotient.mk (P ^ i)) =
-  module.rank p.quotient P.quotient + module.rank p.quotient (ideal.map (P^e)^.quotient.mk (P ^ (i + 1))) :=
+lemma dim_pow_quot_aux [is_dedekind_domain S] [p.is_maximal] [P.is_prime] (hP0 : P ≠ ⊥) {i : ℕ}
+  [fact (e ≠ 0)] (hi : i < e) :
+  module.rank (R ⧸ p) (ideal.map (P^e)^.quotient.mk (P ^ i)) =
+  module.rank (R ⧸ p) (S ⧸ P) + module.rank (R ⧸ p) (ideal.map (P^e)^.quotient.mk (P ^ (i + 1))) :=
 begin
   rw [dim_eq_of_injective _ (pow_quot_succ_inclusion_injective f p P e i),
-      (quotient_range_pow_quot_succ_inclusion f p P e i).symm.dim_eq,
+      (quotient_range_pow_quot_succ_inclusion f p P e hP0 i).symm.dim_eq,
       dim_quotient_add_dim (linear_map.range _)],
 end
 
-lemma dim_pow_quot [p.is_maximal] (i : ℕ) [fact (e ≠ 0)] (hi : i ≤ e) :
-  module.rank p.quotient (ideal.map (P^e)^.quotient.mk (P ^ i)) =
-  (e - i) • module.rank p.quotient P.quotient :=
+lemma dim_pow_quot [is_dedekind_domain S] [p.is_maximal] [P.is_prime] (hP0 : P ≠ ⊥) (i : ℕ)
+  [fact (e ≠ 0)] (hi : i ≤ e) :
+  module.rank (R ⧸ p) (ideal.map (P^e)^.quotient.mk (P ^ i)) =
+  (e - i) • module.rank (R ⧸ p) (S ⧸ P) :=
 begin
   refine @nat.decreasing_induction' _ i e (λ j lt_e le_j ih, _) hi _,
-  { rw [dim_pow_quot_aux f p P _ lt_e, ih, ← succ_nsmul, nat.sub_succ, ← nat.succ_eq_add_one,
+  { rw [dim_pow_quot_aux f p P _ hP0 lt_e, ih, ← succ_nsmul, nat.sub_succ, ← nat.succ_eq_add_one,
       nat.succ_pred_eq_of_pos (nat.sub_pos_of_lt lt_e)] },
   { rw [nat.sub_self, zero_nsmul, map_quotient_mk_self],
-    exact dim_bot p.quotient (P^e).quotient }
+    exact dim_bot (R ⧸ p) (S ⧸ (P^e)) }
 end
 
 omit hfPe
 
 /-- If `p` is a maximal ideal of `R`, `S` extends `R` and `P^e` lies over `p`,
 then the dimension `[S/(P^e) : R/p]` is equal to `e * [S/P : R/p]`. -/
-lemma dim_prime_pow [p.is_maximal] (hP0 : P ≠ ⊥)
+lemma dim_prime_pow [is_dedekind_domain S] [p.is_maximal] [P.is_prime] (hP0 : P ≠ ⊥)
   {e : ℕ} (he : e ≠ 0) (hp : p ≤ comap f (P ^ e)) :
-  @module.rank p.quotient (P^e).quotient _ _ (@algebra.to_module _ _ _ _ $
+  @module.rank (R ⧸ p) (S ⧸ P^e) _ _ (@algebra.to_module _ _ _ _ $
     quotient.algebra_quotient_of_le_comap hp) =
-  e • @module.rank p.quotient P.quotient _ _ (@algebra.to_module _ _ _ _ $
+  e • @module.rank (R ⧸ p) (S ⧸ P) _ _ (@algebra.to_module _ _ _ _ $
     quotient.algebra_quotient_of_le_comap $ hp.trans $ comap_mono $ P.pow_le_self he) :=
 begin
   letI : fact (e ≠ 0) := ⟨he⟩,
   letI : fact _ := ⟨hp⟩,
-  have := dim_pow_quot f p P e 0 (nat.zero_le e),
+  have := dim_pow_quot f p P e hP0 0 (nat.zero_le e),
   rw [pow_zero, nat.sub_zero, ideal.one_eq_top, ideal.map_top] at this,
-  exact (dim_top p.quotient _).symm.trans this
+  exact (dim_top (R ⧸ p) _).symm.trans this
 end
 
+lemma char_zero.nsmul_eq_zero_iff {R : Type*} [semiring R] [no_zero_divisors R] [char_zero R]
+  {n : ℕ} {x : R} :
+  n • x = 0 ↔ n = 0 ∨ x = 0 :=
+⟨λ h, by rwa [nsmul_eq_mul, mul_eq_zero, nat.cast_eq_zero] at h,
+ by { rintros (h | h); simp [h]}⟩
+
+lemma cardinal.nsmul_lt_omega_iff {n : ℕ} (hn : n ≠ 0) {a : cardinal} :
+  n • a < cardinal.omega ↔ a < cardinal.omega :=
+begin
+  cases n,
+  { contradiction },
+  clear hn,
+  induction n with n ih,
+  { simp },
+  rw [succ_nsmul, cardinal.add_lt_omega_iff, ih, and_self]
+end
+
+lemma finite_dimensional_iff_of_rank_eq_nsmul
+  {K V W : Type*} [field K] [add_comm_group V] [add_comm_group W] [module K V] [module K W]
+  {n : ℕ} (hn : n ≠ 0) (hVW : module.rank K V = n • module.rank K W) :
+  finite_dimensional K V ↔ finite_dimensional K W :=
+by simp only [finite_dimensional, ← is_noetherian.iff_fg, is_noetherian.iff_dim_lt_omega, hVW,
+  cardinal.nsmul_lt_omega_iff hn]
+
 /-- If `p` is a maximal ideal of `R`, `S` extends `R` and `P^e` lies over `p`,
-then the dimension `[S/(P^e) : R/p]` is equal to `e * [S/P : R/p]`. -/
+then the dimension `[S/(P^e) : R/p]`, as a natural number, is equal to `e * [S/P : R/p]`. -/
 lemma finrank_prime_pow [is_dedekind_domain S]
-  (hP0 : P ≠ ⊥) [P.is_prime]
+  (hP0 : P ≠ ⊥) [p.is_maximal] [P.is_prime]
   {e : ℕ} (he : e ≠ 0) (hp : p ≤ comap f (P ^ e)) :
-  @finrank p.quotient (P^e).quotient _ _ (@algebra.to_module _ _ _ _ $
+  @finrank (R ⧸ p) (S ⧸ P^e) _ _ (@algebra.to_module _ _ _ _ $
     quotient.algebra_quotient_of_le_comap hp) =
-  e * @finrank p.quotient P.quotient _ _ (@algebra.to_module _ _ _ _ $
+  e * @finrank (R ⧸ p) (S ⧸ P) _ _ (@algebra.to_module _ _ _ _ $
     quotient.algebra_quotient_of_le_comap $ hp.trans $ comap_mono $ P.pow_le_self he) :=
 begin
-  
+  letI := quotient.algebra_quotient_of_le_comap hp,
+  letI := quotient.algebra_quotient_of_le_comap (hp.trans (comap_mono (P.pow_le_self he))),
+  have hdim := dim_prime_pow _ _ _ hP0 he hp,
+  by_cases hP : finite_dimensional (R ⧸ p) (S ⧸ P),
+  { haveI := hP,
+    haveI := (finite_dimensional_iff_of_rank_eq_nsmul he hdim).mpr hP,
+    apply cardinal.nat_cast_injective,
+    rw [finrank_eq_dim, nat.cast_mul, finrank_eq_dim, hdim, nsmul_eq_mul] },
+  have hPe := mt (finite_dimensional_iff_of_rank_eq_nsmul he hdim).mp hP,
+  simp only [finrank_of_infinite_dimensional hP, finrank_of_infinite_dimensional hPe, mul_zero],
 end
 
 /-- The **fundamental identity** of ramification index `e` and inertia degree `f`:

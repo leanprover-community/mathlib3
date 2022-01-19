@@ -73,7 +73,7 @@ lemma mzero (a c : A) : ⦃a, 0, c⦄ = 0 :=
 lemma rzero (a b : A) : ⦃a, b, 0⦄ = 0 :=
 by rw [comm, lzero]
 
-lemma lgsmul (a b c : A) (z : ℤ) : ⦃z•a, b, c⦄ = z•⦃a, b, c⦄ :=
+lemma lzsmul (a b c : A) (z : ℤ) : ⦃z•a, b, c⦄ = z•⦃a, b, c⦄ :=
 add_monoid_hom.map_zsmul ⟨λ (a : A), ⦃a, b, c⦄, lzero b c, λ _ _, ladd _ _ _ _⟩ _ _
 
 lemma mgsmul (a b c : A) (z : ℤ) : ⦃a, z•b, c⦄ = z•⦃a, b, c⦄ :=

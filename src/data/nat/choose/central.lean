@@ -25,8 +25,8 @@ This file proves properties of the central binomial coefficients (that is, `nat.
   coefficient.
 * `nat.multiplicity_central_binom_le`: a logarithmic upper bound on the multiplicity of a prime in
   the central binomial coefficient.
-* `nat.multiplicity_central_binom_of_large_le_one`: sufficiently large primes less than n appear at
-most once in the factorisation of the central binomial coefficient.
+* `nat.multiplicity_central_binom_of_large_le_one`: sufficiently large primes appear at most once
+  in the factorisation of the central binomial coefficient.
 * `nat.multiplicity_central_binom_of_large_eq_zero`: sufficiently large primes less than n do not
 appear in the factorisation of the central binomial coefficient.
 -/
@@ -152,7 +152,7 @@ lemma prime_le_three_is_two : ∀ {p : ℕ} (hp : prime p) (p_small : p < 3), p 
 lemma multiplicity_central_binom_of_large_eq_zero
   {p : nat} (hp : p.prime)
   {n : nat} (n_big : 2 < n)
-  (small : p ≤ n) (big : 2 * n < 3 * p)
+  (p_le_n : p ≤ n) (big : 2 * n < 3 * p)
   : padic_val_nat p (central_binom n) = 0 :=
 begin
   rw @padic_val_nat_def _ ⟨hp⟩ _ (central_binom_ne_zero n),
@@ -193,7 +193,7 @@ begin
   { rw [pow_one],
     suffices h23 : 2 * (p * (n / p)) + 2 * (n % p) < 2 * (p * (n / p)) + p,
     { exact (add_lt_add_iff_left (2 * (p * (n / p)))).mp h23, },
-    have n_big : 1 ≤ (n / p) := (nat.le_div_iff_mul_le' p_pos).2 (trans (one_mul _).le small),
+    have n_big : 1 ≤ (n / p) := (nat.le_div_iff_mul_le' p_pos).2 (trans (one_mul _).le p_le_n),
     rw [←mul_add, nat.div_add_mod],
     calc  2 * n < 3 * p : big
             ... = 2 * p + p : nat.succ_mul _ _

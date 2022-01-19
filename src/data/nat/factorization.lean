@@ -73,7 +73,7 @@ by simp only [support_factorization, list.mem_to_finset]
 lemma prime_of_mem_factorization {n p : ℕ} : p ∈ n.factorization.support → p.prime :=
 (@prime_of_mem_factors n p) ∘ (@factor_iff_mem_factorization n p).mp
 
-lemma pos_of_mem_factorization {n p : ℕ} : p ∈ n.factorization.support → 0 < p:=
+lemma pos_of_mem_factorization {n p : ℕ} : p ∈ n.factorization.support → 0 < p :=
 (@prime.pos p) ∘ (@prime_of_mem_factorization n p)
 
 /-- The only numbers with empty prime factorization are `0` and `1` -/

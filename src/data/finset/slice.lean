@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta, Alena Gusakov, Yaël Dillies
 -/
 import algebra.big_operators.basic
+import data.nat.interval
 import order.antichain
 
 /-!
@@ -46,18 +47,16 @@ lemma sized_union : (A ∪ B).sized r ↔ A.sized r ∧ B.sized r :=
 
 alias sized_union ↔ _ set.sized.union
 
+--TODO: A `forall_Union` lemma would be handy here.
 @[simp] lemma sized_Union {f : ι → set (finset α)} : (⋃ i, f i).sized r ↔ ∀ i, (f i).sized r :=
-begin
-  simp_rw [set.sized, set.mem_Union, forall_exists_index],
-  exact ⟨λ h a s hs, h a hs, λ h s a hs, h a hs⟩,
-end
+by { simp_rw [set.sized, set.mem_Union, forall_exists_index], exact forall_swap }
 
 @[simp] lemma sized_Union₂ {f : Π i, κ i → set (finset α)} :
   (⋃ i j, f i j).sized r ↔ ∀ i j, (f i j).sized r :=
 by simp_rw sized_Union
 
 protected lemma sized.is_antichain (hA : A.sized r) : is_antichain (⊆) A :=
-λ s hs t ht h hst, h $ eq_of_subset_of_card_le hst ((hA ht).trans (hA hs).symm).le
+λ s hs t ht h hst, h $ finset.eq_of_subset_of_card_le hst ((hA ht).trans (hA hs).symm).le
 
 protected lemma sized.subsingleton (hA : A.sized 0) : A.subsingleton :=
 subsingleton_of_forall_eq ∅ $ λ s hs, card_eq_zero.1 $ hA hs
@@ -128,7 +127,7 @@ variables [fintype α] (𝒜)
 subset.antisymm (bUnion_subset.2 $ λ r _, slice_subset) $ λ s hs,
   mem_bUnion.2 ⟨s.card, mem_Iic.2 $ s.card_le_univ, mem_slice.2 $ ⟨hs, rfl⟩⟩
 
-@[simp] lemma sum_card_slice : ∑ r in range (fintype.card α + 1), (𝒜 # r).card = 𝒜.card :=
+@[simp] lemma sum_card_slice : ∑ r in Iic (fintype.card α), (𝒜 # r).card = 𝒜.card :=
 by { rw [←card_bUnion (finset.pairwise_disjoint_slice.subset (set.subset_univ _)), bUnion_slice],
   exact classical.dec_eq _ }
 

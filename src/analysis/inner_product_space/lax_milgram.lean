@@ -102,11 +102,9 @@ begin
          C * ∥v∥ * ∥v∥
          ≤ B v v                         : coercivity v
     ...  = inner (lax_milgram_map B v) v : by simp
-    ...  ≤ ∥lax_milgram_map B v ∥ * ∥v∥    : real_inner_le_norm (lax_milgram_map B v) v,
-  },
+    ...  ≤ ∥lax_milgram_map B v ∥ * ∥v∥    : real_inner_le_norm (lax_milgram_map B v) v, },
   { have : v = 0 := by simpa using h,
-    simp [this],
-  }
+    simp [this], }
 end
 
 lemma injective (coercive : is_coercive B) : (lax_milgram_map B).ker = ⊥ :=

@@ -463,8 +463,6 @@ variables (R : Type u) (M : Type v) [comm_semiring R] [add_comm_monoid M] [modul
 instance : algebra R (module.End R M) :=
 algebra.of_module smul_mul_assoc (λ r f g, (smul_comm r f g).symm)
 
-instance : is_scalar_tower R (module.End R M) M := ⟨λ t f m, rfl⟩
-
 lemma algebra_map_End_eq_smul_id (a : R) :
   (algebra_map R (End R M)) a = a • linear_map.id := rfl
 

@@ -15,8 +15,8 @@ relation is `G.adj` for `G : simple_graph α`, this corresponds to independent s
 ## Definitions
 
 * `is_antichain r s`: Any two elements of `s : set α` are unrelated by `r : α → α → Prop`.
-* `is_strong_antichain r s`: Any two elements of `s : set α` are not related `r : α → α → Prop` to a
-  common element.
+* `is_strong_antichain r s`: Any two elements of `s : set α` are not related by `r : α → α → Prop`
+  to a common element.
 * `is_antichain.mk r s`: Turns `s` into an antichain by keeping only the "maximal" elements.
 -/
 

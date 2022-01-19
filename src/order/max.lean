@@ -24,6 +24,10 @@ saying that there are no such elements.
 * `no_top_order`: An order without top elements.
 * `no_min_order`: An order without minimal elements.
 * `no_max_order`: An order without maximal elements.
+
+## See also
+
+`is_bot_iff_is_min` and `is_top_iff_is_max` for the equivalences in a (co)directed order.
 -/
 
 open order_dual
@@ -175,14 +179,3 @@ protected lemma is_max.eq_of_le (ha : is_max a) (h : a ≤ b) : a = b := h.antis
 protected lemma is_max.eq_of_ge (ha : is_max a) (h : a ≤ b) : b = a := h.antisymm' $ ha h
 
 end partial_order
-
-section linear_order
-variables [linear_order α] {a b : α}
-
-protected lemma is_min.is_bot (h : is_min a) : is_bot a := λ b, (le_total a b).elim id $ @h _
-protected lemma is_max.is_top (h : is_max a) : is_top a := λ b, (le_total b a).elim id $ @h _
-
-@[simp] lemma is_bot_iff_is_min : is_bot a ↔ is_min a := ⟨is_bot.is_min, is_min.is_bot⟩
-@[simp] lemma is_top_iff_is_max : is_top a ↔ is_max a := ⟨is_top.is_max, is_max.is_top⟩
-
-end linear_order

@@ -96,8 +96,6 @@ variables [partial_order α] [order_top α] {a b : α}
 @[simp] lemma is_top_iff_eq_top : is_top a ↔ a = ⊤ :=
 ⟨λ h, h.is_max.eq_of_le le_top, λ h b, h.symm ▸ le_top⟩
 
-lemma is_top_iff_is_max' : is_top a ↔ is_max a := is_top_iff_eq_top.trans is_max_iff_eq_top.symm
-
 alias is_max_iff_eq_top ↔ _ is_max.eq_top
 alias is_top_iff_eq_top ↔ _ is_top.eq_top
 
@@ -169,8 +167,6 @@ variables [partial_order α] [order_bot α] {a b : α}
 
 @[simp] lemma is_bot_iff_eq_bot : is_bot a ↔ a = ⊥ :=
 ⟨λ h, h.is_min.eq_of_ge bot_le, λ h b, h.symm ▸ bot_le⟩
-
-lemma is_bot_iff_is_min' : is_bot a ↔ is_min a := is_bot_iff_eq_bot.trans is_min_iff_eq_bot.symm
 
 alias is_min_iff_eq_bot ↔ _ is_min.eq_bot
 alias is_bot_iff_eq_bot ↔ _ is_bot.eq_bot

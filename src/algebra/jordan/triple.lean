@@ -25,7 +25,7 @@ class is_jordan_tp (A : Type*) [has_tp A] [has_add A] [has_sub A] :=
 namespace is_tp
 
 lemma radd {A : Type*} [has_tp A] [has_add A] [is_tp A] (a b c₁ c₂ : A) :
-  ⦃a, b, c₁ + c₂⦄ = ⦃a, b, c₁⦄ + ⦃a, b, c₂⦄ := by rw [comm, ladd, comm, comm d]
+  ⦃a, b, c₁ + c₂⦄ = ⦃a, b, c₁⦄ + ⦃a, b, c₂⦄ := by rw [comm, ladd, comm, comm c₂]
 
 variables {A : Type*} [has_tp A] [add_comm_group A] [is_tp A]
 
@@ -149,7 +149,8 @@ lemma Q_ladd : A  →+ (A  →+  add_monoid.End A) := {
   end,
   map_add' := λ a₁ a₂, begin
     ext b c,
-    rw [Q_radd_apply, add_monoid_hom.add_apply, Q_radd_apply, Q_radd_apply, Q_apply, add_monoid_hom.add_apply, Q_apply, Q_apply, ladd],
+    rw [Q_radd_apply, add_monoid_hom.add_apply, Q_radd_apply, Q_radd_apply, Q_apply,
+      add_monoid_hom.add_apply, Q_apply, Q_apply, ladd],
   end,
 }
 

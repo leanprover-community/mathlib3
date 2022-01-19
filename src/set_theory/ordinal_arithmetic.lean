@@ -413,7 +413,7 @@ theorem is_normal.is_limit {f} (H : is_normal f) {o} (l : is_limit o) :
   lt_of_le_of_lt (succ_le.2 h₂) (H.lt_iff.2 h₁)⟩
 
 theorem is_normal.le_iff_eq {f} (H : is_normal f) {a} : f a ≤ a ↔ f a = a :=
-⟨λ h, le_antisymm h (H.le_self a), le_of_eq⟩
+(H.le_self a).le_iff_eq
 
 theorem add_le_of_limit {a b c : ordinal.{u}}
   (h : is_limit b) : a + b ≤ c ↔ ∀ b' < b, a + b' ≤ c :=

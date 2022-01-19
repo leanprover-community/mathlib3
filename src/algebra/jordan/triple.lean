@@ -116,9 +116,9 @@ calc ⦃a + c, b, a + c⦄ = ⦃a, b, a⦄ + ⦃a, b, c⦄ + ⦃c, b, a⦄ + ⦃
 
 
 @[simps] def add_monoid_hom.tp : A →+ A →+ A →+ A :=
-{ to_fun := λ a, {
-    to_fun := λ b, {
-      to_fun := λ c, ⦃a, b, c⦄,
+{ to_fun := λ a,
+  { to_fun := λ b,
+    { to_fun := λ c, ⦃a, b, c⦄,
       map_zero' := by rw rzero,
       map_add' := λ _ _, by rw radd, },
     map_zero' := add_monoid_hom.ext $ λ b, begin
@@ -141,11 +141,10 @@ calc ⦃a + c, b, a + c⦄ = ⦃a, b, a⦄ + ⦃a, b, c⦄ + ⦃c, b, a⦄ + ⦃
 /-- Define the multiplication operator `D` -/
 @[simps] def D : A →+ A →+ add_monoid.End A := add_monoid_hom.tp
 
-@[simps] def Q : A →+ A →+  add_monoid.End A := {
-  to_fun := λ a, (D a : A →+  add_monoid.End A).flip,
+@[simps] def Q : A →+ A →+  add_monoid.End A :=
+{ to_fun := λ a, (D a : A →+  add_monoid.End A).flip,
   map_zero' := by { ext, simp, },
-  map_add' := λ _ _, by { ext, simp, },
-}
+  map_add' := λ _ _, by { ext, simp, }, }
 
 end is_tp
 

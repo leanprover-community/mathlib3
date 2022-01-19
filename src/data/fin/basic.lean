@@ -252,13 +252,17 @@ instance : bounded_order (fin (n + 1)) :=
   bot := 0,
   bot_le := zero_le }
 
-instance : lattice (fin (n + 1)) := lattice_of_linear_order
+instance : lattice (fin (n + 1)) := linear_order.to_lattice
 
 lemma last_pos : (0 : fin (n + 2)) < last (n + 1) :=
 by simp [lt_iff_coe_lt_coe]
 
 lemma eq_last_of_not_lt {i : fin (n+1)} (h : ¬ (i : ℕ) < n) : i = last n :=
 le_antisymm (le_last i) (not_lt.1 h)
+
+lemma top_eq_last (n : ℕ) : ⊤ = fin.last n := rfl
+
+lemma bot_eq_zero (n : ℕ) : ⊥ = (0 : fin (n + 1)) := rfl
 
 section
 
@@ -576,7 +580,7 @@ set.ext (λ x, ⟨λ ⟨y, hy⟩, hy ▸ y.2, λ hx, ⟨⟨x, hx⟩, fin.ext rfl
   ((equiv.of_injective _ (cast_le h).injective).symm ⟨i, hi⟩ : ℕ) = i :=
 begin
   rw ← coe_cast_le,
-  exact congr_arg coe (equiv.apply_of_injective_symm _ _ _)
+  exact congr_arg coe (equiv.apply_of_injective_symm _ _)
 end
 
 @[simp] lemma cast_le_succ {m n : ℕ} (h : (m + 1) ≤ (n + 1)) (i : fin m) :
@@ -733,7 +737,7 @@ range_cast_le _
   ((equiv.of_injective cast_succ (cast_succ_injective _)).symm ⟨i, hi⟩ : ℕ) = i :=
 begin
   rw ← coe_cast_succ,
-  exact congr_arg coe (equiv.apply_of_injective_symm _ _ _)
+  exact congr_arg coe (equiv.apply_of_injective_symm _ _)
 end
 
 lemma succ_cast_succ {n : ℕ} (i : fin n) :

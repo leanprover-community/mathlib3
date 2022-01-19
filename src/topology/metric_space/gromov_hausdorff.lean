@@ -40,7 +40,11 @@ i.e., it is complete and second countable. We also prove the Gromov compactness 
 -/
 
 noncomputable theory
-open_locale classical topological_space
+open_locale classical topological_space ennreal
+
+local notation `ℓ_infty_ℝ`:= lp (λ n : ℕ, ℝ) ∞
+local attribute [instance] fact_one_le_top_ennreal
+
 universes u v w
 
 open classical set function topological_space filter metric quotient
@@ -172,7 +176,7 @@ we only consider embeddings in `ℓ^∞(ℝ)`, but we will prove below that it w
 instance : has_dist (GH_space) :=
 { dist := λ x y, Inf $
     (λ p : nonempty_compacts ℓ_infty_ℝ × nonempty_compacts ℓ_infty_ℝ,
-      Hausdorff_dist p.1.val p.2.val) '' (set.prod {a | ⟦a⟧ = x} {b | ⟦b⟧ = y}) }
+      Hausdorff_dist p.1.val p.2.val) '' ({a | ⟦a⟧ = x} ×ˢ {b | ⟦b⟧ = y}) }
 
 /-- The Gromov-Hausdorff distance between two nonempty compact metric spaces, equal by definition to
 the distance of the equivalence classes of these spaces in the Gromov-Hausdorff space. -/
@@ -388,10 +392,10 @@ instance : metric_space GH_space :=
   dist_comm := λ x y, begin
     have A : (λ (p : nonempty_compacts ℓ_infty_ℝ × nonempty_compacts ℓ_infty_ℝ),
                  Hausdorff_dist ((p.fst).val) ((p.snd).val)) ''
-             (set.prod {a | ⟦a⟧ = x} {b | ⟦b⟧ = y})
+             ({a | ⟦a⟧ = x} ×ˢ {b | ⟦b⟧ = y})
            = ((λ (p : nonempty_compacts ℓ_infty_ℝ × nonempty_compacts ℓ_infty_ℝ),
                  Hausdorff_dist ((p.fst).val) ((p.snd).val)) ∘ prod.swap) ''
-                 (set.prod {a | ⟦a⟧ = x} {b | ⟦b⟧ = y}) :=
+                 ({a | ⟦a⟧ = x} ×ˢ {b | ⟦b⟧ = y}) :=
       by { congr, funext, simp, rw Hausdorff_dist_comm },
     simp only [dist, A, image_comp, image_swap_prod],
   end,
@@ -641,13 +645,13 @@ begin
     { -- by construction, `s p` is `ε`-dense
       assume x,
       have : x ∈ ⋃y∈(s p), ball y ε := (hs p).2 (mem_univ _),
-      rcases mem_bUnion_iff.1 this with ⟨y, ys, hy⟩,
+      rcases mem_Union₂.1 this with ⟨y, ys, hy⟩,
       exact ⟨y, ys, le_of_lt hy⟩ },
     show ∀ x : q.rep, ∃ (z : s p), dist x (Φ z) ≤ ε,
     { -- by construction, `s q` is `ε`-dense, and it is the range of `Φ`
       assume x,
       have : x ∈ ⋃y∈(s q), ball y ε := (hs q).2 (mem_univ _),
-      rcases mem_bUnion_iff.1 this with ⟨y, ys, hy⟩,
+      rcases mem_Union₂.1 this with ⟨y, ys, hy⟩,
       let i : ℕ := E q ⟨y, ys⟩,
       let hi := ((E q) ⟨y, ys⟩).is_lt,
       have ihi_eq : (⟨i, hi⟩ : fin (N q)) = (E q) ⟨y, ys⟩, by rw [fin.ext_iff, fin.coe_mk],
@@ -784,13 +788,13 @@ begin
     { -- by construction, `s p` is `ε`-dense
       assume x,
       have : x ∈ ⋃y∈(s p), ball y (u n) := (hs p pt) (mem_univ _),
-      rcases mem_bUnion_iff.1 this with ⟨y, ys, hy⟩,
+      rcases mem_Union₂.1 this with ⟨y, ys, hy⟩,
       exact ⟨y, ys, le_trans (le_of_lt hy) u_le_ε⟩ },
     show ∀ x : q.rep, ∃ (z : s p), dist x (Φ z) ≤ ε,
     { -- by construction, `s q` is `ε`-dense, and it is the range of `Φ`
       assume x,
       have : x ∈ ⋃y∈(s q), ball y (u n) := (hs q qt) (mem_univ _),
-      rcases mem_bUnion_iff.1 this with ⟨y, ys, hy⟩,
+      rcases mem_Union₂.1 this with ⟨y, ys, hy⟩,
       let i : ℕ := E q ⟨y, ys⟩,
       let hi := ((E q) ⟨y, ys⟩).2,
       have ihi_eq : (⟨i, hi⟩ : fin (N q)) = (E q) ⟨y, ys⟩, by rw [fin.ext_iff, fin.coe_mk],

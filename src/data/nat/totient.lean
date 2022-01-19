@@ -255,7 +255,7 @@ end
 ---------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------
 section temp    -- TODO: Move this elsewhere, use it in following proofs
-lemma prod_prime_factors_dvd (n:ℕ) : (∏ (p : ℕ) in n.factors.to_finset, p) ∣ n :=
+lemma prod_prime_factors_dvd (n : ℕ) : (∏ (p : ℕ) in n.factors.to_finset, p) ∣ n :=
 begin
   rcases em (n = 0) with rfl | hn0, { simp },
   nth_rewrite_rhs 0 ←factorization_prod_pow_eq_self hn0,
@@ -283,9 +283,7 @@ begin
   have h1 : 0 < P1 := prod_pos (λ p hp, pos_of_mem_factorization hp),
 
   have h2 : P1 ∣ n,
-  { rw ←factorization_prod_pow_eq_self hn0,
-    refine finset.prod_dvd_prod id (λ a, a ^ (n.factorization) a) (λ p hp, _),
-    apply dvd_pow (dvd_refl p) (finsupp.mem_support_iff.mp hp) },
+  { simp only [P1, finsupp.prod, support_factorization, prod_prime_factors_dvd n] },
 
   suffices : φ n * P1 = n * P2,
   { rw [(mul_div_left n.totient h1).symm, this, mul_comm, nat.mul_div_assoc P2 h2, mul_comm] },

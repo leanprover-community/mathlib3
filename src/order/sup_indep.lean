@@ -104,7 +104,7 @@ lemma complete_lattice.independent_iff_sup_indep [complete_lattice α] {s : fins
 begin
   classical,
   rw finset.sup_indep_iff_disjoint_erase,
-  refine subtype.forall.trans (forall_congr $ λ a, forall_congr $ λ b, _),
+  refine subtype.forall.trans (forall₂_congr $ λ a b, _),
   rw finset.sup_eq_supr,
   congr' 2,
   refine supr_subtype.trans _,

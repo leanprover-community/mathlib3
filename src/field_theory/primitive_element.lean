@@ -155,11 +155,11 @@ begin
     apply (div_eq_iff (sub_ne_zero.mpr a)).mpr,
     simp only [algebra.smul_def, ring_hom.map_add, ring_hom.map_mul, ring_hom.comp_apply],
     ring },
-  rw ← eq_X_sub_C_of_separable_of_root_eq h_ne_zero h_sep h_root h_splits h_roots,
+  rw ← eq_X_sub_C_of_separable_of_root_eq h_sep h_root h_splits h_roots,
   transitivity euclidean_domain.gcd (_ : polynomial E) (_ : polynomial E),
   { dsimp only [p],
     convert (gcd_map (algebra_map F⟮γ⟯ E)).symm },
-  { simpa [map_comp, map_map, ←is_scalar_tower.algebra_map_eq, h] },
+  { simpa [map_comp, polynomial.map_map, ←is_scalar_tower.algebra_map_eq, h] },
 end
 
 end primitive_element_inf

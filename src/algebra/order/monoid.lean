@@ -7,9 +7,9 @@ import algebra.group.with_one
 import algebra.group.type_tags
 import algebra.group.prod
 import algebra.order.monoid_lemmas
-import order.bounded_lattice
+import order.bounded_order
 import order.min_max
-import order.rel_iso
+import order.hom.basic
 
 /-!
 # Ordered monoids
@@ -117,10 +117,6 @@ lemma top_add (a : α) : ⊤ + a = ⊤ := linear_ordered_add_comm_monoid_with_to
 lemma add_top (a : α) : a + ⊤ = ⊤ :=
 trans (add_comm _ _) (top_add _)
 
--- TODO: Generalize to a not-yet-existing typeclass extending `linear_order` and `order_top`
-@[simp] lemma min_top_left (a : α) : min (⊤ : α) a = a := min_eq_right le_top
-@[simp] lemma min_top_right (a : α) : min a ⊤ = a := min_eq_left le_top
-
 end linear_ordered_add_comm_monoid_with_top
 
 /-- Pullback an `ordered_comm_monoid` under an injective map.
@@ -155,32 +151,32 @@ add_pos h h
 namespace units
 
 @[to_additive]
-instance [monoid α] [preorder α] : preorder (units α) :=
-preorder.lift (coe : units α → α)
+instance [monoid α] [preorder α] : preorder αˣ :=
+preorder.lift (coe : αˣ → α)
 
 @[simp, norm_cast, to_additive]
-theorem coe_le_coe [monoid α] [preorder α] {a b : units α} :
+theorem coe_le_coe [monoid α] [preorder α] {a b : αˣ} :
   (a : α) ≤ b ↔ a ≤ b := iff.rfl
 
 @[simp, norm_cast, to_additive]
-theorem coe_lt_coe [monoid α] [preorder α] {a b : units α} :
+theorem coe_lt_coe [monoid α] [preorder α] {a b : αˣ} :
   (a : α) < b ↔ a < b := iff.rfl
 
 @[to_additive]
-instance [monoid α] [partial_order α] : partial_order (units α) :=
+instance [monoid α] [partial_order α] : partial_order αˣ :=
 partial_order.lift coe units.ext
 
 @[to_additive]
-instance [monoid α] [linear_order α] : linear_order (units α) :=
+instance [monoid α] [linear_order α] : linear_order αˣ :=
 linear_order.lift coe units.ext
 
 @[simp, norm_cast, to_additive]
-theorem max_coe [monoid α] [linear_order α] {a b : units α} :
+theorem max_coe [monoid α] [linear_order α] {a b : αˣ} :
   (↑(max a b) : α) = max a b :=
 by by_cases b ≤ a; simp [max_def, h]
 
 @[simp, norm_cast, to_additive]
-theorem min_coe [monoid α] [linear_order α] {a b : units α} :
+theorem min_coe [monoid α] [linear_order α] {a b : αˣ} :
   (↑(min a b) : α) = min a b :=
 by by_cases a ≤ b; simp [min_def, h]
 
@@ -629,8 +625,8 @@ section canonically_linear_ordered_monoid
 variables [canonically_linear_ordered_monoid α]
 
 @[priority 100, to_additive]  -- see Note [lower instance priority]
-instance canonically_linear_ordered_monoid.semilattice_sup_bot : semilattice_sup_bot α :=
-{ ..lattice_of_linear_order, ..canonically_ordered_monoid.to_order_bot α }
+instance canonically_linear_ordered_monoid.semilattice_sup : semilattice_sup α :=
+{ ..linear_order.to_lattice }
 
 instance with_top.canonically_linear_ordered_add_monoid
   (α : Type*) [canonically_linear_ordered_add_monoid α] :

@@ -6,6 +6,7 @@ Authors: Frédéric Dupuis
 import data.real.sqrt
 import field_theory.tower
 import analysis.normed_space.finite_dimension
+import analysis.normed_space.star
 
 /-!
 # `is_R_or_C`: a typeclass for ℝ or ℂ
@@ -203,7 +204,7 @@ begin
       convert (re_add_im z).symm, simp [this] },
     contrapose! h,
     rw ← re_add_im z,
-    simp only [conj_of_real, ring_equiv.map_add, ring_equiv.map_mul, conj_I_ax],
+    simp only [conj_of_real, ring_hom.map_add, ring_hom.map_mul, conj_I_ax],
     rw [add_left_cancel_iff, ext_iff],
     simpa [neg_eq_iff_add_eq_zero, add_self_eq_zero] },
   { rintros ⟨r, rfl⟩, apply conj_of_real }
@@ -344,7 +345,7 @@ begin
 end
 
 @[simp] lemma inv_I : (I : K)⁻¹ = -I :=
-by { by_cases h : (I : K) = 0; field_simp [h] }
+by field_simp
 
 @[simp] lemma norm_sq_inv (z : K) : norm_sq z⁻¹ = (norm_sq z)⁻¹ :=
 (@norm_sq K _).map_inv z
@@ -355,10 +356,13 @@ by { by_cases h : (I : K) = 0; field_simp [h] }
 lemma norm_conj {z : K} : ∥conj z∥ = ∥z∥ :=
 by simp only [←sqrt_norm_sq_eq_norm, norm_sq_conj]
 
+@[priority 100] instance : cstar_ring K :=
+{ norm_star_mul_self := λ x, (normed_field.norm_mul _ _).trans $ congr_arg (* ∥x∥) norm_conj }
+
 /-! ### Cast lemmas -/
 
 @[simp, norm_cast, priority 900] theorem of_real_nat_cast (n : ℕ) : ((n : ℝ) : K) = n :=
-of_real_hom.map_nat_cast n
+show (algebra_map ℝ K) n = n, from map_nat_cast of_real_hom n
 
 @[simp, norm_cast] lemma nat_cast_re (n : ℕ) : re (n : K) = n :=
 by rw [← of_real_nat_cast, of_real_re]
@@ -626,17 +630,23 @@ library_note "is_R_or_C instance"
     simp [re_add_im a, algebra.smul_def, algebra_map_eq_of_real]
   end⟩⟩
 
-/-- Over an `is_R_or_C` field, we can register the properness of finite-dimensional normed spaces as
-an instance. -/
-@[priority 900, nolint dangerous_instance] instance proper_is_R_or_C -- note [is_R_or_C instance]
-  {E : Type*} [normed_group E] [normed_space K E] [finite_dimensional K E] :
-  proper_space E :=
+variables (K) (E : Type*) [normed_group E] [normed_space K E]
+
+/-- A finite dimensional vector space Over an `is_R_or_C` is a proper metric space.
+
+This is not an instance because it would cause a search for `finite_dimensional ?x E` before
+`is_R_or_C ?x`. -/
+lemma proper_is_R_or_C [finite_dimensional K E] : proper_space E :=
 begin
   letI : normed_space ℝ E := restrict_scalars.normed_space ℝ K E,
-  letI : is_scalar_tower ℝ K E := restrict_scalars.is_scalar_tower _ _ _,
   letI : finite_dimensional ℝ E := finite_dimensional.trans ℝ K E,
   apply_instance
 end
+
+variable {E}
+
+instance is_R_or_C.proper_space_span_singleton (x : E) : proper_space (K ∙ x) :=
+proper_is_R_or_C K (K ∙ x)
 
 end finite_dimensional
 
@@ -648,19 +658,19 @@ noncomputable instance real.is_R_or_C : is_R_or_C ℝ :=
   I := 0,
   I_re_ax := by simp only [add_monoid_hom.map_zero],
   I_mul_I_ax := or.intro_left _ rfl,
-  re_add_im_ax := λ z, by unfold_coes; simp [add_zero, id.def, mul_zero],
+  re_add_im_ax := λ z, by simp [add_zero, id.def, mul_zero],
   of_real_re_ax := λ r, by simp only [add_monoid_hom.id_apply, algebra.id.map_eq_self],
   of_real_im_ax := λ r, by simp only [add_monoid_hom.zero_apply],
   mul_re_ax := λ z w,
     by simp only [sub_zero, mul_zero, add_monoid_hom.zero_apply, add_monoid_hom.id_apply],
   mul_im_ax := λ z w, by simp only [add_zero, zero_mul, mul_zero, add_monoid_hom.zero_apply],
-  conj_re_ax := λ z, by simp only [star_ring_aut_apply, star_id_of_comm],
+  conj_re_ax := λ z, by simp only [star_ring_end_apply, star_id_of_comm],
   conj_im_ax := λ z, by simp only [neg_zero, add_monoid_hom.zero_apply],
-  conj_I_ax := by simp only [ring_equiv.map_zero, neg_zero],
+  conj_I_ax := by simp only [ring_hom.map_zero, neg_zero],
   norm_sq_eq_def_ax := λ z, by simp only [sq, norm, ←abs_mul, abs_mul_self z, add_zero,
     mul_zero, add_monoid_hom.zero_apply, add_monoid_hom.id_apply],
   mul_im_I_ax := λ z, by simp only [mul_zero, add_monoid_hom.zero_apply],
-  inv_def_ax := λ z, by simp only [star_ring_aut_apply, star, sq, real.norm_eq_abs,
+  inv_def_ax := λ z, by simp only [star_ring_end_apply, star, sq, real.norm_eq_abs,
     abs_mul_abs_self, ←div_eq_mul_inv, algebra.id.map_eq_id, id.def, ring_hom.id_apply,
     div_self_mul_self'],
   div_I_ax := λ z, by simp only [div_zero, mul_zero, neg_zero]}
@@ -710,7 +720,8 @@ linear_map.mk_continuous re_lm 1 $ by
 begin
   apply le_antisymm (linear_map.mk_continuous_norm_le _ zero_le_one _),
   convert continuous_linear_map.ratio_le_op_norm _ (1 : K),
-  simp,
+  { simp },
+  { apply_instance }
 end
 
 @[simp, norm_cast] lemma re_clm_coe : ((re_clm : K →L[ℝ] ℝ) : K →ₗ[ℝ] ℝ) = re_lm := rfl
@@ -738,8 +749,11 @@ linear_map.mk_continuous im_lm 1 $ by
 
 /-- Conjugate as an `ℝ`-algebra equivalence -/
 noncomputable def conj_ae : K ≃ₐ[ℝ] K :=
-{ commutes' := conj_of_real,
-  .. star_ring_aut }
+{ inv_fun := conj,
+  left_inv := conj_conj,
+  right_inv := conj_conj,
+  commutes' := conj_of_real,
+  .. conj }
 
 @[simp] lemma conj_ae_coe : (conj_ae : K → K) = conj := rfl
 
@@ -786,24 +800,3 @@ linear_isometry.norm_to_continuous_linear_map of_real_li
 end linear_maps
 
 end is_R_or_C
-
-section normalization
-variables {K : Type*} [is_R_or_C K]
-variables {E : Type*} [normed_group E] [normed_space K E]
-
-open is_R_or_C
-
-/- Note: one might think the following lemma belongs in `analysis.normed_space.basic`.  But it
-can't be placed there, because that file is an import of `data.complex.is_R_or_C`! -/
-
-/-- Lemma to normalize a vector in a normed space `E` over either `ℂ` or `ℝ` to unit length. -/
-@[simp] lemma norm_smul_inv_norm {x : E} (hx : x ≠ 0) : ∥(∥x∥⁻¹ : K) • x∥ = 1 :=
-begin
-  have h : ∥(∥x∥ : K)∥ = ∥x∥,
-  { rw norm_eq_abs,
-    exact abs_of_nonneg (norm_nonneg _) },
-  have : ∥x∥ ≠ 0 := by simp [hx],
-  field_simp [norm_smul, h]
-end
-
-end normalization

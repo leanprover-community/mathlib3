@@ -87,7 +87,7 @@ by rw [integrable_on, measure.restrict_univ]
 
 lemma integrable_on_zero : integrable_on (λ _, (0:E)) s μ := integrable_zero _ _ _
 
-lemma integrable_on_const {C : E} : integrable_on (λ _, C) s μ ↔ C = 0 ∨ μ s < ∞ :=
+@[simp] lemma integrable_on_const {C : E} : integrable_on (λ _, C) s μ ↔ C = 0 ∨ μ s < ∞ :=
 integrable_const_iff.trans $ by rw [measure.restrict_apply_univ]
 
 lemma integrable_on.mono (h : integrable_on f t ν) (hs : s ⊆ t) (hμ : μ ≤ ν) :
@@ -104,11 +104,20 @@ h.mono (subset.refl _) hμ
 
 lemma integrable_on.mono_set_ae (h : integrable_on f t μ) (hst : s ≤ᵐ[μ] t) :
   integrable_on f s μ :=
-h.integrable.mono_measure $ restrict_mono_ae hst
+h.integrable.mono_measure $ measure.restrict_mono_ae hst
 
 lemma integrable_on.congr_set_ae (h : integrable_on f t μ) (hst : s =ᵐ[μ] t) :
   integrable_on f s μ :=
 h.mono_set_ae hst.le
+
+lemma integrable_on.congr_fun' (h : integrable_on f s μ) (hst : f =ᵐ[μ.restrict s] g) :
+  integrable_on g s μ :=
+integrable.congr h hst
+
+lemma integrable_on.congr_fun (h : integrable_on f s μ) (hst : eq_on f g s)
+  (hs : measurable_set s) :
+  integrable_on g s μ :=
+h.congr_fun' ((ae_restrict_iff' hs).2 (eventually_of_forall hst))
 
 lemma integrable.integrable_on (h : integrable f μ) : integrable_on f s μ :=
 h.mono_measure $ measure.restrict_le_self
@@ -180,6 +189,16 @@ lemma integrable_on_map_equiv [measurable_space β] (e : α ≃ᵐ β) {f : β �
   {s : set β} :
   integrable_on f s (measure.map e μ) ↔ integrable_on (f ∘ e) (e ⁻¹' s) μ :=
 by simp only [integrable_on, e.restrict_map, integrable_map_equiv e]
+
+lemma measure_preserving.integrable_on_comp_preimage [measurable_space β] {e : α → β} {ν}
+  (h₁ : measure_preserving e μ ν) (h₂ : measurable_embedding e) {f : β → E} {s : set β} :
+  integrable_on (f ∘ e) (e ⁻¹' s) μ ↔ integrable_on f s ν :=
+(h₁.restrict_preimage_emb h₂ s).integrable_comp_emb h₂
+
+lemma measure_preserving.integrable_on_image [measurable_space β] {e : α → β} {ν}
+  (h₁ : measure_preserving e μ ν) (h₂ : measurable_embedding e) {f : β → E} {s : set α} :
+  integrable_on f (e '' s) ν ↔  integrable_on (f ∘ e) s μ :=
+((h₁.restrict_image_emb h₂ s).integrable_comp_emb h₂).symm
 
 lemma integrable_indicator_iff (hs : measurable_set s) :
   integrable (indicator s f) μ ↔ integrable_on f s μ :=
@@ -323,8 +342,8 @@ lemma continuous_on.ae_measurable [topological_space α] [opens_measurable_space
   ae_measurable f (μ.restrict s) :=
 begin
   nontriviality α, inhabit α,
-  have : piecewise s f (λ _, f (default α)) =ᵐ[μ.restrict s] f := piecewise_ae_eq_restrict hs,
-  refine ⟨piecewise s f (λ _, f (default α)), _, this.symm⟩,
+  have : piecewise s f (λ _, f default) =ᵐ[μ.restrict s] f := piecewise_ae_eq_restrict hs,
+  refine ⟨piecewise s f (λ _, f default), _, this.symm⟩,
   apply measurable_of_is_open,
   assume t ht,
   obtain ⟨u, u_open, hu⟩ : ∃ (u : set α), is_open u ∧ f ⁻¹' t ∩ s = u ∩ s :=
@@ -352,7 +371,7 @@ lemma continuous_on.integrable_on_compact
 hs.integrable_on_of_nhds_within $ λ x hx, hf.integrable_at_nhds_within hs.measurable_set hx
 
 lemma continuous_on.integrable_on_Icc [borel_space E]
-  [conditionally_complete_linear_order β] [topological_space β] [order_topology β]
+  [preorder β] [topological_space β] [t2_space β] [compact_Icc_space β]
   [measurable_space β] [opens_measurable_space β] {μ : measure β} [is_locally_finite_measure μ]
   {a b : β} {f : β → E} (hf : continuous_on f (Icc a b)) :
   integrable_on f (Icc a b) μ :=
@@ -375,7 +394,7 @@ lemma continuous.integrable_on_compact
 hf.continuous_on.integrable_on_compact hs
 
 lemma continuous.integrable_on_Icc [borel_space E]
-  [conditionally_complete_linear_order β] [topological_space β] [order_topology β]
+  [preorder β] [topological_space β] [t2_space β] [compact_Icc_space β]
   [measurable_space β] [opens_measurable_space β] {μ : measure β} [is_locally_finite_measure μ]
   {a b : β} {f : β → E} (hf : continuous f) :
   integrable_on f (Icc a b) μ :=

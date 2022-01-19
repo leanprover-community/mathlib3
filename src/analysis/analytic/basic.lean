@@ -358,7 +358,7 @@ lemma has_fpower_series_on_ball.mono
 ⟨le_trans hr hf.1, r'_pos, λ y hy, hf.has_sum (emetric.ball_subset_ball hr hy)⟩
 
 protected lemma has_fpower_series_at.eventually (hf : has_fpower_series_at f p x) :
-  ∀ᶠ r : ℝ≥0∞ in 𝓝[Ioi 0] 0, has_fpower_series_on_ball f p x r :=
+  ∀ᶠ r : ℝ≥0∞ in 𝓝[>] 0, has_fpower_series_on_ball f p x r :=
 let ⟨r, hr⟩ := hf in
 mem_of_superset (Ioo_mem_nhds_within_Ioi (left_mem_Ico.2 hr.r_pos)) $
   λ r' hr', hr.mono hr'.1 hr'.2.le
@@ -517,7 +517,7 @@ begin
   have hL : ∀ y ∈ emetric.ball (x, x) r',
     ∥f y.1 - f y.2 - (p 1 (λ _, y.1 - y.2))∥ ≤ L y,
   { intros y hy',
-    have hy : y ∈ (emetric.ball x r).prod (emetric.ball x r),
+    have hy : y ∈ emetric.ball x r ×ˢ emetric.ball x r,
     { rw [emetric.ball_prod_same], exact emetric.ball_subset_ball hr.le hy' },
     set A : ℕ → F := λ n, p n (λ _, y.1 - x) - p n (λ _, y.2 - x),
     have hA : has_sum (λ n, A (n + 2)) (f y.1 - f y.2 - (p 1 (λ _, y.1 - y.2))),
@@ -565,7 +565,7 @@ lemma has_fpower_series_on_ball.image_sub_sub_deriv_le
   ∃ C, ∀ (y z ∈ emetric.ball x r'),
     ∥f y - f z - (p 1 (λ _, y - z))∥ ≤ C * (max ∥y - x∥ ∥z - x∥) * ∥y - z∥ :=
 by simpa only [is_O_principal, mul_assoc, normed_field.norm_mul, norm_norm, prod.forall,
-  emetric.mem_ball, prod.edist_eq, max_lt_iff, and_imp]
+  emetric.mem_ball, prod.edist_eq, max_lt_iff, and_imp, @forall_swap (_ < _) E]
   using hf.is_O_image_sub_image_sub_deriv_principal hr
 
 /-- If `f` has formal power series `∑ n, pₙ` at `x`, then
@@ -644,15 +644,16 @@ begin
 end
 
 /-- If a function admits a power series expansion on a disk, then it is continuous there. -/
-lemma has_fpower_series_on_ball.continuous_on
+protected lemma has_fpower_series_on_ball.continuous_on
   (hf : has_fpower_series_on_ball f p x r) : continuous_on f (emetric.ball x r) :=
-hf.tendsto_locally_uniformly_on'.continuous_on $ λ n,
+hf.tendsto_locally_uniformly_on'.continuous_on $ eventually_of_forall $ λ n,
   ((p.partial_sum_continuous n).comp (continuous_id.sub continuous_const)).continuous_on
 
-lemma has_fpower_series_at.continuous_at (hf : has_fpower_series_at f p x) : continuous_at f x :=
+protected lemma has_fpower_series_at.continuous_at (hf : has_fpower_series_at f p x) :
+  continuous_at f x :=
 let ⟨r, hr⟩ := hf in hr.continuous_on.continuous_at (emetric.ball_mem_nhds x (hr.r_pos))
 
-lemma analytic_at.continuous_at (hf : analytic_at 𝕜 f x) : continuous_at f x :=
+protected lemma analytic_at.continuous_at (hf : analytic_at 𝕜 f x) : continuous_at f x :=
 let ⟨p, hp⟩ := hf in hp.continuous_at
 
 /-- In a complete space, the sum of a converging power series `p` admits `p` as a power series.
@@ -931,7 +932,7 @@ begin
   rw continuous_multilinear_map.curry_fin_finset_apply_const,
   have : ∀ m (hm : n = m), p n (s.piecewise (λ _, x) (λ _, y)) =
     p m ((s.map (fin.cast hm).to_equiv.to_embedding).piecewise (λ _, x) (λ _, y)),
-  { rintro m rfl, simp, congr /- probably different `decidable_eq` instances -/ },
+  { rintro m rfl, simp },
   apply this
 end
 

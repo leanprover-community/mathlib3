@@ -58,15 +58,18 @@ attribute [class] measurable_space
 instance [h : measurable_space α] : measurable_space (order_dual α) := h
 
 section
-variable [measurable_space α]
 
 /-- `measurable_set s` means that `s` is measurable (in the ambient measure space on `α`) -/
-def measurable_set : set α → Prop := ‹measurable_space α›.measurable_set'
+def measurable_set [measurable_space α] : set α → Prop := ‹measurable_space α›.measurable_set'
 
 localized "notation `measurable_set[` m `]` := @measurable_set _ m" in measure_theory
 
-@[simp] lemma measurable_set.empty : measurable_set (∅ : set α) :=
+@[simp] lemma measurable_set.empty [measurable_space α] : measurable_set (∅ : set α) :=
 ‹measurable_space α›.measurable_set_empty
+
+variable {m : measurable_space α}
+
+include m
 
 lemma measurable_set.compl : measurable_set s → measurable_set sᶜ :=
 ‹measurable_space α›.measurable_set_compl s
@@ -272,11 +275,17 @@ namespace measurable_space
 
 section complete_lattice
 
+instance : has_le (measurable_space α) :=
+{ le          := λ m₁ m₂, m₁.measurable_set' ≤ m₂.measurable_set' }
+
+lemma le_def {α} {a b : measurable_space α} :
+  a ≤ b ↔ a.measurable_set' ≤ b.measurable_set' := iff.rfl
+
 instance : partial_order (measurable_space α) :=
-{ le          := λ m₁ m₂, m₁.measurable_set' ≤ m₂.measurable_set',
-  le_refl     := assume a b, le_refl _,
-  le_trans    := assume a b c, le_trans,
-  le_antisymm := assume a b h₁ h₂, measurable_space.ext $ assume s, ⟨h₁ s, h₂ s⟩ }
+{ le_refl     := assume a b, le_refl _,
+  le_trans    := assume a b c hab hbc, le_def.mpr (le_trans hab hbc),
+  le_antisymm := assume a b h₁ h₂, measurable_space.ext $ assume s, ⟨h₁ s, h₂ s⟩,
+  ..measurable_space.has_le }
 
 /-- The smallest σ-algebra containing a collection `s` of basic sets -/
 inductive generate_measurable (s : set (set α)) : set α → Prop
@@ -410,11 +419,16 @@ lemma measurable_id : measurable (@id α) := λ t, id
 
 lemma measurable_id' : measurable (λ a : α, a) := measurable_id
 
-lemma measurable.comp {g : β → γ} {f : α → β} (hg : measurable g) (hf : measurable f) :
+lemma measurable.comp {α β γ} {mα : measurable_space α} {mβ : measurable_space β}
+  {mγ : measurable_space γ} {g : β → γ} {f : α → β} (hg : measurable g) (hf : measurable f) :
   measurable (g ∘ f) :=
 λ t ht, hf (hg ht)
 
 @[simp] lemma measurable_const {a : α} : measurable (λ b : β, a) :=
 assume s hs, measurable_set.const (a ∈ s)
+
+lemma measurable.le {α} {m m0 : measurable_space α} (hm : m ≤ m0) {f : α → β}
+  (hf : measurable[m] f) : measurable[m0] f :=
+λ s hs, hm _ (hf hs)
 
 end measurable_functions

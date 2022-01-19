@@ -40,20 +40,13 @@ by rw [log, exp_add_mul_I, ← of_real_sin, sin_arg, ← of_real_cos, cos_arg hx
 @[simp] lemma range_exp : range exp = {0}ᶜ :=
 set.ext $ λ x, ⟨by { rintro ⟨x, rfl⟩, exact exp_ne_zero x }, λ hx, ⟨log x, exp_log hx⟩⟩
 
+lemma log_exp {x : ℂ} (hx₁ : -π < x.im) (hx₂: x.im ≤ π) : log (exp x) = x :=
+by rw [log, abs_exp, real.log_exp, exp_eq_exp_re_mul_sin_add_cos, ← of_real_exp,
+  arg_mul_cos_add_sin_mul_I (real.exp_pos _) ⟨hx₁, hx₂⟩, re_add_im]
+
 lemma exp_inj_of_neg_pi_lt_of_le_pi {x y : ℂ} (hx₁ : -π < x.im) (hx₂ : x.im ≤ π)
   (hy₁ : - π < y.im) (hy₂ : y.im ≤ π) (hxy : exp x = exp y) : x = y :=
-by rw [exp_eq_exp_re_mul_sin_add_cos, exp_eq_exp_re_mul_sin_add_cos y] at hxy;
-  exact complex.ext
-    (real.exp_injective $
-      by simpa [abs_mul, abs_cos_add_sin_mul_I] using congr_arg complex.abs hxy)
-    (by simpa [(of_real_exp _).symm, - of_real_exp, arg_real_mul _ (real.exp_pos _),
-      arg_cos_add_sin_mul_I hx₁ hx₂, arg_cos_add_sin_mul_I hy₁ hy₂] using congr_arg arg hxy)
-
-lemma log_exp {x : ℂ} (hx₁ : -π < x.im) (hx₂: x.im ≤ π) : log (exp x) = x :=
-exp_inj_of_neg_pi_lt_of_le_pi
-  (by rw log_im; exact neg_pi_lt_arg _)
-  (by rw log_im; exact arg_le_pi _)
-  hx₁ hx₂ (by rw [exp_log (exp_ne_zero _)])
+by rw [← log_exp hx₁ hx₂, ← log_exp hy₁ hy₂, hxy]
 
 lemma of_real_log {x : ℝ} (hx : 0 ≤ x) : (x.log : ℂ) = log x :=
 complex.ext
@@ -76,27 +69,16 @@ lemma two_pi_I_ne_zero : (2 * π * I : ℂ) ≠ 0 :=
 by norm_num [real.pi_ne_zero, I_ne_zero]
 
 lemma exp_eq_one_iff {x : ℂ} : exp x = 1 ↔ ∃ n : ℤ, x = n * ((2 * π) * I) :=
-have real.exp (x.re) * real.cos (x.im) = 1 → real.cos x.im ≠ -1,
-  from λ h₁ h₂, begin
-    rw [h₂, mul_neg_eq_neg_mul_symm, mul_one, neg_eq_iff_neg_eq] at h₁,
-    have := real.exp_pos x.re,
-    rw ← h₁ at this,
-    exact absurd this (by norm_num)
-  end,
-calc exp x = 1 ↔ (exp x).re = 1 ∧ (exp x).im = 0 : by simp [complex.ext_iff]
-  ... ↔ real.cos x.im = 1 ∧ real.sin x.im = 0 ∧ x.re = 0 :
-    begin
-      rw exp_eq_exp_re_mul_sin_add_cos,
-      simp [complex.ext_iff, cos_of_real_re, sin_of_real_re, exp_of_real_re,
-        real.exp_ne_zero],
-      split; finish [real.sin_eq_zero_iff_cos_eq]
-    end
-  ... ↔ (∃ n : ℤ, ↑n * (2 * π) = x.im) ∧ (∃ n : ℤ, ↑n * π = x.im) ∧ x.re = 0 :
-    by rw [real.sin_eq_zero_iff, real.cos_eq_one_iff]
-  ... ↔ ∃ n : ℤ, x = n * ((2 * π) * I) :
-    ⟨λ ⟨⟨n, hn⟩, ⟨m, hm⟩, h⟩, ⟨n, by simp [complex.ext_iff, hn.symm, h]⟩,
-      λ ⟨n, hn⟩, ⟨⟨n, by simp [hn]⟩, ⟨2 * n, by simp [hn, mul_comm, mul_assoc, mul_left_comm]⟩,
-        by simp [hn]⟩⟩
+begin
+  split,
+  { intro h,
+    rcases exists_unique_add_zsmul_mem_Ioc real.two_pi_pos x.im (-π) with ⟨n, hn, -⟩,
+    use -n,
+    rw [int.cast_neg, ← neg_mul_eq_neg_mul, eq_neg_iff_add_eq_zero],
+    have : (x + n * (2 * π * I)).im ∈ Ioc (-π) π, by simpa [two_mul, mul_add] using hn,
+    rw [← log_exp this.1 this.2, exp_periodic.int_mul n, h, log_one] },
+  { rintro ⟨n, rfl⟩, exact (exp_periodic.int_mul n).eq.trans exp_zero }
+end
 
 lemma exp_eq_exp_iff_exp_sub_eq_one {x y : ℂ} : exp x = exp y ↔ exp (x - y) = 1 :=
 by rw [exp_sub, div_eq_one_iff_eq (exp_ne_zero _)]
@@ -167,10 +149,8 @@ begin
   { refine continuous_of_real.continuous_at.comp _,
     refine (real.continuous_at_log _).comp complex.continuous_abs.continuous_at,
     rw abs_ne_zero,
-    intro hx,
-    cases h,
-    { refine h.ne.symm _, rw hx, exact zero_re, },
-    { refine h _, rw hx, exact zero_im, }, },
+    rintro rfl,
+    simpa using h },
   { have h_cont_mul : continuous (λ x : ℂ, x * I), from continuous_id'.mul continuous_const,
     refine h_cont_mul.continuous_at.comp (continuous_of_real.continuous_at.comp _),
     exact continuous_at_arg h, },

@@ -104,15 +104,14 @@ begin
   { rw [h, inv_zero],
     dsimp [has_inv.inv],
     norm_cast,
-    simp [if_pos] },
+    simp },
   { conv_lhs { dsimp [has_inv.inv] },
-    norm_cast,
     rw if_neg,
     { exact hat_inv_extends h },
     { exact λ H, h (dense_embedding_coe.inj H) } }
 end
 
-variables [uniform_add_group K] [topological_ring K]
+variables [uniform_add_group K]
 
 lemma mul_hat_inv_cancel {x : hat K} (x_ne : x ≠ 0) : x*hat_inv x = 1 :=
 begin

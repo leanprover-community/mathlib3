@@ -153,7 +153,7 @@ begin
   rw fib_rec,
   intros n,
   simp only,
-  rw [nat.fib_succ_succ, add_comm],
+  rw [nat.fib_add_two, add_comm],
   simp [finset.sum_fin_eq_sum_range, finset.sum_range_succ'],
 end
 

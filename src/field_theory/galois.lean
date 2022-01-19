@@ -42,7 +42,8 @@ section
 
 variables (F : Type*) [field F] (E : Type*) [field E] [algebra F E]
 
-/-- A field extension E/F is galois if it is both separable and normal -/
+/-- A field extension E/F is galois if it is both separable and normal. Note that in mathlib
+a separable extension of fields is by definition algebraic. -/
 class is_galois : Prop :=
 [to_is_separable : is_separable F E]
 [to_normal : normal F E]

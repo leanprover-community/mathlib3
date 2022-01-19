@@ -7,6 +7,7 @@ import measure_theory.measure.mutually_singular
 import measure_theory.constructions.borel_space
 import algebra.indicator_function
 import algebra.support
+import dynamics.ergodic.measure_preserving
 
 /-!
 # Lebesgue integral for `ℝ≥0∞`-valued functions
@@ -95,7 +96,7 @@ by simpa only [mem_range, exists_prop] using set.exists_range_iff
 lemma preimage_eq_empty_iff (f : α →ₛ β) (b : β) : f ⁻¹' {b} = ∅ ↔ b ∉ f.range :=
 preimage_singleton_eq_empty.trans $ not_congr mem_range.symm
 
-lemma exists_forall_le [nonempty β] [directed_order β] (f : α →ₛ β) :
+lemma exists_forall_le [nonempty β] [preorder β] [is_directed β (≤)] (f : α →ₛ β) :
   ∃ C, ∀ x, f x ≤ C :=
 f.range.exists_le.imp $ λ C, forall_range_iff.1
 
@@ -103,7 +104,7 @@ f.range.exists_le.imp $ λ C, forall_range_iff.1
 def const (α) {β} [measurable_space α] (b : β) : α →ₛ β :=
 ⟨λ a, b, λ x, measurable_set.const _, finite_range_const⟩
 
-instance [inhabited β] : inhabited (α →ₛ β) := ⟨const _ (default _)⟩
+instance [inhabited β] : inhabited (α →ₛ β) := ⟨const _ default⟩
 
 theorem const_apply (a : α) (b : β) : (const α b) a = b := rfl
 
@@ -235,7 +236,7 @@ theorem map_map (g : β → γ) (h: γ → δ) (f : α →ₛ β) : (f.map g).ma
 
 @[simp] theorem range_map [decidable_eq γ] (g : β → γ) (f : α →ₛ β) :
   (f.map g).range = f.range.image g :=
-finset.coe_injective $ by simp [range_comp]
+finset.coe_injective $ by simp only [coe_range, coe_map, finset.coe_image, range_comp]
 
 @[simp] theorem map_const (g : β → γ) (b : β) : (const α b).map g = const α (g b) := rfl
 
@@ -300,7 +301,7 @@ def pair (f : α →ₛ β) (g : α →ₛ γ) : α →ₛ (β × γ) := (f.map 
 @[simp] lemma pair_apply (f : α →ₛ β) (g : α →ₛ γ) (a) : pair f g a = (f a, g a) := rfl
 
 lemma pair_preimage (f : α →ₛ β) (g : α →ₛ γ) (s : set β) (t : set γ) :
-  (pair f g) ⁻¹' (set.prod s t) = (f ⁻¹' s) ∩ (g ⁻¹' t) := rfl
+  (pair f g) ⁻¹' (s ×ˢ t) = (f ⁻¹' s) ∩ (g ⁻¹' t) := rfl
 
 /- A special form of `pair_preimage` -/
 lemma pair_preimage_singleton (f : α →ₛ β) (g : α →ₛ γ) (b : β) (c : γ) :
@@ -427,16 +428,13 @@ instance [semilattice_sup β] : semilattice_sup (α →ₛ β) :=
   sup_le := assume f g h hfh hgh a, sup_le (hfh a) (hgh a),
   .. simple_func.partial_order }
 
-instance [semilattice_sup_bot β] : semilattice_sup_bot (α →ₛ β) :=
-{ .. simple_func.semilattice_sup,.. simple_func.order_bot }
-
 instance [lattice β] : lattice (α →ₛ β) :=
 { .. simple_func.semilattice_sup,.. simple_func.semilattice_inf }
 
-instance [bounded_lattice β] : bounded_lattice (α →ₛ β) :=
-{ .. simple_func.lattice, .. simple_func.order_bot, .. simple_func.order_top }
+instance [has_le β] [bounded_order β] : bounded_order (α →ₛ β) :=
+{ .. simple_func.order_bot, .. simple_func.order_top }
 
-lemma finset_sup_apply [semilattice_sup_bot β] {f : γ → α →ₛ β} (s : finset γ) (a : α) :
+lemma finset_sup_apply [semilattice_sup β] [order_bot β] {f : γ → α →ₛ β} (s : finset γ) (a : α) :
   s.sup f a = s.sup (λc, f c a) :=
 begin
   refine finset.induction_on s rfl _,
@@ -515,7 +513,7 @@ end restrict
 section approx
 
 section
-variables [semilattice_sup_bot β] [has_zero β]
+variables [semilattice_sup β] [order_bot β] [has_zero β]
 
 /-- Fix a sequence `i : ℕ → β`. Given a function `α → β`, its `n`-th approximation
 by simple functions is defined so that in case `β = ℝ≥0∞` it sends each `a` to the supremum
@@ -830,8 +828,8 @@ open finset function
 
 lemma support_eq [measurable_space α] [has_zero β] (f : α →ₛ β) :
   support f = ⋃ y ∈ f.range.filter (λ y, y ≠ 0), f ⁻¹' {y} :=
-set.ext $ λ x, by simp only [finset.set_bUnion_preimage_singleton, mem_support, set.mem_preimage,
-  finset.mem_coe, mem_filter, mem_range_self, true_and]
+set.ext $ λ x, by simp only [mem_support, set.mem_preimage, mem_filter, mem_range_self, true_and,
+  exists_prop, mem_Union, set.mem_range, mem_singleton_iff, exists_eq_right']
 
 variables {m : measurable_space α} [has_zero β] [has_zero γ] {μ : measure α} {f : α →ₛ β}
 
@@ -1128,7 +1126,7 @@ by simp only [h]
 
 lemma set_lintegral_congr {f : α → ℝ≥0∞} {s t : set α} (h : s =ᵐ[μ] t) :
   ∫⁻ x in s, f x ∂μ = ∫⁻ x in t, f x ∂μ :=
-by rw [restrict_congr_set h]
+by rw [measure.restrict_congr_set h]
 
 lemma set_lintegral_congr_fun {f g : α → ℝ≥0∞} {s : set α} (hs : measurable_set s)
   (hfg : ∀ᵐ x ∂μ, x ∈ s → f x = g x) :
@@ -1916,7 +1914,35 @@ end
 measurability of the function being integrated.) -/
 lemma lintegral_map_equiv [measurable_space β] (f : β → ℝ≥0∞) (g : α ≃ᵐ β) :
   ∫⁻ a, f a ∂(map g μ) = ∫⁻ a, f (g a) ∂μ :=
-g.measurable_embedding.lintegral_map f 
+g.measurable_embedding.lintegral_map f
+
+lemma measure_preserving.lintegral_comp {mb : measurable_space β} {ν : measure β} {g : α → β}
+  (hg : measure_preserving g μ ν) {f : β → ℝ≥0∞} (hf : measurable f) :
+  ∫⁻ a, f (g a) ∂μ = ∫⁻ b, f b ∂ν :=
+by rw [← hg.map_eq, lintegral_map hf hg.measurable]
+
+lemma measure_preserving.lintegral_comp_emb {mb : measurable_space β} {ν : measure β} {g : α → β}
+  (hg : measure_preserving g μ ν) (hge : measurable_embedding g) (f : β → ℝ≥0∞) :
+  ∫⁻ a, f (g a) ∂μ = ∫⁻ b, f b ∂ν :=
+by rw [← hg.map_eq, hge.lintegral_map]
+
+lemma measure_preserving.set_lintegral_comp_preimage {mb : measurable_space β} {ν : measure β}
+  {g : α → β} (hg : measure_preserving g μ ν) {s : set β} (hs : measurable_set s)
+  {f : β → ℝ≥0∞} (hf : measurable f) :
+  ∫⁻ a in g ⁻¹' s, f (g a) ∂μ = ∫⁻ b in s, f b ∂ν :=
+by rw [← hg.map_eq, set_lintegral_map hs hf hg.measurable]
+
+lemma measure_preserving.set_lintegral_comp_preimage_emb {mb : measurable_space β} {ν : measure β}
+  {g : α → β} (hg : measure_preserving g μ ν) (hge : measurable_embedding g) (f : β → ℝ≥0∞)
+  (s : set β) :
+  ∫⁻ a in g ⁻¹' s, f (g a) ∂μ = ∫⁻ b in s, f b ∂ν :=
+by rw [← hg.map_eq, hge.restrict_map, hge.lintegral_map]
+
+lemma measure_preserving.set_lintegral_comp_emb {mb : measurable_space β} {ν : measure β}
+  {g : α → β} (hg : measure_preserving g μ ν) (hge : measurable_embedding g) (f : β → ℝ≥0∞)
+  (s : set α) :
+  ∫⁻ a in s, f (g a) ∂μ = ∫⁻ b in g '' s, f b ∂ν :=
+by rw [← hg.set_lintegral_comp_preimage_emb hge, preimage_image_eq _ hge.injective]
 
 section dirac_and_count
 variable [measurable_space α]
@@ -1992,6 +2018,16 @@ lemma set_lintegral_lt_top_of_is_compact [topological_space α] [opens_measurabl
   ∫⁻ x in s, f x ∂μ < ∞ :=
 set_lintegral_lt_top_of_bdd_above hs hf.measurable (hsc.image hf).bdd_above
 
+lemma _root_.is_finite_measure.lintegral_lt_top_of_bounded_to_ennreal {α : Type*}
+  [measurable_space α] (μ : measure α) [μ_fin : is_finite_measure μ]
+  {f : α → ℝ≥0∞} (f_bdd : ∃ c : ℝ≥0, ∀ x, f x ≤ c) : ∫⁻ x, f x ∂μ < ∞ :=
+begin
+  cases f_bdd with c hc,
+  apply lt_of_le_of_lt (@lintegral_mono _ _ μ _ _ hc),
+  rw lintegral_const,
+  exact ennreal.mul_lt_top ennreal.coe_lt_top.ne μ_fin.measure_univ_lt_top.ne,
+end
+
 /-- Given a measure `μ : measure α` and a function `f : α → ℝ≥0∞`, `μ.with_density f` is the
 measure such that for a measurable set `s` we have `μ.with_density f s = ∫⁻ a in s, f a ∂μ`. -/
 def measure.with_density {m : measurable_space α} (μ : measure α) (f : α → ℝ≥0∞) : measure α :=
@@ -2005,7 +2041,7 @@ lemma with_density_add {f g : α → ℝ≥0∞} (hf : measurable f) (hg : measu
   μ.with_density (f + g) = μ.with_density f + μ.with_density g :=
 begin
   refine measure.ext (λ s hs, _),
-  rw [with_density_apply _ hs, measure.coe_add, pi.add_apply,
+  rw [with_density_apply _ hs, measure.add_apply,
       with_density_apply _ hs, with_density_apply _ hs, ← lintegral_add hf hg],
   refl,
 end
@@ -2070,7 +2106,7 @@ lemma with_density_indicator {s : set α} (hs : measurable_set s) (f : α → �
 begin
   ext1 t ht,
   rw [with_density_apply _ ht, lintegral_indicator _ hs,
-      restrict_comm hs ht, ← with_density_apply _ ht]
+      restrict_comm hs, ← with_density_apply _ ht]
 end
 
 lemma with_density_of_real_mutually_singular {f : α → ℝ} (hf : measurable f) :
@@ -2307,7 +2343,7 @@ lemma lintegral_le_of_forall_fin_meas_le [measurable_space α] {μ : measure α}
   (C : ℝ≥0∞) {f : α → ℝ≥0∞} (hf_meas : ae_measurable f μ)
   (hf : ∀ s, measurable_set s → μ s ≠ ∞ → ∫⁻ x in s, f x ∂μ ≤ C) :
   ∫⁻ x, f x ∂μ ≤ C :=
-@lintegral_le_of_forall_fin_meas_le' _ _ _ _ le_rfl (by rwa trim_eq_self) C _ hf_meas hf
+@lintegral_le_of_forall_fin_meas_le' _ _ _ _ _ (by rwa trim_eq_self) C _ hf_meas hf
 
 /-- A sigma-finite measure is absolutely continuous with respect to some finite measure. -/
 lemma exists_absolutely_continuous_is_finite_measure

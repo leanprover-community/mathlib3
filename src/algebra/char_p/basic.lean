@@ -92,8 +92,8 @@ theorem spec : ∀ x:ℕ, (x:R) = 0 ↔ ring_char R ∣ x :=
 by letI := (classical.some_spec (char_p.exists_unique R)).1;
 unfold ring_char; exact char_p.cast_eq_zero_iff R (ring_char R)
 
-theorem eq {p : ℕ} (C : char_p R p) : p = ring_char R :=
-(classical.some_spec (char_p.exists_unique R)).2 p C
+theorem eq (p : ℕ) [C : char_p R p] : ring_char R = p :=
+((classical.some_spec (char_p.exists_unique R)).2 p C).symm
 
 instance char_p : char_p R (ring_char R) :=
 ⟨spec R⟩
@@ -104,13 +104,13 @@ theorem of_eq {p : ℕ} (h : ring_char R = p) : char_p R p :=
 char_p.congr (ring_char R) h
 
 theorem eq_iff {p : ℕ} : ring_char R = p ↔ char_p R p :=
-⟨of_eq, eq.symm ∘ eq R⟩
+⟨of_eq, @eq R _ p⟩
 
 theorem dvd {x : ℕ} (hx : (x : R) = 0) : ring_char R ∣ x :=
 (spec R x).1 hx
 
 @[simp]
-lemma eq_zero [char_zero R] : ring_char R = 0 := (eq R (char_p.of_char_zero R)).symm
+lemma eq_zero [char_zero R] : ring_char R = 0 := eq R 0
 
 end ring_char
 
@@ -216,7 +216,7 @@ lemma ring_hom.char_p_iff_char_p {K L : Type*} [division_ring K] [semiring L] [n
 begin
   split;
   { introI _c, constructor, intro n,
-    rw [← @char_p.cast_eq_zero_iff _ _ _ p _c n, ← f.injective.eq_iff, f.map_nat_cast, f.map_zero] }
+    rw [← @char_p.cast_eq_zero_iff _ _ _ p _c n, ← f.injective.eq_iff, map_nat_cast f, f.map_zero] }
 end
 
 section frobenius
@@ -224,7 +224,7 @@ section frobenius
 section comm_semiring
 
 variables [comm_semiring R] {S : Type v} [comm_semiring S] (f : R →* S) (g : R →+* S)
-  (p : ℕ) [fact p.prime] [char_p R p]  [char_p S p] (x y : R)
+  (p : ℕ) [fact p.prime] [char_p R p] [char_p S p] (x y : R)
 
 /-- The frobenius map that sends x to x^p -/
 def frobenius : R →+* R :=
@@ -278,7 +278,20 @@ theorem frobenius_zero : frobenius R p 0 = 0 := (frobenius R p).map_zero
 theorem frobenius_add : frobenius R p (x + y) = frobenius R p x + frobenius R p y :=
 (frobenius R p).map_add x y
 
-theorem frobenius_nat_cast (n : ℕ) : frobenius R p n = n := (frobenius R p).map_nat_cast n
+theorem frobenius_nat_cast (n : ℕ) : frobenius R p n = n := map_nat_cast (frobenius R p) n
+
+open_locale big_operators
+variables {R}
+
+lemma list_sum_pow_char (l : list R) : l.sum ^ p = (l.map (^ p)).sum :=
+(frobenius R p).map_list_sum _
+
+lemma multiset_sum_pow_char (s : multiset R) : s.sum ^ p = (s.map (^ p)).sum :=
+(frobenius R p).map_multiset_sum _
+
+lemma sum_pow_char {ι : Type*} (s : finset ι) (f : ι → R) :
+  (∑ i in s, f i) ^ p = ∑ i in s, f i ^ p :=
+(frobenius R p).map_sum _ _
 
 end comm_semiring
 
@@ -336,7 +349,7 @@ section no_zero_divisors
 variable [no_zero_divisors R]
 
 theorem char_is_prime_of_two_le (p : ℕ) [hc : char_p R p] (hp : 2 ≤ p) : nat.prime p :=
-suffices ∀d ∣ p, d = 1 ∨ d = p, from ⟨hp, this⟩,
+suffices ∀d ∣ p, d = 1 ∨ d = p, from nat.prime_def_lt''.mpr ⟨hp, this⟩,
 assume (d : ℕ) (hdvd : ∃ e, p = d * e),
 let ⟨e, hmul⟩ := hdvd in
 have (p : R) = 0, from (cast_eq_zero_iff R p p).mpr (dvd_refl p),

@@ -62,6 +62,10 @@ instance [has_scalar R S] [has_scalar R ℝ] [has_scalar S ℝ] [is_scalar_tower
   is_scalar_tower R S ℂ :=
 { smul_assoc := λ r s x, by ext; simp [smul_re, smul_im, smul_assoc] }
 
+instance [has_scalar R ℝ] [has_scalar Rᵐᵒᵖ ℝ] [is_central_scalar R ℝ] :
+  is_central_scalar R ℂ :=
+{ op_smul_eq_smul := λ r x, by ext; simp [smul_re, smul_im, op_smul_eq_smul] }
+
 instance [monoid R] [mul_action R ℝ] : mul_action R ℂ :=
 { one_smul := λ x, by ext; simp [smul_re, smul_im, one_smul],
   mul_smul := λ r s x, by ext; simp [smul_re, smul_im, mul_smul] }
@@ -121,7 +125,8 @@ basis.of_equiv_fun
   left_inv := λ z, by simp,
   right_inv := λ c, by { ext i, fin_cases i; simp },
   map_add' := λ z z', by simp,
-  map_smul' := λ c z, by simp }
+  -- why does `simp` not know how to apply `smul_cons`, which is a `@[simp]` lemma, here?
+  map_smul' := λ c z, by simp [matrix.smul_cons c z.re, matrix.smul_cons c z.im] }
 
 @[simp] lemma coe_basis_one_I_repr (z : ℂ) : ⇑(basis_one_I.repr z) = ![z.re, z.im] := rfl
 
@@ -213,6 +218,15 @@ def conj_ae : ℂ ≃ₐ[ℝ] ℂ :=
   .. conj }
 
 @[simp] lemma conj_ae_coe : ⇑conj_ae = conj := rfl
+
+/-- The matrix representation of `conj_ae`. -/
+@[simp] lemma to_matrix_conj_ae :
+  linear_map.to_matrix basis_one_I basis_one_I conj_ae.to_linear_map = ![![1, 0], ![0, -1]] :=
+begin
+  ext i j,
+  simp [linear_map.to_matrix_apply],
+  fin_cases i; fin_cases j; simp
+end
 
 section lift
 

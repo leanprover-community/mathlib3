@@ -77,8 +77,7 @@ lemma ae_eq_zero_of_forall_dual [normed_group E] [normed_space 𝕜 E]
 begin
   let u := dense_seq E,
   have hu : dense_range u := dense_range_dense_seq _,
-  have : ∀ n, ∃ g : E →L[𝕜] 𝕜, ∥g∥ ≤ 1 ∧ g (u n) = norm' 𝕜 (u n) :=
-    λ n, exists_dual_vector'' 𝕜 (u n),
+  have : ∀ n, ∃ g : E →L[𝕜] 𝕜, ∥g∥ ≤ 1 ∧ g (u n) = ∥u n∥ := λ n, exists_dual_vector'' 𝕜 (u n),
   choose s hs using this,
   have A : ∀ (a : E), (∀ n, ⟪a, s n⟫ = (0 : 𝕜)) → a = 0,
   { assume a ha,
@@ -98,7 +97,7 @@ begin
     ... ≤ 1 * ∥u n - a∥ : continuous_linear_map.le_of_op_norm_le _ (hs n).1 _
     ... < ∥a∥ / 2 : by { rw [one_mul], rwa dist_eq_norm' at hn }
     ... < ∥u n∥ : I
-    ... = ∥s n (u n)∥ : by rw [(hs n).2, norm_norm'] },
+    ... = ∥s n (u n)∥ : by rw [(hs n).2, is_R_or_C.norm_coe_norm] },
   have hfs : ∀ n : ℕ, ∀ᵐ x ∂μ, ⟪f x, s n⟫ = (0 : 𝕜), from λ n, hf (s n),
   have hf' : ∀ᵐ x ∂μ, ∀ n : ℕ, ⟪f x, s n⟫ = (0 : 𝕜), by rwa ae_all_iff,
   exact hf'.mono (λ x hx, A (f x) hx),

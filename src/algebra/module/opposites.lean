@@ -3,14 +3,14 @@ Copyright (c) 2020 Eric Wieser. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser
 -/
-import algebra.opposites
+import group_theory.group_action.opposite
 import data.equiv.module
 
 /-!
 # Module operations on `Mᵐᵒᵖ`
 
-This file contains definitions that could not be placed into `algebra.opposites` due to import
-cycles.
+This file contains definitions that build on top of the group action definitions in
+`group_theory.group_action.opposite`.
 -/
 
 namespace mul_opposite

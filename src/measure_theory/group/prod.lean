@@ -112,9 +112,9 @@ begin
   rw [map_apply measurable_inv hsm, inv_preimage],
   have hf : measurable (λ z : G × G, (z.2 * z.1, z.1⁻¹)) :=
     (measurable_snd.mul measurable_fst).prod_mk measurable_fst.inv,
-  suffices : map (λ z : G × G, (z.2 * z.1, z.1⁻¹)) (μ.prod μ) ((s⁻¹).prod s⁻¹) = 0,
+  suffices : map (λ z : G × G, (z.2 * z.1, z.1⁻¹)) (μ.prod μ) (s⁻¹ ×ˢ s⁻¹) = 0,
   { simpa only [map_prod_mul_inv_eq hμ hμ, prod_prod, mul_eq_zero, or_self] using this },
-  have hsm' : measurable_set (s⁻¹.prod s⁻¹) := hsm.inv.prod hsm.inv,
+  have hsm' : measurable_set (s⁻¹ ×ˢ s⁻¹) := hsm.inv.prod hsm.inv,
   simp_rw [map_apply hf hsm', prod_apply_symm (hf hsm'), preimage_preimage, mk_preimage_prod,
     inv_preimage, set.inv_inv, measure_mono_null (inter_subset_right _ _) hμs, lintegral_zero]
 end
@@ -132,8 +132,8 @@ end
 lemma measurable_measure_mul_right {E : set G} (hE : measurable_set E) :
   measurable (λ x, μ ((λ y, y * x) ⁻¹' E)) :=
 begin
-  suffices :
-    measurable (λ y, μ ((λ x, (x, y)) ⁻¹' ((λ z : G × G, (1, z.1 * z.2)) ⁻¹' set.prod univ E))),
+  suffices : measurable (λ y,
+    μ ((λ x, (x, y)) ⁻¹' ((λ z : G × G, ((1 : G), z.1 * z.2)) ⁻¹' ((univ : set G) ×ˢ E)))),
   { convert this, ext1 x, congr' 1 with y : 1, simp },
   apply measurable_measure_prod_mk_right,
   exact measurable_const.prod_mk (measurable_fst.mul measurable_snd) (measurable_set.univ.prod hE)
@@ -197,7 +197,7 @@ begin
     ((λ z, z * x) ⁻¹' E).indicator (λ (b : G), 1) y,
   { intros x y, symmetry, convert indicator_comp_right (λ y, y * x), ext1 z, refl },
   have h3E : ∀ y, ν ((λ x, x * y) ⁻¹' E) ≠ ∞ :=
-    λ y, (regular.lt_top_of_is_compact $ (homeomorph.mul_right _).compact_preimage.mpr hE).ne,
+    λ y, (is_compact.measure_lt_top $ (homeomorph.mul_right _).compact_preimage.mpr hE).ne,
   simp_rw [this, lintegral_mul_const _ (mE _), lintegral_indicator _ (measurable_mul_const _ Em),
     set_lintegral_one, g, inv_inv,
     ennreal.mul_div_cancel' (measure_mul_right_ne_zero hν h2E _) (h3E _)]

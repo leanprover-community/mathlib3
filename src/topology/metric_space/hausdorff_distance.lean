@@ -538,7 +538,7 @@ lemma exists_mem_closure_inf_dist_eq_dist [proper_space α] (hne : s.nonempty) (
 by simpa only [inf_dist_eq_closure] using is_closed_closure.exists_inf_dist_eq_dist hne.closure x
 
 lemma closed_ball_inf_dist_compl_subset_closure' {E : Type*} [semi_normed_group E]
-  [semi_normed_space ℝ E] {x : E} {s : set E} (hx : s ∈ 𝓝 x) (hs : s ≠ univ) :
+  [normed_space ℝ E] {x : E} {s : set E} (hx : s ∈ 𝓝 x) (hs : s ≠ univ) :
   closed_ball x (inf_dist x sᶜ) ⊆ closure s :=
 begin
   have hne : sᶜ.nonempty, from nonempty_compl.2 hs,
@@ -862,7 +862,7 @@ end
 union of balls of radius `δ` centered at points of `E`. -/
 lemma thickening_eq_bUnion_ball {δ : ℝ} {E : set X} :
   thickening δ E = ⋃ x ∈ E, ball x δ :=
-by { ext x, rw mem_bUnion_iff, exact mem_thickening_iff E x, }
+by { ext x, rw mem_Union₂, exact mem_thickening_iff E x, }
 
 lemma bounded.thickening {δ : ℝ} {E : set X} (h : bounded E) :
   bounded (thickening δ E) :=

@@ -446,7 +446,7 @@ def lie_span : lie_subalgebra R L := Inf {N | s ⊆ N}
 variables {R L s}
 
 lemma mem_lie_span {x : L} : x ∈ lie_span R L s ↔ ∀ K : lie_subalgebra R L, s ⊆ K → x ∈ K :=
-by { change x ∈ (lie_span R L s : set L) ↔ _, erw Inf_coe, exact set.mem_bInter_iff, }
+by { change x ∈ (lie_span R L s : set L) ↔ _, erw Inf_coe, exact set.mem_Inter₂, }
 
 lemma subset_lie_span : s ⊆ lie_span R L s :=
 by { intros m hm, erw mem_lie_span, intros K hK, exact hK hm, }

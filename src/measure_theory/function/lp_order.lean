@@ -57,7 +57,7 @@ end
 
 instance : ordered_add_comm_group (Lp E p μ) :=
 { add_le_add_left := λ f g hfg f', add_le_add_left hfg f',
-  ..subtype.partial_order _, ..add_subgroup.to_add_comm_group _}
+  ..subtype.partial_order _, ..add_subgroup_class.to_add_comm_group _ }
 
 end order
 

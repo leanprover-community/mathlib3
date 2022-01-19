@@ -31,7 +31,7 @@ not hard but quite a pain to go about as there are many cases to consider.
 * https://en.wikipedia.org/wiki/Quasiconvex_function
 -/
 
-open set
+open function set
 
 variables {𝕜 E F β : Type*}
 
@@ -82,6 +82,13 @@ lemma convex.quasiconcave_on_of_convex_ge (hs : convex 𝕜 s) (h : ∀ r, conve
   quasiconcave_on 𝕜 s f :=
 @convex.quasiconvex_on_of_convex_le 𝕜 E (order_dual β) _ _ _ _ _ _ hs h
 
+lemma quasiconvex_on.convex [is_directed β (≤)] (hf : quasiconvex_on 𝕜 s f) : convex 𝕜 s :=
+λ x y hx hy a b ha hb hab,
+  let ⟨z, hxz, hyz⟩ := exists_ge_ge (f x) (f y) in (hf _ ⟨hx, hxz⟩ ⟨hy, hyz⟩ ha hb hab).1
+
+lemma quasiconcave_on.convex [is_directed β (swap (≤))] (hf : quasiconcave_on 𝕜 s f) : convex 𝕜 s :=
+hf.dual.convex
+
 end ordered_add_comm_monoid
 
 section linear_ordered_add_comm_monoid
@@ -89,13 +96,6 @@ variables [linear_ordered_add_comm_monoid β]
 
 section has_scalar
 variables [has_scalar 𝕜 E] {s : set E} {f g : E → β}
-
--- This only requires `directed_order β` but we don't have `directed_ordered_add_comm_monoid`
-lemma quasiconvex_on.convex (hf : quasiconvex_on 𝕜 s f) : convex 𝕜 s :=
-λ x y hx hy a b ha hb hab,  (hf _ ⟨hx, le_max_left _ _⟩ ⟨hy, le_max_right _ _⟩ ha hb hab).1
-
-lemma quasiconcave_on.convex (hf : quasiconcave_on 𝕜 s f) : convex 𝕜 s :=
-hf.dual.convex
 
 lemma quasiconvex_on.sup (hf : quasiconvex_on 𝕜 s f) (hg : quasiconvex_on 𝕜 s g) :
   quasiconvex_on 𝕜 s (f ⊔ g) :=

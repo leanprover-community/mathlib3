@@ -63,11 +63,13 @@ calc card {p : G × G // p.1 * p.2 = p.2 * p.1} = card (Σ g, {h // g * h = h * 
   card_congr (equiv.subtype_prod_equiv_sigma_subtype (λ g h : G, g * h = h * g))
 ... = ∑ g, card {h // g * h = h * g} : card_sigma _
 ... = ∑ g, card (mul_action.fixed_by (conj_act G) G g) : sum_equiv conj_act.to_conj_act.to_equiv
-  _ _ (λ g, by { congr, exact set.ext (λ h, mul_inv_eq_iff_eq_mul.symm) })
+  _ _ (λ g, card_congr' $ congr_arg _ $ funext $ λ h, mul_inv_eq_iff_eq_mul.symm.to_eq)
 ... = card (quotient (mul_action.orbit_rel (conj_act G) G)) * card G :
   mul_action.sum_card_fixed_by_eq_card_orbits_mul_card_group (conj_act G) G
-... = card (quotient (is_conj.setoid G)) * card G : by congr;
-  exact setoid.ext (λ g h, (setoid.comm' _).trans is_conj_iff.symm)
+... = card (quotient (is_conj.setoid G)) * card G :
+  have this : mul_action.orbit_rel (conj_act G) G = is_conj.setoid G :=
+    setoid.ext (λ g h, (setoid.comm' _).trans is_conj_iff.symm),
+  by cc
 
 lemma comm_prob_def' : comm_prob G = card (conj_classes G) / card G :=
 begin

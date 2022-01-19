@@ -5,6 +5,7 @@ Authors: Frédéric Dupuis, Heather Macbeth
 -/
 
 import analysis.inner_product_space.dual
+import analysis.inner_product_space.pi_L2
 
 /-!
 # Adjoint of operators on Hilbert spaces
@@ -294,3 +295,21 @@ lemma is_adjoint_pair (A : E' →ₗ[ℝ] F') :
 end real
 
 end linear_map
+
+namespace matrix
+variables {m n : Type*} [fintype m] [decidable_eq m] [fintype n] [decidable_eq n]
+open_locale complex_conjugate
+
+/-- The adjoint of the linear map associated to a matrix is the linear map associated to the
+conjugate transpose of that matrix. -/
+lemma conj_transpose_eq_adjoint (A : matrix m n 𝕜) :
+  (id (to_lin' A.conj_transpose) : euclidean_space 𝕜 m →ₗ[𝕜] euclidean_space 𝕜 n) =
+  linear_map.adjoint (id (to_lin' A) : euclidean_space 𝕜 n →ₗ[𝕜] euclidean_space 𝕜 m) :=
+begin
+  rw linear_map.eq_adjoint_iff,
+  intros x y,
+  convert dot_product_assoc (conj ∘ (id x : m → 𝕜)) y A using 1,
+  simp [dot_product, mul_vec, ring_hom.map_sum,  ← star_ring_end_apply, mul_comm],
+end
+
+end matrix

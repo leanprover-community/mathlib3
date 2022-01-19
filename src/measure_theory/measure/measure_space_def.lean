@@ -362,20 +362,7 @@ calc s ≤ᵐ[μ] t ↔ ∀ᵐ x ∂μ, x ∈ s → x ∈ t : iff.rfl
 
 lemma ae_le_set_inter {s' t' : set α} (h : s ≤ᵐ[μ] t) (h' : s' ≤ᵐ[μ] t') :
   (s ∩ s' : set α) ≤ᵐ[μ] (t ∩ t' : set α) :=
-begin
-  rw ae_le_set at ⊢ h h',
-  have A : (s ∩ s') \ (t ∩ t') ⊆ (s \ t) ∪ (s' \ t'),
-  { assume x hx,
-    by_cases H : x ∈ t,
-    { simp only [H, true_and, mem_inter_eq, mem_diff] at hx,
-      simp only [hx, mem_union_eq, or_true, not_false_iff, mem_diff, and_self] },
-    { simp only [mem_inter_eq, not_and, mem_diff] at hx,
-      simp only [hx, H, mem_union_eq, true_or, not_false_iff, mem_diff, and_self] } },
-  apply le_antisymm _ (zero_le _),
-  calc μ (s ∩ s' \ (t ∩ t')) ≤ μ ((s \ t) ∪ (s' \ t')) : measure_mono A
-  ... ≤ μ (s \ t) + μ (s' \ t') : measure_union_le _ _
-  ... = 0 : by simp only [h, h', add_zero]
-end
+h.inter h'
 
 @[simp] lemma union_ae_eq_right : (s ∪ t : set α) =ᵐ[μ] t ↔ μ (s \ t) = 0 :=
 by simp [eventually_le_antisymm_iff, ae_le_set, union_diff_right,
@@ -385,13 +372,16 @@ lemma diff_ae_eq_self : (s \ t : set α) =ᵐ[μ] s ↔ μ (s ∩ t) = 0 :=
 by simp [eventually_le_antisymm_iff, ae_le_set, diff_diff_right,
   diff_diff, diff_eq_empty.2 (set.subset_union_right _ _)]
 
+lemma diff_null_ae_eq_self (ht : μ t = 0) : (s \ t : set α) =ᵐ[μ] s :=
+diff_ae_eq_self.mpr (measure_mono_null (inter_subset_right _ _) ht)
+
 lemma ae_eq_set {s t : set α} :
   s =ᵐ[μ] t ↔ μ (s \ t) = 0 ∧ μ (t \ s) = 0 :=
 by simp [eventually_le_antisymm_iff, ae_le_set]
 
 lemma ae_eq_set_inter {s' t' : set α} (h : s =ᵐ[μ] t) (h' : s' =ᵐ[μ] t') :
   (s ∩ s' : set α) =ᵐ[μ] (t ∩ t' : set α) :=
-eventually_le_antisymm_iff.2 ⟨ae_le_set_inter h.le h'.le, ae_le_set_inter h.symm.le h'.symm.le⟩
+h.inter h'
 
 @[to_additive]
 lemma _root_.set.mul_indicator_ae_eq_one {M : Type*} [has_one M] {f : α → M} {s : set α}
@@ -542,6 +532,5 @@ lemma ae_measurable_id' : ae_measurable (λ x, x) μ := measurable_id.ae_measura
 lemma measurable.comp_ae_measurable [measurable_space δ] {f : α → δ} {g : δ → β}
   (hg : measurable g) (hf : ae_measurable f μ) : ae_measurable (g ∘ f) μ :=
 ⟨g ∘ hf.mk f, hg.comp hf.measurable_mk, eventually_eq.fun_comp hf.ae_eq_mk _⟩
-
 
 end

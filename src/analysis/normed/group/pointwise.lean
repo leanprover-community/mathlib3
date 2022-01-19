@@ -84,21 +84,10 @@ lemma is_compact.cthickening_eq_add_closed_ball
   {s : set E} (hs : is_compact s) {r : ℝ} (hr : 0 ≤ r) :
   cthickening r s = s + closed_ball 0 r :=
 begin
-  rcases eq_empty_or_nonempty s with rfl|hne, { simp only [cthickening_empty, empty_add] },
-  apply subset.antisymm,
-  { assume x hx,
-    obtain ⟨y, ys, hy⟩ : ∃ y ∈ s, emetric.inf_edist x s = edist x y :=
-      hs.exists_inf_edist_eq_edist hne _,
-    have D1 : edist x y ≤ ennreal.of_real r := (le_of_eq hy.symm).trans hx,
-    have D2 : dist x y ≤ r,
-    { rw edist_dist at D1,
-      exact (ennreal.of_real_le_of_real_iff hr).1 D1 },
-    refine set.mem_add.2 ⟨y, x - y, ys, _, add_sub_cancel'_right _ _⟩,
-    simpa only [dist_eq_norm, mem_closed_ball_zero_iff] using D2 },
-  { assume x hx,
-    rcases set.mem_add.1 hx with ⟨y, z, ys, hz, rfl⟩,
-    apply mem_cthickening_of_dist_le (y + z) y _ _ ys,
-    simpa only [dist_eq_norm, add_sub_cancel', mem_closed_ball_zero_iff] using hz }
+  rw hs.cthickening_eq_bUnion_closed_ball hr,
+  ext x,
+  simp only [mem_add, dist_eq_norm, exists_prop, mem_Union, mem_closed_ball,
+    exists_and_distrib_left, mem_closed_ball_zero_iff, ← eq_sub_iff_add_eq', exists_eq_right],
 end
 
 end semi_normed_group

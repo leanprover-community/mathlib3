@@ -461,12 +461,10 @@ by rw [add_haar_closed_ball' μ x hr, add_haar_closed_unit_ball_eq_add_haar_unit
 lemma add_haar_sphere_of_ne_zero (x : E) {r : ℝ} (hr : r ≠ 0) :
   μ (sphere x r) = 0 :=
 begin
-  rcases lt_trichotomy r 0 with h|rfl|h,
+  rcases hr.lt_or_lt with h|h,
   { simp only [empty_diff, measure_empty, ← closed_ball_diff_ball, closed_ball_eq_empty.2 h] },
-  { exact (hr rfl).elim },
   { rw [← closed_ball_diff_ball,
-        measure_diff ball_subset_closed_ball measurable_set_closed_ball measurable_set_ball
-          measure_ball_lt_top.ne,
+        measure_diff ball_subset_closed_ball measurable_set_ball measure_ball_lt_top.ne,
         add_haar_ball_of_pos μ _ h, add_haar_closed_ball μ _ h.le, tsub_self];
     apply_instance }
 end
@@ -475,8 +473,7 @@ lemma add_haar_sphere [nontrivial E] (x : E) (r : ℝ) :
   μ (sphere x r) = 0 :=
 begin
   rcases eq_or_ne r 0 with rfl|h,
-  { simp only [← closed_ball_diff_ball, diff_empty, closed_ball_zero,
-               ball_zero, measure_singleton] },
+  { rw [sphere_zero, measure_singleton] },
   { exact add_haar_sphere_of_ne_zero μ x h }
 end
 

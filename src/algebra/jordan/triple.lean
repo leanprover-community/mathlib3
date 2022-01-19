@@ -6,6 +6,34 @@ Authors: Christopher Hoskin
 
 import algebra.lie.of_associative
 
+/-!
+# Jordan triples
+
+Let `A` be a module over a ring `R`. A triple product on `A` is a trilinear map
+$\{.\,.\,\}:A\times A\times A\mapsto A$ which is symmetric in the first and third variables. The
+module `A` is said to be a Jordan triple if, for any `a`, `b`, `c`, `d` and `e` in `A` the following
+Lebintz rule is satisfied:
+$$
+\{a\,b\,\{c\,d\,e\}\} = \{\{a\,b\,c\}\,d\,e\} - \{c\,\{b\,a\,d\}\,e\} + \{c\,d\,\{a\,b\,e\}\}
+$$
+A module `A` over a *-ring `R` is said to be a *-triple if it has a triple product linear and
+symmetric in the first and thrid variable and conjugate linear in the second variable. A *-triple
+satisfying the Lebintz rule is said to be a Jordan *-triple.
+
+As well as being of algebraic interest, Jordan *-triples arise naturally in mathematical physics,
+functional analysis and differential geometry. For more information about these connections the
+interested reader is referred to [alfsenshultz2003], [chu2012], [friedmanscarr2005],
+[iordanescu2003] and [upmeier1987].
+
+## Main results
+
+(None yet, we're just getting started.)
+
+## References
+
+* [Chu, Jordan Structures in Geometry and Analysis][chu2012]
+-/
+
 class has_tp (A : Type*) := (tp : A → A → A → A )
 
 notation ⦃a, b, c⦄ := has_tp.tp a b c

@@ -121,7 +121,7 @@ calc ⦃a + c, b, a + c⦄ = ⦃a, b, a⦄ + ⦃a, b, c⦄ + ⦃c, b, a⦄ + ⦃
 /--
 For a in A, the map b → D a b is an additive monoid homomorphism from A to add_monoid.End A
 -/
-@[simps] lemma D_madd (a : A) : A  →+  add_monoid.End A :=
+@[simps] def D_madd (a : A) : A  →+  add_monoid.End A :=
 { to_fun := λ b, D a b,
   map_zero' := begin
     ext c,
@@ -135,7 +135,7 @@ For a in A, the map b → D a b is an additive monoid homomorphism from A to add
 /--
 The map a → D a is an additive monoid homomorphism from A to (A  →+  add_monoid.End A)
 -/
-@[simps] lemma D_ladd : A  →+ (A  →+  add_monoid.End A) :=
+@[simps] def D_ladd : A  →+ (A  →+  add_monoid.End A) :=
 { to_fun := λ a, D_madd a,
   map_zero' := begin
     ext b c,
@@ -147,7 +147,7 @@ The map a → D a is an additive monoid homomorphism from A to (A  →+  add_mon
       add_monoid_hom.add_apply, D_apply, D_apply, ladd],
   end }
 
-@[simps] lemma Q_radd (a : A) : (A  →+  add_monoid.End A) :=
+@[simps] def Q_radd (a : A) : (A  →+  add_monoid.End A) :=
 { _root_.add_monoid_hom . to_fun := λ c, Q a c,
   map_zero' := begin
     ext b,
@@ -158,7 +158,7 @@ The map a → D a is an additive monoid homomorphism from A to (A  →+  add_mon
     rw [add_monoid_hom.add_apply, Q_apply, Q_apply, Q_apply, radd],
   end, }
 
-lemma Q_ladd : A  →+ (A  →+  add_monoid.End A) :=
+@[simps] def Q_ladd : A  →+ (A  →+  add_monoid.End A) :=
 { to_fun := λ a, Q_radd a,
   map_zero' := begin
     ext b c,

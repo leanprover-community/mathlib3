@@ -157,11 +157,7 @@ protected lemma is_antichain [is_refl α r] (h : is_strong_antichain r s) : is_a
 h.imp $ λ a b hab, (hab b).resolve_right (not_not_intro $ refl _)
 
 protected lemma subsingleton [is_directed α r] (h : is_strong_antichain r s) : s.subsingleton :=
-begin
-  rintro a ha b hb,
-  obtain ⟨c, hac, hbc⟩ := directed_of r a b,
-  exact h.eq ha hb hac hbc,
-end
+λ a ha b hb, let ⟨c, hac, hbc⟩ := directed_of r a b in h.eq ha hb hac hbc
 
 protected lemma flip [is_symm α r] (hs : is_strong_antichain r s) :
   is_strong_antichain (flip r) s :=

@@ -4,35 +4,24 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
 import analysis.convex.function
-import analysis.convex.strict
 import measure_theory.integral.set_integral
 
 /-!
 # Jensen's inequality for integrals
 
-In this file we prove four theorems:
+In this file we prove several versions of Jensen's inequality. Here we list key differences between
+these lemmas and explain how they affect names of the lemmas.
 
-* `convex.smul_integral_mem`: if `μ` is a non-zero finite measure on `α`, `s` is a convex closed set
-  in `E`, and `f` is an integrable function sending `μ`-a.e. points to `s`, then the average value
-  of `f` belongs to `s`: `(μ univ).to_real⁻¹ • ∫ x, f x ∂μ ∈ s`. See also `convex.center_mass_mem`
-  for a finite sum version of this lemma.
+- We prove inequalities for convex functions (in the namespaces `convex_on` and `strict_convex_on`):
+  `g ((μ univ)⁻¹ • ∫ x, f x ∂μ) ≤ (μ univ)⁻¹ • ∫ x, g (f x) ∂μ`, and for convex sets (int the
+  namespace `convex`): if `∀ᵐ x ∂μ, f x ∈ s`, then `(μ univ)⁻¹ • ∫ x, f x ∂μ ∈ s`.
 
-* `convex.integral_mem`: if `μ` is a probability measure on `α`, `s` is a convex closed set in `E`,
-  and `f` is an integrable function sending `μ`-a.e. points to `s`, then the expected value of `f`
-  belongs to `s`: `∫ x, f x ∂μ ∈ s`. See also `convex.sum_mem` for a finite sum version of this
-  lemma.
+- We prove inequalities for average values over the whole space w.r.t. to a finite measure
+  (`...smul_integral...`), to a probability measure (`...integral...`), or over a set
+  (`...smul_set_integral...`).
 
-* `convex_on.map_smul_integral_le`: Convex Jensen's inequality: If a function `g : E → ℝ` is convex
-  and continuous on a convex closed set `s`, `μ` is a finite non-zero measure on `α`, and
-  `f : α → E` is a function sending `μ`-a.e. points to `s`, then the value of `g` at the average
-  value of `f` is less than or equal to the average value of `g ∘ f` provided that both `f` and
-  `g ∘ f` are integrable. See also `convex_on.map_sum_le` for a finite sum version of this lemma.
-
-* `convex_on.map_integral_le`: Convex Jensen's inequality: If a function `g : E → ℝ` is convex and
-  continuous on a convex closed set `s`, `μ` is a probability measure on `α`, and `f : α → E` is a
-  function sending `μ`-a.e. points to `s`, then the value of `g` at the expected value of `f` is
-  less than or equal to the expected value of `g ∘ f` provided that both `f` and `g ∘ f` are
-  integrable. See also `convex_on.map_sum_le` for a finite sum version of this lemma.
+- We prove strict inequality (has `lt` in the name, all versions but one are in the
+  `strict_convex_on` namespace) and non-strict inequalities.
 
 ## Tags
 
@@ -46,7 +35,12 @@ variables {α E : Type*} [measurable_space α] {μ : measure α}
   [normed_group E] [normed_space ℝ E] [complete_space E]
   [topological_space.second_countable_topology E] [measurable_space E] [borel_space E]
 
-private lemma convex.smul_integral_mem_of_measurable
+/-!
+### Non-strict Jensen's inequality
+-/
+
+/-- An auxiliary lemma for `convex.smul_integral_mem`. -/
+protected lemma convex.smul_integral_mem_of_measurable
   [is_finite_measure μ] {s : set E} (hs : convex ℝ s) (hsc : is_closed s)
   (hμ : μ ≠ 0) {f : α → E} (hfs : ∀ᵐ x ∂μ, f x ∈ s) (hfi : integrable f μ) (hfm : measurable f) :
   (μ univ).to_real⁻¹ • ∫ x, f x ∂μ ∈ s :=
@@ -137,6 +131,11 @@ begin
     using (ht_conv.smul_integral_mem ht_closed hμ ht_mem (hfi.prod_mk hgi)).2
 end
 
+/-- Jensen's inequality: if a function `g : E → ℝ` is convex and continuous on a convex closed set
+`s`, `μ` is a finite non-zero measure on `α`, and `f : α → E` is a function sending `μ`-a.e. points
+of a set `t` to `s`, then the value of `g` at the average value of `f` over `t` is less than or
+equal to the average value of `g ∘ f` over `t` provided that both `f` and `g ∘ f` are
+integrable. -/
 lemma convex_on.map_smul_set_integral_le [is_finite_measure μ] {s : set E} {g : E → ℝ}
   (hg : convex_on ℝ s g) (hgc : continuous_on g s) (hsc : is_closed s) {t : set α} (h0 : μ t ≠ 0)
   (ht : μ t ≠ ∞) {f : α → E} (hfs : ∀ᵐ x ∂μ.restrict t, f x ∈ s) (hfi : integrable_on f t μ)
@@ -149,6 +148,24 @@ begin
   rwa [ne.def, ← measure.measure_univ_eq_zero]
 end
 
+/-- Convex **Jensen's inequality**: if a function `g : E → ℝ` is convex and continuous on a convex
+closed set `s`, `μ` is a probability measure on `α`, and `f : α → E` is a function sending `μ`-a.e.
+points to `s`, then the value of `g` at the expected value of `f` is less than or equal to the
+expected value of `g ∘ f` provided that both `f` and `g ∘ f` are integrable. See also
+`convex_on.map_center_mass_le` for a finite sum version of this lemma. -/
+lemma convex_on.map_integral_le [is_probability_measure μ] {s : set E} {g : E → ℝ}
+  (hg : convex_on ℝ s g) (hgc : continuous_on g s) (hsc : is_closed s) {f : α → E}
+  (hfs : ∀ᵐ x ∂μ, f x ∈ s) (hfi : integrable f μ) (hgi : integrable (g ∘ f) μ) :
+  g (∫ x, f x ∂μ) ≤ ∫ x, g (f x) ∂μ :=
+by simpa [measure_univ]
+  using hg.map_smul_integral_le hgc hsc (is_probability_measure.ne_zero μ) hfs hfi hgi
+
+/-- Strict **Jensen's inequality**. Suppose that a function `g : E → ℝ` is convex and continuous on
+a convex closed set `s`, `μ` is a finite non-zero measure on `α`, and `f : α → E` is a function
+sending `μ`-a.e. points to `s`. Also assume that for some set `t` of nonzero measure, the value of
+`g` at the average value of `f` over `t` is strictly less than the average value of `g ∘ f` over
+`t`. Then the value of `g` at the average value of `f` over the whole space is strictly less than
+the average value of `g ∘ f` provided that both `f` and `g ∘ f` are integrable. -/
 lemma convex_on.map_smul_integral_lt_of_exists_set [is_finite_measure μ] {s : set E} {g : E → ℝ}
   (hg : convex_on ℝ s g) (hgc : continuous_on g s) (hsc : is_closed s) (hμ : μ ≠ 0) {f : α → E}
   (hfs : ∀ᵐ x ∂μ, f x ∈ s) (hfi : integrable f μ) (hgi : integrable (g ∘ f) μ)
@@ -198,18 +215,11 @@ begin
       integral_add_compl htm hgi]
 end
 
-/-- Convex **Jensen's inequality**: if a function `g : E → ℝ` is convex and continuous on a convex
-closed set `s`, `μ` is a probability measure on `α`, and `f : α → E` is a function sending `μ`-a.e.
-points to `s`, then the value of `g` at the expected value of `f` is less than or equal to the
-expected value of `g ∘ f` provided that both `f` and `g ∘ f` are integrable. See also
-`convex_on.map_center_mass_le` for a finite sum version of this lemma. -/
-lemma convex_on.map_integral_le [is_probability_measure μ] {s : set E} {g : E → ℝ}
-  (hg : convex_on ℝ s g) (hgc : continuous_on g s) (hsc : is_closed s) {f : α → E}
-  (hfs : ∀ᵐ x ∂μ, f x ∈ s) (hfi : integrable f μ) (hgi : integrable (g ∘ f) μ) :
-  g (∫ x, f x ∂μ) ≤ ∫ x, g (f x) ∂μ :=
-by simpa [measure_univ]
-  using hg.map_smul_integral_le hgc hsc (is_probability_measure.ne_zero μ) hfs hfi hgi
-
+/-- Strict **Jensen's inequality**. Suppose that a function `g : E → ℝ` is strictly convex and
+continuous on a convex closed set `s`, `μ` is a finite non-zero measure on `α`, and `f : α → E` is a
+function sending `μ`-a.e. points to `s`. Also assume that both `f` and `g ∘ f` are integrable. Then
+either `f` is a.e. constant, or the value of `g` at the average value of `f` over the whole space is
+strictly less than the average value of `g ∘ f`. -/
 lemma strict_convex_on.ae_eq_const_or_map_smul_integral_lt [is_finite_measure μ] {s : set E}
   {g : E → ℝ} (hg : strict_convex_on ℝ s g) (hgc : continuous_on g s) (hsc : is_closed s)
   {f : α → E} (hfs : ∀ᵐ x ∂μ, f x ∈ s) (hfi : integrable f μ)
@@ -272,6 +282,9 @@ begin
     by simp only [← mul_assoc, hca, hcb]
 end
 
+/-- If the norm of a function `f : α → E` taking values in a strictly convex normed space is
+a.e. less than or equal to `C`, then either this function is a constant, or the norm of its integral
+is strictly less than `μ univ * C`. -/
 lemma ae_eq_const_or_norm_integral_lt_of_norm_le_const [is_finite_measure μ] {f : α → E} {C : ℝ}
   (h_le : ∀ᵐ x ∂μ, ∥f x∥ ≤ C)
   (h_convex : strict_convex_on ℝ (closed_ball (0 : E) C) (norm : E → ℝ)) :

@@ -951,7 +951,7 @@ begin
       (one_div_nonneg.2 ennreal.to_real_nonneg),
 end
 
-lemma mul_meas_ge_le_snorm_pow {f : α → E}
+lemma mul_meas_ge_le_pow_snorm {f : α → E}
   (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ∞) (hf : measurable f) (ε : ℝ≥0∞) :
   ε * μ {x | ε ≤ ∥f x∥₊ ^ p.to_real} ≤ snorm f p μ ^ p.to_real :=
 begin
@@ -965,11 +965,11 @@ begin
 end
 
 /-- A version of Markov's inequality using Lp-norms. -/
-lemma mul_meas_ge_le_snorm_pow' {f : α → E}
+lemma mul_meas_ge_le_pow_snorm' {f : α → E}
   (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ∞) (hf : measurable f) (ε : ℝ≥0∞) :
   ε ^ p.to_real * μ {x | ε ≤ ∥f x∥₊} ≤ snorm f p μ ^ p.to_real :=
 begin
-  convert mul_meas_ge_le_snorm_pow μ hp_ne_zero hp_ne_top hf (ε ^ p.to_real),
+  convert mul_meas_ge_le_pow_snorm μ hp_ne_zero hp_ne_top hf (ε ^ p.to_real),
   ext x,
   rw ennreal.rpow_le_rpow_iff (ennreal.to_real_pos hp_ne_zero hp_ne_top),
 end
@@ -2612,18 +2612,18 @@ lemma pow_mul_meas_ge_le_norm (f : Lp E p μ)
 (ennreal.of_real_to_real (snorm_ne_top f)).symm ▸
   pow_mul_meas_ge_le_snorm μ hp_ne_zero hp_ne_top (Lp.measurable f) ε
 
-lemma mul_meas_ge_le_norm_pow (f : Lp E p μ)
+lemma mul_meas_ge_le_pow_norm (f : Lp E p μ)
   (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ∞) (ε : ℝ≥0∞) :
   ε * μ {x | ε ≤ ∥f x∥₊ ^ p.to_real} ≤ (ennreal.of_real ∥f∥) ^ p.to_real :=
 (ennreal.of_real_to_real (snorm_ne_top f)).symm ▸
-  mul_meas_ge_le_snorm_pow μ hp_ne_zero hp_ne_top (Lp.measurable f) ε
+  mul_meas_ge_le_pow_snorm μ hp_ne_zero hp_ne_top (Lp.measurable f) ε
 
 /-- A version of Markov's inequality with elements of Lp. -/
-lemma mul_meas_ge_le_norm_pow' (f : Lp E p μ)
+lemma mul_meas_ge_le_pow_norm' (f : Lp E p μ)
   (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ∞) (ε : ℝ≥0∞) :
   ε ^ p.to_real * μ {x | ε ≤ ∥f x∥₊} ≤ (ennreal.of_real ∥f∥) ^ p.to_real :=
 (ennreal.of_real_to_real (snorm_ne_top f)).symm ▸
-  mul_meas_ge_le_snorm_pow' μ hp_ne_zero hp_ne_top (Lp.measurable f) ε
+  mul_meas_ge_le_pow_snorm' μ hp_ne_zero hp_ne_top (Lp.measurable f) ε
 
 end Lp
 

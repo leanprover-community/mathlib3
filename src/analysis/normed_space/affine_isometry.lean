@@ -34,8 +34,8 @@ variables (𝕜 : Type*) {V V₁ V₂ V₃ V₄ : Type*} {P₁ : Type*} (P P₂ 
     [normed_field 𝕜]
   [semi_normed_group V] [normed_group V₁] [semi_normed_group V₂] [semi_normed_group V₃]
     [semi_normed_group V₄]
-  [semi_normed_space 𝕜 V] [normed_space 𝕜 V₁] [semi_normed_space 𝕜 V₂] [semi_normed_space 𝕜 V₃]
-    [semi_normed_space 𝕜 V₄]
+  [normed_space 𝕜 V] [normed_space 𝕜 V₁] [normed_space 𝕜 V₂] [normed_space 𝕜 V₃]
+    [normed_space 𝕜 V₄]
   [pseudo_metric_space P] [metric_space P₁] [pseudo_metric_space P₂] [pseudo_metric_space P₃]
     [pseudo_metric_space P₄]
   [semi_normed_add_torsor V P] [normed_add_torsor V₁ P₁] [semi_normed_add_torsor V₂ P₂]
@@ -519,7 +519,7 @@ lemma point_reflection_fixed_iff [invertible (2:𝕜)] {x y : P} :
   point_reflection 𝕜 x y = y ↔ y = x :=
 affine_equiv.point_reflection_fixed_iff_of_module 𝕜
 
-variables [semi_normed_space ℝ V]
+variables [normed_space ℝ V]
 
 lemma dist_point_reflection_self_real (x y : P) :
   dist (point_reflection ℝ x y) y = 2 * dist x y :=

@@ -90,16 +90,6 @@ end preorder
 
 variables [partial_order α] [order_top α] {a b : α}
 
-theorem top_unique (h : ⊤ ≤ a) : a = ⊤ :=
-le_top.antisymm h
-
--- TODO: delete in favor of the next?
-theorem eq_top_iff : a = ⊤ ↔ ⊤ ≤ a :=
-⟨λ eq, eq.symm ▸ le_refl ⊤, top_unique⟩
-
-@[simp] theorem top_le_iff : ⊤ ≤ a ↔ a = ⊤ :=
-⟨top_unique, λ h, h.symm ▸ le_refl ⊤⟩
-
 @[simp] lemma is_max_iff_eq_top : is_max a ↔ a = ⊤ :=
 ⟨λ h, h.eq_of_le le_top, λ h b _, h.symm ▸ le_top⟩
 
@@ -111,22 +101,18 @@ lemma is_top_iff_is_max' : is_top a ↔ is_max a := is_top_iff_eq_top.trans is_m
 alias is_max_iff_eq_top ↔ _ is_max.eq_top
 alias is_top_iff_eq_top ↔ _ is_top.eq_top
 
-theorem eq_top_mono (h : a ≤ b) (h₂ : a = ⊤) : b = ⊤ :=
-top_le_iff.1 $ h₂ ▸ h
-
+@[simp] lemma top_le_iff : ⊤ ≤ a ↔ a = ⊤ := le_top.le_iff_eq.trans eq_comm
+lemma top_unique (h : ⊤ ≤ a) : a = ⊤ := le_top.antisymm h
+lemma eq_top_iff : a = ⊤ ↔ ⊤ ≤ a := top_le_iff.symm
+lemma eq_top_mono (h : a ≤ b) (h₂ : a = ⊤) : b = ⊤ := top_unique $ h₂ ▸ h
 lemma lt_top_iff_ne_top : a < ⊤ ↔ a ≠ ⊤ := le_top.lt_iff_ne
-
 lemma eq_top_or_lt_top (a : α) : a = ⊤ ∨ a < ⊤ := le_top.eq_or_lt
-
-theorem ne_top_of_le_ne_top {a b : α} (hb : b ≠ ⊤) (hab : a ≤ b) : a ≠ ⊤ :=
-λ ha, hb $ top_unique $ ha ▸ hab
+lemma ne.lt_top (h : a ≠ ⊤) : a < ⊤ := lt_top_iff_ne_top.mpr h
+lemma ne.lt_top' (h : ⊤ ≠ a) : a < ⊤ := h.symm.lt_top
+lemma ne_top_of_le_ne_top (hb : b ≠ ⊤) (hab : a ≤ b) : a ≠ ⊤ := (hab.trans_lt hb.lt_top).ne
 
 lemma eq_top_of_maximal (h : ∀ b, ¬ a < b) : a = ⊤ :=
 or.elim (lt_or_eq_of_le le_top) (λ hlt, absurd hlt (h ⊤)) (λ he, he)
-
-lemma ne.lt_top (h : a ≠ ⊤) : a < ⊤ := lt_top_iff_ne_top.mpr h
-
-lemma ne.lt_top' (h : ⊤ ≠ a) : a < ⊤ := h.symm.lt_top
 
 end order_top
 
@@ -178,16 +164,6 @@ end preorder
 
 variables [partial_order α] [order_bot α] {a b : α}
 
-theorem bot_unique (h : a ≤ ⊥) : a = ⊥ :=
-h.antisymm bot_le
-
--- TODO: delete?
-theorem eq_bot_iff : a = ⊥ ↔ a ≤ ⊥ :=
-⟨λ eq, eq.symm ▸ le_refl ⊥, bot_unique⟩
-
-@[simp] theorem le_bot_iff : a ≤ ⊥ ↔ a = ⊥ :=
-⟨bot_unique, λ h, h.symm ▸ le_refl ⊥⟩
-
 @[simp] lemma is_min_iff_eq_bot : is_min a ↔ a = ⊥ :=
 ⟨λ h, h.eq_of_ge bot_le, λ h b _, h.symm ▸ bot_le⟩
 
@@ -199,27 +175,16 @@ lemma is_bot_iff_is_min' : is_bot a ↔ is_min a := is_bot_iff_eq_bot.trans is_m
 alias is_min_iff_eq_bot ↔ _ is_min.eq_bot
 alias is_bot_iff_eq_bot ↔ _ is_bot.eq_bot
 
-theorem ne_bot_of_le_ne_bot {a b : α} (hb : b ≠ ⊥) (hab : b ≤ a) : a ≠ ⊥ :=
-λ ha, hb $ bot_unique $ ha ▸ hab
-
-theorem eq_bot_mono (h : a ≤ b) (h₂ : b = ⊥) : a = ⊥ :=
-le_bot_iff.1 $ h₂ ▸ h
-
-lemma bot_lt_iff_ne_bot : ⊥ < a ↔ a ≠ ⊥ :=
-begin
-  haveI := classical.dec_eq α,
-  haveI : decidable (a ≤ ⊥) := decidable_of_iff' _ le_bot_iff,
-  simp only [lt_iff_le_not_le, not_iff_not.mpr le_bot_iff, true_and, bot_le],
-end
-
+@[simp] lemma le_bot_iff : a ≤ ⊥ ↔ a = ⊥ := bot_le.le_iff_eq
+lemma bot_unique (h : a ≤ ⊥) : a = ⊥ := h.antisymm bot_le
+lemma eq_bot_iff : a = ⊥ ↔ a ≤ ⊥ := le_bot_iff.symm
+lemma eq_bot_mono (h : a ≤ b) (h₂ : b = ⊥) : a = ⊥ := bot_unique $ h₂ ▸ h
+lemma bot_lt_iff_ne_bot : ⊥ < a ↔ a ≠ ⊥ := bot_le.lt_iff_ne.trans ne_comm
 lemma eq_bot_or_bot_lt (a : α) : a = ⊥ ∨ ⊥ < a := bot_le.eq_or_gt
-
-lemma eq_bot_of_minimal (h : ∀ b, ¬ b < a) : a = ⊥ :=
-or.elim (lt_or_eq_of_le bot_le) (λ hlt, absurd hlt (h ⊥)) (λ he, he.symm)
-
+lemma eq_bot_of_minimal (h : ∀ b, ¬ b < a) : a = ⊥ := (eq_bot_or_bot_lt a).resolve_right (h ⊥)
 lemma ne.bot_lt (h : a ≠ ⊥) : ⊥ < a := bot_lt_iff_ne_bot.mpr h
-
 lemma ne.bot_lt' (h : ⊥ ≠ a) : ⊥ < a := h.symm.bot_lt
+lemma ne_bot_of_le_ne_bot (hb : b ≠ ⊥) (hab : b ≤ a) : a ≠ ⊥ := (hb.bot_lt.trans_le hab).ne'
 
 end order_bot
 

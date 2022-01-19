@@ -90,7 +90,7 @@ begin
   have : μ ((s ∩ (f^[n]) ⁻¹' s) \ T) ≠ 0, by rwa [measure_diff_null hμT],
   rcases hf.exists_mem_image_mem ((hs.inter (hf.measurable.iterate n hs)).diff hT) this
     with ⟨x, ⟨⟨hxs, hxn⟩, hxT⟩, m, hm0, ⟨hxms, hxm⟩, hxx⟩,
-  refine hxT ⟨hxs, mem_bUnion_iff.2 ⟨n + m, _, _⟩⟩,
+  refine hxT ⟨hxs, mem_Union₂.2 ⟨n + m, _, _⟩⟩,
   { exact add_le_add hn (nat.one_le_of_lt $ pos_iff_ne_zero.2 hm0) },
   { rwa [set.mem_preimage, ← iterate_add_apply] at hxm }
 end

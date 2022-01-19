@@ -244,7 +244,7 @@ begin
 end
 
 /-- A mutually orthogonal family of complete subspaces of `E`, whose range is dense in `E`, induces
-a linear isometry from E to `lp 2` of the subspaces.
+a isometric isomorphism from E to `lp 2` of the subspaces.
 
 Note that this goes in the opposite direction from `orthogonal_family.linear_isometry`. -/
 noncomputable def linear_isometry_equiv [Π i, complete_space (G i)]
@@ -299,13 +299,14 @@ variables (ι) (𝕜) (E)
 
 /-- A Hilbert basis on `ι` for an inner product space `E` is an identification of `E` with the `lp`
 space `ℓ²(ι, 𝕜)`. -/
--- `nolint` because (of course) whether `E` has a Hilbert basis indexed by `ι` depends on the
--- cardinality of `ι`.
-@[nolint has_inhabited_instance] structure hilbert_basis := of_repr :: (repr : E ≃ₗᵢ[𝕜] ℓ²(ι, 𝕜))
+structure hilbert_basis := of_repr :: (repr : E ≃ₗᵢ[𝕜] ℓ²(ι, 𝕜))
 
 end
 
 namespace hilbert_basis
+
+instance {ι : Type*} : inhabited (hilbert_basis ι 𝕜 ℓ²(ι, 𝕜)) :=
+⟨of_repr (linear_isometry_equiv.refl 𝕜 _)⟩
 
 /-- `b i` is the `i`th basis vector. -/
 instance : has_coe_to_fun (hilbert_basis ι 𝕜 E) (λ _, ι → E) :=
@@ -345,7 +346,7 @@ begin
     exact (↑(b.repr.symm.to_continuous_linear_equiv) : ℓ²(ι, 𝕜) →L[𝕜] E).has_sum this },
   ext i,
   apply b.repr.injective,
-  have : lp.single 2 i (f i * 1) = _ := lp.single_smul 2 i (1:𝕜) (f i),
+  have : lp.single 2 i (f i * 1) = f i • lp.single 2 i 1 := lp.single_smul 2 i (1:𝕜) (f i),
   rw mul_one at this,
   rw [linear_isometry_equiv.map_smul, b.repr_self, ← this,
     linear_isometry_equiv.coe_to_continuous_linear_equiv],

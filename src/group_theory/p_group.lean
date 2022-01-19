@@ -5,6 +5,7 @@ Authors: Chris Hughes, Thomas Browning
 -/
 
 import group_theory.index
+import group_theory.group_action.conj_act
 import group_theory.perm.cycle_type
 import group_theory.quotient_group
 
@@ -159,6 +160,27 @@ have hα : 1 < card (fixed_points G α) :=
   (fact.out p.prime).one_lt.trans_le (nat.le_of_dvd (card_pos_iff.2 ⟨⟨a, ha⟩⟩) hpf),
 let ⟨⟨b, hb⟩, hba⟩ := exists_ne_of_one_lt_card hα ⟨a, ha⟩ in
 ⟨b, hb, λ hab, hba (by simp_rw [hab])⟩
+
+lemma center_nontrivial [nontrivial G] [fintype G] : nontrivial (subgroup.center G) :=
+begin
+  classical,
+  have := (hG.of_equiv conj_act.to_conj_act).exists_fixed_point_of_prime_dvd_card_of_fixed_point G,
+  rw conj_act.fixed_points_eq_center at this,
+  obtain ⟨g, hg⟩ := this _ (subgroup.center G).one_mem,
+  { exact ⟨⟨1, ⟨g, hg.1⟩, mt subtype.ext_iff.mp hg.2⟩⟩ },
+  { obtain ⟨n, hn⟩ := is_p_group.iff_card.mp hG,
+    rw hn,
+    apply dvd_pow_self,
+    rintro rfl,
+    exact (fintype.one_lt_card).ne' hn },
+end
+
+lemma bot_lt_center [nontrivial G] [fintype G] : ⊥ < subgroup.center G :=
+begin
+  haveI := center_nontrivial hG,
+  classical,
+  exact bot_lt_iff_ne_bot.mpr ((subgroup.center G).one_lt_card_iff_ne_bot.mp fintype.one_lt_card),
+end
 
 end G_is_p_group
 

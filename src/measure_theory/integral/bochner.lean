@@ -832,12 +832,13 @@ end
   everywhere convergence of a sequence of functions implies the convergence of their integrals. -/
 theorem tendsto_integral_of_dominated_convergence {F : ℕ → α → E} {f : α → E} (bound : α → ℝ)
   (F_measurable : ∀ n, ae_measurable (F n) μ)
-  (f_measurable : ae_measurable f μ)
   (bound_integrable : integrable bound μ)
   (h_bound : ∀ n, ∀ᵐ a ∂μ, ∥F n a∥ ≤ bound a)
   (h_lim : ∀ᵐ a ∂μ, tendsto (λ n, F n a) at_top (𝓝 (f a))) :
   tendsto (λn, ∫ a, F n a ∂μ) at_top (𝓝 $ ∫ a, f a ∂μ) :=
 begin
+  /- `f` is a.e.-measurable, since it is the a.e.-pointwise limit of a.e.-measurable functions. -/
+  have f_measurable : ae_measurable f μ := ae_measurable_of_tendsto_metric_ae F_measurable h_lim,
   /- To show `(∫ a, F n a) --> (∫ f)`, suffices to show `∥∫ a, F n a - ∫ f∥ --> 0` -/
   rw tendsto_iff_norm_tendsto_zero,
   /- But `0 ≤ ∥∫ a, F n a - ∫ f∥ = ∥∫ a, (F n a - f a) ∥ ≤ ∫ a, ∥F n a - f a∥, and thus we apply the
@@ -861,34 +862,30 @@ end
 
 /-- Lebesgue dominated convergence theorem for filters with a countable basis -/
 lemma tendsto_integral_filter_of_dominated_convergence {ι} {l : filter ι}
+  [l.is_countably_generated]
   {F : ι → α → E} {f : α → E} (bound : α → ℝ)
-  (hl_cb : l.is_countably_generated)
   (hF_meas : ∀ᶠ n in l, ae_measurable (F n) μ)
-  (f_measurable : ae_measurable f μ)
   (h_bound : ∀ᶠ n in l, ∀ᵐ a ∂μ, ∥F n a∥ ≤ bound a)
   (bound_integrable : integrable bound μ)
   (h_lim : ∀ᵐ a ∂μ, tendsto (λ n, F n a) l (𝓝 (f a))) :
   tendsto (λn, ∫ a, F n a ∂μ) l (𝓝 $ ∫ a, f a ∂μ) :=
 begin
-  rw hl_cb.tendsto_iff_seq_tendsto,
-  { intros x xl,
-    have hxl, { rw tendsto_at_top' at xl, exact xl },
-    have h := inter_mem hF_meas h_bound,
-    replace h := hxl _ h,
-    rcases h with ⟨k, h⟩,
-    rw ← tendsto_add_at_top_iff_nat k,
-    refine tendsto_integral_of_dominated_convergence _ _ _ _ _ _,
-    { exact bound },
-    { intro, refine (h _ _).1, exact nat.le_add_left _ _ },
+  rw tendsto_iff_seq_tendsto,
+  intros x xl,
+  have hxl, { rw tendsto_at_top' at xl, exact xl },
+  have h := inter_mem hF_meas h_bound,
+  replace h := hxl _ h,
+  rcases h with ⟨k, h⟩,
+  rw ← tendsto_add_at_top_iff_nat k,
+  refine tendsto_integral_of_dominated_convergence bound _ bound_integrable _ _,
+  { intro, refine (h _ _).1, apply self_le_add_left },
+  { intro, refine (h _ _).2, apply self_le_add_left },
+  { filter_upwards [h_lim],
+    assume a h_lim,
+    apply @tendsto.comp _ _ _ (λn, x (n + k)) (λn, F n a),
     { assumption },
-    { assumption },
-    { intro, refine (h _ _).2, exact nat.le_add_left _ _ },
-    { filter_upwards [h_lim],
-      assume a h_lim,
-      apply @tendsto.comp _ _ _ (λn, x (n + k)) (λn, F n a),
-      { assumption },
-      rw tendsto_add_at_top_iff_nat,
-      assumption } },
+    rw tendsto_add_at_top_iff_nat,
+    assumption }
 end
 
 variables {X : Type*} [topological_space X] [first_countable_topology X]
@@ -898,9 +895,7 @@ lemma continuous_at_of_dominated {F : X → α → E} {x₀ : X} {bound : α →
   (h_bound : ∀ᶠ x in 𝓝 x₀, ∀ᵐ a ∂μ, ∥F x a∥ ≤ bound a)
   (bound_integrable : integrable bound μ) (h_cont : ∀ᵐ a ∂μ, continuous_at (λ x, F x a) x₀) :
   continuous_at (λ x, ∫ a, F x a ∂μ) x₀ :=
-tendsto_integral_filter_of_dominated_convergence bound
-  (first_countable_topology.nhds_generated_countable x₀) ‹_›
-    (mem_of_mem_nhds hF_meas : _) ‹_› ‹_› ‹_›
+tendsto_integral_filter_of_dominated_convergence bound ‹_› ‹_› ‹_› ‹_›
 
 lemma continuous_of_dominated {F : X → α → E} {bound : α → ℝ}
   (hF_meas : ∀ x, ae_measurable (F x) μ) (h_bound : ∀ x, ∀ᵐ a ∂μ, ∥F x a∥ ≤ bound a)
@@ -1308,14 +1303,14 @@ begin
     rwa ← ae_measurable_map_equiv_iff }
 end
 
-lemma integral_dirac' [measurable_space α] (f : α → E) (a : α) (hfm : measurable f) :
+@[simp] lemma integral_dirac' [measurable_space α] (f : α → E) (a : α) (hfm : measurable f) :
   ∫ x, f x ∂(measure.dirac a) = f a :=
 calc ∫ x, f x ∂(measure.dirac a) = ∫ x, f a ∂(measure.dirac a) :
   integral_congr_ae $ ae_eq_dirac' hfm
 ... = f a : by simp [measure.dirac_apply_of_mem]
 
-lemma integral_dirac [measurable_space α] [measurable_singleton_class α] (f : α → E) (a : α) :
-  ∫ x, f x ∂(measure.dirac a) = f a :=
+@[simp] lemma integral_dirac [measurable_space α] [measurable_singleton_class α]
+  (f : α → E) (a : α) : ∫ x, f x ∂(measure.dirac a) = f a :=
 calc ∫ x, f x ∂(measure.dirac a) = ∫ x, f a ∂(measure.dirac a) :
   integral_congr_ae $ ae_eq_dirac f
 ... = f a : by simp [measure.dirac_apply_of_mem]

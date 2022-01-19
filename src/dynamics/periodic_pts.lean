@@ -91,8 +91,8 @@ protected lemma sub (hm : is_periodic_pt f m x) (hn : is_periodic_pt f n x) :
 begin
   cases le_total n m with h h,
   { refine left_of_add _ hn,
-    rwa [nat.sub_add_cancel h] },
-  { rw [nat.sub_eq_zero_of_le h],
+    rwa [tsub_add_cancel_of_le h] },
+  { rw [tsub_eq_zero_iff_le.mpr h],
     apply is_periodic_pt_zero }
 end
 

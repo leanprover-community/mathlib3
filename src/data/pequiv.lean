@@ -40,7 +40,8 @@ pequiv, partial equivalence
 universes u v w x
 
 /-- A `pequiv` is a partial equivalence, a representation of a bijection between a subset
-  of `α` and a subset of `β` -/
+  of `α` and a subset of `β`. See also `local_equiv` for a version that requires `to_fun` and
+`inv_fun` to be globally defined functions and has `source` and `target` sets as extra fields. -/
 structure pequiv (α : Type u) (β : Type v) :=
 (to_fun : α → option β)
 (inv_fun : β → option α)
@@ -77,11 +78,13 @@ by simp [*, funext_iff]
 lemma ext_iff {f g : α ≃. β} : f = g ↔ ∀ x, f x = g x :=
 ⟨congr_fun ∘ congr_arg _, ext⟩
 
+/-- The identity map as a partial equivalence. -/
 @[refl] protected def refl (α : Type*) : α ≃. α :=
 { to_fun := some,
   inv_fun := some,
   inv := λ _ _, eq_comm }
 
+/-- The inverse partial equivalence. -/
 @[symm] protected def symm (f : α ≃. β) : β ≃. α :=
 { to_fun := f.2,
   inv_fun := f.1,
@@ -91,7 +94,8 @@ lemma mem_iff_mem (f : α ≃. β) : ∀ {a : α} {b : β}, a ∈ f.symm b ↔ b
 
 lemma eq_some_iff (f : α ≃. β) : ∀ {a : α} {b : β}, f.symm b = some a ↔ f a = some b := f.3
 
-@[trans] protected def trans (f : α ≃. β) (g : β ≃. γ) : pequiv α γ :=
+/-- Composition of partial equivalences `f : α ≃. β` and `g : β ≃. γ`. -/
+@[trans] protected def trans (f : α ≃. β) (g : β ≃. γ) : α ≃. γ :=
 { to_fun := λ a, (f a).bind g,
   inv_fun := λ a, (g.symm a).bind f.symm,
   inv := λ a b, by simp [*, and.comm, eq_some_iff f, eq_some_iff g] at * }
@@ -227,6 +231,8 @@ instance : has_bot (α ≃. β) :=
 ⟨{ to_fun := λ _, none,
    inv_fun := λ _, none,
    inv := by simp }⟩
+
+instance : inhabited (α ≃. β) := ⟨⊥⟩
 
 @[simp] lemma bot_apply (a : α) : (⊥ : α ≃. β) a = none := rfl
 

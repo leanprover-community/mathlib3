@@ -1711,6 +1711,32 @@ variables [second_countable_topology E] [borel_space E]
   [second_countable_topology F] [measurable_space F] [borel_space F]
   {g : E → F} {c : ℝ≥0}
 
+lemma lipschitz_with.comp_mem_ℒp {α E F} {K} [measurable_space α] {μ : measure α}
+  [measurable_space E] [measurable_space F] [normed_group E] [normed_group F] [borel_space E]
+  [borel_space F] {f : α → E} {g : E → F} (hg : lipschitz_with K g)
+  (g0 : g 0 = 0) (hL : mem_ℒp f p μ) : mem_ℒp (g ∘ f) p μ  :=
+begin
+  have : ∀ᵐ x ∂μ, ∥g (f x)∥ ≤ K * ∥f x∥,
+  { apply filter.eventually_of_forall (λ x, _),
+    rw [← dist_zero_right, ← dist_zero_right, ← g0],
+    apply hg.dist_le_mul },
+  exact hL.of_le_mul (hg.continuous.measurable.comp_ae_measurable hL.1) this,
+end
+
+lemma measure_theory.mem_ℒp.of_comp_antilipschitz_with {α E F} {K'}
+  [measurable_space α] {μ : measure α} [measurable_space E] [measurable_space F] [normed_group E]
+  [normed_group F] [borel_space E] [borel_space F] [complete_space E]
+  {f : α → E} {g : E → F} (hL : mem_ℒp (g ∘ f) p μ)
+  (hg : uniform_continuous g) (hg' : antilipschitz_with K' g) (g0 : g 0 = 0) : mem_ℒp f p μ :=
+begin
+  have : ∀ᵐ x ∂μ, ∥f x∥ ≤ K' * ∥g (f x)∥,
+    { apply filter.eventually_of_forall (λ x, _),
+      rw [← dist_zero_right, ← dist_zero_right, ← g0],
+      apply hg'.le_mul_dist },
+  exact hL.of_le_mul ((ae_measurable_comp_iff_of_closed_embedding g
+    (hg'.closed_embedding hg)).1 hL.1) this,
+end
+
 namespace lipschitz_with
 
 lemma mem_ℒp_comp_iff_of_antilipschitz {α E F} {K K'} [measurable_space α] {μ : measure α}
@@ -1718,22 +1744,7 @@ lemma mem_ℒp_comp_iff_of_antilipschitz {α E F} {K K'} [measurable_space α] {
   [borel_space F] [complete_space E]
   {f : α → E} {g : E → F} (hg : lipschitz_with K g) (hg' : antilipschitz_with K' g) (g0 : g 0 = 0) :
   mem_ℒp (g ∘ f) p μ ↔ mem_ℒp f p μ :=
-begin
-  have := ae_measurable_comp_iff_of_closed_embedding g (hg'.closed_embedding hg.uniform_continuous),
-  split,
-  { assume H,
-    have A : ∀ᵐ x ∂μ, ∥f x∥ ≤ K' * ∥g (f x)∥,
-    { apply filter.eventually_of_forall (λ x, _),
-      rw [← dist_zero_right, ← dist_zero_right, ← g0],
-      apply hg'.le_mul_dist },
-    exact H.of_le_mul (this.1 H.ae_measurable) A },
-  { assume H,
-    have A : ∀ᵐ x ∂μ, ∥g (f x)∥ ≤ K * ∥f x∥,
-    { apply filter.eventually_of_forall (λ x, _),
-      rw [← dist_zero_right, ← dist_zero_right, ← g0],
-      apply hg.dist_le_mul },
-    exact H.of_le_mul (this.2 H.ae_measurable) A }
-end
+⟨λ h, h.of_comp_antilipschitz_with hg.uniform_continuous hg' g0, λ h, hg.comp_mem_ℒp g0 h⟩
 
 /-- When `g` is a Lipschitz function sending `0` to `0` and `f` is in `Lp`, then `g ∘ f` is well
 defined as an element of `Lp`. -/
@@ -1802,6 +1813,34 @@ lipschitz_with.coe_fn_comp_Lp _ _ _
 lemma coe_fn_comp_Lp' (L : E →L[𝕜] F) (f : Lp E p μ) :
   L.comp_Lp f =ᵐ[μ] λ a, L (f a) :=
 L.coe_fn_comp_Lp f
+
+lemma comp_mem_ℒp (L : E →L[𝕜] F) (f : Lp E p μ) : mem_ℒp (L ∘ f) p μ :=
+(Lp.mem_ℒp (L.comp_Lp f)).ae_eq (L.coe_fn_comp_Lp' f)
+
+lemma comp_mem_ℒp' (L : E →L[𝕜] F) {f : α → E} (hf : mem_ℒp f p μ) : mem_ℒp (L ∘ f) p μ :=
+(L.comp_mem_ℒp (hf.to_Lp f)).ae_eq (eventually_eq.fun_comp (hf.coe_fn_to_Lp) _)
+
+section is_R_or_C
+
+variables {K : Type*} [is_R_or_C K] [measurable_space K] [borel_space K]
+
+lemma _root_.measure_theory.mem_ℒp.of_real
+  {f : α → ℝ} (hf : mem_ℒp f p μ) : mem_ℒp (λ x, (f x : K)) p μ :=
+(@is_R_or_C.of_real_clm K _).comp_mem_ℒp' hf
+
+lemma _root_.measure_theory.mem_ℒp_re_im_iff {f : α → K} :
+  mem_ℒp (λ x, is_R_or_C.re (f x)) p μ ∧ mem_ℒp (λ x, is_R_or_C.im (f x)) p μ ↔
+  mem_ℒp f p μ :=
+begin
+  refine ⟨_, λ hf, ⟨hf.re, hf.im⟩⟩,
+  rintro ⟨hre, him⟩,
+  convert hre.of_real.add (him.of_real.const_mul is_R_or_C.I),
+  { ext1 x,
+    rw [pi.add_apply, mul_comm, is_R_or_C.re_add_im] },
+  all_goals { apply_instance }
+end
+
+end is_R_or_C
 
 lemma add_comp_Lp (L L' : E →L[𝕜] F) (f : Lp E p μ) :
   (L + L').comp_Lp f = L.comp_Lp f + L'.comp_Lp f :=

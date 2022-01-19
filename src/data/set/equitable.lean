@@ -12,12 +12,12 @@ import data.nat.basic
 This file defines equitable functions.
 
 A function `f` is equitable on a set `s` if `f a₁ ≤ f a₂ + 1` for all `a₁, a₂ ∈ s`. This is mostly
-useful when the domain of `f` is `ℕ` or `ℤ` (or more generally a successor order).
+useful when the codomain of `f` is `ℕ` or `ℤ` (or more generally a successor order).
 
 ## TODO
 
-`ℕ` can be replaced by any `succ_order` + `conditionally_complete_monoid`, but we don't have either
-of those yet.
+`ℕ` can be replaced by any `succ_order` + `conditionally_complete_monoid`, but we don't have the
+latter yet.
 -/
 
 open_locale big_operators
@@ -28,11 +28,10 @@ namespace set
 
 /-- A set is equitable if no element value is more than one bigger than another. -/
 def equitable_on [has_le β] [has_add β] [has_one β] (s : set α) (f : α → β) : Prop :=
-  ∀ ⦃a₁ a₂⦄, a₁ ∈ s → a₂ ∈ s → f a₁ ≤ f a₂ + 1
+∀ ⦃a₁ a₂⦄, a₁ ∈ s → a₂ ∈ s → f a₁ ≤ f a₂ + 1
 
 @[simp]
-lemma equitable_on_empty [has_le β] [has_add β] [has_one β] (f : α → β) :
-  equitable_on ∅ f :=
+lemma equitable_on_empty [has_le β] [has_add β] [has_one β] (f : α → β) : equitable_on ∅ f :=
 λ a _ ha, (set.not_mem_empty _ ha).elim
 
 lemma equitable_on_iff_exists_le_le_add_one {s : set α} {f : α → ℕ} :
@@ -59,6 +58,16 @@ lemma equitable_on_iff_exists_eq_eq_add_one {s : set α} {f : α → ℕ} :
   s.equitable_on f ↔ ∃ b, ∀ a ∈ s, f a = b ∨ f a = b + 1 :=
 by simp_rw [equitable_on_iff_exists_le_le_add_one, nat.le_and_le_add_one_iff]
 
+section ordered_semiring
+variables [ordered_semiring β]
+
+lemma subsingleton.equitable_on {s : set α} (hs : s.subsingleton) (f : α → β) : s.equitable_on f :=
+λ i j hi hj, by { rw hs hi hj, exact le_add_of_nonneg_right zero_le_one }
+
+lemma equitable_on_singleton (a : α) (f : α → β) : set.equitable_on {a} f :=
+set.subsingleton_singleton.equitable_on f
+
+end ordered_semiring
 end set
 
 open set

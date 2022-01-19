@@ -59,7 +59,7 @@ private lemma ghost_component_teichmuller_fun (r : R) (n : ℕ) :
   ghost_component n (teichmuller_fun p r) = r ^ p ^ n :=
 begin
   rw [ghost_component_apply, aeval_witt_polynomial, finset.sum_eq_single 0,
-      pow_zero, one_mul, nat.sub_zero],
+      pow_zero, one_mul, tsub_zero],
   { refl },
   { intros i hi h0,
     convert mul_zero _, convert zero_pow _,

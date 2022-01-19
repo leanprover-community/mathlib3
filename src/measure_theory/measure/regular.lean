@@ -257,6 +257,17 @@ lemma _root_.set.exists_is_open_lt_add [outer_regular μ] (A : set α) (hA : μ 
   ∃ U ⊇ A, is_open U ∧ μ U < μ A + ε :=
 A.exists_is_open_lt_of_lt _ (ennreal.lt_add_right hA hε)
 
+lemma _root_.set.exists_is_open_le_add (A : set α) (μ : measure α) [outer_regular μ]
+  {ε : ℝ≥0∞} (hε : ε ≠ 0) :
+  ∃ U ⊇ A, is_open U ∧ μ U ≤ μ A + ε :=
+begin
+  rcases le_or_lt ∞ (μ A) with H|H,
+  { exact ⟨univ, subset_univ _, is_open_univ,
+      by simp only [top_le_iff.mp H, ennreal.top_add, le_top]⟩ },
+  { rcases A.exists_is_open_lt_add H.ne hε with ⟨U, AU, U_open, hU⟩,
+    exact ⟨U, AU, U_open, hU.le⟩ }
+end
+
 lemma _root_.measurable_set.exists_is_open_diff_lt [opens_measurable_space α]
   [outer_regular μ] {A : set α} (hA : measurable_set A)
   (hA' : μ A ≠ ∞) {ε : ℝ≥0∞} (hε : ε ≠ 0) :
@@ -307,7 +318,7 @@ begin
       λ n, (inter_subset_right _ _).trans (disjointed_subset _ _),
       (disjoint_disjointed s.set).mono (λ k l hkl, hkl.mono inf_le_right inf_le_right), _⟩,
     rw [← inter_Union, Union_disjointed, s.spanning, inter_univ] },
-  rcases ennreal.exists_pos_sum_of_encodable' (ennreal.sub_pos.2 hr).ne' ℕ with ⟨δ, δ0, hδε⟩,
+  rcases ennreal.exists_pos_sum_of_encodable' (tsub_pos_iff_lt.2 hr).ne' ℕ with ⟨δ, δ0, hδε⟩,
   rw [lt_tsub_iff_right, add_comm] at hδε,
   have : ∀ n, ∃ U ⊇ A n, is_open U ∧ μ U < μ (A n) + δ n,
   { intro n,
@@ -364,9 +375,9 @@ begin
     ∃ (F ⊆ s) (U ⊇ s), is_closed F ∧ is_open U ∧ μ s ≤ μ F + ε ∧ μ U ≤ μ s + ε,
   { refine { outer_regular := λ s hs r hr, _, inner_regular := H },
     rcases exists_between hr with ⟨r', hsr', hr'r⟩,
-    rcases this s hs _ (ennreal.sub_pos.2 hsr').ne' with ⟨-, -, U, hsU, -, hUo, -, H⟩,
+    rcases this s hs _ (tsub_pos_iff_lt.2 hsr').ne' with ⟨-, -, U, hsU, -, hUo, -, H⟩,
     refine ⟨U, hsU, hUo, _⟩,
-    rw [ennreal.add_sub_cancel_of_le hsr'.le] at H, exact H.trans_lt hr'r },
+    rw [add_tsub_cancel_of_le hsr'.le] at H, exact H.trans_lt hr'r },
   refine measurable_set.induction_on_open _ _ _,
   /- The proof is by measurable induction: we should check that the property is true for the empty
   set, for open sets, and is stable by taking the complement and by taking countable disjoint

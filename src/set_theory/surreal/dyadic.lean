@@ -151,13 +151,13 @@ begin
                surreal.pow_half_zero] },
   { rw [← double_pow_half_succ_eq_pow_half (n + k), ← double_pow_half_succ_eq_pow_half k,
         smul_algebra_smul_comm] at hk,
-    rwa ← (gsmul_eq_gsmul_iff' two_ne_zero) }
+    rwa ← (zsmul_eq_zsmul_iff' two_ne_zero) }
 end
 
-lemma nsmul_int_pow_two_pow_half (m : ℤ) (n k : ℕ) :
+lemma zsmul_pow_two_pow_half (m : ℤ) (n k : ℕ) :
   (m * 2 ^ n) • pow_half (n + k) = m • pow_half k :=
 begin
-  rw mul_gsmul,
+  rw mul_zsmul,
   congr,
   norm_cast,
   exact nsmul_pow_two_pow_half' n k,
@@ -172,7 +172,7 @@ begin
   obtain ⟨c, rfl⟩ := le_iff_exists_add.mp h,
   rw [add_comm, pow_add, ← mul_assoc, mul_eq_mul_right_iff] at h₂,
   cases h₂,
-  { rw [h₂, add_comm, nsmul_int_pow_two_pow_half m₂ c y₁] },
+  { rw [h₂, add_comm, zsmul_pow_two_pow_half m₂ c y₁] },
   { have := nat.one_le_pow y₁ 2 nat.succ_pos',
     linarith },
 end

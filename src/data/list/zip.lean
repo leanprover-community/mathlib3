@@ -55,7 +55,7 @@ zip_with_nil_right _ l
 @[simp] theorem length_zip_with (f : α → β → γ) : ∀  (l₁ : list α) (l₂ : list β),
    length (zip_with f l₁ l₂) = min (length l₁) (length l₂)
 | []      l₂      := rfl
-| l₁      []      := by simp only [length, nat.min_zero, zip_with_nil_right]
+| l₁      []      := by simp only [length, min_zero, zip_with_nil_right]
 | (a::l₁) (b::l₂) := by simp [length, zip_cons_cons, length_zip_with l₁ l₂, min_add_add_right]
 
 @[simp] theorem length_zip : ∀ (l₁ : list α) (l₂ : list β),
@@ -380,5 +380,27 @@ begin
 end
 
 end distrib
+
+section comm_monoid
+
+variables [comm_monoid α]
+
+@[to_additive]
+lemma prod_mul_prod_eq_prod_zip_with_mul_prod_drop : ∀ (L L' : list α), L.prod * L'.prod =
+  (zip_with (*) L L').prod * (L.drop L'.length).prod * (L'.drop L.length).prod
+| [] ys := by simp
+| xs [] := by simp
+| (x :: xs) (y :: ys) := begin
+  simp only [drop, length, zip_with_cons_cons, prod_cons],
+  rw [mul_assoc x, mul_comm xs.prod, mul_assoc y, mul_comm ys.prod,
+    prod_mul_prod_eq_prod_zip_with_mul_prod_drop xs ys, mul_assoc, mul_assoc, mul_assoc, mul_assoc]
+end
+
+@[to_additive]
+lemma prod_mul_prod_eq_prod_zip_with_of_length_eq (L L' : list α) (h : L.length = L'.length) :
+  L.prod * L'.prod = (zip_with (*) L L').prod :=
+(prod_mul_prod_eq_prod_zip_with_mul_prod_drop L L').trans (by simp [h])
+
+end comm_monoid
 
 end list

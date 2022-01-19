@@ -44,7 +44,7 @@ begin
   { rw [ha, monomial_zero_right, mirror_zero] },
   { rw [mirror, reverse, nat_degree_monomial n a ha, nat_trailing_degree_monomial ha,
         ←C_mul_X_pow_eq_monomial, reflect_C_mul_X_pow, rev_at_le (le_refl n),
-        nat.sub_self, pow_zero, mul_one] },
+        tsub_self, pow_zero, mul_one] },
 end
 
 lemma mirror_C (a : R) : (C a).mirror = C a :=
@@ -60,7 +60,7 @@ begin
   by_cases hR : nontrivial R,
   { haveI := hR,
     rw [mirror, nat_degree_mul', reverse_nat_degree, nat_degree_X_pow,
-        nat.sub_add_cancel p.nat_trailing_degree_le_nat_degree],
+        tsub_add_cancel_of_le p.nat_trailing_degree_le_nat_degree],
     rwa [leading_coeff_X_pow, mul_one, reverse_leading_coeff, ne, trailing_coeff_eq_zero] },
   { haveI := not_nontrivial_iff_subsingleton.mp hR,
     exact congr_arg nat_degree (subsingleton.elim p.mirror p) },
@@ -102,7 +102,7 @@ begin
   { intros n hn hp,
     rw finset.mem_range_succ_iff at *,
     rw rev_at_le (hn.trans (nat.le_add_right _ _)),
-    rw [tsub_le_iff_tsub_le, add_comm, nat.add_sub_cancel, ←mirror_nat_trailing_degree],
+    rw [tsub_le_iff_tsub_le, add_comm, add_tsub_cancel_right, ←mirror_nat_trailing_degree],
     exact nat_trailing_degree_le_of_ne_zero hp },
   { exact λ n₁ n₂ hn₁ hp₁ hn₂ hp₂ h, by rw [←@rev_at_invol _ n₁, h, rev_at_invol] },
   { intros n hn hp,
@@ -110,7 +110,7 @@ begin
     refine ⟨_, _, rev_at_invol.symm⟩,
     { rw finset.mem_range_succ_iff at *,
       rw rev_at_le (hn.trans (nat.le_add_right _ _)),
-      rw [tsub_le_iff_tsub_le, add_comm, nat.add_sub_cancel],
+      rw [tsub_le_iff_tsub_le, add_comm, add_tsub_cancel_right],
       exact nat_trailing_degree_le_of_ne_zero hp },
     { change p.mirror.coeff _ ≠ 0,
       rwa [coeff_mirror, rev_at_invol] } },
@@ -126,7 +126,7 @@ lemma mirror_eq_zero : p.mirror = 0 ↔ p = 0 :=
 
 lemma mirror_trailing_coeff : p.mirror.trailing_coeff = p.leading_coeff :=
 by rw [leading_coeff, trailing_coeff, mirror_nat_trailing_degree, coeff_mirror,
-  rev_at_le (nat.le_add_left _ _), nat.add_sub_cancel]
+  rev_at_le (nat.le_add_left _ _), add_tsub_cancel_right]
 
 lemma mirror_leading_coeff : p.mirror.leading_coeff = p.trailing_coeff :=
 by rw [←p.mirror_mirror, mirror_trailing_coeff, p.mirror_mirror]

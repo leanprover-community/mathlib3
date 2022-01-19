@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import data.equiv.mul_add
-import tactic.pi_instances
 
 /-!
 # `ulift` instances for groups and monoids
@@ -40,67 +39,81 @@ namespace ulift
 The multiplicative equivalence between `ulift α` and `α`.
 -/
 @[to_additive "The additive equivalence between `ulift α` and `α`."]
-def mul_equiv [has_mul α] : ulift α ≃* α :=
-{ to_fun := ulift.down,
-  inv_fun := ulift.up,
-  map_mul' := λ x y, rfl,
-  left_inv := by tidy,
-  right_inv := by tidy, }
+def _root_.mul_equiv.ulift [has_mul α] : ulift α ≃* α :=
+{ map_mul' := λ x y, rfl,
+  .. equiv.ulift }
 
 @[to_additive]
 instance semigroup [semigroup α] : semigroup (ulift α) :=
-by refine_struct { mul := (*), .. }; tactic.pi_instance_derive_field
+mul_equiv.ulift.injective.semigroup _ $ λ x y, rfl
 
 @[to_additive]
 instance comm_semigroup [comm_semigroup α] : comm_semigroup (ulift α) :=
-by refine_struct { mul := (*), .. }; tactic.pi_instance_derive_field
+equiv.ulift.injective.comm_semigroup _ $ λ x y, rfl
 
 @[to_additive]
 instance mul_one_class [mul_one_class α] : mul_one_class (ulift α) :=
-by refine_struct { mul := (*), one := (1 : ulift α), .. }; tactic.pi_instance_derive_field
+equiv.ulift.injective.mul_one_class _ rfl $ λ x y, rfl
 
+@[to_additive has_vadd]
+instance has_scalar {β : Type*} [has_scalar α β] : has_scalar α (ulift β) :=
+⟨λ n x, up (n • x.down)⟩
+
+@[to_additive has_scalar, to_additive_reorder 1]
+instance has_pow {β : Type*} [has_pow α β] : has_pow (ulift α) β :=
+⟨λ x n, up (x.down ^ n)⟩
+
+@[to_additive]
 instance monoid [monoid α] : monoid (ulift α) :=
-by refine_struct { one := (1 : ulift α), mul := (*), npow := λ n f, ⟨npow n f.down⟩ };
-tactic.pi_instance_derive_field
-
-instance add_monoid [add_monoid α] : add_monoid (ulift α) :=
-by refine_struct { zero := (0 : ulift α), add := (+), nsmul := λ n f, ⟨nsmul n f.down⟩ };
-tactic.pi_instance_derive_field
-
-attribute [to_additive] ulift.monoid
+equiv.ulift.injective.monoid_pow _ rfl (λ _ _, rfl) (λ _ _, rfl)
 
 @[to_additive]
 instance comm_monoid [comm_monoid α] : comm_monoid (ulift α) :=
-by refine_struct { one := (1 : ulift α), mul := (*), npow := λ n f, ⟨npow n f.down⟩ };
-tactic.pi_instance_derive_field
+{ .. ulift.monoid, .. ulift.comm_semigroup }
+
+@[to_additive]
+instance div_inv_monoid [div_inv_monoid α] : div_inv_monoid (ulift α) :=
+equiv.ulift.injective.div_inv_monoid_pow _ rfl (λ _ _, rfl) (λ _, rfl)
+  (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
 @[to_additive]
 instance group [group α] : group (ulift α) :=
-by refine_struct { one := (1 : ulift α), mul := (*), inv := has_inv.inv, div := has_div.div,
-  npow := λ n f, ⟨npow n f.down⟩, gpow := λ n f, ⟨gpow n f.down⟩ }; tactic.pi_instance_derive_field
+equiv.ulift.injective.group_pow _ rfl (λ _ _, rfl) (λ _, rfl)
+  (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
 @[to_additive]
 instance comm_group [comm_group α] : comm_group (ulift α) :=
-by refine_struct { one := (1 : ulift α), mul := (*), inv := has_inv.inv, div := has_div.div,
-  npow := λ n f, ⟨npow n f.down⟩, gpow := λ n f, ⟨gpow n f.down⟩ }; tactic.pi_instance_derive_field
+{ .. ulift.group, .. ulift.comm_semigroup }
 
 @[to_additive add_left_cancel_semigroup]
 instance left_cancel_semigroup [left_cancel_semigroup α] :
   left_cancel_semigroup (ulift α) :=
-begin
-  refine_struct { mul := (*) }; tactic.pi_instance_derive_field,
-  have := congr_arg ulift.down ‹_›,
-  assumption,
-end
+equiv.ulift.injective.left_cancel_semigroup _ (λ _ _, rfl)
 
 @[to_additive add_right_cancel_semigroup]
 instance right_cancel_semigroup [right_cancel_semigroup α] :
   right_cancel_semigroup (ulift α) :=
-begin
-  refine_struct { mul := (*) }; tactic.pi_instance_derive_field,
-  have := congr_arg ulift.down ‹_›,
-  assumption,
-end
+equiv.ulift.injective.right_cancel_semigroup _ (λ _ _, rfl)
+
+@[to_additive add_left_cancel_monoid]
+instance left_cancel_monoid [left_cancel_monoid α] :
+  left_cancel_monoid (ulift α) :=
+{ .. ulift.monoid, .. ulift.left_cancel_semigroup }
+
+@[to_additive add_right_cancel_monoid]
+instance right_cancel_monoid [right_cancel_monoid α] :
+  right_cancel_monoid (ulift α) :=
+{ .. ulift.monoid, .. ulift.right_cancel_semigroup }
+
+@[to_additive add_cancel_monoid]
+instance cancel_monoid [cancel_monoid α] :
+  cancel_monoid (ulift α) :=
+{ .. ulift.left_cancel_monoid, .. ulift.right_cancel_semigroup }
+
+@[to_additive add_cancel_monoid]
+instance cancel_comm_monoid [cancel_comm_monoid α] :
+  cancel_comm_monoid (ulift α) :=
+{ .. ulift.cancel_monoid, .. ulift.comm_semigroup }
 
 -- TODO we don't do `ordered_cancel_comm_monoid` or `ordered_comm_group`
 -- We'd need to add instances for `ulift` in `order.basic`.

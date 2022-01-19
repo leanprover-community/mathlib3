@@ -231,7 +231,7 @@ begin
     { exact ⟨(0 : L), (add_zero _).symm⟩ },
     { refine ⟨⟨⟨bn - an, b2 + a2⟩, _⟩, _⟩,
       { rw [ne.def, prod.mk.inj_iff, not_and_distrib],
-        exact or.inl (ne_of_gt (nat.sub_pos_of_lt h)) },
+        exact or.inl (ne_of_gt (tsub_pos_of_lt h)) },
       { congr,
         { exact (add_tsub_cancel_of_le h.le).symm },
         { change b2 = a2 + (b2 + a2),

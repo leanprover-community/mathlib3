@@ -102,6 +102,8 @@ inf_le_iff
 @[simp] lemma le_max_iff : a ≤ max b c ↔ a ≤ b ∨ a ≤ c :=
 @min_le_iff (order_dual α) _ _ _ _
 
+lemma min_lt_max : min a b < max a b ↔ a ≠ b := inf_lt_sup
+
 lemma max_lt_max (h₁ : a < c) (h₂ : b < d) : max a b < max c d :=
 by simp [lt_max_iff, max_lt_iff, *]
 

@@ -89,7 +89,7 @@ lemma smul_inv [group β] [smul_comm_class α β β] [is_scalar_tower α β β] 
   (c • x)⁻¹ = c⁻¹ • x⁻¹  :=
 by rw [inv_eq_iff_mul_eq_one, smul_mul_smul, mul_right_inv, mul_right_inv, one_smul]
 
-lemma smul_gpow [group β] [smul_comm_class α β β] [is_scalar_tower α β β]
+lemma smul_zpow [group β] [smul_comm_class α β β] [is_scalar_tower α β β]
   (c : α) (x : β) (p : ℤ) :
   (c • x) ^ p = c ^ p • x ^ p :=
 by { cases p; simp [smul_pow, smul_inv] }

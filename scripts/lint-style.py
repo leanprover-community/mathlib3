@@ -260,7 +260,7 @@ def format_errors(errors):
         if errno == ERR_OME:
             output_message(path, line_nr, "ERR_OME", "Files in mathlib cannot import tactic.omega")
         if errno == ERR_TAC:
-            output_message(path, line_nr, "ERR_OME", "Files in mathlib cannot import the whole tactic folder")
+            output_message(path, line_nr, "ERR_TAC", "Files in mathlib cannot import the whole tactic folder")
 
 def lint(path):
     with path.open(encoding="utf-8") as f:

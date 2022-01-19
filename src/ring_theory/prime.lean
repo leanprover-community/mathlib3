@@ -10,6 +10,8 @@ import algebra.big_operators.basic
 This file contains lemmas about prime elements of commutative rings.
 -/
 
+section comm_cancel_monoid_with_zero
+
 variables {R : Type*} [comm_cancel_monoid_with_zero R]
 open finset
 
@@ -62,3 +64,24 @@ begin
     ⟨t, u, b, c, htus, htu, rfl, rfl, rfl⟩,
   exact ⟨t.card, u.card, b, c, by rw [← card_disjoint_union htu, htus, card_range], by simp⟩,
 end
+
+end comm_cancel_monoid_with_zero
+
+section comm_ring
+
+variables {α : Type*} [comm_ring α]
+
+lemma prime.neg {p : α} (hp : prime p) : prime (-p) :=
+begin
+  obtain ⟨h1, h2, h3⟩ := hp,
+  exact ⟨neg_ne_zero.mpr h1, by rwa is_unit.neg_iff, by simpa [neg_dvd] using h3⟩
+end
+
+lemma prime.abs [linear_order α] {p : α} (hp : prime p) : prime (abs p) :=
+begin
+  obtain h|h := abs_choice p; rw h,
+  { exact hp },
+  { exact hp.neg }
+end
+
+end comm_ring

@@ -97,7 +97,7 @@ begin
     { rw [nat.cast_one, finset.sum_range_one, div_self],
       exact (mul_pos (a_pos 0 (nat.zero_le _)) (a_pos 1 (nat.zero_lt_succ _))).ne' },
     -- Check the divisibility condition
-    { rw [mul_one, nat.sub_self],
+    { rw [mul_one, tsub_self],
       exact dvd_zero _ } },
   /- Induction step
   `b` is the value of the previous sum as a natural, `hb` is the proof that it is indeed the value,
@@ -133,7 +133,7 @@ begin
             (a_pos _ $ nat.le_succ _).ne', mul_comm],
         end },
   -- Check the divisibility condition
-  { rw [nat.mul_sub_left_distrib, ← mul_assoc, nat.mul_div_cancel' ha, add_mul,
-      nat.mul_div_cancel' han, add_tsub_tsub_cancel ha₀, nat.add_sub_cancel],
+  { rw [mul_tsub, ← mul_assoc, nat.mul_div_cancel' ha, add_mul,
+      nat.mul_div_cancel' han, add_tsub_tsub_cancel ha₀, add_tsub_cancel_right],
     exact dvd_mul_right _ _ }
 end

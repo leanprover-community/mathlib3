@@ -6,7 +6,6 @@ Authors: Scott Morrison, Adam Topaz
 import algebra.algebra.subalgebra
 import algebra.monoid_algebra.basic
 import linear_algebra
-import data.equiv.transfer_instance
 
 /-!
 # Free Algebras
@@ -322,7 +321,7 @@ end
 (by { ext, simp, })
 
 instance [nontrivial R] : nontrivial (free_algebra R X) :=
-equiv_monoid_algebra_free_monoid.to_equiv.nontrivial
+equiv_monoid_algebra_free_monoid.surjective.nontrivial
 
 section
 open_locale classical

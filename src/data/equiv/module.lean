@@ -13,7 +13,8 @@ In this file we define
 
 * `linear_equiv σ M M₂`, `M ≃ₛₗ[σ] M₂`: an invertible semilinear map. Here, `σ` is a `ring_hom`
   from `R` to `R₂` and an `e : M ≃ₛₗ[σ] M₂` satisfies `e (c • x) = (σ c) • (e x)`. The plain
-  linear version, with `σ` being `ring_hom.id R`, is denoted by `M ≃ₗ[R] M₂`.
+  linear version, with `σ` being `ring_hom.id R`, is denoted by `M ≃ₗ[R] M₂`, and the
+  star-linear version (with `σ` begin `star_ring_aut`) is denoted by `M ≃ₗ⋆[R] M₂`.
 
 ## Implementation notes
 
@@ -57,6 +58,7 @@ attribute [nolint doc_blame] linear_equiv.to_add_equiv
 
 notation M ` ≃ₛₗ[`:50 σ `] ` M₂ := linear_equiv σ M M₂
 notation M ` ≃ₗ[`:50 R `] ` M₂ := linear_equiv (ring_hom.id R) M M₂
+notation M ` ≃ₗ⋆[`:50 R `] ` M₂ := linear_equiv (@star_ring_aut R _ _ : R →+* R) M M₂
 
 namespace linear_equiv
 

@@ -23,15 +23,11 @@ variable {R : Type u}
 variable {M : Type v}
 variable {N : Type w}
 
-instance has_scalar [has_scalar R M] :
+instance has_scalar_left [has_scalar R M] :
   has_scalar (ulift R) M :=
 ⟨λ s x, s.down • x⟩
 
 @[simp] lemma smul_down [has_scalar R M] (s : ulift R) (x : M) : (s • x) = s.down • x := rfl
-
-instance has_scalar' [has_scalar R M] :
-  has_scalar R (ulift M) :=
-⟨λ s x, ⟨s • x.down⟩⟩
 
 @[simp]
 lemma smul_down' [has_scalar R M] (s : R) (x : ulift M) :

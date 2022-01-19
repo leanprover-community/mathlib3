@@ -32,6 +32,7 @@ this file.
 noncomputable theory
 
 open complex continuous_linear_map
+open_locale complex_conjugate
 
 lemma is_conformal_map_conj : is_conformal_map (conj_lie : ℂ →L[ℝ] ℂ) :=
 conj_lie.to_linear_isometry.is_conformal_map

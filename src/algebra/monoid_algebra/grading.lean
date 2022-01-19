@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser
 -/
 import algebra.monoid_algebra.to_direct_sum
+import algebra.direct_sum.internal
 import linear_algebra.finsupp
 
 /-!
@@ -34,15 +35,17 @@ abbreviation grade [comm_semiring R] (i : ι) : submodule R (add_monoid_algebra 
 
 end
 
-variables {R} [decidable_eq ι] [add_monoid ι] [comm_semiring R]
-
 open_locale direct_sum
 
-instance grade.gsemiring : direct_sum.gsemiring (λ i : ι, grade R i) :=
-direct_sum.gsemiring.of_submodules (grade R) ⟨1, rfl⟩ $ λ i j, begin
-  rintros ⟨-, a, rfl⟩ ⟨-, b, rfl⟩,
-  exact ⟨_, single_mul_single.symm⟩,
-end
+instance grade.graded_monoid [add_monoid ι] [comm_semiring R] :
+  set_like.graded_monoid (grade R : ι → submodule R (add_monoid_algebra R ι)) :=
+{ one_mem := ⟨1, rfl⟩,
+  mul_mem := λ i j _ _, begin
+    rintros ⟨a, rfl⟩ ⟨b, rfl⟩,
+    exact ⟨_, single_mul_single.symm⟩,
+  end }
+
+variables {R} [decidable_eq ι] [add_monoid ι] [comm_semiring R]
 
 /-- The canonical grade decomposition. -/
 def to_grades : add_monoid_algebra R ι →ₐ[R] ⨁ i : ι, grade R i :=
@@ -82,12 +85,12 @@ end
 
 /-- The canonical recombination of grades. -/
 def of_grades : (⨁ i : ι, grade R i) →ₐ[R] add_monoid_algebra R ι :=
-direct_sum.to_algebra R _ (λ i : ι, submodule.subtype _) rfl (λ _ _ _ _, rfl) (λ r, rfl)
+direct_sum.submodule_coe_alg_hom (grade R)
 
 @[simp]
 lemma of_grades_of (i : ι) (x : grade R i) :
   of_grades (direct_sum.of (λ i, grade R i) i x) = x :=
-direct_sum.to_add_monoid_of _ _ _
+direct_sum.submodule_coe_alg_hom_of (grade R) i x
 
 @[simp]
 lemma of_grades_comp_to_grades : of_grades.comp to_grades = alg_hom.id R (add_monoid_algebra R ι) :=

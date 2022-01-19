@@ -142,7 +142,7 @@ begin
   cases i;
     simp_rw [centroid_weights_with_circumcenter, circumcenter_weights_with_circumcenter,
              monge_point_weights_with_circumcenter];
-    rw [nat.add_sub_assoc (dec_trivial : 1 ≤ 2), (dec_trivial : 2 - 1 = 1)],
+    rw [add_tsub_assoc_of_le (dec_trivial : 1 ≤ 2), (dec_trivial : 2 - 1 = 1)],
   { rw [if_pos (mem_univ _), sub_zero, add_zero, card_fin],
     have hn3 : (n + 2 + 1 : ℝ) ≠ 0,
     { exact_mod_cast nat.succ_ne_zero _ },

@@ -637,12 +637,12 @@ lemma monotone_comap {f : M →[L] N} : monotone (comap f) :=
 
 @[simp]
 lemma map_comap_map {f : M →[L] N} : ((S.map f).comap f).map f = S.map f :=
-congr_fun ((gc_map_comap f).l_u_l_eq_l) _
+(gc_map_comap f).l_u_l_eq_l _
 
 @[simp]
 lemma comap_map_comap {S : L.substructure N} {f : M →[L] N} :
   ((S.comap f).map f).comap f = S.comap f :=
-congr_fun ((gc_map_comap f).u_l_u_eq_u) _
+(gc_map_comap f).u_l_u_eq_u _
 
 lemma map_sup (S T : L.substructure M) (f : M →[L] N) : (S ⊔ T).map f = S.map f ⊔ T.map f :=
 (gc_map_comap f).l_sup

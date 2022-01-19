@@ -1811,8 +1811,8 @@ begin
     rw [with_densityᵥ_apply
         (signed_measure.integrable_rn_deriv ((μ.with_densityᵥ f).trim hm) (μ.trim hm)) hs,
       ← set_integral_trim hm _ hs],
-    measurability },
-  { exact measurable.ae_measurable' (by measurability), },
+    exact signed_measure.measurable_rn_deriv _ _ },
+  { exact measurable.ae_measurable' (signed_measure.measurable_rn_deriv _ _) },
 end
 
 end real

@@ -6,6 +6,25 @@ Authors: Scott Morrison
 import topology.category.Top.opens
 import category_theory.filtered
 
+/-!
+# The category of open neighborhoods of a point
+
+Given an object `X` of the category `Top` of topological spaces and a point `x : X`, this file
+builds the type `open_nhds x` of open neighborhoods of `x` in `X` and endows it with the partial
+order given by inclusion and the corresponding category structure (as a full subcategory of the
+poset category `set X`). This is used in `topology.sheaves.stalks` to build the stalk of a sheaf
+at `x` as a limit over `open_nhds x`.
+
+## Main declarations
+
+Besides `open_nhds`, the main constructions here are:
+
+* `inclusion (x : X)`: the obvious functor `open_nhds x ⥤ opens X`
+* `functor_nhds`: An open map `f : X ⟶ Y` induces a functor `open_nhds x ⥤ open_nhds (f x)`
+* `adjunction_nhds`: An open map `f : X ⟶ Y` induces an adjunction between `open_nhds x` and
+                     `open_nhds (f x)`.
+-/
+
 open category_theory
 open topological_space
 open opposite

@@ -48,7 +48,7 @@ begin
   have : z ≤ y,
   { transitivity, assumption, apply le_of_lt h, },
   apply @nat.lt_of_add_lt_add_left z,
-  rw [nat.add_sub_of_le,nat.add_sub_of_le];
+  rw [add_tsub_cancel_of_le,add_tsub_cancel_of_le];
     solve_by_elim
 end
 
@@ -61,9 +61,9 @@ begin
   have h'' : y ≤ z,
   { transitivity, apply le_of_lt h, assumption },
   apply @nat.lt_of_add_lt_add_right _ x,
-  rw [nat.sub_add_cancel h'],
+  rw [tsub_add_cancel_of_le h'],
   apply @lt_of_le_of_lt _ _ _ (z - y + y),
-  rw [nat.sub_add_cancel h''],
+  rw [tsub_add_cancel_of_le h''],
   apply nat.add_lt_add_left h
 end
 

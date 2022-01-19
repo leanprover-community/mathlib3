@@ -61,7 +61,7 @@ by { split_ifs with H, { subst H, apply eval_basis_self }, { exact eval_basis_ne
 begin
   unfold basis, generalize hsx : s.erase x = sx,
   have : x ∉ sx := hsx ▸ finset.not_mem_erase x s,
-  rw [← finset.insert_erase hx, hsx, finset.card_insert_of_not_mem this, nat.add_sub_cancel],
+  rw [← finset.insert_erase hx, hsx, finset.card_insert_of_not_mem this, add_tsub_cancel_right],
   clear hx hsx s, revert this, apply sx.induction_on,
   { intros hx, rw [finset.prod_empty, nat_degree_one], refl },
   { intros y s hys ih hx, rw [finset.mem_insert, not_or_distrib] at hx,

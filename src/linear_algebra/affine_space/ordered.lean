@@ -3,8 +3,8 @@ Copyright (c) 2020 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
+import algebra.order.module
 import linear_algebra.affine_space.midpoint
-import algebra.module.ordered
 import tactic.field_simp
 
 /-!

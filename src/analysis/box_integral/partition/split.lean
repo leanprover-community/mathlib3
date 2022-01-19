@@ -147,7 +147,7 @@ of_with_bot {I.split_lower i x, I.split_upper i x}
   end
   begin
     simp only [finset.coe_insert, finset.coe_singleton, true_and, set.mem_singleton_iff,
-     pairwise_on_insert_of_symmetric symmetric_disjoint, pairwise_on_singleton],
+      pairwise_insert_of_symmetric symmetric_disjoint, pairwise_singleton],
     rintro J rfl -,
     exact I.disjoint_split_lower_split_upper i x
   end

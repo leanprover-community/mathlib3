@@ -292,7 +292,7 @@ sampleable.lift ℕ fin.of_nat subtype.val $
 
 instance pnat.sampleable : sampleable ℕ+ :=
 sampleable.lift ℕ nat.succ_pnat pnat.nat_pred $ λ a,
-by unfold_wf; simp only [pnat.nat_pred, succ_pnat, pnat.mk_coe, nat.sub_zero, succ_sub_succ_eq_sub]
+by unfold_wf; simp only [pnat.nat_pred, succ_pnat, pnat.mk_coe, tsub_zero, succ_sub_succ_eq_sub]
 
 /-- Redefine `sizeof` for `int` to make it easier to use with `nat` -/
 def int.has_sizeof : has_sizeof ℤ := ⟨ int.nat_abs ⟩
@@ -374,7 +374,7 @@ begin
   { rw [← int.coe_nat_le, ← int.abs_eq_nat_abs, ← int.abs_eq_nat_abs],
     apply int.abs_div_le_abs },
   { change _ - 1 ≤ y-1,
-    apply nat.sub_le_sub_right,
+    apply tsub_le_tsub_right,
     apply nat.div_le_of_le_mul,
     suffices : 1 * y ≤ x.nat_abs.gcd y * y, { simpa },
     apply nat.mul_le_mul_right,

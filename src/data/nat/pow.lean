@@ -3,7 +3,6 @@ Copyright (c) 2014 Floris van Doorn (c) 2016 Microsoft Corporation. All rights r
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn, Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
-import data.nat.basic
 import algebra.group_power.order
 
 /-! # `nat.pow`
@@ -132,8 +131,7 @@ begin
   -- step: p ≥ b^succ w
   { -- Generate condition for induction hypothesis
     have h₂ : p - b^succ w < p,
-    { apply nat.sub_lt_of_pos_le _ _ (pow_pos b_pos _) h₁ },
-
+    { exact tsub_lt_self ((pow_pos b_pos _).trans_le h₁) (pow_pos b_pos _) },
     -- Apply induction
     rw [mod_eq_sub_mod h₁, IH _ h₂],
     -- Normalize goal and h1
@@ -157,7 +155,7 @@ begin
     { simp only [one_pow], },
     { have le := (pow_le_iff_le_right (nat.le_add_left _ _)).mp a,
       use (x+2)^(l-k),
-      rw [←pow_add, add_comm k, nat.sub_add_cancel le], } }
+      rw [←pow_add, add_comm k, tsub_add_cancel_of_le le], } }
 end
 
 /-- If `1 < x`, then `x^k` divides `x^l` if and only if `k` is at most `l`. -/

@@ -274,7 +274,7 @@ begin
   { cases fintype.card V with n,
     { exact zero_le _, },
     { have : n = 0,
-      { rw [nat.succ_sub_succ_eq_sub, nat.sub_zero] at h,
+      { rw [nat.succ_sub_succ_eq_sub, tsub_zero] at h,
         linarith },
       subst n, } },
   use classical.arbitrary V,

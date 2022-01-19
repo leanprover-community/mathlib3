@@ -133,7 +133,7 @@ begin
       (is_splitting_field.alg_equiv E p).symm)).mp (normal_self F) },
   refine normal_iff.2 (λ x, _),
   haveI hFE : finite_dimensional F E := is_splitting_field.finite_dimensional E p,
-  have Hx : is_integral F x := is_integral_of_noetherian hFE x,
+  have Hx : is_integral F x := is_integral_of_noetherian (is_noetherian.iff_fg.2 hFE) x,
   refine ⟨Hx, or.inr _⟩,
   rintros q q_irred ⟨r, hr⟩,
   let D := adjoin_root q,
@@ -166,8 +166,9 @@ begin
   suffices : ⊤ ≤ intermediate_field.adjoin C S,
   { refine intermediate_field.alg_hom_mk_adjoin_splits' (top_le_iff.mp this) (λ y hy, _),
     rcases multiset.mem_map.mp (multiset.mem_to_finset.mp hy) with ⟨z, hz1, hz2⟩,
-    have Hz : is_integral F z := is_integral_of_noetherian hFE z,
-    use (show is_integral C y, from is_integral_of_noetherian (finite_dimensional.right F C D) y),
+    have Hz : is_integral F z := is_integral_of_noetherian (is_noetherian.iff_fg.2 hFE) z,
+    use (show is_integral C y, from is_integral_of_noetherian
+      (is_noetherian.iff_fg.2 (finite_dimensional.right F C D)) y),
     apply splits_of_splits_of_dvd (algebra_map C E) (map_ne_zero (minpoly.ne_zero Hz)),
     { rw [splits_map_iff, ←algebra_map_eq F C E],
       exact splits_of_splits_of_dvd _ hp hFEp.splits (minpoly.dvd F z

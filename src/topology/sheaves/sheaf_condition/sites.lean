@@ -87,7 +87,7 @@ begin
     intro f,
     exact f.2.1.le, },
   intros x hxU,
-  rw [subtype.val_eq_coe, opens.mem_coe, opens.mem_supr],
+  rw [opens.mem_coe, opens.mem_supr],
   obtain ⟨V, iVU, ⟨W, iVW, iWU, hiWU, -⟩, hxV⟩ := hR x hxU,
   exact ⟨⟨W, ⟨iWU, hiWU⟩⟩, iVW.le hxV⟩,
 end

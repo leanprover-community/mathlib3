@@ -96,13 +96,13 @@ begin
 end
 
 lemma integral_finset_bUnion {ι : Type*} (t : finset ι) {s : ι → set α}
-  (hs : ∀ i ∈ t, measurable_set (s i)) (h's : pairwise_on ↑t (disjoint on s))
+  (hs : ∀ i ∈ t, measurable_set (s i)) (h's : set.pairwise ↑t (disjoint on s))
   (hf : ∀ i ∈ t, integrable_on f (s i) μ) :
   ∫ x in (⋃ i ∈ t, s i), f x ∂ μ = ∑ i in t, ∫ x in s i, f x ∂ μ :=
 begin
   induction t using finset.induction_on with a t hat IH hs h's,
   { simp },
-  { simp only [finset.coe_insert, finset.forall_mem_insert, set.pairwise_on_insert,
+  { simp only [finset.coe_insert, finset.forall_mem_insert, set.pairwise_insert,
       finset.set_bUnion_insert] at hs hf h's ⊢,
     rw [integral_union _ hs.1 _ hf.1 (integrable_on_finset_Union.2 hf.2)],
     { rw [finset.sum_insert hat, IH hs.2 h's.1 hf.2] },
@@ -118,7 +118,7 @@ lemma integral_fintype_Union {ι : Type*} [fintype ι] {s : ι → set α}
 begin
   convert integral_finset_bUnion finset.univ (λ i hi, hs i) _ (λ i _, hf i),
   { simp },
-  { simp [pairwise_on_univ, h's] }
+  { simp [pairwise_univ, h's] }
 end
 
 lemma integral_empty : ∫ x in ∅, f x ∂μ = 0 := by rw [measure.restrict_empty, integral_zero_measure]
@@ -180,7 +180,7 @@ lemma has_sum_integral_Union {ι : Type*} [encodable ι] {s : ι → set α} {f 
   has_sum (λ n, ∫ a in s n, f a ∂ μ) (∫ a in ⋃ n, s n, f a ∂μ) :=
 begin
   have hfi' : ∀ i, integrable_on f (s i) μ, from λ i, hfi.mono_set (subset_Union _ _),
-  simp only [has_sum, ← integral_finset_bUnion _ (λ i _, hm i) (hd.pairwise_on _) (λ i _, hfi' i)],
+  simp only [has_sum, ← integral_finset_bUnion _ (λ i _, hm i) (hd.set_pairwise _) (λ i _, hfi' i)],
   rw Union_eq_Union_finset at hfi ⊢,
   exact tendsto_set_integral_of_monotone (λ t, t.measurable_set_bUnion (λ i _, hm i))
     (λ t₁ t₂ h, bUnion_subset_bUnion_left h) hfi
@@ -489,12 +489,10 @@ begin
     from funext (λ i, (integral_indicator (hsm i)).symm),
   rw h_int_eq,
   rw ← integral_indicator (measurable_set.Inter hsm),
-  refine tendsto_integral_of_dominated_convergence bound _ _ _ _ _,
+  refine tendsto_integral_of_dominated_convergence bound _ _ _ _,
   { intro n,
     rw ae_measurable_indicator_iff (hsm n),
     exact (integrable_on.mono_set hfi (h_anti (zero_le n))).1 },
-  { rw ae_measurable_indicator_iff (measurable_set.Inter hsm),
-    exact (integrable_on.mono_set hfi (set.Inter_subset s 0)).1, },
   { rw integrable_indicator_iff (hsm 0),
     exact hfi.norm, },
   { simp_rw norm_indicator_eq_indicator_norm,
@@ -563,7 +561,7 @@ variables (α F 𝕜)
 def Lp_to_Lp_restrict_clm [borel_space 𝕜] (μ : measure α) (p : ℝ≥0∞) [hp : fact (1 ≤ p)]
   (s : set α) :
   Lp F p μ →L[𝕜] Lp F p (μ.restrict s) :=
-@linear_map.mk_continuous 𝕜 (Lp F p μ) (Lp F p (μ.restrict s)) _ _ _ _ _
+@linear_map.mk_continuous 𝕜 𝕜 (Lp F p μ) (Lp F p (μ.restrict s)) _ _ _ _ _ _ (ring_hom.id 𝕜)
   ⟨λ f, mem_ℒp.to_Lp f ((Lp.mem_ℒp f).restrict s), λ f g, Lp_to_Lp_restrict_add f g s,
     λ c f, Lp_to_Lp_restrict_smul c f s⟩
   1 (by { intro f, rw one_mul, exact norm_Lp_to_Lp_restrict_le s f, })
@@ -734,6 +732,8 @@ the composition, as we are dealing with classes of functions, but it has already
 as `continuous_linear_map.comp_Lp`. We take advantage of this construction here.
 -/
 
+open_locale complex_conjugate
+
 variables {μ : measure α} {𝕜 : Type*} [is_R_or_C 𝕜] [normed_space 𝕜 E]
   [normed_group F] [normed_space 𝕜 F]
   {p : ennreal}
@@ -832,8 +832,29 @@ lemma integral_im {f : α → 𝕜} (hf : integrable f μ) :
   ∫ a, is_R_or_C.im (f a) ∂μ = is_R_or_C.im ∫ a, f a ∂μ :=
 (@is_R_or_C.im_clm 𝕜 _).integral_comp_comm hf
 
-lemma integral_conj {f : α → 𝕜} : ∫ a, is_R_or_C.conj (f a) ∂μ = is_R_or_C.conj ∫ a, f a ∂μ :=
+lemma integral_conj {f : α → 𝕜} : ∫ a, conj (f a) ∂μ = conj ∫ a, f a ∂μ :=
 (@is_R_or_C.conj_lie 𝕜 _).to_linear_isometry.integral_comp_comm f
+
+lemma integral_coe_re_add_coe_im {f : α → 𝕜} (hf : integrable f μ) :
+  ∫ x, (is_R_or_C.re (f x) : 𝕜) ∂μ + ∫ x, is_R_or_C.im (f x) ∂μ * is_R_or_C.I = ∫ x, f x ∂μ :=
+begin
+  rw [mul_comm, ← smul_eq_mul, ← integral_smul, ← integral_add],
+  { congr,
+    ext1 x,
+    rw [smul_eq_mul, mul_comm, is_R_or_C.re_add_im] },
+  { exact hf.re.of_real },
+  { exact hf.im.of_real.smul is_R_or_C.I }
+end
+
+lemma integral_re_add_im {f : α → 𝕜} (hf : integrable f μ) :
+  ((∫ x, is_R_or_C.re (f x) ∂μ : ℝ) : 𝕜) + (∫ x, is_R_or_C.im (f x) ∂μ : ℝ) * is_R_or_C.I =
+  ∫ x, f x ∂μ :=
+by { rw [← integral_of_real, ← integral_of_real, integral_coe_re_add_coe_im hf] }
+
+lemma set_integral_re_add_im {f : α → 𝕜} {i : set α} (hf : integrable_on f i μ) :
+  ((∫ x in i, is_R_or_C.re (f x) ∂μ : ℝ) : 𝕜) +
+  (∫ x in i, is_R_or_C.im (f x) ∂μ : ℝ) * is_R_or_C.I = ∫ x in i, f x ∂μ :=
+integral_re_add_im hf
 
 lemma fst_integral {f : α → E × F} (hf : integrable f μ) :
   (∫ x, f x ∂μ).1 = ∫ x, (f x).1 ∂μ :=

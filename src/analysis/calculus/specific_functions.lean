@@ -83,7 +83,7 @@ lemma f_aux_deriv (n : ℕ) (x : ℝ) (hx : x ≠ 0) :
 begin
   have A : ∀k:ℕ, 2 * (k + 1) - 1 = 2 * k + 1,
   { assume k,
-    rw nat.sub_eq_iff_eq_add,
+    rw tsub_eq_iff_eq_add_of_le,
     { ring },
     { simpa [mul_add] using add_le_add (zero_le (2 * k)) one_le_two } },
   convert (((P_aux n).has_deriv_at x).mul

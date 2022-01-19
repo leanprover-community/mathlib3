@@ -50,7 +50,7 @@ end
 @[simp]
 lemma succ_mersenne (k : ℕ) : mersenne k + 1 = 2 ^ k :=
 begin
-  rw [mersenne, nat.sub_add_cancel],
+  rw [mersenne, tsub_add_cancel_of_le],
   exact one_le_pow_of_one_le (by norm_num) k
 end
 
@@ -425,7 +425,7 @@ open lucas_lehmer
 theorem lucas_lehmer_sufficiency (p : ℕ) (w : 1 < p) : lucas_lehmer_test p → (mersenne p).prime :=
 begin
   let p' := p - 2,
-  have z : p = p' + 2 := (nat.sub_eq_iff_eq_add w).mp rfl,
+  have z : p = p' + 2 := (tsub_eq_iff_eq_add_of_le w.nat_succ_le).mp rfl,
   have w : 1 < p' + 2 := (nat.lt_of_sub_eq_succ rfl),
   contrapose,
   intros a t,

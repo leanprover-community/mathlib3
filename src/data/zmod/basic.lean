@@ -414,6 +414,10 @@ begin
   simp [nat.modeq_iff_dvd, int.modeq_iff_dvd],
 end
 
+lemma nat_coe_eq_nat_coe_iff' (a b c : ℕ) :
+  (a : zmod c) = (b : zmod c) ↔ a % c = b % c :=
+zmod.nat_coe_eq_nat_coe_iff a b c
+
 lemma int_coe_zmod_eq_zero_iff_dvd (a : ℤ) (b : ℕ) : (a : zmod b) = 0 ↔ (b : ℤ) ∣ a :=
 begin
   change (a : zmod b) = ((0 : ℤ) : zmod b) ↔ (b : ℤ) ∣ a,
@@ -434,8 +438,8 @@ begin
 end
 
 lemma ker_int_cast_add_hom (n : ℕ) :
-  (int.cast_add_hom (zmod n)).ker = add_subgroup.gmultiples n :=
-by { ext, rw [int.mem_gmultiples_iff, add_monoid_hom.mem_ker,
+  (int.cast_add_hom (zmod n)).ker = add_subgroup.zmultiples n :=
+by { ext, rw [int.mem_zmultiples_iff, add_monoid_hom.mem_ker,
               int.coe_cast_add_hom, int_coe_zmod_eq_zero_iff_dvd] }
 
 lemma ker_int_cast_ring_hom (n : ℕ) :
@@ -651,9 +655,9 @@ begin
     ((lt_mul_iff_one_lt_left npos.1).2 dec_trivial),
   have hn2' : (n : ℕ) - n / 2 = n / 2 + 1,
   { conv {to_lhs, congr, rw [← nat.succ_sub_one n, nat.succ_sub npos.1]},
-    rw [← nat.two_mul_odd_div_two hn.1, two_mul, ← nat.succ_add, nat.add_sub_cancel], },
+    rw [← nat.two_mul_odd_div_two hn.1, two_mul, ← nat.succ_add, add_tsub_cancel_right], },
   have hxn : (n : ℕ) - x.val < n,
-  { rw [tsub_lt_iff_tsub_lt x.val_le le_rfl, nat.sub_self],
+  { rw [tsub_lt_iff_tsub_lt x.val_le le_rfl, tsub_self],
     rw ← zmod.nat_cast_zmod_val x at hx0,
     exact nat.pos_of_ne_zero (λ h, by simpa [h] using hx0) },
   by conv {to_rhs, rw [← nat.succ_le_iff, nat.succ_eq_add_one, ← hn2', ← zero_add (- x),
@@ -690,12 +694,12 @@ by rw [val_nat_cast, nat.mod_eq_of_lt h]
 lemma neg_val' {n : ℕ} [fact (0 < n)] (a : zmod n) : (-a).val = (n - a.val) % n :=
 calc (-a).val = val (-a)    % n : by rw nat.mod_eq_of_lt ((-a).val_lt)
           ... = (n - val a) % n : nat.modeq.add_right_cancel' _ (by rw [nat.modeq, ←val_add,
-                  add_left_neg, nat.sub_add_cancel a.val_le, nat.mod_self, val_zero])
+                  add_left_neg, tsub_add_cancel_of_le a.val_le, nat.mod_self, val_zero])
 
 lemma neg_val {n : ℕ} [fact (0 < n)] (a : zmod n) : (-a).val = if a = 0 then 0 else n - a.val :=
 begin
   rw neg_val',
-  by_cases h : a = 0, { rw [if_pos h, h, val_zero, nat.sub_zero, nat.mod_self] },
+  by_cases h : a = 0, { rw [if_pos h, h, val_zero, tsub_zero, nat.mod_self] },
   rw if_neg h,
   apply nat.mod_eq_of_lt,
   apply nat.sub_lt (fact.out (0 < n)),
@@ -791,7 +795,7 @@ begin
   suffices : (((n+1 : ℕ) % 2) + 2 * ((n + 1) / 2)) - a.val ≤ (n+1) / 2 ↔ (n+1 : ℕ) / 2 < a.val,
   by rwa [nat.mod_add_div] at this,
   suffices : (n + 1) % 2 + (n + 1) / 2 ≤ val a ↔ (n + 1) / 2 < val a,
-  by rw [tsub_le_iff_tsub_le, two_mul, ← add_assoc, nat.add_sub_cancel, this],
+  by rw [tsub_le_iff_tsub_le, two_mul, ← add_assoc, add_tsub_cancel_right, this],
   cases (n + 1 : ℕ).mod_two_eq_zero_or_one with hn0 hn1,
   { split,
     { assume h,
@@ -895,9 +899,9 @@ def lift : {f : ℤ →+ A // f n = 0} ≃ (zmod n →+ A) :=
   rw ker_int_cast_add_hom,
   split,
   { rintro hf _ ⟨x, rfl⟩,
-    simp only [f.map_gsmul, gsmul_zero, f.mem_ker, hf] },
+    simp only [f.map_zsmul, zsmul_zero, f.mem_ker, hf] },
   { intro h,
-    refine h (add_subgroup.mem_gmultiples _) }
+    refine h (add_subgroup.mem_zmultiples _) }
 end).trans $ ((int.cast_add_hom (zmod n)).lift_of_right_inverse coe int_cast_zmod_cast)
 
 variables (f : {f : ℤ →+ A // f n = 0})

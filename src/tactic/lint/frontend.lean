@@ -184,20 +184,32 @@ meta def lint (slow : bool := tt) (verbose : lint_verbosity := lint_verbosity.me
   let l := e.filter (λ d, e.in_current_file d.to_name),
   lint_aux l none "in the current file" slow verbose checks
 
-/-- Returns the declarations considered by the mathlib linter. -/
-meta def lint_mathlib_decls : tactic (list declaration) := do
+/-- Returns the declarations in the folder `proj_folder`. -/
+meta def lint_project_decls (proj_folder : string) : tactic (list declaration) := do
 e ← get_env,
-ml ← get_mathlib_dir,
-pure $ e.filter $ λ d, e.is_prefix_of_file ml d.to_name
+pure $ e.filter $ λ d, e.is_prefix_of_file proj_folder d.to_name
 
-/-- Return the message printed by `#lint_mathlib` and a `name_set` containing all declarations
-that fail. -/
-meta def lint_mathlib (slow : bool := tt) (verbose : lint_verbosity := lint_verbosity.medium)
+/-- Returns the linter message by running the linter on all declarations in project `proj_name` in
+folder `proj_folder`. It also returns a `name_set` containing all declarations that fail.
+
+To add a linter command for your own project, write
+```
+open lean.parser lean tactic interactive
+@[user_command] meta def lint_my_project_cmd (_ : parse $ tk "#lint_my_project") : parser unit :=
+do str ← get_project_dir n k, lint_cmd_aux (@lint_project str "my project")
+```
+Here `n` is the name of any declaration in the project (like `` `lint_my_project_cmd`` and `k` is
+the number of characters in the filename of `n` *after* the `src/` directory
+(so e.g. the number of characters in `tactic/lint/frontend.lean`).
+Warning: the linter will not work in the file where `n` is declared.
+-/
+meta def lint_project (proj_folder proj_name : string) (slow : bool := tt)
+  (verbose : lint_verbosity := lint_verbosity.medium)
   (extra : list name := []) (use_only : bool := ff) : tactic (name_set × format) := do
 checks ← get_checks slow extra use_only,
-decls ← lint_mathlib_decls,
-mathlib_path_len ← string.length <$> get_mathlib_dir,
-lint_aux decls mathlib_path_len "in mathlib (only in imported files)" slow verbose checks
+decls ← lint_project_decls proj_folder,
+lint_aux decls proj_folder.length ("in " ++ proj_name ++ " (only in imported files)")
+  slow verbose checks
 
 /-- Return the message printed by `#lint_all` and a `name_set` containing all declarations
 that fail. -/
@@ -210,20 +222,20 @@ meta def lint_all (slow : bool := tt) (verbose : lint_verbosity := lint_verbosit
 
 /-- Parses an optional `only`, followed by a sequence of zero or more identifiers.
 Prepends `linter.` to each of these identifiers. -/
-private meta def parse_lint_additions : parser (bool × list name) :=
+meta def parse_lint_additions : parser (bool × list name) :=
 prod.mk <$> only_flag <*> (list.map (name.append `linter) <$> ident*)
 
 /--
 Parses a "-" or "+", returning `lint_verbosity.low` or `lint_verbosity.high` respectively,
 or returns `none`.
 -/
-private meta def parse_verbosity : parser (option lint_verbosity) :=
+meta def parse_verbosity : parser (option lint_verbosity) :=
 tk "-" >> return lint_verbosity.low <|>
 tk "+" >> return lint_verbosity.high <|>
 return none
 
 /-- The common denominator of `lint_cmd`, `lint_mathlib_cmd`, `lint_all_cmd` -/
-private meta def lint_cmd_aux
+meta def lint_cmd_aux
   (scope : bool → lint_verbosity → list name → bool → tactic (name_set × format)) :
   parser unit :=
 do verbosity ← parse_verbosity,
@@ -255,7 +267,7 @@ Usage: `#lint_mathlib`, `#lint_mathlib linter_1 linter_2`, `#lint_mathlib only l
 
 Use the command `#list_linters` to see all available linters. -/
 @[user_command] meta def lint_mathlib_cmd (_ : parse $ tk "#lint_mathlib") : parser unit :=
-lint_cmd_aux @lint_mathlib
+do str ← get_mathlib_dir, lint_cmd_aux (@lint_project str "mathlib")
 
 /-- The command `#lint_all` checks all imported files for certain mistakes.
 Usage: `#lint_all`, `#lint_all linter_1 linter_2`, `#lint_all only linter_1 linter_2`.
@@ -275,7 +287,6 @@ let ns := env.decl_filter_map $ λ dcl,
    ns.mmap' $ λ n, do
      b ← has_attribute' `linter n,
      trace $ n.pop_prefix.to_string ++ if b then " (*)" else ""
-
 
 /--
 Invoking the hole command `lint` ("Find common mistakes in current file") will print text that

@@ -263,16 +263,28 @@ section hom_map
 
 variables {S : Type w} [comm_ring S]
 
-lemma ring_hom.map_det {M : matrix n n R} {f : R →+* S} :
+lemma _root_.ring_hom.map_det (f : R →+* S) (M : matrix n n R) :
   f M.det = matrix.det (f.map_matrix M) :=
 by simp [matrix.det_apply', f.map_sum, f.map_prod]
 
-lemma alg_hom.map_det [algebra R S] {T : Type z} [comm_ring T] [algebra R T]
-  {M : matrix n n S} {f : S →ₐ[R] T} :
-  f M.det = matrix.det ((f : S →+* T).map_matrix M) :=
-by rw [← alg_hom.coe_to_ring_hom, ring_hom.map_det]
+lemma _root_.ring_equiv.map_det (f : R ≃+* S) (M : matrix n n R) :
+  f M.det = matrix.det (f.map_matrix M) :=
+f.to_ring_hom.map_det _
+
+lemma _root_.alg_hom.map_det [algebra R S] {T : Type z} [comm_ring T] [algebra R T]
+  (f : S →ₐ[R] T) (M : matrix n n S) :
+  f M.det = matrix.det (f.map_matrix M) :=
+f.to_ring_hom.map_det _
+
+lemma _root_.alg_equiv.map_det [algebra R S] {T : Type z} [comm_ring T] [algebra R T]
+  (f : S ≃ₐ[R] T) (M : matrix n n S) :
+  f M.det = matrix.det (f.map_matrix M) :=
+f.to_alg_hom.map_det _
 
 end hom_map
+
+@[simp] lemma det_conj_transpose [star_ring R] (M : matrix m m R) : det (Mᴴ) = star (det M) :=
+((star_ring_aut : ring_aut R).map_det _).symm.trans $ congr_arg star M.det_transpose
 
 section det_zero
 /-!
@@ -318,6 +330,17 @@ lemma det_update_column_smul (M : matrix n n R) (j : n) (s : R) (u : n → R) :
   det (update_column M j $ s • u) = s * det (update_column M j u) :=
 begin
   rw [← det_transpose, ← update_row_transpose, det_update_row_smul],
+  simp [update_row_transpose, det_transpose]
+end
+
+lemma det_update_row_smul' (M : matrix n n R) (j : n) (s : R) (u : n → R) :
+  det (update_row (s • M) j u) = s ^ (fintype.card n - 1) * det (update_row M j u) :=
+multilinear_map.map_update_smul _ M j s u
+
+lemma det_update_column_smul' (M : matrix n n R) (j : n) (s : R) (u : n → R) :
+  det (update_column (s • M) j u) = s ^ (fintype.card n - 1) * det (update_column M j u) :=
+begin
+  rw [← det_transpose, ← update_row_transpose, transpose_smul, det_update_row_smul'],
   simp [update_row_transpose, det_transpose]
 end
 
@@ -621,7 +644,7 @@ begin
       equiv.perm.decompose_fin_symm_apply_zero, equiv.perm.decompose_fin_symm_apply_succ]
   ... = (-1) * (A (fin.succ i) 0 * (σ.sign : ℤ) •
         ∏ i', A (((fin.succ i).succ_above) (fin.cycle_range i (σ i'))) i'.succ) :
-    by simp only [mul_assoc, mul_comm, neg_mul_eq_neg_mul_symm, one_mul, gsmul_eq_mul, neg_inj,
+    by simp only [mul_assoc, mul_comm, neg_mul_eq_neg_mul_symm, one_mul, zsmul_eq_mul, neg_inj,
       neg_smul, fin.succ_above_cycle_range],
 end
 

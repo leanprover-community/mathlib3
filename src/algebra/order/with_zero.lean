@@ -52,6 +52,18 @@ instance [linear_ordered_add_comm_group_with_top α] :
   ..multiplicative.linear_ordered_comm_monoid_with_zero,
   ..multiplicative.nontrivial }
 
+instance [linear_ordered_comm_monoid α] :
+  linear_ordered_comm_monoid_with_zero (with_zero α) :=
+{ mul_le_mul_left := λ x y, mul_le_mul_left',
+  zero_le_one     := with_zero.zero_le _,
+  ..with_zero.linear_order,
+  ..with_zero.comm_monoid_with_zero }
+
+instance [linear_ordered_comm_group α] :
+  linear_ordered_comm_group_with_zero (with_zero α) :=
+{ ..with_zero.linear_ordered_comm_monoid_with_zero,
+  ..with_zero.comm_group_with_zero }
+
 section linear_ordered_comm_monoid
 
 variables [linear_ordered_comm_monoid_with_zero α]

@@ -62,12 +62,12 @@ def pderiv (i : σ) : mv_polynomial σ R →ₗ[R] mv_polynomial σ R :=
   map_smul' := begin
     intros c x,
     rw [sum_smul_index', smul_sum],
-    { dsimp, simp_rw [monomial, smul_single, smul_eq_mul, mul_assoc] },
+    { dsimp, simp_rw [← (monomial _).map_smul, smul_eq_mul, mul_assoc] },
     { intros s,
       simp only [monomial_zero, zero_mul] }
   end,
   map_add' := λ f g, sum_add_index (by simp only [monomial_zero, forall_const, zero_mul])
-    (by simp only [add_mul, forall_const, eq_self_iff_true, monomial_add]), }
+    (by simp only [add_mul, forall_const, eq_self_iff_true, (monomial _).map_add]), }
 
 @[simp]
 lemma pderiv_monomial {i : σ} :
@@ -96,18 +96,10 @@ end
 lemma pderiv_X [decidable_eq σ] {i j : σ} :
   pderiv i (X j : mv_polynomial σ R) = if i = j then 1 else 0 :=
 begin
-  dsimp [pderiv],
-  erw finsupp.sum_single_index,
-  simp only [mul_boole, if_congr, finsupp.single_apply, nat.cast_zero, nat.cast_one, nat.cast_ite],
-  by_cases h : i = j,
-  { rw [if_pos h, if_pos h.symm],
-    subst h,
-    congr,
-    ext j,
-    simp, },
-  { rw [if_neg h, if_neg (ne.symm h)],
-    simp, },
-  { simp, },
+  refine pderiv_monomial.trans _,
+  rcases eq_or_ne i j with (rfl|hne),
+  { simp },
+  { simp [hne, hne.symm] }
 end
 
 @[simp] lemma pderiv_X_self {i : σ} : pderiv i (X i : mv_polynomial σ R) = 1 :=
@@ -131,9 +123,9 @@ lemma pderiv_monomial_mul {i : σ} {s' : σ →₀ ℕ} :
   pderiv i (monomial s a * monomial s' a') =
     pderiv i (monomial s a) * monomial s' a' + monomial s a * pderiv i (monomial s' a') :=
 begin
-  simp [monomial_sub_single_one_add, monomial_add_sub_single_one],
-  congr,
-  ring,
+  simp only [monomial_sub_single_one_add, monomial_add_sub_single_one, pderiv_monomial,
+    pi.add_apply, monomial_mul, nat.cast_add, coe_add],
+  rw [mul_add, (monomial _).map_add, ← mul_assoc, mul_right_comm a _ a']
 end
 
 @[simp]
@@ -162,7 +154,7 @@ lemma pderiv_pow {i : σ} {f : mv_polynomial σ R} {n : ℕ} :
 begin
   induction n with n ih,
   { simp, },
-  { simp only [nat.succ_sub_succ_eq_sub, nat.cast_succ, nat.sub_zero, mv_polynomial.pderiv_mul,
+  { simp only [nat.succ_sub_succ_eq_sub, nat.cast_succ, tsub_zero, mv_polynomial.pderiv_mul,
       pow_succ, ih],
     cases n,
     { simp, },

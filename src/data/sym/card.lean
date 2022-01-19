@@ -81,7 +81,7 @@ This is because every element `⟦(x, y)⟧` of `sym2 α` not on the diagonal co
 pairs: `(x, y)` and `(y, x)`. -/
 lemma card_image_off_diag (s : finset α) :
   (s.off_diag.image quotient.mk).card = s.card.choose 2 :=
-by rw [nat.choose_two_right, nat.mul_sub_left_distrib, mul_one, ←off_diag_card,
+by rw [nat.choose_two_right, mul_tsub, mul_one, ←off_diag_card,
   nat.div_eq_of_eq_mul_right zero_lt_two (two_mul_card_image_off_diag s).symm]
 
 lemma card_subtype_diag [fintype α] :

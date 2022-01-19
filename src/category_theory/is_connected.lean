@@ -251,11 +251,7 @@ If there is a zigzag from `j₁` to `j₂`, then there is a zigzag from `F j₁`
 -/
 lemma zigzag_obj_of_zigzag (F : J ⥤ K) {j₁ j₂ : J} (h : zigzag j₁ j₂) :
   zigzag (F.obj j₁) (F.obj j₂) :=
-begin
-  refine relation.refl_trans_gen_lift _ _ h,
-  intros j k,
-  exact or.imp (nonempty.map (λ f, F.map f)) (nonempty.map (λ f, F.map f))
-end
+h.lift _ $ λ j k, or.imp (nonempty.map (λ f, F.map f)) (nonempty.map (λ f, F.map f))
 
 -- TODO: figure out the right way to generalise this to `zigzag`.
 lemma zag_of_zag_obj (F : J ⥤ K) [full F] {j₁ j₂ : J} (h : zag (F.obj j₁) (F.obj j₂)) :

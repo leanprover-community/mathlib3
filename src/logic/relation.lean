@@ -83,6 +83,9 @@ lemma symmetric.comap (h : symmetric r) (f : α → β) : symmetric (r on f) :=
 lemma transitive.comap (h : transitive r) (f : α → β) : transitive (r on f) :=
 λ a b c hab hbc, h hab hbc
 
+lemma equivalence.comap (h : equivalence r) (f : α → β) : equivalence (r on f) :=
+⟨h.1.comap f, h.2.1.comap f, h.2.2.comap f⟩
+
 end comap
 
 namespace relation
@@ -319,6 +322,10 @@ begin
     rcases IH with ⟨d, had, hdb⟩, exact ⟨_, had, hdb.tail hbc⟩ }
 end
 
+end trans_gen
+
+section trans_gen
+
 lemma trans_gen_eq_self (trans : transitive r) :
   trans_gen r = r :=
 funext $ λ a, funext $ λ b, propext $
@@ -330,13 +337,13 @@ end,
 trans_gen.single⟩
 
 lemma transitive_trans_gen : transitive (trans_gen r) :=
-λ a b c, trans
+λ a b c, trans_gen.trans
 
 lemma trans_gen_idem :
   trans_gen (trans_gen r) = trans_gen r :=
 trans_gen_eq_self transitive_trans_gen
 
-lemma trans_gen_lift {p : β → β → Prop} {a b : α} (f : α → β)
+lemma trans_gen.lift {p : β → β → Prop} {a b : α} (f : α → β)
   (h : ∀ a b, r a b → p (f a) (f b)) (hab : trans_gen r a b) : trans_gen p (f a) (f b) :=
 begin
   induction hab,
@@ -344,14 +351,14 @@ begin
   case trans_gen.tail : c d hac hcd hac { exact trans_gen.tail hac (h c d hcd) }
 end
 
-lemma trans_gen_lift' {p : β → β → Prop} {a b : α} (f : α → β)
+lemma trans_gen.lift' {p : β → β → Prop} {a b : α} (f : α → β)
   (h : ∀ a b, r a b → trans_gen p (f a) (f b))
   (hab : trans_gen r a b) : trans_gen p (f a) (f b) :=
-by simpa [trans_gen_idem] using trans_gen_lift f h hab
+by simpa [trans_gen_idem] using hab.lift f h
 
-lemma trans_gen_closed {p : α → α → Prop} :
+lemma trans_gen.closed {p : α → α → Prop} :
   (∀ a b, r a b → trans_gen p a b) → trans_gen r a b → trans_gen p a b :=
-trans_gen_lift' id
+trans_gen.lift' id
 
 end trans_gen
 
@@ -371,14 +378,14 @@ begin
   { rcases h with rfl | h, {refl}, {exact h.to_refl} }
 end
 
-lemma refl_trans_gen_lift {p : β → β → Prop} {a b : α} (f : α → β)
+lemma refl_trans_gen.lift {p : β → β → Prop} {a b : α} (f : α → β)
   (h : ∀ a b, r a b → p (f a) (f b)) (hab : refl_trans_gen r a b) : refl_trans_gen p (f a) (f b) :=
 refl_trans_gen.trans_induction_on hab (λ a, refl)
   (λ a b, refl_trans_gen.single ∘ h _ _) (λ a b c _ _, trans)
 
-lemma refl_trans_gen_mono {p : α → α → Prop} :
+lemma refl_trans_gen.mono {p : α → α → Prop} :
   (∀ a b, r a b → p a b) → refl_trans_gen r a b → refl_trans_gen p a b :=
-refl_trans_gen_lift id
+refl_trans_gen.lift id
 
 lemma refl_trans_gen_eq_self (refl : reflexive r) (trans : transitive r) :
   refl_trans_gen r = r :=
@@ -398,14 +405,14 @@ lemma refl_trans_gen_idem :
   refl_trans_gen (refl_trans_gen r) = refl_trans_gen r :=
 refl_trans_gen_eq_self reflexive_refl_trans_gen transitive_refl_trans_gen
 
-lemma refl_trans_gen_lift' {p : β → β → Prop} {a b : α} (f : α → β)
+lemma refl_trans_gen.lift' {p : β → β → Prop} {a b : α} (f : α → β)
   (h : ∀ a b, r a b → refl_trans_gen p (f a) (f b))
   (hab : refl_trans_gen r a b) : refl_trans_gen p (f a) (f b) :=
-by simpa [refl_trans_gen_idem] using refl_trans_gen_lift f h hab
+by simpa [refl_trans_gen_idem] using hab.lift f h
 
 lemma refl_trans_gen_closed {p : α → α → Prop} :
   (∀ a b, r a b → refl_trans_gen p a b) → refl_trans_gen r a b → refl_trans_gen p a b :=
-refl_trans_gen_lift' id
+refl_trans_gen.lift' id
 
 end refl_trans_gen
 
@@ -490,9 +497,13 @@ refl_trans_gen_of_transitive_reflexive hr.1 hr.2.2
 
 end join
 
+end relation
+
 section eqv_gen
 
-lemma eqv_gen_iff_of_equivalence (h : equivalence r) : eqv_gen r a b ↔ r a b :=
+variables {r : α → α → Prop} {a b : α}
+
+lemma equivalence.eqv_gen_iff (h : equivalence r) : eqv_gen r a b ↔ r a b :=
 iff.intro
   begin
     intro h,
@@ -504,7 +515,10 @@ iff.intro
   end
   (eqv_gen.rel a b)
 
-lemma eqv_gen_mono {r p : α → α → Prop}
+lemma equivalence.eqv_gen_eq (h : equivalence r) : eqv_gen r = r :=
+funext $ λ _, funext $ λ _, propext $ h.eqv_gen_iff
+
+lemma eqv_gen.mono {r p : α → α → Prop}
   (hrp : ∀ a b, r a b → p a b) (h : eqv_gen r a b) : eqv_gen p a b :=
 begin
   induction h,
@@ -514,9 +528,4 @@ begin
   case eqv_gen.trans : a b c ih1 ih2 hab hbc { exact eqv_gen.trans _ _ _ hab hbc }
 end
 
-lemma eqv_gen_eq_of_equivalence (h : equivalence r) : eqv_gen r = r :=
-funext $ λ _, funext $ λ _, propext $ eqv_gen_iff_of_equivalence h
-
 end eqv_gen
-
-end relation

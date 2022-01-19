@@ -4,10 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 
-import ring_theory.noetherian
-import ring_theory.ideal.operations
-import ring_theory.algebra_tower
 import group_theory.finiteness
+import ring_theory.algebra_tower
+import ring_theory.ideal.quotient
+import ring_theory.noetherian
 
 /-!
 # Finiteness conditions in commutative algebra
@@ -30,28 +30,28 @@ open_locale big_operators
 
 section module_and_algebra
 
-variables (R A B M N : Type*) [comm_ring R]
-variables [comm_ring A] [algebra R A] [comm_ring B] [algebra R B]
-variables [add_comm_group M] [module R M]
-variables [add_comm_group N] [module R N]
+variables (R A B M N : Type*)
 
-/-- A module over a commutative ring is `finite` if it is finitely generated as a module. -/
-class module.finite (R : Type*) (M : Type*) [semiring R] [add_comm_monoid M] [module R M] :
+/-- A module over a semiring is `finite` if it is finitely generated as a module. -/
+class module.finite [semiring R] [add_comm_monoid M] [module R M] :
   Prop := (out : (⊤ : submodule R M).fg)
 
-/-- An algebra over a commutative ring is of `finite_type` if it is finitely generated
+/-- An algebra over a commutative semiring is of `finite_type` if it is finitely generated
 over the base ring as algebra. -/
-class algebra.finite_type : Prop := (out : (⊤ : subalgebra R A).fg)
+class algebra.finite_type [comm_semiring R] [semiring A] [algebra R A] : Prop :=
+(out : (⊤ : subalgebra R A).fg)
 
-/-- An algebra over a commutative ring is `finite_presentation` if it is the quotient of a
+/-- An algebra over a commutative semiring is `finite_presentation` if it is the quotient of a
 polynomial ring in `n` variables by a finitely generated ideal. -/
-def algebra.finite_presentation : Prop :=
+def algebra.finite_presentation [comm_semiring R] [semiring A] [algebra R A] : Prop :=
 ∃ (n : ℕ) (f : mv_polynomial (fin n) R →ₐ[R] A),
   surjective f ∧ f.to_ring_hom.ker.fg
 
 namespace module
 
-lemma finite_def {R : Type*} {M : Type*} [semiring R] [add_comm_monoid M] [module R M] :
+variables [semiring R] [add_comm_monoid M] [module R M] [add_comm_monoid N] [module R N]
+
+lemma finite_def {R M} [semiring R] [add_comm_monoid M] [module R M] :
   finite R M ↔ (⊤ : submodule R M).fg := ⟨λ h, h.1, λ h, ⟨h⟩⟩
 
 @[priority 100] -- see Note [lower instance priority]
@@ -83,7 +83,7 @@ end⟩
 
 lemma of_injective [is_noetherian R N] (f : M →ₗ[R] N)
   (hf : function.injective f) : finite R M :=
-⟨fg_of_injective f $ linear_map.ker_eq_bot.2 hf⟩
+⟨fg_of_injective f hf⟩
 
 variables (R)
 
@@ -92,7 +92,8 @@ instance self : finite R R :=
 
 variable (M)
 
-lemma of_restrict_scalars_finite [module A M] [is_scalar_tower R A M] [hM : finite R M] :
+lemma of_restrict_scalars_finite (R A M : Type*) [comm_semiring R] [semiring A] [add_comm_monoid M]
+  [module R M] [module A M] [algebra R A] [is_scalar_tower R A M] [hM : finite R M] :
   finite A M :=
 begin
   rw [finite_def, fg_def] at hM ⊢,
@@ -116,7 +117,8 @@ of_surjective (e : M →ₗ[R] N) e.surjective
 
 section algebra
 
-lemma trans [algebra A B] [is_scalar_tower R A B] :
+lemma trans {R : Type*} (A B : Type*) [comm_semiring R] [comm_semiring A] [algebra R A]
+  [semiring B] [algebra R B] [algebra A B] [is_scalar_tower R A B] :
   ∀ [finite R A] [finite A B], finite R B
 | ⟨⟨s, hs⟩⟩ ⟨⟨t, ht⟩⟩ := ⟨submodule.fg_def.2
   ⟨set.image2 (•) (↑s : set A) (↑t : set B),
@@ -125,7 +127,8 @@ lemma trans [algebra A B] [is_scalar_tower R A B] :
       ht, submodule.restrict_scalars_top]⟩⟩
 
 @[priority 100] -- see Note [lower instance priority]
-instance finite_type [hRA : finite R A] : algebra.finite_type R A :=
+instance finite_type {R : Type*} (A : Type*) [comm_semiring R] [comm_semiring A]
+  [algebra R A] [hRA : finite R A] : algebra.finite_type R A :=
 ⟨subalgebra.fg_of_submodule_fg hRA.1⟩
 
 end algebra
@@ -135,6 +138,10 @@ end finite
 end module
 
 namespace algebra
+
+variables [comm_ring R] [comm_ring A] [algebra R A] [comm_ring B] [algebra R B]
+variables [add_comm_group M] [module R M]
+variables [add_comm_group N] [module R N]
 
 namespace finite_type
 
@@ -282,7 +289,8 @@ end
 variable (R)
 
 /-- The ring of polynomials in finitely many variables is finitely presented. -/
-lemma mv_polynomial (ι : Type u_2) [fintype ι] : finite_presentation R (mv_polynomial ι R) :=
+protected lemma mv_polynomial (ι : Type u_2) [fintype ι] :
+  finite_presentation R (mv_polynomial ι R) :=
 begin
   obtain ⟨equiv⟩ := @fintype.trunc_equiv_fin ι (classical.dec_eq ι) _,
   replace equiv := mv_polynomial.rename_equiv R equiv,
@@ -297,13 +305,13 @@ end
 
 /-- `R` is finitely presented as `R`-algebra. -/
 lemma self : finite_presentation R R :=
-equiv (mv_polynomial R pempty) (mv_polynomial.is_empty_alg_equiv R pempty)
+equiv (finite_presentation.mv_polynomial R pempty) (mv_polynomial.is_empty_alg_equiv R pempty)
 
 variable {R}
 
 /-- The quotient of a finitely presented algebra by a finitely generated ideal is finitely
 presented. -/
-lemma quotient {I : ideal A} (h : submodule.fg I) (hfp : finite_presentation R A) :
+protected lemma quotient {I : ideal A} (h : submodule.fg I) (hfp : finite_presentation R A) :
   finite_presentation R I.quotient :=
 begin
   obtain ⟨n, f, hf⟩ := hfp,
@@ -317,22 +325,22 @@ end
 then so is `B`. -/
 lemma of_surjective {f : A →ₐ[R] B} (hf : function.surjective f) (hker : f.to_ring_hom.ker.fg)
   (hfp : finite_presentation R A) : finite_presentation R B :=
-equiv (quotient hker hfp) (ideal.quotient_ker_alg_equiv_of_surjective hf)
+equiv (hfp.quotient hker) (ideal.quotient_ker_alg_equiv_of_surjective hf)
 
 lemma iff : finite_presentation R A ↔
-  ∃ n (I : ideal (_root_.mv_polynomial (fin n) R)) (e : I.quotient ≃ₐ[R] A), I.fg :=
+  ∃ n (I : ideal (mv_polynomial (fin n) R)) (e : I.quotient ≃ₐ[R] A), I.fg :=
 begin
   split,
   { rintros ⟨n, f, hf⟩,
     exact ⟨n, f.to_ring_hom.ker, ideal.quotient_ker_alg_equiv_of_surjective hf.1, hf.2⟩ },
   { rintros ⟨n, I, e, hfg⟩,
-    exact equiv (quotient hfg (mv_polynomial R _)) e }
+    exact equiv ((finite_presentation.mv_polynomial R _).quotient hfg) e }
 end
 
 /-- An algebra is finitely presented if and only if it is a quotient of a polynomial ring whose
 variables are indexed by a fintype by a finitely generated ideal. -/
 lemma iff_quotient_mv_polynomial' : finite_presentation R A ↔ ∃ (ι : Type u_2) (_ : fintype ι)
-  (f : (_root_.mv_polynomial ι R) →ₐ[R] A), (surjective f) ∧ f.to_ring_hom.ker.fg :=
+  (f : mv_polynomial ι R →ₐ[R] A), surjective f ∧ f.to_ring_hom.ker.fg :=
 begin
   split,
   { rintro ⟨n, f, hfs, hfk⟩,
@@ -356,30 +364,27 @@ end
 /-- If `A` is a finitely presented `R`-algebra, then `mv_polynomial (fin n) A` is finitely presented
 as `R`-algebra. -/
 lemma mv_polynomial_of_finite_presentation (hfp : finite_presentation R A) (ι : Type*)
-  [fintype ι] : finite_presentation R (_root_.mv_polynomial ι A) :=
+  [fintype ι] : finite_presentation R (mv_polynomial ι A) :=
 begin
   classical,
-  let n := fintype.card ι,
-  obtain ⟨e⟩ := fintype.trunc_equiv_fin ι,
-  replace e := (mv_polynomial.rename_equiv A e).restrict_scalars R,
-  refine equiv _ e.symm,
   obtain ⟨m, I, e, hfg⟩ := iff.1 hfp,
-  refine equiv _ (mv_polynomial.map_alg_equiv (fin n) e),
+  set ι' := fin m,
+  refine equiv _ (mv_polynomial.map_alg_equiv ι e),
+
+  have : finite_presentation R (mv_polynomial ι (mv_polynomial ι' R)),
+  { let := mv_polynomial.sum_alg_equiv R ι ι',
+    refine (finite_presentation.mv_polynomial R (ι ⊕ ι')).equiv this, },
+
   -- typeclass inference seems to struggle to find this path
-  letI : is_scalar_tower R
-    (_root_.mv_polynomial (fin m) R) (_root_.mv_polynomial (fin m) R) :=
+  letI : is_scalar_tower R (mv_polynomial ι' R) (mv_polynomial ι' R) :=
       is_scalar_tower.right,
   letI : is_scalar_tower R
-    (_root_.mv_polynomial (fin m) R)
-    (_root_.mv_polynomial (fin n) (_root_.mv_polynomial (fin m) R)) :=
+    (mv_polynomial ι' R) (mv_polynomial ι (mv_polynomial ι' R)) :=
       mv_polynomial.is_scalar_tower,
 
   refine equiv _ ((@mv_polynomial.quotient_equiv_quotient_mv_polynomial
-    _ (fin n) _ I).restrict_scalars R).symm,
-  refine quotient (submodule.map_fg_of_fg I hfg _) _,
-  let := mv_polynomial.sum_alg_equiv R (fin n) (fin m),
-  refine equiv _ this,
-  exact equiv (mv_polynomial R (fin (n + m))) (mv_polynomial.rename_equiv R fin_sum_fin_equiv).symm
+    _ ι _ I).restrict_scalars R).symm,
+  refine this.quotient (submodule.map_fg_of_fg I hfg _),
 end
 
 
@@ -389,7 +394,7 @@ lemma trans [algebra A B] [is_scalar_tower R A B] (hfpA : finite_presentation R 
   (hfpB : finite_presentation A B) : finite_presentation R B :=
 begin
   obtain ⟨n, I, e, hfg⟩ := iff.1 hfpB,
-  exact equiv (quotient hfg (mv_polynomial_of_finite_presentation hfpA _)) (e.restrict_scalars R)
+  exact equiv ((mv_polynomial_of_finite_presentation hfpA _).quotient hfg) (e.restrict_scalars R)
 end
 
 end finite_presentation
@@ -741,6 +746,8 @@ begin
     exact ⟨r • P, alg_hom.map_smul _ _ _⟩ }
 end
 
+variables (R M)
+
 /-- If an additive monoid `M` is finitely generated then `add_monoid_algebra R M` is of finite
 type. -/
 instance finite_type_of_fg [comm_ring R] [h : add_monoid.fg M] :
@@ -750,6 +757,8 @@ begin
   exact (finite_type.mv_polynomial R (S : set M)).of_surjective (mv_polynomial.aeval
     (λ (s : (S : set M)), of' R M ↑s)) (mv_polynomial_aeval_of_surjective_of_closure hS)
 end
+
+variables {R M}
 
 /-- An additive monoid `M` is finitely generated if and only if `add_monoid_algebra R M` is of
 finite type. -/
@@ -892,7 +901,7 @@ end
 
 /-- If a monoid `M` is finitely generated then `monoid_algebra R M` is of finite type. -/
 instance finite_type_of_fg [comm_ring R] [monoid.fg M] : finite_type R (monoid_algebra R M) :=
-add_monoid_algebra.finite_type_of_fg.equiv (to_additive_alg_equiv R M).symm
+(add_monoid_algebra.finite_type_of_fg R (additive M)).equiv (to_additive_alg_equiv R M).symm
 
 /-- A monoid `M` is finitely generated if and only if `monoid_algebra R M` is of finite type. -/
 lemma finite_type_iff_fg [comm_ring R] [nontrivial R] :

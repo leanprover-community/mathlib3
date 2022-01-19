@@ -93,10 +93,12 @@ protected theorem injective {α β} (f : α ↪ β) : injective f := f.inj'
 @[simp] lemma apply_eq_iff_eq {α β : Type*} (f : α ↪ β) (x y : α) : f x = f y ↔ x = y :=
 f.injective.eq_iff
 
+/-- The identity map as a `function.embedding`. -/
 @[refl, simps {simp_rhs := tt}]
 protected def refl (α : Sort*) : α ↪ α :=
 ⟨id, injective_id⟩
 
+/-- Composition of `f : α ↪ β` and `g : β ↪ γ`. -/
 @[trans, simps {simp_rhs := tt}]
 protected def trans {α β γ} (f : α ↪ β) (g : β ↪ γ) : α ↪ γ :=
 ⟨g ∘ f, g.injective.comp f.injective⟩
@@ -111,6 +113,7 @@ lemma equiv_symm_to_embedding_trans_to_embedding {α β : Sort*} (e : α ≃ β)
   e.symm.to_embedding.trans e.to_embedding = embedding.refl _ :=
 by { ext, simp, }
 
+/-- Transfer an embedding along a pair of equivalences. -/
 @[simps { fully_applied := ff }]
 protected def congr {α : Sort u} {β : Sort v} {γ : Sort w} {δ : Sort x}
   (e₁ : α ≃ β) (e₂ : γ ≃ δ) (f : α ↪ γ) : (β ↪ δ) :=
@@ -229,23 +232,30 @@ of embeddings, then `sigma.map f g` is an embedding. -/
 
 end sigma
 
-def Pi_congr_right {α : Sort*} {β γ : α → Sort*} (e : ∀ a, β a ↪ γ a) : (Π a, β a) ↪ (Π a, γ a) :=
+/-- Define an embedding `(Π a : α, β a) ↪ (Π a : α, γ a)` from a family of embeddings
+`e : Π a, (β a ↪ γ a)`. This embedding sends `f` to `λ a, e a (f a)`. -/
+@[simps] def Pi_congr_right {α : Sort*} {β γ : α → Sort*} (e : ∀ a, β a ↪ γ a) :
+  (Π a, β a) ↪ (Π a, γ a) :=
 ⟨λf a, e a (f a), λ f₁ f₂ h, funext $ λ a, (e a).injective (congr_fun h a)⟩
 
-def arrow_congr_left {α : Sort u} {β : Sort v} {γ : Sort w}
+/-- An embedding `e : α ↪ β` defines an embedding `(γ → α) ↪ (γ → β)` that sends each `f`
+to `e ∘ f`. -/
+def arrow_congr_right {α : Sort u} {β : Sort v} {γ : Sort w}
   (e : α ↪ β) : (γ → α) ↪ (γ → β) :=
 Pi_congr_right (λ _, e)
 
-noncomputable def arrow_congr_right {α : Sort u} {β : Sort v} {γ : Sort w} [inhabited γ]
-  (e : α ↪ β) : (α → γ) ↪ (β → γ) :=
-by haveI := classical.prop_decidable; exact
-let f' : (α → γ) → (β → γ) := λf b, if h : ∃c, e c = b then f (classical.some h) else default γ in
-⟨f', assume f₁ f₂ h, funext $ assume c,
-  have ∃c', e c' = e c, from ⟨c, rfl⟩,
-  have eq' : f' f₁ (e c) = f' f₂ (e c), from congr_fun h _,
-  have eq_b : classical.some this = c, from e.injective $ classical.some_spec this,
-  by simp [f', this, if_pos, eq_b] at eq'; assumption⟩
+@[simp] lemma arrow_congr_right_apply {α : Sort u} {β : Sort v} {γ : Sort w}
+  (e : α ↪ β) (f : γ ↪ α) : arrow_congr_right e f = e ∘ f := rfl
 
+/-- An embedding `e : α ↪ β` defines an embedding `(α → γ) ↪ (β → γ)` for any inhabited type `γ`.
+This embedding sends each `f : α → γ` to a function `g : β → γ` such that `g ∘ e = f` and
+`g y = default γ` whenever `y ∉ range e`. -/
+noncomputable def arrow_congr_left {α : Sort u} {β : Sort v} {γ : Sort w} [inhabited γ]
+  (e : α ↪ β) : (α → γ) ↪ (β → γ) :=
+⟨λ f, extend e f (λ _, default γ), λ f₁ f₂ h, funext $ λ x,
+  by simpa only [extend_apply e.injective] using congr_fun h (e x)⟩
+
+/-- Restrict both domain and codomain of an embedding. -/
 protected def subtype_map {α β} {p : α → Prop} {q : β → Prop} (f : α ↪ β)
   (h : ∀{{x}}, p x → q (f x)) : {x : α // p x} ↪ {y : β // q y} :=
 ⟨subtype.map f h, subtype.map_injective h f.2⟩

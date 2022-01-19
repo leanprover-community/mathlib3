@@ -122,10 +122,10 @@ lemma pow_apply_eq_self_of_apply_eq_self {x : α} (hfx : f x = x) :
 | 0     := rfl
 | (n+1) := by rw [pow_succ', mul_apply, hfx, pow_apply_eq_self_of_apply_eq_self]
 
-lemma gpow_apply_eq_self_of_apply_eq_self {x : α} (hfx : f x = x) :
+lemma zpow_apply_eq_self_of_apply_eq_self {x : α} (hfx : f x = x) :
   ∀ n : ℤ, (f ^ n) x = x
 | (n : ℕ) := pow_apply_eq_self_of_apply_eq_self hfx n
-| -[1+ n] := by rw [gpow_neg_succ_of_nat, inv_eq_iff_eq, pow_apply_eq_self_of_apply_eq_self hfx]
+| -[1+ n] := by rw [zpow_neg_succ_of_nat, inv_eq_iff_eq, pow_apply_eq_self_of_apply_eq_self hfx]
 
 lemma pow_apply_eq_of_apply_apply_eq_self {x : α} (hffx : f (f x) = x) :
   ∀ n : ℕ, (f ^ n) x = x ∨ (f ^ n) x = f x
@@ -134,10 +134,10 @@ lemma pow_apply_eq_of_apply_apply_eq_self {x : α} (hffx : f (f x) = x) :
   (λ h, or.inr (by rw [pow_succ, mul_apply, h]))
   (λ h, or.inl (by rw [pow_succ, mul_apply, h, hffx]))
 
-lemma gpow_apply_eq_of_apply_apply_eq_self {x : α} (hffx : f (f x) = x) :
+lemma zpow_apply_eq_of_apply_apply_eq_self {x : α} (hffx : f (f x) = x) :
   ∀ i : ℤ, (f ^ i) x = x ∨ (f ^ i) x = f x
 | (n : ℕ) := pow_apply_eq_of_apply_apply_eq_self hffx n
-| -[1+ n] := by { rw [gpow_neg_succ_of_nat, inv_eq_iff_eq, ← f.injective.eq_iff, ← mul_apply,
+| -[1+ n] := by { rw [zpow_neg_succ_of_nat, inv_eq_iff_eq, ← f.injective.eq_iff, ← mul_apply,
     ← pow_succ, eq_comm, inv_eq_iff_eq, ← mul_apply, ← pow_succ', @eq_comm _ x, or.comm],
   exact pow_apply_eq_of_apply_apply_eq_self hffx _ }
 
@@ -154,14 +154,14 @@ lemma disjoint.mul_eq_one_iff {σ τ : perm α} (hστ : disjoint σ τ) :
   σ * τ = 1 ↔ σ = 1 ∧ τ = 1 :=
 by simp_rw [ext_iff, one_apply, hστ.mul_apply_eq_iff, forall_and_distrib]
 
-lemma disjoint.gpow_disjoint_gpow {σ τ : perm α} (hστ : disjoint σ τ) (m n : ℤ) :
+lemma disjoint.zpow_disjoint_zpow {σ τ : perm α} (hστ : disjoint σ τ) (m n : ℤ) :
   disjoint (σ ^ m) (τ ^ n) :=
-λ x, or.imp (λ h, gpow_apply_eq_self_of_apply_eq_self h m)
-  (λ h, gpow_apply_eq_self_of_apply_eq_self h n) (hστ x)
+λ x, or.imp (λ h, zpow_apply_eq_self_of_apply_eq_self h m)
+  (λ h, zpow_apply_eq_self_of_apply_eq_self h n) (hστ x)
 
 lemma disjoint.pow_disjoint_pow {σ τ : perm α} (hστ : disjoint σ τ) (m n : ℕ) :
   disjoint (σ ^ m) (τ ^ n) :=
-hστ.gpow_disjoint_gpow m n
+hστ.zpow_disjoint_zpow m n
 
 end disjoint
 
@@ -212,13 +212,13 @@ lemma set_support_apply_mem {p : perm α} {a : α} :
   p a ∈ {x | p x ≠ x} ↔ a ∈ {x | p x ≠ x} :=
 by simp
 
-lemma set_support_gpow_subset (n : ℤ) :
+lemma set_support_zpow_subset (n : ℤ) :
   {x | (p ^ n) x ≠ x} ⊆ {x | p x ≠ x} :=
 begin
   intros x,
   simp only [set.mem_set_of_eq, ne.def],
   intros hx H,
-  simpa [gpow_apply_eq_self_of_apply_eq_self H] using hx
+  simpa [zpow_apply_eq_self_of_apply_eq_self H] using hx
 end
 
 lemma set_support_mul_subset :
@@ -308,12 +308,12 @@ begin
 end
 
 @[simp]
-lemma gpow_apply_mem_support {n : ℤ} {x : α} :
+lemma zpow_apply_mem_support {n : ℤ} {x : α} :
   (f ^ n) x ∈ f.support ↔ x ∈ f.support :=
 begin
   cases n,
-  { rw [int.of_nat_eq_coe, gpow_coe_nat, pow_apply_mem_support] },
-  { rw [gpow_neg_succ_of_nat, ← support_inv, ← inv_pow, pow_apply_mem_support] }
+  { rw [int.of_nat_eq_coe, zpow_coe_nat, pow_apply_mem_support] },
+  { rw [zpow_neg_succ_of_nat, ← support_inv, ← inv_pow, pow_apply_mem_support] }
 end
 
 lemma pow_eq_on_of_mem_support (h : ∀ (x ∈ f.support ∩ g.support), f x = g x)
@@ -363,9 +363,9 @@ begin
     exact sup_le_sup (le_refl _) hl }
 end
 
-lemma support_gpow_le (σ : perm α) (n : ℤ) :
+lemma support_zpow_le (σ : perm α) (n : ℤ) :
   (σ ^ n).support ≤ σ.support :=
-λ x h1, mem_support.mpr (λ h2, mem_support.mp h1 (gpow_apply_eq_self_of_apply_eq_self h2 n))
+λ x h1, mem_support.mpr (λ h2, mem_support.mp h1 (zpow_apply_eq_self_of_apply_eq_self h2 n))
 
 @[simp] lemma support_swap {x y : α} (h : x ≠ y) : support (swap x y) = {x, y} :=
 begin

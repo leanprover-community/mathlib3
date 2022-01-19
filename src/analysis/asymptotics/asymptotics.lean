@@ -1307,7 +1307,7 @@ begin
   simp only [this, pow_add, nmp],
   refine is_O.mul_is_o (is_O_refl _ _) ((is_o_one_iff _).2 _),
   convert (continuous_pow p).tendsto (0 : 𝕜),
-  exact (zero_pow (nat.sub_pos_of_lt h)).symm
+  exact (zero_pow (tsub_pos_of_lt h)).symm
 end
 
 theorem is_o_norm_pow_norm_pow {m n : ℕ} (h : m < n) :

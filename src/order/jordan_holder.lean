@@ -265,7 +265,7 @@ def of_list (l : list X) (hl : l ≠ []) (hc : list.chain' is_maximal l) :
   composition_series X :=
 { length := l.length - 1,
   series := λ i, l.nth_le i begin
-      conv_rhs { rw ← nat.sub_add_cancel (list.length_pos_of_ne_nil hl) },
+      conv_rhs { rw ← tsub_add_cancel_of_le (nat.succ_le_of_lt (list.length_pos_of_ne_nil hl)) },
       exact i.2
     end,
   step' := λ ⟨i, hi⟩, list.chain'_iff_nth_le.1 hc i hi }
@@ -291,8 +291,8 @@ of_list_to_list s
   to_list (of_list l hl hc) = l :=
 begin
   refine list.ext_le _ _,
-  { rw [length_to_list, length_of_list, nat.sub_add_cancel
-      (list.length_pos_of_ne_nil hl)] },
+  { rw [length_to_list, length_of_list,
+      tsub_add_cancel_of_le (nat.succ_le_of_lt $ list.length_pos_of_ne_nil hl)] },
   { assume i hi hi',
     dsimp [of_list, to_list],
     rw [list.nth_le_of_fn'],
@@ -451,7 +451,7 @@ lemma append_nat_add_aux
 begin
   cases i,
   simp only [fin.append, nat.not_lt_zero, fin.nat_add_mk, add_lt_iff_neg_left,
-    nat.add_sub_cancel_left, dif_neg, fin.cast_succ_mk, not_false_iff, fin.coe_mk]
+    add_tsub_cancel_left, dif_neg, fin.cast_succ_mk, not_false_iff, fin.coe_mk]
 end
 
 lemma append_succ_nat_add_aux
@@ -462,7 +462,7 @@ lemma append_succ_nat_add_aux
 begin
   cases i with i hi,
   simp only [fin.append, add_assoc, nat.not_lt_zero, fin.nat_add_mk, add_lt_iff_neg_left,
-    nat.add_sub_cancel_left, fin.succ_mk, dif_neg, not_false_iff, fin.coe_mk]
+    add_tsub_cancel_left, fin.succ_mk, dif_neg, not_false_iff, fin.coe_mk]
 end
 
 /-- Append two composition series `s₁` and `s₂` such that

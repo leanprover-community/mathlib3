@@ -7,6 +7,14 @@ import category_theory.limits.shapes.finite_products
 import category_theory.limits.shapes.kernels
 import category_theory.discrete_category
 
+/-!
+# Limits in `C` give colimits in `Cᵒᵖ`.
+
+We also give special cases for (co)products,
+but not yet for pullbacks / pushouts or for (co)equalizers.
+
+-/
+
 universes v u
 
 noncomputable theory

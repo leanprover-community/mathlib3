@@ -315,13 +315,14 @@ theorem rfind_opt {n} {f : vector ℕ (n+1) → ℕ}
    .comp₁ (λ n, part.some (1 - n)) hf)
    .bind ((prim nat.primrec'.pred).comp₁ nat.pred hf)).of_eq $
 λ v, part.ext $ λ b, begin
-  simp [nat.rfind_opt, -nat.mem_rfind],
+  simp only [nat.rfind_opt, exists_prop, tsub_eq_zero_iff_le, pfun.coe_val,
+    part.mem_bind_iff, part.mem_some_iff, option.mem_def, part.mem_coe],
   refine exists_congr (λ a,
     (and_congr (iff_of_eq _) iff.rfl).trans (and_congr_right (λ h, _))),
-  { congr; funext n,
-    simp, cases f (n ::ᵥ v); simp [nat.succ_ne_zero]; refl },
+  { congr, funext n,
+    simp only [part.some_inj, pfun.coe_val], cases f (n ::ᵥ v); simp [nat.succ_le_succ]; refl },
   { have := nat.rfind_spec h,
-    simp at this,
+    simp only [pfun.coe_val, part.mem_some_iff] at this,
     cases f (a ::ᵥ v) with c, {cases this},
     rw [← option.some_inj, eq_comm], refl }
 end

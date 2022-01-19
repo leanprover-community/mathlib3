@@ -252,6 +252,9 @@ lemma measurable_set.insert {s : set α} (hs : measurable_set s) (a : α) :
   else insert_diff_self_of_not_mem ha ▸ h.diff (measurable_set_singleton _),
   λ h, h.insert a⟩
 
+lemma set.subsingleton.measurable_set {s : set α} (hs : s.subsingleton) : measurable_set s :=
+hs.induction_on measurable_set.empty measurable_set_singleton
+
 lemma set.finite.measurable_set {s : set α} (hs : finite s) : measurable_set s :=
 finite.induction_on hs measurable_set.empty $ λ a s ha hsf hsm, hsm.insert _
 

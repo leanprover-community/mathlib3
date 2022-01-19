@@ -224,7 +224,7 @@ lemma to_quasi_measure_preserving {X : α → E} [has_pdf X ℙ μ] : quasi_meas
 lemma have_lebesgue_decomposition_of_has_pdf {X : α → E} [hX' : has_pdf X ℙ μ] :
   (map X ℙ).have_lebesgue_decomposition μ :=
 ⟨⟨⟨0, pdf X ℙ μ⟩,
-  by simp only [zero_add, measurable_pdf X ℙ μ, true_and, mutually_singular.zero.symm,
+  by simp only [zero_add, measurable_pdf X ℙ μ, true_and, mutually_singular.zero_left,
     map_eq_with_density_pdf X ℙ μ] ⟩⟩
 
 lemma has_pdf_iff {X : α → E} :
@@ -271,12 +271,7 @@ end
 lemma quasi_measure_preserving_has_pdf' [is_finite_measure ℙ] [sigma_finite ν]
   {X : α → E} [has_pdf X ℙ μ] {g : E → F} (hg : quasi_measure_preserving g μ ν) :
   has_pdf (g ∘ X) ℙ ν :=
-begin
-  haveI : is_finite_measure (map g (map X ℙ)) :=
-    @is_finite_measure_map _ _ _ _ (map X ℙ)
-      (is_finite_measure_map ℙ (has_pdf.measurable X ℙ μ)) _ hg.measurable,
-  exact quasi_measure_preserving_has_pdf hg infer_instance,
-end
+quasi_measure_preserving_has_pdf hg infer_instance
 
 end
 
@@ -288,7 +283,6 @@ variables [is_finite_measure ℙ] {X : α → ℝ}
 only if the push-forward measure of `ℙ` along `X` is absolutely continuous with respect to `λ`. -/
 lemma real.has_pdf_iff_of_measurable (hX : measurable X) : has_pdf X ℙ ↔ map X ℙ ≪ volume :=
 begin
-  haveI : is_finite_measure (map X ℙ) := is_finite_measure_map ℙ hX,
   rw [has_pdf_iff_of_measurable hX, and_iff_right_iff_imp],
   exact λ h, infer_instance,
 end

@@ -30,8 +30,8 @@ submodule, mul_action
 
 open function
 
-universes u u' v
-variables {S : Type u'} {R : Type u} {M : Type v}
+universes u u' u'' v
+variables {S : Type u'} {T : Type u''} {R : Type u} {M : Type v}
 
 set_option old_structure_cmd true
 
@@ -102,14 +102,13 @@ end has_scalar
 
 section mul_action
 
-variables [monoid S] [monoid R]
+variables [monoid R] [mul_action R M]
 
-variables [mul_action R M]
-variables [has_scalar S R] [mul_action S M] [is_scalar_tower S R M]
+section
+variables [has_scalar S R] [has_scalar S M] [is_scalar_tower S R M]
 variables (p : sub_mul_action R M)
-variables {r : R} {x : M}
 
-lemma smul_of_tower_mem (s : S) (h : x ∈ p) : s • x ∈ p :=
+lemma smul_of_tower_mem (s : S) {x : M} (h : x ∈ p) : s • x ∈ p :=
 by { rw [←one_smul R x, ←smul_assoc], exact p.smul_mem _ h }
 
 instance has_scalar' : has_scalar S p :=
@@ -120,9 +119,16 @@ instance : is_scalar_tower S R p :=
 
 @[simp, norm_cast] lemma coe_smul_of_tower (s : S) (x : p) : ((s • x : p) : M) = s • ↑x := rfl
 
-@[simp] lemma smul_mem_iff' (u : units S) : (u : S) • x ∈ p ↔ x ∈ p :=
-⟨λ h, by simpa only [smul_smul, u.inv_mul, one_smul] using p.smul_of_tower_mem (↑u⁻¹ : S) h,
-  p.smul_of_tower_mem u⟩
+@[simp] lemma smul_mem_iff' {G} [group G] [has_scalar G R] [mul_action G M]
+  [is_scalar_tower G R M] (g : G) {x : M} :
+  g • x ∈ p ↔ x ∈ p :=
+⟨λ h, inv_smul_smul g x ▸ p.smul_of_tower_mem g⁻¹ h, p.smul_of_tower_mem g⟩
+
+end
+
+section
+variables [monoid S] [has_scalar S R] [mul_action S M] [is_scalar_tower S R M]
+variables (p : sub_mul_action R M)
 
 /-- If the scalar product forms a `mul_action`, then the subset inherits this action -/
 instance mul_action' : mul_action S p :=
@@ -131,6 +137,8 @@ instance mul_action' : mul_action S p :=
   mul_smul := λ c₁ c₂ x, subtype.ext $ mul_smul c₁ c₂ x }
 
 instance : mul_action R p := p.mul_action'
+
+end
 
 end mul_action
 

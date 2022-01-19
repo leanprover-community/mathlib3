@@ -235,7 +235,7 @@ begin
   classical,
   rw [powerset_card_bUnion, prod_bUnion],
   intros i hi j hj hij,
-  rw [powerset_len_eq_filter, powerset_len_eq_filter, disjoint_filter],
+  rw [function.on_fun, powerset_len_eq_filter, powerset_len_eq_filter, disjoint_filter],
   intros x hx hc hnc,
   apply hij,
   rwa ← hc,

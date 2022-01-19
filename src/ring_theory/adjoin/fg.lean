@@ -29,7 +29,7 @@ open_locale pointwise
 namespace algebra
 
 variables {R : Type u} {A : Type v} {B : Type w}
-  [comm_ring R] [comm_ring A] [algebra R A] {s t : set A}
+  [comm_semiring R] [comm_semiring A] [algebra R A] {s t : set A}
 
 theorem fg_trans (h1 : (adjoin R s).to_submodule.fg)
   (h2 : (adjoin (adjoin R s) t).to_submodule.fg) :
@@ -47,10 +47,10 @@ begin
       exact adjoin_mono (set.subset_union_left _ _) this },
     have : y ∈ (adjoin (adjoin R s) t).to_submodule,
     { rw ← hq', exact subset_span hy },
-    change y ∈ adjoin R (s ∪ t), rwa adjoin_union_eq_under },
+    change y ∈ adjoin R (s ∪ t), rwa adjoin_union_eq_adjoin_adjoin },
   { intros r hr,
     change r ∈ adjoin R (s ∪ t) at hr,
-    rw adjoin_union_eq_under at hr,
+    rw adjoin_union_eq_adjoin_adjoin at hr,
     change r ∈ (adjoin (adjoin R s) t).to_submodule at hr,
     rw [← hq', ← set.image_id q, finsupp.mem_span_image_iff_total (adjoin R s)] at hr,
     rcases hr with ⟨l, hlq, rfl⟩,
@@ -148,13 +148,22 @@ end
 
 end subalgebra
 
+section semiring
+
 variables {R : Type u} {A : Type v} {B : Type w}
-variables [comm_ring R] [comm_ring A] [comm_ring B] [algebra R A] [algebra R B]
+variables [comm_semiring R] [comm_ring A] [comm_ring B] [algebra R A] [algebra R B]
 
 /-- The image of a Noetherian R-algebra under an R-algebra map is a Noetherian ring. -/
 instance alg_hom.is_noetherian_ring_range (f : A →ₐ[R] B) [is_noetherian_ring A] :
   is_noetherian_ring f.range :=
 is_noetherian_ring_range f.to_ring_hom
+
+end semiring
+
+section ring
+
+variables {R : Type u} {A : Type v} {B : Type w}
+variables [comm_ring R] [comm_ring A] [comm_ring B] [algebra R A] [algebra R B]
 
 theorem is_noetherian_ring_of_fg {S : subalgebra R A} (HS : S.fg)
   [is_noetherian_ring R] : is_noetherian_ring S :=
@@ -167,3 +176,5 @@ theorem is_noetherian_subring_closure (s : set R) (hs : s.finite) :
   is_noetherian_ring (subring.closure s) :=
 show is_noetherian_ring (subalgebra_of_subring (subring.closure s)), from
 algebra.adjoin_int s ▸ is_noetherian_ring_of_fg (subalgebra.fg_def.2 ⟨s, hs, rfl⟩)
+
+end ring

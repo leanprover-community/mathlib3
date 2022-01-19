@@ -493,10 +493,10 @@ begin
       ← volume_region_between_eq_lintegral' hf.measurable_mk hg.measurable_mk hs],
   convert h₂ using 1,
   { rw measure.restrict_prod_eq_prod_univ,
-    exacts [ (measure.restrict_eq_self_of_subset_of_measurable (hs.prod measurable_set.univ)
+    exacts [ (measure.restrict_eq_self' (hs.prod measurable_set.univ)
       (region_between_subset f g s)).symm, hs], },
   { rw measure.restrict_prod_eq_prod_univ,
-    exacts [(measure.restrict_eq_self_of_subset_of_measurable (hs.prod measurable_set.univ)
+    exacts [(measure.restrict_eq_self' (hs.prod measurable_set.univ)
       (region_between_subset (ae_measurable.mk f hf) (ae_measurable.mk g hg) s)).symm, hs] },
 end
 

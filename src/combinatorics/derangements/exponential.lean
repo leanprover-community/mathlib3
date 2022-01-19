@@ -3,7 +3,7 @@ Copyright (c) 2021 Henry Swanson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Henry Swanson, Patrick Massot
 -/
-import analysis.normed_space.exponential
+import analysis.special_functions.exponential
 import combinatorics.derangements.finite
 import order.filter.basic
 

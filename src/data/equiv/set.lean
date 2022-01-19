@@ -447,6 +447,10 @@ begin
   simp [apply_of_injective_symm f hf],
 end
 
+lemma coe_of_injective_symm {α β} (f : α → β) (hf : injective f) :
+  ((of_injective f hf).symm : range f → α) = range_splitting f :=
+by { ext ⟨y, x, rfl⟩, apply hf, simp [apply_range_splitting f] }
+
 @[simp] lemma self_comp_of_injective_symm {α β} (f : α → β) (hf : injective f) :
   f ∘ ((of_injective f hf).symm) = coe :=
 funext (λ x, apply_of_injective_symm f hf x)

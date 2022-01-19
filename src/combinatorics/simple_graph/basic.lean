@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson, Jalex Stark, Kyle Miller, Alena Gusakov, Hunter Monroe
 -/
 import data.fintype.basic
+import data.rel
 import data.set.finite
 import data.sym.sym2
 
@@ -227,6 +228,14 @@ instance compl.adj_decidable : decidable_rel Gᶜ.adj := λ v w, and.decidable
 end decidable
 
 end order
+
+/-- `G.support` is the set of vertices that form edges in `G`. -/
+def support : set V := rel.dom G.adj
+
+lemma mem_support {v : V} : v ∈ G.support ↔ ∃ w, G.adj v w := iff.rfl
+
+lemma support_mono {G G' : simple_graph V} (h : G ≤ G') : G.support ⊆ G'.support :=
+rel.dom_mono h
 
 /-- `G.neighbor_set v` is the set of vertices adjacent to `v` in `G`. -/
 def neighbor_set (v : V) : set V := set_of (G.adj v)

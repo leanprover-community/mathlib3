@@ -2,21 +2,37 @@
 Copyright (c) 2018 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon
-
-Functors with two arguments
 -/
 import logic.function.basic
 import control.functor
 import tactic.core
 
+/-!
+# Functors with two arguments
+
+This file defines bifunctors.
+
+A bifunctor is a function `F : Type* → Type* → Type*` along with a bimap which turns `F α β` into
+`F α' β'` given two functions `α → α'` and `β → β'`. It further
+* respects the identity: `bimap id id = id`
+* composes in the obvious way: `(bimap f' g') ∘ (bimap f g) = bimap (f' ∘ f) (g' ∘ g)`
+
+## Main declarations
+
+* `bifunctor`: A typeclass for the bare bimap of a bifunctor.
+* `is_lawful_bifunctor`: A typeclass asserting this bimap respects the bifunctor laws.
+-/
+
 universes u₀ u₁ u₂ v₀ v₁ v₂
 
 open function
 
+/-- Lawless bifunctor. This typeclass only holds the data for the bimap. -/
 class bifunctor (F : Type u₀ → Type u₁ → Type u₂) :=
 (bimap : Π {α α' β β'}, (α → α') → (β → β') → F α β → F α' β')
 export bifunctor ( bimap )
 
+/-- Bifunctor. This typeclass asserts that a lawless `bifunctor` is lawful. -/
 class is_lawful_bifunctor (F : Type u₀ → Type u₁ → Type u₂) [bifunctor F] :=
 (id_bimap : Π {α β} (x : F α β), bimap id id x = x)
 (bimap_bimap : Π {α₀ α₁ α₂ β₀ β₁ β₂} (f : α₀ → α₁) (f' : α₁ → α₂)
@@ -33,13 +49,11 @@ variables {F : Type u₀ → Type u₁ → Type u₂} [bifunctor F]
 
 namespace bifunctor
 
-@[reducible]
-def fst {α α' β} (f : α → α') : F α β → F α' β :=
-bimap f id
+/-- Left map of a bifunctor. -/
+@[reducible] def fst {α α' β} (f : α → α') : F α β → F α' β := bimap f id
 
-@[reducible]
-def snd {α β β'} (f : β → β') : F α β → F α β' :=
-bimap id f
+/-- Right map of a bifunctor. -/
+@[reducible] def snd {α β β'} (f : β → β') : F α β → F α β' := bimap id f
 
 variable [is_lawful_bifunctor F]
 

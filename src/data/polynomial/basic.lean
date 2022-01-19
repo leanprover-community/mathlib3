@@ -655,10 +655,10 @@ variables [ring R]
 instance : ring (polynomial R) :=
 { neg := has_neg.neg,
   add_left_neg := by { rintros ⟨⟩, simp [neg_to_finsupp, add_to_finsupp, ← zero_to_finsupp] },
-  gsmul := (•),
-  gsmul_zero' := by { rintro ⟨⟩, simp [smul_to_finsupp, ← zero_to_finsupp] },
-  gsmul_succ' := by { rintros n ⟨⟩, simp [smul_to_finsupp, add_to_finsupp, add_smul, add_comm] },
-  gsmul_neg' := by { rintros n ⟨⟩,
+  zsmul := (•),
+  zsmul_zero' := by { rintro ⟨⟩, simp [smul_to_finsupp, ← zero_to_finsupp] },
+  zsmul_succ' := by { rintros n ⟨⟩, simp [smul_to_finsupp, add_to_finsupp, add_smul, add_comm] },
+  zsmul_neg' := by { rintros n ⟨⟩,
     simp only [smul_to_finsupp, neg_to_finsupp], simp [add_smul, add_mul] },
   .. polynomial.semiring }
 

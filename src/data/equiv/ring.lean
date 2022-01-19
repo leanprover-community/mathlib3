@@ -370,6 +370,11 @@ lemma map_list_prod [semiring R] [semiring S] (f : R ≃+* S) (l : list R) :
 lemma map_list_sum [non_assoc_semiring R] [non_assoc_semiring S] (f : R ≃+* S) (l : list R) :
   f l.sum = (l.map f).sum := f.to_ring_hom.map_list_sum l
 
+/-- An isomorphism into the opposite ring acts on the product by acting on the reversed elements -/
+lemma unop_map_list_prod [semiring R] [semiring S] (f : R ≃+* Sᵒᵖ) (l : list R) :
+  opposite.unop (f l.prod) = (l.map (opposite.unop ∘ f)).reverse.prod :=
+f.to_ring_hom.unop_map_list_prod l
+
 lemma map_multiset_prod [comm_semiring R] [comm_semiring S] (f : R ≃+* S) (s : multiset R) :
   f s.prod = (s.map f).prod := f.to_ring_hom.map_multiset_prod s
 
@@ -435,22 +440,3 @@ protected lemma is_domain
   exists_pair_ne := ⟨e.symm 0, e.symm 1, e.symm.injective.ne zero_ne_one⟩ }
 
 end ring_equiv
-
-namespace equiv
-
-variables (K : Type*) [division_ring K]
-
-/-- In a division ring `K`, the unit group `units K`
-is equivalent to the subtype of nonzero elements. -/
--- TODO: this might already exist elsewhere for `group_with_zero`
--- deduplicate or generalize
-def units_equiv_ne_zero : units K ≃ {a : K | a ≠ 0} :=
-⟨λ a, ⟨a.1, a.ne_zero⟩, λ a, units.mk0 _ a.2, λ ⟨_, _, _, _⟩, units.ext rfl, λ ⟨_, _⟩, rfl⟩
-
-variable {K}
-
-@[simp]
-lemma coe_units_equiv_ne_zero (a : units K) :
-  ((units_equiv_ne_zero K a) : K) = a := rfl
-
-end equiv

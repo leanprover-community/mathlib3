@@ -91,14 +91,9 @@ end
 lemma rename_eq (f : σ → τ) (p : mv_polynomial σ R) :
   rename f p = finsupp.map_domain (finsupp.map_domain f) p :=
 begin
-  simp only [rename, aeval_def, eval₂, finsupp.map_domain],
-  congr' with s a : 2,
-  rw [← monomial, monomial_eq, finsupp.prod_sum_index],
-  congr' with n i : 2,
-  rw [finsupp.prod_single_index],
-  exact pow_zero _,
-  exact assume a, pow_zero _,
-  exact assume a b c, pow_add _ _ _
+  simp only [rename, aeval_def, eval₂, finsupp.map_domain, algebra_map_eq, X_pow_eq_monomial,
+     ← monomial_finsupp_sum_index],
+  refl
 end
 
 lemma rename_injective (f : σ → τ) (hf : function.injective f) :

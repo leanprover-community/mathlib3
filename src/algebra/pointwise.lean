@@ -194,7 +194,7 @@ lemma empty_mul [has_mul α] : ∅ * s = ∅ := image2_empty_left
 lemma mul_empty [has_mul α] : s * ∅ = ∅ := image2_empty_right
 
 lemma empty_pow [monoid α] (n : ℕ) (hn : n ≠ 0) : (∅ : set α) ^ n = ∅ :=
-by rw [←nat.sub_add_cancel (nat.pos_of_ne_zero hn), pow_succ, empty_mul]
+by rw [← tsub_add_cancel_of_le (nat.succ_le_of_lt $ nat.pos_of_ne_zero hn), pow_succ, empty_mul]
 
 instance decidable_mem_mul [monoid α] [fintype α] [decidable_eq α]
   [decidable_pred (∈ s)] [decidable_pred (∈ t)] :
@@ -620,6 +620,14 @@ variables {α : Type*} {β : Type*}
 lemma zero_smul_set [has_zero α] [has_zero β] [smul_with_zero α β] {s : set β} (h : s.nonempty) :
   (0 : α) • s = (0 : set β) :=
 by simp only [← image_smul, image_eta, zero_smul, h.image_const, singleton_zero]
+
+lemma zero_smul_subset [has_zero α] [has_zero β] [smul_with_zero α β] (s : set β) :
+  (0 : α) • s ⊆ 0 :=
+image_subset_iff.2 $ λ x _, zero_smul α x
+
+lemma subsingleton_zero_smul_set [has_zero α] [has_zero β] [smul_with_zero α β] (s : set β) :
+  ((0 : α) • s).subsingleton :=
+subsingleton_singleton.mono (zero_smul_subset s)
 
 section group
 variables [group α] [mul_action α β]

@@ -318,8 +318,9 @@ have hm0 : 0 < m := nat.pos_of_ne_zero (λ h, by simp * at *),
 have hn0 : 0 < n := nat.pos_of_ne_zero (λ h, by simp * at *),
 (nat.mul_right_inj (show 0 < 2, from dec_trivial)).1 $
 by rw [mul_add, two_mul_odd_div_two hm1, mul_left_comm, two_mul_odd_div_two hn1,
-  two_mul_odd_div_two (nat.odd_mul_odd hm1 hn1), nat.mul_sub_left_distrib, mul_one,
-  ← nat.add_sub_assoc hm0, nat.sub_add_cancel (le_mul_of_one_le_right (nat.zero_le _) hn0)]
+  two_mul_odd_div_two (nat.odd_mul_odd hm1 hn1), mul_tsub, mul_one,
+  ← add_tsub_assoc_of_le (succ_le_of_lt hm0),
+  tsub_add_cancel_of_le (le_mul_of_one_le_right (nat.zero_le _) hn0)]
 
 lemma odd_of_mod_four_eq_one {n : ℕ} : n % 4 = 1 → n % 2 = 1 :=
 by simpa [modeq, show 2 * 2 = 4, by norm_num] using @modeq.of_modeq_mul_left 2 n 1 2

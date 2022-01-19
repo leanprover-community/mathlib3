@@ -2,11 +2,25 @@
 Copyright (c) 2018 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon
-
-Transferring `traversable` instances using isomorphisms.
 -/
-import data.equiv.basic
 import control.traversable.lemmas
+import data.equiv.basic
+
+/-!
+# Transferring `traversable` instances along isomorphisms
+
+This file allows to transfer `traversable` instances along isomorphisms.
+
+## Main declarations
+
+* `equiv.map`: Turns functorially a function `α → β` into a function `t' α → t' β` using the functor
+  `t` and the equivalence `Π α, t α ≃ t' α`.
+* `equiv.functor`: `equiv.map` as a functor.
+* `equiv.traverse`: Turns traversably a function `α → m β` into a function `t' α → m (t' β)` using
+  the traversable functor `t` and the equivalence `Π α, t α ≃ t' α`.
+* `equiv.traversable`: `equiv.traverse` as a traversable functor.
+* `equiv.is_lawful_traversable`: `equiv.traverse` as a lawful traversable functor.
+-/
 
 universes u
 
@@ -71,7 +85,7 @@ the structure of a traversable functor using a traversable functor
 protected def traverse (f : α → m β) (x : t' α) : m (t' β) :=
 eqv β <$> traverse f ((eqv α).symm x)
 
-/-- The function `equiv.tranverse` transfers a traversable functor
+/-- The function `equiv.traverse` transfers a traversable functor
 instance across the equivalences `eqv`. -/
 protected def traversable : traversable t' :=
 { to_functor := equiv.functor eqv,
@@ -110,8 +124,7 @@ by simp only [equiv.traverse] with functor_norm
 /-- The fact that `t` is a lawful traversable functor carries over the
 equivalences to `t'`, with the traversable functor structure given by
 `equiv.traversable`. -/
-protected def is_lawful_traversable :
-  @is_lawful_traversable t' (equiv.traversable eqv) :=
+protected def is_lawful_traversable : @is_lawful_traversable t' (equiv.traversable eqv) :=
 { to_is_lawful_functor := @equiv.is_lawful_functor _ _ eqv _ _,
   id_traverse := @equiv.id_traverse _ _,
   comp_traverse := @equiv.comp_traverse _ _,
@@ -121,7 +134,7 @@ protected def is_lawful_traversable :
 /-- If the `traversable t'` instance has the properties that `map`,
 `map_const`, and `traverse` are equal to the ones that come from
 carrying the traversable functor structure from `t` over the
-equivalences, then the fact `t` is a lawful traversable functor
+equivalences, then the fact that `t` is a lawful traversable functor
 carries over as well. -/
 protected def is_lawful_traversable' [_i : traversable t']
   (h₀ : ∀ {α β} (f : α → β),

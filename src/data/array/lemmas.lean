@@ -282,10 +282,6 @@ def d_array_equiv_fin {n : ℕ} (α : fin n → Type*) : d_array n α ≃ (Π i,
 def array_equiv_fin (n : ℕ) (α : Type*) : array n α ≃ (fin n → α) :=
 d_array_equiv_fin _
 
-/-- The natural equivalence between length-`n` vectors and functions from `fin n`. -/
-def vector_equiv_fin (α : Type*) (n : ℕ) : vector α n ≃ (fin n → α) :=
-⟨vector.nth, vector.of_fn, vector.of_fn_nth, λ f, funext $ vector.nth_of_fn f⟩
-
 /-- The natural equivalence between length-`n` vectors and length-`n` arrays. -/
 def vector_equiv_array (α : Type*) (n : ℕ) : vector α n ≃ array n α :=
 (vector_equiv_fin _ _).trans (array_equiv_fin _ _).symm

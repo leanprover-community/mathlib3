@@ -105,6 +105,18 @@ lemma prime_generator_of_is_prime (S : ideal R) [submodule.is_principal S] [is_p
  λ h, is_prime.ne_top (S.eq_top_of_is_unit_mem (generator_mem S) h),
  by simpa only [← mem_iff_generator_dvd S] using is_prime.2⟩
 
+-- Note that the converse may not hold if `ϕ` is not injective.
+lemma generator_map_dvd_of_mem {N : submodule R M}
+  (ϕ : M →ₗ[R] R) [(N.map ϕ).is_principal] {x : M} (hx : x ∈ N) :
+  generator (N.map ϕ) ∣ ϕ x :=
+by { rw [← mem_iff_generator_dvd, submodule.mem_map], exact ⟨x, hx, rfl⟩ }
+
+-- Note that the converse may not hold if `ϕ` is not injective.
+lemma generator_submodule_image_dvd_of_mem {N O : submodule R M} (hNO : N ≤ O)
+  (ϕ : O →ₗ[R] R) [(ϕ.submodule_image N).is_principal] {x : M} (hx : x ∈ N) :
+  generator (ϕ.submodule_image N) ∣ ϕ ⟨x, hNO hx⟩ :=
+by { rw [← mem_iff_generator_dvd, linear_map.mem_submodule_image_of_le hNO], exact ⟨x, hx, rfl⟩ }
+
 end comm_ring
 
 end submodule.is_principal

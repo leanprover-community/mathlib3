@@ -130,7 +130,7 @@ begin
     { have h7 : nat_predicate N (n - m) m, from h2.reduction h4,
       obtain ⟨k : ℕ, hnm : n - m = fib k, rfl : m = fib (k+1)⟩ := h1 m h6 (n - m) h7,
       use [k + 1, rfl],
-      rw [fib_succ_succ, ← hnm, nat.sub_add_cancel h3] } }
+      rw [fib_succ_succ, ← hnm, tsub_add_cancel_of_le h3] } }
 end
 
 end nat_predicate

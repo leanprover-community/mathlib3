@@ -89,7 +89,7 @@ begin
       have := lt_of_le_of_lt hj (nat.lt_succ_self j),
       rwa [tsub_lt_iff_tsub_lt hd hbj] at this } },
   have : j = b.nat_degree - (nat_degree b - j.succ).succ,
-  { rw [← nat.succ_sub hbj, nat.succ_sub_succ, nat.sub_sub_self hbj.le] },
+  { rw [← nat.succ_sub hbj, nat.succ_sub_succ, tsub_tsub_cancel_of_le hbj.le] },
   convert congr_fun i_eq.symm ⟨nat_degree b - j.succ, hj⟩
 end
 

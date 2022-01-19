@@ -140,7 +140,7 @@ by { funext, simp [← ennreal.coe_eq_coe], }
 
 @[simp, norm_cast] lemma coe_fn_smul (c : ℝ≥0) (μ : finite_measure α) :
   (⇑(c • μ) : set α → ℝ≥0) = c • (⇑μ : set α → ℝ≥0) :=
-by { funext, simp [← ennreal.coe_eq_coe], refl, }
+by { funext, simp [← ennreal.coe_eq_coe], }
 
 instance : add_comm_monoid (finite_measure α) :=
 finite_measure.coe_injective.add_comm_monoid

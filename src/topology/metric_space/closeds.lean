@@ -311,13 +311,8 @@ begin
     let v0 := {t : set α | finite t ∧ t ⊆ s},
     let v : set (nonempty_compacts α) := {t : nonempty_compacts α | t.val ∈ v0},
     refine  ⟨⟨v, ⟨_, _⟩⟩⟩,
-    { have : countable (subtype.val '' v),
-      { refine (countable_set_of_finite_subset cs).mono (λx hx, _),
-        rcases (mem_image _ _ _).1 hx with ⟨y, ⟨hy, yx⟩⟩,
-        rw ← yx,
-        exact hy },
-      apply countable_of_injective_of_countable_image _ this,
-      apply subtype.val_injective.inj_on },
+    { have : countable v0, from countable_set_of_finite_subset cs,
+      exact this.preimage subtype.coe_injective },
     { refine λt, mem_closure_iff.2 (λε εpos, _),
       -- t is a compact nonempty set, that we have to approximate uniformly by a a set in `v`.
       rcases exists_between εpos with ⟨δ, δpos, δlt⟩,
@@ -331,7 +326,7 @@ begin
       have Fspec : ∀x, F x ∈ s ∧ edist x (F x) < δ/2 := λx, some_spec (Exy x),
 
       -- cover `t` with finitely many balls. Their centers form a set `a`
-      have : totally_bounded t.val := (compact_iff_totally_bounded_complete.1 t.property.2).1,
+      have : totally_bounded t.val := t.property.2.totally_bounded,
       rcases totally_bounded_iff.1 this (δ/2) δpos' with ⟨a, af, ta⟩,
       -- a : set α,  af : finite a,  ta : t.val ⊆ ⋃ (y : α) (H : y ∈ a), eball y (δ / 2)
       -- replace each center by a nearby approximation in `s`, giving a new set `b`
@@ -378,7 +373,7 @@ begin
       -- we have proved that `d` is a good approximation of `t` as requested
       exact ⟨d, ‹d ∈ v›, Dtc⟩ },
   end,
-  apply second_countable_of_separable,
+  apply uniform_space.second_countable_of_separable,
 end
 
 end --section

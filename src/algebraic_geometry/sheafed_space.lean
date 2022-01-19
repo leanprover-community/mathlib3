@@ -78,9 +78,7 @@ local attribute [simp] id comp
   ((𝟙 X) : X ⟶ X).base = (𝟙 (X : Top.{v})) := rfl
 
 lemma id_c (X : SheafedSpace C) :
-  ((𝟙 X) : X ⟶ X).c =
-  (((functor.left_unitor _).inv) ≫
-  (whisker_right (nat_trans.op (opens.map_id (X.carrier)).hom) _)) := rfl
+  ((𝟙 X) : X ⟶ X).c = eq_to_hom (presheaf.pushforward.id_eq X.presheaf).symm := rfl
 
 @[simp] lemma id_c_app (X : SheafedSpace C) (U) :
   ((𝟙 X) : X ⟶ X).c.app U = eq_to_hom (by { induction U using opposite.rec, cases U, refl }) :=
@@ -90,8 +88,8 @@ by { induction U using opposite.rec, cases U, simp only [id_c], dsimp, simp, }
   (f ≫ g).base = f.base ≫ g.base := rfl
 
 @[simp] lemma comp_c_app {X Y Z : SheafedSpace C} (α : X ⟶ Y) (β : Y ⟶ Z) (U) :
-  (α ≫ β).c.app U = (β.c).app U ≫ (α.c).app (op ((opens.map (β.base)).obj (unop U))) ≫
-    (Top.presheaf.pushforward.comp _ _ _).inv.app U := rfl
+  (α ≫ β).c.app U = (β.c).app U ≫ (α.c).app (op ((opens.map (β.base)).obj (unop U)))
+:= rfl
 
 variables (C)
 
@@ -108,19 +106,19 @@ open Top.presheaf
 The restriction of a sheafed space along an open embedding into the space.
 -/
 def restrict {U : Top} (X : SheafedSpace C)
-  (f : U ⟶ (X : Top.{v})) (h : open_embedding f) : SheafedSpace C :=
+  {f : U ⟶ (X : Top.{v})} (h : open_embedding f) : SheafedSpace C :=
 { is_sheaf := λ ι 𝒰, ⟨is_limit.of_iso_limit
     ((is_limit.postcompose_inv_equiv _ _).inv_fun (X.is_sheaf _).some)
     (sheaf_condition_equalizer_products.fork.iso_of_open_embedding h 𝒰).symm⟩,
-  ..X.to_PresheafedSpace.restrict f h }
+  ..X.to_PresheafedSpace.restrict h }
 
 /--
 The restriction of a sheafed space `X` to the top subspace is isomorphic to `X` itself.
 -/
 def restrict_top_iso (X : SheafedSpace C) :
-  X.restrict (opens.inclusion ⊤) (opens.open_embedding ⊤) ≅ X :=
+  X.restrict (opens.open_embedding ⊤) ≅ X :=
 @preimage_iso _ _ _ _ forget_to_PresheafedSpace _ _
-  (X.restrict (opens.inclusion ⊤) (opens.open_embedding ⊤)) _
+  (X.restrict (opens.open_embedding ⊤)) _
   X.to_PresheafedSpace.restrict_top_iso
 
 /--
@@ -136,10 +134,10 @@ lemma Γ_def : (Γ : _ ⥤ C) = forget_to_PresheafedSpace.op ⋙ PresheafedSpace
 lemma Γ_obj_op (X : SheafedSpace C) : Γ.obj (op X) = X.presheaf.obj (op ⊤) := rfl
 
 @[simp] lemma Γ_map {X Y : (SheafedSpace C)ᵒᵖ} (f : X ⟶ Y) :
-  Γ.map f = f.unop.c.app (op ⊤) ≫ (unop Y).presheaf.map (opens.le_map_top _ _).op := rfl
+  Γ.map f = f.unop.c.app (op ⊤) := rfl
 
 lemma Γ_map_op {X Y : SheafedSpace C} (f : X ⟶ Y) :
-  Γ.map f.op = f.c.app (op ⊤) ≫ X.presheaf.map (opens.le_map_top _ _).op := rfl
+  Γ.map f.op = f.c.app (op ⊤) := rfl
 
 end SheafedSpace
 

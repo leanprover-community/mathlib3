@@ -467,6 +467,12 @@ theorem is_strong_limit.is_limit {c} (H : is_strong_limit c) : is_limit c :=
 def is_regular (c : cardinal) : Prop :=
 ω ≤ c ∧ c.ord.cof = c
 
+lemma is_regular.pos {c : cardinal} (H : c.is_regular) : 0 < c :=
+omega_pos.trans_le H.left
+
+lemma is_regular.ord_pos {c : cardinal} (H : c.is_regular) : 0 < c.ord :=
+by { rw cardinal.lt_ord, exact H.pos }
+
 theorem cof_is_regular {o : ordinal} (h : o.is_limit) : is_regular o.cof :=
 ⟨omega_le_cof.2 h, cof_cof _⟩
 
@@ -484,9 +490,9 @@ theorem succ_is_regular {c : cardinal.{u}} (h : ω ≤ c) : is_regular (succ c) 
   rw [← Se],
   apply lt_imp_lt_of_le_imp_le
     (λ (h : #S ≤ c), mul_le_mul_right' h c),
-  rw [mul_eq_self h, ← succ_le, ← αe, ← sum_const],
+  rw [mul_eq_self h, ← succ_le, ← αe, ← sum_const'],
   refine le_trans _ (sum_le_sum (λ x:S, card (typein r x)) _ _),
-  { simp [typein, sum_mk (λ x:S, {a//r a x})],
+  { simp only [← card_typein, ← mk_sigma],
     refine ⟨embedding.of_surjective _ _⟩,
     { exact λ x, x.2.1 },
     { exact λ a, let ⟨b, h, ab⟩ := H a in ⟨⟨⟨_, h⟩, _, ab⟩, rfl⟩ } },
@@ -593,7 +599,7 @@ quotient.induction_on c $ λ α h, begin
   rw [mk_def, re] at this ⊢,
   rcases cof_eq' r this with ⟨S, H, Se⟩,
   have := sum_lt_prod (λ a:S, #{x // r x a}) (λ _, #α) (λ i, _),
-  { simp [Se.symm] at this ⊢,
+  { simp only [cardinal.prod_const, cardinal.lift_id, ← Se, ← mk_sigma, power_def] at this ⊢,
     refine lt_of_le_of_lt _ this,
     refine ⟨embedding.of_surjective _ _⟩,
     { exact λ x, x.2.1 },

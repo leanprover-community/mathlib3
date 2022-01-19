@@ -114,8 +114,8 @@ conj_Aut_mul α g f
 @[simp] lemma conj_Aut_pow (f : Aut X) (n : ℕ) : α.conj_Aut (f^n) = (α.conj_Aut f)^n :=
 α.conj_Aut.to_monoid_hom.map_pow f n
 
-@[simp] lemma conj_Aut_gpow (f : Aut X) (n : ℤ) : α.conj_Aut (f^n) = (α.conj_Aut f)^n :=
-α.conj_Aut.to_monoid_hom.map_gpow f n
+@[simp] lemma conj_Aut_zpow (f : Aut X) (n : ℤ) : α.conj_Aut (f^n) = (α.conj_Aut f)^n :=
+α.conj_Aut.to_monoid_hom.map_zpow f n
 
 end iso
 

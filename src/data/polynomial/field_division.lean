@@ -52,6 +52,11 @@ by simp [norm_unit]
 lemma leading_coeff_normalize (p : polynomial R) :
   leading_coeff (normalize p) = normalize (leading_coeff p) := by simp
 
+lemma monic.normalize_eq_self {p : polynomial R} (hp : p.monic) :
+  normalize p = p :=
+by simp only [polynomial.coe_norm_unit, normalize_apply, hp.leading_coeff, norm_unit_one,
+  units.coe_one, polynomial.C.map_one, mul_one]
+
 end is_domain
 
 section field
@@ -331,8 +336,6 @@ end
 lemma coe_norm_unit_of_ne_zero (hp : p ≠ 0) : (norm_unit p : polynomial R) = C p.leading_coeff⁻¹ :=
 by simp [hp]
 
-lemma normalize_monic (h : monic p) : normalize p = p := by simp [h]
-
 theorem map_dvd_map' [field k] (f : R →+* k) {x y : polynomial R} : x.map f ∣ y.map f ↔ x ∣ y :=
 if H : x = 0 then by rw [H, map_zero, zero_dvd_iff, zero_dvd_iff, map_eq_zero]
 else by rw [← normalize_dvd_iff, ← @normalize_dvd_iff (polynomial R),
@@ -405,7 +408,7 @@ begin
     pairwise_coprime_X_sub function.injective_id,
   have H : pairwise (is_coprime on λ (a : R), (polynomial.X - C (id a)) ^ (root_multiplicity a p)),
   { intros a b hdiff, exact (hcoprime a b hdiff).pow },
-  apply finset.prod_dvd_of_coprime (pairwise.pairwise_on H (↑(multiset.to_finset p.roots) : set R)),
+  apply finset.prod_dvd_of_coprime (H.set_pairwise (↑(multiset.to_finset p.roots) : set R)),
   intros a h,
   rw multiset.mem_to_finset at h,
   exact pow_root_multiplicity_dvd p a

@@ -313,11 +313,11 @@ lemma finite_mul_aux {p : α} (hp : prime p) : ∀ {n m : ℕ} {a b : α},
       have wf : (n - 1) < n, from tsub_lt_self hn0 dec_trivial,
       have hpx : ¬ p ^ (n - 1 + 1) ∣ x,
         from λ ⟨y, hy⟩, ha (hx.symm ▸ ⟨y, mul_right_cancel₀ hp.1
-          $ by rw [nat.sub_add_cancel hn0] at hy;
+          $ by rw [tsub_add_cancel_of_le (succ_le_of_lt hn0)] at hy;
             simp [hy, pow_add, mul_comm, mul_assoc, mul_left_comm]⟩),
       have 1 ≤ n + m, from le_trans hn0 (nat.le_add_right n m),
       finite_mul_aux hpx hb ⟨s, mul_right_cancel₀ hp.1 begin
-          rw [← nat.sub_add_comm hn0, nat.sub_add_cancel this],
+          rw [tsub_add_eq_add_tsub (succ_le_of_lt hn0), tsub_add_cancel_of_le this],
           clear _fun_match _fun_match finite_mul_aux,
           simp [*, mul_comm, mul_assoc, mul_left_comm, pow_add] at *
         end⟩)
@@ -326,10 +326,10 @@ lemma finite_mul_aux {p : α} (hp : prime p) : ∀ {n m : ℕ} {a b : α},
       have wf : (m - 1) < m, from tsub_lt_self hm0 dec_trivial,
       have hpx : ¬ p ^ (m - 1 + 1) ∣ x,
         from λ ⟨y, hy⟩, hb (hx.symm ▸ ⟨y, mul_right_cancel₀ hp.1
-          $ by rw [nat.sub_add_cancel hm0] at hy;
+          $ by rw [tsub_add_cancel_of_le (succ_le_of_lt hm0)] at hy;
             simp [hy, pow_add, mul_comm, mul_assoc, mul_left_comm]⟩),
       finite_mul_aux ha hpx ⟨s, mul_right_cancel₀ hp.1 begin
-          rw [add_assoc, nat.sub_add_cancel hm0],
+          rw [add_assoc, tsub_add_cancel_of_le (succ_le_of_lt hm0)],
           clear _fun_match _fun_match finite_mul_aux,
           simp [*, mul_comm, mul_assoc, mul_left_comm, pow_add] at *
         end⟩)

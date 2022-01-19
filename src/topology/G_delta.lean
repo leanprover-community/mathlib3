@@ -105,17 +105,14 @@ begin
   exact λ a s _ _ ihs H, H.1.union (ihs H.2)
 end
 
-lemma is_closed.is_Gδ' {α} [uniform_space α] {s : set α} (hs : is_closed s)
-  (H : (𝓤 α).is_countably_generated) : is_Gδ s :=
+lemma is_closed.is_Gδ {α} [uniform_space α] [is_countably_generated (𝓤 α)]
+  {s : set α} (hs : is_closed s) : is_Gδ s :=
 begin
-  rcases H.exists_antitone_subbasis uniformity_has_basis_open with ⟨U, hUo, hU, -, -⟩,
+  rcases (@uniformity_has_basis_open α _).exists_antitone_subbasis  with ⟨U, hUo, hU, -, -⟩,
   rw [← hs.closure_eq, ← hU.bInter_bUnion_ball],
   refine is_Gδ_bInter (countable_encodable _) (λ n hn, is_open.is_Gδ _),
   exact is_open_bUnion (λ x hx, uniform_space.is_open_ball _ (hUo _).2)
 end
-
-lemma is_closed.is_Gδ {α} [pseudo_emetric_space α] {s : set α} (hs : is_closed s) : is_Gδ s :=
-hs.is_Gδ' emetric.uniformity_has_countable_basis
 
 section t1_space
 
@@ -145,8 +142,7 @@ variables [first_countable_topology α]
 
 lemma is_Gδ_singleton (a : α) : is_Gδ ({a} : set α) :=
 begin
-  rcases (is_countably_generated_nhds a).exists_antitone_subbasis (nhds_basis_opens _)
-    with ⟨U, hU, h_basis⟩,
+  rcases (nhds_basis_opens a).exists_antitone_subbasis with ⟨U, hU, h_basis⟩,
   rw [← bInter_basis_nhds h_basis.to_has_basis],
   exact is_Gδ_bInter (countable_encodable _) (λ n hn, (hU n).2.is_Gδ),
 end
@@ -165,11 +161,11 @@ open_locale uniformity
 
 variables [topological_space α]
 
-lemma is_Gδ_set_of_continuous_at_of_countably_generated_uniformity
-  [uniform_space β] (hU : is_countably_generated (𝓤 β)) (f : α → β) :
+/-- The set of points where a function is continuous is a Gδ set. -/
+lemma is_Gδ_set_of_continuous_at [uniform_space β] [is_countably_generated (𝓤 β)] (f : α → β) :
   is_Gδ {x | continuous_at f x} :=
 begin
-  obtain ⟨U, hUo, hU⟩ := hU.exists_antitone_subbasis uniformity_has_basis_open_symmetric,
+  obtain ⟨U, hUo, hU⟩ := (@uniformity_has_basis_open_symmetric β _).exists_antitone_subbasis,
   simp only [uniform.continuous_at_iff_prod, nhds_prod_eq],
   simp only [(nhds_basis_opens _).prod_self.tendsto_iff hU.to_has_basis, forall_prop_of_true,
     set_of_forall, id],
@@ -179,12 +175,6 @@ begin
   intros y hy,
   exact ⟨s, ⟨hy, hso⟩, hsU⟩
 end
-
-/-- The set of points where a function is continuous is a Gδ set. -/
-lemma is_Gδ_set_of_continuous_at [pseudo_emetric_space β] (f : α → β) :
-  is_Gδ {x | continuous_at f x} :=
-is_Gδ_set_of_continuous_at_of_countably_generated_uniformity
-  emetric.uniformity_has_countable_basis _
 
 end continuous_at
 

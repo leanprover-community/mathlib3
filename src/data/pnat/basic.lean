@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Neil Strickland
 -/
 import algebra.group_power.basic
-import data.nat.basic
 
 /-!
 # The positive natural numbers
@@ -194,13 +193,13 @@ begin
   change ((to_pnat' ((a : ℕ) - (b :  ℕ)) : ℕ)) =
     ite ((a : ℕ) > (b : ℕ)) ((a : ℕ) - (b : ℕ)) 1,
   split_ifs with h,
-  { exact to_pnat'_coe (nat.sub_pos_of_lt h) },
-  { rw [nat.sub_eq_zero_iff_le.mpr (le_of_not_gt h)], refl }
+  { exact to_pnat'_coe (tsub_pos_of_lt h) },
+  { rw [tsub_eq_zero_iff_le.mpr (le_of_not_gt h)], refl }
 end
 
 theorem add_sub_of_lt {a b : ℕ+} : a < b → a + (b - a) = b :=
  λ h, eq $ by { rw [add_coe, sub_coe, if_pos h],
-                exact nat.add_sub_of_le h.le }
+                exact add_tsub_cancel_of_le h.le }
 
 instance : has_well_founded ℕ+ := ⟨(<), measure_wf coe⟩
 

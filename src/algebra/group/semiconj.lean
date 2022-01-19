@@ -121,6 +121,15 @@ units.ext h
   semiconj_by (a : M) x y ↔ semiconj_by a x y :=
 ⟨units_of_coe, units_coe⟩
 
+@[simp, to_additive]
+lemma pow_right {a x y : M} (h : semiconj_by a x y) (n : ℕ) : semiconj_by a (x^n) (y^n) :=
+begin
+  induction n with n ih,
+  { rw [pow_zero, pow_zero], exact semiconj_by.one_right _ },
+  { rw [pow_succ, pow_succ],
+    exact h.mul_right ih }
+end
+
 end monoid
 
 section group

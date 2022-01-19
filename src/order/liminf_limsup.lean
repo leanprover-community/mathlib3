@@ -148,6 +148,14 @@ lemma is_bounded.is_cobounded_flip [is_trans α r] [ne_bot f] :
   let ⟨x, rxa, rbx⟩ := (ha.and hb).exists in
   show r b a, from trans rbx rxa⟩
 
+lemma is_bounded.is_cobounded_ge [preorder α] [ne_bot f] (h : f.is_bounded (≤)) :
+  f.is_cobounded (≥) :=
+h.is_cobounded_flip
+
+lemma is_bounded.is_cobounded_le [preorder α] [ne_bot f] (h : f.is_bounded (≥)) :
+  f.is_cobounded (≤) :=
+h.is_cobounded_flip
+
 lemma is_cobounded_bot : is_cobounded r ⊥ ↔ (∃b, ∀x, r b x) :=
 by simp [is_cobounded]
 
@@ -321,6 +329,12 @@ lemma liminf_const {α : Type*} [conditionally_complete_lattice β] {f : filter 
   (b : β) : liminf f (λ x, b) = b :=
 @limsup_const (order_dual β) α _ f _ b
 
+lemma liminf_le_limsup {f : filter β} [ne_bot f] {u : β → α}
+  (h : f.is_bounded_under (≤) u . is_bounded_default)
+  (h' : f.is_bounded_under (≥) u . is_bounded_default) :
+  liminf f u ≤ limsup f u :=
+Liminf_le_Limsup h h'
+
 end conditionally_complete_lattice
 
 section complete_lattice
@@ -350,9 +364,6 @@ end
 /-- Same as limsup_const applied to `⊤` but without the `ne_bot f` assumption -/
 lemma liminf_const_top {f : filter β} : liminf f (λ x : β, (⊤ : α)) = (⊤ : α) :=
 @limsup_const_bot (order_dual α) β _ _
-
-lemma liminf_le_limsup {f : filter β} [ne_bot f] {u : β → α}  : liminf f u ≤ limsup f u :=
-Liminf_le_Limsup is_bounded_le_of_top is_bounded_ge_of_bot
 
 theorem has_basis.Limsup_eq_infi_Sup {ι} {p : ι → Prop} {s} {f : filter α} (h : f.has_basis p s) :
   f.Limsup = ⨅ i (hi : p i), Sup (s i) :=

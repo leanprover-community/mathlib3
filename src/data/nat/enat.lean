@@ -306,7 +306,7 @@ instance : canonically_ordered_add_monoid enat :=
       (iff_of_false (not_le_of_gt (coe_lt_top _))
         (not_exists.2 (λ x, ne_of_lt (by rw [top_add]; exact coe_lt_top _))))
       (λ a, ⟨λ h, ⟨(b - a : ℕ),
-          by rw [← nat.cast_add, coe_inj, add_comm, nat.sub_add_cancel (coe_le_coe.1 h)]⟩,
+          by rw [← nat.cast_add, coe_inj, add_comm, tsub_add_cancel_of_le (coe_le_coe.1 h)]⟩,
         (λ ⟨c, hc⟩, enat.cases_on c
           (λ hc, hc.symm ▸ show (a : enat) ≤ a + ⊤, by rw [add_top]; exact le_top)
           (λ c (hc : (b : enat) = a + c),

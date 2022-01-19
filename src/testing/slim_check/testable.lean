@@ -549,7 +549,8 @@ instance prop_var_testable (β : Prop → Prop) [I : ∀ b : bool, testable (β 
     (named_binder var $ Π b : bool, β b) _ cfg min⟩
 
 @[priority 3000]
-instance unused_var_testable (β) [inhabited α] [testable β] : testable (named_binder var $ Π x : α, β) :=
+instance unused_var_testable (β) [inhabited α] [testable β] :
+  testable (named_binder var $ Π x : α, β) :=
 ⟨ λ cfg min, do
   r ← testable.run β cfg min,
   pure $ convert_counter_example ($ default _) r (psum.inr $ λ x _, x) ⟩

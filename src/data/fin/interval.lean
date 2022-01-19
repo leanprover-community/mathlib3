@@ -19,6 +19,7 @@ variables (n : ℕ)
 instance : locally_finite_order (fin n) := subtype.locally_finite_order _
 
 namespace fin
+section bounded
 variables {n} (a b : fin n)
 
 lemma Icc_eq_finset_subtype : Icc a b = (Icc (a : ℕ) b).subtype (λ x, x < n) := rfl
@@ -66,4 +67,89 @@ by rw [←card_Ioc, fintype.card_of_finset]
 @[simp] lemma card_fintype_Ioo : fintype.card (set.Ioo a b) = b - a - 1 :=
 by rw [←card_Ioo, fintype.card_of_finset]
 
+end bounded
+
+section unbounded
+variables {n} (a b : fin (n + 1))
+
+lemma Ici_eq_finset_subtype : Ici a = (Icc (a : ℕ) (n + 1)).subtype (λ x, x < n + 1) :=
+begin
+  ext x,
+  simp only [mem_subtype, mem_Ici, mem_Icc, coe_fin_le, iff_self_and],
+  exact λ _, x.2.le,
+end
+
+lemma Ioi_eq_finset_subtype : Ioi a = (Ioc (a : ℕ) (n + 1)).subtype (λ x, x < n + 1) :=
+begin
+  ext x,
+  simp only [mem_subtype, mem_Ioi, mem_Ioc, coe_fin_lt, iff_self_and],
+  exact λ _, x.2.le,
+end
+
+lemma Iic_eq_finset_subtype : Iic b = (Iic (b : ℕ)).subtype (λ x, x < n + 1) := rfl
+lemma Iio_eq_finset_subtype : Iio b = (Iio (b : ℕ)).subtype (λ x, x < n + 1) := rfl
+
+@[simp] lemma map_subtype_embedding_Ici : (Ici a).map (function.embedding.subtype _) = Icc a n :=
+begin
+  ext x,
+  simp only [exists_prop, function.embedding.coe_subtype, mem_Ici, mem_map, mem_Icc],
+  split,
+  { rintro ⟨x, hx, rfl⟩,
+    exact ⟨hx, nat.lt_succ_iff.1 x.2⟩ },
+  { rintro hx,
+    exact ⟨⟨x, nat.lt_succ_iff.2 hx.2⟩, hx.1, rfl⟩ }
+end
+
+@[simp] lemma map_subtype_embedding_Ioi : (Ioi a).map (function.embedding.subtype _) = Ioc a n :=
+begin
+  ext x,
+  simp only [exists_prop, function.embedding.coe_subtype, mem_Ioi, mem_map, mem_Ioc],
+  refine ⟨_, λ hx, ⟨⟨x, nat.lt_succ_iff.2 hx.2⟩, hx.1, rfl⟩⟩,
+  rintro ⟨x, hx, rfl⟩,
+  exact ⟨hx, nat.lt_succ_iff.1 x.2⟩,
+end
+
+@[simp] lemma map_subtype_embedding_Iic : (Iic b).map (function.embedding.subtype _) = Iic b :=
+begin
+  ext x,
+  simp only [exists_prop, function.embedding.coe_subtype, mem_Iic, mem_map],
+  refine ⟨_, λ hx, ⟨⟨x, hx.trans_lt b.2⟩, hx, rfl⟩⟩,
+  rintro ⟨x, hx, rfl⟩,
+  exact hx,
+end
+
+@[simp] lemma map_subtype_embedding_Iio : (Iio b).map (function.embedding.subtype _) = Iio b :=
+begin
+  ext x,
+  simp only [exists_prop, function.embedding.coe_subtype, mem_Iio, mem_map],
+  refine ⟨_, λ hx, ⟨⟨x, hx.trans b.2⟩, hx, rfl⟩⟩,
+  rintro ⟨x, hx, rfl⟩,
+  exact hx,
+end
+
+@[simp] lemma card_Ici : (Ici a).card = n + 1 - a :=
+by rw [←nat.card_Icc, ←map_subtype_embedding_Ici, card_map]
+
+@[simp] lemma card_Ioi : (Ioi a).card = n - a :=
+by rw [←nat.card_Ioc, ←map_subtype_embedding_Ioi, card_map]
+
+@[simp] lemma card_Iic : (Iic b).card = b + 1 :=
+by rw [←nat.card_Iic b, ←map_subtype_embedding_Iic, card_map]
+
+@[simp] lemma card_Iio : (Iio b).card = b :=
+by rw [←nat.card_Iio b, ←map_subtype_embedding_Iio, card_map]
+
+@[simp] lemma card_fintype_Ici : fintype.card (set.Ici a) = n + 1 - a :=
+by rw [fintype.card_of_finset, card_Ici]
+
+@[simp] lemma card_fintype_Ioi : fintype.card (set.Ioi a) = n - a :=
+by rw [fintype.card_of_finset, card_Ioi]
+
+@[simp] lemma card_fintype_Iic : fintype.card (set.Iic b) = b + 1 :=
+by rw [fintype.card_of_finset, card_Iic]
+
+@[simp] lemma card_fintype_Iio : fintype.card (set.Iio b) = b :=
+by rw [fintype.card_of_finset, card_Iio]
+
+end unbounded
 end fin

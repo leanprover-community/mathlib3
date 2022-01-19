@@ -143,6 +143,17 @@ def of_iso_comp {X' : C} (g : X' ⟶ X) [is_iso g] (F : mono_factorisation (g �
   m := F.m,
   e := inv g ≫ F.e, }
 
+/-- If `f` and `g` are isomorphic arrows, then a mono factorisation of `f`
+gives a mono factorisation of `g` -/
+@[simps]
+def of_arrow_iso {f g : arrow C} (F : mono_factorisation f.hom) (sq : f ⟶ g) [is_iso sq] :
+  mono_factorisation g.hom :=
+{ I := F.I,
+  m := F.m ≫ sq.right,
+  e := inv sq.left ≫ F.e,
+  m_mono := mono_comp _ _,
+  fac' := by simp only [fac_assoc, arrow.w, is_iso.inv_comp_eq, category.assoc] }
+
 end mono_factorisation
 
 variable {f}
@@ -155,13 +166,13 @@ structure is_image (F : mono_factorisation f) :=
 restate_axiom is_image.lift_fac'
 attribute [simp, reassoc] is_image.lift_fac
 
-@[simp, reassoc] lemma is_image.fac_lift {F : mono_factorisation f} (hF : is_image F)
+namespace is_image
+
+@[simp, reassoc] lemma fac_lift {F : mono_factorisation f} (hF : is_image F)
   (F' : mono_factorisation f) : F.e ≫ hF.lift F' = F'.e :=
 (cancel_mono F'.m).1 $ by simp
 
 variable (f)
-
-namespace is_image
 
 /-- The trivial factorisation of a monomorphism satisfies the universal property. -/
 @[simps]
@@ -172,6 +183,7 @@ instance [mono f] : inhabited (is_image (mono_factorisation.self f)) :=
 ⟨self f⟩
 
 variable {f}
+
 /-- Two factorisations through monomorphisms satisfying the universal property
 must factor through isomorphic objects. -/
 -- TODO this is another good candidate for a future `unique_up_to_canonical_iso`.
@@ -189,15 +201,39 @@ lemma iso_ext_inv_m : (iso_ext hF hF').inv ≫ F.m = F'.m := by simp
 lemma e_iso_ext_hom : F.e ≫ (iso_ext hF hF').hom = F'.e := by simp
 lemma e_iso_ext_inv : F'.e ≫ (iso_ext hF hF').inv = F.e := by simp
 
+/-- If `f` and `g` are isomorphic arrows, then a mono factorisation of `f` that is an image
+gives a mono factorisation of `g` that is an image -/
+@[simps]
+def of_arrow_iso {f g : arrow C} {F : mono_factorisation f.hom} (hF : is_image F)
+  (sq : f ⟶ g) [is_iso sq] :
+  is_image (F.of_arrow_iso sq) :=
+{ lift := λ F', hF.lift (F'.of_arrow_iso (inv sq)),
+  lift_fac' := λ F', by simpa only [mono_factorisation.of_arrow_iso_m, arrow.inv_right,
+    ← category.assoc, is_iso.comp_inv_eq] using hF.lift_fac (F'.of_arrow_iso (inv sq)) }
+
 end is_image
+
+variable (f)
 
 /-- Data exhibiting that a morphism `f` has an image. -/
 structure image_factorisation (f : X ⟶ Y) :=
 (F : mono_factorisation f)
 (is_image : is_image F)
 
-instance inhabited_image_factorisation (f : X ⟶ Y) [mono f] : inhabited (image_factorisation f) :=
+namespace image_factorisation
+
+instance [mono f] : inhabited (image_factorisation f) :=
 ⟨⟨_, is_image.self f⟩⟩
+
+/-- If `f` and `g` are isomorphic arrows, then an image factorisation of `f`
+gives an image factorisation of `g` -/
+@[simps]
+def of_arrow_iso {f g : arrow C} (F : image_factorisation f.hom) (sq : f ⟶ g) [is_iso sq] :
+  image_factorisation g.hom :=
+{ F := F.F.of_arrow_iso sq,
+  is_image := F.is_image.of_arrow_iso sq }
+
+end image_factorisation
 
 /-- `has_image f` means that there exists an image factorisation of `f`. -/
 class has_image (f : X ⟶ Y) : Prop :=
@@ -205,6 +241,10 @@ mk' :: (exists_image : nonempty (image_factorisation f))
 
 lemma has_image.mk {f : X ⟶ Y} (F : image_factorisation f) : has_image f :=
 ⟨nonempty.intro F⟩
+
+lemma has_image.of_arrow_iso {f g : arrow C} [h : has_image f.hom] (sq : f ⟶ g) [is_iso sq] :
+  has_image g.hom :=
+⟨⟨h.exists_image.some.of_arrow_iso sq⟩⟩
 
 section
 variable [has_image f]
@@ -256,7 +296,7 @@ hF.lift_fac _
 -- and show that an `image_of f` gives an initial object there
 -- (uniqueness of the lift comes for free).
 
-instance lift_mono (F' : mono_factorisation f) : mono (image.lift F') :=
+instance image.lift_mono (F' : mono_factorisation f) : mono (image.lift F') :=
 by { apply mono_of_mono _ F'.m, simpa using mono_factorisation.m_mono _ }
 
 lemma has_image.uniq
@@ -537,6 +577,26 @@ has_image_map.mk $ image_map.transport sq F hF' map_ι
 def has_image_map.image_map {f g : arrow C} [has_image f.hom] [has_image g.hom] (sq : f ⟶ g)
   [has_image_map sq] : image_map sq :=
 classical.choice $ @has_image_map.has_image_map _ _ _ _ _ _ sq _
+
+@[priority 100] -- see Note [lower instance priority]
+instance has_image_map_of_is_iso {f g : arrow C} [has_image f.hom] [has_image g.hom]
+  (sq : f ⟶ g) [is_iso sq] :
+  has_image_map sq :=
+has_image_map.mk
+{ map := image.lift ((image.mono_factorisation g.hom).of_arrow_iso (inv sq)),
+  map_ι' := begin
+    erw [← cancel_mono (inv sq).right, category.assoc, ← mono_factorisation.of_arrow_iso_m,
+      image.lift_fac, category.assoc, ← comma.comp_right, is_iso.hom_inv_id,
+      comma.id_right, category.comp_id],
+  end }
+
+instance has_image_map.comp {f g h : arrow C} [has_image f.hom] [has_image g.hom] [has_image h.hom]
+  (sq1 : f ⟶ g) (sq2 : g ⟶ h) [has_image_map sq1] [has_image_map sq2] :
+  has_image_map (sq1 ≫ sq2) :=
+has_image_map.mk
+{ map := (has_image_map.image_map sq1).map ≫ (has_image_map.image_map sq2).map,
+  map_ι' :=
+  by simp only [image_map.map_ι, image_map.map_ι_assoc, comma.comp_right, category.assoc] }
 
 variables {f g : arrow C} [has_image f.hom] [has_image g.hom] (sq : f ⟶ g)
 

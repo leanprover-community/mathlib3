@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Riccardo Brasca
 -/
 
-import linear_algebra.free_module.finite
+import linear_algebra.free_module.finite.basic
 import linear_algebra.matrix.charpoly.coeff
 
 /-!

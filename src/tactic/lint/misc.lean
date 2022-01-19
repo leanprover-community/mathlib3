@@ -160,15 +160,17 @@ let l2 := check_unused_arguments_aux [] 1 d.type.pi_arity d.type in
 /-- Check for unused arguments, and print them with their position, variable name, type and whether
 the argument is a duplicate.
 See also `check_unused_arguments`.
-This tactic additionally filters out all unused arguments of type `parse _`. -/
+This tactic additionally filters out all unused arguments of type `parse _`.
+We skip all declarations that contain `sorry` in their value. -/
 private meta def unused_arguments (d : declaration) : tactic (option string) := do
+  ff ← return d.value.contains_sorry | return none,
   let ns := check_unused_arguments d,
-  if ¬ ns.is_some then return none else do
+  tt ← return ns.is_some | return none,
   let ns := ns.iget,
   (ds, _) ← get_pi_binders d.type,
   let ns := ns.map (λ n, (n, (ds.nth $ n - 1).iget)),
   let ns := ns.filter (λ x, x.2.type.get_app_fn ≠ const `interactive.parse []),
-  if ns = [] then return none else do
+  ff ← return ns.empty | return none,
   ds' ← ds.mmap pp,
   ns ← ns.mmap (λ ⟨n, b⟩, (λ s, to_fmt "argument " ++ to_fmt n ++ ": " ++ s ++
     (if ds.countp (λ b', b.type = b'.type) ≥ 2 then " (duplicate)" else "")) <$> pp b),

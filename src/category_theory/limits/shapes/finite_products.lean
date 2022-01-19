@@ -7,6 +7,12 @@ import category_theory.limits.shapes.finite_limits
 import category_theory.limits.shapes.binary_products
 import category_theory.limits.shapes.terminal
 
+/-!
+# Categories with finite (co)products
+
+Typeclasses representing categories with (co)products over finite indexing types.
+-/
+
 universes v u
 
 open category_theory

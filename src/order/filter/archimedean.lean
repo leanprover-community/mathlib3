@@ -3,8 +3,8 @@ Copyright (c) 2019 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Yury Kudryashov
 -/
+import algebra.order.archimedean
 import order.filter.at_top_bot
-import algebra.archimedean
 
 /-!
 # `at_top` filter and archimedean (semi)rings/fields
@@ -46,40 +46,26 @@ tendsto_at_top_embedding (assume a₁ a₂, rat.cast_le) $
   assume r, let ⟨n, hn⟩ := exists_nat_ge r in ⟨(n:ℚ), by assumption_mod_cast⟩
 
 lemma at_top_countable_basis_of_archimedean [linear_ordered_semiring R] [archimedean R] :
-  (at_top : filter R).has_countable_basis (λ i, i ∈ range (coe : ℕ → R)) Ici :=
-{ countable := countable_range coe,
-  mem_iff' := λ t,
-  begin
-    rw at_top_basis.mem_iff' t,
-    simp only [exists_prop, mem_range, exists_exists_eq_and, exists_true_left],
-    split,
-    { rintro ⟨i, hi⟩,
-      rcases exists_nat_ge i with ⟨n, hn⟩,
-      exact ⟨n, trans (Ici_subset_Ici.mpr hn) hi⟩ },
-    { rintro ⟨n, hn⟩,
-      exact ⟨n, hn⟩ }
-  end }
+  (at_top : filter R).has_countable_basis (λ n : ℕ, true) (λ n, Ici n) :=
+{ countable := countable_encodable _,
+  to_has_basis := at_top_basis.to_has_basis
+    (λ x hx, let ⟨n, hn⟩ := exists_nat_ge x in ⟨n, trivial, Ici_subset_Ici.2 hn⟩)
+    (λ n hn, ⟨n, trivial, subset.rfl⟩) }
 
 lemma at_bot_countable_basis_of_archimedean [linear_ordered_ring R] [archimedean R] :
-  (at_bot : filter R).has_countable_basis (λ i, i ∈ range (coe : ℤ → R)) Iic :=
-{ countable := countable_range coe,
-  mem_iff' := λ t,
-  begin
-    rw at_bot_basis.mem_iff' t,
-    simp only [exists_prop, mem_range, exists_exists_eq_and, exists_true_left],
-    split,
-    { rintro ⟨i, hi⟩,
-      rcases exists_int_lt i with ⟨n, hn⟩,
-      exact ⟨n, trans (Iic_subset_Iic.mpr hn.le) hi⟩ },
-    { rintro ⟨n, hn⟩,
-      exact ⟨n, hn⟩ }
-  end }
+  (at_bot : filter R).has_countable_basis (λ m : ℤ, true) (λ m, Iic m) :=
+{ countable := countable_encodable _,
+  to_has_basis := at_bot_basis.to_has_basis
+    (λ x hx, let ⟨m, hm⟩ := exists_int_lt x in ⟨m, trivial, Iic_subset_Iic.2 hm.le⟩)
+    (λ m hm, ⟨m, trivial, subset.rfl⟩) }
 
-lemma at_top_countably_generated_of_archimedean [linear_ordered_semiring R] [archimedean R] :
+@[priority 100]
+instance at_top_countably_generated_of_archimedean [linear_ordered_semiring R] [archimedean R] :
   (at_top : filter R).is_countably_generated :=
 at_top_countable_basis_of_archimedean.is_countably_generated
 
-lemma at_bot_countably_generated [linear_ordered_ring R] [archimedean R] :
+@[priority 100]
+instance at_bot_countably_generated_of_archimedean [linear_ordered_ring R] [archimedean R] :
   (at_bot : filter R).is_countably_generated :=
 at_bot_countable_basis_of_archimedean.is_countably_generated
 

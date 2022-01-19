@@ -20,7 +20,7 @@ relation is `G.adj` for `G : simple_graph α`, this corresponds to independent s
 * `is_antichain.mk r s`: Turns `s` into an antichain by keeping only the "maximal" elements.
 -/
 
-open function order set
+open function set
 
 variables {α β : Type*} {r r₁ r₂ : α → α → Prop} {r' : β → β → Prop} {s t : set α} {a : α}
 

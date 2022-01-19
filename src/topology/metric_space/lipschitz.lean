@@ -161,9 +161,14 @@ lemma subtype_mk (hf : lipschitz_with K f) {p : β → Prop} (hp : ∀ x, p (f x
   lipschitz_with K (λ x, ⟨f x, hp x⟩ : α → {y // p y}) :=
 hf
 
+section
+local attribute [instance] pseudo_emetric_space_pi
+
 protected lemma eval {α : ι → Type u} [Π i, pseudo_emetric_space (α i)] [fintype ι] (i : ι) :
   lipschitz_with 1 (function.eval i : (Π i, α i) → α i) :=
 lipschitz_with.of_edist_le $ λ f g, by convert edist_le_pi_edist f g i
+
+end
 
 protected lemma restrict (hf : lipschitz_with K f) (s : set α) :
   lipschitz_with K (s.restrict f) :=

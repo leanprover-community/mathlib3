@@ -96,7 +96,6 @@ instance groupoid_pi {I : Type u} {J : I → Type u₂} [∀ i, groupoid.{v} (J 
   groupoid.{max u v} (Π i : I, J i) :=
 { inv := λ (x y : Π i, J i) (f : Π i, x i ⟶ y i), (λ i : I, groupoid.inv (f i)), }
 
-
 instance groupoid_prod {α : Type u} {β : Type v} [groupoid.{u₂} α] [groupoid.{v₂} β] :
   groupoid.{max u₂ v₂} (α × β) :=
 { inv := λ (x y : α × β) (f : x ⟶ y), (groupoid.inv f.1, groupoid.inv f.2) }

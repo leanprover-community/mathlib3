@@ -4,10 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christopher Hoskin
 -/
 
-import algebra.module
-import algebra.ring.basic
 import algebra.lie.of_associative
-import linear_algebra.basic
 
 class has_tp (A : Type*) := (tp : A → A → A → A )
 

@@ -2638,7 +2638,7 @@ lemma mul_meas_ge_le_pow_norm' (f : Lp E p μ)
   mul_meas_ge_le_pow_snorm' μ hp_ne_zero hp_ne_top (Lp.measurable f) ε
 
 lemma meas_ge_le_mul_pow_norm (f : Lp E p μ)
-  (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ∞) (hf : measurable f)
+  (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ∞)
   {ε : ℝ≥0∞} (hε₀ : ε ≠ 0) (hε₁ : ε ≠ ∞) :
   μ {x | ε ≤ ∥f x∥₊} ≤ ε⁻¹ ^ p.to_real * (ennreal.of_real ∥f∥) ^ p.to_real :=
 (ennreal.of_real_to_real (snorm_ne_top f)).symm ▸

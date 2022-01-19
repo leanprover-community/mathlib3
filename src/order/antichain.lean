@@ -96,8 +96,42 @@ lemma insert_of_symmetric (hs : is_antichain r s) (hr : symmetric r)
 
 end is_antichain
 
-lemma set.subsingleton.is_antichain (hs : s.subsingleton) (r : α → α → Prop): is_antichain r s :=
+lemma is_antichain_singleton (a : α) (r : α → α → Prop) : is_antichain r {a} :=
+pairwise_singleton _ _
+
+lemma set.subsingleton.is_antichain (hs : s.subsingleton) (r : α → α → Prop) : is_antichain r s :=
 hs.pairwise _
+
+section preorder
+variables [preorder α]
+
+lemma is_antichain_and_least_iff : is_antichain (≤) s ∧ is_least s a ↔ s = {a} :=
+⟨λ h, eq_singleton_iff_unique_mem.2 ⟨h.2.1, λ b hb, h.1.eq_of_related' hb h.2.1 (h.2.2 hb)⟩,
+  by { rintro rfl, exact ⟨is_antichain_singleton _ _, is_least_singleton⟩ }⟩
+
+lemma is_antichain_and_greatest_iff : is_antichain (≤) s ∧ is_greatest s a ↔ s = {a} :=
+⟨λ h, eq_singleton_iff_unique_mem.2 ⟨h.2.1, λ b hb, h.1.eq_of_related hb h.2.1 (h.2.2 hb)⟩,
+  by { rintro rfl, exact ⟨is_antichain_singleton _ _, is_greatest_singleton⟩ }⟩
+
+lemma is_antichain.least_iff (hs : is_antichain (≤) s) : is_least s a ↔ s = {a} :=
+(and_iff_right hs).symm.trans is_antichain_and_least_iff
+
+lemma is_antichain.greatest_iff (hs : is_antichain (≤) s) : is_greatest s a ↔ s = {a} :=
+(and_iff_right hs).symm.trans is_antichain_and_greatest_iff
+
+lemma is_least.antichain_iff (hs : is_least s a) : is_antichain (≤) s ↔ s = {a} :=
+(and_iff_left hs).symm.trans is_antichain_and_least_iff
+
+lemma is_greatest.antichain_iff (hs : is_greatest s a) : is_antichain (≤) s ↔ s = {a} :=
+(and_iff_left hs).symm.trans is_antichain_and_greatest_iff
+
+lemma is_antichain.bot_mem_iff [order_bot α] (hs : is_antichain (≤) s) : ⊥ ∈ s ↔ s = {⊥} :=
+is_least_bot_iff.symm.trans hs.least_iff
+
+lemma is_antichain.top_mem_iff [order_top α] (hs : is_antichain (≤) s) : ⊤ ∈ s ↔ s = {⊤} :=
+is_greatest_top_iff.symm.trans hs.greatest_iff
+
+end preorder
 
 /-! ### Strong antichains -/
 

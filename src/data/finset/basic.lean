@@ -654,18 +654,19 @@ theorem induction_on' {α : Type*} {p : finset α → Prop} [decidable_eq α]
   let ⟨hS, sS⟩ := finset.insert_subset.1 hs in h₂ hS sS has (hqs sS)) (finset.subset.refl S)
 
 /-- To prove a proposition about a nonempty `s : finset α`, it suffices to show it holds for all
-singletons and that if it holds for `t : finset α`, then it also holds for the `finset` obtained by
-inserting an element in `t`. -/
+singletons and that if it holds for nonempty `t : finset α`, then it also holds for the `finset`
+obtained by inserting an element in `t`. -/
 @[elab_as_eliminator]
-lemma nonempty.cons_induction {α : Type*} {s : finset α} (hs : s.nonempty) {p : finset α → Prop}
-  (h₀ : ∀ a, p {a}) (h₁ : ∀ ⦃a⦄ s (h : a ∉ s), p s → p (finset.cons a s h)) :
-  p s :=
+lemma nonempty.cons_induction {α : Type*} {p : Π s : finset α, s.nonempty → Prop}
+  (h₀ : ∀ a, p {a} (singleton_nonempty _))
+  (h₁ : ∀ ⦃a⦄ s (h : a ∉ s) hs, p s hs → p (finset.cons a s h) (nonempty_cons h))
+  {s : finset α} (hs : s.nonempty) : p s hs :=
 begin
   induction s using finset.cons_induction with a t ha h,
   { exact (not_nonempty_empty hs).elim, },
   obtain rfl | ht := t.eq_empty_or_nonempty,
   { exact h₀ a },
-  { exact h₁ t ha (h ht) }
+  { exact h₁ t ha ht (h ht) }
 end
 
 /-- Inserting an element to a finite set is equivalent to the option type. -/
@@ -835,7 +836,7 @@ begin
     obtain ⟨i : ι , hic : i ∈ c, hti : (t : set α) ⊆ f i⟩ :=
       htc (set.subset.trans (t.subset_insert b) hbtc),
     obtain ⟨j, hjc, hbj⟩ : ∃ j ∈ c, b ∈ f j,
-      by simpa [set.mem_bUnion_iff] using hbtc (t.mem_insert_self b),
+      by simpa [set.mem_Union₂] using hbtc (t.mem_insert_self b),
     rcases hc j hjc i hic with ⟨k, hkc, hk, hk'⟩,
     use [k, hkc],
     rw [coe_insert, set.insert_subset],
@@ -1889,6 +1890,20 @@ mem_map.trans $ by simp only [exists_prop]; refl
   b ∈ s.map f.to_embedding ↔ f.symm b ∈ s :=
 by { rw mem_map, exact ⟨by { rintro ⟨a, H, rfl⟩, simpa }, λ h, ⟨_, h, by simp⟩⟩ }
 
+/-- If the only elements outside `s` are those left fixed by `σ`, then mapping by `σ` has no effect.
+-/
+lemma map_perm {σ : equiv.perm α} (hs : {a | σ a ≠ a} ⊆ s) : s.map (σ : α ↪ α) = s :=
+begin
+  ext i,
+  rw mem_map,
+  obtain hi | hi := eq_or_ne (σ i) i,
+  { refine ⟨_, λ h, ⟨i, h, hi⟩⟩,
+    rintro ⟨j, hj, h⟩,
+    rwa σ.injective (hi.trans h.symm) },
+  { refine iff_of_true ⟨σ.symm i, hs $ λ h, hi _, σ.apply_symm_apply _⟩ (hs hi),
+    convert congr_arg σ h; exact (σ.apply_symm_apply _).symm }
+end
+
 theorem mem_map' (f : α ↪ β) {a} {s : finset α} : f a ∈ s.map f ↔ a ∈ s :=
 mem_map_of_injective f.2
 
@@ -2314,6 +2329,9 @@ protected def bUnion (s : finset α) (t : α → finset β) : finset β :=
 
 @[simp] theorem mem_bUnion {b : β} : b ∈ s.bUnion t ↔ ∃a∈s, b ∈ t a :=
 by simp only [mem_def, bUnion_val, mem_erase_dup, mem_bind, exists_prop]
+
+@[simp] lemma coe_bUnion : (s.bUnion t : set β) = ⋃ x ∈ (s : set α), t x :=
+by simp only [set.ext_iff, mem_bUnion, set.mem_Union, iff_self, mem_coe, implies_true_iff]
 
 @[simp] theorem bUnion_insert [decidable_eq α] {a : α} : (insert a s).bUnion t = t a ∪ s.bUnion t :=
 ext $ λ x, by simp only [mem_bUnion, exists_prop, mem_union, mem_insert,

@@ -369,7 +369,6 @@ begin
           (hS₄ ▸ measure_mono (set.inter_subset_right _ _)), zero_add],
     { refine set.disjoint_of_subset_left (set.inter_subset_right _ _)
         (set.disjoint_of_subset_right (set.inter_subset_right _ _) disjoint_compl_right) },
-    { exact hi.inter hS₁ },
     { exact hi.inter hS₁.compl } },
   have hμ₂ : (j₂.pos_part i).to_real = j₂.to_signed_measure (i ∩ Tᶜ),
   { rw [to_signed_measure, to_signed_measure_sub_apply (hi.inter hT₁.compl),
@@ -381,7 +380,6 @@ begin
           (hT₄ ▸ measure_mono (set.inter_subset_right _ _)), zero_add],
     { exact set.disjoint_of_subset_left (set.inter_subset_right _ _)
         (set.disjoint_of_subset_right (set.inter_subset_right _ _) disjoint_compl_right) },
-    { exact hi.inter hT₁ },
     { exact hi.inter hT₁.compl } },
   -- since the two signed measures associated with the Jordan decompositions are the same,
   -- and the symmetric difference of the Hahn decompositions have measure zero, the result follows

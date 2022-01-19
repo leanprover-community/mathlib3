@@ -76,11 +76,11 @@ by rw [comm, lzero]
 lemma lzsmul (a b c : A) (z : ℤ) : ⦃z•a, b, c⦄ = z•⦃a, b, c⦄ :=
 add_monoid_hom.map_zsmul ⟨λ (a : A), ⦃a, b, c⦄, lzero b c, λ _ _, ladd _ _ _ _⟩ _ _
 
-lemma mgsmul (a b c : A) (z : ℤ) : ⦃a, z•b, c⦄ = z•⦃a, b, c⦄ :=
+lemma mzsmul (a b c : A) (z : ℤ) : ⦃a, z•b, c⦄ = z•⦃a, b, c⦄ :=
 add_monoid_hom.map_zsmul ⟨λ (b : A), ⦃a, b, c⦄, mzero a c, λ _ _, madd _ _ _ _⟩ _ _
 
-lemma rgsmul (a b : A) (z : ℤ) (c : A) : ⦃a, b, z•c⦄ = z•⦃a, b, c⦄ :=
-  by rw [comm, lgsmul, comm]
+lemma rzsmul (a b : A) (z : ℤ) (c : A) : ⦃a, b, z•c⦄ = z•⦃a, b, c⦄ :=
+  by rw [comm, lzsmul, comm]
 
 lemma lneg (a b c : A) : ⦃-a, b, c⦄ = -⦃a, b, c⦄ :=
 by rw [←sub_eq_zero, sub_neg_eq_add, ←ladd, neg_add_self, lzero]

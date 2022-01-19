@@ -119,7 +119,7 @@ lemma chicken_mcnugget_add_submonoid_split (m n : ℕ) (cop: coprime m n) (hm: 1
   m * n - m - n ∉ add_submonoid.closure ({m, n} : set ℕ) ∧
   ∀ k, m * n - m - n < k → k ∈ add_submonoid.closure ({m, n} : set ℕ) :=
 begin
-  simp_rw ← mult_add_subm_clos,
+  simp_rw ← add_submonoid.add_mem_closure_pair ℕ,
   exact chicken_mcnugget_split m n cop hm hn,
 end
 

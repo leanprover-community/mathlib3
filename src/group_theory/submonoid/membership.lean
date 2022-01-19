@@ -173,6 +173,24 @@ closure_eq_of_le (set.singleton_subset_iff.2 ⟨multiplicative.of_add 1, pow_one
 lemma mem_closure_singleton {x y : M} : y ∈ closure ({x} : set M) ↔ ∃ n:ℕ, x^n=y :=
 by rw [closure_singleton_eq, mem_mrange]; refl
 
+@[to_additive add_mem_closure_pair]
+lemma mem_closure_pair {A : Type*} [comm_monoid A] {a b c : A} :
+  -- c ∈ submonoid.closure ({a, b} : set A) ↔ ∃ m n : ℕ, (a ^ m) * (b ^ n) = c :=
+  ∃ m n : ℕ, (a ^ m) * (b ^ n) = c ↔ c ∈ submonoid.closure ({a, b} : set A) :=
+begin
+  rw [←set.singleton_union, submonoid.closure_union],
+  refine ⟨_, λ h, _⟩,
+  intro h,
+  obtain ⟨a, ha, b, hb, rfl⟩ := submonoid.mem_sup.mp h,
+  rw [submonoid.mem_closure_singleton] at ha hb,
+  obtain ⟨a, rfl⟩ := ha,
+  obtain ⟨b, rfl⟩ := hb,
+  exact ⟨a, b, rfl⟩,
+  rintros ⟨a, b, rfl⟩,
+  exact submonoid.mem_sup.mpr ⟨a ^ m, submonoid.mem_closure_singleton.mpr ⟨a, rfl⟩,
+    b ^ n, submonoid.mem_closure_singleton.mpr ⟨b, rfl⟩, rfl⟩,
+end
+
 lemma mem_closure_singleton_self {y : M} : y ∈ closure ({y} : set M) :=
 mem_closure_singleton.2 ⟨1, pow_one y⟩
 

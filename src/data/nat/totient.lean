@@ -285,8 +285,7 @@ begin
   have h2 : P1 ∣ n,
   { rw ←factorization_prod_pow_eq_self hn0,
     refine finset.prod_dvd_prod id (λ a, a ^ (n.factorization) a) (λ p hp, _),
-    apply dvd_pow _ (finsupp.mem_support_iff.mp hp),
-    simp },
+    apply dvd_pow (dvd_refl p) (finsupp.mem_support_iff.mp hp) },
 
   suffices : φ n * P1 = n * P2,
   { rw [(mul_div_left n.totient h1).symm, this, mul_comm, nat.mul_div_assoc P2 h2, mul_comm] },

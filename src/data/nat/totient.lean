@@ -278,34 +278,68 @@ begin
   simp only [mul_right_comm, ←(pow_sub_mul_pow p hk), pow_one],
 end
 
+
+example (n a : ℕ) (hab : a ∣ n) : ↑(n/a) = (↑n:ℚ)/(↑a:ℚ) :=
+begin
+  exact rat.coe_nat_div n a hab,
+end
+
+example (n c B : ℚ) (hB : B ≠ 0) (hc : c ≠ 0): n / c * (B * c) = n * B :=
+begin
+  nth_rewrite_lhs 0 mul_comm,
+  rw mul_assoc,
+  nth_rewrite_rhs 0 mul_comm,
+  simp [hB],
+  exact mul_div_cancel' n hc,
+end
+
+
 theorem totient_Euler_product_formula' (n : ℕ) :
    ↑(φ n) = ↑n * ∏ p in (n.factors.to_finset), (1 - p⁻¹ : ℚ) :=
 begin
   rcases n.eq_zero_or_pos with rfl | hn0, { simp },
+
+
+  have h1 : (∏ (p : ℕ) in n.factors.to_finset, (1 - (↑p:ℚ)⁻¹)) * (∏ (x : ℕ) in n.factors.to_finset, ↑x) = ∏ (i : ℕ) in n.factors.to_finset, ↑(i - 1),
+    {
+      rw ←prod_mul_distrib,
+
+      refine prod_congr rfl (λ p hp, _),
+      have p_pos : p ≠ 0, { sorry },
+      have p_pos''' : 0 < p, { sorry },
+      have p_pos' : (p:ℚ) ≠ 0, { sorry },
+      have p_pos'' : 0 < (p:ℚ), { sorry },
+
+      rw sub_mul,
+      simp only [one_mul, mul_comm],
+      rw mul_inv_cancel p_pos',
+      simp [p_pos'''],
+    },
+  have h2 : (∏ (x : ℕ) in n.factors.to_finset, x) ∣ n, { sorry },
+
+
+
   rw totient_Euler_product_formula n,
   unfold finsupp.prod,
   simp only [nat.cast_prod, nat.support_factorization, nat.cast_mul, finset.prod_congr],
-  suffices : ∏ (p : ℕ) in n.factors.to_finset, (1 - (↑p:ℚ)⁻¹) =
-    ↑(∏ (i : ℕ) in n.factors.to_finset, ↑(i - 1) / ∏ (x : ℕ) in n.factors.to_finset, x),
-  { sorry },
+  rw ←h1, clear h1,
+
+  set B := ∏ (p : ℕ) in n.factors.to_finset, (1 - (↑p:ℚ)⁻¹),
+
+  have hB : B ≠ 0, { sorry },
+  have hc : (n.factors.to_finset.prod coe : ℚ) ≠ 0, { sorry },
+
+  rw rat.coe_nat_div _ _ h2,
   push_cast,
-  -- simp only [cast_finsupp_prod],
-  -- norm_cast,
-  suffices :
-    (∏ (p : ℕ) in n.factors.to_finset, (1 - (↑p:ℚ)⁻¹)) * ∏ (x : ℕ) in n.factors.to_finset, x = ∏ (i : ℕ) in n.factors.to_finset, ↑(i - 1),
-  { sorry },
-  rw ←prod_mul_distrib,
 
-  refine prod_congr rfl (λ p hp, _),
-  have p_pos : p ≠ 0, { sorry },
-  have p_pos''' : 0 < p, { sorry },
-  have p_pos' : (p:ℚ) ≠ 0, { sorry },
-  have p_pos'' : 0 < (p:ℚ), { sorry },
+  nth_rewrite_lhs 0 mul_comm,
+  rw mul_assoc,
+  nth_rewrite_rhs 0 mul_comm,
+  simp [hB],
+  exact mul_div_cancel' (n:ℚ) hc,
 
-  rw sub_mul,
-  simp only [one_mul, mul_comm],
-  rw mul_inv_cancel p_pos',
-  simp [p_pos'''],
+
+
 
 
 

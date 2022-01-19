@@ -12,13 +12,13 @@ import algebra.lie.of_associative
 Let `A` be a module over a ring `R`. A triple product on `A` is a trilinear map
 $\{.\,.\,\}:A\times A\times A\mapsto A$ which is symmetric in the first and third variables. The
 module `A` is said to be a Jordan triple if, for any `a`, `b`, `c`, `d` and `e` in `A` the following
-Lebintz rule is satisfied:
+Leibniz rule is satisfied:
 $$
 \{a\,b\,\{c\,d\,e\}\} = \{\{a\,b\,c\}\,d\,e\} - \{c\,\{b\,a\,d\}\,e\} + \{c\,d\,\{a\,b\,e\}\}
 $$
 A module `A` over a *-ring `R` is said to be a *-triple if it has a triple product linear and
 symmetric in the first and thrid variable and conjugate linear in the second variable. A *-triple
-satisfying the Lebintz rule is said to be a Jordan *-triple.
+satisfying the Leibniz rule is said to be a Jordan *-triple.
 
 As well as being of algebraic interest, Jordan *-triples arise naturally in mathematical physics,
 functional analysis and differential geometry. For more information about these connections the
@@ -45,16 +45,16 @@ class is_tp (A : Type*) [has_tp A] [has_add A] :=
 (ladd : ∀ (a₁ a₂ b c : A), ⦃(a₁+a₂), b, c⦄ = ⦃a₁, b, c⦄ + ⦃a₂, b, c⦄)
 (madd : ∀ (a b₁ b₂ c : A), ⦃a, (b₁+b₂), c⦄ = ⦃a, b₁, c⦄ + ⦃a, b₂, c⦄)
 
-/-- A Jordan triple product satisfies a Lebintz law -/
+/-- A Jordan triple product satisfies a Leibniz law -/
 class is_jordan_tp (A : Type*) [has_tp A] [has_add A] [has_sub A] :=
-(lebintz : ∀ (a b c d e: A), ⦃a, b, ⦃c, d, e⦄⦄  =
+(leibniz : ∀ (a b c d e: A), ⦃a, b, ⦃c, d, e⦄⦄  =
   ⦃⦃a, b, c⦄, d, e⦄ - ⦃c, ⦃b, a, d⦄, e⦄ + ⦃c, d, ⦃a, b, e⦄⦄)
 
 /--
-We say that a pair of operators $(T,T^′)$ are Lebnitz if they satisfy a law reminiscent of
+We say that a pair of operators $(T,T^′)$ are Leibniz if they satisfy a law reminiscent of
 differentiation.
 -/
-def lebnitz {A : Type*} [has_tp A] [has_add A] (T : A → A) (T'  : A → A) :=
+def leibniz {A : Type*} [has_tp A] [has_add A] (T : A → A) (T'  : A → A) :=
   ∀ (a b c : A),  T ⦃ a, b, c ⦄  = ⦃ T a, b, c⦄ + ⦃a, T' b, c⦄ + ⦃a, b, T c⦄
 
 namespace is_tp
@@ -199,17 +199,17 @@ begin
   ext e,
   rw ring.lie_def,
   simp only [add_monoid_hom.sub_apply, function.comp_app, is_tp.D_apply, add_monoid.coe_mul],
-  rw [sub_eq_iff_eq_add, is_jordan_tp.lebintz],
+  rw [sub_eq_iff_eq_add, is_jordan_tp.leibniz],
 end
 
 
 
 /--
-For a and b in A, the pair D(a,b) and -D(b,a) are Lebintz
+For a and b in A, the pair D(a,b) and -D(b,a) are Leibniz
 -/
-lemma D_D_lebintz [is_jordan_tp A] (a b : A) : lebnitz (D a b) (-D b a) := begin
-  unfold lebnitz,
+lemma D_D_leibniz [is_jordan_tp A] (a b : A) : leibniz (D a b) (-D b a) := begin
+  unfold leibniz,
   intros c d e,
   rw [pi.neg_apply, is_tp.mneg, tactic.ring.add_neg_eq_sub, is_tp.D_apply, is_tp.D_apply,
-    is_tp.D_apply, is_tp.D_apply, is_jordan_tp.lebintz],
+    is_tp.D_apply, is_tp.D_apply, is_jordan_tp.leibniz],
 end

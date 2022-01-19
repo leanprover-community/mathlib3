@@ -263,7 +263,7 @@ nfp_family_eq_self (λ _, h _ _)
 has an unbounded set of common fixed points. -/
 theorem nfp_bfamily_unbounded {o : ordinal.{u}} {f : Π b < o, ordinal.{max u v} → ordinal.{max u v}}
   (H : ∀ i hi, is_normal (f i hi)) : unbounded (<) (⋂ i hi, function.fixed_points (f i hi)) :=
-λ a, ⟨_, by { rw set.mem_Inter_Inter, exact λ _ _, nfp_bfamily_fp H _ _ _ },
+λ a, ⟨_, by { rw set.mem_Inter₂, exact λ _ _, nfp_bfamily_fp H _ _ _ },
   not_lt_of_ge (le_nfp_bfamily_self f a)⟩
 
 /-- The derivative of a family of normal functions is the sequence of their common fixed points. -/

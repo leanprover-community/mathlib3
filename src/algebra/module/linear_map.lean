@@ -755,7 +755,7 @@ instance _root_.module.End.ring : ring (module.End R N₁) :=
 section
 variables [monoid S] [distrib_mul_action S M] [smul_comm_class R S M]
 
-instance _root_.module.End.is_scalar_tower' :
+instance _root_.module.End.is_scalar_tower :
   is_scalar_tower S (module.End R M) (module.End R M) := ⟨smul_comp⟩
 
 instance _root_.module.End.smul_comm_class [has_scalar S R] [is_scalar_tower S R M] :
@@ -794,9 +794,9 @@ instance apply_smul_comm_class : smul_comm_class R (module.End R M) M :=
 instance apply_smul_comm_class' : smul_comm_class (module.End R M) R M :=
 { smul_comm := linear_map.map_smul }
 
-instance _root_.module.End.is_scalar_tower
-  {R M : Type*} [comm_semiring R] [add_comm_monoid M] [module R M] :
-is_scalar_tower R (module.End R M) M := ⟨λ t f m, rfl⟩
+instance apply_is_scalar_tower {R M : Type*} [comm_semiring R] [add_comm_monoid M] [module R M] :
+  is_scalar_tower R (module.End R M) M :=
+⟨λ t f m, rfl⟩
 
 end endomorphisms
 

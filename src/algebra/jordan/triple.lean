@@ -15,8 +15,8 @@ notation ⦃ a, b, c ⦄ := has_tp.tp a b c
 
 class is_tp (A : Type*) [has_tp A] [has_add A] :=
 (comm : ∀ (a b c : A), ⦃ a, b, c ⦄ = ⦃ c, b, a ⦄)
-(ladd : ∀ (a b c d : A), ⦃ (a+b), c, d ⦄ = ⦃ a, c, d ⦄ + ⦃ b, c, d ⦄)
-(madd : ∀ (a b c d : A), ⦃ a, (b+c), d ⦄ = ⦃ a, b, d ⦄ + ⦃ a, c, d ⦄)
+(ladd : ∀ (a₁ a₂ b c : A), ⦃ (a₁+a₂), b, c ⦄ = ⦃ a₁, b, c ⦄ + ⦃ a₂, b, c ⦄)
+(madd : ∀ (a b₁ b₂ c : A), ⦃ a, (b₁+b₂), c ⦄ = ⦃ a, b₁, c ⦄ + ⦃ a, b₂, c ⦄)
 
 class is_jordan_tp (A : Type*) [has_tp A] [has_add A] [has_sub A] :=
 (lebintz : ∀ (a b c d e: A), ⦃ a, b, ⦃ c, d, e ⦄ ⦄  =
@@ -24,8 +24,8 @@ class is_jordan_tp (A : Type*) [has_tp A] [has_add A] [has_sub A] :=
 
 namespace is_tp
 
-lemma radd {A : Type*} [has_tp A] [has_add A] [is_tp A] (a b c d : A) :
-  ⦃ a, b, c + d ⦄ = ⦃ a, b, c ⦄ + ⦃ a, b, d ⦄ := by rw [comm, ladd, comm, comm d]
+lemma radd {A : Type*} [has_tp A] [has_add A] [is_tp A] (a b c₁ c₂ : A) :
+  ⦃ a, b, c₁ + c₂ ⦄ = ⦃ a, b, c₁ ⦄ + ⦃ a, b, c₂⦄ := by rw [comm, ladd, comm, comm d]
 
 variables {A : Type*} [has_tp A] [add_comm_group A] [is_tp A]
 

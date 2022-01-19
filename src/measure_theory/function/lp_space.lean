@@ -974,6 +974,18 @@ begin
   rw ennreal.rpow_le_rpow_iff (ennreal.to_real_pos hp_ne_zero hp_ne_top),
 end
 
+lemma meas_ge_le_mul_pow_snorm {f : α → E}
+  (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ∞) (hf : measurable f)
+  {ε : ℝ≥0∞} (hε₀ : ε ≠ 0) (hε₁ : ε ≠ ∞) :
+  μ {x | ε ≤ ∥f x∥₊} ≤ ε⁻¹ ^ p.to_real * snorm f p μ ^ p.to_real :=
+begin
+  have hεpow : ε ^ p.to_real ≠ 0 := (ennreal.rpow_pos (pos_iff_ne_zero.2 hε₀) hε₁).ne.symm,
+  have hεpow' : ε ^ p.to_real ≠ ∞ := (ennreal.rpow_ne_top_of_nonneg ennreal.to_real_nonneg hε₁),
+  rw [ennreal.inv_rpow, ← ennreal.mul_le_mul_left hεpow hεpow', ← mul_assoc,
+      ennreal.mul_inv_cancel hεpow hεpow', one_mul],
+  exact mul_meas_ge_le_pow_snorm' μ hp_ne_zero hp_ne_top hf ε,
+end
+
 variables {μ}
 
 lemma mem_ℒp.mem_ℒp_of_exponent_le {p q : ℝ≥0∞} [is_finite_measure μ] {f : α → E}
@@ -2624,6 +2636,13 @@ lemma mul_meas_ge_le_pow_norm' (f : Lp E p μ)
   ε ^ p.to_real * μ {x | ε ≤ ∥f x∥₊} ≤ (ennreal.of_real ∥f∥) ^ p.to_real :=
 (ennreal.of_real_to_real (snorm_ne_top f)).symm ▸
   mul_meas_ge_le_pow_snorm' μ hp_ne_zero hp_ne_top (Lp.measurable f) ε
+
+lemma meas_ge_le_mul_pow_norm (f : Lp E p μ)
+  (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ∞) (hf : measurable f)
+  {ε : ℝ≥0∞} (hε₀ : ε ≠ 0) (hε₁ : ε ≠ ∞) :
+  μ {x | ε ≤ ∥f x∥₊} ≤ ε⁻¹ ^ p.to_real * (ennreal.of_real ∥f∥) ^ p.to_real :=
+(ennreal.of_real_to_real (snorm_ne_top f)).symm ▸
+  meas_ge_le_mul_pow_snorm μ hp_ne_zero hp_ne_top (Lp.measurable f) hε₀ hε₁
 
 end Lp
 

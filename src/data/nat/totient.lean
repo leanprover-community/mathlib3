@@ -251,6 +251,27 @@ end
 @[simp] lemma totient_two : φ 2 = 1 :=
 (totient_prime prime_two).trans (by norm_num)
 
+---------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------
+section temp    -- TODO: Move this elsewhere, use it in following proofs
+lemma prod_prime_factors_dvd (n:ℕ) : (∏ (p : ℕ) in n.factors.to_finset, p) ∣ n :=
+begin
+  rcases em (n = 0) with rfl | hn0, { simp },
+  nth_rewrite_rhs 0 ←factorization_prod_pow_eq_self hn0,
+  unfold finsupp.prod,
+  simp only [support_factorization],
+  refine finset.prod_dvd_prod id (λ a, a ^ (n.factorization) a) (λ p hp, _),
+  apply dvd_pow (dvd_refl p),
+  rw ←finsupp.mem_support_iff,
+  simp only [support_factorization],
+  exact hp,
+end
+end temp
+---------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------
+
 theorem totient_Euler_product_formula (n : ℕ) :
   φ n = n / (n.factorization.prod (λ p k, p)) * (n.factorization.prod (λ p k, p - 1)) :=
 begin

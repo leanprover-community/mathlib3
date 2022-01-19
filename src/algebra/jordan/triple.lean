@@ -143,14 +143,8 @@ calc ⦃a + c, b, a + c⦄ = ⦃a, b, a⦄ + ⦃a, b, c⦄ + ⦃c, b, a⦄ + ⦃
 
 @[simps] def Q : A →+ A →+  add_monoid.End A := {
   to_fun := λ a, (D a : A →+  add_monoid.End A).flip,
-  map_zero' := begin
-    ext,
-    simp,
-  end,
-  map_add' := λ _ _, begin
-    ext,
-    simp,
-  end,
+  map_zero' := by { ext, simp, },
+  map_add' := λ _ _, by { ext, simp, },
 }
 
 end is_tp

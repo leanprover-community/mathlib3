@@ -166,7 +166,7 @@ by rw [nat_degree_one, nat_degree_mul hp0 hq0, eq_comm,
     ← degree_eq_nat_degree hp0] at this;
   exact this.1
 
-@[simp] lemma degree_coe_units (u : units (polynomial R)) :
+@[simp] lemma degree_coe_units (u : (polynomial R)ˣ) :
   degree (u : polynomial R) = 0 :=
 degree_eq_zero_of_is_unit ⟨u, rfl⟩
 
@@ -571,11 +571,11 @@ lemma leading_coeff_comp (hq : nat_degree q ≠ 0) : leading_coeff (p.comp q) =
   leading_coeff p * leading_coeff q ^ nat_degree p :=
 by rw [← coeff_comp_degree_mul_degree hq, ← nat_degree_comp]; refl
 
-lemma units_coeff_zero_smul (c : units (polynomial R)) (p : polynomial R) :
+lemma units_coeff_zero_smul (c : (polynomial R)ˣ) (p : polynomial R) :
   (c : polynomial R).coeff 0 • p = c * p :=
 by rw [←polynomial.C_mul', ←polynomial.eq_C_of_degree_eq_zero (degree_coe_units c)]
 
-@[simp] lemma nat_degree_coe_units (u : units (polynomial R)) :
+@[simp] lemma nat_degree_coe_units (u : (polynomial R)ˣ) :
   nat_degree (u : polynomial R) = 0 :=
 nat_degree_eq_of_degree_eq_some (degree_coe_units u)
 
@@ -644,7 +644,7 @@ theorem is_unit_iff {f : polynomial R} : is_unit f ↔ ∃ r : R, is_unit r ∧ 
   (eq_C_of_degree_eq_zero (degree_eq_zero_of_is_unit hf)).symm⟩,
 λ ⟨r, hr, hrf⟩, hrf ▸ is_unit_C.2 hr⟩
 
-lemma coeff_coe_units_zero_ne_zero (u : units (polynomial R)) :
+lemma coeff_coe_units_zero_ne_zero (u : (polynomial R)ˣ) :
   coeff (u : polynomial R) 0 ≠ 0 :=
 begin
   conv in (0) { rw [← nat_degree_coe_units u] },
@@ -666,25 +666,18 @@ this.elim
   (λ hgu, by rw [hg, degree_mul, degree_X_sub_C, degree_eq_zero_of_is_unit hgu, add_zero])
 
 /-- Division by a monic polynomial doesn't change the leading coefficient. -/
-lemma leading_coeff_div_by_monic_of_monic {R : Type u} [comm_ring R] [is_domain R]
+lemma leading_coeff_div_by_monic_of_monic {R : Type u} [comm_ring R]
   {p q : polynomial R} (hmonic : q.monic) (hdegree : q.degree ≤ p.degree) :
   (p /ₘ q).leading_coeff = p.leading_coeff :=
 begin
-  have hp := mod_by_monic_add_div p hmonic,
-  have hzero : (p /ₘ q) ≠ 0,
-  { intro h,
-    exact not_lt_of_le hdegree ((div_by_monic_eq_zero_iff hmonic).1 h) },
-  have deglt : (p %ₘ q).degree < (q * (p /ₘ q)).degree,
-  { rw degree_mul,
-    refine lt_of_lt_of_le (degree_mod_by_monic_lt p hmonic) _,
-    rw [degree_eq_nat_degree (monic.ne_zero hmonic), degree_eq_nat_degree hzero],
-    norm_cast,
-    simp only [zero_le, le_add_iff_nonneg_right] },
-  have hrew := (leading_coeff_add_of_degree_lt deglt),
-  rw leading_coeff_mul q (p /ₘ q) at hrew,
-  simp only [hmonic, one_mul, monic.leading_coeff] at hrew,
-  nth_rewrite 1 ← hp,
-  exact hrew.symm
+  nontriviality,
+  have h : q.leading_coeff * (p /ₘ q).leading_coeff ≠ 0,
+  { simpa [div_by_monic_eq_zero_iff hmonic, hmonic.leading_coeff, nat.with_bot.one_le_iff_zero_lt]
+      using hdegree },
+  nth_rewrite_rhs 0 ←mod_by_monic_add_div p hmonic,
+  rw [leading_coeff_add_of_degree_lt, leading_coeff_monic_mul hmonic],
+  rw [degree_mul' h, degree_add_div_by_monic hmonic hdegree],
+  exact (degree_mod_by_monic_lt p hmonic).trans_le hdegree
 end
 
 lemma leading_coeff_div_by_monic_X_sub_C (p : polynomial R) (hp : degree p ≠ 0) (a : R) :

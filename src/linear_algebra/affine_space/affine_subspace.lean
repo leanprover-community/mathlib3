@@ -546,10 +546,10 @@ instance : complete_lattice (affine_subspace k P) :=
   bot_le := λ _ _, false.elim,
   Sup := λ s, affine_span k (⋃ s' ∈ s, (s' : set P)),
   Inf := λ s, mk (⋂ s' ∈ s, (s' : set P))
-                 (λ c p1 p2 p3 hp1 hp2 hp3, set.mem_bInter_iff.2 $ λ s2 hs2,
-                   s2.smul_vsub_vadd_mem c (set.mem_bInter_iff.1 hp1 s2 hs2)
-                                           (set.mem_bInter_iff.1 hp2 s2 hs2)
-                                           (set.mem_bInter_iff.1 hp3 s2 hs2)),
+                 (λ c p1 p2 p3 hp1 hp2 hp3, set.mem_Inter₂.2 $ λ s2 hs2, begin
+                   rw set.mem_Inter₂ at *,
+                   exact s2.smul_vsub_vadd_mem c (hp1 s2 hs2) (hp2 s2 hs2) (hp3 s2 hs2)
+                 end),
   le_Sup := λ _ _ h, set.subset.trans (set.subset_bUnion_of_mem h) (subset_span_points k _),
   Sup_le := λ _ _ h, span_points_subset_coe_of_subset_coe (set.bUnion_subset h),
   Inf_le := λ _ _, set.bInter_subset_of_mem,

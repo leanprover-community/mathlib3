@@ -342,8 +342,8 @@ lemma continuous_on.ae_measurable [topological_space α] [opens_measurable_space
   ae_measurable f (μ.restrict s) :=
 begin
   nontriviality α, inhabit α,
-  have : piecewise s f (λ _, f (default α)) =ᵐ[μ.restrict s] f := piecewise_ae_eq_restrict hs,
-  refine ⟨piecewise s f (λ _, f (default α)), _, this.symm⟩,
+  have : piecewise s f (λ _, f default) =ᵐ[μ.restrict s] f := piecewise_ae_eq_restrict hs,
+  refine ⟨piecewise s f (λ _, f default), _, this.symm⟩,
   apply measurable_of_is_open,
   assume t ht,
   obtain ⟨u, u_open, hu⟩ : ∃ (u : set α), is_open u ∧ f ⁻¹' t ∩ s = u ∩ s :=
@@ -371,7 +371,7 @@ lemma continuous_on.integrable_on_compact
 hs.integrable_on_of_nhds_within $ λ x hx, hf.integrable_at_nhds_within hs.measurable_set hx
 
 lemma continuous_on.integrable_on_Icc [borel_space E]
-  [conditionally_complete_linear_order β] [topological_space β] [order_topology β]
+  [preorder β] [topological_space β] [t2_space β] [compact_Icc_space β]
   [measurable_space β] [opens_measurable_space β] {μ : measure β} [is_locally_finite_measure μ]
   {a b : β} {f : β → E} (hf : continuous_on f (Icc a b)) :
   integrable_on f (Icc a b) μ :=
@@ -394,7 +394,7 @@ lemma continuous.integrable_on_compact
 hf.continuous_on.integrable_on_compact hs
 
 lemma continuous.integrable_on_Icc [borel_space E]
-  [conditionally_complete_linear_order β] [topological_space β] [order_topology β]
+  [preorder β] [topological_space β] [t2_space β] [compact_Icc_space β]
   [measurable_space β] [opens_measurable_space β] {μ : measure β} [is_locally_finite_measure μ]
   {a b : β} {f : β → E} (hf : continuous f) :
   integrable_on f (Icc a b) μ :=

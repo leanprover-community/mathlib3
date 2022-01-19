@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 import analysis.normed_space.operator_norm
-import topology.algebra.multilinear
+import topology.algebra.module.multilinear
 
 /-!
 # Operator norm on the space of continuous multilinear maps
@@ -58,7 +58,7 @@ open_locale classical big_operators nnreal
 open finset metric
 
 local attribute [instance, priority 1001]
-add_comm_group.to_add_comm_monoid normed_group.to_add_comm_group normed_space.to_module
+add_comm_group.to_add_comm_monoid normed_group.to_add_comm_group normed_space.to_module'
 
 -- hack to speed up simp when dealing with complicated types
 local attribute [-instance] unique.subsingleton pi.subsingleton

@@ -93,8 +93,7 @@ begin
   refine linear_map.antilipschitz_of_bound ↑(lax_milgram_map B) _,
   intros v,
   by_cases h : 0 < ∥v∥,
-  {
-    rw [←mul_le_mul_left C_pos, ←mul_assoc],
+  { rw [←mul_le_mul_left C_pos, ←mul_assoc],
     simp only [real.coe_to_nnreal', normed_group.dist_eq, max_eq_left_of_lt (inv_pos.mpr C_pos)],
     rw [mul_inv_cancel, one_mul],
     show C ≠ 0, by linarith,
@@ -105,8 +104,7 @@ begin
     ...  = inner (lax_milgram_map B v) v : by simp
     ...  ≤ ∥lax_milgram_map B v ∥ * ∥v∥    : real_inner_le_norm (lax_milgram_map B v) v,
   },
-  {
-    have : v = 0 := by simpa using h,
+  { have : v = 0 := by simpa using h,
     simp [this],
   }
 end

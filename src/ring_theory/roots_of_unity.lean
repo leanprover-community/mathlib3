@@ -91,7 +91,7 @@ a positive power equal to one. -/
 units.ext $ by simpa⟩
 
 @[simp] lemma roots_of_unity.coe_mk_of_pow_eq {ζ : M} {n : ℕ+}
-  {h : ζ ^ (n : ℕ) = 1} : (roots_of_unity.mk_of_pow_eq _ h : M) = ζ := rfl
+  (h : ζ ^ (n : ℕ) = 1) : (roots_of_unity.mk_of_pow_eq _ h : M) = ζ := rfl
 
 lemma roots_of_unity_le_of_dvd (h : k ∣ l) : roots_of_unity k M ≤ roots_of_unity l M :=
 begin

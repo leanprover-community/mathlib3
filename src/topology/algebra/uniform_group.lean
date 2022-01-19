@@ -230,7 +230,41 @@ variables {G}
 ⟨λ h u hu, h _ ⟨u, hu, λ _, id⟩, λ h v ⟨u, hu, hv⟩ x, exists_imp_exists (by exact λ a,
   exists_imp_exists (λ ha hp, mem_of_superset hp (λ i hi a ha, hv (by exact hi a ha)))) ∘ h u hu x⟩
 
- @[to_additive] lemma topological_group.tendsto_uniformly_on_mul
+@[to_additive] lemma topological_group.uniform_continuous_mul :
+  @uniform_continuous₂ G G G
+    (topological_group.to_uniform_space G)
+    (topological_group.to_uniform_space G)
+    (topological_group.to_uniform_space G) (*) :=
+begin
+  rintros v ⟨u, hu, huv⟩,
+  rw [uniformity_prod_eq_prod, mem_map, mem_map, mem_prod_iff],
+  obtain ⟨w, hw, x, hx, h⟩ := mem_nhds_prod_iff.mp (mem_map.mp
+    (continuous_mul.tendsto' ((1 : G), (1 : G)) (1 : G) (one_mul (1 : G)) hu)),
+  refine ⟨_, preimage_mem_comap hw, _, preimage_mem_comap hx, _⟩,
+  rw [set.prod_preimage_eq],
+  refine λ a ha, huv _,
+  exact (congr_arg (∈ u) (div_mul_comm _ _ _ _)).mp (h ha),
+end
+
+lemma tendsto_uniformly_on.comp' {α β γ ι : Type*} [uniform_space β] [uniform_space γ]
+  {F : ι → α → β} {f : α → β} {p : filter ι} {s : set α} {g : β → γ}
+  (h : tendsto_uniformly_on F f p s) (hg : uniform_continuous g) :
+  tendsto_uniformly_on (λ i, g ∘ (F i)) (g ∘ f) p s :=
+λ u hu, h _ (hg hu)
+
+lemma tendsto_uniformly_on.prod {α β ι₁ ι₂ : Type*} [uniform_space β] {F₁ : ι₁ → α → β}
+  {F₂ : ι₂ → α → β} {f₁ : α → β} {f₂ : α → β} {p₁ : filter ι₁} {p₂ : filter ι₂} {s : set α}
+  (h₁ : tendsto_uniformly_on F₁ f₁ p₁ s) (h₂ : tendsto_uniformly_on F₂ f₂ p₂ s) :
+  tendsto_uniformly_on (λ (i : ι₁ × ι₂) a, (F₁ i.1 a, F₂ i.2 a)) (λ a, (f₁ a, f₂ a)) (p₁.prod p₂) s :=
+begin
+  intros u hu,
+  rw [uniformity_prod_eq_prod, mem_map, mem_prod_iff] at hu,
+  obtain ⟨v, hv, w, hw, h⟩ := hu,
+  exact mem_prod_iff.mpr ⟨_, h₁ v hv, _, h₂ w hw, λ i hi a ha,
+    h (show ((f₁ a, F₁ i.1 a), (f₂ a, F₂ i.2 a)) ∈ v ×ˢ w, from ⟨hi.1 a ha, hi.2 a ha⟩)⟩,
+end
+
+@[to_additive] lemma topological_group.tendsto_uniformly_on_mul
   {ι₁ ι₂ α : Type*} (F₁ : ι₁ → α → G) (F₂ : ι₂ → α → G)
   (f₁ : α → G) (f₂ : α → G) (p₁ : filter ι₁) (p₂ : filter ι₂) (s : set α)
   (h₁ : @tendsto_uniformly_on α G ι₁ (topological_group.to_uniform_space G) F₁ f₁ p₁ s)
@@ -238,12 +272,8 @@ variables {G}
   @tendsto_uniformly_on α G (ι₁ × ι₂) (topological_group.to_uniform_space G)
     (λ i, F₁ i.1 * F₂ i.2) (f₁ * f₂) (p₁.prod p₂) s :=
 begin
-  rw topological_group.tendsto_uniformly_on_iff at *,
-  intros u hu,
-  obtain ⟨v, hv, w, hw, h⟩ := mem_nhds_prod_iff.mp (mem_map.mp
-    (continuous_mul.tendsto' ((1 : G), (1 : G)) (1 : G) (one_mul (1 : G)) hu)),
-  exact filter.mem_prod_iff.mpr ⟨_, h₁ v hv, _, h₂ w hw, λ x hx a ha, (congr_arg (∈ u)
-    (div_mul_comm _ _ _ _)).mp (set.prod_subset_iff.mp h _ (hx.1 a ha) _ (hx.2 a ha))⟩,
+  letI := topological_group.to_uniform_space G,
+  exact (h₁.prod h₂).comp' topological_group.uniform_continuous_mul,
 end
 
 @[to_additive] lemma topological_group.tendsto_uniformly_on_inv {ι α : Type*} (F : ι → α → G)

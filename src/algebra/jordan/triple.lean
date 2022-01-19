@@ -114,7 +114,7 @@ calc ⦃a + c, b, a + c⦄ = ⦃a, b, a⦄ + ⦃a, b, c⦄ + ⦃c, b, a⦄ + ⦃
 ... = ⦃a, b, a⦄ + (⦃a, b, c⦄ + ⦃a, b, c⦄)  + ⦃c, b, c⦄ : by rw ← add_assoc
 ... = ⦃a, b, a⦄ + 2•⦃a, b, c⦄ + ⦃c, b, c⦄ : by rw two_nsmul
 
-
+/-- The triple product as an additive monoid homomorphism in each variable -/
 @[simps] def add_monoid_hom.tp : A →+ A →+ A →+ A :=
 { to_fun := λ a,
   { to_fun := λ b,
@@ -141,6 +141,7 @@ calc ⦃a + c, b, a + c⦄ = ⦃a, b, a⦄ + ⦃a, b, c⦄ + ⦃c, b, a⦄ + ⦃
 /-- Define the multiplication operator `D` -/
 @[simps] def D : A →+ A →+ add_monoid.End A := add_monoid_hom.tp
 
+/-- Define the quadratic operator `Q` -/
 @[simps] def Q : A →+ A →+  add_monoid.End A :=
 { to_fun := λ a, (D a : A →+  add_monoid.End A).flip,
   map_zero' := by { ext, simp, },

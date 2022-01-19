@@ -433,7 +433,7 @@ end
 /--
 The unary operation of taking the absolute value is idempotent.
 -/
-@[to_additive abs_abs, simp]
+@[simp, to_additive abs_abs]
 lemma m_abs_abs [covariant_class α α (*) (≤)] (a : α) : | |a| | = |a| :=
 mabs_of_one_le _ (one_le_abs _)
 

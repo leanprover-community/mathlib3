@@ -248,12 +248,10 @@ lemma measurable.indicator [has_zero β] (hf : measurable f) (hs : measurable_se
   measurable (s.indicator f) :=
 hf.piecewise hs measurable_const
 
-@[to_additive, measurability] lemma measurable_set_mul_support [has_one β]
+@[measurability, to_additive] lemma measurable_set_mul_support [has_one β]
   [measurable_singleton_class β] (hf : measurable f) :
   measurable_set (mul_support f) :=
 hf (measurable_set_singleton 1).compl
-
-attribute [measurability] measurable_set_support
 
 /-- If a function coincides with a measurable function outside of a countable set, it is
 measurable. -/

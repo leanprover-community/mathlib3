@@ -3,7 +3,6 @@ Copyright (c) 2022 Thomas Browning. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Thomas Browning
 -/
-import algebra.group.conj
 import group_theory.abelianization
 import group_theory.group_action.conj_act
 import group_theory.index

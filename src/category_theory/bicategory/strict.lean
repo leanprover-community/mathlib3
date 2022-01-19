@@ -73,7 +73,7 @@ lemma whisker_left_eq_to_hom {a b c : B} (f : a ⟶ b) {g h : b ⟶ c} (η : g =
 by { cases η, simp only [whisker_left_id, eq_to_hom_refl] }
 
 @[simp]
-lemma whisker_right_eq_to_hom {a b c : B} {f g : a ⟶ b} (η : f = g) (h : b ⟶ c) :
+lemma eq_to_hom_whisker_right {a b c : B} {f g : a ⟶ b} (η : f = g) (h : b ⟶ c) :
   eq_to_hom η ▷ h = eq_to_hom (congr_arg2 (≫) η rfl) :=
 by { cases η, simp only [whisker_right_id, eq_to_hom_refl] }
 

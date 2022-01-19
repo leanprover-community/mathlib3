@@ -252,27 +252,6 @@ end
 (totient_prime prime_two).trans (by norm_num)
 
 theorem totient_Euler_product_formula (n : ℕ) :
-   ↑(φ n) = ↑n * ∏ p in (n.factors.to_finset), (1 - p⁻¹ : ℚ) :=
-begin
-  rcases n.eq_zero_or_pos with rfl | hn0, { simp },
-  have hn0' : n ≠ 0 := ne_of_gt hn0,
-  nth_rewrite_rhs 0 ←(factorization_prod_pow_eq_self hn0'),
-  rw multiplicative_factorization φ (λ a b, totient_mul) totient_one hn0',
-  have : ∏ (p : ℕ) in n.factorization.support, (1 - (↑p)⁻¹ : ℚ) =
-    n.factorization.prod (λ p k, 1 - (↑p)⁻¹), { refl },
-  simp only [←support_factorization, cast_finsupp_prod, this, ←finsupp.prod_mul],
-  apply prod_congr rfl,
-  intros p hp,
-  set k := n.factorization p,
-  have hpp : prime p := prime_of_mem_factors (factor_iff_mem_factorization.mp hp),
-  have : (p : ℚ) ≠ 0 := cast_ne_zero.mpr hpp.pos.ne',
-  have hk : 0 < k := zero_lt_iff.mpr (finsupp.mem_support_iff.mp hp),
-  simp only [nat.cast_pow, totient_prime_pow hpp hk],
-  field_simp [hpp.pos],
-  push_cast [←(pow_sub_mul_pow ↑p hk), pow_one, mul_right_comm],
-end
-
-theorem totient_Euler_product_formula' (n : ℕ) :
   φ n = n / (n.factorization.prod (λ p k, p)) * (n.factorization.prod (λ p k, p - 1)) :=
 begin
   rcases em (n = 0) with rfl | hn0, { simp },
@@ -298,5 +277,28 @@ begin
   simp only [totient_prime_pow (prime_of_mem_factorization hp) hk],
   simp only [mul_right_comm, ←(pow_sub_mul_pow p hk), pow_one],
 end
+
+theorem totient_Euler_product_formula' (n : ℕ) :
+   ↑(φ n) = ↑n * ∏ p in (n.factors.to_finset), (1 - p⁻¹ : ℚ) :=
+begin
+  rcases n.eq_zero_or_pos with rfl | hn0, { simp },
+  have hn0' : n ≠ 0 := ne_of_gt hn0,
+  nth_rewrite_rhs 0 ←(factorization_prod_pow_eq_self hn0'),
+  rw multiplicative_factorization φ (λ a b, totient_mul) totient_one hn0',
+  have : ∏ (p : ℕ) in n.factorization.support, (1 - (↑p)⁻¹ : ℚ) =
+    n.factorization.prod (λ p k, 1 - (↑p)⁻¹), { refl },
+  simp only [←support_factorization, cast_finsupp_prod, this, ←finsupp.prod_mul],
+  apply prod_congr rfl,
+  intros p hp,
+  set k := n.factorization p,
+  have hpp : prime p := prime_of_mem_factors (factor_iff_mem_factorization.mp hp),
+  have : (p : ℚ) ≠ 0 := cast_ne_zero.mpr hpp.pos.ne',
+  have hk : 0 < k := zero_lt_iff.mpr (finsupp.mem_support_iff.mp hp),
+  simp only [nat.cast_pow, totient_prime_pow hpp hk],
+  field_simp [hpp.pos],
+  push_cast [←(pow_sub_mul_pow ↑p hk), pow_one, mul_right_comm],
+end
+
+
 
 end nat

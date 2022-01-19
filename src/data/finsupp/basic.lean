@@ -1682,7 +1682,7 @@ begin
   rw [add_comm, sum_single_index (hg _), sum_single_index (hg _)],
 end
 
-lemma map_domain_inj_on {α β M : Type*} [add_comm_monoid M] (S : set α) {f : α → β}
+lemma map_domain_inj_on (S : set α) {f : α → β}
   (hf : set.inj_on f S) :
   set.inj_on (map_domain f : (α →₀ M) → (β →₀ M)) {w | (w.support : set α) ⊆ S} :=
 begin

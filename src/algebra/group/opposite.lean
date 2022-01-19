@@ -323,7 +323,7 @@ def add_equiv.mul_op {α β} [has_add α] [has_add β] :
   (αᵐᵒᵖ ≃+ βᵐᵒᵖ) ≃ (α ≃+ β) := add_equiv.mul_op.symm
 
 /-- A iso `α ≃* β` can equivalently be viewed as an iso `αᵐᵒᵖ ≃* βᵐᵒᵖ`. -/
-@[to_additive "A iso `α ≃+ β` can equivalently be viewed as an iso `αᵃᵒᵖ ≃+ βᵃᵒᵖ`. -/", simps]
+@[to_additive "A iso `α ≃+ β` can equivalently be viewed as an iso `αᵃᵒᵖ ≃+ βᵃᵒᵖ`.", simps]
 def mul_equiv.op {α β} [has_mul α] [has_mul β] :
   (α ≃* β) ≃ (αᵐᵒᵖ ≃* βᵐᵒᵖ) :=
 { to_fun    := λ f, { to_fun   := op ∘ f ∘ unop,

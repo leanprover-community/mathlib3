@@ -282,21 +282,49 @@ theorem totient_Euler_product_formula' (n : ℕ) :
    ↑(φ n) = ↑n * ∏ p in (n.factors.to_finset), (1 - p⁻¹ : ℚ) :=
 begin
   rcases n.eq_zero_or_pos with rfl | hn0, { simp },
-  have hn0' : n ≠ 0 := ne_of_gt hn0,
-  nth_rewrite_rhs 0 ←(factorization_prod_pow_eq_self hn0'),
-  rw multiplicative_factorization φ (λ a b, totient_mul) totient_one hn0',
-  have : ∏ (p : ℕ) in n.factorization.support, (1 - (↑p)⁻¹ : ℚ) =
-    n.factorization.prod (λ p k, 1 - (↑p)⁻¹), { refl },
-  simp only [←support_factorization, cast_finsupp_prod, this, ←finsupp.prod_mul],
-  apply prod_congr rfl,
-  intros p hp,
-  set k := n.factorization p,
-  have hpp : prime p := prime_of_mem_factors (factor_iff_mem_factorization.mp hp),
-  have : (p : ℚ) ≠ 0 := cast_ne_zero.mpr hpp.pos.ne',
-  have hk : 0 < k := zero_lt_iff.mpr (finsupp.mem_support_iff.mp hp),
-  simp only [nat.cast_pow, totient_prime_pow hpp hk],
-  field_simp [hpp.pos],
-  push_cast [←(pow_sub_mul_pow ↑p hk), pow_one, mul_right_comm],
+  rw totient_Euler_product_formula n,
+  unfold finsupp.prod,
+  simp only [nat.cast_prod, nat.support_factorization, nat.cast_mul, finset.prod_congr],
+  suffices : ∏ (p : ℕ) in n.factors.to_finset, (1 - (↑p:ℚ)⁻¹) =
+    ↑(∏ (i : ℕ) in n.factors.to_finset, ↑(i - 1) / ∏ (x : ℕ) in n.factors.to_finset, x),
+  { sorry },
+  push_cast,
+  -- simp only [cast_finsupp_prod],
+  -- norm_cast,
+  suffices :
+    (∏ (p : ℕ) in n.factors.to_finset, (1 - (↑p:ℚ)⁻¹)) * ∏ (x : ℕ) in n.factors.to_finset, x = ∏ (i : ℕ) in n.factors.to_finset, ↑(i - 1),
+  { sorry },
+  rw ←prod_mul_distrib,
+
+  refine prod_congr rfl (λ p hp, _),
+  have p_pos : p ≠ 0, { sorry },
+  have p_pos''' : 0 < p, { sorry },
+  have p_pos' : (p:ℚ) ≠ 0, { sorry },
+  have p_pos'' : 0 < (p:ℚ), { sorry },
+
+  rw sub_mul,
+  simp only [one_mul, mul_comm],
+  rw mul_inv_cancel p_pos',
+  simp [p_pos'''],
+
+
+
+  -- rcases n.eq_zero_or_pos with rfl | hn0, { simp },
+  -- have hn0' : n ≠ 0 := ne_of_gt hn0,
+  -- nth_rewrite_rhs 0 ←(factorization_prod_pow_eq_self hn0'),
+  -- rw multiplicative_factorization φ (λ a b, totient_mul) totient_one hn0',
+  -- have : ∏ (p : ℕ) in n.factorization.support, (1 - (↑p)⁻¹ : ℚ) =
+  --   n.factorization.prod (λ p k, 1 - (↑p)⁻¹), { refl },
+  -- simp only [←support_factorization, cast_finsupp_prod, this, ←finsupp.prod_mul],
+  -- apply prod_congr rfl,
+  -- intros p hp,
+  -- set k := n.factorization p,
+  -- have hpp : prime p := prime_of_mem_factors (factor_iff_mem_factorization.mp hp),
+  -- have : (p : ℚ) ≠ 0 := cast_ne_zero.mpr hpp.pos.ne',
+  -- have hk : 0 < k := zero_lt_iff.mpr (finsupp.mem_support_iff.mp hp),
+  -- simp only [nat.cast_pow, totient_prime_pow hpp hk],
+  -- field_simp [hpp.pos],
+  -- push_cast [←(pow_sub_mul_pow ↑p hk), pow_one, mul_right_comm],
 end
 
 

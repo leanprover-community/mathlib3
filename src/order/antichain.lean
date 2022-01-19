@@ -106,11 +106,11 @@ section preorder
 variables [preorder α]
 
 lemma is_antichain_and_least_iff : is_antichain (≤) s ∧ is_least s a ↔ s = {a} :=
-⟨λ h, eq_singleton_iff_unique_mem.2 ⟨h.2.1, λ b hb, h.1.eq_of_related' hb h.2.1 (h.2.2 hb)⟩,
+⟨λ h, eq_singleton_iff_unique_mem.2 ⟨h.2.1, λ b hb, h.1.eq' hb h.2.1 (h.2.2 hb)⟩,
   by { rintro rfl, exact ⟨is_antichain_singleton _ _, is_least_singleton⟩ }⟩
 
 lemma is_antichain_and_greatest_iff : is_antichain (≤) s ∧ is_greatest s a ↔ s = {a} :=
-⟨λ h, eq_singleton_iff_unique_mem.2 ⟨h.2.1, λ b hb, h.1.eq_of_related hb h.2.1 (h.2.2 hb)⟩,
+⟨λ h, eq_singleton_iff_unique_mem.2 ⟨h.2.1, λ b hb, h.1.eq hb h.2.1 (h.2.2 hb)⟩,
   by { rintro rfl, exact ⟨is_antichain_singleton _ _, is_greatest_singleton⟩ }⟩
 
 lemma is_antichain.least_iff (hs : is_antichain (≤) s) : is_least s a ↔ s = {a} :=

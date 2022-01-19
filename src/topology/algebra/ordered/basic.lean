@@ -2509,8 +2509,8 @@ begin
   { exact (diff_subset _ _).trans hts },
   { exact htc.mono (diff_subset _ _) },
   { exact htd.diff_finite ((subsingleton_is_bot α).finite.union (subsingleton_is_top α).finite) },
-  { assume x hx, simp [hx.is_min] },
-  { assume x hx, simp [hx.is_max] }
+  { assume x hx, simp [hx] },
+  { assume x hx, simp [hx] }
 end
 
 variable (α)

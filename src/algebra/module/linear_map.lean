@@ -755,7 +755,7 @@ instance _root_.module.End.ring : ring (module.End R N₁) :=
 section
 variables [monoid S] [distrib_mul_action S M] [smul_comm_class R S M]
 
-instance _root_.module.End.is_scalar_tower :
+instance _root_.module.End.is_scalar_tower' :
   is_scalar_tower S (module.End R M) (module.End R M) := ⟨smul_comp⟩
 
 instance _root_.module.End.smul_comm_class [has_scalar S R] [is_scalar_tower S R M] :

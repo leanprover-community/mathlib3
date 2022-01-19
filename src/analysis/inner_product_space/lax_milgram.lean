@@ -91,18 +91,17 @@ begin
   refine ⟨C, C_ge_0, _⟩,
   intro v,
   by_cases h : 0 < ∥v∥,
-  begin
-    have squared : C * ∥v∥ * ∥v∥ ≤ ∥lax_milgram_map B v ∥ * ∥v∥ :=
-    calc C * ∥v∥ * ∥v∥
-          ≤ B v v                         : coercivity v
-    ...  = inner (lax_milgram_map B v) v : by simp
-    ...  ≤ ∥lax_milgram_map B v ∥ * ∥v∥    : real_inner_le_norm (lax_milgram_map B v) v,
-    refine (mul_le_mul_right h).mp squared,
-  end,
-  begin
+  {
+    refine (mul_le_mul_right h).mp _,
+    exact calc C * ∥v∥ * ∥v∥
+               ≤ B v v                         : coercivity v
+    ...        = inner (lax_milgram_map B v) v : by simp
+    ...        ≤ ∥lax_milgram_map B v∥ * ∥v∥     : real_inner_le_norm (lax_milgram_map B v) v,
+  },
+  {
     have : v = 0 := by simpa using h,
     simp [this],
-  end
+  }
 end
 
 lemma injective (coercive : is_coercive B) : (lax_milgram_map B).ker = ⊥ :=

@@ -273,7 +273,7 @@ lemma mem_sup {s t : submonoid N} {x : N} :
 by simp only [sup_eq_range, mem_mrange, coprod_apply, prod.exists, set_like.exists,
   coe_subtype, subtype.coe_mk]
 
-@[to_additive add_mem_closure_pair]
+-- @[to_additive add_mem_closure_pair]
 lemma mem_closure_pair {A : Type*} [comm_monoid A] {a b c : A} :
   (∃ m n : ℕ, (a ^ m) * (b ^ n) = c) ↔ c ∈ submonoid.closure ({a, b} : set A) :=
 begin

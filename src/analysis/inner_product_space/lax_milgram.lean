@@ -8,17 +8,20 @@ import analysis.inner_product_space.dual
 import analysis.normed_space.banach
 
 /-!
-# The The Lax-Milgram Theorem
+# The Lax-Milgram Theorem
 
 
 We consider an Hilbert space `V` over `ℝ`
-equipped with a bilinear form `B : V →L[ℝ] V →L[ℝ] ℝ`.
+equipped with a bounded bilinear form `B : V →L[ℝ] V →L[ℝ] ℝ`.
 For every such form we define the
 `lax_milgram_map : V →L[ℝ] V`,
 which is defined by the property `B (lax_milgram_map B v) w = ⟪v, w⟫`
 using the Fréchet-Riesz representation theorem.
+We also define a property `is_coercive` for (B : V →L[ℝ] V →L[ℝ] ℝ),
+such that `is_coercive B` iff
+`∃ C, (0 < C) ∧ ∀ u, C * ∥u∥ * ∥u∥ ≤ B u u`.
 
-Under the hypothesis that `B` is *coercive* (fulfills `is_coercive`),
+Under the hypothesis that `B` i
 we prove the Lax-Milgram theorem:
 that is, the `lax_milgram_map` can be upgraded to a continuous equivalence `lax_milgram`
 
@@ -41,8 +44,13 @@ open_locale classical complex_conjugate
 open is_R_or_C continuous_linear_map linear_map linear_equiv
 
 universe u
+
+/--
+A bounded bilinear form in an inner product space is coercive
+if there is some positive constant C such that `C * ∥u∥ * ∥u∥ ≤ B u u`.
+-/
 def is_coercive
-  {V : Type u} [inner_product_space ℝ V] [complete_space V] (B : V →L[ℝ] V →L[ℝ] ℝ) : Prop :=
+  {V : Type u} [inner_product_space ℝ V] (B : V →L[ℝ] V →L[ℝ] ℝ) : Prop :=
 ∃ C, (0 < C) ∧ ∀ u, C * ∥u∥ * ∥u∥ ≤ B u u
 
 namespace lax_milgram
@@ -50,6 +58,12 @@ variables {V : Type u} [inner_product_space ℝ V] [complete_space V]
 variables (B : V →L[ℝ] V →L[ℝ] ℝ)
 
 
+/--
+The Lax-;ilgram map of a bounded bilinear operator: for all `v : V`
+there exists an `lax_milgram_map B v` is the element of `V`
+such that `⟪lax_milgram_map B v, w⟫ = B v w`.
+This element is obtained using `inner_product_space.to_dual`.
+-/
 def lax_milgram_map (B : V →L[ℝ] V →L[ℝ] ℝ) : V →L[ℝ] V :=
 (inner_product_space.to_dual ℝ V).symm.to_continuous_linear_equiv.to_continuous_linear_map ∘L B
 

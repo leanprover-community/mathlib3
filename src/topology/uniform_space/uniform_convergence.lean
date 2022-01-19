@@ -108,6 +108,28 @@ protected lemma tendsto_uniformly.tendsto_uniformly_on
   (h : tendsto_uniformly F f p) : tendsto_uniformly_on F f p s :=
 (tendsto_uniformly_on_univ.2 h).mono (subset_univ s)
 
+lemma tendsto_uniformly_on.prod {ι₁ ι₂ : Type*} {F₁ : ι₁ → α → β} {F₂ : ι₂ → α → β}
+  {f₁ : α → β} {f₂ : α → β} {p₁ : filter ι₁} {p₂ : filter ι₂}
+  (h₁ : tendsto_uniformly_on F₁ f₁ p₁ s) (h₂ : tendsto_uniformly_on F₂ f₂ p₂ s) :
+  tendsto_uniformly_on (λ (i : ι₁ × ι₂) a, (F₁ i.1 a, F₂ i.2 a))
+    (λ a, (f₁ a, f₂ a)) (p₁.prod p₂) s :=
+begin
+  intros u hu,
+  rw [uniformity_prod_eq_prod, mem_map, mem_prod_iff] at hu,
+  obtain ⟨v, hv, w, hw, h⟩ := hu,
+  exact mem_prod_iff.mpr ⟨_, h₁ v hv, _, h₂ w hw, λ i hi a ha,
+    h (show ((f₁ a, F₁ i.1 a), (f₂ a, F₂ i.2 a)) ∈ v ×ˢ w, from ⟨hi.1 a ha, hi.2 a ha⟩)⟩,
+end
+
+lemma tendsto_uniformly.prod {ι₁ ι₂ : Type*} {F₁ : ι₁ → α → β} {F₂ : ι₂ → α → β}
+  {f₁ : α → β} {f₂ : α → β} {p₁ : filter ι₁} {p₂ : filter ι₂}
+  (h₁ : tendsto_uniformly F₁ f₁ p₁) (h₂ : tendsto_uniformly F₂ f₂ p₂) :
+  tendsto_uniformly (λ (i : ι₁ × ι₂) a, (F₁ i.1 a, F₂ i.2 a)) (λ a, (f₁ a, f₂ a)) (p₁.prod p₂) :=
+begin
+  rw ← tendsto_uniformly_on_univ at *,
+  exact tendsto_uniformly_on.prod h₁ h₂,
+end
+
 /-- Composing on the right by a function preserves uniform convergence on a set -/
 lemma tendsto_uniformly_on.comp (h : tendsto_uniformly_on F f p s) (g : γ → α) :
   tendsto_uniformly_on (λ n, F n ∘ g) (f ∘ g) p (g ⁻¹' s) :=

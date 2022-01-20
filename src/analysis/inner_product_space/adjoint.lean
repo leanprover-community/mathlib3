@@ -305,6 +305,11 @@ begin
   rwa [(eq_adjoint_iff B A).mpr h₂] at h₁,
 end
 
+lemma is_normal.adjoint_eq_adjoint {A : E →ₗ[𝕜] E} (hA : is_normal A) :
+  hA.adjoint = A.adjoint :=
+linear_map.ext $
+  λ x, ext_inner_left 𝕜 (λ y, by rw [is_normal.adjoint_inner_right, adjoint_inner_right])
+
 section real
 
 variables {E' : Type*} {F' : Type*} [inner_product_space ℝ E'] [inner_product_space ℝ F']

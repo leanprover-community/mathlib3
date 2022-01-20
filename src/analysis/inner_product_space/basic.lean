@@ -1983,12 +1983,32 @@ namespace inner_product_space
 def is_self_adjoint (T : E →ₗ[𝕜] E) : Prop := ∀ x y, ⟪T x, y⟫ = ⟪x, T y⟫
 
 /-- A (not necessarily bounded) operator `T` on an inner product space is normal, if for all
-`x`, `y`, there exists a `T'` we have `⟪T' x, y⟫ = ⟪x, T y⟫` and `T'` and `T` commute. -/
+`x`, `y`, there exists a `T'` we have `⟪T' x, y⟫ = ⟪x, T y⟫` and `T'` and `T` commute.
+Note that in most cases it is preferable to use `is_star_normal`; this is meant for special
+cases where there is no `star` operator on the type. -/
 def is_normal (T : E →ₗ[𝕜] E) : Prop :=
-  ∃ (T' : E →ₗ[𝕜] E), T' * T = T * T' ∧ ∀ x y, ⟪T' x, y⟫ = ⟪x, T y⟫
+∃ (T' : E →ₗ[𝕜] E), T' * T = T * T' ∧ ∀ x y, ⟪T' x, y⟫ = ⟪x, T y⟫
 
 lemma is_normal_of_is_self_adjoint {T : E →ₗ[𝕜] E} (hT : is_self_adjoint T) : is_normal T :=
 ⟨T, ⟨rfl, hT⟩⟩
+
+namespace is_normal
+
+/-- The operator that acts as the adjoint when `T` is normal. -/
+def adjoint {T : E →ₗ[𝕜] E} (hT : is_normal T) : E →ₗ[𝕜] E := classical.some hT
+
+lemma adjoint_comm_self {T : E →ₗ[𝕜] E} (hT : is_normal T) :
+  hT.adjoint * T = T * hT.adjoint :=
+(classical.some_spec hT).1
+
+lemma adjoint_inner_left {T : E →ₗ[𝕜] E} (hT : is_normal T) :
+  ∀ x y, ⟪hT.adjoint x, y⟫ = ⟪x, T y⟫ := (classical.some_spec hT).2
+
+lemma adjoint_inner_right {T : E →ₗ[𝕜] E} (hT : is_normal T) :
+  ∀ x y, ⟪x, hT.adjoint y⟫ = ⟪T x, y⟫ :=
+λ x y, by { rw [←inner_conj_sym, adjoint_inner_left, inner_conj_sym] }
+
+end is_normal
 
 /-- An operator `T` on a `ℝ`-inner product space is self-adjoint if and only if it is
 `bilin_form.is_self_adjoint` with respect to the bilinear form given by the inner product. -/

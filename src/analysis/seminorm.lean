@@ -401,14 +401,9 @@ lemma ball_antimono {p q : seminorm 𝕜 E} (h : q ≤ p) : p.ball x r ⊆ q.bal
 lemma ball_add (p : seminorm 𝕜 E) (r₁ r₂ : ℝ) (x₁ x₂ : E):
   p.ball (x₁ : E) r₁ + p.ball (x₂ : E) r₂ ⊆ p.ball (x₁ + x₂) (r₁ + r₂) :=
 begin
-  rw set.subset_def,
-  intros x hx,
-  rw set.mem_add at hx,
-  rcases hx with ⟨y₁, y₂, hy₁, hy₂, hx⟩,
-  rw [←hx, mem_ball],
-  rw add_sub_comm,
-  exact lt_of_le_of_lt (p.triangle (y₁ - x₁) (y₂ - x₂))
-    (add_lt_add (p.mem_ball.mp hy₁) (p.mem_ball.mp hy₂)),
+  rintros x ⟨y₁, y₂, hy₁, hy₂, rfl⟩,
+  rw [mem_ball, add_sub_comm],
+  exact (p.triangle (y₁ - x₁) (y₂ - x₂)).trans_lt (add_lt_add hy₁ hy₂),
 end
 
 end has_scalar
@@ -486,22 +481,15 @@ lemma symmetric_ball_zero (r : ℝ) (hx : x ∈ ball p 0 r) : -x ∈ ball p 0 r 
 balanced_ball_zero p r (-1) (by rw [norm_neg, norm_one]) ⟨x, hx, by rw [neg_smul, one_smul]⟩
 
 @[simp]
-lemma preimage_neg_ball (p : seminorm 𝕜 E) (r : ℝ) :
-  (λ (x : E), -x) ⁻¹' (ball p (0 : E) r) = (ball p (0 : E) r) :=
-begin
-  ext,
-  rw mem_preimage,
-  refine ⟨_, p.symmetric_ball_zero r⟩,
-  intros hx,
-  rw ←neg_neg x,
-  exact (p.symmetric_ball_zero r hx),
-end
+lemma preimage_neg_ball (p : seminorm 𝕜 E) (r : ℝ) (x : E) :
+  has_neg.neg ⁻¹' ball p x r = ball p (-x) r :=
+by { ext, rw [mem_preimage, mem_ball, mem_ball, ←neg_add', sub_neg_eq_add, p.neg], }
 
 @[simp]
-lemma preimage_smul_ball (p : seminorm 𝕜 E) (r : ℝ) (a : 𝕜) (ha : a ≠ 0) :
-  (λ (v : E), a • v) ⁻¹' p.ball 0 r = p.ball 0 (r / ∥a∥) :=
-set.ext $ λ _, by rw [mem_preimage, mem_ball_zero, mem_ball_zero, p.smul,
-  lt_div_iff (norm_pos_iff.mpr ha), mul_comm]
+lemma preimage_smul_ball (p : seminorm 𝕜 E) (y : E) (r : ℝ) (a : 𝕜) (ha : a ≠ 0) :
+  ((•) a) ⁻¹' p.ball y r = p.ball (a⁻¹ • y) (r / ∥a∥) :=
+set.ext $ λ _, by rw [mem_preimage, mem_ball, mem_ball,
+  lt_div_iff (norm_pos_iff.mpr ha), mul_comm, ←p.smul, smul_sub, smul_inv_smul₀ ha]
 
 end normed_field
 

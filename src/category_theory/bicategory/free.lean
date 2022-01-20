@@ -1,7 +1,4 @@
 import category_theory.bicategory.functor
---import category_theory.path_category
-
---open paths
 
 namespace category_theory
 
@@ -223,10 +220,6 @@ variables (F : prelax_functor B C)
 
 namespace prelax_functor
 
-open bicategory
-
-open_locale bicategory
-
 /-- Auxiliary definition for `bicategory.free.lift`. -/
 def free_lift_gen₁ : ∀ {a b : free_bicategory B}, (gen₁ a b) → (F.obj a ⟶ F.obj b)
 | _ _ (gen₁.of f)      := F.map f
@@ -251,8 +244,8 @@ def free_lift_gen₂ :
 lemma lift_map₂_aux
   {a b : free_bicategory B}
   {f g : a ⟶ b}
-  {η η' : free.gen₂ f g}
-  (H : free.rel η η') :
+  {η η' : gen₂ f g}
+  (H : rel η η') :
   F.free_lift_gen₂ η = F.free_lift_gen₂ η' :=
 begin
   induction H,

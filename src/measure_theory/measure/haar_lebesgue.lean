@@ -286,9 +286,8 @@ begin
     rw [continuous_linear_equiv.image_eq_preimage g s, add_haar_preimage_continuous_linear_equiv],
     congr,
     ext x,
-    simp only [linear_equiv.of_is_unit_det_apply, continuous_linear_equiv.symm_symm,
-      continuous_linear_equiv.coe_coe, continuous_linear_map.coe_coe, coe_coe,
-      linear_equiv.coe_to_continuous_linear_equiv']},
+    simp only [linear_equiv.coe_to_continuous_linear_equiv, linear_equiv.of_is_unit_det_apply,
+               linear_equiv.coe_coe, continuous_linear_equiv.symm_symm], },
   { simp only [hf, zero_mul, ennreal.of_real_zero, abs_zero],
     have : μ f.range = 0 :=
       add_haar_submodule μ _ (linear_map.range_lt_top_of_det_eq_zero hf).ne,

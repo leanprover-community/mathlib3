@@ -4,6 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import category_theory.single_obj
+import category_theory.limits.shapes.products
+import category_theory.pi.basic
+import category_theory.limits.is_limit
 
 /-!
 # Category of groupoids
@@ -62,6 +65,30 @@ instance forget_to_Cat_full : full forget_to_Cat :=
 { preimage := λ C D, id }
 
 instance forget_to_Cat_faithful : faithful forget_to_Cat := { }
+
+/-- Convert arrows in the category of groupoids to functors,
+which sometimes helps in applying simp lemmas -/
+lemma hom_to_functor {C D E : Groupoid.{v u}} (f : C ⟶ D) (g : D ⟶ E) : f ≫ g = f ⋙ g := rfl
+
+section products
+
+instance has_prod : limits.has_products Groupoid.{u u} :=
+λ J, { has_limit := λ F, { exists_limit := nonempty.intro
+  { cone :=
+    { X := @of (Π j : J, (F.obj j).α) _,
+      π := { app := λ j : J, category_theory.pi.eval _ j, } },
+  is_limit :=
+  { lift := λ s, functor.pi' s.π.app,
+    fac' := by { intros, simp [hom_to_functor], },
+    uniq' :=
+    begin
+      intros s m w,
+      apply functor.pi_ext,
+      intro j, specialize w j,
+      simpa,
+    end } } } }
+
+end products
 
 end Groupoid
 

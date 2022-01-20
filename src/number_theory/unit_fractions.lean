@@ -95,6 +95,18 @@ theorem technical_prop :
   :=
 sorry
 
+-- (written before getting anywhere)
+-- I have a suspicion that an alternative phrasing might be nicer
+-- The ordering of the Sᵢ doesn't actually matter...
+-- the idea is that we pick a collection of subsets which has maximum size
+
+-- (written later)
+-- the above wasn't really true, I forgot about `nat.find_greatest` which does what's needed
+-- but it's still helpful to forget about the ordering of the S_i both here and in general
+-- imo it's almost always easier without, and oftentimes the argument never needed the ordering
+-- in the first place
+-- also `finset.exists_smaller_set` and `finset.exists_intermediate_set` are good to know about
+
 -- Corollary 1
 theorem corollary_one :
   ∀ᶠ (N : ℕ) in at_top, ∀ (A ⊆ finset.range (N+1)),
@@ -103,9 +115,56 @@ theorem corollary_one :
   → (∀ n ∈ A, ∃ p : ℕ, ((p ∣ n) ∧ (5 ≤ p) ∧ ((p:ℝ) ≤ (log N)^((1/500 : ℝ))) ))
   → (∀ n ∈ A, is_smooth ((N:ℝ)^(1-(6:ℝ)/(log(log N)))) n)
   → (∀ n ∈ A, (((99:ℝ)/100)*log(log N) ≤ ω n ) ∧ ( (ω n : ℝ) ≤ 2*(log (log N))))
-  → ∃ S ⊆ A, rec_sum S = 1
-  :=
-sorry
+  → ∃ S ⊆ A, rec_sum S = 1 :=
+begin
+  filter_upwards [technical_prop],
+  intros N p1 A A_upper_bound A_lower_bound hA₁ hA₂ hA₃ hA₄,
+  -- `good_set` expresses the families of subsets that we like
+  -- instead of saying we have S_1, ..., S_k, I'll say we have k-many subsets (+ same conditions)
+  let good_set : finset (finset ℕ) → Prop :=
+    λ S, (∀ s ∈ S, s ⊆ A) ∧ (S : set (finset ℕ)).pairwise_disjoint id ∧
+      ∀ s, ∃ (d : ℕ), s ∈ S → 1 ≤ d ∧ (d : ℝ) ≤ (log N)^(1/500 : ℝ) ∧ rec_sum s = 1 / d,
+    -- the last condition involving `d` is chosen weirdly so that `choose` later gives a more
+    -- convenient function
+  let P : ℕ → Prop := λ k, ∃ S : finset (finset ℕ), S.card = k ∧ good_set S,
+  let k : ℕ := nat.find_greatest P A.card, -- A.card is a trivial upper bound
+  have P0 : P 0 := ⟨∅, by simp [good_set]⟩, -- we clearly have that 0 satisfies p by using ∅
+  have Pk : P k := nat.find_greatest_spec (nat.zero_le _) P0,
+  obtain ⟨S, hk, hS₁, hS₂, hS₃⟩ := Pk,
+  choose d' hd'₁ hd'₂ hd'₃ using hS₃,
+  let t : ℕ → ℕ := λ d, (S.filter (λ s, d' s = d)).card,
+  -- If we do have an appropriate d, take it
+  by_cases h : ∃ d : ℕ, 0 < d ∧ d ≤ t d,
+  { obtain ⟨d, d_pos, ht⟩ := h,
+    -- there are ≥ d things with R(s) = 1/d, pick a subset so we have exactly d
+    obtain ⟨T', hT', hd₂⟩ := finset.exists_smaller_set _ _ ht,
+    have hT'S := hT'.trans (finset.filter_subset _ _),
+    refine ⟨T'.bUnion id, _, _⟩,
+    { refine (finset.bUnion_subset_bUnion_of_subset_left _ hT'S).trans _,
+      rwa finset.bUnion_subset },
+    rw [rec_sum_bUnion_disjoint (hS₂.subset hT'S), finset.sum_congr rfl, finset.sum_const, hd₂,
+      nsmul_eq_mul, mul_div_cancel'],
+    { rw nat.cast_ne_zero, exact d_pos.ne' },
+    intros i hi,
+    rw [hd'₃ _ (hT'S hi), (finset.mem_filter.1 (hT' hi)).2] },
+  push_neg at h,
+  -- otherwise make A' as in the paper
+  let A' := A \ S.bUnion id,
+  have : (∑ s in S, rec_sum s : ℝ) ≤ (log N)^(1/500 : ℝ),
+  { transitivity (∑ d in finset.Icc 1 ⌊(log N)^(1/500 : ℝ)⌋₊, t d / d : ℝ),
+    { have : ∀ s ∈ S, d' s ∈ finset.Icc 1 ⌊(log N)^(1/500 : ℝ)⌋₊,
+      { sorry },
+      rw ←finset.sum_fiberwise_of_maps_to this,
+      apply finset.sum_le_sum,
+      intros d hd,
+      rw [div_eq_mul_one_div, ←nsmul_eq_mul],
+      apply finset.sum_le_of_forall_le,
+      intros s hs,
+      simp only [finset.mem_filter] at hs,
+      rw [hd'₃ _ hs.1, hs.2, rat.cast_div, rat.cast_one, rat.cast_coe_nat] },
+    sorry },
+  sorry
+end
 
 -- define the X in Lemma 1 as a separate definition?
 def X (y z : ℝ) : set ℕ := sorry

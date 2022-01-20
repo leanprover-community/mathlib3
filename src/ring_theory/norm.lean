@@ -101,7 +101,7 @@ end
 section eq_prod_roots
 
 /-- Given `pb : power_basis K S`, then the norm of `pb.gen` is
-`(-1) ^ pb.dim * coeff ((minpoly K pb.gen).map (algebra_map K F)) 0`. -/
+`(-1) ^ pb.dim * coeff (minpoly K pb.gen) 0`. -/
 lemma power_basis.norm_gen_eq_coeff_zero_minpoly [algebra K S] (pb : power_basis K S) :
   (norm K pb.gen) = (-1) ^ pb.dim * coeff (minpoly K pb.gen) 0 :=
 begin

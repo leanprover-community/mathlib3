@@ -583,7 +583,7 @@ begin
 end
 
 /-- A piecewise function on countably many pieces is measurable if all the data is measurable. -/
-lemma measurable.find [measurable_space α]
+lemma measurable.find {m : measurable_space α}
   {f : ℕ → α → β} {p : ℕ → α → Prop} [∀ n, decidable_pred (p n)]
   (hf : ∀ n, measurable (f n)) (hp : ∀ n, measurable_set {x | p n x}) (h : ∀ x, ∃ n, p n x) :
   measurable (λ x, f (nat.find (h x)) x) :=
@@ -594,7 +594,7 @@ end
 
 /-- Given countably many disjoint measurable sets `t n` and countably many measurable
 functions `g n`, one can construct a measurable function that coincides with `g n` on `t n`. -/
-lemma exists_measurable_piecewise_nat [measurable_space α] (t : ℕ → set β)
+lemma exists_measurable_piecewise_nat {m : measurable_space α} (t : ℕ → set β)
   (t_meas : ∀ n, measurable_set (t n)) (t_disj : pairwise (disjoint on t))
   (g : ℕ → β → α) (hg : ∀ n, measurable (g n)) :
   ∃ f : β → α, measurable f ∧ (∀ n x, x ∈ t n → f x = g n x) :=

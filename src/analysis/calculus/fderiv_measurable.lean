@@ -70,7 +70,7 @@ derivative, measurable function, Borel σ-algebra
 noncomputable theory
 
 open set metric asymptotics filter continuous_linear_map
-open topological_space (second_countable_topology)
+open topological_space (second_countable_topology) measure_theory
 open_locale topological_space
 
 namespace continuous_linear_map
@@ -119,8 +119,8 @@ begin
   have : s ∈ Ioc (r/2) r := ⟨s_gt, le_of_lt (s_lt.trans_le r'_mem.2)⟩,
   refine ⟨r' - s, by linarith, λ x' hx', ⟨s, this, _⟩⟩,
   have B : ball x' s ⊆ ball x r' := ball_subset (le_of_lt hx'),
-  assume y z hy hz,
-  exact hr' y z (B hy) (B hz)
+  assume y hy z hz,
+  exact hr' y (B hy) z (B hz)
 end
 
 lemma is_open_B {K : set (E →L[𝕜] F)} {r s ε : ℝ} : is_open (B f K r s ε) :=
@@ -130,9 +130,7 @@ lemma A_mono (L : E →L[𝕜] F) (r : ℝ) {ε δ : ℝ} (h : ε ≤ δ) :
   A f L r ε ⊆ A f L r δ :=
 begin
   rintros x ⟨r', r'r, hr'⟩,
-  refine ⟨r', r'r, λ y z hy hz, _⟩,
-  apply le_trans (hr' y z hy hz),
-  apply mul_le_mul_of_nonneg_right h,
+  refine ⟨r', r'r, λ y hy z hz, (hr' y hy z hz).trans (mul_le_mul_of_nonneg_right h _)⟩,
   linarith [mem_ball.1 hy, r'r.2, @dist_nonneg _ _ y x],
 end
 
@@ -141,8 +139,7 @@ lemma le_of_mem_A {r ε : ℝ} {L : E →L[𝕜] F} {x : E} (hx : x ∈ A f L r 
   ∥f z - f y - L (z-y)∥ ≤ ε * r :=
 begin
   rcases hx with ⟨r', r'mem, hr'⟩,
-  exact hr' _ _ (lt_of_le_of_lt (mem_closed_ball.1 hy) r'mem.1)
-    (lt_of_le_of_lt (mem_closed_ball.1 hz) r'mem.1)
+  exact hr' _ ((mem_closed_ball.1 hy).trans_lt r'mem.1) _ ((mem_closed_ball.1 hz).trans_lt r'mem.1)
 end
 
 lemma mem_A_of_differentiable {ε : ℝ} (hε : 0 < ε) {x : E} (hx : differentiable_at 𝕜 f x) :
@@ -153,7 +150,7 @@ begin
   rcases eventually_nhds_iff_ball.1 (this (half_pos hε)) with ⟨R, R_pos, hR⟩,
   refine ⟨R, R_pos, λ r hr, _⟩,
   have : r ∈ Ioc (r/2) r := ⟨half_lt_self hr.1, le_refl _⟩,
-  refine ⟨r, this, λ y z hy hz, _⟩,
+  refine ⟨r, this, λ y hy z hz, _⟩,
   calc  ∥f z - f y - (fderiv 𝕜 f x) (z - y)∥
       = ∥(f z - f x - (fderiv 𝕜 f x) (z - x)) - (f y - f x - (fderiv 𝕜 f x) (y - x))∥ :
     by { congr' 1, simp only [continuous_linear_map.map_sub], abel }
@@ -389,7 +386,7 @@ begin
   simp
 end
 
-lemma measurable_fderiv : measurable (fderiv 𝕜 f) :=
+@[measurability] lemma measurable_fderiv : measurable (fderiv 𝕜 f) :=
 begin
   refine measurable_of_is_closed (λ s hs, _),
   have : fderiv 𝕜 f ⁻¹' s = {x | differentiable_at 𝕜 f x ∧ fderiv 𝕜 f x ∈ s} ∪
@@ -400,12 +397,16 @@ begin
     ((measurable_set.const _).inter (measurable_set_of_differentiable_at _ _).compl)
 end
 
-lemma measurable_fderiv_apply_const [measurable_space F] [borel_space F] (y : E) :
+@[measurability] lemma measurable_fderiv_apply_const [measurable_space F] [borel_space F] (y : E) :
   measurable (λ x, fderiv 𝕜 f x y) :=
 (continuous_linear_map.measurable_apply y).comp (measurable_fderiv 𝕜 f)
 
 variable {𝕜}
 
-lemma measurable_deriv [measurable_space 𝕜] [opens_measurable_space 𝕜] [measurable_space F]
-  [borel_space F] (f : 𝕜 → F) : measurable (deriv f) :=
+@[measurability] lemma measurable_deriv [measurable_space 𝕜] [opens_measurable_space 𝕜]
+  [measurable_space F] [borel_space F] (f : 𝕜 → F) : measurable (deriv f) :=
 by simpa only [fderiv_deriv] using measurable_fderiv_apply_const 𝕜 f 1
+
+lemma ae_measurable_deriv [measurable_space 𝕜] [opens_measurable_space 𝕜] [measurable_space F]
+  [borel_space F] (f : 𝕜 → F) (μ : measure 𝕜) : ae_measurable (deriv f) μ :=
+(measurable_deriv f).ae_measurable

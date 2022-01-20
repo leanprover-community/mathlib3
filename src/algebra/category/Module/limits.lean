@@ -91,11 +91,14 @@ Witness that the limit cone in `Module R` is a limit cone.
 (Internal use only; use the limits API.)
 -/
 def limit_cone_is_limit (F : J ⥤ Module R) : is_limit (limit_cone F) :=
-begin
-  refine is_limit.of_faithful
-    (forget (Module R)) (types.limit_cone_is_limit _)
-    (λ s, ⟨_, _, _⟩) (λ s, rfl); tidy
-end
+by refine is_limit.of_faithful
+      (forget (Module R)) (types.limit_cone_is_limit _)
+      (λ s, ⟨_, _, _⟩) (λ s, rfl);
+    intros;
+    ext j;
+    simp only [subtype.coe_mk, functor.map_cone_π_app, forget_map_eq_coe,
+         linear_map.map_add, linear_map.map_smul];
+    refl
 
 end has_limits
 
@@ -137,7 +140,7 @@ section direct_limit
 open module
 
 variables {ι : Type v}
-variables [dec_ι : decidable_eq ι] [directed_order ι]
+variables [dec_ι : decidable_eq ι] [preorder ι]
 variables (G : ι → Type v)
 variables [Π i, add_comm_group (G i)] [Π i, module R (G i)]
 variables (f : Π i j, i ≤ j → G i →ₗ[R] G j) [directed_system G (λ i j h, f i j h)]
@@ -172,7 +175,8 @@ def direct_limit_cocone : cocone (direct_limit_diagram G f) :=
 /-- The unbundled `direct_limit` of modules is a colimit
 in the sense of `category_theory`. -/
 @[simps]
-def direct_limit_is_colimit [nonempty ι] : is_colimit (direct_limit_cocone G f) :=
+def direct_limit_is_colimit [nonempty ι] [is_directed ι (≤)] :
+  is_colimit (direct_limit_cocone G f) :=
 { desc := λ s, direct_limit.lift R ι G f s.ι.app $ λ i j h x, by { rw [←s.w (hom_of_le h)], refl },
   fac' := λ s i,
   begin

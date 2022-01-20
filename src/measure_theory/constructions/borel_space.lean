@@ -98,7 +98,7 @@ lemma topological_space.is_topological_basis.borel_eq_generate_from [topological
 borel_eq_generate_from_of_subbasis hs.eq_generate_from
 
 lemma is_pi_system_is_open [topological_space α] : is_pi_system (is_open : set α → Prop) :=
-λ s t hs ht hst, is_open.inter hs ht
+λ s hs t ht hst, is_open.inter hs ht
 
 lemma borel_eq_generate_from_is_closed [topological_space α] :
   borel α = generate_from {s | is_closed s} :=
@@ -431,8 +431,8 @@ begin
   { refine set.finite_of_forall_between_eq_endpoints (s \ u) (λ x hx y hy z hz hxy hyz, _),
     by_contra h,
     push_neg at h,
-    exact hy.2 (mem_bUnion_iff.mpr ⟨x, hx.1,
-      mem_bUnion_iff.mpr ⟨z, hz.1, lt_of_le_of_ne hxy h.1, lt_of_le_of_ne hyz h.2⟩⟩) },
+    exact hy.2 (mem_Union₂.mpr ⟨x, hx.1,
+      mem_Union₂.mpr ⟨z, hz.1, lt_of_le_of_ne hxy h.1, lt_of_le_of_ne hyz h.2⟩⟩) },
   have : u ⊆ s :=
     bUnion_subset (λ x hx, bUnion_subset (λ y hy, Ioo_subset_Icc_self.trans (h.out hx hy))),
   rw ← union_diff_cancel this,
@@ -489,7 +489,7 @@ begin
 end
 
 lemma dense.borel_eq_generate_from_Ico_mem {α : Type*} [topological_space α] [linear_order α]
-  [order_topology α] [second_countable_topology α] [densely_ordered α] [no_bot_order α]
+  [order_topology α] [second_countable_topology α] [densely_ordered α] [no_min_order α]
   {s : set α} (hd : dense s) :
   borel α = generate_from {S : set α | ∃ (l ∈ s) (u ∈ s) (h : l < u), Ico l u = S} :=
 hd.borel_eq_generate_from_Ico_mem_aux (by simp) $
@@ -516,7 +516,7 @@ begin
 end
 
 lemma dense.borel_eq_generate_from_Ioc_mem {α : Type*} [topological_space α] [linear_order α]
-  [order_topology α] [second_countable_topology α] [densely_ordered α] [no_top_order α]
+  [order_topology α] [second_countable_topology α] [densely_ordered α] [no_max_order α]
   {s : set α} (hd : dense s) :
   borel α = generate_from {S : set α | ∃ (l ∈ s) (u ∈ s) (h : l < u), Ioc l u = S} :=
 hd.borel_eq_generate_from_Ioc_mem_aux (by simp) $
@@ -565,7 +565,7 @@ end
 closed-open intervals. -/
 lemma ext_of_Ico' {α : Type*} [topological_space α] {m : measurable_space α}
   [second_countable_topology α] [linear_order α] [order_topology α] [borel_space α]
-  [no_top_order α] (μ ν : measure α) (hμ : ∀ ⦃a b⦄, a < b → μ (Ico a b) ≠ ∞)
+  [no_max_order α] (μ ν : measure α) (hμ : ∀ ⦃a b⦄, a < b → μ (Ico a b) ≠ ∞)
   (h : ∀ ⦃a b⦄, a < b → μ (Ico a b) = ν (Ico a b)) : μ = ν :=
 begin
   rcases exists_countable_dense_bot_top α with ⟨s, hsc, hsd, hsb, hst⟩,
@@ -589,7 +589,7 @@ end
 open-closed intervals. -/
 lemma ext_of_Ioc' {α : Type*} [topological_space α] {m : measurable_space α}
   [second_countable_topology α] [linear_order α] [order_topology α] [borel_space α]
-  [no_bot_order α] (μ ν : measure α) (hμ : ∀ ⦃a b⦄, a < b → μ (Ioc a b) ≠ ∞)
+  [no_min_order α] (μ ν : measure α) (hμ : ∀ ⦃a b⦄, a < b → μ (Ioc a b) ≠ ∞)
   (h : ∀ ⦃a b⦄, a < b → μ (Ioc a b) = ν (Ioc a b)) : μ = ν :=
 begin
   refine @ext_of_Ico' (order_dual α) _ _ _ _ _ ‹_› _ μ ν _ _;
@@ -601,7 +601,7 @@ end
 closed-open intervals. -/
 lemma ext_of_Ico {α : Type*} [topological_space α] {m : measurable_space α}
   [second_countable_topology α] [conditionally_complete_linear_order α] [order_topology α]
-  [borel_space α] [no_top_order α] (μ ν : measure α) [is_locally_finite_measure μ]
+  [borel_space α] [no_max_order α] (μ ν : measure α) [is_locally_finite_measure μ]
   (h : ∀ ⦃a b⦄, a < b → μ (Ico a b) = ν (Ico a b)) : μ = ν :=
 μ.ext_of_Ico' ν (λ a b hab, measure_Ico_lt_top.ne) h
 
@@ -609,7 +609,7 @@ lemma ext_of_Ico {α : Type*} [topological_space α] {m : measurable_space α}
 open-closed intervals. -/
 lemma ext_of_Ioc {α : Type*} [topological_space α] {m : measurable_space α}
   [second_countable_topology α] [conditionally_complete_linear_order α] [order_topology α]
-  [borel_space α] [no_bot_order α] (μ ν : measure α) [is_locally_finite_measure μ]
+  [borel_space α] [no_min_order α] (μ ν : measure α) [is_locally_finite_measure μ]
   (h : ∀ ⦃a b⦄, a < b → μ (Ioc a b) = ν (Ioc a b)) : μ = ν :=
 μ.ext_of_Ioc' ν (λ a b hab, measure_Ioc_lt_top.ne) h
 
@@ -623,8 +623,8 @@ begin
   { rcases exists_countable_dense_bot_top α with ⟨s, hsc, hsd, -, hst⟩,
     have : directed_on (≤) s, from directed_on_iff_directed.2 (directed_of_sup $ λ _ _, id),
     simp only [← bsupr_measure_Iic hsc (hsd.exists_ge' hst) this, h] },
-  rw [← Iic_diff_Iic, measure_diff (Iic_subset_Iic.2 hlt.le) measurable_set_Iic measurable_set_Iic,
-      measure_diff (Iic_subset_Iic.2 hlt.le) measurable_set_Iic measurable_set_Iic, h a, h b],
+  rw [← Iic_diff_Iic, measure_diff (Iic_subset_Iic.2 hlt.le) measurable_set_Iic,
+      measure_diff (Iic_subset_Iic.2 hlt.le) measurable_set_Iic, h a, h b],
   { rw ← h a, exact (measure_lt_top μ _).ne },
   { exact (measure_lt_top μ _).ne }
 end
@@ -1177,6 +1177,18 @@ def homemorph.to_measurable_equiv (h : α ≃ₜ β) : α ≃ᵐ β :=
   measurable_to_fun := h.continuous_to_fun.measurable,
   measurable_inv_fun := h.continuous_inv_fun.measurable }
 
+protected lemma is_finite_measure_on_compacts.map
+  {α : Type*} {m0 : measurable_space α} [topological_space α] [opens_measurable_space α]
+  {β : Type*} [measurable_space β] [topological_space β] [borel_space β]
+  [t2_space β] (μ : measure α) [is_finite_measure_on_compacts μ] (f : α ≃ₜ β) :
+  is_finite_measure_on_compacts (measure.map f μ) :=
+⟨begin
+  assume K hK,
+  rw [measure.map_apply f.measurable hK.measurable_set],
+  apply is_compact.measure_lt_top,
+  rwa f.compact_preimage
+end⟩
+
 end borel_space
 
 instance empty.borel_space : borel_space empty := ⟨borel_eq_top_of_discrete.symm⟩
@@ -1227,7 +1239,6 @@ begin
     { apply disjoint_left.2 (λ x hx h'x, _),
       have : 0 < f x := h'x.2,
       exact lt_irrefl 0 (this.trans_le hx.2.le) },
-    { exact hs.inter (hf (measurable_set_singleton _)) },
     { exact hs.inter (hf measurable_set_Ioi) } },
   have B : μ (s ∩ f⁻¹' (Ioi 0)) = μ (s ∩ f⁻¹' {∞}) + μ (s ∩ f⁻¹' (Ioo 0 ∞)),
   { rw ← measure_union,
@@ -1242,7 +1253,6 @@ begin
     { apply disjoint_left.2 (λ x hx h'x, _),
       have : f x < ∞ := h'x.2.2,
       exact lt_irrefl _ (this.trans_le (le_of_eq hx.2.symm)) },
-    { exact hs.inter (hf (measurable_set_singleton _)) },
     { exact hs.inter (hf measurable_set_Ioo) } },
   have C : μ (s ∩ f⁻¹' (Ioo 0 ∞)) = ∑' (n : ℤ), μ (s ∩ f⁻¹' (Ico (t^n) (t^(n+1)))),
   { rw [← measure_Union, ennreal.Ioo_zero_top_eq_Union_Ico_zpow (ennreal.one_lt_coe_iff.2 ht)
@@ -1297,6 +1307,7 @@ lemma measurable.inf_nndist {f : β → α} (hf : measurable f) {s : set α} :
   measurable (λ x, inf_nndist (f x) s) :=
 measurable_inf_nndist.comp hf
 
+section
 variables [second_countable_topology α]
 
 @[measurability]
@@ -1316,6 +1327,45 @@ continuous_nndist.measurable
 lemma measurable.nndist {f g : β → α} (hf : measurable f) (hg : measurable g) :
   measurable (λ b, nndist (f b) (g b)) :=
 (@continuous_nndist α _).measurable2 hf hg
+
+end
+
+/-- If a set has a closed thickening with finite measure, then the measure of its `r`-closed
+thickenings converges to the measure of its closure as `r` tends to `0`. -/
+lemma tendsto_measure_cthickening {μ : measure α} {s : set α}
+  (hs : ∃ R > 0, μ (cthickening R s) ≠ ∞) :
+  tendsto (λ r, μ (cthickening r s)) (𝓝 0) (𝓝 (μ (closure s))) :=
+begin
+  have A : tendsto (λ r, μ (cthickening r s)) (𝓝[Ioi 0] 0) (𝓝 (μ (closure s))),
+  { rw closure_eq_Inter_cthickening,
+    exact tendsto_measure_bInter_gt (λ r hr, is_closed_cthickening.measurable_set)
+      (λ i j ipos ij, cthickening_mono ij _) hs },
+  have B : tendsto (λ r, μ (cthickening r s)) (𝓝[Iic 0] 0) (𝓝 (μ (closure s))),
+  { apply tendsto.congr' _ tendsto_const_nhds,
+    filter_upwards [self_mem_nhds_within],
+    assume r hr,
+    rw cthickening_of_nonpos hr },
+  convert B.sup A,
+  exact (nhds_left_sup_nhds_right' 0).symm,
+end
+
+/-- If a closed set has a closed thickening with finite measure, then the measure of its `r`-closed
+thickenings converges to its measure as `r` tends to `0`. -/
+lemma tendsto_measure_cthickening_of_is_closed {μ : measure α} {s : set α}
+  (hs : ∃ R > 0, μ (cthickening R s) ≠ ∞) (h's : is_closed s) :
+  tendsto (λ r, μ (cthickening r s)) (𝓝 0) (𝓝 (μ s)) :=
+begin
+  convert tendsto_measure_cthickening hs,
+  exact h's.closure_eq.symm
+end
+
+/-- Given a compact set in a proper space, the measure of its `r`-closed thickenings converges to
+its measure as `r` tends to `0`. -/
+lemma tendsto_measure_cthickening_of_is_compact [proper_space α] {μ : measure α}
+  [is_finite_measure_on_compacts μ] {s : set α} (hs : is_compact s) :
+  tendsto (λ r, μ (cthickening r s)) (𝓝 0) (𝓝 (μ s)) :=
+tendsto_measure_cthickening_of_is_closed
+  ⟨1, zero_lt_one, (bounded.measure_lt_top hs.bounded.cthickening).ne⟩ hs.is_closed
 
 end metric_space
 
@@ -1410,7 +1460,7 @@ begin
     simp only [mem_Union, mem_singleton_iff], rintro ⟨a, b, h, rfl⟩,
     rw (set.ext (λ x, _) : Ioo (a : ℝ) b = (⋃c>a, (Iio c)ᶜ) ∩ Iio b),
     { have hg : ∀ q : ℚ, g.measurable_set' (Iio q) :=
-        λ q, generate_measurable.basic (Iio q) (by { simp, exact ⟨_, rfl⟩ }),
+        λ q, generate_measurable.basic (Iio q) (by simp),
       refine @measurable_set.inter _ g _ _ _ (hg _),
       refine @measurable_set.bUnion _ _ g _ _ (countable_encodable _) (λ c h, _),
       exact @measurable_set.compl _ _ g (hg _) },

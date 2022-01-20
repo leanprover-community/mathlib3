@@ -28,7 +28,12 @@ partially defined functions.
 
 * `𝓝 x`: the filter of neighborhoods of a point `x`;
 * `𝓟 s`: the principal filter of a set `s`;
-* `𝓝[s] x`: the filter `nhds_within x s` of neighborhoods of a point `x` within a set `s`.
+* `𝓝[s] x`: the filter `nhds_within x s` of neighborhoods of a point `x` within a set `s`;
+* `𝓝[≤] x`: the filter `nhds_within x (set.Iic x)` of left-neighborhoods of `x`;
+* `𝓝[≥] x`: the filter `nhds_within x (set.Ici x)` of right-neighborhoods of `x`;
+* `𝓝[<] x`: the filter `nhds_within x (set.Iio x)` of punctured left-neighborhoods of `x`;
+* `𝓝[>] x`: the filter `nhds_within x (set.Ioi x)` of punctured right-neighborhoods of `x`;
+* `𝓝[≠] x`: the filter `nhds_within x {x}ᶜ` of punctured neighborhoods of `x`.
 
 ## Implementation notes
 
@@ -71,7 +76,7 @@ def topological_space.of_closed {α : Type u} (T : set (set α))
   topological_space α :=
 { is_open := λ X, Xᶜ ∈ T,
   is_open_univ := by simp [empty_mem],
-  is_open_inter := λ s t hs ht, by simpa [set.compl_inter] using union_mem sᶜ tᶜ hs ht,
+  is_open_inter := λ s t hs ht, by simpa [set.compl_inter] using union_mem sᶜ hs tᶜ ht,
   is_open_sUnion := λ s hs,
     by rw set.compl_sUnion; exact sInter_mem (set.compl '' s)
     (λ z ⟨y, hy, hz⟩, by simpa [hz.symm] using hs y hy) }
@@ -333,6 +338,15 @@ lemma not_mem_of_not_mem_closure {s : set α} {P : α} (hP : P ∉ closure s) : 
 lemma closure_minimal {s t : set α} (h₁ : s ⊆ t) (h₂ : is_closed t) : closure s ⊆ t :=
 sInter_subset_of_mem ⟨h₂, h₁⟩
 
+lemma disjoint.closure_left {s t : set α} (hd : disjoint s t) (ht : is_open t) :
+  disjoint (closure s) t :=
+disjoint_compl_left.mono_left $ closure_minimal (disjoint_iff_subset_compl_right.1 hd)
+  ht.is_closed_compl
+
+lemma disjoint.closure_right {s t : set α} (hd : disjoint s t) (hs : is_open s) :
+  disjoint s (closure t) :=
+(hd.symm.closure_left hs).symm
+
 lemma is_closed.closure_eq {s : set α} (h : is_closed s) : closure s = s :=
 subset.antisymm (closure_minimal (subset.refl s) h) subset_closure
 
@@ -342,6 +356,10 @@ closure_minimal (subset.refl _) hs
 lemma is_closed.closure_subset_iff {s t : set α} (h₁ : is_closed t) :
   closure s ⊆ t ↔ s ⊆ t :=
 ⟨subset.trans subset_closure, assume h, closure_minimal h h₁⟩
+
+lemma is_closed.mem_iff_closure_subset {α : Type*} [topological_space α] {U : set α}
+  (hU : is_closed U) {x : α} : x ∈ U ↔ closure ({x} : set α) ⊆ U :=
+(hU.closure_subset_iff.trans set.singleton_subset_iff).symm
 
 @[mono] lemma closure_mono {s t : set α} (h : s ⊆ t) : closure s ⊆ closure t :=
 closure_minimal (subset.trans h subset_closure) is_closed_closure
@@ -389,7 +407,7 @@ subset.antisymm
     is_closed.union is_closed_closure is_closed_closure)
   ((monotone_closure α).le_map_sup s t)
 
-@[simp] lemma finset.closure_Union {ι : Type*} (s : finset ι) (f : ι → set α) :
+@[simp] lemma finset.closure_bUnion {ι : Type*} (s : finset ι) (f : ι → set α) :
   closure (⋃ i ∈ s, f i) = ⋃ i ∈ s, closure (f i) :=
 begin
   classical,
@@ -400,7 +418,7 @@ end
 
 @[simp] lemma closure_Union_of_fintype {ι : Type*} [fintype ι] (f : ι → set α) :
   closure (⋃ i, f i) = ⋃ i, closure (f i) :=
-by { convert finset.univ.closure_Union f; simp, }
+by { convert finset.univ.closure_bUnion f; simp, }
 
 lemma interior_subset_closure {s : set α} : interior s ⊆ closure s :=
 subset.trans interior_subset subset_closure
@@ -593,6 +611,11 @@ intersection of `s` and a neighborhood of `a`. -/
 def nhds_within (a : α) (s : set α) : filter α := 𝓝 a ⊓ 𝓟 s
 
 localized "notation `𝓝[` s `] ` x:100 := nhds_within x s" in topological_space
+localized "notation `𝓝[≠] ` x:100 := nhds_within x {x}ᶜ" in topological_space
+localized "notation `𝓝[≥] ` x:100 := nhds_within x (set.Ici x)" in topological_space
+localized "notation `𝓝[≤] ` x:100 := nhds_within x (set.Iic x)" in topological_space
+localized "notation `𝓝[>] ` x:100 := nhds_within x (set.Ioi x)" in topological_space
+localized "notation `𝓝[<] ` x:100 := nhds_within x (set.Iio x)" in topological_space
 
 lemma nhds_def (a : α) : 𝓝 a = (⨅ s ∈ {s : set α | a ∈ s ∧ is_open s}, 𝓟 s) := by rw nhds
 
@@ -696,6 +719,10 @@ eventually_nhds_iff.2 ⟨t, λ x hx, eventually_nhds_iff.2 ⟨t, htp, hto, hx⟩
 @[simp] lemma eventually_eventually_nhds {p : α → Prop} {a : α} :
   (∀ᶠ y in 𝓝 a, ∀ᶠ x in 𝓝 y, p x) ↔ ∀ᶠ x in 𝓝 a, p x :=
 ⟨λ h, h.self_of_nhds, λ h, h.eventually_nhds⟩
+
+@[simp] lemma eventually_mem_nhds {s : set α} {a : α} :
+  (∀ᶠ x in 𝓝 a, s ∈ 𝓝 x) ↔ s ∈ 𝓝 a :=
+eventually_eventually_nhds
 
 @[simp] lemma nhds_bind_nhds : (𝓝 a).bind 𝓝 = 𝓝 a := filter.ext $ λ s, eventually_eventually_nhds
 
@@ -895,6 +922,18 @@ theorem is_open_iff_ultrafilter {s : set α} :
   is_open s ↔ (∀ (x ∈ s) (l : ultrafilter α), ↑l ≤ 𝓝 x → s ∈ l) :=
 by simp_rw [is_open_iff_mem_nhds, ← mem_iff_ultrafilter]
 
+lemma is_open_singleton_iff_nhds_eq_pure {α : Type*} [topological_space α] (a : α) :
+  is_open ({a} : set α) ↔ 𝓝 a = pure a :=
+begin
+  split,
+  { intros h,
+    apply le_antisymm _ (pure_le_nhds a),
+    rw le_pure_iff,
+    exact h.mem_nhds (mem_singleton a) },
+  { intros h,
+    simp [is_open_iff_nhds, h] }
+end
+
 lemma mem_closure_iff_frequently {s : set α} {a : α} : a ∈ closure s ↔ ∃ᶠ x in 𝓝 a, x ∈ s :=
 by rw [filter.frequently, filter.eventually, ← mem_interior_iff_mem_nhds,
   closure_eq_compl_interior_compl]; refl
@@ -922,7 +961,7 @@ mem_closure_iff_cluster_pt
 
 /-- If `x` is not an isolated point of a topological space, then `{x}ᶜ` is dense in the whole
 space. -/
-lemma dense_compl_singleton (x : α) [ne_bot (𝓝[{x}ᶜ] x)] : dense ({x}ᶜ : set α) :=
+lemma dense_compl_singleton (x : α) [ne_bot (𝓝[≠] x)] : dense ({x}ᶜ : set α) :=
 begin
   intro y,
   unfreezingI { rcases eq_or_ne y x with rfl|hne },
@@ -932,12 +971,12 @@ end
 
 /-- If `x` is not an isolated point of a topological space, then the closure of `{x}ᶜ` is the whole
 space. -/
-@[simp] lemma closure_compl_singleton (x : α) [ne_bot (𝓝[{x}ᶜ] x)] :
+@[simp] lemma closure_compl_singleton (x : α) [ne_bot (𝓝[≠] x)] :
   closure {x}ᶜ = (univ : set α) :=
 (dense_compl_singleton x).closure_eq
 
 /-- If `x` is not an isolated point of a topological space, then the interior of `{x}` is empty. -/
-@[simp] lemma interior_singleton (x : α) [ne_bot (𝓝[{x}ᶜ] x)] :
+@[simp] lemma interior_singleton (x : α) [ne_bot (𝓝[≠] x)] :
   interior {x} = (∅ : set α) :=
 interior_eq_empty_iff_dense_compl.2 (dense_compl_singleton x)
 
@@ -1192,6 +1231,9 @@ lemma is_open.preimage {f : α → β} (hf : continuous f) {s : set β} (h : is_
   is_open (f ⁻¹' s) :=
 hf.is_open_preimage s h
 
+lemma continuous.congr {f g : α → β} (h : continuous f) (h' : ∀ x, f x = g x) : continuous g :=
+by { convert h, ext, rw h' }
+
 /-- A function between topological spaces is continuous at a point `x₀`
 if `f x` tends to `f x₀` when `x` tends to `x₀`. -/
 def continuous_at (f : α → β) (x : α) := tendsto f (𝓝 x) (𝓝 (f x))
@@ -1199,6 +1241,9 @@ def continuous_at (f : α → β) (x : α) := tendsto f (𝓝 x) (𝓝 (f x))
 lemma continuous_at.tendsto {f : α → β} {x : α} (h : continuous_at f x) :
   tendsto f (𝓝 x) (𝓝 (f x)) :=
 h
+
+lemma continuous_at_def {f : α → β} {x : α} : continuous_at f x ↔ ∀ A ∈ 𝓝 (f x), f ⁻¹' A ∈ 𝓝 x :=
+iff.rfl
 
 lemma continuous_at_congr {f g : α → β} {x : α} (h : f =ᶠ[𝓝 x] g) :
   continuous_at f x ↔ continuous_at g x :=

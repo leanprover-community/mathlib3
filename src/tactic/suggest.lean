@@ -3,7 +3,7 @@ Copyright (c) 2019 Lucas Allen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Lucas Allen, Scott Morrison
 -/
-import data.bool
+import data.bool.basic
 import data.mllist
 import tactic.solve_by_elim
 

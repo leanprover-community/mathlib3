@@ -45,7 +45,7 @@ variables {Γ₀ : Type*} [linear_ordered_comm_group_with_zero Γ₀] (v : valua
 -- in the topology induced by a valuation on a division ring (ie the next instance)
 -- and the fact that a valued field is completable
 -- [BouAC, VI.5.1 Lemme 1]
-lemma valuation.inversion_estimate {x y : K} {γ : units Γ₀} (y_ne : y ≠ 0)
+lemma valuation.inversion_estimate {x y : K} {γ : Γ₀ˣ} (y_ne : y ≠ 0)
   (h : v (x - y) < min (γ * ((v y) * (v y))) (v y)) :
   v (x⁻¹ - y⁻¹) < γ :=
 begin
@@ -88,7 +88,7 @@ instance valued.topological_division_ring [valued K] : topological_division_ring
       intros x x_ne s s_in,
       cases valued.mem_nhds.mp s_in with γ hs, clear s_in,
       rw [mem_map, valued.mem_nhds],
-      change ∃ (γ : units (valued.Γ₀ K)), {y : K | v (y - x) < γ} ⊆ {x : K | x⁻¹ ∈ s},
+      change ∃ (γ : (valued.Γ₀ K)ˣ), {y : K | v (y - x) < γ} ⊆ {x : K | x⁻¹ ∈ s},
       have vx_ne := (valuation.ne_zero_iff $ v).mpr x_ne,
       let γ' := units.mk0 _ vx_ne,
       use min (γ * (γ'*γ')) γ',
@@ -157,7 +157,7 @@ local notation `hat ` := completion
 instance valued.completable : completable_top_field K :=
 { nice := begin
     rintros F hF h0,
-    have : ∃ (γ₀ : units (Γ₀ K)) (M ∈ F), ∀ x ∈ M, (γ₀ : Γ₀ K) ≤ v x,
+    have : ∃ (γ₀ : (Γ₀ K)ˣ) (M ∈ F), ∀ x ∈ M, (γ₀ : Γ₀ K) ≤ v x,
     { rcases filter.inf_eq_bot_iff.mp h0 with ⟨U, U_in, M, M_in, H⟩,
       rcases valued.mem_nhds_zero.mp U_in with ⟨γ₀, hU⟩,
       existsi [γ₀, M, M_in],
@@ -177,9 +177,9 @@ instance valued.completable : completable_top_field K :=
     { rw mem_map,
       apply mem_of_superset (filter.inter_mem M₀_in M₁_in),
       exact subset_preimage_image _ _ },
-    { rintros _ _ ⟨x, ⟨x_in₀, x_in₁⟩, rfl⟩ ⟨y, ⟨y_in₀, y_in₁⟩, rfl⟩,
+    { rintros _ ⟨x, ⟨x_in₀, x_in₁⟩, rfl⟩ _ ⟨y, ⟨y_in₀, y_in₁⟩, rfl⟩,
       simp only [mem_set_of_eq],
-      specialize H₁ x y x_in₁ y_in₁,
+      specialize H₁ x x_in₁ y y_in₁,
       replace x_in₀ := H₀ x x_in₀,
       replace y_in₀ := H₀ y y_in₀, clear H₀,
       apply valuation.inversion_estimate,
@@ -190,7 +190,7 @@ instance valued.completable : completable_top_field K :=
         rw units.min_coe,
         apply min_le_min _ x_in₀,
         rw mul_assoc,
-        have : ((γ₀ * γ₀ : units (Γ₀ K)) : Γ₀ K) ≤ v x * v x,
+        have : ((γ₀ * γ₀ : (Γ₀ K)ˣ) : Γ₀ K) ≤ v x * v x,
           from calc ↑γ₀ * ↑γ₀ ≤ ↑γ₀ * v x : mul_le_mul_left' x_in₀ ↑γ₀
                           ... ≤ _ : mul_le_mul_right' x_in₀ (v x),
         rw units.coe_mul,
@@ -240,7 +240,7 @@ lemma valued.continuous_extension : continuous (valued.extension : hat K → Γ�
       { rintro ⟨h, h'⟩,
         rw mem_compl_singleton_iff at h',
         exact h' rfl },
-      { rintros x y ⟨hx, _⟩ ⟨hy, _⟩,
+      { rintros x ⟨hx, _⟩ y ⟨hy, _⟩,
         apply hU ; assumption } },
     rcases this with ⟨V', V'_in, zeroV', hV'⟩,
     have nhds_right : (λ x, x*x₀) '' V' ∈ 𝓝 x₀,
@@ -256,11 +256,10 @@ lemma valued.continuous_extension : continuous (valued.extension : hat K → Γ�
       rw ← mul_inv_cancel h at V'_in,
       exact c.continuous_at V'_in },
     have : ∃ (z₀ : K) (y₀ ∈ V'), coe z₀ = y₀*x₀ ∧ z₀ ≠ 0,
-    { rcases dense_range.mem_nhds completion.dense_range_coe nhds_right with ⟨z₀, y₀, y₀_in, h⟩,
-      refine ⟨z₀, y₀, y₀_in, ⟨h.symm, _⟩⟩,
-      intro hz,
-      rw hz at h,
-      cases zero_eq_mul.mp h.symm ; finish },
+    { rcases completion.dense_range_coe.mem_nhds nhds_right with ⟨z₀, y₀, y₀_in, H : y₀ * x₀ = z₀⟩,
+      refine ⟨z₀, y₀, y₀_in, ⟨H.symm, _⟩⟩,
+      rintro rfl,
+      exact mul_ne_zero (ne_of_mem_of_not_mem y₀_in zeroV') h H },
     rcases this with ⟨z₀, y₀, y₀_in, hz₀, z₀_ne⟩,
     have vz₀_ne: v z₀ ≠ 0 := by rwa valuation.ne_zero_iff,
     refine ⟨v z₀, _⟩,

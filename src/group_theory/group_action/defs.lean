@@ -6,6 +6,7 @@ Authors: Chris Hughes, Yury Kudryashov
 import algebra.group.defs
 import algebra.group.hom
 import algebra.group.type_tags
+import algebra.opposites
 import logic.embedding
 
 /-!
@@ -27,6 +28,7 @@ interaction of different group actions,
 
 * `smul_comm_class M N α` and its additive version `vadd_comm_class M N α`;
 * `is_scalar_tower M N α` (no additive version).
+* `is_central_scalar M α` (no additive version).
 
 ## Notation
 
@@ -181,6 +183,44 @@ is_scalar_tower.smul_assoc x y z
 
 instance semigroup.is_scalar_tower [semigroup α] : is_scalar_tower α α α := ⟨mul_assoc⟩
 
+/-- A typeclass indicating that the right (aka `mul_opposite`) and left actions by `M` on `α` are
+equal, that is that `M` acts centrally on `α`. This can be thought of as a version of commutativity
+for `•`. -/
+class is_central_scalar (M α : Type*) [has_scalar M α] [has_scalar Mᵐᵒᵖ α] : Prop :=
+(op_smul_eq_smul : ∀ (m : M) (a : α), mul_opposite.op m • a = m • a)
+
+lemma is_central_scalar.unop_smul_eq_smul {M α : Type*} [has_scalar M α] [has_scalar Mᵐᵒᵖ α]
+  [is_central_scalar M α] (m : Mᵐᵒᵖ) (a : α) : (mul_opposite.unop m) • a = m • a :=
+mul_opposite.rec (by exact λ m, (is_central_scalar.op_smul_eq_smul _ _).symm) m
+
+export is_central_scalar (op_smul_eq_smul unop_smul_eq_smul)
+
+-- these instances are very low priority, as there is usually a faster way to find these instances
+
+@[priority 50]
+instance smul_comm_class.op_left [has_scalar M α] [has_scalar Mᵐᵒᵖ α]
+  [is_central_scalar M α] [has_scalar N α] [smul_comm_class M N α] : smul_comm_class Mᵐᵒᵖ N α :=
+⟨λ m n a, by rw [←unop_smul_eq_smul m (n • a), ←unop_smul_eq_smul m a, smul_comm]⟩
+
+@[priority 50]
+instance smul_comm_class.op_right [has_scalar M α] [has_scalar N α] [has_scalar Nᵐᵒᵖ α]
+  [is_central_scalar N α] [smul_comm_class M N α] : smul_comm_class M Nᵐᵒᵖ α :=
+⟨λ m n a, by rw [←unop_smul_eq_smul n (m • a), ←unop_smul_eq_smul n a, smul_comm]⟩
+
+@[priority 50]
+instance is_scalar_tower.op_left
+  [has_scalar M α] [has_scalar Mᵐᵒᵖ α] [is_central_scalar M α]
+  [has_scalar M N] [has_scalar Mᵐᵒᵖ N] [is_central_scalar M N]
+  [has_scalar N α] [is_scalar_tower M N α] : is_scalar_tower Mᵐᵒᵖ N α :=
+⟨λ m n a, by rw [←unop_smul_eq_smul m (n • a), ←unop_smul_eq_smul m n, smul_assoc]⟩
+
+@[priority 50]
+instance is_scalar_tower.op_right [has_scalar M α] [has_scalar M N]
+  [has_scalar N α] [has_scalar Nᵐᵒᵖ α] [is_central_scalar N α]
+  [is_scalar_tower M N α] : is_scalar_tower M Nᵐᵒᵖ α :=
+⟨λ m n a, by rw [←unop_smul_eq_smul n a, ←unop_smul_eq_smul (m • n) a, mul_opposite.unop_smul,
+                 smul_assoc]⟩
+
 namespace has_scalar
 variables [has_scalar M α]
 
@@ -216,13 +256,21 @@ lemma comp.is_scalar_tower [has_scalar M β] [has_scalar α β] [is_scalar_tower
   (by haveI := comp α g; haveI := comp β g; exact is_scalar_tower N α β) :=
 by exact {smul_assoc := λ n, @smul_assoc _ _ _ _ _ _ _ (g n) }
 
+/--
+This cannot be an instance because it can cause infinite loops whenever the `has_scalar` arguments
+are still metavariables.
+-/
 @[priority 100]
-instance comp.smul_comm_class [has_scalar β α] [smul_comm_class M β α] (g : N → M) :
+lemma comp.smul_comm_class [has_scalar β α] [smul_comm_class M β α] (g : N → M) :
   (by haveI := comp α g; exact smul_comm_class N β α) :=
 by exact {smul_comm := λ n, @smul_comm _ _ _ _ _ _ (g n) }
 
+/--
+This cannot be an instance because it can cause infinite loops whenever the `has_scalar` arguments
+are still metavariables.
+-/
 @[priority 100]
-instance comp.smul_comm_class' [has_scalar β α] [smul_comm_class β M α] (g : N → M) :
+lemma comp.smul_comm_class' [has_scalar β α] [smul_comm_class β M α] (g : N → M) :
   (by haveI := comp α g; exact smul_comm_class β N α) :=
 by exact {smul_comm := λ _ n, @smul_comm _ _ _ _ _ _ _ (g n) }
 

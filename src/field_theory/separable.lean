@@ -205,9 +205,21 @@ begin
     rw [coeff_expand_mul hp, ← leading_coeff], exact mt leading_coeff_eq_zero.1 hf }
 end
 
-theorem map_expand {p : ℕ} (hp : 0 < p) {f : R →+* S} {q : polynomial R} :
+lemma monic.expand {p : ℕ} {f : polynomial R} (hp : 0 < p) (h : f.monic) : (expand R p f).monic :=
+begin
+  rw [monic.def, leading_coeff, nat_degree_expand, coeff_expand hp],
+  simp [hp, h],
+end
+
+theorem map_expand {p : ℕ} {f : R →+* S} {q : polynomial R} :
   map f (expand R p q) = expand S p (map f q) :=
-by { ext, rw [coeff_map, coeff_expand hp, coeff_expand hp], split_ifs; simp, }
+begin
+  by_cases hp : p = 0,
+  { simp [hp] },
+  ext,
+  rw [coeff_map, coeff_expand (nat.pos_of_ne_zero hp), coeff_expand (nat.pos_of_ne_zero hp)],
+  split_ifs; simp,
+end
 
 /-- Expansion is injective. -/
 lemma expand_injective {n : ℕ} (hn : 0 < n) :
@@ -224,6 +236,13 @@ lemma expand_injective {n : ℕ} (hn : 0 < n) :
   simp only [if_true, dvd_mul_right] at h',
   rw (nat.mul_div_right n_1 hn) at h',
   exact h',
+end
+
+@[simp]
+lemma expand_eval (p : ℕ) (P : polynomial R) (r : R) : eval r (expand R p P) = eval (r ^ p) P :=
+begin
+  refine polynomial.induction_on P (λ a, by simp) (λ f g hf hg, _) (λ n a h, by simp),
+  rw [alg_hom.map_add, eval_add, eval_add, hf, hg]
 end
 
 lemma is_unit_of_self_mul_dvd_separable {p q : polynomial R}
@@ -301,7 +320,7 @@ begin
   { simp [ring_hom.one_def] },
   symmetry,
   rw [pow_succ', pow_mul, ← n_ih, ← expand_char, pow_succ, ring_hom.mul_def,
-      ← map_map, mul_comm, expand_mul, ← map_expand (nat.prime.pos hp.1)]
+      ← map_map, mul_comm, expand_mul, ← map_expand]
 end
 
 end char_p
@@ -377,7 +396,7 @@ begin
 end
 
 /--If `is_unit n` in a `comm_ring R`, then `X ^ n - u` is separable for any unit `u`. -/
-lemma separable_X_pow_sub_C_unit {n : ℕ} (u : units R) (hn : is_unit (n : R)) :
+lemma separable_X_pow_sub_C_unit {n : ℕ} (u : Rˣ) (hn : is_unit (n : R)) :
   separable (X ^ n - C (u : R)) :=
 begin
   nontriviality R,
@@ -394,9 +413,11 @@ begin
               nat.sub_add_cancel (show 1 ≤ n, from hpos), sub_add_cancel]
 end
 
-lemma root_multiplicity_le_one_of_separable [nontrivial R] {p : polynomial R} (hp : p ≠ 0)
+lemma root_multiplicity_le_one_of_separable [nontrivial R] {p : polynomial R}
   (hsep : separable p) (x : R) : root_multiplicity x p ≤ 1 :=
 begin
+  by_cases hp : p = 0,
+  { simp [hp], },
   rw [root_multiplicity_eq_multiplicity, dif_neg hp, ← enat.coe_le_coe, enat.coe_get, nat.cast_one],
   exact multiplicity_le_one_of_separable (not_is_unit_X_sub_C _) hsep
 end
@@ -430,10 +451,8 @@ ih $ of_irreducible_expand hp $ by { rw pow_succ at hf, rwa [expand_expand] }
 lemma count_roots_le_one {p : polynomial R} (hsep : separable p) (x : R) :
   p.roots.count x ≤ 1 :=
 begin
-  rcases eq_or_ne p 0 with rfl | hp,
-  { simp },
-  rw count_roots hp,
-  exact root_multiplicity_le_one_of_separable hp hsep x
+  rw count_roots p,
+  exact root_multiplicity_le_one_of_separable hsep x
 end
 
 lemma nodup_roots {p : polynomial R} (hsep : separable p) : p.roots.nodup :=

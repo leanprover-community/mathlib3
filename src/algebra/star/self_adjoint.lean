@@ -44,10 +44,11 @@ def self_adjoint [add_group R] [star_add_monoid R] : add_subgroup R :=
                 show star (x + y) = x + y, by simp only [star_add x y, hx, hy],
   neg_mem' := λ x (hx : star x = x), show star (-x) = -x, by simp only [hx, star_neg] }
 
-/-- The normal elements of a star monoid, as a set. -/
-def star_normal [monoid R] [has_star R] := {x : R | star x * x = x * star x}
-
 variables {R}
+
+/-- An element of a star monoid is normal if it commutes with its adjoint. -/
+def is_star_normal [monoid R] [has_star R] (x : R) := star x * x = x * star x
+
 
 namespace self_adjoint
 
@@ -86,10 +87,10 @@ by simp only [mem_iff, star_mul, star_star, mem_iff.mp hx, mul_assoc]
 lemma conjugate' {x : R} (hx : x ∈ self_adjoint R) (z : R) : star z * x * z ∈ self_adjoint R :=
 by simp only [mem_iff, star_mul, star_star, mem_iff.mp hx, mul_assoc]
 
-lemma mem_star_normal_of_mem {x : R} (hx : x ∈ self_adjoint R) : x ∈ star_normal R :=
+lemma mem_star_normal_of_mem {x : R} (hx : x ∈ self_adjoint R) : is_star_normal x :=
 show star x * x = x * star x, by { simp only [mem_iff] at hx, simp only [hx] }
 
-lemma mem_star_normal (x : self_adjoint R) : (x : R) ∈ star_normal R :=
+lemma mem_star_normal (x : self_adjoint R) : is_star_normal (x : R) :=
 mem_star_normal_of_mem (set_like.coe_mem _)
 
 end ring
@@ -136,17 +137,17 @@ end self_adjoint
 
 namespace star_normal
 
-lemma mem_iff [monoid R] [star_monoid R] {x : R} : x ∈ star_normal R ↔ star x * x = x * star x :=
+lemma mem_iff [monoid R] [star_monoid R] {x : R} : is_star_normal x ↔ star x * x = x * star x :=
 iff.rfl
 
-lemma zero_mem [semiring R] [star_ring R] : (0 : R) ∈ star_normal R :=
+lemma zero_mem [semiring R] [star_ring R] : is_star_normal (0 : R) :=
 by simp only [mem_iff, star_zero]
 
-lemma one_mem [monoid R] [star_monoid R] : (1 : R) ∈ star_normal R :=
+lemma one_mem [monoid R] [star_monoid R] : is_star_normal (1 : R) :=
 by simp only [mem_iff, star_one]
 
-lemma star_mem [monoid R] [star_monoid R] {x : R} (hx : x ∈ star_normal R) :
-  star x ∈ star_normal R :=
+lemma star_mem [monoid R] [star_monoid R] {x : R} (hx : is_star_normal x) :
+  is_star_normal (star x) :=
 by simp only [mem_iff, star_star, hx.symm]
 
 end star_normal

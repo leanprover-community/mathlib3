@@ -1974,13 +1974,17 @@ end
 
 end orthogonal
 
-/-! ### Self-adjoint operators -/
+/-! ### Self-adjoint and normal operators -/
 
 namespace inner_product_space
 
 /-- A (not necessarily bounded) operator on an inner product space is self-adjoint, if for all
 `x`, `y`, we have `⟪T x, y⟫ = ⟪x, T y⟫`. -/
 def is_self_adjoint (T : E →ₗ[𝕜] E) : Prop := ∀ x y, ⟪T x, y⟫ = ⟪x, T y⟫
+
+/-- A (not necessarily bounded) operator `T` on an inner product space is normal, if for all
+`x`, `y`, there exists a `T'` we have `⟪T' x, y⟫ = ⟪x, T y⟫`. -/
+def is_normal (T : E →ₗ[𝕜] E) : Prop := ∃ (T' : E →ₗ[𝕜] E), ∀ x y, ⟪T' x, y⟫ = ⟪x, T y⟫
 
 /-- An operator `T` on a `ℝ`-inner product space is self-adjoint if and only if it is
 `bilin_form.is_self_adjoint` with respect to the bilinear form given by the inner product. -/

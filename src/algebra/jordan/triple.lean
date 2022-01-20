@@ -93,6 +93,7 @@ For a and b in A, the pair D(a,b) and -D(b,a) are Leibniz
 lemma D_D_leibniz [is_jordan_tp A] (a b : A) : leibniz (D a b) (-D b a) := begin
   unfold leibniz,
   intros c d e,
-  rw [is_jordan_tp.D_apply_apply_apply, is_jordan_tp.D_apply_apply_apply, is_jordan_tp.D_apply_apply_apply, pi.neg_apply,
-  is_jordan_tp.D_apply_apply_apply, has_trilinear_tp.mneg, tactic.ring.add_neg_eq_sub, is_jordan_tp.leibniz],
+  rw [is_jordan_tp.D_apply_apply_apply, is_jordan_tp.D_apply_apply_apply,
+  is_jordan_tp.D_apply_apply_apply, pi.neg_apply, is_jordan_tp.D_apply_apply_apply,
+  has_trilinear_tp.mneg, tactic.ring.add_neg_eq_sub, is_jordan_tp.leibniz],
 end

@@ -15,7 +15,7 @@ functor from groups to types, see `algebra/category/Group/adjunctions`.
 
 ## Main definitions
 
-* `free_group`: the free group associated to a type `α` defined as the words over `a : α × bool` 
+* `free_group`: the free group associated to a type `α` defined as the words over `a : α × bool`
   modulo the relation `a * x * x⁻¹ * b = a * b`.
 * `free_group.mk`: the canonical quotient map `list (α × bool) → free_group α`.
 * `free_group.of`: the canoical injection `α → free_group α`.

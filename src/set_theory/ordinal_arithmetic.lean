@@ -984,15 +984,14 @@ private theorem sup_le_sup {ι ι' : Type u} (r : ι → ι → Prop) (r' : ι' 
   [is_well_order ι r] [is_well_order ι' r'] {o} (ho : type r = o) (ho' : type r' = o)
   (f : Π a < o, ordinal) : sup (family_of_bfamily' r ho f) ≤ sup (family_of_bfamily' r' ho' f) :=
 begin
-  rw sup_le,
-  intro i,
-  unfold family_of_bfamily',
+  refine sup_le.2 (λ i, _),
   have : ∃ j, typein r' j = typein r i := begin
     apply typein_surj,
     rw [ho', ←ho],
     exact typein_lt_type r i
   end,
   cases this with j hj,
+  unfold family_of_bfamily',
   simp_rw ←hj,
   apply le_sup
 end

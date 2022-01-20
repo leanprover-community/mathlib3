@@ -96,7 +96,7 @@ lemma mem_mul [has_mul α] : a ∈ s * t ↔ ∃ x y, x ∈ s ∧ y ∈ t ∧ x 
 lemma mul_mem_mul [has_mul α] (ha : a ∈ s) (hb : b ∈ t) : a * b ∈ s * t := mem_image2_of_mem ha hb
 
 @[to_additive add_image_prod]
-lemma image_mul_prod [has_mul α] : (λ x : α × α, x.fst * x.snd) '' s.prod t = s * t := image_prod _
+lemma image_mul_prod [has_mul α] : (λ x : α × α, x.fst * x.snd) '' (s ×ˢ t) = s * t := image_prod _
 
 @[simp, to_additive]
 lemma image_mul_left [group α] : (λ b, a * b) '' t = (λ b, a⁻¹ * b) ⁻¹' t :=
@@ -513,7 +513,7 @@ lemma mem_smul_of_mem [has_scalar α β] {t : set β} {a} {b} (ha : a ∈ s) (hb
 
 @[to_additive]
 lemma image_smul_prod [has_scalar α β] {t : set β} :
-  (λ x : α × β, x.fst • x.snd) '' s.prod t = s • t :=
+  (λ x : α × β, x.fst • x.snd) '' (s ×ˢ t) = s • t :=
 image_prod _
 
 @[to_additive]
@@ -813,6 +813,8 @@ by simp [finset.mul_def]
 @[to_additive, mono] lemma mul_subset_mul  (hs : s₁ ⊆ s₂) (ht : t₁ ⊆ t₂) : s₁ * t₁ ⊆ s₂ * t₂ :=
 image_subset_image (product_subset_product hs ht)
 
+attribute [mono] add_subset_add
+
 @[simp, to_additive]
 lemma mul_singleton (a : α) : s * {a} = s.image (* a) :=
 by { rw [mul_def, product_singleton, map_eq_image, image_image], refl }
@@ -1054,8 +1056,7 @@ lemma card_pow_eq_card_pow_card_univ [∀ (k : ℕ), decidable_pred (∈ (S ^ k)
 begin
   have hG : 0 < fintype.card G := fintype.card_pos_iff.mpr ⟨1⟩,
   by_cases hS : S = ∅,
-  { intros k hk,
-    congr' 2,
+  { refine λ k hk, fintype.card_congr _,
     rw [hS, empty_pow _ (ne_of_gt (lt_of_lt_of_le hG hk)), empty_pow _ (ne_of_gt hG)] },
   obtain ⟨a, ha⟩ := set.ne_empty_iff_nonempty.mp hS,
   classical,

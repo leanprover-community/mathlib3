@@ -152,6 +152,15 @@ quot.exists_rep a
 def map (f : α →* β) : conj_classes α → conj_classes β :=
 quotient.lift (conj_classes.mk ∘ f) (λ a b ab, mk_eq_mk_iff_is_conj.2 (f.map_is_conj ab))
 
+lemma map_surjective {f : α →* β} (hf : function.surjective f) :
+  function.surjective (conj_classes.map f) :=
+begin
+  intros b,
+  obtain ⟨b, rfl⟩ := conj_classes.mk_surjective b,
+  obtain ⟨a, rfl⟩ := hf b,
+  exact ⟨conj_classes.mk a, rfl⟩,
+end
+
 instance [fintype α] [decidable_rel (is_conj : α → α → Prop)] :
   fintype (conj_classes α) :=
 quotient.fintype (is_conj.setoid α)

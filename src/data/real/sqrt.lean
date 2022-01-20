@@ -307,6 +307,13 @@ theorem neg_sqrt_lt_of_sq_lt (h : x^2 < y) : -sqrt y < x := (sq_lt.mp h).1
 
 theorem lt_sqrt_of_sq_lt (h : x^2 < y) : x < sqrt y := (sq_lt.mp h).2
 
+instance : star_ordered_ring ℝ :=
+{ nonneg_iff := λ r, by
+  { refine ⟨λ hr, ⟨sqrt r, show r = sqrt r * sqrt r, by rw [←sqrt_mul hr, sqrt_mul_self hr]⟩, _⟩,
+    rintros ⟨s, rfl⟩,
+    exact mul_self_nonneg s },
+  ..real.ordered_add_comm_group }
+
 end real
 
 open real

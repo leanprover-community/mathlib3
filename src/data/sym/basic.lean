@@ -224,18 +224,18 @@ def map {α β : Type*} {n : ℕ} (f : α → β) (x : sym α n) : sym β n :=
   b ∈ sym.map f l ↔ ∃ a, a ∈ l ∧ f a = b := multiset.mem_map
 
 @[simp] lemma map_id {α : Type*} {n : ℕ} (s : sym α n) : sym.map id s = s :=
-by simp [sym.map, subtype.mk.inj_eq]
+by simp [sym.map]
 
 @[simp] lemma map_map {α β γ : Type*} {n : ℕ} (g : β → γ) (f : α → β) (s : sym α n) :
   sym.map g (sym.map f s) = sym.map (g ∘ f) s :=
-by simp [sym.map, subtype.mk.inj_eq]
+by simp [sym.map]
 
 @[simp] lemma map_zero {α β : Type*} (f : α → β) :
   sym.map f (0 : sym α 0) = (0 : sym β 0) := rfl
 
 @[simp] lemma map_cons {α β : Type*} {n : ℕ} (f : α → β) (a : α) (s : sym α n) :
   (a :: s).map f = (f a) :: s.map f :=
-by { cases s, simp [map, cons] }
+by simp [map, cons]
 
 /-- Mapping an equivalence `α ≃ β` using `sym.map` gives an equivalence between `sym α n` and
 `sym β n`. -/

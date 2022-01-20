@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christopher Hoskin
 -/
 
+import algebra.ternary
 import algebra.lie.of_associative
 
 /-!
@@ -34,19 +35,11 @@ interested reader is referred to [alfsenshultz2003], [chu2012], [friedmanscarr20
 * [Chu, Jordan Structures in Geometry and Analysis][chu2012]
 -/
 
-/-- Notation class for the triple product -/
-class has_tp (A : Type*) := (tp : A → A → A → A )
-
 notation ⦃a, b, c⦄ := has_tp.tp a b c
 
-/-- A triple product is a trilinear map, symmetric in the first and third variable -/
-class is_tp (A : Type*) [has_tp A] [has_add A] :=
-(comm : ∀ (a b c : A), ⦃a, b, c⦄ = ⦃c, b, a⦄)
-(ladd : ∀ (a₁ a₂ b c : A), ⦃(a₁+a₂), b, c⦄ = ⦃a₁, b, c⦄ + ⦃a₂, b, c⦄)
-(madd : ∀ (a b₁ b₂ c : A), ⦃a, (b₁+b₂), c⦄ = ⦃a, b₁, c⦄ + ⦃a, b₂, c⦄)
-
 /-- A Jordan triple product satisfies a Leibniz law -/
-class is_jordan_tp (A : Type*) [has_tp A] [has_add A] [has_sub A] :=
+class is_jordan_tp (A : Type*) [has_add A] [has_sub A] extends has_trilinear_tp A:=
+(comm : ∀ (a b c : A), ⦃a, b, c⦄ = ⦃c, b, a⦄)
 (leibniz : ∀ (a b c d e: A), ⦃a, b, ⦃c, d, e⦄⦄  =
   ⦃⦃a, b, c⦄, d, e⦄ - ⦃c, ⦃b, a, d⦄, e⦄ + ⦃c, d, ⦃a, b, e⦄⦄)
 
@@ -57,74 +50,16 @@ differentiation.
 def leibniz {A : Type*} [has_tp A] [has_add A] (T : A → A) (T'  : A → A) :=
   ∀ (a b c : A),  T ⦃ a, b, c ⦄  = ⦃ T a, b, c⦄ + ⦃a, T' b, c⦄ + ⦃a, b, T c⦄
 
-namespace is_tp
+namespace is_jordan_tp
 
-lemma radd {A : Type*} [has_tp A] [has_add A] [is_tp A] (a b c₁ c₂ : A) :
-  ⦃a, b, c₁ + c₂⦄ = ⦃a, b, c₁⦄ + ⦃a, b, c₂⦄ := by rw [comm, ladd, comm, comm c₂]
-
-variables {A : Type*} [has_tp A] [add_comm_group A] [is_tp A]
-
-lemma lzero (b c : A) : ⦃0, b, c⦄ = 0 :=
-(add_monoid_hom.mk' (λ (a : A), ⦃a, b, c⦄) (λ a₁ a₂, ladd a₁ a₂ b c )).map_zero
-
-lemma mzero (a c : A) : ⦃a, 0, c⦄ = 0 :=
-(add_monoid_hom.mk' (λ (b : A), ⦃a, b, c⦄) (λ b₁ b₂ , madd a b₁ b₂ c)).map_zero
-
-lemma rzero (a b : A) : ⦃a, b, 0⦄ = 0 :=
-by rw [comm, lzero]
-
-lemma lzsmul (a b c : A) (z : ℤ) : ⦃z•a, b, c⦄ = z•⦃a, b, c⦄ :=
-add_monoid_hom.map_zsmul ⟨λ (a : A), ⦃a, b, c⦄, lzero b c, λ _ _, ladd _ _ _ _⟩ _ _
-
-lemma mzsmul (a b c : A) (z : ℤ) : ⦃a, z•b, c⦄ = z•⦃a, b, c⦄ :=
-add_monoid_hom.map_zsmul ⟨λ (b : A), ⦃a, b, c⦄, mzero a c, λ _ _, madd _ _ _ _⟩ _ _
-
-lemma rzsmul (a b : A) (z : ℤ) (c : A) : ⦃a, b, z•c⦄ = z•⦃a, b, c⦄ :=
-  by rw [comm, lzsmul, comm]
-
-lemma lneg (a b c : A) : ⦃-a, b, c⦄ = -⦃a, b, c⦄ :=
-by rw [←sub_eq_zero, sub_neg_eq_add, ←ladd, neg_add_self, lzero]
-
-lemma mneg (a b c : A): ⦃a, -b, c⦄ = -⦃a, b, c⦄ :=
-by rw [←sub_eq_zero, sub_neg_eq_add, ←madd, neg_add_self, mzero]
-
-lemma rneg (a b c : A): ⦃a, b, -c⦄ = -⦃a, b, c⦄ := by rw [comm, lneg, comm]
-
-lemma lsub (a b c d : A) : ⦃a - d, b, c⦄ = ⦃a, b, c⦄ - ⦃d, b, c⦄ :=
-by rw [eq_sub_iff_add_eq, ← ladd, sub_add_cancel]
-
-lemma msub (a b c d : A) : ⦃a, b - c, d⦄ = ⦃a, b, d⦄ - ⦃a, c, d⦄ :=
-by rw [eq_sub_iff_add_eq, ← madd, sub_add_cancel]
-
-
-lemma rsub (a b c d : A) : ⦃a, b, c - d⦄ = ⦃a, b, c⦄ - ⦃a, b, d⦄ :=
-by rw [comm, lsub, comm, comm d]
-
-lemma lr_bilinear (a₁ a₂ b c₁ c₂ : A) : ⦃a₁ + a₂, b, c₁ + c₂⦄ =
-  ⦃a₁, b, c₁⦄ + ⦃a₁, b, c₂⦄ + ⦃a₂, b, c₁⦄ + ⦃a₂, b, c₂⦄ :=
-calc ⦃a₁ + a₂, b, c₁ + c₂⦄ = ⦃a₁, b, c₁ + c₂⦄ + ⦃a₂, b, c₁ + c₂⦄ : by rw ladd
-... = ⦃a₁, b, c₁⦄ + ⦃a₁, b, c₂⦄ + ⦃a₂, b, c₁ + c₂⦄ : by rw radd
-... = ⦃a₁, b, c₁⦄ + ⦃a₁, b, c₂⦄ + (⦃a₂, b, c₁⦄ + ⦃a₂, b, c₂⦄) : by rw radd
-... = ⦃a₁, b, c₁⦄ + ⦃a₁, b, c₂⦄ + ⦃a₂, b, c₁⦄ + ⦃a₂, b, c₂⦄ : by rw ← add_assoc
+variables {A : Type*} [add_comm_group A] [is_jordan_tp A]
 
 lemma polar (a b c : A) : ⦃a + c, b, a + c⦄ = ⦃a, b, a⦄ + 2•⦃a, b, c⦄ + ⦃c, b, c⦄ :=
 calc ⦃a + c, b, a + c⦄ = ⦃a, b, a⦄ + ⦃a, b, c⦄ + ⦃c, b, a⦄ + ⦃c, b, c⦄ :
-  by rw lr_bilinear a c b a c
+  by rw has_trilinear_tp.lr_bilinear a c b a c
 ... = ⦃a, b, a⦄ + ⦃a, b, c⦄ + ⦃a, b, c⦄ + ⦃c, b, c⦄ : by rw comm c b a
 ... = ⦃a, b, a⦄ + (⦃a, b, c⦄ + ⦃a, b, c⦄)  + ⦃c, b, c⦄ : by rw ← add_assoc
 ... = ⦃a, b, a⦄ + 2•⦃a, b, c⦄ + ⦃c, b, c⦄ : by rw two_nsmul
-
-/-- The triple product as an additive monoid homomorphism in each variable -/
-@[simps] def add_monoid_hom.tp : A →+ A →+ A →+ A :=
-{ to_fun := λ a,
-  { to_fun := λ b,
-    { to_fun := λ c, ⦃a, b, c⦄,
-      map_zero' := by rw rzero,
-      map_add' := λ _ _, by rw radd, },
-    map_zero' := add_monoid_hom.ext $ λ _, mzero _ _,
-    map_add' := λ a₁ a₂, add_monoid_hom.ext $ λ _, madd _ _ _ _, },
-  map_zero' := add_monoid_hom.ext $ λ _, add_monoid_hom.ext $ λ _, lzero _ _,
-  map_add' := λ a₁ a₂, add_monoid_hom.ext $ λ b, add_monoid_hom.ext $ λ _, ladd _ _ _ _, }
 
 /-- Define the multiplication operator `D` -/
 @[simps] def D : A →+ A →+ add_monoid.End A := add_monoid_hom.tp
@@ -137,17 +72,17 @@ calc ⦃a + c, b, a + c⦄ = ⦃a, b, a⦄ + ⦃a, b, c⦄ + ⦃c, b, a⦄ + ⦃
 
 lemma Q_def (a b c : A) : Q a c b = ⦃a, b, c⦄ := by simp
 
-end is_tp
+end is_jordan_tp
 
-variables {A : Type*} [has_tp A] [add_comm_group A] [is_tp A]
+variables {A : Type*} [add_comm_group A] [is_jordan_tp A]
 
-open is_tp (D)
+open is_jordan_tp (D)
 
 lemma lie_D_D [is_jordan_tp A] (a b c d: A) : ⁅D a b, D c d⁆ = D ⦃a, b, c⦄ d - D c ⦃b, a, d⦄ :=
 begin
   ext e,
   rw ring.lie_def,
-  simp only [add_monoid_hom.sub_apply, function.comp_app, is_tp.D_apply_apply_apply,
+  simp only [add_monoid_hom.sub_apply, function.comp_app, is_jordan_tp.D_apply_apply_apply,
     add_monoid.coe_mul],
   rw [sub_eq_iff_eq_add, is_jordan_tp.leibniz],
 end
@@ -158,6 +93,6 @@ For a and b in A, the pair D(a,b) and -D(b,a) are Leibniz
 lemma D_D_leibniz [is_jordan_tp A] (a b : A) : leibniz (D a b) (-D b a) := begin
   unfold leibniz,
   intros c d e,
-  rw [is_tp.D_apply_apply_apply, is_tp.D_apply_apply_apply, is_tp.D_apply_apply_apply, pi.neg_apply,
-  is_tp.D_apply_apply_apply, is_tp.mneg, tactic.ring.add_neg_eq_sub, is_jordan_tp.leibniz],
+  rw [is_jordan_tp.D_apply_apply_apply, is_jordan_tp.D_apply_apply_apply, is_jordan_tp.D_apply_apply_apply, pi.neg_apply,
+  is_jordan_tp.D_apply_apply_apply, has_trilinear_tp.mneg, tactic.ring.add_neg_eq_sub, is_jordan_tp.leibniz],
 end

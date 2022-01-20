@@ -6,6 +6,7 @@ Authors: Christopher Hoskin
 
 import algebra.group.hom
 import algebra.group_power.basic
+import algebra.lie.of_associative
 
 /-!
 # Ternary product
@@ -17,9 +18,10 @@ trilinear over ℤ. Jordan triples, ternary rings and ternary Lie algebras all h
 /-- Notation class for ternary product -/
 class has_tp (A : Type*) := (tp : A → A → A → A )
 
+/-- Class of Additive structures with a triadditive product-/
 class has_trilinear_tp (A : Type*) [has_add A] extends has_tp A :=
-(ladd : ∀ (a₁ a₂ b c : A), tp (a₁+a₂) b c = tp a₁ b c + tp a₂ b c)
-(madd : ∀ (a b₁ b₂ c : A), tp a (b₁+b₂) c = tp a b₁ c + tp a b₂ c)
+(ladd : ∀ (a₁ a₂ b c : A), tp (a₁ + a₂) b c = tp a₁ b c + tp a₂ b c)
+(madd : ∀ (a b₁ b₂ c : A), tp a (b₁ + b₂) c = tp a b₁ c + tp a b₂ c)
 (radd : ∀ (a b c₁ c₂ : A), tp a b (c₁ + c₂) = tp a b c₁ + tp a b c₂)
 
 namespace has_trilinear_tp
@@ -44,7 +46,7 @@ lemma mzsmul (a b c : A) (z : ℤ) : tp a (z•b) c = z•tp a b c :=
 add_monoid_hom.map_zsmul ⟨λ (b : A), tp a b c, mzero a c, λ _ _, madd _ _ _ _⟩ _ _
 
 lemma rzsmul (a b : A) (z : ℤ) (c : A) : tp a b (z•c) = z•tp a b c :=
-add_monoid_hom.map_zsmul ⟨λ (c : A), tp a b c, rzero a b , λ _ _, ladd _ _ _ _⟩ _ _
+add_monoid_hom.map_zsmul ⟨λ (c : A), tp a b c, rzero a b , λ _ _, radd _ _ _ _⟩ _ _
 
 lemma lneg (a b c : A) : tp (-a) b c = -tp a b c :=
 by rw [←sub_eq_zero, sub_neg_eq_add, ←ladd, neg_add_self, lzero]
@@ -72,3 +74,19 @@ calc tp (a₁ + a₂) b (c₁ + c₂) = tp a₁ b (c₁ + c₂) + tp a₂ b (c�
 ... = tp a₁ b c₁ + tp a₁ b c₂ + tp a₂ b c₁ + tp a₂ b c₂ : by rw ← add_assoc
 
 end  has_trilinear_tp
+
+variables {A : Type*}  [add_comm_group A] [has_trilinear_tp A]
+
+open has_trilinear_tp
+
+/-- The triple product as an additive monoid homomorphism in each variable -/
+@[simps] def add_monoid_hom.tp : A →+ A →+ A →+ A :=
+{ to_fun := λ a,
+  { to_fun := λ b,
+    { to_fun := λ c, has_tp.tp a b c,
+      map_zero' := by rw rzero,
+      map_add' := λ _ _, by rw radd, },
+    map_zero' := add_monoid_hom.ext $ λ _, mzero _ _,
+    map_add' := λ a₁ a₂, add_monoid_hom.ext $ λ _, madd _ _ _ _, },
+  map_zero' := add_monoid_hom.ext $ λ _, add_monoid_hom.ext $ λ _, lzero _ _,
+  map_add' := λ a₁ a₂, add_monoid_hom.ext $ λ b, add_monoid_hom.ext $ λ _, ladd _ _ _ _, }

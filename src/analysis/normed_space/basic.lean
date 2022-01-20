@@ -186,7 +186,7 @@ declared as an instance because there are several natural choices for defining t
 matrix. -/
 def matrix.semi_normed_group {n m : Type*} [fintype n] [fintype m] :
   semi_normed_group (matrix n m α) :=
-pi.semi_normed_group
+@pi.semi_normed_group n _ _ (λ _, pi.semi_normed_group)
 
 local attribute [instance] matrix.semi_normed_group
 
@@ -684,6 +684,9 @@ instance prod.normed_space : normed_space α (E × F) :=
   ..prod.normed_group,
   ..prod.module }
 
+section
+local attribute [instance] pi.semi_normed_group
+
 /-- The product of finitely many normed spaces is a normed space, with the sup norm. -/
 instance pi.normed_space {E : ι → Type*} [fintype ι] [∀i, semi_normed_group (E i)]
   [∀i, normed_space α (E i)] : normed_space α (Πi, E i) :=
@@ -691,6 +694,8 @@ instance pi.normed_space {E : ι → Type*} [fintype ι] [∀i, semi_normed_grou
     show (↑(finset.sup finset.univ (λ (b : ι), ∥a • f b∥₊)) : ℝ) =
       ∥a∥₊ * ↑(finset.sup finset.univ (λ (b : ι), ∥f b∥₊)),
     by simp only [(nnreal.coe_mul _ _).symm, nnreal.mul_finset_sup, nnnorm_smul] }
+
+end
 
 /-- A subspace of a normed space is also a normed space, with the restriction of the norm. -/
 instance submodule.normed_space {𝕜 R : Type*} [has_scalar 𝕜 R] [normed_field 𝕜] [ring R]

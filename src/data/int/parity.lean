@@ -220,19 +220,19 @@ begin
     norm_num },
 end
 
-lemma even_div_two : even n → 2 * (n / 2) = n :=
+lemma even.div_two : even n → 2 * (n / 2) = n :=
 by { rintro ⟨c, rfl⟩, simp }
 
-lemma even_div_two' : even n → n / 2 * 2 = n :=
+lemma even.div_two' : even n → n / 2 * 2 = n :=
 by { rintro ⟨c, rfl⟩, simp [mul_comm] }
 
-lemma odd_div_two_add : odd n → 2 * (n / 2) + 1 = n :=
+lemma odd.div_two_add : odd n → 2 * (n / 2) + 1 = n :=
 by { rintro ⟨a, rfl⟩, rw mul_comm, convert int.div_add_mod' _ _, simp [int.add_mod], refl }
 
-lemma odd_div_two_add_one' : odd n → n / 2 * 2 + 1 = n :=
+lemma odd.div_two_add_one' : odd n → n / 2 * 2 + 1 = n :=
 by { rintro ⟨a, rfl⟩, convert int.div_add_mod' _ _, simp [int.add_mod], refl }
 
-lemma odd_div_two_one_add' : odd n → 1 + n / 2 * 2 = n :=
+lemma odd.div_two_one_add' : odd n → 1 + n / 2 * 2 = n :=
 by { rintro ⟨a, rfl⟩, rw add_comm, convert int.div_add_mod' _ _, simp [int.add_mod], refl }
 
 -- Here are examples of how `parity_simps` can be used with `int`.

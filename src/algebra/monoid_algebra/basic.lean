@@ -718,14 +718,14 @@ end
 
 /-- Given a map `• : G × M → M` for `M` a `k`-module, the map `k[G] × M → M` sending
 `(Σ kᵢgᵢ, m) ↦ Σ kᵢ• (gᵢ • m)`. -/
-instance total_scalar {k : Type*} [semiring k] {G : Type*} [monoid G] {M : Type*}
+instance total_scalar {k : Type*} [semiring k] {G : Type*} {M : Type*}
   [add_comm_monoid M] [has_scalar G M] [module k M] :
   has_scalar (monoid_algebra k G) M :=
 ⟨λ g m, finsupp.total G M k (λ g, g • m) g⟩
 
 /-- Given a map `• : G × M → M` for `M` a `k`-module, `(r • Σ kᵢgᵢ) • m = r • (Σ kᵢ • (gᵢ • m))`
 for all `r ∈ k`, `Σ kᵢgᵢ ∈ k[G]`, `m ∈ M.` -/
-instance total_is_scalar_tower {k : Type*} [semiring k] {G : Type*} [monoid G]
+instance total_is_scalar_tower {k : Type*} [semiring k] {G : Type*}
   {M : Type*} [add_comm_monoid M] [has_scalar G M] [module k M] :
   is_scalar_tower k (monoid_algebra k G) M :=
 { smul_assoc := λ g x m,

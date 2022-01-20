@@ -259,21 +259,32 @@ begin
   rw hV.range_linear_isometry,
 end
 
+/-- In the canonical isometric isomorphism `E ≃ₗᵢ[𝕜] lp G 2` induced by an orthogonal family `G`,
+a vector `w : lp G 2` is the image of the infinite sum of the associated elements in `E`. -/
 protected lemma linear_isometry_equiv_symm_apply [Π i, complete_space (G i)]
   (hV' : (⨆ i, (V i).to_linear_map.range).topological_closure = ⊤) (w : lp G 2) :
   (hV.linear_isometry_equiv hV').symm w = ∑' i, V i (w i) :=
 by simp [orthogonal_family.linear_isometry_equiv, orthogonal_family.linear_isometry_apply]
 
+/-- In the canonical isometric isomorphism `E ≃ₗᵢ[𝕜] lp G 2` induced by an orthogonal family `G`,
+a vector `w : lp G 2` is the image of the infinite sum of the associated elements in `E`, and this
+sum indeed converges. -/
 protected lemma has_sum_linear_isometry_equiv_symm [Π i, complete_space (G i)]
   (hV' : (⨆ i, (V i).to_linear_map.range).topological_closure = ⊤) (w : lp G 2) :
   has_sum (λ i, V i (w i)) ((hV.linear_isometry_equiv hV').symm w) :=
 by simp [orthogonal_family.linear_isometry_equiv, orthogonal_family.has_sum_linear_isometry]
 
+/-- In the canonical isometric isomorphism `E ≃ₗᵢ[𝕜] lp G 2` induced by an `ι`-indexed orthogonal
+family `G`, an "elementary basis vector" in `lp G 2` supported at `i : ι` is the image of the
+associated element in `E`. -/
 @[simp] protected lemma linear_isometry_equiv_symm_apply_single [Π i, complete_space (G i)]
   (hV' : (⨆ i, (V i).to_linear_map.range).topological_closure = ⊤) {i : ι} (x : G i) :
   (hV.linear_isometry_equiv hV').symm (lp.single 2 i x) = V i x :=
 by simp [orthogonal_family.linear_isometry_equiv, orthogonal_family.linear_isometry_apply_single]
 
+/-- In the canonical isometric isomorphism `E ≃ₗᵢ[𝕜] lp G 2` induced by an `ι`-indexed orthogonal
+family `G`, a finitely-supported vector in `lp G 2` is the image of the associated finite sum of
+elements of `E`. -/
 @[simp] protected lemma linear_isometry_equiv_symm_apply_dfinsupp_sum_single
   [Π i, complete_space (G i)]
   (hV' : (⨆ i, (V i).to_linear_map.range).topological_closure = ⊤) (W₀ : Π₀ (i : ι), G i) :
@@ -281,6 +292,9 @@ by simp [orthogonal_family.linear_isometry_equiv, orthogonal_family.linear_isome
 by simp [orthogonal_family.linear_isometry_equiv,
   orthogonal_family.linear_isometry_apply_dfinsupp_sum_single]
 
+/-- In the canonical isometric isomorphism `E ≃ₗᵢ[𝕜] lp G 2` induced by an `ι`-indexed orthogonal
+family `G`, a finitely-supported vector in `lp G 2` is the image of the associated finite sum of
+elements of `E`. -/
 @[simp] protected lemma linear_isometry_equiv_apply_dfinsupp_sum_single
   [Π i, complete_space (G i)]
   (hV' : (⨆ i, (V i).to_linear_map.range).topological_closure = ⊤) (W₀ : Π₀ (i : ι), G i) :
@@ -293,6 +307,8 @@ begin
 end
 
 end orthogonal_family
+
+/-! ### Hilbert bases -/
 
 section
 variables (ι) (𝕜) (E)

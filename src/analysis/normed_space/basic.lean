@@ -787,7 +787,7 @@ declared as an instance because there are several natural choices for defining t
 matrix. -/
 def matrix.normed_space {α : Type*} [normed_field α] {n m : Type*} [fintype n] [fintype m] :
   normed_space α (matrix n m α) :=
-pi.normed_space
+@pi.normed_space _ _ _ _ _ _ (λ i, pi.normed_space)
 
 end
 

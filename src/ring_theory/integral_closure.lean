@@ -351,6 +351,12 @@ theorem is_integral_mul {x y : A}
   (hx : is_integral R x) (hy : is_integral R y) : is_integral R (x * y) :=
 (algebra_map R A).is_integral_mul hx hy
 
+lemma is_integral_smul {x : A} (r : R) (hx : is_integral R x) : is_integral R (r • x) :=
+begin
+  rw [algebra.smul_def],
+  refine is_integral_mul is_integral_algebra_map hx,
+end
+
 variables (R A)
 
 /-- The integral closure of R in an R-algebra A. -/

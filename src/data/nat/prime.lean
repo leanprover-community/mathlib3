@@ -696,9 +696,9 @@ begin
   { rwa ←mem_factors_iff_dvd hn (prime_of_mem_factors h) }
 end
 
-lemma mem_factors {n p} (hn : 0 < n) : p ∈ factors n ↔ prime p ∧ p ∣ n :=
-⟨λ h, ⟨prime_of_mem_factors h, (mem_factors_iff_dvd hn $ prime_of_mem_factors h).mp h⟩,
- λ ⟨hprime, hdvd⟩, (mem_factors_iff_dvd hn hprime).mpr hdvd⟩
+lemma mem_factors {n p} (hn : n ≠ 0) : p ∈ factors n ↔ prime p ∧ p ∣ n :=
+⟨λ h, ⟨prime_of_mem_factors h, (mem_factors_iff_dvd hn.bot_lt $ prime_of_mem_factors h).mp h⟩,
+ λ ⟨hprime, hdvd⟩, (mem_factors_iff_dvd hn.bot_lt hprime).mpr hdvd⟩
 
 /-- **Fundamental theorem of arithmetic**-/
 lemma factors_unique {n : ℕ} {l : list ℕ} (h₁ : prod l = n) (h₂ : ∀ p ∈ l, prime p) :
@@ -1101,16 +1101,10 @@ end nat
 
 namespace nat
 
-/-- The only prime divisor of positive prime power `p^k` is `p` itself -/
-lemma prime_pow_prime_divisor {p k : ℕ} (hk : k ≠ 0) (hp : prime p) :
-  (p^k).factors.to_finset = {p} :=
-by rw [hp.factors_pow, list.to_finset_repeat_of_ne_zero hk]
-
 lemma mem_factors_mul {a b : ℕ} (ha : a ≠ 0) (hb : b ≠ 0) (p : ℕ) :
   p ∈ (a * b).factors ↔ p ∈ a.factors ∨ p ∈ b.factors :=
 begin
-  rw [mem_factors (mul_ne_zero ha hb).bot_lt, mem_factors ha.bot_lt, mem_factors hb.bot_lt,
-    ←and_or_distrib_left],
+  rw [mem_factors (mul_ne_zero ha hb), mem_factors ha, mem_factors hb, ←and_or_distrib_left],
   simpa only [and.congr_right_iff] using prime.dvd_mul
 end
 
@@ -1136,6 +1130,11 @@ begin
   { simpa using hk },
   rw pow_succ_factors_to_finset
 end
+
+/-- The only prime divisor of positive prime power `p^k` is `p` itself -/
+lemma prime_pow_prime_divisor {p k : ℕ} (hk : k ≠ 0) (hp : prime p) :
+  (p^k).factors.to_finset = {p} :=
+by simp [pow_factors_to_finset p hk, factors_prime hp]
 
 /-- The sets of factors of coprime `a` and `b` are disjoint -/
 lemma coprime_factors_disjoint {a b : ℕ} (hab : a.coprime b) : list.disjoint a.factors b.factors :=

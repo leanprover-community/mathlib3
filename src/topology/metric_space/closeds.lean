@@ -200,7 +200,7 @@ instance closeds.compact_space [compact_space α] : compact_space (closeds α) :
     refine Hausdorff_edist_le_of_mem_edist _ _,
     { assume x hx,
       have : x ∈ ⋃y ∈ s, ball y δ := hs (by simp),
-      rcases mem_bUnion_iff.1 this with ⟨y, ys, dy⟩,
+      rcases mem_Union₂.1 this with ⟨y, ys, dy⟩,
       have : edist y x < δ := by simp at dy; rwa [edist_comm] at dy,
       exact ⟨y, ⟨ys, ⟨x, hx, this⟩⟩, le_of_lt dy⟩ },
     { rintros x ⟨hx1, ⟨y, yu, hy⟩⟩,
@@ -223,7 +223,7 @@ instance closeds.compact_space [compact_space α] : compact_space (closeds α) :
     let t : closeds α := ⟨t0, this⟩,
     have : t ∈ F := t0s,
     have : edist u t < ε := lt_of_le_of_lt Dut0 δlt,
-    apply mem_bUnion_iff.2,
+    apply mem_Union₂.2,
     exact ⟨t, ‹t ∈ F›, this⟩ }
 end⟩
 
@@ -270,7 +270,7 @@ begin
     -- u : set α,  fu : finite u,  ut : t.val ⊆ ⋃ (y : α) (H : y ∈ u), eball y (ε / 2)
     -- then s is covered by the union of the balls centered at u of radius ε
     rcases exists_edist_lt_of_Hausdorff_edist_lt hx Dst with ⟨z, hz, Dxz⟩,
-    rcases mem_bUnion_iff.1 (ut hz) with ⟨y, hy, Dzy⟩,
+    rcases mem_Union₂.1 (ut hz) with ⟨y, hy, Dzy⟩,
     have : edist x y < ε := calc
       edist x y ≤ edist x z + edist z y : edist_triangle _ _ _
       ... < ε/2 + ε/2 : ennreal.add_lt_add Dxz Dzy
@@ -334,7 +334,7 @@ begin
       have : finite b := af.image _,
       have tb : ∀x ∈ t.val, ∃y ∈ b, edist x y < δ,
       { assume x hx,
-        rcases mem_bUnion_iff.1 (ta hx) with ⟨z, za, Dxz⟩,
+        rcases mem_Union₂.1 (ta hx) with ⟨z, za, Dxz⟩,
         existsi [F z, mem_image_of_mem _ za],
         calc edist x (F z) ≤ edist x z + edist z (F z) : edist_triangle _ _ _
              ... < δ/2 + δ/2 : ennreal.add_lt_add Dxz (Fspec z).2

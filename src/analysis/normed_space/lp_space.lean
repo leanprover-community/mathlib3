@@ -37,7 +37,7 @@ The space `lp E p` is the subtype of elements of `Π i : α, E i` which satisfy 
   `p`
 * `lp.mem_ℓp_of_tendsto`, `lp.norm_le_of_tendsto`: A pointwise limit of functions in `lp`, all with
   `lp` norm `≤ C`, is itself in `lp` and has `lp` norm `≤ C`.
-* `lp.tsum_inner_mul_inner_le`: basic form of Hölder's inequality
+* `lp.tsum_mul_le_mul_norm`: basic form of Hölder's inequality
 
 ## Implementation
 

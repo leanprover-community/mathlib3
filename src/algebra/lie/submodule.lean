@@ -379,6 +379,18 @@ not_iff_not.mp (
 
 instance [nontrivial M] : nontrivial (lie_submodule R L M) := (nontrivial_iff R L M).mpr ‹_›
 
+lemma nontrivial_iff_ne_bot {N : lie_submodule R L M} : nontrivial N ↔ N ≠ ⊥ :=
+begin
+  split;
+  contrapose!,
+  { rintros rfl ⟨⟨m₁, h₁ : m₁ ∈ (⊥ : lie_submodule R L M)⟩,
+                 ⟨m₂, h₂ : m₂ ∈ (⊥ : lie_submodule R L M)⟩, h₁₂⟩,
+    simpa [(lie_submodule.mem_bot _).mp h₁, (lie_submodule.mem_bot _).mp h₂] using h₁₂, },
+  { rw [not_nontrivial_iff_subsingleton, lie_submodule.eq_bot_iff],
+    rintros ⟨h⟩ m hm,
+    simpa using h ⟨m, hm⟩ ⟨_, N.zero_mem⟩, },
+end
+
 variables {R L M}
 
 section inclusion_maps
@@ -418,7 +430,7 @@ def lie_span : lie_submodule R L M := Inf {N | s ⊆ N}
 variables {R L s}
 
 lemma mem_lie_span {x : M} : x ∈ lie_span R L s ↔ ∀ N : lie_submodule R L M, s ⊆ N → x ∈ N :=
-by { change x ∈ (lie_span R L s : set M) ↔ _, erw Inf_coe, exact mem_bInter_iff, }
+by { change x ∈ (lie_span R L s : set M) ↔ _, erw Inf_coe, exact mem_Inter₂, }
 
 lemma subset_lie_span : s ⊆ lie_span R L s :=
 by { intros m hm, erw mem_lie_span, intros N hN, exact hN hm, }
@@ -461,6 +473,9 @@ protected def gi : galois_insertion (lie_span R L : set M → lie_submodule R L 
 
 @[simp] lemma span_univ : lie_span R L (set.univ : set M) = ⊤ :=
 eq_top_iff.2 $ set_like.le_def.2 $ subset_lie_span
+
+lemma lie_span_eq_bot_iff : lie_span R L s = ⊥ ↔ ∀ (m ∈ s), m = (0 : M) :=
+by rw [_root_.eq_bot_iff, lie_span_le, bot_coe, subset_singleton_iff]
 
 variables {M}
 

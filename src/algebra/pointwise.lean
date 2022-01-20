@@ -575,7 +575,7 @@ section monoid
 /-! ### `set α` as a `(∪,*)`-semiring -/
 
 /-- An alias for `set α`, which has a semiring structure given by `∪` as "addition" and pointwise
-  multiplication `*` as "multiplication". -/
+  multiplication `*` as "multiplication" or "addition" depending on the operation on `α`. -/
 @[derive inhabited] def set_semiring (α : Type*) : Type* := set α
 
 /-- The natural order by inclusion on subsets of `α` is available on `set_semiring α`. -/

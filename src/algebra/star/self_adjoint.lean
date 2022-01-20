@@ -135,19 +135,16 @@ end field
 
 end self_adjoint
 
-namespace star_normal
-
-lemma mem_iff [monoid R] [star_monoid R] {x : R} : is_star_normal x ↔ star x * x = x * star x :=
+lemma is_star_normal_iff [monoid R] [star_monoid R] {x : R} :
+  is_star_normal x ↔ star x * x = x * star x :=
 iff.rfl
 
-lemma zero_mem [semiring R] [star_ring R] : is_star_normal (0 : R) :=
-by simp only [mem_iff, star_zero]
+lemma is_star_normal_zero [semiring R] [star_ring R] : is_star_normal (0 : R) :=
+by simp only [is_star_normal_iff, star_zero]
 
-lemma one_mem [monoid R] [star_monoid R] : is_star_normal (1 : R) :=
-by simp only [mem_iff, star_one]
+lemma is_star_normal_one [monoid R] [star_monoid R] : is_star_normal (1 : R) :=
+by simp only [is_star_normal_iff, star_one]
 
-lemma star_mem [monoid R] [star_monoid R] {x : R} (hx : is_star_normal x) :
+lemma is_star_normal_star_self [monoid R] [star_monoid R] {x : R} (hx : is_star_normal x) :
   is_star_normal (star x) :=
-by simp only [mem_iff, star_star, hx.symm]
-
-end star_normal
+by simp only [is_star_normal_iff, star_star, hx.symm]

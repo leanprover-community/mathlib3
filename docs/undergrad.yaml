@@ -566,7 +566,7 @@ Probability Theory:
     convergence in probability: ''
     $\mathrm{L}^p$ convergence: ''
     almost surely convergence: 'measure_theory.measure.ae'
-    Markov inequality: ''
+    Markov inequality: 'measure_theory.mul_meas_ge_le_lintegral'
     Tchebychev inequality: ''
     Levy's theorem: ''
     weak law of large numbers: ''

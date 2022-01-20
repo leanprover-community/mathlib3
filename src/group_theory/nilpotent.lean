@@ -344,7 +344,7 @@ include hG
 
 variable (G)
 
-/-- The nilpotency class of a nilpotent group is the small natural `n` such that
+/-- The nilpotency class of a nilpotent group is the smallest natural `n` such that
 the `n`'th term of the upper central series is `G`. -/
 noncomputable def group.nilpotency_class : ℕ :=
 nat.find (is_nilpotent.nilpotent G)
@@ -365,7 +365,7 @@ begin
     exact (ascending_central_series_le_upper H hH n), }
 end
 
-/-- The nilpotency class of a nilpotent `G` is equal to the smallest `n` for which a descending
+/-- The nilpotency class of a nilpotent `G` is equal to the smallest `n` for which the descending
 central series reaches `⊥` in its `n`'th term. -/
 lemma least_descending_central_series_length_eq_nilpotency_class :
   nat.find ((nilpotent_iff_finite_descending_central_series G).mp hG) = group.nilpotency_class G :=

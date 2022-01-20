@@ -76,6 +76,15 @@ lemma star_injective [has_involutive_star R] : function.injective (star : R → 
 star_involutive.injective
 
 /--
+Typeclass for a trivial star operation. This is mostly meant for `ℝ`.
+-/
+class has_trivial_star (R : Type u) [has_star R] :=
+(star_trivial : ∀ (r : R), star r = r)
+
+export has_trivial_star (star_trivial)
+attribute [simp] star_trivial
+
+/--
 A `*`-monoid is a monoid `R` with an involutive operations `star`
 so `star (r * s) = star s * star r`.
 -/
@@ -222,29 +231,40 @@ instance star_ring.to_star_add_monoid [semiring R] [star_ring R] : star_add_mono
 def star_ring_equiv [semiring R] [star_ring R] : R ≃+* Rᵐᵒᵖ :=
 { to_fun := λ x, mul_opposite.op (star x),
   ..star_add_equiv.trans (mul_opposite.op_add_equiv : R ≃+ Rᵐᵒᵖ),
-  ..star_mul_equiv}
+  ..star_mul_equiv }
 
-/-- `star` as a `ring_aut` for commutative `R`. This is used to denote complex
-conjugation, and is available under the notation `conj` in the locale `complex_conjugate` -/
+/-- `star` as a ring automorphism, for commutative `R`. -/
+@[simps apply]
 def star_ring_aut [comm_semiring R] [star_ring R] : ring_aut R :=
 { to_fun := star,
   ..star_add_equiv,
   ..star_mul_aut }
 
-localized "notation `conj` := star_ring_aut" in complex_conjugate
+variables (R)
+/-- `star` as a ring endomorphism, for commutative `R`. This is used to denote complex
+conjugation, and is available under the notation `conj` in the locale `complex_conjugate`.
 
-/-- This is not a simp lemma, since we usually want simp to keep `star_ring_aut` bundled.
+Note that this is the preferred form (over `star_ring_aut`, available under the same hypotheses)
+because the notation `E →ₗ⋆[R] F` for an `R`-conjugate-linear map (short for
+`E →ₛₗ[star_ring_end R] F`) does not pretty-print if there is a coercion involved, as would be the
+case for `(↑star_ring_aut : R →* R)`. -/
+def star_ring_end [comm_semiring R] [star_ring R] : R →+* R := @star_ring_aut R _ _
+variables {R}
+
+localized "notation `conj` := star_ring_end _" in complex_conjugate
+
+/-- This is not a simp lemma, since we usually want simp to keep `star_ring_end` bundled.
  For example, for complex conjugation, we don't want simp to turn `conj x`
  into the bare function `star x` automatically since most lemmas are about `conj x`. -/
-lemma star_ring_aut_apply [comm_semiring R] [star_ring R] {x : R} :
-  star_ring_aut x = star x := rfl
+lemma star_ring_end_apply [comm_semiring R] [star_ring R] {x : R} :
+  star_ring_end R x = star x := rfl
 
-@[simp] lemma star_ring_aut_self_apply [comm_semiring R] [star_ring R] (x : R) :
-  star_ring_aut (star_ring_aut x) = x := star_star x
+@[simp] lemma star_ring_end_self_apply [comm_semiring R] [star_ring R] (x : R) :
+  star_ring_end R (star_ring_end R x) = x := star_star x
 
 -- A more convenient name for complex conjugation
-alias star_ring_aut_self_apply ← complex.conj_conj
-alias star_ring_aut_self_apply ← is_R_or_C.conj_conj
+alias star_ring_end_self_apply ← complex.conj_conj
+alias star_ring_end_self_apply ← is_R_or_C.conj_conj
 
 @[simp] lemma star_inv' [division_ring R] [star_ring R] (x : R) : star (x⁻¹) = (star x)⁻¹ :=
 op_injective $
@@ -257,7 +277,7 @@ op_injective $
 
 /-- When multiplication is commutative, `star` preserves division. -/
 @[simp] lemma star_div' [field R] [star_ring R] (x y : R) : star (x / y) = star x / star y :=
-(star_ring_aut : R ≃+* R).to_ring_hom.map_div _ _
+(star_ring_end R).map_div _ _
 
 @[simp] lemma star_bit0 [ring R] [star_ring R] (r : R) : star (bit0 r) = bit0 (star r) :=
 by simp [bit0]
@@ -331,8 +351,7 @@ namespace ring_hom_inv_pair
 /-- Instance needed to define star-linear maps over a commutative star ring
 (ex: conjugate-linear maps when R = ℂ).  -/
 instance [comm_semiring R] [star_ring R] :
-  ring_hom_inv_pair ((star_ring_aut : ring_aut R) : R →+* R)
-    ((star_ring_aut : ring_aut R) : R →+* R) :=
+  ring_hom_inv_pair (star_ring_end R) (star_ring_end R) :=
 ⟨ring_hom.ext star_star, ring_hom.ext star_star⟩
 
 end ring_hom_inv_pair

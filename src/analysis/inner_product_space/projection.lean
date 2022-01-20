@@ -30,10 +30,10 @@ defined in `analysis.inner_product_space.basic`); the lemma
 The last section covers orthonormal bases, etc. The lemma
 `maximal_orthonormal_iff_orthogonal_complement_eq_bot` states that an orthonormal set in an inner
 product space is maximal, if and only the orthogonal complement of its span is trivial.
-Various consequences are stated for finite-dimensional `E`, including that if a maximal orthonormal
+Various consequences are stated for finite-dimensional `E`, including that a maximal orthonormal
 set is a basis (`maximal_orthonormal_iff_basis_of_finite_dimensional`); these consequences require
 the theory on the orthogonal complement developed earlier in this file.  For consequences in
-infinite dimension (Hilbert bases, etc.), see th file `analysis.inner_product_space.l2_space`.
+infinite dimension (Hilbert bases, etc.), see the file `analysis.inner_product_space.l2_space`.
 
 ## References
 

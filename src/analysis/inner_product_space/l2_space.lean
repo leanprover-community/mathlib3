@@ -244,7 +244,7 @@ begin
 end
 
 /-- A mutually orthogonal family of complete subspaces of `E`, whose range is dense in `E`, induces
-a linear isometry from E to `lp 2` of the subspaces.
+a isometric isomorphism from E to `lp 2` of the subspaces.
 
 Note that this goes in the opposite direction from `orthogonal_family.linear_isometry`. -/
 noncomputable def linear_isometry_equiv [Π i, complete_space (G i)]
@@ -259,21 +259,32 @@ begin
   rw hV.range_linear_isometry,
 end
 
+/-- In the canonical isometric isomorphism `E ≃ₗᵢ[𝕜] lp G 2` induced by an orthogonal family `G`,
+a vector `w : lp G 2` is the image of the infinite sum of the associated elements in `E`. -/
 protected lemma linear_isometry_equiv_symm_apply [Π i, complete_space (G i)]
   (hV' : (⨆ i, (V i).to_linear_map.range).topological_closure = ⊤) (w : lp G 2) :
   (hV.linear_isometry_equiv hV').symm w = ∑' i, V i (w i) :=
 by simp [orthogonal_family.linear_isometry_equiv, orthogonal_family.linear_isometry_apply]
 
+/-- In the canonical isometric isomorphism `E ≃ₗᵢ[𝕜] lp G 2` induced by an orthogonal family `G`,
+a vector `w : lp G 2` is the image of the infinite sum of the associated elements in `E`, and this
+sum indeed converges. -/
 protected lemma has_sum_linear_isometry_equiv_symm [Π i, complete_space (G i)]
   (hV' : (⨆ i, (V i).to_linear_map.range).topological_closure = ⊤) (w : lp G 2) :
   has_sum (λ i, V i (w i)) ((hV.linear_isometry_equiv hV').symm w) :=
 by simp [orthogonal_family.linear_isometry_equiv, orthogonal_family.has_sum_linear_isometry]
 
+/-- In the canonical isometric isomorphism `E ≃ₗᵢ[𝕜] lp G 2` induced by an `ι`-indexed orthogonal
+family `G`, an "elementary basis vector" in `lp G 2` supported at `i : ι` is the image of the
+associated element in `E`. -/
 @[simp] protected lemma linear_isometry_equiv_symm_apply_single [Π i, complete_space (G i)]
   (hV' : (⨆ i, (V i).to_linear_map.range).topological_closure = ⊤) {i : ι} (x : G i) :
   (hV.linear_isometry_equiv hV').symm (lp.single 2 i x) = V i x :=
 by simp [orthogonal_family.linear_isometry_equiv, orthogonal_family.linear_isometry_apply_single]
 
+/-- In the canonical isometric isomorphism `E ≃ₗᵢ[𝕜] lp G 2` induced by an `ι`-indexed orthogonal
+family `G`, a finitely-supported vector in `lp G 2` is the image of the associated finite sum of
+elements of `E`. -/
 @[simp] protected lemma linear_isometry_equiv_symm_apply_dfinsupp_sum_single
   [Π i, complete_space (G i)]
   (hV' : (⨆ i, (V i).to_linear_map.range).topological_closure = ⊤) (W₀ : Π₀ (i : ι), G i) :
@@ -281,6 +292,9 @@ by simp [orthogonal_family.linear_isometry_equiv, orthogonal_family.linear_isome
 by simp [orthogonal_family.linear_isometry_equiv,
   orthogonal_family.linear_isometry_apply_dfinsupp_sum_single]
 
+/-- In the canonical isometric isomorphism `E ≃ₗᵢ[𝕜] lp G 2` induced by an `ι`-indexed orthogonal
+family `G`, a finitely-supported vector in `lp G 2` is the image of the associated finite sum of
+elements of `E`. -/
 @[simp] protected lemma linear_isometry_equiv_apply_dfinsupp_sum_single
   [Π i, complete_space (G i)]
   (hV' : (⨆ i, (V i).to_linear_map.range).topological_closure = ⊤) (W₀ : Π₀ (i : ι), G i) :
@@ -294,18 +308,21 @@ end
 
 end orthogonal_family
 
+/-! ### Hilbert bases -/
+
 section
 variables (ι) (𝕜) (E)
 
 /-- A Hilbert basis on `ι` for an inner product space `E` is an identification of `E` with the `lp`
 space `ℓ²(ι, 𝕜)`. -/
--- `nolint` because (of course) whether `E` has a Hilbert basis indexed by `ι` depends on the
--- cardinality of `ι`.
-@[nolint has_inhabited_instance] structure hilbert_basis := of_repr :: (repr : E ≃ₗᵢ[𝕜] ℓ²(ι, 𝕜))
+structure hilbert_basis := of_repr :: (repr : E ≃ₗᵢ[𝕜] ℓ²(ι, 𝕜))
 
 end
 
 namespace hilbert_basis
+
+instance {ι : Type*} : inhabited (hilbert_basis ι 𝕜 ℓ²(ι, 𝕜)) :=
+⟨of_repr (linear_isometry_equiv.refl 𝕜 _)⟩
 
 /-- `b i` is the `i`th basis vector. -/
 instance : has_coe_to_fun (hilbert_basis ι 𝕜 E) (λ _, ι → E) :=
@@ -345,7 +362,7 @@ begin
     exact (↑(b.repr.symm.to_continuous_linear_equiv) : ℓ²(ι, 𝕜) →L[𝕜] E).has_sum this },
   ext i,
   apply b.repr.injective,
-  have : lp.single 2 i (f i * 1) = _ := lp.single_smul 2 i (1:𝕜) (f i),
+  have : lp.single 2 i (f i * 1) = f i • lp.single 2 i 1 := lp.single_smul 2 i (1:𝕜) (f i),
   rw mul_one at this,
   rw [linear_isometry_equiv.map_smul, b.repr_self, ← this,
     linear_isometry_equiv.coe_to_continuous_linear_equiv],

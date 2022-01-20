@@ -155,8 +155,8 @@ begin
   rw h,
   dsimp [ggg, gg],
   ext1,
-  repeat {
-    rw locally_constant.coe_comap,
+  repeat
+  { rw locally_constant.coe_comap,
     dsimp [locally_constant.flip, locally_constant.unflip] },
   { congr' 1,
     change _ = ((C.π.app j0) ≫ (F.map (fs a))) x,

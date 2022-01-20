@@ -5,8 +5,6 @@ Authors: Neil Strickland
 -/
 import data.pnat.prime
 import data.multiset.sort
-import data.int.gcd
-import algebra.group
 
 /-!
 # Prime factors of nonzero naturals
@@ -24,7 +22,7 @@ the multiplicity of `p` in this factors multiset being the p-adic valuation of `
  gives an equivalence between this set and ℕ+, as we will formalize
  below. -/
  @[derive [inhabited, has_repr, canonically_ordered_add_monoid, distrib_lattice,
-  semilattice_sup_bot, has_sub, has_ordered_sub]]
+  semilattice_sup, order_bot, has_sub, has_ordered_sub]]
 def prime_multiset := multiset nat.primes
 
 namespace prime_multiset

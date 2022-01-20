@@ -4,11 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 
-import field_theory.finite.basic
-import field_theory.mv_polynomial
-import data.mv_polynomial.expand
-import linear_algebra.basic
 import linear_algebra.finite_dimensional
+import linear_algebra.basic
+import ring_theory.mv_polynomial.basic
+import data.mv_polynomial.expand
+import field_theory.finite.basic
 
 /-!
 ## Polynomials over finite fields
@@ -172,7 +172,7 @@ calc module.rank K (R σ K) =
     (equiv.arrow_congr (equiv.refl σ) (equiv.fin_equiv_subtype _).symm).cardinal_eq
   ... = #(σ → K) :
     (equiv.arrow_congr (equiv.refl σ) (fintype.equiv_fin K).symm).cardinal_eq
-  ... = fintype.card (σ → K) : cardinal.fintype_card _
+  ... = fintype.card (σ → K) : cardinal.mk_fintype _
 
 instance : finite_dimensional K (R σ K) :=
 is_noetherian.iff_fg.1 $ is_noetherian.iff_dim_lt_omega.mpr

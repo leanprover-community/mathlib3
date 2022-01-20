@@ -80,12 +80,12 @@ attribute [reassoc, simp] exact_pairing.evaluation_coevaluation
 instance exact_pairing_unit : exact_pairing (𝟙_ C) (𝟙_ C) :=
 { coevaluation := (ρ_ _).inv,
   evaluation := (ρ_ _).hom,
-  coevaluation_evaluation' := by {
-    rw[monoidal_category.triangle_assoc_comp_right,
+  coevaluation_evaluation' := by
+  { rw[monoidal_category.triangle_assoc_comp_right,
       monoidal_category.unitors_inv_equal,
       monoidal_category.unitors_equal], simp },
-  evaluation_coevaluation' := by {
-    rw[monoidal_category.triangle_assoc_comp_right_inv_assoc,
+  evaluation_coevaluation' := by
+  { rw[monoidal_category.triangle_assoc_comp_right_inv_assoc,
       monoidal_category.unitors_inv_equal,
       monoidal_category.unitors_equal], simp } }
 

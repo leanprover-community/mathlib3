@@ -4,13 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen
 -/
 
+import analysis.special_functions.pow
+import ring_theory.class_group
+import ring_theory.norm
 import linear_algebra.free_module.pid
 import linear_algebra.matrix.absolute_value
 import number_theory.class_number.admissible_absolute_value
-import number_theory.function_field
-import number_theory.number_field
-import ring_theory.class_group
-import ring_theory.norm
 
 /-!
 # Class numbers of global fields
@@ -66,7 +65,7 @@ begin
     apply (algebra.left_mul_matrix bS).injective_iff.mp (algebra.left_mul_matrix_injective bS),
     ext j k,
     simp [h, dmatrix.zero_apply] },
-  simp only [norm_bound, algebra.smul_def, ring_hom.eq_nat_cast, int.nat_cast_eq_coe_nat],
+  simp only [norm_bound, algebra.smul_def, eq_nat_cast, int.nat_cast_eq_coe_nat],
   refine mul_pos (int.coe_nat_pos.mpr (nat.factorial_pos _)) _,
   refine pow_pos (mul_pos (int.coe_nat_pos.mpr (fintype.card_pos_iff.mpr ⟨i⟩)) _) _,
   refine lt_of_lt_of_le (abv.pos hijk) (finset.le_max' _ _ _),

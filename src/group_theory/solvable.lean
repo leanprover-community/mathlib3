@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jordan Brown, Thomas Browning, Patrick Lutz
 -/
 
-import data.matrix.notation
+import data.fin.vec_notation
 import group_theory.abelianization
 import set_theory.cardinal
 import group_theory.general_commutator
@@ -184,7 +184,7 @@ begin
 end
 
 instance solvable_quotient_of_solvable (H : subgroup G) [H.normal] [h : is_solvable G] :
-  is_solvable (quotient_group.quotient H) :=
+  is_solvable (G ⧸ H) :=
 solvable_of_surjective (show function.surjective (quotient_group.mk' H), by tidy)
 
 lemma solvable_of_ker_le_range {G' G'' : Type*} [group G'] [group G''] (f : G' →* G)

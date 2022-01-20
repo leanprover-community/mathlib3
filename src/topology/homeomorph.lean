@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Patrick Massot, Sébastien Gouëzel, Zhouhang Zhou, Reid Barton
 -/
 import topology.dense_embedding
+import data.equiv.fin
 
 /-!
 # Homeomorphisms
@@ -82,6 +83,8 @@ protected def trans (h₁ : α ≃ₜ β) (h₂ : β ≃ₜ γ) : α ≃ₜ γ :
 { continuous_to_fun  := h₂.continuous_to_fun.comp h₁.continuous_to_fun,
   continuous_inv_fun := h₁.continuous_inv_fun.comp h₂.continuous_inv_fun,
   to_equiv := equiv.trans h₁.to_equiv h₂.to_equiv }
+
+@[simp] lemma trans_apply (h₁ : α ≃ₜ β) (h₂ : β ≃ₜ γ) (a : α) : h₁.trans h₂ a = h₂ (h₁ a) := rfl
 
 @[simp] lemma homeomorph_mk_coe_symm (a : equiv α β) (b c) :
   ((homeomorph.mk a b c).symm : β → α) = a.symm :=
@@ -170,11 +173,11 @@ h.embedding.is_compact_iff_is_compact_image.symm
 lemma compact_preimage {s : set β} (h : α ≃ₜ β) : is_compact (h ⁻¹' s) ↔ is_compact s :=
 by rw ← image_symm; exact h.symm.compact_image
 
-lemma compact_space [compact_space α] (h : α ≃ₜ β) : compact_space β :=
+protected lemma compact_space [compact_space α] (h : α ≃ₜ β) : compact_space β :=
 { compact_univ := by { rw [← image_univ_of_surjective h.surjective, h.compact_image],
     apply compact_space.compact_univ } }
 
-lemma t2_space [t2_space α] (h : α ≃ₜ β) : t2_space β :=
+protected lemma t2_space [t2_space α] (h : α ≃ₜ β) : t2_space β :=
 { t2 :=
   begin
     intros x y hxy,
@@ -212,8 +215,14 @@ protected lemma is_open_map (h : α ≃ₜ β) : is_open_map h := λ s, h.is_ope
 
 protected lemma is_closed_map (h : α ≃ₜ β) : is_closed_map h := λ s, h.is_closed_image.2
 
+protected lemma open_embedding (h : α ≃ₜ β) : open_embedding h :=
+open_embedding_of_embedding_open h.embedding h.is_open_map
+
 protected lemma closed_embedding (h : α ≃ₜ β) : closed_embedding h :=
 closed_embedding_of_embedding_closed h.embedding h.is_closed_map
+
+lemma preimage_frontier (h : α ≃ₜ β) (s : set β) : h ⁻¹' (frontier s) = frontier (h ⁻¹' s) :=
+h.is_open_map.preimage_frontier_eq_frontier_preimage h.continuous _
 
 @[simp] lemma map_nhds_eq (h : α ≃ₜ β) (x : α) : map h (𝓝 x) = 𝓝 (h x) :=
 h.embedding.map_nhds_of_mem _ (by simp)
@@ -399,6 +408,17 @@ def fun_unique (ι α : Type*) [unique ι] [topological_space α] : (ι → α) 
   continuous_to_fun := continuous_apply _,
   continuous_inv_fun := continuous_pi (λ _, continuous_id) }
 
+/-- Homeomorphism between dependent functions `Π i : fin 2, α i` and `α 0 × α 1`. -/
+@[simps { fully_applied := ff }]
+def {u} pi_fin_two (α : fin 2 → Type u) [Π i, topological_space (α i)] : (Π i, α i) ≃ₜ α 0 × α 1 :=
+{ to_equiv := pi_fin_two_equiv α,
+  continuous_to_fun := (continuous_apply 0).prod_mk (continuous_apply 1),
+  continuous_inv_fun := continuous_pi $ fin.forall_fin_two.2 ⟨continuous_fst, continuous_snd⟩ }
+
+/-- Homeomorphism between `α² = fin 2 → α` and `α × α`. -/
+@[simps { fully_applied := ff }] def fin_two_arrow : (fin 2 → α) ≃ₜ α × α :=
+{ to_equiv := fin_two_arrow_equiv α, ..  pi_fin_two (λ _, α) }
+
 /--
 A subset of a topological space is homeomorphic to its image under a homeomorphism.
 -/
@@ -408,3 +428,70 @@ def image (e : α ≃ₜ β) (s : set α) : s ≃ₜ e '' s :=
   ..e.to_equiv.image s, }
 
 end homeomorph
+
+namespace continuous
+variables [topological_space α] [topological_space β]
+
+lemma continuous_symm_of_equiv_compact_to_t2 [compact_space α] [t2_space β]
+  {f : α ≃ β} (hf : continuous f) : continuous f.symm :=
+begin
+  rw continuous_iff_is_closed,
+  intros C hC,
+  have hC' : is_closed (f '' C) := (hC.is_compact.image hf).is_closed,
+  rwa equiv.image_eq_preimage at hC',
+end
+
+/-- Continuous equivalences from a compact space to a T2 space are homeomorphisms.
+
+This is not true when T2 is weakened to T1
+(see `continuous.homeo_of_equiv_compact_to_t2.t1_counterexample`). -/
+@[simps]
+def homeo_of_equiv_compact_to_t2 [compact_space α] [t2_space β]
+  {f : α ≃ β} (hf : continuous f) : α ≃ₜ β :=
+{ continuous_to_fun := hf,
+  continuous_inv_fun := hf.continuous_symm_of_equiv_compact_to_t2,
+  ..f }
+
+/--
+A concrete counterexample shows that  `continuous.homeo_of_equiv_compact_to_t2`
+cannot be generalized from `t2_space` to `t1_space`.
+
+Let `α = ℕ` be the one-point compactification of `{1, 2, ...}` with the discrete topology,
+where `0` is the adjoined point, and let `β = ℕ` be given the cofinite topology.
+Then `α` is compact, `β` is T1, and the identity map `id : α → β` is a continuous equivalence
+that is not a homeomorphism.
+-/
+lemma homeo_of_equiv_compact_to_t2.t1_counterexample :
+  ∃ (α β : Type) (Iα : topological_space α) (Iβ : topological_space β), by exactI
+  compact_space α ∧ t1_space β ∧ ∃ f : α ≃ β, continuous f ∧ ¬ continuous f.symm :=
+begin
+  /- In the `nhds_adjoint 0 filter.cofinite` topology, a set is open if (1) 0 is not in the set or
+     (2) 0 is in the set and the set is cofinite.  This coincides with the one-point
+     compactification of {1, 2, ...} with the discrete topology. -/
+  let topα : topological_space ℕ := nhds_adjoint 0 filter.cofinite,
+  let topβ : topological_space ℕ := cofinite_topology ℕ,
+  refine ⟨ℕ, ℕ, topα, topβ, _, t1_space_cofinite, equiv.refl ℕ, _, _⟩,
+  { fsplit,
+    rw is_compact_iff_ultrafilter_le_nhds,
+    intros f,
+    suffices : ∃ a, ↑f ≤ @nhds _ topα a, by simpa,
+    by_cases hf : ↑f ≤ @nhds _ topα 0,
+    { exact ⟨0, hf⟩ },
+    { obtain ⟨U, h0U, hU_fin, hUf⟩ : ∃ U : set ℕ, 0 ∈ U ∧ Uᶜ.finite ∧ Uᶜ ∈ f,
+      { rw [nhds_adjoint_nhds, filter.le_def] at hf,
+        push_neg at hf,
+        simpa [and_assoc, ← ultrafilter.compl_mem_iff_not_mem] using hf },
+      obtain ⟨n, hn', hn⟩ := ultrafilter.eq_principal_of_finite_mem hU_fin hUf,
+      rw hn,
+      exact ⟨n, @mem_of_mem_nhds _ topα n⟩ } },
+  { rw continuous_iff_coinduced_le,
+    change topα ≤ topβ,
+    rw gc_nhds,
+    simp [nhds_cofinite] },
+  { intros h,
+    replace h : topβ ≤ topα := by simpa [continuous_iff_coinduced_le, coinduced_id] using h,
+    rw le_nhds_adjoint_iff at h,
+    exact (finite_singleton 1).infinite_compl (h.2 1 one_ne_zero ⟨1, mem_singleton 1⟩) }
+end
+
+end continuous

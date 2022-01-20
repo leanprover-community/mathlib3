@@ -5,6 +5,7 @@ Authors: Frédéric Dupuis
 -/
 import analysis.inner_product_space.projection
 import analysis.normed_space.dual
+import analysis.normed_space.star
 
 /-!
 # The Fréchet-Riesz representation theorem
@@ -29,7 +30,7 @@ dual, Fréchet-Riesz
 -/
 
 noncomputable theory
-open_locale classical
+open_locale classical complex_conjugate
 universes u v
 
 namespace inner_product_space
@@ -38,7 +39,7 @@ open is_R_or_C continuous_linear_map
 variables (𝕜 : Type*)
 variables (E : Type*) [is_R_or_C 𝕜] [inner_product_space 𝕜 E]
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 E _ x y
-local postfix `†`:90 := star_ring_aut
+local postfix `†`:90 := star_ring_end _
 
 /--
 An element `x` of an inner product space `E` induces an element of the dual space `dual 𝕜 E`,
@@ -48,31 +49,16 @@ If `E` is complete, this operation is surjective, hence a conjugate-linear isome
 see `to_dual`.
 -/
 def to_dual_map : E →ₗᵢ⋆[𝕜] normed_space.dual 𝕜 E :=
-{ to_fun := λ x, linear_map.mk_continuous
-    { to_fun := λ y, ⟪x, y⟫,
-      map_add' := λ _ _, inner_add_right,
-      map_smul' := λ _ _, inner_smul_right }
-    ∥x∥
-    (λ y, by { rw [is_R_or_C.norm_eq_abs], exact abs_inner_le_norm _ _ }),
-  map_add' := λ x y, by { ext z, simp [inner_add_left] },
-  map_smul' := λ c y, by { ext z, simp [inner_smul_left] },
-  norm_map' := λ x, begin
-    refine le_antisymm _ _,
-    { exact linear_map.mk_continuous_norm_le _ (norm_nonneg _) _ },
-    { cases eq_or_lt_of_le (norm_nonneg x) with h h,
-      { have : x = 0 := norm_eq_zero.mp (eq.symm h),
-        simp [this] },
-      { refine (mul_le_mul_right h).mp _,
-        calc ∥x∥ * ∥x∥ = ∥x∥ ^ 2 : by ring
-        ... = re ⟪x, x⟫ : norm_sq_eq_inner _
-        ... ≤ abs ⟪x, x⟫ : re_le_abs _
-        ... = ∥linear_map.mk_continuous _ _ _ x∥ : by simp [norm_eq_abs]
-        ... ≤ ∥linear_map.mk_continuous _ _ _∥ * ∥x∥ : le_op_norm _ x } }
-  end }
+{ norm_map' := λ _, innerSL_apply_norm,
+ ..innerSL }
 
 variables {E}
 
 @[simp] lemma to_dual_map_apply {x y : E} : to_dual_map 𝕜 E x y = ⟪x, y⟫ := rfl
+
+lemma innerSL_norm [nontrivial E] : ∥(innerSL : E →L⋆[𝕜] E →L[𝕜] 𝕜)∥ = 1 :=
+show ∥(to_dual_map 𝕜 E).to_continuous_linear_map∥ = 1,
+  from linear_isometry.norm_to_continuous_linear_map _
 
 variables (E) [complete_space E]
 
@@ -92,8 +78,7 @@ begin
       apply coe_injective,
       exact h' },
     exact ⟨0, by simp [hℓ]⟩ },
-  { have Ycomplete := is_complete_ker ℓ,
-    rw [← submodule.orthogonal_eq_bot_iff Ycomplete, ←hY] at htriv,
+  { rw [← submodule.orthogonal_eq_bot_iff] at htriv,
     change Yᗮ ≠ ⊥ at htriv,
     rw [submodule.ne_bot_iff] at htriv,
     obtain ⟨z : E, hz : z ∈ Yᗮ, z_ne_0 : z ≠ 0⟩ := htriv,
@@ -111,7 +96,7 @@ begin
       exact sub_eq_zero.mp (eq.symm h₃) },
     have h₄ := calc
       ⟪((ℓ z)† / ⟪z, z⟫) • z, x⟫ = (ℓ z) / ⟪z, z⟫ * ⟪z, x⟫
-            : by simp [inner_smul_left, ring_equiv.map_div, conj_conj]
+            : by simp [inner_smul_left, ring_hom.map_div, conj_conj]
                             ... = (ℓ z) * ⟪z, x⟫ / ⟪z, z⟫
             : by rw [←div_mul_eq_mul_div]
                             ... = (ℓ x) * ⟪z, z⟫ / ⟪z, z⟫
@@ -129,5 +114,54 @@ end
 variables {E}
 
 @[simp] lemma to_dual_apply {x y : E} : to_dual 𝕜 E x y = ⟪x, y⟫ := rfl
+
+@[simp] lemma to_dual_symm_apply {x : E} {y : normed_space.dual 𝕜 E} :
+  ⟪(to_dual 𝕜 E).symm y, x⟫ = y x :=
+begin
+  rw ← to_dual_apply,
+  simp only [linear_isometry_equiv.apply_symm_apply],
+end
+
+variable (𝕜)
+include 𝕜
+lemma ext_inner_left {x y : E} (h : ∀ v, ⟪v, x⟫ = ⟪v, y⟫) : x = y :=
+begin
+  apply (to_dual 𝕜 E).map_eq_iff.mp,
+  ext v,
+  rw [to_dual_apply, to_dual_apply, ←inner_conj_sym],
+  nth_rewrite_rhs 0 [←inner_conj_sym],
+  exact congr_arg conj (h v)
+end
+
+lemma ext_inner_right {x y : E} (h : ∀ v, ⟪x, v⟫ = ⟪y, v⟫) : x = y :=
+begin
+  refine ext_inner_left 𝕜 (λ v, _),
+  rw [←inner_conj_sym],
+  nth_rewrite_rhs 0 [←inner_conj_sym],
+  exact congr_arg conj (h v)
+end
+omit 𝕜
+variable {𝕜}
+
+lemma ext_inner_left_basis {ι : Type*} {x y : E} (b : basis ι 𝕜 E)
+  (h : ∀ i : ι, ⟪b i, x⟫ = ⟪b i, y⟫) : x = y :=
+begin
+  apply (to_dual 𝕜 E).map_eq_iff.mp,
+  refine (function.injective.eq_iff continuous_linear_map.coe_injective).mp (basis.ext b _),
+  intro i,
+  simp only [to_dual_apply, continuous_linear_map.coe_coe],
+  rw [←inner_conj_sym],
+  nth_rewrite_rhs 0 [←inner_conj_sym],
+  exact congr_arg conj (h i)
+end
+
+lemma ext_inner_right_basis {ι : Type*} {x y : E} (b : basis ι 𝕜 E)
+  (h : ∀ i : ι, ⟪x, b i⟫ = ⟪y, b i⟫) : x = y :=
+begin
+  refine ext_inner_left_basis b (λ i, _),
+  rw [←inner_conj_sym],
+  nth_rewrite_rhs 0 [←inner_conj_sym],
+  exact congr_arg conj (h i)
+end
 
 end inner_product_space

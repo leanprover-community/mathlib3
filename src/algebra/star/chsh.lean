@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import algebra.star.basic
-import algebra.order.algebra
 import analysis.special_functions.pow
 
 /-!
@@ -172,13 +171,9 @@ we prepare some easy lemmas about √2.
 -- defeated me. Thanks for the rescue from Shing Tak Lam!
 lemma tsirelson_inequality_aux : √2 * √2 ^ 3 = √2 * (2 * √2⁻¹ + 4 * (√2⁻¹ * 2⁻¹)) :=
 begin
-  ring_nf,
-  rw [mul_assoc, inv_mul_cancel, real.sqrt_eq_rpow, ←real.rpow_nat_cast, ←real.rpow_mul],
-  { norm_num,
-    rw show (2 : ℝ) ^ (2 : ℝ) = (2 : ℝ) ^ (2 : ℕ), by { rw ←real.rpow_nat_cast, norm_num },
-    norm_num },
-  { norm_num, },
-  { norm_num, },
+  ring_nf, field_simp [(@real.sqrt_pos 2).2 (by norm_num)],
+  convert congr_arg (^2) (@real.sq_sqrt 2 (by norm_num)) using 1;
+    simp only [← pow_mul]; norm_num,
 end
 
 lemma sqrt_two_inv_mul_self : √2⁻¹ * √2⁻¹ = (2⁻¹ : ℝ) :=
@@ -227,8 +222,8 @@ begin
     -- just look at the coefficients now:
     congr,
     exact mul_left_cancel₀ (by norm_num) tsirelson_inequality_aux, },
-  have pos : 0 ≤ √2⁻¹ • (P^2 + Q^2), {
-    have P_sa : star P = P,
+  have pos : 0 ≤ √2⁻¹ • (P^2 + Q^2),
+  { have P_sa : star P = P,
     { dsimp [P],
       simp only [star_smul, star_add, star_sub, star_id_of_comm,
         T.A₀_sa, T.A₁_sa, T.B₀_sa, T.B₁_sa], },

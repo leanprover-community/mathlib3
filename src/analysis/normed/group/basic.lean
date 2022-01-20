@@ -33,8 +33,9 @@ variables {α ι E F : Type*}
 open filter metric
 open_locale topological_space big_operators nnreal ennreal uniformity pointwise
 
-/-- Auxiliary class, endowing a type `E` with a function `norm : E → ℝ`. This class is designed to
-be extended in more interesting classes specifying the properties of the norm. -/
+/-- Auxiliary class, endowing a type `E` with a function `norm : E → ℝ` with notation `∥x∥`. This
+class is designed to be extended in more interesting classes specifying the properties of the norm.
+-/
 class has_norm (E : Type*) := (norm : E → ℝ)
 
 export has_norm (norm)
@@ -262,6 +263,9 @@ lemma mem_closed_ball_iff_norm {g h : E} {r : ℝ} :
   h ∈ closed_ball g r ↔ ∥h - g∥ ≤ r :=
 by rw [mem_closed_ball, dist_eq_norm]
 
+@[simp] lemma mem_closed_ball_zero_iff {ε : ℝ} {x : E} : x ∈ closed_ball (0 : E) ε ↔ ∥x∥ ≤ ε :=
+by rw [mem_closed_ball, dist_zero_right]
+
 lemma add_mem_closed_ball_iff_norm {g h : E} {r : ℝ} :
   g + h ∈ closed_ball g r ↔ ∥h∥ ≤ r :=
 by rw [mem_closed_ball_iff_norm, add_sub_cancel']
@@ -296,14 +300,14 @@ lemma bounded_iff_forall_norm_le {s : set E} : bounded s ↔ ∃ C, ∀ x ∈ s,
 by simpa only [set.subset_def, mem_closed_ball_iff_norm, sub_zero]
   using bounded_iff_subset_ball (0 : E)
 
-lemma preimage_add_ball (x y : E) (r : ℝ) : ((+) y) ⁻¹' (ball x r) = ball (x - y) r :=
+@[simp] lemma preimage_add_ball (x y : E) (r : ℝ) : ((+) y) ⁻¹' (ball x r) = ball (x - y) r :=
 begin
   ext z,
   simp only [dist_eq_norm, set.mem_preimage, mem_ball],
   abel
 end
 
-lemma preimage_add_closed_ball (x y : E) (r : ℝ) :
+@[simp] lemma preimage_add_closed_ball (x y : E) (r : ℝ) :
   ((+) y) ⁻¹' (closed_ball x r) = closed_ball (x - y) r :=
 begin
   ext z,
@@ -413,8 +417,15 @@ lemma normed_group.tendsto_nhds_nhds {f : E → F} {x : E} {y : F} :
 by simp_rw [metric.tendsto_nhds_nhds, dist_eq_norm]
 
 lemma normed_group.cauchy_seq_iff [nonempty α] [semilattice_sup α] {u : α → E} :
-  cauchy_seq u ↔ ∀ ε > 0, ∃ N, ∀ m n, N ≤ m → N ≤ n → ∥u m - u n∥ < ε :=
+  cauchy_seq u ↔ ∀ ε > 0, ∃ N, ∀ m, N ≤ m → ∀ n, N ≤ n → ∥u m - u n∥ < ε :=
 by simp [metric.cauchy_seq_iff, dist_eq_norm]
+
+lemma normed_group.uniformity_basis_dist :
+  (𝓤 E).has_basis (λ (ε : ℝ), 0 < ε) (λ ε, {p : E × E | ∥p.fst - p.snd∥ < ε}) :=
+begin
+  convert metric.uniformity_basis_dist,
+  simp [dist_eq_norm]
+end
 
 open finset
 
@@ -528,7 +539,7 @@ end
 
 section nnnorm
 
-/-- Auxiliary class, endowing a type `α` with a function `nnnorm : α → ℝ≥0`. -/
+/-- Auxiliary class, endowing a type `α` with a function `nnnorm : α → ℝ≥0` with notation `∥x∥₊`. -/
 class has_nnnorm (E : Type*) := (nnnorm : E → ℝ≥0)
 
 export has_nnnorm (nnnorm)
@@ -540,19 +551,22 @@ instance semi_normed_group.to_has_nnnorm : has_nnnorm E := ⟨λ a, ⟨norm a, n
 
 @[simp, norm_cast] lemma coe_nnnorm (a : E) : (∥a∥₊ : ℝ) = norm a := rfl
 
+lemma norm_to_nnreal {a : E} : ∥a∥.to_nnreal = ∥a∥₊ :=
+@real.to_nnreal_coe ∥a∥₊
+
 lemma nndist_eq_nnnorm (a b : E) : nndist a b = ∥a - b∥₊ := nnreal.eq $ dist_eq_norm _ _
 
 @[simp] lemma nnnorm_zero : ∥(0 : E)∥₊ = 0 :=
 nnreal.eq norm_zero
 
 lemma nnnorm_add_le (g h : E) : ∥g + h∥₊ ≤ ∥g∥₊ + ∥h∥₊ :=
-nnreal.coe_le_coe.2 $ norm_add_le g h
+nnreal.coe_le_coe.1 $ norm_add_le g h
 
 @[simp] lemma nnnorm_neg (g : E) : ∥-g∥₊ = ∥g∥₊ :=
 nnreal.eq $ norm_neg g
 
 lemma nndist_nnnorm_nnnorm_le (g h : E) : nndist ∥g∥₊ ∥h∥₊ ≤ ∥g - h∥₊ :=
-nnreal.coe_le_coe.2 $ dist_norm_norm_le g h
+nnreal.coe_le_coe.1 $ dist_norm_norm_le g h
 
 lemma of_real_norm_eq_coe_nnnorm (x : E) : ennreal.of_real ∥x∥ = (∥x∥₊ : ℝ≥0∞) :=
 ennreal.of_real_eq_coe_nnreal _
@@ -568,7 +582,7 @@ by rw [emetric.mem_ball, edist_eq_coe_nnnorm]
 
 lemma nndist_add_add_le (g₁ g₂ h₁ h₂ : E) :
   nndist (g₁ + g₂) (h₁ + h₂) ≤ nndist g₁ h₁ + nndist g₂ h₂ :=
-nnreal.coe_le_coe.2 $ dist_add_add_le g₁ g₂ h₁ h₂
+nnreal.coe_le_coe.1 $ dist_add_add_le g₁ g₂ h₁ h₂
 
 lemma edist_add_add_le (g₁ g₂ h₁ h₂ : E) :
   edist (g₁ + g₂) (h₁ + h₂) ≤ edist g₁ h₁ + edist g₂ h₂ :=
@@ -1014,7 +1028,7 @@ by simpa only [← dist_zero_right] using dist_pi_const a 0
   ∥(λ i : ι, a)∥₊ = ∥a∥₊ :=
 nnreal.eq $ pi_norm_const a
 
-lemma tendsto_norm_nhds_within_zero : tendsto (norm : E → ℝ) (𝓝[{0}ᶜ] 0) (𝓝[set.Ioi 0] 0) :=
+lemma tendsto_norm_nhds_within_zero : tendsto (norm : E → ℝ) (𝓝[≠] 0) (𝓝[>] 0) :=
 (continuous_norm.tendsto' (0 : E) 0 norm_zero).inf $ tendsto_principal_principal.2 $
   λ x, norm_pos_iff.2
 

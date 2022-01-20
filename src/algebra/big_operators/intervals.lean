@@ -67,7 +67,7 @@ Ico_union_Ico_eq_Ico hmn hnk ▸ eq.symm $ prod_union $ Ico_disjoint_Ico_consecu
 @[to_additive]
 lemma prod_range_mul_prod_Ico (f : ℕ → β) {m n : ℕ} (h : m ≤ n) :
   (∏ k in range m, f k) * (∏ k in Ico m n, f k) = (∏ k in range n, f k) :=
-m.Ico_zero_eq_range ▸ n.Ico_zero_eq_range ▸ prod_Ico_consecutive f m.zero_le h
+nat.Ico_zero_eq_range ▸ nat.Ico_zero_eq_range ▸ prod_Ico_consecutive f m.zero_le h
 
 @[to_additive]
 lemma prod_Ico_eq_mul_inv {δ : Type*} [comm_group δ] (f : ℕ → δ) {m n : ℕ} (h : m ≤ n) :

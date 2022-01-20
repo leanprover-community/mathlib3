@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser, Zhangir Azerbayev
 -/
 
+import linear_algebra.multilinear.basis
 import linear_algebra.multilinear.tensor_product
 import linear_algebra.linear_independent
 import group_theory.perm.sign
@@ -156,6 +157,14 @@ f.to_multilinear_map.map_update_zero m i
 @[simp] lemma map_zero [nonempty ι] : f 0 = 0 :=
 f.to_multilinear_map.map_zero
 
+lemma map_eq_zero_of_not_injective (v : ι → M) (hv : ¬function.injective v) : f v = 0 :=
+begin
+  rw function.injective at hv,
+  push_neg at hv,
+  rcases hv with ⟨i₁, i₂, heq, hne⟩,
+  exact f.map_eq_zero_of_eq v heq hne
+end
+
 /-!
 ### Algebraic structure inherited from `multilinear_map`
 
@@ -249,6 +258,9 @@ instance : has_scalar S (alternating_map R M N ι) :=
 @[norm_cast] lemma coe_smul (c : S):
   ((c • f : alternating_map R M N ι) : multilinear_map R (λ i : ι, M) N) = c • f := rfl
 
+lemma coe_fn_smul (c : S) (f : alternating_map R M N ι) : ⇑(c • f) = c • f :=
+rfl
+
 instance : distrib_mul_action S (alternating_map R M N ι) :=
 { one_smul := λ f, ext $ λ x, one_smul _ _,
   mul_smul := λ c₁ c₂ f, ext $ λ x, mul_smul _ _ _,
@@ -266,6 +278,9 @@ addition and scalar multiplication. -/
 instance : module S (alternating_map R M N ι) :=
 { add_smul := λ r₁ r₂ f, ext $ λ x, add_smul _ _ _,
   zero_smul := λ f, ext $ λ x, zero_smul _ _ }
+
+instance [no_zero_smul_divisors S N] : no_zero_smul_divisors S (alternating_map R M N ι) :=
+coe_injective.no_zero_smul_divisors _ rfl coe_fn_smul
 
 end module
 
@@ -292,7 +307,7 @@ namespace linear_map
 
 variables {N₂ : Type*} [add_comm_monoid N₂] [module R N₂]
 
-/-- Composing a alternating map with a linear map gives again a alternating map. -/
+/-- Composing a alternating map with a linear map on the left gives again an alternating map. -/
 def comp_alternating_map (g : N →ₗ[R] N₂) : alternating_map R M N ι →+ alternating_map R M N₂ ι :=
 { to_fun := λ f,
   { map_eq_zero_of_eq' := λ v i j h hij, by simp [f.map_eq_zero_of_eq v h hij],
@@ -309,6 +324,91 @@ lemma comp_alternating_map_apply (g : N →ₗ[R] N₂) (f : alternating_map R M
 end linear_map
 
 namespace alternating_map
+
+variables {M₂ : Type*} [add_comm_monoid M₂] [module R M₂]
+variables {M₃ : Type*} [add_comm_monoid M₃] [module R M₃]
+
+/-- Composing a alternating map with the same linear map on each argument gives again an
+alternating map. -/
+def comp_linear_map (f : alternating_map R M N ι) (g : M₂ →ₗ[R] M) : alternating_map R M₂ N ι :=
+{ map_eq_zero_of_eq' := λ v i j h hij, f.map_eq_zero_of_eq _ (linear_map.congr_arg h) hij,
+  .. (f : multilinear_map R (λ _ : ι, M) N).comp_linear_map (λ _, g) }
+
+lemma coe_comp_linear_map (f : alternating_map R M N ι) (g : M₂ →ₗ[R] M) :
+  ⇑(f.comp_linear_map g) = f ∘ ((∘) g) := rfl
+
+@[simp] lemma comp_linear_map_apply (f : alternating_map R M N ι) (g : M₂ →ₗ[R] M) (v : ι → M₂) :
+  f.comp_linear_map g v = f (λ i, g (v i)) := rfl
+
+/-- Composing an alternating map twice with the same linear map in each argument is
+the same as composing with their composition. -/
+lemma comp_linear_map_assoc (f : alternating_map R M N ι) (g₁ : M₂ →ₗ[R] M) (g₂ : M₃ →ₗ[R] M₂) :
+  (f.comp_linear_map g₁).comp_linear_map g₂ = f.comp_linear_map (g₁ ∘ₗ g₂) :=
+rfl
+
+@[simp] lemma zero_comp_linear_map (g : M₂ →ₗ[R] M) :
+  (0 : alternating_map R M N ι).comp_linear_map g = 0 :=
+by { ext, simp only [comp_linear_map_apply, zero_apply] }
+
+@[simp] lemma add_comp_linear_map (f₁ f₂ : alternating_map R M N ι) (g : M₂ →ₗ[R] M) :
+  (f₁ + f₂).comp_linear_map g = f₁.comp_linear_map g + f₂.comp_linear_map g :=
+by { ext, simp only [comp_linear_map_apply, add_apply] }
+
+@[simp] lemma comp_linear_map_zero [nonempty ι] (f : alternating_map R M N ι) :
+  f.comp_linear_map (0 : M₂ →ₗ[R] M) = 0 :=
+begin
+  ext,
+  simp_rw [comp_linear_map_apply, linear_map.zero_apply, ←pi.zero_def, map_zero, zero_apply],
+end
+
+/-- Composing an alternating map with the identity linear map in each argument. -/
+@[simp] lemma comp_linear_map_id (f : alternating_map R M N ι) :
+  f.comp_linear_map linear_map.id = f :=
+ext $ λ _, rfl
+
+/-- Composing with a surjective linear map is injective. -/
+lemma comp_linear_map_injective (f : M₂ →ₗ[R] M) (hf : function.surjective f) :
+  function.injective (λ g : alternating_map R M N ι, g.comp_linear_map f) :=
+λ g₁ g₂ h, ext $ λ x,
+by simpa [function.surj_inv_eq hf] using ext_iff.mp h (function.surj_inv hf ∘ x)
+
+lemma comp_linear_map_inj (f : M₂ →ₗ[R] M) (hf : function.surjective f)
+  (g₁ g₂ : alternating_map R M N ι) : g₁.comp_linear_map f = g₂.comp_linear_map f ↔ g₁ = g₂ :=
+(comp_linear_map_injective _ hf).eq_iff
+
+section dom_lcongr
+
+variables (ι R N) (S : Type*) [semiring S] [module S N] [smul_comm_class R S N]
+
+/-- Construct a linear equivalence between maps from a linear equivalence between domains. -/
+@[simps apply]
+def dom_lcongr (e : M ≃ₗ[R] M₂) : alternating_map R M N ι ≃ₗ[S] alternating_map R M₂ N ι :=
+{ to_fun := λ f, f.comp_linear_map e.symm,
+  inv_fun := λ g, g.comp_linear_map e,
+  map_add' := λ _ _, rfl,
+  map_smul' := λ _ _, rfl,
+  left_inv := λ f, alternating_map.ext $ λ v, f.congr_arg $ funext $ λ i, e.symm_apply_apply _,
+  right_inv := λ f, alternating_map.ext $ λ v, f.congr_arg $ funext $ λ i, e.apply_symm_apply _ }
+
+@[simp] lemma dom_lcongr_refl :
+  dom_lcongr R N ι S (linear_equiv.refl R M) = linear_equiv.refl S _ :=
+linear_equiv.ext $ λ _, alternating_map.ext $ λ v, rfl
+
+@[simp] lemma dom_lcongr_symm (e : M ≃ₗ[R] M₂) :
+  (dom_lcongr R N ι S e).symm = dom_lcongr R N ι S e.symm :=
+rfl
+
+lemma dom_lcongr_trans (e : M ≃ₗ[R] M₂) (f : M₂ ≃ₗ[R] M₃):
+  (dom_lcongr R N ι S e).trans (dom_lcongr R N ι S f) = dom_lcongr R N ι S (e.trans f) :=
+rfl
+
+end dom_lcongr
+
+/-- Composing an alternating map with the same linear equiv on each argument gives the zero map
+if and only if the alternating map is the zero map. -/
+@[simp] lemma comp_linear_equiv_eq_zero_iff (f : alternating_map R M N ι) (g : M₂ ≃ₗ[R] M) :
+  f.comp_linear_map (g : M₂ →ₗ[R] M) = 0 ↔ f = 0 :=
+(dom_lcongr R N ι ℕ g.symm).map_eq_zero_iff
 
 variables (f f' : alternating_map R M N ι)
 variables (g g₂ : alternating_map R M N' ι)
@@ -391,7 +491,7 @@ lemma map_linear_dependent
   (h : ¬linear_independent K v) :
   f v = 0 :=
 begin
-  obtain ⟨s, g, h, i, hi, hz⟩ := linear_dependent_iff.mp h,
+  obtain ⟨s, g, h, i, hi, hz⟩ := not_linear_independent_iff.mp h,
   suffices : f (update v i (g i • v i)) = 0,
   { rw [f.map_smul, function.update_eq_self, smul_eq_zero] at this,
     exact or.resolve_left this hz, },
@@ -507,7 +607,7 @@ namespace equiv.perm
 
 /-- Elements which are considered equivalent if they differ only by swaps within α or β  -/
 abbreviation mod_sum_congr (α β : Type*) :=
-quotient_group.quotient (equiv.perm.sum_congr_hom α β).range
+_ ⧸ (equiv.perm.sum_congr_hom α β).range
 
 lemma mod_sum_congr.swap_smul_involutive {α β : Type*} [decidable_eq (α ⊕ β)] (i j : α ⊕ β) :
   function.involutive (has_scalar.smul (equiv.swap i j) : mod_sum_congr α β → mod_sum_congr α β) :=
@@ -581,21 +681,21 @@ begin
   dsimp only [quotient.lift_on'_mk', quotient.map'_mk', multilinear_map.smul_apply,
     multilinear_map.dom_dom_congr_apply, multilinear_map.dom_coprod_apply, dom_coprod.summand],
   intro hσ,
-  with_cases {
-    cases hi : σ⁻¹ i;
+  with_cases
+  { cases hi : σ⁻¹ i;
       cases hj : σ⁻¹ j;
       rw perm.inv_eq_iff_eq at hi hj;
       substs hi hj, },
-  case [sum.inl sum.inr : i' j', sum.inr sum.inl : i' j'] {
-    -- the term pairs with and cancels another term
+  case [sum.inl sum.inr : i' j', sum.inr sum.inl : i' j']
+  { -- the term pairs with and cancels another term
     all_goals { obtain ⟨⟨sl, sr⟩, hσ⟩ := quotient.exact' hσ, },
     work_on_goal 0 { replace hσ := equiv.congr_fun hσ (sum.inl i'), },
     work_on_goal 1 { replace hσ := equiv.congr_fun hσ (sum.inr i'), },
-    all_goals {
-      rw [←equiv.mul_swap_eq_swap_mul, mul_inv_rev, equiv.swap_inv, inv_mul_cancel_right] at hσ,
+    all_goals
+    { rw [←equiv.mul_swap_eq_swap_mul, mul_inv_rev, equiv.swap_inv, inv_mul_cancel_right] at hσ,
       simpa using hσ, }, },
-  case [sum.inr sum.inr : i' j', sum.inl sum.inl : i' j'] {
-    -- the term does not pair but is zero
+  case [sum.inr sum.inr : i' j', sum.inl sum.inl : i' j']
+  { -- the term does not pair but is zero
     all_goals { convert smul_zero _, },
     work_on_goal 0 { convert tensor_product.tmul_zero _ _, },
     work_on_goal 1 { convert tensor_product.zero_tmul _ _, },
@@ -708,8 +808,8 @@ begin
   apply σ.induction_on' (λ σ, _),
 
   -- unfold the quotient mess left by `finset.sum_partition`
-  conv in (_ = quotient.mk' _) {
-    change quotient.mk' _ = quotient.mk' _,
+  conv in (_ = quotient.mk' _)
+  { change quotient.mk' _ = quotient.mk' _,
     rw quotient.eq',
     rw [quotient_group.left_rel],
     dsimp only [setoid.r] },
@@ -765,3 +865,26 @@ begin
 end
 
 end coprod
+
+section basis
+
+open alternating_map
+
+variables {ι₁ : Type*} [fintype ι]
+variables {R' : Type*} {N₁ N₂ : Type*} [comm_semiring R'] [add_comm_monoid N₁] [add_comm_monoid N₂]
+variables [module R' N₁] [module R' N₂]
+
+/-- Two alternating maps indexed by a `fintype` are equal if they are equal when all arguments
+are distinct basis vectors. -/
+lemma basis.ext_alternating {f g : alternating_map R' N₁ N₂ ι} (e : basis ι₁ R' N₁)
+  (h : ∀ v : ι → ι₁, function.injective v → f (λ i, e (v i)) = g (λ i, e (v i))) : f = g :=
+begin
+  refine alternating_map.coe_multilinear_map_injective (basis.ext_multilinear e $ λ v, _),
+  by_cases hi : function.injective v,
+  { exact h v hi },
+  { have : ¬function.injective (λ i, e (v i)) := hi.imp function.injective.of_comp,
+    rw [coe_multilinear_map, coe_multilinear_map,
+        f.map_eq_zero_of_not_injective _ this, g.map_eq_zero_of_not_injective _ this], }
+end
+
+end basis

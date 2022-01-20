@@ -4,8 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Robert Y. Lewis
 -/
 
-import data.matrix.notation
-import field_theory.mv_polynomial
+import data.fin.vec_notation
 import field_theory.finite.polynomial
 import number_theory.basic
 import ring_theory.witt_vector.witt_polynomial

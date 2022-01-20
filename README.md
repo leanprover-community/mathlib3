@@ -49,25 +49,29 @@ welcomed.
 
 ## Maintainers:
 
-* Jeremy Avigad (@avigad): analysis
 * Anne Baanen (@Vierkantor): algebra, number theory, tactics
 * Reid Barton (@rwbarton): category theory, topology
-* Mario Carneiro (@digama0): all
+* Mario Carneiro (@digama0): lean formalization, tactics, type theory, proof engineering
 * Bryan Gin-ge Chen (@bryangingechen): documentation, infrastructure
-* Johan Commelin (@jcommelin): algebra
+* Johan Commelin (@jcommelin): algebra, number theory, category theory, algebraic geometry
 * Rémy Degenne (@RemyDegenne): probability, measure theory, analysis
-* Floris van Doorn (@fpvandoorn): all
-* Gabriel Ebner (@gebner): all
-* Sébastien Gouëzel (@sgouezel): topology, calculus
+* Floris van Doorn (@fpvandoorn): measure theory, model theory, tactics
+* Gabriel Ebner (@gebner): tactics, infrastructure, core, formal languages
+* Sébastien Gouëzel (@sgouezel): topology, calculus, geometry, analysis, measure theory
 * Markus Himmel (@TwoFX): category theory
-* Simon Hudon (@cipher1024): all
-* Chris Hughes (@ChrisHughes24): group theory, ring theory, field theory
-* Yury G. Kudryashov (@urkud): analysis, topology
-* Robert Y. Lewis (@robertylewis): all
+* Chris Hughes (@ChrisHughes24): algebra
+* Yury G. Kudryashov (@urkud): analysis, topology, measure theory
+* Robert Y. Lewis (@robertylewis): tactics, documentation
 * Heather Macbeth (@hrmacbeth): geometry, analysis
-* Patrick Massot (@patrickmassot): documentation, topology
+* Patrick Massot (@patrickmassot): documentation, topology, geometry
 * Bhavik Mehta (@b-mehta): category theory, combinatorics
-* Scott Morrison (@semorrison): category theory
+* Scott Morrison (@semorrison): category theory, tactics
 * Oliver Nash (@ocfnash): algebra, geometry, topology
-* Adam Topaz (@adamtopaz): algebra, category theory
+* Adam Topaz (@adamtopaz): algebra, category theory, algebraic geometry
 * Eric Wieser (@eric-wieser): algebra, infrastructure
+
+## Emeritus maintainers:
+
+* Jeremy Avigad (@avigad): analysis
+* Johannes Hölzl (@johoelzl): measure theory, topology
+* Simon Hudon (@cipher1024): tactics

@@ -20,7 +20,7 @@ namespace real
 
 /-- The type of angles -/
 def angle : Type :=
-quotient_add_group.quotient (add_subgroup.zmultiples (2 * π))
+ℝ ⧸ (add_subgroup.zmultiples (2 * π))
 
 namespace angle
 
@@ -55,6 +55,22 @@ by simp only [quotient_add_group.eq, add_subgroup.zmultiples_eq_closure,
 
 @[simp] lemma coe_two_pi : ↑(2 * π : ℝ) = (0 : angle) :=
 angle_eq_iff_two_pi_dvd_sub.2 ⟨1, by rw [sub_zero, int.cast_one, mul_one]⟩
+
+@[simp] lemma neg_coe_pi : -(π : angle) = π :=
+begin
+  rw [←coe_neg, angle_eq_iff_two_pi_dvd_sub],
+  use -1,
+  simp [two_mul, sub_eq_add_neg]
+end
+
+lemma sub_coe_pi_eq_add_coe_pi (θ : angle) : θ - π = θ + π :=
+by rw [sub_eq_add_neg, neg_coe_pi]
+
+@[simp] lemma two_nsmul_coe_pi : (2 : ℕ) • (π : angle) = 0 :=
+by simp [←coe_nat_mul_eq_nsmul]
+
+@[simp] lemma two_zsmul_coe_pi : (2 : ℤ) • (π : angle) = 0 :=
+by simp [←coe_int_mul_eq_zsmul]
 
 theorem cos_eq_iff_eq_or_eq_neg {θ ψ : ℝ} : cos θ = cos ψ ↔ (θ : angle) = ψ ∨ (θ : angle) = -ψ :=
 begin

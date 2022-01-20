@@ -111,11 +111,10 @@ lemma mem_inf {x} : x ∈ S ⊓ T ↔ x ∈ S ∧ x ∈ T := iff.rfl
 
 instance : has_Inf (convex_cone 𝕜 E) :=
 ⟨λ S, ⟨⋂ s ∈ S, ↑s,
-  λ c hc x hx, mem_bInter $ λ s hs, s.smul_mem hc $ by apply mem_bInter_iff.1 hx s hs,
-  λ x hx y hy, mem_bInter $ λ s hs, s.add_mem (by apply mem_bInter_iff.1 hx s hs)
-    (by apply mem_bInter_iff.1 hy s hs)⟩⟩
+  λ c hc x hx, mem_bInter $ λ s hs, s.smul_mem hc $ mem_Inter₂.1 hx s hs,
+  λ x hx y hy, mem_bInter $ λ s hs, s.add_mem (mem_Inter₂.1 hx s hs) (mem_Inter₂.1 hy s hs)⟩⟩
 
-lemma mem_Inf {x : E} {S : set (convex_cone 𝕜 E)} : x ∈ Inf S ↔ ∀ s ∈ S, x ∈ s := mem_bInter_iff
+lemma mem_Inf {x : E} {S : set (convex_cone 𝕜 E)} : x ∈ Inf S ↔ ∀ s ∈ S, x ∈ s := mem_Inter₂
 
 variables (𝕜)
 
@@ -452,7 +451,8 @@ lemma step (nonneg : ∀ x : f.domain, (x : E) ∈ s → 0 ≤ f x)
   (dense : ∀ y, ∃ x : f.domain, (x : E) + y ∈ s) (hdom : f.domain ≠ ⊤) :
   ∃ g, f < g ∧ ∀ x : g.domain, (x : E) ∈ s → 0 ≤ g x :=
 begin
-  rcases set_like.exists_of_lt (lt_top_iff_ne_top.2 hdom) with ⟨y, hy', hy⟩, clear hy',
+  obtain ⟨y, -, hy⟩ : ∃ (y : E) (h : y ∈ ⊤), y ∉ f.domain,
+    { exact @set_like.exists_of_lt (submodule ℝ E) _ _ _ _ (lt_top_iff_ne_top.2 hdom) },
   obtain ⟨c, le_c, c_le⟩ :
     ∃ c, (∀ x : f.domain, -(x:E) - y ∈ s → f x ≤ c) ∧ (∀ x : f.domain, (x:E) + y ∈ s → c ≤ f x),
   { set Sp := f '' {x : f.domain | (x:E) + y ∈ s},

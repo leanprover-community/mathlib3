@@ -35,12 +35,12 @@ namespace zmod
 variables (p q : ℕ) [fact p.prime] [fact q.prime]
 
 /-- Euler's Criterion: A unit `x` of `zmod p` is a square if and only if `x ^ (p / 2) = 1`. -/
-lemma euler_criterion_units (x : units (zmod p)) :
-  (∃ y : units (zmod p), y ^ 2 = x) ↔ x ^ (p / 2) = 1 :=
+lemma euler_criterion_units (x : (zmod p)ˣ) :
+  (∃ y : (zmod p)ˣ, y ^ 2 = x) ↔ x ^ (p / 2) = 1 :=
 begin
   cases nat.prime.eq_two_or_odd (fact.out p.prime) with hp2 hp_odd,
   { substI p, refine iff_of_true ⟨1, _⟩ _; apply subsingleton.elim },
-  obtain ⟨g, hg⟩ := is_cyclic.exists_generator (units (zmod p)),
+  obtain ⟨g, hg⟩ := is_cyclic.exists_generator (zmod p)ˣ,
   obtain ⟨n, hn⟩ : x ∈ submonoid.powers g, { rw mem_powers_iff_mem_zpowers, apply hg },
   split,
   { rintro ⟨y, rfl⟩, rw [← pow_mul, two_mul_odd_div_two hp_odd, units_pow_card_sub_one_eq_one], },
@@ -104,7 +104,7 @@ begin
   refine
   calc ((p - 1)! : zmod p) = (∏ x in Ico 1 (succ (p - 1)), x) :
     by rw [← finset.prod_Ico_id_eq_factorial, prod_nat_cast]
-                               ... = (∏ x : units (zmod p), x) : _
+                               ... = (∏ x : (zmod p)ˣ, x) : _
                                ... = -1 : by simp_rw [← units.coe_hom_apply,
     ← (units.coe_hom (zmod p)).map_prod, prod_univ_units_id_eq_neg_one, units.coe_hom_apply,
     units.coe_neg, units.coe_one],
@@ -161,14 +161,14 @@ begin
     { apply nat.pos_of_ne_zero,
       simp only [div_eq_mul_inv, hap, char_p.cast_eq_zero_iff (zmod p) p, hpe hb, not_false_iff,
         val_min_abs_eq_zero, inv_eq_zero, int.nat_abs_eq_zero, ne.def, mul_eq_zero, or_self] },
-      { apply lt_succ_of_le, apply nat_abs_val_min_abs_le },
-      { rw nat_cast_nat_abs_val_min_abs,
-        split_ifs,
-        { erw [mul_div_cancel' _ hap, val_min_abs_def_pos, val_cast_of_lt (hep hb),
-            if_pos (le_of_lt_succ (mem_Ico.1 hb).2), int.nat_abs_of_nat], },
-        { erw [mul_neg_eq_neg_mul_symm, mul_div_cancel' _ hap, nat_abs_val_min_abs_neg,
-            val_min_abs_def_pos, val_cast_of_lt (hep hb), if_pos (le_of_lt_succ (mem_Ico.1 hb).2),
-            int.nat_abs_of_nat] } } },
+    { apply lt_succ_of_le, apply nat_abs_val_min_abs_le },
+    { rw nat_cast_nat_abs_val_min_abs,
+      split_ifs,
+      { erw [mul_div_cancel' _ hap, val_min_abs_def_pos, val_cast_of_lt (hep hb),
+          if_pos (le_of_lt_succ (mem_Ico.1 hb).2), int.nat_abs_of_nat], },
+      { erw [mul_neg_eq_neg_mul_symm, mul_div_cancel' _ hap, nat_abs_val_min_abs_neg,
+          val_min_abs_def_pos, val_cast_of_lt (hep hb), if_pos (le_of_lt_succ (mem_Ico.1 hb).2),
+          int.nat_abs_of_nat] } } },
   exact multiset.map_eq_map_of_bij_of_nodup _ _ (finset.nodup _) (finset.nodup _)
     (λ x _, (a * x : zmod p).val_min_abs.nat_abs) hmem (λ _ _, rfl)
     (inj_on_of_surj_on_of_card_le _ hmem hsurj (le_refl _)) hsurj
@@ -285,7 +285,7 @@ else
       div_eq_filter_card (nat.pos_of_ne_zero hp0)
         (calc x * q / p ≤ (p / 2) * q / p :
             nat.div_le_div_right (mul_le_mul_of_nonneg_right
-              (le_of_lt_succ $ by finish)
+              (le_of_lt_succ $ (mem_Ico.mp hx).2)
               (nat.zero_le _))
           ... ≤ _ : nat.div_mul_div_le_div _ _ _)
   ... = _ : by rw [← card_sigma];
@@ -328,7 +328,7 @@ begin
       (show x.1 ≤ p / 2, by simp only [*, lt_succ_iff, mem_Ico, mem_product] at *; tauto)
       (nat.div_lt_self hp.1.pos dec_trivial),
     have : (x.1 : zmod p) = 0,
-      { simpa [hq0] using congr_arg (coe : ℕ → zmod p) (le_antisymm hpq hqp) },
+    { simpa [hq0] using congr_arg (coe : ℕ → zmod p) (le_antisymm hpq hqp) },
     apply_fun zmod.val at this,
     rw [val_cast_of_lt hxp, val_zero] at this,
     simpa only [this, nonpos_iff_eq_zero, mem_Ico, one_ne_zero, false_and, mem_product] using hx },
@@ -413,7 +413,7 @@ begin
   rw [euler_criterion p ha0, legendre_sym, if_neg ha0],
   split_ifs,
   { simp only [h, eq_self_iff_true] },
-  finish -- this is quite slow. I'm actually surprised that it can close the goal at all!
+  { simp only [h, iff_false], tauto }
 end
 
 lemma eisenstein_lemma [fact (p % 2 = 1)] {a : ℕ} (ha1 : a % 2 = 1) (ha0 : (a : zmod p) ≠ 0) :
@@ -429,9 +429,7 @@ have hqp0 : (q : zmod p) ≠ 0, from prime_ne_zero p q hpq,
 by rw [eisenstein_lemma q hp1.1 hpq0, eisenstein_lemma p hq1.1 hqp0,
   ← pow_add, sum_mul_div_add_sum_mul_div_eq_mul q p hpq0, mul_comm]
 
--- move this
-local attribute [instance]
-lemma fact_prime_two : fact (nat.prime 2) := ⟨nat.prime_two⟩
+local attribute [instance] nat.fact_prime_two
 
 lemma legendre_sym_two [hp1 : fact (p % 2 = 1)] : legendre_sym 2 p = (-1) ^ (p / 4 + p / 2) :=
 have hp2 : p ≠ 2, from mt (congr_arg (% 2)) (by simpa using hp1.1),
@@ -441,7 +439,7 @@ have hcard : (Ico 1 (p / 2).succ).card = p / 2, by simp,
 have hx2 : ∀ x ∈ Ico 1 (p / 2).succ, (2 * x : zmod p).val = 2 * x,
   from λ x hx, have h2xp : 2 * x < p,
       from calc 2 * x ≤ 2 * (p / 2) : mul_le_mul_of_nonneg_left
-        (le_of_lt_succ $ by finish) dec_trivial
+        (le_of_lt_succ $ (mem_Ico.mp hx).2) dec_trivial
       ... < _ : by conv_rhs {rw [← div_add_mod p 2, hp1.1]}; exact lt_succ_self _,
     by rw [← nat.cast_two, ← nat.cast_mul, val_cast_of_lt h2xp],
 have hdisj : disjoint

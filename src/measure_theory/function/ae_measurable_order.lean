@@ -110,18 +110,12 @@ theorem ennreal.ae_measurable_of_exist_almost_disjoint_supersets
     {x | f x < p} ⊆ u ∧ {x | (q : ℝ≥0∞) < f x} ⊆ v ∧ μ (u ∩ v) = 0) :
   ae_measurable f μ :=
 begin
-  let s : set ℝ≥0∞ := {x | ∃ a : ℚ, x = ennreal.of_real a},
-  have s_count : countable s,
-  { have : s = range (λ (a : ℚ), ennreal.of_real a),
-      by { ext x, simp only [eq_comm, mem_range, mem_set_of_eq] },
-    rw this,
-    exact countable_range _ },
-  have s_dense : dense s,
-  { refine dense_iff_forall_lt_exists_mem.2 (λ c d hcd, _),
-    rcases ennreal.lt_iff_exists_rat_btwn.1 hcd with ⟨q, hq⟩,
-    exact ⟨ennreal.of_real q, ⟨q, rfl⟩, hq.2⟩ },
+  obtain ⟨s, s_count, s_dense, s_zero, s_top⟩ : ∃ s : set ℝ≥0∞, countable s ∧ dense s ∧
+    0 ∉ s ∧ ∞ ∉ s := ennreal.exists_countable_dense_no_zero_top,
+  have I : ∀ x ∈ s, x ≠ ∞ := λ x xs hx, s_top (hx ▸ xs),
   apply measure_theory.ae_measurable_of_exist_almost_disjoint_supersets μ s s_count s_dense _,
-  rintros _ ⟨p, rfl⟩ _ ⟨q, rfl⟩ hpq,
-  apply h,
-  simpa [ennreal.of_real] using hpq,
+  rintros p hp q hq hpq,
+  lift p to ℝ≥0 using I p hp,
+  lift q to ℝ≥0 using I q hq,
+  exact h p q (ennreal.coe_lt_coe.1 hpq),
 end

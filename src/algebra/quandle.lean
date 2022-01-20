@@ -76,7 +76,7 @@ Use `open_locale quandles` to use these.
 
 rack, quandle
 -/
-open opposite
+open mul_opposite
 
 universes u v
 
@@ -169,20 +169,15 @@ end
 /--
 The opposite rack, swapping the roles of `◃` and `◃⁻¹`.
 -/
-instance opposite_rack : rack Rᵒᵖ :=
+instance opposite_rack : rack Rᵐᵒᵖ :=
 { act := λ x y, op (inv_act (unop x) (unop y)),
-  self_distrib := λ (x y z : Rᵒᵖ), begin
-    induction x using opposite.rec, induction y using opposite.rec, induction z using opposite.rec,
-    simp only [unop_op, op_inj_iff],
+  self_distrib := mul_opposite.rec $ λ x, mul_opposite.rec $ λ y, mul_opposite.rec $ λ z, begin
+    simp only [unop_op, op_inj],
     exact self_distrib_inv,
   end,
   inv_act := λ x y, op (shelf.act (unop x) (unop y)),
-  left_inv := λ x y, begin
-    induction x using opposite.rec, induction y using opposite.rec, simp,
-  end,
-  right_inv := λ x y, begin
-    induction x using opposite.rec, induction y using opposite.rec, simp,
-  end }
+  left_inv := mul_opposite.rec $ λ x, mul_opposite.rec $ λ y, by simp,
+  right_inv := mul_opposite.rec $ λ x, mul_opposite.rec $ λ y, by simp }
 
 @[simp] lemma op_act_op_eq {x y : R} : (op x) ◃ (op y) = op (x ◃⁻¹ y) := rfl
 @[simp] lemma op_inv_act_op_eq {x y : R} : (op x) ◃⁻¹ (op y) = op (x ◃ y) := rfl
@@ -296,8 +291,8 @@ attribute [simp] fix
 lemma fix_inv {x : Q} : x ◃⁻¹ x = x :=
 by { rw ←left_cancel x, simp }
 
-instance opposite_quandle : quandle Qᵒᵖ :=
-{ fix := λ x, by { induction x using opposite.rec, simp } }
+instance opposite_quandle : quandle Qᵐᵒᵖ :=
+{ fix := λ x, by { induction x using mul_opposite.rec, simp } }
 
 /--
 The conjugation quandle of a group.  Each element of the group acts by

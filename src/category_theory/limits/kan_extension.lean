@@ -3,10 +3,9 @@ Copyright (c) 2021 Adam Topaz. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta, Adam Topaz
 -/
+import category_theory.limits.shapes.terminal
 import category_theory.punit
 import category_theory.structured_arrow
-import category_theory.limits.functor_category
-import category_theory.limits.shapes.terminal
 
 /-!
 

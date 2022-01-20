@@ -51,7 +51,7 @@ lemma right_continuous (x : ℝ) : continuous_within_at f (Ici x) x := f.right_c
 it is indeed a left limit is asserted in `tendsto_left_lim` -/
 @[irreducible] def left_lim (x : ℝ) := Sup (f '' (Iio x))
 
-lemma tendsto_left_lim (x : ℝ) : tendsto f (𝓝[Iio x] x) (𝓝 (f.left_lim x)) :=
+lemma tendsto_left_lim (x : ℝ) : tendsto f (𝓝[<] x) (𝓝 (f.left_lim x)) :=
 by { rw left_lim, exact f.mono.tendsto_nhds_within_Iio x }
 
 lemma left_lim_le {x y : ℝ} (h : x ≤ y) : f.left_lim x ≤ f y :=
@@ -313,7 +313,7 @@ begin
   rcases le_or_lt a b with hab|hab,
   { have A : disjoint {a} (Ioc a b), by simp,
     simp [← Icc_union_Ioc_eq_Icc le_rfl hab, -singleton_union, ← ennreal.of_real_add, f.left_lim_le,
-      measure_union A (measurable_set_singleton a) measurable_set_Ioc, f.mono hab] },
+      measure_union A measurable_set_Ioc, f.mono hab] },
   { simp only [hab, measure_empty, Icc_eq_empty, not_le],
     symmetry,
     simp [ennreal.of_real_eq_zero, f.le_left_lim hab] }
@@ -329,7 +329,7 @@ begin
     have D : f b - f a = (f b - f.left_lim b) + (f.left_lim b - f a), by abel,
     have := f.measure_Ioc a b,
     simp only [←Ioo_union_Icc_eq_Ioc hab le_rfl, measure_singleton,
-      measure_union A measurable_set_Ioo (measurable_set_singleton b), Icc_self] at this,
+      measure_union A (measurable_set_singleton b), Icc_self] at this,
     rw [D, ennreal.of_real_add, add_comm] at this,
     { simpa only [ennreal.add_right_inj ennreal.of_real_ne_top] },
     { simp only [f.left_lim_le, sub_nonneg] },
@@ -344,7 +344,7 @@ begin
     simp [ennreal.of_real_eq_zero, f.left_lim_le_left_lim hab] },
   { have A : disjoint {a} (Ioo a b) := by simp,
     simp [← Icc_union_Ioo_eq_Ico le_rfl hab, -singleton_union, hab.ne, f.left_lim_le,
-      measure_union A (measurable_set_singleton a) measurable_set_Ioo, f.le_left_lim hab,
+      measure_union A measurable_set_Ioo, f.le_left_lim hab,
       ← ennreal.of_real_add] }
 end
 

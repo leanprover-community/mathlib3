@@ -5,6 +5,7 @@ Authors: Riccardo Brasca
 -/
 
 import data.set.finite
+import data.finset
 import group_theory.submonoid.operations
 import group_theory.subgroup.basic
 
@@ -100,6 +101,54 @@ instance monoid.fg_of_add_monoid_fg [add_monoid.fg N] : monoid.fg (multiplicativ
 add_monoid.fg_iff_mul_fg.1 ‹_›
 
 end monoid
+
+@[to_additive]
+lemma submonoid.fg.map {M' : Type*} [monoid M'] {P : submonoid M} (h : P.fg) (e : M →* M') :
+  (P.map e).fg :=
+begin
+  classical,
+  obtain ⟨s, rfl⟩ := h,
+  exact ⟨s.image e, by rw [finset.coe_image, monoid_hom.map_mclosure]⟩
+end
+
+@[to_additive]
+lemma submonoid.fg.map_injective {M' : Type*} [monoid M'] {P : submonoid M}
+  (e : M →* M') (he : function.injective e) (h : (P.map e).fg) : P.fg :=
+begin
+  obtain ⟨s, hs⟩ := h,
+  use s.preimage e (he.inj_on _),
+  apply submonoid.map_injective_of_injective he,
+  rw [← hs, e.map_mclosure, finset.coe_preimage],
+  congr,
+  rw [set.image_preimage_eq_iff, ← e.coe_mrange, ← submonoid.closure_le, hs, e.mrange_eq_map],
+  exact submonoid.monotone_map le_top
+end
+
+@[simp, to_additive]
+lemma monoid.fg_iff_submonoid_fg (N : submonoid M) : monoid.fg N ↔ N.fg :=
+begin
+  conv_rhs { rw [← N.range_subtype, monoid_hom.mrange_eq_map] },
+  exact ⟨λ h, h.out.map N.subtype, λ h, ⟨h.map_injective N.subtype subtype.coe_injective⟩⟩
+end
+
+@[to_additive]
+lemma monoid.fg_of_surjective {M' : Type*} [monoid M'] [monoid.fg M]
+  (f : M →* M') (hf : function.surjective f) : monoid.fg M' :=
+begin
+  classical,
+  obtain ⟨s, hs⟩ := monoid.fg_def.mp ‹_›,
+  use s.image f,
+  rwa [finset.coe_image, ← monoid_hom.map_mclosure, hs, ← monoid_hom.mrange_eq_map,
+    monoid_hom.mrange_top_iff_surjective],
+end
+
+@[to_additive]
+lemma submonoid.powers_fg (r : M) : (submonoid.powers r).fg :=
+⟨{r}, (finset.coe_singleton r).symm ▸ (submonoid.powers_eq_closure r).symm⟩
+
+@[to_additive]
+instance (r : M) : monoid.fg (submonoid.powers r) :=
+(monoid.fg_iff_submonoid_fg _).mpr (submonoid.powers_fg r)
 
 /-! ### Groups and subgroups -/
 

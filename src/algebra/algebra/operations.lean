@@ -31,6 +31,7 @@ multiplication of submodules, division of subodules, submodule semiring
 universes uι u v
 
 open algebra set
+open_locale big_operators
 open_locale pointwise
 
 namespace submodule
@@ -267,6 +268,20 @@ instance : comm_semiring (submodule R A) :=
 { mul_comm := submodule.mul_comm,
   .. submodule.semiring }
 
+lemma prod_span {ι : Type*} (s : finset ι) (M : ι → set A) :
+  (∏ i in s, submodule.span R (M i)) = submodule.span R (∏ i in s, M i) :=
+begin
+  letI := classical.dec_eq ι,
+  refine finset.induction_on s _ _,
+  { simp [one_eq_span, set.singleton_one] },
+  { intros _ _ H ih,
+    rw [finset.prod_insert H, finset.prod_insert H, ih, span_mul_span] }
+end
+
+lemma prod_span_singleton {ι : Type*} (s : finset ι) (x : ι → A) :
+  (∏ i in s, span R ({x i} : set A)) = span R {∏ i in s, x i} :=
+by rw [prod_span, set.finset_prod_singleton]
+
 variables (R A)
 
 /-- R-submodules of the R-algebra A are a module over `set A`. -/
@@ -314,8 +329,8 @@ which is equivalent to `x • J ⊆ I` (see `mem_div_iff_smul_subset`), but nice
 This is the general form of the ideal quotient, traditionally written $I : J$.
 -/
 instance : has_div (submodule R A) :=
-⟨ λ I J, {
-  carrier   := { x | ∀ y ∈ J, x * y ∈ I },
+⟨ λ I J,
+{ carrier   := { x | ∀ y ∈ J, x * y ∈ I },
   zero_mem' := λ y hy, by { rw zero_mul, apply submodule.zero_mem },
   add_mem'  := λ a b ha hb y hy, by { rw add_mul, exact submodule.add_mem _ (ha _ hy) (hb _ hy) },
   smul_mem' := λ r x hx y hy, by { rw algebra.smul_mul_assoc,

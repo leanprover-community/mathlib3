@@ -109,7 +109,7 @@ begin
   letI := nontrivial_of_invariant_basis_number R,
   have h := (linear_map.to_matrix (choose_basis R M) (choose_basis R N)),
   let b := (matrix.std_basis _ _ _).map h.symm,
-  rw [finrank, dim_eq_card_basis b, ← fintype_card, mk_to_nat_eq_card, finrank, finrank,
+  rw [finrank, dim_eq_card_basis b, ← mk_fintype, mk_to_nat_eq_card, finrank, finrank,
     rank_eq_card_choose_basis_index, rank_eq_card_choose_basis_index, mk_to_nat_eq_card,
     mk_to_nat_eq_card, card_prod, mul_comm]
 end

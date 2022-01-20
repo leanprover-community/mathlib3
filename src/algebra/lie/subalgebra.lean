@@ -51,19 +51,39 @@ instance : inhabited (lie_subalgebra R L) := ⟨0⟩
 instance : has_coe (lie_subalgebra R L) (submodule R L) := ⟨lie_subalgebra.to_submodule⟩
 instance : has_mem L (lie_subalgebra R L) := ⟨λ x L', x ∈ (L' : set L)⟩
 
+namespace lie_subalgebra
+
 /-- A Lie subalgebra forms a new Lie ring. -/
-instance lie_subalgebra_lie_ring (L' : lie_subalgebra R L) : lie_ring L' :=
+instance (L' : lie_subalgebra R L) : lie_ring L' :=
 { bracket      := λ x y, ⟨⁅x.val, y.val⁆, L'.lie_mem' x.property y.property⟩,
   lie_add      := by { intros, apply set_coe.ext, apply lie_add, },
   add_lie      := by { intros, apply set_coe.ext, apply add_lie, },
   lie_self     := by { intros, apply set_coe.ext, apply lie_self, },
   leibniz_lie  := by { intros, apply set_coe.ext, apply leibniz_lie, } }
 
-/-- A Lie subalgebra forms a new Lie algebra. -/
-instance lie_subalgebra_lie_algebra (L' : lie_subalgebra R L) : lie_algebra R L' :=
-{ lie_smul := by { intros, apply set_coe.ext, apply lie_smul } }
+section
 
-namespace lie_subalgebra
+variables {R₁ : Type*} [semiring R₁]
+
+/-- A Lie subalgebra inherits module structures from `L`. -/
+instance [has_scalar R₁ R] [module R₁ L] [is_scalar_tower R₁ R L]
+  (L' : lie_subalgebra R L) : module R₁ L' :=
+L'.to_submodule.module'
+
+instance [has_scalar R₁ R] [has_scalar R₁ᵐᵒᵖ R] [module R₁ L] [module R₁ᵐᵒᵖ L]
+  [is_scalar_tower R₁ R L] [is_scalar_tower R₁ᵐᵒᵖ R L] [is_central_scalar R₁ L]
+  (L' : lie_subalgebra R L) : is_central_scalar R₁ L' :=
+L'.to_submodule.is_central_scalar
+
+instance [has_scalar R₁ R] [module R₁ L] [is_scalar_tower R₁ R L]
+  (L' : lie_subalgebra R L) : is_scalar_tower R₁ R L' :=
+L'.to_submodule.is_scalar_tower
+
+end
+
+/-- A Lie subalgebra forms a new Lie algebra. -/
+instance (L' : lie_subalgebra R L) : lie_algebra R L' :=
+{ lie_smul := by { intros, apply set_coe.ext, apply lie_smul } }
 
 variables {R L} (L' : lie_subalgebra R L)
 
@@ -233,8 +253,8 @@ by { rw ← coe_to_submodule_eq_iff, exact (K : submodule R L).range_subtype, }
 /-- The image of a Lie subalgebra under a Lie algebra morphism is a Lie subalgebra of the
 codomain. -/
 def map : lie_subalgebra R L₂ :=
-{ lie_mem' := λ x y hx hy, by {
-    erw submodule.mem_map at hx, rcases hx with ⟨x', hx', hx⟩, rw ←hx,
+{ lie_mem' := λ x y hx hy, by
+  { erw submodule.mem_map at hx, rcases hx with ⟨x', hx', hx⟩, rw ←hx,
     erw submodule.mem_map at hy, rcases hy with ⟨y', hy', hy⟩, rw ←hy,
     erw submodule.mem_map,
     exact ⟨⁅x', y'⁆, K.lie_mem hx' hy', f.map_lie x' y'⟩, },
@@ -366,13 +386,11 @@ variables (R L)
 
 lemma well_founded_of_noetherian [is_noetherian R L] :
   well_founded ((>) : lie_subalgebra R L → lie_subalgebra R L → Prop) :=
-begin
   let f : ((>) : lie_subalgebra R L → lie_subalgebra R L → Prop) →r
           ((>) : submodule R L → submodule R L → Prop) :=
   { to_fun       := coe,
-    map_rel' := λ N N' h, h, },
-  apply f.well_founded, rw ← is_noetherian_iff_well_founded, apply_instance,
-end
+    map_rel' := λ N N' h, h, }
+in rel_hom_class.well_founded f (is_noetherian_iff_well_founded.mp infer_instance)
 
 variables {R L K K' f}
 
@@ -428,7 +446,7 @@ def lie_span : lie_subalgebra R L := Inf {N | s ⊆ N}
 variables {R L s}
 
 lemma mem_lie_span {x : L} : x ∈ lie_span R L s ↔ ∀ K : lie_subalgebra R L, s ⊆ K → x ∈ K :=
-by { change x ∈ (lie_span R L s : set L) ↔ _, erw Inf_coe, exact set.mem_bInter_iff, }
+by { change x ∈ (lie_span R L s : set L) ↔ _, erw Inf_coe, exact set.mem_Inter₂, }
 
 lemma subset_lie_span : s ⊆ lie_span R L s :=
 by { intros m hm, erw mem_lie_span, intros K hK, exact hK hm, }
@@ -515,11 +533,11 @@ variables (e : L₁ ≃ₗ⁅R⁆ L₂)
 
 /-- An equivalence of Lie algebras restricts to an equivalence from any Lie subalgebra onto its
 image. -/
-def of_subalgebra : L₁'' ≃ₗ⁅R⁆ (L₁''.map e : lie_subalgebra R L₂) :=
+def lie_subalgebra_map : L₁'' ≃ₗ⁅R⁆ (L₁''.map e : lie_subalgebra R L₂) :=
 { map_lie' := λ x y, by { apply set_coe.ext, exact lie_hom.map_lie (↑e : L₁ →ₗ⁅R⁆ L₂) ↑x ↑y, }
-  ..(linear_equiv.of_submodule (e : L₁ ≃ₗ[R] L₂) ↑L₁'') }
+  ..(linear_equiv.submodule_map (e : L₁ ≃ₗ[R] L₂) ↑L₁'') }
 
-@[simp] lemma of_subalgebra_apply (x : L₁'') : ↑(e.of_subalgebra _  x) = e x := rfl
+@[simp] lemma lie_subalgebra_map_apply (x : L₁'') : ↑(e.lie_subalgebra_map _  x) = e x := rfl
 
 /-- An equivalence of Lie algebras restricts to an equivalence from any Lie subalgebra onto its
 image. -/

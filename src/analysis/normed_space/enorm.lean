@@ -122,11 +122,13 @@ noncomputable instance : inhabited (enorm 𝕜 V) := ⟨⊤⟩
 
 lemma top_map {x : V} (hx : x ≠ 0) : (⊤ : enorm 𝕜 V) x = ⊤ := if_neg hx
 
-noncomputable instance : semilattice_sup_top (enorm 𝕜 V) :=
+noncomputable instance : order_top (enorm 𝕜 V) :=
+{ top := ⊤,
+  le_top := λ e x, if h : x = 0 then by simp [h] else by simp [top_map h] }
+
+noncomputable instance : semilattice_sup (enorm 𝕜 V) :=
 { le := (≤),
   lt := (<),
-  top := ⊤,
-  le_top := λ e x, if h : x = 0 then by simp [h] else by simp [top_map h],
   sup := λ e₁ e₂,
   { to_fun := λ x, max (e₁ x) (e₂ x),
     eq_zero' := λ x h, e₁.eq_zero_iff.1 (ennreal.max_eq_zero_iff.1 h).1,

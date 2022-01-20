@@ -86,13 +86,15 @@ instance : distrib nat            := by apply_instance
 instance : semiring nat           := by apply_instance
 instance : ordered_semiring nat   := by apply_instance
 
+instance nat.order_bot : order_bot ℕ :=
+{ bot := 0, bot_le := nat.zero_le }
+
 instance : canonically_ordered_comm_semiring ℕ :=
 { le_iff_exists_add := λ a b, ⟨λ h, let ⟨c, hc⟩ := nat.le.dest h in ⟨c, hc.symm⟩,
                                λ ⟨c, hc⟩, hc.symm ▸ nat.le_add_right _ _⟩,
   eq_zero_or_eq_zero_of_mul_eq_zero   := λ a b, nat.eq_zero_of_mul_eq_zero,
-  bot               := 0,
-  bot_le            := nat.zero_le,
   .. nat.nontrivial,
+  .. nat.order_bot,
   .. (infer_instance : ordered_add_comm_monoid ℕ),
   .. (infer_instance : linear_ordered_semiring ℕ),
   .. (infer_instance : comm_semiring ℕ) }
@@ -101,12 +103,15 @@ instance : canonically_linear_ordered_add_monoid ℕ :=
 { .. (infer_instance : canonically_ordered_add_monoid ℕ),
   .. nat.linear_order }
 
-instance nat.subtype.semilattice_sup_bot (s : set ℕ) [decidable_pred (∈ s)] [h : nonempty s] :
-  semilattice_sup_bot s :=
+instance nat.subtype.order_bot (s : set ℕ) [decidable_pred (∈ s)] [h : nonempty s] :
+  order_bot s :=
 { bot := ⟨nat.find (nonempty_subtype.1 h), nat.find_spec (nonempty_subtype.1 h)⟩,
-  bot_le := λ x, nat.find_min' _ x.2,
-  ..subtype.linear_order s,
-  ..lattice_of_linear_order }
+  bot_le := λ x, nat.find_min' _ x.2 }
+
+instance nat.subtype.semilattice_sup (s : set ℕ) :
+  semilattice_sup s :=
+{ ..subtype.linear_order s,
+  ..linear_order.to_lattice }
 
 lemma nat.subtype.coe_bot {s : set ℕ} [decidable_pred (∈ s)]
   [h : nonempty s] : ((⊥ : s) : ℕ) = nat.find (nonempty_subtype.1 h) := rfl
@@ -117,7 +122,7 @@ rfl
 theorem nat.eq_of_mul_eq_mul_right {n m k : ℕ} (Hm : 0 < m) (H : n * m = k * m) : n = k :=
 by rw [mul_comm n m, mul_comm k m] at H; exact nat.eq_of_mul_eq_mul_left Hm H
 
-instance nat.comm_cancel_monoid_with_zero : comm_cancel_monoid_with_zero ℕ :=
+instance nat.cancel_comm_monoid_with_zero : cancel_comm_monoid_with_zero ℕ :=
 { mul_left_cancel_of_ne_zero :=
     λ _ _ _ h1 h2, nat.eq_of_mul_eq_mul_left (nat.pos_of_ne_zero h1) h2,
   mul_right_cancel_of_ne_zero :=
@@ -182,7 +187,7 @@ end set
 
 /-! ### The units of the natural numbers as a `monoid` and `add_monoid` -/
 
-theorem units_eq_one (u : units ℕ) : u = 1 :=
+theorem units_eq_one (u : ℕˣ) : u = 1 :=
 units.ext $ nat.eq_one_of_dvd_one ⟨u.inv, u.val_inv.symm⟩
 
 theorem add_units_eq_zero (u : add_units ℕ) : u = 0 :=
@@ -193,7 +198,7 @@ iff.intro
   (λ ⟨u, hu⟩, match n, u, hu, nat.units_eq_one u with _, _, rfl, rfl := rfl end)
   (λ h, h.symm ▸ ⟨1, rfl⟩)
 
-instance unique_units : unique (units ℕ) :=
+instance unique_units : unique ℕˣ :=
 { default := 1, uniq := nat.units_eq_one }
 
 instance unique_add_units : unique (add_units ℕ) :=
@@ -366,6 +371,12 @@ begin
   cases n, {cases n0},
   exact lt_succ_iff,
 end
+
+lemma two_lt_of_ne : ∀ {n}, n ≠ 0 → n ≠ 1 → n ≠ 2 → 2 < n
+| 0 h _ _ := (h rfl).elim
+| 1 _ h _ := (h rfl).elim
+| 2 _ _ h := (h rfl).elim
+| (n+3) _ _ _ := dec_trivial
 
 /-! ### `add` -/
 
@@ -741,6 +752,18 @@ begin
   { intros h hP, exact hP }
 end
 
+/-- A subset of `ℕ` containing `b : ℕ` and closed under `nat.succ` contains every `n ≥ b`. -/
+lemma set_induction_bounded {b : ℕ} {S : set ℕ} (hb : b ∈ S) (h_ind: ∀ k : ℕ, k ∈ S → k + 1 ∈ S)
+  {n : ℕ} (hbn : b ≤ n) : n ∈ S :=
+@le_rec_on (λ n, n ∈ S) b n hbn h_ind hb
+
+/-- A subset of `ℕ` containing zero and closed under `nat.succ` contains all of `ℕ`. -/
+lemma set_induction {S : set ℕ} (hb : 0 ∈ S) (h_ind: ∀ k : ℕ, k ∈ S → k + 1 ∈ S) (n : ℕ) : n ∈ S :=
+set_induction_bounded hb h_ind (zero_le n)
+
+lemma set_eq_univ {S : set ℕ} : S = set.univ ↔ 0 ∈ S ∧ ∀ k : ℕ, k ∈ S → k + 1 ∈ S :=
+⟨by rintro rfl; simp, λ ⟨h0, hs⟩, set.eq_univ_of_forall (set_induction h0 hs)⟩
+
 /-! ### `div` -/
 
 attribute [simp] nat.div_self
@@ -846,6 +869,12 @@ protected lemma mul_div_mul_left (a b : ℕ) {c : ℕ} (hc : 0 < c) : c * a / (c
 nat.mul_div_mul a b hc
 protected lemma mul_div_mul_right (a b : ℕ) {c : ℕ} (hc : 0 < c) : a * c / (b * c) = a / b :=
 by rw [mul_comm, mul_comm b, a.mul_div_mul_left b hc]
+
+lemma lt_div_mul_add {a b : ℕ} (hb : 0 < b) : a < a/b*b + b :=
+begin
+  rw [←nat.succ_mul, ←nat.div_lt_iff_lt_mul _ _ hb],
+  exact nat.lt_succ_self _,
+end
 
 /-! ### `mod`, `dvd` -/
 
@@ -1027,8 +1056,8 @@ end
 
 lemma mul_mod (a b n : ℕ) : (a * b) % n = ((a % n) * (b % n)) % n :=
 begin
-  conv_lhs {
-    rw [←mod_add_div a n, ←mod_add_div' b n, right_distrib, left_distrib, left_distrib,
+  conv_lhs
+  { rw [←mod_add_div a n, ←mod_add_div' b n, right_distrib, left_distrib, left_distrib,
         mul_assoc, mul_assoc, ←left_distrib n _ _, add_mul_mod_self_left, ← mul_assoc,
         add_mul_mod_self_right] }
 end
@@ -1208,9 +1237,25 @@ by simp [find_eq_iff]
 @[simp] lemma find_pos (h : ∃ n : ℕ, p n) : 0 < nat.find h ↔ ¬ p 0 :=
 by rw [pos_iff_ne_zero, ne, nat.find_eq_zero]
 
-theorem find_le (h : ∀ n, q n → p n) (hp : ∃ n, p n) (hq : ∃ n, q n) :
+theorem find_mono (h : ∀ n, q n → p n) {hp : ∃ n, p n} {hq : ∃ n, q n} :
   nat.find hp ≤ nat.find hq :=
 nat.find_min' _ (h _ (nat.find_spec hq))
+
+lemma find_le {h : ∃ n, p n} (hn : p n) : nat.find h ≤ n :=
+(nat.find_le_iff _ _).2 ⟨n, le_rfl, hn⟩
+
+lemma find_add {hₘ : ∃ m, p (m + n)} {hₙ : ∃ n, p n} (hn : n ≤ nat.find hₙ) :
+  nat.find hₘ + n = nat.find hₙ :=
+begin
+  refine ((le_find_iff _ _).2 (λ m hm hpm, hm.not_le _)).antisymm _,
+  { have hnm : n ≤ m := hn.trans (find_le hpm),
+    refine add_le_of_le_tsub_right_of_le hnm (find_le _),
+    rwa tsub_add_cancel_of_le hnm },
+  { rw ←tsub_le_iff_right,
+    refine (le_find_iff _ _).2 (λ m hm hpm, hm.not_le _),
+    rw tsub_le_iff_right,
+    exact find_le hpm }
+end
 
 lemma find_comp_succ (h₁ : ∃ n, p n) (h₂ : ∃ n, p (n + 1)) (h0 : ¬ p 0) :
   nat.find h₁ = nat.find h₂ + 1 :=
@@ -1231,19 +1276,22 @@ protected def find_greatest (P : ℕ → Prop) [decidable_pred P] : ℕ → ℕ
 | 0       := 0
 | (n + 1) := if P (n + 1) then n + 1 else find_greatest n
 
-variables {P : ℕ → Prop} [decidable_pred P]
+variables {P Q : ℕ → Prop} [decidable_pred P] {b : ℕ}
 
 @[simp] lemma find_greatest_zero : nat.find_greatest P 0 = 0 := rfl
 
-@[simp] lemma find_greatest_eq : ∀{b}, P b → nat.find_greatest P b = b
+lemma find_greatest_succ (n : ℕ) :
+  nat.find_greatest P (n + 1) = if P (n + 1) then n + 1 else nat.find_greatest P n := rfl
+
+@[simp] lemma find_greatest_eq : ∀ {b}, P b → nat.find_greatest P b = b
 | 0       h := rfl
 | (n + 1) h := by simp [nat.find_greatest, h]
 
-@[simp] lemma find_greatest_of_not {b} (h : ¬ P (b + 1)) :
+@[simp] lemma find_greatest_of_not (h : ¬ P (b + 1)) :
   nat.find_greatest P (b + 1) = nat.find_greatest P b :=
 by simp [nat.find_greatest, h]
 
-lemma find_greatest_eq_iff {b m} :
+lemma find_greatest_eq_iff :
   nat.find_greatest P b = m ↔ m ≤ b ∧ (m ≠ 0 → P m) ∧ (∀ ⦃n⦄, m < n → n ≤ b → ¬P n) :=
 begin
   induction b with b ihb generalizing m,
@@ -1254,10 +1302,10 @@ begin
   { by_cases hb : P (b + 1),
     { rw [find_greatest_eq hb], split,
       { rintro rfl,
-        exact ⟨le_refl _, λ _, hb, λ n hlt hle, (hlt.not_le hle).elim⟩ },
+        exact ⟨le_rfl, λ _, hb, λ n hlt hle, (hlt.not_le hle).elim⟩ },
       { rintros ⟨hle, h0, hm⟩,
         rcases decidable.eq_or_lt_of_le hle with rfl|hlt,
-        exacts [rfl, (hm hlt (le_refl _) hb).elim] } },
+        exacts [rfl, (hm hlt le_rfl hb).elim] } },
     { rw [find_greatest_of_not hb, ihb],
       split,
       { rintros ⟨hle, hP, hm⟩,
@@ -1270,30 +1318,51 @@ begin
         exact hb (hP b.succ_ne_zero) } } }
 end
 
-lemma find_greatest_eq_zero_iff {b} :
-  nat.find_greatest P b = 0 ↔ ∀ ⦃n⦄, 0 < n → n ≤ b → ¬P n :=
+lemma find_greatest_eq_zero_iff : nat.find_greatest P b = 0 ↔ ∀ ⦃n⦄, 0 < n → n ≤ b → ¬P n :=
 by simp [find_greatest_eq_iff]
 
-lemma find_greatest_spec {b} (h : ∃m, m ≤ b ∧ P m) : P (nat.find_greatest P b) :=
+lemma find_greatest_spec (hmb : m ≤ b) (hm : P m) : P (nat.find_greatest P b) :=
 begin
-  rcases h with ⟨m, hmb, hm⟩,
   by_cases h : nat.find_greatest P b = 0,
   { cases m, { rwa h },
     exact ((find_greatest_eq_zero_iff.1 h) m.zero_lt_succ hmb hm).elim },
   { exact (find_greatest_eq_iff.1 rfl).2.1 h }
 end
 
-lemma find_greatest_le {b} : nat.find_greatest P b ≤ b :=
-(find_greatest_eq_iff.1 rfl).1
+lemma find_greatest_le (n : ℕ) : nat.find_greatest P n ≤ n := (find_greatest_eq_iff.1 rfl).1
 
-lemma le_find_greatest {b m} (hmb : m ≤ b) (hm : P m) : m ≤ nat.find_greatest P b :=
+lemma le_find_greatest (hmb : m ≤ b) (hm : P m) : m ≤ nat.find_greatest P b :=
 le_of_not_lt $ λ hlt, (find_greatest_eq_iff.1 rfl).2.2 hlt hmb hm
 
-lemma find_greatest_is_greatest {b k} (hk : nat.find_greatest P b < k) (hkb : k ≤ b) :
-  ¬ P k :=
+lemma find_greatest_mono_right (P : ℕ → Prop) [decidable_pred P] : monotone (nat.find_greatest P) :=
+begin
+  refine monotone_nat_of_le_succ (λ n, _),
+  rw [find_greatest_succ],
+  split_ifs,
+  { exact (find_greatest_le n).trans (le_succ _) },
+  { refl }
+end
+
+lemma find_greatest_mono_left [decidable_pred Q] (hPQ : P ≤ Q) :
+  nat.find_greatest P ≤ nat.find_greatest Q :=
+begin
+  intro n,
+  induction n with n hn,
+  { refl },
+  by_cases P (n + 1),
+  { rw [find_greatest_eq h, find_greatest_eq (hPQ _ h)] },
+  { rw find_greatest_of_not h,
+    exact hn.trans (nat.find_greatest_mono_right _ $ le_succ _) }
+end
+
+lemma find_greatest_mono {a b : ℕ} [decidable_pred Q] (hPQ : P ≤ Q) (hab : a ≤ b) :
+  nat.find_greatest P a ≤ nat.find_greatest Q b :=
+(nat.find_greatest_mono_right _ hab).trans $ find_greatest_mono_left hPQ _
+
+lemma find_greatest_is_greatest (hk : nat.find_greatest P b < k) (hkb : k ≤ b) : ¬ P k :=
 (find_greatest_eq_iff.1 rfl).2.2 hk hkb
 
-lemma find_greatest_of_ne_zero {b m} (h : nat.find_greatest P b = m) (h0 : m ≠ 0) : P m :=
+lemma find_greatest_of_ne_zero (h : nat.find_greatest P b = m) (h0 : m ≠ 0) : P m :=
 (find_greatest_eq_iff.1 h).2.1 h0
 
 end find_greatest
@@ -1442,5 +1511,9 @@ instance decidable_exists_lt {P : ℕ → Prop} [h : decidable_pred P] :
 | 0 := is_false (by simp)
 | (n + 1) := decidable_of_decidable_of_iff (@or.decidable _ _ (decidable_exists_lt n) (h n))
   (by simp only [lt_succ_iff_lt_or_eq, or_and_distrib_right, exists_or_distrib, exists_eq_left])
+
+instance decidable_exists_le {P : ℕ → Prop} [h : decidable_pred P] :
+  decidable_pred (λ n, ∃ (m : ℕ), m ≤ n ∧ P m) :=
+λ n, decidable_of_iff (∃ m, m < n + 1 ∧ P m) (exists_congr (λ x, and_congr_left' lt_succ_iff))
 
 end nat

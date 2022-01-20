@@ -5,6 +5,7 @@ Authors: Simon Hudon
 -/
 import control.monad.basic
 import data.fintype.basic
+import data.list.prod_sigma
 
 /-!
 Type class for finitely enumerable types. The property is stronger

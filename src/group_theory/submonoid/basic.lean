@@ -171,17 +171,17 @@ lemma mem_inf {p p' : submonoid M} {x : M} : x ∈ p ⊓ p' ↔ x ∈ p ∧ x �
 
 @[to_additive]
 instance : has_Inf (submonoid M) :=
-⟨λ s, {
-  carrier := ⋂ t ∈ s, ↑t,
+⟨λ s,
+{ carrier := ⋂ t ∈ s, ↑t,
   one_mem' := set.mem_bInter $ λ i h, i.one_mem,
   mul_mem' := λ x y hx hy, set.mem_bInter $ λ i h,
-    i.mul_mem (by apply set.mem_bInter_iff.1 hx i h) (by apply set.mem_bInter_iff.1 hy i h) }⟩
+    i.mul_mem (by apply set.mem_Inter₂.1 hx i h) (by apply set.mem_Inter₂.1 hy i h) }⟩
 
 @[simp, norm_cast, to_additive]
 lemma coe_Inf (S : set (submonoid M)) : ((Inf S : submonoid M) : set M) = ⋂ s ∈ S, ↑s := rfl
 
 @[to_additive]
-lemma mem_Inf {S : set (submonoid M)} {x : M} : x ∈ Inf S ↔ ∀ p ∈ S, x ∈ p := set.mem_bInter_iff
+lemma mem_Inf {S : set (submonoid M)} {x : M} : x ∈ Inf S ↔ ∀ p ∈ S, x ∈ p := set.mem_Inter₂
 
 @[to_additive]
 lemma mem_infi {ι : Sort*} {S : ι → submonoid M} {x : M} : (x ∈ ⨅ i, S i) ↔ ∀ i, x ∈ S i :=
@@ -318,6 +318,24 @@ lemma closure_union (s t : set M) : closure (s ∪ t) = closure s ⊔ closure t 
 lemma closure_Union {ι} (s : ι → set M) : closure (⋃ i, s i) = ⨆ i, closure (s i) :=
 (submonoid.gi M).gc.l_supr
 
+@[simp, to_additive]
+lemma closure_singleton_le_iff_mem (m : M) (p : submonoid M) :
+  closure {m} ≤ p ↔ m ∈ p :=
+by rw [closure_le, singleton_subset_iff, set_like.mem_coe]
+
+@[to_additive]
+lemma mem_supr {ι : Sort*} (p : ι → submonoid M) {m : M} :
+  (m ∈ ⨆ i, p i) ↔ (∀ N, (∀ i, p i ≤ N) → m ∈ N) :=
+begin
+  rw [← closure_singleton_le_iff_mem, le_supr_iff],
+  simp only [closure_singleton_le_iff_mem],
+end
+
+@[to_additive]
+lemma supr_eq_closure {ι : Sort*} (p : ι → submonoid M) :
+  (⨆ i, p i) = submonoid.closure (⋃ i, (p i : set M)) :=
+by simp_rw [submonoid.closure_Union, submonoid.closure_eq]
+
 end submonoid
 
 namespace monoid_hom
@@ -361,11 +379,13 @@ variables [monoid M] [monoid N] {s : set M}
 section is_unit
 
 /-- The submonoid consisting of the units of a monoid -/
+@[to_additive "The additive submonoid  consisting of the add units of an additive monoid"]
 def is_unit.submonoid (M : Type*) [monoid M] : submonoid M :=
 { carrier := set_of is_unit,
   one_mem' := by simp only [is_unit_one, set.mem_set_of_eq],
   mul_mem' := by { intros a b ha hb, rw set.mem_set_of_eq at *, exact is_unit.mul ha hb } }
 
+@[to_additive]
 lemma is_unit.mem_submonoid_iff {M : Type*} [monoid M] (a : M) :
   a ∈ is_unit.submonoid M ↔ is_unit a :=
 begin

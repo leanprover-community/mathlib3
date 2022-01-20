@@ -202,7 +202,7 @@ lemma mk'
     ∃t ∈ 𝓝 (i a), ∀ b, i b ∈ t → b ∈ s) :
   dense_inducing i :=
 { induced := (induced_iff_nhds_eq i).2 $
-    λ a, le_antisymm (tendsto_iff_comap.1 $ c.tendsto _) (by simpa [le_def] using H a),
+    λ a, le_antisymm (tendsto_iff_comap.1 $ c.tendsto _) (by simpa [filter.le_def] using H a),
   dense := dense }
 end dense_inducing
 

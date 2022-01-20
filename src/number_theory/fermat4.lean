@@ -126,7 +126,7 @@ begin
       have h1 : 2 ∣ (int.gcd a0 b0 : ℤ),
       { exact int.dvd_gcd (int.dvd_of_mod_eq_zero hap) (int.dvd_of_mod_eq_zero hbp) },
         rw int.gcd_eq_one_iff_coprime.mpr (coprime_of_minimal hf) at h1, revert h1, norm_num },
-      { exact ⟨b0, ⟨a0, ⟨c0, minimal_comm hf, hbp⟩⟩⟩ }},
+    { exact ⟨b0, ⟨a0, ⟨c0, minimal_comm hf, hbp⟩⟩⟩ } },
   exact ⟨a0, ⟨b0, ⟨c0 , hf, hap⟩⟩⟩,
 end
 

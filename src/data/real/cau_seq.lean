@@ -98,7 +98,7 @@ variables {α : Type*} [linear_ordered_field α]
 theorem cauchy₂ (hf : is_cau_seq abv f) {ε : α} (ε0 : 0 < ε) :
   ∃ i, ∀ j k ≥ i, abv (f j - f k) < ε :=
 begin
-  refine (hf _ (half_pos ε0)).imp (λ i hi j k ij ik, _),
+  refine (hf _ (half_pos ε0)).imp (λ i hi j ij k ik, _),
   rw ← add_halves ε,
   refine lt_of_le_of_lt (abv_sub_le abv _ _ _) (add_lt_add (hi _ ij) _),
   rw abv_sub abv, exact hi _ ik
@@ -106,7 +106,7 @@ end
 
 theorem cauchy₃ (hf : is_cau_seq abv f) {ε : α} (ε0 : 0 < ε) :
   ∃ i, ∀ j ≥ i, ∀ k ≥ j, abv (f k - f j) < ε :=
-let ⟨i, H⟩ := hf.cauchy₂ ε0 in ⟨i, λ j ij k jk, H _ _ (le_trans ij jk) ij⟩
+let ⟨i, H⟩ := hf.cauchy₂ ε0 in ⟨i, λ j ij k jk, H _ (le_trans ij jk) _ ij⟩
 
 end is_cau_seq
 
@@ -385,8 +385,8 @@ begin
   change _ ≤ abv (_ * _),
   rw is_absolute_value.abv_mul abv,
   apply mul_le_mul; try { assumption },
-    { apply le_of_lt ha2 },
-    { apply is_absolute_value.abv_nonneg abv }
+  { apply le_of_lt ha2 },
+  { apply is_absolute_value.abv_nonneg abv }
 end
 
 theorem const_equiv {x y : β} : const x ≈ const y ↔ x = y :=

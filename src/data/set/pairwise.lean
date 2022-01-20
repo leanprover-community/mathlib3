@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 import data.set.lattice
+import logic.relation
 
 /-!
 # Relations holding pairwise
@@ -23,7 +24,7 @@ open set
 variables {α ι ι' : Type*} {r p q : α → α → Prop}
 
 section pairwise
-variables {f : ι → α} {s t u : set α} {a b : α}
+variables {f g : ι → α} {s t u : set α} {a b : α}
 
 /-- A relation `r` holds pairwise if `r i j` for all `i ≠ j`. -/
 def pairwise (r : α → α → Prop) := ∀ i j, i ≠ j → r i j
@@ -34,7 +35,7 @@ lemma pairwise.mono (hr : pairwise r) (h : ∀ ⦃i j⦄, r i j → p i j) : pai
 lemma pairwise_on_bool (hr : symmetric r) {a b : α} : pairwise (r on (λ c, cond c a b)) ↔ r a b :=
 by simpa [pairwise, function.on_fun] using @hr a b
 
-lemma pairwise_disjoint_on_bool [semilattice_inf_bot α] {a b : α} :
+lemma pairwise_disjoint_on_bool [semilattice_inf α] [order_bot α] {a b : α} :
   pairwise (disjoint on (λ c, cond c a b)) ↔ disjoint a b :=
 pairwise_on_bool disjoint.symm
 
@@ -46,27 +47,31 @@ lemma symmetric.pairwise_on [linear_order ι] (hr : symmetric r) (f : ι → α)
   { exact hr (h _ _ hmn') }
 end⟩
 
-lemma pairwise_disjoint_on [semilattice_inf_bot α] [linear_order ι] (f : ι → α) :
+lemma pairwise_disjoint_on [semilattice_inf α] [order_bot α] [linear_order ι] (f : ι → α) :
   pairwise (disjoint on f) ↔ ∀ m n, m < n → disjoint (f m) (f n) :=
 symmetric.pairwise_on disjoint.symm f
+
+lemma pairwise_disjoint.mono [semilattice_inf α] [order_bot α]
+  (hs : pairwise (disjoint on f)) (h : g ≤ f) : pairwise (disjoint on g) :=
+hs.mono (λ i j hij, disjoint.mono (h i) (h j) hij)
 
 namespace set
 
 /-- The relation `r` holds pairwise on the set `s` if `r x y` for all *distinct* `x y ∈ s`. -/
-protected def pairwise (s : set α) (r : α → α → Prop) := ∀ x ∈ s, ∀ y ∈ s, x ≠ y → r x y
+protected def pairwise (s : set α) (r : α → α → Prop) := ∀ ⦃x⦄, x ∈ s → ∀ ⦃y⦄, y ∈ s → x ≠ y → r x y
 
 lemma pairwise_of_forall (s : set α) (r : α → α → Prop) (h : ∀ a b, r a b) : s.pairwise r :=
 λ a _ b _ _, h a b
 
 lemma pairwise.imp_on (h : s.pairwise r) (hrp : s.pairwise (λ ⦃a b : α⦄, r a b → p a b)) :
   s.pairwise p :=
-λ a ha b hb hab, hrp a ha b hb hab (h a ha b hb hab)
+λ a ha b hb hab, hrp ha hb hab $ h ha hb hab
 
 lemma pairwise.imp (h : s.pairwise r) (hpq : ∀ ⦃a b : α⦄, r a b → p a b) : s.pairwise p :=
 h.imp_on $ pairwise_of_forall s _ hpq
 
 lemma pairwise.mono (h : t ⊆ s) (hs : s.pairwise r) : t.pairwise r :=
-λ x xt y yt, hs x (h xt) y (h yt)
+λ x xt y yt, hs (h xt) (h yt)
 
 lemma pairwise.mono' (H : r ≤ p) (hr : s.pairwise r) : s.pairwise p := hr.imp H
 
@@ -90,7 +95,7 @@ begin
     refine λ H, ⟨f y, λ x hx, _⟩,
     rcases eq_or_ne x y with rfl|hne,
     { apply is_refl.refl },
-    { exact H _ hx _ hy hne } },
+    { exact H hx hy hne } },
   { rintro ⟨z, hz⟩ x hx y hy hne,
     exact @is_trans.trans α r _ (f x) z (f y) (hz _ hx) (is_symm.symm _ _ $ hz _ hy) }
 end
@@ -155,7 +160,7 @@ by simp only [set.pairwise, pairwise, mem_univ, forall_const]
 lemma pairwise.on_injective (hs : s.pairwise r) (hf : function.injective f)
   (hfs : ∀ x, f x ∈ s) :
   pairwise (r on f) :=
-λ i j hij, hs _ (hfs i) _ (hfs j) (hf.ne hij)
+λ i j hij, hs (hfs i) (hfs j) (hf.ne hij)
 
 lemma inj_on.pairwise_image {s : set ι} (h : s.inj_on f) :
   (f '' s).pairwise r ↔ s.pairwise (r on f) :=
@@ -171,7 +176,7 @@ begin
     rcases mem_Union.1 hi with ⟨m, hm⟩,
     rcases mem_Union.1 hj with ⟨n, hn⟩,
     rcases h m n with ⟨p, mp, np⟩,
-    exact H p i (mp hm) j (np hn) hij }
+    exact H p (mp hm) (np hn) hij }
 end
 
 lemma pairwise_sUnion {r : α → α → Prop} {s : set (set α)} (h : directed_on (⊆) s) :
@@ -192,14 +197,14 @@ begin
     exact h ⟨x, hx⟩ ⟨y, hy⟩ (by simpa only [subtype.mk_eq_mk, ne.def]) },
   { rintros h ⟨x, hx⟩ ⟨y, hy⟩ hxy,
     simp only [subtype.mk_eq_mk, ne.def] at hxy,
-    exact h x hx y hy hxy }
+    exact h hx hy hxy }
 end
 
 alias pairwise_subtype_iff_pairwise_set ↔ pairwise.set_of_subtype set.pairwise.subtype
 
 namespace set
 section semilattice_inf_bot
-variables [semilattice_inf_bot α] {s t : set ι} {f g : ι → α}
+variables [semilattice_inf α] [order_bot α] {s t : set ι} {f g : ι → α}
 
 /-- A set is `pairwise_disjoint` under `f`, if the images of any distinct two elements under `f`
 are disjoint. -/
@@ -210,7 +215,7 @@ pairwise.mono h ht
 
 lemma pairwise_disjoint.mono_on (hs : s.pairwise_disjoint f) (h : ∀ ⦃i⦄, i ∈ s → g i ≤ f i) :
   s.pairwise_disjoint g :=
-λ a ha b hb hab, (hs a ha b hb hab).mono (h ha) (h hb)
+λ a ha b hb hab, (hs ha hb hab).mono (h ha) (h hb)
 
 lemma pairwise_disjoint.mono (hs : s.pairwise_disjoint f) (h : g ≤ f) : s.pairwise_disjoint g :=
 hs.mono_on (λ i _, h i)
@@ -234,7 +239,7 @@ lemma pairwise_disjoint.image_of_le (hs : s.pairwise_disjoint f) {g : ι → ι}
   (g '' s).pairwise_disjoint f :=
 begin
   rintro _ ⟨a, ha, rfl⟩ _ ⟨b, hb, rfl⟩ h,
-  exact (hs a ha b hb $ ne_of_apply_ne _ h).mono (hg a) (hg b),
+  exact (hs ha hb $ ne_of_apply_ne _ h).mono (hg a) (hg b),
 end
 
 lemma inj_on.pairwise_disjoint_image {g : ι' → ι} {s : set ι'} (h : s.inj_on g) :
@@ -246,7 +251,7 @@ lemma pairwise_disjoint.range (g : s → ι) (hg : ∀ (i : s), f (g i) ≤ f i)
   (range g).pairwise_disjoint f :=
 begin
   rintro _ ⟨x, rfl⟩ _ ⟨y, rfl⟩ hxy,
-  exact (ht _ x.2 _ y.2 $ λ h, hxy $ congr_arg g $ subtype.ext h).mono (hg x) (hg y),
+  exact (ht x.2 y.2 $ λ h, hxy $ congr_arg g $ subtype.ext h).mono (hg x) (hg y),
 end
 
 lemma pairwise_disjoint_union :
@@ -271,7 +276,7 @@ pairwise_sUnion h
 lemma pairwise_disjoint.elim (hs : s.pairwise_disjoint f) {i j : ι} (hi : i ∈ s) (hj : j ∈ s)
   (h : ¬ disjoint (f i) (f j)) :
   i = j :=
-of_not_not $ λ hij, h $ hs _ hi _ hj hij
+of_not_not $ λ hij, h $ hs hi hj hij
 
 -- classical
 lemma pairwise_disjoint.elim' (hs : s.pairwise_disjoint f) {i j : ι} (hi : i ∈ s) (hj : j ∈ s)
@@ -280,6 +285,27 @@ lemma pairwise_disjoint.elim' (hs : s.pairwise_disjoint f) {i j : ι} (hi : i �
 hs.elim hi hj $ λ hij, h hij.eq_bot
 
 end semilattice_inf_bot
+
+section complete_lattice
+variables [complete_lattice α]
+
+/-- Bind operation for `set.pairwise_disjoint`. If you want to only consider finsets of indices, you
+can use `set.pairwise_disjoint.bUnion_finset`. -/
+lemma pairwise_disjoint.bUnion {s : set ι'} {g : ι' → set ι} {f : ι → α}
+  (hs : s.pairwise_disjoint (λ i' : ι', ⨆ i ∈ g i', f i))
+  (hg : ∀ i ∈ s, (g i).pairwise_disjoint f) :
+  (⋃ i ∈ s, g i).pairwise_disjoint f :=
+begin
+  rintro a ha b hb hab,
+  simp_rw set.mem_Union at ha hb,
+  obtain ⟨c, hc, ha⟩ := ha,
+  obtain ⟨d, hd, hb⟩ := hb,
+  obtain hcd | hcd := eq_or_ne (g c) (g d),
+  { exact hg d hd (hcd.subst ha) hb hab },
+  { exact (hs hc hd (ne_of_apply_ne _ hcd)).mono (le_bsupr a ha) (le_bsupr b hb) }
+end
+
+end complete_lattice
 
 /-! ### Pairwise disjoint set of sets -/
 
@@ -303,8 +329,8 @@ lemma bUnion_diff_bUnion_eq {s t : set ι} {f : ι → set α} (h : (s ∪ t).pa
 begin
   refine (bUnion_diff_bUnion_subset f s t).antisymm
     (bUnion_subset $ λ i hi a ha, (mem_diff _).2 ⟨mem_bUnion hi.1 ha, _⟩),
-  rw mem_bUnion_iff, rintro ⟨j, hj, haj⟩,
-  exact h i (or.inl hi.1) j (or.inr hj) (ne_of_mem_of_not_mem hj hi.2).symm ⟨ha, haj⟩,
+  rw mem_Union₂, rintro ⟨j, hj, haj⟩,
+  exact h (or.inl hi.1) (or.inr hj) (ne_of_mem_of_not_mem hj hi.2).symm ⟨ha, haj⟩,
 end
 
 /-- Equivalence between a disjoint bounded union and a dependent sum. -/
@@ -312,7 +338,7 @@ noncomputable def bUnion_eq_sigma_of_disjoint {s : set ι} {f : ι → set α}
   (h : s.pairwise (disjoint on f)) :
   (⋃ i ∈ s, f i) ≃ (Σ i : s, f i) :=
 (equiv.set_congr (bUnion_eq_Union _ _)).trans $ Union_eq_sigma_of_disjoint $
-  λ ⟨i, hi⟩ ⟨j, hj⟩ ne, h _ hi _ hj $ λ eq, ne $ subtype.eq eq
+  λ ⟨i, hi⟩ ⟨j, hj⟩ ne, h hi hj $ λ eq, ne $ subtype.eq eq
 
 end set
 

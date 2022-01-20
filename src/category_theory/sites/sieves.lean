@@ -4,10 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta, E. W. Ayers
 -/
 
-import category_theory.over
-import category_theory.limits.shapes.finite_limits
-import category_theory.yoneda
 import order.complete_lattice
+import category_theory.over
+import category_theory.yoneda
+import category_theory.limits.shapes.pullbacks
 import data.set.lattice
 
 /-!
@@ -581,8 +581,16 @@ lemma functor_pullback_union (S R : sieve (F.obj X)) :
 lemma functor_pullback_inter (S R : sieve (F.obj X)) :
   (S ⊓ R).functor_pullback F = S.functor_pullback F ⊓ R.functor_pullback F := rfl
 
-lemma functor_pushforward_bot (F : C ⥤ D) (X : C) :
+@[simp] lemma functor_pushforward_bot (F : C ⥤ D) (X : C) :
   (⊥ : sieve X).functor_pushforward F = ⊥ := (functor_galois_connection F X).l_bot
+
+@[simp] lemma functor_pushforward_top (F : C ⥤ D) (X : C) :
+  (⊤ : sieve X).functor_pushforward F = ⊤ :=
+  begin
+    refine (generate_sieve _).symm.trans _,
+    apply generate_of_contains_split_epi (𝟙 (F.obj X)),
+    refine ⟨X, 𝟙 _, 𝟙 _, trivial, by simp⟩
+  end
 
 @[simp] lemma functor_pullback_bot (F : C ⥤ D) (X : C) :
   (⊥ : sieve (F.obj X)).functor_pullback F = ⊥ := rfl

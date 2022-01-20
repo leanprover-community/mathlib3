@@ -262,7 +262,7 @@ begin
   rcases typein_surj s h with ⟨p, rfl⟩,
   rw [← e, lt_ord],
   refine lt_of_le_of_lt (_ : _ ≤ card (typein (<) (g p)).succ * card (typein (<) (g p)).succ) _,
-  { have : {q|s q p} ⊆ (insert (g p) {x | x < (g p)}).prod (insert (g p) {x | x < (g p)}),
+  { have : {q | s q p} ⊆ insert (g p) {x | x < g p} ×ˢ insert (g p) {x | x < g p},
     { intros q h,
       simp only [s, embedding.coe_fn_mk, order.preimage, typein_lt_typein, prod.lex_def, typein_inj]
         at h,
@@ -316,9 +316,9 @@ end
 
 lemma mul_eq_max_of_omega_le_left {a b : cardinal} (h : ω ≤ a) (h' : b ≠ 0) : a * b = max a b :=
 begin
-  apply le_antisymm, apply mul_le_max_of_omega_le_left h,
-  cases le_or_gt ω b with hb hb, rw [mul_eq_max h hb],
-  have : b ≤ a, exact le_trans (le_of_lt hb) h,
+  cases le_or_lt ω b with hb hb, { exact mul_eq_max h hb },
+  refine (mul_le_max_of_omega_le_left h).antisymm _,
+  have : b ≤ a, from hb.le.trans h,
   rw [max_eq_left this],
   convert mul_le_mul_left' (one_le_iff_ne_zero.mpr h') _, rw [mul_one],
 end
@@ -514,15 +514,16 @@ begin
   { exact le_max_of_le_right (le_of_lt (power_lt_omega (lt_of_not_ge hc) (nat_lt_omega _))) }
 end
 
-lemma powerlt_omega {c : cardinal} (h : ω ≤ c) : c ^< ω = c :=
+@[simp] lemma powerlt_omega {c : cardinal} (h : ω ≤ c) : c ^< ω = c :=
 begin
   apply le_antisymm,
   { rw [powerlt_le], intro c', rw [lt_omega], rintro ⟨n, rfl⟩, apply power_nat_le h },
   convert le_powerlt one_lt_omega, rw [power_one]
 end
+
 lemma powerlt_omega_le (c : cardinal) : c ^< ω ≤ max c ω :=
 begin
-  cases le_or_gt ω c,
+  cases le_or_lt ω c,
   { rw [powerlt_omega h], apply le_max_left },
   rw [powerlt_le], intros c' hc',
   refine le_trans (le_of_lt $ power_lt_omega h hc') (le_max_right _ _)
@@ -543,10 +544,11 @@ eq.symm $ le_antisymm (mk_le_of_injective (λ x y, finset.singleton_inj.1)) $
 calc #(finset α) ≤ #(list α) : mk_le_of_surjective list.to_finset_surjective
 ... = #α : mk_list_eq_mk α
 
-lemma mk_bounded_set_le_of_omega_le (α : Type u) (c : cardinal) (hα : ω ≤ #α) :
+lemma mk_bounded_set_le_of_infinite (α : Type u) [infinite α] (c : cardinal) :
   #{t : set α // mk t ≤ c} ≤ #α ^ c :=
 begin
-  refine le_trans _ (by rw [←add_one_eq hα]), refine quotient.induction_on c _, clear c, intro β,
+  refine le_trans _ (by rw [←add_one_eq (omega_le_mk α)]),
+  induction c using cardinal.induction_on with β,
   fapply mk_le_of_surjective,
   { intro f, use sum.inl ⁻¹' range f,
     refine le_trans (mk_preimage_of_injective _ _ (λ x y, sum.inl.inj)) _,
@@ -567,11 +569,11 @@ end
 lemma mk_bounded_set_le (α : Type u) (c : cardinal) :
   #{t : set α // #t ≤ c} ≤ max (#α) ω ^ c :=
 begin
-  transitivity #{t : set (ulift.{u} nat ⊕ α) // #t ≤ c},
+  transitivity #{t : set (ulift.{u} ℕ ⊕ α) // #t ≤ c},
   { refine ⟨embedding.subtype_map _ _⟩, apply embedding.image,
     use sum.inr, apply sum.inr.inj, intros s hs, exact le_trans mk_image_le hs },
   refine le_trans
-    (mk_bounded_set_le_of_omega_le (ulift.{u} nat ⊕ α) c (self_le_add_right ω (#α))) _,
+    (mk_bounded_set_le_of_infinite (ulift.{u} ℕ ⊕ α) c) _,
   rw [max_comm, ←add_eq_max]; refl
 end
 
@@ -588,43 +590,40 @@ end
 
 /-! ### Properties of `compl` -/
 
-lemma mk_compl_of_omega_le {α : Type*} (s : set α) (h : ω ≤ #α) (h2 : #s < #α) :
+lemma mk_compl_of_infinite {α : Type*} [infinite α] (s : set α) (h2 : #s < #α) :
   #(sᶜ : set α) = #α :=
-by { refine eq_of_add_eq_of_omega_le _ h2 h, exact mk_sum_compl s }
+by { refine eq_of_add_eq_of_omega_le _ h2 (omega_le_mk α), exact mk_sum_compl s }
 
-lemma mk_compl_finset_of_omega_le {α : Type*} (s : finset α) (h : ω ≤ #α) :
+lemma mk_compl_finset_of_infinite {α : Type*} [infinite α] (s : finset α) :
   #((↑s)ᶜ : set α) = #α :=
-by { apply mk_compl_of_omega_le _ h, exact lt_of_lt_of_le (finset_card_lt_omega s) h }
+by { apply mk_compl_of_infinite, exact (finset_card_lt_omega s).trans_le (omega_le_mk α) }
 
-lemma mk_compl_eq_mk_compl_infinite {α : Type*} {s t : set α} (h : ω ≤ #α) (hs : #s < #α)
+lemma mk_compl_eq_mk_compl_infinite {α : Type*} [infinite α] {s t : set α} (hs : #s < #α)
   (ht : #t < #α) : #(sᶜ : set α) = #(tᶜ : set α) :=
-by { rw [mk_compl_of_omega_le s h hs, mk_compl_of_omega_le t h ht] }
+by { rw [mk_compl_of_infinite s hs, mk_compl_of_infinite t ht] }
 
-lemma mk_compl_eq_mk_compl_finite_lift {α : Type u} {β : Type v} {s : set α} {t : set β}
-  (hα : #α < ω) (h1 : lift.{(max v w)} (#α) = lift.{(max u w)} (#β))
+lemma mk_compl_eq_mk_compl_finite_lift {α : Type u} {β : Type v} [fintype α]
+  {s : set α} {t : set β} (h1 : lift.{(max v w)} (#α) = lift.{(max u w)} (#β))
   (h2 : lift.{(max v w)} (#s) = lift.{(max u w)} (#t)) :
   lift.{(max v w)} (#(sᶜ : set α)) = lift.{(max u w)} (#(tᶜ : set β)) :=
 begin
-  have hα' := hα, have h1' := h1,
-  rw [← mk_sum_compl s, ← mk_sum_compl t] at h1,
-  rw [← mk_sum_compl s, add_lt_omega_iff] at hα,
-  lift #s to ℕ using hα.1 with n hn,
-  lift #(sᶜ : set α) to ℕ using hα.2 with m hm,
-  have : #(tᶜ : set β) < ω,
-  { refine lt_of_le_of_lt (mk_subtype_le _) _,
-    rw [← lift_lt, lift_omega, ← h1', ← lift_omega.{u (max v w)}, lift_lt], exact hα' },
-  lift #(tᶜ : set β) to ℕ using this with k hk,
-  simp [nat_eq_lift_eq_iff] at h2, rw [nat_eq_lift_eq_iff.{v (max u w)}] at h2,
-  simp [h2.symm] at h1 ⊢, norm_cast at h1, simp at h1, exact h1
+  rcases lift_mk_eq.1 h1 with ⟨e⟩, letI : fintype β := fintype.of_equiv α e,
+  replace h1 : fintype.card α = fintype.card β := (fintype.of_equiv_card _).symm,
+  classical,
+  lift s to finset α using finite.of_fintype s,
+  lift t to finset β using finite.of_fintype t,
+  simp only [finset.coe_sort_coe, mk_finset, lift_nat_cast, nat.cast_inj] at h2,
+  simp only [← finset.coe_compl, finset.coe_sort_coe, mk_finset, finset.card_compl,
+    lift_nat_cast, nat.cast_inj, h1, h2]
 end
 
-lemma mk_compl_eq_mk_compl_finite {α β : Type u} {s : set α} {t : set β}
-  (hα : #α < ω) (h1 : #α = #β) (h : #s = #t) : #(sᶜ : set α) = #(tᶜ : set β) :=
-by { rw [← lift_inj], apply mk_compl_eq_mk_compl_finite_lift hα; rw [lift_inj]; assumption }
+lemma mk_compl_eq_mk_compl_finite {α β : Type u} [fintype α] {s : set α} {t : set β}
+  (h1 : #α = #β) (h : #s = #t) : #(sᶜ : set α) = #(tᶜ : set β) :=
+by { rw ← lift_inj, apply mk_compl_eq_mk_compl_finite_lift; rwa [lift_inj] }
 
-lemma mk_compl_eq_mk_compl_finite_same {α : Type*} {s t : set α} (hα : #α < ω)
+lemma mk_compl_eq_mk_compl_finite_same {α : Type*} [fintype α] {s t : set α}
   (h : #s = #t) : #(sᶜ : set α) = #(tᶜ : set α) :=
-mk_compl_eq_mk_compl_finite hα rfl h
+mk_compl_eq_mk_compl_finite rfl h
 
 /-! ### Extending an injection to an equiv -/
 
@@ -639,27 +638,25 @@ begin
   refine ⟨h, _⟩, rintro ⟨x, hx⟩, simp [set.sum_compl_symm_apply_of_mem, hx]
 end
 
-theorem extend_function_finite {α β : Type*} {s : set α} (f : s ↪ β)
-  (hs : #α < ω) (h : nonempty (α ≃ β)) : ∃ (g : α ≃ β), ∀ x : s, g x = f x :=
+theorem extend_function_finite {α β : Type*} [fintype α] {s : set α} (f : s ↪ β)
+  (h : nonempty (α ≃ β)) : ∃ (g : α ≃ β), ∀ x : s, g x = f x :=
 begin
   apply extend_function f,
-  have := h, cases this with g,
+  cases id h with g,
   rw [← lift_mk_eq] at h,
-  rw [←lift_mk_eq, mk_compl_eq_mk_compl_finite_lift hs h],
+  rw [←lift_mk_eq, mk_compl_eq_mk_compl_finite_lift h],
   rw [mk_range_eq_lift], exact f.2
 end
 
 theorem extend_function_of_lt {α β : Type*} {s : set α} (f : s ↪ β) (hs : #s < #α)
   (h : nonempty (α ≃ β)) : ∃ (g : α ≃ β), ∀ x : s, g x = f x :=
 begin
-  cases (le_or_lt ω (#α)) with hα hα,
-  { apply extend_function f, have := h, cases this with g, rw [← lift_mk_eq] at h,
-    cases cardinal.eq.mp (mk_compl_of_omega_le s hα hs) with g2,
-    cases cardinal.eq.mp (mk_compl_of_omega_le (range f) _ _) with g3,
-    { constructor, exact g2.trans (g.trans g3.symm) },
-    { rw [← lift_le, ← h], refine le_trans _ (lift_le.mpr hα), simp },
-    rwa [← lift_lt, ← h, mk_range_eq_lift, lift_lt], exact f.2 },
-  { exact extend_function_finite f hα h }
+  casesI fintype_or_infinite α,
+  { exact extend_function_finite f h },
+  { apply extend_function f, cases id h with g, haveI := infinite.of_injective _ g.injective,
+    rw [← lift_mk_eq'] at h ⊢,
+    rwa [mk_compl_of_infinite s hs, mk_compl_of_infinite],
+    rwa [← lift_lt, mk_range_eq_of_injective f.injective, ← h, lift_lt] },
 end
 
 section bit
@@ -710,8 +707,7 @@ by { rw ← not_iff_not, simp }
 begin
   by_cases h : ω ≤ c,
   { simp only [bit1, bit0_eq_self h, h, eq_self_iff_true, add_one_of_omega_le] },
-  { simp only [h, iff_false],
-    apply ne_of_gt,
+  { refine iff_of_false (ne_of_gt _) h,
     rcases lt_omega.1 (not_le.1 h) with ⟨n, rfl⟩,
     norm_cast,
     dsimp [bit1, bit0],
@@ -726,50 +722,34 @@ by { rw ← not_iff_not, simp }
 
 @[simp] lemma bit0_le_bit0 {a b : cardinal} : bit0 a ≤ bit0 b ↔ a ≤ b :=
 begin
-  by_cases ha : ω ≤ a; by_cases hb : ω ≤ b,
+  cases le_or_lt ω a with ha ha; cases le_or_lt ω b with hb hb,
   { rw [bit0_eq_self ha, bit0_eq_self hb] },
   { rw bit0_eq_self ha,
-    have I1 : ¬ (a ≤ b),
-    { assume h, apply hb, exact le_trans ha h },
-    have I2 : ¬ (a ≤ bit0 b),
-    { assume h,
-      have A : bit0 b < ω, by simpa using hb,
-      exact lt_irrefl _ (lt_of_lt_of_le (lt_of_lt_of_le A ha) h) },
-    simp [I1, I2] },
+    refine iff_of_false (λ h, _) (not_le_of_lt (hb.trans_le ha)),
+    have A : bit0 b < ω, by simpa using hb,
+    exact lt_irrefl _ (lt_of_lt_of_le (lt_of_lt_of_le A ha) h) },
   { rw [bit0_eq_self hb],
-    simp only [not_le] at ha,
-    have I1 : a ≤ b := le_of_lt (lt_of_lt_of_le ha hb),
-    have I2 : bit0 a ≤ b := le_trans (le_of_lt (bit0_lt_omega.2 ha)) hb,
-    simp [I1, I2] },
-  { simp at ha hb,
-    rcases lt_omega.1 ha with ⟨m, rfl⟩,
+    exact iff_of_true ((bit0_lt_omega.2 ha).le.trans hb) (ha.le.trans hb) },
+  { rcases lt_omega.1 ha with ⟨m, rfl⟩,
     rcases lt_omega.1 hb with ⟨n, rfl⟩,
     norm_cast,
-    simp }
+    exact bit0_le_bit0 }
 end
 
 @[simp] lemma bit0_le_bit1 {a b : cardinal} : bit0 a ≤ bit1 b ↔ a ≤ b :=
 begin
-  by_cases ha : ω ≤ a; by_cases hb : ω ≤ b,
+  cases le_or_lt ω a with ha ha; cases le_or_lt ω b with hb hb,
   { rw [bit0_eq_self ha, bit1_eq_self_iff.2 hb], },
   { rw bit0_eq_self ha,
-    have I1 : ¬ (a ≤ b),
-    { assume h, apply hb, exact le_trans ha h },
-    have I2 : ¬ (a ≤ bit1 b),
-    { assume h,
-      have A : bit1 b < ω, by simpa using hb,
-      exact lt_irrefl _ (lt_of_lt_of_le (lt_of_lt_of_le A ha) h) },
-    simp [I1, I2] },
+    refine iff_of_false (λ h, _) (not_le_of_lt (hb.trans_le ha)),
+    have A : bit1 b < ω, by simpa using hb,
+    exact lt_irrefl _ (lt_of_lt_of_le (lt_of_lt_of_le A ha) h) },
   { rw [bit1_eq_self_iff.2 hb],
-    simp only [not_le] at ha,
-    have I1 : a ≤ b := le_of_lt (lt_of_lt_of_le ha hb),
-    have I2 : bit0 a ≤ b := le_trans (le_of_lt (bit0_lt_omega.2 ha)) hb,
-    simp [I1, I2] },
-  { simp at ha hb,
-    rcases lt_omega.1 ha with ⟨m, rfl⟩,
+    exact iff_of_true ((bit0_lt_omega.2 ha).le.trans hb) (ha.le.trans hb) },
+  { rcases lt_omega.1 ha with ⟨m, rfl⟩,
     rcases lt_omega.1 hb with ⟨n, rfl⟩,
     norm_cast,
-    simp }
+    exact nat.bit0_le_bit1_iff }
 end
 
 @[simp] lemma bit1_le_bit1 {a b : cardinal} : bit1 a ≤ bit1 b ↔ a ≤ b :=
@@ -784,27 +764,20 @@ end
 
 @[simp] lemma bit1_le_bit0 {a b : cardinal} : bit1 a ≤ bit0 b ↔ (a < b ∨ (a ≤ b ∧ ω ≤ a)) :=
 begin
-  by_cases ha : ω ≤ a; by_cases hb : ω ≤ b,
+  cases le_or_lt ω a with ha ha; cases le_or_lt ω b with hb hb,
   { simp only [bit1_eq_self_iff.mpr ha, bit0_eq_self hb, ha, and_true],
     refine ⟨λ h, or.inr h, λ h, _⟩,
     cases h,
     { exact le_of_lt h },
     { exact h } },
   { rw bit1_eq_self_iff.2 ha,
-    have I1 : ¬ (a ≤ b),
-    { assume h, apply hb, exact le_trans ha h },
-    have I2 : ¬ (a ≤ bit0 b),
-    { assume h,
-      have A : bit0 b < ω, by simpa using hb,
+    refine iff_of_false (λ h, _) (λ h, _),
+    { have A : bit0 b < ω, by simpa using hb,
       exact lt_irrefl _ (lt_of_lt_of_le (lt_of_lt_of_le A ha) h) },
-    simp [I1, I2, le_of_not_ge I1] },
+    { exact not_le_of_lt (hb.trans_le ha) (h.elim le_of_lt and.left) } },
   { rw [bit0_eq_self hb],
-    simp only [not_le] at ha,
-    have I1 : a < b := lt_of_lt_of_le ha hb,
-    have I2 : bit1 a ≤ b := le_trans (le_of_lt (bit1_lt_omega.2 ha)) hb,
-    simp [I1, I2] },
-  { simp at ha hb,
-    rcases lt_omega.1 ha with ⟨m, rfl⟩,
+    exact iff_of_true ((bit1_lt_omega.2 ha).le.trans hb) (or.inl $ ha.trans_le hb) },
+  { rcases lt_omega.1 ha with ⟨m, rfl⟩,
     rcases lt_omega.1 hb with ⟨n, rfl⟩,
     norm_cast,
     simp [not_le.mpr ha], }
@@ -812,102 +785,67 @@ end
 
 @[simp] lemma bit0_lt_bit0 {a b : cardinal} : bit0 a < bit0 b ↔ a < b :=
 begin
-  by_cases ha : ω ≤ a; by_cases hb : ω ≤ b,
+  cases le_or_lt ω a with ha ha; cases le_or_lt ω b with hb hb,
   { rw [bit0_eq_self ha, bit0_eq_self hb] },
   { rw bit0_eq_self ha,
-    have I1 : ¬ (a < b),
-    { assume h, apply hb, exact le_trans ha (le_of_lt h) },
-    have I2 : ¬ (a < bit0 b),
-    { assume h,
-      have A : bit0 b < ω, by simpa using hb,
-      exact lt_irrefl _ (lt_trans (lt_of_lt_of_le A ha) h) },
-    simp [I1, I2] },
+    refine iff_of_false (λ h, _) (not_lt_of_le (hb.le.trans ha)),
+    have A : bit0 b < ω, by simpa using hb,
+    exact lt_irrefl _ (lt_trans (lt_of_lt_of_le A ha) h) },
   { rw [bit0_eq_self hb],
-    simp only [not_le] at ha,
-    have I1 : a < b := lt_of_lt_of_le ha hb,
-    have I2 : bit0 a < b := lt_of_lt_of_le (bit0_lt_omega.2 ha) hb,
-    simp [I1, I2] },
-  { simp at ha hb,
-    rcases lt_omega.1 ha with ⟨m, rfl⟩,
+    exact iff_of_true ((bit0_lt_omega.2 ha).trans_le hb) (ha.trans_le hb) },
+  { rcases lt_omega.1 ha with ⟨m, rfl⟩,
     rcases lt_omega.1 hb with ⟨n, rfl⟩,
     norm_cast,
-    simp }
+    exact bit0_lt_bit0 }
 end
 
 @[simp] lemma bit1_lt_bit0 {a b : cardinal} : bit1 a < bit0 b ↔ a < b :=
 begin
-  by_cases ha : ω ≤ a; by_cases hb : ω ≤ b,
+  cases le_or_lt ω a with ha ha; cases le_or_lt ω b with hb hb,
   { rw [bit1_eq_self_iff.2 ha, bit0_eq_self hb], },
   { rw bit1_eq_self_iff.2 ha,
-    have I1 : ¬ (a < b),
-    { assume h, apply hb, exact le_of_lt (lt_of_le_of_lt ha h) },
-    have I2 : ¬ (a < bit0 b),
-    { assume h,
-      have A : bit0 b < ω, by simpa using hb,
-      exact lt_irrefl _ (lt_trans (lt_of_lt_of_le A ha) h) },
-    simp [I1, I2] },
+    refine iff_of_false (λ h, _) (not_lt_of_le (hb.le.trans ha)),
+    have A : bit0 b < ω, by simpa using hb,
+    exact lt_irrefl _ (lt_trans (lt_of_lt_of_le A ha) h) },
   { rw [bit0_eq_self hb],
-    simp only [not_le] at ha,
-    have I1 : a < b := (lt_of_lt_of_le ha hb),
-    have I2 : bit1 a < b := lt_of_lt_of_le (bit1_lt_omega.2 ha) hb,
-    simp [I1, I2] },
-  { simp at ha hb,
-    rcases lt_omega.1 ha with ⟨m, rfl⟩,
+    exact iff_of_true ((bit1_lt_omega.2 ha).trans_le hb) (ha.trans_le hb) },
+  { rcases lt_omega.1 ha with ⟨m, rfl⟩,
     rcases lt_omega.1 hb with ⟨n, rfl⟩,
     norm_cast,
-    simp }
+    exact nat.bit1_lt_bit0_iff }
 end
 
 @[simp] lemma bit1_lt_bit1 {a b : cardinal} : bit1 a < bit1 b ↔ a < b :=
 begin
-  by_cases ha : ω ≤ a; by_cases hb : ω ≤ b,
+  cases le_or_lt ω a with ha ha; cases le_or_lt ω b with hb hb,
   { rw [bit1_eq_self_iff.2 ha, bit1_eq_self_iff.2 hb], },
   { rw bit1_eq_self_iff.2 ha,
-    have I1 : ¬ (a < b),
-    { assume h, apply hb, exact le_of_lt (lt_of_le_of_lt ha h) },
-    have I2 : ¬ (a < bit1 b),
-    { assume h,
-      have A : bit1 b < ω, by simpa using hb,
-      exact lt_irrefl _ (lt_trans (lt_of_lt_of_le A ha) h) },
-    simp [I1, I2] },
+    refine iff_of_false (λ h, _) (not_lt_of_le (hb.le.trans ha)),
+    have A : bit1 b < ω, by simpa using hb,
+    exact lt_irrefl _ (lt_trans (lt_of_lt_of_le A ha) h) },
   { rw [bit1_eq_self_iff.2 hb],
-    simp only [not_le] at ha,
-    have I1 : a < b := (lt_of_lt_of_le ha hb),
-    have I2 : bit1 a < b := lt_of_lt_of_le (bit1_lt_omega.2 ha) hb,
-    simp [I1, I2] },
-  { simp at ha hb,
-    rcases lt_omega.1 ha with ⟨m, rfl⟩,
+    exact iff_of_true ((bit1_lt_omega.2 ha).trans_le hb) (ha.trans_le hb) },
+  { rcases lt_omega.1 ha with ⟨m, rfl⟩,
     rcases lt_omega.1 hb with ⟨n, rfl⟩,
     norm_cast,
-    simp }
+    exact bit1_lt_bit1 }
 end
 
 @[simp] lemma bit0_lt_bit1 {a b : cardinal} : bit0 a < bit1 b ↔ (a < b ∨ (a ≤ b ∧ a < ω)) :=
 begin
-  by_cases ha : ω ≤ a; by_cases hb : ω ≤ b,
+  cases le_or_lt ω a with ha ha; cases le_or_lt ω b with hb hb,
   { simp [bit0_eq_self ha, bit1_eq_self_iff.2 hb, not_lt.mpr ha] },
   { rw bit0_eq_self ha,
-    have I1 : ¬ (a < b),
-    { assume h, apply hb, exact le_of_lt (lt_of_le_of_lt ha h) },
-    have I2 : ¬ (a < bit1 b),
-    { assume h,
-      have A : bit1 b < ω, by simpa using hb,
+    refine iff_of_false (λ h, _) (λ h, _),
+    { have A : bit1 b < ω, by simpa using hb,
       exact lt_irrefl _ (lt_trans (lt_of_lt_of_le A ha) h) },
-    simp [I1, I2, not_lt.mpr ha] },
+    { exact not_le_of_lt (hb.trans_le ha) (h.elim le_of_lt and.left) } },
   { rw [bit1_eq_self_iff.2 hb],
-    simp only [not_le] at ha,
-    have I1 : a < b := (lt_of_lt_of_le ha hb),
-    have I2 : bit0 a < b := lt_of_lt_of_le (bit0_lt_omega.2 ha) hb,
-    simp [I1, I2] },
-  { simp at ha hb,
-    rcases lt_omega.1 ha with ⟨m, rfl⟩,
+    exact iff_of_true ((bit0_lt_omega.2 ha).trans_le hb) (or.inl $ ha.trans_le hb) },
+  { rcases lt_omega.1 ha with ⟨m, rfl⟩,
     rcases lt_omega.1 hb with ⟨n, rfl⟩,
     norm_cast,
-    simp only [ha, and_true, nat.bit0_lt_bit1_iff],
-    refine ⟨λ h, or.inr h, λ h, _⟩,
-    cases h,
-    { exact le_of_lt h },
-    { exact h } }
+    simp only [ha, and_true, nat.bit0_lt_bit1_iff, or_iff_right_of_imp le_of_lt] }
 end
 
 lemma one_lt_two : (1 : cardinal) < 2 :=

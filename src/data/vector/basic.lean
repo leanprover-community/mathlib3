@@ -23,7 +23,7 @@ infixr `::ᵥ`:67  := vector.cons
 attribute [simp] head_cons tail_cons
 
 instance [inhabited α] : inhabited (vector α n) :=
-⟨of_fn (λ _, default α)⟩
+⟨of_fn (λ _, default)⟩
 
 theorem to_list_injective : function.injective (@to_list α n) :=
 subtype.val_injective
@@ -195,8 +195,8 @@ lemma last_def {v : vector α (n + 1)} : v.last = v.nth (fin.last n) := rfl
 lemma reverse_nth_zero {v : vector α (n + 1)} : v.reverse.head = v.last :=
 begin
   have : 0 = v.to_list.length - 1 - n,
-    { simp only [nat.add_succ_sub_one, add_zero, to_list_length, tsub_self,
-                 list.length_reverse] },
+  { simp only [nat.add_succ_sub_one, add_zero, to_list_length, tsub_self,
+               list.length_reverse] },
   rw [←nth_zero, last_def, nth_eq_nth_le, nth_eq_nth_le],
   simp_rw [to_list_reverse, fin.val_eq_coe, fin.coe_last, fin.coe_zero, this],
   rw list.nth_le_reverse,
@@ -469,7 +469,7 @@ lemma prod_update_nth [monoid α] (v : vector α n) (i : fin n) (a : α) :
 begin
   refine (list.prod_update_nth v.to_list i a).trans _,
   have : ↑i < v.to_list.length := lt_of_lt_of_le i.2 (le_of_eq v.2.symm),
-  simp [this],
+  simp * at *
 end
 
 @[to_additive]

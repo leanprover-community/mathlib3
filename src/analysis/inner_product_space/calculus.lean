@@ -12,9 +12,7 @@ import analysis.special_functions.sqrt
 In this file we prove that the inner product and square of the norm in an inner space are
 infinitely `ℝ`-smooth. In order to state these results, we need a `normed_space ℝ E`
 instance. Though we can deduce this structure from `inner_product_space 𝕜 E`, this instance may be
-not definitionally equal to some other “natural” instance. So, we assume `[normed_space ℝ E]` and
-`[is_scalar_tower ℝ 𝕜 E]`. In both interesting cases `𝕜 = ℝ` and `𝕜 = ℂ` we have these instances.
-
+not definitionally equal to some other “natural” instance. So, we assume `[normed_space ℝ E]`.
 -/
 
 noncomputable theory
@@ -26,7 +24,7 @@ variables {𝕜 E F : Type*} [is_R_or_C 𝕜]
 variables [inner_product_space 𝕜 E] [inner_product_space ℝ F]
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
 
-variables [normed_space ℝ E] [is_scalar_tower ℝ 𝕜 E]
+variables [normed_space ℝ E]
 
 /-- Derivative of the inner product. -/
 def fderiv_inner_clm (p : E × E) : E × E →L[ℝ] 𝕜 := is_bounded_bilinear_map_inner.deriv p
@@ -120,7 +118,7 @@ lemma deriv_inner_apply {f g : ℝ → E} {x : ℝ} (hf : differentiable_at ℝ 
 
 lemma times_cont_diff_norm_sq : times_cont_diff ℝ n (λ x : E, ∥x∥ ^ 2) :=
 begin
-  simp only [sq, ← inner_self_eq_norm_sq],
+  simp only [sq, ← inner_self_eq_norm_mul_norm],
   exact (re_clm : 𝕜 →L[ℝ] ℝ).times_cont_diff.comp (times_cont_diff_id.inner times_cont_diff_id)
 end
 
@@ -183,9 +181,9 @@ times_cont_diff_iff_times_cont_diff_at.2 $
 
 omit 𝕜
 lemma has_strict_fderiv_at_norm_sq (x : F) :
-  has_strict_fderiv_at (λ x, ∥x∥ ^ 2) (bit0 (inner_right x)) x :=
+  has_strict_fderiv_at (λ x, ∥x∥ ^ 2) (bit0 (innerSL x)) x :=
 begin
-  simp only [sq, ← inner_self_eq_norm_sq],
+  simp only [sq, ← inner_self_eq_norm_mul_norm],
   convert (has_strict_fderiv_at_id x).inner (has_strict_fderiv_at_id x),
   ext y,
   simp [bit0, real_inner_comm],

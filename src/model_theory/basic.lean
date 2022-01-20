@@ -457,8 +457,7 @@ instance : has_Inf (L.substructure M) :=
 lemma coe_Inf (S : set (L.substructure M)) :
   ((Inf S : L.substructure M) : set M) = ⋂ s ∈ S, ↑s := rfl
 
-lemma mem_Inf {S : set (L.substructure M)} {x : M} : x ∈ Inf S ↔ ∀ p ∈ S, x ∈ p :=
-  set.mem_bInter_iff
+lemma mem_Inf {S : set (L.substructure M)} {x : M} : x ∈ Inf S ↔ ∀ p ∈ S, x ∈ p := set.mem_Inter₂
 
 lemma mem_infi {ι : Sort*} {S : ι → L.substructure M} {x : M} : (x ∈ ⨅ i, S i) ↔ ∀ i, x ∈ S i :=
 by simp only [infi, mem_Inf, set.forall_range_iff]
@@ -791,8 +790,8 @@ open substructure
 /-- The substructure of elements `x : M` such that `f x = g x` -/
 def eq_locus (f g : M →[L] N) : substructure L M :=
 { carrier := {x : M | f x = g x},
-  fun_mem := λ n fn x hx, by {
-    have h : f ∘ x = g ∘ x := by { ext, repeat {rw function.comp_apply}, apply hx, },
+  fun_mem := λ n fn x hx, by
+  { have h : f ∘ x = g ∘ x := by { ext, repeat {rw function.comp_apply}, apply hx, },
     simp [h], } }
 
 /-- If two `L.hom`s are equal on a set, then they are equal on its substructure closure. -/

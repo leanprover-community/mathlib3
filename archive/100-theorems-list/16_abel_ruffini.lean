@@ -5,6 +5,7 @@ Authors: Thomas Browning
 -/
 import field_theory.abel_ruffini
 import analysis.calculus.local_extr
+import ring_theory.eisenstein_criterion
 /-!
 Construction of an algebraic number that is not solvable by radicals.
 
@@ -40,7 +41,7 @@ by simp [Φ]
 by simp [Φ, coeff_X_pow]
 
 @[simp] lemma coeff_five_Phi : (Φ R a b).coeff 5 = 1 :=
-by simp [Φ, coeff_X, coeff_C, -C_eq_nat_cast, -ring_hom.map_nat_cast]
+by simp [Φ, coeff_X, coeff_C, -C_eq_nat_cast, -map_nat_cast]
 
 variables [nontrivial R]
 
@@ -158,7 +159,7 @@ begin
   introI h,
   refine equiv.perm.not_solvable _ (le_of_eq _)
     (solvable_of_surjective (gal_Phi a b hab h_irred).2),
-  rw_mod_cast [cardinal.fintype_card, complex_roots_Phi a b h_irred.separable],
+  rw_mod_cast [cardinal.mk_fintype, complex_roots_Phi a b h_irred.separable],
 end
 
 theorem not_solvable_by_rad' (x : ℂ) (hx : aeval x (Φ ℚ 4 2) = 0) :

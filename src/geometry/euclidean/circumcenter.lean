@@ -63,13 +63,13 @@ end
 `orthogonal_projection` is. -/
 lemma dist_set_eq_iff_dist_orthogonal_projection_eq {s : affine_subspace ℝ P} [nonempty s]
   [complete_space s.direction] {ps : set P} (hps : ps ⊆ s) (p : P) :
-  (set.pairwise ps (λ p1 p2, dist p1 p = dist p2 p) ↔
+  set.pairwise ps (λ p1 p2, dist p1 p = dist p2 p) ↔
     (set.pairwise ps (λ p1 p2, dist p1 (orthogonal_projection s p) =
-      dist p2 (orthogonal_projection s p)))) :=
+      dist p2 (orthogonal_projection s p))) :=
 ⟨λ h p1 hp1 p2 hp2 hne,
-  (dist_eq_iff_dist_orthogonal_projection_eq p (hps hp1) (hps hp2)).1 (h p1 hp1 p2 hp2 hne),
+  (dist_eq_iff_dist_orthogonal_projection_eq p (hps hp1) (hps hp2)).1 (h hp1 hp2 hne),
 λ h p1 hp1 p2 hp2 hne,
-  (dist_eq_iff_dist_orthogonal_projection_eq p (hps hp1) (hps hp2)).2 (h p1 hp1 p2 hp2 hne)⟩
+  (dist_eq_iff_dist_orthogonal_projection_eq p (hps hp1) (hps hp2)).2 (h hp1 hp2 hne)⟩
 
 /-- There exists `r` such that `p` has distance `r` from all the
 points of a set of points in `s` if and only if there exists (possibly
@@ -208,7 +208,7 @@ begin
       use (p i, 0),
       simp only [prod.fst, prod.snd, set.range_unique, affine_subspace.mem_affine_span_singleton],
       split,
-      { simp_rw [hi (default ι)],
+      { simp_rw [hi default],
         use rfl,
         intro i1,
         rw hi i1,
@@ -216,9 +216,9 @@ begin
       { rintros ⟨cc, cr⟩,
         simp only [prod.fst, prod.snd],
         rintros ⟨rfl, hdist⟩,
-        rw hi (default ι),
+        rw hi default,
         congr',
-        rw ←hdist (default ι),
+        rw ←hdist default,
         exact dist_self _ } },
     { have i := hne.some,
       let ι2 := {x // x ≠ i},
@@ -463,7 +463,7 @@ begin
     { exact mem_insert_self _ _ } },
   change _ = ∑ i, f (point_index_embedding n i) + _,
   rw [add_comm, h, ←sum_map, sum_insert],
-  simp_rw [mem_map, not_exists],
+  simp_rw [finset.mem_map, not_exists],
   intros x hx h,
   injection h
 end
@@ -842,8 +842,8 @@ begin
       dist_sq_eq_dist_orthogonal_projection_sq_add_dist_orthogonal_projection_sq p₂ h],
     simp only [h₂', dist_comm p₂, add_sub_cancel', simplex.dist_circumcenter_eq_circumradius] },
   rw [←hd₂, hp₁, hp₂, dist_eq_norm_vsub V _ s.circumcenter,
-      dist_eq_norm_vsub V _ s.circumcenter, vadd_vsub, vadd_vsub, ←real_inner_self_eq_norm_sq,
-      ←real_inner_self_eq_norm_sq, real_inner_smul_left, real_inner_smul_left,
+      dist_eq_norm_vsub V _ s.circumcenter, vadd_vsub, vadd_vsub, ←real_inner_self_eq_norm_mul_norm,
+      ←real_inner_self_eq_norm_mul_norm, real_inner_smul_left, real_inner_smul_left,
       real_inner_smul_right, real_inner_smul_right, ←mul_assoc, ←mul_assoc] at hd₁,
   by_cases hp : p = orthogonal_projection span_s p,
   { rw [hp₁, hp₂, ←hp],

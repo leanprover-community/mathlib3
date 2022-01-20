@@ -264,8 +264,7 @@ lemma lift_map_single (F : C ⥤ D) {X Y : C} (f : X ⟶ Y) (r : R) :
 by simp
 
 instance lift_additive (F : C ⥤ D) : (lift R F).additive :=
-{ map_zero' := by simp,
-  map_add' := λ X Y f g, begin
+{ map_add' := λ X Y f g, begin
     dsimp,
     rw finsupp.sum_add_index; simp [add_smul]
   end, }

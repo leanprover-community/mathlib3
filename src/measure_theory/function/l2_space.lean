@@ -32,7 +32,7 @@ variables {α E F 𝕜 : Type*} [is_R_or_C 𝕜] [measurable_space α] {μ : mea
   [measurable_space E] [inner_product_space 𝕜 E] [borel_space E] [second_countable_topology E]
   [normed_group F] [measurable_space F] [borel_space F] [second_countable_topology F]
 
-local notation `⟪`x`, `y`⟫` := @inner 𝕜 E _ x y
+local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
 
 lemma snorm_rpow_two_norm_lt_top (f : Lp F 2 μ) : snorm (λ x, ∥f x∥ ^ (2 : ℝ)) 1 μ < ∞ :=
 begin
@@ -62,13 +62,11 @@ end
 section inner_product_space
 open_locale complex_conjugate
 
-variables [measurable_space 𝕜] [borel_space 𝕜]
-
 include 𝕜
 
 instance : has_inner 𝕜 (α →₂[μ] E) := ⟨λ f g, ∫ a, ⟪f a, g a⟫ ∂μ⟩
 
-lemma inner_def (f g : α →₂[μ] E) : inner f g = ∫ a : α, ⟪f a, g a⟫ ∂μ := rfl
+lemma inner_def (f g : α →₂[μ] E) : ⟪f, g⟫ = ∫ a : α, ⟪f a, g a⟫ ∂μ := rfl
 
 lemma integral_inner_eq_sq_snorm (f : α →₂[μ] E) :
   ∫ a, ⟪f a, f a⟫ ∂μ = ennreal.to_real ∫⁻ a, (nnnorm (f a) : ℝ≥0∞) ^ (2:ℝ) ∂μ :=
@@ -86,7 +84,7 @@ begin
   norm_cast,
 end
 
-private lemma norm_sq_eq_inner' (f : α →₂[μ] E) : ∥f∥ ^ 2 = is_R_or_C.re (inner f f : 𝕜) :=
+private lemma norm_sq_eq_inner' (f : α →₂[μ] E) : ∥f∥ ^ 2 = is_R_or_C.re ⟪f, f⟫ :=
 begin
   have h_two : (2 : ℝ≥0∞).to_real = 2 := by simp,
   rw [inner_def, integral_inner_eq_sq_snorm, norm_def, ← ennreal.to_real_pow, is_R_or_C.of_real_re,
@@ -108,7 +106,7 @@ lemma integrable_inner (f g : α →₂[μ] E) : integrable (λ x : α, ⟪f x, 
     ((Lp.ae_measurable f).inner (Lp.ae_measurable g)))).mp
   (ae_eq_fun.integrable_iff_mem_L1.mpr (mem_L1_inner f g))
 
-private lemma add_left' (f f' g : α →₂[μ] E) : (inner (f + f') g : 𝕜) = inner f g + inner f' g :=
+private lemma add_left' (f f' g : α →₂[μ] E) : ⟪f + f', g⟫ = inner f g + inner f' g :=
 begin
   simp_rw [inner_def, ← integral_add (integrable_inner f g) (integrable_inner f' g),
     ←inner_add_left],
@@ -118,7 +116,7 @@ begin
 end
 
 private lemma smul_left' (f g : α →₂[μ] E) (r : 𝕜) :
-  inner (r • f) g = conj r * inner f g :=
+  ⟪r • f, g⟫ = conj r * inner f g :=
 begin
   rw [inner_def, inner_def, ← smul_eq_mul, ← integral_smul],
   refine integral_congr_ae ((coe_fn_smul r f).mono (λ x hx, _)),
@@ -137,15 +135,13 @@ end inner_product_space
 
 section indicator_const_Lp
 
-variables [measurable_space 𝕜] [borel_space 𝕜] {s : set α}
-
-variables (𝕜)
+variables (𝕜) {s : set α}
 
 /-- The inner product in `L2` of the indicator of a set `indicator_const_Lp 2 hs hμs c` and `f` is
 equal to the integral of the inner product over `s`: `∫ x in s, ⟪c, f x⟫ ∂μ`. -/
 lemma inner_indicator_const_Lp_eq_set_integral_inner (f : Lp E 2 μ) (hs : measurable_set s) (c : E)
   (hμs : μ s ≠ ∞) :
-  inner (indicator_const_Lp 2 hs hμs c) f = ∫ x in s, ⟪c, f x⟫ ∂μ :=
+  (⟪indicator_const_Lp 2 hs hμs c, f⟫ : 𝕜) = ∫ x in s, ⟪c, f x⟫ ∂μ :=
 begin
   rw [inner_def, ← integral_add_compl hs (L2.integrable_inner _ f)],
   have h_left : ∫ x in s, ⟪(indicator_const_Lp 2 hs hμs c) x, f x⟫ ∂μ = ∫ x in s, ⟪c, f x⟫ ∂μ,
@@ -175,8 +171,8 @@ end
 /-- The inner product in `L2` of the indicator of a set `indicator_const_Lp 2 hs hμs c` and `f` is
 equal to the inner product of the constant `c` and the integral of `f` over `s`. -/
 lemma inner_indicator_const_Lp_eq_inner_set_integral [complete_space E] [normed_space ℝ E]
-  [is_scalar_tower ℝ 𝕜 E] (hs : measurable_set s) (hμs : μ s ≠ ∞) (c : E) (f : Lp E 2 μ) :
-  inner (indicator_const_Lp 2 hs hμs c) f = ⟪c, ∫ x in s, f x ∂μ⟫ :=
+  (hs : measurable_set s) (hμs : μ s ≠ ∞) (c : E) (f : Lp E 2 μ) :
+  (⟪indicator_const_Lp 2 hs hμs c, f⟫ : 𝕜) = ⟪c, ∫ x in s, f x ∂μ⟫ :=
 by rw [← integral_inner (integrable_on_Lp_of_measure_ne_top f fact_one_le_two_ennreal.elim hμs),
     L2.inner_indicator_const_Lp_eq_set_integral_inner]
 
@@ -185,7 +181,7 @@ variables {𝕜}
 /-- The inner product in `L2` of the indicator of a set `indicator_const_Lp 2 hs hμs (1 : 𝕜)` and
 a real or complex function `f` is equal to the integral of `f` over `s`. -/
 lemma inner_indicator_const_Lp_one (hs : measurable_set s) (hμs : μ s ≠ ∞) (f : Lp 𝕜 2 μ) :
-  inner (indicator_const_Lp 2 hs hμs (1 : 𝕜)) f = ∫ x in s, f x ∂μ :=
+  ⟪indicator_const_Lp 2 hs hμs (1 : 𝕜), f⟫ = ∫ x in s, f x ∂μ :=
 by { rw L2.inner_indicator_const_Lp_eq_inner_set_integral 𝕜 hs hμs (1 : 𝕜) f, simp, }
 
 end indicator_const_Lp
@@ -195,7 +191,7 @@ end L2
 section inner_continuous
 
 variables {α : Type*} [topological_space α] [measure_space α] [borel_space α] {𝕜 : Type*}
-  [is_R_or_C 𝕜] [measurable_space 𝕜] [borel_space 𝕜]
+  [is_R_or_C 𝕜]
 variables (μ : measure α) [is_finite_measure μ]
 
 open_locale bounded_continuous_function complex_conjugate

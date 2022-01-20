@@ -99,6 +99,20 @@ protected def function.surjective.module [add_comm_monoid M₂] [has_scalar R M�
   zero_smul := λ x, by { rcases hf x with ⟨x, rfl⟩, simp only [← f.map_zero, ← smul, zero_smul] },
   .. hf.distrib_mul_action f smul }
 
+/-- Push forward the action of `R` on `M` along a compatible surjective map `f : R →+* S`.
+
+See also `function.surjective.mul_action_left` and `function.surjective.distrib_mul_action_left`.
+-/
+@[reducible]
+def function.surjective.module_left {R S M : Type*} [semiring R] [add_comm_monoid M]
+  [module R M] [semiring S] [has_scalar S M]
+  (f : R →+* S) (hf : function.surjective f) (hsmul : ∀ c (x : M), f c • x = c • x) :
+  module S M :=
+{ smul := (•),
+  zero_smul := λ x, by rw [← f.map_zero, hsmul, zero_smul],
+  add_smul := hf.forall₂.mpr (λ a b x, by simp only [← f.map_add, hsmul, add_smul]),
+  .. hf.distrib_mul_action_left f.to_monoid_hom hsmul }
+
 variables {R} (M)
 
 /-- Compose a `module` with a `ring_hom`, with action `f s • m`.
@@ -156,8 +170,8 @@ See note [reducible non-instances]. -/
 def module.add_comm_monoid_to_add_comm_group [ring R] [add_comm_monoid M] [module R M] :
   add_comm_group M :=
 { neg          := λ a, (-1 : R) • a,
-  add_left_neg := λ a, show (-1 : R) • a + a = 0, by {
-    nth_rewrite 1 ← one_smul _ a,
+  add_left_neg := λ a, show (-1 : R) • a + a = 0, by
+  { nth_rewrite 1 ← one_smul _ a,
     rw [← add_smul, add_left_neg, zero_smul] },
   ..(infer_instance : add_comm_monoid M), }
 
@@ -222,7 +236,7 @@ eq_neg_of_add_eq_zero (by rw [← add_smul, add_left_neg, zero_smul])
 @[simp] lemma neg_smul_neg : -r • -x = r • x :=
 by rw [neg_smul, smul_neg, neg_neg]
 
-@[simp] theorem units.neg_smul (u : units R) (x : M) : -u • x = - (u • x) :=
+@[simp] theorem units.neg_smul (u : Rˣ) (x : M) : -u • x = - (u • x) :=
 by rw [units.smul_def, units.coe_neg, neg_smul, units.smul_def]
 
 variables (R)
@@ -251,7 +265,7 @@ instance semiring.to_module [semiring R] : module R R :=
 
 /-- Like `semiring.to_module`, but multiplies on the right. -/
 @[priority 910] -- see Note [lower instance priority]
-instance semiring.to_opposite_module [semiring R] : module Rᵒᵖ R :=
+instance semiring.to_opposite_module [semiring R] : module Rᵐᵒᵖ R :=
 { smul_add := λ r x y, add_mul _ _ _,
   add_smul := λ r x y, mul_add _ _ _,
   ..monoid_with_zero.to_opposite_mul_action_with_zero R}
@@ -478,6 +492,14 @@ class no_zero_smul_divisors (R M : Type*) [has_zero R] [has_zero M] [has_scalar 
 
 export no_zero_smul_divisors (eq_zero_or_eq_zero_of_smul_eq_zero)
 
+/-- Pullback a `no_zero_smul_divisors` instance along an injective function. -/
+lemma function.injective.no_zero_smul_divisors {R M N : Type*} [has_zero R] [has_zero M]
+  [has_zero N] [has_scalar R M] [has_scalar R N] [no_zero_smul_divisors R N] (f : M → N)
+  (hf : function.injective f) (h0 : f 0 = 0) (hs : ∀ (c : R) (x : M), f (c • x) = c • f x) :
+  no_zero_smul_divisors R M :=
+⟨λ c m h,
+  or.imp_right (@hf _ _) $ h0.symm ▸ eq_zero_or_eq_zero_of_smul_eq_zero (by rw [←hs, h, h0])⟩
+
 section module
 
 variables [semiring R] [add_comm_monoid M] [module R M]
@@ -506,11 +528,21 @@ lemma nat.no_zero_smul_divisors : no_zero_smul_divisors ℕ M :=
 
 variables {M}
 
-lemma eq_zero_of_smul_two_eq_zero {v : M} (hv : 2 • v = 0) : v = 0 :=
+lemma eq_zero_of_two_nsmul_eq_zero {v : M} (hv : 2 • v = 0) : v = 0 :=
 by haveI := nat.no_zero_smul_divisors R M;
 exact (smul_eq_zero.mp hv).resolve_left (by norm_num)
 
 end nat
+
+variables (R M)
+
+/-- If `M` is an `R`-module with one and `M` has characteristic zero, then `R` has characteristic
+zero as well. Usually `M` is an `R`-algebra. -/
+lemma char_zero.of_module [has_one M] [char_zero M] : char_zero R :=
+begin
+  refine ⟨λ m n h, @nat.cast_injective M _ _ _ _ _ _⟩,
+  rw [← nsmul_one, ← nsmul_one, nsmul_eq_smul_cast R m (1 : M), nsmul_eq_smul_cast R n (1 : M), h]
+end
 
 end module
 
@@ -537,8 +569,7 @@ include R
 
 lemma eq_zero_of_eq_neg {v : M} (hv : v = - v) : v = 0 :=
 begin
-  haveI := nat.no_zero_smul_divisors R M,
-  refine eq_zero_of_smul_two_eq_zero R _,
+  refine eq_zero_of_two_nsmul_eq_zero R _,
   rw two_smul,
   exact add_eq_zero_iff_eq_neg.mpr hv
 end

@@ -5,8 +5,6 @@ Authors: Kenny Lau, Johan Commelin, Patrick Massot
 -/
 
 import algebra.order.group
-import algebra.group_with_zero
-import algebra.group_with_zero.power
 import tactic.abel
 
 /-!
@@ -129,6 +127,12 @@ le_of_le_mul_right h (by simpa [h] using hab)
 lemma mul_inv_le_of_le_mul (h : c ≠ 0) (hab : a ≤ b * c) : a * c⁻¹ ≤ b :=
 le_of_le_mul_right h (by simpa [h] using hab)
 
+lemma le_mul_inv_iff₀ (hc : c ≠ 0) : a ≤ b * c⁻¹ ↔ a * c ≤ b :=
+⟨λ h, inv_inv₀ c ▸ mul_inv_le_of_le_mul (inv_ne_zero hc) h, le_mul_inv_of_mul_le hc⟩
+
+lemma mul_inv_le_iff₀ (hc : c ≠ 0) : a * c⁻¹ ≤ b ↔ a ≤ b * c :=
+⟨λ h, inv_inv₀ c ▸ le_mul_inv_of_mul_le (inv_ne_zero hc) h, mul_inv_le_of_le_mul hc⟩
+
 lemma div_le_div₀ (a b c d : α) (hb : b ≠ 0) (hd : d ≠ 0) :
   a * b⁻¹ ≤ c * d⁻¹ ↔ a * d ≤ c * b :=
 if ha : a = 0 then by simp [ha] else
@@ -137,7 +141,7 @@ show (units.mk0 a ha) * (units.mk0 b hb)⁻¹ ≤ (units.mk0 c hc) * (units.mk0 
   (units.mk0 a ha) * (units.mk0 d hd) ≤ (units.mk0 c hc) * (units.mk0 b hb),
 from mul_inv_le_mul_inv_iff'
 
-@[simp] lemma units.zero_lt (u : units α) : (0 : α) < u :=
+@[simp] lemma units.zero_lt (u : αˣ) : (0 : α) < u :=
 zero_lt_iff.2 $ u.ne_zero
 
 lemma mul_lt_mul_of_lt_of_le₀ (hab : a ≤ b) (hb : b ≠ 0) (hcd : c < d) : a * c < b * d :=
@@ -182,6 +186,18 @@ begin
   have := mul_lt_mul_of_lt_of_le₀ hh (inv_ne_zero (ne_of_gt hc)) h,
   simpa [inv_mul_cancel_left₀ ha, inv_mul_cancel_left₀ (ne_of_gt hc)] using this,
 end
+
+lemma mul_le_mul_right₀ (hc : c ≠ 0) : a * c ≤ b * c ↔ a ≤ b :=
+⟨le_of_le_mul_right hc, λ hab, mul_le_mul_right' hab _⟩
+
+lemma div_le_div_right₀ (hc : c ≠ 0) : a/c ≤ b/c ↔ a ≤ b :=
+by rw [div_eq_mul_inv, div_eq_mul_inv, mul_le_mul_right₀ (inv_ne_zero hc)]
+
+lemma le_div_iff₀ (hc : c ≠ 0) : a ≤ b/c ↔ a*c ≤ b :=
+by rw [div_eq_mul_inv, le_mul_inv_iff₀ hc]
+
+lemma div_le_iff₀ (hc : c ≠ 0) : a/c ≤ b ↔ a ≤ b*c :=
+by rw [div_eq_mul_inv, mul_inv_le_iff₀ hc]
 
 instance : linear_ordered_add_comm_group_with_top (additive (order_dual α)) :=
 { neg_top := inv_zero,

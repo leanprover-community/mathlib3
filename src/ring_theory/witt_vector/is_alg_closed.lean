@@ -7,8 +7,17 @@ noncomputable theory
 variables (p : ℕ) [fact p.prime]
 variables (k : Type*) [field k] [char_p k p] [is_alg_closed k]
 
+/-- A field is perfect if Frobenius is surjective -/
+def perfect_ring.of_surjective (k : Type*) [field k] [char_p k p]
+  (h : function.surjective $ frobenius k p) :
+  perfect_ring k p :=
+{ pth_root' := function.surj_inv h,
+  frobenius_pth_root' := function.surj_inv_eq h,
+  pth_root_frobenius' := λ x, (frobenius k p).injective $ function.surj_inv_eq h _ }
+
 -- an algebraically closed field is perfect, many google hits, maybe somewhere in mathlib?
-instance is_alg_closed.perfect_ring : perfect_ring k p := sorry
+instance is_alg_closed.perfect_ring : perfect_ring k p :=
+perfect_ring.of_surjective p k $ λ x, is_alg_closed.exists_pow_nat_eq _ $ fact.out _
 
 local notation `𝕎` := witt_vector p
 local notation `K` := fraction_ring (𝕎 k)

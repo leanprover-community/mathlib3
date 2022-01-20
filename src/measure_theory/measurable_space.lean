@@ -583,6 +583,7 @@ begin
 end
 
 /-- A piecewise function on countably many pieces is measurable if all the data is measurable. -/
+@[measurability]
 lemma measurable.find {m : measurable_space α}
   {f : ℕ → α → β} {p : ℕ → α → Prop} [∀ n, decidable_pred (p n)]
   (hf : ∀ n, measurable (f n)) (hp : ∀ n, measurable_set {x | p n x}) (h : ∀ x, ∃ n, p n x) :

@@ -1472,4 +1472,21 @@ lemma ae_eq_trim_iff [measurable_space γ] [add_group γ] [measurable_singleton_
 
 end integral_trim
 
+#where
+
+lemma glouk {α : Type*} [measurable_space α] (μ : measure α) (f : α → ℝ≥0)
+  (hf : measurable f) (g : α → E) :
+  ae_measurable g (μ.with_density (λ x, (f x : ℝ≥0∞))) ↔ ae_measurable (λ x, (f x : ℝ) • g x) μ :=
+begin
+  split,
+  rintros ⟨g', g'meas, hg'⟩,
+  refine ⟨λ x, (f x : ℝ) • g' x, hf.coe_nnreal_real.smul g'meas, _⟩,
+  let t := indicator {x | f x = 0} (λ x, (1 : ℝ≥0∞)),
+  have : (λ (x : α), ↑(f x) • g x) =ᵐ[μ.with_density t] (λ (x : α), ↑(f x) • g' x),
+  {
+
+  }
+
+end
+
 end measure_theory

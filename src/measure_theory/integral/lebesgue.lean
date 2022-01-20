@@ -2037,6 +2037,14 @@ measure.of_measurable (λs hs, ∫⁻ a in s, f a ∂μ) (by simp) (λ s hs hd, 
   μ.with_density f s = ∫⁻ a in s, f a ∂μ :=
 measure.of_measurable_apply s hs
 
+lemma with_density_congr_ae {f g : α → ℝ≥0∞} (h : f =ᵐ[μ] g) :
+  μ.with_density f = μ.with_density g :=
+begin
+  apply measure.ext (λ s hs, _),
+  rw [with_density_apply _ hs, with_density_apply _ hs],
+  exact lintegral_congr_ae (ae_restrict_of_ae h)
+end
+
 lemma with_density_add {f g : α → ℝ≥0∞} (hf : measurable f) (hg : measurable g) :
   μ.with_density (f + g) = μ.with_density f + μ.with_density g :=
 begin
@@ -2140,6 +2148,12 @@ lemma with_density_eq_zero {f : α → ℝ≥0∞}
 by rw [← lintegral_eq_zero_iff' hf, ← set_lintegral_univ,
        ← with_density_apply _ measurable_set.univ, h, measure.coe_zero, pi.zero_apply]
 
+lemma with_density_ae {f : α → ℝ≥0∞} (hf : measurable f) :
+  (μ.with_density f).ae = (μ.restrict {x | f x ≠ 0}).ae :=
+begin
+
+end
+
 end lintegral
 
 end measure_theory
@@ -2195,6 +2209,28 @@ begin
   { intros g h_mea_g h_mono_g h_ind,
     have : monotone (λ n a, f a * g n a) := λ m n hmn x, ennreal.mul_le_mul le_rfl (h_mono_g hmn x),
     simp [lintegral_supr, ennreal.mul_supr, h_mf.mul (h_mea_g _), *] }
+end
+
+lemma lintegral_with_density_eq_lintegral_mul₀ (μ : measure α)
+  {f : α → ℝ≥0∞} (hf : ae_measurable f μ) {g : α → ℝ≥0∞} (hg : ae_measurable g μ) :
+  ∫⁻ a, g a ∂(μ.with_density f) = ∫⁻ a, (f * g) a ∂μ :=
+begin
+  let g' := hg.mk g,
+  have A : ∫⁻ a, g a ∂(μ.with_density f) = ∫⁻ a, g' a ∂(μ.with_density f),
+  { apply lintegral_congr_ae,
+    apply with_density_absolutely_continuous _ _ hg.ae_eq_mk },
+  have B : ∫⁻ a, (f * g) a ∂μ = ∫⁻ a, (f * g') a ∂μ,
+  { apply lintegral_congr_ae,
+    filter_upwards [hg.ae_eq_mk],
+    assume x hx,
+    simp only [hx, pi.mul_apply] },
+  rw [A, B],
+  have : μ.with_density f = μ.with_density (hf.mk f) := with_density_congr_ae hf.ae_eq_mk,
+  rw [this, lintegral_with_density_eq_lintegral_mul μ hf.measurable_mk hg.measurable_mk],
+  apply lintegral_congr_ae,
+  filter_upwards [hf.ae_eq_mk],
+  assume x hx,
+  simp only [hx, pi.mul_apply],
 end
 
 lemma with_density_mul (μ : measure α) {f g : α → ℝ≥0∞} (hf : measurable f) (hg : measurable g) :

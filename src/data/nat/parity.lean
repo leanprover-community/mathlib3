@@ -235,10 +235,10 @@ by { rintro ⟨c, rfl⟩, simp [pow_mul] }
 theorem neg_one_pow_of_odd : odd n → (-1 : R) ^ n = -1 :=
 by { rintro ⟨c, rfl⟩, simp [pow_add, pow_mul] }
 
-lemma even_div_2 : even n → n / 2 * 2 = n :=
+lemma even_div_two : even n → n / 2 * 2 = n :=
 by { rintro ⟨c, rfl⟩, simp [mul_comm] }
 
-lemma odd_div_2 (h : odd n) : n / 2 * 2 + 1 = n :=
+lemma odd_div_two (h : odd n) : n / 2 * 2 + 1 = n :=
 begin
   rw odd_iff_not_even at h,
   induction n using nat.two_step_induction with n h₁ h₂,

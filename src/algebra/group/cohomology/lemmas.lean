@@ -130,7 +130,7 @@ int.induction_on n
   (λ _ _, by simp [add_zsmul, one_zsmul])
   (λ x, by {simp [sub_zsmul, ←sub_eq_add_neg] })
 
-lemma distrib_mul_action.smul_zsmul {G : Type*} [group G] {M : Type*}
+lemma distrib_mul_action.smul_zsmul {G : Type*} [monoid G] {M : Type*}
   [add_comm_group M] [distrib_mul_action G M]
   (g : G) (n : ℤ) (m : M) : g • n • m = n • g • m :=
 int.induction_on n

@@ -9,44 +9,57 @@ import algebra.monoid_algebra.basic
 import algebra.group.cohomology.lemmas
 import linear_algebra.basis
 
-/-! Setting up `ℤ[Gⁿ]`, defined as `monoid_algebra ℤ (fin n → G)`.
-  Showing it's a free `ℤ[G]`-module for `n ≥ 1.`
+/-!
+# Group rings
 
+This file defines the group ring `ℤ[G]` of a group `G`.
 
-Lots of long proofs of map_smul in this whole folder. TODO: see if I can factor out common
-lemmas -/
+This is the free abelian group on the elements of `G`, with multiplication induced by
+multiplication in `G.` A `G`-module `M` is also a `ℤ[G]`-module.
 
-variables (G : Type*) [group G] (M : Type*) [add_comm_group M] [distrib_mul_action G M]
-(n : ℕ)
+We develop an API allowing us to show `ℤ[Gⁿ]` is a free `ℤ[G]`-module for `n ≥ 1`. This
+will be used to construct a projective resolution of the trivial `ℤ[G]`-module `ℤ`.
+
+## Implementation notes
+
+Although `group_ring G` is just `monoid_algebra ℤ G`, we make the definition `group_ring`
+so Lean finds the right instances for this setting, and so we can separate material relevant
+to group cohomology into the namespace `group_ring`.
+
+## Tags
+
+group ring, group cohomology, monoid algebra
+-/
+
 noncomputable theory
 
-/- Thank you to this def for solving all my instance clashes -/
-/- Linter asks me not to assume `G` is a group. But it seems misleading to do this as
-  this def is basically 'made for' the situation of G being a group, idk. -/
-/-- The ring `ℤ[G]`. -/
+/-- The group ring `ℤ[G]` of a group `G` (although this is defined for any type `G`). -/
 def group_ring (G : Type*) := monoid_algebra ℤ G
 
 namespace group_ring
 
-instance (G : Type*) : inhabited (group_ring G) :=
+instance {G : Type*} : inhabited (group_ring G) :=
 by unfold group_ring; apply_instance
-instance (G : Type*) : add_comm_group (group_ring G) :=
+
+instance {G : Type*} : add_comm_group (group_ring G) :=
 finsupp.add_comm_group
 
-instance : ring (group_ring G) :=
-{ ..monoid_algebra.semiring, ..group_ring.add_comm_group G }
+instance {G : Type*} [monoid G] : ring (group_ring G) :=
+{ ..monoid_algebra.semiring, ..group_ring.add_comm_group }
 
 /-- The natural inclusion `G → ℤ[G]`. -/
-def of : G →* group_ring G :=
+def of (G : Type*) [monoid G] : G →* group_ring G :=
 monoid_algebra.of ℤ G
 
-variables {G}
+section
+
+variables {G : Type*} [monoid G]
 
 @[simp] lemma of_apply (g : G) :
   of G g = finsupp.single g (1 : ℤ) := rfl
 
 lemma zsmul_single_one (g : G) (r : ℤ) :
-  (finsupp.single g r : group_ring G) = r • (of G g) :=
+  r • (of G g) = finsupp.single g r :=
 by simp only [mul_one, finsupp.smul_single', zsmul_eq_smul, of_apply]
 
 @[elab_as_eliminator]
@@ -60,72 +73,11 @@ lemma ext {P : Type*} [add_comm_group P] (f : group_ring G →+ P)
   f x = g x :=
 begin
   congr,
-  refine finsupp.add_hom_ext _,
-  intros,
-  rw ←finsupp.smul_single_one,
-  simp only [add_monoid_hom.map_zsmul, ←of_apply, H],
+  refine finsupp.add_hom_ext (λ y n, _),
+  simp only [←zsmul_single_one, add_monoid_hom.map_zsmul, H],
 end
 
-variables (G)
-
-/-- `ℤ[G]`-module instance on an `add_comm_group` `M` with a `distrib_mul_action` of `G`.
-  Deliberately not an instance. -/
-def to_module {G : Type*} [group G] {M : Type*} [add_comm_group M]
-  [H : distrib_mul_action G M] : module (group_ring G) M :=
-{ smul := λ g m, finsupp.total G M ℤ (λ h, h • m) g,
-  one_smul := λ b, by
-  { dsimp,
-    erw [finsupp.total_single],
-    simp only [one_smul] },
-  mul_smul := λ g h m, by
-  { refine g.induction_on _ _ _,
-    { intros g,
-      dsimp,
-      simp only [one_zsmul, finsupp.total_single, monoid_algebra.mul_def, one_mul,
-        zero_mul, finsupp.single_zero, finsupp.sum_zero, finsupp.sum_single_index,
-        linear_map.map_finsupp_sum],
-      rw [finsupp.total_apply, finsupp.smul_sum],
-      congr,
-      ext f n,
-      rw [mul_smul, distrib_mul_action.smul_zsmul] },
-    { intros x y hx hy,
-      rw add_mul,
-      simp only [linear_map.map_add] at *,
-      simp only [hx, hy] },
-    { intros r f hf,
-      rw algebra.smul_mul_assoc,
-      simp only [linear_map.map_smul] at *,
-      simp only [←hf] }},
-  smul_add := λ g b c, by
-    { simp only [smul_add, finsupp.total_apply, finsupp.sum_add] },
-  smul_zero := λ x, by
-    simp only [finsupp.total_apply, finsupp.sum_zero, smul_zero],
-  add_smul := λ r s x, linear_map.map_add _ _ _,
-  zero_smul := λ x, linear_map.map_zero _ }
-
-instance {H : Type*} [mul_action G H] :
-  distrib_mul_action G (group_ring H) :=
-finsupp.comap_distrib_mul_action
-
-instance : module (group_ring G) (group_ring (fin n → G)) :=
-group_ring.to_module
-
-instance (M : submodule (group_ring G) (group_ring (fin n → G))) :
-  has_coe M (group_ring (fin n → G)) :=
-{ coe := λ m, m.1 }
-
-variables {G n}
-
-lemma smul_def
-  (g : group_ring G) (h : group_ring (fin n → G)) :
-  g • h = finsupp.total G (group_ring (fin n → G)) ℤ (λ x, x • h) g :=
-rfl
-
-lemma of_smul_of (g : G) (x : fin n → G) :
-  of G g • of (fin n → G) x = of (fin n → G) (g • x) :=
-show finsupp.total _ _ _ _ _ = _, by simp
-
-/-- Makes a `ℤ[G]`-linear map from a `G`-linear hom of additive groups. -/
+/-- Makes a `ℤ[G]`-linear map from a `G`-linear hom of `ℤ[G]`-modules. -/
 def mk_linear {P : Type*} {P' : Type*} [add_comm_group P] [add_comm_group P']
   [module (group_ring G) P] [module (group_ring G) P'] (f : P →+ P')
   (H : ∀ g x, f (of G g • x) = of G g • f x) : P →ₗ[group_ring G] P' :=
@@ -145,7 +97,7 @@ def mk_linear {P : Type*} {P' : Type*} [add_comm_group P] [add_comm_group P']
   {H : ∀ g x, f (of G g • x) = of G g • f x} {x : P} :
   mk_linear f H x = f x := rfl
 
-/-- Makes a `ℤ[G]`-linear isomorphism from a `G`-linear isomorphism of additive groups. -/
+/-- Makes a `ℤ[G]`-linear isomorphism from a `G`-linear isomorphism of `ℤ[G]`-modules. -/
 def mk_equiv {P : Type*} {P' : Type*} [add_comm_group P] [add_comm_group P']
   [module (group_ring G) P] [module (group_ring G) P'] (f : P ≃+ P')
   (H : ∀ g x, f (of G g • x) = of G g • f x) : P ≃ₗ[group_ring G] P' :=
@@ -156,7 +108,23 @@ def mk_equiv {P : Type*} {P' : Type*} [add_comm_group P] [add_comm_group P']
   {H : ∀ g x, f (of G g • x) = of G g • f x} {x : P} :
   mk_equiv f H x = f x := rfl
 
-lemma map_smul_of_map_of_smul_of {H : Type*} [group H] [module (group_ring G) (group_ring H)]
+instance {G : Type*} [monoid G] {M : Type*} [add_comm_group M]
+  [H : distrib_mul_action G M] : smul_comm_class ℤ G M :=
+⟨λ n g m, (distrib_mul_action.smul_zsmul g n m).symm⟩
+
+/-- `ℤ[G]`-module instance on an `G`-module `M`. -/
+def to_module {M : Type*} [add_comm_group M]
+  [H : distrib_mul_action G M] : module (group_ring G) M :=
+monoid_algebra.total_to_module
+
+end
+
+variables {G : Type*} [group G] {n : ℕ}
+
+instance {H : Type*} [mul_action G H] : distrib_mul_action G (group_ring H) :=
+finsupp.comap_distrib_mul_action
+
+lemma map_smul_of_map_smul_of {H : Type*} [monoid H] [module (group_ring G) (group_ring H)]
   {P : Type*} [add_comm_group P] [module (group_ring G) P] (f : group_ring H →+ P)
   (h : ∀ (g : G) (x : H), f (of G g • of _ x) = of G g • f (of _ x)) (g : group_ring G)
   (x : group_ring H) : f (g • x) = g • f x :=
@@ -169,6 +137,21 @@ begin
   { intros r s hs,
     simp only [smul_algebra_smul_comm, f.map_zsmul, hs] }
 end
+
+instance : module (group_ring G) (group_ring (fin n → G)) :=
+group_ring.to_module
+
+instance (M : submodule (group_ring G) (group_ring (fin n → G))) :
+  has_coe M (group_ring (fin n → G)) :=
+{ coe := λ m, m.1 }
+
+lemma smul_def (g : group_ring G) (h : group_ring (fin n → G)) :
+  g • h = finsupp.total G (group_ring (fin n → G)) ℤ (λ x, x • h) g :=
+rfl
+
+lemma of_smul_of (g : G) (x : fin n → G) :
+  of G g • of (fin n → G) x = of (fin n → G) (g • x) :=
+show finsupp.total _ _ _ _ _ = _, by simp
 
 variables (G)
 
@@ -230,7 +213,7 @@ noncomputable def to_basis :
   group_ring (fin (n + 1) → G) →ₗ[group_ring G] (orbit_quot G n →₀ group_ring G) :=
 mk_linear (to_basis_add_hom G n) $ λ x g,
 begin
-  refine map_smul_of_map_of_smul_of (to_basis_add_hom G n) _ _ _,
+  refine map_smul_of_map_smul_of (to_basis_add_hom G n) _ _ _,
   intros g y,
   simp only [of_smul_of, to_basis_add_hom_of, ←of_apply],
   simp [smul_def, @quotient.sound' _ (mul_action.orbit_rel G _) _ y (set.mem_range_self g)],

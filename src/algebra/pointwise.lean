@@ -578,6 +578,11 @@ section monoid
   multiplication `*` as "multiplication". -/
 @[derive inhabited] def set_semiring (α : Type*) : Type* := set α
 
+/-- The natural order by inclusion on subsets of `α` is available on `set_semiring α`. -/
+attribute [derive partial_order] set_semiring
+/-- The natural order by inclusion on subsets of `α` has `∅` as its bottom element. -/
+attribute [derive order_bot] set_semiring
+
 /-- The identitiy function `set α → set_semiring α`. -/
 protected def up (s : set α) : set_semiring α := s
 /-- The identitiy function `set_semiring α → set α`. -/
@@ -593,6 +598,7 @@ instance set_semiring.add_comm_monoid : add_comm_monoid (set_semiring α) :=
   add_zero := union_empty,
   add_comm := union_comm, }
 
+@[to_additive set_semiring.non_unital_non_assoc_add_semiring]
 instance set_semiring.non_unital_non_assoc_semiring [has_mul α] :
   non_unital_non_assoc_semiring (set_semiring α) :=
 { zero_mul := λ s, empty_mul,

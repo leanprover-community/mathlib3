@@ -122,11 +122,9 @@ calc ⦃a + c, b, a + c⦄ = ⦃a, b, a⦄ + ⦃a, b, c⦄ + ⦃c, b, a⦄ + ⦃
       map_zero' := by rw rzero,
       map_add' := λ _ _, by rw radd, },
     map_zero' := add_monoid_hom.ext $ λ _, by exact mzero _ _,
-    map_add' := λ a₁ a₂, add_monoid_hom.ext $ λ _, by exact madd _ _ _ _,
-    },
+    map_add' := λ a₁ a₂, add_monoid_hom.ext $ λ _, by exact madd _ _ _ _, },
   map_zero' := add_monoid_hom.ext $ λ _, add_monoid_hom.ext $ λ _, by exact lzero _ _,
-  map_add' := λ a₁ a₂, add_monoid_hom.ext $ λ b, add_monoid_hom.ext $ λ _, by exact ladd _ _ _ _,
-}
+  map_add' := λ a₁ a₂, add_monoid_hom.ext $ λ b, add_monoid_hom.ext $ λ _, by exact ladd _ _ _ _, }
 
 /-- Define the multiplication operator `D` -/
 @[simps] def D : A →+ A →+ add_monoid.End A := add_monoid_hom.tp

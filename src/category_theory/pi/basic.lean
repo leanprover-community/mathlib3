@@ -168,8 +168,7 @@ begin
   { simp, }, { refl, }
 end
 
-/-- Two functors to a product category are equal iff they agree on every coordinate.
-This is a -/
+/-- Two functors to a product category are equal iff they agree on every coordinate. -/
 lemma pi_ext (f f' : A ⥤ Π i, C i) (h : ∀ i, f ⋙ (pi.eval C i) = f' ⋙ (pi.eval C i)) :
   f = f' :=
 begin

@@ -18,6 +18,9 @@ groups, which can be found in `algebra/category/Group/adjunctions`.
 * `commutator`: defines the commutator of a group `G` as a subgroup of `G`.
 * `abelianization`: defines the abelianization of a group `G` as the quotient of a group by its
   commutator subgroup.
+* `abelianization.map`: lifts a group homomorphism to a homomorphism between the abelianizations
+* `mul_equiv.abelianization_congr`: Equivalent groups have equivalent abelianizations
+
 -/
 
 universes u v w
@@ -117,8 +120,6 @@ variables {H : Type v} [group H] (f : G →* H)
 
 /-- The map operation of the `abelianization` functor -/
 def map : abelianization G →* abelianization H := lift (of.comp f)
-
-lemma map_apply {x : abelianization G} : map f x = lift (of.comp f) x := rfl
 
 @[simp]
 lemma map_of (x : G) : map f (of x) = of (f x) := rfl

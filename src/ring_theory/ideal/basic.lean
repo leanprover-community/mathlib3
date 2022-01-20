@@ -92,7 +92,7 @@ rfl
 @[simp] lemma span_empty : span (∅ : set α) = ⊥ := submodule.span_empty
 
 lemma mem_span {s : set α} (x) : x ∈ span s ↔ ∀ p : ideal α, s ⊆ p → x ∈ p :=
-mem_bInter_iff
+submodule.mem_span
 
 lemma subset_span {s : set α} : s ⊆ span s := submodule.subset_span
 

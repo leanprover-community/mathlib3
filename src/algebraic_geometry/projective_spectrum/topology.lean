@@ -384,7 +384,7 @@ topological_space.of_closed (set.range (projective_spectrum.zero_locus 𝒜))
     simp only [hf],
     exact ⟨_, zero_locus_Union 𝒜 _⟩
   end
-  (by { rintro _ _ ⟨s, rfl⟩ ⟨t, rfl⟩, exact ⟨_, (union_zero_locus 𝒜 s t).symm⟩ })
+  (by { rintros _ ⟨s, rfl⟩ _ ⟨t, rfl⟩, exact ⟨_, (union_zero_locus 𝒜 s t).symm⟩ })
 
 lemma is_open_iff (U : set (projective_spectrum 𝒜)) :
   is_open U ↔ ∃ s, Uᶜ = zero_locus 𝒜 s :=

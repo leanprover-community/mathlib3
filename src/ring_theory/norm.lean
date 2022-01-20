@@ -103,12 +103,10 @@ section eq_prod_roots
 /-- Given `pb : power_basis K S`, then the norm of `pb.gen` is
 `(-1) ^ pb.dim * coeff ((minpoly K pb.gen).map (algebra_map K F)) 0`. -/
 lemma power_basis.norm_gen_eq_coeff_zero_minpoly [algebra K S] (pb : power_basis K S) :
-  (algebra_map K F) (norm K pb.gen) =
-  (-1) ^ pb.dim * coeff ((minpoly K pb.gen).map (algebra_map K F)) 0 :=
+  (norm K pb.gen) = (-1) ^ pb.dim * coeff (minpoly K pb.gen) 0 :=
 begin
   rw [norm_eq_matrix_det pb.basis, det_eq_sign_charpoly_coeff, charpoly_left_mul_matrix,
-      ring_hom.map_mul, map_pow, ring_hom.map_neg, ring_hom.map_one, ← coeff_map,
-      fintype.card_fin],
+    fintype.card_fin]
 end
 
 /-- Given `pb : power_basis K S`, then the norm of `pb.gen` is
@@ -118,12 +116,10 @@ lemma power_basis.norm_gen_eq_prod_roots [algebra K S] (pb : power_basis K S)
   algebra_map K F (norm K pb.gen) =
     ((minpoly K pb.gen).map (algebra_map K F)).roots.prod :=
 begin
-  rw [power_basis.norm_gen_eq_coeff_zero_minpoly, ← pb.nat_degree_minpoly,
-    prod_roots_eq_coeff_zero_of_monic_of_split
+  rw [power_basis.norm_gen_eq_coeff_zero_minpoly, ← pb.nat_degree_minpoly, ring_hom.map_mul,
+    ← coeff_map, prod_roots_eq_coeff_zero_of_monic_of_split
       (monic_map _ (minpoly.monic (power_basis.is_integral_gen _)))
-      ((splits_id_iff_splits _).2 hf)],
-  simp only [power_basis.nat_degree_minpoly, nat_degree_map],
-  rw [← mul_assoc, ← mul_pow],
+      ((splits_id_iff_splits _).2 hf), nat_degree_map, map_pow, ← mul_assoc, ← mul_pow],
   simp
 end
 

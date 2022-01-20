@@ -230,21 +230,19 @@ by rw [← aleph_zero, ← aleph_succ, ordinal.succ_zero]
 lemma countable_iff_lt_aleph_one {α : Type*} (s : set α) : countable s ↔ #s < aleph 1 :=
 by rw [← succ_omega, lt_succ, mk_set_le_omega]
 
-private lemma ord_mem {c : cardinal} : c.ord.card.ord = c.ord :=
-by rw card_ord
-
 /-- Ordinals that are cardinals are unbounded. -/
 theorem ord_aleph'_unbounded : unbounded (<) {b : ordinal | b.card.ord = b} :=
-by { rw unbounded_lt_iff, exact λ a, ⟨_, ⟨ord_mem, le_of_lt (lt_ord_succ_card a)⟩⟩ }
+unbounded_lt_iff.2 $ λ a, ⟨_, ⟨(by { dsimp, rw card_ord }), (lt_ord_succ_card a).le⟩⟩
 
 theorem eq_aleph'_of_eq_card_ord {o : ordinal} (ho : o.card.ord = o) : ∃ a, (aleph' a).ord = o :=
 ⟨cardinal.aleph_idx.rel_iso o.card, by { simp, exact ho }⟩
 
 /-- `ord ∘ aleph'` enumerates the ordinals that are cardinals. -/
-theorem ord_aleph'_eq_enum_card : ord ∘ aleph' = enum_ord ord_aleph'_unbounded :=
+theorem ord_aleph'_eq_enum_card : ord ∘ aleph' = enum_ord _ ord_aleph'_unbounded :=
 begin
   rw [←eq_enum_ord, range_eq_iff],
-  exact ⟨aleph'_is_normal.strict_mono, ⟨(λ a, ord_mem), λ b hb, eq_aleph'_of_eq_card_ord hb⟩⟩
+  exact ⟨aleph'_is_normal.strict_mono, ⟨(λ a, (by { dsimp, rw card_ord })),
+    λ b hb, eq_aleph'_of_eq_card_ord hb⟩⟩
 end
 
 /-- Infinite ordinals that are cardinals are unbounded. -/
@@ -258,11 +256,11 @@ begin
   use a - ordinal.omega,
   unfold aleph,
   rwa ordinal.add_sub_cancel_of_le,
-  rwa [←omega_le_aleph', ←ord_le_ord, ha, ord_omega],
+  rwa [←omega_le_aleph', ←ord_le_ord, ha, ord_omega]
 end
 
 /-- `ord ∘ aleph` enumerates the infinite ordinals that are cardinals. -/
-theorem ord_aleph_eq_enum_card : ord ∘ aleph = enum_ord ord_aleph_unbounded :=
+theorem ord_aleph_eq_enum_card : ord ∘ aleph = enum_ord _ ord_aleph_unbounded :=
 begin
   rw ←eq_enum_ord,
   use aleph_is_normal.strict_mono,

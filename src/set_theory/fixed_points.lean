@@ -308,11 +308,8 @@ begin
   rw ←eq_enum_ord,
   use (deriv_bfamily_is_normal f).strict_mono,
   rw set.range_eq_iff,
-  refine ⟨_, λ a ha, _⟩,
-  { intro a,
-    rw fixed_points_mem,
-    exact deriv_bfamily_fp H a },
-  rw fixed_points_mem at ha,
+  refine ⟨λ a, set.mem_Inter₂.2 (deriv_bfamily_fp H a), λ a ha, _⟩,
+  rw set.mem_Inter₂ at ha,
   rwa ←fp_iff_deriv_bfamily H
 end
 

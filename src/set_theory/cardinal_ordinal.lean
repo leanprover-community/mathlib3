@@ -247,7 +247,7 @@ end
 
 /-- Infinite ordinals that are cardinals are unbounded. -/
 theorem ord_aleph_unbounded : unbounded (<) {b : ordinal | b.card.ord = b ∧ ordinal.omega ≤ b} :=
-(unbounded_lt_iff_unbounded_inter_le ordinal.omega).1 ord_aleph'_unbounded
+(unbounded_lt_inter_le ordinal.omega).2 ord_aleph'_unbounded
 
 theorem eq_aleph_of_eq_card_ord {o : ordinal} (ho : o.card.ord = o) (ho' : ordinal.omega ≤ o) :
   ∃ a, (aleph a).ord = o :=

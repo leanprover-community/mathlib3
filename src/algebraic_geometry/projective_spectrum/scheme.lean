@@ -2744,12 +2744,157 @@ begin
   rw pi.mul_apply,
   unfold isos.sheaf_component.forward.mk,
   erw [localization.mk_mul],
-  sorry
+
+  have eq_xz := isos.sheaf_component.forward.hartshorne.eq_num_div_denom 𝒜 f m hm f_deg U x z,
+  have eq_yz := isos.sheaf_component.forward.hartshorne.eq_num_div_denom 𝒜 f m hm f_deg U y z,
+  have eq_mulz := isos.sheaf_component.forward.hartshorne.eq_num_div_denom 𝒜 f m hm f_deg U (x * y) z,
+  erw [isos.sheaf_component.forward.hartshorne_mul,
+    show ∀ (a b : hartshorne_localisation 𝒜 (((isos.top_component 𝒜 f m hm f_deg).inv) z.val).val),
+      (a * b).1 = a.1 * b.1, from λ _ _, rfl,
+    eq_xz, eq_yz, localization.mk_mul, localization.mk_eq_mk', is_localization.eq] at eq_mulz,
+  obtain ⟨⟨c, hc⟩, eq_mulz⟩ := eq_mulz,
+  simp only [←subtype.val_eq_coe] at eq_mulz,
+  erw [show ∀ (a b : (projective_spectrum.as_homogeneous_ideal
+    (((isos.top_component 𝒜 f m hm f_deg).inv) z.val).val).val.prime_compl), (a * b).1 = a.1 * b.1,
+    from λ _ _, rfl] at eq_mulz,
+  dsimp only,
+
+  set d_x := isos.sheaf_component.forward.hartshorne.denom 𝒜 f m hm f_deg U x z with dx_eq,
+  set n_x := isos.sheaf_component.forward.hartshorne.num 𝒜 f m hm f_deg U x z with nx_eq,
+  set d_y := isos.sheaf_component.forward.hartshorne.denom 𝒜 f m hm f_deg U y z with dy_eq,
+  set n_y := isos.sheaf_component.forward.hartshorne.num 𝒜 f m hm f_deg U y z with ny_eq,
+  set d_xy := isos.sheaf_component.forward.hartshorne.denom 𝒜 f m hm f_deg U (x*y) z with dxy_eq,
+  set n_xy := isos.sheaf_component.forward.hartshorne.num 𝒜 f m hm f_deg U (x*y) z with nxy_eq,
+  set i_x := isos.sheaf_component.forward.hartshorne.i 𝒜 f m hm f_deg U x z with ix_eq,
+  set i_y := isos.sheaf_component.forward.hartshorne.i 𝒜 f m hm f_deg U y z with iy_eq,
+  set i_xy := isos.sheaf_component.forward.hartshorne.i 𝒜 f m hm f_deg U (x*y) z with ixy_eq,
+
+  unfold isos.sheaf_component.forward.hartshorne.mk_num,
+  unfold isos.sheaf_component.forward.hartshorne.mk_denom,
+  simp only [←dx_eq, ←nx_eq, ←dy_eq, ←ny_eq, ←dxy_eq, ←nxy_eq, ←i_x, ←i_y, ←i_xy] at eq_mulz ⊢,
+  erw [localization.mk_eq_mk', is_localization.eq],
+
+  change c ∉ isos.backward.carrier 𝒜 f m hm f_deg _ at hc,
+  change ¬(∀ i : ℕ, _ ∈ _) at hc,
+  erw not_forall at hc,
+  obtain ⟨j, hc⟩ := hc,
+
+  use localization.mk ((graded_algebra.proj 𝒜 j c)^m) ⟨f^j, ⟨_, rfl⟩⟩,
+  erw [←subtype.val_eq_coe, ←subtype.val_eq_coe, ←subtype.val_eq_coe,
+    show ∀ (a b : (prime_spectrum.as_ideal z.val).prime_compl), (a * b).1 = a.1 * b.1,
+    from λ _ _, rfl, subtype.ext_iff_val],
+  simp only [show ∀ (a b : degree_zero_part 𝒜 f m f_deg), (a * b).1 = a.1 * b.1, from λ _ _, rfl],
+  rw [localization.mk_mul, localization.mk_mul, localization.mk_mul, localization.mk_mul,
+    localization.mk_mul, localization.mk_mul, localization.mk_eq_mk', is_localization.eq],
+
+  use 1,
+  simp only [←subtype.val_eq_coe,
+    show (1 : submonoid.powers f).1 = 1, from rfl,
+    show ∀ (a b : submonoid.powers f), (a * b).1 = a.1 * b.1, from λ _ _, rfl,
+    ←pow_add, mul_one],
+
+  suffices EQ : n_x * n_y * d_xy * graded_algebra.proj 𝒜 j c = n_xy * (d_x * d_y) * graded_algebra.proj 𝒜 j c,
+
+  rw calc n_xy * d_xy ^ m.pred * (d_x ^ m * d_y ^ m)
+          * (graded_algebra.proj 𝒜 j) c ^ m
+          * f ^ (i_x + i_y + i_xy + j)
+        = n_xy * d_xy ^ m.pred * (d_x ^ m * d_y ^ m)
+          * (graded_algebra.proj 𝒜 j) c ^ (m.pred + 1)
+          * f ^ (i_x + i_y + i_xy + j)
+        : begin
+          congr',
+          symmetry,
+          apply nat.succ_pred_eq_of_pos hm,
+        end
+    ... = n_xy * d_xy ^ m.pred * (d_x ^ m * d_y ^ m)
+          * ((graded_algebra.proj 𝒜 j) c ^ m.pred * (graded_algebra.proj 𝒜 j) c)
+          * f ^ (i_x + i_y + i_xy + j)
+        : begin
+          congr',
+          rw [pow_add, pow_one],
+        end
+    ... = n_xy * d_xy ^ m.pred * (d_x ^ (m.pred + 1) * d_y ^ (m.pred + 1))
+          * ((graded_algebra.proj 𝒜 j) c ^ m.pred * (graded_algebra.proj 𝒜 j) c)
+          * f ^ (i_x + i_y + i_xy + j)
+        : begin
+          congr',
+          all_goals { symmetry, apply nat.succ_pred_eq_of_pos hm, },
+        end
+    ... = n_xy * d_xy ^ m.pred * ((d_x ^ m.pred * d_x) * (d_y ^ m.pred * d_y))
+          * ((graded_algebra.proj 𝒜 j) c ^ m.pred * (graded_algebra.proj 𝒜 j) c)
+          * f ^ (i_x + i_y + i_xy + j)
+          : begin
+            congr';
+            rw [pow_add, pow_one],
+          end
+    ... = (n_xy * (d_x * d_y) * graded_algebra.proj 𝒜 j c) * (d_xy^m.pred * d_x^m.pred * d_y^m.pred * (graded_algebra.proj 𝒜 j c)^m.pred)
+          * f ^ (i_x + i_y + i_xy + j)
+        : by ring
+    ... = (n_x * n_y * d_xy * graded_algebra.proj 𝒜 j c) * (d_xy^m.pred * d_x^m.pred * d_y^m.pred * (graded_algebra.proj 𝒜 j c)^m.pred)
+          * f ^ (i_x + i_y + i_xy + j)
+        : by rw EQ
+    ... = (n_x * n_y * d_xy) * (d_xy^m.pred * d_x^m.pred * d_y^m.pred * ((graded_algebra.proj 𝒜 j c)^m.pred * graded_algebra.proj 𝒜 j c))
+          * f ^ (i_x + i_y + i_xy + j) : by ring
+    ... = (n_x * n_y * d_xy) * (d_xy^m.pred * d_x^m.pred * d_y^m.pred * ((graded_algebra.proj 𝒜 j c)^m.pred * (graded_algebra.proj 𝒜 j c)^1))
+          * f ^ (i_x + i_y + i_xy + j) : by rw pow_one
+    ... = (n_x * n_y * d_xy) * (d_xy^m.pred * d_x^m.pred * d_y^m.pred * ((graded_algebra.proj 𝒜 j c)^(m.pred + 1)))
+          * f ^ (i_x + i_y + i_xy + j)
+        : begin
+          congr',
+          rw pow_add,
+        end
+    ... = (n_x * n_y * d_xy) * (d_xy^m.pred * d_x^m.pred * d_y^m.pred * ((graded_algebra.proj 𝒜 j c)^m))
+          * f ^ (i_x + i_y + i_xy + j)
+        : begin
+          congr',
+          exact nat.succ_pred_eq_of_pos hm,
+        end
+    ... = (n_x * n_y) * ((d_xy^m.pred * d_xy) * d_x^m.pred * d_y^m.pred * ((graded_algebra.proj 𝒜 j c)^m))
+          * f ^ (i_x + i_y + i_xy + j) : by ring
+    ... = (n_x * n_y) * ((d_xy^m.pred * d_xy^1) * d_x^m.pred * d_y^m.pred * ((graded_algebra.proj 𝒜 j c)^m))
+          * f ^ (i_x + i_y + i_xy + j) : by rw pow_one
+    ... = (n_x * n_y) * ((d_xy^(m.pred + 1)) * d_x^m.pred * d_y^m.pred * ((graded_algebra.proj 𝒜 j c)^m))
+          * f ^ (i_x + i_y + i_xy + j)
+        : begin
+          congr',
+          rw pow_add,
+        end
+    ... = (n_x * n_y) * (d_xy^m * d_x^m.pred * d_y^m.pred * ((graded_algebra.proj 𝒜 j c)^m))
+          * f ^ (i_x + i_y + i_xy + j)
+        : begin
+          congr',
+          exact nat.succ_pred_eq_of_pos hm,
+        end,
+  ring_nf,
+  congr' 7,
+  ring,
+
+  have INEQ : graded_algebra.proj 𝒜 j c ≠ 0,
+  { intro rid,
+    apply hc,
+    simp only [rid, zero_pow hm, localization.mk_zero],
+    exact submodule.zero_mem _,
+  },
+  replace eq_mulz := congr_arg (graded_algebra.proj 𝒜 (i_x + i_y + i_xy + j)) eq_mulz,
+  erw [graded_algebra.proj_hom_mul, graded_algebra.proj_hom_mul] at eq_mulz,
+  exact eq_mulz,
+
+  rw show i_x + i_y + i_xy = i_xy + (i_x + i_y), by ring,
+  apply set_like.graded_monoid.mul_mem,
+  apply isos.sheaf_component.forward.hartshorne.num_hom,
+  apply set_like.graded_monoid.mul_mem,
+  apply isos.sheaf_component.forward.hartshorne.denom_hom,
+  apply isos.sheaf_component.forward.hartshorne.denom_hom,
+  exact INEQ,
+
+  apply set_like.graded_monoid.mul_mem,
+  apply set_like.graded_monoid.mul_mem,
+  apply isos.sheaf_component.forward.hartshorne.num_hom,
+  apply isos.sheaf_component.forward.hartshorne.num_hom,
+  apply isos.sheaf_component.forward.hartshorne.denom_hom,
+  exact INEQ,
 end
 
-
-#exit
--- this is probably a harder sorry
 lemma isos.sheaf_component.forward.mk_is_locally_quotient
   (f : A) [decidable_eq (localization.away f)] (m : ℕ) (hm : 0 < m) (f_deg : f ∈ 𝒜 m)
   (U : (opens

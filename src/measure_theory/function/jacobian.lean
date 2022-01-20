@@ -1234,4 +1234,53 @@ theorem lintegral_abs_det_fderiv_eq_add_haar_image {f : E → E} {s : set E} (hs
 le_antisymm (lintegral_abs_det_fderiv_le_add_haar_image μ hs hf' hf)
   (add_haar_image_le_lintegral_abs_det_fderiv μ hs hf')
 
+theorem glou {f : E → E} {s : set E} (hs : measurable_set s)
+  {f' : E → (E →L[ℝ] E)} (hf' : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x) (hf : inj_on f s)
+  (h'f : measurable f) :
+  measure.map f ((μ.restrict s).with_density (λ x, ennreal.of_real (|(f' x).det|)))
+  = μ.restrict (f '' s) :=
+begin
+  apply measure.ext (λ t ht, _),
+  rw [map_apply h'f ht, with_density_apply _ (h'f ht), measure.restrict_apply ht,
+      restrict_restrict (h'f ht),
+      lintegral_abs_det_fderiv_eq_add_haar_image μ ((h'f ht).inter hs)
+        (λ x hx, (hf' x hx.2).mono (inter_subset_right _ _)) (hf.mono (inter_subset_right _ _)),
+      image_preimage_inter]
+end
+
+theorem glou2 {f : E → E} {s : set E} (hs : measurable_set s)
+  {f' : E → (E →L[ℝ] E)} (hf' : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x) (hf : inj_on f s)
+  (h'f : measurable f) (h'f' : measurable f') {g : E → ℝ≥0∞} (hg : measurable g) :
+  ∫⁻ x in f '' s, g x ∂μ = ∫⁻ x in s, ennreal.of_real (|(f' x).det|) * g (f x) ∂μ :=
+begin
+  rw [← glou μ hs hf' hf h'f, lintegral_map hg h'f,
+      lintegral_with_density_eq_lintegral_mul _ _ (hg.comp h'f)],
+  { refl },
+  apply ennreal.measurable_of_real.comp,
+  refine continuous_abs.measurable.comp _,
+  exact continuous_linear_map.continuous_det.measurable.comp h'f',
+end
+
+theorem glou3 {f : E → E} {s : set E} (hs : measurable_set s)
+  {f' : E → (E →L[ℝ] E)} (hf' : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x) (hf : inj_on f s)
+  {g : E → ℝ≥0∞} (hg : measurable g) :
+  ∫⁻ x in f '' s, g x ∂μ = ∫⁻ x in s, ennreal.of_real (|(f' x).det|) * g (f x) ∂μ :=
+begin
+  classical,
+  have : ∃ F, measurable F ∧ eq_on f F s,
+  { refine ⟨piecewise s f 0, _, _⟩,
+    { have C : continuous_on f s,
+      { have : differentiable_on ℝ f s := λ x hx, (hf' x hx).differentiable_within_at,
+        exact this.continuous_on },
+      refine measurable_of_is_open (λ t ht, _),
+      rw [piecewise_preimage, set.ite],
+      apply measurable_set.union,
+      { rcases _root_.continuous_on_iff'.1 C t ht with ⟨u, u_open, hu⟩,
+        rw hu,
+        apply u_open.measurable_set.inter hs },
+      { have : measurable (λ (x : E), (0 : E)) := measurable_const,
+        apply measurable_set.diff (this ht.measurable_set) hs } },
+   },
+end
+
 end measure_theory

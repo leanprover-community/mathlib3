@@ -31,6 +31,8 @@ namespace ideal
 open polynomial
 open submodule
 
+open_locale big_operators
+
 section comm_ring
 variables {S : Type*} [comm_ring S] {f : R →+* S} {I J : ideal S}
 
@@ -165,7 +167,7 @@ by rw [quotient.algebra_map_eq, quotient.algebra_map_quotient_map_quotient,
        quotient.mk_algebra_map]
 
 lemma pow_nat_degree_le_of_root_of_monic_mem {x : S} {f : polynomial S} (hroot : is_root f x)
-  (hmo : f.monic) (hdiv : ∀ n < f.nat_degree, f.coeff n ∈ P ) :
+  (hmo : f.monic) (hdiv : ∀ n < f.nat_degree, f.coeff n ∈ P) :
   ∀ i, f.nat_degree ≤ i → x ^ i ∈ P :=
 begin
   intros i hi,
@@ -177,6 +179,22 @@ begin
     finset.not_mem_range_self, finset.sum_range, hmo.coeff_nat_degree, one_mul] at hroot,
   rw [eq_neg_of_add_eq_zero hroot, neg_mem_iff],
   refine sum_mem _ (λ i hi,  mul_mem_right _ _ (hdiv _ (fin.is_lt i)))
+end
+
+lemma pow_nat_degree_le_of_aeval_zero_of_monic_mem_map [algebra R S] {x : S} {f : polynomial R}
+  (hx : aeval x f = 0) (hmo : f.monic) (hdiv : ∀ n < f.nat_degree, f.coeff n ∈ p) :
+  ∀ i, (f.map (algebra_map R S)).nat_degree ≤ i → x ^ i ∈ p.map (algebra_map R S) :=
+begin
+  suffices : x ^ (f.map (algebra_map R S)).nat_degree ∈ p.map (algebra_map R S),
+  { intros i hi,
+    obtain ⟨k, hk⟩ := le_iff_exists_add.1 hi,
+    rw [hk, pow_add],
+    refine mul_mem_right _ _ this },
+  rw [aeval_def, eval₂_eq_eval_map, ← is_root.def] at hx,
+  refine pow_nat_degree_le_of_root_of_monic_mem hx (monic_map (algebra_map R S) hmo)
+    (λ n hn, _) _ rfl.le,
+  rw [coeff_map],
+  exact mem_map_of_mem _ (hdiv _ (lt_of_lt_of_le hn (nat_degree_map_le _ _)))
 end
 
 end comm_ring

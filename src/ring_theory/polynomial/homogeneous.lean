@@ -383,16 +383,11 @@ begin
   rw [of_homogeneous_components_of, to_homogeneous_components_coe],
 end
 
-/-- Collectively, `mv_polynomial.to_homogeneous_components` and
-`mv_polynomial.of_homogeneous_components` form an equivalence. -/
-@[simps]
-def equiv_homogeneous_components [comm_semiring R] :
-  mv_polynomial σ R ≃ₐ[R] (⨁ i, homogeneous_submodule σ R i) :=
-alg_equiv.of_alg_hom _ _ to_of_homogeneous_components of_to_homogeneous_components
-
-lemma homogeneous_components_is_internal [comm_semiring R] :
-  direct_sum.submodule_is_internal (homogeneous_submodule σ R) :=
-equiv_homogeneous_components.symm.bijective
+instance [comm_semiring R] : graded_algebra (homogeneous_submodule σ R) :=
+graded_algebra.of_alg_hom  _
+  to_homogeneous_components
+  of_to_homogeneous_components
+  (λ i (x : homogeneous_submodule σ R i), (to_homogeneous_components_coe x : _))
 
 /-! ### Old-style API
 

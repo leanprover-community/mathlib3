@@ -137,8 +137,6 @@ calc ⦃a + c, b, a + c⦄ = ⦃a, b, a⦄ + ⦃a, b, c⦄ + ⦃c, b, a⦄ + ⦃
 
 lemma Q_def (a b c : A) : Q a c b = ⦃a, b, c⦄ := by simp
 
-def Q' : A →+ A →+  add_monoid.End A := D.comp add_monoid_hom.flip
-
 end is_tp
 
 variables {A : Type*} [has_tp A] [add_comm_group A] [is_tp A]

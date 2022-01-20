@@ -656,7 +656,7 @@ measurable_pi_iff.mpr hf
   This doesn't require `f` to be measurable.
   This should not be confused with the statement that `update f a x` is measurable. -/
 @[measurability]
-lemma measurable_update (f : Π (a : δ), π a) {a : δ} [decidable_eq δ]: measurable (update f a) :=
+lemma measurable_update (f : Π (a : δ), π a) {a : δ} [decidable_eq δ] : measurable (update f a) :=
 begin
   apply measurable_pi_lambda,
   intro x, by_cases hx : x = a,

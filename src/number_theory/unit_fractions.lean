@@ -121,8 +121,8 @@ theorem corollary_one :
   → (∀ n ∈ A, (((99:ℝ)/100)*log(log N) ≤ ω n ) ∧ ( (ω n : ℝ) ≤ 2*(log (log N))))
   → ∃ S ⊆ A, rec_sum S = 1 :=
 begin
-  filter_upwards [technical_prop],
-  intros N p1 A A_upper_bound A_lower_bound hA₁ hA₂ hA₃ hA₄,
+  filter_upwards [technical_prop, eventually_ge_at_top 1],
+  intros N p1 hN₁ A A_upper_bound A_lower_bound hA₁ hA₂ hA₃ hA₄,
   -- `good_set` expresses the families of subsets that we like
   -- instead of saying we have S_1, ..., S_k, I'll say we have k-many subsets (+ same conditions)
   let good_set : finset (finset ℕ) → Prop :=
@@ -157,7 +157,8 @@ begin
   have : (∑ s in S, rec_sum s : ℝ) ≤ (log N)^(1/500 : ℝ),
   { transitivity (∑ d in finset.Icc 1 ⌊(log N)^(1/500 : ℝ)⌋₊, t d / d : ℝ),
     { have : ∀ s ∈ S, d' s ∈ finset.Icc 1 ⌊(log N)^(1/500 : ℝ)⌋₊,
-      { sorry },
+      { intros s hs,
+        simp only [finset.mem_Icc, hd'₁ s hs, nat.le_floor (hd'₂ s hs), and_self] },
       rw ←finset.sum_fiberwise_of_maps_to this,
       apply finset.sum_le_sum,
       intros d hd,
@@ -166,7 +167,12 @@ begin
       intros s hs,
       simp only [finset.mem_filter] at hs,
       rw [hd'₃ _ hs.1, hs.2, rat.cast_div, rat.cast_one, rat.cast_coe_nat] },
-    sorry },
+    refine (finset.sum_le_of_forall_le _ _ 1 _).trans _,
+    { simp only [one_div, and_imp, finset.mem_Icc],
+      rintro d hd -,
+      exact div_le_one_of_le (nat.cast_le.2 ((h d hd).le)) (nat.cast_nonneg _) },
+    { simp only [nat.add_succ_sub_one, add_zero, nat.card_Icc, nat.smul_one_eq_coe],
+      exact nat.floor_le (rpow_nonneg_of_nonneg (log_nonneg (nat.one_le_cast.2 hN₁)) _) } },
   sorry
 end
 
@@ -207,7 +213,7 @@ lemma sieve_lemma_two  : ∃ C : ℝ,
     :=
 sorry
 
-def lcm (A : finset ℕ) : ℕ := 2
+def lcm (A : finset ℕ) : ℕ := A.lcm id
 
 -- This is the set D_I
 def interval_rare_ppowers (I: finset ℕ) (A : finset ℕ) (K : ℝ) : set ℕ :=

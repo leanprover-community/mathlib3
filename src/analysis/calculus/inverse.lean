@@ -390,7 +390,7 @@ begin
     { have : (⋃ (n : ℕ), closed_ball (f 0) n) ⊆ range f :=
         Union_subset (λ n, H n (nat.cast_nonneg _)),
       rw Union_closed_ball_nat at this,
-      exact range_iff_surjective.1 (subset.antisymm (subset_univ _) this) },
+      exact range_iff_surjective.1 (eq_univ_of_forall this) },
     assume R hR,
     have hc' : (0 : ℝ) < N⁻¹ - c, by { rw sub_pos, exact hc },
     set r := (N⁻¹ - c : ℝ) ⁻¹ * R with rdef,

@@ -688,7 +688,7 @@ section
 local attribute [instance] pi.semi_normed_group
 
 /-- The product of finitely many normed spaces is a normed space, with the sup norm. -/
-instance pi.normed_space {E : ι → Type*} [fintype ι] [∀i, semi_normed_group (E i)]
+def pi.normed_space {E : ι → Type*} [fintype ι] [∀i, semi_normed_group (E i)]
   [∀i, normed_space α (E i)] : normed_space α (Πi, E i) :=
 { norm_smul_le := λ a f, le_of_eq $
     show (↑(finset.sup finset.univ (λ (b : ι), ∥a • f b∥₊)) : ℝ) =

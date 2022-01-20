@@ -1630,7 +1630,7 @@ section
 local attribute [instance] pseudo_metric_space_pi
 
 /-- A finite product of proper spaces is proper. -/
-instance pi_proper_space {π : β → Type*} [fintype β] [∀b, pseudo_metric_space (π b)]
+def pi_proper_space {π : β → Type*} [fintype β] [∀b, pseudo_metric_space (π b)]
   [h : ∀b, proper_space (π b)] : proper_space (Πb, π b) :=
 begin
   refine proper_space_of_compact_closed_ball_of_le 0 (λx r hr, _),

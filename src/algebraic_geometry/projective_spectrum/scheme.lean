@@ -2085,6 +2085,47 @@ hh.1 ⟨((isos.top_component 𝒜 f m hm f_deg).inv y.1).1, begin
         exact y.2,
       end⟩
 
+lemma isos.sheaf_component.forward.hartshorne_one
+  (f : A) [decidable_eq (localization.away f)] (m : ℕ) (hm : 0 < m) (f_deg : f ∈ 𝒜 m)
+  (U : (opens
+    ((Spec↥(degree_zero_part (λ (m : ℕ), 𝒜 m) f m f_deg)).to_SheafedSpace.to_PresheafedSpace.carrier))ᵒᵖ) :
+  ∀ y, isos.sheaf_component.forward.hartshorne 𝒜 f m hm f_deg U 1 y = 1 := λ y,
+begin
+  unfold isos.sheaf_component.forward.hartshorne,
+  erw show (1 : (((isos.top_component 𝒜 f m hm f_deg).hom _*
+      ((Proj.to_LocallyRingedSpace 𝒜).restrict (@opens.open_embedding (projective_spectrum.Top 𝒜)
+        (projective_spectrum.basic_open 𝒜 f))).to_SheafedSpace.sheaf.val).obj
+     U)).1 = 1, from rfl,
+  erw pi.one_apply,
+end
+
+lemma isos.sheaf_component.forward.hartshorne_zero
+  (f : A) [decidable_eq (localization.away f)] (m : ℕ) (hm : 0 < m) (f_deg : f ∈ 𝒜 m)
+  (U : (opens
+    ((Spec↥(degree_zero_part (λ (m : ℕ), 𝒜 m) f m f_deg)).to_SheafedSpace.to_PresheafedSpace.carrier))ᵒᵖ) :
+  ∀ y, isos.sheaf_component.forward.hartshorne 𝒜 f m hm f_deg U 0 y = 0 := λ y,
+begin
+  unfold isos.sheaf_component.forward.hartshorne,
+  erw show (0 : (((isos.top_component 𝒜 f m hm f_deg).hom _*
+      ((Proj.to_LocallyRingedSpace 𝒜).restrict (@opens.open_embedding (projective_spectrum.Top 𝒜)
+        (projective_spectrum.basic_open 𝒜 f))).to_SheafedSpace.sheaf.val).obj
+     U)).1 = 0, from rfl,
+  erw pi.zero_apply,
+end
+
+lemma isos.sheaf_component.forward.hartshorne_add
+  (f : A) [decidable_eq (localization.away f)] (m : ℕ) (hm : 0 < m) (f_deg : f ∈ 𝒜 m)
+  (U : (opens
+    ((Spec↥(degree_zero_part (λ (m : ℕ), 𝒜 m) f m f_deg)).to_SheafedSpace.to_PresheafedSpace.carrier))ᵒᵖ) :
+  ∀ x y z, isos.sheaf_component.forward.hartshorne 𝒜 f m hm f_deg U (x + y) z
+    = isos.sheaf_component.forward.hartshorne 𝒜 f m hm f_deg U x z
+    + isos.sheaf_component.forward.hartshorne 𝒜 f m hm f_deg U y z := λ x y z,
+begin
+  unfold isos.sheaf_component.forward.hartshorne,
+  erw show (x + y).1 = x.1 + y.1, from rfl,
+  erw pi.add_apply,
+end
+
 def isos.sheaf_component.forward.hartshorne.num
   (f : A) [decidable_eq (localization.away f)] (m : ℕ) (hm : 0 < m) (f_deg : f ∈ 𝒜 m)
   (U : (opens
@@ -2131,6 +2172,19 @@ lemma isos.sheaf_component.forward.hartshorne.denom_hom
   𝒜 (isos.sheaf_component.forward.hartshorne.i 𝒜 f m hm f_deg U hh y) :=
 (isos.sheaf_component.forward.hartshorne 𝒜 f m hm f_deg U hh y).denom_hom
 
+lemma isos.sheaf_component.forward.hartshorne.denom_not_mem
+  (f : A) [decidable_eq (localization.away f)] (m : ℕ) (hm : 0 < m) (f_deg : f ∈ 𝒜 m)
+  (U : (opens
+    ((Spec↥(degree_zero_part (λ (m : ℕ), 𝒜 m) f m f_deg)).to_SheafedSpace.to_PresheafedSpace.carrier))ᵒᵖ)
+  (hh : (((isos.top_component 𝒜 f m hm f_deg).hom _*
+      ((Proj.to_LocallyRingedSpace 𝒜).restrict (@opens.open_embedding (projective_spectrum.Top 𝒜)
+        (projective_spectrum.basic_open 𝒜 f))).to_SheafedSpace.sheaf.val).obj
+     U))
+  (y : unop U) :
+  (isos.sheaf_component.forward.hartshorne.denom 𝒜 f m hm f_deg U hh y) ∉
+    ((isos.top_component 𝒜 f m hm f_deg).inv y.1).1.as_homogeneous_ideal :=
+(isos.sheaf_component.forward.hartshorne 𝒜 f m hm f_deg U hh y).denom_not_mem
+
 lemma isos.sheaf_component.forward.hartshorne.num_hom
   (f : A) [decidable_eq (localization.away f)] (m : ℕ) (hm : 0 < m) (f_deg : f ∈ 𝒜 m)
   (U : (opens
@@ -2143,6 +2197,21 @@ lemma isos.sheaf_component.forward.hartshorne.num_hom
   (isos.sheaf_component.forward.hartshorne.num 𝒜 f m hm f_deg U hh y) ∈
   𝒜 (isos.sheaf_component.forward.hartshorne.i 𝒜 f m hm f_deg U hh y) :=
 (isos.sheaf_component.forward.hartshorne 𝒜 f m hm f_deg U hh y).num_hom
+
+lemma isos.sheaf_component.forward.hartshorne.eq_num_div_denom
+  (f : A) [decidable_eq (localization.away f)] (m : ℕ) (hm : 0 < m) (f_deg : f ∈ 𝒜 m)
+  (U : (opens
+    ((Spec↥(degree_zero_part (λ (m : ℕ), 𝒜 m) f m f_deg)).to_SheafedSpace.to_PresheafedSpace.carrier))ᵒᵖ)
+  (hh : (((isos.top_component 𝒜 f m hm f_deg).hom _*
+      ((Proj.to_LocallyRingedSpace 𝒜).restrict (@opens.open_embedding (projective_spectrum.Top 𝒜)
+        (projective_spectrum.basic_open 𝒜 f))).to_SheafedSpace.sheaf.val).obj
+     U))
+  (y : unop U) :
+  (isos.sheaf_component.forward.hartshorne 𝒜 f m hm f_deg U hh y).1 =
+  localization.mk (isos.sheaf_component.forward.hartshorne.num 𝒜 f m hm f_deg U hh y)
+    ⟨(isos.sheaf_component.forward.hartshorne.denom 𝒜 f m hm f_deg U hh y),
+      isos.sheaf_component.forward.hartshorne.denom_not_mem 𝒜 f m hm f_deg U hh y⟩ :=
+(isos.sheaf_component.forward.hartshorne 𝒜 f m hm f_deg U hh y).eq_num_div_denom
 
 def isos.sheaf_component.forward.hartshorne.mk_num
   (f : A) [decidable_eq (localization.away f)] (m : ℕ) (hm : 0 < m) (f_deg : f ∈ 𝒜 m)
@@ -2240,13 +2309,355 @@ lemma isos.sheaf_component.forward.mk_one
   (f : A) [decidable_eq (localization.away f)] (m : ℕ) (hm : 0 < m) (f_deg : f ∈ 𝒜 m)
   (U : (opens
     ((Spec↥(degree_zero_part (λ (m : ℕ), 𝒜 m) f m f_deg)).to_SheafedSpace.to_PresheafedSpace.carrier))ᵒᵖ) :
-  isos.sheaf_component.forward.mk 𝒜 f m hm f_deg U 1 = 1 := sorry
+  isos.sheaf_component.forward.mk 𝒜 f m hm f_deg U 1 = 1 :=
+begin
+  ext1 y,
+  erw pi.one_apply,
+  unfold isos.sheaf_component.forward.mk,
+  dsimp only,
+  erw [show (1 : structure_sheaf.localizations (degree_zero_part 𝒜 f m f_deg) y.val) =
+    localization.mk 1 1, begin
+      erw localization.mk_self 1,
+    end, localization.mk_eq_mk', is_localization.eq],
+
+  have eq1 := isos.sheaf_component.forward.hartshorne.eq_num_div_denom 𝒜 f m hm f_deg U 1 y,
+  erw isos.sheaf_component.forward.hartshorne_one at eq1,
+  erw [show (1 : hartshorne_localisation 𝒜 ((isos.top_component 𝒜 f m hm f_deg).inv y).1).1 = 1, from rfl] at eq1,
+  erw [show (1 : localization.at_prime ((isos.top_component 𝒜 f m hm f_deg).inv y.1).1.as_homogeneous_ideal.1) =
+    localization.mk 1 1,
+      begin
+        symmetry,
+        convert localization.mk_self _,
+        erw [←subtype.val_eq_coe],
+        refl,
+      end, localization.mk_eq_mk', is_localization.eq] at eq1,
+  obtain ⟨⟨c, hc1⟩, eq1⟩ := eq1,
+
+  change c ∉ isos.backward.carrier 𝒜 f m hm f_deg _ at hc1,
+  change ¬(∀ i : ℕ, _ ∈ _) at hc1,
+  erw not_forall at hc1,
+  obtain ⟨j, hc1⟩ := hc1,
+  erw [one_mul, mul_one, ←subtype.val_eq_coe] at eq1,
+  dsimp only,
+  replace eq1 : isos.sheaf_component.forward.hartshorne.denom 𝒜 f m hm f_deg U 1 y * c =
+    isos.sheaf_component.forward.hartshorne.num 𝒜 f m hm f_deg U 1 y * c,
+  { convert eq1, },
+  have eq2 : graded_algebra.proj 𝒜 ((isos.sheaf_component.forward.hartshorne.i 𝒜 f m hm f_deg U 1 y) + j)
+    (isos.sheaf_component.forward.hartshorne.denom 𝒜 f m hm f_deg U 1 y * c) =
+    graded_algebra.proj 𝒜 ((isos.sheaf_component.forward.hartshorne.i 𝒜 f m hm f_deg U 1 y) + j)
+    (isos.sheaf_component.forward.hartshorne.num 𝒜 f m hm f_deg U 1 y * c),
+  { refine congr_arg _ eq1, },
+
+  have eq3 : graded_algebra.proj 𝒜 ((isos.sheaf_component.forward.hartshorne.i 𝒜 f m hm f_deg U 1 y) + j)
+    (isos.sheaf_component.forward.hartshorne.denom 𝒜 f m hm f_deg U 1 y * c)
+    = isos.sheaf_component.forward.hartshorne.denom 𝒜 f m hm f_deg U 1 y * (graded_algebra.proj 𝒜 j c),
+  { rw [graded_algebra.proj_apply, alg_equiv.map_mul, direct_sum.coe_mul_apply_submodule 𝒜,
+     ←graded_algebra.support, ←graded_algebra.support],
+
+    have set_eq1 : graded_algebra.support 𝒜
+      (isos.sheaf_component.forward.hartshorne.denom 𝒜 f m hm f_deg U 1 y) =
+      {isos.sheaf_component.forward.hartshorne.i 𝒜 f m hm f_deg U 1 y},
+    { ext1, split; intros hx,
+      { erw graded_algebra.mem_support_iff at hx,
+        erw finset.mem_singleton,
+        contrapose hx,
+        erw [not_not, graded_algebra.proj_apply, graded_algebra.decompose_of_mem_ne],
+        apply isos.sheaf_component.forward.hartshorne.denom_hom,
+        symmetry,
+        exact hx, },
+      { rw finset.mem_singleton at hx,
+        rw [hx, graded_algebra.mem_support_iff, graded_algebra.proj_apply,
+          graded_algebra.decompose_of_mem_same],
+        intro rid,
+        have mem2 := isos.sheaf_component.forward.hartshorne.denom_not_mem 𝒜 f m hm f_deg U 1 y,
+        apply mem2,
+        rw rid,
+        exact submodule.zero_mem _,
+        apply isos.sheaf_component.forward.hartshorne.denom_hom, }, },
+    erw [set_eq1],
+    have set_eq2 : finset.filter
+          (λ z : ℕ × ℕ, z.1 + z.2 = isos.sheaf_component.forward.hartshorne.i 𝒜 f m hm f_deg U 1 y + j)
+          (finset.product
+            {isos.sheaf_component.forward.hartshorne.i 𝒜 f m hm f_deg U 1 y}
+            (graded_algebra.support (λ (i : ℕ), 𝒜 i) c)) =
+      {(isos.sheaf_component.forward.hartshorne.i 𝒜 f m hm f_deg U 1 y, j)},
+    { ext1, rcases a with ⟨n1, n2⟩,
+      split; intros ha,
+      { erw finset.mem_filter at ha,
+        rcases ha with ⟨ha1, ha3⟩,
+        erw finset.mem_product at ha1,
+        rcases ha1 with ⟨ha1, ha2⟩,
+        dsimp only at ha1 ha2 ha3,
+        erw finset.mem_singleton at ha1,
+        erw finset.mem_singleton,
+        ext; dsimp only,
+        { exact ha1, },
+        { erw ha1 at ha3,
+          linarith, }, },
+      { erw [finset.mem_singleton, prod.ext_iff] at ha,
+        rcases ha with ⟨ha1, ha2⟩,
+        dsimp only at ha1 ha2,
+        erw [ha1, ha2, finset.mem_filter, finset.mem_product, finset.mem_singleton],
+        refine ⟨⟨rfl, _⟩, rfl⟩,
+        dsimp only,
+        erw graded_algebra.mem_support_iff,
+        intro rid,
+        apply hc1,
+        convert submodule.zero_mem _,
+        erw [rid, zero_pow hm, localization.mk_zero], }, },
+    erw [set_eq2, finset.sum_singleton],
+    dsimp only,
+    erw [graded_algebra.decompose_of_mem_same 𝒜, ←graded_algebra.proj_apply],
+    apply isos.sheaf_component.forward.hartshorne.denom_hom, },
+
+  have eq4 : graded_algebra.proj 𝒜 ((isos.sheaf_component.forward.hartshorne.i 𝒜 f m hm f_deg U 1 y) + j)
+    (isos.sheaf_component.forward.hartshorne.num 𝒜 f m hm f_deg U 1 y * c)
+    = isos.sheaf_component.forward.hartshorne.num 𝒜 f m hm f_deg U 1 y * (graded_algebra.proj 𝒜 j c),
+  { by_cases INEQ : isos.sheaf_component.forward.hartshorne.num 𝒜 f m hm f_deg U 1 y = 0,
+    rw [INEQ, zero_mul, zero_mul, linear_map.map_zero],
+
+    rw [graded_algebra.proj_apply, alg_equiv.map_mul, direct_sum.coe_mul_apply_submodule 𝒜,
+     ←graded_algebra.support, ←graded_algebra.support],
+
+    have set_eq1 : graded_algebra.support 𝒜
+      (isos.sheaf_component.forward.hartshorne.num 𝒜 f m hm f_deg U 1 y) =
+      {isos.sheaf_component.forward.hartshorne.i 𝒜 f m hm f_deg U 1 y},
+    { ext1, split; intros hx,
+      { erw graded_algebra.mem_support_iff at hx,
+        erw finset.mem_singleton,
+        contrapose hx,
+        erw [not_not, graded_algebra.proj_apply, graded_algebra.decompose_of_mem_ne],
+        apply isos.sheaf_component.forward.hartshorne.num_hom,
+        symmetry,
+        exact hx, },
+      { rw finset.mem_singleton at hx,
+        rw [hx, graded_algebra.mem_support_iff, graded_algebra.proj_apply,
+          graded_algebra.decompose_of_mem_same],
+        exact INEQ,
+        apply isos.sheaf_component.forward.hartshorne.num_hom, }, },
+    erw [set_eq1],
+    have set_eq2 : finset.filter
+          (λ z : ℕ × ℕ, z.1 + z.2 = isos.sheaf_component.forward.hartshorne.i 𝒜 f m hm f_deg U 1 y + j)
+          (finset.product
+            {isos.sheaf_component.forward.hartshorne.i 𝒜 f m hm f_deg U 1 y}
+            (graded_algebra.support (λ (i : ℕ), 𝒜 i) c)) =
+      {(isos.sheaf_component.forward.hartshorne.i 𝒜 f m hm f_deg U 1 y, j)},
+    { ext1, rcases a with ⟨n1, n2⟩,
+      split; intros ha,
+      { erw finset.mem_filter at ha,
+        rcases ha with ⟨ha1, ha3⟩,
+        erw finset.mem_product at ha1,
+        rcases ha1 with ⟨ha1, ha2⟩,
+        dsimp only at ha1 ha2 ha3,
+        erw finset.mem_singleton at ha1,
+        erw finset.mem_singleton,
+        ext; dsimp only,
+        { exact ha1, },
+        { erw ha1 at ha3,
+          linarith, }, },
+      { erw [finset.mem_singleton, prod.ext_iff] at ha,
+        rcases ha with ⟨ha1, ha2⟩,
+        dsimp only at ha1 ha2,
+        erw [ha1, ha2, finset.mem_filter, finset.mem_product, finset.mem_singleton],
+        refine ⟨⟨rfl, _⟩, rfl⟩,
+        dsimp only,
+        erw graded_algebra.mem_support_iff,
+        intro rid,
+        apply hc1,
+        convert submodule.zero_mem _,
+        erw [rid, zero_pow hm, localization.mk_zero], }, },
+    erw [set_eq2, finset.sum_singleton],
+    dsimp only,
+    erw [graded_algebra.decompose_of_mem_same 𝒜, ←graded_algebra.proj_apply],
+    apply isos.sheaf_component.forward.hartshorne.num_hom, },
+
+  erw [eq3, eq4] at eq2,
+
+  use localization.mk ((graded_algebra.proj 𝒜 j c)^m) ⟨f^j, ⟨_, rfl⟩⟩,
+  erw [←subtype.val_eq_coe, ←subtype.val_eq_coe, ←subtype.val_eq_coe, mul_one, one_mul],
+  dsimp only,
+
+  unfold isos.sheaf_component.forward.hartshorne.mk_num,
+  unfold isos.sheaf_component.forward.hartshorne.mk_denom,
+  erw [subtype.ext_iff_val,
+    show ∀ (x y : degree_zero_part 𝒜 f m f_deg), (x * y).1 = x.1 * y.1, from λ _ _, rfl,
+    show ∀ (x y : degree_zero_part 𝒜 f m f_deg), (x * y).1 = x.1 * y.1, from λ _ _, rfl,
+    localization.mk_mul, localization.mk_mul],
+  dsimp only,
+  congr' 1,
+  exact calc isos.sheaf_component.forward.hartshorne.num 𝒜 f m hm f_deg U 1 y
+            * isos.sheaf_component.forward.hartshorne.denom 𝒜 f m hm f_deg U 1 y ^ m.pred
+            * (graded_algebra.proj 𝒜 j) c ^ m
+          = isos.sheaf_component.forward.hartshorne.num 𝒜 f m hm f_deg U 1 y
+            * isos.sheaf_component.forward.hartshorne.denom 𝒜 f m hm f_deg U 1 y ^ m.pred
+            * (graded_algebra.proj 𝒜 j) c ^ (m.pred + 1)
+          : begin
+            congr',
+            symmetry,
+            apply nat.succ_pred_eq_of_pos,
+            exact hm
+          end
+      ... = isos.sheaf_component.forward.hartshorne.num 𝒜 f m hm f_deg U 1 y
+            * isos.sheaf_component.forward.hartshorne.denom 𝒜 f m hm f_deg U 1 y ^ m.pred
+            * ((graded_algebra.proj 𝒜 j) c ^ m.pred * graded_algebra.proj 𝒜 j c)
+          : begin
+            congr',
+            erw [pow_add, pow_one],
+          end
+      ... = (isos.sheaf_component.forward.hartshorne.num 𝒜 f m hm f_deg U 1 y * graded_algebra.proj 𝒜 j c)
+            * (isos.sheaf_component.forward.hartshorne.denom 𝒜 f m hm f_deg U 1 y ^ m.pred * (graded_algebra.proj 𝒜 j) c ^ m.pred)
+          : by ring
+      ... = (isos.sheaf_component.forward.hartshorne.denom 𝒜 f m hm f_deg U 1 y * graded_algebra.proj 𝒜 j c)
+            * (isos.sheaf_component.forward.hartshorne.denom 𝒜 f m hm f_deg U 1 y ^ m.pred * (graded_algebra.proj 𝒜 j) c ^ m.pred)
+          : by erw eq2
+      ... = (isos.sheaf_component.forward.hartshorne.denom 𝒜 f m hm f_deg U 1 y * graded_algebra.proj 𝒜 j c)
+            * (isos.sheaf_component.forward.hartshorne.denom 𝒜 f m hm f_deg U 1 y * graded_algebra.proj 𝒜 j c) ^ m.pred
+          : begin
+            congr' 1,
+            erw mul_pow,
+          end
+      ... = (isos.sheaf_component.forward.hartshorne.denom 𝒜 f m hm f_deg U 1 y * graded_algebra.proj 𝒜 j c) ^ 1
+            * (isos.sheaf_component.forward.hartshorne.denom 𝒜 f m hm f_deg U 1 y * graded_algebra.proj 𝒜 j c) ^ m.pred
+          : by rw pow_one
+      ... = (isos.sheaf_component.forward.hartshorne.denom 𝒜 f m hm f_deg U 1 y * graded_algebra.proj 𝒜 j c) ^ (1 + m.pred)
+          : by rw pow_add
+      ... = (isos.sheaf_component.forward.hartshorne.denom 𝒜 f m hm f_deg U 1 y * graded_algebra.proj 𝒜 j c) ^ m
+          : begin
+            congr' 1,
+            rw [add_comm],
+            convert nat.succ_pred_eq_of_pos hm,
+          end
+      ... = _ : by rw mul_pow,
+end
 
 lemma isos.sheaf_component.forward.mk_zero
   (f : A) [decidable_eq (localization.away f)] (m : ℕ) (hm : 0 < m) (f_deg : f ∈ 𝒜 m)
   (U : (opens
     ((Spec↥(degree_zero_part (λ (m : ℕ), 𝒜 m) f m f_deg)).to_SheafedSpace.to_PresheafedSpace.carrier))ᵒᵖ) :
-  isos.sheaf_component.forward.mk 𝒜 f m hm f_deg U 0 = 0 := sorry
+  isos.sheaf_component.forward.mk 𝒜 f m hm f_deg U 0 = 0 :=
+begin
+  ext1 y,
+  erw [pi.zero_apply],
+  unfold isos.sheaf_component.forward.mk,
+  erw [show (0 : structure_sheaf.localizations (degree_zero_part 𝒜 f m f_deg) y.val) =
+    localization.mk 0 1, begin
+      erw localization.mk_zero,
+    end, localization.mk_eq_mk', is_localization.eq],
+  dsimp only,
+
+  have eq1 := isos.sheaf_component.forward.hartshorne.eq_num_div_denom 𝒜 f m hm f_deg U 0 y,
+  erw isos.sheaf_component.forward.hartshorne_zero at eq1,
+  erw [show (0 : hartshorne_localisation 𝒜 ((isos.top_component 𝒜 f m hm f_deg).inv y).1).1 = 0, from rfl] at eq1,
+  erw [show (0 : localization.at_prime ((isos.top_component 𝒜 f m hm f_deg).inv y.1).1.as_homogeneous_ideal.1) =
+    localization.mk 0 1,
+      begin
+        erw localization.mk_zero,
+      end, localization.mk_eq_mk', is_localization.eq] at eq1,
+  obtain ⟨⟨c, hc1⟩, eq1⟩ := eq1,
+  erw [zero_mul, zero_mul, mul_one, ←subtype.val_eq_coe] at eq1,
+  dsimp only at eq1,
+
+  change c ∉ isos.backward.carrier 𝒜 f m hm f_deg _ at hc1,
+  change ¬(∀ i : ℕ, _ ∈ _) at hc1,
+  erw not_forall at hc1,
+  obtain ⟨j, hc1⟩ := hc1,
+  replace eq1 := eq1.symm,
+  have eq2 : graded_algebra.proj 𝒜 ((isos.sheaf_component.forward.hartshorne.i 𝒜 f m hm f_deg U 0 y) + j)
+    (isos.sheaf_component.forward.hartshorne.num 𝒜 f m hm f_deg U 0 y * c) = 0,
+  { erw [eq1, linear_map.map_zero], },
+  have eq3 : graded_algebra.proj 𝒜 ((isos.sheaf_component.forward.hartshorne.i 𝒜 f m hm f_deg U 0 y) + j)
+    (isos.sheaf_component.forward.hartshorne.num 𝒜 f m hm f_deg U 0 y * c)
+    = isos.sheaf_component.forward.hartshorne.num 𝒜 f m hm f_deg U 0 y * graded_algebra.proj 𝒜 j c,
+  { by_cases INEQ : isos.sheaf_component.forward.hartshorne.num 𝒜 f m hm f_deg U 0 y = 0,
+    rw [INEQ, zero_mul, zero_mul, linear_map.map_zero],
+
+    rw [graded_algebra.proj_apply, alg_equiv.map_mul, direct_sum.coe_mul_apply_submodule 𝒜,
+     ←graded_algebra.support, ←graded_algebra.support],
+
+    have set_eq1 : graded_algebra.support 𝒜
+      (isos.sheaf_component.forward.hartshorne.num 𝒜 f m hm f_deg U 0 y) =
+      {isos.sheaf_component.forward.hartshorne.i 𝒜 f m hm f_deg U 0 y},
+    { ext1, split; intros hx,
+      { erw graded_algebra.mem_support_iff at hx,
+        erw finset.mem_singleton,
+        contrapose hx,
+        erw [not_not, graded_algebra.proj_apply, graded_algebra.decompose_of_mem_ne],
+        apply isos.sheaf_component.forward.hartshorne.num_hom,
+        symmetry,
+        exact hx, },
+      { rw finset.mem_singleton at hx,
+        rw [hx, graded_algebra.mem_support_iff, graded_algebra.proj_apply,
+          graded_algebra.decompose_of_mem_same],
+        exact INEQ,
+        apply isos.sheaf_component.forward.hartshorne.num_hom, }, },
+    erw [set_eq1],
+    have set_eq2 : finset.filter
+          (λ z : ℕ × ℕ, z.1 + z.2 = isos.sheaf_component.forward.hartshorne.i 𝒜 f m hm f_deg U 0 y + j)
+          (finset.product
+            {isos.sheaf_component.forward.hartshorne.i 𝒜 f m hm f_deg U 0 y}
+            (graded_algebra.support 𝒜 c)) =
+      {(isos.sheaf_component.forward.hartshorne.i 𝒜 f m hm f_deg U 0 y, j)},
+    { ext1, rcases a with ⟨n1, n2⟩,
+      split; intros ha,
+      { erw finset.mem_filter at ha,
+        rcases ha with ⟨ha1, ha3⟩,
+        erw finset.mem_product at ha1,
+        rcases ha1 with ⟨ha1, ha2⟩,
+        dsimp only at ha1 ha2 ha3,
+        erw finset.mem_singleton at ha1,
+        erw finset.mem_singleton,
+        ext; dsimp only,
+        { exact ha1, },
+        { erw ha1 at ha3,
+          linarith, }, },
+      { erw [finset.mem_singleton, prod.ext_iff] at ha,
+        rcases ha with ⟨ha1, ha2⟩,
+        dsimp only at ha1 ha2,
+        erw [ha1, ha2, finset.mem_filter, finset.mem_product, finset.mem_singleton],
+        refine ⟨⟨rfl, _⟩, rfl⟩,
+        dsimp only,
+        erw graded_algebra.mem_support_iff,
+        intro rid,
+        apply hc1,
+        convert submodule.zero_mem _,
+        erw [rid, zero_pow hm, localization.mk_zero], }, },
+    erw [set_eq2, finset.sum_singleton],
+    dsimp only,
+    erw [graded_algebra.decompose_of_mem_same 𝒜, ←graded_algebra.proj_apply],
+    apply isos.sheaf_component.forward.hartshorne.num_hom, },
+    erw eq3 at eq2,
+
+  use localization.mk ((graded_algebra.proj 𝒜 j c)^m) ⟨f^j, ⟨_, rfl⟩⟩,
+  unfold isos.sheaf_component.forward.hartshorne.mk_num,
+  erw [mul_one, zero_mul, zero_mul, ←subtype.val_eq_coe, subtype.ext_iff_val,
+    show ∀ (x y : degree_zero_part 𝒜 f m f_deg), (x * y).1 = x.1 * y.1, from λ _ _, rfl,
+    show (0 : degree_zero_part 𝒜 f m f_deg).1 = 0, from rfl, localization.mk_mul],
+  dsimp only,
+  convert localization.mk_zero _,
+  exact calc isos.sheaf_component.forward.hartshorne.num 𝒜 f m hm f_deg U 0 y
+            * isos.sheaf_component.forward.hartshorne.denom 𝒜 f m hm f_deg U 0 y ^ m.pred
+            * (graded_algebra.proj 𝒜 j) c ^ m
+          = isos.sheaf_component.forward.hartshorne.num 𝒜 f m hm f_deg U 0 y
+            * isos.sheaf_component.forward.hartshorne.denom 𝒜 f m hm f_deg U 0 y ^ m.pred
+            * (graded_algebra.proj 𝒜 j) c ^ (m.pred + 1)
+          : begin
+            congr',
+            symmetry,
+            apply nat.succ_pred_eq_of_pos,
+            exact hm
+          end
+      ... = isos.sheaf_component.forward.hartshorne.num 𝒜 f m hm f_deg U 0 y
+            * isos.sheaf_component.forward.hartshorne.denom 𝒜 f m hm f_deg U 0 y ^ m.pred
+            * ((graded_algebra.proj 𝒜 j) c ^ m.pred * graded_algebra.proj 𝒜 j c)
+          : by rw [pow_add, pow_one]
+      ... = (isos.sheaf_component.forward.hartshorne.num 𝒜 f m hm f_deg U 0 y *
+              graded_algebra.proj 𝒜 j c)
+            * (isos.sheaf_component.forward.hartshorne.denom 𝒜 f m hm f_deg U 0 y ^ m.pred *
+                (graded_algebra.proj 𝒜 j) c ^ m.pred) : by ring
+      ... = 0 * (isos.sheaf_component.forward.hartshorne.denom 𝒜 f m hm f_deg U 0 y ^ m.pred *
+                (graded_algebra.proj 𝒜 j) c ^ m.pred) : by rw eq2
+      ... = 0 : by rw zero_mul,
+end
 
 lemma isos.sheaf_component.forward.mk_add
   (f : A) [decidable_eq (localization.away f)] (m : ℕ) (hm : 0 < m) (f_deg : f ∈ 𝒜 m)
@@ -2255,7 +2666,20 @@ lemma isos.sheaf_component.forward.mk_add
   (x y) :
   isos.sheaf_component.forward.mk 𝒜 f m hm f_deg U (x + y) =
   isos.sheaf_component.forward.mk 𝒜 f m hm f_deg U x +
-  isos.sheaf_component.forward.mk 𝒜 f m hm f_deg U y := sorry
+  isos.sheaf_component.forward.mk 𝒜 f m hm f_deg U y :=
+begin
+  ext1 z,
+  rw pi.add_apply,
+  unfold isos.sheaf_component.forward.mk,
+  erw [localization.add_mk],
+
+  have eq_xz := isos.sheaf_component.forward.hartshorne.eq_num_div_denom 𝒜 f m hm f_deg U x z,
+  have eq_yz := isos.sheaf_component.forward.hartshorne.eq_num_div_denom 𝒜 f m hm f_deg U y z,
+  have eq_addz := isos.sheaf_component.forward.hartshorne.eq_num_div_denom 𝒜 f m hm f_deg U (x + y) z,
+
+  -- this is going to be a long computation
+  sorry
+end
 
 lemma isos.sheaf_component.forward.mk_mul
   (f : A) [decidable_eq (localization.away f)] (m : ℕ) (hm : 0 < m) (f_deg : f ∈ 𝒜 m)
@@ -2447,19 +2871,135 @@ def degree_zero_part.num
   (x : degree_zero_part 𝒜 f m f_deg) : A :=
 classical.some $ classical.some_spec x.2
 
-def degree_zero_part.num_mem
+lemma degree_zero_part.num_mem
   {f : A} {m : ℕ} {f_deg : f ∈ 𝒜 m}
   (x : degree_zero_part 𝒜 f m f_deg) :
   degree_zero_part.num x ∈ 𝒜 (m * degree_zero_part.degree x) :=
 classical.some $ classical.some_spec $ classical.some_spec x.2
 
-def degree_zero_part.eq_num_div
+lemma degree_zero_part.eq_num_div
   {f : A} {m : ℕ} {f_deg : f ∈ 𝒜 m}
   (x : degree_zero_part 𝒜 f m f_deg) :
   x.1 = localization.mk (degree_zero_part.num x) ⟨f^(degree_zero_part.degree x), ⟨_, rfl⟩⟩ :=
 classical.some_spec $ classical.some_spec $ classical.some_spec x.2
 
 variable (𝒜)
+
+def isos.sheaf_component.backward.hartshorne_num
+  (f : A) [decidable_eq (localization.away f)] (m : ℕ) (hm : 0 < m) (f_deg : f ∈ 𝒜 m)
+  (V : (opens ((Spec (degree_zero_part 𝒜 f m f_deg)).to_SheafedSpace.to_PresheafedSpace.carrier))ᵒᵖ)
+  (hh : ((Spec (degree_zero_part (λ (m : ℕ), 𝒜 m) f m f_deg)).to_SheafedSpace.to_PresheafedSpace.presheaf.obj V))
+  (y :
+    ((@opens.open_embedding (projective_spectrum.Top 𝒜) (projective_spectrum.basic_open 𝒜 f)).is_open_map.functor.op.obj
+            ((opens.map (isos.top_component 𝒜 f m hm f_deg).hom).op.obj V)).unop) : A :=
+((degree_zero_part.num (isos.sheaf_component.backward.data_num 𝒜 f m hm f_deg V hh y)) *
+            f^(degree_zero_part.degree (isos.sheaf_component.backward.data_denom 𝒜 f m hm f_deg V hh y).1))
+
+def isos.sheaf_component.backward.hartshorne_denom
+  (f : A) [decidable_eq (localization.away f)] (m : ℕ) (hm : 0 < m) (f_deg : f ∈ 𝒜 m)
+  (V : (opens ((Spec (degree_zero_part 𝒜 f m f_deg)).to_SheafedSpace.to_PresheafedSpace.carrier))ᵒᵖ)
+  (hh : ((Spec (degree_zero_part (λ (m : ℕ), 𝒜 m) f m f_deg)).to_SheafedSpace.to_PresheafedSpace.presheaf.obj V))
+  (y :
+    ((@opens.open_embedding (projective_spectrum.Top 𝒜) (projective_spectrum.basic_open 𝒜 f)).is_open_map.functor.op.obj
+            ((opens.map (isos.top_component 𝒜 f m hm f_deg).hom).op.obj V)).unop) :
+y.1.as_homogeneous_ideal.1.prime_compl :=
+⟨(degree_zero_part.num (isos.sheaf_component.backward.data_denom 𝒜 f m hm f_deg V hh y).1)*
+  f^(degree_zero_part.degree (isos.sheaf_component.backward.data_num 𝒜 f m hm f_deg V hh y)),
+  λ rid, begin
+    rcases y.1.is_prime.mem_or_mem rid with H1 | H2,
+    { have mem1 := (isos.sheaf_component.backward.data_denom 𝒜 f m hm f_deg V hh y).2,
+      have eq1 := degree_zero_part.eq_num_div (isos.sheaf_component.backward.data_denom 𝒜 f m hm f_deg V hh y).1,
+      dsimp only at mem1,
+      change _ ∉ _ at mem1,
+      apply mem1,
+      change
+        (isos.sheaf_component.backward.data_denom 𝒜 f m hm f_deg V hh y).1 ∈
+        ((isos.forward.carrier 𝒜 f m f_deg) ⟨y.1, _⟩),
+
+      change
+        (isos.sheaf_component.backward.data_denom 𝒜 f m hm f_deg V hh y).1.1 ∈
+        (ideal.span _),
+      erw eq1,
+      convert ideal.mem_span.smul_mem _ _ _ _ _,
+      work_on_goal 3 { refine ⟨degree_zero_part.num (isos.sheaf_component.backward.data_denom 𝒜 f m hm f_deg V hh y).val, H1, rfl⟩, },
+      work_on_goal 1 { exact localization.mk 1 ⟨f^(degree_zero_part.degree (isos.sheaf_component.backward.data_denom 𝒜 f m hm f_deg V hh y).1), ⟨_, rfl⟩⟩},
+      erw [smul_eq_mul, localization.mk_mul, one_mul, mul_one], },
+    { replace H2 := y.1.is_prime.mem_of_pow_mem _ H2,
+      obtain ⟨⟨a, ha1⟩, ha2, ha3⟩ := y.2,
+      erw projective_spectrum.mem_basic_open at ha1,
+      apply ha1,
+      convert H2, }
+  end⟩
+
+def isos.sheaf_component.backward.hartshorne
+  (f : A) [decidable_eq (localization.away f)] (m : ℕ) (hm : 0 < m) (f_deg : f ∈ 𝒜 m)
+  (V : (opens ((Spec (degree_zero_part 𝒜 f m f_deg)).to_SheafedSpace.to_PresheafedSpace.carrier))ᵒᵖ)
+  (hh : ((Spec (degree_zero_part (λ (m : ℕ), 𝒜 m) f m f_deg)).to_SheafedSpace.to_PresheafedSpace.presheaf.obj V))
+  (y :
+    ((@opens.open_embedding (projective_spectrum.Top 𝒜) (projective_spectrum.basic_open 𝒜 f)).is_open_map.functor.op.obj
+            ((opens.map (isos.top_component 𝒜 f m hm f_deg).hom).op.obj V)).unop) :
+  hartshorne_localisation 𝒜 y.1 :=
+⟨localization.mk (isos.sheaf_component.backward.hartshorne_num 𝒜 f m hm f_deg V hh y)
+  (isos.sheaf_component.backward.hartshorne_denom 𝒜 f m hm f_deg V hh y),
+  ⟨projective_spectrum.structure_sheaf.hl.condition.mk
+    (isos.sheaf_component.backward.hartshorne_num 𝒜 f m hm f_deg V hh y)
+    (isos.sheaf_component.backward.hartshorne_denom 𝒜 f m hm f_deg V hh y).1
+    (isos.sheaf_component.backward.hartshorne_denom 𝒜 f m hm f_deg V hh y).2
+    (m * (degree_zero_part.degree (isos.sheaf_component.backward.data_num 𝒜 f m hm f_deg V hh y))
+    + m * (degree_zero_part.degree (isos.sheaf_component.backward.data_denom 𝒜 f m hm f_deg V hh y).1))
+    begin
+      apply set_like.graded_monoid.mul_mem,
+      apply degree_zero_part.num_mem,
+      rw mul_comm,
+      apply set_like.graded_monoid.pow_deg 𝒜 f_deg,
+    end begin
+      change _ * _ ∈ _,
+      conv_lhs { rw mul_comm },
+      apply set_like.graded_monoid.mul_mem,
+      rw mul_comm,
+      apply set_like.graded_monoid.pow_deg 𝒜 f_deg,
+      apply degree_zero_part.num_mem,
+    end, rfl⟩⟩
+
+def isos.sheaf_component.backward.mk
+  (f : A) [decidable_eq (localization.away f)] (m : ℕ) (hm : 0 < m) (f_deg : f ∈ 𝒜 m)
+  (V : (opens ((Spec (degree_zero_part 𝒜 f m f_deg)).to_SheafedSpace.to_PresheafedSpace.carrier))ᵒᵖ)
+  (hh : ((Spec (degree_zero_part (λ (m : ℕ), 𝒜 m) f m f_deg)).to_SheafedSpace.to_PresheafedSpace.presheaf.obj V)) :
+  Π (y :
+    ((@opens.open_embedding (projective_spectrum.Top 𝒜) (projective_spectrum.basic_open 𝒜 f)).is_open_map.functor.op.obj
+            ((opens.map (isos.top_component 𝒜 f m hm f_deg).hom).op.obj V)).unop), hartshorne_localisation 𝒜 y.1 :=
+λ y, isos.sheaf_component.backward.hartshorne 𝒜 f m hm f_deg V hh y
+
+lemma isos.sheaf_component.backward.mk_one
+  (f : A) [decidable_eq (localization.away f)] (m : ℕ) (hm : 0 < m) (f_deg : f ∈ 𝒜 m)
+  (V : (opens ((Spec (degree_zero_part 𝒜 f m f_deg)).to_SheafedSpace.to_PresheafedSpace.carrier))ᵒᵖ) :
+  isos.sheaf_component.backward.mk 𝒜 f m hm f_deg V 1 = 1 := sorry
+
+lemma isos.sheaf_component.backward.mk_zero
+  (f : A) [decidable_eq (localization.away f)] (m : ℕ) (hm : 0 < m) (f_deg : f ∈ 𝒜 m)
+  (V : (opens ((Spec (degree_zero_part 𝒜 f m f_deg)).to_SheafedSpace.to_PresheafedSpace.carrier))ᵒᵖ) :
+  isos.sheaf_component.backward.mk 𝒜 f m hm f_deg V 0 = 0 := sorry
+
+lemma isos.sheaf_component.backward.mk_add
+  (f : A) [decidable_eq (localization.away f)] (m : ℕ) (hm : 0 < m) (f_deg : f ∈ 𝒜 m)
+  (V : (opens ((Spec (degree_zero_part 𝒜 f m f_deg)).to_SheafedSpace.to_PresheafedSpace.carrier))ᵒᵖ) :
+  ∀ x y, isos.sheaf_component.backward.mk 𝒜 f m hm f_deg V (x + y) =
+    isos.sheaf_component.backward.mk 𝒜 f m hm f_deg V x +
+    isos.sheaf_component.backward.mk 𝒜 f m hm f_deg V y := sorry
+
+lemma isos.sheaf_component.backward.mk_mul
+  (f : A) [decidable_eq (localization.away f)] (m : ℕ) (hm : 0 < m) (f_deg : f ∈ 𝒜 m)
+  (V : (opens ((Spec (degree_zero_part 𝒜 f m f_deg)).to_SheafedSpace.to_PresheafedSpace.carrier))ᵒᵖ) :
+  ∀ x y, isos.sheaf_component.backward.mk 𝒜 f m hm f_deg V (x * y) =
+    isos.sheaf_component.backward.mk 𝒜 f m hm f_deg V x *
+    isos.sheaf_component.backward.mk 𝒜 f m hm f_deg V y := sorry
+
+lemma isos.sheaf_component.backward.mk_is_locally_quotient
+  (f : A) [decidable_eq (localization.away f)] (m : ℕ) (hm : 0 < m) (f_deg : f ∈ 𝒜 m)
+  (V : (opens ((Spec (degree_zero_part 𝒜 f m f_deg)).to_SheafedSpace.to_PresheafedSpace.carrier))ᵒᵖ)
+  (hh : ((Spec (degree_zero_part (λ (m : ℕ), 𝒜 m) f m f_deg)).to_SheafedSpace.to_PresheafedSpace.presheaf.obj V)) :
+  (is_locally_fraction 𝒜).to_prelocal_predicate.pred (isos.sheaf_component.backward.mk 𝒜 f m hm f_deg V hh) :=
+sorry
 
 def isos.sheaf_component.backward
   (f : A) [decidable_eq (localization.away f)] (m : ℕ) (hm : 0 < m) (f_deg : f ∈ 𝒜 m) :
@@ -2468,28 +3008,28 @@ def isos.sheaf_component.backward
     (Proj .restrict (@opens.open_embedding (projective_spectrum.Top 𝒜)
     (projective_spectrum.basic_open 𝒜 f))).to_SheafedSpace.to_PresheafedSpace.presheaf :=
 { app := λ V,
-    { to_fun := λ hh, ⟨λ y,
-        ⟨localization.mk
-          -- a / f^i, b / f^j
-          -- (degree_zero_part.num (isos.sheaf_component.backward.data_num 𝒜 f m hm f_deg V hh y)), -- a
-          -- (degree_zero_part.degree (isos.sheaf_component.backward.data_num 𝒜 f m hm f_deg V hh y)), -- i
-          -- (degree_zero_part.num (isos.sheaf_component.backward.data_denom 𝒜 f m hm f_deg V hh y).1), -- b
-          -- (degree_zero_part.degree (isos.sheaf_component.backward.data_denom 𝒜 f m hm f_deg V hh y).1), -- j
-
-          -- a f^j
-          ((degree_zero_part.num (isos.sheaf_component.backward.data_num 𝒜 f m hm f_deg V hh y)) *
-            f^(degree_zero_part.degree (isos.sheaf_component.backward.data_denom 𝒜 f m hm f_deg V hh y).1))
-
-          -- b f^i
-          ⟨(degree_zero_part.num (isos.sheaf_component.backward.data_denom 𝒜 f m hm f_deg V hh y).1)*
-            f^(degree_zero_part.degree (isos.sheaf_component.backward.data_num 𝒜 f m hm f_deg V hh y)),
-          sorry⟩,
-          ⟨projective_spectrum.structure_sheaf.hl.condition.mk
-            sorry sorry sorry sorry sorry sorry, sorry⟩⟩, sorry⟩,
-      map_one' := sorry,
-      map_mul' := sorry,
-      map_zero' := sorry,
-      map_add' := sorry },
+    { to_fun := λ hh, ⟨isos.sheaf_component.backward.mk 𝒜 f m hm f_deg V hh,
+        isos.sheaf_component.backward.mk_is_locally_quotient 𝒜 f m hm f_deg V hh⟩,
+      map_one' := begin
+        erw [subtype.ext_iff_val],
+        dsimp only,
+        convert isos.sheaf_component.backward.mk_one 𝒜 f m hm f_deg V,
+      end,
+      map_mul' := λ x y, begin
+        erw subtype.ext_iff_val,
+        dsimp only,
+        convert isos.sheaf_component.backward.mk_mul 𝒜 f m hm f_deg V x y,
+      end,
+      map_zero' := begin
+        erw [subtype.ext_iff_val],
+        dsimp only,
+        convert isos.sheaf_component.backward.mk_zero 𝒜 f m hm f_deg V,
+      end,
+      map_add' := λ x y, begin
+        erw subtype.ext_iff_val,
+        dsimp only,
+        convert isos.sheaf_component.backward.mk_add 𝒜 f m hm f_deg V x y,
+      end },
   naturality' := sorry, }
 
 def isos.sheaf_component (f : A) [decidable_eq (localization.away f)] (m : ℕ) (hm : 0 < m) (f_deg : f ∈ 𝒜 m) :
@@ -2499,8 +3039,19 @@ def isos.sheaf_component (f : A) [decidable_eq (localization.away f)] (m : ℕ) 
   (Spec degree_zero_part (λ (m : ℕ), 𝒜 m) f m f_deg).to_SheafedSpace.to_PresheafedSpace.presheaf :=
 { hom := isos.sheaf_component.forward 𝒜 f m hm f_deg,
   inv := isos.sheaf_component.backward 𝒜 f m hm f_deg,
-  hom_inv_id' := sorry,
-  inv_hom_id' := sorry, }
+  hom_inv_id' := begin
+    ext1,
+    ext1 V,
+    ext1 y,
+    erw [nat_trans.comp_app, nat_trans.id_app, comp_apply, id_apply],
+    sorry
+  end,
+  inv_hom_id' := begin
+    ext1, ext1 V, ext1 y,
+    erw [nat_trans.comp_app, nat_trans.id_app, comp_apply, id_apply],
+
+    sorry
+  end, }
 
 def isos (f : A) [decidable_eq (localization.away f)] (m : ℕ) (hm : 0 < m) (f_deg : f ∈ 𝒜 m) :
   Proj .restrict (@opens.open_embedding (projective_spectrum.Top 𝒜)

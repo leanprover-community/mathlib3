@@ -325,7 +325,7 @@ lemma function.injective.lie_algebra_is_nilpotent [h₁ : is_nilpotent R L'] {f 
   (h₂ : function.injective f) : is_nilpotent R L :=
 { nilpotent :=
   begin
-    tactic.unfreeze_local_instances, obtain ⟨k, hk⟩ := h₁,
+    obtain ⟨k, hk⟩ := id h₁,
     use k,
     apply lie_ideal.bot_of_map_eq_bot h₂, rw [eq_bot_iff, ← hk],
     apply lie_ideal.map_lower_central_series_le,
@@ -335,7 +335,7 @@ lemma function.surjective.lie_algebra_is_nilpotent [h₁ : is_nilpotent R L] {f 
   (h₂ : function.surjective f) : is_nilpotent R L' :=
 { nilpotent :=
   begin
-    tactic.unfreeze_local_instances, obtain ⟨k, hk⟩ := h₁,
+    obtain ⟨k, hk⟩ := id h₁,
     use k,
     rw [← lie_ideal.lower_central_series_map_eq k h₂, hk],
     simp only [lie_ideal.map_eq_bot_iff, bot_le],

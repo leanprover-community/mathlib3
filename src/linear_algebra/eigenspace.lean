@@ -98,6 +98,11 @@ begin
   rw [hv.apply_eq_smul, sub_self]
 end
 
+lemma has_eigenvalue_iff_mem_spectrum [finite_dimensional K V] {f : End K V} {μ : K} :
+  f.has_eigenvalue μ ↔ μ ∈ spectrum K f :=
+iff.intro mem_spectrum_of_has_eigenvalue
+  (λ h, by rwa [spectrum.mem_iff, is_unit.sub_iff, linear_map.is_unit_iff_ker_eq_bot] at h)
+
 lemma eigenspace_div (f : End K V) (a b : K) (hb : b ≠ 0) :
   eigenspace f (a / b) = (b • f - algebra_map K (End K V) a).ker :=
 calc
@@ -200,12 +205,8 @@ end minpoly
 -- This is Lemma 5.21 of [axler2015], although we are no longer following that proof.
 lemma exists_eigenvalue [is_alg_closed K] [finite_dimensional K V] [nontrivial V] (f : End K V) :
   ∃ (c : K), f.has_eigenvalue c :=
-begin
-  obtain ⟨c, nu⟩ := spectrum.nonempty_of_is_alg_closed_of_finite_dimensional K f,
-  use c,
-  rw [spectrum.mem_iff, is_unit.sub_iff, linear_map.is_unit_iff_ker_eq_bot] at nu,
-  exact has_eigenvalue_of_has_eigenvector (submodule.exists_mem_ne_zero_of_ne_bot nu).some_spec,
-end
+by { simp_rw has_eigenvalue_iff_mem_spectrum,
+     exact spectrum.nonempty_of_is_alg_closed_of_finite_dimensional K f }
 
 noncomputable instance [is_alg_closed K] [finite_dimensional K V] [nontrivial V] (f : End K V) :
   inhabited f.eigenvalues :=
@@ -464,7 +465,7 @@ begin
   { rw [pow_zero, pow_zero, linear_map.one_eq_id],
     apply (submodule.ker_subtype _).symm },
   { erw [pow_succ', pow_succ', linear_map.ker_comp, linear_map.ker_comp, ih,
-      ← linear_map.ker_comp, ← linear_map.ker_comp, linear_map.comp_assoc] },
+      ← linear_map.ker_comp, linear_map.comp_assoc] },
 end
 
 /-- If `p` is an invariant submodule of an endomorphism `f`, then the `μ`-eigenspace of the

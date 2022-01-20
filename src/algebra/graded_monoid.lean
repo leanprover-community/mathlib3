@@ -90,7 +90,7 @@ def graded_monoid (A : ι → Type*) := sigma A
 
 namespace graded_monoid
 
-instance {A : ι → Type*} [inhabited ι] [inhabited (A (default ι))]: inhabited (graded_monoid A) :=
+instance {A : ι → Type*} [inhabited ι] [inhabited (A default)]: inhabited (graded_monoid A) :=
 sigma.inhabited
 
 /-- Construct an element of a graded monoid. -/

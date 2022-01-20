@@ -29,7 +29,7 @@ Linear algebra:
     finite-dimensionality : 'finite_dimensional'
     isomorphism with $K^n$: 'basis.equiv_fun'
     rank of a linear map: 'rank'
-    rank of a set of vectors: 'https://encyclopediaofmath.org/wiki/Rank'
+    rank of a set of vectors: 'set.finrank'
     rank of a system of linear equations: 'https://www.math.tamu.edu/~fnarc/psfiles/rank2005.pdf'
     isomorphism with bidual: 'module.eval_equiv'
   Multilinearity:
@@ -232,7 +232,7 @@ Bilinear and Quadratic Forms Over a Vector Space:
     polar decompositions in $\mathrm{GL}(n, \R)$: 'https://en.wikipedia.org/wiki/Polar_decomposition'
     polar decompositions in $\mathrm{GL}(n, \C)$: 'https://en.wikipedia.org/wiki/Polar_decomposition'
   Low dimensions:
-    cross product: 'https://en.wikipedia.org/wiki/Cross_product'
+    cross product: 'cross_product'
     triple product: 'https://en.wikipedia.org/wiki/Triple_product'
     classification of elements of $\mathrm{O}(2, \R)$: ''
     classification of elements of $\mathrm{O}(3, \R)$: ''
@@ -411,9 +411,9 @@ Topology:
     complete metric spaces: 'metric.complete_of_cauchy_seq_tendsto'
     contraction mapping theorem: 'contracting_with.exists_fixed_point'
   Normed vector spaces on $\R$ and $\C$:
-    topology on a normed vector space: 'semi_normed_space.has_bounded_smul'
+    topology on a normed vector space: 'normed_space.has_bounded_smul'
     equivalent norms: ''
-    Banach open mapping theorem: 'open_mapping'
+    Banach open mapping theorem: 'continuous_linear_map.is_open_map'
     equivalence of norms in finite dimension: 'linear_equiv.to_continuous_linear_equiv'
     norms $\lVert\cdot\rVert_p$ on $\R^n$ and $\C^n$: 'pi_Lp.normed_space'
     absolutely convergent series in Banach spaces: 'summable_of_summable_norm'
@@ -427,16 +427,18 @@ Topology:
     Arzela-Ascoli theorem: 'bounded_continuous_function.arzela_ascoli'
   Hilbert spaces:
     Hilbert projection theorem: 'exists_norm_eq_infi_of_complete_convex'
-    orthogonal projection onto closed vector subspaces: 'orthogonal_projection_fn'
+    orthogonal projection onto closed vector subspaces: 'orthogonal_projection'
     dual space: 'normed_space.dual.normed_space'
     Riesz representation theorem: 'inner_product_space.to_dual'
-    inner product spaces $l^2$ and $L^2$: 'measure_theory.L2.inner_product_space'
-    their completeness: 'measure_theory.Lp.complete_space'
-    Hilbert bases, i.e. complete orthonormal sets (in the separable case): 'exists_is_orthonormal_dense_span'
+    inner product space $l^2$: 'lp.inner_product_space'
+    its completeness: 'lp.complete_space'
+    inner product space $L^2$: 'measure_theory.L2.inner_product_space'
+    its completeness: 'measure_theory.Lp.complete_space'
+    Hilbert bases: 'hilbert_basis' # the document specifies "in the separable case" but we don't require this
     example, the Hilbert basis of trigonometric polynomials: 'fourier_Lp'
     its orthonormality: 'orthonormal_fourier'
     its completeness: 'span_fourier_Lp_closure_eq_top'
-    example, classical Hilbert bases of orthogonal polynomials, their orthonormality and completeness: ''
+    example, classical Hilbert bases of orthogonal polynomials: ''
     Lax-Milgram theorem: ''
     $H^1_0([0,1])$ and its application to the one-dimensional Dirichlet problem: ''
 

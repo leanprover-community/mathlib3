@@ -41,6 +41,10 @@ lemma eq_of_related (hs : is_antichain r s) {a b : α} (ha : a ∈ s) (hb : b �
   a = b :=
 of_not_not $ λ hab, hs ha hb hab h
 
+lemma eq_of_related' (hs : is_antichain r s) {a b : α} (ha : a ∈ s) (hb : b ∈ s) (h : r b a) :
+  a = b :=
+(hs.eq_of_related hb ha h).symm
+
 protected lemma is_antisymm (h : is_antichain r univ) : is_antisymm α r :=
 ⟨λ a b ha _, h.eq_of_related trivial trivial ha⟩
 
@@ -88,26 +92,41 @@ lemma insert_of_symmetric (hs : is_antichain r s) (hr : symmetric r)
   is_antichain r (insert a s) :=
 (is_antichain_insert_of_symmetric hr).2 ⟨hs, h⟩
 
-/-- Turns a set into an antichain by keeping only the "maximal" elements. -/
-protected def mk (r : α → α → Prop) (s : set α) : set α := {a ∈ s | ∀ ⦃b⦄, b ∈ s → r a b → a = b}
-
-lemma mk_is_antichain (r : α → α → Prop) (s : set α) : is_antichain r (is_antichain.mk r s) :=
-λ a ha b hb hab h, hab $ ha.2 hb.1 h
-
-lemma mk_subset : is_antichain.mk r s ⊆ s := sep_subset _ _
-
-/-- If `is_antichain.mk r s` is included in but *shadows* the antichain `t`, then it is actually
-equal to `t`. -/
-lemma mk_max (ht : is_antichain r t) (h : is_antichain.mk r s ⊆ t)
-  (hs : ∀ ⦃a⦄, a ∈ t → ∃ b ∈ is_antichain.mk r s, r a b) :
-  t = is_antichain.mk r s :=
-begin
-  refine subset.antisymm (λ a ha, _) h,
-  obtain ⟨b, hb, hr⟩ := hs ha,
-  rwa of_not_not (λ hab, ht ha (h hb) hab hr),
-end
-
 end is_antichain
 
-lemma set.subsingleton.is_antichain (hs : s.subsingleton) (r : α → α → Prop): is_antichain r s :=
+lemma is_antichain_singleton (a : α) (r : α → α → Prop) : is_antichain r {a} :=
+pairwise_singleton _ _
+
+lemma set.subsingleton.is_antichain (hs : s.subsingleton) (r : α → α → Prop) : is_antichain r s :=
 hs.pairwise _
+
+section preorder
+variables [preorder α]
+
+lemma is_antichain_and_least_iff : is_antichain (≤) s ∧ is_least s a ↔ s = {a} :=
+⟨λ h, eq_singleton_iff_unique_mem.2 ⟨h.2.1, λ b hb, h.1.eq_of_related' hb h.2.1 (h.2.2 hb)⟩,
+  by { rintro rfl, exact ⟨is_antichain_singleton _ _, is_least_singleton⟩ }⟩
+
+lemma is_antichain_and_greatest_iff : is_antichain (≤) s ∧ is_greatest s a ↔ s = {a} :=
+⟨λ h, eq_singleton_iff_unique_mem.2 ⟨h.2.1, λ b hb, h.1.eq_of_related hb h.2.1 (h.2.2 hb)⟩,
+  by { rintro rfl, exact ⟨is_antichain_singleton _ _, is_greatest_singleton⟩ }⟩
+
+lemma is_antichain.least_iff (hs : is_antichain (≤) s) : is_least s a ↔ s = {a} :=
+(and_iff_right hs).symm.trans is_antichain_and_least_iff
+
+lemma is_antichain.greatest_iff (hs : is_antichain (≤) s) : is_greatest s a ↔ s = {a} :=
+(and_iff_right hs).symm.trans is_antichain_and_greatest_iff
+
+lemma is_least.antichain_iff (hs : is_least s a) : is_antichain (≤) s ↔ s = {a} :=
+(and_iff_left hs).symm.trans is_antichain_and_least_iff
+
+lemma is_greatest.antichain_iff (hs : is_greatest s a) : is_antichain (≤) s ↔ s = {a} :=
+(and_iff_left hs).symm.trans is_antichain_and_greatest_iff
+
+lemma is_antichain.bot_mem_iff [order_bot α] (hs : is_antichain (≤) s) : ⊥ ∈ s ↔ s = {⊥} :=
+is_least_bot_iff.symm.trans hs.least_iff
+
+lemma is_antichain.top_mem_iff [order_top α] (hs : is_antichain (≤) s) : ⊤ ∈ s ↔ s = {⊤} :=
+is_greatest_top_iff.symm.trans hs.greatest_iff
+
+end preorder

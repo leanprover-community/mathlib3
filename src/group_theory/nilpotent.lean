@@ -7,6 +7,7 @@ Authors: Kevin Buzzard, Ines Wright
 import group_theory.general_commutator
 import group_theory.quotient_group
 import group_theory.solvable
+import group_theory.sylow
 
 /-!
 
@@ -411,12 +412,25 @@ begin
     exact ⟨x3, (hd (mem_map.mpr ⟨x3, hx3, rfl⟩)), x4, by simp⟩ }
 end
 
+/-- A subgroup of a nilpotent group is nilpotent -/
 instance subgroup.is_nilpotent (H : subgroup G) [hG : is_nilpotent G] :
   is_nilpotent H :=
 begin
   rw nilpotent_iff_lower_central_series at *,
   rcases hG with ⟨n, hG⟩,
   use n,
+  have := lower_central_series_map_subtype_le H n,
+  simp only [hG, set_like.le_def, mem_map, forall_apply_eq_imp_iff₂, exists_imp_distrib] at this,
+  exact eq_bot_iff.mpr (λ x hx, subtype.ext (this x hx)),
+end
+
+/-- A the nilpotency class of a subgroup is less or equal the the nilpotency class of the group -/
+lemma subgroup.nilpotency_class_le (H : subgroup G) [hG : is_nilpotent G] :
+  group.nilpotency_class H ≤ group.nilpotency_class G :=
+begin
+  repeat { rw ← lower_central_series_length_eq_nilpotency_class },
+  apply nat.find_mono,
+  intros n hG,
   have := lower_central_series_map_subtype_le H n,
   simp only [hG, set_like.le_def, mem_map, forall_apply_eq_imp_iff₂, exists_imp_distrib] at this,
   exact eq_bot_iff.mpr (λ x hx, subtype.ext (this x hx)),
@@ -460,19 +474,86 @@ begin
   exact mem_center_iff.mp (h hy1) z,
 end
 
+/-- The preimage of a nilpotent group is nilpotent if the kernel of the homomorphism is contained
+in the center -/
 lemma is_nilpotent_of_ker_le_center {H : Type*} [group H] {f : G →* H}
   (hf1 : f.ker ≤ center G) (hH : is_nilpotent H) : is_nilpotent G :=
 begin
   rw nilpotent_iff_lower_central_series at *,
   rcases hH with ⟨n, hn⟩,
-  refine ⟨n + 1, lower_central_series_succ_eq_bot
-    (le_trans ((map_eq_bot_iff _).mp _) hf1)⟩,
+  use (n + 1),
+  refine lower_central_series_succ_eq_bot (le_trans ((map_eq_bot_iff _).mp _) hf1),
   exact eq_bot_iff.mpr (hn ▸ (lower_central_series.map f n)),
 end
+
+section classical
+
+open_locale classical
+
+lemma nilpotency_class_le_of_ker_le_center {H : Type*} [group H] {f : G →* H}
+  (hf1 : f.ker ≤ center G) (hH : is_nilpotent H) :
+  @group.nilpotency_class G _ (is_nilpotent_of_ker_le_center hf1 hH) ≤
+    group.nilpotency_class H + 1 :=
+begin
+  repeat { rw ← lower_central_series_length_eq_nilpotency_class },
+  apply nat.find_min',
+  have hn := nat.find_spec (nilpotent_iff_lower_central_series.mp hH),
+  refine lower_central_series_succ_eq_bot (le_trans ((map_eq_bot_iff _).mp _) hf1),
+  apply eq_bot_iff.mpr,
+  apply (le_trans (lower_central_series.map f _)),
+  rw hn,
+  exact (le_refl _),
+end
+
+end classical
+
+lemma subgroup.map_top_eq_range
+  {G H : Type*} [group G] [group H] (f : G →* H) :
+  subgroup.map f ⊤ = monoid_hom.range f := by { ext, simp }
+
+lemma range_eq_top_of_surjective
+  {G H : Type*} [group G] [group H] {f : G →* H} (hf : function.surjective f) :
+  f.range = ⊤ := by { ext, simp, apply hf }
+
+lemma nilpotent_of_surjective
+  {G' : Type*} [group G'] {f : G →* G'} (hf : function.surjective f) [h : is_nilpotent G] :
+  is_nilpotent G' :=
+begin
+  unfreezingI { rcases h with ⟨n, hn⟩ },
+  use n,
+  apply eq_top_iff.mpr,
+  calc ⊤ = f.range : by rw (range_eq_top_of_surjective hf)
+    ... = subgroup.map f ⊤ : by rw (subgroup.map_top_eq_range f)
+    ... = subgroup.map f (upper_central_series G n) : by rw hn
+    ... ≤ upper_central_series G' n : upper_central_series.map hf n,
+end
+
+lemma nilpotency_class_le_of_surjective
+  {G' : Type*} [group G'] {f : G →* G'} (hf : function.surjective f) [h : is_nilpotent G] :
+  @group.nilpotency_class G' _ (nilpotent_of_surjective hf) ≤
+    group.nilpotency_class G :=
+begin
+  apply nat.find_mono,
+  intros n hn,
+  apply eq_top_iff.mpr,
+  calc ⊤ = f.range : by rw (range_eq_top_of_surjective hf)
+    ... = subgroup.map f ⊤ : by rw (subgroup.map_top_eq_range f)
+    ... = subgroup.map f (upper_central_series G n) : by rw hn
+    ... ≤ upper_central_series G' n : upper_central_series.map hf n,
+end
+
+instance nilpotent_quotient_of_nilpotent (H : subgroup G) [H.normal] [h : is_nilpotent G] :
+  is_nilpotent (G ⧸ H) :=
+ nilpotent_of_surjective (show function.surjective (quotient_group.mk' H), by tidy)
+
+lemma nilpotency_class_quotient_le (H : subgroup G) [H.normal] [h : is_nilpotent G] :
+  group.nilpotency_class (G ⧸ H) ≤ group.nilpotency_class G := nilpotency_class_le_of_surjective _
+
 
 lemma derived_le_lower_central (n : ℕ) : derived_series G n ≤ lower_central_series G n :=
 by { induction n with i ih, { simp }, { apply general_commutator_mono ih, simp } }
 
+/-- A nilpotent subgroup is solvable -/
 @[priority 100]
 instance is_nilpotent.to_is_solvable [h : is_nilpotent G]: is_solvable G :=
 begin
@@ -482,3 +563,116 @@ begin
   calc derived_series G n ≤ lower_central_series G n : derived_le_lower_central n
     ... = ⊥ : hn
 end
+
+section finite
+
+open subgroup
+
+-- TODO: Move to subgroup.lean
+def subgroup.is_proper (H : subgroup G) := H ≠ ⊤
+
+/-- A subgroup is maximal if it is a proper subgroup that is not contained in
+anyother proper subgroup -/
+def subgroup.is_maximal (H : subgroup G) :=
+  H.is_proper ∧ (∀ H' : subgroup G, H < H' → H'.is_proper → H' = H)
+
+variable (G)
+
+-- Maybe be explicit which implications need this assumption
+--  variables [fintype G]
+
+/-- Every proper subgroup `H` of `G` is a proper normal subgroup of the normalizer of `H` in `G`. -/
+def normalizer_condition :=
+  ∀ (H : subgroup G), H.is_proper → H ≠ normalizer H
+
+/-- Alternative phrasing of the normalizer condition: Only the full group is self-normalizing -/
+def normalizer_condition' :=
+  ∀ (H : subgroup G), H.normalizer = H → H = ⊤
+
+/-- Every Sylow group is normal --/
+def sylow_group_normal :=
+  ∀ p, ∀ H : subgroup G, sylow p G → H.normal
+
+/-- All maximal subgroups are normal --/
+def all_maximal_subgroups_normal :=
+  ∀ p, ∀ H : subgroup G, sylow p G → H.is_maximal
+
+/-
+lemma nilpotency_class_induction (P : Type* → Prop)
+  (habel : ∀ G, ∀ [comm_group G], P G)
+  (hstep : ∀ G, ∀ [hG : group G] [hGn : @is_nilpotent G hG],
+    (∀ G' [hG' : group G'], ∀ [hG'n : @is_nilpotent G' hG'],
+      @group.nilpotency_class G' hG' hG'n < @group.nilpotency_class G hG hGn -> P G))
+  [is_nilpotent G] :
+  P G :=
+begin
+
+end
+-/
+
+lemma _root_.subgroup.center_le_normalizer {G : Type*} [group G] (H : subgroup G) : center G ≤ H.normalizer :=
+begin
+  intros x hx,
+  rewrite mem_center_iff at hx,
+  intros y,
+  specialize (hx y),
+  rw ← hx,
+  rw mul_assoc,
+  simp,
+end
+
+-- NB: Does not need G to be finite
+lemma normalizer_condition'_of_is_nilpotent : is_nilpotent G → normalizer_condition' G :=
+begin
+  -- following https://groupprops.subwiki.org/wiki/Nilpotent_implies_normalizer_condition
+  introI hnp,
+  obtain ⟨n, h⟩ : ∃ n, group.nilpotency_class G = n := ⟨ _, rfl⟩,
+  unfreezingI { induction n using nat.strong_rec' with n ih generalizing G},
+  {
+    intros H hH,
+    subst h,
+
+    -- Do abelian G first?
+
+    by_cases hch : center G ≤ H,
+    {
+      have hn : group.nilpotency_class (G ⧸ center G) < group.nilpotency_class G :=
+      sorry,
+
+      specialize ih _ hn (G ⧸ center G) _ rfl,
+
+      let H' := H.map (mk' (center G)),
+
+      have hH' : H'.normalizer = H' :=
+      begin
+        apply (@comap_injective G _ _ _ (mk' (center G)) (surjective_quot_mk _)),
+        rw comap_normalizer_eq_of_surjective,
+        show function.surjective _, exact (surjective_quot_mk _),
+        rw comap_map_eq_self,
+        show (_ ≤ H), simp, exact hch,
+        exact hH,
+      end,
+
+      specialize ih (H.map (mk' (center G))) hH',
+
+      show H = ⊤,
+      begin -- this needs to be prettier…
+        rw eq_top_iff' at *,
+        intro x,
+        specialize ih (mk' (center G) x),
+        simp at *,
+        rcases ih with ⟨x', hx, heq⟩,
+        rw eq_iff_div_mem at heq,
+        rw div_mem_comm_iff at heq,
+        have := mul_mem H (hch heq) hx,
+        simp at this,
+        assumption,
+      end
+    },
+    { exfalso, apply hch,
+      calc center G ≤ H.normalizer : H.center_le_normalizer
+                ... = H : hH, }
+  },
+end
+
+end finite

@@ -70,7 +70,7 @@ begin
   have hz: z ∈ (upper_half_space_slice A B), by {apply hball, simp  [hε .le],},
   have hu:= (Eisen_partial_tends_to_uniformly k h A B hA hB),
   have hu2:
-    tendsto_uniformly_on (Eisen_par_sum_slice k A B ) (Eisenstein_series_restrict k A B hB)
+    tendsto_uniformly_on (Eisen_par_sum_slice k A B ) (Eisenstein_series_restrict k A B)
     filter.at_top (metric.closed_ball ⟨z, hz⟩ ε), by {apply hu.tendsto_uniformly_on},
   clear hu,
   simp_rw Eisenstein_series_restrict at *,

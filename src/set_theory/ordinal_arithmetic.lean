@@ -1160,7 +1160,7 @@ theorem lsub_eq_blsub {ι} (f : ι → ordinal) : lsub f = blsub _ (bfamily_of_f
 sup_eq_bsup _
 
 theorem blsub_le_iff_lt {o f a} : blsub o f ≤ a ↔ ∀ i h, f i h < a :=
-by { convert bsup_le, apply propext, simp [succ_le] }
+by { convert bsup_le, simp only [succ_le] }
 
 theorem lt_blsub {o} (f : Π a < o, ordinal) (i h) : f i h < blsub o f :=
 blsub_le_iff_lt.1 (le_refl _) _ _
@@ -1185,10 +1185,7 @@ end
 
 theorem bsup_succ_eq_blsub {o} (f : Π a < o, ordinal) :
   (bsup o f).succ = blsub o f ↔ ∃ i hi, f i hi = bsup o f :=
-begin
-  rw iff.intro le_of_eq (λ h, le_antisymm h (blsub_le_bsup_succ f)),
-  exact bsup_succ_le_blsub f
-end
+(blsub_le_bsup_succ f).le_iff_eq.symm.trans (bsup_succ_le_blsub f)
 
 theorem bsup_eq_blsub {o} (f : Π a < o, ordinal) :
   bsup o f = blsub o f ↔ ∀ a < blsub o f, succ a < blsub o f :=

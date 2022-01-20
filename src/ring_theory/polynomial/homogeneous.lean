@@ -292,8 +292,8 @@ end
 
 @[simp]
 lemma to_homogeneous_components_X [comm_semiring R] (d : σ) :
-  to_homogeneous_components (mv_polynomial.X d : mv_polynomial σ R) =
-    direct_sum.of (λ i, homogeneous_submodule σ R i) 1 ⟨mv_polynomial.X d, is_homogeneous_X _ _⟩ :=
+  to_homogeneous_components (X d : mv_polynomial σ R) =
+    direct_sum.of (λ i, homogeneous_submodule σ R i) 1 ⟨X d, is_homogeneous_X _ _⟩ :=
 (to_homogeneous_components_monomial_one _).trans $
   dfinsupp.single_eq_of_sigma_eq $ sigma.subtype_ext (finsupp.sum_single_index rfl) rfl
 

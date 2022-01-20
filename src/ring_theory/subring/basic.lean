@@ -474,7 +474,7 @@ instance : has_Inf (subring R) :=
 @[simp, norm_cast] lemma coe_Inf (S : set (subring R)) :
   ((Inf S : subring R) : set R) = ⋂ s ∈ S, ↑s := rfl
 
-lemma mem_Inf {S : set (subring R)} {x : R} : x ∈ Inf S ↔ ∀ p ∈ S, x ∈ p := set.mem_bInter_iff
+lemma mem_Inf {S : set (subring R)} {x : R} : x ∈ Inf S ↔ ∀ p ∈ S, x ∈ p := set.mem_Inter₂
 
 @[simp] lemma Inf_to_submonoid (s : set (subring R)) :
   (Inf s).to_submonoid = ⨅ t ∈ s, subring.to_submonoid t := mk'_to_submonoid _ _
@@ -678,15 +678,15 @@ lemma comap_infi {ι : Sort*} (f : R →+* S) (s : ι → subring S) :
 @[simp] lemma comap_top (f : R →+* S) : (⊤ : subring S).comap f = ⊤ :=
 (gc_map_comap f).u_top
 
-/-- Given `subring`s `s`, `t` of rings `R`, `S` respectively, `s.prod t` is `s × t`
+/-- Given `subring`s `s`, `t` of rings `R`, `S` respectively, `s.prod t` is `s ×̂ t`
 as a subring of `R × S`. -/
 def prod (s : subring R) (t : subring S) : subring (R × S) :=
-{ carrier := (s : set R).prod t,
+{ carrier := (s : set R) ×ˢ (t : set S),
   .. s.to_submonoid.prod t.to_submonoid, .. s.to_add_subgroup.prod t.to_add_subgroup}
 
 @[norm_cast]
 lemma coe_prod (s : subring R) (t : subring S) :
-  (s.prod t : set (R × S)) = (s : set R).prod (t : set S) :=
+  (s.prod t : set (R × S)) = (s : set R) ×ˢ (t : set S) :=
 rfl
 
 lemma mem_prod {s : subring R} {t : subring S} {p : R × S} :

@@ -3,6 +3,7 @@ Copyright (c) 2019 Alexander Bentkamp. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alexander Bentkamp, Yury Kudriashov, Yaël Dillies
 -/
+import algebra.order.invertible
 import algebra.order.module
 import linear_algebra.affine_space.midpoint
 import linear_algebra.affine_space.affine_subspace
@@ -479,11 +480,9 @@ variables {𝕜 s}
 lemma convex_iff_segment_subset :
   convex 𝕜 s ↔ ∀ ⦃x y⦄, x ∈ s → y ∈ s → [x -[𝕜] y] ⊆ s :=
 begin
-  split,
-  { rintro h x y hx hy z ⟨a, b, ha, hb, hab, rfl⟩,
-    exact h hx hy ha hb hab },
-  { rintro h x y hx hy a b ha hb hab,
-    exact h hx hy ⟨a, b, ha, hb, hab, rfl⟩ }
+  refine forall₄_congr (λ x y hx hy, ⟨_, λ h a b ha hb hab, h ⟨a, b, ha, hb, hab, rfl⟩⟩),
+  rintro h _ ⟨a, b, ha, hb, hab, rfl⟩,
+  exact h ha hb hab,
 end
 
 lemma convex.segment_subset (h : convex 𝕜 s) {x y : E} (hx : x ∈ s) (hy : y ∈ s) :
@@ -524,7 +523,7 @@ lemma convex_Inter {ι : Sort*} {s : ι → set E} (h : ∀ i : ι, convex 𝕜 
 (sInter_range s) ▸ convex_sInter $ forall_range_iff.2 h
 
 lemma convex.prod {s : set E} {t : set F} (hs : convex 𝕜 s) (ht : convex 𝕜 t) :
-  convex 𝕜 (s.prod t) :=
+  convex 𝕜 (s ×ˢ t) :=
 begin
   intros x y hx hy a b ha hb hab,
   apply mem_prod.2,
@@ -591,11 +590,8 @@ end
 
 lemma convex_iff_open_segment_subset :
   convex 𝕜 s ↔ ∀ ⦃x y⦄, x ∈ s → y ∈ s → open_segment 𝕜 x y ⊆ s :=
-begin
-  rw convex_iff_segment_subset,
-  exact forall₂_congr (λ x y, forall₂_congr $ λ hx hy,
-    (open_segment_subset_iff_segment_subset hx hy).symm),
-end
+convex_iff_segment_subset.trans $ forall₄_congr $ λ x y hx hy,
+  (open_segment_subset_iff_segment_subset hx hy).symm
 
 lemma convex_singleton (c : E) : convex 𝕜 ({c} : set E) :=
 begin

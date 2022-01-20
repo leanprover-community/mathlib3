@@ -247,6 +247,14 @@ mt $ mem_of_subset_of_mem h
 
 theorem not_subset : (¬ s ⊆ t) ↔ ∃a ∈ s, a ∉ t := by simp only [subset_def, not_forall]
 
+theorem nontrivial_mono {α : Type*} {s t : set α} (h₁ : s ⊆ t) (h₂ : nontrivial s) :
+  nontrivial t :=
+begin
+  rw nontrivial_iff at h₂ ⊢,
+  obtain ⟨⟨x, hx⟩, ⟨y, hy⟩, hxy⟩ := h₂,
+  exact ⟨⟨x, h₁ hx⟩, ⟨y, h₁ hy⟩, by simpa using hxy⟩,
+end
+
 /-! ### Definition of strict subsets `s ⊂ t` and basic properties. -/
 
 instance : has_ssubset (set α) := ⟨(<)⟩
@@ -394,6 +402,9 @@ iff_true_intro $ λ x, false.elim
 
 instance (α : Type u) : is_empty.{u+1} (∅ : set α) :=
 ⟨λ x, x.2⟩
+
+@[simp] lemma empty_ssubset : ∅ ⊂ s ↔ s.nonempty :=
+(@bot_lt_iff_ne_bot (set α) _ _ _).trans ne_empty_iff_nonempty
 
 /-!
 
@@ -716,6 +727,9 @@ theorem eq_of_mem_singleton {x y : α} (h : x ∈ ({y} : set α)) : x = y := h
 @[simp] theorem singleton_eq_singleton_iff {x y : α} : {x} = ({y} : set α) ↔ x = y :=
 ext_iff.trans eq_iff_eq_cancel_left
 
+lemma singleton_injective : injective (singleton : α → set α) :=
+λ _ _, singleton_eq_singleton_iff.mp
+
 theorem mem_singleton_of_eq {x y : α} (H : x = y) : x ∈ ({y} : set α) := H
 
 theorem insert_eq (x : α) (s : set α) : insert x s = ({x} : set α) ∪ s := rfl
@@ -789,6 +803,9 @@ theorem eq_sep_of_subset {s t : set α} (h : s ⊆ t) : s = {x ∈ t | x ∈ s} 
 (inter_eq_self_of_subset_right h).symm
 
 @[simp] theorem sep_subset (s : set α) (p : α → Prop) : {x ∈ s | p x} ⊆ s := λ x, and.left
+
+@[simp] lemma sep_empty (p : α → Prop) : {x ∈ (∅ : set α) | p x} = ∅ :=
+by { ext, exact false_and _ }
 
 theorem forall_not_of_sep_empty {s : set α} {p : α → Prop} (H : {x ∈ s | p x} = ∅)
   (x) : x ∈ s → ¬ p x := not_and.1 (eq_empty_iff_forall_not_mem.1 H x : _)
@@ -1582,6 +1599,9 @@ ext $ λ y, ⟨λ hy, (hs hx hy) ▸ mem_singleton _, λ hy, (eq_of_mem_singleto
 
 @[simp] lemma subsingleton_singleton {a} : ({a} : set α).subsingleton :=
 λ x hx y hy, (eq_of_mem_singleton hx).symm ▸ (eq_of_mem_singleton hy).symm ▸ rfl
+
+lemma subsingleton_of_forall_eq (a : α) (h : ∀ b ∈ s, b = a) : s.subsingleton :=
+λ b hb c hc, (h _ hb).trans (h _ hc).symm
 
 lemma subsingleton_iff_singleton {x} (hx : x ∈ s) : s.subsingleton ↔ s = {x} :=
 ⟨λ h, h.eq_singleton_of_mem hx, λ h,h.symm ▸ subsingleton_singleton⟩

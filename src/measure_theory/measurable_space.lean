@@ -248,12 +248,10 @@ lemma measurable.indicator [has_zero β] (hf : measurable f) (hs : measurable_se
   measurable (s.indicator f) :=
 hf.piecewise hs measurable_const
 
-@[to_additive, measurability] lemma measurable_set_mul_support [has_one β]
+@[measurability, to_additive] lemma measurable_set_mul_support [has_one β]
   [measurable_singleton_class β] (hf : measurable f) :
   measurable_set (mul_support f) :=
 hf (measurable_set_singleton 1).compl
-
-attribute [measurability] measurable_set_support
 
 /-- If a function coincides with a measurable function outside of a countable set, it is
 measurable. -/
@@ -534,23 +532,23 @@ include m
 
 @[measurability]
 lemma measurable_set.prod {s : set α} {t : set β} (hs : measurable_set s) (ht : measurable_set t) :
-  measurable_set (s.prod t) :=
+  measurable_set (s ×ˢ t) :=
 measurable_set.inter (measurable_fst hs) (measurable_snd ht)
 
-lemma measurable_set_prod_of_nonempty {s : set α} {t : set β} (h : (s.prod t).nonempty) :
-  measurable_set (s.prod t) ↔ measurable_set s ∧ measurable_set t :=
+lemma measurable_set_prod_of_nonempty {s : set α} {t : set β} (h : (s ×ˢ t : set _).nonempty) :
+  measurable_set (s ×ˢ t) ↔ measurable_set s ∧ measurable_set t :=
 begin
   rcases h with ⟨⟨x, y⟩, hx, hy⟩,
   refine ⟨λ hst, _, λ h, h.1.prod h.2⟩,
-  have : measurable_set ((λ x, (x, y)) ⁻¹' s.prod t) := measurable_id.prod_mk measurable_const hst,
-  have : measurable_set (prod.mk x ⁻¹' s.prod t) := measurable_const.prod_mk measurable_id hst,
+  have : measurable_set ((λ x, (x, y)) ⁻¹' (s ×ˢ t)) := measurable_id.prod_mk measurable_const hst,
+  have : measurable_set (prod.mk x ⁻¹' (s ×ˢ t)) := measurable_const.prod_mk measurable_id hst,
   simp * at *
 end
 
 lemma measurable_set_prod {s : set α} {t : set β} :
-  measurable_set (s.prod t) ↔ (measurable_set s ∧ measurable_set t) ∨ s = ∅ ∨ t = ∅ :=
+  measurable_set (s ×ˢ t) ↔ (measurable_set s ∧ measurable_set t) ∨ s = ∅ ∨ t = ∅ :=
 begin
-  cases (s.prod t).eq_empty_or_nonempty with h h,
+  cases (s ×ˢ t : set _).eq_empty_or_nonempty with h h,
   { simp [h, prod_eq_empty_iff.mp h] },
   { simp [←not_nonempty_iff_eq_empty, prod_nonempty_iff.mp h, measurable_set_prod_of_nonempty h] }
 end
@@ -564,7 +562,7 @@ lemma measurable_from_prod_encodable [encodable β] [measurable_singleton_class 
   measurable f :=
 begin
   intros s hs,
-  have : f ⁻¹' s = ⋃ y, ((λ x, f (x, y)) ⁻¹' s).prod {y},
+  have : f ⁻¹' s = ⋃ y, ((λ x, f (x, y)) ⁻¹' s) ×ˢ ({y} : set β),
   { ext1 ⟨x, y⟩,
     simp [and_assoc, and.left_comm] },
   rw this,
@@ -1032,8 +1030,8 @@ def sum_congr (ab : α ≃ᵐ β) (cd : γ ≃ᵐ δ) : α ⊕ γ ≃ᵐ β ⊕ 
       refine measurable_sum (measurable_inl.comp abm) (measurable_inr.comp cdm)
     end }
 
-/-- `set.prod s t ≃ (s × t)` as measurable spaces. -/
-def set.prod (s : set α) (t : set β) : s.prod t ≃ᵐ s × t :=
+/-- `s ×ˢ t ≃ (s × t)` as measurable spaces. -/
+def set.prod (s : set α) (t : set β) : ↥(s ×ˢ t) ≃ᵐ s × t :=
 { to_equiv := equiv.set.prod s t,
   measurable_to_fun := measurable_id.subtype_coe.fst.subtype_mk.prod_mk
     measurable_id.subtype_coe.snd.subtype_mk,
@@ -1114,8 +1112,8 @@ def sum_prod_distrib (α β γ) [measurable_space α] [measurable_space β] [mea
   measurable_to_fun  :=
   begin
     refine measurable_of_measurable_union_cover
-      ((range sum.inl).prod univ)
-      ((range sum.inr).prod univ)
+      (range sum.inl ×ˢ (univ : set γ))
+      (range sum.inr ×ˢ (univ : set γ))
       (measurable_set_range_inl.prod measurable_set.univ)
       (measurable_set_range_inr.prod measurable_set.univ)
       (by { rintro ⟨a|b, c⟩; simp [set.prod_eq] })

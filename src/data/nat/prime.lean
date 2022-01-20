@@ -1103,15 +1103,15 @@ end
 open list
 
 /-- If `p` is a prime factor of `a` then `p` is also a prime factor of `a * b` for any `b > 0` -/
-lemma mem_factors_mul_left {p a b : ℕ} (hpa : p ∈ a.factors) (hb : 0 < b) : p ∈ (a*b).factors :=
+lemma mem_factors_mul_left {p a b : ℕ} (hpa : p ∈ a.factors) (hb : b ≠ 0) : p ∈ (a*b).factors :=
 begin
-  rcases a.eq_zero_or_pos with rfl | ha,
+  rcases eq_or_ne a 0 with rfl | ha,
   { simpa using hpa },
-  apply (mem_factors_mul_of_pos ha hb _).2 (or.inl hpa),
+  apply (mem_factors_mul_of_ne_zero ha hb _).2 (or.inl hpa),
 end
 
 /-- If `p` is a prime factor of `b` then `p` is also a prime factor of `a * b` for any `a > 0` -/
-lemma mem_factors_mul_right {p a b : ℕ} (hpb : p ∈ b.factors) (ha : 0 < a) : p ∈ (a*b).factors :=
+lemma mem_factors_mul_right {p a b : ℕ} (hpb : p ∈ b.factors) (ha : a ≠ 0) : p ∈ (a*b).factors :=
 by { rw mul_comm, exact mem_factors_mul_left hpb ha }
 
 end nat

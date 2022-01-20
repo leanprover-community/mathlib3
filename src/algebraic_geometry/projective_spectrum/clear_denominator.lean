@@ -114,3 +114,71 @@ begin
 end
 
 end mem_span
+
+section
+
+variables {R A: Type}
+variables [comm_ring R] [comm_ring A] [algebra R A] [nontrivial A]
+
+variables (𝒜 : ℕ → submodule R A)
+variables [graded_algebra 𝒜] [Π (i : ℕ) (x : 𝒜 i), decidable (x ≠ 0)]
+
+lemma graded_algebra.proj_hom_mul (a b : A) (i j : ℕ) (a_hom : a ∈ 𝒜 i)
+  (hb : graded_algebra.proj 𝒜 j b ≠ 0) :
+  graded_algebra.proj 𝒜 (i + j) (a * b) = a * graded_algebra.proj 𝒜 j b :=
+begin
+  by_cases INEQ : a = 0,
+  rw [INEQ, zero_mul, zero_mul, linear_map.map_zero],
+
+  rw [graded_algebra.proj_apply, alg_equiv.map_mul, direct_sum.coe_mul_apply_submodule 𝒜,
+    ←graded_algebra.support, ←graded_algebra.support],
+
+  have set_eq1 : graded_algebra.support 𝒜 a = {i},
+    { ext1, split; intros hx,
+      { erw graded_algebra.mem_support_iff at hx,
+        erw finset.mem_singleton,
+        contrapose hx,
+        erw [not_not, graded_algebra.proj_apply, graded_algebra.decompose_of_mem_ne],
+        exact a_hom,
+        symmetry,
+        exact hx, },
+      { rw finset.mem_singleton at hx,
+        rw [hx, graded_algebra.mem_support_iff, graded_algebra.proj_apply,
+          graded_algebra.decompose_of_mem_same],
+        exact INEQ,
+        exact a_hom, }, },
+    erw [set_eq1],
+    have set_eq2 : finset.filter
+          (λ z : ℕ × ℕ, z.1 + z.2 = i + j)
+          (finset.product
+            {i}
+            (graded_algebra.support 𝒜 b)) =
+      {(i, j)},
+    { ext1 x, rcases x with ⟨n1, n2⟩,
+      split; intros ha,
+      { erw finset.mem_filter at ha,
+        rcases ha with ⟨ha1, ha3⟩,
+        erw finset.mem_product at ha1,
+        rcases ha1 with ⟨ha1, ha2⟩,
+        dsimp only at ha1 ha2 ha3,
+        erw finset.mem_singleton at ha1,
+        erw finset.mem_singleton,
+        ext; dsimp only,
+        { exact ha1, },
+        { erw ha1 at ha3,
+          linarith, }, },
+      { erw [finset.mem_singleton, prod.ext_iff] at ha,
+        rcases ha with ⟨ha1, ha2⟩,
+        dsimp only at ha1 ha2,
+        erw [ha1, ha2, finset.mem_filter, finset.mem_product, finset.mem_singleton],
+        refine ⟨⟨rfl, _⟩, rfl⟩,
+        dsimp only,
+        erw graded_algebra.mem_support_iff,
+        exact hb, }, },
+    erw [set_eq2, finset.sum_singleton],
+    dsimp only,
+    erw [graded_algebra.decompose_of_mem_same 𝒜, ←graded_algebra.proj_apply],
+    exact a_hom,
+end
+
+end

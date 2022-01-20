@@ -6,6 +6,7 @@ Authors: Bhavik Mehta, Thomas Bloom
 
 import data.real.basic
 import analysis.special_functions.log
+import analysis.special_functions.pow
 import order.filter.at_top_bot
 import number_theory.arithmetic_function
 
@@ -18,18 +19,20 @@ contains associated results useful for that paper.
 
 open_locale big_operators -- this lets me use ∑ and ∏ notation
 open filter real
+open nat (coprime)
 
 open_locale arithmetic_function
+open_locale classical
+noncomputable theory
 
-lemma anyk_divisor_exact (n : ℕ) (K : ℝ) : (σ 0 n : ℝ) = ((n : ℝ) ^ (1 / K)) *
-  ∏ p in n.factors.to_finset,
-    (n.factors.count p + 1) / (p ^ ((n.factors.count p : ℝ) / K)) :=
-begin
+def upper_density (A : set ℕ) : ℝ := limsup at_top
+   (λ N : ℕ, (((finset.range(N+1)).filter (λ n, n ∈ A)).card : ℝ) / N)
 
-end
+theorem unit_fractions_upper_density (A : set ℕ) (hA : upper_density A > 0):
+   ∃ (S : finset ℕ), (S : set ℕ) ⊆ A ∧ ∑ n in S, (1 / n : ℝ) = 1 :=
+sorry
 
-/-- The statement of Bloom's theorem. -/
-theorem bloom :
+theorem unit_fractions_upper_log_density :
   ∀ᶠ (N : ℕ) in at_top, ∀ A ⊆ finset.range (N+1),
     25 * log (log (log N)) * log N / log (log N) ≤ ∑ n in A, (1 / n : ℝ) →
       ∃ S ⊆ A, ∑ n in S, (1 / n : ℝ) = 1 :=
@@ -53,3 +56,195 @@ sorry
 --   number" to make the division act sensibly. I could instead talk about rationals, but for
 --   the inequality part I've got a real on the LHS anyway, so it would convert to rationals and
 --   then to reals, so might as well go straight to ℝ.
+
+-- This is R(A) in the paper.
+def rec_sum (A : finset ℕ) : ℚ := ∑ n in A, 1/n
+
+-- This is A_q ihe paper.
+def local_part (A : finset ℕ) (q : ℕ) : finset ℕ := A.filter (λ n, q ∣ n ∧ coprime q (n/q) )
+
+-- This is Q_A in the paper.
+-- Replace nat.prime here with prime_power
+def ppowers_in_set (A : finset ℕ) : set ℕ := { q | nat.prime q ∧ local_part A q ≠ ∅ }
+
+-- For summing over 1/q for q in Q_A, need to know this is a finite set, so
+-- I've put the below for now - actually should be ppowers_in_set? Prove this is
+-- finite as a lemma?
+def fin_ppowers_in_set (A : finset ℕ) : finset ℕ := sorry
+
+-- This is R(A;q) in the paper.
+def rec_sum_local (A : finset ℕ) (q : ℕ) : ℚ := ∑ n in local_part A q, q/n
+
+def ppower_rec_sum (A : finset ℕ) : ℚ :=
+∑ q in fin_ppowers_in_set A, 1/q
+
+-- Replace nat.prime here with prime_power
+def is_smooth (y : ℝ) (n : ℕ) : Prop := ∀ q : ℕ, nat.prime q → q ∣ n → (q : ℝ) ≤ y
+
+-- Prop 1
+theorem technical_prop :
+  ∀ᶠ (N : ℕ) in at_top, ∀ (A ⊆ finset.range (N+1)) (y z : ℝ),
+  (1 ≤ y) → (y ≤ z) → (z ≤ (log N)^((1/500 : ℝ)))
+  → (∀ n ∈ A, ( (N:ℝ)^(1-(1:ℝ)/(log(log N))) ≤ n ))
+  → 2 / y + (log N)^(-(1/200 : ℝ)) ≤ (rec_sum A : ℝ)
+  → (∀ n ∈ A, ∃ d₁ d₂ : ℕ, (d₁ ∣ n) ∧ (d₂ ∣ n) ∧ (y ≤ d₁) ∧ (4*d₁ ≤ d₂) ∧ ((d₂ : ℝ) ≤ z) )
+  → (∀ n ∈ A, is_smooth ((N:ℝ)^(1-(6:ℝ)/(log(log N)))) n)
+  → (∀ n ∈ A, (((99:ℝ)/100)*log(log N) ≤ ω n ) ∧ ( (ω n : ℝ) ≤ 2*(log (log N))))
+  → ∃ S ⊆ A, ∃ d : ℕ, (y ≤ d) ∧ ((d:ℝ) ≤ z) ∧
+    rec_sum S = 1/d
+  :=
+sorry
+
+-- Corollary 1
+theorem corollary_one :
+  ∀ᶠ (N : ℕ) in at_top, ∀ (A ⊆ finset.range (N+1)),
+  (∀ n ∈ A, ( (N:ℝ)^(1-(1:ℝ)/(log(log N))) ≤ n ))
+  → (log N)^((1/200 : ℝ)) ≤ (rec_sum A : ℝ)
+  → (∀ n ∈ A, ∃ p : ℕ, ((p ∣ n) ∧ (5 ≤ p) ∧ ((p:ℝ) ≤ (log N)^((1/500 : ℝ))) ))
+  → (∀ n ∈ A, is_smooth ((N:ℝ)^(1-(6:ℝ)/(log(log N)))) n)
+  → (∀ n ∈ A, (((99:ℝ)/100)*log(log N) ≤ ω n ) ∧ ( (ω n : ℝ) ≤ 2*(log (log N))))
+  → ∃ S ⊆ A, rec_sum S = 1
+  :=
+sorry
+
+-- define the X in Lemma 1 as a separate definition?
+def X (y z : ℝ) : set ℕ := sorry
+
+-- Lemma 1
+lemma sieve_lemma_one  : ∃ C : ℝ,
+  ∀ᶠ (N : ℕ) in at_top, ∀ y z : ℝ, (3 ≤ y) → (y < z) → (z ≤ log N) →
+   let X : set ℕ := { n : ℕ | ∀ p:ℕ, (prime p) → (p ∣ n) →
+   ( ((p:ℝ) < y) ∨ (z < p)) } in
+   (((finset.range(2*N)).filter (λ n, n ∈ X ∧ N ≤ n)).card : ℝ) ≤
+   C * (log y / log z) * N
+    :=
+sorry
+
+-- This is Turan's estimate, belongs in basic_estimates probably
+lemma turan_primes_estimate : ∃ (C : ℝ), ∀ x : ℝ, (x ≥ 25) →
+  (∑ n in finset.Icc 1 ⌊x⌋₊, ((ω n : ℝ) - log(log n))^2
+  ≤  C * x * log(log x)  ) :=
+ --
+--  ≤  ):=
+sorry
+-- Textbook proof is to expand square, rearrnage sum, write ω n as
+-- ∑ p ≤ x, 1_(p∣n)
+
+-- Sieve of Eratosthenes-Legendre, again belongs in basic_estimates
+--lemma sieve_eratosthenes :
+
+-- Lemma 2
+lemma sieve_lemma_two  : ∃ C : ℝ,
+  ∀ᶠ (N : ℕ) in at_top, ∀ y z : ℝ, (2 ≤ y) → (4*y < z) → (z^2 ≤ log N) →
+   let Y : set ℕ := { n : ℕ | ∃ p₁ p₂ : ℕ, (p₁ ≠ p₂) ∧ (prime p₁)
+   ∧ (prime p₂) ∧ (p₁ ∣ n) ∧ (p₂ ∣ n) ∧ (y ≤ p₁) ∧ (4*p₁ ≤ p₂)
+   ∧ ((p₂:ℝ) ≤ z) } in
+   (((finset.range(N+1)).filter (λ n, ¬(n ∈ Y))).card : ℝ) ≤
+   C * (log y / log z)^(1/2) * N
+    :=
+sorry
+
+def lcm (A : finset ℕ) : ℕ := 2
+
+-- This is the set D_I
+def interval_rare_ppowers (I: finset ℕ) (A : finset ℕ) (K : ℝ) : set ℕ :=
+{ q in ppowers_in_set A |
+(((local_part A q).filter (λ n, ∀ x ∈ I, ¬ (n ∣ x))).card : ℝ)
+< K/q }
+
+-- Proposition 2
+theorem circle_method_prop : ∃ c : ℝ,
+  ∀ᶠ (N : ℕ) in at_top, ∀ k M : ℕ, ∀ η K : ℝ,  ∀ A ⊆ finset.range (N+1),
+  (M ≤ N) → ((N:ℝ)^(3/4 : ℝ) ≤ M) → (1 ≤ k) → ((k:ℝ) ≤ c*M) →
+  (0 < η) → (η < 1) → (2*K ≤ M) → ((N:ℝ)^(3/4:ℝ) ≤ K) →
+  (∀ n ∈ A, M ≤ n) →
+  (rec_sum A ≤ 2/k) → ((2:ℚ)/k - 1 ≤ rec_sum A ) →
+  (k ∣ lcm A) →
+  (∀ q ∈ ppowers_in_set A, ((q:ℝ) ≤ c*M/k) ∧
+  ((q:ℝ) ≤ c*η*M*K^2 / (N*log N)^2)) →
+  (∀ (a : ℕ), let I : finset ℕ := (finset.Icc a ⌊(a:ℝ)+K⌋₊)
+  in
+  ( ((M:ℝ)/log N ≤ ((A.filter (λ n, ∀ x ∈ I, ¬ (n ∣ x))).card : ℝ)) ∨
+    (∃ x ∈ I, ∀ q : ℕ, (q ∈ interval_rare_ppowers I A (η*M)) → q ∣ x)
+  ))
+  → ∃ S ⊆ A, rec_sum S = 1/k
+  :=
+sorry
+
+
+-- Lemma 3
+-- TODO: Replace nat.divisors with just the prime power divisors
+lemma rest_recip_ppowers : ∃ C : ℝ,
+  ∀ᶠ (N : ℕ) in at_top, ∀ n₁ n₂ : ℕ, (n₁ < n₂) → (n₂ ≤ N+n₁) →
+  ∑ q in (nat.divisors (int.gcd n₁ n₂)), (1/q : ℝ) ≤
+  C * log(log(log N))
+ :=
+sorry
+
+-- Lemma 4
+lemma rec_qsum_lower_bound (ε : ℝ) (hε1 : 0 < ε) (hε2 : ε < 1/2) :
+  ∀ᶠ (N : ℕ) in at_top, ∀ A : finset ℕ,
+  ((log N)^(-ε/2) ≤ rec_sum A )
+  → (∀ n ∈ A, ((1-ε)*log(log N) ≤ ω n ) ∧ ( (ω n : ℝ) ≤ 2*(log (log N))))
+  → (1-2*ε)*log(log N) *real.exp(-1) ≤ ∑ q in fin_ppowers_in_set A, (1/q : ℝ)
+:=
+sorry
+
+-- Lemma 5
+lemma find_good_d : ∃ c C : ℝ, ∀ᶠ (N : ℕ) in at_top, ∀ M k : ℝ,
+  ∀ A ⊆ finset.range(N+1),
+  (M ≤ N) → ((N:ℝ) ≤ M^2) → ((4:ℝ) ≤ k) → (k ≤ c* log(log N))
+  → (∀ n ∈ A, M ≤ (n:ℝ) ∧ ((ω n) : ℝ) ≤ (log N)^(1/k)) →
+    (∀ q ∈ ppowers_in_set A,
+    ((log N)^(-(1/2 : ℝ)) ≤ rec_sum_local A q) →
+    (∃ d : ℕ,
+    ( M*real.exp(-(log N)^(1-1/k)) < q*d ) ∧
+    ( (ω d : ℝ) ≤ (5/log k) * log(log N) ) ∧
+    ( C*(rec_sum_local A q) / (log N)^(2/k) ≤
+      ∑ n in (local_part A q).filter(λ n, (q*d ∣ n) ∧
+        (coprime (q*d) (n/q*d))), (q*d/n : ℝ)  ) ) )
+  :=
+sorry
+
+-- Proposition 3
+theorem force_good_properties :
+  ∀ᶠ (N : ℕ) in at_top, ∀ M : ℝ, ∀ A ⊆ finset.range(N+1),
+  ((N:ℝ)^2 ≤ M) →
+  (∀ n ∈ A, M ≤ (n:ℝ) ∧
+    (((99:ℝ)/100)*log(log N) ≤ ω n ) ∧
+    ( (ω n : ℝ) ≤ 2*(log (log N)))) →
+  ( (log N)^(-(1/101 : ℝ)) ≤ rec_sum A ) →
+  (∀ q ∈ ppowers_in_set A,
+    ((log N)^(-(1/100 : ℝ)) ≤ rec_sum_local A q )) → (
+  (∃ B ⊆ A, ((rec_sum A) ≤ 3*rec_sum B) ∧
+  ((ppower_rec_sum B : ℝ) ≤ (2/3)* log(log N)))
+  ∨
+  (∀ (a : ℕ), let I : finset ℕ := (finset.Icc a
+       ⌊(a:ℝ)+M*(N:ℝ)^(-(2:ℝ)/log(log N))⌋₊) in
+  ( ((M:ℝ)/log N ≤ ((A.filter (λ n, ∀ x ∈ I, ¬ (n ∣ x))).card : ℝ)) ∨
+    (∃ x ∈ I, ∀ q : ℕ, (q ∈ interval_rare_ppowers I A
+       (M / (2*q*(log N)^(1/100 : ℝ)))) → q ∣ x)
+  ))) :=
+sorry
+
+-- Lemma 6
+lemma pruning_lemma_one :
+  ∀ᶠ (N : ℕ) in at_top, ∀ A ⊆ finset.range(N+1), ∃ B ⊆ A,
+  ((rec_sum B : ℝ) ≥ rec_sum A - (log N)^(-(1/200:ℝ))) ∧
+  (∀ q ∈ ppowers_in_set B,
+  (2:ℝ)*(log N)^(-(1/100:ℝ)) ≤ rec_sum_local B q )
+  :=
+sorry
+
+-- Lemma 7
+lemma pruning_lemma_two :
+  ∀ᶠ (N : ℕ) in at_top, ∀ M α : ℝ, ∀ A ⊆ finset.range(N+1),
+  ((N:ℝ)^2 ≤ M) → ((2:ℝ)*(log N)^(-(1/200:ℝ)) < α ) →
+  (∀ n ∈ A, M ≤ (n:ℝ)) →
+  (α + (log N)^(-(1/200:ℝ)) ≤ rec_sum A ) →
+  (∀ q ∈ ppowers_in_set A, (q : ℝ) ≤ M*(log N)^(-(1/100:ℝ))) →
+  ∃ B ⊆ A, ( (rec_sum B : ℝ) < α) ∧ ( α - 1/M ≤ rec_sum B) ∧
+  (∀ q ∈ ppowers_in_set B, (log N)^(-(1/100:ℝ)) ≤
+    rec_sum_local B q)
+  :=
+sorry

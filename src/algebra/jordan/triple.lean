@@ -121,22 +121,12 @@ calc ⦃a + c, b, a + c⦄ = ⦃a, b, a⦄ + ⦃a, b, c⦄ + ⦃c, b, a⦄ + ⦃
     { to_fun := λ c, ⦃a, b, c⦄,
       map_zero' := by rw rzero,
       map_add' := λ _ _, by rw radd, },
-    map_zero' := add_monoid_hom.ext $ λ b, begin
-      simp only [add_monoid_hom.zero_apply, add_monoid_hom.coe_mk],
-      rw mzero,
-    end,
-    map_add' := λ a₁ a₂, add_monoid_hom.ext $ λ b, begin
-      simp only [add_monoid_hom.coe_mk, add_monoid_hom.add_apply],
-      rw madd,
-    end, },
-  map_zero' := add_monoid_hom.ext $ λ b, add_monoid_hom.ext $ λ c, begin
-    simp only [add_monoid_hom.zero_apply, add_monoid_hom.coe_mk],
-    rw lzero,
-  end,
-  map_add' := λ a₁ a₂, add_monoid_hom.ext $ λ b, add_monoid_hom.ext $ λ c, begin
-    simp only [add_monoid_hom.coe_mk, add_monoid_hom.add_apply],
-    rw ladd,
-  end, }
+    map_zero' := add_monoid_hom.ext $ λ _, by exact mzero _ _,
+    map_add' := λ a₁ a₂, add_monoid_hom.ext $ λ _, by exact madd _ _ _ _,
+    },
+  map_zero' := add_monoid_hom.ext $ λ _, add_monoid_hom.ext $ λ _, by exact lzero _ _,
+  map_add' := λ a₁ a₂, add_monoid_hom.ext $ λ b, add_monoid_hom.ext $ λ _, by exact ladd _ _ _ _,
+}
 
 /-- Define the multiplication operator `D` -/
 @[simps] def D : A →+ A →+ add_monoid.End A := add_monoid_hom.tp
@@ -146,6 +136,10 @@ calc ⦃a + c, b, a + c⦄ = ⦃a, b, a⦄ + ⦃a, b, c⦄ + ⦃c, b, a⦄ + ⦃
 { to_fun := λ a, (D a : A →+  add_monoid.End A).flip,
   map_zero' := by { ext, simp, },
   map_add' := λ _ _, by { ext, simp, }, }
+
+lemma Q_def (a b c : A) : Q a c b = ⦃a, b, c⦄ := by simp
+
+def Q' : A →+ A →+  add_monoid.End A := D.comp add_monoid_hom.flip
 
 end is_tp
 

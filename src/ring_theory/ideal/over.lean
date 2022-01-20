@@ -164,6 +164,21 @@ is_scalar_tower.of_algebra_map_eq $ λ x,
 by rw [quotient.algebra_map_eq, quotient.algebra_map_quotient_map_quotient,
        quotient.mk_algebra_map]
 
+lemma pow_nat_degree_le_of_root_of_monic_mem {x : S} {f : polynomial S} (hroot : is_root f x)
+  (hmo : f.monic) (hdiv : ∀ n < f.nat_degree, f.coeff n ∈ P ) :
+  ∀ i, f.nat_degree ≤ i → x ^ i ∈ P :=
+begin
+  intros i hi,
+  obtain ⟨k, hk⟩ := le_iff_exists_add.1 hi,
+  rw [hk, pow_add],
+  suffices : x ^ f.nat_degree ∈ P,
+  { exact mul_mem_right (x ^ k) P this },
+  rw [is_root.def, eval_eq_finset_sum, finset.range_add_one, finset.sum_insert
+    finset.not_mem_range_self, finset.sum_range, hmo.coeff_nat_degree, one_mul] at hroot,
+  rw [eq_neg_of_add_eq_zero hroot, neg_mem_iff],
+  refine sum_mem _ (λ i hi,  mul_mem_right _ _ (hdiv _ (fin.is_lt i)))
+end
+
 end comm_ring
 
 section is_domain

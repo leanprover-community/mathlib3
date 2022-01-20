@@ -575,7 +575,7 @@ section monoid
 /-! ### `set α` as a `(∪,*)`-semiring -/
 
 /-- An alias for `set α`, which has a semiring structure given by `∪` as "addition" and pointwise
-  multiplication `*` as "multiplication" or "addition" depending on the operation on `α`. -/
+  multiplication `*` as "multiplication". -/
 @[derive inhabited] def set_semiring (α : Type*) : Type* := set α
 
 /-- The natural order by inclusion on subsets of `α` is available on `set_semiring α`. -/
@@ -598,7 +598,6 @@ instance set_semiring.add_comm_monoid : add_comm_monoid (set_semiring α) :=
   add_zero := union_empty,
   add_comm := union_comm, }
 
-@[to_additive set_semiring.non_unital_non_assoc_add_semiring]
 instance set_semiring.non_unital_non_assoc_semiring [has_mul α] :
   non_unital_non_assoc_semiring (set_semiring α) :=
 { zero_mul := λ s, empty_mul,
@@ -607,19 +606,15 @@ instance set_semiring.non_unital_non_assoc_semiring [has_mul α] :
   right_distrib := λ _ _ _, union_mul,
   ..set.has_mul, ..set_semiring.add_comm_monoid }
 
-@[to_additive set_semiring.non_assoc_add_semiring]
 instance set_semiring.non_assoc_semiring [mul_one_class α] : non_assoc_semiring (set_semiring α) :=
 { ..set_semiring.non_unital_non_assoc_semiring, ..set.mul_one_class }
 
-@[to_additive set_semiring.non_unital_add_semiring]
 instance set_semiring.non_unital_semiring [semigroup α] : non_unital_semiring (set_semiring α) :=
 { ..set_semiring.non_unital_non_assoc_semiring, ..set.semigroup }
 
-@[to_additive set_semiring.add_semiring]
 instance set_semiring.semiring [monoid α] : semiring (set_semiring α) :=
 { ..set_semiring.non_assoc_semiring, ..set_semiring.non_unital_semiring }
 
-@[to_additive set_semiring.comm_add_semiring]
 instance set_semiring.comm_semiring [comm_monoid α] : comm_semiring (set_semiring α) :=
 { ..set.comm_monoid, ..set_semiring.semiring }
 

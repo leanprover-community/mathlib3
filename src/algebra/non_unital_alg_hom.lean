@@ -57,19 +57,19 @@ structure non_unital_alg_hom [monoid R]
 attribute [nolint doc_blame] non_unital_alg_hom.to_distrib_mul_action_hom
 attribute [nolint doc_blame] non_unital_alg_hom.to_mul_hom
 
-initialize_simps_projections non_unital_alg_hom (to_fun → apply)
-
 namespace non_unital_alg_hom
 
-variables {R A B C} [semiring R]
+variables {R A B C} [monoid R]
 variables [non_unital_non_assoc_semiring A] [distrib_mul_action R A]
 variables [non_unital_non_assoc_semiring B] [distrib_mul_action R B]
 variables [non_unital_non_assoc_semiring C] [distrib_mul_action R C]
 
 /-- see Note [function coercion] -/
-instance : has_coe_to_fun (non_unital_alg_hom R A B) := ⟨_, to_fun⟩
+instance : has_coe_to_fun (non_unital_alg_hom R A B) (λ _, A → B) := ⟨to_fun⟩
 
 @[simp] lemma to_fun_eq_coe (f : non_unital_alg_hom R A B) : f.to_fun = ⇑f := rfl
+
+initialize_simps_projections non_unital_alg_hom (to_fun → apply)
 
 lemma coe_injective :
   @function.injective (non_unital_alg_hom R A B) (A → B) coe_fn :=
@@ -80,6 +80,8 @@ coe_injective $ funext h
 
 lemma ext_iff {f g : non_unital_alg_hom R A B} : f = g ↔ ∀ x, f x = g x :=
 ⟨by { rintro rfl x, refl }, ext⟩
+
+lemma congr_fun {f g : non_unital_alg_hom R A B} (h : f = g) (x : A) : f x = g x := h ▸ rfl
 
 @[simp] lemma coe_mk (f : A → B) (h₁ h₂ h₃ h₄) :
   ((⟨f, h₁, h₂, h₃, h₄⟩ : non_unital_alg_hom R A B) : A → B) = f :=
@@ -108,6 +110,14 @@ rfl
 @[simp, norm_cast] lemma coe_to_mul_hom (f : non_unital_alg_hom R A B) :
   ((f : mul_hom A B) : A → B) = f :=
 rfl
+
+lemma to_distrib_mul_action_hom_injective {f g : non_unital_alg_hom R A B}
+  (h : (f : A →+[R] B) = (g : A →+[R] B)) : f = g :=
+by { ext a, exact distrib_mul_action_hom.congr_fun h a, }
+
+lemma to_mul_hom_injective {f g : non_unital_alg_hom R A B}
+  (h : (f : mul_hom A B) = (g : mul_hom A B)) : f = g :=
+by { ext a, exact mul_hom.congr_fun h a, }
 
 @[norm_cast] lemma coe_distrib_mul_action_hom_mk (f : non_unital_alg_hom R A B) (h₁ h₂ h₃ h₄) :
   ((⟨f, h₁, h₂, h₃, h₄⟩ : non_unital_alg_hom R A B) : A →+[R] B) =

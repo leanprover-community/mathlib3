@@ -4,10 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Thomas Browning, Patrick Lutz
 -/
 
+import group_theory.perm.cycle_type
 import analysis.complex.polynomial
 import field_theory.galois
-import group_theory.perm.cycle_type
-import ring_theory.eisenstein_criterion
 
 /-!
 # Galois Groups of Polynomials
@@ -50,10 +49,13 @@ namespace polynomial
 variables {F : Type*} [field F] (p q : polynomial F) (E : Type*) [field E] [algebra F E]
 
 /-- The Galois group of a polynomial. -/
-@[derive [has_coe_to_fun, group, fintype]]
+@[derive [group, fintype]]
 def gal := p.splitting_field ≃ₐ[F] p.splitting_field
 
 namespace gal
+
+instance : has_coe_to_fun p.gal (λ _, p.splitting_field → p.splitting_field) :=
+alg_equiv.has_coe_to_fun
 
 @[ext] lemma ext {σ τ : p.gal} (h : ∀ x ∈ p.root_set p.splitting_field, σ x = τ x) : σ = τ :=
 begin
@@ -96,6 +98,14 @@ instance [h : fact (p.splits (algebra_map F E))] : algebra p.splitting_field E :
 instance [h : fact (p.splits (algebra_map F E))] : is_scalar_tower F p.splitting_field E :=
 is_scalar_tower.of_algebra_map_eq
   (λ x, ((is_splitting_field.lift p.splitting_field p h.1).commutes x).symm)
+
+-- The `algebra p.splitting_field E` instance above behaves badly when
+-- `E := p.splitting_field`, since it may result in a unification problem
+-- `is_splitting_field.lift.to_ring_hom.to_algebra =?= algebra.id`,
+-- which takes an extremely long time to resolve, causing timeouts.
+-- Since we don't really care about this definition, marking it as irreducible
+-- causes that unification to error out early.
+attribute [irreducible] gal.algebra
 
 /-- Restrict from a superfield automorphism into a member of `gal p`. -/
 def restrict [fact (p.splits (algebra_map F E))] : (E ≃ₐ[F] E) →* p.gal :=
@@ -222,7 +232,7 @@ monoid_hom.prod (restrict_dvd (dvd_mul_right p q)) (restrict_dvd (dvd_mul_left q
 lemma restrict_prod_injective : function.injective (restrict_prod p q) :=
 begin
   by_cases hpq : (p * q) = 0,
-  { haveI : unique (p * q).gal := by { rw hpq, apply_instance },
+  { haveI : unique (p * q).gal, { rw hpq, apply_instance },
     exact λ f g h, eq.trans (unique.eq_default f) (unique.eq_default g).symm },
   intros f g hfg,
   dsimp only [restrict_prod, restrict_dvd] at hfg,
@@ -279,7 +289,7 @@ begin
     exact splits_of_splits_of_dvd _
       (minpoly.ne_zero qx_int)
       (normal.splits h_normal _)
-      (dvd_symm_of_irreducible (minpoly.irreducible qx_int) hr (minpoly.dvd F _ hx)) },
+      ((minpoly.irreducible qx_int).dvd_symm hr (minpoly.dvd F _ hx)) },
   have key2 : ∀ {p₁ p₂ : polynomial F}, P p₁ → P p₂ → P (p₁ * p₂),
   { intros p₁ p₂ hp₁ hp₂,
     by_cases h₁ : p₁.comp q = 0,
@@ -332,7 +342,7 @@ begin
   { rw [←finite_dimensional.finrank_mul_finrank F F⟮α⟯ p.splitting_field,
         intermediate_field.adjoin.finrank hα, this] },
   suffices : minpoly F α ∣ p,
-  { have key := dvd_symm_of_irreducible (minpoly.irreducible hα) p_irr this,
+  { have key := (minpoly.irreducible hα).dvd_symm p_irr this,
     apply le_antisymm,
     { exact nat_degree_le_of_dvd this p_irr.ne_zero },
     { exact nat_degree_le_of_dvd key (minpoly.ne_zero hα) } },
@@ -418,8 +428,9 @@ begin
     (show (gal_action_hom p ℂ).range = ⊤, from _)).mpr (subgroup.mem_top x)⟩,
   apply equiv.perm.subgroup_eq_top_of_swap_mem,
   { rwa h1 },
-  { rw [h1, ←h2],
-    exact prime_degree_dvd_card p_irr p_deg },
+  { rw h1,
+    convert prime_degree_dvd_card p_irr p_deg using 1,
+    convert h2.symm },
   { exact ⟨conj, rfl⟩ },
   { rw ← equiv.perm.card_support_eq_two,
     apply nat.add_left_cancel,

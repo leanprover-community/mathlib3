@@ -3,7 +3,7 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
-import data.polynomial.coeff
+import data.polynomial.basic
 
 /-!
 # Univariate monomials
@@ -22,8 +22,6 @@ variables [semiring R] {p q r : polynomial R}
 lemma monomial_one_eq_iff [nontrivial R] {i j : ℕ} :
   (monomial i 1 : polynomial R) = monomial j 1 ↔ i = j :=
 by simp [monomial, monomial_fun, finsupp.single_eq_single_iff]
-
-lemma smul_eq_C_mul (a : R) : a • p = C a * p := by simp [ext_iff]
 
 instance [nontrivial R] : infinite (polynomial R) :=
 infinite.of_injective (λ i, monomial i 1) $

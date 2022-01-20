@@ -133,7 +133,7 @@ under pointwise multiplication.
 -/
 
 instance semiring {R : Type*} [semiring R] [topological_space R]
-  [charted_space H' R] [smooth_semiring I' R] :
+  [charted_space H' R] [smooth_ring I' R] :
   semiring C^∞⟮I, N; I', R⟯ :=
 { left_distrib := λ a b c, by ext; exact left_distrib _ _ _,
   right_distrib := λ a b c, by ext; exact right_distrib _ _ _,
@@ -237,6 +237,12 @@ instance algebra : algebra 𝕜 C^∞⟮I, N; 𝓘(𝕜, A), A⟯ :=
   commutes' := λ c f, by ext x; exact algebra.commutes' _ _,
   smul_def' := λ c f, by ext x; exact algebra.smul_def' _ _,
   ..smooth_map.semiring }
+
+/-- A special case of `pi.algebra` for non-dependent types. Lean get stuck on the definition
+below without this. -/
+instance _root_.function.algebra (I : Type*) {R : Type*} (A : Type*) {r : comm_semiring R}
+  [semiring A] [algebra R A] : algebra R (I → A) :=
+pi.algebra _ _
 
 /-- Coercion to a function as an `alg_hom`. -/
 @[simps]

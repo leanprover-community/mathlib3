@@ -5,8 +5,6 @@ Authors: Scott Morrison
 -/
 import ring_theory.polynomial.bernstein
 import topology.continuous_function.polynomial
-import algebra.floor
-import analysis.specific_limits
 
 /-!
 # Bernstein approximations and Weierstrass' theorem
@@ -131,7 +129,6 @@ end bernstein
 open bernstein
 
 local postfix `/ₙ`:2000 := z
-local notation `|`x`|` := abs x
 
 /--
 The `n`-th approximation of a continuous function on `[0,1]` by Bernstein polynomials,
@@ -297,8 +294,8 @@ begin
                                           (mul_nonneg pow_minus_two_nonneg (sq_nonneg _))
                                           bernstein_nonneg)) w₁
         ... = (2 * ∥f∥) * δ^(-2 : ℤ) * ∑ k : fin (n+1), (x - k/ₙ)^2 * bernstein n k x
-                                  : by conv_rhs {
-                                      rw [mul_assoc, finset.mul_sum], simp only [←mul_assoc], }
+                                  : by conv_rhs
+                                    { rw [mul_assoc, finset.mul_sum], simp only [←mul_assoc], }
         -- `bernstein.variance` and `x ∈ [0,1]` gives the uniform bound
         ... = (2 * ∥f∥) * δ^(-2 : ℤ) * x * (1-x) / n
                                   : by { rw variance npos, ring, }

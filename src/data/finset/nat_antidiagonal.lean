@@ -3,7 +3,7 @@ Copyright (c) 2019 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
-import data.finset.basic
+import data.finset.card
 import data.multiset.nat_antidiagonal
 
 /-!
@@ -73,6 +73,39 @@ begin
   rw mem_antidiagonal at hp hq,
   rw [hq, ← h, hp],
 end
+
+lemma antidiagonal.fst_le {n : ℕ} {kl : ℕ × ℕ} (hlk : kl ∈ antidiagonal n) :
+  kl.1 ≤ n :=
+begin
+  rw le_iff_exists_add,
+  use kl.2,
+  rwa [mem_antidiagonal, eq_comm] at hlk
+end
+
+lemma antidiagonal.snd_le {n : ℕ} {kl : ℕ × ℕ} (hlk : kl ∈ antidiagonal n) :
+  kl.2 ≤ n :=
+begin
+  rw le_iff_exists_add,
+  use kl.1,
+  rwa [mem_antidiagonal, eq_comm, add_comm] at hlk
+end
+
+section equiv_prod
+
+/-- The disjoint union of antidiagonals `Σ (n : ℕ), antidiagonal n` is equivalent to the product
+    `ℕ × ℕ`. This is such an equivalence, obtained by mapping `(n, (k, l))` to `(k, l)`. -/
+@[simps] def sigma_antidiagonal_equiv_prod : (Σ (n : ℕ), antidiagonal n) ≃ ℕ × ℕ :=
+{ to_fun := λ x, x.2,
+  inv_fun := λ x, ⟨x.1 + x.2, x, mem_antidiagonal.mpr rfl⟩,
+  left_inv :=
+    begin
+      rintros ⟨n, ⟨k, l⟩, h⟩,
+      rw mem_antidiagonal at h,
+      exact sigma.subtype_ext h rfl,
+    end,
+  right_inv := λ x, rfl }
+
+end equiv_prod
 
 end nat
 

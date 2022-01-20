@@ -3,9 +3,8 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import data.equiv.encodable.basic
-import data.sigma
 import data.fintype.basic
+import data.equiv.encodable.basic
 import data.list.min_max
 
 /-!
@@ -61,6 +60,9 @@ of_nat_of_decode (encodek _)
 /-- A denumerable type is equivalent to `ℕ`. -/
 def eqv (α) [denumerable α] : α ≃ ℕ :=
 ⟨encode, of_nat α, of_nat_encode, encode_of_nat⟩
+
+@[priority 100] -- See Note [lower instance priority]
+instance : infinite α := infinite.of_surjective _ (eqv α).surjective
 
 /-- A type equivalent to `ℕ` is denumerable. -/
 def mk' {α} (e : α ≃ ℕ) : denumerable α :=
@@ -155,51 +157,51 @@ variables {s : set ℕ} [infinite s]
 section classical
 open_locale classical
 
-lemma exists_succ (x : s) : ∃ n, x.1 + n + 1 ∈ s :=
+lemma exists_succ (x : s) : ∃ n, ↑x + n + 1 ∈ s :=
 classical.by_contradiction $ λ h,
-have ∀ (a : ℕ) (ha : a ∈ s), a < x.val.succ,
-  from λ a ha, lt_of_not_ge (λ hax, h ⟨a - (x.1 + 1),
-    by rwa [add_right_comm, nat.add_sub_cancel' hax]⟩),
+have ∀ (a : ℕ) (ha : a ∈ s), a < succ x,
+  from λ a ha, lt_of_not_ge (λ hax, h ⟨a - (x + 1),
+    by rwa [add_right_comm, add_tsub_cancel_of_le hax]⟩),
 fintype.false
-  ⟨(((multiset.range x.1.succ).filter (∈ s)).pmap
+  ⟨(((multiset.range (succ x)).filter (∈ s)).pmap
       (λ (y : ℕ) (hy : y ∈ s), subtype.mk y hy)
       (by simp [-multiset.range_succ])).to_finset,
     by simpa [subtype.ext_iff_val, multiset.mem_filter, -multiset.range_succ]⟩
 
 end classical
 
-variable [decidable_pred s]
+variable [decidable_pred (∈ s)]
 
 /-- Returns the next natural in a set, according to the usual ordering of `ℕ`. -/
 def succ (x : s) : s :=
-have h : ∃ m, x.1 + m + 1 ∈ s, from exists_succ x,
-⟨x.1 + nat.find h + 1, nat.find_spec h⟩
+have h : ∃ m, ↑x + m + 1 ∈ s, from exists_succ x,
+⟨↑x + nat.find h + 1, nat.find_spec h⟩
 
 lemma succ_le_of_lt {x y : s} (h : y < x) : succ y ≤ x :=
-have hx : ∃ m, y.1 + m + 1 ∈ s, from exists_succ _,
+have hx : ∃ m, ↑y + m + 1 ∈ s, from exists_succ _,
 let ⟨k, hk⟩ := nat.exists_eq_add_of_lt h in
 have nat.find hx ≤ k, from nat.find_min' _ (hk ▸ x.2),
-show y.1 + nat.find hx + 1 ≤ x.1,
+show (y : ℕ) + nat.find hx + 1 ≤ x,
 by rw hk; exact add_le_add_right (add_le_add_left this _) _
 
 lemma le_succ_of_forall_lt_le {x y : s} (h : ∀ z < x, z ≤ y) : x ≤ succ y :=
-have hx : ∃ m, y.1 + m + 1 ∈ s, from exists_succ _,
-show x.1 ≤ y.1 + nat.find hx + 1,
+have hx : ∃ m, ↑y + m + 1 ∈ s, from exists_succ _,
+show ↑x ≤ ↑y + nat.find hx + 1,
 from le_of_not_gt $ λ hxy,
 (h ⟨_, nat.find_spec hx⟩ hxy).not_lt $
-  calc y.1 ≤ y.1 + nat.find hx : le_add_of_nonneg_right (nat.zero_le _)
-  ... < y.1 + nat.find hx + 1 : nat.lt_succ_self _
+  calc ↑y ≤ ↑y + nat.find hx : le_add_of_nonneg_right (nat.zero_le _)
+  ... < ↑y + nat.find hx + 1 : nat.lt_succ_self _
 
 lemma lt_succ_self (x : s) : x < succ x :=
-calc x.1 ≤ x.1 + _ : le_self_add
-... < succ x : nat.lt_succ_self (x.1 + _)
+calc (x : ℕ) ≤ x + _ : le_self_add
+... < succ x : nat.lt_succ_self (x + _)
 
 lemma lt_succ_iff_le {x y : s} : x < succ y ↔ x ≤ y :=
 ⟨λ h, le_of_not_gt (λ h', not_le_of_gt h (succ_le_of_lt h')),
   λ h, lt_of_le_of_lt h (lt_succ_self _)⟩
 
 /-- Returns the `n`-th element of a set, according to the usual ordering of `ℕ`. -/
-def of_nat (s : set ℕ) [decidable_pred s] [infinite s] : ℕ → s
+def of_nat (s : set ℕ) [decidable_pred (∈ s)] [infinite s] : ℕ → s
 | 0     := ⊥
 | (n+1) := succ (of_nat n)
 
@@ -208,11 +210,11 @@ lemma of_nat_surjective_aux : ∀ {x : ℕ} (hx : x ∈ s), ∃ n, of_nat s n = 
   (λ (y : ℕ) (hy : y ∈ s), ⟨y, hy⟩) (by simp) in
 have hmt : ∀ {y : s}, y ∈ t ↔ y < ⟨x, hx⟩,
   by simp [list.mem_filter, subtype.ext_iff_val, t]; intros; refl,
-have wf : ∀ m : s, list.maximum t = m → m.1 < x,
+have wf : ∀ m : s, list.maximum t = m → ↑m < x,
   from λ m hmax, by simpa [hmt] using list.maximum_mem hmax,
 begin
   cases hmax : list.maximum t with m,
-  { exact ⟨0, le_antisymm (@bot_le s _ _)
+  { exact ⟨0, le_antisymm bot_le
       (le_of_not_gt (λ h, list.not_mem_nil (⊥ : s) $
         by rw [← list.maximum_eq_none.1 hmax, hmt]; exact h))⟩ },
   cases of_nat_surjective_aux m.2 with a ha,
@@ -226,11 +228,16 @@ using_well_founded {dec_tac := `[tauto]}
 lemma of_nat_surjective : surjective (of_nat s) :=
 λ ⟨x, hx⟩, of_nat_surjective_aux hx
 
+@[simp] lemma of_nat_range : set.range (of_nat s) = set.univ := of_nat_surjective.range_eq
+
+@[simp] lemma coe_comp_of_nat_range : set.range (coe ∘ of_nat s : ℕ → ℕ) = s :=
+by rw [set.range_comp coe, of_nat_range, set.image_univ, subtype.range_coe]
+
 private def to_fun_aux (x : s) : ℕ :=
-(list.range x).countp s
+(list.range x).countp (∈ s)
 
 private lemma to_fun_aux_eq (x : s) :
-  to_fun_aux x = ((finset.range x).filter s).card :=
+  to_fun_aux x = ((finset.range x).filter (∈ s)).card :=
 by rw [to_fun_aux, list.countp_eq_length_filter]; refl
 
 open finset
@@ -243,14 +250,14 @@ private lemma right_inverse_aux : ∀ n, to_fun_aux (of_nat s n) = n
   exact bot_le.not_lt (show (⟨n, hn.2⟩ : s) < ⊥, from hn.1),
 end
 | (n+1) := have ih : to_fun_aux (of_nat s n) = n, from right_inverse_aux n,
-have h₁ : (of_nat s n : ℕ) ∉ (range (of_nat s n)).filter s, by simp,
-have h₂ : (range (succ (of_nat s n))).filter s =
-  insert (of_nat s n) ((range (of_nat s n)).filter s),
+have h₁ : (of_nat s n : ℕ) ∉ (range (of_nat s n)).filter (∈ s), by simp,
+have h₂ : (range (succ (of_nat s n))).filter (∈ s) =
+  insert (of_nat s n) ((range (of_nat s n)).filter (∈ s)),
   begin
     simp only [finset.ext_iff, mem_insert, mem_range, mem_filter],
     exact λ m, ⟨λ h, by simp only [h.2, and_true]; exact or.symm
         (lt_or_eq_of_le ((@lt_succ_iff_le _ _ _ ⟨m, h.2⟩ _).1 h.1)),
-      λ h, h.elim (λ h, h.symm ▸ ⟨lt_succ_self _, subtype.property _⟩)
+      λ h, h.elim (λ h, h.symm ▸ ⟨lt_succ_self _, (of_nat s n).prop⟩)
         (λ h, ⟨h.1.trans (lt_succ_self _), h.2⟩)⟩,
   end,
 begin
@@ -259,7 +266,7 @@ begin
 end
 
 /-- Any infinite set of naturals is denumerable. -/
-def denumerable (s : set ℕ) [decidable_pred s] [infinite s] : denumerable s :=
+def denumerable (s : set ℕ) [decidable_pred (∈ s)] [infinite s] : denumerable s :=
 denumerable.of_equiv ℕ
 { to_fun := to_fun_aux,
   inv_fun := of_nat s,

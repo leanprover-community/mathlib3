@@ -30,9 +30,10 @@ by {ext, simp [equiv_functor.map_equiv, equiv_functor.map] }
 begin
   ext (_ | i),
   { simp [swap_apply_of_ne_of_ne] },
-  { by_cases hx : i = x;
+  { by_cases hx : i = x,
+    simp [hx, swap_apply_of_ne_of_ne, equiv_functor.map],
     by_cases hy : i = y;
-    simp [hx, hy, swap_apply_of_ne_of_ne, equiv_functor.map] }
+    simp [hx, hy, swap_apply_of_ne_of_ne, equiv_functor.map], }
 end
 
 @[simp] lemma equiv_functor.option.sign {α : Type*} [decidable_eq α] [fintype α] (e : perm α) :

@@ -105,9 +105,9 @@ by refine_struct
   mul            := (*),
   sub            := λ a b, a + -b,
   one            := 1,
-  npow           := @npow_rec _ ⟨1⟩ ⟨(*)⟩,
-  nsmul          := @nsmul_rec _ ⟨0⟩ ⟨(+)⟩,
-  gsmul          := @gsmul_rec _ ⟨0⟩ ⟨(+)⟩ ⟨zsqrtd.neg⟩ };
+  npow           := @npow_rec (ℤ√d) ⟨1⟩ ⟨(*)⟩,
+  nsmul          := @nsmul_rec (ℤ√d) ⟨0⟩ ⟨(+)⟩,
+  zsmul          := @zsmul_rec (ℤ√d) ⟨0⟩ ⟨(+)⟩ ⟨zsqrtd.neg⟩ };
 intros; try { refl }; simp [ext, add_mul, mul_add, add_comm, add_left_comm, mul_comm, mul_left_comm]
 
 instance : add_comm_monoid ℤ√d    := by apply_instance
@@ -265,8 +265,8 @@ theorem sq_le_mul {d x y z w : ℕ} :
   (sq_le x 1 y d → sq_le w d z 1 → sq_le (x * z + d * y * w) 1 (x * w + y * z) d) ∧
   (sq_le y d x 1 → sq_le z 1 w d → sq_le (x * z + d * y * w) 1 (x * w + y * z) d) ∧
   (sq_le y d x 1 → sq_le w d z 1 → sq_le (x * w + y * z) d (x * z + d * y * w) 1) :=
-by refine ⟨_, _, _, _⟩; {
-  intros xy zw,
+by refine ⟨_, _, _, _⟩;
+{ intros xy zw,
   have := int.mul_nonneg (sub_nonneg_of_le (int.coe_nat_le_coe_nat_of_le xy))
                          (sub_nonneg_of_le (int.coe_nat_le_coe_nat_of_le zw)),
   refine int.le_of_coe_nat_le_coe_nat (le_of_sub_nonneg _),
@@ -332,9 +332,6 @@ coe_int_inj $ by simp only [norm_eq_mul_conj, conj_neg, neg_mul_eq_neg_mul_symm,
 
 @[simp] lemma norm_conj (x : ℤ√d) : x.conj.norm = x.norm :=
 coe_int_inj $ by simp only [norm_eq_mul_conj, conj_conj, mul_comm]
-
-instance : is_monoid_hom norm :=
-{ map_one := norm_one, map_mul := norm_mul }
 
 lemma norm_nonneg (hd : d ≤ 0) (n : ℤ√d) : 0 ≤ n.norm :=
 add_nonneg (mul_self_nonneg _)
@@ -645,15 +642,15 @@ protected theorem eq_zero_or_eq_zero_of_mul_eq_zero : Π {a b : ℤ√d}, a * b 
   if z0 : z = 0 then if w0 : w = 0 then
     or.inr (match z, w, z0, w0 with ._, ._, rfl, rfl := rfl end)
   else
-     or.inl $ fin $ mul_right_cancel' w0 $ calc
+     or.inl $ fin $ mul_right_cancel₀ w0 $ calc
        x * x * w = -y * (x * z) : by simp [h2, mul_assoc, mul_left_comm]
              ... = d * y * y * w : by simp [h1, mul_assoc, mul_left_comm]
   else
-     or.inl $ fin $ mul_right_cancel' z0 $ calc
+     or.inl $ fin $ mul_right_cancel₀ z0 $ calc
        x * x * z = d * -y * (x * w) : by simp [h1, mul_assoc, mul_left_comm]
              ... = d * y * y * z : by simp [h2, mul_assoc, mul_left_comm]
 
-instance : integral_domain ℤ√d :=
+instance : is_domain ℤ√d :=
 { eq_zero_or_eq_zero_of_mul_eq_zero := @zsqrtd.eq_zero_or_eq_zero_of_mul_eq_zero,
   .. zsqrtd.comm_ring, .. zsqrtd.nontrivial }
 
@@ -711,8 +708,8 @@ def lift {d : ℤ} : {r : R // r * r = ↑d} ≃ (ℤ√d →+* R) :=
     map_zero' := by simp,
     map_add' := λ a b, by { simp, ring, },
     map_one' := by simp,
-    map_mul' := λ a b, by {
-      have : (a.re + a.im * r : R) * (b.re + b.im * r) =
+    map_mul' := λ a b, by
+    { have : (a.re + a.im * r : R) * (b.re + b.im * r) =
               a.re * b.re + (a.re * b.im + a.im * b.re) * r + a.im * b.im * (r * r) := by ring,
       simp [this, r.prop],
       ring, } },

@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 
-import data.mv_polynomial
 import field_theory.finite.basic
 
 /-!
@@ -99,7 +98,7 @@ theorem char_dvd_card_solutions_family (p : ℕ) [char_p K p]
   (h : (∑ i in s, (f i).total_degree) < fintype.card σ) :
   p ∣ fintype.card {x : σ → K // ∀ i ∈ s, eval x (f i) = 0} :=
 begin
-  have hq : 0 < q - 1, { rw [← card_units, fintype.card_pos_iff], exact ⟨1⟩ },
+  have hq : 0 < q - 1, { rw [← fintype.card_units, fintype.card_pos_iff], exact ⟨1⟩ },
   let S : finset (σ → K) := { x ∈ univ | ∀ i ∈ s, eval x (f i) = 0 },
   have hS : ∀ (x : σ → K), x ∈ S ↔ ∀ (i : ι), i ∈ s → eval x (f i) = 0,
   { intros x, simp only [S, true_and, sep_def, mem_filter, mem_univ], },
@@ -125,7 +124,7 @@ begin
       rw [pow_card_sub_one_eq_one (eval x (f i)) hx, sub_self], } },
   -- In particular, we can now show:
   have key : ∑ x, eval x F = fintype.card {x : σ → K // ∀ i ∈ s, eval x (f i) = 0},
-  rw [fintype.card_of_subtype S hS, card_eq_sum_ones, sum_nat_cast, nat.cast_one,
+  rw [fintype.card_of_subtype S hS, card_eq_sum_ones, nat.cast_sum, nat.cast_one,
       ← fintype.sum_extend_by_zero S, sum_congr rfl (λ x hx, hF x)],
   -- With these preparations under our belt, we will approach the main goal.
   show p ∣ fintype.card {x // ∀ (i : ι), i ∈ s → eval x (f i) = 0},

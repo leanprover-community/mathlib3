@@ -104,7 +104,7 @@ begin
     refine ⟨⟨π, mem_alternating_group.mp h⟩, subtype.val_injective _⟩,
     simpa only [subtype.val_eq_coe, subgroup.coe_mul, coe_inv, coe_mk] using hπ },
   { have h2 : 2 ≤ σ.supportᶜ.card,
-    { rw [finset.card_compl, nat.le_sub_left_iff_add_le σ.support.card_le_univ],
+    { rw [finset.card_compl, le_tsub_iff_left σ.support.card_le_univ],
       exact hσ },
     obtain ⟨a, ha, b, hb, ab⟩ := finset.one_lt_card.1 h2,
     refine is_conj_iff.2 ⟨⟨π * swap a b, _⟩, subtype.val_injective _⟩,
@@ -112,7 +112,7 @@ begin
     { simp only [←hπ, coe_mk, subgroup.coe_mul, subtype.val_eq_coe],
       have hd : disjoint (swap a b) σ,
       { rw [disjoint_iff_disjoint_support, support_swap ab, finset.disjoint_insert_left,
-          finset.singleton_disjoint],
+          finset.disjoint_singleton_left],
         exact ⟨finset.mem_compl.1 ha, finset.mem_compl.1 hb⟩ },
       rw [mul_assoc π _ σ, hd.commute.eq, coe_inv, coe_mk],
       simp [mul_assoc] } }
@@ -322,9 +322,8 @@ instance is_simple_group_five : is_simple_group (alternating_group (fin 5)) :=
   { -- The case `n = 4` leads to contradiction, as no element of $A_5$ includes a 4-cycle.
     have con := mem_alternating_group.1 gA,
     contrapose! con,
-    rw [sign_of_cycle_type, cycle_type_of_card_le_mem_cycle_type_add_two dec_trivial ng],
-    simp only [multiset.singleton_eq_singleton, multiset.map_cons, mul_one, multiset.prod_cons,
-      units.neg_mul, multiset.prod_zero, multiset.map_zero],
+    rw [sign_of_cycle_type, cycle_type_of_card_le_mem_cycle_type_add_two dec_trivial ng,
+      multiset.map_singleton, multiset.prod_singleton],
     dec_trivial },
   { -- If `n = 5`, then `g` is itself a 5-cycle, conjugate to `fin_rotate 5`.
     refine (is_conj_iff_cycle_type_eq.2 _).normal_closure_eq_top_of

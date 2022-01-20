@@ -45,7 +45,7 @@ general limits can be used.
 
 noncomputable theory
 
-open category_theory
+open category_theory opposite
 
 namespace category_theory.limits
 
@@ -91,6 +91,50 @@ instance walking_parallel_pair_hom_category : small_category walking_parallel_pa
 lemma walking_parallel_pair_hom_id (X : walking_parallel_pair) :
   walking_parallel_pair_hom.id X = 𝟙 X :=
 rfl
+
+/--
+The functor `walking_parallel_pair ⥤ walking_parallel_pairᵒᵖ` sending left to left and right to
+right.
+-/
+def walking_parallel_pair_op : walking_parallel_pair.{u} ⥤ walking_parallel_pair.{u₂}ᵒᵖ :=
+{ obj := (λ x, op $ by { cases x, exacts [one, zero] }),
+  map := λ i j f, by { cases f; apply quiver.hom.op, exacts [left, right,
+    walking_parallel_pair_hom.id _] },
+  map_comp' := by { rintros (_|_) (_|_) (_|_) (_|_|_) (_|_|_); refl } }
+
+@[simp] lemma walking_parallel_pair_op_zero :
+  walking_parallel_pair_op.obj zero = op one := rfl
+@[simp] lemma walking_parallel_pair_op_one :
+  walking_parallel_pair_op.obj one = op zero := rfl
+@[simp] lemma walking_parallel_pair_op_left :
+  walking_parallel_pair_op.map left = @quiver.hom.op _ _ zero one left := rfl
+@[simp] lemma walking_parallel_pair_op_right :
+  walking_parallel_pair_op.map right = @quiver.hom.op _ _ zero one right := rfl
+
+/--
+The equivalence `walking_parallel_pair ⥤ walking_parallel_pairᵒᵖ` sending left to left and right to
+right.
+-/
+@[simps functor inverse]
+def walking_parallel_pair_op_equiv : walking_parallel_pair.{u} ≌ walking_parallel_pair.{u₂}ᵒᵖ :=
+{ functor := walking_parallel_pair_op,
+  inverse := walking_parallel_pair_op.left_op,
+  unit_iso := nat_iso.of_components (λ j, eq_to_iso (by { cases j; refl }))
+    (by { rintros (_|_) (_|_) (_|_|_); refl }),
+  counit_iso := nat_iso.of_components (λ j, eq_to_iso
+    (by { induction j using opposite.rec, cases j; refl }))
+    (λ i j f, by { induction i using opposite.rec, induction j using opposite.rec,
+      let g := f.unop, have : f = g.op := rfl, clear_value g, subst this,
+      rcases i with (_|_); rcases j with (_|_); rcases g with (_|_|_); refl }) }
+
+@[simp] lemma walking_parallel_pair_op_equiv_unit_iso_zero :
+  walking_parallel_pair_op_equiv.{u u₂}.unit_iso.app zero = iso.refl zero := rfl
+@[simp] lemma walking_parallel_pair_op_equiv_unit_iso_one :
+  walking_parallel_pair_op_equiv.{u u₂}.unit_iso.app one = iso.refl one := rfl
+@[simp] lemma walking_parallel_pair_op_equiv_counit_iso_zero :
+  walking_parallel_pair_op_equiv.{u u₂}.counit_iso.app (op zero) = iso.refl (op zero) := rfl
+@[simp] lemma walking_parallel_pair_op_equiv_counit_iso_one :
+  walking_parallel_pair_op_equiv.{u u₂}.counit_iso.app (op one) = iso.refl (op one) := rfl
 
 variables {C : Type u} [category.{v} C]
 variables {X Y : C}
@@ -448,6 +492,7 @@ To construct an isomorphism between coforks,
 it suffices to give an isomorphism between the cocone points
 and check that it commutes with the `π` morphisms.
 -/
+@[simps]
 def cofork.ext {s t : cofork f g} (i : s.X ≅ t.X) (w : s.π ≫ i.hom = t.π) : s ≅ t :=
 { hom := cofork.mk_hom i.hom w,
   inv := cofork.mk_hom i.inv (by rw [iso.comp_inv_eq, w]) }
@@ -766,10 +811,10 @@ end comparison
 variables (C)
 
 /-- `has_equalizers` represents a choice of equalizer for every pair of morphisms -/
-abbreviation has_equalizers := has_limits_of_shape walking_parallel_pair C
+abbreviation has_equalizers := has_limits_of_shape walking_parallel_pair.{v} C
 
 /-- `has_coequalizers` represents a choice of coequalizer for every pair of morphisms -/
-abbreviation has_coequalizers := has_colimits_of_shape walking_parallel_pair C
+abbreviation has_coequalizers := has_colimits_of_shape walking_parallel_pair.{v} C
 
 /-- If `C` has all limits of diagrams `parallel_pair f g`, then it has all equalizers -/
 lemma has_equalizers_of_has_limit_parallel_pair

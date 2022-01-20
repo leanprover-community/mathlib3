@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Callum Sutton, Yury Kudryashov
 -/
 import data.equiv.mul_add
-import algebra.field
-import algebra.opposites
+import algebra.field.basic
+import algebra.ring.opposite
+import algebra.big_operators.basic
 
 /-!
 # (Semi)ring equivs
@@ -35,6 +36,8 @@ multiplication in `equiv.perm`, and multiplication in `category_theory.End`, not
 equiv, mul_equiv, add_equiv, ring_equiv, mul_aut, add_aut, ring_aut
 -/
 
+open_locale big_operators
+
 variables {R : Type*} {S : Type*} {S' : Type*}
 
 set_option old_structure_cmd true
@@ -60,7 +63,7 @@ section basic
 
 variables [has_mul R] [has_add R] [has_mul S] [has_add S] [has_mul S'] [has_add S']
 
-instance : has_coe_to_fun (R ≃+* S) := ⟨_, ring_equiv.to_fun⟩
+instance : has_coe_to_fun (R ≃+* S) (λ _, R → S) := ⟨ring_equiv.to_fun⟩
 
 @[simp] lemma to_fun_eq_coe (f : R ≃+* S) : f.to_fun = f := rfl
 
@@ -98,9 +101,9 @@ instance has_coe_to_mul_equiv : has_coe (R ≃+* S) (R ≃* S) := ⟨ring_equiv.
 
 instance has_coe_to_add_equiv : has_coe (R ≃+* S) (R ≃+ S) := ⟨ring_equiv.to_add_equiv⟩
 
-lemma to_add_equiv_eq_coe (f : R ≃+* S) : f.to_add_equiv = ↑f := rfl
+@[simp] lemma to_add_equiv_eq_coe (f : R ≃+* S) : f.to_add_equiv = ↑f := rfl
 
-lemma to_mul_equiv_eq_coe (f : R ≃+* S) : f.to_mul_equiv = ↑f := rfl
+@[simp] lemma to_mul_equiv_eq_coe (f : R ≃+* S) : f.to_mul_equiv = ↑f := rfl
 
 @[simp, norm_cast] lemma coe_to_mul_equiv (f : R ≃+* S) : ⇑(f : R ≃* S) = f := rfl
 
@@ -141,6 +144,8 @@ def simps.symm_apply (e : R ≃+* S) : S → R := e.symm
 
 initialize_simps_projections ring_equiv (to_fun → apply, inv_fun → symm_apply)
 
+@[simp] lemma inv_fun_eq_symm (f : R ≃+* S) : f.inv_fun = f.symm := rfl
+
 @[simp] lemma symm_symm (e : R ≃+* S) : e.symm.symm = e := ext $ λ x, rfl
 
 lemma symm_bijective : function.bijective (ring_equiv.symm : (R ≃+* S) → (S ≃+* R)) :=
@@ -173,24 +178,41 @@ e.to_equiv.image_eq_preimage s
 
 end basic
 
+section opposite
+open mul_opposite
+
+/-- A ring iso `α ≃+* β` can equivalently be viewed as a ring iso `αᵐᵒᵖ ≃+* βᵐᵒᵖ`. -/
+@[simps]
+protected def op {α β} [has_add α] [has_mul α] [has_add β] [has_mul β] :
+  (α ≃+* β) ≃ (αᵐᵒᵖ ≃+* βᵐᵒᵖ) :=
+{ to_fun    := λ f, { ..f.to_add_equiv.mul_op, ..f.to_mul_equiv.op},
+  inv_fun   := λ f, { ..add_equiv.mul_op.symm f.to_add_equiv, ..mul_equiv.op.symm f.to_mul_equiv },
+  left_inv  := λ f, by { ext, refl },
+  right_inv := λ f, by { ext, refl } }
+
+/-- The 'unopposite' of a ring iso `αᵐᵒᵖ ≃+* βᵐᵒᵖ`. Inverse to `ring_equiv.op`. -/
+@[simp] protected def unop {α β} [has_add α] [has_mul α] [has_add β] [has_mul β] :
+  (αᵐᵒᵖ ≃+* βᵐᵒᵖ) ≃ (α ≃+* β) := ring_equiv.op.symm
+
 section comm_semiring
-open opposite
 
 variables (R) [comm_semiring R]
 
 /-- A commutative ring is isomorphic to its opposite. -/
-def to_opposite : R ≃+* Rᵒᵖ :=
+def to_opposite : R ≃+* Rᵐᵒᵖ :=
 { map_add' := λ x y, rfl,
   map_mul' := λ x y, mul_comm (op y) (op x),
-  ..equiv_to_opposite }
+  .. mul_opposite.op_equiv }
 
 @[simp]
 lemma to_opposite_apply (r : R) : to_opposite R r = op r := rfl
 
 @[simp]
-lemma to_opposite_symm_apply (r : Rᵒᵖ) : (to_opposite R).symm r = unop r := rfl
+lemma to_opposite_symm_apply (r : Rᵐᵒᵖ) : (to_opposite R).symm r = unop r := rfl
 
 end comm_semiring
+
+end opposite
 
 section non_unital_semiring
 
@@ -224,6 +246,12 @@ lemma map_ne_one_iff : f x ≠ 1 ↔ x ≠ 1 := (f : R ≃* S).map_ne_one_iff
 /-- Produce a ring isomorphism from a bijective ring homomorphism. -/
 noncomputable def of_bijective (f : R →+* S) (hf : function.bijective f) : R ≃+* S :=
 { .. equiv.of_bijective f hf, .. f }
+
+@[simp] lemma coe_of_bijective (f : R →+* S) (hf : function.bijective f) :
+  (of_bijective f hf : R → S) = f := rfl
+
+lemma of_bijective_apply (f : R →+* S) (hf : function.bijective f) (x : R) :
+  of_bijective f hf x = f x := rfl
 
 end semiring
 
@@ -336,6 +364,56 @@ lemma of_hom_inv_symm_apply (hom : R →+* S) (inv : S →+* R) (hom_inv_id inv_
 
 end semiring_hom
 
+section big_operators
+
+lemma map_list_prod [semiring R] [semiring S] (f : R ≃+* S) (l : list R) :
+  f l.prod = (l.map f).prod := f.to_ring_hom.map_list_prod l
+
+lemma map_list_sum [non_assoc_semiring R] [non_assoc_semiring S] (f : R ≃+* S) (l : list R) :
+  f l.sum = (l.map f).sum := f.to_ring_hom.map_list_sum l
+
+/-- An isomorphism into the opposite ring acts on the product by acting on the reversed elements -/
+lemma unop_map_list_prod [semiring R] [semiring S] (f : R ≃+* Sᵐᵒᵖ) (l : list R) :
+  mul_opposite.unop (f l.prod) = (l.map (mul_opposite.unop ∘ f)).reverse.prod :=
+f.to_ring_hom.unop_map_list_prod l
+
+lemma map_multiset_prod [comm_semiring R] [comm_semiring S] (f : R ≃+* S) (s : multiset R) :
+  f s.prod = (s.map f).prod := f.to_ring_hom.map_multiset_prod s
+
+lemma map_multiset_sum [non_assoc_semiring R] [non_assoc_semiring S]
+  (f : R ≃+* S) (s : multiset R) : f s.sum = (s.map f).sum := f.to_ring_hom.map_multiset_sum s
+
+lemma map_prod {α : Type*} [comm_semiring R] [comm_semiring S] (g : R ≃+* S) (f : α → R)
+  (s : finset α) : g (∏ x in s, f x) = ∏ x in s, g (f x) :=
+g.to_ring_hom.map_prod f s
+
+lemma map_sum {α : Type*} [non_assoc_semiring R] [non_assoc_semiring S]
+  (g : R ≃+* S) (f : α → R) (s : finset α) : g (∑ x in s, f x) = ∑ x in s, g (f x) :=
+g.to_ring_hom.map_sum f s
+
+end big_operators
+
+section division_ring
+
+variables {K K' : Type*} [division_ring K] [division_ring K']
+  (g : K ≃+* K') (x y : K)
+
+lemma map_inv : g x⁻¹ = (g x)⁻¹ := g.to_ring_hom.map_inv x
+
+lemma map_div : g (x / y) = g x / g y := g.to_ring_hom.map_div x y
+
+end division_ring
+
+section group_power
+
+variables [semiring R] [semiring S]
+
+@[simp] lemma map_pow (f : R ≃+* S) (a) :
+  ∀ n : ℕ, f (a ^ n) = (f a) ^ n :=
+f.to_ring_hom.map_pow a
+
+end group_power
+
 end ring_equiv
 
 namespace mul_equiv
@@ -351,42 +429,16 @@ namespace ring_equiv
 
 variables [has_add R] [has_add S] [has_mul R] [has_mul S]
 
-@[simp] theorem trans_symm (e : R ≃+* S) : e.trans e.symm = ring_equiv.refl R := ext e.3
-@[simp] theorem symm_trans (e : R ≃+* S) : e.symm.trans e = ring_equiv.refl S := ext e.4
+@[simp] theorem self_trans_symm (e : R ≃+* S) : e.trans e.symm = ring_equiv.refl R := ext e.3
+@[simp] theorem symm_trans_self (e : R ≃+* S) : e.symm.trans e = ring_equiv.refl S := ext e.4
 
-/-- If two rings are isomorphic, and the second is an integral domain, then so is the first. -/
-protected lemma is_integral_domain {A : Type*} (B : Type*) [ring A] [ring B]
-  (hB : is_integral_domain B) (e : A ≃+* B) : is_integral_domain A :=
-{ mul_comm := λ x y, have e.symm (e x * e y) = e.symm (e y * e x), by rw hB.mul_comm, by simpa,
-  eq_zero_or_eq_zero_of_mul_eq_zero := λ x y hxy,
+/-- If two rings are isomorphic, and the second is a domain, then so is the first. -/
+protected lemma is_domain
+  {A : Type*} (B : Type*) [ring A] [ring B] [is_domain B]
+  (e : A ≃+* B) : is_domain A :=
+{ eq_zero_or_eq_zero_of_mul_eq_zero := λ x y hxy,
     have e x * e y = 0, by rw [← e.map_mul, hxy, e.map_zero],
-    (hB.eq_zero_or_eq_zero_of_mul_eq_zero _ _ this).imp (λ hx, by simpa using congr_arg e.symm hx)
-      (λ hy, by simpa using congr_arg e.symm hy),
-  exists_pair_ne := ⟨e.symm 0, e.symm 1,
-    by { haveI : nontrivial B := hB.to_nontrivial, exact e.symm.injective.ne zero_ne_one }⟩ }
-
-/-- If two rings are isomorphic, and the second is an integral domain, then so is the first. -/
-protected def integral_domain {A : Type*} (B : Type*) [ring A] [integral_domain B]
-  (e : A ≃+* B) : integral_domain A :=
-{ .. (‹_› : ring A), .. e.is_integral_domain B (integral_domain.to_is_integral_domain B) }
+    by simpa using eq_zero_or_eq_zero_of_mul_eq_zero this,
+  exists_pair_ne := ⟨e.symm 0, e.symm 1, e.symm.injective.ne zero_ne_one⟩ }
 
 end ring_equiv
-
-namespace equiv
-
-variables (K : Type*) [division_ring K]
-
-/-- In a division ring `K`, the unit group `units K`
-is equivalent to the subtype of nonzero elements. -/
--- TODO: this might already exist elsewhere for `group_with_zero`
--- deduplicate or generalize
-def units_equiv_ne_zero : units K ≃ {a : K | a ≠ 0} :=
-⟨λ a, ⟨a.1, a.ne_zero⟩, λ a, units.mk0 _ a.2, λ ⟨_, _, _, _⟩, units.ext rfl, λ ⟨_, _⟩, rfl⟩
-
-variable {K}
-
-@[simp]
-lemma coe_units_equiv_ne_zero (a : units K) :
-  ((units_equiv_ne_zero K a) : K) = a := rfl
-
-end equiv

@@ -4,9 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 
-import ring_theory.ideal.operations
-import linear_algebra.finsupp_vector_space
 import algebra.char_p.basic
+import linear_algebra.finsupp_vector_space
 
 /-!
 # Multivariate polynomials over commutative rings
@@ -58,14 +57,12 @@ lemma map_range_eq_map {R S : Type*} [comm_ring R] [comm_ring S] (p : mv_polynom
   (f : R →+* S) :
   finsupp.map_range f f.map_zero p = map f p :=
 begin
-  rw [← finsupp.sum_single p, finsupp.sum],
-  -- It's not great that we need to use an `erw` here,
-  -- but hopefully it will become smoother when we move entirely away from `is_semiring_hom`.
-  erw [finsupp.map_range_finset_sum (f : R →+ S)],
-  rw [← (finsupp.support p).sum_hom (map f)],
-  { refine finset.sum_congr rfl (assume n _, _),
-    rw [finsupp.map_range_single, ← monomial, ← monomial, map_monomial], refl, },
-  apply_instance
+  -- `finsupp.map_range_finset_sum` expects `f : R →+ S`
+  change finsupp.map_range (f : R →+ S) (f : R →+ S).map_zero p = map f p,
+  rw [p.as_sum, finsupp.map_range_finset_sum, (map f).map_sum],
+  refine finset.sum_congr rfl (assume n _, _),
+  rw [map_monomial, ← single_eq_monomial, finsupp.map_range_single, single_eq_monomial,
+    f.coe_add_monoid_hom],
 end
 
 end homomorphism
@@ -100,7 +97,7 @@ end
 lemma mem_restrict_degree_iff_sup (p : mv_polynomial σ R) (n : ℕ) :
   p ∈ restrict_degree σ R n ↔ ∀i, p.degrees.count i ≤ n :=
 begin
-  simp only [mem_restrict_degree, degrees, multiset.count_sup, finsupp.count_to_multiset,
+  simp only [mem_restrict_degree, degrees, multiset.count_finset_sup, finsupp.count_to_multiset,
     finset.sup_le_iff],
   exact ⟨assume h n s hs, h s hs n, assume h s hs n, h n s hs⟩
 end
@@ -113,6 +110,10 @@ def basis_monomials : basis (σ →₀ ℕ) R (mv_polynomial σ R) := finsupp.ba
 @[simp] lemma coe_basis_monomials :
   (basis_monomials σ R : (σ →₀ ℕ) → mv_polynomial σ R) = λ s, monomial s 1 :=
 rfl
+
+lemma linear_independent_X : linear_independent R (X : σ → mv_polynomial σ R) :=
+(basis_monomials σ R).linear_independent.comp
+  (λ s : σ, finsupp.single s 1) (finsupp.single_left_injective one_ne_zero)
 
 end degree
 

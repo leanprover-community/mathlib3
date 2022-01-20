@@ -60,7 +60,11 @@ sorry
 -- This is R(A) in the paper.
 def rec_sum (A : finset ℕ) : ℚ := ∑ n in A, 1/n
 
--- This is A_q ihe paper.
+lemma rec_sum_bUnion_disjoint {A : finset (finset ℕ)}
+  (hA : (A : set (finset ℕ)).pairwise_disjoint id) : rec_sum (A.bUnion id) = ∑ s in A, rec_sum s :=
+by simp only [rec_sum, finset.sum_bUnion hA, id.def]
+
+-- This is A_q in the paper.
 def local_part (A : finset ℕ) (q : ℕ) : finset ℕ := A.filter (λ n, q ∣ n ∧ coprime q (n/q) )
 
 -- This is Q_A in the paper.

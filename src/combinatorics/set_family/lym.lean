@@ -48,23 +48,27 @@ open_locale big_operators finset_family
 
 variables {𝕜 α : Type*} [linear_ordered_field 𝕜]
 
--- generalize `tsub_le_tsub_left` to `preorder`
--- generalize `tsub_le_iff_left` to `add_comm_semigroup`
+namespace multiset
 
-lemma tsub_tsub_le_tsub_add [preorder α] [add_comm_monoid α] [has_sub α] [has_ordered_sub α]
-  [covariant_class α α (+) (≤)] {a b c : α} :
-  a - (b - c) ≤ a - b + c :=
-tsub_le_iff_right.2 $ calc
-    a ≤ a - b + b : le_tsub_add
-  ... ≤ a - b + (c + (b - c)) : add_le_add_left le_add_tsub _
-  ... = a - b + c + (b - c) : (add_assoc _ _ _).symm
+instance : has_ssubset (multiset α) := ⟨λ s t, s ⊆ t ∧ ¬ t ⊆ s⟩
 
--- lemma tsub_tsub_le_tsub_add' [preorder α] [add_comm_monoid α] [has_sub α] [has_ordered_sub α]
---   [covariant_class α α (+) (≤)] {a b c : α} :
---   a - (b - c) ≤ a - b + c :=
--- by { rw [←tsub_le_iff_right], have := tsub_tsub,
---     sorry,
---  exact tsub_le_tsub_left le_tsub_add _ }
+lemma le_cons (m : multiset α) (a : α) : m ≤ a ::ₘ m :=
+quotient.induction_on m $ λ l, (list.sublist_cons _ _).subperm
+
+lemma lt_cons (m : multiset α) (a : α) : m < a ::ₘ m :=
+(m.le_cons _).lt_of_not_le $ λ h, begin
+  classical,
+  have := multiset.count_le_of_le a h,
+  rw multiset.count_cons_self at this,
+  exact not_succ_le_self _ this,
+end
+
+lemma subset_cons (m : multiset α) (a : α) : m ⊆ a ::ₘ m := λ _, multiset.mem_cons_of_mem
+
+lemma ssubset_cons {m : multiset α} {a : α} (ha : a ∉ m) : m ⊂ a ::ₘ m :=
+⟨subset_cons _ _, λ h, ha $ h $ mem_cons_self _ _⟩
+
+end multiset
 
 namespace finset
 
@@ -97,12 +101,6 @@ card_erase_of_mem ha
 lemma sdiff_nonempty [decidable_eq α] {s t : finset α} : (s \ t).nonempty ↔ ¬ s ⊆ t :=
 by rw [nonempty_iff_ne_empty, ne.def, sdiff_eq_empty_iff_subset]
 
-/-- An unbundled relation class stating that `r` is the nonstrict relation corresponding to the
-strict relation `s`. Compare `preorder.lt_iff_le_not_le`. This is mostly meant to be used for `(⊆)`
-and `(⊂)`. -/
-class is_nonstrict_strict_order (α : Type*) (r s : α → α → Prop) :=
-(right_iff_left_not_left {a b : α} : s a b ↔ r a b ∧ ¬ r b a)
-
 lemma exists_eq_insert_iff [decidable_eq α] {s t : finset α} :
   (∃ a ∉ s, insert a s = t) ↔ s ⊆ t ∧ s.card + 1 = t.card :=
 begin
@@ -121,36 +119,17 @@ end
 lemma ssubset_of_subset_of_ne {s t : finset α} (h₁ : s ⊆ t) (h₂ : s ≠ t) : s ⊂ t :=
 lt_iff_ssubset.1 $ lt_of_le_of_ne h₁ h₂
 
-lemma _root_.multiset.le_cons (m : multiset α) (a : α) : m ≤ a ::ₘ m :=
-quotient.induction_on m $ λ l, (list.sublist_cons _ _).subperm
-
-lemma _root_.multiset.lt_cons (m : multiset α) (a : α) : m < a ::ₘ m :=
-(m.le_cons _).lt_of_not_le begin
-  sorry
-end
-
-lemma _root_.multiset.subset_cons (m : multiset α) (a : α) : m ⊆ a ::ₘ m :=
-λ _, multiset.mem_cons_of_mem
-
-lemma _root_.multiset.ssubset_cons {m : multiset α} {a : α} (ha : a ∉ m) : m ⊂ a ::ₘ m :=
-λ _, multiset.mem_cons_of_mem
-
-
-lemma subset_cons {s : finset α} {a : α} (h : a ∉ s) : s ⊆ s.cons a h :=
-multiset.subset_cons _ _
+lemma subset_cons {s : finset α} {a : α} (h : a ∉ s) : s ⊆ s.cons a h := multiset.subset_cons _ _
 
 lemma ssubset_cons {s : finset α} {a : α} (h : a ∉ s) : s ⊂ s.cons a h :=
 ⟨subset_cons h, λ hs, h $ hs $ mem_cons_self _ _⟩
 
-lemma ssubset_iff_exists_cons_subset {s t : finset α} :
-  s ⊂ t ↔ ∃ a (h : a ∉ s), s.cons a h ⊆ t :=
+lemma ssubset_iff_exists_cons_subset {s t : finset α} : s ⊂ t ↔ ∃ a (h : a ∉ s), s.cons a h ⊆ t :=
 begin
-  refine ⟨λ h, _, _⟩,
-  {
-    sorry
-  },
-  { rintro ⟨a, ha, h⟩,
-    exact ssubset_of_ssubset_of_subset (ssubset_cons _) h }
+  refine ⟨λ h, _, λ ⟨a, ha, h⟩, ssubset_of_ssubset_of_subset (ssubset_cons _) h⟩,
+  obtain ⟨a, hs, ht⟩ := (not_subset _ _).1 h.2,
+  refine ⟨a, ht, _⟩,
+  sorry,
 end
 
 lemma ssubset_iff_exists_insert_subset [decidable_eq α] {s t : finset α} :
@@ -160,7 +139,10 @@ by simp_rw [ssubset_iff_exists_cons_subset, cons_eq_insert]
 lemma ssubset_iff_exists_subset_erase [decidable_eq α] {s t : finset α} :
   s ⊂ t ↔ ∃ a ∈ t, s ⊆ t.erase a :=
 begin
-  sorry
+  refine ⟨λ h, _, λ ⟨a, ha, h⟩, ssubset_of_subset_of_ssubset h $ erase_ssubset ha⟩,
+  obtain ⟨a, hs, ht⟩ := (not_subset _ _).1 h.2,
+  refine ⟨a, hs, _⟩,
+  sorry,
 end
 
 lemma subset_singleton_iff' {s : finset α} {a : α} : s ⊆ {a} ↔ ∀ b ∈ s, b = a :=

@@ -528,7 +528,7 @@ lemma ball_add (p : seminorm 𝕜 E) (r₁ r₂ : ℝ) (x₁ x₂ : E):
 begin
   rintros x ⟨y₁, y₂, hy₁, hy₂, rfl⟩,
   rw [mem_ball, add_sub_comm],
-  exact (p.triangle (y₁ - x₁) (y₂ - x₂)).trans_lt (add_lt_add hy₁ hy₂),
+  exact (p.triangle _ _).trans_lt (add_lt_add hy₁ hy₂),
 end
 
 end has_scalar

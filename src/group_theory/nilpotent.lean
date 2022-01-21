@@ -716,13 +716,17 @@ begin
   simp [← hx, mul_assoc],
 end
 
+/- A custom induction principle for nilpotent groups.
+   Unfortunately, `induction G using nilpotent_center_quotient_ind` does not work.
+-/
 lemma nilpotent_center_quotient_ind
-  {P : Type* -> Prop}
+  {P : Π G [group G], by exactI ∀ [is_nilpotent G], Prop}
+  (hbase : ∀ G [group G], by exactI ∀ [is_nilpotent G], by exactI ∀ [subsingleton G], P G)
+  (hstep : ∀ G [group G], by exactI ∀ [is_nilpotent G], by exactI P (G ⧸ center G) -> P G)
   (G : Type*)
-  (hbase : ∀ G [group G] [subsingleton G], P G)
-  (hstep : ∀ G [group G], by exactI ∀ [is_nilpotent G], P (G ⧸ center G) -> P G)
   [group G]
-  [is_nilpotent G] :
+  [is_nilpotent G]
+  :
   P G :=
 begin
   obtain ⟨n, h⟩ : ∃ n, group.nilpotency_class G = n := ⟨ _, rfl⟩,
@@ -734,28 +738,22 @@ begin
     exact hstep _ (ih _ hn), },
 end
 
--- NB: Does not need G to be finite
-lemma normalizer_condition'_of_is_nilpotent : is_nilpotent G → normalizer_condition G :=
+lemma normalizer_condition_of_is_nilpotent : is_nilpotent G → normalizer_condition G :=
 begin
+  -- roughly based on https://groupprops.subwiki.org/wiki/Nilpotent_implies_normalizer_condition
   rw normalizer_condition_iff_only_full_group_self_normalizing,
-  -- following https://groupprops.subwiki.org/wiki/Nilpotent_implies_normalizer_condition
-  introI hnp,
-  obtain ⟨n, h⟩ : ∃ n, group.nilpotency_class G = n := ⟨ _, rfl⟩,
-  unfreezingI { induction G using nilpotent_center_quotient_ind  },
+  -- in leiu of the induction tactic:
+  unfreezingI { revert G _inst_1 }, refine (@nilpotent_center_quotient_ind _ _ _),
   {
-    haveI := (nilpotency_class_zero_iff_subsingleton.mp h),
-    intros H _,
+    intro G, introsI _ _ _,
+    rintros H -,
     apply subsingleton.elim,
   },
-  {
+  { intro G, introsI _ _, intros ih,
     intros H hH,
 
     by_cases hch : center G ≤ H,
     {
-      have hn : group.nilpotency_class (G ⧸ center G) = n :=
-        by simp [nilpotency_class_quotient_center, h],
-      specialize ih _ hn,
-
       let H' := H.map (mk' (center G)),
 
       have hH' : H'.normalizer = H' :=

@@ -91,9 +91,9 @@ lemma unbounded_gt_of_unbounded_ge [preorder α] (h : unbounded (≥) s) : unbou
 lemma bounded_ge_iff_bounded_gt [preorder α] [no_min_order α] : bounded (≥) s ↔ bounded (>) s :=
 @bounded_le_iff_bounded_lt (order_dual α) _ _ _
 
-lemma unbounded_ge_iff_unbounded_gt [preorder α] [no_min_order α] :
-  unbounded (≥) s ↔ unbounded (>) s :=
-(@unbounded_lt_iff_unbounded_le (order_dual α) _ _ _).symm
+lemma unbounded_gt_iff_unbounded_ge [preorder α] [no_min_order α] :
+  unbounded (>) s ↔ unbounded (≥) s :=
+@unbounded_lt_iff_unbounded_le (order_dual α) _ _ _
 
 /-! ### Bounded and unbounded intervals -/
 

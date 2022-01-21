@@ -40,6 +40,12 @@ namespace nat
  mapping each prime factor of `n` to its multiplicity in `n`. -/
 noncomputable def factorization (n : ℕ) : ℕ →₀ ℕ := (n.factors : multiset ℕ).to_finsupp
 
+@[simp] lemma factorization_prod_pow_eq_self {n : ℕ} (hn : n ≠ 0) : n.factorization.prod pow = n :=
+begin
+  simp only [←prod_to_multiset, factorization, multiset.coe_prod, multiset.to_finsupp_to_multiset],
+  exact prod_factors hn.bot_lt,
+end
+
 lemma factorization_eq_count {n p : ℕ} : n.factorization p = n.factors.count p :=
 by simp [factorization]
 -- TODO: As part of the unification mentioned in the TODO above,
@@ -63,6 +69,12 @@ by simpa [factorization, multiset.to_finsupp_support]
 
 lemma factor_iff_mem_factorization {n p : ℕ} : p ∈ n.factorization.support ↔ p ∈ n.factors :=
 by simp only [support_factorization, list.mem_to_finset]
+
+lemma prime_of_mem_factorization {n p : ℕ} : p ∈ n.factorization.support → p.prime :=
+(@prime_of_mem_factors n p) ∘ (@factor_iff_mem_factorization n p).mp
+
+lemma pos_of_mem_factorization {n p : ℕ} : p ∈ n.factorization.support → 0 < p :=
+(@prime.pos p) ∘ (@prime_of_mem_factorization n p)
 
 /-- The only numbers with empty prime factorization are `0` and `1` -/
 lemma factorization_eq_zero_iff (n : ℕ) : n.factorization = 0 ↔ n = 0 ∨ n = 1 :=
@@ -92,6 +104,20 @@ end
 @[simp] lemma prime.factorization_pow {p k : ℕ} (hp : prime p) :
   factorization (p^k) = single p k :=
 by simp [factorization_pow, hp.factorization]
+
+/-- For any `p : ℕ` and any function `g : α → ℕ` that's non-zero on `S : finset α`,
+the power of `p` in `S.prod g` equals the sum over `x ∈ S` of the powers of `p` in `g x`.
+Generalises `factorization_mul`, which is the special case where `S.card = 2` and `g = id`. -/
+lemma factorization_prod {α : Type*} {S : finset α} {g : α → ℕ} (hS : ∀ x ∈ S, g x ≠ 0) :
+  (S.prod g).factorization = S.sum (λ x, (g x).factorization) :=
+begin
+  classical,
+  ext p,
+  apply finset.induction_on' S, { simp },
+  { intros x T hxS hTS hxT IH,
+    have hT : T.prod g ≠ 0 := prod_ne_zero_iff.mpr (λ x hx, hS x (hTS hx)),
+    simp [prod_insert hxT, sum_insert hxT, ←IH, factorization_mul (hS x hxS) hT] }
+end
 
 /-! ### Factorizations of pairs of coprime numbers -/
 
@@ -156,7 +182,18 @@ begin
     convert (factorization_disjoint_of_coprime hab) },
 end
 
-@[simp] lemma factorization_prod_pow_eq_self {n : ℕ} (hn : n ≠ 0) : n.factorization.prod pow = n :=
-by simpa only using (multiplicative_factorization id (by simp) (by simp) hn).symm
+/-! ### Factorization and divisibility -/
+
+lemma factorization_le_iff_dvd {d n : ℕ} (hd : d ≠ 0) (hn : n ≠ 0) :
+  d.factorization ≤ n.factorization ↔ d ∣ n :=
+begin
+  split,
+  { intro hdn,
+    set K := n.factorization - d.factorization with hK,
+    use K.prod pow,
+    rw [←factorization_prod_pow_eq_self hn, ←factorization_prod_pow_eq_self hd,
+        ←finsupp.prod_add_index pow_zero pow_add, hK, add_tsub_cancel_of_le hdn] },
+  { rintro ⟨c, rfl⟩, rw factorization_mul hd (right_ne_zero_of_mul hn), simp },
+end
 
 end nat

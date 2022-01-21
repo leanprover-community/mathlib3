@@ -813,6 +813,8 @@ by simp [finset.mul_def]
 @[to_additive, mono] lemma mul_subset_mul  (hs : s₁ ⊆ s₂) (ht : t₁ ⊆ t₂) : s₁ * t₁ ⊆ s₂ * t₂ :=
 image_subset_image (product_subset_product hs ht)
 
+attribute [mono] add_subset_add
+
 @[simp, to_additive]
 lemma mul_singleton (a : α) : s * {a} = s.image (* a) :=
 by { rw [mul_def, product_singleton, map_eq_image, image_image], refl }
@@ -1054,8 +1056,7 @@ lemma card_pow_eq_card_pow_card_univ [∀ (k : ℕ), decidable_pred (∈ (S ^ k)
 begin
   have hG : 0 < fintype.card G := fintype.card_pos_iff.mpr ⟨1⟩,
   by_cases hS : S = ∅,
-  { intros k hk,
-    congr' 2,
+  { refine λ k hk, fintype.card_congr _,
     rw [hS, empty_pow _ (ne_of_gt (lt_of_lt_of_le hG hk)), empty_pow _ (ne_of_gt hG)] },
   obtain ⟨a, ha⟩ := set.ne_empty_iff_nonempty.mp hS,
   classical,

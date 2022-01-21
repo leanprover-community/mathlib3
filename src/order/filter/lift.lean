@@ -70,7 +70,7 @@ end
 lemma mem_lift_sets (hg : monotone g) {s : set β} :
   s ∈ f.lift g ↔ ∃t∈f, s ∈ g t :=
 (f.basis_sets.mem_lift_iff (λ s, (g s).basis_sets) hg).trans $
-  by simp only [id, ← exists_mem_subset_iff]
+  by simp only [id, exists_mem_subset_iff]
 
 lemma mem_lift {s : set β} {t : set α} (ht : t ∈ f) (hs : s ∈ g t) :
   s ∈ f.lift g :=
@@ -388,8 +388,8 @@ eventually_lift'_iff monotone_powerset
 lemma eventually_lift'_powerset' {f : filter α} {p : set α → Prop}
   (hp : ∀ ⦃s t⦄, s ⊆ t → p t → p s) :
   (∀ᶠ s in f.lift' powerset, p s) ↔ ∃ s ∈ f, p s :=
-eventually_lift'_powerset.trans $ exists_congr $ λ s, exists_congr $
-  λ hsf, ⟨λ H, H s (subset.refl s), λ hs t ht, hp ht hs⟩
+eventually_lift'_powerset.trans $ exists₂_congr $ λ s hsf,
+  ⟨λ H, H s (subset.refl s), λ hs t ht, hp ht hs⟩
 
 instance lift'_powerset_ne_bot (f : filter α) : ne_bot (f.lift' powerset) :=
 (lift'_ne_bot_iff monotone_powerset).2 $ λ _ _, powerset_nonempty

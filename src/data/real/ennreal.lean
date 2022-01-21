@@ -77,15 +77,12 @@ variables {α : Type*} {β : Type*}
 @[derive [
   has_zero, add_comm_monoid,
   canonically_ordered_comm_semiring, complete_linear_order, densely_ordered, nontrivial,
-  canonically_linear_ordered_add_monoid, has_sub, has_ordered_sub]]
+  canonically_linear_ordered_add_monoid, has_sub, has_ordered_sub,
+  linear_ordered_add_comm_monoid_with_top]]
 def ennreal := with_top ℝ≥0
 
 localized "notation `ℝ≥0∞` := ennreal" in ennreal
 localized "notation `∞` := (⊤ : ennreal)" in ennreal
-
-noncomputable instance : linear_ordered_add_comm_monoid ℝ≥0∞ :=
-{ .. ennreal.canonically_ordered_comm_semiring,
-  .. ennreal.complete_linear_order }
 
 -- TODO: why are the two covariant instances necessary? why aren't they inferred?
 instance covariant_class_mul : covariant_class ℝ≥0∞ ℝ≥0∞ (*) (≤) :=
@@ -273,8 +270,8 @@ lemma supr_ennreal {α : Type*} [complete_lattice α] {f : ℝ≥0∞ → α} :
   (⨆ n, f n) = (⨆ n : ℝ≥0, f n) ⊔ f ∞ :=
 @infi_ennreal (order_dual α) _ _
 
-@[simp] lemma add_top : a + ∞ = ∞ := with_top.add_top
-@[simp] lemma top_add : ∞ + a = ∞ := with_top.top_add
+@[simp] lemma add_top : a + ∞ = ∞ := add_top _
+@[simp] lemma top_add : ∞ + a = ∞ := top_add _
 
 /-- Coercion `ℝ≥0 → ℝ≥0∞` as a `ring_hom`. -/
 noncomputable def of_nnreal_hom : ℝ≥0 →+* ℝ≥0∞ :=
@@ -861,14 +858,11 @@ theorem sum_lt_sum_of_nonempty {s : finset α} (hs : s.nonempty)
   {f g : α → ℝ≥0∞} (Hlt : ∀ i ∈ s, f i < g i) :
   ∑ i in s, f i < ∑ i in s, g i :=
 begin
-  classical,
-  induction s using finset.induction_on with a s as IH,
-  { exact (finset.not_nonempty_empty hs).elim },
-  { rcases finset.eq_empty_or_nonempty s with rfl|h's,
-    { simp [Hlt _ (finset.mem_singleton_self _)] },
-    { simp only [as, finset.sum_insert, not_false_iff],
-      exact ennreal.add_lt_add (Hlt _ (finset.mem_insert_self _ _))
-        (IH h's (λ i hi, Hlt _ (finset.mem_insert_of_mem hi))) } }
+  induction hs using finset.nonempty.cons_induction with a a s as hs IH,
+  { simp [Hlt _ (finset.mem_singleton_self _)] },
+  { simp only [as, finset.sum_cons, not_false_iff],
+    exact ennreal.add_lt_add (Hlt _ (finset.mem_cons_self _ _))
+      (IH (λ i hi, Hlt _ (finset.mem_cons.2 $ or.inr hi))) }
 end
 
 theorem exists_le_of_sum_le {s : finset α} (hs : s.nonempty)
@@ -1210,8 +1204,19 @@ end
 lemma inv_two_add_inv_two : (2:ℝ≥0∞)⁻¹ + 2⁻¹ = 1 :=
 by rw [← two_mul, ← div_eq_mul_inv, div_self two_ne_zero two_ne_top]
 
+lemma inv_three_add_inv_three : (3 : ℝ≥0∞)⁻¹ + 3⁻¹ +3⁻¹ = 1 :=
+begin
+  rw [show (3 : ℝ≥0∞)⁻¹ + 3⁻¹ + 3⁻¹ = 3 * 3⁻¹, by ring, ← div_eq_mul_inv, ennreal.div_self];
+  simp,
+end
+
+@[simp]
 lemma add_halves (a : ℝ≥0∞) : a / 2 + a / 2 = a :=
 by rw [div_eq_mul_inv, ← mul_add, inv_two_add_inv_two, mul_one]
+
+@[simp]
+lemma add_thirds (a : ℝ≥0∞) : a / 3 + a / 3 + a / 3 = a :=
+by rw [div_eq_mul_inv, ← mul_add, ← mul_add, inv_three_add_inv_three, mul_one]
 
 @[simp] lemma div_zero_iff : a / b = 0 ↔ a = 0 ∨ b = ∞ :=
 by simp [div_eq_mul_inv]
@@ -1650,7 +1655,6 @@ end
 
 protected lemma dichotomy (p : ℝ≥0∞) [fact (1 ≤ p)] : p = ∞ ∨ 1 ≤ p.to_real :=
 begin
-  tactic.unfreeze_local_instances,
   have :  p = ⊤ ∨ 0 < p.to_real ∧ 1 ≤ p.to_real,
   { simpa using ennreal.trichotomy₂ (fact.out _ : 1 ≤ p) },
   exact this.imp_right (λ h, h.2)

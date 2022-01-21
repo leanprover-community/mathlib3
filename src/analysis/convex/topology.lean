@@ -79,21 +79,18 @@ section has_continuous_smul
 variables [add_comm_group E] [module ℝ E] [topological_space E]
   [topological_add_group E] [has_continuous_smul ℝ E]
 
+lemma convex.comb_interior_subset_interior {s : set E} (hs : convex ℝ s) {a b : ℝ}
+  (ha : 0 < a) (hb : 0 ≤ b) (hab : a + b = 1) :
+  a • interior s + b • s ⊆ interior s :=
+interior_smul₀ ha.ne' s ▸
+  calc interior (a • s) + b • s ⊆ interior (a • s + b • s) : subset_interior_add_left
+  ... ⊆ interior s : interior_mono $ hs.set_comb_subset ha.le hb hab
+
 /-- In a topological vector space, the interior of a convex set is convex. -/
 lemma convex.interior {s : set E} (hs : convex ℝ s) : convex ℝ (interior s) :=
-convex_iff_pointwise_add_subset.mpr $ λ a b ha hb hab,
-  have h : is_open (a • interior s + b • interior s), from
-  or.elim (classical.em (a = 0))
-  (λ heq,
-    have hne : b ≠ 0, by { rw [heq, zero_add] at hab, rw hab, exact one_ne_zero },
-    by { rw ← image_smul,
-         exact (is_open_map_smul₀ hne _ is_open_interior).add_left } )
-  (λ hne,
-    by { rw ← image_smul,
-         exact (is_open_map_smul₀ hne _ is_open_interior).add_right }),
-  (subset_interior_iff_subset_of_open h).mpr $ subset.trans
-    (by { simp only [← image_smul], apply add_subset_add; exact image_subset _ interior_subset })
-    (convex_iff_pointwise_add_subset.mp hs ha hb hab)
+convex_iff_forall_pos.mpr $ λ x y hx hy a b ha hb hab,
+  hs.comb_interior_subset_interior ha hb.le hab $
+    add_mem_add (smul_mem_smul_set hx) (smul_mem_smul_set $ interior_subset hy)
 
 /-- In a topological vector space, the closure of a convex set is convex. -/
 lemma convex.closure {s : set E} (hs : convex ℝ s) : convex ℝ (closure s) :=
@@ -127,7 +124,7 @@ lemma convex.add_smul_sub_mem_interior {s : set E} (hs : convex ℝ s)
 begin
   let f := λ z, x + t • (z - x),
   have : is_open_map f := (is_open_map_add_left _).comp
-    ((is_open_map_smul (units.mk0 _ ht.1.ne')).comp (is_open_map_sub_right _)),
+    ((is_open_map_smul₀ ht.1.ne').comp (is_open_map_sub_right _)),
   apply mem_interior.2 ⟨f '' (interior s), _, this _ is_open_interior, mem_image_of_mem _ hy⟩,
   refine image_subset_iff.2 (λ z hz, _),
   exact hs.add_smul_sub_mem hx (interior_subset hz) ⟨ht.1.le, ht.2⟩,

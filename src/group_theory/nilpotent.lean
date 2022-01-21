@@ -555,7 +555,6 @@ instance nilpotent_quotient_of_nilpotent (H : subgroup G) [H.normal] [h : is_nil
 lemma nilpotency_class_quotient_le (H : subgroup G) [H.normal] [h : is_nilpotent G] :
   group.nilpotency_class (G ⧸ H) ≤ group.nilpotency_class G := nilpotency_class_le_of_surjective _
 
-
 lemma comap_comap_center {H₁ : subgroup G} [H₁.normal] {H₂ : subgroup (G ⧸ H₁)} [H₂.normal] :
   comap (mk' H₁) (comap (mk' H₂) (center ((G ⧸ H₁) ⧸ H₂))) =
     comap (mk' (comap (mk' H₁) H₂)) (center (G ⧸ comap (mk' H₁) H₂)) :=

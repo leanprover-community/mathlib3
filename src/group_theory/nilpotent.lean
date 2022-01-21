@@ -132,6 +132,23 @@ instance (n : ℕ) : normal (upper_central_series G n) := (upper_central_series_
 
 @[simp] lemma upper_central_series_zero : upper_central_series G 0 = ⊥ := rfl
 
+@[simp] lemma upper_central_series_one : upper_central_series G 1 = center G :=
+begin
+  simp [upper_central_series, upper_central_series_aux, upper_central_series_step],
+  ext,
+  simp,
+  simp [center, set.center],
+  split; intro h; intro y; specialize h y,
+  {
+      symmetry,
+      rw ← mul_inv_eq_one,
+      simp,
+      repeat { rw ← mul_assoc },
+      assumption,
+  },
+  rw ← h, simp,
+end
+
 /-- The `n+1`st term of the upper central series `H i` has underlying set equal to the `x` such
 that `⁅x,G⁆ ⊆ H n`-/
 lemma mem_upper_central_series_succ_iff (n : ℕ) (x : G) :
@@ -269,6 +286,9 @@ def lower_central_series (G : Type*) [group G] : ℕ → subgroup G
 variable {G}
 
 @[simp] lemma lower_central_series_zero : lower_central_series G 0 = ⊤ := rfl
+
+@[simp] lemma lower_central_series_one : lower_central_series G 1 = commutator G :=
+  by simp [lower_central_series]
 
 lemma mem_lower_central_series_succ_iff (n : ℕ) (q : G) :
   q ∈ lower_central_series G (n + 1) ↔
@@ -505,6 +525,9 @@ begin
   exact (le_refl _),
 end
 
+
+
+
 end classical
 
 lemma subgroup.map_top_eq_range
@@ -548,6 +571,100 @@ instance nilpotent_quotient_of_nilpotent (H : subgroup G) [H.normal] [h : is_nil
 
 lemma nilpotency_class_quotient_le (H : subgroup G) [H.normal] [h : is_nilpotent G] :
   group.nilpotency_class (G ⧸ H) ≤ group.nilpotency_class G := nilpotency_class_le_of_surjective _
+
+
+lemma comap_comap_center {H₁ : subgroup G} [H₁.normal] {H₂ : subgroup (G ⧸ H₁)} [H₂.normal] :
+  comap (mk' H₁) (comap (mk' H₂) (center ((G ⧸ H₁) ⧸ H₂))) =
+    comap (mk' (comap (mk' H₁) H₂)) (center (G ⧸ comap (mk' H₁) H₂)) :=
+begin
+  ext,
+  simp,
+  repeat { rw mem_center_iff },
+  split; intros hx,
+  {
+    intro y,
+    obtain ⟨y,rfl⟩ := quotient.surjective_quotient_mk' y,
+    specialize hx (quotient.mk' (quotient.mk' y)),
+    apply eq_iff_div_mem.mpr,
+    simp,
+    have hx' := eq_iff_div_mem.mp hx, clear hx,
+    apply hx',
+    apply_instance,
+  },
+  {
+    intro y,
+    obtain ⟨y,rfl⟩ := quotient.surjective_quotient_mk' y,
+    obtain ⟨y,rfl⟩ := quotient.surjective_quotient_mk' y,
+    specialize hx (quotient.mk' y),
+    apply eq_iff_div_mem.mpr,
+    have hx' := eq_iff_div_mem.mp hx, clear hx,
+    simp at hx',
+    apply hx',
+    apply_instance,
+  }
+end
+
+-- This lemma is just because `rw h` doesn’t work below.
+lemma comap_center_subst {H₁ H₂ : subgroup G} [normal H₁] [normal H₂] (h : H₁ = H₂) :
+  comap (mk' H₁) (center (G ⧸ H₁)) = comap (mk' H₂) (center (G ⧸ H₂)) :=
+  by { unfreezingI { subst h, } }
+
+lemma comap_upper_central_series_quotient_center (n : ℕ) :
+  comap (mk' (center G)) (upper_central_series (G ⧸ center G) n) = upper_central_series G n.succ :=
+begin
+  induction n with n ih,
+  { simp, },
+  {
+    let H := upper_central_series G n,
+    let Hn := upper_central_series (G ⧸ center G) n,
+    let Hsn := upper_central_series (G ⧸ center G) (n.succ),
+    have := calc
+    comap (mk' (center G)) (upper_central_series (G ⧸ center G) n.succ)
+        = comap (mk' (center G)) (upper_central_series_step Hn) : rfl
+    ... = comap (mk' (center G)) (comap (mk' Hn) (center ((G ⧸ center G) ⧸ Hn)))
+        : by rw upper_central_series_step_eq_comap_center,
+    rw this, clear this,
+    have := calc
+    upper_central_series G n.succ.succ
+        = upper_central_series_step (upper_central_series G n.succ) : rfl
+    ... = comap (mk' (upper_central_series G n.succ)) (center (G ⧸upper_central_series G n.succ)) : upper_central_series_step_eq_comap_center _
+    ... = comap (mk' (comap (mk' (center G)) Hn)) (center (G ⧸ (comap (mk' (center G)) Hn)))
+        : comap_center_subst (symm ih),
+    rw this, clear this,
+    apply comap_comap_center,
+  },
+end
+
+section classical
+
+open_locale classical
+
+lemma nilpotency_class_quotient_center [hH : is_nilpotent G] :
+  group.nilpotency_class (G ⧸ center G) ≤ group.nilpotency_class G - 1 :=
+begin
+  generalize hn : group.nilpotency_class G = n,
+  rw ← least_ascending_central_series_length_eq_nilpotency_class,
+  apply nat.find_min',
+  let H' := λ n, (upper_central_series G (n + 1)).map (mk' (center G)),
+  use H',
+  split,
+  {
+    split,
+    { simp [H', map_eq_bot_iff, quotient_group.ker_mk], },
+    {
+
+
+      sorry,
+    },
+  },
+  {
+    simp [H'],
+    sorry,
+  },
+end
+
+end classical
+
 
 
 lemma derived_le_lower_central (n : ℕ) : derived_series G n ≤ lower_central_series G n :=

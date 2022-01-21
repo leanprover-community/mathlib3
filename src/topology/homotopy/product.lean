@@ -8,6 +8,8 @@ import topology.constructions
 import topology.homotopy.path
 import category_theory.groupoid
 import topology.homotopy.fundamental_groupoid
+import topology.category.Top.limits
+import category_theory.limits.preserves.shapes.products
 
 /-!
 # Product of homotopies
@@ -333,6 +335,37 @@ def pi_iso :
         with λ i, (category_theory.functor.pi' proj).map f i,
       simp, }, { refl, }
   end }
+
+section preserves
+open category_theory
+
+private def discrete_X_eq : discrete.functor X ⋙ π ≅ discrete.functor (λ i, π.obj (X i)) :=
+nat_iso.of_components (λ i, eq_to_iso rfl) (by tidy)
+
+private def discrete_X_eq_cone : limits.cone (discrete.functor X ⋙ π) ≌
+  limits.cone (discrete.functor (λ i, π.obj (X i))) :=
+limits.cones.postcompose_equivalence discrete_X_eq
+
+@[simp] private lemma discrete_X_eq_cone_pi_map_cone :
+  discrete_X_eq_cone.functor.obj (π.map_cone (Top.pi_fan X))
+  = limits.fan.mk (π.obj (Top.of (Π i, X i))) proj := rfl
+
+def pi_Top_to_pi_cone : (limits.fan.mk (π.obj (Top.of (Π i, X i))) proj) ⟶
+  Groupoid.pi_limit_fan (λ i : I, (π.obj (X i))) :=
+{ hom := pi_iso.inv }
+
+theorem preserves_limit : limits.preserves_limit (category_theory.discrete.functor X) π :=
+begin
+  apply limits.preserves_limit_of_preserves_limit_cone (Top.pi_fan_is_limit X),
+  apply (limits.is_limit.of_cone_equiv discrete_X_eq_cone).to_fun,
+  simp only [discrete_X_eq_cone_pi_map_cone],
+  apply limits.is_limit.of_iso_limit _ (as_iso pi_Top_to_pi_cone).symm,
+  { exact (Groupoid.pi_limit_cone _).is_limit, },
+  haveI : is_iso (@pi_Top_to_pi_cone I X).hom := (infer_instance : is_iso pi_iso.inv),
+  refine limits.cones.cone_iso_of_hom_iso pi_Top_to_pi_cone,
+end
+
+end preserves
 
 end pi
 

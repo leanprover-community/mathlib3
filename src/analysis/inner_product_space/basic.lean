@@ -1989,7 +1989,7 @@ cases where there is no `star` operator on the type. -/
 def is_normal (T : E →ₗ[𝕜] E) : Prop :=
 ∃ (T' : E →ₗ[𝕜] E), T' * T = T * T' ∧ ∀ x y, ⟪T' x, y⟫ = ⟪x, T y⟫
 
-lemma is_normal_of_is_self_adjoint {T : E →ₗ[𝕜] E} (hT : is_self_adjoint T) : is_normal T :=
+lemma is_self_adjoint.is_normal {T : E →ₗ[𝕜] E} (hT : is_self_adjoint T) : is_normal T :=
 ⟨T, ⟨rfl, hT⟩⟩
 
 namespace is_normal

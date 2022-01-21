@@ -237,37 +237,20 @@ begin
 
   have h1 : d.factorization = dfac, { rw d_def, exact factorization_prod_pow_inv dfac_prime },
 
-  have hd_pos : d ≠ 0, {
-    have := prime_finsupp_prod_pow_pos dfac_prime, rw ←d_def at this, exact ne_of_gt this,
-  },
+  have hd_pos : d ≠ 0, { rw d_def, exact ne_of_gt (prime_finsupp_prod_pow_pos dfac_prime) },
 
   suffices : (gcd a b) = d, { rwa this },
 
 
   rw eq_comm,
   apply nat.gcd_greatest,
-  {
-    rw ←factorization_le_iff_dvd hd_pos ha_pos,
-    rw h1,
-    rw dfac_def,
-    exact inf_le_left,
-  },
-  {
-    rw ←factorization_le_iff_dvd hd_pos hb_pos,
-    rw h1,
-    rw dfac_def,
-    exact inf_le_right,
-  },
+  { rw [←factorization_le_iff_dvd hd_pos ha_pos, h1, dfac_def], exact inf_le_left },
+  { rw [←factorization_le_iff_dvd hd_pos hb_pos, h1, dfac_def], exact inf_le_right },
   {
     intros e he_pos hea heb,
-    rw ←factorization_le_iff_dvd he_pos hd_pos,
-    rw h1,
-    rw dfac_def,
-    simp,
-    split,
-    rwa factorization_le_iff_dvd he_pos ha_pos,
-    rwa factorization_le_iff_dvd he_pos hb_pos,
-  },
+    have hea' := (factorization_le_iff_dvd he_pos ha_pos).mpr hea,
+    have heb' := (factorization_le_iff_dvd he_pos hb_pos).mpr heb,
+    simp [←factorization_le_iff_dvd he_pos hd_pos, h1, dfac_def, hea', heb'] },
 end
 
 end nat

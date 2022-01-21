@@ -569,18 +569,15 @@ begin
   simp,
   repeat { rw mem_center_iff },
   split; intros hx,
-  {
-    intro y,
+  { intro y,
     obtain ⟨y,rfl⟩ := quotient.surjective_quotient_mk' y,
     specialize hx (quotient.mk' (quotient.mk' y)),
     apply eq_iff_div_mem.mpr,
     simp,
     have hx' := eq_iff_div_mem.mp hx, clear hx,
     apply hx',
-    apply_instance,
-  },
-  {
-    intro y,
+    apply_instance, },
+  { intro y,
     obtain ⟨y,rfl⟩ := quotient.surjective_quotient_mk' y,
     obtain ⟨y,rfl⟩ := quotient.surjective_quotient_mk' y,
     specialize hx (quotient.mk' y),
@@ -588,8 +585,7 @@ begin
     have hx' := eq_iff_div_mem.mp hx, clear hx,
     simp at hx',
     apply hx',
-    apply_instance,
-  }
+    apply_instance, }
 end
 
 -- This lemma is just because `rw h` doesn’t work below.
@@ -602,8 +598,7 @@ lemma comap_upper_central_series_quotient_center (n : ℕ) :
 begin
   induction n with n ih,
   { simp, },
-  {
-    let Hn := upper_central_series (G ⧸ center G) n,
+  { let Hn := upper_central_series (G ⧸ center G) n,
     calc comap (mk' (center G)) (upper_central_series (G ⧸ center G) n.succ)
         = comap (mk' (center G)) (upper_central_series_step Hn)
         : rfl
@@ -616,8 +611,7 @@ begin
     ... = upper_central_series_step (upper_central_series G n.succ)
         : symm (upper_central_series_step_eq_comap_center _)
     ... = upper_central_series G n.succ.succ
-        : rfl,
-  },
+        : rfl, },
 end
 
 lemma nilpotency_class_zero_iff_subsingleton [is_nilpotent G] :
@@ -645,14 +639,11 @@ lemma nilpotency_class_quotient_center [hH : is_nilpotent G] :
 begin
   generalize hn : group.nilpotency_class G = n,
   rcases n with rfl | n,
-  {
-    simp [nilpotency_class_zero_iff_subsingleton] at *,
+  { simp [nilpotency_class_zero_iff_subsingleton] at *,
     haveI := hn,
-    apply subsingleton_quotient_of_subsingleton,
-  },
+    apply subsingleton_quotient_of_subsingleton, },
   { apply le_antisymm,
-    {
-      apply nat.find_min',
+    { apply nat.find_min',
       apply (@comap_injective G _ _ _ (mk' (center G)) (surjective_quot_mk _)),
       rw comap_upper_central_series_quotient_center,
       simp,
@@ -661,17 +652,13 @@ begin
           unfreezingI { obtain ⟨n, h⟩ := hH, },
           refine ⟨n,h⟩
       end,
-      apply (nat.find_spec this) ,
-    },
-    {
-      simp,
+      apply (nat.find_spec this) , },
+    { simp,
       apply le_of_add_le_add_right,
       calc n + 1 = n.succ : rfl
         ... = group.nilpotency_class G : symm hn
         ... ≤ group.nilpotency_class (G ⧸ center G) + 1
-            : nilpotency_class_le_of_ker_le_center (le_of_eq (ker_mk _)) _,
-    }
-  }
+            : nilpotency_class_le_of_ker_le_center (le_of_eq (ker_mk _)) _, } }
 end
 
 end classical
@@ -740,8 +727,7 @@ begin
     intros H hH,
 
     by_cases hch : center G ≤ H,
-    {
-      let H' := H.map (mk' (center G)),
+    { let H' := H.map (mk' (center G)),
 
       have hH' : H'.normalizer = H' :=
       begin
@@ -767,12 +753,10 @@ begin
         have := mul_mem H (hch heq) hx,
         simp at this,
         assumption,
-      end
-    },
+      end },
     { exfalso, apply hch,
       calc center G ≤ H.normalizer : subgroup.center_le_normalizer
-                ... = H : hH, }
-  },
+                ... = H : hH, } },
 end
 
 end normalizer_condition

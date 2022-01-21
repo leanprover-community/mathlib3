@@ -19,7 +19,7 @@ We define cardinal numbers as a quotient of types under the equivalence relation
   `cardinal`.
 * There is an instance that `cardinal` forms a `canonically_ordered_comm_semiring`.
 * Addition `c₁ + c₂` is defined by `cardinal.add_def α β : #α + #β = #(α ⊕ β)`.
-* Multiplication `c₁ * c₂` is defined by `cardinal.mul_def : #α * #β = #(α * β)`.
+* Multiplication `c₁ * c₂` is defined by `cardinal.mul_def : #α * #β = #(α × β)`.
 * The order `c₁ ≤ c₂` is defined by `cardinal.le_def α β : #α ≤ #β ↔ nonempty (α ↪ β)`.
 * Exponentiation `c₁ ^ c₂` is defined by `cardinal.power_def α β : #α ^ #β = #(β → α)`.
 * `cardinal.omega` or `ω` the cardinality of `ℕ`. This definition is universe polymorphic:

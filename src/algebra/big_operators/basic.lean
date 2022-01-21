@@ -259,6 +259,18 @@ by rw [finset.prod, ← multiset.coe_prod, ← multiset.coe_map, finset.coe_to_l
 
 end to_list
 
+@[to_additive]
+lemma _root_.equiv.perm.prod_comp (σ : equiv.perm α) (s : finset α) (f : α → β)
+  (hs : {a | σ a ≠ a} ⊆ s) :
+  (∏ x in s, f (σ x)) = ∏ x in s, f x :=
+by { convert (prod_map _ σ.to_embedding _).symm, exact (map_perm hs).symm }
+
+@[to_additive]
+lemma _root_.equiv.perm.prod_comp' (σ : equiv.perm α) (s : finset α) (f : α → α → β)
+  (hs : {a | σ a ≠ a} ⊆ s) :
+  (∏ x in s, f (σ x) x) = ∏ x in s, f x (σ.symm x) :=
+by { convert σ.prod_comp s (λ x, f x (σ.symm x)) hs, ext, rw equiv.symm_apply_apply }
+
 end comm_monoid
 
 end finset
@@ -1276,6 +1288,13 @@ lemma prod_inv_distrib : (∏ x in s, (f x)⁻¹) = (∏ x in s, f x)⁻¹ := mu
 lemma prod_zpow (f : α → β) (s : finset α) (n : ℤ) :
   (∏ a in s, f a) ^ n = ∏ a in s, (f a) ^ n :=
 multiset.prod_map_zpow.symm
+
+@[to_additive]
+lemma prod_sdiff_div_prod_sdiff [decidable_eq α] :
+  (∏ (x : α) in s₂ \ s₁, f x) / (∏ (x : α) in s₁ \ s₂, f x)
+  = (∏ (x : α) in s₂, f x) / (∏ (x : α) in s₁, f x) :=
+by simp [← finset.prod_sdiff (@inf_le_left _ _ s₁ s₂),
+  ← finset.prod_sdiff (@inf_le_right _ _ s₁ s₂)]
 
 end comm_group
 

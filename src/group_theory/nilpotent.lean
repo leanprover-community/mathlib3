@@ -527,9 +527,6 @@ end
 
 end classical
 
-lemma range_eq_top_of_surjective
-  {G H : Type*} [group G] [group H] {f : G →* H} (hf : function.surjective f) :
-  f.range = ⊤ := by { ext, simp, apply hf }
 
 lemma nilpotent_of_surjective
   {G' : Type*} [group G'] {f : G →* G'} (hf : function.surjective f) [h : is_nilpotent G] :
@@ -538,7 +535,7 @@ begin
   unfreezingI { rcases h with ⟨n, hn⟩ },
   use n,
   apply eq_top_iff.mpr,
-  calc ⊤ = f.range : by rw (range_eq_top_of_surjective hf)
+  calc ⊤ = f.range : symm (monoid_hom.range_eq_top_of_surjective hf)
     ... = subgroup.map f ⊤ : monoid_hom.range_eq_map _
     ... = subgroup.map f (upper_central_series G n) : by rw hn
     ... ≤ upper_central_series G' n : upper_central_series.map hf n,
@@ -552,7 +549,7 @@ begin
   apply nat.find_mono,
   intros n hn,
   apply eq_top_iff.mpr,
-  calc ⊤ = f.range : by rw (range_eq_top_of_surjective hf)
+  calc ⊤ = f.range : symm (monoid_hom.range_eq_top_of_surjective hf)
     ... = subgroup.map f ⊤ : monoid_hom.range_eq_map _
     ... = subgroup.map f (upper_central_series G n) : by rw hn
     ... ≤ upper_central_series G' n : upper_central_series.map hf n,
@@ -681,8 +678,6 @@ end
 
 end classical
 
-
-
 lemma derived_le_lower_central (n : ℕ) : derived_series G n ≤ lower_central_series G n :=
 by { induction n with i ih, { simp }, { apply general_commutator_mono ih, simp } }
 
@@ -721,6 +716,26 @@ begin
   simp [← hx, mul_assoc],
 end
 
+lemma nilpotent_center_quotient_ind
+  {P : Type* -> Prop}
+  (G : Type*)
+  (hbase : ∀ G [group G] [subsingleton G], P G)
+  (hstep : ∀ G [group G], by exactI ∀ [is_nilpotent G], P (G ⧸ center G) -> P G)
+  [group G]
+  [is_nilpotent G] :
+  P G :=
+begin
+  obtain ⟨n, h⟩ : ∃ n, group.nilpotency_class G = n := ⟨ _, rfl⟩,
+  unfreezingI { induction n with n ih generalizing G },
+  { haveI := nilpotency_class_zero_iff_subsingleton.mp h,
+    exact hbase _, },
+  { have hn : group.nilpotency_class (G ⧸ center G) = n :=
+      by simp [nilpotency_class_quotient_center, h],
+    exact hstep _ (ih _ hn), },
+end
+#check nilpotent_center_quotient_ind
+#check nat.strong_induction_on
+
 -- NB: Does not need G to be finite
 lemma normalizer_condition'_of_is_nilpotent : is_nilpotent G → normalizer_condition G :=
 begin
@@ -728,7 +743,7 @@ begin
   -- following https://groupprops.subwiki.org/wiki/Nilpotent_implies_normalizer_condition
   introI hnp,
   obtain ⟨n, h⟩ : ∃ n, group.nilpotency_class G = n := ⟨ _, rfl⟩,
-  unfreezingI { induction n with n ih generalizing G },
+  unfreezingI { induction G using nilpotent_center_quotient_ind  },
   {
     haveI := (nilpotency_class_zero_iff_subsingleton.mp h),
     intros H _,

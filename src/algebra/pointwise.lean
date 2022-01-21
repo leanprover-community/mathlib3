@@ -654,6 +654,43 @@ def image_hom [monoid α] [monoid β] (f : α →* β) : set_semiring α →+* s
 
 end monoid
 
+section comm_monoid
+
+variable [comm_monoid α]
+
+instance : no_zero_divisors (set_semiring α) :=
+{ eq_zero_or_eq_zero_of_mul_eq_zero := λ a b ab, by {
+    by_cases a0 : a = 0,
+    { exact or.inl a0 },
+    { refine or.inr _,
+      by_cases b0 : b = 0,
+      { exact b0 },
+      { cases ne_empty_iff_nonempty.mp a0 with x xa,
+        cases ne_empty_iff_nonempty.mp b0 with y yb,
+        exact (not_not.mpr ab (ne_empty_iff_nonempty.mpr ⟨x * y, mul_mem_mul xa yb⟩)).elim } } } }
+
+instance to_covariant_class_add : covariant_class (set_semiring α) (set_semiring α) (+) (≤) :=
+{ elim := λ a b c ab x xa, mem_of_mem_of_subset xa (union_subset_union_right _ ab) }
+
+instance to_covariant_class_mul : covariant_class (set_semiring α) (set_semiring α) (*) (≤) :=
+{ elim := λ a b c ab x xa, mem_of_mem_of_subset xa (mul_subset_mul subset.rfl ab) }
+
+instance : canonically_ordered_comm_semiring (set_semiring α) :=
+{ add_le_add_left := λ a b ab c, add_le_add_left ab _,
+  le_iff_exists_add := λ a b,
+    ⟨λ ab, ⟨b, le_antisymm (subset_union_right _ _)
+      (λ x xab, by { cases (mem_union _ _ _).mp xab with xa xb,
+      { exact mem_of_mem_of_subset xa ab },
+      { exact xb }})⟩,
+      by { rintro ⟨c, rfl⟩,
+        exact subset_union_left _ _ }⟩,
+  ..(infer_instance : comm_semiring (set_semiring α)),
+  ..(infer_instance : partial_order (set_semiring α)),
+  ..(infer_instance : order_bot (set_semiring α)),
+  ..(infer_instance : no_zero_divisors (set_semiring α)) }
+
+end comm_monoid
+
 end set
 
 open set

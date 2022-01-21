@@ -340,7 +340,7 @@ def to_path {X : Top} {x₀ x₁ : (fundamental_groupoid_functor.obj X).α} (p :
   path.homotopic.quotient x₀ x₁ := p
 
 /-- Help the typechecker by convering a path in a topological space to an arrow in the
-    fundamental groupoid of that space. -/
+fundamental groupoid of that space. -/
 @[reducible]
 def from_path {X : Top} {x₀ x₁ : X} (p : path.homotopic.quotient x₀ x₁) : (x₀ ⟶ x₁) := p
 

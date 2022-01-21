@@ -72,6 +72,7 @@ lemma hom_to_functor {C D E : Groupoid.{v u}} (f : C ⟶ D) (g : D ⟶ E) : f �
 
 section products
 
+/-- The cone for the product of a family of groupoids indexed by J is a limit cone -/
 @[simps]
 def pi_limit_cone {J : Type u} (F : discrete J ⥤ Groupoid.{u u}) :
   limits.limit_cone F :=
@@ -89,12 +90,15 @@ def pi_limit_cone {J : Type u} (F : discrete J ⥤ Groupoid.{u u}) :
       simpa,
     end } }
 
-def pi_limit_fan {J : Type u} (F : J → Groupoid.{u u}) : limits.fan F :=
+/-- `pi_limit_cone` reinterpreted as a fan -/
+abbreviation pi_limit_fan {J : Type u} (F : J → Groupoid.{u u}) : limits.fan F :=
 (pi_limit_cone (discrete.functor F)).cone
 
 instance has_pi : limits.has_products Groupoid.{u u} :=
 λ J, { has_limit := λ F, { exists_limit := nonempty.intro (pi_limit_cone F) } }
 
+/-- The product of a family of groupoids is isomorphic
+to the product object in the category of Groupoids -/
 noncomputable def pi_iso_pi (J : Type u) (f : J → Groupoid.{u u}) : @of (Π j, (f j).α) _ ≅ ∏ f :=
 limits.is_limit.cone_point_unique_up_to_iso
   (pi_limit_cone (discrete.functor f)).is_limit

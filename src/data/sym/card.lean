@@ -14,7 +14,7 @@ In this file, we prove stars and bars.
 
 ## Informal statement
 
-If we have `n` objects to put in `n` boxes, we can do so in exactly `(n + n - 1).choose n` ways.
+If we have `n` objects to put in `k` boxes, we can do so in exactly `(n + k - 1).choose n` ways.
 
 ## Formal statement
 
@@ -76,12 +76,12 @@ variables {n : ℕ}
 end attach
 
 section
-variables (α) [decidable_eq α] (n : ℕ)
+variables (α) (n : ℕ)
 
 /-- The `encode` function produces a `sym α n.succ` if the input doesn't contain `none` by casting
 `option α` to `α`. Otherwise, the function removes an occurrence of `none` from the input and
 produces a `sym (option α) n`. -/
-def encode (s : sym (option α) n.succ) : sym α n.succ ⊕ sym (option α) n :=
+def encode [decidable_eq α] (s : sym (option α) n.succ) : sym α n.succ ⊕ sym (option α) n :=
 if h : none ∈ s
 then inr (s.erase none h)
 else inl (s.attach.map $ λ o,
@@ -104,7 +104,7 @@ variables (α n)
 
 /-- As `encode` and `decode` are inverses of each other, `sym (option α) n.succ` is equivalent
 to `sym α n.succ ⊕ sym (option α) n`. -/
-def option_succ_equiv : sym (option α) n.succ ≃ sym α n.succ ⊕ sym (option α) n :=
+def option_succ_equiv [decidable_eq α] : sym (option α) n.succ ≃ sym α n.succ ⊕ sym (option α) n :=
 { to_fun := encode α n,
   inv_fun := decode α n,
   left_inv := λ s, begin
@@ -203,7 +203,7 @@ end
 
 /-- The *stars and bars* lemma: the cardinality of `sym α n` is equal to
 `nat.choose (card α + n - 1) n`. -/
-lemma stars_and_bars {α : Type*} [decidable_eq α] [fintype α] (n : ℕ) [fintype (sym α n)] :
+lemma stars_and_bars {α : Type*} [fintype α] (n : ℕ) [fintype (sym α n)] :
   card (sym α n) = (card α + n - 1).choose n :=
 by simpa only [multichoose] using (multichoose_eq α n).symm
 

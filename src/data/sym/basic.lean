@@ -95,7 +95,7 @@ subtype.ext_iff.trans $ multiset.cons_inj_left _
 lemma cons_swap (a b : α) (s : sym α n) : a :: b :: s = b :: a :: s :=
 subtype.ext $ multiset.cons_swap a b s.1
 
-lemma coe_cons [decidable_eq α] (s : sym α n) (a : α) : (a :: s : multiset α) = a ::ₘ s := rfl
+lemma coe_cons (s : sym α n) (a : α) : (a :: s : multiset α) = a ::ₘ s := rfl
 
 /--
 This is the quotient map that takes a list of n elements as an n-tuple and produces an nth
@@ -255,7 +255,7 @@ def map {α β : Type*} {n : ℕ} (f : α → β) (x : sym α n) : sym β n :=
 @[simp] lemma mem_map {α β : Type*} {n : ℕ} {f : α → β} {b : β} {l : sym α n} :
   b ∈ sym.map f l ↔ ∃ a, a ∈ l ∧ f a = b := multiset.mem_map
 
-@[simp] lemma map_id {α : Type*} {n : ℕ} (s : sym α n) : sym.map id s = s :=
+@[simp] lemma map_id {α : Type*} {n : ℕ} (s : sym α n) : sym.map (λ (x : α), x) s = s :=
 by simp [sym.map]
 
 @[simp] lemma map_map {α β γ : Type*} {n : ℕ} (g : β → γ) (f : α → β) (s : sym α n) :
@@ -287,8 +287,8 @@ lemma map_injective {β : Type*} {f : α → β} (hf : injective f) (n : ℕ) :
 def equiv_congr {α β : Type*} (e : α ≃ β) : sym α n ≃ sym β n :=
 { to_fun := map e,
   inv_fun := map e.symm,
-  left_inv := λ x, by rw [map_map, equiv.symm_comp_self, map_id],
-  right_inv := λ x, by rw [map_map, equiv.self_comp_symm, map_id] }
+  left_inv := λ x, by simp,
+  right_inv := λ x, by simp, }
 
 /-- "Attach" a proof that `a ∈ s` to each element `a` in `s` to produce
 an element of the symmetric power on `{x // x ∈ s}`. -/

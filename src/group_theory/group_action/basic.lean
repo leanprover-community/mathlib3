@@ -196,6 +196,10 @@ begin
     simp only [inv_smul_smul], },
 end
 
+lemma image_inter_image_iff (U V : set β) :
+    (quotient.mk '' U) ∩ (quotient.mk '' V) = ∅ ↔ ∀ x ∈ U, ∀ a : α, a • x ∉ V :=
+sorry
+
 variables (α) (β)
 local notation `Ω` := (quotient $ orbit_rel α β)
 

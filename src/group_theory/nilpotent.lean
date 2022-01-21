@@ -621,7 +621,7 @@ lemma nilpotency_class_zero_iff_subsingleton [is_nilpotent G] :
 by simp [group.nilpotency_class, nat.find_eq_zero, subsingleton_iff_bot_eq_top]
 
 lemma subsingleton_quotient_of_subsingleton
-  {H : subgroup G} [H.normal] [subsingleton G] :
+  {H : subgroup G} [subsingleton G] :
   subsingleton (G ⧸ H) :=
 begin
   apply subsingleton.intro,

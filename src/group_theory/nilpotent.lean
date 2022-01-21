@@ -737,28 +737,13 @@ def sylow_group_normal :=
 def all_maximal_subgroups_normal :=
   ∀ p, ∀ H : subgroup G, sylow p G → H.is_maximal
 
-/-
-lemma nilpotency_class_induction (P : Type* → Prop)
-  (habel : ∀ G, ∀ [comm_group G], P G)
-  (hstep : ∀ G, ∀ [hG : group G] [hGn : @is_nilpotent G hG],
-    (∀ G' [hG' : group G'], ∀ [hG'n : @is_nilpotent G' hG'],
-      @group.nilpotency_class G' hG' hG'n < @group.nilpotency_class G hG hGn -> P G))
-  [is_nilpotent G] :
-  P G :=
-begin
-
-end
--/
-
 lemma _root_.subgroup.center_le_normalizer {G : Type*} [group G] (H : subgroup G) : center G ≤ H.normalizer :=
 begin
   intros x hx,
   rewrite mem_center_iff at hx,
   intros y,
   specialize (hx y),
-  rw ← hx,
-  rw mul_assoc,
-  simp,
+  simp [← hx, mul_assoc],
 end
 
 -- NB: Does not need G to be finite
@@ -779,7 +764,7 @@ begin
     by_cases hch : center G ≤ H,
     {
       have hn : group.nilpotency_class (G ⧸ center G) = n :=
-        by simp [ nilpotency_class_quotient_center, h],
+        by simp [nilpotency_class_quotient_center, h],
       specialize ih _ _ hn,
 
       let H' := H.map (mk' (center G)),

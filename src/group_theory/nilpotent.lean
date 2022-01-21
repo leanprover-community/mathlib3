@@ -632,6 +632,22 @@ begin
   },
 end
 
+lemma nilpotency_class_zero_iff_subsingleton [is_nilpotent G] :
+  group.nilpotency_class G = 0 ↔ subsingleton G :=
+by simp [group.nilpotency_class, nat.find_eq_zero, subsingleton_iff_bot_eq_top]
+
+lemma subsingleton_quotient_of_subsingleton
+  {H : subgroup G} [H.normal] [subsingleton G] :
+  subsingleton (G ⧸ H) :=
+begin
+  apply subsingleton.intro,
+  intros x y,
+  obtain ⟨x,rfl⟩ := quotient.surjective_quotient_mk' x,
+  obtain ⟨y,rfl⟩ := quotient.surjective_quotient_mk' y,
+  have := subsingleton.elim x y,
+  subst this,
+end
+
 section classical
 
 open_locale classical
@@ -640,23 +656,34 @@ lemma nilpotency_class_quotient_center [hH : is_nilpotent G] :
   group.nilpotency_class (G ⧸ center G) = group.nilpotency_class G - 1 :=
 begin
   generalize hn : group.nilpotency_class G = n,
-  apply nat.find_min',
-  let H' := λ n, (upper_central_series G (n + 1)).map (mk' (center G)),
-  use H',
-  split,
+  rcases n with rfl | n,
   {
-    split,
-    { simp [H', map_eq_bot_iff, quotient_group.ker_mk], },
+    simp [nilpotency_class_zero_iff_subsingleton] at *,
+    haveI := hn,
+    apply subsingleton_quotient_of_subsingleton,
+  },
+  { apply le_antisymm,
     {
-
-
-      sorry,
+      apply nat.find_min',
+      apply (@comap_injective G _ _ _ (mk' (center G)) (surjective_quot_mk _)),
+      rw comap_upper_central_series_quotient_center,
+      simp,
+      rw ← hn,
+      have : (∃ n : ℕ, upper_central_series G n = ⊤) := begin
+          unfreezingI { obtain ⟨n, h⟩ := hH, },
+          refine ⟨n,h⟩
+      end,
+      apply (nat.find_spec this) ,
     },
-  },
-  {
-    simp [H'],
-    sorry,
-  },
+    {
+      simp,
+      apply le_of_add_le_add_right,
+      calc n + 1 = n.succ : rfl
+        ... = group.nilpotency_class G : symm hn
+        ... ≤ group.nilpotency_class (G ⧸ center G) + 1
+            : nilpotency_class_le_of_ker_le_center (le_of_eq (ker_mk _)) _,
+    }
+  }
 end
 
 end classical
@@ -740,19 +767,20 @@ begin
   -- following https://groupprops.subwiki.org/wiki/Nilpotent_implies_normalizer_condition
   introI hnp,
   obtain ⟨n, h⟩ : ∃ n, group.nilpotency_class G = n := ⟨ _, rfl⟩,
-  unfreezingI { induction n using nat.strong_rec' with n ih generalizing G},
+  unfreezingI { induction n  with n ih generalizing G},
+  {
+    haveI := (nilpotency_class_zero_iff_subsingleton.mp h),
+    intros H _,
+    apply subsingleton.elim,
+  },
   {
     intros H hH,
-    subst h,
-
-    -- Do abelian G first?
 
     by_cases hch : center G ≤ H,
     {
-      have hn : group.nilpotency_class (G ⧸ center G) < group.nilpotency_class G :=
-      sorry,
-
-      specialize ih _ hn (G ⧸ center G) _ rfl,
+      have hn : group.nilpotency_class (G ⧸ center G) = n :=
+        by simp [ nilpotency_class_quotient_center, h],
+      specialize ih _ _ hn,
 
       let H' := H.map (mk' (center G)),
 

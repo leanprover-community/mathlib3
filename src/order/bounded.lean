@@ -89,21 +89,11 @@ lemma unbounded_gt_of_unbounded_ge [preorder α] (h : unbounded (≥) s) : unbou
 λ a, let ⟨b, hb, hba⟩ := h a in ⟨b, hb, λ hba', hba (le_of_lt hba')⟩
 
 lemma bounded_ge_iff_bounded_gt [preorder α] [no_min_order α] : bounded (≥) s ↔ bounded (>) s :=
-begin
-  refine ⟨λ h, _, bounded_ge_of_bounded_gt⟩,
-  cases h with a ha,
-  cases exists_lt a with b hb,
-  exact ⟨b, λ c hc, lt_of_lt_of_le hb (ha c hc)⟩
-end
+@bounded_le_iff_bounded_lt (order_dual α) _ _ _
 
 lemma unbounded_ge_iff_unbounded_gt [preorder α] [no_min_order α] :
   unbounded (≥) s ↔ unbounded (>) s :=
-begin
-  refine ⟨unbounded_gt_of_unbounded_ge, λ h a, _⟩,
-  cases exists_lt a with c hc,
-  rcases h c with ⟨b, hb, hbc⟩,
-  exact ⟨b, hb, λ hba, hbc (lt_of_lt_of_le hc hba)⟩
-end
+(@unbounded_lt_iff_unbounded_le (order_dual α) _ _ _).symm
 
 /-! ### Bounded and unbounded intervals -/
 

@@ -525,14 +525,7 @@ begin
   exact (le_refl _),
 end
 
-
-
-
 end classical
-
-lemma subgroup.map_top_eq_range
-  {G H : Type*} [group G] [group H] (f : G →* H) :
-  subgroup.map f ⊤ = monoid_hom.range f := by { ext, simp }
 
 lemma range_eq_top_of_surjective
   {G H : Type*} [group G] [group H] {f : G →* H} (hf : function.surjective f) :
@@ -546,7 +539,7 @@ begin
   use n,
   apply eq_top_iff.mpr,
   calc ⊤ = f.range : by rw (range_eq_top_of_surjective hf)
-    ... = subgroup.map f ⊤ : by rw (subgroup.map_top_eq_range f)
+    ... = subgroup.map f ⊤ : monoid_hom.range_eq_map _
     ... = subgroup.map f (upper_central_series G n) : by rw hn
     ... ≤ upper_central_series G' n : upper_central_series.map hf n,
 end
@@ -560,7 +553,7 @@ begin
   intros n hn,
   apply eq_top_iff.mpr,
   calc ⊤ = f.range : by rw (range_eq_top_of_surjective hf)
-    ... = subgroup.map f ⊤ : by rw (subgroup.map_top_eq_range f)
+    ... = subgroup.map f ⊤ : monoid_hom.range_eq_map _
     ... = subgroup.map f (upper_central_series G n) : by rw hn
     ... ≤ upper_central_series G' n : upper_central_series.map hf n,
 end

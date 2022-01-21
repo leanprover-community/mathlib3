@@ -115,9 +115,9 @@ end
 
 end is_self_adjoint
 
-namespace star_normal
+namespace is_star_normal
 
-variables [finite_dimensional 𝕜 E] {T : E →ₗ[𝕜] E} (hT : T ∈ star_normal (E →ₗ[𝕜] E))
+variables [finite_dimensional 𝕜 E] {T : E →ₗ[𝕜] E} (hT : is_star_normal T)
 include hT
 
 local attribute [instance, priority 20] finite_dimensional.complete
@@ -126,7 +126,7 @@ lemma adjoint_apply_mem_eigenspace_of_mem_eigenspace (μ : 𝕜) (v : E) (hv : v
   T† v ∈ eigenspace T μ :=
 mem_eigenspace_iff.mpr $
 calc _ = (T * T†) v     : linear_map.mul_apply T T† v
-    ... = (T† * T) v    : by rw [←linear_map.star_eq_adjoint, star_normal.mem_iff.mp hT]
+    ... = (T† * T) v    : by rw [←linear_map.star_eq_adjoint, is_star_normal_iff.mp hT]
     ... = T† (T v)      : linear_map.mul_apply T† T v
     ... = T† (μ • v)    : by rw [mem_eigenspace_iff.mp hv]
     ... = μ • (T† v)    : by simp only [ring_hom.id_apply, linear_map.map_smulₛₗ]
@@ -192,7 +192,7 @@ begin
   exact (eigenspace T μ).orthogonal_disjoint.mono_right H₂
 end
 
-end star_normal
+end is_star_normal
 
 namespace is_self_adjoint
 

@@ -1476,10 +1476,6 @@ iff.rfl
 @[to_additive] lemma range_eq_map (f : G →* N) : f.range = (⊤ : subgroup G).map f :=
 by ext; simp
 
-@[to_additive]
-lemma range_eq_top_of_surjective {f : G →* N} (hf : function.surjective f) :
-  f.range = ⊤ := by { ext, simp, apply hf }
-
 /-- The canonical surjective group homomorphism `G →* f(G)` induced by a group
 homomorphism `G →* N`. -/
 @[to_additive "The canonical surjective `add_group` homomorphism `G →+ f(G)` induced by a group

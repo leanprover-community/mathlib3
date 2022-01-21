@@ -49,19 +49,16 @@ of products.
 - `path.homotopic.prod` The product of two path classes.
 
 ## Fundamental groupoid preserves products
-  - `pi_iso` An isomorphism between Π i, (π Xᵢ) and π (Πi, Xᵢ), whose
+  - `fundamental_groupoid_functor.pi_iso` An isomorphism between Π i, (π Xᵢ) and π (Πi, Xᵢ), whose
     inverse is precisely the product of the maps π (Π i, Xᵢ) → π (Xᵢ), each induced by
     the projection in `Top` Π i, Xᵢ → Xᵢ.
 
-  - `prod_iso` An isomorphism between πX × πY and π (X × Y), whose inverse
-    is precisely the product of the maps π (X × Y) → πX and π (X × Y) → Y, each induced by
+  - `fundamental_groupoid_functor.prod_iso` An isomorphism between πX × πY and π (X × Y), whose
+    inverse is precisely the product of the maps π (X × Y) → πX and π (X × Y) → Y, each induced by
     the projections X × Y → X and X × Y → Y
 
-## Lemmas
-- `path.homotopic.comp_pi_eq_pi_comp` If Pᵢ and Qᵢ are families of path classes,
-    then (∏ Pᵢ) ⬝ (∏ Qᵢ) = ∏ (Pᵢ ⬝ Qᵢ), where ⬝ denotes path composition.
-
-- `path.homotopic.comp_prod_eq_prod_comp` Similarly, binary products commute with path composition
+  - `fundamental_groupoid_functor.preserves_product` A proof that the fundamental groupoid functor
+    preserves all products.
 -/
 
 noncomputable theory
@@ -350,19 +347,24 @@ limits.cones.postcompose_equivalence discrete_X_eq
   discrete_X_eq_cone.functor.obj (π.map_cone (Top.pi_fan X))
   = limits.fan.mk (π.obj (Top.of (Π i, X i))) proj := rfl
 
+/-- This is `pi_iso.inv` as a cone morphism (in fact, isomorphism) -/
 def pi_Top_to_pi_cone : (limits.fan.mk (π.obj (Top.of (Π i, X i))) proj) ⟶
-  Groupoid.pi_limit_fan (λ i : I, (π.obj (X i))) :=
-{ hom := pi_iso.inv }
+  Groupoid.pi_limit_fan (λ i : I, (π.obj (X i))) := { hom := category_theory.functor.pi' proj }
 
-theorem preserves_limit : limits.preserves_limit (category_theory.discrete.functor X) π :=
+instance : is_iso (@pi_Top_to_pi_cone I X) :=
+begin
+  haveI : is_iso (@pi_Top_to_pi_cone I X).hom := (infer_instance : is_iso pi_iso.inv),
+  exact limits.cones.cone_iso_of_hom_iso pi_Top_to_pi_cone,
+end
+
+/-- The fundamental groupoid functor preserves products -/
+def preserves_product : limits.preserves_limit (category_theory.discrete.functor X) π :=
 begin
   apply limits.preserves_limit_of_preserves_limit_cone (Top.pi_fan_is_limit X),
   apply (limits.is_limit.of_cone_equiv discrete_X_eq_cone).to_fun,
   simp only [discrete_X_eq_cone_pi_map_cone],
   apply limits.is_limit.of_iso_limit _ (as_iso pi_Top_to_pi_cone).symm,
-  { exact (Groupoid.pi_limit_cone _).is_limit, },
-  haveI : is_iso (@pi_Top_to_pi_cone I X).hom := (infer_instance : is_iso pi_iso.inv),
-  refine limits.cones.cone_iso_of_hom_iso pi_Top_to_pi_cone,
+  { exact (Groupoid.pi_limit_cone _).is_limit, }, { apply_instance },
 end
 
 end preserves

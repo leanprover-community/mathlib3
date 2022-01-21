@@ -106,9 +106,8 @@ variables {X : A} {U : D} (S : sieve U) (hS : S ∈ K U)
 
 instance (X : Dᵒᵖ) : has_limits_of_shape (structured_arrow X G.op) A :=
 begin
-  apply_with has_limits_of_size.has_limits_of_shape { instances := ff },
-  unfreezingI { delta has_limits at _inst_4 },
-  apply @@limits.has_limits_of_size_shrink.{v (max u v) (max u v) (max u v)} _ _ _inst_4
+  haveI := limits.has_limits_of_size_shrink.{v (max u v) (max u v) (max u v)} A,
+  exact has_limits_of_size.has_limits_of_shape _
 end
 
 variables (x : S.arrows.family_of_elements ((Ran G.op).obj ℱ.val ⋙ coyoneda.obj (op X)))

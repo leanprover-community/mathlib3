@@ -431,8 +431,8 @@ begin
   { refine set.finite_of_forall_between_eq_endpoints (s \ u) (λ x hx y hy z hz hxy hyz, _),
     by_contra h,
     push_neg at h,
-    exact hy.2 (mem_bUnion_iff.mpr ⟨x, hx.1,
-      mem_bUnion_iff.mpr ⟨z, hz.1, lt_of_le_of_ne hxy h.1, lt_of_le_of_ne hyz h.2⟩⟩) },
+    exact hy.2 (mem_Union₂.mpr ⟨x, hx.1,
+      mem_Union₂.mpr ⟨z, hz.1, lt_of_le_of_ne hxy h.1, lt_of_le_of_ne hyz h.2⟩⟩) },
   have : u ⊆ s :=
     bUnion_subset (λ x hx, bUnion_subset (λ y hy, Ioo_subset_Icc_self.trans (h.out hx hy))),
   rw ← union_diff_cancel this,
@@ -489,7 +489,7 @@ begin
 end
 
 lemma dense.borel_eq_generate_from_Ico_mem {α : Type*} [topological_space α] [linear_order α]
-  [order_topology α] [second_countable_topology α] [densely_ordered α] [no_bot_order α]
+  [order_topology α] [second_countable_topology α] [densely_ordered α] [no_min_order α]
   {s : set α} (hd : dense s) :
   borel α = generate_from {S : set α | ∃ (l ∈ s) (u ∈ s) (h : l < u), Ico l u = S} :=
 hd.borel_eq_generate_from_Ico_mem_aux (by simp) $
@@ -516,7 +516,7 @@ begin
 end
 
 lemma dense.borel_eq_generate_from_Ioc_mem {α : Type*} [topological_space α] [linear_order α]
-  [order_topology α] [second_countable_topology α] [densely_ordered α] [no_top_order α]
+  [order_topology α] [second_countable_topology α] [densely_ordered α] [no_max_order α]
   {s : set α} (hd : dense s) :
   borel α = generate_from {S : set α | ∃ (l ∈ s) (u ∈ s) (h : l < u), Ioc l u = S} :=
 hd.borel_eq_generate_from_Ioc_mem_aux (by simp) $
@@ -565,7 +565,7 @@ end
 closed-open intervals. -/
 lemma ext_of_Ico' {α : Type*} [topological_space α] {m : measurable_space α}
   [second_countable_topology α] [linear_order α] [order_topology α] [borel_space α]
-  [no_top_order α] (μ ν : measure α) (hμ : ∀ ⦃a b⦄, a < b → μ (Ico a b) ≠ ∞)
+  [no_max_order α] (μ ν : measure α) (hμ : ∀ ⦃a b⦄, a < b → μ (Ico a b) ≠ ∞)
   (h : ∀ ⦃a b⦄, a < b → μ (Ico a b) = ν (Ico a b)) : μ = ν :=
 begin
   rcases exists_countable_dense_bot_top α with ⟨s, hsc, hsd, hsb, hst⟩,
@@ -589,7 +589,7 @@ end
 open-closed intervals. -/
 lemma ext_of_Ioc' {α : Type*} [topological_space α] {m : measurable_space α}
   [second_countable_topology α] [linear_order α] [order_topology α] [borel_space α]
-  [no_bot_order α] (μ ν : measure α) (hμ : ∀ ⦃a b⦄, a < b → μ (Ioc a b) ≠ ∞)
+  [no_min_order α] (μ ν : measure α) (hμ : ∀ ⦃a b⦄, a < b → μ (Ioc a b) ≠ ∞)
   (h : ∀ ⦃a b⦄, a < b → μ (Ioc a b) = ν (Ioc a b)) : μ = ν :=
 begin
   refine @ext_of_Ico' (order_dual α) _ _ _ _ _ ‹_› _ μ ν _ _;
@@ -601,7 +601,7 @@ end
 closed-open intervals. -/
 lemma ext_of_Ico {α : Type*} [topological_space α] {m : measurable_space α}
   [second_countable_topology α] [conditionally_complete_linear_order α] [order_topology α]
-  [borel_space α] [no_top_order α] (μ ν : measure α) [is_locally_finite_measure μ]
+  [borel_space α] [no_max_order α] (μ ν : measure α) [is_locally_finite_measure μ]
   (h : ∀ ⦃a b⦄, a < b → μ (Ico a b) = ν (Ico a b)) : μ = ν :=
 μ.ext_of_Ico' ν (λ a b hab, measure_Ico_lt_top.ne) h
 
@@ -609,7 +609,7 @@ lemma ext_of_Ico {α : Type*} [topological_space α] {m : measurable_space α}
 open-closed intervals. -/
 lemma ext_of_Ioc {α : Type*} [topological_space α] {m : measurable_space α}
   [second_countable_topology α] [conditionally_complete_linear_order α] [order_topology α]
-  [borel_space α] [no_bot_order α] (μ ν : measure α) [is_locally_finite_measure μ]
+  [borel_space α] [no_min_order α] (μ ν : measure α) [is_locally_finite_measure μ]
   (h : ∀ ⦃a b⦄, a < b → μ (Ioc a b) = ν (Ioc a b)) : μ = ν :=
 μ.ext_of_Ioc' ν (λ a b hab, measure_Ioc_lt_top.ne) h
 
@@ -623,8 +623,8 @@ begin
   { rcases exists_countable_dense_bot_top α with ⟨s, hsc, hsd, -, hst⟩,
     have : directed_on (≤) s, from directed_on_iff_directed.2 (directed_of_sup $ λ _ _, id),
     simp only [← bsupr_measure_Iic hsc (hsd.exists_ge' hst) this, h] },
-  rw [← Iic_diff_Iic, measure_diff (Iic_subset_Iic.2 hlt.le) measurable_set_Iic measurable_set_Iic,
-      measure_diff (Iic_subset_Iic.2 hlt.le) measurable_set_Iic measurable_set_Iic, h a, h b],
+  rw [← Iic_diff_Iic, measure_diff (Iic_subset_Iic.2 hlt.le) measurable_set_Iic,
+      measure_diff (Iic_subset_Iic.2 hlt.le) measurable_set_Iic, h a, h b],
   { rw ← h a, exact (measure_lt_top μ _).ne },
   { exact (measure_lt_top μ _).ne }
 end
@@ -1239,7 +1239,6 @@ begin
     { apply disjoint_left.2 (λ x hx h'x, _),
       have : 0 < f x := h'x.2,
       exact lt_irrefl 0 (this.trans_le hx.2.le) },
-    { exact hs.inter (hf (measurable_set_singleton _)) },
     { exact hs.inter (hf measurable_set_Ioi) } },
   have B : μ (s ∩ f⁻¹' (Ioi 0)) = μ (s ∩ f⁻¹' {∞}) + μ (s ∩ f⁻¹' (Ioo 0 ∞)),
   { rw ← measure_union,
@@ -1254,7 +1253,6 @@ begin
     { apply disjoint_left.2 (λ x hx h'x, _),
       have : f x < ∞ := h'x.2.2,
       exact lt_irrefl _ (this.trans_le (le_of_eq hx.2.symm)) },
-    { exact hs.inter (hf (measurable_set_singleton _)) },
     { exact hs.inter (hf measurable_set_Ioo) } },
   have C : μ (s ∩ f⁻¹' (Ioo 0 ∞)) = ∑' (n : ℤ), μ (s ∩ f⁻¹' (Ico (t^n) (t^(n+1)))),
   { rw [← measure_Union, ennreal.Ioo_zero_top_eq_Union_Ico_zpow (ennreal.one_lt_coe_iff.2 ht)

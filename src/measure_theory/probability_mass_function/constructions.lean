@@ -380,16 +380,13 @@ begin
   refine pmf.ext (λ a, _),
   simp only [ennreal.coe_eq_coe.symm, coe_bind_on_support_apply, ← tsum_dite_right,
     ennreal.tsum_mul_left.symm, ennreal.tsum_mul_right.symm],
-  refine trans (ennreal.tsum_comm) (tsum_congr (λ a', _)),
-  split_ifs with h,
-  { simp only [h, ennreal.coe_zero, zero_mul, tsum_zero] },
-  { simp only [← ennreal.tsum_mul_left, ← mul_assoc],
-    refine tsum_congr (λ b, _),
-    split_ifs with h1 h2 h2,
-    any_goals { ring1 },
-    { rw bind_on_support_eq_zero_iff at h1,
-      simp only [h1 a' h, ennreal.coe_zero, zero_mul, mul_zero] },
-    { simp only [h2, ennreal.coe_zero, mul_zero, zero_mul] } }
+  simp only [ennreal.tsum_eq_zero, ennreal.coe_eq_coe, ennreal.coe_eq_zero, ennreal.coe_zero,
+    dite_eq_left_iff, mul_eq_zero],
+  refine ennreal.tsum_comm.trans (tsum_congr (λ a', tsum_congr (λ b, _))),
+  split_ifs,
+  any_goals { ring1 },
+  { have := h_1 a', simp [h] at this, contradiction },
+  { simp [h_2], },
 end
 
 lemma bind_on_support_comm (p : pmf α) (q : pmf β)

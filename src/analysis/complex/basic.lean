@@ -3,7 +3,7 @@ Copyright (c) Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-import data.complex.module
+import data.complex.determinant
 import data.complex.is_R_or_C
 
 /-!
@@ -141,6 +141,14 @@ def conj_lie : ℂ ≃ₗᵢ[ℝ] ℂ := ⟨conj_ae.to_linear_equiv, abs_conj⟩
 @[simp] lemma conj_lie_apply (z : ℂ) : conj_lie z = conj z := rfl
 
 lemma isometry_conj : isometry (conj : ℂ → ℂ) := conj_lie.isometry
+
+/-- The determinant of `conj_lie`, as a linear map. -/
+@[simp] lemma det_conj_lie : (conj_lie.to_linear_equiv : ℂ →ₗ[ℝ] ℂ).det = -1 :=
+det_conj_ae
+
+/-- The determinant of `conj_lie`, as a linear equiv. -/
+@[simp] lemma linear_equiv_det_conj_lie : conj_lie.to_linear_equiv.det = -1 :=
+linear_equiv_det_conj_ae
 
 @[continuity] lemma continuous_conj : continuous (conj : ℂ → ℂ) := conj_lie.continuous
 

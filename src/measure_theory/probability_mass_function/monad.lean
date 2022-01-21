@@ -39,7 +39,7 @@ variables (a a' : α)
 
 lemma mem_support_pure_iff: a' ∈ (pure a).support ↔ a' = a := by simp
 
-instance [inhabited α] : inhabited (pmf α) := ⟨pure (default α)⟩
+instance [inhabited α] : inhabited (pmf α) := ⟨pure default⟩
 
 section measure
 

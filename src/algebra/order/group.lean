@@ -971,15 +971,15 @@ begin
 end
 
 @[priority 100, to_additive] -- see Note [lower instance priority]
-instance linear_ordered_comm_group.to_no_top_order [nontrivial α] :
-  no_top_order α :=
+instance linear_ordered_comm_group.to_no_max_order [nontrivial α] :
+  no_max_order α :=
 ⟨ begin
     obtain ⟨y, hy⟩ : ∃ (a:α), 1 < a := exists_one_lt',
     exact λ a, ⟨a * y, lt_mul_of_one_lt_right' a hy⟩
   end ⟩
 
 @[priority 100, to_additive] -- see Note [lower instance priority]
-instance linear_ordered_comm_group.to_no_bot_order [nontrivial α] : no_bot_order α :=
+instance linear_ordered_comm_group.to_no_min_order [nontrivial α] : no_min_order α :=
 ⟨ begin
     obtain ⟨y, hy⟩ : ∃ (a:α), 1 < a := exists_one_lt',
     exact λ a, ⟨a / y, (div_lt_self_iff a).mpr hy⟩

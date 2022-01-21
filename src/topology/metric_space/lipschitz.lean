@@ -176,6 +176,14 @@ calc edist (f (g x)) (f (g y)) ≤ Kf * edist (g x) (g y) : hf _ _
 ... ≤ Kf * (Kg * edist x y) : ennreal.mul_left_mono (hg _ _)
 ... = (Kf * Kg : ℝ≥0) * edist x y : by rw [← mul_assoc, ennreal.coe_mul]
 
+lemma comp_lipschitz_on_with {Kf Kg : ℝ≥0} {f : β → γ} {g : α → β} {s : set α}
+  (hf : lipschitz_with Kf f) (hg : lipschitz_on_with Kg g s) :
+  lipschitz_on_with (Kf * Kg) (f ∘ g) s :=
+assume x hx y hy,
+calc edist (f (g x)) (f (g y)) ≤ Kf * edist (g x) (g y) : hf _ _
+... ≤ Kf * (Kg * edist x y) : ennreal.mul_left_mono (hg hx hy)
+... = (Kf * Kg : ℝ≥0) * edist x y : by rw [← mul_assoc, ennreal.coe_mul]
+
 protected lemma prod_fst : lipschitz_with 1 (@prod.fst α β) :=
 lipschitz_with.of_edist_le $ assume x y, le_max_left _ _
 
@@ -350,6 +358,8 @@ end lipschitz_with
 
 namespace lipschitz_on_with
 
+section emetric
+
 variables [pseudo_emetric_space α] [pseudo_emetric_space β] [pseudo_emetric_space γ]
 variables {K : ℝ≥0} {s : set α} {f : α → β}
 
@@ -364,6 +374,55 @@ lemma edist_lt_of_edist_lt_div (hf : lipschitz_on_with K f s) {x y : α} (hx : x
 (lipschitz_on_with_iff_restrict.mp hf).edist_lt_of_edist_lt_div $
   show edist (⟨x, hx⟩ : s) ⟨y, hy⟩ < d / K, from hd
 
+end emetric
+
+section metric
+
+variables [pseudo_metric_space α] [pseudo_metric_space β] [pseudo_metric_space γ]
+variables {K : ℝ≥0} {s : set α} {f : α → β}
+
+protected lemma of_dist_le' {K : ℝ} (h : ∀ (x ∈ s) (y ∈ s), dist (f x) (f y) ≤ K * dist x y) :
+  lipschitz_on_with (real.to_nnreal K) f s :=
+of_dist_le_mul $ λ x hx y hy, le_trans (h x hx y hy) $
+  mul_le_mul_of_nonneg_right (real.le_coe_to_nnreal K) dist_nonneg
+
+protected lemma mk_one (h : ∀ (x ∈ s) (y ∈ s), dist (f x) (f y) ≤ dist x y) :
+  lipschitz_on_with 1 f s :=
+of_dist_le_mul $ by simpa only [nnreal.coe_one, one_mul] using h
+
+/-- For functions to `ℝ`, it suffices to prove `f x ≤ f y + K * dist x y`; this version
+doesn't assume `0≤K`. -/
+protected lemma of_le_add_mul' {f : α → ℝ} (K : ℝ)
+  (h : ∀ (x ∈ s) (y ∈ s), f x ≤ f y + K * dist x y) :
+  lipschitz_on_with (real.to_nnreal K) f s :=
+have I : ∀ (x ∈ s) (y ∈ s), f x - f y ≤ K * dist x y,
+  from assume x hx y hy, sub_le_iff_le_add'.2 (h x hx y hy),
+lipschitz_on_with.of_dist_le' $
+assume x hx y hy,
+abs_sub_le_iff.2 ⟨I x hx y hy, dist_comm y x ▸ I y hy x hx⟩
+
+/-- For functions to `ℝ`, it suffices to prove `f x ≤ f y + K * dist x y`; this version
+assumes `0≤K`. -/
+protected lemma of_le_add_mul {f : α → ℝ} (K : ℝ≥0)
+  (h : ∀ (x ∈ s) (y ∈ s), f x ≤ f y + K * dist x y) :
+  lipschitz_on_with K f s :=
+by simpa only [real.to_nnreal_coe] using lipschitz_on_with.of_le_add_mul' K h
+
+protected lemma of_le_add {f : α → ℝ} (h : ∀ (x ∈ s) (y ∈ s), f x ≤ f y + dist x y) :
+  lipschitz_on_with 1 f s :=
+lipschitz_on_with.of_le_add_mul 1 $ by simpa only [nnreal.coe_one, one_mul]
+
+protected lemma le_add_mul {f : α → ℝ} {K : ℝ≥0} (h : lipschitz_on_with K f s)
+  {x : α} (hx : x ∈ s) {y : α} (hy : y ∈ s) :
+  f x ≤ f y + K * dist x y :=
+sub_le_iff_le_add'.1 $ le_trans (le_abs_self _) $ h.dist_le_mul x hx y hy
+
+protected lemma iff_le_add_mul {f : α → ℝ} {K : ℝ≥0} :
+  lipschitz_on_with K f s ↔ ∀ (x ∈ s) (y ∈ s), f x ≤ f y + K * dist x y :=
+⟨lipschitz_on_with.le_add_mul, lipschitz_on_with.of_le_add_mul K⟩
+
+end metric
+
 end lipschitz_on_with
 
 /-- Consider a function `f : α × β → γ`. Suppose that it is continuous on each “vertical fiber”
@@ -376,7 +435,7 @@ lemma continuous_on_prod_of_continuous_on_lipschitz_on [pseudo_emetric_space α]
   [topological_space β] [pseudo_emetric_space γ] (f : α × β → γ) {s : set α} {t : set β}
   (K : ℝ≥0) (ha : ∀ a ∈ s, continuous_on (λ y, f (a, y)) t)
   (hb : ∀ b ∈ t, lipschitz_on_with K (λ x, f (x, b)) s) :
-  continuous_on f (s.prod t) :=
+  continuous_on f (s ×ˢ t) :=
 begin
   rintro ⟨x, y⟩ ⟨hx : x ∈ s, hy : y ∈ t⟩,
   refine emetric.tendsto_nhds.2 (λ ε (ε0 : 0 < ε), _),
@@ -413,8 +472,9 @@ end
 open metric
 
 /-- If a function is locally Lipschitz around a point, then it is continuous at this point. -/
-lemma continuous_at_of_locally_lipschitz [metric_space α] [metric_space β] {f : α → β} {x : α}
-  {r : ℝ} (hr : 0 < r) (K : ℝ) (h : ∀y, dist y x < r → dist (f y) (f x) ≤ K * dist y x) :
+lemma continuous_at_of_locally_lipschitz [pseudo_metric_space α] [pseudo_metric_space β]
+  {f : α → β} {x : α}
+  {r : ℝ} (hr : 0 < r) (K : ℝ) (h : ∀ y, dist y x < r → dist (f y) (f x) ≤ K * dist y x) :
   continuous_at f x :=
 begin
   -- We use `h` to squeeze `dist (f y) (f x)` between `0` and `K * dist y x`
@@ -424,4 +484,67 @@ begin
   -- Then show that `K * dist y x` tends to zero as `y → x`
   refine (continuous_const.mul (continuous_id.dist continuous_const)).tendsto' _ _ _,
   simp
+end
+
+/-- A function `f : α → ℝ` which is `K`-Lipschitz on a subset `s` admits a `K`-Lipschitz extension
+to the whole space. -/
+lemma lipschitz_on_with.extend_real [pseudo_metric_space α] {f : α → ℝ} {s : set α} {K : ℝ≥0}
+  (hf : lipschitz_on_with K f s) :
+  ∃ g : α → ℝ, lipschitz_with K g ∧ eq_on f g s :=
+begin
+  /- An extension is given by `g y = Inf {f x + K * dist y x | x ∈ s}`. Taking `x = y`, one has
+  `g y ≤ f y` for `y ∈ s`, and the other inequality holds because `f` is `K`-Lipschitz, so that it
+  can not counterbalance the growth of `K * dist y x`. One readily checks from the formula that the
+  extended function is also `K`-Lipschitz. -/
+  rcases eq_empty_or_nonempty s with rfl|hs,
+  { exact ⟨λ x, 0, (lipschitz_with.const _).weaken (zero_le _), eq_on_empty _ _⟩ },
+  haveI : nonempty s, by simp only [hs, nonempty_coe_sort],
+  let g := λ (y : α), infi (λ (x : s), f x + K * dist y x),
+  have B : ∀ (y : α), bdd_below (range (λ (x : s), f x + K * dist y x)),
+  { assume y,
+    rcases hs with ⟨z, hz⟩,
+    refine ⟨f z - K * dist y z, _⟩,
+    rintros w ⟨t, rfl⟩,
+    dsimp,
+    rw [sub_le_iff_le_add, add_assoc, ← mul_add, add_comm (dist y t)],
+    calc f z ≤ f t + K * dist z t : hf.le_add_mul hz t.2
+      ... ≤ f t + K * (dist y z + dist y t) :
+        add_le_add_left (mul_le_mul_of_nonneg_left (dist_triangle_left _ _ _) K.2) _ },
+  have E : eq_on f g s,
+  { assume x hx,
+    refine le_antisymm (le_cinfi (λ y, hf.le_add_mul hx y.2)) _,
+    simpa only [add_zero, subtype.coe_mk, mul_zero, dist_self] using cinfi_le (B x) ⟨x, hx⟩ },
+  refine ⟨g, lipschitz_with.of_le_add_mul K (λ x y, _), E⟩,
+  rw ← sub_le_iff_le_add,
+  refine le_cinfi (λ z, _),
+  rw sub_le_iff_le_add,
+  calc g x ≤ f z + K * dist x z : cinfi_le (B x) _
+  ... ≤ f z + K * dist y z + K * dist x y :
+    begin
+      rw [add_assoc, ← mul_add, add_comm (dist y z)],
+      exact add_le_add_left (mul_le_mul_of_nonneg_left (dist_triangle _ _ _) K.2) _,
+    end
+end
+
+/-- A function `f : α → (ι → ℝ)` which is `K`-Lipschitz on a subset `s` admits a `K`-Lipschitz
+extension to the whole space.
+TODO: state the same result (with the same proof) for the space `ℓ^∞ (ι, ℝ)` over a possibly
+infinite type `ι`. -/
+lemma lipschitz_on_with.extend_pi [pseudo_metric_space α] [fintype ι]
+  {f : α → (ι → ℝ)} {s : set α} {K : ℝ≥0}
+  (hf : lipschitz_on_with K f s) :
+  ∃ g : α → (ι → ℝ), lipschitz_with K g ∧ eq_on f g s :=
+begin
+  have : ∀ i, ∃ g : α → ℝ, lipschitz_with K g ∧ eq_on (λ x, f x i) g s,
+  { assume i,
+    have : lipschitz_on_with K (λ (x : α), f x i) s,
+    { apply lipschitz_on_with.of_dist_le_mul (λ x hx y hy, _),
+      exact (dist_le_pi_dist _ _ i).trans (hf.dist_le_mul x hx y hy) },
+    exact this.extend_real },
+  choose g hg using this,
+  refine ⟨λ x i, g i x, lipschitz_with.of_dist_le_mul (λ x y, _), _⟩,
+  { exact (dist_pi_le_iff (mul_nonneg K.2 dist_nonneg)).2 (λ i, (hg i).1.dist_le_mul x y) },
+  { assume x hx,
+    ext1 i,
+    exact (hg i).2 hx }
 end

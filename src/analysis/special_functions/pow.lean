@@ -1598,7 +1598,7 @@ lemma filter.tendsto.ennrpow_const {α : Type*} {f : filter α} {m : α → ℝ�
   tendsto (λ x, (m x) ^ r) f (𝓝 (a ^ r)) :=
 (ennreal.continuous_rpow_const.tendsto a).comp hm
 
--- the following lemma is placed here instead of `analysis.specific_limits` we need `real.rpow`
+-- the following lemma is placed here instead of `analysis.specific_limits` since we need `real.rpow`
 lemma tsum_geometric_inv_two_ge (n : ℕ) :
   ∑' i, ite (n ≤ i) ((2 : ℝ)⁻¹ ^ i) 0 = 2⁻¹ ^ (n - 1 : ℝ) :=
 begin

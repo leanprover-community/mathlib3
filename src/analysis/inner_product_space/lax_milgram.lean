@@ -85,38 +85,47 @@ end
 
 variables {B}
 
+lemma bounded_below (coercive : is_coercive B) :
+  ∃ C, 0 < C ∧ ∀ v, C * ∥v∥ ≤ ∥lax_milgram_map B v∥ :=
+begin
+  rcases coercive with ⟨C, C_ge_0, coercivity⟩,
+  refine ⟨C, C_ge_0, _⟩,
+  intro v,
+  by_cases h : 0 < ∥v∥,
+  {
+    refine (mul_le_mul_right h).mp _,
+    exact calc C * ∥v∥ * ∥v∥
+               ≤ B v v                         : coercivity v
+    ...        = inner (lax_milgram_map B v) v : by simp
+    ...        ≤ ∥lax_milgram_map B v∥ * ∥v∥     : real_inner_le_norm (lax_milgram_map B v) v,
+  },
+  {
+    have : v = 0 := by simpa using h,
+    simp [this],
+  }
+end
+
 lemma antilipschitz_of_lax_milgram (coercive : is_coercive B) :
   ∃ C : nnreal, 0 < C ∧ antilipschitz_with C (lax_milgram_map B) :=
-begin
-  rcases coercive with ⟨C, C_pos, coercivity⟩,
+begin -- I still want to golf this somewhat
+  rcases bounded_below coercive with ⟨C, C_pos, below_bound⟩,
   have C_nonneg : 0 ≤ C⁻¹ := le_of_lt (inv_pos.mpr C_pos),
   refine ⟨(C⁻¹).to_nnreal, _, _⟩,
   simpa [nnreal.coe_pos] using C_pos,
   refine linear_map.antilipschitz_of_bound ↑(lax_milgram_map B) _,
   intros v,
-  by_cases h : 0 < ∥v∥,
-  { rw [←mul_le_mul_left C_pos, ←mul_assoc],
-    simp only [real.coe_to_nnreal', normed_group.dist_eq, max_eq_left_of_lt (inv_pos.mpr C_pos)],
-    rw [mul_inv_cancel, one_mul],
-    show C ≠ 0, by linarith,
-    refine (mul_le_mul_right h).mp _,
-    exact calc
-         C * ∥v∥ * ∥v∥
-         ≤ B v v                         : coercivity v
-    ...  = inner (lax_milgram_map B v) v : by simp
-    ...  ≤ ∥lax_milgram_map B v ∥ * ∥v∥    : real_inner_le_norm (lax_milgram_map B v) v, },
-  { have : v = 0 := by simpa using h,
-    simp [this], }
+  have := below_bound v,
+  rw [←mul_le_mul_left C_pos, ←mul_assoc],
+  simp only [max_eq_left_of_lt (inv_pos.mpr C_pos), real.coe_to_nnreal',
+    continuous_linear_map.to_linear_map_eq_coe, continuous_linear_map.coe_coe, inv_pos],
+  rwa [mul_inv_cancel, one_mul], linarith,
 end
 
-lemma injective (coercive : is_coercive B) : (lax_milgram_map B).ker = ⊥ :=
+lemma ker_eq_bot (coercive : is_coercive B) : (lax_milgram_map B).ker = ⊥ :=
 begin
-  simp only [submodule.eq_bot_iff, continuous_linear_map.mem_ker],
-  intros v zero_of_image,
-  rw ←norm_le_zero_iff,
-  rcases antilipschitz_of_lax_milgram coercive with ⟨C, C_pos, antilipschitz⟩,
-  have :=  antilipschitz v 0,
-  simpa [edist_dist, zero_of_image, norm_zero] using this,
+  rw [←ker_coe, linear_map.ker_eq_bot],
+  rcases antilipschitz_of_lax_milgram coercive with ⟨_, _, antilipschitz⟩,
+  exact antilipschitz_with.injective antilipschitz,
 end
 
 lemma closed_range (coercive : is_coercive B) : is_closed ((lax_milgram_map B).range : set V) :=
@@ -125,7 +134,7 @@ begin
   exact antilipschitz.is_closed_range (lax_milgram_map B).uniform_continuous,
 end
 
-lemma surjective (coercive : is_coercive B): (lax_milgram_map B).range = ⊤ :=
+lemma range_eq_top (coercive : is_coercive B): (lax_milgram_map B).range = ⊤ :=
 begin
   haveI := (closed_range coercive).complete_space_coe,
   rw ← (lax_milgram_map B).range.orthogonal_orthogonal,
@@ -152,8 +161,8 @@ The Lax-Milgram theorem states that this is a continuous equivalence.
 def lax_milgram_equiv (coercive : is_coercive B) : V ≃L[ℝ] V :=
 continuous_linear_equiv.of_bijective
   (lax_milgram_map B)
-  (injective coercive)
-  (surjective coercive)
+  (ker_eq_bot coercive)
+  (range_eq_top coercive)
 
 
 @[simp]

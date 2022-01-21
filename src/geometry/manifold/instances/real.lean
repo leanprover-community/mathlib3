@@ -124,8 +124,12 @@ def model_with_corners_euclidean_quadrant (n : ℕ) :
   continuous_inv_fun := continuous_subtype_mk _ $ continuous_pi $ λ i,
     (continuous_id.max continuous_const).comp (continuous_apply i) }
 
-localized "notation `𝓡 `n := model_with_corners_self ℝ (euclidean_space ℝ (fin n))" in manifold
-localized "notation `𝓡∂ `n := model_with_corners_euclidean_half_space n" in manifold
+localized "notation `𝓡 `n :=
+  (model_with_corners_self ℝ (euclidean_space ℝ (fin n)) :
+    model_with_corners ℝ (euclidean_space ℝ (fin n)) (euclidean_space ℝ (fin n)))" in manifold
+localized "notation `𝓡∂ `n :=
+  (model_with_corners_euclidean_half_space n :
+    model_with_corners ℝ (euclidean_space ℝ (fin n)) (euclidean_half_space n))" in manifold
 
 /--
 The left chart for the topological space `[x, y]`, defined on `[x,y)` and sending `x` to `0` in

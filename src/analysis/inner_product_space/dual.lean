@@ -103,7 +103,7 @@ begin
 end
 
 
-variables (E) [complete_space E]
+variables (𝕜) (E) [complete_space E]
 
 /--
 Fréchet-Riesz representation: any `ℓ` in the dual of a Hilbert space `E` is of the form
@@ -154,7 +154,7 @@ begin
     exact h₄ }
 end
 
-variables {E}
+variables {𝕜} {E}
 
 @[simp] lemma to_dual_apply {x y : E} : to_dual 𝕜 E x y = ⟪x, y⟫ := rfl
 

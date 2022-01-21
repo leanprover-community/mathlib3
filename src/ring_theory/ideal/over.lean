@@ -192,7 +192,7 @@ begin
     rw [hk, pow_add],
     refine mul_mem_right _ _ this },
   rw [aeval_def, eval₂_eq_eval_map, ← is_root.def] at hx,
-  refine pow_nat_degree_le_of_root_of_monic_mem hx (monic_map (algebra_map R S) hmo)
+  refine pow_nat_degree_le_of_root_of_eisenstein_criterion_mem hx (monic_map (algebra_map R S) hmo)
     (λ n hn, _) _ rfl.le,
   rw [coeff_map],
   exact mem_map_of_mem _ (hdiv _ (lt_of_lt_of_le hn (nat_degree_map_le _ _)))

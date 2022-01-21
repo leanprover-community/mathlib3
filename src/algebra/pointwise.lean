@@ -641,6 +641,25 @@ by { simp only [← image2_mul, image_image2, image2_image_left, image2_image_ri
 lemma preimage_mul_preimage_subset {s t : set β} : m ⁻¹' s * m ⁻¹' t ⊆ m ⁻¹' (s * t) :=
 by { rintros _ ⟨_, _, _, _, rfl⟩, exact ⟨_, _, ‹_›, ‹_›, (m.map_mul _ _).symm ⟩ }
 
+instance set_semiring.no_zero_divisors : no_zero_divisors (set_semiring α) :=
+{ eq_zero_or_eq_zero_of_mul_eq_zero := λ a b ab, by {
+    by_cases a0 : a = 0,
+    { exact or.inl a0 },
+    { refine or.inr _,
+      by_cases b0 : b = 0,
+      { exact b0 },
+      { cases ne_empty_iff_nonempty.mp a0 with x xa,
+        cases ne_empty_iff_nonempty.mp b0 with y yb,
+        exact (not_not.mpr ab (ne_empty_iff_nonempty.mpr ⟨x * y, mul_mem_mul xa yb⟩)).elim } } } }
+
+instance set_semiring.covariant_class_add :
+  covariant_class (set_semiring α) (set_semiring α) (+) (≤) :=
+{ elim := λ a b c ab x xa, mem_of_mem_of_subset xa (union_subset_union_right _ ab) }
+
+instance set_semiring.covariant_class_mul :
+  covariant_class (set_semiring α) (set_semiring α) (*) (≤) :=
+{ elim := λ a b c ab x xa, mem_of_mem_of_subset xa (mul_subset_mul subset.rfl ab) }
+
 end mul_hom
 
 /-- The image of a set under function is a ring homomorphism
@@ -657,23 +676,6 @@ end monoid
 section comm_monoid
 
 variable [comm_monoid α]
-
-instance : no_zero_divisors (set_semiring α) :=
-{ eq_zero_or_eq_zero_of_mul_eq_zero := λ a b ab, by {
-    by_cases a0 : a = 0,
-    { exact or.inl a0 },
-    { refine or.inr _,
-      by_cases b0 : b = 0,
-      { exact b0 },
-      { cases ne_empty_iff_nonempty.mp a0 with x xa,
-        cases ne_empty_iff_nonempty.mp b0 with y yb,
-        exact (not_not.mpr ab (ne_empty_iff_nonempty.mpr ⟨x * y, mul_mem_mul xa yb⟩)).elim } } } }
-
-instance to_covariant_class_add : covariant_class (set_semiring α) (set_semiring α) (+) (≤) :=
-{ elim := λ a b c ab x xa, mem_of_mem_of_subset xa (union_subset_union_right _ ab) }
-
-instance to_covariant_class_mul : covariant_class (set_semiring α) (set_semiring α) (*) (≤) :=
-{ elim := λ a b c ab x xa, mem_of_mem_of_subset xa (mul_subset_mul subset.rfl ab) }
 
 instance : canonically_ordered_comm_semiring (set_semiring α) :=
 { add_le_add_left := λ a b ab c, add_le_add_left ab _,

@@ -15,18 +15,26 @@ import analysis.special_functions.pow
 # Bertrand's Postulate
 
 This file contains a proof of Bertrand's postulate: That between any positive number and its
-double there is a prime
+double there is a prime.
 
--- TODO File Docstring
--- TODO Cite "Proofs From THE BOOK"
--- TODO Cite Tochiori's paper
+The proof follows the outline of the Erdős proof presented in "Proofs from THE BOOK": One considers
+the prime factorization of `(2 * n).choose n`, and splits the constituent primes up into various
+groups, then upper bounds the contribution of each group. This upper bounds the central binomial
+coefficient, and if the postulate does not hold, this upper bound conflicts with a simple lower
+bound for large enough `n`. This proves the result holds for large enough `n`, and for smaller `n`
+an explicit list of primes is provided which covers the remaining cases.
+
+As in the [Metamath implementation](carneiro2015arithmetic), we rely on some optimizations from
+[Shigenori Tochiori](tochiori_bertrand). In particular we use the fact that `(log x) / x` is
+decreasing for `e ≤ x`.
+
 -- TODO edit 100.yml
 
 ## References
 
-* [M. Aigner and G. M. Ziegler _Proofs from the Book_][aigner1999proofs]
+* [M. Aigner and G. M. Ziegler _Proofs from THE BOOK_][aigner1999proofs]
 * [S. Tochiori, _Considering the Proof of “There is a Prime between n and 2n”_][tochiori_bertrand]
-
+* [M. Carneiro, _Arithmetic in Metamath, Case Study: Bertrand's Postulate_][carneiro2015arithmetic]
 -/
 
 open_locale big_operators

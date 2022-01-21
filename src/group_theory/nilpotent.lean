@@ -56,6 +56,8 @@ subgroup `G` of `G`, and `⊥` denotes the trivial subgroup `{1}`.
   `lower_central_series_length_eq_nilpotency_class`.
 * If `G` is nilpotent, then so are its subgroups, images, quotients and preimages.
   Corresponding lemmas about the `nilpotency_class` are provided.
+* The `nilpotency_class` of `G ⧸ center G` is given explicitly, and an induction principle
+  is derived from that.
 * `is_nilpotent.to_is_solvable`: If `G` is nilpotent, it is solvable.
 
 
@@ -607,7 +609,7 @@ begin
     ... = comap (mk' (comap (mk' (center G)) Hn)) (center (G ⧸ (comap (mk' (center G)) Hn)))
         : comap_comap_center
     ... = comap (mk' (upper_central_series G n.succ)) (center (G ⧸ upper_central_series G n.succ))
-        : symm (comap_center_subst (symm ih))
+        : comap_center_subst ih
     ... = upper_central_series_step (upper_central_series G n.succ)
         : symm (upper_central_series_step_eq_comap_center _)
     ... = upper_central_series G n.succ.succ

@@ -214,7 +214,7 @@ end temp
 
 -- TODO: Is this version actually true?!
 lemma nat.gcd_greatest {a b d : ℕ} :
-  d ∣ a → d ∣ b → (∀ (e : ℕ), 0 < e → e ∣ a → e ∣ b → e ∣ d) → d = (a.gcd b) := sorry
+  d ∣ a → d ∣ b → (∀ (e : ℕ), e ≠ 0 → e ∣ a → e ∣ b → e ∣ d) → d = (a.gcd b) := sorry
 
 ------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------
@@ -225,11 +225,7 @@ lemma factorization_gcd (a b : ℕ) (ha_pos : a ≠ 0) (hb_pos : b ≠ 0) :
   (gcd a b).factorization = a.factorization ⊓ b.factorization :=
 begin
   set dfac := a.factorization ⊓ b.factorization with dfac_def,
-
--- TODO: Break out the individual facts used in `factorization_equiv` as lemmas,
---       Avoid the use of `pnat` and `⟨dfac, dfac_prime⟩` here
---       Re-write the proof below without this obstructive bundling
-
+  set d := dfac.prod pow with d_def,
 
   have dfac_prime : ∀ (p : ℕ), p ∈ dfac.support → prime p, {
     intros p hp,
@@ -239,38 +235,39 @@ begin
     apply prime_of_mem_factors, assumption,
   },
 
-  set D := factorization_equiv.inv_fun ⟨dfac, dfac_prime⟩,
+  have h1 : d.factorization = dfac, { rw d_def, exact factorization_prod_pow_inv dfac_prime },
 
-  have hd : D.val.factorization = dfac, {
-    have := factorization_equiv.right_inv,
-    unfold function.right_inverse at this,
-    unfold function.left_inverse at this,
-    specialize this ⟨dfac, dfac_prime⟩,
+  have hd_pos : d ≠ 0, {
+    have := prime_finsupp_prod_pow_pos dfac_prime, rw ←d_def at this, exact ne_of_gt this,
+  },
 
-    sorry,
-    },
-  rw ←hd,
-  suffices : gcd a b = D.val, { rw this },
+  suffices : (gcd a b) = d, { rwa this },
 
-  -- have ha : dfac ≤ a.factorization, { exact inf_le_left },
-  -- have hb : dfac ≤ b.factorization, { exact inf_le_right },
-  have had : D.val ∣ a,
-    { rw [←factorization_le_iff_dvd D.2.ne.symm ha_pos, hd], exact inf_le_left },
-  have hbd : D.val ∣ b,
-    { rw [←factorization_le_iff_dvd D.2.ne.symm hb_pos, hd], exact inf_le_right, },
-
--- So D.val is a common divisor of a and b
 
   rw eq_comm,
-  apply nat.gcd_greatest had hbd,
-  intros e he_pos hea heb,
-  rw ←(factorization_le_iff_dvd he_pos.ne.symm) at hea heb ⊢,
-  rw hd,
-  simp [hea, heb],
-  exact D.2.ne.symm,
-  exact ha_pos,
-  exact hb_pos,
-
+  apply nat.gcd_greatest,
+  {
+    rw ←factorization_le_iff_dvd hd_pos ha_pos,
+    rw h1,
+    rw dfac_def,
+    exact inf_le_left,
+  },
+  {
+    rw ←factorization_le_iff_dvd hd_pos hb_pos,
+    rw h1,
+    rw dfac_def,
+    exact inf_le_right,
+  },
+  {
+    intros e he_pos hea heb,
+    rw ←factorization_le_iff_dvd he_pos hd_pos,
+    rw h1,
+    rw dfac_def,
+    simp,
+    split,
+    rwa factorization_le_iff_dvd he_pos ha_pos,
+    rwa factorization_le_iff_dvd he_pos hb_pos,
+  },
 end
 
 end nat

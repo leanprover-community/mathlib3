@@ -205,6 +205,10 @@ lemma factorization_prod_pow_inv {f : ℕ →₀ ℕ} (hf : ∀ (p : ℕ), p ∈
 
 def factorization_equiv : pnat ≃ {f : ℕ →₀ ℕ | ∀ p ∈ f.support, prime p} := sorry
 
+lemma prime_finsupp_prod_pow_pos {f : ℕ →₀ ℕ} (hf : ∀ p ∈ f.support, prime p) : 0 < f.prod pow :=
+prod_pos (λ p hp, (pow_ne_zero _ (hf p hp).ne_zero).bot_lt)
+
+
 end temp
 
 

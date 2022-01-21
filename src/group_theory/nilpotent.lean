@@ -134,19 +134,12 @@ instance (n : ℕ) : normal (upper_central_series G n) := (upper_central_series_
 
 @[simp] lemma upper_central_series_one : upper_central_series G 1 = center G :=
 begin
-  simp [upper_central_series, upper_central_series_aux, upper_central_series_step],
   ext,
-  simp,
-  simp [center, set.center],
-  split; intro h; intro y; specialize h y,
-  {
-      symmetry,
-      rw ← mul_inv_eq_one,
-      simp,
-      repeat { rw ← mul_assoc },
-      assumption,
-  },
-  rw ← h, simp,
+  simp [upper_central_series, upper_central_series_aux, upper_central_series_step,
+    center, set.center],
+  apply forall_congr,
+  intro y,
+  rw [mul_inv_eq_one, mul_inv_eq_iff_eq_mul, eq_comm ],
 end
 
 /-- The `n+1`st term of the upper central series `H i` has underlying set equal to the `x` such

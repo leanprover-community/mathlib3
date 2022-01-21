@@ -45,46 +45,6 @@ def tendsto_in_measure [preorder ι] [has_dist E] {m : measurable_space α}
   (μ : measure α) (f : ι → α → E) (g : α → E) : Prop :=
 ∀ ε (hε : 0 < ε), tendsto (λ i, μ {x | ε ≤ dist (f i x) (g x)}) at_top (𝓝 0)
 
-section Lp
--- PRed: #11478
-variables [measurable_space E] [normed_group E] [borel_space E] {p : ℝ≥0∞} {f : α → E}
-
-variable (μ)
-
-lemma mul_meas_ge_pow_le_snorm
-  (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ∞) (hf : measurable f) (ε : ℝ≥0∞) :
-  (ε * μ {x | ε ≤ ∥f x∥₊ ^ p.to_real}) ^ (1 / p.to_real) ≤ snorm f p μ :=
-begin
-  rw snorm_eq_lintegral_rpow_nnnorm hp_ne_zero hp_ne_top,
-  exact ennreal.rpow_le_rpow (mul_meas_ge_le_lintegral
-      (measurable.pow_const (measurable.coe_nnreal_ennreal (hf.nnnorm)) _) ε)
-      (one_div_nonneg.2 ennreal.to_real_nonneg),
-end
-
-lemma mul_meas_ge_le_snorm_pow
-  (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ∞) (hf : measurable f) (ε : ℝ≥0∞) :
-  ε * μ {x | ε ≤ ∥f x∥₊ ^ p.to_real} ≤ snorm f p μ ^ p.to_real :=
-begin
-  have : 1 / p.to_real * p.to_real = 1,
-  { refine one_div_mul_cancel _,
-    rw [ne, ennreal.to_real_eq_zero_iff],
-    exact not_or hp_ne_zero hp_ne_top },
-  rw [← ennreal.rpow_one (ε * μ {x | ε ≤ ∥f x∥₊ ^ p.to_real}), ← this, ennreal.rpow_mul],
-  exact ennreal.rpow_le_rpow (mul_meas_ge_pow_le_snorm μ hp_ne_zero hp_ne_top hf ε)
-    ennreal.to_real_nonneg,
-end
-
-lemma mul_meas_ge_le_snorm_pow'
-  (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ∞) (hf : measurable f) (ε : ℝ≥0∞) :
-  ε ^ p.to_real * μ {x | ε ≤ ∥f x∥₊} ≤ snorm f p μ ^ p.to_real :=
-begin
-  convert mul_meas_ge_le_snorm_pow μ hp_ne_zero hp_ne_top hf  (ε ^ p.to_real),
-  ext x,
-  rw ennreal.rpow_le_rpow_iff (ennreal.to_real_pos hp_ne_zero hp_ne_top),
-end
-
-end Lp
-
 lemma tendsto_in_measure_iff_norm [preorder ι] [semi_normed_group E] {f : ι → α → E} {g : α → E} :
   tendsto_in_measure μ f g
     ↔ ∀ ε (hε : 0 < ε), tendsto (λ i, μ {x | ε ≤ ∥f i x - g x∥}) at_top (𝓝 0) :=
@@ -287,7 +247,7 @@ begin
   refine ⟨N, λ n hn, le_trans _ (hN n hn)⟩,
   rw [ennreal.of_real_div_of_pos, ennreal.of_real_one, mul_comm, mul_one_div,
       ennreal.le_div_iff_mul_le, mul_comm],
-  { convert mul_meas_ge_le_snorm_pow' μ hp_ne_zero hp_ne_top ((hf n).sub hg)
+  { convert mul_meas_ge_le_pow_snorm' μ hp_ne_zero hp_ne_top ((hf n).sub hg)
       (ennreal.of_real ε),
     { exact (ennreal.of_real_rpow_of_pos hε).symm },
     { ext x,

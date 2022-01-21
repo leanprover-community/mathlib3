@@ -733,8 +733,6 @@ begin
       by simp [nilpotency_class_quotient_center, h],
     exact hstep _ (ih _ hn), },
 end
-#check nilpotent_center_quotient_ind
-#check nat.strong_induction_on
 
 -- NB: Does not need G to be finite
 lemma normalizer_condition'_of_is_nilpotent : is_nilpotent G → normalizer_condition G :=

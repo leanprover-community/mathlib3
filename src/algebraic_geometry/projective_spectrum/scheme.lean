@@ -2900,13 +2900,60 @@ lemma isos.sheaf_component.forward.mk_is_locally_quotient
   (U : (opens
     ((Spec↥(degree_zero_part (λ (m : ℕ), 𝒜 m) f m f_deg)).to_SheafedSpace.to_PresheafedSpace.carrier))ᵒᵖ)
   (hh : (((isos.top_component 𝒜 f m hm f_deg).hom _*
-      ((Proj.to_LocallyRingedSpace 𝒜).restrict (@opens.open_embedding (projective_spectrum.Top 𝒜)
-        (projective_spectrum.basic_open 𝒜 f))).to_SheafedSpace.sheaf.val).obj
-     U)) :
+          ((Proj.to_LocallyRingedSpace 𝒜).restrict (@opens.open_embedding (projective_spectrum.Top 𝒜)
+        (projective_spectrum.basic_open 𝒜 f))).to_SheafedSpace.sheaf.val).obj U)) :
   (structure_sheaf.is_locally_fraction
-   (degree_zero_part (λ (m : ℕ), 𝒜 m) f m f_deg)).to_prelocal_predicate.pred
-  (isos.sheaf_component.forward.mk 𝒜 f m hm f_deg U hh) := sorry
+    (degree_zero_part (λ (m : ℕ), 𝒜 m) f m f_deg)).to_prelocal_predicate.pred
+  (isos.sheaf_component.forward.mk 𝒜 f m hm f_deg U hh) := λ y,
+begin
+  have is_local := hh.2,
+  specialize is_local ⟨((isos.top_component 𝒜 f m hm f_deg).inv y.1).1, begin
+    erw [set.mem_preimage],
+    fconstructor,
+    refine ⟨((isos.top_component 𝒜 f m hm f_deg).inv y.1).1, _⟩,
+    erw projective_spectrum.mem_basic_open,
+    intro rid,
+    specialize rid m,
+    simp only [graded_algebra.proj_apply, graded_algebra.decompose_of_mem_same 𝒜 f_deg] at rid,
+    apply y.1.is_prime.1,
+    rw ideal.eq_top_iff_one,
+    convert rid,
+    rw subtype.ext_iff_val,
+    dsimp only,
+    erw localization.mk_self (⟨f^m, ⟨m, rfl⟩⟩: submonoid.powers f),
+    refl,
 
+    refine ⟨_, rfl⟩,
+    simp only [unop_op, opens.mem_coe, subtype.coe_eta, functor.op_obj, subtype.val_eq_coe],
+    change _ ∈ _ ⁻¹' _,
+    rw set.mem_preimage,
+    change (isos.top_component.forward.to_fun 𝒜 f m f_deg (isos.top_component.backward.to_fun 𝒜 f m hm f_deg _)) ∈ _,
+    rw isos.top_component.forward_backward,
+    exact y.2,
+  end⟩,
+
+  obtain ⟨V, mem1, subset1, a, b, degree, a_hom, b_hom, eq1⟩ := is_local,
+  refine ⟨⟨homeo_of_iso (isos.top_component 𝒜 f m hm f_deg) '' {z | z.1 ∈ V.1}, _⟩, _, _, _⟩,
+  { rw [homeomorph.is_open_image, is_open_induced_iff],
+    refine ⟨V.1, V.2, _⟩,
+    ext z, split; intro hz,
+    { rw set.mem_preimage at hz,
+      exact hz, },
+    { rw set.mem_preimage,
+      exact hz, } },
+
+  { change y.val ∈ _ '' _,
+    rw [set.mem_image],
+    refine ⟨(isos.top_component 𝒜 f m hm f_deg).inv y.1, mem1, _⟩,
+    rw [homeo_of_iso_apply],
+    change (isos.top_component.forward.to_fun 𝒜 f m f_deg (isos.top_component.backward.to_fun 𝒜 f m hm f_deg _)) = _,
+    rw isos.top_component.forward_backward, },
+
+  { sorry },
+  sorry
+end
+
+#exit
 def isos.sheaf_component.forward.to_fun
   (f : A) [decidable_eq (localization.away f)] (m : ℕ) (hm : 0 < m) (f_deg : f ∈ 𝒜 m)
   (U : (opens
@@ -2917,7 +2964,6 @@ def isos.sheaf_component.forward.to_fun
      U) → (Spec (degree_zero_part 𝒜 f m f_deg)).to_SheafedSpace.sheaf.val.obj U := λ hh,
 ⟨isos.sheaf_component.forward.mk 𝒜 f m hm f_deg U hh,
   isos.sheaf_component.forward.mk_is_locally_quotient 𝒜 f m hm f_deg U hh⟩
-
 
 def isos.sheaf_component.forward
   (f : A) [decidable_eq (localization.away f)] (m : ℕ) (hm : 0 < m) (f_deg : f ∈ 𝒜 m) :

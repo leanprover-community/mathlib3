@@ -85,7 +85,8 @@ begin
   unfold α at multiplicity_pos,
   rw nat.central_binom_eq_two_mul_choose at multiplicity_pos,
   rw @padic_val_nat_def p hp ((2 * n).choose n) (nat.central_binom_ne_zero n) at multiplicity_pos,
-  simp only [nat.prime.multiplicity_choose hp.out n.le_two_mul_self (lt_add_one (p.log (2 * n)))] at multiplicity_pos,
+  simp only [nat.prime.multiplicity_choose hp.out n.le_two_mul_self (lt_add_one (p.log (2 * n)))]
+    at multiplicity_pos,
   have r : 2 * n - n = n,
     calc
     2 * n - n
@@ -532,7 +533,8 @@ begin
     { by_contradiction neg_n_le_x,
       simp only [not_lt] at neg_n_le_x,
       rw [nat.add_one, nat.succ_le_iff, nat.div_lt_iff_lt_mul', mul_comm x] at h2x,
-      have claim := @nat.multiplicity_central_binom_of_large_eq_zero x hx.right n (by linarith) (by linarith) h2x,
+      have claim := @nat.multiplicity_central_binom_of_large_eq_zero x hx.right n (by linarith)
+                      (by linarith) h2x,
       rw [claim, pow_zero] at h,
       simp only [eq_self_iff_true, not_true] at h,
       exact h,

@@ -110,37 +110,6 @@ begin
   exact hN n hn x hx,
 end
 
-lemma tsum_geometric_inv_two_ge (k : ℕ) :
-  ∑' i, ite (k ≤ i) ((2 : ℝ)⁻¹ ^ i) 0 = 2⁻¹ ^ (k - 1 : ℝ) :=
-begin
-  have tsum_ite_eq_sub : ∑' i : ℕ, ite (k ≤ i) ((2 : ℝ)⁻¹ ^ i) 0 =
-    ∑' i : ℕ, 2⁻¹ ^ i - ∑' i : ℕ, ite (i < k) (2⁻¹ ^ i) 0,
-  { rw ← tsum_sub,
-    { refine tsum_congr (λ i, _),
-      by_cases hi : k ≤ i,
-      { rw [if_pos hi, if_neg (not_lt.2 hi), sub_zero] },
-      { rw [if_neg hi, if_pos (not_le.1 hi), sub_self] } },
-    { exact (inv_eq_one_div (2 : ℝ)).symm ▸ summable_geometric_two },
-    { refine @summable_of_ne_finset_zero _ _ _ _ _ (finset.Ico 0 k) (λ i hi, _),
-      rw [finset.mem_Ico, not_and] at hi,
-      exact if_neg (hi $ zero_le i) } },
-  rw [tsum_ite_eq_sub, inv_eq_one_div, tsum_geometric_two,
-    @tsum_eq_sum _ _ _ _ _ _ (finset.Ico 0 k), finset.sum_ite_of_true],
-  { rw geom_sum_Ico,
-    suffices rnf : (2 : ℝ) * (1 / 2) ^ k = (1 / 2) ^ ((k : ℝ) - 1),
-    { ring_nf, exact rnf },
-    rw [real.rpow_sub, real.rpow_one, one_div, div_eq_mul_one_div, ← inv_eq_one_div, inv_inv₀,
-      mul_comm, real.rpow_nat_cast],
-    all_goals { norm_num } },
-  { intros i hi,
-    rw finset.mem_Ico at hi,
-    exact hi.2 },
-  { intros i hi,
-    rw [finset.mem_Ico, not_and] at hi,
-    exact if_neg (hi $ zero_le i) },
-  { apply_instance }
-end
-
 /-- If `f` is a sequence of functions which converges in measure to `g`, then there exists a
 subsequence of `f` which converges a.e. to `g`. -/
 lemma tendsto_in_measure.exists_seq_tendsto_ae

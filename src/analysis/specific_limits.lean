@@ -362,6 +362,9 @@ begin
   exact tsum_geometric_two.symm
 end
 
+lemma tsum_geometric_inv_two : ∑' n : ℕ, (2 : ℝ)⁻¹ ^ n = 2 :=
+(inv_eq_one_div (2 : ℝ)).symm ▸ tsum_geometric_two
+
 lemma has_sum_geometric_two' (a : ℝ) : has_sum (λn:ℕ, (a / 2) / 2 ^ n) a :=
 begin
   convert has_sum.mul_left (a / 2) (has_sum_geometric_of_lt_1

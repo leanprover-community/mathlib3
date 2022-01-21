@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2021 Kevin Buzzard. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Kevin Buzzard, Ines Wright
+Authors: Kevin Buzzard, Ines Wright, Joachim Breitner
 -/
 
 import group_theory.general_commutator
@@ -54,6 +54,8 @@ subgroup `G` of `G`, and `⊥` denotes the trivial subgroup `{1}`.
   definitions, see `least_ascending_central_series_length_eq_nilpotency_class`,
   `least_descending_central_series_length_eq_nilpotency_class` and
   `lower_central_series_length_eq_nilpotency_class`.
+* If `G` is nilpotent, then so are its subgroups, images, quotients and preimages.
+  Corresponding lemmas about the `nilpotency_class` are provided.
 * `is_nilpotent.to_is_solvable`: If `G` is nilpotent, it is solvable.
 
 
@@ -520,7 +522,7 @@ end
 
 end classical
 
-
+/-- The range of a surejctive homomorphism from a nilpotent group is nilpotent -/
 lemma nilpotent_of_surjective
   {G' : Type*} [group G'] {f : G →* G'} (hf : function.surjective f) [h : is_nilpotent G] :
   is_nilpotent G' :=
@@ -534,6 +536,8 @@ begin
     ... ≤ upper_central_series G' n : upper_central_series.map hf n,
 end
 
+/-- The nilpotency class of the range of a surejctive homomorphism from a
+nilpotent group is less or equal the nilpotency class of the domain -/
 lemma nilpotency_class_le_of_surjective
   {G' : Type*} [group G'] {f : G →* G'} (hf : function.surjective f) [h : is_nilpotent G] :
   @group.nilpotency_class G' _ (nilpotent_of_surjective hf) ≤
@@ -548,10 +552,12 @@ begin
     ... ≤ upper_central_series G' n : upper_central_series.map hf n,
 end
 
+/-- A quotient of a nilpotent group is nilpotent -/
 instance nilpotent_quotient_of_nilpotent (H : subgroup G) [H.normal] [h : is_nilpotent G] :
   is_nilpotent (G ⧸ H) :=
  nilpotent_of_surjective (show function.surjective (quotient_group.mk' H), by tidy)
 
+/-- The nilpotency class of a quotient of `G` is less or equal the nilpotency class of `G` -/
 lemma nilpotency_class_quotient_le (H : subgroup G) [H.normal] [h : is_nilpotent G] :
   group.nilpotency_class (G ⧸ H) ≤ group.nilpotency_class G := nilpotency_class_le_of_surjective _
 

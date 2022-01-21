@@ -5,9 +5,9 @@ import .mod_forms2
 
 universes u v w
 
-open complex
+open complex modular_forms
 
-open_locale big_operators nnreal classical filter
+open_locale big_operators nnreal classical filter topological_space manifold
 
 local notation `ℍ` := upper_half_plane
 
@@ -70,7 +70,7 @@ begin
   have hz: z ∈ (upper_half_space_slice A B), by {apply hball, simp  [hε .le],},
   have hu:= (Eisen_partial_tends_to_uniformly k h A B hA hB),
   have hu2:
-    tendsto_uniformly_on (Eisen_par_sum_slice k A B ) (Eisenstein_series_restrict k A B hB)
+    tendsto_uniformly_on (Eisen_par_sum_slice k A B ) (Eisenstein_series_restrict k A B)
     filter.at_top (metric.closed_ball ⟨z, hz⟩ ε), by {apply hu.tendsto_uniformly_on},
   clear hu,
   simp_rw Eisenstein_series_restrict at *,
@@ -161,6 +161,14 @@ begin
   ring_nf,
   linarith,
   simp [hε.le],
+end
+
+lemma Eisenstein_is_mdiff (k : ℕ) (hk : 3 ≤ k):
+  mdifferentiable 𝓘(ℂ) 𝓘(ℂ) (↑(Eisenstein_series_of_weight_ k) : ℍ' → ℂ):=
+begin
+rw mdiff_iff_holo,
+apply Eisenstein_is_holomorphic,
+apply hk,
 end
 
 def my_vadd : ℤ → ℍ → ℍ :=
@@ -349,7 +357,7 @@ begin
 end
 
 lemma Eisenstein_is_bounded (k: ℕ) (hk : 3 ≤ k) :
-  (λ z : ℍ, Eisenstein_series_of_weight_ k z) ∈ modular_forms.is_bound_at_infinity  :=
+   Eisenstein_series_of_weight_ k  ∈  is_bound_at_infinity  :=
 begin
 simp only [modular_forms.bound_mem, subtype.forall, upper_half_plane.coe_im],
 have h2: 0 < (2 : ℝ), by {linarith,},
@@ -389,15 +397,13 @@ apply le_abs_self,},
 apply HR ⟨Z, hZ⟩,
 end
 
-lemma Eisenstein_series_is_modular_form  (k: ℕ) (hk : 3 ≤ k) :
- modular_forms.is_modular_form_of_lvl_and_weight (⊤ : subgroup SL2Z) k
- (λ z : ℍ, Eisenstein_series_of_weight_ k z) :=
- {hol:= by {simp_rw modular_forms.hol_extn, rw mdiff_iff_holo, apply Eisenstein_is_holomorphic k hk, },
- transf := by {simp only, apply Eisenstein_is_wmodular (⊤ : subgroup SL2Z) k, },
+lemma Eisenstein_series_is_modular_form  (k : ℕ) (hk : 3 ≤ k) :
+ is_modular_form_of_lvl_and_weight (⊤ : subgroup SL2Z) k (Eisenstein_series_of_weight_ k) :=
+ {hol:= by {apply Eisenstein_is_mdiff k hk},
+ transf := by {apply Eisenstein_is_wmodular (⊤ : subgroup SL2Z) k},
  infinity := by {intros A,
- have := (modular_forms.wmodular_mem k (⊤ : subgroup SL2Z)
- (λ z : ℍ, Eisenstein_series_of_weight_ k z)).1 (Eisenstein_is_wmodular (⊤ : subgroup SL2Z) k) A,
- rw this,
- apply Eisenstein_is_bounded k hk,}}
+ rw (wmodular_mem k (⊤ : subgroup SL2Z) (Eisenstein_series_of_weight_ k )).1
+ (Eisenstein_is_wmodular (⊤ : subgroup SL2Z) k) A,
+ apply Eisenstein_is_bounded k hk}}
 
 end Eisenstein_series

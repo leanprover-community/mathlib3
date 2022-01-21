@@ -642,15 +642,15 @@ lemma preimage_mul_preimage_subset {s t : set β} : m ⁻¹' s * m ⁻¹' t ⊆ 
 by { rintros _ ⟨_, _, _, _, rfl⟩, exact ⟨_, _, ‹_›, ‹_›, (m.map_mul _ _).symm ⟩ }
 
 instance set_semiring.no_zero_divisors : no_zero_divisors (set_semiring α) :=
-{ eq_zero_or_eq_zero_of_mul_eq_zero := λ a b ab, by {
-    by_cases a0 : a = 0,
-    { exact or.inl a0 },
-    { refine or.inr _,
-      by_cases b0 : b = 0,
-      { exact b0 },
-      { cases ne_empty_iff_nonempty.mp a0 with x xa,
-        cases ne_empty_iff_nonempty.mp b0 with y yb,
-        exact (not_not.mpr ab (ne_empty_iff_nonempty.mpr ⟨x * y, mul_mem_mul xa yb⟩)).elim } } } }
+{ eq_zero_or_eq_zero_of_mul_eq_zero := λ a b ab, by
+  { by_cases a0 : a = 0,
+  { exact or.inl a0 },
+  { refine or.inr _,
+    by_cases b0 : b = 0,
+    { exact b0 },
+    { cases ne_empty_iff_nonempty.mp a0 with x xa,
+      cases ne_empty_iff_nonempty.mp b0 with y yb,
+      exact (not_not.mpr ab (ne_empty_iff_nonempty.mpr ⟨x * y, mul_mem_mul xa yb⟩)).elim } } } }
 
 instance set_semiring.covariant_class_add :
   covariant_class (set_semiring α) (set_semiring α) (+) (≤) :=

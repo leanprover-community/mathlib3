@@ -560,6 +560,134 @@ instance nilpotent_quotient_of_nilpotent (H : subgroup G) [H.normal] [h : is_nil
 lemma nilpotency_class_quotient_le (H : subgroup G) [H.normal] [h : is_nilpotent G] :
   group.nilpotency_class (G ⧸ H) ≤ group.nilpotency_class G := nilpotency_class_le_of_surjective _
 
+lemma comap_comap_center {H₁ : subgroup G} [H₁.normal] {H₂ : subgroup (G ⧸ H₁)} [H₂.normal] :
+  comap (mk' H₁) (comap (mk' H₂) (center ((G ⧸ H₁) ⧸ H₂))) =
+    comap (mk' (comap (mk' H₁) H₂)) (center (G ⧸ comap (mk' H₁) H₂)) :=
+begin
+  ext,
+  simp,
+  repeat { rw mem_center_iff },
+  split; intros hx,
+  { intro y,
+    obtain ⟨y,rfl⟩ := quotient.surjective_quotient_mk' y,
+    specialize hx (quotient.mk' (quotient.mk' y)),
+    apply eq_iff_div_mem.mpr,
+    simp,
+    have hx' := eq_iff_div_mem.mp hx, clear hx,
+    apply hx',
+    apply_instance, },
+  { intro y,
+    obtain ⟨y,rfl⟩ := quotient.surjective_quotient_mk' y,
+    obtain ⟨y,rfl⟩ := quotient.surjective_quotient_mk' y,
+    specialize hx (quotient.mk' y),
+    apply eq_iff_div_mem.mpr,
+    have hx' := eq_iff_div_mem.mp hx, clear hx,
+    simp at hx',
+    apply hx',
+    apply_instance, }
+end
+
+-- This lemma is just because `rw h` doesn’t work below.
+lemma comap_center_subst {H₁ H₂ : subgroup G} [normal H₁] [normal H₂] (h : H₁ = H₂) :
+  comap (mk' H₁) (center (G ⧸ H₁)) = comap (mk' H₂) (center (G ⧸ H₂)) :=
+  by { unfreezingI { subst h, } }
+
+lemma comap_upper_central_series_quotient_center (n : ℕ) :
+  comap (mk' (center G)) (upper_central_series (G ⧸ center G) n) = upper_central_series G n.succ :=
+begin
+  induction n with n ih,
+  { simp, },
+  { let Hn := upper_central_series (G ⧸ center G) n,
+    calc comap (mk' (center G)) (upper_central_series (G ⧸ center G) n.succ)
+        = comap (mk' (center G)) (upper_central_series_step Hn)
+        : rfl
+    ... = comap (mk' (center G)) (comap (mk' Hn) (center ((G ⧸ center G) ⧸ Hn)))
+        : by rw upper_central_series_step_eq_comap_center
+    ... = comap (mk' (comap (mk' (center G)) Hn)) (center (G ⧸ (comap (mk' (center G)) Hn)))
+        : comap_comap_center
+    ... = comap (mk' (upper_central_series G n.succ)) (center (G ⧸ upper_central_series G n.succ))
+        : symm (comap_center_subst (symm ih))
+    ... = upper_central_series_step (upper_central_series G n.succ)
+        : symm (upper_central_series_step_eq_comap_center _)
+    ... = upper_central_series G n.succ.succ
+        : rfl, },
+end
+
+lemma nilpotency_class_zero_iff_subsingleton [is_nilpotent G] :
+  group.nilpotency_class G = 0 ↔ subsingleton G :=
+by simp [group.nilpotency_class, nat.find_eq_zero, subsingleton_iff_bot_eq_top]
+
+lemma subsingleton_quotient_of_subsingleton
+  {H : subgroup G} [H.normal] [subsingleton G] :
+  subsingleton (G ⧸ H) :=
+begin
+  apply subsingleton.intro,
+  intros x y,
+  obtain ⟨x,rfl⟩ := quotient.surjective_quotient_mk' x,
+  obtain ⟨y,rfl⟩ := quotient.surjective_quotient_mk' y,
+  have := subsingleton.elim x y,
+  subst this,
+end
+
+section classical
+
+open_locale classical
+
+/-- Quotienting the `center G` reduces the nilpotency class by 1 -/
+lemma nilpotency_class_quotient_center [hH : is_nilpotent G] :
+  group.nilpotency_class (G ⧸ center G) = group.nilpotency_class G - 1 :=
+begin
+  generalize hn : group.nilpotency_class G = n,
+  rcases n with rfl | n,
+  { simp [nilpotency_class_zero_iff_subsingleton] at *,
+    haveI := hn,
+    apply subsingleton_quotient_of_subsingleton, },
+  { apply le_antisymm,
+    { apply nat.find_min',
+      apply (@comap_injective G _ _ _ (mk' (center G)) (surjective_quot_mk _)),
+      rw comap_upper_central_series_quotient_center,
+      simp,
+      rw ← hn,
+      have : (∃ n : ℕ, upper_central_series G n = ⊤) := begin
+          unfreezingI { obtain ⟨n, h⟩ := hH, },
+          refine ⟨n,h⟩
+      end,
+      apply (nat.find_spec this) , },
+    { simp,
+      apply le_of_add_le_add_right,
+      calc n + 1 = n.succ : rfl
+        ... = group.nilpotency_class G : symm hn
+        ... ≤ group.nilpotency_class (G ⧸ center G) + 1
+            : nilpotency_class_le_of_ker_le_center (le_of_eq (ker_mk _)) _, } }
+end
+
+end classical
+
+/-- A custom induction principle for nilpotent groups. The base case is a trivial group
+(`subsingleton G`), and in the inductoin step, one can assume the hypothesis for
+the group quotiented by its center.
+-/
+@[elab_as_eliminator]
+lemma nilpotent_center_quotient_ind
+  {P : Π G [group G], by exactI ∀ [is_nilpotent G], Prop}
+  (G : Type*)
+  [group G]
+  [is_nilpotent G]
+  (hbase : ∀ G [group G], by exactI ∀ [is_nilpotent G], by exactI ∀ [subsingleton G], P G)
+  (hstep : ∀ G [group G], by exactI ∀ [is_nilpotent G], by exactI ∀ (ih : P (G ⧸ center G)), P G)
+  :
+  P G :=
+begin
+  obtain ⟨n, h⟩ : ∃ n, group.nilpotency_class G = n := ⟨ _, rfl⟩,
+  unfreezingI { induction n with n ih generalizing G },
+  { haveI := nilpotency_class_zero_iff_subsingleton.mp h,
+    exact hbase _, },
+  { have hn : group.nilpotency_class (G ⧸ center G) = n :=
+      by simp [nilpotency_class_quotient_center, h],
+    exact hstep _ (ih _ hn), },
+end
+
+
 lemma derived_le_lower_central (n : ℕ) : derived_series G n ≤ lower_central_series G n :=
 by { induction n with i ih, { simp }, { apply general_commutator_mono ih, simp } }
 

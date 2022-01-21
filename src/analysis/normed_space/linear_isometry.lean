@@ -507,6 +507,11 @@ noncomputable def of_surjective (f : F →ₛₗᵢ[σ₁₂] E₂)
   F ≃ₛₗᵢ[σ₁₂] E₂ :=
 { norm_map' := f.norm_map,
   .. linear_equiv.of_bijective f.to_linear_map f.injective hfr }
+
+@[simp] lemma coe_of_surjective (f : F →ₛₗᵢ[σ₁₂] E₂) (hfr : function.surjective f) :
+  ⇑(linear_isometry_equiv.of_surjective f hfr) = f :=
+by { ext, refl }
+
 omit σ₂₁
 
 variables (R)

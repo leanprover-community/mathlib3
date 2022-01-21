@@ -196,4 +196,13 @@ begin
   { rintro ⟨c, rfl⟩, rw factorization_mul hd (right_ne_zero_of_mul hn), simp },
 end
 
+lemma prod_prime_factors_dvd (n : ℕ) : (∏ (p : ℕ) in n.factors.to_finset, p) ∣ n :=
+begin
+  rcases (decidable.eq_or_ne n 0) with rfl | hn0, { simp },
+  nth_rewrite_rhs 0 ←factorization_prod_pow_eq_self hn0,
+  rw [finsupp.prod, support_factorization],
+  refine finset.prod_dvd_prod _ _ (λ p hp, (dvd_pow (dvd_refl p) _)),
+  rwa [←finsupp.mem_support_iff, support_factorization],
+end
+
 end nat

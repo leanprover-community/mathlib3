@@ -2330,6 +2330,9 @@ protected def bUnion (s : finset α) (t : α → finset β) : finset β :=
 @[simp] theorem mem_bUnion {b : β} : b ∈ s.bUnion t ↔ ∃a∈s, b ∈ t a :=
 by simp only [mem_def, bUnion_val, mem_erase_dup, mem_bind, exists_prop]
 
+@[simp] lemma coe_bUnion : (s.bUnion t : set β) = ⋃ x ∈ (s : set α), t x :=
+by simp only [set.ext_iff, mem_bUnion, set.mem_Union, iff_self, mem_coe, implies_true_iff]
+
 @[simp] theorem bUnion_insert [decidable_eq α] {a : α} : (insert a s).bUnion t = t a ∪ s.bUnion t :=
 ext $ λ x, by simp only [mem_bUnion, exists_prop, mem_union, mem_insert,
   or_and_distrib_right, exists_or_distrib, exists_eq_left]

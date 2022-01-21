@@ -287,8 +287,8 @@ lemma map_injective {β : Type*} {f : α → β} (hf : injective f) (n : ℕ) :
 def equiv_congr {α β : Type*} (e : α ≃ β) : sym α n ≃ sym β n :=
 { to_fun := map e,
   inv_fun := map e.symm,
-  left_inv := λ x, by simp,
-  right_inv := λ x, by simp, }
+  left_inv := λ x, by { rw [map_map, equiv.symm_comp_self], simp only [id.def, map_id], },
+  right_inv := λ x, by { simp only [equiv.self_comp_symm, id.def, map_id, map_map], }, }
 
 /-- "Attach" a proof that `a ∈ s` to each element `a` in `s` to produce
 an element of the symmetric power on `{x // x ∈ s}`. -/

@@ -608,7 +608,7 @@ begin
     ... = comap (mk' (comap (mk' (center G)) Hn)) (center (G ⧸ (comap (mk' (center G)) Hn)))
         : comap_comap_center
     ... = comap (mk' (upper_central_series G n.succ)) (center (G ⧸ upper_central_series G n.succ))
-        : symm (comap_center_subst (symm ih))
+        : comap_center_subst ih
     ... = upper_central_series_step (upper_central_series G n.succ)
         : symm (upper_central_series_step_eq_comap_center _)
     ... = upper_central_series G n.succ.succ

@@ -32,6 +32,7 @@ Letting `T` be a self-adjoint operator on a finite-dimensional inner product spa
   gives the associated linear isometry equivalence from `E` to Euclidean space, and the theorem
   `is_self_adjoint.diagonalization_basis_apply_self_apply` states that, when `T` is transferred via
   this equivalence to an operator on Euclidean space, it acts diagonally.
+
 These are forms of the *diagonalization theorem* for self-adjoint operators on finite-dimensional
 inner product spaces.
 
@@ -96,9 +97,10 @@ lemma invariant_orthogonal_eigenspace (μ : 𝕜) (v : E) (hv : v ∈ (eigenspac
                hv (hT.adjoint w) (adjoint_apply_mem_eigenspace_of_mem_eigenspace hT μ w hw)]
 
 /-- The eigenspaces of a normal operator are mutually orthogonal. -/
-lemma orthogonal_family_eigenspaces : orthogonal_family 𝕜 (eigenspace T) :=
+lemma orthogonal_family_eigenspaces :
+  @orthogonal_family 𝕜 _ _ _ _ (λ μ, eigenspace T μ) _ (λ μ, (eigenspace T μ).subtypeₗᵢ) :=
 begin
-  intros μ ν hμν v hv w hw,
+  rintros μ ν hμν ⟨v, hv⟩ ⟨w, hw⟩,
   by_cases hv' : v = 0,
   { simp [hv'] },
   rw mem_eigenspace_iff at hw,
@@ -112,7 +114,9 @@ begin
   exact mul_eq_mul_right_iff.mp h₂,
 end
 
-lemma orthogonal_family_eigenspaces' : orthogonal_family 𝕜 (λ μ : eigenvalues T, eigenspace T μ) :=
+lemma orthogonal_family_eigenspaces' :
+  @orthogonal_family 𝕜 _ _ _ _ (λ μ : eigenvalues T, eigenspace T μ) _
+    (λ μ, (eigenspace T μ).subtypeₗᵢ) :=
 (orthogonal_family_eigenspaces hT).comp subtype.coe_injective
 
 /-- The mutual orthogonal complement of the eigenspaces of a normal operator on an inner
@@ -156,10 +160,13 @@ begin
 end
 
 /-- The eigenspaces of a self-adjoint operator are mutually orthogonal. -/
-lemma orthogonal_family_eigenspaces : orthogonal_family 𝕜 (eigenspace T) :=
+lemma orthogonal_family_eigenspaces :
+  @orthogonal_family 𝕜 _ _ _ _ (λ μ, eigenspace T μ) _ (λ μ, (eigenspace T μ).subtypeₗᵢ) :=
 hT.is_normal.orthogonal_family_eigenspaces
 
-lemma orthogonal_family_eigenspaces' : orthogonal_family 𝕜 (λ μ : eigenvalues T, eigenspace T μ) :=
+lemma orthogonal_family_eigenspaces' :
+  @orthogonal_family 𝕜 _ _ _ _ (λ μ : eigenvalues T, eigenspace T μ) _
+    (λ μ, (eigenspace T μ).subtypeₗᵢ) :=
 hT.orthogonal_family_eigenspaces.comp subtype.coe_injective
 
 /-- The mutual orthogonal complement of the eigenspaces of a self-adjoint operator on an inner
@@ -217,7 +224,7 @@ section version1
 
 /-- Isometry from an inner product space `F` to the direct sum of the eigenspaces of some
 normal operator `T` on `F`. -/
-noncomputable def diagonalization : F ≃ₗᵢ[ℂ] pi_Lp 2 (λ μ : eigenvalues T, eigenspace T μ) :=
+def diagonalization : F ≃ₗᵢ[ℂ] pi_Lp 2 (λ μ : eigenvalues T, eigenspace T μ) :=
 (direct_sum_submodule_is_internal hT).isometry_L2_of_orthogonal_family
   (orthogonal_family_eigenspaces' hT)
 

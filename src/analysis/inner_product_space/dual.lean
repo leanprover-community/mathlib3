@@ -39,7 +39,7 @@ open is_R_or_C continuous_linear_map
 variables (𝕜 : Type*)
 variables (E : Type*) [is_R_or_C 𝕜] [inner_product_space 𝕜 E]
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 E _ x y
-local postfix `†`:90 := star_ring_aut
+local postfix `†`:90 := star_ring_end _
 
 /--
 An element `x` of an inner product space `E` induces an element of the dual space `dual 𝕜 E`,
@@ -139,7 +139,7 @@ begin
       exact sub_eq_zero.mp (eq.symm h₃) },
     have h₄ := calc
       ⟪((ℓ z)† / ⟪z, z⟫) • z, x⟫ = (ℓ z) / ⟪z, z⟫ * ⟪z, x⟫
-            : by simp [inner_smul_left, ring_equiv.map_div, conj_conj]
+            : by simp [inner_smul_left, ring_hom.map_div, conj_conj]
                             ... = (ℓ z) * ⟪z, x⟫ / ⟪z, z⟫
             : by rw [←div_mul_eq_mul_div]
                             ... = (ℓ x) * ⟪z, z⟫ / ⟪z, z⟫

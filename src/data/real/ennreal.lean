@@ -858,14 +858,11 @@ theorem sum_lt_sum_of_nonempty {s : finset α} (hs : s.nonempty)
   {f g : α → ℝ≥0∞} (Hlt : ∀ i ∈ s, f i < g i) :
   ∑ i in s, f i < ∑ i in s, g i :=
 begin
-  classical,
-  induction s using finset.induction_on with a s as IH,
-  { exact (finset.not_nonempty_empty hs).elim },
-  { rcases finset.eq_empty_or_nonempty s with rfl|h's,
-    { simp [Hlt _ (finset.mem_singleton_self _)] },
-    { simp only [as, finset.sum_insert, not_false_iff],
-      exact ennreal.add_lt_add (Hlt _ (finset.mem_insert_self _ _))
-        (IH h's (λ i hi, Hlt _ (finset.mem_insert_of_mem hi))) } }
+  induction hs using finset.nonempty.cons_induction with a a s as hs IH,
+  { simp [Hlt _ (finset.mem_singleton_self _)] },
+  { simp only [as, finset.sum_cons, not_false_iff],
+    exact ennreal.add_lt_add (Hlt _ (finset.mem_cons_self _ _))
+      (IH (λ i hi, Hlt _ (finset.mem_cons.2 $ or.inr hi))) }
 end
 
 theorem exists_le_of_sum_le {s : finset α} (hs : s.nonempty)
@@ -1658,7 +1655,6 @@ end
 
 protected lemma dichotomy (p : ℝ≥0∞) [fact (1 ≤ p)] : p = ∞ ∨ 1 ≤ p.to_real :=
 begin
-  tactic.unfreeze_local_instances,
   have :  p = ⊤ ∨ 0 < p.to_real ∧ 1 ≤ p.to_real,
   { simpa using ennreal.trichotomy₂ (fact.out _ : 1 ≤ p) },
   exact this.imp_right (λ h, h.2)

@@ -706,15 +706,6 @@ begin
   tauto!,
 end
 
-lemma _root_.subgroup.center_le_normalizer {G : Type*} [group G] (H : subgroup G) : center G ≤ H.normalizer :=
-begin
-  intros x hx,
-  rewrite mem_center_iff at hx,
-  intros y,
-  specialize (hx y),
-  simp [← hx, mul_assoc],
-end
-
 /- A custom induction principle for nilpotent groups.
    Unfortunately, `induction G using nilpotent_center_quotient_ind` does not work.
 -/
@@ -779,7 +770,7 @@ begin
       end
     },
     { exfalso, apply hch,
-      calc center G ≤ H.normalizer : H.center_le_normalizer
+      calc center G ≤ H.normalizer : subgroup.center_le_normalizer
                 ... = H : hH, }
   },
 end

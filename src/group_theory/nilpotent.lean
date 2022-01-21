@@ -532,7 +532,7 @@ begin
   unfreezingI { rcases h with ⟨n, hn⟩ },
   use n,
   apply eq_top_iff.mpr,
-  calc ⊤ = f.range : symm (monoid_hom.range_eq_top_of_surjective hf)
+  calc ⊤ = f.range : symm (f.range_top_of_surjective hf)
     ... = subgroup.map f ⊤ : monoid_hom.range_eq_map _
     ... = subgroup.map f (upper_central_series G n) : by rw hn
     ... ≤ upper_central_series G' n : upper_central_series.map hf n,
@@ -548,7 +548,7 @@ begin
   apply nat.find_mono,
   intros n hn,
   apply eq_top_iff.mpr,
-  calc ⊤ = f.range : symm (monoid_hom.range_eq_top_of_surjective hf)
+  calc ⊤ = f.range : symm (f.range_top_of_surjective hf)
     ... = subgroup.map f ⊤ : monoid_hom.range_eq_map _
     ... = subgroup.map f (upper_central_series G n) : by rw hn
     ... ≤ upper_central_series G' n : upper_central_series.map hf n,

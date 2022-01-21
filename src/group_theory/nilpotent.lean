@@ -704,39 +704,21 @@ begin
     ... = ⊥ : hn
 end
 
-section finite
-
-open subgroup
-
--- TODO: Move to subgroup.lean
-def subgroup.is_proper (H : subgroup G) := H ≠ ⊤
-
-/-- A subgroup is maximal if it is a proper subgroup that is not contained in
-anyother proper subgroup -/
-def subgroup.is_maximal (H : subgroup G) :=
-  H.is_proper ∧ (∀ H' : subgroup G, H < H' → H'.is_proper → H' = H)
-
-variable (G)
-
--- Maybe be explicit which implications need this assumption
---  variables [fintype G]
+section normalizer_condition
 
 /-- Every proper subgroup `H` of `G` is a proper normal subgroup of the normalizer of `H` in `G`. -/
-def normalizer_condition :=
-  ∀ (H : subgroup G), H.is_proper → H ≠ normalizer H
+def normalizer_condition (G : Type*) [group G] :=
+  ∀ (H : subgroup G), H < ⊤ → H < normalizer H
 
-/-- Alternative phrasing of the normalizer condition: Only the full group is self-normalizing -/
-def normalizer_condition' :=
-  ∀ (H : subgroup G), H.normalizer = H → H = ⊤
-
-/-- Every Sylow group is normal --/
-def sylow_group_normal :=
-  ∀ p, ∀ H : subgroup G, sylow p G → H.normal
-
-/-- All maximal subgroups are normal --/
-def all_maximal_subgroups_normal :=
-  ∀ p, ∀ H : subgroup G, sylow p G → H.is_maximal
-
+/-- Alternative phrasing of the normalizer condition: Only the full group is self-normalizing.
+This may be easier to work with, as it avoids inequalities or negations.  -/
+lemma normalizer_condition_iff_only_full_group_self_normalizing :
+  normalizer_condition G ↔ ∀ (H : subgroup G), H.normalizer = H → H = ⊤ :=
+begin
+  apply forall_congr, intro H,
+  simp [normalizer_condition, lt_top_iff_ne_top, lt_iff_le_and_ne, le_normalizer],
+  tauto!,
+end
 lemma _root_.subgroup.center_le_normalizer {G : Type*} [group G] (H : subgroup G) : center G ≤ H.normalizer :=
 begin
   intros x hx,
@@ -747,12 +729,13 @@ begin
 end
 
 -- NB: Does not need G to be finite
-lemma normalizer_condition'_of_is_nilpotent : is_nilpotent G → normalizer_condition' G :=
+lemma normalizer_condition'_of_is_nilpotent : is_nilpotent G → normalizer_condition G :=
 begin
+  rw normalizer_condition_iff_only_full_group_self_normalizing,
   -- following https://groupprops.subwiki.org/wiki/Nilpotent_implies_normalizer_condition
   introI hnp,
   obtain ⟨n, h⟩ : ∃ n, group.nilpotency_class G = n := ⟨ _, rfl⟩,
-  unfreezingI { induction n  with n ih generalizing G},
+  unfreezingI { induction n with n ih generalizing G },
   {
     haveI := (nilpotency_class_zero_iff_subsingleton.mp h),
     intros H _,
@@ -765,7 +748,7 @@ begin
     {
       have hn : group.nilpotency_class (G ⧸ center G) = n :=
         by simp [nilpotency_class_quotient_center, h],
-      specialize ih _ _ hn,
+      specialize ih _ hn,
 
       let H' := H.map (mk' (center G)),
 
@@ -800,5 +783,26 @@ begin
                 ... = H : hH, }
   },
 end
+
+end normalizer_condition
+
+
+section finite
+
+/-- A subgroup is maximal if it is a proper subgroup that is not contained in
+anyother proper subgroup -/
+def subgroup.is_maximal (H : subgroup G) :=
+  H < ⊤  ∧ (∀ H' : subgroup G, H < H' → H < ⊤ → H' = H)
+
+variable (G)
+
+/-- Every Sylow group is normal --/
+def sylow_group_normal :=
+  ∀ p, ∀ H : subgroup G, sylow p G → H.normal
+
+/-- All maximal subgroups are normal --/
+def all_maximal_subgroups_normal :=
+  ∀ p, ∀ H : subgroup G, sylow p G → H.is_maximal
+
 
 end finite

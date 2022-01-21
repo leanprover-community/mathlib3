@@ -717,13 +717,14 @@ end
 /- A custom induction principle for nilpotent groups.
    Unfortunately, `induction G using nilpotent_center_quotient_ind` does not work.
 -/
+@[elab_as_eliminator]
 lemma nilpotent_center_quotient_ind
   {P : Π G [group G], by exactI ∀ [is_nilpotent G], Prop}
-  (hbase : ∀ G [group G], by exactI ∀ [is_nilpotent G], by exactI ∀ [subsingleton G], P G)
-  (hstep : ∀ G [group G], by exactI ∀ [is_nilpotent G], by exactI P (G ⧸ center G) -> P G)
   (G : Type*)
   [group G]
   [is_nilpotent G]
+  (hbase : ∀ G [group G], by exactI ∀ [is_nilpotent G], by exactI ∀ [subsingleton G], P G)
+  (hstep : ∀ G [group G], by exactI ∀ [is_nilpotent G], by exactI ∀ (ih : P (G ⧸ center G)), P G)
   :
   P G :=
 begin
@@ -736,18 +737,14 @@ begin
     exact hstep _ (ih _ hn), },
 end
 
-lemma normalizer_condition_of_is_nilpotent : is_nilpotent G → normalizer_condition G :=
+lemma normalizer_condition_of_is_nilpotent [h : is_nilpotent G] : normalizer_condition G :=
 begin
   -- roughly based on https://groupprops.subwiki.org/wiki/Nilpotent_implies_normalizer_condition
   rw normalizer_condition_iff_only_full_group_self_normalizing,
-  -- in leiu of the induction tactic:
-  unfreezingI { revert G _inst_1 }, refine (@nilpotent_center_quotient_ind _ _ _),
-  {
-    intro G, introsI _ _ _,
-    rintros H -,
-    apply subsingleton.elim,
-  },
-  { intro G, introsI _ _, intros ih,
+  unfreezingI { induction h using nilpotent_center_quotient_ind }; clear _inst_1 G,
+  { rintros H -,
+    apply subsingleton.elim, },
+  { unfreezingI { rename [ h_G → G , h_ih → ih ] },
     intros H hH,
 
     by_cases hch : center G ≤ H,

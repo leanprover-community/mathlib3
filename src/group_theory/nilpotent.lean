@@ -705,6 +705,7 @@ begin
   simp [normalizer_condition, lt_top_iff_ne_top, lt_iff_le_and_ne, le_normalizer],
   tauto!,
 end
+
 lemma _root_.subgroup.center_le_normalizer {G : Type*} [group G] (H : subgroup G) : center G ≤ H.normalizer :=
 begin
   intros x hx,

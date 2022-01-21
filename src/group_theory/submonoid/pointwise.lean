@@ -34,7 +34,7 @@ on `set`s.
 
 -/
 
-variables {α : Type*} {S : Type*} {G : Type*} {M : Type*} {R : Type*} {A : Type*}
+variables {α : Type*} {G : Type*} {M : Type*} {R : Type*} {A : Type*}
 variables [monoid M] [add_monoid A]
 
 namespace submonoid

@@ -166,8 +166,8 @@ is_scalar_tower.of_algebra_map_eq $ λ x,
 by rw [quotient.algebra_map_eq, quotient.algebra_map_quotient_map_quotient,
        quotient.mk_algebra_map]
 
-lemma pow_nat_degree_le_of_root_of_monic_mem {x : S} {f : polynomial S} (hroot : is_root f x)
-  (hmo : f.monic) (hdiv : ∀ n < f.nat_degree, f.coeff n ∈ P) :
+lemma pow_nat_degree_le_of_root_of_eisenstein_criterion_mem {x : S} {f : polynomial S}
+  (hroot : is_root f x) (hmo : f.monic) (hdiv : ∀ n < f.nat_degree, f.coeff n ∈ P) :
   ∀ i, f.nat_degree ≤ i → x ^ i ∈ P :=
 begin
   intros i hi,
@@ -181,8 +181,9 @@ begin
   refine sum_mem _ (λ i hi,  mul_mem_right _ _ (hdiv _ (fin.is_lt i)))
 end
 
-lemma pow_nat_degree_le_of_aeval_zero_of_monic_mem_map [algebra R S] {x : S} {f : polynomial R}
-  (hx : aeval x f = 0) (hmo : f.monic) (hdiv : ∀ n < f.nat_degree, f.coeff n ∈ p) :
+lemma pow_nat_degree_le_of_aeval_zero_of_eisenstein_criterion_mem_map [algebra R S] {x : S}
+  {f : polynomial R} (hx : aeval x f = 0) (hmo : f.monic)
+  (hdiv : ∀ n < f.nat_degree, f.coeff n ∈ p) :
   ∀ i, (f.map (algebra_map R S)).nat_degree ≤ i → x ^ i ∈ p.map (algebra_map R S) :=
 begin
   suffices : x ^ (f.map (algebra_map R S)).nat_degree ∈ p.map (algebra_map R S),

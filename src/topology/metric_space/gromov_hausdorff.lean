@@ -96,7 +96,7 @@ begin
   refine ⟨λ h, _, _⟩,
   { rcases setoid.symm h with ⟨e⟩,
     have f := (Kuratowski_embedding.isometry X).isometric_on_range.trans e,
-    refine ⟨λ x, f x, isometry_subtype_coe.comp f.isometry, _⟩,
+    use [λ x, f x, isometry_subtype_coe.comp f.isometry],
     { rw [range_comp, f.range_eq_univ, set.image_univ, subtype.range_coe] } },
   { rintros ⟨Ψ, ⟨isomΨ, rangeΨ⟩⟩,
     have f := ((Kuratowski_embedding.isometry X).isometric_on_range.symm.trans

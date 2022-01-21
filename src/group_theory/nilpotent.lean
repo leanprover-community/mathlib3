@@ -615,23 +615,20 @@ begin
   induction n with n ih,
   { simp, },
   {
-    let H := upper_central_series G n,
     let Hn := upper_central_series (G ⧸ center G) n,
-    let Hsn := upper_central_series (G ⧸ center G) (n.succ),
-    have := calc
-    comap (mk' (center G)) (upper_central_series (G ⧸ center G) n.succ)
-        = comap (mk' (center G)) (upper_central_series_step Hn) : rfl
+    calc comap (mk' (center G)) (upper_central_series (G ⧸ center G) n.succ)
+        = comap (mk' (center G)) (upper_central_series_step Hn)
+        : rfl
     ... = comap (mk' (center G)) (comap (mk' Hn) (center ((G ⧸ center G) ⧸ Hn)))
-        : by rw upper_central_series_step_eq_comap_center,
-    rw this, clear this,
-    have := calc
-    upper_central_series G n.succ.succ
-        = upper_central_series_step (upper_central_series G n.succ) : rfl
-    ... = comap (mk' (upper_central_series G n.succ)) (center (G ⧸upper_central_series G n.succ)) : upper_central_series_step_eq_comap_center _
+        : by rw upper_central_series_step_eq_comap_center
     ... = comap (mk' (comap (mk' (center G)) Hn)) (center (G ⧸ (comap (mk' (center G)) Hn)))
-        : comap_center_subst (symm ih),
-    rw this, clear this,
-    apply comap_comap_center,
+        : comap_comap_center
+    ... = comap (mk' (upper_central_series G n.succ)) (center (G ⧸ upper_central_series G n.succ))
+        : symm (comap_center_subst (symm ih))
+    ... = upper_central_series_step (upper_central_series G n.succ)
+        : symm (upper_central_series_step_eq_comap_center _)
+    ... = upper_central_series G n.succ.succ
+        : rfl,
   },
 end
 
@@ -640,10 +637,9 @@ section classical
 open_locale classical
 
 lemma nilpotency_class_quotient_center [hH : is_nilpotent G] :
-  group.nilpotency_class (G ⧸ center G) ≤ group.nilpotency_class G - 1 :=
+  group.nilpotency_class (G ⧸ center G) = group.nilpotency_class G - 1 :=
 begin
   generalize hn : group.nilpotency_class G = n,
-  rw ← least_ascending_central_series_length_eq_nilpotency_class,
   apply nat.find_min',
   let H' := λ n, (upper_central_series G (n + 1)).map (mk' (center G)),
   use H',

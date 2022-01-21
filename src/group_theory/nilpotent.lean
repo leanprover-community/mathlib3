@@ -634,6 +634,7 @@ section classical
 
 open_locale classical
 
+/-- Quotienting the `center G` reduces the nilpotency class by 1 -/
 lemma nilpotency_class_quotient_center [hH : is_nilpotent G] :
   group.nilpotency_class (G ⧸ center G) = group.nilpotency_class G - 1 :=
 begin
@@ -663,6 +664,31 @@ end
 
 end classical
 
+/-- A custom induction principle for nilpotent groups. The base case is a trivial group
+(`subsingleton G`), and in the inductoin step, one can assume the hypothesis for
+the group quotiented by its center.
+-/
+@[elab_as_eliminator]
+lemma nilpotent_center_quotient_ind
+  {P : Π G [group G], by exactI ∀ [is_nilpotent G], Prop}
+  (G : Type*)
+  [group G]
+  [is_nilpotent G]
+  (hbase : ∀ G [group G], by exactI ∀ [is_nilpotent G], by exactI ∀ [subsingleton G], P G)
+  (hstep : ∀ G [group G], by exactI ∀ [is_nilpotent G], by exactI ∀ (ih : P (G ⧸ center G)), P G)
+  :
+  P G :=
+begin
+  obtain ⟨n, h⟩ : ∃ n, group.nilpotency_class G = n := ⟨ _, rfl⟩,
+  unfreezingI { induction n with n ih generalizing G },
+  { haveI := nilpotency_class_zero_iff_subsingleton.mp h,
+    exact hbase _, },
+  { have hn : group.nilpotency_class (G ⧸ center G) = n :=
+      by simp [nilpotency_class_quotient_center, h],
+    exact hstep _ (ih _ hn), },
+end
+
+
 lemma derived_le_lower_central (n : ℕ) : derived_series G n ≤ lower_central_series G n :=
 by { induction n with i ih, { simp }, { apply general_commutator_mono ih, simp } }
 
@@ -691,29 +717,6 @@ begin
   apply forall_congr, intro H,
   simp [normalizer_condition, lt_top_iff_ne_top, lt_iff_le_and_ne, le_normalizer],
   tauto!,
-end
-
-/- A custom induction principle for nilpotent groups.
-   Unfortunately, `induction G using nilpotent_center_quotient_ind` does not work.
--/
-@[elab_as_eliminator]
-lemma nilpotent_center_quotient_ind
-  {P : Π G [group G], by exactI ∀ [is_nilpotent G], Prop}
-  (G : Type*)
-  [group G]
-  [is_nilpotent G]
-  (hbase : ∀ G [group G], by exactI ∀ [is_nilpotent G], by exactI ∀ [subsingleton G], P G)
-  (hstep : ∀ G [group G], by exactI ∀ [is_nilpotent G], by exactI ∀ (ih : P (G ⧸ center G)), P G)
-  :
-  P G :=
-begin
-  obtain ⟨n, h⟩ : ∃ n, group.nilpotency_class G = n := ⟨ _, rfl⟩,
-  unfreezingI { induction n with n ih generalizing G },
-  { haveI := nilpotency_class_zero_iff_subsingleton.mp h,
-    exact hbase _, },
-  { have hn : group.nilpotency_class (G ⧸ center G) = n :=
-      by simp [nilpotency_class_quotient_center, h],
-    exact hstep _ (ih _ hn), },
 end
 
 lemma normalizer_condition_of_is_nilpotent [h : is_nilpotent G] : normalizer_condition G :=

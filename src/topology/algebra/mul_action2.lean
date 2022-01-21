@@ -33,6 +33,10 @@ Hausdorff, discrete group, properly discontinuous, quotient space
 
 -/
 
+open_locale topological_space
+
+open filter set
+
 local attribute [instance] mul_action.orbit_rel
 
 /-- Class `has_continuous_smul₂ Γ T` says that the scalar multiplication `(•) : Γ → T → T`
@@ -110,7 +114,8 @@ def homeomorph.vadd {T : Type*} [topological_space T] {Γ : Type*} [add_group Γ
 attribute [to_additive homeomorph.vadd] homeomorph.smul
 
 /-- The quotient map by a group action is open. -/
-@[to_additive] lemma is_open_map_quotient_mk_mul [has_continuous_smul₂ Γ T] :
+@[to_additive]
+lemma is_open_map_quotient_mk_mul [has_continuous_smul₂ Γ T] :
   is_open_map (quotient.mk : T → quotient (mul_action.orbit_rel Γ T)) :=
 begin
   intros U hU,
@@ -119,7 +124,7 @@ begin
 end
 
 /-- The quotient by a discontinuous group action of a locally compact t2 space is t2. -/
-@[priority 100] instance is_t2_of_properly_discontinuous_smul_of_t2 [t2_space T]
+@[priority 100, to_additive] instance is_t2_of_properly_discontinuous_smul_of_t2 [t2_space T]
   [locally_compact_space T] [has_continuous_smul₂ Γ T] [properly_discontinuous_smul Γ T] :
   t2_space (quotient (mul_action.orbit_rel Γ T)) :=
 begin
@@ -151,7 +156,7 @@ begin
   { rintros ⟨h, -⟩,
     exact eq_empty_iff_forall_not_mem.mp (u_v_disjoint γ) (γ • x)
       ⟨(mem_bInter_iff.mp x_in_U₀₀ γ H : _), mem_bInter_iff.mp h γ H⟩ },
-  { rintros ⟨-, h'⟩, clear x_in_U₀₀,
+  { rintros ⟨-, h'⟩,
     simp only [image_smul, not_not, mem_set_of_eq, ne.def] at H,
     exact eq_empty_iff_forall_not_mem.mp H (γ • x) ⟨mem_image_of_mem _ x_in_K₀, h'⟩ },
 end

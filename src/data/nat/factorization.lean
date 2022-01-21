@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Stuart Presnell
 -/
 import data.nat.prime
-import data.nat.mul_ind
+import data.finsupp.multiset
 
 /-!
 # Prime factorizations
@@ -29,6 +29,8 @@ and (where appropriate) choose a uniform canonical way of expressing these ideas
 with a normalization function, and then deduplicated.  The basics of this have been started in
 `ring_theory/unique_factorization_domain`.
 
+* Extend the inductions to any `normalization_monoid` with unique factorization.
+
 -/
 
 open nat finset list finsupp
@@ -43,55 +45,52 @@ noncomputable def factorization (n : ℕ) : ℕ →₀ ℕ := (n.factors : multi
 @[simp] lemma factorization_prod_pow_eq_self {n : ℕ} (hn : n ≠ 0) : n.factorization.prod pow = n :=
 begin
   simp only [←prod_to_multiset, factorization, multiset.coe_prod, multiset.to_finsupp_to_multiset],
-  exact prod_factors hn.bot_lt,
+  exact prod_factors hn,
 end
 
 @[simp] lemma factors_count_eq {n p : ℕ} : n.factors.count p = n.factorization p :=
 by simp [factorization]
 
-lemma eq_of_count_factors_eq {a b : ℕ} (ha : 0 < a) (hb : 0 < b)
+lemma eq_of_count_factors_eq {a b : ℕ} (ha : a ≠ 0) (hb : b ≠ 0)
   (h : ∀ p : ℕ, a.factorization p = b.factorization p) : a = b :=
 eq_of_perm_factors ha hb (by simpa only [list.perm_iff_count, factors_count_eq] using h)
 
 /-- Every nonzero natural number has a unique prime factorization -/
 lemma factorization_inj : set.inj_on factorization { x : ℕ | x ≠ 0 } :=
-λ a ha b hb h, eq_of_count_factors_eq
-  (zero_lt_iff.mpr ha) (zero_lt_iff.mpr hb) (λ p, by simp [h])
+λ a ha b hb h, eq_of_count_factors_eq ha hb (λ p, by simp [h])
 
-@[simp] lemma factorization_zero : factorization 0 = 0  :=
+@[simp] lemma factorization_zero : factorization 0 = 0 :=
 by simp [factorization]
 
 @[simp] lemma factorization_one : factorization 1 = 0 :=
 by simp [factorization]
 
 /-- The support of `n.factorization` is exactly `n.factors.to_finset` -/
-@[simp] lemma support_factorization {n : ℕ} :
-  n.factorization.support = n.factors.to_finset :=
+@[simp] lemma support_factorization {n : ℕ} : n.factorization.support = n.factors.to_finset :=
 by simpa [factorization, multiset.to_finsupp_support]
 
 lemma factor_iff_mem_factorization {n p : ℕ} : p ∈ n.factorization.support ↔ p ∈ n.factors :=
 by simp only [support_factorization, list.mem_to_finset]
 
 lemma prime_of_mem_factorization {n p : ℕ} : p ∈ n.factorization.support → p.prime :=
-(@prime_of_mem_factors n p) ∘ (@factor_iff_mem_factorization n p).mp
+prime_of_mem_factors ∘ (@factor_iff_mem_factorization n p).mp
 
 lemma pos_of_mem_factorization {n p : ℕ} : p ∈ n.factorization.support → 0 < p :=
-(@prime.pos p) ∘ (@prime_of_mem_factorization n p)
+prime.pos ∘ (@prime_of_mem_factorization n p)
 
 /-- The only numbers with empty prime factorization are `0` and `1` -/
 lemma factorization_eq_zero_iff (n : ℕ) : n.factorization = 0 ↔ n = 0 ∨ n = 1 :=
 by simp [factorization, add_equiv.map_eq_zero_iff, multiset.coe_eq_zero]
 
 /-- For positive `a` and `b`, the power of `p` in `a * b` is the sum of the powers in `a` and `b` -/
-lemma count_factors_mul_of_pos {p a b : ℕ} (ha : 0 < a) (hb : 0 < b) :
+lemma count_factors_mul {p a b : ℕ} (ha : a ≠ 0) (hb : b ≠ 0) :
   list.count p (a * b).factors = list.count p a.factors + list.count p b.factors :=
 by rw [perm_iff_count.mp (perm_factors_mul_of_pos ha hb) p, count_append]
 
 /-- For nonzero `a` and `b`, the power of `p` in `a * b` is the sum of the powers in `a` and `b` -/
 @[simp] lemma factorization_mul {a b : ℕ} (ha : a ≠ 0) (hb : b ≠ 0) :
   (a * b).factorization = a.factorization + b.factorization :=
-by { ext p, simp only [add_apply, ←factorization_eq_count,
-  count_factors_mul_of_pos (zero_lt_iff.mpr ha) (zero_lt_iff.mpr hb)] }
+by { ext p, simp only [add_apply, ←factors_count_eq, count_factors_mul ha hb] }
 
 /-- For any `p`, the power of `p` in `n^k` is `k` times the power in `n` -/
 lemma factorization_pow (n k : ℕ) :
@@ -119,9 +118,9 @@ begin
   simpa only [count_eq_zero_of_not_mem (coprime_factors_disjoint hab hpa)],
 end
 
-lemma pow_factors_count_dvd (n p : ℕ) :
-  p ^ n.factors.count p ∣ n :=
+lemma pow_factorization_dvd (n p : ℕ) : p ^ n.factorization p ∣ n :=
 begin
+  rw ←factors_count_eq,
   by_cases hp : p.prime,
   { apply dvd_of_factors_subperm (pow_ne_zero _ hp.ne_zero),
     rw [hp.factors_pow, list.subperm_ext_iff],
@@ -131,6 +130,19 @@ begin
     simp },
 end
 
+lemma pow_succ_factorization_not_dvd {n p : ℕ} (hn : n ≠ 0) (hp : p.prime) :
+  ¬ p ^ (n.factorization p + 1) ∣ n :=
+begin
+  intro h,
+  have := factors_sublist_of_dvd h hn,
+  rw [hp.factors_pow, ←le_count_iff_repeat_sublist, factors_count_eq] at this,
+  linarith
+end
+
+lemma prime.factorization_pos_of_dvd {n p : ℕ} (hp : p.prime) (hn : n ≠ 0) (h : p ∣ n) :
+  0 < n.factorization p :=
+by rwa [←factors_count_eq, count_pos, mem_factors_iff_dvd hn hp]
+
 /-- If `p` is a prime factor of `b` then the power of `p` in `b` is the same that in `a * b`,
 for any `a` coprime to `b`. -/
 lemma factors_count_eq_of_coprime_right {p a b : ℕ} (hab : coprime a b) (hpb : p ∈ b.factors) :
@@ -138,16 +150,16 @@ lemma factors_count_eq_of_coprime_right {p a b : ℕ} (hab : coprime a b) (hpb :
 by { rw mul_comm, exact factors_count_eq_of_coprime_left (coprime_comm.mp hab) hpb }
 
 /-- For `b > 0`, the power of `p` in `a * b` is at least that in `a` -/
-lemma le_factors_count_mul_left {p a b : ℕ} (hb : 0 < b) :
+lemma le_factors_count_mul_left {p a b : ℕ} (hb : b ≠ 0) :
   list.count p a.factors ≤ list.count p (a * b).factors :=
 begin
-  rcases a.eq_zero_or_pos with rfl | ha,
+  rcases eq_or_ne a 0 with rfl | ha,
   { simp },
   { rw [perm.count_eq (perm_factors_mul_of_pos ha hb) p, count_append p], simp },
 end
 
 /-- For `a > 0`, the power of `p` in `a * b` is at least that in `b` -/
-lemma le_factors_count_mul_right {p a b : ℕ} (ha : 0 < a) :
+lemma le_factors_count_mul_right {p a b : ℕ} (ha : a ≠ 0) :
   list.count p b.factors ≤ list.count p (a * b).factors :=
 by { rw mul_comm, apply le_factors_count_mul_left ha }
 
@@ -156,13 +168,13 @@ by { rw mul_comm, apply le_factors_count_mul_left ha }
   p.factorization = single p 1 :=
 begin
   ext q,
-  rw [factorization_eq_count, factors_prime hp, single_apply, count_singleton', if_congr eq_comm];
+  rw [←factors_count_eq, factors_prime hp, single_apply, count_singleton', if_congr eq_comm];
   refl,
 end
 
 /-- For prime `p` the only prime factor of `p^k` is `p` with multiplicity `k` -/
 @[simp] lemma prime.factorization_pow {p k : ℕ} (hp : prime p) :
-  factorization (p^k) = single p k :=
+  factorization (p ^ k) = single p k :=
 by simp [factorization_pow, hp.factorization]
 
 /-- For any `p : ℕ` and any function `g : α → ℕ` that's non-zero on `S : finset α`,
@@ -192,7 +204,7 @@ lemma factorization_mul_of_coprime {a b : ℕ} (hab : coprime a b) :
   (a * b).factorization = a.factorization + b.factorization :=
 begin
   ext q,
-  simp only [finsupp.coe_add, add_apply, factorization_eq_count, count_factors_mul_of_coprime hab],
+  simp only [finsupp.coe_add, add_apply, ←factors_count_eq, count_factors_mul_of_coprime hab],
 end
 
 /-- For coprime `a` and `b` the prime factorization `a * b` is the union of those of `a` and `b` -/
@@ -203,13 +215,69 @@ begin
   exact support_add_eq (factorization_disjoint_of_coprime hab),
 end
 
-lemma factorization_mul_support_of_pos {a b : ℕ} (ha : a ≠ 0) (hb : b ≠ 0) :
+lemma factorization_mul_support {a b : ℕ} (ha : a ≠ 0) (hb : b ≠ 0) :
   (a * b).factorization.support = a.factorization.support ∪ b.factorization.support :=
 begin
   ext q,
   simp only [finset.mem_union, factor_iff_mem_factorization],
-  rw mem_factors_mul_of_pos ha.bot_lt hb.bot_lt,
+  exact mem_factors_mul_of_ne_zero ha hb q
 end
+
+/-- Given `P 0, P 1` and a way to extend `P a` to `P (p ^ k * a)`,
+you can define `P` for all natural numbers. -/
+@[elab_as_eliminator]
+noncomputable def rec_on_prime_pow {P : ℕ → Sort*} (h0 : P 0) (h1 : P 1)
+  (h : ∀ a p n : ℕ, p.prime → ¬ p ∣ a → P a → P (p ^ n * a)) : ∀ (a : ℕ), P a :=
+λ a, nat.strong_rec_on a $ λ n,
+  match n with
+  | 0     := λ _, h0
+  | 1     := λ _, h1
+  | (k+2) := λ hk, begin
+    let p := (k + 2).min_fac,
+    have hp : prime p := min_fac_prime (succ_succ_ne_one k),
+    let t := (k+2).factorization p,
+    have hpt : p ^ t ∣ k + 2 := pow_factorization_dvd _ _,
+    have ht  : 0 < t := hp.factorization_pos_of_dvd (nat.succ_ne_zero (k + 1)) (min_fac_dvd _),
+
+    convert h ((k + 2) / p ^ t) p t hp _ _,
+    { rw nat.mul_div_cancel' hpt },
+    { rw [nat.dvd_div_iff hpt, ←pow_succ'],
+      exact pow_succ_factorization_not_dvd (k + 1).succ_ne_zero hp },
+
+    apply hk _ (nat.div_lt_of_lt_mul _),
+    rw [lt_mul_iff_one_lt_left nat.succ_pos', one_lt_pow_iff ht.ne],
+    exact hp.one_lt
+    end
+  end
+
+/-- Given `P 0`, `P 1`, and `P (p ^ k)` for positive prime powers, and a way to extend `P a` and
+`P b` to `P (a * b)` when `a, b` are coprime, you can define `P` for all natural numbers. -/
+@[elab_as_eliminator]
+noncomputable def rec_on_pos_prime_coprime {P : ℕ → Sort*} (hp : ∀ p n : ℕ, prime p → 0 < n → P (p ^ n))
+  (h0 : P 0) (h1 : P 1) (h : ∀ a b, coprime a b → P a → P b → P (a * b)) : ∀ a, P a :=
+rec_on_prime_pow h0 h1 $ λ a p n hp' hpa ha,
+  h (p ^ n) a ((prime.coprime_pow_of_not_dvd hp' hpa).symm)
+  (if h : n = 0 then eq.rec h1 h.symm else hp p n hp' $ nat.pos_of_ne_zero h) ha
+
+/-- Given `P 0`, `P (p ^ k)` for all prime powers, and a way to extend `P a` and `P b` to
+`P (a * b)` when `a, b` are coprime, you can define `P` for all natural numbers. -/
+@[elab_as_eliminator]
+noncomputable def rec_on_prime_coprime {P : ℕ → Sort*} (h0 : P 0) (hp : ∀ p n : ℕ, prime p → P (p ^ n))
+  (h : ∀ a b, coprime a b → P a → P b → P (a * b)) : ∀ a, P a :=
+rec_on_pos_prime_coprime (λ p n h _, hp p n h) h0 (hp 2 0 prime_two) h
+
+/-- Given `P 0`, `P 1`, `P p` for all primes, and a proof that you can extend
+`P a` and `P b` to `P (a * b)`, you can define `P` for all natural numbers. -/
+@[elab_as_eliminator]
+noncomputable def rec_on_mul {P : ℕ → Sort*} (h0 : P 0) (h1 : P 1)
+  (hp : ∀ p, prime p → P p) (h : ∀ a b, P a → P b → P (a * b)) : ∀ a, P a :=
+let hp : ∀ p n : ℕ, prime p → P (p ^ n) :=
+  λ p n hp', match n with
+  | 0     := h1
+  | (n+1) := by exact h _ _ (hp p hp') (_match _)
+  end in
+rec_on_prime_coprime h0 hp $ λ a b _, h a b
+
 
 /-- For any multiplicative function `f` with `f 1 = 1` and any `n > 0`,
 we can evaluate `f n` by evaluating `f` at `p ^ k` over the factorization of `n` -/

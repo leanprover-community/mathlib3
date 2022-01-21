@@ -1101,17 +1101,18 @@ end nat
 
 namespace nat
 
-lemma mem_factors_mul {a b : ℕ} (ha : a ≠ 0) (hb : b ≠ 0) (p : ℕ) :
+lemma mem_factors_mul {a b : ℕ} (ha : a ≠ 0) (hb : b ≠ 0) {p : ℕ} :
   p ∈ (a * b).factors ↔ p ∈ a.factors ∨ p ∈ b.factors :=
 begin
   rw [mem_factors (mul_ne_zero ha hb), mem_factors ha, mem_factors hb, ←and_or_distrib_left],
   simpa only [and.congr_right_iff] using prime.dvd_mul
 end
 
-/-- If `a`,`b` are positive the prime divisors of `(a * b)` are the union of those of `a` and `b` -/
+/-- If `a`, `b` are positive, the prime divisors of `a * b` are the union of those of `a` and `b` -/
 lemma factors_mul_to_finset {a b : ℕ} (ha : a ≠ 0) (hb : b ≠ 0) :
   (a * b).factors.to_finset = a.factors.to_finset ∪ b.factors.to_finset :=
-by { ext p, simp only [finset.mem_union, list.mem_to_finset, mem_factors_mul ha hb p] }
+(list.to_finset.ext $ λ x, (mem_factors_mul ha hb).trans list.mem_union.symm).trans $
+  list.to_finset_union _ _
 
 lemma pow_succ_factors_to_finset (n k : ℕ) :
   (n^(k+1)).factors.to_finset = n.factors.to_finset :=
@@ -1152,16 +1153,16 @@ begin
   { simp [(coprime_zero_left _).mp hab] },
   rcases b.eq_zero_or_pos with rfl | hb,
   { simp [(coprime_zero_right _).mp hab] },
-  rw [mem_factors_mul ha.ne' hb.ne' p, list.mem_union]
+  rw [mem_factors_mul ha.ne' hb.ne', list.mem_union]
 end
 
 lemma factors_mul_to_finset_of_coprime {a b : ℕ} (hab : coprime a b) :
   (a * b).factors.to_finset = a.factors.to_finset ∪ b.factors.to_finset :=
-by { ext p, simp [mem_factors_mul_of_coprime hab] }
+(list.to_finset.ext $ mem_factors_mul_of_coprime hab).trans $ list.to_finset_union _ _
 
 open list
 
-/-- For `b > 0`, the power of `p` in `a * b` is at least that in `a` -/
+/-- For `0 < b`, the power of `p` in `a * b` is at least that in `a` -/
 lemma le_factors_count_mul_left {p a b : ℕ} (hb : 0 < b) :
   list.count p a.factors ≤ list.count p (a * b).factors :=
 begin

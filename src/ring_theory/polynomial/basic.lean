@@ -1024,4 +1024,47 @@ begin
   exact ufm_of_gcd_of_wf_dvd_monoid
 end
 
+section
+
+variable [algebra R S]
+
+open algebra finset
+
+lemma ex_mem_adjoin_mul_eq_pow_nat_degree_of_eisenstein_criterion {x : S} {p : R}
+  {P : polynomial R} (hx : aeval x P = 0) (hmo : P.monic)
+  (hdiv : ∀ n < P.nat_degree, p ∣ P.coeff n ) : ∃ y ∈ adjoin R ({x} : set S),
+    (algebra_map R S) p * y = x ^ (P.map (algebra_map R S)).nat_degree :=
+begin
+  rw [aeval_def, polynomial.eval₂_eq_eval_map, eval_eq_finset_sum, range_add_one,
+    sum_insert not_mem_range_self, sum_range, (monic_map
+    (algebra_map R S) hmo).coeff_nat_degree, one_mul] at hx,
+  replace hx := eq_neg_of_add_eq_zero hx,
+  choose! f hf using hdiv,
+  conv_rhs at hx { congr, congr, skip, funext,
+    rw [fin.coe_eq_val, coeff_map, hf i.1 (lt_of_lt_of_le i.2 (nat_degree_map_le _ _)),
+      ring_hom.map_mul, mul_assoc] },
+  rw [hx, ← mul_sum, neg_eq_neg_one_mul, ← mul_assoc (-1 : S), mul_comm (-1 : S), mul_assoc],
+  refine ⟨-1 * ∑ (i : fin (map (algebra_map R S) P).nat_degree),
+    (algebra_map R S) (f i.1) * x ^ i.1, _, rfl⟩,
+  exact subalgebra.mul_mem _ (subalgebra.neg_mem _ (subalgebra.one_mem _))
+    (subalgebra.sum_mem _ (λ i hi, subalgebra.mul_mem _ (subalgebra.algebra_map_mem _ _)
+    (subalgebra.pow_mem _ (subset_adjoin (set.mem_singleton x)) _)))
+end
+
+lemma ex_mem_adjoin_mul_eq_pow_nat_degree_le_of_eisenstein_criterion {x : S} {p : R}
+  {P : polynomial R} (hx : aeval x P = 0) (hmo : P.monic)
+  (hdiv : ∀ n < P.nat_degree, p ∣ P.coeff n ) : ∀ i, (P.map (algebra_map R S)).nat_degree ≤ i →
+  ∃ y ∈ adjoin R ({x} : set S), (algebra_map R S) p * y = x ^ i :=
+begin
+  intros i hi,
+  obtain ⟨k, hk⟩ := le_iff_exists_add.1 hi,
+  rw [hk, pow_add],
+  obtain ⟨y, hy, H⟩ := ex_mem_adjoin_mul_eq_pow_nat_degree_of_eisenstein_criterion hx hmo hdiv,
+  refine ⟨y * x ^ k, _, _⟩,
+  { exact subalgebra.mul_mem _ hy (subalgebra.pow_mem _  (subset_adjoin (set.mem_singleton x)) _) },
+  { rw [← mul_assoc _ y, H] }
+end
+
+end
+
 end polynomial

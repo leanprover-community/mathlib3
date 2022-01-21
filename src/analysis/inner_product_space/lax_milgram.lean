@@ -107,18 +107,14 @@ end
 
 lemma antilipschitz_of_lax_milgram (coercive : is_coercive B) :
   ∃ C : nnreal, 0 < C ∧ antilipschitz_with C (lax_milgram_map B) :=
-begin -- I still want to golf this somewhat
+begin
   rcases bounded_below coercive with ⟨C, C_pos, below_bound⟩,
-  have C_nonneg : 0 ≤ C⁻¹ := le_of_lt (inv_pos.mpr C_pos),
-  refine ⟨(C⁻¹).to_nnreal, _, _⟩,
-  simpa [nnreal.coe_pos] using C_pos,
-  refine linear_map.antilipschitz_of_bound ↑(lax_milgram_map B) _,
-  intros v,
-  have := below_bound v,
-  rw [←mul_le_mul_left C_pos, ←mul_assoc],
-  simp only [max_eq_left_of_lt (inv_pos.mpr C_pos), real.coe_to_nnreal',
-    continuous_linear_map.to_linear_map_eq_coe, continuous_linear_map.coe_coe, inv_pos],
-  rwa [mul_inv_cancel, one_mul], linarith,
+  refine ⟨(C⁻¹).to_nnreal, real.to_nnreal_pos.mpr (inv_pos.mpr C_pos), _⟩,
+  refine linear_map.antilipschitz_of_bound (lax_milgram_map B) _,
+  simp_rw [real.coe_to_nnreal',
+    max_eq_left_of_lt (inv_pos.mpr C_pos),
+    ←inv_mul_le_iff (inv_pos.mpr C_pos)],
+  simpa using below_bound,
 end
 
 lemma ker_eq_bot (coercive : is_coercive B) : (lax_milgram_map B).ker = ⊥ :=

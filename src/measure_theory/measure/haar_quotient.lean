@@ -34,31 +34,6 @@ Note that a group `G` with Haar measure that is both left and right invariant is
 
 open set measure_theory topological_space
 
--- move this stuff, but where to?
-section topological_stuff
-variables {G : Type*} [group G] [topological_space G] [topological_group G] {Γ : subgroup G}
-
-@[to_additive]
-instance quotient_group.has_continuous_smul₂ {G : Type*} [group G] [topological_space G]
-  [topological_group G] (Γ : subgroup G) :
-  has_continuous_smul₂ G (G ⧸ Γ) :=
-{ continuous_smul₂ := λ g₀, begin
-    apply continuous_coinduced_dom,
-    change continuous (λ g : G, quotient_group.mk (g₀ * g)),
-    exact continuous_coinduced_rng.comp (continuous_mul_left g₀),
-  end }
-
-@[to_additive]
-lemma quotient_group.continuous_smul₁ (x : G ⧸ Γ) : continuous (λ g : G, g • x) :=
-begin
-  obtain ⟨g₀, rfl⟩ : ∃ g₀, quotient_group.mk g₀ = x,
-  { exact @quotient.exists_rep _ (quotient_group.left_rel Γ) x },
-  change continuous (λ g, quotient_group.mk (g * g₀)),
-  exact continuous_coinduced_rng.comp (continuous_mul_right g₀)
-end
-
-end topological_stuff
-
 variables {G : Type*} [group G] [measurable_space G] [topological_space G]
   [topological_group G] [borel_space G]
   {μ : measure G}

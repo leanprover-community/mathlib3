@@ -16,13 +16,13 @@ We consider an Hilbert space `V` over `ℝ`
 equipped with a bounded bilinear form `B : V →L[ℝ] V →L[ℝ] ℝ`.
 For every such form we define the
 `lax_milgram_map : V →L[ℝ] V`,
-which is defined by the property `B (lax_milgram_map B v) w = ⟪v, w⟫`
+which is defined by the property `⟪lax_milgram_map B v, w⟫ = B v w`
 using the Fréchet-Riesz representation theorem.
-We also define a property `is_coercive` for (B : V →L[ℝ] V →L[ℝ] ℝ),
+We also define a property `is_coercive` for `B : V →L[ℝ] V →L[ℝ] ℝ`,
 such that `is_coercive B` iff
 `∃ C, (0 < C) ∧ ∀ u, C * ∥u∥ * ∥u∥ ≤ B u u`.
 
-Under the hypothesis that `B` i
+Under the hypothesis that `B` is coercive
 we prove the Lax-Milgram theorem:
 that is, the `lax_milgram_map` can be upgraded
 to a continuous equivalence `lax_milgram_equiv : V ≃L[ℝ] V`.
@@ -67,14 +67,13 @@ such that `⟪lax_milgram_map B v, w⟫ = B v w`.
 This element is obtained using `inner_product_space.to_dual`.
 -/
 def lax_milgram_map (B : V →L[ℝ] V →L[ℝ] ℝ) : V →L[ℝ] V :=
-(inner_product_space.to_dual ℝ V).symm.to_continuous_linear_equiv.to_continuous_linear_map ∘L B
-
+↑(id (inner_product_space.to_dual ℝ V).symm.to_continuous_linear_equiv : (V →L[ℝ] ℝ) ≃L[ℝ] V) ∘L B
 
 @[simp]
 lemma lax_milgram_map_apply (v w : V) : inner (lax_milgram_map B v) w = B v w :=
-by {dunfold lax_milgram_map, simp,}
+by simp [lax_milgram_map]
 
-lemma unique_lax_milgram_map (v f : V)
+lemma unique_lax_milgram_map {v f : V}
   (is_lax_milgram : (∀ w, inner f w = B v w)) :
   f = lax_milgram_map B v :=
 begin
@@ -87,10 +86,12 @@ end
 variables {B}
 
 lemma antilipschitz_of_lax_milgram (coercive : is_coercive B) :
-  ∃ C : ℝ, 0 < C ∧ antilipschitz_with C.to_nnreal (lax_milgram_map B) :=
+  ∃ C : nnreal, 0 < C ∧ antilipschitz_with C (lax_milgram_map B) :=
 begin
   rcases coercive with ⟨C, C_pos, coercivity⟩,
-  refine ⟨C⁻¹, inv_pos.mpr C_pos, _⟩,
+  have C_nonneg : 0 ≤ C⁻¹ := le_of_lt (inv_pos.mpr C_pos),
+  refine ⟨(C⁻¹).to_nnreal, _, _⟩,
+  simpa [nnreal.coe_pos] using C_pos,
   refine linear_map.antilipschitz_of_bound ↑(lax_milgram_map B) _,
   intros v,
   by_cases h : 0 < ∥v∥,
@@ -143,10 +144,10 @@ begin
 end
 
 /--
-The Lax-Milgram equivalence of a bounded bilinear operator: for all `v : V`
-`lax_milgram_equiv B v` is the unique element `V`
-such that `⟪lax_milgram_map B v, w⟫ = B v w`.
-The Lax-Milgram theorem states that this is an equivalence.
+The Lax-Milgram equivalence of a coercive bounded bilinear operator:
+for all `v : V`, `lax_milgram_equiv B v` is the unique element `V`
+such that `⟪lax_milgram_equiv B v, w⟫ = B v w`.
+The Lax-Milgram theorem states that this is a continuous equivalence.
 -/
 def lax_milgram_equiv (coercive : is_coercive B) : V ≃L[ℝ] V :=
 continuous_linear_equiv.of_bijective
@@ -158,21 +159,11 @@ continuous_linear_equiv.of_bijective
 @[simp]
 lemma lax_milgram_equiv_apply (coercive : is_coercive B) (v w : V) :
   inner (lax_milgram_equiv coercive v) w = B v w :=
-begin
-  unfold lax_milgram_equiv continuous_linear_equiv.of_bijective lax_milgram_map,
-  simp,
-end
+lax_milgram_map_apply B v w
 
-lemma unique_lax_milgram_equiv (coercive : is_coercive B) (v f : V)
+lemma unique_lax_milgram_equiv (coercive : is_coercive B) {v f : V}
   (is_lax_milgram : (∀ w, inner f w = B v w)) :
   f = lax_milgram_equiv coercive v :=
-begin
-  have : (⇑(lax_milgram_equiv coercive) : V → V) = ⇑(lax_milgram_map B),
-  { ext v,
-    unfold lax_milgram_equiv continuous_linear_equiv.of_bijective lax_milgram_map,
-    simp, },
-  rw this,
-  exact unique_lax_milgram_map B v f is_lax_milgram,
-end
+unique_lax_milgram_map B is_lax_milgram
 
 end lax_milgram

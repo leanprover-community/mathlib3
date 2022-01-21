@@ -21,6 +21,12 @@ double there is a prime
 -- TODO Cite "Proofs From THE BOOK"
 -- TODO Cite Tochiori's paper
 -- TODO edit 100.yml
+
+## References
+
+* [M. Aigner and G. M. Ziegler _Proofs from the Book_][aigner1999proofs]
+* [S. Tochiori, _Considering the Proof of “There is a Prime between n and 2n”_][tochiori_bertrand]
+
 -/
 
 open_locale big_operators

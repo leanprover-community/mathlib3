@@ -139,11 +139,9 @@ instance (n : ℕ) : normal (upper_central_series G n) := (upper_central_series_
 @[simp] lemma upper_central_series_one : upper_central_series G 1 = center G :=
 begin
   ext,
-  simp [upper_central_series, upper_central_series_aux, upper_central_series_step,
-    center, set.center],
-  apply forall_congr,
-  intro y,
-  rw [mul_inv_eq_one, mul_inv_eq_iff_eq_mul, eq_comm ],
+  simp only [upper_central_series, upper_central_series_aux, upper_central_series_step, center,
+    set.center, mem_mk, mem_bot, set.mem_set_of_eq],
+  exact forall_congr (λ y, by rw [mul_inv_eq_one, mul_inv_eq_iff_eq_mul, eq_comm]),
 end
 
 /-- The `n+1`st term of the upper central series `H i` has underlying set equal to the `x` such
@@ -285,7 +283,7 @@ variable {G}
 @[simp] lemma lower_central_series_zero : lower_central_series G 0 = ⊤ := rfl
 
 @[simp] lemma lower_central_series_one : lower_central_series G 1 = commutator G :=
-  by simp [lower_central_series]
+by simp [lower_central_series]
 
 lemma mem_lower_central_series_succ_iff (n : ℕ) (q : G) :
   q ∈ lower_central_series G (n + 1) ↔

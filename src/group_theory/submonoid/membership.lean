@@ -273,17 +273,17 @@ lemma mem_sup {s t : submonoid N} {x : N} :
 by simp only [sup_eq_range, mem_mrange, coprod_apply, prod.exists, set_like.exists,
   coe_subtype, subtype.coe_mk]
 
--- @[to_additive add_mem_closure_pair]
-lemma mem_closure_pair {A : Type*} [comm_monoid A] {a b c : A} :
+@[to_additive]
+lemma mem_closure_pair {A : Type*} [comm_monoid A] (a b c : A) :
   (∃ m n : ℕ, (a ^ m) * (b ^ n) = c) ↔ c ∈ submonoid.closure ({a, b} : set A) :=
 begin
   rw [←set.singleton_union, submonoid.closure_union],
   refine ⟨_, λ h, _⟩,
   rintros ⟨m, n, rfl⟩,
-  exact mem_sup.mpr ⟨a ^ m, submonoid.mem_closure_singleton.mpr ⟨m, rfl⟩,
-    b ^ n, submonoid.mem_closure_singleton.mpr ⟨n, rfl⟩, rfl⟩,
+  exact mem_sup.mpr ⟨a ^ m, mem_closure_singleton.mpr ⟨m, rfl⟩,
+    b ^ n, mem_closure_singleton.mpr ⟨n, rfl⟩, rfl⟩,
   obtain ⟨a, ha, b, hb, rfl⟩ := submonoid.mem_sup.mp h,
-  rw [submonoid.mem_closure_singleton] at ha hb,
+  rw [mem_closure_singleton] at ha hb,
   obtain ⟨a, rfl⟩ := ha,
   obtain ⟨b, rfl⟩ := hb,
   exact ⟨a, b, rfl⟩,

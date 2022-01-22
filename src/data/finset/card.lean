@@ -183,6 +183,9 @@ card_le_of_subset $ filter_subset _ _
 lemma eq_of_subset_of_card_le {s t : finset α} (h : s ⊆ t) (h₂ : t.card ≤ s.card) : s = t :=
 eq_of_veq $ multiset.eq_of_le_of_card_le (val_le_iff.mpr h) h₂
 
+lemma map_eq_of_subset {f : α ↪ α} (hs : s.map f ⊆ s) : s.map f = s :=
+eq_of_subset_of_card_le hs (card_map _).ge
+
 lemma filter_card_eq {p : α → Prop} [decidable_pred p] (h : (s.filter p).card = s.card) (x : α)
   (hx : x ∈ s) :
   p x :=

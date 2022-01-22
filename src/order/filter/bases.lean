@@ -454,6 +454,11 @@ lemma has_basis.inf_principal_ne_bot_iff (hl : l.has_basis p s) {t : set α} :
   ne_bot (l ⊓ 𝓟 t) ↔ ∀ ⦃i⦄ (hi : p i), (s i ∩ t).nonempty :=
 (hl.inf_principal t).ne_bot_iff
 
+lemma has_basis.disjoint_basis_iff (hl : l.has_basis p s) (hl' : l'.has_basis p' s') :
+  disjoint l l' ↔ ∃ i (hi : p i) i' (hi' : p' i'), disjoint (s i) (s' i') :=
+not_iff_not.mp $ by simp only [disjoint_iff, ← ne.def, ← ne_bot_iff, hl.inf_basis_ne_bot_iff hl',
+  not_exists, bot_eq_empty, ne_empty_iff_nonempty, inf_eq_inter]
+
 lemma inf_ne_bot_iff :
   ne_bot (l ⊓ l') ↔ ∀ ⦃s : set α⦄ (hs : s ∈ l) ⦃s'⦄ (hs' : s' ∈ l'), (s ∩ s').nonempty :=
 l.basis_sets.inf_ne_bot_iff
@@ -461,15 +466,6 @@ l.basis_sets.inf_ne_bot_iff
 lemma inf_principal_ne_bot_iff {s : set α} :
   ne_bot (l ⊓ 𝓟 s) ↔ ∀ U ∈ l, (U ∩ s).nonempty :=
 l.basis_sets.inf_principal_ne_bot_iff
-
-lemma inf_eq_bot_iff {f g : filter α} :
-  f ⊓ g = ⊥ ↔ ∃ (U ∈ f) (V ∈ g), U ∩ V = ∅ :=
-not_iff_not.1 $ ne_bot_iff.symm.trans $ inf_ne_bot_iff.trans $
-by simp [← ne_empty_iff_nonempty]
-
-protected lemma disjoint_iff {f g : filter α} :
-  disjoint f g ↔ ∃ (U ∈ f) (V ∈ g), U ∩ V = ∅ :=
-disjoint_iff.trans inf_eq_bot_iff
 
 lemma mem_iff_inf_principal_compl {f : filter α} {s : set α} :
   s ∈ f ↔ f ⊓ 𝓟 sᶜ = ⊥ :=
@@ -483,13 +479,23 @@ lemma not_mem_iff_inf_principal_compl {f : filter α} {s : set α} :
   s ∉ f ↔ ne_bot (f ⊓ 𝓟 sᶜ) :=
 (not_congr mem_iff_inf_principal_compl).trans ne_bot_iff.symm
 
-lemma mem_iff_disjoint_principal_compl {f : filter α} {s : set α} :
-  s ∈ f ↔ disjoint f (𝓟 sᶜ) :=
-mem_iff_inf_principal_compl.trans disjoint_iff.symm
+@[simp] lemma disjoint_principal_right {f : filter α} {s : set α} :
+  disjoint f (𝓟 s) ↔ sᶜ ∈ f :=
+by rw [mem_iff_inf_principal_compl, compl_compl, disjoint_iff]
 
-lemma le_iff_forall_disjoint_principal_compl {f g : filter α} :
-  f ≤ g ↔ ∀ V ∈ g, disjoint f (𝓟 Vᶜ) :=
-forall₂_congr $ λ _ _, mem_iff_disjoint_principal_compl
+@[simp] lemma disjoint_principal_left {f : filter α} {s : set α} :
+  disjoint (𝓟 s) f ↔ sᶜ ∈ f :=
+by rw [disjoint.comm, disjoint_principal_right]
+
+@[simp] lemma disjoint_principal_principal {s t : set α} :
+  disjoint (𝓟 s) (𝓟 t) ↔ disjoint s t :=
+by simp [disjoint_iff_subset_compl_left]
+
+alias disjoint_principal_principal ↔ _ disjoint.filter_principal
+
+@[simp] lemma disjoint_pure_pure {x y : α} :
+  disjoint (pure x : filter α) (pure y) ↔ x ≠ y :=
+by simp only [← principal_singleton, disjoint_principal_principal, disjoint_singleton]
 
 lemma le_iff_forall_inf_principal_compl {f g : filter α} :
   f ≤ g ↔ ∀ V ∈ g, f ⊓ 𝓟 Vᶜ = ⊥ :=

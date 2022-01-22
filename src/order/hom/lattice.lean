@@ -303,8 +303,8 @@ instance : has_coe_to_fun (bounded_lattice_hom α β) (λ _, α → β) := ⟨λ
 
 @[ext] lemma ext {f g : bounded_lattice_hom α β} (h : ∀ a, f a = g a) : f = g := fun_like.ext f g h
 
-/-- Copy of a `bounded_lattice_hom` with a new `to_fun` equal to the old one. Useful to fix definitional
-equalities. -/
+/-- Copy of a `bounded_lattice_hom` with a new `to_fun` equal to the old one. Useful to fix
+definitional equalities. -/
 protected def copy (f : bounded_lattice_hom α β) (f' : α → β) (h : f' = f) :
   bounded_lattice_hom α β :=
 { to_fun := f',

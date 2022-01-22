@@ -52,22 +52,22 @@ instance order_dual.no_max_order (α : Type*) [has_lt α] [no_min_order α] :
 ⟨λ a, @exists_lt α _ _ a⟩
 
 section has_le
-variables [has_le α] {a b : α}
+variables [has_le α] {a : α}
 
 /-- `a : α` is a bottom element of `α` if it is less than or equal to any other element of `α`.
 This predicate is roughly an unbundled version of `order_bot`, except that a preorder may have
 several bottom elements. When `α` is linear, this is useful to make a case disjunction on
 `no_min_order α` within a proof. -/
-def is_bot {α : Type*} [has_le α] (a : α) : Prop := ∀ b, a ≤ b
+def is_bot (a : α) : Prop := ∀ b, a ≤ b
 
 /-- `a : α` is a top element of `α` if it is greater than or equal to any other element of `α`.
 This predicate is roughly an unbundled version of `order_bot`, except that a preorder may have
 several top elements. When `α` is linear, this is useful to make a case disjunction on
 `no_max_order α` within a proof. -/
-def is_top {α : Type*} [has_le α] (a : α) : Prop := ∀ b, b ≤ a
+def is_top (a : α) : Prop := ∀ b, b ≤ a
 
-lemma is_top.to_dual [has_le α] {a : α} (h : is_top a) : is_bot (to_dual a) := h
-lemma is_bot.to_dual [has_le α] {a : α} (h : is_bot a) : is_top (to_dual a) := h
+lemma is_top.to_dual (h : is_top a) : is_bot (to_dual a) := h
+lemma is_bot.to_dual (h : is_bot a) : is_top (to_dual a) := h
 
 end has_le
 

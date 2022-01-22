@@ -3591,6 +3591,12 @@ hh.1
     ⟨y.1, isos.sheaf_component.backward.data_prop1 𝒜 f m hm f_deg V hh y⟩,
       isos.sheaf_component.backward.data_prop2 𝒜 f m hm f_deg V hh y⟩
 
+lemma isos.sheaf_component.backward.data_one
+  (f : A) [decidable_eq (localization.away f)] (m : ℕ) (hm : 0 < m) (f_deg : f ∈ 𝒜 m)
+  (V : (opens ((Spec (degree_zero_part 𝒜 f m f_deg)).to_SheafedSpace.to_PresheafedSpace.carrier))ᵒᵖ) :
+  isos.sheaf_component.backward.data 𝒜 f m hm f_deg V
+    (1 : ((Spec (degree_zero_part (λ (m : ℕ), 𝒜 m) f m f_deg)).to_SheafedSpace.to_PresheafedSpace.presheaf.obj V)) = 1 := rfl
+
 lemma isos.sheaf_component.backward.data_exists_rep
   (f : A) [decidable_eq (localization.away f)] (m : ℕ) (hm : 0 < m) (f_deg : f ∈ 𝒜 m)
   (V : (opens ((Spec (degree_zero_part 𝒜 f m f_deg)).to_SheafedSpace.to_PresheafedSpace.carrier))ᵒᵖ)
@@ -3763,13 +3769,117 @@ def isos.sheaf_component.backward.mk
 lemma isos.sheaf_component.backward.mk_one
   (f : A) [decidable_eq (localization.away f)] (m : ℕ) (hm : 0 < m) (f_deg : f ∈ 𝒜 m)
   (V : (opens ((Spec (degree_zero_part 𝒜 f m f_deg)).to_SheafedSpace.to_PresheafedSpace.carrier))ᵒᵖ) :
-  isos.sheaf_component.backward.mk 𝒜 f m hm f_deg V 1 = 1 := sorry
+  isos.sheaf_component.backward.mk 𝒜 f m hm f_deg V 1 = 1 :=
+begin
+  ext1 y,
+  have y_mem : y.val ∈ (projective_spectrum.basic_open 𝒜 f).val,
+  { erw projective_spectrum.mem_basic_open,
+    intro rid,
+    have mem1 := y.2,
+    erw set.mem_preimage at mem1,
+    obtain ⟨⟨a, ha1⟩, ha, ha2⟩ := mem1,
+    change a = y.1 at ha2,
+    erw set.mem_preimage at ha,
+    erw ←ha2 at rid,
+    apply ha1,
+    exact rid,
+   },
+
+  erw pi.one_apply,
+  unfold isos.sheaf_component.backward.mk,
+  unfold isos.sheaf_component.backward.hartshorne,
+  rw [subtype.ext_iff_val,
+    show (1 : hartshorne_localisation 𝒜 y).1 = 1, from rfl,
+    show (1 : localization.at_prime (y.1.as_homogeneous_ideal).val) = localization.mk 1 1,
+    by erw localization.mk_self 1],
+  dsimp only,
+  unfold isos.sheaf_component.backward.hartshorne_num,
+  unfold isos.sheaf_component.backward.hartshorne_denom,
+
+  have eq1 := isos.sheaf_component.backward.data_eq_num_div_denom 𝒜 f m hm f_deg V 1 y,
+  erw isos.sheaf_component.backward.data_one at eq1,
+  erw pi.one_apply at eq1,
+  replace eq1 := eq1.symm,
+  erw [show (1 : structure_sheaf.localizations (degree_zero_part 𝒜 f m f_deg)
+    (((isos.top_component 𝒜 f m hm f_deg).hom) ⟨y.val, y_mem⟩)) = localization.mk 1 ⟨1, begin
+      intro rid,
+      apply (((isos.top_component 𝒜 f m hm f_deg).hom) ⟨y.val, y_mem⟩).is_prime.1,
+      rw ideal.eq_top_iff_one,
+      exact rid,
+    end⟩,
+    by erw localization.mk_self 1, localization.mk_eq_mk', is_localization.eq] at eq1,
+  obtain ⟨⟨⟨C, C_degree_zero⟩, hC⟩, eq1⟩ := eq1,
+  induction C using localization.induction_on with 𝔻,
+  obtain ⟨C, ⟨_, ⟨l, rfl⟩⟩⟩ := 𝔻,
+  simp only [←subtype.val_eq_coe, mul_one, one_mul] at eq1,
+  simp only [localization.mk_eq_mk', is_localization.eq],
+  change _ ∉ ideal.span _ at hC,
+  dsimp only at C_degree_zero hC,
+
+  have eq_num := degree_zero_part.eq_num_div
+    (isos.sheaf_component.backward.data_num 𝒜 f m hm f_deg V 1 y),
+  have eq_denom := degree_zero_part.eq_num_div
+    (isos.sheaf_component.backward.data_denom 𝒜 f m hm f_deg V 1 y).1,
+
+  erw subtype.ext_iff_val at eq1,
+  simp only [show ∀ (α β : degree_zero_part 𝒜 f m f_deg), (α * β).1 = α.1 * β.1,
+    from λ _ _, rfl] at eq1,
+  erw [eq_num, eq_denom, localization.mk_mul, localization.mk_mul] at eq1,
+  simp only [localization.mk_eq_mk', is_localization.eq] at eq1,
+  obtain ⟨⟨_, ⟨n1, rfl⟩⟩, eq1⟩ := eq1,
+  simp only [←subtype.val_eq_coe,
+    show ∀ (α β : submonoid.powers f), (α * β).1 = α.1 * β.1, from λ _ _, rfl, ←pow_add] at eq1,
+
+  have C_not_mem : C ∉ y.1.as_homogeneous_ideal,
+  { intro rid,
+    have eq1 : (localization.mk C ⟨f ^ l, ⟨_, rfl⟩⟩ : localization.away f) =
+      (localization.mk 1 ⟨f^l, ⟨_, rfl⟩⟩ : localization.away f) * localization.mk C 1,
+      rw [localization.mk_mul, one_mul, mul_one],
+    erw eq1 at hC,
+    apply hC,
+    apply ideal.mem_span.smul_mem _ _ (localization.mk 1 ⟨f^l, ⟨_, rfl⟩⟩ : localization.away f)
+      (localization.mk C 1),
+  refine ⟨C, rid, rfl⟩, },
+
+  use C * (f^l * f^n1),
+  { intros rid,
+    rcases y.1.is_prime.mem_or_mem rid with H1 | H3,
+    exact C_not_mem H1,
+    rw ←pow_add at H3,
+    replace H3 := y.1.is_prime.mem_of_pow_mem _ H3,
+    apply y_mem,
+    exact H3, },
+
+  simp only [←subtype.val_eq_coe,
+    show (1 : (projective_spectrum.as_homogeneous_ideal y.val).val.prime_compl).1 = 1,
+    from rfl, mul_one, one_mul],
+
+  rw calc degree_zero_part.num (isos.sheaf_component.backward.data_num 𝒜 f m hm f_deg V 1 y)
+        * f ^ degree_zero_part.degree (isos.sheaf_component.backward.data_denom 𝒜 f m hm f_deg V 1 y).val
+        * (C * (f ^ l * f ^ n1))
+      = degree_zero_part.num (isos.sheaf_component.backward.data_num 𝒜 f m hm f_deg V 1 y) * C
+        * (f ^ degree_zero_part.degree (isos.sheaf_component.backward.data_denom 𝒜 f m hm f_deg V 1 y).val
+          * f^l * f^n1) : by ring
+  ... = degree_zero_part.num (isos.sheaf_component.backward.data_num 𝒜 f m hm f_deg V 1 y) * C
+        * (f ^ (degree_zero_part.degree (isos.sheaf_component.backward.data_denom 𝒜 f m hm f_deg V 1 y).val + l)
+            * f^n1)
+      : begin
+        congr',
+        rw pow_add
+      end
+  ... = degree_zero_part.num (isos.sheaf_component.backward.data_num 𝒜 f m hm f_deg V 1 y) * C
+        * f ^ (degree_zero_part.degree (isos.sheaf_component.backward.data_denom 𝒜 f m hm f_deg V 1 y).val + l)
+        * f^n1 : by ring,
+  rw [eq1, pow_add],
+  ring,
+end
 
 lemma isos.sheaf_component.backward.mk_zero
   (f : A) [decidable_eq (localization.away f)] (m : ℕ) (hm : 0 < m) (f_deg : f ∈ 𝒜 m)
   (V : (opens ((Spec (degree_zero_part 𝒜 f m f_deg)).to_SheafedSpace.to_PresheafedSpace.carrier))ᵒᵖ) :
   isos.sheaf_component.backward.mk 𝒜 f m hm f_deg V 0 = 0 := sorry
 
+#exit
 lemma isos.sheaf_component.backward.mk_add
   (f : A) [decidable_eq (localization.away f)] (m : ℕ) (hm : 0 < m) (f_deg : f ∈ 𝒜 m)
   (V : (opens ((Spec (degree_zero_part 𝒜 f m f_deg)).to_SheafedSpace.to_PresheafedSpace.carrier))ᵒᵖ) :
@@ -3820,7 +3930,11 @@ def isos.sheaf_component.backward
         dsimp only,
         convert isos.sheaf_component.backward.mk_add 𝒜 f m hm f_deg V x y,
       end },
-  naturality' := sorry, }
+  naturality' := λ U V subset1, begin
+    ext1 z,
+    simp only [comp_apply, ring_hom.coe_mk, functor.op_map, presheaf.pushforward_obj_map],
+    refl,
+  end, }
 
 def isos.sheaf_component (f : A) [decidable_eq (localization.away f)] (m : ℕ) (hm : 0 < m) (f_deg : f ∈ 𝒜 m) :
   (isos.top_component 𝒜 f m hm f_deg).hom _*

@@ -5,7 +5,7 @@ Authors: Simon Hudon
 -/
 import control.monad.basic
 import data.part
-import order.hom.lattice
+import order.hom.order
 import tactic.monotonicity
 import tactic.wlog
 
@@ -97,7 +97,7 @@ variables [preorder α] [preorder β] [preorder γ]
 instance : has_coe_to_fun (chain α) (λ _, ℕ → α) := order_hom.has_coe_to_fun
 
 instance [inhabited α] : inhabited (chain α) :=
-⟨ ⟨ λ _, default _, λ _ _ _, le_refl _ ⟩ ⟩
+⟨ ⟨ λ _, default, λ _ _ _, le_refl _ ⟩ ⟩
 
 instance : has_mem α (chain α) :=
 ⟨λa (c : ℕ →o α), ∃ i, a = c i⟩
@@ -419,6 +419,10 @@ begin
     { apply le_max_right }, },
 end
 
+lemma inf_continuous' [is_total β (≤)] {f g : α → β} (hf : continuous' f) (hg : continuous' g) :
+  continuous' (f ⊓ g) :=
+⟨_, inf_continuous _ _ hf.snd hg.snd⟩
+
 lemma Sup_continuous (s : set $ α →o β) (hs : ∀ f ∈ s, continuous f) :
   continuous (Sup s) :=
 begin
@@ -638,7 +642,7 @@ of_mono (order_hom.const _ x) (continuous_const x)
 @[simp] theorem const_apply (f : β) (a : α) : const f a = f := rfl
 
 instance [inhabited β] : inhabited (α →𝒄 β) :=
-⟨ const (default β) ⟩
+⟨ const default ⟩
 
 namespace prod
 

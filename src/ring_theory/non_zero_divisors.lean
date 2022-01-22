@@ -37,7 +37,7 @@ variables {M M' M₁ R R' : Type*} [monoid_with_zero M] [monoid_with_zero M']
 
 lemma mem_non_zero_divisors_iff {r : M} : r ∈ M⁰ ↔ ∀ x, x * r = 0 → x = 0 := iff.rfl
 
-@[simp] lemma mul_right_mem_non_zero_divisors_eq_zero_iff {x r : M} (hr : r ∈ M⁰) :
+lemma mul_right_mem_non_zero_divisors_eq_zero_iff {x r : M} (hr : r ∈ M⁰) :
   x * r = 0 ↔ x = 0 :=
 ⟨hr _, by simp {contextual := tt}⟩
 
@@ -45,7 +45,7 @@ lemma mem_non_zero_divisors_iff {r : M} : r ∈ M⁰ ↔ ∀ x, x * r = 0 → x 
   x * c = 0 ↔ x = 0 :=
 mul_right_mem_non_zero_divisors_eq_zero_iff c.prop
 
-@[simp] lemma mul_left_mem_non_zero_divisors_eq_zero_iff {r x : M₁} (hr : r ∈ M₁⁰) :
+lemma mul_left_mem_non_zero_divisors_eq_zero_iff {r x : M₁} (hr : r ∈ M₁⁰) :
   r * x = 0 ↔ x = 0 :=
 by rw [mul_comm, mul_right_mem_non_zero_divisors_eq_zero_iff hr]
 
@@ -53,14 +53,14 @@ by rw [mul_comm, mul_right_mem_non_zero_divisors_eq_zero_iff hr]
   (c : M₁) * x = 0 ↔ x = 0 :=
 mul_left_mem_non_zero_divisors_eq_zero_iff c.prop
 
-@[simp] lemma mul_cancel_right_mem_non_zero_divisor {x y r : R} (hr : r ∈ R⁰) :
+lemma mul_cancel_right_mem_non_zero_divisor {x y r : R} (hr : r ∈ R⁰) :
   x * r = y * r ↔ x = y :=
 begin
   refine ⟨λ h, _, congr_arg _⟩,
   rw [←sub_eq_zero, ←mul_right_mem_non_zero_divisors_eq_zero_iff hr, sub_mul, h, sub_self]
 end
 
-@[simp] lemma mul_cancel_right_coe_non_zero_divisor {x y : R} {c : R⁰} :
+lemma mul_cancel_right_coe_non_zero_divisor {x y : R} {c : R⁰} :
   x * c = y * c ↔ x = y :=
 mul_cancel_right_mem_non_zero_divisor c.prop
 
@@ -68,7 +68,7 @@ mul_cancel_right_mem_non_zero_divisor c.prop
   r * x = r * y ↔ x = y :=
 by simp_rw [mul_comm r, mul_cancel_right_mem_non_zero_divisor hr]
 
-@[simp] lemma mul_cancel_left_coe_non_zero_divisor {x y : R'} {c : R'⁰} :
+lemma mul_cancel_left_coe_non_zero_divisor {x y : R'} {c : R'⁰} :
   (c : R') * x = c * y ↔ x = y :=
 mul_cancel_left_mem_non_zero_divisor c.prop
 
@@ -91,6 +91,11 @@ begin
     apply hb,
     rw [mul_assoc, hx] },
 end
+
+lemma is_unit_of_mem_non_zero_divisors {G₀ : Type*} [group_with_zero G₀]
+  {x : G₀} (hx : x ∈ non_zero_divisors G₀) : is_unit x :=
+⟨⟨x, x⁻¹, mul_inv_cancel (non_zero_divisors.ne_zero hx),
+  inv_mul_cancel (non_zero_divisors.ne_zero hx)⟩, rfl⟩
 
 lemma eq_zero_of_ne_zero_of_mul_right_eq_zero [no_zero_divisors M]
   {x y : M} (hnx : x ≠ 0) (hxy : y * x = 0) : y = 0 :=

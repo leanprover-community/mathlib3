@@ -246,6 +246,32 @@ begin
   exact ext_inner_right 𝕜 (λ y, by simp only [adjoint_inner_left, h x y])
 end
 
+/-- The adjoint is unique: a map `A` is the adjoint of `B` iff it satisfies `⟪A x, y⟫ = ⟪x, B y⟫`
+for all basis vectors `x` and `y`. -/
+lemma eq_adjoint_iff_basis {ι₁ : Type*} {ι₂ : Type*} (b₁ : basis ι₁ 𝕜 E) (b₂ : basis ι₂ 𝕜 F)
+  (A : E →ₗ[𝕜] F) (B : F →ₗ[𝕜] E) :
+  A = B.adjoint ↔ (∀ (i₁ : ι₁) (i₂ : ι₂), ⟪A (b₁ i₁), b₂ i₂⟫ = ⟪b₁ i₁, B (b₂ i₂)⟫) :=
+begin
+  refine ⟨λ h x y, by rw [h, adjoint_inner_left], λ h, _⟩,
+  refine basis.ext b₁ (λ i₁, _),
+  exact ext_inner_right_basis b₂ (λ i₂, by simp only [adjoint_inner_left, h i₁ i₂]),
+end
+
+lemma eq_adjoint_iff_basis_left {ι : Type*} (b : basis ι 𝕜 E) (A : E →ₗ[𝕜] F) (B : F →ₗ[𝕜] E) :
+  A = B.adjoint ↔ (∀ i y, ⟪A (b i), y⟫ = ⟪b i, B y⟫) :=
+begin
+  refine ⟨λ h x y, by rw [h, adjoint_inner_left], λ h, basis.ext b (λ i, _)⟩,
+  exact ext_inner_right 𝕜 (λ y, by simp only [h i, adjoint_inner_left]),
+end
+
+lemma eq_adjoint_iff_basis_right {ι : Type*} (b : basis ι 𝕜 F) (A : E →ₗ[𝕜] F) (B : F →ₗ[𝕜] E) :
+  A = B.adjoint ↔ (∀ i x, ⟪A x, b i⟫ = ⟪x, B (b i)⟫) :=
+begin
+  refine ⟨λ h x y, by rw [h, adjoint_inner_left], λ h, _⟩,
+  ext x,
+  refine ext_inner_right_basis b (λ i, by simp only [h i, adjoint_inner_left]),
+end
+
 /-- `E →ₗ[𝕜] E` is a star algebra with the adjoint as the star operation. -/
 instance : has_star (E →ₗ[𝕜] E) := ⟨adjoint⟩
 instance : has_involutive_star (E →ₗ[𝕜] E) := ⟨adjoint_adjoint⟩

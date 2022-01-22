@@ -177,12 +177,8 @@ lemma nat_degree_hasse_deriv_le (p : polynomial R) (n : ℕ) :
 begin
   classical,
   rw [hasse_deriv_apply, sum_def],
-  have : ∀ i (r : R), nat_degree (monomial i r) = if r = 0 then 0 else i,
-  { intros i r,
-    by_cases hr : r = 0;
-    simp [hr] },
   refine (nat_degree_sum_le _ _).trans _,
-  simp_rw [function.comp, this], clear this,
+  simp_rw [function.comp, nat_degree_monomial],
   rw [finset.fold_ite, finset.fold_const],
   { simp only [if_t_t, max_eq_right, zero_le', finset.fold_max_le, true_and, and_imp,
                tsub_le_iff_right, mem_support_iff, ne.def, finset.mem_filter],
@@ -198,45 +194,16 @@ end
 lemma nat_degree_hasse_deriv [no_zero_smul_divisors ℕ R] (p : polynomial R) (n : ℕ) :
   nat_degree (hasse_deriv n p) = nat_degree p - n :=
 begin
-  refine le_antisymm (polynomial.nat_degree_hasse_deriv_le _ _) _,
-  classical,
-  rw [hasse_deriv_apply, sum_def],
-  have : ∀ i (r : R), nat_degree (monomial i r) = if r = 0 then 0 else i,
-  { intros i r,
-    by_cases hr : r = 0;
-    simp [hr] },
-  rw [←finset.sum_filter_ne_zero, nat_degree_sum_eq_of_disjoint],
-  { simp_rw this, clear this,
-    rw [finset.sup_ite, finset.filter_filter],
-    have hf : (λ (a : ℕ), (monomial (a - n)) (↑(a.choose n) * p.coeff a) ≠ 0 ∧
-                ↑(a.choose n) * p.coeff a = 0) = λ a, false,
-    { simp },
-    simp_rw hf,
-    simp only [finset.filter_false, finset.sup_empty, bot_sup_eq, finset.filter_filter,
-                monomial_eq_zero_iff, ne.def, and_self, finset.filter_congr_decidable],
-    clear hf,
-    cases le_or_lt (p.nat_degree) n with hn hn,
-    { rw tsub_eq_zero_of_le hn,
-      exact nat.zero_le _ },
-    rw finset.le_sup_iff,
-    simp only [and_imp, monomial_eq_zero_iff, ne.def, and_self, finset.mem_filter],
-    { refine ⟨p.nat_degree, _, le_rfl⟩,
-      have hp : p ≠ 0,
-      { rintro rfl,
-        simpa using hn },
+  cases lt_or_le p.nat_degree n with hn hn,
+  { simpa [hasse_deriv_eq_zero_of_lt_nat_degree, hn] using (tsub_eq_zero_of_le hn.le).symm },
+  { refine map_nat_degree_eq_sub _ _,
+    { exact λ h, hasse_deriv_eq_zero_of_lt_nat_degree _ _ },
+    { classical,
+      simp only [ite_eq_right_iff, ne.def, nat_degree_monomial, hasse_deriv_monomial],
+      intros k c c0 hh,
       -- this is where we use the `smul_eq_zero` from `no_zero_smul_divisors`
-      simpa [←nsmul_eq_mul, hp, nat.choose_eq_zero_iff] using hn.le },
-    { simpa using hn } },
-  { refine λ x hx y hy hxy H, hxy _,
-    dsimp at H,
-    simp only [set.mem_set_of_eq, monomial_eq_zero_iff, mem_support_iff, ne.def, finset.mem_filter,
-                finset.mem_coe] at hx hy,
-    simp only [nat_degree_monomial, hx.right, hy.right, if_false] at H,
-    refine tsub_inj_left _ _ H,
-    { contrapose! hx,
-      simp [nat.choose_eq_zero_of_lt hx] },
-    { contrapose! hy,
-      simp [nat.choose_eq_zero_of_lt hy] }  }
+      rw [←nsmul_eq_mul, smul_eq_zero, nat.choose_eq_zero_iff] at hh,
+      exact (tsub_eq_zero_of_le (or.resolve_right hh c0).le).symm } }
 end
 
 section

@@ -56,6 +56,12 @@ namely `ratfunc.of_fraction_ring`, `ratfunc.to_fraction_ring`, `ratfunc.mk` and
 All these maps get `simp`ed to bundled morphisms like `algebra_map (polynomial K) (ratfunc K)`
 and `is_localization.alg_equiv`.
 
+## References
+
+* [Kleiman, *Misconceptions about $K_X$*][kleiman1979]
+* https://freedommathdance.blogspot.com/2012/11/misconceptions-about-kx.html
+* https://stacks.math.columbia.edu/tag/01X1
+
 -/
 
 noncomputable theory
@@ -91,12 +97,18 @@ lemma to_fraction_ring_injective :
   function.injective (to_fraction_ring : _ → fraction_ring (polynomial K))
 | ⟨x⟩ ⟨y⟩ rfl := rfl
 
-/-- Non-dependent recursion principle for `ratfunc K`: if `f p q : P` for all `p q`,
-such that `p * q' = p' * q` implies `f p q = f p' q'`, then we can find a value of `P`
-for all elements of `ratfunc K` by setting `lift_on (p / q) f _ = f p q`.
+/-- Non-dependent recursion principle for `ratfunc K`:
+To construct a term of `P : Sort*` out of `x : ratfunc K`,
+it suffices to provide a constructor `f : Π (p q : polynomial K), P`
+and a proof that `f p q = f p' q'` for all `p q p' q'` such that `p * q' = p' * q` where
+both `q` and `q'` are not zero divisors, stated as `q ∉ (polynomial K)⁰`, `q' ∉ (polynomial K)⁰`.
 
-The value of `f p 0` for any `p` is never used and in principle this may be anything,
-although many usages of `lift_on` assume `f p 0 = f 0 1`.
+If considering `K` as an integral domain, this is the same as saying that
+we construct a value of `P` for such elements of `ratfunc K` by setting
+`lift_on (p / q) f _ = f p q`.
+
+When `[is_domain K]`, one can use `ratfunc.lift_on'`, which has the stronger requirement
+of `∀ {p q a : polynomial K} (hq : q ≠ 0) (ha : a ≠ 0), f (a * p) (a * q) = f p q)`.
 -/
 @[irreducible] protected def lift_on {P : Sort v} (x : ratfunc K)
   (f : ∀ (p q : polynomial K), P)

@@ -972,8 +972,9 @@ lemma convex_iff_div :
     0 ≤ a → 0 ≤ b → 0 < a + b → (a / (a + b)) • x + (b / (a + b)) • y ∈ s :=
 begin
   simp only [convex_iff_segment_subset, subset_def, mem_segment_iff_div],
-  refine forall_congr₄ (λ x y hx hy, _),
-  { rintro H x , }
+  refine forall₄_congr (λ x y hx hy, ⟨λ H a b ha hb hab, H _ ⟨a, b, ha, hb, hab, rfl⟩, _⟩),
+  rintro H _ ⟨a, b, ha, hb, hab, rfl⟩,
+  exact H ha hb hab
 end
 
 lemma convex.mem_smul_of_zero_mem (h : convex 𝕜 s) {x : E} (zero_mem : (0 : E) ∈ s)

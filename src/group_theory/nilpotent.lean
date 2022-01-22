@@ -520,8 +520,8 @@ end
 end classical
 
 /-- The range of a surejctive homomorphism from a nilpotent group is nilpotent -/
-lemma nilpotent_of_surjective
-  {G' : Type*} [group G'] {f : G →* G'} (hf : function.surjective f) [h : is_nilpotent G] :
+lemma nilpotent_of_surjective {G' : Type*} [group G'] [h : is_nilpotent G]
+  (f : G →* G') (hf : function.surjective f) :
   is_nilpotent G' :=
 begin
   unfreezingI { rcases h with ⟨n, hn⟩ },
@@ -536,7 +536,7 @@ end
 /-- The nilpotency class of the range of a surejctive homomorphism from a
 nilpotent group is less or equal the nilpotency class of the domain -/
 lemma nilpotency_class_le_of_surjective
-  {G' : Type*} [group G'] {f : G →* G'} (hf : function.surjective f) [h : is_nilpotent G] :
+  {G' : Type*} [group G'] (f : G →* G') (hf : function.surjective f) [h : is_nilpotent G] :
   @group.nilpotency_class G' _ (nilpotent_of_surjective hf) ≤
     group.nilpotency_class G :=
 begin

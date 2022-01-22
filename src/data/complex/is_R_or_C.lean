@@ -517,10 +517,10 @@ real.sqrt_nonneg _
 lemma abs_ne_zero {z : K} : abs z ≠ 0 ↔ z ≠ 0 :=
 not_congr abs_eq_zero
 
-@[is_R_or_C_simps] lemma abs_conj (z : K) : abs (conj z) = abs z :=
+@[simp, is_R_or_C_simps] lemma abs_conj (z : K) : abs (conj z) = abs z :=
 by simp only [abs, norm_sq_conj]
 
-@[is_R_or_C_simps] lemma abs_mul (z w : K) : abs (z * w) = abs z * abs w :=
+@[simp, is_R_or_C_simps] lemma abs_mul (z w : K) : abs (z * w) = abs z * abs w :=
 by rw [abs, norm_sq_mul, real.sqrt_mul (norm_sq_nonneg _)]; refl
 
 lemma abs_re_le_abs (z : K) : abs' (re z) ≤ abs z :=
@@ -581,8 +581,8 @@ _root_.abs_of_nonneg (abs_nonneg _)
 @[simp, is_R_or_C_simps] lemma abs_neg : ∀ z : K, abs (-z) = abs z := abv_neg abs
 lemma abs_sub : ∀ z w : K, abs (z - w) = abs (w - z) := abv_sub abs
 lemma abs_sub_le : ∀ a b c : K, abs (a - c) ≤ abs (a - b) + abs (b - c) := abv_sub_le abs
-@[is_R_or_C_simps] theorem abs_inv : ∀ z : K, abs z⁻¹ = (abs z)⁻¹ := abv_inv abs
-@[is_R_or_C_simps] theorem abs_div : ∀ z w : K, abs (z / w) = abs z / abs w := abv_div abs
+@[simp, is_R_or_C_simps] theorem abs_inv : ∀ z : K, abs z⁻¹ = (abs z)⁻¹ := abv_inv abs
+@[simp, is_R_or_C_simps] theorem abs_div : ∀ z w : K, abs (z / w) = abs z / abs w := abv_div abs
 
 lemma abs_abs_sub_le_abs_sub : ∀ z w : K, abs' (abs z - abs w) ≤ abs (z - w) :=
 abs_abv_sub_le_abv_sub abs

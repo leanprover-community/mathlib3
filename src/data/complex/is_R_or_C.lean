@@ -230,7 +230,7 @@ begin
     rw ← re_add_im z,
     simp only [conj_of_real, ring_equiv.map_add, ring_equiv.map_mul, conj_I_ax],
     rw [add_left_cancel_iff, ext_iff],
-    simpa [neg_eq_iff_add_eq_zero, add_self_eq_zero] with is_R_or_C_simps },
+    simpa [neg_eq_iff_add_eq_zero, add_self_eq_zero] },
   { rintros ⟨r, rfl⟩, apply conj_of_real }
 end
 
@@ -247,9 +247,9 @@ eq_conj_iff_real.trans ⟨by rintro ⟨r, rfl⟩; simp, λ h, ⟨_, h.symm⟩⟩
 /-- The norm squared function. -/
 def norm_sq : monoid_with_zero_hom K ℝ :=
 { to_fun := λ z, re z * re z + im z * im z,
-  map_zero' := by simp,
-  map_one' := by simp,
-  map_mul' := λ z w, by { simp with is_R_or_C_simps, ring } }
+  map_zero' := by simp only [add_zero, mul_zero, map_zero],
+  map_one' := by simp only [one_im, add_zero, mul_one, one_re, mul_zero],
+  map_mul' := λ z w, by { simp only [mul_im, mul_re], ring } }
 
 lemma norm_sq_eq_def {z : K} : ∥z∥^2 = (re z) * (re z) + (im z) * (im z) := norm_sq_eq_def_ax z
 lemma norm_sq_eq_def' (z : K) : norm_sq z = ∥z∥^2 := by { rw norm_sq_eq_def, refl }
@@ -266,7 +266,7 @@ add_nonneg (mul_self_nonneg _) (mul_self_nonneg _)
 @[simp, is_R_or_C_simps] lemma norm_sq_eq_zero {z : K} : norm_sq z = 0 ↔ z = 0 :=
 by { rw [norm_sq_eq_def'], simp [sq] }
 
-@[is_R_or_C_simps] lemma norm_sq_pos {z : K} : 0 < norm_sq z ↔ z ≠ 0 :=
+@[simp, is_R_or_C_simps] lemma norm_sq_pos {z : K} : 0 < norm_sq z ↔ z ≠ 0 :=
 by rw [lt_iff_le_and_ne, ne, eq_comm]; simp [norm_sq_nonneg]
 
 @[simp, is_R_or_C_simps] lemma norm_sq_neg (z : K) : norm_sq (-z) = norm_sq z :=
@@ -336,10 +336,10 @@ end
 
 /-! ### Inversion -/
 
-@[is_R_or_C_simps] lemma inv_re (z : K) : re (z⁻¹) = re z / norm_sq z :=
+@[simp, is_R_or_C_simps] lemma inv_re (z : K) : re (z⁻¹) = re z / norm_sq z :=
 by simp only [inv_def, norm_sq_eq_def, norm_sq, division_def,
               monoid_with_zero_hom.coe_mk, sub_zero, mul_zero] with is_R_or_C_simps
-@[is_R_or_C_simps] lemma inv_im (z : K) : im (z⁻¹) = im (-z) / norm_sq z :=
+@[simp, is_R_or_C_simps] lemma inv_im (z : K) : im (z⁻¹) = im (-z) / norm_sq z :=
 by simp only [inv_def, norm_sq_eq_def, norm_sq, division_def, of_real_im,
               monoid_with_zero_hom.coe_mk, of_real_re, zero_add, map_neg, mul_zero]
               with is_R_or_C_simps
@@ -398,10 +398,10 @@ end
 @[simp, is_R_or_C_simps] lemma inv_I : (I : K)⁻¹ = -I :=
 by field_simp
 
-@[is_R_or_C_simps] lemma norm_sq_inv (z : K) : norm_sq z⁻¹ = (norm_sq z)⁻¹ :=
+@[simp, is_R_or_C_simps] lemma norm_sq_inv (z : K) : norm_sq z⁻¹ = (norm_sq z)⁻¹ :=
 (@norm_sq K _).map_inv z
 
-@[is_R_or_C_simps] lemma norm_sq_div (z w : K) : norm_sq (z / w) = norm_sq z / norm_sq w :=
+@[simp, is_R_or_C_simps] lemma norm_sq_div (z w : K) : norm_sq (z / w) = norm_sq z / norm_sq w :=
 (@norm_sq K _).map_div z w
 
 @[is_R_or_C_simps] lemma norm_conj {z : K} : ∥conj z∥ = ∥z∥ :=

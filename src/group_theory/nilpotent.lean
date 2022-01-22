@@ -103,10 +103,8 @@ begin
   rw [mem_comap, mem_center_iff, forall_coe],
   apply forall_congr,
   intro y,
-  change x * y * x⁻¹ * y⁻¹ ∈ H ↔ ((y * x : G) : G ⧸ H) = (x * y : G),
-  rw [eq_comm, eq_iff_div_mem, div_eq_mul_inv],
-  congr' 2,
-  group,
+  rw [coe_mk', ←quotient_group.coe_mul, ←quotient_group.coe_mul, eq_comm, eq_iff_div_mem,
+    div_eq_mul_inv, mul_inv_rev, mul_assoc],
 end
 
 instance : normal (upper_central_series_step H) :=
@@ -161,13 +159,9 @@ lemma ascending_central_series_le_upper (H : ℕ → subgroup G) (hH : is_ascend
   ∀ n : ℕ, H n ≤ upper_central_series G n
 | 0 := hH.1.symm ▸ le_refl ⊥
 | (n + 1) := begin
-  specialize ascending_central_series_le_upper n,
   intros x hx,
-  have := hH.2 x n hx,
   rw mem_upper_central_series_succ_iff,
-  intro y,
-  apply ascending_central_series_le_upper,
-  apply this,
+  exact λ y, ascending_central_series_le_upper n (hH.2 x n hx y),
 end
 
 variable (G)
@@ -196,9 +190,8 @@ begin
     refine ⟨_, _, upper_central_series_is_ascending_central_series G, nH⟩ },
   { rintro ⟨n, H, hH, hn⟩,
     use n,
-    have := ascending_central_series_le_upper H hH n,
-    rw hn at this,
-    exact eq_top_iff.mpr this }
+    rw [eq_top_iff, ←hn],
+    exact ascending_central_series_le_upper H hH n }
 end
 
 lemma is_decending_rev_series_of_is_ascending
@@ -209,16 +202,14 @@ begin
   refine ⟨hn, λ x m hx g, _⟩,
   dsimp at hx,
   by_cases hm : n ≤ m,
-  { have hnm : n - m = 0 := tsub_eq_zero_iff_le.mpr hm,
-    rw [hnm, h0, subgroup.mem_bot] at hx,
+  { rw [tsub_eq_zero_of_le hm, h0, subgroup.mem_bot] at hx,
     subst hx,
     convert subgroup.one_mem _,
     group },
   { push_neg at hm,
     apply hH,
     convert hx,
-    rw nat.sub_succ,
-    exact nat.succ_pred_eq_of_pos (tsub_pos_of_lt hm) },
+    rw [tsub_add_eq_add_tsub (nat.succ_le_of_lt hm), nat.succ_sub_succ] },
 end
 
 lemma is_ascending_rev_series_of_is_descending
@@ -227,17 +218,14 @@ lemma is_ascending_rev_series_of_is_descending
 begin
   cases hdesc with h0 hH,
   refine ⟨hn, λ x m hx g, _⟩,
-  dsimp only at hx,
+  dsimp only at hx ⊢,
   by_cases hm : n ≤ m,
   { have hnm : n - m = 0 := tsub_eq_zero_iff_le.mpr hm,
-    dsimp only,
     rw [hnm, h0],
     exact mem_top _ },
   { push_neg at hm,
-    dsimp only,
     convert hH x _ hx g,
-    rw nat.sub_succ,
-    exact (nat.succ_pred_eq_of_pos (tsub_pos_of_lt hm)).symm }
+    rw [tsub_add_eq_add_tsub (nat.succ_le_of_lt hm), nat.succ_sub_succ] },
 end
 
 /-- A group `G` is nilpotent iff there exists a descending central series which reaches the
@@ -248,15 +236,13 @@ begin
   rw nilpotent_iff_finite_ascending_central_series,
   split,
   { rintro ⟨n, H, hH, hn⟩,
-    use n, use (λ m, H (n - m)),
-    split,
-    { apply (is_decending_rev_series_of_is_ascending G hn hH) },
-    { simp, exact hH.1 } },
+    refine ⟨n, λ m, H (n - m), is_decending_rev_series_of_is_ascending G hn hH, _⟩,
+    rw tsub_self,
+    exact hH.1 },
   { rintro ⟨n, H, hH, hn⟩,
-    use n, use (λ m, H (n - m)),
-    split,
-    { apply (is_ascending_rev_series_of_is_descending G hn hH) },
-    { simp, exact hH.1 } },
+    refine ⟨n, λ m, H (n - m), is_ascending_rev_series_of_is_descending G hn hH, _⟩,
+    rw tsub_self,
+    exact hH.1 },
 end
 
 /-- The lower central series of a group `G` is a sequence `H n` of subgroups of `G`, defined
@@ -328,11 +314,10 @@ begin
   split,
   { rintro ⟨n, H, ⟨h0, hs⟩, hn⟩,
     use n,
-    have := descending_central_series_ge_lower H ⟨h0, hs⟩ n,
-    rw hn at this,
-    exact eq_bot_iff.mpr this },
+    rw [eq_bot_iff, ←hn],
+    exact descending_central_series_ge_lower H ⟨h0, hs⟩ n },
   { rintro ⟨n, hn⟩,
-    use [n, lower_central_series G, lower_central_series_is_descending_central_series, hn] },
+    exact ⟨n, lower_central_series G, lower_central_series_is_descending_central_series, hn⟩ },
 end
 
 section classical
@@ -360,9 +345,8 @@ begin
   { intros n hn,
     exact ⟨upper_central_series G, upper_central_series_is_ascending_central_series G, hn ⟩, },
   { rintros n ⟨H, ⟨hH, hn⟩⟩,
-    apply top_le_iff.mp,
-    rw ← hn,
-    exact (ascending_central_series_le_upper H hH n), }
+    rw [←top_le_iff, ←hn],
+    exact ascending_central_series_le_upper H hH n, }
 end
 
 /-- The nilpotency class of a nilpotent `G` is equal to the smallest `n` for which the descending
@@ -373,15 +357,13 @@ begin
   rw ← least_ascending_central_series_length_eq_nilpotency_class,
   refine le_antisymm (nat.find_mono _) (nat.find_mono _),
   { rintros n ⟨H, ⟨hH, hn⟩⟩,
-    use (λ m, H (n - m)),
-    split,
-    { apply is_decending_rev_series_of_is_ascending G hn hH },
-    { simp, exact hH.1 } },
+    refine ⟨(λ m, H (n - m)), is_decending_rev_series_of_is_ascending G hn hH, _⟩,
+    rw tsub_self,
+    exact hH.1 },
   { rintros n ⟨H, ⟨hH, hn⟩⟩,
-    use (λ m, H (n - m)),
-    split,
-    { apply is_ascending_rev_series_of_is_descending G hn hH },
-    { simp, exact hH.1 } },
+    refine ⟨(λ m, H (n - m)), is_ascending_rev_series_of_is_descending G hn hH, _⟩,
+    rw tsub_self,
+    exact hH.1 },
 end
 
 /-- The nilpotency class of a nilpotent `G` is equal to the length of the lower central series. -/
@@ -391,11 +373,10 @@ begin
   rw ← least_descending_central_series_length_eq_nilpotency_class,
   refine le_antisymm (nat.find_mono _) (nat.find_mono _),
   { rintros n ⟨H, ⟨hH, hn⟩⟩,
-    apply le_bot_iff.mp,
-    rw ← hn,
+    rw [←le_bot_iff, ←hn],
     exact (descending_central_series_ge_lower H hH n), },
   { rintros n h,
-    refine ⟨lower_central_series G, ⟨lower_central_series_is_descending_central_series, h⟩⟩ },
+    exact ⟨lower_central_series G, ⟨lower_central_series_is_descending_central_series, h⟩⟩ },
 end
 
 end classical
@@ -432,7 +413,7 @@ begin
   induction n with d hd,
   { simp },
   { rintros _ ⟨x, hx : x ∈ upper_central_series G d.succ, rfl⟩ y',
-    rcases (h y') with ⟨y, rfl⟩,
+    rcases h y' with ⟨y, rfl⟩,
     simpa using hd (mem_map_of_mem f (hx y)) }
 end
 
@@ -455,8 +436,7 @@ lemma lower_central_series_succ_eq_bot {n : ℕ} (h : lower_central_series G n �
 begin
   rw [lower_central_series_succ, closure_eq_bot_iff, set.subset_singleton_iff],
   rintro x ⟨y, hy1, z, ⟨⟩, rfl⟩,
-  symmetry,
-  rw [eq_mul_inv_iff_mul_eq, eq_mul_inv_iff_mul_eq, one_mul],
+  rw [mul_assoc, ←mul_inv_rev, mul_inv_eq_one, eq_comm],
   exact mem_center_iff.mp (h hy1) z,
 end
 
@@ -478,7 +458,6 @@ instance is_nilpotent.to_is_solvable [h : is_nilpotent G]: is_solvable G :=
 begin
   obtain ⟨n, hn⟩ := nilpotent_iff_lower_central_series.1 h,
   use n,
-  apply le_bot_iff.mp,
-  calc derived_series G n ≤ lower_central_series G n : derived_le_lower_central n
-    ... = ⊥ : hn
+  rw [eq_bot_iff, ←hn],
+  exact derived_le_lower_central n,
 end

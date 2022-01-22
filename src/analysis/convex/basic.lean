@@ -73,6 +73,16 @@ lemma open_segment_subset_segment (x y : E) :
   open_segment 𝕜 x y ⊆ [x -[𝕜] y] :=
 λ z ⟨a, b, ha, hb, hab, hz⟩, ⟨a, b, ha.le, hb.le, hab, hz⟩
 
+lemma segment_subset_iff {x y : E} {s : set E} :
+  [x -[𝕜] y] ⊆ s ↔ ∀ a b : 𝕜, 0 ≤ a → 0 ≤ b → a + b = 1 → a • x + b • y ∈ s :=
+⟨λ H a b ha hb hab, H ⟨a, b, ha, hb, hab, rfl⟩,
+  λ H z ⟨a, b, ha, hb, hab, hz⟩, hz ▸ H a b ha hb hab⟩
+
+lemma open_segment_subset_iff {x y : E} {s : set E} :
+  open_segment 𝕜 x y ⊆ s ↔ ∀ a b : 𝕜, 0 < a → 0 < b → a + b = 1 → a • x + b • y ∈ s :=
+⟨λ H a b ha hb hab, H ⟨a, b, ha, hb, hab, rfl⟩,
+  λ H z ⟨a, b, ha, hb, hab, hz⟩, hz ▸ H a b ha hb hab⟩
+
 end has_scalar
 
 open_locale convex
@@ -101,7 +111,7 @@ lemma mem_open_segment_of_ne_left_right {x y z : E} (hx : x ≠ z) (hy : y ≠ z
   z ∈ open_segment 𝕜 x y :=
 begin
   obtain ⟨a, b, ha, hb, hab, hz⟩ := hz,
-    by_cases ha' : a = 0,
+  by_cases ha' : a = 0,
   { rw [ha', zero_add] at hab,
     rw [ha', hab, zero_smul, one_smul, zero_add] at hz,
     exact (hy hz).elim },
@@ -504,11 +514,7 @@ variables {𝕜 s}
 
 lemma convex_iff_segment_subset :
   convex 𝕜 s ↔ ∀ ⦃x y⦄, x ∈ s → y ∈ s → [x -[𝕜] y] ⊆ s :=
-begin
-  refine forall₄_congr (λ x y hx hy, ⟨_, λ h a b ha hb hab, h ⟨a, b, ha, hb, hab, rfl⟩⟩),
-  rintro h _ ⟨a, b, ha, hb, hab, rfl⟩,
-  exact h ha hb hab,
-end
+forall₄_congr $ λ x y hx hy, (segment_subset_iff _).symm
 
 lemma convex.segment_subset (h : convex 𝕜 s) {x y : E} (hx : x ∈ s) (hy : y ∈ s) :
   [x -[𝕜] y] ⊆ s :=
@@ -529,11 +535,10 @@ iff.intro
   (λ h x y hx hy a b ha hb hab,
     (h ha hb hab) (set.add_mem_add ⟨_, hx, rfl⟩ ⟨_, hy, rfl⟩))
 
-alias convex_iff_pointwise_add_subset ↔ convex.set_comb_subset _
+alias convex_iff_pointwise_add_subset ↔ convex.set_combo_subset _
 
 lemma convex_empty : convex 𝕜 (∅ : set E) :=
-by simp only [convex_iff_pointwise_add_subset, add_empty, forall_const, empty_subset,
-  implies_true_iff, smul_set_empty]
+λ x y, false.elim
 
 lemma convex_univ : convex 𝕜 (set.univ : set E) := λ _ _ _ _ _ _ _ _ _, trivial
 
@@ -588,18 +593,16 @@ end has_scalar
 section module
 variables [module 𝕜 E] [module 𝕜 F] {s : set E}
 
+lemma convex_iff_open_segment_subset :
+  convex 𝕜 s ↔ ∀ ⦃x y⦄, x ∈ s → y ∈ s → open_segment 𝕜 x y ⊆ s :=
+convex_iff_segment_subset.trans $ forall₄_congr $ λ x y hx hy,
+  (open_segment_subset_iff_segment_subset hx hy).symm
+
 lemma convex_iff_forall_pos :
   convex 𝕜 s ↔ ∀ ⦃x y⦄, x ∈ s → y ∈ s → ∀ ⦃a b : 𝕜⦄, 0 < a → 0 < b → a + b = 1
   → a • x + b • y ∈ s :=
-begin
-  refine ⟨λ h x y hx hy a b ha hb hab, h hx hy ha.le hb.le hab, _⟩,
-  intros h x y hx hy a b ha hb hab,
-  cases ha.eq_or_lt with ha ha,
-  { subst a, rw [zero_add] at hab, simp [hab, hy] },
-  cases hb.eq_or_lt with hb hb,
-  { subst b, rw [add_zero] at hab, simp [hab, hx] },
-  exact h hx hy ha hb hab
-end
+convex_iff_open_segment_subset.trans $ forall₄_congr $ λ x y hx hy,
+  open_segment_subset_iff 𝕜
 
 lemma convex_iff_pairwise_pos :
   convex 𝕜 s ↔ s.pairwise (λ x y, ∀ ⦃a b : 𝕜⦄, 0 < a → 0 < b → a + b = 1 → a • x + b • y ∈ s) :=
@@ -611,17 +614,11 @@ begin
   { exact h hx hy hxy ha hb hab },
 end
 
-lemma convex_iff_open_segment_subset :
-  convex 𝕜 s ↔ ∀ ⦃x y⦄, x ∈ s → y ∈ s → open_segment 𝕜 x y ⊆ s :=
-convex_iff_segment_subset.trans $ forall₄_congr $ λ x y hx hy,
-  (open_segment_subset_iff_segment_subset hx hy).symm
+protected lemma set.subsingleton.convex {s : set E} (h : s.subsingleton) : convex 𝕜 s :=
+convex_iff_pairwise_pos.mpr (h.pairwise _)
 
 lemma convex_singleton (c : E) : convex 𝕜 ({c} : set E) :=
-begin
-  intros x y hx hy a b ha hb hab,
-  rw [set.eq_of_mem_singleton hx, set.eq_of_mem_singleton hy, ←add_smul, hab, one_smul],
-  exact mem_singleton c
-end
+subsingleton_singleton.convex
 
 lemma convex.linear_image (hs : convex 𝕜 s) (f : E →ₗ[𝕜] F) : convex 𝕜 (f '' s) :=
 begin

@@ -49,7 +49,12 @@ subgroup `G` of `G`, and `⊥` denotes the trivial subgroup `{1}`.
 * `nilpotent_iff_finite_descending_central_series` : `G` is nilpotent iff some descending central
     series reaches `⊥`.
 * `nilpotent_iff_lower` : `G` is nilpotent iff the lower central series reaches `⊥`.
+* The `nilpotency_class` can likeways be obtained from these equivalent
+  definitions, see `least_ascending_central_series_length_eq_nilpotency_class`,
+  `least_descending_central_series_length_eq_nilpotency_class` and
+  `lower_central_series_length_eq_nilpotency_class`.
 * `is_nilpotent.to_is_solvable`: If `G` is nilpotent, it is solvable.
+
 
 ## Warning
 
@@ -126,6 +131,14 @@ instance (n : ℕ) : normal (upper_central_series G n) := (upper_central_series_
 
 @[simp] lemma upper_central_series_zero : upper_central_series G 0 = ⊥ := rfl
 
+@[simp] lemma upper_central_series_one : upper_central_series G 1 = center G :=
+begin
+  ext,
+  simp only [upper_central_series, upper_central_series_aux, upper_central_series_step, center,
+    set.center, mem_mk, mem_bot, set.mem_set_of_eq],
+  exact forall_congr (λ y, by rw [mul_inv_eq_one, mul_inv_eq_iff_eq_mul, eq_comm]),
+end
+
 /-- The `n+1`st term of the upper central series `H i` has underlying set equal to the `x` such
 that `⁅x,G⁆ ⊆ H n`-/
 lemma mem_upper_central_series_succ_iff (n : ℕ) (x : G) :
@@ -138,17 +151,6 @@ class group.is_nilpotent (G : Type*) [group G] : Prop :=
 (nilpotent [] : ∃ n : ℕ, upper_central_series G n = ⊤)
 
 open group
-
-section classical
-
-open_locale classical
-
-/-- The nilpotency class of a nilpotent group is the small natural `n` such that
-the `n`'th term of the upper central series is `G`. -/
-noncomputable def group.nilpotency_class (G : Type*) [group G] [is_nilpotent G] : ℕ :=
-nat.find (is_nilpotent.nilpotent G)
-
-end classical
 
 variable {G}
 
@@ -195,61 +197,74 @@ end
 /-- A group `G` is nilpotent iff there exists an ascending central series which reaches `G` in
   finitely many steps. -/
 theorem nilpotent_iff_finite_ascending_central_series :
-  is_nilpotent G ↔ ∃ H : ℕ → subgroup G, is_ascending_central_series H ∧ ∃ n : ℕ, H n = ⊤ :=
+  is_nilpotent G ↔ ∃ n : ℕ, ∃ H : ℕ → subgroup G, is_ascending_central_series H ∧ H n = ⊤ :=
 begin
   split,
-  { intro h,
-    use upper_central_series G,
-    refine ⟨upper_central_series_is_ascending_central_series G, h.1⟩ },
-  { rintro ⟨H, hH, n, hn⟩,
+  { rintro ⟨n, nH⟩,
+    refine ⟨_, _, upper_central_series_is_ascending_central_series G, nH⟩ },
+  { rintro ⟨n, H, hH, hn⟩,
     use n,
     have := ascending_central_series_le_upper H hH n,
     rw hn at this,
     exact eq_top_iff.mpr this }
 end
 
+lemma is_decending_rev_series_of_is_ascending
+  {H: ℕ → subgroup G} {n : ℕ} (hn : H n = ⊤) (hasc : is_ascending_central_series H) :
+  is_descending_central_series (λ (m : ℕ), H (n - m)) :=
+begin
+  cases hasc with h0 hH,
+  refine ⟨hn, λ x m hx g, _⟩,
+  dsimp at hx,
+  by_cases hm : n ≤ m,
+  { have hnm : n - m = 0 := tsub_eq_zero_iff_le.mpr hm,
+    rw [hnm, h0, subgroup.mem_bot] at hx,
+    subst hx,
+    convert subgroup.one_mem _,
+    group },
+  { push_neg at hm,
+    apply hH,
+    convert hx,
+    rw nat.sub_succ,
+    exact nat.succ_pred_eq_of_pos (tsub_pos_of_lt hm) },
+end
+
+lemma is_ascending_rev_series_of_is_descending
+  {H: ℕ → subgroup G} {n : ℕ} (hn : H n = ⊥) (hdesc : is_descending_central_series H) :
+  is_ascending_central_series (λ (m : ℕ), H (n - m)) :=
+begin
+  cases hdesc with h0 hH,
+  refine ⟨hn, λ x m hx g, _⟩,
+  dsimp only at hx,
+  by_cases hm : n ≤ m,
+  { have hnm : n - m = 0 := tsub_eq_zero_iff_le.mpr hm,
+    dsimp only,
+    rw [hnm, h0],
+    exact mem_top _ },
+  { push_neg at hm,
+    dsimp only,
+    convert hH x _ hx g,
+    rw nat.sub_succ,
+    exact (nat.succ_pred_eq_of_pos (tsub_pos_of_lt hm)).symm }
+end
+
 /-- A group `G` is nilpotent iff there exists a descending central series which reaches the
   trivial group in a finite time. -/
 theorem nilpotent_iff_finite_descending_central_series :
-  is_nilpotent G ↔ ∃ H : ℕ → subgroup G, is_descending_central_series H ∧ ∃ n : ℕ, H n = ⊥ :=
+  is_nilpotent G ↔ ∃ n : ℕ, ∃ H : ℕ → subgroup G, is_descending_central_series H ∧ H n = ⊥ :=
 begin
   rw nilpotent_iff_finite_ascending_central_series,
   split,
-  { rintro ⟨H, ⟨h0, hH⟩, n, hn⟩,
-    use (λ m, H (n - m)),
+  { rintro ⟨n, H, hH, hn⟩,
+    use n, use (λ m, H (n - m)),
     split,
-    { refine ⟨hn, λ x m hx g, _⟩,
-      dsimp at hx,
-      by_cases hm : n ≤ m,
-      { have hnm : n - m = 0 := tsub_eq_zero_iff_le.mpr hm,
-        rw [hnm, h0, subgroup.mem_bot] at hx,
-        subst hx,
-        convert subgroup.one_mem _,
-        group },
-      { push_neg at hm,
-        apply hH,
-        convert hx,
-        rw nat.sub_succ,
-        exact nat.succ_pred_eq_of_pos (tsub_pos_of_lt hm) } },
-    { use n,
-      rwa tsub_self } },
-  { rintro ⟨H, ⟨h0, hH⟩, n, hn⟩,
-    use (λ m, H (n - m)),
+    { apply (is_decending_rev_series_of_is_ascending G hn hH) },
+    { simp, exact hH.1 } },
+  { rintro ⟨n, H, hH, hn⟩,
+    use n, use (λ m, H (n - m)),
     split,
-    { refine ⟨hn, λ x m hx g, _⟩,
-      dsimp only at hx,
-      by_cases hm : n ≤ m,
-      { have hnm : n - m = 0 := tsub_eq_zero_iff_le.mpr hm,
-        dsimp only,
-        rw [hnm, h0],
-        exact mem_top _ },
-      { push_neg at hm,
-        dsimp only,
-        convert hH x _ hx g,
-        rw nat.sub_succ,
-        exact (nat.succ_pred_eq_of_pos (tsub_pos_of_lt hm)).symm } },
-    { use n,
-      rwa tsub_self } },
+    { apply (is_ascending_rev_series_of_is_descending G hn hH) },
+    { simp, exact hH.1 } },
 end
 
 /-- The lower central series of a group `G` is a sequence `H n` of subgroups of `G`, defined
@@ -261,6 +276,9 @@ def lower_central_series (G : Type*) [group G] : ℕ → subgroup G
 variable {G}
 
 @[simp] lemma lower_central_series_zero : lower_central_series G 0 = ⊤ := rfl
+
+@[simp] lemma lower_central_series_one : lower_central_series G 1 = commutator G :=
+by simp [lower_central_series]
 
 lemma mem_lower_central_series_succ_iff (n : ℕ) (q : G) :
   q ∈ lower_central_series G (n + 1) ↔
@@ -319,14 +337,79 @@ theorem nilpotent_iff_lower_central_series : is_nilpotent G ↔ ∃ n, lower_cen
 begin
   rw nilpotent_iff_finite_descending_central_series,
   split,
-  { rintro ⟨H, ⟨h0, hs⟩, n, hn⟩,
+  { rintro ⟨n, H, ⟨h0, hs⟩, hn⟩,
     use n,
     have := descending_central_series_ge_lower H ⟨h0, hs⟩ n,
     rw hn at this,
     exact eq_bot_iff.mpr this },
-  { intro h,
-    use [lower_central_series G, lower_central_series_is_descending_central_series, h] },
+  { rintro ⟨n, hn⟩,
+    use [n, lower_central_series G, lower_central_series_is_descending_central_series, hn] },
 end
+
+section classical
+
+open_locale classical
+
+variables [hG : is_nilpotent G]
+include hG
+
+variable (G)
+
+/-- The nilpotency class of a nilpotent group is the smallest natural `n` such that
+the `n`'th term of the upper central series is `G`. -/
+noncomputable def group.nilpotency_class : ℕ :=
+nat.find (is_nilpotent.nilpotent G)
+
+variable {G}
+
+/-- The nilpotency class of a nilpotent `G` is equal to the smallest `n` for which an ascending
+central series reaches `G` in its `n`'th term. -/
+lemma least_ascending_central_series_length_eq_nilpotency_class :
+  nat.find ((nilpotent_iff_finite_ascending_central_series G).mp hG) = group.nilpotency_class G :=
+begin
+  refine le_antisymm (nat.find_mono _) (nat.find_mono _),
+  { intros n hn,
+    exact ⟨upper_central_series G, upper_central_series_is_ascending_central_series G, hn ⟩, },
+  { rintros n ⟨H, ⟨hH, hn⟩⟩,
+    apply top_le_iff.mp,
+    rw ← hn,
+    exact (ascending_central_series_le_upper H hH n), }
+end
+
+/-- The nilpotency class of a nilpotent `G` is equal to the smallest `n` for which the descending
+central series reaches `⊥` in its `n`'th term. -/
+lemma least_descending_central_series_length_eq_nilpotency_class :
+  nat.find ((nilpotent_iff_finite_descending_central_series G).mp hG) = group.nilpotency_class G :=
+begin
+  rw ← least_ascending_central_series_length_eq_nilpotency_class,
+  refine le_antisymm (nat.find_mono _) (nat.find_mono _),
+  { rintros n ⟨H, ⟨hH, hn⟩⟩,
+    use (λ m, H (n - m)),
+    split,
+    { apply is_decending_rev_series_of_is_ascending G hn hH },
+    { simp, exact hH.1 } },
+  { rintros n ⟨H, ⟨hH, hn⟩⟩,
+    use (λ m, H (n - m)),
+    split,
+    { apply is_ascending_rev_series_of_is_descending G hn hH },
+    { simp, exact hH.1 } },
+end
+
+/-- The nilpotency class of a nilpotent `G` is equal to the length of the lower central series. -/
+lemma lower_central_series_length_eq_nilpotency_class :
+  nat.find (nilpotent_iff_lower_central_series.mp hG) = @group.nilpotency_class G _ _ :=
+begin
+  rw ← least_descending_central_series_length_eq_nilpotency_class,
+  refine le_antisymm (nat.find_mono _) (nat.find_mono _),
+  { rintros n ⟨H, ⟨hH, hn⟩⟩,
+    apply le_bot_iff.mp,
+    rw ← hn,
+    exact (descending_central_series_ge_lower H hH n), },
+  { rintros n h,
+    refine ⟨lower_central_series G, ⟨lower_central_series_is_descending_central_series, h⟩⟩ },
+end
+
+end classical
 
 lemma lower_central_series_map_subtype_le (H : subgroup G) (n : ℕ) :
   (lower_central_series H n).map H.subtype ≤ lower_central_series G n :=

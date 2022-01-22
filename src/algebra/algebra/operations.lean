@@ -123,6 +123,7 @@ begin
 end
 variables {R}
 
+
 variables (M N P Q)
 protected theorem mul_assoc : (M * N) * P = M * (N * P) :=
 le_antisymm (mul_le.2 $ λ mn hmn p hp,

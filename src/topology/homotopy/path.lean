@@ -312,3 +312,18 @@ lemma map_lift (P₀ : path x₀ x₁) (f : C(X, Y)) :
 end homotopic
 
 end path
+
+
+namespace continuous_map.homotopy
+
+/--
+Given a homotopy H: f ∼ g, get the path traced by the point `x` as it moves from
+`f x` to `g x`
+-/
+def to_path {X : Type*} {Y : Type*} [topological_space X] [topological_space Y] {f g : C(X, Y)}
+  (H : continuous_map.homotopy f g) (x : X) : path (f x) (g x) :=
+{ to_fun := λ t, H (t, x),
+  source' := H.apply_zero x,
+  target' := H.apply_one x, }
+
+end continuous_map.homotopy

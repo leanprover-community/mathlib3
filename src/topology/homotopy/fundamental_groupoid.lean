@@ -323,6 +323,9 @@ def fundamental_groupoid_functor : Top ⥤ category_theory.Groupoid :=
     refl,
   end }
 
+lemma map_eq {X Y : Top} {x₀ x₁ : X} (f : C(X, Y)) (p : path.homotopic.quotient x₀ x₁) :
+  (fundamental_groupoid_functor.map f).map p = p.map_fn f := rfl
+
 /-- Help the typechecker by converting a point in a groupoid back to a point in
 the underlying topological space. -/
 @[reducible]

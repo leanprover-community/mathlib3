@@ -406,7 +406,7 @@ begin
 end
 
 @[simp]
-lemma lower_central_series_nilpotency_class [is_nilpotent G] :
+lemma lower_central_series_nilpotency_class :
   lower_central_series G (group.nilpotency_class G) = ⊥ :=
 begin
   rw ← lower_central_series_length_eq_nilpotency_class,

@@ -459,9 +459,11 @@ variables, ultimately obtaining the remaining non-Pi expression as well.
 -/
 meta def unravel_explicits_of_pi :
   expr → ℕ → list name → list ℕ → (list name) × (list ℕ) × expr
-| (pi n bi _ e) i ln li :=
-  match bi with
-  | binder_info.default := unravel_explicits_of_pi e (i + 1) (ln.concat n) (li.concat i)
+| (pi n binder_info.default _ e) i ln li :=
+  unravel_explicits_of_pi e (i + 1) (ln.concat n) (li.concat i)
+| (pi n _ _ _ e) i ln li :=
+  unravel_explicits_of_pi e (i + 1) ln li
+| e             _ ln li := (ln, li, e)
   | _                   := unravel_explicits_of_pi e (i + 1) ln            li
   end
 | e             _ ln li := (ln, li, e)

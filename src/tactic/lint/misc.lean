@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Floris van Doorn, Robert Y. Lewis
+Authors: Arthur Paulino, Floris van Doorn, Robert Y. Lewis
 -/
 import data.bool.basic
 import meta.rb_map
@@ -448,3 +448,67 @@ meta def linter.unused_haves_suffices : linter :=
 "`proof_of_goal`, in addition to being ineffectual, they may make unnecessary assumptions in " ++
 "proofs appear as if they are used. ",
   is_fast := ff }
+
+/-!
+## Linter for equalities and iff's
+-/
+
+/--
+Recursively consumes a Pi expression while accumulating names and de-Bruijn indexes of explicit
+variables, ultimately obtaining the remaining non-Pi expression as well.
+-/
+meta def unravel_explicits_of_pi :
+  expr → ℕ → list name → list ℕ → (list name) × (list ℕ) × expr
+| (pi n bi _ e) i ln li :=
+  match bi with
+  | binder_info.default := unravel_explicits_of_pi e (i + 1) (ln.concat n) (li.concat i)
+  | _                   := unravel_explicits_of_pi e (i + 1) ln            li
+  end
+| e             _ ln li := (ln, li, e)
+
+/--
+Checks an expression is either an equality or iff. If this is so, return its left and right
+expressions. Return `none` otherwise.
+-/
+meta def split_eq_iff (e : expr) : option (expr × expr) :=
+match e.is_eq with
+| some e' := e'
+| none    :=
+  match e.is_iff with
+  | some e' := e'
+  | none    := none
+  end
+end
+
+/--
+This function works as follows:
+1. Call `unravel_explicits_of_pi` to obtain the names, de-Bruijn indexes and the remaining non-Pi
+expression;
+2. Call `split_eq_iff` to check if the remaining non-Pi expression is an equality or iff, already
+obtaining the respective left and right expressions if this is the case. Returns `none` otherwise;
+3. Filter the explicit variables that appear on the left *and* right side of the equality/iff;
+4. If no variable suffices the condition above, return `none`;
+5. Return a message mentioning the variables that do, otherwise.
+ -/
+meta def explicit_vars_of_eq_iff (d : declaration) :
+    tactic (option string) := do
+  let (ln, li, e) := unravel_explicits_of_pi d.type 0 [] [],
+  match split_eq_iff e with
+  | none          := return none
+  | some (el, er) := do
+    let l := (ln.zip li).filter (λ t, (el.has_var_idx t.2) && (er.has_var_idx t.2)),
+    if l = [] then return none
+    else return $ "The following varibles are used on both sides of ".append $
+      "an equality or iff and should be made implicit: ".append $
+      ", ".intercalate (l.map (λ t, to_string t.1))
+  end
+
+/--
+A linter for checking if variables appearing on both sides of an equality or iff are explicit.
+Ideally, such variables should be implicit instead.
+-/
+@[linter] meta def linter.explicit_vars_of_eq_iff : linter :=
+{ test := explicit_vars_of_eq_iff,
+  auto_decls := ff,
+  no_errors_found := "No explicit variables on both sides of equality or iff",
+  errors_found := "EXPLICIT VARIABLES ON BOTH SIDES OF EQUALITY OR IFF" }

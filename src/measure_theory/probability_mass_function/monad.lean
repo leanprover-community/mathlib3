@@ -312,8 +312,9 @@ calc (p.bind_on_support f).to_outer_measure s
         { simp [to_outer_measure_apply, g, h, set.indicator_apply] }
       end)
 
-/-- The measure of a set under `p.bind f` is the sum over `a : α`
-  of the probability of `a` under `p` times the measure of the set under `f a` -/
+/-- The measure of a set under `p.bind_on_support f` is the sum over `a : α`
+  of the probability of `a` under `p` times the measure of the set under `f a _`.
+  The additional if statement is needed since `f` is only a partial function -/
 lemma to_measure_bind_on_support_apply [measurable_space β] (hs : measurable_set s) :
   (p.bind_on_support f).to_measure s =
     ∑' (a : α), (p a : ℝ≥0∞) * if h : p a = 0 then 0 else (f a h).to_measure s :=

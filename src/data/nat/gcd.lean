@@ -98,6 +98,10 @@ or.elim (nat.eq_zero_or_pos k)
     nat.div_mul_cancel (dvd_gcd H1 H2), ←gcd_mul_right,
     nat.div_mul_cancel H1, nat.div_mul_cancel H2])
 
+theorem gcd_greatest {a b d : ℕ} (hda : d ∣ a) (hdb : d ∣ b)
+  (hd : ∀ e : ℕ, e ∣ a → e ∣ b → e ∣ d) : (a.gcd b) = d :=
+dvd_antisymm (hd _ (gcd_dvd_left a b) (gcd_dvd_right a b)) (dvd_gcd hda hdb)
+
 theorem gcd_dvd_gcd_of_dvd_left {m k : ℕ} (n : ℕ) (H : m ∣ k) : gcd m n ∣ gcd k n :=
 dvd_gcd ((gcd_dvd_left m n).trans H) (gcd_dvd_right m n)
 

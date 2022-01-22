@@ -211,15 +211,10 @@ prod_pos (λ p hp, (pow_ne_zero _ (hf p hp).ne_zero).bot_lt)
 
 end temp
 
-lemma nat.gcd_greatest {a b d : ℕ} (hda : d ∣ a) (hdb : d ∣ b)
-  (hd : ∀ e : ℕ, e ∣ a → e ∣ b → e ∣ d) : (a.gcd b) = d :=
-dvd_antisymm (hd _ (gcd_dvd_left a b) (gcd_dvd_right a b)) (dvd_gcd hda hdb)
-
 ------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------
 
--- This fails for a = 0 and for b = 0
 lemma factorization_gcd (a b : ℕ) (ha_pos : a ≠ 0) (hb_pos : b ≠ 0) :
   (gcd a b).factorization = a.factorization ⊓ b.factorization :=
 begin
@@ -243,8 +238,7 @@ begin
   apply nat.gcd_greatest,
   { rw [←factorization_le_iff_dvd hd_pos ha_pos, h1, dfac_def], exact inf_le_left },
   { rw [←factorization_le_iff_dvd hd_pos hb_pos, h1, dfac_def], exact inf_le_right },
-  {
-    intros e hea heb,
+  { intros e hea heb,
     rcases decidable.eq_or_ne e 0 with rfl | he_pos,
     { simp only [zero_dvd_iff] at hea, contradiction, },
     have hea' := (factorization_le_iff_dvd he_pos ha_pos).mpr hea,

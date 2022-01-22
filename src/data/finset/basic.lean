@@ -1815,14 +1815,10 @@ rfl
 finset.eq_of_veq $ by by_cases h : a ∈ l; simp [finset.insert_val', multiset.erase_dup_cons, h]
 
 lemma to_finset_surj_on : set.surj_on to_finset {l : list α | l.nodup} set.univ :=
-begin
-  rintro s -,
-  cases s with t hl, induction t using quot.ind with l,
-  refine ⟨l, hl, (to_finset_eq hl).symm⟩
-end
+by { rintro ⟨⟨l⟩, hl⟩ _, exact ⟨l, hl, (to_finset_eq hl).symm⟩ }
 
 theorem to_finset_surjective : surjective (to_finset : list α → finset α) :=
-by { intro s, rcases to_finset_surj_on (set.mem_univ s) with ⟨l, -, hls⟩, exact ⟨l, hls⟩ }
+λ s, let ⟨l, _, hls⟩ := to_finset_surj_on (set.mem_univ s) in ⟨l, hls⟩
 
 lemma to_finset_eq_iff_perm_erase_dup {l l' : list α} :
   l.to_finset = l'.to_finset ↔ l.erase_dup ~ l'.erase_dup :=

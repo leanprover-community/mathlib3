@@ -450,7 +450,7 @@ meta def linter.unused_haves_suffices : linter :=
   is_fast := ff }
 
 /-!
-## Linter for equalities and iff's
+## Linter for iff's
 -/
 
 open binder_info
@@ -466,49 +466,34 @@ meta def unravel_explicits_of_pi :
 | e                  _ ln li := (ln, li, e)
 
 /--
-Checks an expression is either an equality or iff. If this is so, return its left and right
-expressions. Return `none` otherwise.
--/
-meta def split_eq_iff (e : expr) : option (expr × expr) :=
-match e.is_eq with
-| some e' := e'
-| none    :=
-  match e.is_iff with
-  | some e' := e'
-  | none    := none
-  end
-end
-
-/--
 This function works as follows:
 1. Call `unravel_explicits_of_pi` to obtain the names, complements of de-Bruijn indexes and the
 remaining non-Pi expression;
-2. Call `split_eq_iff` to check if the remaining non-Pi expression is an equality or iff, already
-obtaining the respective left and right expressions if this is the case. Returns `none` otherwise;
-3. Filter the explicit variables that appear on the left *and* right side of the equality/iff;
+2. Check if the remaining non-Pi expression is an iff, already obtaining the respective left and
+right expressions if this is the case. Returns `none` otherwise;
+3. Filter the explicit variables that appear on the left *and* right side of the iff;
 4. If no variable suffices the condition above, return `none`;
 5. Return a message mentioning the variables that do, otherwise.
 -/
-meta def explicit_vars_of_eq_iff (d : declaration) :
+meta def explicit_vars_of_iff (d : declaration) :
     tactic (option string) := do
   let (ln, li, e) := unravel_explicits_of_pi d.type 0 [] [],
-  match split_eq_iff e with
+  match e.is_iff with
   | none          := return none
   | some (el, er) := do
     let li := li.map (λ i, d.type.pi_arity - i - 1), -- fixing for the actual de-Bruijn indexes
     let l := (ln.zip li).filter (λ t, (el.has_var_idx t.2) && (er.has_var_idx t.2)),
     if l = [] then return none
-    else return $ "The following varibles are used on both sides of ".append $
-      "an equality or iff and should be made implicit: ".append $
-      ", ".intercalate (l.map (λ t, to_string t.1))
+    else return $ "The following varibles are used on both sides of an iff and ".append $
+      "should be made implicit: ".append $ ", ".intercalate (l.map (λ t, to_string t.1))
   end
 
 /--
-A linter for checking if variables appearing on both sides of an equality or iff are explicit.
-Ideally, such variables should be implicit instead.
+A linter for checking if variables appearing on both sides of an iff are explicit. Ideally, such
+variables should be implicit instead.
 -/
-@[linter] meta def linter.explicit_vars_of_eq_iff : linter :=
-{ test := explicit_vars_of_eq_iff,
+@[linter] meta def linter.explicit_vars_of_iff : linter :=
+{ test := explicit_vars_of_iff,
   auto_decls := ff,
-  no_errors_found := "No explicit variables on both sides of equality or iff",
-  errors_found := "EXPLICIT VARIABLES ON BOTH SIDES OF EQUALITY OR IFF" }
+  no_errors_found := "No explicit variables on both sides of iff",
+  errors_found := "EXPLICIT VARIABLES ON BOTH SIDES OF IFF" }

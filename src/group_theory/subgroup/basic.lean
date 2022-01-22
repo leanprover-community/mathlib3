@@ -1305,21 +1305,12 @@ variable (H)
 
 /-- A subgroup is maximal if it is a proper subgroup that is not contained in
 anyother proper subgroup -/
-def is_maximal := H < ⊤ ∧ (∀ H' : subgroup G, H ≤ H' → H' < ⊤ → H' = H)
+def is_maximal := H < ⊤ ∧ (∀ H' : subgroup G, H < H' → H' = ⊤)
 
 /-- In a group that satisifed the normalizer condition, every maximal subgroup is normal -/
 lemma normal_of_maximal_normalizer_condition
-  (h : normalizer_condition G) (hmax : H.is_maximal) :
-  H.normal :=
-begin
-  apply normalizer_eq_top.mp,
-  have h2 : H < normalizer H := h H hmax.1,
-  have h3 := hmax.2 _ le_normalizer,
-  contrapose! h3,
-  split,
-  exact (lt_top_iff_ne_top.mpr h3),
-  symmetry, apply (ne_of_lt h2),
-end
+  (hnc : normalizer_condition G) (hmax : H.is_maximal) : H.normal :=
+normalizer_eq_top.mp (hmax.2 _ (hnc H hmax.1)))
 
 variable (H)
 

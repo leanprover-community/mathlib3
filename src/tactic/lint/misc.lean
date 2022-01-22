@@ -7,6 +7,7 @@ import data.bool.basic
 import meta.rb_map
 import tactic.lint.basic
 
+
 /-!
 # Various linters
 
@@ -456,8 +457,8 @@ meta def linter.unused_haves_suffices : linter :=
 open binder_info
 
 /--
-Recursively consumes a Pi expression while accumulating names and de-Bruijn indexes of explicit
-variables, ultimately obtaining the remaining non-Pi expression as well.
+Recursively consumes a Pi expression while accumulating names and the complement of de-Bruijn
+indexes of explicit variables, ultimately obtaining the remaining non-Pi expression as well.
 -/
 meta def unravel_explicits_of_pi :
   expr → ℕ → list name → list ℕ → (list name) × (list ℕ) × expr
@@ -481,20 +482,21 @@ end
 
 /--
 This function works as follows:
-1. Call `unravel_explicits_of_pi` to obtain the names, de-Bruijn indexes and the remaining non-Pi
-expression;
+1. Call `unravel_explicits_of_pi` to obtain the names, complements of de-Bruijn indexes and the
+remaining non-Pi expression;
 2. Call `split_eq_iff` to check if the remaining non-Pi expression is an equality or iff, already
 obtaining the respective left and right expressions if this is the case. Returns `none` otherwise;
 3. Filter the explicit variables that appear on the left *and* right side of the equality/iff;
 4. If no variable suffices the condition above, return `none`;
 5. Return a message mentioning the variables that do, otherwise.
- -/
+-/
 meta def explicit_vars_of_eq_iff (d : declaration) :
     tactic (option string) := do
   let (ln, li, e) := unravel_explicits_of_pi d.type 0 [] [],
   match split_eq_iff e with
   | none          := return none
   | some (el, er) := do
+    let li := li.map (λ i, d.type.pi_arity - i - 1), -- fixing for the actual de-Bruijn indexes
     let l := (ln.zip li).filter (λ t, (el.has_var_idx t.2) && (er.has_var_idx t.2)),
     if l = [] then return none
     else return $ "The following varibles are used on both sides of ".append $

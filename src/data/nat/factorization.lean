@@ -211,10 +211,9 @@ prod_pos (λ p hp, (pow_ne_zero _ (hf p hp).ne_zero).bot_lt)
 
 end temp
 
-
--- TODO: Is this version actually true?!
-lemma nat.gcd_greatest {a b d : ℕ} :
-  d ∣ a → d ∣ b → (∀ (e : ℕ), e ≠ 0 → e ∣ a → e ∣ b → e ∣ d) → d = (a.gcd b) := sorry
+lemma nat.gcd_greatest {a b d : ℕ} (hda : d ∣ a) (hdb : d ∣ b)
+  (hd : ∀ e : ℕ, e ∣ a → e ∣ b → e ∣ d) : (a.gcd b) = d :=
+dvd_antisymm (hd _ (gcd_dvd_left a b) (gcd_dvd_right a b)) (dvd_gcd hda hdb)
 
 ------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------
@@ -241,13 +240,13 @@ begin
 
   suffices : (gcd a b) = d, { rwa this },
 
-
-  rw eq_comm,
   apply nat.gcd_greatest,
   { rw [←factorization_le_iff_dvd hd_pos ha_pos, h1, dfac_def], exact inf_le_left },
   { rw [←factorization_le_iff_dvd hd_pos hb_pos, h1, dfac_def], exact inf_le_right },
   {
-    intros e he_pos hea heb,
+    intros e hea heb,
+    rcases decidable.eq_or_ne e 0 with rfl | he_pos,
+    { simp only [zero_dvd_iff] at hea, contradiction, },
     have hea' := (factorization_le_iff_dvd he_pos ha_pos).mpr hea,
     have heb' := (factorization_le_iff_dvd he_pos hb_pos).mpr heb,
     simp [←factorization_le_iff_dvd he_pos hd_pos, h1, dfac_def, hea', heb'] },

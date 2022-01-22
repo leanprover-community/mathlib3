@@ -6,6 +6,9 @@ Authors: Jean Lo, Bhavik Mehta, Yaël Dillies
 import analysis.convex.function
 import analysis.normed_space.ordered
 import data.real.pointwise
+import topology.algebra.filter_basis
+import topology.algebra.uniform_filter_basis
+import data.real.sqrt
 
 /-!
 # Seminorms and Local Convexity
@@ -66,9 +69,9 @@ Absorbent and balanced sets in a vector space over a normed field.
 -/
 
 open normed_field set
-open_locale pointwise topological_space nnreal
+open_locale pointwise topological_space nnreal big_operators
 
-variables {R 𝕜 E F G ι : Type*}
+variables {R 𝕜 E F G ι ι' : Type*}
 
 section semi_normed_ring
 variables [semi_normed_ring 𝕜]
@@ -420,6 +423,12 @@ ext $ λ _, rfl
 lemma comp_mono {p : seminorm 𝕜 F} {q : seminorm 𝕜 F} (f : E →ₗ[𝕜] F) (hp : p ≤ q) :
   p.comp f ≤ q.comp f := λ _, hp _
 
+/-- The composition as an `add_monoid_hom`. -/
+def pullback (f : E →ₗ[𝕜] F) : add_monoid_hom (seminorm 𝕜 F) (seminorm 𝕜 E) :=
+⟨λ p, p.comp f, zero_comp f, λ p q, add_comp p q f⟩
+
+@[simp] lemma pullback_apply (f : E →ₗ[𝕜] F) (p : seminorm 𝕜 F) : pullback f p = p.comp f := rfl
+
 section norm_one_class
 variables [norm_one_class 𝕜] (p : seminorm 𝕜 E) (x y : E) (r : ℝ)
 
@@ -450,6 +459,15 @@ instance : order_bot (seminorm 𝕜 E) := ⟨0, nonneg⟩
 
 lemma bot_eq_zero : (⊥ : seminorm 𝕜 E) = 0 := rfl
 
+lemma smul_le_smul {p q : seminorm 𝕜 E} {a b : nnreal} (hpq : p ≤ q) (hab : a ≤ b) :
+  a • p ≤ b • q :=
+begin
+  simp_rw [le_def, pi.le_def, coe_smul],
+  intros x,
+  simp_rw [pi.smul_apply, nnreal.smul_def, smul_eq_mul],
+  exact mul_le_mul hab (hpq x) (nonneg p x) (nnreal.coe_nonneg b),
+end
+
 lemma finset_sup_apply (p : ι → seminorm 𝕜 E) (s : finset ι) (x : E) :
   s.sup p x = ↑(s.sup (λ i, ⟨p i x, nonneg (p i) x⟩) : nnreal) :=
 begin
@@ -458,6 +476,15 @@ begin
         nonneg.coe_zero] },
   { rw [finset.sup_cons, finset.sup_cons, coe_sup, sup_eq_max, pi.sup_apply, sup_eq_max,
         nnreal.coe_max, subtype.coe_mk, ih] }
+end
+
+lemma finset_sup_le_sum [decidable_eq ι] (p : ι → seminorm 𝕜 E) (s : finset ι) :
+  s.sup p ≤ ∑ (i : ι) in s, p i :=
+begin
+  refine finset.sup_le_iff.mpr _,
+  intros i hi,
+  rw [finset.sum_eq_sum_diff_singleton_add hi, le_add_iff_nonneg_left],
+  exact bot_le,
 end
 
 end norm_one_class
@@ -505,6 +532,16 @@ begin
   rw [set.eq_univ_iff_forall, ball],
   simp [hr],
 end
+
+lemma ball_smul (p : seminorm 𝕜 E) {c : nnreal} (hc : 0 < c) (r : ℝ) (x : E) :
+  (c • p).ball x r = p.ball x (r / c) :=
+begin
+  ext,
+  simp_rw mem_ball,
+  rw ←nnreal.coe_pos at hc,
+  rw [smul_apply, nnreal.smul_def, smul_eq_mul, mul_comm, lt_div_iff hc],
+end
+
 lemma ball_sup (p : seminorm 𝕜 E) (q : seminorm 𝕜 E) (e : E) (r : ℝ) :
   ball (p ⊔ q) e r = ball p e r ∩ ball q e r :=
 by simp_rw [ball, ←set.set_of_and, coe_sup, pi.sup_apply, sup_lt_iff]
@@ -632,7 +669,38 @@ end normed_linear_ordered_field
 
 -- TODO: convexity and absorbent/balanced sets in vector spaces over ℝ
 
+/-! ### Topology induced by a seminorm -/
+
+section topology
+
+variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E]
+
+/-- Type alias for the domain of a seminorm that is equipped with the structure of a
+`normed_space`. -/
+@[derive [add_comm_group, module 𝕜]] def domain (p : seminorm 𝕜 E) : Type* := E
+
+instance (p : seminorm 𝕜 E) : has_norm p.domain := ⟨p.to_fun⟩
+
+lemma is_core (p : seminorm 𝕜 E) : semi_normed_group.core p.domain :=
+⟨p.zero, p.triangle, p.neg⟩
+
+instance (p : seminorm 𝕜 E) : semi_normed_group p.domain :=
+semi_normed_group.of_core p.domain p.is_core
+
+instance (p : seminorm 𝕜 E) : normed_space 𝕜 p.domain :=
+⟨λ _ _, le_of_eq (p.smul _ _)⟩
+
+instance (p : seminorm 𝕜 E) : topological_space p.domain :=
+(by apply_instance : topological_space p.domain)
+
+instance (p : seminorm 𝕜 E) : topological_add_group p.domain :=
+(by apply_instance : topological_add_group p.domain)
+
+end topology
+
 end seminorm
+
+/-! ### Gauge -/
 
 section gauge
 noncomputable theory
@@ -924,4 +992,293 @@ lemma seminorm.gauge_seminorm_ball (p : seminorm ℝ E) :
 
 end gauge
 
--- TODO: topology induced by family of seminorms, local convexity.
+/-! ### Topology induced by a family of seminorms -/
+
+namespace seminorm
+
+section topology
+
+variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E] [normed_space ℝ 𝕜]
+variables [module ℝ E] [is_scalar_tower ℝ 𝕜 E]
+variables [decidable_eq ι] [inhabited ι]
+
+def seminorm_basis_zero (p : ι → seminorm 𝕜 E) : set (set E) :=
+  ⋃ (s : finset ι) r (hr : 0 < r), singleton $ ball (s.sup p) (0 : E) r
+
+lemma seminorm_basis_zero_iff (p : ι → seminorm 𝕜 E) (U : set E) :
+  U ∈ seminorm_basis_zero p ↔ ∃ (i : finset ι) r (hr : 0 < r), U = ball (i.sup p) 0 r :=
+by simp only [seminorm_basis_zero, mem_Union, mem_singleton_iff]
+
+lemma seminorm_basis_zero_mem (p : ι → seminorm 𝕜 E) (i : finset ι) {r : ℝ} (hr : 0 < r) :
+  (i.sup p).ball 0 r ∈ seminorm_basis_zero p :=
+(seminorm_basis_zero_iff _ _).mpr ⟨i,_,hr,rfl⟩
+
+lemma seminorm_basis_zero_singleton_mem (p : ι → seminorm 𝕜 E) (i : ι) {r : ℝ} (hr : 0 < r) :
+  (p i).ball 0 r ∈ seminorm_basis_zero p :=
+(seminorm_basis_zero_iff _ _).mpr ⟨{i},_,hr, by rw finset.sup_singleton⟩
+
+lemma seminorm_basis_zero_nonempty (p : ι → seminorm 𝕜 E) : (seminorm_basis_zero p).nonempty :=
+begin
+  refine set.nonempty_def.mpr ⟨ball (p (arbitrary ι)) 0 1, _⟩,
+  exact seminorm_basis_zero_singleton_mem _ (arbitrary ι) zero_lt_one,
+end
+
+lemma seminorm_basis_zero_intersect (p : ι → seminorm 𝕜 E)
+  (U V : set E) (hU : U ∈ seminorm_basis_zero p) (hV : V ∈ seminorm_basis_zero p) :
+  (∃ (z : set E) (H : z ∈ (seminorm_basis_zero p)), z ⊆ U ∩ V) :=
+begin
+  rcases (seminorm_basis_zero_iff p U).mp hU with ⟨ι'₁, r₁, hr₁, hU⟩,
+  rcases (seminorm_basis_zero_iff p V).mp hV with ⟨ι'₂, r₂, hr₂, hV⟩,
+  use ((ι'₁ ∪ ι'₂).sup p).ball 0 (min r₁ r₂),
+  refine ⟨seminorm_basis_zero_mem p (ι'₁ ∪ ι'₂) (lt_min_iff.mpr ⟨hr₁, hr₂⟩), _⟩,
+  rw [hU, hV, ball_finset_sup_eq_Inter _ _ _ (lt_min_iff.mpr ⟨hr₁, hr₂⟩),
+    ball_finset_sup_eq_Inter _ _ _ hr₁, ball_finset_sup_eq_Inter _ _ _ hr₂,
+    ←set.Inter_inter_distrib],
+  /-refine set.Inter_subset_Inter (λ i, _),
+  have hI₁ : (⋂ (H : i ∈ ι'₁ ∪ ι'₂), (p i).ball 0 r₁) ⊆ (⋂ (H : i ∈ ι'₁), (p i).ball 0 r₁) :=
+    Inter_subset_Inter2 (λ hi, ⟨finset.mem_union_left ι'₂ hi, subset.rfl⟩),
+  have hI₂ : (⋂ (H : i ∈ ι'₁ ∪ ι'₂), (p i).ball 0 r₂) ⊆ (⋂ (H : i ∈ ι'₂), (p i).ball 0 r₂) :=
+    Inter_subset_Inter2 (λ hi, ⟨finset.mem_union_right ι'₁ hi, subset.rfl⟩),
+  refine subset.trans _ (inter_subset_inter hI₁ hI₂),
+  rw [←set.Inter_inter_distrib],
+  exact Inter_subset_Inter (λ i, subset_inter
+    (ball_mono (min_le_of_left_le (le_refl _))) (ball_mono (min_le_of_right_le (le_refl _)))),-/
+  refine set.Inter_subset_Inter (λ i, (set.subset_inter _ _)),
+  { refine set.Inter_subset_Inter2 (λ hi, _),
+    use finset.mem_of_subset (finset.subset_union_left ι'₁ ι'₂) hi,
+    exact ball_mono (min_le_of_left_le (le_refl _)) },
+  refine set.Inter_subset_Inter2 (λ hi, _),
+  use finset.mem_of_subset (finset.subset_union_right ι'₁ ι'₂) hi,
+  exact ball_mono (min_le_of_right_le (le_refl _)),
+end
+
+lemma seminorm_basis_zero_zero (p : ι → seminorm 𝕜 E) (U) (hU : U ∈ seminorm_basis_zero p) :
+  (0 : E) ∈ U :=
+begin
+  rcases (seminorm_basis_zero_iff p U).mp hU with ⟨ι', r, hr, hU⟩,
+  rw [hU, mem_ball_zero, (ι'.sup p).zero],
+  exact hr,
+end
+
+lemma seminorm_basis_zero_add (p : ι → seminorm 𝕜 E) (U) (hU : U ∈ seminorm_basis_zero p) :
+  ∃ (V : set E) (H : V ∈ (seminorm_basis_zero p)), V + V ⊆ U :=
+begin
+  rcases (seminorm_basis_zero_iff p U).mp hU with ⟨ι', r, hr, hU⟩,
+  use (ι'.sup p).ball 0 (r/2),
+  refine ⟨seminorm_basis_zero_mem p ι' (div_pos hr zero_lt_two), _⟩,
+  refine set.subset.trans (add_ball_zero (ι'.sup p) (r/2)) _,
+  rw [hU, mul_comm, div_mul_cancel_of_invertible r 2],
+end
+
+lemma seminorm_basis_zero_neg (p : ι → seminorm 𝕜 E) (U) (hU' : U ∈ seminorm_basis_zero p) :
+  ∃ (V : set E) (H : V ∈ (seminorm_basis_zero p)), V ⊆ (λ (x : E), -x) ⁻¹' U :=
+begin
+  rcases (seminorm_basis_zero_iff p U).mp hU' with ⟨ι', r, hr, hU⟩,
+  rw [hU, preim_sub_ball (ι'.sup p)],
+  exact ⟨U, hU', eq.subset hU⟩,
+end
+
+def seminorm_add_group_filter_basis (p : ι → seminorm 𝕜 E) : add_group_filter_basis E :=
+  add_group_filter_basis_of_comm (seminorm_basis_zero p)
+  (seminorm_basis_zero_nonempty p)
+  (seminorm_basis_zero_intersect p)
+  (seminorm_basis_zero_zero p)
+  (seminorm_basis_zero_add p)
+  (seminorm_basis_zero_neg p)
+
+lemma seminorm_basis_zero_smul (p : ι → seminorm 𝕜 E) (U) (hU : U ∈ seminorm_basis_zero p) :
+  (∃ (V : set 𝕜) (H : V ∈ 𝓝 (0 : 𝕜)) (W : set E)
+  (H : W ∈ (seminorm_add_group_filter_basis p).sets), V • W ⊆ U) :=
+begin
+  rcases (seminorm_basis_zero_iff p U).mp hU with ⟨ι', r, hr, hU⟩,
+  use { y : 𝕜 | ∥y∥ < r.sqrt },
+  rw ←_root_.ball_zero_eq,
+  refine ⟨metric.ball_mem_nhds 0 (real.sqrt_pos.mpr hr), _⟩,
+  use (ι'.sup p).ball 0 (r.sqrt),
+  refine ⟨seminorm_basis_zero_mem p ι' (real.sqrt_pos.mpr hr), _⟩,
+  refine set.subset.trans (ball_smul_ball (ι'.sup p) r.sqrt r.sqrt) _,
+  rw [hU, real.mul_self_sqrt (le_of_lt hr)],
+end
+
+lemma seminorm_basis_zero_smul_left (p : ι → seminorm 𝕜 E) (x : 𝕜) (U : set E)
+  (hU : U ∈ seminorm_basis_zero p) : (∃ (V : set E)
+  (H : V ∈ (seminorm_add_group_filter_basis p).sets), V ⊆ (λ (y : E), x • y) ⁻¹' U) :=
+begin
+  rcases (seminorm_basis_zero_iff p U).mp hU with ⟨ι', r, hr, hU⟩,
+  rw hU,
+  by_cases h : x ≠ 0,
+  { rw (ι'.sup p).preim_smul_ball r x h,
+    use (ι'.sup p).ball 0 (r / ∥x∥),
+    exact ⟨seminorm_basis_zero_mem p ι' (div_pos hr (norm_pos_iff.mpr h)), subset.rfl⟩ },
+  use (ι'.sup p).ball 0 r,
+  refine ⟨seminorm_basis_zero_mem p ι' hr, _⟩,
+  simp only [not_ne_iff.mp h, subset_def, mem_ball_zero, hr, mem_univ, seminorm.zero,
+    implies_true_iff, preimage_const_of_mem, zero_smul],
+end
+
+lemma seminorm_basis_zero_smul_right (p : ι → seminorm 𝕜 E) (v : E) (U : set E)
+  (hU : U ∈ seminorm_basis_zero p) : (∀ᶠ (x : 𝕜) in 𝓝 0, x • v ∈ U) :=
+begin
+  rcases (seminorm_basis_zero_iff p U).mp hU with ⟨ι', r, hr, hU⟩,
+  rw [hU, filter.eventually_iff],
+  simp_rw [(ι'.sup p).mem_ball_zero, (ι'.sup p).smul],
+  by_cases h : 0 < (ι'.sup p) v,
+  { simp_rw (lt_div_iff h).symm,
+    rw ←_root_.ball_zero_eq,
+    exact metric.ball_mem_nhds 0 (div_pos hr h) },
+  simp_rw [le_antisymm (not_lt.mp h) ((ι'.sup p).nonneg v), mul_zero, hr],
+  exact is_open.mem_nhds is_open_univ (mem_univ 0),
+end
+
+def seminorm_module_filter_basis (p : ι → seminorm 𝕜 E) : module_filter_basis 𝕜 E :=
+{ to_add_group_filter_basis := seminorm_add_group_filter_basis p,
+  smul' := seminorm_basis_zero_smul p,
+  smul_left' := seminorm_basis_zero_smul_left p,
+  smul_right' := seminorm_basis_zero_smul_right p }
+
+@[derive [add_comm_group, module 𝕜, module ℝ, is_scalar_tower ℝ 𝕜]]
+def with_seminorms (p : ι → seminorm 𝕜 E) : Type* := E
+
+instance (p : ι → seminorm 𝕜 E) : topological_space (with_seminorms p) :=
+(seminorm_module_filter_basis p).topology'
+
+instance (p : ι → seminorm 𝕜 E) : topological_add_group (with_seminorms p) :=
+add_group_filter_basis.is_topological_add_group (seminorm_add_group_filter_basis p)
+
+instance (p : ι → seminorm 𝕜 E) : has_continuous_smul 𝕜 (with_seminorms p) :=
+module_filter_basis.has_continuous_smul (seminorm_module_filter_basis p)
+
+instance (p : ι → seminorm 𝕜 E) : uniform_space (with_seminorms p) :=
+(seminorm_add_group_filter_basis p).uniform_space
+
+instance (p : ι → seminorm 𝕜 E) : uniform_add_group (with_seminorms p) :=
+add_group_filter_basis.uniform_add_group (seminorm_add_group_filter_basis p)
+
+lemma with_singleton_has_basis (p : seminorm 𝕜 E) :
+  (𝓝 (0 : with_seminorms (λ _ : ι, p))).has_basis (λ (r : ℝ), (0 < r)) (p.ball 0) :=
+begin
+  have h := (seminorm_add_group_filter_basis (λ _ : ι, p)).nhds_zero_has_basis,
+  refine filter.has_basis.to_has_basis h _
+    (λ r hr, ⟨p.ball 0 r, seminorm_basis_zero_singleton_mem (λ _ : ι, p) (arbitrary ι) hr,
+    rfl.subset⟩),
+  rintros U (hU : U ∈ seminorm_basis_zero (λ (_x : ι), p)),
+  rcases (seminorm_basis_zero_iff (λ _, p) U).mp hU with ⟨ι', r, hr, hU⟩,
+  use [r, hr],
+  rw [hU, id.def],
+  by_cases h : ι'.nonempty,
+  { rw finset.sup_const h },
+  rw [finset.not_nonempty_iff_eq_empty.mp h, finset.sup_empty, ball_bot _ hr],
+  exact set.subset_univ _,
+end
+
+@[simp] lemma equal_topologies (p : seminorm 𝕜 E) :
+  with_seminorms.topological_space (λ _ : ι, p) = domain.topological_space p :=
+topological_add_group.ext (with_seminorms.topological_add_group _) (domain.topological_add_group _)
+  $ filter.has_basis.eq_of_same_basis (p.with_singleton_has_basis) metric.nhds_basis_ball
+
+end topology
+
+section bounded
+
+variables [normed_field 𝕜] [normed_space ℝ 𝕜]
+variables [add_comm_group E] [module 𝕜 E] [module ℝ E] [is_scalar_tower ℝ 𝕜 E]
+variables [decidable_eq ι] [inhabited ι]
+variables [add_comm_group F] [module 𝕜 F] [module ℝ F] [is_scalar_tower ℝ 𝕜 F]
+variables [decidable_eq ι'] [inhabited ι']
+
+def is_bounded (p : ι → seminorm 𝕜 E) (q : ι' → seminorm 𝕜 F) (f : E →ₗ[𝕜] F) : Prop :=
+  ∀ i : ι', ∃ s : finset ι, ∃ C : ℝ≥0, C ≠ 0 ∧ (q i).comp f ≤ C • s.sup p
+
+lemma is_bounded_singleton {p : ι → seminorm 𝕜 E} {q : seminorm 𝕜 F} (f : E →ₗ[𝕜] F) :
+  is_bounded p (λ _ : ι', q) f ↔ ∃ (s : finset ι) C : ℝ≥0, C ≠ 0 ∧ q.comp f ≤ C • s.sup p :=
+by simp only [is_bounded, forall_const]
+
+lemma singleton_is_bounded {p : seminorm 𝕜 E} {q : ι' → seminorm 𝕜 F} (f : E →ₗ[𝕜] F) :
+  is_bounded (λ _ : ι, p) q f ↔ ∀ i : ι', ∃ C : ℝ≥0, C ≠ 0 ∧ (q i).comp f ≤ C • p :=
+begin
+  dunfold is_bounded,
+  split,
+  { intros h i,
+    rcases h i with ⟨s, C, hC, h⟩,
+    exact ⟨C, hC, le_trans h (smul_le_smul (finset.sup_le (λ _ _, le_rfl)) le_rfl)⟩ },
+  intros h i,
+  use [{arbitrary ι}],
+  simp only [h, finset.sup_singleton],
+end
+
+lemma is_bounded_sup {p : ι → seminorm 𝕜 E} {q : ι' → seminorm 𝕜 F}
+  {f : E →ₗ[𝕜] F} (hf : is_bounded p q f) (s' : finset ι') :
+  ∃ (C : ℝ≥0) (s : finset ι), 0 < C ∧ (s'.sup q).comp f ≤ C • (s.sup p) :=
+begin
+  by_cases hs' : ¬s'.nonempty,
+  { refine ⟨1, ∅, zero_lt_one, _⟩,
+    rw [finset.not_nonempty_iff_eq_empty.mp hs', finset.sup_empty, bot_eq_zero, zero_comp],
+    exact seminorm.nonneg _ },
+  rw not_not at hs',
+  choose fₛ fC hf using hf,
+  use [s'.card • s'.sup fC, finset.bUnion s' fₛ],
+  split,
+  { refine nsmul_pos _ (ne_of_gt (finset.nonempty.card_pos hs')),
+    cases finset.nonempty.bex hs' with j hj,
+    exact lt_of_lt_of_le (zero_lt_iff.mpr (and.elim_left (hf j))) (finset.le_sup hj) },
+  have hs : ∀ i : ι', i ∈ s' → (q i).comp f ≤ s'.sup fC • ((finset.bUnion s' fₛ).sup p) :=
+  begin
+    intros i hi,
+    refine le_trans (and.elim_right (hf i)) (smul_le_smul _ (finset.le_sup hi)),
+    exact finset.sup_mono (finset.subset_bUnion_of_mem fₛ hi),
+  end,
+  refine le_trans (comp_mono f (finset_sup_le_sum q s')) _,
+  simp_rw [←pullback_apply, add_monoid_hom.map_sum, pullback_apply], --improve this
+  refine le_trans (finset.sum_le_sum hs) _,
+  rw [finset.sum_const, smul_assoc],
+  exact le_rfl,
+end
+
+lemma continuous_from_bounded {p : ι → seminorm 𝕜 E} {q : ι' → seminorm 𝕜 F}
+  (f : with_seminorms p →ₗ[𝕜] with_seminorms q) (hf : is_bounded p q f) : continuous f :=
+begin
+  refine uniform_continuous.continuous _,
+  refine add_monoid_hom.uniform_continuous_of_continuous_at_zero f.to_add_monoid_hom _,
+  rw [f.to_add_monoid_hom_coe, continuous_at_def, f.map_zero],
+  intros U hU,
+  rw [add_group_filter_basis.nhds_zero_eq, filter_basis.mem_filter_iff] at hU,
+  rcases hU with ⟨V, hV : V ∈ seminorm_basis_zero q, hU⟩,
+  rcases (seminorm_basis_zero_iff q V).mp hV with ⟨s₂, r, hr, hV⟩,
+  rw hV at hU,
+  rw [(seminorm_add_group_filter_basis p).nhds_zero_eq, filter_basis.mem_filter_iff],
+  rcases (is_bounded_sup hf s₂) with ⟨C, s₁, hC, hf⟩,
+  refine ⟨(s₁.sup p).ball 0 (r/C),
+    seminorm_basis_zero_mem p _ (div_pos hr (nnreal.coe_pos.mpr hC)), _⟩,
+  refine subset.trans _ (preimage_mono hU),
+  simp_rw [←linear_map.map_zero f, ←ball_comp],
+  refine subset.trans _ (ball_antimono hf),
+  rw ball_smul (s₁.sup p) hC,
+end
+
+lemma cont_with_seminorms_to_domain (p : ι → seminorm 𝕜 E) (q : seminorm 𝕜 F)
+  (f : with_seminorms p →ₗ[𝕜] q.domain)
+  (hf : ∃ (s : finset ι) C : ℝ≥0, C ≠ 0 ∧ q.comp f ≤ C • s.sup p) : continuous f :=
+begin
+  have hf' : @continuous _ _ (with_seminorms.topological_space p)
+    (with_seminorms.topological_space (λ _ : fin 1, q)) f :=
+    continuous_from_bounded f ((is_bounded_singleton f).mpr hf),
+  rw equal_topologies q at hf',
+  exact hf',
+end
+
+lemma cont_domain_to_with_seminorms (p : seminorm 𝕜 E) (q : ι' → seminorm 𝕜 F)
+  (f : p.domain →ₗ[𝕜] with_seminorms q)
+  (hf : ∀ i : ι', ∃ C : ℝ≥0, C ≠ 0 ∧ (q i).comp f ≤ C • p) : continuous f :=
+begin
+  have hf₂ : @continuous _ _ (with_seminorms.topological_space (λ _ : fin 1, p))
+    (with_seminorms.topological_space q) f :=
+    continuous_from_bounded f ((singleton_is_bounded f).mpr hf),
+  rw equal_topologies p at hf₂,
+  exact hf₂,
+end
+
+end bounded
+
+end seminorm
+
+-- TODO: local convexity.

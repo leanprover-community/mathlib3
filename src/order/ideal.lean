@@ -87,7 +87,7 @@ def principal (p : P) : ideal P :=
   mem_of_le := λ x y hxy hy, le_trans hxy hy, }
 
 instance [inhabited P] : inhabited (ideal P) :=
-⟨ideal.principal $ default P⟩
+⟨ideal.principal default⟩
 
 /-- An ideal of `P` can be viewed as a subset of `P`. -/
 instance : has_coe (ideal P) (set P) := ⟨carrier⟩
@@ -271,7 +271,7 @@ I.mem_of_le (sup_le hx hy) h_mem
 
 @[simp] lemma sup_mem_iff : x ⊔ y ∈ I ↔ x ∈ I ∧ y ∈ I :=
 ⟨λ h, ⟨I.mem_of_le le_sup_left h, I.mem_of_le le_sup_right h⟩,
- λ h, sup_mem x y h.left h.right⟩
+ λ h, sup_mem x h.left y h.right⟩
 
 end semilattice_sup
 
@@ -283,7 +283,7 @@ variables [semilattice_sup P] [ideal_inter_nonempty P] {x : P} {I J K : ideal P}
 def inf (I J : ideal P) : ideal P :=
 { carrier   := I ∩ J,
   nonempty  := inter_nonempty I J,
-  directed  := λ x ⟨_, _⟩ y ⟨_, _⟩, ⟨x ⊔ y, ⟨sup_mem x y ‹_› ‹_›, sup_mem x y ‹_› ‹_›⟩, by simp⟩,
+  directed  := λ x ⟨_, _⟩ y ⟨_, _⟩, ⟨x ⊔ y, ⟨sup_mem x ‹_› y ‹_›, sup_mem x ‹_› y ‹_›⟩, by simp⟩,
   mem_of_le := λ x y h ⟨_, _⟩, ⟨mem_of_le I h ‹_›, mem_of_le J h ‹_›⟩ }
 
 /-- There is a smallest ideal containing two ideals, when their intersection is nonempty and
@@ -293,8 +293,8 @@ def sup (I J : ideal P) : ideal P :=
   nonempty  := by { cases inter_nonempty I J, exact ⟨w, w, h.1, w, h.2, le_sup_left⟩ },
   directed  := λ x ⟨xi, _, xj, _, _⟩ y ⟨yi, _, yj, _, _⟩,
     ⟨x ⊔ y,
-     ⟨xi ⊔ yi, sup_mem xi yi ‹_› ‹_›,
-      xj ⊔ yj, sup_mem xj yj ‹_› ‹_›,
+     ⟨xi ⊔ yi, sup_mem xi ‹_› yi ‹_›,
+      xj ⊔ yj, sup_mem xj ‹_› yj ‹_›,
       sup_le
         (calc x ≤ xi ⊔ xj               : ‹_›
          ...    ≤ (xi ⊔ yi) ⊔ (xj ⊔ yj) : sup_le_sup le_sup_left le_sup_left)
@@ -305,7 +305,7 @@ def sup (I J : ideal P) : ideal P :=
 
 lemma sup_le : I ≤ K → J ≤ K → sup I J ≤ K :=
 λ hIK hJK x ⟨i, hiI, j, hjJ, hxij⟩,
-K.mem_of_le hxij $ sup_mem i j (mem_of_mem_of_le hiI hIK) (mem_of_mem_of_le hjJ hJK)
+K.mem_of_le hxij $ sup_mem i (mem_of_mem_of_le hiI hIK) j (mem_of_mem_of_le hjJ hJK)
 
 instance : lattice (ideal P) :=
 { sup          := sup,
@@ -372,13 +372,13 @@ instance : has_Inf (ideal P) :=
     begin
       simp only [←hS, sup_mem_iff, mem_coe, set.mem_Inter],
       intro hI,
-      rw set.mem_bInter_iff at *,
+      rw set.mem_Inter₂ at *,
       exact ⟨hx _ hI, hy _ hI⟩
     end,
     le_sup_left, le_sup_right⟩⟩,
   mem_of_le := λ x y hxy hy,
     begin
-      rw set.mem_bInter_iff at *,
+      rw set.mem_Inter₂ at *,
       exact λ I hI, mem_of_le I ‹_› (hy I hI)
     end } }
 
@@ -449,7 +449,7 @@ lemma is_proper.not_mem_of_compl_mem (hI : is_proper I) (hxc : xᶜ ∈ I) : x �
 begin
   intro hx,
   apply hI.top_not_mem,
-  have ht : x ⊔ xᶜ ∈ I := sup_mem _ _ ‹_› ‹_›,
+  have ht : x ⊔ xᶜ ∈ I := sup_mem _ ‹_› _ ‹_›,
   rwa sup_compl_eq_top at ht,
 end
 

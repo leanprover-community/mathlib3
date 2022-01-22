@@ -163,6 +163,9 @@ by { rw [degree, ← monomial_zero_left, support_monomial 0 _ ha, sup_singleton]
 lemma degree_C_le : degree (C a) ≤ 0 :=
 by by_cases h : a = 0; [rw [h, C_0], rw [degree_C h]]; [exact bot_le, exact le_refl _]
 
+lemma degree_C_lt (a : R) : degree (C a) < 1 :=
+nat.with_bot.lt_one_iff_le_zero.mpr degree_C_le
+
 lemma degree_one_le : degree (1 : polynomial R) ≤ (0 : with_bot ℕ) :=
 by rw [← C_1]; exact degree_C_le
 
@@ -998,6 +1001,10 @@ end
 @[simp] lemma leading_coeff_X_pow_add_one {n : ℕ} (hn : 0 < n) :
   (X ^ n + 1 : polynomial R).leading_coeff = 1 :=
 leading_coeff_X_pow_add_C hn
+
+@[simp] lemma leading_coeff_pow_X_add_C (r : R) (i : ℕ) :
+  leading_coeff ((X + C r) ^ i) = 1 :=
+by { nontriviality, rw leading_coeff_pow'; simp }
 
 end semiring
 

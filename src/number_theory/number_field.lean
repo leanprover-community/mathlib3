@@ -44,7 +44,8 @@ open function
 open_locale classical big_operators
 
 namespace number_field
-variables (K : Type*) [field K] [nf : number_field K]
+
+variables (K L : Type*) [field K] [field L] [nf : number_field K]
 
 include nf
 
@@ -59,32 +60,43 @@ omit nf
 is the integral closure of ℤ in the number field. -/
 def ring_of_integers := integral_closure ℤ K
 
+localized "notation `𝓞` := number_field.ring_of_integers" in number_field
+
+lemma mem_ring_of_integers (x : K) : x ∈ 𝓞 K ↔ is_integral ℤ x := iff.rfl
+
+instance ring_of_integers_algebra [algebra K L] : algebra (𝓞 K) (𝓞 L) := ring_hom.to_algebra
+{ to_fun := λ k, ⟨algebra_map K L k, is_integral.algebra_map k.2⟩,
+  map_zero' := subtype.ext $ by simp only [subtype.coe_mk, subalgebra.coe_zero, map_zero],
+  map_one'  := subtype.ext $ by simp only [subtype.coe_mk, subalgebra.coe_one, map_one],
+  map_add' := λ x y, subtype.ext $ by simp only [map_add, subalgebra.coe_add, subtype.coe_mk],
+  map_mul' := λ x y, subtype.ext $ by simp only [subalgebra.coe_mul, map_mul, subtype.coe_mk] }
+
 namespace ring_of_integers
 
 variables {K}
 
-instance [number_field K] : is_fraction_ring (ring_of_integers K) K :=
+instance [number_field K] : is_fraction_ring (𝓞 K) K :=
 integral_closure.is_fraction_ring_of_finite_extension ℚ _
 
-instance : is_integral_closure (ring_of_integers K) ℤ K :=
+instance : is_integral_closure (𝓞 K) ℤ K :=
 integral_closure.is_integral_closure _ _
 
-instance [number_field K] : is_integrally_closed (ring_of_integers K) :=
+instance [number_field K] : is_integrally_closed (𝓞 K) :=
 integral_closure.is_integrally_closed_of_finite_extension ℚ
 
-lemma is_integral_coe (x : ring_of_integers K) : is_integral ℤ (x : K) :=
+lemma is_integral_coe (x : 𝓞 K) : is_integral ℤ (x : K) :=
 x.2
 
 /-- The ring of integers of `K` are equivalent to any integral closure of `ℤ` in `K` -/
 protected noncomputable def equiv (R : Type*) [comm_ring R] [algebra R K]
-  [is_integral_closure R ℤ K] : ring_of_integers K ≃+* R :=
+  [is_integral_closure R ℤ K] : 𝓞 K ≃+* R :=
 (is_integral_closure.equiv ℤ R K _).symm.to_ring_equiv
 
 variables (K)
 
-instance [number_field K] : char_zero (ring_of_integers K) := char_zero.of_module _ K
+instance [number_field K] : char_zero (𝓞 K) := char_zero.of_module _ K
 
-instance [number_field K] : is_dedekind_domain (ring_of_integers K) :=
+instance [number_field K] : is_dedekind_domain (𝓞 K) :=
 is_integral_closure.is_dedekind_domain ℤ ℚ K _
 
 end ring_of_integers

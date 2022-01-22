@@ -182,9 +182,9 @@ variables {M₁ M₂} [mul_one_class M₁] [mul_one_class M₂] [has_continuous_
 /-- Construct a bundled monoid homomorphism `M₁ →* M₂` from a function `f` and a proof that it
 belongs to the closure of the range of the coercion from `M₁ →* M₂` (or another type of bundled
 homomorphisms that has a `monoid_hom_class` instance) to `M₁ → M₂`. -/
-@[to_additive "/-- Construct a bundled additive monoid homomorphism `M₁ →+ M₂` from a function `f`
+@[to_additive "Construct a bundled additive monoid homomorphism `M₁ →+ M₂` from a function `f`
 and a proof that it belongs to the closure of the range of the coercion from `M₁ →+ M₂` (or another
-type of bundled homomorphisms that has a `add_monoid_hom_class` instance) to `M₁ → M₂`. -/",
+type of bundled homomorphisms that has a `add_monoid_hom_class` instance) to `M₁ → M₂`.",
   simps { fully_applied := ff }]
 def monoid_hom_of_mem_closure_range_coe (f : M₁ → M₂)
   (hf : f ∈ closure (range (λ (f : F) (x : M₁), f x))) : M₁ →* M₂ :=
@@ -231,8 +231,8 @@ lemma submonoid.top_closure_mul_self_subset (s : submonoid M) :
   (closure (s : set M)) * closure (s : set M) ⊆ closure (s : set M) :=
 calc
 (closure (s : set M)) * closure (s : set M)
-    = (λ p : M × M, p.1 * p.2) '' (closure ((s : set M).prod s)) : by simp [closure_prod_eq]
-... ⊆ closure ((λ p : M × M, p.1 * p.2) '' ((s : set M).prod s)) :
+    = (λ p : M × M, p.1 * p.2) '' (closure ((s : set M) ×ˢ (s : set M))) : by simp [closure_prod_eq]
+... ⊆ closure ((λ p : M × M, p.1 * p.2) '' ((s : set M) ×ˢ (s : set M))) :
   image_closure_subset_closure_image continuous_mul
 ... = closure s : by simp [s.coe_mul_self_eq]
 
@@ -262,14 +262,17 @@ instance submonoid.topological_closure_has_continuous_mul (s : submonoid M) :
     continuity,
   end }
 
+@[to_additive]
 lemma submonoid.submonoid_topological_closure (s : submonoid M) :
   s ≤ s.topological_closure :=
 subset_closure
 
+@[to_additive]
 lemma submonoid.is_closed_topological_closure (s : submonoid M) :
   is_closed (s.topological_closure : set M) :=
 by convert is_closed_closure
 
+@[to_additive]
 lemma submonoid.topological_closure_minimal
   (s : submonoid M) {t : submonoid M} (h : s ≤ t) (ht : is_closed (t : set M)) :
   s.topological_closure ≤ t :=
@@ -332,35 +335,40 @@ lemma continuous_list_prod {f : ι → X → M} (l : list ι)
 continuous_iff_continuous_at.2 $ assume x, tendsto_list_prod l $ assume c hc,
   continuous_iff_continuous_at.1 (h c hc) x
 
--- @[to_additive continuous_smul]
-@[continuity]
+@[continuity, to_additive continuous_nsmul]
 lemma continuous_pow : ∀ n : ℕ, continuous (λ a : M, a ^ n)
 | 0 := by simpa using continuous_const
 | (k+1) := by { simp only [pow_succ], exact continuous_id.mul (continuous_pow _) }
 
-@[continuity]
+@[continuity, to_additive continuous.nsmul]
 lemma continuous.pow {f : X → M} (h : continuous f) (n : ℕ) :
   continuous (λ b, (f b) ^ n) :=
 (continuous_pow n).comp h
 
+@[to_additive continuous_on_nsmul]
 lemma continuous_on_pow {s : set M} (n : ℕ) : continuous_on (λ x, x ^ n) s :=
 (continuous_pow n).continuous_on
 
+@[to_additive continuous_at_nsmul]
 lemma continuous_at_pow (x : M) (n : ℕ) : continuous_at (λ x, x ^ n) x :=
 (continuous_pow n).continuous_at
 
+@[to_additive filter.tendsto.nsmul]
 lemma filter.tendsto.pow {l : filter α} {f : α → M} {x : M} (hf : tendsto f l (𝓝 x)) (n : ℕ) :
   tendsto (λ x, f x ^ n) l (𝓝 (x ^ n)) :=
 (continuous_at_pow _ _).tendsto.comp hf
 
+@[to_additive continuous_within_at.nsmul]
 lemma continuous_within_at.pow {f : X → M} {x : X} {s : set X} (hf : continuous_within_at f s x)
   (n : ℕ) : continuous_within_at (λ x, f x ^ n) s x :=
 hf.pow n
 
+@[to_additive continuous_at.nsmul]
 lemma continuous_at.pow {f : X → M} {x : X} (hf : continuous_at f x) (n : ℕ) :
   continuous_at (λ x, f x ^ n) x :=
 hf.pow n
 
+@[to_additive continuous_on.nsmul]
 lemma continuous_on.pow {f : X → M} {s : set X} (hf : continuous_on f s) (n : ℕ) :
   continuous_on (λ x, f x ^ n) s :=
 λ x hx, (hf x hx).pow n
@@ -397,13 +405,13 @@ open mul_opposite
 variables [topological_space α] [monoid α]
 
 /-- The units of a monoid are equipped with a topology, via the embedding into `α × α`. -/
-instance : topological_space (units α) :=
+instance : topological_space αˣ :=
 topological_space.induced (embed_product α) (by apply_instance)
 
 lemma continuous_embed_product : continuous (embed_product α) :=
 continuous_induced_dom
 
-lemma continuous_coe : continuous (coe : units α → α) :=
+lemma continuous_coe : continuous (coe : αˣ → α) :=
 by convert continuous_fst.comp continuous_induced_dom
 
 variables [has_continuous_mul α]
@@ -413,7 +421,7 @@ with respect to the induced topology, is continuous.
 
 Inversion is also continuous, but we register this in a later file, `topology.algebra.group`,
 because the predicate `has_continuous_inv` has not yet been defined. -/
-instance : has_continuous_mul (units α) :=
+instance : has_continuous_mul αˣ :=
 ⟨ let h := @continuous_mul (α × αᵐᵒᵖ) _ _ _ in
   continuous_induced_rng $ h.comp $ continuous_embed_product.prod_map continuous_embed_product ⟩
 

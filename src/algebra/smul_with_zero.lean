@@ -6,6 +6,7 @@ Authors: Damiano Testa
 import algebra.group_power.basic
 import algebra.ring.opposite
 import group_theory.group_action.opposite
+import group_theory.group_action.prod
 
 /-!
 # Introduce `smul_with_zero`
@@ -27,6 +28,10 @@ Thus, the action is required to be compatible with
 We also add an `instance`:
 
 * any `monoid_with_zero` has a `mul_action_with_zero R R` acting on itself.
+
+## Main declarations
+
+* `smul_monoid_with_zero_hom`: Scalar multiplication bundled as a morphism of monoids with zero.
 -/
 
 variables {R R' M M' : Type*}
@@ -154,3 +159,11 @@ def mul_action_with_zero.comp_hom (f : monoid_with_zero_hom R' R) :
   .. smul_with_zero.comp_hom M f.to_zero_hom}
 
 end monoid_with_zero
+
+/-- Scalar multiplication as a monoid homomorphism with zero. -/
+@[simps]
+def smul_monoid_with_zero_hom {α β : Type*} [monoid_with_zero α] [mul_zero_one_class β]
+  [mul_action_with_zero α β] [is_scalar_tower α β β] [smul_comm_class α β β] :
+  monoid_with_zero_hom (α × β) β :=
+{ map_zero' := smul_zero' _ _,
+  .. smul_monoid_hom }

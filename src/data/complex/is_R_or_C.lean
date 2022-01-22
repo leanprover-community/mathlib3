@@ -196,13 +196,13 @@ by { rw ext_iff, simp only [of_real_im, conj_im, eq_self_iff_true, conj_re, and_
 
 
 @[simp, is_R_or_C_simps] lemma conj_bit0 (z : K) : conj (bit0 z) = bit0 (conj z) :=
-by simp only [bit0, ring_equiv.map_add, eq_self_iff_true]
+by simp only [bit0, ring_hom.map_add, eq_self_iff_true]
 @[simp, is_R_or_C_simps] lemma conj_bit1 (z : K) : conj (bit1 z) = bit1 (conj z) :=
 by simp only [bit0, ext_iff, bit1_re, conj_im, eq_self_iff_true, conj_re, neg_add_rev,
               and_self, bit1_im]
 
 @[simp, is_R_or_C_simps] lemma conj_neg_I : conj (-I) = (I : K) :=
-by simp only [conj_I, ring_equiv.map_neg, eq_self_iff_true, neg_neg]
+by simp only [conj_I, ring_hom.map_neg, eq_self_iff_true, neg_neg]
 
 lemma conj_eq_re_sub_im (z : K) : conj z = re z - (im z) * I :=
 by { rw ext_iff, simp only [add_zero, I_re, of_real_im, I_im, zero_sub, zero_mul, conj_im,
@@ -228,7 +228,7 @@ begin
       convert (re_add_im z).symm, simp [this] },
     contrapose! h,
     rw ← re_add_im z,
-    simp only [conj_of_real, ring_equiv.map_add, ring_equiv.map_mul, conj_I_ax],
+    simp only [conj_of_real, ring_hom.map_add, ring_hom.map_mul, conj_I_ax],
     rw [add_left_cancel_iff, ext_iff],
     simpa [neg_eq_iff_add_eq_zero, add_self_eq_zero] },
   { rintros ⟨r, rfl⟩, apply conj_of_real }
@@ -414,7 +414,9 @@ by simp only [←sqrt_norm_sq_eq_norm, norm_sq_conj]
 
 @[simp, is_R_or_C_simps, norm_cast, priority 900] theorem of_real_nat_cast (n : ℕ) :
   ((n : ℝ) : K) = n :=
-of_real_hom.map_nat_cast n
+show (algebra_map ℝ K) n = n, from map_nat_cast of_real_hom n
+--of_real_hom.map_nat_cast n
+--@[simp, norm_cast, priority 900] theorem of_real_nat_cast (n : ℕ) : ((n : ℝ) : K) = n :=
 
 @[simp, is_R_or_C_simps, norm_cast] lemma nat_cast_re (n : ℕ) : re (n : K) = n :=
 by rw [← of_real_nat_cast, of_real_re]
@@ -465,7 +467,7 @@ theorem im_eq_conj_sub (z : K) : ↑(im z) = I * (conj z - z) / 2 :=
 begin
   rw [← neg_inj, ← of_real_neg, ← I_mul_re, re_eq_add_conj],
   simp only [mul_add, sub_eq_add_neg, neg_div', neg_mul_eq_neg_mul_symm, conj_I,
-             mul_neg_eq_neg_mul_symm, neg_add_rev, neg_neg, ring_equiv.map_mul]
+             mul_neg_eq_neg_mul_symm, neg_add_rev, neg_neg, ring_hom.map_mul]
 end
 
 /-! ### Absolute value -/
@@ -727,13 +729,13 @@ noncomputable instance real.is_R_or_C : is_R_or_C ℝ :=
   mul_re_ax := λ z w,
     by simp only [sub_zero, mul_zero, add_monoid_hom.zero_apply, add_monoid_hom.id_apply],
   mul_im_ax := λ z w, by simp only [add_zero, zero_mul, mul_zero, add_monoid_hom.zero_apply],
-  conj_re_ax := λ z, by simp only [star_ring_aut_apply, star_id_of_comm],
+  conj_re_ax := λ z, by simp only [star_ring_end_apply, star_id_of_comm],
   conj_im_ax := λ z, by simp only [neg_zero, add_monoid_hom.zero_apply],
-  conj_I_ax := by simp only [ring_equiv.map_zero, neg_zero],
+  conj_I_ax := by simp only [ring_hom.map_zero, neg_zero],
   norm_sq_eq_def_ax := λ z, by simp only [sq, norm, ←abs_mul, abs_mul_self z, add_zero,
     mul_zero, add_monoid_hom.zero_apply, add_monoid_hom.id_apply],
   mul_im_I_ax := λ z, by simp only [mul_zero, add_monoid_hom.zero_apply],
-  inv_def_ax := λ z, by simp only [star_ring_aut_apply, star, sq, real.norm_eq_abs,
+  inv_def_ax := λ z, by simp only [star_ring_end_apply, star, sq, real.norm_eq_abs,
     abs_mul_abs_self, ←div_eq_mul_inv, algebra.id.map_eq_id, id.def, ring_hom.id_apply,
     div_self_mul_self'],
   div_I_ax := λ z, by simp only [div_zero, mul_zero, neg_zero]}
@@ -815,8 +817,11 @@ linear_map.mk_continuous im_lm 1 $ by
 
 /-- Conjugate as an `ℝ`-algebra equivalence -/
 noncomputable def conj_ae : K ≃ₐ[ℝ] K :=
-{ commutes' := conj_of_real,
-  .. star_ring_aut }
+{ inv_fun := conj,
+  left_inv := conj_conj,
+  right_inv := conj_conj,
+  commutes' := conj_of_real,
+  .. conj }
 
 @[simp, is_R_or_C_simps] lemma conj_ae_coe : (conj_ae : K → K) = conj := rfl
 

@@ -386,23 +386,22 @@ begin
   cases hc with hE hc,
   { haveI : subsingleton F := (equiv.subsingleton_congr f'.to_linear_equiv.to_equiv).1 hE,
     exact surjective_to_subsingleton _ },
-  { suffices H : ∀ (R : ℝ), 0 ≤ R → closed_ball (f 0) R ⊆ range f,
-    { have : (⋃ (n : ℕ), closed_ball (f 0) n) ⊆ range f :=
-        Union_subset (λ n, H n (nat.cast_nonneg _)),
-      rw Union_closed_ball_nat at this,
-      exact range_iff_surjective.1 (eq_univ_of_forall this) },
-    assume R hR,
+  { assume x,
+    apply forall_of_forall_mem_closed_ball (λ (y : F), ∃ a, f a = y) (f 0) _ x,
+    refine frequently_of_forall (λ R y hy, _),
     have hc' : (0 : ℝ) < N⁻¹ - c, by { rw sub_pos, exact hc },
     set r := (N⁻¹ - c : ℝ) ⁻¹ * R with rdef,
-    have hr : 0 ≤ r := mul_nonneg (inv_nonneg.2 hc'.le) hR,
+    have hr : 0 ≤ r := mul_nonneg (inv_nonneg.2 hc'.le) (nonempty_closed_ball.1 ⟨y, hy⟩),
     have rR : (N⁻¹ - c : ℝ) * r = R, by rw [rdef, ← mul_assoc, mul_inv_cancel hc'.ne', one_mul],
-    calc closed_ball (f 0) R ⊆ f '' (closed_ball 0 r) :
-      begin
-        rw ← rR,
-        exact hf.surj_on_closed_ball_of_nonlinear_right_inverse f'.to_nonlinear_right_inverse hr
-          (subset_univ (closed_ball (0 : E) r))
-      end
-    ... ⊆ range f : image_subset_range _ _ }
+    have I : closed_ball (f 0) R ⊆ range f, from calc
+      closed_ball (f 0) R ⊆ f '' (closed_ball 0 r) :
+        begin
+          rw ← rR,
+          exact hf.surj_on_closed_ball_of_nonlinear_right_inverse f'.to_nonlinear_right_inverse hr
+            (subset_univ (closed_ball (0 : E) r))
+        end
+      ... ⊆ range f : image_subset_range _ _,
+    exact I hy }
 end
 
 /-- A map approximating a linear equivalence on a set defines a local equivalence on this set.

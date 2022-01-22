@@ -208,6 +208,9 @@ def factorization_equiv : pnat ≃ {f : ℕ →₀ ℕ | ∀ p ∈ f.support, pr
 lemma prime_finsupp_prod_pow_pos {f : ℕ →₀ ℕ} (hf : ∀ p ∈ f.support, prime p) : 0 < f.prod pow :=
 prod_pos (λ p hp, (pow_ne_zero _ (hf p hp).ne_zero).bot_lt)
 
+-- This is in `PR #11611`
+theorem gcd_greatest {a b d : ℕ} (hda : d ∣ a) (hdb : d ∣ b)
+  (hd : ∀ e : ℕ, e ∣ a → e ∣ b → e ∣ d) : d = (a.gcd b) := sorry
 
 end temp
 

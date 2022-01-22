@@ -490,7 +490,7 @@ end
 
 /-- The preimage of a nilpotent group is nilpotent if the kernel of the homomorphism is contained
 in the center -/
-lemma is_nilpotent_of_ker_le_center {H : Type*} [group H] {f : G →* H}
+lemma is_nilpotent_of_ker_le_center {H : Type*} [group H] (f : G →* H)
   (hf1 : f.ker ≤ center G) (hH : is_nilpotent H) : is_nilpotent G :=
 begin
   rw nilpotent_iff_lower_central_series at *,
@@ -504,9 +504,9 @@ section classical
 
 open_locale classical
 
-lemma nilpotency_class_le_of_ker_le_center {H : Type*} [group H] {f : G →* H}
+lemma nilpotency_class_le_of_ker_le_center {H : Type*} [group H] (f : G →* H)
   (hf1 : f.ker ≤ center G) (hH : is_nilpotent H) :
-  @group.nilpotency_class G _ (is_nilpotent_of_ker_le_center hf1 hH) ≤
+  @group.nilpotency_class G _ (is_nilpotent_of_ker_le_center f hf1 hH) ≤
     group.nilpotency_class H + 1 :=
 begin
   rw ← lower_central_series_length_eq_nilpotency_class,

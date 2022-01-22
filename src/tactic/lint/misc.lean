@@ -7,7 +7,6 @@ import data.bool.basic
 import meta.rb_map
 import tactic.lint.basic
 
-
 /-!
 # Various linters
 

@@ -923,8 +923,10 @@ variables (L) [fintype α]
 
 /-- A subset of a finite Cartesian product of a structure is definable when membership in
   the set is given by a first-order formula. -/
-class is_definable (s : set (α → M)) : Prop :=
+structure is_definable (s : set (α → M)) : Prop :=
 (exists_formula : ∃ (φ : L.formula α), s = set_of (realize_formula M φ))
+
+variables {L}
 
 @[simp]
 lemma is_definable_empty : L.is_definable (∅ : set (α → M)) :=
@@ -935,7 +937,7 @@ lemma is_definable_univ : L.is_definable (set.univ : set (α → M)) :=
 ⟨⟨⊤, by {ext, simp} ⟩⟩
 
 @[simp]
-lemma is_definable_inter {f g : set (α → M)} (hf : L.is_definable f) (hg : L.is_definable g) :
+lemma is_definable.inter {f g : set (α → M)} (hf : L.is_definable f) (hg : L.is_definable g) :
   L.is_definable (f ∩ g) :=
 ⟨begin
   rcases hf.exists_formula with ⟨φ, hφ⟩,
@@ -946,7 +948,7 @@ lemma is_definable_inter {f g : set (α → M)} (hf : L.is_definable f) (hg : L.
 end⟩
 
 @[simp]
-lemma is_definable_union {f g : set (α → M)} (hf : L.is_definable f) (hg : L.is_definable g) :
+lemma is_definable.union {f g : set (α → M)} (hf : L.is_definable f) (hg : L.is_definable g) :
   L.is_definable (f ∪ g) :=
 ⟨begin
   rcases hf.exists_formula with ⟨φ, hφ⟩,
@@ -959,7 +961,7 @@ lemma is_definable_union {f g : set (α → M)} (hf : L.is_definable f) (hg : L.
 end⟩
 
 @[simp]
-lemma is_definable_compl {s : set (α → M)} (hf : L.is_definable s) :
+lemma is_definable.compl {s : set (α → M)} (hf : L.is_definable s) :
   L.is_definable sᶜ :=
 ⟨begin
   rcases hf.exists_formula with ⟨φ, hφ⟩,
@@ -969,12 +971,12 @@ lemma is_definable_compl {s : set (α → M)} (hf : L.is_definable s) :
 end⟩
 
 @[simp]
-lemma is_definable_sdiff {s t : set (α → M)} (hs : L.is_definable s)
+lemma is_definable.sdiff {s t : set (α → M)} (hs : L.is_definable s)
   (ht : L.is_definable t) :
   L.is_definable (s \ t) :=
-L.is_definable_inter hs (L.is_definable_compl ht)
+hs.inter ht.compl
 
-variables (M) (α)
+variables (L) (M) (α)
 
 /-- Definable sets are subsets of finite Cartesian products of a structure such that membership is
   given by a first-order formula. -/
@@ -983,9 +985,9 @@ def definable_set := subtype (λ s : set (α → M), is_definable L s)
 namespace definable_set
 variables {M} {α}
 
-instance : has_top (L.definable_set M α) := ⟨⟨⊤, L.is_definable_univ⟩⟩
+instance : has_top (L.definable_set M α) := ⟨⟨⊤, is_definable_univ⟩⟩
 
-instance : has_bot (L.definable_set M α) := ⟨⟨⊥, L.is_definable_empty⟩⟩
+instance : has_bot (L.definable_set M α) := ⟨⟨⊥, is_definable_empty⟩⟩
 
 instance : inhabited (L.definable_set M α) := ⟨⊥⟩
 
@@ -1006,7 +1008,7 @@ lemma not_mem_bot {x : α → M} : ¬ x ∈ (⊥ : L.definable_set M α) := set.
 lemma coe_bot : ((⊥ : L.definable_set M α) : set (α → M)) = ⊥ := rfl
 
 instance : lattice (L.definable_set M α) :=
-subtype.lattice (λ _ _, L.is_definable_union) (λ _ _, L.is_definable_inter)
+subtype.lattice (λ _ _, is_definable.union) (λ _ _, is_definable.inter)
 
 lemma le_iff {s t : L.definable_set M α} : s ≤ t ↔ (s : set (α → M)) ≤ (t : set (α → M)) := iff.rfl
 
@@ -1042,7 +1044,7 @@ instance : bounded_distrib_lattice (L.definable_set M α) :=
 
 /-- The complement of a definable set is also definable. -/
 @[reducible] instance : has_compl (L.definable_set M α) :=
-⟨λ ⟨s, hs⟩, ⟨sᶜ, L.is_definable_compl hs⟩⟩
+⟨λ ⟨s, hs⟩, ⟨sᶜ, hs.compl⟩⟩
 
 @[simp]
 lemma mem_compl {s : L.definable_set M α} {x : α → M} : x ∈ sᶜ ↔ ¬ x ∈ s :=

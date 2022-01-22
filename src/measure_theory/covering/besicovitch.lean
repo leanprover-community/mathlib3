@@ -1106,7 +1106,7 @@ begin
 end
 
 variables [metric_space β] [measurable_space β] [borel_space β] [sigma_compact_space β]
-[has_besicovitch_covering β]
+  [has_besicovitch_covering β]
 
 /-- In a space with the Besicovitch covering property, the ratio of the measure of balls converges
 almost surely to to the Radon-Nikodym derivative. -/

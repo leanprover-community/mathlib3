@@ -1829,7 +1829,7 @@ lemma to_finset_eq_iff_perm_erase_dup {l l' : list α} :
 by simp [finset.ext_iff, perm_ext (nodup_erase_dup _) (nodup_erase_dup _)]
 
 lemma to_finset.ext_iff {a b : list ℕ} : a.to_finset = b.to_finset ↔ ∀ x, x ∈ a ↔ x ∈ b :=
-by simp only [to_finset_eq_iff_perm_erase_dup, perm_ext, nodup_erase_dup, mem_erase_dup]
+by simp only [finset.ext_iff, mem_to_finset]
 
 lemma to_finset.ext {a b : list ℕ} : (∀ x, x ∈ a ↔ x ∈ b) → a.to_finset = b.to_finset :=
 to_finset.ext_iff.mpr

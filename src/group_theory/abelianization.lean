@@ -18,6 +18,9 @@ groups, which can be found in `algebra/category/Group/adjunctions`.
 * `commutator`: defines the commutator of a group `G` as a subgroup of `G`.
 * `abelianization`: defines the abelianization of a group `G` as the quotient of a group by its
   commutator subgroup.
+* `abelianization.map`: lifts a group homomorphism to a homomorphism between the abelianizations
+* `mul_equiv.abelianization_congr`: Equivalent groups have equivalent abelianizations
+
 -/
 
 universes u v w
@@ -118,16 +121,19 @@ variables {H : Type v} [group H] (f : G →* H)
 /-- The map operation of the `abelianization` functor -/
 def map : abelianization G →* abelianization H := lift (of.comp f)
 
-variables {f}
-
 @[simp]
-lemma map_apply {x : abelianization G} : map f x = lift (of.comp f) x := rfl
+lemma map_of (x : G) : map f (of x) = of (f x) := rfl
 
 @[simp]
 lemma map_id : map (monoid_hom.id G) = monoid_hom.id (abelianization G) := hom_ext _ _ rfl
 
-lemma map_comp {I : Type w} [group I] {g : H →* I} :
+@[simp]
+lemma map_comp {I : Type w} [group I] (g : H →* I) :
   (map g).comp (map f) = map (g.comp f) := hom_ext _ _ rfl
+
+@[simp]
+lemma map_map_apply {I : Type w} [group I] {g : H →* I} {x : abelianization G}:
+  map g (map f x) = map (g.comp f) x := monoid_hom.congr_fun (map_comp _ _) x
 
 end map
 
@@ -143,12 +149,10 @@ def mul_equiv.abelianization_congr : abelianization G ≃* abelianization H :=
   inv_fun := abelianization.map e.symm.to_monoid_hom,
   left_inv := by { rintros ⟨a⟩, simp },
   right_inv := by { rintros ⟨a⟩, simp },
-  map_mul' := by tidy }
-
-variables {e}
+  map_mul' := monoid_hom.map_mul _ }
 
 @[simp]
-lemma coe_abelianization_congr_of { x : G } :
+lemma abelianization_congr_of (x : G) :
   (e.abelianization_congr) (abelianization.of x) = abelianization.of (e x) := rfl
 
 @[simp]
@@ -161,7 +165,7 @@ lemma abelianization_congr_symm  :
   e.abelianization_congr.symm = e.symm.abelianization_congr := rfl
 
 @[simp]
-lemma abelianization_congr_trans {I : Type v} [group I] {e₂ : H ≃* I} :
+lemma abelianization_congr_trans {I : Type v} [group I] (e₂ : H ≃* I) :
   e.abelianization_congr.trans e₂.abelianization_congr = (e.trans e₂).abelianization_congr :=
 mul_equiv.to_monoid_hom_injective (abelianization.hom_ext _ _ rfl)
 

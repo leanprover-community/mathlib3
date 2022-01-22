@@ -48,8 +48,10 @@ begin
   { sorry },
 end
 
+-- lemma witt_vector.is_Hausdorff : is_Hausdorff (𝕎 k)
+
 lemma important_aux {a₁ a₂ : 𝕎 k} (ha₁ : a₁.coeff 0 ≠ 0) (ha₂ : a₂.coeff 0 ≠ 0) :
-  ∃ (b : 𝕎 k) (hb : b ≠ 0) (m : ℕ), witt_vector.frobenius b * a₁ = b * a₂ :=
+  ∃ (b : 𝕎 k) (hb : b ≠ 0), witt_vector.frobenius b * a₁ = b * a₂ :=
 sorry
 
 lemma important {a : fraction_ring (𝕎 k)} (ha : a ≠ 0) :
@@ -61,7 +63,7 @@ begin
   have : r ≠ 0 := sorry,
   obtain ⟨m, r', hr', rfl⟩ := split p k r this,
   obtain ⟨n, q', hq', rfl⟩ := split p k q hq,
-  obtain ⟨b, hb, l, hl⟩ := important_aux p k hr' hq',
+  obtain ⟨b, hb, hb⟩ := important_aux p k hr' hq',
   refine ⟨algebra_map (𝕎 k) _ b, _, m - n, _⟩,
   { sorry },
   simp [is_fraction_ring.field_equiv_of_ring_equiv],
@@ -69,7 +71,7 @@ begin
   witt_vector.frobenius b * p ^ m * r' * p ^ n = p ^ m * b * (p ^ n * q') ,
   { -- apply `algebra_map` to both sides and divide
     sorry },
-  have H := congr_arg (λ x : 𝕎 k, x * p ^ m * p ^ n) hl,
+  have H := congr_arg (λ x : 𝕎 k, x * p ^ m * p ^ n) hb,
   dsimp at H,
   refine (eq.trans _ H).trans _; ring
 end

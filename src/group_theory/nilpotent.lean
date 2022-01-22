@@ -509,7 +509,7 @@ lemma nilpotency_class_le_of_ker_le_center {H : Type*} [group H] {f : G →* H}
   @group.nilpotency_class G _ (is_nilpotent_of_ker_le_center hf1 hH) ≤
     group.nilpotency_class H + 1 :=
 begin
-  nth_rewrite 0 ← lower_central_series_length_eq_nilpotency_class,
+  rw ← lower_central_series_length_eq_nilpotency_class,
   apply nat.find_min',
   refine lower_central_series_succ_eq_bot (le_trans ((map_eq_bot_iff _).mp _) hf1),
   apply eq_bot_iff.mpr,

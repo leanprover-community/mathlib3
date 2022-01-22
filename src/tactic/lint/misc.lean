@@ -453,20 +453,17 @@ meta def linter.unused_haves_suffices : linter :=
 ## Linter for equalities and iff's
 -/
 
+open binder_info
+
 /--
 Recursively consumes a Pi expression while accumulating names and de-Bruijn indexes of explicit
 variables, ultimately obtaining the remaining non-Pi expression as well.
 -/
 meta def unravel_explicits_of_pi :
   expr → ℕ → list name → list ℕ → (list name) × (list ℕ) × expr
-| (pi n binder_info.default _ e) i ln li :=
-  unravel_explicits_of_pi e (i + 1) (ln.concat n) (li.concat i)
-| (pi n _ _ _ e) i ln li :=
-  unravel_explicits_of_pi e (i + 1) ln li
-| e             _ ln li := (ln, li, e)
-  | _                   := unravel_explicits_of_pi e (i + 1) ln            li
-  end
-| e             _ ln li := (ln, li, e)
+| (pi n default _ e) i ln li := unravel_explicits_of_pi e (i + 1) (n :: ln) (i :: li)
+| (pi n _ _ e)       i ln li := unravel_explicits_of_pi e (i + 1) ln        li
+| e                  _ ln li := (ln, li, e)
 
 /--
 Checks an expression is either an equality or iff. If this is so, return its left and right

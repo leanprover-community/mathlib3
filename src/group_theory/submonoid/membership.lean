@@ -273,22 +273,6 @@ lemma mem_sup {s t : submonoid N} {x : N} :
 by simp only [sup_eq_range, mem_mrange, coprod_apply, prod.exists, set_like.exists,
   coe_subtype, subtype.coe_mk]
 
-@[to_additive]
-lemma mem_closure_pair {A : Type*} [comm_monoid A] (a b c : A) :
-  (∃ m n : ℕ, (a ^ m) * (b ^ n) = c) ↔ c ∈ submonoid.closure ({a, b} : set A) :=
-begin
-  rw [←set.singleton_union, submonoid.closure_union],
-  refine ⟨_, λ h, _⟩,
-  rintros ⟨m, n, rfl⟩,
-  exact mem_sup.mpr ⟨a ^ m, mem_closure_singleton.mpr ⟨m, rfl⟩,
-    b ^ n, mem_closure_singleton.mpr ⟨n, rfl⟩, rfl⟩,
-  obtain ⟨a, ha, b, hb, rfl⟩ := submonoid.mem_sup.mp h,
-  rw [mem_closure_singleton] at ha hb,
-  obtain ⟨a, rfl⟩ := ha,
-  obtain ⟨b, rfl⟩ := hb,
-  exact ⟨a, b, rfl⟩,
-end
-
 end submonoid
 
 namespace add_submonoid
@@ -371,6 +355,22 @@ submonoid `S` is contained in the additive closure of `S`. -/
 lemma mul_left_mem_add_closure (ha : a ∈ S) (hb : b ∈ add_submonoid.closure (S : set R)) :
   a * b ∈ add_submonoid.closure (S : set R) :=
 S.mul_mem_add_closure (add_submonoid.mem_closure.mpr (λ sT hT, hT ha)) hb
+
+@[to_additive]
+lemma mem_closure_pair {A : Type*} [comm_monoid A] (a b c : A) :
+  (∃ m n : ℕ, (a ^ m) * (b ^ n) = c) ↔ c ∈ submonoid.closure ({a, b} : set A) :=
+begin
+  rw [←set.singleton_union, submonoid.closure_union],
+  refine ⟨_, λ h, _⟩,
+  rintros ⟨m, n, rfl⟩,
+  exact mem_sup.mpr ⟨a ^ m, mem_closure_singleton.mpr ⟨m, rfl⟩,
+    b ^ n, mem_closure_singleton.mpr ⟨n, rfl⟩, rfl⟩,
+  obtain ⟨a, ha, b, hb, rfl⟩ := submonoid.mem_sup.mp h,
+  rw [mem_closure_singleton] at ha hb,
+  obtain ⟨a, rfl⟩ := ha,
+  obtain ⟨b, rfl⟩ := hb,
+  exact ⟨a, b, rfl⟩,
+end
 
 end submonoid
 

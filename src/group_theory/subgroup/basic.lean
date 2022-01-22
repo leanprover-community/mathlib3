@@ -1312,8 +1312,6 @@ lemma normal_of_maximal_normalizer_condition
   (hnc : normalizer_condition G) (hmax : H.is_maximal) : H.normal :=
 normalizer_eq_top.mp (hmax.2 _ (hnc H hmax.1)))
 
-variable (H)
-
 /-- Commutivity of a subgroup -/
 structure is_commutative : Prop :=
 (is_comm : _root_.is_commutative H (*))

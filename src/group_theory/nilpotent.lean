@@ -353,6 +353,11 @@ nat.find (is_nilpotent.nilpotent G)
 
 variable {G}
 
+@[simp]
+lemma upper_central_series_nilpotency_class :
+  upper_central_series G (group.nilpotency_class G) = ⊤ :=
+nat.find_spec (is_nilpotent.nilpotent G)
+
 /-- The nilpotency class of a nilpotent `G` is equal to the smallest `n` for which an ascending
 central series reaches `G` in its `n`'th term. -/
 lemma least_ascending_central_series_length_eq_nilpotency_class :
@@ -398,6 +403,14 @@ begin
     exact (descending_central_series_ge_lower H hH n), },
   { rintros n h,
     refine ⟨lower_central_series G, ⟨lower_central_series_is_descending_central_series, h⟩⟩ },
+end
+
+@[simp]
+lemma lower_central_series_nilpotency_class [is_nilpotent G] :
+  lower_central_series G (group.nilpotency_class G) = ⊥ :=
+begin
+  rw ← lower_central_series_length_eq_nilpotency_class,
+  exact (nat.find_spec (nilpotent_iff_lower_central_series.mp _))
 end
 
 end classical
@@ -496,14 +509,12 @@ lemma nilpotency_class_le_of_ker_le_center {H : Type*} [group H] {f : G →* H}
   @group.nilpotency_class G _ (is_nilpotent_of_ker_le_center hf1 hH) ≤
     group.nilpotency_class H + 1 :=
 begin
-  repeat { rw ← lower_central_series_length_eq_nilpotency_class },
+  nth_rewrite 0 ← lower_central_series_length_eq_nilpotency_class,
   apply nat.find_min',
-  have hn := nat.find_spec (nilpotent_iff_lower_central_series.mp hH),
   refine lower_central_series_succ_eq_bot (le_trans ((map_eq_bot_iff _).mp _) hf1),
   apply eq_bot_iff.mpr,
   apply (le_trans (lower_central_series.map f _)),
-  rw hn,
-  exact (le_refl _),
+  simp only [lower_central_series_nilpotency_class, le_bot_iff],
 end
 
 end classical

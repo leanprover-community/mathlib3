@@ -1307,7 +1307,7 @@ variable (H)
 anyother proper subgroup -/
 def is_maximal := H < ⊤ ∧ (∀ H' : subgroup G, H < H' → H' = ⊤)
 
-/-- In a group that satisifed the normalizer condition, every maximal subgroup is normal -/
+/-- In a group that satisifes the normalizer condition, every maximal subgroup is normal -/
 lemma normal_of_maximal_normalizer_condition
   (hnc : normalizer_condition G) (hmax : H.is_maximal) : H.normal :=
 normalizer_eq_top.mp (hmax.2 _ (hnc H hmax.1)))

@@ -965,8 +965,7 @@ begin
   { rw [ne.def, coe_power_series,
         map_eq_zero_iff (of_power_series ℤ F) of_power_series_injective,
         polynomial.coe_eq_zero_iff],
-    convert this
-    },
+    convert this },
   { rwa [ne.def, coe_power_series,
          map_eq_zero_iff (of_power_series ℤ F) of_power_series_injective,
          polynomial.coe_eq_zero_iff] },

@@ -67,8 +67,8 @@ path in Y that the induced map `f` takes `p`, and similarly for `g(p)`.
 Finally, `d`, the diagonal path, is H(0 ⟶ 1, p), the result of the induced `H` on
 `path.homotopic.prod (0 ⟶ 1) p`, where `(0 ⟶ 1)` denotes the path from `0` to `1` in `I`.
 
-It is clear that the diagram commutes (`H₀ ≫ g(p) = d = f(p) ≫ H₁`), but unfortunately, many of the paths do not have defeq
-starting/ending points, so we end up needing some casting.
+It is clear that the diagram commutes (`H₀ ≫ g(p) = d = f(p) ≫ H₁`), but unfortunately,
+many of the paths do not have defeq starting/ending points, so we end up needing some casting.
 -/
 
 /- The path 0 ⟶ 1 in I -/

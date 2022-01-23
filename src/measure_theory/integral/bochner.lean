@@ -891,8 +891,8 @@ begin
     eventually_countable_forall.2 (λ n, (h_bound n).mono $ λ a, (norm_nonneg _).trans),
   have hb_le_tsum : ∀ n, bound n ≤ᵐ[μ] (λ a, ∑' n, bound n a),
   { intro n,
-    filter_upwards [hb_nonneg, bound_summable], intros a ha0 ha_sum,
-    exact le_tsum ha_sum _ (λ i _, ha0 i) },
+    filter_upwards [hb_nonneg, bound_summable], intros a ha0 ha_sum
+    using le_tsum ha_sum _ (λ i _, ha0 i) },
   have hF_integrable : ∀ n, integrable (F n) μ,
   { refine λ n, bound_integrable.mono' (hF_meas n) _,
     exact eventually_le.trans (h_bound n) (hb_le_tsum n) },
@@ -901,8 +901,8 @@ begin
     bound_integrable h_lim,
   { exact eventually_of_forall (λ s, s.ae_measurable_sum $ λ n hn, hF_meas n) },
   { refine eventually_of_forall (λ s, _),
-    filter_upwards [eventually_countable_forall.2 h_bound, hb_nonneg, bound_summable],
-    intros a hFa ha0 has,
+    filter_upwards [eventually_countable_forall.2 h_bound, hb_nonneg, bound_summable]
+    with a hFa ha0 has,
     calc ∥∑ n in s, F n a∥ ≤ ∑ n in s, bound n a : norm_sum_le_of_le _ (λ n hn, hFa n)
                        ... ≤ ∑' n, bound n a     : sum_le_tsum _ (λ n hn, ha0 n) has },
 end

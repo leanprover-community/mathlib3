@@ -2148,8 +2148,7 @@ begin
   ext1 n,
   apply snorm_congr_ae,
   filter_upwards [((f_ℒp n).sub f_lim_ℒp).coe_fn_to_Lp,
-    Lp.coe_fn_sub ((f_ℒp n).to_Lp (f n)) (f_lim_ℒp.to_Lp f_lim)],
-  intros x hx₁ hx₂,
+    Lp.coe_fn_sub ((f_ℒp n).to_Lp (f n)) (f_lim_ℒp.to_Lp f_lim)] with _ hx₁ hx₂,
   rw ← hx₂,
   exact hx₁.symm
 end
@@ -2475,8 +2474,7 @@ lemma mem_Lp (f : α →ᵇ E) :
   f.to_continuous_map.to_ae_eq_fun μ ∈ Lp E p μ :=
 begin
   refine Lp.mem_Lp_of_ae_bound (∥f∥) _,
-  filter_upwards [f.to_continuous_map.coe_fn_to_ae_eq_fun μ],
-  intros x hx,
+  filter_upwards [f.to_continuous_map.coe_fn_to_ae_eq_fun μ] with x _,
   convert f.norm_coe_le_norm x
 end
 

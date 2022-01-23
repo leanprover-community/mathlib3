@@ -1246,8 +1246,8 @@ begin
     exact tendsto_at_top_supr this },
   rw ← lintegral_supr' hf h_mono,
   refine lintegral_congr_ae _,
-  filter_upwards [h_mono, h_tendsto],
-  exact λ x hx_mono hx_tendsto, tendsto_nhds_unique hx_tendsto (tendsto_at_top_supr hx_mono),
+  filter_upwards [h_mono, h_tendsto]
+  using λ x hx_mono hx_tendsto, tendsto_nhds_unique hx_tendsto (tendsto_at_top_supr hx_mono),
 end
 
 lemma lintegral_eq_supr_eapprox_lintegral {f : α → ℝ≥0∞} (hf : measurable f) :

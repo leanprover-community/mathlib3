@@ -515,8 +515,7 @@ begin
     exact nhds_within_le_nhds },
   simp only [zero_mul, ennreal.coe_zero] at B,
   apply ge_of_tendsto B,
-  filter_upwards [self_mem_nhds_within],
-  exact A
+  filter_upwards [self_mem_nhds_within] using A,
 end
 
 /-- As an intermediate step to show that `μ.with_density (v.lim_ratio_meas hρ) = ρ`, we show here

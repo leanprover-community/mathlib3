@@ -419,8 +419,7 @@ begin
     rw [mem_insert_iff, not_or_distrib] at hzws,
     refine (((differentiable_at_id.sub_const w).inv $ sub_ne_zero.2 hzws.1).smul
       ((hd z ⟨hzR, hzws.2⟩).sub_const (f w))).congr_of_eventually_eq _,
-    filter_upwards [is_open_ne.mem_nhds hzws.1],
-    exact λ x hx, update_noteq hx _ _ },
+    filter_upwards [is_open_ne.mem_nhds hzws.1] using λ x hx, update_noteq hx _ _ },
   have HI := circle_integral_eq_zero_of_differentiable_on_off_countable hR.le hws hcF hdF,
   have hne : ∀ z ∈ sphere c R, z ≠ w, from λ z hz, ne_of_mem_of_not_mem hz (ne_of_lt hw.1),
   have hFeq : eq_on F (λ z, (z - w)⁻¹ • f z - (z - w)⁻¹ • f w) (sphere c R),

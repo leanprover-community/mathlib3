@@ -215,7 +215,7 @@ def uniform_space.core.to_topological_space {α : Type u} (u : uniform_space.cor
   is_open_inter  :=
     assume s t hs ht x ⟨xs, xt⟩, by filter_upwards [hs x xs, ht x xt]; simp {contextual := tt},
   is_open_sUnion :=
-    assume s hs x ⟨t, ts, xt⟩, by filter_upwards [hs t ts x xt] assume p ph h, ⟨t, ts, ph h⟩ }
+    assume s hs x ⟨t, ts, xt⟩, by filter_upwards [hs t ts x xt] using assume p ph h, ⟨t, ts, ph h⟩ }
 
 lemma uniform_space.core_eq :
   ∀{u₁ u₂ : uniform_space.core α}, u₁.uniformity = u₂.uniformity → u₁ = u₂
@@ -328,8 +328,7 @@ lemma filter.tendsto.uniformity_trans {l : filter β} {f₁ f₂ f₃ : β → �
   tendsto (λ x, (f₁ x, f₃ x)) l (𝓤 α) :=
 begin
   refine le_trans (le_lift' $ λ s hs, mem_map.2 _) comp_le_uniformity,
-  filter_upwards [h₁₂ hs, h₂₃ hs],
-  exact λ x hx₁₂ hx₂₃, ⟨_, hx₁₂, hx₂₃⟩
+  filter_upwards [h₁₂ hs, h₂₃ hs] using λ x hx₁₂ hx₂₃, ⟨_, hx₁₂, hx₂₃⟩,
 end
 
 /-- Relation `λ f g, tendsto (λ x, (f x, g x)) l (𝓤 α)` is symmetric -/
@@ -507,7 +506,7 @@ lemma mem_nhds_uniformity_iff_right {x : α} {s : set α} :
   s ∈ 𝓝 x ↔ {p : α × α | p.1 = x → p.2 ∈ s} ∈ 𝓤 α :=
 ⟨ begin
     simp only [mem_nhds_iff, is_open_uniformity, and_imp, exists_imp_distrib],
-    exact assume t ts ht xt, by filter_upwards [ht x xt] assume ⟨x', y⟩ h eq, ts $ h eq
+    exact assume t ts ht xt, by filter_upwards [ht x xt] using assume ⟨x', y⟩ h eq, ts $ h eq
   end,
 
   assume hs,
@@ -515,8 +514,8 @@ lemma mem_nhds_uniformity_iff_right {x : α} {s : set α} :
     assume x' hx', refl_mem_uniformity hx' rfl,
     is_open_uniformity.mpr $ assume x' hx',
       let ⟨t, ht, tr⟩ := comp_mem_uniformity_sets hx' in
-      by filter_upwards [ht] assume ⟨a, b⟩ hp' (hax' : a = x'),
-      by filter_upwards [ht] assume ⟨a, b'⟩ hp'' (hab : a = b),
+      by filter_upwards [ht] using assume ⟨a, b⟩ hp' (hax' : a = x'),
+      by filter_upwards [ht] using assume ⟨a, b'⟩ hp'' (hab : a = b),
       have hp : (x', b) ∈ t, from hax' ▸ hp',
       have (b, b') ∈ t, from hab ▸ hp'',
       have (x', b') ∈ t ○ t, from ⟨b, hp, this⟩,
@@ -779,7 +778,7 @@ calc (a, b) ∈ closure t ↔ (𝓝 (a, b) ⊓ 𝓟 t ≠ ⊥) : mem_closure_iff
 
 lemma uniformity_eq_uniformity_closure : 𝓤 α = (𝓤 α).lift' closure :=
 le_antisymm
-  (le_infi $ assume s, le_infi $ assume hs, by simp; filter_upwards [hs] subset_closure)
+  (le_infi $ assume s, le_infi $ assume hs, by simp; filter_upwards [hs] using subset_closure)
   (calc (𝓤 α).lift' closure ≤ (𝓤 α).lift' (λd, d ○ (d ○ d)) :
       lift'_mono' (by intros s hs; rw [closure_eq_inter_uniformity]; exact bInter_subset_of_mem hs)
     ... ≤ (𝓤 α) : comp_le_uniformity3)
@@ -795,7 +794,7 @@ le_antisymm
       calc s ⊆ t : hst
        ... ⊆ interior d : (subset_interior_iff_subset_of_open ht).mpr $
         λ x (hx : x ∈ t), let ⟨x, y, h₁, h₂, h₃⟩ := ht_comp hx in hs_comp ⟨x, h₁, y, h₂, h₃⟩,
-    have interior d ∈ 𝓤 α, by filter_upwards [hs] this,
+    have interior d ∈ 𝓤 α, by filter_upwards [hs] using this,
     by simp [this])
   (assume s hs, ((𝓤 α).lift' interior).sets_of_superset (mem_lift' hs) interior_subset)
 

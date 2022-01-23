@@ -629,8 +629,7 @@ end⟩
 lemma ae_measurable.prod_mk_left [sigma_finite ν] {f : α × β → γ}
   (hf : ae_measurable f (μ.prod ν)) : ∀ᵐ x ∂μ, ae_measurable (λ y, f (x, y)) ν :=
 begin
-  filter_upwards [ae_ae_of_ae_prod hf.ae_eq_mk],
-  intros x hx,
+  filter_upwards [ae_ae_of_ae_prod hf.ae_eq_mk] with x hx,
   exact ⟨λ y, hf.mk f (x, y), hf.measurable_mk.comp measurable_prod_mk_left, hx⟩
 end
 
@@ -841,8 +840,8 @@ lemma integral_fn_integral_add ⦃f g : α × β → E⦄ (F : E → E')
   ∫ x, F (∫ y, f (x, y) + g (x, y) ∂ν) ∂μ = ∫ x, F (∫ y, f (x, y) ∂ν + ∫ y, g (x, y) ∂ν) ∂μ :=
 begin
   refine integral_congr_ae _,
-  filter_upwards [hf.prod_right_ae, hg.prod_right_ae],
-  intros x h2f h2g, simp [integral_add h2f h2g],
+  filter_upwards [hf.prod_right_ae, hg.prod_right_ae] with h2f h2g,
+  simp [integral_add h2f h2g],
 end
 
 /-- Integrals commute with subtraction inside another integral.
@@ -852,8 +851,8 @@ lemma integral_fn_integral_sub ⦃f g : α × β → E⦄ (F : E → E')
   ∫ x, F (∫ y, f (x, y) - g (x, y) ∂ν) ∂μ = ∫ x, F (∫ y, f (x, y) ∂ν - ∫ y, g (x, y) ∂ν) ∂μ :=
 begin
   refine integral_congr_ae _,
-  filter_upwards [hf.prod_right_ae, hg.prod_right_ae],
-  intros x h2f h2g, simp [integral_sub h2f h2g]
+  filter_upwards [hf.prod_right_ae, hg.prod_right_ae] with _ h2f h2g,
+  simp [integral_sub h2f h2g],
 end
 
 /-- Integrals commute with subtraction inside a lower Lebesgue integral.
@@ -863,8 +862,8 @@ lemma lintegral_fn_integral_sub ⦃f g : α × β → E⦄
   ∫⁻ x, F (∫ y, f (x, y) - g (x, y) ∂ν) ∂μ = ∫⁻ x, F (∫ y, f (x, y) ∂ν - ∫ y, g (x, y) ∂ν) ∂μ :=
 begin
   refine lintegral_congr_ae _,
-  filter_upwards [hf.prod_right_ae, hg.prod_right_ae],
-  intros x h2f h2g, simp [integral_sub h2f h2g]
+  filter_upwards [hf.prod_right_ae, hg.prod_right_ae] with _ h2f h2g,
+  simp [integral_sub h2f h2g],
 end
 
 /-- Double integrals commute with addition. -/

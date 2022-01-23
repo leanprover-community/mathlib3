@@ -503,7 +503,7 @@ begin
   { simp_rw norm_indicator_eq_indicator_norm,
     refine λ n, eventually_of_forall (λ x, _),
     exact indicator_le_indicator_of_subset (h_anti (zero_le n)) (λ a, norm_nonneg _) _ },
-  { filter_upwards [] λ a, le_trans (h_anti.tendsto_indicator _ _ _) (pure_le_nhds _) }
+  { filter_upwards [] using λ a, le_trans (h_anti.tendsto_indicator _ _ _) (pure_le_nhds _) }
 end
 
 end tendsto_mono

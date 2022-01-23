@@ -1552,8 +1552,7 @@ begin
   have B' : ∀ᶠ t in lt, interval_integrable f μ b (ub t) :=
     hb_lim.eventually_interval_integrable_ae hmeas_b (FTC_filter.finite_at_inner lb)
       (tendsto_const_pure.mono_right FTC_filter.pure_le) hub,
-  filter_upwards [A, A', B, B'],
-  intros t ua_va a_ua ub_vb b_ub,
+  filter_upwards [A, A', B, B'] with t ua_va a_ua ub_vb b_ub,
   rw [← integral_interval_sub_interval_comm'],
   { dsimp only [], abel },
   exacts [ub_vb, ua_va, b_ub.symm.trans $ hab.symm.trans a_ua]
@@ -2289,8 +2288,7 @@ begin
   set F : ℝ → E := update (update f a fa) b fb,
   have Fderiv : ∀ x ∈ Ioo a b, has_deriv_at F (f' x) x,
   { refine λ x hx, (hderiv x hx).congr_of_eventually_eq _,
-    filter_upwards [Ioo_mem_nhds hx.1 hx.2],
-    intros y hy, simp only [F],
+    filter_upwards [Ioo_mem_nhds hx.1 hx.2] with y hy, simp only [F],
     rw [update_noteq hy.2.ne, update_noteq hy.1.ne'] },
   have hcont : continuous_on F (Icc a b),
   { rw [continuous_on_update_iff, continuous_on_update_iff, Icc_diff_right, Ico_diff_left],
@@ -2298,8 +2296,8 @@ begin
     { exact λ _, ha.mono_left (nhds_within_mono _ Ioo_subset_Ioi_self) },
     { rintro -,
       refine (hb.congr' _).mono_left (nhds_within_mono _ Ico_subset_Iio_self),
-      filter_upwards [Ioo_mem_nhds_within_Iio (right_mem_Ioc.2 hab)],
-      exact λ z hz, (update_noteq hz.1.ne' _ _).symm } },
+      filter_upwards [Ioo_mem_nhds_within_Iio (right_mem_Ioc.2 hab)]
+      using λ z hz, (update_noteq hz.1.ne' _ _).symm } },
   simpa [F, hab.ne, hab.ne'] using integral_eq_sub_of_has_deriv_at_of_le hab.le hcont Fderiv hint
 end
 

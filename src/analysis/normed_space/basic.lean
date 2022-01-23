@@ -317,8 +317,7 @@ begin
   have r0' : 0 < ∥r∥ := norm_pos_iff.2 r0,
   rcases exists_between r0' with ⟨ε, ε0, εr⟩,
   have : ∀ᶠ e in 𝓝 r, ∥e⁻¹ - r⁻¹∥ ≤ ∥r - e∥ / ∥r∥ / ε,
-  { filter_upwards [(is_open_lt continuous_const continuous_norm).eventually_mem εr],
-    intros e he,
+  { filter_upwards [(is_open_lt continuous_const continuous_norm).eventually_mem εr] with e he,
     have e0 : e ≠ 0 := norm_pos_iff.1 (ε0.trans he),
     calc ∥e⁻¹ - r⁻¹∥ = ∥r - e∥ / ∥r∥ / ∥e∥ : by field_simp [mul_comm]
     ... ≤ ∥r - e∥ / ∥r∥ / ε :

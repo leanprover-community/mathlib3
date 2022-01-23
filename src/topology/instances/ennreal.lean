@@ -126,8 +126,7 @@ lemma eventually_eq_of_to_real_eventually_eq {l : filter α} {f g : α → ℝ�
   (hfg : (λ x, (f x).to_real) =ᶠ[l] (λ x, (g x).to_real)) :
   f =ᶠ[l] g :=
 begin
-  filter_upwards [hfi, hgi, hfg],
-  intros x hfx hgx hfgx,
+  filter_upwards [hfi, hgi, hfg] with x hfx hgx hfgx,
   rwa ← ennreal.to_real_eq_to_real hfx hgx,
 end
 

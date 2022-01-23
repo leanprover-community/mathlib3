@@ -287,16 +287,15 @@ instance : has_sup (α →ₘ[μ] β) := { sup := λ f g, ae_eq_fun.comp₂ (⊔
 lemma coe_fn_sup (f g : α →ₘ[μ] β) : ⇑(f ⊔ g) =ᵐ[μ] λ x, f x ⊔ g x := coe_fn_comp₂ _ _ _ _
 
 protected lemma le_sup_left (f g : α →ₘ[μ] β) : f ≤ f ⊔ g :=
-by { rw ← coe_fn_le, filter_upwards [coe_fn_sup f g], intros a ha,  rw ha, exact le_sup_left, }
+by { rw ← coe_fn_le, filter_upwards [coe_fn_sup f g] with a ha,  rw ha, exact le_sup_left, }
 
 protected lemma le_sup_right (f g : α →ₘ[μ] β) : g ≤ f ⊔ g :=
-by { rw ← coe_fn_le, filter_upwards [coe_fn_sup f g], intros a ha,  rw ha, exact le_sup_right, }
+by { rw ← coe_fn_le, filter_upwards [coe_fn_sup f g] with a ha,  rw ha, exact le_sup_right, }
 
 protected lemma sup_le (f g f' : α →ₘ[μ] β) (hf : f ≤ f') (hg : g ≤ f') : f ⊔ g ≤ f' :=
 begin
   rw ← coe_fn_le at hf hg ⊢,
-  filter_upwards [hf, hg, coe_fn_sup f g],
-  intros a haf hag ha_sup,
+  filter_upwards [hf, hg, coe_fn_sup f g] with a haf hag ha_sup,
   rw ha_sup,
   exact sup_le haf hag,
 end
@@ -311,16 +310,15 @@ instance : has_inf (α →ₘ[μ] β) := { inf := λ f g, ae_eq_fun.comp₂ (⊓
 lemma coe_fn_inf (f g : α →ₘ[μ] β) : ⇑(f ⊓ g) =ᵐ[μ] λ x, f x ⊓ g x := coe_fn_comp₂ _ _ _ _
 
 protected lemma inf_le_left (f g : α →ₘ[μ] β) : f ⊓ g ≤ f :=
-by { rw ← coe_fn_le, filter_upwards [coe_fn_inf f g], intros a ha,  rw ha, exact inf_le_left, }
+by { rw ← coe_fn_le, filter_upwards [coe_fn_inf f g] with a ha,  rw ha, exact inf_le_left, }
 
 protected lemma inf_le_right (f g : α →ₘ[μ] β) : f ⊓ g ≤ g :=
-by { rw ← coe_fn_le, filter_upwards [coe_fn_inf f g], intros a ha,  rw ha, exact inf_le_right, }
+by { rw ← coe_fn_le, filter_upwards [coe_fn_inf f g] with a ha,  rw ha, exact inf_le_right, }
 
 protected lemma le_inf (f' f g : α →ₘ[μ] β) (hf : f' ≤ f) (hg : f' ≤ g) : f' ≤ f ⊓ g :=
 begin
   rw ← coe_fn_le at hf hg ⊢,
-  filter_upwards [hf, hg, coe_fn_inf f g],
-  intros a haf hag ha_inf,
+  filter_upwards [hf, hg, coe_fn_inf f g] with a haf hag ha_inf,
   rw ha_inf,
   exact le_inf haf hag,
 end

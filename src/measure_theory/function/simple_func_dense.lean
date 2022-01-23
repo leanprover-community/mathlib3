@@ -252,8 +252,7 @@ begin
   -- to zero
   have h_lim : ∀ᵐ (a : β) ∂μ,
     tendsto (λ n, (∥approx_on f hf s y₀ h₀ n a - f a∥₊ : ℝ≥0∞) ^ p.to_real) at_top (𝓝 0),
-  { filter_upwards [hμ],
-    intros a ha,
+  { filter_upwards [hμ] with a ha,
     have : tendsto (λ n, (approx_on f hf s y₀ h₀ n) a - f a) at_top (𝓝 (f a - f a)),
     { exact (tendsto_approx_on hf h₀ ha).sub tendsto_const_nhds },
     convert continuous_rpow_const.continuous_at.tendsto.comp (tendsto_coe.mpr this.nnnorm),
@@ -817,8 +816,7 @@ begin
   rw ← Lp.simple_func.coe_fn_le at hg₁₂ ⊢,
   have h_add_1 : ⇑(f + g₁) =ᵐ[μ] f + g₁, from Lp.coe_fn_add _ _,
   have h_add_2 : ⇑(f + g₂) =ᵐ[μ] f + g₂, from Lp.coe_fn_add _ _,
-  filter_upwards [h_add_1, h_add_2, hg₁₂],
-  intros a h1 h2 h3,
+  filter_upwards [h_add_1, h_add_2, hg₁₂] with _ h1 h2 h3,
   rw [h1, h2, pi.add_apply, pi.add_apply],
   exact add_le_add le_rfl h3,
 end
@@ -831,7 +829,7 @@ lemma coe_fn_nonneg (f : Lp.simple_func G p μ) : 0 ≤ᵐ[μ] f ↔ 0 ≤ f :=
 begin
   rw ← Lp.simple_func.coe_fn_le,
   have h0 : (0 : Lp.simple_func G p μ) =ᵐ[μ] (0 : α → G), from Lp.simple_func.coe_fn_zero p μ G,
-  split; intro h; filter_upwards [h, h0]; intros a h1 h2,
+  split; intro h; filter_upwards [h, h0] with _ _ h2,
   { rwa h2, },
   { rwa ← h2, },
 end
@@ -841,7 +839,7 @@ lemma exists_simple_func_nonneg_ae_eq {f : Lp.simple_func G p μ} (hf : 0 ≤ f)
 begin
   rw ← Lp.simple_func.coe_fn_nonneg at hf,
   have hf_ae : 0 ≤ᵐ[μ] (simple_func.to_simple_func f),
-    by { filter_upwards [to_simple_func_eq_to_fun f, hf], intros x h1 h2, rwa h1, },
+    by { filter_upwards [to_simple_func_eq_to_fun f, hf] with _ h1 _, rwa h1, },
   let s := (to_measurable μ {x | ¬ 0 ≤ simple_func.to_simple_func f x})ᶜ,
   have hs_zero : μ sᶜ = 0,
     by { rw [compl_compl, measure_to_measurable], rwa [eventually_le, ae_iff] at hf_ae, },
@@ -891,8 +889,7 @@ begin
     rw [← Lp.simple_func.coe_fn_le, coe_fn_coe_base' (simple_func.to_Lp (x n) _),
       Lp.simple_func.to_Lp_eq_to_Lp],
     have h0 := Lp.simple_func.coe_fn_zero p μ G,
-    filter_upwards [Lp.simple_func.coe_fn_zero p μ G, h_to_Lp n],
-    intros a ha0 ha_to_Lp,
+    filter_upwards [Lp.simple_func.coe_fn_zero p μ G, h_to_Lp n] with a ha0 ha_to_Lp,
     rw [ha0, ha_to_Lp],
     exact hx_nonneg n a, },
   have hx_tendsto : tendsto (λ (n : ℕ), snorm (x n - g) p μ) at_top (𝓝 0),

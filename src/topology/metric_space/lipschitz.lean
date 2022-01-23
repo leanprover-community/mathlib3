@@ -527,13 +527,9 @@ begin
 end
 
 /-- A function `f : α → (ι → ℝ)` which is `K`-Lipschitz on a subset `s` admits a `K`-Lipschitz
-<<<<<<< HEAD
-extension to the whole space. -/
-=======
 extension to the whole space.
 TODO: state the same result (with the same proof) for the space `ℓ^∞ (ι, ℝ)` over a possibly
 infinite type `ι`. -/
->>>>>>> upstream/master
 lemma lipschitz_on_with.extend_pi [pseudo_metric_space α] [fintype ι]
   {f : α → (ι → ℝ)} {s : set α} {K : ℝ≥0}
   (hf : lipschitz_on_with K f s) :

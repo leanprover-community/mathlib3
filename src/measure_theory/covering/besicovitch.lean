@@ -33,11 +33,7 @@ It is deduced from the topological Besicovitch theorem, and proved
 in `besicovitch.exists_disjoint_closed_ball_covering_ae`.
 
 This implies that balls of small radius form a Vitali family in such spaces. Therefore, theorems
-<<<<<<< HEAD
-on differentiations of measure hold as a consequence of general results. We restate them in this
-=======
 on differentiation of measures hold as a consequence of general results. We restate them in this
->>>>>>> upstream/master
 context to make them more easily usable.
 
 ## Main definitions and results
@@ -1048,10 +1044,6 @@ end
 
 /-! ### Consequences on differentiation of measures -/
 
-<<<<<<< HEAD
-
-=======
->>>>>>> upstream/master
 /-- In a space with the Besicovitch covering property, the set of closed balls with positive radius
 forms a Vitali family. This is essentially a restatement of the measurable Besicovitch theorem. -/
 protected def vitali_family (μ : measure α) [sigma_finite μ] :

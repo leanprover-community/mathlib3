@@ -183,11 +183,11 @@ and terms `h1 : t1 ∈ f, ⋯, hn : tn ∈ f` with `∀ x, x ∈ t1 → ⋯ → 
 `filter_upwards [h1, ⋯, hn] e` is a short form for `{ filter_upwards [h1, ⋯, hn], exact e }`.
 -/
 meta def filter_upwards
-  (s : parse types.pexpr_list)
+  (s : parse types.pexpr_list?)
   (wth : parse with_ident_list?)
   (tgt : parse (tk "using" *> texpr)?) : tactic unit :=
 do
-  s.reverse.mmap (λ e, eapplyc `filter.mp_mem >> eapply e),
+  (s.get_or_else []).reverse.mmap (λ e, eapplyc `filter.mp_mem >> eapply e),
   eapplyc `filter.univ_mem',
   `[dsimp only [set.mem_set_of_eq]],
   let wth := wth.get_or_else [],

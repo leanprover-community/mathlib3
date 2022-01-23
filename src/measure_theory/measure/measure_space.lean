@@ -2006,7 +2006,7 @@ end
 
 lemma ite_ae_eq_of_measure_compl_zero {γ} (f : α → γ) (g : α → γ) (s : set α) (hs_zero : μ sᶜ = 0) :
   (λ x, ite (x ∈ s) (f x) (g x)) =ᵐ[μ] f :=
-by { filter_upwards [hs_zero] with _, split_ifs, refl }
+by { filter_upwards [hs_zero], intros, split_ifs, refl }
 
 namespace measure
 

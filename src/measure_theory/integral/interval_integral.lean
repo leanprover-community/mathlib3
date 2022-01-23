@@ -1552,9 +1552,9 @@ begin
   have B' : ∀ᶠ t in lt, interval_integrable f μ b (ub t) :=
     hb_lim.eventually_interval_integrable_ae hmeas_b (FTC_filter.finite_at_inner lb)
       (tendsto_const_pure.mono_right FTC_filter.pure_le) hub,
-  filter_upwards [A, A', B, B'] with t ua_va a_ua ub_vb b_ub,
+  filter_upwards [A, A', B, B'] with _ ua_va a_ua ub_vb b_ub,
   rw [← integral_interval_sub_interval_comm'],
-  { dsimp only [], abel },
+  { dsimp only [], abel, },
   exacts [ub_vb, ua_va, b_ub.symm.trans $ hab.symm.trans a_ua]
 end
 
@@ -2107,8 +2107,7 @@ begin
       rcases mem_nhds_iff_exists_Ioo_subset.1 B with ⟨m, M, ⟨hm, hM⟩, H⟩,
       have : Ioo t (min M b) ∈ 𝓝[>] t := mem_nhds_within_Ioi_iff_exists_Ioo_subset.2
         ⟨min M b, by simp only [hM, ht.right.right, lt_min_iff, mem_Ioi, and_self], subset.refl _⟩,
-      filter_upwards [this],
-      assume u hu,
+      filter_upwards [this] with u hu,
       have I : Icc t u ⊆ Icc a b := Icc_subset_Icc ht.2.1 (hu.2.le.trans (min_le_right _ _)),
       calc (u - t) * y = ∫ v in Icc t u, y :
         by simp only [hu.left.le, measure_theory.integral_const, algebra.id.smul_eq_mul, sub_nonneg,
@@ -2124,8 +2123,7 @@ begin
             ae_mono (measure.restrict_mono I (le_refl _)) G'lt_top,
           have C2 : ∀ᵐ (x : ℝ) ∂volume.restrict (Icc t u), x ∈ Icc t u :=
             ae_restrict_mem measurable_set_Icc,
-          filter_upwards [C1, C2],
-          assume x G'x hx,
+          filter_upwards [C1, C2] with x G'x hx,
           apply ereal.coe_le_coe_iff.1,
           have : x ∈ Ioo m M, by simp only [hm.trans_le hx.left,
             (hx.right.trans_lt hu.right).trans_le (min_le_left M b), mem_Ioo, and_self],
@@ -2136,16 +2134,13 @@ begin
     have I2 : ∀ᶠ u in 𝓝[>] t, g u - g t ≤ (u - t) * y,
     { have g'_lt_y : g' t < y := ereal.coe_lt_coe_iff.1 g'_lt_y',
       filter_upwards [(hderiv t ⟨ht.2.1, ht.2.2⟩).limsup_slope_le'
-        (not_mem_Ioi.2 le_rfl) g'_lt_y, self_mem_nhds_within],
-      assume u hu t_lt_u,
+        (not_mem_Ioi.2 le_rfl) g'_lt_y, self_mem_nhds_within] with u hu t_lt_u,
       have := mul_le_mul_of_nonneg_left hu.le (sub_pos.2 t_lt_u).le,
       rwa [← smul_eq_mul, sub_smul_slope] at this },
     -- combine the previous two bounds to show that `g u - g a` increases less quickly than
     -- `∫ x in a..u, G' x`.
     have I3 : ∀ᶠ u in 𝓝[>] t, g u - g t ≤ ∫ w in t..u, (G' w).to_real,
-    { filter_upwards [I1, I2],
-      assume u hu1 hu2,
-      exact hu2.trans hu1 },
+    { filter_upwards [I1, I2] with u hu1 hu2 using hu2.trans hu1, },
     have I4 : ∀ᶠ u in 𝓝[>] t, u ∈ Ioc t (min v b),
     { refine mem_nhds_within_Ioi_iff_exists_Ioc_subset.2 ⟨min v b, _, subset.refl _⟩,
       simp only [lt_min_iff, mem_Ioi],
@@ -2288,8 +2283,8 @@ begin
   set F : ℝ → E := update (update f a fa) b fb,
   have Fderiv : ∀ x ∈ Ioo a b, has_deriv_at F (f' x) x,
   { refine λ x hx, (hderiv x hx).congr_of_eventually_eq _,
-    filter_upwards [Ioo_mem_nhds hx.1 hx.2] with y hy, simp only [F],
-    rw [update_noteq hy.2.ne, update_noteq hy.1.ne'] },
+    filter_upwards [Ioo_mem_nhds hx.1 hx.2] with _ hy, simp only [F],
+    rw [update_noteq hy.2.ne, update_noteq hy.1.ne'], },
   have hcont : continuous_on F (Icc a b),
   { rw [continuous_on_update_iff, continuous_on_update_iff, Icc_diff_right, Ico_diff_left],
     refine ⟨⟨λ z hz, (hderiv z hz).continuous_at.continuous_within_at, _⟩, _⟩,
@@ -2297,7 +2292,7 @@ begin
     { rintro -,
       refine (hb.congr' _).mono_left (nhds_within_mono _ Ico_subset_Iio_self),
       filter_upwards [Ioo_mem_nhds_within_Iio (right_mem_Ioc.2 hab)]
-      using λ z hz, (update_noteq hz.1.ne' _ _).symm } },
+        using λ _ hz, (update_noteq hz.1.ne' _ _).symm } },
   simpa [F, hab.ne, hab.ne'] using integral_eq_sub_of_has_deriv_at_of_le hab.le hcont Fderiv hint
 end
 

@@ -193,7 +193,7 @@ end
 
 lemma star_convex_iff_open_segment_subset (hx : x ∈ s) :
   star_convex 𝕜 x s ↔ ∀ ⦃y⦄, y ∈ s → open_segment 𝕜 x y ⊆ s :=
-star_convex_iff_segment_subset.trans $ forall_congr $ λ y, forall_congr $ λ hy,
+star_convex_iff_segment_subset.trans $ forall₂_congr $ λ y hy,
   (open_segment_subset_iff_segment_subset hx hy).symm
 
 lemma star_convex_singleton (x : E) : star_convex 𝕜 x {x} :=

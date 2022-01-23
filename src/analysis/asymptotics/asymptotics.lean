@@ -812,13 +812,13 @@ lemma is_o_id_const {c : F'} (hc : c ≠ 0) :
   is_o (λ (x : E'), x) (λ x, c) (𝓝 0) :=
 (is_o_const_iff hc).mpr (continuous_id.tendsto 0)
 
-theorem _root_.filter.is_bounded_under.is_O_const (h : is_bounded_under (≤) l (norm ∘ f'))
-  {c : F'} (hc : c ≠ 0) : is_O f' (λ x, c) l :=
+theorem _root_.filter.is_bounded_under.is_O_const (h : is_bounded_under (≤) l (norm ∘ f))
+  {c : F'} (hc : c ≠ 0) : is_O f (λ x, c) l :=
 begin
   rcases h with ⟨C, hC⟩,
   refine (is_O.of_bound 1 _).trans (is_O_const_const C hc l),
   refine (eventually_map.1 hC).mono (λ x h, _),
-  calc ∥f' x∥ ≤ C : h
+  calc ∥f x∥ ≤ C : h
   ... ≤ abs C : le_abs_self C
   ... = 1 * ∥C∥ : (one_mul _).symm
 end

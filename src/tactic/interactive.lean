@@ -630,8 +630,9 @@ add_tactic_doc
   tags       := ["testing"] }
 
 /--
-A weaker version of `trivial` that tries to solve the goal using a canonical proof of `true` or the `reflexivity` tactic
-(unfolding only `reducible` constants, so can fail faster than `trivial`), and otherwise tries the `contradiction` tactic. -/
+A weaker version of `trivial` that tries to solve the goal using a canonical proof of `true` or the
+`reflexivity` tactic (unfolding only `reducible` constants, so can fail faster than `trivial`),
+and otherwise tries the `contradiction` tactic. -/
 meta def triv : tactic unit :=
 tactic.triv' <|> tactic.reflexivity reducible <|> tactic.contradiction <|> fail "triv tactic failed"
 

@@ -576,7 +576,7 @@ section monoid
 
 /-- An alias for `set α`, which has a semiring structure given by `∪` as "addition" and pointwise
   multiplication `*` as "multiplication". -/
-@[derive [inhabited]] def set_semiring (α : Type*) : Type* := set α
+@[derive inhabited] def set_semiring (α : Type*) : Type* := set α
 
 instance : partial_order (set_semiring α) :=
 { le := λ s t, s.down ⊆ t.down,

@@ -380,9 +380,8 @@ lemma tendsto_measure_bInter_gt {ι : Type*} [linear_order ι] [topological_spac
   tendsto (μ ∘ s) (𝓝[Ioi a] a) (𝓝 (μ (⋂ r > a, s r))) :=
 begin
   refine tendsto_order.2 ⟨λ l hl, _, λ L hL, _⟩,
-  { filter_upwards [self_mem_nhds_within],
-    assume r hr,
-    exact hl.trans_le (measure_mono (bInter_subset_of_mem hr)) },
+  { filter_upwards [self_mem_nhds_within] with r hr
+      using hl.trans_le (measure_mono (bInter_subset_of_mem hr)), },
   obtain ⟨u, u_anti, u_pos, u_lim⟩ : ∃ (u : ℕ → ι), strict_anti u ∧ (∀ (n : ℕ), a < u n)
     ∧ tendsto u at_top (𝓝 a),
   { rcases hf with ⟨r, ar, hr⟩,
@@ -409,9 +408,7 @@ begin
   rw B at A,
   obtain ⟨n, hn⟩ : ∃ n, μ (s (u n)) < L := ((tendsto_order.1 A).2 _ hL).exists,
   have : Ioc a (u n) ∈ 𝓝[>] a := Ioc_mem_nhds_within_Ioi ⟨le_rfl, u_pos n⟩,
-  filter_upwards [this],
-  assume r hr,
-  exact lt_of_le_of_lt (measure_mono (hm _ _ hr.1 hr.2)) hn,
+  filter_upwards [this] with r hr using lt_of_le_of_lt (measure_mono (hm _ _ hr.1 hr.2)) hn,
 end
 
 /-- One direction of the **Borel-Cantelli lemma**: if (sᵢ) is a sequence of sets such
@@ -2009,7 +2006,7 @@ end
 
 lemma ite_ae_eq_of_measure_compl_zero {γ} (f : α → γ) (g : α → γ) (s : set α) (hs_zero : μ sᶜ = 0) :
   (λ x, ite (x ∈ s) (f x) (g x)) =ᵐ[μ] f :=
-by { filter_upwards [hs_zero], intros, split_ifs, refl }
+by { filter_upwards [hs_zero] with _, split_ifs, refl }
 
 namespace measure
 
@@ -2137,9 +2134,7 @@ begin
   { assume n,
     have := h (spanning_sets μ n) (measurable_spanning_sets _ _) (measure_spanning_sets_lt_top _ _),
     rwa ae_restrict_iff' (measurable_spanning_sets _ _) at this },
-  filter_upwards [ae_all_iff.2 this],
-  assume x hx,
-  exact hx _ (mem_spanning_sets_index _ _),
+  filter_upwards [ae_all_iff.2 this] with _ hx using hx _ (mem_spanning_sets_index _ _),
 end
 
 omit m0

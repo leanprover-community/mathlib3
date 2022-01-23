@@ -184,16 +184,17 @@ and terms `h1 : t1 ∈ f, ⋯, hn : tn ∈ f` with `∀ x, x ∈ t1 → ⋯ → 
 -/
 meta def filter_upwards
   (s : parse types.pexpr_list)
-  (ids : parse with_ident_list)
+  (wth : parse with_ident_list?)
   (tgt : parse (tk "using" *> texpr)?) : tactic unit :=
 do
   s.reverse.mmap (λ e, eapplyc `filter.mp_mem >> eapply e),
   eapplyc `filter.univ_mem',
   `[dsimp only [set.mem_set_of_eq]],
-  if ¬ids.empty then `[intros ids] else skip,
+  let wth := wth.get_or_else [],
+  if ¬wth.empty then intros wth else skip,
   match tgt with
   | some e := exact e
-  | none := skip
+  | none   := skip
   end
 
 add_tactic_doc

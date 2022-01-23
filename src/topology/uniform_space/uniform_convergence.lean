@@ -139,13 +139,12 @@ begin
     λ i hi a ha, hvw (show (_, _) ∈ v ×ˢ w, from ⟨hi.1 a.1 ha.1, hi.2 a.2 ha.2⟩)⟩,
 end
 
-lemma tendsto_uniformly.prod' {ι' α' β' : Type*} [uniform_space β'] {F' : ι' → α' → β'}
+lemma tendsto_uniformly.prod_map {ι' α' β' : Type*} [uniform_space β'] {F' : ι' → α' → β'}
   {f' : α' → β'} {p' : filter ι'} (h : tendsto_uniformly F f p) (h' : tendsto_uniformly F' f' p') :
-  tendsto_uniformly (λ (i : ι × ι') (a : α × α'), (F i.1 a.1, F' i.2 a.2))
-    (λ a, (f a.1, f' a.2)) (p.prod p') :=
+  tendsto_uniformly (λ (i : ι × ι'), prod.map (F i.1) (F' i.2)) (prod.map f f') (p.prod p') :=
 begin
   rw [←tendsto_uniformly_on_univ, ←univ_prod_univ] at *,
-  exact h.prod' h',
+  exact h.prod_map h',
 end
 
 lemma tendsto_uniformly_on.prod {ι' β' : Type*} [uniform_space β'] {F' : ι' → α → β'} {f' : α → β'}

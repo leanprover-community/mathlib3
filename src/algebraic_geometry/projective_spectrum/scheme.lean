@@ -2,6 +2,7 @@ import algebraic_geometry.projective_spectrum.structure_sheaf
 import algebraic_geometry.Spec
 import algebraic_geometry.Scheme
 import algebraic_geometry.projective_spectrum.clear_denominator
+import algebraic_geometry.projective_spectrum.scratch2
 
 noncomputable theory
 
@@ -4542,6 +4543,23 @@ def isos.sheaf_component.backward
     refl,
   end, }
 
+lemma projective_spectrum.section_congr_arg
+  (V : opens (projective_spectrum.Top 𝒜)) (x y : V) (h1 : x = y)
+  (hh : (algebraic_geometry.projective_spectrum.structure_sheaf.structure_sheaf 𝒜).1.obj (op V))
+  (a : A) (b : x.1.as_homogeneous_ideal.1.prime_compl)
+  (h2 : (hh.1 x).1 = localization.mk a b) : (hh.1 y).1 = localization.mk a ⟨b.1, begin
+    intro rid,
+    apply b.2,
+    simp only [h1],
+    exact rid
+  end⟩ :=
+begin
+  induction h1,
+  convert h2,
+  rw subtype.ext_iff_val,
+end
+
+
 lemma isos.sheaf_component.backward_forward
   (f : A) [decidable_eq (localization.away f)] (m : ℕ) (hm : 0 < m) (f_deg : f ∈ 𝒜 m)
   (V) (hh) (z) :
@@ -4578,7 +4596,7 @@ begin
   have hartshorne_eq := isos.sheaf_component.forward.hartshorne.eq_num_div_denom 𝒜 f m hm f_deg V hh ⟨hom_z, hom_z_mem_V⟩,
   simp only [←α_eq, ←β_eq] at hartshorne_eq,
   have hartshorne_eq2 : (isos.sheaf_component.forward.hartshorne 𝒜 f m hm f_deg V hh ⟨hom_z, hom_z_mem_V⟩).val
-    = (hh.1 ⟨((isos.top_component 𝒜 f m hm f_deg).inv hom_z).1, isos.sheaf_component.forward.hartshorne.inv_mem 𝒜 f m hm f_deg V hh ⟨hom_z, hom_z_mem_V⟩⟩).1 := sorry, -- `rfl` works but slow
+    = (hh.1 ⟨((isos.top_component 𝒜 f m hm f_deg).inv hom_z).1, isos.sheaf_component.forward.hartshorne.inv_mem 𝒜 f m hm f_deg V hh ⟨hom_z, hom_z_mem_V⟩⟩).1 := rfl, -- `rfl` works but slow
   erw hartshorne_eq2 at hartshorne_eq,
 
   have inv_hom_z_eq : (((isos.top_component 𝒜 f m hm f_deg).inv) hom_z).1 = z.1,
@@ -4608,8 +4626,7 @@ begin
     erw inv_hom_z_eq at β_not_in,
     exact β_not_in,
   end⟩,
-  {
-    sorry },
+  { convert projective_spectrum.section_congr_arg 𝒜 _ _ _ pt_eq.symm hh _ _ hartshorne_eq, },
   erw eq0,
 
   simp only [←α_eq, ←β_eq, ←ι_eq] at data_eq2,
@@ -4774,7 +4791,18 @@ begin
     rw isos.top_component.forward_backward,
     refl, },
 
-  have eq0 : (hh.1 z) = localization.mk nn ⟨dd.1, dd_not_mem_z⟩ := sorry,
+  have eq0 : (hh.1 z) = localization.mk nn ⟨dd.1, dd_not_mem_z⟩,
+  { apply section_congr_arg (degree_zero_part 𝒜 f m f_deg) (unop V)
+    ⟨(((isos.top_component 𝒜 f m hm f_deg).hom) ⟨inv_z.1, _⟩), _⟩ z _ hh,
+    exact data_eq1.symm,
+
+    rw subtype.ext_iff_val,
+    dsimp only,
+    symmetry,
+    change isos.top_component.forward.to_fun 𝒜 f m f_deg (isos.top_component.backward.to_fun 𝒜 f m hm f_deg _) = _,
+    rw isos.top_component.forward_backward,
+    refl,
+   },
   erw [eq0, localization.mk_eq_mk', is_localization.eq],
   simp only [←subtype.val_eq_coe, subtype.ext_iff_val,
     show ∀ (p q : degree_zero_part 𝒜 f m f_deg), (p * q).1 = p.1 * q.1, from λ _ _, rfl],
@@ -4880,8 +4908,6 @@ begin
     exact proj_C_ne_zero,
      }
 end
-
-#exit
 
 def isos.sheaf_component (f : A) [decidable_eq (localization.away f)] (m : ℕ) (hm : 0 < m) (f_deg : f ∈ 𝒜 m) :
   (isos.top_component 𝒜 f m hm f_deg).hom _*

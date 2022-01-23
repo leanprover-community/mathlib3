@@ -83,27 +83,15 @@ theorem chicken_mcnugget_split (m n : ℕ) (cop: coprime m n) (hm : 1 < m) (hn: 
 /-- Rewrites the above with is_greatest. -/
 theorem chicken_mcnugget (m n : ℕ) (cop: coprime m n) (hm : 1 < m) (hn: 1 < n) :
   is_greatest {k | ∀ a b, a * m + b * n ≠ k} (m * n - m - n) :=
-begin
-  split,
-  have statement := chicken_mcnugget_upper_bound m n cop hm hn,
-  push_neg at statement,
-  exact statement,
-  rw upper_bounds,
-  have statement2 := chicken_mcnugget_construction m n cop hm hn,
-  have statement3 : ∀ (k : ℕ), (∀ (a b : ℕ), a * m + b * n ≠ k) → k <= m * n - m - n,
-  intro k,
-  contrapose,
-  push_neg,
-  exact statement2 k,
-  exact statement3,
-end
+let h := chicken_mcnugget_split m n cop hm hn in
+  ⟨λ a b H, h.1 ⟨a, b, H⟩, λ k hk, not_lt.mp (mt (h.2 k) (λ ⟨a, b, H⟩, hk a b H))⟩
 
 /-- Restates the original theorem with add_submonoid.closure. -/
 lemma chicken_mcnugget_add_submonoid_split (m n : ℕ) (cop: coprime m n) (hm: 1 < m) (hn: 1 < n) :
   m * n - m - n ∉ add_submonoid.closure ({m, n} : set ℕ) ∧
   ∀ k, m * n - m - n < k → k ∈ add_submonoid.closure ({m, n} : set ℕ) :=
 begin
-  simp_rw ← add_submonoid.mem_closure_pair,
+  simp_rw add_submonoid.mem_closure_pair,
   exact chicken_mcnugget_split m n cop hm hn,
 end
 

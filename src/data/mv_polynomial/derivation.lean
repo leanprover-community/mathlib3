@@ -9,7 +9,7 @@ import ring_theory.derivation
 /-!
 # Derivations of multivariate polynomials
 
-In this file we prove that a derivation of `mv_polynomial σ R` is defined by its values on all
+In this file we prove that a derivation of `mv_polynomial σ R` is determined by its values on all
 monomials `mv_polynomial.X i`. We also provide a constructor `mv_polynomial.mk_derivation` that
 builds a derivation from its values on `X i`s and a linear equivalence
 `mv_polynomial.equiv_derivation` between `σ → A` and `derivation (mv_polynomial σ R) A`.

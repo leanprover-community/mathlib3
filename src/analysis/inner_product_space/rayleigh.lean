@@ -84,6 +84,65 @@ lemma infi_rayleigh_eq_infi_rayleigh_sphere {r : ℝ} (hr : 0 < r) :
 show (⨅ x : ({0} : set E)ᶜ, rayleigh_quotient x) = _,
 by simp only [@cinfi_set _ _ _ _ rayleigh_quotient, T.image_rayleigh_eq_image_rayleigh_sphere hr]
 
+lemma rayleigh_le_norm (x : E) : rayleigh_quotient x ≤ ∥T∥ :=
+begin
+  by_cases hx : x = 0,
+  { simp only [hx, div_zero, nat.one_ne_zero, norm_zero, ne.def, norm_nonneg, not_false_iff,
+               bit0_eq_zero, zero_pow'] },
+  have h : T.re_apply_inner_self x ≤ ∥T x∥ * ∥x∥ := re_inner_le_norm (T x) x,
+  dsimp,
+  refine (div_le_iff _).mpr _,
+  refine pow_two_pos_of_ne_zero _ (ne_of_gt (norm_pos_iff.mpr hx)),
+  calc _ ≤ ∥T x∥ * ∥x∥       : h
+      ... ≤ ∥T∥ * ∥x∥ * ∥x∥  : mul_le_mul_of_nonneg_right (le_op_norm _ _) (norm_nonneg _)
+      ... = ∥T∥ * ∥x∥ ^ 2    : by rw [mul_assoc, pow_two],
+end
+
+lemma supr_rayleigh_le_norm : (⨆ x, rayleigh_quotient x) ≤ ∥T∥ :=
+csupr_le (λ x, rayleigh_le_norm T x)
+
+lemma supr_rayleigh_eq_norm : (⨆ x, rayleigh_quotient x) = ∥T∥ :=
+begin
+  refine eq.symm (op_norm_eq_of_bounds _ _ _),
+  { refine le_csupr_of_le _ 0 (by simp),
+    unfold bdd_above,
+    rw [set.nonempty_def],
+    refine ⟨∥T∥, _⟩,
+    rw [mem_upper_bounds],
+    intros x hx,
+    rw [set.mem_range] at hx,
+    rcases hx with ⟨y, hy⟩,
+    rw [←hy],
+    exact rayleigh_le_norm T y },
+  { intros x,
+    set L := real.sqrt (∥T x∥ / ∥x∥) with hL,
+    set rT := (⨆ x, rayleigh_quotient x) with hrT,
+    set x₁ := (L : 𝕜) • x + (L⁻¹ : 𝕜) • (T x) with hx₁,
+    set x₂ := (L : 𝕜) • x - (L⁻¹ : 𝕜) • (T x) with hx₂,
+    have h₁ : ⟪T x₁, x₁⟫ =
+      ⟪T ((L:𝕜) • x), (L:𝕜) • x⟫ + ⟪T (T ((L⁻¹:𝕜) • x)), T ((L⁻¹:𝕜) • x)⟫ + 2 * ∥T x∥,
+    { simp [inner_add_left, inner_add_right, inner_smul_left, inner_smul_right],
+      sorry },
+    have h₂ : ⟪T x₂, x₂⟫ =
+      ⟪T ((L:𝕜) • x), (L:𝕜) • x⟫ + ⟪T (T ((L⁻¹:𝕜) • x)), T ((L⁻¹:𝕜) • x)⟫ - 2 * ∥T x∥,
+    { sorry },
+    have h₃ : (4 * ∥T x∥ ^ 2 : 𝕜) = ⟪T x₁, x₁⟫ - ⟪T x₂, x₂⟫,
+    { sorry },
+    have h₄ : 4 * ∥T x ∥ ^ 2 ≤ rT * (∥x₁∥^2 + ∥x₂∥^2),
+    { sorry },
+    have h₅ : 4 * ∥T x∥ ^ 2 ≤ 2 * rT * (L^2 * ∥x∥^2 + (L⁻¹)^2 * ∥T x∥^2),
+    { sorry },
+    have h₆ : 4 * ∥T x∥ ^ 2 ≤ 4 * rT * ∥T x∥ * ∥x∥,
+    { sorry },
+    have h₇ : 0 < 4 * ∥T x∥,
+    { sorry },
+    rw [←mul_le_mul_left h₇],
+    calc 4 * ∥T x∥ * ∥T x∥ = 4 * ∥T x∥ ^ 2          : by rw [mul_assoc, ←pow_two]
+                      ... ≤ 4 * rT * ∥T x∥ * ∥x∥   : h₆
+                      ... = _                      : by ring },
+  { exact λ N hN H, le_trans (supr_rayleigh_le_norm T) (op_norm_le_bound _ hN H) }
+end
+
 end continuous_linear_map
 
 namespace inner_product_space
@@ -220,13 +279,23 @@ end
 end complete_space
 
 section compact
-variables [complete_space E] {T : E →ₗ[𝕜] E}
+variables [complete_space E] {T : E →L[𝕜] E}
 
-lemma exists_eigenvalue_of_compact [nontrivial E] (hT : is_self_adjoint T)
+lemma exists_eigenvalue_of_compact [nontrivial E] (hT : is_self_adjoint T.to_linear_map)
   (hT_cpct : compact_map T) :
-  ∃ c, has_eigenvalue T c :=
+  ∃ c, has_eigenvalue T.to_linear_map c :=
 begin
-  sorry
+  by_cases h_triv : T = 0,
+  { rcases exists_ne (0 : E) with ⟨w, hw⟩,
+    refine ⟨0, has_eigenvalue_of_has_eigenvector ⟨_, hw⟩⟩,
+    simp only [mem_eigenspace_iff, h_triv, zero_smul, continuous_linear_map.to_linear_map_eq_coe, continuous_linear_map.coe_zero,
+              linear_map.zero_apply] },
+  { change T ≠ 0 at h_triv,
+    have h₁ := exists_seq_tendsto_Inf (set.nonempty_def.mpr (@continuous_linear_map.bounds_nonempty _ _ _ _ _ _ _ _ _ _ _ _ T)) (continuous_linear_map.bounds_bdd_below),
+    rcases h₁ with ⟨u, ⟨h_antitone, ⟨hu₁,hu₂⟩⟩⟩,
+
+    sorry
+  }
 end
 
 lemma subsingleton_of_no_eigenvalue_of_compact (hT : is_self_adjoint T)

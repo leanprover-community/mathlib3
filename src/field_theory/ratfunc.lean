@@ -925,50 +925,42 @@ section laurent_series
 omit hring
 variables {K' : Type u} [field K'] (f : ratfunc K') (p q : polynomial K')
 
-open polynomial laurent_series
+open power_series laurent_series
 
 instance coe_to_laurent_series : has_coe (ratfunc K') (laurent_series K') :=
 ⟨λ f, (f.num : power_series K') / f.denom⟩
 
 lemma coe_def : (f : laurent_series K') = (f.num : power_series K') / f.denom := rfl
 
-@[simp] lemma _root_.polynomial.coe_coe :
-  (p : laurent_series K') = hahn_series.of_power_series ℤ K' p := rfl
-
 @[simp] lemma coe_div : (((algebra_map (polynomial K') (ratfunc K') p /
-  algebra_map (polynomial K') (ratfunc K') q) : ratfunc K') : laurent_series K') =
-  (p : power_series K') / (q : power_series K') :=
+  algebra_map (polynomial K') (ratfunc K') q) : ratfunc K') : laurent_series K') = p / q :=
 begin
-  classical,
-  simp_rw [coe_def, coe_power_series],
+  simp_rw [coe_def],
   by_cases hp : p = 0,
-  { simp only [hp, polynomial.coe_zero, num_zero, zero_div, _root_.map_zero] },
+  { simp only [hp, polynomial.coe_zero, coe_zero, num_zero, zero_div, map_zero, coe_coe], },
   by_cases hq : q = 0,
   { simp only [div_zero, polynomial.coe_zero, ratfunc.num_zero, hahn_series.emb_domain_zero,
                zero_div, polynomial.coe_one, eq_self_iff_true, hahn_series.of_power_series_apply,
-               ratfunc.denom_zero, ring_equiv.map_zero, _root_.map_zero, coe_coe, hq] },
+               ratfunc.denom_zero, ring_equiv.map_zero, map_zero, coe_zero, coe_coe, hq] },
   have : ¬ q / gcd p q = 0,
   { rw [polynomial.div_eq_zero_iff],
     { rw [not_lt], convert polynomial.degree_gcd_le_right p hq },
     { simp [gcd_eq_zero_iff, hp, hq] } },
-  rw [num_div _ hq, denom_div _ hq, polynomial.coe_mul, polynomial.coe_coe, polynomial.coe_mul,
-      _root_.map_mul, _root_.map_mul, mul_div_mul_left, div_eq_div_iff, ←_root_.map_mul,
-      ←_root_.map_mul, ←polynomial.coe_mul, ←polynomial.coe_mul, ←euclidean_domain.mul_div_assoc,
-      mul_comm, ←euclidean_domain.mul_div_assoc, mul_comm],
+  rw [num_div _ hq, denom_div _ hq, polynomial.coe_mul, coe_coe, polynomial.coe_mul,
+      polynomial.coe_C, coe_mul, coe_mul, coe_C, mul_div_mul_left, div_eq_div_iff, coe_coe,
+      ←coe_mul, ←polynomial.coe_mul, coe_coe, ←coe_mul, ←polynomial.coe_mul,
+      ←euclidean_domain.mul_div_assoc, mul_comm, ←euclidean_domain.mul_div_assoc, mul_comm],
   { apply gcd_dvd_left },
   { apply gcd_dvd_right },
-  { rw [ne.def,
-        (hahn_series.of_power_series ℤ K').map_eq_zero_iff hahn_series.of_power_series_injective,
-        polynomial.coe_eq_zero_iff],
-    convert this },
-  { rwa [ne.def,
-         (hahn_series.of_power_series ℤ K').map_eq_zero_iff hahn_series.of_power_series_injective,
+  { rwa [ne.def, coe_power_series,
+         map_eq_zero_iff (hahn_series.of_power_series ℤ K') hahn_series.of_power_series_injective,
          polynomial.coe_eq_zero_iff] },
-  { rw [ne.def,
-        (hahn_series.of_power_series ℤ K').map_eq_zero_iff hahn_series.of_power_series_injective,
-        polynomial.coe_eq_zero_iff, polynomial.C_eq_zero,
-        inv_eq_zero, polynomial.leading_coeff_eq_zero],
-    convert this }
+  { rwa [ne.def, coe_coe, coe_power_series,
+         map_eq_zero_iff (hahn_series.of_power_series ℤ K') hahn_series.of_power_series_injective,
+         polynomial.coe_eq_zero_iff] },
+  { rwa [ne.def,
+         map_eq_zero_iff (hahn_series.C : K' →+* laurent_series K') (hahn_series.C_injective),
+        _root_.inv_eq_zero, polynomial.leading_coeff_eq_zero] }
 end
 
 end laurent_series

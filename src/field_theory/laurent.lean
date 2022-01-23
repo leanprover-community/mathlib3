@@ -155,43 +155,4 @@ end
 lemma laurent_injective : function.injective (laurent r) :=
 λ _ _ h, by simpa [laurent_laurent] using congr_arg (laurent (-r)) h
 
-omit hdomain
-
-variables {K : Type u} [field K] (F : ratfunc K) (P Q : polynomial K)
-
-instance : has_inv (polynomial K) := ⟨λ f, 1 / f⟩
-
-open laurent_series
-
-instance coe_to_laurent_series : has_coe (ratfunc K) (laurent_series K) :=
-⟨λ f, (f.num : power_series K) / f.denom⟩
-
-lemma coe_def : (F : laurent_series K) = (F.num : power_series K) / F.denom := rfl
-
-@[simp] lemma polynomial.coe_coe : (P : laurent_series K) = hahn_series.of_power_series ℤ K P := rfl
-
-@[simp] lemma coe_div : (((algebra_map (polynomial K) (ratfunc K) P /
-  algebra_map (polynomial K) (ratfunc K) Q) : ratfunc K) : laurent_series K) =
-  (P : power_series K) / (Q : power_series K) :=
-begin
-  simp_rw [coe_def, coe_power_series],
-  by_cases hQ : Q = 0,
-  { simp only [div_zero, polynomial.coe_zero, ratfunc.num_zero, hahn_series.emb_domain_zero,
-               zero_div, polynomial.coe_one, eq_self_iff_true, hahn_series.of_power_series_apply,
-               ratfunc.denom_zero, ring_equiv.map_zero, _root_.map_zero, coe_coe, hQ] },
-  rw [num_div _ hQ, denom_div _ hQ, polynomial.coe_mul, polynomial.coe_coe, polynomial.coe_mul,
-      _root_.map_mul, _root_.map_mul, mul_div_mul_left, div_eq_div_iff, ←_root_.map_mul,
-      ←_root_.map_mul, ←polynomial.coe_mul, ←polynomial.coe_mul, ←euclidean_domain.mul_div_assoc,
-      mul_comm, ←euclidean_domain.mul_div_assoc, mul_comm],
-  { exact gcd_dvd_left _ _ },
-  { exact gcd_dvd_right _ _ },
-  { rw [ne.def, ←(hahn_series.of_power_series ℤ K).map_zero,
-        (hahn_series.of_power_series_injective).eq_iff, ←coe_zero] },
-  { sorry },
-  { rw [ne.def, coe_C, of_power_series_C, hahn_series.single_eq_zero_iff, inv_eq_zero,
-        leading_coeff_eq_zero, polynomial.div_eq_zero_iff],
-    { simpa using degree_gcd_le_right _ hQ },
-    { simp [hQ] } }
-end
-
 end ratfunc

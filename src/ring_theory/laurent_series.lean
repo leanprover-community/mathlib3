@@ -99,46 +99,6 @@ begin
     coe_power_series],
 end
 
-@[simp] lemma of_power_series_X :
-  of_power_series ℤ R power_series.X = single 1 1 :=
-begin
-  ext n,
-  cases n,
-  { rw [int.of_nat_eq_coe, ← int.nat_cast_eq_coe_nat, of_power_series_apply_coeff],
-    by_cases h1 : n = 1,
-    { simp [h1] },
-    { rw [power_series.coeff_X, single_coeff, if_neg h1, if_neg],
-      contrapose! h1,
-      rw [← nat.cast_one] at h1,
-      exact nat.cast_injective h1 } },
-  { rw [of_power_series_apply, emb_domain_notin_range, single_coeff_of_ne],
-    { dec_trivial },
-    rw [set.mem_range, not_exists],
-    intro m,
-    simp only [rel_embedding.coe_fn_mk, function.embedding.coe_fn_mk, int.nat_cast_eq_coe_nat],
-    dec_trivial }
-end
-
-@[simp] lemma of_power_series_C (r : R) :
-  of_power_series ℤ R (power_series.C R r) = single 0 r :=
-begin
-  ext n,
-  cases n,
-  { rw [int.of_nat_eq_coe, ← int.nat_cast_eq_coe_nat, of_power_series_apply_coeff],
-    by_cases h1 : n = 0,
-    { simp [h1] },
-    { rw [power_series.coeff_C, single_coeff, if_neg h1, if_neg],
-      contrapose! h1,
-      rw [← nat.cast_zero] at h1,
-      exact nat.cast_injective h1 } },
-  { rw [of_power_series_apply, emb_domain_notin_range, single_coeff_of_ne],
-    { dec_trivial },
-    rw [set.mem_range, not_exists],
-    intro m,
-    simp only [rel_embedding.coe_fn_mk, function.embedding.coe_fn_mk, int.nat_cast_eq_coe_nat],
-    dec_trivial }
-end
-
 end semiring
 
 instance [comm_semiring R] : algebra (power_series R) (laurent_series R) :=

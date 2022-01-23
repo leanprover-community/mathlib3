@@ -697,6 +697,13 @@ begin
   { simp [pow_pos hx.bot_lt _] }
 end
 
+lemma inv_lt_inv_iff {x y : ℝ≥0} (hx : x ≠ 0) (hy : y ≠ 0) :
+  y⁻¹ < x⁻¹ ↔ x < y :=
+by rw [← one_div, div_lt_iff hy, ← div_eq_inv_mul, lt_div_iff hx, one_mul]
+
+lemma inv_lt_inv {x y : ℝ≥0} (hx : x ≠ 0) (h : x < y) : y⁻¹ < x⁻¹ :=
+(inv_lt_inv_iff hx ((bot_le.trans_lt h).ne')).2 h
+
 end inv
 
 @[simp] lemma abs_eq (x : ℝ≥0) : |(x : ℝ)| = x :=

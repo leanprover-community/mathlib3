@@ -939,6 +939,56 @@ begin
   end
 end
 
+variables (μ)
+
+lemma pow_mul_meas_ge_le_snorm {f : α → E}
+  (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ∞) (hf : measurable f) (ε : ℝ≥0∞) :
+  (ε * μ {x | ε ≤ ∥f x∥₊ ^ p.to_real}) ^ (1 / p.to_real) ≤ snorm f p μ :=
+begin
+  rw snorm_eq_lintegral_rpow_nnnorm hp_ne_zero hp_ne_top,
+  exact ennreal.rpow_le_rpow (mul_meas_ge_le_lintegral
+      (measurable.pow_const (measurable.coe_nnreal_ennreal (hf.nnnorm)) _) ε)
+      (one_div_nonneg.2 ennreal.to_real_nonneg),
+end
+
+lemma mul_meas_ge_le_pow_snorm {f : α → E}
+  (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ∞) (hf : measurable f) (ε : ℝ≥0∞) :
+  ε * μ {x | ε ≤ ∥f x∥₊ ^ p.to_real} ≤ snorm f p μ ^ p.to_real :=
+begin
+  have : 1 / p.to_real * p.to_real = 1,
+  { refine one_div_mul_cancel _,
+    rw [ne, ennreal.to_real_eq_zero_iff],
+    exact not_or hp_ne_zero hp_ne_top },
+  rw [← ennreal.rpow_one (ε * μ {x | ε ≤ ∥f x∥₊ ^ p.to_real}), ← this, ennreal.rpow_mul],
+  exact ennreal.rpow_le_rpow (pow_mul_meas_ge_le_snorm μ hp_ne_zero hp_ne_top hf ε)
+    ennreal.to_real_nonneg,
+end
+
+/-- A version of Markov's inequality using Lp-norms. -/
+lemma mul_meas_ge_le_pow_snorm' {f : α → E}
+  (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ∞) (hf : measurable f) (ε : ℝ≥0∞) :
+  ε ^ p.to_real * μ {x | ε ≤ ∥f x∥₊} ≤ snorm f p μ ^ p.to_real :=
+begin
+  convert mul_meas_ge_le_pow_snorm μ hp_ne_zero hp_ne_top hf (ε ^ p.to_real),
+  ext x,
+  rw ennreal.rpow_le_rpow_iff (ennreal.to_real_pos hp_ne_zero hp_ne_top),
+end
+
+lemma meas_ge_le_mul_pow_snorm {f : α → E}
+  (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ∞) (hf : measurable f) {ε : ℝ≥0∞} (hε : ε ≠ 0) :
+  μ {x | ε ≤ ∥f x∥₊} ≤ ε⁻¹ ^ p.to_real * snorm f p μ ^ p.to_real :=
+begin
+  by_cases ε = ∞,
+  { simp [h] },
+  have hεpow : ε ^ p.to_real ≠ 0 := (ennreal.rpow_pos (pos_iff_ne_zero.2 hε) h).ne.symm,
+  have hεpow' : ε ^ p.to_real ≠ ∞ := (ennreal.rpow_ne_top_of_nonneg ennreal.to_real_nonneg h),
+  rw [ennreal.inv_rpow, ← ennreal.mul_le_mul_left hεpow hεpow', ← mul_assoc,
+      ennreal.mul_inv_cancel hεpow hεpow', one_mul],
+  exact mul_meas_ge_le_pow_snorm' μ hp_ne_zero hp_ne_top hf ε,
+end
+
+variables {μ}
+
 lemma mem_ℒp.mem_ℒp_of_exponent_le {p q : ℝ≥0∞} [is_finite_measure μ] {f : α → E}
   (hfq : mem_ℒp f q μ) (hpq : p ≤ q) :
   mem_ℒp f p μ :=
@@ -2393,8 +2443,11 @@ end complete_space
 
 open_locale bounded_continuous_function
 open bounded_continuous_function
-variables [borel_space E] [second_countable_topology E] [topological_space α] [borel_space α]
+variables [borel_space E] [second_countable_topology E]
 
+section
+
+variables [topological_space α] [borel_space α]
 variables (E p μ)
 
 /-- An additive subgroup of `Lp E p μ`, consisting of the equivalence classes which contain a
@@ -2559,3 +2612,38 @@ by { rw to_Lp_norm_eq_to_Lp_norm_coe, exact bounded_continuous_function.to_Lp_no
 
 end continuous_map
 --(to_Lp p μ 𝕜 : (α →ᵇ E) →L[𝕜] (Lp E p μ))
+
+end
+
+namespace measure_theory
+
+namespace Lp
+
+lemma pow_mul_meas_ge_le_norm (f : Lp E p μ)
+  (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ∞) (ε : ℝ≥0∞) :
+  (ε * μ {x | ε ≤ ∥f x∥₊ ^ p.to_real}) ^ (1 / p.to_real) ≤ (ennreal.of_real ∥f∥) :=
+(ennreal.of_real_to_real (snorm_ne_top f)).symm ▸
+  pow_mul_meas_ge_le_snorm μ hp_ne_zero hp_ne_top (Lp.measurable f) ε
+
+lemma mul_meas_ge_le_pow_norm (f : Lp E p μ)
+  (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ∞) (ε : ℝ≥0∞) :
+  ε * μ {x | ε ≤ ∥f x∥₊ ^ p.to_real} ≤ (ennreal.of_real ∥f∥) ^ p.to_real :=
+(ennreal.of_real_to_real (snorm_ne_top f)).symm ▸
+  mul_meas_ge_le_pow_snorm μ hp_ne_zero hp_ne_top (Lp.measurable f) ε
+
+/-- A version of Markov's inequality with elements of Lp. -/
+lemma mul_meas_ge_le_pow_norm' (f : Lp E p μ)
+  (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ∞) (ε : ℝ≥0∞) :
+  ε ^ p.to_real * μ {x | ε ≤ ∥f x∥₊} ≤ (ennreal.of_real ∥f∥) ^ p.to_real :=
+(ennreal.of_real_to_real (snorm_ne_top f)).symm ▸
+  mul_meas_ge_le_pow_snorm' μ hp_ne_zero hp_ne_top (Lp.measurable f) ε
+
+lemma meas_ge_le_mul_pow_norm (f : Lp E p μ)
+  (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ∞) {ε : ℝ≥0∞} (hε : ε ≠ 0) :
+  μ {x | ε ≤ ∥f x∥₊} ≤ ε⁻¹ ^ p.to_real * (ennreal.of_real ∥f∥) ^ p.to_real :=
+(ennreal.of_real_to_real (snorm_ne_top f)).symm ▸
+  meas_ge_le_mul_pow_snorm μ hp_ne_zero hp_ne_top (Lp.measurable f) hε
+
+end Lp
+
+end measure_theory

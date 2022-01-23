@@ -173,7 +173,9 @@ lemma monotone_mem {f : filter α} : monotone (λ s, s ∈ f) :=
 end filter
 
 namespace tactic.interactive
-open tactic interactive
+open tactic interactive interactive.types lean.parser
+
+local postfix `?`:9001 := optional
 
 /-- `filter_upwards [h1, ⋯, hn]` replaces a goal of the form `s ∈ f`
 and terms `h1 : t1 ∈ f, ⋯, hn : tn ∈ f` with `∀ x, x ∈ t1 → ⋯ → x ∈ tn → x ∈ s`.
@@ -182,13 +184,15 @@ and terms `h1 : t1 ∈ f, ⋯, hn : tn ∈ f` with `∀ x, x ∈ t1 → ⋯ → 
 -/
 meta def filter_upwards
   (s : parse types.pexpr_list)
-  (e' : parse $ optional types.texpr) : tactic unit :=
+  (ids : parse with_ident_list)
+  (tgt : parse (tk "using" *> texpr)?) : tactic unit :=
 do
   s.reverse.mmap (λ e, eapplyc `filter.mp_mem >> eapply e),
   eapplyc `filter.univ_mem',
   `[dsimp only [set.mem_set_of_eq]],
-  match e' with
-  | some e := interactive.exact e
+  if ¬ids.empty then `[intros e] else skip,
+  match tgt with
+  | some e := exact e
   | none := skip
   end
 
@@ -1753,8 +1757,7 @@ lemma le_of_map_le_map_inj' {f g : filter α} {m : α → β} {s : set α}
   (hsf : s ∈ f) (hsg : s ∈ g) (hm : ∀ x ∈ s, ∀ y ∈ s, m x = m y → x = y)
   (h : map m f ≤ map m g) : f ≤ g :=
 λ t ht, by filter_upwards [hsf, h $ image_mem_map (inter_mem hsg ht)]
-λ a has ⟨b, ⟨hbs, hb⟩, h⟩,
-hm _ hbs _ has h ▸ hb
+using λ _ has ⟨_, ⟨hbs, hb⟩, h⟩, hm _ hbs _ has h ▸ hb
 
 lemma le_of_map_le_map_inj_iff {f g : filter α} {m : α → β} {s : set α}
   (hsf : s ∈ f) (hsg : s ∈ g) (hm : ∀ x ∈ s, ∀ y ∈ s, m x = m y → x = y) :
@@ -2117,8 +2120,7 @@ join_le $ eventually_map.2 h
 begin
   refine le_trans (λ s hs, _) (join_mono $ map_mono hf),
   simp only [mem_join, mem_bind', mem_map] at hs ⊢,
-  filter_upwards [hg, hs],
-  exact λ x hx hs, hx hs
+  filter_upwards [hg, hs] using λ _ hx hs, hx hs
 end
 
 lemma bind_inf_principal {f : filter α} {g : α → filter β} {s : set β} :

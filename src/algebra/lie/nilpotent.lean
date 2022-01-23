@@ -31,9 +31,34 @@ namespace lie_module
 variables (R : Type u) (L : Type v) (M : Type w)
 variables [comm_ring R] [lie_ring L] [lie_algebra R L] [add_comm_group M] [module R M]
 variables [lie_ring_module L M] [lie_module R L M]
+variables (k : ℕ) (N : lie_submodule R L M)
+
+/-- A generalisation of the lower central series. The zeroth term is a specified Lie submodule of
+a Lie module. In the case when we specify the top ideal `⊤` of the Lie algebra, regarded as a Lie
+module over itself, we get the usual lower central series of a Lie algebra.
+
+It can be more convenient to work with this generalisation when considering the lower central series
+of a Lie submodule, regarded as a Lie module in its own right, since it provides a type-theoretic
+expression of the fact that the terms of the Lie submodule's lower central series are also Lie
+submodules of the enclosing Lie module.
+
+See also `lie_module.lcs_eq_lcs_of_lie_submodule_comap` and
+`lie_module.lcs_eq_lcs_of_lie_submodule_map` below. -/
+def lcs_of_lie_submodule (k : ℕ) : lie_submodule R L M → lie_submodule R L M :=
+(λ N, ⁅(⊤ : lie_ideal R L), N⁆)^[k]
+
+@[simp] lemma lcs_of_lie_submodule_zero (N : lie_submodule R L M) :
+  lcs_of_lie_submodule R L M 0 N = N :=
+rfl
+
+@[simp] lemma lcs_of_lie_submodule_succ (N : lie_submodule R L M) (k : ℕ) :
+  lcs_of_lie_submodule R L M (k + 1) N =
+  ⁅(⊤ : lie_ideal R L), lcs_of_lie_submodule R L M k N⁆ :=
+function.iterate_succ_apply' (λ N', ⁅⊤, N'⁆) k N
 
 /-- The lower central series of Lie submodules of a Lie module. -/
-def lower_central_series (k : ℕ) : lie_submodule R L M := (λ I, ⁅(⊤ : lie_ideal R L), I⁆)^[k] ⊤
+def lower_central_series (k : ℕ) : lie_submodule R L M :=
+lcs_of_lie_submodule R L M k ⊤
 
 @[simp] lemma lower_central_series_zero : lower_central_series R L M 0 = ⊤ := rfl
 
@@ -51,6 +76,33 @@ begin
     { rw lower_central_series_succ,
       exact (lie_submodule.mono_lie_right _ _ ⊤ (ih hk)).trans (lie_submodule.lie_le_right _ _), },
     { exact hk.symm ▸ le_refl _, }, },
+end
+
+lemma lcs_of_lie_submodule_le_self : lcs_of_lie_submodule R L M k N ≤ N :=
+begin
+  induction k with k ih,
+  { simp, },
+  { simp only [lcs_of_lie_submodule_succ],
+    exact (lie_submodule.mono_lie_right _ _ ⊤ ih).trans (N.lie_le_right ⊤), },
+end
+
+lemma lcs_eq_lcs_of_lie_submodule_comap :
+  lower_central_series R L N k = (lcs_of_lie_submodule R L M k N).comap N.incl :=
+begin
+  induction k with k ih,
+  { simp, },
+  { simp only [lcs_of_lie_submodule_succ, lower_central_series_succ] at ⊢ ih,
+    have : lcs_of_lie_submodule R L M k N ≤ N.incl.range,
+    { rw N.range_incl,
+      apply lcs_of_lie_submodule_le_self, },
+    rw [ih, lie_submodule.comap_bracket_eq _ _ N.incl N.ker_incl this], },
+end
+
+lemma lcs_eq_lcs_of_lie_submodule_map :
+  (lower_central_series R L N k).map N.incl = lcs_of_lie_submodule R L M k N :=
+begin
+  rw [lcs_eq_lcs_of_lie_submodule_comap, lie_submodule.map_comap_incl, inf_eq_right],
+  apply lcs_of_lie_submodule_le_self,
 end
 
 lemma trivial_iff_lower_central_eq_bot : is_trivial L M ↔ lower_central_series R L M 1 = ⊥ :=

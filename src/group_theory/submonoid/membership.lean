@@ -173,7 +173,6 @@ closure_eq_of_le (set.singleton_subset_iff.2 ⟨multiplicative.of_add 1, pow_one
 lemma mem_closure_singleton {x y : M} : y ∈ closure ({x} : set M) ↔ ∃ n:ℕ, x^n=y :=
 by rw [closure_singleton_eq, mem_mrange]; refl
 
-
 lemma mem_closure_singleton_self {y : M} : y ∈ closure ({y} : set M) :=
 mem_closure_singleton.2 ⟨1, pow_one y⟩
 
@@ -241,14 +240,14 @@ when it is injective. The inverse is given by the logarithms. -/
 @[simps]
 def pow_log_equiv [decidable_eq M] {n : M} (h : function.injective (λ m : ℕ, n ^ m)) :
   multiplicative ℕ ≃* powers n :=
-{ to_fun := λ m, pow n m.to_add,
-  inv_fun := λ m, multiplicative.of_add (log m),
+{ to_fun := pow n,
+  inv_fun := log,
   left_inv := log_pow_eq_self h,
   right_inv := pow_log_eq_self,
-  map_mul' := λ _ _, by { simp only [pow, map_mul, of_add_add, to_add_mul] } }
+  map_mul' := λ x y, subtype.ext (pow_add n x y) }
 
 theorem log_pow_int_eq_self {x : ℤ} (h : 1 < x.nat_abs) (m : ℕ) : log (pow x m) = m :=
-(pow_log_equiv (int.pow_right_injective h)).symm_apply_apply _
+log_pow_eq_self (int.pow_right_injective h) _
 
 @[simp] lemma map_powers {N : Type*} [monoid N] (f : M →* N) (m : M) :
   (powers m).map f = powers (f m) :=
@@ -356,20 +355,14 @@ lemma mul_left_mem_add_closure (ha : a ∈ S) (hb : b ∈ add_submonoid.closure 
   a * b ∈ add_submonoid.closure (S : set R) :=
 S.mul_mem_add_closure (add_submonoid.mem_closure.mpr (λ sT hT, hT ha)) hb
 
+/-- An element is in the closure of a two-element set if it is a linear combination of those two
+elements. -/
 @[to_additive]
 lemma mem_closure_pair {A : Type*} [comm_monoid A] (a b c : A) :
   (∃ m n : ℕ, (a ^ m) * (b ^ n) = c) ↔ c ∈ submonoid.closure ({a, b} : set A) :=
 begin
-  rw [←set.singleton_union, submonoid.closure_union],
-  refine ⟨_, λ h, _⟩,
-  rintros ⟨m, n, rfl⟩,
-  exact mem_sup.mpr ⟨a ^ m, mem_closure_singleton.mpr ⟨m, rfl⟩,
-    b ^ n, mem_closure_singleton.mpr ⟨n, rfl⟩, rfl⟩,
-  obtain ⟨a, ha, b, hb, rfl⟩ := submonoid.mem_sup.mp h,
-  rw [mem_closure_singleton] at ha hb,
-  obtain ⟨a, rfl⟩ := ha,
-  obtain ⟨b, rfl⟩ := hb,
-  exact ⟨a, b, rfl⟩,
+  rw [←set.singleton_union, submonoid.closure_union, mem_sup],
+  simp_rw [exists_prop, mem_closure_singleton, exists_exists_eq_and],
 end
 
 end submonoid

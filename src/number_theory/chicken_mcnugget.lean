@@ -98,22 +98,6 @@ begin
   exact statement3,
 end
 
-/-- Auxiliary lemma for add_submonoid statement. -/
-lemma mult_add_subm_clos (m n k: ℕ):
-  (∃ a b, a * m + b * n = k) ↔ k ∈ add_submonoid.closure(({m, n} : set ℕ)) :=
-begin
-  rw [←set.singleton_union, add_submonoid.closure_union],
-  refine ⟨_, λ h, _⟩,
-  rintros ⟨a, b, rfl⟩,
-  exact add_submonoid.mem_sup.mpr ⟨a * m, add_submonoid.mem_closure_singleton.mpr ⟨a, rfl⟩,
-    b * n, add_submonoid.mem_closure_singleton.mpr ⟨b, rfl⟩, rfl⟩,
-  obtain ⟨a, ha, b, hb, rfl⟩ := add_submonoid.mem_sup.mp h,
-  rw [add_submonoid.mem_closure_singleton] at ha hb,
-  obtain ⟨a, rfl⟩ := ha,
-  obtain ⟨b, rfl⟩ := hb,
-  exact ⟨a, b, rfl⟩,
-end
-
 /-- Restates the original theorem with add_submonoid.closure. -/
 lemma chicken_mcnugget_add_submonoid_split (m n : ℕ) (cop: coprime m n) (hm: 1 < m) (hn: 1 < n) :
   m * n - m - n ∉ add_submonoid.closure ({m, n} : set ℕ) ∧
@@ -126,15 +110,4 @@ end
 /-- Rewrites the above with is_greatest. -/
 theorem chicken_mcnugget_add_submonoid (m n : ℕ) (cop: coprime m n) (hm: 1 < m) (hn: 1 < n) :
   is_greatest {k | k ∉ add_submonoid.closure ({m, n} : set ℕ)} (m * n - m - n) :=
-begin
-  split,
-  exact (chicken_mcnugget_add_submonoid_split m n cop hm hn).1,
-  rw upper_bounds,
-  have statement := (chicken_mcnugget_add_submonoid_split m n cop hm hn).2,
-  have contra : ∀ (k : ℕ), (k ∉ add_submonoid.closure {m, n}) → k ≤ m * n - m - n,
-  intro k,
-  contrapose,
-  push_neg,
-  exact statement k,
-  exact contra,
-end
+let h := chicken_mcnugget_add_submonoid_split m n cop hm hn in ⟨h.1, λ k, not_lt.mp ∘ mt (h.2 k)⟩

@@ -402,11 +402,10 @@ begin
   obtain ⟨p₁, p₂, p₃, l₁, l₂, l₃, -, -, h₂₁, h₂₂, h₂₃, h₃₁, h₃₂, h₃₃⟩ := @exists_config P L _ _,
   classical,
   rw [←add_lt_add_iff_right, ←point_count_eq, point_count, nat.card_eq_fintype_card],
-  exact let h_ne : l₁ ≠ l₂ := λ h, h₂₁ ((congr_arg _ h).mpr h₂₂) in let h := mk_point_ax h_ne in
-  fintype.two_lt_card_iff.mpr ⟨⟨p₂, h₂₂⟩, ⟨p₃, h₃₂⟩, ⟨mk_point h_ne, h.2⟩,
-    λ h_eq, h₃₃ ((congr_arg (∈ l₃) (subtype.ext_iff.mp h_eq)).mp h₂₃),
-    λ h_eq, h₂₁ ((congr_arg (∈ l₁) (subtype.ext_iff.mp h_eq)).mpr h.1),
-    λ h_eq, h₃₁ ((congr_arg (∈ l₁) (subtype.ext_iff.mp h_eq)).mpr h.1)⟩,
+  simp_rw [fintype.two_lt_card_iff, ne, subtype.ext_iff],
+  have h := mk_point_ax (λ h, h₂₁ ((congr_arg _ h).mpr h₂₂)),
+  exact ⟨⟨mk_point _, h.2⟩, ⟨p₂, h₂₂⟩, ⟨p₃, h₃₂⟩,
+    ne_of_mem_of_not_mem h.1 h₂₁, ne_of_mem_of_not_mem h.1 h₃₁, ne_of_mem_of_not_mem h₂₃ h₃₃⟩,
 end
 
 variables {P} (L)

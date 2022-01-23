@@ -256,7 +256,7 @@ begin
       exact mul_le_mul h1234.le hyd dist_nonneg (h0.trans h1234).le },
     { replace hxl : x ∈ c.left.right.Cᶜ, from compl_subset_compl.2 c.left.right.subset hxl,
       filter_upwards [is_open.mem_nhds (is_open_compl_iff.2 c.left.right.closed_C) hxl,
-        ihn c.left.right, ihn c.right] with _ hyl hydl hydr,
+        ihn c.left.right, ihn c.right] with y hyl hydl hydr,
       replace hxl : x ∉ c.left.left.U, from compl_subset_compl.2 c.left.left_U_subset_right_C hxl,
       replace hyl : y ∉ c.left.left.U, from compl_subset_compl.2 c.left.left_U_subset_right_C hyl,
       simp only [pow_succ, c.lim_eq_midpoint, c.left.lim_eq_midpoint,

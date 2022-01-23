@@ -112,7 +112,7 @@ theorem d_of_eq (h : P.to_poly = Q.to_poly) : P.d = Q.d :=
 by { rw [to_poly_injective] at h, rw [h] }
 
 lemma of_a_eq_zero (ha : P.a = 0) : P.to_poly = C P.d + C P.c * X + C P.b * X ^ 2 :=
-by { rw [to_poly, C_eq_zero.mpr ha, zero_mul, add_zero] }
+by rw [to_poly, C_eq_zero.mpr ha, zero_mul, add_zero]
 
 lemma of_b_eq_zero (ha : P.a = 0) (hb : P.b = 0) : P.to_poly = C P.d + C P.c * X :=
 by { rw [to_poly, C_eq_zero.mpr ha, C_eq_zero.mpr hb], simp only [add_zero, zero_mul] }
@@ -362,12 +362,19 @@ begin
   ring1
 end
 
-theorem disc_ne_zero_iff_roots_nodup (ha : P.a ≠ 0) (h3 : (map φ P).roots = {x, y, z}) :
-  P.disc ≠ 0 ↔ (map φ P).roots.nodup :=
+theorem disc_ne_zero_iff_roots_ne (ha : P.a ≠ 0) (h3 : (map φ P).roots = {x, y, z}) :
+  P.disc ≠ 0 ↔ x ≠ y ∧ x ≠ z ∧ y ≠ z :=
 begin
   rw [← ring_hom.map_ne_zero φ, disc_eq_prod_three_roots ha h3, pow_two],
   simp only [mul_ne_zero_iff, sub_ne_zero],
-  rw [ring_hom.map_ne_zero, h3],
+  rw [ring_hom.map_ne_zero],
+  tautology
+end
+
+theorem disc_ne_zero_iff_roots_nodup (ha : P.a ≠ 0) (h3 : (map φ P).roots = {x, y, z}) :
+  P.disc ≠ 0 ↔ (map φ P).roots.nodup :=
+begin
+  rw [disc_ne_zero_iff_roots_ne ha h3, h3],
   change _ ↔ (x ::ₘ y ::ₘ {z}).nodup,
   rw [nodup_cons, nodup_cons, mem_cons, mem_singleton, mem_singleton],
   simp only [nodup_singleton],

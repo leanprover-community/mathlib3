@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: David Kurniadi Angdinata
 -/
 
-import algebra.algebra.basic
 import field_theory.galois
 
 import algebraic_geometry.EllipticCurve
@@ -377,7 +376,7 @@ lemma add_some_some
       = x₂ ^ 3 + (F↑K)E.a₂ * x₂ ^ 2 + (F↑K)E.a₄ * x₂ + (F↑K)E.a₆)
   (x_ne : x₁ - x₂ ≠ 0) :
   some x₁ y₁ w₁ + some x₂ y₂ w₂ = add_some_some.def E K w₁ w₂ x_ne :=
-by { simp only [has_add.add, add, dif_pos x_ne] }
+by simp only [has_add.add, add, dif_pos x_ne]
 
 /-- Addition of affine points `(x₁, y₁), (x₂, y₂) ∈ E(K)` with `x₁ - x₂ = 0`
     and `y₁ + y₂ + a₁x₂ + a₃ ≠ 0` is doubling of `(x₁, y₁)`. -/
@@ -388,7 +387,7 @@ lemma add_some_some'
       = x₂ ^ 3 + (F↑K)E.a₂ * x₂ ^ 2 + (F↑K)E.a₄ * x₂ + (F↑K)E.a₆)
   (x_eq : x₁ - x₂ = 0) (y_ne : y₁ + y₂ + (F↑K)E.a₁ * x₂ + (F↑K)E.a₃ ≠ 0) :
   some x₁ y₁ w₁ + some x₂ y₂ w₂ = dbl_some.def E K w₁ (add_some_some_rw E K w₁ w₂ x_eq y_ne) :=
-by { simp only [has_add.add, add, dif_neg (by { rw [not_not], exact x_eq }), dif_pos y_ne] }
+by simp only [has_add.add, add, dif_neg (by { rw [not_not], exact x_eq }), dif_pos y_ne]
 
 /-- Addition of affine points `(x₁, y₁), (x₂, y₂) ∈ E(K)` with `x₁ - x₂ = 0`
     and `y₁ + y₂ + a₁x₂ + a₃ = 0` is zero. -/
@@ -400,8 +399,8 @@ lemma add_some_some''
       = x₂ ^ 3 + (F↑K)E.a₂ * x₂ ^ 2 + (F↑K)E.a₄ * x₂ + (F↑K)E.a₆)
   (x_eq : x₁ - x₂ = 0) (y_eq : y₁ + y₂ + (F↑K)E.a₁ * x₂ + (F↑K)E.a₃ = 0) :
   some x₁ y₁ w₁ + some x₂ y₂ w₂ = 0 :=
-by { simp only [has_add.add, add, dif_neg (by { rw [not_not], exact x_eq }),
-                dif_neg (by { rw [not_not], exact y_eq })] }
+by simp only [has_add.add, add, dif_neg (by { rw [not_not], exact x_eq }),
+              dif_neg (by { rw [not_not], exact y_eq })]
 
 end addition
 

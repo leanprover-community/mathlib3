@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: David Kurniadi Angdinata
 -/
 
-import algebraic_geometry.EllipticCurve.point
 import algebra.cubic_discriminant
+
+import algebraic_geometry.EllipticCurve.point
 
 /-!
 # Torsion points of an elliptic curve over a field
@@ -59,8 +60,8 @@ def mul_by' : E⟮L⟯ →+[L ≃ₐ[K] L] E⟮L⟯ :=
 def mul_by : E⟮K⟯ →+ E⟮K⟯ := mul_by' n E K K
 
 notation E⟮K⟯[n] := (mul_by n E K).ker
-notation E⟮K⟯•n := (mul_by n E K).range
-notation E⟮K⟯/n := E⟮K⟯ ⧸ E⟮K⟯•n
+notation E⟮K⟯`⬝`n := (mul_by n E K).range
+notation E⟮K⟯/n := E⟮K⟯ ⧸ E⟮K⟯⬝n
 
 end multiplication
 
@@ -237,27 +238,6 @@ end galois
 
 section ψ₂_x
 
-/-- `2` is invertible in `K`. -/
-def invertible_two (h2 : invertible (2 : F)) : invertible (2 : K) :=
-begin
-  rw [← algebra.id.map_eq_self (2 : F)] at h2,
-  replace h2 := @is_scalar_tower.invertible.algebra_tower _ _ K _ _ _ _ _ _ _ _ h2,
-  rw [map_bit0, map_one] at h2,
-  exact h2
-end
-
-/-- `2 ≠ 0` in `K`. -/
-private lemma two_ne_zero (h2 : invertible (2 : F)) : 2 ≠ (0 : K) :=
-@nonzero_of_invertible _ _ (2 : K) _ (invertible_two K h2)
-
-/-- `4 ≠ 0` in `K`. -/
-private lemma four_ne_zero (h2 : invertible (2 : F)) : 4 ≠ (0 : K) :=
-begin
-  convert_to 2 * 2 ≠ (0 : K),
-  { norm_num1 },
-  exact mul_ne_zero (two_ne_zero K h2) (two_ne_zero K h2)
-end
-
 /-- The cubic polynomial `ψ₂(x)` of the `x`-coordinate in `E(K)[2]`. -/
 def ψ₂_x : cubic K :=
 ⟨4, (F↑K)E.a₁ ^ 2 + 4 * (F↑K)E.a₂, 4 * (F↑K)E.a₄ + 2 * (F↑K)E.a₁ * (F↑K)E.a₃,
@@ -274,7 +254,7 @@ begin
   exact ⟨rfl, rfl, rfl, rfl⟩
 end
 
-/-- `ψ₂(x)` is invariant under `(x, y) ↦ (x, y + sx + t)` for any `s, t ∈ R``. -/
+/-- `ψ₂(x)` is invariant under `(x, y) ↦ (x, y + sx + t)` for any `s, t ∈ R`. -/
 lemma ψ₂_x.eq_cov (s t : F) : ψ₂_x E K = ψ₂_x (E.cov 1 0 s t) K :=
 begin
   simp only [ψ₂_x, cov, units.inv],
@@ -304,6 +284,27 @@ end
 
 variables [invertible (2 : F)]
 
+/-- `2` is invertible in `K`. -/
+private def invertible_two (h2 : invertible (2 : F)) : invertible (2 : K) :=
+begin
+  rw [← algebra.id.map_eq_self (2 : F)] at h2,
+  replace h2 := @is_scalar_tower.invertible.algebra_tower _ _ K _ _ _ _ _ _ _ _ h2,
+  rw [map_bit0, map_one] at h2,
+  exact h2
+end
+
+/-- `2 ≠ 0` in `K`. -/
+private lemma two_ne_zero (h2 : invertible (2 : F)) : 2 ≠ (0 : K) :=
+@nonzero_of_invertible _ _ (2 : K) _ (invertible_two K h2)
+
+/-- `4 ≠ 0` in `K`. -/
+private lemma four_ne_zero (h2 : invertible (2 : F)) : 4 ≠ (0 : K) :=
+begin
+  convert_to 2 * 2 ≠ (0 : K),
+  { norm_num1 },
+  exact mul_ne_zero (two_ne_zero K h2) (two_ne_zero K h2)
+end
+
 /-- The leading coefficient of `ψ₂(x)` is not zero. -/
 lemma ψ₂_x.a_ne_zero : (ψ₂_x E K).a ≠ 0 := four_ne_zero K _inst_8
 
@@ -319,7 +320,7 @@ begin
     (a₁ * x + a₃) ^ 2 + 4 * (x ^ 3 + a₂ * x ^ 2 + a₄ * x + a₆)
       = (a₃ ^ 2 + 4 * a₆) + (4 * a₄ + 2 * a₁ * a₃) * x + (a₁ ^ 2 + 4 * a₂) * x ^ 2 + 4 * x ^ 3 :=
   by { intros, ring1 },
-  rw [cubic.mem_roots_iff $ ψ₂_x.a_ne_zero E K, ψ₂_x, rhs_rw]
+  rw [cubic.mem_roots_iff $ cubic.ne_zero_of_a_ne_zero $ ψ₂_x.a_ne_zero E K, ψ₂_x, rhs_rw]
 end
 
 /-- The cubic discriminant of `ψ₂(x)` is not zero. -/
@@ -333,15 +334,17 @@ begin
   exact units.ne_zero E.disc_unit
 end
 
-/-- `F(E[2])` is invariant under completing a square. -/
-lemma ψ₂_x.splitting_field_eq_covₘ : F⟮E[2]⟯ = F⟮E.covₘ[2]⟯ := by rw [ψ₂_x.eq_covₘ]
+/-- If `ψ₂(x)` has three roots over `K`, then they are distinct. -/
+lemma ψ₂_x.roots_ne {x y z : K} (h3 : (cubic.map (F↑K) $ ψ₂_x E F).roots = {x, y, z}) :
+  x ≠ y ∧ x ≠ z ∧ y ≠ z :=
+(cubic.disc_ne_zero_iff_roots_ne (ψ₂_x.a_ne_zero E F) h3).mp $ ψ₂_x.disc_ne_zero E F
 
 /-- If `F(E[2]) ⊆ K`, then `ψ₂(x)` has no duplicate roots over `K`. -/
 lemma ψ₂_x.roots_nodup [algebra F⟮E[2]⟯ K] [is_scalar_tower F F⟮E[2]⟯ K] :
   (cubic.map (F↑K) $ ψ₂_x E F).roots.nodup :=
 begin
-  rcases cubic.roots_eq_three (ψ₂_x.a_ne_zero E F) (ψ₂_x.splits E K) with ⟨_, _, _, h3⟩,
-  rw [← cubic.disc_ne_zero_iff_roots_nodup (ψ₂_x.a_ne_zero E F) (ψ₂_x.splits E K) h3],
+  let h3 := (cubic.splits_iff_roots_eq_three $ ψ₂_x.a_ne_zero E F).mp (ψ₂_x.splits E K),
+  rw [← cubic.disc_ne_zero_iff_roots_nodup (ψ₂_x.a_ne_zero E F) h3.some_spec.some_spec.some_spec],
   apply ψ₂_x.disc_ne_zero
 end
 
@@ -401,7 +404,7 @@ begin
   apply le_trans (fintype.card_le_of_injective (E₂_to_ψ₂ E K) (E₂_to_ψ₂.injective E K)),
   rw [fintype.card_option, add_le_add_iff_right,
       fintype.card_of_subtype (ψ₂_x E K).roots.to_finset $ λ x, multiset.mem_to_finset],
-  exact cubic.roots_card_le_three (ψ₂_x.a_ne_zero E K)
+  exact cubic.card_roots_le
 end
 
 /-- `E₂_to_ψ₂` is surjective. -/
@@ -446,12 +449,11 @@ begin
   change fintype.card E⟮K⟯[2] = 3 + 1,
   rw [fintype.card_congr $ E₂_to_ψ₂.equiv E K, fintype.card_option, add_left_inj,
       fintype.card_of_subtype (ψ₂_x E K).roots.to_finset $ λ x, multiset.mem_to_finset, ψ₂_x.eq_map,
-      cubic.roots_card_eq_three_of_roots_nodup
-        (ψ₂_x.a_ne_zero E F) (ψ₂_x.splits E K) (ψ₂_x.roots_nodup E K)]
+      cubic.card_roots_of_roots_nodup (ψ₂_x.a_ne_zero E F) (ψ₂_x.splits E K) (ψ₂_x.roots_nodup E K)]
 end
 
 /-- `E(K)[2] → E(L)[2]` is bijective. -/
-lemma ker_hom_2.bijective : function.bijective $ ιₙ 2 E K L :=
+lemma E₂.hom.bijective : function.bijective $ ιₙ 2 E K L :=
 begin
   rw [fintype.bijective_iff_injective_and_card],
   split,
@@ -460,17 +462,16 @@ begin
 end
 
 /-- `E(K)[2] ≃ E(L)[2]`. -/
-def ker_hom_2.equiv : E⟮K⟯[2] ≃ E⟮L⟯[2] :=
-equiv.of_bijective (ιₙ 2 E K L) (ker_hom_2.bijective E K L)
+def E₂.hom.equiv : E⟮K⟯[2] ≃ E⟮L⟯[2] := equiv.of_bijective (ιₙ 2 E K L) (E₂.hom.bijective E K L)
 
 /-- `Gal(L/K)` fixes `E(L)[2]`. -/
-lemma ker_gal_2.fixed.smul [finite_dimensional K L] [is_galois K L] (σ : L ≃ₐ[K] L) (P : E⟮L⟯[2]) :
+lemma E₂.gal.fixed.smul [finite_dimensional K L] [is_galois K L] (σ : L ≃ₐ[K] L) (P : E⟮L⟯[2]) :
   σ • P = P :=
 begin
   revert σ,
   change P ∈ E⟮L⟯[2]^K,
   rw [ker_gal.fixed.eq],
-  existsi [function.surj_inv (ker_hom_2.bijective E K L).surjective P],
+  existsi [function.surj_inv (E₂.hom.bijective E K L).surjective P],
   apply function.surj_inv_eq
 end
 

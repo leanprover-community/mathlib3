@@ -5,7 +5,6 @@ Authors: Kevin Buzzard
 -/
 
 import algebra.algebra.basic
-import data.rat.basic
 
 /-!
 # The category of elliptic curves (over a field or a PID)
@@ -132,13 +131,13 @@ by { rw [← inv_of_mul], apply invertible_unique, norm_num1 }
 /-- The medium Weierstrass equation `covₘ` obtained by completing a square. -/
 def covₘ : EllipticCurve R := E.cov 1 0 (-⅟2 * E.a₁) (-⅟2 * E.a₃)
 
-lemma covₘ.a₁_eq : E.covₘ.a₁ = 0 :=
+lemma covₘ.a₁ : E.covₘ.a₁ = 0 :=
 begin
   change (1 : R) * _ = 0,
   rw [one_mul, neg_mul_comm, ← mul_assoc, mul_inv_of_self, one_mul, add_neg_eq_zero]
 end
 
-lemma covₘ.a₂_eq : E.covₘ.a₂ = ⅟4 * E.a₁ ^ 2 + E.a₂ :=
+lemma covₘ.a₂ : E.covₘ.a₂ = ⅟4 * E.a₁ ^ 2 + E.a₂ :=
 begin
   have lhs_rw : ∀ a₁ a₂ t : R,
     a₂ - -t * a₁ * a₁ + 3 * 0 - (-t * a₁) ^ 2 = (1 - t) * t * a₁ ^ 2 + a₂ :=
@@ -147,15 +146,14 @@ begin
   rw [one_pow, one_mul, lhs_rw, one_sub_inv_of_two, half_mul_half]
 end
 
-lemma covₘ.a₃_eq : E.covₘ.a₃ = 0 :=
+lemma covₘ.a₃ : E.covₘ.a₃ = 0 :=
 begin
   change (1 : R) ^ 3 * _ = 0,
   rw [one_pow, one_mul, zero_mul, add_monoid.add_zero, neg_mul_comm, ← mul_assoc,
       mul_inv_of_self, one_mul, add_neg_eq_zero]
 end
 
-lemma covₘ.a₄_eq :
-  E.covₘ.a₄ = E.a₄ + ⅟2 * (E.a₁ * E.a₃) :=
+lemma covₘ.a₄ : E.covₘ.a₄ = E.a₄ + ⅟2 * (E.a₁ * E.a₃) :=
 begin
   have lhs_rw : ∀ a₁ a₂ a₃ a₄ t : R,
     a₄ - -t * a₁ * a₃ + 2 * 0 * a₂ - (-t * a₃ + 0 * (-t * a₁)) * a₁ + 3 * 0 ^ 2
@@ -165,7 +163,7 @@ begin
   rw [one_pow, one_mul, lhs_rw, mul_inv_of_self, one_mul, one_sub_inv_of_two]
 end
 
-lemma covₘ.a₆_eq : E.covₘ.a₆ = ⅟4 * E.a₃ ^ 2 + E.a₆ :=
+lemma covₘ.a₆ : E.covₘ.a₆ = ⅟4 * E.a₃ ^ 2 + E.a₆ :=
 begin
   have lhs_rw : ∀ a₁ a₂ a₃ a₄ a₆ t : R,
     a₆ + 0 * a₄ + 0 ^ 2 * a₂ + 0 ^ 3 - -t * a₃ * a₃ - (-t * a₃) ^ 2 - 0 * (-t * a₃) * a₁

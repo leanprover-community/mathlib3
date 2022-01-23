@@ -5,9 +5,11 @@ Authors: Heather Macbeth, Frédéric Dupuis
 -/
 import analysis.inner_product_space.calculus
 import analysis.inner_product_space.dual
+import analysis.inner_product_space.adjoint
 import analysis.calculus.lagrange_multipliers
 import analysis.normed_space.compact_map
 import linear_algebra.eigenspace
+import algebra.star.self_adjoint
 
 /-!
 # The Rayleigh quotient
@@ -38,7 +40,7 @@ variables {𝕜 : Type*} [is_R_or_C 𝕜]
 variables {E : Type*} [inner_product_space 𝕜 E]
 
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
-open_locale nnreal
+open_locale nnreal complex_conjugate
 
 open module.End metric
 
@@ -101,46 +103,72 @@ end
 lemma supr_rayleigh_le_norm : (⨆ x, rayleigh_quotient x) ≤ ∥T∥ :=
 csupr_le (λ x, rayleigh_le_norm T x)
 
-lemma supr_rayleigh_eq_norm : (⨆ x, rayleigh_quotient x) = ∥T∥ :=
+lemma supr_rayleigh_nonneg : (0 : ℝ) ≤ (⨆ x, rayleigh_quotient x) :=
 begin
-  refine eq.symm (op_norm_eq_of_bounds _ _ _),
-  { refine le_csupr_of_le _ 0 (by simp),
-    unfold bdd_above,
-    rw [set.nonempty_def],
-    refine ⟨∥T∥, _⟩,
-    rw [mem_upper_bounds],
-    intros x hx,
-    rw [set.mem_range] at hx,
-    rcases hx with ⟨y, hy⟩,
-    rw [←hy],
-    exact rayleigh_le_norm T y },
-  { intros x,
-    set L := real.sqrt (∥T x∥ / ∥x∥) with hL,
-    set rT := (⨆ x, rayleigh_quotient x) with hrT,
-    set x₁ := (L : 𝕜) • x + (L⁻¹ : 𝕜) • (T x) with hx₁,
-    set x₂ := (L : 𝕜) • x - (L⁻¹ : 𝕜) • (T x) with hx₂,
-    have h₁ : ⟪T x₁, x₁⟫ =
-      ⟪T ((L:𝕜) • x), (L:𝕜) • x⟫ + ⟪T (T ((L⁻¹:𝕜) • x)), T ((L⁻¹:𝕜) • x)⟫ + 2 * ∥T x∥,
-    { simp [inner_add_left, inner_add_right, inner_smul_left, inner_smul_right],
-      sorry },
-    have h₂ : ⟪T x₂, x₂⟫ =
-      ⟪T ((L:𝕜) • x), (L:𝕜) • x⟫ + ⟪T (T ((L⁻¹:𝕜) • x)), T ((L⁻¹:𝕜) • x)⟫ - 2 * ∥T x∥,
-    { sorry },
-    have h₃ : (4 * ∥T x∥ ^ 2 : 𝕜) = ⟪T x₁, x₁⟫ - ⟪T x₂, x₂⟫,
-    { sorry },
-    have h₄ : 4 * ∥T x ∥ ^ 2 ≤ rT * (∥x₁∥^2 + ∥x₂∥^2),
-    { sorry },
-    have h₅ : 4 * ∥T x∥ ^ 2 ≤ 2 * rT * (L^2 * ∥x∥^2 + (L⁻¹)^2 * ∥T x∥^2),
-    { sorry },
-    have h₆ : 4 * ∥T x∥ ^ 2 ≤ 4 * rT * ∥T x∥ * ∥x∥,
-    { sorry },
-    have h₇ : 0 < 4 * ∥T x∥,
-    { sorry },
-    rw [←mul_le_mul_left h₇],
-    calc 4 * ∥T x∥ * ∥T x∥ = 4 * ∥T x∥ ^ 2          : by rw [mul_assoc, ←pow_two]
-                      ... ≤ 4 * rT * ∥T x∥ * ∥x∥   : h₆
-                      ... = _                      : by ring },
-  { exact λ N hN H, le_trans (supr_rayleigh_le_norm T) (op_norm_le_bound _ hN H) }
+  refine le_csupr_of_le _ 0 (by simp),
+  unfold bdd_above,
+  rw [set.nonempty_def],
+  refine ⟨∥T∥, _⟩,
+  rw [mem_upper_bounds],
+  intros x hx,
+  rw [set.mem_range] at hx,
+  rcases hx with ⟨y, hy⟩,
+  rw [←hy],
+  exact rayleigh_le_norm T y
+end
+
+lemma _root_.is_R_or_C.of_real_mul_inv_re (r : ℝ) (z : 𝕜) :
+  is_R_or_C.re ((r : 𝕜)⁻¹ * z) = r⁻¹ * is_R_or_C.re z :=
+by rw [←is_R_or_C.of_real_inv, is_R_or_C.of_real_mul_re]
+
+lemma _root_.is_R_or_C.of_real_mul_conj_re (r : ℝ) (z : 𝕜) :
+  is_R_or_C.re ((conj (r : 𝕜)) * z) = r * is_R_or_C.re z :=
+begin
+  simp only [is_R_or_C.conj_of_real, is_R_or_C.mul_re, zero_mul, is_R_or_C.of_real_re, sub_zero, is_R_or_C.of_real_im],
+end
+
+lemma _root_.is_R_or_C.of_real_mul_conj_inv_re (r : ℝ) (z : 𝕜) :
+  is_R_or_C.re ((conj (r⁻¹ : 𝕜)) * z) = r⁻¹ * is_R_or_C.re z :=
+by rw [←is_R_or_C.of_real_inv, is_R_or_C.of_real_mul_conj_re]
+
+variables [complete_space E]
+lemma supr_rayleigh_eq_norm (hT : T ∈ self_adjoint (E →L[𝕜] E)) : (⨆ x, rayleigh_quotient x) = ∥T∥ :=
+begin
+  refine eq.symm (op_norm_eq_of_bounds (supr_rayleigh_nonneg T) (λ x, _)
+    (λ N hN H, le_trans (supr_rayleigh_le_norm T) (op_norm_le_bound _ hN H))),
+  set L := real.sqrt (∥T x∥ / ∥x∥) with hL,
+  set rT := (⨆ x, rayleigh_quotient x) with hrT,
+  set x₁ := (L : 𝕜) • x + (L⁻¹ : 𝕜) • (T x) with hx₁,
+  set x₂ := (L : 𝕜) • x - (L⁻¹ : 𝕜) • (T x) with hx₂,
+  by_cases h_ntriv : T x = 0,
+  { simp only [h_ntriv, norm_zero, mul_nonneg (supr_rayleigh_nonneg T) (norm_nonneg x)] },
+  change T x ≠ 0 at h_ntriv,
+  have hL_ntriv : L ≠ 0,
+  { sorry },
+  have hL_mul₁ : L * L⁻¹ = 1 := mul_inv_cancel hL_ntriv,
+  have hL_mul₂ : L⁻¹ * L = 1 := (mul_comm L L⁻¹) ▸ hL_mul₁,
+  have gizmo : ⟪T (T x), x⟫ = ⟪T x, T x⟫,
+  { sorry },
+  have h₁ : T.re_apply_inner_self x₁ - T.re_apply_inner_self x₂ = 4 * ∥T x∥ ^ 2,
+  { simp only [hx₁, hx₂, re_apply_inner_self_apply, inner_add_left, inner_add_right, inner_smul_left,
+          inner_smul_right, ←inner_self_eq_norm_sq, inner_sub_left, inner_sub_right,
+          hL_mul₁, hL_mul₂, is_R_or_C.of_real_mul_re, is_R_or_C.re.map_add, is_R_or_C.re.map_sub,
+          is_R_or_C.of_real_mul_inv_re, continuous_linear_map.map_add, continuous_linear_map.map_sub,
+          continuous_linear_map.map_smul, is_R_or_C.of_real_mul_conj_re, is_R_or_C.of_real_mul_conj_inv_re, gizmo],
+    ring_nf,
+    field_simp },
+  have h₄ : 4 * ∥T x ∥ ^ 2 ≤ rT * (∥x₁∥^2 + ∥x₂∥^2),
+  { sorry },
+  have h₅ : 4 * ∥T x∥ ^ 2 ≤ 2 * rT * (L^2 * ∥x∥^2 + (L⁻¹)^2 * ∥T x∥^2),
+  { sorry },
+  have h₆ : 4 * ∥T x∥ ^ 2 ≤ 4 * rT * ∥T x∥ * ∥x∥,
+  { sorry },
+  have h₇ : 0 < 4 * ∥T x∥,
+  { sorry },
+  rw [←mul_le_mul_left h₇],
+  calc 4 * ∥T x∥ * ∥T x∥ = 4 * ∥T x∥ ^ 2          : by rw [mul_assoc, ←pow_two]
+                    ... ≤ 4 * rT * ∥T x∥ * ∥x∥   : h₆
+                    ... = _                      : by ring,
 end
 
 end continuous_linear_map

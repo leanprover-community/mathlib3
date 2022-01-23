@@ -644,42 +644,41 @@ lemma to_simple_func_to_Lp (f : α →ₛ E) (hfi : mem_ℒp f p μ) :
 by { rw ← mk_eq_mk, exact classical.some_spec (to_Lp f hfi).2 }
 
 variables (E μ)
+
 lemma zero_to_simple_func : to_simple_func (0 : Lp.simple_func E p μ) =ᵐ[μ] 0 :=
 begin
-  filter_upwards [to_simple_func_eq_to_fun (0 : Lp.simple_func E p μ), Lp.coe_fn_zero E 1 μ],
-  assume a h₁ h₂,
+  filter_upwards [to_simple_func_eq_to_fun (0 : Lp.simple_func E p μ), Lp.coe_fn_zero E 1 μ]
+  with _ h₁ _,
   rwa h₁,
 end
+
 variables {E μ}
 
 lemma add_to_simple_func (f g : Lp.simple_func E p μ) :
   to_simple_func (f + g) =ᵐ[μ] to_simple_func f + to_simple_func g :=
 begin
   filter_upwards [to_simple_func_eq_to_fun (f + g), to_simple_func_eq_to_fun f,
-    to_simple_func_eq_to_fun g, Lp.coe_fn_add (f :  Lp E p μ) g],
-  assume a,
+    to_simple_func_eq_to_fun g, Lp.coe_fn_add (f :  Lp E p μ) g] with _,
   simp only [← coe_coe, add_subgroup.coe_add, pi.add_apply],
-  iterate 4 { assume h, rw h }
+  iterate 4 { assume h, rw h, },
 end
 
 lemma neg_to_simple_func (f : Lp.simple_func E p μ) :
   to_simple_func (-f) =ᵐ[μ] - to_simple_func f :=
 begin
   filter_upwards [to_simple_func_eq_to_fun (-f), to_simple_func_eq_to_fun f,
-    Lp.coe_fn_neg (f : Lp E p μ)],
-  assume a,
+    Lp.coe_fn_neg (f : Lp E p μ)] with _,
   simp only [pi.neg_apply, add_subgroup.coe_neg, ← coe_coe],
-  repeat { assume h, rw h }
+  repeat { assume h, rw h, },
 end
 
 lemma sub_to_simple_func (f g : Lp.simple_func E p μ) :
   to_simple_func (f - g) =ᵐ[μ] to_simple_func f - to_simple_func g :=
 begin
   filter_upwards [to_simple_func_eq_to_fun (f - g), to_simple_func_eq_to_fun f,
-    to_simple_func_eq_to_fun g, Lp.coe_fn_sub (f : Lp E p μ) g],
-  assume a,
+    to_simple_func_eq_to_fun g, Lp.coe_fn_sub (f : Lp E p μ) g] with _,
   simp only [add_subgroup.coe_sub, pi.sub_apply, ← coe_coe],
-  repeat { assume h, rw h }
+  repeat { assume h, rw h, },
 end
 
 variables [normed_field 𝕜] [normed_space 𝕜 E] [measurable_space 𝕜] [opens_measurable_space 𝕜]
@@ -688,10 +687,9 @@ lemma smul_to_simple_func (k : 𝕜) (f : Lp.simple_func E p μ) :
   to_simple_func (k • f) =ᵐ[μ] k • to_simple_func f :=
 begin
   filter_upwards [to_simple_func_eq_to_fun (k • f), to_simple_func_eq_to_fun f,
-    Lp.coe_fn_smul k (f : Lp E p μ)],
-  assume a,
+    Lp.coe_fn_smul k (f : Lp E p μ)] with _,
   simp only [pi.smul_apply, coe_smul, ← coe_coe],
-  repeat { assume h, rw h }
+  repeat { assume h, rw h, },
 end
 
 lemma norm_to_simple_func [fact (1 ≤ p)] (f : Lp.simple_func E p μ) :
@@ -839,7 +837,7 @@ lemma exists_simple_func_nonneg_ae_eq {f : Lp.simple_func G p μ} (hf : 0 ≤ f)
 begin
   rw ← Lp.simple_func.coe_fn_nonneg at hf,
   have hf_ae : 0 ≤ᵐ[μ] (simple_func.to_simple_func f),
-    by { filter_upwards [to_simple_func_eq_to_fun f, hf] with _ h1 _, rwa h1, },
+    by { filter_upwards [to_simple_func_eq_to_fun f, hf] with _ h1 _, rwa h1 },
   let s := (to_measurable μ {x | ¬ 0 ≤ simple_func.to_simple_func f x})ᶜ,
   have hs_zero : μ sᶜ = 0,
     by { rw [compl_compl, measure_to_measurable], rwa [eventually_le, ae_iff] at hf_ae, },

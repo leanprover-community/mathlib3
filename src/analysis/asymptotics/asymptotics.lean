@@ -1051,11 +1051,6 @@ theorem is_o.inv_rev {f : α → 𝕜} {g : α → 𝕜'} (h : is_o f g l)
   (h₀ : ∀ᶠ x in l, f x ≠ 0) : is_o (λ x, (g x)⁻¹) (λ x, (f x)⁻¹) l :=
 is_o.of_is_O_with $ λ c hc, (h.def' hc).inv_rev h₀
 
-theorem is_o_const_sub_const_inv (a : 𝕜) {c : F'} (hc : c ≠ 0) :
-  is_o (λ x, c) (λ x, (x - a)⁻¹) (𝓝 a) :=
-by simpa only
-  using (is_o_sub_const_const a (inv_ne_zero $ mt norm_eq_zero.1 hc)).inv_rev
-
 /-! ### Scalar multiplication -/
 
 section smul_const

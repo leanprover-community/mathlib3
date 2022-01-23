@@ -326,7 +326,7 @@ open order lattice
 
 lemma sets_iff_generate (R : presieve X) (S : sieve X) :
   generate R ≤ S ↔ R ≤ S :=
-⟨λ H Y g hg, H _ ⟨_, 𝟙 _, _, hg, category.id_comp _⟩,
+⟨λ H Y g hg, H _ ⟨_, 𝟙 _, _, hg, id_comp _⟩,
  λ ss Y f,
   begin
     rintro ⟨Z, f, g, hg, rfl⟩,
@@ -338,7 +338,7 @@ def gi_generate : galois_insertion (generate : presieve X → sieve X) arrows :=
 { gc := sets_iff_generate,
   choice := λ 𝒢 _, generate 𝒢,
   choice_eq := λ _ _, rfl,
-  le_l_u := λ S Y f hf, ⟨_, 𝟙 _, _, hf, category.id_comp _⟩ }
+  le_l_u := λ S Y f hf, ⟨_, 𝟙 _, _, hf, id_comp _⟩ }
 
 lemma le_generate (R : presieve X) : R ≤ generate R :=
 gi_generate.gc.le_u_l R
@@ -394,7 +394,7 @@ lemma pullback_inter {f : Y ⟶ X} (S R : sieve X) :
 by simp [sieve.ext_iff]
 
 lemma pullback_eq_top_iff_mem (f : Y ⟶ X) : S f ↔ S.pullback f = ⊤ :=
-by rw [← id_mem_iff_eq_top, pullback_apply, category.id_comp]
+by rw [← id_mem_iff_eq_top, pullback_apply, id_comp]
 
 lemma pullback_eq_top_of_mem (S : sieve X) {f : Y ⟶ X} : S f → S.pullback f = ⊤ :=
 (pullback_eq_top_iff_mem f).1
@@ -555,7 +555,7 @@ begin
   { intros hle X f hf,
     apply hle,
     refine ⟨X, f, 𝟙 _, hf, _⟩,
-    rw category.id_comp, },
+    rw id_comp, },
   { rintros hle Y f ⟨X, g, h, hg, rfl⟩,
     apply sieve.downward_closed S,
     exact hle g hg, }

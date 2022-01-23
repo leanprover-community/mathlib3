@@ -11,7 +11,7 @@ import order.order_dual
 This file defines predicates for elements to be minimal/maximal or bottom/top and typeclasses
 saying that there are no such elements.
 
-## Predicate
+## Predicates
 
 * `is_bot`: An element is *bottom* if all elements are greater than it.
 * `is_top`: An element is *top* if all elements are less than it.
@@ -114,6 +114,9 @@ def is_max (a : α) : Prop := ∀ ⦃b⦄, a ≤ b → b ≤ a
 @[simp] lemma not_is_top [no_top_order α] (a : α) : ¬is_top a :=
 λ h, let ⟨b, hb⟩ := exists_not_le a in hb $ h _
 
+protected lemma is_bot.is_min (h : is_bot a) : is_min a := λ b _, h b
+protected lemma is_top.is_max (h : is_top a) : is_max a := λ b _, h b
+
 @[simp] lemma is_bot_to_dual_iff : is_bot (to_dual a) ↔ is_top a := iff.rfl
 @[simp] lemma is_top_to_dual_iff : is_top (to_dual a) ↔ is_bot a := iff.rfl
 @[simp] lemma is_min_to_dual_iff : is_min (to_dual a) ↔ is_max a := iff.rfl
@@ -131,9 +134,6 @@ alias is_bot_of_dual_iff ↔ _ is_top.of_dual
 alias is_top_of_dual_iff ↔ _ is_bot.of_dual
 alias is_min_of_dual_iff ↔ _ is_max.of_dual
 alias is_max_of_dual_iff ↔ _ is_min.of_dual
-
-protected lemma is_bot.is_min (h : is_bot a) : is_min a := λ b _, h b
-protected lemma is_top.is_max (h : is_top a) : is_max a := λ b _, h b
 
 end has_le
 
@@ -154,18 +154,22 @@ lemma is_min_iff_forall_not_lt : is_min a ↔ ∀ b, ¬ b < a :=
 lemma is_max_iff_forall_not_lt : is_max a ↔ ∀ b, ¬ a < b :=
 ⟨λ h _, h.not_lt, λ h b hba, of_not_not $ λ hab, h _ $ hba.lt_of_not_le hab⟩
 
-@[simp] lemma not_is_min [no_min_order α] (a : α) : ¬ is_min a :=
-λ h, let ⟨b, hb⟩ := exists_lt a in h.not_lt hb
+@[simp] lemma not_is_min_iff : ¬ is_min a ↔ ∃ b, b < a :=
+by simp_rw [lt_iff_le_not_le, is_min, not_forall, exists_prop]
 
-@[simp] lemma not_is_max [no_max_order α] (a : α) : ¬ is_max a :=
-λ h, let ⟨b, hb⟩ := exists_gt a in h.not_lt hb
+@[simp] lemma not_is_max_iff : ¬ is_max a ↔ ∃ b, a < b :=
+by simp_rw [lt_iff_le_not_le, is_max, not_forall, exists_prop]
+
+@[simp] lemma not_is_min [no_min_order α] (a : α) : ¬ is_min a := not_is_min_iff.2 $ exists_lt a
+@[simp] lemma not_is_max [no_max_order α] (a : α) : ¬ is_max a := not_is_max_iff.2 $ exists_gt a
 
 namespace subsingleton
+variable [subsingleton α]
 
-protected lemma is_bot [subsingleton α] (a : α) : is_bot a := λ _, (subsingleton.elim _ _).le
-protected lemma is_top [subsingleton α] (a : α) : is_top a := λ _, (subsingleton.elim _ _).le
-protected lemma is_min [subsingleton α] (a : α) : is_min a := (subsingleton.is_bot _).is_min
-protected lemma is_max [subsingleton α] (a : α) : is_max a := (subsingleton.is_top _).is_max
+protected lemma is_bot (a : α) : is_bot a := λ _, (subsingleton.elim _ _).le
+protected lemma is_top (a : α) : is_top a := λ _, (subsingleton.elim _ _).le
+protected lemma is_min (a : α) : is_min a := (subsingleton.is_bot _).is_min
+protected lemma is_max (a : α) : is_max a := (subsingleton.is_top _).is_max
 
 end subsingleton
 end preorder

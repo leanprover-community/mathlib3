@@ -472,7 +472,7 @@ remaining non-Pi expression;
 2. Check if the remaining non-Pi expression is an iff, already obtaining the respective left and
 right expressions if this is the case. Returns `none` otherwise;
 3. Filter the explicit variables that appear on the left *and* right side of the iff;
-4. If no variable suffices the condition above, return `none`;
+4. If no variable satisfies the condition above, return `none`;
 5. Return a message mentioning the variables that do, otherwise.
 -/
 meta def explicit_vars_of_iff (d : declaration) :
@@ -484,7 +484,7 @@ meta def explicit_vars_of_iff (d : declaration) :
     let li := li.map (λ i, d.type.pi_arity - i - 1), -- fixing for the actual de-Bruijn indexes
     let l := (ln.zip li).filter (λ t, (el.has_var_idx t.2) && (er.has_var_idx t.2)),
     if l = [] then return none
-    else return $ "The following varibles are used on both sides of an iff and ".append $
+    else return $ "The following variables are used on both sides of an iff and ".append $
       "should be made implicit: ".append $ ", ".intercalate (l.map (λ t, to_string t.1))
   end
 

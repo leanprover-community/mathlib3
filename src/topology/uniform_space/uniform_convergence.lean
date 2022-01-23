@@ -126,11 +126,11 @@ begin
   exact λ x, hn _
 end
 
-lemma tendsto_uniformly_on.prod' {ι' α' β' : Type*} [uniform_space β']
+lemma tendsto_uniformly_on.prod_map {ι' α' β' : Type*} [uniform_space β']
   {F' : ι' → α' → β'} {f' : α' → β'} {p' : filter ι'} {s' : set α'}
   (h : tendsto_uniformly_on F f p s) (h' : tendsto_uniformly_on F' f' p' s') :
-  tendsto_uniformly_on (λ (i : ι × ι') (a : α × α'), (F i.1 a.1, F' i.2 a.2))
-    (λ a, (f a.1, f' a.2)) (p.prod p') (s ×ˢ s') :=
+  tendsto_uniformly_on (λ (i : ι × ι'), prod.map (F i.1) (F' i.2))
+    (prod.map f f') (p.prod p') (s ×ˢ s') :=
 begin
   intros u hu,
   rw [uniformity_prod_eq_prod, mem_map, mem_prod_iff] at hu,

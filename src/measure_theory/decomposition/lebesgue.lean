@@ -210,7 +210,7 @@ theorem rn_deriv_lt_top (μ ν : measure α) [sigma_finite μ] :
   ∀ᵐ x ∂ν, μ.rn_deriv ν x < ∞ :=
 begin
   suffices : ∀ n, ∀ᵐ x ∂ν, x ∈ spanning_sets μ n → μ.rn_deriv ν x < ∞,
-  { filter_upwards [ae_all_iff.2 this] with _ hx using exact hx _ (mem_spanning_sets_index _ _), },
+  { filter_upwards [ae_all_iff.2 this] with _ hx using hx _ (mem_spanning_sets_index _ _), },
   assume n,
   rw ← ae_restrict_iff' (measurable_spanning_sets _ _),
   apply ae_lt_top (measurable_rn_deriv _ _),

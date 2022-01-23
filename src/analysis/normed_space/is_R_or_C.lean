@@ -27,7 +27,7 @@ This file exists mainly to avoid importing `is_R_or_C` in the main normed space 
 
 open metric
 
-@[simp] lemma is_R_or_C.norm_coe_norm {𝕜 : Type*} [is_R_or_C 𝕜]
+@[simp, is_R_or_C_simps] lemma is_R_or_C.norm_coe_norm {𝕜 : Type*} [is_R_or_C 𝕜]
   {E : Type*} [normed_group E] {z : E} : ∥(∥z∥ : 𝕜)∥ = ∥z∥ :=
 by { unfold_coes, simp only [norm_algebra_map_eq, ring_hom.to_fun_eq_coe, norm_norm], }
 
@@ -45,7 +45,7 @@ lemma norm_smul_inv_norm' {r : ℝ} (r_nonneg : 0 ≤ r) {x : E} (hx : x ≠ 0) 
   ∥(r * ∥x∥⁻¹ : 𝕜) • x∥ = r :=
 begin
   have : ∥x∥ ≠ 0 := by simp [hx],
-  field_simp [norm_smul, is_R_or_C.norm_of_real, is_R_or_C.norm_eq_abs, r_nonneg]
+  field_simp [norm_smul, is_R_or_C.norm_eq_abs, r_nonneg] with is_R_or_C_simps
 end
 
 lemma linear_map.bound_of_sphere_bound

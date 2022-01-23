@@ -963,6 +963,21 @@ lemma rpow_le_rpow_of_exponent_ge {x : ℝ≥0} {y z : ℝ} (hx0 : 0 < x) (hx1 :
   x^y ≤ x^z :=
 real.rpow_le_rpow_of_exponent_ge hx0 hx1 hyz
 
+lemma rpow_pos_of_nonneg {p : ℝ} {x : ℝ≥0} (hx_pos : 0 < x) (hp_nonneg : 0 ≤ p) : 0 < x^p :=
+begin
+  obtain rfl|hp_pos := hp_nonneg.eq_or_lt,
+  { simp only [zero_lt_one, rpow_zero], },
+  { rw ←zero_rpow hp_pos.ne', exact rpow_lt_rpow hx_pos hp_pos, },
+end
+
+lemma rpow_pos {p : ℝ} {x : ℝ≥0} (hx_pos : 0 < x) : 0 < x^p :=
+begin
+  cases lt_or_le 0 p with hp_pos hp_nonpos,
+  { exact rpow_pos_of_nonneg hx_pos hp_pos.le },
+  { rw [←neg_neg p, rpow_neg, inv_pos],
+    exact rpow_pos_of_nonneg hx_pos (neg_nonneg.mpr hp_nonpos) },
+end
+
 lemma rpow_lt_one {x : ℝ≥0} {z : ℝ} (hx : 0 ≤ x) (hx1 : x < 1) (hz : 0 < z) : x^z < 1 :=
 real.rpow_lt_one hx hx1 hz
 

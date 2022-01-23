@@ -7,23 +7,20 @@ open category_theory
 open opposite
 open algebraic_geometry
 
-variables (R : CommRing) (U : opens (prime_spectrum R)) (x y : U) (h1 : y = x)
+local notation `Spec` ring := Spec.LocallyRingedSpace_obj (CommRing.of ring)
+
+variables (R : Type) [comm_ring R] (U : opens (Spec R)) (x y : U) (h1 : y = x)
 
 variable (hh : (algebraic_geometry.structure_sheaf R).1.obj (op U))
 
 include h1
-example (a) (b) (h2 : hh.1 x = localization.mk a b) : hh.1 y = localization.mk a ⟨b.1, begin
+lemma section_congr_arg (a) (b) (h2 : hh.1 x = localization.mk a b) : hh.1 y =
+  localization.mk a ⟨b.1, begin
   erw h1,
   exact b.2
 end⟩ :=
 begin
+  induction h1,
   convert h2,
-  rw h1,
-  apply heq_of_cast_eq,
-  work_on_goal 1 {
-    apply eq.rec_on h1,
-    refl,
-   },
-
-  sorry,
+  rw subtype.ext_iff_val,
 end

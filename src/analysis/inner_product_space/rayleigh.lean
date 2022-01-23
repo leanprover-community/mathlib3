@@ -103,9 +103,8 @@ end
 lemma supr_rayleigh_le_norm : (⨆ x, rayleigh_quotient x) ≤ ∥T∥ :=
 csupr_le (λ x, rayleigh_le_norm T x)
 
-lemma supr_rayleigh_nonneg : (0 : ℝ) ≤ (⨆ x, rayleigh_quotient x) :=
+lemma rayleigh_bdd_above : bdd_above (set.range rayleigh_quotient) :=
 begin
-  refine le_csupr_of_le _ 0 (by simp),
   unfold bdd_above,
   rw [set.nonempty_def],
   refine ⟨∥T∥, _⟩,
@@ -115,6 +114,27 @@ begin
   rcases hx with ⟨y, hy⟩,
   rw [←hy],
   exact rayleigh_le_norm T y
+end
+
+lemma supr_rayleigh_nonneg : (0 : ℝ) ≤ (⨆ x, rayleigh_quotient x) :=
+le_csupr_of_le (rayleigh_bdd_above T) 0 (by simp)
+
+lemma re_apply_inner_self_le_rayleigh_mul_norm_sq (x : E) :
+  T.re_apply_inner_self x ≤ (rayleigh_quotient x) * ∥x∥ ^ 2 :=
+begin
+  by_cases h : ∥x∥ = 0,
+  { rw [norm_eq_zero] at h,
+    simp [re_apply_inner_self, h] },
+  change ∥x∥ ≠ 0 at h,
+  field_simp [re_apply_inner_self],
+end
+
+lemma re_apply_inner_self_le_supr_rayleigh_mul_norm_sq (x : E) :
+  T.re_apply_inner_self x ≤ (⨆ z, rayleigh_quotient z) * ∥x∥ ^ 2 :=
+begin
+  refine le_trans (re_apply_inner_self_le_rayleigh_mul_norm_sq T x) _,
+  refine mul_le_mul_of_nonneg_right _ (pow_nonneg (norm_nonneg _) 2),
+  exact le_csupr (rayleigh_bdd_above T) _,
 end
 
 lemma _root_.is_R_or_C.of_real_mul_inv_re (r : ℝ) (z : 𝕜) :

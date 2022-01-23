@@ -163,6 +163,14 @@ lemma ideal_Inter_nonempty_iff :
   ideal_Inter_nonempty P ↔ ∃ a : P, ∀ I : ideal P, a ∈ I :=
 ⟨λ _, by exactI ideal_Inter_nonempty.exists_all_mem, ideal_Inter_nonempty_of_exists_all_mem⟩
 
+lemma inter_nonempty [is_directed P (swap (≤))] (I J : ideal P) : (I ∩ J : set P).nonempty :=
+begin
+  obtain ⟨a, ha⟩ := I.nonempty,
+  obtain ⟨b, hb⟩ := J.nonempty,
+  obtain ⟨c, hac, hbc⟩ := directed_of (swap (≤)) a b,
+  exact ⟨c, I.mem_of_le hac ha, J.mem_of_le hbc hb⟩,
+end
+
 end has_le
 
 section preorder
@@ -185,14 +193,6 @@ instance [inhabited P] : inhabited (ideal P) := ⟨ideal.principal default⟩
 
 lemma mem_compl_of_ge {x y : P} : x ≤ y → x ∈ (I : set P)ᶜ → y ∈ (I : set P)ᶜ :=
 λ h, mt (I.mem_of_le h)
-
-lemma inter_nonempty [is_directed P (swap (≤))] (I J : ideal P) : (I ∩ J : set P).nonempty :=
-begin
-  obtain ⟨a, ha⟩ := I.nonempty,
-  obtain ⟨b, hb⟩ := J.nonempty,
-  obtain ⟨c, hac, hbc⟩ := directed_of (swap (≤)) a b,
-  exact ⟨c, I.mem_of_le hac ha, J.mem_of_le hbc hb⟩,
-end
 
 end preorder
 
@@ -218,7 +218,7 @@ end order_bot
 section directed
 variables [has_le P] [is_directed P (≤)] [nonempty P] {I : ideal P}
 
-/-- The top ideal is `set.univ`. -/
+/-- In a directed and nonempty order, the top ideal of a is `set.univ`. -/
 instance : order_top (ideal P) :=
 { top := { carrier := set.univ,
            nonempty := set.univ_nonempty,
@@ -283,15 +283,15 @@ end semilattice_sup
 section semilattice_sup_directed
 variables [semilattice_sup P] [is_directed P (swap (≤))] {x : P} {I J K : ideal P}
 
-/-- The infimum of two ideals is their intersection. -/
+/-- The infimum of two ideals of a co-directed order is their intersection. -/
 instance : has_inf (ideal P) :=
 ⟨λ I J, { carrier   := I ∩ J,
   nonempty  := inter_nonempty I J,
   directed  := λ x ⟨_, _⟩ y ⟨_, _⟩, ⟨x ⊔ y, ⟨sup_mem x ‹_› y ‹_›, sup_mem x ‹_› y ‹_›⟩, by simp⟩,
   mem_of_le := λ x y h ⟨_, _⟩, ⟨mem_of_le I h ‹_›, mem_of_le J h ‹_›⟩ }⟩
 
-/-- The supremum of two ideals is the union of the down sets of the pointwise supremum of `I` and
-`J`. -/
+/-- The supremum of two ideals of a co-directed order is the union of the down sets of the pointwise
+supremum of `I` and `J`. -/
 instance : has_sup (ideal P) :=
 ⟨λ I J, { carrier   := {x | ∃ (i ∈ I) (j ∈ J), x ≤ i ⊔ j},
   nonempty  := by { cases inter_nonempty I J, exact ⟨w, w, h.1, w, h.2, le_sup_left⟩ },
@@ -323,11 +323,7 @@ instance : lattice (ideal P) :=
 @[simp] lemma mem_sup : x ∈ I ⊔ J ↔ ∃ (i ∈ I) (j ∈ J), x ≤ i ⊔ j := iff.rfl
 
 lemma lt_sup_principal_of_not_mem (hx : x ∉ I) : I < I ⊔ principal x :=
-begin
-  refine le_sup_left.lt_of_ne (λ h, hx _),
-  simp only [left_eq_sup, principal_le_iff] at h,
-  exact h
-end
+le_sup_left.lt_of_ne $ λ h, hx $ by simpa only [left_eq_sup, principal_le_iff] using h
 
 end semilattice_sup_directed
 

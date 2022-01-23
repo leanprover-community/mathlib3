@@ -190,7 +190,7 @@ do
   s.reverse.mmap (λ e, eapplyc `filter.mp_mem >> eapply e),
   eapplyc `filter.univ_mem',
   `[dsimp only [set.mem_set_of_eq]],
-  if ¬ids.empty then `[intros e] else skip,
+  if ¬ids.empty then `[intros ids] else skip,
   match tgt with
   | some e := exact e
   | none := skip

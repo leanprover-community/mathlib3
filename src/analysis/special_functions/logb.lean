@@ -195,17 +195,7 @@ lemma logb_ne_zero_of_pos_of_ne_one (hx_pos : 0 < x) (hx : x ≠ 1) :
 mt (eq_one_of_pos_of_logb_eq_zero hb hx_pos) hx
 
 lemma tendsto_logb_at_top : tendsto (logb b) at_top at_top :=
-begin
-  rw tendsto_at_top_at_top,
-  intro e,
-  use 1 ⊔ b ^ e,
-  intro a,
-  simp only [and_imp, sup_le_iff],
-  intro ha,
-  rw le_logb_iff_rpow_le hb,
-  tauto,
-  exact lt_of_lt_of_le zero_lt_one ha,
-end
+tendsto.at_top_div_const (log_pos hb) tendsto_log_at_top
 
 end one_lt_b
 

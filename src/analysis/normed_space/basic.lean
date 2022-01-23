@@ -271,12 +271,11 @@ instance to_norm_one_class : norm_one_class α :=
 @[simp] lemma nnnorm_mul (a b : α) : ∥a * b∥₊ = ∥a∥₊ * ∥b∥₊ :=
 nnreal.eq $ norm_mul a b
 
-/-- `norm` as a `monoid_hom`. -/
-@[simps] def norm_hom : monoid_with_zero_hom α ℝ := ⟨norm, norm_zero, norm_one, norm_mul⟩
+/-- `norm` as a `monoid_with_zero_hom`. -/
+@[simps] def norm_hom : α →*₀ ℝ := ⟨norm, norm_zero, norm_one, norm_mul⟩
 
-/-- `nnnorm` as a `monoid_hom`. -/
-@[simps] def nnnorm_hom : monoid_with_zero_hom α ℝ≥0 :=
-⟨nnnorm, nnnorm_zero, nnnorm_one, nnnorm_mul⟩
+/-- `nnnorm` as a `monoid_with_zero_hom`. -/
+@[simps] def nnnorm_hom : α →*₀ ℝ≥0 := ⟨nnnorm, nnnorm_zero, nnnorm_one, nnnorm_mul⟩
 
 @[simp] lemma norm_pow (a : α) : ∀ (n : ℕ), ∥a ^ n∥ = ∥a∥ ^ n :=
 (norm_hom.to_monoid_hom : α →* ℝ).map_pow a
@@ -292,23 +291,19 @@ nnreal.eq $ norm_mul a b
   ∥∏ b in s, f b∥₊ = ∏ b in s, ∥f b∥₊ :=
 (nnnorm_hom.to_monoid_hom : α →* ℝ≥0).map_prod f s
 
-@[simp] lemma norm_div (a b : α) : ∥a / b∥ = ∥a∥ / ∥b∥ :=
-(norm_hom : monoid_with_zero_hom α ℝ).map_div a b
+@[simp] lemma norm_div (a b : α) : ∥a / b∥ = ∥a∥ / ∥b∥ := (norm_hom : α →*₀ ℝ).map_div a b
 
-@[simp] lemma nnnorm_div (a b : α) : ∥a / b∥₊ = ∥a∥₊ / ∥b∥₊ :=
-(nnnorm_hom : monoid_with_zero_hom α ℝ≥0).map_div a b
+@[simp] lemma nnnorm_div (a b : α) : ∥a / b∥₊ = ∥a∥₊ / ∥b∥₊ := (nnnorm_hom : α →*₀ ℝ≥0).map_div a b
 
-@[simp] lemma norm_inv (a : α) : ∥a⁻¹∥ = ∥a∥⁻¹ :=
-(norm_hom : monoid_with_zero_hom α ℝ).map_inv a
+@[simp] lemma norm_inv (a : α) : ∥a⁻¹∥ = ∥a∥⁻¹ := (norm_hom : α →*₀ ℝ).map_inv a
 
 @[simp] lemma nnnorm_inv (a : α) : ∥a⁻¹∥₊ = ∥a∥₊⁻¹ :=
 nnreal.eq $ by simp
 
-@[simp] lemma norm_zpow : ∀ (a : α) (n : ℤ), ∥a^n∥ = ∥a∥^n :=
-(norm_hom : monoid_with_zero_hom α ℝ).map_zpow
+@[simp] lemma norm_zpow : ∀ (a : α) (n : ℤ), ∥a^n∥ = ∥a∥^n := (norm_hom : α →*₀ ℝ).map_zpow
 
 @[simp] lemma nnnorm_zpow : ∀ (a : α) (n : ℤ), ∥a ^ n∥₊ = ∥a∥₊ ^ n :=
-(nnnorm_hom : monoid_with_zero_hom α ℝ≥0).map_zpow
+(nnnorm_hom : α →*₀ ℝ≥0).map_zpow
 
 @[priority 100] -- see Note [lower instance priority]
 instance : has_continuous_inv₀ α :=

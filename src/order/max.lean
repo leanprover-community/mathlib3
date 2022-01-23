@@ -1,7 +1,7 @@
 /-
-Copyright (c) 2022 Yaël Dillies. All rights reserved.
+Copyright (c) 2014 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Yaël Dillies, Yury Kudriashov
+Authors: Jeremy Avigad, Yury Kudryashov, Yaël Dillies
 -/
 import order.order_dual
 
@@ -92,13 +92,13 @@ variables [has_le α] {a b : α}
 This predicate is roughly an unbundled version of `order_bot`, except that a preorder may have
 several bottom elements. When `α` is linear, this is useful to make a case disjunction on
 `no_min_order α` within a proof. -/
-def is_bot {α : Type*} [has_le α] (a : α) : Prop := ∀ b, a ≤ b
+def is_bot (a : α) : Prop := ∀ b, a ≤ b
 
 /-- `a : α` is a top element of `α` if it is greater than or equal to any other element of `α`.
 This predicate is roughly an unbundled version of `order_bot`, except that a preorder may have
 several top elements. When `α` is linear, this is useful to make a case disjunction on
 `no_max_order α` within a proof. -/
-def is_top {α : Type*} [has_le α] (a : α) : Prop := ∀ b, b ≤ a
+def is_top (a : α) : Prop := ∀ b, b ≤ a
 
 /-- `a` is a minimal element of `α` if no element is strictly less than it. We spell it without `<`
 to avoid having to convert between `≤` and `<`. -/

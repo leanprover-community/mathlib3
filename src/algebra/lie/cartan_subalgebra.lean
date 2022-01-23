@@ -58,13 +58,12 @@ lemma le_normalizer_of_ideal {N : lie_subalgebra R L}
   (h : ∀ (x y : L), x ∈ N → y ∈ H → ⁅x,y⁆ ∈ H) : N ≤ H.normalizer :=
 λ x hx y, h x y hx
 
-/-- See also `lie_subalgebra.lt_normalizer_iff_nontrivial`. -/
 lemma normalizer_eq_self_iff_subsingleton :
-  H.normalizer = H ↔ subsingleton (lie_module.max_triv_submodule R H $ L ⧸ H.to_lie_submodule) :=
+  H.normalizer = H ↔ (lie_module.max_triv_submodule R H $ L ⧸ H.to_lie_submodule) = ⊥ :=
 begin
-  rw subsingleton_iff_forall_eq (0 : lie_module.max_triv_submodule R H (L ⧸ H.to_lie_submodule)),
+  rw lie_submodule.eq_bot_iff,
   refine ⟨λ h, _, λ h, le_antisymm (λ x hx, _) H.le_normalizer⟩,
-  { rintros ⟨⟨x⟩, hx⟩,
+  { rintros ⟨x⟩ hx,
     suffices : x ∈ H, by simpa,
     rw [← h, H.mem_normalizer_iff'],
     intros y hy,
@@ -76,16 +75,7 @@ begin
       rw [← lie_module_hom.map_lie, lie_submodule.quotient.mk_eq_zero, coe_bracket_of_module,
         submodule.coe_mk, mem_to_lie_submodule],
       exact (H.mem_normalizer_iff' x).mp hx z hz, },
-    simpa using h ⟨y, hy⟩, },
-end
-
-/-- An alternate form of `lie_subalgebra.normalizer_eq_self_iff_subsingleton` that is sometimes
-more convenient. -/
-lemma lt_normalizer_iff_nontrivial :
-  H < H.normalizer ↔ nontrivial (lie_module.max_triv_submodule R H $ L ⧸ H.to_lie_submodule) :=
-begin
-  rw [← not_iff_not, not_nontrivial_iff_subsingleton, ← normalizer_eq_self_iff_subsingleton],
-  exact ⟨λ h, (eq_of_le_of_not_lt H.le_normalizer h).symm, λ h, by simp [h]⟩,
+    simpa using h y hy, },
 end
 
 /-- A Cartan subalgebra is a nilpotent, self-normalizing subalgebra. -/

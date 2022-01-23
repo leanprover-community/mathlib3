@@ -2120,7 +2120,7 @@ join_le $ eventually_map.2 h
 begin
   refine le_trans (λ s hs, _) (join_mono $ map_mono hf),
   simp only [mem_join, mem_bind', mem_map] at hs ⊢,
-  filter_upwards [hg, hs] using λ _ hx hs, hx hs
+  filter_upwards [hg, hs] using λ _ hx hs, hx hs,
 end
 
 lemma bind_inf_principal {f : filter α} {g : α → filter β} {s : set β} :
@@ -2400,9 +2400,10 @@ begin
   simp only [tendsto_def, mem_inf_principal] at *,
   intros s hs,
   filter_upwards [h₀ s hs, h₁ s hs],
-  simp only [mem_preimage], intros x hp₀ hp₁,
+  simp only [mem_preimage],
+  intros x hp₀ hp₁,
   split_ifs,
-  exacts [hp₀ h, hp₁ h]
+  exacts [hp₀ h, hp₁ h],
 end
 
 lemma tendsto.piecewise {l₁ : filter α} {l₂ : filter β} {f g : α → β}

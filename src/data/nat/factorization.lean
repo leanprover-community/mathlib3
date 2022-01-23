@@ -225,22 +225,6 @@ begin
   { rintro ⟨c, rfl⟩, rw factorization_mul hd (right_ne_zero_of_mul hn), simp },
 end
 
-------------------------------------------------------------------------------------------
-------------------------------------------------------------------------------------------
-------------------------------------------------------------------------------------------
-section temp
-lemma factorization_prod_pow_inv {f : ℕ →₀ ℕ} (hf : ∀ (p : ℕ), p ∈ f.support → prime p) :
-  (f.prod pow).factorization = f := sorry
-
-lemma prime_finsupp_prod_pow_pos {f : ℕ →₀ ℕ} (hf : ∀ p ∈ f.support, prime p) : 0 < f.prod pow :=
-prod_pos (λ p hp, (pow_ne_zero _ (hf p hp).ne_zero).bot_lt)
-
-end temp
-
-------------------------------------------------------------------------------------------
-------------------------------------------------------------------------------------------
-------------------------------------------------------------------------------------------
-
 lemma factorization_gcd (a b : ℕ) (ha_pos : a ≠ 0) (hb_pos : b ≠ 0) :
   (gcd a b).factorization = a.factorization ⊓ b.factorization :=
 begin

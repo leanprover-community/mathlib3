@@ -156,7 +156,7 @@ lemma tendsto_uniformly_on.prod {ι' β' : Type*} [uniform_space β'] {F' : ι' 
 lemma tendsto_uniformly.prod {ι' β' : Type*} [uniform_space β'] {F' : ι' → α → β'} {f' : α → β'}
   {p' : filter ι'} (h : tendsto_uniformly F f p) (h' : tendsto_uniformly F' f' p') :
   tendsto_uniformly (λ (i : ι × ι') a, (F i.1 a, F' i.2 a)) (λ a, (f a, f' a)) (p.prod p') :=
-(h.prod' h').comp (λ a, (a, a))
+(h.prod_map h').comp (λ a, (a, a))
 
 /-- Uniform convergence to a constant function is equivalent to convergence in `p ×ᶠ ⊤`. -/
 lemma tendsto_prod_top_iff {c : β} : tendsto ↿F (p ×ᶠ ⊤) (𝓝 c) ↔ tendsto_uniformly F (λ _, c) p :=

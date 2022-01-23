@@ -230,7 +230,7 @@ begin
   transitivity ∫ t : circle, conj ((fourier_Lp 2 i : circle → ℂ) t) * f t ∂ haar_circle,
   { simp [fourier_series.repr_apply_apply f i, measure_theory.L2.inner_def] },
   apply integral_congr_ae,
-  filter_upwards [coe_fn_fourier_Lp 2 i] with t ht,
+  filter_upwards [coe_fn_fourier_Lp 2 i] with _ ht,
   rw [ht, ← fourier_neg],
   simp [-fourier_neg]
 end

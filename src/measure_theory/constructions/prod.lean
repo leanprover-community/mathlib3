@@ -756,7 +756,7 @@ begin
     assume x hx,
     exact has_finite_integral_congr hx },
   { apply has_finite_integral_congr,
-    filter_upwards [ae_ae_of_ae_prod h1f.ae_eq_mk.symm] with _ hx,
+    filter_upwards [ae_ae_of_ae_prod h1f.ae_eq_mk.symm] with _ hx
       using integral_congr_ae (eventually_eq.fun_comp hx _), },
   { apply_instance, },
 end

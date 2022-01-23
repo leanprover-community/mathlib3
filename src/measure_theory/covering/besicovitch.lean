@@ -1146,8 +1146,8 @@ lemma ae_tendsto_measure_inter_div (μ : measure β) [is_locally_finite_measure 
     (𝓝[>] 0) (𝓝 1) :=
 begin
   haveI : second_countable_topology β := emetric.second_countable_of_sigma_compact β,
-  filter_upwards [vitali_family.ae_tendsto_measure_inter_div (besicovitch.vitali_family μ)] with x hx,
-  exact hx.comp (tendsto_filter_at μ x)
+  filter_upwards [vitali_family.ae_tendsto_measure_inter_div (besicovitch.vitali_family μ)]
+    with x hx using hx.comp (tendsto_filter_at μ x),
 end
 
 end besicovitch

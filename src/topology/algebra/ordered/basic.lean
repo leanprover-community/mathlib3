@@ -2681,9 +2681,9 @@ begin
         using exists_lt_of_lt_cSup (nonempty_image_iff.2 h) hl,
     exact (mem_nhds_within_Iio_iff_exists_Ioo_subset' zx).2
       ⟨z, zx, λ y hy, lz.trans_le (Mf (hy.1.le))⟩ },
-  { filter_upwards [self_mem_nhds_within] with y hy,
+  { filter_upwards [self_mem_nhds_within] with _ hy,
     apply lt_of_le_of_lt _ hm,
-    exact le_cSup (Mf.map_bdd_above bdd_above_Iio) (mem_image_of_mem _ hy) }
+    exact le_cSup (Mf.map_bdd_above bdd_above_Iio) (mem_image_of_mem _ hy), },
 end
 
 /-- A monotone map has a limit to the right of any point `x`, equal to `Inf (f '' (Ioi x))`. -/

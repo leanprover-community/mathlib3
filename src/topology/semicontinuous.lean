@@ -486,8 +486,7 @@ lemma lower_semicontinuous_within_at_supr {f : ι → α → δ}
 begin
   assume y hy,
   rcases lt_supr_iff.1 hy with ⟨i, hi⟩,
-  filter_upwards [h i y hi] with x' hx',
-  exact lt_supr_iff.2 ⟨i, hx'⟩,
+  filter_upwards [h i y hi] with _ hx' using lt_supr_iff.2 ⟨i, hx'⟩,
 end
 
 lemma lower_semicontinuous_within_at_bsupr {p : ι → Prop} {f : Π i (h : p i), α → δ}
@@ -915,8 +914,7 @@ begin
       { exact hl ⟨lfa, h⟩ },
       { exact hu ⟨le_of_lt h, fau⟩ } },
     { simp only [not_exists, not_lt] at Hu,
-      filter_upwards [h₁ l lfx] with a lfa,
-      exact hl ⟨lfa, Hu (f a)⟩ } },
+      filter_upwards [h₁ l lfx] with a lfa using hl ⟨lfa, Hu (f a)⟩, }, },
   { simp only [not_exists, not_lt] at Hl,
     by_cases Hu : ∃ u, f x < u,
     { rcases exists_Ico_subset_of_mem_nhds hv Hu with ⟨u, fxu, hu⟩,

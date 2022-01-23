@@ -187,9 +187,8 @@ begin
   unfold is_O_with,
   subst c₂,
   apply filter.eventually_congr,
-  filter_upwards [hf, hg],
-  assume x e₁ e₂,
-  rw [e₁, e₂]
+  filter_upwards [hf, hg] with _ e₁ e₂,
+  rw [e₁, e₂],
 end
 
 theorem is_O_with.congr' {c₁ c₂} {f₁ f₂ : α → E} {g₁ g₂ : α → F} {l : filter α}
@@ -300,8 +299,7 @@ theorem is_O_with.trans (hfg : is_O_with c f g l) (hgk : is_O_with c' g k l) (hc
   is_O_with (c * c') f k l :=
 begin
   unfold is_O_with at *,
-  filter_upwards [hfg, hgk],
-  assume x hx hx',
+  filter_upwards [hfg, hgk] with x hx hx',
   calc ∥f x∥ ≤ c * ∥g x∥ : hx
   ... ≤ c * (c' * ∥k x∥) : mul_le_mul_of_nonneg_left hx' hc
   ... = c * c' * ∥k x∥ : (mul_assoc _ _ _).symm

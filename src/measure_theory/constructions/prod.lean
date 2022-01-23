@@ -832,7 +832,7 @@ lemma integral_fn_integral_add ⦃f g : α × β → E⦄ (F : E → E')
   ∫ x, F (∫ y, f (x, y) + g (x, y) ∂ν) ∂μ = ∫ x, F (∫ y, f (x, y) ∂ν + ∫ y, g (x, y) ∂ν) ∂μ :=
 begin
   refine integral_congr_ae _,
-  filter_upwards [hf.prod_right_ae, hg.prod_right_ae] with h2f h2g,
+  filter_upwards [hf.prod_right_ae, hg.prod_right_ae] with _ h2f h2g,
   simp [integral_add h2f h2g],
 end
 

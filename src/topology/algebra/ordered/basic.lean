@@ -214,7 +214,7 @@ lemma is_closed.epigraph [topological_space β] {f : β → α} {s : set β}
   is_closed {p : β × α | p.1 ∈ s ∧ f p.1 ≤ p.2} :=
 (hs.preimage continuous_fst).is_closed_le (hf.comp continuous_on_fst subset.rfl) continuous_on_snd
 
-lemma is_closed.horograph [topological_space β] {f : β → α} {s : set β}
+lemma is_closed.hypograph [topological_space β] {f : β → α} {s : set β}
   (hs : is_closed s) (hf : continuous_on f s) :
   is_closed {p : β × α | p.1 ∈ s ∧ p.2 ≤ f p.1} :=
 (hs.preimage continuous_fst).is_closed_le continuous_on_snd (hf.comp continuous_on_fst subset.rfl)

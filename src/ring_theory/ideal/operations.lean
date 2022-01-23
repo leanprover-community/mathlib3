@@ -749,44 +749,44 @@ suffices (I : set R) ⊆ (⋃ i ∈ (↑s : set ι), f i) → ∃ i, i ∈ s ∧
     show i ∈ (↑s : set ι), from his⟩,
 assume h : (I : set R) ⊆ (⋃ i ∈ (↑s : set ι), f i),
 begin
-  classical, tactic.unfreeze_local_instances,
+  classical,
   by_cases has : a ∈ s,
-  { obtain ⟨t, hat, rfl⟩ : ∃ t, a ∉ t ∧ insert a t = s :=
-      ⟨s.erase a, finset.not_mem_erase a s, finset.insert_erase has⟩,
+  { unfreezingI { obtain ⟨t, hat, rfl⟩ : ∃ t, a ∉ t ∧ insert a t = s :=
+      ⟨s.erase a, finset.not_mem_erase a s, finset.insert_erase has⟩ },
     by_cases hbt : b ∈ t,
-    { obtain ⟨u, hbu, rfl⟩ : ∃ u, b ∉ u ∧ insert b u = t :=
-        ⟨t.erase b, finset.not_mem_erase b t, finset.insert_erase hbt⟩,
+    { unfreezingI { obtain ⟨u, hbu, rfl⟩ : ∃ u, b ∉ u ∧ insert b u = t :=
+        ⟨t.erase b, finset.not_mem_erase b t, finset.insert_erase hbt⟩ },
       have hp' : ∀ i ∈ u, is_prime (f i),
       { intros i hiu, refine hp i (finset.mem_insert_of_mem (finset.mem_insert_of_mem hiu)) _ _;
-        rintro rfl; solve_by_elim only [finset.mem_insert_of_mem, *], },
+        unfreezingI { rintro rfl }; solve_by_elim only [finset.mem_insert_of_mem, *], },
       rw [finset.coe_insert, finset.coe_insert, set.bUnion_insert, set.bUnion_insert,
           ← set.union_assoc, subset_union_prime' hp', bex_def] at h,
       rwa [finset.exists_mem_insert, finset.exists_mem_insert] },
     { have hp' : ∀ j ∈ t, is_prime (f j),
       { intros j hj, refine hp j (finset.mem_insert_of_mem hj) _ _;
-        rintro rfl; solve_by_elim only [finset.mem_insert_of_mem, *], },
+        unfreezingI { rintro rfl }; solve_by_elim only [finset.mem_insert_of_mem, *], },
       rw [finset.coe_insert, set.bUnion_insert, ← set.union_self (f a : set R),
           subset_union_prime' hp', ← or_assoc, or_self, bex_def] at h,
       rwa finset.exists_mem_insert } },
   { by_cases hbs : b ∈ s,
-    { obtain ⟨t, hbt, rfl⟩ : ∃ t, b ∉ t ∧ insert b t = s :=
-        ⟨s.erase b, finset.not_mem_erase b s, finset.insert_erase hbs⟩,
+    { unfreezingI { obtain ⟨t, hbt, rfl⟩ : ∃ t, b ∉ t ∧ insert b t = s :=
+        ⟨s.erase b, finset.not_mem_erase b s, finset.insert_erase hbs⟩ },
       have hp' : ∀ j ∈ t, is_prime (f j),
       { intros j hj, refine hp j (finset.mem_insert_of_mem hj) _ _;
-        rintro rfl; solve_by_elim only [finset.mem_insert_of_mem, *], },
+        unfreezingI { rintro rfl }; solve_by_elim only [finset.mem_insert_of_mem, *], },
       rw [finset.coe_insert, set.bUnion_insert, ← set.union_self (f b : set R),
           subset_union_prime' hp', ← or_assoc, or_self, bex_def] at h,
       rwa finset.exists_mem_insert },
     cases s.eq_empty_or_nonempty with hse hsne,
-    { subst hse, rw [finset.coe_empty, set.bUnion_empty, set.subset_empty_iff] at h,
+    { substI hse, rw [finset.coe_empty, set.bUnion_empty, set.subset_empty_iff] at h,
       have : (I : set R) ≠ ∅ := set.nonempty.ne_empty (set.nonempty_of_mem I.zero_mem),
       exact absurd h this },
     { cases hsne.bex with i his,
-      obtain ⟨t, hit, rfl⟩ : ∃ t, i ∉ t ∧ insert i t = s :=
-        ⟨s.erase i, finset.not_mem_erase i s, finset.insert_erase his⟩,
+      unfreezingI { obtain ⟨t, hit, rfl⟩ : ∃ t, i ∉ t ∧ insert i t = s :=
+        ⟨s.erase i, finset.not_mem_erase i s, finset.insert_erase his⟩ },
       have hp' : ∀ j ∈ t, is_prime (f j),
       { intros j hj, refine hp j (finset.mem_insert_of_mem hj) _ _;
-        rintro rfl; solve_by_elim only [finset.mem_insert_of_mem, *], },
+        unfreezingI { rintro rfl }; solve_by_elim only [finset.mem_insert_of_mem, *], },
       rw [finset.coe_insert, set.bUnion_insert, ← set.union_self (f i : set R),
           subset_union_prime' hp', ← or_assoc, or_self, bex_def] at h,
       rwa finset.exists_mem_insert } }

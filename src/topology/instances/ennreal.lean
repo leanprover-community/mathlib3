@@ -261,7 +261,7 @@ lemma tendsto_sub {a b : ℝ≥0∞} (h : a ≠ ∞ ∨ b ≠ ∞) :
   tendsto (λ p : ℝ≥0∞ × ℝ≥0∞, p.1 - p.2) (𝓝 (a, b)) (𝓝 (a - b)) :=
 begin
   cases a; cases b,
-  { simp only [eq_self_iff_true, not_true, ne.def, none_eq_top, or_self] at h, exact h.elim },
+  { simp only [eq_self_iff_true, not_true, ne.def, none_eq_top, or_self] at h, contradiction },
   { simp only [some_eq_coe, with_top.top_sub_coe, none_eq_top],
     apply tendsto_nhds_top_iff_nnreal.2 (λ n, _),
     rw [nhds_prod_eq, eventually_prod_iff],

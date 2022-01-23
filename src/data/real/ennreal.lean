@@ -1002,17 +1002,16 @@ lemma inv_ne_zero : a⁻¹ ≠ 0 ↔ a ≠ ∞ := by simp
 lemma mul_inv {a b : ℝ≥0∞} (ha : a ≠ 0 ∨ b ≠ ∞) (hb : a ≠ ∞ ∨ b ≠ 0) :
   (a * b)⁻¹ = a⁻¹ * b⁻¹ :=
 begin
-  cases b,
+  induction b using with_top.rec_top_coe,
   { simp at ha, simp [ha], },
-  cases a,
+  induction a using with_top.rec_top_coe,
   { simp at hb, simp [hb] },
   by_cases h'a : a = 0,
   { simp only [h'a, with_top.top_mul, ennreal.inv_zero, ennreal.coe_ne_top, zero_mul, ne.def,
-      not_false_iff, ennreal.coe_zero, ennreal.some_eq_coe, ennreal.inv_eq_zero] },
+               not_false_iff, ennreal.coe_zero, ennreal.inv_eq_zero] },
   by_cases h'b : b = 0,
   { simp only [h'b, ennreal.inv_zero, ennreal.coe_ne_top, with_top.mul_top, ne.def, not_false_iff,
-               mul_zero, ennreal.coe_zero, ennreal.some_eq_coe, ennreal.inv_eq_zero] },
-  simp only [ennreal.some_eq_coe],
+               mul_zero, ennreal.coe_zero, ennreal.inv_eq_zero] },
   rw [← ennreal.coe_mul, ← ennreal.coe_inv, ← ennreal.coe_inv h'a, ← ennreal.coe_inv h'b,
       ← ennreal.coe_mul, nnreal.mul_inv, mul_comm],
   simp [h'a, h'b],
@@ -1674,7 +1673,6 @@ end
 
 protected lemma dichotomy (p : ℝ≥0∞) [fact (1 ≤ p)] : p = ∞ ∨ 1 ≤ p.to_real :=
 begin
-  tactic.unfreeze_local_instances,
   have :  p = ⊤ ∨ 0 < p.to_real ∧ 1 ≤ p.to_real,
   { simpa using ennreal.trichotomy₂ (fact.out _ : 1 ≤ p) },
   exact this.imp_right (λ h, h.2)

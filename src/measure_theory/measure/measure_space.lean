@@ -1050,6 +1050,10 @@ restrict_mono' h (le_refl μ)
 lemma restrict_congr_set (h : s =ᵐ[μ] t) : μ.restrict s = μ.restrict t :=
 le_antisymm (restrict_mono_ae h.le) (restrict_mono_ae h.symm.le)
 
+lemma restrict_to_measurable (h : μ s ≠ ∞) : μ.restrict (to_measurable μ s) = μ.restrict s :=
+ext $ λ t ht, by rw [restrict_apply ht, restrict_apply ht, inter_comm,
+  measure_to_measurable_inter ht h, inter_comm]
+
 lemma restrict_eq_self_of_ae_mem {m0 : measurable_space α} ⦃s : set α⦄ ⦃μ : measure α⦄
   (hs : ∀ᵐ x ∂μ, x ∈ s) :
   μ.restrict s = μ :=
@@ -1630,16 +1634,23 @@ begin
   simpa [set_of_and, inter_comm] using measure_inter_eq_zero_of_restrict h
 end
 
-lemma ae_restrict_iff' {s : set α} {p : α → Prop} (hs : measurable_set s) :
+lemma ae_restrict_iff' {p : α → Prop} (hs : measurable_set s) :
   (∀ᵐ x ∂(μ.restrict s), p x) ↔ ∀ᵐ x ∂μ, x ∈ s → p x :=
 begin
   simp only [ae_iff, ← compl_set_of, restrict_apply_eq_zero' hs],
   congr' with x, simp [and_comm]
 end
 
-lemma ae_restrict_mem {s : set α} (hs : measurable_set s) :
+lemma ae_restrict_mem (hs : measurable_set s) :
   ∀ᵐ x ∂(μ.restrict s), x ∈ s :=
 (ae_restrict_iff' hs).2 (filter.eventually_of_forall (λ x, id))
+
+lemma ae_restrict_mem₀ (hs : null_measurable_set s μ) : ∀ᵐ x ∂(μ.restrict s), x ∈ s :=
+begin
+  rcases hs.exists_measurable_subset_ae_eq with ⟨t, hts, htm, ht_eq⟩,
+  rw ← restrict_congr_set ht_eq,
+  exact (ae_restrict_mem htm).mono hts
+end
 
 lemma ae_restrict_of_ae {s : set α} {p : α → Prop} (h : ∀ᵐ x ∂μ, p x) :
   (∀ᵐ x ∂(μ.restrict s), p x) :=
@@ -2227,6 +2238,11 @@ begin
     exact ae_eq_set_inter ht.some_spec.snd.2 (ae_eq_refl _) },
   { exact A.some_spec.snd.2 s hs },
 end
+
+@[simp] lemma restrict_to_measurable_of_sigma_finite [sigma_finite μ] (s : set α) :
+  μ.restrict (to_measurable μ s) = μ.restrict s :=
+ext $ λ t ht, by simp only [restrict_apply ht, inter_comm t,
+  measure_to_measurable_inter_of_sigma_finite ht]
 
 namespace finite_spanning_sets_in
 

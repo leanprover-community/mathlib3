@@ -248,12 +248,10 @@ lemma measurable.indicator [has_zero β] (hf : measurable f) (hs : measurable_se
   measurable (s.indicator f) :=
 hf.piecewise hs measurable_const
 
-@[to_additive, measurability] lemma measurable_set_mul_support [has_one β]
+@[measurability, to_additive] lemma measurable_set_mul_support [has_one β]
   [measurable_singleton_class β] (hf : measurable f) :
   measurable_set (mul_support f) :=
 hf (measurable_set_singleton 1).compl
-
-attribute [measurability] measurable_set_support
 
 /-- If a function coincides with a measurable function outside of a countable set, it is
 measurable. -/
@@ -583,7 +581,8 @@ begin
 end
 
 /-- A piecewise function on countably many pieces is measurable if all the data is measurable. -/
-lemma measurable.find [measurable_space α]
+@[measurability]
+lemma measurable.find {m : measurable_space α}
   {f : ℕ → α → β} {p : ℕ → α → Prop} [∀ n, decidable_pred (p n)]
   (hf : ∀ n, measurable (f n)) (hp : ∀ n, measurable_set {x | p n x}) (h : ∀ x, ∃ n, p n x) :
   measurable (λ x, f (nat.find (h x)) x) :=
@@ -594,7 +593,7 @@ end
 
 /-- Given countably many disjoint measurable sets `t n` and countably many measurable
 functions `g n`, one can construct a measurable function that coincides with `g n` on `t n`. -/
-lemma exists_measurable_piecewise_nat [measurable_space α] (t : ℕ → set β)
+lemma exists_measurable_piecewise_nat {m : measurable_space α} (t : ℕ → set β)
   (t_meas : ∀ n, measurable_set (t n)) (t_disj : pairwise (disjoint on t))
   (g : ℕ → β → α) (hg : ∀ n, measurable (g n)) :
   ∃ f : β → α, measurable f ∧ (∀ n x, x ∈ t n → f x = g n x) :=
@@ -656,7 +655,7 @@ measurable_pi_iff.mpr hf
   This doesn't require `f` to be measurable.
   This should not be confused with the statement that `update f a x` is measurable. -/
 @[measurability]
-lemma measurable_update (f : Π (a : δ), π a) {a : δ} [decidable_eq δ]: measurable (update f a) :=
+lemma measurable_update (f : Π (a : δ), π a) {a : δ} [decidable_eq δ] : measurable (update f a) :=
 begin
   apply measurable_pi_lambda,
   intro x, by_cases hx : x = a,

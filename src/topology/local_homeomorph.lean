@@ -830,7 +830,7 @@ lemma continuous_on_iff_continuous_on_comp_right {f : β → γ} {s : set β} (h
   continuous_on f s ↔ continuous_on (f ∘ e) (e.source ∩ e ⁻¹' s) :=
 begin
   simp only [← e.symm_image_eq_source_inter_preimage h, continuous_on, ball_image_iff],
-  refine forall_congr (λ x, forall_congr $ λ hx, _),
+  refine forall₂_congr (λ x hx, _),
   rw [e.continuous_within_at_iff_continuous_within_at_comp_right (h hx),
     e.symm_image_eq_source_inter_preimage h, inter_comm, continuous_within_at_inter],
   exact is_open.mem_nhds e.open_source (e.map_target (h hx))
@@ -867,7 +867,7 @@ end
 on the left is continuous on the corresponding set. -/
 lemma continuous_on_iff_continuous_on_comp_left {f : γ → α} {s : set γ} (h : s ⊆ f ⁻¹' e.source) :
   continuous_on f s ↔ continuous_on (e ∘ f) s :=
-forall_congr $ λ x, forall_congr $ λ hx, e.continuous_within_at_iff_continuous_within_at_comp_left
+forall₂_congr $ λ x hx, e.continuous_within_at_iff_continuous_within_at_comp_left
   (h hx) (mem_of_superset self_mem_nhds_within h)
 
 end continuity

@@ -531,8 +531,8 @@ begin
       (C * (a / r') ^ 2) * (∥y - (x, x)∥ * ∥y.1 - y.2∥) * ((n + 2) * a ^ n),
     have hAB : ∀ n, ∥A (n + 2)∥ ≤ B n := λ n,
     calc ∥A (n + 2)∥ ≤ ∥p (n + 2)∥ * ↑(n + 2) * ∥y - (x, x)∥ ^ (n + 1) * ∥y.1 - y.2∥ :
-      by simpa only [fintype.card_fin, pi_norm_const, prod.norm_def, pi.sub_def, prod.fst_sub,
-        prod.snd_sub, sub_sub_sub_cancel_right]
+      by simpa only [fintype.card_fin, pi_norm_const (_ : E), prod.norm_def, pi.sub_def,
+        prod.fst_sub, prod.snd_sub, sub_sub_sub_cancel_right]
         using (p $ n + 2).norm_image_sub_le (λ _, y.1 - x) (λ _, y.2 - x)
     ... = ∥p (n + 2)∥ * ∥y - (x, x)∥ ^ n * (↑(n + 2) * ∥y - (x, x)∥ * ∥y.1 - y.2∥) :
       by { rw [pow_succ ∥y - (x, x)∥], ac_refl }

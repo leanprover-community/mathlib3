@@ -246,7 +246,7 @@ h.times_cont_mdiff_within_at_diffeomorph_comp_iff hm
 @[simp] lemma times_cont_mdiff_on_diffeomorph_comp_iff {m} (h : M ≃ₘ^n⟮I, J⟯ N) {f : M' → M}
   (hm : m ≤ n) {s} :
   times_cont_mdiff_on I' J m (h ∘ f) s ↔ times_cont_mdiff_on I' I m f s :=
-forall_congr $ λ x, forall_congr $ λ hx, h.times_cont_mdiff_within_at_diffeomorph_comp_iff hm
+forall₂_congr $ λ x hx, h.times_cont_mdiff_within_at_diffeomorph_comp_iff hm
 
 @[simp] lemma times_cont_mdiff_diffeomorph_comp_iff {m} (h : M ≃ₘ^n⟮I, J⟯ N) {f : M' → M}
   (hm : m ≤ n) :

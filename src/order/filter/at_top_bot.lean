@@ -101,6 +101,10 @@ lemma eventually_gt_at_top [preorder α] [no_max_order α] (a : α) :
   ∀ᶠ x in at_top, a < x :=
 Ioi_mem_at_top a
 
+lemma eventually_ne_at_top [preorder α] [no_max_order α] (a : α) :
+  ∀ᶠ x in at_top, x ≠ a :=
+(eventually_gt_at_top a).mono (λ x hx, hx.ne.symm)
+
 lemma eventually_lt_at_bot [preorder α] [no_min_order α] (a : α) :
   ∀ᶠ x in at_bot, x < a :=
 Iio_mem_at_bot a

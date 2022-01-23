@@ -151,7 +151,7 @@ end
 lemma tendsto_uniformly_on.prod {ι' β' : Type*} [uniform_space β'] {F' : ι' → α → β'} {f' : α → β'}
   {p' : filter ι'} (h : tendsto_uniformly_on F f p s) (h' : tendsto_uniformly_on F' f' p' s) :
   tendsto_uniformly_on (λ (i : ι × ι') a, (F i.1 a, F' i.2 a)) (λ a, (f a, f' a)) (p.prod p') s :=
-(congr_arg _ s.inter_self).mp ((h.prod' h').comp (λ a, (a, a)))
+(congr_arg _ s.inter_self).mp ((h.prod_map h').comp (λ a, (a, a)))
 
 lemma tendsto_uniformly.prod {ι' β' : Type*} [uniform_space β'] {F' : ι' → α → β'} {f' : α → β'}
   {p' : filter ι'} (h : tendsto_uniformly F f p) (h' : tendsto_uniformly F' f' p') :

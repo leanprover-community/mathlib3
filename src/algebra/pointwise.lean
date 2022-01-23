@@ -576,7 +576,7 @@ section monoid
 
 /-- An alias for `set α`, which has a semiring structure given by `∪` as "addition" and pointwise
   multiplication `*` as "multiplication". -/
-@[derive inhabited] def set_semiring (α : Type*) : Type* := set α
+@[derive [inhabited, partial_order, order_bot]] def set_semiring (α : Type*) : Type* := set α
 
 /-- The identitiy function `set α → set_semiring α`. -/
 protected def up (s : set α) : set_semiring α := s
@@ -585,16 +585,11 @@ protected def set_semiring.down (s : set_semiring α) : set α := s
 @[simp] protected lemma down_up {s : set α} : s.up.down = s := rfl
 @[simp] protected lemma up_down {s : set_semiring α} : s.down.up = s := rfl
 
-instance : partial_order (set_semiring α) :=
-{ le := λ s t, s.down ⊆ t.down,
-  lt := λ s t, s.down ⊂ t.down,
-  ..(by apply_instance : partial_order (set α)) }
+/- This lemma is not tagged `simp`, since otherwise the linter complains. -/
+lemma up_le_up {s t : set α} : s.up ≤ t.up ↔ s ⊆ t := iff.rfl
+/- This lemma is not tagged `simp`, since otherwise the linter complains. -/
+lemma up_lt_up {s t : set α} : s.up < t.up ↔ s ⊂ t := iff.rfl
 
-instance : order_bot (set_semiring α) :=
-{ ..(by apply_instance : order_bot (set α)) }
-
-@[simp] lemma up_le_up {s t : set α} : s.up ≤ t.up ↔ s ⊆ t := iff.rfl
-@[simp] lemma up_lt_up {s t : set α} : s.up < t.up ↔ s ⊂ t := iff.rfl
 @[simp] lemma down_subset_down {s t : set_semiring α} : s.down ⊆ t.down ↔ s ≤ t := iff.rfl
 @[simp] lemma down_ssubset_down {s t : set_semiring α} : s.down ⊂ t.down ↔ s < t := iff.rfl
 

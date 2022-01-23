@@ -10,23 +10,32 @@ import measure_theory.function.ae_eq_of_integral
 /-!
 # Jensen's inequality for integrals
 
-In this file we prove several versions of Jensen's inequality. Here we list key differences between
-these lemmas and explain how they affect names of the lemmas.
+In this file we define `measure_theory.average μ f` (notation: `⨍ x, f x ∂μ`) to be the average
+value of `f` with respect to measure `μ`. It is defined as `(μ univ).to_real⁻¹ • ∫ x, f x ∂μ`, so it
+is equal to zero if `f` is not integrable or if `μ` is an infinite measure. If `μ` is a probability
+measure, then the average of any function is equal to its integral.
 
-- We prove inequalities for convex functions (in the namespaces `convex_on` and `strict_convex_on`):
-  `g ((μ univ)⁻¹ • ∫ x, f x ∂μ) ≤ (μ univ)⁻¹ • ∫ x, g (f x) ∂μ`, and for convex sets (int the
-  namespace `convex`): if `∀ᵐ x ∂μ, f x ∈ s`, then `(μ univ)⁻¹ • ∫ x, f x ∂μ ∈ s`.
+Then we prove several forms of Jensen's inequality for integrals.
 
-- We prove inequalities for average values over the whole space w.r.t. to a finite measure
-  (`...smul_integral...`), to a probability measure (`...integral...`), or over a set
-  (`...smul_set_integral...`).
+- for convex sets: `convex.average_mem`, `convex.set_average_mem`, `convex.integral_mem`;
 
-- We prove strict inequality (has `lt` in the name, all versions but one are in the
-  `strict_convex_on` namespace) and non-strict inequalities.
+- for convex functions: `convex.on.average_mem_epigraph`, `convex_on.map_average_le`,
+  `convex_on.set_average_mem_epigraph`, `convex_on.map_set_average_le`, `convex_on.map_integral_le`;
+
+- for strictly convex sets: `strict_convex.ae_eq_const_or_average_mem_interior`;
+
+- for a closed ball in a strictly convex normed space:
+  `strict_convex.ae_eq_const_or_norm_integral_lt_of_norm_le_const`
+
+- for strictly convex functions: `strict_convex_on.ae_eq_const_or_map_average_lt`.
+
+## TODO
+
+- Add versions for concave functions.
 
 ## Tags
 
-convex, integral, center mass, Jensen's inequality
+convex, integral, center mass, average value, Jensen's inequality
 -/
 
 open measure_theory measure_theory.measure metric set filter topological_space function
@@ -39,11 +48,30 @@ variables {α E F : Type*} {m0 : measurable_space α}
   [topological_space.second_countable_topology F] [measurable_space F] [borel_space F]
   {μ : measure α} {s : set E}
 
+/-!
+### Average value of a function w.r.t. a measure
+
+The average value of a function `f` w.r.t. a measure `μ` (notation: `⨍ x, f x ∂μ`) is defined as
+`(μ univ).to_real⁻¹ • ∫ x, f x ∂μ`, so it is equal to zero if `f` is not integrable or if `μ` is an
+infinite measure. If `μ` is a probability measure, then the average of any function is equal to its
+integral.
+
+For the average on a set, use `⨍ x in s, f x ∂μ` (defined as `⨍ x, f x ∂(μ.restrict s)`). For
+average w.r.t. the volume, one can omit `∂volume`.
+-/
+
 namespace measure_theory
 
 variable (μ)
 include m0
 
+/-- Average value of a function `f` w.r.t. a measure `μ`, notation: `⨍ x, f x ∂μ`. It is defined as
+`(μ univ).to_real⁻¹ • ∫ x, f x ∂μ`, so it is equal to zero if `f` is not integrable or if `μ` is an
+infinite measure. If `μ` is a probability measure, then the average of any function is equal to its
+integral.
+
+For the average on a set, use `⨍ x in s, f x ∂μ` (defined as `⨍ x, f x ∂(μ.restrict s)`). For
+average w.r.t. the volume, one can omit `∂volume`. -/
 noncomputable def average (f : α → E) := (μ univ).to_real⁻¹ • ∫ x, f x ∂μ
 
 notation `⨍` binders `, ` r:(scoped:60 f, f) ` ∂` μ:70 := average μ r
@@ -150,7 +178,7 @@ open measure_theory
 ### Non-strict Jensen's inequality
 -/
 
-/-- An auxiliary lemma for `convex.smul_integral_mem`. -/
+/-- An auxiliary lemma for a more general `convex.smul_integral_mem`. -/
 protected lemma convex.average_mem_of_measurable
   [is_finite_measure μ] {s : set E} (hs : convex ℝ s) (hsc : is_closed s)
   (hμ : μ ≠ 0) {f : α → E} (hfs : ∀ᵐ x ∂μ, f x ∈ s) (hfi : integrable f μ) (hfm : measurable f) :
@@ -277,6 +305,9 @@ lemma convex_on.map_integral_le [is_probability_measure μ] {s : set E} {g : E �
 by simpa only [average_eq_integral]
   using hg.map_average_le hgc hsc (is_probability_measure.ne_zero μ) hfs hfi hgi
 
+/-- If `f : α → E` is an integrable function, then either it is a.e. equal to the constant
+`⨍ x, f x ∂μ` or there exists a measurable set such that `μ s ≠ 0`, `μ sᶜ ≠ 0`, and the average
+values of `f` over `s` and `sᶜ` are different. -/
 lemma measure_theory.integrable.ae_eq_const_or_exists_average_ne_compl [is_finite_measure μ]
   {f : α → E} (hfi : integrable f μ) :
   (f =ᵐ[μ] const α (⨍ x, f x ∂μ)) ∨ ∃ s, measurable_set s ∧ μ s ≠ 0 ∧ μ sᶜ ≠ 0 ∧
@@ -295,6 +326,10 @@ begin
   rw [this, measure_smul_set_average _ (measure_ne_top μ _)]
 end
 
+/-- **Jensen's inequality**, strict version: if an integrable function `f : α → E` takes values in a
+convex closed set `s` and for some set `t` of positive measure, the average value of `f` over `t`
+belongs to the interior of `s`, then the average of `f` over the whole space belongs to the interior
+of `s`. -/
 lemma convex.average_mem_interior_of_set [is_finite_measure μ] {t : set α} {s : set E}
   (hs : convex ℝ s) (hsc : is_closed s) (h0 : μ t ≠ 0) {f : α → E} (hfs : ∀ᵐ x ∂μ, f x ∈ s)
   (hfi : integrable f μ) (ht : ⨍ x in t, f x ∂μ ∈ interior s) :
@@ -310,6 +345,9 @@ begin
       h0 h0' hfi)
 end
 
+/-- **Jensen's inequality**, strict version: if an integrable function `f : α → E` takes values in a
+strictly convex closed set `s`, then either it is a.e. equal to its average value, or its average
+value belongs to the interior of `s`. -/
 lemma strict_convex.ae_eq_const_or_average_mem_interior [is_finite_measure μ] {s : set E}
   (hs : strict_convex ℝ s) (hsc : is_closed s) {f : α → E} (hfs : ∀ᵐ x ∂μ, f x ∈ s)
   (hfi : integrable f μ) :
@@ -324,6 +362,9 @@ begin
     (average_mem_open_segment_compl_self hm.null_measurable_set h₀ h₀' hfi)
 end
 
+/-- **Jensen's inequality**, strict version: if an integrable function `f : α → E` takes values in a
+convex closed set `s`, and `g : E → ℝ` is continuous and strictly convex on `s`, then
+either `f` is a.e. equal to its average value, or `g (⨍ x, f x ∂μ) < ⨍ x, g (f x) ∂μ`. -/
 lemma strict_convex_on.ae_eq_const_or_map_average_lt [is_finite_measure μ] {s : set E} {g : E → ℝ}
   (hg : strict_convex_on ℝ s g) (hgc : continuous_on g s) (hsc : is_closed s) {f : α → E}
   (hfs : ∀ᵐ x ∂μ, f x ∈ s) (hfi : integrable f μ) (hgi : integrable (g ∘ f) μ) :
@@ -347,9 +388,9 @@ begin
       (mul_le_mul_of_nonneg_left (this h₀').2 hb.le)
 end
 
-/-- If the norm of a function `f : α → E` taking values in a strictly convex normed space is
-a.e. less than or equal to `C`, then either this function is a constant, or the norm of its integral
-is strictly less than `μ univ * C`. -/
+/-- If the closed ball of radius `C` in a normed space `E` is strictly convex and `f : α → E` is
+a function such that `∥f x∥ ≤ C` a.e., then either either this function is a.e. equal to its
+average value, or the norm of its integral is strictly less than `(μ univ).to_real * C`. -/
 lemma strict_convex.ae_eq_const_or_norm_integral_lt_of_norm_le_const [is_finite_measure μ]
   {f : α → E} {C : ℝ} (h_convex : strict_convex ℝ (closed_ball (0 : E) C))
   (h_le : ∀ᵐ x ∂μ, ∥f x∥ ≤ C) :

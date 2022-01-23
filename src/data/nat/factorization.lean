@@ -228,31 +228,24 @@ end
 lemma factorization_gcd (a b : ℕ) (ha_pos : a ≠ 0) (hb_pos : b ≠ 0) :
   (gcd a b).factorization = a.factorization ⊓ b.factorization :=
 begin
-  set dfac := a.factorization ⊓ b.factorization with dfac_def,
-  set d := dfac.prod pow with d_def,
-
+  set dfac := a.factorization ⊓ b.factorization,
+  set d := dfac.prod pow,
   have dfac_prime : ∀ (p : ℕ), p ∈ dfac.support → prime p,
   { intros p hp,
-    rw dfac_def at hp,
-    simp only [support_inf, finset.mem_inter, support_factorization, mem_to_finset] at hp,
-    cases hp,
-    apply prime_of_mem_factors, assumption },
-
-  have h1 : d.factorization = dfac, { rw d_def, exact factorization_prod_pow_inv dfac_prime },
-
-  have hd_pos : d ≠ 0, { rw d_def, exact ne_of_gt (prime_finsupp_prod_pow_pos dfac_prime) },
-
-  suffices : (gcd a b) = d, { rwa this },
-  rw eq_comm,
+    have : p ∈ a.factors ∧ p ∈ b.factors, { simpa using hp },
+    exact prime_of_mem_factors this.1 },
+  have h1 : d.factorization = dfac := factorization_prod_pow_inv dfac_prime,
+  have hd_pos : d ≠ 0 := (prime_finsupp_prod_pow_pos dfac_prime).ne.symm,
+  suffices : d = (gcd a b), { rwa ←this },
   apply gcd_greatest,
-  { rw [←factorization_le_iff_dvd hd_pos ha_pos, h1, dfac_def], exact inf_le_left },
-  { rw [←factorization_le_iff_dvd hd_pos hb_pos, h1, dfac_def], exact inf_le_right },
+  { rw [←factorization_le_iff_dvd hd_pos ha_pos, h1], exact inf_le_left },
+  { rw [←factorization_le_iff_dvd hd_pos hb_pos, h1], exact inf_le_right },
   { intros e hea heb,
     rcases decidable.eq_or_ne e 0 with rfl | he_pos,
     { simp only [zero_dvd_iff] at hea, contradiction, },
     have hea' := (factorization_le_iff_dvd he_pos ha_pos).mpr hea,
     have heb' := (factorization_le_iff_dvd he_pos hb_pos).mpr heb,
-    simp [←factorization_le_iff_dvd he_pos hd_pos, h1, dfac_def, hea', heb'] },
+    simp [←factorization_le_iff_dvd he_pos hd_pos, h1, hea', heb'] },
 end
 
 end nat

@@ -80,8 +80,10 @@ variables {G} (H : subgroup G)
 
 lemma subgroup.comm_prob_subgroup_le : comm_prob H ≤ comm_prob G * H.index ^ 2 :=
 begin
-  rw [comm_prob, comm_prob, div_le_iff, mul_assoc, ←mul_pow, ←nat.cast_mul, H.index_mul_card,
-      div_mul_cancel, nat.cast_le],
+  /- After rewriting with `comm_prob_def`, we reduce to showing that `G` has at least as many
+    commuting pairs as `H`. -/
+  rw [comm_prob_def, comm_prob_def, div_le_iff, mul_assoc, ←mul_pow, ←nat.cast_mul,
+      H.index_mul_card, div_mul_cancel, nat.cast_le],
   { apply card_le_of_injective _ _,
     exact λ p, ⟨⟨p.1.1, p.1.2⟩, subtype.ext_iff.mp p.2⟩,
     exact λ p q h, by simpa only [subtype.ext_iff, prod.ext_iff] using h },
@@ -91,6 +93,8 @@ end
 
 lemma subgroup.comm_prob_quotient_le [H.normal] : comm_prob (G ⧸ H) ≤ comm_prob G * card H :=
 begin
+  /- After rewriting with `comm_prob_def'`, we reduce to showing that `G` has at least as many
+    conjugacy classes as `G ⧸ H`. -/
   rw [comm_prob_def', comm_prob_def', div_le_iff, mul_assoc, ←nat.cast_mul, mul_comm (card H),
       ←subgroup.card_eq_card_quotient_mul_card_subgroup, div_mul_cancel, nat.cast_le],
   { exact card_le_of_surjective (conj_classes.map (quotient_group.mk' H))

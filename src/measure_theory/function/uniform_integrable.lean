@@ -211,8 +211,9 @@ begin
     tendsto_uniformly_on_of_ae_tendsto hf hg measurable_set.univ (measure_ne_top μ univ) _ hε,
   { refine ⟨t, ht, _⟩,
     rwa compl_eq_univ_diff },
-  { filter_upwards [hfg] with _,
-    assumption }
+  { filter_upwards [hfg],
+    intros,
+    assumption, },
 end
 
 end

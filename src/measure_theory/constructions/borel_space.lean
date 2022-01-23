@@ -1342,9 +1342,8 @@ begin
       (λ i j ipos ij, cthickening_mono ij _) hs },
   have B : tendsto (λ r, μ (cthickening r s)) (𝓝[Iic 0] 0) (𝓝 (μ (closure s))),
   { apply tendsto.congr' _ tendsto_const_nhds,
-    filter_upwards [self_mem_nhds_within],
-    assume r hr,
-    rw cthickening_of_nonpos hr },
+    filter_upwards [self_mem_nhds_within] with _ hr,
+    rw cthickening_of_nonpos hr, },
   convert B.sup A,
   exact (nhds_left_sup_nhds_right' 0).symm,
 end

@@ -620,18 +620,13 @@ hf.comp_measurable' measurable_snd prod_snd_absolutely_continuous
 lemma ae_measurable.integral_prod_right' [sigma_finite ν]
   [second_countable_topology E] [normed_space ℝ E] [borel_space E] [complete_space E]
   ⦃f : α × β → E⦄ (hf : ae_measurable f (μ.prod ν)) : ae_measurable (λ x, ∫ y, f (x, y) ∂ν) μ :=
-⟨λ x, ∫ y, hf.mk f (x, y) ∂ν, hf.measurable_mk.integral_prod_right', begin
-  filter_upwards [ae_ae_of_ae_prod hf.ae_eq_mk],
-  assume x hx,
-  exact integral_congr_ae hx
-end⟩
+⟨λ x, ∫ y, hf.mk f (x, y) ∂ν, hf.measurable_mk.integral_prod_right',
+  by { filter_upwards [ae_ae_of_ae_prod hf.ae_eq_mk] with _ hx using integral_congr_ae hx }⟩
 
 lemma ae_measurable.prod_mk_left [sigma_finite ν] {f : α × β → γ}
-  (hf : ae_measurable f (μ.prod ν)) : ∀ᵐ x ∂μ, ae_measurable (λ y, f (x, y)) ν :=
-begin
-  filter_upwards [ae_ae_of_ae_prod hf.ae_eq_mk] with x hx,
-  exact ⟨λ y, hf.mk f (x, y), hf.measurable_mk.comp measurable_prod_mk_left, hx⟩
-end
+  (hf : ae_measurable f (μ.prod ν)) : ∀ᵐ x ∂μ, ae_measurable (λ y, f (x, y)) ν := by
+{ filter_upwards [ae_ae_of_ae_prod hf.ae_eq_mk] with x hx
+    using ⟨λ y, hf.mk f (x, y), hf.measurable_mk.comp measurable_prod_mk_left, hx⟩ }
 
 end
 
@@ -675,9 +670,7 @@ begin
     lintegral_congr_ae hf.ae_eq_mk,
   have B : ∫⁻ x, ∫⁻ y, f (x, y) ∂ν ∂μ = ∫⁻ x, ∫⁻ y, hf.mk f (x, y) ∂ν ∂μ,
   { apply lintegral_congr_ae,
-    filter_upwards [ae_ae_of_ae_prod hf.ae_eq_mk],
-    assume a ha,
-    exact lintegral_congr_ae ha },
+    filter_upwards [ae_ae_of_ae_prod hf.ae_eq_mk] with _ ha using lintegral_congr_ae ha, },
   rw [A, B, lintegral_prod_of_measurable _ hf.measurable_mk],
   apply_instance
 end
@@ -763,10 +756,9 @@ begin
     assume x hx,
     exact has_finite_integral_congr hx },
   { apply has_finite_integral_congr,
-    filter_upwards [ae_ae_of_ae_prod h1f.ae_eq_mk.symm],
-    assume x hx,
-    exact integral_congr_ae (eventually_eq.fun_comp hx _) },
-  { apply_instance }
+    filter_upwards [ae_ae_of_ae_prod h1f.ae_eq_mk.symm] with _ hx,
+      using integral_congr_ae (eventually_eq.fun_comp hx _), },
+  { apply_instance, },
 end
 
 

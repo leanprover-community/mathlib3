@@ -63,8 +63,8 @@ could read (in the `Lp` namespace)
 example (f g h : Lp E p μ) : (f + g) + h = f + (g + h) :=
 begin
   ext1,
-  filter_upwards [coe_fn_add (f + g) h, coe_fn_add f g, coe_fn_add f (g + h), coe_fn_add g h],
-  assume a ha1 ha2 ha3 ha4,
+  filter_upwards [coe_fn_add (f + g) h, coe_fn_add f g, coe_fn_add f (g + h), coe_fn_add g h]
+  with _ ha1 ha2 ha3 ha4,
   simp only [ha1, ha2, ha3, ha4, add_assoc],
 end
 ```
@@ -1379,10 +1379,9 @@ begin
     exact ae_eq_fun.coe_fn_const _ _ },
   { assume h,
     ext1,
-    filter_upwards [h, ae_eq_fun.coe_fn_const α (0 : E)],
-    assume a ha h'a,
+    filter_upwards [h, ae_eq_fun.coe_fn_const α (0 : E)] with _ ha h'a,
     rw ha,
-    exact h'a.symm }
+    exact h'a.symm, },
 end
 
 @[simp] lemma norm_neg {f : Lp E p μ} : ∥-f∥ = ∥f∥ :=
@@ -1788,8 +1787,7 @@ def comp_Lp (hg : lipschitz_with c g) (g0 : g 0 = 0) (f : Lp E p μ) : Lp F p μ
 begin
   suffices : ∀ᵐ x ∂μ, ∥ae_eq_fun.comp g hg.continuous.measurable (f : α →ₘ[μ] E) x∥ ≤ c * ∥f x∥,
   { exact Lp.mem_Lp_of_ae_le_mul this },
-  filter_upwards [ae_eq_fun.coe_fn_comp g hg.continuous.measurable (f : α →ₘ[μ] E)],
-  assume a ha,
+  filter_upwards [ae_eq_fun.coe_fn_comp g hg.continuous.measurable (f : α →ₘ[μ] E)] with a ha,
   simp only [ha],
   rw [← dist_zero_right, ← dist_zero_right, ← g0],
   exact hg.dist_le_mul (f a) 0,
@@ -1804,9 +1802,8 @@ ae_eq_fun.coe_fn_comp _ _ _
 begin
   rw Lp.eq_zero_iff_ae_eq_zero,
   apply (coe_fn_comp_Lp _ _ _).trans,
-  filter_upwards [Lp.coe_fn_zero E p μ],
-  assume a ha,
-  simp [ha, g0]
+  filter_upwards [Lp.coe_fn_zero E p μ] with _ ha,
+  simp [ha, g0],
 end
 
 lemma norm_comp_Lp_sub_le (hg : lipschitz_with c g) (g0 : g 0 = 0) (f f' : Lp E p μ) :
@@ -1814,8 +1811,7 @@ lemma norm_comp_Lp_sub_le (hg : lipschitz_with c g) (g0 : g 0 = 0) (f f' : Lp E 
 begin
   apply Lp.norm_le_mul_norm_of_ae_le_mul,
   filter_upwards [hg.coe_fn_comp_Lp g0 f, hg.coe_fn_comp_Lp g0 f',
-    Lp.coe_fn_sub (hg.comp_Lp g0 f) (hg.comp_Lp g0 f'), Lp.coe_fn_sub f f'],
-  assume a ha1 ha2 ha3 ha4,
+    Lp.coe_fn_sub (hg.comp_Lp g0 f) (hg.comp_Lp g0 f'), Lp.coe_fn_sub f f'] with a ha1 ha2 ha3 ha4,
   simp [ha1, ha2, ha3, ha4, ← dist_eq_norm],
   exact hg.dist_le_mul (f a) (f' a)
 end
@@ -1922,8 +1918,7 @@ def comp_Lpₗ (L : E →L[𝕜] F) : (Lp E p μ) →ₗ[𝕜] (Lp F p μ) :=
     dsimp,
     ext1,
     filter_upwards [Lp.coe_fn_smul c f, coe_fn_comp_Lp L (c • f), Lp.coe_fn_smul c (L.comp_Lp f),
-      coe_fn_comp_Lp L f],
-    assume a ha1 ha2 ha3 ha4,
+      coe_fn_comp_Lp L f] with _ ha1 ha2 ha3 ha4,
     simp only [ha1, ha2, ha3, ha4, map_smul, pi.smul_apply],
   end }
 
@@ -2006,9 +2001,8 @@ ae_eq_fun.coe_fn_pos_part _
 lemma coe_fn_neg_part_eq_max (f : Lp ℝ p μ) : ∀ᵐ a ∂μ, neg_part f a = max (- f a) 0 :=
 begin
   rw neg_part,
-  filter_upwards [coe_fn_pos_part (-f), coe_fn_neg f],
-  assume a h₁ h₂,
-  rw [h₁, h₂, pi.neg_apply]
+  filter_upwards [coe_fn_pos_part (-f), coe_fn_neg f] with _ h₁ h₂,
+  rw [h₁, h₂, pi.neg_apply],
 end
 
 lemma coe_fn_neg_part (f : Lp ℝ p μ) : ∀ᵐ a ∂μ, neg_part f a = - min (f a) 0 :=
@@ -2150,7 +2144,7 @@ begin
   filter_upwards [((f_ℒp n).sub f_lim_ℒp).coe_fn_to_Lp,
     Lp.coe_fn_sub ((f_ℒp n).to_Lp (f n)) (f_lim_ℒp.to_Lp f_lim)] with _ hx₁ hx₂,
   rw ← hx₂,
-  exact hx₁.symm
+  exact hx₁.symm,
 end
 
 lemma tendsto_Lp_of_tendsto_ℒp {ι} {fi : filter ι} [hp : fact (1 ≤ p)]

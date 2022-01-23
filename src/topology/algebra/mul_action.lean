@@ -252,6 +252,12 @@ homeomorph.smul (units.mk0 c hc)
 lemma is_open_map_smul₀ {c : G₀} (hc : c ≠ 0) : is_open_map (λ x : α, c • x) :=
 (homeomorph.smul_of_ne_zero c hc).is_open_map
 
+lemma is_open.smul₀ {c : G₀} {s : set α} (hs : is_open s) (hc : c ≠ 0) : is_open (c • s) :=
+is_open_map_smul₀ hc s hs
+
+lemma interior_smul₀ {c : G₀} (hc : c ≠ 0) (s : set α) : interior (c • s) = c • interior s :=
+((homeomorph.smul_of_ne_zero c hc).image_interior s).symm
+
 /-- `smul` is a closed map in the second argument.
 
 The lemma that `smul` is a closed map in the first argument (for a normed space over a complete

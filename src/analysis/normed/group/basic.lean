@@ -693,18 +693,18 @@ noncomputable instance prod.semi_normed_group : semi_normed_group (E × F) :=
   dist_eq := assume (x y : E × F),
     show max (dist x.1 y.1) (dist x.2 y.2) = (max ∥(x - y).1∥ ∥(x - y).2∥), by simp [dist_eq_norm] }
 
-lemma prod.semi_norm_def (x : E × F) : ∥x∥ = (max ∥x.1∥ ∥x.2∥) := rfl
+lemma prod.norm_def (x : E × F) : ∥x∥ = (max ∥x.1∥ ∥x.2∥) := rfl
 
-lemma prod.nnsemi_norm_def (x : E × F) : ∥x∥₊ = max (∥x.1∥₊) (∥x.2∥₊) :=
-by { have := x.semi_norm_def, simp only [← coe_nnnorm] at this, exact_mod_cast this }
+lemma prod.nnnorm_def (x : E × F) : ∥x∥₊ = max (∥x.1∥₊) (∥x.2∥₊) :=
+by { have := x.norm_def, simp only [← coe_nnnorm] at this, exact_mod_cast this }
 
-lemma semi_norm_fst_le (x : E × F) : ∥x.1∥ ≤ ∥x∥ :=
+lemma norm_fst_le (x : E × F) : ∥x.1∥ ≤ ∥x∥ :=
 le_max_left _ _
 
-lemma semi_norm_snd_le (x : E × F) : ∥x.2∥ ≤ ∥x∥ :=
+lemma norm_snd_le (x : E × F) : ∥x.2∥ ≤ ∥x∥ :=
 le_max_right _ _
 
-lemma semi_norm_prod_le_iff {x : E × F} {r : ℝ} :
+lemma norm_prod_le_iff {x : E × F} {r : ℝ} :
   ∥x∥ ≤ r ↔ ∥x.1∥ ≤ r ∧ ∥x.2∥ ≤ r :=
 max_le_iff
 
@@ -719,26 +719,26 @@ noncomputable instance pi.semi_normed_group {π : ι → Type*} [fintype ι]
 
 /-- The seminorm of an element in a product space is `≤ r` if and only if the norm of each
 component is. -/
-lemma pi_semi_norm_le_iff {π : ι → Type*} [fintype ι] [∀i, semi_normed_group (π i)] {r : ℝ}
+lemma pi_norm_le_iff {π : ι → Type*} [fintype ι] [∀i, semi_normed_group (π i)] {r : ℝ}
   (hr : 0 ≤ r) {x : Πi, π i} : ∥x∥ ≤ r ↔ ∀i, ∥x i∥ ≤ r :=
 by simp only [← dist_zero_right, dist_pi_le_iff hr, pi.zero_apply]
 
 /-- The seminorm of an element in a product space is `< r` if and only if the norm of each
 component is. -/
-lemma pi_semi_norm_lt_iff {π : ι → Type*} [fintype ι] [∀i, semi_normed_group (π i)] {r : ℝ}
+lemma pi_norm_lt_iff {π : ι → Type*} [fintype ι] [∀i, semi_normed_group (π i)] {r : ℝ}
   (hr : 0 < r) {x : Πi, π i} : ∥x∥ < r ↔ ∀i, ∥x i∥ < r :=
 by simp only [← dist_zero_right, dist_pi_lt_iff hr, pi.zero_apply]
 
-lemma semi_norm_le_pi_norm {π : ι → Type*} [fintype ι] [∀i, semi_normed_group (π i)] (x : Πi, π i)
+lemma norm_le_pi_norm {π : ι → Type*} [fintype ι] [∀i, semi_normed_group (π i)] (x : Πi, π i)
   (i : ι) : ∥x i∥ ≤ ∥x∥ :=
-(pi_semi_norm_le_iff (norm_nonneg x)).1 (le_refl _) i
+(pi_norm_le_iff (norm_nonneg x)).1 (le_refl _) i
 
-@[simp] lemma pi_semi_norm_const [nonempty ι] [fintype ι] (a : E) : ∥(λ i : ι, a)∥ = ∥a∥ :=
+@[simp] lemma pi_norm_const [nonempty ι] [fintype ι] (a : E) : ∥(λ i : ι, a)∥ = ∥a∥ :=
 by simpa only [← dist_zero_right] using dist_pi_const a 0
 
-@[simp] lemma pi_nnsemi_norm_const [nonempty ι] [fintype ι] (a : E) :
+@[simp] lemma pi_nnnorm_const [nonempty ι] [fintype ι] (a : E) :
   ∥(λ i : ι, a)∥₊ = ∥a∥₊ :=
-nnreal.eq $ pi_semi_norm_const a
+nnreal.eq $ pi_norm_const a
 
 lemma tendsto_iff_norm_tendsto_zero {f : α → E} {a : filter α} {b : E} :
   tendsto f a (𝓝 b) ↔ tendsto (λ e, ∥f e - b∥) a (𝓝 0) :=
@@ -986,47 +986,9 @@ instance submodule.normed_group {𝕜 : Type*} {_ : ring 𝕜}
 /-- normed group instance on the product of two normed groups, using the sup norm. -/
 noncomputable instance prod.normed_group : normed_group (E × F) := { ..prod.semi_normed_group }
 
-lemma prod.norm_def (x : E × F) : ∥x∥ = (max ∥x.1∥ ∥x.2∥) := rfl
-
-lemma prod.nnnorm_def (x : E × F) : ∥x∥₊ = max (∥x.1∥₊) (∥x.2∥₊) :=
-by { have := x.norm_def, simp only [← coe_nnnorm] at this, exact_mod_cast this }
-
-lemma norm_fst_le (x : E × F) : ∥x.1∥ ≤ ∥x∥ :=
-le_max_left _ _
-
-lemma norm_snd_le (x : E × F) : ∥x.2∥ ≤ ∥x∥ :=
-le_max_right _ _
-
-lemma norm_prod_le_iff {x : E × F} {r : ℝ} :
-  ∥x∥ ≤ r ↔ ∥x.1∥ ≤ r ∧ ∥x.2∥ ≤ r :=
-max_le_iff
-
 /-- normed group instance on the product of finitely many normed groups, using the sup norm. -/
 noncomputable instance pi.normed_group {π : ι → Type*} [fintype ι] [∀i, normed_group (π i)] :
   normed_group (Πi, π i) := { ..pi.semi_normed_group }
-
-/-- The norm of an element in a product space is `≤ r` if and only if the norm of each
-component is. -/
-lemma pi_norm_le_iff {π : ι → Type*} [fintype ι] [∀i, normed_group (π i)] {r : ℝ} (hr : 0 ≤ r)
-  {x : Πi, π i} : ∥x∥ ≤ r ↔ ∀i, ∥x i∥ ≤ r :=
-by simp only [← dist_zero_right, dist_pi_le_iff hr, pi.zero_apply]
-
-/-- The norm of an element in a product space is `< r` if and only if the norm of each
-component is. -/
-lemma pi_norm_lt_iff {π : ι → Type*} [fintype ι] [∀i, normed_group (π i)] {r : ℝ} (hr : 0 < r)
-  {x : Πi, π i} : ∥x∥ < r ↔ ∀i, ∥x i∥ < r :=
-by simp only [← dist_zero_right, dist_pi_lt_iff hr, pi.zero_apply]
-
-lemma norm_le_pi_norm {π : ι → Type*} [fintype ι] [∀i, normed_group (π i)] (x : Πi, π i) (i : ι) :
-  ∥x i∥ ≤ ∥x∥ :=
-(pi_norm_le_iff (norm_nonneg x)).1 (le_refl _) i
-
-@[simp] lemma pi_norm_const [nonempty ι] [fintype ι] (a : E) : ∥(λ i : ι, a)∥ = ∥a∥ :=
-by simpa only [← dist_zero_right] using dist_pi_const a 0
-
-@[simp] lemma pi_nnnorm_const [nonempty ι] [fintype ι] (a : E) :
-  ∥(λ i : ι, a)∥₊ = ∥a∥₊ :=
-nnreal.eq $ pi_norm_const a
 
 lemma tendsto_norm_sub_self_punctured_nhds (a : E) : tendsto (λ x, ∥x - a∥) (𝓝[≠] a) (𝓝[>] 0) :=
 (tendsto_norm_sub_self a).inf $ tendsto_principal_principal.2 $ λ x hx,

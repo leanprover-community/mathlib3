@@ -231,13 +231,12 @@ begin
   set dfac := a.factorization ⊓ b.factorization with dfac_def,
   set d := dfac.prod pow with d_def,
 
-  have dfac_prime : ∀ (p : ℕ), p ∈ dfac.support → prime p, {
-    intros p hp,
+  have dfac_prime : ∀ (p : ℕ), p ∈ dfac.support → prime p,
+  { intros p hp,
     rw dfac_def at hp,
     simp only [support_inf, finset.mem_inter, support_factorization, mem_to_finset] at hp,
     cases hp,
-    apply prime_of_mem_factors, assumption,
-  },
+    apply prime_of_mem_factors, assumption },
 
   have h1 : d.factorization = dfac, { rw d_def, exact factorization_prod_pow_inv dfac_prime },
 

@@ -26,11 +26,12 @@ m * n - m - n is not attainable. Then for the construction, we create a k_1 whic
 0 mod m, then show it is at most k. Then k_1 is a multiple of m, and (k-k_1) is a multiple of n,
 and we're done.
 
-Afterwards, we rewrite this with add_submonoid.closure and is_greatest.
+Afterwards, we rewrite this with add_submonoid.closure and is_greatest,
+using add_submonoid.mem_closure_pair.
 
 ## Tags
 
-chicken mcnugget, frobenius coin, chinese remainder theorem
+chicken mcnugget, frobenius coin, chinese remainder theorem, submonoid.closure
 -/
 
 open nat
@@ -81,7 +82,7 @@ theorem chicken_mcnugget_split (m n : ℕ) (cop: coprime m n) (hm : 1 < m) (hn: 
 ⟨chicken_mcnugget_upper_bound m n cop hm hn, chicken_mcnugget_construction m n cop hm hn⟩
 
 /-- Rewrites the above with is_greatest. -/
-theorem chicken_mcnugget (m n : ℕ) (cop: coprime m n) (hm : 1 < m) (hn: 1 < n) :
+theorem chicken_mcnugget (m n : ℕ) (cop: coprime m n) (hm : 1 < m) (hn : 1 < n) :
   is_greatest {k | ∀ a b, a * m + b * n ≠ k} (m * n - m - n) :=
 let h := chicken_mcnugget_split m n cop hm hn in
   ⟨λ a b H, h.1 ⟨a, b, H⟩, λ k hk, not_lt.mp (mt (h.2 k) (λ ⟨a, b, H⟩, hk a b H))⟩
@@ -96,6 +97,6 @@ begin
 end
 
 /-- Rewrites the above with is_greatest. -/
-theorem chicken_mcnugget_add_submonoid (m n : ℕ) (cop: coprime m n) (hm: 1 < m) (hn: 1 < n) :
+theorem chicken_mcnugget_add_submonoid (m n : ℕ) (cop : coprime m n) (hm : 1 < m) (hn : 1 < n) :
   is_greatest {k | k ∉ add_submonoid.closure ({m, n} : set ℕ)} (m * n - m - n) :=
 let h := chicken_mcnugget_add_submonoid_split m n cop hm hn in ⟨h.1, λ k, not_lt.mp ∘ mt (h.2 k)⟩

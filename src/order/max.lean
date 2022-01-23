@@ -187,3 +187,14 @@ lemma is_bot.unique (ha : is_bot a) (hb : b ≤ a) : a = b := (ha b).antisymm hb
 lemma is_top.unique (ha : is_top a) (hb : a ≤ b) : a = b := hb.antisymm (ha b)
 
 end partial_order
+
+section linear_order
+variables [linear_order α]
+
+--TODO: Delete in favor of the directed version
+lemma is_top_or_exists_gt (a : α) : is_top a ∨ ∃ b, a < b :=
+by simpa only [or_iff_not_imp_left, is_top, not_forall, not_le] using id
+
+lemma is_bot_or_exists_lt (a : α) : is_bot a ∨ ∃ b, b < a := @is_top_or_exists_gt (order_dual α) _ a
+
+end linear_order

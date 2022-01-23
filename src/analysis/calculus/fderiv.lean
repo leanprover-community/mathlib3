@@ -312,7 +312,7 @@ lemma has_fderiv_at.le_of_lip {f : E → F} {f' : E →L[𝕜] F} {x₀ : E} (hf
   {s : set E} (hs : s ∈ 𝓝 x₀) {C : ℝ≥0} (hlip : lipschitz_on_with C f s) : ∥f'∥ ≤ C :=
 begin
   refine hf.le_of_lip' C.coe_nonneg _,
-  filter_upwards [hs] using λ x hx, hlip.norm_sub_le hx (mem_of_mem_nhds hs),
+  filter_upwards [hs] with x hx using hlip.norm_sub_le hx (mem_of_mem_nhds hs),
 end
 
 theorem has_fderiv_at_filter.mono (h : has_fderiv_at_filter f f' x L₂) (hst : L₁ ≤ L₂) :

@@ -199,13 +199,13 @@ lemma is_bounded_under_sup [semilattice_sup α] {f : filter β} {u v : β → α
   f.is_bounded_under (≤) u → f.is_bounded_under (≤) v → f.is_bounded_under (≤) (λa, u a ⊔ v a)
 | ⟨bu, (hu : ∀ᶠ x in f, u x ≤ bu)⟩ ⟨bv, (hv : ∀ᶠ x in f, v x ≤ bv)⟩ :=
   ⟨bu ⊔ bv, show ∀ᶠ x in f, u x ⊔ v x ≤ bu ⊔ bv,
-    by filter_upwards [hu, hv] using assume x, sup_le_sup⟩
+    by filter_upwards [hu, hv] with _ using sup_le_sup⟩
 
 lemma is_bounded_under_inf [semilattice_inf α] {f : filter β} {u v : β → α} :
   f.is_bounded_under (≥) u → f.is_bounded_under (≥) v → f.is_bounded_under (≥) (λa, u a ⊓ v a)
 | ⟨bu, (hu : ∀ᶠ x in f, u x ≥ bu)⟩ ⟨bv, (hv : ∀ᶠ x in f, v x ≥ bv)⟩ :=
   ⟨bu ⊓ bv, show ∀ᶠ x in f, u x ⊓ v x ≥ bu ⊓ bv,
-    by filter_upwards [hu, hv] using assume x, inf_le_inf⟩
+    by filter_upwards [hu, hv] with _ using inf_le_inf⟩
 
 /-- Filters are automatically bounded or cobounded in complete lattices. To use the same statements
 in complete and conditionally complete lattices but let automation fill automatically the

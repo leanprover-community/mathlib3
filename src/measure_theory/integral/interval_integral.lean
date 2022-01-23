@@ -2292,7 +2292,7 @@ begin
     { rintro -,
       refine (hb.congr' _).mono_left (nhds_within_mono _ Ico_subset_Iio_self),
       filter_upwards [Ioo_mem_nhds_within_Iio (right_mem_Ioc.2 hab)]
-        using λ _ hz, (update_noteq hz.1.ne' _ _).symm } },
+        with _ hz using (update_noteq hz.1.ne' _ _).symm } },
   simpa [F, hab.ne, hab.ne'] using integral_eq_sub_of_has_deriv_at_of_le hab.le hcont Fderiv hint
 end
 

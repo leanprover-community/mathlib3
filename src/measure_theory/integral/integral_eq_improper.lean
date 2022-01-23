@@ -183,8 +183,8 @@ begin
   obtain ⟨u, hu⟩ := l.exists_seq_tendsto,
   have := ae_measurable_Union_iff.mpr (λ (n : ℕ), hfm (u n)),
   rwa measure.restrict_eq_self_of_ae_mem at this,
-  filter_upwards [hφ.ae_eventually_mem]
-    using (λ x hx, let ⟨i, hi⟩ := (hu.eventually hx).exists in mem_Union.mpr ⟨i, hi⟩)
+  filter_upwards [hφ.ae_eventually_mem] with x hx using
+    let ⟨i, hi⟩ := (hu.eventually hx).exists in mem_Union.mpr ⟨i, hi⟩
 end
 
 end ae_cover

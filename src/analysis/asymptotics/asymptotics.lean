@@ -533,7 +533,7 @@ end
 
 lemma is_O_with.prod_left_same (hf : is_O_with c f' k' l) (hg : is_O_with c g' k' l) :
   is_O_with c (λ x, (f' x, g' x)) k' l :=
-by rw is_O_with_iff at *; filter_upwards [hf, hg] using λ x, max_le
+by rw is_O_with_iff at *; filter_upwards [hf, hg] with x using max_le
 
 lemma is_O_with.prod_left (hf : is_O_with c f' k' l) (hg : is_O_with c' g' k' l) :
   is_O_with (max c c') (λ x, (f' x, g' x)) k' l :=
@@ -592,7 +592,7 @@ variables {c₁ c₂ : ℝ} {f₁ f₂ : α → E'}
 
 theorem is_O_with.add (h₁ : is_O_with c₁ f₁ g l) (h₂ : is_O_with c₂ f₂ g l) :
   is_O_with (c₁ + c₂) (λ x, f₁ x + f₂ x) g l :=
-by rw is_O_with at *; filter_upwards [h₁, h₂] using λ x hx₁ hx₂,
+by rw is_O_with at *; filter_upwards [h₁, h₂] with x hx₁ hx₂ using
 calc ∥f₁ x + f₂ x∥ ≤ c₁ * ∥g x∥ + c₂ * ∥g x∥ : norm_add_le_of_le hx₁ hx₂
                ... = (c₁ + c₂) * ∥g x∥       : (add_mul _ _ _).symm
 

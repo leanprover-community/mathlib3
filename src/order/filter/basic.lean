@@ -2129,7 +2129,7 @@ join_le $ eventually_map.2 h
 begin
   refine le_trans (λ s hs, _) (join_mono $ map_mono hf),
   simp only [mem_join, mem_bind', mem_map] at hs ⊢,
-  filter_upwards [hg, hs] using λ _ hx hs, hx hs,
+  filter_upwards [hg, hs] with _ hx hs using hx hs,
 end
 
 lemma bind_inf_principal {f : filter α} {g : α → filter β} {s : set β} :

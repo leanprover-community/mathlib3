@@ -327,7 +327,7 @@ begin
     { calc ∫⁻ a, b a ∂μ = 2 * ∫⁻ a, ennreal.of_real (bound a) ∂μ :
         by { rw lintegral_const_mul', exact coe_ne_top }
         ... ≠ ∞ : mul_ne_top coe_ne_top bound_has_finite_integral.ne },
-    filter_upwards [h_bound 0] using λ _ h, le_trans (norm_nonneg _) h },
+    filter_upwards [h_bound 0] with _ h using le_trans (norm_nonneg _) h },
   -- Show `∥f a - F n a∥ --> 0`
   { exact h }
 end

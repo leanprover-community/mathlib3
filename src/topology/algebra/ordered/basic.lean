@@ -706,10 +706,10 @@ lemma tendsto_of_tendsto_of_tendsto_of_le_of_le' {f g h : β → α} {b : filter
 tendsto_order.2
   ⟨assume a' h',
     have ∀ᶠ b in b, a' < g b, from (tendsto_order.1 hg).left a' h',
-    by filter_upwards [this, hgf] using assume a, lt_of_lt_of_le,
+    by filter_upwards [this, hgf] with _ using lt_of_lt_of_le,
     assume a' h',
     have ∀ᶠ b in b, h b < a', from (tendsto_order.1 hh).right a' h',
-    by filter_upwards [this, hfh] using assume a h₁ h₂, lt_of_le_of_lt h₂ h₁⟩
+    by filter_upwards [this, hfh] with a h₁ h₂ using lt_of_le_of_lt h₂ h₁⟩
 
 /-- Also known as squeeze or sandwich theorem. This version assumes that inequalities hold
 everywhere. -/
@@ -886,7 +886,7 @@ lemma tendsto_nhds_top_mono [topological_space β] [partial_order β] [order_top
 begin
   simp only [nhds_top_order, tendsto_infi, tendsto_principal] at hf ⊢,
   intros x hx,
-  filter_upwards [hf x hx, hg] using λ x, lt_of_lt_of_le,
+  filter_upwards [hf x hx, hg] with _ using lt_of_lt_of_le,
 end
 
 lemma tendsto_nhds_bot_mono [topological_space β] [partial_order β] [order_bot β] [order_topology β]
@@ -1730,7 +1730,7 @@ lemma filter.tendsto.at_top_mul {C : α} (hC : 0 < C) (hf : tendsto f l at_top)
 begin
   refine tendsto_at_top_mono' _ _ (hf.at_top_mul_const (half_pos hC)),
   filter_upwards [hg.eventually (lt_mem_nhds (half_lt_self hC)),
-    hf.eventually (eventually_ge_at_top 0)] using λ x hg hf, mul_le_mul_of_nonneg_left hg.le hf,
+    hf.eventually (eventually_ge_at_top 0)] with x hg hf using mul_le_mul_of_nonneg_left hg.le hf,
 end
 
 /-- In a linearly ordered field with the order topology, if `f` tends to a positive constant `C` and
@@ -1791,7 +1791,7 @@ begin
   refine (at_top_basis' 1).tendsto_right_iff.2 (λ b hb, _),
   have hb' : 0 < b := zero_lt_one.trans_le hb,
   filter_upwards [Ioc_mem_nhds_within_Ioi ⟨le_rfl, inv_pos.2 hb'⟩]
-    using λ x hx, (le_inv hx.1 hb').1 hx.2,
+    with x hx using (le_inv hx.1 hb').1 hx.2,
 end
 
 /-- The function `r ↦ r⁻¹` tends to `0` on the right as `r → +∞`. -/

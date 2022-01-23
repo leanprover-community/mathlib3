@@ -215,7 +215,7 @@ def uniform_space.core.to_topological_space {α : Type u} (u : uniform_space.cor
   is_open_inter  :=
     assume s t hs ht x ⟨xs, xt⟩, by filter_upwards [hs x xs, ht x xt]; simp {contextual := tt},
   is_open_sUnion :=
-    assume s hs x ⟨t, ts, xt⟩, by filter_upwards [hs t ts x xt] using assume p ph h, ⟨t, ts, ph h⟩ }
+    assume s hs x ⟨t, ts, xt⟩, by filter_upwards [hs t ts x xt] with p ph h using ⟨t, ts, ph h⟩ }
 
 lemma uniform_space.core_eq :
   ∀{u₁ u₂ : uniform_space.core α}, u₁.uniformity = u₂.uniformity → u₁ = u₂
@@ -328,7 +328,7 @@ lemma filter.tendsto.uniformity_trans {l : filter β} {f₁ f₂ f₃ : β → �
   tendsto (λ x, (f₁ x, f₃ x)) l (𝓤 α) :=
 begin
   refine le_trans (le_lift' $ λ s hs, mem_map.2 _) comp_le_uniformity,
-  filter_upwards [h₁₂ hs, h₂₃ hs] using λ x hx₁₂ hx₂₃, ⟨_, hx₁₂, hx₂₃⟩,
+  filter_upwards [h₁₂ hs, h₂₃ hs] with x hx₁₂ hx₂₃ using ⟨_, hx₁₂, hx₂₃⟩,
 end
 
 /-- Relation `λ f g, tendsto (λ x, (f x, g x)) l (𝓤 α)` is symmetric -/

@@ -98,7 +98,7 @@ begin
     exact hts (λ i hi, hxt i) (mem_univ_pi.2 hxs) },
   { simp only [inf_principal_eq_bot],
     rintro ⟨i, hi⟩,
-    filter_upwards [mem_pi_of_mem i hi] using λ x, mt (λ h, h i trivial), },
+    filter_upwards [mem_pi_of_mem i hi] with x using mt (λ h, h i trivial), },
 end
 
 @[simp] lemma pi_inf_principal_pi_eq_bot [Π i, ne_bot (f i)] {I : set ι} :

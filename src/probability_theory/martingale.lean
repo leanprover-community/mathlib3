@@ -166,7 +166,8 @@ lemma add [preorder E] [covariant_class E E (+) (≤)]
 begin
   refine ⟨hf.1.add hg.1, λ i j hij, _, λ i, (hf.2.2 i).add (hg.2.2 i)⟩,
   refine (condexp_add (hf.integrable j) (hg.integrable j)).le.trans _,
-  filter_upwards [hf.2.1 i j hij, hg.2.1 i j hij] with _,
+  filter_upwards [hf.2.1 i j hij, hg.2.1 i j hij],
+  intros,
   refine add_le_add _ _; assumption,
 end
 

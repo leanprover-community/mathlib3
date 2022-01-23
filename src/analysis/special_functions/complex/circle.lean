@@ -86,3 +86,10 @@ periodic_exp_map_circle.sub_eq x
 
 lemma exp_map_circle_add_two_pi (x : ℝ) : exp_map_circle (x + 2 * π) = exp_map_circle x :=
 periodic_exp_map_circle x
+
+/-- `exp_map_circle`, applied to a `real.angle`. -/
+noncomputable def exp_map_circle_of_angle (θ : real.angle) : circle :=
+periodic_exp_map_circle.lift θ
+
+@[simp] lemma exp_map_circle_of_angle_coe (x : ℝ) : exp_map_circle_of_angle x = exp_map_circle x :=
+rfl

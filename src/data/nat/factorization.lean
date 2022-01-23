@@ -135,6 +135,11 @@ end
 lemma prime_finsupp_prod_pow_pos {f : ℕ →₀ ℕ} (hf : ∀ p ∈ f.support, prime p) : 0 < f.prod pow :=
 prod_pos (λ p hp, (pow_ne_zero _ (hf p hp).ne_zero).bot_lt)
 
+lemma eq_factorization_iff {n : ℕ} {f : ℕ →₀ ℕ} (hn : n ≠ 0) (hf : ∀ p ∈ f.support, prime p) :
+  f.prod pow = n ↔ f = n.factorization :=
+⟨λ h, by {rw [←h, factorization_prod_pow_inv hf]},
+ λ h, by {rw [h, factorization_prod_pow_eq_self hn]}⟩
+
 /-- The positive natural numbers are bijective with finsupps `ℕ →₀ ℕ` with support in the primes -/
 noncomputable
 def factorization_equiv : pnat ≃ {f : ℕ →₀ ℕ | ∀ p ∈ f.support, prime p} :=

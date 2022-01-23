@@ -1051,6 +1051,11 @@ theorem is_o.inv_rev {f : α → 𝕜} {g : α → 𝕜'} (h : is_o f g l)
   (h₀ : ∀ᶠ x in l, f x ≠ 0) : is_o (λ x, (g x)⁻¹) (λ x, (f x)⁻¹) l :=
 is_o.of_is_O_with $ λ c hc, (h.def' hc).inv_rev h₀
 
+theorem is_o_const_sub_const_inv (a : 𝕜) {c : F'} (hc : c ≠ 0) :
+  is_o (λ x, c) (λ x, (x - a)⁻¹) (𝓝 a) :=
+by simpa only
+  using (is_o_sub_const_const a (inv_ne_zero $ mt norm_eq_zero.1 hc)).inv_rev
+
 /-! ### Scalar multiplication -/
 
 section smul_const
@@ -1170,28 +1175,52 @@ end sum
 
 /-! ### Relation between `f = o(g)` and `f / g → 0` -/
 
-theorem is_o.tendsto_0 {f g : α → 𝕜} {l : filter α} (h : is_o f g l) :
+theorem is_o.tendsto_div_nhds_zero {f g : α → 𝕜} {l : filter α} (h : is_o f g l) :
   tendsto (λ x, f x / (g x)) l (𝓝 0) :=
 have eq₁ : is_o (λ x, f x / g x) (λ x, g x / g x) l,
   by simpa only [div_eq_mul_inv] using h.mul_is_O (is_O_refl _ _),
 have eq₂ : is_O (λ x, g x / g x) (λ x, (1 : 𝕜)) l,
-  from is_O_of_le _ (λ x, by by_cases h : ∥g x∥ = 0; simp [h, zero_le_one]),
+  from is_O_of_le _ (λ x, by simp [div_self_le_one]),
 (is_o_one_iff 𝕜).mp (eq₁.trans_is_O eq₂)
+
+theorem is_o.tendsto_inv_smul_nhds_zero [normed_space 𝕜 E'] {f : α → E'} {g : α → 𝕜} {l : filter α}
+  (h : is_o f g l) : tendsto (λ x, (g x)⁻¹ • f x) l (𝓝 0) :=
+by simpa only [div_eq_inv_mul, ← normed_field.norm_inv, ← norm_smul,
+  ← tendsto_zero_iff_norm_tendsto_zero] using h.norm_norm.tendsto_div_nhds_zero
 
 theorem is_o_iff_tendsto' {f g : α → 𝕜} {l : filter α}
     (hgf : ∀ᶠ x in l, g x = 0 → f x = 0) :
   is_o f g l ↔ tendsto (λ x, f x / (g x)) l (𝓝 0) :=
-iff.intro is_o.tendsto_0 $ λ h,
+iff.intro is_o.tendsto_div_nhds_zero $ λ h,
   (((is_o_one_iff _).mpr h).mul_is_O (is_O_refl g l)).congr'
     (hgf.mono $ λ x, div_mul_cancel_of_imp) (eventually_of_forall $ λ x, one_mul _)
 
 theorem is_o_iff_tendsto {f g : α → 𝕜} {l : filter α}
     (hgf : ∀ x, g x = 0 → f x = 0) :
   is_o f g l ↔ tendsto (λ x, f x / (g x)) l (𝓝 0) :=
-⟨λ h, h.tendsto_0, (is_o_iff_tendsto' (eventually_of_forall hgf)).2⟩
+⟨λ h, h.tendsto_div_nhds_zero, (is_o_iff_tendsto' (eventually_of_forall hgf)).2⟩
 
 alias is_o_iff_tendsto' ↔ _ asymptotics.is_o_of_tendsto'
 alias is_o_iff_tendsto ↔ _ asymptotics.is_o_of_tendsto
+
+@[simp] lemma is_o_const_left {c : E'} :
+  is_o (λ x, c) g' l ↔ c = 0 ∨ tendsto (norm ∘ g') l at_top :=
+begin
+  suffices : c ≠ 0 → (is_o (λ (x : α), c) g' l ↔ tendsto (norm ∘ g') l at_top),
+  { rcases eq_or_ne c 0 with rfl | hc,
+    { simp only [is_o_zero, eq_self_iff_true, true_or] },
+    { simp only [hc, false_or, this hc] } },
+  intro hc, split; intro h,
+  { refine (at_top_basis' 1).tendsto_right_iff.2 (λ C hC, _),
+    replace hC : 0 < C := zero_lt_one.trans_le hC,
+    replace h : is_o (λ _, 1 : α → ℝ) g' l := (is_O_const_const _ hc _).trans_is_o h,
+    refine (h.def $ inv_pos.2 hC).mono (λ x hx, _),
+    rwa [norm_one, ← div_eq_inv_mul, one_le_div hC] at hx },
+  { suffices : is_o (λ _, 1 : α → ℝ) g' l,
+      from (is_O_const_const c (@one_ne_zero ℝ _ _) _).trans_is_o this,
+    refine is_o_iff.2 (λ ε ε0, (tendsto_at_top.1 h ε⁻¹).mono (λ x hx, _)),
+    rwa [norm_one, ← inv_inv₀ ε, ← div_eq_inv_mul, one_le_div (inv_pos.2 ε0)] }
+end
 
 /-!
 ### Eventually (u / v) * v = u
@@ -1270,7 +1299,7 @@ lemma is_o_iff_exists_eq_mul :
   is_o u v l ↔ ∃ (φ : α → 𝕜) (hφ : tendsto φ l (𝓝 0)), u =ᶠ[l] φ * v :=
 begin
   split,
-  { exact λ h, ⟨λ x, u x / v x, h.tendsto_0, h.eventually_mul_div_cancel.symm⟩ },
+  { exact λ h, ⟨λ x, u x / v x, h.tendsto_div_nhds_zero, h.eventually_mul_div_cancel.symm⟩ },
   { unfold is_o, rintros ⟨φ, hφ, huvφ⟩ c hpos,
     rw normed_group.tendsto_nhds_zero at hφ,
     exact is_O_with_of_eq_mul _ ((hφ c hpos).mono $ λ x, le_of_lt)  huvφ }

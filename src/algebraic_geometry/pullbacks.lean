@@ -27,6 +27,8 @@ noncomputable theory
 open category_theory category_theory.limits algebraic_geometry
 namespace algebraic_geometry.Scheme
 
+namespace pullback
+
 variables {C : Type u} [category.{v} C]
 
 variables {X Y Z : Scheme.{u}} (𝒰 : open_cover.{u} X) (f : X ⟶ Z) (g : Y ⟶ Z)
@@ -38,12 +40,12 @@ pullback ((pullback.fst : pullback ((𝒰.map i) ≫ f) g ⟶ _) ≫ (𝒰.map i
 
 /-- The canonical transition map `(Uᵢ ×[Z] Y) ×[X] Uⱼ ⟶ (Uⱼ ×[Z] Y) ×[X] Uᵢ` given by the fact
 that pullbacks are associative and symmetric. -/
-def t (x y : 𝒰.J) : V 𝒰 f g x y ⟶ V 𝒰 f g y x :=
+def t (i j : 𝒰.J) : V 𝒰 f g i j ⟶ V 𝒰 f g j i :=
 begin
-  haveI : has_pullback (pullback.snd ≫ 𝒰.map x ≫ f) g :=
-    has_pullback_assoc_symm (𝒰.map y) (𝒰.map x) (𝒰.map x ≫ f) g,
-  haveI : has_pullback (pullback.snd ≫ 𝒰.map y ≫ f) g :=
-    has_pullback_assoc_symm (𝒰.map x) (𝒰.map y) (𝒰.map y ≫ f) g,
+  haveI : has_pullback (pullback.snd ≫ 𝒰.map i ≫ f) g :=
+    has_pullback_assoc_symm (𝒰.map j) (𝒰.map i) (𝒰.map i ≫ f) g,
+  haveI : has_pullback (pullback.snd ≫ 𝒰.map j ≫ f) g :=
+    has_pullback_assoc_symm (𝒰.map i) (𝒰.map j) (𝒰.map j ≫ f) g,
   refine (pullback_symmetry _ _).hom ≫ _,
   refine (pullback_assoc _ _ _ _).inv ≫ _,
   change pullback _ _ ⟶ pullback _ _,
@@ -55,40 +57,40 @@ begin
 end
 
 @[simp, reassoc]
-lemma t_fst_fst (x y : 𝒰.J) : t 𝒰 f g x y ≫ pullback.fst ≫ pullback.fst = pullback.snd :=
+lemma t_fst_fst (i j : 𝒰.J) : t 𝒰 f g i j ≫ pullback.fst ≫ pullback.fst = pullback.snd :=
 by { delta t, simp }
 
 @[simp, reassoc]
-lemma t_fst_snd (x y : 𝒰.J) :
-  t 𝒰 f g x y ≫ pullback.fst ≫ pullback.snd = pullback.fst ≫ pullback.snd :=
+lemma t_fst_snd (i j : 𝒰.J) :
+  t 𝒰 f g i j ≫ pullback.fst ≫ pullback.snd = pullback.fst ≫ pullback.snd :=
 by { delta t, simp }
 
 @[simp, reassoc]
-lemma t_snd (x y : 𝒰.J) :
-  t 𝒰 f g x y ≫ pullback.snd = pullback.fst ≫ pullback.fst :=
+lemma t_snd (i j : 𝒰.J) :
+  t 𝒰 f g i j ≫ pullback.snd = pullback.fst ≫ pullback.fst :=
 by { delta t, simp }
 
-lemma t_id (x : 𝒰.J) : t 𝒰 f g x x = 𝟙 _ :=
+lemma t_id (i : 𝒰.J) : t 𝒰 f g i i = 𝟙 _ :=
 begin
   apply pullback.hom_ext; rw category.id_comp,
   apply pullback.hom_ext,
-  { rw ← cancel_mono (𝒰.map x), simp [pullback.condition] },
+  { rw ← cancel_mono (𝒰.map i), simp [pullback.condition] },
   { simp },
-  { rw ← cancel_mono (𝒰.map x), simp [pullback.condition] }
+  { rw ← cancel_mono (𝒰.map i), simp [pullback.condition] }
 end
 
 /-- The inclusion map of `V i j = (Uᵢ ×[Z] Y) ×[X] Uⱼ ⟶ Uᵢ ×[Z] Y`-/
-abbreviation fV (x y : 𝒰.J) : V 𝒰 f g x y ⟶ pullback ((𝒰.map x) ≫ f) g := pullback.fst
+abbreviation fV (i j : 𝒰.J) : V 𝒰 f g i j ⟶ pullback ((𝒰.map i) ≫ f) g := pullback.fst
 
 /-- The map `((Xᵢ ×[Z] Y) ×[X] Xⱼ) ×[Xᵢ ×[Z] Y] ((Xᵢ ×[Z] Y) ×[X] Xₖ)` ⟶
   `((Xⱼ ×[Z] Y) ×[X] Xₖ) ×[Xⱼ ×[Z] Y] ((Xⱼ ×[Z] Y) ×[X] Xᵢ)` needed for gluing   -/
-def t' (x y z : 𝒰.J) :
-  pullback (fV 𝒰 f g x y) (fV 𝒰 f g x z) ⟶ pullback (fV 𝒰 f g y z) (fV 𝒰 f g y x) :=
+def t' (i j k : 𝒰.J) :
+  pullback (fV 𝒰 f g i j) (fV 𝒰 f g i k) ⟶ pullback (fV 𝒰 f g j k) (fV 𝒰 f g j i) :=
 begin
   refine (pullback_right_pullback_fst_iso _ _ _).hom ≫ _,
   refine _ ≫ (pullback_symmetry _ _).hom,
   refine _ ≫ (pullback_right_pullback_fst_iso _ _ _).inv,
-  refine pullback.map _ _ _ _ (t 𝒰 f g x y) (𝟙 _) (𝟙 _) _ _,
+  refine pullback.map _ _ _ _ (t 𝒰 f g i j) (𝟙 _) (𝟙 _) _ _,
   { simp [← pullback.condition] },
   { simp }
 end
@@ -96,116 +98,116 @@ end
 section end
 
 @[simp, reassoc]
-lemma t'_fst_fst_fst (x y z : 𝒰.J) :
-  t' 𝒰 f g x y z ≫ pullback.fst ≫ pullback.fst ≫ pullback.fst = pullback.fst ≫ pullback.snd :=
+lemma t'_fst_fst_fst (i j k : 𝒰.J) :
+  t' 𝒰 f g i j k ≫ pullback.fst ≫ pullback.fst ≫ pullback.fst = pullback.fst ≫ pullback.snd :=
 by { delta t', simp }
 
 @[simp, reassoc]
-lemma t'_fst_fst_snd (x y z : 𝒰.J) :
-  t' 𝒰 f g x y z ≫ pullback.fst ≫ pullback.fst ≫ pullback.snd =
+lemma t'_fst_fst_snd (i j k : 𝒰.J) :
+  t' 𝒰 f g i j k ≫ pullback.fst ≫ pullback.fst ≫ pullback.snd =
     pullback.fst ≫ pullback.fst ≫ pullback.snd :=
 by { delta t', simp }
 
 @[simp, reassoc]
-lemma t'_fst_snd (x y z : 𝒰.J) :
-  t' 𝒰 f g x y z ≫ pullback.fst ≫ pullback.snd = pullback.snd ≫ pullback.snd :=
+lemma t'_fst_snd (i j k : 𝒰.J) :
+  t' 𝒰 f g i j k ≫ pullback.fst ≫ pullback.snd = pullback.snd ≫ pullback.snd :=
 by { delta t', simp }
 
 @[simp, reassoc]
-lemma t'_snd_fst_fst (x y z : 𝒰.J) :
-  t' 𝒰 f g x y z ≫ pullback.snd ≫ pullback.fst ≫ pullback.fst = pullback.fst ≫ pullback.snd :=
+lemma t'_snd_fst_fst (i j k : 𝒰.J) :
+  t' 𝒰 f g i j k ≫ pullback.snd ≫ pullback.fst ≫ pullback.fst = pullback.fst ≫ pullback.snd :=
 by { delta t', simp }
 
 @[simp, reassoc]
-lemma t'_snd_fst_snd (x y z : 𝒰.J) :
-  t' 𝒰 f g x y z ≫ pullback.snd ≫ pullback.fst ≫ pullback.snd =
+lemma t'_snd_fst_snd (i j k : 𝒰.J) :
+  t' 𝒰 f g i j k ≫ pullback.snd ≫ pullback.fst ≫ pullback.snd =
     pullback.fst ≫ pullback.fst ≫ pullback.snd :=
 by { delta t', simp }
 
 @[simp, reassoc]
-lemma t'_snd_snd (x y z : 𝒰.J) :
-  t' 𝒰 f g x y z ≫ pullback.snd ≫ pullback.snd = pullback.fst ≫ pullback.fst ≫ pullback.fst :=
+lemma t'_snd_snd (i j k : 𝒰.J) :
+  t' 𝒰 f g i j k ≫ pullback.snd ≫ pullback.snd = pullback.fst ≫ pullback.fst ≫ pullback.fst :=
 by { delta t', simp, }
 
-lemma cocycle_fst_fst_fst (x y z : 𝒰.J) :
-  t' 𝒰 f g x y z ≫ t' 𝒰 f g y z x ≫ t' 𝒰 f g z x y ≫ pullback.fst ≫ pullback.fst ≫
+lemma cocycle_fst_fst_fst (i j k : 𝒰.J) :
+  t' 𝒰 f g i j k ≫ t' 𝒰 f g j k i ≫ t' 𝒰 f g k i j ≫ pullback.fst ≫ pullback.fst ≫
   pullback.fst = pullback.fst ≫ pullback.fst ≫ pullback.fst :=
 by simp
 
-lemma cocycle_fst_fst_snd (x y z : 𝒰.J) :
-  t' 𝒰 f g x y z ≫ t' 𝒰 f g y z x ≫ t' 𝒰 f g z x y ≫ pullback.fst ≫ pullback.fst ≫
+lemma cocycle_fst_fst_snd (i j k : 𝒰.J) :
+  t' 𝒰 f g i j k ≫ t' 𝒰 f g j k i ≫ t' 𝒰 f g k i j ≫ pullback.fst ≫ pullback.fst ≫
   pullback.snd = pullback.fst ≫ pullback.fst ≫ pullback.snd :=
 by simp
 
-lemma cocycle_fst_snd (x y z : 𝒰.J) :
-  t' 𝒰 f g x y z ≫ t' 𝒰 f g y z x ≫ t' 𝒰 f g z x y ≫ pullback.fst ≫ pullback.snd =
+lemma cocycle_fst_snd (i j k : 𝒰.J) :
+  t' 𝒰 f g i j k ≫ t' 𝒰 f g j k i ≫ t' 𝒰 f g k i j ≫ pullback.fst ≫ pullback.snd =
     pullback.fst ≫ pullback.snd :=
 by simp
 
-lemma cocycle_snd_fst_fst (x y z : 𝒰.J) :
-  t' 𝒰 f g x y z ≫ t' 𝒰 f g y z x ≫ t' 𝒰 f g z x y ≫ pullback.snd ≫ pullback.fst ≫
+lemma cocycle_snd_fst_fst (i j k : 𝒰.J) :
+  t' 𝒰 f g i j k ≫ t' 𝒰 f g j k i ≫ t' 𝒰 f g k i j ≫ pullback.snd ≫ pullback.fst ≫
   pullback.fst = pullback.snd ≫ pullback.fst ≫ pullback.fst :=
-by { rw ← cancel_mono (𝒰.map x), simp [pullback.condition_assoc, pullback.condition] }
+by { rw ← cancel_mono (𝒰.map i), simp [pullback.condition_assoc, pullback.condition] }
 
-lemma cocycle_snd_fst_snd (x y z : 𝒰.J) :
-  t' 𝒰 f g x y z ≫ t' 𝒰 f g y z x ≫ t' 𝒰 f g z x y ≫ pullback.snd ≫ pullback.fst ≫
+lemma cocycle_snd_fst_snd (i j k : 𝒰.J) :
+  t' 𝒰 f g i j k ≫ t' 𝒰 f g j k i ≫ t' 𝒰 f g k i j ≫ pullback.snd ≫ pullback.fst ≫
   pullback.snd = pullback.snd ≫ pullback.fst ≫ pullback.snd :=
 by { simp [pullback.condition_assoc, pullback.condition] }
 
-lemma cocycle_snd_snd (x y z : 𝒰.J) :
-  t' 𝒰 f g x y z ≫ t' 𝒰 f g y z x ≫ t' 𝒰 f g z x y ≫ pullback.snd ≫ pullback.snd =
+lemma cocycle_snd_snd (i j k : 𝒰.J) :
+  t' 𝒰 f g i j k ≫ t' 𝒰 f g j k i ≫ t' 𝒰 f g k i j ≫ pullback.snd ≫ pullback.snd =
     pullback.snd ≫ pullback.snd :=
 by simp
 
 -- by tidy should solve it but it timesout.
-lemma cocycle (x y z : 𝒰.J) :
-  t' 𝒰 f g x y z ≫ t' 𝒰 f g y z x ≫ t' 𝒰 f g z x y = 𝟙 _ :=
+lemma cocycle (i j k : 𝒰.J) :
+  t' 𝒰 f g i j k ≫ t' 𝒰 f g j k i ≫ t' 𝒰 f g k i j = 𝟙 _ :=
 begin
   apply pullback.hom_ext; rw category.id_comp,
-  apply pullback.hom_ext,
-  apply pullback.hom_ext,
-  simp_rw category.assoc,
-  exact cocycle_fst_fst_fst 𝒰 f g x y z,
-  simp_rw category.assoc,
-  exact cocycle_fst_fst_snd 𝒰 f g x y z,
-  simp_rw category.assoc,
-  exact cocycle_fst_snd 𝒰 f g x y z,
-  apply pullback.hom_ext,
-  apply pullback.hom_ext,
-  simp_rw category.assoc,
-  exact cocycle_snd_fst_fst 𝒰 f g x y z,
-  simp_rw category.assoc,
-  exact cocycle_snd_fst_snd 𝒰 f g x y z,
-  simp_rw category.assoc,
-  exact cocycle_snd_snd 𝒰 f g x y z
+  { apply pullback.hom_ext,
+    { apply pullback.hom_ext,
+      { simp_rw category.assoc,
+        exact cocycle_fst_fst_fst 𝒰 f g i j k },
+      { simp_rw category.assoc,
+        exact cocycle_fst_fst_snd 𝒰 f g i j k } },
+    { simp_rw category.assoc,
+      exact cocycle_fst_snd 𝒰 f g i j k } },
+  { apply pullback.hom_ext,
+    { apply pullback.hom_ext,
+      { simp_rw category.assoc,
+        exact cocycle_snd_fst_fst 𝒰 f g i j k },
+      { simp_rw category.assoc,
+        exact cocycle_snd_fst_snd 𝒰 f g i j k } },
+    { simp_rw category.assoc,
+      exact cocycle_snd_snd 𝒰 f g i j k } }
 end
 
-/-- The glued fibered product `X ×[Z] Y` given `Uᵢ ×[Z] Y`. -/
+/-- Given `Uᵢ ×[Z] Y`, this is the glued fibered product `X ×[Z] Y`. -/
 @[simps]
 def gluing : Scheme.glue_data.{u} :=
 { J := 𝒰.J,
-  U := λ x, pullback ((𝒰.map x) ≫ f) g,
-  V := λ ⟨x, y⟩, V 𝒰 f g x y, -- `p⁻¹(Uᵢ ∩ Uⱼ)` where `p : Uᵢ ×[Z] Y ⟶ Uᵢ ⟶ X`.
-  f := λ x y, pullback.fst,
-  f_id := λ x, infer_instance,
+  U := λ i, pullback ((𝒰.map i) ≫ f) g,
+  V := λ ⟨i, j⟩, V 𝒰 f g i j, -- `p⁻¹(Uᵢ ∩ Uⱼ)` where `p : Uᵢ ×[Z] Y ⟶ Uᵢ ⟶ X`.
+  f := λ i j, pullback.fst,
+  f_id := λ i, infer_instance,
   f_open := infer_instance,
-  t := λ x y, t 𝒰 f g x y,
-  t_id := λ x, t_id 𝒰 f g x,
-  t' := λ x y z, t' 𝒰 f g x y z,
-  t_fac := λ x y z, begin
+  t := λ i j, t 𝒰 f g i j,
+  t_id := λ i, t_id 𝒰 f g i,
+  t' := λ i j k, t' 𝒰 f g i j k,
+  t_fac := λ i j k, begin
     apply pullback.hom_ext,
     apply pullback.hom_ext,
     all_goals { simp }
   end,
-  cocycle := λ x y z, cocycle 𝒰 f g x y z }
+  cocycle := λ i j k, cocycle 𝒰 f g i j k }
 
 /-- The first projection from the glued scheme into `X`. -/
 def p1 : (gluing 𝒰 f g).glued ⟶ X :=
 begin
   fapply multicoequalizer.desc,
-  exact λ x, pullback.fst ≫ 𝒰.map x,
-  rintro ⟨x,y⟩,
-  change pullback.fst ≫ _ ≫ 𝒰.map x = (_ ≫ _) ≫ _ ≫ 𝒰.map y,
+  exact λ i, pullback.fst ≫ 𝒰.map i,
+  rintro ⟨i, j⟩,
+  change pullback.fst ≫ _ ≫ 𝒰.map i = (_ ≫ _) ≫ _ ≫ 𝒰.map j,
   rw pullback.condition,
   rw ← category.assoc,
   congr' 1,
@@ -217,8 +219,8 @@ end
 def p2 : (gluing 𝒰 f g).glued ⟶ Y :=
 begin
   fapply multicoequalizer.desc,
-  exact λ x, pullback.snd,
-  rintro ⟨x,y⟩,
+  exact λ i, pullback.snd,
+  rintro ⟨i, j⟩,
   change pullback.fst ≫ _ = (_ ≫ _) ≫ _,
   rw category.assoc,
   exact (t_fst_snd _ _ _ _ _).symm
@@ -227,7 +229,7 @@ end
 lemma p_comm : p1 𝒰 f g ≫ f = p2 𝒰 f g ≫ g :=
 begin
   apply multicoequalizer.hom_ext,
-  intro x,
+  intro i,
   erw [multicoequalizer.π_desc_assoc, multicoequalizer.π_desc_assoc],
   rw [category.assoc, pullback.condition]
 end
@@ -238,9 +240,9 @@ variable (s : pullback_cone f g)
 The canonical map `(s.X ×[X] Uᵢ) ×[s.X] (s.X ×[X] Uⱼ) ⟶ (Uᵢ ×[Z] Y) ×[X] Uⱼ`
 
 This is used in `glued_lift`. -/
-def glued_lift_pullback_map (x y : 𝒰.J) :
-  pullback ((𝒰.pullback_cover s.fst).map x) ((𝒰.pullback_cover s.fst).map y) ⟶
-    (gluing 𝒰 f g).V ⟨x, y⟩ :=
+def glued_lift_pullback_map (i j : 𝒰.J) :
+  pullback ((𝒰.pullback_cover s.fst).map i) ((𝒰.pullback_cover s.fst).map j) ⟶
+    (gluing 𝒰 f g).V ⟨i, j⟩ :=
 begin
   change pullback pullback.fst pullback.fst ⟶ pullback _ _,
   refine (pullback_right_pullback_fst_iso _ _ _).hom ≫ _,
@@ -252,15 +254,15 @@ begin
 end
 
 @[reassoc]
-lemma glued_lift_pullback_map_fst (x y : 𝒰.J) :
-  glued_lift_pullback_map 𝒰 f g s x y ≫ pullback.fst = pullback.fst ≫
+lemma glued_lift_pullback_map_fst (i j : 𝒰.J) :
+  glued_lift_pullback_map 𝒰 f g s i j ≫ pullback.fst = pullback.fst ≫
     (pullback_symmetry _ _).hom ≫
       pullback.map _ _ _ _ (𝟙 _) s.snd f (category.id_comp _).symm s.condition :=
 by { delta glued_lift_pullback_map, simp }
 
 @[reassoc]
-lemma glued_lift_pullback_map_snd (x y : 𝒰.J) :
-  glued_lift_pullback_map 𝒰 f g s x y ≫ pullback.snd = pullback.snd ≫ pullback.snd :=
+lemma glued_lift_pullback_map_snd (i j : 𝒰.J) :
+  glued_lift_pullback_map 𝒰 f g s i j ≫ pullback.snd = pullback.snd ≫ pullback.snd :=
 by { delta glued_lift_pullback_map, simp }
 
 /--
@@ -277,12 +279,12 @@ maps factors through `glued_lift_pullback_map`.
 def glued_lift : s.X ⟶ (gluing 𝒰 f g).glued :=
 begin
   fapply (𝒰.pullback_cover s.fst).glue_morphisms,
-  { exact λ x, (pullback_symmetry _ _).hom ≫
+  { exact λ i, (pullback_symmetry _ _).hom ≫
       pullback.map _ _ _ _ (𝟙 _) s.snd f (category.id_comp _).symm s.condition ≫
-      (gluing 𝒰 f g).ι x },
-  intros x y,
+      (gluing 𝒰 f g).ι i },
+  intros i j,
   rw ← glued_lift_pullback_map_fst_assoc,
-  have : _ = pullback.fst ≫ _ := (gluing 𝒰 f g).glue_condition x y,
+  have : _ = pullback.fst ≫ _ := (gluing 𝒰 f g).glue_condition i j,
   rw [← this, gluing_to_glue_data_t, gluing_to_glue_data_f],
   simp_rw ← category.assoc,
   congr' 1,
@@ -326,5 +328,7 @@ begin
   rw pullback_symmetry_hom_comp_snd_assoc,
   refl
 end
+
+end pullback
 
 end algebraic_geometry.Scheme

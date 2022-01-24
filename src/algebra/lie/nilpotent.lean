@@ -84,7 +84,7 @@ begin
     exact (lie_submodule.mono_lie_right _ _ ⊤ ih).trans (N.lie_le_right ⊤), },
 end
 
-lemma lcs_eq_lcs_comap :
+lemma lower_central_series_eq_lcs_comap :
   lower_central_series R L N k = (N.lcs k).comap N.incl :=
 begin
   induction k with k ih,

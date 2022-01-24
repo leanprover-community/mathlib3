@@ -24,8 +24,8 @@ on `T` and for each `γ`, the map `x ↦ γ • x` is continuous. (This differs 
 ## Main results
 
 * `is_open_map_quotient_mk_mul` : The quotient map by a group action is open.
-* `is_t2_of_properly_discontinuous_smul_of_t2` : The quotient by a discontinuous group action of
-a locally compact t2 space is t2.
+* `t2_space_of_properly_discontinuous_smul_of_t2_space` : The quotient by a discontinuous group
+  action of a locally compact t2 space is t2.
 
 ## Tags
 
@@ -93,8 +93,8 @@ export properly_discontinuous_smul (finite_disjoint_inter_image)
 
 export properly_discontinuous_vadd (finite_disjoint_inter_image)
 
-/-- Scalar multiplication by an element of a group `Γ` acting on `T` is a homeomorphism from `T`
-to itself. -/
+/-- The homeomorphism given by scalar multiplication by a given element of a group `Γ` acting on
+  `T` is a homeomorphism from `T` to itself. -/
 def homeomorph.smul {T : Type*} [topological_space T] {Γ : Type*} [group Γ]
   [mul_action Γ T] [has_continuous_smul₂ Γ T] (γ : Γ) :
   T ≃ₜ T :=
@@ -102,8 +102,8 @@ def homeomorph.smul {T : Type*} [topological_space T] {Γ : Type*} [group Γ]
   continuous_to_fun  := continuous_smul₂ γ,
   continuous_inv_fun := continuous_smul₂ γ⁻¹ }
 
-/-- Affine-addition of an element of an additive group `Γ` acting on `T` is a homeomorphism
-from `T` to itself. -/
+/-- The homeomorphism given by affine-addition by an element of an additive group `Γ` acting on
+  `T` is a homeomorphism from `T` to itself. -/
 def homeomorph.vadd {T : Type*} [topological_space T] {Γ : Type*} [add_group Γ]
   [add_action Γ T] [has_continuous_vadd₂ Γ T] (γ : Γ) :
   T ≃ₜ T :=
@@ -124,7 +124,7 @@ begin
 end
 
 /-- The quotient by a discontinuous group action of a locally compact t2 space is t2. -/
-@[priority 100, to_additive] instance is_t2_of_properly_discontinuous_smul_of_t2 [t2_space T]
+@[priority 100, to_additive] instance t2_space_of_properly_discontinuous_smul_of_t2_space [t2_space T]
   [locally_compact_space T] [has_continuous_smul₂ Γ T] [properly_discontinuous_smul Γ T] :
   t2_space (quotient (mul_action.orbit_rel Γ T)) :=
 begin

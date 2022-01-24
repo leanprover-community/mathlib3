@@ -3,8 +3,12 @@ Copyright (c) 2022 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
+import algebra.order.field
 import category_theory.concrete_category.bundled
+import category_theory.functor
+import category_theory.limits.shapes.terminal
 import data.fintype.basic
+import data.real.basic
 import data.sum.basic
 import order.bounded_order
 
@@ -16,7 +20,7 @@ import order.bounded_order
 `card (two_pointed α) = card α * (card α - 1)`
 -/
 
-open function sum
+open function set sum
 
 variables {α β : Type*}
 
@@ -259,15 +263,23 @@ end order
 /-! ### Twop -/
 
 namespace category_theory
+open limits
 
 /-- The category of two-pointed types. -/
 def Twop : Type* := bundled two_pointed
 
 instance : inhabited Twop := ⟨bundled.of bool⟩
 
+instance : category Twop :=
+{ hom := λ α β, α.1 → β.1,
+  id := λ α, id,
+  comp := λ α β γ f g, g ∘ f }
+
+def Twop.wedge : Twop × Twop ⥤ Twop := sorry
+
 /-- A square coalgebra on a two-pointed type `α` is a map `α → α ⊕ₚₚ α`. -/
 structure sq_coalgebra (α : Type*) :=
-[two_pointed : two_pointed α]
+(two_pointed : two_pointed α)
 (double_map : α → α ⊕ₚₚ α)
 
 /-- `pointed_sum.inl` as a square coalgebra. -/
@@ -283,4 +295,25 @@ def SqCoalgebra : Type* := bundled sq_coalgebra
 
 instance : inhabited SqCoalgebra := ⟨@bundled.of _ bool default⟩
 
+instance : category SqCoalgebra :=
+{ hom := λ α β, α.1 → β.1,
+  id := λ α, id,
+  comp := λ α β γ f g, g ∘ f }
+
+namespace SqCoalgebra
+
+/-- The unit interval along with its doubling map as a square coalgebra. -/
+def unit_interval (α : Type*) [linear_ordered_field α] : SqCoalgebra :=
+{ α := Icc (0 : α) 1,
+  str := begin
+    refine ⟨⟨⟨0, left_mem_Icc.2 zero_le_one⟩, ⟨1, right_mem_Icc.2 zero_le_one⟩,
+      ne_of_apply_ne subtype.val zero_ne_one⟩, λ a, if h : (a : α) ≤ 1/2 then _ else _⟩,
+    sorry, sorry, -- insert doubling map here
+  end }
+
+lemma is_initial_unit_interval_ℚ : is_initial (unit_interval ℚ) := sorry
+
+lemma is_terminal_unit_interval_ℝ : is_terminal (unit_interval ℝ) := sorry
+
+end SqCoalgebra
 end category_theory

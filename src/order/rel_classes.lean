@@ -285,7 +285,7 @@ namespace set
 
 /-- An unbounded or cofinal set. -/
 def unbounded (r : α → α → Prop) (s : set α) : Prop := ∀ a, ∃ b ∈ s, ¬ r b a
-/-- A bounded or final set. Not to be confused with [`metric.bounded`]. -/
+/-- A bounded or final set. Not to be confused with `metric.bounded`. -/
 def bounded (r : α → α → Prop) (s : set α) : Prop := ∃ a, ∀ b ∈ s, r b a
 
 @[simp] lemma not_bounded_iff {r : α → α → Prop} (s : set α) : ¬bounded r s ↔ unbounded r s :=

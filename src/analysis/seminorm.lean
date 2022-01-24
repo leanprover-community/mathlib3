@@ -621,10 +621,10 @@ balanced_ball_zero p r (-1) (by rw [norm_neg, norm_one]) ⟨x, hx, by rw [neg_sm
 @[simp]
 lemma neg_ball (p : seminorm 𝕜 E) (r : ℝ) (x : E) :
   -ball p x r = ball p (-x) r :=
-by { ext, rw [mem_preimage, mem_ball, mem_ball, ←neg_add', sub_neg_eq_add, p.neg], }
+by { ext, rw [mem_neg, mem_ball, mem_ball, ←neg_add', sub_neg_eq_add, p.neg], }
 
 @[simp]
-lemma preimage_smul_ball (p : seminorm 𝕜 E) (y : E) (r : ℝ) (a : 𝕜) (ha : a ≠ 0) :
+lemma smul_ball_preimage (p : seminorm 𝕜 E) (y : E) (r : ℝ) (a : 𝕜) (ha : a ≠ 0) :
   ((•) a) ⁻¹' p.ball y r = p.ball (a⁻¹ • y) (r / ∥a∥) :=
 set.ext $ λ _, by rw [mem_preimage, mem_ball, mem_ball,
   lt_div_iff (norm_pos_iff.mpr ha), mul_comm, ←p.smul, smul_sub, smul_inv_smul₀ ha]

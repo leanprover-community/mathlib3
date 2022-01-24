@@ -51,7 +51,7 @@ welcomed.
 
 * Anne Baanen (@Vierkantor): algebra, number theory, tactics
 * Reid Barton (@rwbarton): category theory, topology
-* Riccardo Brasca (riccardobrasca): algebra, number theory, algebraic geometry, category theory
+* Riccardo Brasca (@riccardobrasca): algebra, number theory, algebraic geometry, category theory
 * Mario Carneiro (@digama0): lean formalization, tactics, type theory, proof engineering
 * Bryan Gin-ge Chen (@bryangingechen): documentation, infrastructure
 * Johan Commelin (@jcommelin): algebra, number theory, category theory, algebraic geometry

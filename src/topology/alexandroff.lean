@@ -45,7 +45,7 @@ In this section we define `alexandroff X` to be the disjoint union of `X` and `�
 /-- The Alexandroff extension of an arbitrary topological space `X` -/
 def alexandroff (X : Type*) := option X
 
--- Will only work if locale `alexandroff` is open
+/-- The repr uses the notation from the `alexandroff` locale -/
 instance [has_repr α] : has_repr (alexandroff α) :=
 ⟨λ o, match o with | none := "∞" | (some a) := "(some " ++ repr a ++ ")" end⟩
 

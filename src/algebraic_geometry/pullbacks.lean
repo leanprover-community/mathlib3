@@ -17,7 +17,7 @@ In particular, the main construction is to show that for an open cover `{ Uᵢ }
 exist fibred products `Uᵢ ×[Z] Y` for each `i`, then there exists a fibred product `X ×[Z] Y`.
 
 Then, for constructing the fibred product for arbitrary schemes `X, Y, Z`, we can use the
-construction to reduce to the case where `X, Y, Z` are all affine, where the fibred products is
+construction to reduce to the case where `X, Y, Z` are all affine, where fibred products are
 constructed via tensor products.
 
 -/
@@ -30,11 +30,11 @@ namespace algebraic_geometry.Scheme
 variables {C : Type u} [category.{v} C]
 
 variables {X Y Z : Scheme.{u}} (𝒰 : open_cover.{u} X) (f : X ⟶ Z) (g : Y ⟶ Z)
-variables [∀ x, has_pullback (𝒰.map x ≫ f) g]
+variables [∀ i, has_pullback (𝒰.map i ≫ f) g]
 
 /-- The intersection of `Uᵢ ×[Z] Y` and `Uⱼ ×[Z] Y` is given by (Uᵢ ×[Z] Y) ×[X] Uⱼ -/
-def V (x y : 𝒰.J) : Scheme :=
-pullback ((pullback.fst : pullback ((𝒰.map x) ≫ f) g ⟶ _) ≫ (𝒰.map x)) (𝒰.map y)
+def V (i j : 𝒰.J) : Scheme :=
+pullback ((pullback.fst : pullback ((𝒰.map i) ≫ f) g ⟶ _) ≫ (𝒰.map i)) (𝒰.map j)
 
 /-- The canonical transition map `(Uᵢ ×[Z] Y) ×[X] Uⱼ ⟶ (Uⱼ ×[Z] Y) ×[X] Uᵢ` given by the fact
 that pullbacks are associative and symmetric. -/

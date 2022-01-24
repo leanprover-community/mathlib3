@@ -124,9 +124,9 @@ begin
 end
 
 /-- The quotient by a discontinuous group action of a locally compact t2 space is t2. -/
-@[priority 100, to_additive] instance t2_space_of_properly_discontinuous_smul_of_t2_space [t2_space T]
-  [locally_compact_space T] [has_continuous_smul₂ Γ T] [properly_discontinuous_smul Γ T] :
-  t2_space (quotient (mul_action.orbit_rel Γ T)) :=
+@[priority 100, to_additive] instance t2_space_of_properly_discontinuous_smul_of_t2_space
+  [t2_space T] [locally_compact_space T] [has_continuous_smul₂ Γ T]
+  [properly_discontinuous_smul Γ T] : t2_space (quotient (mul_action.orbit_rel Γ T)) :=
 begin
   set Q := quotient (mul_action.orbit_rel Γ T),
   rw t2_space_iff_nhds,

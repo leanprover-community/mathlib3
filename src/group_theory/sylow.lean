@@ -484,16 +484,14 @@ begin
   -- NB: This lemma assumes (fintype G), and not merely fintype (sylow p G).
   -- The latter would suffices if we could deduce (sylow p N) from it.
 
-  have h1 : (P' : subgroup H).normalizer = ⊤ :=
-  begin
-    apply normalizer_eq_top.mpr,
+  have h1 : (P' : subgroup H).normalizer = ⊤,
+  { apply normalizer_eq_top.mpr,
     apply normal_of_normalizer_normal hp P',
     apply normalizer_eq_top.mp,
     simp [P'],
     rewrite ← comap_subtype_normalizer_eq le_normalizer,
     rewrite ← comap_subtype_normalizer_eq (le_refl _),
-    rewrite subgroup.comap_subtype_self_top,
-  end,
+    rewrite subgroup.comap_subtype_self_top, },
   have h2 := congr_arg (subgroup.map H.subtype) h1 ,
   simp [P'] at h2,
   rw ← comap_subtype_normalizer_eq le_normalizer at h2,

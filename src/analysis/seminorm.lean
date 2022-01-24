@@ -177,8 +177,8 @@ end
 end normed_comm_ring
 
 section normed_field
-variables [normed_field 𝕜] [normed_ring 𝕝] [semi_normed_space 𝕜 𝕝] [add_comm_group E]
-  [module 𝕜 E] [smul_with_zero 𝕝 E] [is_scalar_tower 𝕜 𝕝 E] {s t u v A B : set E} {a b : 𝕜}
+variables [normed_field 𝕜] [normed_ring 𝕝] [normed_space 𝕜 𝕝] [add_comm_group E] [module 𝕜 E]
+  [smul_with_zero 𝕝 E] [is_scalar_tower 𝕜 𝕝 E] {s t u v A B : set E} {a b : 𝕜}
 
 /-- Scalar multiplication (by possibly different types) of a balanced set is monotone. -/
 lemma balanced.smul_mono (hs : balanced 𝕝 s) {a : 𝕝} {b : 𝕜} (h : ∥a∥ ≤ ∥b∥) : a • s ⊆ b • s :=
@@ -719,13 +719,10 @@ end seminorm
 /-! ### The norm as a seminorm -/
 
 section norm_seminorm
-variables (𝕜 E) [normed_field 𝕜] [semi_normed_group E] [semi_normed_space 𝕜 E] {r : ℝ}
+variables (𝕜 E) [normed_field 𝕜] [semi_normed_group E] [normed_space 𝕜 E] {r : ℝ}
 
 /-- The norm of a seminormed group as a seminorm. -/
-def norm_seminorm : seminorm 𝕜 E :=
-{ to_fun := norm,
-  smul' := norm_smul,
-  triangle' := norm_add_le }
+def norm_seminorm : seminorm 𝕜 E := ⟨norm, norm_smul, norm_add_le⟩
 
 @[simp] lemma coe_norm_seminorm : ⇑(norm_seminorm 𝕜 E) = norm := rfl
 
@@ -1136,7 +1133,7 @@ lemma seminorm.gauge_seminorm_ball (p : seminorm ℝ E) :
 end add_comm_group
 
 section norm
-variables [semi_normed_group E] [semi_normed_space ℝ E] {s : set E} {r : ℝ} {x : E}
+variables [semi_normed_group E] [normed_space ℝ E] {s : set E} {r : ℝ} {x : E}
 
 lemma gauge_unit_ball (x : E) : gauge (metric.ball (0 : E) 1) x = ∥x∥ :=
 begin

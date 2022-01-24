@@ -287,14 +287,6 @@ lemma subset_mul_left [mul_one_class α] (s : set α) {t : set α} (ht : (1 : α
 lemma subset_mul_right [mul_one_class α] {s : set α} (t : set α) (hs : (1 : α) ∈ s) : t ⊆ s * t :=
 λ x hx, ⟨1, x, hs, hx, one_mul _⟩
 
-@[to_additive]
-lemma subset_mul_left [mul_one_class α] (s : set α) {t : set α} (ht : (1 : α) ∈ t) : s ⊆ s * t :=
-λ x hx, ⟨x, 1, hx, ht, mul_one _⟩
-
-@[to_additive]
-lemma subset_mul_right [mul_one_class α] {s : set α} (t : set α) (hs : (1 : α) ∈ s) : t ⊆ s * t :=
-λ x hx, ⟨1, x, hs, hx, one_mul _⟩
-
 lemma pow_subset_pow [monoid α] (hst : s ⊆ t) (n : ℕ) :
   s ^ n ⊆ t ^ n :=
 begin
@@ -576,10 +568,6 @@ lemma Union_smul_left_image : (⋃ a ∈ s, a • t) = s • t := Union_image_le
 @[to_additive]
 lemma Union_smul_right_image : (⋃ a ∈ t, (λ x, x • a) '' s) = s • t := Union_image_right _
 
-@[simp, to_additive]
-lemma smul_set_univ [group α] [mul_action α β] {a : α} : a • (univ : set β) = univ :=
-eq_univ_of_forall $ λ b, ⟨a⁻¹ • b, trivial, smul_inv_smul _ _⟩
-
 @[to_additive]
 lemma Union_smul (s : ι → set α) (t : set β) : (⋃ i, s i) • t = ⋃ i, s i • t :=
 image2_Union_left _ _ _
@@ -595,57 +583,6 @@ image2_Union₂_left _ _ _
 @[to_additive]
 lemma smul_Union₂ (s : set α) (t : Π i, κ i → set β) : s • (⋃ i j, t i j) = ⋃ i j, s • t i j :=
 image2_Union₂_right _ _ _
-
-@[simp, to_additive]
-lemma smul_empty [has_scalar α β] (s : set α) : s • (∅ : set β) = ∅ :=
-by rw [←image2_smul, image2_empty_right]
-
-@[simp, to_additive]
-lemma empty_smul [has_scalar α β] (t : set β) : (∅ : set α) • t = ∅ :=
-by rw [←image2_smul, image2_empty_left]
-
-@[simp, to_additive]
-lemma inter_smul_subset [has_scalar α β] {s₁ s₂ : set α} {t : set β} :
-  (s₁ ∩ s₂) • t ⊆ s₁ • t ∩ s₂ • t :=
-λ x ⟨a, b, ha, hb, hx⟩, ⟨⟨a, b, ha.1, hb, hx⟩, ⟨a, b, ha.2, hb, hx⟩⟩
-
-@[simp, to_additive]
-lemma smul_inter_subset [has_scalar α β] {s : set α} {t₁ t₂ : set β} :
-  s • (t₁ ∩ t₂) ⊆ s • t₁ ∩ s • t₂ :=
-λ x ⟨a, b, ha, hb, hx⟩, ⟨⟨a, b, ha, hb.1, hx⟩, ⟨a, b, ha, hb.2, hx⟩⟩
-
-@[simp, to_additive]
-lemma union_smul [has_scalar α β] {s₁ s₂ : set α} {t : set β} : (s₁ ∪ s₂) • t = s₁ • t ∪ s₂ • t :=
-by simp_rw [←image2_smul, image2_union_left]
-
-@[simp, to_additive]
-lemma smul_union [has_scalar α β] {s : set α} {t₁ t₂ : set β} : s • (t₁ ∪ t₂) = s • t₁ ∪ s • t₂ :=
-by simp_rw [←image2_smul, image2_union_right]
-
-@[to_additive]
-lemma Union_smul {ι : Sort*} [has_scalar α β] (f : ι → set α) (t : set β) :
-  (⋃ i, f i) • t = ⋃ i, (f i • t) :=
-image2_Union_left _ _ _
-
-@[to_additive]
-lemma smul_Union {ι : Sort*} [has_scalar α β] (s : set α) (f : ι → set β) :
-  s • (⋃ i, f i) = ⋃ i, (s • f i) :=
-image2_Union_right _ _ _
-
-@[to_additive]
-lemma bUnion_smul {ι : Sort*} [has_scalar α β] (f : ι → set α) (s : set ι) (t : set β) :
-  (⋃ i ∈ s, f i) • t = ⋃ i ∈ s, (f i • t) :=
-by simp_rw [Union_smul]
-
-@[to_additive]
-lemma smul_bUnion {ι : Sort*} [has_scalar α β] (f : ι → set β) (s : set α) (t : set ι) :
-  s • (⋃ i ∈ t, f i) = ⋃ i ∈ t, (s • f i) :=
-by simp_rw [smul_Union]
-
-@[simp, to_additive]
-lemma smul_univ [group α] [mul_action α β] {s : set α} (hs : s.nonempty) :
-  s • (univ : set β) = univ :=
-let ⟨a, ha⟩ := hs in eq_univ_of_forall $ λ b, ⟨a, a⁻¹ • b, ha, trivial, smul_inv_smul _ _⟩
 
 @[to_additive]
 lemma Inter_smul_subset (s : ι → set α) (t : set β) : (⋂ i, s i) • t ⊆ ⋂ i, s i • t :=

@@ -123,6 +123,14 @@ begin
     ((as_iso $ to_Spec_Γ R).CommRing_iso_to_ring_equiv.injective)
 end
 
+lemma is_integral_of_is_affine_is_reduced [is_affine X]
+  [h : _root_.is_reduced (X.presheaf.obj (op ⊤))] : is_reduced X :=
+begin
+  haveI : _root_.is_reduced (Scheme.Spec.obj (op (Scheme.Γ.obj (op X)))),
+  { rw affine_is_integral_iff, exact h },
+  exact is_reduced_of_open_immersion X.iso_Spec.hom,
+end
+
 /-- To show that a statement `P` holds for all open subsets of all schemes, it suffices to show that
 1. In any scheme `X`, if `P` holds for an open cover of `U`, then `P` holds for `U`.
 2. For an open immerison `f : X ⟶ Y`, if `P` holds for the entire space of `X`, then `P` holds for
@@ -321,6 +329,14 @@ lemma affine_is_integral_iff (R : CommRing) :
   is_integral (Scheme.Spec.obj $ op R) ↔ is_domain R :=
 ⟨λ h, by exactI ring_equiv.is_domain ((Scheme.Spec.obj $ op R).presheaf.obj _)
   (as_iso $ to_Spec_Γ R).CommRing_iso_to_ring_equiv, λ h, by exactI infer_instance⟩
+
+lemma is_integral_of_is_affine_is_domain [is_affine X] [nonempty X.carrier]
+  [h : is_domain (X.presheaf.obj (op ⊤))] : is_integral X :=
+begin
+  haveI : is_integral (Scheme.Spec.obj (op (Scheme.Γ.obj (op X)))),
+  { rw affine_is_integral_iff, exact h },
+  exact is_integral_of_open_immersion X.iso_Spec.hom,
+end
 
 lemma map_injective_of_is_integral [is_integral X] {U V : opens X.carrier} (i : U ⟶ V)
   [H : nonempty U] :

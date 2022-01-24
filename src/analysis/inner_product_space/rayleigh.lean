@@ -155,6 +155,12 @@ begin
   exact le_csupr (rayleigh_bdd_above T) _,
 end
 
+lemma re_apply_inner_self_le_max_supr_rayleigh_mul_norm_sq (x : E) :
+  T.re_apply_inner_self x ≤
+    max (⨆ z, rayleigh_quotient z) (⨆ z, (-rayleigh_quotient) z) * ∥x∥ ^ 2 :=
+le_trans (re_apply_inner_self_le_supr_rayleigh_mul_norm_sq T x) $
+  mul_le_mul_of_nonneg_right (le_max_left _ _) (sq_nonneg ∥x∥)
+
 lemma neg_re_apply_inner_self_le_supr_rayleigh_mul_norm_sq (x : E) :
   -T.re_apply_inner_self x ≤ (⨆ z, (-rayleigh_quotient) z) * ∥x∥ ^ 2 :=
 begin
@@ -163,6 +169,12 @@ begin
   refine mul_le_mul_of_nonneg_right _ (pow_nonneg (norm_nonneg _) 2),
   exact le_csupr (neg_rayleigh_bdd_above T) _,
 end
+
+lemma neg_re_apply_inner_self_le_max_supr_rayleigh_mul_norm_sq (x : E) :
+  -T.re_apply_inner_self x ≤
+    max (⨆ z, rayleigh_quotient z) (⨆ z, (-rayleigh_quotient) z) * ∥x∥ ^ 2 :=
+le_trans (neg_re_apply_inner_self_le_supr_rayleigh_mul_norm_sq T x) $
+  mul_le_mul_of_nonneg_right (le_max_right _ _) (sq_nonneg ∥x∥)
 
 lemma _root_.is_R_or_C.of_real_mul_inv_re (r : ℝ) (z : 𝕜) :
   is_R_or_C.re ((r : 𝕜)⁻¹ * z) = r⁻¹ * is_R_or_C.re z :=
@@ -179,37 +191,39 @@ lemma _root_.is_R_or_C.of_real_mul_conj_inv_re (r : ℝ) (z : 𝕜) :
 by rw [←is_R_or_C.of_real_inv, is_R_or_C.of_real_mul_conj_re]
 
 variables [complete_space E]
-lemma supr_rayleigh_eq_norm (hT : T ∈ self_adjoint (E →L[𝕜] E)) :
-  max (⨆ x, rayleigh_quotient x) (⨆ x, (-rayleigh_quotient) x) = ∥T∥ :=
+lemma norm_eq_max_supr_rayleigh (hT : inner_product_space.is_self_adjoint T.to_linear_map) :
+  ∥T∥ = max (⨆ x, rayleigh_quotient x) (⨆ x, (-rayleigh_quotient) x) :=
 begin
-  refine eq.symm (op_norm_eq_of_bounds _ (λ x, _) _),
-  { sorry },
+  refine (op_norm_eq_of_bounds (le_max_iff.mpr (or.inl (supr_rayleigh_nonneg T))) (λ x, _) _),
   { set L := real.sqrt (∥T x∥ / ∥x∥) with hL,
     set rT := max (⨆ z, rayleigh_quotient z) (⨆ z, (-rayleigh_quotient) z) with hrT,
     set x₁ := (L : 𝕜) • x + (L⁻¹ : 𝕜) • (T x) with hx₁,
     set x₂ := (L : 𝕜) • x - (L⁻¹ : 𝕜) • (T x) with hx₂,
     by_cases h_ntriv : T x = 0,
-    --{ simp only [h_ntriv, norm_zero, mul_nonneg (supr_rayleigh_nonneg T) (norm_nonneg x)], },
-    { sorry },
+    { simp only [h_ntriv, norm_zero],
+      exact mul_nonneg (le_max_iff.mpr (or.inl (supr_rayleigh_nonneg T))) (norm_nonneg _) },
     change T x ≠ 0 at h_ntriv,
+    have hTx_ntriv : ∥T x∥ ≠ 0 := λ H, by { rw [norm_eq_zero] at H, exact h_ntriv H },
+    have hx_ntriv : ∥x∥ ≠ 0,
+    { intro H,
+      rw [norm_eq_zero] at H,
+      rw [H] at h_ntriv,
+      exact h_ntriv (map_zero _) },
+    have hL_nonneg : 0 ≤ L := real.sqrt_nonneg _,
+    have hLinv_nonneg : 0 ≤ L⁻¹ := inv_nonneg.mpr hL_nonneg,
+    have hL_sq : L^2 = ∥T x∥ / ∥x∥ := real.sq_sqrt (div_nonneg (norm_nonneg _) (norm_nonneg _)),
+    have hLinv_sq_nonneg : 0 ≤ ∥x∥ / ∥T x∥ := div_nonneg (norm_nonneg _) (norm_nonneg _),
+    have hL_sq_nonneg : 0 ≤ ∥T x∥ / ∥x∥ := div_nonneg (norm_nonneg _) (norm_nonneg _),
+    have hLinv_sq : (L⁻¹)^2 = ∥x∥ / ∥T x∥,
+    { simp only [←real.sqrt_inv, inv_div],
+      rw [real.sq_sqrt hLinv_sq_nonneg] },
     have hL_ntriv : L ≠ 0,
-    { sorry },
-    have hL_nonneg : 0 ≤ L,
-    { sorry },
-    have hLinv_nonneg : 0 ≤ L⁻¹,
-    { sorry },
+    { intro H,
+      rw [real.sqrt_eq_zero hL_sq_nonneg, div_eq_zero_iff] at H,
+      exact or.elim H hTx_ntriv hx_ntriv },
     have hL_mul₁ : L * L⁻¹ = 1 := mul_inv_cancel hL_ntriv,
     have hL_mul₂ : L⁻¹ * L = 1 := (mul_comm L L⁻¹) ▸ hL_mul₁,
-    have hL_sq : L^2 = ∥T x∥ / ∥x∥,
-    { sorry },
-    have hLinv_sq : (L⁻¹)^2 = ∥x∥ / ∥T x∥,
-    { sorry },
-    have hTx_ntriv : ∥T x∥ ≠ 0,
-    { sorry },
-    have hx_ntriv : ∥x∥ ≠ 0,
-    { sorry },
-    have gizmo : ⟪T (T x), x⟫ = ⟪T x, T x⟫,
-    { sorry },
+    have gizmo : ⟪T (T x), x⟫ = ⟪T x, T x⟫ := hT _ _,
     have h₁ : T.re_apply_inner_self x₁ - T.re_apply_inner_self x₂ = 4 * ∥T x∥ ^ 2,
     { simp only [hx₁, hx₂, re_apply_inner_self_apply, inner_add_left, inner_add_right, inner_smul_left,
             inner_smul_right, ←inner_self_eq_norm_sq, inner_sub_left, inner_sub_right,
@@ -218,8 +232,10 @@ begin
             continuous_linear_map.map_smul, is_R_or_C.of_real_mul_conj_re, is_R_or_C.of_real_mul_conj_inv_re, gizmo],
       ring_nf,
       field_simp },
-    have h₄ : T.re_apply_inner_self x₁ ≤ rT * ∥x₁∥^2 := sorry,
-    have h₅ : -T.re_apply_inner_self x₂ ≤ rT * ∥x₂∥^2 := sorry,
+    have h₄ : T.re_apply_inner_self x₁ ≤ rT * ∥x₁∥^2 :=
+      re_apply_inner_self_le_max_supr_rayleigh_mul_norm_sq _ _,
+    have h₅ : -T.re_apply_inner_self x₂ ≤ rT * ∥x₂∥^2 :=
+      neg_re_apply_inner_self_le_max_supr_rayleigh_mul_norm_sq _ _,
     have h₆ := calc
       4 * ∥T x∥^2 ≤ rT * ∥x₁∥^2 + rT * ∥x₂∥^2          : by { rw [←h₁, sub_eq_add_neg], exact add_le_add h₄ h₅ }
              ...  = rT * (∥x₁∥ * ∥x₁∥) + rT * (∥x₂∥ * ∥x₂∥)      : by simp only [pow_two]
@@ -237,13 +253,43 @@ begin
                 field_simp,
                 ring
               end,
-    have h₇ : 0 < 4 * ∥T x∥,
-    { sorry },
+    have h₇ : 0 < 4 * ∥T x∥ := mul_pos (by norm_num) (norm_pos_iff.mpr h_ntriv),
     rw [←mul_le_mul_left h₇],
     calc 4 * ∥T x∥ * ∥T x∥ = 4 * ∥T x∥ ^ 2          : by rw [mul_assoc, ←pow_two]
                       ... ≤ 4 * rT * ∥T x∥ * ∥x∥   : h₆
                       ... = _                      : by ring },
-  { sorry }
+  { intros N hN h,
+    refine max_le _ _,
+    { refine csupr_le (λ x, _),
+      by_cases h_ntriv : x = 0,
+      { have : (0 : ℝ)^2 = 0 := by rw [pow_two, mul_zero],
+        simp only [h_ntriv, norm_zero, this, div_zero _],
+        exact hN },
+      change x ≠ 0 at h_ntriv,
+      refine (div_le_iff _).mpr _,
+      { rw pow_two,
+        rw [←norm_pos_iff] at h_ntriv,
+        exact mul_pos h_ntriv h_ntriv },
+      simp only [T.re_apply_inner_self_apply],
+      refine le_trans (re_inner_le_norm (T x) x) _,
+      rw [pow_two, ←mul_assoc],
+      refine mul_le_mul_of_nonneg_right (h x) (norm_nonneg _) },
+    { refine csupr_le (λ x, _),
+      by_cases h_ntriv : x = 0,
+      { have : (0 : ℝ)^2 = 0 := by rw [pow_two, mul_zero],
+        simp only [h_ntriv, norm_zero, this, div_zero, pi.neg_apply, neg_zero],
+        exact hN },
+      change x ≠ 0 at h_ntriv,
+      dsimp,
+      rw [←neg_div],
+      refine (div_le_iff _).mpr _,
+      { rw pow_two,
+        rw [←norm_pos_iff] at h_ntriv,
+        exact mul_pos h_ntriv h_ntriv },
+      simp only [T.re_apply_inner_self_apply, ←map_neg, ←inner_neg_right],
+      refine le_trans (re_inner_le_norm (T x) (-x)) _,
+      rw [norm_neg, pow_two, ←mul_assoc],
+      refine mul_le_mul_of_nonneg_right (h x) (norm_nonneg _) } }
 end
 
 end continuous_linear_map

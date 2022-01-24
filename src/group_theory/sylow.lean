@@ -440,30 +440,24 @@ begin
   rwa [h, card_bot] at key,
 end
 
+/- A sylow subgroup in G is also a sylow subgroup in a subgroup of G. -/
 def subtype {p : ℕ} (P : sylow p G) (N : subgroup G) (h : ↑P ≤ N) :
   sylow p N :=
    ⟨ comap N.subtype P.1,
-    begin
-      apply is_p_group.comap_of_injective,
-      exact P.is_p_group',
-      exact subtype.coe_injective,
-    end,
-    begin
-      intros Q hQ hle,
-      let Q' : subgroup G := map N.subtype Q,
-      have hQ' : is_p_group p Q' := is_p_group.map hQ _,
-      have hle' : P.to_subgroup ≤ Q':=
-      begin
-        apply le_trans (le_of_eq _) (map_mono hle),
-        rw map_comap_eq_self,
-        simp, apply h,
-      end,
-      have : Q' = P.to_subgroup := P.3 hQ' hle',
-      rewrite ← this, clear this,
-      symmetry,
-      apply comap_map_eq_self_of_injective,
-      exact subtype.coe_injective,
-    end⟩
+     is_p_group.comap_subtype P.is_p_group',
+     begin
+       intros Q hQ hle,
+       let Q' : subgroup G := map N.subtype Q,
+       have h' : P.to_subgroup ≤ N.subtype.range := by simpa,
+       have hQ' : is_p_group p Q' := is_p_group.map hQ _,
+       have hle' : P.to_subgroup ≤ Q':= calc P.to_subgroup
+              = map N.subtype (comap N.subtype P.to_subgroup) : symm $ map_comap_eq_self h'
+          ... ≤ Q' : map_mono hle,
+       rewrite ← P.is_maximal' hQ' hle',
+       symmetry,
+       apply comap_map_eq_self_of_injective,
+       exact subtype.val_injective,
+     end ⟩
 
 @[simp]
 lemma coe_subtype {p : ℕ} {P : sylow p G} {N : subgroup G} {h : P.1 ≤ N} :

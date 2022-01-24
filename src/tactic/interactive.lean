@@ -647,7 +647,10 @@ A weaker version of `trivial` that tries to solve the goal using a canonical pro
 `reflexivity` tactic (unfolding only `reducible` constants, so can fail faster than `trivial`),
 and otherwise tries the `contradiction` tactic. -/
 meta def trivial' : tactic unit :=
-tactic.triv' <|> tactic.reflexivity reducible <|> tactic.contradiction <|> fail "trivial' tactic failed"
+tactic.triv'
+  <|> tactic.reflexivity reducible
+  <|> tactic.contradiction
+  <|> fail "trivial' tactic failed"
 
 add_tactic_doc
 { name       := "trivial'",

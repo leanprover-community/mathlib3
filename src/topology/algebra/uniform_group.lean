@@ -231,37 +231,15 @@ variables {G}
   exists_imp_exists (λ ha hp, mem_of_superset hp (λ i hi a ha, hv (by exact hi a ha)))) ∘ h u hu x⟩
 
 @[to_additive] lemma topological_group.uniform_continuous_mul :
-  @uniform_continuous₂ G G G
-    (topological_group.to_uniform_space G)
-    (topological_group.to_uniform_space G)
-    (topological_group.to_uniform_space G) (*) :=
+  let t := topological_group.to_uniform_space G in @uniform_continuous₂ G G G t t t (*) :=
 begin
-  rintros v ⟨u, hu, huv⟩,
-  rw [uniformity_prod_eq_prod, mem_map, mem_map, mem_prod_iff],
+  rintros t v ⟨u, hu, huv⟩,
   obtain ⟨w, hw, x, hx, h⟩ := mem_nhds_prod_iff.mp (mem_map.mp
     (continuous_mul.tendsto' ((1 : G), (1 : G)) (1 : G) (one_mul (1 : G)) hu)),
+  rw [uniformity_prod_eq_prod, mem_map, mem_map, mem_prod_iff],
   refine ⟨_, preimage_mem_comap hw, _, preimage_mem_comap hx, _⟩,
   rw [set.prod_preimage_eq],
-  refine λ a ha, huv _,
-  exact (congr_arg (∈ u) (div_mul_comm _ _ _ _)).mp (h ha),
-end
-
-lemma tendsto_uniformly_on.comp' {α β γ ι : Type*} [uniform_space β] [uniform_space γ]
-  {F : ι → α → β} {f : α → β} {p : filter ι} {s : set α} {g : β → γ}
-  (h : tendsto_uniformly_on F f p s) (hg : uniform_continuous g) :
-  tendsto_uniformly_on (λ i, g ∘ (F i)) (g ∘ f) p s :=
-λ u hu, h _ (hg hu)
-
-lemma tendsto_uniformly_on.prod {α β ι₁ ι₂ : Type*} [uniform_space β] {F₁ : ι₁ → α → β}
-  {F₂ : ι₂ → α → β} {f₁ : α → β} {f₂ : α → β} {p₁ : filter ι₁} {p₂ : filter ι₂} {s : set α}
-  (h₁ : tendsto_uniformly_on F₁ f₁ p₁ s) (h₂ : tendsto_uniformly_on F₂ f₂ p₂ s) :
-  tendsto_uniformly_on (λ (i : ι₁ × ι₂) a, (F₁ i.1 a, F₂ i.2 a)) (λ a, (f₁ a, f₂ a)) (p₁.prod p₂) s :=
-begin
-  intros u hu,
-  rw [uniformity_prod_eq_prod, mem_map, mem_prod_iff] at hu,
-  obtain ⟨v, hv, w, hw, h⟩ := hu,
-  exact mem_prod_iff.mpr ⟨_, h₁ v hv, _, h₂ w hw, λ i hi a ha,
-    h (show ((f₁ a, F₁ i.1 a), (f₂ a, F₂ i.2 a)) ∈ v ×ˢ w, from ⟨hi.1 a ha, hi.2 a ha⟩)⟩,
+  exact λ a ha, huv (by exact ((congr_arg (∈ u) (div_mul_comm _ _ _ _)).mp (h ha))),
 end
 
 @[to_additive] lemma topological_group.tendsto_uniformly_on_mul

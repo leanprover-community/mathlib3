@@ -328,7 +328,7 @@ begin
 end
 
 lemma is_affine_open.is_localization_stalk_aux {X : Scheme} (U : opens X.carrier)
-  [is_affine (X.restrict U.open_embedding)] [nonempty U] :
+  [is_affine (X.restrict U.open_embedding)] :
   (inv (Γ_Spec.adjunction.unit.app (X.restrict U.open_embedding))).1.c.app
     (op ((opens.map U.inclusion).obj U)) =
       X.presheaf.map (eq_to_hom $ by rw opens.inclusion_map_eq_top :

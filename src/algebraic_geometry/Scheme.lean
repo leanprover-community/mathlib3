@@ -64,7 +64,10 @@ def forget_to_Top : Scheme ⥤ Top :=
 instance {X Y : Scheme} : has_lift_t (X ⟶ Y)
   (X.to_SheafedSpace ⟶ Y.to_SheafedSpace) := (@@coe_to_lift $ @@coe_base coe_subtype)
 
-@[simp] lemma id_base (X : Scheme) : (subtype.val (𝟙 X)).base = 𝟙 _ := rfl
+lemma id_val_base (X : Scheme) : (subtype.val (𝟙 X)).base = 𝟙 _ := rfl
+
+@[simp] lemma id_coe_base (X : Scheme) :
+  (↑(𝟙 X) : X.to_SheafedSpace ⟶ X.to_SheafedSpace).base = 𝟙 _ := rfl
 
 @[simp] lemma id_app {X : Scheme} (U : (opens X.carrier)ᵒᵖ) :
   (subtype.val (𝟙 X)).c.app U = X.presheaf.map

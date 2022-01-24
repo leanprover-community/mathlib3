@@ -1661,7 +1661,7 @@ lemma ae_restrict_of_ae_restrict_of_subset {s t : set α} {p : α → Prop} (hst
   (∀ᵐ x ∂(μ.restrict s), p x) :=
 h.filter_mono (ae_mono $ measure.restrict_mono hst (le_refl μ))
 
-lemma ae_of_ae_restrict_of_ae_restrict_compl {t : set α} {p : α → Prop}
+lemma ae_of_ae_restrict_of_ae_restrict_compl (t : set α) {p : α → Prop}
   (ht : ∀ᵐ x ∂(μ.restrict t), p x) (htc : ∀ᵐ x ∂(μ.restrict tᶜ), p x) :
   ∀ᵐ x ∂μ, p x :=
 nonpos_iff_eq_zero.1 $
@@ -3268,7 +3268,7 @@ begin
       (indicator_ae_eq_restrict hs).trans (h.ae_eq_mk.trans $ (indicator_ae_eq_restrict hs).symm),
     have B : s.indicator f =ᵐ[μ.restrict sᶜ] s.indicator (ae_measurable.mk f h) :=
       (indicator_ae_eq_restrict_compl hs).trans (indicator_ae_eq_restrict_compl hs).symm,
-    exact ae_of_ae_restrict_of_ae_restrict_compl A B },
+    exact ae_of_ae_restrict_of_ae_restrict_compl _ A B },
 end
 
 @[measurability]

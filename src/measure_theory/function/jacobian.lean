@@ -13,10 +13,15 @@ import measure_theory.covering.differentiation
 
 Let `μ` be a Lebesgue measure on a finite-dimensional vector space `E`.
 Let `f : E → E` be a function which is injective and differentiable on a measurable set `s`,
-with derivative `f'`. Then `f '' s` is null-measurable (but not Borel-measurable in general), and
+with derivative `f'`. Then we prove that `f '' s` is null-measurable, and
 its measure is given by the formula `μ (f '' s) = ∫⁻ x in s, |(f' x).det| ∂μ` (where `(f' x).det`
 is almost everywhere measurable, but not Borel-measurable in general). This formula is proved in
 this file, in `lintegral_abs_det_fderiv_eq_add_haar_image`.
+
+(NB: in fact, `f '' s` is Borel-measurable as the injective image of a Borel-measurable set, but
+this theorem of Lusin-Souslin has not been formalized yet in mathlib, see for instance
+[Kechris, *Classical Descriptive Set Theory* (Corollary 15.2)][kechris1995], and it is not
+necessary for a satisfactory formalization of the change of variables formula.)
 
 ## Main results
 
@@ -60,11 +65,12 @@ on a set `s`, then `f'` is within `δ` of `A` on a full measure subset of `s` (n
 points). With the above approximation argument, it follows that `f'` is the almost everywhere limit
 of a sequence of measurable functions (which are constant on the pieces of the good discretization).
 
-To check that `f '' s` is null-measurable, one separates the part where the derivative of
-`f` is not onto (whose image has measure `0` by a version of Sard's lemma that follows from the same
-decomposition and approximation arguments as above), and the one where it is invertible.
-Partitioning the latter as above, the restriction of `f` to the partition pieces can locally be
-extended to a homeomorphism of the whole space, guaranteeing that the image is measurable.
+To check that `f '' s` is null-measurable (even when `f` is not injective), one separates the part
+where the derivative of `f` is not onto (whose image has measure `0` by a version of Sard's lemma
+that follows from the same decomposition and approximation arguments as above), and the one where
+it is invertible. Partitioning the latter as above, the restriction of `f` to the partition pieces
+can locally be extended to a homeomorphism of the whole space, guaranteeing that the image is
+measurable.
 
 ## Tags
 Change of variables in integrals
@@ -874,7 +880,11 @@ begin
     ... = 0 : μt }
 end
 
-/-- If a function is differentiable on a measurable set, then the image is null-measurable.-/
+/-- If a function is differentiable on a measurable set, then the image is null-measurable.
+Note that there are Borel sets in product spaces whose projection on the first factor is not
+Borel-measurable, so one can not improve the conclusion to measurability without further
+assumptions.
+-/
 lemma null_measurable_image_of_fderiv_within
   {f : E → E} {s : set E} (hs : measurable_set s) {f' : E → (E →L[ℝ] E)}
   (hf' : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x) :

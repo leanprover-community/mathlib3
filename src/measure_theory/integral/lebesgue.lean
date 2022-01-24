@@ -2148,10 +2148,114 @@ lemma with_density_eq_zero {f : α → ℝ≥0∞}
 by rw [← lintegral_eq_zero_iff' hf, ← set_lintegral_univ,
        ← with_density_apply _ measurable_set.univ, h, measure.coe_zero, pi.zero_apply]
 
-lemma with_density_ae {f : α → ℝ≥0∞} (hf : measurable f) :
-  (μ.with_density f).ae = (μ.restrict {x | f x ≠ 0}).ae :=
+lemma with_density_apply_eq_zero {f : α → ℝ≥0∞} {s : set α} (hf : measurable f) :
+  μ.with_density f s = 0 ↔ μ ({x | f x ≠ 0} ∩ s) = 0 :=
 begin
+  split,
+  { assume hs,
+    let t := to_measurable (μ.with_density f) s,
+    apply measure_mono_null
+      (inter_subset_inter_right _ (subset_to_measurable (μ.with_density f) s)),
+    have A : μ.with_density f t = 0, by rw [measure_to_measurable, hs],
+    rw [with_density_apply f (measurable_set_to_measurable _ s), lintegral_eq_zero_iff hf,
+        eventually_eq, ae_restrict_iff, ae_iff] at A,
+    swap, { exact hf (measurable_set_singleton 0) },
+    simp only [pi.zero_apply, mem_set_of_eq, filter.mem_mk] at A,
+    convert A,
+    ext x,
+    simp only [and_comm, exists_prop, mem_inter_eq, iff_self, mem_set_of_eq, mem_compl_eq,
+               not_forall] },
+  { assume hs,
+    let t := to_measurable μ ({x | f x ≠ 0} ∩ s),
+    have A : s ⊆ t ∪ {x | f x = 0},
+    { assume x hx,
+      rcases eq_or_ne (f x) 0 with fx|fx,
+      { simp only [fx, mem_union_eq, mem_set_of_eq, eq_self_iff_true, or_true] },
+      { left,
+        apply subset_to_measurable _ _,
+        exact ⟨fx, hx⟩ } },
+    apply measure_mono_null A (measure_union_null _ _),
+    { apply with_density_absolutely_continuous,
+      rwa measure_to_measurable },
+    { have M : measurable_set {x : α | f x = 0} := hf (measurable_set_singleton _),
+      rw [with_density_apply _ M, (lintegral_eq_zero_iff hf)],
+      filter_upwards [ae_restrict_mem M],
+      simp only [imp_self, pi.zero_apply, implies_true_iff] } }
+end
 
+lemma ae_with_density_iff {p : α → Prop} {f : α → ℝ≥0∞} (hf : measurable f) :
+  (∀ᵐ x ∂(μ.with_density f), p x) ↔ ∀ᵐ x ∂μ, f x ≠ 0 → p x :=
+begin
+  rw [ae_iff, ae_iff, with_density_apply_eq_zero hf],
+  congr',
+  ext x,
+  simp only [exists_prop, mem_inter_eq, iff_self, mem_set_of_eq, not_forall],
+end
+
+lemma ae_with_density_iff_ae_restrict {p : α → Prop} {f : α → ℝ≥0∞} (hf : measurable f) :
+  (∀ᵐ x ∂(μ.with_density f), p x) ↔ (∀ᵐ x ∂(μ.restrict {x | f x ≠ 0}), p x) :=
+begin
+  rw [ae_with_density_iff hf, ae_restrict_iff'],
+  { refl },
+  { exact hf (measurable_set_singleton 0).compl },
+end
+
+lemma ae_measurable_with_density_iff {E : Type*} [normed_group E] [normed_space ℝ E]
+  [topological_space.second_countable_topology E] [measurable_space E] [borel_space E]
+  {f : α → ℝ≥0} (hf : measurable f) {g : α → E} :
+  ae_measurable g (μ.with_density (λ x, (f x : ℝ≥0∞))) ↔ ae_measurable (λ x, (f x : ℝ) • g x) μ :=
+begin
+  split,
+  { rintros ⟨g', g'meas, hg'⟩,
+    have A : measurable_set {x : α | f x ≠ 0} := (hf (measurable_set_singleton 0)).compl,
+    refine ⟨λ x, (f x : ℝ) • g' x, hf.coe_nnreal_real.smul g'meas, _⟩,
+    apply @ae_of_ae_restrict_of_ae_restrict_compl _ _ _ {x | f x ≠ 0},
+    { rw [eventually_eq, ae_with_density_iff hf.coe_nnreal_ennreal] at hg',
+      rw ae_restrict_iff' A,
+      filter_upwards [hg'],
+      assume a ha h'a,
+      have : (f a : ℝ≥0∞) ≠ 0, by simpa only [ne.def, coe_eq_zero] using h'a,
+      rw ha this },
+    { filter_upwards [ae_restrict_mem A.compl],
+      assume x hx,
+      simp only [not_not, mem_set_of_eq, mem_compl_eq] at hx,
+      simp [hx] } },
+  { rintros ⟨g', g'meas, hg'⟩,
+    refine ⟨λ x, (f x : ℝ)⁻¹ • g' x, hf.coe_nnreal_real.inv.smul g'meas, _⟩,
+    rw [eventually_eq, ae_with_density_iff hf.coe_nnreal_ennreal],
+    filter_upwards [hg'],
+    assume x hx h'x,
+    rw [← hx, smul_smul, _root_.inv_mul_cancel, one_smul],
+    simp only [ne.def, coe_eq_zero] at h'x,
+    simpa only [nnreal.coe_eq_zero, ne.def] using h'x }
+end
+
+
+lemma ae_measurable_with_density_ennreal_iff {f : α → ℝ≥0} (hf : measurable f) {g : α → ℝ≥0∞} :
+  ae_measurable g (μ.with_density (λ x, (f x : ℝ≥0∞))) ↔
+    ae_measurable (λ x, (f x : ℝ≥0∞) * g x) μ :=
+begin
+  split,
+  { rintros ⟨g', g'meas, hg'⟩,
+    have A : measurable_set {x : α | f x ≠ 0} := (hf (measurable_set_singleton 0)).compl,
+    refine ⟨λ x, f x * g' x, hf.coe_nnreal_ennreal.smul g'meas, _⟩,
+    apply ae_of_ae_restrict_of_ae_restrict_compl {x | f x ≠ 0},
+    { rw [eventually_eq, ae_with_density_iff hf.coe_nnreal_ennreal] at hg',
+      rw ae_restrict_iff' A,
+      filter_upwards [hg'],
+      assume a ha h'a,
+      have : (f a : ℝ≥0∞) ≠ 0, by simpa only [ne.def, coe_eq_zero] using h'a,
+      rw ha this },
+    { filter_upwards [ae_restrict_mem A.compl],
+      assume x hx,
+      simp only [not_not, mem_set_of_eq, mem_compl_eq] at hx,
+      simp [hx] } },
+  { rintros ⟨g', g'meas, hg'⟩,
+    refine ⟨λ x, (f x)⁻¹ * g' x, hf.coe_nnreal_ennreal.inv.smul g'meas, _⟩,
+    rw [eventually_eq, ae_with_density_iff hf.coe_nnreal_ennreal],
+    filter_upwards [hg'],
+    assume x hx h'x,
+    rw [← hx, ← mul_assoc, ennreal.inv_mul_cancel h'x ennreal.coe_ne_top, one_mul] }
 end
 
 end lintegral
@@ -2211,27 +2315,47 @@ begin
     simp [lintegral_supr, ennreal.mul_supr, h_mf.mul (h_mea_g _), *] }
 end
 
-lemma lintegral_with_density_eq_lintegral_mul₀ (μ : measure α)
-  {f : α → ℝ≥0∞} (hf : ae_measurable f μ) {g : α → ℝ≥0∞} (hg : ae_measurable g μ) :
+lemma lintegral_with_density_eq_lintegral_mul₀' {μ : measure α} {f : α → ℝ≥0∞}
+  (hf : ae_measurable f μ) {g : α → ℝ≥0∞} (hg : ae_measurable g (μ.with_density f)) :
   ∫⁻ a, g a ∂(μ.with_density f) = ∫⁻ a, (f * g) a ∂μ :=
 begin
+  let f' := hf.mk f,
+  have : μ.with_density f = μ.with_density f' := with_density_congr_ae hf.ae_eq_mk,
+  rw this at ⊢ hg,
   let g' := hg.mk g,
-  have A : ∫⁻ a, g a ∂(μ.with_density f) = ∫⁻ a, g' a ∂(μ.with_density f),
-  { apply lintegral_congr_ae,
-    apply with_density_absolutely_continuous _ _ hg.ae_eq_mk },
-  have B : ∫⁻ a, (f * g) a ∂μ = ∫⁻ a, (f * g') a ∂μ,
-  { apply lintegral_congr_ae,
-    filter_upwards [hg.ae_eq_mk],
-    assume x hx,
-    simp only [hx, pi.mul_apply] },
-  rw [A, B],
-  have : μ.with_density f = μ.with_density (hf.mk f) := with_density_congr_ae hf.ae_eq_mk,
-  rw [this, lintegral_with_density_eq_lintegral_mul μ hf.measurable_mk hg.measurable_mk],
-  apply lintegral_congr_ae,
-  filter_upwards [hf.ae_eq_mk],
-  assume x hx,
-  simp only [hx, pi.mul_apply],
+  calc ∫⁻ a, g a ∂(μ.with_density f') = ∫⁻ a, g' a ∂(μ.with_density f') :
+    lintegral_congr_ae hg.ae_eq_mk
+  ... = ∫⁻ a, (f' * g') a ∂μ :
+    lintegral_with_density_eq_lintegral_mul _ hf.measurable_mk hg.measurable_mk
+  ... = ∫⁻ a, (f' * g) a ∂μ :
+    begin
+      apply lintegral_congr_ae,
+      apply ae_of_ae_restrict_of_ae_restrict_compl {x | f' x ≠ 0},
+      { have Z := hg.ae_eq_mk,
+        rw [eventually_eq, ae_with_density_iff_ae_restrict hf.measurable_mk] at Z,
+        filter_upwards [Z],
+        assume x hx,
+        simp only [hx, pi.mul_apply] },
+      { have M : measurable_set {x : α | f' x ≠ 0}ᶜ :=
+          (hf.measurable_mk (measurable_set_singleton 0).compl).compl,
+        filter_upwards [ae_restrict_mem M],
+        assume x hx,
+        simp only [not_not, mem_set_of_eq, mem_compl_eq] at hx,
+        simp only [hx, zero_mul, pi.mul_apply] }
+    end
+  ... = ∫⁻ (a : α), (f * g) a ∂μ :
+    begin
+      apply lintegral_congr_ae,
+      filter_upwards [hf.ae_eq_mk],
+      assume x hx,
+      simp only [hx, pi.mul_apply],
+    end
 end
+
+lemma lintegral_with_density_eq_lintegral_mul₀ {μ : measure α} {f : α → ℝ≥0∞}
+  (hf : ae_measurable f μ) {g : α → ℝ≥0∞} (hg : ae_measurable g μ) :
+  ∫⁻ a, g a ∂(μ.with_density f) = ∫⁻ a, (f * g) a ∂μ :=
+lintegral_with_density_eq_lintegral_mul₀' hf (hg.mono' (with_density_absolutely_continuous μ f))
 
 lemma with_density_mul (μ : measure α) {f g : α → ℝ≥0∞} (hf : measurable f) (hg : measurable g) :
   μ.with_density (f * g) = (μ.with_density f).with_density g :=

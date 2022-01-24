@@ -8,12 +8,12 @@ import data.complex.basic
 import algebra.group.defs
 
 /-!
-## The Solution of Cubic
+# The Solution of Cubic
 
 This file proves Theorem 37 from the [100 Theorems List](https://www.cs.ru.nl/~freek/100/).
 
 The theorem `cubic_eq_zero_iff` gives solution to the cubic equation over ℂ,
-cubic_eq_zero_iff_of_discrim_eq_zero
+`cubic_eq_zero_iff_of_discrim_eq_zero`
 based on the [Cardano's Formula](https://en.wikipedia.org/wiki/Cubic_equation#Cardano's_formula).
 
 ## References

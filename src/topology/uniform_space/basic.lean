@@ -716,9 +716,7 @@ begin
   ext ⟨x, y⟩,
   simp_rw [mem_closure_iff_nhds_basis (uniform_space.has_basis_nhds_prod x y),
            mem_Inter, mem_set_of_eq],
-  apply forall_congr,
-  intro V,
-  apply forall_congr,
+  refine forall₂_congr (λ V, _),
   rintros ⟨V_in, V_symm⟩,
   simp_rw [mem_comp_comp V_symm, inter_comm, exists_prop],
   exact iff.rfl,
@@ -774,7 +772,7 @@ calc (a, b) ∈ closure t ↔ (𝓝 (a, b) ⊓ 𝓟 t ≠ ⊥) : mem_closure_iff
     exact (monotone_prod monotone_preimage monotone_preimage).inter monotone_const
   end
   ... ↔ (∀ s ∈ 𝓤 α, (a, b) ∈ s ○ (t ○ s)) :
-    forall_congr $ assume s, forall_congr $ assume hs,
+    forall₂_congr $ λ s hs,
     ⟨assume ⟨⟨x, y⟩, ⟨⟨hx, hy⟩, hxyt⟩⟩, ⟨x, hx, y, hxyt, hy⟩,
       assume ⟨x, hx, y, hxyt, hy⟩, ⟨⟨x, y⟩, ⟨⟨hx, hy⟩, hxyt⟩⟩⟩
   ... ↔ _ : by simp
@@ -826,7 +824,7 @@ end
 lemma dense.bUnion_uniformity_ball {s : set α} {U : set (α × α)} (hs : dense s) (hU : U ∈ 𝓤 α) :
   (⋃ x ∈ s, ball x U) = univ :=
 begin
-  refine bUnion_eq_univ_iff.2 (λ y, _),
+  refine Union₂_eq_univ_iff.2 (λ y, _),
   rcases hs.inter_nhds_nonempty (mem_nhds_right y hU) with ⟨x, hxs, hxy : (x, y) ∈ U⟩,
   exact ⟨x, hxs, hxy⟩
 end
@@ -1418,7 +1416,7 @@ begin
     exact mem_bUnion hm' ⟨i, _, hm', λ y hy, mm' hy rfl⟩ },
   rcases hs.elim_finite_subcover_image hu₁ hu₂ with ⟨b, bu, b_fin, b_cover⟩,
   refine ⟨_, (bInter_mem b_fin).2 bu, λ x hx, _⟩,
-  rcases mem_bUnion_iff.1 (b_cover hx) with ⟨n, bn, i, m, hm, h⟩,
+  rcases mem_Union₂.1 (b_cover hx) with ⟨n, bn, i, m, hm, h⟩,
   refine ⟨i, λ y hy, h _⟩,
   exact prod_mk_mem_comp_rel (refl_mem_uniformity hm) (bInter_subset_of_mem bn hy)
 end

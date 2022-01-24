@@ -138,7 +138,6 @@ begin
   apply add_haar_eq_zero_of_disjoint_translates_aux μ u
     (bounded.mono (inter_subset_right _ _) bounded_closed_ball) hu _
     (h's.inter (measurable_set_closed_ball)),
-  rw ← pairwise_univ at ⊢ hs,
   apply pairwise_disjoint.mono hs (λ n, _),
   exact add_subset_add (subset.refl _) (inter_subset_left _ _)
 end
@@ -286,9 +285,8 @@ begin
     rw [continuous_linear_equiv.image_eq_preimage g s, add_haar_preimage_continuous_linear_equiv],
     congr,
     ext x,
-    simp only [linear_equiv.of_is_unit_det_apply, linear_equiv.to_continuous_linear_equiv_apply,
-      continuous_linear_equiv.symm_symm, continuous_linear_equiv.coe_coe,
-      continuous_linear_map.coe_coe, linear_equiv.to_fun_eq_coe, coe_coe] },
+    simp only [linear_equiv.coe_to_continuous_linear_equiv, linear_equiv.of_is_unit_det_apply,
+               linear_equiv.coe_coe, continuous_linear_equiv.symm_symm], },
   { simp only [hf, zero_mul, ennreal.of_real_zero, abs_zero],
     have : μ f.range = 0 :=
       add_haar_submodule μ _ (linear_map.range_lt_top_of_det_eq_zero hf).ne,
@@ -440,12 +438,10 @@ by rw [add_haar_closed_ball' μ x hr, add_haar_closed_unit_ball_eq_add_haar_unit
 lemma add_haar_sphere_of_ne_zero (x : E) {r : ℝ} (hr : r ≠ 0) :
   μ (sphere x r) = 0 :=
 begin
-  rcases lt_trichotomy r 0 with h|rfl|h,
+  rcases hr.lt_or_lt with h|h,
   { simp only [empty_diff, measure_empty, ← closed_ball_diff_ball, closed_ball_eq_empty.2 h] },
-  { exact (hr rfl).elim },
   { rw [← closed_ball_diff_ball,
-        measure_diff ball_subset_closed_ball measurable_set_closed_ball measurable_set_ball
-          measure_ball_lt_top.ne,
+        measure_diff ball_subset_closed_ball measurable_set_ball measure_ball_lt_top.ne,
         add_haar_ball_of_pos μ _ h, add_haar_closed_ball μ _ h.le, tsub_self];
     apply_instance }
 end
@@ -454,8 +450,7 @@ lemma add_haar_sphere [nontrivial E] (x : E) (r : ℝ) :
   μ (sphere x r) = 0 :=
 begin
   rcases eq_or_ne r 0 with rfl|h,
-  { simp only [← closed_ball_diff_ball, diff_empty, closed_ball_zero,
-               ball_zero, measure_singleton] },
+  { rw [sphere_zero, measure_singleton] },
   { exact add_haar_sphere_of_ne_zero μ x h }
 end
 

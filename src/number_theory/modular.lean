@@ -144,7 +144,7 @@ begin
       rw [f_def, add_im, of_real_mul_im, of_real_im, add_zero, mul_left_comm,
         inv_mul_cancel hz, mul_one], },
     { show ((z : ℂ).im)⁻¹ * ((z : ℂ) * conj (f c)).im = c 1,
-      rw [f_def, ring_equiv.map_add, ring_equiv.map_mul, mul_add, mul_left_comm, mul_conj,
+      rw [f_def, ring_hom.map_add, ring_hom.map_mul, mul_add, mul_left_comm, mul_conj,
         conj_of_real, conj_of_real, ← of_real_mul, add_im, of_real_im, zero_add,
         inv_mul_eq_iff_eq_mul₀ hz],
       simp only [of_real_im, of_real_re, mul_im, zero_add, mul_zero] } },
@@ -184,7 +184,7 @@ linear_equiv.Pi_congr_right
     rw neg_sq,
     exact hcd.sq_add_sq_ne_zero
   end,
-  (linear_equiv.refl _ _)]
+  linear_equiv.refl ℝ (fin 2 → ℝ)]
 
 /-- The map `lc_row0` is proper, that is, preimages of cocompact sets are finite in
 `[[* , *], [c, d]]`.-/

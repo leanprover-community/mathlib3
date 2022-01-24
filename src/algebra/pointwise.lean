@@ -1117,6 +1117,8 @@ by simp [finset.mul_def]
 @[to_additive, mono] lemma mul_subset_mul  (hs : s₁ ⊆ s₂) (ht : t₁ ⊆ t₂) : s₁ * t₁ ⊆ s₂ * t₂ :=
 image_subset_image (product_subset_product hs ht)
 
+attribute [mono] add_subset_add
+
 @[simp, to_additive]
 lemma mul_singleton (a : α) : s * {a} = s.image (* a) :=
 by { rw [mul_def, product_singleton, map_eq_image, image_image], refl }

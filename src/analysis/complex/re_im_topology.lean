@@ -150,3 +150,13 @@ by simpa only [closure_Ici, closure_Iic, frontier_Ici, frontier_Iic]
   using frontier_preimage_re_inter_preimage_im (Ici a) (Iic b)
 
 end complex
+
+open complex
+
+lemma is_open.re_prod_im {s t : set ℝ} (hs : is_open s) (ht : is_open t) :
+  is_open (re ⁻¹' s ∩ im ⁻¹' t) :=
+(hs.preimage continuous_re).inter (ht.preimage continuous_im)
+
+lemma is_closed.re_prod_im {s t : set ℝ} (hs : is_closed s) (ht : is_closed t) :
+  is_closed (re ⁻¹' s ∩ im ⁻¹' t) :=
+(hs.preimage continuous_re).inter (ht.preimage continuous_im)

@@ -76,8 +76,10 @@ variables [measurable_space G]
 lemma map_mul_left_eq_self [topological_space G] [has_mul G] [has_continuous_mul G] [borel_space G]
   {μ : measure G} : (∀ g, measure.map ((*) g) μ = μ) ↔ is_mul_left_invariant μ :=
 begin
-  apply forall_congr, intro g, rw [measure.ext_iff], apply forall_congr, intro A,
-  apply forall_congr, intro hA, rw [map_apply (measurable_const_mul g) hA]
+  refine forall_congr (λ g, _),
+  rw measure.ext_iff,
+  refine forall₂_congr (λ A hA, _),
+  rw [map_apply (measurable_const_mul g) hA]
 end
 
 @[to_additive]
@@ -94,8 +96,10 @@ lemma map_mul_right_eq_self [topological_space G] [has_mul G] [has_continuous_mu
   {μ : measure G} :
   (∀ g, measure.map (λ h, h * g) μ = μ) ↔ is_mul_right_invariant μ :=
 begin
-  apply forall_congr, intro g, rw [measure.ext_iff], apply forall_congr, intro A,
-  apply forall_congr, intro hA, rw [map_apply (measurable_mul_const g) hA]
+  refine forall_congr (λ g, _),
+  rw measure.ext_iff,
+  refine forall₂_congr (λ A hA, _),
+  rw [map_apply (measurable_mul_const g) hA]
 end
 
 /-- The measure `A ↦ μ (A⁻¹)`, where `A⁻¹` is the pointwise inverse of `A`. -/
@@ -330,6 +334,16 @@ class is_add_haar_measure {G : Type*} [add_group G] [topological_space G] [measu
 (open_pos : ∀ (U : set G), is_open U → U.nonempty → 0 < μ U)
 
 attribute [to_additive] is_haar_measure
+
+/- Record that a Haar measure on a locally compact space is locally finite. This is needed as the
+fact that a measure which is finite on compacts is locally finite is not registered as an instance,
+to avoid an instance loop. -/
+@[priority 100, to_additive] -- see Note [lower instance priority]
+instance is_locally_finite_measure_of_is_haar_measure
+  [group G] [measurable_space G] [topological_space G] [locally_compact_space G]
+  (μ : measure G) [is_haar_measure μ] :
+  is_locally_finite_measure μ :=
+is_locally_finite_measure_of_is_finite_measure_on_compacts
 
 section
 

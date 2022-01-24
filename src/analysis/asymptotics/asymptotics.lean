@@ -418,7 +418,7 @@ by { unfold is_O, exact exists_congr (λ _, is_O_with_norm_right) }
 alias is_O_norm_right ↔ asymptotics.is_O.of_norm_right asymptotics.is_O.norm_right
 
 @[simp] theorem is_o_norm_right : is_o f (λ x, ∥g' x∥) l ↔ is_o f g' l :=
-by { unfold is_o, exact forall_congr (λ _, forall_congr $ λ _, is_O_with_norm_right) }
+by { unfold is_o, exact forall₂_congr (λ _ _, is_O_with_norm_right) }
 
 alias is_o_norm_right ↔ asymptotics.is_o.of_norm_right asymptotics.is_o.norm_right
 
@@ -433,7 +433,7 @@ by { unfold is_O, exact exists_congr (λ _, is_O_with_norm_left) }
 alias is_O_norm_left ↔ asymptotics.is_O.of_norm_left asymptotics.is_O.norm_left
 
 @[simp] theorem is_o_norm_left : is_o (λ x, ∥f' x∥) g l ↔ is_o f' g l :=
-by { unfold is_o,  exact forall_congr (λ _, forall_congr $ λ _, is_O_with_norm_left) }
+by { unfold is_o, exact forall₂_congr (λ _ _, is_O_with_norm_left) }
 
 alias is_o_norm_left ↔ asymptotics.is_o.of_norm_left asymptotics.is_o.norm_left
 
@@ -468,7 +468,7 @@ by { unfold is_O, exact exists_congr (λ _, is_O_with_neg_right) }
 alias is_O_neg_right ↔ asymptotics.is_O.of_neg_right asymptotics.is_O.neg_right
 
 @[simp] theorem is_o_neg_right : is_o f (λ x, -(g' x)) l ↔ is_o f g' l :=
-by { unfold is_o, exact forall_congr (λ _, (forall_congr (λ _, is_O_with_neg_right))) }
+by { unfold is_o, exact forall₂_congr (λ _ _, is_O_with_neg_right) }
 
 alias is_o_neg_right ↔ asymptotics.is_o.of_neg_right asymptotics.is_o.neg_right
 
@@ -483,7 +483,7 @@ by { unfold is_O, exact exists_congr (λ _, is_O_with_neg_left) }
 alias is_O_neg_left ↔ asymptotics.is_O.of_neg_left asymptotics.is_O.neg_left
 
 @[simp] theorem is_o_neg_left : is_o (λ x, -(f' x)) g l ↔ is_o f' g l :=
-by { unfold is_o, exact forall_congr (λ _, (forall_congr (λ _, is_O_with_neg_left))) }
+by { unfold is_o, exact forall₂_congr (λ _ _, is_O_with_neg_left) }
 
 alias is_o_neg_left ↔ asymptotics.is_o.of_neg_right asymptotics.is_o.neg_left
 
@@ -699,7 +699,7 @@ variables (g g' l)
 
 theorem is_o_zero : is_o (λ x, (0 : E')) g' l :=
 is_o.of_bound $ λ c hc, univ_mem' $ λ x,
-by simpa using mul_nonneg (le_of_lt hc) (norm_nonneg $ g' x)
+by simpa using mul_nonneg hc.le (norm_nonneg $ g' x)
 
 theorem is_O_with_zero (hc : 0 ≤ c) : is_O_with c (λ x, (0 : E')) g' l :=
 is_O_with.of_bound $ univ_mem' $ λ x, by simpa using mul_nonneg hc (norm_nonneg $ g' x)
@@ -812,13 +812,13 @@ lemma is_o_id_const {c : F'} (hc : c ≠ 0) :
   is_o (λ (x : E'), x) (λ x, c) (𝓝 0) :=
 (is_o_const_iff hc).mpr (continuous_id.tendsto 0)
 
-theorem _root_.filter.is_bounded_under.is_O_const (h : is_bounded_under (≤) l (norm ∘ f'))
-  {c : F'} (hc : c ≠ 0) : is_O f' (λ x, c) l :=
+theorem _root_.filter.is_bounded_under.is_O_const (h : is_bounded_under (≤) l (norm ∘ f))
+  {c : F'} (hc : c ≠ 0) : is_O f (λ x, c) l :=
 begin
   rcases h with ⟨C, hC⟩,
   refine (is_O.of_bound 1 _).trans (is_O_const_const C hc l),
   refine (eventually_map.1 hC).mono (λ x h, _),
-  calc ∥f' x∥ ≤ C : h
+  calc ∥f x∥ ≤ C : h
   ... ≤ abs C : le_abs_self C
   ... = 1 * ∥C∥ : (one_mul _).symm
 end
@@ -1170,28 +1170,56 @@ end sum
 
 /-! ### Relation between `f = o(g)` and `f / g → 0` -/
 
-theorem is_o.tendsto_0 {f g : α → 𝕜} {l : filter α} (h : is_o f g l) :
+theorem is_o.tendsto_div_nhds_zero {f g : α → 𝕜} {l : filter α} (h : is_o f g l) :
   tendsto (λ x, f x / (g x)) l (𝓝 0) :=
 have eq₁ : is_o (λ x, f x / g x) (λ x, g x / g x) l,
   by simpa only [div_eq_mul_inv] using h.mul_is_O (is_O_refl _ _),
 have eq₂ : is_O (λ x, g x / g x) (λ x, (1 : 𝕜)) l,
-  from is_O_of_le _ (λ x, by by_cases h : ∥g x∥ = 0; simp [h, zero_le_one]),
+  from is_O_of_le _ (λ x, by simp [div_self_le_one]),
 (is_o_one_iff 𝕜).mp (eq₁.trans_is_O eq₂)
+
+theorem is_o.tendsto_inv_smul_nhds_zero [normed_space 𝕜 E'] {f : α → E'} {g : α → 𝕜} {l : filter α}
+  (h : is_o f g l) : tendsto (λ x, (g x)⁻¹ • f x) l (𝓝 0) :=
+by simpa only [div_eq_inv_mul, ← normed_field.norm_inv, ← norm_smul,
+  ← tendsto_zero_iff_norm_tendsto_zero] using h.norm_norm.tendsto_div_nhds_zero
 
 theorem is_o_iff_tendsto' {f g : α → 𝕜} {l : filter α}
     (hgf : ∀ᶠ x in l, g x = 0 → f x = 0) :
   is_o f g l ↔ tendsto (λ x, f x / (g x)) l (𝓝 0) :=
-iff.intro is_o.tendsto_0 $ λ h,
+iff.intro is_o.tendsto_div_nhds_zero $ λ h,
   (((is_o_one_iff _).mpr h).mul_is_O (is_O_refl g l)).congr'
     (hgf.mono $ λ x, div_mul_cancel_of_imp) (eventually_of_forall $ λ x, one_mul _)
 
 theorem is_o_iff_tendsto {f g : α → 𝕜} {l : filter α}
     (hgf : ∀ x, g x = 0 → f x = 0) :
   is_o f g l ↔ tendsto (λ x, f x / (g x)) l (𝓝 0) :=
-⟨λ h, h.tendsto_0, (is_o_iff_tendsto' (eventually_of_forall hgf)).2⟩
+⟨λ h, h.tendsto_div_nhds_zero, (is_o_iff_tendsto' (eventually_of_forall hgf)).2⟩
 
 alias is_o_iff_tendsto' ↔ _ asymptotics.is_o_of_tendsto'
 alias is_o_iff_tendsto ↔ _ asymptotics.is_o_of_tendsto
+
+lemma is_o_const_left_of_ne {c : E'} (hc : c ≠ 0) :
+  is_o (λ x, c) g l ↔ tendsto (norm ∘ g) l at_top :=
+begin
+  split; intro h,
+  { refine (at_top_basis' 1).tendsto_right_iff.2 (λ C hC, _),
+    replace hC : 0 < C := zero_lt_one.trans_le hC,
+    replace h : is_o (λ _, 1 : α → ℝ) g l := (is_O_const_const _ hc _).trans_is_o h,
+    refine (h.def $ inv_pos.2 hC).mono (λ x hx, _),
+    rwa [norm_one, ← div_eq_inv_mul, one_le_div hC] at hx },
+  { suffices : is_o (λ _, 1 : α → ℝ) g l,
+      from (is_O_const_const c (@one_ne_zero ℝ _ _) _).trans_is_o this,
+    refine is_o_iff.2 (λ ε ε0, (tendsto_at_top.1 h ε⁻¹).mono (λ x hx, _)),
+    rwa [norm_one, ← inv_inv₀ ε, ← div_eq_inv_mul, one_le_div (inv_pos.2 ε0)] }
+end
+
+@[simp] lemma is_o_const_left {c : E'} :
+  is_o (λ x, c) g' l ↔ c = 0 ∨ tendsto (norm ∘ g') l at_top :=
+begin
+  rcases eq_or_ne c 0 with rfl | hc,
+  { simp only [is_o_zero, eq_self_iff_true, true_or] },
+  { simp only [hc, false_or, is_o_const_left_of_ne hc] }
+end
 
 /-!
 ### Eventually (u / v) * v = u
@@ -1270,7 +1298,7 @@ lemma is_o_iff_exists_eq_mul :
   is_o u v l ↔ ∃ (φ : α → 𝕜) (hφ : tendsto φ l (𝓝 0)), u =ᶠ[l] φ * v :=
 begin
   split,
-  { exact λ h, ⟨λ x, u x / v x, h.tendsto_0, h.eventually_mul_div_cancel.symm⟩ },
+  { exact λ h, ⟨λ x, u x / v x, h.tendsto_div_nhds_zero, h.eventually_mul_div_cancel.symm⟩ },
   { unfold is_o, rintros ⟨φ, hφ, huvφ⟩ c hpos,
     rw normed_group.tendsto_nhds_zero at hφ,
     exact is_O_with_of_eq_mul _ ((hφ c hpos).mono $ λ x, le_of_lt)  huvφ }
@@ -1463,7 +1491,7 @@ by { unfold is_O, exact exists_congr (λ C, e.is_O_with_congr hb) }
 /-- Transfer `is_o` over a `local_homeomorph`. -/
 lemma is_o_congr (e : local_homeomorph α β) {b : β} (hb : b ∈ e.target) {f : β → E} {g : β → F} :
   is_o f g (𝓝 b) ↔ is_o (f ∘ e) (g ∘ e) (𝓝 (e.symm b)) :=
-by { unfold is_o, exact (forall_congr $ λ c, forall_congr $ λ hc, e.is_O_with_congr hb) }
+by { unfold is_o, exact forall₂_congr (λ c hc, e.is_O_with_congr hb) }
 
 end local_homeomorph
 
@@ -1488,6 +1516,6 @@ by { unfold is_O, exact exists_congr (λ C, e.is_O_with_congr) }
 /-- Transfer `is_o` over a `homeomorph`. -/
 lemma is_o_congr (e : α ≃ₜ β) {b : β} {f : β → E} {g : β → F} :
   is_o f g (𝓝 b) ↔ is_o (f ∘ e) (g ∘ e) (𝓝 (e.symm b)) :=
-by { unfold is_o, exact forall_congr (λ c, forall_congr (λ hc, e.is_O_with_congr)) }
+by { unfold is_o, exact forall₂_congr (λ c hc, e.is_O_with_congr) }
 
 end homeomorph

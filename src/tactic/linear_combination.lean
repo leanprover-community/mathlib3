@@ -370,19 +370,17 @@ Example Usage:
   will attempt to solve the goal by computing `2 * h1 + -3 * h2`
   and matching that to the goal.
 -/
-add_tactic_doc
-{ name := "linear_combination",
-  category := doc_category.tactic,
-  decl_names := [`tactic.interactive.linear_combination],
-  tags := [] }
 meta def _root_.tactic.interactive.linear_combination
   (input : parse parse_name_pexpr_pair*)
   (config : linear_combination_config := {}) : tactic unit :=
 let (heqs, coeffs) := list.unzip input in
 linear_combination heqs coeffs config
 
-
+add_tactic_doc
+{ name := "linear_combination",
+  category := doc_category.tactic,
+  decl_names := [`tactic.interactive.linear_combination],
+  tags := [] }
 
 end interactive_mode
-
 end linear_combo

@@ -130,10 +130,6 @@ begin
 end
 
 noncomputable
-instance (U : opens X.carrier) (x : U) : algebra (X.presheaf.obj $ op U) (X.presheaf.stalk x) :=
-(X.presheaf.germ x).to_algebra
-
-noncomputable
 instance stalk_function_field_algebra [is_integral X] (x : X.carrier) :
   algebra (X.presheaf.stalk x) X.function_field :=
 begin

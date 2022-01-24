@@ -325,7 +325,7 @@ begin
     eq_to_hom_refl, category_theory.functor.map_id, category.id_comp, iso.hom_inv_id_assoc]
 end
 
-lemma is_affine_open.is_localization_stalk_aux (U : opens X.carrier)
+lemma is_affine_open.is_localization_stalk_aux {X : Scheme} (U : opens X.carrier)
   [is_affine (X.restrict U.open_embedding)] [nonempty U] :
   (inv (Γ_Spec.adjunction.unit.app (X.restrict U.open_embedding))).1.c.app
     (op ((opens.map U.inclusion).obj U)) =
@@ -339,7 +339,8 @@ begin
   have e : (opens.map (inv (Γ_Spec.adjunction.unit.app (X.restrict U.open_embedding))).1.base).obj
     ((opens.map U.inclusion).obj U) = ⊤,
   by { rw [opens.inclusion_map_eq_top], refl },
-  rw [inv_val_c_app, is_iso.comp_inv_eq, Scheme.app_eq _ e, Γ_Spec.adjunction_unit_app_app_top],
+  rw [Scheme.inv_val_c_app, is_iso.comp_inv_eq, Scheme.app_eq _ e,
+    Γ_Spec.adjunction_unit_app_app_top],
   simp only [category.assoc, eq_to_hom_op],
   erw ← functor.map_comp_assoc,
   rw [eq_to_hom_trans, eq_to_hom_refl, category_theory.functor.map_id,
@@ -348,7 +349,8 @@ begin
   simp only [eq_to_hom_map, eq_to_hom_trans],
 end
 
-lemma is_affine_open.is_localization_stalk {X : Scheme} {U : opens X.carrier} (hU : is_affine_open U) (x : U) :
+lemma is_affine_open.is_localization_stalk {X : Scheme} {U : opens X.carrier}
+  (hU : is_affine_open U) (x : U) :
   @is_localization (X.presheaf.obj $ op U) _ (hU.prime_ideal_of x).as_ideal.prime_compl
     (X.presheaf.stalk x) _ _ :=
 begin

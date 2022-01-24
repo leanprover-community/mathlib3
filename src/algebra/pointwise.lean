@@ -38,51 +38,15 @@ Appropriate definitions and results are also transported to the additive theory 
 
 ## Tags
 
-set multiplication, set addition, pointwise addition, pointwise multiplication
-
+set multiplication, set addition, pointwise addition, pointwise multiplication,
+pointwise subtraction
 -/
+
+open function
 
 variables {α β γ : Type*}
 
 namespace set
-
-section image2
-
-variables (f : α → β → γ) {s : set α} {t : set β} {ι : Sort*} {κ : ι → Sort*}
-
-lemma image_Union₂ (f : α → β) (s : Π i, κ i → set α) : f '' (⋃ i j, s i j) = ⋃ i j, f '' s i j :=
-by simp_rw image_Union
-
-lemma image_Inter₂_subset (f : α → β) (s : Π i, κ i → set α) :
-  f '' (⋂ i j, s i j) ⊆ ⋂ i j, f '' s i j :=
-sorry
-
-lemma image2_Union₂_left (s : Π i, κ i → set α) (t : set β) :
-  image2 f (⋃ i j, s i j) t = ⋃ i j, image2 f (s i j) t :=
-by simp_rw image2_Union_left
-
-lemma image2_Union₂_right (s : set α) (t : Π i, κ i → set β) :
-  image2 f s (⋃ i j, t i j) = ⋃ i j, image2 f s (t i j) :=
-by simp_rw image2_Union_right
-
-lemma image2_Inter_subset_left (s : ι → set α) (t : set β) :
-  image2 f (⋂ i, s i) t ⊆ ⋂ i, image2 f (s i) t :=
-by { simp_rw [image2_subset_iff, mem_Inter], exact λ x hx y hy i, mem_image2_of_mem (hx _) hy }
-
-lemma image2_Inter_subset_right (s : set α) (t : ι → set β) :
-  image2 f s (⋂ i, t i) ⊆ ⋂ i, image2 f s (t i) :=
-by { simp_rw [image2_subset_iff, mem_Inter], exact λ x hx y hy i, mem_image2_of_mem hx (hy _) }
-
-lemma image2_Inter₂_subset_left (s : Π i, κ i → set α) (t : set β) :
-  image2 f (⋂ i j, s i j) t ⊆ ⋂ i j, image2 f (s i j) t :=
-by { simp_rw [image2_subset_iff, mem_Inter], exact λ x hx y hy i j, mem_image2_of_mem (hx _ _) hy }
-
-lemma image2_Inter₂_subset_right (s : set α) (t : Π i, κ i → set β) :
-  image2 f s (⋂ i j, t i j) ⊆ ⋂ i j, image2 f s (t i j) :=
-by { simp_rw [image2_subset_iff, mem_Inter], exact λ x hx y hy i j, mem_image2_of_mem hx (hy _ _) }
-
-end image2
-open function
 
 /-! ### Properties about 1 -/
 

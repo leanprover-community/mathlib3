@@ -122,6 +122,14 @@ begin
     λ hh, ⟨(mul_aut.conj g)⁻¹ h, hh, mul_aut.apply_inv_self G (mul_aut.conj g) h⟩⟩),
 end
 
+lemma sylow.smul_eq_of_normal {g : G} {P : sylow p G} [h : (P : subgroup G).normal] :
+  g • P = P :=
+begin
+  apply sylow.smul_eq_iff_mem_normalizer.mpr,
+  rw [sylow.to_subgroup_eq_coe, normalizer_eq_top.mpr h],
+  exact (mem_top _),
+end
+
 lemma subgroup.sylow_mem_fixed_points_iff (H : subgroup G) {P : sylow p G} :
   P ∈ fixed_points H (sylow p G) ↔ H ≤ P.1.normalizer :=
 by simp_rw [set_like.le_def, ←sylow.smul_eq_iff_mem_normalizer]; exact subtype.forall
@@ -431,5 +439,35 @@ begin
   have key : p ∣ card (P : subgroup G) := P.dvd_card_of_dvd_card hdvd,
   rwa [h, card_bot] at key,
 end
+
+
+instance subsingleton_of_normal {p : ℕ} [fact p.prime] [fintype (sylow p G)] [P : sylow p G]
+  [h : (P : subgroup G).normal] : subsingleton (sylow p G) :=
+begin
+  apply subsingleton.intro,
+  intros Q R,
+  obtain ⟨x, h1⟩ := @exists_smul_eq G (sylow p G) _ _ P Q,
+  rw sylow.smul_eq_of_normal at h1,
+  obtain ⟨x, h2⟩ := @exists_smul_eq G (sylow p G) _ _ P R,
+  rw sylow.smul_eq_of_normal at h2,
+  simp only [← h1, ← h2],
+end
+
+section pointwise
+
+open_locale pointwise
+
+lemma characteristic_of_normal {p : ℕ} [fact p.prime] [fintype (sylow p G)] (P : sylow p G)
+  (h : (P : subgroup G).normal) :
+  (P : subgroup G).characteristic :=
+begin
+  apply characteristic_iff_map_eq.mpr,
+  intros Φ,
+  change (Φ • P).to_subgroup = P.to_subgroup,
+  suffices h : Φ • P = P, by congr,
+  simp,
+end
+
+end pointwise
 
 end sylow

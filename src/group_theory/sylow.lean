@@ -441,8 +441,8 @@ begin
 end
 
 
-instance subsingleton_of_normal {p : ℕ} [fact p.prime] [fintype (sylow p G)] [P : sylow p G]
-  [h : (P : subgroup G).normal] : subsingleton (sylow p G) :=
+instance subsingleton_of_normal {p : ℕ} [fact p.prime] [fintype (sylow p G)] (P : sylow p G)
+  (h : (P : subgroup G).normal) : subsingleton (sylow p G) :=
 begin
   apply subsingleton.intro,
   intros Q R,
@@ -457,15 +457,16 @@ section pointwise
 
 open_locale pointwise
 
-lemma characteristic_of_normal {p : ℕ} [fact p.prime] [fintype (sylow p G)] (P : sylow p G)
+instance characteristic_of_normal {p : ℕ} [fact p.prime] [fintype (sylow p G)] (P : sylow p G)
   (h : (P : subgroup G).normal) :
   (P : subgroup G).characteristic :=
 begin
   apply characteristic_iff_map_eq.mpr,
   intros Φ,
   change (Φ • P).to_subgroup = P.to_subgroup,
-  suffices h : Φ • P = P, by congr,
-  simp,
+  suffices h : Φ • P = P, by {congr, exact h},
+  haveI := sylow.subsingleton_of_normal P h,
+  apply subsingleton.elim,
 end
 
 end pointwise

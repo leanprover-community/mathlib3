@@ -130,11 +130,26 @@ begin
 end
 
 noncomputable
+instance (U : opens X.carrier) (x : U) : algebra (X.presheaf.obj $ op U) (X.presheaf.stalk x) :=
+(X.presheaf.germ x).to_algebra
+
+noncomputable
 instance stalk_function_field_algebra [is_integral X] (x : X.carrier) :
   algebra (X.presheaf.stalk x) X.function_field :=
 begin
   apply ring_hom.to_algebra,
   exact X.presheaf.stalk_specializes ((generic_point_spec X.carrier).specializes trivial)
+end
+
+instance function_field_is_scalar_tower [is_integral X] (U : opens X.carrier) (x : U) [nonempty U] :
+  is_scalar_tower (X.presheaf.obj $ op U) (X.presheaf.stalk x) X.function_field :=
+begin
+  haveI : nonempty U := ⟨x⟩,
+  apply is_scalar_tower.of_algebra_map_eq',
+  simp_rw [ring_hom.algebra_map_to_algebra],
+  change _ = X.presheaf.germ x ≫ _,
+  rw X.presheaf.germ_stalk_specializes,
+  refl
 end
 
 noncomputable
@@ -154,127 +169,273 @@ end
 instance function_field_is_fraction_ring_of_affine (R : CommRing.{u}) [is_domain R] :
   is_fraction_ring R (Scheme.Spec.obj $ op R).function_field :=
 begin
+  convert structure_sheaf.is_localization.to_stalk R _,
+  delta is_fraction_ring is_localization.at_prime,
+  congr' 1,
+  rw generic_point_eq_bot_of_affine,
+  ext,
+  exact mem_non_zero_divisors_iff_ne_zero
+end
+
+@[simp]
+lemma iso.CommRing_iso_to_ring_equiv_to_ring_hom {X Y : CommRing} (i : X ≅ Y) :
+  i.CommRing_iso_to_ring_equiv.to_ring_hom = i.hom := by { ext, refl }
+
+@[simp]
+lemma Scheme.id_app {X : Scheme} (U : (opens X.carrier)ᵒᵖ) :
+  (subtype.val (𝟙 X)).c.app U = X.presheaf.map
+    (eq_to_hom (by { induction U using opposite.rec, cases U, refl })) :=
+PresheafedSpace.id_c_app X.to_PresheafedSpace U
+
+@[simp]
+lemma inv_val_c_app {X Y : Scheme} (f : X ⟶ Y) [is_iso f] (U : opens X.carrier) :
+  (inv f).val.c.app (op U) = X.presheaf.map (eq_to_hom $ by { rw is_iso.hom_inv_id, ext1, refl } :
+    (opens.map (f ≫ inv f).1.base).obj U ⟶ U).op ≫
+      inv (f.val.c.app (op $ (opens.map _).obj U)) :=
+begin
+  rw [is_iso.eq_comp_inv],
+  erw ← Scheme.comp_val_c_app,
+  rw [Scheme.congr_app (is_iso.hom_inv_id f),
+    Scheme.id_app, ← functor.map_comp, eq_to_hom_trans, eq_to_hom_op],
+  refl
+end
+
+lemma Scheme.app_eq {X Y : Scheme} (f : X ⟶ Y) {U V : opens Y.carrier} (e : U = V) :
+  f.val.c.app (op U) = Y.presheaf.map (eq_to_hom e.symm).op ≫
+    f.val.c.app (op V) ≫ X.presheaf.map (eq_to_hom (congr_arg (opens.map f.val.base).obj e)).op :=
+begin
+  rw [← is_iso.inv_comp_eq, ← functor.map_inv, f.val.c.naturality, presheaf.pushforward_obj_map],
+  congr
+end
+
+lemma is_affine_open.is_localization_stalk_aux (U : opens X.carrier)
+  [is_affine (X.restrict U.open_embedding)] [nonempty U] :
+  (inv (Γ_Spec.adjunction.unit.app (X.restrict U.open_embedding))).1.c.app
+    (op ((opens.map U.inclusion).obj U)) =
+      X.presheaf.map (eq_to_hom $ by rw opens.inclusion_map_eq_top :
+        U.open_embedding.is_open_map.functor.obj ⊤ ⟶
+          (U.open_embedding.is_open_map.functor.obj ((opens.map U.inclusion).obj U))).op ≫
+      to_Spec_Γ (X.presheaf.obj $ op (U.open_embedding.is_open_map.functor.obj ⊤)) ≫
+      (Scheme.Spec.obj $ op $ X.presheaf.obj $ _).presheaf.map
+        (eq_to_hom (by { rw [opens.inclusion_map_eq_top], refl }) : unop _ ⟶ ⊤).op :=
+begin
+  have e : (opens.map (inv (Γ_Spec.adjunction.unit.app (X.restrict U.open_embedding))).1.base).obj
+    ((opens.map U.inclusion).obj U) = ⊤,
+  by { rw [opens.inclusion_map_eq_top], refl },
+  rw [inv_val_c_app, is_iso.comp_inv_eq, Scheme.app_eq _ e, Γ_Spec.adjunction_unit_app_app_top],
+  simp only [category.assoc, eq_to_hom_op],
+  erw ← functor.map_comp_assoc,
+  rw [eq_to_hom_trans, eq_to_hom_refl, category_theory.functor.map_id,
+    category.id_comp],
+  erw Spec_Γ_identity.inv_hom_id_app_assoc,
+  simp only [eq_to_hom_map, eq_to_hom_trans],
+end
+
+attribute [reassoc] Spec_Γ_naturality
+attribute [elementwise] Scheme.comp_val_base
+
+@[simp]
+lemma opens.adjunction_counit_app_self {X : Top} (U : opens X) :
+  U.open_embedding.is_open_map.adjunction.counit.app U = eq_to_hom (by simp) :=
+by ext
+
+/-- The prime ideal of `𝒪ₓ(U)` corresponding to a point `x : U`. -/
+noncomputable
+def is_affine_open.prime_ideal_of {X : Scheme} {U : opens X.carrier} (hU : is_affine_open U) (x : U) :
+  prime_spectrum (X.presheaf.obj $ op U) :=
+((Scheme.Spec.map (X.presheaf.map (eq_to_hom $
+  show U.open_embedding.is_open_map.functor.obj ⊤ = U, from
+    opens.ext (set.image_univ.trans subtype.range_coe)).op).op).1.base
+  ((@@Scheme.iso_Spec (X.restrict U.open_embedding) hU).hom.1.base x))
+
+lemma is_affine_open.from_Spec_prime_ideal_of {X : Scheme} {U : opens X.carrier} (hU : is_affine_open U) (x : U) :
+  hU.from_Spec.val.base (hU.prime_ideal_of x) = x.1 :=
+begin
+  dsimp only [is_affine_open.from_Spec, subtype.coe_mk],
+  erw [← Scheme.comp_val_base_apply, ← Scheme.comp_val_base_apply],
+  simpa only [← functor.map_comp_assoc, ← functor.map_comp, ← op_comp, eq_to_hom_trans, op_id,
+    eq_to_hom_refl, category_theory.functor.map_id, category.id_comp, iso.hom_inv_id_assoc]
+end
+
+lemma is_affine_open.is_localization_stalk {X : Scheme} {U : opens X.carrier} (hU : is_affine_open U) (x : U) :
+  @is_localization (X.presheaf.obj $ op U) _ (hU.prime_ideal_of x).as_ideal.prime_compl
+    (X.presheaf.stalk x) _ _ :=
+begin
+  haveI : is_affine _ := hU,
+  haveI : nonempty U := ⟨x⟩,
+  rcases x with ⟨x, hx⟩,
+  let y := hU.prime_ideal_of ⟨x, hx⟩,
+  have : hU.from_Spec.val.base y = x := hU.from_Spec_prime_ideal_of ⟨x, hx⟩,
+  change is_localization y.as_ideal.prime_compl _,
+  clear_value y,
+  subst this,
   apply (is_localization.is_localization_iff_of_ring_equiv _
-    (structure_sheaf.stalk_iso _ _).CommRing_iso_to_ring_equiv).mpr,
-  convert localization.is_localization,
-  { rw generic_point_eq_bot_of_affine, ext, exact mem_non_zero_divisors_iff_ne_zero },
-  apply algebra.algebra_ext,
-  intro _, congr' 1,
-  delta function_field.algebra,
-  rw [ring_hom.algebra_map_to_algebra, ring_hom.algebra_map_to_algebra],
-  dsimp,
-  exact structure_sheaf.to_stalk_comp_stalk_to_fiber_ring_hom R _,
-end
-
-lemma function_field_is_fraction_ring_of_is_affine_open [is_integral X] (U : opens X.carrier)
-  (hU : is_affine_open U) [nonempty U] :
-  is_fraction_ring (X.presheaf.obj $ op U) X.function_field := sorry
-
-lemma affine_function_field_is_fraction_ring_of_stalk_aux
-  (R : CommRing) [is_domain R] (x : prime_spectrum R) :
-  (algebra_map ((Scheme.Spec.obj $ op R).presheaf.stalk x)
-    ((Scheme.Spec.obj $ op R).function_field)).comp
-      (structure_sheaf.localization_to_stalk R x) =
-  (is_localization.localization_algebra_of_submonoid_le _ _ x.as_ideal.prime_compl
-    (non_zero_divisors R) (by { intros a ha, rw mem_non_zero_divisors_iff_ne_zero,
-      exact λ h, ha (h.symm ▸ x.as_ideal.zero_mem) }) :
-        algebra (localization.at_prime x.as_ideal) _).to_ring_hom :=
-begin
-  refine (structure_sheaf.localization_to_stalk_stalk_specializes _).trans _,
-  dsimp,
-  apply is_localization.ring_hom_ext x.as_ideal.prime_compl,
-  any_goals { dsimp, apply_instance },
-  ext z,
-  dsimp [CommRing.of_hom],
-  rw category_theory.comp_apply,
-  delta is_localization.localization_algebra_of_submonoid_le
-    prime_spectrum.localization_map_of_specializes,
-  rw [is_localization.lift_eq, structure_sheaf.localization_to_stalk_of],
-  exact (is_localization.lift_eq _ _).symm
-end
-
-instance affine_function_field_is_fraction_ring_of_stalk (R : CommRing) [is_domain R]
-  (x : prime_spectrum R) :
-  is_fraction_ring ((Scheme.Spec.obj $ op R).presheaf.stalk x)
-    ((Scheme.Spec.obj $ op R).function_field) :=
-begin
-  apply (is_fraction_ring.is_fraction_ring_iff_of_base_ring_equiv _
-    (structure_sheaf.stalk_iso _ _).CommRing_iso_to_ring_equiv).mpr,
-  have e : x.as_ideal.prime_compl ≤ non_zero_divisors R,
-  { intros a ha, rw mem_non_zero_divisors_iff_ne_zero,
-    exact λ h, ha (h.symm ▸ x.as_ideal.zero_mem) },
-  letI : algebra (localization.at_prime x.as_ideal) ((Scheme.Spec.obj (op R)).function_field) :=
-    is_localization.localization_algebra_of_submonoid_le _ _ _ _ e,
-  letI : is_scalar_tower R (localization.at_prime x.as_ideal)
-    ((Scheme.Spec.obj (op R)).function_field) :=
-    is_localization.localization_is_scalar_tower_of_submonoid_le _ _ _ _ e,
-  have := is_localization.is_localization_of_submonoid_le (localization.at_prime x.as_ideal)
-    ((Scheme.Spec.obj (op R)).function_field) x.as_ideal.prime_compl
-    (non_zero_divisors R) e,
-  apply_with (is_localization.is_localization_of_is_exists_mul_mem _ _ _
-    (ring_hom.map_le_non_zero_divisors_of_injective _
-      (is_localization.injective _ e) (le_of_eq rfl))) { instances := ff },
-  any_goals { dsimp, apply_instance },
-  swap,
-  { convert this, apply affine_function_field_is_fraction_ring_of_stalk_aux R x },
-  { dsimp,
-    rintro ⟨y, hy⟩,
-    obtain ⟨⟨y', s⟩, e'⟩ := is_localization.surj x.as_ideal.prime_compl y,
-    use algebra_map R _ s,
-    dsimp only [subtype.coe_mk] at e' ⊢,
-    rw mul_comm,
-    rw e',
-    refine set.mem_image_of_mem _ _,
-    simp only [algebra.id.map_eq_id, ring_hom.id_apply, set_like.mem_coe],
-    apply mem_non_zero_divisors_iff_ne_zero.mpr,
-    rintro rfl,
-    simp only [map_zero, subtype.val_eq_coe, mul_eq_zero] at e',
-    replace e' := e'.resolve_left (non_zero_divisors.ne_zero hy),
-    revert e',
-    apply is_localization.to_map_ne_zero_of_mem_non_zero_divisors _ e (e s.prop),
-    all_goals { apply_instance } }
+    (as_iso $ PresheafedSpace.stalk_map hU.from_Spec.1 y).CommRing_iso_to_ring_equiv).mpr,
+  convert structure_sheaf.is_localization.to_stalk _ _ using 1,
+  delta structure_sheaf.stalk_algebra,
+  congr' 1,
+  rw ring_hom.algebra_map_to_algebra,
+  refine (PresheafedSpace.stalk_map_germ hU.from_Spec.1 _ ⟨_, _⟩).trans _,
+  delta is_affine_open.from_Spec Scheme.iso_Spec structure_sheaf.to_stalk,
+  simp only [Scheme.comp_val_c_app, category.assoc],
+  dsimp only [functor.op, as_iso_inv, unop_op],
+  erw is_affine_open.is_localization_stalk_aux,
+  simp only [category.assoc],
+  conv_lhs { rw ← category.assoc },
+  erw [← X.presheaf.map_comp, Spec_Γ_naturality_assoc],
+  congr' 1,
+  simp only [← category.assoc],
+  transitivity _ ≫ (structure_sheaf (X.presheaf.obj $ op U)).1.germ ⟨_, _⟩,
+  { refl },
+  convert ((structure_sheaf (X.presheaf.obj $ op U)).1.germ_res (hom_of_le le_top) ⟨_, _⟩) using 2,
+  rw category.assoc,
+  erw nat_trans.naturality,
+  rw [← LocallyRingedSpace.Γ_map_op, ← LocallyRingedSpace.Γ.map_comp_assoc, ← op_comp],
+  erw ← Scheme.Spec.map_comp,
+  rw [← op_comp, ← X.presheaf.map_comp],
+  transitivity LocallyRingedSpace.Γ.map (quiver.hom.op $ Scheme.Spec.map
+    (X.presheaf.map (𝟙 (op U))).op) ≫ _,
+  { congr },
+  simp only [category_theory.functor.map_id, op_id],
+  erw category_theory.functor.map_id,
+  rw category.id_comp,
+  refl
 end
 .
 
-instance affine_cover_is_integral [is_integral X] (x : X.carrier) :
-  is_integral (X.affine_cover.obj x) :=
+lemma is_integral_of_is_affine_is_domain [is_affine X] [nonempty X.carrier]
+  [h : is_domain (X.presheaf.obj (op ⊤))] : is_integral X :=
 begin
-  haveI : nonempty (X.affine_cover.obj x).carrier,
-  { refine ⟨(X.affine_cover.covers x).some⟩ },
-  exact is_integral_of_open_immersion (X.affine_cover.map x)
+  haveI : is_integral (Scheme.Spec.obj (op (Scheme.Γ.obj (op X)))),
+  { rw affine_is_integral_iff, exact h },
+  exact is_integral_of_open_immersion X.iso_Spec.hom,
+end
+
+instance {X : Scheme} [is_integral X] {U : opens X.carrier} [hU : nonempty U] :
+  is_integral (X.restrict U.open_embedding) :=
+begin
+  haveI : nonempty (X.restrict U.open_embedding).carrier := hU,
+  exact is_integral_of_open_immersion (X.of_restrict U.open_embedding)
+end
+
+lemma is_affine_open.prime_ideal_of_generic_point {X : Scheme} [is_integral X]
+  {U : opens X.carrier} (hU : is_affine_open U) [h : nonempty U] :
+  hU.prime_ideal_of ⟨generic_point X.carrier,
+    ((generic_point_spec X.carrier).mem_open_set_iff U.prop).mpr (by simpa using h)⟩ =
+  generic_point (Scheme.Spec.obj $ op $ X.presheaf.obj $ op U).carrier :=
+begin
+  haveI : is_affine _ := hU,
+  have e : U.open_embedding.is_open_map.functor.obj ⊤ = U,
+  { ext1, exact set.image_univ.trans subtype.range_coe },
+  delta is_affine_open.prime_ideal_of,
+  rw ← Scheme.comp_val_base_apply,
+  convert (generic_point_eq_of_is_open_immersion ((X.restrict U.open_embedding).iso_Spec.hom ≫
+    Scheme.Spec.map (X.presheaf.map (eq_to_hom e).op).op)),
+  ext1,
+  exact (generic_point_eq_of_is_open_immersion (X.of_restrict U.open_embedding)).symm
+end
+
+lemma function_field_is_fraction_ring_of_is_affine_open [is_integral X] (U : opens X.carrier)
+  (hU : is_affine_open U) [hU' : nonempty U] :
+  is_fraction_ring (X.presheaf.obj $ op U) X.function_field :=
+begin
+  haveI : is_affine _ := hU,
+  haveI : nonempty (X.restrict U.open_embedding).carrier := hU',
+  haveI : is_integral (X.restrict U.open_embedding) := @@is_integral_of_is_affine_is_domain _ _ _
+    (by { dsimp, rw opens.open_embedding_obj_top, apply_instance }),
+  have e : U.open_embedding.is_open_map.functor.obj ⊤ = U,
+  { ext1, exact set.image_univ.trans subtype.range_coe },
+  delta is_fraction_ring Scheme.function_field,
+  convert hU.is_localization_stalk ⟨generic_point X.carrier, _⟩ using 1,
+  rw [hU.prime_ideal_of_generic_point, generic_point_eq_bot_of_affine],
+  ext, exact mem_non_zero_divisors_iff_ne_zero
+end
+
+instance (x : X.carrier) : is_affine (X.affine_cover.obj x) :=
+algebraic_geometry.Spec_is_affine _
+
+lemma prime_compl_le_non_zero_divisors {R : Type*} [comm_ring R] [no_zero_divisors R]
+  (p : ideal R) [p.is_prime] :
+  p.prime_compl ≤ non_zero_divisors R :=
+begin
+  nontriviality R,
+  intros a ha, rw mem_non_zero_divisors_iff_ne_zero,
+  exact λ h, ha (h.symm ▸ p.zero_mem)
+end
+
+lemma is_localization.mk'_eq_zero_iff {R : Type*} [comm_ring R] {M : submonoid R}
+  (S : Type*) [comm_ring S] [algebra R S] [is_localization M S] (x : R) (s : M) :
+    is_localization.mk' S x s = 0 ↔ ∃ (m : M), x * m = 0 :=
+by rw [← (is_localization.map_units S s).mul_left_inj, is_localization.mk'_spec, zero_mul,
+  is_localization.map_eq_zero_iff M]
+
+lemma is_localization.non_zero_divisors_le_comap {R : Type*} [comm_ring R] (M : submonoid R)
+  (S : Type*) [comm_ring S] [algebra R S] [is_localization M S] :
+    non_zero_divisors R ≤ (non_zero_divisors S).comap (algebra_map R S)  :=
+begin
+  rintros a ha b (e : b * algebra_map R S a = 0),
+  obtain ⟨x, s, rfl⟩ := is_localization.mk'_surjective M b,
+  rw [← @is_localization.mk'_one R _ M, ← is_localization.mk'_mul, ← (algebra_map R S).map_zero,
+    ← @is_localization.mk'_one R _ M, is_localization.eq] at e,
+  obtain ⟨c, e⟩ := e,
+  rw [zero_mul, zero_mul, submonoid.coe_one, mul_one, mul_comm x a, mul_assoc, mul_comm] at e,
+  rw is_localization.mk'_eq_zero_iff,
+  exact ⟨c, ha _ e⟩
+end
+
+lemma is_localization.map_non_zero_divisors_le {R : Type*} [comm_ring R] (M : submonoid R)
+  (S : Type*) [comm_ring S] [algebra R S] [is_localization M S] :
+    (non_zero_divisors R).map (algebra_map R S).to_monoid_hom ≤ non_zero_divisors S  :=
+submonoid.map_le_iff_le_comap.mpr (is_localization.non_zero_divisors_le_comap M S)
+
+lemma is_localization.is_fraction_ring_of_is_localization {R : Type*} (S T: Type*) [comm_ring R]
+  [comm_ring S] [comm_ring T] (M : submonoid R)
+  [algebra R S] [algebra R T] [algebra S T] [is_scalar_tower R S T]
+  [is_localization M S] [is_fraction_ring R T] (hM : M ≤ non_zero_divisors R) :
+    is_fraction_ring S T :=
+begin
+  have := is_localization.is_localization_of_submonoid_le S T M (non_zero_divisors R) _,
+  refine @@is_localization.is_localization_of_is_exists_mul_mem _ _ _ _ _ _ this _ _,
+  { exact is_localization.map_non_zero_divisors_le M S },
+  { rintro ⟨x, hx⟩,
+    obtain ⟨⟨y, s⟩, e⟩ := is_localization.surj M x,
+    use algebra_map R S s,
+    rw [mul_comm, subtype.coe_mk, e],
+    refine set.mem_image_of_mem (algebra_map R S) _,
+    intros z hz,
+    apply is_localization.injective S hM,
+    rw map_zero,
+    apply hx,
+    rw [← (is_localization.map_units S s).mul_left_inj, mul_assoc, e, ← map_mul,
+      hz, map_zero, zero_mul] },
+  { exact hM }
+end
+
+lemma is_localization.is_fraction_ring_of_is_domain_of_is_localization {R : Type*} (S T: Type*)
+  [comm_ring R] [is_domain R] [comm_ring S] [nontrivial S] [comm_ring T] (M : submonoid R)
+  [algebra R S] [algebra R T] [algebra S T] [is_scalar_tower R S T]
+  [is_localization M S] [is_fraction_ring R T] : is_fraction_ring S T :=
+begin
+  apply is_localization.is_fraction_ring_of_is_localization S T M,
+  intros x hx,
+  rw mem_non_zero_divisors_iff_ne_zero,
+  intro hx',
+  apply @zero_ne_one S,
+  rw [← (algebra_map R S).map_one, ← @is_localization.mk'_one R _ M, @comm _ eq,
+    is_localization.mk'_eq_zero_iff],
+  exact ⟨⟨_, hx⟩, (one_mul x).symm ▸ hx'⟩,
 end
 
 instance [h : is_integral X] (x : X.carrier) :
   is_fraction_ring (X.presheaf.stalk x) X.function_field :=
 begin
-  tactic.unfreeze_local_instances,
-  obtain ⟨y, hy⟩ := X.affine_cover.covers x,
-  rw ← hy,
-  erw is_fraction_ring.is_fraction_ring_iff_of_base_ring_equiv _
-    (as_iso $ PresheafedSpace.stalk_map (X.affine_cover.map _).val y).CommRing_iso_to_ring_equiv,
-  apply (is_localization.is_localization_iff_of_ring_equiv _ (function_field_iso_of_open_immersion
-    (X.affine_cover.map x)).symm.CommRing_iso_to_ring_equiv).mpr,
-  let R := (X.local_affine x).some_spec.some,
-  haveI : is_domain R,
-  { rw ← affine_is_integral_iff, show is_integral (X.affine_cover.obj x), apply_instance },
-  convert algebraic_geometry.affine_function_field_is_fraction_ring_of_stalk R y,
-  delta algebraic_geometry.stalk_function_field_algebra,
-  rw [ring_hom.algebra_map_to_algebra, ring_hom.algebra_map_to_algebra],
-  -- generalize_proofs,
-  suffices : ((as_iso (PresheafedSpace.stalk_map (X.affine_cover.map x).val y)).inv ≫
-    X.presheaf.stalk_specializes _) ≫
-    (function_field_iso_of_open_immersion (X.affine_cover.map x)).inv =
-      (Scheme.Spec.obj (op R)).presheaf.stalk_specializes _,
-  { exact this },
-  rw [category.assoc, iso.inv_comp_eq],
-  apply Top.presheaf.stalk_hom_ext,
-  intros U hU,
-  haveI : nonempty U := ⟨⟨_, hU⟩⟩,
-  dsimp,
-  rw [Top.presheaf.germ_stalk_specializes'_assoc],
-  erw [germ_function_field_iso_of_open_immersion, PresheafedSpace.stalk_map_germ_assoc
-    (X.affine_cover.map x).1 U ⟨y, hU⟩, Top.presheaf.germ_stalk_specializes'],
-  refl,
+  let U : opens X.carrier := ⟨set.range (X.affine_cover.map x).1.base,
+    PresheafedSpace.is_open_immersion.base_open.open_range⟩,
+  haveI : nonempty U := ⟨⟨_, X.affine_cover.covers x⟩⟩,
+  have hU : is_affine_open U := range_is_affine_open_of_open_immersion (X.affine_cover.map x),
+  exact @@is_localization.is_fraction_ring_of_is_domain_of_is_localization _ _ _ _ _ _ _ _ _ _ _ _
+    (hU.is_localization_stalk ⟨x, X.affine_cover.covers x⟩)
+      (function_field_is_fraction_ring_of_is_affine_open X U hU)
 end
 
 end algebraic_geometry

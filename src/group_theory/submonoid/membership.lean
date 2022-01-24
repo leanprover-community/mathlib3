@@ -338,7 +338,7 @@ S.mul_mem_add_closure (add_submonoid.mem_closure.mpr (λ sT hT, hT ha)) hb
 elements. -/
 @[to_additive]
 lemma mem_closure_pair {A : Type*} [comm_monoid A] (a b c : A) :
-  c ∈ submonoid.closure ({a, b} : set A) ↔ (∃ m n : ℕ, (a ^ m) * (b ^ n) = c) :=
+  c ∈ submonoid.closure ({a, b} : set A) ↔ ∃ m n : ℕ, a ^ m * b ^ n = c :=
 begin
   rw [←set.singleton_union, submonoid.closure_union, mem_sup],
   simp_rw [exists_prop, mem_closure_singleton, exists_exists_eq_and],

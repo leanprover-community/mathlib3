@@ -11,13 +11,14 @@ import group_theory.submonoid.membership
 # Chicken McNugget Theorem
 
 In this file we prove the Chicken McNugget Theorem, first using natural multiplication,
-then using additive submonoid closures.
+then using additive submonoid closures. This theorem solves the 2-variable variant of the
+general Frobenius coin problem
 
-## Theorem Statement:
-The Chicken McNugget Theorem states,
-for two relatively prime integers larger than 1,
+## Theorem Statement
+The Chicken McNugget Theorem states, for two relatively prime integers larger than 1,
 the greatest integer not expressible as a sum of nonnegative multiples of these two
-is m * n - m - n.
+is m * n - m - n. The general problem of finding this greatest integer for any number of (not
+pairwise) relatively prime integers is called the Frobenius coin problem.
 
 ## Implementation Notes
 
@@ -51,11 +52,11 @@ begin
 end
 
 /-- No solution for the maximal value over the natural numbers. -/
-lemma chicken_mcnugget_upper_bound (m n : ℕ) (cop : coprime m n) (hm : 1 < m) (hn : 1 < n) :
-  ¬ ∃ (a b : ℕ), a * m + b * n = m * n - m - n :=
+lemma chicken_mcnugget_upper_bound {m n : ℕ} (cop : coprime m n) (hm : 1 < m) (hn : 1 < n)
+  (a b : ℕ) :
+  a * m + b * n ≠ m * n - m - n :=
 begin
-  rintro ⟨a, b, h⟩,
-  apply chicken_mcnugget_upper_bound_aux _ _ m n (add_one_ne_zero a) (add_one_ne_zero b) cop,
+  refine λ h, chicken_mcnugget_upper_bound_aux _ _ m n (add_one_ne_zero a) (add_one_ne_zero b) cop,
   rw [add_mul, add_mul, one_mul, one_mul, add_assoc, ←add_assoc m, add_comm m, add_assoc,
       ←add_assoc, h, nat.sub_sub, nat.sub_add_cancel (add_le_mul hm hn)],
 end
@@ -77,18 +78,18 @@ begin
 end
 
 /-- Combines both sublemmas in a single claim. -/
-theorem chicken_mcnugget_split (m n : ℕ) (cop: coprime m n) (hm : 1 < m) (hn: 1 < n) :
+theorem chicken_mcnugget_split (m n : ℕ) (cop : coprime m n) (hm : 1 < m) (hn : 1 < n) :
   (¬ ∃ a b, a * m + b * n = m * n - m - n) ∧ ∀ k, m * n - m - n < k → ∃ a b, a * m + b * n = k :=
 ⟨chicken_mcnugget_upper_bound m n cop hm hn, chicken_mcnugget_construction m n cop hm hn⟩
 
-/-- Rewrites the above with is_greatest. -/
+/-- Rewrites the above with `is_greatest`. -/
 theorem chicken_mcnugget (m n : ℕ) (cop: coprime m n) (hm : 1 < m) (hn : 1 < n) :
   is_greatest {k | ∀ a b, a * m + b * n ≠ k} (m * n - m - n) :=
 let h := chicken_mcnugget_split m n cop hm hn in
   ⟨λ a b H, h.1 ⟨a, b, H⟩, λ k hk, not_lt.mp (mt (h.2 k) (λ ⟨a, b, H⟩, hk a b H))⟩
 
 /-- Restates the original theorem with add_submonoid.closure. -/
-lemma chicken_mcnugget_add_submonoid_split (m n : ℕ) (cop: coprime m n) (hm: 1 < m) (hn: 1 < n) :
+lemma chicken_mcnugget_add_submonoid_aux (m n : ℕ) (cop : coprime m n) (hm : 1 < m) (hn : 1 < n) :
   m * n - m - n ∉ add_submonoid.closure ({m, n} : set ℕ) ∧
   ∀ k, m * n - m - n < k → k ∈ add_submonoid.closure ({m, n} : set ℕ) :=
 begin
@@ -96,7 +97,7 @@ begin
   exact chicken_mcnugget_split m n cop hm hn,
 end
 
-/-- Rewrites the above with is_greatest. -/
+/-- Rewrites the above with `is_greatest`. -/
 theorem chicken_mcnugget_add_submonoid (m n : ℕ) (cop : coprime m n) (hm : 1 < m) (hn : 1 < n) :
   is_greatest {k | k ∉ add_submonoid.closure ({m, n} : set ℕ)} (m * n - m - n) :=
-let h := chicken_mcnugget_add_submonoid_split m n cop hm hn in ⟨h.1, λ k, not_lt.mp ∘ mt (h.2 k)⟩
+let h := chicken_mcnugget_add_submonoid_aux m n cop hm hn in ⟨h.1, λ k, not_lt.mp ∘ mt (h.2 k)⟩

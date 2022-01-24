@@ -38,10 +38,28 @@ Many constructions based on `α →₀ M` use `semireducible` type tags to avoid
 instances. E.g., `monoid_algebra`, `add_monoid_algebra`, and types based on these two have
 non-pointwise multiplication.
 
+## Main declarations
+
+* `finsupp`: The type of finitely supported functions from `α` to `β`.
+* `finsupp.single`: The `finsupp` which is nonzero in exactly one point.
+* `finsupp.update`: Changes one value of a `finsupp`.
+* `finsupp.erase`: Replaces one value of a `finsupp` by `0`.
+* `finsupp.on_finset`: The restriction of a function to a `finset` as a `finsupp`.
+* `finsupp.indicator`: Turns a map from a `finset` into a `finsupp` from the entire type.
+* `finsupp.map_range`: Composition of a `zero_hom` with a`finsupp`.
+* `finsupp.emb_domain`: Maps the domain of a `finsupp` by an embedding.
+* `finsupp.map_domain`: Maps the domain of a `finsupp` by a function and by summing .
+* `finsupp.comap_domain`: Postcomposition of a `finsupp` with a function injective on the preimage
+  of its support.
+* `finsupp.zip_with`: Postcomposition of two `finsupp`s with a function `f` such that `f 0 0 = 0`.
+* `finsupp.sum`: Sum of the values of a `finsupp`.
+* `finsupp.prod`: Product of the nonzero values of a `finsupp`.
+
 ## Notations
 
-This file adds `α →₀ M` as a global notation for `finsupp α M`. We also use the following convention
-for `Type*` variables in this file
+This file adds `α →₀ M` as a global notation for `finsupp α M`.
+
+We also use the following convention for `Type*` variables in this file
 
 * `α`, `β`, `γ`: types with no additional structure that appear as the first argument to `finsupp`
   somewhere in the statement;
@@ -55,26 +73,24 @@ for `Type*` variables in this file
 
 * `R`, `S`: (semi)rings.
 
-## TODO
-
-* This file is currently ~2K lines long, so possibly it should be splitted into smaller chunks;
-
-* Add the list of definitions and important lemmas to the module docstring.
-
 ## Implementation notes
 
 This file is a `noncomputable theory` and uses classical logic throughout.
 
-## Notation
+## TODO
 
-This file defines `α →₀ β` as notation for `finsupp α β`.
+* This file is currently ~2.7K lines long, so it should be splitted into smaller chunks.
+  One option would be to move all the sum and product stuff to `algebra.big_operators.finsupp` and
+  move the definitions that depend on it to new files under `data.finsupp.`.
+
+* Expand the list of definitions and important lemmas to the module docstring.
 
 -/
 
 noncomputable theory
-open_locale classical big_operators
 
-open finset
+open finset function
+open_locale classical big_operators
 
 variables {α β γ ι M M' N P G H R S : Type*}
 
@@ -411,6 +427,46 @@ lemma support_update_ne_zero [decidable_eq α] (h : b ≠ 0) :
 
 end update
 
+/-! ### `indicator` -/
+
+section indicator
+variables [has_zero α] {s : finset ι} (f : Π i ∈ s, α) {i : ι}
+
+/-- Create an element of `ι →₀ α` from a finset `s` and a function `f` defined on this finset. -/
+def indicator (s : finset ι) (f : Π i ∈ s, α) : ι →₀ α :=
+{ to_fun := λ i, if H : i ∈ s then f i H else 0,
+  support := (s.attach.filter $ λ i : s, f i.1 i.2 ≠ 0).map $ embedding.subtype _,
+  mem_support_to_fun := λ i, begin
+    rw [mem_map, dite_ne_right_iff],
+    exact ⟨λ ⟨⟨j, hj⟩, hf, rfl⟩, ⟨hj, (mem_filter.1 hf).2⟩,
+      λ ⟨hi, hf⟩, ⟨⟨i, hi⟩, mem_filter.2 $ ⟨mem_attach _ _, hf⟩, rfl⟩⟩,
+  end }
+
+lemma indicator_of_mem (hi : i ∈ s) (f : Π i ∈ s, α) : indicator s f i = f i hi := dif_pos hi
+lemma indicator_of_not_mem (hi : i ∉ s) (f : Π i ∈ s, α) : indicator s f i = 0 := dif_neg hi
+
+variables (s i)
+
+@[simp] lemma indicator_apply : indicator s f i = if hi : i ∈ s then f i hi else 0 := rfl
+
+lemma indicator_injective : injective (λ f : Π i ∈ s, α, indicator s f) :=
+begin
+  intros a b h,
+  ext i hi,
+  rw [←indicator_of_mem hi a, ←indicator_of_mem hi b],
+  exact congr_fun h i,
+end
+
+lemma support_indicator_subset : ((indicator s f).support : set ι) ⊆ s :=
+begin
+  intros i hi,
+  rw [mem_coe, mem_support_iff] at hi,
+  by_contra,
+  exact hi (indicator_of_not_mem h _),
+end
+
+end indicator
+
 /-! ### Declarations about `on_finset` -/
 
 section on_finset
@@ -624,7 +680,7 @@ variables [has_zero M] [has_zero N] [has_zero P]
 
 /-- `zip_with f hf g₁ g₂` is the finitely supported function satisfying
   `zip_with f hf g₁ g₂ a = f (g₁ a) (g₂ a)`, and it is well-defined when `f 0 0 = 0`. -/
-def zip_with (f : M → N → P) (hf : f 0 0 = 0) (g₁ : α →₀ M) (g₂ : α →₀ N) : (α →₀ P) :=
+def zip_with (f : M → N → P) (hf : f 0 0 = 0) (g₁ : α →₀ M) (g₂ : α →₀ N) : α →₀ P :=
 on_finset (g₁.support ∪ g₂.support) (λa, f (g₁ a) (g₂ a)) $ λ a H,
 begin
   simp only [mem_union, mem_support_iff, ne], rw [← not_and_distrib],
@@ -995,7 +1051,7 @@ lemma map_range_add [add_zero_class N]
 ext $ λ a, by simp only [hf', add_apply, map_range_apply]
 
 /-- Bundle `emb_domain f` as an additive map from `α →₀ M` to `β →₀ M`. -/
-@[simps] def emb_domain.add_monoid_hom (f : α ↪ β) : (α →₀ M) →+ (β →₀ M) :=
+@[simps] def emb_domain.add_monoid_hom (f : α ↪ β) : (α →₀ M) →+ β →₀ M :=
 { to_fun := λ v, emb_domain f v,
   map_zero' := by simp,
   map_add' := λ v w,
@@ -1674,7 +1730,7 @@ begin
 end
 
 /-- When `f` is an embedding we have an embedding `(α →₀ ℕ)  ↪ (β →₀ ℕ)` given by `map_domain`. -/
-@[simps] def map_domain_embedding {α β : Type*} (f : α ↪ β) : (α →₀ ℕ) ↪ (β →₀ ℕ) :=
+@[simps] def map_domain_embedding {α β : Type*} (f : α ↪ β) : (α →₀ ℕ) ↪ β →₀ ℕ :=
 ⟨finsupp.map_domain f, finsupp.map_domain_injective f.injective⟩
 
 lemma map_domain.add_monoid_hom_comp_map_range [add_comm_monoid N] (f : α → β) (g : M →+ N) :

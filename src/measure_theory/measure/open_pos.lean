@@ -1,9 +1,21 @@
+/-
+Copyright (c) 2022 Yury Kudryashov. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Yury Kudryashov
+-/
 import measure_theory.measure.measure_space
 
 /-!
+# Measures positive on nonempty opens
+
+In this file we define a typeclass for measures that are positive on nonempty opens, see
+`measure_theory.measure.is_open_pos_measure`. Examples include (additive) Haar measures, as well as
+measures that have positive density with respect to a Haar measure. We also prove some basic facts
+about these measures.
+
 -/
 
-open_locale topological_space ennreal
+open_locale topological_space ennreal measure_theory
 open set function filter
 
 namespace measure_theory
@@ -13,8 +25,9 @@ namespace measure
 section basic
 
 variables {X Y : Type*} [topological_space X] {m : measurable_space X}
-  [topological_space Y] [t2_space Y] (μ : measure X)
+  [topological_space Y] [t2_space Y] (μ ν : measure X)
 
+/-- A measure is said to be `is_open_pos_measure` if it is positive on nonempty open sets. -/
 class is_open_pos_measure : Prop :=
 (open_pos : ∀ (U : set X), is_open U → U.nonempty → μ U ≠ 0)
 
@@ -39,7 +52,18 @@ lemma measure_pos_of_nonempty_interior (h : (interior s).nonempty) : 0 < μ s :=
 lemma measure_pos_of_mem_nhds (h : s ∈ 𝓝 x) : 0 < μ s :=
 measure_pos_of_nonempty_interior _ ⟨x, mem_interior_iff_mem_nhds.2 h⟩
 
-variable {μ}
+lemma is_open_pos_measure_smul {c : ℝ≥0∞} (h : c ≠ 0) : is_open_pos_measure (c • μ) :=
+⟨λ U Uo Une, mul_ne_zero h (Uo.measure_ne_zero μ Une)⟩
+
+variables {μ ν}
+
+protected lemma absolutely_continuous.is_open_pos_measure (h : μ ≪ ν) :
+  is_open_pos_measure ν :=
+⟨λ U ho hne h₀, ho.measure_ne_zero μ hne (h h₀)⟩
+
+lemma _root_.has_le.le.is_open_pos_measure (h : μ ≤ ν) :
+  is_open_pos_measure ν :=
+h.absolutely_continuous.is_open_pos_measure
 
 lemma _root_.is_open.eq_empty_of_measure_zero (hU : is_open U) (h₀ : μ U = 0) :
   U = ∅ :=

@@ -359,14 +359,8 @@ by simp_rw [mul_comm, haar_preimage_mul μ g A]
 lemma is_haar_measure.smul {c : ℝ≥0∞} (cpos : c ≠ 0) (ctop : c ≠ ∞) :
   is_haar_measure (c • μ) :=
 { left_invariant := (is_mul_left_invariant_haar μ).smul _,
-  lt_top_of_is_compact := λ K hK, begin
-    change c * μ K < ∞,
-    simp [lt_top_iff_ne_top, hK.measure_lt_top.ne, cpos, ctop],
-  end,
-  open_pos := λ U U_open U_ne, begin
-    change c * μ U ≠ 0,
-    simp [cpos, U_open.measure_ne_zero μ U_ne],
-  end }
+  lt_top_of_is_compact := λ K hK, ennreal.mul_lt_top ctop hK.measure_lt_top.ne,
+  to_is_open_pos_measure := is_open_pos_measure_smul μ cpos }
 
 /-- If a left-invariant measure gives positive mass to some compact set with nonempty interior, then
 it is a Haar measure -/

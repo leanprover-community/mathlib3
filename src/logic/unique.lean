@@ -53,6 +53,14 @@ structure unique (α : Sort u) extends inhabited α :=
 
 attribute [class] unique
 
+lemma unique_iff_exists_unique (α : Sort u) : nonempty (unique α) ↔ ∃!a:α, true :=
+⟨λ ⟨u⟩, ⟨u.default, trivial, λ a _, u.uniq a⟩, λ ⟨a,_,h⟩, ⟨⟨⟨a⟩, λ _, h _ trivial⟩⟩⟩
+
+lemma unique_subtype_iff_exists_unique {α} (p : α → Prop) :
+  nonempty (unique (subtype p)) ↔ ∃!a:α, p a :=
+⟨λ ⟨u⟩, ⟨u.default.1, u.default.2, λ a h, congr_arg subtype.val (u.uniq ⟨a,h⟩)⟩,
+ λ ⟨a,ha,he⟩, ⟨⟨⟨⟨a,ha⟩⟩, λ ⟨b,hb⟩, by { congr, exact he b hb }⟩⟩⟩
+
 /-- Given an explicit `a : α` with `[subsingleton α]`, we can construct
 a `[unique α]` instance. This is a def because the typeclass search cannot
 arbitrarily invent the `a : α` term. Nevertheless, these instances are all

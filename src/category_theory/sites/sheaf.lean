@@ -43,7 +43,7 @@ noncomputable theory
 
 namespace category_theory
 
-open opposite category_theory category limits sieve classical
+open opposite category_theory category limits sieve
 
 namespace presheaf
 
@@ -96,15 +96,18 @@ def hom_equiv_amalgamation :
   inv_fun := λ t, ⟨t.1, λ f, t.2 f.unop.1.hom f.unop.2⟩,
   left_inv := λ l, by { ext, refl },
   right_inv := λ t, by { ext, refl } }
-
+--#check hom_equiv_amalgamation
 def is_limit_iff_is_sheaf_for :
   nonempty (is_limit (P.map_cone S.arrows.cocone.op)) ↔
   ∀ E : Aᵒᵖ, is_sheaf_for (P ⋙ coyoneda.obj E) S :=
 begin
   dsimp [is_sheaf_for], simp_rw compatible_iff_sieve_compatible,
-  rw (cone.is_limit_equiv_is_terminal _).nonempty_congr,
+  rw ((cone.is_limit_equiv_is_terminal _).trans (is_terminal_equiv_unique _ _)).nonempty_congr,
+  rw classical.nonempty_pi, -- rw (hom_equiv_amalgamation _).unique_congr.nonempty_congr,
   split,
-  { rintro ⟨hl⟩ E x hx,
+  { rintro hu E x hx, cases hu hx.cone with h,
+    have := (hom_equiv_amalgamation hx).unique_congr (hu hx.cone).some,
+
 
   },
 end
@@ -250,7 +253,7 @@ end category_theory
 
 namespace category_theory
 
-open opposite category_theory category limits sieve classical
+open opposite category_theory category limits sieve
 
 namespace presheaf
 
@@ -274,7 +277,7 @@ def is_limit_of_is_sheaf {X : C} (S : J.cover X) (hP : is_sheaf J P) :
     rintros (E : multifork _) (a|b),
     { apply hP.amalgamate_map },
     { rw [← E.w (walking_multicospan.hom.fst b),
-        ← (S.multifork P).w (walking_multicospan.hom.fst b), ← category.assoc],
+        ← (S.multifork P).w (walking_multicospan.hom.fst b), ← assoc],
       congr' 1,
       apply hP.amalgamate_map }
   end,
@@ -305,7 +308,7 @@ begin
     rintros (a|b),
     { apply he },
     { rw [← K.w (walking_multicospan.hom.fst b),
-        ← (T.multifork P).w (walking_multicospan.hom.fst b), ← category.assoc],
+        ← (T.multifork P).w (walking_multicospan.hom.fst b), ← assoc],
       congr' 1,
       apply he } }
 end

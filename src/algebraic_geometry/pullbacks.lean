@@ -416,7 +416,8 @@ lemma pullback_p1_iso_hom_ι (i : 𝒰.J) :
   (pullback_p1_iso 𝒰 f g i).hom ≫ (gluing 𝒰 f g).ι i = pullback.fst :=
 by rw [← pullback_p1_iso_inv_fst, iso.hom_inv_id_assoc]
 
-lemma glued_is_limit : is_limit (pullback_cone.mk _ _ (p_comm 𝒰 f g)) :=
+/-- The glued scheme (`(gluing 𝒰 f g).glued`) is indeed the pullback of `f` and `g`. -/
+def glued_is_limit : is_limit (pullback_cone.mk _ _ (p_comm 𝒰 f g)) :=
 begin
   apply pullback_cone.is_limit_aux',
   intro s,

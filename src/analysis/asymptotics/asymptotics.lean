@@ -699,7 +699,7 @@ variables (g g' l)
 
 theorem is_o_zero : is_o (λ x, (0 : E')) g' l :=
 is_o.of_bound $ λ c hc, univ_mem' $ λ x,
-by simpa using mul_nonneg (le_of_lt hc) (norm_nonneg $ g' x)
+by simpa using mul_nonneg hc.le (norm_nonneg $ g' x)
 
 theorem is_O_with_zero (hc : 0 ≤ c) : is_O_with c (λ x, (0 : E')) g' l :=
 is_O_with.of_bound $ univ_mem' $ λ x, by simpa using mul_nonneg hc (norm_nonneg $ g' x)
@@ -1198,23 +1198,27 @@ theorem is_o_iff_tendsto {f g : α → 𝕜} {l : filter α}
 alias is_o_iff_tendsto' ↔ _ asymptotics.is_o_of_tendsto'
 alias is_o_iff_tendsto ↔ _ asymptotics.is_o_of_tendsto
 
-@[simp] lemma is_o_const_left {c : E'} :
-  is_o (λ x, c) g' l ↔ c = 0 ∨ tendsto (norm ∘ g') l at_top :=
+lemma is_o_const_left_of_ne {c : E'} (hc : c ≠ 0) :
+  is_o (λ x, c) g l ↔ tendsto (norm ∘ g) l at_top :=
 begin
-  suffices : c ≠ 0 → (is_o (λ (x : α), c) g' l ↔ tendsto (norm ∘ g') l at_top),
-  { rcases eq_or_ne c 0 with rfl | hc,
-    { simp only [is_o_zero, eq_self_iff_true, true_or] },
-    { simp only [hc, false_or, this hc] } },
-  intro hc, split; intro h,
+  split; intro h,
   { refine (at_top_basis' 1).tendsto_right_iff.2 (λ C hC, _),
     replace hC : 0 < C := zero_lt_one.trans_le hC,
-    replace h : is_o (λ _, 1 : α → ℝ) g' l := (is_O_const_const _ hc _).trans_is_o h,
+    replace h : is_o (λ _, 1 : α → ℝ) g l := (is_O_const_const _ hc _).trans_is_o h,
     refine (h.def $ inv_pos.2 hC).mono (λ x hx, _),
     rwa [norm_one, ← div_eq_inv_mul, one_le_div hC] at hx },
-  { suffices : is_o (λ _, 1 : α → ℝ) g' l,
+  { suffices : is_o (λ _, 1 : α → ℝ) g l,
       from (is_O_const_const c (@one_ne_zero ℝ _ _) _).trans_is_o this,
     refine is_o_iff.2 (λ ε ε0, (tendsto_at_top.1 h ε⁻¹).mono (λ x hx, _)),
     rwa [norm_one, ← inv_inv₀ ε, ← div_eq_inv_mul, one_le_div (inv_pos.2 ε0)] }
+end
+
+@[simp] lemma is_o_const_left {c : E'} :
+  is_o (λ x, c) g' l ↔ c = 0 ∨ tendsto (norm ∘ g') l at_top :=
+begin
+  rcases eq_or_ne c 0 with rfl | hc,
+  { simp only [is_o_zero, eq_self_iff_true, true_or] },
+  { simp only [hc, false_or, is_o_const_left_of_ne hc] }
 end
 
 /-!

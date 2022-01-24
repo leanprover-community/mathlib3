@@ -159,7 +159,7 @@ lemma cocycle_snd_snd (i j k : 𝒰.J) :
     pullback.snd ≫ pullback.snd :=
 by simp
 
--- by tidy should solve it but it timesout.
+-- `by tidy` should solve it, but it times out.
 lemma cocycle (i j k : 𝒰.J) :
   t' 𝒰 f g i j k ≫ t' 𝒰 f g j k i ≫ t' 𝒰 f g k i j = 𝟙 _ :=
 begin

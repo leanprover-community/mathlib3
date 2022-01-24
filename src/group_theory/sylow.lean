@@ -474,41 +474,6 @@ begin
   apply this,
 end
 
-@[simp]
-lemma comap_subtype_self_top {G : Type*} [group G] [H : subgroup G] :
-  comap H.subtype H = ⊤ := by { ext, simp }
-
-lemma comap_normalizer_eq_of_injective_range [N : Type*] [group N] (H : subgroup G)
-  {f : N →* G} (hf : function.injective f) (h : H.normalizer ≤ f.range) :
-  H.normalizer.comap f = (H.comap f).normalizer :=
-begin
-  apply (subgroup.map_injective hf),
-  rw (map_comap_eq_self h),
-  apply le_antisymm,
-  {
-    refine (le_trans _ (map_mono (le_normalizer_comap _))),
-    rewrite map_comap_eq_self h,
-    apply (le_refl _),
-  },
-  {
-    refine (le_trans (le_normalizer_map f) _),
-    rewrite map_comap_eq_self (le_trans le_normalizer h),
-    apply (le_refl _),
-  }
-end
-
-lemma comap_subtype_normalizer_eq {H N : subgroup G} (h : H.normalizer ≤ N) :
-  H.normalizer.comap N.subtype = (H.comap N.subtype).normalizer :=
-begin
-  apply comap_normalizer_eq_of_injective_range,
-  exact subtype.coe_injective,
-  simpa,
-end
-
-@[simp]
-lemma map_top_range {G H : Type*} [group G] [group H] (f : G →* H) :
-  subgroup.map f ⊤ = f.range := by { ext, simp }
-
 lemma normalizer_self_normalizing [fintype G] {p : ℕ} {hp : fact p.prime} (P : sylow p G) :
  (↑P : subgroup G).normalizer.normalizer = (↑P : subgroup G).normalizer :=
 begin
@@ -527,16 +492,17 @@ begin
     simp [P'],
     rewrite ← comap_subtype_normalizer_eq le_normalizer,
     rewrite ← comap_subtype_normalizer_eq (le_refl _),
-    rewrite comap_subtype_self_top,
+    rewrite subgroup.comap_subtype_self_top,
   end,
   have h2 := congr_arg (subgroup.map H.subtype) h1 ,
   simp [P'] at h2,
   rw ← comap_subtype_normalizer_eq le_normalizer at h2,
   rewrite map_comap_eq_self at h2,
-
-  symmetry, apply h2,
+  rw ← monoid_hom.range_eq_map at h2,
+  rw [subtype_range] at h2,
+  symmetry,
+  apply h2,
   simp, apply le_normalizer,
 end
-
 
 end sylow

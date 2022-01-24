@@ -13,12 +13,13 @@ This file defines cubic polynomials over a semiring and their discriminants over
 
 ## Main definitions
 
-* `cubic`
-* `disc`
+* `cubic`: the structure representing a cubic polynomial.
+* `disc`: the discriminant of a cubic polynomial.
 
 ## Main statements
 
-* `disc_ne_zero_iff_roots_nodup`
+* `disc_ne_zero_iff_roots_nodup`: the cubic discriminant is not equal to zero if and only if
+  the cubic has no duplicate roots.
 
 ## References
 
@@ -27,13 +28,13 @@ This file defines cubic polynomials over a semiring and their discriminants over
 
 ## Tags
 
-cubic, polynomial, root, discriminant
+cubic, discriminant, polynomial, root
 -/
 
 noncomputable theory
 
 /-- The structure representing a cubic polynomial. -/
-structure cubic (R : Type*) [has_zero R] := (a b c d : R)
+@[ext] structure cubic (R : Type*) := (a b c d : R)
 
 instance (R : Type*) [has_zero R] : inhabited (cubic R) := ⟨⟨0, 0, 0, 0⟩⟩
 
@@ -53,17 +54,14 @@ def to_poly (P : cubic R) : polynomial R := C P.d + C P.c * X + C P.b * X ^ 2 + 
 /-- Map a cubic polynomial across a ring homomorphism. -/
 def map (P : cubic R) : cubic S := ⟨φ P.a, φ P.b, φ P.c, φ P.d⟩
 
-lemma map_eq : (map φ P).to_poly = polynomial.map φ P.to_poly :=
-begin
-  change (map φ P).to_poly = polynomial.map φ (C P.d + C P.c * X + C P.b * X ^ 2 + C P.a * X ^ 3),
-  simp only [map_C, map_X, polynomial.map_add, polynomial.map_mul, polynomial.map_pow],
-  refl
-end
+lemma map_to_poly : (map φ P).to_poly = polynomial.map φ P.to_poly :=
+by simp only [map, to_poly, map_C, map_X, polynomial.map_add, polynomial.map_mul,
+              polynomial.map_pow]
 
 lemma coeffs :
   P.to_poly.coeff 3 = P.a ∧ P.to_poly.coeff 2 = P.b ∧ P.to_poly.coeff 1 = P.c
     ∧ P.to_poly.coeff 0 = P.d :=
-by { rw [to_poly], simp only [coeff_add, coeff_C, coeff_C_mul, coeff_X, coeff_C_mul_X], norm_num }
+by { simp only [to_poly, coeff_add, coeff_C, coeff_C_mul, coeff_X, coeff_C_mul_X], norm_num }
 
 @[simp] theorem coeff_three : P.to_poly.coeff 3 = P.a := coeffs.1
 
@@ -73,61 +71,30 @@ by { rw [to_poly], simp only [coeff_add, coeff_C, coeff_C_mul, coeff_X, coeff_C_
 
 @[simp] theorem coeff_zero : P.to_poly.coeff 0 = P.d := coeffs.2.2.2
 
+theorem a_of_eq (h : P.to_poly = Q.to_poly) : P.a = Q.a := by rw [← coeff_three, h, coeff_three]
+
+theorem b_of_eq (h : P.to_poly = Q.to_poly) : P.b = Q.b := by rw [← coeff_two, h, coeff_two]
+
+theorem c_of_eq (h : P.to_poly = Q.to_poly) : P.c = Q.c := by rw [← coeff_one, h, coeff_one]
+
+theorem d_of_eq (h : P.to_poly = Q.to_poly) : P.d = Q.d := by rw [← coeff_zero, h, coeff_zero]
+
 lemma to_poly_injective (P Q : cubic R) : P.to_poly = Q.to_poly ↔ P = Q :=
-begin
-  rcases ⟨P, Q⟩ with ⟨⟨_, _, _, _⟩, ⟨_, _, _, _⟩⟩,
-  split,
-  { rintro h,
-    simp only,
-    split,
-    { apply_fun (λ p, coeff p 3) at h,
-      rw [coeff_three, coeff_three] at h,
-      exact h },
-    { split,
-      { apply_fun (λ p, coeff p 2) at h,
-        rw [coeff_two, coeff_two] at h,
-        exact h },
-      { split,
-        { apply_fun (λ p, coeff p 1) at h,
-          rw [coeff_one, coeff_one] at h,
-          exact h },
-        { apply_fun (λ p, coeff p 0) at h,
-          rw [coeff_zero, coeff_zero] at h,
-          exact h } } } },
-  { intro h,
-    injection h with ha hb hc hd,
-    rw [ha, hb, hc, hd] }
-end
-
-theorem a_of_eq (h : P.to_poly = Q.to_poly) : P.a = Q.a :=
-by { rw [to_poly_injective] at h, rw [h] }
-
-theorem b_of_eq (h : P.to_poly = Q.to_poly) : P.b = Q.b :=
-by { rw [to_poly_injective] at h, rw [h] }
-
-theorem c_of_eq (h : P.to_poly = Q.to_poly) : P.c = Q.c :=
-by { rw [to_poly_injective] at h, rw [h] }
-
-theorem d_of_eq (h : P.to_poly = Q.to_poly) : P.d = Q.d :=
-by { rw [to_poly_injective] at h, rw [h] }
+⟨λ h, cubic.ext _ _ (a_of_eq h) (b_of_eq h) (c_of_eq h) (d_of_eq h), congr_arg _⟩
 
 lemma of_a_eq_zero (ha : P.a = 0) : P.to_poly = C P.d + C P.c * X + C P.b * X ^ 2 :=
-by { rw [to_poly, C_eq_zero.mpr ha, zero_mul, add_zero] }
+by rw [to_poly, C_eq_zero.mpr ha, zero_mul, add_zero]
 
 lemma of_b_eq_zero (ha : P.a = 0) (hb : P.b = 0) : P.to_poly = C P.d + C P.c * X :=
-by { rw [to_poly, C_eq_zero.mpr ha, C_eq_zero.mpr hb], simp only [add_zero, zero_mul] }
+by rw [to_poly, C_eq_zero.mpr ha, C_eq_zero.mpr hb, zero_mul, zero_mul, add_zero, add_zero]
 
 lemma of_c_eq_zero (ha : P.a = 0) (hb : P.b = 0) (hc : P.c = 0) : P.to_poly = C P.d :=
-begin
-  rw [to_poly, C_eq_zero.mpr ha, C_eq_zero.mpr hb, C_eq_zero.mpr hc],
-  simp only [add_zero, zero_mul]
-end
+by rw [to_poly, C_eq_zero.mpr ha, C_eq_zero.mpr hb, C_eq_zero.mpr hc, zero_mul, zero_mul, zero_mul,
+       add_zero, add_zero, add_zero]
 
 lemma of_zero (ha : P.a = 0) (hb : P.b = 0) (hc : P.c = 0) (hd : P.d = 0) : P.to_poly = 0 :=
-begin
-  rw [to_poly, C_eq_zero.mpr ha, C_eq_zero.mpr hb, C_eq_zero.mpr hc, C_eq_zero.mpr hd],
-  simp only [add_zero, zero_mul]
-end
+by rw [to_poly, C_eq_zero.mpr ha, C_eq_zero.mpr hb, C_eq_zero.mpr hc, C_eq_zero.mpr hd, zero_mul,
+       zero_mul, zero_mul, add_zero, add_zero, add_zero]
 
 end coeff
 
@@ -274,7 +241,7 @@ variables {R S : Type*} [comm_ring R] [comm_ring S] [is_domain S]
 def roots [is_domain R] (P : cubic R) : multiset R := P.to_poly.roots
 
 lemma roots_eq {φ : R →+* S} {P : cubic R} : (map φ P).roots = (polynomial.map φ P.to_poly).roots :=
-by rw [roots, map_eq]
+by rw [roots, map_to_poly]
 
 theorem mem_roots_iff [is_domain R] {P : cubic R} (h0 : P.to_poly ≠ 0) (x : R) :
   x ∈ P.roots ↔ P.d + P.c * x + P.b * x ^ 2 + P.a * x ^ 3 = 0 :=
@@ -300,7 +267,7 @@ theorem splits_iff_card_roots (ha : P.a ≠ 0) : splits φ P.to_poly ↔ (map φ
 begin
   replace ha : (map φ P).a ≠ 0 := (ring_hom.map_ne_zero φ).mpr ha,
   change splits ((ring_hom.id K).comp φ) P.to_poly ↔ card (map φ P).to_poly.roots = 3,
-  rw [← splits_map_iff, ← map_eq, splits_iff_card_roots,
+  rw [← splits_map_iff, ← map_to_poly, splits_iff_card_roots,
       ← (degree_eq_iff_nat_degree_eq $ ne_zero_of_a_ne_zero ha).mp $ degree_of_a_ne_zero ha]
 end
 
@@ -311,7 +278,7 @@ by rw [splits_iff_card_roots ha, card_eq_three]
 theorem eq_prod_three_roots (ha : P.a ≠ 0) (h3 : (map φ P).roots = {x, y, z}) :
   (map φ P).to_poly = C (φ P.a) * (X - C x) * (X - C y) * (X - C z) :=
 begin
-  rw [map_eq, eq_prod_roots_of_splits $ (splits_iff_roots_eq_three ha).mpr $ exists.intro x $
+  rw [map_to_poly, eq_prod_roots_of_splits $ (splits_iff_roots_eq_three ha).mpr $ exists.intro x $
         exists.intro y $ exists.intro z h3, leading_coeff_of_a_ne_zero ha, ← roots_eq, h3],
   change C (φ P.a) * ((X - C x) ::ₘ (X - C y) ::ₘ {X - C z}).prod = _,
   rw [prod_cons, prod_cons, prod_singleton, mul_assoc, mul_assoc]
@@ -320,10 +287,11 @@ end
 theorem eq_sum_three_roots (ha : P.a ≠ 0) (h3 : (map φ P).roots = {x, y, z}) :
   map φ P = ⟨φ P.a, φ P.a * -(x + y + z), φ P.a * (x * y + x * z + y * z), φ P.a * -(x * y * z)⟩ :=
 begin
-  apply_fun to_poly using λ P Q, (to_poly_injective P Q).mp,
+  apply_fun to_poly,
   rw [eq_prod_three_roots ha h3, to_poly],
   simp only [C_neg, C_add, C_mul],
-  ring1
+  ring1,
+  exact λ P Q, (to_poly_injective P Q).mp
 end
 
 theorem b_eq_three_roots (ha : P.a ≠ 0) (h3 : (map φ P).roots = {x, y, z}) :
@@ -362,12 +330,19 @@ begin
   ring1
 end
 
-theorem disc_ne_zero_iff_roots_nodup (ha : P.a ≠ 0) (h3 : (map φ P).roots = {x, y, z}) :
-  P.disc ≠ 0 ↔ (map φ P).roots.nodup :=
+theorem disc_ne_zero_iff_roots_ne (ha : P.a ≠ 0) (h3 : (map φ P).roots = {x, y, z}) :
+  P.disc ≠ 0 ↔ x ≠ y ∧ x ≠ z ∧ y ≠ z :=
 begin
   rw [← ring_hom.map_ne_zero φ, disc_eq_prod_three_roots ha h3, pow_two],
   simp only [mul_ne_zero_iff, sub_ne_zero],
-  rw [ring_hom.map_ne_zero, h3],
+  rw [ring_hom.map_ne_zero],
+  tautology
+end
+
+theorem disc_ne_zero_iff_roots_nodup (ha : P.a ≠ 0) (h3 : (map φ P).roots = {x, y, z}) :
+  P.disc ≠ 0 ↔ (map φ P).roots.nodup :=
+begin
+  rw [disc_ne_zero_iff_roots_ne ha h3, h3],
   change _ ↔ (x ::ₘ y ::ₘ {z}).nodup,
   rw [nodup_cons, nodup_cons, mem_cons, mem_singleton, mem_singleton],
   simp only [nodup_singleton],

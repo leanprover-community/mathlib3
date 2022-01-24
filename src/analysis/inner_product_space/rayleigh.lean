@@ -92,7 +92,6 @@ begin
   { simp only [hx, div_zero, nat.one_ne_zero, norm_zero, ne.def, norm_nonneg, not_false_iff,
                bit0_eq_zero, zero_pow'] },
   have h : T.re_apply_inner_self x ≤ ∥T x∥ * ∥x∥ := re_inner_le_norm (T x) x,
-  dsimp,
   refine (div_le_iff _).mpr _,
   refine pow_two_pos_of_ne_zero _ (ne_of_gt (norm_pos_iff.mpr hx)),
   calc _ ≤ ∥T x∥ * ∥x∥       : h
@@ -100,27 +99,46 @@ begin
       ... = ∥T∥ * ∥x∥ ^ 2    : by rw [mul_assoc, pow_two],
 end
 
+lemma neg_rayleigh_le_norm (x : E) : -rayleigh_quotient x ≤ ∥T∥ :=
+begin
+  have h := rayleigh_le_norm (-T) x,
+  rw [norm_neg] at h,
+  simp only [re_apply_inner_self, neg_apply, inner_neg_left, add_monoid_hom.map_neg] at h,
+  simp only [re_apply_inner_self, ←neg_div, h],
+end
+
 lemma supr_rayleigh_le_norm : (⨆ x, rayleigh_quotient x) ≤ ∥T∥ :=
 csupr_le (λ x, rayleigh_le_norm T x)
 
+lemma supr_neg_rayleigh_le_norm : (⨆ x, -rayleigh_quotient x) ≤ ∥T∥ :=
+csupr_le (λ x, neg_rayleigh_le_norm T x)
+
 lemma rayleigh_bdd_above : bdd_above (set.range rayleigh_quotient) :=
 begin
-  unfold bdd_above,
-  rw [set.nonempty_def],
-  refine ⟨∥T∥, _⟩,
-  rw [mem_upper_bounds],
-  intros x hx,
+  refine set.nonempty_def.mpr ⟨∥T∥, mem_upper_bounds.mpr (λ x hx, _)⟩,
   rw [set.mem_range] at hx,
   rcases hx with ⟨y, hy⟩,
   rw [←hy],
   exact rayleigh_le_norm T y
 end
 
+lemma neg_rayleigh_bdd_above : bdd_above (set.range (-rayleigh_quotient)) :=
+begin
+  refine set.nonempty_def.mpr ⟨∥T∥, mem_upper_bounds.mpr (λ x hx, _)⟩,
+  rw [set.mem_range] at hx,
+  rcases hx with ⟨y, hy⟩,
+  rw [←hy],
+  exact neg_rayleigh_le_norm T y
+end
+
 lemma supr_rayleigh_nonneg : (0 : ℝ) ≤ (⨆ x, rayleigh_quotient x) :=
 le_csupr_of_le (rayleigh_bdd_above T) 0 (by simp)
 
-lemma re_apply_inner_self_le_rayleigh_mul_norm_sq (x : E) :
-  T.re_apply_inner_self x ≤ (rayleigh_quotient x) * ∥x∥ ^ 2 :=
+lemma supr_neg_rayleigh_nonneg : (0 : ℝ) ≤ (⨆ x, (-rayleigh_quotient) x) :=
+le_csupr_of_le (neg_rayleigh_bdd_above T) 0 (by simp)
+
+lemma re_apply_inner_self_eq_rayleigh_mul_norm_sq (x : E) :
+  T.re_apply_inner_self x = (rayleigh_quotient x) * ∥x∥ ^ 2 :=
 begin
   by_cases h : ∥x∥ = 0,
   { rw [norm_eq_zero] at h,
@@ -132,9 +150,18 @@ end
 lemma re_apply_inner_self_le_supr_rayleigh_mul_norm_sq (x : E) :
   T.re_apply_inner_self x ≤ (⨆ z, rayleigh_quotient z) * ∥x∥ ^ 2 :=
 begin
-  refine le_trans (re_apply_inner_self_le_rayleigh_mul_norm_sq T x) _,
+  rw [re_apply_inner_self_eq_rayleigh_mul_norm_sq T x],
   refine mul_le_mul_of_nonneg_right _ (pow_nonneg (norm_nonneg _) 2),
   exact le_csupr (rayleigh_bdd_above T) _,
+end
+
+lemma neg_re_apply_inner_self_le_supr_rayleigh_mul_norm_sq (x : E) :
+  -T.re_apply_inner_self x ≤ (⨆ z, (-rayleigh_quotient) z) * ∥x∥ ^ 2 :=
+begin
+  rw [re_apply_inner_self_eq_rayleigh_mul_norm_sq T x],
+  simp only [neg_mul_eq_neg_mul],
+  refine mul_le_mul_of_nonneg_right _ (pow_nonneg (norm_nonneg _) 2),
+  exact le_csupr (neg_rayleigh_bdd_above T) _,
 end
 
 lemma _root_.is_R_or_C.of_real_mul_inv_re (r : ℝ) (z : 𝕜) :
@@ -152,43 +179,71 @@ lemma _root_.is_R_or_C.of_real_mul_conj_inv_re (r : ℝ) (z : 𝕜) :
 by rw [←is_R_or_C.of_real_inv, is_R_or_C.of_real_mul_conj_re]
 
 variables [complete_space E]
-lemma supr_rayleigh_eq_norm (hT : T ∈ self_adjoint (E →L[𝕜] E)) : (⨆ x, rayleigh_quotient x) = ∥T∥ :=
+lemma supr_rayleigh_eq_norm (hT : T ∈ self_adjoint (E →L[𝕜] E)) :
+  max (⨆ x, rayleigh_quotient x) (⨆ x, (-rayleigh_quotient) x) = ∥T∥ :=
 begin
-  refine eq.symm (op_norm_eq_of_bounds (supr_rayleigh_nonneg T) (λ x, _)
-    (λ N hN H, le_trans (supr_rayleigh_le_norm T) (op_norm_le_bound _ hN H))),
-  set L := real.sqrt (∥T x∥ / ∥x∥) with hL,
-  set rT := (⨆ x, rayleigh_quotient x) with hrT,
-  set x₁ := (L : 𝕜) • x + (L⁻¹ : 𝕜) • (T x) with hx₁,
-  set x₂ := (L : 𝕜) • x - (L⁻¹ : 𝕜) • (T x) with hx₂,
-  by_cases h_ntriv : T x = 0,
-  { simp only [h_ntriv, norm_zero, mul_nonneg (supr_rayleigh_nonneg T) (norm_nonneg x)] },
-  change T x ≠ 0 at h_ntriv,
-  have hL_ntriv : L ≠ 0,
+  refine eq.symm (op_norm_eq_of_bounds _ (λ x, _) _),
   { sorry },
-  have hL_mul₁ : L * L⁻¹ = 1 := mul_inv_cancel hL_ntriv,
-  have hL_mul₂ : L⁻¹ * L = 1 := (mul_comm L L⁻¹) ▸ hL_mul₁,
-  have gizmo : ⟪T (T x), x⟫ = ⟪T x, T x⟫,
-  { sorry },
-  have h₁ : T.re_apply_inner_self x₁ - T.re_apply_inner_self x₂ = 4 * ∥T x∥ ^ 2,
-  { simp only [hx₁, hx₂, re_apply_inner_self_apply, inner_add_left, inner_add_right, inner_smul_left,
-          inner_smul_right, ←inner_self_eq_norm_sq, inner_sub_left, inner_sub_right,
-          hL_mul₁, hL_mul₂, is_R_or_C.of_real_mul_re, is_R_or_C.re.map_add, is_R_or_C.re.map_sub,
-          is_R_or_C.of_real_mul_inv_re, continuous_linear_map.map_add, continuous_linear_map.map_sub,
-          continuous_linear_map.map_smul, is_R_or_C.of_real_mul_conj_re, is_R_or_C.of_real_mul_conj_inv_re, gizmo],
-    ring_nf,
-    field_simp },
-  have h₄ : 4 * ∥T x ∥ ^ 2 ≤ rT * (∥x₁∥^2 + ∥x₂∥^2),
-  { sorry },
-  have h₅ : 4 * ∥T x∥ ^ 2 ≤ 2 * rT * (L^2 * ∥x∥^2 + (L⁻¹)^2 * ∥T x∥^2),
-  { sorry },
-  have h₆ : 4 * ∥T x∥ ^ 2 ≤ 4 * rT * ∥T x∥ * ∥x∥,
-  { sorry },
-  have h₇ : 0 < 4 * ∥T x∥,
-  { sorry },
-  rw [←mul_le_mul_left h₇],
-  calc 4 * ∥T x∥ * ∥T x∥ = 4 * ∥T x∥ ^ 2          : by rw [mul_assoc, ←pow_two]
-                    ... ≤ 4 * rT * ∥T x∥ * ∥x∥   : h₆
-                    ... = _                      : by ring,
+  { set L := real.sqrt (∥T x∥ / ∥x∥) with hL,
+    set rT := max (⨆ z, rayleigh_quotient z) (⨆ z, (-rayleigh_quotient) z) with hrT,
+    set x₁ := (L : 𝕜) • x + (L⁻¹ : 𝕜) • (T x) with hx₁,
+    set x₂ := (L : 𝕜) • x - (L⁻¹ : 𝕜) • (T x) with hx₂,
+    by_cases h_ntriv : T x = 0,
+    --{ simp only [h_ntriv, norm_zero, mul_nonneg (supr_rayleigh_nonneg T) (norm_nonneg x)], },
+    { sorry },
+    change T x ≠ 0 at h_ntriv,
+    have hL_ntriv : L ≠ 0,
+    { sorry },
+    have hL_nonneg : 0 ≤ L,
+    { sorry },
+    have hLinv_nonneg : 0 ≤ L⁻¹,
+    { sorry },
+    have hL_mul₁ : L * L⁻¹ = 1 := mul_inv_cancel hL_ntriv,
+    have hL_mul₂ : L⁻¹ * L = 1 := (mul_comm L L⁻¹) ▸ hL_mul₁,
+    have hL_sq : L^2 = ∥T x∥ / ∥x∥,
+    { sorry },
+    have hLinv_sq : (L⁻¹)^2 = ∥x∥ / ∥T x∥,
+    { sorry },
+    have hTx_ntriv : ∥T x∥ ≠ 0,
+    { sorry },
+    have hx_ntriv : ∥x∥ ≠ 0,
+    { sorry },
+    have gizmo : ⟪T (T x), x⟫ = ⟪T x, T x⟫,
+    { sorry },
+    have h₁ : T.re_apply_inner_self x₁ - T.re_apply_inner_self x₂ = 4 * ∥T x∥ ^ 2,
+    { simp only [hx₁, hx₂, re_apply_inner_self_apply, inner_add_left, inner_add_right, inner_smul_left,
+            inner_smul_right, ←inner_self_eq_norm_sq, inner_sub_left, inner_sub_right,
+            hL_mul₁, hL_mul₂, is_R_or_C.of_real_mul_re, is_R_or_C.re.map_add, is_R_or_C.re.map_sub,
+            is_R_or_C.of_real_mul_inv_re, continuous_linear_map.map_add, continuous_linear_map.map_sub,
+            continuous_linear_map.map_smul, is_R_or_C.of_real_mul_conj_re, is_R_or_C.of_real_mul_conj_inv_re, gizmo],
+      ring_nf,
+      field_simp },
+    have h₄ : T.re_apply_inner_self x₁ ≤ rT * ∥x₁∥^2 := sorry,
+    have h₅ : -T.re_apply_inner_self x₂ ≤ rT * ∥x₂∥^2 := sorry,
+    have h₆ := calc
+      4 * ∥T x∥^2 ≤ rT * ∥x₁∥^2 + rT * ∥x₂∥^2          : by { rw [←h₁, sub_eq_add_neg], exact add_le_add h₄ h₅ }
+             ...  = rT * (∥x₁∥ * ∥x₁∥) + rT * (∥x₂∥ * ∥x₂∥)      : by simp only [pow_two]
+             ...  = rT * (∥x₁∥ * ∥x₁∥ + ∥x₂∥ * ∥x₂∥)     : by ring
+             ...  = rT * (2 * (L^2 * ∥x∥ * ∥x∥ + (L⁻¹)^2 * ∥T x∥ * ∥T x∥)) :
+              begin
+                simp only [parallelogram_law_with_norm, norm_smul, is_R_or_C.norm_of_real,
+                           real.norm_of_nonneg hL_nonneg, real.norm_of_nonneg hLinv_nonneg,
+                           ←is_R_or_C.of_real_inv],
+                ring
+              end
+             ...  = 4 * rT * ∥T x∥ * ∥x∥  :
+              begin
+                simp only [hL_sq, hLinv_sq],
+                field_simp,
+                ring
+              end,
+    have h₇ : 0 < 4 * ∥T x∥,
+    { sorry },
+    rw [←mul_le_mul_left h₇],
+    calc 4 * ∥T x∥ * ∥T x∥ = 4 * ∥T x∥ ^ 2          : by rw [mul_assoc, ←pow_two]
+                      ... ≤ 4 * rT * ∥T x∥ * ∥x∥   : h₆
+                      ... = _                      : by ring },
+  { sorry }
 end
 
 end continuous_linear_map

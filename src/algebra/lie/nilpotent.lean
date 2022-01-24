@@ -44,8 +44,8 @@ of a Lie submodule, regarded as a Lie module in its own right, since it provides
 expression of the fact that the terms of the Lie submodule's lower central series are also Lie
 submodules of the enclosing Lie module.
 
-See also `lie_module.lcs_eq_lcs_of_lie_submodule_comap` and
-`lie_module.lcs_eq_lcs_of_lie_submodule_map` below. -/
+See also `lie_module.lower_central_series_eq_lcs_comap` and
+`lie_module.lower_central_series_map_eq_lcs` below. -/
 def lcs : lie_submodule R L M → lie_submodule R L M := (λ N, ⁅(⊤ : lie_ideal R L), N⁆)^[k]
 
 @[simp] lemma lcs_zero (N : lie_submodule R L M) : N.lcs 0 = N := rfl
@@ -99,7 +99,7 @@ end
 lemma lower_central_series_map_eq_lcs :
   (lower_central_series R L N k).map N.incl = N.lcs k :=
 begin
-  rw [lcs_eq_lcs_comap, lie_submodule.map_comap_incl, inf_eq_right],
+  rw [lower_central_series_eq_lcs_comap, lie_submodule.map_comap_incl, inf_eq_right],
   apply lcs_le_self,
 end
 

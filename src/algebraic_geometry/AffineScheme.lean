@@ -307,38 +307,6 @@ begin
     exact congr_arg subtype.val (X.map_prime_spectrum_basic_open_of_affine x).symm }
 end
 
-attribute [elementwise] PresheafedSpace.is_open_immersion.inv_app_app
-
-lemma image_basic_open_of_is_open_immersion {X Y: Scheme} (f : X ⟶ Y) [H : is_open_immersion f]
-  {U : opens X.carrier} (r : X.presheaf.obj (op U)) :
-  H.base_open.is_open_map.functor.obj (X.basic_open r)
-    = Y.basic_open (H.inv_app U r) :=
-begin
-  have e := LocallyRingedSpace.preimage_basic_open f (H.inv_app U r),
-  erw [PresheafedSpace.is_open_immersion.inv_app_app_apply, RingedSpace.basic_open_res,
-    opens.inter_eq, inf_eq_right.mpr _] at e,
-  delta Scheme.basic_open,
-  rw ← e,
-  ext1,
-  refine set.image_preimage_eq_inter_range.trans _,
-  erw [set.inter_eq_left_iff_subset],
-  refine set.subset.trans (RingedSpace.basic_open_subset _ _) (set.image_subset_range _ _),
-  refine le_trans (RingedSpace.basic_open_subset _ _) (le_of_eq _),
-  ext1,
-  exact (set.preimage_image_eq _ H.base_open.inj).symm
-end
-
-@[simp, elementwise]
-lemma of_restrict_inv_app (X : Scheme) {Y : Top} {f : Y ⟶ Top.of X.carrier}
-  (h : open_embedding f) (U : opens (X.restrict h).carrier) :
-  (PresheafedSpace.is_open_immersion.of_restrict X.to_PresheafedSpace h).inv_app U = 𝟙 _ :=
-begin
-  delta PresheafedSpace.is_open_immersion.inv_app,
-  rw [is_iso.comp_inv_eq, category.id_comp],
-  change X.presheaf.map _ = X.presheaf.map _,
-  congr,
-end
-
 lemma is_affine_open.exists_basic_open_subset {X : Scheme} {U : opens X.carrier}
   (hU : is_affine_open U) {V : opens X.carrier} (x : V) (h : ↑x ∈ U) :
   ∃ f : X.presheaf.obj (op U), X.basic_open f ⊆ V ∧ ↑x ∈ X.basic_open f :=
@@ -349,11 +317,11 @@ begin
   swap, exact ⟨x, h⟩,
   have : U.open_embedding.is_open_map.functor.obj ((X.restrict U.open_embedding).basic_open r)
     = X.basic_open (X.presheaf.map (eq_to_hom U.open_embedding_obj_top.symm).op r),
-  { refine (image_basic_open_of_is_open_immersion (X.of_restrict U.open_embedding) r).trans _,
+  { refine (is_open_immersion.image_basic_open (X.of_restrict U.open_embedding) r).trans _,
     erw ← Scheme.basic_open_res_eq _ _ (eq_to_hom U.open_embedding_obj_top).op,
     rw [← comp_apply, ← category_theory.functor.map_comp, ← op_comp, eq_to_hom_trans,
       eq_to_hom_refl, op_id, category_theory.functor.map_id],
-    erw of_restrict_inv_app_apply,
+    erw PresheafedSpace.is_open_immersion.of_restrict_inv_app_apply,
     congr },
   use X.presheaf.map (eq_to_hom U.open_embedding_obj_top.symm).op r,
   rw ← this,

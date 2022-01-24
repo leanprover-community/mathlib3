@@ -211,7 +211,7 @@ begin
   simp [← functor.map_comp]
 end
 
-@[simp, reassoc] lemma inv_app_app (U : opens X) :
+@[simp, reassoc, elementwise] lemma inv_app_app (U : opens X) :
   H.inv_app U ≫ f.c.app (op (H.open_functor.obj U)) =
     X.presheaf.map (eq_to_hom (by simp [opens.map, set.preimage_image_eq _ H.base_open.inj])) :=
 by rw [inv_app, category.assoc, is_iso.inv_hom_id, category.comp_id]
@@ -260,6 +260,18 @@ instance of_restrict {X : Top} (Y : PresheafedSpace C) {f : X ⟶ Y.carrier}
     { rw Y.presheaf.map_id,
       apply_instance }
   end }
+
+@[simp, elementwise]
+lemma of_restrict_inv_app {C : Type*} [category C] (X : PresheafedSpace C) {Y : Top}
+  {f : Y ⟶ Top.of X.carrier}
+  (h : open_embedding f) (U : opens (X.restrict h).carrier) :
+  (PresheafedSpace.is_open_immersion.of_restrict X h).inv_app U = 𝟙 _ :=
+begin
+  delta PresheafedSpace.is_open_immersion.inv_app,
+  rw [is_iso.comp_inv_eq, category.id_comp],
+  change X.presheaf.map _ = X.presheaf.map _,
+  congr
+end
 
 /-- An open immersion is an iso if the underlying continuous map is epi. -/
 lemma to_iso (f : X ⟶ Y) [h : is_open_immersion f] [h' : epi f.base] : is_iso f :=
@@ -1482,6 +1494,24 @@ LocallyRingedSpace.is_open_immersion.lift_uniq f g H' l hl
   inv := lift f g (le_of_eq e.symm),
   hom_inv_id' := by { rw ← cancel_mono f, simp },
   inv_hom_id' := by { rw ← cancel_mono g, simp } }
+
+lemma image_basic_open {X Y: Scheme} (f : X ⟶ Y) [H : is_open_immersion f]
+  {U : opens X.carrier} (r : X.presheaf.obj (op U)) :
+  H.base_open.is_open_map.functor.obj (X.basic_open r)
+    = Y.basic_open (H.inv_app U r) :=
+begin
+  have e := Scheme.preimage_basic_open f (H.inv_app U r),
+  rw [PresheafedSpace.is_open_immersion.inv_app_app_apply, Scheme.basic_open_res,
+    opens.inter_eq, inf_eq_right.mpr _] at e,
+  rw ← e,
+  ext1,
+  refine set.image_preimage_eq_inter_range.trans _,
+  erw set.inter_eq_left_iff_subset,
+  refine set.subset.trans (Scheme.basic_open_subset _ _) (set.image_subset_range _ _),
+  refine le_trans (Scheme.basic_open_subset _ _) (le_of_eq _),
+  ext1,
+  exact (set.preimage_image_eq _ H.base_open.inj).symm
+end
 
 end is_open_immersion
 

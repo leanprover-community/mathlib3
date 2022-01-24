@@ -309,14 +309,16 @@ end
 
 /-- The prime ideal of `𝒪ₓ(U)` corresponding to a point `x : U`. -/
 noncomputable
-def is_affine_open.prime_ideal_of {X : Scheme} {U : opens X.carrier} (hU : is_affine_open U) (x : U) :
+def is_affine_open.prime_ideal_of {X : Scheme} {U : opens X.carrier}
+  (hU : is_affine_open U) (x : U) :
   prime_spectrum (X.presheaf.obj $ op U) :=
 ((Scheme.Spec.map (X.presheaf.map (eq_to_hom $
   show U.open_embedding.is_open_map.functor.obj ⊤ = U, from
     opens.ext (set.image_univ.trans subtype.range_coe)).op).op).1.base
   ((@@Scheme.iso_Spec (X.restrict U.open_embedding) hU).hom.1.base x))
 
-lemma is_affine_open.from_Spec_prime_ideal_of {X : Scheme} {U : opens X.carrier} (hU : is_affine_open U) (x : U) :
+lemma is_affine_open.from_Spec_prime_ideal_of {X : Scheme} {U : opens X.carrier}
+  (hU : is_affine_open U) (x : U) :
   hU.from_Spec.val.base (hU.prime_ideal_of x) = x.1 :=
 begin
   dsimp only [is_affine_open.from_Spec, subtype.coe_mk],

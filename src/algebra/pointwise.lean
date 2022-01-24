@@ -655,13 +655,11 @@ instance set_semiring.no_zero_divisors : no_zero_divisors (set_semiring α) :=
       cases ne_empty_iff_nonempty.mp b0 with y yb,
       exact (not_not.mpr ab (ne_empty_iff_nonempty.mpr ⟨x * y, mul_mem_mul xa yb⟩)).elim } } } }
 
-instance set_semiring.covariant_class_add_left :
+/- Since addition on `set_semiring` is commutative (it is set union), there is no need
+to also have the instance `covariant_class (set_semiring α) (set_semiring α) (swap (+)) (≤)`. -/
+instance set_semiring.covariant_class_add :
   covariant_class (set_semiring α) (set_semiring α) (+) (≤) :=
 { elim := λ a b c ab x xa, mem_of_mem_of_subset xa (union_subset_union_right _ ab) }
-
-instance set_semiring.covariant_class_add_right :
-  covariant_class (set_semiring α) (set_semiring α) (swap (+)) (≤) :=
-{ elim := λ a b c ab x xa, mem_of_mem_of_subset xa (union_subset_union_left _ ab) }
 
 instance set_semiring.covariant_class_mul_left :
   covariant_class (set_semiring α) (set_semiring α) (*) (≤) :=

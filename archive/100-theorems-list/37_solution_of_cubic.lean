@@ -19,7 +19,7 @@ based on the [Cardano's Formula](https://en.wikipedia.org/wiki/Cubic_equation#Ca
 ## References
 
 Originally ported from Isabelle/HOL. The
-[original file](https://isabelle.in.tum.de/dist/library/HOL/HOL/Zorn.html) was written by Amine Chaieb.
+[original file](https://isabelle.in.tum.de/dist/library/HOL/HOL-ex/Cubic_Quartic.html) was written by Amine Chaieb.
 
 ## Tags
 polynomial, cubic, root

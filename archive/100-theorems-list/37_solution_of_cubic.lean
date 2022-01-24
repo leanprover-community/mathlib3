@@ -3,7 +3,7 @@ Copyright (c) 2021 Joeff Lee. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: -
 -/
-import tactic
+import tactic.basic
 import data.complex.basic
 import algebra.group.defs
 

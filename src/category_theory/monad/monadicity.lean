@@ -229,10 +229,10 @@ def creates_G_split_coequalizers_of_monadic [monadic_right_adjoint G] ⦃A B⦄ 
 begin
   apply monadic_creates_colimit_of_preserves_colimit _ _,
   apply_instance,
-  { apply preserves_colimit_of_iso_diagram _ (diagram_iso_parallel_pair _).symm,
+  { apply preserves_colimit_of_iso_diagram _ (diagram_iso_parallel_pair.{v₁} _).symm,
     dsimp,
     apply_instance },
-  { apply preserves_colimit_of_iso_diagram _ (diagram_iso_parallel_pair _).symm,
+  { apply preserves_colimit_of_iso_diagram _ (diagram_iso_parallel_pair.{v₁} _).symm,
     dsimp,
     apply_instance }
 end

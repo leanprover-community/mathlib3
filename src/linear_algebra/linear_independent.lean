@@ -42,7 +42,7 @@ vectors.
   over an auxiliary `s : finset ι`;
 * `linear_independent_empty_type`: a family indexed by an empty type is linearly independent;
 * `linear_independent_unique_iff`: if `ι` is a singleton, then `linear_independent K v` is
-  equivalent to `v (default ι) ≠ 0`;
+  equivalent to `v default ≠ 0`;
 * linear_independent_option`, `linear_independent_sum`, `linear_independent_fin_cons`,
   `linear_independent_fin_succ`: type-specific tests for linear independence of families of vector
   fields;
@@ -122,7 +122,7 @@ linear_independent_iff'.trans ⟨λ H s g hg hv i, if his : i ∈ s then H s g h
     (by simp_rw [ite_smul, zero_smul, finset.sum_extend_by_zero, hg]) i,
   exact (if_pos hi).symm }⟩
 
-theorem linear_dependent_iff : ¬ linear_independent R v ↔
+theorem not_linear_independent_iff : ¬ linear_independent R v ↔
   ∃ s : finset ι, ∃ g : ι → R, (∑ i in s, g i • v i) = 0 ∧ (∃ i ∈ s, g i ≠ 0) :=
 begin
   rw linear_independent_iff',
@@ -145,6 +145,10 @@ theorem fintype.linear_independent_iff' [fintype ι] :
   linear_independent R v ↔
     (linear_map.lsum R (λ i : ι, R) ℕ (λ i, linear_map.id.smul_right (v i))).ker = ⊥ :=
 by simp [fintype.linear_independent_iff, linear_map.ker_eq_bot', funext_iff]
+
+lemma fintype.not_linear_independent_iff [fintype ι] :
+  ¬linear_independent R v ↔ ∃ g : ι → R, (∑ i, g i • v i) = 0 ∧ (∃ i, g i ≠ 0) :=
+by simpa using (not_iff_not.2 fintype.linear_independent_iff)
 
 lemma linear_independent_empty_type [is_empty ι] : linear_independent R v :=
 linear_independent_iff.mpr $ λ v hv, subsingleton.elim v 0
@@ -493,9 +497,9 @@ begin
 end
 
 -- This lemma cannot be proved with `linear_independent.group_smul` since the action of
--- `units R` on `R` is not commutative.
+-- `Rˣ` on `R` is not commutative.
 lemma linear_independent.units_smul {v : ι → M} (hv : linear_independent R v)
-  (w : ι → units R) : linear_independent R (w • v) :=
+  (w : ι → Rˣ) : linear_independent R (w • v) :=
 begin
   rw linear_independent_iff'' at hv ⊢,
   intros s g hgs hsum i,
@@ -1022,11 +1026,11 @@ variables {v : ι → M} {s t : set M} {x y z : M}
 
 lemma linear_independent_unique_iff
   (v : ι → M) [unique ι] :
-  linear_independent R v ↔ v (default ι) ≠ 0 :=
+  linear_independent R v ↔ v default ≠ 0 :=
 begin
   simp only [linear_independent_iff, finsupp.total_unique, smul_eq_zero],
   refine ⟨λ h hv, _, λ hv l hl, finsupp.unique_ext $ hl.resolve_right hv⟩,
-  have := h (finsupp.single (default ι) 1) (or.inr hv),
+  have := h (finsupp.single default 1) (or.inr hv),
   exact one_ne_zero (finsupp.single_eq_zero.1 this)
 end
 
@@ -1162,7 +1166,7 @@ lemma linear_independent_fin2 {f : fin 2 → V} :
   linear_independent K f ↔ f 1 ≠ 0 ∧ ∀ a : K, a • f 1 ≠ f 0 :=
 by rw [linear_independent_fin_succ, linear_independent_unique_iff, range_unique,
   mem_span_singleton, not_exists,
-  show fin.tail f (default (fin 1)) = f 1, by rw ← fin.succ_zero_eq_one; refl]
+  show fin.tail f default = f 1, by rw ← fin.succ_zero_eq_one; refl]
 
 lemma exists_linear_independent_extension (hs : linear_independent K (coe : s → V)) (hst : s ⊆ t) :
   ∃b⊆t, s ⊆ b ∧ t ⊆ span K b ∧ linear_independent K (coe : b → V) :=

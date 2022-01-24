@@ -41,6 +41,24 @@ theorem mem_annihilator {r} : r ∈ N.annihilator ↔ ∀ n ∈ N, r • n = (0:
 theorem mem_annihilator' {r} : r ∈ N.annihilator ↔ N ≤ comap (r • linear_map.id) ⊥ :=
 mem_annihilator.trans ⟨λ H n hn, (mem_bot R).2 $ H n hn, λ H n hn, (mem_bot R).1 $ H hn⟩
 
+lemma mem_annihilator_span (s : set M) (r : R) :
+  r ∈ (submodule.span R s).annihilator ↔ ∀ n : s, r • (n : M) = 0 :=
+begin
+  rw submodule.mem_annihilator,
+  split,
+  { intros h n, exact h _ (submodule.subset_span n.prop) },
+  { intros h n hn,
+    apply submodule.span_induction hn,
+    { intros x hx, exact h ⟨x, hx⟩ },
+    { exact smul_zero _ },
+    { intros x y hx hy, rw [smul_add, hx, hy, zero_add] },
+    { intros a x hx, rw [smul_comm, hx, smul_zero] } }
+end
+
+lemma mem_annihilator_span_singleton (g : M) (r : R) :
+  r ∈ (submodule.span R ({g} : set M)).annihilator ↔ r • g = 0 :=
+by simp [mem_annihilator_span]
+
 theorem annihilator_bot : (⊥ : submodule R M).annihilator = ⊤ :=
 (ideal.eq_top_iff_one _).2 $ mem_annihilator'.2 bot_le
 
@@ -157,6 +175,53 @@ le_antisymm (smul_le.2 $ λ r hrS n hnT, span_induction hrS
   (λ c r, by rw [smul_eq_mul, mul_smul]; exact submodule.smul_mem _ _)) $
 span_le.2 $ set.bUnion_subset $ λ r hrS, set.bUnion_subset $ λ n hnT, set.singleton_subset_iff.2 $
 smul_mem_smul (subset_span hrS) (subset_span hnT)
+
+lemma union_eq_smul_set (r : R) (T : set M) :
+  (⋃ (t : M) (x : t ∈ T), {r • t}) = r • T := by tidy
+
+lemma ideal_span_singleton_smul (r : R) (N : submodule R M) :
+  (ideal.span {r} : ideal R) • N = r • N :=
+begin
+  have : span R (⋃ (t : M) (x : t ∈ N), {r • t}) = r • N,
+  { convert span_eq _, exact union_eq_smul_set r (N : set M) },
+  conv_lhs { rw [← span_eq N, span_smul_span] },
+  simpa
+end
+
+lemma span_smul_eq (r : R) (s : set M) :
+  span R (r • s) = r • span R s :=
+begin
+  rw [← ideal_span_singleton_smul, span_smul_span],
+  congr,
+  simpa using (union_eq_smul_set r s).symm
+end
+
+lemma mem_of_span_top_of_smul_mem (M' : submodule R M)
+  (s : set R) (hs : ideal.span s = ⊤) (x : M) (H : ∀ r : s, (r : R) • x ∈ M') : x ∈ M' :=
+begin
+  suffices : (⊤ : ideal R) • (span R ({x} : set M)) ≤ M',
+  { rw top_smul at this, exact this (subset_span (set.mem_singleton x)) },
+  rw [← hs, span_smul_span, span_le],
+  simpa using H
+end
+
+/-- Given `s`, a generating set of `R`, to check that an `x : M` falls in a
+submodule `M'` of `x`, we only need to show that `r ^ n • x ∈ M'` for some `n` for each `r : s`. -/
+lemma mem_of_span_eq_top_of_smul_pow_mem (M' : submodule R M)
+  (s : set R) (hs : ideal.span s = ⊤) (x : M)
+  (H : ∀ r : s, ∃ (n : ℕ), (r ^ n : R) • x ∈ M') : x ∈ M' :=
+begin
+  obtain ⟨s', hs₁, hs₂⟩ := (ideal.span_eq_top_iff_finite _).mp hs,
+  replace H : ∀ r : s', ∃ (n : ℕ), (r ^ n : R) • x ∈ M' := λ r, H ⟨_, hs₁ r.prop⟩,
+  choose n₁ n₂ using H,
+  let N := s'.attach.sup n₁,
+  have hs' := ideal.span_pow_eq_top (s' : set R) hs₂ N,
+  apply M'.mem_of_span_top_of_smul_mem _ hs',
+  rintro ⟨_, r, hr, rfl⟩,
+  convert M'.smul_mem (r ^ (N - n₁ ⟨r, hr⟩)) (n₂ ⟨r, hr⟩) using 1,
+  simp only [subtype.coe_mk, smul_smul, ← pow_add],
+  rw tsub_add_cancel_of_le (finset.le_sup (s'.mem_attach _) : n₁ ⟨r, hr⟩ ≤ N),
+end
 
 variables {M' : Type w} [add_comm_monoid M'] [module R M']
 
@@ -670,7 +735,7 @@ begin
   { exact hs (or.inl $ or.inl $ add_sub_cancel' r s ▸ (f a).sub_mem ha hra) },
   { exact hs (or.inl $ or.inr $ add_sub_cancel' r s ▸ (f b).sub_mem hb hrb) },
   { exact hri (add_sub_cancel r s ▸ (f i).sub_mem hi hsi) },
-  { rw set.mem_bUnion_iff at ht, rcases ht with ⟨j, hjt, hj⟩,
+  { rw set.mem_Union₂ at ht, rcases ht with ⟨j, hjt, hj⟩,
     simp only [finset.inf_eq_infi, set_like.mem_coe, submodule.mem_infi] at hr,
     exact hs (or.inr $ set.mem_bUnion hjt $ add_sub_cancel' r s ▸ (f j).sub_mem hj $ hr j hjt) }
 end
@@ -684,44 +749,44 @@ suffices (I : set R) ⊆ (⋃ i ∈ (↑s : set ι), f i) → ∃ i, i ∈ s ∧
     show i ∈ (↑s : set ι), from his⟩,
 assume h : (I : set R) ⊆ (⋃ i ∈ (↑s : set ι), f i),
 begin
-  classical, tactic.unfreeze_local_instances,
+  classical,
   by_cases has : a ∈ s,
-  { obtain ⟨t, hat, rfl⟩ : ∃ t, a ∉ t ∧ insert a t = s :=
-      ⟨s.erase a, finset.not_mem_erase a s, finset.insert_erase has⟩,
+  { unfreezingI { obtain ⟨t, hat, rfl⟩ : ∃ t, a ∉ t ∧ insert a t = s :=
+      ⟨s.erase a, finset.not_mem_erase a s, finset.insert_erase has⟩ },
     by_cases hbt : b ∈ t,
-    { obtain ⟨u, hbu, rfl⟩ : ∃ u, b ∉ u ∧ insert b u = t :=
-        ⟨t.erase b, finset.not_mem_erase b t, finset.insert_erase hbt⟩,
+    { unfreezingI { obtain ⟨u, hbu, rfl⟩ : ∃ u, b ∉ u ∧ insert b u = t :=
+        ⟨t.erase b, finset.not_mem_erase b t, finset.insert_erase hbt⟩ },
       have hp' : ∀ i ∈ u, is_prime (f i),
       { intros i hiu, refine hp i (finset.mem_insert_of_mem (finset.mem_insert_of_mem hiu)) _ _;
-        rintro rfl; solve_by_elim only [finset.mem_insert_of_mem, *], },
+        unfreezingI { rintro rfl }; solve_by_elim only [finset.mem_insert_of_mem, *], },
       rw [finset.coe_insert, finset.coe_insert, set.bUnion_insert, set.bUnion_insert,
           ← set.union_assoc, subset_union_prime' hp', bex_def] at h,
       rwa [finset.exists_mem_insert, finset.exists_mem_insert] },
     { have hp' : ∀ j ∈ t, is_prime (f j),
       { intros j hj, refine hp j (finset.mem_insert_of_mem hj) _ _;
-        rintro rfl; solve_by_elim only [finset.mem_insert_of_mem, *], },
+        unfreezingI { rintro rfl }; solve_by_elim only [finset.mem_insert_of_mem, *], },
       rw [finset.coe_insert, set.bUnion_insert, ← set.union_self (f a : set R),
           subset_union_prime' hp', ← or_assoc, or_self, bex_def] at h,
       rwa finset.exists_mem_insert } },
   { by_cases hbs : b ∈ s,
-    { obtain ⟨t, hbt, rfl⟩ : ∃ t, b ∉ t ∧ insert b t = s :=
-        ⟨s.erase b, finset.not_mem_erase b s, finset.insert_erase hbs⟩,
+    { unfreezingI { obtain ⟨t, hbt, rfl⟩ : ∃ t, b ∉ t ∧ insert b t = s :=
+        ⟨s.erase b, finset.not_mem_erase b s, finset.insert_erase hbs⟩ },
       have hp' : ∀ j ∈ t, is_prime (f j),
       { intros j hj, refine hp j (finset.mem_insert_of_mem hj) _ _;
-        rintro rfl; solve_by_elim only [finset.mem_insert_of_mem, *], },
+        unfreezingI { rintro rfl }; solve_by_elim only [finset.mem_insert_of_mem, *], },
       rw [finset.coe_insert, set.bUnion_insert, ← set.union_self (f b : set R),
           subset_union_prime' hp', ← or_assoc, or_self, bex_def] at h,
       rwa finset.exists_mem_insert },
     cases s.eq_empty_or_nonempty with hse hsne,
-    { subst hse, rw [finset.coe_empty, set.bUnion_empty, set.subset_empty_iff] at h,
+    { substI hse, rw [finset.coe_empty, set.bUnion_empty, set.subset_empty_iff] at h,
       have : (I : set R) ≠ ∅ := set.nonempty.ne_empty (set.nonempty_of_mem I.zero_mem),
       exact absurd h this },
     { cases hsne.bex with i his,
-      obtain ⟨t, hit, rfl⟩ : ∃ t, i ∉ t ∧ insert i t = s :=
-        ⟨s.erase i, finset.not_mem_erase i s, finset.insert_erase his⟩,
+      unfreezingI { obtain ⟨t, hit, rfl⟩ : ∃ t, i ∉ t ∧ insert i t = s :=
+        ⟨s.erase i, finset.not_mem_erase i s, finset.insert_erase his⟩ },
       have hp' : ∀ j ∈ t, is_prime (f j),
       { intros j hj, refine hp j (finset.mem_insert_of_mem hj) _ _;
-        rintro rfl; solve_by_elim only [finset.mem_insert_of_mem, *], },
+        unfreezingI { rintro rfl }; solve_by_elim only [finset.mem_insert_of_mem, *], },
       rw [finset.coe_insert, set.bUnion_insert, ← set.union_self (f i : set R),
           subset_union_prime' hp', ← or_assoc, or_self, bex_def] at h,
       rwa finset.exists_mem_insert } }
@@ -741,7 +806,7 @@ lemma is_unit_iff {I : ideal R} :
 is_unit_iff_dvd_one.trans ((@one_eq_top R _).symm ▸
  ⟨λ h, eq_top_iff.mpr (ideal.le_of_dvd h), λ h, ⟨⊤, by rw [mul_top, h]⟩⟩)
 
-instance unique_units : unique (units (ideal R)) :=
+instance unique_units : unique ((ideal R)ˣ) :=
 { default := 1,
   uniq := λ u, units.ext
     (show (u : ideal R) = 1, by rw [is_unit_iff.mp u.is_unit, one_eq_top]) }
@@ -1204,6 +1269,9 @@ by rw [ring_hom.ker_eq_comap_bot, ideal.comap_comap, ring_hom.ker_eq_comap_bot]
 /-- If the target is not the zero ring, then one is not in the kernel.-/
 lemma not_one_mem_ker [nontrivial S] (f : R →+* S) : (1:R) ∉ ker f :=
 by { rw [mem_ker, f.map_one], exact one_ne_zero }
+
+lemma ker_ne_top [nontrivial S] (f : R →+* S) : f.ker ≠ ⊤ :=
+(ideal.ne_top_iff_one _).mpr $ not_one_mem_ker f
 
 end semiring
 

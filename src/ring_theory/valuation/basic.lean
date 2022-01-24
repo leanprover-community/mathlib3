@@ -152,7 +152,7 @@ lemma ne_zero_iff [nontrivial Γ₀] {K : Type*} [division_ring K]
   (v : valuation K Γ₀) {x : K} : v x ≠ 0 ↔ x ≠ 0 :=
 v.to_monoid_with_zero_hom.map_ne_zero
 
-theorem unit_map_eq (u : units R) :
+theorem unit_map_eq (u : Rˣ) :
   (units.map (v : R →* Γ₀) u : Γ₀) = v u := rfl
 
 /-- A ring homomorphism `S → R` induces a map `valuation R Γ₀ → valuation S Γ₀`. -/
@@ -195,7 +195,7 @@ v.to_monoid_with_zero_hom.map_inv x
   v (x^n) = (v x)^n :=
 v.to_monoid_with_zero_hom.map_zpow x n
 
-lemma map_units_inv (x : units R) : v (x⁻¹ : units R) = (v x)⁻¹ :=
+lemma map_units_inv (x : Rˣ) : v (x⁻¹ : Rˣ) = (v x)⁻¹ :=
 v.to_monoid_with_zero_hom.to_monoid_hom.map_units_inv x
 
 @[simp] lemma map_neg (x : R) : v (-x) = v x :=
@@ -239,7 +239,7 @@ begin
 end
 
 /-- The subgroup of elements whose valuation is less than a certain unit.-/
-def lt_add_subgroup (v : valuation R Γ₀) (γ : units Γ₀) : add_subgroup R :=
+def lt_add_subgroup (v : valuation R Γ₀) (γ : Γ₀ˣ) : add_subgroup R :=
 { carrier   := {x | v x < γ},
   zero_mem' := by { have h := units.ne_zero γ, contrapose! h, simpa using h },
   add_mem'  := λ x y x_in y_in, lt_of_le_of_lt (v.map_add x y) (max_lt x_in y_in),
@@ -552,7 +552,7 @@ variables [linear_ordered_add_comm_group_with_top Γ₀] [ring R] (v : add_valua
   (v : add_valuation K Γ₀) {x : K} : v x⁻¹ = - (v x) :=
 v.map_inv
 
-lemma map_units_inv (x : units R) : v (x⁻¹ : units R) = - (v x) :=
+lemma map_units_inv (x : Rˣ) : v (x⁻¹ : Rˣ) = - (v x) :=
 v.map_units_inv x
 
 @[simp] lemma map_neg (x : R) : v (-x) = v x :=

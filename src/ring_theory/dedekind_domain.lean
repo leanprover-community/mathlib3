@@ -275,7 +275,7 @@ A Dedekind domain is an integral domain such that every fractional ideal has an 
 This is equivalent to `is_dedekind_domain`.
 In particular we provide a `fractional_ideal.comm_group_with_zero` instance,
 assuming `is_dedekind_domain A`, which implies `is_dedekind_domain_inv`. For **integral** ideals,
-`is_dedekind_domain`(`_inv`) implies only `ideal.comm_cancel_monoid_with_zero`.
+`is_dedekind_domain`(`_inv`) implies only `ideal.cancel_comm_monoid_with_zero`.
 -/
 def is_dedekind_domain_inv : Prop :=
 ∀ I ≠ (⊥ : fractional_ideal A⁰ (fraction_ring A)), I * I⁻¹ = 1
@@ -427,8 +427,7 @@ begin
          not_or_distrib, ← this] at hprodZ },
   -- By maximality of `P` and `M`, we have that `P ≤ M` implies `P = M`.
   have hPM' := (is_dedekind_domain.dimension_le_one _ hP0 P.is_prime).eq_of_le hM.ne_top hPM,
-  tactic.unfreeze_local_instances,
-  subst hPM',
+  substI hPM',
 
   -- By minimality of `Z`, erasing `P` from `Z` is exactly what we need.
   refine ⟨Z.erase P, _, _⟩,
@@ -666,9 +665,9 @@ noncomputable instance fractional_ideal.comm_group_with_zero :
   mul_inv_cancel := λ I, fractional_ideal.mul_inv_cancel,
   .. fractional_ideal.comm_semiring }
 
-noncomputable instance ideal.comm_cancel_monoid_with_zero :
-  comm_cancel_monoid_with_zero (ideal A) :=
-function.injective.comm_cancel_monoid_with_zero (coe_ideal_hom A⁰ (fraction_ring A))
+noncomputable instance ideal.cancel_comm_monoid_with_zero :
+  cancel_comm_monoid_with_zero (ideal A) :=
+function.injective.cancel_comm_monoid_with_zero (coe_ideal_hom A⁰ (fraction_ring A))
   coe_ideal_injective (ring_hom.map_zero _) (ring_hom.map_one _) (ring_hom.map_mul _)
 
 /-- For ideals in a Dedekind domain, to divide is to contain. -/

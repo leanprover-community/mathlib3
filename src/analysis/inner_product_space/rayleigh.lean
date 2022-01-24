@@ -85,6 +85,7 @@ by simp only [@cinfi_set _ _ _ _ rayleigh_quotient, T.image_rayleigh_eq_image_ra
 
 end continuous_linear_map
 
+namespace inner_product_space
 namespace is_self_adjoint
 
 section real
@@ -92,7 +93,7 @@ variables {F : Type*} [inner_product_space ℝ F]
 
 lemma has_strict_fderiv_at_re_apply_inner_self
   {T : F →L[ℝ] F} (hT : is_self_adjoint (T : F →ₗ[ℝ] F)) (x₀ : F) :
-  has_strict_fderiv_at T.re_apply_inner_self (bit0 (inner_right (T x₀))) x₀ :=
+  has_strict_fderiv_at T.re_apply_inner_self (bit0 (innerSL (T x₀))) x₀ :=
 begin
   convert T.has_strict_fderiv_at.inner (has_strict_fderiv_at_id x₀),
   ext y,
@@ -117,7 +118,7 @@ begin
   refine ⟨a, b, h₁, _⟩,
   apply (inner_product_space.to_dual_map ℝ F).injective,
   simp only [linear_isometry.map_add, linear_isometry.map_smul, linear_isometry.map_zero],
-  change a • inner_right x₀ + b • inner_right (T x₀) = 0,
+  change a • innerSL x₀ + b • innerSL (T x₀) = 0,
   apply smul_right_injective (F →L[ℝ] ℝ) (two_ne_zero : (2:ℝ) ≠ 0),
   simpa only [bit0, add_smul, smul_add, one_smul, add_zero] using h₂
 end
@@ -156,7 +157,6 @@ lemma eq_smul_self_of_is_local_extr_on (hT : is_self_adjoint (T : E →ₗ[𝕜]
   T x₀ = (↑(rayleigh_quotient x₀) : 𝕜) • x₀ :=
 begin
   letI := inner_product_space.is_R_or_C_to_real 𝕜 E,
-  letI : is_scalar_tower ℝ 𝕜 E := restrict_scalars.is_scalar_tower _ _ _,
   let S : E →L[ℝ] E :=
     @continuous_linear_map.restrict_scalars 𝕜 E E _ _ _ _ _ _ _ ℝ _ _ _ _ T,
   have hSA : is_self_adjoint (S : E →ₗ[ℝ] E) := λ x y, by
@@ -280,3 +280,4 @@ lemma subsingleton_of_no_eigenvalue_finite_dimensional
 end finite_dimensional
 
 end is_self_adjoint
+end inner_product_space

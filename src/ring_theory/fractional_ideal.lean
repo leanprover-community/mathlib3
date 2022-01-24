@@ -33,7 +33,7 @@ Let `K` be the localization of `R` at `R⁰ = R \ {0}` (i.e. the field of fracti
 
   * `mul_left_mono` and `mul_right_mono` state that ideal multiplication is monotone
   * `prod_one_self_div_eq` states that `1 / I` is the inverse of `I` if one exists
-  * `is_noetherian` states that very fractional ideal of a noetherian integral domain is noetherian
+  * `is_noetherian` states that every fractional ideal of a noetherian integral domain is noetherian
 
 ## Implementation notes
 
@@ -385,14 +385,9 @@ begin
     rw [mul_smul, mul_comm m, ← smul_mul_assoc, ← hn', ← algebra.smul_def],
     apply hI,
     exact submodule.smul_mem _ _ hm },
-  { rw smul_zero,
-    exact ⟨0, ring_hom.map_zero _⟩ },
   { intros x y hx hy,
     rw smul_add,
     apply is_integer_add hx hy },
-  { intros r x hx,
-    rw smul_comm,
-    exact is_integer_smul hx },
 end
 
 /-- `fractional_ideal.mul` is the product of two fractional ideals,
@@ -437,9 +432,8 @@ submodule.mul_le
   {I J : fractional_ideal S P}
   {C : P → Prop} {r : P} (hr : r ∈ I * J)
   (hm : ∀ (i ∈ I) (j ∈ J), C (i * j))
-  (h0 : C 0) (ha : ∀ x y, C x → C y → C (x + y))
-  (hs : ∀ (r : R) x, C x → C (r • x)) : C r :=
-submodule.mul_induction_on hr hm h0 ha hs
+  (ha : ∀ x y, C x → C y → C (x + y)) : C r :=
+submodule.mul_induction_on hr hm ha
 
 instance comm_semiring : comm_semiring (fractional_ideal S P) :=
 { add_assoc := λ I J K, sup_assoc,
@@ -472,14 +466,10 @@ instance comm_semiring : comm_semiring (fractional_ideal S P) :=
   end,
   mul_zero := λ I, eq_zero_iff.mpr (λ x hx, submodule.mul_induction_on hx
     (λ x hx y hy, by simp [(mem_zero_iff S).mp hy])
-    rfl
-    (λ x y hx hy, by simp [hx, hy])
-    (λ r x hx, by simp [hx])),
+    (λ x y hx hy, by simp [hx, hy])),
   zero_mul := λ I, eq_zero_iff.mpr (λ x hx, submodule.mul_induction_on hx
     (λ x hx y hy, by simp [(mem_zero_iff S).mp hx])
-    rfl
-    (λ x y hx hy, by simp [hx, hy])
-    (λ r x hx, by simp [hx])),
+    (λ x y hx hy, by simp [hx, hy])),
   left_distrib := λ I J K, coe_to_submodule_injective (mul_add _ _ _),
   right_distrib := λ I J K, coe_to_submodule_injective (add_mul _ _ _),
   ..fractional_ideal.has_zero S,
@@ -685,12 +675,12 @@ submodule.mem_span_mul_finite_of_mem_mul (by simpa using mem_coe.mpr hx)
 variables (S)
 
 lemma coe_ideal_fg (inj : function.injective (algebra_map R P)) (I : ideal R) :
-  fg ((I : fractional_ideal S P) : submodule R P) ↔ fg I :=
+  fg ((I : fractional_ideal S P) : submodule R P) ↔ I.fg :=
 coe_submodule_fg _ inj _
 
 variables {S}
 
-lemma fg_unit (I : units (fractional_ideal S P)) :
+lemma fg_unit (I : (fractional_ideal S P)ˣ) :
   fg (I : submodule R P) :=
 begin
   have : (1 : P) ∈ (I * ↑I⁻¹ : fractional_ideal S P),
@@ -1013,7 +1003,7 @@ variables [algebra R₁ K] [is_fraction_ring R₁ K]
 
 open_locale classical
 
-open submodule submodule.is_principal
+open submodule.is_principal
 
 include loc
 
@@ -1128,11 +1118,8 @@ begin
       obtain ⟨a, ha⟩ := (mem_span_singleton S).mp hx',
       use [a • y', submodule.smul_mem I a hy'],
       rw [←ha, algebra.mul_smul_comm, algebra.smul_mul_assoc] },
-    { exact ⟨0, submodule.zero_mem I, (mul_zero x).symm⟩ },
     { rintros _ _ ⟨y, hy, rfl⟩ ⟨y', hy', rfl⟩,
-      exact ⟨y + y', submodule.add_mem I hy hy', (mul_add _ _ _).symm⟩ },
-    { rintros r _ ⟨y', hy', rfl⟩,
-      exact ⟨r • y', submodule.smul_mem I r hy', (algebra.mul_smul_comm _ _ _).symm ⟩ } },
+      exact ⟨y + y', submodule.add_mem I hy hy', (mul_add _ _ _).symm⟩ } },
   { rintros ⟨y', hy', rfl⟩,
     exact mul_mem_mul ((mem_span_singleton S).mpr ⟨1, one_smul _ _⟩) hy' }
 end
@@ -1151,7 +1138,7 @@ begin
            span_singleton R₁⁰ (algebra_map R₁ K y) = 1,
   { rw [span_singleton_mul_span_singleton, mul_comm, ← is_localization.mk'_eq_mul_mk'_one,
         is_localization.mk'_self, span_singleton_one] },
-  let y' : units (fractional_ideal R₁⁰ K) := units.mk_of_mul_eq_one _ _ this,
+  let y' : (fractional_ideal R₁⁰ K)ˣ := units.mk_of_mul_eq_one _ _ this,
   have coe_y' : ↑y' = span_singleton R₁⁰ (is_localization.mk' K (1 : R₁) ⟨y, hy⟩) := rfl,
   refine iff.trans _ (y'.mul_right_inj.trans inj.eq_iff),
   rw [coe_y', coe_ideal_mul, coe_ideal_span_singleton, coe_ideal_mul, coe_ideal_span_singleton,
@@ -1280,7 +1267,7 @@ begin
   rw is_noetherian_iff,
   intros J hJ,
   obtain ⟨J, rfl⟩ := le_one_iff_exists_coe_ideal.mp (le_trans hJ coe_ideal_le_one),
-  exact fg_map (is_noetherian.noetherian J),
+  exact (is_noetherian.noetherian J).map _,
 end
 
 include frac

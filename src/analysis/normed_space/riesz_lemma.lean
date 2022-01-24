@@ -40,8 +40,7 @@ begin
   have hr' : r' < 1, by { simp [r', hr], norm_num },
   have hlt : 0 < r' := lt_of_lt_of_le (by norm_num) (le_max_right r 2⁻¹),
   have hdlt : d < d / r', from (lt_div_iff hlt).mpr ((mul_lt_iff_lt_one_right hdp).2 hr'),
-  obtain ⟨y₀, hy₀F, hxy₀⟩ : ∃ y ∈ F, dist x y < d / r' :=
-    metric.exists_dist_lt_of_inf_dist_lt hdlt hFn,
+  obtain ⟨y₀, hy₀F, hxy₀⟩ : ∃ y ∈ F, dist x y < d / r' := (metric.inf_dist_lt_iff hFn).mp hdlt,
   have x_ne_y₀ : x - y₀ ∉ F,
   { by_contradiction h,
     have : (x - y₀) + y₀ ∈ F, from F.add_mem h hy₀F,

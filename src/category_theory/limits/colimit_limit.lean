@@ -108,7 +108,9 @@ by { dsimp [colimit_limit_to_limit_colimit], simp, }
       eq_to_hom_refl, eq_to_hom_app, colimit.ι_map_assoc, limit.cone_π,
       lim_map_π_assoc, lim_map_π, category.assoc, currying_unit_iso_inv_app_app_app,
       limit_iso_swap_comp_lim_hom_app, lim_map_eq_lim_map],
-    erw category.id_comp,
+    dsimp,
+    simp only [category.id_comp],
+    erw limit_obj_iso_limit_comp_evaluation_hom_π_assoc,
   end }
 
 end category_theory.limits

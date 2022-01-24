@@ -49,6 +49,9 @@ variables [comm_semiring R] [add_comm_monoid M] [module R M]
 instance {S : Type*} [comm_ring S] {N : Type*} [add_comm_group N] [module S N] :
   add_comm_group (dual S N) := by {unfold dual, apply_instance}
 
+instance : add_monoid_hom_class (dual R M) M R :=
+linear_map.add_monoid_hom_class
+
 namespace dual
 
 instance : inhabited (dual R M) := by dunfold dual; apply_instance

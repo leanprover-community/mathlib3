@@ -942,6 +942,9 @@ lemma span_attach_bUnion [decidable_eq M] {α : Type*} (s : finset α) (f : s �
   span R (s.attach.bUnion f : set M) = ⨆ x, span R (f x) :=
 by simpa [span_Union]
 
+lemma sup_span : p ⊔ span R s = span R (p ∪ s) :=
+by rw [submodule.span_union, p.span_eq]
+
 lemma span_eq_supr_of_singleton_spans (s : set M) : span R s = ⨆ x ∈ s, span R {x} :=
 by simp only [←span_Union, set.bUnion_of_singleton s]
 

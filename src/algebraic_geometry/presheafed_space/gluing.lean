@@ -500,10 +500,7 @@ variables {C} (D : glue_data C)
 
 local notation `𝖣` := D.to_glue_data
 
-<<<<<<< HEAD
-=======
 /-- The glue data of presheafed spaces associated to a family of glue data of sheafed spaces. -/
->>>>>>> origin/master
 abbreviation to_PresheafedSpace_glue_data : PresheafedSpace.glue_data C :=
 { f_open := D.f_open,
   to_glue_data := 𝖣 .map_glue_data forget_to_PresheafedSpace }

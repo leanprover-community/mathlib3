@@ -126,8 +126,8 @@ end
 lemma is_integral_of_is_affine_is_reduced [is_affine X]
   [h : _root_.is_reduced (X.presheaf.obj (op ⊤))] : is_reduced X :=
 begin
-  haveI : _root_.is_reduced (Scheme.Spec.obj (op (Scheme.Γ.obj (op X)))),
-  { rw affine_is_integral_iff, exact h },
+  haveI : is_reduced (Scheme.Spec.obj (op (Scheme.Γ.obj (op X)))),
+  { rw affine_is_reduced_iff, exact h },
   exact is_reduced_of_open_immersion X.iso_Spec.hom,
 end
 

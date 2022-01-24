@@ -577,7 +577,7 @@ lemma tendsto.at_top_mul_at_top (hf : tendsto f l at_top) (hg : tendsto g l at_t
 begin
   refine tendsto_at_top_mono' _ _ hg,
   filter_upwards [hg.eventually (eventually_ge_at_top 0), hf.eventually (eventually_ge_at_top 1)]
-    using λ x, le_mul_of_one_le_left,
+    with _ using le_mul_of_one_le_left,
 end
 
 lemma tendsto_mul_self_at_top : tendsto (λ x : α, x * x) at_top at_top :=

@@ -58,7 +58,7 @@ lemma le_normalizer_of_ideal {N : lie_subalgebra R L}
   (h : ∀ (x y : L), x ∈ N → y ∈ H → ⁅x,y⁆ ∈ H) : N ≤ H.normalizer :=
 λ x hx y, h x y hx
 
-lemma normalizer_eq_self_iff_subsingleton :
+lemma normalizer_eq_self_iff :
   H.normalizer = H ↔ (lie_module.max_triv_submodule R H $ L ⧸ H.to_lie_submodule) = ⊥ :=
 begin
   rw lie_submodule.eq_bot_iff,

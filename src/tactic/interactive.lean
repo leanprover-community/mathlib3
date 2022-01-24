@@ -643,8 +643,8 @@ add_tactic_doc
 
 /--
 Similar to `existsi`. `use x` will instantiate the first term of an `∃` or `Σ` goal with `x`. It
-will then try to close the new goal using `trivial'`, or try to simplify it by applying `exists_prop`.
-Unlike `existsi`, `x` is elaborated with respect to the expected type.
+will then try to close the new goal using `trivial'`, or try to simplify it by applying
+`exists_prop`. Unlike `existsi`, `x` is elaborated with respect to the expected type.
 `use` will alternatively take a list of terms `[x0, ..., xn]`.
 
 `use` will work with constructors of arbitrary inductive types.

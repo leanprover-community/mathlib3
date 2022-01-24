@@ -648,7 +648,7 @@ variables (E μ)
 lemma zero_to_simple_func : to_simple_func (0 : Lp.simple_func E p μ) =ᵐ[μ] 0 :=
 begin
   filter_upwards [to_simple_func_eq_to_fun (0 : Lp.simple_func E p μ), Lp.coe_fn_zero E 1 μ]
-  with _ h₁ _,
+    with _ h₁ _,
   rwa h₁,
 end
 

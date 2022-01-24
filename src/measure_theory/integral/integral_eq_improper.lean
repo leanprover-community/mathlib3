@@ -414,7 +414,7 @@ begin
   have hφ : ae_cover μ l _ := ae_cover_Ioc ha hb,
   refine hφ.integrable_of_integral_norm_bounded I hfi (h.mp _),
   filter_upwards [ha.eventually (eventually_le_at_bot c), hb.eventually (eventually_ge_at_top c)]
-  with i hai hbi ht,
+    with i hai hbi ht,
   rwa ←interval_integral.integral_of_le (hai.trans hbi)
 end
 
@@ -494,7 +494,7 @@ begin
   have hφ : ae_cover μ l φ := ae_cover_Ioc ha hb,
   refine (hφ.integral_tendsto_of_countably_generated hfi).congr' _,
   filter_upwards [ha.eventually (eventually_le_at_bot c), hb.eventually (eventually_ge_at_top c)]
-  with i hai hbi,
+    with i hai hbi,
   exact (interval_integral.integral_of_le (hai.trans hbi)).symm
 end
 

@@ -64,7 +64,7 @@ example (f g h : Lp E p μ) : (f + g) + h = f + (g + h) :=
 begin
   ext1,
   filter_upwards [coe_fn_add (f + g) h, coe_fn_add f g, coe_fn_add f (g + h), coe_fn_add g h]
-  with _ ha1 ha2 ha3 ha4,
+    with _ ha1 ha2 ha3 ha4,
   simp only [ha1, ha2, ha3, ha4, add_assoc],
 end
 ```

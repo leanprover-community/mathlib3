@@ -296,7 +296,7 @@ have hb : ∀ n, ∀ᵐ a ∂μ, ennreal.of_real ∥F n a - f a∥ ≤ b a,
 begin
   assume n,
   filter_upwards [all_ae_of_real_F_le_bound h_bound n, all_ae_of_real_f_le_bound h_bound h_lim]
-   with a h₁ h₂,
+    with a h₁ h₂,
   calc ennreal.of_real ∥F n a - f a∥ ≤ (ennreal.of_real ∥F n a∥) + (ennreal.of_real ∥f a∥) :
   begin
     rw [← ennreal.of_real_add],

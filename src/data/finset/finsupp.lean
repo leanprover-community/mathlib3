@@ -12,10 +12,8 @@ This file defines the finitely supported product of finsets as `finset (ι →�
 
 ## Main declarations
 
-* `finset.finsupp`: The finitely supported product of finset. `s.sym n` is all the multisets of cardinality `n`
-  whose elements are in `s`.
-* `finset.sym2`: The symmetric square of a finset. `s.sym2` is all the pairs whose elements are in
-  `s`.
+* `finset.finsupp`: The finitely supported product of finsets.
+* `finsupp.pi`: `f.pi` is the finset of `finsupp`s whose `i`-th value lies in `f i`.
 
 ## Implementation notes
 
@@ -67,3 +65,22 @@ end
 (card_map _).trans $ card_pi _ _
 
 end finset
+
+open finset
+
+namespace finsupp
+
+/-- Given a finitely supported function `f : ι →₀ finset α`, one can define the finset
+`f.pi` of all finitely supported functions whose value at `i` is in `f i` for all `i`. -/
+def pi (f : ι →₀ finset α) : finset (ι →₀ α) := f.support.finsupp f
+
+@[simp] lemma mem_pi {f : ι →₀ finset α} {g : ι →₀ α} : g ∈ f.pi ↔ ∀ i, g i ∈ f i :=
+mem_finsupp_iff_of_support_subset $ subset.refl _
+
+@[simp] lemma card_pi (f : ι →₀ finset α) : f.pi.card = f.prod (λ i, (f i).card) :=
+begin
+  rw [pi, card_finsupp],
+  exact finset.prod_congr rfl (λ i _, by simp only [pi.nat_apply, nat.cast_id]),
+end
+
+end finsupp

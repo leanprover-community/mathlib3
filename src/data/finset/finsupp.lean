@@ -12,8 +12,10 @@ This file defines the finitely supported product of finsets as a `finset (ι →
 
 ## Main declarations
 
-* `finset.finsupp`: The finitely supported product of finsets.
-* `finsupp.pi`: `f.pi` is the finset of `finsupp`s whose `i`-th value lies in `f i`.
+* `finset.finsupp`: Finitely supported product of finsets. `s.finset t` is the product of the `t i`
+  over all `i ∈ s`.
+* `finsupp.pi`: `f.pi` is the finset of `finsupp`s whose `i`-th value lies in `f i`. This is the
+  special case of `finset.finsupp` where we take the product of the `f i` over the support of `f`.
 
 ## Implementation notes
 
@@ -31,7 +33,7 @@ variables {ι α : Type*} [has_zero α] {s : finset ι} {f : ι →₀ α}
 namespace finset
 
 /-- Finitely supported product of finsets. -/
-def finsupp (s : finset ι) (t : ι → finset α) : finset (ι →₀ α) :=
+protected def finsupp (s : finset ι) (t : ι → finset α) : finset (ι →₀ α) :=
 (s.pi t).map ⟨indicator s, indicator_injective s⟩
 
 lemma mem_finsupp_iff {t : ι → finset α} : f ∈ s.finsupp t ↔ f.support ⊆ s ∧ ∀ i ∈ s, f i ∈ t i :=

@@ -3,7 +3,7 @@ import measure_theory.measure.measure_space
 /-!
 -/
 
-open_locale topological_space
+open_locale topological_space ennreal
 open set function filter
 
 namespace measure_theory
@@ -15,13 +15,13 @@ section basic
 variables {X Y : Type*} [topological_space X] {m : measurable_space X}
   [topological_space Y] [t2_space Y] (μ : measure X)
 
-class is_open_positive : Prop :=
+class is_open_pos_measure : Prop :=
 (open_pos : ∀ (U : set X), is_open U → U.nonempty → μ U ≠ 0)
 
-variables [is_open_positive μ] {s U : set X} {x : X}
+variables [is_open_pos_measure μ] {s U : set X} {x : X}
 
 lemma _root_.is_open.measure_ne_zero (hU : is_open U) (hne : U.nonempty) : μ U ≠ 0 :=
-is_open_positive.open_pos U hU hne
+is_open_pos_measure.open_pos U hU hne
 
 lemma _root_.is_open.measure_pos (hU : is_open U) (hne : U.nonempty) : 0 < μ U :=
 (hU.measure_ne_zero μ hne).bot_lt
@@ -77,13 +77,19 @@ have interior s ⊆ s, from interior_subset,
 (eq_on_open_of_ae_eq (ae_restrict_of_ae_restrict_of_subset this h) is_open_interior
   (hf.mono this) (hg.mono this)).of_subset_closure hf hg this hU
 
+variable (μ)
+
+lemma _root_.continuous.ae_eq_iff_eq {f g : X → Y} (hf : continuous f) (hg : continuous g) :
+  f =ᵐ[μ] g ↔ f = g :=
+⟨λ h, eq_of_ae_eq h hf hg, λ h, h ▸ eventually_eq.rfl⟩
+
 end basic
 
 section linear_order
 
 variables {X Y : Type*} [topological_space X] [linear_order X] [order_topology X]
   {m : measurable_space X} [topological_space Y] [t2_space Y] (μ : measure X)
-  [is_open_positive μ]
+  [is_open_pos_measure μ]
 
 lemma measure_Ioi_pos [no_max_order X] (a : X) : 0 < μ (Ioi a) :=
 is_open_Ioi.measure_pos μ nonempty_Ioi
@@ -121,3 +127,33 @@ end linear_order
 end measure
 
 end measure_theory
+
+open measure_theory measure_theory.measure
+
+namespace metric
+
+variables {X : Type*} [pseudo_metric_space X] {m : measurable_space X} (μ : measure X)
+  [is_open_pos_measure μ]
+
+lemma measure_ball_pos (x : X) {r : ℝ} (hr : 0 < r) : 0 < μ (ball x r) :=
+is_open_ball.measure_pos μ (nonempty_ball.2 hr)
+
+lemma measure_closed_ball_pos (x : X) {r : ℝ} (hr : 0 < r) :
+  0 < μ (closed_ball x r) :=
+(measure_ball_pos μ x hr).trans_le (measure_mono ball_subset_closed_ball)
+
+end metric
+
+namespace emetric
+
+variables {X : Type*} [pseudo_emetric_space X] {m : measurable_space X} (μ : measure X)
+  [is_open_pos_measure μ]
+
+lemma measure_ball_pos (x : X) {r : ℝ≥0∞} (hr : r ≠ 0) : 0 < μ (ball x r) :=
+is_open_ball.measure_pos μ ⟨x, mem_ball_self hr.bot_lt⟩
+
+lemma measure_closed_ball_pos (x : X) {r : ℝ≥0∞} (hr : r ≠ 0) :
+  0 < μ (closed_ball x r) :=
+(measure_ball_pos μ x hr).trans_le (measure_mono ball_subset_closed_ball)
+
+end emetric

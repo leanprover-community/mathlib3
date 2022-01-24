@@ -6,6 +6,7 @@ Authors: Floris van Doorn
 import measure_theory.integral.lebesgue
 import measure_theory.measure.regular
 import measure_theory.group.measurable_equiv
+import measure_theory.measure.open_pos
 
 /-!
 # Measures on Groups
@@ -182,32 +183,28 @@ variables [group G] [topological_group G]
 /-- If a left-invariant measure gives positive mass to a compact set, then
 it gives positive mass to any open set. -/
 @[to_additive]
-lemma is_mul_left_invariant.measure_pos_of_is_open (hμ : is_mul_left_invariant μ)
-  (K : set G) (hK : is_compact K) (h : μ K ≠ 0) {U : set G} (hU : is_open U) (h'U : U.nonempty) :
-  0 < μ U :=
+lemma is_mul_left_invariant.is_open_pos_measure_of_compact (hμ : is_mul_left_invariant μ)
+  (K : set G) (hK : is_compact K) (h : μ K ≠ 0) :
+  is_open_pos_measure μ :=
 begin
+  refine ⟨λ U hU hne, _⟩,
   contrapose! h,
   rw ← nonpos_iff_eq_zero,
-  rw nonpos_iff_eq_zero at h,
-  rw ← hU.interior_eq at h'U,
+  rw ← hU.interior_eq at hne,
   obtain ⟨t, hKt⟩ : ∃ (t : finset G), K ⊆ ⋃ (g : G) (H : g ∈ t), (λ (h : G), g * h) ⁻¹' U :=
-    compact_covered_by_mul_left_translates hK h'U,
+    compact_covered_by_mul_left_translates hK hne,
   calc μ K ≤ μ (⋃ (g : G) (H : g ∈ t), (λ (h : G), g * h) ⁻¹' U) : measure_mono hKt
   ... ≤ ∑ g in t, μ ((λ (h : G), g * h) ⁻¹' U) : measure_bUnion_finset_le _ _
   ... = 0 : by simp [hμ _ hU.measurable_set, h]
 end
 
-/-! A nonzero left-invariant regular measure gives positive mass to any open set. -/
+/-- A nonzero left-invariant regular measure gives positive mass to any open set. -/
 @[to_additive]
-lemma is_mul_left_invariant.null_iff_empty [regular μ] (hμ : is_mul_left_invariant μ)
-  (h3μ : μ ≠ 0) {s : set G} (hs : is_open s) :
-  μ s = 0 ↔ s = ∅ :=
-begin
-  obtain ⟨K, hK, h2K⟩ := regular.exists_compact_not_null.mpr h3μ,
-  refine ⟨λ h, _, λ h, by simp only [h, measure_empty]⟩,
-  contrapose h,
-  exact (hμ.measure_pos_of_is_open K hK h2K hs (ne_empty_iff_nonempty.mp h)).ne'
-end
+lemma is_mul_left_invariant.is_open_pos_measure_of_regular [regular μ]
+  (hμ : is_mul_left_invariant μ) (h₀ : μ ≠ 0) :
+  is_open_pos_measure μ :=
+let ⟨K, hK, h2K⟩ := regular.exists_compact_not_null.mpr h₀
+in hμ.is_open_pos_measure_of_compact K hK h2K
 
 @[to_additive]
 lemma is_mul_left_invariant.null_iff [regular μ] (h2μ : is_mul_left_invariant μ)
@@ -215,15 +212,15 @@ lemma is_mul_left_invariant.null_iff [regular μ] (h2μ : is_mul_left_invariant 
   μ s = 0 ↔ s = ∅ ∨ μ = 0 :=
 begin
   by_cases h3μ : μ = 0, { simp [h3μ] },
-  simp only [h3μ, or_false],
-  exact h2μ.null_iff_empty h3μ hs,
+  { haveI := h2μ.is_open_pos_measure_of_regular h3μ,
+    simp only [h3μ, or_false, hs.measure_eq_zero_iff μ] },
 end
 
 @[to_additive]
 lemma is_mul_left_invariant.measure_ne_zero_iff_nonempty [regular μ]
   (h2μ : is_mul_left_invariant μ) (h3μ : μ ≠ 0) {s : set G} (hs : is_open s) :
   μ s ≠ 0 ↔ s.nonempty :=
-by simp_rw [← ne_empty_iff_nonempty, ne.def, h2μ.null_iff_empty h3μ hs]
+by simpa [h2μ.null_iff hs, h3μ] using ne_empty_iff_nonempty
 
 @[to_additive]
 lemma is_mul_left_invariant.measure_pos_iff_nonempty [regular μ]
@@ -263,21 +260,8 @@ lemma lintegral_eq_zero_of_is_mul_left_invariant [regular μ]
   (h2μ : is_mul_left_invariant μ) (h3μ : μ ≠ 0) {f : G → ℝ≥0∞} (hf : continuous f) :
   ∫⁻ x, f x ∂μ = 0 ↔ f = 0 :=
 begin
-  split, swap, { rintro rfl, simp_rw [pi.zero_apply, lintegral_zero] },
-  intro h, contrapose h,
-  simp_rw [funext_iff, not_forall, pi.zero_apply] at h, cases h with x hx,
-  obtain ⟨r, h1r, h2r⟩ : ∃ r : ℝ≥0∞, 0 < r ∧ r < f x :=
-  exists_between (pos_iff_ne_zero.mpr hx),
-  have h3r := hf.is_open_preimage (Ioi r) is_open_Ioi,
-  let s := Ioi r,
-  rw [← ne.def, ← pos_iff_ne_zero],
-  have : 0 < r * μ (f ⁻¹' Ioi r),
-  { have : (f ⁻¹' Ioi r).nonempty, from ⟨x, h2r⟩,
-    simpa [h1r.ne', h2μ.measure_pos_iff_nonempty h3μ h3r, h1r] },
-  refine this.trans_le _,
-  rw [← set_lintegral_const, ← lintegral_indicator _ h3r.measurable_set],
-  apply lintegral_mono,
-  refine indicator_le (λ y, le_of_lt),
+  haveI := h2μ.is_open_pos_measure_of_regular h3μ,
+  rw [lintegral_eq_zero_iff hf.measurable, hf.ae_eq_iff_eq μ continuous_zero]
 end
 
 end group
@@ -322,16 +306,14 @@ namespace measure
 /-- A measure on a group is a Haar measure if it is left-invariant, and gives finite mass to compact
 sets and positive mass to open sets. -/
 class is_haar_measure {G : Type*} [group G] [topological_space G] [measurable_space G]
-  (μ : measure G) extends is_finite_measure_on_compacts μ : Prop :=
+  (μ : measure G) extends is_finite_measure_on_compacts μ, is_open_pos_measure μ : Prop :=
 (left_invariant : is_mul_left_invariant μ)
-(open_pos : ∀ (U : set G), is_open U → U.nonempty → 0 < μ U)
 
 /-- A measure on an additive group is an additive Haar measure if it is left-invariant, and gives
 finite mass to compact sets and positive mass to open sets. -/
 class is_add_haar_measure {G : Type*} [add_group G] [topological_space G] [measurable_space G]
-  (μ : measure G) extends is_finite_measure_on_compacts μ : Prop :=
+  (μ : measure G) extends is_finite_measure_on_compacts μ, is_open_pos_measure μ : Prop :=
 (add_left_invariant : is_add_left_invariant μ)
-(open_pos : ∀ (U : set G), is_open U → U.nonempty → 0 < μ U)
 
 attribute [to_additive] is_haar_measure
 
@@ -348,15 +330,6 @@ is_locally_finite_measure_of_is_finite_measure_on_compacts
 section
 
 variables [group G] [measurable_space G] [topological_space G] (μ : measure G) [is_haar_measure μ]
-
-@[to_additive]
-lemma _root_.is_open.haar_pos {U : set G} (hU : is_open U) (h'U : U.nonempty) :
-  0 < μ U :=
-is_haar_measure.open_pos U hU h'U
-
-@[to_additive]
-lemma haar_pos_of_nonempty_interior {U : set G} (hU : (interior U).nonempty) : 0 < μ U :=
-lt_of_lt_of_le (is_open_interior.haar_pos μ hU) (measure_mono (interior_subset))
 
 @[to_additive]
 lemma is_mul_left_invariant_haar : is_mul_left_invariant μ :=
@@ -390,9 +363,9 @@ lemma is_haar_measure.smul {c : ℝ≥0∞} (cpos : c ≠ 0) (ctop : c ≠ ∞) 
     change c * μ K < ∞,
     simp [lt_top_iff_ne_top, hK.measure_lt_top.ne, cpos, ctop],
   end,
-  open_pos := λ U U_open U_ne, bot_lt_iff_ne_bot.2 $ begin
+  open_pos := λ U U_open U_ne, begin
     change c * μ U ≠ 0,
-    simp [cpos, (_root_.is_open.haar_pos μ U_open U_ne).ne'],
+    simp [cpos, U_open.measure_ne_zero μ U_ne],
   end }
 
 /-- If a left-invariant measure gives positive mass to some compact set with nonempty interior, then
@@ -404,7 +377,7 @@ lemma is_haar_measure_of_is_compact_nonempty_interior [topological_group G] [bor
   is_haar_measure μ :=
 { left_invariant := hμ,
   lt_top_of_is_compact := λ L hL, hμ.measure_lt_top_of_is_compact' _ h'K h' hL,
-  open_pos := λ U hU, hμ.measure_pos_of_is_open K hK h hU }
+  to_is_open_pos_measure := hμ.is_open_pos_measure_of_compact K hK h }
 
 /-- The image of a Haar measure under a group homomorphism which is also a homeomorphism is again
 a Haar measure. -/
@@ -430,14 +403,7 @@ lemma is_haar_measure_map [borel_space G] [topological_group G] {H : Type*} [gro
     rw ← this,
     exact is_compact.measure_lt_top (hK.image hfsymm)
   end,
-  open_pos := begin
-    assume U hU h'U,
-    rw map_apply hf.measurable hU.measurable_set,
-    refine (hU.preimage hf).haar_pos _ _,
-    have : f.symm '' U = f ⁻¹' U := equiv.image_eq_preimage _ _,
-    rw ← this,
-    simp [h'U],
-  end }
+  to_is_open_pos_measure := hf.is_open_pos_measure_map f.surjective }
 
 /-- A Haar measure on a sigma-compact space is sigma-finite. -/
 @[priority 100, to_additive] -- see Note [lower instance priority]
@@ -486,7 +452,7 @@ begin
     rw B at A,
     rwa [ennreal.le_div_iff_mul_le _ (or.inr μKlt), mul_comm],
     right,
-    apply ne_of_gt (haar_pos_of_nonempty_interior μ ⟨_, K_int⟩) },
+    apply (measure_pos_of_nonempty_interior μ ⟨_, K_int⟩).ne' },
   have J : tendsto (λ (n : ℕ),  μ K / n) at_top (𝓝 (μ K / ∞)) :=
     ennreal.tendsto.const_div ennreal.tendsto_nat_nhds_top (or.inr μKlt),
   simp only [ennreal.div_top] at J,

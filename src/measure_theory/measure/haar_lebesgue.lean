@@ -378,16 +378,6 @@ begin
   rw [this, add_haar_preimage_add]
 end
 
-lemma add_haar_ball_pos {E : Type*} [normed_group E] [measurable_space E]
-  (μ : measure E) [is_add_haar_measure μ] (x : E) {r : ℝ} (hr : 0 < r) :
-  0 < μ (ball x r) :=
-is_open_ball.add_haar_pos μ (nonempty_ball.2 hr)
-
-lemma add_haar_closed_ball_pos {E : Type*} [normed_group E] [measurable_space E]
-  (μ : measure E) [is_add_haar_measure μ] (x : E) {r : ℝ} (hr : 0 < r) :
-  0 < μ (closed_ball x r) :=
-lt_of_lt_of_le (add_haar_ball_pos μ x hr) (measure_mono ball_subset_closed_ball)
-
 lemma add_haar_ball_of_pos (x : E) {r : ℝ} (hr : 0 < r) :
   μ (ball x r) = ennreal.of_real (r ^ (finrank ℝ E)) * μ (ball 0 1) :=
 begin

@@ -26,20 +26,88 @@ lie algebra, lower central series, nilpotent
 
 universes u v w w₁ w₂
 
-namespace lie_module
+section nilpotent_modules
 
-variables (R : Type u) (L : Type v) (M : Type w)
+variables {R : Type u} {L : Type v} {M : Type w}
 variables [comm_ring R] [lie_ring L] [lie_algebra R L] [add_comm_group M] [module R M]
 variables [lie_ring_module L M] [lie_module R L M]
+variables (k : ℕ) (N : lie_submodule R L M)
+
+namespace lie_submodule
+
+/-- A generalisation of the lower central series. The zeroth term is a specified Lie submodule of
+a Lie module. In the case when we specify the top ideal `⊤` of the Lie algebra, regarded as a Lie
+module over itself, we get the usual lower central series of a Lie algebra.
+
+It can be more convenient to work with this generalisation when considering the lower central series
+of a Lie submodule, regarded as a Lie module in its own right, since it provides a type-theoretic
+expression of the fact that the terms of the Lie submodule's lower central series are also Lie
+submodules of the enclosing Lie module.
+
+See also `lie_module.lower_central_series_eq_lcs_comap` and
+`lie_module.lower_central_series_map_eq_lcs` below. -/
+def lcs : lie_submodule R L M → lie_submodule R L M := (λ N, ⁅(⊤ : lie_ideal R L), N⁆)^[k]
+
+@[simp] lemma lcs_zero (N : lie_submodule R L M) : N.lcs 0 = N := rfl
+
+@[simp] lemma lcs_succ : N.lcs (k + 1) = ⁅(⊤ : lie_ideal R L), N.lcs k⁆ :=
+function.iterate_succ_apply' (λ N', ⁅⊤, N'⁆) k N
+
+end lie_submodule
+
+namespace lie_module
+
+variables (R L M)
 
 /-- The lower central series of Lie submodules of a Lie module. -/
-def lower_central_series (k : ℕ) : lie_submodule R L M := (λ I, ⁅(⊤ : lie_ideal R L), I⁆)^[k] ⊤
+def lower_central_series : lie_submodule R L M := (⊤ : lie_submodule R L M).lcs k
 
 @[simp] lemma lower_central_series_zero : lower_central_series R L M 0 = ⊤ := rfl
 
-@[simp] lemma lower_central_series_succ (k : ℕ) :
+@[simp] lemma lower_central_series_succ :
   lower_central_series R L M (k + 1) = ⁅(⊤ : lie_ideal R L), lower_central_series R L M k⁆ :=
-function.iterate_succ_apply' (λ I, ⁅(⊤ : lie_ideal R L), I⁆) k ⊤
+(⊤ : lie_submodule R L M).lcs_succ k
+
+end lie_module
+
+namespace lie_submodule
+
+open lie_module
+
+variables {R L M}
+
+lemma lcs_le_self : N.lcs k ≤ N :=
+begin
+  induction k with k ih,
+  { simp, },
+  { simp only [lcs_succ],
+    exact (lie_submodule.mono_lie_right _ _ ⊤ ih).trans (N.lie_le_right ⊤), },
+end
+
+lemma lower_central_series_eq_lcs_comap :
+  lower_central_series R L N k = (N.lcs k).comap N.incl :=
+begin
+  induction k with k ih,
+  { simp, },
+  { simp only [lcs_succ, lower_central_series_succ] at ⊢ ih,
+    have : N.lcs k ≤ N.incl.range,
+    { rw N.range_incl,
+      apply lcs_le_self, },
+    rw [ih, lie_submodule.comap_bracket_eq _ _ N.incl N.ker_incl this], },
+end
+
+lemma lower_central_series_map_eq_lcs :
+  (lower_central_series R L N k).map N.incl = N.lcs k :=
+begin
+  rw [lower_central_series_eq_lcs_comap, lie_submodule.map_comap_incl, inf_eq_right],
+  apply lcs_le_self,
+end
+
+end lie_submodule
+
+namespace lie_module
+
+variables (R L M)
 
 lemma antitone_lower_central_series : antitone $ lower_central_series R L M :=
 begin
@@ -227,6 +295,8 @@ set.nontrivial_mono
 
 end lie_module
 
+end nilpotent_modules
+
 @[priority 100]
 instance lie_algebra.is_solvable_of_is_nilpotent (R : Type u) (L : Type v)
   [comm_ring R] [lie_ring L] [lie_algebra R L] [hL : lie_module.is_nilpotent R L L] :
@@ -325,7 +395,7 @@ lemma function.injective.lie_algebra_is_nilpotent [h₁ : is_nilpotent R L'] {f 
   (h₂ : function.injective f) : is_nilpotent R L :=
 { nilpotent :=
   begin
-    tactic.unfreeze_local_instances, obtain ⟨k, hk⟩ := h₁,
+    obtain ⟨k, hk⟩ := id h₁,
     use k,
     apply lie_ideal.bot_of_map_eq_bot h₂, rw [eq_bot_iff, ← hk],
     apply lie_ideal.map_lower_central_series_le,
@@ -335,7 +405,7 @@ lemma function.surjective.lie_algebra_is_nilpotent [h₁ : is_nilpotent R L] {f 
   (h₂ : function.surjective f) : is_nilpotent R L' :=
 { nilpotent :=
   begin
-    tactic.unfreeze_local_instances, obtain ⟨k, hk⟩ := h₁,
+    obtain ⟨k, hk⟩ := id h₁,
     use k,
     rw [← lie_ideal.lower_central_series_map_eq k h₂, hk],
     simp only [lie_ideal.map_eq_bot_iff, bot_le],

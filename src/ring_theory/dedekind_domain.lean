@@ -427,8 +427,7 @@ begin
          not_or_distrib, ← this] at hprodZ },
   -- By maximality of `P` and `M`, we have that `P ≤ M` implies `P = M`.
   have hPM' := (is_dedekind_domain.dimension_le_one _ hP0 P.is_prime).eq_of_le hM.ne_top hPM,
-  tactic.unfreeze_local_instances,
-  subst hPM',
+  substI hPM',
 
   -- By minimality of `Z`, erasing `P` from `Z` is exactly what we need.
   refine ⟨Z.erase P, _, _⟩,

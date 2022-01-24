@@ -216,6 +216,10 @@ begin
   { rintro rfl, simp },
 end
 
+lemma eq_of_ne_mem {x y : α} {z z' : sym2 α} (h : x ≠ y)
+  (h1 : x ∈ z) (h2 : y ∈ z) (h3 : x ∈ z') (h4 : y ∈ z') : z = z' :=
+((mem_and_mem_iff h).mp ⟨h1, h2⟩).trans ((mem_and_mem_iff h).mp ⟨h3, h4⟩).symm
+
 @[ext]
 protected lemma ext (z z' : sym2 α) (h : ∀ x, x ∈ z ↔ x ∈ z') : z = z' :=
 begin

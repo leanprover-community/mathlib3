@@ -538,7 +538,7 @@ end
 
 theorem conjugates_of_set_subset' {s t : set G} (ht : is_normal_subgroup t) (h : s ⊆ t) :
   conjugates_of_set s ⊆ t :=
-set.bUnion_subset (λ x H, conjugates_of_subset ht (h H))
+set.Union₂_subset (λ x H, conjugates_of_subset ht (h H))
 
 /-- The normal closure of a set s is the subgroup closure of all the conjugates of
 elements of s. It is the smallest normal subgroup containing s. -/

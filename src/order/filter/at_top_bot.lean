@@ -38,6 +38,8 @@ def at_bot [preorder α] : filter α := ⨅ a, 𝓟 (Iic a)
 lemma mem_at_top [preorder α] (a : α) : {b : α | a ≤ b} ∈ @at_top α _ :=
 mem_infi_of_mem a $ subset.refl _
 
+lemma Ici_mem_at_top [preorder α] (a : α) : Ici a ∈ (at_top : filter α) := mem_at_top a
+
 lemma Ioi_mem_at_top [preorder α] [no_max_order α] (x : α) : Ioi x ∈ (at_top : filter α) :=
 let ⟨z, hz⟩ := exists_gt x in mem_of_superset (mem_at_top z) $ λ y h,  lt_of_lt_of_le hz h
 

@@ -496,6 +496,28 @@ ball_subset $ by rw sub_self_div_two; exact le_of_lt h
 theorem exists_ball_subset_ball (h : y ∈ ball x ε) : ∃ ε' > 0, ball y ε' ⊆ ball x ε :=
 ⟨_, sub_pos.2 h, ball_subset $ by rw sub_sub_self⟩
 
+/-- If a property holds for all points in closed balls of arbitrarily large radii, then it holds for
+all points. -/
+lemma forall_of_forall_mem_closed_ball (p : α → Prop) (x : α)
+  (H : ∃ᶠ (R : ℝ) in at_top, ∀ y ∈ closed_ball x R, p y) (y : α) :
+  p y :=
+begin
+  obtain ⟨R, hR, h⟩ : ∃ (R : ℝ) (H : dist y x ≤ R), ∀ (z : α), z ∈ closed_ball x R → p z :=
+    frequently_iff.1 H (Ici_mem_at_top (dist y x)),
+  exact h _ hR
+end
+
+/-- If a property holds for all points in balls of arbitrarily large radii, then it holds for all
+points. -/
+lemma forall_of_forall_mem_ball (p : α → Prop) (x : α)
+  (H : ∃ᶠ (R : ℝ) in at_top, ∀ y ∈ ball x R, p y) (y : α) :
+  p y :=
+begin
+  obtain ⟨R, hR, h⟩ : ∃ (R : ℝ) (H : dist y x < R), ∀ (z : α), z ∈ ball x R → p z :=
+    frequently_iff.1 H (Ioi_mem_at_top (dist y x)),
+  exact h _ hR
+end
+
 theorem uniformity_basis_dist :
   (𝓤 α).has_basis (λ ε : ℝ, 0 < ε) (λ ε, {p:α×α | dist p.1 p.2 < ε}) :=
 begin
@@ -622,7 +644,7 @@ theorem totally_bounded_iff {s : set α} :
 ⟨λ H ε ε0, H _ (dist_mem_uniformity ε0),
  λ H r ru, let ⟨ε, ε0, hε⟩ := mem_uniformity_dist.1 ru,
                ⟨t, ft, h⟩ := H ε ε0 in
-  ⟨t, ft, subset.trans h $ Union_subset_Union $ λ y, Union_subset_Union $ λ yt z, hε⟩⟩
+  ⟨t, ft, h.trans $ Union₂_mono $ λ y yt z, hε⟩⟩
 
 /-- A pseudometric space is totally bounded if one can reconstruct up to any ε>0 any element of the
 space from finitely many data. -/
@@ -1677,7 +1699,7 @@ begin
   refine emetric.second_countable_of_almost_dense_set (λ ε ε0, _),
   rcases ennreal.lt_iff_exists_nnreal_btwn.1 ε0 with ⟨ε', ε'0, ε'ε⟩,
   choose s hsc y hys hyx using H ε' (by exact_mod_cast ε'0),
-  refine ⟨s, hsc, bUnion_eq_univ_iff.2 (λ x, ⟨y x, hys _, le_trans _ ε'ε.le⟩)⟩,
+  refine ⟨s, hsc, Union₂_eq_univ_iff.2 (λ x, ⟨y x, hys _, le_trans _ ε'ε.le⟩)⟩,
   exact_mod_cast hyx x
 end
 

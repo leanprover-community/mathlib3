@@ -288,7 +288,7 @@ sin_pos_of_pos_of_lt_pi hx.1 hx.2
 
 lemma sin_nonneg_of_mem_Icc {x : ℝ} (hx : x ∈ Icc 0 π) : 0 ≤ sin x :=
 begin
-  rw ← closure_Ioo pi_pos at hx,
+  rw ← closure_Ioo pi_ne_zero.symm at hx,
   exact closure_lt_subset_le continuous_const continuous_sin
     (closure_mono (λ y, sin_pos_of_mem_Ioo) hx)
 end

@@ -2226,7 +2226,7 @@ begin
       (hcont.mono (Icc_subset_Icc ht.1.le (le_refl _)))
       (λ x hx, hderiv x ⟨ht.1.trans_le hx.1, hx.2⟩)
       (g'int.mono_set (Icc_subset_Icc ht.1.le (le_refl _))) },
-  rw closure_Ioc a_lt_b at A,
+  rw closure_Ioc a_lt_b.ne at A,
   exact (A (left_mem_Icc.2 hab)).1,
 end
 

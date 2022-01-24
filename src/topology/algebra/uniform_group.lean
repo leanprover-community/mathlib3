@@ -242,6 +242,14 @@ begin
   exact λ a ha, huv (by exact ((congr_arg (∈ u) (div_mul_comm _ _ _ _)).mp (h ha))),
 end
 
+@[to_additive] lemma topological_group.uniform_continuous_inv :
+  let t := topological_group.to_uniform_space G in @uniform_continuous G G t t (λ g, g⁻¹) :=
+begin
+  rintros t v ⟨u, hu, huv⟩,
+  refine ⟨_, continuous_inv.tendsto' _ _ one_inv hu, λ g hg, huv ((congr_arg (∈ u) _).mp hg)⟩,
+  exact (inv_div' g.2 g.1).trans (inv_div_inv g.2 g.1).symm,
+end
+
 @[to_additive] lemma topological_group.tendsto_uniformly_on_mul
   {ι₁ ι₂ α : Type*} (F₁ : ι₁ → α → G) (F₂ : ι₂ → α → G)
   (f₁ : α → G) (f₂ : α → G) (p₁ : filter ι₁) (p₂ : filter ι₂) (s : set α)
@@ -259,10 +267,8 @@ end
   (h : @tendsto_uniformly_on α G ι (topological_group.to_uniform_space G) F f p s) :
   @tendsto_uniformly_on α G ι (topological_group.to_uniform_space G) (λ i, (F i)⁻¹) f⁻¹ p s :=
 begin
-  rw topological_group.tendsto_uniformly_on_iff at *,
-  intros u hu,
-  convert h (has_inv.inv ⁻¹' u) (continuous_inv.tendsto' (1 : G) (1 : G) one_inv hu),
-  simp only [pi.inv_apply, inv_div_inv, set.mem_preimage, inv_div'],
+  letI := topological_group.to_uniform_space G,
+  exact h.comp' topological_group.uniform_continuous_inv,
 end
 
 @[to_additive] lemma topological_group.tendsto_uniformly_mul

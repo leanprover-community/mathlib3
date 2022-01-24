@@ -177,9 +177,6 @@ instance : nontrivial ordinal.{u} :=
 theorem zero_lt_one : (0 : ordinal) < 1 :=
 lt_iff_le_and_ne.2 ⟨ordinal.zero_le _, ne.symm $ ordinal.one_ne_zero⟩
 
-theorem eq_zero_or_pos (a : ordinal) : a = 0 ∨ 0 < a :=
-by { convert eq_or_ne a 0, exact propext ordinal.pos_iff_ne_zero }
-
 /-! ### The predecessor of an ordinal -/
 
 /-- The ordinal predecessor of `o` is `o'` if `o = succ o'`,

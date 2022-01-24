@@ -42,8 +42,8 @@ begin
   { rw [← pow_two (real.sqrt 3), @real.sq_sqrt 3 (by linarith)], },
   rw [pow_succ, pow_succ, pow_one],
   ext,
-  iterate 2 {
-    simp only [mul_re, mul_im],
+  iterate 2
+  { simp only [mul_re, mul_im],
     rw ← sub_eq_zero,
     field_simp [mul_add, h3],
     ring }

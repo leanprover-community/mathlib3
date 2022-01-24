@@ -550,13 +550,13 @@ lemma convex_sInter {S : set (set E)} (h : ∀ s ∈ S, convex 𝕜 s) : convex 
 assume x y hx hy a b ha hb hab s hs,
 h s hs (hx s hs) (hy s hs) ha hb hab
 
-lemma convex_Inter {ι : Sort*} {s : ι → set E} (h : ∀ i : ι, convex 𝕜 (s i)) :
-  convex 𝕜 (⋂ i, s i) :=
+lemma convex_Inter {ι : Sort*} {s : ι → set E} (h : ∀ i, convex 𝕜 (s i)) : convex 𝕜 (⋂ i, s i) :=
 (sInter_range s) ▸ convex_sInter $ forall_range_iff.2 h
 
-lemma convex_bInter {ι : Sort*} {f : ι → set E} {s : set ι} (h : ∀ i ∈ s, convex 𝕜 (f i)) :
-  convex 𝕜 (⋂ i ∈ s, f i) :=
-(sInter_image f s) ▸ convex_sInter $ forall_image_iff.2 h
+lemma convex_Inter₂ {ι : Sort*} {κ : ι → Sort*} {s : Π i, κ i → set E}
+  (h : ∀ i j, convex 𝕜 (s i j)) :
+  convex 𝕜 (⋂ i j, s i j) :=
+convex_Inter $ λ i, convex_Inter $ h i
 
 lemma convex.prod {s : set E} {t : set F} (hs : convex 𝕜 s) (ht : convex 𝕜 t) :
   convex 𝕜 (s ×ˢ t) :=

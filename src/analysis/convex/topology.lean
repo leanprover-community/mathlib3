@@ -224,7 +224,7 @@ lemma convex.cthickening (hs : convex ℝ s) (ε : ℝ) : convex ℝ (cthickenin
 begin
   obtain hε | hε := le_total 0 ε,
   { rw cthickening_eq_Inter_thickening hε,
-    exact convex_bInter (λ _ _, hs.thickening _) },
+    exact convex_Inter₂ (λ _ _, hs.thickening _) },
   { rw cthickening_of_nonpos hε,
     exact hs.closure }
 end

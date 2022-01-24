@@ -619,8 +619,8 @@ lemma symmetric_ball_zero (r : ℝ) (hx : x ∈ ball p 0 r) : -x ∈ ball p 0 r 
 balanced_ball_zero p r (-1) (by rw [norm_neg, norm_one]) ⟨x, hx, by rw [neg_smul, one_smul]⟩
 
 @[simp]
-lemma preimage_neg_ball (p : seminorm 𝕜 E) (r : ℝ) (x : E) :
-  has_neg.neg ⁻¹' ball p x r = ball p (-x) r :=
+lemma neg_ball (p : seminorm 𝕜 E) (r : ℝ) (x : E) :
+  -ball p x r = ball p (-x) r :=
 by { ext, rw [mem_preimage, mem_ball, mem_ball, ←neg_add', sub_neg_eq_add, p.neg], }
 
 @[simp]

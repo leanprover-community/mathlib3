@@ -59,7 +59,7 @@ begin
     ... = 0 : by rw omega_cube_eq_one; norm_num
 end
 
-/- The solution of the monic cubic equation, with 2nd coefficient set to zero. -/
+/-- The solution of the monic cubic equation, with 2nd coefficient set to zero. -/
 lemma cubic_basic_eq_zero_iff
   (hp_nonzero : p ≠ 0)
   (hr : r^2 = q^2 + p^3)

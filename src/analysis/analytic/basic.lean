@@ -517,7 +517,7 @@ begin
   have hL : ∀ y ∈ emetric.ball (x, x) r',
     ∥f y.1 - f y.2 - (p 1 (λ _, y.1 - y.2))∥ ≤ L y,
   { intros y hy',
-    have hy : y ∈ (emetric.ball x r).prod (emetric.ball x r),
+    have hy : y ∈ emetric.ball x r ×ˢ emetric.ball x r,
     { rw [emetric.ball_prod_same], exact emetric.ball_subset_ball hr.le hy' },
     set A : ℕ → F := λ n, p n (λ _, y.1 - x) - p n (λ _, y.2 - x),
     have hA : has_sum (λ n, A (n + 2)) (f y.1 - f y.2 - (p 1 (λ _, y.1 - y.2))),
@@ -531,8 +531,8 @@ begin
       (C * (a / r') ^ 2) * (∥y - (x, x)∥ * ∥y.1 - y.2∥) * ((n + 2) * a ^ n),
     have hAB : ∀ n, ∥A (n + 2)∥ ≤ B n := λ n,
     calc ∥A (n + 2)∥ ≤ ∥p (n + 2)∥ * ↑(n + 2) * ∥y - (x, x)∥ ^ (n + 1) * ∥y.1 - y.2∥ :
-      by simpa only [fintype.card_fin, pi_norm_const, prod.norm_def, pi.sub_def, prod.fst_sub,
-        prod.snd_sub, sub_sub_sub_cancel_right]
+      by simpa only [fintype.card_fin, pi_norm_const (_ : E), prod.norm_def, pi.sub_def,
+        prod.fst_sub, prod.snd_sub, sub_sub_sub_cancel_right]
         using (p $ n + 2).norm_image_sub_le (λ _, y.1 - x) (λ _, y.2 - x)
     ... = ∥p (n + 2)∥ * ∥y - (x, x)∥ ^ n * (↑(n + 2) * ∥y - (x, x)∥ * ∥y.1 - y.2∥) :
       by { rw [pow_succ ∥y - (x, x)∥], ac_refl }
@@ -565,7 +565,7 @@ lemma has_fpower_series_on_ball.image_sub_sub_deriv_le
   ∃ C, ∀ (y z ∈ emetric.ball x r'),
     ∥f y - f z - (p 1 (λ _, y - z))∥ ≤ C * (max ∥y - x∥ ∥z - x∥) * ∥y - z∥ :=
 by simpa only [is_O_principal, mul_assoc, normed_field.norm_mul, norm_norm, prod.forall,
-  emetric.mem_ball, prod.edist_eq, max_lt_iff, and_imp]
+  emetric.mem_ball, prod.edist_eq, max_lt_iff, and_imp, @forall_swap (_ < _) E]
   using hf.is_O_image_sub_image_sub_deriv_principal hr
 
 /-- If `f` has formal power series `∑ n, pₙ` at `x`, then
@@ -932,7 +932,7 @@ begin
   rw continuous_multilinear_map.curry_fin_finset_apply_const,
   have : ∀ m (hm : n = m), p n (s.piecewise (λ _, x) (λ _, y)) =
     p m ((s.map (fin.cast hm).to_equiv.to_embedding).piecewise (λ _, x) (λ _, y)),
-  { rintro m rfl, simp, congr /- probably different `decidable_eq` instances -/ },
+  { rintro m rfl, simp },
   apply this
 end
 

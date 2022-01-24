@@ -545,25 +545,6 @@ begin
   { rw pow_succ at h, exact (pp.dvd_mul.1 h).elim id IH }
 end
 
-lemma prime.pow_dvd_of_dvd_mul_right {p n a b : ℕ} (hp : p.prime) (h : p ^ n ∣ a * b)
-  (hpb : ¬ p ∣ b) : p ^ n ∣ a :=
-begin
-  induction n with n ih,
-  { simp only [one_dvd, pow_zero] },
-  { rw [pow_succ'] at *,
-    rcases ih ((dvd_mul_right _ _).trans h) with ⟨c, rfl⟩,
-    rw [mul_assoc] at h,
-    rcases hp.dvd_mul.1 (nat.dvd_of_mul_dvd_mul_left (pow_pos hp.pos _) h)
-      with ⟨d, rfl⟩|⟨d, rfl⟩,
-    { rw [← mul_assoc],
-      exact dvd_mul_right _ _ },
-    { exact (hpb (dvd_mul_right _ _)).elim } }
-end
-
-lemma prime.pow_dvd_of_dvd_mul_left {p n a b : ℕ} (hp : p.prime) (h : p ^ n ∣ a * b)
-  (hpb : ¬ p ∣ a) : p ^ n ∣ b :=
-by rw [mul_comm] at h; exact hp.pow_dvd_of_dvd_mul_right h hpb
-
 lemma prime.pow_not_prime {x n : ℕ} (hn : 2 ≤ n) : ¬ (x ^ n).prime :=
 λ hp, (hp.eq_one_or_self_of_dvd x $ dvd_trans ⟨x, sq _⟩ (pow_dvd_pow _ hn)).elim
   (λ hx1, hp.ne_one $ hx1.symm ▸ one_pow _)
@@ -715,9 +696,9 @@ begin
   { rwa ←mem_factors_iff_dvd hn (prime_of_mem_factors h) }
 end
 
-lemma mem_factors {n p} (hn : 0 < n) : p ∈ factors n ↔ prime p ∧ p ∣ n :=
-⟨λ h, ⟨prime_of_mem_factors h, (mem_factors_iff_dvd hn $ prime_of_mem_factors h).mp h⟩,
- λ ⟨hprime, hdvd⟩, (mem_factors_iff_dvd hn hprime).mpr hdvd⟩
+lemma mem_factors {n p} (hn : n ≠ 0) : p ∈ factors n ↔ prime p ∧ p ∣ n :=
+⟨λ h, ⟨prime_of_mem_factors h, (mem_factors_iff_dvd hn.bot_lt $ prime_of_mem_factors h).mp h⟩,
+ λ ⟨hprime, hdvd⟩, (mem_factors_iff_dvd hn.bot_lt hprime).mpr hdvd⟩
 
 /-- **Fundamental theorem of arithmetic**-/
 lemma factors_unique {n : ℕ} {l : list ℕ} (h₁ : prod l = n) (h₂ : ∀ p ∈ l, prime p) :
@@ -819,6 +800,18 @@ begin
   rw [←list.prod_append,
       list.perm.prod_eq $ list.subperm_append_diff_self_of_count_le $ list.subperm_ext_iff.mp h,
       nat.prod_factors hb]
+end
+
+lemma pow_factors_count_dvd (n p : ℕ) :
+  p ^ n.factors.count p ∣ n :=
+begin
+  by_cases hp : p.prime,
+  { apply dvd_of_factors_subperm (pow_ne_zero _ hp.ne_zero),
+    rw [hp.factors_pow, list.subperm_ext_iff],
+    intros q hq,
+    simp [list.eq_of_mem_repeat hq] },
+  { rw count_eq_zero_of_not_mem (mt prime_of_mem_factors hp),
+    simp },
 end
 
 end
@@ -1108,25 +1101,44 @@ end nat
 
 namespace nat
 
-/-- The only prime divisor of positive prime power `p^k` is `p` itself -/
-lemma prime_pow_prime_divisor {p k : ℕ} (hk : 0 < k) (hp: prime p) :
-  (p^k).factors.to_finset = {p} :=
-by rw [hp.factors_pow, list.to_finset_repeat_of_ne_zero hk.ne']
-
-lemma mem_factors_mul_of_pos {a b : ℕ} (ha : 0 < a) (hb : 0 < b) (p : ℕ) :
+lemma mem_factors_mul {a b : ℕ} (ha : a ≠ 0) (hb : b ≠ 0) {p : ℕ} :
   p ∈ (a * b).factors ↔ p ∈ a.factors ∨ p ∈ b.factors :=
 begin
-  rw [mem_factors (mul_pos ha hb), mem_factors ha, mem_factors hb, ←and_or_distrib_left],
+  rw [mem_factors (mul_ne_zero ha hb), mem_factors ha, mem_factors hb, ←and_or_distrib_left],
   simpa only [and.congr_right_iff] using prime.dvd_mul
 end
 
-/-- If `a`,`b` are positive the prime divisors of `(a * b)` are the union of those of `a` and `b` -/
-lemma factors_mul_of_pos {a b : ℕ} (ha : 0 < a) (hb : 0 < b) :
+/-- If `a`, `b` are positive, the prime divisors of `a * b` are the union of those of `a` and `b` -/
+lemma factors_mul_to_finset {a b : ℕ} (ha : a ≠ 0) (hb : b ≠ 0) :
   (a * b).factors.to_finset = a.factors.to_finset ∪ b.factors.to_finset :=
-by { ext p, simp only [finset.mem_union, list.mem_to_finset, mem_factors_mul_of_pos ha hb p] }
+(list.to_finset.ext $ λ x, (mem_factors_mul ha hb).trans list.mem_union.symm).trans $
+  list.to_finset_union _ _
+
+lemma pow_succ_factors_to_finset (n k : ℕ) :
+  (n^(k+1)).factors.to_finset = n.factors.to_finset :=
+begin
+  rcases eq_or_ne n 0 with rfl | hn,
+  { simp },
+  induction k with k ih,
+  { simp },
+  rw [pow_succ, factors_mul_to_finset hn (pow_ne_zero _ hn), ih, finset.union_idempotent]
+end
+
+lemma pow_factors_to_finset (n : ℕ) {k : ℕ} (hk : k ≠ 0) :
+  (n^k).factors.to_finset = n.factors.to_finset :=
+begin
+  cases k,
+  { simpa using hk },
+  rw pow_succ_factors_to_finset
+end
+
+/-- The only prime divisor of positive prime power `p^k` is `p` itself -/
+lemma prime_pow_prime_divisor {p k : ℕ} (hk : k ≠ 0) (hp : prime p) :
+  (p^k).factors.to_finset = {p} :=
+by simp [pow_factors_to_finset p hk, factors_prime hp]
 
 /-- The sets of factors of coprime `a` and `b` are disjoint -/
-lemma coprime_factors_disjoint {a b : ℕ} (hab: a.coprime b) : list.disjoint a.factors b.factors :=
+lemma coprime_factors_disjoint {a b : ℕ} (hab : a.coprime b) : list.disjoint a.factors b.factors :=
 begin
   intros q hqa hqb,
   apply not_prime_one,
@@ -1134,20 +1146,23 @@ begin
   exact prime_of_mem_factors hqa
 end
 
-lemma factors_mul_of_coprime {a b : ℕ} (hab : coprime a b) (p:ℕ):
+lemma mem_factors_mul_of_coprime {a b : ℕ} (hab : coprime a b) (p : ℕ) :
   p ∈ (a * b).factors ↔ p ∈ a.factors ∪ b.factors :=
 begin
   rcases a.eq_zero_or_pos with rfl | ha,
   { simp [(coprime_zero_left _).mp hab] },
   rcases b.eq_zero_or_pos with rfl | hb,
   { simp [(coprime_zero_right _).mp hab] },
-  rw [mem_factors_mul_of_pos ha hb p, list.mem_union]
+  rw [mem_factors_mul ha.ne' hb.ne', list.mem_union]
 end
 
+lemma factors_mul_to_finset_of_coprime {a b : ℕ} (hab : coprime a b) :
+  (a * b).factors.to_finset = a.factors.to_finset ∪ b.factors.to_finset :=
+(list.to_finset.ext $ mem_factors_mul_of_coprime hab).trans $ list.to_finset_union _ _
 
 open list
 
-/-- For `b > 0`, the power of `p` in `a * b` is at least that in `a` -/
+/-- For `0 < b`, the power of `p` in `a * b` is at least that in `a` -/
 lemma le_factors_count_mul_left {p a b : ℕ} (hb : 0 < b) :
   list.count p a.factors ≤ list.count p (a * b).factors :=
 begin

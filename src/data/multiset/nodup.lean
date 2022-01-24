@@ -212,6 +212,6 @@ have t = s.attach.map (λ x, i x.1 x.2),
       exact ⟨i_surj _, λ ⟨y, hy⟩, hy.snd.symm ▸ hi _ _⟩),
 calc s.map f = s.pmap  (λ x _, f x) (λ _, id) : by rw [pmap_eq_map]
 ... = s.attach.map (λ x, f x.1) : by rw [pmap_eq_map_attach]
-... = t.map g : by rw [this, multiset.map_map]; exact map_congr (λ x _, h _ _)
+... = t.map g : by rw [this, multiset.map_map]; exact map_congr rfl (λ x _, h _ _)
 
 end multiset

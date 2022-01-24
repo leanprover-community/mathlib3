@@ -146,9 +146,9 @@ instance to_embedding_like : embedding_like E α β :=
     ((left_inv e).eq_right_inverse (h.symm ▸ right_inv g)),
   injective' := λ e, (left_inv e).injective }
 
-lemma injective (e : E) : function.injective e := embedding_like.injective e
-lemma surjective (e : E) : function.surjective e := (right_inv e).surjective
-lemma bijective (e : E) : function.bijective (e : α → β) := ⟨injective e, surjective e⟩
+protected lemma injective (e : E) : function.injective e := embedding_like.injective e
+protected lemma surjective (e : E) : function.surjective e := (right_inv e).surjective
+protected lemma bijective (e : E) : function.bijective (e : α → β) := ⟨injective e, surjective e⟩
 
 theorem apply_eq_iff_eq (f : E) {x y : α} : f x = f y ↔ x = y := embedding_like.apply_eq_iff_eq f
 

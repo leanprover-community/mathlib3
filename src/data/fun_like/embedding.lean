@@ -133,7 +133,7 @@ variables {F α β γ : Sort*} [i : embedding_like F α β]
 
 include i
 
-lemma injective (f : F) : function.injective f := injective' f
+protected lemma injective (f : F) : function.injective f := injective' f
 
 @[simp] lemma apply_eq_iff_eq (f : F) {x y : α} : f x = f y ↔ x = y := (injective f).eq_iff
 

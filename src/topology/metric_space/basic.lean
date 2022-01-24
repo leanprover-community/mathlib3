@@ -496,6 +496,28 @@ ball_subset $ by rw sub_self_div_two; exact le_of_lt h
 theorem exists_ball_subset_ball (h : y ∈ ball x ε) : ∃ ε' > 0, ball y ε' ⊆ ball x ε :=
 ⟨_, sub_pos.2 h, ball_subset $ by rw sub_sub_self⟩
 
+/-- If a property holds for all points in closed balls of arbitrarily large radii, then it holds for
+all points. -/
+lemma forall_of_forall_mem_closed_ball (p : α → Prop) (x : α)
+  (H : ∃ᶠ (R : ℝ) in at_top, ∀ y ∈ closed_ball x R, p y) (y : α) :
+  p y :=
+begin
+  obtain ⟨R, hR, h⟩ : ∃ (R : ℝ) (H : dist y x ≤ R), ∀ (z : α), z ∈ closed_ball x R → p z :=
+    frequently_iff.1 H (Ici_mem_at_top (dist y x)),
+  exact h _ hR
+end
+
+/-- If a property holds for all points in balls of arbitrarily large radii, then it holds for all
+points. -/
+lemma forall_of_forall_mem_ball (p : α → Prop) (x : α)
+  (H : ∃ᶠ (R : ℝ) in at_top, ∀ y ∈ ball x R, p y) (y : α) :
+  p y :=
+begin
+  obtain ⟨R, hR, h⟩ : ∃ (R : ℝ) (H : dist y x < R), ∀ (z : α), z ∈ ball x R → p z :=
+    frequently_iff.1 H (Ioi_mem_at_top (dist y x)),
+  exact h _ hR
+end
+
 theorem uniformity_basis_dist :
   (𝓤 α).has_basis (λ ε : ℝ, 0 < ε) (λ ε, {p:α×α | dist p.1 p.2 < ε}) :=
 begin

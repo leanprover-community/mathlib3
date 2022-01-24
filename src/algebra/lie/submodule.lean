@@ -62,6 +62,8 @@ instance : inhabited (lie_submodule R L M) := ⟨0⟩
 
 instance coe_submodule : has_coe (lie_submodule R L M) (submodule R M) := ⟨to_submodule⟩
 
+@[simp] lemma to_submodule_eq_coe : N.to_submodule = N := rfl
+
 @[norm_cast]
 lemma coe_to_submodule : ((N : submodule R M) : set M) = N := rfl
 
@@ -77,6 +79,8 @@ iff.rfl
 lemma mem_coe {x : M} : x ∈ (N : set M) ↔ x ∈ N := iff.rfl
 
 @[simp] lemma zero_mem : (0 : M) ∈ N := (N : submodule R M).zero_mem
+
+@[simp] lemma mk_eq_zero {x} (h : x ∈ N) : (⟨x, h⟩ : N) = 0 ↔ x = 0 := subtype.ext_iff_val
 
 @[simp] lemma coe_to_set_mk (S : set M) (h₁ h₂ h₃ h₄) :
   ((⟨S, h₁, h₂, h₃, h₄⟩ : lie_submodule R L M) : set M) = S := rfl

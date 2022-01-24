@@ -953,7 +953,7 @@ end
 @[simp, to_additive] lemma comap_top (f : G →* N) : (⊤ : subgroup N).comap f = ⊤ :=
 (gc_map_comap f).u_top
 
-@[simp, to_additive] lemma comap_subtype_self_top {G : Type*} [group G] [H : subgroup G] :
+@[simp, to_additive] lemma comap_subtype_self_top {G : Type*} [group G] {H : subgroup G} :
   comap H.subtype H = ⊤ := by { ext, simp }
 
 @[simp, to_additive]
@@ -1869,7 +1869,7 @@ le_antisymm (le_normalizer_comap f)
   end
 
 @[to_additive]
-lemma comap_normalizer_eq_of_injective_range [N : Type*] [group N] (H : subgroup G)
+lemma comap_normalizer_eq_of_injective_range {N : Type*} [group N] (H : subgroup G)
   {f : N →* G} (hf : function.injective f) (h : H.normalizer ≤ f.range) :
   H.normalizer.comap f = (H.comap f).normalizer :=
 begin

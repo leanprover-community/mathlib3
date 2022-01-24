@@ -1129,7 +1129,7 @@ lemma _root_.is_compact.cthickening_eq_bUnion_closed_ball
 begin
   rcases eq_empty_or_nonempty E with rfl|hne,
   { simp only [cthickening_empty, Union_false, Union_empty] },
-  refine subset.antisymm (λ x hx, _) (bUnion_subset (λ x hx, closed_ball_subset_cthickening hx _)),
+  refine subset.antisymm (λ x hx, _) (Union₂_subset $ λ x hx, closed_ball_subset_cthickening hx _),
   obtain ⟨y, yE, hy⟩ : ∃ y ∈ E, emetric.inf_edist x E = edist x y :=
     hE.exists_inf_edist_eq_edist hne _,
   have D1 : edist x y ≤ ennreal.of_real δ := (le_of_eq hy.symm).trans hx,

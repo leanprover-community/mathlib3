@@ -2198,7 +2198,7 @@ begin
       t ⊆ ⋃ n, t ∩ disjointed (spanning_sets μ) n :
         by rw [← inter_Union, Union_disjointed, Union_spanning_sets, inter_univ]
       ... ⊆ ⋃ n, to_measurable μ (t ∩ disjointed (spanning_sets μ) n) :
-        Union_subset_Union (λ n, subset_to_measurable _ _),
+        Union_mono (λ n, subset_to_measurable _ _),
     refine ⟨t', tt', measurable_set.Union (λ n, measurable_set_to_measurable μ _), λ u hu, _⟩,
     apply le_antisymm _ (measure_mono (inter_subset_inter tt' subset.rfl)),
     calc μ (t' ∩ u) ≤ ∑' n, μ (to_measurable μ (t ∩ disjointed (spanning_sets μ) n) ∩ u) :

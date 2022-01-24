@@ -171,11 +171,11 @@ mul_equiv.to_monoid_hom_injective (abelianization.hom_ext _ _ rfl)
 
 end abelianization_congr
 
-/-- The abelianization of an Abelian group is equivalent to the group itself -/
-def abelianization_of_comm_group {H : Type*} [comm_group H] :
-  abelianization H ≃* H :=
-{ to_fun := abelianization.lift (monoid_hom.id H),
-  inv_fun := abelianization.of,
-  left_inv := by {rintros ⟨a⟩, simp },
-  right_inv := by {intros a, simp },
-  map_mul' := by tidy }
+/-- An Abelian group is equivalent to its own abelianization. -/
+@[simps] def abelianization.equiv_of_comm {H : Type*} [comm_group H] :
+  H ≃* abelianization H :=
+{ to_fun    := abelianization.of,
+  inv_fun   := abelianization.lift (monoid_hom.id H),
+  left_inv  := λ a, rfl,
+  right_inv := by { rintros ⟨a⟩, refl, },
+  .. abelianization.of }

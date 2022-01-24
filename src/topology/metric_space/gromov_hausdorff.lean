@@ -144,7 +144,7 @@ lemma to_GH_space_eq_to_GH_space_iff_isometric {X : Type u} [metric_space X] [co
     by { dunfold nonempty_compacts.Kuratowski_embedding, refl },
   have f := (Kuratowski_embedding.isometry X).isometric_on_range,
   have g := (Kuratowski_embedding.isometry Y).isometric_on_range.symm,
-  exact ⟨(f.trans (cast I e)).trans g⟩
+  exact ⟨f.trans $ (cast I e).trans g⟩
 end,
 begin
   rintro ⟨e⟩,

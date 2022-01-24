@@ -537,7 +537,7 @@ end
 nilpotent group is less or equal the nilpotency class of the domain -/
 lemma nilpotency_class_le_of_surjective
   {G' : Type*} [group G'] (f : G →* G') (hf : function.surjective f) [h : is_nilpotent G] :
-  @group.nilpotency_class G' _ (nilpotent_of_surjective hf) ≤
+  @group.nilpotency_class G' _ (nilpotent_of_surjective _ hf) ≤
     group.nilpotency_class G :=
 begin
   apply nat.find_mono,
@@ -552,11 +552,11 @@ end
 /-- A quotient of a nilpotent group is nilpotent -/
 instance nilpotent_quotient_of_nilpotent (H : subgroup G) [H.normal] [h : is_nilpotent G] :
   is_nilpotent (G ⧸ H) :=
- nilpotent_of_surjective (show function.surjective (quotient_group.mk' H), by tidy)
+ nilpotent_of_surjective _ (show function.surjective (quotient_group.mk' H), by tidy)
 
 /-- The nilpotency class of a quotient of `G` is less or equal the nilpotency class of `G` -/
 lemma nilpotency_class_quotient_le (H : subgroup G) [H.normal] [h : is_nilpotent G] :
-  group.nilpotency_class (G ⧸ H) ≤ group.nilpotency_class G := nilpotency_class_le_of_surjective _
+  group.nilpotency_class (G ⧸ H) ≤ group.nilpotency_class G := nilpotency_class_le_of_surjective _ _
 
 lemma derived_le_lower_central (n : ℕ) : derived_series G n ≤ lower_central_series G n :=
 by { induction n with i ih, { simp }, { apply general_commutator_mono ih, simp } }

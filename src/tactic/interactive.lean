@@ -632,18 +632,18 @@ add_tactic_doc
 /--
 a weaker version of `trivial` that tries to solve the goal by reflexivity or by reducing it to true,
 unfolding only `reducible` constants. -/
-meta def triv : tactic unit :=
+meta def trivial' : tactic unit :=
 tactic.triv' <|> tactic.reflexivity reducible <|> tactic.contradiction <|> fail "triv tactic failed"
 
 add_tactic_doc
-{ name       := "triv",
+{ name       := "trivial'",
   category   := doc_category.tactic,
-  decl_names := [`tactic.interactive.triv],
+  decl_names := [`tactic.interactive.trivial'],
   tags       := ["finishing"] }
 
 /--
 Similar to `existsi`. `use x` will instantiate the first term of an `∃` or `Σ` goal with `x`. It
-will then try to close the new goal using `triv`, or try to simplify it by applying `exists_prop`.
+will then try to close the new goal using `trivial'`, or try to simplify it by applying `exists_prop`.
 Unlike `existsi`, `x` is elaborated with respect to the expected type.
 `use` will alternatively take a list of terms `[x0, ..., xn]`.
 
@@ -683,7 +683,7 @@ by use [100, tt, 4, 3]
 meta def use (l : parse pexpr_list_or_texpr) : tactic unit :=
 focus1 $
   tactic.use l;
-  try (triv <|> (do
+  try (trivial' <|> (do
         `(Exists %%p) ← target,
         to_expr ``(exists_prop.mpr) >>= tactic.apply >> skip))
 

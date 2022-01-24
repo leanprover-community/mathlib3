@@ -129,7 +129,8 @@ instance : top_hom_class (top_hom α β) α β :=
   coe_injective' := λ f g h, by cases f; cases g; congr',
   map_top := top_hom.map_top' }
 
-/-- Helper instance for when there's too many metavariables to apply `to_fun.to_coe_fn` directly. -/
+/-- Helper instance for when there's too many metavariables to apply `fun_like.has_coe_to_fun`
+directly. -/
 instance : has_coe_to_fun (top_hom α β) (λ _, α → β) := ⟨λ f, f.to_fun⟩
 
 @[simp] lemma to_fun_eq_coe {f : top_hom α β} : f.to_fun = (f : α → β) := rfl
@@ -154,7 +155,8 @@ instance : bot_hom_class (bot_hom α β) α β :=
   coe_injective' := λ f g h, by cases f; cases g; congr',
   map_bot := bot_hom.map_bot' }
 
-/-- Helper instance for when there's too many metavariables to apply `to_fun.to_coe_fn` directly. -/
+/-- Helper instance for when there's too many metavariables to apply `fun_like.has_coe_to_fun`
+directly. -/
 instance : has_coe_to_fun (bot_hom α β) (λ _, α → β) := ⟨λ f, f.to_fun⟩
 
 @[simp] lemma to_fun_eq_coe {f : bot_hom α β} : f.to_fun = (f : α → β) := rfl
@@ -179,7 +181,8 @@ instance : sup_hom_class (sup_hom α β) α β :=
   coe_injective' := λ f g h, by cases f; cases g; congr',
   map_sup := sup_hom.map_sup' }
 
-/-- Helper instance for when there's too many metavariables to apply `to_fun.to_coe_fn` directly. -/
+/-- Helper instance for when there's too many metavariables to apply `fun_like.has_coe_to_fun`
+directly. -/
 instance : has_coe_to_fun (sup_hom α β) (λ _, α → β) := ⟨λ f, f.to_fun⟩
 
 @[simp] lemma to_fun_eq_coe {f : sup_hom α β} : f.to_fun = (f : α → β) := rfl
@@ -213,7 +216,8 @@ instance : inf_hom_class (inf_hom α β) α β :=
   coe_injective' := λ f g h, by cases f; cases g; congr',
   map_inf := inf_hom.map_inf' }
 
-/-- Helper instance for when there's too many metavariables to apply `to_fun.to_coe_fn` directly. -/
+/-- Helper instance for when there's too many metavariables to apply `fun_like.has_coe_to_fun`
+directly. -/
 instance : has_coe_to_fun (inf_hom α β) (λ _, α → β) := ⟨λ f, f.to_fun⟩
 
 @[simp] lemma to_fun_eq_coe {f : inf_hom α β} : f.to_fun = (f : α → β) := rfl
@@ -250,7 +254,8 @@ instance : lattice_hom_class (lattice_hom α β) α β :=
   map_sup := λ f, f.map_sup',
   map_inf := λ f, f.map_inf' }
 
-/-- Helper instance for when there's too many metavariables to apply `to_fun.to_coe_fn` directly. -/
+/-- Helper instance for when there's too many metavariables to apply `fun_like.has_coe_to_fun`
+directly. -/
 instance : has_coe_to_fun (lattice_hom α β) (λ _, α → β) := ⟨λ f, f.to_fun⟩
 
 @[simp] lemma to_fun_eq_coe {f : lattice_hom α β} : f.to_fun = (f : α → β) := rfl
@@ -296,7 +301,8 @@ instance : bounded_lattice_hom_class (bounded_lattice_hom α β) α β :=
   map_top := λ f, f.map_top',
   map_bot := λ f, f.map_bot' }
 
-/-- Helper instance for when there's too many metavariables to apply `to_fun.to_coe_fn` directly. -/
+/-- Helper instance for when there's too many metavariables to apply `fun_like.has_coe_to_fun`
+directly. -/
 instance : has_coe_to_fun (bounded_lattice_hom α β) (λ _, α → β) := ⟨λ f, f.to_fun⟩
 
 @[simp] lemma to_fun_eq_coe {f : bounded_lattice_hom α β} : f.to_fun = (f : α → β) := rfl

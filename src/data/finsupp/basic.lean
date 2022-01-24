@@ -45,7 +45,6 @@ non-pointwise multiplication.
 * `finsupp.update`: Changes one value of a `finsupp`.
 * `finsupp.erase`: Replaces one value of a `finsupp` by `0`.
 * `finsupp.on_finset`: The restriction of a function to a `finset` as a `finsupp`.
-* `finsupp.indicator`: Turns a map from a `finset` into a `finsupp` from the entire type.
 * `finsupp.map_range`: Composition of a `zero_hom` with a`finsupp`.
 * `finsupp.emb_domain`: Maps the domain of a `finsupp` by an embedding.
 * `finsupp.map_domain`: Maps the domain of a `finsupp` by a function and by summing.
@@ -426,46 +425,6 @@ lemma support_update_ne_zero [decidable_eq α] (h : b ≠ 0) :
   support (f.update a b) = insert a f.support := by convert if_neg h
 
 end update
-
-/-! ### `indicator` -/
-
-section indicator
-variables [has_zero α] {s : finset ι} (f : Π i ∈ s, α) {i : ι}
-
-/-- Create an element of `ι →₀ α` from a finset `s` and a function `f` defined on this finset. -/
-def indicator (s : finset ι) (f : Π i ∈ s, α) : ι →₀ α :=
-{ to_fun := λ i, if H : i ∈ s then f i H else 0,
-  support := (s.attach.filter $ λ i : s, f i.1 i.2 ≠ 0).map $ embedding.subtype _,
-  mem_support_to_fun := λ i, begin
-    rw [mem_map, dite_ne_right_iff],
-    exact ⟨λ ⟨⟨j, hj⟩, hf, rfl⟩, ⟨hj, (mem_filter.1 hf).2⟩,
-      λ ⟨hi, hf⟩, ⟨⟨i, hi⟩, mem_filter.2 $ ⟨mem_attach _ _, hf⟩, rfl⟩⟩,
-  end }
-
-lemma indicator_of_mem (hi : i ∈ s) (f : Π i ∈ s, α) : indicator s f i = f i hi := dif_pos hi
-lemma indicator_of_not_mem (hi : i ∉ s) (f : Π i ∈ s, α) : indicator s f i = 0 := dif_neg hi
-
-variables (s i)
-
-@[simp] lemma indicator_apply : indicator s f i = if hi : i ∈ s then f i hi else 0 := rfl
-
-lemma indicator_injective : injective (λ f : Π i ∈ s, α, indicator s f) :=
-begin
-  intros a b h,
-  ext i hi,
-  rw [←indicator_of_mem hi a, ←indicator_of_mem hi b],
-  exact congr_fun h i,
-end
-
-lemma support_indicator_subset : ((indicator s f).support : set ι) ⊆ s :=
-begin
-  intros i hi,
-  rw [mem_coe, mem_support_iff] at hi,
-  by_contra,
-  exact hi (indicator_of_not_mem h _),
-end
-
-end indicator
 
 /-! ### Declarations about `on_finset` -/
 

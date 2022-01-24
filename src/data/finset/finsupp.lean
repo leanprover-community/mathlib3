@@ -3,7 +3,7 @@ Copyright (c) 2022 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
-import data.finsupp.basic
+import data.finsupp.indicator
 
 /-!
 # Finitely supported product of finsets
@@ -45,7 +45,6 @@ begin
     exact indicator_of_mem hi _ },
   { refine λ h, ⟨λ i _, f i, mem_pi.2 h.2, _⟩,
     ext i,
-    dsimp,
     exact ite_eq_left_iff.2 (λ hi, (not_mem_support_iff.1 $ λ H, hi $ h.1 H).symm) }
 end
 

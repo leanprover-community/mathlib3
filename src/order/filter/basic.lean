@@ -173,9 +173,9 @@ lemma monotone_mem {f : filter α} : monotone (λ s, s ∈ f) :=
 end filter
 
 namespace tactic.interactive
-open tactic interactive interactive.types lean.parser
 
-local postfix `?`:9001 := optional
+open tactic
+setup_tactic_parser
 
 /--
 `filter_upwards [h₁, ⋯, hₙ]` replaces a goal of the form `s ∈ f` and terms
@@ -189,6 +189,7 @@ The list is an optional parameter, `[]` being its default value.
 `{ filter_upwards [h1, ⋯, hn], exact e }`.
 
 Combining both shortcuts is done by writing `filter_upwards [h₁, ⋯, hₙ] with a₁ a₂ ⋯ aₖ using e`.
+Note that in this case, the `aᵢ` terms can be used in `e`.
 -/
 meta def filter_upwards
   (s : parse types.pexpr_list?)

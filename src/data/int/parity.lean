@@ -232,7 +232,7 @@ by { rintro ⟨c, rfl⟩, rw mul_comm, convert int.div_add_mod' _ _, simp [int.a
 lemma odd.div_two_add_one' : odd n → n / 2 * 2 + 1 = n :=
 by { rintro ⟨c, rfl⟩, convert int.div_add_mod' _ _, simp [int.add_mod], refl }
 
-lemma odd.div_two_one_add' : odd n → 1 + n / 2 * 2 = n :=
+lemma odd.one_add_div_two' : odd n → 1 + n / 2 * 2 = n :=
 by { rintro ⟨c, rfl⟩, rw add_comm, convert int.div_add_mod' _ _, simp [int.add_mod], refl }
 
 -- Here are examples of how `parity_simps` can be used with `int`.

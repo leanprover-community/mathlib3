@@ -247,7 +247,7 @@ by { rw mul_comm, convert nat.div_add_mod' n 2, rw odd_iff.mp h }
 lemma odd.div_two_add_one' (h : odd n) : n / 2 * 2 + 1 = n :=
 by { convert nat.div_add_mod' n 2, rw odd_iff.mp h }
 
-lemma odd.div_two_one_add' (h : odd n) : 1 + n / 2 * 2 = n :=
+lemma odd.one_add_div_two' (h : odd n) : 1 + n / 2 * 2 = n :=
 by { rw add_comm, convert nat.div_add_mod' n 2, rw odd_iff.mp h }
 
 -- Here are examples of how `parity_simps` can be used with `nat`.

@@ -48,7 +48,7 @@ non-pointwise multiplication.
 * `finsupp.indicator`: Turns a map from a `finset` into a `finsupp` from the entire type.
 * `finsupp.map_range`: Composition of a `zero_hom` with a`finsupp`.
 * `finsupp.emb_domain`: Maps the domain of a `finsupp` by an embedding.
-* `finsupp.map_domain`: Maps the domain of a `finsupp` by a function and by summing .
+* `finsupp.map_domain`: Maps the domain of a `finsupp` by a function and by summing.
 * `finsupp.comap_domain`: Postcomposition of a `finsupp` with a function injective on the preimage
   of its support.
 * `finsupp.zip_with`: Postcomposition of two `finsupp`s with a function `f` such that `f 0 0 = 0`.

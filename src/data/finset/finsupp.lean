@@ -6,9 +6,9 @@ Authors: Yaël Dillies
 import data.finsupp.basic
 
 /-!
-# Finitely supported produvy of finsets
+# Finitely supported product of finsets
 
-This file defines the finitely supported product of finsets as `finset (ι →₀ α)`.
+This file defines the finitely supported product of finsets as a `finset (ι →₀ α)`.
 
 ## Main declarations
 
@@ -26,7 +26,7 @@ noncomputable theory
 open finsupp
 open_locale big_operators classical pointwise
 
-variables {ι α β : Type*} [has_zero α] {s : finset ι} {f : ι →₀ α}
+variables {ι α : Type*} [has_zero α] {s : finset ι} {f : ι →₀ α}
 
 namespace finset
 

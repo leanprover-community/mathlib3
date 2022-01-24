@@ -124,7 +124,7 @@ is_open_compl_singleton.is_Gδ
 
 lemma set.countable.is_Gδ_compl {s : set α} (hs : countable s) : is_Gδ sᶜ :=
 begin
-  rw [← bUnion_of_singleton s, compl_bUnion],
+  rw [← bUnion_of_singleton s, compl_Union₂],
   exact is_Gδ_bInter hs (λ x _, is_Gδ_compl_singleton x)
 end
 

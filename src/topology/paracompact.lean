@@ -170,7 +170,7 @@ begin
   refine ⟨Σ n, T' n, λ a, a.2, λ a, r a.1 a.2, _, _, _⟩,
   { rintro ⟨n, x, hx⟩, exact ⟨x.2.2, hrp _ _⟩ },
   { refine (λ x hx, mem_Union.2 _),
-    rcases mem_bUnion_iff.1 (hT _ ⟨hKcov x, hx⟩) with ⟨⟨c, hc⟩, hcT, hcx⟩,
+    rcases mem_Union₂.1 (hT _ ⟨hKcov x, hx⟩) with ⟨⟨c, hc⟩, hcT, hcx⟩,
     exact ⟨⟨_, ⟨c, hc⟩, hcT⟩, hcx⟩ },
   { intro x,
     refine ⟨interior (K (K'.find x + 3)),

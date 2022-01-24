@@ -294,7 +294,7 @@ begin
       by simpa [ht] using h t,
     use [a, a_in],
     intro H',
-    obtain ⟨x, x_in, hx⟩ := mem_bUnion_iff.mp H',
+    obtain ⟨x, x_in, hx⟩ := mem_Union₂.mp H',
     exact H x x_in hx },
   cases seq_of_forall_finite_exists this with u hu, clear h this,
   simp [forall_and_distrib] at hu,
@@ -326,11 +326,10 @@ begin
   transitivity ⋃ y ∈ t, ball y V,
   { intros x x_in,
     specialize ht x_in,
-    rw mem_bUnion_iff at *,
+    rw mem_Union₂ at *,
     simp_rw ball_eq_of_symmetry Vsymm,
     exact ht },
-  { apply bUnion_subset_bUnion,
-    intros x x_in,
+  { refine Union₂_mono' (λ x x_in, _),
     exact ⟨i ⟨x, x_in⟩, finset.mem_image_of_mem _ (finset.mem_univ _), hi ⟨x, x_in⟩⟩ },
 end
 

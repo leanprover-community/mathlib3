@@ -326,6 +326,15 @@ begin
   rw [this, measure_smul_set_average _ (measure_ne_top μ _)]
 end
 
+/-- If `f : α → E` is an integrable function, then either it is a.e. equal to a constant or there
+exists a measurable set such that `μ s ≠ 0`, `μ sᶜ ≠ 0`, and the average values of `f` over `s` and
+`sᶜ` are different. -/
+lemma measure_theory.integrable.exists_ae_eq_const_or_exists_average_ne_compl [is_finite_measure μ]
+  {f : α → E} (hfi : integrable f μ) :
+  (∃ C, f =ᵐ[μ] const α C) ∨ ∃ s, measurable_set s ∧ μ s ≠ 0 ∧ μ sᶜ ≠ 0 ∧
+    ⨍ x in s, f x ∂μ ≠ ⨍ x in sᶜ, f x ∂μ :=
+hfi.ae_eq_const_or_exists_average_ne_compl.imp_left (λ H, ⟨_, H⟩)
+
 /-- **Jensen's inequality**, strict version: if an integrable function `f : α → E` takes values in a
 convex closed set `s` and for some set `t` of positive measure, the average value of `f` over `t`
 belongs to the interior of `s`, then the average of `f` over the whole space belongs to the interior
@@ -363,6 +372,15 @@ begin
 end
 
 /-- **Jensen's inequality**, strict version: if an integrable function `f : α → E` takes values in a
+strictly convex closed set `s`, then either it is a.e. equal to a constant, or its average value
+belongs to the interior of `s`. -/
+lemma strict_convex.exists_ae_eq_const_or_average_mem_interior [is_finite_measure μ] {s : set E}
+  (hs : strict_convex ℝ s) (hsc : is_closed s) {f : α → E} (hfs : ∀ᵐ x ∂μ, f x ∈ s)
+  (hfi : integrable f μ) :
+  (∃ C, f =ᵐ[μ] const α C) ∨ ⨍ x, f x ∂μ ∈ interior s :=
+(hs.ae_eq_const_or_average_mem_interior hsc hfs hfi).imp_left (λ H, ⟨_, H⟩)
+
+/-- **Jensen's inequality**, strict version: if an integrable function `f : α → E` takes values in a
 convex closed set `s`, and `g : E → ℝ` is continuous and strictly convex on `s`, then
 either `f` is a.e. equal to its average value, or `g (⨍ x, f x ∂μ) < ⨍ x, g (f x) ∂μ`. -/
 lemma strict_convex_on.ae_eq_const_or_map_average_lt [is_finite_measure μ] {s : set E} {g : E → ℝ}
@@ -388,28 +406,59 @@ begin
       (mul_le_mul_of_nonneg_left (this h₀').2 hb.le)
 end
 
-/-- If the closed ball of radius `C` in a normed space `E` is strictly convex and `f : α → E` is
-a function such that `∥f x∥ ≤ C` a.e., then either either this function is a.e. equal to its
-average value, or the norm of its integral is strictly less than `(μ univ).to_real * C`. -/
+/-- **Jensen's inequality**, strict version: if an integrable function `f : α → E` takes values in a
+convex closed set `s`, and `g : E → ℝ` is continuous and strictly convex on `s`, then
+either `f` is a.e. equal to a constant, or `g (⨍ x, f x ∂μ) < ⨍ x, g (f x) ∂μ`. -/
+lemma strict_convex_on.exists_ae_eq_const_or_map_average_lt [is_finite_measure μ] {s : set E}
+  {g : E → ℝ} (hg : strict_convex_on ℝ s g) (hgc : continuous_on g s) (hsc : is_closed s)
+  {f : α → E} (hfs : ∀ᵐ x ∂μ, f x ∈ s) (hfi : integrable f μ) (hgi : integrable (g ∘ f) μ) :
+  (∃ C, f =ᵐ[μ] const α C) ∨ g (⨍ x, f x ∂μ) < ⨍ x, g (f x) ∂μ :=
+(hg.ae_eq_const_or_map_average_lt hgc hsc hfs hfi hgi).imp_left (λ H, ⟨_, H⟩)
+
+/-- If the closed ball of radius `R` in a normed space `E` is strictly convex and `f : α → E` is
+a function such that `∥f x∥ ≤ R` a.e., then either either this function is a.e. equal to its
+average value, or the norm of its integral is strictly less than `(μ univ).to_real * R`. -/
 lemma strict_convex.ae_eq_const_or_norm_integral_lt_of_norm_le_const [is_finite_measure μ]
-  {f : α → E} {C : ℝ} (h_convex : strict_convex ℝ (closed_ball (0 : E) C))
-  (h_le : ∀ᵐ x ∂μ, ∥f x∥ ≤ C) :
-  (f =ᵐ[μ] const α ⨍ x, f x ∂μ) ∨ ∥∫ x, f x ∂μ∥ < (μ univ).to_real * C :=
+  {f : α → E} {R : ℝ} (h_convex : strict_convex ℝ (closed_ball (0 : E) R))
+  (h_le : ∀ᵐ x ∂μ, ∥f x∥ ≤ R) :
+  (f =ᵐ[μ] const α ⨍ x, f x ∂μ) ∨ ∥∫ x, f x ∂μ∥ < (μ univ).to_real * R :=
 begin
-  cases le_or_lt C 0 with hC0 hC0,
-  { have : f =ᵐ[μ] 0, from h_le.mono (λ x hx, norm_le_zero_iff.1 (hx.trans hC0)),
+  cases le_or_lt R 0 with hR0 hR0,
+  { have : f =ᵐ[μ] 0, from h_le.mono (λ x hx, norm_le_zero_iff.1 (hx.trans hR0)),
     simp only [average_congr this, pi.zero_apply, average_zero],
     exact or.inl this },
   cases eq_or_ne μ 0 with hμ hμ,
   { rw hμ, exact or.inl rfl },
   by_cases hfi : integrable f μ, swap,
   { right,
-    simpa [integral_undef hfi, hC0, measure_lt_top, ennreal.to_real_pos_iff, pos_iff_ne_zero]
+    simpa [integral_undef hfi, hR0, measure_lt_top, ennreal.to_real_pos_iff, pos_iff_ne_zero]
       using hμ },
-  replace h_le : ∀ᵐ x ∂μ, f x ∈ closed_ball (0 : E) C, by simpa only [mem_closed_ball_zero_iff],
+  replace h_le : ∀ᵐ x ∂μ, f x ∈ closed_ball (0 : E) R, by simpa only [mem_closed_ball_zero_iff],
   have hμ' : 0 < (μ univ).to_real,
     from ennreal.to_real_pos (mt measure_univ_eq_zero.1 hμ) (measure_ne_top _ _),
-  simpa only [interior_closed_ball _ hC0, mem_ball_zero_iff, average, norm_smul,
+  simpa only [interior_closed_ball _ hR0, mem_ball_zero_iff, average, norm_smul,
     real.norm_eq_abs, abs_inv, abs_of_pos hμ', ← div_eq_inv_mul, div_lt_iff' hμ']
     using h_convex.ae_eq_const_or_average_mem_interior is_closed_ball h_le hfi,
+end
+
+/-- If the closed ball of radius `R` in a normed space `E` is strictly convex and `f : α → E` is a
+function such that `∥f x∥ ≤ R` a.e., then either either this function is a.e. equal to a constant,
+or the norm of its integral is strictly less than `(μ univ).to_real * R`. -/
+lemma strict_convex.exists_ae_eq_const_or_norm_integral_lt_of_norm_le_const [is_finite_measure μ]
+  {f : α → E} {R : ℝ} (h_convex : strict_convex ℝ (closed_ball (0 : E) R))
+  (h_le : ∀ᵐ x ∂μ, ∥f x∥ ≤ R) :
+  (∃ C, f =ᵐ[μ] const α C) ∨ ∥∫ x, f x ∂μ∥ < (μ univ).to_real * R :=
+(h_convex.ae_eq_const_or_norm_integral_lt_of_norm_le_const h_le).imp_left (λ H, ⟨_, H⟩)
+
+/-- If the closed ball of radius `R` in a normed space `E` is strictly convex and `f : α → E` is
+a function such that `∥f x∥ ≤ R` a.e., then either either this function is a.e. equal to its
+average value, or the norm of its integral is strictly less than `(μ univ).to_real * R`. -/
+lemma strict_convex.ae_eq_const_or_norm_set_integral_lt_of_norm_le_const {f : α → E} {R : ℝ}
+  (h_convex : strict_convex ℝ (closed_ball (0 : E) R)) {t : set α} (ht : μ t ≠ ∞)
+  (h_le : ∀ᵐ x ∂(μ.restrict t), ∥f x∥ ≤ R) :
+  (f =ᵐ[μ.restrict t] const α ⨍ x in t, f x ∂μ) ∨ ∥∫ x in t, f x ∂μ∥ < (μ t).to_real * R :=
+begin
+  haveI := fact.mk ht.lt_top,
+  simpa only [restrict_apply_univ]
+    using h_convex.ae_eq_const_or_norm_integral_lt_of_norm_le_const h_le
 end

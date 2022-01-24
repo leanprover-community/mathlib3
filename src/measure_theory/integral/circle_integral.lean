@@ -7,6 +7,7 @@ import measure_theory.integral.interval_integral
 import analysis.normed_space.pointwise
 import analysis.special_functions.non_integrable
 import analysis.analytic.basic
+import analysis.convex.integral
 
 /-!
 # Integral over a circle in `ℂ`
@@ -142,6 +143,10 @@ lemma differentiable_circle_map (c : ℂ) (R : ℝ) :
 @[simp] lemma deriv_circle_map (c : ℂ) (R : ℝ) (θ : ℝ) :
   deriv (circle_map c R) θ = circle_map 0 R θ * I :=
 (has_deriv_at_circle_map _ _ _).deriv
+
+lemma norm_deriv_circle_map (c : ℂ) (R : ℝ) (θ : ℝ) :
+  ∥deriv (circle_map c R) θ∥ = |R| :=
+by simp [deriv_circle_map]
 
 lemma deriv_circle_map_eq_zero_iff {c : ℂ} {R : ℝ} {θ : ℝ} :
   deriv (circle_map c R) θ = 0 ↔ R = 0 :=
@@ -328,14 +333,13 @@ lemma norm_integral_lt_of_norm_le_const_of_lt {f : ℂ → E} {c : ℂ} {R C : �
   (hlt : ∃ z ∈ sphere c R, ∥f z∥ < C) :
   ∥∮ z in C(c, R), f z∥ < 2 * π * R * C :=
 begin
-  rw [← _root_.abs_of_pos hR, ← image_circle_map_Ioc] at hlt,
+  rw [← abs_of_pos hR, ← image_circle_map_Ioc] at hlt,
   rcases hlt with ⟨_, ⟨θ₀, hmem, rfl⟩, hlt⟩,
   calc ∥∮ z in C(c, R), f z∥ ≤ ∫ θ in 0..2 * π, ∥deriv (circle_map c R) θ • f (circle_map c R θ)∥ :
     interval_integral.norm_integral_le_integral_norm real.two_pi_pos.le
   ... < ∫ θ in 0..2 * π, R * C :
     begin
-      simp only [norm_smul, deriv_circle_map, norm_eq_abs, complex.abs_mul, abs_I, mul_one,
-        abs_circle_map_zero, abs_of_pos hR],
+      simp only [norm_smul, norm_deriv_circle_map, abs_of_pos hR],
       refine interval_integral.integral_lt_integral_of_continuous_on_of_le_of_exists_lt
         real.two_pi_pos _ continuous_on_const (λ θ hθ, _) ⟨θ₀, Ioc_subset_Icc_self hmem, _⟩,
       { exact continuous_on_const.mul (hc.comp (continuous_circle_map _ _).continuous_on
@@ -345,6 +349,15 @@ begin
     end
   ... = 2 * π * R * C : by simp [mul_assoc]
 end
+
+lemma exists_eq_smul_const_or_norm_integral_lt {f : ℂ → E} {c : ℂ} {R C : ℝ} (hR : 0 < R)
+  (hc : continuous_on f (sphere c R)) (hf : ∀ z ∈ sphere c R, ∥f z∥ ≤ C)
+  (h_conv : ∀ r, strict_convex ℝ (closed_ball (0 : E) r)) :
+  ∥∮ z in C(c, R), f z∥ < 2 * π * R * C :=
+begin
+
+end
+
 
 @[simp] lemma integral_smul {𝕜 : Type*} [is_R_or_C 𝕜] [normed_space 𝕜 E] [smul_comm_class 𝕜 ℂ E]
   (a : 𝕜) (f : ℂ → E) (c : ℂ) (R : ℝ) :

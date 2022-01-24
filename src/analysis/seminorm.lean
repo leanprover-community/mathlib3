@@ -523,7 +523,7 @@ lemma ball_mono {p : seminorm 𝕜 E} {r₁ r₂ : ℝ} (h : r₁ ≤ r₂) : p.
 lemma ball_antitone {p q : seminorm 𝕜 E} (h : q ≤ p) : p.ball x r ⊆ q.ball x r :=
 λ _, (h _).trans_lt
 
-lemma ball_add (p : seminorm 𝕜 E) (r₁ r₂ : ℝ) (x₁ x₂ : E):
+lemma ball_add_ball_subset (p : seminorm 𝕜 E) (r₁ r₂ : ℝ) (x₁ x₂ : E):
   p.ball (x₁ : E) r₁ + p.ball (x₂ : E) r₂ ⊆ p.ball (x₁ + x₂) (r₁ + r₂) :=
 begin
   rintros x ⟨y₁, y₂, hy₁, hy₂, rfl⟩,

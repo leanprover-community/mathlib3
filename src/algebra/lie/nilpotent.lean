@@ -96,7 +96,7 @@ begin
     rw [ih, lie_submodule.comap_bracket_eq _ _ N.incl N.ker_incl this], },
 end
 
-lemma lcs_eq_lcs_of_lie_submodule_map :
+lemma lower_central_series_map_eq_lcs :
   (lower_central_series R L N k).map N.incl = N.lcs k :=
 begin
   rw [lcs_eq_lcs_comap, lie_submodule.map_comap_incl, inf_eq_right],

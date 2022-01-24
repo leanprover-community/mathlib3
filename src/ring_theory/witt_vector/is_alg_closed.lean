@@ -24,19 +24,24 @@ end
 local notation `φ` := is_fraction_ring.field_equiv_of_ring_equiv
   (ring_equiv.of_bijective _ (witt_vector.frobenius_bijective p k))
 
+/-- Johan: this is basically the same as `𝕎 k` being a DVR. -/
 lemma split (a : 𝕎 k) (ha : a ≠ 0) :
   ∃ (m : ℕ) (b : 𝕎 k), b.coeff 0 ≠ 0 ∧ a = p ^ m * b :=
 begin
   obtain ⟨m, c, hc, hcm⟩ := witt_vector.verschiebung_nonzero ha,
   obtain ⟨b, rfl⟩ := (witt_vector.frobenius_bijective p k).surjective.iterate m c,
   rw witt_vector.iterate_frobenius_coeff at hc,
-  -- have := ((frobenius_equiv k p).injective.iterate m).ne,
   have := congr_fun (witt_vector.verschiebung_frobenius_comm.comp_iterate m) b,
   simp at this,
   rw ← this at hcm,
   refine ⟨m, b, _, _⟩,
-  { sorry },
-  { sorry },
+  { contrapose! hc,
+    have : 0 < p ^ m := pow_pos (nat.prime.pos (fact.out _)) _,
+    simp [hc, this] },
+  { rw ← mul_left_iterate (p : 𝕎 k) m,
+    convert hcm,
+    ext1 x,
+    rw [mul_comm, ← witt_vector.verschiebung_frobenius x] },
 end
 
 lemma important_aux {a₁ a₂ : 𝕎 k} (ha₁ : a₁.coeff 0 ≠ 0) (ha₂ : a₂.coeff 0 ≠ 0) :

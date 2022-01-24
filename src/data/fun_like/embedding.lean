@@ -135,7 +135,8 @@ include i
 
 protected lemma injective (f : F) : function.injective f := injective' f
 
-@[simp] lemma apply_eq_iff_eq (f : F) {x y : α} : f x = f y ↔ x = y := (injective f).eq_iff
+@[simp] lemma apply_eq_iff_eq (f : F) {x y : α} : f x = f y ↔ x = y :=
+(equiv_like.injective f).eq_iff
 
 omit i
 

@@ -1868,8 +1868,7 @@ lemma rel_cons_right {as b bs} :
   rel r as (b ::ₘ bs) ↔ (∃a as', r a b ∧ rel r as' bs ∧ as = a ::ₘ as') :=
 begin
   rw [← rel_flip, rel_cons_left],
-  apply exists_congr, assume a,
-  apply exists_congr, assume as',
+  refine exists₂_congr (λ a as', _),
   rw [rel_flip, flip]
 end
 

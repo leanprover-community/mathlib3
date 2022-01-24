@@ -69,9 +69,9 @@ Absorbent and balanced sets in a vector space over a normed field.
 -/
 
 open normed_field set
-open_locale pointwise topological_space
+open_locale pointwise topological_space nnreal
 
-variables {𝕜 𝕝 E ι : Type*}
+variables {R 𝕜 𝕝 E F G ι : Type*}
 
 section semi_normed_ring
 variables [semi_normed_ring 𝕜]
@@ -353,12 +353,79 @@ instance : has_zero (seminorm 𝕜 E) :=
 
 @[simp] lemma coe_zero : ⇑(0 : seminorm 𝕜 E) = 0 := rfl
 
+@[simp] lemma zero_apply (x : E) : (0 : seminorm 𝕜 E) x = 0 := rfl
+
 instance : inhabited (seminorm 𝕜 E) := ⟨0⟩
 
 variables (p : seminorm 𝕜 E) (c : 𝕜) (x y : E) (r : ℝ)
 
 protected lemma smul : p (c • x) = ∥c∥ * p x := p.smul' _ _
 protected lemma triangle : p (x + y) ≤ p x + p y := p.triangle' _ _
+
+/-- Any action on `ℝ` which factors through `ℝ≥0` applies to a seminorm. -/
+instance [has_scalar R ℝ] [has_scalar R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ] :
+  has_scalar R (seminorm 𝕜 E) :=
+{ smul := λ r p,
+  { to_fun := λ x, r • p x,
+    smul' := λ _ _, begin
+      simp only [←smul_one_smul ℝ≥0 r (_ : ℝ), nnreal.smul_def, smul_eq_mul],
+      rw [p.smul, mul_left_comm],
+    end,
+    triangle' := λ _ _, begin
+      simp only [←smul_one_smul ℝ≥0 r (_ : ℝ), nnreal.smul_def, smul_eq_mul],
+      exact (mul_le_mul_of_nonneg_left (p.triangle _ _) (nnreal.coe_nonneg _)).trans_eq
+        (mul_add _ _ _),
+    end } }
+
+lemma coe_smul [has_scalar R ℝ] [has_scalar R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ]
+  (r : R) (p : seminorm 𝕜 E) : ⇑(r • p) = r • p := rfl
+
+@[simp] lemma smul_apply [has_scalar R ℝ] [has_scalar R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ]
+  (r : R) (p : seminorm 𝕜 E) (x : E) : (r • p) x = r • p x := rfl
+
+instance : has_add (seminorm 𝕜 E) :=
+{ add := λ p q,
+  { to_fun := λ x, p x + q x,
+    smul' := λ a x, by rw [p.smul, q.smul, mul_add],
+    triangle' := λ _ _, has_le.le.trans_eq (add_le_add (p.triangle _ _) (q.triangle _ _))
+      (add_add_add_comm _ _ _ _) } }
+
+lemma coe_add (p q : seminorm 𝕜 E) : ⇑(p + q) = p + q := rfl
+
+@[simp] lemma add_apply (p q : seminorm 𝕜 E) (x : E) : (p + q) x = p x + q x := rfl
+
+instance : add_monoid (seminorm 𝕜 E) :=
+fun_like.coe_injective.add_monoid_smul _ rfl coe_add (λ p n, coe_smul n p)
+
+instance : ordered_cancel_add_comm_monoid (seminorm 𝕜 E) :=
+{ nsmul := (•),  -- to avoid introducing a diamond
+  ..seminorm.add_monoid,
+  ..(fun_like.coe_injective.ordered_cancel_add_comm_monoid _ rfl coe_add
+      : ordered_cancel_add_comm_monoid (seminorm 𝕜 E)) }
+
+instance [monoid R] [mul_action R ℝ] [has_scalar R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ] :
+  mul_action R (seminorm 𝕜 E) :=
+fun_like.coe_injective.mul_action _ coe_smul
+
+variables (𝕜 E)
+
+/-- `coe_fn` as an `add_monoid_hom`. Helper definition for showing that `seminorm 𝕜 E` is
+a module. -/
+@[simps]
+def coe_fn_add_monoid_hom : add_monoid_hom (seminorm 𝕜 E) (E → ℝ) := ⟨coe_fn, coe_zero, coe_add⟩
+
+lemma coe_fn_add_monoid_hom_injective : function.injective (coe_fn_add_monoid_hom 𝕜 E) :=
+show @function.injective (seminorm 𝕜 E) (E → ℝ) coe_fn, from fun_like.coe_injective
+
+variables {𝕜 E}
+
+instance [monoid R] [distrib_mul_action R ℝ] [has_scalar R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ] :
+  distrib_mul_action R (seminorm 𝕜 E) :=
+(coe_fn_add_monoid_hom_injective 𝕜 E).distrib_mul_action _ coe_smul
+
+instance [semiring R] [module R ℝ] [has_scalar R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ] :
+  module R (seminorm 𝕜 E) :=
+(coe_fn_add_monoid_hom_injective 𝕜 E).module R _ coe_smul
 
 -- TODO: define `has_Sup` too, from the skeleton at
 -- https://github.com/leanprover-community/mathlib/pull/11329#issuecomment-1008915345
@@ -395,8 +462,48 @@ calc p 0 = p ((0 : 𝕜) • 0) : by rw zero_smul
 end smul_with_zero
 end add_monoid
 
+section module
+variables [add_comm_group E] [add_comm_group F] [add_comm_group G]
+variables [module 𝕜 E] [module 𝕜 F] [module 𝕜 G]
+variables [has_scalar R ℝ] [has_scalar R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ]
+
+/-- Composition of a seminorm with a linear map is a seminorm. -/
+def comp (p : seminorm 𝕜 F) (f : E →ₗ[𝕜] F) : seminorm 𝕜 E :=
+{ to_fun := λ x, p(f x),
+  smul' := λ _ _, (congr_arg p (f.map_smul _ _)).trans (p.smul _ _),
+  triangle' := λ _ _, eq.trans_le (congr_arg p (f.map_add _ _)) (p.triangle _ _) }
+
+lemma coe_comp (p : seminorm 𝕜 F) (f : E →ₗ[𝕜] F) : ⇑(p.comp f) = p ∘ f := rfl
+
+@[simp] lemma comp_apply (p : seminorm 𝕜 F) (f : E →ₗ[𝕜] F) (x : E) : (p.comp f) x = p (f x) := rfl
+
+@[simp] lemma comp_id (p : seminorm 𝕜 E) : p.comp linear_map.id = p :=
+ext $ λ _, rfl
+
+@[simp] lemma comp_zero (p : seminorm 𝕜 F) : p.comp (0 : E →ₗ[𝕜] F) = 0 :=
+ext $ λ _, seminorm.zero _
+
+@[simp] lemma zero_comp (f : E →ₗ[𝕜] F) : (0 : seminorm 𝕜 F).comp f = 0 :=
+ext $ λ _, rfl
+
+lemma comp_comp (p : seminorm 𝕜 G) (g : F →ₗ[𝕜] G) (f : E →ₗ[𝕜] F) :
+  p.comp (g.comp f) = (p.comp g).comp f :=
+ext $ λ _, rfl
+
+lemma add_comp (p q : seminorm 𝕜 F) (f : E →ₗ[𝕜] F) : (p + q).comp f = p.comp f + q.comp f :=
+ext $ λ _, rfl
+
+lemma comp_triangle (p : seminorm 𝕜 F) (f g : E →ₗ[𝕜] F) : p.comp (f + g) ≤ p.comp f + p.comp g :=
+λ _, p.triangle _ _
+
+lemma smul_comp (p : seminorm 𝕜 F) (f : E →ₗ[𝕜] F) (c : R) : (c • p).comp f = c • (p.comp f) :=
+ext $ λ _, rfl
+
+lemma comp_mono {p : seminorm 𝕜 F} {q : seminorm 𝕜 F} (f : E →ₗ[𝕜] F) (hp : p ≤ q) :
+  p.comp f ≤ q.comp f := λ _, hp _
+
 section norm_one_class
-variables [norm_one_class 𝕜] [add_comm_group E] [module 𝕜 E] (p : seminorm 𝕜 E) (x y : E) (r : ℝ)
+variables [norm_one_class 𝕜] (p : seminorm 𝕜 E) (x y : E) (r : ℝ)
 
 @[simp]
 protected lemma neg : p (-x) = p x :=
@@ -436,8 +543,26 @@ begin
 end
 
 end norm_one_class
+end module
+end semi_normed_ring
+
+section semi_normed_comm_ring
+variables [semi_normed_comm_ring 𝕜] [add_comm_group E] [add_comm_group F] [module 𝕜 E] [module 𝕜 F]
+
+lemma comp_smul (p : seminorm 𝕜 F) (f : E →ₗ[𝕜] F) (c : 𝕜) :
+  p.comp (c • f) = ∥c∥₊ • p.comp f :=
+ext $ λ _, by rw [comp_apply, smul_apply, linear_map.smul_apply, p.smul, nnreal.smul_def,
+  coe_nnnorm, smul_eq_mul, comp_apply]
+
+lemma comp_smul_apply (p : seminorm 𝕜 F) (f : E →ₗ[𝕜] F) (c : 𝕜) (x : E) :
+  p.comp (c • f) x = ∥c∥ * p (f x) := p.smul _ _
+
+end semi_normed_comm_ring
 
 /-! ### Seminorm ball -/
+
+section semi_normed_ring
+variables [semi_normed_ring 𝕜]
 
 section add_comm_group
 variables [add_comm_group E]
@@ -477,7 +602,19 @@ end
 end has_scalar
 
 section module
-variables [norm_one_class 𝕜] [module 𝕜 E] (p : seminorm 𝕜 E)
+
+variables [module 𝕜 E]
+variables [add_comm_group F] [module 𝕜 F]
+
+lemma ball_comp (p : seminorm 𝕜 F) (f : E →ₗ[𝕜] F) (x : E) (r : ℝ) :
+  (p.comp f).ball x r = f ⁻¹' (p.ball (f x) r) :=
+begin
+  ext,
+  simp_rw [ball, mem_preimage, comp_apply, set.mem_set_of_eq, map_sub],
+end
+
+section norm_one_class
+variables [norm_one_class 𝕜] (p : seminorm 𝕜 E)
 
 @[simp] lemma ball_bot {r : ℝ} (x : E) (hr : 0 < r) : ball (⊥ : seminorm 𝕜 E) x r = set.univ :=
 ball_zero' x hr
@@ -506,6 +643,7 @@ begin
   exact ball_finset_sup_eq_Inter _ _ _ hr,
 end
 
+end norm_one_class
 end module
 end add_comm_group
 end semi_normed_ring
@@ -540,7 +678,7 @@ balanced_ball_zero p r (-1) (by rw [norm_neg, norm_one]) ⟨x, hx, by rw [neg_sm
 end normed_field
 
 section normed_linear_ordered_field
-variables [normed_linear_ordered_field 𝕜] [add_comm_group E] [semi_normed_space ℝ 𝕜] [module 𝕜 E]
+variables [normed_linear_ordered_field 𝕜] [add_comm_group E] [normed_space ℝ 𝕜] [module 𝕜 E]
 
 section has_scalar
 variables [has_scalar ℝ E] [is_scalar_tower ℝ 𝕜 E] (p : seminorm 𝕜 E)
@@ -743,7 +881,7 @@ lemma gauge_lt_one_subset_self (hs : convex ℝ s) (h₀ : (0 : E) ∈ s) (absor
   {x | gauge s x < 1} ⊆ s :=
 begin
   rw gauge_lt_eq absorbs,
-  apply set.bUnion_subset,
+  apply set.Union₂_subset,
   rintro r hr _ ⟨y, hy, rfl⟩,
   exact hs.smul_mem_of_zero_mem h₀ hy (Ioo_subset_Icc_self hr),
 end

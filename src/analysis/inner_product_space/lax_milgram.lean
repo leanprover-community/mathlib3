@@ -15,7 +15,7 @@ import topology.metric_space.antilipschitz
 We consider an Hilbert space `V` over `ℝ`
 equipped with a bounded bilinear form `B : V →L[ℝ] V →L[ℝ] ℝ`.
 For every such form we define the
-`lax_milgram_map : V →L[ℝ] V`,
+`continuous_linear_map_of_bilin : V →L[ℝ] V`,
 which is defined by the property `⟪lax_milgram_map B v, w⟫ = B v w`
 using the Fréchet-Riesz representation theorem.
 We also define a property `is_coercive` for `B : V →L[ℝ] V →L[ℝ] ℝ`,
@@ -24,7 +24,7 @@ such that `is_coercive B` iff
 
 Under the hypothesis that `B` is coercive
 we prove the Lax-Milgram theorem:
-that is, the `lax_milgram_map` can be upgraded
+that is, the `continuous_linear_map_of_bilin` can be upgraded
 to a continuous equivalence `lax_milgram_equiv : V ≃L[ℝ] V`.
 
 ## References
@@ -42,8 +42,9 @@ noncomputable theory
 
 
 
-open_locale classical complex_conjugate
-open is_R_or_C continuous_linear_map linear_map linear_equiv
+
+open is_R_or_C continuous_linear_map linear_map linear_equiv inner_product_space
+open_locale classical complex_conjugate inner_product_space.sharp
 
 universe u
 
@@ -60,33 +61,13 @@ variables {V : Type u} [inner_product_space ℝ V] [complete_space V]
 variables (B : V →L[ℝ] V →L[ℝ] ℝ)
 
 
-/--
-The Lax-Milgram map of a bounded bilinear operator: for all `v : V`
-`lax_milgram_map B v` is the unique element of `V`
-such that `⟪lax_milgram_map B v, w⟫ = B v w`.
-This element is obtained using `inner_product_space.to_dual`.
--/
-def lax_milgram_map (B : V →L[ℝ] V →L[ℝ] ℝ) : V →L[ℝ] V :=
-↑(id (inner_product_space.to_dual ℝ V).symm.to_continuous_linear_equiv : (V →L[ℝ] ℝ) ≃L[ℝ] V) ∘L B
-
-@[simp]
-lemma lax_milgram_map_apply (v w : V) : inner (lax_milgram_map B v) w = B v w :=
-by simp [lax_milgram_map]
-
-lemma unique_lax_milgram_map {v f : V}
-  (is_lax_milgram : (∀ w, inner f w = B v w)) :
-  f = lax_milgram_map B v :=
-begin
-  refine inner_product_space.ext_inner_right ℝ _,
-  intro w,
-  rw lax_milgram_map_apply,
-  exact is_lax_milgram w,
-end
-
 variables {B}
 
+#check @continuous_linear_map_of_bilin ℝ _ _ _ _ B
+
+
 lemma bounded_below (coercive : is_coercive B) :
-  ∃ C, 0 < C ∧ ∀ v, C * ∥v∥ ≤ ∥lax_milgram_map B v∥ :=
+  ∃ C, 0 < C ∧ ∀ v, C * ∥v∥ ≤ ∥B♯ v∥ :=
 begin
   rcases coercive with ⟨C, C_ge_0, coercivity⟩,
   refine ⟨C, C_ge_0, _⟩,
@@ -96,8 +77,8 @@ begin
     refine (mul_le_mul_right h).mp _,
     exact calc C * ∥v∥ * ∥v∥
                ≤ B v v                         : coercivity v
-    ...        = inner (lax_milgram_map B v) v : by simp
-    ...        ≤ ∥lax_milgram_map B v∥ * ∥v∥     : real_inner_le_norm (lax_milgram_map B v) v,
+    ...        = inner (B♯ v) v : by simp
+    ...        ≤ ∥B♯ v∥ * ∥v∥     : real_inner_le_norm (B♯ v) v,
   },
   {
     have : v = 0 := by simpa using h,
@@ -106,41 +87,41 @@ begin
 end
 
 lemma antilipschitz_of_lax_milgram (coercive : is_coercive B) :
-  ∃ C : nnreal, 0 < C ∧ antilipschitz_with C (lax_milgram_map B) :=
+  ∃ C : nnreal, 0 < C ∧ antilipschitz_with C (B♯) :=
 begin
   rcases bounded_below coercive with ⟨C, C_pos, below_bound⟩,
   refine ⟨(C⁻¹).to_nnreal, real.to_nnreal_pos.mpr (inv_pos.mpr C_pos), _⟩,
-  refine linear_map.antilipschitz_of_bound (lax_milgram_map B) _,
+  refine linear_map.antilipschitz_of_bound (B♯) _,
   simp_rw [real.coe_to_nnreal',
     max_eq_left_of_lt (inv_pos.mpr C_pos),
     ←inv_mul_le_iff (inv_pos.mpr C_pos)],
   simpa using below_bound,
 end
 
-lemma ker_eq_bot (coercive : is_coercive B) : (lax_milgram_map B).ker = ⊥ :=
+lemma ker_eq_bot (coercive : is_coercive B) : (B♯).ker = ⊥ :=
 begin
   rw [←ker_coe, linear_map.ker_eq_bot],
   rcases antilipschitz_of_lax_milgram coercive with ⟨_, _, antilipschitz⟩,
   exact antilipschitz_with.injective antilipschitz,
 end
 
-lemma closed_range (coercive : is_coercive B) : is_closed ((lax_milgram_map B).range : set V) :=
+lemma closed_range (coercive : is_coercive B) : is_closed ((B♯).range : set V) :=
 begin
   rcases antilipschitz_of_lax_milgram coercive with ⟨_, _, antilipschitz⟩,
-  exact antilipschitz.is_closed_range (lax_milgram_map B).uniform_continuous,
+  exact antilipschitz.is_closed_range (B♯).uniform_continuous,
 end
 
-lemma range_eq_top (coercive : is_coercive B): (lax_milgram_map B).range = ⊤ :=
+lemma range_eq_top (coercive : is_coercive B): (B♯).range = ⊤ :=
 begin
   haveI := (closed_range coercive).complete_space_coe,
-  rw ← (lax_milgram_map B).range.orthogonal_orthogonal,
+  rw ← (B♯).range.orthogonal_orthogonal,
   rw submodule.eq_top_iff',
   intros v w mem_w_orthogonal,
   rcases coercive with ⟨C, C_ge_0, coercivity⟩,
   have : C * ∥w∥ * ∥w∥ ≤ 0 :=
   calc C * ∥w∥ * ∥w∥
         ≤ B w w                         : coercivity w
-  ...  = inner (lax_milgram_map B w) w  : by simp
+  ...  = inner (B♯ w) w  : by simp
   ...  = 0                              : mem_w_orthogonal _ ⟨w, rfl⟩,
   have : ∥w∥ * ∥w∥ ≤ 0 := by nlinarith,
   have h : ∥w∥ = 0 := by nlinarith [norm_nonneg w],
@@ -154,21 +135,21 @@ for all `v : V`, `lax_milgram_equiv B v` is the unique element `V`
 such that `⟪lax_milgram_equiv B v, w⟫ = B v w`.
 The Lax-Milgram theorem states that this is a continuous equivalence.
 -/
-def lax_milgram_equiv (coercive : is_coercive B) : V ≃L[ℝ] V :=
+def continuous_linear_equiv_of_bilin (coercive : is_coercive B) : V ≃L[ℝ] V :=
 continuous_linear_equiv.of_bijective
-  (lax_milgram_map B)
+  (B♯)
   (ker_eq_bot coercive)
   (range_eq_top coercive)
 
 
 @[simp]
-lemma lax_milgram_equiv_apply (coercive : is_coercive B) (v w : V) :
-  inner (lax_milgram_equiv coercive v) w = B v w :=
+lemma continuous_linear_equiv_of_bilin_apply (coercive : is_coercive B) (v w : V) :
+  inner (continuous_linear_equiv_of_bilin coercive v) w = B v w :=
 lax_milgram_map_apply B v w
 
-lemma unique_lax_milgram_equiv (coercive : is_coercive B) {v f : V}
+lemma continuous_linear_equiv_of_bilin_equiv (coercive : is_coercive B) {v f : V}
   (is_lax_milgram : (∀ w, inner f w = B v w)) :
-  f = lax_milgram_equiv coercive v :=
+  f = continuous_linear_equiv_of_bilin coercive v :=
 unique_lax_milgram_map B is_lax_milgram
 
 end lax_milgram

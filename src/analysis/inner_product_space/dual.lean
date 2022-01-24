@@ -19,6 +19,16 @@ conjugate-linear isometric *equivalence* of `E` onto its dual; that is, we estab
 surjectivity of `to_dual_map`.  This is the Fréchet-Riesz representation theorem: every element of
 the dual of a Hilbert space `E` has the form `λ u, ⟪x, u⟫` for some `x : E`.
 
+For a bilinear form `B : E →L⋆[𝕜] E →L[𝕜] 𝕜`,
+we define a map `continuous_linear_map_of_bilin B :  E →L[𝕜] E`,
+given by substitution `E →L[𝕜] 𝕜` with `E` using to_dual.is
+We also write th
+
+## Notation
+
+We define the notation `B♯` for `continuous_linear_map_of_bilin B`:
+import the locale `inner_product_space.sharp` if you want to use it.
+
 ## References
 
 * [M. Einsiedler and T. Ward, *Functional Analysis, Spectral Theory, and Applications*]
@@ -29,12 +39,14 @@ the dual of a Hilbert space `E` has the form `λ u, ⟪x, u⟫` for some `x : E`
 dual, Fréchet-Riesz
 -/
 
-noncomputable theory
 open_locale classical complex_conjugate
+
+noncomputable theory
 universes u v
 
 namespace inner_product_space
 open is_R_or_C continuous_linear_map
+
 
 variables (𝕜 : Type*)
 variables (E : Type*) [is_R_or_C 𝕜] [inner_product_space 𝕜 E]
@@ -51,6 +63,7 @@ see `to_dual`.
 def to_dual_map : E →ₗᵢ⋆[𝕜] normed_space.dual 𝕜 E :=
 { norm_map' := λ _, innerSL_apply_norm,
  ..innerSL }
+
 
 variables {E}
 
@@ -111,7 +124,7 @@ begin
     exact h₄ }
 end
 
-variables {E}
+variable {E}
 
 @[simp] lemma to_dual_apply {x y : E} : to_dual 𝕜 E x y = ⟪x, y⟫ := rfl
 
@@ -162,6 +175,34 @@ begin
   rw [←inner_conj_sym],
   nth_rewrite_rhs 0 [←inner_conj_sym],
   exact congr_arg conj (h i)
+end
+
+variables {E 𝕜}
+
+/--
+Maps a bilinear form to its continuous linear map,
+given by interpreting the form as a map `B : E →L⋆[𝕜] normed_space.dual 𝕜 E`
+and dualizing the result using `to_dual`.
+-/
+def continuous_linear_map_of_bilin (B : E →L⋆[𝕜] E →L[𝕜] 𝕜) : E →L[𝕜] E :=
+comp (to_dual 𝕜 E).symm.to_continuous_linear_equiv.to_continuous_linear_map B
+--((to_dual 𝕜 E).symm.to_continuous_linear_equiv.to_continuous_linear_map) ∘L E
+
+localized "postfix `♯`:1025 := inner_product_space.continuous_linear_map_of_bilin" in inner_product_space.sharp
+
+variables (B : E →L⋆[𝕜] E →L[𝕜] 𝕜)
+@[simp]
+lemma continuous_linear_map_of_bilin_apply (v w : E) : inner (B♯ v) w = B v w :=
+by simp [continuous_linear_map_of_bilin]
+
+lemma unique_continuous_linear_map_of_bilin {v f : E}
+  (is_lax_milgram : (∀ w, ⟪f, w⟫ = B v w)) :
+  f = B♯ v :=
+begin
+  refine ext_inner_right 𝕜 _,
+  intro w,
+  rw continuous_linear_map_of_bilin_apply,
+  exact is_lax_milgram w,
 end
 
 end inner_product_space

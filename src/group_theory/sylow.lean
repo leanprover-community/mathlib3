@@ -443,21 +443,41 @@ end
 def subtype {p : ℕ} (P : sylow p G) (N : subgroup G) (h : ↑P ≤ N) :
   sylow p N :=
    ⟨ comap N.subtype P.1,
-    begin sorry end ,
-    begin sorry end⟩
+    begin
+      apply is_p_group.comap_of_injective,
+      exact P.is_p_group',
+      exact subtype.coe_injective,
+    end,
+    begin
+      intros Q hQ hle,
+      let Q' : subgroup G := map N.subtype Q,
+      have hQ' : is_p_group p Q' := is_p_group.map hQ _,
+      have hle' : P.to_subgroup ≤ Q':=
+      begin
+        apply le_trans (le_of_eq _) (map_mono hle),
+        rw map_comap_eq_self,
+        simp, apply h,
+      end,
+      have : Q' = P.to_subgroup := P.3 hQ' hle',
+      rewrite ← this, clear this,
+      symmetry,
+      apply comap_map_eq_self_of_injective,
+      exact subtype.coe_injective,
+    end⟩
 
 @[simp]
 lemma coe_subtype {p : ℕ} {P : sylow p G} {N : subgroup G} {h : P.1 ≤ N} :
   ↑(P.subtype N h) = comap N.subtype ↑P := rfl
 
-lemma normal_of_normalizer_normal {p : ℕ} (hp : fact p.prime) [fintype (sylow p G)] (P : sylow p G)
+lemma normal_of_normalizer_normal [fintype G] {p : ℕ} (hp : fact p.prime) (P : sylow p G)
   (hn : (↑P : subgroup G).normalizer.normal) :
   (↑P : subgroup G).normal :=
 begin
   let N := (↑P : subgroup G).normalizer,
   let P' : sylow p N := P.subtype N le_normalizer,
 
-  haveI : fintype (sylow p N) := sorry,
+  -- NB: This lemma assumes (fintype G), and not merely fintype (sylow p G).
+  -- The latter would suffices if we could deduce (sylow p N) from it.
 
   have := normalizer_sup_eq_top P',
   simp [N, P'] at this,
@@ -466,13 +486,6 @@ begin
   apply normalizer_eq_top.mp,
   rw sup_idem at this,
   apply this,
-end
-
-lemma comap_injective_on_range {G1 G2 : Type*} [group G1] [group G2] (f : G1 →* G2) {H1 H2 : subgroup G2}
-  (h1 : H1 ≤ f.range) (h2 : H2 ≤ f.range) :
-  comap f H1 = comap f H2 → H1 = H2 :=
-begin
-  sorry
 end
 
 @[simp]
@@ -510,11 +523,21 @@ end
 lemma map_top_range {G H : Type*} [group G] [group H] (f : G →* H) :
   subgroup.map f ⊤ = f.range := by { ext, simp }
 
-def map_equiv {H : Type*} [group H] {p : ℕ} (P : sylow p G) (Φ : G ≃* H) :
-  sylow p H :=
-   ⟨ map Φ.to_monoid_hom P.1,
-    begin sorry end ,
-    begin sorry end⟩
+instance subsingleton_of_normal {p : ℕ} [fact p.prime] [fintype (sylow p G)] [P : sylow p G]
+  [h : (P : subgroup G).normal] : subsingleton (sylow p G) :=
+begin
+  apply subsingleton.intro,
+  intros Q R,
+  obtain ⟨x, h1⟩ := @exists_smul_eq G (sylow p G) _ _ P Q,
+  rw sylow.smul_eq_of_normal at h1,
+  obtain ⟨x, h2⟩ := @exists_smul_eq G (sylow p G) _ _ P R,
+  rw sylow.smul_eq_of_normal at h2,
+  simp only [← h1, ← h2],
+end
+
+section pointwise
+
+open_locale pointwise
 
 lemma characteristic_of_normal {p : ℕ} [fact p.prime] [fintype (sylow p G)] (P : sylow p G)
   (h : (P : subgroup G).normal) :
@@ -522,100 +545,23 @@ lemma characteristic_of_normal {p : ℕ} [fact p.prime] [fintype (sylow p G)] (P
 begin
   apply characteristic_iff_map_eq.mpr,
   intros Φ,
-  let P' : sylow p G := P.map_equiv Φ,
-  change ((P' : subgroup G) = P),
-  suffices : (P' = P), by rw this,
-  obtain ⟨x, hxPP'⟩ := @exists_smul_eq G (sylow p G) _ _ P P',
-  rw ← hxPP', clear hxPP',
-  apply sylow.smul_eq_of_normal,
+  change (Φ • P).to_subgroup = P.to_subgroup,
+  suffices h : Φ • P = P, by congr,
+  simp,
 end
 
-lemma normalizer_self_normalizing2
-  {p : ℕ} [fintype (sylow p G)] {hp : fact p.prime} (P : sylow p G) :
- (↑P : subgroup G).normalizer.normalizer = (↑P : subgroup G).normalizer :=
-begin
-  let N : subgroup G := (↑P : subgroup G).normalizer,
-  let PinN : sylow p N := P.subtype N le_normalizer,
+end pointwise
 
-  let H : subgroup G := (↑P : subgroup G).normalizer.normalizer,
-  let NinH : subgroup H := comap H.subtype N,
-  let PinH : subgroup H := comap H.subtype (P : subgroup G),
-  --let PinNinH : subgroup NinH := (comap NinH.subtype (PinH : subgroup H)),
 
-  haveI : fintype (sylow p N) := sorry,
-
-  let Φ : N →* NinH :=
-  begin
-    refine monoid_hom.cod_restrict _ NinH _,
-    refine monoid_hom.cod_restrict _ H _,
-    apply N.subtype,
-    simp, intro x, apply le_normalizer, simp,
-    simp,
-  end,
-  /-
-  have ΦPinN : map Φ (PinN : subgroup N) = PinNinH :=
-  begin
-    ext,
-    simp,
-    split,
-    rintros ⟨y,h,rfl⟩, apply h,
-    intro hin,
-    use x,
-    apply le_normalizer,
-    apply hin,
-    simp,
-    apply hin,
-  end,
-  -/
-  let PinNinH : subgroup NinH := map Φ (PinN : subgroup N),
-
-  have hPnN : (PinN : subgroup N).normal := subgroup.normal_in_normalizer,
-  have hPcN : (PinN : subgroup N).characteristic := characteristic_of_normal PinN hPnN,
-  have hPcNinH : PinNinH.characteristic :=
-  begin
-    -- rw ← ΦPinN,
-    sorry,
-  end,
-  have hNnH: NinH.normal := subgroup.normal_in_normalizer,
-  have hPnH' := @conj_act.normal_of_characteristic_of_normal H _ NinH hNnH PinNinH hPcNinH,
-
-  have heq : map NinH.subtype PinNinH = PinH :=
-  begin
-    ext,
-    simp,
-    split,
-    rintros ⟨y,h,rfl⟩, apply h,
-    intro hin,
-    use x,
-    apply le_normalizer,
-    apply hin,
-    simp,
-    apply hin,
-  end,
-  haveI hPnH : (PinH : subgroup H).normal :=
-    begin
-      rw heq at hPnH',
-      apply hPnH',
-      /-
-      rw map_comap_eq_self at hPnH',
-      apply hPnH',
-      rw [subtype_range],
-      exact (comap_mono le_normalizer),
-      -/
-    end,
-  have hHleN: H ≤ N :=
-  by { apply le_normalizer_of_normal, apply le_trans le_normalizer le_normalizer },
-
-  apply le_antisymm hHleN le_normalizer,
-end
-
-lemma normalizer_self_normalizing {p : ℕ} {hp : fact p.prime} (P : sylow p G) :
+lemma normalizer_self_normalizing [fintype G] {p : ℕ} {hp : fact p.prime} (P : sylow p G) :
  (↑P : subgroup G).normalizer.normalizer = (↑P : subgroup G).normalizer :=
 begin
   let H := (↑P : subgroup G).normalizer.normalizer,
   show (H = (↑P : subgroup G).normalizer),
   let P' : sylow p H := P.subtype H (le_trans le_normalizer le_normalizer),
-  haveI : fintype (sylow p H) := sorry,
+
+  -- NB: This lemma assumes (fintype G), and not merely fintype (sylow p G).
+  -- The latter would suffices if we could deduce (sylow p N) from it.
 
   have h1 : (P' : subgroup H).normalizer = ⊤ :=
   begin

@@ -141,6 +141,6 @@ omit i
 
 @[simp] lemma comp_injective {F : Sort*} [embedding_like F β γ] (f : α → β) (e : F) :
   function.injective (e ∘ f) ↔ function.injective f :=
-(injective e).of_comp_iff f
+(embedding_like.injective e).of_comp_iff f
 
 end embedding_like

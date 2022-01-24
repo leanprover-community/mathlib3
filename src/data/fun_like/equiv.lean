@@ -154,15 +154,15 @@ theorem apply_eq_iff_eq (f : E) {x y : α} : f x = f y ↔ x = y := embedding_li
 
 @[simp] lemma injective_comp (e : E) (f : β → γ) :
   function.injective (f ∘ e) ↔ function.injective f :=
-function.injective.of_comp_iff' f (bijective e)
+function.injective.of_comp_iff' f (equiv_like.bijective e)
 
 @[simp] lemma surjective_comp (e : E) (f : β → γ) :
   function.surjective (f ∘ e) ↔ function.surjective f :=
-(surjective e).of_comp_iff f
+(equiv_like.surjective e).of_comp_iff f
 
 @[simp] lemma bijective_comp (e : E) (f : β → γ) :
   function.bijective (f ∘ e) ↔ function.bijective f :=
-(bijective e).of_comp_iff f
+(equiv_like.bijective e).of_comp_iff f
 
 omit iE
 include iF
@@ -177,6 +177,6 @@ function.surjective.of_comp_iff' (bijective e) f
 
 @[simp] lemma comp_bijective (f : α → β) (e : F) :
   function.bijective (e ∘ f) ↔ function.bijective f :=
-(bijective e).of_comp_iff' f
+(equiv_like.bijective e).of_comp_iff' f
 
 end equiv_like

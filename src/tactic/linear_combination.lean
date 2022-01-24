@@ -13,7 +13,7 @@ import tactic.ring
 In this file, the `linear_combination` tactic is created.  This tactic attempts
 to prove the target by creating and applying a linear combination of a list of
 equalities.  This file also includes a definition for
-`linear_combination_config`.  A `linear_combination_config` object can be 
+`linear_combination_config`.  A `linear_combination_config` object can be
 passed into the tactic, allowing the user to specify a normalization tactic.
 
 ## Implementation Notes
@@ -32,7 +32,7 @@ to the target.
 
 -/
 
-namespace linear_combination
+namespace linear_combo
 
 /-! ### Lemmas -/
 
@@ -60,8 +60,8 @@ by rwa h2
 /-! ### Configuration -/
 
 
-/-- 
-A configuration object for `linear_combination`. 
+/--
+A configuration object for `linear_combination`.
 
 `normalize` describes whether or not the normalization step should be used.
 
@@ -127,7 +127,7 @@ Given that a = b and c = d, along with a coefficient, this tactic returns an
     where `has_add α` and `has_mul α` are true
   * `heq2` : an expr, which should be an equality with type α on each side
   * `coeff_for_eq2` : a pexpr, which should be a value of type α
-    
+
 * Output: a tactic expr that is the result of adding the first equality to the
   result of multiplying `coeff_for_eq2` by the second equality
 -/
@@ -150,7 +150,7 @@ This tactic builds on the given summed equation by multiplying each equation in
   * a list name : a list of names, referring to equations in the local context
   * a list pexpr : a list of coefficients to be multiplied with the
       corresponding equations in the list of names
-  
+
 * Output: a tactic expr expressing the weighted sum of the given equations
     added to the base equation
 -/
@@ -187,7 +187,7 @@ Given a list of names referencing equalities and a list of pexprs representing
   * `heqs` : a list of names, referring to equations in the local context
   * `coeffs` : a list of coefficients to be multiplied with the corresponding
       equations in the list of names
-  
+
 * Output: a `tactic expr` that is the weighted sum of the equations
 -/
 meta def make_sum_of_hyps (heqs : list name) (coeffs : list pexpr) :
@@ -206,8 +206,8 @@ This tactic moves all the terms in an equality to the left side of the equals
 * Input:
   * `heq` : an expr, which should be an equality with some type α on each side,
       where `add_group α` is true
-  
-* Output: tactic expr that is lhs - rhs = 0, where lhs and rhs are the left and 
+
+* Output: tactic expr that is lhs - rhs = 0, where lhs and rhs are the left and
   right sides of heq respectively
 -/
 meta def move_to_left_side (heq : expr) : tactic expr :=
@@ -225,7 +225,7 @@ Note: The target must be an equality when this tactic is called, and the
   equality must have some type α on each side, where `add_group α` is true.
 
 * Input: N/A
-  
+
 * Output: tactic unit
 -/
 meta def move_target_to_left_side : tactic unit :=
@@ -234,10 +234,9 @@ do
   target ← tactic.target,
   (targ_lhs, targ_rhs) ← tactic.match_eq target,
   target_left_eq ← tactic.to_expr ``(%%targ_lhs - %%targ_rhs = 0),
-  do {
-    can_replace_proof ← tactic.mk_app ``all_on_left_equiv [targ_lhs, targ_rhs],
-    tactic.replace_target target_left_eq can_replace_proof
-  }
+  do
+    { can_replace_proof ← tactic.mk_app ``all_on_left_equiv [targ_lhs, targ_rhs],
+      tactic.replace_target target_left_eq can_replace_proof }
   <|> tactic.fail ("The type of the left and right sides of the goal " ++
     "must fulfill the 'add_group' condition in order to match the linear " ++
     "combination to the target.")
@@ -258,7 +257,7 @@ This tactic only should be used when the target is an equality whose right side
 
 * Input:
   * `hsum_on_left` : expr, which should be an equality whose right side is 0
-  
+
 * Output: tactic unit
 -/
 meta def set_goal_to_hleft_eq_tleft (hsum_on_left : expr) : tactic unit :=
@@ -289,7 +288,7 @@ when config.normalize config.normalization_tactic
 /--
 This is a tactic that attempts to prove the target by creating and applying a
   linear combination of a list of equalities.  (If the `normalize` field of the
-  configuration is set to ff, then the tactic will simply set the user up to 
+  configuration is set to ff, then the tactic will simply set the user up to
   prove their target using the linear combination instead of attempting to
   finish the proof.)
 
@@ -305,7 +304,7 @@ Note: The left and right sides of all the equations should have the same
   * `config` : a linear_combination_config, which determines the tactic used
       for normalization; by default, this value is the standard configuration
       for a linear_combination_config
-  
+
 * Output: tactic unit
 -/
 meta def linear_combination (heqs : list name) (coeffs : list pexpr)
@@ -330,7 +329,7 @@ is an identifier and the second item in the pair is a pexpr.
 * Output: a lean.parser (name × pexpr)
 -/
 meta def parse_name_pexpr_pair : lean.parser (name × pexpr) :=
-do 
+do
   tk "(",
   id ← ident,
   tk ",",
@@ -362,7 +361,7 @@ Note: The left and right sides of all the equations should have the same
   * `config` : a linear_combination_config, which determines the tactic used
       for normalization; by default, this value is the standard configuration
       for a linear_combination_config
-  
+
 * Output: tactic unit
 
 Example Usage:
@@ -376,7 +375,6 @@ add_tactic_doc
   category := doc_category.tactic,
   decl_names := [`tactic.interactive.linear_combination],
   tags := [] }
-
 meta def _root_.tactic.interactive.linear_combination
   (input : parse parse_name_pexpr_pair*)
   (config : linear_combination_config := {}) : tactic unit :=
@@ -385,6 +383,6 @@ linear_combination heqs coeffs config
 
 
 
-end interactive_mode 
+end interactive_mode
 
-end linear_combination
+end linear_combo

@@ -116,8 +116,7 @@ by simp [separated_space_iff, id_rel_subset.2 separated_equiv.1, subset.antisymm
 
 theorem separated_def' {α : Type u} [uniform_space α] :
   separated_space α ↔ ∀ x y, x ≠ y → ∃ r ∈ 𝓤 α, (x, y) ∉ r :=
-separated_def.trans $ forall_congr $ λ x, forall_congr $ λ y,
-by rw ← not_imp_not; simp [not_forall]
+separated_def.trans $ forall₂_congr $ λ x y, by rw ← not_imp_not; simp [not_forall]
 
 lemma eq_of_uniformity {α : Type*} [uniform_space α] [separated_space α] {x y : α}
   (h : ∀ {V}, V ∈ 𝓤 α → (x, y) ∈ V) : x = y :=

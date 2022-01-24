@@ -3,6 +3,7 @@ Copyright (c) 2018 Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Johannes Hölzl
 -/
+import topology.uniform_space.uniform_convergence
 import topology.uniform_space.uniform_embedding
 import topology.uniform_space.complete_separated
 import topology.algebra.group
@@ -190,14 +191,44 @@ def topological_group.to_uniform_space : uniform_space G :=
     let S' := λ x, {p : G × G | p.1 = x → p.2 ∈ S},
     show is_open S ↔ ∀ (x : G), x ∈ S → S' x ∈ comap (λp:G×G, p.2 / p.1) (𝓝 (1 : G)),
     rw [is_open_iff_mem_nhds],
-    refine forall_congr (assume a, forall_congr (assume ha, _)),
+    refine forall₂_congr (λ a ha, _),
     rw [← nhds_translation_div, mem_comap, mem_comap],
-    refine exists_congr (assume t, exists_congr (assume ht, _)),
+    refine exists₂_congr (λ t ht, _),
     show (λ (y : G), y / a) ⁻¹' t ⊆ S ↔ (λ (p : G × G), p.snd / p.fst) ⁻¹' t ⊆ S' a,
     split,
     { rintros h ⟨x, y⟩ hx rfl, exact h hx },
     { rintros h x hx, exact @h (a, x) hx rfl }
   end }
+
+variables {G}
+
+@[to_additive] lemma topological_group.tendsto_uniformly_iff
+  {ι α : Type*} (F : ι → α → G) (f : α → G) (p : filter ι) :
+  @tendsto_uniformly α G ι (topological_group.to_uniform_space G) F f p
+    ↔ ∀ u ∈ 𝓝 (1 : G), ∀ᶠ i in p, ∀ a, F i a / f a ∈ u :=
+⟨λ h u hu, h _ ⟨u, hu, λ _, id⟩, λ h v ⟨u, hu, hv⟩,
+  mem_of_superset (h u hu) (λ i hi a, hv (by exact hi a))⟩
+
+@[to_additive] lemma topological_group.tendsto_uniformly_on_iff
+  {ι α : Type*} (F : ι → α → G) (f : α → G) (p : filter ι) (s : set α) :
+  @tendsto_uniformly_on α G ι (topological_group.to_uniform_space G) F f p s
+    ↔ ∀ u ∈ 𝓝 (1 : G), ∀ᶠ i in p, ∀ a ∈ s, F i a / f a ∈ u :=
+⟨λ h u hu, h _ ⟨u, hu, λ _, id⟩, λ h v ⟨u, hu, hv⟩,
+  mem_of_superset (h u hu) (λ i hi a ha, hv (by exact hi a ha))⟩
+
+@[to_additive] lemma topological_group.tendsto_locally_uniformly_iff
+  {ι α : Type*} [topological_space α] (F : ι → α → G) (f : α → G) (p : filter ι) :
+  @tendsto_locally_uniformly α G ι (topological_group.to_uniform_space G) _ F f p
+    ↔ ∀ (u ∈ 𝓝 (1 : G)) (x : α), ∃ (t ∈ 𝓝 x), ∀ᶠ i in p, ∀ a ∈ t, F i a / f a ∈ u :=
+⟨λ h u hu, h _ ⟨u, hu, λ _, id⟩, λ h v ⟨u, hu, hv⟩ x, exists_imp_exists (by exact λ a,
+  exists_imp_exists (λ ha hp, mem_of_superset hp (λ i hi a ha, hv (by exact hi a ha)))) (h u hu x)⟩
+
+@[to_additive] lemma topological_group.tendsto_locally_uniformly_on_iff
+  {ι α : Type*} [topological_space α] (F : ι → α → G) (f : α → G) (p : filter ι) (s : set α) :
+  @tendsto_locally_uniformly_on α G ι (topological_group.to_uniform_space G) _ F f p s
+    ↔ ∀ (u ∈ 𝓝 (1 : G)) (x ∈ s), ∃ (t ∈ 𝓝[s] x), ∀ᶠ i in p, ∀ a ∈ t, F i a / f a ∈ u :=
+⟨λ h u hu, h _ ⟨u, hu, λ _, id⟩, λ h v ⟨u, hu, hv⟩ x, exists_imp_exists (by exact λ a,
+  exists_imp_exists (λ ha hp, mem_of_superset hp (λ i hi a ha, hv (by exact hi a ha)))) ∘ h u hu x⟩
 
 end topological_comm_group
 

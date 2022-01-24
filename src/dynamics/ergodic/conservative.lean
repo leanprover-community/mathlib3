@@ -86,7 +86,7 @@ begin
       (λ _ _, hf.measurable.iterate _ hs)),
   have hμT : μ T = 0,
   { convert (measure_bUnion_null_iff $ countable_encodable _).2 hN,
-    rw ← set.inter_bUnion, refl },
+    rw ←inter_Union₂, refl },
   have : μ ((s ∩ (f^[n]) ⁻¹' s) \ T) ≠ 0, by rwa [measure_diff_null hμT],
   rcases hf.exists_mem_image_mem ((hs.inter (hf.measurable.iterate n hs)).diff hT) this
     with ⟨x, ⟨⟨hxs, hxn⟩, hxT⟩, m, hm0, ⟨hxms, hxm⟩, hxx⟩,

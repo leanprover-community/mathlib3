@@ -309,11 +309,11 @@ begin
   simp only [← measure_bUnion_finset (hn.set_pairwise _) (λ n _, this n)],
   refine supr_le (λ n, _),
   refine le_trans (_ : _ ≤ μ (⋃ (k ∈ finset.range n) (i ∈ encodable.decode₂ ι k), s i)) _,
-  exact measure_mono (bUnion_mono (λ k hk, disjointed_subset _ _)),
+  exact measure_mono (Union₂_mono $ λ k hk, disjointed_subset _ _),
   simp only [← finset.set_bUnion_option_to_finset, ← finset.set_bUnion_bUnion],
   generalize : (finset.range n).bUnion (λ k, (encodable.decode₂ ι k).to_finset) = t,
   rcases hd.finset_le t with ⟨i, hi⟩,
-  exact le_supr_of_le i (measure_mono $ bUnion_subset hi)
+  exact le_supr_of_le i (measure_mono $ Union₂_subset hi)
 end
 
 lemma measure_bUnion_eq_supr {s : ι → set α} {t : set ι} (ht : countable t)
@@ -2077,7 +2077,7 @@ def measure.to_finite_spanning_sets_in (μ : measure α) [h : sigma_finite μ] :
 { set := λ n, to_measurable μ (h.out.some.set n),
   set_mem := λ n, measurable_set_to_measurable _ _,
   finite := λ n, by { rw measure_to_measurable, exact h.out.some.finite n },
-  spanning := eq_univ_of_subset (Union_subset_Union $ λ n, subset_to_measurable _ _)
+  spanning := eq_univ_of_subset (Union_mono $ λ n, subset_to_measurable _ _)
     h.out.some.spanning }
 
 /-- A noncomputable way to get a monotone collection of sets that span `univ` and have finite
@@ -2198,7 +2198,7 @@ begin
       t ⊆ ⋃ n, t ∩ disjointed (spanning_sets μ) n :
         by rw [← inter_Union, Union_disjointed, Union_spanning_sets, inter_univ]
       ... ⊆ ⋃ n, to_measurable μ (t ∩ disjointed (spanning_sets μ) n) :
-        Union_subset_Union (λ n, subset_to_measurable _ _),
+        Union_mono (λ n, subset_to_measurable _ _),
     refine ⟨t', tt', measurable_set.Union (λ n, measurable_set_to_measurable μ _), λ u hu, _⟩,
     apply le_antisymm _ (measure_mono (inter_subset_inter tt' subset.rfl)),
     calc μ (t' ∩ u) ≤ ∑' n, μ (to_measurable μ (t ∩ disjointed (spanning_sets μ) n) ∩ u) :
@@ -3160,7 +3160,7 @@ def measure_theory.measure.finite_spanning_sets_in_open [topological_space α]
     ((is_compact_compact_covering α n).exists_open_superset_measure_lt_top μ).some_spec.snd.1,
   finite := λ n,
     ((is_compact_compact_covering α n).exists_open_superset_measure_lt_top μ).some_spec.snd.2,
-  spanning := eq_univ_of_subset (Union_subset_Union $ λ n,
+  spanning := eq_univ_of_subset (Union_mono $ λ n,
     ((is_compact_compact_covering α n).exists_open_superset_measure_lt_top μ).some_spec.fst)
     (Union_compact_covering α) }
 

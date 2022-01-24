@@ -11,7 +11,7 @@ import category_theory.limits.preserves.filtered
 import category_theory.limits.final
 import topology.sober
 import tactic.elementwise
-import algebra.category.CommRing.basic
+import algebra.category.CommRing
 
 /-!
 # Stalks

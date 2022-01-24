@@ -462,3 +462,12 @@ begin
   simpa only [restrict_apply_univ]
     using h_convex.ae_eq_const_or_norm_integral_lt_of_norm_le_const h_le
 end
+
+/-- If the closed ball of radius `R` in a normed space `E` is strictly convex and `f : α → E` is a
+function such that `∥f x∥ ≤ R` a.e., then either either this function is a.e. equal to a constant,
+or the norm of its integral is strictly less than `(μ univ).to_real * R`. -/
+lemma strict_convex.exists_ae_eq_const_or_norm_set_integral_lt_of_norm_le_const {f : α → E} {R : ℝ}
+  (h_convex : strict_convex ℝ (closed_ball (0 : E) R)) {t : set α} (ht : μ t ≠ ∞)
+  (h_le : ∀ᵐ x ∂(μ.restrict t), ∥f x∥ ≤ R) :
+  (∃ c, f =ᵐ[μ.restrict t] const α c) ∨ ∥∫ x in t, f x ∂μ∥ < (μ t).to_real * R :=
+(h_convex.ae_eq_const_or_norm_set_integral_lt_of_norm_le_const ht h_le).imp_left $ λ H, ⟨_, H⟩

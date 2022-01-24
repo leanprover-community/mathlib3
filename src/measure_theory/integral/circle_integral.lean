@@ -355,7 +355,15 @@ lemma exists_eq_smul_const_or_norm_integral_lt {f : ℂ → E} {c : ℂ} {R C : 
   (h_conv : ∀ r, strict_convex ℝ (closed_ball (0 : E) r)) :
   ∥∮ z in C(c, R), f z∥ < 2 * π * R * C :=
 begin
-
+  have : ∀ᵐ θ ∂(volume.restrict (Ioc (0 : ℝ) (2 * π))),
+    ∥deriv (circle_map c R) θ • f (circle_map c R θ)∥ ≤ R * C,
+  { refine eventually_of_forall (λ θ, _),
+    rw [norm_smul, norm_deriv_circle_map, abs_of_pos hR, mul_le_mul_left hR],
+    exact hf _ (circle_map_mem_sphere _ hR.le _) },
+  rcases (h_conv _).exists_ae_eq_const_or_norm_set_integral_lt_of_norm_le_const
+    measure_Ioc_lt_top.ne this
+    with ⟨c, hc⟩|hlt,
+  {  }
 end
 
 

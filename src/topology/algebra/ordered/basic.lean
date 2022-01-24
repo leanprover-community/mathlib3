@@ -291,6 +291,9 @@ is_open_Iio.interior_eq
 @[simp] lemma interior_Ioo : interior (Ioo a b) = Ioo a b :=
 is_open_Ioo.interior_eq
 
+lemma Ioo_subset_closure_interior : Ioo a b ⊆ closure (interior (Ioo a b)) :=
+by simp only [interior_Ioo, subset_closure]
+
 lemma Iio_mem_nhds {a b : α} (h : a < b) : Iio b ∈ 𝓝 a :=
 is_open.mem_nhds is_open_Iio h
 
@@ -2213,19 +2216,21 @@ lemma closure_Iio' {a : α} (h : (Iio a).nonempty) :
 closure_Iio' nonempty_Iio
 
 /-- The closure of the open interval `(a, b)` is the closed interval `[a, b]`. -/
-@[simp] lemma closure_Ioo {a b : α} (hab : a < b) :
+@[simp] lemma closure_Ioo {a b : α} (hab : a ≠ b) :
   closure (Ioo a b) = Icc a b :=
 begin
   apply subset.antisymm,
   { exact closure_minimal Ioo_subset_Icc_self is_closed_Icc },
-  { rw [← diff_subset_closure_iff, Icc_diff_Ioo_same hab.le],
-    have hab' : (Ioo a b).nonempty, from nonempty_Ioo.2 hab,
-    simp only [insert_subset, singleton_subset_iff],
-    exact ⟨(is_glb_Ioo hab).mem_closure hab', (is_lub_Ioo hab).mem_closure hab'⟩ }
+  { cases hab.lt_or_lt with hab hab,
+    { rw [← diff_subset_closure_iff, Icc_diff_Ioo_same hab.le],
+      have hab' : (Ioo a b).nonempty, from nonempty_Ioo.2 hab,
+      simp only [insert_subset, singleton_subset_iff],
+      exact ⟨(is_glb_Ioo hab).mem_closure hab', (is_lub_Ioo hab).mem_closure hab'⟩ },
+    { rw Icc_eq_empty_of_lt hab, exact empty_subset _ } }
 end
 
 /-- The closure of the interval `(a, b]` is the closed interval `[a, b]`. -/
-@[simp] lemma closure_Ioc {a b : α} (hab : a < b) :
+@[simp] lemma closure_Ioc {a b : α} (hab : a ≠ b) :
   closure (Ioc a b) = Icc a b :=
 begin
   apply subset.antisymm,
@@ -2235,7 +2240,7 @@ begin
 end
 
 /-- The closure of the interval `[a, b)` is the closed interval `[a, b]`. -/
-@[simp] lemma closure_Ico {a b : α} (hab : a < b) :
+@[simp] lemma closure_Ico {a b : α} (hab : a ≠ b) :
   closure (Ico a b) = Icc a b :=
 begin
   apply subset.antisymm,
@@ -2266,6 +2271,24 @@ by rw [← Ici_inter_Iio, interior_inter, interior_Ici, interior_Iio, Ioi_inter_
 @[simp] lemma interior_Ioc [no_max_order α] {a b : α} : interior (Ioc a b) = Ioo a b :=
 by rw [← Ioi_inter_Iic, interior_inter, interior_Ioi, interior_Iic, Ioi_inter_Iio]
 
+lemma Icc_subset_closure_interior {a b : α} (h : a ≠ b) : Icc a b ⊆ closure (interior (Icc a b)) :=
+calc Icc a b = closure (Ioo a b) : (closure_Ioo h).symm
+... ⊆ closure (interior (Icc a b)) : closure_mono (interior_maximal Ioo_subset_Icc_self is_open_Ioo)
+
+lemma Ioc_subset_closure_interior (a b : α) : Ioc a b ⊆ closure (interior (Ioc a b)) :=
+begin
+  rcases eq_or_ne a b with rfl|h,
+  { simp },
+  { calc Ioc a b ⊆ Icc a b : Ioc_subset_Icc_self
+    ... = closure (Ioo a b) : (closure_Ioo h).symm
+    ... ⊆ closure (interior (Ioc a b)) :
+      closure_mono (interior_maximal Ioo_subset_Ioc_self is_open_Ioo) }
+end
+
+lemma Ico_subset_closure_interior (a b : α) : Ico a b ⊆ closure (interior (Ico a b)) :=
+by simpa only [dual_Ioc]
+  using Ioc_subset_closure_interior (order_dual.to_dual b) (order_dual.to_dual a)
+
 @[simp] lemma frontier_Ici' {a : α} (ha : (Iio a).nonempty) : frontier (Ici a) = {a} :=
 by simp [frontier, ha]
 
@@ -2295,13 +2318,13 @@ frontier_Iio' nonempty_Iio
 by simp [frontier, le_of_lt h, Icc_diff_Ioo_same]
 
 @[simp] lemma frontier_Ioo {a b : α} (h : a < b) : frontier (Ioo a b) = {a, b} :=
-by simp [frontier, h, le_of_lt h, Icc_diff_Ioo_same]
+by rw [frontier, closure_Ioo h.ne, interior_Ioo, Icc_diff_Ioo_same h.le]
 
 @[simp] lemma frontier_Ico [no_min_order α] {a b : α} (h : a < b) : frontier (Ico a b) = {a, b} :=
-by simp [frontier, h, le_of_lt h, Icc_diff_Ioo_same]
+by rw [frontier, closure_Ico h.ne, interior_Ico, Icc_diff_Ioo_same h.le]
 
 @[simp] lemma frontier_Ioc [no_max_order α] {a b : α} (h : a < b) : frontier (Ioc a b) = {a, b} :=
-by simp [frontier, h, le_of_lt h, Icc_diff_Ioo_same]
+by rw [frontier, closure_Ioc h.ne, interior_Ioc, Icc_diff_Ioo_same h.le]
 
 lemma nhds_within_Ioi_ne_bot' {a b : α} (H₁ : (Ioi a).nonempty) (H₂ : a ≤ b) :
   ne_bot (𝓝[Ioi a] b) :=

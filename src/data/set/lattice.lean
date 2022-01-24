@@ -1508,6 +1508,8 @@ not_forall.trans $ exists_congr $ λ x, not_not
 lemma not_disjoint_iff_nonempty_inter : ¬disjoint s t ↔ (s ∩ t).nonempty :=
 by simp [set.not_disjoint_iff, set.nonempty_def]
 
+alias not_disjoint_iff_nonempty_inter ↔ _ set.nonempty.not_disjoint
+
 lemma disjoint_or_nonempty_inter (s t : set α) : disjoint s t ∨ (s ∩ t).nonempty :=
 (em _).imp_right not_disjoint_iff_nonempty_inter.mp
 
@@ -1516,6 +1518,12 @@ show (∀ x, ¬(x ∈ s ∩ t)) ↔ _, from ⟨λ h a, not_and.1 $ h a, λ h a, 
 
 theorem disjoint_right : disjoint s t ↔ ∀ {a}, a ∈ t → a ∉ s :=
 by rw [disjoint.comm, disjoint_left]
+
+lemma disjoint_iff_forall_ne : disjoint s t ↔ ∀ (x ∈ s) (y ∈ t), x ≠ y :=
+by simp only [ne.def, disjoint_left, @imp_not_comm _ (_ = _), forall_eq']
+
+lemma _root_.disjoint.ne_of_mem (h : disjoint s t) {x y} (hx : x ∈ s) (hy : y ∈ t) : x ≠ y :=
+disjoint_iff_forall_ne.mp h x hx y hy
 
 theorem disjoint_of_subset_left (h : s ⊆ u) (d : disjoint u t) : disjoint s t :=
 d.mono_left h

@@ -354,11 +354,17 @@ begin
 end
 
 @[simp] lemma ae_eq_empty : s =ᵐ[μ] (∅ : set α) ↔ μ s = 0 :=
-eventually_eq_empty.trans $ by simp [ae_iff]
+eventually_eq_empty.trans $ by simp only [ae_iff, not_not, set_of_mem_eq]
+
+@[simp] lemma ae_eq_univ : s =ᵐ[μ] (univ : set α) ↔ μ sᶜ = 0 := eventually_eq_univ
 
 lemma ae_le_set : s ≤ᵐ[μ] t ↔ μ (s \ t) = 0 :=
 calc s ≤ᵐ[μ] t ↔ ∀ᵐ x ∂μ, x ∈ s → x ∈ t : iff.rfl
            ... ↔ μ (s \ t) = 0          : by simp [ae_iff]; refl
+
+lemma ae_le_set_inter {s' t' : set α} (h : s ≤ᵐ[μ] t) (h' : s' ≤ᵐ[μ] t') :
+  (s ∩ s' : set α) ≤ᵐ[μ] (t ∩ t' : set α) :=
+h.inter h'
 
 @[simp] lemma union_ae_eq_right : (s ∪ t : set α) =ᵐ[μ] t ↔ μ (s \ t) = 0 :=
 by simp [eventually_le_antisymm_iff, ae_le_set, union_diff_right,
@@ -374,6 +380,10 @@ diff_ae_eq_self.mpr (measure_mono_null (inter_subset_right _ _) ht)
 lemma ae_eq_set {s t : set α} :
   s =ᵐ[μ] t ↔ μ (s \ t) = 0 ∧ μ (t \ s) = 0 :=
 by simp [eventually_le_antisymm_iff, ae_le_set]
+
+lemma ae_eq_set_inter {s' t' : set α} (h : s =ᵐ[μ] t) (h' : s' =ᵐ[μ] t') :
+  (s ∩ s' : set α) =ᵐ[μ] (t ∩ t' : set α) :=
+h.inter h'
 
 @[to_additive]
 lemma _root_.set.mul_indicator_ae_eq_one {M : Type*} [has_one M] {f : α → M} {s : set α}
@@ -404,17 +414,23 @@ alias measure_congr ← filter.eventually_eq.measure_eq
 lemma measure_mono_null_ae (H : s ≤ᵐ[μ] t) (ht : μ t = 0) : μ s = 0 :=
 nonpos_iff_eq_zero.1 $ ht ▸ H.measure_le
 
-/-- A measurable set `t ⊇ s` such that `μ t = μ s`. It even satisifies `μ (t ∩ u) = μ (s ∩ u)` for
-any measurable set `u`, see `measure_to_measurable_inter`. If `s` is a null measurable set, then
-we also have `t =ᵐ[μ] s`, see `null_measurable_set.to_measurable_ae_eq`. -/
-def to_measurable (μ : measure α) (s : set α) : set α :=
+/-- A measurable set `t ⊇ s` such that `μ t = μ s`. It even satisfies `μ (t ∩ u) = μ (s ∩ u)` for
+any measurable set `u` if `μ s ≠ ∞`, see `measure_to_measurable_inter`.
+(This property holds without the assumption `μ s ≠ ∞` when the space is sigma-finite,
+see `measure_to_measurable_inter_of_sigma_finite`).
+If `s` is a null measurable set, then
+we also have `t =ᵐ[μ] s`, see `null_measurable_set.to_measurable_ae_eq`.
+This notion is sometimes called a "measurable hull" in the literature. -/
+@[irreducible] def to_measurable (μ : measure α) (s : set α) : set α :=
 if h : ∃ t ⊇ s, measurable_set t ∧ t =ᵐ[μ] s then h.some
+else if h' : ∃ t ⊇ s, measurable_set t ∧ (∀ u, measurable_set u → μ (t ∩ u) = μ (s ∩ u))
+  then h'.some
 else (exists_measurable_superset μ s).some
 
 lemma subset_to_measurable (μ : measure α) (s : set α) : s ⊆ to_measurable μ s :=
 begin
-  rw to_measurable, split_ifs with hs,
-  exacts [hs.some_spec.fst, (exists_measurable_superset μ s).some_spec.1]
+  rw to_measurable, split_ifs with hs h's,
+  exacts [hs.some_spec.fst, h's.some_spec.fst, (exists_measurable_superset μ s).some_spec.1]
 end
 
 lemma ae_le_to_measurable : s ≤ᵐ[μ] to_measurable μ s := (subset_to_measurable _ _).eventually_le
@@ -422,14 +438,16 @@ lemma ae_le_to_measurable : s ≤ᵐ[μ] to_measurable μ s := (subset_to_measur
 @[simp] lemma measurable_set_to_measurable (μ : measure α) (s : set α) :
   measurable_set (to_measurable μ s) :=
 begin
-  rw to_measurable, split_ifs with hs,
-  exacts [hs.some_spec.snd.1, (exists_measurable_superset μ s).some_spec.2.1]
+  rw to_measurable, split_ifs with hs h's,
+  exacts [hs.some_spec.snd.1, h's.some_spec.snd.1, (exists_measurable_superset μ s).some_spec.2.1]
 end
 
 @[simp] lemma measure_to_measurable (s : set α) : μ (to_measurable μ s) = μ s :=
 begin
-  rw to_measurable, split_ifs with hs,
-  exacts [measure_congr hs.some_spec.snd.2, (exists_measurable_superset μ s).some_spec.2.2]
+  rw to_measurable, split_ifs with hs h's,
+  { exact measure_congr hs.some_spec.snd.2 },
+  { simpa only [inter_univ] using h's.some_spec.snd.2 univ measurable_set.univ },
+  { exact (exists_measurable_superset μ s).some_spec.2.2 }
 end
 
 /-- A measure space is a measurable space equipped with a

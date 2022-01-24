@@ -2109,6 +2109,10 @@ begin
       restrict_comm hs, ← with_density_apply _ ht]
 end
 
+lemma with_density_indicator_one {s : set α} (hs : measurable_set s) :
+  μ.with_density (s.indicator 1) = μ.restrict s :=
+by rw [with_density_indicator hs, with_density_one]
+
 lemma with_density_of_real_mutually_singular {f : α → ℝ} (hf : measurable f) :
   μ.with_density (λ x, ennreal.of_real $ f x) ⊥ₘ μ.with_density (λ x, ennreal.of_real $ -f x) :=
 begin

@@ -2042,6 +2042,9 @@ begin
   exact (mul_is_normal ho).apply_omega
 end
 
+section
+variable {f : ordinal.{u} → ordinal.{u}}
+
 /-! ### Fixed points of normal functions -/
 
 /-- The next fixed point function, the least fixed point of the
@@ -2055,10 +2058,10 @@ le_sup _ n
 theorem le_nfp_self (f a) : a ≤ nfp f a :=
 iterate_le_nfp f a 0
 
-theorem nfp_le {f a b} : nfp f a ≤ b ↔ ∀ n, f^[n] a ≤ b :=
+theorem nfp_le {a b} : nfp f a ≤ b ↔ ∀ n, f^[n] a ≤ b :=
 sup_le
 
-theorem is_normal.lt_nfp {f} (H : is_normal f) {a b} :
+theorem is_normal.lt_nfp (H : is_normal f) {a b} :
   f b < nfp f a ↔ b < nfp f a :=
 lt_sup.trans $ iff.trans
   (by exact
@@ -2066,18 +2069,17 @@ lt_sup.trans $ iff.trans
     λ ⟨n, h⟩, ⟨n+1, by rw iterate_succ'; exact H.lt_iff.2 h⟩⟩)
   lt_sup.symm
 
-theorem is_normal.nfp_le {f} (H : is_normal f) {a b} :
+theorem is_normal.nfp_le (H : is_normal f) {a b} :
   nfp f a ≤ f b ↔ nfp f a ≤ b :=
 le_iff_le_iff_lt_iff_lt.2 H.lt_nfp
 
-theorem is_normal.nfp_le_fp {f} (H : is_normal f) {a b}
-  (ab : a ≤ b) (h : f b ≤ b) : nfp f a ≤ b :=
+theorem is_normal.nfp_le_fp (H : is_normal f) {a b} (ab : a ≤ b) (h : f b ≤ b) : nfp f a ≤ b :=
 sup_le.2 $ λ i, begin
   induction i with i IH generalizing a, {exact ab},
   exact IH (le_trans (H.le_iff.2 ab) h),
 end
 
-theorem is_normal.nfp_fp {f} (H : is_normal f) (a) : f (nfp f a) = nfp f a :=
+theorem is_normal.nfp_fp (H : is_normal f) (a) : f (nfp f a) = nfp f a :=
 begin
   refine le_antisymm _ (H.le_self _),
   cases le_or_lt (f a) a with aa aa,
@@ -2096,15 +2098,15 @@ begin
   { exact (H.2 _ l _).2 (λ b h, le_of_lt (H.lt_nfp.2 h)) }
 end
 
-theorem is_normal.le_nfp {f} (H : is_normal f) {a b} :
+theorem is_normal.le_nfp (H : is_normal f) {a b} :
   f b ≤ nfp f a ↔ b ≤ nfp f a :=
 ⟨le_trans (H.le_self _), λ h,
   by simpa only [H.nfp_fp] using H.le_iff.2 h⟩
 
-theorem nfp_eq_self {f : ordinal → ordinal} {a} (h : f a = a) : nfp f a = a :=
+theorem nfp_eq_self {a} (h : f a = a) : nfp f a = a :=
 le_antisymm (sup_le.mpr $ λ i, by rw [iterate_fixed h]) (le_nfp_self f a)
 
-protected lemma monotone.nfp {f} (hf : monotone f) : monotone (nfp f) :=
+protected lemma monotone.nfp (hf : monotone f) : monotone (nfp f) :=
 λ a b h, nfp_le.2 (λ n, (hf.iterate n h).trans (le_sup _ n))
 
 /-- The derivative of a normal function `f` is
@@ -2119,15 +2121,14 @@ limit_rec_on o (nfp f 0)
 @[simp] theorem deriv_succ (f o) : deriv f (succ o) = nfp f (succ (deriv f o)) :=
 limit_rec_on_succ _ _ _ _
 
-theorem deriv_limit (f) {o} : is_limit o →
-  deriv f o = bsup.{u u} o (λ a _, deriv f a) :=
+theorem deriv_limit (f) {o} : is_limit o → deriv f o = bsup.{u u} o (λ a _, deriv f a) :=
 limit_rec_on_limit _ _ _ _
 
 theorem deriv_is_normal (f) : is_normal (deriv f) :=
 ⟨λ o, by rw [deriv_succ, ← succ_le]; apply le_nfp_self,
  λ o l a, by rw [deriv_limit _ l, bsup_le]⟩
 
-theorem is_normal.deriv_fp {f} (H : is_normal f) (o) : f (deriv.{u} f o) = deriv f o :=
+theorem is_normal.deriv_fp (H : is_normal f) (o) : f (deriv.{u} f o) = deriv f o :=
 begin
   apply limit_rec_on o,
   { rw [deriv_zero, H.nfp_fp] },
@@ -2138,7 +2139,7 @@ begin
   simp only [bsup_le, IH] {contextual:=tt}
 end
 
-theorem is_normal.le_iff_deriv {f} (H : is_normal f) {a} : f a ≤ a ↔ ∃ o, deriv f o = a :=
+theorem is_normal.le_iff_deriv (H : is_normal f) {a} : f a ≤ a ↔ ∃ o, deriv f o = a :=
 ⟨λ ha, begin
   suffices : ∀ o (_:a ≤ deriv f o), ∃ o, deriv f o = a,
   from this a ((deriv_is_normal _).le_self _),
@@ -2158,9 +2159,11 @@ theorem is_normal.le_iff_deriv {f} (H : is_normal f) {a} : f a ≤ a ↔ ∃ o, 
     exact let ⟨o', h, hl⟩ := h in IH o' h (le_of_not_le hl) }
 end, λ ⟨o, e⟩, e ▸ le_of_eq (H.deriv_fp _)⟩
 
-theorem is_normal.apply_eq_self_iff_deriv {f} (H : is_normal f) {a} :
+theorem is_normal.apply_eq_self_iff_deriv (H : is_normal f) {a} :
   f a = a ↔ ∃ o, deriv f o = a :=
 by rw [←H.le_iff_deriv, H.le_iff_eq]
+
+end
 
 /-! ### Fixed points of addition -/
 

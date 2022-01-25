@@ -201,10 +201,7 @@ end
 
 lemma prime_pow_dvd_iff_factorization_ge (p k n : ℕ) (pp : prime p) (hn : n ≠ 0) :
   p ^ k ∣ n ↔ k ≤ n.factorization p :=
-begin
-  rw [←(factorization_le_iff_dvd (ne_of_gt (pow_pos (prime.pos pp) k)) hn),
-    prime.factorization_pow pp, single_le_iff],
-end
+by rw [←factorization_le_iff_dvd (pow_pos pp.pos k).ne' hn, pp.factorization_pow, single_le_iff]
 
 lemma exists_factorization_lt_of_lt {a b : ℕ} (ha : a ≠ 0) (hb : b ≠ 0) (hab : a < b) :
   ∃ p : ℕ, a.factorization p < b.factorization p :=

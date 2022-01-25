@@ -236,7 +236,7 @@ end
 
 lemma pow_factorization_dvd (p d : ℕ) : p ^ (d.factorization) p ∣ d :=
 begin
-  rcases em (d = 0) with rfl | hd, { simp },
+  rcases eq_or_ne d 0 with rfl | hd, { simp },
   by_cases pp : prime p,
   { rw prime_pow_dvd_iff_factorization_ge p _ d pp hd },
   { rw factorization_eq_zero_of_non_prime d p pp, simp },

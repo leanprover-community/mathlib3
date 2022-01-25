@@ -7,75 +7,86 @@ import data.sum.basic
 import logic.nontrivial
 
 /-!
-# Two-pointed types
+# Two-pointings
 
-This file defines `two_pointed`, a class holding a two-pointing of a type.
+This file defines `two_pointing α`, the type of two pointings of `α`. A two-pointing is the data of
+two distinct terms.
 
-This is morally a Type-valued `nontrivial`.
+This is morally a Type-valued `nontrivial`. Another type which is quite close in essence is `sym2`.
 -/
 
 open function
 
 variables {α β : Type*}
 
-/-- Two-pointing of a type. Type-valued `nontrivial`. -/
-class two_pointed (α : Type*) :=
+/-- Two-pointing of a type. This is a Type-valued termed `nontrivial`. -/
+@[ext, derive decidable_eq] structure two_pointing (α : Type*) :=
 (fst snd : α)
 (fst_ne_snd : fst ≠ snd)
 
-variables (α) [two_pointed α]
+namespace two_pointing
+variables (p : two_pointing α) (q : two_pointing β)
 
-/-- The first pointed element of a pointed type. -/
-def pointed_fst : α := two_pointed.fst
-
-/-- The second pointed element of a pointed type. -/
-def pointed_snd : α := two_pointed.snd
-
-lemma pointed_fst_ne_snd : pointed_fst α ≠ pointed_snd α := two_pointed.fst_ne_snd
-lemma pointed_snd_ne_fst : pointed_snd α ≠ pointed_fst α := (pointed_fst_ne_snd _).symm
+lemma snd_ne_fst : p.snd ≠ p.fst := p.fst_ne_snd.symm
 
 /-- Swaps the two pointed elements. -/
-def two_pointed_swap : two_pointed α := ⟨pointed_snd α, pointed_fst α, pointed_snd_ne_fst α⟩
+def swap : two_pointing α := ⟨p.snd, p.fst, p.snd_ne_fst⟩
 
-@[priority 100] -- See note [lower instance priority]
-instance two_pointed.to_nontrivial : nontrivial α :=
-⟨⟨pointed_fst α, pointed_snd α, pointed_fst_ne_snd α⟩⟩
+@[simp] lemma swap_fst : p.swap.fst = p.snd := rfl
+@[simp] lemma swap_snd : p.swap.snd = p.fst := rfl
+@[simp] lemma swap_swap : p.swap.swap = p := by ext; refl
 
-namespace pi
-variables [nonempty β]
+@[reducible] -- See note [reducible non instances]
+lemma to_nontrivial : nontrivial α := ⟨⟨p.fst, p.snd, p.fst_ne_snd⟩⟩
 
-instance : two_pointed (β → α) :=
-{ fst := λ _, pointed_fst α,
-  snd := λ _, pointed_snd α,
-  fst_ne_snd := λ h, pointed_fst_ne_snd α $ by convert congr_fun h (classical.arbitrary β) }
+instance [nontrivial α] : nonempty (two_pointing α) :=
+let ⟨a, b, h⟩ := exists_pair_ne α in ⟨⟨a, b, h⟩⟩
 
-@[simp] protected lemma pointed_fst : pointed_fst (β → α) = const β (pointed_fst α) := rfl
-@[simp] protected lemma pointed_snd : pointed_snd (β → α) = const β (pointed_snd α) := rfl
+@[simp] lemma nonempty_two_pointing_iff : nonempty (two_pointing α) ↔ nontrivial α :=
+⟨λ ⟨p⟩, p.to_nontrivial, @two_pointing.nonempty _⟩
+
+section pi
+variables (α) [nonempty α]
+
+/-- The two-pointing of constant functions. -/
+def pi : two_pointing (α → β) :=
+{ fst := λ _, q.fst,
+  snd := λ _, q.snd,
+  fst_ne_snd := λ h, q.fst_ne_snd $ by convert congr_fun h (classical.arbitrary α) }
+
+@[simp] lemma pi_fst : (q.pi α).fst = const α (q.fst) := rfl
+@[simp] lemma pi_snd : (q.pi α).snd = const α (q.snd) := rfl
 
 end pi
 
-namespace prod
-variables [two_pointed β]
+/-- The product of two two-pointings. -/
+def prod : two_pointing (α × β) :=
+{ fst := (p.fst, q.fst),
+  snd := (p.snd, q.snd),
+  fst_ne_snd := λ h, p.fst_ne_snd (congr_arg prod.fst h) }
 
-instance : two_pointed (α × β) :=
-{ fst := (pointed_fst α, pointed_fst β),
-  snd := (pointed_snd α, pointed_snd β),
-  fst_ne_snd := λ h, pointed_fst_ne_snd _ (congr_arg prod.fst h) }
+@[simp] lemma prod_fst : (p.prod q).fst = (p.fst, q.fst) := rfl
+@[simp] lemma prod_snd : (p.prod q).snd = (p.snd, q.snd) := rfl
 
-@[simp] protected lemma pointed_fst : pointed_fst (α × β) = (pointed_fst α, pointed_fst β) := rfl
-@[simp] protected lemma pointed_snd : pointed_snd (α × β) = (pointed_snd α, pointed_snd β) := rfl
+/-- The sum of two pointings. Keeps the first point from the left and the second point from the
+right. -/
+protected def sum : two_pointing (α ⊕ β) := ⟨sum.inl (p.fst), sum.inr (q.snd), sum.inl_ne_inr⟩
 
-end prod
+@[simp] protected lemma pointed_fst : (p.sum q).fst = sum.inl p.fst := rfl
+@[simp] protected lemma pointed_snd : (p.sum q).snd = sum.inr q.snd := rfl
 
-namespace sum
-variables [two_pointed β]
+/-- The `ff`, `tt` two-pointing of `bool`. -/
+protected def bool : two_pointing bool := ⟨ff, tt, bool.ff_ne_tt⟩
 
-instance : two_pointed (α ⊕ β) := ⟨inl (pointed_fst α), inr (pointed_snd β), inl_ne_inr⟩
+@[simp] lemma bool_fst : two_pointing.bool.fst = ff := rfl
+@[simp] lemma bool_snd : two_pointing.bool.snd = tt := rfl
 
-@[simp] protected lemma pointed_fst : pointed_fst (α ⊕ β) = inl (pointed_fst α) := rfl
-@[simp] protected lemma pointed_snd : pointed_snd (α ⊕ β) = inr (pointed_snd β) := rfl
+instance : inhabited (two_pointing bool) := ⟨two_pointing.bool⟩
 
-end sum
+/-- The `false`, `true` two-pointing of `Prop`. -/
+protected def «Prop» : two_pointing Prop := ⟨false, true, false_ne_true⟩
 
-instance : two_pointed bool := ⟨ff, tt, bool.ff_ne_tt⟩
-instance : two_pointed Prop := ⟨false, true, false_ne_true⟩
+@[simp] lemma Prop_fst : two_pointing.Prop.fst = false := rfl
+@[simp] lemma Prop_snd : two_pointing.Prop.snd = true := rfl
+
+end two_pointing

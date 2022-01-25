@@ -184,7 +184,7 @@ G.recolor_of_embedding $ (function.embedding.nonempty_of_card_le hn).some
 
 variables {G}
 
-lemma colorable.of_le {n m : ℕ} (h : n ≤ m) (hc : G.colorable n) : G.colorable m :=
+lemma colorable.mono {n m : ℕ} (h : n ≤ m) (hc : G.colorable n) : G.colorable m :=
 ⟨G.recolor_of_card_le (by simp [h]) hc.some⟩
 
 lemma coloring.to_colorable [fintype α] (C : G.coloring α) :
@@ -307,7 +307,7 @@ begin
   exact colorable_chromatic_number hn,
 end
 
-lemma colorable.of_le_colorable {G' : simple_graph V} (h : G ≤ G') {n : ℕ}
+lemma colorable.mono_left {G' : simple_graph V} (h : G ≤ G') {n : ℕ}
   (hc : G'.colorable n) : G.colorable n :=
 ⟨hc.some.comp (hom.map_spanning_subgraphs h)⟩
 
@@ -324,7 +324,7 @@ end
 lemma colorable.chromatic_number_mono (G' : simple_graph V)
   {m : ℕ} (hc : G'.colorable m) (h : G ≤ G') :
   G.chromatic_number ≤ G'.chromatic_number :=
-hc.chromatic_number_le_of_forall_imp (λ n, colorable.of_le_colorable h)
+hc.chromatic_number_le_of_forall_imp (λ n, colorable.mono_left h)
 
 lemma colorable.chromatic_number_mono_of_embedding {V' : Type*} {G' : simple_graph V'}
   {n : ℕ} (h : G'.colorable n) (f : G ↪g G') :

@@ -304,6 +304,18 @@ lemma sum_card [fintype α] (h : ∀ a, (B.filter $ (∈) a).card = n) :
   ∑ s in B, s.card = fintype.card α * n :=
 by simp_rw [fintype.card, ←sum_card_inter (λ a _, h a), univ_inter]
 
+lemma card_le_card_bUnion {s : finset ι} {f : ι → finset α} (h₀ : ∀ i ∈ s, (f i).nonempty)
+  (h₁ : (s : set ι).pairwise_disjoint f) :
+  s.card ≤ (s.bUnion f).card :=
+by { rw [card_bUnion h₁, card_eq_sum_ones], exact sum_le_sum (λ i hi, (h₀ i hi).card_pos) }
+
+lemma card_le_card_bUnion_add_one {s : finset (finset α)}
+  (hs : (s : set (finset α)).pairwise_disjoint id) :
+  s.card ≤ (s.bUnion id).card + 1 :=
+(tsub_le_iff_right.1 pred_card_le_card_erase).trans $ add_le_add_right ((card_le_card_bUnion
+  (λ i hi, nonempty_iff_ne_empty.2 $ ne_of_mem_erase hi) $ hs.subset $ erase_subset ∅ _).trans $
+  card_le_of_subset $ bUnion_subset_bUnion_of_subset_left _ $ erase_subset ∅ _) _
+
 end double_counting
 
 section canonically_ordered_monoid

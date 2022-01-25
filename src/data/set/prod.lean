@@ -275,7 +275,7 @@ lemma pi_inter_distrib : s.pi (λ i, t i ∩ t₁ i) = s.pi t ∩ s.pi t₁ :=
 ext $ λ x, by simp only [forall_and_distrib, mem_pi, mem_inter_eq]
 
 lemma pi_congr (h : s₁ = s₂) (h' : ∀ i ∈ s₁, t₁ i = t₂ i) : s₁.pi t₁ = s₂.pi t₂ :=
-h ▸ (ext $ λ x, forall_congr $ λ i, forall_congr $ λ hi, h' i hi ▸ iff.rfl)
+h ▸ (ext $ λ x, forall₂_congr $ λ i hi, h' i hi ▸ iff.rfl)
 
 lemma pi_eq_empty (hs : i ∈ s) (ht : t i = ∅) : s.pi t = ∅ :=
 by { ext f, simp only [mem_empty_eq, not_forall, iff_false, mem_pi, not_imp],

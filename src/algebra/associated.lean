@@ -208,8 +208,7 @@ have hpd : p ∣ x * y, from ⟨z, by rwa [mul_right_inj' hp0] at h⟩,
 lemma irreducible.dvd_symm [monoid α] {p q : α}
   (hp : irreducible p) (hq : irreducible q) : p ∣ q → q ∣ p :=
 begin
-  tactic.unfreeze_local_instances,
-  rintros ⟨q', rfl⟩,
+  unfreezingI { rintros ⟨q', rfl⟩ },
   rw is_unit.mul_right_dvd (or.resolve_left (of_irreducible_mul hq) hp.not_unit),
 end
 
@@ -625,8 +624,7 @@ begin
   apply and_congr mk_ne_zero,
   apply and_congr,
   { rw [is_unit_mk], },
-  apply forall_congr, assume a,
-  apply forall_congr, assume b,
+  refine forall₂_congr (λ a b, _),
   rw [mk_mul_mk, mk_dvd_mk, mk_dvd_mk, mk_dvd_mk],
 end
 

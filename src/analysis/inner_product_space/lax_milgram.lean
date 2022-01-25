@@ -44,7 +44,7 @@ noncomputable theory
 
 
 open is_R_or_C continuous_linear_map linear_map linear_equiv inner_product_space
-open_locale classical complex_conjugate inner_product_space.sharp
+open_locale classical complex_conjugate sharp
 
 universe u
 

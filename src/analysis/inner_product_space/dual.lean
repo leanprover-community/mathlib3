@@ -188,7 +188,7 @@ def continuous_linear_map_of_bilin (B : E →L⋆[𝕜] E →L[𝕜] 𝕜) : E �
 comp (to_dual 𝕜 E).symm.to_continuous_linear_equiv.to_continuous_linear_map B
 --((to_dual 𝕜 E).symm.to_continuous_linear_equiv.to_continuous_linear_map) ∘L E
 
-localized "postfix `♯`:1025 := inner_product_space.continuous_linear_map_of_bilin" in inner_product_space.sharp
+localized "postfix `♯`:1025 := inner_product_space.continuous_linear_map_of_bilin" in sharp
 
 variables (B : E →L⋆[𝕜] E →L[𝕜] 𝕜)
 @[simp]

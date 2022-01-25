@@ -27,8 +27,8 @@ This file defines first-order languages and structures in the style of the
 * A `first_order.language.embedding`, denoted `M ↪[L] N`, is an embedding from the `L`-structure `M`
   to the `L`-structure `N` that commutes with the interpretations of functions, and which preserves
   the interpretations of relations in both directions.
-* A `first_order.language.elementary_embedding`, denoted `M ↪ₑ[L] N`, is an embedding from the `L`-structure `M`
-  to the `L`-structure `N` that commutes with the realizations of all formulas.
+* A `first_order.language.elementary_embedding`, denoted `M ↪ₑ[L] N`, is an embedding from the
+  `L`-structure `M` to the `L`-structure `N` that commutes with the realizations of all formulas.
 * A `first_order.language.equiv`, denoted `M ≃[L] N`, is an equivalence from the `L`-structure `M`
   to the `L`-structure `N` that commutes with the interpretations of functions, and which preserves
   the interpretations of relations in both directions.

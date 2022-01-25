@@ -203,15 +203,21 @@ by { ext1 x, simp_rw weighted_smul_apply, congr' 2, }
 lemma weighted_smul_null {s : set α} (h_zero : μ s = 0) : (weighted_smul μ s : F →L[ℝ] F) = 0 :=
 by { ext1 x, rw [weighted_smul_apply, h_zero], simp, }
 
-lemma weighted_smul_union (s t : set α) (hs : measurable_set s) (ht : measurable_set t)
+lemma weighted_smul_union' (s t : set α) (ht : measurable_set t)
   (hs_finite : μ s ≠ ∞) (ht_finite : μ t ≠ ∞) (h_inter : s ∩ t = ∅) :
   (weighted_smul μ (s ∪ t) : F →L[ℝ] F) = weighted_smul μ s + weighted_smul μ t :=
 begin
   ext1 x,
   simp_rw [add_apply, weighted_smul_apply,
-    measure_union (set.disjoint_iff_inter_eq_empty.mpr h_inter) hs ht,
+    measure_union (set.disjoint_iff_inter_eq_empty.mpr h_inter) ht,
     ennreal.to_real_add hs_finite ht_finite, add_smul],
 end
+
+@[nolint unused_arguments]
+lemma weighted_smul_union (s t : set α) (hs : measurable_set s) (ht : measurable_set t)
+  (hs_finite : μ s ≠ ∞) (ht_finite : μ t ≠ ∞) (h_inter : s ∩ t = ∅) :
+  (weighted_smul μ (s ∪ t) : F →L[ℝ] F) = weighted_smul μ s + weighted_smul μ t :=
+weighted_smul_union' s t ht hs_finite ht_finite h_inter
 
 lemma weighted_smul_smul [normed_field 𝕜] [normed_space 𝕜 F] [smul_comm_class ℝ 𝕜 F]
   (c : 𝕜) (s : set α) (x : F) :
@@ -525,11 +531,10 @@ begin
   have eq : ∀ a, (to_simple_func f).pos_part a = max ((to_simple_func f) a) 0 := λa, rfl,
   have ae_eq : ∀ᵐ a ∂μ, to_simple_func (pos_part f) a = max ((to_simple_func f) a) 0,
   { filter_upwards [to_simple_func_eq_to_fun (pos_part f), Lp.coe_fn_pos_part (f : α →₁[μ] ℝ),
-      to_simple_func_eq_to_fun f],
-    assume a h₁ h₂ h₃,
-    convert h₂ },
+      to_simple_func_eq_to_fun f] with _ _ h₂ _,
+    convert h₂, },
   refine ae_eq.mono (assume a h, _),
-  rw [h, eq]
+  rw [h, eq],
 end
 
 lemma neg_part_to_simple_func (f : α →₁ₛ[μ] ℝ) :
@@ -549,32 +554,29 @@ lemma integral_eq_norm_pos_part_sub (f : α →₁ₛ[μ] ℝ) :
 begin
   -- Convert things in `L¹` to their `simple_func` counterpart
   have ae_eq₁ : (to_simple_func f).pos_part =ᵐ[μ] (to_simple_func (pos_part f)).map norm,
-  { filter_upwards [pos_part_to_simple_func f],
-    assume a h,
+  { filter_upwards [pos_part_to_simple_func f] with _ h,
     rw [simple_func.map_apply, h],
     conv_lhs { rw [← simple_func.pos_part_map_norm, simple_func.map_apply] } },
   -- Convert things in `L¹` to their `simple_func` counterpart
   have ae_eq₂ : (to_simple_func f).neg_part =ᵐ[μ] (to_simple_func (neg_part f)).map norm,
-  { filter_upwards [neg_part_to_simple_func f],
-    assume a h,
+  { filter_upwards [neg_part_to_simple_func f] with _ h,
     rw [simple_func.map_apply, h],
-    conv_lhs { rw [← simple_func.neg_part_map_norm, simple_func.map_apply] } },
+    conv_lhs { rw [← simple_func.neg_part_map_norm, simple_func.map_apply], }, },
   -- Convert things in `L¹` to their `simple_func` counterpart
   have ae_eq : ∀ᵐ a ∂μ, (to_simple_func f).pos_part a - (to_simple_func f).neg_part a =
      (to_simple_func (pos_part f)).map norm a -  (to_simple_func (neg_part f)).map norm a,
-  { filter_upwards [ae_eq₁, ae_eq₂],
-    assume a h₁ h₂,
-    rw [h₁, h₂] },
+  { filter_upwards [ae_eq₁, ae_eq₂] with _ h₁ h₂,
+    rw [h₁, h₂], },
   rw [integral, norm_eq_integral, norm_eq_integral, ← simple_func.integral_sub],
   { show (to_simple_func f).integral μ =
       ((to_simple_func (pos_part f)).map norm - (to_simple_func (neg_part f)).map norm).integral μ,
     apply measure_theory.simple_func.integral_congr (simple_func.integrable f),
-    filter_upwards [ae_eq₁, ae_eq₂],
-    assume a h₁ h₂, show _ = _ - _,
+    filter_upwards [ae_eq₁, ae_eq₂] with _ h₁ h₂,
+    show _ = _ - _,
     rw [← h₁, ← h₂],
     have := (to_simple_func f).pos_part_sub_neg_part,
     conv_lhs {rw ← this},
-    refl },
+    refl, },
   { exact (simple_func.integrable f).max_zero.congr ae_eq₁ },
   { exact (simple_func.integrable f).neg.max_zero.congr ae_eq₂ }
 end
@@ -885,8 +887,8 @@ begin
     eventually_countable_forall.2 (λ n, (h_bound n).mono $ λ a, (norm_nonneg _).trans),
   have hb_le_tsum : ∀ n, bound n ≤ᵐ[μ] (λ a, ∑' n, bound n a),
   { intro n,
-    filter_upwards [hb_nonneg, bound_summable], intros a ha0 ha_sum,
-    exact le_tsum ha_sum _ (λ i _, ha0 i) },
+    filter_upwards [hb_nonneg, bound_summable] with _ ha0 ha_sum
+      using le_tsum ha_sum _ (λ i _, ha0 i) },
   have hF_integrable : ∀ n, integrable (F n) μ,
   { refine λ n, bound_integrable.mono' (hF_meas n) _,
     exact eventually_le.trans (h_bound n) (hb_le_tsum n) },
@@ -895,8 +897,8 @@ begin
     bound_integrable h_lim,
   { exact eventually_of_forall (λ s, s.ae_measurable_sum $ λ n hn, hF_meas n) },
   { refine eventually_of_forall (λ s, _),
-    filter_upwards [eventually_countable_forall.2 h_bound, hb_nonneg, bound_summable],
-    intros a hFa ha0 has,
+    filter_upwards [eventually_countable_forall.2 h_bound, hb_nonneg, bound_summable]
+      with a hFa ha0 has,
     calc ∥∑ n in s, F n a∥ ≤ ∑ n in s, bound n a : norm_sum_le_of_le _ (λ n hn, hFa n)
                        ... ≤ ∑' n, bound n a     : sum_le_tsum _ (λ n hn, ha0 n) has },
 end
@@ -931,8 +933,7 @@ begin
   rw L1.norm_def,
   congr' 1,
   apply lintegral_congr_ae,
-  filter_upwards [Lp.coe_fn_pos_part f₁, hf.coe_fn_to_L1],
-  assume a h₁ h₂,
+  filter_upwards [Lp.coe_fn_pos_part f₁, hf.coe_fn_to_L1] with _ h₁ h₂,
   rw [h₁, h₂, ennreal.of_real],
   congr' 1,
   apply nnreal.eq,
@@ -945,8 +946,7 @@ begin
   rw L1.norm_def,
   congr' 1,
   apply lintegral_congr_ae,
-  filter_upwards [Lp.coe_fn_neg_part f₁, hf.coe_fn_to_L1],
-  assume a h₁ h₂,
+  filter_upwards [Lp.coe_fn_neg_part f₁, hf.coe_fn_to_L1] with _ h₁ h₂,
   rw [h₁, h₂, ennreal.of_real],
   congr' 1,
   apply nnreal.eq,

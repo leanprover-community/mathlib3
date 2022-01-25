@@ -329,8 +329,7 @@ begin
     rw mem_Union₂ at *,
     simp_rw ball_eq_of_symmetry Vsymm,
     exact ht },
-  { apply bUnion_subset_bUnion,
-    intros x x_in,
+  { refine Union₂_mono' (λ x x_in, _),
     exact ⟨i ⟨x, x_in⟩, finset.mem_image_of_mem _ (finset.mem_univ _), hi ⟨x, x_in⟩⟩ },
 end
 

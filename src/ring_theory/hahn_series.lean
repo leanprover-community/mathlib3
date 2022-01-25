@@ -1216,7 +1216,7 @@ instance : has_add (summable_family Γ R α) :=
 ⟨λ x y, { to_fun := x + y,
     is_pwo_Union_support' := (x.is_pwo_Union_support.union y.is_pwo_Union_support).mono (begin
       rw ← set.Union_union_distrib,
-      exact set.Union_subset_Union (λ a, support_add_subset)
+      exact set.Union_mono (λ a, support_add_subset)
     end),
     finite_co_support' := λ g, ((x.finite_co_support g).union (y.finite_co_support g)).subset begin
       intros a ha,
@@ -1315,7 +1315,7 @@ instance : has_scalar (hahn_series Γ R) (summable_family Γ R α) :=
 { smul := λ x s, { to_fun := λ a, x * (s a),
     is_pwo_Union_support' := begin
       apply (x.is_pwo_support.add s.is_pwo_Union_support).mono,
-      refine set.subset.trans (set.Union_subset_Union (λ a, support_mul_subset_add_support)) _,
+      refine set.subset.trans (set.Union_mono (λ a, support_mul_subset_add_support)) _,
       intro g,
       simp only [set.mem_Union, exists_imp_distrib],
       exact λ a ha, (set.add_subset_add (set.subset.refl _) (set.subset_Union _ a)) ha,

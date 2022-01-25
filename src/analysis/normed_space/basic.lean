@@ -84,8 +84,8 @@ instance normed_ring.to_normed_group [β : normed_ring α] : normed_group α := 
 instance semi_normed_ring.to_semi_normed_group [β : semi_normed_ring α] :
   semi_normed_group α := { ..β }
 
-instance prod.norm_one_class [normed_group α] [has_one α] [norm_one_class α]
-  [normed_group β] [has_one β] [norm_one_class β] :
+instance prod.norm_one_class [semi_normed_group α] [has_one α] [norm_one_class α]
+  [semi_normed_group β] [has_one β] [norm_one_class β] :
   norm_one_class (α × β) :=
 ⟨by simp [prod.norm_def]⟩
 
@@ -190,10 +190,10 @@ pi.semi_normed_group
 
 local attribute [instance] matrix.semi_normed_group
 
-lemma semi_norm_matrix_le_iff {n m : Type*} [fintype n] [fintype m] {r : ℝ} (hr : 0 ≤ r)
+lemma norm_matrix_le_iff {n m : Type*} [fintype n] [fintype m] {r : ℝ} (hr : 0 ≤ r)
   {A : matrix n m α} :
   ∥A∥ ≤ r ↔ ∀ i j, ∥A i j∥ ≤ r :=
-by simp [pi_semi_norm_le_iff hr]
+by simp [pi_norm_le_iff hr]
 
 end semi_normed_ring
 
@@ -271,12 +271,11 @@ instance to_norm_one_class : norm_one_class α :=
 @[simp] lemma nnnorm_mul (a b : α) : ∥a * b∥₊ = ∥a∥₊ * ∥b∥₊ :=
 nnreal.eq $ norm_mul a b
 
-/-- `norm` as a `monoid_hom`. -/
-@[simps] def norm_hom : monoid_with_zero_hom α ℝ := ⟨norm, norm_zero, norm_one, norm_mul⟩
+/-- `norm` as a `monoid_with_zero_hom`. -/
+@[simps] def norm_hom : α →*₀ ℝ := ⟨norm, norm_zero, norm_one, norm_mul⟩
 
-/-- `nnnorm` as a `monoid_hom`. -/
-@[simps] def nnnorm_hom : monoid_with_zero_hom α ℝ≥0 :=
-⟨nnnorm, nnnorm_zero, nnnorm_one, nnnorm_mul⟩
+/-- `nnnorm` as a `monoid_with_zero_hom`. -/
+@[simps] def nnnorm_hom : α →*₀ ℝ≥0 := ⟨nnnorm, nnnorm_zero, nnnorm_one, nnnorm_mul⟩
 
 @[simp] lemma norm_pow (a : α) : ∀ (n : ℕ), ∥a ^ n∥ = ∥a∥ ^ n :=
 (norm_hom.to_monoid_hom : α →* ℝ).map_pow a
@@ -292,23 +291,19 @@ nnreal.eq $ norm_mul a b
   ∥∏ b in s, f b∥₊ = ∏ b in s, ∥f b∥₊ :=
 (nnnorm_hom.to_monoid_hom : α →* ℝ≥0).map_prod f s
 
-@[simp] lemma norm_div (a b : α) : ∥a / b∥ = ∥a∥ / ∥b∥ :=
-(norm_hom : monoid_with_zero_hom α ℝ).map_div a b
+@[simp] lemma norm_div (a b : α) : ∥a / b∥ = ∥a∥ / ∥b∥ := (norm_hom : α →*₀ ℝ).map_div a b
 
-@[simp] lemma nnnorm_div (a b : α) : ∥a / b∥₊ = ∥a∥₊ / ∥b∥₊ :=
-(nnnorm_hom : monoid_with_zero_hom α ℝ≥0).map_div a b
+@[simp] lemma nnnorm_div (a b : α) : ∥a / b∥₊ = ∥a∥₊ / ∥b∥₊ := (nnnorm_hom : α →*₀ ℝ≥0).map_div a b
 
-@[simp] lemma norm_inv (a : α) : ∥a⁻¹∥ = ∥a∥⁻¹ :=
-(norm_hom : monoid_with_zero_hom α ℝ).map_inv a
+@[simp] lemma norm_inv (a : α) : ∥a⁻¹∥ = ∥a∥⁻¹ := (norm_hom : α →*₀ ℝ).map_inv a
 
 @[simp] lemma nnnorm_inv (a : α) : ∥a⁻¹∥₊ = ∥a∥₊⁻¹ :=
 nnreal.eq $ by simp
 
-@[simp] lemma norm_zpow : ∀ (a : α) (n : ℤ), ∥a^n∥ = ∥a∥^n :=
-(norm_hom : monoid_with_zero_hom α ℝ).map_zpow
+@[simp] lemma norm_zpow : ∀ (a : α) (n : ℤ), ∥a^n∥ = ∥a∥^n := (norm_hom : α →*₀ ℝ).map_zpow
 
 @[simp] lemma nnnorm_zpow : ∀ (a : α) (n : ℤ), ∥a ^ n∥₊ = ∥a∥₊ ^ n :=
-(nnnorm_hom : monoid_with_zero_hom α ℝ≥0).map_zpow
+(nnnorm_hom : α →*₀ ℝ≥0).map_zpow
 
 @[priority 100] -- see Note [lower instance priority]
 instance : has_continuous_inv₀ α :=
@@ -317,8 +312,7 @@ begin
   have r0' : 0 < ∥r∥ := norm_pos_iff.2 r0,
   rcases exists_between r0' with ⟨ε, ε0, εr⟩,
   have : ∀ᶠ e in 𝓝 r, ∥e⁻¹ - r⁻¹∥ ≤ ∥r - e∥ / ∥r∥ / ε,
-  { filter_upwards [(is_open_lt continuous_const continuous_norm).eventually_mem εr],
-    intros e he,
+  { filter_upwards [(is_open_lt continuous_const continuous_norm).eventually_mem εr] with e he,
     have e0 : e ≠ 0 := norm_pos_iff.1 (ε0.trans he),
     calc ∥e⁻¹ - r⁻¹∥ = ∥r - e∥ / ∥r∥ / ∥e∥ : by field_simp [mul_comm]
     ... ≤ ∥r - e∥ / ∥r∥ / ε :
@@ -680,7 +674,7 @@ open normed_field
 
 /-- The product of two normed spaces is a normed space, with the sup norm. -/
 instance prod.normed_space : normed_space α (E × F) :=
-{ norm_smul_le := λ s x, le_of_eq $ by simp [prod.semi_norm_def, norm_smul, mul_max_of_nonneg],
+{ norm_smul_le := λ s x, le_of_eq $ by simp [prod.norm_def, norm_smul, mul_max_of_nonneg],
   ..prod.normed_group,
   ..prod.module }
 

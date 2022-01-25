@@ -759,8 +759,7 @@ begin
   ... ≤ liminf at_top (λ (n : ℕ), ∑ (i : γ n), (1/n) ^ (fintype.card ι)) :
     begin
       refine liminf_le_liminf _ (by is_bounded_default),
-      filter_upwards [B],
-      assume n hn,
+      filter_upwards [B] with _ hn,
       apply finset.sum_le_sum (λ i _, _),
       rw ennreal.rpow_nat_cast,
       exact pow_le_pow_of_le_left' (hn i) _,

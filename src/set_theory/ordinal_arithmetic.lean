@@ -897,7 +897,7 @@ def family_of_bfamily' {ι : Type u} (r : ι → ι → Prop) [is_well_order ι 
 
 /-- Converts a family indexed by an `ordinal.{u}` to one indexed by a `Type u` using a well-ordering
 given by the axiom of choice. -/
-def family_of_bfamily (o : ordinal.{u}) (f : Π a < o, α) : o.out.α → α :=
+def family_of_bfamily (o : ordinal) (f : Π a < o, α) : o.out.α → α :=
 family_of_bfamily' o.out.r (type_out o) f
 
 @[simp] theorem bfamily_of_family'_typein {ι} (r : ι → ι → Prop) [is_well_order ι r] (f : ι → α)
@@ -913,7 +913,7 @@ bfamily_of_family'_typein  _ f i
   family_of_bfamily' r ho f (enum r i (by rwa ho)) = f i hi :=
 by simp only [family_of_bfamily', typein_enum]
 
-@[simp] theorem family_of_bfamily_enum (o : ordinal.{u}) (f : Π a < o, α) (i hi) :
+@[simp] theorem family_of_bfamily_enum (o : ordinal) (f : Π a < o, α) (i hi) :
   family_of_bfamily o f (enum o.out.r i (by { convert hi, exact type_out _ })) = f i hi :=
 family_of_bfamily'_enum _ (type_out o) f _ _
 
@@ -1859,7 +1859,7 @@ theorem omega_le {o : ordinal.{u}} : omega ≤ o ↔ ∀ n : ℕ, (n : ordinal) 
    let ⟨n, e⟩ := lt_omega.1 h in
    by rw [e, ← succ_le]; exact H (n+1)⟩
 
-theorem omega_eq_sup_nat_cast : omega.{u} = sup nat.cast :=
+theorem omega_eq_sup_nat_cast : omega = sup nat.cast :=
 (omega_le.2 $ le_sup _).antisymm $ sup_le.2 $ λ n, (nat_lt_omega n).le
 
 theorem nat_lt_limit {o} (h : is_limit o) : ∀ n : ℕ, (n : ordinal) < o
@@ -2029,17 +2029,17 @@ le_antisymm
   (le_opow_self _ a1)
 
 protected theorem is_normal.apply_omega {f : ordinal.{u} → ordinal.{u}} (hf : is_normal f) :
-  f omega.{u} = sup (λ n : ℕ, f n) :=
-by rw [omega_eq_sup_nat, is_normal.sup.{0 u u} hf ⟨0⟩]
+  f omega = sup.{0 u} (f ∘ nat.cast) :=
+by rw [omega_eq_sup_nat_cast, is_normal.sup.{0 u u} hf ⟨0⟩]
 
-theorem mul_omega_eq_sup_mul_nat (o : ordinal.{u}) : o * omega.{u} = sup (λ n : ℕ, o * n) :=
+theorem mul_omega_eq_sup_mul_nat (o : ordinal) : o * omega = sup (λ n : ℕ, o * n) :=
 begin
   cases eq_zero_or_pos o with ho ho,
   { rw [ho, zero_mul],
     apply eq.symm,
     rw sup_eq_zero_iff,
     exact λ n, zero_mul _ },
-  exact (mul_is_normal ho).omega
+  exact (mul_is_normal ho).apply_omega
 end
 
 /-! ### Fixed points of normal functions -/
@@ -2183,7 +2183,7 @@ begin
   rw [←mul_one_add, one_add_omega]
 end
 
-theorem add_fp_iff_mul_omega_le {a b : ordinal} : a + b = b ↔ a * omega.{u} ≤ b :=
+theorem add_fp_iff_mul_omega_le {a b : ordinal} : a + b = b ↔ a * omega ≤ b :=
 begin
   refine ⟨λ h, _, λ h, _⟩,
   { rw [mul_omega_nfp_add_zero a, ←deriv_zero],
@@ -2195,7 +2195,7 @@ begin
   rwa [←add_assoc, ←mul_one_add, one_add_omega]
 end
 
-theorem add_le_right_iff_mul_omega_le {a b : ordinal} : a + b ≤ b ↔ a * omega.{u} ≤ b :=
+theorem add_le_right_iff_mul_omega_le {a b : ordinal} : a + b ≤ b ↔ a * omega ≤ b :=
 by { rw ←add_fp_iff_mul_omega_le, exact (add_is_normal a).le_iff_eq }
 
 theorem deriv_add_eq_mul_omega_add (a b : ordinal.{u}) : deriv ((+) a) b = a * omega + b :=

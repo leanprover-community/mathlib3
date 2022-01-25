@@ -569,11 +569,11 @@ theorem closed_ball_mem_nhds (x : α) {ε : ℝ≥0∞} (ε0 : 0 < ε) : closed_
 mem_of_superset (ball_mem_nhds x ε0) ball_subset_closed_ball
 
 theorem ball_prod_same [pseudo_emetric_space β] (x : α) (y : β) (r : ℝ≥0∞) :
-  (ball x r).prod (ball y r) = ball (x, y) r :=
+  ball x r ×ˢ ball y r = ball (x, y) r :=
 ext $ λ z, max_lt_iff.symm
 
 theorem closed_ball_prod_same [pseudo_emetric_space β] (x : α) (y : β) (r : ℝ≥0∞) :
-  (closed_ball x r).prod (closed_ball y r) = closed_ball (x, y) r :=
+  closed_ball x r ×ˢ closed_ball y r = closed_ball (x, y) r :=
 ext $ λ z, max_le_iff.symm
 
 /-- ε-characterization of the closure in pseudoemetric spaces -/
@@ -614,14 +614,14 @@ theorem totally_bounded_iff {s : set α} :
 ⟨λ H ε ε0, H _ (edist_mem_uniformity ε0),
  λ H r ru, let ⟨ε, ε0, hε⟩ := mem_uniformity_edist.1 ru,
                ⟨t, ft, h⟩ := H ε ε0 in
-  ⟨t, ft, subset.trans h $ Union_subset_Union $ λ y, Union_subset_Union $ λ yt z, hε⟩⟩
+  ⟨t, ft, h.trans $ Union₂_mono $ λ y yt z, hε⟩⟩
 
 theorem totally_bounded_iff' {s : set α} :
   totally_bounded s ↔ ∀ ε > 0, ∃t⊆s, finite t ∧ s ⊆ ⋃y∈t, ball y ε :=
 ⟨λ H ε ε0, (totally_bounded_iff_subset.1 H) _ (edist_mem_uniformity ε0),
  λ H r ru, let ⟨ε, ε0, hε⟩ := mem_uniformity_edist.1 ru,
                ⟨t, _, ft, h⟩ := H ε ε0 in
-  ⟨t, ft, subset.trans h $ Union_subset_Union $ λ y, Union_subset_Union $ λ yt z, hε⟩⟩
+  ⟨t, ft, h.trans $ Union₂_mono $ λ y yt z, hε⟩⟩
 
 section compact
 
@@ -647,7 +647,7 @@ begin
     countable_Union $ λ n, (hTc n).image _, _⟩,
   refine λ x hx, mem_closure_iff.2 (λ ε ε0, _),
   rcases ennreal.exists_inv_nat_lt (ennreal.half_pos ε0.lt.ne').ne' with ⟨n, hn⟩,
-  rcases mem_bUnion_iff.1 (hsT n hx) with ⟨y, hyn, hyx⟩,
+  rcases mem_Union₂.1 (hsT n hx) with ⟨y, hyn, hyx⟩,
   refine ⟨f n⁻¹ y, mem_Union.2 ⟨n, mem_image_of_mem _ hyn⟩, _⟩,
   calc edist x (f n⁻¹ y) ≤ n⁻¹ * 2 : hf _ _ ⟨hyx, hx⟩
                      ... < ε      : ennreal.mul_lt_of_lt_div hn
@@ -661,7 +661,7 @@ begin
   refine subset_countable_closure_of_almost_dense_set s (λ ε hε, _),
   rcases totally_bounded_iff'.1 hs.totally_bounded ε hε with ⟨t, hts, htf, hst⟩,
   exact ⟨t, htf.countable,
-    subset.trans hst (bUnion_mono $ λ _ _, ball_subset_closed_ball)⟩
+    subset.trans hst $ Union₂_mono $ λ _ _, ball_subset_closed_ball⟩
 end
 
 end compact

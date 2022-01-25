@@ -87,7 +87,7 @@ complete linear orders, we prefix Inf and Sup by a c everywhere. The same statem
 hold in both worlds, sometimes with additional assumptions of nonemptiness or
 boundedness.-/
 class conditionally_complete_linear_order (α : Type*)
-  extends conditionally_complete_lattice α, linear_order α
+  extends conditionally_complete_lattice α, linear_order α renaming max → sup min → inf
 
 /-- A conditionally complete linear order with `bot` is a linear order with least element, in which
 every nonempty subset which is bounded above has a supremum, and every nonempty subset (necessarily
@@ -353,6 +353,12 @@ is_greatest_singleton.cSup_eq
 @[simp] theorem cInf_singleton (a : α) : Inf {a} = a :=
 is_least_singleton.cInf_eq
 
+@[simp] theorem cSup_pair (a b : α) : Sup {a, b} = a ⊔ b :=
+(@is_lub_pair _ _ a b).cSup_eq (nonempty_insert _ _)
+
+@[simp] theorem cInf_pair (a b : α) : Inf {a, b} = a ⊓ b :=
+(@is_glb_pair _ _ a b).cInf_eq (nonempty_insert _ _)
+
 /--If a set is bounded below and above, and nonempty, its infimum is less than or equal to
 its supremum.-/
 theorem cInf_le_cSup (hb : bdd_below s) (ha : bdd_above s) (ne : s.nonempty) : Inf s ≤ Sup s :=
@@ -407,7 +413,7 @@ theorem cInf_insert (hs : bdd_below s) (sne : s.nonempty) : Inf (insert a s) = a
 @[simp] lemma cInf_Ioc [densely_ordered α] (h : a < b) : Inf (Ioc a b) = a :=
 (is_glb_Ioc h).cInf_eq (nonempty_Ioc.2 h)
 
-@[simp] lemma cInf_Ioi [no_top_order α] [densely_ordered α] : Inf (Ioi a) = a :=
+@[simp] lemma cInf_Ioi [no_max_order α] [densely_ordered α] : Inf (Ioi a) = a :=
 cInf_eq_of_forall_ge_of_forall_gt_exists_lt nonempty_Ioi (λ _, le_of_lt)
   (λ w hw, by simpa using exists_between hw)
 
@@ -422,7 +428,7 @@ cInf_eq_of_forall_ge_of_forall_gt_exists_lt nonempty_Ioi (λ _, le_of_lt)
 
 @[simp] lemma cSup_Iic : Sup (Iic a) = a := is_greatest_Iic.cSup_eq
 
-@[simp] lemma cSup_Iio [no_bot_order α] [densely_ordered α] : Sup (Iio a) = a :=
+@[simp] lemma cSup_Iio [no_min_order α] [densely_ordered α] : Sup (Iio a) = a :=
 cSup_eq_of_forall_le_of_forall_lt_exists_gt nonempty_Iio (λ _, le_of_lt)
   (λ w hw, by simpa [and_comm] using exists_between hw)
 

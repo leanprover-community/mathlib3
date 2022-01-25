@@ -184,6 +184,16 @@ lemma order_single (h : r ≠ 0) : (single a r).order = a :=
 (order_of_ne (single_ne_zero h)).trans (support_single_subset ((single a r).is_wf_support.min_mem
     (support_nonempty_iff.2 (single_ne_zero h))))
 
+lemma coeff_eq_zero_of_lt_order {x : hahn_series Γ R} {i : Γ} (hi : i < x.order) : x.coeff i = 0 :=
+begin
+  rcases eq_or_ne x 0 with rfl|hx,
+  { simp },
+  contrapose! hi,
+  rw [←ne.def, ←mem_support] at hi,
+  rw [order_of_ne hx],
+  exact set.is_wf.not_lt_min _ _ hi
+end
+
 end order
 
 section domain
@@ -740,8 +750,8 @@ instance [comm_ring R] : comm_ring (hahn_series Γ R) :=
 { .. hahn_series.comm_semiring,
   .. hahn_series.ring }
 
-instance {Γ} [linear_ordered_cancel_add_comm_monoid Γ] [ring R] [is_domain R] :
-  is_domain (hahn_series Γ R) :=
+instance {Γ} [linear_ordered_cancel_add_comm_monoid Γ] [non_unital_non_assoc_semiring R]
+  [no_zero_divisors R] : no_zero_divisors (hahn_series Γ R) :=
 { eq_zero_or_eq_zero_of_mul_eq_zero := λ x y xy, begin
     by_cases hx : x = 0,
     { left, exact hx },
@@ -751,13 +761,17 @@ instance {Γ} [linear_ordered_cancel_add_comm_monoid Γ] [ring R] [is_domain R] 
     refine ⟨x.order + y.order, _⟩,
     rw [mul_coeff_order_add_order x y, zero_coeff, mul_eq_zero],
     simp [coeff_order_ne_zero, hx, xy],
-  end,
+  end }
+
+instance {Γ} [linear_ordered_cancel_add_comm_monoid Γ] [ring R] [is_domain R] :
+  is_domain (hahn_series Γ R) :=
+{ .. hahn_series.no_zero_divisors,
   .. hahn_series.nontrivial,
   .. hahn_series.ring }
 
 @[simp]
-lemma order_mul {Γ} [linear_ordered_cancel_add_comm_monoid Γ] [ring R] [is_domain R]
-  {x y : hahn_series Γ R} (hx : x ≠ 0) (hy : y ≠ 0) :
+lemma order_mul {Γ} [linear_ordered_cancel_add_comm_monoid Γ] [non_unital_non_assoc_semiring R]
+  [no_zero_divisors R] {x y : hahn_series Γ R} (hx : x ≠ 0) (hy : y ≠ 0) :
   (x * y).order = x.order + y.order :=
 begin
   apply le_antisymm,
@@ -766,6 +780,17 @@ begin
     exact mul_ne_zero (coeff_order_ne_zero hx) (coeff_order_ne_zero hy) },
   { rw [order_of_ne hx, order_of_ne hy, order_of_ne (mul_ne_zero hx hy), ← set.is_wf.min_add],
     exact set.is_wf.min_le_min_of_subset (support_mul_subset_add_support) },
+end
+
+@[simp]
+lemma order_pow {Γ} [linear_ordered_cancel_add_comm_monoid Γ] [semiring R] [no_zero_divisors R]
+  (x : hahn_series Γ R) (n : ℕ) : (x ^ n).order = n • x.order :=
+begin
+  induction n with h IH,
+  { simp },
+  rcases eq_or_ne x 0 with rfl|hx,
+  { simp },
+  rw [pow_succ', order_mul (pow_ne_zero _ hx) hx, succ_nsmul', IH]
 end
 
 section non_unital_non_assoc_semiring
@@ -997,6 +1022,47 @@ lemma of_power_series_apply_coeff (x : power_series R) (n : ℕ) :
   (of_power_series Γ R x).coeff n = power_series.coeff R n x :=
 by simp
 
+@[simp] lemma of_power_series_C (r : R) :
+  of_power_series Γ R (power_series.C R r) = hahn_series.C r :=
+begin
+  ext n,
+  simp only [C, single_coeff, of_power_series_apply, ring_hom.coe_mk],
+  split_ifs with hn hn,
+  { rw hn,
+    convert @emb_domain_coeff _ _ _ _ _ _ _ _ 0,
+    simp },
+  { rw emb_domain_notin_image_support,
+    simp only [not_exists, set.mem_image, to_power_series_symm_apply_coeff, mem_support,
+               power_series.coeff_C],
+    intro,
+    simp [ne.symm hn] {contextual := tt} }
+end
+
+@[simp] lemma of_power_series_X :
+  of_power_series Γ R power_series.X = single 1 1 :=
+begin
+  ext n,
+  simp only [single_coeff, of_power_series_apply, ring_hom.coe_mk],
+  split_ifs with hn hn,
+  { rw hn,
+    convert @emb_domain_coeff _ _ _ _ _ _ _ _ 1;
+    simp },
+  { rw emb_domain_notin_image_support,
+    simp only [not_exists, set.mem_image, to_power_series_symm_apply_coeff, mem_support,
+               power_series.coeff_X],
+    intro,
+    simp [ne.symm hn] {contextual := tt} }
+end
+
+@[simp] lemma of_power_series_X_pow {R} [comm_semiring R] (n : ℕ) :
+  of_power_series Γ R (power_series.X ^ n) = single (n : Γ) 1 :=
+begin
+  rw ring_hom.map_pow,
+  induction n with n ih,
+  { refl },
+  rw [pow_succ, ih, of_power_series_X, mul_comm, single_mul_single, one_mul, nat.cast_succ]
+end
+
 end semiring
 
 section algebra
@@ -1150,7 +1216,7 @@ instance : has_add (summable_family Γ R α) :=
 ⟨λ x y, { to_fun := x + y,
     is_pwo_Union_support' := (x.is_pwo_Union_support.union y.is_pwo_Union_support).mono (begin
       rw ← set.Union_union_distrib,
-      exact set.Union_subset_Union (λ a, support_add_subset)
+      exact set.Union_mono (λ a, support_add_subset)
     end),
     finite_co_support' := λ g, ((x.finite_co_support g).union (y.finite_co_support g)).subset begin
       intros a ha,
@@ -1249,7 +1315,7 @@ instance : has_scalar (hahn_series Γ R) (summable_family Γ R α) :=
 { smul := λ x s, { to_fun := λ a, x * (s a),
     is_pwo_Union_support' := begin
       apply (x.is_pwo_support.add s.is_pwo_Union_support).mono,
-      refine set.subset.trans (set.Union_subset_Union (λ a, support_mul_subset_add_support)) _,
+      refine set.subset.trans (set.Union_mono (λ a, support_mul_subset_add_support)) _,
       intro g,
       simp only [set.mem_Union, exists_imp_distrib],
       exact λ a ha, (set.add_subset_add (set.subset.refl _) (set.subset_Union _ a)) ha,

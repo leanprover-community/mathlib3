@@ -288,7 +288,7 @@ begin
   exact G.is_empty_of_colorable_zero h',
 end
 
-lemma zero_lt_chromatic_number [nonempty V] {n : ℕ} (hc : G.colorable n) :
+lemma chromatic_number_pos [nonempty V] {n : ℕ} (hc : G.colorable n) :
   0 < G.chromatic_number :=
 begin
   apply le_cInf (colorable_set_nonempty_of_colorable hc),
@@ -300,7 +300,7 @@ begin
   exact nat.not_lt_zero _ hi,
 end
 
-lemma colorable_chromatic_number_of_zero_lt (h : 0 < G.chromatic_number) :
+lemma colorable_of_chromatic_number_pos (h : 0 < G.chromatic_number) :
   G.colorable G.chromatic_number :=
 begin
   obtain ⟨h, hn⟩ := nat.nonempty_of_pos_Inf h,
@@ -321,12 +321,12 @@ begin
   apply colorable_chromatic_number hc,
 end
 
-lemma colorable.chromatic_number_le_of_le (G' : simple_graph V)
+lemma colorable.chromatic_number_mono (G' : simple_graph V)
   {m : ℕ} (hc : G'.colorable m) (h : G ≤ G') :
   G.chromatic_number ≤ G'.chromatic_number :=
 hc.chromatic_number_le_of_forall_imp (λ n, colorable.of_le_colorable h)
 
-lemma colorable.chromatic_number_le_of_embedding {V' : Type*} {G' : simple_graph V'}
+lemma colorable.chromatic_number_mono_of_embedding {V' : Type*} {G' : simple_graph V'}
   {n : ℕ} (h : G'.colorable n) (f : G ↪g G') :
   G.chromatic_number ≤ G'.chromatic_number :=
 h.chromatic_number_le_of_forall_imp (λ _, colorable.of_embedding f)
@@ -358,7 +358,7 @@ begin
     coloring.mk (λ _, 0) (λ v w h, false.elim h),
   apply le_antisymm,
   { exact chromatic_number_le_card C, },
-  { exact zero_lt_chromatic_number C.to_colorable, },
+  { exact chromatic_number_pos C.to_colorable, },
 end
 
 @[simp] lemma chromatic_number_top [fintype V] :
@@ -382,7 +382,7 @@ begin
   apply nat.not_succ_le_self n,
   convert_to (⊤ : simple_graph {m | m < n + 1}).chromatic_number ≤ _,
   { simp, },
-  refine (colorable_chromatic_number_of_zero_lt hc).chromatic_number_le_of_embedding _,
+  refine (colorable_of_chromatic_number_pos hc).chromatic_number_mono_of_embedding _,
   apply embedding.complete_graph.of_embedding,
   exact (function.embedding.subtype _).trans (infinite.nat_embedding V),
 end

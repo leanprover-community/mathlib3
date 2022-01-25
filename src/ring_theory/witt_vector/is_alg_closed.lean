@@ -61,8 +61,6 @@ end
 #check λ f, mv_polynomial.eval f (witt_vector.witt_mul p 0)
 open polynomial
 
-#check witt_vector.peval (witt_vector.witt_mul p 0) ![λ n, if n = 0 then (X : polynomial k)^p else 0, λ n, C (a₁.coeff n)]
-
 variable {k}
 
 section base_case
@@ -70,8 +68,27 @@ section base_case
 def pow_p_poly (a₁ : 𝕎 k) : polynomial k :=
 witt_vector.peval (witt_vector.witt_mul p 0) ![λ n, if n = 0 then X^p else 0, λ n, C (a₁.coeff n)]
 
+lemma pow_p_poly_degree {a₁ : 𝕎 k} (ha₁ : a₁.coeff 0 ≠ 0) : (pow_p_poly p a₁).degree = p :=
+by simp only [matrix.head_cons, nat.cast_with_bot, add_zero, mv_polynomial.aeval_X, if_true,
+    witt_vector.peval, polynomial.degree_mul, function.uncurry_apply_pair, eq_self_iff_true,
+    witt_vector.witt_mul_zero, pow_p_poly, matrix.cons_val_one, _root_.map_mul, degree_C ha₁,
+    polynomial.degree_pow, polynomial.degree_X, matrix.cons_val_zero, nat.smul_one_eq_coe]
+
 def pow_one_poly (a₂ : 𝕎 k) : polynomial k :=
 witt_vector.peval (witt_vector.witt_mul p 0) ![λ n, if n = 0 then X else 0, λ n, C (a₂.coeff n)]
+
+lemma pow_one_poly_degree {a₂ : 𝕎 k} (ha₂ : a₂.coeff 0 ≠ 0) : (pow_one_poly p a₂).degree = 1 :=
+by simp only [matrix.head_cons, add_zero, mv_polynomial.aeval_X, if_true, witt_vector.peval,
+    polynomial.degree_mul, function.uncurry_apply_pair, eq_self_iff_true, witt_vector.witt_mul_zero,
+    pow_one_poly, matrix.cons_val_one, _root_.map_mul, polynomial.degree_X, matrix.cons_val_zero,
+    degree_C ha₂]
+
+lemma pow_one_poly_degree_lt {a₁ a₂ : 𝕎 k} (ha₁ : a₁.coeff 0 ≠ 0) (ha₂ : a₂.coeff 0 ≠ 0) :
+  (pow_one_poly p a₂).degree < (pow_p_poly p a₁).degree :=
+begin
+  rw [pow_p_poly_degree p ha₁, pow_one_poly_degree p ha₂],
+  exact_mod_cast hp.out.one_lt
+end
 
 def base_poly (a₁ a₂ : 𝕎 k) : polynomial k :=
 pow_p_poly p a₁ - pow_one_poly p a₂
@@ -79,15 +96,9 @@ pow_p_poly p a₁ - pow_one_poly p a₂
 lemma base_poly_degree {a₁ a₂ : 𝕎 k} (ha₁ : a₁.coeff 0 ≠ 0) (ha₂ : a₂.coeff 0 ≠ 0) :
   (base_poly p a₁ a₂).degree ≠ 0 :=
 begin
-  simp only [matrix.head_cons, mv_polynomial.aeval_X, if_true, witt_vector.peval,
-    function.uncurry_apply_pair, eq_self_iff_true, witt_vector.witt_mul_zero, ne.def,
-    pow_p_poly, pow_one_poly, base_poly, matrix.cons_val_one, _root_.map_mul, matrix.cons_val_zero],
-  rw [degree_sub_eq_left_of_degree_lt, degree_mul, degree_C ha₁, add_zero],
-  { simp only [(fact.out (nat.prime p)).ne_zero, nat.cast_with_bot, with_top.coe_eq_zero,
-      not_false_iff, degree_X, degree_pow, nat.smul_one_eq_coe] },
-  { simp only [nat.cast_with_bot, degree_mul, degree_X, degree_pow, nat.smul_one_eq_coe,
-      degree_C ha₁, degree_C ha₂, add_zero],
-    exact_mod_cast hp.out.one_lt }
+  rw [base_poly, degree_sub_eq_left_of_degree_lt, pow_p_poly_degree p ha₁],
+  { exact_mod_cast hp.out.ne_zero },
+  { exact pow_one_poly_degree_lt p ha₁ ha₂ }
 end
 
 lemma solution_exists {a₁ a₂ : 𝕎 k} (ha₁ : a₁.coeff 0 ≠ 0) (ha₂ : a₂.coeff 0 ≠ 0) :
@@ -101,28 +112,44 @@ lemma solution_spec {a₁ a₂ : 𝕎 k} (ha₁ : a₁.coeff 0 ≠ 0) (ha₂ : a
   (pow_p_poly p a₁ - pow_one_poly p a₂).is_root (solution p ha₁ ha₂) :=
 classical.some_spec (solution_exists p ha₁ ha₂)
 
+lemma solution_spec' {a₁ a₂ : 𝕎 k} (ha₁ : a₁.coeff 0 ≠ 0) (ha₂ : a₂.coeff 0 ≠ 0) :
+  (solution p ha₁ ha₂)^p * a₁.coeff 0 = (solution p ha₁ ha₂) * a₂.coeff 0 :=
+begin
+  rw ← sub_eq_zero,
+  simpa only [matrix.head_cons, polynomial.eval_X, polynomial.eval_C, mv_polynomial.aeval_X,
+    if_true, witt_vector.peval, polynomial.eval_pow, function.uncurry_apply_pair, eq_self_iff_true,
+    polynomial.eval_mul, witt_vector.witt_mul_zero, pow_p_poly, pow_one_poly, polynomial.eval_sub,
+    matrix.cons_val_one, _root_.map_mul, matrix.cons_val_zero, polynomial.is_root.def]
+    using solution_spec p ha₁ ha₂,
+end
+
 end base_case
 
 section inductive_case
 
 variables (n : ℕ) (prev_coeffs : fin n → k) (a₁ a₂ : 𝕎 k)
+--(ha₁ : a₁.coeff 0 ≠ 0) (ha₂ : a₂.coeff 0 ≠ 0)
 
 def lhs_poly : polynomial k :=
 witt_vector.peval (witt_vector.witt_mul p (n+1))
   ![λ k, if h : k < n then C (prev_coeffs ⟨k, h⟩)^p else if k = n then X^p else 0,
     λ n, C (a₁.coeff n)]
 
+lemma degree_lhs_poly : (lhs_poly p n prev_coeffs a₁).degree = p :=
+sorry
 
 def rhs_poly : polynomial k :=
 witt_vector.peval (witt_vector.witt_mul p (n+1))
-  ![λ k, if h : k < n then C (prev_coeffs ⟨k, h⟩) else if k = n then X^p else 0,
+  ![λ k, if h : k < n then C (prev_coeffs ⟨k, h⟩) else if k = n then X else 0,
     λ n, C (a₂.coeff n)]
 
 def ind_poly : polynomial k :=
 lhs_poly p n prev_coeffs a₁ - rhs_poly p n prev_coeffs a₂
 
 lemma ind_poly_degree : (ind_poly p n prev_coeffs a₁ a₂).degree ≠ 0 :=
-sorry
+begin
+  rw [ind_poly, degree_sub_eq_left_of_degree_lt]; sorry
+end
 
 end inductive_case
 

@@ -95,7 +95,7 @@ meta def congr' (n : parse (with_desc "n" small_nat)?) :
 | (some ⟨p, m⟩) := focus1 (tactic.congr' n >> all_goals' (tactic.ext p m $> ()))
 
 /--
-Repeatedly and apply `congr'` and `ext`, using the the given patterns as arguments for `ext`.
+Repeatedly and apply `congr'` and `ext`, using the given patterns as arguments for `ext`.
 
 There are two ways this tactic stops:
 * `congr'` fails (makes no progress), after having already applied `ext`.

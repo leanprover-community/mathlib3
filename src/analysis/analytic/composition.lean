@@ -488,7 +488,7 @@ begin
   refine nnreal.summable_sigma.2 ⟨λ n, (this n).summable, (nnreal.summable_nat_add_iff 1).1 _⟩,
   convert (nnreal.summable_geometric (nnreal.div_lt_one_of_lt one_lt_two)).mul_left (1 / 4),
   ext1 n,
-  rw [(this _).tsum_eq, nat.add_sub_cancel],
+  rw [(this _).tsum_eq, add_tsub_cancel_right],
   field_simp [← mul_assoc, pow_succ', mul_pow, show (4 : ℝ≥0) = 2 * 2, from (two_mul 2).symm,
     mul_right_comm]
 end
@@ -537,7 +537,7 @@ finset.sigma (finset.Ico m M) (λ (n : ℕ), fintype.pi_finset (λ (i : fin n), 
 @[simp] lemma mem_comp_partial_sum_source_iff (m M N : ℕ) (i : Σ n, (fin n) → ℕ) :
   i ∈ comp_partial_sum_source m M N ↔
     (m ≤ i.1 ∧ i.1 < M) ∧ ∀ (a : fin i.1), 1 ≤ i.2 a ∧ i.2 a < N :=
-by simp only [comp_partial_sum_source, finset.Ico.mem, fintype.mem_pi_finset, finset.mem_sigma,
+by simp only [comp_partial_sum_source, finset.mem_Ico, fintype.mem_pi_finset, finset.mem_sigma,
   iff_self]
 
 /-- Change of variables appearing to compute the composition of partial sums of formal

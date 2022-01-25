@@ -111,7 +111,7 @@ begin
   { apply congr rfl,
     ext n,
     cases n, { simp [h0] },
-    simp only [n.succ_ne_zero, one_div, cast_one, nat_coe_apply, complex.abs_cpow_real, inv_inj',
+    simp only [n.succ_ne_zero, one_div, cast_one, nat_coe_apply, complex.abs_cpow_real, inv_inj₀,
       complex.abs_inv, if_false, zeta_apply, complex.norm_eq_abs, complex.abs_of_nat] }
 end
 

@@ -87,7 +87,8 @@ def linear_map.to_matrix' : ((n → R) →ₗ[R] (m → R)) ≃ₗ[R] matrix m n
     simp only [pi.basis_fun_apply, matrix.mul_vec_std_basis, matrix.mul_vec_lin_apply]
   end,
   map_add' := λ f g, by { ext i j, simp only [pi.add_apply, linear_map.add_apply] },
-  map_smul' := λ c f, by { ext i j, simp only [pi.smul_apply, linear_map.smul_apply] } }
+  map_smul' := λ c f, by { ext i j, simp only [pi.smul_apply, linear_map.smul_apply,
+                                               ring_hom.id_apply] } }
 
 /-- A `matrix m n R` is linearly equivalent to a linear map `(n → R) →ₗ[R] (m → R)`. -/
 def matrix.to_lin' : matrix m n R ≃ₗ[R] ((n → R) →ₗ[R] (m → R)) :=
@@ -233,13 +234,12 @@ linear_map.to_matrix_alg_equiv'_comp f g
 
 lemma matrix.rank_vec_mul_vec {K m n : Type u} [field K] [fintype n] [decidable_eq n]
   (w : m → K) (v : n → K) :
-rank (vec_mul_vec w v).to_lin' ≤ 1 :=
+  rank (vec_mul_vec w v).to_lin' ≤ 1 :=
 begin
   rw [vec_mul_vec_eq, matrix.to_lin'_mul],
   refine le_trans (rank_comp_le1 _ _) _,
-  refine le_trans (rank_le_domain _) _,
-  rw [dim_fun', ← cardinal.lift_eq_nat_iff.mpr (cardinal.fintype_card unit), cardinal.mk_unit],
-  exact le_of_eq (cardinal.lift_one)
+  refine (rank_le_domain _).trans_eq _,
+  rw [dim_fun', fintype.card_unit, nat.cast_one]
 end
 
 end to_matrix'
@@ -270,7 +270,7 @@ def matrix.to_lin : matrix m n R ≃ₗ[R] (M₁ →ₗ[R] M₂) :=
 /-- `matrix.to_lin'` is a particular case of `matrix.to_lin`, for the standard basis
 `pi.basis_fun R n`. -/
 lemma matrix.to_lin_eq_to_lin' :
-  matrix.to_lin (pi.basis_fun R n) (pi.basis_fun R n) = matrix.to_lin' :=
+  matrix.to_lin (pi.basis_fun R n) (pi.basis_fun R m) = matrix.to_lin' :=
 rfl
 
 @[simp] lemma linear_map.to_matrix_symm :

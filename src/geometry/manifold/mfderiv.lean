@@ -543,7 +543,7 @@ omit Is I's
 /-! ### Deriving continuity from differentiability on manifolds -/
 
 theorem has_mfderiv_within_at.continuous_within_at
-  (h : mdifferentiable_within_at I I' f s x) : continuous_within_at f s x :=
+  (h : has_mfderiv_within_at I I' f s x f') : continuous_within_at f s x :=
 h.1
 
 theorem has_mfderiv_at.continuous_at (h : has_mfderiv_at I I' f x f') :
@@ -1549,8 +1549,8 @@ begin
   -- rewrite the relevant set in the chart as a direct product
   have : (λ (p : E × F), (I.symm p.1, p.snd)) ⁻¹' e.target ∩
          (λ (p : E × F), (I.symm p.1, p.snd)) ⁻¹' (e.symm ⁻¹' (sigma.fst ⁻¹' s)) ∩
-         ((range I).prod univ)
-        = set.prod (I.symm ⁻¹' (e₀.target ∩ e₀.symm⁻¹' s) ∩ range I) univ,
+         (range I ×ˢ (univ : set F))
+        = (I.symm ⁻¹' (e₀.target ∩ e₀.symm⁻¹' s) ∩ range I) ×ˢ (univ : set F),
     by mfld_set_tac,
   assume q hq,
   replace hq : q.1 ∈ (chart_at H p.1).target ∧ ((chart_at H p.1).symm : H → M) q.1 ∈ s,

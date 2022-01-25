@@ -5,6 +5,8 @@ Authors: Kenny Lau
 -/
 
 import algebra.module.basic
+import algebra.gcd_monoid.basic
+import group_theory.group_action.defs
 
 /-!
 # Instances on punit
@@ -16,7 +18,7 @@ commutative ring.
 universes u
 
 namespace punit
-variables (x y : punit.{u+1}) (s : set punit.{u+1})
+variables {R S : Type*} (x y : punit.{u+1}) (s : set punit.{u+1})
 
 @[to_additive]
 instance : comm_group punit :=
@@ -26,9 +28,14 @@ by refine_struct
   inv := λ _, star,
   div := λ _ _, star,
   npow := λ _ _, star,
-  gpow := λ _ _, star,
+  zpow := λ _ _, star,
   .. };
 intros; exact subsingleton.elim _ _
+
+@[simp, to_additive] lemma one_eq : (1 : punit) = star := rfl
+@[simp, to_additive] lemma mul_eq : x * y = star := rfl
+@[simp, to_additive] lemma div_eq : x / y = star := rfl
+@[simp, to_additive] lemma inv_eq : x⁻¹ = star := rfl
 
 instance : comm_ring punit :=
 by refine
@@ -36,6 +43,28 @@ by refine
   .. punit.add_comm_group,
   .. };
 intros; exact subsingleton.elim _ _
+
+instance : cancel_comm_monoid_with_zero punit :=
+by refine
+{ .. punit.comm_ring,
+  .. };
+intros; exact subsingleton.elim _ _
+
+instance : normalized_gcd_monoid punit :=
+by refine
+{ gcd := λ _ _, star,
+  lcm := λ _ _, star,
+  norm_unit := λ x, 1,
+  gcd_dvd_left := λ _ _, ⟨star, subsingleton.elim _ _⟩,
+  gcd_dvd_right := λ _ _, ⟨star, subsingleton.elim _ _⟩,
+  dvd_gcd := λ _ _ _ _ _, ⟨star, subsingleton.elim _ _⟩,
+  gcd_mul_lcm := λ _ _, ⟨1, subsingleton.elim _ _⟩,
+  .. };
+intros; exact subsingleton.elim _ _
+
+@[simp] lemma gcd_eq : gcd x y = star := rfl
+@[simp] lemma lcm_eq : lcm x y = star := rfl
+@[simp] lemma norm_unit_eq : norm_unit x = 1 := rfl
 
 instance : complete_boolean_algebra punit :=
 by refine
@@ -54,6 +83,17 @@ by refine
   .. };
 intros; trivial <|> simp only [eq_iff_true_of_subsingleton]
 
+@[simp] lemma top_eq : (⊤ : punit) = star := rfl
+@[simp] lemma bot_eq : (⊥ : punit) = star := rfl
+@[simp] lemma sup_eq : x ⊔ y = star := rfl
+@[simp] lemma inf_eq : x ⊓ y = star := rfl
+@[simp] lemma Sup_eq : Sup s = star := rfl
+@[simp] lemma Inf_eq : Inf s = star := rfl
+@[simp] lemma compl_eq : xᶜ = star := rfl
+@[simp] lemma sdiff_eq : x \ y = star := rfl
+@[simp] protected lemma le : x ≤ y := trivial
+@[simp] lemma not_lt : ¬(x < y) := not_false
+
 instance : canonically_ordered_add_monoid punit :=
 by refine
 { le_iff_exists_add := λ _ _, iff_of_true _ ⟨star, subsingleton.elim _ _⟩,
@@ -69,27 +109,39 @@ instance : linear_ordered_cancel_add_comm_monoid punit :=
   decidable_lt := λ _ _, decidable.false,
   .. punit.canonically_ordered_add_monoid }
 
-instance (R : Type u) [semiring R] : module R punit := module.of_core $
-by refine
-{ smul := λ _ _, star,
-  .. punit.comm_ring, .. };
+instance : has_scalar R punit :=
+{ smul := λ _ _, star }
+
+@[simp] lemma smul_eq (r : R) : r • y = star := rfl
+
+instance : smul_comm_class R S punit := ⟨λ _ _ _, subsingleton.elim _ _⟩
+
+instance [has_scalar R S] : is_scalar_tower R S punit := ⟨λ _ _ _, subsingleton.elim _ _⟩
+
+instance [has_zero R] : smul_with_zero R punit :=
+by refine { ..punit.has_scalar, .. };
 intros; exact subsingleton.elim _ _
 
-@[simp] lemma zero_eq : (0 : punit) = star := rfl
-@[simp, to_additive] lemma one_eq : (1 : punit) = star := rfl
-@[simp] lemma add_eq : x + y = star := rfl
-@[simp, to_additive] lemma mul_eq : x * y = star := rfl
-@[simp, to_additive] lemma div_eq : x / y = star := rfl
-@[simp] lemma neg_eq : -x = star := rfl
-@[simp, to_additive] lemma inv_eq : x⁻¹ = star := rfl
-lemma smul_eq : x • y = star := rfl
-@[simp] lemma top_eq : (⊤ : punit) = star := rfl
-@[simp] lemma bot_eq : (⊥ : punit) = star := rfl
-@[simp] lemma sup_eq : x ⊔ y = star := rfl
-@[simp] lemma inf_eq : x ⊓ y = star := rfl
-@[simp] lemma Sup_eq : Sup s = star := rfl
-@[simp] lemma Inf_eq : Inf s = star := rfl
-@[simp] protected lemma le : x ≤ y := trivial
-@[simp] lemma not_lt : ¬(x < y) := not_false
+instance [monoid R] : mul_action R punit :=
+by refine { ..punit.has_scalar, .. };
+intros; exact subsingleton.elim _ _
+
+instance [monoid R] : distrib_mul_action R punit :=
+by refine { ..punit.mul_action, .. };
+intros; exact subsingleton.elim _ _
+
+instance [monoid R] : mul_distrib_mul_action R punit :=
+by refine { ..punit.mul_action, .. };
+intros; exact subsingleton.elim _ _
+
+/-! TODO: provide `mul_semiring_action R punit` -/
+-- importing it here currently causes timeouts elsewhere due to the import order changing
+
+instance [monoid_with_zero R] : mul_action_with_zero R punit :=
+{ .. punit.mul_action, .. punit.smul_with_zero }
+
+instance [semiring R] : module R punit :=
+by refine { .. punit.distrib_mul_action, .. };
+intros; exact subsingleton.elim _ _
 
 end punit

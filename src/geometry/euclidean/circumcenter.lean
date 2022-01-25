@@ -63,13 +63,13 @@ end
 `orthogonal_projection` is. -/
 lemma dist_set_eq_iff_dist_orthogonal_projection_eq {s : affine_subspace ℝ P} [nonempty s]
   [complete_space s.direction] {ps : set P} (hps : ps ⊆ s) (p : P) :
-  (set.pairwise_on ps (λ p1 p2, dist p1 p = dist p2 p) ↔
-    (set.pairwise_on ps (λ p1 p2, dist p1 (orthogonal_projection s p) =
-      dist p2 (orthogonal_projection s p)))) :=
+  set.pairwise ps (λ p1 p2, dist p1 p = dist p2 p) ↔
+    (set.pairwise ps (λ p1 p2, dist p1 (orthogonal_projection s p) =
+      dist p2 (orthogonal_projection s p))) :=
 ⟨λ h p1 hp1 p2 hp2 hne,
-  (dist_eq_iff_dist_orthogonal_projection_eq p (hps hp1) (hps hp2)).1 (h p1 hp1 p2 hp2 hne),
+  (dist_eq_iff_dist_orthogonal_projection_eq p (hps hp1) (hps hp2)).1 (h hp1 hp2 hne),
 λ h p1 hp1 p2 hp2 hne,
-  (dist_eq_iff_dist_orthogonal_projection_eq p (hps hp1) (hps hp2)).2 (h p1 hp1 p2 hp2 hne)⟩
+  (dist_eq_iff_dist_orthogonal_projection_eq p (hps hp1) (hps hp2)).2 (h hp1 hp2 hne)⟩
 
 /-- There exists `r` such that `p` has distance `r` from all the
 points of a set of points in `s` if and only if there exists (possibly
@@ -81,7 +81,7 @@ lemma exists_dist_eq_iff_exists_dist_orthogonal_projection_eq {s : affine_subspa
     ∃ r, ∀ p1 ∈ ps, dist p1 ↑(orthogonal_projection s p) = r :=
 begin
   have h := dist_set_eq_iff_dist_orthogonal_projection_eq hps p,
-  simp_rw set.pairwise_on_eq_iff_exists_eq at h,
+  simp_rw set.pairwise_eq_iff_exists_eq at h,
   exact h
 end
 
@@ -164,7 +164,7 @@ begin
             _ (hps hp0),
           orthogonal_projection_vadd_smul_vsub_orthogonal_projection _ _ hcc₃', h', hcr p0 hp0,
           dist_eq_norm_vsub V _ cc₃', vadd_vsub, norm_smul, ←dist_eq_norm_vsub V p,
-          real.norm_eq_abs, ←mul_assoc, mul_comm _ (abs t₃), ←mul_assoc, abs_mul_abs_self],
+          real.norm_eq_abs, ←mul_assoc, mul_comm _ (|t₃|), ←mul_assoc, abs_mul_abs_self],
       ring },
     replace hcr₃ := hcr₃ p (set.mem_insert _ _),
     rw [hpo, hcc₃'', hcr₃val, ←mul_self_inj_of_nonneg dist_nonneg (real.sqrt_nonneg _),
@@ -208,7 +208,7 @@ begin
       use (p i, 0),
       simp only [prod.fst, prod.snd, set.range_unique, affine_subspace.mem_affine_span_singleton],
       split,
-      { simp_rw [hi (default ι)],
+      { simp_rw [hi default],
         use rfl,
         intro i1,
         rw hi i1,
@@ -216,9 +216,9 @@ begin
       { rintros ⟨cc, cr⟩,
         simp only [prod.fst, prod.snd],
         rintros ⟨rfl, hdist⟩,
-        rw hi (default ι),
+        rw hi default,
         congr',
-        rw ←hdist (default ι),
+        rw ←hdist default,
         exact dist_self _ } },
     { have i := hne.some,
       let ι2 := {x // x ≠ i},
@@ -362,7 +362,7 @@ end
 lemma circumcenter_eq_centroid (s : simplex ℝ P 1) :
   s.circumcenter = finset.univ.centroid ℝ s.points :=
 begin
-  have hr : set.pairwise_on set.univ
+  have hr : set.pairwise set.univ
     (λ i j : fin 2, dist (s.points i) (finset.univ.centroid ℝ s.points) =
                     dist (s.points j) (finset.univ.centroid ℝ s.points)),
   { intros i hi j hj hij,
@@ -370,7 +370,7 @@ begin
         dist_eq_norm_vsub V (s.points j), vsub_vadd_eq_vsub_sub, vsub_vadd_eq_vsub_sub,
         ←one_smul ℝ (s.points i -ᵥ s.points 0), ←one_smul ℝ (s.points j -ᵥ s.points 0)],
     fin_cases i; fin_cases j; simp [-one_smul, ←sub_smul]; norm_num },
-  rw set.pairwise_on_eq_iff_exists_eq at hr,
+  rw set.pairwise_eq_iff_exists_eq at hr,
   cases hr with r hr,
   exact (s.eq_circumcenter_of_dist_eq
           (centroid_mem_affine_span_of_card_eq_add_one ℝ _ (finset.card_fin 2))
@@ -463,7 +463,7 @@ begin
     { exact mem_insert_self _ _ } },
   change _ = ∑ i, f (point_index_embedding n i) + _,
   rw [add_comm, h, ←sum_map, sum_insert],
-  simp_rw [mem_map, not_exists],
+  simp_rw [finset.mem_map, not_exists],
   intros x hx h,
   injection h
 end
@@ -620,7 +620,7 @@ begin
            sum_ite, sum_const, filter_or, filter_eq'],
   rw card_union_eq,
   { simp },
-  { simp [h.symm] }
+  { simpa only [if_true, mem_univ, disjoint_singleton] using h }
 end
 
 include V
@@ -842,8 +842,8 @@ begin
       dist_sq_eq_dist_orthogonal_projection_sq_add_dist_orthogonal_projection_sq p₂ h],
     simp only [h₂', dist_comm p₂, add_sub_cancel', simplex.dist_circumcenter_eq_circumradius] },
   rw [←hd₂, hp₁, hp₂, dist_eq_norm_vsub V _ s.circumcenter,
-      dist_eq_norm_vsub V _ s.circumcenter, vadd_vsub, vadd_vsub, ←real_inner_self_eq_norm_sq,
-      ←real_inner_self_eq_norm_sq, real_inner_smul_left, real_inner_smul_left,
+      dist_eq_norm_vsub V _ s.circumcenter, vadd_vsub, vadd_vsub, ←real_inner_self_eq_norm_mul_norm,
+      ←real_inner_self_eq_norm_mul_norm, real_inner_smul_left, real_inner_smul_left,
       real_inner_smul_right, real_inner_smul_right, ←mul_assoc, ←mul_assoc] at hd₁,
   by_cases hp : p = orthogonal_projection span_s p,
   { rw [hp₁, hp₂, ←hp],

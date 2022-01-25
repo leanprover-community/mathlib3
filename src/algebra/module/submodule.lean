@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Nathaniel Thomas, Jeremy Avigad, Johannes Hölzl, Mario Carneiro
 -/
 import algebra.module.linear_map
+import data.equiv.module
 import group_theory.group_action.sub_mul_action
 /-!
 
@@ -24,8 +25,8 @@ submodule, subspace, linear map
 open function
 open_locale big_operators
 
-universes u' u v w
-variables {S : Type u'} {R : Type u} {M : Type v} {ι : Type w}
+universes u'' u' u v w
+variables {G : Type u''} {S : Type u'} {R : Type u} {M : Type v} {ι : Type w}
 
 set_option old_structure_cmd true
 
@@ -53,8 +54,16 @@ iff.rfl
 
 variables {p q : submodule R M}
 
-@[simp] lemma mk_coe (S : set M) (h₁ h₂ h₃) :
+@[simp]
+lemma mem_mk {S : set M} {x : M} (h₁ h₂ h₃) : x ∈ (⟨S, h₁, h₂, h₃⟩ : submodule R M) ↔ x ∈ S :=
+iff.rfl
+
+@[simp] lemma coe_set_mk (S : set M) (h₁ h₂ h₃) :
   ((⟨S, h₁, h₂, h₃⟩ : submodule R M) : set M) = S := rfl
+
+@[simp]
+lemma mk_le_mk {S S' : set M} (h₁ h₂ h₃ h₁' h₂' h₃') :
+  (⟨S, h₁, h₂, h₃⟩ : submodule R M) ≤ (⟨S', h₁', h₂', h₃'⟩ : submodule R M) ↔ S ⊆ S' := iff.rfl
 
 @[ext] theorem ext (h : ∀ x, x ∈ p ↔ x ∈ q) : p = q := set_like.ext h
 
@@ -65,6 +74,12 @@ protected def copy (p : submodule R M) (s : set M) (hs : s = ↑p) : submodule R
   zero_mem' := hs.symm ▸ p.zero_mem',
   add_mem' := hs.symm ▸ p.add_mem',
   smul_mem' := hs.symm ▸ p.smul_mem' }
+
+@[simp] lemma coe_copy (S : submodule R M) (s : set M) (hs : s = ↑S) :
+  (S.copy s hs : set M) = s := rfl
+
+lemma copy_eq (S : submodule R M) (s : set M) (hs : s = ↑S) : S.copy s hs = S :=
+set_like.coe_injective hs
 
 theorem to_add_submonoid_injective :
   injective (to_add_submonoid : submodule R M → add_submonoid M) :=
@@ -106,15 +121,13 @@ namespace submodule
 
 section add_comm_monoid
 
-variables [semiring S] [semiring R] [add_comm_monoid M]
+variables [semiring R] [add_comm_monoid M]
 
 -- We can infer the module structure implicitly from the bundled submodule,
 -- rather than via typeclass resolution.
 variables {module_M : module R M}
 variables {p q : submodule R M}
 variables {r : R} {x y : M}
-
-variables [has_scalar S R] [module S M] [is_scalar_tower S R M]
 
 variables (p)
 @[simp] lemma mem_carrier : x ∈ p.carrier ↔ x ∈ (p : set M) := iff.rfl
@@ -124,7 +137,8 @@ variables (p)
 lemma add_mem (h₁ : x ∈ p) (h₂ : y ∈ p) : x + y ∈ p := p.add_mem' h₁ h₂
 
 lemma smul_mem (r : R) (h : x ∈ p) : r • x ∈ p := p.smul_mem' r h
-lemma smul_of_tower_mem (r : S) (h : x ∈ p) : r • x ∈ p :=
+lemma smul_of_tower_mem [has_scalar S R] [has_scalar S M] [is_scalar_tower S R M]
+  (r : S) (h : x ∈ p) : r • x ∈ p :=
 p.to_sub_mul_action.smul_of_tower_mem r h
 
 lemma sum_mem {t : finset ι} {f : ι → M} : (∀c∈t, f c ∈ p) → (∑ i in t, f i) ∈ p :=
@@ -134,13 +148,24 @@ lemma sum_smul_mem {t : finset ι} {f : ι → M} (r : ι → R)
     (hyp : ∀ c ∈ t, f c ∈ p) : (∑ i in t, r i • f i) ∈ p :=
 submodule.sum_mem _ (λ i hi, submodule.smul_mem  _ _ (hyp i hi))
 
-@[simp] lemma smul_mem_iff' (u : units S) : (u:S) • x ∈ p ↔ x ∈ p :=
-p.to_sub_mul_action.smul_mem_iff' u
+@[simp] lemma smul_mem_iff' [group G] [mul_action G M] [has_scalar G R] [is_scalar_tower G R M]
+  (g : G) : g • x ∈ p ↔ x ∈ p :=
+p.to_sub_mul_action.smul_mem_iff' g
 
 instance : has_add p := ⟨λx y, ⟨x.1 + y.1, add_mem _ x.2 y.2⟩⟩
 instance : has_zero p := ⟨⟨0, zero_mem _⟩⟩
 instance : inhabited p := ⟨0⟩
-instance : has_scalar S p := ⟨λ c x, ⟨c • x.1, smul_of_tower_mem _ c x.2⟩⟩
+instance [has_scalar S R] [has_scalar S M] [is_scalar_tower S R M] :
+  has_scalar S p := ⟨λ c x, ⟨c • x.1, smul_of_tower_mem _ c x.2⟩⟩
+
+instance [has_scalar S R] [has_scalar S M] [is_scalar_tower S R M] : is_scalar_tower S R p :=
+p.to_sub_mul_action.is_scalar_tower
+
+instance
+  [has_scalar S R] [has_scalar S M] [is_scalar_tower S R M]
+  [has_scalar Sᵐᵒᵖ R] [has_scalar Sᵐᵒᵖ M] [is_scalar_tower Sᵐᵒᵖ R M]
+  [is_central_scalar S M] : is_central_scalar S p :=
+p.to_sub_mul_action.is_central_scalar
 
 protected lemma nonempty : (p : set M).nonempty := ⟨0, p.zero_mem⟩
 
@@ -152,7 +177,8 @@ variables {p}
 @[simp, norm_cast] lemma coe_add (x y : p) : (↑(x + y) : M) = ↑x + ↑y := rfl
 @[simp, norm_cast] lemma coe_zero : ((0 : p) : M) = 0 := rfl
 @[norm_cast] lemma coe_smul (r : R) (x : p) : ((r • x : p) : M) = r • ↑x := rfl
-@[simp, norm_cast] lemma coe_smul_of_tower (r : S) (x : p) : ((r • x : p) : M) = r • ↑x := rfl
+@[simp, norm_cast] lemma coe_smul_of_tower [has_scalar S R] [has_scalar S M] [is_scalar_tower S R M]
+  (r : S) (x : p) : ((r • x : p) : M) = r • ↑x := rfl
 @[simp, norm_cast] lemma coe_mk (x : M) (hx : x ∈ p) : ((⟨x, hx⟩ : p) : M) = x := rfl
 @[simp] lemma coe_mem (x : p) : (x : M) ∈ p := x.2
 
@@ -161,13 +187,10 @@ variables (p)
 instance : add_comm_monoid p :=
 { add := (+), zero := 0, .. p.to_add_submonoid.to_add_comm_monoid }
 
-instance module' : module S p :=
+instance module' [semiring S] [has_scalar S R] [module S M] [is_scalar_tower S R M] : module S p :=
 by refine {smul := (•), ..p.to_sub_mul_action.mul_action', ..};
    { intros, apply set_coe.ext, simp [smul_add, add_smul, mul_smul] }
 instance : module R p := p.module'
-
-instance : is_scalar_tower S R p :=
-p.to_sub_mul_action.is_scalar_tower
 
 instance no_zero_smul_divisors [no_zero_smul_divisors R M] : no_zero_smul_divisors R p :=
 ⟨λ c x h,
@@ -181,36 +204,42 @@ by refine {to_fun := coe, ..}; simp [coe_smul]
 
 @[simp] theorem subtype_apply (x : p) : p.subtype x = x := rfl
 
-lemma subtype_eq_val : ((submodule.subtype p) : p → M) = subtype.val := rfl
+lemma coe_subtype : ((submodule.subtype p) : p → M) = coe := rfl
 
 /-- Note the `add_submonoid` version of this lemma is called `add_submonoid.coe_finset_sum`. -/
 @[simp] lemma coe_sum (x : ι → p) (s : finset ι) : ↑(∑ i in s, x i) = ∑ i in s, (x i : M) :=
 p.subtype.map_sum
 
 section restrict_scalars
-variables (S) [module R M] [is_scalar_tower S R M]
+variables (S) [semiring S] [module S M] [module R M] [has_scalar S R] [is_scalar_tower S R M]
 
 /--
 `V.restrict_scalars S` is the `S`-submodule of the `S`-module given by restriction of scalars,
 corresponding to `V`, an `R`-submodule of the original `R`-module.
 -/
-@[simps]
 def restrict_scalars (V : submodule R M) : submodule S M :=
-{ carrier := V.carrier,
+{ carrier := V,
   zero_mem' := V.zero_mem,
   smul_mem' := λ c m h, V.smul_of_tower_mem c h,
   add_mem' := λ x y hx hy, V.add_mem hx hy }
 
 @[simp]
-lemma restrict_scalars_mem (V : submodule R M) (m : M) :
-  m ∈ V.restrict_scalars S ↔ m ∈ V :=
+lemma coe_restrict_scalars (V : submodule R M) : (V.restrict_scalars S : set M) = V :=
+rfl
+
+@[simp]
+lemma restrict_scalars_mem (V : submodule R M) (m : M) : m ∈ V.restrict_scalars S ↔ m ∈ V :=
 iff.refl _
+
+@[simp]
+lemma restrict_scalars_self (V : submodule R M) : V.restrict_scalars R = V :=
+set_like.coe_injective rfl
 
 variables (R S M)
 
 lemma restrict_scalars_injective :
   function.injective (restrict_scalars S : submodule R M → submodule S M) :=
-λ V₁ V₂ h, ext $ by convert set.ext_iff.1 (set_like.ext'_iff.1 h); refl
+λ V₁ V₂ h, ext $ set.ext_iff.1 (set_like.ext'_iff.1 h : _)
 
 @[simp] lemma restrict_scalars_inj {V₁ V₂ : submodule R M} :
   restrict_scalars S V₁ = restrict_scalars S V₂ ↔ V₁ = V₂ :=
@@ -293,6 +322,23 @@ instance : add_comm_group p :=
 @[simp, norm_cast] lemma coe_sub (x y : p) : (↑(x - y) : M) = ↑x - ↑y := rfl
 
 end add_comm_group
+
+section is_domain
+
+variables [ring R] [is_domain R]
+variables [add_comm_group M] [module R M] {b : ι → M}
+
+lemma not_mem_of_ortho {x : M} {N : submodule R M}
+  (ortho : ∀ (c : R) (y ∈ N), c • x + y = (0 : M) → c = 0) :
+  x ∉ N :=
+by { intro hx, simpa using ortho (-1) x hx }
+
+lemma ne_zero_of_ortho {x : M} {N : submodule R M}
+  (ortho : ∀ (c : R) (y ∈ N), c • x + y = (0 : M) → c = 0) :
+  x ≠ 0 :=
+mt (λ h, show x ∈ N, from h.symm ▸ N.zero_mem) (not_mem_of_ortho ortho)
+
+end is_domain
 
 section ordered_monoid
 

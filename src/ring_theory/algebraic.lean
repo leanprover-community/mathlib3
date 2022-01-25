@@ -17,7 +17,7 @@ The main result in this file proves transitivity of algebraicity:
 a tower of algebraic field extensions is algebraic.
 -/
 
-universe variables u v
+universes u v w
 
 open_locale classical
 open polynomial
@@ -65,6 +65,10 @@ begin
   simp only [algebra.mem_top, forall_prop_of_true, iff_self],
 end
 
+lemma is_algebraic_iff_not_injective {x : A} : is_algebraic R x ↔
+  ¬ function.injective (polynomial.aeval x : polynomial R →ₐ[R] A) :=
+by simp only [is_algebraic, alg_hom.injective_iff, not_forall, and.comm, exists_prop]
+
 end
 
 section zero_ne_one
@@ -103,9 +107,10 @@ lemma is_algebraic_iff_is_integral' :
 end field
 
 namespace algebra
-variables {K : Type*} {L : Type*} {A : Type*}
-variables [field K] [field L] [comm_ring A]
+variables {K : Type*} {L : Type*} {R : Type*} {S : Type*} {A : Type*}
+variables [field K] [field L] [comm_ring R] [comm_ring S] [comm_ring A]
 variables [algebra K L] [algebra L A] [algebra K A] [is_scalar_tower K L A]
+variables [algebra R S] [algebra S A] [algebra R A] [is_scalar_tower R S A]
 
 /-- If L is an algebraic field extension of K and A is an algebraic algebra over L,
 then A is algebraic over K. -/
@@ -118,21 +123,29 @@ end
 
 variables (K L)
 
+/-- If A is an algebraic algebra over R, then A is algebraic over A when S is an extension of R,
+  and the map from `R` to `S` is injective. -/
+lemma is_algebraic_of_larger_base_of_injective (hinj : function.injective (algebra_map R S))
+  (A_alg : is_algebraic R A) : is_algebraic S A :=
+λ x, let ⟨p, hp₁, hp₂⟩ := A_alg x in
+⟨p.map (algebra_map _ _),
+  by rwa [ne.def, ← degree_eq_bot, degree_map' hinj, degree_eq_bot],
+  by simpa⟩
+
 /-- If A is an algebraic algebra over K, then A is algebraic over L when L is an extension of K -/
 lemma is_algebraic_of_larger_base (A_alg : is_algebraic K A) : is_algebraic L A :=
-λ x, let ⟨p, hp⟩ := A_alg x in
-⟨p.map (algebra_map _ _), map_ne_zero hp.1, by simp [hp.2]⟩
+is_algebraic_of_larger_base_of_injective (algebra_map K L).injective A_alg
 
-variables {K L}
+variables {R S K L}
 
 /-- A field extension is algebraic if it is finite. -/
 lemma is_algebraic_of_finite [finite : finite_dimensional K L] : is_algebraic K L :=
 λ x, (is_algebraic_iff_is_integral _).mpr (is_integral_of_submodule_noetherian ⊤
-  (is_noetherian_of_submodule_of_noetherian _ _ _ finite) x algebra.mem_top)
+  (is_noetherian.iff_fg.2 infer_instance) x algebra.mem_top)
 
 end algebra
 
-variables {R S : Type*} [integral_domain R] [comm_ring S]
+variables {R S : Type*} [comm_ring R] [is_domain R] [comm_ring S]
 
 lemma exists_integral_multiple [algebra R S] {z : S} (hz : is_algebraic R z)
   (inj : ∀ x, algebra_map R S x = 0 → x = 0) :
@@ -149,6 +162,25 @@ begin
      integral_normalization_aeval_eq_zero px inj⟩,
   exact ⟨⟨_, x_integral⟩, a, a_ne_zero, rfl⟩
 end
+
+/-- A fraction `(a : S) / (b : S)` can be reduced to `(c : S) / (d : R)`,
+if `S` is the integral closure of `R` in an algebraic extension `L` of `R`. -/
+lemma is_integral_closure.exists_smul_eq_mul {L : Type*} [field L]
+  [algebra R S] [algebra S L] [algebra R L] [is_scalar_tower R S L] [is_integral_closure S R L]
+  (h : algebra.is_algebraic R L) (inj : function.injective (algebra_map R L))
+  (a : S) {b : S} (hb : b ≠ 0) : ∃ (c : S) (d ≠ (0 : R)), d • a = b * c :=
+begin
+  obtain ⟨c, d, d_ne, hx⟩ := exists_integral_multiple
+    (h (algebra_map _ L a / algebra_map _ L b))
+    ((ring_hom.injective_iff _).mp inj),
+  refine ⟨is_integral_closure.mk' S (c : L) c.2, d, d_ne,
+    is_integral_closure.algebra_map_injective S R L _⟩,
+  simp only [algebra.smul_def, ring_hom.map_mul, is_integral_closure.algebra_map_mk', ← hx,
+    ← is_scalar_tower.algebra_map_apply],
+  rw [← mul_assoc _ (_ / _), mul_div_cancel' (algebra_map S L a), mul_comm],
+  exact mt ((ring_hom.injective_iff _).mp (is_integral_closure.algebra_map_injective S R L) _) hb
+end
+
 section field
 
 variables {K L : Type*} [field K] [field L] [algebra K L] (A : subalgebra K L)
@@ -212,6 +244,52 @@ lemma subalgebra.is_field_of_algebraic (hKL : algebra.is_algebraic K L) : is_fie
 { mul_inv_cancel := λ a ha, ⟨
         ⟨a⁻¹, A.inv_mem_of_algebraic (hKL a)⟩,
         subtype.ext (mul_inv_cancel (mt (subalgebra.coe_eq_zero _).mp ha))⟩,
-  .. subalgebra.integral_domain A }
+  .. show nontrivial A, by apply_instance,
+  .. subalgebra.to_comm_ring A }
 
 end field
+
+section pi
+
+variables (R' : Type u) (S' : Type v) (T' : Type w)
+
+instance polynomial.has_scalar_pi [semiring R'] [has_scalar R' S'] :
+  has_scalar (polynomial R') (R' → S') :=
+⟨λ p f x, eval x p • f x⟩
+
+noncomputable instance polynomial.has_scalar_pi' [comm_semiring R'] [semiring S'] [algebra R' S']
+  [has_scalar S' T'] :
+  has_scalar (polynomial R') (S' → T') :=
+⟨λ p f x, aeval x p • f x⟩
+
+variables {R} {S}
+
+@[simp] lemma polynomial_smul_apply [semiring R'] [has_scalar R' S']
+  (p : polynomial R') (f : R' → S') (x : R') :
+  (p • f) x = eval x p • f x := rfl
+
+@[simp] lemma polynomial_smul_apply' [comm_semiring R'] [semiring S'] [algebra R' S']
+  [has_scalar S' T'] (p : polynomial R') (f : S' → T') (x : S') :
+  (p • f) x = aeval x p • f x := rfl
+
+variables [comm_semiring R'] [comm_semiring S'] [comm_semiring T'] [algebra R' S'] [algebra S' T']
+
+noncomputable instance polynomial.algebra_pi :
+  algebra (polynomial R') (S' → T') :=
+{ to_fun := λ p z, algebra_map S' T' (aeval z p),
+  map_one' := funext $ λ z, by simp,
+  map_mul' := λ f g, funext $ λ z, by simp,
+  map_zero' := funext $ λ z, by simp,
+  map_add' := λ f g, funext $ λ z, by simp,
+  commutes' := λ p f, funext $ λ z, mul_comm _ _,
+  smul_def' := λ p f, funext $ λ z, by simp [algebra.algebra_map_eq_smul_one],
+  ..polynomial.has_scalar_pi' R' S' T' }
+
+@[simp] lemma polynomial.algebra_map_pi_eq_aeval :
+  (algebra_map (polynomial R') (S' → T') : polynomial R' → (S' → T')) =
+    λ p z, algebra_map _ _ (aeval z p) := rfl
+
+@[simp] lemma polynomial.algebra_map_pi_self_eq_eval :
+  (algebra_map (polynomial R') (R' → R') : polynomial R' → (R' → R')) = λ p z, eval z p := rfl
+
+end pi

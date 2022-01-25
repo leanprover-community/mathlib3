@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Floris van Doorn, Yury Kudryashov
 -/
 import topology.instances.nnreal
+import topology.algebra.ordered.monotone_continuity
 
 /-!
 # Square root of a real number
@@ -82,9 +83,9 @@ lemma sqrt_mul (x y : ℝ≥0) : sqrt (x * y) = sqrt x * sqrt y :=
 by rw [sqrt_eq_iff_sq_eq, mul_mul_mul_comm, mul_self_sqrt, mul_self_sqrt]
 
 /-- `nnreal.sqrt` as a `monoid_with_zero_hom`. -/
-noncomputable def sqrt_hom : monoid_with_zero_hom ℝ≥0 ℝ≥0 := ⟨sqrt, sqrt_zero, sqrt_one, sqrt_mul⟩
+noncomputable def sqrt_hom : ℝ≥0 →*₀ ℝ≥0 := ⟨sqrt, sqrt_zero, sqrt_one, sqrt_mul⟩
 
-lemma sqrt_inv (x : ℝ≥0) : sqrt (x⁻¹) = (sqrt x)⁻¹ := sqrt_hom.map_inv' x
+lemma sqrt_inv (x : ℝ≥0) : sqrt (x⁻¹) = (sqrt x)⁻¹ := sqrt_hom.map_inv x
 
 lemma sqrt_div (x y : ℝ≥0) : sqrt (x / y) = sqrt x / sqrt y := sqrt_hom.map_div x y
 
@@ -152,9 +153,29 @@ by rw [sqrt, ← nnreal.coe_mul, nnreal.mul_self_sqrt, real.coe_to_nnreal _ h]
 @[simp] theorem sqrt_mul_self (h : 0 ≤ x) : sqrt (x * x) = x :=
 (mul_self_inj_of_nonneg (sqrt_nonneg _) h).1 (mul_self_sqrt (mul_self_nonneg _))
 
+theorem sqrt_eq_cases : sqrt x = y ↔ y * y = x ∧ 0 ≤ y ∨ x < 0 ∧ y = 0 :=
+begin
+  split,
+  { rintro rfl,
+    cases le_or_lt 0 x with hle hlt,
+    { exact or.inl ⟨mul_self_sqrt hle, sqrt_nonneg x⟩ },
+    { exact or.inr ⟨hlt, sqrt_eq_zero_of_nonpos hlt.le⟩ } },
+  { rintro (⟨rfl, hy⟩|⟨hx, rfl⟩),
+    exacts [sqrt_mul_self hy, sqrt_eq_zero_of_nonpos hx.le] }
+end
+
 theorem sqrt_eq_iff_mul_self_eq (hx : 0 ≤ x) (hy : 0 ≤ y) :
   sqrt x = y ↔ y * y = x :=
 ⟨λ h, by rw [← h, mul_self_sqrt hx], λ h, by rw [← h, sqrt_mul_self hy]⟩
+
+theorem sqrt_eq_iff_mul_self_eq_of_pos (h : 0 < y) :
+  sqrt x = y ↔ y * y = x :=
+by simp [sqrt_eq_cases, h.ne', h.le]
+
+@[simp] lemma sqrt_eq_one : sqrt x = 1 ↔ x = 1 :=
+calc sqrt x = 1 ↔ 1 * 1 = x :
+  sqrt_eq_iff_mul_self_eq_of_pos zero_lt_one
+... ↔ x = 1 : by rw [eq_comm, mul_one]
 
 @[simp] theorem sq_sqrt (h : 0 ≤ x) : (sqrt x)^2 = x :=
 by rw [sq, mul_self_sqrt h]
@@ -166,10 +187,10 @@ theorem sqrt_eq_iff_sq_eq (hx : 0 ≤ x) (hy : 0 ≤ y) :
   sqrt x = y ↔ y ^ 2 = x :=
 by rw [sq, sqrt_eq_iff_mul_self_eq hx hy]
 
-theorem sqrt_mul_self_eq_abs (x : ℝ) : sqrt (x * x) = abs x :=
+theorem sqrt_mul_self_eq_abs (x : ℝ) : sqrt (x * x) = |x| :=
 by rw [← abs_mul_abs_self x, sqrt_mul_self (abs_nonneg _)]
 
-theorem sqrt_sq_eq_abs (x : ℝ) : sqrt (x ^ 2) = abs x :=
+theorem sqrt_sq_eq_abs (x : ℝ) : sqrt (x ^ 2) = |x| :=
 by rw [sq, sqrt_mul_self_eq_abs]
 
 @[simp] theorem sqrt_zero : sqrt 0 = 0 := by simp [sqrt]
@@ -210,7 +231,7 @@ theorem le_sqrt' (hx : 0 < x) : x ≤ sqrt y ↔ x ^ 2 ≤ y :=
 by { rw [sqrt, ← nnreal.coe_mk x hx.le, nnreal.coe_le_coe, nnreal.le_sqrt_iff,
   real.le_to_nnreal_iff_coe_le', sq, nnreal.coe_mul], exact mul_pos hx hx }
 
-theorem abs_le_sqrt (h : x^2 ≤ y) : abs x ≤ sqrt y :=
+theorem abs_le_sqrt (h : x^2 ≤ y) : |x| ≤ sqrt y :=
 by rw ← sqrt_sq_eq_abs; exact sqrt_le_sqrt h
 
 theorem sq_le (h : 0 ≤ y) : x^2 ≤ y ↔ -sqrt y ≤ x ∧ x ≤ sqrt y :=
@@ -265,6 +286,12 @@ begin
   { rw [div_eq_iff (sqrt_ne_zero'.mpr h), mul_self_sqrt h.le] },
 end
 
+theorem sqrt_div_self' : sqrt x / x = 1 / sqrt x :=
+by rw [←div_sqrt, one_div_div, div_sqrt]
+
+theorem sqrt_div_self : sqrt x / x = (sqrt x)⁻¹ :=
+by rw [sqrt_div_self', one_div]
+
 theorem lt_sqrt (hx : 0 ≤ x) (hy : 0 ≤ y) : x < sqrt y ↔ x ^ 2 < y :=
 by rw [mul_self_lt_mul_self_iff hx (sqrt_nonneg y), sq, mul_self_sqrt hy]
 
@@ -279,6 +306,13 @@ end
 theorem neg_sqrt_lt_of_sq_lt (h : x^2 < y) : -sqrt y < x := (sq_lt.mp h).1
 
 theorem lt_sqrt_of_sq_lt (h : x^2 < y) : x < sqrt y := (sq_lt.mp h).2
+
+instance : star_ordered_ring ℝ :=
+{ nonneg_iff := λ r, by
+  { refine ⟨λ hr, ⟨sqrt r, show r = sqrt r * sqrt r, by rw [←sqrt_mul hr, sqrt_mul_self hr]⟩, _⟩,
+    rintros ⟨s, rfl⟩,
+    exact mul_self_nonneg s },
+  ..real.ordered_add_comm_group }
 
 end real
 

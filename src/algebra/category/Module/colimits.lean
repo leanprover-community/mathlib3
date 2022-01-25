@@ -3,11 +3,10 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import algebra.category.Module.basic
-import group_theory.quotient_group
 import category_theory.limits.concrete_category
+import group_theory.quotient_group
 import category_theory.limits.shapes.kernels
-import category_theory.limits.shapes.concrete_category
+import algebra.category.Module.basic
 
 /-!
 # The category of R-modules has all colimits.

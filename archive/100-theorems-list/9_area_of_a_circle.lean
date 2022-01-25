@@ -5,6 +5,7 @@ Authors: James Arthur, Benjamin Davidson, Andrew Souther
 -/
 import measure_theory.integral.interval_integral
 import analysis.special_functions.sqrt
+import analysis.special_functions.trigonometric.inverse_deriv
 
 /-!
 # Freek № 9: The Area of a Circle

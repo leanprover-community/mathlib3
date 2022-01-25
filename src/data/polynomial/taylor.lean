@@ -29,7 +29,7 @@ variables {R : Type*} [semiring R] (r : R) (f : polynomial R)
 def taylor (r : R) : polynomial R →ₗ[R] polynomial R :=
 { to_fun := λ f, f.comp (X + C r),
   map_add' := λ f g, add_comp,
-  map_smul' := λ c f, by simp only [smul_eq_C_mul, C_mul_comp] }
+  map_smul' := λ c f, by simp only [smul_eq_C_mul, C_mul_comp, ring_hom.id_apply] }
 
 lemma taylor_apply : taylor r f = f.comp (X + C r) := rfl
 
@@ -39,8 +39,21 @@ by simp only [taylor_apply, X_comp]
 @[simp] lemma taylor_C (x : R) : taylor r (C x) = C x :=
 by simp only [taylor_apply, C_comp]
 
+@[simp] lemma taylor_zero' : taylor (0 : R) = linear_map.id :=
+begin
+  ext,
+  simp only [taylor_apply, add_zero, comp_X, _root_.map_zero, linear_map.id_comp, function.comp_app,
+             linear_map.coe_comp]
+end
+
+lemma taylor_zero (f : polynomial R) : taylor 0 f = f :=
+by rw [taylor_zero', linear_map.id_apply]
+
 @[simp] lemma taylor_one : taylor r (1 : polynomial R) = C 1 :=
 by rw [← C_1, taylor_C]
+
+@[simp] lemma taylor_monomial (i : ℕ) (k : R) : taylor r (monomial i k) = C k * (X + C r) ^ i :=
+by simp [taylor_apply]
 
 /-- The `k`th coefficient of `polynomial.taylor r f` is `(polynomial.hasse_deriv k f).eval r`. -/
 lemma taylor_coeff (n : ℕ) : (taylor r f).coeff n = (hasse_deriv n f).eval r :=
@@ -61,6 +74,23 @@ by rw [taylor_coeff, hasse_deriv_zero, linear_map.id_apply]
 
 @[simp] lemma taylor_coeff_one : (taylor r f).coeff 1 = f.derivative.eval r :=
 by rw [taylor_coeff, hasse_deriv_one]
+
+@[simp] lemma nat_degree_taylor (p : polynomial R) (r : R) :
+  nat_degree (taylor r p) = nat_degree p :=
+begin
+  refine map_nat_degree_eq_nat_degree _ _,
+  nontriviality R,
+  intros n c c0,
+  simp [taylor_monomial, nat_degree_C_mul_eq_of_mul_ne_zero, nat_degree_pow_X_add_C, c0]
+end
+
+@[simp] lemma taylor_mul {R} [comm_semiring R] (r : R) (p q : polynomial R) :
+  taylor r (p * q) = taylor r p * taylor r q :=
+by simp only [taylor_apply, mul_comp]
+
+lemma taylor_taylor {R} [comm_semiring R] (f : polynomial R) (r s : R) :
+  taylor r (taylor s f) = taylor (r + s) f :=
+by simp only [taylor_apply, comp_assoc, map_add, add_comp, X_comp, C_comp, C_add, add_assoc]
 
 lemma taylor_eval {R} [comm_semiring R] (r : R) (f : polynomial R) (s : R) :
   (taylor r f).eval s = f.eval (s + r) :=
@@ -87,5 +117,11 @@ begin
   ext k,
   simp only [taylor_coeff, h, coeff_zero],
 end
+
+/-- Taylor's formula. -/
+lemma sum_taylor_eq {R} [comm_ring R] (f : polynomial R) (r : R) :
+  (taylor r f).sum (λ i a, C a * (X - C r) ^ i) = f :=
+by rw [←comp_eq_sum_left, sub_eq_add_neg, ←C_neg, ←taylor_apply, taylor_taylor, neg_add_self,
+       taylor_zero]
 
 end polynomial

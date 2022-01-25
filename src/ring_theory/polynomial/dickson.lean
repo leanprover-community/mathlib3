@@ -79,7 +79,8 @@ variables {R S k a}
 
 lemma map_dickson (f : R →+* S) :
   ∀ (n : ℕ), map f (dickson k a n) = dickson k (f a) n
-| 0       := by simp only [dickson_zero, map_sub, map_nat_cast, bit1, bit0, map_add, map_one]
+| 0       := by simp only [dickson_zero, map_sub, polynomial.map_nat_cast,
+                            bit1, bit0, map_add, map_one]
 | 1       := by simp only [dickson_one, map_X]
 | (n + 2) :=
 begin
@@ -192,13 +193,13 @@ begin
     refine ⟨K, _, _, _⟩; apply_instance },
   resetI,
   apply map_injective (zmod.cast_hom (dvd_refl p) K) (ring_hom.injective _),
-  rw [map_dickson, map_pow, map_X],
+  rw [map_dickson, polynomial.map_pow, map_X],
   apply eq_of_infinite_eval_eq,
   -- The two polynomials agree on all `x` of the form `x = y + y⁻¹`.
   apply @set.infinite.mono _ {x : K | ∃ y, x = y + y⁻¹ ∧ y ≠ 0},
   { rintro _ ⟨x, rfl, hx⟩,
     simp only [eval_X, eval_pow, set.mem_set_of_eq, @add_pow_char K _ p,
-      dickson_one_one_eval_add_inv _ _ (mul_inv_cancel hx), inv_pow', zmod.cast_hom_apply,
+      dickson_one_one_eval_add_inv _ _ (mul_inv_cancel hx), inv_pow₀, zmod.cast_hom_apply,
       zmod.cast_one'] },
   -- Now we need to show that the set of such `x` is infinite.
   -- If the set is finite, then we will show that `K` is also finite.
@@ -248,7 +249,8 @@ lemma dickson_one_one_char_p (p : ℕ) [fact p.prime] [char_p R p] :
 begin
   have h : (1 : R) = zmod.cast_hom (dvd_refl p) R (1),
     simp only [zmod.cast_hom_apply, zmod.cast_one'],
-  rw [h, ← map_dickson (zmod.cast_hom (dvd_refl p) R), dickson_one_one_zmod_p, map_pow, map_X]
+  rw [h, ← map_dickson (zmod.cast_hom (dvd_refl p) R), dickson_one_one_zmod_p,
+      polynomial.map_pow, map_X]
 end
 
 end dickson

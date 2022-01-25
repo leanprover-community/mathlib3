@@ -105,7 +105,7 @@ begin
     rw [←hca, sdiff_eq_self_iff_disjoint],
     exact hba.of_disjoint_inf_of_le ha },
   { have hd : disjoint a b := by { rw ←h, exact disjoint_sdiff_self_right },
-    rw [symm_diff_def, hd.sdiff_eq_left, hd.sdiff_eq_right, ←h, sup_sdiff_of_le ha], },
+    rw [symm_diff_def, hd.sdiff_eq_left, hd.sdiff_eq_right, ←h, sup_sdiff_cancel_right ha] }
 end
 
 lemma disjoint.symm_diff_eq_sup {a b : α} (h : disjoint a b) : a Δ b = a ⊔ b :=
@@ -189,7 +189,7 @@ lemma compl_symm_diff : (a Δ b)ᶜ = (a ⊓ b) ⊔ (aᶜ ⊓ bᶜ) :=
 by simp only [←top_sdiff, sdiff_symm_diff, top_inf_eq]
 
 lemma symm_diff_eq_top_iff : a Δ b = ⊤ ↔ is_compl a b :=
-by rw [symm_diff_eq_iff_sdiff_eq (@le_top _ _ a), top_sdiff, compl_eq_iff_is_compl]
+by rw [symm_diff_eq_iff_sdiff_eq le_top, top_sdiff, compl_eq_iff_is_compl]
 
 lemma is_compl.symm_diff_eq_top (h : is_compl a b) : a Δ b = ⊤ := (symm_diff_eq_top_iff a b).2 h
 

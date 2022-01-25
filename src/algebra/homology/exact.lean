@@ -83,6 +83,35 @@ lemma preadditive.exact_iff_homology_zero {A B C : V} (f : A ⟶ B) (g : B ⟶ C
     exact ⟨w, preadditive.epi_of_cokernel_zero ((cancel_mono i.hom).mp (by ext))⟩,
   end⟩
 
+lemma preadditive.exact_of_iso_of_exact {A₁ B₁ C₁ A₂ B₂ C₂ : V}
+  (f₁ : A₁ ⟶ B₁) (g₁ : B₁ ⟶ C₁) (f₂ : A₂ ⟶ B₂) (g₂ : B₂ ⟶ C₂)
+  (α : arrow.mk f₁ ≅ arrow.mk f₂) (β : arrow.mk g₁ ≅ arrow.mk g₂) (p : α.hom.right = β.hom.left)
+  (h : exact f₁ g₁) :
+  exact f₂ g₂ :=
+begin
+  rw preadditive.exact_iff_homology_zero at h ⊢,
+  rcases h with ⟨w₁, ⟨i⟩⟩,
+  suffices w₂ : f₂ ≫ g₂ = 0, from ⟨w₂, ⟨(homology.map_iso w₁ w₂ α β p).symm.trans i⟩⟩,
+  rw [← cancel_epi α.hom.left, ← cancel_mono β.inv.right, comp_zero, zero_comp, ← w₁],
+  simp only [← arrow.mk_hom f₁, ← arrow.left_hom_inv_right α.hom,
+      ← arrow.mk_hom g₁, ← arrow.left_hom_inv_right β.hom, p],
+  simp only [arrow.mk_hom, is_iso.inv_hom_id_assoc, category.assoc, ← arrow.inv_right,
+    is_iso.iso.inv_hom]
+end
+
+lemma preadditive.exact_iff_exact_of_iso {A₁ B₁ C₁ A₂ B₂ C₂ : V}
+  (f₁ : A₁ ⟶ B₁) (g₁ : B₁ ⟶ C₁) (f₂ : A₂ ⟶ B₂) (g₂ : B₂ ⟶ C₂)
+  (α : arrow.mk f₁ ≅ arrow.mk f₂) (β : arrow.mk g₁ ≅ arrow.mk g₂) (p : α.hom.right = β.hom.left) :
+  exact f₁ g₁ ↔ exact f₂ g₂ :=
+⟨preadditive.exact_of_iso_of_exact _ _ _ _ _ _ p,
+preadditive.exact_of_iso_of_exact _ _ _ _ α.symm β.symm
+  begin
+    rw ← cancel_mono α.hom.right,
+    simp only [iso.symm_hom, ← comma.comp_right, α.inv_hom_id],
+    simp only [p, ←comma.comp_left, arrow.id_right, arrow.id_left, iso.inv_hom_id],
+    refl
+  end⟩
+
 end
 
 section

@@ -3,6 +3,7 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Kenny Lau
 -/
+import data.list.lattice
 import data.list.pairwise
 import data.list.forall2
 
@@ -64,7 +65,7 @@ theorem nodup_iff_sublist {l : list α} : nodup l ↔ ∀ a, ¬ [a, a] <+ l :=
 ⟨λ d a h, not_nodup_pair a (nodup_of_sublist h d), begin
   induction l with a l IH; intro h, {exact nodup_nil},
   exact nodup_cons_of_nodup
-    (λ al, h a $ cons_sublist_cons _ $ singleton_sublist.2 al)
+    (λ al, h a $ (singleton_sublist.2 al).cons_cons _)
     (IH $ λ a s, h a $ sublist_cons_of_sublist _ s)
 end⟩
 
@@ -94,7 +95,7 @@ begin
       { simp },
       { have : tl ≠ [] := ne_nil_of_mem hy,
         suffices : ∃ (y : α) (H : y ∈ hd :: tl), y ≠ x,
-          { simpa [ne_nil_of_mem hy] },
+        { simpa [ne_nil_of_mem hy] },
         exact ⟨y, mem_cons_of_mem _ hy, hx⟩ } } }
 end
 
@@ -296,8 +297,7 @@ lemma diff_eq_filter_of_nodup [decidable_eq α] :
 begin
   rw [diff_cons, diff_eq_filter_of_nodup (nodup_erase_of_nodup _ hl₁),
     nodup_erase_eq_filter _ hl₁, filter_filter],
-  simp only [mem_cons_iff, not_or_distrib, and.comm],
-  congr
+  simp only [mem_cons_iff, not_or_distrib, and.comm]
 end
 
 lemma mem_diff_iff_of_nodup [decidable_eq α] {l₁ l₂ : list α} (hl₁ : l₁.nodup) {a : α} :
@@ -337,8 +337,8 @@ begin
   exact absurd (hl x) hx.not_le
 end
 
-lemma nodup.pairwise_of_set_pairwise_on {l : list α} {r : α → α → Prop}
-  (hl : l.nodup) (h : {x | x ∈ l}.pairwise_on r) : l.pairwise r :=
+lemma nodup.pairwise_of_set_pairwise {l : list α} {r : α → α → Prop}
+  (hl : l.nodup) (h : {x | x ∈ l}.pairwise r) : l.pairwise r :=
 hl.pairwise_of_forall_ne h
 
 end list

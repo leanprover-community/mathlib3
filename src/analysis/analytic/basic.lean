@@ -121,7 +121,8 @@ p.radius_eq_top_of_forall_nnreal_is_O $
   λ r, (is_O_zero _ _).congr' (h.mono $ λ n hn, by simp [hn]) eventually_eq.rfl
 
 lemma radius_eq_top_of_forall_image_add_eq_zero (n : ℕ) (hn : ∀ m, p (m + n) = 0) : p.radius = ∞ :=
-p.radius_eq_top_of_eventually_eq_zero $ mem_at_top_sets.2 ⟨n, λ k hk, nat.sub_add_cancel hk ▸ hn _⟩
+p.radius_eq_top_of_eventually_eq_zero $ mem_at_top_sets.2
+  ⟨n, λ k hk, tsub_add_cancel_of_le hk ▸ hn _⟩
 
 /-- For `r` strictly smaller than the radius of `p`, then `∥pₙ∥ rⁿ` tends to zero exponentially:
 for some `0 < a < 1`, `∥p n∥ rⁿ = o(aⁿ)`. -/
@@ -135,7 +136,7 @@ begin
   have : 0 < (t : ℝ), from r.coe_nonneg.trans_lt rt,
   rw [← div_lt_one this] at rt,
   refine ⟨_, rt, C, or.inr zero_lt_one, λ n, _⟩,
-  calc abs (∥p n∥ * r ^ n) = (∥p n∥ * t ^ n) * (r / t) ^ n :
+  calc |∥p n∥ * r ^ n| = (∥p n∥ * t ^ n) * (r / t) ^ n :
     by field_simp [mul_right_comm, abs_mul, this.ne']
   ... ≤ C * (r / t) ^ n : mul_le_mul_of_nonneg_right (hC n) (pow_nonneg (div_nonneg r.2 t.2) _)
 end
@@ -217,7 +218,7 @@ lemma summable_norm_apply (p : formal_multilinear_series 𝕜 E F)
   {x : E} (hx : x ∈ emetric.ball (0 : E) p.radius) :
   summable (λ n : ℕ, ∥p n (λ _, x)∥) :=
 begin
-  rw mem_emetric_ball_0_iff at hx,
+  rw mem_emetric_ball_zero_iff at hx,
   refine summable_of_nonneg_of_le (λ _, norm_nonneg _) (λ n, ((p n).le_op_norm _).trans_eq _)
     (p.summable_norm_mul_pow hx),
   simp
@@ -261,7 +262,7 @@ begin
   rcases norm_le_div_pow_of_pos_of_lt_radius p rpos rlt with ⟨C, Cpos, hCp⟩,
   refine ⟨C, r ⁻¹, Cpos, by simp [rpos], λ n, _⟩,
   convert hCp n,
-  exact inv_pow' _ _,
+  exact inv_pow₀ _ _,
 end
 
 /-- The radius of the sum of two formal series is at least the minimum of their two radii. -/
@@ -357,7 +358,7 @@ lemma has_fpower_series_on_ball.mono
 ⟨le_trans hr hf.1, r'_pos, λ y hy, hf.has_sum (emetric.ball_subset_ball hr hy)⟩
 
 protected lemma has_fpower_series_at.eventually (hf : has_fpower_series_at f p x) :
-  ∀ᶠ r : ℝ≥0∞ in 𝓝[Ioi 0] 0, has_fpower_series_on_ball f p x r :=
+  ∀ᶠ r : ℝ≥0∞ in 𝓝[>] 0, has_fpower_series_on_ball f p x r :=
 let ⟨r, hr⟩ := hf in
 mem_of_superset (Ioo_mem_nhds_within_Ioi (left_mem_Ico.2 hr.r_pos)) $
   λ r' hr', hr.mono hr'.1 hr'.2.le
@@ -438,10 +439,10 @@ begin
   obtain ⟨a, ha, C, hC, hp⟩ : ∃ (a ∈ Ioo (0 : ℝ) 1) (C > 0), ∀ n, ∥p n∥ * r' ^n ≤ C * a^n :=
     p.norm_mul_pow_le_mul_pow_of_lt_radius (h.trans_le hf.r_le),
   refine ⟨a, ha, C / (1 - a), div_pos hC (sub_pos.2 ha.2), λ y hy n, _⟩,
-  have yr' : ∥y∥ < r', by { rw ball_0_eq at hy, exact hy },
+  have yr' : ∥y∥ < r', by { rw ball_zero_eq at hy, exact hy },
   have hr'0 : 0 < (r' : ℝ), from (norm_nonneg _).trans_lt yr',
   have : y ∈ emetric.ball (0 : E) r,
-  { refine mem_emetric_ball_0_iff.2 (lt_trans _ h),
+  { refine mem_emetric_ball_zero_iff.2 (lt_trans _ h),
     exact_mod_cast yr' },
   rw [norm_sub_rev, ← mul_div_right_comm],
   have ya : a * (∥y∥ / ↑r') ≤ a,
@@ -471,7 +472,7 @@ begin
     (∀ y ∈ metric.ball (0 : E) r', ∀ n, ∥f (x + y) - p.partial_sum n y∥ ≤ C * (a * (∥y∥ / r')) ^ n),
     from hf.uniform_geometric_approx' h,
   refine ⟨a, ha, C, hC, λ y hy n, (hp y hy n).trans _⟩,
-  have yr' : ∥y∥ < r', by rwa ball_0_eq at hy,
+  have yr' : ∥y∥ < r', by rwa ball_zero_eq at hy,
   refine mul_le_mul_of_nonneg_left (pow_le_pow_of_le_left _ _ _) hC.lt.le,
   exacts [mul_nonneg ha.1.le (div_nonneg (norm_nonneg y) r'.coe_nonneg),
     mul_le_of_le_one_right ha.1.le (div_le_one_of_le yr'.le r'.coe_nonneg)]
@@ -488,8 +489,8 @@ begin
     from hf.uniform_geometric_approx' h,
   refine is_O_iff.2 ⟨C * (a / r') ^ n, _⟩,
   replace r'0 : 0 < (r' : ℝ), by exact_mod_cast r'0,
-  filter_upwards [metric.ball_mem_nhds (0 : E) r'0], intros y hy,
-  simpa [mul_pow, mul_div_assoc, mul_assoc, div_mul_eq_mul_div] using hp y hy n
+  filter_upwards [metric.ball_mem_nhds (0 : E) r'0] with y hy,
+  simpa [mul_pow, mul_div_assoc, mul_assoc, div_mul_eq_mul_div] using hp y hy n,
 end
 
 -- hack to speed up simp when dealing with complicated types
@@ -516,7 +517,7 @@ begin
   have hL : ∀ y ∈ emetric.ball (x, x) r',
     ∥f y.1 - f y.2 - (p 1 (λ _, y.1 - y.2))∥ ≤ L y,
   { intros y hy',
-    have hy : y ∈ (emetric.ball x r).prod (emetric.ball x r),
+    have hy : y ∈ emetric.ball x r ×ˢ emetric.ball x r,
     { rw [emetric.ball_prod_same], exact emetric.ball_subset_ball hr.le hy' },
     set A : ℕ → F := λ n, p n (λ _, y.1 - x) - p n (λ _, y.2 - x),
     have hA : has_sum (λ n, A (n + 2)) (f y.1 - f y.2 - (p 1 (λ _, y.1 - y.2))),
@@ -530,8 +531,8 @@ begin
       (C * (a / r') ^ 2) * (∥y - (x, x)∥ * ∥y.1 - y.2∥) * ((n + 2) * a ^ n),
     have hAB : ∀ n, ∥A (n + 2)∥ ≤ B n := λ n,
     calc ∥A (n + 2)∥ ≤ ∥p (n + 2)∥ * ↑(n + 2) * ∥y - (x, x)∥ ^ (n + 1) * ∥y.1 - y.2∥ :
-      by simpa only [fintype.card_fin, pi_norm_const, prod.norm_def, pi.sub_def, prod.fst_sub,
-        prod.snd_sub, sub_sub_sub_cancel_right]
+      by simpa only [fintype.card_fin, pi_norm_const (_ : E), prod.norm_def, pi.sub_def,
+        prod.fst_sub, prod.snd_sub, sub_sub_sub_cancel_right]
         using (p $ n + 2).norm_image_sub_le (λ _, y.1 - x) (λ _, y.2 - x)
     ... = ∥p (n + 2)∥ * ∥y - (x, x)∥ ^ n * (↑(n + 2) * ∥y - (x, x)∥ * ∥y.1 - y.2∥) :
       by { rw [pow_succ ∥y - (x, x)∥], ac_refl }
@@ -564,7 +565,7 @@ lemma has_fpower_series_on_ball.image_sub_sub_deriv_le
   ∃ C, ∀ (y z ∈ emetric.ball x r'),
     ∥f y - f z - (p 1 (λ _, y - z))∥ ≤ C * (max ∥y - x∥ ∥z - x∥) * ∥y - z∥ :=
 by simpa only [is_O_principal, mul_assoc, normed_field.norm_mul, norm_norm, prod.forall,
-  emetric.mem_ball, prod.edist_eq, max_lt_iff, and_imp]
+  emetric.mem_ball, prod.edist_eq, max_lt_iff, and_imp, @forall_swap (_ < _) E]
   using hf.is_O_image_sub_image_sub_deriv_principal hr
 
 /-- If `f` has formal power series `∑ n, pₙ` at `x`, then
@@ -643,15 +644,16 @@ begin
 end
 
 /-- If a function admits a power series expansion on a disk, then it is continuous there. -/
-lemma has_fpower_series_on_ball.continuous_on
+protected lemma has_fpower_series_on_ball.continuous_on
   (hf : has_fpower_series_on_ball f p x r) : continuous_on f (emetric.ball x r) :=
-hf.tendsto_locally_uniformly_on'.continuous_on $ λ n,
+hf.tendsto_locally_uniformly_on'.continuous_on $ eventually_of_forall $ λ n,
   ((p.partial_sum_continuous n).comp (continuous_id.sub continuous_const)).continuous_on
 
-lemma has_fpower_series_at.continuous_at (hf : has_fpower_series_at f p x) : continuous_at f x :=
+protected lemma has_fpower_series_at.continuous_at (hf : has_fpower_series_at f p x) :
+  continuous_at f x :=
 let ⟨r, hr⟩ := hf in hr.continuous_on.continuous_at (emetric.ball_mem_nhds x (hr.r_pos))
 
-lemma analytic_at.continuous_at (hf : analytic_at 𝕜 f x) : continuous_at f x :=
+protected lemma analytic_at.continuous_at (hf : analytic_at 𝕜 f x) : continuous_at f x :=
 let ⟨p, hp⟩ := hf in hp.continuous_at
 
 /-- In a complete space, the sum of a converging power series `p` admits `p` as a power series.
@@ -715,7 +717,7 @@ is itself an analytic function of `x` given by the series `p.change_origin_serie
 def change_origin_series_term (k l : ℕ) (s : finset (fin (k + l))) (hs : s.card = l) :
   E [×l]→L[𝕜] E [×k]→L[𝕜] F :=
 continuous_multilinear_map.curry_fin_finset 𝕜 E F hs
-    (by erw [finset.card_compl, fintype.card_fin, hs, nat.add_sub_cancel]) (p $ k + l)
+    (by erw [finset.card_compl, fintype.card_fin, hs, add_tsub_cancel_right]) (p $ k + l)
 
 lemma change_origin_series_term_apply (k l : ℕ) (s : finset (fin (k + l))) (hs : s.card = l)
   (x y : E) :
@@ -783,7 +785,7 @@ with non-definitional equalities. -/
   (Σ k l : ℕ, {s : finset (fin (k + l)) // s.card = l}) ≃ Σ n : ℕ, finset (fin n) :=
 { to_fun := λ s, ⟨s.1 + s.2.1, s.2.2⟩,
   inv_fun := λ s, ⟨s.1 - s.2.card, s.2.card, ⟨s.2.map
-    (fin.cast $ (nat.sub_add_cancel $ card_finset_fin_le s.2).symm).to_equiv.to_embedding,
+    (fin.cast $ (tsub_add_cancel_of_le $ card_finset_fin_le s.2).symm).to_equiv.to_embedding,
     finset.card_map _⟩⟩,
   left_inv :=
     begin
@@ -794,7 +796,7 @@ with non-definitional equalities. -/
       suffices : ∀ k' l', k' = k → l' = l → ∀ (hkl : k + l = k' + l') hs',
         (⟨k', l', ⟨finset.map (fin.cast hkl).to_equiv.to_embedding s, hs'⟩⟩ :
           (Σ k l : ℕ, {s : finset (fin (k + l)) // s.card = l})) = ⟨k, l, ⟨s, hs⟩⟩,
-      { apply this; simp only [hs, nat.add_sub_cancel] },
+      { apply this; simp only [hs, add_tsub_cancel_right] },
       rintro _ _ rfl rfl hkl hs',
       simp only [equiv.refl_to_embedding, fin.cast_refl, finset.map_refl, eq_self_iff_true,
         order_iso.refl_to_equiv, and_self, heq_iff_eq]
@@ -802,7 +804,7 @@ with non-definitional equalities. -/
   right_inv :=
     begin
       rintro ⟨n, s⟩,
-      simp [nat.sub_add_cancel (card_finset_fin_le s), fin.cast_to_equiv]
+      simp [tsub_add_cancel_of_le (card_finset_fin_le s), fin.cast_to_equiv]
     end }
 
 lemma change_origin_series_summable_aux₁ {r r' : ℝ≥0} (hr : (r + r' : ℝ≥0∞) < p.radius) :
@@ -816,9 +818,9 @@ begin
     (λ s : finset (fin n), ∥p (n - s.card + s.card)∥₊ * r ^ s.card * r' ^ (n - s.card))
     (∥p n∥₊ * (r + r') ^ n),
   { intro n,
-    -- TODO: why `simp only [nat.sub_add_cancel (card_finset_fin_le _)]` fails?
+    -- TODO: why `simp only [tsub_add_cancel_of_le (card_finset_fin_le _)]` fails?
     convert_to has_sum (λ s : finset (fin n), ∥p n∥₊ * (r ^ s.card * r' ^ (n - s.card))) _,
-    { ext1 s, rw [nat.sub_add_cancel (card_finset_fin_le _), mul_assoc] },
+    { ext1 s, rw [tsub_add_cancel_of_le (card_finset_fin_le _), mul_assoc] },
     rw ← fin.sum_pow_mul_eq_add_pow,
     exact (has_sum_fintype _).mul_left _ },
   refine nnreal.summable_sigma.2 ⟨λ n, (this n).summable, _⟩,
@@ -830,7 +832,7 @@ lemma change_origin_series_summable_aux₂ (hr : (r : ℝ≥0∞) < p.radius) (k
   summable (λ s : Σ l : ℕ, {s : finset (fin (k + l)) // s.card = l}, ∥p (k + s.1)∥₊ * r ^ s.1) :=
 begin
   rcases ennreal.lt_iff_exists_add_pos_lt.1 hr with ⟨r', h0, hr'⟩,
-  simpa only [mul_inv_cancel_right' (pow_pos h0 _).ne']
+  simpa only [mul_inv_cancel_right₀ (pow_pos h0 _).ne']
     using ((nnreal.summable_sigma.1
       (p.change_origin_series_summable_aux₁ hr')).1 k).mul_right (r' ^ k)⁻¹
 end
@@ -865,7 +867,7 @@ convergence.-/
 lemma change_origin_radius : p.radius - ∥x∥₊ ≤ (p.change_origin x).radius :=
 begin
   refine ennreal.le_of_forall_pos_nnreal_lt (λ r h0 hr, _),
-  rw [ennreal.lt_sub_iff_add_lt, add_comm] at hr,
+  rw [lt_tsub_iff_right, add_comm] at hr,
   have hr' : (∥x∥₊ : ℝ≥0∞) < p.radius, from (le_add_right le_rfl).trans_lt hr,
   apply le_radius_of_summable_nnnorm,
   have : ∀ k : ℕ, ∥p.change_origin x k∥₊ * r ^ k ≤
@@ -893,12 +895,12 @@ theorem change_origin_eval (h : (∥x∥₊ + ∥y∥₊ : ℝ≥0∞) < p.radiu
 begin
   have radius_pos : 0 < p.radius := lt_of_le_of_lt (zero_le _) h,
   have x_mem_ball : x ∈ emetric.ball (0 : E) p.radius,
-    from mem_emetric_ball_0_iff.2 ((le_add_right le_rfl).trans_lt h),
+    from mem_emetric_ball_zero_iff.2 ((le_add_right le_rfl).trans_lt h),
   have y_mem_ball : y ∈ emetric.ball (0 : E) (p.change_origin x).radius,
-  { refine mem_emetric_ball_0_iff.2 (lt_of_lt_of_le _ p.change_origin_radius),
-    rwa [ennreal.lt_sub_iff_add_lt, add_comm] },
+  { refine mem_emetric_ball_zero_iff.2 (lt_of_lt_of_le _ p.change_origin_radius),
+    rwa [lt_tsub_iff_right, add_comm] },
   have x_add_y_mem_ball : x + y ∈ emetric.ball (0 : E) p.radius,
-  { refine mem_emetric_ball_0_iff.2 (lt_of_le_of_lt _ h),
+  { refine mem_emetric_ball_zero_iff.2 (lt_of_le_of_lt _ h),
     exact_mod_cast nnnorm_add_le x y },
   set f : (Σ (k l : ℕ), {s : finset (fin (k + l)) // s.card = l}) → F :=
     λ s, p.change_origin_series_term s.1 s.2.1 s.2.2 s.2.2.2 (λ _, x) (λ _, y),
@@ -916,7 +918,7 @@ begin
       { simp only [change_origin_series, continuous_multilinear_map.sum_apply],
         apply has_sum_fintype },
       { refine summable_of_nnnorm_bounded _ (p.change_origin_series_summable_aux₂
-          (mem_emetric_ball_0_iff.1 x_mem_ball) k) (λ s, _),
+          (mem_emetric_ball_zero_iff.1 x_mem_ball) k) (λ s, _),
         refine (continuous_multilinear_map.le_op_nnnorm _ _).trans_eq _,
         simp } } },
   refine hf.unique (change_origin_index_equiv.symm.has_sum_iff.1 _),
@@ -930,7 +932,7 @@ begin
   rw continuous_multilinear_map.curry_fin_finset_apply_const,
   have : ∀ m (hm : n = m), p n (s.piecewise (λ _, x) (λ _, y)) =
     p m ((s.map (fin.cast hm).to_equiv.to_embedding).piecewise (λ _, x) (λ _, y)),
-  { rintro m rfl, simp, congr /- probably different `decidable_eq` instances -/ },
+  { rintro m rfl, simp },
   apply this
 end
 
@@ -949,17 +951,17 @@ theorem has_fpower_series_on_ball.change_origin
   has_fpower_series_on_ball f (p.change_origin y) (x + y) (r - ∥y∥₊) :=
 { r_le := begin
     apply le_trans _ p.change_origin_radius,
-    exact ennreal.sub_le_sub hf.r_le (le_refl _)
+    exact tsub_le_tsub hf.r_le (le_refl _)
   end,
   r_pos := by simp [h],
   has_sum := λ z hz, begin
     convert (p.change_origin y).has_sum _,
-    { rw [mem_emetric_ball_0_iff, ennreal.lt_sub_iff_add_lt, add_comm] at hz,
+    { rw [mem_emetric_ball_zero_iff, lt_tsub_iff_right, add_comm] at hz,
       rw [p.change_origin_eval (hz.trans_le hf.r_le), add_assoc, hf.sum],
-      refine mem_emetric_ball_0_iff.2 (lt_of_le_of_lt _ hz),
+      refine mem_emetric_ball_zero_iff.2 (lt_of_le_of_lt _ hz),
       exact_mod_cast nnnorm_add_le y z },
     { refine emetric.ball_subset_ball (le_trans _ p.change_origin_radius) hz,
-      exact ennreal.sub_le_sub hf.r_le le_rfl }
+      exact tsub_le_tsub hf.r_le le_rfl }
   end }
 
 /-- If a function admits a power series expansion `p` on an open ball `B (x, r)`, then

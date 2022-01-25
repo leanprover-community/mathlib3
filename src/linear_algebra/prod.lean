@@ -64,7 +64,7 @@ theorem snd_surjective : function.surjective (snd R M M₂) := λ x, ⟨(0, x), 
 @[simps] def prod (f : M →ₗ[R] M₂) (g : M →ₗ[R] M₃) : (M →ₗ[R] M₂ × M₃) :=
 { to_fun    := λ x, (f x, g x),
   map_add'  := λ x y, by simp only [prod.mk_add_mk, map_add],
-  map_smul' := λ c x, by simp only [prod.smul_mk, map_smul] }
+  map_smul' := λ c x, by simp only [prod.smul_mk, map_smul, ring_hom.id_apply] }
 
 
 @[simp] theorem fst_prod (f : M →ₗ[R] M₂) (g : M →ₗ[R] M₃) :
@@ -125,8 +125,11 @@ eq.symm $ range_inr R M M₂
 
 end
 
-@[simp] theorem inl_apply (x : M) : inl R M M₂ x = (x, 0) := rfl
-@[simp] theorem inr_apply (x : M₂) : inr R M M₂ x = (0, x) := rfl
+@[simp] theorem coe_inl : (inl R M M₂ : M → M × M₂) = λ x, (x, 0) := rfl
+theorem inl_apply (x : M) : inl R M M₂ x = (x, 0) := rfl
+
+@[simp] theorem coe_inr : (inr R M M₂ : M₂ → M × M₂) = prod.mk 0 := rfl
+theorem inr_apply (x : M₂) : inr R M M₂ x = (0, x) := rfl
 
 theorem inl_eq_prod : inl R M M₂ = prod linear_map.id 0 := rfl
 
@@ -138,7 +141,7 @@ theorem inl_injective : function.injective (inl R M M₂) :=
 theorem inr_injective : function.injective (inr R M M₂) :=
 λ _, by simp
 
-/-- The coprod function `λ x : M × M₂, f.1 x.1 + f.2 x.2` is a linear map. -/
+/-- The coprod function `λ x : M × M₂, f x.1 + g x.2` is a linear map. -/
 def coprod (f : M →ₗ[R] M₃) (g : M₂ →ₗ[R] M₃) : M × M₂ →ₗ[R] M₃ :=
 f.comp (fst _ _ _) + g.comp (snd _ _ _)
 
@@ -193,7 +196,8 @@ See note [bundled maps over different rings] for why separate `R` and `S` semiri
   map_add' := λ a b,
     by { ext, simp only [prod.snd_add, add_apply, coprod_apply, prod.fst_add], ac_refl },
   map_smul' := λ r a,
-    by { ext, simp only [smul_add, smul_apply, prod.smul_snd, prod.smul_fst, coprod_apply] } }
+    by { dsimp, ext, simp only [smul_add, smul_apply, prod.smul_snd, prod.smul_fst,
+                                coprod_apply] } }
 
 theorem prod_ext_iff {f g : M × M₂ →ₗ[R] M₃} :
   f = g ↔ f.comp (inl _ _ _) = g.comp (inl _ _ _) ∧ f.comp (inr _ _ _) = g.comp (inr _ _ _) :=
@@ -440,6 +444,15 @@ lemma fst_inf_snd : submodule.fst R M M₂ ⊓ submodule.snd R M M₂ = ⊥ := b
 end submodule
 
 namespace linear_equiv
+
+/-- Product of modules is commutative up to linear isomorphism. -/
+@[simps apply]
+def prod_comm (R M N : Type*) [semiring R] [add_comm_monoid M] [add_comm_monoid N]
+  [module R M] [module R N] : (M × N) ≃ₗ[R] (N × M) :=
+{ to_fun := prod.swap,
+  map_smul' := λ r ⟨m, n⟩, rfl,
+  ..add_equiv.prod_comm }
+
 section
 
 variables [semiring R]
@@ -452,7 +465,7 @@ variables (e₁ : M ≃ₗ[R] M₂) (e₂ : M₃ ≃ₗ[R] M₄)
 protected def prod :
   (M × M₃) ≃ₗ[R] (M₂ × M₄) :=
 { map_add'  := λ x y, prod.ext (e₁.map_add _ _) (e₂.map_add _ _),
-  map_smul' := λ c x, prod.ext (e₁.map_smul c _) (e₂.map_smul c _),
+  map_smul' := λ c x, prod.ext (e₁.map_smulₛₗ c _) (e₂.map_smulₛₗ c _),
   .. equiv.prod_congr e₁.to_equiv e₂.to_equiv }
 
 lemma prod_symm : (e₁.prod e₂).symm = e₁.symm.prod e₂.symm := rfl
@@ -575,7 +588,7 @@ noncomputable def tunnel' (f : M × N →ₗ[R] M) (i : injective f) :
 Give an injective map `f : M × N →ₗ[R] M` we can find a nested sequence of submodules
 all isomorphic to `M`.
 -/
-def tunnel (f : M × N →ₗ[R] M) (i : injective f) : ℕ →ₘ order_dual (submodule R M) :=
+def tunnel (f : M × N →ₗ[R] M) (i : injective f) : ℕ →o order_dual (submodule R M) :=
 ⟨λ n, (tunnel' f i n).1, monotone_nat_of_le_succ (λ n, begin
     dsimp [tunnel', tunnel_aux],
     rw [submodule.map_comp, submodule.map_comp],

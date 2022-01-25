@@ -41,7 +41,7 @@ quot.induction_on s $ λ l h, congr_arg coe $ insert_of_not_mem h
 quot.induction_on s $ λ l, mem_insert_iff
 
 @[simp] theorem le_ndinsert_self (a : α) (s : multiset α) : s ≤ ndinsert a s :=
-quot.induction_on s $ λ l, (sublist_of_suffix $ suffix_insert _ _).subperm
+quot.induction_on s $ λ l, (sublist_insert _ _).subperm
 
 @[simp] theorem mem_ndinsert_self (a : α) (s : multiset α) : a ∈ ndinsert a s :=
 mem_ndinsert.2 (or.inl rfl)
@@ -123,8 +123,7 @@ quotient.induction_on₂ s t $ λ l₁ l₂, rfl
 quotient.induction_on₂ s t $ λ l₁ l₂, list.mem_union
 
 theorem le_ndunion_right (s t : multiset α) : t ≤ ndunion s t :=
-quotient.induction_on₂ s t $ λ l₁ l₂,
-(sublist_of_suffix $ suffix_union_right _ _).subperm
+quotient.induction_on₂ s t $ λ l₁ l₂, (suffix_union_right _ _).sublist.subperm
 
 theorem subset_ndunion_right (s t : multiset α) : t ⊆ ndunion s t :=
 subset_of_le (le_ndunion_right s t)

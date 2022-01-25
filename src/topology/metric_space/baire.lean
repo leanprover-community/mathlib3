@@ -34,7 +34,7 @@ variables {α : Type*} {β : Type*} {γ : Type*} {ι : Type*}
 
 section Baire_theorem
 open emetric ennreal
-variables [emetric_space α] [complete_space α]
+variables [pseudo_emetric_space α] [complete_space α]
 
 /-- Baire theorem: a countable intersection of dense open sets is dense. Formulated here when
 the source space is ℕ (and subsumed below by `dense_Inter_of_open` working with any
@@ -86,7 +86,7 @@ begin
     induction n with n hn,
     exact lt_min εpos (Bpos 0),
     exact Hpos n (c n) (r n) hn.ne' },
-  have r0 : ∀ n, r n ≠ 0 := λ n, (rpos n).ne', 
+  have r0 : ∀ n, r n ≠ 0 := λ n, (rpos n).ne',
   have rB : ∀n, r n ≤ B n,
   { assume n,
     induction n with n hn,
@@ -229,6 +229,9 @@ lemma mem_residual {s : set α} : s ∈ residual α ↔ ∃ t ⊆ s, is_Gδ t �
 (@eventually_residual α _ _ (λ x, x ∈ s)).trans $ exists_congr $
 λ t, by rw [exists_prop, and_comm (t ⊆ s), subset_def, and_assoc]
 
+lemma dense_of_mem_residual {s : set α} (hs : s ∈ residual α) : dense s :=
+let ⟨t, hts, _, hd⟩ := mem_residual.1 hs in hd.mono hts
+
 instance : countable_Inter_filter (residual α) :=
 ⟨begin
   intros S hSc hS,
@@ -236,7 +239,7 @@ instance : countable_Inter_filter (residual α) :=
   choose T hTs hT using hS,
   refine ⟨⋂ s ∈ S, T s ‹_›, _, _, _⟩,
   { rw [sInter_eq_bInter],
-    exact Inter_subset_Inter (λ s, Inter_subset_Inter $ hTs s) },
+    exact Inter₂_mono hTs },
   { exact is_Gδ_bInter hSc (λ s hs, (hT s hs).1) },
   { exact dense_bInter_of_Gδ (λ s hs, (hT s hs).1) hSc (λ s hs, (hT s hs).2) }
 end⟩
@@ -257,12 +260,12 @@ begin
   show (⋂s∈S, g s) ⊆ (⋃s∈S, interior (f s)),
   assume x hx,
   have : x ∈ ⋃s∈S, f s, { have := mem_univ x, rwa ← hU at this },
-  rcases mem_bUnion_iff.1 this with ⟨s, hs, xs⟩,
-  have : x ∈ g s := mem_bInter_iff.1 hx s hs,
+  rcases mem_Union₂.1 this with ⟨s, hs, xs⟩,
+  have : x ∈ g s := mem_Inter₂.1 hx s hs,
   have : x ∈ interior (f s),
   { have : x ∈ f s \ (frontier (f s)) := mem_inter xs this,
     simpa [frontier, xs, (hc s hs).closure_eq] using this },
-  exact mem_bUnion_iff.2 ⟨s, ⟨hs, this⟩⟩
+  exact mem_Union₂.2 ⟨s, ⟨hs, this⟩⟩
 end
 
 /-- Baire theorem: if countably many closed sets cover the whole space, then their interiors

@@ -81,6 +81,12 @@ by simpa only [sub_mul, sub_eq_iff_eq_add, one_mul] using h.sub_one_mul_conj
 { one_lt := by { rw [h.conj_eq], exact (one_lt_div h.sub_one_pos).mpr (sub_one_lt p) },
   inv_add_inv_conj := by simpa [add_comm] using h.inv_add_inv_conj }
 
+lemma div_conj_eq_sub_one : p / q = p - 1 :=
+begin
+  field_simp [h.symm.ne_zero],
+  rw h.sub_one_mul_conj
+end
+
 lemma one_lt_nnreal : 1 < real.to_nnreal p :=
 begin
   rw [←real.to_nnreal_one, real.to_nnreal_lt_to_nnreal_iff h.pos],

@@ -3,6 +3,7 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
+import algebra.iterate_hom
 import data.polynomial.eval
 
 /-!
@@ -33,7 +34,7 @@ def derivative : polynomial R →ₗ[R] polynomial R :=
   map_add' := λ p q, by rw sum_add_index;
     simp only [add_mul, forall_const, ring_hom.map_add,
       eq_self_iff_true, zero_mul, ring_hom.map_zero],
-  map_smul' := λ a p, by rw sum_smul_index;
+  map_smul' := λ a p, by dsimp; rw sum_smul_index;
     simp only [mul_sum, ← C_mul', mul_assoc, coeff_C_mul, ring_hom.map_mul, forall_const,
       zero_mul, ring_hom.map_zero, sum] }
 
@@ -50,7 +51,8 @@ begin
   { assume b, cases b,
     { intros, rw [nat.cast_zero, mul_zero, zero_mul], },
     { intros _ H, rw [nat.succ_sub_one b, if_neg (mt (congr_arg nat.succ) H.symm), mul_zero] } },
-  { rw [if_pos (nat.add_sub_cancel _ _).symm, mul_one, nat.cast_add, nat.cast_one, mem_support_iff],
+  { rw [if_pos (add_tsub_cancel_right n 1).symm, mul_one, nat.cast_add, nat.cast_one,
+      mem_support_iff],
     intro h, push_neg at h, simp [h], },
 end
 
@@ -173,7 +175,7 @@ calc derivative (f * g) = f.sum (λn a, g.sum (λm b, C ((a * b) * (n + m : ℕ)
       by simp only [nat.cast_add, mul_add, add_mul, C_add, C_mul];
       cases n; simp only [nat.succ_sub_succ, pow_zero];
       cases m; simp only [nat.cast_zero, C_0, nat.succ_sub_succ, zero_mul, mul_zero, nat.add_succ,
-        nat.sub_zero, pow_zero, pow_add, one_mul, pow_succ, mul_comm, mul_left_comm]
+        tsub_zero, pow_zero, pow_add, one_mul, pow_succ, mul_comm, mul_left_comm]
   ... = derivative f * g + f * derivative g :
     begin
       conv { to_rhs, congr,
@@ -212,10 +214,11 @@ theorem derivative_map [comm_semiring S] (p : polynomial R) (f : R →+* S) :
 polynomial.induction_on p
   (λ r, by rw [map_C, derivative_C, derivative_C, map_zero])
   (λ p q ihp ihq, by rw [map_add, derivative_add, ihp, ihq, derivative_add, map_add])
-  (λ n r ih, by rw [map_mul, map_C, map_pow, map_X,
-      derivative_mul, derivative_pow_succ, derivative_C, zero_mul, zero_add, derivative_X, mul_one,
-      derivative_mul, derivative_pow_succ, derivative_C, zero_mul, zero_add, derivative_X, mul_one,
-      map_mul, map_C, map_mul, map_pow, map_add, map_nat_cast, map_one, map_X])
+  (λ n r ih, by rw [map_mul, map_C, polynomial.map_pow, map_X, derivative_mul, derivative_pow_succ,
+                    derivative_C, zero_mul, zero_add, derivative_X, mul_one, derivative_mul,
+                    derivative_pow_succ, derivative_C, zero_mul, zero_add, derivative_X, mul_one,
+                    map_mul, map_C, map_mul, polynomial.map_pow, map_add,
+                    polynomial.map_nat_cast, map_one, map_X])
 
 @[simp]
 theorem iterate_derivative_map [comm_semiring S] (p : polynomial R) (f : R →+* S) (k : ℕ):
@@ -235,6 +238,24 @@ polynomial.induction_on p
   (λ n r ih, by rw [pow_succ', ← mul_assoc, eval₂_mul, eval₂_X, derivative_mul, ih,
       @derivative_mul _ _ _ X, derivative_X, mul_one, eval₂_add, @eval₂_mul _ _ _ _ X, eval₂_X,
       add_mul, mul_right_comm])
+
+theorem derivative_prod {s : multiset ι} {f : ι → polynomial R} :
+  (multiset.map f s).prod.derivative =
+  (multiset.map (λ i, (multiset.map f (s.erase i)).prod * (f i).derivative) s).sum :=
+begin
+  refine multiset.induction_on s (by simp) (λ i s h, _),
+  rw [multiset.map_cons, multiset.prod_cons, derivative_mul, multiset.map_cons _ i s,
+    multiset.sum_cons, multiset.erase_cons_head, mul_comm (f i).derivative],
+  congr,
+  rw [h, ← add_monoid_hom.coe_mul_left, (add_monoid_hom.mul_left (f i)).map_multiset_sum _,
+    add_monoid_hom.coe_mul_left],
+  simp only [function.comp_app, multiset.map_map],
+  refine congr_arg _ (multiset.map_congr rfl (λ j hj, _)),
+  rw [← mul_assoc, ← multiset.prod_cons, ← multiset.map_cons],
+  by_cases hij : i = j,
+  { simp [hij, ← multiset.prod_cons, ← multiset.map_cons, multiset.cons_erase hj] },
+  { simp [hij] }
+end
 
 theorem of_mem_support_derivative {p : polynomial R} {n : ℕ} (h : n ∈ p.derivative.support) :
   n + 1 ∈ p.support :=
@@ -270,7 +291,7 @@ rfl
 
 @[simp] lemma derivative_cast_nat {n : ℕ} : derivative (n : polynomial R) = 0 :=
 begin
-  rw ← C.map_nat_cast n,
+  rw ← map_nat_cast C n,
   exact derivative_C,
 end
 
@@ -300,10 +321,18 @@ begin
   { simp [ih p.derivative, iterate_derivative_neg, derivative_comp, pow_succ], },
 end
 
+lemma eval_multiset_prod_X_sub_C_derivative {S : multiset R} {r : R} (hr : r ∈ S) :
+  eval r (multiset.map (λ a, X - C a) S).prod.derivative =
+  (multiset.map (λ a, r - a) (S.erase r)).prod :=
+begin
+  nth_rewrite 0 [← multiset.cons_erase hr],
+  simpa using (eval_ring_hom r).map_multiset_prod (multiset.map (λ a, X - C a) (S.erase r)),
+end
+
 end comm_ring
 
-section domain
-variables [integral_domain R]
+section is_domain
+variables [ring R] [is_domain R]
 
 lemma mem_support_derivative [char_zero R] (p : polynomial R) (n : ℕ) :
   n ∈ (derivative p).support ↔ n + 1 ∈ p.support :=
@@ -320,10 +349,10 @@ begin
   apply le_antisymm,
   { rw derivative_apply,
     apply le_trans (degree_sum_le _ _) (sup_le (λ n hn, _)),
-    apply le_trans (degree_C_mul_X_pow_le _ _) (with_bot.coe_le_coe.2 (nat.sub_le_sub_right _ _)),
+    apply le_trans (degree_C_mul_X_pow_le _ _) (with_bot.coe_le_coe.2 (tsub_le_tsub_right _ _)),
     apply le_nat_degree_of_mem_supp _ hn },
   { refine le_sup _,
-    rw [mem_support_derivative, nat.sub_add_cancel, mem_support_iff],
+    rw [mem_support_derivative, tsub_add_cancel_of_le, mem_support_iff],
     { show ¬ leading_coeff p = 0,
       rw [leading_coeff_eq_zero],
       assume h, rw [h, nat_degree_zero] at hp,
@@ -342,7 +371,7 @@ begin
     have f_nat_degree_pos : 0 < f.nat_degree,
     { rwa [not_le, ←nat_degree_pos_iff_degree_pos] at absurd },
     let m := f.nat_degree - 1,
-    have hm : m + 1 = f.nat_degree := nat.sub_add_cancel f_nat_degree_pos,
+    have hm : m + 1 = f.nat_degree := tsub_add_cancel_of_le f_nat_degree_pos,
     have h2 := coeff_derivative f m,
     rw polynomial.ext_iff at h,
     rw [h m, coeff_zero, zero_eq_mul] at h2,
@@ -352,7 +381,7 @@ begin
     { norm_cast at h2 } }
 end
 
-end domain
+end is_domain
 
 end derivative
 end polynomial

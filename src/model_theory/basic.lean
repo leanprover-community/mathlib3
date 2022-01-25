@@ -1042,10 +1042,6 @@ begin
     simp [h, fin.comp_cons], }
 end
 
-@[simp] lemma realize_not {l} (f : L.bounded_formula α l) (v : α → M) (xs : fin l → M) :
-  realize_bounded_formula M (bd_not f) v xs = ¬ realize_bounded_formula M f v xs :=
-rfl
-
 @[simp] lemma realize_formula_relabel {α β : Type}
   (g : α → β) (v : β → M) (φ : L.formula α) :
   realize_formula M (φ.relabel g) v ↔ realize_formula M φ (v ∘ g) :=
@@ -1255,8 +1251,8 @@ variables {L} {M} {N}
 
 namespace elementary_embedding
 
-@[simps] instance has_coe_to_fun : has_coe_to_fun (M ↪ₑ[L] N) :=
-⟨(λ _, M → N), λ f, f.to_fun⟩
+@[simps] instance has_coe_to_fun : has_coe_to_fun (M ↪ₑ[L] N) (λ _, M → N) :=
+⟨λ f, f.to_fun⟩
 
 @[simp] lemma map_formula (f : M ↪ₑ[L] N) {α : Type} [fintype α] (φ : L.formula α)
   (x : α → M) :

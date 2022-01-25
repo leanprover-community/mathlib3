@@ -32,7 +32,6 @@ open complex
 variables (a b c d : ℂ)
 variables {p q r s t : ℂ}
 
-
 noncomputable def ω : ℂ := ⟨-1/2, (real.sqrt 3)/2⟩
 
 lemma omega_cube_eq_one : ω ^ 3 = 1 :=
@@ -66,10 +65,10 @@ lemma cubic_basic_eq_zero_iff
   (hs3 : s^3 = q + r)
   (ht : t * s = p)
   (x : ℂ) :
-    x^3 + 3 * p * x - 2 * q = 0 ↔
-      x = s       - t        ∨
-      x = s * ω   - t * ω^2  ∨
-      x = s * ω^2 - t * ω    :=
+  x^3 + 3 * p * x - 2 * q = 0 ↔
+    x = s       - t        ∨
+    x = s * ω   - t * ω^2  ∨
+    x = s * ω^2 - t * ω    :=
 begin
   have h₁ : ∀ x a₁ a₂ a₃ : ℂ, x = a₁ ∨ x = a₂ ∨ x = a₃ ↔ (x - a₁) * (x - a₂) * (x - a₃) = 0,
   { intros,
@@ -107,10 +106,10 @@ lemma cubic_monic_eq_zero_iff
   (hs3 : s^3 = q + r)
   (ht : t * s = p)
   (x : ℂ) :
-    x^3 + b * x^2 + c * x + d = 0 ↔
-      x = s       - t       - b / 3 ∨
-      x = s * ω   - t * ω^2 - b / 3 ∨
-      x = s * ω^2 - t * ω   - b / 3 :=
+  x^3 + b * x^2 + c * x + d = 0 ↔
+    x = s       - t       - b / 3 ∨
+    x = s * ω   - t * ω^2 - b / 3 ∨
+    x = s * ω^2 - t * ω   - b / 3 :=
 begin
   let y := x + b / 3,
   have h₁ : x^3 + b * x^2 + c * x + d = y^3 + 3 * p * y - 2 * q,
@@ -121,7 +120,8 @@ begin
   rw [h₁, h₂],
   dsimp [y],
   have h₃ : ∀ s t : ℂ, x + b / 3 = s - t ↔ x = s - t - b / 3,
-  { intros s t, split; intros h,
+  { intros s t,
+    split; intros h,
     { calc x = x + b / 3 - b / 3 : by ring
        ... = s - t - b / 3 : by rw h },
     { rw h, ring } },
@@ -138,10 +138,10 @@ theorem cubic_eq_zero_iff (ha : a ≠ 0)
   (hs3 : s^3 = q + r)
   (ht : t * s = p)
   (x : ℂ) :
-    a * x^3 + b * x^2 + c * x + d = 0 ↔
-      x = s       - t       - b / (3 * a) ∨
-      x = s * ω   - t * ω^2 - b / (3 * a) ∨
-      x = s * ω^2 - t * ω   - b / (3 * a) :=
+  a * x^3 + b * x^2 + c * x + d = 0 ↔
+    x = s       - t       - b / (3 * a) ∨
+    x = s * ω   - t * ω^2 - b / (3 * a) ∨
+    x = s * ω^2 - t * ω   - b / (3 * a) :=
 begin
   have h₁ : a * x^3 + b * x^2 + c * x + d = a * (x^3 + b/a * x^2 + c/a * x + d/a),
   { field_simp, ring },
@@ -155,7 +155,7 @@ begin
   have h₄ :=
     calc b / a / 3
        = b / (a * 3) : by { field_simp [ha] }
-               ... = b / (3 * a) : by rw mul_comm,
+       ... = b / (3 * a) : by rw mul_comm,
   simp [h₄],
 end
 
@@ -188,7 +188,7 @@ begin
   have h₃ : ∀ x, a * x = 0 ↔ x = 0, { intro x, simp [ha] },
   rw [h₁, h₂, h₃],
   suffices : ∀ x : ℂ, x^3 - s^3 = (x - s) * (x - s* ω) * (x - s * ω^2),
-  { rw this (x + b/(3*a)), ring_nf},
+  { rw this (x + b/(3*a)), ring_nf },
   intro x,
   calc  x^3 - s^3
       = (x - s) * (x^2 + x*s + s^2) : by ring

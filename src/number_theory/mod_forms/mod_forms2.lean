@@ -91,7 +91,7 @@ begin
   ring,
 end
 
-lemma slash_k_mul_one (k : ℤ) (f : ℍ → ℂ ) : (f ∣[k] 1) = f :=
+lemma slash_k_mul_one (k : ℤ) (f : ℍ → ℂ) : (f ∣[k] 1) = f :=
 begin
  simp_rw slash_k,
  ext1,

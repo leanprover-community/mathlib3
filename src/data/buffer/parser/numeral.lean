@@ -17,7 +17,7 @@ or parser from a given character or character range.
 
 ## Main definitions
 
-* 'numeral` : The parser which uses `nat.cast` to map the result of `parser.nat` to the desired `α`
+* `numeral` : The parser which uses `nat.cast` to map the result of `parser.nat` to the desired `α`
 * `numeral.of_fintype` :  The parser which `guard`s to make sure the parsed numeral is within the
   cardinality of the target `fintype` type `α`.
 

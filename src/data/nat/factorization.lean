@@ -76,9 +76,8 @@ lemma prime_of_mem_factorization {n p : ℕ} : p ∈ n.factorization.support →
 lemma pos_of_mem_factorization {n p : ℕ} : p ∈ n.factorization.support → 0 < p :=
 (@prime.pos p) ∘ (@prime_of_mem_factorization n p)
 
-lemma factorization_eq_zero_of_non_prime (n p : ℕ) (hp : ¬prime p) : n.factorization p = 0 :=
-by { contrapose! hp, exact prime_of_mem_factorization (mem_support_iff.mpr hp) }
-
+lemma factorization_eq_zero_of_non_prime (n p : ℕ) (hp : ¬p.prime) : n.factorization p = 0 :=
+not_mem_support_iff.1 (mt prime_of_mem_factorization hp)
 /-- The only numbers with empty prime factorization are `0` and `1` -/
 lemma factorization_eq_zero_iff (n : ℕ) : n.factorization = 0 ↔ n = 0 ∨ n = 1 :=
 by simp [factorization, add_equiv.map_eq_zero_iff, multiset.coe_eq_zero]

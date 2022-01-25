@@ -2104,7 +2104,7 @@ theorem is_normal.le_nfp {f} (H : is_normal f) {a b} :
 theorem nfp_eq_self {f : ordinal → ordinal} {a} (h : f a = a) : nfp f a = a :=
 le_antisymm (sup_le.mpr $ λ i, by rw [iterate_fixed h]) (le_nfp_self f a)
 
-protected lemma monotone.nfp {f : ordinal → ordinal} (hf : monotone f) : monotone (nfp f) :=
+protected lemma monotone.nfp {f} (hf : monotone f) : monotone (nfp f) :=
 λ a b h, nfp_le.2 (λ n, (hf.iterate n h).trans (le_sup _ n))
 
 /-- The derivative of a normal function `f` is
@@ -2158,7 +2158,8 @@ theorem is_normal.le_iff_deriv {f} (H : is_normal f) {a} : f a ≤ a ↔ ∃ o, 
     exact let ⟨o', h, hl⟩ := h in IH o' h (le_of_not_le hl) }
 end, λ ⟨o, e⟩, e ▸ le_of_eq (H.deriv_fp _)⟩
 
-theorem is_normal.fp_iff_deriv {f} (H : is_normal f) {a} : f a = a ↔ ∃ o, deriv f o = a :=
+theorem is_normal.apply_eq_self_iff_deriv {f} (H : is_normal f) {a} :
+  f a = a ↔ ∃ o, deriv f o = a :=
 by rw [←H.le_iff_deriv, H.le_iff_eq]
 
 /-! ### Fixed points of addition -/
@@ -2183,11 +2184,11 @@ begin
   rw [←mul_one_add, one_add_omega]
 end
 
-theorem add_fp_iff_mul_omega_le {a b : ordinal} : a + b = b ↔ a * omega ≤ b :=
+theorem add_eq_right_iff_mul_omega_le {a b : ordinal} : a + b = b ↔ a * omega ≤ b :=
 begin
   refine ⟨λ h, _, λ h, _⟩,
   { rw [mul_omega_nfp_add_zero a, ←deriv_zero],
-    cases (add_is_normal a).fp_iff_deriv.1 h with c hc,
+    cases (add_is_normal a).apply_eq_self_iff_deriv.1 h with c hc,
     rw ←hc,
     exact (deriv_is_normal _).strict_mono.monotone (ordinal.zero_le _) },
   have := ordinal.add_sub_cancel_of_le h,
@@ -2196,7 +2197,7 @@ begin
 end
 
 theorem add_le_right_iff_mul_omega_le {a b : ordinal} : a + b ≤ b ↔ a * omega ≤ b :=
-by { rw ←add_fp_iff_mul_omega_le, exact (add_is_normal a).le_iff_eq }
+by { rw ←add_eq_right_iff_mul_omega_le, exact (add_is_normal a).le_iff_eq }
 
 theorem deriv_add_eq_mul_omega_add (a b : ordinal.{u}) : deriv ((+) a) b = a * omega + b :=
 begin
@@ -2204,9 +2205,8 @@ begin
   { rw [deriv_zero, add_zero],
     exact (mul_omega_nfp_add_zero a).symm },
   { rw [deriv_succ, h, add_succ],
-    apply nfp_eq_self,
-    rw add_fp_iff_mul_omega_le,
-    exact (le_add_right _ _).trans (le_of_lt (lt_succ_self _)) },
+    exact nfp_eq_self (add_eq_right_iff_mul_omega_le.2 ((le_add_right _ _).trans
+      (lt_succ_self _).le)) },
   { rw [←is_normal.bsup_eq.{u u} (add_is_normal _) ho,
       ←is_normal.bsup_eq.{u u} (deriv_is_normal _) ho],
     congr,

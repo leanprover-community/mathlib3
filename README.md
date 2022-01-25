@@ -57,6 +57,7 @@ welcomed.
 * Johan Commelin (@jcommelin): algebra, number theory, category theory, algebraic geometry
 * Rémy Degenne (@RemyDegenne): probability, measure theory, analysis
 * Floris van Doorn (@fpvandoorn): measure theory, model theory, tactics
+* Frédéric Dupuis (@dupuisf): linear algebra, functional analysis
 * Gabriel Ebner (@gebner): tactics, infrastructure, core, formal languages
 * Sébastien Gouëzel (@sgouezel): topology, calculus, geometry, analysis, measure theory
 * Markus Himmel (@TwoFX): category theory

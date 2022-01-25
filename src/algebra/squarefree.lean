@@ -89,7 +89,7 @@ section irreducible
 variables [comm_monoid_with_zero R] [wf_dvd_monoid R]
 
 lemma eq_zero_or_no_irreducibles_and_squarefree_iff_irreducible_sq_not_dvd (r : R) :
-  (r = 0 ∧ ∀ x : R, ¬irreducible x) ∨ squarefree r ↔ ∀ x : R, irreducible x → ¬ x * x ∣ r :=
+  ((r = 0 ∧ ∀ x : R, ¬irreducible x) ∨ squarefree r) ↔ ∀ x : R, irreducible x → ¬ x * x ∣ r :=
 begin
   split,
   { rintro (⟨rfl, h⟩ | h),

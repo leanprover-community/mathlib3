@@ -850,7 +850,7 @@ def second_obj : Type (max v₁ u₁) :=
 def first_map : first_obj P S ⟶ second_obj P S :=
 pi.lift (λ fg, pi.π _ (⟨_, _, S.downward_closed fg.2.2.2.2 fg.2.2.1⟩ : Σ Y, {f : Y ⟶ X // S f}))
 
-instance : inhabited (second_obj P (⊥ : sieve X)) := ⟨first_map _ _ (default _)⟩
+instance : inhabited (second_obj P (⊥ : sieve X)) := ⟨first_map _ _ default⟩
 
 /-- The map `a` of Equations (3,4) [MM92]. -/
 def second_map : first_obj P S ⟶ second_obj P S :=
@@ -925,7 +925,7 @@ def second_obj : Type (max v₁ u₁) :=
 def first_map : first_obj P R ⟶ second_obj P R :=
 pi.lift (λ fg, pi.π _ _ ≫ P.map pullback.fst.op)
 
-instance : inhabited (second_obj P (⊥ : presieve X)) := ⟨first_map _ _ (default _)⟩
+instance : inhabited (second_obj P (⊥ : presieve X)) := ⟨first_map _ _ default⟩
 
 /-- The map `pr₁*` of https://stacks.math.columbia.edu/tag/00VL. -/
 def second_map : first_obj P R ⟶ second_obj P R :=

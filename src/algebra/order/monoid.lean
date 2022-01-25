@@ -151,32 +151,32 @@ add_pos h h
 namespace units
 
 @[to_additive]
-instance [monoid α] [preorder α] : preorder (units α) :=
-preorder.lift (coe : units α → α)
+instance [monoid α] [preorder α] : preorder αˣ :=
+preorder.lift (coe : αˣ → α)
 
 @[simp, norm_cast, to_additive]
-theorem coe_le_coe [monoid α] [preorder α] {a b : units α} :
+theorem coe_le_coe [monoid α] [preorder α] {a b : αˣ} :
   (a : α) ≤ b ↔ a ≤ b := iff.rfl
 
 @[simp, norm_cast, to_additive]
-theorem coe_lt_coe [monoid α] [preorder α] {a b : units α} :
+theorem coe_lt_coe [monoid α] [preorder α] {a b : αˣ} :
   (a : α) < b ↔ a < b := iff.rfl
 
 @[to_additive]
-instance [monoid α] [partial_order α] : partial_order (units α) :=
+instance [monoid α] [partial_order α] : partial_order αˣ :=
 partial_order.lift coe units.ext
 
 @[to_additive]
-instance [monoid α] [linear_order α] : linear_order (units α) :=
+instance [monoid α] [linear_order α] : linear_order αˣ :=
 linear_order.lift coe units.ext
 
 @[simp, norm_cast, to_additive]
-theorem max_coe [monoid α] [linear_order α] {a b : units α} :
+theorem max_coe [monoid α] [linear_order α] {a b : αˣ} :
   (↑(max a b) : α) = max a b :=
 by by_cases b ≤ a; simp [max_def, h]
 
 @[simp, norm_cast, to_additive]
-theorem min_coe [monoid α] [linear_order α] {a b : units α} :
+theorem min_coe [monoid α] [linear_order α] {a b : αˣ} :
   (↑(min a b) : α) = min a b :=
 by by_cases a ≤ b; simp [min_def, h]
 

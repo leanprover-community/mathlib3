@@ -963,6 +963,19 @@ lemma rpow_le_rpow_of_exponent_ge {x : ℝ≥0} {y z : ℝ} (hx0 : 0 < x) (hx1 :
   x^y ≤ x^z :=
 real.rpow_le_rpow_of_exponent_ge hx0 hx1 hyz
 
+lemma rpow_pos {p : ℝ} {x : ℝ≥0} (hx_pos : 0 < x) : 0 < x^p :=
+begin
+  have rpow_pos_of_nonneg : ∀ {p : ℝ}, 0 < p → 0 < x^p,
+  { intros p hp_pos,
+    rw ←zero_rpow hp_pos.ne',
+    exact rpow_lt_rpow hx_pos hp_pos },
+  rcases lt_trichotomy 0 p with hp_pos|rfl|hp_neg,
+  { exact rpow_pos_of_nonneg hp_pos },
+  { simp only [zero_lt_one, rpow_zero] },
+  { rw [←neg_neg p, rpow_neg, inv_pos],
+    exact rpow_pos_of_nonneg (neg_pos.mpr hp_neg) },
+end
+
 lemma rpow_lt_one {x : ℝ≥0} {z : ℝ} (hx : 0 ≤ x) (hx1 : x < 1) (hz : 0 < z) : x^z < 1 :=
 real.rpow_lt_one hx hx1 hz
 
@@ -1556,7 +1569,7 @@ begin
 end
 
 private lemma continuous_at_rpow_const_of_pos {x : ℝ≥0∞} {y : ℝ} (h : 0 < y) :
-  continuous_at (λ a : ennreal, a ^ y) x :=
+  continuous_at (λ a : ℝ≥0∞, a ^ y) x :=
 begin
   by_cases hx : x = ⊤,
   { rw [hx, continuous_at],
@@ -1571,7 +1584,7 @@ begin
 end
 
 @[continuity]
-lemma continuous_rpow_const {y : ℝ} : continuous (λ a : ennreal, a ^ y) :=
+lemma continuous_rpow_const {y : ℝ} : continuous (λ a : ℝ≥0∞, a ^ y) :=
 begin
   apply continuous_iff_continuous_at.2 (λ x, _),
   rcases lt_trichotomy 0 y with hy|rfl|hy,
@@ -1592,3 +1605,111 @@ begin
 end
 
 end ennreal
+
+lemma filter.tendsto.ennrpow_const {α : Type*} {f : filter α} {m : α → ℝ≥0∞} {a : ℝ≥0∞} (r : ℝ)
+  (hm : tendsto m f (𝓝 a)) :
+  tendsto (λ x, (m x) ^ r) f (𝓝 (a ^ r)) :=
+(ennreal.continuous_rpow_const.tendsto a).comp hm
+
+namespace norm_num
+open tactic
+
+theorem rpow_pos (a b : ℝ) (b' : ℕ) (c : ℝ) (hb : b = b') (h : a ^ b' = c) : a ^ b = c :=
+by rw [← h, hb, real.rpow_nat_cast]
+theorem rpow_neg (a b : ℝ) (b' : ℕ) (c c' : ℝ)
+  (a0 : 0 ≤ a) (hb : b = b') (h : a ^ b' = c) (hc : c⁻¹ = c') : a ^ -b = c' :=
+by rw [← hc, ← h, hb, real.rpow_neg a0, real.rpow_nat_cast]
+
+/-- Evaluate `real.rpow a b` where `a` is a rational numeral and `b` is an integer.
+(This cannot go via the generalized version `prove_rpow'` because `rpow_pos` has a side condition;
+we do not attempt to evaluate `a ^ b` where `a` and `b` are both negative because it comes
+out to some garbage.) -/
+meta def prove_rpow (a b : expr) : tactic (expr × expr) := do
+  na ← a.to_rat,
+  ic ← mk_instance_cache `(ℝ),
+  match match_sign b with
+  | sum.inl b := do
+    (ic, a0) ← guard (na ≥ 0) >> prove_nonneg ic a,
+    nc ← mk_instance_cache `(ℕ),
+    (ic, nc, b', hb) ← prove_nat_uncast ic nc b,
+    (ic, c, h) ← prove_pow a na ic b',
+    cr ← c.to_rat,
+    (ic, c', hc) ← prove_inv ic c cr,
+    pure (c', (expr.const ``rpow_neg []).mk_app [a, b, b', c, c', a0, hb, h, hc])
+  | sum.inr ff := pure (`(1:ℝ), expr.const ``real.rpow_zero [] a)
+  | sum.inr tt := do
+    nc ← mk_instance_cache `(ℕ),
+    (ic, nc, b', hb) ← prove_nat_uncast ic nc b,
+    (ic, c, h) ← prove_pow a na ic b',
+    pure (c, (expr.const ``rpow_pos []).mk_app [a, b, b', c, hb, h])
+  end
+
+/-- Generalized version of `prove_cpow`, `prove_nnrpow`, `prove_ennrpow`. -/
+meta def prove_rpow' (pos neg zero : name) (α β one a b : expr) : tactic (expr × expr) := do
+  na ← a.to_rat,
+  icα ← mk_instance_cache α,
+  icβ ← mk_instance_cache β,
+  match match_sign b with
+  | sum.inl b := do
+    nc ← mk_instance_cache `(ℕ),
+    (icβ, nc, b', hb) ← prove_nat_uncast icβ nc b,
+    (icα, c, h) ← prove_pow a na icα b',
+    cr ← c.to_rat,
+    (icα, c', hc) ← prove_inv icα c cr,
+    pure (c', (expr.const neg []).mk_app [a, b, b', c, c', hb, h, hc])
+  | sum.inr ff := pure (one, expr.const zero [] a)
+  | sum.inr tt := do
+    nc ← mk_instance_cache `(ℕ),
+    (icβ, nc, b', hb) ← prove_nat_uncast icβ nc b,
+    (icα, c, h) ← prove_pow a na icα b',
+    pure (c, (expr.const pos []).mk_app [a, b, b', c, hb, h])
+  end
+
+open_locale nnreal ennreal
+
+theorem cpow_pos (a b : ℂ) (b' : ℕ) (c : ℂ) (hb : b = b') (h : a ^ b' = c) : a ^ b = c :=
+by rw [← h, hb, complex.cpow_nat_cast]
+theorem cpow_neg (a b : ℂ) (b' : ℕ) (c c' : ℂ)
+  (hb : b = b') (h : a ^ b' = c) (hc : c⁻¹ = c') : a ^ -b = c' :=
+by rw [← hc, ← h, hb, complex.cpow_neg, complex.cpow_nat_cast]
+
+theorem nnrpow_pos (a : ℝ≥0) (b : ℝ) (b' : ℕ) (c : ℝ≥0)
+  (hb : b = b') (h : a ^ b' = c) : a ^ b = c :=
+by rw [← h, hb, nnreal.rpow_nat_cast]
+theorem nnrpow_neg (a : ℝ≥0) (b : ℝ) (b' : ℕ) (c c' : ℝ≥0)
+  (hb : b = b') (h : a ^ b' = c) (hc : c⁻¹ = c') : a ^ -b = c' :=
+by rw [← hc, ← h, hb, nnreal.rpow_neg, nnreal.rpow_nat_cast]
+
+theorem ennrpow_pos (a : ℝ≥0∞) (b : ℝ) (b' : ℕ) (c : ℝ≥0∞)
+  (hb : b = b') (h : a ^ b' = c) : a ^ b = c :=
+by rw [← h, hb, ennreal.rpow_nat_cast]
+theorem ennrpow_neg (a : ℝ≥0∞) (b : ℝ) (b' : ℕ) (c c' : ℝ≥0∞)
+  (hb : b = b') (h : a ^ b' = c) (hc : c⁻¹ = c') : a ^ -b = c' :=
+by rw [← hc, ← h, hb, ennreal.rpow_neg, ennreal.rpow_nat_cast]
+
+/-- Evaluate `complex.cpow a b` where `a` is a rational numeral and `b` is an integer. -/
+meta def prove_cpow : expr → expr → tactic (expr × expr) :=
+prove_rpow' ``cpow_pos ``cpow_neg ``complex.cpow_zero `(ℂ) `(ℂ) `(1:ℂ)
+
+/-- Evaluate `nnreal.rpow a b` where `a` is a rational numeral and `b` is an integer. -/
+meta def prove_nnrpow : expr → expr → tactic (expr × expr) :=
+prove_rpow' ``nnrpow_pos ``nnrpow_neg ``nnreal.rpow_zero `(ℝ≥0) `(ℝ) `(1:ℝ≥0)
+
+/-- Evaluate `ennreal.rpow a b` where `a` is a rational numeral and `b` is an integer. -/
+meta def prove_ennrpow : expr → expr → tactic (expr × expr) :=
+prove_rpow' ``ennrpow_pos ``ennrpow_neg ``ennreal.rpow_zero `(ℝ≥0∞) `(ℝ) `(1:ℝ≥0∞)
+
+/-- Evaluates expressions of the form `rpow a b`, `cpow a b` and `a ^ b` in the special case where
+`b` is an integer and `a` is a positive rational (so it's really just a rational power). -/
+@[norm_num] meta def eval_rpow_cpow : expr → tactic (expr × expr)
+| `(@has_pow.pow _ _ real.has_pow %%a %%b) := b.to_int >> prove_rpow a b
+| `(real.rpow %%a %%b) := b.to_int >> prove_rpow a b
+| `(@has_pow.pow _ _ complex.has_pow %%a %%b) := b.to_int >> prove_cpow a b
+| `(complex.cpow %%a %%b) := b.to_int >> prove_cpow a b
+| `(@has_pow.pow _ _ nnreal.real.has_pow %%a %%b) := b.to_int >> prove_nnrpow a b
+| `(nnreal.rpow %%a %%b) := b.to_int >> prove_nnrpow a b
+| `(@has_pow.pow _ _ ennreal.real.has_pow %%a %%b) := b.to_int >> prove_ennrpow a b
+| `(ennreal.rpow %%a %%b) := b.to_int >> prove_ennrpow a b
+| _ := tactic.failed
+
+end norm_num

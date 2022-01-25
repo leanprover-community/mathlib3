@@ -25,13 +25,9 @@ We define $Spec$ in three consecutive steps, each with more structure than the l
 Additionally, we provide `Spec.to_PresheafedSpace` as a composition of `Spec.to_SheafedSpace` with
 a forgetful functor.
 
-## In progress
+## Related results
 
-Adjunction between `Γ` and `Spec`: Currently, the counit of the adjunction is proven to be a
-natural transformation in `Spec_Γ_naturality`, and realized as a natural isomorphism in
-`Spec_Γ_identity`.
-
-TODO: provide the unit, and prove the triangle identities.
+The adjunction `Γ ⊣ Spec` is constructed in `algebraic_geometry/Gamma_Spec_adjunction.lean`.
 
 -/
 
@@ -236,7 +232,7 @@ lemma Spec_Γ_naturality {R S : CommRing} (f : R ⟶ S) :
 by { ext, symmetry, apply localization.local_ring_hom_to_map }
 
 /-- The counit (`Spec_Γ_identity.inv.op`) of the adjunction `Γ ⊣ Spec` is an isomorphism. -/
-@[simps] def Spec_Γ_identity : Spec.to_LocallyRingedSpace.right_op ⋙ Γ ≅ 𝟭 _ :=
+@[simps hom_app inv_app] def Spec_Γ_identity : Spec.to_LocallyRingedSpace.right_op ⋙ Γ ≅ 𝟭 _ :=
 iso.symm $ nat_iso.of_components (λ R, as_iso (to_Spec_Γ R) : _) (λ _ _, Spec_Γ_naturality)
 
 end Spec_Γ

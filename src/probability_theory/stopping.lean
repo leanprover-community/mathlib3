@@ -20,10 +20,10 @@ at a specific time and is the first step in formalizing stochastic processes.
   filtration `f` if at each point in time `i`, `u i` is `f i`-measurable
 * `measure_theory.filtration.natural`: the natural filtration with respect to a sequence of
   measurable functions is the smallest filtration to which it is adapted to
-* `measure_theory.stopping_time`: a stopping time with respect to some filtration `f` is a
+* `measure_theory.is_stopping_time`: a stopping time with respect to some filtration `f` is a
   function `τ` such that for all `i`, the preimage of `{j | j ≤ i}` along `τ` is
   `f i`-measurable
-* `measure_theory.stopping_time.measurable_space`: the σ-algebra associated with a stopping time
+* `measure_theory.is_stopping_time.measurable_space`: the σ-algebra associated with a stopping time
 
 ## Tags
 
@@ -85,7 +85,7 @@ def adapted (f : filtration ι m) (u : ι → α → β) : Prop :=
 namespace adapted
 
 lemma add [has_add β] [has_measurable_add₂ β] {u v : ι → α → β} {f : filtration ι m}
-  (hu : adapted f u) (hv : adapted f v) : adapted f (u + v):=
+  (hu : adapted f u) (hv : adapted f v) : adapted f (u + v) :=
 λ i, @measurable.add _ _ _ _ (f i) _ _ _ (hu i) (hv i)
 
 lemma neg [has_neg β] [has_measurable_neg β] {u : ι → α → β} {f : filtration ι m}
@@ -101,7 +101,7 @@ end adapted
 variable (β)
 
 lemma adapted_zero [has_zero β] (f : filtration ι m) : adapted f (0 : ι → α → β) :=
-λ i, @measurable_zero β α _ (f i) _
+λ i, @measurable_zero β α (f i) _ _
 
 variable {β}
 
@@ -143,8 +143,7 @@ begin
   { convert (hτ 0),
     simp only [set.set_of_eq_eq_singleton, le_zero_iff] },
   { rw (_ : {x | τ x = i + 1} = {x | τ x ≤ i + 1} \ {x | τ x ≤ i}),
-    { exact @measurable_set.diff _ (f (i + 1)) _ _ (hτ (i + 1))
-        (f.mono (nat.le_succ _) _ (hτ i)) },
+    { exact (hτ (i + 1)).diff (f.mono (nat.le_succ _) _ (hτ i)) },
     { ext, simp only [set.mem_diff, not_le, set.mem_set_of_eq],
       split,
       { intro h, simp [h] },
@@ -164,8 +163,7 @@ begin
     { simp [h], },
     { simp only [h, ne.symm h, or_false, or_iff_left_iff_imp], }, },
   rw this,
-  refine @measurable_set.union _ (f.seq i) _ _ _ (hτ.measurable_set_eq i),
-  exact @measurable_set.diff _ (f.seq i) _ _ (@measurable_set.univ _ (f.seq i)) (hτ i),
+  exact (measurable_set.univ.diff (hτ i)).union (hτ.measurable_set_eq i),
 end
 
 lemma is_stopping_time.measurable_set_eq_le
@@ -173,13 +171,27 @@ lemma is_stopping_time.measurable_set_eq_le
   measurable_set[f j] {x | τ x = i} :=
 f.mono hle _ $ hτ.measurable_set_eq i
 
+lemma is_stopping_time.measurable_set_lt (hτ : is_stopping_time f τ) (i : ℕ) :
+  measurable_set[f i] {x | τ x < i} :=
+begin
+  convert (hτ i).diff (hτ.measurable_set_eq i),
+  ext,
+  change τ x < i ↔ τ x ≤ i ∧ τ x ≠ i,
+  rw lt_iff_le_and_ne,
+end
+
+lemma is_stopping_time.measurable_set_lt_le
+  (hτ : is_stopping_time f τ) {i j : ℕ} (hle : i ≤ j) :
+  measurable_set[f j] {x | τ x < i} :=
+f.mono hle _ $ hτ.measurable_set_lt i
+
 lemma is_stopping_time_of_measurable_set_eq
   {f : filtration ℕ m} {τ : α → ℕ} (hτ : ∀ i, measurable_set[f i] {x | τ x = i}) :
   is_stopping_time f τ :=
 begin
   intro i,
   rw show {x | τ x ≤ i} = ⋃ k ≤ i, {x | τ x = k}, by { ext, simp },
-  refine @measurable_set.bUnion _ _ (f i) _ _ (set.countable_encodable _) (λ k hk, _),
+  refine measurable_set.bUnion (set.countable_encodable _) (λ k hk, _),
   exact f.mono hk _ (hτ k),
 end
 
@@ -197,7 +209,7 @@ lemma max [linear_order ι] {f : filtration ι m} {τ π : α → ι}
 begin
   intro i,
   simp_rw [max_le_iff, set.set_of_and],
-  exact @measurable_set.inter _ (f i) _ _ (hτ i) (hπ i),
+  exact (hτ i).inter (hπ i),
 end
 
 lemma min [linear_order ι] {f : filtration ι m} {τ π : α → ι}
@@ -206,7 +218,7 @@ lemma min [linear_order ι] {f : filtration ι m} {τ π : α → ι}
 begin
   intro i,
   simp_rw [min_le_iff, set.set_of_or],
-  exact @measurable_set.union _ (f i) _ _ (hτ i) (hπ i),
+  exact (hτ i).union (hπ i),
 end
 
 lemma add_const
@@ -233,9 +245,9 @@ protected def measurable_space
   measurable_set_compl := λ s hs i,
     begin
       rw (_ : sᶜ ∩ {x | τ x ≤ i} = (sᶜ ∪ {x | τ x ≤ i}ᶜ) ∩ {x | τ x ≤ i}),
-      { refine @measurable_set.inter _ (f i) _ _ _ _,
+      { refine measurable_set.inter _ _,
         { rw ← set.compl_inter,
-          exact @measurable_set.compl _ _ (f i) (hs i) },
+          exact (hs i).compl },
         { exact hτ i} },
       { rw set.union_inter_distrib_right,
         simp only [set.compl_inter_self, set.union_empty] }
@@ -244,7 +256,7 @@ protected def measurable_space
     begin
       rw forall_swap at hs,
       rw set.Union_inter,
-      exact @measurable_set.Union _ _ (f i) _ _ (hs i),
+      exact measurable_set.Union (hs i),
     end }
 
 @[protected]
@@ -259,7 +271,7 @@ lemma measurable_space_mono
 begin
   intros s hs i,
   rw (_ : s ∩ {x | π x ≤ i} = s ∩ {x | τ x ≤ i} ∩ {x | π x ≤ i}),
-  { exact @measurable_set.inter _ (f i) _ _ (hs i) (hπ i) },
+  { exact (hs i).inter (hπ i) },
   { ext,
     simp only [set.mem_inter_eq, iff_self_and, and.congr_left_iff, set.mem_set_of_eq],
     intros hle' _,
@@ -357,11 +369,48 @@ section nat
 
 open filtration
 
-variables {f : filtration ℕ m} {u : ℕ → α → β} {τ : α → ℕ}
+variables {f : filtration ℕ m} {u : ℕ → α → β} {τ π : α → ℕ}
+
+lemma stopped_value_sub_eq_sum [add_comm_group β] (hle : τ ≤ π) :
+  stopped_value u π - stopped_value u τ =
+  λ x, (∑ i in finset.Ico (τ x) (π x), (u (i + 1) - u i)) x :=
+begin
+  ext x,
+  rw [finset.sum_Ico_eq_sub _ (hle x), finset.sum_range_sub, finset.sum_range_sub],
+  simp [stopped_value],
+end
+
+lemma stopped_value_sub_eq_sum' [add_comm_group β] (hle : τ ≤ π) {N : ℕ} (hbdd : ∀ x, π x ≤ N) :
+  stopped_value u π - stopped_value u τ =
+  λ x, (∑ i in finset.range (N + 1),
+    set.indicator {x | τ x ≤ i ∧ i < π x} (u (i + 1) - u i)) x :=
+begin
+  rw stopped_value_sub_eq_sum hle,
+  ext x,
+  simp only [finset.sum_apply, finset.sum_indicator_eq_sum_filter],
+  refine finset.sum_congr _ (λ _ _, rfl),
+  ext i,
+  simp only [finset.mem_filter, set.mem_set_of_eq, finset.mem_range, finset.mem_Ico],
+  exact ⟨λ h, ⟨lt_trans h.2 (nat.lt_succ_iff.2 $ hbdd _), h⟩, λ h, h.2⟩
+end
 
 section add_comm_monoid
 
 variables [add_comm_monoid β]
+
+lemma stopped_value_eq {N : ℕ} (hbdd : ∀ x, τ x ≤ N) :
+  stopped_value u τ =
+  λ x, (∑ i in finset.range (N + 1), set.indicator {x | τ x = i} (u i)) x :=
+begin
+  ext y,
+  rw [stopped_value, finset.sum_apply, finset.sum_eq_single (τ y)],
+  { rw set.indicator_of_mem,
+    exact rfl },
+  { exact λ i hi hneq, set.indicator_of_not_mem hneq.symm _ },
+  { intro hy,
+    rw set.indicator_of_not_mem,
+    exact λ _, hy (finset.mem_range.2 $ lt_of_le_of_lt (hbdd _) (nat.lt_succ_self _)) }
+end
 
 lemma stopped_process_eq (n : ℕ) :
   stopped_process u τ n =
@@ -393,14 +442,13 @@ begin
   intro i,
   rw stopped_process_eq,
   refine @measurable.add _ _ _ _ (f i) _ _ _ _ _,
-  { refine @measurable.indicator _ _ (f i) _ _ _ _ (hu i) _,
-    convert @measurable_set.union _ (f i) _ _
-      (@measurable_set.compl _ _ (f i) (hτ i)) (hτ.measurable_set_eq i),
+  { refine (hu i).indicator _,
+    convert measurable_set.union (hτ i).compl (hτ.measurable_set_eq i),
     ext x,
     change i ≤ τ x ↔ ¬ τ x ≤ i ∨ τ x = i,
     rw [not_le, le_iff_lt_or_eq, eq_comm] },
   { refine @finset.measurable_sum' _ _ _ _ _ _ (f i) _ _ _,
-    refine λ j hij, @measurable.indicator _ _ (f i) _ _ _ _ _ _,
+    refine λ j hij, measurable.indicator _ _,
     { rw finset.mem_range at hij,
       exact measurable.le (f.mono hij.le) (hu j) },
     { rw finset.mem_range at hij,
@@ -424,9 +472,9 @@ lemma mem_ℒp_stopped_process {p : ℝ≥0∞} [borel_space β] {μ : measure �
 begin
   rw stopped_process_eq,
   refine mem_ℒp.add _ _,
-  { exact mem_ℒp.indicator (f.le n {a : α | n ≤ τ a} (hτ.measurable_set_ge n)) (hu n), },
+  { exact mem_ℒp.indicator (f.le n {a : α | n ≤ τ a} (hτ.measurable_set_ge n)) (hu n) },
   { suffices : mem_ℒp (λ x, ∑ (i : ℕ) in finset.range n, {a : α | τ a = i}.indicator (u i) x) p μ,
-      by { convert this, ext1 x, simp only [finset.sum_apply], },
+    { convert this, ext1 x, simp only [finset.sum_apply] },
     refine mem_ℒp_finset_sum _ (λ i hi, mem_ℒp.indicator _ (hu i)),
     exact f.le i {a : α | τ a = i} (hτ.measurable_set_eq i) },
 end
@@ -437,6 +485,26 @@ lemma integrable_stopped_process [borel_space β] {μ : measure α} (hτ : is_st
 begin
   simp_rw ← mem_ℒp_one_iff_integrable at hu ⊢,
   exact mem_ℒp_stopped_process hτ hu n,
+end
+
+lemma mem_ℒp_stopped_value {p : ℝ≥0∞} [borel_space β] {μ : measure α} (hτ : is_stopping_time f τ)
+  (hu : ∀ n, mem_ℒp (u n) p μ) {N : ℕ} (hbdd : ∀ x, τ x ≤ N) :
+  mem_ℒp (stopped_value u τ) p μ :=
+begin
+  rw stopped_value_eq hbdd,
+  suffices : mem_ℒp (λ x, ∑ (i : ℕ) in finset.range (N + 1),
+    {a : α | τ a = i}.indicator (u i) x) p μ,
+  { convert this, ext1 x, simp only [finset.sum_apply] },
+  refine mem_ℒp_finset_sum _ (λ i hi, mem_ℒp.indicator _ (hu i)),
+  exact f.le i {a : α | τ a = i} (hτ.measurable_set_eq i)
+end
+
+lemma integrable_stopped_value [borel_space β] {μ : measure α} (hτ : is_stopping_time f τ)
+  (hu : ∀ n, integrable (u n) μ) {N : ℕ} (hbdd : ∀ x, τ x ≤ N) :
+  integrable (stopped_value u τ) μ :=
+begin
+  simp_rw ← mem_ℒp_one_iff_integrable at hu ⊢,
+  exact mem_ℒp_stopped_value hτ hu hbdd,
 end
 
 end normed_group

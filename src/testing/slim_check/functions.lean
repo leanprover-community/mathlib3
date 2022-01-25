@@ -66,7 +66,7 @@ inductive total_function (α : Type u) (β : Type v) : Type (max u v)
 | with_default : list (Σ _ : α, β) → β → total_function
 
 instance total_function.inhabited [inhabited β] : inhabited (total_function α β) :=
-⟨ total_function.with_default ∅ (default _) ⟩
+⟨ total_function.with_default ∅ default ⟩
 
 namespace total_function
 

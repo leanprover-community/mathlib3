@@ -312,12 +312,12 @@ lemma zpow_mem {x : G} (hx : x ∈ K) : ∀ n : ℤ, x ^ n ∈ K
 /-- Construct a subgroup from a nonempty set that is closed under division. -/
 @[to_additive "Construct a subgroup from a nonempty set that is closed under subtraction"]
 def of_div (s : set G) (hsn : s.nonempty) (hs : ∀ x y ∈ s, x * y⁻¹ ∈ s) : subgroup G :=
-have one_mem : (1 : G) ∈ s, from let ⟨x, hx⟩ := hsn in by simpa using hs x x hx hx,
-have inv_mem : ∀ x, x ∈ s → x⁻¹ ∈ s, from λ x hx, by simpa using hs 1 x one_mem hx,
+have one_mem : (1 : G) ∈ s, from let ⟨x, hx⟩ := hsn in by simpa using hs x hx x hx,
+have inv_mem : ∀ x, x ∈ s → x⁻¹ ∈ s, from λ x hx, by simpa using hs 1 one_mem x hx,
 { carrier := s,
   one_mem' := one_mem,
   inv_mem' := inv_mem,
-  mul_mem' := λ x y hx hy, by simpa using hs x y⁻¹ hx (inv_mem y hy) }
+  mul_mem' := λ x y hx hy, by simpa using hs x hx y⁻¹ (inv_mem y hy) }
 
 /-- A subgroup of a group inherits a multiplication. -/
 @[to_additive "An `add_subgroup` of an `add_group` inherits an addition."]
@@ -522,14 +522,14 @@ lemma mem_inf {p p' : subgroup G} {x : G} : x ∈ p ⊓ p' ↔ x ∈ p ∧ x ∈
 @[to_additive]
 instance : has_Inf (subgroup G) :=
 ⟨λ s,
-  { inv_mem' := λ x hx, set.mem_bInter $ λ i h, i.inv_mem (by apply set.mem_bInter_iff.1 hx i h),
+  { inv_mem' := λ x hx, set.mem_bInter $ λ i h, i.inv_mem (by apply set.mem_Inter₂.1 hx i h),
     .. (⨅ S ∈ s, subgroup.to_submonoid S).copy (⋂ S ∈ s, ↑S) (by simp) }⟩
 
 @[simp, norm_cast, to_additive]
 lemma coe_Inf (H : set (subgroup G)) : ((Inf H : subgroup G) : set G) = ⋂ s ∈ H, ↑s := rfl
 
 @[simp, to_additive]
-lemma mem_Inf {S : set (subgroup G)} {x : G} : x ∈ Inf S ↔ ∀ p ∈ S, x ∈ p := set.mem_bInter_iff
+lemma mem_Inf {S : set (subgroup G)} {x : G} : x ∈ Inf S ↔ ∀ p ∈ S, x ∈ p := set.mem_Inter₂
 
 @[to_additive]
 lemma mem_infi {ι : Sort*} {S : ι → subgroup G} {x : G} : (x ∈ ⨅ i, S i) ↔ ∀ i, x ∈ S i :=
@@ -1014,7 +1014,7 @@ def prod (H : subgroup G) (K : subgroup N) : subgroup (G × N) :=
 
 @[to_additive coe_prod]
 lemma coe_prod (H : subgroup G) (K : subgroup N) :
- (H.prod K : set (G × N)) = (H : set G).prod (K : set N) := rfl
+  (H.prod K : set (G × N)) = (H : set G) ×ˢ (K : set N) := rfl
 
 @[to_additive mem_prod]
 lemma mem_prod {H : subgroup G} {K : subgroup N} {p : G × N} :
@@ -1247,6 +1247,9 @@ instance normal_in_normalizer : (H.comap H.normalizer.subtype).normal :=
 eq_top_iff.trans ⟨λ h, ⟨λ a ha b, (h (mem_top b) a).mp ha⟩, λ h a ha b,
   ⟨λ hb, h.conj_mem b hb a, λ hb, by rwa [h.mem_comm_iff, inv_mul_cancel_left] at hb⟩⟩
 
+@[to_additive] lemma center_le_normalizer : center G ≤ H.normalizer :=
+λ x hx y, by simp [← mem_center_iff.mp hx y, mul_assoc]
+
 open_locale classical
 
 @[to_additive]
@@ -1316,7 +1319,7 @@ the elements of `s`. -/
 def conjugates_of_set (s : set G) : set G := ⋃ a ∈ s, conjugates_of a
 
 lemma mem_conjugates_of_set_iff {x : G} : x ∈ conjugates_of_set s ↔ ∃ a ∈ s, is_conj a x :=
-set.mem_bUnion_iff
+set.mem_Union₂
 
 theorem subset_conjugates_of_set : s ⊆ conjugates_of_set s :=
 λ (x : G) (h : x ∈ s), mem_conjugates_of_set_iff.2 ⟨x, h, is_conj.refl _⟩
@@ -1331,7 +1334,7 @@ by { rintros a hc, obtain ⟨c, rfl⟩ := is_conj_iff.1 hc, exact tn.conj_mem a 
 
 theorem conjugates_of_set_subset {s : set G} {N : subgroup G} [N.normal] (h : s ⊆ N) :
   conjugates_of_set s ⊆ N :=
-set.bUnion_subset (λ x H, conjugates_subset_normal (h H))
+set.Union₂_subset (λ x H, conjugates_subset_normal (h H))
 
 /-- The set of conjugates of `s` is closed under conjugation. -/
 lemma conj_mem_conjugates_of_set {x c : G} :
@@ -2143,9 +2146,9 @@ def subgroup_congr (h : H = K) : H ≃* K :=
 a subgroup `H ≤ G` and the subgroup `φ(H) ≤ G'`. -/
 @[to_additive "An `add_equiv` `φ` between two additive groups `G` and `G'` induces an `add_equiv`
 between a subgroup `H ≤ G` and the subgroup `φ(H) ≤ G'`. "]
-def subgroup_equiv_map {G'} [group G'] (e : G ≃* G') (H : subgroup G) :
+def subgroup_map {G'} [group G'] (e : G ≃* G') (H : subgroup G) :
   H ≃* H.map e.to_monoid_hom :=
-e.submonoid_equiv_map H.to_submonoid
+e.submonoid_map H.to_submonoid
 
 end mul_equiv
 

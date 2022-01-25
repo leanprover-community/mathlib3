@@ -110,8 +110,8 @@ by rw [← not_nonempty_iff, ← univ_nonempty_iff, not_nonempty_iff_eq_empty]
 
 @[simp] lemma univ_eq_empty [is_empty α] : (univ : finset α) = ∅ := univ_eq_empty_iff.2 ‹_›
 
-@[simp] lemma univ_unique [unique α] : (univ : finset α) = {default α} :=
-finset.ext $ λ x, iff_of_true (mem_univ _) $ mem_singleton.2 $ subsingleton.elim x $ default α
+@[simp] lemma univ_unique [unique α] : (univ : finset α) = {default} :=
+finset.ext $ λ x, iff_of_true (mem_univ _) $ mem_singleton.2 $ subsingleton.elim x default
 
 @[simp] theorem subset_univ (s : finset α) : s ⊆ univ := λ a _, mem_univ a
 
@@ -523,6 +523,10 @@ multiset.card_map _ _
 theorem card_congr {α β} [fintype α] [fintype β] (f : α ≃ β) : card α = card β :=
 by rw ← of_equiv_card f; congr
 
+@[congr]
+lemma card_congr' {α β} [fintype α] [fintype β] (h : α = β) : card α = card β :=
+card_congr (by rw h)
+
 section
 
 variables [fintype α] [fintype β]
@@ -587,7 +591,7 @@ arbitrary `fintype` instances, use either `fintype.card_le_one_iff_subsingleton`
 
 @[simp] theorem card_unique [unique α] [h : fintype α] :
   fintype.card α = 1 :=
-subsingleton.elim (of_subsingleton $ default α) h ▸ card_of_subsingleton _
+subsingleton.elim (of_subsingleton default) h ▸ card_of_subsingleton _
 
 @[priority 100] -- see Note [lower instance priority]
 instance of_is_empty [is_empty α] : fintype α := ⟨∅, is_empty_elim⟩
@@ -620,6 +624,11 @@ namespace set
 def to_finset (s : set α) [fintype s] : finset α :=
 ⟨(@finset.univ s _).1.map subtype.val,
  multiset.nodup_map (λ a b, subtype.eq) finset.univ.2⟩
+
+@[congr]
+lemma to_finset_congr {s t : set α} [fintype s] [fintype t] (h : s = t) :
+  to_finset s = to_finset t :=
+by cc
 
 @[simp] theorem mem_to_finset {s : set α} [fintype s] {a : α} : a ∈ s.to_finset ↔ a ∈ s :=
 by simp [to_finset]
@@ -754,7 +763,7 @@ lemma fin.univ_succ_above (n : ℕ) (p : fin (n + 1)) :
 by simp
 
 @[instance, priority 10] def unique.fintype {α : Type*} [unique α] : fintype α :=
-fintype.of_subsingleton (default α)
+fintype.of_subsingleton default
 
 /-- Short-circuit instance to decrease search for `unique.fintype`,
 since that relies on a subsingleton elimination for `unique`. -/
@@ -1013,6 +1022,12 @@ fintype.card_eq_one_iff.2 ⟨i,h⟩
 
 lemma one_lt_card [h : nontrivial α] : 1 < fintype.card α :=
 fintype.one_lt_card_iff_nontrivial.mpr h
+
+lemma one_lt_card_iff : 1 < card α ↔ ∃ a b : α, a ≠ b :=
+one_lt_card_iff_nontrivial.trans nontrivial_iff
+
+lemma two_lt_card_iff : 2 < card α ↔ ∃ a b c : α, a ≠ b ∧ a ≠ c ∧ b ≠ c :=
+by simp_rw [←finset.card_univ, two_lt_card_iff, mem_univ, true_and]
 
 lemma injective_iff_surjective {f : α → α} : injective f ↔ surjective f :=
 by haveI := classical.prop_decidable; exact
@@ -1764,7 +1779,7 @@ instance [infinite α] : infinite (finset α) := of_injective singleton finset.s
 instance [nonempty α] : infinite (multiset α) :=
 begin
   inhabit α,
-  exact of_injective (multiset.repeat (default α)) (multiset.repeat_injective _),
+  exact of_injective (multiset.repeat default) (multiset.repeat_injective _),
 end
 
 instance [nonempty α] : infinite (list α) :=

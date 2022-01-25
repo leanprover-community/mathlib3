@@ -76,7 +76,7 @@ namespace mv_power_series
 open finsupp
 variables {σ R : Type*}
 
-instance [inhabited R]       : inhabited       (mv_power_series σ R) := ⟨λ _, default _⟩
+instance [inhabited R]       : inhabited       (mv_power_series σ R) := ⟨λ _, default⟩
 instance [has_zero R]        : has_zero        (mv_power_series σ R) := pi.has_zero
 instance [add_monoid R]      : add_monoid      (mv_power_series σ R) := pi.add_monoid
 instance [add_group R]       : add_group       (mv_power_series σ R) := pi.add_group
@@ -308,7 +308,7 @@ coeff_monomial _ _ _
 
 lemma coeff_index_single_X [decidable_eq σ] (s t : σ) :
   coeff R (single t 1) (X s : mv_power_series σ R) = if t = s then 1 else 0 :=
-by { simp only [coeff_X, single_left_inj one_ne_zero], split_ifs; refl }
+by simp only [coeff_X, single_left_inj one_ne_zero]
 
 @[simp] lemma coeff_index_single_self_X (s : σ) :
   coeff R (single s 1) (X s : mv_power_series σ R) = 1 :=
@@ -466,11 +466,11 @@ instance [nonempty σ] [nontrivial R] : nontrivial (subalgebra R (mv_power_serie
 ⟨⟨⊥, ⊤, begin
   rw [ne.def, set_like.ext_iff, not_forall],
   inhabit σ,
-  refine ⟨X (default σ), _⟩,
+  refine ⟨X default, _⟩,
   simp only [algebra.mem_bot, not_exists, set.mem_range, iff_true, algebra.mem_top],
   intros x,
   rw [ext_iff, not_forall],
-  refine ⟨finsupp.single (default σ) 1, _⟩,
+  refine ⟨finsupp.single default 1, _⟩,
   simp [algebra_map_apply, coeff_C],
 end⟩⟩
 
@@ -938,7 +938,7 @@ lemma coeff_monomial (m n : ℕ) (a : R) :
   coeff R m (monomial R n a) = if m = n then a else 0 :=
 calc coeff R m (monomial R n a) = _ : mv_power_series.coeff_monomial _ _ _
     ... = if m = n then a else 0 :
-by { simp only [finsupp.unique_single_eq_iff], split_ifs; refl }
+by simp only [finsupp.unique_single_eq_iff]
 
 lemma monomial_eq_mk (n : ℕ) (a : R) :
   monomial R n a = mk (λ m, if m = n then a else 0) :=
@@ -1045,8 +1045,8 @@ mv_power_series.coeff_mul_C _ φ a
   coeff R n (C R a * φ) = a * coeff R n φ :=
 mv_power_series.coeff_C_mul _ φ a
 
-@[simp] lemma coeff_smul (n : ℕ) (φ : power_series R) (a : R) :
-  coeff R n (a • φ) = a * coeff R n φ :=
+@[simp] lemma coeff_smul {S : Type*} [semiring S] [module R S]
+  (n : ℕ) (φ : power_series S) (a : R) : coeff S n (a • φ) = a • coeff S n φ :=
 rfl
 
 @[simp] lemma coeff_succ_mul_X (n : ℕ) (φ : power_series R) :

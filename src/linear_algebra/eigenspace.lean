@@ -465,7 +465,7 @@ begin
   { rw [pow_zero, pow_zero, linear_map.one_eq_id],
     apply (submodule.ker_subtype _).symm },
   { erw [pow_succ', pow_succ', linear_map.ker_comp, linear_map.ker_comp, ih,
-      ← linear_map.ker_comp, ← linear_map.ker_comp, linear_map.comp_assoc] },
+      ← linear_map.ker_comp, linear_map.comp_assoc] },
 end
 
 /-- If `p` is an invariant submodule of an endomorphism `f`, then the `μ`-eigenspace of the
@@ -532,9 +532,9 @@ calc submodule.map f (f.generalized_eigenrange μ n)
 lemma supr_generalized_eigenspace_eq_top [is_alg_closed K] [finite_dimensional K V] (f : End K V) :
   (⨆ (μ : K) (k : ℕ), f.generalized_eigenspace μ k) = ⊤ :=
 begin
-  tactic.unfreeze_local_instances,
   -- We prove the claim by strong induction on the dimension of the vector space.
-  induction h_dim : finrank K V using nat.strong_induction_on with n ih generalizing V,
+  unfreezingI { induction h_dim : finrank K V using nat.strong_induction_on
+  with n ih generalizing V },
   cases n,
   -- If the vector space is 0-dimensional, the result is trivial.
   { rw ←top_le_iff,

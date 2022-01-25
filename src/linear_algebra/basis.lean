@@ -336,6 +336,9 @@ by simp
 @[simp] lemma reindex_repr (i' : ι') : (b.reindex e).repr x i' = b.repr x (e.symm i') :=
 by rw coe_reindex_repr
 
+@[simp] lemma reindex_refl : b.reindex (equiv.refl ι) = b :=
+eq_of_apply_eq $ λ i, by simp
+
 /-- `simp` normal form version of `range_reindex` -/
 @[simp] lemma range_reindex' : set.range (b ∘ e.symm) = set.range b :=
 by rw [range_comp, equiv.range_eq_univ, set.image_univ]
@@ -362,7 +365,7 @@ lemma reindex_range_self (i : ι) (h := set.mem_range_self i) :
 begin
   by_cases htr : nontrivial R,
   { letI := htr,
-    simp [htr, reindex_range, reindex_apply, equiv.apply_of_injective_symm b b.injective,
+    simp [htr, reindex_range, reindex_apply, equiv.apply_of_injective_symm b.injective,
       subtype.coe_mk] },
   { letI : subsingleton R := not_nontrivial_iff_subsingleton.mp htr,
     letI := module.subsingleton R M,
@@ -649,8 +652,8 @@ section singleton
 protected def singleton (ι R : Type*) [unique ι] [semiring R] :
   basis ι R R :=
 of_repr
-{ to_fun := λ x, finsupp.single (default ι) x,
-  inv_fun := λ f, f (default ι),
+{ to_fun := λ x, finsupp.single default x,
+  inv_fun := λ f, f default,
   left_inv := λ x, by simp,
   right_inv := λ f, finsupp.unique_ext (by simp),
   map_add' := λ x y, by simp,
@@ -671,12 +674,12 @@ lemma basis_singleton_iff
 begin
   fsplit,
   { rintro ⟨b⟩,
-    refine ⟨b (default ι), b.linear_independent.ne_zero _, _⟩,
+    refine ⟨b default, b.linear_independent.ne_zero _, _⟩,
     simpa [span_singleton_eq_top_iff, set.range_unique] using b.span_eq },
   { rintro ⟨x, nz, w⟩,
     refine ⟨of_repr $ linear_equiv.symm
-      { to_fun := λ f, f (default ι) • x,
-        inv_fun := λ y, finsupp.single (default ι) (w y).some,
+      { to_fun := λ f, f default • x,
+        inv_fun := λ y, finsupp.single default (w y).some,
         left_inv := λ f, finsupp.unique_ext _,
         right_inv := λ y, _,
         map_add' := λ y z, _,
@@ -685,7 +688,7 @@ begin
     { rw [finsupp.smul_apply, smul_assoc], simp },
     { refine smul_left_injective _ nz _,
       simp only [finsupp.single_eq_same],
-      exact (w (f (default ι) • x)).some_spec },
+      exact (w (f default • x)).some_spec },
     { simp only [finsupp.single_eq_same],
       exact (w y).some_spec } }
 end

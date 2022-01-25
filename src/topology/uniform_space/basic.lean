@@ -215,7 +215,7 @@ def uniform_space.core.to_topological_space {α : Type u} (u : uniform_space.cor
   is_open_inter  :=
     assume s t hs ht x ⟨xs, xt⟩, by filter_upwards [hs x xs, ht x xt]; simp {contextual := tt},
   is_open_sUnion :=
-    assume s hs x ⟨t, ts, xt⟩, by filter_upwards [hs t ts x xt] assume p ph h, ⟨t, ts, ph h⟩ }
+    assume s hs x ⟨t, ts, xt⟩, by filter_upwards [hs t ts x xt] with p ph h using ⟨t, ts, ph h⟩ }
 
 lemma uniform_space.core_eq :
   ∀{u₁ u₂ : uniform_space.core α}, u₁.uniformity = u₂.uniformity → u₁ = u₂
@@ -328,8 +328,7 @@ lemma filter.tendsto.uniformity_trans {l : filter β} {f₁ f₂ f₃ : β → �
   tendsto (λ x, (f₁ x, f₃ x)) l (𝓤 α) :=
 begin
   refine le_trans (le_lift' $ λ s hs, mem_map.2 _) comp_le_uniformity,
-  filter_upwards [h₁₂ hs, h₂₃ hs],
-  exact λ x hx₁₂ hx₂₃, ⟨_, hx₁₂, hx₂₃⟩
+  filter_upwards [h₁₂ hs, h₂₃ hs] with x hx₁₂ hx₂₃ using ⟨_, hx₁₂, hx₂₃⟩,
 end
 
 /-- Relation `λ f g, tendsto (λ x, (f x, g x)) l (𝓤 α)` is symmetric -/
@@ -488,7 +487,7 @@ lemma uniform_space.is_open_ball (x : α) {V : set (α × α)} (hV : is_open V) 
 hV.preimage $ continuous_const.prod_mk continuous_id
 
 lemma mem_comp_comp {V W M : set (β × β)} (hW' : symmetric_rel W) {p : β × β} :
-  p ∈ V ○ M ○ W ↔ ((ball p.1 V).prod (ball p.2 W) ∩ M).nonempty :=
+  p ∈ V ○ M ○ W ↔ ((ball p.1 V ×ˢ ball p.2 W) ∩ M).nonempty :=
 begin
   cases p with x y,
   split,
@@ -507,7 +506,7 @@ lemma mem_nhds_uniformity_iff_right {x : α} {s : set α} :
   s ∈ 𝓝 x ↔ {p : α × α | p.1 = x → p.2 ∈ s} ∈ 𝓤 α :=
 ⟨ begin
     simp only [mem_nhds_iff, is_open_uniformity, and_imp, exists_imp_distrib],
-    exact assume t ts ht xt, by filter_upwards [ht x xt] assume ⟨x', y⟩ h eq, ts $ h eq
+    exact assume t ts ht xt, by filter_upwards [ht x xt] using assume ⟨x', y⟩ h eq, ts $ h eq
   end,
 
   assume hs,
@@ -515,8 +514,8 @@ lemma mem_nhds_uniformity_iff_right {x : α} {s : set α} :
     assume x' hx', refl_mem_uniformity hx' rfl,
     is_open_uniformity.mpr $ assume x' hx',
       let ⟨t, ht, tr⟩ := comp_mem_uniformity_sets hx' in
-      by filter_upwards [ht] assume ⟨a, b⟩ hp' (hax' : a = x'),
-      by filter_upwards [ht] assume ⟨a, b'⟩ hp'' (hab : a = b),
+      by filter_upwards [ht] using assume ⟨a, b⟩ hp' (hax' : a = x'),
+      by filter_upwards [ht] using assume ⟨a, b'⟩ hp'' (hab : a = b),
       have hp : (x', b) ∈ t, from hax' ▸ hp',
       have (b, b') ∈ t, from hab ▸ hp'',
       have (x', b') ∈ t ○ t, from ⟨b, hp, this⟩,
@@ -598,7 +597,7 @@ lemma uniform_space.mem_closure_iff_ball {s : set α} {x} :
 by simp [mem_closure_iff_nhds_basis' (nhds_basis_uniformity' (𝓤 α).basis_sets)]
 
 lemma uniform_space.has_basis_nhds_prod (x y : α) :
-  has_basis (𝓝 (x, y)) (λ s, s ∈ 𝓤 α ∧ symmetric_rel s) $ λ s, (ball x s).prod (ball y s) :=
+  has_basis (𝓝 (x, y)) (λ s, s ∈ 𝓤 α ∧ symmetric_rel s) $ λ s, ball x s ×ˢ ball y s :=
 begin
   rw nhds_prod_eq,
   apply (has_basis_nhds x).prod' (has_basis_nhds y),
@@ -645,10 +644,10 @@ calc (𝓝 x).lift g = (𝓤 α).lift (λs:set (α×α), g {y | (x, y) ∈ s}) :
 lemma nhds_nhds_eq_uniformity_uniformity_prod {a b : α} :
   𝓝 a ×ᶠ 𝓝 b =
   (𝓤 α).lift (λs:set (α×α), (𝓤 α).lift' (λt:set (α×α),
-    set.prod {y : α | (y, a) ∈ s} {y : α | (b, y) ∈ t})) :=
+    {y : α | (y, a) ∈ s} ×ˢ {y : α | (b, y) ∈ t})) :=
 begin
   rw [prod_def],
-  show (𝓝 a).lift (λs:set α, (𝓝 b).lift (λt:set α, 𝓟 (set.prod s t))) = _,
+  show (𝓝 a).lift (λs:set α, (𝓝 b).lift (λt:set α, 𝓟 (s ×ˢ t))) = _,
   rw [lift_nhds_right],
   apply congr_arg, funext s,
   rw [lift_nhds_left],
@@ -660,7 +659,7 @@ end
 
 lemma nhds_eq_uniformity_prod {a b : α} :
   𝓝 (a, b) =
-  (𝓤 α).lift' (λs:set (α×α), set.prod {y : α | (y, a) ∈ s} {y : α | (b, y) ∈ s}) :=
+  (𝓤 α).lift' (λs:set (α×α), {y : α | (y, a) ∈ s} ×ˢ {y : α | (b, y) ∈ s}) :=
 begin
   rw [nhds_prod_eq, nhds_nhds_eq_uniformity_uniformity_prod, lift_lift'_same_eq_lift'],
   { intro s, exact monotone_prod monotone_const monotone_preimage },
@@ -694,7 +693,7 @@ lemma nhds_le_uniformity (x : α) : 𝓝 (x, x) ≤ 𝓤 α :=
 begin
   intros V V_in,
   rcases comp_symm_mem_uniformity_sets V_in with ⟨w, w_in, w_symm, w_sub⟩,
-  have : (ball x w).prod (ball x w) ∈ 𝓝 (x, x),
+  have : ball x w ×ˢ ball x w ∈ 𝓝 (x, x),
   { rw nhds_prod_eq,
     exact prod_mem_prod (ball_mem_nhds x w_in) (ball_mem_nhds x w_in) },
   apply mem_of_superset this,
@@ -716,9 +715,7 @@ begin
   ext ⟨x, y⟩,
   simp_rw [mem_closure_iff_nhds_basis (uniform_space.has_basis_nhds_prod x y),
            mem_Inter, mem_set_of_eq],
-  apply forall_congr,
-  intro V,
-  apply forall_congr,
+  refine forall₂_congr (λ V, _),
   rintros ⟨V_in, V_symm⟩,
   simp_rw [mem_comp_comp V_symm, inter_comm, exists_prop],
   exact iff.rfl,
@@ -756,32 +753,32 @@ lemma closure_eq_inter_uniformity {t : set (α×α)} :
 set.ext $ assume ⟨a, b⟩,
 calc (a, b) ∈ closure t ↔ (𝓝 (a, b) ⊓ 𝓟 t ≠ ⊥) : mem_closure_iff_nhds_ne_bot
   ... ↔ (((@prod.swap α α) <$> 𝓤 α).lift'
-      (λ (s : set (α × α)), set.prod {x : α | (x, a) ∈ s} {y : α | (b, y) ∈ s}) ⊓ 𝓟 t ≠ ⊥) :
+      (λ (s : set (α × α)), {x : α | (x, a) ∈ s} ×ˢ {y : α | (b, y) ∈ s}) ⊓ 𝓟 t ≠ ⊥) :
     by rw [←uniformity_eq_symm, nhds_eq_uniformity_prod]
   ... ↔ ((map (@prod.swap α α) (𝓤 α)).lift'
-      (λ (s : set (α × α)), set.prod {x : α | (x, a) ∈ s} {y : α | (b, y) ∈ s}) ⊓ 𝓟 t ≠ ⊥) :
+      (λ (s : set (α × α)), {x : α | (x, a) ∈ s} ×ˢ {y : α | (b, y) ∈ s}) ⊓ 𝓟 t ≠ ⊥) :
     by refl
   ... ↔ ((𝓤 α).lift'
-      (λ (s : set (α × α)), set.prod {y : α | (a, y) ∈ s} {x : α | (x, b) ∈ s}) ⊓ 𝓟 t ≠ ⊥) :
+      (λ (s : set (α × α)), {y : α | (a, y) ∈ s} ×ˢ {x : α | (x, b) ∈ s}) ⊓ 𝓟 t ≠ ⊥) :
   begin
     rw [map_lift'_eq2],
     simp [image_swap_eq_preimage_swap, function.comp],
     exact monotone_prod monotone_preimage monotone_preimage
   end
-  ... ↔ (∀s ∈ 𝓤 α, (set.prod {y : α | (a, y) ∈ s} {x : α | (x, b) ∈ s} ∩ t).nonempty) :
+  ... ↔ (∀s ∈ 𝓤 α, ({y : α | (a, y) ∈ s} ×ˢ {x : α | (x, b) ∈ s} ∩ t).nonempty) :
   begin
     rw [lift'_inf_principal_eq, ← ne_bot_iff, lift'_ne_bot_iff],
     exact (monotone_prod monotone_preimage monotone_preimage).inter monotone_const
   end
   ... ↔ (∀ s ∈ 𝓤 α, (a, b) ∈ s ○ (t ○ s)) :
-    forall_congr $ assume s, forall_congr $ assume hs,
+    forall₂_congr $ λ s hs,
     ⟨assume ⟨⟨x, y⟩, ⟨⟨hx, hy⟩, hxyt⟩⟩, ⟨x, hx, y, hxyt, hy⟩,
       assume ⟨x, hx, y, hxyt, hy⟩, ⟨⟨x, y⟩, ⟨⟨hx, hy⟩, hxyt⟩⟩⟩
   ... ↔ _ : by simp
 
 lemma uniformity_eq_uniformity_closure : 𝓤 α = (𝓤 α).lift' closure :=
 le_antisymm
-  (le_infi $ assume s, le_infi $ assume hs, by simp; filter_upwards [hs] subset_closure)
+  (le_infi $ assume s, le_infi $ assume hs, by simp; filter_upwards [hs] using subset_closure)
   (calc (𝓤 α).lift' closure ≤ (𝓤 α).lift' (λd, d ○ (d ○ d)) :
       lift'_mono' (by intros s hs; rw [closure_eq_inter_uniformity]; exact bInter_subset_of_mem hs)
     ... ≤ (𝓤 α) : comp_le_uniformity3)
@@ -797,7 +794,7 @@ le_antisymm
       calc s ⊆ t : hst
        ... ⊆ interior d : (subset_interior_iff_subset_of_open ht).mpr $
         λ x (hx : x ∈ t), let ⟨x, y, h₁, h₂, h₃⟩ := ht_comp hx in hs_comp ⟨x, h₁, y, h₂, h₃⟩,
-    have interior d ∈ 𝓤 α, by filter_upwards [hs] this,
+    have interior d ∈ 𝓤 α, by filter_upwards [hs] using this,
     by simp [this])
   (assume s hs, ((𝓤 α).lift' interior).sets_of_superset (mem_lift' hs) interior_subset)
 
@@ -826,7 +823,7 @@ end
 lemma dense.bUnion_uniformity_ball {s : set α} {U : set (α × α)} (hs : dense s) (hU : U ∈ 𝓤 α) :
   (⋃ x ∈ s, ball x U) = univ :=
 begin
-  refine bUnion_eq_univ_iff.2 (λ y, _),
+  refine Union₂_eq_univ_iff.2 (λ y, _),
   rcases hs.inter_nhds_nonempty (mem_nhds_right y hU) with ⟨x, hxs, hxy : (x, y) ∈ U⟩,
   exact ⟨x, hxs, hxy⟩
 end
@@ -898,11 +895,11 @@ def uniform_continuous [uniform_space β] (f : α → β) :=
 tendsto (λx:α×α, (f x.1, f x.2)) (𝓤 α) (𝓤 β)
 
 /-- A function `f : α → β` is *uniformly continuous* on `s : set α` if `(f x, f y)` tends to
-the diagonal as `(x, y)` tends to the diagonal while remaining in `s.prod s`.
+the diagonal as `(x, y)` tends to the diagonal while remaining in `s ×ˢ s`.
 In other words, if `x` is sufficiently close to `y`, then `f x` is close to
 `f y` no matter where `x` and `y` are located in `s`.-/
 def uniform_continuous_on [uniform_space β] (f : α → β) (s : set α) : Prop :=
-tendsto (λ x : α × α, (f x.1, f x.2)) (𝓤 α ⊓ principal (s.prod s)) (𝓤 β)
+tendsto (λ x : α × α, (f x.1, f x.2)) (𝓤 α ⊓ principal (s ×ˢ s)) (𝓤 β)
 
 theorem uniform_continuous_def [uniform_space β] {f : α → β} :
   uniform_continuous f ↔ ∀ r ∈ 𝓤 β, { x : α × α | (f x.1, f x.2) ∈ r} ∈ 𝓤 α :=
@@ -943,7 +940,7 @@ lemma filter.has_basis.uniform_continuous_on_iff [uniform_space β] {p : γ → 
   (hb : (𝓤 β).has_basis q t) {f : α → β} {S : set α} :
   uniform_continuous_on f S ↔
     ∀ i (hi : q i), ∃ j (hj : p j), ∀ x y ∈ S, (x, y) ∈ s j → (f x, f y) ∈ t i :=
-((ha.inf_principal (S.prod S)).tendsto_iff hb).trans $
+((ha.inf_principal (S ×ˢ S)).tendsto_iff hb).trans $
 by simp [prod.forall, set.inter_comm (s _), ball_mem_comm]
 
 end uniform_space
@@ -1030,7 +1027,7 @@ calc (u ⊓ v).uniformity = ((⨅i (h : i = u ∨ i = v), i) : uniform_space α)
 
 instance inhabited_uniform_space : inhabited (uniform_space α) := ⟨⊥⟩
 instance inhabited_uniform_space_core : inhabited (uniform_space.core α) :=
-⟨@uniform_space.to_core _ (default _)⟩
+⟨@uniform_space.to_core _ default⟩
 
 /-- Given `f : α → β` and a uniformity `u` on `β`, the inverse image of `u` under `f`
   is the inverse image in the filter sense of the induced function `α × α → β × β`. -/
@@ -1418,7 +1415,7 @@ begin
     exact mem_bUnion hm' ⟨i, _, hm', λ y hy, mm' hy rfl⟩ },
   rcases hs.elim_finite_subcover_image hu₁ hu₂ with ⟨b, bu, b_fin, b_cover⟩,
   refine ⟨_, (bInter_mem b_fin).2 bu, λ x hx, _⟩,
-  rcases mem_bUnion_iff.1 (b_cover hx) with ⟨n, bn, i, m, hm, h⟩,
+  rcases mem_Union₂.1 (b_cover hx) with ⟨n, bn, i, m, hm, h⟩,
   refine ⟨i, λ y hy, h _⟩,
   exact prod_mk_mem_comp_rel (refl_mem_uniformity hm) (bInter_subset_of_mem bn hy)
 end

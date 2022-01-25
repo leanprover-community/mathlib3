@@ -8,7 +8,7 @@ import data.finset.option
 import data.finset.prod
 import data.multiset.lattice
 import order.complete_lattice
-
+import order.lexicographic
 /-!
 # Lattice operations on finsets
 -/
@@ -85,6 +85,11 @@ begin
   { exact sup_empty },
   { exact sup_const hs _ }
 end
+
+lemma sup_ite (p : β → Prop) [decidable_pred p] :
+  s.sup (λ i, ite (p i) (f i) (g i)) =
+    (s.filter p).sup f ⊔ (s.filter (λ i, ¬ p i)).sup g :=
+fold_ite _
 
 lemma sup_le {a : α} : (∀b ∈ s, f b ≤ a) → s.sup f ≤ a :=
 sup_le_iff.2
@@ -363,7 +368,7 @@ lemma inf_sdiff_left {α β : Type*} [boolean_algebra α] {s : finset β} (hs : 
   (a : α) :
   s.inf (λ b, a \ f b) = a \ s.sup f :=
 begin
-  refine hs.cons_induction (λ b, _) (λ b t _ h, _),
+  induction hs using finset.nonempty.cons_induction with b b t _ _ h,
   { rw [sup_singleton, inf_singleton] },
   { rw [sup_cons, inf_cons, h, sdiff_sup] }
 end
@@ -372,7 +377,7 @@ lemma inf_sdiff_right {α β : Type*} [boolean_algebra α] {s : finset β} (hs :
   (a : α) :
   s.inf (λ b, f b \ a) = s.inf f \ a :=
 begin
-  refine hs.cons_induction (λ b, _) (λ b t _ h, _),
+  induction hs using finset.nonempty.cons_induction with b b t _ _ h,
   { rw [inf_singleton, inf_singleton] },
   { rw [inf_cons, inf_cons, h, inf_sdiff] }
 end
@@ -517,15 +522,13 @@ end
 
 lemma exists_mem_eq_sup' [is_total α (≤)] : ∃ b, b ∈ s ∧ s.sup' H f = f b :=
 begin
-  induction s using finset.cons_induction with c s hc ih,
-  { exact false.elim (not_nonempty_empty H), },
-  { rcases s.eq_empty_or_nonempty with rfl | hs,
-    { exact ⟨c, mem_singleton_self c, rfl⟩, },
-    { rcases ih hs with ⟨b, hb, h'⟩,
-      rw [sup'_cons hs, h'],
-      cases total_of (≤) (f b) (f c) with h h,
-      { exact ⟨c, mem_cons.2 (or.inl rfl), sup_eq_left.2 h⟩, },
-      { exact ⟨b, mem_cons.2 (or.inr hb), sup_eq_right.2 h⟩, }, }, },
+  refine H.cons_induction (λ c, _) (λ c s hc hs ih, _),
+  { exact ⟨c, mem_singleton_self c, rfl⟩, },
+  { rcases ih with ⟨b, hb, h'⟩,
+    rw [sup'_cons hs, h'],
+    cases total_of (≤) (f b) (f c) with h h,
+    { exact ⟨c, mem_cons.2 (or.inl rfl), sup_eq_left.2 h⟩, },
+    { exact ⟨b, mem_cons.2 (or.inr hb), sup_eq_right.2 h⟩, }, },
 end
 
 lemma sup'_mem
@@ -960,6 +963,48 @@ lemma induction_on_min [decidable_eq α] {p : finset α → Prop} (s : finset α
 @induction_on_max (order_dual α) _ _ _ s h0 step
 
 end max_min
+
+section max_min_induction_value
+
+variables {ι : Type*} [linear_order α] [linear_order β]
+
+/-- Induction principle for `finset`s in any type from which a given function `f` maps to a linearly
+ordered type : a predicate is true on all `s : finset α` provided that:
+
+* it is true on the empty `finset`,
+* for every `s : finset α` and an element `a` such that for elements of `s` denoted by `x` we have
+  `f x ≤ f a`, `p s` implies `p (insert a s)`. -/
+@[elab_as_eliminator]
+lemma induction_on_max_value [decidable_eq ι] (f : ι → α)
+  {p : finset ι → Prop} (s : finset ι) (h0 : p ∅)
+  (step : ∀ a s, a ∉ s → (∀ x ∈ s, f x ≤ f a) → p s → p (insert a s)) : p s :=
+begin
+  induction s using finset.strong_induction_on with s ihs,
+  rcases (s.image f).eq_empty_or_nonempty with hne|hne,
+  { simp only [image_eq_empty] at hne,
+    simp only [hne, h0] },
+  { have H : (s.image f).max' hne ∈ (s.image f), from max'_mem (s.image f) hne,
+    simp only [mem_image, exists_prop] at H,
+    rcases H with ⟨a, has, hfa⟩,
+    rw ← insert_erase has,
+    refine step _ _ (not_mem_erase a s) (λ x hx, _) (ihs _ $ erase_ssubset has),
+    rw hfa,
+    exact le_max' _ _ (mem_image_of_mem _ $ mem_of_mem_erase hx) }
+end
+
+/-- Induction principle for `finset`s in any type from which a given function `f` maps to a linearly
+ordered type : a predicate is true on all `s : finset α` provided that:
+
+* it is true on the empty `finset`,
+* for every `s : finset α` and an element `a` such that for elements of `s` denoted by `x` we have
+  `f a ≤ f x`, `p s` implies `p (insert a s)`. -/
+@[elab_as_eliminator]
+lemma induction_on_min_value [decidable_eq ι] (f : ι → α)
+  {p : finset ι → Prop} (s : finset ι) (h0 : p ∅)
+  (step : ∀ a s, a ∉ s → (∀ x ∈ s, f a ≤ f x) → p s → p (insert a s)) : p s :=
+@induction_on_max_value (order_dual α) ι _ _ _ _ s h0 step
+
+end max_min_induction_value
 
 section exists_max_min
 

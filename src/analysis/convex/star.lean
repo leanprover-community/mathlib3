@@ -87,13 +87,10 @@ lemma star_convex.open_segment_subset (h : star_convex 𝕜 x s) {y : E} (hy : y
 lemma star_convex_iff_pointwise_add_subset :
   star_convex 𝕜 x s ↔ ∀ ⦃a b : 𝕜⦄, 0 ≤ a → 0 ≤ b → a + b = 1 → a • {x} + b • s ⊆ s :=
 begin
-  split,
-  { rintro hA a b ha hb hab w ⟨au, bv, ⟨u, (rfl : u = x), rfl⟩, ⟨v, hv, rfl⟩, rfl⟩,
-    exact hA hv ha hb hab },
-  { rintro h y hy a b ha hb hab,
-    refine h ha hb hab (add_mem_add _ ⟨_, hy, rfl⟩),
-    rw smul_singleton,
-    exact mem_singleton _ }
+  refine ⟨_, λ h y hy a b ha hb hab,
+    h ha hb hab (add_mem_add (smul_mem_smul_set $ mem_singleton _) ⟨_, hy, rfl⟩)⟩,
+  rintro hA a b ha hb hab w ⟨au, bv, ⟨u, (rfl : u = x), rfl⟩, ⟨v, hv, rfl⟩, rfl⟩,
+  exact hA hv ha hb hab,
 end
 
 lemma star_convex_empty (x : E) : star_convex 𝕜 x ∅ := λ y hy, hy.elim
@@ -138,7 +135,7 @@ end
 
 lemma star_convex.prod {y : F} {s : set E} {t : set F} (hs : star_convex 𝕜 x s)
   (ht : star_convex 𝕜 y t) :
-  star_convex 𝕜 (x, y) (s.prod t) :=
+  star_convex 𝕜 (x, y) (s ×ˢ t) :=
 λ y hy a b ha hb hab, ⟨hs hy.1 ha hb hab, ht hy.2 ha hb hab⟩
 
 lemma star_convex_pi {ι : Type*} {E : ι → Type*} [Π i, add_comm_monoid (E i)]
@@ -193,7 +190,7 @@ end
 
 lemma star_convex_iff_open_segment_subset (hx : x ∈ s) :
   star_convex 𝕜 x s ↔ ∀ ⦃y⦄, y ∈ s → open_segment 𝕜 x y ⊆ s :=
-star_convex_iff_segment_subset.trans $ forall_congr $ λ y, forall_congr $ λ hy,
+star_convex_iff_segment_subset.trans $ forall₂_congr $ λ y hy,
   (open_segment_subset_iff_segment_subset hx hy).symm
 
 lemma star_convex_singleton (x : E) : star_convex 𝕜 x {x} :=

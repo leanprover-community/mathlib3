@@ -88,6 +88,13 @@ nonempty_of_exists is_p_group.of_bot.exists_le_sylow
 noncomputable instance sylow.inhabited : inhabited (sylow p G) :=
 classical.inhabited_of_nonempty sylow.nonempty
 
+noncomputable instance (H : subgroup G) [fintype (sylow p G)] : fintype (sylow p H) :=
+let h_exists := λ P : sylow p H, (P.2.map H.subtype).exists_le_sylow,
+  f : sylow p H → sylow p G := λ P, classical.some (h_exists P),
+  hf : ∀ P : sylow p H, (f P).1.comap H.subtype = P := λ P, P.3 ((f P).2.comap_of_injective _
+    subtype.coe_injective) (map_le_iff_le_comap.mp (classical.some_spec (h_exists P))) in
+fintype.of_injective f (λ P Q h, sylow.ext (by simp only [←hf, h]))
+
 open_locale pointwise
 
 /-- `subgroup.pointwise_mul_action` preserves Sylow subgroups. -/

@@ -832,7 +832,7 @@ export term
 variable {L}
 
 instance {α : Type} [inhabited α] : inhabited (L.term α) :=
-⟨var (default α)⟩
+⟨var default⟩
 
 instance {α} : has_coe L.const (L.term α) :=
 ⟨λ c, func c fin_zero_elim⟩
@@ -1025,21 +1025,20 @@ rfl
 @[simp]
 lemma mem_inf {s t : L.definable_set M α} {x : α → M} : x ∈ s ⊓ t ↔ x ∈ s ∧ x ∈ t := iff.rfl
 
-instance : bounded_lattice (L.definable_set M α) :=
+instance : bounded_order (L.definable_set M α) :=
 { bot_le := λ s x hx, false.elim hx,
   le_top := λ s x hx, set.mem_univ x,
   .. definable_set.has_top L,
-  .. definable_set.has_bot L,
-  .. definable_set.lattice L }
+  .. definable_set.has_bot L }
 
-instance : bounded_distrib_lattice (L.definable_set M α) :=
+instance : distrib_lattice (L.definable_set M α) :=
 { le_sup_inf := begin
     intros s t u x,
     simp only [and_imp, set.mem_inter_eq, set_like.mem_coe, coe_sup, coe_inf, set.mem_union_eq,
       subtype.val_eq_coe],
     tauto,
   end,
-  .. definable_set.bounded_lattice L }
+  .. definable_set.lattice L }
 
 /-- The complement of a definable set is also definable. -/
 @[reducible] instance : has_compl (L.definable_set M α) :=
@@ -1078,7 +1077,8 @@ instance : boolean_algebra (L.definable_set M α) :=
   inf_compl_le_bot := λ ⟨s, hs⟩, by simp [le_iff],
   top_le_sup_compl := λ ⟨s, hs⟩, by simp [le_iff],
   .. definable_set.has_compl L,
-  .. definable_set.bounded_distrib_lattice L }
+  .. definable_set.bounded_order L,
+  .. definable_set.distrib_lattice L }
 
 end definable_set
 end definability

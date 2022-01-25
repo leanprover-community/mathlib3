@@ -52,7 +52,7 @@ begin
   { use (card G).factors.length,
     rw [←list.prod_repeat, ←list.eq_repeat_of_mem this, nat.prod_factors hG] },
   intros q hq,
-  obtain ⟨hq1, hq2⟩ := (nat.mem_factors hG).mp hq,
+  obtain ⟨hq1, hq2⟩ := (nat.mem_factors hG.ne').mp hq,
   haveI : fact q.prime := ⟨hq1⟩,
   obtain ⟨g, hg⟩ := equiv.perm.exists_prime_order_of_dvd_card q hq2,
   obtain ⟨k, hk⟩ := (iff_order_of.mp h) g,

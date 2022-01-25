@@ -1247,6 +1247,9 @@ instance normal_in_normalizer : (H.comap H.normalizer.subtype).normal :=
 eq_top_iff.trans ⟨λ h, ⟨λ a ha b, (h (mem_top b) a).mp ha⟩, λ h a ha b,
   ⟨λ hb, h.conj_mem b hb a, λ hb, by rwa [h.mem_comm_iff, inv_mul_cancel_left] at hb⟩⟩
 
+@[to_additive] lemma center_le_normalizer : center G ≤ H.normalizer :=
+λ x hx y, by simp [← mem_center_iff.mp hx y, mul_assoc]
+
 open_locale classical
 
 @[to_additive]
@@ -1331,7 +1334,7 @@ by { rintros a hc, obtain ⟨c, rfl⟩ := is_conj_iff.1 hc, exact tn.conj_mem a 
 
 theorem conjugates_of_set_subset {s : set G} {N : subgroup G} [N.normal] (h : s ⊆ N) :
   conjugates_of_set s ⊆ N :=
-set.bUnion_subset (λ x H, conjugates_subset_normal (h H))
+set.Union₂_subset (λ x H, conjugates_subset_normal (h H))
 
 /-- The set of conjugates of `s` is closed under conjugation. -/
 lemma conj_mem_conjugates_of_set {x c : G} :

@@ -2,1118 +2,1271 @@
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Alexander Bentkamp
+-/
+import algebra.big_operators.finsupp
+import algebra.big_operators.finprod
+import data.fintype.card
+import linear_algebra.finsupp
+import linear_algebra.linear_independent
+import linear_algebra.linear_pmap
+import linear_algebra.projection
 
-Linear independence and basis sets in a module or vector space.
+/-!
 
-This file is inspired by Isabelle/HOL's linear algebra, and hence indirectly by HOL Light.
+# Bases
 
-We define the following concepts:
+This file defines bases in a module or vector space.
 
-* `linear_independent α v`: states that the elements of the family `v` are linear independent
+It is inspired by Isabelle/HOL's linear algebra, and hence indirectly by HOL Light.
 
-* `linear_independent.repr hv x`: choose the linear combination representing `x` on the linear
-  independent vectors `v`, given `hv : linear_independent α v`.
-  `x` should be in `span α (range v)` (uses classical choice).
+## Main definitions
 
-* `is_basis α v`: if `v` is a basis, i.e. linear independent and spans the entire space
+All definitions are given for families of vectors, i.e. `v : ι → M` where `M` is the module or
+vector space and `ι : Type*` is an arbitrary indexing type.
 
-* `is_basis.repr hv x`: like `linear_independent.repr` but as a `linear_map`
+* `basis ι R M` is the type of `ι`-indexed `R`-bases for a module `M`,
+  represented by a linear equiv `M ≃ₗ[R] ι →₀ R`.
+* the basis vectors of a basis `b : basis ι R M` are available as `b i`, where `i : ι`
 
-* `is_basis.constr hv g`: constructs a `linear_map` by extending `g` from the basis `v`,
-  given `hv : is_basis α v`.
+* `basis.repr` is the isomorphism sending `x : M` to its coordinates `basis.repr x : ι →₀ R`.
+  The converse, turning this isomorphism into a basis, is called `basis.of_repr`.
+* If `ι` is finite, there is a variant of `repr` called `basis.equiv_fun b : M ≃ₗ[R] ι → R`
+  (saving you from having to work with `finsupp`). The converse, turning this isomorphism into
+  a basis, is called `basis.of_equiv_fun`.
+
+* `basis.constr hv f` constructs a linear map `M₁ →ₗ[R] M₂` given the values `f : ι → M₂` at the
+  basis elements `⇑b : ι → M₁`.
+* `basis.reindex` uses an equiv to map a basis to a different indexing set.
+* `basis.map` uses a linear equiv to map a basis to a different module.
+
+## Main statements
+
+* `basis.mk`: a linear independent set of vectors spanning the whole module determines a basis
+
+* `basis.ext` states that two linear maps are equal if they coincide on a basis.
+  Similar results are available for linear equivs (if they coincide on the basis vectors),
+  elements (if their coordinates coincide) and the functions `b.repr` and `⇑b`.
+
+* `basis.of_vector_space` states that every vector space has a basis.
+
+## Implementation notes
+
+We use families instead of sets because it allows us to say that two identical vectors are linearly
+dependent. For bases, this is useful as well because we can easily derive ordered bases by using an
+ordered index type `ι`.
+
+## Tags
+
+basis, bases
 
 -/
-import linear_algebra.basic linear_algebra.finsupp order.zorn
+
 noncomputable theory
 
-open function lattice set submodule
-open_locale classical
+universe u
 
-variables {ι : Type*} {ι' : Type*} {α : Type*} {β : Type*} {γ : Type*} {δ : Type*} {v : ι → β}
+open function set submodule
+open_locale classical big_operators
+
+variables {ι : Type*} {ι' : Type*} {R : Type*} {K : Type*}
+variables {M : Type*} {M' M'' : Type*} {V : Type u} {V' : Type*}
 
 section module
-variables [ring α] [add_comm_group β] [add_comm_group γ] [add_comm_group δ]
-variables [module α β] [module α γ] [module α δ]
-variables {a b : α} {x y : β}
-include α
 
-variables (α) (v)
-/-- Linearly independent set of vectors -/
-def linear_independent : Prop := (finsupp.total ι β α v).ker = ⊥
-variables {α} {v}
+variables [semiring R]
+variables [add_comm_monoid M] [module R M] [add_comm_monoid M'] [module R M']
 
-theorem linear_independent_iff : linear_independent α v ↔
-  ∀l, finsupp.total ι β α v l = 0 → l = 0 :=
-by simp [linear_independent, linear_map.ker_eq_bot']
+section
+variables (ι) (R) (M)
 
-lemma linear_independent_empty_type (h : ¬ nonempty ι) : linear_independent α v :=
-begin
- rw [linear_independent_iff],
- intros,
- ext i,
- exact false.elim (not_nonempty_iff_imp_false.1 h i)
+/-- A `basis ι R M` for a module `M` is the type of `ι`-indexed `R`-bases of `M`.
+
+The basis vectors are available as `coe_fn (b : basis ι R M) : ι → M`.
+To turn a linear independent family of vectors spanning `M` into a basis, use `basis.mk`.
+They are internally represented as linear equivs `M ≃ₗ[R] (ι →₀ R)`,
+available as `basis.repr`.
+-/
+structure basis := of_repr :: (repr : M ≃ₗ[R] (ι →₀ R))
+
 end
 
-lemma ne_zero_of_linear_independent
-  {i : ι} (ne : 0 ≠ (1:α)) (hv : linear_independent α v) : v i ≠ 0 :=
-λ h, ne $ eq.symm begin
-  suffices : (finsupp.single i 1 : ι →₀ α) i = 0, {simpa},
-  rw linear_independent_iff.1 hv (finsupp.single i 1),
-  {simp},
-  {simp [h]}
-end
+namespace basis
 
-lemma linear_independent.comp
-  (h : linear_independent α v) (f : ι' → ι) (hf : injective f) : linear_independent α (v ∘ f) :=
-begin
-  rw [linear_independent_iff, finsupp.total_comp],
-  intros l hl,
-  have h_map_domain : ∀ x, (finsupp.map_domain f l) (f x) = 0,
-    by rw linear_independent_iff.1 h (finsupp.map_domain f l) hl; simp,
-  ext,
-  convert h_map_domain a,
-  simp only [finsupp.map_domain_apply hf],
-end
+instance : inhabited (basis ι R (ι →₀ R)) := ⟨basis.of_repr (linear_equiv.refl _ _)⟩
 
-lemma linear_independent_of_zero_eq_one (zero_eq_one : (0 : α) = 1) : linear_independent α v :=
-linear_independent_iff.2 (λ l hl, finsupp.eq_zero_of_zero_eq_one zero_eq_one _)
-
-lemma linear_independent.unique (hv : linear_independent α v) {l₁ l₂ : ι →₀ α} :
-  finsupp.total ι β α v l₁ = finsupp.total ι β α v l₂ → l₁ = l₂ :=
-by apply linear_map.ker_eq_bot.1 hv
-
-lemma linear_independent.injective (zero_ne_one : (0 : α) ≠ 1) (hv : linear_independent α v) :
-  injective v :=
-begin
-  intros i j hij,
-  let l : ι →₀ α := finsupp.single i (1 : α) - finsupp.single j 1,
-  have h_total : finsupp.total ι β α v l = 0,
-  { rw finsupp.total_apply,
-    rw finsupp.sum_sub_index,
-    { simp [finsupp.sum_single_index, hij] },
-    { intros, apply sub_smul } },
-  have h_single_eq : finsupp.single i (1 : α) = finsupp.single j 1,
-  { rw linear_independent_iff at hv,
-    simp [eq_add_of_sub_eq' (hv l h_total)] },
-  show i = j,
-  { apply or.elim ((finsupp.single_eq_single_iff _ _ _ _).1 h_single_eq),
-    simp,
-    exact λ h, false.elim (zero_ne_one.symm h.1) }
-end
-
-lemma linear_independent_span (hs : linear_independent α v) :
-  @linear_independent ι α (span α (range v))
-      (λ i : ι, ⟨v i, subset_span (mem_range_self i)⟩) _ _ _ :=
-begin
-  rw linear_independent_iff at *,
-  intros l hl,
-  apply hs l,
-  have := congr_arg (submodule.subtype (span α (range v))) hl,
-  convert this,
-  rw [finsupp.total_apply, finsupp.total_apply],
-  unfold finsupp.sum,
-  rw linear_map.map_sum (submodule.subtype (span α (range v))),
-  simp
-end
-
-section subtype
-/- The following lemmas use the subtype defined by a set in β as the index set ι. -/
-
-theorem linear_independent_comp_subtype {s : set ι} :
-  linear_independent α (v ∘ subtype.val : s → β) ↔
-  ∀ l ∈ (finsupp.supported α α s), (finsupp.total ι β α v) l = 0 → l = 0 :=
-begin
-  rw [linear_independent_iff, finsupp.total_comp],
-  simp only [linear_map.comp_apply],
-  split,
-  { intros h l hl₁ hl₂,
-    have h_bij : bij_on subtype.val (subtype.val ⁻¹' l.support.to_set : set s) l.support.to_set,
-    { apply bij_on.mk,
-      { unfold maps_to },
-      { apply set.inj_on_of_injective _ subtype.val_injective },
-      intros i hi,
-      rw mem_image,
-      use subtype.mk i (((finsupp.mem_supported _ _).1 hl₁ : ↑(l.support) ⊆ s) hi),
-      rw mem_preimage,
-      exact ⟨hi, rfl⟩ },
-    show l = 0,
-    { apply finsupp.eq_zero_of_comap_domain_eq_zero (subtype.val : s → ι) _ h_bij,
-      apply h,
-      convert hl₂,
-      rw [finsupp.lmap_domain_apply, finsupp.map_domain_comap_domain],
-      apply subtype.val_injective,
-      rw subtype.range_val,
-      exact (finsupp.mem_supported _ _).1 hl₁ } },
-  { intros h l hl,
-    have hl' : finsupp.total ι β α v (finsupp.emb_domain ⟨subtype.val, subtype.val_injective⟩ l) = 0,
-    { rw finsupp.emb_domain_eq_map_domain ⟨subtype.val, subtype.val_injective⟩ l,
-      apply hl },
-    apply finsupp.emb_domain_inj.1,
-    rw [h (finsupp.emb_domain ⟨subtype.val, subtype.val_injective⟩ l) _ hl',
-        finsupp.emb_domain_zero],
-    rw [finsupp.mem_supported, finsupp.support_emb_domain],
-    intros x hx,
-    rw [finset.mem_coe, finset.mem_map] at hx,
-    rcases hx with ⟨i, x', hx'⟩,
-    rw ←hx',
-    simp }
-end
-
-theorem linear_independent_subtype {s : set β} :
-  linear_independent α (λ x, x : s → β) ↔
-  ∀ l ∈ (finsupp.supported α α s), (finsupp.total β β α id) l = 0 → l = 0 :=
-by apply @linear_independent_comp_subtype _ _ _ id
-
-theorem linear_independent_comp_subtype_disjoint {s : set ι} :
-  linear_independent α (v ∘ subtype.val : s → β) ↔
-  disjoint (finsupp.supported α α s) (finsupp.total ι β α v).ker :=
-by rw [linear_independent_comp_subtype, linear_map.disjoint_ker]
-
-theorem linear_independent_subtype_disjoint {s : set β} :
-  linear_independent α (λ x, x : s → β) ↔
-  disjoint (finsupp.supported α α s) (finsupp.total β β α id).ker :=
-by apply @linear_independent_comp_subtype_disjoint _ _ _ id
-
-theorem linear_independent_iff_total_on {s : set β} :
-  linear_independent α (λ x, x : s → β) ↔ (finsupp.total_on β β α id s).ker = ⊥ :=
-by rw [finsupp.total_on, linear_map.ker, linear_map.comap_cod_restrict, map_bot, comap_bot,
-  linear_map.ker_comp, linear_independent_subtype_disjoint, disjoint, ← map_comap_subtype,
-  map_le_iff_le_comap, comap_bot, ker_subtype, le_bot_iff]
-
-lemma linear_independent.to_subtype_range
-  (hv : linear_independent α v) : linear_independent α (λ x, x : range v → β) :=
-begin
-  by_cases zero_eq_one : (0 : α) = 1,
-  { apply linear_independent_of_zero_eq_one zero_eq_one },
-  rw linear_independent_subtype,
-  intros l hl₁ hl₂,
-  have h_bij : bij_on v (v ⁻¹' finset.to_set (l.support)) (finset.to_set (l.support)),
-  { apply bij_on.mk,
-    { unfold maps_to },
-    { apply set.inj_on_of_injective _ (linear_independent.injective zero_eq_one hv) },
-    intros x hx,
-    rcases mem_range.1 (((finsupp.mem_supported _ _).1 hl₁ : ↑(l.support) ⊆ range v) hx) with ⟨i, hi⟩,
-    rw mem_image,
-    use i,
-    rw [mem_preimage, hi],
-    exact ⟨hx, rfl⟩ },
-  apply finsupp.eq_zero_of_comap_domain_eq_zero v l,
-  apply linear_independent_iff.1 hv,
-  rw [finsupp.total_comap_domain, finset.sum_preimage v l.support h_bij (λ (x : β), l x • x)],
-  rw [finsupp.total_apply, finsupp.sum] at hl₂,
-  apply hl₂
-end
-
-lemma linear_independent.of_subtype_range (hv : injective v)
-  (h : linear_independent α (λ x, x : range v → β)) : linear_independent α v :=
-begin
-  rw linear_independent_iff,
-  intros l hl,
-  apply finsupp.injective_map_domain hv,
-  apply linear_independent_subtype.1 h (l.map_domain v),
-  { rw finsupp.mem_supported,
-    intros x hx,
-    have := finset.mem_coe.2 (finsupp.map_domain_support hx),
-    rw finset.coe_image at this,
-    apply set.image_subset_range _ _ this, },
-  { rwa [finsupp.total_map_domain _ _ hv, left_id] }
-end
-
-lemma linear_independent.restrict_of_comp_subtype {s : set ι}
-  (hs : linear_independent α (v ∘ subtype.val : s → β)) :
-  linear_independent α (function.restrict v s) :=
-begin
-  have h_restrict : restrict v s = v ∘ (λ x, x.val) := rfl,
-  rw [linear_independent_iff, h_restrict, finsupp.total_comp],
-  intros l hl,
-  have h_map_domain_subtype_eq_0 : l.map_domain subtype.val = 0,
-  { rw linear_independent_comp_subtype at hs,
-    apply hs (finsupp.lmap_domain α α (λ x : subtype s, x.val) l) _ hl,
-    rw finsupp.mem_supported,
-    simp,
-    intros x hx,
-    have := finset.mem_coe.2 (finsupp.map_domain_support (finset.mem_coe.1 hx)),
-    rw finset.coe_image at this,
-    exact subtype.val_image_subset _ _ this },
-  apply @finsupp.injective_map_domain _ (subtype s) ι,
-  { apply subtype.val_injective },
-  { simpa },
-end
-
-lemma linear_independent_empty : linear_independent α (λ x, x : (∅ : set β) → β) :=
-by simp [linear_independent_subtype_disjoint]
-
-lemma linear_independent.mono {t s : set β} (h : t ⊆ s) :
-  linear_independent α (λ x, x : s → β) → linear_independent α (λ x, x : t → β) :=
-begin
- simp only [linear_independent_subtype_disjoint],
- exact (disjoint_mono_left (finsupp.supported_mono h))
-end
-
-lemma linear_independent_union {s t : set β}
-  (hs : linear_independent α (λ x, x : s → β)) (ht : linear_independent α (λ x, x : t → β))
-  (hst : disjoint (span α s) (span α t)) :
-  linear_independent α (λ x, x : (s ∪ t) → β) :=
-begin
-  rw [linear_independent_subtype_disjoint, disjoint_def, finsupp.supported_union],
-  intros l h₁ h₂, rw mem_sup at h₁,
-  rcases h₁ with ⟨ls, hls, lt, hlt, rfl⟩,
-  have h_ls_mem_t : finsupp.total β β α id ls ∈ span α t,
-  { rw [← image_id t, finsupp.span_eq_map_total],
-    apply (add_mem_iff_left (map _ _) (mem_image_of_mem _ hlt)).1,
-    rw [← linear_map.map_add, linear_map.mem_ker.1 h₂],
-    apply zero_mem },
-  have h_lt_mem_s : finsupp.total β β α id lt ∈ span α s,
-  { rw [← image_id s, finsupp.span_eq_map_total],
-    apply (add_mem_iff_left (map _ _) (mem_image_of_mem _ hls)).1,
-    rw [← linear_map.map_add, add_comm, linear_map.mem_ker.1 h₂],
-    apply zero_mem },
-  have h_ls_mem_s : (finsupp.total β β α id) ls ∈ span α s,
-  { rw ← image_id s,
-    apply (finsupp.mem_span_iff_total _).2 ⟨ls, hls, rfl⟩ },
-  have h_lt_mem_t : (finsupp.total β β α id) lt ∈ span α t,
-  { rw ← image_id t,
-    apply (finsupp.mem_span_iff_total _).2 ⟨lt, hlt, rfl⟩ },
-  have h_ls_0 : ls = 0 :=
-    disjoint_def.1 (linear_independent_subtype_disjoint.1 hs) _ hls
-    (linear_map.mem_ker.2 $ disjoint_def.1 hst (finsupp.total β β α id ls) h_ls_mem_s h_ls_mem_t),
-  have h_lt_0 : lt = 0 :=
-    disjoint_def.1 (linear_independent_subtype_disjoint.1 ht) _ hlt
-    (linear_map.mem_ker.2 $ disjoint_def.1 hst (finsupp.total β β α id lt) h_lt_mem_s h_lt_mem_t),
-  show ls + lt = 0,
-    by simp [h_ls_0, h_lt_0],
-end
-
-lemma linear_independent_of_finite (s : set β)
-  (H : ∀ t ⊆ s, finite t → linear_independent α (λ x, x : t → β)) :
-  linear_independent α (λ x, x : s → β) :=
-linear_independent_subtype.2 $
-  λ l hl, linear_independent_subtype.1 (H _ hl (finset.finite_to_set _)) l (subset.refl _)
-
-lemma linear_independent_Union_of_directed {η : Type*}
-  {s : η → set β} (hs : directed (⊆) s)
-  (h : ∀ i, linear_independent α (λ x, x : s i → β)) :
-  linear_independent α (λ x, x : (⋃ i, s i) → β) :=
-begin
-  haveI := classical.dec (nonempty η),
-  by_cases hη : nonempty η,
-  { refine linear_independent_of_finite (⋃ i, s i) (λ t ht ft, _),
-    rcases finite_subset_Union ft ht with ⟨I, fi, hI⟩,
-    rcases hs.finset_le hη fi.to_finset with ⟨i, hi⟩,
-    exact (h i).mono (subset.trans hI $ bUnion_subset $
-      λ j hj, hi j (finite.mem_to_finset.2 hj)) },
-  { refine linear_independent_empty.mono _,
-    rintro _ ⟨_, ⟨i, _⟩, _⟩, exact hη ⟨i⟩ }
-end
-
-lemma linear_independent_sUnion_of_directed {s : set (set β)}
-  (hs : directed_on (⊆) s)
-  (h : ∀ a ∈ s, linear_independent α (λ x, x : (a : set β) → β)) :
-  linear_independent α (λ x, x : (⋃₀ s) → β) :=
-by rw sUnion_eq_Union; exact
-linear_independent_Union_of_directed
-  ((directed_on_iff_directed _).1 hs) (by simpa using h)
-
-lemma linear_independent_bUnion_of_directed {η} {s : set η} {t : η → set β}
-  (hs : directed_on (t ⁻¹'o (⊆)) s) (h : ∀a∈s, linear_independent α (λ x, x : t a → β)) :
-  linear_independent α (λ x, x : (⋃a∈s, t a) → β) :=
-by rw bUnion_eq_Union; exact
-linear_independent_Union_of_directed
-  ((directed_comp _ _ _).2 $ (directed_on_iff_directed _).1 hs)
-  (by simpa using h)
-
-lemma linear_independent_Union_finite_subtype {ι : Type*} {f : ι → set β}
-  (hl : ∀i, linear_independent α (λ x, x : f i → β))
-  (hd : ∀i, ∀t:set ι, finite t → i ∉ t → disjoint (span α (f i)) (⨆i∈t, span α (f i))) :
-  linear_independent α (λ x, x : (⋃i, f i) → β) :=
-begin
-  rw [Union_eq_Union_finset f],
-  apply linear_independent_Union_of_directed,
-  apply directed_of_sup,
-  exact (assume t₁ t₂ ht, Union_subset_Union $ assume i, Union_subset_Union_const $ assume h, ht h),
-  assume t, rw [set.Union, ← finset.sup_eq_supr],
-  refine t.induction_on _ _,
-  { rw finset.sup_empty,
-    apply linear_independent_empty_type (not_nonempty_iff_imp_false.2 _),
-    exact λ x, set.not_mem_empty x (subtype.mem x) },
-  { rintros ⟨i⟩ s his ih,
-    rw [finset.sup_insert],
-    apply linear_independent_union,
-    { apply hl },
-    { apply ih },
-    rw [finset.sup_eq_supr],
-    refine disjoint_mono (le_refl _) _ (hd i _ _ his),
-    { simp only [(span_Union _).symm],
-      refine span_mono (@supr_le_supr2 (set β) _ _ _ _ _ _),
-      rintros ⟨i⟩, exact ⟨i, le_refl _⟩ },
-    { change finite (plift.up ⁻¹' s.to_set),
-      exact finite_preimage (inj_on_of_injective _ (assume i j, plift.up.inj))
-        s.finite_to_set } }
-end
-
-lemma linear_independent_Union_finite {η : Type*} {ιs : η → Type*}
-  {f : Π j : η, ιs j → β}
-  (hindep : ∀j, linear_independent α (f j))
-  (hd : ∀i, ∀t:set η, finite t → i ∉ t →
-      disjoint (span α (range (f i))) (⨆i∈t, span α (range (f i)))) :
-  linear_independent α (λ ji : Σ j, ιs j, f ji.1 ji.2) :=
-begin
-  by_cases zero_eq_one : (0 : α) = 1,
-  { apply linear_independent_of_zero_eq_one zero_eq_one },
-  apply linear_independent.of_subtype_range,
-  { rintros ⟨x₁, x₂⟩ ⟨y₁, y₂⟩ hxy,
-    by_cases h_cases : x₁ = y₁,
-    subst h_cases,
-    { apply sigma.eq,
-      rw linear_independent.injective zero_eq_one (hindep _) hxy,
-      refl },
-    { have h0 : f x₁ x₂ = 0,
-      { apply disjoint_def.1 (hd x₁ {y₁} (finite_singleton y₁)
-          (λ h, h_cases (eq_of_mem_singleton h))) (f x₁ x₂) (subset_span (mem_range_self _)),
-        rw supr_singleton,
-        simp only [] at hxy,
-        rw hxy,
-        exact (subset_span (mem_range_self y₂)) },
-      exact false.elim (ne_zero_of_linear_independent zero_eq_one (hindep x₁) h0) } },
-  rw range_sigma_eq_Union_range,
-  apply linear_independent_Union_finite_subtype (λ j, (hindep j).to_subtype_range) hd,
-end
-
-end subtype
+variables (b b₁ : basis ι R M) (i : ι) (c : R) (x : M)
 
 section repr
-variables (hv : linear_independent α v)
 
-def linear_independent.total_equiv (hv : linear_independent α v) : (ι →₀ α) ≃ₗ[α] span α (range v) :=
-begin
-apply linear_equiv.of_bijective (linear_map.cod_restrict (span α (range v)) (finsupp.total ι β α v) _),
-{ rw linear_map.ker_cod_restrict,
-  apply hv },
-{ rw [linear_map.range, linear_map.map_cod_restrict, ← linear_map.range_le_iff_comap,
-  range_subtype, map_top],
-  rw finsupp.range_total,
-  apply le_refl (span α (range v)) },
-{ intro l,
-  rw ← finsupp.range_total,
-  rw linear_map.mem_range,
-  apply mem_range_self l }
-end
+/-- `b i` is the `i`th basis vector. -/
+instance : has_coe_to_fun (basis ι R M) (λ _, ι → M) :=
+{ coe := λ b i, b.repr.symm (finsupp.single i 1) }
 
-def linear_independent.repr (hv : linear_independent α v) :
-  span α (range v) →ₗ[α] ι →₀ α := hv.total_equiv.symm
+@[simp] lemma coe_of_repr (e : M ≃ₗ[R] (ι →₀ R)) :
+  ⇑(of_repr e) = λ i, e.symm (finsupp.single i 1) :=
+rfl
 
-lemma linear_independent.total_repr (x) : finsupp.total ι β α v (hv.repr x) = x :=
-subtype.coe_ext.1 (linear_equiv.apply_symm_apply hv.total_equiv x)
+protected lemma injective [nontrivial R] : injective b :=
+b.repr.symm.injective.comp (λ _ _, (finsupp.single_left_inj (one_ne_zero : (1 : R) ≠ 0)).mp)
 
-lemma linear_independent.total_comp_repr : (finsupp.total ι β α v).comp hv.repr = submodule.subtype _ :=
-linear_map.ext $ hv.total_repr
+lemma repr_symm_single_one : b.repr.symm (finsupp.single i 1) = b i := rfl
 
-lemma linear_independent.repr_ker : hv.repr.ker = ⊥ :=
-by rw [linear_independent.repr, linear_equiv.ker]
+lemma repr_symm_single : b.repr.symm (finsupp.single i c) = c • b i :=
+calc b.repr.symm (finsupp.single i c)
+    = b.repr.symm (c • finsupp.single i 1) : by rw [finsupp.smul_single', mul_one]
+... = c • b i : by rw [linear_equiv.map_smul, repr_symm_single_one]
 
-lemma linear_independent.repr_range : hv.repr.range = ⊤ :=
-by rw [linear_independent.repr, linear_equiv.range]
+@[simp] lemma repr_self : b.repr (b i) = finsupp.single i 1 :=
+linear_equiv.apply_symm_apply _ _
 
-lemma linear_independent.repr_eq
-  {l : ι →₀ α} {x} (eq : finsupp.total ι β α v l = ↑x) :
-  hv.repr x = l :=
-begin
-  have : ↑((linear_independent.total_equiv hv : (ι →₀ α) →ₗ[α] span α (range v)) l)
-      = finsupp.total ι β α v l := rfl,
-  have : (linear_independent.total_equiv hv : (ι →₀ α) →ₗ[α] span α (range v)) l = x,
-  { rw eq at this,
-    exact subtype.coe_ext.2 this },
-  rw ←linear_equiv.symm_apply_apply hv.total_equiv l,
-  rw ←this,
-  refl,
-end
+lemma repr_self_apply (j) [decidable (i = j)] :
+  b.repr (b i) j = if i = j then 1 else 0 :=
+by rw [repr_self, finsupp.single_apply]
 
-lemma linear_independent.repr_eq_single (i) (x) (hx : ↑x = v i) :
-  hv.repr x = finsupp.single i 1 :=
-begin
-  apply hv.repr_eq,
-  simp [finsupp.total_single, hx]
-end
+@[simp] lemma repr_symm_apply (v) : b.repr.symm v = finsupp.total ι M R b v :=
+calc b.repr.symm v = b.repr.symm (v.sum finsupp.single) : by simp
+... = ∑ i in v.support, b.repr.symm (finsupp.single i (v i)) :
+  by rw [finsupp.sum, linear_equiv.map_sum]
+... = finsupp.total ι M R b v :
+  by simp [repr_symm_single, finsupp.total_apply, finsupp.sum]
 
-lemma linear_independent_iff_not_smul_mem_span :
-  linear_independent α v ↔ (∀ (i : ι) (a : α), a • (v i) ∈ span α (v '' (univ \ {i})) → a = 0) :=
-⟨ λ hv i a ha, begin
-  rw [finsupp.span_eq_map_total, mem_map] at ha,
-  rcases ha with ⟨l, hl, e⟩,
-  rw sub_eq_zero.1 (linear_independent_iff.1 hv (l - finsupp.single i a) (by simp [e])) at hl,
-  by_contra hn,
-  exact (not_mem_of_mem_diff (hl $ by simp [hn])) (mem_singleton _),
-end, λ H, linear_independent_iff.2 $ λ l hl, begin
-  ext i, simp,
-  by_contra hn,
-  refine hn (H i _ _),
-  refine (finsupp.mem_span_iff_total _).2 ⟨finsupp.single i (l i) - l, _, _⟩,
-  { rw finsupp.mem_supported',
-    intros j hj,
-    have hij : j = i :=
-      classical.not_not.1
-          (λ hij : j ≠ i, hj ((mem_diff _).2 ⟨mem_univ _, λ h, hij (eq_of_mem_singleton h)⟩)),
-    simp [hij] },
-  { simp [hl] }
-end⟩
+@[simp] lemma coe_repr_symm : ↑b.repr.symm = finsupp.total ι M R b :=
+linear_map.ext (λ v, b.repr_symm_apply v)
+
+@[simp] lemma repr_total (v) : b.repr (finsupp.total _ _ _ b v) = v :=
+by { rw ← b.coe_repr_symm, exact b.repr.apply_symm_apply v }
+
+@[simp] lemma total_repr : finsupp.total _ _ _ b (b.repr x) = x :=
+by { rw ← b.coe_repr_symm, exact b.repr.symm_apply_apply x }
+
+lemma repr_range : (b.repr : M →ₗ[R] (ι →₀ R)).range = finsupp.supported R R univ :=
+by rw [linear_equiv.range, finsupp.supported_univ]
+
+lemma mem_span_repr_support {ι : Type*} (b : basis ι R M) (m : M) :
+  m ∈ span R (b '' (b.repr m).support) :=
+(finsupp.mem_span_image_iff_total _).2 ⟨b.repr m, (by simp [finsupp.mem_supported_support])⟩
 
 end repr
 
-lemma surjective_of_linear_independent_of_span
-  (hv : linear_independent α v) (f : ι' ↪ ι)
-  (hss : range v ⊆ span α (range (v ∘ f))) (zero_ne_one : 0 ≠ (1 : α)):
-  surjective f :=
+section coord
+
+/-- `b.coord i` is the linear function giving the `i`'th coordinate of a vector
+with respect to the basis `b`.
+
+`b.coord i` is an element of the dual space. In particular, for
+finite-dimensional spaces it is the `ι`th basis vector of the dual space.
+-/
+@[simps]
+def coord : M →ₗ[R] R := (finsupp.lapply i) ∘ₗ ↑b.repr
+
+lemma forall_coord_eq_zero_iff {x : M} :
+  (∀ i, b.coord i x = 0) ↔ x = 0 :=
+iff.trans
+  (by simp only [b.coord_apply, finsupp.ext_iff, finsupp.zero_apply])
+  b.repr.map_eq_zero_iff
+
+/-- The sum of the coordinates of an element `m : M` with respect to a basis. -/
+noncomputable def sum_coords : M →ₗ[R] R :=
+finsupp.lsum ℕ (λ i, linear_map.id) ∘ₗ (b.repr : M →ₗ[R] ι →₀ R)
+
+@[simp] lemma coe_sum_coords : (b.sum_coords : M → R) = λ m, (b.repr m).sum (λ i, id) :=
+rfl
+
+lemma coe_sum_coords_eq_finsum : (b.sum_coords : M → R) = λ m, ∑ᶠ i, b.coord i m :=
 begin
-  intros i,
-  let repr : (span α (range (v ∘ f)) : Type*) → ι' →₀ α := (hv.comp f f.inj).repr,
-  let l := (repr ⟨v i, hss (mem_range_self i)⟩).map_domain f,
-  have h_total_l : finsupp.total ι β α v l = v i,
-  { dsimp only [l],
-    rw finsupp.total_map_domain,
-    rw (hv.comp f f.inj).total_repr,
-    { refl },
-    { exact f.inj } },
-  have h_total_eq : (finsupp.total ι β α v) l = (finsupp.total ι β α v) (finsupp.single i 1),
-    by rw [h_total_l, finsupp.total_single, one_smul],
-  have l_eq : l = _ := linear_map.ker_eq_bot.1 hv h_total_eq,
-  dsimp only [l] at l_eq,
-  rw ←finsupp.emb_domain_eq_map_domain at l_eq,
-  rcases finsupp.single_of_emb_domain_single (repr ⟨v i, _⟩) f i (1 : α) zero_ne_one.symm l_eq with ⟨i', hi'⟩,
-  use i',
-  exact hi'.2
+  ext m,
+  simp only [basis.sum_coords, basis.coord, finsupp.lapply_apply, linear_map.id_coe,
+    linear_equiv.coe_coe, function.comp_app, finsupp.coe_lsum, linear_map.coe_comp,
+    finsum_eq_sum _ (b.repr m).finite_support, finsupp.sum, finset.finite_to_set_to_finset,
+    id.def, finsupp.fun_support_eq],
 end
 
-lemma eq_of_linear_independent_of_span_subtype {s t : set β} (zero_ne_one : (0 : α) ≠ 1)
-  (hs : linear_independent α (λ x, x : s → β)) (h : t ⊆ s) (hst : s ⊆ span α t) : s = t :=
+@[simp] lemma coe_sum_coords_of_fintype [fintype ι] : (b.sum_coords : M → R) = ∑ i, b.coord i :=
 begin
-  let f : t ↪ s := ⟨λ x, ⟨x.1, h x.2⟩, λ a b hab, subtype.val_injective (subtype.mk.inj hab)⟩,
-  have h_surj : surjective f,
-  { apply surjective_of_linear_independent_of_span hs f _ zero_ne_one,
-    convert hst; simp [f, comp], },
-  show s = t,
-  { apply subset.antisymm _ h,
-    intros x hx,
-    rcases h_surj ⟨x, hx⟩ with ⟨y, hy⟩,
-    convert y.mem,
-    rw ← subtype.mk.inj hy,
-    refl }
+  ext m,
+  simp only [sum_coords, finsupp.sum_fintype, linear_map.id_coe, linear_equiv.coe_coe, coord_apply,
+    id.def, fintype.sum_apply, implies_true_iff, eq_self_iff_true, finsupp.coe_lsum,
+    linear_map.coe_comp],
 end
+
+@[simp] lemma sum_coords_self_apply : b.sum_coords (b i) = 1 :=
+by simp only [basis.sum_coords, linear_map.id_coe, linear_equiv.coe_coe, id.def, basis.repr_self,
+  function.comp_app, finsupp.coe_lsum, linear_map.coe_comp, finsupp.sum_single_index]
+
+end coord
+
+section ext
+
+variables {R₁ : Type*} [semiring R₁] {σ : R →+* R₁} {σ' : R₁ →+* R}
+variables [ring_hom_inv_pair σ σ'] [ring_hom_inv_pair σ' σ]
+variables {M₁ : Type*} [add_comm_monoid M₁] [module R₁ M₁]
+
+/-- Two linear maps are equal if they are equal on basis vectors. -/
+theorem ext {f₁ f₂ : M →ₛₗ[σ] M₁} (h : ∀ i, f₁ (b i) = f₂ (b i)) : f₁ = f₂ :=
+by { ext x,
+     rw [← b.total_repr x, finsupp.total_apply, finsupp.sum],
+     simp only [linear_map.map_sum, linear_map.map_smulₛₗ, h] }
+
+include σ'
+
+/-- Two linear equivs are equal if they are equal on basis vectors. -/
+theorem ext' {f₁ f₂ : M ≃ₛₗ[σ] M₁} (h : ∀ i, f₁ (b i) = f₂ (b i)) : f₁ = f₂ :=
+by { ext x,
+      rw [← b.total_repr x, finsupp.total_apply, finsupp.sum],
+      simp only [linear_equiv.map_sum, linear_equiv.map_smulₛₗ, h] }
+
+omit σ'
+
+/-- Two elements are equal if their coordinates are equal. -/
+theorem ext_elem {x y : M}
+  (h : ∀ i, b.repr x i = b.repr y i) : x = y :=
+by { rw [← b.total_repr x, ← b.total_repr y], congr' 1, ext i, exact h i }
+
+lemma repr_eq_iff {b : basis ι R M} {f : M →ₗ[R] ι →₀ R} :
+  ↑b.repr = f ↔ ∀ i, f (b i) = finsupp.single i 1 :=
+⟨λ h i, h ▸ b.repr_self i,
+ λ h, b.ext (λ i, (b.repr_self i).trans (h i).symm)⟩
+
+lemma repr_eq_iff' {b : basis ι R M} {f : M ≃ₗ[R] ι →₀ R} :
+  b.repr = f ↔ ∀ i, f (b i) = finsupp.single i 1 :=
+⟨λ h i, h ▸ b.repr_self i,
+  λ h, b.ext' (λ i, (b.repr_self i).trans (h i).symm)⟩
+
+lemma apply_eq_iff {b : basis ι R M} {x : M} {i : ι} :
+  b i = x ↔ b.repr x = finsupp.single i 1 :=
+⟨λ h, h ▸ b.repr_self i,
+ λ h, b.repr.injective ((b.repr_self i).trans h.symm)⟩
+
+/-- An unbundled version of `repr_eq_iff` -/
+lemma repr_apply_eq (f : M → ι → R)
+  (hadd : ∀ x y, f (x + y) = f x + f y) (hsmul : ∀ (c : R) (x : M), f (c • x) = c • f x)
+  (f_eq : ∀ i, f (b i) = finsupp.single i 1) (x : M) (i : ι) :
+  b.repr x i = f x i :=
+begin
+  let f_i : M →ₗ[R] R :=
+  { to_fun := λ x, f x i,
+    map_add' := λ _ _, by rw [hadd, pi.add_apply],
+    map_smul' := λ _ _, by { simp [hsmul, pi.smul_apply] } },
+  have : (finsupp.lapply i) ∘ₗ ↑b.repr = f_i,
+  { refine b.ext (λ j, _),
+    show b.repr (b j) i = f (b j) i,
+    rw [b.repr_self, f_eq] },
+  calc b.repr x i = f_i x : by { rw ← this, refl }
+              ... = f x i : rfl
+end
+
+/-- Two bases are equal if they assign the same coordinates. -/
+lemma eq_of_repr_eq_repr {b₁ b₂ : basis ι R M} (h : ∀ x i, b₁.repr x i = b₂.repr x i) :
+  b₁ = b₂ :=
+have b₁.repr = b₂.repr, by { ext, apply h },
+by { cases b₁, cases b₂, simpa }
+
+/-- Two bases are equal if their basis vectors are the same. -/
+@[ext] lemma eq_of_apply_eq {b₁ b₂ : basis ι R M} (h : ∀ i, b₁ i = b₂ i) : b₁ = b₂ :=
+suffices b₁.repr = b₂.repr, by { cases b₁, cases b₂, simpa },
+repr_eq_iff'.mpr (λ i, by rw [h, b₂.repr_self])
+
+end ext
+
+section map
+
+variables (f : M ≃ₗ[R] M')
+
+/-- Apply the linear equivalence `f` to the basis vectors. -/
+@[simps] protected def map : basis ι R M' :=
+of_repr (f.symm.trans b.repr)
+
+@[simp] lemma map_apply (i) : b.map f i = f (b i) := rfl
+
+end map
+
+section map_coeffs
+
+variables {R' : Type*} [semiring R'] [module R' M] (f : R ≃+* R') (h : ∀ c (x : M), f c • x = c • x)
+
+include f h b
+
+local attribute [instance] has_scalar.comp.is_scalar_tower
+
+/-- If `R` and `R'` are isomorphic rings that act identically on a module `M`,
+then a basis for `M` as `R`-module is also a basis for `M` as `R'`-module.
+
+See also `basis.algebra_map_coeffs` for the case where `f` is equal to `algebra_map`.
+-/
+@[simps {simp_rhs := tt}]
+def map_coeffs : basis ι R' M :=
+begin
+  letI : module R' R := module.comp_hom R (↑f.symm : R' →+* R),
+  haveI : is_scalar_tower R' R M :=
+  { smul_assoc := λ x y z, begin dsimp [(•)],  rw [mul_smul, ←h, f.apply_symm_apply], end },
+  exact (of_repr $ (b.repr.restrict_scalars R').trans $
+    finsupp.map_range.linear_equiv (module.comp_hom.to_linear_equiv f.symm).symm )
+end
+
+lemma map_coeffs_apply (i : ι) : b.map_coeffs f h i = b i :=
+apply_eq_iff.mpr $ by simp [f.to_add_equiv_eq_coe]
+
+@[simp] lemma coe_map_coeffs : (b.map_coeffs f h : ι → M) = b :=
+funext $ b.map_coeffs_apply f h
+
+end map_coeffs
+
+section reindex
+
+variables (b' : basis ι' R M')
+variables (e : ι ≃ ι')
+
+/-- `b.reindex (e : ι ≃ ι')` is a basis indexed by `ι'` -/
+def reindex : basis ι' R M :=
+basis.of_repr (b.repr.trans (finsupp.dom_lcongr e))
+
+lemma reindex_apply (i' : ι') : b.reindex e i' = b (e.symm i') :=
+show (b.repr.trans (finsupp.dom_lcongr e)).symm (finsupp.single i' 1) =
+  b.repr.symm (finsupp.single (e.symm i') 1),
+by rw [linear_equiv.symm_trans_apply, finsupp.dom_lcongr_symm, finsupp.dom_lcongr_single]
+
+@[simp] lemma coe_reindex : (b.reindex e : ι' → M) = b ∘ e.symm :=
+funext (b.reindex_apply e)
+
+@[simp] lemma coe_reindex_repr : ((b.reindex e).repr x : ι' → R) = b.repr x ∘ e.symm :=
+funext $ λ i',
+show (finsupp.dom_lcongr e : _ ≃ₗ[R] _) (b.repr x) i' = _,
+by simp
+
+@[simp] lemma reindex_repr (i' : ι') : (b.reindex e).repr x i' = b.repr x (e.symm i') :=
+by rw coe_reindex_repr
+
+@[simp] lemma reindex_refl : b.reindex (equiv.refl ι) = b :=
+eq_of_apply_eq $ λ i, by simp
+
+/-- `simp` normal form version of `range_reindex` -/
+@[simp] lemma range_reindex' : set.range (b ∘ e.symm) = set.range b :=
+by rw [range_comp, equiv.range_eq_univ, set.image_univ]
+
+lemma range_reindex : set.range (b.reindex e) = set.range b :=
+by rw [coe_reindex, range_reindex']
+
+/-- `b.reindex_range` is a basis indexed by `range b`, the basis vectors themselves. -/
+def reindex_range : basis (range b) R M :=
+if h : nontrivial R then
+  by letI := h; exact b.reindex (equiv.of_injective b (basis.injective b))
+else
+  by letI : subsingleton R := not_nontrivial_iff_subsingleton.mp h; exact
+    basis.of_repr (module.subsingleton_equiv R M (range b))
+
+lemma finsupp.single_apply_left {α β γ : Type*} [has_zero γ]
+  {f : α → β} (hf : function.injective f)
+  (x z : α) (y : γ) :
+  finsupp.single (f x) y (f z) = finsupp.single x y z :=
+by simp [finsupp.single_apply, hf.eq_iff]
+
+lemma reindex_range_self (i : ι) (h := set.mem_range_self i) :
+  b.reindex_range ⟨b i, h⟩ = b i :=
+begin
+  by_cases htr : nontrivial R,
+  { letI := htr,
+    simp [htr, reindex_range, reindex_apply, equiv.apply_of_injective_symm b.injective,
+      subtype.coe_mk] },
+  { letI : subsingleton R := not_nontrivial_iff_subsingleton.mp htr,
+    letI := module.subsingleton R M,
+    simp [reindex_range] }
+end
+
+lemma reindex_range_repr_self (i : ι) :
+  b.reindex_range.repr (b i) = finsupp.single ⟨b i, mem_range_self i⟩ 1 :=
+calc b.reindex_range.repr (b i) = b.reindex_range.repr (b.reindex_range ⟨b i, mem_range_self i⟩) :
+  congr_arg _ (b.reindex_range_self _ _).symm
+... = finsupp.single ⟨b i, mem_range_self i⟩ 1 : b.reindex_range.repr_self _
+
+@[simp] lemma reindex_range_apply (x : range b) : b.reindex_range x = x :=
+by { rcases x with ⟨bi, ⟨i, rfl⟩⟩, exact b.reindex_range_self i, }
+
+lemma reindex_range_repr' (x : M) {bi : M} {i : ι} (h : b i = bi) :
+  b.reindex_range.repr x ⟨bi, ⟨i, h⟩⟩ = b.repr x i :=
+begin
+  nontriviality,
+  subst h,
+  refine (b.repr_apply_eq (λ x i, b.reindex_range.repr x ⟨b i, _⟩) _ _ _ x i).symm,
+  { intros x y,
+    ext i,
+    simp only [pi.add_apply, linear_equiv.map_add, finsupp.coe_add] },
+  { intros c x,
+    ext i,
+    simp only [pi.smul_apply, linear_equiv.map_smul, finsupp.coe_smul] },
+  { intros i,
+    ext j,
+    simp only [reindex_range_repr_self],
+    refine @finsupp.single_apply_left _ _ _ _ (λ i, (⟨b i, _⟩ : set.range b)) _ _ _ _,
+    exact λ i j h, b.injective (subtype.mk.inj h) }
+end
+
+@[simp] lemma reindex_range_repr (x : M) (i : ι) (h := set.mem_range_self i) :
+  b.reindex_range.repr x ⟨b i, h⟩ = b.repr x i :=
+b.reindex_range_repr' _ rfl
+
+section fintype
+
+variables [fintype ι]
+
+/-- `b.reindex_finset_range` is a basis indexed by `finset.univ.image b`,
+the finite set of basis vectors themselves. -/
+def reindex_finset_range : basis (finset.univ.image b) R M :=
+b.reindex_range.reindex ((equiv.refl M).subtype_equiv (by simp))
+
+lemma reindex_finset_range_self (i : ι) (h := finset.mem_image_of_mem b (finset.mem_univ i)) :
+  b.reindex_finset_range ⟨b i, h⟩ = b i :=
+by { rw [reindex_finset_range, reindex_apply, reindex_range_apply], refl }
+
+@[simp] lemma reindex_finset_range_apply (x : finset.univ.image b) :
+  b.reindex_finset_range x = x :=
+by { rcases x with ⟨bi, hbi⟩, rcases finset.mem_image.mp hbi with ⟨i, -, rfl⟩,
+     exact b.reindex_finset_range_self i }
+
+lemma reindex_finset_range_repr_self (i : ι) :
+  b.reindex_finset_range.repr (b i) =
+    finsupp.single ⟨b i, finset.mem_image_of_mem b (finset.mem_univ i)⟩ 1 :=
+begin
+  ext ⟨bi, hbi⟩,
+  rw [reindex_finset_range, reindex_repr, reindex_range_repr_self],
+  convert finsupp.single_apply_left ((equiv.refl M).subtype_equiv _).symm.injective _ _ _,
+  refl
+end
+
+@[simp] lemma reindex_finset_range_repr (x : M) (i : ι)
+  (h := finset.mem_image_of_mem b (finset.mem_univ i)) :
+  b.reindex_finset_range.repr x ⟨b i, h⟩ = b.repr x i :=
+by simp [reindex_finset_range]
+
+end fintype
+
+end reindex
+
+protected lemma linear_independent : linear_independent R b :=
+linear_independent_iff.mpr $ λ l hl,
+calc l = b.repr (finsupp.total _ _ _ b l) : (b.repr_total l).symm
+   ... = 0 : by rw [hl, linear_equiv.map_zero]
+
+protected lemma ne_zero [nontrivial R] (i) : b i ≠ 0 :=
+b.linear_independent.ne_zero i
+
+protected lemma mem_span (x : M) : x ∈ span R (range b) :=
+by { rw [← b.total_repr x, finsupp.total_apply, finsupp.sum],
+     exact submodule.sum_mem _ (λ i hi, submodule.smul_mem _ _ (submodule.subset_span ⟨i, rfl⟩)) }
+
+protected lemma span_eq : span R (range b) = ⊤ :=
+eq_top_iff.mpr $ λ x _, b.mem_span x
+
+lemma index_nonempty (b : basis ι R M) [nontrivial M] : nonempty ι :=
+begin
+  obtain ⟨x, y, ne⟩ : ∃ (x y : M), x ≠ y := nontrivial.exists_pair_ne,
+  obtain ⟨i, _⟩ := not_forall.mp (mt b.ext_elem ne),
+  exact ⟨i⟩
+end
+
+section constr
+
+variables (S : Type*) [semiring S] [module S M']
+variables [smul_comm_class R S M']
+
+/-- Construct a linear map given the value at the basis.
+
+This definition is parameterized over an extra `semiring S`,
+such that `smul_comm_class R S M'` holds.
+If `R` is commutative, you can set `S := R`; if `R` is not commutative,
+you can recover an `add_equiv` by setting `S := ℕ`.
+See library note [bundled maps over different rings].
+-/
+def constr : (ι → M') ≃ₗ[S] (M →ₗ[R] M') :=
+{ to_fun := λ f, (finsupp.total M' M' R id).comp $ (finsupp.lmap_domain R R f) ∘ₗ ↑b.repr,
+  inv_fun := λ f i, f (b i),
+  left_inv := λ f, by { ext, simp },
+  right_inv := λ f, by { refine b.ext (λ i, _), simp },
+  map_add' := λ f g, by { refine b.ext (λ i, _), simp },
+  map_smul' := λ c f, by { refine b.ext (λ i, _), simp } }
+
+theorem constr_def (f : ι → M') :
+  b.constr S f = (finsupp.total M' M' R id) ∘ₗ ((finsupp.lmap_domain R R f) ∘ₗ ↑b.repr) :=
+rfl
+
+theorem constr_apply (f : ι → M') (x : M) :
+  b.constr S f x = (b.repr x).sum (λ b a, a • f b) :=
+by { simp only [constr_def, linear_map.comp_apply, finsupp.lmap_domain_apply, finsupp.total_apply],
+     rw finsupp.sum_map_domain_index; simp [add_smul] }
+
+@[simp] lemma constr_basis (f : ι → M') (i : ι) :
+  (b.constr S f : M → M') (b i) = f i :=
+by simp [basis.constr_apply, b.repr_self]
+
+lemma constr_eq {g : ι → M'} {f : M →ₗ[R] M'}
+  (h : ∀i, g i = f (b i)) : b.constr S g = f :=
+b.ext $ λ i, (b.constr_basis S g i).trans (h i)
+
+lemma constr_self (f : M →ₗ[R] M') : b.constr S (λ i, f (b i)) = f :=
+b.constr_eq S $ λ x, rfl
+
+lemma constr_range [nonempty ι] {f : ι  → M'} :
+  (b.constr S f).range = span R (range f) :=
+by rw [b.constr_def S f, linear_map.range_comp, linear_map.range_comp, linear_equiv.range,
+       ← finsupp.supported_univ, finsupp.lmap_domain_supported, ←set.image_univ,
+       ← finsupp.span_image_eq_map_total, set.image_id]
+
+@[simp]
+lemma constr_comp (f : M' →ₗ[R] M') (v : ι → M') :
+  b.constr S (f ∘ v) = f.comp (b.constr S v) :=
+b.ext (λ i, by simp only [basis.constr_basis, linear_map.comp_apply])
+
+end constr
+
+section equiv
+
+variables (b' : basis ι' R M') (e : ι ≃ ι')
+variables [add_comm_monoid M''] [module R M'']
+
+/-- If `b` is a basis for `M` and `b'` a basis for `M'`, and the index types are equivalent,
+`b.equiv b' e` is a linear equivalence `M ≃ₗ[R] M'`, mapping `b i` to `b' (e i)`. -/
+protected def equiv : M ≃ₗ[R] M' :=
+b.repr.trans (b'.reindex e.symm).repr.symm
+
+@[simp] lemma equiv_apply : b.equiv b' e (b i) = b' (e i) :=
+by simp [basis.equiv]
+
+@[simp] lemma equiv_refl :
+  b.equiv b (equiv.refl ι) = linear_equiv.refl R M :=
+b.ext' (λ i, by simp)
+
+@[simp] lemma equiv_symm : (b.equiv b' e).symm = b'.equiv b e.symm :=
+b'.ext' $ λ i, (b.equiv b' e).injective (by simp)
+
+@[simp] lemma equiv_trans {ι'' : Type*} (b'' : basis ι'' R M'')
+  (e : ι ≃ ι') (e' : ι' ≃ ι'') :
+  (b.equiv b' e).trans (b'.equiv b'' e') = b.equiv b'' (e.trans e') :=
+b.ext' (λ i, by simp)
+
+@[simp]
+lemma map_equiv (b : basis ι R M) (b' : basis ι' R M') (e : ι ≃ ι') :
+  b.map (b.equiv b' e) = b'.reindex e.symm :=
+by { ext i, simp }
+
+end equiv
+
+section prod
+
+variables (b' : basis ι' R M')
+
+/-- `basis.prod` maps a `ι`-indexed basis for `M` and a `ι'`-indexed basis for `M'`
+to a `ι ⊕ ι'`-index basis for `M × M'`. -/
+protected def prod : basis (ι ⊕ ι') R (M × M') :=
+of_repr ((b.repr.prod b'.repr).trans (finsupp.sum_finsupp_lequiv_prod_finsupp R).symm)
+
+@[simp]
+lemma prod_repr_inl (x) (i) : (b.prod b').repr x (sum.inl i) = b.repr x.1 i := rfl
+
+@[simp]
+lemma prod_repr_inr (x) (i) : (b.prod b').repr x (sum.inr i) = b'.repr x.2 i := rfl
+
+lemma prod_apply_inl_fst (i) :
+  (b.prod b' (sum.inl i)).1 = b i :=
+b.repr.injective $ by
+{ ext j,
+  simp only [basis.prod, basis.coe_of_repr, linear_equiv.symm_trans_apply, linear_equiv.prod_symm,
+      linear_equiv.prod_apply, b.repr.apply_symm_apply, linear_equiv.symm_symm, repr_self,
+      equiv.to_fun_as_coe, finsupp.fst_sum_finsupp_lequiv_prod_finsupp],
+  apply finsupp.single_apply_left sum.inl_injective }
+
+lemma prod_apply_inr_fst (i) :
+(b.prod b' (sum.inr i)).1 = 0 :=
+b.repr.injective $ by
+{ ext i,
+  simp only [basis.prod, basis.coe_of_repr, linear_equiv.symm_trans_apply, linear_equiv.prod_symm,
+      linear_equiv.prod_apply, b.repr.apply_symm_apply, linear_equiv.symm_symm, repr_self,
+      equiv.to_fun_as_coe, finsupp.fst_sum_finsupp_lequiv_prod_finsupp, linear_equiv.map_zero,
+      finsupp.zero_apply],
+  apply finsupp.single_eq_of_ne sum.inr_ne_inl }
+
+lemma prod_apply_inl_snd (i) :
+  (b.prod b' (sum.inl i)).2 = 0 :=
+b'.repr.injective $ by
+{ ext j,
+  simp only [basis.prod, basis.coe_of_repr, linear_equiv.symm_trans_apply, linear_equiv.prod_symm,
+      linear_equiv.prod_apply, b'.repr.apply_symm_apply, linear_equiv.symm_symm, repr_self,
+      equiv.to_fun_as_coe, finsupp.snd_sum_finsupp_lequiv_prod_finsupp, linear_equiv.map_zero,
+      finsupp.zero_apply],
+  apply finsupp.single_eq_of_ne sum.inl_ne_inr }
+
+lemma prod_apply_inr_snd (i) :
+(b.prod b' (sum.inr i)).2 = b' i :=
+b'.repr.injective $ by
+{ ext i,
+  simp only [basis.prod, basis.coe_of_repr, linear_equiv.symm_trans_apply, linear_equiv.prod_symm,
+      linear_equiv.prod_apply, b'.repr.apply_symm_apply, linear_equiv.symm_symm, repr_self,
+      equiv.to_fun_as_coe, finsupp.snd_sum_finsupp_lequiv_prod_finsupp],
+  apply finsupp.single_apply_left sum.inr_injective }
+
+@[simp]
+lemma prod_apply (i) :
+  b.prod b' i = sum.elim (linear_map.inl R M M' ∘ b) (linear_map.inr R M M' ∘ b') i :=
+by { ext; cases i; simp only [prod_apply_inl_fst, sum.elim_inl, linear_map.inl_apply,
+                              prod_apply_inr_fst, sum.elim_inr, linear_map.inr_apply,
+                              prod_apply_inl_snd, prod_apply_inr_snd, comp_app] }
+
+end prod
+
+section no_zero_smul_divisors
+
+-- Can't be an instance because the basis can't be inferred.
+protected lemma no_zero_smul_divisors [no_zero_divisors R] (b : basis ι R M) :
+  no_zero_smul_divisors R M :=
+⟨λ c x hcx, or_iff_not_imp_right.mpr (λ hx, begin
+  rw [← b.total_repr x, ← linear_map.map_smul] at hcx,
+  have := linear_independent_iff.mp b.linear_independent (c • b.repr x) hcx,
+  rw smul_eq_zero at this,
+  exact this.resolve_right (λ hr, hx (b.repr.map_eq_zero_iff.mp hr))
+end)⟩
+
+protected lemma smul_eq_zero [no_zero_divisors R] (b : basis ι R M) {c : R} {x : M} :
+  c • x = 0 ↔ c = 0 ∨ x = 0 :=
+@smul_eq_zero _ _ _ _ _ b.no_zero_smul_divisors _ _
+
+lemma _root_.eq_bot_of_rank_eq_zero [no_zero_divisors R] (b : basis ι R M) (N : submodule R M)
+  (rank_eq : ∀ {m : ℕ} (v : fin m → N),
+    linear_independent R (coe ∘ v : fin m → M) → m = 0) :
+  N = ⊥ :=
+begin
+  rw submodule.eq_bot_iff,
+  intros x hx,
+  contrapose! rank_eq with x_ne,
+  refine ⟨1, λ _, ⟨x, hx⟩, _, one_ne_zero⟩,
+  rw fintype.linear_independent_iff,
+  rintros g sum_eq i,
+  cases i,
+  simp only [function.const_apply, fin.default_eq_zero, submodule.coe_mk, finset.univ_unique,
+             function.comp_const, finset.sum_singleton] at sum_eq,
+  convert (b.smul_eq_zero.mp sum_eq).resolve_right x_ne
+end
+
+end no_zero_smul_divisors
+
+section singleton
+
+/-- `basis.singleton ι R` is the basis sending the unique element of `ι` to `1 : R`. -/
+protected def singleton (ι R : Type*) [unique ι] [semiring R] :
+  basis ι R R :=
+of_repr
+{ to_fun := λ x, finsupp.single default x,
+  inv_fun := λ f, f default,
+  left_inv := λ x, by simp,
+  right_inv := λ f, finsupp.unique_ext (by simp),
+  map_add' := λ x y, by simp,
+  map_smul' := λ c x, by simp }
+
+@[simp] lemma singleton_apply (ι R : Type*) [unique ι] [semiring R] (i) :
+  basis.singleton ι R i = 1 :=
+apply_eq_iff.mpr (by simp [basis.singleton])
+
+@[simp] lemma singleton_repr (ι R : Type*) [unique ι] [semiring R] (x i) :
+  (basis.singleton ι R).repr x i = x :=
+by simp [basis.singleton, unique.eq_default i]
+
+lemma basis_singleton_iff
+  {R M : Type*} [ring R] [nontrivial R] [add_comm_group M] [module R M] [no_zero_smul_divisors R M]
+  (ι : Type*) [unique ι] :
+  nonempty (basis ι R M) ↔ ∃ x ≠ 0, ∀ y : M, ∃ r : R, r • x = y :=
+begin
+  fsplit,
+  { rintro ⟨b⟩,
+    refine ⟨b default, b.linear_independent.ne_zero _, _⟩,
+    simpa [span_singleton_eq_top_iff, set.range_unique] using b.span_eq },
+  { rintro ⟨x, nz, w⟩,
+    refine ⟨of_repr $ linear_equiv.symm
+      { to_fun := λ f, f default • x,
+        inv_fun := λ y, finsupp.single default (w y).some,
+        left_inv := λ f, finsupp.unique_ext _,
+        right_inv := λ y, _,
+        map_add' := λ y z, _,
+        map_smul' := λ c y, _ }⟩,
+    { rw [finsupp.add_apply, add_smul] },
+    { rw [finsupp.smul_apply, smul_assoc], simp },
+    { refine smul_left_injective _ nz _,
+      simp only [finsupp.single_eq_same],
+      exact (w (f default • x)).some_spec },
+    { simp only [finsupp.single_eq_same],
+      exact (w y).some_spec } }
+end
+
+end singleton
+
+section empty
+
+variables (M)
+
+/-- If `M` is a subsingleton and `ι` is empty, this is the unique `ι`-indexed basis for `M`. -/
+protected def empty [subsingleton M] [is_empty ι] : basis ι R M :=
+of_repr 0
+
+instance empty_unique [subsingleton M] [is_empty ι] : unique (basis ι R M) :=
+{ default := basis.empty M, uniq := λ ⟨x⟩, congr_arg of_repr $ subsingleton.elim _ _ }
+
+end empty
+
+end basis
+
+section fintype
+
+open basis
+open fintype
+
+variables [fintype ι] (b : basis ι R M)
+
+/-- A module over `R` with a finite basis is linearly equivalent to functions from its basis to `R`.
+-/
+def basis.equiv_fun : M ≃ₗ[R] (ι → R) :=
+linear_equiv.trans b.repr
+  ({ to_fun := coe_fn,
+     map_add' := finsupp.coe_add,
+     map_smul' := finsupp.coe_smul,
+     ..finsupp.equiv_fun_on_fintype } : (ι →₀ R) ≃ₗ[R] (ι → R))
+
+/-- A module over a finite ring that admits a finite basis is finite. -/
+def module.fintype_of_fintype [fintype R] : fintype M :=
+fintype.of_equiv _ b.equiv_fun.to_equiv.symm
+
+theorem module.card_fintype [fintype R] [fintype M] :
+  card M = (card R) ^ (card ι) :=
+calc card M = card (ι → R)    : card_congr b.equiv_fun.to_equiv
+        ... = card R ^ card ι : card_fun
+
+/-- Given a basis `v` indexed by `ι`, the canonical linear equivalence between `ι → R` and `M` maps
+a function `x : ι → R` to the linear combination `∑_i x i • v i`. -/
+@[simp] lemma basis.equiv_fun_symm_apply (x : ι → R) :
+  b.equiv_fun.symm x = ∑ i, x i • b i :=
+by simp [basis.equiv_fun, finsupp.total_apply, finsupp.sum_fintype]
+
+@[simp]
+lemma basis.equiv_fun_apply (u : M) : b.equiv_fun u = b.repr u := rfl
+
+lemma basis.sum_equiv_fun (u : M) : ∑ i, b.equiv_fun u i • b i = u :=
+begin
+  conv_rhs { rw ← b.total_repr u },
+  simp [finsupp.total_apply, finsupp.sum_fintype, b.equiv_fun_apply]
+end
+
+lemma basis.sum_repr (u : M) : ∑ i, b.repr u i • b i = u :=
+b.sum_equiv_fun u
+
+@[simp]
+lemma basis.equiv_fun_self (i j : ι) : b.equiv_fun (b i) j = if i = j then 1 else 0 :=
+by { rw [b.equiv_fun_apply, b.repr_self_apply] }
+
+/-- Define a basis by mapping each vector `x : M` to its coordinates `e x : ι → R`,
+as long as `ι` is finite. -/
+def basis.of_equiv_fun (e : M ≃ₗ[R] (ι → R)) : basis ι R M :=
+basis.of_repr $ e.trans $ linear_equiv.symm $ finsupp.linear_equiv_fun_on_fintype R R ι
+
+@[simp] lemma basis.of_equiv_fun_repr_apply (e : M ≃ₗ[R] (ι → R)) (x : M) (i : ι) :
+  (basis.of_equiv_fun e).repr x i = e x i := rfl
+
+@[simp] lemma basis.coe_of_equiv_fun (e : M ≃ₗ[R] (ι → R)) :
+  (basis.of_equiv_fun e : ι → M) = λ i, e.symm (function.update 0 i 1) :=
+funext $ λ i, e.injective $ funext $ λ j,
+  by simp [basis.of_equiv_fun, ←finsupp.single_eq_pi_single, finsupp.single_eq_update]
+
+variables (S : Type*) [semiring S] [module S M']
+variables [smul_comm_class R S M']
+
+@[simp] theorem basis.constr_apply_fintype (f : ι → M') (x : M) :
+  (b.constr S f : M → M') x = ∑ i, (b.equiv_fun x i) • f i :=
+by simp [b.constr_apply, b.equiv_fun_apply, finsupp.sum_fintype]
+
+end fintype
+
+end module
+
+section comm_semiring
+
+namespace basis
+
+variables [comm_semiring R]
+variables [add_comm_monoid M] [module R M] [add_comm_monoid M'] [module R M']
+variables (b : basis ι R M) (b' : basis ι' R M')
+
+/-- If `b` is a basis for `M` and `b'` a basis for `M'`,
+and `f`, `g` form a bijection between the basis vectors,
+`b.equiv' b' f g hf hg hgf hfg` is a linear equivalence `M ≃ₗ[R] M'`, mapping `b i` to `f (b i)`.
+-/
+def equiv' (f : M → M') (g : M' → M)
+  (hf : ∀ i, f (b i) ∈ range b') (hg : ∀ i, g (b' i) ∈ range b)
+  (hgf : ∀i, g (f (b i)) = b i) (hfg : ∀i, f (g (b' i)) = b' i) :
+  M ≃ₗ[R] M' :=
+{ inv_fun := b'.constr R (g ∘ b'),
+  left_inv :=
+    have (b'.constr R (g ∘ b')).comp (b.constr R (f ∘ b)) = linear_map.id,
+    from (b.ext $ λ i, exists.elim (hf i)
+      (λ i' hi', by rw [linear_map.comp_apply, b.constr_basis, function.comp_apply, ← hi',
+                        b'.constr_basis, function.comp_apply, hi', hgf, linear_map.id_apply])),
+    λ x, congr_arg (λ (h : M →ₗ[R] M), h x) this,
+  right_inv :=
+    have (b.constr R (f ∘ b)).comp (b'.constr R (g ∘ b')) = linear_map.id,
+    from (b'.ext $ λ i, exists.elim (hg i)
+      (λ i' hi', by rw [linear_map.comp_apply, b'.constr_basis, function.comp_apply, ← hi',
+                        b.constr_basis, function.comp_apply, hi', hfg, linear_map.id_apply])),
+    λ x, congr_arg (λ (h : M' →ₗ[R] M'), h x) this,
+  .. b.constr R (f ∘ b) }
+
+@[simp] lemma equiv'_apply (f : M → M') (g : M' → M) (hf hg hgf hfg) (i : ι) :
+  b.equiv' b' f g hf hg hgf hfg (b i) = f (b i) :=
+b.constr_basis R _ _
+
+@[simp] lemma equiv'_symm_apply (f : M → M') (g : M' → M) (hf hg hgf hfg) (i : ι') :
+  (b.equiv' b' f g hf hg hgf hfg).symm (b' i) = g (b' i) :=
+b'.constr_basis R _ _
+
+lemma sum_repr_mul_repr {ι'} [fintype ι'] (b' : basis ι' R M) (x : M) (i : ι) :
+  ∑ (j : ι'), b.repr (b' j) i * b'.repr x j = b.repr x i :=
+begin
+  conv_rhs { rw [← b'.sum_repr x] },
+  simp_rw [linear_equiv.map_sum, linear_equiv.map_smul, finset.sum_apply'],
+  refine finset.sum_congr rfl (λ j _, _),
+  rw [finsupp.smul_apply, smul_eq_mul, mul_comm]
+end
+
+end basis
+
+end comm_semiring
+
+section module
 
 open linear_map
 
-lemma linear_independent.image (hv : linear_independent α v) {f : β →ₗ γ}
-  (hf_inj : disjoint (span α (range v)) f.ker) : linear_independent α (f ∘ v) :=
+variables {v : ι → M}
+variables [ring R] [add_comm_group M] [add_comm_group M'] [add_comm_group M'']
+variables [module R M] [module R M'] [module R M'']
+variables {c d : R} {x y : M}
+variables (b : basis ι R M)
+
+namespace basis
+
+/--
+Any basis is a maximal linear independent set.
+-/
+lemma maximal [nontrivial R] (b : basis ι R M) : b.linear_independent.maximal :=
+λ w hi h,
 begin
-  rw [disjoint, ← set.image_univ, finsupp.span_eq_map_total, map_inf_eq_map_inf_comap,
-    map_le_iff_le_comap, comap_bot, finsupp.supported_univ, top_inf_eq] at hf_inj,
-  unfold linear_independent at hv,
-  rw hv at hf_inj,
-  haveI : inhabited β := ⟨0⟩,
-  rw [linear_independent, finsupp.total_comp],
-  rw [@finsupp.lmap_domain_total _ _ α _ _ _ _ _ _ _ _ _ _ f, ker_comp, eq_bot_iff],
-  apply hf_inj,
-  exact λ _, rfl,
+  -- If `range w` is strictly bigger than `range b`,
+  apply le_antisymm h,
+  -- then choose some `x ∈ range w \ range b`,
+  intros x p,
+  by_contradiction q,
+  -- and write it in terms of the basis.
+  have e := b.total_repr x,
+  -- This then expresses `x` as a linear combination
+  -- of elements of `w` which are in the range of `b`,
+  let u : ι ↪ w := ⟨λ i, ⟨b i, h ⟨i, rfl⟩⟩, λ i i' r,
+    b.injective (by simpa only [subtype.mk_eq_mk] using r)⟩,
+  have r : ∀ i, b i = u i := λ i, rfl,
+  simp_rw [finsupp.total_apply, r] at e,
+  change (b.repr x).sum (λ (i : ι) (a : R), (λ (x : w) (r : R), r • (x : M)) (u i) a) =
+    ((⟨x, p⟩ : w) : M) at e,
+  rw [←finsupp.sum_emb_domain, ←finsupp.total_apply] at e,
+  -- Now we can contradict the linear independence of `hi`
+  refine hi.total_ne_of_not_mem_support _ _ e,
+  simp only [finset.mem_map, finsupp.support_emb_domain],
+  rintro ⟨j, -, W⟩,
+  simp only [embedding.coe_fn_mk, subtype.mk_eq_mk, ←r] at W,
+  apply q ⟨j, W⟩,
 end
 
-lemma linear_independent.image_subtype {s : set β} {f : β →ₗ γ} (hs : linear_independent α (λ x, x : s → β))
-  (hf_inj : disjoint (span α s) f.ker) : linear_independent α (λ x, x : f '' s → γ) :=
+section mk
+
+variables (hli : linear_independent R v) (hsp : span R (range v) = ⊤)
+
+/-- A linear independent family of vectors spanning the whole module is a basis. -/
+protected noncomputable def mk : basis ι R M :=
+basis.of_repr
+{ inv_fun := finsupp.total _ _ _ v,
+  left_inv := λ x, hli.total_repr ⟨x, _⟩,
+  right_inv := λ x, hli.repr_eq rfl,
+  .. hli.repr.comp (linear_map.id.cod_restrict _ (λ h, hsp.symm ▸ submodule.mem_top)) }
+
+@[simp] lemma mk_repr :
+  (basis.mk hli hsp).repr x = hli.repr ⟨x, hsp.symm ▸ submodule.mem_top⟩ :=
+rfl
+
+lemma mk_apply (i : ι) : basis.mk hli hsp i = v i :=
+show finsupp.total _ _ _ v _ = v i, by simp
+
+@[simp] lemma coe_mk : ⇑(basis.mk hli hsp) = v :=
+funext (mk_apply _ _)
+
+variables {hli hsp}
+
+/-- Given a basis, the `i`th element of the dual basis evaluates to 1 on the `i`th element of the
+basis. -/
+lemma mk_coord_apply_eq (i : ι) :
+  (basis.mk hli hsp).coord i (v i) = 1 :=
+show hli.repr ⟨v i, submodule.subset_span (mem_range_self i)⟩ i = 1,
+by simp [hli.repr_eq_single i]
+
+/-- Given a basis, the `i`th element of the dual basis evaluates to 0 on the `j`th element of the
+basis if `j ≠ i`. -/
+lemma mk_coord_apply_ne {i j : ι} (h : j ≠ i) :
+  (basis.mk hli hsp).coord i (v j) = 0 :=
+show hli.repr ⟨v j, submodule.subset_span (mem_range_self j)⟩ i = 0,
+by simp [hli.repr_eq_single j, h]
+
+/-- Given a basis, the `i`th element of the dual basis evaluates to the Kronecker delta on the
+`j`th element of the basis. -/
+lemma mk_coord_apply {i j : ι} :
+  (basis.mk hli hsp).coord i (v j) = if j = i then 1 else 0 :=
 begin
-  rw [disjoint, ← set.image_id s, finsupp.span_eq_map_total, map_inf_eq_map_inf_comap,
-    map_le_iff_le_comap, comap_bot] at hf_inj,
-  haveI : inhabited β := ⟨0⟩,
-  rw [linear_independent_subtype_disjoint, disjoint, ← finsupp.lmap_domain_supported _ _ f, map_inf_eq_map_inf_comap,
-      map_le_iff_le_comap, ← ker_comp],
-  rw [@finsupp.lmap_domain_total _ _ α _ _ _, ker_comp],
-  { exact le_trans (le_inf inf_le_left hf_inj) (le_trans (linear_independent_subtype_disjoint.1 hs) bot_le) },
-  { simp }
+  cases eq_or_ne j i,
+  { simp only [h, if_true, eq_self_iff_true, mk_coord_apply_eq i], },
+  { simp only [h, if_false, mk_coord_apply_ne h], },
 end
 
-lemma linear_independent_inl_union_inr {s : set β} {t : set γ}
-  (hs : linear_independent α (λ x, x : s → β))
-  (ht : linear_independent α (λ x, x : t → γ)) :
-  linear_independent α (λ x, x : inl α β γ '' s ∪ inr α β γ '' t → β × γ) :=
+end mk
+
+section span
+
+variables (hli : linear_independent R v)
+
+/-- A linear independent family of vectors is a basis for their span. -/
+protected noncomputable def span : basis ι R (span R (range v)) :=
+basis.mk (linear_independent_span hli) $
 begin
-  apply linear_independent_union,
-  exact (hs.image_subtype $ by simp),
-  exact (ht.image_subtype $ by simp),
-  rw [span_image, span_image];
-    simp [disjoint_iff, prod_inf_prod]
-end
-
-lemma linear_independent_inl_union_inr' {v : ι → β} {v' : ι' → γ}
-  (hv : linear_independent α v) (hv' : linear_independent α v') :
-  linear_independent α (sum.elim (inl α β γ ∘ v) (inr α β γ ∘ v')) :=
-begin
-  by_cases zero_eq_one : (0 : α) = 1,
-  { apply linear_independent_of_zero_eq_one zero_eq_one },
-  have inj_v : injective v := (linear_independent.injective zero_eq_one hv),
-  have inj_v' : injective v' := (linear_independent.injective zero_eq_one hv'),
-  apply linear_independent.of_subtype_range,
-  { apply sum.elim_injective,
-    { exact injective_comp prod.injective_inl inj_v },
-    { exact injective_comp prod.injective_inr inj_v' },
-    { intros, simp [ne_zero_of_linear_independent zero_eq_one hv] } },
-  { rw sum.elim_range,
-    apply linear_independent_union,
-    { apply linear_independent.to_subtype_range,
-      apply linear_independent.image hv,
-      simp [ker_inl] },
-    { apply linear_independent.to_subtype_range,
-      apply linear_independent.image hv',
-      simp [ker_inr] },
-    { apply disjoint_mono _ _ disjoint_inl_inr,
-      { rw [set.range_comp, span_image],
-        apply linear_map.map_le_range },
-      { rw [set.range_comp, span_image],
-        apply linear_map.map_le_range } } }
-end
-
-lemma le_of_span_le_span {s t u: set β} (zero_ne_one : (0 : α) ≠ 1)
-  (hl : linear_independent α (subtype.val : u → β )) (hsu : s ⊆ u) (htu : t ⊆ u)
-  (hst : span α s ≤ span α t) : s ⊆ t :=
-begin
-  have := eq_of_linear_independent_of_span_subtype zero_ne_one
-    (hl.mono (set.union_subset hsu htu))
-    (set.subset_union_right _ _)
-    (set.union_subset (set.subset.trans subset_span hst) subset_span),
-  rw ← this, apply set.subset_union_left
-end
-
-lemma span_le_span_iff {s t u: set β} (zero_ne_one : (0 : α) ≠ 1)
-  (hl : linear_independent α (subtype.val : u → β )) (hsu : s ⊆ u) (htu : t ⊆ u) :
-  span α s ≤ span α t ↔ s ⊆ t :=
-⟨le_of_span_le_span zero_ne_one hl hsu htu, span_mono⟩
-
-variables (α) (v)
-/-- A set of vectors is a basis if it is linearly independent and all vectors are in the span α. -/
-def is_basis := linear_independent α v ∧ span α (range v) = ⊤
-variables {α} {v}
-
-section is_basis
-variables {s t : set β} (hv : is_basis α v)
-
-lemma is_basis.mem_span (hv : is_basis α v) : ∀ x, x ∈ span α (range v) := eq_top_iff'.1 hv.2
-
-lemma is_basis.comp (hv : is_basis α v) (f : ι' → ι) (hf : bijective f) :
-  is_basis α (v ∘ f) :=
-begin
-  split,
-  { apply hv.1.comp f hf.1 },
-  { rw[set.range_comp, range_iff_surjective.2 hf.2, image_univ, hv.2] }
-end
-
-lemma is_basis.injective (hv : is_basis α v) (zero_ne_one : (0 : α) ≠ 1) : injective v :=
-  λ x y h, linear_independent.injective zero_ne_one hv.1 h
-
-def is_basis.repr : β →ₗ (ι →₀ α) :=
-(hv.1.repr).comp (linear_map.id.cod_restrict _ hv.mem_span)
-
-lemma is_basis.total_repr (x) : finsupp.total ι β α v (hv.repr x) = x :=
-hv.1.total_repr ⟨x, _⟩
-
-lemma is_basis.total_comp_repr : (finsupp.total ι β α v).comp hv.repr = linear_map.id :=
-linear_map.ext hv.total_repr
-
-lemma is_basis.repr_ker : hv.repr.ker = ⊥ :=
-linear_map.ker_eq_bot.2 $ injective_of_left_inverse hv.total_repr
-
-lemma is_basis.repr_range : hv.repr.range = finsupp.supported α α univ :=
-by rw [is_basis.repr, linear_map.range, submodule.map_comp,
-  linear_map.map_cod_restrict, submodule.map_id, comap_top, map_top, hv.1.repr_range,
-  finsupp.supported_univ]
-
-lemma is_basis.repr_total (x : ι →₀ α) (hx : x ∈ finsupp.supported α α (univ : set ι)) :
-  hv.repr (finsupp.total ι β α v x) = x :=
-begin
-  rw [← hv.repr_range, linear_map.mem_range] at hx,
-  cases hx with w hw,
-  rw [← hw, hv.total_repr],
-end
-
-lemma is_basis.repr_eq_single {i} : hv.repr (v i) = finsupp.single i 1 :=
-by apply hv.1.repr_eq_single; simp
-
-/-- Construct a linear map given the value at the basis. -/
-def is_basis.constr (f : ι → γ) : β →ₗ[α] γ :=
-(finsupp.total γ γ α id).comp $ (finsupp.lmap_domain α α f).comp hv.repr
-
-theorem is_basis.constr_apply (f : ι → γ) (x : β) :
-  (hv.constr f : β → γ) x = (hv.repr x).sum (λb a, a • f b) :=
-by dsimp [is_basis.constr];
-   rw [finsupp.total_apply, finsupp.sum_map_domain_index]; simp [add_smul]
-
-lemma is_basis.ext {f g : β →ₗ[α] γ} (hv : is_basis α v) (h : ∀i, f (v i) = g (v i)) : f = g :=
-begin
-  apply linear_map.ext (λ x, linear_eq_on (range v) _ (hv.mem_span x)),
-  exact (λ y hy, exists.elim (set.mem_range.1 hy) (λ i hi, by rw ←hi; exact h i))
-end
-
-lemma constr_basis {f : ι → γ} {i : ι} (hv : is_basis α v) :
-  (hv.constr f : β → γ) (v i) = f i :=
-by simp [is_basis.constr_apply, hv.repr_eq_single, finsupp.sum_single_index]
-
-lemma constr_eq {g : ι → γ} {f : β →ₗ[α] γ} (hv : is_basis α v)
-  (h : ∀i, g i = f (v i)) : hv.constr g = f :=
-hv.ext $ λ i, (constr_basis hv).trans (h i)
-
-lemma constr_self (f : β →ₗ[α] γ) : hv.constr (λ i, f (v i)) = f :=
-constr_eq hv $ λ x, rfl
-
-lemma constr_zero (hv : is_basis α v) : hv.constr (λi, (0 : γ)) = 0 :=
-constr_eq hv $ λ x, rfl
-
-lemma constr_add {g f : ι → γ} (hv : is_basis α v) :
-  hv.constr (λi, f i + g i) = hv.constr f + hv.constr g :=
-constr_eq hv $ by simp [constr_basis hv] {contextual := tt}
-
-lemma constr_neg {f : ι → γ} (hv : is_basis α v) : hv.constr (λi, - f i) = - hv.constr f :=
-constr_eq hv $ by simp [constr_basis hv] {contextual := tt}
-
-lemma constr_sub {g f : ι → γ} (hs : is_basis α v) :
-  hv.constr (λi, f i - g i) = hs.constr f - hs.constr g :=
-by simp [constr_add, constr_neg]
-
--- this only works on functions if `α` is a commutative ring
-lemma constr_smul {ι α β γ} [comm_ring α]
-  [add_comm_group β] [add_comm_group γ] [module α β] [module α γ]
-  {v : ι → α} {f : ι → γ} {a : α} (hv : is_basis α v) {b : β} :
-  hv.constr (λb, a • f b) = a • hv.constr f :=
-constr_eq hv $ by simp [constr_basis hv] {contextual := tt}
-
-lemma constr_range [inhabited ι] (hv : is_basis α v) {f : ι  → γ} :
-  (hv.constr f).range = span α (range f) :=
-by rw [is_basis.constr, linear_map.range_comp, linear_map.range_comp, is_basis.repr_range,
-    finsupp.lmap_domain_supported, ←set.image_univ, ←finsupp.span_eq_map_total, image_id]
-
-def module_equiv_finsupp (hv : is_basis α v) : β ≃ₗ[α] ι →₀ α :=
-(hv.1.total_equiv.trans (linear_equiv.of_top _ hv.2)).symm
-
-def equiv_of_is_basis {v : ι → β} {v' : ι' → γ} {f : β → γ} {g : γ → β}
-  (hv : is_basis α v) (hv' : is_basis α v') (hf : ∀i, f (v i) ∈ range v') (hg : ∀i, g (v' i) ∈ range v)
-  (hgf : ∀i, g (f (v i)) = v i) (hfg : ∀i, f (g (v' i)) = v' i) :
-  β ≃ₗ γ :=
-{ inv_fun := hv'.constr (g ∘ v'),
-  left_inv :=
-    have (hv'.constr (g ∘ v')).comp (hv.constr (f ∘ v)) = linear_map.id,
-    from hv.ext $ λ i, exists.elim (hf i) (λ i' hi', by simp [constr_basis, hi'.symm]; rw [hi', hgf]),
-    λ x, congr_arg (λ h:β →ₗ[α] β, h x) this,
-  right_inv :=
-    have (hv.constr (f ∘ v)).comp (hv'.constr (g ∘ v')) = linear_map.id,
-    from hv'.ext $ λ i', exists.elim (hg i') (λ i hi, by simp [constr_basis, hi.symm]; rw [hi, hfg]),
-    λ y, congr_arg (λ h:γ →ₗ[α] γ, h y) this,
-  ..hv.constr (f ∘ v) }
-
-lemma is_basis_inl_union_inr {v : ι → β} {v' : ι' → γ}
-  (hv : is_basis α v) (hv' : is_basis α v') : is_basis α (sum.elim (inl α β γ ∘ v) (inr α β γ ∘ v')) :=
-begin
-  split,
-  apply linear_independent_inl_union_inr' hv.1 hv'.1,
-  rw [sum.elim_range, span_union,
-      set.range_comp, span_image (inl α β γ), hv.2,  map_top,
-      set.range_comp, span_image (inr α β γ), hv'.2, map_top],
-  exact linear_map.sup_range_inl_inr
-end
-
-end is_basis
-
-lemma is_basis_singleton_one (α : Type*) [unique ι] [ring α] :
-  is_basis α (λ (_ : ι), (1 : α)) :=
-begin
-  split,
-  { refine linear_independent_iff.2 (λ l, _),
-    rw [finsupp.unique_single l, finsupp.total_single, smul_eq_mul, mul_one],
-    intro hi,
-    simp [hi] },
-  { refine top_unique (λ _ _, _),
-    simp [submodule.mem_span_singleton] }
-end
-
-lemma linear_equiv.is_basis (hs : is_basis α v)
-  (f : β ≃ₗ[α] γ) : is_basis α (f ∘ v) :=
-begin
-  split,
-  { apply @linear_independent.image _ _ _ _ _ _ _ _ _ _ hs.1 (f : β →ₗ[α] γ),
-    simp [linear_equiv.ker f] },
-  { rw set.range_comp,
-    have : span α ((f : β →ₗ[α] γ) '' range v) = ⊤,
-    { rw [span_image (f : β →ₗ[α] γ), hs.2],
-      simp },
-    exact this }
-end
-
-lemma is_basis_span (hs : linear_independent α v) :
-  @is_basis ι α (span α (range v)) (λ i : ι, ⟨v i, subset_span (mem_range_self _)⟩) _ _ _ :=
-begin
-split,
-{ apply linear_independent_span hs },
-{ rw eq_top_iff',
-  intro x,
-  have h₁ : subtype.val '' set.range (λ i, subtype.mk (v i) _) = range v,
-    by rw ←set.range_comp,
-  have h₂ : map (submodule.subtype _) (span α (set.range (λ i, subtype.mk (v i) _)))
-              = span α (range v),
-    by rw [←span_image, submodule.subtype_eq_val, h₁],
-  have h₃ : (x : β) ∈ map (submodule.subtype _) (span α (set.range (λ i, subtype.mk (v i) _))),
-    by rw h₂; apply subtype.mem x,
+  rw eq_top_iff,
+  intros x _,
+  have h₁ : (coe : span R (range v) → M) '' set.range (λ i, subtype.mk (v i) _) = range v,
+  { rw ← set.range_comp,
+    refl },
+  have h₂ : map (submodule.subtype _) (span R (set.range (λ i, subtype.mk (v i) _)))
+    = span R (range v),
+  { rw [← span_image, submodule.coe_subtype, h₁] },
+  have h₃ : (x : M) ∈ map (submodule.subtype _) (span R (set.range (λ i, subtype.mk (v i) _))),
+  { rw h₂, apply subtype.mem x },
   rcases mem_map.1 h₃ with ⟨y, hy₁, hy₂⟩,
   have h_x_eq_y : x = y,
-    by rw [subtype.coe_ext, ← hy₂]; simp,
-  rw h_x_eq_y,
-  exact hy₁ }
+  { rw [subtype.ext_iff, ← hy₂], simp },
+  rwa h_x_eq_y
 end
 
-lemma is_basis_empty (h_empty : ¬ nonempty ι) (h : ∀x:β, x = 0) : is_basis α (λ x : ι, (0 : β)) :=
-⟨ linear_independent_empty_type h_empty,
-  eq_top_iff'.2 $ assume x, (h x).symm ▸ submodule.zero_mem _ ⟩
+end span
 
-lemma is_basis_empty_bot (h_empty : ¬ nonempty ι) : is_basis α (λ _ : ι, (0 : (⊥ : submodule α β))) :=
+lemma group_smul_span_eq_top
+  {G : Type*} [group G] [distrib_mul_action G R] [distrib_mul_action G M]
+  [is_scalar_tower G R M] {v : ι → M} (hv : submodule.span R (set.range v) = ⊤) {w : ι → G} :
+  submodule.span R (set.range (w • v)) = ⊤ :=
 begin
-  apply is_basis_empty h_empty,
-  intro x,
-  apply subtype.ext.2,
-  exact (submodule.mem_bot α).1 (subtype.mem x),
+  rw eq_top_iff,
+  intros j hj,
+  rw ← hv at hj,
+  rw submodule.mem_span at hj ⊢,
+  refine λ p hp, hj p (λ u hu, _),
+  obtain ⟨i, rfl⟩ := hu,
+  have : ((w i)⁻¹ • 1 : R) • w i • v i ∈ p := p.smul_mem ((w i)⁻¹ • 1 : R) (hp ⟨i, rfl⟩),
+  rwa [smul_one_smul, inv_smul_smul] at this,
 end
 
-open fintype
-variables [fintype ι] (h : is_basis α v)
+/-- Given a basis `v` and a map `w` such that for all `i`, `w i` are elements of a group,
+`group_smul` provides the basis corresponding to `w • v`. -/
+def group_smul {G : Type*} [group G] [distrib_mul_action G R] [distrib_mul_action G M]
+  [is_scalar_tower G R M] [smul_comm_class G R M] (v : basis ι R M) (w : ι → G) :
+  basis ι R M :=
+@basis.mk ι R M (w • v) _ _ _
+  (v.linear_independent.group_smul w) (group_smul_span_eq_top v.span_eq)
 
-/-- A module over α with a finite basis is linearly equivalent to functions from its basis to α. -/
-def equiv_fun_basis  : β ≃ₗ[α] (ι → α) :=
-linear_equiv.trans (module_equiv_finsupp h)
-  { to_fun := finsupp.to_fun,
-    add := λ x y, by ext; exact finsupp.add_apply,
-    smul := λ x y, by ext; exact finsupp.smul_apply,
-    ..finsupp.equiv_fun_on_fintype }
+lemma group_smul_apply {G : Type*} [group G] [distrib_mul_action G R] [distrib_mul_action G M]
+  [is_scalar_tower G R M] [smul_comm_class G R M] {v : basis ι R M} {w : ι → G} (i : ι) :
+  v.group_smul w i = (w • v : ι → M) i :=
+mk_apply
+  (v.linear_independent.group_smul w) (group_smul_span_eq_top v.span_eq) i
 
-theorem module.card_fintype [fintype α] [fintype β] :
-  card β = (card α) ^ (card ι) :=
-calc card β = card (ι → α)    : card_congr (equiv_fun_basis h).to_equiv
-        ... = card α ^ card ι : card_fun
+lemma units_smul_span_eq_top {v : ι → M} (hv : submodule.span R (set.range v) = ⊤)
+  {w : ι → Rˣ} : submodule.span R (set.range (w • v)) = ⊤ :=
+group_smul_span_eq_top hv
+
+/-- Given a basis `v` and a map `w` such that for all `i`, `w i` is a unit, `smul_of_is_unit`
+provides the basis corresponding to `w • v`. -/
+def units_smul (v : basis ι R M) (w : ι → Rˣ) :
+  basis ι R M :=
+@basis.mk ι R M (w • v) _ _ _
+  (v.linear_independent.units_smul w) (units_smul_span_eq_top v.span_eq)
+
+lemma units_smul_apply {v : basis ι R M} {w : ι → Rˣ} (i : ι) :
+  v.units_smul w i = w i • v i :=
+mk_apply
+  (v.linear_independent.units_smul w) (units_smul_span_eq_top v.span_eq) i
+
+/-- A version of `smul_of_units` that uses `is_unit`. -/
+def is_unit_smul (v : basis ι R M) {w : ι → R} (hw : ∀ i, is_unit (w i)):
+  basis ι R M :=
+units_smul v (λ i, (hw i).unit)
+
+lemma is_unit_smul_apply {v : basis ι R M} {w : ι → R} (hw : ∀ i, is_unit (w i)) (i : ι) :
+  v.is_unit_smul hw i = w i • v i :=
+units_smul_apply i
+
+section fin
+
+/-- Let `b` be a basis for a submodule `N` of `M`. If `y : M` is linear independent of `N`
+and `y` and `N` together span the whole of `M`, then there is a basis for `M`
+whose basis vectors are given by `fin.cons y b`. -/
+noncomputable def mk_fin_cons {n : ℕ} {N : submodule R M} (y : M) (b : basis (fin n) R N)
+  (hli : ∀ (c : R) (x ∈ N), c • y + x = 0 → c = 0)
+  (hsp : ∀ (z : M), ∃ (c : R), z + c • y ∈ N) :
+  basis (fin (n + 1)) R M :=
+have span_b : submodule.span R (set.range (N.subtype ∘ b)) = N,
+{ rw [set.range_comp, submodule.span_image, b.span_eq, submodule.map_subtype_top] },
+@basis.mk _ _ _ (fin.cons y (N.subtype ∘ b) : fin (n + 1) → M) _ _ _
+  ((b.linear_independent.map' N.subtype (submodule.ker_subtype _)) .fin_cons' _ _ $
+    by { rintros c ⟨x, hx⟩ hc, rw span_b at hx, exact hli c x hx hc })
+  (eq_top_iff.mpr (λ x _,
+    by { rw [fin.range_cons, submodule.mem_span_insert', span_b], exact hsp x }))
+
+@[simp] lemma coe_mk_fin_cons {n : ℕ} {N : submodule R M} (y : M) (b : basis (fin n) R N)
+  (hli : ∀ (c : R) (x ∈ N), c • y + x = 0 → c = 0)
+  (hsp : ∀ (z : M), ∃ (c : R), z + c • y ∈ N) :
+  (mk_fin_cons y b hli hsp : fin (n + 1) → M) = fin.cons y (coe ∘ b) :=
+coe_mk _ _
+
+/-- Let `b` be a basis for a submodule `N ≤ O`. If `y ∈ O` is linear independent of `N`
+and `y` and `N` together span the whole of `O`, then there is a basis for `O`
+whose basis vectors are given by `fin.cons y b`. -/
+noncomputable def mk_fin_cons_of_le {n : ℕ} {N O : submodule R M}
+  (y : M) (yO : y ∈ O) (b : basis (fin n) R N) (hNO : N ≤ O)
+  (hli : ∀ (c : R) (x ∈ N), c • y + x = 0 → c = 0)
+  (hsp : ∀ (z ∈ O), ∃ (c : R), z + c • y ∈ N) :
+  basis (fin (n + 1)) R O :=
+mk_fin_cons ⟨y, yO⟩ (b.map (submodule.comap_subtype_equiv_of_le hNO).symm)
+  (λ c x hc hx, hli c x (submodule.mem_comap.mp hc) (congr_arg coe hx))
+  (λ z, hsp z z.2)
+
+@[simp] lemma coe_mk_fin_cons_of_le {n : ℕ} {N O : submodule R M}
+  (y : M) (yO : y ∈ O) (b : basis (fin n) R N) (hNO : N ≤ O)
+  (hli : ∀ (c : R) (x ∈ N), c • y + x = 0 → c = 0)
+  (hsp : ∀ (z ∈ O), ∃ (c : R), z + c • y ∈ N) :
+  (mk_fin_cons_of_le y yO b hNO hli hsp : fin (n + 1) → O) =
+    fin.cons ⟨y, yO⟩ (submodule.of_le hNO ∘ b) :=
+coe_mk_fin_cons _ _ _ _
+
+end fin
+
+end basis
 
 end module
 
-section vector_space
-variables [discrete_field α] [add_comm_group β] [add_comm_group γ]
-  [vector_space α β] [vector_space α γ] {s t : set β} {x y z : β}
-include α
+section induction
+
+variables [ring R] [is_domain R]
+variables [add_comm_group M] [module R M] {b : ι → M}
+
+/-- If `N` is a submodule with finite rank, do induction on adjoining a linear independent
+element to a submodule. -/
+def submodule.induction_on_rank_aux (b : basis ι R M) (P : submodule R M → Sort*)
+  (ih : ∀ (N : submodule R M),
+    (∀ (N' ≤ N) (x ∈ N), (∀ (c : R) (y ∈ N'), c • x + y = (0 : M) → c = 0) → P N') → P N)
+  (n : ℕ) (N : submodule R M)
+  (rank_le : ∀ {m : ℕ} (v : fin m → N),
+    linear_independent R (coe ∘ v : fin m → M) → m ≤ n) :
+  P N :=
+begin
+  haveI : decidable_eq M := classical.dec_eq M,
+  have Pbot : P ⊥,
+  { apply ih,
+    intros N N_le x x_mem x_ortho,
+    exfalso,
+    simpa using x_ortho 1 0 N.zero_mem },
+
+  induction n with n rank_ih generalizing N,
+  { suffices : N = ⊥,
+    { rwa this },
+    apply eq_bot_of_rank_eq_zero b _ (λ m v hv, nat.le_zero_iff.mp (rank_le v hv)) },
+  apply ih,
+  intros N' N'_le x x_mem x_ortho,
+  apply rank_ih,
+  intros m v hli,
+  refine nat.succ_le_succ_iff.mp (rank_le (fin.cons ⟨x, x_mem⟩ (λ i, ⟨v i, N'_le (v i).2⟩)) _),
+  convert hli.fin_cons' x _ _,
+  { ext i, refine fin.cases _ _ i; simp },
+  { intros c y hcy,
+    refine x_ortho c y (submodule.span_le.mpr _ y.2) hcy,
+    rintros _ ⟨z, rfl⟩,
+    exact (v z).2 }
+end
+
+end induction
+
+section division_ring
+
+variables [division_ring K] [add_comm_group V] [add_comm_group V'] [module K V] [module K V']
+variables {v : ι → V} {s t : set V} {x y z : V}
+
+include K
+
 open submodule
 
-/- TODO: some of the following proofs can generalized with a zero_ne_one predicate type class
-   (instead of a data containing type class) -/
+namespace basis
+
+section exists_basis
+
+/-- If `s` is a linear independent set of vectors, we can extend it to a basis. -/
+noncomputable def extend (hs : linear_independent K (coe : s → V)) :
+  basis _ K V :=
+basis.mk
+  (@linear_independent.restrict_of_comp_subtype _ _ _ id _ _ _ _ (hs.linear_independent_extend _))
+  (eq_top_iff.mpr $ set_like.coe_subset_coe.mp $
+    by simpa using hs.subset_span_extend (subset_univ s))
+
+lemma extend_apply_self (hs : linear_independent K (coe : s → V))
+  (x : hs.extend _) :
+  basis.extend hs x = x :=
+basis.mk_apply _ _ _
+
+@[simp] lemma coe_extend (hs : linear_independent K (coe : s → V)) :
+  ⇑(basis.extend hs) = coe :=
+funext (extend_apply_self hs)
+
+lemma range_extend (hs : linear_independent K (coe : s → V)) :
+  range (basis.extend hs) = hs.extend (subset_univ _) :=
+by rw [coe_extend, subtype.range_coe_subtype, set_of_mem_eq]
+
+/-- If `v` is a linear independent family of vectors, extend it to a basis indexed by a sum type. -/
+noncomputable def sum_extend (hs : linear_independent K v) :
+  basis (ι ⊕ _) K V :=
+let s := set.range v,
+    e : ι ≃ s := equiv.of_injective v hs.injective,
+    b := hs.to_subtype_range.extend (subset_univ (set.range v)) in
+(basis.extend hs.to_subtype_range).reindex $ equiv.symm $
+  calc ι ⊕ (b \ s : set V) ≃ s ⊕ (b \ s : set V) : equiv.sum_congr e (equiv.refl _)
+  ... ≃ b                   : equiv.set.sum_diff_subset (hs.to_subtype_range.subset_extend _)
+
+lemma subset_extend {s : set V} (hs : linear_independent K (coe : s → V)) :
+  s ⊆ hs.extend (set.subset_univ _) :=
+hs.subset_extend _
 
 section
-set_option class.instance_max_depth 36
 
-lemma mem_span_insert_exchange : x ∈ span α (insert y s) → x ∉ span α s → y ∈ span α (insert x s) :=
-begin
-  simp [mem_span_insert],
-  rintro a z hz rfl h,
-  refine ⟨a⁻¹, -a⁻¹ • z, smul_mem _ _ hz, _⟩,
-  have a0 : a ≠ 0, {rintro rfl, simp * at *},
-  simp [a0, smul_add, smul_smul]
+variables (K V)
+
+/-- A set used to index `basis.of_vector_space`. -/
+noncomputable def of_vector_space_index : set V :=
+(linear_independent_empty K V).extend (subset_univ _)
+
+/-- Each vector space has a basis. -/
+noncomputable def of_vector_space : basis (of_vector_space_index K V) K V :=
+basis.extend (linear_independent_empty K V)
+
+lemma of_vector_space_apply_self (x : of_vector_space_index K V) :
+  of_vector_space K V x = x :=
+basis.mk_apply _ _ _
+
+@[simp] lemma coe_of_vector_space :
+  ⇑(of_vector_space K V) = coe :=
+funext (λ x, of_vector_space_apply_self K V x)
+
+lemma of_vector_space_index.linear_independent :
+  linear_independent K (coe : of_vector_space_index K V → V) :=
+by { convert (of_vector_space K V).linear_independent, ext x, rw of_vector_space_apply_self }
+
+lemma range_of_vector_space :
+  range (of_vector_space K V) = of_vector_space_index K V :=
+range_extend _
+
+lemma exists_basis : ∃ s : set V, nonempty (basis s K V) :=
+⟨of_vector_space_index K V, ⟨of_vector_space K V⟩⟩
+
 end
 
-end
+end exists_basis
 
-lemma linear_independent_iff_not_mem_span : linear_independent α v ↔ (∀i, v i ∉ span α (v '' (univ \ {i}))) :=
-begin
-  apply linear_independent_iff_not_smul_mem_span.trans,
-  split,
-  { intros h i h_in_span,
-    apply one_ne_zero (h i 1 (by simp [h_in_span])) },
-  { intros h i a ha,
-    by_contradiction ha',
-    exact false.elim (h _ ((smul_mem_iff _ ha').1 ha)) }
-end
-
-lemma linear_independent_unique [unique ι] (h : v (default ι) ≠ 0): linear_independent α v :=
-begin
-  rw linear_independent_iff,
-  intros l hl,
-  ext i,
-  rw [unique.eq_default i, finsupp.zero_apply],
-  by_contra hc,
-  have := smul_smul _ (l (default ι))⁻¹ (l (default ι)) (v (default ι)),
-  rw [finsupp.unique_single l, finsupp.total_single] at hl,
-  rw [hl, inv_mul_cancel hc, smul_zero, one_smul] at this,
-  exact h this.symm
-end
-
-lemma linear_independent_singleton {x : β} (hx : x ≠ 0) : linear_independent α (λ x, x : ({x} : set β) → β) :=
-begin
-  apply @linear_independent_unique _ _ _ _ _ _ _ _ _,
-  apply set.unique_singleton,
-  apply hx,
-end
-
-lemma disjoint_span_singleton {p : submodule α β} {x : β} (x0 : x ≠ 0) :
-  disjoint p (span α {x}) ↔ x ∉ p :=
-⟨λ H xp, x0 (disjoint_def.1 H _ xp (singleton_subset_iff.1 subset_span:_)),
-begin
-  simp [disjoint_def, mem_span_singleton],
-  rintro xp y yp a rfl,
-  by_cases a0 : a = 0, {simp [a0]},
-  exact xp.elim ((smul_mem_iff p a0).1 yp),
-end⟩
-
-lemma linear_independent.insert (hs : linear_independent α (λ b, b : s → β)) (hx : x ∉ span α s) :
-  linear_independent α (λ b, b : insert x s → β) :=
-begin
-  rw ← union_singleton,
-  have x0 : x ≠ 0 := mt (by rintro rfl; apply zero_mem _) hx,
-  apply linear_independent_union hs (linear_independent_singleton x0),
-  rwa [disjoint_span_singleton x0]
-end
-
-lemma exists_linear_independent (hs : linear_independent α (λ x, x : s → β)) (hst : s ⊆ t) :
-  ∃b⊆t, s ⊆ b ∧ t ⊆ span α b ∧ linear_independent α (λ x, x : b → β) :=
-begin
-  rcases zorn.zorn_subset₀ {b | b ⊆ t ∧ linear_independent α (λ x, x : b → β)} _ _
-    ⟨hst, hs⟩ with ⟨b, ⟨bt, bi⟩, sb, h⟩,
-  { refine ⟨b, bt, sb, λ x xt, _, bi⟩,
-    haveI := classical.dec (x ∈ span α b),
-    by_contra hn,
-    apply hn,
-    rw ← h _ ⟨insert_subset.2 ⟨xt, bt⟩, bi.insert hn⟩ (subset_insert _ _),
-    exact subset_span (mem_insert _ _) },
-  { refine λ c hc cc c0, ⟨⋃₀ c, ⟨_, _⟩, λ x, _⟩,
-    { exact sUnion_subset (λ x xc, (hc xc).1) },
-    { exact linear_independent_sUnion_of_directed cc.directed_on (λ x xc, (hc xc).2) },
-    { exact subset_sUnion_of_mem } }
-end
-
-lemma exists_subset_is_basis (hs : linear_independent α (λ x, x : s → β)) :
-  ∃b, s ⊆ b ∧ is_basis α (λ i : b, i.val) :=
-let ⟨b, hb₀, hx, hb₂, hb₃⟩ := exists_linear_independent hs (@subset_univ _ _) in
-⟨ b, hx,
-  @linear_independent.restrict_of_comp_subtype _ _ _ id _ _ _ _ hb₃,
-  by simp; exact eq_top_iff.2 hb₂⟩
-
-variables (α β)
-lemma exists_is_basis : ∃b : set β, is_basis α (λ i : b, i.val) :=
-let ⟨b, _, hb⟩ := exists_subset_is_basis linear_independent_empty in ⟨b, hb⟩
-
-variables {α β}
-
--- TODO(Mario): rewrite?
-lemma exists_of_linear_independent_of_finite_span {t : finset β}
-  (hs : linear_independent α (λ x, x : s → β)) (hst : s ⊆ (span α ↑t : submodule α β)) :
-  ∃t':finset β, ↑t' ⊆ s ∪ ↑t ∧ s ⊆ ↑t' ∧ t'.card = t.card :=
-have ∀t, ∀(s' : finset β), ↑s' ⊆ s → s ∩ ↑t = ∅ → s ⊆ (span α ↑(s' ∪ t) : submodule α β) →
-  ∃t':finset β, ↑t' ⊆ s ∪ ↑t ∧ s ⊆ ↑t' ∧ t'.card = (s' ∪ t).card :=
-assume t, finset.induction_on t
-  (assume s' hs' _ hss',
-    have s = ↑s',
-      from eq_of_linear_independent_of_span_subtype (@zero_ne_one α _) hs hs' $
-          by simpa using hss',
-    ⟨s', by simp [this]⟩)
-  (assume b₁ t hb₁t ih s' hs' hst hss',
-    have hb₁s : b₁ ∉ s,
-      from assume h,
-      have b₁ ∈ s ∩ ↑(insert b₁ t), from ⟨h, finset.mem_insert_self _ _⟩,
-      by rwa [hst] at this,
-    have hb₁s' : b₁ ∉ s', from assume h, hb₁s $ hs' h,
-    have hst : s ∩ ↑t = ∅,
-      from eq_empty_of_subset_empty $ subset.trans
-        (by simp [inter_subset_inter, subset.refl]) (le_of_eq hst),
-    classical.by_cases
-      (assume : s ⊆ (span α ↑(s' ∪ t) : submodule α β),
-        let ⟨u, hust, hsu, eq⟩ := ih _ hs' hst this in
-        have hb₁u : b₁ ∉ u, from assume h, (hust h).elim hb₁s hb₁t,
-        ⟨insert b₁ u, by simp [insert_subset_insert hust],
-          subset.trans hsu (by simp), by simp [eq, hb₁t, hb₁s', hb₁u]⟩)
-      (assume : ¬ s ⊆ (span α ↑(s' ∪ t) : submodule α β),
-        let ⟨b₂, hb₂s, hb₂t⟩ := not_subset.mp this in
-        have hb₂t' : b₂ ∉ s' ∪ t, from assume h, hb₂t $ subset_span h,
-        have s ⊆ (span α ↑(insert b₂ s' ∪ t) : submodule α β), from
-          assume b₃ hb₃,
-          have ↑(s' ∪ insert b₁ t) ⊆ insert b₁ (insert b₂ ↑(s' ∪ t) : set β),
-            by simp [insert_eq, -singleton_union, -union_singleton, union_subset_union, subset.refl, subset_union_right],
-          have hb₃ : b₃ ∈ span α (insert b₁ (insert b₂ ↑(s' ∪ t) : set β)),
-            from span_mono this (hss' hb₃),
-          have s ⊆ (span α (insert b₁ ↑(s' ∪ t)) : submodule α β),
-            by simpa [insert_eq, -singleton_union, -union_singleton] using hss',
-          have hb₁ : b₁ ∈ span α (insert b₂ ↑(s' ∪ t)),
-            from mem_span_insert_exchange (this hb₂s) hb₂t,
-          by rw [span_insert_eq_span hb₁] at hb₃; simpa using hb₃,
-        let ⟨u, hust, hsu, eq⟩ := ih _ (by simp [insert_subset, hb₂s, hs']) hst this in
-        ⟨u, subset.trans hust $ union_subset_union (subset.refl _) (by simp [subset_insert]),
-          hsu, by rw [finset.union_comm] at hb₂t'; simp [eq, hb₂t', hb₁t, hb₁s']⟩)),
-begin
-  letI := classical.dec_pred (λx, x ∈ s),
-  have eq : t.filter (λx, x ∈ s) ∪ t.filter (λx, x ∉ s) = t,
-  { apply finset.ext.mpr,
-    intro x,
-    by_cases x ∈ s; simp *, finish },
-  apply exists.elim (this (t.filter (λx, x ∉ s)) (t.filter (λx, x ∈ s))
-    (by simp [set.subset_def]) (by simp [set.ext_iff] {contextual := tt}) (by rwa [eq])),
-  intros u h,
-  exact ⟨u, subset.trans h.1 (by simp [subset_def, and_imp, or_imp_distrib] {contextual:=tt}),
-    h.2.1, by simp only [h.2.2, eq]⟩
-end
-
-lemma exists_finite_card_le_of_finite_of_linear_independent_of_span
-  (ht : finite t) (hs : linear_independent α (λ x, x : s → β)) (hst : s ⊆ span α t) :
-  ∃h : finite s, h.to_finset.card ≤ ht.to_finset.card :=
-have s ⊆ (span α ↑(ht.to_finset) : submodule α β), by simp; assumption,
-let ⟨u, hust, hsu, eq⟩ := exists_of_linear_independent_of_finite_span hs this in
-have finite s, from finite_subset u.finite_to_set hsu,
-⟨this, by rw [←eq]; exact (finset.card_le_of_subset $ finset.coe_subset.mp $ by simp [hsu])⟩
-
-lemma exists_left_inverse_linear_map_of_injective {f : β →ₗ[α] γ}
-  (hf_inj : f.ker = ⊥) : ∃g:γ →ₗ β, g.comp f = linear_map.id :=
-begin
-  rcases exists_is_basis α β with ⟨B, hB⟩,
-  have hB₀ : _ := hB.1.to_subtype_range,
-  have : linear_independent α (λ x, x : f '' B → γ),
-  { have h₁ := hB₀.image_subtype (show disjoint (span α (range (λ i : B, i.val))) (linear_map.ker f), by simp [hf_inj]),
-    have h₂ : range (λ (i : B), i.val) = B := subtype.range_val B,
-    rwa h₂ at h₁ },
-  rcases exists_subset_is_basis this with ⟨C, BC, hC⟩,
-  haveI : inhabited β := ⟨0⟩,
-  use hC.constr (function.restrict (inv_fun f) C : C → β),
-  apply @is_basis.ext _ _ _ _ _ _ _ _ _ _ _ _ hB,
-  intros b,
-  rw image_subset_iff at BC,
-  simp,
-  have := BC (subtype.mem b),
-  rw mem_preimage at this,
-  have : f (b.val) = (subtype.mk (f ↑b) (begin rw ←mem_preimage, exact BC (subtype.mem b) end) : C).val,
-    by simp; unfold_coes,
-  rw this,
-  rw [constr_basis hC],
-  exact left_inverse_inv_fun (linear_map.ker_eq_bot.1 hf_inj) _,
-end
-
-lemma exists_right_inverse_linear_map_of_surjective {f : β →ₗ[α] γ}
-  (hf_surj : f.range = ⊤) : ∃g:γ →ₗ β, f.comp g = linear_map.id :=
-begin
-  rcases exists_is_basis α γ with ⟨C, hC⟩,
-  haveI : inhabited β := ⟨0⟩,
-  use hC.constr (function.restrict (inv_fun f) C : C → β),
-  apply @is_basis.ext _ _ _ _ _ _ _ _ _ _ _ _ hC,
-  intros c,
-  simp [constr_basis hC],
-  exact right_inverse_inv_fun (linear_map.range_eq_top.1 hf_surj) _
-end
-
-set_option class.instance_max_depth 49
-open submodule linear_map
-theorem quotient_prod_linear_equiv (p : submodule α β) :
-  nonempty ((p.quotient × p) ≃ₗ[α] β) :=
-begin
-  haveI := classical.dec_eq (quotient p),
-  rcases exists_right_inverse_linear_map_of_surjective p.range_mkq with ⟨f, hf⟩,
-  have mkf : ∀ x, submodule.quotient.mk (f x) = x := linear_map.ext_iff.1 hf,
-  have fp : ∀ x, x - f (p.mkq x) ∈ p :=
-    λ x, (submodule.quotient.eq p).1 (mkf (p.mkq x)).symm,
-  refine ⟨linear_equiv.of_linear (f.copair p.subtype)
-    (p.mkq.pair (cod_restrict p (linear_map.id - f.comp p.mkq) fp))
-    (by ext; simp) _⟩,
-  ext ⟨⟨x⟩, y, hy⟩; simp,
-  { apply (submodule.quotient.eq p).2,
-    simpa using sub_mem p hy (fp x) },
-  { refine subtype.coe_ext.2 _,
-    simp [mkf, (submodule.quotient.mk_eq_zero p).2 hy] }
-end
+end basis
 
 open fintype
+variables (K V)
 
-theorem vector_space.card_fintype [fintype α] [fintype β] :
-  ∃ n : ℕ, card β = (card α) ^ n :=
+theorem vector_space.card_fintype [fintype K] [fintype V] :
+  ∃ n : ℕ, card V = (card K) ^ n :=
+⟨card (basis.of_vector_space_index K V), module.card_fintype (basis.of_vector_space K V)⟩
+
+end division_ring
+
+section field
+
+variables [field K] [add_comm_group V] [add_comm_group V'] [module K V] [module K V']
+variables {v : ι → V} {s t : set V} {x y z : V}
+
+lemma linear_map.exists_left_inverse_of_injective (f : V →ₗ[K] V')
+  (hf_inj : f.ker = ⊥) : ∃g:V' →ₗ[K] V, g.comp f = linear_map.id :=
 begin
-  apply exists.elim (exists_is_basis α β),
-  intros b hb,
-  haveI := classical.dec_pred (λ x, x ∈ b),
-  use card b,
-  exact module.card_fintype hb,
+  let B := basis.of_vector_space_index K V,
+  let hB := basis.of_vector_space K V,
+  have hB₀ : _ := hB.linear_independent.to_subtype_range,
+  have : linear_independent K (λ x, x : f '' B → V'),
+  { have h₁ : linear_independent K (λ (x : ↥(⇑f '' range (basis.of_vector_space _ _))), ↑x) :=
+         @linear_independent.image_subtype _ _ _ _ _ _ _ _ _ f hB₀
+      (show disjoint _ _, by simp [hf_inj]),
+    rwa [basis.range_of_vector_space K V] at h₁ },
+  let C := this.extend (subset_univ _),
+  have BC := this.subset_extend (subset_univ _),
+  let hC := basis.extend this,
+  haveI : inhabited V := ⟨0⟩,
+  refine ⟨hC.constr K (C.restrict (inv_fun f)), hB.ext (λ b, _)⟩,
+  rw image_subset_iff at BC,
+  have fb_eq : f b = hC ⟨f b, BC b.2⟩,
+  { change f b = basis.extend this _,
+    rw [basis.extend_apply_self, subtype.coe_mk] },
+  dsimp [hB],
+  rw [basis.of_vector_space_apply_self, fb_eq, hC.constr_basis],
+  exact left_inverse_inv_fun (linear_map.ker_eq_bot.1 hf_inj) _
 end
 
-end vector_space
+lemma submodule.exists_is_compl (p : submodule K V) : ∃ q : submodule K V, is_compl p q :=
+let ⟨f, hf⟩ := p.subtype.exists_left_inverse_of_injective p.ker_subtype in
+⟨f.ker, linear_map.is_compl_of_proj $ linear_map.ext_iff.1 hf⟩
 
-namespace pi
-open set linear_map
+instance module.submodule.is_complemented : is_complemented (submodule K V) :=
+⟨submodule.exists_is_compl⟩
 
-section module
-variables {η : Type*} {ιs : η → Type*} {φ : η → Type*}
-variables [ring α] [∀i, add_comm_group (φ i)] [∀i, module α (φ i)] [fintype η]
-
-lemma linear_independent_std_basis
-  (v : Πj, ιs j → (φ j)) (hs : ∀i, linear_independent α (v i)) :
-  linear_independent α (λ (ji : Σ j, ιs j), std_basis α φ ji.1 (v ji.1 ji.2)) :=
+lemma linear_map.exists_right_inverse_of_surjective (f : V →ₗ[K] V')
+  (hf_surj : f.range = ⊤) : ∃g:V' →ₗ[K] V, f.comp g = linear_map.id :=
 begin
-  have hs' : ∀j : η, linear_independent α (λ i : ιs j, std_basis α φ j (v j i)),
-  { intro j,
-    apply linear_independent.image (hs j),
-    simp [ker_std_basis] },
-  apply linear_independent_Union_finite hs',
-  { assume j J _ hiJ,
-    simp [(set.Union.equations._eqn_1 _).symm, submodule.span_image, submodule.span_Union],
-    have h₀ : ∀ j, span α (range (λ (i : ιs j), std_basis α φ j (v j i)))
-        ≤ range (std_basis α φ j),
-    { intro j,
-      rw [span_le, linear_map.range_coe],
-      apply range_comp_subset_range },
-    have h₁ : span α (range (λ (i : ιs j), std_basis α φ j (v j i)))
-        ≤ ⨆ i ∈ {j}, range (std_basis α φ i),
-    { rw @supr_singleton _ _ _ (λ i, linear_map.range (std_basis α (λ (j : η), φ j) i)),
-      apply h₀ },
-    have h₂ : (⨆ j ∈ J, span α (range (λ (i : ιs j), std_basis α φ j (v j i)))) ≤
-               ⨆ j ∈ J, range (std_basis α (λ (j : η), φ j) j) :=
-      supr_le_supr (λ i, supr_le_supr (λ H, h₀ i)),
-    have h₃ : disjoint (λ (i : η), i ∈ {j}) J,
-    { convert set.disjoint_singleton_left.2 hiJ,
-      rw ←@set_of_mem_eq _ {j},
-      refl },
-    refine disjoint_mono h₁ h₂
-      (disjoint_std_basis_std_basis _ _ _ _ h₃), }
+  let C := basis.of_vector_space_index K V',
+  let hC := basis.of_vector_space K V',
+  haveI : inhabited V := ⟨0⟩,
+  use hC.constr K (C.restrict (inv_fun f)),
+  refine hC.ext (λ c, _),
+  rw [linear_map.comp_apply, hC.constr_basis],
+  simp [right_inverse_inv_fun (linear_map.range_eq_top.1 hf_surj) c]
 end
 
-lemma is_basis_std_basis (s : Πj, ιs j → (φ j)) (hs : ∀j, is_basis α (s j)) :
-  is_basis α (λ (ji : Σ j, ιs j), std_basis α φ ji.1 (s ji.1 ji.2)) :=
+/-- Any linear map `f : p →ₗ[K] V'` defined on a subspace `p` can be extended to the whole
+space. -/
+lemma linear_map.exists_extend {p : submodule K V} (f : p →ₗ[K] V') :
+  ∃ g : V →ₗ[K] V', g.comp p.subtype = f :=
+let ⟨g, hg⟩ := p.subtype.exists_left_inverse_of_injective p.ker_subtype in
+⟨f.comp g, by rw [linear_map.comp_assoc, hg, f.comp_id]⟩
+
+open submodule linear_map
+
+/-- If `p < ⊤` is a subspace of a vector space `V`, then there exists a nonzero linear map
+`f : V →ₗ[K] K` such that `p ≤ ker f`. -/
+lemma submodule.exists_le_ker_of_lt_top (p : submodule K V) (hp : p < ⊤) :
+  ∃ f ≠ (0 : V →ₗ[K] K), p ≤ ker f :=
 begin
-  split,
-  { apply linear_independent_std_basis _ (assume i, (hs i).1) },
-  have h₁ : Union (λ j, set.range (std_basis α φ j ∘ s j))
-    ⊆ range (λ (ji : Σ (j : η), ιs j), (std_basis α φ (ji.fst)) (s (ji.fst) (ji.snd))),
-  { apply Union_subset, intro i,
-    apply range_comp_subset_range (λ x : ιs i, (⟨i, x⟩ : Σ (j : η), ιs j))
-        (λ (ji : Σ (j : η), ιs j), std_basis α φ (ji.fst) (s (ji.fst) (ji.snd))) },
-  have h₂ : ∀ i, span α (range (std_basis α φ i ∘ s i)) = range (std_basis α φ i),
-  { intro i,
-    rw [set.range_comp, submodule.span_image, (assume i, (hs i).2), submodule.map_top] },
-  apply eq_top_mono,
-  apply span_mono h₁,
-  rw span_Union,
-  simp only [h₂],
-  apply supr_range_std_basis
+  rcases set_like.exists_of_lt hp with ⟨v, -, hpv⟩, clear hp,
+  rcases (linear_pmap.sup_span_singleton ⟨p, 0⟩ v (1 : K) hpv).to_fun.exists_extend with ⟨f, hf⟩,
+  refine ⟨f, _, _⟩,
+  { rintro rfl, rw [linear_map.zero_comp] at hf,
+    have := linear_pmap.sup_span_singleton_apply_mk ⟨p, 0⟩ v (1 : K) hpv 0 p.zero_mem 1,
+    simpa using (linear_map.congr_fun hf _).trans this },
+  { refine λ x hx, mem_ker.2 _,
+    have := linear_pmap.sup_span_singleton_apply_mk ⟨p, 0⟩ v (1 : K) hpv x hx 0,
+    simpa using (linear_map.congr_fun hf _).trans this }
 end
 
-section
-variables (α ι)
+theorem quotient_prod_linear_equiv (p : submodule K V) :
+  nonempty (((V ⧸ p) × p) ≃ₗ[K] V) :=
+let ⟨q, hq⟩ := p.exists_is_compl in nonempty.intro $
+((quotient_equiv_of_is_compl p q hq).prod (linear_equiv.refl _ _)).trans
+  (prod_equiv_of_is_compl q p hq.symm)
 
-lemma is_basis_fun₀ : is_basis α
-    (λ (ji : Σ (j : η), (λ _, unit) j),
-       (std_basis α (λ (i : η), α) (ji.fst)) 1) :=
-begin
-  haveI := classical.dec_eq,
-  apply @is_basis_std_basis α η (λi:η, unit) (λi:η, α) _ _ _ _ (λ _ _, (1 : α))
-      (assume i, @is_basis_singleton_one _ _ _ _),
-end
-
-lemma is_basis_fun : is_basis α (λ i, std_basis α (λi:η, α) i 1) :=
-begin
-  apply is_basis.comp (is_basis_fun₀ α) (λ i, ⟨i, punit.star⟩) ,
-  { apply bijective_iff_has_inverse.2,
-    use (λ x, x.1),
-    simp [function.left_inverse, function.right_inverse],
-    intros _ b,
-    rw [unique.eq_default b, unique.eq_default punit.star] },
-  apply_instance
-end
-
-end
-
-end module
-
-end pi
+end field

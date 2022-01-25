@@ -42,7 +42,7 @@ begin
   -- Hl : l * 37 = b - a, and Hm : m * 37 = c - b
   -- Goal : ∃ k, k * 37 = c - a
   use (l + m),
-  simp [add_mul, Hl, Hm],
+  rw [add_mul, Hl, Hm], ring
 end
 
 -- so we've now seen a general technique for proving a ≈ b -- use (the k that works)
@@ -95,7 +95,7 @@ begin
   apply quotient.sound,
   -- goal now a₁ + a₂ ≈ b₁ + b₂, and we know how to do these.
   use (m + n),
-  simp [add_mul, Hm, Hn]
+  rw [add_mul, Hm, Hn], ring
 end
 
 -- That lemma above is *exactly* what we need to make sure addition is
@@ -167,7 +167,7 @@ instance : add_comm_group (Zmod37)  :=
       rw add_assoc, -- done :-) because after a rw a goal is closed if it's of the form x ≈ x,
                     -- as ≈ is known by Lean to be reflexive.
     end),
-  add_zero     := -- I will intrroduce some more sneaky stuff now now
+  add_zero     := -- I will introduce some more sneaky stuff now
                   -- add_zero for Zmod37 follows from add_zero on Z.
                   -- Note use of $ instead of the brackets
     λ abar, quotient.induction_on abar $ λ a, quotient.sound $ by rw add_zero,

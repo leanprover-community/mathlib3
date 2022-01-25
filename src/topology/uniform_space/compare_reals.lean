@@ -3,7 +3,6 @@ Copyright (c) 2019 Patrick MAssot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot
 -/
-
 import topology.uniform_space.absolute_value
 import topology.instances.real
 import topology.uniform_space.completion
@@ -50,7 +49,7 @@ does use ℝ).
 real numbers, completion, uniform spaces
 -/
 
-open set function lattice filter cau_seq uniform_space
+open set function filter cau_seq uniform_space
 
 /-- The metric space uniform structure on ℚ (which presupposes the existence
 of real numbers) agrees with the one coming directly from (abs : ℚ → ℚ). -/
@@ -63,13 +62,13 @@ begin
   { use [ε, by exact_mod_cast ε_pos],
     intros a b hab,
     apply h,
-    rw [rat.dist_eq, abs_sub] at hab,
+    rw [rat.dist_eq, abs_sub_comm] at hab,
     exact_mod_cast hab },
   { obtain ⟨ε', h', h''⟩ : ∃ ε' : ℚ, 0 < ε' ∧ (ε' : ℝ) < ε, from exists_pos_rat_lt ε_pos,
     use [ε', h'],
     intros a b hab,
     apply h,
-    rw [rat.dist_eq, abs_sub],
+    rw [rat.dist_eq, abs_sub_comm],
     refine lt_trans _ h'',
     exact_mod_cast hab }
 end
@@ -83,19 +82,20 @@ def rational_cau_seq_pkg : @abstract_completion ℚ $ is_absolute_value.uniform_
   complete :=  by apply_instance,
   separation :=  by apply_instance,
   uniform_inducing := by { rw rat.uniform_space_eq,
-                           exact uniform_embedding_of_rat.to_uniform_inducing },
-  dense := dense_embedding_of_rat.dense }
+                           exact rat.uniform_embedding_coe_real.to_uniform_inducing },
+  dense := rat.dense_embedding_coe_real.dense }
 
 namespace compare_reals
 /-- Type wrapper around ℚ to make sure the absolute value uniform space instance is picked up
 instead of the metric space one. We proved in rat.uniform_space_eq that they are equal,
 but they are not definitionaly equal, so it would confuse the type class system (and probably
 also human readers). -/
-@[derive comm_ring] def Q := ℚ
+@[derive comm_ring, derive inhabited] def Q := ℚ
 
 instance : uniform_space Q := is_absolute_value.uniform_space (abs : ℚ → ℚ)
 
 /-- Real numbers constructed as in Bourbaki. -/
+@[derive inhabited]
 def Bourbakiℝ : Type := completion Q
 
 instance bourbaki.uniform_space: uniform_space Bourbakiℝ := completion.uniform_space Q

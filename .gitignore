@@ -4,5 +4,8 @@
 _cache
 __pycache__
 all.lean
-sanity_check_mathlib.lean
 *.depend
+/src/.noisy_files
+*~
+.DS_Store
+*.lock

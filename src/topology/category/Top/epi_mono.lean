@@ -6,6 +6,14 @@ Authors: Reid Barton
 import topology.category.Top.adjunctions
 import category_theory.epi_mono
 
+/-!
+# Epi- and monomorphisms in `Top`
+
+This file shows that a continuous function is an epimorphism in the category of topological spaces
+if and only if it is surjective, and that a continuous function is a monomorphism in the category of
+topological spaces if and only if it is injective.
+-/
+
 universe u
 
 open category_theory

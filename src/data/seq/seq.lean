@@ -1,10 +1,12 @@
 /-
 Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro
+Authors: Mario Carneiro
 -/
-import tactic.basic
-import data.list.basic data.stream data.lazy_list data.seq.computation logic.basic
+import data.lazy_list
+import data.nat.basic
+import data.stream.init
+import data.seq.computation
 
 universes u v w
 
@@ -34,6 +36,8 @@ variables {α : Type u} {β : Type v} {γ : Type w}
 /-- The empty sequence -/
 def nil : seq α := ⟨stream.const none, λn h, rfl⟩
 
+instance : inhabited (seq α) := ⟨nil⟩
+
 /-- Prepend an element to a sequence -/
 def cons (a : α) : seq α → seq α
 | ⟨f, al⟩ := ⟨some a :: f, λn h, by {cases n with n, contradiction, exact al h}⟩
@@ -46,8 +50,7 @@ def terminated_at (s : seq α) (n : ℕ) : Prop := s.nth n = none
 
 /-- It is decidable whether a sequence terminates at a given position. -/
 instance terminated_at_decidable (s : seq α) (n : ℕ) : decidable (s.terminated_at n) :=
-if p : s.nth n = none then is_true p
-else is_false (assume h, by contradiction)
+decidable_of_iff' (s.nth n).is_none $ by unfold terminated_at; cases s.nth n; simp
 
 /-- A sequence terminates if there is some position `n` at which it has terminated. -/
 def terminates (s : seq α) : Prop := ∃ (n : ℕ), s.terminated_at n
@@ -70,11 +73,11 @@ instance : has_mem α (seq α) :=
 ⟨seq.mem⟩
 
 theorem le_stable (s : seq α) {m n} (h : m ≤ n) :
-  s.1 m = none → s.1 n = none :=
+  s.nth m = none → s.nth n = none :=
 by {cases s with f al, induction h with n h IH, exacts [id, λ h2, al (IH h2)]}
 
 /-- If a sequence terminated at position `n`, it also terminated at `m ≥ n `. -/
-lemma terminated_stable {s : seq α} {m n : ℕ} (m_le_n : m ≤ n)
+lemma terminated_stable (s : seq α) {m n : ℕ} (m_le_n : m ≤ n)
 (terminated_at_m : s.terminated_at m) :
   s.terminated_at n :=
 le_stable s m_le_n terminated_at_m
@@ -88,7 +91,7 @@ lemma ge_stable (s : seq α) {aₙ : α} {n m : ℕ} (m_le_n : m ≤ n)
   ∃ (aₘ : α), s.nth m = some aₘ :=
 have s.nth n ≠ none, by simp [s_nth_eq_some],
 have s.nth m ≠ none, from mt (s.le_stable m_le_n) this,
-with_one.ne_one_iff_exists.elim_left this
+option.ne_none_iff_exists'.mp this
 
 theorem not_mem_nil (a : α) : a ∉ @nil α :=
 λ ⟨n, (h : some a = none)⟩, by injection h
@@ -126,8 +129,7 @@ begin
   dsimp [destruct],
   induction f0 : nth s 0 with a'; intro h,
   { contradiction },
-  { unfold functor.map at h,
-    cases s with f al,
+  { cases s with f al,
     injections with _ h1 h2,
     rw ←h2, apply subtype.eq, dsimp [tail, cons],
     rw h1 at f0, rw ←f0,
@@ -207,7 +209,7 @@ end
 begin
   dsimp [corec, destruct, nth],
   change stream.corec' (corec.F f) (some b) 0 with (corec.F f (some b)).1,
-  unfold functor.map, dsimp [corec.F],
+  dsimp [corec.F],
   induction h : f b with s, { refl },
   cases s with a b', dsimp [corec.F],
   apply congr_arg (λ b', some (a, b')),
@@ -231,7 +233,7 @@ instance coe_list : has_coe (list α) (seq α) := ⟨of_list⟩
 section bisim
   variable (R : seq α → seq α → Prop)
 
-  local infix ~ := R
+  local infix ` ~ `:50 := R
 
   def bisim_o : option (seq1 α) → option (seq1 α) → Prop
   | none          none            := true
@@ -513,7 +515,7 @@ theorem map_comp (f : α → β) (g : β → γ) : ∀ (s : seq α), map (g ∘ 
   apply subtype.eq; dsimp [map],
   rw stream.map_map,
   apply congr_arg (λ f : _ → option γ, stream.map f s),
-  funext x, cases x with x; refl
+  ext ⟨⟩; refl
 end
 
 @[simp] theorem map_append (f : α → β) (s t) : map f (append s t) = append (map f s) (map f t) :=
@@ -546,7 +548,7 @@ destruct_eq_cons $ by simp [join]
   join (cons (a, cons b s) S) = cons a (join (cons (b, s) S)) :=
 destruct_eq_cons $ by simp [join]
 
-@[simp] theorem join_cons (a : α) (s S) :
+@[simp, priority 990] theorem join_cons (a : α) (s S) :
   join (cons (a, s) S) = cons a (append s (join S)) :=
 begin
   apply eq_of_bisim (λs1 s2, s1 = s2 ∨
@@ -589,10 +591,7 @@ end
 
 @[simp] theorem of_list_cons (a : α) (l) :
   of_list (a :: l) = cons a (of_list l) :=
-begin
-  apply subtype.eq, simp [of_list, cons],
-  funext n, cases n; simp [list.nth, stream.cons]
-end
+by ext (_|n) : 2; simp [of_list, cons, stream.nth, stream.cons]
 
 @[simp] theorem of_stream_cons (a : α) (s) :
   of_stream (a :: s) = cons a (of_stream s) :=
@@ -626,7 +625,7 @@ by rw add_comm; symmetry; apply dropn_add
 theorem nth_tail : ∀ (s : seq α) n, nth (tail s) n = nth s (n + 1)
 | ⟨f, al⟩ n := rfl
 
-@[extensionality]
+@[ext]
 protected lemma ext (s s': seq α) (hyp : ∀ (n : ℕ), s.nth n = s'.nth n) : s = s' :=
 begin
   let ext := (λ (s s' : seq α), ∀ n, s.nth n = s'.nth n),
@@ -711,6 +710,8 @@ by dsimp [join]; rw [destruct_cons]; refl
 /-- The `return` operator for the `seq1` monad,
   which produces a singleton sequence. -/
 def ret (a : α) : seq1 α := (a, nil)
+
+instance [inhabited α] : inhabited (seq1 α) := ⟨ret default⟩
 
 /-- The `bind` operator for the `seq1` monad,
   which maps `f` on each element of `s` and appends the results together.

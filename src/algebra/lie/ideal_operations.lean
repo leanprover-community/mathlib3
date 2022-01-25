@@ -108,6 +108,14 @@ begin
   change x ∈ (⊥ : lie_ideal R L) at hx, rw mem_bot at hx, simp [hx],
 end
 
+lemma lie_eq_bot_iff : ⁅I, N⁆ = ⊥ ↔ ∀ (x ∈ I) (m ∈ N), ⁅(x : L), m⁆ = 0 :=
+begin
+  rw [lie_ideal_oper_eq_span, lie_submodule.lie_span_eq_bot_iff],
+  refine ⟨λ h x hx m hm, h ⁅x, m⁆ ⟨⟨x, hx⟩, ⟨m, hm⟩, rfl⟩, _⟩,
+  rintros h - ⟨⟨x, hx⟩, ⟨⟨n, hn⟩, rfl⟩⟩,
+  exact h x hx n hn,
+end
+
 lemma mono_lie (h₁ : I ≤ J) (h₂ : N ≤ N') : ⁅I, N⁆ ≤ ⁅J, N'⁆ :=
 begin
   intros m h,

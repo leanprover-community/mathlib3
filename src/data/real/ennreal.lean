@@ -1655,7 +1655,6 @@ end
 
 protected lemma dichotomy (p : ℝ≥0∞) [fact (1 ≤ p)] : p = ∞ ∨ 1 ≤ p.to_real :=
 begin
-  tactic.unfreeze_local_instances,
   have :  p = ⊤ ∨ 0 < p.to_real ∧ 1 ≤ p.to_real,
   { simpa using ennreal.trichotomy₂ (fact.out _ : 1 ≤ p) },
   exact this.imp_right (λ h, h.2)

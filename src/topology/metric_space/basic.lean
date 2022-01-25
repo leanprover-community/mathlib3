@@ -2031,16 +2031,20 @@ begin
   simpa using diam_union xs xt
 end
 
+lemma diam_le_of_subset_closed_ball {r : ℝ} (hr : 0 ≤ r) (h : s ⊆ closed_ball x r) :
+  diam s ≤ 2 * r :=
+diam_le_of_forall_dist_le (mul_nonneg zero_le_two hr) $ λa ha b hb, calc
+  dist a b ≤ dist a x + dist b x : dist_triangle_right _ _ _
+  ... ≤ r + r : add_le_add (h ha) (h hb)
+  ... = 2 * r : by simp [mul_two, mul_comm]
+
 /-- The diameter of a closed ball of radius `r` is at most `2 r`. -/
 lemma diam_closed_ball {r : ℝ} (h : 0 ≤ r) : diam (closed_ball x r) ≤ 2 * r :=
-diam_le_of_forall_dist_le (mul_nonneg (le_of_lt zero_lt_two) h) $ λa ha b hb, calc
-  dist a b ≤ dist a x + dist b x : dist_triangle_right _ _ _
-  ... ≤ r + r : add_le_add ha hb
-  ... = 2 * r : by simp [mul_two, mul_comm]
+diam_le_of_subset_closed_ball h subset.rfl
 
 /-- The diameter of a ball of radius `r` is at most `2 r`. -/
 lemma diam_ball {r : ℝ} (h : 0 ≤ r) : diam (ball x r) ≤ 2 * r :=
-le_trans (diam_mono ball_subset_closed_ball bounded_closed_ball) (diam_closed_ball h)
+diam_le_of_subset_closed_ball h ball_subset_closed_ball
 
 end diam
 

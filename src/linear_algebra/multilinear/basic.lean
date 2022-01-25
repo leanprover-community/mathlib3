@@ -1304,10 +1304,10 @@ begin
     have e := dom_dom_congr_linear_equiv' R M₁ M₂ (fintype.equiv_fin ι),
     exact e.symm.finite_dimensional, },
   intros,
-  tactic.unfreeze_local_instances,
   induction n with n ih,
-  { exact (const_linear_equiv_of_is_empty R N M₂ : _).finite_dimensional, },
-  { suffices : finite_dimensional R (N 0 →ₗ[R] multilinear_map R (λ (i : fin n), N i.succ) M₂),
+  { exactI (const_linear_equiv_of_is_empty R N M₂ : _).finite_dimensional, },
+  { resetI,
+    suffices : finite_dimensional R (N 0 →ₗ[R] multilinear_map R (λ (i : fin n), N i.succ) M₂),
     { exact (multilinear_curry_left_equiv R N M₂).finite_dimensional, },
     apply linear_map.finite_dimensional, },
 end

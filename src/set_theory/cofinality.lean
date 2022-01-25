@@ -346,7 +346,7 @@ e⟩
 -- prove cof_lsub_le_lift first, that will trivialize this one.
 theorem cof_lsub_le_lift {ι} (f : ι → ordinal) : cof (lsub f) ≤ (#ι).lift :=
 begin
-  have H : ∀ i, f i < lsub f := lt_lsub f,
+  have H := lt_lsub f,
   generalize e : lsub f = o,
   refine ordinal.induction_on o _ e, introsI α r _ e',
   rw e' at H,
@@ -363,6 +363,11 @@ end
 theorem cof_lsub_le {ι} (f : ι → ordinal) : cof (lsub.{u u} f) ≤ #ι :=
 by simpa using cof_lsub_le_lift.{u u} f
 
+theorem cof_sup_le_lift {ι} (f : ι → ordinal) (H : ∀ i, f i < sup f) : cof (sup f) ≤ (#ι).lift :=
+begin
+  rw ←sup_eq_lsub at H,
+end
+
 -- the rewrite might be golfed out after the bsup refactor (since it would be def-eq).
 theorem cof_blsub_le_lift {o : ordinal} : ∀ (f : Π a < o, ordinal), cof (blsub o f) ≤ o.card.lift :=
 induction_on o $ λ α r _ f, by { resetI, rw blsub_eq_lsub' r rfl, exact cof_lsub_le_lift _ }
@@ -373,12 +378,12 @@ by simpa using cof_blsub_le_lift.{u u} f
 theorem cof_lsub_le_cof {ι} {r : ι → ι → Prop} [is_well_order ι r] (f : ι → ordinal)
   (hf : ∀ i j, r i j → f i ≤ f j) : cof (lsub.{u v} f) ≤ (type r).lift.cof :=
 begin
-  have H : ∀ i, f i < lsub f := lt_lsub f,
+  have H := lt_lsub f,
   generalize e : lsub f = o,
   refine ordinal.induction_on o _ e, clear e o, introsI α r' _ e, rw e at H,
   rcases cof_eq r with ⟨S, hS, h2S⟩,
-  refine le_trans (cof_type_le ((λ i : ι, enum r' (f i) (H i)) '' S) _) _,
-  { intro a, by_contra h, apply not_le_of_lt (typein_lt_type r' a),
+  refine (cof_type_le ((λ i : ι, enum r' (f i) (H i)) '' S) (λ a, _)).trans _,
+  { by_contra h, apply not_le_of_lt (typein_lt_type r' a),
     rw [← e, lsub_le_iff_lt], intro i, rcases hS i with ⟨j, hj, h2j⟩,
     simp only [not_exists, mem_image, and_imp, exists_prop, not_and, not_not,
       exists_imp_distrib] at h,

@@ -278,6 +278,14 @@ le_antisymm (φ.op_norm_le_bound M_nonneg h_above)
 
 lemma op_norm_neg (f : E →SL[σ₁₂] F) : ∥-f∥ = ∥f∥ := by simp only [norm_def, neg_apply, norm_neg]
 
+theorem antilipschitz_of_bound (f : E →SL[σ₁₂] F) {K : ℝ≥0} (h : ∀ x, ∥x∥ ≤ K * ∥f x∥) :
+  antilipschitz_with K f :=
+linear_map.antilipschitz_of_bound _ h
+
+lemma bound_of_antilipschitz (f : E →SL[σ₁₂] F) {K : ℝ≥0} (h : antilipschitz_with K f) (x) :
+  ∥x∥ ≤ K * ∥f x∥ :=
+linear_map.bound_of_antilipschitz _ h x
+
 section
 
 variables [ring_hom_isometric σ₁₂] [ring_hom_isometric σ₂₃]

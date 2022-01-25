@@ -351,7 +351,7 @@ begin
   simp only [eq_to_hom_map, eq_to_hom_trans],
 end
 
-instance is_affine_open.is_localization_stalk {X : Scheme} {U : opens X.carrier}
+lemma is_affine_open.is_localization_stalk {X : Scheme} {U : opens X.carrier}
   (hU : is_affine_open U) (x : U) :
   is_localization.at_prime (X.presheaf.stalk x) (hU.prime_ideal_of x).as_ideal :=
 begin

@@ -65,6 +65,11 @@ instance : set_like (sylow p G) G :=
 { coe := coe,
   coe_injective' := λ P Q h, ext (set_like.coe_injective h) }
 
+instance : subgroup_class (sylow p G) G :=
+{ mul_mem := λ s, s.mul_mem',
+  one_mem := λ s, s.one_mem',
+  inv_mem := λ s, s.inv_mem' }
+
 end sylow
 
 /-- A generalization of **Sylow's first theorem**.

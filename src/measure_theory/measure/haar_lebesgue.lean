@@ -102,7 +102,7 @@ begin
   calc
   ∞ = ∑' (n : ℕ), μ s : (ennreal.tsum_const_eq_top_of_ne_zero h).symm
   ... = ∑' (n : ℕ), μ ({u n} + s) :
-    by { congr' 1, ext1 n, simp only [image_add_left, add_haar_preimage_add, singleton_add] }
+    by { congr' 1, ext1 n, simp only [image_add_left, measure_preimage_add, singleton_add] }
   ... = μ (⋃ n, {u n} + s) :
     by rw measure_Union hs
       (λ n, by simpa only [image_add_left, singleton_add] using measurable_id.const_add _ h's)
@@ -182,7 +182,7 @@ lemma map_linear_map_add_haar_pi_eq_smul_add_haar
 begin
   /- We have already proved the result for the Lebesgue product measure, using matrices.
   We deduce it for any Haar measure by uniqueness (up to scalar multiplication). -/
-  have := add_haar_measure_unique (is_add_left_invariant_add_haar μ) (pi_Icc01 ι),
+  have := add_haar_measure_unique μ (pi_Icc01 ι),
   rw this,
   simp [add_haar_measure_eq_volume_pi, real.map_linear_map_volume_pi_eq_smul_volume_pi hf,
     smul_smul, mul_comm],
@@ -360,7 +360,7 @@ lemma add_haar_ball_center
   μ (ball x r) = μ (ball (0 : E) r) :=
 begin
   have : ball (0 : E) r = ((+) x) ⁻¹' (ball x r), by simp [preimage_add_ball],
-  rw [this, add_haar_preimage_add]
+  rw [this, measure_preimage_add]
 end
 
 lemma add_haar_closed_ball_center
@@ -369,7 +369,7 @@ lemma add_haar_closed_ball_center
   μ (closed_ball x r) = μ (closed_ball (0 : E) r) :=
 begin
   have : closed_ball (0 : E) r = ((+) x) ⁻¹' (closed_ball x r), by simp [preimage_add_closed_ball],
-  rw [this, add_haar_preimage_add]
+  rw [this, measure_preimage_add]
 end
 
 lemma add_haar_ball_pos {E : Type*} [normed_group E] [measurable_space E]

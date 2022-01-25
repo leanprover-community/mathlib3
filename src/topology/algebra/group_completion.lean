@@ -85,7 +85,7 @@ instance : add_monoid (completion α) :=
 instance : sub_neg_monoid (completion α) :=
 { sub_eq_add_neg := λ a b, completion.induction_on₂ a b
     (is_closed_eq (continuous_map₂ continuous_fst continuous_snd)
-      (continuous_map₂ continuous_fst (continuous_map.comp continuous_snd)))
+      (continuous_map₂ continuous_fst (completion.continuous_map.comp continuous_snd)))
    (λ a b, by exact_mod_cast congr_arg coe (sub_eq_add_neg a b)),
   .. completion.add_monoid, .. completion.has_neg, .. completion.has_sub }
 

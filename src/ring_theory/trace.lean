@@ -195,19 +195,15 @@ open algebra polynomial
 variables {F : Type*} [field F]
 variables [algebra K S] [algebra K F]
 
-/-- Given `pb : power_basis K S`, then the trace of `pb.gen` is
-`-((minpoly K pb.gen).map (algebra_map K F)).next_coeff`. -/
+/-- Given `pb : power_basis K S`, the trace of `pb.gen` is `-(minpoly K pb.gen).next_coeff`. -/
 lemma power_basis.trace_gen_eq_next_coeff_minpoly [nontrivial S] (pb : power_basis K S) :
-  algebra_map K F (trace K S pb.gen) =
-    -((minpoly K pb.gen).map (algebra_map K F)).next_coeff :=
+  algebra.trace K S pb.gen = -(minpoly K pb.gen).next_coeff :=
 begin
   have d_pos : 0 < pb.dim := power_basis.dim_pos pb,
   have d_pos' : 0 < (minpoly K pb.gen).nat_degree, { simpa },
   haveI : nonempty (fin pb.dim) := ⟨⟨0, d_pos⟩⟩,
   rw [trace_eq_matrix_trace pb.basis, trace_eq_neg_charpoly_coeff, charpoly_left_mul_matrix,
-      ring_hom.map_neg, ← pb.nat_degree_minpoly, fintype.card_fin,
-      ← next_coeff_of_pos_nat_degree _ d_pos',
-      ← next_coeff_map (algebra_map K F).injective]
+      ← pb.nat_degree_minpoly, fintype.card_fin, ← next_coeff_of_pos_nat_degree _ d_pos']
 end
 
 /-- Given `pb : power_basis K S`, then the trace of `pb.gen` is
@@ -217,9 +213,10 @@ lemma power_basis.trace_gen_eq_sum_roots [nontrivial S] (pb : power_basis K S)
   algebra_map K F (trace K S pb.gen) =
     ((minpoly K pb.gen).map (algebra_map K F)).roots.sum :=
 begin
-  rw [power_basis.trace_gen_eq_next_coeff_minpoly, sum_roots_eq_next_coeff_of_monic_of_split
-    (monic_map _ (minpoly.monic (power_basis.is_integral_gen _)))
-    ((splits_id_iff_splits _).2 hf), neg_neg]
+  rw [power_basis.trace_gen_eq_next_coeff_minpoly, ring_hom.map_neg, ← next_coeff_map
+    (algebra_map K F).injective, sum_roots_eq_next_coeff_of_monic_of_split
+      (monic_map _ (minpoly.monic (power_basis.is_integral_gen _)))
+      ((splits_id_iff_splits _).2 hf), neg_neg]
 end
 
 namespace intermediate_field.adjoin_simple

@@ -434,15 +434,15 @@ end
 
 /-- A sylow subgroup in G is also a sylow subgroup in a subgroup of G. -/
 def subtype {p : ℕ} (P : sylow p G) (N : subgroup G) (h : ↑P ≤ N) : sylow p N :=
-{ to_group := comap N.subtype P.1,
-  is_p_group := is_p_group.comap_subtype P.is_p_group',
-  is_maximal := begin
+{ comap N.subtype P.1 with
+  is_p_group' := is_p_group.comap_subtype P.is_p_group',
+  is_maximal' := begin
     intros Q hQ hle,
     let Q' : subgroup G := map N.subtype Q,
-    have h' : P.to_subgroup ≤ N.subtype.range := by simpa,
+    have h' : P.to_subgroup ≤ N.subtype.range, by simpa,
     have hQ' : is_p_group p Q' := is_p_group.map hQ _,
     have hle' : P.to_subgroup ≤ Q':= calc P.to_subgroup
-          = map N.subtype (comap N.subtype P.to_subgroup) : symm $ map_comap_eq_self h'
+          = map N.subtype (comap N.subtype P.to_subgroup) : symm (map_comap_eq_self h')
       ... ≤ Q' : map_mono hle,
     rewrite ← P.is_maximal' hQ' hle',
     symmetry,

@@ -407,6 +407,7 @@ begin
   exact (nat.find_spec (nilpotent_iff_lower_central_series.mp _))
 end
 
+end classical
 
 lemma lower_central_series_map_subtype_le (H : subgroup G) (n : ℕ) :
   (lower_central_series H n).map H.subtype ≤ lower_central_series G n :=

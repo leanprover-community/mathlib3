@@ -1860,7 +1860,7 @@ theorem omega_le {o : ordinal.{u}} : omega ≤ o ↔ ∀ n : ℕ, (n : ordinal) 
    by rw [e, ← succ_le]; exact H (n+1)⟩
 
 theorem omega_eq_sup_nat_cast : omega.{u} = sup nat.cast :=
-le_antisymm (omega_le.2 (le_sup _)) (sup_le.2 (λ n, le_of_lt (nat_lt_omega n)))
+(omega_le.2 $ le_sup _).antisymm $ sup_le.2 $ λ n, (nat_lt_omega n).le
 
 theorem nat_lt_limit {o} (h : is_limit o) : ∀ n : ℕ, (n : ordinal) < o
 | 0     := lt_of_le_of_ne (ordinal.zero_le o) h.1.symm

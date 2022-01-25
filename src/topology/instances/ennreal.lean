@@ -126,8 +126,7 @@ lemma eventually_eq_of_to_real_eventually_eq {l : filter α} {f g : α → ℝ�
   (hfg : (λ x, (f x).to_real) =ᶠ[l] (λ x, (g x).to_real)) :
   f =ᶠ[l] g :=
 begin
-  filter_upwards [hfi, hgi, hfg],
-  intros x hfx hgx hfgx,
+  filter_upwards [hfi, hgi, hfg] with _ hfx hgx _,
   rwa ← ennreal.to_real_eq_to_real hfx hgx,
 end
 
@@ -256,6 +255,45 @@ begin
   { simp_rw [set.mem_Icc, zero_add, zero_tsub, zero_le _, true_and], },
   { exact hβ, },
 end
+
+lemma tendsto_sub {a b : ℝ≥0∞} (h : a ≠ ∞ ∨ b ≠ ∞) :
+  tendsto (λ p : ℝ≥0∞ × ℝ≥0∞, p.1 - p.2) (𝓝 (a, b)) (𝓝 (a - b)) :=
+begin
+  cases a; cases b,
+  { simp only [eq_self_iff_true, not_true, ne.def, none_eq_top, or_self] at h, contradiction },
+  { simp only [some_eq_coe, with_top.top_sub_coe, none_eq_top],
+    apply tendsto_nhds_top_iff_nnreal.2 (λ n, _),
+    rw [nhds_prod_eq, eventually_prod_iff],
+    refine ⟨λ z, ((n + (b + 1)) : ℝ≥0∞) < z,
+            Ioi_mem_nhds (by simp only [one_lt_top, add_lt_top, coe_lt_top, and_self]),
+            λ z, z < b + 1, Iio_mem_nhds ((ennreal.lt_add_right coe_ne_top one_ne_zero)),
+            λ x hx y hy, _⟩,
+    dsimp,
+    rw lt_tsub_iff_right,
+    have : ((n : ℝ≥0∞) + y) + (b + 1) < x + (b + 1) := calc
+      ((n : ℝ≥0∞) + y) + (b + 1) = ((n : ℝ≥0∞) + (b + 1)) + y : by abel
+      ... < x + (b + 1) : ennreal.add_lt_add hx hy,
+    exact lt_of_add_lt_add_right this },
+  { simp only [some_eq_coe, with_top.sub_top, none_eq_top],
+    suffices H : ∀ᶠ (p : ℝ≥0∞ × ℝ≥0∞) in 𝓝 (a, ∞), 0 = p.1 - p.2,
+      from tendsto_const_nhds.congr' H,
+    rw [nhds_prod_eq, eventually_prod_iff],
+    refine ⟨λ z, z < a + 1, Iio_mem_nhds (ennreal.lt_add_right coe_ne_top one_ne_zero),
+            λ z, (a : ℝ≥0∞) + 1 < z,
+            Ioi_mem_nhds (by simp only [one_lt_top, add_lt_top, coe_lt_top, and_self]),
+            λ x hx y hy, _⟩,
+    rw eq_comm,
+    simp only [tsub_eq_zero_iff_le, (has_lt.lt.trans hx hy).le], },
+  { simp only [some_eq_coe, nhds_coe_coe, tendsto_map'_iff, function.comp, ← ennreal.coe_sub,
+               tendsto_coe],
+    exact continuous.tendsto (by continuity) _ }
+end
+
+protected lemma tendsto.sub {f : filter α} {ma : α → ℝ≥0∞} {mb : α → ℝ≥0∞} {a b : ℝ≥0∞}
+  (hma : tendsto ma f (𝓝 a)) (hmb : tendsto mb f (𝓝 b)) (h : a ≠ ∞ ∨ b ≠ ∞) :
+  tendsto (λ a, ma a - mb a) f (𝓝 (a - b)) :=
+show tendsto ((λ p : ℝ≥0∞ × ℝ≥0∞, p.1 - p.2) ∘ (λa, (ma a, mb a))) f (𝓝 (a - b)), from
+tendsto.comp (ennreal.tendsto_sub h) (hma.prod_mk_nhds hmb)
 
 protected lemma tendsto_mul (ha : a ≠ 0 ∨ b ≠ ⊤) (hb : b ≠ 0 ∨ a ≠ ⊤) :
   tendsto (λp:ℝ≥0∞×ℝ≥0∞, p.1 * p.2) (𝓝 (a, b)) (𝓝 (a * b)) :=

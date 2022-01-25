@@ -75,6 +75,9 @@ lemma pairwise.mono (h : t ⊆ s) (hs : s.pairwise r) : t.pairwise r :=
 
 lemma pairwise.mono' (H : r ≤ p) (hr : s.pairwise r) : s.pairwise p := hr.imp H
 
+protected lemma pairwise.eq (hs : s.pairwise r) (ha : a ∈ s) (hb : b ∈ s) (h : ¬ r a b) : a = b :=
+of_not_not $ λ hab, h $ hs ha hb hab
+
 lemma pairwise_top (s : set α) : s.pairwise ⊤ := pairwise_of_forall s _ (λ a b, trivial)
 
 protected lemma subsingleton.pairwise (h : s.subsingleton) (r : α → α → Prop) :
@@ -276,7 +279,7 @@ pairwise_sUnion h
 lemma pairwise_disjoint.elim (hs : s.pairwise_disjoint f) {i j : ι} (hi : i ∈ s) (hj : j ∈ s)
   (h : ¬ disjoint (f i) (f j)) :
   i = j :=
-of_not_not $ λ hij, h $ hs hi hj hij
+hs.eq hi hj h
 
 -- classical
 lemma pairwise_disjoint.elim' (hs : s.pairwise_disjoint f) {i j : ι} (hi : i ∈ s) (hj : j ∈ s)
@@ -328,7 +331,7 @@ lemma bUnion_diff_bUnion_eq {s t : set ι} {f : ι → set α} (h : (s ∪ t).pa
   (⋃ i ∈ s, f i) \ (⋃ i ∈ t, f i) = (⋃ i ∈ s \ t, f i) :=
 begin
   refine (bUnion_diff_bUnion_subset f s t).antisymm
-    (bUnion_subset $ λ i hi a ha, (mem_diff _).2 ⟨mem_bUnion hi.1 ha, _⟩),
+    (Union₂_subset $ λ i hi a ha, (mem_diff _).2 ⟨mem_bUnion hi.1 ha, _⟩),
   rw mem_Union₂, rintro ⟨j, hj, haj⟩,
   exact h (or.inl hi.1) (or.inr hj) (ne_of_mem_of_not_mem hj hi.2).symm ⟨ha, haj⟩,
 end

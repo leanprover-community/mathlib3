@@ -6,7 +6,7 @@ Authors: Aaron Anderson, Jesse Michael Han, Floris van Doorn
 import data.nat.basic
 import data.set_like.basic
 import data.set.lattice
-import data.fin
+import data.fin.tuple.basic
 import data.fintype.basic
 import order.closure
 

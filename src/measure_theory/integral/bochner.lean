@@ -1310,7 +1310,7 @@ open measure
 /-- Translating a function by left-multiplication does not change its integral with respect to a
 left-invariant measure. -/
 @[to_additive]
-lemma integral_mul_left_eq_self [is_mul_left_invariant μ] {f : G → E} (g : G) :
+lemma integral_mul_left_eq_self [is_mul_left_invariant μ] (f : G → E) (g : G) :
   ∫ x, f (g * x) ∂μ = ∫ x, f x ∂μ :=
 begin
   have h_mul : measurable_embedding (λ x, g * x) :=
@@ -1321,7 +1321,7 @@ end
 /-- Translating a function by right-multiplication does not change its integral with respect to a
 right-invariant measure. -/
 @[to_additive]
-lemma integral_mul_right_eq_self [is_mul_right_invariant μ] {f : G → E} (g : G) :
+lemma integral_mul_right_eq_self [is_mul_right_invariant μ] (f : G → E) (g : G) :
   ∫ x, f (x * g) ∂μ = ∫ x, f x ∂μ :=
 begin
   have h_mul : measurable_embedding (λ x, x * g) :=

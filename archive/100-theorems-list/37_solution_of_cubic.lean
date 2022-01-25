@@ -12,9 +12,9 @@ import ring_theory.polynomial.cyclotomic.basic
 
 This file proves Theorem 37 from the [100 Theorems List](https://www.cs.ru.nl/~freek/100/).
 
-The theorems `cubic_eq_zero_iff` and `cubic_eq_zero_iff_of_p_eq_zero` gives the solutions to
-the cubic equation `a * x^3 + b * x^2 + c * x + d = 0` over a field `K` that has a third primitive root of unity and that has characteristic neither 2 nor 3. This is
-based on the [Cardano's Formula](https://en.wikipedia.org/wiki/Cubic_equation#Cardano's_formula).
+the cubic equation `a * x^3 + b * x^2 + c * x + d = 0` over a field `K` that has a third primitive 
+root of unity and that has characteristic neither 2 nor 3. 
+This is based on the [Cardano's Formula](https://en.wikipedia.org/wiki/Cubic_equation#Cardano's_formula).
 
 ## References
 

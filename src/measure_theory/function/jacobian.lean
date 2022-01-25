@@ -1346,6 +1346,46 @@ begin
     end
 end
 
+
+/-- Change of variable formula for differentiable functions: if a function `f` is
+injective and differentiable on a measurable set `s`, then the integral of a function
+`g` on `f '' s` coincides with the integral of `|(f' x).det| * g ∘ f` on `s`. -/
+theorem lintegral_image_eq_lintegral_abs_det_fderiv_mul' {f : E → E} {s : set E}
+  (hs : measurable_set s) {f' : E → (E →L[ℝ] E)}
+  (hf' : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x) (hf : inj_on f s) (g : E → ℝ≥0∞) :
+  ∫⁻ x in f '' s, g x ∂μ = ∫⁻ x in s, ennreal.of_real (|(f' x).det|) * g (f x) ∂μ :=
+begin
+  obtain ⟨u, u_meas, uf⟩ : ∃ u, measurable u ∧ eq_on u f s,
+  { classical,
+    refine ⟨piecewise s f 0, _, piecewise_eq_on _ _ _⟩,
+    refine continuous_on.measurable_piecewise _ hs 0,
+    have : differentiable_on ℝ f s := λ x hx, (hf' x hx).differentiable_within_at,
+    exact this.continuous_on },
+  have u' : ∀ x ∈ s, has_fderiv_within_at u (f' x) s x :=
+    λ x hx, (hf' x hx).congr (λ y hy, uf hy) (uf hx),
+  -- Pour la ligne qui suit, il faut des ensembles analytiques et du Lusin-Souslin...
+  set F : s → E := u ∘ coe with hF,
+  have F_emb : measurable_embedding F := sorry,
+  have A : measure.map F
+    (comap coe (μ.with_density (λ x, ennreal.of_real (|(f' x).det|)))) = μ.restrict (u '' s),
+  { rw [hF, ← measure.map_map u_meas measurable_subtype_coe, map_comap_subtype_coe hs,
+        restrict_with_density hs],
+    exact map_with_density_abs_det_fderiv_eq_add_haar μ hs u' (hf.congr uf.symm) u_meas },
+  rw [← eq_on.image_eq uf, ← A, F_emb.lintegral_map],
+  have : ∀ (x : s), g (F x) = (g ∘ f) x,
+  { assume x,
+    have : u x = f x := uf x.2,
+    simp [hF, this] },
+  simp only [this],
+  rw [← (measurable_embedding.subtype_coe hs).lintegral_map, map_comap_subtype_coe hs,
+      set_lintegral_with_density_eq_set_lintegral_mul_non_measurable₀ _ _ _ hs],
+  { refl },
+  { simp only [eventually_true, ennreal.of_real_lt_top] },
+  { apply ae_measurable_of_real_abs_det_fderiv_within μ hs hf' }
+end
+
+#exit
+
 /-- Change of variable formula for differentiable functions: if a function `f` is
 injective and differentiable on a measurable set `s`, then the integral of a measurable function
 `g` on `f '' s` coincides with the integral of `|(f' x).det| * g ∘ f` on `s`. -/

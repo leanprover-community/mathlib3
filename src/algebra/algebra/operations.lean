@@ -121,7 +121,7 @@ end
 @[elab_as_eliminator] protected theorem mul_induction_on'
   {C : Π r, r ∈ M * N → Prop}
   (hm : ∀ (m ∈ M) (n ∈ N), C (m * n) (mul_mem_mul ‹_› ‹_›))
-  (ha : ∀ x hx y hy, C x hx → C y hy → C (x + y) (add_mem _ ‹_› ‹_›))
+  (ha : ∀ x hx y hy, C x hx → C y hy → C (x + y) (add_mem ‹_› ‹_›))
   {r : A} (hr : r ∈ M * N) : C r hr :=
 begin
   refine exists.elim _ (λ (hr : r ∈ M * N) (hc : C r hr), hc),
@@ -356,7 +356,7 @@ end
 @[elab_as_eliminator] protected theorem pow_induction_on'
   {C : Π (n : ℕ) x, x ∈ M ^ n → Prop}
   (hr : ∀ r : R, C 0 (algebra_map _ _ r) (algebra_map_mem r))
-  (hadd : ∀ x y i hx hy, C i x hx → C i y hy → C i (x + y) (add_mem _ ‹_› ‹_›))
+  (hadd : ∀ x y i hx hy, C i x hx → C i y hy → C i (x + y) (add_mem ‹_› ‹_›))
   (hmul : ∀ (m ∈ M) i x hx, C i x hx → C (i.succ) (m * x) (mul_mem_mul H hx))
   {x : A} {n : ℕ} (hx : x ∈ M ^ n) : C n x hx :=
 begin

@@ -336,6 +336,9 @@ by simp
 @[simp] lemma reindex_repr (i' : ι') : (b.reindex e).repr x i' = b.repr x (e.symm i') :=
 by rw coe_reindex_repr
 
+@[simp] lemma reindex_refl : b.reindex (equiv.refl ι) = b :=
+eq_of_apply_eq $ λ i, by simp
+
 /-- `simp` normal form version of `range_reindex` -/
 @[simp] lemma range_reindex' : set.range (b ∘ e.symm) = set.range b :=
 by rw [range_comp, equiv.range_eq_univ, set.image_univ]
@@ -362,7 +365,7 @@ lemma reindex_range_self (i : ι) (h := set.mem_range_self i) :
 begin
   by_cases htr : nontrivial R,
   { letI := htr,
-    simp [htr, reindex_range, reindex_apply, equiv.apply_of_injective_symm b b.injective,
+    simp [htr, reindex_range, reindex_apply, equiv.apply_of_injective_symm b.injective,
       subtype.coe_mk] },
   { letI : subsingleton R := not_nontrivial_iff_subsingleton.mp htr,
     letI := module.subsingleton R M,

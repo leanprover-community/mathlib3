@@ -5,6 +5,7 @@ Authors: Johannes Hölzl, Mario Carneiro
 -/
 import data.option.defs
 import logic.nonempty
+import tactic.cache
 
 /-!
 # Miscellaneous function constructions and lemmas
@@ -524,6 +525,15 @@ end
 @[simp] lemma extend_apply' (g : α → γ) (e' : β → γ) (b : β) (hb : ¬∃ a, f a = b) :
   extend f g e' b = e' b :=
 by simp [function.extend_def, hb]
+
+lemma apply_extend {δ} (hf : injective f) (F : γ → δ) (g : α → γ) (e' : β → γ) (b : β) :
+  F (extend f g e' b) = extend f (F ∘ g) (F ∘ e') b :=
+begin
+  by_cases hb : ∃ a, f a = b,
+  { cases hb with a ha, subst b,
+    rw [extend_apply hf, extend_apply hf] },
+  { rw [extend_apply' _ _ _ hb, extend_apply' _ _ _ hb] }
+end
 
 lemma extend_injective (hf : injective f) (e' : β → γ) :
   injective (λ g, extend f g e') :=

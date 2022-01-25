@@ -24,14 +24,18 @@ on `T` and for each `γ`, the map `x ↦ γ • x` is continuous. (This differs 
 ## Main results
 
 * `is_open_map_quotient_mk_mul` : The quotient map by a group action is open.
-* `is_t2_of_properly_discontinuous_smul_of_t2` : The quotient by a discontinuous group action of
-a locally compact t2 space is t2.
+* `t2_space_of_properly_discontinuous_smul_of_t2_space` : The quotient by a discontinuous group
+  action of a locally compact t2 space is t2.
 
 ## Tags
 
 Hausdorff, discrete group, properly discontinuous, quotient space
 
 -/
+
+open_locale topological_space
+
+open filter set
 
 local attribute [instance] mul_action.orbit_rel
 
@@ -89,8 +93,8 @@ export properly_discontinuous_smul (finite_disjoint_inter_image)
 
 export properly_discontinuous_vadd (finite_disjoint_inter_image)
 
-/-- Scalar multiplication by an element of a group `Γ` acting on `T` is a homeomorphism from `T`
-to itself. -/
+/-- The homeomorphism given by scalar multiplication by a given element of a group `Γ` acting on
+  `T` is a homeomorphism from `T` to itself. -/
 def homeomorph.smul {T : Type*} [topological_space T] {Γ : Type*} [group Γ]
   [mul_action Γ T] [has_continuous_smul₂ Γ T] (γ : Γ) :
   T ≃ₜ T :=
@@ -98,8 +102,8 @@ def homeomorph.smul {T : Type*} [topological_space T] {Γ : Type*} [group Γ]
   continuous_to_fun  := continuous_smul₂ γ,
   continuous_inv_fun := continuous_smul₂ γ⁻¹ }
 
-/-- Affine-addition of an element of an additive group `Γ` acting on `T` is a homeomorphism
-from `T` to itself. -/
+/-- The homeomorphism given by affine-addition by an element of an additive group `Γ` acting on
+  `T` is a homeomorphism from `T` to itself. -/
 def homeomorph.vadd {T : Type*} [topological_space T] {Γ : Type*} [add_group Γ]
   [add_action Γ T] [has_continuous_vadd₂ Γ T] (γ : Γ) :
   T ≃ₜ T :=
@@ -110,7 +114,8 @@ def homeomorph.vadd {T : Type*} [topological_space T] {Γ : Type*} [add_group Γ
 attribute [to_additive homeomorph.vadd] homeomorph.smul
 
 /-- The quotient map by a group action is open. -/
-@[to_additive] lemma is_open_map_quotient_mk_mul [has_continuous_smul₂ Γ T] :
+@[to_additive]
+lemma is_open_map_quotient_mk_mul [has_continuous_smul₂ Γ T] :
   is_open_map (quotient.mk : T → quotient (mul_action.orbit_rel Γ T)) :=
 begin
   intros U hU,
@@ -119,57 +124,39 @@ begin
 end
 
 /-- The quotient by a discontinuous group action of a locally compact t2 space is t2. -/
-@[priority 100, to_additive] instance is_t2_of_properly_discontinuous_smul_of_t2 [t2_space T]
-  [locally_compact_space T] [has_continuous_smul₂ Γ T] [properly_discontinuous_smul Γ T] :
-  t2_space (quotient (mul_action.orbit_rel Γ T)) :=
-{ t2 := begin
-  let f : T → quotient (mul_action.orbit_rel Γ T) := quotient.mk,
-  have f_is_open_map : is_open_map f := is_open_map_quotient_mk_mul,
-  intros x y hxy,
-  obtain ⟨x₀, rfl⟩ : ∃ x₀, f x₀ = x := quotient.exists_rep x,
-  obtain ⟨y₀, rfl⟩ : ∃ y₀, f y₀ = y := quotient.exists_rep y,
-  have hγx₀y₀ : ∀ γ : Γ, γ • x₀ ≠ y₀ := let t := mt quotient.sound hxy.symm in not_exists.mp t,
-  have hx₀y₀ : x₀ ≠ y₀ := by simpa using (hγx₀y₀ 1),
-  obtain ⟨u₀, v₀, open_u₀, open_v₀, x₀_in_u₀, y₀_in_v₀, hu₀v₀⟩ := t2_separation hx₀y₀,
-  obtain ⟨K₀, K₀_is_cpt, x₀_in_K₀, K₀_in_u₀⟩ := exists_compact_subset open_u₀ x₀_in_u₀,
-  obtain ⟨L₀, L₀_is_cpt, y₀_in_L₀, L₀_in_v₀⟩ := exists_compact_subset open_v₀ y₀_in_v₀,
+@[priority 100, to_additive] instance t2_space_of_properly_discontinuous_smul_of_t2_space
+  [t2_space T] [locally_compact_space T] [has_continuous_smul₂ Γ T]
+  [properly_discontinuous_smul Γ T] : t2_space (quotient (mul_action.orbit_rel Γ T)) :=
+begin
+  set Q := quotient (mul_action.orbit_rel Γ T),
+  rw t2_space_iff_nhds,
+  let f : T → Q := quotient.mk,
+  have f_op : is_open_map f := is_open_map_quotient_mk_mul,
+  rintros ⟨x₀⟩ ⟨y₀⟩ (hxy : f x₀ ≠ f y₀),
+  show ∃ (U ∈ 𝓝 (f x₀)) (V ∈ 𝓝 (f y₀)), U ∩ V = ∅,
+  have hx₀y₀ : x₀ ≠ y₀ := ne_of_apply_ne _ hxy,
+  have hγx₀y₀ : ∀ γ : Γ, γ • x₀ ≠ y₀ := not_exists.mp (mt quotient.sound hxy.symm : _),
+  obtain ⟨K₀, L₀, K₀_in, L₀_in, hK₀, hL₀, hK₀L₀⟩ := t2_separation_compact_nhds hx₀y₀,
   let bad_Γ_set := {γ : Γ | (((•) γ) '' K₀) ∩ L₀ ≠ ∅ },
-  have bad_Γ_finite : bad_Γ_set.finite := finite_disjoint_inter_image K₀_is_cpt L₀_is_cpt,
-  choose uγ vγ is_open_uγ is_open_vγ γx₀_in_uγ y₀_in_vγ uγ_vγ_disjoint using
-    λ γ, t2_separation (hγx₀y₀ γ),
-  let U₀₀ := ⋂ γ ∈ bad_Γ_set, ((•) γ) ⁻¹' (uγ γ),
-  let U₀ := U₀₀ ∩ (interior K₀),
-  have all_open : ∀ γ, γ ∈ bad_Γ_set → is_open (((•) γ) ⁻¹' (uγ γ)) :=
-    λ γ hγ, (is_open_uγ γ).preimage (continuous_smul₂ γ),
-  have U₀₀_is_open : is_open U₀₀ := is_open_bInter bad_Γ_finite all_open,
-  have U₀_is_open : is_open U₀ := U₀₀_is_open.inter is_open_interior,
-  let V₀₀ := ⋂ γ ∈ bad_Γ_set, (vγ γ),
-  let V₀ := V₀₀ ∩ (interior L₀),
-  have V₀₀_is_open : is_open V₀₀ := is_open_bInter bad_Γ_finite (λ γ _, is_open_vγ γ),
-  have V₀_is_open : is_open V₀ := V₀₀_is_open.inter is_open_interior,
-  let V := f '' V₀,
-  let U := f '' U₀,
-  have x_in_U : f x₀ ∈ U := ⟨x₀, ⟨set.mem_bInter (λ γ hγ, γx₀_in_uγ γ), x₀_in_K₀⟩, rfl⟩,
-  have y_in_V : f y₀ ∈ V := ⟨y₀, ⟨set.mem_bInter (λ γ hγ, y₀_in_vγ γ), y₀_in_L₀⟩, rfl⟩,
-  refine ⟨U, V, f_is_open_map _ U₀_is_open, f_is_open_map _ V₀_is_open, x_in_U, y_in_V, _⟩,
-  rw set.eq_empty_iff_forall_not_mem,
-  rintros z ⟨⟨x₁, x₁_in_U₀, f_x₁_z⟩, ⟨y₁, y₁_in_V₀, f_y₁_z⟩⟩,
-  obtain ⟨γ₁, hγ₁⟩ := quotient.exact (f_x₁_z.trans f_y₁_z.symm),
-  have hγ₁' : y₁ = γ₁⁻¹ • x₁ := by simp [← hγ₁],
-  by_cases hγ₁_bad : γ₁⁻¹ ∈ bad_Γ_set,
-  { have y₁_in_vγ₁ : y₁ ∈ vγ γ₁⁻¹,
-    { have := set.Inter_subset _ γ₁⁻¹ (y₁_in_V₀.1),
-      apply set.Inter_subset _ hγ₁_bad this },
-    have y₁_in_uγ₁ : y₁ ∈ uγ γ₁⁻¹,
-    { rw hγ₁',
-      have := set.Inter_subset _ γ₁⁻¹ (x₁_in_U₀.1),
-      apply set.Inter_subset _ hγ₁_bad this },
-    have : y₁ ∈ uγ γ₁⁻¹ ∩ vγ γ₁⁻¹ := ⟨y₁_in_uγ₁, y₁_in_vγ₁⟩,
-    rwa (uγ_vγ_disjoint γ₁⁻¹) at this },
-  { have y₁_in_L₀ : y₁ ∈ L₀ := interior_subset y₁_in_V₀.2,
-    have x₁_in_K₀ : x₁ ∈ K₀ := interior_subset x₁_in_U₀.2,
-    have y₁_in_γ₁K₀ : y₁ ∈ (λ x, γ₁⁻¹ • x) '' K₀ := hγ₁'.symm ▸ ⟨x₁, ⟨x₁_in_K₀, rfl⟩⟩,
-    have γ₁K₀L₀_disjoint : (λ x, γ₁⁻¹ • x) '' K₀ ∩ L₀ = ∅ := by simpa [bad_Γ_set] using hγ₁_bad,
-    have : y₁ ∈ (λ x, γ₁⁻¹ • x) '' K₀ ∩ L₀ := ⟨y₁_in_γ₁K₀, y₁_in_L₀⟩,
-    rwa (γ₁K₀L₀_disjoint) at this },
-end}
+  have bad_Γ_finite : bad_Γ_set.finite := finite_disjoint_inter_image hK₀ hL₀,
+  choose u v hu hv u_v_disjoint using λ γ, t2_separation_nhds (hγx₀y₀ γ),
+  let U₀₀ := ⋂ γ ∈ bad_Γ_set, ((•) γ) ⁻¹' (u γ),
+  let U₀ := U₀₀ ∩ K₀,
+  let V₀₀ := ⋂ γ ∈ bad_Γ_set, v γ,
+  let V₀ := V₀₀ ∩ L₀,
+  have U_nhds : f '' U₀ ∈ 𝓝 (f x₀),
+  { apply f_op.image_mem_nhds (inter_mem ((bInter_mem bad_Γ_finite).mpr $ λ γ hγ, _) K₀_in),
+    exact (has_continuous_smul₂.continuous_smul₂ γ).continuous_at (hu γ) },
+  have V_nhds : f '' V₀ ∈ 𝓝 (f y₀),
+    from f_op.image_mem_nhds (inter_mem ((bInter_mem bad_Γ_finite).mpr $ λ γ hγ, hv γ) L₀_in),
+  refine ⟨f '' U₀, U_nhds, f '' V₀, V_nhds, _⟩,
+  rw mul_action.image_inter_image_iff,
+  rintros x ⟨x_in_U₀₀, x_in_K₀⟩ γ,
+  by_cases H : γ ∈ bad_Γ_set,
+  { rintros ⟨h, -⟩,
+    exact eq_empty_iff_forall_not_mem.mp (u_v_disjoint γ) (γ • x)
+      ⟨(mem_Inter₂.mp x_in_U₀₀ γ H : _), mem_Inter₂.mp h γ H⟩ },
+  { rintros ⟨-, h'⟩,
+    simp only [image_smul, not_not, mem_set_of_eq, ne.def] at H,
+    exact eq_empty_iff_forall_not_mem.mp H (γ • x) ⟨mem_image_of_mem _ x_in_K₀, h'⟩ },
+end

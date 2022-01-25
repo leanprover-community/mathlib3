@@ -88,43 +88,43 @@ variables {M α : Type*} [measurable_space M] [has_mul M] {m : measurable_space 
 
 include m
 
-@[to_additive, measurability]
+@[measurability, to_additive]
 lemma measurable.const_mul [has_measurable_mul M] (hf : measurable f) (c : M) :
   measurable (λ x, c * f x) :=
 (measurable_const_mul c).comp hf
 
-@[to_additive, measurability]
+@[measurability, to_additive]
 lemma ae_measurable.const_mul [has_measurable_mul M] (hf : ae_measurable f μ) (c : M) :
   ae_measurable (λ x, c * f x) μ :=
 (has_measurable_mul.measurable_const_mul c).comp_ae_measurable hf
 
-@[to_additive, measurability]
+@[measurability, to_additive]
 lemma measurable.mul_const [has_measurable_mul M] (hf : measurable f) (c : M) :
   measurable (λ x, f x * c) :=
 (measurable_mul_const c).comp hf
 
-@[to_additive, measurability]
+@[measurability, to_additive]
 lemma ae_measurable.mul_const [has_measurable_mul M] (hf : ae_measurable f μ) (c : M) :
   ae_measurable (λ x, f x * c) μ :=
 (measurable_mul_const c).comp_ae_measurable hf
 
-@[to_additive, measurability]
+@[measurability, to_additive]
 lemma measurable.mul' [has_measurable_mul₂ M] (hf : measurable f) (hg : measurable g) :
   measurable (f * g) :=
 measurable_mul.comp (hf.prod_mk hg)
 
-@[to_additive, measurability]
+@[measurability, to_additive]
 lemma measurable.mul [has_measurable_mul₂ M] (hf : measurable f) (hg : measurable g) :
   measurable (λ a, f a * g a) :=
 measurable_mul.comp (hf.prod_mk hg)
 
-@[to_additive, measurability]
+@[measurability, to_additive]
 lemma ae_measurable.mul' [has_measurable_mul₂ M] (hf : ae_measurable f μ)
   (hg : ae_measurable g μ) :
   ae_measurable (f * g) μ :=
 measurable_mul.comp_ae_measurable (hf.prod_mk hg)
 
-@[to_additive, measurability]
+@[measurability, to_additive]
 lemma ae_measurable.mul [has_measurable_mul₂ M] (hf : ae_measurable f μ) (hg : ae_measurable g μ) :
   ae_measurable (λ a, f a * g a) μ :=
 measurable_mul.comp_ae_measurable (hf.prod_mk hg)
@@ -233,43 +233,43 @@ variables {G α : Type*} [measurable_space G] [has_div G] {m : measurable_space 
 
 include m
 
-@[to_additive, measurability]
+@[measurability, to_additive]
 lemma measurable.const_div [has_measurable_div G] (hf : measurable f) (c : G) :
   measurable (λ x, c / f x) :=
 (has_measurable_div.measurable_const_div c).comp hf
 
-@[to_additive, measurability]
+@[measurability, to_additive]
 lemma ae_measurable.const_div [has_measurable_div G] (hf : ae_measurable f μ) (c : G) :
   ae_measurable (λ x, c / f x) μ :=
 (has_measurable_div.measurable_const_div c).comp_ae_measurable hf
 
-@[to_additive, measurability]
+@[measurability, to_additive]
 lemma measurable.div_const [has_measurable_div G] (hf : measurable f) (c : G) :
   measurable (λ x, f x / c) :=
 (has_measurable_div.measurable_div_const c).comp hf
 
-@[to_additive, measurability]
+@[measurability, to_additive]
 lemma ae_measurable.div_const [has_measurable_div G] (hf : ae_measurable f μ) (c : G) :
   ae_measurable (λ x, f x / c) μ :=
 (has_measurable_div.measurable_div_const c).comp_ae_measurable hf
 
-@[to_additive, measurability]
+@[measurability, to_additive]
 lemma measurable.div' [has_measurable_div₂ G] (hf : measurable f) (hg : measurable g) :
   measurable (f / g) :=
 measurable_div.comp (hf.prod_mk hg)
 
-@[to_additive, measurability]
+@[measurability, to_additive]
 lemma measurable.div [has_measurable_div₂ G] (hf : measurable f) (hg : measurable g) :
   measurable (λ a, f a / g a) :=
 measurable_div.comp (hf.prod_mk hg)
 
-@[to_additive, measurability]
+@[measurability, to_additive]
 lemma ae_measurable.div' [has_measurable_div₂ G] (hf : ae_measurable f μ)
   (hg : ae_measurable g μ) :
   ae_measurable (f / g) μ :=
 measurable_div.comp_ae_measurable (hf.prod_mk hg)
 
-@[to_additive, measurability]
+@[measurability, to_additive]
 lemma ae_measurable.div [has_measurable_div₂ G] (hf : ae_measurable f μ) (hg : ae_measurable g μ) :
   ae_measurable (λ a, f a / g a) μ :=
 measurable_div.comp_ae_measurable (hf.prod_mk hg)
@@ -336,10 +336,10 @@ variables {G α : Type*} [has_inv G] [measurable_space G] [has_measurable_inv G]
 
 include m
 
-@[to_additive, measurability]
+@[measurability, to_additive]
 lemma measurable.inv (hf : measurable f) : measurable (λ x, (f x)⁻¹) := measurable_inv.comp hf
 
-@[to_additive, measurability]
+@[measurability, to_additive]
 lemma ae_measurable.inv (hf : ae_measurable f μ) : ae_measurable (λ x, (f x)⁻¹) μ :=
 measurable_inv.comp_ae_measurable hf
 
@@ -620,7 +620,7 @@ variables {M α : Type*} [monoid M] [measurable_space M] [has_measurable_mul₂ 
 
 include m
 
-@[to_additive, measurability]
+@[measurability, to_additive]
 lemma list.measurable_prod' (l : list (α → M)) (hl : ∀ f ∈ l, measurable f) :
   measurable l.prod :=
 begin
@@ -630,7 +630,7 @@ begin
   exact hl.1.mul (ihl hl.2)
 end
 
-@[to_additive, measurability]
+@[measurability, to_additive]
 lemma list.ae_measurable_prod' (l : list (α → M))
   (hl : ∀ f ∈ l, ae_measurable f μ) : ae_measurable l.prod μ :=
 begin
@@ -640,12 +640,12 @@ begin
   exact hl.1.mul (ihl hl.2)
 end
 
-@[to_additive, measurability]
+@[measurability, to_additive]
 lemma list.measurable_prod (l : list (α → M)) (hl : ∀ f ∈ l, measurable f) :
   measurable (λ x, (l.map (λ f : α → M, f x)).prod) :=
 by simpa only [← pi.list_prod_apply] using l.measurable_prod' hl
 
-@[to_additive, measurability]
+@[measurability, to_additive]
 lemma list.ae_measurable_prod (l : list (α → M)) (hl : ∀ f ∈ l, ae_measurable f μ) :
   ae_measurable (λ x, (l.map (λ f : α → M, f x)).prod) μ :=
 by simpa only [← pi.list_prod_apply] using l.ae_measurable_prod' hl
@@ -660,43 +660,43 @@ variables {M ι α : Type*} [comm_monoid M] [measurable_space M] [has_measurable
 
 include m
 
-@[to_additive, measurability]
+@[measurability, to_additive]
 lemma multiset.measurable_prod' (l : multiset (α → M)) (hl : ∀ f ∈ l, measurable f) :
   measurable l.prod :=
 by { rcases l with ⟨l⟩, simpa using l.measurable_prod' (by simpa using hl) }
 
-@[to_additive, measurability]
+@[measurability, to_additive]
 lemma multiset.ae_measurable_prod' (l : multiset (α → M))
   (hl : ∀ f ∈ l, ae_measurable f μ) : ae_measurable l.prod μ :=
 by { rcases l with ⟨l⟩, simpa using l.ae_measurable_prod' (by simpa using hl) }
 
-@[to_additive, measurability]
+@[measurability, to_additive]
 lemma multiset.measurable_prod (s : multiset (α → M)) (hs : ∀ f ∈ s, measurable f) :
   measurable (λ x, (s.map (λ f : α → M, f x)).prod) :=
 by simpa only [← pi.multiset_prod_apply] using s.measurable_prod' hs
 
-@[to_additive, measurability]
+@[measurability, to_additive]
 lemma multiset.ae_measurable_prod (s : multiset (α → M))
   (hs : ∀ f ∈ s, ae_measurable f μ) : ae_measurable (λ x, (s.map (λ f : α → M, f x)).prod) μ :=
 by simpa only [← pi.multiset_prod_apply] using s.ae_measurable_prod' hs
 
-@[to_additive, measurability]
+@[measurability, to_additive]
 lemma finset.measurable_prod' (s : finset ι) (hf : ∀i ∈ s, measurable (f i)) :
   measurable (∏ i in s, f i) :=
 finset.prod_induction _ _ (λ _ _, measurable.mul) (@measurable_one M _ _ _ _) hf
 
-@[to_additive, measurability]
+@[measurability, to_additive]
 lemma finset.measurable_prod (s : finset ι) (hf : ∀i ∈ s, measurable (f i)) :
   measurable (λ a, ∏ i in s, f i a) :=
 by simpa only [← finset.prod_apply] using s.measurable_prod' hf
 
-@[to_additive, measurability]
+@[measurability, to_additive]
 lemma finset.ae_measurable_prod' (s : finset ι) (hf : ∀i ∈ s, ae_measurable (f i) μ) :
   ae_measurable (∏ i in s, f i) μ :=
 multiset.ae_measurable_prod' _ $
   λ g hg, let ⟨i, hi, hg⟩ := multiset.mem_map.1 hg in (hg ▸ hf _ hi)
 
-@[to_additive, measurability]
+@[measurability, to_additive]
 lemma finset.ae_measurable_prod (s : finset ι) (hf : ∀i ∈ s, ae_measurable (f i) μ) :
   ae_measurable (λ a, ∏ i in s, f i a) μ :=
 by simpa only [← finset.prod_apply] using s.ae_measurable_prod' hf
@@ -704,8 +704,3 @@ by simpa only [← finset.prod_apply] using s.ae_measurable_prod' hf
 omit m
 
 end comm_monoid
-
-attribute [measurability] list.measurable_sum' list.ae_measurable_sum' list.measurable_sum
-  list.ae_measurable_sum multiset.measurable_sum' multiset.ae_measurable_sum'
-  multiset.measurable_sum multiset.ae_measurable_sum finset.measurable_sum'
-  finset.ae_measurable_sum' finset.measurable_sum finset.ae_measurable_sum

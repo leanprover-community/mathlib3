@@ -232,9 +232,7 @@ lemma monotone_Union_up_to : monotone p.Union_up_to :=
 begin
   assume i j hij,
   simp only [Union_up_to],
-  apply Union_subset_Union2,
-  assume r,
-  exact ⟨⟨r, r.2.trans_le hij⟩, subset.refl _⟩,
+  exact Union_mono' (λ r, ⟨⟨r, r.2.trans_le hij⟩, subset.rfl⟩),
 end
 
 /-- Supremum of the radii of balls whose centers are not yet covered at step `i`. -/
@@ -611,7 +609,7 @@ begin
       refine add_le_add _ le_rfl,
       rw [div_eq_mul_inv, one_mul, mul_comm, ← div_eq_mul_inv],
       apply hw.le.trans (le_of_eq _),
-      rw [← finset.set_bUnion_coe, inter_comm _ o, inter_bUnion, finset.set_bUnion_coe,
+      rw [← finset.set_bUnion_coe, inter_comm _ o, inter_Union₂, finset.set_bUnion_coe,
           measure_bUnion_finset],
       { have : (w : set (u i)).pairwise_disjoint (λ (b : u i), closed_ball (b : α) (r (b : α))),
           by { assume k hk l hl hkl, exact hu i k.2 l.2 (subtype.coe_injective.ne hkl) },

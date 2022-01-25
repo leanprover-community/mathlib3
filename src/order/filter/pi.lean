@@ -62,7 +62,7 @@ begin
   split,
   { simp only [pi, mem_infi', mem_comap, pi_def],
     rintro ⟨I, If, V, hVf, hVI, rfl, -⟩, choose t htf htV using hVf,
-    exact ⟨I, If, t, htf, bInter_mono (λ i _, htV i)⟩ },
+    exact ⟨I, If, t, htf, Inter₂_mono (λ i _, htV i)⟩ },
   { rintro ⟨I, If, t, htf, hts⟩,
     exact mem_of_superset (pi_mem_pi If $ λ i _, htf i) hts }
 end

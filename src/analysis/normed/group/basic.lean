@@ -990,8 +990,11 @@ noncomputable instance prod.normed_group : normed_group (E × F) := { ..prod.sem
 noncomputable instance pi.normed_group {π : ι → Type*} [fintype ι] [∀i, normed_group (π i)] :
   normed_group (Πi, π i) := { ..pi.semi_normed_group }
 
+lemma tendsto_norm_sub_self_punctured_nhds (a : E) : tendsto (λ x, ∥x - a∥) (𝓝[≠] a) (𝓝[>] 0) :=
+(tendsto_norm_sub_self a).inf $ tendsto_principal_principal.2 $ λ x hx,
+  norm_pos_iff.2 $ sub_ne_zero.2 hx
+
 lemma tendsto_norm_nhds_within_zero : tendsto (norm : E → ℝ) (𝓝[≠] 0) (𝓝[>] 0) :=
-(continuous_norm.tendsto' (0 : E) 0 norm_zero).inf $ tendsto_principal_principal.2 $
-  λ x, norm_pos_iff.2
+tendsto_norm_zero.inf $ tendsto_principal_principal.2 $ λ x, norm_pos_iff.2
 
 end normed_group

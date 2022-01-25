@@ -321,7 +321,7 @@ begin
     erw ← Scheme.basic_open_res_eq _ _ (eq_to_hom U.open_embedding_obj_top).op,
     rw [← comp_apply, ← category_theory.functor.map_comp, ← op_comp, eq_to_hom_trans,
       eq_to_hom_refl, op_id, category_theory.functor.map_id],
-    erw PresheafedSpace.is_open_immersion.of_restrict_inv_app_apply,
+    erw PresheafedSpace.is_open_immersion.of_restrict_inv_app,
     congr },
   use X.presheaf.map (eq_to_hom U.open_embedding_obj_top.symm).op r,
   rw ← this,
@@ -358,13 +358,15 @@ begin
   rw iso.inv_hom_id_app_assoc,
 end
 
+/-- The canonical map `Γ(𝒪ₓ, D(f)) ⟶ Γ(Spec 𝒪ₓ(U), D(Spec_Γ_identity.inv f))`
+This is an isomorphism, as witnessed by an `is_iso` instance. -/
 def basic_open_sections_to_affine {X : Scheme} {U : opens X.carrier} (hU : is_affine_open U)
   (f : X.presheaf.obj (op U)) : X.presheaf.obj (op $ X.basic_open f) ⟶
     (Scheme.Spec.obj $ op $ X.presheaf.obj (op U)).presheaf.obj
-      (op $ RingedSpace.basic_open _ $ Spec_Γ_identity.inv.app (X.presheaf.obj (op U)) f) :=
+      (op $ Scheme.basic_open _ $ Spec_Γ_identity.inv.app (X.presheaf.obj (op U)) f) :=
 hU.from_Spec.1.c.app (op $ X.basic_open f) ≫ (Scheme.Spec.obj $ op $ X.presheaf.obj (op U))
   .presheaf.map (eq_to_hom $ (hU.from_Spec_preimage_basic_open f).symm).op
-.
+
 instance {X : Scheme} {U : opens X.carrier} (hU : is_affine_open U)
   (f : X.presheaf.obj (op U)) : is_iso (basic_open_sections_to_affine hU f) :=
 begin

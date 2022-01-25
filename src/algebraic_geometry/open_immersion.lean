@@ -261,7 +261,7 @@ instance of_restrict {X : Top} (Y : PresheafedSpace C) {f : X ⟶ Y.carrier}
       apply_instance }
   end }
 
-@[simp, elementwise]
+@[elementwise, simp]
 lemma of_restrict_inv_app {C : Type*} [category C] (X : PresheafedSpace C) {Y : Top}
   {f : Y ⟶ Top.of X.carrier}
   (h : open_embedding f) (U : opens (X.restrict h).carrier) :

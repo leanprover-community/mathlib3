@@ -186,6 +186,9 @@ by rw [degree, support_monomial _ _ ha]; refl
 @[simp] lemma degree_C_mul_X_pow (n : ℕ) (ha : a ≠ 0) : degree (C a * X ^ n) = n :=
 by rw [← monomial_eq_C_mul_X, degree_monomial n ha]
 
+lemma degree_C_mul_X (ha : a ≠ 0) : degree (C a * X) = 1 :=
+by simpa only [pow_one] using degree_C_mul_X_pow 1 ha
+
 lemma degree_monomial_le (n : ℕ) (a : R) : degree (monomial n a) ≤ n :=
 if h : a = 0 then by rw [h, (monomial n).map_zero]; exact bot_le else le_of_eq (degree_monomial n h)
 
@@ -449,12 +452,22 @@ calc degree (p + q) = ((p + q).support).sup some : rfl
   ... ≤ (p.support ∪ q.support).sup some : sup_mono support_add
   ... = p.support.sup some ⊔ q.support.sup some : sup_union
 
+lemma degree_add_le_of_degree_le {p q : polynomial R} {n : ℕ} (hp : degree p ≤ n)
+  (hq : degree q ≤ n) :
+  degree (p + q) ≤ n :=
+(degree_add_le p q).trans $ max_le hp hq
+
 lemma nat_degree_add_le (p q : polynomial R) :
   nat_degree (p + q) ≤ max (nat_degree p) (nat_degree q) :=
 begin
   cases le_max_iff.1 (degree_add_le p q);
   simp [nat_degree_le_nat_degree h]
 end
+
+lemma nat_degree_add_le_of_degree_le {p q : polynomial R} {n : ℕ} (hp : nat_degree p ≤ n)
+  (hq : nat_degree q ≤ n) :
+  nat_degree (p + q) ≤ n :=
+(nat_degree_add_le p q).trans $ max_le hp hq
 
 @[simp] lemma leading_coeff_zero : leading_coeff (0 : polynomial R) = 0 := rfl
 
@@ -581,6 +594,9 @@ end
 
 lemma leading_coeff_C_mul_X_pow (a : R) (n : ℕ) : leading_coeff (C a * X ^ n) = a :=
 by rw [C_mul_X_pow_eq_monomial, leading_coeff_monomial]
+
+lemma leading_coeff_C_mul_X (a : R) : leading_coeff (C a * X) = a :=
+by simpa only [pow_one] using leading_coeff_C_mul_X_pow a 1
 
 @[simp] lemma leading_coeff_C (a : R) : leading_coeff (C a) = a :=
 leading_coeff_monomial a 0
@@ -874,6 +890,91 @@ begin
   ... < n : with_bot.some_lt_some.mpr hi,
 end
 
+variables {c d : R}
+
+lemma degree_linear_le : degree (C a * X + C b) ≤ 1 :=
+degree_add_le_of_degree_le (degree_C_mul_X_le _) $ le_trans degree_C_le dec_trivial
+
+@[simp] lemma degree_linear (ha : a ≠ 0) : degree (C a * X + C b) = 1 :=
+begin
+  rw [degree_add_eq_left_of_degree_lt],
+  all_goals { rw [degree_C_mul_X ha] },
+  exact lt_of_le_of_lt degree_C_le dec_trivial
+end
+
+lemma nat_degree_linear_le : nat_degree (C a * X + C b) ≤ 1 :=
+nat_degree_le_of_degree_le degree_linear_le
+
+@[simp] lemma nat_degree_linear (ha : a ≠ 0) : nat_degree (C a * X + C b) = 1 :=
+nat_degree_eq_of_degree_eq_some $ degree_linear ha
+
+@[simp] lemma leading_coeff_linear (ha : a ≠ 0): leading_coeff (C a * X + C b) = a :=
+begin
+  rw [add_comm, leading_coeff_add_of_degree_lt, leading_coeff_C_mul_X],
+  rw [degree_C_mul_X ha],
+  exact lt_of_le_of_lt degree_C_le dec_trivial
+end
+
+lemma degree_quadratic_le : degree (C a * X ^ 2 + C b * X + C c) ≤ 2 :=
+begin
+  rw [add_assoc],
+  exact degree_add_le_of_degree_le (degree_C_mul_X_pow_le 2 a)
+    (le_trans degree_linear_le dec_trivial)
+end
+
+@[simp] lemma degree_quadratic (ha : a ≠ 0) : degree (C a * X ^ 2 + C b * X + C c) = 2 :=
+begin
+  rw [add_assoc, degree_add_eq_left_of_degree_lt],
+  all_goals { rw [degree_C_mul_X_pow 2 ha] },
+  refl,
+  exact lt_of_le_of_lt degree_linear_le dec_trivial
+end
+
+lemma nat_degree_quadratic_le : nat_degree (C a * X ^ 2 + C b * X + C c) ≤ 2 :=
+nat_degree_le_of_degree_le degree_quadratic_le
+
+@[simp] lemma nat_degree_quadratic (ha : a ≠ 0) : nat_degree (C a * X ^ 2 + C b * X + C c) = 2 :=
+nat_degree_eq_of_degree_eq_some $ degree_quadratic ha
+
+@[simp] lemma leading_coeff_quadratic (ha : a ≠ 0):
+  leading_coeff (C a * X ^ 2 + C b * X + C c) = a :=
+begin
+  rw [add_assoc, add_comm, leading_coeff_add_of_degree_lt, leading_coeff_C_mul_X_pow],
+  rw [degree_C_mul_X_pow 2 ha],
+  exact lt_of_le_of_lt degree_linear_le dec_trivial
+end
+
+lemma degree_cubic_le : degree (C a * X ^ 3 + C b * X ^ 2 + C c * X + C d) ≤ 3 :=
+begin
+  rw [add_assoc, add_assoc, ← add_assoc (C b * X ^ 2)],
+  exact degree_add_le_of_degree_le (degree_C_mul_X_pow_le 3 a)
+    (le_trans degree_quadratic_le dec_trivial)
+end
+
+@[simp] lemma degree_cubic (ha : a ≠ 0) : degree (C a * X ^ 3 + C b * X ^ 2 + C c * X + C d) = 3 :=
+begin
+  rw [add_assoc, add_assoc, ← add_assoc (C b * X ^ 2), degree_add_eq_left_of_degree_lt],
+  all_goals { rw [degree_C_mul_X_pow 3 ha] },
+  refl,
+  exact lt_of_le_of_lt degree_quadratic_le dec_trivial
+end
+
+lemma nat_degree_cubic_le : nat_degree (C a * X ^ 3 + C b * X ^ 2 + C c * X + C d) ≤ 3 :=
+nat_degree_le_of_degree_le degree_cubic_le
+
+@[simp] lemma nat_degree_cubic (ha : a ≠ 0) :
+  nat_degree (C a * X ^ 3 + C b * X ^ 2 + C c * X + C d) = 3 :=
+nat_degree_eq_of_degree_eq_some $ degree_cubic ha
+
+@[simp] lemma leading_coeff_cubic (ha : a ≠ 0):
+  leading_coeff (C a * X ^ 3 + C b * X ^ 2 + C c * X + C d) = a :=
+begin
+  rw [add_assoc, add_assoc, ← add_assoc (C b * X ^ 2), add_comm, leading_coeff_add_of_degree_lt,
+      leading_coeff_C_mul_X_pow],
+  rw [degree_C_mul_X_pow 3 ha],
+  exact lt_of_le_of_lt degree_quadratic_le dec_trivial
+end
+
 end semiring
 
 
@@ -1069,14 +1170,6 @@ begin
     { simp only [hq, mul_zero, leading_coeff_zero] },
     { rw [leading_coeff_mul'],
       exact mul_ne_zero (mt leading_coeff_eq_zero.1 hp) (mt leading_coeff_eq_zero.1 hq) } }
-end
-
-@[simp] lemma leading_coeff_C_mul_X_add_C [nontrivial R] (a b : R) (ha : a ≠ 0):
-  leading_coeff (C a * X + C b) = a :=
-begin
-  rw [add_comm, leading_coeff_add_of_degree_lt],
-  { simp },
-  { simpa [degree_C ha] using lt_of_le_of_lt degree_C_le (with_bot.coe_lt_coe.2 zero_lt_one)}
 end
 
 /-- `polynomial.leading_coeff` bundled as a `monoid_hom` when `R` has `no_zero_divisors`, and thus

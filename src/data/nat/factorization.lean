@@ -172,12 +172,12 @@ begin
   exact support_add_eq (factorization_disjoint_of_coprime hab),
 end
 
-lemma factorization_mul_support_of_pos {a b : ℕ} (ha : a ≠ 0) (hb : b ≠ 0) :
+lemma factorization_mul_support {a b : ℕ} (ha : a ≠ 0) (hb : b ≠ 0) :
   (a * b).factorization.support = a.factorization.support ∪ b.factorization.support :=
 begin
   ext q,
   simp only [finset.mem_union, factor_iff_mem_factorization],
-  rw mem_factors_mul_of_pos ha.bot_lt hb.bot_lt,
+  rw mem_factors_mul ha hb,
 end
 
 /-- For any multiplicative function `f` with `f 1 = 1` and any `n > 0`,

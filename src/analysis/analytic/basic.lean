@@ -489,8 +489,8 @@ begin
     from hf.uniform_geometric_approx' h,
   refine is_O_iff.2 ⟨C * (a / r') ^ n, _⟩,
   replace r'0 : 0 < (r' : ℝ), by exact_mod_cast r'0,
-  filter_upwards [metric.ball_mem_nhds (0 : E) r'0], intros y hy,
-  simpa [mul_pow, mul_div_assoc, mul_assoc, div_mul_eq_mul_div] using hp y hy n
+  filter_upwards [metric.ball_mem_nhds (0 : E) r'0] with y hy,
+  simpa [mul_pow, mul_div_assoc, mul_assoc, div_mul_eq_mul_div] using hp y hy n,
 end
 
 -- hack to speed up simp when dealing with complicated types

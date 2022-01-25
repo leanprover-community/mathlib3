@@ -186,7 +186,7 @@ begin
     let b := (is_well_order.wf).min _ this,
     have ba : ¬r b a := (is_well_order.wf).min_mem _ this,
     refine ⟨b, ⟨b.2, λ c, not_imp_not.1 $ λ h, _⟩, ba⟩,
-    rw [show ∀b:S, (⟨b, b.2⟩:S) = b, by intro b; cases b; refl],
+    rw [show ∀ b : S, (⟨b, b.2⟩ : S) = b, by intro b; cases b; refl], -- rintro?
     exact (is_well_order.wf).not_lt_min _ this
       (is_order_connected.neg_trans h ba) }
 end
@@ -343,6 +343,7 @@ let ⟨S, H, e⟩ := cof_eq r in
     (by rw typein_enum; apply ordinal.lt_succ_self)).resolve_right ab⟩,
 e⟩
 
+-- prove cof_lsub_le_lift first, that will trivialize this one.
 theorem cof_sup_le_lift {ι} (f : ι → ordinal) (H : ∀ i, f i < sup f) :
   cof (sup f) ≤ (#ι).lift :=
 begin
@@ -381,7 +382,7 @@ theorem cof_bsup_le {o : ordinal} (f : Π a < o, ordinal) (H : ∀ i h, f i h < 
 by simpa using cof_bsup_le_lift.{u u} f H
 
 theorem cof_sup_le_cof {ι} {r : ι → ι → Prop} [is_well_order ι r] (f : ι → ordinal)
-  (H : ∀ i, f i < sup f) (hf : ∀i j, r i j → f i ≤ f j) : cof (sup.{u v} f) ≤ (type r).lift.cof :=
+  (H : ∀ i, f i < sup f) (hf : ∀ i j, r i j → f i ≤ f j) : cof (sup.{u v} f) ≤ (type r).lift.cof :=
 begin
   generalize e : sup f = o,
   refine ordinal.induction_on o _ e, clear e o, introsI α r' _ e, rw e at H,
@@ -527,9 +528,9 @@ end
 
 /-- The infinite pigeonhole principle -/
 theorem infinite_pigeonhole {β α : Type u} (f : β → α) (h₁ : ω ≤ #β)
-  (h₂ : #α < (#β).ord.cof) : ∃a : α, #(f ⁻¹' {a}) = #β :=
+  (h₂ : #α < (#β).ord.cof) : ∃ a : α, #(f ⁻¹' {a}) = #β :=
 begin
-  have : ¬∀a, #(f ⁻¹' {a}) < #β,
+  have : ¬∀ a, #(f ⁻¹' {a}) < #β,
   { intro h,
     apply not_lt_of_ge (ge_of_eq $ mk_univ),
     rw [←@preimage_univ _ _ f, ←Union_of_singleton, preimage_Union],

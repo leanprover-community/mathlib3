@@ -72,9 +72,8 @@ le_trans (cardinal.min_le _ ⟨S, h⟩) (le_refl _)
 
 lemma cof_le_iff {r : α → α → Prop} [is_refl α r] {c : cardinal} :
   order.cof r ≤ c ↔ ∃(S : set α), (∀ a, ∃ (b ∈ S), r a b) ∧ mk S ≤ c :=
-begin
-  simp only [order.cof, cardinal.min_le_iff, subtype.exists, exists_prop, coe_sort_coe_base, subtype.coe_mk],
-end
+by simp only [order.cof, cardinal.min_le_iff, subtype.exists, exists_prop, coe_sort_coe_base,
+  subtype.coe_mk]
 
 lemma le_cof {r : α → α → Prop} [is_refl α r] (c : cardinal) :
   c ≤ order.cof r ↔ ∀ {S : set α} (h : ∀ a, ∃ (b ∈ S), r a b) , c ≤ #S :=

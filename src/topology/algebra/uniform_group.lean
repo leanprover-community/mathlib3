@@ -148,13 +148,13 @@ uniform_continuous_add.comp_cauchy_seq (hu.prod hv)
 
 end uniform_add_group
 
-section topological_comm_group
+namespace topological_group
 open filter
 variables (G : Type*) [comm_group G] [topological_space G] [topological_group G]
 
 /-- The right uniformity on a topological group. -/
 @[to_additive "The right uniformity on a topological group"]
-def topological_group.to_uniform_space : uniform_space G :=
+def to_uniform_space : uniform_space G :=
 { uniformity          := comap (λp:G×G, p.2 / p.1) (𝓝 1),
   refl                :=
     by refine map_le_iff_le_comap.1 (le_trans _ (pure_le_nhds 1));
@@ -200,40 +200,39 @@ def topological_group.to_uniform_space : uniform_space G :=
     { rintros h x hx, exact @h (a, x) hx rfl }
   end }
 
+local attribute [instance] topological_group.to_uniform_space
+
 variables {G}
 
-@[to_additive] lemma topological_group.tendsto_uniformly_iff
-  {ι α : Type*} (F : ι → α → G) (f : α → G) (p : filter ι) :
-  @tendsto_uniformly α G ι (topological_group.to_uniform_space G) F f p
-    ↔ ∀ u ∈ 𝓝 (1 : G), ∀ᶠ i in p, ∀ a, F i a / f a ∈ u :=
+variables {ι ι₁ ι₂ α : Type*} (F : ι → α → G) (F₁ : ι₁ → α → G) (F₂ : ι₂ → α → G)
+variables (f : α → G) (f₁ : α → G) (f₂ : α → G) (p : filter ι) (p₁ : filter ι₁) (p₂ : filter ι₂)
+variables (s : set α)
+
+@[to_additive] lemma tendsto_uniformly_iff :
+  tendsto_uniformly F f p ↔ ∀ u ∈ 𝓝 (1 : G), ∀ᶠ i in p, ∀ a, F i a / f a ∈ u :=
 ⟨λ h u hu, h _ ⟨u, hu, λ _, id⟩, λ h v ⟨u, hu, hv⟩,
   mem_of_superset (h u hu) (λ i hi a, hv (by exact hi a))⟩
 
-@[to_additive] lemma topological_group.tendsto_uniformly_on_iff
-  {ι α : Type*} (F : ι → α → G) (f : α → G) (p : filter ι) (s : set α) :
-  @tendsto_uniformly_on α G ι (topological_group.to_uniform_space G) F f p s
-    ↔ ∀ u ∈ 𝓝 (1 : G), ∀ᶠ i in p, ∀ a ∈ s, F i a / f a ∈ u :=
+@[to_additive] lemma tendsto_uniformly_on_iff :
+  tendsto_uniformly_on F f p s ↔ ∀ u ∈ 𝓝 (1 : G), ∀ᶠ i in p, ∀ a ∈ s, F i a / f a ∈ u :=
 ⟨λ h u hu, h _ ⟨u, hu, λ _, id⟩, λ h v ⟨u, hu, hv⟩,
   mem_of_superset (h u hu) (λ i hi a ha, hv (by exact hi a ha))⟩
 
-@[to_additive] lemma topological_group.tendsto_locally_uniformly_iff
-  {ι α : Type*} [topological_space α] (F : ι → α → G) (f : α → G) (p : filter ι) :
-  @tendsto_locally_uniformly α G ι (topological_group.to_uniform_space G) _ F f p
+@[to_additive] lemma tendsto_locally_uniformly_iff [topological_space α] :
+  tendsto_locally_uniformly F f p
     ↔ ∀ (u ∈ 𝓝 (1 : G)) (x : α), ∃ (t ∈ 𝓝 x), ∀ᶠ i in p, ∀ a ∈ t, F i a / f a ∈ u :=
 ⟨λ h u hu, h _ ⟨u, hu, λ _, id⟩, λ h v ⟨u, hu, hv⟩ x, exists_imp_exists (by exact λ a,
   exists_imp_exists (λ ha hp, mem_of_superset hp (λ i hi a ha, hv (by exact hi a ha)))) (h u hu x)⟩
 
-@[to_additive] lemma topological_group.tendsto_locally_uniformly_on_iff
-  {ι α : Type*} [topological_space α] (F : ι → α → G) (f : α → G) (p : filter ι) (s : set α) :
-  @tendsto_locally_uniformly_on α G ι (topological_group.to_uniform_space G) _ F f p s
+@[to_additive] lemma tendsto_locally_uniformly_on_iff [topological_space α] :
+  tendsto_locally_uniformly_on F f p s
     ↔ ∀ (u ∈ 𝓝 (1 : G)) (x ∈ s), ∃ (t ∈ 𝓝[s] x), ∀ᶠ i in p, ∀ a ∈ t, F i a / f a ∈ u :=
 ⟨λ h u hu, h _ ⟨u, hu, λ _, id⟩, λ h v ⟨u, hu, hv⟩ x, exists_imp_exists (by exact λ a,
   exists_imp_exists (λ ha hp, mem_of_superset hp (λ i hi a ha, hv (by exact hi a ha)))) ∘ h u hu x⟩
 
-@[to_additive] lemma topological_group.uniform_continuous_mul :
-  let t := topological_group.to_uniform_space G in @uniform_continuous₂ G G G t t t (*) :=
+@[to_additive] lemma uniform_continuous_mul : uniform_continuous₂ (has_mul.mul : G → G → G) :=
 begin
-  rintros t v ⟨u, hu, huv⟩,
+  rintros v ⟨u, hu, huv⟩,
   obtain ⟨w, hw, x, hx, h⟩ := mem_nhds_prod_iff.mp (mem_map.mp
     (continuous_mul.tendsto' ((1 : G), (1 : G)) (1 : G) (one_mul (1 : G)) hu)),
   rw [uniformity_prod_eq_prod, mem_map, mem_map, mem_prod_iff],
@@ -242,57 +241,41 @@ begin
   exact λ a ha, huv (by exact ((congr_arg (∈ u) (div_mul_comm _ _ _ _)).mp (h ha))),
 end
 
-@[to_additive] lemma topological_group.uniform_continuous_inv :
-  let t := topological_group.to_uniform_space G in @uniform_continuous G G t t (λ g, g⁻¹) :=
+@[to_additive] lemma uniform_continuous_inv : uniform_continuous (has_inv.inv : G → G) :=
 begin
-  rintros t v ⟨u, hu, huv⟩,
+  rintros v ⟨u, hu, huv⟩,
   refine ⟨_, continuous_inv.tendsto' _ _ one_inv hu, λ g hg, huv ((congr_arg (∈ u) _).mp hg)⟩,
   exact (inv_div' g.2 g.1).trans (inv_div_inv g.2 g.1).symm,
 end
 
-@[to_additive] lemma topological_group.tendsto_uniformly_on_mul
-  {ι₁ ι₂ α : Type*} (F₁ : ι₁ → α → G) (F₂ : ι₂ → α → G)
-  (f₁ : α → G) (f₂ : α → G) (p₁ : filter ι₁) (p₂ : filter ι₂) (s : set α)
-  (h₁ : @tendsto_uniformly_on α G ι₁ (topological_group.to_uniform_space G) F₁ f₁ p₁ s)
-  (h₂ : @tendsto_uniformly_on α G ι₂ (topological_group.to_uniform_space G) F₂ f₂ p₂ s) :
-  @tendsto_uniformly_on α G (ι₁ × ι₂) (topological_group.to_uniform_space G)
-    (λ i, F₁ i.1 * F₂ i.2) (f₁ * f₂) (p₁.prod p₂) s :=
+@[to_additive] lemma tendsto_uniformly_on_mul
+  (h₁ : tendsto_uniformly_on F₁ f₁ p₁ s) (h₂ : tendsto_uniformly_on F₂ f₂ p₂ s) :
+  tendsto_uniformly_on (λ i : ι₁ × ι₂, F₁ i.1 * F₂ i.2) (f₁ * f₂) (p₁.prod p₂) s :=
 begin
-  letI := topological_group.to_uniform_space G,
-  exact (h₁.prod h₂).comp' topological_group.uniform_continuous_mul,
+  letI : uniform_space (G × G) := prod.uniform_space,
+  exact tendsto_uniformly_on.comp' (h₁.prod h₂) uniform_continuous_mul,
 end
 
-@[to_additive] lemma topological_group.tendsto_uniformly_on_inv {ι α : Type*} (F : ι → α → G)
-  (f : α → G) (p : filter ι) (s : set α)
-  (h : @tendsto_uniformly_on α G ι (topological_group.to_uniform_space G) F f p s) :
-  @tendsto_uniformly_on α G ι (topological_group.to_uniform_space G) (λ i, (F i)⁻¹) f⁻¹ p s :=
-begin
-  letI := topological_group.to_uniform_space G,
-  exact h.comp' topological_group.uniform_continuous_inv,
-end
+@[to_additive] lemma tendsto_uniformly_on_inv (h : tendsto_uniformly_on  F f p s) :
+  tendsto_uniformly_on F⁻¹ f⁻¹ p s :=
+h.comp' uniform_continuous_inv
 
-@[to_additive] lemma topological_group.tendsto_uniformly_mul
-  {ι₁ ι₂ α : Type*} (F₁ : ι₁ → α → G) (F₂ : ι₂ → α → G)
-  (f₁ : α → G) (f₂ : α → G) (p₁ : filter ι₁) (p₂ : filter ι₂)
-  (h₁ : @tendsto_uniformly α G ι₁ (topological_group.to_uniform_space G) F₁ f₁ p₁)
-  (h₂ : @tendsto_uniformly α G ι₂ (topological_group.to_uniform_space G) F₂ f₂ p₂) :
-  @tendsto_uniformly α G (ι₁ × ι₂) (topological_group.to_uniform_space G)
-    (λ i, F₁ i.1 * F₂ i.2) (f₁ * f₂) (p₁.prod p₂) :=
+@[to_additive] lemma tendsto_uniformly_mul
+  (h₁ : tendsto_uniformly F₁ f₁ p₁) (h₂ : tendsto_uniformly F₂ f₂ p₂) :
+  tendsto_uniformly (λ i : ι₁ × ι₂, F₁ i.1 * F₂ i.2) (f₁ * f₂) (p₁.prod p₂) :=
 begin
   rw ← tendsto_uniformly_on_univ at *,
-  exact topological_group.tendsto_uniformly_on_mul F₁ F₂ f₁ f₂ p₁ p₂ set.univ h₁ h₂,
+  exact tendsto_uniformly_on_mul F₁ F₂ f₁ f₂ p₁ p₂ set.univ h₁ h₂,
 end
 
-@[to_additive] lemma topological_group.tendsto_uniformly_inv {ι α : Type*} (F : ι → α → G)
-  (f : α → G) (p : filter ι)
-  (h : @tendsto_uniformly α G ι (topological_group.to_uniform_space G) F f p) :
-  @tendsto_uniformly α G ι (topological_group.to_uniform_space G) (λ i, (F i)⁻¹) f⁻¹ p :=
+@[to_additive] lemma tendsto_uniformly_inv (h : tendsto_uniformly F f p) :
+  tendsto_uniformly F⁻¹ f⁻¹ p :=
 begin
   rw ← tendsto_uniformly_on_univ at *,
-  exact topological_group.tendsto_uniformly_on_inv F f p set.univ h,
+  exact tendsto_uniformly_on_inv F f p set.univ h,
 end
 
-end topological_comm_group
+end topological_group
 
 section topological_add_comm_group
 universes u v w x

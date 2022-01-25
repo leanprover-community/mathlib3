@@ -907,7 +907,7 @@ instance set_semiring.covariant_class_mul_right :
 
 end mul_hom
 
-/-- The image of a set under a multiplication homomorphism is a ring homomorphism
+/-- The image of a set under a multiplicative homomorphism is a ring homomorphism
 with respect to the pointwise operations on subsets. -/
 def image_hom [monoid α] [monoid β] (f : α →* β) : set_semiring α →+* set_semiring β :=
 { to_fun := image f,

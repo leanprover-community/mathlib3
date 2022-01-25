@@ -985,6 +985,9 @@ lemma mk_zero (b) : (mk 0 b : localization M) = 0 :=
 calc mk 0 b = mk 0 1 : mk_eq_mk_iff.mpr (r_of_eq (by simp))
 ... = 0 : by  unfold has_zero.zero localization.zero
 
+lemma lift_on_zero {p : Type*} (f : ∀ (a : R) (b : M), p) (H) : lift_on 0 f H = f 0 1 :=
+by rw [← mk_zero 1, lift_on_mk]
+
 private meta def tac := `[
 { intros,
   simp only [add_mk, localization.mk_mul, neg_mk, ← mk_zero 1],

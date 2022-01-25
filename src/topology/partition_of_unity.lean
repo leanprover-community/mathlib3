@@ -331,8 +331,7 @@ lemma exists_finset_to_pou_fun_eventually_eq (i : ι) (x : X) :
 begin
   rcases f.locally_finite x with ⟨U, hU, hf⟩,
   use hf.to_finset,
-  filter_upwards [hU],
-  intros y hyU,
+  filter_upwards [hU] with y hyU,
   simp only [pi.mul_apply, finset.prod_apply],
   apply to_pou_fun_eq_mul_prod,
   intros j hji hj,

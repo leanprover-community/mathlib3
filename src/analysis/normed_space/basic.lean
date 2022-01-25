@@ -84,8 +84,8 @@ instance normed_ring.to_normed_group [β : normed_ring α] : normed_group α := 
 instance semi_normed_ring.to_semi_normed_group [β : semi_normed_ring α] :
   semi_normed_group α := { ..β }
 
-instance prod.norm_one_class [normed_group α] [has_one α] [norm_one_class α]
-  [normed_group β] [has_one β] [norm_one_class β] :
+instance prod.norm_one_class [semi_normed_group α] [has_one α] [norm_one_class α]
+  [semi_normed_group β] [has_one β] [norm_one_class β] :
   norm_one_class (α × β) :=
 ⟨by simp [prod.norm_def]⟩
 
@@ -190,10 +190,10 @@ pi.semi_normed_group
 
 local attribute [instance] matrix.semi_normed_group
 
-lemma semi_norm_matrix_le_iff {n m : Type*} [fintype n] [fintype m] {r : ℝ} (hr : 0 ≤ r)
+lemma norm_matrix_le_iff {n m : Type*} [fintype n] [fintype m] {r : ℝ} (hr : 0 ≤ r)
   {A : matrix n m α} :
   ∥A∥ ≤ r ↔ ∀ i j, ∥A i j∥ ≤ r :=
-by simp [pi_semi_norm_le_iff hr]
+by simp [pi_norm_le_iff hr]
 
 end semi_normed_ring
 
@@ -317,8 +317,7 @@ begin
   have r0' : 0 < ∥r∥ := norm_pos_iff.2 r0,
   rcases exists_between r0' with ⟨ε, ε0, εr⟩,
   have : ∀ᶠ e in 𝓝 r, ∥e⁻¹ - r⁻¹∥ ≤ ∥r - e∥ / ∥r∥ / ε,
-  { filter_upwards [(is_open_lt continuous_const continuous_norm).eventually_mem εr],
-    intros e he,
+  { filter_upwards [(is_open_lt continuous_const continuous_norm).eventually_mem εr] with e he,
     have e0 : e ≠ 0 := norm_pos_iff.1 (ε0.trans he),
     calc ∥e⁻¹ - r⁻¹∥ = ∥r - e∥ / ∥r∥ / ∥e∥ : by field_simp [mul_comm]
     ... ≤ ∥r - e∥ / ∥r∥ / ε :
@@ -680,7 +679,7 @@ open normed_field
 
 /-- The product of two normed spaces is a normed space, with the sup norm. -/
 instance prod.normed_space : normed_space α (E × F) :=
-{ norm_smul_le := λ s x, le_of_eq $ by simp [prod.semi_norm_def, norm_smul, mul_max_of_nonneg],
+{ norm_smul_le := λ s x, le_of_eq $ by simp [prod.norm_def, norm_smul, mul_max_of_nonneg],
   ..prod.normed_group,
   ..prod.module }
 

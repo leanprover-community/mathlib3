@@ -23,9 +23,9 @@ In this file we define class `has_continuous_smul`. We say `has_continuous_smul 
   is a nonzero element of `G₀`, then scalar multiplication by `c` is a homeomorphism of `α`;
 * `homeomorph.smul`: scalar multiplication by an element of a group `G` acting on `α`
   is a homeomorphism of `α`.
-* `units.has_continuous_smul`: scalar multiplication by `units M` is continuous when scalar
+* `units.has_continuous_smul`: scalar multiplication by `Mˣ` is continuous when scalar
   multiplication by `M` is continuous. This allows `homeomorph.smul` to be used with on monoids
-  with `G = units M`.
+  with `G = Mˣ`.
 
 ## Main results
 
@@ -136,9 +136,9 @@ section monoid
 
 variables [monoid M] [mul_action M α] [has_continuous_smul M α]
 
-instance units.has_continuous_smul : has_continuous_smul (units M) α :=
+instance units.has_continuous_smul : has_continuous_smul Mˣ α :=
 { continuous_smul :=
-    show continuous ((λ p : M × α, p.fst • p.snd) ∘ (λ p : units M × α, (p.1, p.2))),
+    show continuous ((λ p : M × α, p.fst • p.snd) ∘ (λ p : Mˣ × α, (p.1, p.2))),
     from continuous_smul.comp ((units.continuous_coe.comp continuous_fst).prod_mk continuous_snd) }
 
 @[to_additive]
@@ -171,9 +171,8 @@ lemma continuous_within_at_const_smul_iff (c : G) :
 tendsto_const_smul_iff c
 
 @[to_additive]
-lemma continuous_on_const_smul_iff (c : G) :
-  continuous_on (λ x, c • f x) s ↔ continuous_on f s :=
-forall_congr $ λ b, forall_congr $ λ hb, continuous_within_at_const_smul_iff c
+lemma continuous_on_const_smul_iff (c : G) : continuous_on (λ x, c • f x) s ↔ continuous_on f s :=
+forall₂_congr $ λ b hb, continuous_within_at_const_smul_iff c
 
 @[to_additive]
 lemma continuous_at_const_smul_iff (c : G) :
@@ -253,6 +252,12 @@ homeomorph.smul (units.mk0 c hc)
 lemma is_open_map_smul₀ {c : G₀} (hc : c ≠ 0) : is_open_map (λ x : α, c • x) :=
 (homeomorph.smul_of_ne_zero c hc).is_open_map
 
+lemma is_open.smul₀ {c : G₀} {s : set α} (hs : is_open s) (hc : c ≠ 0) : is_open (c • s) :=
+is_open_map_smul₀ hc s hs
+
+lemma interior_smul₀ {c : G₀} (hc : c ≠ 0) (s : set α) : interior (c • s) = c • interior s :=
+((homeomorph.smul_of_ne_zero c hc).image_interior s).symm
+
 /-- `smul` is a closed map in the second argument.
 
 The lemma that `smul` is a closed map in the first argument (for a normed space over a complete
@@ -323,7 +328,7 @@ instance [topological_space β] [has_scalar M α] [has_scalar M β] [has_continu
   (continuous_fst.smul (continuous_snd.comp continuous_snd))⟩
 
 @[to_additive]
-instance {ι : Type*} {γ : ι → Type}
+instance {ι : Type*} {γ : ι → Type*}
   [∀ i, topological_space (γ i)] [Π i, has_scalar M (γ i)] [∀ i, has_continuous_smul M (γ i)] :
   has_continuous_smul M (Π i, γ i) :=
 ⟨continuous_pi $ λ i,

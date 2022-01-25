@@ -6,6 +6,7 @@ Authors: Johannes Hölzl, Jens Wagemaker, Aaron Anderson
 
 import algebra.big_operators.associated
 import algebra.gcd_monoid.basic
+import data.finsupp.multiset
 import ring_theory.noetherian
 import ring_theory.multiplicity
 
@@ -101,7 +102,8 @@ wf_dvd_monoid.induction_on_irreducible a
   (λ u hu _, ⟨0, ⟨by simp [hu], associated.symm (by simp [hu, associated_one_iff_is_unit])⟩⟩)
   (λ a i ha0 hii ih hia0,
     let ⟨s, hs⟩ := ih ha0 in
-    ⟨i ::ₘ s, ⟨by clear _let_match; finish,
+    ⟨i ::ₘ s, ⟨by clear _let_match;
+    { intros b H, cases (multiset.mem_cons.mp H), { convert hii }, { exact hs.1 b h } },
       by { rw multiset.prod_cons,
            exact hs.2.mul_left _ }⟩⟩)
 
@@ -494,9 +496,9 @@ begin
   have h : (normalize : α → α) = associates.out ∘ associates.mk,
   { ext, rw [function.comp_apply, associates.out_mk], },
   rw [← multiset.map_id' (normalized_factors (x * y)), ← multiset.map_id' (normalized_factors x),
-    ← multiset.map_id' (normalized_factors y), ← multiset.map_congr normalize_normalized_factor,
-    ← multiset.map_congr normalize_normalized_factor,
-    ← multiset.map_congr normalize_normalized_factor,
+    ← multiset.map_id' (normalized_factors y), ← multiset.map_congr rfl normalize_normalized_factor,
+    ← multiset.map_congr rfl normalize_normalized_factor,
+    ← multiset.map_congr rfl normalize_normalized_factor,
     ← multiset.map_add, h, ← multiset.map_map associates.out, eq_comm,
     ← multiset.map_map associates.out],
   refine congr rfl _,
@@ -1383,7 +1385,7 @@ namespace unique_factorization_monoid
 /-- If `y` is a nonzero element of a unique factorization monoid with finitely
 many units (e.g. `ℤ`, `ideal (ring_of_integers K)`), it has finitely many divisors. -/
 noncomputable def fintype_subtype_dvd {M : Type*} [cancel_comm_monoid_with_zero M]
-  [unique_factorization_monoid M] [fintype (units M)]
+  [unique_factorization_monoid M] [fintype Mˣ]
   (y : M) (hy : y ≠ 0) :
   fintype {x // x ∣ y} :=
 begin
@@ -1391,10 +1393,10 @@ begin
   haveI : normalization_monoid M := unique_factorization_monoid.normalization_monoid,
   haveI := classical.dec_eq M,
   haveI := classical.dec_eq (associates M),
-  -- We'll show `λ (u : units M) (f ⊆ factors y) → u * Π f` is injective
+  -- We'll show `λ (u : Mˣ) (f ⊆ factors y) → u * Π f` is injective
   -- and has image exactly the divisors of `y`.
   refine fintype.of_finset
-    (((normalized_factors y).powerset.to_finset.product (finset.univ : finset (units M))).image
+    (((normalized_factors y).powerset.to_finset.product (finset.univ : finset Mˣ)).image
       (λ s, (s.snd : M) * s.fst.prod))
     (λ x, _),
   simp only [exists_prop, finset.mem_image, finset.mem_product, finset.mem_univ, and_true,
@@ -1419,3 +1421,46 @@ begin
 end
 
 end unique_factorization_monoid
+
+section finsupp
+variables [cancel_comm_monoid_with_zero α] [unique_factorization_monoid α]
+variables [normalization_monoid α] [decidable_eq α]
+
+open unique_factorization_monoid
+
+/-- This returns the multiset of irreducible factors as a `finsupp` -/
+noncomputable def factorization (n : α) : α →₀ ℕ := (normalized_factors n).to_finsupp
+
+lemma factorization_eq_count {n p : α} :
+  factorization n p = multiset.count p (normalized_factors n) :=
+by simp [factorization]
+
+@[simp] lemma factorization_zero : factorization (0 : α) = 0 := by simp [factorization]
+
+@[simp] lemma factorization_one : factorization (1 : α) = 0 := by simp [factorization]
+
+/-- The support of `factorization n` is exactly the finset of normalized factors -/
+@[simp] lemma support_factorization {n : α} :
+  (factorization n).support = (normalized_factors n).to_finset :=
+by simp [factorization, multiset.to_finsupp_support]
+
+/-- For nonzero `a` and `b`, the power of `p` in `a * b` is the sum of the powers in `a` and `b` -/
+@[simp] lemma factorization_mul {a b : α} (ha : a ≠ 0) (hb : b ≠ 0) :
+  factorization (a * b) = factorization a + factorization b :=
+by simp [factorization, normalized_factors_mul ha hb]
+
+/-- For any `p`, the power of `p` in `x^n` is `n` times the power in `x` -/
+lemma factorization_pow {x : α} {n : ℕ} :
+  factorization (x^n) = n • factorization x :=
+by { ext, simp [factorization] }
+
+lemma associated_of_factorization_eq (a b: α) (ha: a ≠ 0) (hb: b ≠ 0)
+  (h: factorization a = factorization b) : associated a b :=
+begin
+  simp only [factorization, add_equiv.apply_eq_iff_eq] at h,
+  have ha' := normalized_factors_prod ha,
+  rw h at ha',
+  exact associated.trans ha'.symm (normalized_factors_prod hb),
+end
+
+end finsupp

@@ -54,34 +54,28 @@ open measure topological_space.positive_compacts finite_dimensional
 ### The Lebesgue measure is a Haar measure on `ℝ` and on `ℝ^ι`.
 -/
 
-lemma is_add_left_invariant_real_volume : is_add_left_invariant ⇑(volume : measure ℝ) :=
-by simp [← map_add_left_eq_self, real.map_volume_add_left]
+instance is_add_left_invariant_real_volume :
+  is_add_left_invariant (volume : measure ℝ) :=
+⟨by simp [real.map_volume_add_left]⟩
 
 /-- The Haar measure equals the Lebesgue measure on `ℝ`. -/
 lemma add_haar_measure_eq_volume : add_haar_measure Icc01 = volume :=
-begin
-  convert (add_haar_measure_unique _ Icc01).symm,
-  { simp [Icc01] },
-  { apply_instance },
-  { exact is_add_left_invariant_real_volume }
-end
+by { convert (add_haar_measure_unique volume Icc01).symm, simp [Icc01] }
 
 instance : is_add_haar_measure (volume : measure ℝ) :=
 by { rw ← add_haar_measure_eq_volume, apply_instance }
 
-lemma is_add_left_invariant_real_volume_pi (ι : Type*) [fintype ι] :
-  is_add_left_invariant ⇑(volume : measure (ι → ℝ)) :=
-by simp [← map_add_left_eq_self, real.map_volume_pi_add_left]
+instance is_add_left_invariant_real_volume_pi (ι : Type*) [fintype ι] :
+  is_add_left_invariant (volume : measure (ι → ℝ)) :=
+⟨by simp [real.map_volume_pi_add_left]⟩
 
 /-- The Haar measure equals the Lebesgue measure on `ℝ^ι`. -/
 lemma add_haar_measure_eq_volume_pi (ι : Type*) [fintype ι] :
   add_haar_measure (pi_Icc01 ι) = volume :=
 begin
-  convert (add_haar_measure_unique _ (pi_Icc01 ι)).symm,
-  { simp only [pi_Icc01, volume_pi_pi (λ i, Icc (0 : ℝ) 1),
-      finset.prod_const_one, ennreal.of_real_one, real.volume_Icc, one_smul, sub_zero] },
-  { apply_instance },
-  { exact is_add_left_invariant_real_volume_pi ι }
+  convert (add_haar_measure_unique volume (pi_Icc01 ι)).symm,
+  simp only [pi_Icc01, volume_pi_pi (λ i, Icc (0 : ℝ) 1),
+    finset.prod_const_one, ennreal.of_real_one, real.volume_Icc, one_smul, sub_zero]
 end
 
 instance is_add_haar_measure_volume_pi (ι : Type*) [fintype ι] :

@@ -418,7 +418,7 @@ lemma nontrivial_lines_through_point [projective_plane P L] (p : P) :
   nontrivial {l : L // p ∈ l} :=
 begin
   classical,
-  have := one_lt_line_count L p,
+  have := one_lt_two.trans (two_lt_line_count L p),
   rwa [line_count, nat.card_eq_fintype_card, fintype.one_lt_card_iff_nontrivial] at this,
 end
 
@@ -434,6 +434,26 @@ lemma nontrivial_line [projective_plane P L] (l : L) : nontrivial {p : P // p �
 variables (P) (L)
 
 open finset
+
+lemma card_points'' [projective_plane P L] : fintype.card P = order P L ^ 2 + order P L + 1 :=
+begin
+  let p : P := (classical.some (@exists_config P L _ _)),
+  let ϕ : {q // q ≠ p} ≃ Σ (l : {l : L // p ∈ l}), {q // q ∈ l.1 ∧ q ≠ p} :=
+  { to_fun := λ q, ⟨⟨mk_line q.2, (mk_line_ax q.2).2⟩, q, (mk_line_ax q.2).1, q.2⟩,
+    inv_fun := λ lq, ⟨lq.2, lq.2.2.2⟩,
+    left_inv := λ q, subtype.ext rfl,
+    right_inv := λ lq, sigma.subtype_ext (subtype.ext ((eq_or_eq (mk_line_ax lq.2.2.2).1
+      (mk_line_ax lq.2.2.2).2 lq.2.2.1 lq.1.2).resolve_left lq.2.2.2)) rfl },
+  classical,
+  have h1 : fintype.card P = fintype.card {q // q ≠ p} + 1,
+  { sorry, },
+  have h2 : ∀ l : {l : L // p ∈ l}, fintype.card {q // q ∈ l.1 ∧ q ≠ p} = order P L,
+  { intro l,
+    sorry },
+  simp_rw [h1, fintype.card_congr ϕ, fintype.card_sigma, h2, sum_const, smul_eq_mul, card_univ],
+  rw [add_left_inj, sq, ←nat.succ_mul, nat.mul_left_inj (zero_lt_one.trans (one_lt_order P L))],
+  rw [←nat.card_eq_fintype_card, ←line_count, line_count_eq],
+end
 
 lemma card_points' [projective_plane P L] : fintype.card P = order P L ^ 2 + order P L + 1 :=
 begin

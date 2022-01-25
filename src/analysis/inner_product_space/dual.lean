@@ -39,14 +39,12 @@ import the locale `inner_product_space.sharp` if you want to use it.
 dual, Fréchet-Riesz
 -/
 
-open_locale classical complex_conjugate
-
 noncomputable theory
+open_locale classical complex_conjugate
 universes u v
 
 namespace inner_product_space
 open is_R_or_C continuous_linear_map
-
 
 variables (𝕜 : Type*)
 variables (E : Type*) [is_R_or_C 𝕜] [inner_product_space 𝕜 E]

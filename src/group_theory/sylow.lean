@@ -440,8 +440,7 @@ begin
   rwa [h, card_bot] at key,
 end
 
-
-instance subsingleton_of_normal {p : ℕ} [fact p.prime] [fintype (sylow p G)] (P : sylow p G)
+lemma subsingleton_of_normal {p : ℕ} [fact p.prime] [fintype (sylow p G)] (P : sylow p G)
   (h : (P : subgroup G).normal) : subsingleton (sylow p G) :=
 begin
   apply subsingleton.intro,
@@ -457,7 +456,7 @@ section pointwise
 
 open_locale pointwise
 
-instance characteristic_of_normal {p : ℕ} [fact p.prime] [fintype (sylow p G)] (P : sylow p G)
+lemma characteristic_of_normal {p : ℕ} [fact p.prime] [fintype (sylow p G)] (P : sylow p G)
   (h : (P : subgroup G).normal) :
   (P : subgroup G).characteristic :=
 begin

@@ -2421,10 +2421,24 @@ begin
   { exact hM }
 end
 
+protected
+lemma nontrivial (R S : Type*) [comm_ring R] [nontrivial R] [comm_ring S] [algebra R S]
+  [is_fraction_ring R S] : nontrivial S :=
+begin
+  apply nontrivial_of_ne,
+  intro h,
+  apply @zero_ne_one R,
+  exact is_localization.injective S (le_of_eq rfl)
+    (((algebra_map R S).map_zero.trans h).trans (algebra_map R S).map_one.symm),
+end
+
 lemma is_fraction_ring_of_is_domain_of_is_localization [is_domain R] (S T : Type*)
-  [comm_ring S] [nontrivial S] [comm_ring T] [algebra R S] [algebra R T] [algebra S T]
+  [comm_ring S] [comm_ring T] [algebra R S] [algebra R T] [algebra S T]
   [is_scalar_tower R S T] [is_localization M S] [is_fraction_ring R T] : is_fraction_ring S T :=
 begin
+  nontriviality R,
+  haveI := is_fraction_ring.nontrivial R T,
+  haveI := (algebra_map S T).domain_nontrivial,
   apply is_fraction_ring_of_is_localization M S T,
   intros x hx,
   rw mem_non_zero_divisors_iff_ne_zero,

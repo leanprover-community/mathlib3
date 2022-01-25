@@ -39,8 +39,9 @@ section current_bug
 
 @[simp] lemma pnat.asda {a : ℕ+} : 1 ≤ a := pnat.one_le
 
-open int
+open pnat
 
+-- as we currently return `[]` for the errored queries, this _should_ work
 lemma tes {a : ℕ} {b : ℕ+} : 0 ≤ a ∧ 1 ≤ b := by { squeeze_simp_test = [] }
 
 end current_bug

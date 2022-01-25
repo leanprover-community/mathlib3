@@ -88,9 +88,10 @@ end multiplicity
 section irreducible
 variables [comm_monoid_with_zero R] [wf_dvd_monoid R]
 
-lemma eq_zero_or_no_irreducibles_and_squarefree_iff_irreducible_sq_not_dvd (r : R) :
-  ((r = 0 ∧ ∀ x : R, ¬irreducible x) ∨ squarefree r) ↔ ∀ x : R, irreducible x → ¬ x * x ∣ r :=
+lemma irreducible_sq_not_dvd_iff_eq_zero_and_no_irreducibles_or_squarefree (r : R) :
+  (∀ x : R, irreducible x → ¬ x * x ∣ r) ↔ ((r = 0 ∧ ∀ x : R, ¬irreducible x) ∨ squarefree r) :=
 begin
+  symmetry,
   split,
   { rintro (⟨rfl, h⟩ | h),
     { simpa using h },
@@ -112,13 +113,13 @@ end
 
 lemma squarefree_iff_irreducible_sq_not_dvd_of_ne_zero {r : R} (hr : r ≠ 0) :
   squarefree r ↔ ∀ x : R, irreducible x → ¬ x * x ∣ r :=
-by simpa [hr] using eq_zero_or_no_irreducibles_and_squarefree_iff_irreducible_sq_not_dvd r
+by simpa [hr] using (irreducible_sq_not_dvd_iff_eq_zero_and_no_irreducibles_or_squarefree r).symm
 
 lemma squarefree_iff_irreducible_sq_not_dvd_of_exists_irreducible
   {r : R} (hr : ∃ (x : R), irreducible x) :
   squarefree r ↔ ∀ x : R, irreducible x → ¬ x * x ∣ r :=
 begin
-  rw [←eq_zero_or_no_irreducibles_and_squarefree_iff_irreducible_sq_not_dvd, ←not_exists],
+  rw [irreducible_sq_not_dvd_iff_eq_zero_and_no_irreducibles_or_squarefree, ←not_exists],
   simp only [hr, not_true, false_or, and_false],
 end
 

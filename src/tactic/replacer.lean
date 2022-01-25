@@ -1,10 +1,9 @@
 /-
 Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro
+Authors: Mario Carneiro
 -/
-
-import tactic.core data.string.defs data.list.defs
+import tactic.core
 
 /-!
 # `def_replacer`
@@ -93,7 +92,8 @@ let nattr := ntac <.> "attr" in do
     "are defined later with the `@[" ++ to_string ntac ++ "]` attribute. " ++
     "It is intended for use with `auto_param`s for structure fields."
 
-open interactive lean.parser
+setup_tactic_parser
+
 /--
 `def_replacer foo` sets up a stub definition `foo : tactic unit`, which can
 effectively be defined and re-defined later, by tagging definitions with `@[foo]`.
@@ -109,8 +109,7 @@ custom input and output types. In this case all subsequent redefinitions must ha
 same type, or the type `α → β → tactic γ → tactic γ` or
 `α → β → option (tactic γ) → tactic γ` analogously to the previous cases.
  -/
-@[user_command] meta def def_replacer_cmd (meta_info : decl_meta_info)
-  (_ : parse $ tk "def_replacer") : lean.parser unit :=
+@[user_command] meta def def_replacer_cmd (_ : parse $ tk "def_replacer") : lean.parser unit :=
 do ntac ← ident,
   ty ← optional (tk ":" *> types.texpr),
   match ty with
@@ -126,7 +125,7 @@ add_tactic_doc
 
 meta def unprime : name → tactic name
 | nn@(name.mk_string s n) :=
-  let s' := s.over_list (list.take_while (≠ ''')) in
+  let s' := (s.split_on ''').head in
   if s'.length < s.length then pure (name.mk_string s' n)
                    else fail format!"expecting primed name: {nn}"
 | n := fail format!"invalid name: {n}"

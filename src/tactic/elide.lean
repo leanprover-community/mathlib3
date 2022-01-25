@@ -3,8 +3,7 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Simon Hudon
 -/
-
-import logic.basic tactic.core
+import tactic.core
 
 namespace tactic
 namespace elide
@@ -48,7 +47,7 @@ end
 end elide
 
 namespace interactive
-open interactive.types interactive lean.parser
+setup_tactic_parser
 
 /-- The `elide n (at ...)` tactic hides all subterms of the target goal or hypotheses
 beyond depth `n` by replacing them with `hidden`, which is a variant
@@ -83,7 +82,7 @@ add_tactic_doc
 { name        := "elide / unelide",
   category    := doc_category.tactic,
   decl_names  := [`tactic.interactive.elide, `tactic.interactive.unelide],
-  tags        := ["goal management", "context management", "rewrite"] }
+  tags        := ["goal management", "context management", "rewriting"] }
 
 end interactive
 

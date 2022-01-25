@@ -3,22 +3,30 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import category_theory.equivalence
 import category_theory.eq_to_hom
 
-/-#
-Disjoint unions of categories, functors, and natural transformations.
+/-!
+# Binary disjoint unions of categories
+
+We define the category instance on `C ⊕ D` when `C` and `D` are categories.
+
+We define:
+* `inl_`      : the functor `C ⥤ C ⊕ D`
+* `inr_`      : the functor `D ⥤ C ⊕ D`
+* `swap`      : the functor `C ⊕ D ⥤ D ⊕ C`
+    (and the fact this is an equivalence)
+
+We further define sums of functors and natural transformations, written `F.sum G` and `α.sum β`.
 -/
 
 namespace category_theory
 
-universes v₁ u₁ -- declare the `v`'s first; see `category_theory.category` for an explanation
+universes v₁ u₁ -- morphism levels before object levels. See note [category_theory universes].
 
 open sum
 
 section
-variables (C : Type u₁) [𝒞 : category.{v₁} C] (D : Type u₁) [𝒟 : category.{v₁} D]
-include 𝒞 𝒟
+variables (C : Type u₁) [category.{v₁} C] (D : Type u₁) [category.{v₁} D]
 
 /--
 `sum C D` gives the direct sum of two categories.
@@ -42,16 +50,19 @@ instance sum : category.{v₁} (C ⊕ D) :=
     | inr X, inr Y, inr Z, f, g := f ≫ g
     end }
 
-@[simp] lemma sum_comp_inl {P Q R : C} (f : (inl P : C ⊕ D) ⟶ inl Q) (g : inl Q ⟶ inl R) :
-  f ≫ g = (f : P ⟶ Q) ≫ (g : Q ⟶ R) := rfl
-@[simp] lemma sum_comp_inr {P Q R : D} (f : (inr P : C ⊕ D) ⟶ inr Q) (g : inr Q ⟶ inr R) :
-  f ≫ g = (f : P ⟶ Q) ≫ (g : Q ⟶ R) := rfl
+@[simp] lemma sum_comp_inl {P Q R : C} (f : (inl P : C ⊕ D) ⟶ inl Q)
+  (g : (inl Q : C ⊕ D) ⟶ inl R) :
+  @category_struct.comp _ _ P Q R (f : P ⟶ Q) (g : Q ⟶ R) =
+  @category_struct.comp _ _ (inl P) (inl Q) (inl R) (f : P ⟶ Q) (g : Q ⟶ R) := rfl
+@[simp] lemma sum_comp_inr {P Q R : D} (f : (inr P : C ⊕ D) ⟶ inr Q)
+  (g : (inr Q : C ⊕ D) ⟶ inr R) :
+  @category_struct.comp _ _ P Q R (f : P ⟶ Q) (g : Q ⟶ R) =
+  @category_struct.comp _ _ (inr P) (inr Q) (inr R) (f : P ⟶ Q) (g : Q ⟶ R) := rfl
 end
 
 namespace sum
 
-variables (C : Type u₁) [𝒞 : category.{v₁} C] (D : Type u₁) [𝒟 : category.{v₁} D]
-include 𝒞 𝒟
+variables (C : Type u₁) [category.{v₁} C] (D : Type u₁) [category.{v₁} D]
 
 /-- `inl_` is the functor `X ↦ inl X`. -/
 -- Unfortunate naming here, suggestions welcome.
@@ -101,11 +112,10 @@ end swap
 
 end sum
 
-variables {A : Type u₁} [𝒜 : category.{v₁} A]
-          {B : Type u₁} [ℬ : category.{v₁} B]
-          {C : Type u₁} [𝒞 : category.{v₁} C]
-          {D : Type u₁} [𝒟 : category.{v₁} D]
-include 𝒜 ℬ 𝒞 𝒟
+variables {A : Type u₁} [category.{v₁} A]
+          {B : Type u₁} [category.{v₁} B]
+          {C : Type u₁} [category.{v₁} C]
+          {D : Type u₁} [category.{v₁} D]
 
 namespace functor
 

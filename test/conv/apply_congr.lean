@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Lucas Allen, Scott Morrison
 -/
 
-import algebra.big_operators
-import data.finsupp
+import algebra.big_operators.basic
+import data.finsupp.basic
 import tactic.converter.apply_congr
 import tactic.interactive
 
@@ -20,8 +20,7 @@ begin
     -- so we get to rewrite `f x`, in the presence of the crucial `H : x ∈ S` hypothesis.
     apply_congr,
     skip,
-    simp [h, H],
-  }
+    simp [h, H], }
 end
 
 -- Again, with some `guard` statements.
@@ -30,12 +29,12 @@ example (f g : ℤ → ℤ) (S : finset ℤ) (h : ∀ m ∈ S, f m = g m) :
 begin
   conv_lhs {
     apply_congr finset.sum_congr,
-    (do ng ← tactic.num_goals, guard $ ng = 2), -- (See the note about get_goals/set_goals inside apply_congr)
+    -- (See the note about get_goals/set_goals inside apply_congr)
+    (do ng ← tactic.num_goals, guard $ ng = 2),
     guard_target S,
     skip,
     guard_target f x,
-    simp [h, H]
-  }
+    simp [h, H] }
 end
 
 -- Verify we can `rw` as well as `simp`.

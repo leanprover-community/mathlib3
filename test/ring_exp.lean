@@ -1,5 +1,7 @@
 import tactic.ring_exp
-import algebra.group_with_zero_power
+import tactic.zify
+import algebra.group_with_zero.power
+import tactic.field_simp
 
 universes u
 
@@ -69,6 +71,10 @@ example {α} [comm_ring α] (k : ℕ) (x y z : α) :
 
 -- We can represent a large exponent `n` more efficiently than just `n` multiplications:
 example (a b : ℚ) : (a * b) ^ 1000000 = (b * a) ^ 1000000 := by ring_exp
+
+example (n : ℕ) : 2 ^ (n + 1 + 1)  = 2 * 2 ^ (n + 1) :=
+by ring_exp_eq
+
 end exponentiation
 
 section power_of_sum
@@ -93,7 +99,8 @@ example {α} [comm_ring α] (a : α) : a - a = 0 := by ring_exp_eq
 example (a : ℤ) : a - a = 0 := by ring_exp
 example (a : ℤ) : a + - a = 0 := by ring_exp
 example (a : ℤ) : - a = (-1) * a := by ring_exp
-example (a b : ℕ) : a - b + a + a = a - b + 2 * a := by ring_exp -- Here, (a - b) is treated as an atom.
+-- Here, (a - b) is treated as an atom.
+example (a b : ℕ) : a - b + a + a = a - b + 2 * a := by ring_exp
 example (n : ℕ) : n + 1 - 1 = n := by ring_exp! -- But we can force a bit of evaluation anyway.
 end negation
 
@@ -128,11 +135,32 @@ example {α} [linear_ordered_field α] (a b c : α) : a*(-c/b)*(-c/b) = a*((c/b)
 example (x y : ℚ) (n : ℕ) (hx : x ≠ 0) (hy : y ≠ 0) :
   1/ (2/(x / y))^(2 * n) + y / y^(n+1) - (x/y)^n * (x/(2 * y))^n / 2 ^n = 1/y^n :=
 begin
-  simp [sub_eq_add_neg],
-  field_simp [hx, hy],
+  field_simp,
   ring_exp
 end
 end complicated
+
+-- Test that `nat.succ d` gets handled as `d + 1`.
+example (d : ℕ) : 2 * (2 ^ d - 1) + 1 = 2 ^ d.succ - 1 :=
+begin
+  zify [nat.one_le_pow'],
+  ring_exp,
+end
+
+-- Simplified instance of a bug reported by Patrick Massot:
+-- https://leanprover.zulipchat.com/#narrow/stream/113488-general/topic/ring_exp.20bug
+example (l : ℤ) : l - l = 0 :=
+begin
+  tactic.replace_at (tactic.ring_exp.normalize tactic.transparency.reducible) [] tt >> pure (),
+  refl
+end
+
+-- Normalizing also works on more complicated expressions:
+example (a b : ℤ) : (a^2 - b - b) + (2 * id b - a^2) = 0 :=
+begin
+  tactic.replace_at (tactic.ring_exp.normalize tactic.transparency.semireducible) [] tt >> pure (),
+  refl
+end
 
 section conv
 /-!
@@ -172,7 +200,7 @@ def pow_sub_pow_factor (x y : α) : Π {i : ℕ},{z // x^i - y^i = z*(x - y)}
 begin
   cases @pow_sub_pow_factor (k+1) with z hz,
   existsi z*x + y^(k+1),
-  rw [_root_.pow_succ x, _root_.pow_succ y, ←sub_add_sub_cancel (x*x^(k+1)) (x*y^(k+1)),
+  rw [pow_succ x, pow_succ y, ←sub_add_sub_cancel (x*x^(k+1)) (x*y^(k+1)),
   ←mul_sub x, hz],
   ring_exp_eq
 end

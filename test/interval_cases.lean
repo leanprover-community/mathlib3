@@ -89,8 +89,8 @@ by interval_cases n
 example (n : ℕ+) (w₁ : 2 < n) (w₂ : 4 ≥ n) : n = 3 ∨ n = 4 :=
 begin
   interval_cases n,
-  { guard_target (3 : ℕ+) = 3 ∨ (3 : ℕ+) = 4, left, refl },
-  { guard_target (4 : ℕ+) = 3 ∨ (4 : ℕ+) = 4, right, refl },
+  { guard_target' (3 : ℕ+) = 3 ∨ (3 : ℕ+) = 4, left, refl },
+  { guard_target' (4 : ℕ+) = 3 ∨ (4 : ℕ+) = 4, right, refl },
 end
 
 example (n : ℕ+) (w₁ : 1 < n) (w₂ : n < 4) : n = 2 ∨ n = 3 :=
@@ -116,6 +116,15 @@ begin
   guard_target (-1 : ℤ) < 20, norm_num,
   guard_target (0 : ℤ) < 20, norm_num,
   guard_target (1 : ℤ) < 20, norm_num,
+end
+
+example (n : ℕ) : n % 2 = 0 ∨ n % 2 = 1 :=
+begin
+  set r := n % 2 with hr,
+  have h2 : r < 2 := nat.mod_lt _ (dec_trivial),
+  interval_cases r with hrv,
+  { left, exact hrv },
+  { right, exact hrv }
 end
 
 /-

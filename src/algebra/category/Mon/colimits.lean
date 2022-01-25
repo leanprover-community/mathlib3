@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import algebra.category.Mon.basic
-import category_theory.limits.limits
+import category_theory.limits.has_limits
+import category_theory.limits.concrete_category
 
 /-!
 # The category of monoids has all colimits.
@@ -146,7 +147,8 @@ instance monoid_colimit_type : monoid (colimit_type F) :=
   end }
 
 @[simp] lemma quot_one : quot.mk setoid.r one = (1 : colimit_type F) := rfl
-@[simp] lemma quot_mul (x y) : quot.mk setoid.r (mul x y) = ((quot.mk setoid.r x) * (quot.mk setoid.r y) : colimit_type F) := rfl
+@[simp] lemma quot_mul (x y) : quot.mk setoid.r (mul x y) =
+  ((quot.mk setoid.r x) * (quot.mk setoid.r y) : colimit_type F) := rfl
 
 /-- The bundled monoid giving the colimit of a diagram. -/
 def colimit : Mon := ⟨colimit_type F, by apply_instance⟩
@@ -199,11 +201,11 @@ begin
     -- trans
     { exact eq.trans r_ih_h r_ih_k },
     -- map
-    { rw cocone.naturality_concrete, },
+    { simp, },
     -- mul
-    { rw monoid_hom.map_mul ((s.ι).app r_j) },
+    { simp, },
     -- one
-    { erw monoid_hom.map_one ((s.ι).app r) },
+    { simp, },
     -- mul_1
     { rw r_ih, },
     -- mul_2
@@ -217,7 +219,6 @@ begin
 end
 
 /-- The monoid homomorphism from the colimit monoid to the cone point of any other cocone. -/
-@[simps]
 def desc_morphism (s : cocone F) : colimit F ⟶ s.X :=
 { to_fun := desc_fun F s,
   map_one' := rfl,
@@ -234,19 +235,14 @@ def colimit_is_colimit : is_colimit (colimit_cocone F) :=
     { have w' := congr_fun (congr_arg (λ f : F.obj x_j ⟶ s.X, (f : F.obj x_j → s.X)) (w x_j)) x_x,
       erw w',
       refl, },
-    { simp only [desc_morphism, quot_one],
-      erw monoid_hom.map_one m,
-      refl, },
-    { simp only [desc_morphism, quot_mul],
-      erw monoid_hom.map_mul m,
-      rw [x_ih_a, x_ih_a_1],
-      refl, },
+    { simp *, },
+    { simp *, },
     refl
   end }.
 
-instance has_colimits_Mon : has_colimits.{v} Mon.{v} :=
-{ has_colimits_of_shape := λ J 𝒥,
-  { has_colimit := λ F, by exactI
+instance has_colimits_Mon : has_colimits Mon :=
+{ has_colimits_of_shape := λ J 𝒥, by exactI
+  { has_colimit := λ F, has_colimit.mk
     { cocone := colimit_cocone F,
       is_colimit := colimit_is_colimit F } } }
 

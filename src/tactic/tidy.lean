@@ -3,31 +3,24 @@ Copyright (c) 2017 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import tactic.ext
 import tactic.auto_cases
 import tactic.chain
-import tactic.solve_by_elim
 import tactic.norm_cast
-import tactic.hint
-import tactic.interactive
 
 namespace tactic
 
 namespace tidy
 /-- Tag interactive tactics (locally) with `[tidy]` to add them to the list of default tactics
 called by `tidy`. -/
-meta def tidy_attribute : user_attribute := {
-  name := `tidy,
-  descr := "A tactic that should be called by `tidy`."
-}
+@[user_attribute] meta def tidy_attribute : user_attribute :=
+{ name := `tidy,
+  descr := "A tactic that should be called by `tidy`." }
 
 add_tactic_doc
 { name                     := "tidy",
   category                 := doc_category.attr,
   decl_names               := [`tactic.tidy.tidy_attribute],
   tags                     := ["search"] }
-
-run_cmd attribute.register ``tidy_attribute
 
 meta def run_tactics : tactic string :=
 do names ← attribute.get_instances `tidy,
@@ -46,7 +39,8 @@ meta def default_tactics : list (tactic string) :=
 [ reflexivity                                 >> pure "refl",
   `[exact dec_trivial]                        >> pure "exact dec_trivial",
   propositional_goal >> assumption            >> pure "assumption",
-  intros1                                     >>= λ ns, pure ("intros " ++ (" ".intercalate (ns.map (λ e, e.to_string)))),
+  intros1                                     >>= λ ns, pure ("intros " ++ (" ".intercalate $
+                                                  ns.map $ λ e, e.to_string)),
   auto_cases,
   `[apply_auto_param]                         >> pure "apply_auto_param",
   `[dsimp at *]                               >> pure "dsimp at *",
@@ -79,7 +73,7 @@ end tidy
 meta def tidy (cfg : tidy.cfg := {}) := tactic.tidy.core cfg >> skip
 
 namespace interactive
-open lean.parser interactive
+setup_tactic_parser
 
 /-- Use a variety of conservative tactics to solve goals.
 

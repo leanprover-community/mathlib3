@@ -1,5 +1,5 @@
-import category.traversable.derive
-import tactic
+import control.traversable.derive
+import control.traversable.instances
 
 universes u
 

@@ -3,7 +3,9 @@ Copyright (c) 2019 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-import category_theory.category.Cat category_theory.groupoid data.quot
+import category_theory.category.Cat
+import category_theory.groupoid
+import category_theory.types
 
 /-!
 # Objects of a category up to an isomorphism
@@ -18,8 +20,7 @@ namespace category_theory
 
 section category
 
-variables {C : Type u} [𝒞 : category.{v} C]
-include 𝒞
+variables {C : Type u} [category.{v} C]
 
 /-- An object `X` is isomorphic to an object `Y`, if `X ≅ Y` is not empty. -/
 def is_isomorphic : C → C → Prop := λ X Y, nonempty (X ≅ Y)
@@ -42,7 +43,7 @@ def isomorphism_classes : Cat.{v u} ⥤ Type u :=
 
 lemma groupoid.is_isomorphic_iff_nonempty_hom {C : Type u} [groupoid.{v} C] {X Y : C} :
   is_isomorphic X Y ↔ nonempty (X ⟶ Y) :=
-(groupoid.iso_equiv_hom X Y).nonempty_iff_nonempty
+(groupoid.iso_equiv_hom X Y).nonempty_congr
 
 -- PROJECT: define `skeletal`, and show every category is equivalent to a skeletal category,
 -- using the axiom of choice to pick a representative of every isomorphism class.

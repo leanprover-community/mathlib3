@@ -1,23 +1,23 @@
 
 
-TO CONTRIBUTORS:
+---
+<!-- The text above the `---` will become the commit message when your
+PR is merged. Please leave a blank newline before the `---`, otherwise
+GitHub will format the text above it as a title.
 
-Please include a summary of the changes made in this PR above "TO CONTRIBUTORS:", as that text will become the commit message. You are also encouraged to append the following [co-authorship template](https://help.github.com/en/github/committing-changes-to-your-project/creating-a-commit-with-multiple-authors) if you'd like to acknowledge suggestions / commits made by other users:
+To indicate co-authors, include lines at the bottom of the commit message 
+(that is, before the `---`) using the following format:
 
-Co-authored-by: name <name@example.com>
+Co-authored-by: Author Name <author@email.com>
 
-Make sure you have:
+Any other comments you want to keep out of the PR commit should go
+below the `---`, and placed outside this HTML comment, or else they
+will be invisible to reviewers.
 
-  * [ ] reviewed and applied the coding style: [coding](https://github.com/leanprover-community/mathlib/blob/master/docs/contribute/style.md), [naming](https://github.com/leanprover-community/mathlib/blob/master/docs/contribute/naming.md)
-  * [ ] reviewed and applied [the documentation requirements](https://github.com/leanprover-community/mathlib/blob/master/docs/contribute/doc.md)
-  * [ ] for tactics:
-     * [ ] added or adapted documentation in the [tactic doc entries](https://github.com/leanprover-community/mathlib/blob/master/docs/contribute/doc.md#tactic-doc-entries)
-     * [ ] write an example of use of the new feature in [test/tactics.lean](https://github.com/leanprover-community/mathlib/blob/master/test/tactics.lean) or another test file
-  * [ ] make sure definitions and lemmas are put in the right files
-  * [ ] make sure definitions and lemmas are not redundant
+If this PR depends on other PRs, please list them below this comment,
+using the following format:
+- [ ] depends on: #abc [optional extra text]
+- [ ] depends on: #xyz [optional extra text]
+-->
 
-If this PR is related to a discussion on Zulip, please include a link in the discussion.
-
-For reviewers: [code review check list](https://github.com/leanprover-community/mathlib/blob/master/docs/contribute/code-review.md)
-
-If you're confused by comments on your PR like `bors r+` or `bors d+`, please see our [notes on bors](https://github.com/leanprover-community/mathlib/blob/master/docs/contribute/bors.md) for information on our merging workflow.
+[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/from-referrer/)

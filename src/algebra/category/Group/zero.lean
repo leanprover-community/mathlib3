@@ -7,7 +7,10 @@ import algebra.category.Group.basic
 import category_theory.limits.shapes.zero
 
 /-!
-# The category of commutative additive groups has a zero object and zero morphism.
+# The category of (commutative) (additive) groups has a zero object.
+
+`AddCommGroup` also has zero morphisms. For definitional reasons, we infer this from preadditivity
+rather than from the existence of a zero object.
 -/
 
 open category_theory
@@ -15,14 +18,22 @@ open category_theory.limits
 
 universe u
 
-namespace AddCommGroup
+namespace Group
 
-instance : has_zero_morphisms.{u} AddCommGroup.{u} :=
-{ has_zero := λ X Y, ⟨0⟩ }
+@[to_additive AddGroup.has_zero_object]
+instance : has_zero_object Group :=
+{ zero := 1,
+  unique_to := λ X, ⟨⟨1⟩, λ f, by { ext, cases x, erw monoid_hom.map_one, refl, }⟩,
+  unique_from := λ X, ⟨⟨1⟩, λ f, by ext⟩, }
 
-instance : has_zero_object.{u} AddCommGroup.{u} :=
-{ zero := 0,
-  unique_to := λ X, ⟨⟨0⟩, λ f, begin ext, cases x, erw add_monoid_hom.map_zero, refl end⟩,
-  unique_from := λ X, ⟨⟨0⟩, λ f, begin ext, apply subsingleton.elim, end⟩, }
+end Group
 
-end AddCommGroup
+namespace CommGroup
+
+@[to_additive AddCommGroup.has_zero_object]
+instance : has_zero_object CommGroup :=
+{ zero := 1,
+  unique_to := λ X, ⟨⟨1⟩, λ f, by { ext, cases x, erw monoid_hom.map_one, refl, }⟩,
+  unique_from := λ X, ⟨⟨1⟩, λ f, by ext⟩, }
+
+end CommGroup

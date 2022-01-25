@@ -3,12 +3,9 @@ Copyright (c) 2020 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
-
-import graph_theory.paths
 import graph_theory.cycle
-import measure_theory.probability_mass_function
-import measure_theory.borel_space
-import measure_theory.integration
+import graph_theory.paths
+import measure_theory.probability_mass_function.basic
 import .to_mathlib
 
 /-!

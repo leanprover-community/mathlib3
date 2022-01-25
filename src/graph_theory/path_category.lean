@@ -1,6 +1,6 @@
-import graph_theory.paths
 import category_theory.functor
 import category_theory.eq_to_hom
+import graph_theory.paths
 
 open category_theory
 

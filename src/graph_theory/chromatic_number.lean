@@ -1,7 +1,7 @@
-import graph_theory.basic
+import algebra.big_operators.order
 import data.equiv.fin
 import data.fintype.fiber
-import algebra.big_operators
+import graph_theory.basic
 import .to_mathlib
 
 /-!

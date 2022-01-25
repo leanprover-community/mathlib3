@@ -3,17 +3,14 @@ Copyright (c) 2020 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Scott Morrison
 -/
-
 import graph_theory.basic
-import data.finset
-
 import .to_mathlib
 
 /-!
 # Kneser graphs
 -/
 
-universe variables v v₁ v₂ v₃ u u₁ u₂ u₃
+universes v v₁ v₂ v₃ u u₁ u₂ u₃
 
 namespace graph
 

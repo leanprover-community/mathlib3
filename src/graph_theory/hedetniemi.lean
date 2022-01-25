@@ -1,8 +1,8 @@
-import graph_theory.frac_chromatic_number
-import graph_theory.strong_prod
-import graph_theory.girth
-import data.zmod.basic
 import data.rat.floor
+import data.zmod.basic
+import graph_theory.frac_chromatic_number
+import graph_theory.girth
+import graph_theory.strong_prod
 
 /-!
 

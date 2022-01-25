@@ -1,6 +1,6 @@
 import data.equiv.basic
 import logic.relation
-import category_theory.category -- This is only for the sake of the `obviously` tactic, which should be moved.
+import tactic.obviously
 
 /-!
 # Definitions of graphs
@@ -30,7 +30,7 @@ structure graph (V : Type u) extends multigraph.{0} V :=
 
 def graph_of_edges {n : ℕ} (e : list (fin n × fin n)) : graph (fin n) :=
 { edge := λ x y, (x, y) ∈ e ∨ (y, x) ∈ e,
-  symm := λ x y h, by { dsimp, rw [or_comm], apply h, } }
+  symm := λ x y h, by { dsimp, rw [or_comm], apply h } }
 
 notation x `~[`G`]` y := G.edge x y
 
@@ -53,12 +53,11 @@ def is_loopless (G : graph V) : Prop :=
 
 def complete (V : Type u) : graph V :=
 { edge := λ x y, x ≠ y,
-  symm := assume x y h, h.symm }
+  symm := λ x y h, h.symm }
 
 localized "notation `K_` n := complete (fin n)" in graph_theory
 
-lemma complete_is_loopless (V : Type u) :
-  (complete V).is_loopless :=
+lemma complete_is_loopless (V : Type u) : (complete V).is_loopless :=
 assume x, ne.irrefl
 
 lemma ne_of_edge {G : graph V} (h : G.is_loopless) {x y : V} (e : x ~[G] y) :
@@ -72,12 +71,9 @@ structure hom (G₁ : graph V₁) (G₂ : graph V₂) :=
 (to_fun    : V₁ → V₂)
 (map_edge' : ∀ {x y}, (x ~[G₁] y) → (to_fun x ~[G₂] to_fun y) . obviously)
 
-instance hom.has_coe_to_fun : has_coe_to_fun (hom G₁ G₂) :=
-{ F := λ f, V₁ → V₂,
-  coe := hom.to_fun }
+instance hom.has_coe_to_fun : has_coe_to_fun (hom G₁ G₂) (λ _, V₁ → V₂) := ⟨hom.to_fun⟩
 
-@[simp] lemma hom.to_fun_eq_coe (f : hom G₁ G₂) (x : V₁) :
-  f.to_fun x = f x := rfl
+@[simp] lemma hom.to_fun_eq_coe (f : hom G₁ G₂) (x : V₁) : f.to_fun x = f x := rfl
 
 @[simp] lemma hom.mk_coe {G₁ : graph V₁} {G₂ : graph V₂}
   (to_fun : V₁ → V₂) (map_edge' : ∀ {x y}, (x ~[G₁] y) → (to_fun x ~[G₂] to_fun y)) (x : V₁) :

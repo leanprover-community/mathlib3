@@ -4,11 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Scott Morrison
 -/
 
-import graph_theory.basic
 import data.zmod.basic
+import graph_theory.basic
 
 /-!
-# Strong product of graphs
+# Cyclic graphs
 -/
 
 universe variables v v₁ v₂ v₃ u u₁ u₂ u₃

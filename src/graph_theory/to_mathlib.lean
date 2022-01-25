@@ -1,7 +1,7 @@
-import data.finset
+import algebra.big_operators.order
 import data.fin_enum
-import algebra.big_operators
-import measure_theory.probability_mass_function
+import data.finset.lattice
+import measure_theory.probability_mass_function.basic
 
 section move_this
 variables {X : Type*} {Y : Type*} [decidable_eq X] [decidable_eq Y]
@@ -22,13 +22,6 @@ def finset_with_card_of_injective_fn {k : ℕ} (f : fin k → X) (i : function.i
 ⟨finset.univ.map ⟨f, i⟩, (by simp)⟩
 
 variables {M : Type*} [ordered_comm_monoid M] (s : finset X)
-
-lemma finset.sum_le (f : X → M) {m : M} (hm : ∀ x ∈ s, f x ≤ m) :
-  s.sum f ≤ (add_monoid.smul s.card m) :=
-begin
-  rw ← finset.sum_const,
-  exact finset.sum_le_sum hm,
-end
 
 @[simp]
 lemma finset.powerset_univ (X : Type*) [fintype X] :

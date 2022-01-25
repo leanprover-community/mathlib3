@@ -39,9 +39,8 @@ This file contains the definition of cofinality of a ordinal number and regular 
 
 cofinality, regular cardinals, limits cardinals, inaccessible cardinals,
 infinite pigeonhole principle
-
-
 -/
+
 noncomputable theory
 
 open function cardinal set
@@ -51,7 +50,7 @@ universes u v w
 variables {α : Type*} {r : α → α → Prop}
 
 namespace cardinal
-theorem min_le_iff {ι I} {f : ι → cardinal} {c} : min I f ≤ c ↔ ∃i, f i ≤ c :=
+theorem min_le_iff {ι I} {f : ι → cardinal} {c} : min I f ≤ c ↔ ∃ i, f i ≤ c :=
 begin
   split,
   { cases min_eq I f with i hi, rw [hi], exact exists.intro i },
@@ -67,18 +66,18 @@ def cof (r : α → α → Prop) [is_refl α r] : cardinal :=
   ⟨⟨set.univ, λ a, ⟨a, ⟨⟩, refl _⟩⟩⟩
   (λ S, #S)
 
-lemma cof_le (r : α → α → Prop) [is_refl α r] {S : set α} (h : ∀a, ∃(b ∈ S), r a b) :
+lemma cof_le (r : α → α → Prop) [is_refl α r] {S : set α} (h : ∀ a, ∃ (b ∈ S), r a b) :
   order.cof r ≤ #S :=
 le_trans (cardinal.min_le _ ⟨S, h⟩) (le_refl _)
 
 lemma cof_le_iff {r : α → α → Prop} [is_refl α r] {c : cardinal} :
-  order.cof r ≤ c ↔ ∃(S : set α), (∀a, ∃(b ∈ S), r a b) ∧ mk S ≤ c :=
+  order.cof r ≤ c ↔ ∃(S : set α), (∀ a, ∃ (b ∈ S), r a b) ∧ mk S ≤ c :=
 begin
   simp only [order.cof, cardinal.min_le_iff, subtype.exists, exists_prop, coe_sort_coe_base, subtype.coe_mk],
 end
 
 lemma le_cof {r : α → α → Prop} [is_refl α r] (c : cardinal) :
-  c ≤ order.cof r ↔ ∀ {S : set α} (h : ∀a, ∃(b ∈ S), r a b) , c ≤ #S :=
+  c ≤ order.cof r ↔ ∀ {S : set α} (h : ∀ a, ∃ (b ∈ S), r a b) , c ≤ #S :=
 by { rw [order.cof, cardinal.le_min], exact ⟨λ H S h, H ⟨S, h⟩, λ H ⟨S, h⟩, H h ⟩ }
 
 end order
@@ -215,8 +214,7 @@ end
 theorem cof_le_card (o) : cof o ≤ card o :=
 induction_on o $ λ α r _, begin
   resetI,
-  have : #(@set.univ α) = card (type r) :=
-    quotient.sound ⟨equiv.set.univ _⟩,
+  have : #(@set.univ α) = card (type r) := quotient.sound ⟨equiv.set.univ _⟩,
   rw ← this, exact cof_type_le set.univ (λ a, ⟨a, ⟨⟩, irrefl a⟩)
 end
 
@@ -250,7 +248,7 @@ begin
       λ h, succ_ne_zero o (cof_eq_zero.1 (eq.symm h)) }
 end
 
-@[simp] theorem cof_eq_one_iff_is_succ {o} : cof.{u} o = 1 ↔ ∃ a, o = succ a :=
+@[simp] theorem cof_eq_one_iff_succ {o} : cof.{u} o = 1 ↔ ∃ a, o = succ a :=
 ⟨induction_on o $ λ α r _ z, begin
   resetI,
   rcases cof_eq r with ⟨S, hl, e⟩, rw z at e,
@@ -299,7 +297,7 @@ induction_on a $ λ α r _, induction_on b $ λ β s _ b0, begin
         by injection h with h; congr; injection h } }
 end
 
-@[simp] theorem cof_cof (o : ordinal) : cof (cof o).ord= cof o :=
+@[simp] theorem cof_cof (o : ordinal) : cof (cof o).ord = cof o :=
 le_antisymm (le_trans (cof_le_card _) (by simp)) $
 induction_on o $ λ α r _, by exactI
 let ⟨S, hS, e₁⟩ := ord_cof_eq r,
@@ -398,17 +396,17 @@ begin
     rw [typein_enum] at this, rcases trichotomous_of r i j with h|rfl|h,
     apply le_of_lt (lt_of_le_of_lt (hf _ _ h) this), apply le_of_lt this, exfalso, apply h2j h },
   rw [←cardinal.lift_id' (mk _)], refine le_trans mk_image_le_lift _,
-  rw [h2S, ←lift_cof],
-   rw [ ←cardinal.lift_id' (cardinal.lift.{u v} _)], rw[ cardinal.lift_lift]
+  rw [h2S, ←lift_cof, ←cardinal.lift_id' (cardinal.lift.{v u} _), cardinal.lift_lift],
 end
 
 theorem cof_sup_eq_cof {ι} {r : ι → ι → Prop} [is_well_order ι r] (f : ι → ordinal)
-  (H : ∀ i, f i < sup f) (hf : ∀i j, r i j → f i ≤ f j) : cof (sup.{u v} f) = (type r).lift.cof :=
+  (H : ∀ i, f i < sup f) (hf : ∀ i j, r i j → f i ≤ f j) : cof (sup.{u v} f) = (type r).lift.cof :=
 begin
   refine le_antisymm (cof_sup_le_cof f H hf) _,
   rw [le_cof], intros S hS,
-  cases lift_type.{u v} r, rw [h],
+  cases lift_type.{v u} r, rw [h],
   rw [cof_type_le_iff],
+  sorry
 end
 
 theorem cof_sup_eq_cof' {ι} {r : ι → ι → Prop} [is_well_order ι r] (f : ι → ordinal)
@@ -417,6 +415,7 @@ begin
   refine le_antisymm _ _, convert (cof_sup_le_cof.{u u} f H hf) using 2, rw [lift_id],
   rw [le_cof], intros S hS,
   rw [cof_type_le_iff],
+  sorry
 end
 
 theorem cof_bsup_le_cof {o : ordinal} (f : Π a < o, ordinal)
@@ -424,13 +423,8 @@ theorem cof_bsup_le_cof {o : ordinal} (f : Π a < o, ordinal)
   (hf : ∀{{a a'}} (ha : a < o) (ha' : a' < o), a < a' → f a ha ≤ f a' ha') :
     cof (bsup.{u u} o f) ≤ cof o :=
 begin
-  refine ordinal.induction_on o _ f H hf, clear H hf f o, intros α r _ f H hf, resetI,
-  rw [bsup_type],
-  convert (cof_sup_le_cof.{u u} (λ a, f (typein r a) (typein_lt_type _ _)) _ _) using 1,
-  { rw [← lift_cof, cardinal.lift_id] },
-  { intro x, rw [← bsup_type], exact H (typein r x) (typein_lt_type _ _) },
-  { intros x y hxy,
-    exact hf (typein_lt_type r x) (typein_lt_type r y) ((typein_lt_typein r).2 hxy) }
+  rw bsup_eq_sup,
+  refine le_trans (cof_sup_le_cof (o.family_of_bfamily f) _ _) _,
 end
 
 -- lemma cof_le_min_seq_aux {o : ordinal} (ho : o.is_limit) :

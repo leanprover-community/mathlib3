@@ -68,12 +68,10 @@ variable {k}
 section base_case
 
 def pow_p_poly (a₁ : 𝕎 k) : polynomial k :=
-witt_vector.peval (witt_vector.witt_mul p 0)
-  ![λ n, if n = 0 then (X : polynomial k)^p else 0, λ n, C (a₁.coeff n)]
+witt_vector.peval (witt_vector.witt_mul p 0) ![λ n, if n = 0 then X^p else 0, λ n, C (a₁.coeff n)]
 
 def pow_one_poly (a₂ : 𝕎 k) : polynomial k :=
-witt_vector.peval (witt_vector.witt_mul p 0)
-  ![λ n, if n = 0 then (X : polynomial k) else 0, λ n, C (a₂.coeff n)]
+witt_vector.peval (witt_vector.witt_mul p 0) ![λ n, if n = 0 then X else 0, λ n, C (a₂.coeff n)]
 
 def base_poly (a₁ a₂ : 𝕎 k) : polynomial k :=
 pow_p_poly p a₁ - pow_one_poly p a₂
@@ -105,6 +103,29 @@ classical.some_spec (solution_exists p ha₁ ha₂)
 
 end base_case
 
+section inductive_case
+
+variables (n : ℕ) (prev_coeffs : fin n → k) (a₁ a₂ : 𝕎 k)
+
+def lhs_poly : polynomial k :=
+witt_vector.peval (witt_vector.witt_mul p (n+1))
+  ![λ k, if h : k < n then C (prev_coeffs ⟨k, h⟩)^p else if k = n then X^p else 0,
+    λ n, C (a₁.coeff n)]
+
+
+def rhs_poly : polynomial k :=
+witt_vector.peval (witt_vector.witt_mul p (n+1))
+  ![λ k, if h : k < n then C (prev_coeffs ⟨k, h⟩) else if k = n then X^p else 0,
+    λ n, C (a₂.coeff n)]
+
+def ind_poly : polynomial k :=
+lhs_poly p n prev_coeffs a₁ - rhs_poly p n prev_coeffs a₂
+
+lemma ind_poly_degree : (ind_poly p n prev_coeffs a₁ a₂).degree ≠ 0 :=
+sorry
+
+end inductive_case
+
 def find_important {a₁ a₂ : 𝕎 k} (ha₁ : a₁.coeff 0 ≠ 0) (ha₂ : a₂.coeff 0 ≠ 0) : ℕ → k
 | 0       := solution p ha₁ ha₂ -- solve for `x` in
                    --  `(witt_vector.witt_mul 0).eval (![x ^ p, 0, ...], a₁)`
@@ -114,8 +135,6 @@ def find_important {a₁ a₂ : 𝕎 k} (ha₁ : a₁.coeff 0 ≠ 0) (ha₂ : a�
                    --        `= (witt_vector.witt_mul (n + 1)) (![b 0, ... b n, x, 0, ...], a₂)`
 
 variable (k)
-
-#exit
 
 lemma important_aux {a₁ a₂ : 𝕎 k} (ha₁ : a₁.coeff 0 ≠ 0) (ha₂ : a₂.coeff 0 ≠ 0) :
   ∃ (b : 𝕎 k) (hb : b ≠ 0), witt_vector.frobenius b * a₁ = b * a₂ :=

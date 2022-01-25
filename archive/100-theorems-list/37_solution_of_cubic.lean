@@ -12,8 +12,10 @@ import algebra.group.defs
 
 This file proves Theorem 37 from the [100 Theorems List](https://www.cs.ru.nl/~freek/100/).
 
-The theorem `cubic_eq_zero_iff` gives solution to the cubic equation over ℂ,
-`cubic_eq_zero_iff_of_discrim_eq_zero`
+The theorems `cubic_eq_zero_iff` and `cubic_eq_zero_iff_of_discrim_eq_zero`,
+gives solution to the cubic equation `a * x^3 + b * x^2 + c * x + d` over ℂ.
+distinguishing the cases wheter `p = (3 * a * c - b^2) / (9 * a^2)` equals zero.
+
 based on the [Cardano's Formula](https://en.wikipedia.org/wiki/Cubic_equation#Cardano's_formula).
 
 ## References
@@ -101,7 +103,7 @@ end
 lemma cubic_monic_eq_zero_iff
   (hp : p = (3 * c - b^2) / 9)
   (hp_nonzero : p ≠ 0)
-  (hq :  q = (9 * b * c - 2 * b^3 - 27 * d) / 54)
+  (hq : q = (9 * b * c - 2 * b^3 - 27 * d) / 54)
   (hr : r^2 = q^2 + p^3)
   (hs3 : s^3 = q + r)
   (ht : t * s = p)
@@ -128,7 +130,7 @@ begin
 end
 
 /-- **The Solution of Cubic**
-  the solution of cubic when p is nonzero. -/
+  The solution of the cubic equation when `p` is nonzero. -/
 theorem cubic_eq_zero_iff (ha : a ≠ 0)
   (hp : p = (3 * a * c - b^2) / (9 * a^2))
   (hp_nonzero : p ≠ 0)
@@ -157,7 +159,7 @@ begin
   simp [h₄],
 end
 
-/-- the solution of cubic when p equals zero. -/
+/-- the solution of the cubic equation when p equals zero. -/
 lemma cubic_eq_zero_iff_of_discrim_eq_zero (ha : a ≠ 0)
   (hpz : 3 * a * c - b^2 = 0)
   (hq : q = (9 * a * b * c - 2 * b^3 - 27 * a^2 * d) / (54 * a^3))

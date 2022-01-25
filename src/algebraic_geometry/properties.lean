@@ -123,7 +123,7 @@ begin
     ((as_iso $ to_Spec_Γ R).CommRing_iso_to_ring_equiv.injective)
 end
 
-lemma is_integral_of_is_affine_is_reduced [is_affine X]
+lemma is_reduced_of_is_affine_is_reduced [is_affine X]
   [h : _root_.is_reduced (X.presheaf.obj (op ⊤))] : is_reduced X :=
 begin
   haveI : is_reduced (Scheme.Spec.obj (op (Scheme.Γ.obj (op X)))),

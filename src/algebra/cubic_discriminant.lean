@@ -42,22 +42,16 @@ open cubic polynomial
 
 variables {R S F K : Type*}
 
-section basic
-
-/-! ### Instances -/
-
-section inst
-
 instance [inhabited R] : inhabited (cubic R) := ⟨⟨default R, default R, default R, default R⟩⟩
 
 instance [has_zero R] : has_zero (cubic R) := ⟨⟨0, 0, 0, 0⟩⟩
 
-end inst
+section basic
 
 variables {P : cubic R} [semiring R]
 
 /-- Convert a cubic polynomial to a polynomial. -/
-def to_poly (P : cubic R) : polynomial R := C P.d + C P.c * X + C P.b * X ^ 2 + C P.a * X ^ 3
+def to_poly (P : cubic R) : polynomial R := C P.a * X ^ 3 + C P.b * X ^ 2 + C P.c * X + C P.d
 
 /-! ### Coefficients -/
 
@@ -91,14 +85,14 @@ by rw [← coeff_zero, h, coeff_zero]
 @[simp] lemma to_poly_injective (P Q : cubic R) : P.to_poly = Q.to_poly ↔ P = Q :=
 ⟨λ h, cubic.ext _ _ (a_of_eq h) (b_of_eq h) (c_of_eq h) (d_of_eq h), congr_arg _⟩
 
-@[simp] lemma of_a_eq_zero (ha : P.a = 0) : P.to_poly = C P.d + C P.c * X + C P.b * X ^ 2 :=
-by rw [to_poly, C_eq_zero.mpr ha, zero_mul, add_zero]
+@[simp] lemma of_a_eq_zero (ha : P.a = 0) : P.to_poly = C P.b * X ^ 2 + C P.c * X + C P.d :=
+by rw [to_poly, C_eq_zero.mpr ha, zero_mul, zero_add]
 
-@[simp] lemma of_a_b_eq_zero (ha : P.a = 0) (hb : P.b = 0) : P.to_poly = C P.d + C P.c * X :=
-by rw [of_a_eq_zero ha, C_eq_zero.mpr hb, zero_mul, add_zero]
+@[simp] lemma of_a_b_eq_zero (ha : P.a = 0) (hb : P.b = 0) : P.to_poly = C P.c * X + C P.d :=
+by rw [of_a_eq_zero ha, C_eq_zero.mpr hb, zero_mul, zero_add]
 
 @[simp] lemma of_a_b_c_eq_zero (ha : P.a = 0) (hb : P.b = 0) (hc : P.c = 0) : P.to_poly = C P.d :=
-by rw [of_a_b_eq_zero ha hb, C_eq_zero.mpr hc, zero_mul, add_zero]
+by rw [of_a_b_eq_zero ha hb, C_eq_zero.mpr hc, zero_mul, zero_add]
 
 @[simp] lemma of_zero (ha : P.a = 0) (hb : P.b = 0) (hc : P.c = 0) (hd : P.d = 0) : P.to_poly = 0 :=
 by rw [of_a_b_c_eq_zero ha hb hc, C_eq_zero.mpr hd]
@@ -127,79 +121,51 @@ end coeff
 
 section degree
 
-private lemma degree_of_linear_le : (C P.d + C P.c * X).degree ≤ ↑1 :=
-degree_add_le_of_degree_le (le_trans degree_C_le dec_trivial) $ degree_C_mul_X_le _
+lemma degree (ha : P.a ≠ 0) : P.to_poly.degree = 3 := degree_cubic ha
 
-private lemma degree_of_quadratic_le : (C P.d + C P.c * X + C P.b * X ^ 2).degree ≤ ↑2 :=
-degree_add_le_of_degree_le (le_trans degree_of_linear_le dec_trivial) $ degree_C_mul_X_pow_le _ _
+lemma degree_of_a_eq_zero (ha : P.a = 0) (hb : P.b ≠ 0) : P.to_poly.degree = 2 :=
+by rw [of_a_eq_zero ha, degree_quadratic hb]
 
-lemma degree_le : P.to_poly.degree ≤ ↑3 :=
-degree_add_le_of_degree_le (le_trans degree_of_quadratic_le dec_trivial) $ degree_C_mul_X_pow_le _ _
-
-lemma degree (ha : P.a ≠ 0) : P.to_poly.degree = ↑3 :=
-begin
-  rw [to_poly, degree_add_eq_right_of_degree_lt],
-  all_goals { rw [degree_C_mul_X_pow _ ha] },
-  exact lt_of_le_of_lt degree_of_quadratic_le dec_trivial
-end
-
-lemma degree_of_a_eq_zero (ha : P.a = 0) (hb : P.b ≠ 0) : P.to_poly.degree = ↑2 :=
-begin
-  rw [of_a_eq_zero ha, degree_add_eq_right_of_degree_lt],
-  all_goals { rw [degree_C_mul_X_pow _ hb] },
-  exact lt_of_le_of_lt degree_of_linear_le dec_trivial
-end
-
-lemma degree_of_a_b_eq_zero (ha : P.a = 0) (hb : P.b = 0) (hc : P.c ≠ 0) : P.to_poly.degree = ↑1 :=
-begin
-  rw [of_a_b_eq_zero ha hb, degree_add_eq_right_of_degree_lt],
-  all_goals { rw [← pow_one X, degree_C_mul_X_pow _ hc] },
-  exact lt_of_le_of_lt degree_C_le dec_trivial
-end
+lemma degree_of_a_b_eq_zero (ha : P.a = 0) (hb : P.b = 0) (hc : P.c ≠ 0) : P.to_poly.degree = 1 :=
+by rw [of_a_b_eq_zero ha hb, degree_linear hc]
 
 lemma degree_of_a_b_c_eq_zero (ha : P.a = 0) (hb : P.b = 0) (hc : P.c = 0) (hd : P.d ≠ 0) :
-  P.to_poly.degree = ↑0 :=
-by { rw [of_a_b_c_eq_zero ha hb hc, degree_C hd], refl }
+  P.to_poly.degree = 0 :=
+by rw [of_a_b_c_eq_zero ha hb hc, degree_C hd]
 
 lemma degree_of_zero (ha : P.a = 0) (hb : P.b = 0) (hc : P.c = 0) (hd : P.d = 0) :
   P.to_poly.degree = ⊥ :=
-by { rw [of_zero ha hb hc hd], refl }
+by rw [of_zero ha hb hc hd, degree_zero]
 
-lemma leading_coeff (ha : P.a ≠ 0) : P.to_poly.leading_coeff = P.a :=
-begin
-  rw [to_poly, leading_coeff_add_of_degree_lt, leading_coeff_C_mul_X_pow],
-  rw [degree_C_mul_X_pow _ ha],
-  exact lt_of_le_of_lt degree_of_quadratic_le dec_trivial
-end
+lemma leading_coeff (ha : P.a ≠ 0) : P.to_poly.leading_coeff = P.a := leading_coeff_cubic ha
 
 lemma leading_coeff_of_a_eq_zero (ha : P.a = 0) (hb : P.b ≠ 0) : P.to_poly.leading_coeff = P.b :=
-begin
-  rw [of_a_eq_zero ha, leading_coeff_add_of_degree_lt, leading_coeff_C_mul_X_pow],
-  rw [degree_C_mul_X_pow _ hb],
-  exact lt_of_le_of_lt degree_of_linear_le dec_trivial
-end
+by rw [of_a_eq_zero ha, leading_coeff_quadratic hb]
 
 lemma leading_coeff_of_a_b_eq_zero (ha : P.a = 0) (hb : P.b = 0) (hc : P.c ≠ 0) :
   P.to_poly.leading_coeff = P.c :=
-begin
-  rw [of_a_b_eq_zero ha hb, leading_coeff_add_of_degree_lt, ← pow_one X, leading_coeff_C_mul_X_pow],
-  rw [← pow_one X, degree_C_mul_X_pow _ hc],
-  exact lt_of_le_of_lt degree_C_le dec_trivial
-end
-
-@[simp] lemma leading_coeff_C_mul_X_add_C' (a b : R) (ha : a ≠ 0):
-  polynomial.leading_coeff (C a * X + C b) = a :=
-begin
-  rw [add_comm, leading_coeff_add_of_degree_lt, ← pow_one X, leading_coeff_C_mul_X_pow],
-  rw [← pow_one X, degree_C_mul_X_pow _ ha],
-  exact lt_of_le_of_lt degree_C_le dec_trivial
-end
+by rw [of_a_b_eq_zero ha hb, leading_coeff_linear hc]
 
 lemma leading_coeff_of_a_b_c_eq_zero (ha : P.a = 0) (hb : P.b = 0) (hc : P.c = 0) :
   P.to_poly.leading_coeff = P.d :=
 by rw [of_a_b_c_eq_zero ha hb hc, leading_coeff_C]
 
 end degree
+
+/-! ### Map across a homomorphism -/
+
+section map
+
+variables [semiring S]
+
+/-- Map a cubic polynomial across a semiring homomorphism. -/
+def map (φ : R →+* S) (P : cubic R) : cubic S := ⟨φ P.a, φ P.b, φ P.c, φ P.d⟩
+
+lemma map_to_poly {φ : R →+* S} : (map φ P).to_poly = polynomial.map φ P.to_poly :=
+by simp only [map, to_poly, map_C, map_X, polynomial.map_add, polynomial.map_mul,
+              polynomial.map_pow]
+
+end map
 
 end basic
 
@@ -211,28 +177,16 @@ open multiset
 
 section extension
 
-/-- Map a cubic polynomial across a semiring homomorphism. -/
-def map [semiring R] [semiring S] (φ : R →+* S) (P : cubic R) : cubic S :=
-⟨φ P.a, φ P.b, φ P.c, φ P.d⟩
-
-variables {P : cubic R}
-
-lemma map_to_poly [semiring R] [semiring S] {φ : R →+* S} :
-  (map φ P).to_poly = polynomial.map φ P.to_poly :=
-by simp only [map, to_poly, map_C, map_X, polynomial.map_add, polynomial.map_mul,
-              polynomial.map_pow]
-
-variables [comm_ring R]
+variables {P : cubic R} [comm_ring R] [comm_ring S] {φ : R →+* S}
 
 /-- The roots of a cubic polynomial. -/
 def roots [is_domain R] (P : cubic R) : multiset R := P.to_poly.roots
 
-lemma map_roots [comm_ring S] {φ : R →+* S} [is_domain S] :
-  (map φ P).roots = (polynomial.map φ P.to_poly).roots :=
+lemma map_roots [is_domain S] : (map φ P).roots = (polynomial.map φ P.to_poly).roots :=
 by rw [roots, map_to_poly]
 
 theorem mem_roots_iff [is_domain R] (h0 : P.to_poly ≠ 0) (x : R) :
-  x ∈ P.roots ↔ P.d + P.c * x + P.b * x ^ 2 + P.a * x ^ 3 = 0 :=
+  x ∈ P.roots ↔ P.a * x ^ 3 + P.b * x ^ 2 + P.c * x + P.d = 0 :=
 begin
   rw [roots, mem_roots h0, is_root, to_poly],
   simp only [eval_C, eval_X, eval_add, eval_mul, eval_pow]
@@ -246,7 +200,7 @@ begin
     rw [hP, nat_degree_zero],
     exact dec_trivial },
   { rw [← with_bot.coe_le_coe],
-    exact le_trans (card_roots hP) (le_trans degree_le dec_trivial) }
+    exact le_trans (card_roots hP) (le_trans degree_cubic_le dec_trivial) }
 end
 
 end extension
@@ -262,7 +216,7 @@ begin
   replace ha : (map φ P).a ≠ 0 := (ring_hom.map_ne_zero φ).mpr ha,
   change splits ((ring_hom.id K).comp φ) P.to_poly ↔ card (map φ P).to_poly.roots = 3,
   rw [← splits_map_iff, ← map_to_poly, splits_iff_card_roots,
-      ← (degree_eq_iff_nat_degree_eq $ ne_zero_of_a_ne_zero ha).mp $ degree ha]
+      ← ((degree_eq_iff_nat_degree_eq $ ne_zero_of_a_ne_zero ha).mp $ degree ha : _ = 3)]
 end
 
 theorem splits_iff_roots_eq_three (ha : P.a ≠ 0) :

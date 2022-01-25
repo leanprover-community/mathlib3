@@ -413,29 +413,14 @@ variables {P} (L)
 lemma two_lt_line_count [projective_plane P L] (p : P) : 2 < line_count L p :=
 by simpa only [line_count_eq L p, nat.succ_lt_succ_iff] using one_lt_order P L
 
--- better name?
-lemma nontrivial_lines_through_point [projective_plane P L] (p : P) :
-  nontrivial {l : L // p ∈ l} :=
-begin
-  classical,
-  have := one_lt_two.trans (two_lt_line_count L p),
-  rwa [line_count, nat.card_eq_fintype_card, fintype.one_lt_card_iff_nontrivial] at this,
-end
-
 variables (P) {L}
 
 lemma two_lt_point_count [projective_plane P L] (l : L) : 2 < point_count P l :=
 by simpa only [point_count_eq P l, nat.succ_lt_succ_iff] using one_lt_order P L
 
--- better name?
-lemma nontrivial_line [projective_plane P L] (l : L) : nontrivial {p : P // p ∈ l} :=
-@nontrivial_lines_through_point (dual L) (dual P) _ _ _ _ l
-
 variables (P) (L)
 
-open finset
-
-lemma card_points'' [projective_plane P L] : fintype.card P = order P L ^ 2 + order P L + 1 :=
+lemma card_points [projective_plane P L] : fintype.card P = order P L ^ 2 + order P L + 1 :=
 begin
   let p : P := (classical.some (@exists_config P L _ _)),
   let ϕ : {q // q ≠ p} ≃ Σ (l : {l : L // p ∈ l}), {q // q ∈ l.1 ∧ q ≠ p} :=
@@ -445,113 +430,18 @@ begin
     right_inv := λ lq, sigma.subtype_ext (subtype.ext ((eq_or_eq (mk_line_ax lq.2.2.2).1
       (mk_line_ax lq.2.2.2).2 lq.2.2.1 lq.1.2).resolve_left lq.2.2.2)) rfl },
   classical,
-  have h1 : fintype.card P = fintype.card {q // q ≠ p} + 1,
-  { sorry, },
+  have h1 : fintype.card {q // q ≠ p} + 1 = fintype.card P,
+  { apply (eq_tsub_iff_add_eq_of_le (nat.succ_le_of_lt (fintype.card_pos_iff.mpr ⟨p⟩))).mp,
+    convert (fintype.card_subtype_compl).trans (congr_arg _ (fintype.card_subtype_eq p)) },
   have h2 : ∀ l : {l : L // p ∈ l}, fintype.card {q // q ∈ l.1 ∧ q ≠ p} = order P L,
   { intro l,
-    sorry },
-  simp_rw [h1, fintype.card_congr ϕ, fintype.card_sigma, h2, sum_const, smul_eq_mul, card_univ],
-  rw [add_left_inj, sq, ←nat.succ_mul, nat.mul_left_inj (zero_lt_one.trans (one_lt_order P L))],
-  rw [←nat.card_eq_fintype_card, ←line_count, line_count_eq],
-end
-
-lemma card_points' [projective_plane P L] : fintype.card P = order P L ^ 2 + order P L + 1 :=
-begin
-  let x : P := (classical.some (@exists_config P L _ _)),
-  let Lx := {l : L // x ∈ l},
-  let P' := ↥({x}ᶜ : set P),
-  classical,
-  suffices h : fintype.card P' = (order P L + 1) * order P L,
-  { let e := (equiv.set.sum_compl ({x} : set P)).symm.trans (equiv.sum_comm _ _),
-    rw [fintype.card_congr e, fintype.card_sum, set.card_singleton, h, pow_two, add_mul, one_mul] },
-  let f : P' → Lx := λ p, ⟨mk_line p.2, (mk_line_ax p.2).2⟩,
-  have hf' : ∀ y l, f y = l ↔ (y:P) ∈ (l:L),
-  { intros y l, refine ⟨by rintro rfl; exact (mk_line_ax y.2).1, λ h, subtype.eq _⟩,
-    exact (has_lines.exists_unique_line P L y x y.2).unique (mk_line_ax y.2) ⟨h,l.2⟩, },
-  have hf : finset.image f univ = univ,
-  { refine le_antisymm (subset_univ _) (λ l hl, _),
-    obtain ⟨y, hy⟩ := @exists_ne _ (nontrivial_line P l.1) ⟨x, l.2⟩,
-    rw [ne.def, subtype.ext_iff] at hy,
-    simp only [hf', exists_prop, mem_univ, set_coe.exists, set.mem_singleton_iff,
-      mem_image, exists_true_left, subtype.coe_mk, set.mem_compl_eq],
-    exact ⟨y, hy, y.2⟩, },
-  have hLx : fintype.card Lx = order P L + 1,
-  { rw [← line_count_eq L x, line_count, nat.card_eq_fintype_card], },
-  suffices hfib : ∀ l, (univ.filter (λ (x : P'), f x = l)).card = order P L,
-  { refine (card_eq_sum_card_image f univ).trans _,
-    simp only [hfib, sum_const, nsmul_eq_mul, nat.cast_id, hf, card_univ, hLx] },
-  intro l,
-  rw [← add_left_inj 1, eq_comm],
-  calc order P L + 1
-      = (univ.filter (λ (y : P), y ∈ l.val)).card : _
-  ... = (univ.filter (λ (y : P), y = x ∨ (y ≠ x ∧ y ∈ l.val))).card : _
-  ... = (univ.filter (λ (x : P'), f x = l)).card + 1 : _,
-  { rw [← point_count_eq P l.1, point_count, nat.card_eq_fintype_card, fintype.card_subtype] },
-  { congr, ext y, simp only [or_and_distrib_left, em, true_and],
-    rw [iff.comm, or_iff_right_iff_imp], intro h, rw h, exact l.2 },
-  have aux : disjoint (univ.filter (λ (a : P), a = x)) (univ.filter (λ a, a ≠ x ∧ a ∈ l.val)),
-  { rw disjoint_filter, simp, },
-  rw [filter_or, card_disjoint_union aux, add_comm, ← card_map (function.embedding.subtype _)],
-  simp only [hf', ← card_singleton x],
-  congr' 2,
-  { ext y,
-    simp only [true_and, exists_prop, function.embedding.coe_subtype, mem_univ,
-      mem_map, set.mem_singleton_iff, exists_and_distrib_right, exists_eq_right, ne.def,
-      subtype.exists, mem_filter, subtype.coe_mk, set.mem_compl_eq, subtype.val_eq_coe],
-    rw ← exists_prop, apply exists_congr, intro h,
-    erw mem_filter, simp only [true_and, mem_univ, subtype.coe_mk], },
-  { ext y, simp only [true_and, mem_univ, mem_singleton, mem_filter], },
-end
-
-/-- An auxillary bijection for `card_points`. -/
-def card_points_aux (α β : Type u) (γ : β → Type u) [decidable_eq α] [Π b : β, decidable_eq (γ b)]
-  (f : ∀ {a₁ a₂ : α} (h : a₁ ≠ a₂), Σ b : β, γ b × γ b) (g : ∀ b : β, γ b → α)
-  (h1 : ∀ {a₁ a₂ : α} (h : a₁ ≠ a₂), g (f h).1 (f h).2.1 = a₁)
-  (h2 : ∀ {a₁ a₂ : α} (h : a₁ ≠ a₂), g (f h).1 (f h).2.2 = a₂)
-  (h3 : ∀ b : β, function.injective (g b))
-  (h4 : ∀ {b : Σ b : β, γ b × γ b} (h : b.2.1 ≠ b.2.2), f ((h3 b.1).ne h) = b) :
-  (α × α ⊕ Σ b : β, γ b) ≃ α ⊕ Σ b : β, γ b × γ b :=
-{ to_fun := sum.elim (λ a, if h : a.1 = a.2 then sum.inl a.1 else sum.inr (f h))
-    (λ b, sum.inr ⟨b.1, (b.2, b.2)⟩),
-  inv_fun := sum.elim (λ a, sum.inl (a, a))
-    (λ b, if h : b.2.1 = b.2.2 then sum.inr ⟨b.1, b.2.1⟩ else sum.inl (g b.1 b.2.1, g b.1 b.2.2)),
-  left_inv := by
-  { rintros (a | b),
-    { by_cases h : a.1 = a.2,
-      { rw [sum.elim_inl, dif_pos h, sum.elim_inl, sum.inl.inj_iff],
-        exact prod.ext rfl h },
-      { rw [sum.elim_inl, dif_neg h, sum.elim_inr, h1, h2, prod.mk.eta, dif_neg],
-        refine λ h', h _,
-        rw [←h1 h, h', h2] } },
-    { rw [sum.elim_inr, sum.elim_inr, dif_pos rfl, sigma.eta] }, },
-  right_inv := by
-  { rintros (a | b),
-    { rw [sum.elim_inl, sum.elim_inl, dif_pos rfl] },
-    { by_cases h : b.2.1 = b.2.2,
-      { rw [sum.elim_inr, dif_pos h, sum.elim_inr, sum.inr.inj_iff],
-        exact sigma.ext rfl (heq_of_eq (prod.ext rfl h)) },
-      { rw [sum.elim_inr, dif_neg h, sum.elim_inl, dif_neg ((h3 b.1).ne h), h4] } } } }
-
-variables (P L)
-
-lemma card_points [projective_plane P L] : fintype.card P = order P L ^ 2 + order P L + 1 :=
-begin
-  classical,
-  have h1 : ∀ l : L, fintype.card {p : P // p ∈ l} = order P L + 1 :=
-  λ l, nat.card_eq_fintype_card.symm.trans (point_count_eq P l),
-  let h := fintype.card_congr (card_points_aux P L (λ l, {p : P // p ∈ l})
-    (λ p₁ p₂ h, ⟨mk_line h, ⟨p₁, (mk_line_ax h).1⟩, ⟨p₂, (mk_line_ax h).2⟩⟩)
-    (λ l p, p) (λ p₁ p₂ h, rfl) (λ p₁ p₂ h, rfl) (λ l, subtype.coe_injective) _),
-  { simp_rw [fintype.card_sum, fintype.card_sigma, fintype.card_prod, h1,
-      finset.sum_const, smul_eq_mul, finset.card_univ, ←card_points_eq_card_lines] at h,
-    rwa [nat.mul_succ, ←add_assoc, add_comm, add_right_inj, ←mul_add, mul_right_inj',
-      nat.succ_mul_succ_eq, add_assoc, add_comm (order P L), ←add_assoc, add_left_inj, ←sq] at h,
-    exact (fintype.card_pos_iff.mpr (nonempty_of_exists (@exists_config P L _ _))).ne' },
-  { rintros ⟨l, ⟨p₁, hp₁⟩, ⟨p₂, hp₂⟩⟩ h,
-    rw [ne, subtype.ext_iff, subtype.coe_mk, subtype.coe_mk] at h,
-    have key := (eq_or_eq (mk_line_ax h).1 (mk_line_ax h).2 hp₁ hp₂).resolve_left h,
-    subst key,
-    refl },
+    rw [←fintype.card_congr (equiv.subtype_subtype_equiv_subtype_inter _ _),
+        fintype.card_subtype_compl, ←nat.card_eq_fintype_card],
+    refine tsub_eq_of_eq_add ((point_count_eq P l.1).trans _),
+    rw ← fintype.card_subtype_eq (⟨p, l.2⟩ : {q : P // q ∈ l.1}),
+    simp_rw subtype.ext_iff_val },
+  simp_rw [←h1, fintype.card_congr ϕ, fintype.card_sigma, h2, finset.sum_const, finset.card_univ],
+  rw [←nat.card_eq_fintype_card, ←line_count, line_count_eq, smul_eq_mul, nat.succ_mul, sq],
 end
 
 lemma card_lines [projective_plane P L] : fintype.card L = order P L ^ 2 + order P L + 1 :=

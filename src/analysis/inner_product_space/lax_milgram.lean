@@ -68,17 +68,13 @@ begin
   refine ⟨C, C_ge_0, _⟩,
   intro v,
   by_cases h : 0 < ∥v∥,
-  {
-    refine (mul_le_mul_right h).mp _,
+  { refine (mul_le_mul_right h).mp _,
     exact calc C * ∥v∥ * ∥v∥
                ≤ B v v                         : coercivity v
     ...        = inner ((B♯ : V →L[ℝ] V) v) v : by simp
-    ...        ≤ ∥(B♯ : V →L[ℝ] V) v∥ * ∥v∥     : real_inner_le_norm ((B♯ : V →L[ℝ] V) v) v,
-  },
-  {
-    have : v = 0 := by simpa using h,
-    simp [this],
-  }
+    ...        ≤ ∥(B♯ : V →L[ℝ] V) v∥ * ∥v∥     : real_inner_le_norm ((B♯ : V →L[ℝ] V) v) v, },
+  { have : v = 0 := by simpa using h,
+    simp [this], }
 end
 
 lemma antilipschitz_of_lax_milgram (coercive : is_coercive B) :

@@ -2163,16 +2163,16 @@ by rw [←H.le_iff_deriv, H.le_iff_eq]
 
 /-! ### Fixed points of addition -/
 
-theorem add_iterate (a : ordinal) (n : ℕ) : a * n = (((+) a)^[n]) 0 :=
+theorem mul_omega_nfp_add_zero (a) : a * omega = nfp ((+) a) 0 :=
 begin
+  unfold nfp,
+  rw mul_omega_eq_sup_mul_nat,
+  congr, funext,
   induction n with n hn,
   { rw [nat.cast_zero, mul_zero, iterate_zero_apply] },
   nth_rewrite 0 nat.succ_eq_one_add,
   rw [nat.cast_add, nat.cast_one, mul_one_add, iterate_succ_apply', hn]
 end
-
-theorem mul_omega_nfp_add_zero (a) : a * omega = nfp ((+) a) 0 :=
-by { unfold nfp, rw [mul_omega_eq_sup_mul_nat, funext (add_iterate a)] }
 
 theorem mul_omega_eq_nfp_add_of_le_mul_omega {a b} (hba : b ≤ a * omega) :
   a * omega = nfp ((+) a) b :=

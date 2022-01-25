@@ -113,19 +113,18 @@ lemma cubic_monic_eq_zero_iff
 begin
   let y := x + b / 3,
   have h₁ : x^3 + b * x^2 + c * x + d = y^3 + 3 * p * y - 2 * q,
-  { dsimp [y],
+  { dsimp only [y],
     rw [hp, hq],
     field_simp, ring, },
-  have h₂ := @cubic_basic_eq_zero_iff p q r s t hp_nonzero hr hs3 ht y,
-  rw [h₁, h₂],
-  dsimp [y],
-  have h₃ : ∀ s t : ℂ, x + b / 3 = s - t ↔ x = s - t - b / 3,
+  rw [h₁, cubic_basic_eq_zero_iff hp_nonzero hr hs3 ht y],
+  dsimp only [y],
+  have h₂ : ∀ s t : ℂ, x + b / 3 = s - t ↔ x = s - t - b / 3,
   { intros s t,
     split; intros h,
     { calc x = x + b / 3 - b / 3 : by ring
        ... = s - t - b / 3 : by rw h },
     { rw h, ring } },
-  repeat { rw [h₃] } ,
+  repeat { rw [h₂] } ,
 end
 
 /-- **The Solution of Cubic**
@@ -149,8 +148,7 @@ begin
   have hp' : p = (3 * (c/a) - (b/a) ^ 2) / 9, { field_simp [hp], ring_nf },
   have hq' : q = (9 * (b/a) * (c/a) - 2 * (b/a) ^ 3 - 27 * (d/a)) / 54,
   { field_simp [hq], ring_nf },
-  have h₃ := @cubic_monic_eq_zero_iff (b/a) (c/a) (d/a)
-    p q r s t hp' hp_nonzero hq' hr hs3 ht x,
+  have h₃ := cubic_monic_eq_zero_iff (b/a) (c/a) (d/a) hp' hp_nonzero hq' hr hs3 ht x,
   rw [h₁, h₂, h₃],
   have h₄ :=
     calc b / a / 3

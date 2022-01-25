@@ -31,6 +31,7 @@ section field
 open polynomial
 
 variables {K : Type*} [field K]
+variables [invertible (2 : K)] [invertible (3 : K)]
 variables (a b c d : K)
 variables {ω p q r s t : K}
 
@@ -82,8 +83,6 @@ begin
     : by { rw [is_primitive_root.pow_eq_one hω, cube_root_of_unity_sum hω], ring }
   ... = x^3 + 3*p*x - 2*q : by rw [ht, hc]
 end
-
-variables [invertible (2 : K)] [invertible (3 : K)]
 
 /-- the solution of the monic cubic equation. -/
 lemma cubic_monic_eq_zero_iff

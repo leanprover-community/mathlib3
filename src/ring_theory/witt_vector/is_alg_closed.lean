@@ -4,8 +4,9 @@ import ring_theory.witt_vector.domain
 
 noncomputable theory
 
-variables (p : ℕ) [fact p.prime]
+variables (p : ℕ) [hp : fact p.prime]
 variables (k : Type*) [field k] [char_p k p] [is_alg_closed k]
+include hp
 
 /-- A field is perfect if Frobenius is surjective -/
 def perfect_ring.of_surjective (k : Type*) [field k] [char_p k p]
@@ -54,6 +55,67 @@ begin
 end
 
 -- lemma witt_vector.is_Hausdorff : is_Hausdorff (𝕎 k)
+
+#check mv_polynomial.bind₁
+#check mv_polynomial.eval
+#check λ f, mv_polynomial.eval f (witt_vector.witt_mul p 0)
+open polynomial
+
+#check witt_vector.peval (witt_vector.witt_mul p 0) ![λ n, if n = 0 then (X : polynomial k)^p else 0, λ n, C (a₁.coeff n)]
+
+variable {k}
+
+section base_case
+
+def pow_p_poly (a₁ : 𝕎 k) : polynomial k :=
+witt_vector.peval (witt_vector.witt_mul p 0)
+  ![λ n, if n = 0 then (X : polynomial k)^p else 0, λ n, C (a₁.coeff n)]
+
+def pow_one_poly (a₂ : 𝕎 k) : polynomial k :=
+witt_vector.peval (witt_vector.witt_mul p 0)
+  ![λ n, if n = 0 then (X : polynomial k) else 0, λ n, C (a₂.coeff n)]
+
+def base_poly (a₁ a₂ : 𝕎 k) : polynomial k :=
+pow_p_poly p a₁ - pow_one_poly p a₂
+
+lemma base_poly_degree {a₁ a₂ : 𝕎 k} (ha₁ : a₁.coeff 0 ≠ 0) (ha₂ : a₂.coeff 0 ≠ 0) :
+  (base_poly p a₁ a₂).degree ≠ 0 :=
+begin
+  simp only [matrix.head_cons, mv_polynomial.aeval_X, if_true, witt_vector.peval,
+    function.uncurry_apply_pair, eq_self_iff_true, witt_vector.witt_mul_zero, ne.def,
+    pow_p_poly, pow_one_poly, base_poly, matrix.cons_val_one, _root_.map_mul, matrix.cons_val_zero],
+  rw [degree_sub_eq_left_of_degree_lt, degree_mul, degree_C ha₁, add_zero],
+  { simp only [(fact.out (nat.prime p)).ne_zero, nat.cast_with_bot, with_top.coe_eq_zero,
+      not_false_iff, degree_X, degree_pow, nat.smul_one_eq_coe] },
+  { simp only [nat.cast_with_bot, degree_mul, degree_X, degree_pow, nat.smul_one_eq_coe,
+      degree_C ha₁, degree_C ha₂, add_zero],
+    exact_mod_cast hp.out.one_lt }
+end
+
+lemma solution_exists {a₁ a₂ : 𝕎 k} (ha₁ : a₁.coeff 0 ≠ 0) (ha₂ : a₂.coeff 0 ≠ 0) :
+  ∃ (x : k), (pow_p_poly p a₁ - pow_one_poly p a₂).is_root x :=
+is_alg_closed.exists_root (pow_p_poly p a₁ - pow_one_poly p a₂) (base_poly_degree p ha₁ ha₂)
+
+def solution {a₁ a₂ : 𝕎 k} (ha₁ : a₁.coeff 0 ≠ 0) (ha₂ : a₂.coeff 0 ≠ 0) : k :=
+classical.some (solution_exists p ha₁ ha₂)
+
+lemma solution_spec {a₁ a₂ : 𝕎 k} (ha₁ : a₁.coeff 0 ≠ 0) (ha₂ : a₂.coeff 0 ≠ 0) :
+  (pow_p_poly p a₁ - pow_one_poly p a₂).is_root (solution p ha₁ ha₂) :=
+classical.some_spec (solution_exists p ha₁ ha₂)
+
+end base_case
+
+def find_important {a₁ a₂ : 𝕎 k} (ha₁ : a₁.coeff 0 ≠ 0) (ha₂ : a₂.coeff 0 ≠ 0) : ℕ → k
+| 0       := solution p ha₁ ha₂ -- solve for `x` in
+                   --  `(witt_vector.witt_mul 0).eval (![x ^ p, 0, ...], a₁)`
+                   --        `= (witt_vector.witt_mul 0).eval (![x, 0, ...], a₂)`
+| (n + 1) := sorry -- solve for `x` in
+                   --  `(witt_vector.witt_mul (n + 1)).eval (![(b 0) ^ p, ..., (b n) ^ p, x ^ p, 0, ...], a₁)`
+                   --        `= (witt_vector.witt_mul (n + 1)) (![b 0, ... b n, x, 0, ...], a₂)`
+
+variable (k)
+
+#exit
 
 lemma important_aux {a₁ a₂ : 𝕎 k} (ha₁ : a₁.coeff 0 ≠ 0) (ha₂ : a₂.coeff 0 ≠ 0) :
   ∃ (b : 𝕎 k) (hb : b ≠ 0), witt_vector.frobenius b * a₁ = b * a₂ :=

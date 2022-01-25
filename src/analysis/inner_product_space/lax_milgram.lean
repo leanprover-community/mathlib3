@@ -58,16 +58,11 @@ def is_coercive
 
 namespace lax_milgram
 variables {V : Type u} [inner_product_space ℝ V] [complete_space V]
-variables (B : V →L[ℝ] V →L[ℝ] ℝ)
-
-
-variables {B}
-
-#check @continuous_linear_map_of_bilin ℝ _ _ _ _ B
+variables {B : V →L[ℝ] V →L[ℝ] ℝ}
 
 
 lemma bounded_below (coercive : is_coercive B) :
-  ∃ C, 0 < C ∧ ∀ v, C * ∥v∥ ≤ ∥B♯ v∥ :=
+  ∃ C, 0 < C ∧ ∀ v, C * ∥v∥ ≤ ∥(B♯ : V →L[ℝ] V) v∥ :=
 begin
   rcases coercive with ⟨C, C_ge_0, coercivity⟩,
   refine ⟨C, C_ge_0, _⟩,
@@ -77,8 +72,8 @@ begin
     refine (mul_le_mul_right h).mp _,
     exact calc C * ∥v∥ * ∥v∥
                ≤ B v v                         : coercivity v
-    ...        = inner (B♯ v) v : by simp
-    ...        ≤ ∥B♯ v∥ * ∥v∥     : real_inner_le_norm (B♯ v) v,
+    ...        = inner ((B♯ : V →L[ℝ] V) v) v : by simp
+    ...        ≤ ∥(B♯ : V →L[ℝ] V) v∥ * ∥v∥     : real_inner_le_norm ((B♯ : V →L[ℝ] V) v) v,
   },
   {
     have : v = 0 := by simpa using h,
@@ -87,41 +82,41 @@ begin
 end
 
 lemma antilipschitz_of_lax_milgram (coercive : is_coercive B) :
-  ∃ C : nnreal, 0 < C ∧ antilipschitz_with C (B♯) :=
+  ∃ C : nnreal, 0 < C ∧ antilipschitz_with C (B♯ : V →L[ℝ] V) :=
 begin
   rcases bounded_below coercive with ⟨C, C_pos, below_bound⟩,
   refine ⟨(C⁻¹).to_nnreal, real.to_nnreal_pos.mpr (inv_pos.mpr C_pos), _⟩,
-  refine linear_map.antilipschitz_of_bound (B♯) _,
+  refine linear_map.antilipschitz_of_bound (B♯ : V →L[ℝ] V) _,
   simp_rw [real.coe_to_nnreal',
     max_eq_left_of_lt (inv_pos.mpr C_pos),
     ←inv_mul_le_iff (inv_pos.mpr C_pos)],
   simpa using below_bound,
 end
 
-lemma ker_eq_bot (coercive : is_coercive B) : (B♯).ker = ⊥ :=
+lemma ker_eq_bot (coercive : is_coercive B) : (B♯ : V →L[ℝ] V).ker = ⊥ :=
 begin
   rw [←ker_coe, linear_map.ker_eq_bot],
   rcases antilipschitz_of_lax_milgram coercive with ⟨_, _, antilipschitz⟩,
   exact antilipschitz_with.injective antilipschitz,
 end
 
-lemma closed_range (coercive : is_coercive B) : is_closed ((B♯).range : set V) :=
+lemma closed_range (coercive : is_coercive B) : is_closed ((B♯ : V →L[ℝ] V).range : set V) :=
 begin
   rcases antilipschitz_of_lax_milgram coercive with ⟨_, _, antilipschitz⟩,
-  exact antilipschitz.is_closed_range (B♯).uniform_continuous,
+  exact antilipschitz.is_closed_range (B♯ : V →L[ℝ] V).uniform_continuous,
 end
 
-lemma range_eq_top (coercive : is_coercive B): (B♯).range = ⊤ :=
+lemma range_eq_top (coercive : is_coercive B): (B♯ : V →L[ℝ] V).range = ⊤ :=
 begin
   haveI := (closed_range coercive).complete_space_coe,
-  rw ← (B♯).range.orthogonal_orthogonal,
+  rw ← (B♯ : V →L[ℝ] V).range.orthogonal_orthogonal,
   rw submodule.eq_top_iff',
   intros v w mem_w_orthogonal,
   rcases coercive with ⟨C, C_ge_0, coercivity⟩,
   have : C * ∥w∥ * ∥w∥ ≤ 0 :=
   calc C * ∥w∥ * ∥w∥
         ≤ B w w                         : coercivity w
-  ...  = inner (B♯ w) w  : by simp
+  ...  = inner ((B♯ : V →L[ℝ] V) w) w   : by simp
   ...  = 0                              : mem_w_orthogonal _ ⟨w, rfl⟩,
   have : ∥w∥ * ∥w∥ ≤ 0 := by nlinarith,
   have h : ∥w∥ = 0 := by nlinarith [norm_nonneg w],
@@ -145,11 +140,11 @@ continuous_linear_equiv.of_bijective
 @[simp]
 lemma continuous_linear_equiv_of_bilin_apply (coercive : is_coercive B) (v w : V) :
   inner (continuous_linear_equiv_of_bilin coercive v) w = B v w :=
-lax_milgram_map_apply B v w
+continuous_linear_map_of_bilin_apply B v w
 
 lemma continuous_linear_equiv_of_bilin_equiv (coercive : is_coercive B) {v f : V}
   (is_lax_milgram : (∀ w, inner f w = B v w)) :
   f = continuous_linear_equiv_of_bilin coercive v :=
-unique_lax_milgram_map B is_lax_milgram
+unique_continuous_linear_map_of_bilin ℝ B is_lax_milgram
 
 end lax_milgram

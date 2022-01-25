@@ -2028,7 +2028,7 @@ le_antisymm
     (λ b hb, le_of_lt (opow_lt_omega h hb)))
   (le_opow_self _ a1)
 
-protected theorem is_normal.omega {f : ordinal.{u} → ordinal.{u}} (hf : is_normal f) :
+protected theorem is_normal.apply_omega {f : ordinal.{u} → ordinal.{u}} (hf : is_normal f) :
   f omega.{u} = sup (λ n : ℕ, f n) :=
 by rw [omega_eq_sup_nat, is_normal.sup.{0 u u} hf ⟨0⟩]
 

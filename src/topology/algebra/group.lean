@@ -8,7 +8,7 @@ import order.filter.pointwise
 import topology.algebra.monoid
 import topology.homeomorph
 import topology.compacts
-import topology.algebra.mul_action2
+import topology.algebra.mul_action
 import topology.compact_open
 
 /-!
@@ -800,7 +800,7 @@ instance quotient_group.has_continuous_smul [locally_compact_space G] :
     have H : continuous (F ∘ (λ p : G × G, (p.1, quotient_group.mk p.2))),
     { change continuous (λ p : G × G, quotient_group.mk (p.1 * p.2)),
       refine continuous_coinduced_rng.comp continuous_mul },
-    exact quotient_group.quotient_map.continuous_lift_prod_right H
+    exact quotient_map.continuous_lift_prod_right quotient_map_quotient_mk H,
   end }
 
 end quotient

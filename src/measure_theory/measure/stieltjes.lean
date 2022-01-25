@@ -57,9 +57,7 @@ by { rw left_lim, exact f.mono.tendsto_nhds_within_Iio x }
 lemma left_lim_le {x y : ℝ} (h : x ≤ y) : f.left_lim x ≤ f y :=
 begin
   apply le_of_tendsto (f.tendsto_left_lim x),
-  filter_upwards [self_mem_nhds_within],
-  assume z hz,
-  exact (f.mono (le_of_lt hz)).trans (f.mono h)
+  filter_upwards [self_mem_nhds_within] with _ hz using (f.mono (le_of_lt hz)).trans (f.mono h),
 end
 
 lemma le_left_lim {x y : ℝ} (h : x < y) : f x ≤ f.left_lim y :=

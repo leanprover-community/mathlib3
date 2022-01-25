@@ -68,7 +68,7 @@ Absorbent and balanced sets in a vector space over a normed field.
 open normed_field set
 open_locale pointwise topological_space nnreal
 
-variables {R 𝕜 E ι : Type*}
+variables {R 𝕜 E F G ι : Type*}
 
 section semi_normed_ring
 variables [semi_normed_ring 𝕜]
@@ -271,6 +271,8 @@ instance : has_zero (seminorm 𝕜 E) :=
 
 @[simp] lemma coe_zero : ⇑(0 : seminorm 𝕜 E) = 0 := rfl
 
+@[simp] lemma zero_apply (x : E) : (0 : seminorm 𝕜 E) x = 0 := rfl
+
 instance : inhabited (seminorm 𝕜 E) := ⟨0⟩
 
 variables (p : seminorm 𝕜 E) (c : 𝕜) (x y : E) (r : ℝ)
@@ -378,8 +380,48 @@ calc p 0 = p ((0 : 𝕜) • 0) : by rw zero_smul
 end smul_with_zero
 end add_monoid
 
+section module
+variables [add_comm_group E] [add_comm_group F] [add_comm_group G]
+variables [module 𝕜 E] [module 𝕜 F] [module 𝕜 G]
+variables [has_scalar R ℝ] [has_scalar R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ]
+
+/-- Composition of a seminorm with a linear map is a seminorm. -/
+def comp (p : seminorm 𝕜 F) (f : E →ₗ[𝕜] F) : seminorm 𝕜 E :=
+{ to_fun := λ x, p(f x),
+  smul' := λ _ _, (congr_arg p (f.map_smul _ _)).trans (p.smul _ _),
+  triangle' := λ _ _, eq.trans_le (congr_arg p (f.map_add _ _)) (p.triangle _ _) }
+
+lemma coe_comp (p : seminorm 𝕜 F) (f : E →ₗ[𝕜] F) : ⇑(p.comp f) = p ∘ f := rfl
+
+@[simp] lemma comp_apply (p : seminorm 𝕜 F) (f : E →ₗ[𝕜] F) (x : E) : (p.comp f) x = p (f x) := rfl
+
+@[simp] lemma comp_id (p : seminorm 𝕜 E) : p.comp linear_map.id = p :=
+ext $ λ _, rfl
+
+@[simp] lemma comp_zero (p : seminorm 𝕜 F) : p.comp (0 : E →ₗ[𝕜] F) = 0 :=
+ext $ λ _, seminorm.zero _
+
+@[simp] lemma zero_comp (f : E →ₗ[𝕜] F) : (0 : seminorm 𝕜 F).comp f = 0 :=
+ext $ λ _, rfl
+
+lemma comp_comp (p : seminorm 𝕜 G) (g : F →ₗ[𝕜] G) (f : E →ₗ[𝕜] F) :
+  p.comp (g.comp f) = (p.comp g).comp f :=
+ext $ λ _, rfl
+
+lemma add_comp (p q : seminorm 𝕜 F) (f : E →ₗ[𝕜] F) : (p + q).comp f = p.comp f + q.comp f :=
+ext $ λ _, rfl
+
+lemma comp_triangle (p : seminorm 𝕜 F) (f g : E →ₗ[𝕜] F) : p.comp (f + g) ≤ p.comp f + p.comp g :=
+λ _, p.triangle _ _
+
+lemma smul_comp (p : seminorm 𝕜 F) (f : E →ₗ[𝕜] F) (c : R) : (c • p).comp f = c • (p.comp f) :=
+ext $ λ _, rfl
+
+lemma comp_mono {p : seminorm 𝕜 F} {q : seminorm 𝕜 F} (f : E →ₗ[𝕜] F) (hp : p ≤ q) :
+  p.comp f ≤ q.comp f := λ _, hp _
+
 section norm_one_class
-variables [norm_one_class 𝕜] [add_comm_group E] [module 𝕜 E] (p : seminorm 𝕜 E) (x y : E) (r : ℝ)
+variables [norm_one_class 𝕜] (p : seminorm 𝕜 E) (x y : E) (r : ℝ)
 
 @[simp]
 protected lemma neg : p (-x) = p x :=
@@ -419,8 +461,26 @@ begin
 end
 
 end norm_one_class
+end module
+end semi_normed_ring
+
+section semi_normed_comm_ring
+variables [semi_normed_comm_ring 𝕜] [add_comm_group E] [add_comm_group F] [module 𝕜 E] [module 𝕜 F]
+
+lemma comp_smul (p : seminorm 𝕜 F) (f : E →ₗ[𝕜] F) (c : 𝕜) :
+  p.comp (c • f) = ∥c∥₊ • p.comp f :=
+ext $ λ _, by rw [comp_apply, smul_apply, linear_map.smul_apply, p.smul, nnreal.smul_def,
+  coe_nnnorm, smul_eq_mul, comp_apply]
+
+lemma comp_smul_apply (p : seminorm 𝕜 F) (f : E →ₗ[𝕜] F) (c : 𝕜) (x : E) :
+  p.comp (c • f) x = ∥c∥ * p (f x) := p.smul _ _
+
+end semi_normed_comm_ring
 
 /-! ### Seminorm ball -/
+
+section semi_normed_ring
+variables [semi_normed_ring 𝕜]
 
 section add_comm_group
 variables [add_comm_group E]
@@ -460,7 +520,19 @@ end
 end has_scalar
 
 section module
-variables [norm_one_class 𝕜] [module 𝕜 E] (p : seminorm 𝕜 E)
+
+variables [module 𝕜 E]
+variables [add_comm_group F] [module 𝕜 F]
+
+lemma ball_comp (p : seminorm 𝕜 F) (f : E →ₗ[𝕜] F) (x : E) (r : ℝ) :
+  (p.comp f).ball x r = f ⁻¹' (p.ball (f x) r) :=
+begin
+  ext,
+  simp_rw [ball, mem_preimage, comp_apply, set.mem_set_of_eq, map_sub],
+end
+
+section norm_one_class
+variables [norm_one_class 𝕜] (p : seminorm 𝕜 E)
 
 @[simp] lemma ball_bot {r : ℝ} (x : E) (hr : 0 < r) : ball (⊥ : seminorm 𝕜 E) x r = set.univ :=
 ball_zero' x hr
@@ -489,6 +561,7 @@ begin
   exact ball_finset_sup_eq_Inter _ _ _ hr,
 end
 
+end norm_one_class
 end module
 end add_comm_group
 end semi_normed_ring
@@ -680,7 +753,7 @@ lemma gauge_lt_one_subset_self (hs : convex ℝ s) (h₀ : (0 : E) ∈ s) (absor
   {x | gauge s x < 1} ⊆ s :=
 begin
   rw gauge_lt_one_eq absorbs,
-  apply set.bUnion_subset,
+  apply set.Union₂_subset,
   rintro r hr _ ⟨y, hy, rfl⟩,
   exact hs.smul_mem_of_zero_mem h₀ hy (Ioo_subset_Icc_self hr),
 end

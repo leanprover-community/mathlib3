@@ -490,7 +490,7 @@ begin
     simp [P'],
     rewrite ← comap_subtype_normalizer_eq le_normalizer,
     rewrite ← comap_subtype_normalizer_eq (le_refl _),
-    rewrite subgroup.comap_subtype_self_top, },
+    rewrite subgroup.comap_subtype_self_eq_top, },
   have h2 := congr_arg (subgroup.map H.subtype) h1 ,
   simp [P'] at h2,
   rw ← comap_subtype_normalizer_eq le_normalizer at h2,

@@ -2098,10 +2098,8 @@ begin
   { exact (H.2 _ l _).2 (λ b h, le_of_lt (H.lt_nfp.2 h)) }
 end
 
-theorem is_normal.le_nfp (H : is_normal f) {a b} :
-  f b ≤ nfp f a ↔ b ≤ nfp f a :=
-⟨le_trans (H.le_self _), λ h,
-  by simpa only [H.nfp_fp] using H.le_iff.2 h⟩
+theorem is_normal.le_nfp (H : is_normal f) {a b} : f b ≤ nfp f a ↔ b ≤ nfp f a :=
+⟨le_trans (H.le_self _), λ h, by simpa only [H.nfp_fp] using H.le_iff.2 h⟩
 
 theorem nfp_eq_self {a} (h : f a = a) : nfp f a = a :=
 le_antisymm (sup_le.mpr $ λ i, by rw [iterate_fixed h]) (le_nfp_self f a)

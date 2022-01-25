@@ -239,6 +239,7 @@ so we replace his circumlocution about functions into a disjoint union with
 def is_locally_fraction : local_predicate (hartshorne_localisation 𝒜) :=
 (is_fraction_prelocal 𝒜).sheafify
 
+--set_option profiler true
 /--
 The functions satisfying `is_locally_fraction` form a subring.
 -/
@@ -285,10 +286,14 @@ def sections_subring (U : (opens (projective_spectrum.Top 𝒜))ᵒᵖ) :
       rw hartshorne_localisation.val_add,
       choose nin1 hy1 using (wa (opens.inf_le_left Va Vb y)),
       choose nin2 hy2 using (wb (opens.inf_le_right Va Vb y)),
-      have : (a ((Va.inf_le_left Vb ≫ ia) y)).val = localization.mk ra ⟨sa, _⟩ := hy1, rw this,
-      have : (b ((Va.inf_le_right Vb ≫ ib) y)).val = localization.mk rb ⟨sb, _⟩ := hy2,
-      have : (b ((Va.inf_le_left Vb ≫ ia) y)).val = localization.mk rb ⟨sb, _⟩,
-      rw ←this, erw hy2, rw this,
+      have : (a ((Va.inf_le_left Vb ≫ ia) y)).val = localization.mk ra ⟨sa, nin1⟩,
+      { convert hy1 },
+      rw this,
+      have : (b ((Va.inf_le_right Vb ≫ ib) y)).val = localization.mk rb ⟨sb, nin2⟩,
+      { convert hy2 },
+      have : (b ((Va.inf_le_left Vb ≫ ia) y)).val = localization.mk rb ⟨sb, nin2⟩,
+      { rw ←this, erw hy2 },
+      rw this,
       rw [localization.add_mk],
       congr' 1, rw [add_comm], congr' 1,
       rw [mul_comm], refl,
@@ -327,7 +332,6 @@ def sections_subring (U : (opens (projective_spectrum.Top 𝒜))ᵒᵖ) :
       have : (b ((Va.inf_le_left Vb ≫ ia) y)).val = localization.mk rb ⟨sb, _⟩,
       rw ←this, erw hy2, rw this, rw [localization.mk_mul], refl, }
   end, }
-
 /--
 The structure sheaf (valued in `Type`, not yet `CommRing`) is the subsheaf consisting of
 functions satisfying `is_locally_fraction`.

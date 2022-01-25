@@ -1003,7 +1003,7 @@ lemma succ_div_of_not_dvd {a b : ℕ} (hba : ¬ b ∣ a + 1) :
   (a + 1) / b = a / b :=
 by rw [succ_div, if_neg hba, add_zero]
 
-lemma dvd_iff_div_mul_eq (n d : ℕ) : d ∣ n ↔ (n/d) * d = n :=
+lemma dvd_iff_div_mul_eq (n d : ℕ) : d ∣ n ↔ n / d * d = n :=
 ⟨λ h, nat.div_mul_cancel h, λ h, dvd.intro_left (n / d) h⟩
 
 lemma dvd_iff_le_div_mul (n d : ℕ) : (d ∣ n) ↔ n ≤ n / d * d :=

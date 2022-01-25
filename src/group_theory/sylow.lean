@@ -114,7 +114,7 @@ lemma sylow.coe_smul {g : G} {P : sylow p G} :
   ↑(g • P) = mul_aut.conj g • (P : set G) := rfl
 
 lemma sylow.smul_eq_iff_mem_normalizer {g : G} {P : sylow p G} :
-  g • P = P ↔ g ∈ P.1.normalizer :=
+  g • P = P ↔ g ∈ (P : subgroup G).normalizer :=
 begin
   rw [eq_comm, set_like.ext_iff, ←inv_mem_iff, mem_normalizer_iff, inv_inv],
   exact forall_congr (λ h, iff_congr iff.rfl ⟨λ ⟨a, b, c⟩, (congr_arg _ c).mp
@@ -124,18 +124,14 @@ end
 
 lemma sylow.smul_eq_of_normal {g : G} {P : sylow p G} [h : (P : subgroup G).normal] :
   g • P = P :=
-begin
-  apply sylow.smul_eq_iff_mem_normalizer.mpr,
-  rw [sylow.to_subgroup_eq_coe, normalizer_eq_top.mpr h],
-  exact (mem_top _),
-end
+by simp only [sylow.smul_eq_iff_mem_normalizer, normalizer_eq_top.mpr h, mem_top]
 
 lemma subgroup.sylow_mem_fixed_points_iff (H : subgroup G) {P : sylow p G} :
-  P ∈ fixed_points H (sylow p G) ↔ H ≤ P.1.normalizer :=
+  P ∈ fixed_points H (sylow p G) ↔ H ≤ (P : subgroup G).normalizer :=
 by simp_rw [set_like.le_def, ←sylow.smul_eq_iff_mem_normalizer]; exact subtype.forall
 
 lemma is_p_group.inf_normalizer_sylow {P : subgroup G} (hP : is_p_group p P) (Q : sylow p G) :
-  P ⊓ Q.1.normalizer = P ⊓ Q :=
+  P ⊓ (Q : subgroup G).normalizer = P ⊓ Q :=
 le_antisymm (le_inf inf_le_left (sup_eq_right.mp (Q.3 (hP.to_inf_left.to_sup_of_normal_right'
   Q.2 inf_le_right) le_sup_right))) (inf_le_inf_left P le_normalizer)
 
@@ -445,11 +441,10 @@ lemma subsingleton_of_normal {p : ℕ} [fact p.prime] [fintype (sylow p G)] (P :
 begin
   apply subsingleton.intro,
   intros Q R,
-  obtain ⟨x, h1⟩ := @exists_smul_eq G (sylow p G) _ _ P Q,
-  rw sylow.smul_eq_of_normal at h1,
-  obtain ⟨x, h2⟩ := @exists_smul_eq G (sylow p G) _ _ P R,
-  rw sylow.smul_eq_of_normal at h2,
-  simp only [← h1, ← h2],
+  obtain ⟨x, h1⟩ := exists_smul_eq G P Q,
+  obtain ⟨x, h2⟩ := exists_smul_eq G P R,
+  rw sylow.smul_eq_of_normal at h1 h2,
+  rw [← h1, ← h2],
 end
 
 section pointwise
@@ -460,12 +455,11 @@ lemma characteristic_of_normal {p : ℕ} [fact p.prime] [fintype (sylow p G)] (P
   (h : (P : subgroup G).normal) :
   (P : subgroup G).characteristic :=
 begin
-  apply characteristic_iff_map_eq.mpr,
-  intros Φ,
-  change (Φ • P).to_subgroup = P.to_subgroup,
-  suffices h : Φ • P = P, by {congr, exact h},
   haveI := sylow.subsingleton_of_normal P h,
-  apply subsingleton.elim,
+  rw characteristic_iff_map_eq,
+  intros Φ,
+  show (Φ • P).to_subgroup = P.to_subgroup,
+  congr,
 end
 
 end pointwise

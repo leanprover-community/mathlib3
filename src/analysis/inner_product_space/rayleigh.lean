@@ -190,8 +190,19 @@ lemma _root_.is_R_or_C.of_real_mul_conj_inv_re (r : ℝ) (z : 𝕜) :
   is_R_or_C.re ((conj (r⁻¹ : 𝕜)) * z) = r⁻¹ * is_R_or_C.re z :=
 by rw [←is_R_or_C.of_real_inv, is_R_or_C.of_real_mul_conj_re]
 
-variables [complete_space E]
-lemma norm_eq_max_supr_rayleigh (hT : inner_product_space.is_self_adjoint T.to_linear_map) :
+
+end continuous_linear_map
+
+namespace inner_product_space
+namespace is_self_adjoint
+
+section general
+open continuous_linear_map
+
+variables {T : E →L[𝕜] E}
+local notation `rayleigh_quotient` := λ x : E, T.re_apply_inner_self x / ∥(x:E)∥ ^ 2
+
+lemma norm_eq_max_supr_rayleigh (hT : is_self_adjoint T.to_linear_map) :
   ∥T∥ = max (⨆ x, rayleigh_quotient x) (⨆ x, (-rayleigh_quotient) x) :=
 begin
   refine (op_norm_eq_of_bounds (le_max_iff.mpr (or.inl (supr_rayleigh_nonneg T))) (λ x, _) _),
@@ -292,10 +303,7 @@ begin
       refine mul_le_mul_of_nonneg_right (h x) (norm_nonneg _) } }
 end
 
-end continuous_linear_map
-
-namespace inner_product_space
-namespace is_self_adjoint
+end general
 
 section real
 variables {F : Type*} [inner_product_space ℝ F]
@@ -430,6 +438,8 @@ end complete_space
 section compact
 variables [complete_space E] {T : E →L[𝕜] E}
 
+local notation `rayleigh_quotient` := λ x : E, T.re_apply_inner_self x / ∥(x:E)∥ ^ 2
+
 lemma exists_eigenvalue_of_compact [nontrivial E] (hT : is_self_adjoint T.to_linear_map)
   (hT_cpct : compact_map T) :
   ∃ c, has_eigenvalue T.to_linear_map c :=
@@ -440,10 +450,12 @@ begin
     simp only [mem_eigenspace_iff, h_triv, zero_smul, continuous_linear_map.to_linear_map_eq_coe, continuous_linear_map.coe_zero,
               linear_map.zero_apply] },
   { change T ≠ 0 at h_triv,
-    have h₁ := exists_seq_tendsto_Inf (set.nonempty_def.mpr (@continuous_linear_map.bounds_nonempty _ _ _ _ _ _ _ _ _ _ _ _ T)) (continuous_linear_map.bounds_bdd_below),
-    rcases h₁ with ⟨u, ⟨h_antitone, ⟨hu₁,hu₂⟩⟩⟩,
-
-    sorry
+    --have h₁ := exists_seq_tendsto_Inf (set.nonempty_def.mpr (@continuous_linear_map.bounds_nonempty _ _ _ _ _ _ _ _ _ _ _ _ T)) (continuous_linear_map.bounds_bdd_below),
+    --rcases h₁ with ⟨u, ⟨h_antitone, ⟨hu₁,hu₂⟩⟩⟩,
+    rcases max_eq_iff.mp (norm_eq_max_supr_rayleigh hT).symm with ⟨h_supr,-⟩|⟨h_infi,-⟩,
+    { set a := (⨆ x, rayleigh_quotient x),
+      sorry },
+    { sorry }
   }
 end
 

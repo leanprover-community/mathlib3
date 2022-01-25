@@ -205,8 +205,7 @@ local attribute [instance] topological_group.to_uniform_space
 variables {G}
 
 variables {ι ι₁ ι₂ α : Type*} (F : ι → α → G) (F₁ : ι₁ → α → G) (F₂ : ι₂ → α → G)
-variables (f : α → G) (f₁ : α → G) (f₂ : α → G) (p : filter ι) (p₁ : filter ι₁) (p₂ : filter ι₂)
-variables (s : set α)
+variables (f f₁ f₂ : α → G) (p : filter ι) (p₁ : filter ι₁) (p₂ : filter ι₂) (s : set α)
 
 @[to_additive] lemma tendsto_uniformly_iff :
   tendsto_uniformly F f p ↔ ∀ u ∈ 𝓝 (1 : G), ∀ᶠ i in p, ∀ a, F i a / f a ∈ u :=

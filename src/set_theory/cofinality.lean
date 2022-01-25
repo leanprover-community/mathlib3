@@ -323,7 +323,7 @@ begin
     cases n,
     { simp at e, simpa [e, not_zero_is_limit] using l },
     { rw [← nat_cast_succ, cof_succ] at this,
-      rw [← this, cof_eq_one_iff_is_succ] at e,
+      rw [← this, cof_eq_one_iff_succ] at e,
       rcases e with ⟨a, rfl⟩,
       exact not_succ_is_limit _ l } }
 end
@@ -344,87 +344,80 @@ let ⟨S, H, e⟩ := cof_eq r in
 e⟩
 
 -- prove cof_lsub_le_lift first, that will trivialize this one.
-theorem cof_sup_le_lift {ι} (f : ι → ordinal) (H : ∀ i, f i < sup f) :
-  cof (sup f) ≤ (#ι).lift :=
+theorem cof_lsub_le_lift {ι} (f : ι → ordinal) : cof (lsub f) ≤ (#ι).lift :=
 begin
-  generalize e : sup f = o,
+  have H : ∀ i, f i < lsub f := lt_lsub f,
+  generalize e : lsub f = o,
   refine ordinal.induction_on o _ e, introsI α r _ e',
   rw e' at H,
-  refine le_trans (cof_type_le (set.range (λ i, enum r _ (H i))) _)
-    ⟨embedding.of_surjective _ _⟩,
-  { intro a, by_contra h,
-    apply not_le_of_lt (typein_lt_type r a),
-    rw [← e', sup_le],
-    intro i,
-    have h : ∀ (x : ι), r (enum r (f x) _) a, { simpa using h },
-    simpa only [typein_enum] using le_of_lt ((typein_lt_typein r).2 (h i)) },
-  { exact λ i, ⟨_, set.mem_range_self i.1⟩ },
-  { intro a, rcases a with ⟨_, i, rfl⟩, exact ⟨⟨i⟩, by simp⟩ }
+  refine (cof_type_le (set.range (λ i, enum r _ (H i))) (λ a, _)).trans
+    ⟨embedding.of_surjective (λ i, ⟨_, set.mem_range_self i.1⟩) (λ ⟨_, i, rfl⟩, ⟨⟨i⟩, by simp⟩)⟩,
+  by_contra h,
+  apply not_le_of_lt (typein_lt_type r a),
+  rw [← e', lsub_le_iff_lt],
+  intro i,
+  have h : ∀ (x : ι), r (enum r (f x) _) a, { simpa using h },
+  simpa only [typein_enum] using (typein_lt_typein r).2 (h i)
 end
 
-theorem cof_sup_le {ι} (f : ι → ordinal) (H : ∀ i, f i < sup.{u u} f) :
-  cof (sup.{u u} f) ≤ #ι :=
-by simpa using cof_sup_le_lift.{u u} f H
+theorem cof_lsub_le {ι} (f : ι → ordinal) : cof (lsub.{u u} f) ≤ #ι :=
+by simpa using cof_lsub_le_lift.{u u} f
 
-theorem cof_bsup_le_lift {o : ordinal} : ∀ (f : Π a < o, ordinal), (∀ i h, f i h < bsup o f) →
-  cof (bsup o f) ≤ o.card.lift :=
-induction_on o $ λ α r _ f H,
+-- the rewrite might be golfed out after the bsup refactor (since it would be def-eq).
+theorem cof_blsub_le_lift {o : ordinal} : ∀ (f : Π a < o, ordinal), cof (blsub o f) ≤ o.card.lift :=
+induction_on o $ λ α r _ f, by { resetI, rw blsub_eq_lsub' r rfl, exact cof_lsub_le_lift _ }
+
+theorem cof_blsub_le {o : ordinal} (f : Π a < o, ordinal) : cof (blsub.{u u} o f) ≤ o.card :=
+by simpa using cof_blsub_le_lift.{u u} f
+
+theorem cof_lsub_le_cof {ι} {r : ι → ι → Prop} [is_well_order ι r] (f : ι → ordinal)
+  (hf : ∀ i j, r i j → f i ≤ f j) : cof (lsub.{u v} f) ≤ (type r).lift.cof :=
 begin
-  resetI,
-  rw bsup_eq_sup' r rfl,
-  refine cof_sup_le_lift _ _,
-  rw ← bsup_eq_sup',
-  exact λ a, H _ _
-end
-
-theorem cof_bsup_le {o : ordinal} (f : Π a < o, ordinal) (H : ∀ i h, f i h < bsup.{u u} o f) :
-  cof (bsup.{u u} o f) ≤ o.card :=
-by simpa using cof_bsup_le_lift.{u u} f H
-
-theorem cof_sup_le_cof {ι} {r : ι → ι → Prop} [is_well_order ι r] (f : ι → ordinal)
-  (H : ∀ i, f i < sup f) (hf : ∀ i j, r i j → f i ≤ f j) : cof (sup.{u v} f) ≤ (type r).lift.cof :=
-begin
-  generalize e : sup f = o,
+  have H : ∀ i, f i < lsub f := lt_lsub f,
+  generalize e : lsub f = o,
   refine ordinal.induction_on o _ e, clear e o, introsI α r' _ e, rw e at H,
   rcases cof_eq r with ⟨S, hS, h2S⟩,
   refine le_trans (cof_type_le ((λ i : ι, enum r' (f i) (H i)) '' S) _) _,
   { intro a, by_contra h, apply not_le_of_lt (typein_lt_type r' a),
-    rw [← e, sup_le], intro i, rcases hS i with ⟨j, hj, h2j⟩,
+    rw [← e, lsub_le_iff_lt], intro i, rcases hS i with ⟨j, hj, h2j⟩,
     simp only [not_exists, mem_image, and_imp, exists_prop, not_and, not_not,
       exists_imp_distrib] at h,
     have := (typein_lt_typein r').2 (h _ j hj rfl),
     rw [typein_enum] at this, rcases trichotomous_of r i j with h|rfl|h,
-    apply le_of_lt (lt_of_le_of_lt (hf _ _ h) this), apply le_of_lt this, exfalso, apply h2j h },
-  rw [←cardinal.lift_id' (mk _)], refine le_trans mk_image_le_lift _,
+    { exact (lt_of_le_of_lt (hf _ _ h) this) },
+    { exact this },
+    { exact (h2j h).elim } },
+  rw [←cardinal.lift_id' (mk _)], apply mk_image_le_lift.trans,
   rw [h2S, ←lift_cof, ←cardinal.lift_id' (cardinal.lift.{v u} _), cardinal.lift_lift],
 end
 
-theorem cof_sup_eq_cof {ι} {r : ι → ι → Prop} [is_well_order ι r] (f : ι → ordinal)
-  (H : ∀ i, f i < sup f) (hf : ∀ i j, r i j → f i ≤ f j) : cof (sup.{u v} f) = (type r).lift.cof :=
+theorem cof_lsub_eq_cof {ι} {r : ι → ι → Prop} [is_well_order ι r] (f : ι → ordinal)
+  (hf : ∀ i j, r i j → f i ≤ f j) : cof (lsub.{u v} f) = (type r).lift.cof :=
 begin
-  refine le_antisymm (cof_sup_le_cof f H hf) _,
+  apply le_antisymm (cof_lsub_le_cof f hf),
   rw [le_cof], intros S hS,
   cases lift_type.{v u} r, rw [h],
   rw [cof_type_le_iff],
   sorry
 end
 
-theorem cof_sup_eq_cof' {ι} {r : ι → ι → Prop} [is_well_order ι r] (f : ι → ordinal)
-  (H : ∀ i, f i < sup.{u u} f) (hf : ∀i j, r i j → f i ≤ f j) : cof (sup.{u u} f) = (type r).cof :=
+theorem cof_lsub_eq_cof' {ι} {r : ι → ι → Prop} [is_well_order ι r] (f : ι → ordinal)
+  (hf : ∀ i j, r i j → f i ≤ f j) : cof (lsub.{u u} f) = (type r).cof :=
 begin
-  refine le_antisymm _ _, convert (cof_sup_le_cof.{u u} f H hf) using 2, rw [lift_id],
+  refine le_antisymm _ _, convert (cof_lsub_le_cof.{u u} f hf) using 2, rw [lift_id],
   rw [le_cof], intros S hS,
   rw [cof_type_le_iff],
   sorry
 end
 
-theorem cof_bsup_le_cof {o : ordinal} (f : Π a < o, ordinal)
-  (H : ∀ a (h : a < o), f a h < bsup.{u u} o f)
-  (hf : ∀{{a a'}} (ha : a < o) (ha' : a' < o), a < a' → f a ha ≤ f a' ha') :
-    cof (bsup.{u u} o f) ≤ cof o :=
+theorem cof_blsub_le_cof {o : ordinal} (f : Π a < o, ordinal)
+  (hf : ∀ {{a a'}} (ha : a < o) (ha' : a' < o), a < a' → f a ha ≤ f a' ha') :
+  cof (blsub.{u u} o f) ≤ cof o :=
 begin
-  rw bsup_eq_sup,
-  refine le_trans (cof_sup_le_cof (o.family_of_bfamily f) _ _) _,
+  rw blsub_eq_lsub,
+  convert @cof_lsub_le_cof.{u u} _ o.out.r _ (o.family_of_bfamily f)
+    (λ i j h, hf _ _ ((typein_lt_typein _).2 h)),
+  rw [lift_id, type_out]
 end
 
 -- lemma cof_le_min_seq_aux {o : ordinal} (ho : o.is_limit) :
@@ -491,7 +484,7 @@ begin
   apply lt_of_le_of_ne,
   { rw [sup_le], exact λ i, le_of_lt (H2 i) },
   rintro h, apply not_le_of_lt H1,
-  simpa [sup_ord, H2, h] using cof_sup_le.{u} f
+  simpa [sup_ord, H2, h] using cof_lsub_le.{u} f,
 end
 
 theorem sup_lt {ι} (f : ι → cardinal) {c : cardinal} (H1 : #ι < c.ord.cof)

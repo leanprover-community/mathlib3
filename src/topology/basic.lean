@@ -1192,7 +1192,7 @@ begin
   filter_upwards [this],
   simp only [mem_inter_eq, mem_Inter],
   rintros b ⟨hbt, hn⟩ i hfb,
-  exact hn i ⟨b, hfb, hbt⟩ hfb
+  exact hn i ⟨b, hfb, hbt⟩ hfb,
 end
 
 lemma locally_finite.closure_Union {f : β → set α} (h : locally_finite f) :

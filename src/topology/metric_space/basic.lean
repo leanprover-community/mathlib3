@@ -1134,9 +1134,7 @@ begin
   obtain ⟨ε, εpos, hε⟩ : ∃ ε (hε : 0 < ε), closed_ball x ε ⊆ u :=
     nhds_basis_closed_ball.mem_iff.1 hu,
   have : Iic ε ∈ 𝓝 (0 : ℝ) := Iic_mem_nhds εpos,
-  filter_upwards [this],
-  assume r hr,
-  exact subset.trans (closed_ball_subset_closed_ball hr) hε,
+  filter_upwards [this] with _ hr using subset.trans (closed_ball_subset_closed_ball hr) hε,
 end
 
 end real

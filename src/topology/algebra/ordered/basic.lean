@@ -706,10 +706,10 @@ lemma tendsto_of_tendsto_of_tendsto_of_le_of_le' {f g h : β → α} {b : filter
 tendsto_order.2
   ⟨assume a' h',
     have ∀ᶠ b in b, a' < g b, from (tendsto_order.1 hg).left a' h',
-    by filter_upwards [this, hgf] assume a, lt_of_lt_of_le,
+    by filter_upwards [this, hgf] with _ using lt_of_lt_of_le,
     assume a' h',
     have ∀ᶠ b in b, h b < a', from (tendsto_order.1 hh).right a' h',
-    by filter_upwards [this, hfh] assume a h₁ h₂, lt_of_le_of_lt h₂ h₁⟩
+    by filter_upwards [this, hfh] with a h₁ h₂ using lt_of_le_of_lt h₂ h₁⟩
 
 /-- Also known as squeeze or sandwich theorem. This version assumes that inequalities hold
 everywhere. -/
@@ -886,8 +886,7 @@ lemma tendsto_nhds_top_mono [topological_space β] [partial_order β] [order_top
 begin
   simp only [nhds_top_order, tendsto_infi, tendsto_principal] at hf ⊢,
   intros x hx,
-  filter_upwards [hf x hx, hg],
-  exact λ x, lt_of_lt_of_le
+  filter_upwards [hf x hx, hg] with _ using lt_of_lt_of_le,
 end
 
 lemma tendsto_nhds_bot_mono [topological_space β] [partial_order β] [order_bot β] [order_topology β]
@@ -1731,8 +1730,7 @@ lemma filter.tendsto.at_top_mul {C : α} (hC : 0 < C) (hf : tendsto f l at_top)
 begin
   refine tendsto_at_top_mono' _ _ (hf.at_top_mul_const (half_pos hC)),
   filter_upwards [hg.eventually (lt_mem_nhds (half_lt_self hC)),
-    hf.eventually (eventually_ge_at_top 0)],
-  exact λ x hg hf, mul_le_mul_of_nonneg_left hg.le hf
+    hf.eventually (eventually_ge_at_top 0)] with x hg hf using mul_le_mul_of_nonneg_left hg.le hf,
 end
 
 /-- In a linearly ordered field with the order topology, if `f` tends to a positive constant `C` and
@@ -1792,8 +1790,8 @@ lemma tendsto_inv_zero_at_top : tendsto (λx:α, x⁻¹) (𝓝[>] (0:α)) at_top
 begin
   refine (at_top_basis' 1).tendsto_right_iff.2 (λ b hb, _),
   have hb' : 0 < b := zero_lt_one.trans_le hb,
-  filter_upwards [Ioc_mem_nhds_within_Ioi ⟨le_rfl, inv_pos.2 hb'⟩],
-  exact λ x hx, (le_inv hx.1 hb').1 hx.2
+  filter_upwards [Ioc_mem_nhds_within_Ioi ⟨le_rfl, inv_pos.2 hb'⟩]
+    with x hx using (le_inv hx.1 hb').1 hx.2,
 end
 
 /-- The function `r ↦ r⁻¹` tends to `0` on the right as `r → +∞`. -/
@@ -2683,10 +2681,9 @@ begin
         using exists_lt_of_lt_cSup (nonempty_image_iff.2 h) hl,
     exact (mem_nhds_within_Iio_iff_exists_Ioo_subset' zx).2
       ⟨z, zx, λ y hy, lz.trans_le (Mf (hy.1.le))⟩ },
-  { filter_upwards [self_mem_nhds_within],
-    assume y hy,
+  { filter_upwards [self_mem_nhds_within] with _ hy,
     apply lt_of_le_of_lt _ hm,
-    exact le_cSup (Mf.map_bdd_above bdd_above_Iio) (mem_image_of_mem _ hy) }
+    exact le_cSup (Mf.map_bdd_above bdd_above_Iio) (mem_image_of_mem _ hy), },
 end
 
 /-- A monotone map has a limit to the right of any point `x`, equal to `Inf (f '' (Ioi x))`. -/

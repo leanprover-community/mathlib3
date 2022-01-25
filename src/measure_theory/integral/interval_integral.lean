@@ -853,9 +853,9 @@ lemma integral_Iic_sub_Iic (ha : integrable_on f (Iic a) μ) (hb : integrable_on
   ∫ x in Iic b, f x ∂μ - ∫ x in Iic a, f x ∂μ = ∫ x in a..b, f x ∂μ :=
 begin
   wlog hab : a ≤ b using [a b] tactic.skip,
-  { rw [sub_eq_iff_eq_add', integral_of_le hab, ← integral_union (Iic_disjoint_Ioc (le_refl _)),
+  { rw [sub_eq_iff_eq_add', integral_of_le hab, ← integral_union (Iic_disjoint_Ioc le_rfl),
       Iic_union_Ioc_eq_Iic hab],
-    exacts [measurable_set_Iic, measurable_set_Ioc, ha, hb.mono_set (λ _, and.right)] },
+    exacts [measurable_set_Ioc, ha, hb.mono_set (λ _, and.right)] },
   { intros ha hb,
     rw [integral_symm, ← this hb ha, neg_sub] }
 end

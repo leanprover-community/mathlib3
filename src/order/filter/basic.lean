@@ -746,7 +746,7 @@ begin
   refine ⟨λ h, _, _⟩,
   { rcases (mem_infi_of_fintype _).1 h with ⟨p, hp, rfl⟩,
     refine ⟨λ a, if h : a ∈ s then p ⟨a, h⟩ else univ, λ a ha, by simpa [ha] using hp ⟨a, ha⟩, _⟩,
-    refine Inter_congr id surjective_id _,
+    refine Inter_congr_of_surjective id surjective_id _,
     rintro ⟨a, ha⟩, simp [ha] },
   { rintro ⟨p, hpf, rfl⟩,
     exact Inter_mem.2 (λ a, mem_infi_of_mem a (hpf a a.2)) }

@@ -86,7 +86,7 @@ variables [cancel_comm_monoid_with_zero α] [normalization_monoid α]
 norm_unit_coe_units 1
 
 /-- Chooses an element of each associate class, by multiplying by `norm_unit` -/
-def normalize : monoid_with_zero_hom α α :=
+def normalize : α →*₀ α :=
 { to_fun := λ x, x * norm_unit x,
   map_zero' := by simp,
   map_one' := by rw [norm_unit_one, units.coe_one, mul_one],

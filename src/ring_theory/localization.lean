@@ -2403,7 +2403,7 @@ variable (M)
 lemma is_fraction_ring_of_is_localization (S T : Type*) [comm_ring S] [comm_ring T]
   [algebra R S] [algebra R T] [algebra S T] [is_scalar_tower R S T]
   [is_localization M S] [is_fraction_ring R T] (hM : M ≤ non_zero_divisors R) :
-    is_fraction_ring S T :=
+  is_fraction_ring S T :=
 begin
   have := is_localization_of_submonoid_le S T M (non_zero_divisors R) _,
   refine @@is_localization_of_is_exists_mul_mem _ _ _ _ _ _ this _ _,

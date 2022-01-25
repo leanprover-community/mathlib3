@@ -481,7 +481,7 @@ begin
   let P' : sylow p H := P.subtype H (le_trans le_normalizer le_normalizer),
 
   -- NB: This lemma assumes (fintype G), and not merely fintype (sylow p G).
-  -- The latter would suffices if we could deduce (sylow p N) from it.
+  -- The latter would suffices if we could deduce (sylow p H) from it.
 
   have h1 : (P' : subgroup H).normalizer = ⊤,
   { apply normalizer_eq_top.mpr,

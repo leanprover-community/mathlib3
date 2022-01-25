@@ -222,7 +222,7 @@ end
 
 lemma comap_subtype {H : subgroup G} (hH : is_p_group p H) {K : subgroup G} :
   is_p_group p (H.comap K.subtype) :=
-by { apply hH.comap_of_injective, exact subtype.coe_injective }
+hH.comap_of_injective K.subtype subtype.coe_injective
 
 lemma to_sup_of_normal_right {H K : subgroup G} (hH : is_p_group p H) (hK : is_p_group p K)
   [K.normal] : is_p_group p (H ⊔ K : subgroup G) :=

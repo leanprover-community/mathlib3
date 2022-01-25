@@ -140,12 +140,17 @@ element of `args'` changes the resulting proof.
 meta def filter_simp_set
   (tac : bool → list simp_arg_type → tactic unit)
   (user_args simp_args : list simp_arg_type) : tactic (list simp_arg_type) :=
-do some s ← get_proof_state_after (tac ff (user_args ++ simp_args)),
-   (simp_args', _)  ← filter_simp_set_aux tac user_args s simp_args [] [],
+do s ← get_proof_state_after (tac ff (user_args ++ simp_args)),
+match s with
+| none := do trace!("There is a namespace clash in your simp lemmas. This currently prevents " ++
+"`squeeze_simp` from working properly; please try remove all `open` statements, or try " ++
+"exclude lemmas that could be clashing with the `-lemma` syntax."), pure []
+| some s := do (simp_args', _)  ← filter_simp_set_aux tac user_args s simp_args [] [],
    (user_args', ds) ← filter_simp_set_aux tac simp_args' s user_args [] [],
    when (is_trace_enabled_for `squeeze.deleted = tt ∧ ¬ ds.empty)
      trace!"deleting provided arguments {ds}",
    pure (user_args' ++ simp_args')
+end
 
 /-- make a `simp_arg_type` that references the name given as an argument -/
 meta def name.to_simp_args (n : name) : tactic simp_arg_type :=

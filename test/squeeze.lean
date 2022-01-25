@@ -32,3 +32,15 @@ by { squeeze_simp_test [←h, two_mul] = [←h, two_mul, add_zero] }
 -- Test that the order of the given hypotheses do not matter.
 example {a b : ℕ} (h : a + a = b) : b + 0 = 2 * a :=
 by { squeeze_simp_test [←h, two_mul] = [←h, add_zero, two_mul] }
+
+section current_bug
+
+@[simp] lemma asda {a : ℕ} : 0 ≤ a := nat.zero_le
+
+@[simp] lemma pnat.asda {a : ℕ+} : 1 ≤ a := pnat.one_le
+
+open int
+
+lemma tes {a : ℕ} {b : ℕ+} : 0 ≤ a ∧ 1 ≤ b := by { squeeze_simp_test = [] }
+
+end current_bug

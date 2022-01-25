@@ -323,20 +323,24 @@ def fundamental_groupoid_functor : Top ⥤ category_theory.Groupoid :=
     refl,
   end }
 
+localized "notation `π` := fundamental_groupoid.fundamental_groupoid_functor" in fundamental_groupoid
+localized "notation `πₓ` := fundamental_groupoid.fundamental_groupoid_functor.obj" in fundamental_groupoid
+localized "notation `πₘ` := fundamental_groupoid.fundamental_groupoid_functor.map" in fundamental_groupoid
+
 /-- Help the typechecker by converting a point in a groupoid back to a point in
 the underlying topological space. -/
 @[reducible]
-def to_top {X : Top} (x : (fundamental_groupoid_functor.obj X).α) : X := x
+def to_top {X : Top} (x : (πₓ X).α) : X := x
 
 /-- Help the typechecker by converting a point in a topological space to a
 point in the fundamental groupoid of that space -/
 @[reducible]
-def from_top {X : Top} (x : X) : (fundamental_groupoid_functor.obj X).α := x
+def from_top {X : Top} (x : X) : (πₓ X).α := x
 
 /-- Help the typechecker by converting an arrow in the fundamental groupoid of
 a topological space back to a path in that space (i.e., `path.homotopic.quotient`). -/
 @[reducible]
-def to_path {X : Top} {x₀ x₁ : (fundamental_groupoid_functor.obj X).α} (p : x₀ ⟶ x₁) :
+def to_path {X : Top} {x₀ x₁ : (πₓ X).α} (p : x₀ ⟶ x₁) :
   path.homotopic.quotient x₀ x₁ := p
 
 /-- Help the typechecker by convering a path in a topological space to an arrow in the

@@ -404,13 +404,11 @@ lemma trans_gen.mono {p : α → α → Prop} :
   (∀ a b, r a b → p a b) → trans_gen r a b → trans_gen p a b :=
 trans_gen.lift id
 
+lemma trans_gen.swap (h : trans_gen r b a) : trans_gen (swap r) a b :=
+by { induction h with b h b c hab hbc ih, { exact trans_gen.single h }, exact ih.head hbc }
+
 lemma trans_gen_swap : trans_gen (swap r) a b ↔ trans_gen r b a :=
-begin
-  have : ∀{r} {a b : α}, trans_gen (swap r) a b → trans_gen r b a,
-  { intros r a b h, induction h with b h b c hab hbc ih, { exact trans_gen.single h },
-    exact ih.head hbc },
-  exact ⟨this, this⟩
-end
+⟨trans_gen.swap, trans_gen.swap⟩
 
 end trans_gen
 
@@ -466,12 +464,11 @@ lemma refl_trans_gen_closed {p : α → α → Prop} :
   (∀ a b, r a b → refl_trans_gen p a b) → refl_trans_gen r a b → refl_trans_gen p a b :=
 refl_trans_gen.lift' id
 
+lemma refl_trans_gen.swap (h : refl_trans_gen r b a) : refl_trans_gen (swap r) a b :=
+by { induction h with b c hab hbc ih, { refl }, exact ih.head hbc }
+
 lemma refl_trans_gen_swap : refl_trans_gen (swap r) a b ↔ refl_trans_gen r b a :=
-begin
-  have : ∀{r} {a b : α}, refl_trans_gen (swap r) a b → refl_trans_gen r b a,
-  { intros r a b h, induction h with b c hab hbc ih, { refl }, exact ih.head hbc },
-  exact ⟨this, this⟩
-end
+⟨refl_trans_gen.swap, refl_trans_gen.swap⟩
 
 end refl_trans_gen
 

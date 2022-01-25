@@ -999,6 +999,15 @@ begin
   exact h a,
 end
 
+lemma supr_lintegral_measurable_le_eq_lintegral (f : α → ℝ≥0∞) :
+  (⨆ (g : α → ℝ≥0∞) (g_meas : measurable g) (hg : g ≤ f), ∫⁻ a, g a ∂μ) = ∫⁻ a, f a ∂μ :=
+begin
+  apply le_antisymm,
+  { exact supr_le (λ i, supr_le (λ hi, supr_le (λ h'i, lintegral_mono h'i))) },
+  { refine bsupr_le (λ i hi, le_supr_of_le i (le_supr_of_le i.measurable (le_supr_of_le hi _))),
+    exact le_of_eq (i.lintegral_eq_lintegral _).symm },
+end
+
 lemma lintegral_mono_set {m : measurable_space α} ⦃μ : measure α⦄
   {s t : set α} {f : α → ℝ≥0∞} (hst : s ⊆ t) :
   ∫⁻ x in s, f x ∂μ ≤ ∫⁻ x in t, f x ∂μ :=
@@ -2315,6 +2324,9 @@ begin
     simp [lintegral_supr, ennreal.mul_supr, h_mf.mul (h_mea_g _), *] }
 end
 
+/-- The Lebesgue integral of `g` with respect to the measure `μ.with_density f` coincides with
+the integral of `f * g`. This version assumes that `g` is almost everywhere measurable. For a
+version without conditions on `g` but requiring that `f` is almost everywhere finite, see -/
 lemma lintegral_with_density_eq_lintegral_mul₀' {μ : measure α} {f : α → ℝ≥0∞}
   (hf : ae_measurable f μ) {g : α → ℝ≥0∞} (hg : ae_measurable g (μ.with_density f)) :
   ∫⁻ a, g a ∂(μ.with_density f) = ∫⁻ a, (f * g) a ∂μ :=
@@ -2356,6 +2368,56 @@ lemma lintegral_with_density_eq_lintegral_mul₀ {μ : measure α} {f : α → �
   (hf : ae_measurable f μ) {g : α → ℝ≥0∞} (hg : ae_measurable g μ) :
   ∫⁻ a, g a ∂(μ.with_density f) = ∫⁻ a, (f * g) a ∂μ :=
 lintegral_with_density_eq_lintegral_mul₀' hf (hg.mono' (with_density_absolutely_continuous μ f))
+
+lemma lintegral_with_density_le_lintegral_mul (μ : measure α)
+  {f : α → ℝ≥0∞} (f_meas : measurable f) (g : α → ℝ≥0∞) :
+  ∫⁻ a, g a ∂(μ.with_density f) ≤ ∫⁻ a, (f * g) a ∂μ :=
+begin
+  rw [← supr_lintegral_measurable_le_eq_lintegral, ← supr_lintegral_measurable_le_eq_lintegral],
+  refine bsupr_le (λ i i_meas, supr_le (λ hi, _)),
+  have A : f * i ≤ f * g := λ x, ennreal.mul_le_mul le_rfl (hi x),
+  refine le_supr_of_le (f * i) (le_supr_of_le (f_meas.mul i_meas) _),
+  exact le_supr_of_le A (le_of_eq (lintegral_with_density_eq_lintegral_mul _ f_meas i_meas))
+end
+
+lemma lintegral_with_density_eq_lintegral_mul_non_mesurable (μ : measure α)
+  {f : α → ℝ≥0∞} (f_meas : measurable f) (hf : ∀ᵐ x ∂μ, f x < ∞) (g : α → ℝ≥0∞) :
+  ∫⁻ a, g a ∂(μ.with_density f) = ∫⁻ a, (f * g) a ∂μ :=
+begin
+  refine le_antisymm (lintegral_with_density_le_lintegral_mul μ f_meas g) _,
+  rw [← supr_lintegral_measurable_le_eq_lintegral, ← supr_lintegral_measurable_le_eq_lintegral],
+  refine bsupr_le (λ i i_meas, supr_le (λ hi, _)),
+  have A : (λ x, (f x)⁻¹ * i x) ≤ g,
+  { assume x,
+    dsimp,
+    rw [mul_comm, ← div_eq_mul_inv],
+    exact div_le_of_le_mul' (hi x), },
+  refine le_supr_of_le (λ x, (f x)⁻¹ * i x) (le_supr_of_le (f_meas.inv.mul i_meas) _),
+  refine le_supr_of_le A _,
+  rw lintegral_with_density_eq_lintegral_mul _ f_meas (f_meas.inv.mul i_meas),
+  apply lintegral_mono_ae,
+  filter_upwards [hf],
+  assume x h'x,
+  rcases eq_or_ne (f x) 0 with hx|hx,
+  { have := hi x,
+    simp only [hx, zero_mul, pi.mul_apply, nonpos_iff_eq_zero] at this,
+    simp [this] },
+  { apply le_of_eq _,
+    dsimp,
+    rw [← mul_assoc, ennreal.mul_inv_cancel hx h'x.ne, one_mul] }
+end
+
+lemma lintegral_with_density_eq_lintegral_mul_non_mesurable₀ (μ : measure α)
+  {f : α → ℝ≥0∞} (f_meas : ae_measurable f μ) (hf : ∀ᵐ x ∂μ, f x < ∞) (g : α → ℝ≥0∞) :
+  ∫⁻ a, g a ∂(μ.with_density f) = ∫⁻ a, (f * g) a ∂μ :=
+begin
+  let f' := f_meas.mk,
+  calc
+  ∫⁻ a, g a ∂(μ.with_density f)
+  = ∫⁻ a, g a ∂(μ.with_density f)
+
+
+end
 
 lemma with_density_mul (μ : measure α) {f g : α → ℝ≥0∞} (hf : measurable f) (hg : measurable g) :
   μ.with_density (f * g) = (μ.with_density f).with_density g :=

@@ -78,7 +78,7 @@ begin
         + ((s^2+t^2)*ω*(1+ω+ω^2) - s*t*(-3 + 3*(1+ω+ω^2) + ω*(ω^3-1))) * x
         - (s^3-t^3)*ω^3 + s*t*(s-t)*ω^2*(1+ω+ω^2) : by ring
   ... = x^3 + 3*(t*s)*x - (s^3-t^3)
-    : by { rw [is_primitive_root.pow_eq_one hω, cube_root_of_unity_sum hω], ring }
+    : by { rw [hω.pow_eq_one, cube_root_of_unity_sum hω], ring }
   ... = x^3 + 3*p*x - 2*q : by rw [ht, hc]
 end
 

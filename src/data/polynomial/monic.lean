@@ -165,7 +165,34 @@ begin
     simp [coeff_mul, nat.antidiagonal, hp.leading_coeff, hq.leading_coeff, add_comm]
 end
 
+lemma eq_one_of_map_eq_one {S : Type*} [semiring S] [nontrivial S]
+  (f : R →+* S) (hp : p.monic) (map_eq : p.map f = 1) : p = 1 :=
+begin
+  nontriviality R,
+  have hdeg : p.degree = 0,
+  { rw [← degree_map_eq_of_leading_coeff_ne_zero f _, map_eq, degree_one],
+    { rw [hp.leading_coeff, f.map_one],
+      exact one_ne_zero } },
+  have hndeg : p.nat_degree = 0 :=
+    with_bot.coe_eq_coe.mp ((degree_eq_nat_degree hp.ne_zero).symm.trans hdeg),
+  convert eq_C_of_degree_eq_zero hdeg,
+  rw [← hndeg, ← polynomial.leading_coeff, hp.leading_coeff, C.map_one]
+end
+
+lemma nat_degree_pow (hp : p.monic) (n : ℕ) :
+  (p ^ n).nat_degree = n * p.nat_degree :=
+begin
+  induction n with n hn,
+  { simp },
+  { rw [pow_succ, hp.nat_degree_mul (monic_pow hp n), hn],
+    ring }
+end
+
 end monic
+
+@[simp] lemma nat_degree_pow_X_add_C [nontrivial R] (n : ℕ) (r : R) :
+  ((X + C r) ^ n).nat_degree = n :=
+by rw [(monic_X_add_C r).nat_degree_pow, nat_degree_X_add_C, mul_one]
 
 end semiring
 
@@ -256,6 +283,18 @@ begin
   obtain ⟨k, hk⟩ := nat.exists_eq_succ_of_ne_zero h,
   convert monic_X_pow_sub _,
   exact le_trans degree_C_le nat.with_bot.coe_nonneg,
+end
+
+lemma not_is_unit_X_pow_sub_one (R : Type*) [comm_ring R] [nontrivial R] (n : ℕ) :
+  ¬ is_unit (X ^ n - 1 : polynomial R) :=
+begin
+  intro h,
+  rcases eq_or_ne n 0 with rfl | hn,
+  { simpa using h },
+  apply hn,
+  rwa [← @nat_degree_X_pow_sub_C _ _ _ n (1 : R),
+      eq_one_of_is_unit_of_monic (monic_X_pow_sub_C (1 : R) hn),
+      nat_degree_one]
 end
 
 lemma monic_sub_of_left {p q : polynomial R} (hp : monic p) (hpq : degree q < degree p) :

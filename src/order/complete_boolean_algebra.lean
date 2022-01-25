@@ -64,25 +64,41 @@ theorem infi_sup_eq (f : ι → α) (a : α) : (⨅ i, f i) ⊔ a = ⨅ i, f i �
 theorem sup_infi_eq (a : α) (f : ι → α) : a ⊔ (⨅ i, f i) = ⨅ i, a ⊔ f i :=
 @inf_supr_eq (order_dual α) _ _ _ _
 
+theorem bsupr_inf_eq {p : α → Prop} {f : Π i (hi : p i), α} (a : α) :
+  (⨆ i hi, f i hi) ⊓ a = ⨆ i hi, f i hi ⊓ a :=
+by simp only [supr_inf_eq]
+
+theorem inf_bsupr_eq (a : α) {p : α → Prop} {f : Π i (hi : p i), α} :
+  a ⊓ (⨆ i hi, f i hi) = ⨆ i hi, a ⊓ f i hi :=
+by simp only [inf_supr_eq]
+
+theorem binfi_sup_eq {p : α → Prop} {f : Π i (hi : p i), α} (a : α) :
+  (⨅ i hi, f i hi) ⊔ a = ⨅ i hi, f i hi ⊔ a :=
+@bsupr_inf_eq (order_dual α) _ _ _ _
+
+theorem sup_binfi_eq (a : α) {p : α → Prop} {f : Π i (hi : p i), α} :
+  a ⊔ (⨅ i hi, f i hi) = ⨅ i hi, a ⊔ f i hi :=
+@inf_bsupr_eq (order_dual α) _ _ _ _
+
 instance pi.complete_distrib_lattice {ι : Type*} {π : ι → Type*}
   [∀ i, complete_distrib_lattice (π i)] : complete_distrib_lattice (Π i, π i) :=
 { infi_sup_le_sup_Inf := λ a s i,
     by simp only [← sup_infi_eq, complete_lattice.Inf, Inf_apply, ←infi_subtype'', infi_apply,
-      sup_apply],
+      pi.sup_apply],
   inf_Sup_le_supr_inf := λ a s i,
-    by simp only [complete_lattice.Sup, Sup_apply, supr_apply, inf_apply, inf_supr_eq,
+    by simp only [complete_lattice.Sup, Sup_apply, supr_apply, pi.inf_apply, inf_supr_eq,
       ← supr_subtype''],
   .. pi.complete_lattice }
 
-theorem Inf_sup_Inf : Inf s ⊔ Inf t = (⨅ p ∈ set.prod s t, (p : α × α).1 ⊔ p.2) :=
+theorem Inf_sup_Inf : Inf s ⊔ Inf t = (⨅ p ∈ s ×ˢ t, (p : α × α).1 ⊔ p.2) :=
 begin
   apply le_antisymm,
   { simp only [and_imp, prod.forall, le_infi_iff, set.mem_prod],
     intros a b ha hb,
     exact sup_le_sup (Inf_le ha) (Inf_le hb) },
-  { have : ∀ a ∈ s, (⨅ p ∈ set.prod s t, (p : α × α).1 ⊔ p.2) ≤ a ⊔ Inf t,
+  { have : ∀ a ∈ s, (⨅ p ∈ s ×ˢ t, (p : α × α).1 ⊔ p.2) ≤ a ⊔ Inf t,
     { rintro a ha,
-      have : (⨅ p ∈ set.prod s t, ((p : α × α).1 : α) ⊔ p.2) ≤
+      have : (⨅ p ∈ s ×ˢ t, ((p : α × α).1 : α) ⊔ p.2) ≤
              (⨅ p ∈ prod.mk a '' t, (p : α × α).1 ⊔ p.2),
       { apply infi_le_infi_of_subset,
         rintro ⟨x, y⟩,
@@ -94,11 +110,11 @@ begin
       rw [infi_image] at this,
       simp only at this,
       rwa ← sup_Inf_eq at this },
-    calc (⨅ p ∈ set.prod s t, (p : α × α).1 ⊔ p.2) ≤ (⨅ a ∈ s, a ⊔ Inf t) : by simp; exact this
+    calc (⨅ p ∈ s ×ˢ t, (p : α × α).1 ⊔ p.2) ≤ (⨅ a ∈ s, a ⊔ Inf t) : by simp; exact this
        ... = Inf s ⊔ Inf t : Inf_sup_eq.symm }
 end
 
-theorem Sup_inf_Sup : Sup s ⊓ Sup t = (⨆ p ∈ set.prod s t, (p : α × α).1 ⊓ p.2) :=
+theorem Sup_inf_Sup : Sup s ⊓ Sup t = (⨆ p ∈ s ×ˢ t, (p : α × α).1 ⊓ p.2) :=
 @Inf_sup_Inf (order_dual α) _ _ _
 
 lemma supr_disjoint_iff {f : ι → α} : disjoint (⨆ i, f i) a ↔ ∀ i, disjoint (f i) a :=
@@ -110,8 +126,8 @@ by simpa only [disjoint.comm] using @supr_disjoint_iff _ _ _ a f
 end complete_distrib_lattice
 
 @[priority 100] -- see Note [lower instance priority]
-instance complete_distrib_lattice.bounded_distrib_lattice [d : complete_distrib_lattice α] :
-  bounded_distrib_lattice α :=
+instance complete_distrib_lattice.to_distrib_lattice [d : complete_distrib_lattice α] :
+  distrib_lattice α :=
 { le_sup_inf := λ x y z, by rw [← Inf_pair, ← Inf_pair, sup_Inf_eq, ← Inf_image, set.image_pair],
   ..d }
 

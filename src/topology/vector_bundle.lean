@@ -5,7 +5,7 @@ Authors: Nicolò Cavalleri, Sebastien Gouezel
 -/
 
 import topology.fiber_bundle
-import topology.algebra.module
+import topology.algebra.module.basic
 
 /-!
 # Topological vector bundles
@@ -73,7 +73,7 @@ structure topological_vector_bundle.trivialization extends to_fiber_bundle_trivi
 
 open topological_vector_bundle
 
-instance : has_coe_to_fun (trivialization R F E) := ⟨_, λ e, e.to_fun⟩
+instance : has_coe_to_fun (trivialization R F E) (λ _, total_space E → B × F) := ⟨λ e, e.to_fun⟩
 
 instance : has_coe (trivialization R F E) (topological_fiber_bundle.trivialization F (proj E)) :=
 ⟨topological_vector_bundle.trivialization.to_fiber_bundle_trivialization⟩
@@ -273,7 +273,7 @@ structure topological_vector_bundle_core (ι : Type*) :=
 (coord_change      : ι → ι → B → (F →ₗ[R] F))
 (coord_change_self : ∀ i, ∀ x ∈ base_set i, ∀ v, coord_change i i x v = v)
 (coord_change_continuous : ∀ i j, continuous_on (λp : B × F, coord_change i j p.1 p.2)
-                                               (set.prod ((base_set i) ∩ (base_set j)) univ))
+                                               (((base_set i) ∩ (base_set j)) ×ˢ (univ : set F)))
 (coord_change_comp : ∀ i j k, ∀ x ∈ (base_set i) ∩ (base_set j) ∩ (base_set k), ∀ v,
   (coord_change j k x) (coord_change i j x v) = coord_change i k x v)
 
@@ -370,9 +370,9 @@ instance : topological_vector_bundle R F Z.fiber :=
     { rw ←continuous_iff_le_induced,
       exact topological_fiber_bundle_core.continuous_total_space_mk ↑Z b, },
     { refine is_open_induced_iff.mpr ⟨(Z.local_triv_at b).source ∩ (Z.local_triv_at b) ⁻¹'
-        (Z.local_triv_at b).base_set.prod s, (continuous_on_open_iff
+        ((Z.local_triv_at b).base_set ×ˢ s), (continuous_on_open_iff
         (Z.local_triv_at b).open_source).mp (Z.local_triv_at b).continuous_to_fun _
-        (is_open.prod (Z.local_triv_at b).open_base_set h), _⟩,
+        ((Z.local_triv_at b).open_base_set.prod h), _⟩,
       rw [preimage_inter, ←preimage_comp, function.comp],
       simp only [id.def],
       refine ext_iff.mpr (λ a, ⟨λ ha, _, λ ha, ⟨Z.mem_base_set_at b, _⟩⟩),

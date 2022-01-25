@@ -231,11 +231,11 @@ lemma comap_coe_nhds (x : X) : comap (coe : X → alexandroff X) (𝓝 x) = 𝓝
 
 /-- If `x` is not an isolated point of `X`, then `x : alexandroff X` is not an isolated point
 of `alexandroff X`. -/
-instance nhds_within_compl_coe_ne_bot (x : X) [h : ne_bot (𝓝[{x}ᶜ] x)] :
-  ne_bot (𝓝[{x}ᶜ] (x : alexandroff X)) :=
+instance nhds_within_compl_coe_ne_bot (x : X) [h : ne_bot (𝓝[≠] x)] :
+  ne_bot (𝓝[≠] (x : alexandroff X)) :=
 by simpa [nhds_within_coe, preimage, coe_eq_coe] using h.map coe
 
-lemma nhds_within_compl_infty_eq : 𝓝[{∞}ᶜ] (∞ : alexandroff X) = map coe (coclosed_compact X) :=
+lemma nhds_within_compl_infty_eq : 𝓝[≠] (∞ : alexandroff X) = map coe (coclosed_compact X) :=
 begin
   refine (nhds_within_basis_open ∞ _).ext (has_basis_coclosed_compact.map _) _ _,
   { rintro s ⟨hs, hso⟩,
@@ -247,13 +247,13 @@ begin
 end
 
 /-- If `X` is a non-compact space, then `∞` is not an isolated point of `alexandroff X`. -/
-instance nhds_within_compl_infty_ne_bot [ne_bot (cocompact X)] :
-  ne_bot (𝓝[{∞}ᶜ] (∞ : alexandroff X)) :=
+instance nhds_within_compl_infty_ne_bot [noncompact_space X] :
+  ne_bot (𝓝[≠] (∞ : alexandroff X)) :=
 by { rw nhds_within_compl_infty_eq, apply_instance }
 
 @[priority 900]
-instance nhds_within_compl_ne_bot [∀ x : X, ne_bot (𝓝[{x}ᶜ] x)] [ne_bot (cocompact X)]
-  (x : alexandroff X) : ne_bot (𝓝[{x}ᶜ] x) :=
+instance nhds_within_compl_ne_bot [∀ x : X, ne_bot (𝓝[≠] x)] [noncompact_space X]
+  (x : alexandroff X) : ne_bot (𝓝[≠] x) :=
 alexandroff.rec _ alexandroff.nhds_within_compl_infty_ne_bot
   (λ y, alexandroff.nhds_within_compl_coe_ne_bot y) x
 
@@ -306,14 +306,14 @@ by rw [continuous_at, nhds_coe_eq, tendsto_map'_iff, continuous_at]
 
 /-- If `X` is not a compact space, then the natural embedding `X → alexandroff X` has dense range.
 -/
-lemma dense_range_coe [ne_bot (cocompact X)] :
+lemma dense_range_coe [noncompact_space X] :
   dense_range (coe : X → alexandroff X) :=
 begin
   rw [dense_range, ← compl_infty],
   exact dense_compl_singleton _
 end
 
-lemma dense_embedding_coe [ne_bot (cocompact X)] :
+lemma dense_embedding_coe [noncompact_space X] :
   dense_embedding (coe : X → alexandroff X) :=
 { dense := dense_range_coe, .. open_embedding_coe }
 
@@ -391,7 +391,7 @@ begin
 end
 
 /-- If `X` is not a compact space, then `alexandroff X` is a connected space. -/
-instance [preconnected_space X] [ne_bot (cocompact X)] : connected_space (alexandroff X) :=
+instance [preconnected_space X] [noncompact_space X] : connected_space (alexandroff X) :=
 { to_preconnected_space := dense_embedding_coe.to_dense_inducing.preconnected_space,
   to_nonempty := infer_instance }
 

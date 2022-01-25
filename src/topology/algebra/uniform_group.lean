@@ -3,11 +3,11 @@ Copyright (c) 2018 Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Johannes Hölzl
 -/
+import topology.uniform_space.uniform_convergence
 import topology.uniform_space.uniform_embedding
 import topology.uniform_space.complete_separated
 import topology.algebra.group
 import tactic.abel
-import deprecated.group
 
 /-!
 # Uniform structure on topological groups
@@ -16,9 +16,6 @@ import deprecated.group
   construct a canonical uniformity for a topological add group.
 
 * extension of ℤ-bilinear maps to complete groups (useful for ring completions)
-
-* `add_group_with_zero_nhd`: construct the topological structure from a group with a neighbourhood
-  around zero. Then with `topological_add_group.to_uniform_space` one can derive a `uniform_space`.
 -/
 
 noncomputable theory
@@ -145,39 +142,41 @@ uniform_continuous_of_tendsto_zero $
   suffices tendsto f (𝓝 0) (𝓝 (f 0)), by rwa f.map_zero at this,
   h.tendsto 0
 
+lemma cauchy_seq.add {ι : Type*} [semilattice_sup ι] {u v : ι → α} (hu : cauchy_seq u)
+  (hv : cauchy_seq v) : cauchy_seq (u + v) :=
+uniform_continuous_add.comp_cauchy_seq (hu.prod hv)
+
 end uniform_add_group
 
-section topological_add_comm_group
-universes u v w x
+section topological_comm_group
 open filter
+variables (G : Type*) [comm_group G] [topological_space G] [topological_group G]
 
-variables {G : Type u} [add_comm_group G] [topological_space G] [topological_add_group G]
-
-variable (G)
 /-- The right uniformity on a topological group. -/
-def topological_add_group.to_uniform_space : uniform_space G :=
-{ uniformity          := comap (λp:G×G, p.2 - p.1) (𝓝 0),
+@[to_additive "The right uniformity on a topological group"]
+def topological_group.to_uniform_space : uniform_space G :=
+{ uniformity          := comap (λp:G×G, p.2 / p.1) (𝓝 1),
   refl                :=
-    by refine map_le_iff_le_comap.1 (le_trans _ (pure_le_nhds 0));
+    by refine map_le_iff_le_comap.1 (le_trans _ (pure_le_nhds 1));
       simp [set.subset_def] {contextual := tt},
   symm                :=
   begin
-    suffices : tendsto ((λp, -p) ∘ (λp:G×G, p.2 - p.1)) (comap (λp:G×G, p.2 - p.1) (𝓝 0)) (𝓝 (-0)),
-    { simpa [(∘), tendsto_comap_iff] },
-    exact tendsto.comp (tendsto.neg tendsto_id) tendsto_comap
+    suffices : tendsto (λp:G×G, (p.2 / p.1)⁻¹) (comap (λp:G×G, p.2 / p.1) (𝓝 1)) (𝓝 1⁻¹),
+    { simpa [tendsto_comap_iff], },
+    exact tendsto.comp (tendsto.inv tendsto_id) tendsto_comap
   end,
   comp                :=
   begin
     intros D H,
     rw mem_lift'_sets,
     { rcases H with ⟨U, U_nhds, U_sub⟩,
-      rcases exists_nhds_zero_half U_nhds with ⟨V, ⟨V_nhds, V_sum⟩⟩,
-      existsi ((λp:G×G, p.2 - p.1) ⁻¹' V),
-      have H : (λp:G×G, p.2 - p.1) ⁻¹' V ∈ comap (λp:G×G, p.2 - p.1) (𝓝 (0 : G)),
+      rcases exists_nhds_one_split U_nhds with ⟨V, ⟨V_nhds, V_sum⟩⟩,
+      existsi ((λp:G×G, p.2 / p.1) ⁻¹' V),
+      have H : (λp:G×G, p.2 / p.1) ⁻¹' V ∈ comap (λp:G×G, p.2 / p.1) (𝓝 (1 : G)),
         by existsi [V, V_nhds] ; refl,
       existsi H,
       have comp_rel_sub :
-        comp_rel ((λp:G×G, p.2 - p.1) ⁻¹' V) ((λp, p.2 - p.1) ⁻¹' V) ⊆ (λp:G×G, p.2 - p.1) ⁻¹' U,
+        comp_rel ((λp:G×G, p.2 / p.1) ⁻¹' V) ((λp, p.2 / p.1) ⁻¹' V) ⊆ (λp:G×G, p.2 / p.1) ⁻¹' U,
       begin
         intros p p_comp_rel,
         rcases p_comp_rel with ⟨z, ⟨Hz1, Hz2⟩⟩,
@@ -190,16 +189,54 @@ def topological_add_group.to_uniform_space : uniform_space G :=
   begin
     intro S,
     let S' := λ x, {p : G × G | p.1 = x → p.2 ∈ S},
-    show is_open S ↔ ∀ (x : G), x ∈ S → S' x ∈ comap (λp:G×G, p.2 - p.1) (𝓝 (0 : G)),
+    show is_open S ↔ ∀ (x : G), x ∈ S → S' x ∈ comap (λp:G×G, p.2 / p.1) (𝓝 (1 : G)),
     rw [is_open_iff_mem_nhds],
-    refine forall_congr (assume a, forall_congr (assume ha, _)),
-    rw [← nhds_translation a, mem_comap, mem_comap],
-    refine exists_congr (assume t, exists_congr (assume ht, _)),
-    show (λ (y : G), y - a) ⁻¹' t ⊆ S ↔ (λ (p : G × G), p.snd - p.fst) ⁻¹' t ⊆ S' a,
+    refine forall₂_congr (λ a ha, _),
+    rw [← nhds_translation_div, mem_comap, mem_comap],
+    refine exists₂_congr (λ t ht, _),
+    show (λ (y : G), y / a) ⁻¹' t ⊆ S ↔ (λ (p : G × G), p.snd / p.fst) ⁻¹' t ⊆ S' a,
     split,
     { rintros h ⟨x, y⟩ hx rfl, exact h hx },
     { rintros h x hx, exact @h (a, x) hx rfl }
   end }
+
+variables {G}
+
+@[to_additive] lemma topological_group.tendsto_uniformly_iff
+  {ι α : Type*} (F : ι → α → G) (f : α → G) (p : filter ι) :
+  @tendsto_uniformly α G ι (topological_group.to_uniform_space G) F f p
+    ↔ ∀ u ∈ 𝓝 (1 : G), ∀ᶠ i in p, ∀ a, F i a / f a ∈ u :=
+⟨λ h u hu, h _ ⟨u, hu, λ _, id⟩, λ h v ⟨u, hu, hv⟩,
+  mem_of_superset (h u hu) (λ i hi a, hv (by exact hi a))⟩
+
+@[to_additive] lemma topological_group.tendsto_uniformly_on_iff
+  {ι α : Type*} (F : ι → α → G) (f : α → G) (p : filter ι) (s : set α) :
+  @tendsto_uniformly_on α G ι (topological_group.to_uniform_space G) F f p s
+    ↔ ∀ u ∈ 𝓝 (1 : G), ∀ᶠ i in p, ∀ a ∈ s, F i a / f a ∈ u :=
+⟨λ h u hu, h _ ⟨u, hu, λ _, id⟩, λ h v ⟨u, hu, hv⟩,
+  mem_of_superset (h u hu) (λ i hi a ha, hv (by exact hi a ha))⟩
+
+@[to_additive] lemma topological_group.tendsto_locally_uniformly_iff
+  {ι α : Type*} [topological_space α] (F : ι → α → G) (f : α → G) (p : filter ι) :
+  @tendsto_locally_uniformly α G ι (topological_group.to_uniform_space G) _ F f p
+    ↔ ∀ (u ∈ 𝓝 (1 : G)) (x : α), ∃ (t ∈ 𝓝 x), ∀ᶠ i in p, ∀ a ∈ t, F i a / f a ∈ u :=
+⟨λ h u hu, h _ ⟨u, hu, λ _, id⟩, λ h v ⟨u, hu, hv⟩ x, exists_imp_exists (by exact λ a,
+  exists_imp_exists (λ ha hp, mem_of_superset hp (λ i hi a ha, hv (by exact hi a ha)))) (h u hu x)⟩
+
+@[to_additive] lemma topological_group.tendsto_locally_uniformly_on_iff
+  {ι α : Type*} [topological_space α] (F : ι → α → G) (f : α → G) (p : filter ι) (s : set α) :
+  @tendsto_locally_uniformly_on α G ι (topological_group.to_uniform_space G) _ F f p s
+    ↔ ∀ (u ∈ 𝓝 (1 : G)) (x ∈ s), ∃ (t ∈ 𝓝[s] x), ∀ᶠ i in p, ∀ a ∈ t, F i a / f a ∈ u :=
+⟨λ h u hu, h _ ⟨u, hu, λ _, id⟩, λ h v ⟨u, hu, hv⟩ x, exists_imp_exists (by exact λ a,
+  exists_imp_exists (λ ha hp, mem_of_superset hp (λ i hi a ha, hv (by exact hi a ha)))) ∘ h u hu x⟩
+
+end topological_comm_group
+
+section topological_add_comm_group
+universes u v w x
+open filter
+
+variables (G : Type*) [add_comm_group G] [topological_space G] [topological_add_group G]
 
 section
 local attribute [instance] topological_add_group.to_uniform_space
@@ -219,6 +256,46 @@ begin
     uniformity_eq_comap_nhds_zero' G, tendsto_comap_iff, prod_comap_comap_eq],
   simpa [(∘), sub_eq_add_neg, add_comm, add_left_comm] using this
 end
+
+local attribute [instance] topological_add_group_is_uniform
+
+open set
+
+lemma topological_add_group.separated_iff_zero_closed :
+  separated_space G ↔ is_closed ({0} : set G) :=
+begin
+  rw [separated_space_iff, ← closure_eq_iff_is_closed],
+  split; intro h,
+  { apply subset.antisymm,
+    { intros x x_in,
+      have := group_separation_rel x 0,
+      rw sub_zero at this,
+      rw [← this, h] at x_in,
+      change x = 0 at x_in,
+      simp [x_in] },
+    { exact subset_closure } },
+  { ext p,
+    cases p with x y,
+    rw [group_separation_rel x, h, mem_singleton_iff, sub_eq_zero],
+    refl }
+end
+
+lemma topological_add_group.separated_of_zero_sep (H : ∀ x : G, x ≠ 0 → ∃ U ∈ nhds (0 : G), x ∉ U) :
+  separated_space G:=
+begin
+  rw [topological_add_group.separated_iff_zero_closed, ← is_open_compl_iff, is_open_iff_mem_nhds],
+  intros x x_not,
+  have : x ≠ 0, from mem_compl_singleton_iff.mp x_not,
+  rcases H x this with ⟨U, U_in, xU⟩,
+  rw ← nhds_zero_symm G at U_in,
+  rcases U_in with ⟨W, W_in, UW⟩,
+  rw ← nhds_translation_add_neg,
+  use [W, W_in],
+  rw subset_compl_comm,
+  suffices : -x ∉ W, by simpa,
+  exact λ h, xU (UW h)
+end
+
 end
 
 lemma to_uniform_space_eq {G : Type*} [u : uniform_space G] [add_comm_group G]
@@ -295,6 +372,7 @@ begin
   have lim2 : tendsto Φ (𝓝 (0, y₁)) (𝓝 0), by simpa using hφ.tendsto (0, y₁),
   have lim := lim2.comp lim1,
   rw tendsto_prod_self_iff at lim,
+  simp_rw ball_mem_comm,
   exact lim W' W'_nhd
 end
 
@@ -331,7 +409,7 @@ begin
     rcases U_in with ⟨U₁, U₁_in, HU₁⟩,
     rcases V_in with ⟨V₁, V₁_in, HV₁⟩,
     existsi [U₁, U₁_in, V₁, V₁_in],
-    intros x x' x_in x'_in y y' y_in y'_in,
+    intros x x_in x' x'_in y y_in y' y'_in,
     exact H _ _ (HU₁ (mk_mem_prod x_in x'_in)) (HV₁ (mk_mem_prod y_in y'_in)) },
   rcases this with ⟨U₁, U₁_nhd, V₁, V₁_nhd, H⟩,
 
@@ -348,15 +426,15 @@ begin
   existsi [U₁ ∩ U₂, inter_mem U₁_nhd U₂_nhd,
             V₁ ∩ V₂, inter_mem V₁_nhd V₂_nhd],
 
-  rintros x x' ⟨xU₁, xU₂⟩ ⟨x'U₁, x'U₂⟩ y y' ⟨yV₁, yV₂⟩ ⟨y'V₁, y'V₂⟩,
+  rintros x ⟨xU₁, xU₂⟩ x' ⟨x'U₁, x'U₂⟩ y ⟨yV₁, yV₂⟩ y' ⟨y'V₁, y'V₂⟩,
   have key_formula : φ x' y' - φ x y =
     φ(x' - x) y₁ + φ (x' - x) (y' - y₁) + φ x₁ (y' - y) + φ (x - x₁) (y' - y),
   { simp, abel },
   rw key_formula,
-  have h₁ := HU x x' xU₂ x'U₂,
-  have h₂ := H x x' xU₁ x'U₁ y₁ y' y₁_in y'V₁,
-  have h₃ := HV y y' yV₂ y'V₂,
-  have h₄ := H x₁ x x₁_in xU₁ y y' yV₁ y'V₁,
+  have h₁ := HU x xU₂ x' x'U₂,
+  have h₂ := H x xU₁ x' x'U₁ y₁ y₁_in y' y'V₁,
+  have h₃ := HV y yV₂ y' y'V₂,
+  have h₄ := H x₁ x₁_in x xU₁ y yV₁ y' y'V₁,
   exact W4 h₁ h₂ h₃ h₄
 end
 
@@ -395,7 +473,7 @@ begin
     rcases V_nhd with ⟨V', V'_nhd, V'_sub⟩,
 
     rw [mem_map, mem_comap, nhds_prod_eq],
-    existsi set.prod (set.prod U' V') (set.prod U' V'),
+    existsi (U' ×ˢ V') ×ˢ (U' ×ˢ V'),
     rw mem_prod_same_iff,
 
     simp only [exists_prop],

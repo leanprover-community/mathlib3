@@ -3,8 +3,9 @@ Copyright (c) 2021 Eric Wieser. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser
 -/
-import algebra.direct_sum.ring
+import algebra.algebra.basic
 import algebra.direct_sum.module
+import algebra.direct_sum.ring
 
 /-! # Additively-graded algebra structures on `⨁ i, A i`
 
@@ -23,11 +24,6 @@ where all `A i` are `R`-modules. This is the extra structure needed to promote `
   submodules.
 * `direct_sum.to_algebra` extends `direct_sum.to_semiring` to produce an `alg_hom`.
 
-## Direct sums of subobjects
-
-Additionally, this module provides the instance `direct_sum.galgebra.of_submodules` which promotes
-any instance constructed with `direct_sum.gmonoid.of_submodules` to an `R`-algebra.
-
 -/
 
 universes uι uR uA uB
@@ -40,21 +36,19 @@ open_locale direct_sum
 variables (R : Type uR) (A : ι → Type uA) {B : Type uB} [decidable_eq ι]
 
 variables [comm_semiring R] [Π i, add_comm_monoid (A i)] [Π i, module R (A i)]
-variables [add_monoid ι] [gmonoid A]
+variables [add_monoid ι] [gsemiring A]
 
 section
-
-local attribute [instance] ghas_one.to_sigma_has_one
-local attribute [instance] ghas_mul.to_sigma_has_mul
 
 /-- A graded version of `algebra`. An instance of `direct_sum.galgebra R A` endows `(⨁ i, A i)`
 with an `R`-algebra structure. -/
 class galgebra :=
 (to_fun : R →+ A 0)
-(map_one : to_fun 1 = ghas_one.one)
-(map_mul : ∀ r s, (⟨_, to_fun (r * s)⟩ : Σ i, A i) = ⟨_, ghas_mul.mul (to_fun r) (to_fun s)⟩)
-(commutes : ∀ r x, (⟨_, to_fun (r)⟩ : Σ i, A i) * x = x * ⟨_, to_fun (r)⟩)
-(smul_def : ∀ r (x : Σ i, A i), (⟨x.1, r • x.2⟩ : Σ i, A i) = ⟨_, to_fun (r)⟩ * x)
+(map_one : to_fun 1 = graded_monoid.ghas_one.one)
+(map_mul : ∀ r s,
+  graded_monoid.mk _ (to_fun (r * s)) = ⟨_, graded_monoid.ghas_mul.mul (to_fun r) (to_fun s)⟩)
+(commutes : ∀ r x, graded_monoid.mk _ (to_fun r) * x = x * ⟨_, to_fun r⟩)
+(smul_def : ∀ r (x : graded_monoid A), graded_monoid.mk x.1 (r • x.2) = ⟨_, to_fun (r)⟩ * x)
 
 end
 
@@ -95,32 +89,6 @@ lemma algebra_map_apply (r : R) :
 lemma algebra_map_to_add_monoid_hom :
   ↑(algebra_map R (⨁ i, A i)) = (direct_sum.of A 0).comp (galgebra.to_fun : R →+ A 0) := rfl
 
-section
--- for `simps`
-local attribute [simp] linear_map.cod_restrict
-
-/-- A `direct_sum.gmonoid` instance produced by `direct_sum.gmonoid.of_submodules` is automatically
-a `direct_sum.galgebra`. -/
-@[simps to_fun_apply {simp_rhs := tt}]
-instance galgebra.of_submodules
-  (carriers : ι → submodule R B)
-  (one_mem : (1 : B) ∈ carriers 0)
-  (mul_mem : ∀ ⦃i j⦄ (gi : carriers i) (gj : carriers j), (gi * gj : B) ∈ carriers (i + j)) :
-  by haveI : gmonoid (λ i, carriers i) := gmonoid.of_submodules carriers one_mem mul_mem; exact
-  galgebra R (λ i, carriers i) :=
-by exact {
-  to_fun := begin
-    refine ((algebra.linear_map R B).cod_restrict (carriers 0) $ λ r, _).to_add_monoid_hom,
-    exact submodule.one_le.mpr one_mem (submodule.algebra_map_mem _),
-  end,
-  map_one := subtype.ext $ by exact (algebra_map R B).map_one,
-  map_mul := λ x y, sigma.subtype_ext (add_zero 0).symm $ (algebra_map R B).map_mul _ _,
-  commutes := λ r ⟨i, xi⟩,
-    sigma.subtype_ext ((zero_add i).trans (add_zero i).symm) $ algebra.commutes _ _,
-  smul_def := λ r ⟨i, xi⟩, sigma.subtype_ext (zero_add i).symm $ algebra.smul_def _ _ }
-
-end
-
 /-- A family of `linear_map`s preserving `direct_sum.ghas_one.one` and `direct_sum.ghas_mul.mul`
 describes an `alg_hom` on `⨁ i, A i`. This is a stronger version of `direct_sum.to_semiring`.
 
@@ -130,8 +98,8 @@ coercions such as `submodule.subtype (A i)`, and the `[gmonoid A]` structure ori
 can be discharged by `rfl`. -/
 @[simps]
 def to_algebra
-  (f : Π i, A i →ₗ[R] B) (hone : f _ (ghas_one.one) = 1)
-  (hmul : ∀ {i j} (ai : A i) (aj : A j), f _ (ghas_mul.mul ai aj) = f _ ai * f _ aj)
+  (f : Π i, A i →ₗ[R] B) (hone : f _ (graded_monoid.ghas_one.one) = 1)
+  (hmul : ∀ {i j} (ai : A i) (aj : A j), f _ (graded_monoid.ghas_mul.mul ai aj) = f _ ai * f _ aj)
   (hcommutes : ∀ r, (f 0) (galgebra.to_fun r) = (algebra_map R B) r) :
   (⨁ i, A i) →ₐ[R] B :=
 { to_fun := to_semiring (λ i, (f i).to_add_monoid_hom) hone @hmul,
@@ -142,10 +110,12 @@ def to_algebra
 
 See note [partially-applied ext lemmas]. -/
 @[ext]
-lemma alg_hom_ext ⦃f g : (⨁ i, A i) →ₐ[R] B⦄
+lemma alg_hom_ext' ⦃f g : (⨁ i, A i) →ₐ[R] B⦄
   (h : ∀ i, f.to_linear_map.comp (lof _ _ A i) = g.to_linear_map.comp (lof _ _ A i)) : f = g :=
-alg_hom.coe_ring_hom_injective $
-  direct_sum.ring_hom_ext $ λ i, add_monoid_hom.ext $ linear_map.congr_fun (h i)
+alg_hom.to_linear_map_injective $ direct_sum.linear_map_ext _ h
+
+lemma alg_hom_ext ⦃f g : (⨁ i, A i) →ₐ[R] B⦄ (h : ∀ i x, f (of A i x) = g (of A i x)) : f = g :=
+alg_hom_ext' R A $ λ i, linear_map.ext $ h i
 
 end direct_sum
 

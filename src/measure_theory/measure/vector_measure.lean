@@ -3,7 +3,8 @@ Copyright (c) 2021 Kexing Ying. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kexing Ying
 -/
-import measure_theory.integral.lebesgue
+import measure_theory.measure.measure_space
+import analysis.complex.basic
 
 /-!
 
@@ -73,8 +74,8 @@ variables {M : Type*} [add_comm_monoid M] [topological_space M]
 
 include m
 
-instance : has_coe_to_fun (vector_measure α M) :=
-⟨λ _, set α → M, vector_measure.measure_of'⟩
+instance : has_coe_to_fun (vector_measure α M) (λ _, set α → M) :=
+⟨vector_measure.measure_of'⟩
 
 initialize_simps_projections vector_measure (measure_of' → apply)
 
@@ -334,7 +335,7 @@ def smul (r : R) (v : vector_measure α M) : vector_measure α M :=
 { measure_of' := r • v,
   empty' := by rw [pi.smul_apply, empty, smul_zero],
   not_measurable' := λ _ hi, by rw [pi.smul_apply, v.not_measurable hi, smul_zero],
-  m_Union' := λ _ hf₁ hf₂, has_sum.smul (v.m_Union hf₁ hf₂) }
+  m_Union' := λ _ hf₁ hf₂, has_sum.const_smul (v.m_Union hf₁ hf₂) }
 
 instance : has_scalar R (vector_measure α M) := ⟨smul⟩
 
@@ -394,6 +395,12 @@ lemma to_signed_measure_apply_measurable {μ : measure α} [is_finite_measure μ
   {i : set α} (hi : measurable_set i) :
   μ.to_signed_measure i = (μ i).to_real :=
 if_pos hi
+
+-- Without this lemma, `singular_part_neg` in `measure_theory.decomposition.lebesgue` is
+-- extremely slow
+lemma to_signed_measure_congr {μ ν : measure α} [is_finite_measure μ] [is_finite_measure ν]
+  (h : μ = ν) : μ.to_signed_measure = ν.to_signed_measure :=
+by { congr, exact h }
 
 lemma to_signed_measure_eq_to_signed_measure_iff
   {μ ν : measure α} [is_finite_measure μ] [is_finite_measure ν] :
@@ -537,6 +544,64 @@ begin
   { ext i hi,
     rw [map_apply _ hf hi, zero_apply, zero_apply] },
   { exact dif_neg hf }
+end
+
+section
+
+variables {N : Type*} [add_comm_monoid N] [topological_space N]
+
+/-- Given a vector measure `v` on `M` and a continuous add_monoid_hom `f : M → N`, `f ∘ v` is a
+vector measure on `N`. -/
+def map_range (v : vector_measure α M) (f : M →+ N) (hf : continuous f) : vector_measure α N :=
+{ measure_of' := λ s, f (v s),
+  empty' := by rw [empty, add_monoid_hom.map_zero],
+  not_measurable' := λ i hi, by rw [not_measurable v hi, add_monoid_hom.map_zero],
+  m_Union' := λ g hg₁ hg₂, has_sum.map (v.m_Union hg₁ hg₂) f hf }
+
+@[simp] lemma map_range_apply {f : M →+ N} (hf : continuous f) {s : set α} :
+  v.map_range f hf s = f (v s) :=
+rfl
+
+@[simp] lemma map_range_id :
+  v.map_range (add_monoid_hom.id M) continuous_id = v :=
+by { ext, refl }
+
+@[simp] lemma map_range_zero {f : M →+ N} (hf : continuous f) :
+  map_range (0 : vector_measure α M) f hf = 0 :=
+by { ext, simp }
+
+section has_continuous_add
+
+variables [has_continuous_add M] [has_continuous_add N]
+
+@[simp] lemma map_range_add {v w : vector_measure α M} {f : M →+ N} (hf : continuous f) :
+  (v + w).map_range f hf = v.map_range f hf + w.map_range f hf :=
+by { ext, simp }
+
+/-- Given a continuous add_monoid_hom `f : M → N`, `map_range_hom` is the add_monoid_hom mapping the
+vector measure `v` on `M` to the vector measure `f ∘ v` on `N`. -/
+def map_range_hom (f : M →+ N) (hf : continuous f) : vector_measure α M →+ vector_measure α N :=
+{ to_fun := λ v, v.map_range f hf,
+  map_zero' := map_range_zero hf,
+  map_add' := λ _ _, map_range_add hf }
+
+end has_continuous_add
+
+section module
+
+variables {R : Type*} [semiring R] [module R M] [module R N]
+variables [topological_space R] [has_continuous_add M] [has_continuous_add N]
+  [has_continuous_smul R M] [has_continuous_smul R N]
+
+/-- Given a continuous linear map `f : M → N`, `map_rangeₗ` is the linear map mapping the
+vector measure `v` on `M` to the vector measure `f ∘ v` on `N`. -/
+def map_rangeₗ (f : M →ₗ[R] N) (hf : continuous f) : vector_measure α M →ₗ[R] vector_measure α N :=
+{ to_fun := λ v, v.map_range f.to_add_monoid_hom hf,
+  map_add' := λ _ _, map_range_add hf,
+  map_smul' := by { intros, ext, simp } }
+
+end module
+
 end
 
 /-- The restriction of a vector measure on some set. -/
@@ -936,13 +1001,17 @@ include m
 def absolutely_continuous (v : vector_measure α M) (w : vector_measure α N) :=
 ∀ ⦃s : set α⦄, w s = 0 → v s = 0
 
-infix ` ≪ `:50 := absolutely_continuous
+
+localized "infix ` ≪ᵥ `:50 := measure_theory.vector_measure.absolutely_continuous"
+  in measure_theory
+
+open_locale measure_theory
 
 namespace absolutely_continuous
 
 variables {v : vector_measure α M} {w : vector_measure α N}
 
-lemma mk (h : ∀ ⦃s : set α⦄, measurable_set s → w s = 0 → v s = 0) : v ≪ w :=
+lemma mk (h : ∀ ⦃s : set α⦄, measurable_set s → w s = 0 → v s = 0) : v ≪ᵥ w :=
 begin
   intros s hs,
   by_cases hmeas : measurable_set s,
@@ -950,24 +1019,24 @@ begin
   { exact not_measurable v hmeas }
 end
 
-lemma eq {w : vector_measure α M} (h : v = w) : v ≪ w :=
+lemma eq {w : vector_measure α M} (h : v = w) : v ≪ᵥ w :=
 λ s hs, h.symm ▸ hs
 
-@[refl] lemma refl (v : vector_measure α M) : v ≪ v :=
+@[refl] lemma refl (v : vector_measure α M) : v ≪ᵥ v :=
 eq rfl
 
-@[trans] lemma trans {u : vector_measure α L} (huv : u ≪ v) (hvw : v ≪ w) : u ≪ w :=
+@[trans] lemma trans {u : vector_measure α L} (huv : u ≪ᵥ v) (hvw : v ≪ᵥ w) : u ≪ᵥ w :=
 λ _ hs, huv $ hvw hs
 
-lemma zero (v : vector_measure α N) : (0 : vector_measure α M) ≪ v :=
+lemma zero (v : vector_measure α N) : (0 : vector_measure α M) ≪ᵥ v :=
 λ s _, vector_measure.zero_apply s
 
 lemma neg_left {M : Type*} [add_comm_group M] [topological_space M] [topological_add_group M]
-  {v : vector_measure α M} {w : vector_measure α N} (h : v ≪ w) : -v ≪ w :=
+  {v : vector_measure α M} {w : vector_measure α N} (h : v ≪ᵥ w) : -v ≪ᵥ w :=
 λ s hs, by { rw [neg_apply, h hs, neg_zero] }
 
 lemma neg_right {N : Type*} [add_comm_group N] [topological_space N] [topological_add_group N]
-  {v : vector_measure α M} {w : vector_measure α N} (h : v ≪ w) : v ≪ -w :=
+  {v : vector_measure α M} {w : vector_measure α N} (h : v ≪ᵥ w) : v ≪ᵥ -w :=
 begin
   intros s hs,
   rw [neg_apply, neg_eq_zero] at hs,
@@ -975,22 +1044,22 @@ begin
 end
 
 lemma add [has_continuous_add M] {v₁ v₂ : vector_measure α M} {w : vector_measure α N}
-  (hv₁ : v₁ ≪ w) (hv₂ : v₂ ≪ w) : v₁ + v₂ ≪ w :=
+  (hv₁ : v₁ ≪ᵥ w) (hv₂ : v₂ ≪ᵥ w) : v₁ + v₂ ≪ᵥ w :=
 λ s hs, by { rw [add_apply, hv₁ hs, hv₂ hs, zero_add] }
 
 lemma sub {M : Type*} [add_comm_group M] [topological_space M] [topological_add_group M]
-  {v₁ v₂ : vector_measure α M} {w : vector_measure α N} (hv₁ : v₁ ≪ w) (hv₂ : v₂ ≪ w) :
-  v₁ - v₂ ≪ w :=
+  {v₁ v₂ : vector_measure α M} {w : vector_measure α N} (hv₁ : v₁ ≪ᵥ w) (hv₂ : v₂ ≪ᵥ w) :
+  v₁ - v₂ ≪ᵥ w :=
 λ s hs, by { rw [sub_apply, hv₁ hs, hv₂ hs, zero_sub, neg_zero] }
 
 lemma smul {R : Type*} [semiring R] [distrib_mul_action R M]
   [topological_space R] [has_continuous_smul R M]
-  {r : R} {v : vector_measure α M} {w : vector_measure α N} (h : v ≪ w) :
-  r • v ≪ w :=
+  {r : R} {v : vector_measure α M} {w : vector_measure α N} (h : v ≪ᵥ w) :
+  r • v ≪ᵥ w :=
 λ s hs, by { rw [smul_apply, h hs, smul_zero] }
 
-lemma map [measure_space β] (h : v ≪ w) (f : α → β) :
-  v.map f ≪ w.map f :=
+lemma map [measure_space β] (h : v ≪ᵥ w) (f : α → β) :
+  v.map f ≪ᵥ w.map f :=
 begin
   by_cases hf : measurable f,
   { refine mk (λ s hs hws, _),
@@ -1001,7 +1070,7 @@ begin
 end
 
 lemma ennreal_to_measure {μ : vector_measure α ℝ≥0∞} :
-  (∀ ⦃s : set α⦄, μ.ennreal_to_measure s = 0 → v s = 0) ↔ v ≪ μ :=
+  (∀ ⦃s : set α⦄, μ.ennreal_to_measure s = 0 → v s = 0) ↔ v ≪ᵥ μ :=
 begin
   split; intro h,
   { refine mk (λ s hmeas hs, h _),

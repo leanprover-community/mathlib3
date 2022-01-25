@@ -3,11 +3,11 @@ Copyright (c) 2014 Robert Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Lewis, Leonardo de Moura, Mario Carneiro, Floris van Doorn
 -/
-import algebra.order.ring
-import algebra.field
-import tactic.monotonicity.basic
+import algebra.field.basic
 import algebra.group_power.order
-import order.order_dual
+import algebra.order.ring
+import order.bounds
+import tactic.monotonicity.basic
 
 /-!
 # Linear ordered fields
@@ -34,15 +34,15 @@ variables [linear_ordered_field α] {a b c d e : α}
 
 section
 
-/-- `equiv.mul_left'` as an order_iso. -/
+/-- `equiv.mul_left₀` as an order_iso. -/
 @[simps {simp_rhs := tt}]
-def order_iso.mul_left' (a : α) (ha : 0 < a) : α ≃o α :=
-{ map_rel_iff' := λ _ _, mul_le_mul_left ha, ..equiv.mul_left' a ha.ne' }
+def order_iso.mul_left₀ (a : α) (ha : 0 < a) : α ≃o α :=
+{ map_rel_iff' := λ _ _, mul_le_mul_left ha, ..equiv.mul_left₀ a ha.ne' }
 
-/-- `equiv.mul_right'` as an order_iso. -/
+/-- `equiv.mul_right₀` as an order_iso. -/
 @[simps {simp_rhs := tt}]
-def order_iso.mul_right' (a : α) (ha : 0 < a) : α ≃o α :=
-{ map_rel_iff' := λ _ _, mul_le_mul_right ha, ..equiv.mul_right' a ha.ne' }
+def order_iso.mul_right₀ (a : α) (ha : 0 < a) : α ≃o α :=
+{ map_rel_iff' := λ _ _, mul_le_mul_right ha, ..equiv.mul_right₀ a ha.ne' }
 
 end
 
@@ -52,7 +52,7 @@ end
 
 @[simp] lemma inv_pos : 0 < a⁻¹ ↔ 0 < a :=
 suffices ∀ a : α, 0 < a → 0 < a⁻¹,
-from ⟨λ h, inv_inv' a ▸ this _ h, this a⟩,
+from ⟨λ h, inv_inv₀ a ▸ this _ h, this a⟩,
 assume a ha, flip lt_of_mul_lt_mul_left ha.le $ by simp [ne_of_gt ha, zero_lt_one]
 
 @[simp] lemma inv_nonneg : 0 ≤ a⁻¹ ↔ 0 ≤ a :=
@@ -166,6 +166,9 @@ by rw [mul_comm, inv_mul_le_iff h]
 lemma mul_inv_le_iff' (h : 0 < b) : a * b⁻¹ ≤ c ↔ a ≤ c * b :=
 by rw [mul_comm, inv_mul_le_iff' h]
 
+lemma div_self_le_one (a : α) : a / a ≤ 1 :=
+if h : a = 0 then by simp [h] else by simp [h]
+
 lemma inv_mul_lt_iff (h : 0 < b) : b⁻¹ * a < c ↔ a < b * c :=
 begin
   rw [inv_eq_one_div, mul_comm, ← div_eq_mul_one_div],
@@ -243,13 +246,13 @@ by rw [← one_div, div_le_iff ha, ← div_eq_inv_mul, le_div_iff hb, one_mul]
 /-- In a linear ordered field, for positive `a` and `b` we have `a⁻¹ ≤ b ↔ b⁻¹ ≤ a`.
 See also `inv_le_of_inv_le` for a one-sided implication with one fewer assumption. -/
 lemma inv_le (ha : 0 < a) (hb : 0 < b) : a⁻¹ ≤ b ↔ b⁻¹ ≤ a :=
-by rw [← inv_le_inv hb (inv_pos.2 ha), inv_inv']
+by rw [← inv_le_inv hb (inv_pos.2 ha), inv_inv₀]
 
 lemma inv_le_of_inv_le (ha : 0 < a) (h : a⁻¹ ≤ b) : b⁻¹ ≤ a :=
 (inv_le ha ((inv_pos.2 ha).trans_le h)).1 h
 
 lemma le_inv (ha : 0 < a) (hb : 0 < b) : a ≤ b⁻¹ ↔ b ≤ a⁻¹ :=
-by rw [← inv_le_inv (inv_pos.2 hb) ha, inv_inv']
+by rw [← inv_le_inv (inv_pos.2 hb) ha, inv_inv₀]
 
 lemma inv_lt_inv (ha : 0 < a) (hb : 0 < b) : a⁻¹ < b⁻¹ ↔ b < a :=
 lt_iff_lt_of_le_iff_le (inv_le_inv hb ha)
@@ -269,10 +272,10 @@ lemma inv_le_inv_of_neg (ha : a < 0) (hb : b < 0) : a⁻¹ ≤ b⁻¹ ↔ b ≤ 
 by rw [← one_div, div_le_iff_of_neg ha, ← div_eq_inv_mul, div_le_iff_of_neg hb, one_mul]
 
 lemma inv_le_of_neg (ha : a < 0) (hb : b < 0) : a⁻¹ ≤ b ↔ b⁻¹ ≤ a :=
-by rw [← inv_le_inv_of_neg hb (inv_lt_zero.2 ha), inv_inv']
+by rw [← inv_le_inv_of_neg hb (inv_lt_zero.2 ha), inv_inv₀]
 
 lemma le_inv_of_neg (ha : a < 0) (hb : b < 0) : a ≤ b⁻¹ ↔ b ≤ a⁻¹ :=
-by rw [← inv_le_inv_of_neg (inv_lt_zero.2 hb) ha, inv_inv']
+by rw [← inv_le_inv_of_neg (inv_lt_zero.2 hb) ha, inv_inv₀]
 
 lemma inv_lt_inv_of_neg (ha : a < 0) (hb : b < 0) : a⁻¹ < b⁻¹ ↔ b < a :=
 lt_iff_lt_of_le_iff_le (inv_le_inv_of_neg hb ha)
@@ -296,7 +299,7 @@ lemma one_le_inv (h₁ : 0 < a) (h₂ : a ≤ 1) : 1 ≤ a⁻¹ :=
 by rwa [le_inv (@zero_lt_one α _ _) h₁, inv_one]
 
 lemma inv_lt_one_iff_of_pos (h₀ : 0 < a) : a⁻¹ < 1 ↔ 1 < a :=
-⟨λ h₁, inv_inv' a ▸ one_lt_inv (inv_pos.2 h₀) h₁, inv_lt_one⟩
+⟨λ h₁, inv_inv₀ a ▸ one_lt_inv (inv_pos.2 h₀) h₁, inv_lt_one⟩
 
 lemma inv_lt_one_iff : a⁻¹ < 1 ↔ a ≤ 0 ∨ 1 < a :=
 begin
@@ -306,17 +309,17 @@ begin
 end
 
 lemma one_lt_inv_iff : 1 < a⁻¹ ↔ 0 < a ∧ a < 1 :=
-⟨λ h, ⟨inv_pos.1 (zero_lt_one.trans h), inv_inv' a ▸ inv_lt_one h⟩, and_imp.2 one_lt_inv⟩
+⟨λ h, ⟨inv_pos.1 (zero_lt_one.trans h), inv_inv₀ a ▸ inv_lt_one h⟩, and_imp.2 one_lt_inv⟩
 
 lemma inv_le_one_iff : a⁻¹ ≤ 1 ↔ a ≤ 0 ∨ 1 ≤ a :=
 begin
   rcases em (a = 1) with (rfl|ha),
   { simp [le_rfl] },
-  { simp only [ne.le_iff_lt (ne.symm ha), ne.le_iff_lt (mt inv_eq_one'.1 ha), inv_lt_one_iff] }
+  { simp only [ne.le_iff_lt (ne.symm ha), ne.le_iff_lt (mt inv_eq_one₀.1 ha), inv_lt_one_iff] }
 end
 
 lemma one_le_inv_iff : 1 ≤ a⁻¹ ↔ 0 < a ∧ a ≤ 1 :=
-⟨λ h, ⟨inv_pos.1 (zero_lt_one.trans_le h), inv_inv' a ▸ inv_le_one h⟩, and_imp.2 one_le_inv⟩
+⟨λ h, ⟨inv_pos.1 (zero_lt_one.trans_le h), inv_inv₀ a ▸ inv_le_one h⟩, and_imp.2 one_le_inv⟩
 
 /-!
 ### Relating two divisions.
@@ -328,7 +331,8 @@ begin
   exact mul_le_mul_of_nonneg_right h (one_div_nonneg.2 hc)
 end
 
-@[mono] lemma div_le_div_of_le_left (ha : 0 ≤ a) (hc : 0 < c) (h : c ≤ b) : a / b ≤ a / c :=
+-- Not a `mono` lemma b/c `div_le_div` is strictly more general
+lemma div_le_div_of_le_left (ha : 0 ≤ a) (hc : 0 < c) (h : c ≤ b) : a / b ≤ a / c :=
 begin
   rw [div_eq_mul_inv, div_eq_mul_inv],
   exact mul_le_mul_of_nonneg_left ((inv_le_inv (hc.trans_le h) hc).mpr h) ha
@@ -391,12 +395,18 @@ lemma div_lt_div' (hac : a ≤ c) (hbd : d < b) (c0 : 0 < c) (d0 : 0 < d) :
   a / b < c / d :=
 (div_lt_div_iff (d0.trans hbd) d0).2 (mul_lt_mul' hac hbd d0.le c0)
 
-lemma div_lt_div_of_lt_left (hb : 0 < b) (h : b < a) (hc : 0 < c) : c / a < c / b :=
+lemma div_lt_div_of_lt_left (hc : 0 < c) (hb : 0 < b) (h : b < a) : c / a < c / b :=
 (div_lt_div_left hc (hb.trans h) hb).mpr h
 
 /-!
 ### Relating one division and involving `1`
 -/
+
+lemma div_le_self (ha : 0 ≤ a) (hb : 1 ≤ b) : a / b ≤ a :=
+by simpa only [div_one] using div_le_div_of_le_left ha zero_lt_one hb
+
+lemma div_lt_self (ha : 0 < a) (hb : 1 < b) : a / b < a :=
+by simpa only [div_one] using div_lt_div_of_lt_left ha zero_lt_one hb
 
 lemma one_le_div (hb : 0 < b) : 1 ≤ a / b ↔ b ≤ a :=
 by rw [le_div_iff hb, one_mul]
@@ -582,12 +592,16 @@ begin
     ← lt_sub_iff_add_lt, sub_self_div_two, sub_self_div_two, div_lt_div_right (@zero_lt_two α _ _)]
 end
 
+lemma left_lt_add_div_two : a < (a + b) / 2 ↔ a < b := by simp [lt_div_iff, mul_two]
+
+lemma add_div_two_lt_right : (a + b) / 2 < b ↔ a < b := by simp [div_lt_iff, mul_two]
+
 /--  An inequality involving `2`. -/
 lemma sub_one_div_inv_le_two (a2 : 2 ≤ a) :
   (1 - 1 / a)⁻¹ ≤ 2 :=
 begin
   -- Take inverses on both sides to obtain `2⁻¹ ≤ 1 - 1 / a`
-  refine trans (inv_le_inv_of_le (inv_pos.mpr zero_lt_two) _) (inv_inv' (2 : α)).le,
+  refine trans (inv_le_inv_of_le (inv_pos.mpr zero_lt_two) _) (inv_inv₀ (2 : α)).le,
   -- move `1 / a` to the left and `1 - 1 / 2 = 1 / 2` to the right to obtain `1 / a ≤ ⅟ 2`
   refine trans ((le_sub_iff_add_le.mpr ((_ : _ + 2⁻¹ = _ ).le))) ((sub_le_sub_iff_left 1).mpr _),
   { -- show 2⁻¹ + 2⁻¹ = 1
@@ -605,7 +619,6 @@ See note [reducible non-instances]. -/
 @[reducible]
 def function.injective.linear_ordered_field {β : Type*}
   [has_zero β] [has_one β] [has_add β] [has_mul β] [has_neg β] [has_sub β] [has_inv β] [has_div β]
-  [nontrivial β]
   (f : β → α) (hf : function.injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
   (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y)
@@ -642,6 +655,14 @@ end
 
 lemma exists_add_lt_and_pos_of_lt (h : b < a) : ∃ c : α, b + c < a ∧ 0 < c :=
 ⟨(a - b) / 2, add_sub_div_two_lt h, div_pos (sub_pos_of_lt h) zero_lt_two⟩
+
+lemma exists_pos_mul_lt {a : α} (h : 0 < a) (b : α) : ∃ c : α, 0 < c ∧ b * c < a :=
+begin
+  have : 0 < a / max (b + 1) 1, from div_pos h (lt_max_iff.2 (or.inr zero_lt_one)),
+  refine ⟨a / max (b + 1) 1, this, _⟩,
+  rw [← lt_div_iff this, div_div_cancel' h.ne'],
+  exact lt_max_iff.2 (or.inl $ lt_add_one _)
+end
 
 lemma le_of_forall_sub_le (h : ∀ ε > 0, b - ε ≤ a) : b ≤ a :=
 begin
@@ -685,17 +706,17 @@ lemma max_div_div_right_of_nonpos {c : α} (hc : c ≤ 0) (a b : α) :
   max (a / c) (b / c) = (min a b) / c :=
 eq.symm $ @monotone.map_min α (order_dual α) _ _ _ _ _ (λ x y, div_le_div_of_nonpos_of_le hc)
 
-lemma abs_div (a b : α) : abs (a / b) = abs a / abs b :=
+lemma abs_div (a b : α) : |a / b| = |a| / |b| :=
 (abs_hom : monoid_with_zero_hom α α).map_div a b
 
-lemma abs_one_div (a : α) : abs (1 / a) = 1 / abs a :=
+lemma abs_one_div (a : α) : |1 / a| = 1 / |a| :=
 by rw [abs_div, abs_one]
 
-lemma abs_inv (a : α) : abs a⁻¹ = (abs a)⁻¹ :=
-(abs_hom : monoid_with_zero_hom α α).map_inv' a
+lemma abs_inv (a : α) : |a⁻¹| = (|a|)⁻¹ :=
+(abs_hom : monoid_with_zero_hom α α).map_inv a
 
 -- TODO: add lemmas with `a⁻¹`.
-lemma one_div_strict_mono_decr_on : strict_mono_decr_on (λ x : α, 1 / x) (set.Ioi 0) :=
+lemma one_div_strict_anti_on : strict_anti_on (λ x : α, 1 / x) (set.Ioi 0) :=
 λ x x1 y y1 xy, (one_div_lt_one_div (set.mem_Ioi.mp y1) (set.mem_Ioi.mp x1)).mpr xy
 
 lemma one_div_pow_le_one_div_pow_of_le (a1 : 1 ≤ a) {m n : ℕ} (mn : m ≤ n) :
@@ -713,5 +734,35 @@ lemma one_div_pow_mono (a1 : 1 ≤ a) : monotone (λ n : ℕ, order_dual.to_dual
 
 lemma one_div_pow_strict_mono (a1 : 1 < a) : strict_mono (λ n : ℕ, order_dual.to_dual 1 / a ^ n) :=
 λ m n, one_div_pow_lt_one_div_pow_of_lt a1
+
+/-! ### Results about `is_lub` and `is_glb` -/
+
+lemma is_lub.mul_left {s : set α} (ha : 0 ≤ a) (hs : is_lub s b) :
+  is_lub ((λ b, a * b) '' s) (a * b) :=
+begin
+  rcases lt_or_eq_of_le ha with ha | rfl,
+  { exact (order_iso.mul_left₀ _ ha).is_lub_image'.2 hs, },
+  { simp_rw zero_mul,
+    rw hs.nonempty.image_const,
+    exact is_lub_singleton },
+end
+
+lemma is_lub.mul_right {s : set α} (ha : 0 ≤ a) (hs : is_lub s b) :
+  is_lub ((λ b, b * a) '' s) (b * a) :=
+by simpa [mul_comm] using hs.mul_left ha
+
+lemma is_glb.mul_left {s : set α} (ha : 0 ≤ a) (hs : is_glb s b) :
+  is_glb ((λ b, a * b) '' s) (a * b) :=
+begin
+  rcases lt_or_eq_of_le ha with ha | rfl,
+  { exact (order_iso.mul_left₀ _ ha).is_glb_image'.2 hs, },
+  { simp_rw zero_mul,
+    rw hs.nonempty.image_const,
+    exact is_glb_singleton },
+end
+
+lemma is_glb.mul_right {s : set α} (ha : 0 ≤ a) (hs : is_glb s b) :
+  is_glb ((λ b, b * a) '' s) (b * a) :=
+by simpa [mul_comm] using hs.mul_left ha
 
 end linear_ordered_field

@@ -7,6 +7,7 @@ import analysis.calculus.deriv
 import topology.algebra.ordered.extend_from
 import topology.algebra.polynomial
 import topology.local_extr
+import data.polynomial.field_division
 
 /-!
 # Local extrema of smooth functions
@@ -318,10 +319,10 @@ let ⟨c, cmem, hc⟩ := exists_local_extr_Ioo f hab hfc hfI in
 variables {f f'} {l : ℝ}
 
 /-- **Rolle's Theorem**, a version for a function on an open interval: if `f` has derivative `f'`
-on `(a, b)` and has the same limit `l` at `𝓝[Ioi a] a` and `𝓝[Iio b] b`, then `f' c = 0`
+on `(a, b)` and has the same limit `l` at `𝓝[>] a` and `𝓝[<] b`, then `f' c = 0`
 for some `c ∈ (a, b)`.  -/
 lemma exists_has_deriv_at_eq_zero' (hab : a < b)
-  (hfa : tendsto f (𝓝[Ioi a] a) (𝓝 l)) (hfb : tendsto f (𝓝[Iio b] b) (𝓝 l))
+  (hfa : tendsto f (𝓝[>] a) (𝓝 l)) (hfb : tendsto f (𝓝[<] b) (𝓝 l))
   (hff' : ∀ x ∈ Ioo a b, has_deriv_at f (f' x) x) :
   ∃ c ∈ Ioo a b, f' c = 0 :=
 begin
@@ -338,11 +339,11 @@ begin
 end
 
 /-- **Rolle's Theorem**, a version for a function on an open interval: if `f` has the same limit
-`l` at `𝓝[Ioi a] a` and `𝓝[Iio b] b`, then `deriv f c = 0` for some `c ∈ (a, b)`. This version
+`l` at `𝓝[>] a` and `𝓝[<] b`, then `deriv f c = 0` for some `c ∈ (a, b)`. This version
 does not require differentiability of `f` because we define `deriv f c = 0` whenever `f` is not
 differentiable at `c`. -/
 lemma exists_deriv_eq_zero' (hab : a < b)
-  (hfa : tendsto f (𝓝[Ioi a] a) (𝓝 l)) (hfb : tendsto f (𝓝[Iio b] b) (𝓝 l)) :
+  (hfa : tendsto f (𝓝[>] a) (𝓝 l)) (hfb : tendsto f (𝓝[<] b) (𝓝 l)) :
   ∃ c ∈ Ioo a b, deriv f c = 0 :=
 classical.by_cases
   (assume h : ∀ x ∈ Ioo a b, differentiable_at ℝ f x,
@@ -367,7 +368,7 @@ begin
   { rw eq_C_of_nat_degree_eq_zero (nat_degree_eq_zero_of_derivative_eq_zero hp'),
     simp_rw [root_set_C, set.empty_card', zero_le] },
   simp_rw [root_set_def, finset.coe_sort_coe, fintype.card_coe],
-  refine finset.card_le_of_interleaved (λ x y hx hy hxy, _),
+  refine finset.card_le_of_interleaved (λ x hx y hy hxy, _),
   rw [←finset.mem_coe, ←root_set_def, mem_root_set hp] at hx hy,
   obtain ⟨z, hz1, hz2⟩ := exists_deriv_eq_zero (λ x : ℝ, aeval x p) hxy
     p.continuous_aeval.continuous_on (hx.trans hy.symm),

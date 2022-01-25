@@ -98,7 +98,7 @@ variables {α : Type*} [linear_ordered_field α]
 theorem cauchy₂ (hf : is_cau_seq abv f) {ε : α} (ε0 : 0 < ε) :
   ∃ i, ∀ j k ≥ i, abv (f j - f k) < ε :=
 begin
-  refine (hf _ (half_pos ε0)).imp (λ i hi j k ij ik, _),
+  refine (hf _ (half_pos ε0)).imp (λ i hi j ij k ik, _),
   rw ← add_halves ε,
   refine lt_of_le_of_lt (abv_sub_le abv _ _ _) (add_lt_add (hi _ ij) _),
   rw abv_sub abv, exact hi _ ik
@@ -106,7 +106,7 @@ end
 
 theorem cauchy₃ (hf : is_cau_seq abv f) {ε : α} (ε0 : 0 < ε) :
   ∃ i, ∀ j ≥ i, ∀ k ≥ j, abv (f k - f j) < ε :=
-let ⟨i, H⟩ := hf.cauchy₂ ε0 in ⟨i, λ j ij k jk, H _ _ (le_trans ij jk) ij⟩
+let ⟨i, H⟩ := hf.cauchy₂ ε0 in ⟨i, λ j ij k jk, H _ (le_trans ij jk) _ ij⟩
 
 end is_cau_seq
 
@@ -122,10 +122,10 @@ variables {α : Type*} [linear_ordered_field α]
 section ring
 variables {β : Type*} [ring β] {abv : β → α}
 
-instance : has_coe_to_fun (cau_seq β abv) := ⟨_, subtype.val⟩
+instance : has_coe_to_fun (cau_seq β abv) (λ _, ℕ → β) := ⟨subtype.val⟩
 
 @[simp] theorem mk_to_fun (f) (hf : is_cau_seq abv f) :
-  @coe_fn (cau_seq β abv) _ ⟨f, hf⟩ = f := rfl
+  @coe_fn (cau_seq β abv) _ _ ⟨f, hf⟩ = f := rfl
 
 theorem ext {f g : cau_seq β abv} (h : ∀ i, f i = g i) : f = g :=
 subtype.eq (funext h)
@@ -242,9 +242,9 @@ by refine_struct
        mul := (*),
        one := 1,
        sub := has_sub.sub,
-       npow := @npow_rec _ ⟨1⟩ ⟨(*)⟩,
-       nsmul := @nsmul_rec _ ⟨0⟩ ⟨(+)⟩,
-       gsmul := @gsmul_rec _ ⟨0⟩ ⟨(+)⟩ ⟨has_neg.neg⟩ };
+       npow := @npow_rec (cau_seq β abv) ⟨1⟩ ⟨(*)⟩,
+       nsmul := @nsmul_rec (cau_seq β abv) ⟨0⟩ ⟨(+)⟩,
+       zsmul := @zsmul_rec (cau_seq β abv) ⟨0⟩ ⟨(+)⟩ ⟨has_neg.neg⟩ };
 intros; try { refl }; apply ext;
 simp [mul_add, mul_assoc, add_mul, add_comm, add_left_comm, sub_eq_add_neg]
 
@@ -385,8 +385,8 @@ begin
   change _ ≤ abv (_ * _),
   rw is_absolute_value.abv_mul abv,
   apply mul_le_mul; try { assumption },
-    { apply le_of_lt ha2 },
-    { apply is_absolute_value.abv_nonneg abv }
+  { apply le_of_lt ha2 },
+  { apply is_absolute_value.abv_nonneg abv }
 end
 
 theorem const_equiv {x y : β} : const x ≈ const y ↔ x = y :=
@@ -402,8 +402,8 @@ by rw mul_comm; apply mul_equiv_zero _ hf
 
 end comm_ring
 
-section integral_domain
-variables {β : Type*} [integral_domain β] (abv : β → α) [is_absolute_value abv]
+section is_domain
+variables {β : Type*} [ring β] [is_domain β] (abv : β → α) [is_absolute_value abv]
 
 lemma one_not_equiv_zero : ¬ (const abv 1) ≈ (const abv 0) :=
 assume h,
@@ -417,7 +417,7 @@ have abv 1 = 0, from le_antisymm h1 h2,
 have (1 : β) = 0, from (is_absolute_value.abv_eq_zero abv).1 this,
 absurd this one_ne_zero
 
-end integral_domain
+end is_domain
 
 section field
 variables {β : Type*} [field β] {abv : β → α} [is_absolute_value abv]

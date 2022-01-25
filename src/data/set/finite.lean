@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
 import data.finset.sort
+import data.set.functor
 
 /-!
 # Finite sets
@@ -41,6 +42,9 @@ noncomputable def finite.to_finset {s : set α} (h : finite s) : finset α :=
 
 @[simp] lemma not_infinite {s : set α} : ¬ s.infinite ↔ s.finite :=
 by simp [infinite]
+
+/-- See also `fintype_or_infinite`. -/
+lemma finite_or_infinite {s : set α} : s.finite ∨ s.infinite := em _
 
 @[simp] theorem finite.mem_to_finset {s : set α} (h : finite s) {a : α} : a ∈ h.to_finset ↔ a ∈ s :=
 @mem_to_finset _ _ h.fintype _
@@ -196,10 +200,10 @@ end
 @[elab_as_eliminator]
 theorem finite.dinduction_on {C : ∀s:set α, finite s → Prop} {s : set α} (h : finite s)
   (H0 : C ∅ finite_empty)
-  (H1 : ∀ {a s}, a ∉ s → ∀h:finite s, C s h → C (insert a s) (h.insert a)) :
+  (H1 : ∀ {a s}, a ∉ s → ∀ h : finite s, C s h → C (insert a s) (h.insert a)) :
   C s h :=
-have ∀h:finite s, C s h,
-  from finite.induction_on h (assume h, H0) (assume a s has hs ih h, H1 has hs (ih _)),
+have ∀ h : finite s, C s h,
+  from finite.induction_on h (λ h, H0) (λ a s has hs ih h, H1 has hs (ih _)),
 this h
 
 instance fintype_singleton (a : α) : fintype ({a} : set α) :=
@@ -214,6 +218,14 @@ fintype.card_of_subsingleton _
 
 lemma subsingleton.finite {s : set α} (h : s.subsingleton) : finite s :=
 h.induction_on finite_empty finite_singleton
+
+lemma to_finset_singleton (a : α) : ({a} : set α).to_finset = {a} := rfl
+
+lemma finite_is_top (α : Type*) [partial_order α] : finite {x : α | is_top x} :=
+(subsingleton_is_top α).finite
+
+lemma finite_is_bot (α : Type*) [partial_order α] : finite {x : α | is_bot x} :=
+(subsingleton_is_bot α).finite
 
 instance fintype_pure : ∀ a : α, fintype (pure a : set α) :=
 set.fintype_singleton
@@ -294,15 +306,12 @@ by rw ← inter_eq_self_of_subset_right h; apply_instance
 theorem finite.subset {s : set α} : finite s → ∀ {t : set α}, t ⊆ s → finite t
 | ⟨hs⟩ t h := ⟨@set.fintype_subset _ _ _ hs (classical.dec_pred t) h⟩
 
-lemma finite.union_iff {s t : set α} : finite (s ∪ t) ↔ finite s ∧ finite t :=
+@[simp] lemma finite_union {s t : set α} : finite (s ∪ t) ↔ finite s ∧ finite t :=
 ⟨λ h, ⟨h.subset (subset_union_left _ _), h.subset (subset_union_right _ _)⟩,
  λ ⟨hs, ht⟩, hs.union ht⟩
 
-lemma finite.diff {s t u : set α} (hs : s.finite) (ht : t.finite) (h : u \ t ≤ s) : u.finite :=
-begin
-  refine finite.subset (ht.union hs) _,
-  exact diff_subset_iff.mp h
-end
+lemma finite.of_diff {s t : set α} (hd : finite (s \ t)) (ht : finite t) : finite s :=
+(hd.union ht).subset $ subset_diff_union _ _
 
 theorem finite.inter_of_left {s : set α} (h : finite s) (t : set α) : finite (s ∩ t) :=
 h.subset (inter_subset_left _ _)
@@ -316,12 +325,19 @@ h.inter_of_left t
 theorem finite.inf_of_right {s : set α} (h : finite s) (t : set α) : finite (t ⊓ s) :=
 h.inter_of_right t
 
+lemma finite.sInter {α : Type*} {s : set (set α)} {t : set α} (ht : t ∈ s)
+  (hf : t.finite) : (⋂₀s).finite :=
+hf.subset (sInter_subset_of_mem ht)
+
 protected theorem infinite.mono {s t : set α} (h : s ⊆ t) : infinite s → infinite t :=
 mt (λ ht, ht.subset h)
 
 lemma infinite.diff {s t : set α} (hs : s.infinite) (ht : t.finite) :
   (s \ t).infinite :=
-λ h, hs ((h.union ht).subset (s.subset_diff_union t))
+λ h, hs $ h.of_diff ht
+
+@[simp] lemma infinite_union {s t : set α} : infinite (s ∪ t) ↔ infinite s ∨ infinite t :=
+by simp only [infinite, finite_union, not_and_distrib]
 
 instance fintype_image [decidable_eq β] (s : set α) (f : α → β) [fintype s] : fintype (f '' s) :=
 fintype.of_finset (s.to_finset.image f) $ by simp
@@ -375,8 +391,8 @@ end
 
 theorem finite_of_finite_image {s : set α} {f : α → β} (hi : set.inj_on f s) :
   finite (f '' s) → finite s | ⟨h⟩ :=
-⟨@fintype.of_injective _ _ h (λa:s, ⟨f a.1, mem_image_of_mem f a.2⟩) $
-  assume a b eq, subtype.eq $ hi a.2 b.2 $ subtype.ext_iff_val.1 eq⟩
+⟨@fintype.of_injective _ _ h (λ a : s, ⟨f a.1, mem_image_of_mem f a.2⟩) $
+  λ a b eq, subtype.eq $ hi a.2 b.2 $ subtype.ext_iff_val.1 eq⟩
 
 theorem finite_image_iff {s : set α} {f : α → β} (hi : inj_on f s) :
   finite (f '' s) ↔ finite s :=
@@ -403,6 +419,15 @@ theorem infinite.exists_lt_map_eq_of_maps_to [linear_order α] {s : set α} {t :
   ∃ (x ∈ s) (y ∈ s), x < y ∧ f x = f y :=
 let ⟨x, hx, y, hy, hxy, hf⟩ := hs.exists_ne_map_eq_of_maps_to hf ht
 in hxy.lt_or_lt.elim (λ hxy, ⟨x, hx, y, hy, hxy, hf⟩) (λ hyx, ⟨y, hy, x, hx, hyx, hf.symm⟩)
+
+lemma finite.exists_lt_map_eq_of_range_subset [linear_order α] [_root_.infinite α] {t : set β}
+  {f : α → β} (hf : range f ⊆ t) (ht : finite t) :
+  ∃ a b, a < b ∧ f a = f b :=
+begin
+  rw [range_subset_iff, ←maps_univ_to] at hf,
+  obtain ⟨a, -, b, -, h⟩ := (@infinite_univ α _).exists_lt_map_eq_of_maps_to hf ht,
+  exact ⟨a, b, h⟩,
+end
 
 theorem infinite_range_of_injective [_root_.infinite α] {f : α → β} (hi : injective f) :
   infinite (range f) :=
@@ -462,15 +487,12 @@ lemma finite_le_nat (n : ℕ) : finite {i | i ≤ n} := ⟨set.fintype_le_nat _�
 lemma finite_lt_nat (n : ℕ) : finite {i | i < n} := ⟨set.fintype_lt_nat _⟩
 
 lemma infinite.exists_nat_lt {s : set ℕ} (hs : infinite s) (n : ℕ) : ∃ m ∈ s, n < m :=
-begin
-  obtain ⟨m, hm⟩ := (hs.diff $ set.finite_le_nat n).nonempty,
-  exact ⟨m, by simpa using hm⟩,
-end
+let ⟨m, hm⟩ := (hs.diff $ set.finite_le_nat n).nonempty in ⟨m, by simpa using hm⟩
 
-instance fintype_prod (s : set α) (t : set β) [fintype s] [fintype t] : fintype (set.prod s t) :=
+instance fintype_prod (s : set α) (t : set β) [fintype s] [fintype t] : fintype (s ×ˢ t : set _) :=
 fintype.of_finset (s.to_finset.product t.to_finset) $ by simp
 
-lemma finite.prod {s : set α} {t : set β} : finite s → finite t → finite (set.prod s t)
+lemma finite.prod {s : set α} {t : set β} : finite s → finite t → finite (s ×ˢ t)
 | ⟨hs⟩ ⟨ht⟩ := by exactI ⟨set.fintype_prod s t⟩
 
 /-- `image2 f s t` is finitype if `s` and `t` are. -/
@@ -554,9 +576,6 @@ variables {s : finset α}
 lemma finite_to_set (s : finset α) : set.finite (↑s : set α) :=
 set.finite_mem_finset s
 
-@[simp] lemma coe_bUnion {f : α → finset β} : ↑(s.bUnion f) = (⋃x ∈ (↑s : set α), ↑(f x) : set β) :=
-by simp [set.ext_iff]
-
 @[simp] lemma finite_to_set_to_finset {α : Type*} (s : finset α) :
   (finite_to_set s).to_finset = s :=
 by { ext, rw [set.finite.mem_to_finset, mem_coe] }
@@ -570,10 +589,10 @@ lemma finite.pi {δ : Type*} [fintype δ] {κ : δ → Type*} {t : Π d, set (κ
   (ht : ∀ d, (t d).finite) :
   (pi univ t).finite :=
 begin
+  lift t to Π d, finset (κ d) using ht,
   classical,
-  convert (fintype.pi_finset (λ d, (ht d).to_finset)).finite_to_set,
-  ext,
-  simp,
+  rw ← fintype.coe_pi_finset,
+  exact (fintype.pi_finset t).finite_to_set,
 end
 
 /-- A finite union of finsets is finite. -/
@@ -626,6 +645,20 @@ begin
   exact or.inr ⟨i, finset.mem_univ i, le_rfl⟩
 end
 
+lemma Union_pi_of_monotone {ι ι' : Type*} [linear_order ι'] [nonempty ι'] {α : ι → Type*}
+  {I : set ι} {s : Π i, ι' → set (α i)} (hI : finite I) (hs : ∀ i ∈ I, monotone (s i)) :
+  (⋃ j : ι', I.pi (λ i, s i j)) = I.pi (λ i, ⋃ j, s i j) :=
+begin
+  simp only [pi_def, bInter_eq_Inter, preimage_Union],
+  haveI := hI.fintype,
+  exact Union_Inter_of_monotone (λ i j₁ j₂ h, preimage_mono $ hs i i.2 h)
+end
+
+lemma Union_univ_pi_of_monotone {ι ι' : Type*} [linear_order ι'] [nonempty ι'] [fintype ι]
+  {α : ι → Type*} {s : Π i, ι' → set (α i)} (hs : ∀ i, monotone (s i)) :
+  (⋃ j : ι', pi univ (λ i, s i j)) = pi univ (λ i, ⋃ j, s i j) :=
+Union_pi_of_monotone (finite.of_fintype _) (λ i _, hs i)
+
 instance nat.fintype_Iio (n : ℕ) : fintype (Iio n) :=
 fintype.of_finset (finset.range n) $ by simp
 
@@ -662,7 +695,7 @@ lemma finite_range_const {c : β} : finite (range (λ x : α, c)) :=
 
 lemma range_find_greatest_subset {P : α → ℕ → Prop} [∀ x, decidable_pred (P x)] {b : ℕ}:
   range (λ x, nat.find_greatest (P x) b) ⊆ ↑(finset.range (b + 1)) :=
-by { rw range_subset_iff, assume x, simp [nat.lt_succ_iff, nat.find_greatest_le] }
+by { rw range_subset_iff, intro x, simp [nat.lt_succ_iff, nat.find_greatest_le] }
 
 lemma finite_range_find_greatest {P : α → ℕ → Prop} [∀ x, decidable_pred (P x)] {b : ℕ} :
   finite (range (λ x, nat.find_greatest (P x) b)) :=
@@ -710,21 +743,21 @@ lemma card_range_of_injective [fintype α] {f : α → β} (hf : injective f)
 eq.symm $ fintype.card_congr $ equiv.of_injective f hf
 
 lemma finite.exists_maximal_wrt [partial_order β] (f : α → β) (s : set α) (h : set.finite s) :
-  s.nonempty → ∃a∈s, ∀a'∈s, f a ≤ f a' → f a = f a' :=
+  s.nonempty → ∃ a ∈ s, ∀ a' ∈ s, f a ≤ f a' → f a = f a' :=
 begin
   classical,
   refine h.induction_on _ _,
-  { assume h, exact absurd h empty_not_nonempty },
-  assume a s his _ ih _,
+  { exact λ h, absurd h empty_not_nonempty },
+  intros a s his _ ih _,
   cases s.eq_empty_or_nonempty with h h,
   { use a, simp [h] },
   rcases ih h with ⟨b, hb, ih⟩,
   by_cases f b ≤ f a,
-  { refine ⟨a, set.mem_insert _ _, assume c hc hac, le_antisymm hac _⟩,
+  { refine ⟨a, set.mem_insert _ _, λ c hc hac, le_antisymm hac _⟩,
     rcases set.mem_insert_iff.1 hc with rfl | hcs,
     { refl },
     { rwa [← ih c hcs (le_trans h hac)] } },
-  { refine ⟨b, set.mem_insert_of_mem _ hb, assume c hc hbc, _⟩,
+  { refine ⟨b, set.mem_insert_of_mem _ hb, λ c hc hbc, _⟩,
     rcases set.mem_insert_iff.1 hc with rfl | hcs,
     { exact (h hbc).elim },
     { exact ih c hcs hbc } }
@@ -732,15 +765,16 @@ end
 
 lemma finite.card_to_finset {s : set α} [fintype s] (h : s.finite) :
   h.to_finset.card = fintype.card s :=
-by { rw [← finset.card_attach, finset.attach_eq_univ, ← fintype.card], congr' 2, funext,
-     rw set.finite.mem_to_finset }
+begin
+  rw [← finset.card_attach, finset.attach_eq_univ, ← fintype.card],
+  refine fintype.card_congr (equiv.set_congr _),
+  ext x, show x ∈ h.to_finset ↔ x ∈ s,
+  simp,
+end
 
 lemma infinite.exists_not_mem_finset {s : set α} (hs : s.infinite) (f : finset α) :
   ∃ a ∈ s, a ∉ f :=
-begin
-  obtain ⟨a, has, haf⟩ := (hs.diff f.finite_to_set).nonempty,
-  refine ⟨a, has, λ h, haf $ finset.mem_coe.1 h⟩,
-end
+let ⟨a, has, haf⟩ := (hs.diff f.finite_to_set).nonempty in ⟨a, has, λ h, haf $ finset.mem_coe.1 h⟩
 
 section decidable_eq
 
@@ -754,6 +788,15 @@ by ext; simp
 
 lemma to_finset_union {α : Type*} [decidable_eq α] (s t : set α) [fintype (s ∪ t : set α)]
   [fintype s] [fintype t] : (s ∪ t).to_finset = s.to_finset ∪ t.to_finset :=
+by ext; simp
+
+instance fintype_sdiff  {α : Type*} [decidable_eq α]
+  (s t : set α) [fintype s] [fintype t] :
+  fintype (s \ t : set α) :=
+fintype.of_finset (s.to_finset \ t.to_finset) $ by simp
+
+lemma to_finset_sdiff {α : Type*} [decidable_eq α] (s t : set α) [fintype s] [fintype t]
+  [fintype (s \ t : set α)] : (s \ t).to_finset = s.to_finset \ t.to_finset :=
 by ext; simp
 
 lemma to_finset_ne_eq_erase {α : Type*} [decidable_eq α] [fintype α] (a : α)

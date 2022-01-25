@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kexing Ying
 -/
 import measure_theory.decomposition.signed_hahn
+import measure_theory.measure.mutually_singular
 
 /-!
 # Jordan decomposition
@@ -19,7 +20,7 @@ is useful for the Lebesgue decomposition theorem.
 
 * `measure_theory.jordan_decomposition`: a Jordan decomposition of a measurable space is a
   pair of mutually singular finite measures. We say `j` is a Jordan decomposition of a signed
-  meausre `s` if `s = j.pos_part - j.neg_part`.
+  measure `s` if `s = j.pos_part - j.neg_part`.
 * `measure_theory.signed_measure.to_jordan_decomposition`: the Jordan decomposition of a
   signed measure.
 * `measure_theory.signed_measure.to_jordan_decomposition_equiv`: is the `equiv` between
@@ -39,7 +40,7 @@ Jordan decomposition theorem
 -/
 
 noncomputable theory
-open_locale classical measure_theory ennreal
+open_locale classical measure_theory ennreal nnreal
 
 variables {α β : Type*} [measurable_space α]
 
@@ -63,7 +64,7 @@ open measure vector_measure
 variable (j : jordan_decomposition α)
 
 instance : has_zero (jordan_decomposition α) :=
-{ zero := ⟨0, 0, mutually_singular.zero⟩ }
+{ zero := ⟨0, 0, mutually_singular.zero_right⟩ }
 
 instance : inhabited (jordan_decomposition α) :=
 { default := 0 }
@@ -71,11 +72,50 @@ instance : inhabited (jordan_decomposition α) :=
 instance : has_neg (jordan_decomposition α) :=
 { neg := λ j, ⟨j.neg_part, j.pos_part, j.mutually_singular.symm⟩ }
 
+instance : has_scalar ℝ≥0 (jordan_decomposition α) :=
+{ smul := λ r j, ⟨r • j.pos_part, r • j.neg_part,
+    mutually_singular.smul _ (mutually_singular.smul _ j.mutually_singular.symm).symm⟩ }
+
+instance has_scalar_real : has_scalar ℝ (jordan_decomposition α) :=
+{ smul := λ r j, if hr : 0 ≤ r then r.to_nnreal • j else - ((-r).to_nnreal • j) }
+
 @[simp] lemma zero_pos_part : (0 : jordan_decomposition α).pos_part = 0 := rfl
 @[simp] lemma zero_neg_part : (0 : jordan_decomposition α).neg_part = 0 := rfl
 
 @[simp] lemma neg_pos_part : (-j).pos_part = j.neg_part := rfl
 @[simp] lemma neg_neg_part : (-j).neg_part = j.pos_part := rfl
+
+@[simp] lemma smul_pos_part (r : ℝ≥0) : (r • j).pos_part = r • j.pos_part := rfl
+@[simp] lemma smul_neg_part (r : ℝ≥0) : (r • j).neg_part = r • j.neg_part := rfl
+
+lemma real_smul_def (r : ℝ) (j : jordan_decomposition α) :
+  r • j = if hr : 0 ≤ r then r.to_nnreal • j else - ((-r).to_nnreal • j) :=
+rfl
+
+@[simp] lemma coe_smul (r : ℝ≥0) : (r : ℝ) • j = r • j :=
+show dite _ _ _ = _, by rw [dif_pos (nnreal.coe_nonneg r), real.to_nnreal_coe]
+
+lemma real_smul_nonneg (r : ℝ) (hr : 0 ≤ r) : r • j = r.to_nnreal • j :=
+dif_pos hr
+
+lemma real_smul_neg (r : ℝ) (hr : r < 0) : r • j = - ((-r).to_nnreal • j) :=
+dif_neg (not_le.2 hr)
+
+lemma real_smul_pos_part_nonneg (r : ℝ) (hr : 0 ≤ r) :
+  (r • j).pos_part = r.to_nnreal • j.pos_part :=
+by { rw [real_smul_def, ← smul_pos_part, dif_pos hr] }
+
+lemma real_smul_neg_part_nonneg (r : ℝ) (hr : 0 ≤ r) :
+  (r • j).neg_part = r.to_nnreal • j.neg_part :=
+by { rw [real_smul_def, ← smul_neg_part, dif_pos hr] }
+
+lemma real_smul_pos_part_neg (r : ℝ) (hr : r < 0) :
+  (r • j).pos_part = (-r).to_nnreal • j.neg_part :=
+by { rw [real_smul_def, ← smul_neg_part, dif_neg (not_le.2 hr), neg_pos_part] }
+
+lemma real_smul_neg_part_neg (r : ℝ) (hr : r < 0) :
+  (r • j).neg_part = (-r).to_nnreal • j.pos_part :=
+by { rw [real_smul_def, ← smul_pos_part, dif_neg (not_le.2 hr), neg_neg_part] }
 
 /-- The signed measure associated with a Jordan decomposition. -/
 def to_signed_measure : signed_measure α :=
@@ -93,6 +133,15 @@ begin
   rw [neg_apply, to_signed_measure, to_signed_measure,
       to_signed_measure_sub_apply hi, to_signed_measure_sub_apply hi, neg_sub],
   refl,
+end
+
+lemma to_signed_measure_smul (r : ℝ≥0) : (r • j).to_signed_measure = r • j.to_signed_measure :=
+begin
+  ext1 i hi,
+  rw [vector_measure.smul_apply, to_signed_measure, to_signed_measure,
+      to_signed_measure_sub_apply hi, to_signed_measure_sub_apply hi, smul_sub,
+      smul_pos_part, smul_neg_part, ← ennreal.to_real_smul, ← ennreal.to_real_smul],
+  refl
 end
 
 /-- A Jordan decomposition provides a Hahn decomposition. -/
@@ -137,8 +186,8 @@ let hi := some_spec s.exists_compl_positive_negative in
   mutually_singular :=
   begin
     refine ⟨iᶜ, hi.1.compl, _, _⟩,
-    { rw [to_measure_of_zero_le_apply _ _ hi.1 hi.1.compl], simpa },
-    { rw [to_measure_of_le_zero_apply _ _ hi.1.compl hi.1.compl.compl], simpa }
+    { rw [to_measure_of_zero_le_apply _ _ hi.1 hi.1.compl], simp },
+    { rw [to_measure_of_le_zero_apply _ _ hi.1.compl hi.1.compl.compl], simp }
   end }
 
 lemma to_jordan_decomposition_spec (s : signed_measure α) :
@@ -320,7 +369,6 @@ begin
           (hS₄ ▸ measure_mono (set.inter_subset_right _ _)), zero_add],
     { refine set.disjoint_of_subset_left (set.inter_subset_right _ _)
         (set.disjoint_of_subset_right (set.inter_subset_right _ _) disjoint_compl_right) },
-    { exact hi.inter hS₁ },
     { exact hi.inter hS₁.compl } },
   have hμ₂ : (j₂.pos_part i).to_real = j₂.to_signed_measure (i ∩ Tᶜ),
   { rw [to_signed_measure, to_signed_measure_sub_apply (hi.inter hT₁.compl),
@@ -332,7 +380,6 @@ begin
           (hT₄ ▸ measure_mono (set.inter_subset_right _ _)), zero_add],
     { exact set.disjoint_of_subset_left (set.inter_subset_right _ _)
         (set.disjoint_of_subset_right (set.inter_subset_right _ _) disjoint_compl_right) },
-    { exact hi.inter hT₁ },
     { exact hi.inter hT₁.compl } },
   -- since the two signed measures associated with the Jordan decompositions are the same,
   -- and the symmetric difference of the Hahn decompositions have measure zero, the result follows
@@ -375,6 +422,44 @@ begin
   simp [to_signed_measure_neg],
 end
 
+lemma to_jordan_decomposition_smul (s : signed_measure α) (r : ℝ≥0) :
+  (r • s).to_jordan_decomposition = r • s.to_jordan_decomposition :=
+begin
+  apply to_signed_measure_injective,
+  simp [to_signed_measure_smul],
+end
+
+private
+lemma to_jordan_decomposition_smul_real_nonneg (s : signed_measure α) (r : ℝ) (hr : 0 ≤ r):
+  (r • s).to_jordan_decomposition = r • s.to_jordan_decomposition :=
+begin
+  lift r to ℝ≥0 using hr,
+  rw [jordan_decomposition.coe_smul, ← to_jordan_decomposition_smul],
+  refl
+end
+
+lemma to_jordan_decomposition_smul_real (s : signed_measure α) (r : ℝ) :
+  (r • s).to_jordan_decomposition = r • s.to_jordan_decomposition :=
+begin
+  by_cases hr : 0 ≤ r,
+  { exact to_jordan_decomposition_smul_real_nonneg s r hr },
+  { ext1,
+    { rw [real_smul_pos_part_neg _ _ (not_le.1 hr),
+          show r • s = -(-r • s), by rw [neg_smul, neg_neg], to_jordan_decomposition_neg,
+          neg_pos_part, to_jordan_decomposition_smul_real_nonneg, ← smul_neg_part,
+          real_smul_nonneg],
+      all_goals { exact left.nonneg_neg_iff.2 (le_of_lt (not_le.1 hr)) } },
+    { rw [real_smul_neg_part_neg _ _ (not_le.1 hr),
+          show r • s = -(-r • s), by rw [neg_smul, neg_neg], to_jordan_decomposition_neg,
+          neg_neg_part, to_jordan_decomposition_smul_real_nonneg, ← smul_pos_part,
+          real_smul_nonneg],
+      all_goals { exact left.nonneg_neg_iff.2 (le_of_lt (not_le.1 hr)) } } }
+end
+
+lemma to_jordan_decomposition_eq {s : signed_measure α} {j : jordan_decomposition α}
+  (h : s = j.to_signed_measure) : s.to_jordan_decomposition = j :=
+by rw [h, to_jordan_decomposition_to_signed_measure]
+
 /-- The total variation of a signed measure. -/
 def total_variation (s : signed_measure α) : measure α :=
 s.to_jordan_decomposition.pos_part + s.to_jordan_decomposition.neg_part
@@ -397,7 +482,7 @@ begin
 end
 
 lemma absolutely_continuous_ennreal_iff (s : signed_measure α) (μ : vector_measure α ℝ≥0∞) :
-  s ≪ μ ↔ s.total_variation ≪ μ.ennreal_to_measure :=
+  s ≪ᵥ μ ↔ s.total_variation ≪ μ.ennreal_to_measure :=
 begin
   split; intro h,
   { refine measure.absolutely_continuous.mk (λ S hS₁ hS₂, _),
@@ -406,8 +491,7 @@ begin
         to_measure_of_zero_le_apply _ _ _ hS₁, to_measure_of_le_zero_apply _ _ _ hS₁],
     rw ← vector_measure.absolutely_continuous.ennreal_to_measure at h,
     simp [h (measure_mono_null (i.inter_subset_right S) hS₂),
-          h (measure_mono_null (iᶜ.inter_subset_right S) hS₂)],
-    refl },
+          h (measure_mono_null (iᶜ.inter_subset_right S) hS₂)] },
   { refine vector_measure.absolutely_continuous.mk (λ S hS₁ hS₂, _),
     rw ← vector_measure.ennreal_to_measure_apply hS₁ at hS₂,
     exact null_of_total_variation_zero s (h hS₂) }
@@ -438,11 +522,11 @@ begin
     refine ⟨u, hmeas, _, _⟩,
     { rw [total_variation, measure.add_apply, hipos, hineg,
       to_measure_of_zero_le_apply _ _ _ hmeas, to_measure_of_le_zero_apply _ _ _ hmeas],
-      simpa [hu₁ _ (set.inter_subset_right _ _)] },
+      simp [hu₁ _ (set.inter_subset_right _ _)] },
     { rw [total_variation, measure.add_apply, hjpos, hjneg,
           to_measure_of_zero_le_apply _ _ _ hmeas.compl,
           to_measure_of_le_zero_apply _ _ _ hmeas.compl],
-      simpa [hu₂ _ (set.inter_subset_right _ _)] } },
+      simp [hu₂ _ (set.inter_subset_right _ _)] } },
   { rintro ⟨u, hmeas, hu₁, hu₂⟩,
     exact ⟨u, hmeas,
       (λ t htu, null_of_total_variation_zero _ (measure_mono_null htu hu₁)),
@@ -458,7 +542,7 @@ begin
     refine ⟨u, hmeas, _, _⟩,
     { rw [total_variation, measure.add_apply, hpos, hneg,
           to_measure_of_zero_le_apply _ _ _ hmeas, to_measure_of_le_zero_apply _ _ _ hmeas],
-      simpa [hu₁ _ (set.inter_subset_right _ _)] },
+      simp [hu₁ _ (set.inter_subset_right _ _)] },
     { rw vector_measure.ennreal_to_measure_apply hmeas.compl,
       exact hu₂ _ (set.subset.refl _) } },
   { rintro ⟨u, hmeas, hu₁, hu₂⟩,
@@ -467,6 +551,11 @@ begin
     rw ← vector_measure.ennreal_to_measure_apply hmt,
     exact measure_mono_null htv hu₂ }
 end
+
+lemma total_variation_mutually_singular_iff (s : signed_measure α) (μ : measure α) :
+  s.total_variation ⊥ₘ μ ↔
+  s.to_jordan_decomposition.pos_part ⊥ₘ μ ∧ s.to_jordan_decomposition.neg_part ⊥ₘ μ :=
+measure.mutually_singular.add_left_iff
 
 end signed_measure
 

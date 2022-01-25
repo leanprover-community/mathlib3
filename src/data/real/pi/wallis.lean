@@ -1,7 +1,7 @@
 /-
-Copyright (c) 2019 Floris van Doorn. All rights reserved.
+Copyright (c) 2021 Hanting Zhang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Floris van Doorn, Benjamin Davidson
+Authors: Hanting Zhang
 -/
 import analysis.special_functions.integrals
 
@@ -16,7 +16,7 @@ lemma integral_sin_pow_div_tendsto_one :
   tendsto (λ k, (∫ x in 0..π, sin x ^ (2 * k + 1)) / ∫ x in 0..π, sin x ^ (2 * k)) at_top (𝓝 1) :=
 begin
   have h₃ : ∀ n, (∫ x in 0..π, sin x ^ (2 * n + 1)) / ∫ x in 0..π, sin x ^ (2 * n) ≤ 1 :=
-    λ n, (div_le_one (integral_sin_pow_pos _)).mpr (integral_sin_pow_antimono _),
+    λ n, (div_le_one (integral_sin_pow_pos _)).mpr (integral_sin_pow_succ_le _),
   have h₄ :
     ∀ n, (∫ x in 0..π, sin x ^ (2 * n + 1)) / ∫ x in 0..π, sin x ^ (2 * n) ≥ 2 * n / (2 * n + 1),
   { rintro ⟨n⟩,
@@ -25,7 +25,7 @@ begin
     calc (∫ x in 0..π, sin x ^ (2 * n.succ + 1)) / ∫ x in 0..π, sin x ^ (2 * n.succ) ≥
       (∫ x in 0..π, sin x ^ (2 * n.succ + 1)) / ∫ x in 0..π, sin x ^ (2 * n + 1) :
       by { refine div_le_div (integral_sin_pow_pos _).le (le_refl _) (integral_sin_pow_pos _) _,
-        convert integral_sin_pow_antimono (2 * n + 1) using 1 }
+        convert integral_sin_pow_succ_le (2 * n + 1) using 1 }
     ... = 2 * ↑(n.succ) / (2 * ↑(n.succ) + 1) :
       by { rw div_eq_iff (integral_sin_pow_pos (2 * n + 1)).ne',
            convert integral_sin_pow (2 * n + 1), simp with field_simps, norm_cast } },
@@ -36,7 +36,7 @@ begin
       rw [← sub_div, ← sub_sub, sub_self, zero_sub] },
     have hpos : (0:ℝ) < 2 * n + 1, { norm_cast, norm_num },
     rw [dist_eq, h, abs_div, abs_neg, abs_one, abs_of_pos hpos, one_div_lt hpos hε],
-    calc 1 / ε ≤ ⌈1 / ε⌉₊ : le_nat_ceil _
+    calc 1 / ε ≤ ⌈1 / ε⌉₊ : nat.le_ceil _
           ... ≤ n : by exact_mod_cast hn.le
           ... < 2 * n + 1 : by { norm_cast, linarith } },
   { exact tendsto_const_nhds },

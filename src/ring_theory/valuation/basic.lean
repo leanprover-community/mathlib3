@@ -5,9 +5,8 @@ Authors: Kevin Buzzard, Johan Commelin, Patrick Massot
 -/
 
 import algebra.order.with_zero
-import algebra.group_power
-import ring_theory.ideal.operations
 import algebra.punit_instances
+import ring_theory.ideal.operations
 
 /-!
 
@@ -58,8 +57,6 @@ open function ideal
 
 variables {R : Type*} -- This will be a ring, assumed commutative in some sections
 
-set_option old_structure_cmd true
-
 section
 variables (R) (Γ₀ : Type*) [linear_ordered_comm_monoid_with_zero Γ₀] [ring R]
 
@@ -87,7 +84,8 @@ section monoid
 variables [linear_ordered_comm_monoid_with_zero Γ₀] [linear_ordered_comm_monoid_with_zero Γ'₀]
 
 /-- A valuation is coerced to the underlying function `R → Γ₀`. -/
-instance : has_coe_to_fun (valuation R Γ₀) := { F := λ _, R → Γ₀, coe := valuation.to_fun }
+instance : has_coe_to_fun (valuation R Γ₀) (λ _, R → Γ₀) :=
+{ coe := λ v, v.to_monoid_with_zero_hom.to_fun }
 
 /-- A valuation is coerced to a monoid morphism R → Γ₀. -/
 instance : has_coe (valuation R Γ₀) (monoid_with_zero_hom R Γ₀) :=
@@ -134,7 +132,7 @@ v.map_sum_lt (ne_of_gt hg) hf
 v.to_monoid_with_zero_hom.to_monoid_hom.map_pow
 
 @[ext] lemma ext {v₁ v₂ : valuation R Γ₀} (h : ∀ r, v₁ r = v₂ r) : v₁ = v₂ :=
-by { cases v₁, cases v₂, congr, funext r, exact h r }
+by { rcases v₁ with ⟨⟨⟩⟩, rcases v₂ with ⟨⟨⟩⟩, congr, funext r, exact h r }
 
 lemma ext_iff {v₁ v₂ : valuation R Γ₀} : v₁ = v₂ ↔ ∀ r, v₁ r = v₂ r :=
 ⟨λ h r, congr_arg _ h, ext⟩
@@ -154,7 +152,7 @@ lemma ne_zero_iff [nontrivial Γ₀] {K : Type*} [division_ring K]
   (v : valuation K Γ₀) {x : K} : v x ≠ 0 ↔ x ≠ 0 :=
 v.to_monoid_with_zero_hom.map_ne_zero
 
-theorem unit_map_eq (u : units R) :
+theorem unit_map_eq (u : Rˣ) :
   (units.map (v : R →* Γ₀) u : Γ₀) = v u := rfl
 
 /-- A ring homomorphism `S → R` induces a map `valuation R Γ₀ → valuation S Γ₀`. -/
@@ -191,9 +189,13 @@ variables [linear_ordered_comm_group_with_zero Γ₀] {R} {Γ₀} (v : valuation
 
 @[simp] lemma map_inv {K : Type*} [division_ring K]
   (v : valuation K Γ₀) {x : K} : v x⁻¹ = (v x)⁻¹ :=
-v.to_monoid_with_zero_hom.map_inv' x
+v.to_monoid_with_zero_hom.map_inv x
 
-lemma map_units_inv (x : units R) : v (x⁻¹ : units R) = (v x)⁻¹ :=
+@[simp] lemma map_zpow {K : Type*} [division_ring K] (v : valuation K Γ₀) {x : K} {n : ℤ} :
+  v (x^n) = (v x)^n :=
+v.to_monoid_with_zero_hom.map_zpow x n
+
+lemma map_units_inv (x : Rˣ) : v (x⁻¹ : Rˣ) = (v x)⁻¹ :=
 v.to_monoid_with_zero_hom.to_monoid_hom.map_units_inv x
 
 @[simp] lemma map_neg (x : R) : v (-x) = v x :=
@@ -236,6 +238,13 @@ begin
   simpa using this
 end
 
+/-- The subgroup of elements whose valuation is less than a certain unit.-/
+def lt_add_subgroup (v : valuation R Γ₀) (γ : Γ₀ˣ) : add_subgroup R :=
+{ carrier   := {x | v x < γ},
+  zero_mem' := by { have h := units.ne_zero γ, contrapose! h, simpa using h },
+  add_mem'  := λ x y x_in y_in, lt_of_le_of_lt (v.map_add x y) (max_lt x_in y_in),
+  neg_mem'  := λ x x_in, by rwa [set.mem_set_of_eq, map_neg] }
+
 end group
 end basic -- end of section
 
@@ -260,7 +269,7 @@ by { subst h }
 lemma map {v' : valuation R Γ₀} (f : monoid_with_zero_hom Γ₀ Γ'₀) (hf : monotone f)
   (inf : injective f) (h : v.is_equiv v') :
   (v.map f hf).is_equiv (v'.map f hf) :=
-let H : strict_mono f := strict_mono_of_monotone_of_injective hf inf in
+let H : strict_mono f := hf.strict_mono_of_injective inf in
 λ r s,
 calc f (v r) ≤ f (v s) ↔ v r ≤ v s   : by rw H.le_iff_le
                    ... ↔ v' r ≤ v' s : h r s
@@ -302,7 +311,7 @@ begin
   intros x y,
   by_cases hy : y = 0, { simp [hy, zero_iff], },
   rw show y = 1 * y, by rw one_mul,
-  rw [← (inv_mul_cancel_right' hy x)],
+  rw [← (inv_mul_cancel_right₀ hy x)],
   iterate 2 {rw [v.map_mul _ y, v'.map_mul _ y]},
   rw [v.map_one, v'.map_one],
   split; intro H,
@@ -362,14 +371,14 @@ end
 /-- If `hJ : J ⊆ supp v` then `on_quot_val hJ` is the induced function on R/J as a function.
 Note: it's just the function; the valuation is `on_quot hJ`. -/
 def on_quot_val {J : ideal R} (hJ : J ≤ supp v) :
-  J.quotient → Γ₀ :=
+  R ⧸ J → Γ₀ :=
 λ q, quotient.lift_on' q v $ λ a b h,
 calc v a = v (b + (a - b)) : by simp
      ... = v b             : v.map_add_supp b (hJ h)
 
 /-- The extension of valuation v on R to valuation on R/J if J ⊆ supp v -/
 def on_quot {J : ideal R} (hJ : J ≤ supp v) :
-  valuation J.quotient Γ₀ :=
+  valuation (R ⧸ J) Γ₀ :=
 { to_fun := v.on_quot_val hJ,
   map_zero' := v.map_zero,
   map_one'  := v.map_one,
@@ -393,11 +402,11 @@ begin
   refl,
 end
 
-lemma self_le_supp_comap (J : ideal R) (v : valuation (quotient J) Γ₀) :
+lemma self_le_supp_comap (J : ideal R) (v : valuation (R ⧸ J) Γ₀) :
   J ≤ (v.comap (ideal.quotient.mk J)).supp :=
 by { rw [comap_supp, ← ideal.map_le_iff_le_comap], simp }
 
-@[simp] lemma comap_on_quot_eq (J : ideal R) (v : valuation J.quotient Γ₀) :
+@[simp] lemma comap_on_quot_eq (J : ideal R) (v : valuation (R ⧸ J) Γ₀) :
   (v.comap (ideal.quotient.mk J)).on_quot (v.self_le_supp_comap J) = v :=
 ext $ by { rintro ⟨x⟩, refl }
 
@@ -441,7 +450,8 @@ variables [linear_ordered_add_comm_monoid_with_top Γ₀] [linear_ordered_add_co
 variables (R) (Γ₀) [ring R]
 
 /-- A valuation is coerced to the underlying function `R → Γ₀`. -/
-instance : has_coe_to_fun (add_valuation R Γ₀) := { F := λ _, R → Γ₀, coe := valuation.to_fun }
+instance : has_coe_to_fun (add_valuation R Γ₀) (λ _, R → Γ₀) :=
+{ coe := λ v, v.to_monoid_with_zero_hom.to_fun }
 
 variables {R} {Γ₀} (v : add_valuation R Γ₀) {x y z : R}
 
@@ -522,8 +532,8 @@ v.comap_comp f g
 -/
 def map (f : Γ₀ →+ Γ'₀) (ht : f ⊤ = ⊤) (hf : monotone f) (v : add_valuation R Γ₀) :
   add_valuation R Γ'₀ :=
-v.map {
-  to_fun := f,
+v.map
+{ to_fun := f,
   map_mul' := f.map_add,
   map_one' := f.map_zero,
   map_zero' := ht } (λ x y h, hf h)
@@ -542,7 +552,7 @@ variables [linear_ordered_add_comm_group_with_top Γ₀] [ring R] (v : add_valua
   (v : add_valuation K Γ₀) {x : K} : v x⁻¹ = - (v x) :=
 v.map_inv
 
-lemma map_units_inv (x : units R) : v (x⁻¹ : units R) = - (v x) :=
+lemma map_units_inv (x : Rˣ) : v (x⁻¹ : Rˣ) = - (v x) :=
 v.map_units_inv x
 
 @[simp] lemma map_neg (x : R) : v (-x) = v x :=
@@ -586,8 +596,8 @@ valuation.is_equiv.of_eq h
 lemma map {v' : add_valuation R Γ₀} (f : Γ₀ →+ Γ'₀) (ht : f ⊤ = ⊤) (hf : monotone f)
   (inf : injective f) (h : v.is_equiv v') :
   (v.map f ht hf).is_equiv (v'.map f ht hf) :=
-h.map {
-  to_fun := f,
+h.map
+{ to_fun := f,
   map_mul' := f.map_add,
   map_one' := f.map_zero,
   map_zero' := ht } (λ x y h, hf h) inf
@@ -622,11 +632,11 @@ v.map_add_supp a h
 
 /-- If `hJ : J ⊆ supp v` then `on_quot_val hJ` is the induced function on R/J as a function.
 Note: it's just the function; the valuation is `on_quot hJ`. -/
-def on_quot_val {J : ideal R} (hJ : J ≤ supp v) : J.quotient → Γ₀ := v.on_quot_val hJ
+def on_quot_val {J : ideal R} (hJ : J ≤ supp v) : (R ⧸ J) → Γ₀ := v.on_quot_val hJ
 
 /-- The extension of valuation v on R to valuation on R/J if J ⊆ supp v -/
 def on_quot {J : ideal R} (hJ : J ≤ supp v) :
-  add_valuation J.quotient Γ₀ :=
+  add_valuation (R ⧸ J) Γ₀ :=
 v.on_quot hJ
 
 @[simp] lemma on_quot_comap_eq {J : ideal R} (hJ : J ≤ supp v) :
@@ -637,11 +647,11 @@ lemma comap_supp {S : Type*} [comm_ring S] (f : S →+* R) :
   supp (v.comap f) = ideal.comap f v.supp :=
 v.comap_supp f
 
-lemma self_le_supp_comap (J : ideal R) (v : add_valuation (quotient J) Γ₀) :
+lemma self_le_supp_comap (J : ideal R) (v : add_valuation (R ⧸ J) Γ₀) :
   J ≤ (v.comap (ideal.quotient.mk J)).supp :=
 v.self_le_supp_comap J
 
-@[simp] lemma comap_on_quot_eq (J : ideal R) (v : add_valuation J.quotient Γ₀) :
+@[simp] lemma comap_on_quot_eq (J : ideal R) (v : add_valuation (R ⧸ J) Γ₀) :
   (v.comap (ideal.quotient.mk J)).on_quot (v.self_le_supp_comap J) = v :=
 v.comap_on_quot_eq J
 

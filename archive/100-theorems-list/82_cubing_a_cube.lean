@@ -3,6 +3,7 @@ Copyright (c) 2019 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn
 -/
+import data.fin.tuple
 import data.real.basic
 import data.set.intervals
 import data.set.pairwise
@@ -403,9 +404,9 @@ begin
   { rintro ⟨⟩,
     have : (cs i).b ∈ (cs i').to_set,
     { simp only [to_set, forall_fin_succ, hi.1, bottom_mem_side h2i', true_and, mem_set_of_eq],
-    intro j₂, by_cases hj₂ : j₂ = j,
-    { simpa [side_tail, p', hj', hj₂] using hi''.2 j },
-    { simpa [hj₂] using hi'.2 j₂ } },
+      intro j₂, by_cases hj₂ : j₂ = j,
+      { simpa [side_tail, p', hj', hj₂] using hi''.2 j },
+      { simpa [hj₂] using hi'.2 j₂ } },
     apply not_disjoint_iff.mpr ⟨(cs i).b, (cs i).b_mem_to_set, this⟩ (h.1 i i' i_i') },
   have i_i'' : i ≠ i'', { intro h, induction h, simpa [hx'.2] using hi''.2 j' },
   apply not.elim _ (h.1 i' i'' i'_i''),

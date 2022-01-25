@@ -5,7 +5,7 @@ Authors: Chris Hughes
 -/
 import data.equiv.mul_add_aut
 import logic.function.basic
-import group_theory.subgroup
+import group_theory.subgroup.basic
 
 /-!
 # Semidirect product

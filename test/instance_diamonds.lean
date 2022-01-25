@@ -19,16 +19,28 @@ example :
   (sub_neg_monoid.has_scalar_int : has_scalar ℤ ℂ) = (complex.has_scalar : has_scalar ℤ ℂ) :=
 rfl
 
+example (α β : Type*) [add_monoid α] [add_monoid β] :
+  (prod.has_scalar : has_scalar ℕ (α × β)) = add_monoid.has_scalar_nat := rfl
+
+example (α β : Type*) [sub_neg_monoid α] [sub_neg_monoid β] :
+  (prod.has_scalar : has_scalar ℤ (α × β)) = sub_neg_monoid.has_scalar_int := rfl
+
+example (α : Type*) (β : α → Type*) [Π a, add_monoid (β a)] :
+  (pi.has_scalar : has_scalar ℕ (Π a, β a)) = add_monoid.has_scalar_nat := rfl
+
+example (α : Type*) (β : α → Type*) [Π a, sub_neg_monoid (β a)] :
+  (pi.has_scalar : has_scalar ℤ (Π a, β a)) = sub_neg_monoid.has_scalar_int := rfl
+
 section units
 
 example (α : Type*) [monoid α] :
-  (units.mul_action : mul_action (units α) (α × α)) = prod.mul_action := rfl
+  (units.mul_action : mul_action αˣ (α × α)) = prod.mul_action := rfl
 
 example (R α : Type*) (β : α → Type*) [monoid R] [Π i, mul_action R (β i)] :
-  (units.mul_action : mul_action (units R) (Π i, β i)) = pi.mul_action _ := rfl
+  (units.mul_action : mul_action Rˣ (Π i, β i)) = pi.mul_action _ := rfl
 
 example (R α : Type*) (β : α → Type*) [monoid R] [semiring α] [distrib_mul_action R α] :
-  (units.distrib_mul_action : distrib_mul_action (units R) (polynomial α)) =
+  (units.distrib_mul_action : distrib_mul_action Rˣ (polynomial α)) =
     polynomial.distrib_mul_action :=
 rfl
 
@@ -36,7 +48,7 @@ rfl
 TODO: https://leanprover.zulipchat.com/#narrow/stream/113488-general/topic/units.2Emul_action'.20diamond/near/246402813
 ```lean
 example {α : Type*} [comm_monoid α] :
-  (units.mul_action' : mul_action (units α) (units α)) = monoid.to_mul_action _ :=
+  (units.mul_action' : mul_action αˣ αˣ) = monoid.to_mul_action _ :=
 rfl -- fails
 ```
 -/
@@ -62,3 +74,25 @@ example (R : Type*) [h : ordered_semiring R] :
 rfl
 
 end with_top
+
+/-! ## `multiplicative` instances -/
+section multiplicative
+
+example :
+  @monoid.to_mul_one_class (multiplicative ℕ) (comm_monoid.to_monoid _) =
+    multiplicative.mul_one_class :=
+rfl
+
+-- `dunfold` can still break unification, but it's better to have `dunfold` break it than have the
+-- above example fail.
+example :
+  @monoid.to_mul_one_class (multiplicative ℕ) (comm_monoid.to_monoid _) =
+    multiplicative.mul_one_class :=
+begin
+  dunfold has_one.one multiplicative.mul_one_class,
+  success_if_fail { refl, },
+  ext,
+  refl
+end
+
+end multiplicative

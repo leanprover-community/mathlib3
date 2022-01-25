@@ -3,14 +3,11 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Simon Hudon, Sébastien Gouëzel, Scott Morrison
 -/
+import logic.nonempty
 import tactic.lint
 import tactic.dependencies
 
-open lean
-open lean.parser
-
-local postfix `?`:9001 := optional
-local postfix *:9001 := many
+setup_tactic_parser
 
 namespace tactic
 namespace interactive
@@ -99,10 +96,9 @@ Typically usage might look like:
 intros,
 simp,
 apply lemma_1,
-work_on_goal 2 {
-  dsimp,
-  simp
-},
+work_on_goal 2
+{ dsimp,
+  simp },
 refl
 ````
 
@@ -634,10 +630,11 @@ add_tactic_doc
   tags       := ["testing"] }
 
 /--
-a weaker version of `trivial` that tries to solve the goal by reflexivity or by reducing it to true,
-unfolding only `reducible` constants. -/
+Tries to solve the goal using a canonical proof of `true` or the `reflexivity` tactic.
+Unlike `trivial` or `trivial'`, does not the `contradiction` tactic.
+-/
 meta def triv : tactic unit :=
-tactic.triv' <|> tactic.reflexivity reducible <|> tactic.contradiction <|> fail "triv tactic failed"
+tactic.triv <|> tactic.reflexivity <|> fail "triv tactic failed"
 
 add_tactic_doc
 { name       := "triv",
@@ -646,9 +643,25 @@ add_tactic_doc
   tags       := ["finishing"] }
 
 /--
+A weaker version of `trivial` that tries to solve the goal using a canonical proof of `true` or the
+`reflexivity` tactic (unfolding only `reducible` constants, so can fail faster than `trivial`),
+and otherwise tries the `contradiction` tactic. -/
+meta def trivial' : tactic unit :=
+tactic.triv'
+  <|> tactic.reflexivity reducible
+  <|> tactic.contradiction
+  <|> fail "trivial' tactic failed"
+
+add_tactic_doc
+{ name       := "trivial'",
+  category   := doc_category.tactic,
+  decl_names := [`tactic.interactive.trivial'],
+  tags       := ["finishing"] }
+
+/--
 Similar to `existsi`. `use x` will instantiate the first term of an `∃` or `Σ` goal with `x`. It
-will then try to close the new goal using `triv`, or try to simplify it by applying `exists_prop`.
-Unlike `existsi`, `x` is elaborated with respect to the expected type.
+will then try to close the new goal using `trivial'`, or try to simplify it by applying
+`exists_prop`. Unlike `existsi`, `x` is elaborated with respect to the expected type.
 `use` will alternatively take a list of terms `[x0, ..., xn]`.
 
 `use` will work with constructors of arbitrary inductive types.
@@ -687,7 +700,7 @@ by use [100, tt, 4, 3]
 meta def use (l : parse pexpr_list_or_texpr) : tactic unit :=
 focus1 $
   tactic.use l;
-  try (triv <|> (do
+  try (trivial' <|> (do
         `(Exists %%p) ← target,
         to_expr ``(exists_prop.mpr) >>= tactic.apply >> skip))
 
@@ -936,9 +949,9 @@ meta def extract_goal (print_use : parse $ tt <$ tk "!" <|> pure ff)
   (n : parse ident?) (vs : parse (tk "with" *> ident*)?)
   : tactic unit :=
 do tgt ← target,
-   solve_aux tgt $ do {
-     ((cxt₀,cxt₁,ls,tgt),_) ← solve_aux tgt $ do {
-         vs.mmap clear_except,
+   solve_aux tgt $ do
+   { ((cxt₀,cxt₁,ls,tgt),_) ← solve_aux tgt $ do
+       { vs.mmap clear_except,
          ls ← local_context,
          ls ← ls.mfilter $ succeeds ∘ is_local_def,
          n ← revert_lst ls,
@@ -984,7 +997,7 @@ otherwise, it uses `classical.choice`.
 example (α) [nonempty α] : ∃ a : α, true :=
 begin
   inhabit α,
-  existsi default α,
+  existsi default,
   trivial
 end
 ```
@@ -1070,8 +1083,8 @@ do let (p, x) := p,
    some h ← pure h | tactic.generalize' e x >> skip,
    -- `h` is given, the regular implementation of `generalize` works.
    tgt ← target,
-   tgt' ← do {
-     ⟨tgt', _⟩ ← solve_aux tgt (tactic.generalize e x >> target),
+   tgt' ← do
+   { ⟨tgt', _⟩ ← solve_aux tgt (tactic.generalize e x >> target),
      to_expr ``(Π x, %%e = x → %%(tgt'.binding_body.lift_vars 0 1)) }
    <|> to_expr ``(Π x, %%e = x → %%tgt),
    t ← assert h tgt',

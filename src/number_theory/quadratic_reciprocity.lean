@@ -356,7 +356,7 @@ namespace zmod
 * `-1` otherwise.
 
 -/
-def legendre_sym (a p : ℕ) : ℤ :=
+def legendre_sym (a : ℤ) (p : ℕ) : ℤ :=
 if      (a : zmod p) = 0           then  0
 else if (a : zmod p) ^ (p / 2) = 1 then  1
                                    else -1
@@ -366,12 +366,13 @@ lemma legendre_sym_eq_pow (a p : ℕ) [hp : fact p.prime] :
 begin
   rw legendre_sym,
   by_cases ha : (a : zmod p) = 0,
-  { simp only [if_pos, ha, zero_pow (nat.div_pos (hp.1.two_le) (succ_pos 1)), int.cast_zero] },
+  { simp only [int.cast_coe_nat, if_pos, ha,
+      zero_pow (nat.div_pos (hp.1.two_le) (succ_pos 1)), int.cast_zero] },
   cases hp.1.eq_two_or_odd with hp2 hp_odd,
   { substI p,
     generalize : (a : (zmod 2)) = b, revert b, dec_trivial, },
   { haveI := fact.mk hp_odd,
-    rw if_neg ha,
+    rw [int.cast_coe_nat, if_neg ha],
     have : (-1 : zmod p) ≠ 1, from (ne_neg_self p one_ne_zero).symm,
     cases pow_div_two_eq_neg_one_or_one p ha with h h,
     { rw [if_pos h, h, int.cast_one], },
@@ -380,7 +381,11 @@ end
 
 lemma legendre_sym_eq_one_or_neg_one (a p : ℕ) (ha : (a : zmod p) ≠ 0) :
   legendre_sym a p = -1 ∨ legendre_sym a p = 1 :=
-by unfold legendre_sym; split_ifs; simp only [*, eq_self_iff_true, or_true, true_or] at *
+begin
+  unfold legendre_sym,
+  split_ifs;
+  simp only [*, eq_self_iff_true, or_true, true_or, int.cast_coe_nat] at *,
+end
 
 lemma legendre_sym_eq_zero_iff (a p : ℕ) :
   legendre_sym a p = 0 ↔ (a : zmod p) = 0 :=
@@ -389,7 +394,7 @@ begin
   { classical, contrapose,
     assume ha, cases legendre_sym_eq_one_or_neg_one a p ha with h h,
     all_goals { rw h, norm_num } },
-  { assume ha, rw [legendre_sym, if_pos ha] }
+  { assume ha, rw [legendre_sym, int.cast_coe_nat, if_pos ha] }
 end
 
 /-- Gauss' lemma. The legendre symbol can be computed by considering the number of naturals less
@@ -410,7 +415,7 @@ end
 lemma legendre_sym_eq_one_iff {a : ℕ} (ha0 : (a : zmod p) ≠ 0) :
   legendre_sym a p = 1 ↔ (∃ b : zmod p, b ^ 2 = a) :=
 begin
-  rw [euler_criterion p ha0, legendre_sym, if_neg ha0],
+  rw [euler_criterion p ha0, legendre_sym, int.cast_coe_nat, if_neg ha0],
   split_ifs,
   { simp only [h, eq_self_iff_true] },
   { simp only [h, iff_false], tauto }
@@ -456,7 +461,7 @@ have hunion :
     exact filter_congr (λ x hx, by simp [hx2 _ hx, lt_or_le, mul_comm])
   end,
 begin
-  rw [gauss_lemma p (prime_ne_zero p 2 hp2),
+  erw [gauss_lemma p (prime_ne_zero p 2 hp2),
     neg_one_pow_eq_pow_mod_two, @neg_one_pow_eq_pow_mod_two _ _ (p / 4 + p / 2)],
   refine congr_arg2 _ rfl ((eq_iff_modeq_nat 2).1 _),
   rw [show 4 = 2 * 2, from rfl, ← nat.div_div_eq_div_mul, hp22, nat.cast_add,
@@ -471,8 +476,8 @@ have hp2 : ((2 : ℕ) : zmod p) ≠ 0,
 have hpm4 : p % 4 = p % 8 % 4, from (nat.mod_mul_left_mod p 2 4).symm,
 have hpm2 : p % 2 = p % 8 % 2, from (nat.mod_mul_left_mod p 4 2).symm,
 begin
-  rw [show (2 : zmod p) = (2 : ℕ), by simp, ← legendre_sym_eq_one_iff p hp2,
-    legendre_sym_two p, neg_one_pow_eq_one_iff_even (show (-1 : ℤ) ≠ 1, from dec_trivial),
+  rw [show (2 : zmod p) = (2 : ℕ), by simp, ← legendre_sym_eq_one_iff p hp2],
+  erw [legendre_sym_two p, neg_one_pow_eq_one_iff_even (show (-1 : ℤ) ≠ 1, from dec_trivial),
     even_add, even_div, even_div],
   have := nat.mod_lt p (show 0 < 8, from dec_trivial),
   resetI, rw fact_iff at hp1,
@@ -494,8 +499,8 @@ begin
   have hpq0 : (p : zmod q) ≠ 0 := prime_ne_zero q p (ne.symm hpq),
   have hqp0 : (q : zmod p) ≠ 0 := prime_ne_zero p q hpq,
   have := quadratic_reciprocity p q hpq,
-  rw [neg_one_pow_eq_pow_mod_two, h1, legendre_sym, legendre_sym,
-    if_neg hqp0, if_neg hpq0] at this,
+  rw [neg_one_pow_eq_pow_mod_two, h1, legendre_sym, legendre_sym, int.cast_coe_nat,
+    int.cast_coe_nat, if_neg hqp0, if_neg hpq0] at this,
   rw [euler_criterion q hpq0, euler_criterion p hqp0],
   split_ifs at this; simp *; contradiction,
 end
@@ -512,8 +517,8 @@ begin
   have hpq0 : (p : zmod q) ≠ 0 := prime_ne_zero q p (ne.symm hpq),
   have hqp0 : (q : zmod p) ≠ 0 := prime_ne_zero p q hpq,
   have := quadratic_reciprocity p q hpq,
-  rw [neg_one_pow_eq_pow_mod_two, h1, legendre_sym, legendre_sym,
-    if_neg hpq0, if_neg hqp0] at this,
+  rw [neg_one_pow_eq_pow_mod_two, h1, legendre_sym, legendre_sym, int.cast_coe_nat,
+    int.cast_coe_nat, if_neg hpq0, if_neg hqp0] at this,
   rw [euler_criterion q hpq0, euler_criterion p hqp0],
   split_ifs at this; simp *; contradiction
 end

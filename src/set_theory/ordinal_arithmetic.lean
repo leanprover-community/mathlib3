@@ -2139,20 +2139,16 @@ end
 
 theorem is_normal.le_iff_deriv (H : is_normal f) {a} : f a ≤ a ↔ ∃ o, deriv f o = a :=
 ⟨λ ha, begin
-  suffices : ∀ o (_:a ≤ deriv f o), ∃ o, deriv f o = a,
+  suffices : ∀ o (_ : a ≤ deriv f o), ∃ o, deriv f o = a,
   from this a ((deriv_is_normal _).le_self _),
-  intro o, apply limit_rec_on o,
-  { intros h₁,
-    refine ⟨0, le_antisymm _ h₁⟩,
-    rw deriv_zero,
+  refine λ o, limit_rec_on o (λ h₁, ⟨0, le_antisymm _ h₁⟩) (λ o IH h₁, _) (λ o l IH h₁, _),
+  { rw deriv_zero,
     exact H.nfp_le_fp (ordinal.zero_le _) ha },
-  { intros o IH h₁,
-    cases le_or_lt a (deriv f o), {exact IH h},
+  { cases le_or_lt a (deriv f o), {exact IH h},
     refine ⟨succ o, le_antisymm _ h₁⟩,
     rw deriv_succ,
     exact H.nfp_le_fp (succ_le.2 h) ha },
-  { intros o l IH h₁,
-    cases eq_or_lt_of_le h₁, {exact ⟨_, h.symm⟩},
+  { cases eq_or_lt_of_le h₁, {exact ⟨_, h.symm⟩},
     rw [deriv_limit _ l, ← not_le, bsup_le, not_ball] at h,
     exact let ⟨o', h, hl⟩ := h in IH o' h (le_of_not_le hl) }
 end, λ ⟨o, e⟩, e ▸ le_of_eq (H.deriv_fp _)⟩

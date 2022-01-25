@@ -8,12 +8,12 @@ import ring_theory.roots_of_unity
 import ring_theory.polynomial.cyclotomic.basic
 
 /-!
-# The Solution of Cubic
+# The Solution of a Cubic
 
 This file proves Theorem 37 from the [100 Theorems List](https://www.cs.ru.nl/~freek/100/).
 
-The theorems `cubic_eq_zero_iff` and `cubic_eq_zero_iff_of_p_eq_zero` gives the solution to
-the cubic equation `a * x^3 + b * x^2 + c * x + d` over field K,
+The theorems `cubic_eq_zero_iff` and `cubic_eq_zero_iff_of_p_eq_zero` gives the solutions to
+the cubic equation `a * x^3 + b * x^2 + c * x + d = 0` over a field `K` that has a third primitive root of unity and that has characteristic neither 2 nor 3. This is
 based on the [Cardano's Formula](https://en.wikipedia.org/wiki/Cubic_equation#Cardano's_formula).
 
 ## References
@@ -37,13 +37,13 @@ variables {ω p q r s t : K}
 
 lemma cube_root_of_unity_sum (hω : is_primitive_root ω 3) : 1 + ω + ω^2 = 0 :=
 begin
-  calc    1 + ω + ω^2
-        = eval ω (geom_sum X 3) : by { simp [geom_sum_succ], ring }
-    ... = eval ω (cyclotomic 3 K) : congr_arg _ (cyclotomic_eq_geom_sum nat.prime_three).symm
-    ... = 0 : is_root_cyclotomic (by linarith) hω
+  convert is_root_cyclotomic (nat.succ_pos _) hω,
+  rw [cyclotomic_eq_geom_sum nat.prime_three, eval_geom_sum],
+  simp only [geom_sum_succ, geom_sum_zero],
+  ring,
 end
 
-/-- The solution of the monic cubic equation, with 2nd coefficient set to zero. -/
+/-- The roots of a monic cubic whose quadratic term is zero and whose discriminant is nonzero. -/
 lemma cubic_basic_eq_zero_iff
   (hω : is_primitive_root ω 3)
   (hp_nonzero : p ≠ 0)
@@ -57,10 +57,7 @@ lemma cubic_basic_eq_zero_iff
     x = s * ω^2 - t * ω    :=
 begin
   have h₁ : ∀ x a₁ a₂ a₃ : K, x = a₁ ∨ x = a₂ ∨ x = a₃ ↔ (x - a₁) * (x - a₂) * (x - a₃) = 0,
-  { intros,
-    iterate 2 { rw [mul_eq_zero] },
-    iterate 3 { rw [sub_eq_zero] },
-    rw or.assoc, },
+  { intros, simp only [mul_eq_zero, sub_eq_zero, or.assoc] },
   rw h₁,
   suffices : x ^ 3 + 3 * p * x - 2 * q
     = (x - (s - t)) * (x - (s * ω - t * ω^2)) * (x - (s * ω^2 - t * ω)),
@@ -68,12 +65,12 @@ begin
   have hc : s^3 - t^3 = 2 * q,
   { have : s ≠ 0 := λ h, by { apply hp_nonzero, rw [h, mul_zero] at ht, exact ht.symm },
     have h_nonzero: q + r ≠ 0 := by { rw ← hs3, exact pow_ne_zero _ this },
-    have hp3 : p^3 = r^2 - q^2 := by rw [hr]; ring,
+    have hp3 : p^3 = r^2 - q^2 := by { rw hr, ring },
     calc    s^3 - t^3
           = s^3 - p^3/s^3 : by { rw [← ht], field_simp, ring }
       ... = (q+r) - (r^2-q^2)/(q+r) : by rw [hs3, hp3]
-      ... = (q+r) + (q-r) * ((q+r) / (q+r)): by ring
-      ... = 2 * q : by rw div_self h_nonzero; ring },
+      ... = (q+r) + (q-r) * ((q+r) / (q+r)) : by ring
+      ... = 2 * q : by { rw div_self h_nonzero, ring } },
   symmetry,
   calc (x - (s - t)) * (x - (s * ω - t * ω^2)) * (x - (s * ω^2 - t * ω))
       = x^3 - (s-t) * (1+ω+ω^2) * x^2
@@ -84,7 +81,7 @@ begin
   ... = x^3 + 3*p*x - 2*q : by rw [ht, hc]
 end
 
-/-- the solution of the monic cubic equation. -/
+/-- Roots of a monic cubic whose discriminant is nonzero. -/
 lemma cubic_monic_eq_zero_iff
   (hω : is_primitive_root ω 3)
   (hp : p = (3 * c - b^2) / 9)
@@ -110,17 +107,11 @@ begin
     field_simp [h9, h54], ring, },
   rw [h₁, cubic_basic_eq_zero_iff hω hp_nonzero hr hs3 ht y],
   dsimp only [y],
-  have h₂ : ∀ s t : K, x + b / 3 = s - t ↔ x = s - t - b / 3,
-  { intros s t,
-    split; intros h,
-    { calc x = x + b / 3 - b / 3 : by { field_simp, ring }
-       ... = s - t - b / 3 : by rw h },
-    { rw h, field_simp } },
-  repeat { rw [h₂] } ,
+  simp_rw [eq_sub_iff_add_eq],
 end
 
-/-- **The Solution of Cubic**
-  The solution of the cubic equation when `p` is nonzero. -/
+/-- **The Solution of Cubic**.
+  The roots of a cubic polynomial whose discriminant is nonzero. -/
 theorem cubic_eq_zero_iff (ha : a ≠ 0)
   (hω : is_primitive_root ω 3)
   (hp : p = (3 * a * c - b^2) / (9 * a^2))
@@ -144,14 +135,11 @@ begin
   have h₂ : ∀ x, a * x = 0 ↔ x = 0, { intros x, simp [ha], },
   have hp' : p = (3 * (c/a) - (b/a) ^ 2) / 9, { field_simp [hp, h9], ring_nf },
   have hq' : q = (9 * (b/a) * (c/a) - 2 * (b/a) ^ 3 - 27 * (d/a)) / 54,
- { field_simp [hq, h54], ring_nf },
-  have h₃ := cubic_monic_eq_zero_iff (b/a) (c/a) (d/a) hω hp' hp_nonzero hq' hr hs3 ht x,
-  rw [h₁, h₂, h₃],
-  have h₄ :=
-    calc b / a / 3
-       = b / (a * 3) : by { field_simp [ha] }
-       ... = b / (3 * a) : by rw mul_comm,
-  simp [h₄],
+  { field_simp [hq, h54], ring_nf },
+  rw [h₁, h₂, cubic_monic_eq_zero_iff (b/a) (c/a) (d/a) hω hp' hp_nonzero hq' hr hs3 ht x],
+  have h₄ := calc b / a / 3 = b / (a * 3) : by { field_simp [ha] }
+                        ... = b / (3 * a) : by rw mul_comm,
+  rw [h₄],
 end
 
 /-- the solution of the cubic equation when p equals zero. -/
@@ -161,20 +149,16 @@ lemma cubic_eq_zero_iff_of_p_eq_zero (ha : a ≠ 0)
   (hq : q = (9 * a * b * c - 2 * b^3 - 27 * a^2 * d) / (54 * a^3))
   (hs3 : s^3 = 2 * q)
   (x : K) :
-    a * x^3 + b * x^2 + c * x + d = 0 ↔
-      x = s       - b / (3 * a) ∨
-      x = s * ω   - b / (3 * a) ∨
-      x = s * ω^2 - b / (3 * a) :=
+  a * x^3 + b * x^2 + c * x + d = 0 ↔
+    x = s       - b / (3 * a) ∨
+    x = s * ω   - b / (3 * a) ∨
+    x = s * ω^2 - b / (3 * a) :=
 begin
+  have h₁ : ∀ x a₁ a₂ a₃ : K, x = a₁ ∨ x = a₂ ∨ x = a₃ ↔ (x - a₁) * (x - a₂) * (x - a₃) = 0,
+  { intros, simp only [mul_eq_zero, sub_eq_zero, or.assoc] },
   have hi2 : (2 : K) ≠ 0 := nonzero_of_invertible _,
   have hi3 : (3 : K) ≠ 0 := nonzero_of_invertible _,
   have h54 : (54 : K) = 2*3^3 := by norm_num,
-  have : (3 : K) ≠ 0, { exact ne_zero.ne 3},
-  have h₁ : ∀ x a₁ a₂ a₃ : K, x = a₁ ∨ x = a₂ ∨ x = a₃ ↔ (x - a₁) * (x - a₂) * (x - a₃) = 0,
-  { intros,
-    iterate 2 { rw [mul_eq_zero] },
-    iterate 3 { rw [sub_eq_zero] },
-    rw or.assoc, },
   have hb2 : b^2 = 3 * a * c, { rw sub_eq_zero at hpz, rw hpz },
   have hb3 : b^3 = 3 * a * b * c, { rw [pow_succ, hb2], ring },
   have h₂ :=
@@ -186,16 +170,16 @@ begin
     ... = a * ((x + b/(3*a))^3 - s^3)
           : by { rw [hs3, hq], field_simp [h54], ring, },
   have h₃ : ∀ x, a * x = 0 ↔ x = 0, { intro x, simp [ha] },
-  rw [h₁, h₂, h₃],
-  suffices : ∀ x : K, x^3 - s^3 = (x - s) * (x - s* ω) * (x - s * ω^2),
-  { rw this (x + b/(3*a)), ring_nf },
-  intro x,
-  calc  x^3 - s^3
-      = (x - s) * (x^2 + x*s + s^2) : by ring
-  ... = (x - s) * (x^2 - (ω+ω^2)*x*s + (1+ω+ω^2)*x*s + s^2) : by ring
-  ... = (x - s) * (x^2 - (ω+ω^2)*x*s + ω^3*s^2)
-    : by { rw [is_primitive_root.pow_eq_one hω, cube_root_of_unity_sum hω], simp, }
-  ... = (x - s) * (x - s * ω) * (x - s * ω^2) : by ring
+  have h₄ : ∀ x : K, x^3 - s^3 = (x - s) * (x - s * ω) * (x - s * ω^2),
+  { intro x,
+    calc  x^3 - s^3
+        = (x - s) * (x^2 + x*s + s^2) : by ring
+    ... = (x - s) * (x^2 - (ω+ω^2)*x*s + (1+ω+ω^2)*x*s + s^2) : by ring
+    ... = (x - s) * (x^2 - (ω+ω^2)*x*s + ω^3*s^2)
+        : by { rw [is_primitive_root.pow_eq_one hω, cube_root_of_unity_sum hω], simp, }
+    ... = (x - s) * (x - s * ω) * (x - s * ω^2) : by ring },
+  rw [h₁, h₂, h₃, h₄ (x + b/(3*a))],
+  ring_nf,
 end
 
 end field

@@ -13,8 +13,8 @@ import algebra.group.defs
 This file proves Theorem 37 from the [100 Theorems List](https://www.cs.ru.nl/~freek/100/).
 
 The theorems `cubic_eq_zero_iff` and `cubic_eq_zero_iff_of_discrim_eq_zero`,
-gives solution to the cubic equation `a * x^3 + b * x^2 + c * x + d` over ℂ.
-distinguishing the cases wheter `p = (3 * a * c - b^2) / (9 * a^2)` equals zero.
+gives the solution to the cubic equation `a * x^3 + b * x^2 + c * x + d` over ℂ.
+distinguishing the cases whether `p = (3 * a * c - b^2) / (9 * a^2)` equals zero.
 
 based on the [Cardano's Formula](https://en.wikipedia.org/wiki/Cubic_equation#Cardano's_formula).
 

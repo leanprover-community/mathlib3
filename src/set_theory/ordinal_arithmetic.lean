@@ -2174,7 +2174,7 @@ end
 theorem mul_omega_nfp_add_zero (a) : a * omega = nfp ((+) a) 0 :=
 by { unfold nfp, rw [mul_omega_eq_sup_mul_nat, funext (add_iterate a)] }
 
-theorem mul_omega_nfp_add_of_le_mul_omega {a b} (hba : b ≤ a * omega) :
+theorem mul_omega_eq_nfp_add_of_le_mul_omega {a b} (hba : b ≤ a * omega) :
   a * omega = nfp ((+) a) b :=
 begin
   refine le_antisymm _ ((add_is_normal a).nfp_le_fp hba _),

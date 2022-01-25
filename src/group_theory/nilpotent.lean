@@ -649,7 +649,7 @@ begin
       calc n + 1 = n.succ : rfl
         ... = group.nilpotency_class G : symm hn
         ... ≤ group.nilpotency_class (G ⧸ center G) + 1
-            : nilpotency_class_le_of_ker_le_center (le_of_eq (ker_mk _)) _, } }
+            : nilpotency_class_le_of_ker_le_center _ (le_of_eq (ker_mk _)) _, } }
 end
 
 end classical

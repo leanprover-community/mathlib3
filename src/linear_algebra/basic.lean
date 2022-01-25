@@ -1225,6 +1225,35 @@ begin
       exact add_submonoid.add_mem _ hx hy, } }
 end
 
+/-- An induction principle for elements of `⨆ i, p i`.
+If `C` holds for `0` and all elements of `p i` for all `i`, and is preserved under addition,
+then it holds for all elements of the supremum of `p`. -/
+@[elab_as_eliminator]
+lemma supr_induction {ι : Sort*} (p : ι → submodule R M) {C : M → Prop} {x : M} (hx : x ∈ ⨆ i, p i)
+  (hp : ∀ i (x ∈ p i), C x)
+  (h0 : C 0)
+  (hadd : ∀ x y, C x → C y → C (x + y)) : C x :=
+begin
+  rw [←mem_to_add_submonoid, supr_to_add_submonoid] at hx,
+  exact add_submonoid.supr_induction _ hx hp h0 hadd,
+end
+
+/-- A dependent version of `submodule.supr_induction`. -/
+@[elab_as_eliminator]
+lemma supr_induction' {ι : Sort*} (p : ι → submodule R M) {C : Π x, (x ∈ ⨆ i, p i) → Prop}
+  (hp : ∀ i (x ∈ p i), C x (mem_supr_of_mem i ‹_›))
+  (h0 : C 0 (zero_mem _))
+  (hadd : ∀ x y hx hy, C x hx → C y hy → C (x + y) (add_mem _ ‹_› ‹_›))
+  {x : M} (hx : x ∈ ⨆ i, p i) : C x hx :=
+begin
+  refine exists.elim _ (λ (hx : x ∈ ⨆ i, p i) (hc : C x hx), hc),
+  refine supr_induction p hx (λ i x hx, _) _ (λ x y, _),
+  { exact ⟨_, hp _ _ hx⟩ },
+  { exact ⟨_, h0⟩ },
+  { rintro ⟨_, Cx⟩ ⟨_, Cy⟩,
+    refine ⟨_, hadd _ _ _ _ Cx Cy⟩ },
+end
+
 lemma span_singleton_le_iff_mem (m : M) (p : submodule R M) : (R ∙ m) ≤ p ↔ m ∈ p :=
 by rw [span_le, singleton_subset_iff, set_like.mem_coe]
 

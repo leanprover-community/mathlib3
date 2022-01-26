@@ -101,6 +101,23 @@ lemma eventually_eq.countable_bInter {S : set ι} (hS : countable S) {s t : Π i
 (eventually_le.countable_bInter hS (λ i hi, (h i hi).le)).antisymm
   (eventually_le.countable_bInter hS (λ i hi, (h i hi).symm.le))
 
+/-- Construct a filter with countable intersection property. This constructor deduces
+`filter.univ_sets` and `filter.inter_sets` from the countable intersection property. -/
+def filter.of_countable_Inter (l : set (set α))
+  (hp : ∀ S : set (set α), countable S → S ⊆ l → (⋂₀ S) ∈ l)
+  (h_mono : ∀ s t, s ∈ l → s ⊆ t → t ∈ l) :
+  filter α :=
+{ sets := l,
+  univ_sets := @sInter_empty α ▸ hp _ countable_empty (empty_subset _),
+  sets_of_superset := h_mono,
+  inter_sets := λ s t hs ht, sInter_pair s t ▸
+    hp _ ((countable_singleton _).insert _) (insert_subset.2 ⟨hs, singleton_subset_iff.2 ht⟩) }
+
+instance filter.countable_Inter_of_countable_Inter (l : set (set α))
+  (hp : ∀ S : set (set α), countable S → S ⊆ l → (⋂₀ S) ∈ l)
+  (h_mono : ∀ s t, s ∈ l → s ⊆ t → t ∈ l) :
+  countable_Inter_filter (filter.of_countable_Inter l hp h_mono) := ⟨hp⟩
+
 instance countable_Inter_filter_principal (s : set α) : countable_Inter_filter (𝓟 s) :=
 ⟨λ S hSc hS, subset_sInter hS⟩
 

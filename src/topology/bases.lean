@@ -592,8 +592,8 @@ begin
     (countable_Union $ λ i, (countable_countable_basis _).image _)
 end
 
-/-- In a second-countable space, an open set, given as a union of open sets,
-is equal to the union of countably many of those sets. -/
+/-- In a second-countable space, an open set, given as a union of open sets, is equal to the union
+of countably many of those sets. -/
 lemma is_open_Union_countable [second_countable_topology α]
   {ι} (s : ι → set α) (H : ∀ i, is_open (s i)) :
   ∃ T : set ι, countable T ∧ (⋃ i ∈ T, s i) = ⋃ i, s i :=

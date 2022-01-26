@@ -589,7 +589,7 @@ begin
   simp,
 end
 
--- This lemma helps with rewriting the subgroup, which occurs in
+-- This lemma helps with rewriting the subgroup, which occurs in indices
 lemma comap_center_subst {H₁ H₂ : subgroup G} [normal H₁] [normal H₂] (h : H₁ = H₂) :
   comap (mk' H₁) (center (G ⧸ H₁)) = comap (mk' H₂) (center (G ⧸ H₂)) :=
   by { unfreezingI { subst h, } }

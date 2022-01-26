@@ -295,8 +295,8 @@ let b := λ a, 2 * ennreal.of_real (bound a) in
 have hb : ∀ n, ∀ᵐ a ∂μ, ennreal.of_real ∥F n a - f a∥ ≤ b a,
 begin
   assume n,
-  filter_upwards [all_ae_of_real_F_le_bound h_bound n, all_ae_of_real_f_le_bound h_bound h_lim],
-  assume a h₁ h₂,
+  filter_upwards [all_ae_of_real_F_le_bound h_bound n, all_ae_of_real_f_le_bound h_bound h_lim]
+    with a h₁ h₂,
   calc ennreal.of_real ∥F n a - f a∥ ≤ (ennreal.of_real ∥F n a∥) + (ennreal.of_real ∥f a∥) :
   begin
     rw [← ennreal.of_real_add],
@@ -327,7 +327,7 @@ begin
     { calc ∫⁻ a, b a ∂μ = 2 * ∫⁻ a, ennreal.of_real (bound a) ∂μ :
         by { rw lintegral_const_mul', exact coe_ne_top }
         ... ≠ ∞ : mul_ne_top coe_ne_top bound_has_finite_integral.ne },
-    filter_upwards [h_bound 0] λ a h, le_trans (norm_nonneg _) h },
+    filter_upwards [h_bound 0] with _ h using le_trans (norm_nonneg _) h },
   -- Show `∥f a - F n a∥ --> 0`
   { exact h }
 end
@@ -892,8 +892,7 @@ begin
   rw [norm_def],
   congr' 1,
   rw lintegral_congr_ae,
-  filter_upwards [Lp.coe_fn_sub f g],
-  assume a ha,
+  filter_upwards [Lp.coe_fn_sub f g] with _ ha,
   simp only [ha, pi.sub_apply],
 end
 
@@ -909,8 +908,7 @@ lemma of_real_norm_sub_eq_lintegral (f g : α →₁[μ] β) :
 begin
   simp_rw [of_real_norm_eq_lintegral, ← edist_eq_coe_nnnorm],
   apply lintegral_congr_ae,
-  filter_upwards [Lp.coe_fn_sub f g],
-  assume a ha,
+  filter_upwards [Lp.coe_fn_sub f g] with _ ha,
   simp only [ha, pi.sub_apply],
 end
 

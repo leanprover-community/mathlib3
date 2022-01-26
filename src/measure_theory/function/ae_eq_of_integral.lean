@@ -221,8 +221,7 @@ begin
     ae_le_of_forall_set_lintegral_le_of_sigma_finite hf hg (λ s hs h's, le_of_eq (h s hs h's)),
   have B : g ≤ᵐ[μ] f :=
     ae_le_of_forall_set_lintegral_le_of_sigma_finite hg hf (λ s hs h's, ge_of_eq (h s hs h's)),
-  filter_upwards [A, B],
-  exact λ x, le_antisymm
+  filter_upwards [A, B] with x using le_antisymm,
 end
 
 end ennreal

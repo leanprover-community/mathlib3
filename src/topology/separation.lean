@@ -643,6 +643,39 @@ lemma t2_iff_nhds : t2_space α ↔ ∀ {x y : α}, ne_bot (𝓝 x ⊓ 𝓝 y) �
        ⟨v, vv', vo, hv⟩ := mem_nhds_iff.mp hv' in
    ⟨u, v, uo, vo, hu, hv, by { rw [← subset_empty_iff, u'v'], exact inter_subset_inter uu' vv' }⟩⟩⟩
 
+lemma t2_space_iff_nhds : t2_space α ↔ ∀ {x y : α}, x ≠ y → ∃ (U ∈ 𝓝 x) (V ∈ 𝓝 y), U ∩ V = ∅ :=
+begin
+  split,
+  { rintro ⟨h⟩ x y hxy,
+    rcases h x y hxy with ⟨u, v, u_op, v_op, hx, hy, H⟩,
+    exact ⟨u, u_op.mem_nhds hx, v, v_op.mem_nhds hy, H⟩ },
+  { refine λ h, ⟨λ x y hxy, _⟩,
+    rcases h hxy with ⟨u, u_in, v, v_in, H⟩,
+    rcases mem_nhds_iff.mp u_in with ⟨U, hUu, U_op, hxU⟩,
+    rcases mem_nhds_iff.mp v_in with ⟨V, hVv, V_op, hyV⟩,
+    refine ⟨U, V, U_op, V_op, hxU, hyV, set.eq_empty_of_subset_empty _⟩,
+    rw ← H,
+    exact set.inter_subset_inter hUu hVv }
+end
+
+lemma t2_separation_nhds [t2_space α] {x y : α} (h : x ≠ y) :
+   ∃ u v, u ∈ 𝓝 x ∧ v ∈ 𝓝 y ∧ u ∩ v = ∅ :=
+let ⟨u, v, open_u, open_v, x_in, y_in, huv⟩ := t2_separation h in
+⟨u, v, open_u.mem_nhds x_in, open_v.mem_nhds y_in, huv⟩
+
+lemma t2_separation_compact_nhds [locally_compact_space α]
+  [t2_space α] {x y : α} (h : x ≠ y) :
+  ∃ u v, u ∈ 𝓝 x ∧ v ∈ 𝓝 y ∧ is_compact u ∧ is_compact v ∧ u ∩ v = ∅ :=
+begin
+  obtain ⟨u₀, v₀, u₀_in, v₀_in, hu₀v₀⟩ := t2_separation_nhds h,
+  obtain ⟨K₀, K₀_in, K₀_u₀, hK₀⟩ := local_compact_nhds u₀_in,
+  obtain ⟨L₀, L₀_in, L₀_u₀, hL₀⟩ := local_compact_nhds v₀_in,
+  use [K₀, L₀, K₀_in, L₀_in, hK₀, hL₀],
+  apply set.eq_empty_of_subset_empty,
+  rw ← hu₀v₀,
+  exact set.inter_subset_inter K₀_u₀ L₀_u₀
+end
+
 lemma t2_iff_ultrafilter :
   t2_space α ↔ ∀ {x y : α} (f : ultrafilter α), ↑f ≤ 𝓝 x → ↑f ≤ 𝓝 y → x = y :=
 t2_iff_nhds.trans $ by simp only [←exists_ultrafilter_iff, and_imp, le_inf_iff, exists_imp_distrib]
@@ -1563,7 +1596,7 @@ begin
     -- This clopen and its complement will separate the connected components of `a` and `b`
     set U : set α := (⋂ (i : {Z // is_clopen Z ∧ b ∈ Z}) (H : i ∈ fin_a), i),
     have hU : is_clopen U := is_clopen_bInter (λ i j, i.2.1),
-    exact ⟨U, coe '' U, hU, ha, subset_bInter (λ Z _, Z.2.1.connected_component_subset Z.2.2),
+    exact ⟨U, coe '' U, hU, ha, subset_Inter₂ (λ Z _, Z.2.1.connected_component_subset Z.2.2),
       (connected_components_preimage_image U).symm ▸ hU.bUnion_connected_component_eq⟩ },
   rw connected_components.quotient_map_coe.is_clopen_preimage at hU,
   refine ⟨Vᶜ, V, hU.compl.is_open, hU.is_open, _, hb mem_connected_component, compl_inter_self _⟩,

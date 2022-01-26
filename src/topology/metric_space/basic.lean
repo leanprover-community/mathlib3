@@ -648,7 +648,7 @@ theorem totally_bounded_iff {s : set α} :
 ⟨λ H ε ε0, H _ (dist_mem_uniformity ε0),
  λ H r ru, let ⟨ε, ε0, hε⟩ := mem_uniformity_dist.1 ru,
                ⟨t, ft, h⟩ := H ε ε0 in
-  ⟨t, ft, subset.trans h $ Union_subset_Union $ λ y, Union_subset_Union $ λ yt z, hε⟩⟩
+  ⟨t, ft, h.trans $ Union₂_mono $ λ y yt z, hε⟩⟩
 
 /-- A pseudometric space is totally bounded if one can reconstruct up to any ε>0 any element of the
 space from finitely many data. -/
@@ -1138,9 +1138,7 @@ begin
   obtain ⟨ε, εpos, hε⟩ : ∃ ε (hε : 0 < ε), closed_ball x ε ⊆ u :=
     nhds_basis_closed_ball.mem_iff.1 hu,
   have : Iic ε ∈ 𝓝 (0 : ℝ) := Iic_mem_nhds εpos,
-  filter_upwards [this],
-  assume r hr,
-  exact subset.trans (closed_ball_subset_closed_ball hr) hε,
+  filter_upwards [this] with _ hr using subset.trans (closed_ball_subset_closed_ball hr) hε,
 end
 
 end real
@@ -1703,7 +1701,7 @@ begin
   refine emetric.second_countable_of_almost_dense_set (λ ε ε0, _),
   rcases ennreal.lt_iff_exists_nnreal_btwn.1 ε0 with ⟨ε', ε'0, ε'ε⟩,
   choose s hsc y hys hyx using H ε' (by exact_mod_cast ε'0),
-  refine ⟨s, hsc, bUnion_eq_univ_iff.2 (λ x, ⟨y x, hys _, le_trans _ ε'ε.le⟩)⟩,
+  refine ⟨s, hsc, Union₂_eq_univ_iff.2 (λ x, ⟨y x, hys _, le_trans _ ε'ε.le⟩)⟩,
   exact_mod_cast hyx x
 end
 

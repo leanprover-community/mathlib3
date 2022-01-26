@@ -558,13 +558,10 @@ begin
   ext x,
   simp only [mk'_apply, mem_comap, mem_center_iff, forall_coe],
   apply forall_congr,
+  change ∀ (y : G), (↑↑(y * x) = ↑↑(x * y) ↔ ↑(y * x) = ↑(x * y)),
   intro y,
-  split;
-  { intro h,
-    apply eq_iff_div_mem.mpr,
-    have h' := eq_iff_div_mem.mp h, clear h,
-    apply h',
-    apply_instance, },
+  repeat { rw [eq_iff_div_mem] },
+  simp,
 end
 
 -- This lemma is just because `rw h` doesn’t work below.

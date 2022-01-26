@@ -66,7 +66,9 @@ directly. -/
 instance : has_coe_to_fun (Π₀ i, β i) (λ _, Π i, β i) := fun_like.has_coe_to_fun
 
 @[ext] lemma ext {f g : Π₀ i, β i} (h : ∀ i, f i = g i) : f = g := fun_like.ext _ _ h
+/-- Deprecated. Use `fun_like.ext_iff` instead. -/
 lemma ext_iff {f g : Π₀ i, β i} : f = g ↔ ∀ i, f i = g i := fun_like.ext_iff
+/-- Deprecated. Use `fun_like.coe_injective` instead. -/
 lemma coe_fn_injective : @function.injective (Π₀ i, β i) (Π i, β i) coe_fn := fun_like.coe_injective
 
 instance : has_zero (Π₀ i, β i) := ⟨⟦⟨0, ∅, λ i, or.inr rfl⟩⟧⟩

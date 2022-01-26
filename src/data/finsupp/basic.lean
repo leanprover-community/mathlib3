@@ -121,9 +121,13 @@ directly. -/
 instance : has_coe_to_fun (α →₀ M) (λ _, α → M) := fun_like.has_coe_to_fun
 
 @[ext] lemma ext {f g : α →₀ M} (h : ∀ a, f a = g a) : f = g := fun_like.ext _ _ h
+/-- Deprecated. Use `fun_like.ext_iff` instead. -/
 lemma ext_iff {f g : α →₀ M} : f = g ↔ ∀ a, f a = g a := fun_like.ext_iff
+/-- Deprecated. Use `fun_like.coe_fn_eq` instead. -/
 @[simp, norm_cast] lemma coe_fn_inj {f g : α →₀ M} : (f : α → M) = g ↔ f = g := fun_like.coe_fn_eq
+/-- Deprecated. Use `fun_like.coe_injective` instead. -/
 lemma coe_fn_injective : @function.injective (α →₀ M) (α → M) coe_fn := fun_like.coe_injective
+/-- Deprecated. Use `fun_like.congr_fun` instead. -/
 lemma congr_fun {f g : α →₀ M} (h : f = g) (a : α) : f a = g a := fun_like.congr_fun h _
 
 @[simp] lemma coe_mk (f : α → M) (s : finset α) (h : ∀ a, a ∈ s ↔ f a ≠ 0) :

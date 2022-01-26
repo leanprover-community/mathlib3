@@ -720,7 +720,7 @@ begin
 end
 
 /-- For positive `a` and `b`, the prime factors of `a * b` are the union of those of `a` and `b` -/
-lemma perm_factors_mul_of_pos {a b : ℕ} (ha : a ≠ 0) (hb : b ≠ 0) :
+lemma perm_factors_mul {a b : ℕ} (ha : a ≠ 0) (hb : b ≠ 0) :
   (a * b).factors ~ a.factors ++ b.factors :=
 begin
   refine (factors_unique _ _).symm,
@@ -739,7 +739,7 @@ begin
   { simp [(coprime_zero_left _).mp hab] },
   rcases b.eq_zero_or_pos with rfl | hb,
   { simp [(coprime_zero_right _).mp hab] },
-  exact perm_factors_mul_of_pos ha.ne' hb.ne',
+  exact perm_factors_mul ha.ne' hb.ne',
 end
 
 lemma factors_sublist_right {n k : ℕ} (h : k ≠ 0) : n.factors <+ (n * k).factors :=
@@ -747,7 +747,7 @@ begin
   cases n,
   { rw zero_mul },
   apply sublist_of_subperm_of_sorted _ (factors_sorted _) (factors_sorted _),
-  rw (perm_factors_mul_of_pos n.succ_ne_zero h).subperm_left,
+  rw (perm_factors_mul n.succ_ne_zero h).subperm_left,
   exact (sublist_append_left _ _).subperm,
 end
 
@@ -1126,16 +1126,16 @@ lemma factors_mul_to_finset_of_coprime {a b : ℕ} (hab : coprime a b) :
 open list
 
 /-- For `0 < b`, the power of `p` in `a * b` is at least that in `a` -/
-lemma le_factors_count_mul_left {p a b : ℕ} (hb : 0 < b) :
+lemma le_factors_count_mul_left {p a b : ℕ} (hb : b ≠ 0) :
   list.count p a.factors ≤ list.count p (a * b).factors :=
 begin
   rcases a.eq_zero_or_pos with rfl | ha,
   { simp },
-  { rw [perm.count_eq (perm_factors_mul_of_pos ha.ne' hb.ne') p, count_append p], simp },
+  { rw [perm.count_eq (perm_factors_mul ha.ne' hb) p, count_append p], simp },
 end
 
 /-- For `a > 0`, the power of `p` in `a * b` is at least that in `b` -/
-lemma le_factors_count_mul_right {p a b : ℕ} (ha : 0 < a) :
+lemma le_factors_count_mul_right {p a b : ℕ} (ha : a ≠ 0) :
   list.count p b.factors ≤ list.count p (a * b).factors :=
 by { rw mul_comm, apply le_factors_count_mul_left ha }
 

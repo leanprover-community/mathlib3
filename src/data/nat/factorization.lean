@@ -85,7 +85,7 @@ by simp [factorization, add_equiv.map_eq_zero_iff, multiset.coe_eq_zero]
 /-- For positive `a` and `b`, the power of `p` in `a * b` is the sum of the powers in `a` and `b` -/
 lemma count_factors_mul {p a b : ℕ} (ha : a ≠ 0) (hb : b ≠ 0) :
   list.count p (a * b).factors = list.count p a.factors + list.count p b.factors :=
-by rw [perm_iff_count.mp (perm_factors_mul_of_pos ha hb) p, count_append]
+by rw [perm_iff_count.mp (perm_factors_mul ha hb) p, count_append]
 
 /-- For nonzero `a` and `b`, the power of `p` in `a * b` is the sum of the powers in `a` and `b` -/
 @[simp] lemma factorization_mul {a b : ℕ} (ha : a ≠ 0) (hb : b ≠ 0) :
@@ -149,20 +149,6 @@ lemma factors_count_eq_of_coprime_right {p a b : ℕ} (hab : coprime a b) (hpb :
   list.count p (a * b).factors = list.count p b.factors :=
 by { rw mul_comm, exact factors_count_eq_of_coprime_left (coprime_comm.mp hab) hpb }
 
-/-- For `b > 0`, the power of `p` in `a * b` is at least that in `a` -/
-lemma le_factors_count_mul_left {p a b : ℕ} (hb : b ≠ 0) :
-  list.count p a.factors ≤ list.count p (a * b).factors :=
-begin
-  rcases eq_or_ne a 0 with rfl | ha,
-  { simp },
-  { rw [perm.count_eq (perm_factors_mul_of_pos ha hb) p, count_append p], simp },
-end
-
-/-- For `a > 0`, the power of `p` in `a * b` is at least that in `b` -/
-lemma le_factors_count_mul_right {p a b : ℕ} (ha : a ≠ 0) :
-  list.count p b.factors ≤ list.count p (a * b).factors :=
-by { rw mul_comm, apply le_factors_count_mul_left ha }
-
 /-- The only prime factor of prime `p` is `p` itself, with multiplicity `1` -/
 @[simp] lemma prime.factorization {p : ℕ} (hp : prime p) :
   p.factorization = single p 1 :=
@@ -220,13 +206,13 @@ lemma factorization_mul_support {a b : ℕ} (ha : a ≠ 0) (hb : b ≠ 0) :
 begin
   ext q,
   simp only [finset.mem_union, factor_iff_mem_factorization],
-  exact mem_factors_mul_of_ne_zero ha hb q
+  exact mem_factors_mul ha hb
 end
 
 /-- Given `P 0, P 1` and a way to extend `P a` to `P (p ^ k * a)`,
 you can define `P` for all natural numbers. -/
 @[elab_as_eliminator]
-noncomputable def rec_on_prime_pow {P : ℕ → Sort*} (h0 : P 0) (h1 : P 1)
+def rec_on_prime_pow {P : ℕ → Sort*} (h0 : P 0) (h1 : P 1)
   (h : ∀ a p n : ℕ, p.prime → ¬ p ∣ a → P a → P (p ^ n * a)) : ∀ (a : ℕ), P a :=
 λ a, nat.strong_rec_on a $ λ n,
   match n with
@@ -235,17 +221,23 @@ noncomputable def rec_on_prime_pow {P : ℕ → Sort*} (h0 : P 0) (h1 : P 1)
   | (k+2) := λ hk, begin
     let p := (k + 2).min_fac,
     have hp : prime p := min_fac_prime (succ_succ_ne_one k),
-    let t := (k+2).factorization p,
-    have hpt : p ^ t ∣ k + 2 := pow_factorization_dvd _ _,
-    have ht  : 0 < t := hp.factorization_pos_of_dvd (nat.succ_ne_zero (k + 1)) (min_fac_dvd _),
+    -- the awkward `let` stuff here is because `factorization` is noncomputable (finsupp);
+    -- we get around this by using the computable `factors.count`, and rewriting when we want
+    -- to use the `factorization` API
+    let t := (k+2).factors.count p,
+    have ht : t = (k+2).factorization p := factors_count_eq,
+    have hpt : p ^ t ∣ k + 2 := by { rw ht, exact pow_factorization_dvd _ _ },
+    have htp : 0 < t :=
+    by { rw ht,
+         exact hp.factorization_pos_of_dvd (nat.succ_ne_zero (k + 1)) (min_fac_dvd _) },
 
     convert h ((k + 2) / p ^ t) p t hp _ _,
     { rw nat.mul_div_cancel' hpt },
-    { rw [nat.dvd_div_iff hpt, ←pow_succ'],
+    { rw [nat.dvd_div_iff hpt, ←pow_succ', ht],
       exact pow_succ_factorization_not_dvd (k + 1).succ_ne_zero hp },
 
     apply hk _ (nat.div_lt_of_lt_mul _),
-    rw [lt_mul_iff_one_lt_left nat.succ_pos', one_lt_pow_iff ht.ne],
+    rw [lt_mul_iff_one_lt_left nat.succ_pos', one_lt_pow_iff htp.ne],
     exact hp.one_lt
     end
   end
@@ -253,8 +245,9 @@ noncomputable def rec_on_prime_pow {P : ℕ → Sort*} (h0 : P 0) (h1 : P 1)
 /-- Given `P 0`, `P 1`, and `P (p ^ k)` for positive prime powers, and a way to extend `P a` and
 `P b` to `P (a * b)` when `a, b` are coprime, you can define `P` for all natural numbers. -/
 @[elab_as_eliminator]
-noncomputable def rec_on_pos_prime_coprime {P : ℕ → Sort*} (hp : ∀ p n : ℕ, prime p → 0 < n → P (p ^ n))
-  (h0 : P 0) (h1 : P 1) (h : ∀ a b, coprime a b → P a → P b → P (a * b)) : ∀ a, P a :=
+def rec_on_pos_prime_coprime {P : ℕ → Sort*}
+  (hp : ∀ p n : ℕ, prime p → 0 < n → P (p ^ n)) (h0 : P 0) (h1 : P 1)
+  (h : ∀ a b, coprime a b → P a → P b → P (a * b)) : ∀ a, P a :=
 rec_on_prime_pow h0 h1 $ λ a p n hp' hpa ha,
   h (p ^ n) a ((prime.coprime_pow_of_not_dvd hp' hpa).symm)
   (if h : n = 0 then eq.rec h1 h.symm else hp p n hp' $ nat.pos_of_ne_zero h) ha
@@ -262,14 +255,15 @@ rec_on_prime_pow h0 h1 $ λ a p n hp' hpa ha,
 /-- Given `P 0`, `P (p ^ k)` for all prime powers, and a way to extend `P a` and `P b` to
 `P (a * b)` when `a, b` are coprime, you can define `P` for all natural numbers. -/
 @[elab_as_eliminator]
-noncomputable def rec_on_prime_coprime {P : ℕ → Sort*} (h0 : P 0) (hp : ∀ p n : ℕ, prime p → P (p ^ n))
-  (h : ∀ a b, coprime a b → P a → P b → P (a * b)) : ∀ a, P a :=
+def rec_on_prime_coprime {P : ℕ → Sort*} (h0 : P 0)
+  (hp : ∀ p n : ℕ, prime p → P (p ^ n)) (h : ∀ a b, coprime a b → P a → P b → P (a * b)) :
+  ∀ a, P a :=
 rec_on_pos_prime_coprime (λ p n h _, hp p n h) h0 (hp 2 0 prime_two) h
 
 /-- Given `P 0`, `P 1`, `P p` for all primes, and a proof that you can extend
 `P a` and `P b` to `P (a * b)`, you can define `P` for all natural numbers. -/
 @[elab_as_eliminator]
-noncomputable def rec_on_mul {P : ℕ → Sort*} (h0 : P 0) (h1 : P 1)
+def rec_on_mul {P : ℕ → Sort*} (h0 : P 0) (h1 : P 1)
   (hp : ∀ p, prime p → P p) (h : ∀ a b, P a → P b → P (a * b)) : ∀ a, P a :=
 let hp : ∀ p n : ℕ, prime p → P (p ^ n) :=
   λ p n hp', match n with

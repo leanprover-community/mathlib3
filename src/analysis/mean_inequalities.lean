@@ -125,6 +125,48 @@ begin
       { rw [exp_log hz] } } }
 end
 
+theorem geom_mean_eq_arith_mean_weighted_of_constant (w z : ι → ℝ) (x : ℝ) (hw : ∀ i ∈ s, 0 ≤ w i)
+  (hw' : ∑ i in s, w i = 1) (hz : ∀ i ∈ s, 0 ≤ z i) (hx : ∀ i ∈ s, w i ≠ 0 → z i = x) :
+  (∏ i in s, (z i) ^ (w i)) = ∑ i in s, w i * z i :=
+begin
+  suffices : ∀ (s : finset ι)
+  (w z : ι → ℝ) (x : ℝ) (hw : ∀ i ∈ s, 0 < w i)
+  (hw' : ∑ i in s, w i = 1) (hz : ∀ i ∈ s, 0 ≤ z i) (hx : ∀ i ∈ s, z i = x),
+  (∏ i in s, (z i) ^ (w i)) = ∑ i in s, w i * z i,
+  { convert this (s.filter (λ i, w i ≠ 0)) w z x _ _ _ _ using 1,
+    { apply (prod_filter_of_ne _).symm,
+      intros i hi,
+      contrapose!,
+      intro hw,
+      rw hw,
+      rw rpow_zero },
+    { rw sum_filter,
+      apply sum_congr rfl (λ i hi, _),
+      rw [eq_comm, ite_eq_left_iff, eq_comm, not_ne_iff],
+      exact λ h, mul_eq_zero_of_left h _ },
+    { intros i hi, rw mem_filter at hi, apply lt_of_le_of_ne _ hi.2.symm, apply hw i hi.1 },
+    { rw [sum_filter_ne_zero, hw'] },
+    { intros i hi, rw mem_filter at hi, apply hz i hi.1 },
+    { intros i hi, rw mem_filter at hi, apply hx i hi.1 hi.2 } },
+
+  clear hw hw' hz hx s w z x,
+  intros s w z x hw hw' hz hx,
+
+  have hw'' : ∑ i in s, w i ≠ 0,
+  { rw hw', exact one_ne_zero },
+  have hxnonneg : 0 ≤ x,
+  { obtain ⟨i, himem⟩ := nonempty_of_sum_ne_zero hw'',
+    rw ←hx i himem,
+    exact hz i himem },
+
+  calc ∏ i in s, z i ^ w i
+      = ∏ i in s, x ^ w i : prod_congr rfl (λ i hi, by rw hx i hi)
+  ... = x ^ (∑ i in s, w i) : rpow_sum_of_nonneg hxnonneg s _ hw'' (λ i hi, (hw i hi).le)
+  ... = x : by rw [hw', rpow_one]
+  ... = ∑ i in s, w i * x : by rw [←sum_mul, hw', one_mul]
+  ... = ∑ i in s, w i * z i : sum_congr rfl (λ i hi, by rw hx i hi)
+end
+
 end real
 
 namespace nnreal

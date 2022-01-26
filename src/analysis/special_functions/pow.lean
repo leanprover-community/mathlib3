@@ -20,7 +20,7 @@ We also prove basic properties of these functions.
 
 noncomputable theory
 
-open_locale classical real topological_space nnreal ennreal filter
+open_locale classical real topological_space nnreal ennreal filter big_operators
 open filter
 
 namespace complex
@@ -432,6 +432,33 @@ begin
       ... = 1 : by simp },
     { simp [rpow_add', ← H, h] } },
   { simp [rpow_add pos] }
+end
+
+lemma rpow_sum_of_pos {α : Type*} {a : ℝ} (ha : 0 ≤ a) {s : finset α} (hne : s.nonempty)
+  (f : α → ℝ) (h' : ∀ x ∈ s, 0 < f x) :
+  ∏ x in s, a ^ f x = a ^ (∑ x in s, f x) :=
+begin
+  obtain rfl|gn := ha.eq_or_lt,
+  { obtain ⟨y, hy⟩ := hne.bex,
+    rw [zero_rpow (finset.sum_pos h' hne).ne', finset.prod_eq_zero hy (zero_rpow (h' y hy).ne')] },
+  refine finset.nonempty.cons_induction _ _ hne,
+  { intros a, rw [finset.prod_singleton, finset.sum_singleton] },
+  { intros a s h hne ih,
+    rw [finset.prod_cons, finset.sum_cons, ih, rpow_add gn], },
+end
+
+lemma rpow_sum_of_nonneg {α : Type*} {a : ℝ} (ha : 0 ≤ a) (s : finset α) (f : α → ℝ)
+  (h : (∑ (x : α) in s, f x) ≠ 0) (h' : ∀ x ∈ s, 0 ≤ f x) :
+  ∏ x in s, a ^ f x = a ^ (∑ x in s, f x) :=
+begin
+  rw [←finset.sum_filter_ne_zero, ←rpow_sum_of_pos ha, finset.prod_filter_of_ne],
+  { refine λ x hx hne1 h0, hne1 _,
+    rw [h0, rpow_zero] },
+  { rw finset.filter_nonempty_iff,
+    exact finset.exists_ne_zero_of_sum_ne_zero h },
+  { intros x hx,
+    rw finset.mem_filter at hx,
+    exact lt_of_le_of_ne (h' x hx.1) hx.2.symm },
 end
 
 lemma rpow_mul {x : ℝ} (hx : 0 ≤ x) (y z : ℝ) : x ^ (y * z) = (x ^ y) ^ z :=

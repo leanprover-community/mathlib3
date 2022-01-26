@@ -363,7 +363,7 @@ lemma bsupr_measure_Iic {μ : measure α} {s : set α} (hsc : countable s)
   (⨆ x ∈ s, μ (Iic x)) = μ univ :=
 begin
   rw ← measure_bUnion_eq_supr hsc,
-  { congr, exact bUnion_eq_univ_iff.2 hst },
+  { congr, exact Union₂_eq_univ_iff.2 hst },
   { exact λ _ _, measurable_set_Iic },
   { exact directed_on_iff_directed.2 (hdir.directed_coe.mono_comp _ $ λ x y, Iic_subset_Iic.2) }
 end
@@ -431,10 +431,10 @@ begin
   { refine set.finite_of_forall_between_eq_endpoints (s \ u) (λ x hx y hy z hz hxy hyz, _),
     by_contra h,
     push_neg at h,
-    exact hy.2 (mem_bUnion_iff.mpr ⟨x, hx.1,
-      mem_bUnion_iff.mpr ⟨z, hz.1, lt_of_le_of_ne hxy h.1, lt_of_le_of_ne hyz h.2⟩⟩) },
+    exact hy.2 (mem_Union₂.mpr ⟨x, hx.1,
+      mem_Union₂.mpr ⟨z, hz.1, lt_of_le_of_ne hxy h.1, lt_of_le_of_ne hyz h.2⟩⟩) },
   have : u ⊆ s :=
-    bUnion_subset (λ x hx, bUnion_subset (λ y hy, Ioo_subset_Icc_self.trans (h.out hx hy))),
+    Union₂_subset (λ x hx, Union₂_subset (λ y hy, Ioo_subset_Icc_self.trans (h.out hx hy))),
   rw ← union_diff_cancel this,
   exact humeas.union hfinite.measurable_set
 end
@@ -623,8 +623,8 @@ begin
   { rcases exists_countable_dense_bot_top α with ⟨s, hsc, hsd, -, hst⟩,
     have : directed_on (≤) s, from directed_on_iff_directed.2 (directed_of_sup $ λ _ _, id),
     simp only [← bsupr_measure_Iic hsc (hsd.exists_ge' hst) this, h] },
-  rw [← Iic_diff_Iic, measure_diff (Iic_subset_Iic.2 hlt.le) measurable_set_Iic measurable_set_Iic,
-      measure_diff (Iic_subset_Iic.2 hlt.le) measurable_set_Iic measurable_set_Iic, h a, h b],
+  rw [← Iic_diff_Iic, measure_diff (Iic_subset_Iic.2 hlt.le) measurable_set_Iic,
+      measure_diff (Iic_subset_Iic.2 hlt.le) measurable_set_Iic, h a, h b],
   { rw ← h a, exact (measure_lt_top μ _).ne },
   { exact (measure_lt_top μ _).ne }
 end
@@ -1239,7 +1239,6 @@ begin
     { apply disjoint_left.2 (λ x hx h'x, _),
       have : 0 < f x := h'x.2,
       exact lt_irrefl 0 (this.trans_le hx.2.le) },
-    { exact hs.inter (hf (measurable_set_singleton _)) },
     { exact hs.inter (hf measurable_set_Ioi) } },
   have B : μ (s ∩ f⁻¹' (Ioi 0)) = μ (s ∩ f⁻¹' {∞}) + μ (s ∩ f⁻¹' (Ioo 0 ∞)),
   { rw ← measure_union,
@@ -1254,7 +1253,6 @@ begin
     { apply disjoint_left.2 (λ x hx h'x, _),
       have : f x < ∞ := h'x.2.2,
       exact lt_irrefl _ (this.trans_le (le_of_eq hx.2.symm)) },
-    { exact hs.inter (hf (measurable_set_singleton _)) },
     { exact hs.inter (hf measurable_set_Ioo) } },
   have C : μ (s ∩ f⁻¹' (Ioo 0 ∞)) = ∑' (n : ℤ), μ (s ∩ f⁻¹' (Ico (t^n) (t^(n+1)))),
   { rw [← measure_Union, ennreal.Ioo_zero_top_eq_Union_Ico_zpow (ennreal.one_lt_coe_iff.2 ht)
@@ -1344,9 +1342,8 @@ begin
       (λ i j ipos ij, cthickening_mono ij _) hs },
   have B : tendsto (λ r, μ (cthickening r s)) (𝓝[Iic 0] 0) (𝓝 (μ (closure s))),
   { apply tendsto.congr' _ tendsto_const_nhds,
-    filter_upwards [self_mem_nhds_within],
-    assume r hr,
-    rw cthickening_of_nonpos hr },
+    filter_upwards [self_mem_nhds_within] with _ hr,
+    rw cthickening_of_nonpos hr, },
   convert B.sup A,
   exact (nhds_left_sup_nhds_right' 0).symm,
 end

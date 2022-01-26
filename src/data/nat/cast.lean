@@ -304,7 +304,7 @@ begin
 end
 
 @[ext] theorem monoid_with_zero_hom.ext_nat :
-∀ {f g : monoid_with_zero_hom ℕ A}, (∀ {n : ℕ}, 0 < n → f n = g n) → f = g := ext_nat''
+  ∀ {f g : ℕ →*₀ A}, (∀ {n : ℕ}, 0 < n → f n = g n) → f = g := ext_nat''
 
 end monoid_with_zero_hom_class
 

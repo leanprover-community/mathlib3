@@ -112,7 +112,9 @@ end
 lemma left.pow_lt_one_iff {α: Type*} [monoid α] [linear_order α]
   [covariant_class α α (*) (<)] {n : ℕ} {x : α} (n0 : 0 < n) :
   x^n < 1 ↔ x < 1 :=
-⟨λ H, not_le.mp (λ k, not_le.mpr H (left.one_le_pow_of_le k)), left.pow_lt_one_of_lt n0⟩
+⟨λ H, not_le.mp (λ k, not_le.mpr H (by
+  { haveI := has_mul.to_covariant_class_left α,
+    exact left.one_le_pow_of_le k})), left.pow_lt_one_of_lt n0⟩
 
 lemma right.pow_lt_one_of_lt [covariant_class α α (function.swap (*)) (<)] {n : ℕ} {x : α}
   (n0 : 0 < n) (H : x < 1) :
@@ -125,10 +127,11 @@ begin
 end
 
 lemma right.pow_lt_one_iff {α: Type*} [monoid α] [linear_order α]
-  [covariant_class α α (swap (*)) (<)] {n : ℕ} {x : α} (n0 : 0 < n) :
+  [covariant_class α α (function.swap (*)) (<)] {n : ℕ} {x : α} (n0 : 0 < n) :
   x^n < 1 ↔ x < 1 :=
-⟨λ H, not_le.mp (λ k, not_le.mpr H (right.one_le_pow_of_le k)), right.pow_lt_one_of_lt n0⟩
-
+⟨λ H, not_le.mp (λ k, not_le.mpr H (by
+  { haveI := has_mul.to_covariant_class_right α,
+    exact right.one_le_pow_of_le k})), right.pow_lt_one_of_lt n0⟩
 
 end preorder
 

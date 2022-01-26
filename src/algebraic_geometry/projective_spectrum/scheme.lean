@@ -4198,10 +4198,10 @@ begin
   have is_local := hh.2,
   rw structure_sheaf.is_locally_fraction_pred' at is_local,
   specialize is_local ⟨(isos.top_component 𝒜 f m hm f_deg).hom ⟨y.1, y_mem⟩, hom_y_mem⟩,
-  obtain ⟨VV, hom_y_mem_VV, subset1, ⟨α, α_degree_zero⟩, ⟨β, β_degree_zero⟩, is_local⟩ := is_local,
-  dsimp only at α_degree_zero,
-  dsimp only at β_degree_zero,
-  dsimp only at is_local,
+  obtain ⟨VV, hom_y_mem_VV, subset1, ⟨α, ⟨l1, α', α'_mem, rfl⟩⟩, ⟨β, ⟨l2, β', β'_mem, rfl⟩⟩, is_local⟩ := is_local,
+  -- dsimp only at α_degree_zero,
+  -- dsimp only at β_degree_zero,
+  -- dsimp only at is_local,
 
   set U := {x | ∃ x' : homeo_of_iso (isos.top_component 𝒜 f m hm f_deg) ⁻¹' VV.1, x = x'.1.1} with U_eq,
   have oU : is_open U,
@@ -4222,11 +4222,9 @@ begin
       intro rid,
       have mem3 : (⟨localization.mk f ⟨f^1, ⟨_, rfl⟩⟩, ⟨1, _, begin  rw mul_one, exact f_deg end, rfl⟩⟩ : degree_zero_part 𝒜 f m f_deg) ∈ ((isos.top_component 𝒜 f m hm f_deg).hom x'.1).as_ideal,
       { change (localization.mk f ⟨f^1, ⟨_, rfl⟩⟩ : localization.away f) ∈ ideal.span _,
-        have eq1 : (localization.mk f ⟨f ^ 1, ⟨_, rfl⟩⟩ : localization.away f) = localization.mk 1 ⟨f^1, ⟨_, rfl⟩⟩ * localization.mk f 1,
-        { rw [localization.mk_mul, mul_one, one_mul], },
-      erw eq1,
-      apply ideal.mem_span.smul_mem,
-      refine ⟨f, rid, rfl⟩, },
+        convert ideal.mem_span.smul_mem _ _ (localization.mk 1 ⟨f^1, ⟨_, rfl⟩⟩ : localization.away f) (localization.mk f 1) _,
+        simp only [smul_eq_mul, localization.mk_mul, pow_one, mul_one, one_mul],
+        refine ⟨f, rid, rfl⟩, },
       have mem4 : (1 : degree_zero_part 𝒜 f m f_deg) ∈ ((isos.top_component 𝒜 f m hm f_deg).hom x'.1).as_ideal,
       { convert mem3,
         rw [subtype.ext_iff_val, show (1 : degree_zero_part 𝒜 f m f_deg).1 = 1, from rfl],
@@ -4238,18 +4236,19 @@ begin
         rw pow_one, },
       apply ((isos.top_component 𝒜 f m hm f_deg).hom x'.1).is_prime.1,
       rw ideal.eq_top_iff_one,
-      exact mem4,
-       },
+      exact mem4, },
+
     { rcases hγ with ⟨hγ1, hγ2⟩,
       use ⟨γ, hγ2⟩,
-      erw [←set_eq1, set.mem_preimage, ←subtype.val_eq_coe],
-      exact hγ1, } },
+      rw [←set_eq1, set.mem_preimage],
+      convert hγ1, } },
+
   have y_mem_U : y.1 ∈ U,
   { use ⟨y.1, y_mem⟩,
     rw set.mem_preimage,
     exact hom_y_mem_VV, },
 
-  have subset2 : (⟨U, oU⟩ : opens _) ⟶
+  have subset2 : (⟨U, oU⟩ : opens (projective_spectrum.Top 𝒜)) ⟶
       (((@opens.open_embedding (projective_spectrum.Top 𝒜) (projective_spectrum.basic_open 𝒜 f)).is_open_map.functor.op.obj
         ((opens.map (isos.top_component 𝒜 f m hm f_deg).hom).op.obj V)).unop),
   { apply hom_of_le,
@@ -4264,28 +4263,26 @@ begin
     exact γ_mem,
     -- change γ.1 = _,
     rw subtype.ext_iff_val,
-    refl,
+    dsimp only,
+    rw show (opens.inclusion _ γ = γ.1), from rfl,
   },
 
-  obtain ⟨l1, α', α'_mem, rfl⟩ := α_degree_zero,
-  obtain ⟨l2, β', β'_mem, rfl⟩ := β_degree_zero,
-  refine ⟨⟨U, oU⟩, y_mem_U, subset2, α' * f^l2, β' * f^l1, m * (l1 + l2), begin
-    rw mul_add,
+  refine ⟨⟨U, oU⟩, y_mem_U, subset2, α' * f^l2, β' * f^l1, m * (l1 + l2), _, _, _⟩,
+
+  { rw mul_add,
     apply set_like.graded_monoid.mul_mem,
     exact α'_mem,
     rw nat.mul_comm,
-    apply set_like.graded_monoid.pow_deg 𝒜 f_deg,
-  end, begin
-    rw [nat.add_comm, mul_add],
+    apply set_like.graded_monoid.pow_deg 𝒜 f_deg, },
+
+  { rw [nat.add_comm, mul_add],
     apply set_like.graded_monoid.mul_mem,
     exact β'_mem,
     rw nat.mul_comm,
-    apply set_like.graded_monoid.pow_deg 𝒜 f_deg,
-  end, _⟩,
+    apply set_like.graded_monoid.pow_deg 𝒜 f_deg,},
 
   rintros ⟨z, z_mem_U⟩,
-  -- change z ∈ U at z_mem_U,
-
+  -- -- change z ∈ U at z_mem_U,
   have z_mem_bo : z ∈ projective_spectrum.basic_open 𝒜 f,
   { obtain ⟨⟨z, hz⟩, rfl⟩ := z_mem_U,
     rw set.mem_preimage at hz,

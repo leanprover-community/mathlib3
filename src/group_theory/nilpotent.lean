@@ -423,7 +423,7 @@ begin
   split,
   { intro h,
     rw ← lower_central_series_length_eq_nilpotency_class,
-    exact (nat.find_le h),
+    exact (nat.find_le h), },
   { intro h,
     apply eq_bot_iff.mpr,
     rw ← lower_central_series_nilpotency_class,

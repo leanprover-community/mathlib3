@@ -2797,17 +2797,14 @@ begin
   exact INEQ,
 end
 
-lemma isos.sheaf_component.forward.mk_is_locally_quotient :
-  ∀ (x : (unop U)),
-  ∃ (V : opens ↥(prime_spectrum.Top ↥(degree_zero_part 𝒜 f m f_deg))) (m_1 : x.val ∈ V) (i : V ⟶ unop U)
+-- set_option profiler true
+lemma isos.sheaf_component.forward.mk_is_locally_quotient (y : unop U) :
+  ∃ (V : opens (prime_spectrum.Top (degree_zero_part 𝒜 f m f_deg))) (m_1 : y.val ∈ V) (i : V ⟶ unop U)
     (r s : (degree_zero_part 𝒜 f m f_deg)),
-    ∀ (y : V),
-      ∃ (s_not_mem : s ∉ prime_spectrum.as_ideal y.val),
-        isos.sheaf_component.forward.mk 𝒜 f m hm f_deg U hh ⟨(i y).1, (i y).2⟩ = localization.mk r ⟨s, s_not_mem⟩ :=
-begin
-  intros y,
-  have is_local := hh.2,
-  specialize is_local ⟨((isos.top_component 𝒜 f m hm f_deg).inv y.1).1, begin
+    ∀ (z : V),
+      ∃ (s_not_mem : s ∉ prime_spectrum.as_ideal z.val),
+        isos.sheaf_component.forward.mk 𝒜 f m hm f_deg U hh ⟨(i z).1, (i z).2⟩ = localization.mk r ⟨s, s_not_mem⟩ :=
+have is_local : _ := hh.2 ⟨((isos.top_component 𝒜 f m hm f_deg).inv y.1).1, begin
     erw [set.mem_preimage],
     fconstructor,
     refine ⟨((isos.top_component 𝒜 f m hm f_deg).inv y.1).1, _⟩,
@@ -2831,7 +2828,7 @@ begin
     rw isos.top_component.forward_backward,
     exact y.2,
   end⟩,
-
+begin
   obtain ⟨V, mem1, subset1, a, b, degree, a_hom, b_hom, eq1⟩ := is_local,
   set VV := homeo_of_iso (isos.top_component 𝒜 f m hm f_deg) '' {z | z.1 ∈ V.1} with VV_eq,
   have VV_open : is_open VV,
@@ -2845,8 +2842,7 @@ begin
       exact hz, }
   },
 
-  set VVo : opens (Spec
-    (degree_zero_part (λ (m : ℕ), 𝒜 m) f m f_deg)).to_SheafedSpace.to_PresheafedSpace.carrier :=
+  set VVo : opens (Spec (degree_zero_part 𝒜 f m f_deg)).to_SheafedSpace.to_PresheafedSpace.carrier :=
     ⟨VV, VV_open⟩ with VVo_eq,
   have subset2 : VVo ⟶ unop U,
   {
@@ -2889,9 +2885,7 @@ begin
     end, rfl⟩⟩,
     ⟨localization.mk (b^m) ⟨f^degree, ⟨_, rfl⟩⟩, ⟨degree, _, set_like.graded_monoid.pow_deg 𝒜 b_hom _, rfl⟩⟩, _⟩,
 
-  {
-    change y.val ∈ _ '' _,
-    rw [set.mem_image],
+  { erw [set.mem_image],
     refine ⟨(isos.top_component 𝒜 f m hm f_deg).inv y.1, mem1, _⟩,
     rw [homeo_of_iso_apply],
     change (isos.top_component.forward.to_fun 𝒜 f m f_deg (isos.top_component.backward.to_fun 𝒜 f m hm f_deg _)) = _,
@@ -2910,8 +2904,9 @@ begin
     intro rid,
     dsimp only at rid,
     rw homeo_of_iso_apply at rid,
-    change (localization.mk (b ^ m) ⟨f ^ degree, ⟨_, rfl⟩⟩ : localization.away f)
-      ∈ ideal.span _ at rid,
+    replace rid : (localization.mk (b ^ m) ⟨f ^ degree, ⟨_, rfl⟩⟩ : localization.away f)
+      ∈ ideal.span _,
+    { convert rid },
 
     erw [←ideal.submodule_span_eq, finsupp.span_eq_range_total, set.mem_range] at rid,
     obtain ⟨c, eq1⟩ := rid,
@@ -2977,7 +2972,8 @@ begin
               induction c.support.attach using finset.induction_on with y s hy ih,
               rw [finset.sum_empty, finset.sum_empty, localization.mk_zero],
 
-              erw [finset.sum_insert hy, finset.sum_insert hy, ih, localization.add_mk, mul_one, one_mul, one_mul, add_comm],
+              rw [finset.sum_insert hy, finset.sum_insert hy, ih, localization.add_mk, mul_one, ←subtype.val_eq_coe,
+                show (1 : submonoid.powers f).1 = 1, from rfl, one_mul, one_mul, add_comm],
             end,
     erw [localization.mk_mul, one_mul] at eq3,
     simp only [localization.mk_eq_mk', is_localization.eq] at eq3,
@@ -3389,6 +3385,8 @@ begin
       exact b_hom,
       exact INEQ, } }
 end
+
+#exit
 
 def isos.sheaf_component.forward.to_fun :
   (((isos.top_component 𝒜 f m hm f_deg).hom _*

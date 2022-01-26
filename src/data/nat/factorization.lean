@@ -219,9 +219,10 @@ begin
   rw [hc, nat.mul_div_cancel c hd.bot_lt, factorization_mul hc_pos hd, add_tsub_cancel_right],
 end
 
-lemma dvd_iff_div_factorization_eq_tsub (d n : ℕ) (hd : d ≠ 0) (hn : n ≠ 0) (hdn : d ≤ n) :
+lemma dvd_iff_div_factorization_eq_tsub (d n : ℕ) (hd : d ≠ 0) (hdn : d ≤ n) :
   d ∣ n ↔ (n/d).factorization = n.factorization - d.factorization :=
 begin
+  have hn : n ≠ 0 := (hd.bot_lt.trans hab).ne',
   split,
   { exact div_factorization_eq_tsub_of_dvd hd hn },
   { rcases eq_or_lt_of_le hdn with rfl | hd_lt_n, { simp },

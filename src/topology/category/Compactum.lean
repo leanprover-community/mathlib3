@@ -173,7 +173,7 @@ begin
   ext G,
   split,
   { intro hG,
-    split; filter_upwards [hG]; intro x,
+    split; filter_upwards [hG] with _,
     exacts [and.left, and.right] },
   { rintros ⟨h1, h2⟩,
     exact inter_mem h1 h2 }
@@ -194,7 +194,7 @@ begin
   let C2 := finite_inter_closure C1,
   -- C0 is closed under intersections.
   have claim1 : ∀ B C ∈ C0, B ∩ C ∈ C0,
-  { rintros B C ⟨Q,hQ,rfl⟩ ⟨R,hR,rfl⟩,
+  { rintros B ⟨Q,hQ,rfl⟩ C ⟨R,hR,rfl⟩,
     use Q ∩ R,
     simp only [and_true, eq_self_iff_true, set.preimage_inter, subtype.val_eq_coe],
     exact inter_sets _ hQ hR },
@@ -224,7 +224,8 @@ begin
   -- C2 is closed under finite intersections (by construction!).
   have claim4 := finite_inter_closure_has_finite_inter C1,
   -- C0 is closed under finite intersections by claim1.
-  have claim5 : has_finite_inter C0 := ⟨⟨_, univ_mem, set.preimage_univ⟩, claim1⟩,
+  have claim5 : has_finite_inter C0 :=
+    ⟨⟨_, univ_mem, set.preimage_univ⟩, claim1⟩,
   -- Every element of C2 is nonempty.
   have claim6 : ∀ P ∈ C2, (P : set (ultrafilter X)).nonempty,
   { suffices : ∀ P ∈ C2, P ∈ C0 ∨ ∃ Q ∈ C0, P = AA ∩ Q,
@@ -277,7 +278,7 @@ begin
     exact claim1 (cl A) (is_closed_cl A) (mem_of_superset hA (subset_cl A)) },
   -- T0 is closed under intersections.
   have claim3 : ∀ (S1 S2 ∈ T0), S1 ∩ S2 ∈ T0,
-  { rintros S1 S2 ⟨S1, hS1, rfl⟩ ⟨S2, hS2, rfl⟩,
+  { rintros S1 ⟨S1, hS1, rfl⟩ S2 ⟨S2, hS2, rfl⟩,
     exact ⟨S1 ∩ S2, inter_mem hS1 hS2, by simp [basic_inter]⟩ },
   -- For every S ∈ T0, the intersection AA ∩ S is nonempty.
   have claim4 : ∀ (S ∈ T0), (AA ∩ S).nonempty,
@@ -305,7 +306,7 @@ begin
         refine ⟨_, by tauto⟩,
         { intro,
           apply filter.univ_sets, } },
-      { exact claim3} },
+      { exact claim3 } },
     { exact hS} },
   -- It suffices to show that the intersection of any finite subset of T1 is nonempty.
   suffices : ∀ (F : fsu), ↑F ⊆ T1 → (⋂₀ ι F).nonempty,

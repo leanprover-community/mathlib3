@@ -349,7 +349,7 @@ topological_space.of_closed (set.range prime_spectrum.zero_locus)
     simp only [hf],
     exact ⟨_, zero_locus_Union _⟩
   end
-  (by { rintro _ _ ⟨s, rfl⟩ ⟨t, rfl⟩, exact ⟨_, (union_zero_locus s t).symm⟩ })
+  (by { rintro _ ⟨s, rfl⟩ _ ⟨t, rfl⟩, exact ⟨_, (union_zero_locus s t).symm⟩ })
 
 lemma is_open_iff (U : set (prime_spectrum R)) :
   is_open U ↔ ∃ s, Uᶜ = zero_locus s :=
@@ -506,6 +506,10 @@ rfl
 
 @[simp] lemma comap_comp (f : R →+* S) (g : S →+* S') :
   comap (g.comp f) = (comap f).comp (comap g) :=
+rfl
+
+lemma comap_comp_apply (f : R →+* S) (g : S →+* S') (x : prime_spectrum S') :
+  prime_spectrum.comap (g.comp f) x = (prime_spectrum.comap f) (prime_spectrum.comap g x) :=
 rfl
 
 @[simp] lemma preimage_comap_zero_locus (s : set R) :
@@ -770,8 +774,12 @@ def closed_point : prime_spectrum R :=
 
 variable {R}
 
-lemma local_hom_iff_comap_closed_point {S : Type v} [comm_ring S] [local_ring S]
-  {f : R →+* S} : is_local_ring_hom f ↔ prime_spectrum.comap f (closed_point S) = closed_point R :=
+lemma is_local_ring_hom_iff_comap_closed_point {S : Type v} [comm_ring S] [local_ring S]
+  (f : R →+* S) : is_local_ring_hom f ↔ prime_spectrum.comap f (closed_point S) = closed_point R :=
 by { rw [(local_hom_tfae f).out 0 4, subtype.ext_iff], refl }
+
+@[simp] lemma comap_closed_point {S : Type v} [comm_ring S] [local_ring S] (f : R →+* S)
+  [is_local_ring_hom f] : prime_spectrum.comap f (closed_point S) = closed_point R :=
+(is_local_ring_hom_iff_comap_closed_point f).mp infer_instance
 
 end local_ring

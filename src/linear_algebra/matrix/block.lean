@@ -142,8 +142,7 @@ lemma det_of_block_triangular_matrix (M : matrix m m R) (b : m → ℕ)
   ∀ (n : ℕ) (hn : ∀ i, b i < n), M.det = ∏ k in finset.range n, (to_square_block' M b k).det :=
 begin
   intros n hn,
-  tactic.unfreeze_local_instances,
-  induction n with n hi generalizing m M b,
+  unfreezingI { induction n with n hi generalizing m M b },
   { rw finset.prod_range_zero,
     apply det_eq_one_of_card_eq_zero,
     apply fintype.card_eq_zero_iff.mpr,
@@ -231,7 +230,7 @@ begin
   have h2 : ∀ (j : {a // id a = i}), j = ⟨i, rfl⟩ :=
     λ (j : {a // id a = i}), subtype.ext j.property,
   haveI : unique {a // id a = i} := ⟨⟨⟨i, rfl⟩⟩, h2⟩,
-  simp [h2 (default {a // id a = i})]
+  simp [h2 default]
 end
 
 lemma det_of_lower_triangular {n : ℕ} (M : matrix (fin n) (fin n) R)

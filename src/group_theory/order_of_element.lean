@@ -192,7 +192,7 @@ by simp_rw [order_of_eq_order_of_iff, ←f.map_pow, ←f.map_one, hf.eq_iff, iff
 order_of_injective H.subtype subtype.coe_injective y
 
 @[to_additive order_of_add_units]
-lemma order_of_units {y : units G} : order_of (y : G) = order_of y :=
+lemma order_of_units {y : Gˣ} : order_of (y : G) = order_of y :=
 order_of_injective (units.coe_hom G) units.ext y
 
 variables (x)
@@ -257,7 +257,7 @@ end
 
 omit hp
 -- An example on how to determine the order of an element of a finite group.
-example : order_of (-1 : units ℤ) = 2 :=
+example : order_of (-1 : ℤˣ) = 2 :=
 begin
   haveI := fact_prime_two,
   exact order_of_eq_prime (int.units_sq _) dec_trivial,
@@ -673,7 +673,7 @@ def subgroup_of_idempotent {G : Type*} [group G] [fintype G] (S : set G)
 
 /-- If `S` is a nonempty subset of a finite group `G`, then `S ^ |G|` is a subgroup -/
 @[to_additive smul_card_add_subgroup "If `S` is a nonempty subset of a finite add group `G`,
-  then `|G| • S` is a subgroup -/", simps]
+  then `|G| • S` is a subgroup", simps]
 def pow_card_subgroup {G : Type*} [group G] [fintype G] (S : set G) (hS : S.nonempty) :
   subgroup G :=
 have one_mem : (1 : G) ∈ (S ^ fintype.card G) := by

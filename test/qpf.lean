@@ -70,7 +70,7 @@ end
 def foo (α : Type) :=
 quot $ foo.R α
 
-instance {α} [inhabited α] : inhabited (foo α) := ⟨ quot.mk _ (default _) ⟩
+instance {α} [inhabited α] : inhabited (foo α) := ⟨ quot.mk _ default ⟩
 
 /-- functor operation of `foo` -/
 def foo.map {α β} (f : α → β) (x : foo α) : foo β :=

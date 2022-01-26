@@ -207,6 +207,12 @@ by rw [← aleph'_omega, aleph'_le]
 theorem omega_le_aleph (o : ordinal) : ω ≤ aleph o :=
 by rw [aleph, omega_le_aleph']; apply ordinal.le_add_right
 
+theorem aleph'_pos {o : ordinal} (ho : 0 < o) : 0 < aleph' o :=
+by rwa [←aleph'_zero, aleph'_lt]
+
+theorem aleph_pos (o : ordinal) : 0 < aleph o :=
+omega_pos.trans_le (omega_le_aleph o)
+
 theorem ord_aleph_is_limit (o : ordinal) : is_limit (aleph o).ord :=
 ord_is_limit $ omega_le_aleph _
 
@@ -262,7 +268,7 @@ begin
   rcases typein_surj s h with ⟨p, rfl⟩,
   rw [← e, lt_ord],
   refine lt_of_le_of_lt (_ : _ ≤ card (typein (<) (g p)).succ * card (typein (<) (g p)).succ) _,
-  { have : {q|s q p} ⊆ (insert (g p) {x | x < (g p)}).prod (insert (g p) {x | x < (g p)}),
+  { have : {q | s q p} ⊆ insert (g p) {x | x < g p} ×ˢ insert (g p) {x | x < g p},
     { intros q h,
       simp only [s, embedding.coe_fn_mk, order.preimage, typein_lt_typein, prod.lex_def, typein_inj]
         at h,

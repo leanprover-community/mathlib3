@@ -86,7 +86,7 @@ all be relaxed independently; for instance, this allows us to:
 * Replace `semiring A` with `non_unital_non_assoc_semiring A` in order to describe non-unital and/or
   non-associative algebras.
 * Replace `comm_semiring R` and `module R A` with `comm_group R'` and `distrib_mul_action R' A`,
-  which when `R' = units R` lets us talk about the "algebra-like" action of `units R` on an
+  which when `R' = Rˣ` lets us talk about the "algebra-like" action of `Rˣ` on an
   `R`-algebra `A`.
 
 While `alg_hom R A B` cannot be used in the second approach, `non_unital_alg_hom R A B` still can.
@@ -581,9 +581,6 @@ lemma map_sum {ι : Type*} (f : ι → A) (s : finset ι) :
 lemma map_finsupp_sum {α : Type*} [has_zero α] {ι : Type*} (f : ι →₀ α) (g : ι → α → A) :
   φ (f.sum g) = f.sum (λ i a, φ (g i a)) :=
 φ.map_sum _ _
-
-@[simp] lemma map_nat_cast (n : ℕ) : φ n = n :=
-φ.to_ring_hom.map_nat_cast n
 
 lemma map_bit0 (x) : φ (bit0 x) = bit0 (φ x) := map_bit0 _ _
 lemma map_bit1 (x) : φ (bit1 x) = bit1 (φ x) := map_bit1 _ _
@@ -1309,6 +1306,9 @@ variables (R : Type*) [ring R]
 { commutes' := int.cast_commute,
   smul_def' := λ _ _, zsmul_eq_mul _ _,
   to_ring_hom := int.cast_ring_hom R }
+
+/-- A special case of `ring_hom.eq_int_cast'` that happens to be true definitionally -/
+@[simp] lemma algebra_map_int_eq : algebra_map ℤ R = int.cast_ring_hom R := rfl
 
 variables {R}
 

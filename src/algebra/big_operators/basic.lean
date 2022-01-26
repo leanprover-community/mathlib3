@@ -1224,8 +1224,6 @@ lemma multiset.map_insert (S : multiset α) (a : α) (g : α → β) :
   multiset.map g (insert a S) = insert (g a) (multiset.map g S) :=
 begin
   -- library_search,
-  induction S using multiset.induction_on',
-   { simp },
   -- simp only [multiset.map_cons],
 
 

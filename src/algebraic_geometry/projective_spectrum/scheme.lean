@@ -4156,6 +4156,7 @@ begin
   rw mul_eq,
 end
 
+-- set_option profiler true
 lemma isos.sheaf_component.backward.mk_is_locally_quotient
   (f : A) [decidable_eq (localization.away f)] (m : ℕ) (hm : 0 < m) (f_deg : f ∈ 𝒜 m)
   (V : (opens ((Spec (degree_zero_part 𝒜 f m f_deg)).to_SheafedSpace.to_PresheafedSpace.carrier))ᵒᵖ)
@@ -4179,7 +4180,7 @@ begin
     have mem1 := y.2,
     erw set.mem_preimage at mem1,
     obtain ⟨⟨a, ha1⟩, ha, ha2⟩ := mem1,
-    change a = y.1 at ha2,
+    -- change a = y.1 at ha2,
     erw set.mem_preimage at ha,
     erw ←ha2 at rid,
     apply ha1,
@@ -4187,7 +4188,7 @@ begin
 
   have hom_y_mem : (isos.top_component 𝒜 f m hm f_deg).hom ⟨y.1, y_mem⟩ ∈ unop V,
   { obtain ⟨a, ha1, ha2⟩ := y.2,
-    change a.1 = _ at ha2,
+    -- change a.1 = _ at ha2,
     erw set.mem_preimage at ha1,
     change ((isos.top_component 𝒜 f m hm f_deg).hom ⟨y.1, y_mem⟩) ∈ (unop V).1,
     convert ha1,
@@ -4261,8 +4262,9 @@ begin
     erw set.mem_preimage,
     apply subset3,
     exact γ_mem,
-    change γ.1 = _,
+    -- change γ.1 = _,
     rw subtype.ext_iff_val,
+    refl,
   },
 
   obtain ⟨l1, α', α'_mem, rfl⟩ := α_degree_zero,
@@ -4282,7 +4284,7 @@ begin
   end, _⟩,
 
   rintros ⟨z, z_mem_U⟩,
-  change z ∈ U at z_mem_U,
+  -- change z ∈ U at z_mem_U,
 
   have z_mem_bo : z ∈ projective_spectrum.basic_open 𝒜 f,
   { obtain ⟨⟨z, hz⟩, rfl⟩ := z_mem_U,
@@ -4297,7 +4299,7 @@ begin
 
   specialize is_local ⟨((isos.top_component 𝒜 f m hm f_deg).hom ⟨z, z_mem_bo⟩), hom_z_mem_VV⟩,
   obtain ⟨not_mem1, eq1⟩ := is_local,
-  change _ ∉ ideal.span _ at not_mem1,
+  -- change _ ∉ ideal.span _ at not_mem1,
   dsimp only at not_mem1,
 
   have not_mem1 : β' * f ^ l1 ∉ projective_spectrum.as_homogeneous_ideal z,
@@ -4307,7 +4309,7 @@ begin
       have eq2 : (localization.mk β' ⟨f^l2, ⟨_, rfl⟩⟩ : localization.away f) =
         localization.mk 1 ⟨f^l2, ⟨_, rfl⟩⟩ * localization.mk β' 1,
       { rw [localization.mk_mul, one_mul, mul_one], },
-      erw eq2,
+      simp only [eq2],
       apply ideal.mem_span.smul_mem,
       use β',
       exact ⟨H1, rfl⟩, },
@@ -4357,7 +4359,6 @@ begin
   set jj := degree_zero_part.degree (isos.sheaf_component.backward.data_denom 𝒜 f m hm f_deg V hh ⟨z, z_mem2⟩).1 with jj_eq,
 
   erw [localization.mk_eq_mk', is_localization.eq],
-
 
   have C_not_mem : C ∉ z.as_homogeneous_ideal,
   { intro rid,

@@ -1032,7 +1032,7 @@ begin
 end
 
 /-- `abs` as a `monoid_with_zero_hom`. -/
-def abs_hom : monoid_with_zero_hom α α := ⟨abs, abs_zero, abs_one, abs_mul⟩
+def abs_hom : α →*₀ α := ⟨abs, abs_zero, abs_one, abs_mul⟩
 
 @[simp] lemma abs_mul_abs_self (a : α) : |a| * |a| = a * a :=
 abs_by_cases (λ x, x * x = a * a) rfl (neg_mul_neg a a)

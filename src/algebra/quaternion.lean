@@ -486,7 +486,7 @@ def conj_ae : ℍ[R] ≃ₐ[R] (ℍ[R]ᵐᵒᵖ) := quaternion_algebra.conj_ae
 @[simp] lemma coe_conj_ae : ⇑(conj_ae : ℍ[R] ≃ₐ[R] ℍ[R]ᵐᵒᵖ) = op ∘ conj := rfl
 
 /-- Square of the norm. -/
-def norm_sq : monoid_with_zero_hom ℍ[R] R :=
+def norm_sq : ℍ[R] →*₀ R :=
 { to_fun := λ a, (a * a.conj).re,
   map_zero' := by rw [conj_zero, zero_mul, zero_re],
   map_one' := by rw [conj_one, one_mul, one_re],

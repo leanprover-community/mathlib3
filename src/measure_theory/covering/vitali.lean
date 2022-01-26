@@ -353,7 +353,7 @@ begin
       rw measure_bUnion (u_count.mono vu) _ (λ a ha, (h't _ (vu.trans ut ha)).measurable_set),
       exact u_disj.subset vu
     end
-    ... ≤ μ (closed_ball x R) : measure_mono (bUnion_subset (λ a ha, hR a (vu ha) ha.2))
+    ... ≤ μ (closed_ball x R) : measure_mono (Union₂_subset (λ a ha, hR a (vu ha) ha.2))
     ... < ∞ : μR },
   -- we can obtain a finite subfamily of `v`, such that the measures of the remaining elements
   -- add up to an arbitrarily small number, say `ε / C`.
@@ -503,7 +503,7 @@ protected def vitali_family [metric_space α] [measurable_space α] [opens_measu
       exact (hx a ha).2 },
     { rw [bUnion_image],
       convert μu using 3,
-      exact bUnion_congr (λ a ha, inj_on_x.left_inv_on_inv_fun_on ha) }
+      exact Union₂_congr (λ a ha, inj_on_x.left_inv_on_inv_fun_on ha) }
   end }
 
 end vitali

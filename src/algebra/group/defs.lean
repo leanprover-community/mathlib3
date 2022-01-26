@@ -39,11 +39,15 @@ actions and register the following instances:
 /-- Type class for the `+ᵥ` notation. -/
 class has_vadd (G : Type*) (P : Type*) := (vadd : G → P → P)
 
+/-- Type class for the `-ᵥ` notation. -/
+class has_vsub (G : out_param Type*) (P : Type*) := (vsub : P → P → G)
+
 /-- Typeclass for types with a scalar multiplication operation, denoted `•` (`\bu`) -/
 @[to_additive has_vadd]
 class has_scalar (M : Type*) (α : Type*) := (smul : M → α → α)
 
 infix ` +ᵥ `:65 := has_vadd.vadd
+infix ` -ᵥ `:65 := has_vsub.vsub
 infixr ` • `:73 := has_scalar.smul
 
 attribute [to_additive_reorder 1] has_pow

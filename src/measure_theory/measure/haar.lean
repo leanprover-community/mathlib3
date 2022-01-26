@@ -151,7 +151,7 @@ begin
   rw [← h2s, ← h2t, mul_comm],
   refine le_trans _ finset.mul_card_le,
   apply nat.Inf_le, refine ⟨_, _, rfl⟩, rw [mem_set_of_eq], refine subset.trans h1s _,
-  apply bUnion_subset, intros g₁ hg₁, rw preimage_subset_iff, intros g₂ hg₂,
+  apply Union₂_subset, intros g₁ hg₁, rw preimage_subset_iff, intros g₂ hg₂,
   have := h1t hg₂,
   rcases this with ⟨_, ⟨g₃, rfl⟩, A, ⟨hg₃, rfl⟩, h2V⟩, rw [mem_preimage, ← mul_assoc] at h2V,
   exact mem_bUnion (finset.mul_mem_mul hg₃ hg₁) h2V

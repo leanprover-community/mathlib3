@@ -232,9 +232,7 @@ lemma monotone_Union_up_to : monotone p.Union_up_to :=
 begin
   assume i j hij,
   simp only [Union_up_to],
-  apply Union_subset_Union2,
-  assume r,
-  exact ⟨⟨r, r.2.trans_le hij⟩, subset.refl _⟩,
+  exact Union_mono' (λ r, ⟨⟨r, r.2.trans_le hij⟩, subset.rfl⟩),
 end
 
 /-- Supremum of the radii of balls whose centers are not yet covered at step `i`. -/
@@ -611,7 +609,7 @@ begin
       refine add_le_add _ le_rfl,
       rw [div_eq_mul_inv, one_mul, mul_comm, ← div_eq_mul_inv],
       apply hw.le.trans (le_of_eq _),
-      rw [← finset.set_bUnion_coe, inter_comm _ o, inter_bUnion, finset.set_bUnion_coe,
+      rw [← finset.set_bUnion_coe, inter_comm _ o, inter_Union₂, finset.set_bUnion_coe,
           measure_bUnion_finset],
       { have : (w : set (u i)).pairwise_disjoint (λ (b : u i), closed_ball (b : α) (r (b : α))),
           by { assume k hk l hl hkl, exact hu i k.2 l.2 (subtype.coe_injective.ne hkl) },
@@ -1098,8 +1096,7 @@ begin
     a ∈ (besicovitch.vitali_family μ).sets_at x → a ⊆ closed_ball x ε → a ∈ s :=
       (vitali_family.mem_filter_at_iff _).1 hs,
   have : Ioc (0 : ℝ) ε ∈ 𝓝[>] (0 : ℝ) := Ioc_mem_nhds_within_Ioi ⟨le_rfl, εpos⟩,
-  filter_upwards [this],
-  assume r hr,
+  filter_upwards [this] with _ hr,
   apply hε,
   { exact mem_image_of_mem _ hr.1 },
   { exact closed_ball_subset_closed_ball hr.2 }
@@ -1116,8 +1113,7 @@ lemma ae_tendsto_rn_deriv
     (𝓝[>] 0) (𝓝 (ρ.rn_deriv μ x)) :=
 begin
   haveI : second_countable_topology β := emetric.second_countable_of_sigma_compact β,
-  filter_upwards [vitali_family.ae_tendsto_rn_deriv (besicovitch.vitali_family μ) ρ],
-  assume x hx,
+  filter_upwards [vitali_family.ae_tendsto_rn_deriv (besicovitch.vitali_family μ) ρ] with x hx,
   exact hx.comp (tendsto_filter_at μ x)
 end
 
@@ -1148,9 +1144,8 @@ lemma ae_tendsto_measure_inter_div (μ : measure β) [is_locally_finite_measure 
     (𝓝[>] 0) (𝓝 1) :=
 begin
   haveI : second_countable_topology β := emetric.second_countable_of_sigma_compact β,
-  filter_upwards [vitali_family.ae_tendsto_measure_inter_div (besicovitch.vitali_family μ)],
-  assume x hx,
-  exact hx.comp (tendsto_filter_at μ x)
+  filter_upwards [vitali_family.ae_tendsto_measure_inter_div (besicovitch.vitali_family μ)]
+    with x hx using hx.comp (tendsto_filter_at μ x),
 end
 
 end besicovitch

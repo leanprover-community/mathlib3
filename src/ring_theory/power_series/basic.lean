@@ -760,10 +760,10 @@ begin
         mv_power_series.inv_mul_cancel _ h.right] }
 end
 
-@[simp] lemma inv_one : (1 : mv_power_series σ k)⁻¹ = 1 :=
+@[simp] lemma one_inv : (1 : mv_power_series σ k)⁻¹ = 1 :=
 by { rw [mv_power_series.inv_eq_iff_mul_eq_one, mul_one], simp }
 
-@[simp] lemma inv_C (r : k) : (C σ k r)⁻¹ = C σ k r⁻¹ :=
+@[simp] lemma C_inv (r : k) : (C σ k r)⁻¹ = C σ k r⁻¹ :=
 begin
   rcases eq_or_ne r 0 with rfl|hr,
   { simp },
@@ -771,10 +771,10 @@ begin
   simpa using hr
 end
 
-@[simp] lemma inv_X (s : σ) : (X s : mv_power_series σ k)⁻¹ = 0 :=
+@[simp] lemma X_inv (s : σ) : (X s : mv_power_series σ k)⁻¹ = 0 :=
 by rw [inv_eq_zero, constant_coeff_X]
 
-@[simp] lemma inv_smul (r : k) (φ : mv_power_series σ k) :
+@[simp] lemma smul_inv (r : k) (φ : mv_power_series σ k) :
   (r • φ)⁻¹ = r⁻¹ • φ⁻¹ :=
 by simp [smul_eq_C_mul, mul_comm]
 
@@ -1581,18 +1581,18 @@ mv_power_series.inv_eq_iff_mul_eq_one h
   (φ * ψ)⁻¹ = ψ⁻¹ * φ⁻¹ :=
 mv_power_series.mul_inv_rev _ _
 
-@[simp] lemma inv_one : (1 : power_series k)⁻¹ = 1 :=
-mv_power_series.inv_one
+@[simp] lemma one_inv : (1 : power_series k)⁻¹ = 1 :=
+mv_power_series.one_inv
 
-@[simp] lemma inv_C (r : k) : (C k r)⁻¹ = C k r⁻¹ :=
-mv_power_series.inv_C _
+@[simp] lemma C_inv (r : k) : (C k r)⁻¹ = C k r⁻¹ :=
+mv_power_series.C_inv _
 
-@[simp] lemma inv_X : (X : power_series k)⁻¹ = 0 :=
-mv_power_series.inv_X _
+@[simp] lemma X_inv : (X : power_series k)⁻¹ = 0 :=
+mv_power_series.X_inv _
 
-@[simp] lemma inv_smul (r : k) (φ : power_series k) :
+@[simp] lemma smul_inv (r : k) (φ : power_series k) :
   (r • φ)⁻¹ = r⁻¹ • φ⁻¹ :=
-mv_power_series.inv_smul _ _
+mv_power_series.smul_inv _ _
 
 end field
 

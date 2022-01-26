@@ -186,6 +186,10 @@ one_hom_class.map_one f
   (hf : function.injective f) {x : M} : f x = 1 ↔ x = 1 :=
 hf.eq_iff' (map_one f)
 
+@[to_additive]
+instance [one_hom_class F M N] : has_coe_t F (one_hom M N) :=
+⟨λ f, { to_fun := f, map_one' := map_one f }⟩
+
 end one
 
 section mul
@@ -221,6 +225,10 @@ instance mul_hom.mul_hom_class : mul_hom_class (mul_hom M N) M N :=
 @[simp, to_additive] lemma map_mul [mul_hom_class F M N] (f : F) (x y : M) :
   f (x * y) = f x * f y :=
 mul_hom_class.map_mul f x y
+
+@[to_additive]
+instance [mul_hom_class F M N] : has_coe_t F (mul_hom M N) :=
+⟨λ f, { to_fun := f, map_mul' := map_mul f }⟩
 
 end mul
 
@@ -346,6 +354,9 @@ instance monoid_with_zero_hom.monoid_with_zero_hom_class :
   map_mul := monoid_with_zero_hom.map_mul',
   map_one := monoid_with_zero_hom.map_one',
   map_zero := monoid_with_zero_hom.map_zero' }
+
+instance [monoid_with_zero_hom_class F M N] : has_coe_t F (M →*₀ N) :=
+⟨λ f, { to_fun := f, map_one' := map_one f, map_zero' := map_zero f, map_mul' := map_mul f }⟩
 
 end mul_zero_one
 
@@ -540,6 +551,38 @@ lemma monoid_with_zero_hom.mk_coe [mul_zero_one_class M] [mul_zero_one_class N] 
 monoid_with_zero_hom.ext $ λ _, rfl
 
 end coes
+
+/-- Copy of a `one_hom` with a new `to_fun` equal to the old one. Useful to fix definitional
+equalities. -/
+@[to_additive "Copy of a `zero_hom` with a new `to_fun` equal to the old one. Useful to fix
+definitional equalities."]
+protected def one_hom.copy {hM : has_one M} {hN : has_one N} (f : one_hom M N) (f' : M → N)
+  (h : f' = f) : one_hom M N :=
+{ to_fun := f',
+  map_one' := h.symm ▸ f.map_one' }
+
+/-- Copy of a `mul_hom` with a new `to_fun` equal to the old one. Useful to fix definitional
+equalities. -/
+@[to_additive "Copy of an `add_hom` with a new `to_fun` equal to the old one. Useful to fix
+definitional equalities."]
+protected def mul_hom.copy {hM : has_mul M} {hN : has_mul N} (f : mul_hom M N) (f' : M → N)
+  (h : f' = f) : mul_hom M N :=
+{ to_fun := f',
+  map_mul' := h.symm ▸ f.map_mul' }
+
+/-- Copy of a `monoid_hom` with a new `to_fun` equal to the old one. Useful to fix
+definitional equalities. -/
+@[to_additive "Copy of an `add_monoid_hom` with a new `to_fun` equal to the old one. Useful to fix
+definitional equalities."]
+protected def monoid_hom.copy {hM : mul_one_class M} {hN : mul_one_class N} (f : M →* N)
+  (f' : M → N) (h : f' = f) : M →* N :=
+{ ..f.to_one_hom.copy f' h, ..f.to_mul_hom.copy f' h }
+
+/-- Copy of a `monoid_hom` with a new `to_fun` equal to the old one. Useful to fix
+definitional equalities. -/
+protected def _root_.monoid_with_zero_hom.copy {hM : mul_zero_one_class M}
+  {hN : mul_zero_one_class N} (f : M →*₀ N) (f' : M → N) (h : f' = f) : M →* N :=
+{ ..f.to_zero_hom.copy f' h, ..f.to_monoid_hom.copy f' h }
 
 @[to_additive]
 protected lemma one_hom.map_one [has_one M] [has_one N] (f : one_hom M N) : f 1 = 1 := f.map_one'
@@ -1059,6 +1102,14 @@ add_decl_doc add_monoid_hom.has_sub
   (f / g) x = f x / g x := rfl
 
 end monoid_hom
+
+/-- Given two monoid with zero morphisms `f`, `g` to a commutative monoid, `f * g` is the monoid
+with zero morphism sending `x` to `f x * g x`. -/
+instance {M N} {hM : mul_zero_one_class M} [comm_monoid_with_zero N] : has_mul (M →*₀ N) :=
+⟨λ f g,
+  { to_fun := λ a, f a * g a,
+    map_zero' := by rw [map_zero, zero_mul],
+    ..(f * g : M →* N) }⟩
 
 section commute
 

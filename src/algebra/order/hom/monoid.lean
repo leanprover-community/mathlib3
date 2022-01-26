@@ -53,58 +53,6 @@ open function
 
 variables {F α β γ δ : Type*}
 
-infixr ` →*₀ `:25 := monoid_with_zero_hom
-
-instance [preorder α] [preorder β] [order_hom_class F α β] : has_coe_t F (α →o β) :=
-⟨λ f, { to_fun := f, monotone' := order_hom_class.mono _ }⟩
-
-/-- Copy of a `one_hom` with a new `to_fun` equal to the old one. Useful to fix definitional
-equalities. -/
-@[to_additive "Copy of a `zero_hom` with a new `to_fun` equal to the old one. Useful to fix
-definitional equalities."]
-protected def one_hom.copy [has_one α] [has_one β] (f : one_hom α β) (f' : α → β) (h : f' = f) :
-  one_hom α β :=
-{ to_fun := f',
-  map_one' := h.symm ▸ f.map_one' }
-
-/-- Copy of a `mul_hom` with a new `to_fun` equal to the old one. Useful to fix definitional
-equalities. -/
-@[to_additive "Copy of an `add_hom` with a new `to_fun` equal to the old one. Useful to fix
-definitional equalities."]
-protected def mul_hom.copy [has_mul α] [has_mul β] (f : mul_hom α β) (f' : α → β) (h : f' = f) :
-  mul_hom α β :=
-{ to_fun := f',
-  map_mul' := h.symm ▸ f.map_mul' }
-
-/-- Copy of a `monoid_hom` with a new `to_fun` equal to the old one. Useful to fix
-definitional equalities. -/
-@[to_additive "Copy of a `monoid_hom` with a new `to_fun` equal to the old one. Useful to fix
-definitional equalities."]
-protected def monoid_hom.copy [mul_one_class α] [mul_one_class β] (f : α →* β) (f' : α → β)
-  (h : f' = f) : α →* β :=
-{ ..f.to_one_hom.copy f' h, ..f.to_mul_hom.copy f' h }
-
-/-- Copy of a `monoid_hom` with a new `to_fun` equal to the old one. Useful to fix
-definitional equalities. -/
-protected def _root_.monoid_with_zero_hom.copy [mul_zero_one_class α] [mul_zero_one_class β]
-  (f : α →*₀ β) (f' : α → β) (h : f' = f) : α →* β :=
-{ ..f.to_zero_hom.copy f' h, ..f.to_monoid_hom.copy f' h }
-
-instance [mul_zero_one_class α] [mul_zero_one_class β] [monoid_with_zero_hom_class F α β] :
-  has_coe_t F (α →*₀ β) :=
-⟨λ f, { to_fun := f, map_one' := map_one f, map_zero' := map_zero f, map_mul' := map_mul f }⟩
-
-/-- Given two monoid with zero morphisms `f`, `g` to a commutative monoid, `f * g` is the monoid
-with zero morphism sending `x` to `f x * g x`. -/
-instance {M N} {hM : mul_zero_one_class M} [comm_monoid_with_zero N] : has_mul (M →*₀ N) :=
-⟨λ f g,
-  { to_fun := λ a, f a * g a,
-    map_zero' := by rw [map_zero, zero_mul],
-    ..(f * g : M →* N) }⟩
-
-lemma order_hom.ext_iff [preorder α] [preorder β] {f g : α →o β} : f = g ↔ ∀ a, f a = g a :=
-fun_like.ext_iff
-
 section add_monoid
 
 /-- `α →+o β` is the type of monotone functions `α → β` that preserve the `ordered_add_comm_monoid`
@@ -225,14 +173,9 @@ instance : order_monoid_hom_class (α →*o β) α β :=
   map_one := λ f, f.map_one',
   monotone := λ f, f.monotone' }
 
-
+-- Other lemmas should be accessed through the `fun_like` API
 @[ext, to_additive] lemma ext (h : ∀ a, f a = g a) : f = g := fun_like.ext f g h
-@[to_additive] lemma ext_iff : f = g ↔ ∀ a, f a = g a := fun_like.ext_iff
-@[to_additive] lemma congr_fun (h : f = g) (a : α) : f a = g a := fun_like.congr_fun h a
-@[to_additive] lemma coe_inj ⦃f g : α →*o β⦄ (h : (f : α → β) = g) : f = g :=
-fun_like.coe_injective h
-
-@[simp, to_additive] lemma to_fun_eq_coe (f : α →*o β) : f.to_fun = (f : α → β) := rfl
+@[to_additive] lemma to_fun_eq_coe (f : α →*o β) : f.to_fun = (f : α → β) := rfl
 @[simp, to_additive] lemma coe_mk (f : α →* β) (h) : (order_monoid_hom.mk f h : α → β) = f := rfl
 @[simp, to_additive] lemma mk_coe (f : α →*o β) (h) : order_monoid_hom.mk (f :  α →* β) h = f :=
 by { ext, refl }
@@ -241,14 +184,14 @@ by { ext, refl }
 @[to_additive "Reinterpret an ordered additive monoid homomorphism as an order homomorphism."]
 def to_order_hom (f : α →*o β) : α →o β := { ..f }
 
-@[simp, to_additive] lemma to_monoid_hom_coe (f : α →*o β) : ((f : α →* β) : α → β) = f := rfl
-@[simp, to_additive] lemma to_order_hom_coe (f : α →*o β) : (f.to_order_hom : α → β) = f := rfl
+@[simp, to_additive] lemma coe_monoid_hom (f : α →*o β) : ((f : α →* β) : α → β) = f := rfl
+@[simp, to_additive] lemma coe_order_hom (f : α →*o β) : ((f : α →o β) : α → β) = f := rfl
 
 @[to_additive] lemma to_monoid_hom_injective : injective (to_monoid_hom : _ → α →* β) :=
-λ f g h, order_monoid_hom.ext $ monoid_hom.ext_iff.1 h
+λ f g h, order_monoid_hom.ext $ by convert fun_like.ext_iff.1 h
 
 @[to_additive] lemma to_order_hom_injective : injective (to_order_hom : _ → α →o β) :=
-λ f g h, order_monoid_hom.ext $ order_hom.ext_iff.1 h
+λ f g h, order_monoid_hom.ext $ by convert fun_like.ext_iff.1 h
 
 /-- Copy of an `order_monoid_hom` with a new `to_fun` equal to the old one. Useful to fix
 definitional equalities. -/
@@ -262,7 +205,7 @@ protected def copy (f : α →*o β) (f' : α → β) (h : f' = f) : α →*o β
 variables (α)
 
 /-- The identity map as an ordered monoid homomorphism. -/
-@[to_additive "The identity map as an ordered additive monoid homomorphism.", simps]
+@[to_additive "The identity map as an ordered additive monoid homomorphism."]
 protected def id : α →*o α := { ..monoid_hom.id α, ..order_hom.id }
 
 @[simp, to_additive] lemma coe_id : ⇑(order_monoid_hom.id α) = id := rfl
@@ -279,10 +222,10 @@ def comp (f : β →*o γ) (g : α →*o β) : α →*o γ :=
 @[simp, to_additive] lemma coe_comp (f : β →*o γ) (g : α →*o β) : (f.comp g : α → γ) = f ∘ g := rfl
 @[simp, to_additive] lemma comp_apply (f : β →*o γ) (g : α →*o β) (a : α) :
   (f.comp g) a = f (g a) := rfl
-@[simp, to_additive] lemma comp_to_monoid_hom (f : β →*o γ) (g : α →*o β) :
-  (f.comp g).to_monoid_hom = f.to_monoid_hom.comp g.to_monoid_hom := rfl
-@[simp, to_additive] lemma comp_to_order_hom (f : β →*o γ) (g : α →*o β) :
-  (f.comp g).to_order_hom = f.to_order_hom.comp g.to_order_hom := rfl
+@[simp, to_additive] lemma coe_comp_monoid_hom (f : β →*o γ) (g : α →*o β) :
+  (f.comp g : α →* γ) = (f : β →* γ).comp g := rfl
+@[simp, to_additive] lemma coe_comp_order_hom (f : β →*o γ) (g : α →*o β) :
+  (f.comp g : α →o γ) = (f : β →o γ).comp g := rfl
 @[simp, to_additive] lemma comp_assoc (f : γ →*o δ) (g : β →*o γ) (h : α →*o β) :
   (f.comp g).comp h = f.comp (g.comp h) := rfl
 @[simp, to_additive] lemma comp_id (f : α →*o β) : f.comp (order_monoid_hom.id α) = f :=
@@ -293,7 +236,7 @@ order_monoid_hom.ext $ λ a, rfl
 @[to_additive]
 lemma cancel_right {g₁ g₂ : β →*o γ} {f : α →*o β} (hf : function.surjective f) :
   g₁.comp f = g₂.comp f ↔ g₁ = g₂ :=
-⟨λ h, order_monoid_hom.ext $ hf.forall.2 $ order_monoid_hom.ext_iff.1 h, congr_arg _⟩
+⟨λ h, order_monoid_hom.ext $ hf.forall.2 $ fun_like.ext_iff.1 h, congr_arg _⟩
 
 @[to_additive]
 lemma cancel_left {g : β →*o γ} {f₁ f₂ : α →*o β} (hg : function.injective g) :
@@ -337,13 +280,13 @@ section ordered_comm_monoid
 variables {hα : ordered_comm_monoid α} {hβ : ordered_comm_monoid β}
 include hα hβ
 
-/-- Helper instance for when there's too many metavariables to apply `to_fun.to_coe_fn` directly. -/
+/-- Helper instance for when there's too many metavariables to apply `fun_like.has_coe_to_fun`
+directly. -/
 instance : has_coe_to_fun (α →*o β) (λ _, α → β) := ⟨λ f, f.to_fun⟩
 
--- Note, we haven't marked the following two lemmas as `simp` because the simp normal formal is
--- currently unclear.
-@[to_additive] lemma to_monoid_hom_eq_coe (f : α →*o β) : f.to_monoid_hom = f := by { ext, refl }
-@[to_additive] lemma to_order_hom_eq_coe (f : α →*o β) : f.to_order_hom = f := rfl
+@[simp, to_additive] lemma to_monoid_hom_eq_coe (f : α →*o β) : f.to_monoid_hom = f :=
+by { ext, refl }
+@[simp, to_additive] lemma to_order_hom_eq_coe (f : α →*o β) : f.to_order_hom = f := rfl
 
 end ordered_comm_monoid
 
@@ -375,12 +318,9 @@ instance : order_monoid_with_zero_hom_class (α →*₀o β) α β :=
   map_zero := λ f, f.map_zero',
   monotone := λ f, f.monotone' }
 
+-- Other lemmas should be accessed through the `fun_like` API
 @[ext] lemma ext (h : ∀ a, f a = g a) : f = g := fun_like.ext f g h
-lemma ext_iff : f = g ↔ ∀ a, f a = g a := fun_like.ext_iff
-lemma congr_fun (h : f = g) (a : α) : f a = g a := fun_like.congr_fun h a
-lemma coe_inj ⦃f g : α →*₀o β⦄ (h : (f : α → β) = g) : f = g := fun_like.coe_injective h
-
-@[simp] lemma to_fun_eq_coe (f : α →*₀o β) : f.to_fun = (f : α → β) := rfl
+lemma to_fun_eq_coe (f : α →*₀o β) : f.to_fun = (f : α → β) := rfl
 @[simp] lemma coe_mk (f : α →*₀ β) (h) : (order_monoid_with_zero_hom.mk f h : α → β) = f := rfl
 @[simp] lemma mk_coe (f : α →*₀o β) (h) : order_monoid_with_zero_hom.mk (f :  α →*₀ β) h = f :=
 by { ext, refl }
@@ -388,16 +328,14 @@ by { ext, refl }
 /-- Reinterpret an ordered monoid with zero homomorphism as an order monoid homomorphism. -/
 def to_order_monoid_hom (f : α →*₀o β) : α →*o β := { ..f }
 
-@[simp] lemma coe_to_monoid_with_zero_hom (f : α →*₀o β) :
-  (f.to_monoid_with_zero_hom : α → β) = f := rfl
-
-@[simp] lemma coe_to_order_monoid_hom (f : α →*₀o β) : (f.to_order_monoid_hom : α → β) = f := rfl
+@[simp] lemma coe_monoid_with_zero_hom (f : α →*₀o β) : ((f : α →*₀ β) : α → β) = f := rfl
+@[simp] lemma coe_order_monoid_hom (f : α →*₀o β) : ((f : α →*o β) : α → β) = f := rfl
 
 lemma to_order_monoid_hom_injective : injective (to_order_monoid_hom : _ → α →*o β) :=
-λ f g h, order_monoid_with_zero_hom.ext $ order_monoid_hom.ext_iff.1 h
+λ f g h, order_monoid_with_zero_hom.ext $ by convert fun_like.ext_iff.1 h
 
 lemma to_monoid_with_zero_hom_injective : injective (to_monoid_with_zero_hom : _ → α →*₀ β) :=
-λ f g h, order_monoid_with_zero_hom.ext $ monoid_with_zero_hom.ext_iff.1 h
+λ f g h, order_monoid_with_zero_hom.ext $ by convert fun_like.ext_iff.1 h
 
 /-- Copy of an `order_monoid_hom` with a new `to_fun` equal to the old one. Useful to fix
 definitional equalities. -/
@@ -424,11 +362,10 @@ def comp (f : β →*₀o γ) (g : α →*₀o β) : α →*₀o γ :=
 
 @[simp] lemma coe_comp (f : β →*₀o γ) (g : α →*₀o β) : (f.comp g : α → γ) = f ∘ g := rfl
 @[simp] lemma comp_apply (f : β →*₀o γ) (g : α →*₀o β) (a : α) : (f.comp g) a = f (g a) := rfl
-@[simp] lemma comp_to_monoid_with_zero_hom (f : β →*₀o γ) (g : α →*₀o β) :
-  (f.comp g).to_monoid_with_zero_hom = f.to_monoid_with_zero_hom.comp g.to_monoid_with_zero_hom :=
-rfl
-@[simp] lemma comp_to_order_monoid_hom (f : β →*₀o γ) (g : α →*₀o β) :
-  (f.comp g).to_order_monoid_hom = f.to_order_monoid_hom.comp g.to_order_monoid_hom := rfl
+@[simp] lemma coe_comp_monoid_with_zero_hom (f : β →*₀o γ) (g : α →*₀o β) :
+  (f.comp g : α →*₀ γ) = (f : β →*₀ γ).comp g := rfl
+@[simp] lemma coe_comp_order_monoid_hom (f : β →*₀o γ) (g : α →*₀o β) :
+  (f.comp g : α →*o γ) = (f : β →*o γ).comp g := rfl
 @[simp] lemma comp_assoc (f : γ →*₀o δ) (g : β →*₀o γ) (h : α →*₀o β) :
   (f.comp g).comp h = f.comp (g.comp h) := rfl
 @[simp] lemma comp_id (f : α →*₀o β) : f.comp (order_monoid_with_zero_hom.id α) = f :=
@@ -438,8 +375,7 @@ order_monoid_with_zero_hom.ext $ λ a, rfl
 
 lemma cancel_right {g₁ g₂ : β →*₀o γ} {f : α →*₀o β} (hf : function.surjective f) :
   g₁.comp f = g₂.comp f ↔ g₁ = g₂ :=
-⟨λ h, order_monoid_with_zero_hom.ext $ hf.forall.2 $ order_monoid_with_zero_hom.ext_iff.1 h,
-  congr_arg _⟩
+⟨λ h, order_monoid_with_zero_hom.ext $ hf.forall.2 $ fun_like.ext_iff.1 h, congr_arg _⟩
 
 lemma cancel_left {g : β →*₀o γ} {f₁ f₂ : α →*₀o β} (hg : function.injective g) :
   g.comp f₁ = g.comp f₂ ↔ f₁ = f₂ :=
@@ -468,14 +404,13 @@ variables {hα : linear_ordered_comm_monoid_with_zero α}
   {hβ : linear_ordered_comm_monoid_with_zero β}
 include hα hβ
 
-/-- Helper instance for when there's too many metavariables to apply `to_fun.to_coe_fn` directly. -/
+/-- Helper instance for when there's too many metavariables to apply `fun_like.has_coe_to_fun`
+directly. -/
 instance : has_coe_to_fun (α →*₀o β) (λ _, α → β) := ⟨λ f, f.to_fun⟩
 
--- Note, we haven't marked the following two lemmas as `simp` because the simp normal formal is
--- currently unclear.
-lemma to_monoid_with_zero_hom_eq_coe (f : α →*₀o β) : f.to_monoid_with_zero_hom = f :=
+@[simp] lemma to_monoid_with_zero_hom_eq_coe (f : α →*₀o β) : f.to_monoid_with_zero_hom = f :=
 by { ext, refl }
-lemma to_order_monoid_hom_eq_coe (f : α →*₀o β) : f.to_order_monoid_hom = f := rfl
+@[simp] lemma to_order_monoid_hom_eq_coe (f : α →*₀o β) : f.to_order_monoid_hom = f := rfl
 
 end linear_ordered_comm_monoid_with_zero
 end order_monoid_with_zero_hom

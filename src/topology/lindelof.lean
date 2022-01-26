@@ -251,7 +251,7 @@ lemma embedding.is_lindelof_image {e : X → Y} (he : embedding e) :
 he.to_inducing.is_lindelof_image
 
 class lindelof_space (X : Type*) [topological_space X] : Prop :=
-(is_lindelof_univ : is_lindelof (univ : set X))
+(is_lindelof_univ [] : is_lindelof (univ : set X))
 
 export lindelof_space (is_lindelof_univ)
 
@@ -259,7 +259,7 @@ lemma is_lindelof_univ_iff : is_lindelof (univ : set X) ↔ lindelof_space X := 
 
 protected lemma is_closed.is_lindelof [lindelof_space X] {s : set X} (hs : is_closed s) :
   is_lindelof s :=
-is_lindelof_univ.subset (subset_univ s) hs
+(is_lindelof_univ X).subset (subset_univ s) hs
 
 lemma is_lindelof_iff_lindelof_space : is_lindelof s ↔ lindelof_space s :=
 by rw [← is_lindelof_univ_iff, ← embedding_subtype_coe.is_lindelof_image, image_univ,

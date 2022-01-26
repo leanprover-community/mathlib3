@@ -32,9 +32,7 @@ namespace pullback
 variables {C : Type u} [category.{v} C]
 
 variables {X Y Z : Scheme.{u}} (𝒰 : open_cover.{u} X) (f : X ⟶ Z) (g : Y ⟶ Z)
-variables [H : ∀ i, has_pullback (𝒰.map i ≫ f) g]
-
-include H
+variables [∀ i, has_pullback (𝒰.map i ≫ f) g]
 
 /-- The intersection of `Uᵢ ×[Z] Y` and `Uⱼ ×[Z] Y` is given by (Uᵢ ×[Z] Y) ×[X] Uⱼ -/
 def V (i j : 𝒰.J) : Scheme :=
@@ -453,8 +451,6 @@ end
 
 lemma has_pullback_of_cover : has_pullback f g := ⟨⟨⟨_, glued_is_limit 𝒰 f g⟩⟩⟩
 
-omit H
-
 instance : has_limits CommRingᵒᵖ := has_limits_op_of_has_colimits
 
 instance affine_has_pullback {A B C : CommRing}
@@ -499,46 +495,17 @@ end
 instance {X Y Z : Scheme} (f : X ⟶ Z) (g : Y ⟶ Z) : has_pullback f g :=
 has_pullback_of_cover (Z.affine_cover.pullback_cover f) f g
 
-attribute [elementwise] comp_val_base
-
 @[simps J obj map]
-def _root_.algebraic_geometry.Scheme.open_cover.of_is_iso {X Y : Scheme.{u}} (f : X ⟶ Y) [is_iso f] :
-  open_cover Y :=
-{ J := punit.{v+1},
-  obj := λ _, X,
-  map := λ _, f,
-  f := λ _, punit.star,
-  covers := λ x, by { rw set.range_iff_surjective.mpr, trivial, rw ← Top.epi_iff_surjective,
-    apply_instance } }
-
-@[simps J obj map]
-def _root_.algebraic_geometry.Scheme.open_cover.copy {X : Scheme} (𝒰 : open_cover X)
-  (J : Type*) (obj : J → Scheme) (map : ∀ i, obj i ⟶ X) (e₁ : J ≃ 𝒰.J)
-  (f : ∀ i, 𝒰.obj (e₁ i) ⟶ X)
-  (e₂ : ∀ i, f i = 𝒰.map (e₁ i)) : open_cover X :=
-{ J := J,
-  obj := λ i, 𝒰.obj (e₁ i),
-  map := f,
-  f := λ x, e₁.symm (𝒰.f x),
-  covers := λ x, by { rw e₂, rw e₁.right_inverse_symm, exact 𝒰.covers x },
-  is_open := λ i, by { rw e₂, exact 𝒰.is_open _ } }
-
-@[simps J obj map]
-def _root_.algebraic_geometry.Scheme.open_cover.pushforward_iso {X Y : Scheme} (𝒰 : open_cover X)
-  (f : X ⟶ Y) [is_iso f] :
-  open_cover Y :=
-((open_cover.of_is_iso f).bind (λ _, 𝒰)).copy 𝒰.J
-  ((equiv.punit_prod _).symm.trans (equiv.sigma_equiv_prod punit 𝒰.J).symm) _ (λ _, rfl)
-
-include 𝒰
-
-def open_cover_of_left : open_cover (pullback f g) :=
+def open_cover_of_left (𝒰 : open_cover X) (f : X ⟶ Z) (g : Y ⟶ Z) : open_cover (pullback f g) :=
 begin
   fapply ((gluing 𝒰 f g).open_cover.pushforward_iso
-    (limit.iso_limit_cone ⟨_, glued_is_limit 𝒰 f g⟩).inv).copy _ (equiv.refl 𝒰.J)
-    (λ i, pullback.map (𝒰.map i ≫ f) g f g (𝒰.map i) (𝟙 _) (𝟙 _) (category.comp_id _) (by simp)),
+    (limit.iso_limit_cone ⟨_, glued_is_limit 𝒰 f g⟩).inv).copy 𝒰.J
+    (λ i, pullback (𝒰.map i ≫ f) g)
+    (λ i, pullback.map _ _ _ _ (𝒰.map i) (𝟙 _) (𝟙 _) (category.comp_id _) (by simp))
+    (equiv.refl 𝒰.J) (λ _, iso.refl _),
   rintro (i : 𝒰.J),
-  change pullback.map _ _ _ _ _ _ _ _ _ = (gluing 𝒰 f g).ι i ≫ _,
+  change pullback.map _ _ _ _ _ _ _ _ _ = 𝟙 _ ≫ (gluing 𝒰 f g).ι i ≫ _,
+  refine eq.trans _ (category.id_comp _).symm,
   apply pullback.hom_ext,
   all_goals
   { dsimp,
@@ -548,37 +515,22 @@ begin
     exact multicoequalizer.π_desc _ _ _ _ _ },
 end
 
-@[simp] lemma open_cover_of_left_J :
-  (pullback.open_cover_of_left 𝒰 f g).J = 𝒰.J := rfl
-
-@[simp] lemma open_cover_of_left_obj (i : 𝒰.J) :
-  (pullback.open_cover_of_left 𝒰 f g).obj i = pullback (𝒰.map i ≫ f) g := rfl
-
-@[simp] lemma open_cover_of_left_map (i : 𝒰.J) :
-  (pullback.open_cover_of_left 𝒰 f g).map i =
-    pullback.map _ _ _ _ (𝒰.map i) (𝟙 _) (𝟙 _) (category.comp_id _) (by simp) := rfl
-
+@[simps J obj map]
 def open_cover_of_right (𝒰 : open_cover Y) (f : X ⟶ Z) (g : Y ⟶ Z) : open_cover (pullback f g) :=
 begin
-  fapply (((open_cover_of_left 𝒰 g f).pushforward_iso (pullback_symmetry _ _).hom).bind
-    (open_cover.of_is_iso (by { }))).copy 𝒰.J
-    (equiv.refl _) (λ i, by { dsimp [open_cover.bind], }),
+  fapply ((open_cover_of_left 𝒰 g f).pushforward_iso (pullback_symmetry _ _).hom).copy 𝒰.J
+    (λ i, pullback f (𝒰.map i ≫ g))
+    (λ i, pullback.map _ _ _ _ (𝟙 _) (𝒰.map i) (𝟙 _) (by simp) (category.comp_id _))
+    (equiv.refl _) (λ i, pullback_symmetry _ _),
+  intro i,
+  dsimp [open_cover.bind],
+  apply pullback.hom_ext; simp,
 end
-
-@[simp] lemma open_cover_of_left_J :
-  (pullback.open_cover_of_left 𝒰 f g).J = 𝒰.J := rfl
-
-@[simp] lemma open_cover_of_left_obj (i : 𝒰.J) :
-  (pullback.open_cover_of_left 𝒰 f g).obj i = pullback (𝒰.map i ≫ f) g := rfl
-
-@[simp] lemma open_cover_of_left_map (i : 𝒰.J) :
-  (pullback.open_cover_of_left 𝒰 f g).map i =
-    pullback.map _ _ _ _ (𝒰.map i) (𝟙 _) (𝟙 _) (category.comp_id _) (by simp) := rfl
 
 omit 𝒰
 
 /-- (Implementation). Use `open_cover_of_base` instead. -/
-def open_cover_of_base' (𝒰 : open_cover Z) : open_cover (pullback f g) :=
+def open_cover_of_base' (𝒰 : open_cover Z) (f : X ⟶ Z) (g : Y ⟶ Z) : open_cover (pullback f g) :=
 begin
   apply (open_cover_of_left (𝒰.pullback_cover f) f g).bind,
   intro i,
@@ -600,30 +552,26 @@ end
 
 /-- Given an open cover `{ Zᵢ }` of `Z`, then `X ×[Z] Y` is covered by `Xᵢ ×[Zᵢ] Yᵢ`, where
   `Xᵢ = X ×[Z] Zᵢ` and `Yᵢ = Y ×[Z] Zᵢ` is the preimage of `Zᵢ` in `X` and `Y`. -/
-def open_cover_of_base (𝒰 : open_cover Z) : open_cover (pullback f g) :=
+@[simps J obj map]
+def open_cover_of_base (𝒰 : open_cover Z) (f : X ⟶ Z) (g : Y ⟶ Z) : open_cover (pullback f g) :=
 begin
-  apply (open_cover_of_base' f g 𝒰).copy 𝒰.J
-    ((equiv.prod_punit 𝒰.J).symm.trans (equiv.sigma_equiv_prod 𝒰.J punit).symm)
+  apply (open_cover_of_base' 𝒰 f g).copy
+    𝒰.J
+    (λ i, pullback (pullback.snd : pullback f (𝒰.map i) ⟶ _)
+      (pullback.snd : pullback g (𝒰.map i) ⟶ _))
     (λ i, pullback.map _ _ _ _ pullback.fst pullback.fst (𝒰.map i)
-      pullback.condition.symm pullback.condition.symm),
+      pullback.condition.symm pullback.condition.symm)
+    ((equiv.prod_punit 𝒰.J).symm.trans (equiv.sigma_equiv_prod 𝒰.J punit).symm)
+    (λ _, iso.refl _),
   intro i,
-  change _ = _ ≫ _,
+  change _ = _ ≫ _ ≫ _,
+  refine eq.trans _ (category.id_comp _).symm,
   apply pullback.hom_ext; simp only [category.comp_id, open_cover_of_left_map,
     open_cover.pullback_cover_map, pullback_cone.mk_π_app_left, open_cover.of_is_iso_map,
     limit.iso_limit_cone_inv_π_assoc, category.assoc, pullback.lift_fst_assoc,
     pullback_symmetry_hom_comp_snd_assoc, pullback.lift_fst, limit.iso_limit_cone_inv_π,
     pullback_cone.mk_π_app_right, pullback_symmetry_hom_comp_fst_assoc, pullback.lift_snd],
 end
-
-@[simp] lemma open_cover_of_base_f (𝒰 : open_cover Z) : (open_cover_of_base f g 𝒰).J = 𝒰.J := rfl
-
-@[simp] lemma open_cover_of_base_obj (𝒰 : open_cover Z) (i : 𝒰.J) :
-  (open_cover_of_base f g 𝒰).obj i = pullback (pullback.snd : pullback f (𝒰.map i) ⟶ _)
-    (pullback.snd : pullback g (𝒰.map i) ⟶ _) := rfl
-
-@[simp] lemma open_cover_of_base_map (𝒰 : open_cover Z) (i : 𝒰.J) :
-  (open_cover_of_base f g 𝒰).map i = pullback.map _ _ _ _ pullback.fst pullback.fst (𝒰.map i)
-      pullback.condition.symm pullback.condition.symm := rfl
 
 end pullback
 

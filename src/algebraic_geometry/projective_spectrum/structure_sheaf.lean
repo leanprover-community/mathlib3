@@ -47,6 +47,7 @@ and the localization of `R` at the submonoid of powers of `f`.
 
 -/
 
+-- set_option profiler true
 
 noncomputable theory
 
@@ -165,14 +166,8 @@ begin
 end
 
 lemma hartshorne_localisation.ext (x : projective_spectrum.Top 𝒜)
-  -- (hxy : y.as_homogeneous_ideal ≤ x.as_homogeneous_ideal)
   (a b : A) (i : ℕ) (a_hom : a ∈ 𝒜 i) (b_hom : b ∈ 𝒜 i)
   (b_nin b_nin' : b ∉ x.as_homogeneous_ideal)
-  -- (eq1 :
-  --   (⟨localization.mk a ⟨b, b_ninx⟩, ⟨a, b, i, a_hom, b_hom, b_ninx, rfl⟩⟩ :
-  --     hartshorne_localisation 𝒜 x) =
-  --   (⟨localization.mk a' ⟨b', b_ninx'⟩, ⟨a', b', i', a_hom', b_hom', b_ninx', rfl⟩⟩ :
-  --     hartshorne_localisation 𝒜 x))
        :
   (⟨localization.mk a ⟨b, b_nin⟩, ⟨hl.condition.mk a b b_nin i a_hom b_hom, rfl⟩⟩ :
     hartshorne_localisation 𝒜 x) =
@@ -239,90 +234,109 @@ so we replace his circumlocution about functions into a disjoint union with
 def is_locally_fraction : local_predicate (hartshorne_localisation 𝒜) :=
 (is_fraction_prelocal 𝒜).sheafify
 
--- set_option profiler true
 /--
 The functions satisfying `is_locally_fraction` form a subring.
 -/
-def sections_subring (U : (opens (projective_spectrum.Top 𝒜))ᵒᵖ) :
-  subring (Π x : unop U, hartshorne_localisation 𝒜 x) :=
-{ carrier := { f | (is_locally_fraction 𝒜).pred f },
-  zero_mem' :=
-  begin
-    refine λ x, ⟨unop U, x.2, 𝟙 _, 0, 1, 0, submodule.zero_mem _,
-      set_like.has_graded_one.one_mem, λ y, ⟨_, _⟩⟩,
-    { erw ←ideal.ne_top_iff_one ((y : projective_spectrum.Top 𝒜).as_homogeneous_ideal.1),
-      exact y.1.is_prime.1, },
-    { simp only [pi.zero_apply], dsimp only,
-      rw localization.mk_zero, refl,},
-  end,
-  one_mem' :=
-  begin
-    refine λ x, ⟨unop U, x.2, 𝟙 _, 1, 1, 0,
+lemma section_subring.zero_mem (U : (opens (projective_spectrum.Top 𝒜))ᵒᵖ) :
+  (is_locally_fraction 𝒜).pred (0 : Π x : unop U, hartshorne_localisation 𝒜 x.1) :=
+begin
+  refine λ x, ⟨unop U, x.2, 𝟙 _, 0, 1, 0, submodule.zero_mem _,
+    set_like.has_graded_one.one_mem, λ y, ⟨_, _⟩⟩,
+  { erw ←ideal.ne_top_iff_one ((y : projective_spectrum.Top 𝒜).as_homogeneous_ideal.1),
+    exact y.1.is_prime.1, },
+  { simp only [pi.zero_apply], dsimp only,
+    rw localization.mk_zero, refl,},
+end
+
+lemma section_subring.one_mem (U : (opens (projective_spectrum.Top 𝒜))ᵒᵖ) :
+  (is_locally_fraction 𝒜).pred (1 : Π x : unop U, hartshorne_localisation 𝒜 x.1) :=
+begin
+  refine λ x, ⟨unop U, x.2, 𝟙 _, 1, 1, 0,
       set_like.has_graded_one.one_mem, set_like.has_graded_one.one_mem, λ y, ⟨_, _⟩⟩,
-    { erw ←ideal.ne_top_iff_one ((y : projective_spectrum.Top 𝒜).as_homogeneous_ideal.1),
-      exact y.1.is_prime.1, },
-    { simp only [pi.one_apply], dsimp only,
-      erw localization.mk_one, refl, },
-  end,
-  add_mem' :=
-  begin
-    intros a b ha hb x,
-    rcases ha x with ⟨Va, ma, ia, ra, sa, ja, ra_hom, sa_hom, wa⟩,
-    rcases hb x with ⟨Vb, mb, ib, rb, sb, jb, rb_hom, sb_hom, wb⟩,
-    refine ⟨Va ⊓ Vb, ⟨ma, mb⟩, opens.inf_le_left _ _ ≫ ia, ra * sb + rb * sa, sa * sb, ja + jb,
-      submodule.add_mem _ (set_like.graded_monoid.mul_mem ra_hom sb_hom) _,
-      set_like.graded_monoid.mul_mem sa_hom sb_hom,
-      λ y, ⟨λ h, _, _⟩⟩,
-    { rw add_comm, apply set_like.graded_monoid.mul_mem,
-      exact rb_hom, exact sa_hom, },
-    { have := (y : projective_spectrum.Top 𝒜).is_prime.mem_or_mem h, cases this,
-      obtain ⟨nin, hy⟩ := (wa ⟨y, _⟩), apply nin, exact this,
-      suffices : y.1 ∈ Va, exact this,
-      exact (opens.inf_le_left Va Vb y).2,
-      obtain ⟨nin, hy⟩ := (wb ⟨y, _⟩), apply nin, exact this,
-      suffices : y.1 ∈ Vb, exact this,
-      exact (opens.inf_le_right Va Vb y).2, },
-    { simp only [add_mul, ring_hom.map_add, pi.add_apply, ring_hom.map_mul],
-      rw hartshorne_localisation.val_add,
-      choose nin1 hy1 using (wa (opens.inf_le_left Va Vb y)),
-      choose nin2 hy2 using (wb (opens.inf_le_right Va Vb y)),
-      convert congr_arg2 (+) hy1 hy2,
-      rw [localization.add_mk],
-      congr' 1, rw [add_comm], congr' 1,
-      rw [mul_comm], refl,
-      rw [mul_comm], refl, }
-  end,
-  neg_mem' :=
-  begin
-    intros a ha x,
-    rcases ha x with ⟨V, m, i, r, s, j, r_hom_j, s_hom_j, w⟩,
-    refine ⟨V, m, i, -r, s, j, submodule.neg_mem _ r_hom_j, s_hom_j, λ y, ⟨_, _⟩⟩,
-    choose nin hy using w y, exact nin,
-    choose nin hy using w y,
-    simp only [ring_hom.map_neg, pi.neg_apply], rw hartshorne_localisation.val_neg,
-    rw ←localization.neg_mk,
-    erw ←hy,
-  end,
-  mul_mem' :=
-  begin
-    intros a b ha hb x,
-    rcases ha x with ⟨Va, ma, ia, ra, sa, ja, ra_hom_ja, sa_hom_ja, wa⟩,
-    rcases hb x with ⟨Vb, mb, ib, rb, sb, jb, rb_hom_jb, sb_hom_jb, wb⟩,
-    refine ⟨Va ⊓ Vb, ⟨ma, mb⟩, opens.inf_le_left _ _ ≫ ia, ra * rb, sa * sb,
-      ja + jb, set_like.graded_monoid.mul_mem ra_hom_ja rb_hom_jb,
-        set_like.graded_monoid.mul_mem sa_hom_ja sb_hom_jb, λ y, ⟨λ h, _, _⟩⟩,
-    { have := (y : projective_spectrum.Top 𝒜).is_prime.mem_or_mem h, cases this,
-      choose nin hy using wa ⟨y, (opens.inf_le_left Va Vb y).2⟩,
-      apply nin, exact this,
-      choose nin hy using wb ⟨y, (opens.inf_le_right Va Vb y).2⟩,
-      apply nin, exact this, },
-    { simp only [pi.mul_apply, ring_hom.map_mul],
-      choose nin1 hy1 using wa (opens.inf_le_left Va Vb y),
-      choose nin2 hy2 using wb (opens.inf_le_right Va Vb y),
-      rw [hartshorne_localisation.val_mul],
-      convert congr_arg2 (*) hy1 hy2,
-      rw [localization.mk_mul], refl, }
-  end, }
+  { erw ←ideal.ne_top_iff_one ((y : projective_spectrum.Top 𝒜).as_homogeneous_ideal.1),
+    exact y.1.is_prime.1, },
+  { simp only [pi.one_apply], dsimp only,
+    erw localization.mk_one, refl, },
+end
+
+lemma section_subring.add_mem (U : (opens (projective_spectrum.Top 𝒜))ᵒᵖ)
+  (a b : Π x : unop U, hartshorne_localisation 𝒜 x.1)
+  (ha : (is_locally_fraction 𝒜).pred a) (hb : (is_locally_fraction 𝒜).pred b) :
+  (is_locally_fraction 𝒜).pred (a + b) := λ x,
+begin
+  rcases ha x with ⟨Va, ma, ia, ra, sa, ja, ra_hom, sa_hom, wa⟩,
+  rcases hb x with ⟨Vb, mb, ib, rb, sb, jb, rb_hom, sb_hom, wb⟩,
+  refine ⟨Va ⊓ Vb, ⟨ma, mb⟩, opens.inf_le_left _ _ ≫ ia, sb * ra + sa * rb, sa * sb, jb + ja,
+    submodule.add_mem _ (set_like.graded_monoid.mul_mem sb_hom ra_hom) begin
+      rw add_comm,
+      apply set_like.graded_monoid.mul_mem sa_hom rb_hom,
+    end,
+    begin
+      rw add_comm,
+      apply set_like.graded_monoid.mul_mem sa_hom sb_hom,
+    end,
+    λ y, ⟨λ h, _, _⟩⟩,
+  { have := (y : projective_spectrum.Top 𝒜).is_prime.mem_or_mem h, cases this,
+    obtain ⟨nin, hy⟩ := (wa ⟨y, _⟩), apply nin, exact this,
+    suffices : y.1 ∈ Va, exact this,
+    exact (opens.inf_le_left Va Vb y).2,
+    obtain ⟨nin, hy⟩ := (wb ⟨y, _⟩), apply nin, exact this,
+    suffices : y.1 ∈ Vb, exact this,
+    exact (opens.inf_le_right Va Vb y).2, },
+  { simp only [add_mul, ring_hom.map_add, pi.add_apply, ring_hom.map_mul],
+    rw hartshorne_localisation.val_add,
+    obtain ⟨nin1, hy1⟩ := (wa (opens.inf_le_left Va Vb y)),
+    obtain ⟨nin2, hy2⟩ := (wb (opens.inf_le_right Va Vb y)),
+    convert congr_arg2 (+) hy1 hy2,
+    rw [localization.add_mk],
+    congr' 1, rw [add_comm], congr' 1, }
+end
+
+lemma section_subring.neg_mem (U : (opens (projective_spectrum.Top 𝒜))ᵒᵖ)
+  (a : Π x : unop U, hartshorne_localisation 𝒜 x.1)
+  (ha : (is_locally_fraction 𝒜).pred a) :
+  (is_locally_fraction 𝒜).pred (-a) := λ x,
+begin
+  rcases ha x with ⟨V, m, i, r, s, j, r_hom_j, s_hom_j, w⟩,
+  refine ⟨V, m, i, -r, s, j, submodule.neg_mem _ r_hom_j, s_hom_j, λ y, ⟨_, _⟩⟩,
+  choose nin hy using w y, exact nin,
+  choose nin hy using w y,
+  simp only [ring_hom.map_neg, pi.neg_apply], rw hartshorne_localisation.val_neg,
+  rw ←localization.neg_mk,
+  erw ←hy,
+end
+
+lemma section_subring.mul_mem (U : (opens (projective_spectrum.Top 𝒜))ᵒᵖ)
+  (a b : Π x : unop U, hartshorne_localisation 𝒜 x.1)
+  (ha : (is_locally_fraction 𝒜).pred a) (hb : (is_locally_fraction 𝒜).pred b) :
+  (is_locally_fraction 𝒜).pred (a * b) := λ x,
+begin
+  rcases ha x with ⟨Va, ma, ia, ra, sa, ja, ra_hom_ja, sa_hom_ja, wa⟩,
+  rcases hb x with ⟨Vb, mb, ib, rb, sb, jb, rb_hom_jb, sb_hom_jb, wb⟩,
+  refine ⟨Va ⊓ Vb, ⟨ma, mb⟩, opens.inf_le_left _ _ ≫ ia, ra * rb, sa * sb,
+    ja + jb, set_like.graded_monoid.mul_mem ra_hom_ja rb_hom_jb,
+      set_like.graded_monoid.mul_mem sa_hom_ja sb_hom_jb, λ y, ⟨λ h, _, _⟩⟩,
+  { have := (y : projective_spectrum.Top 𝒜).is_prime.mem_or_mem h, cases this,
+    choose nin hy using wa ⟨y, (opens.inf_le_left Va Vb y).2⟩,
+    apply nin, exact this,
+    choose nin hy using wb ⟨y, (opens.inf_le_right Va Vb y).2⟩,
+    apply nin, exact this, },
+  { simp only [pi.mul_apply, ring_hom.map_mul],
+    choose nin1 hy1 using wa (opens.inf_le_left Va Vb y),
+    choose nin2 hy2 using wb (opens.inf_le_right Va Vb y),
+    rw [hartshorne_localisation.val_mul],
+    convert congr_arg2 (*) hy1 hy2,
+    rw [localization.mk_mul], refl, }
+end
+
+def sections_subring (U : (opens (projective_spectrum.Top 𝒜))ᵒᵖ) :
+  subring (Π x : unop U, hartshorne_localisation 𝒜 x.1) :=
+{ carrier := { f | (is_locally_fraction 𝒜).pred f },
+  zero_mem' := section_subring.zero_mem 𝒜 U,
+  one_mem' := section_subring.one_mem 𝒜 U,
+  add_mem' := section_subring.add_mem 𝒜 U,
+  neg_mem' := section_subring.neg_mem 𝒜 U,
+  mul_mem' := section_subring.mul_mem 𝒜 U, }
 
 /--
 The structure sheaf (valued in `Type`, not yet `CommRing`) is the subsheaf consisting of

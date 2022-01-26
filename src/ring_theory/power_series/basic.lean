@@ -706,9 +706,9 @@ lemma inv_eq_zero {φ : mv_power_series σ k} :
   φ⁻¹ = 0 ↔ constant_coeff σ k φ = 0 :=
 ⟨λ h, by simpa using congr_arg (constant_coeff σ k) h,
  λ h, ext $ λ n, by { rw coeff_inv, split_ifs;
- simp only [h, mv_power_series.coeff_zero, zero_mul, inv_zero, neg_zero] }⟩
+  simp only [h, mv_power_series.coeff_zero, zero_mul, inv_zero, neg_zero] }⟩
 
-@[simp] lemma inv_zero : (0 : mv_power_series σ k)⁻¹ = 0 :=
+@[simp] lemma zero_inv : (0 : mv_power_series σ k)⁻¹ = 0 :=
 by rw [inv_eq_zero, constant_coeff_zero]
 
 @[simp, priority 1100]
@@ -1547,7 +1547,7 @@ lemma inv_eq_zero {φ : power_series k} :
   φ⁻¹ = 0 ↔ constant_coeff k φ = 0 :=
 mv_power_series.inv_eq_zero
 
-@[simp] lemma inv_zero : (0 : power_series k)⁻¹ = 0 := mv_power_series.inv_zero
+@[simp] lemma zero_inv : (0 : power_series k)⁻¹ = 0 := mv_power_series.zero_inv
 
 @[simp, priority 1100] lemma inv_of_unit_eq (φ : power_series k) (h : constant_coeff k φ ≠ 0) :
   inv_of_unit φ (units.mk0 _ h) = φ⁻¹ :=

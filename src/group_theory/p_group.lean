@@ -52,7 +52,7 @@ begin
   { use (card G).factors.length,
     rw [←list.prod_repeat, ←list.eq_repeat_of_mem this, nat.prod_factors hG] },
   intros q hq,
-  obtain ⟨hq1, hq2⟩ := (nat.mem_factors hG).mp hq,
+  obtain ⟨hq1, hq2⟩ := (nat.mem_factors hG.ne').mp hq,
   haveI : fact q.prime := ⟨hq1⟩,
   obtain ⟨g, hg⟩ := equiv.perm.exists_prime_order_of_dvd_card q hq2,
   obtain ⟨k, hk⟩ := (iff_order_of.mp h) g,
@@ -222,7 +222,7 @@ end
 
 lemma comap_subtype {H : subgroup G} (hH : is_p_group p H) {K : subgroup G} :
   is_p_group p (H.comap K.subtype) :=
-by { apply hH.comap_of_injective, exact subtype.coe_injective }
+hH.comap_of_injective K.subtype subtype.coe_injective
 
 lemma to_sup_of_normal_right {H K : subgroup G} (hH : is_p_group p H) (hK : is_p_group p K)
   [K.normal] : is_p_group p (H ⊔ K : subgroup G) :=

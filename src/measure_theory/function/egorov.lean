@@ -6,11 +6,9 @@ Authors: Kexing Ying
 import measure_theory.integral.set_integral
 
 /-!
-# Uniform integrability
+# Egorov Theorem
 
-This file will be used in the future to define uniform integrability. Uniform integrability
-is an important notion in both measure theory as well as probability theory. So far this file
-only contains the Egorov theorem which will be used to prove the Vitali convergence theorem
+This file contains the Egorov theorem which will be used to prove the Vitali convergence theorem
 which is one of the main results about uniform integrability.
 
 ## Main results

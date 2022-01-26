@@ -170,6 +170,8 @@ instance [lattice α] [lattice β] [bounded_order α] [bounded_order β]
   [bounded_lattice_hom_class F α β] : has_coe_t F (bounded_lattice_hom α β) :=
 ⟨λ f, { to_fun := f, map_top' := map_top f, map_bot' := map_bot f, ..(f : lattice_hom α β) }⟩
 
+/-! ### Top homomorphisms -/
+
 namespace top_hom
 variables [has_top α]
 
@@ -281,6 +283,8 @@ instance [distrib_lattice β] [order_top β] : distrib_lattice (top_hom α β) :
 fun_like.coe_injective.distrib_lattice _ (λ _ _, rfl) (λ _ _, rfl)
 
 end top_hom
+
+/-! ### Bot homomorphisms -/
 
 namespace bot_hom
 variables [has_bot α]
@@ -394,6 +398,8 @@ fun_like.coe_injective.distrib_lattice _ (λ _ _, rfl) (λ _ _, rfl)
 
 end bot_hom
 
+/-! ### Supremum homomorphisms -/
+
 namespace sup_hom
 variables [has_sup α]
 
@@ -468,13 +474,15 @@ instance : semilattice_sup (sup_hom α β) := fun_like.coe_injective.semilattice
 
 variables (α)
 
-/-- The constant function as an `sup_hom`. -/
+/-- The constant function as a `sup_hom`. -/
 def const (b : β) : sup_hom α β := ⟨λ _, b, λ _ _, sup_idem.symm⟩
 
 @[simp] lemma coe_const (b : β) : ⇑(const α b) = function.const α b := rfl
 @[simp] lemma const_apply (b : β) (a : α) : const α b a = b := rfl
 
 end sup_hom
+
+/-! ### Infimum homomorphisms -/
 
 namespace inf_hom
 variables [has_inf α]
@@ -557,6 +565,8 @@ def const (b : β) : inf_hom α β := ⟨λ _, b, λ _ _, inf_idem.symm⟩
 @[simp] lemma const_apply (b : β) (a : α) : const α b a = b := rfl
 
 end inf_hom
+
+/-! ### Lattice homomorphisms -/
 
 namespace lattice_hom
 variables [lattice α] [lattice β] [lattice γ] [lattice δ]
@@ -689,7 +699,7 @@ protected def copy (f : bounded_lattice_hom α β) (f' : α → β) (h : f' = f)
 
 variables (α)
 
-/-- `id` as an `bounded_lattice_hom`. -/
+/-- `id` as a `bounded_lattice_hom`. -/
 protected def id : bounded_lattice_hom α α :=
 { to_fun := id,
   map_sup' := λ _ _, rfl,

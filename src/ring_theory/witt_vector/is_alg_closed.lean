@@ -1,6 +1,7 @@
 import field_theory.is_alg_closed.basic
 import field_theory.perfect_closure
 import ring_theory.witt_vector.domain
+import ring_theory.witt_vector.truncated
 
 noncomputable theory
 
@@ -56,12 +57,93 @@ end
 
 -- lemma witt_vector.is_Hausdorff : is_Hausdorff (𝕎 k)
 
-#check mv_polynomial.bind₁
-#check mv_polynomial.eval
-#check λ f, mv_polynomial.eval f (witt_vector.witt_mul p 0)
 open polynomial
 
 variable {k}
+
+section heathers_approach
+open witt_vector finset
+open_locale big_operators
+
+-- maybe it's easier to start here, maybe not?
+lemma nth_mul_coeff_ignoring_charp (x y : 𝕎 k) (n : ℕ) :
+  ∃ f : ((fin n → k) → (fin n → k) → k),
+  (x * y).coeff n =
+    x.coeff n * (∑ i in range n, p^i*(y.coeff i)^(p^n-i)) +
+    y.coeff n * (∑ i in range n, p^i*(x.coeff i)^(p^n-i)) +
+    p^n * x.coeff n * y.coeff n + f (truncate_fun n x) (truncate_fun n y) :=
+sorry
+
+-- this is the version we think is true in char p
+lemma nth_mul_coeff (n : ℕ) : ∃ f : ((fin (n+1) → k) → (fin (n+1) → k) → k), ∀ (x y : 𝕎 k),
+  (x * y).coeff (n+1) = x.coeff (n+1) * y.coeff 0 ^ (p^(n+1)) + y.coeff (n+1) * x.coeff 0 ^ (p^(n+1))
+    + f (truncate_fun (n+1) x) (truncate_fun (n+1) y) :=
+sorry
+
+def nth_remainder (n : ℕ) : (fin (n+1) → k) → (fin (n+1) → k) → k :=
+classical.some (nth_mul_coeff p n)
+
+lemma nth_remainder_spec (n : ℕ) (x y : 𝕎 k) :
+  (x * y).coeff (n+1) = x.coeff (n+1) * y.coeff 0 ^ (p^(n+1)) + y.coeff (n+1) * x.coeff 0 ^ (p^(n+1))
+    + nth_remainder p n (truncate_fun (n+1) x) (truncate_fun (n+1) y) :=
+classical.some_spec (nth_mul_coeff p n) _ _
+
+def succ_nth_defining_poly (n : ℕ) (a₁ a₂ : 𝕎 k) (bs : fin (n+1) → k) : polynomial k :=
+X^p * C (a₁.coeff 0 ^ (p^(n+1))) - X * C (a₂.coeff 0 ^ (p^(n+1)))
+  + C (a₁.coeff (n+1) * ((bs 0)^p)^(p^(n+1)) + nth_remainder p n (λ v, (bs v)^p) (truncate_fun (n+1) a₁)
+       - a₂.coeff (n+1) * (bs 0)^p^(n+1) - nth_remainder p n bs (truncate_fun (n+1) a₂))
+
+lemma succ_nth_defining_poly_degree (n : ℕ) (a₁ a₂ : 𝕎 k) (bs : fin (n+1) → k)
+  (ha₁ : a₁.coeff 0 ≠ 0) (ha₂ : a₂.coeff 0 ≠ 0) :
+  (succ_nth_defining_poly p n a₁ a₂ bs).degree = p :=
+begin
+  have : (X ^ p * C (a₁.coeff 0 ^ p ^ (n + 1))).degree = p,
+  { rw [degree_mul, degree_C],
+    { simp only [nat.cast_with_bot, add_zero, degree_X, degree_pow, nat.smul_one_eq_coe] },
+    { exact pow_ne_zero _ ha₁ } },
+  have : (X ^ p * C (a₁.coeff 0 ^ p ^ (n + 1)) - X * C (a₂.coeff 0 ^ p ^ (n + 1))).degree = p,
+  { rw [degree_sub_eq_left_of_degree_lt, this],
+    rw [this, degree_mul, degree_C, degree_X, add_zero],
+    { exact_mod_cast hp.out.one_lt },
+    { exact pow_ne_zero _ ha₂ } },
+  rw [succ_nth_defining_poly, degree_add_eq_left_of_degree_lt, this],
+  apply lt_of_le_of_lt (degree_C_le),
+  rw [this],
+  exact_mod_cast hp.out.pos
+end
+
+def root_exists (n : ℕ) (a₁ a₂ : 𝕎 k) (bs : fin (n+1) → k)
+  (ha₁ : a₁.coeff 0 ≠ 0) (ha₂ : a₂.coeff 0 ≠ 0) :
+  ∃ b : k, (succ_nth_defining_poly p n a₁ a₂ bs).is_root b :=
+is_alg_closed.exists_root _ $
+  by simp [(succ_nth_defining_poly_degree p n a₁ a₂ bs ha₁ ha₂), hp.out.ne_zero]
+
+def succ_nth_val (n : ℕ) (a₁ a₂ : 𝕎 k) (bs : fin (n+1) → k)
+  (ha₁ : a₁.coeff 0 ≠ 0) (ha₂ : a₂.coeff 0 ≠ 0) : k :=
+classical.some (root_exists p n a₁ a₂ bs ha₁ ha₂)
+
+lemma succ_nth_val_spec (n : ℕ) (a₁ a₂ : 𝕎 k) (bs : fin (n+1) → k)
+  (ha₁ : a₁.coeff 0 ≠ 0) (ha₂ : a₂.coeff 0 ≠ 0) :
+  (succ_nth_defining_poly p n a₁ a₂ bs).is_root (succ_nth_val p n a₁ a₂ bs ha₁ ha₂) :=
+classical.some_spec (root_exists p n a₁ a₂ bs ha₁ ha₂)
+
+lemma succ_nth_val_spec' (n : ℕ) (a₁ a₂ : 𝕎 k) (bs : fin (n+1) → k)
+  (ha₁ : a₁.coeff 0 ≠ 0) (ha₂ : a₂.coeff 0 ≠ 0) :
+  (succ_nth_val p n a₁ a₂ bs ha₁ ha₂)^p * a₁.coeff 0 ^ (p^(n+1))
+  + a₁.coeff (n+1) * ((bs 0)^p)^(p^(n+1)) + nth_remainder p n (λ v, (bs v)^p) (truncate_fun (n+1) a₁)
+   = (succ_nth_val p n a₁ a₂ bs ha₁ ha₂) * a₂.coeff 0 ^ (p^(n+1))
+     + a₂.coeff (n+1) * (bs 0)^p^(n+1) + nth_remainder p n bs (truncate_fun (n+1) a₂) :=
+begin
+  rw ← sub_eq_zero,
+  have := succ_nth_val_spec p n a₁ a₂ bs ha₁ ha₂,
+  simp only [polynomial.map_add, polynomial.eval_X, polynomial.map_pow, polynomial.eval_C,
+    polynomial.eval_pow, succ_nth_defining_poly, polynomial.eval_mul, polynomial.eval_add,
+    polynomial.eval_sub, polynomial.map_mul, polynomial.map_sub, polynomial.is_root.def] at this,
+  convert this using 1,
+  ring
+end
+
+end heathers_approach
 
 section base_case
 
@@ -125,47 +207,41 @@ end
 
 end base_case
 
-section inductive_case
-
-variables (n : ℕ) (prev_coeffs : fin n → k) (a₁ a₂ : 𝕎 k)
---(ha₁ : a₁.coeff 0 ≠ 0) (ha₂ : a₂.coeff 0 ≠ 0)
-
-def lhs_poly : polynomial k :=
-witt_vector.peval (witt_vector.witt_mul p (n+1))
-  ![λ k, if h : k < n then C (prev_coeffs ⟨k, h⟩)^p else if k = n then X^p else 0,
-    λ n, C (a₁.coeff n)]
-
-lemma degree_lhs_poly : (lhs_poly p n prev_coeffs a₁).degree = p :=
-sorry
-
-def rhs_poly : polynomial k :=
-witt_vector.peval (witt_vector.witt_mul p (n+1))
-  ![λ k, if h : k < n then C (prev_coeffs ⟨k, h⟩) else if k = n then X else 0,
-    λ n, C (a₂.coeff n)]
-
-def ind_poly : polynomial k :=
-lhs_poly p n prev_coeffs a₁ - rhs_poly p n prev_coeffs a₂
-
-lemma ind_poly_degree : (ind_poly p n prev_coeffs a₁ a₂).degree ≠ 0 :=
-begin
-  rw [ind_poly, degree_sub_eq_left_of_degree_lt]; sorry
-end
-
-end inductive_case
-
-def find_important {a₁ a₂ : 𝕎 k} (ha₁ : a₁.coeff 0 ≠ 0) (ha₂ : a₂.coeff 0 ≠ 0) : ℕ → k
+noncomputable def find_important {a₁ a₂ : 𝕎 k} (ha₁ : a₁.coeff 0 ≠ 0) (ha₂ : a₂.coeff 0 ≠ 0) : ℕ → k
 | 0       := solution p ha₁ ha₂ -- solve for `x` in
                    --  `(witt_vector.witt_mul 0).eval (![x ^ p, 0, ...], a₁)`
                    --        `= (witt_vector.witt_mul 0).eval (![x, 0, ...], a₂)`
-| (n + 1) := sorry -- solve for `x` in
+| (n + 1) := succ_nth_val p n a₁ a₂ (λ i, find_important i.val) ha₁ ha₂
+using_well_founded { dec_tac := `[apply fin.is_lt] }
+
+-- solve for `x` in
                    --  `(witt_vector.witt_mul (n + 1)).eval (![(b 0) ^ p, ..., (b n) ^ p, x ^ p, 0, ...], a₁)`
                    --        `= (witt_vector.witt_mul (n + 1)) (![b 0, ... b n, x, 0, ...], a₂)`
+
+
+lemma find_important_nonzero {a₁ a₂ : 𝕎 k} (ha₁ : a₁.coeff 0 ≠ 0) (ha₂ : a₂.coeff 0 ≠ 0) :
+  witt_vector.mk p (find_important p ha₁ ha₂) ≠ 0 :=
+sorry
 
 variable (k)
 
 lemma important_aux {a₁ a₂ : 𝕎 k} (ha₁ : a₁.coeff 0 ≠ 0) (ha₂ : a₂.coeff 0 ≠ 0) :
   ∃ (b : 𝕎 k) (hb : b ≠ 0), witt_vector.frobenius b * a₁ = b * a₂ :=
-sorry
+begin
+  refine ⟨witt_vector.mk p (find_important p ha₁ ha₂), find_important_nonzero p ha₁ ha₂, _⟩,
+  ext n,
+  induction n with n ih,
+  { simp only [witt_vector.mul_coeff_zero, witt_vector.coeff_frobenius_char_p, find_important],
+    apply solution_spec' },
+  { simp only [nth_remainder_spec, witt_vector.coeff_frobenius_char_p, ih, find_important],
+    have := succ_nth_val_spec' p (n) a₁ a₂ (λ (i : fin (n + 1)), find_important p ha₁ ha₂ i.val) ha₁ ha₂,
+    simp only [find_important, fin.val_zero] at this,
+    convert this using 3,
+    apply truncated_witt_vector.ext,
+    intro i,
+    simp only [fin.val_eq_coe, witt_vector.coeff_truncate_fun, witt_vector.coeff_frobenius_char_p],
+    refl }
+end
 
 lemma important {a : fraction_ring (𝕎 k)} (ha : a ≠ 0) :
   ∃ (b : fraction_ring (𝕎 k)) (hb : b ≠ 0) (m : ℤ), φ b * a = p ^ m * b :=

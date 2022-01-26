@@ -213,9 +213,10 @@ begin
 end
 
 @[simp]
-lemma div_factorization_eq_tsub_of_dvd {d n : ℕ} (hd : d ≠ 0) (hn : n ≠ 0) (h : d ∣ n) :
+lemma div_factorization_eq_tsub_of_dvd {d n : ℕ} (hn : n ≠ 0) (h : d ∣ n) :
   (n / d).factorization = n.factorization - d.factorization :=
 begin
+  have hd : d ≠ 0 := ne_zero_of_dvd_ne_zero hn h,
   cases dvd_iff_exists_eq_mul_left.mp h with c hc,
   have hc_pos : c ≠ 0, { subst hc, exact left_ne_zero_of_mul hn },
   rw [hc, nat.mul_div_cancel c hd.bot_lt, factorization_mul hc_pos hd, add_tsub_cancel_right],
@@ -226,7 +227,7 @@ lemma dvd_iff_div_factorization_eq_tsub (d n : ℕ) (hd : d ≠ 0) (hdn : d ≤ 
 begin
   have hn : n ≠ 0 := (lt_of_lt_of_le hd.bot_lt hdn).ne.symm,
   split,
-  { exact div_factorization_eq_tsub_of_dvd hd hn },
+  { exact div_factorization_eq_tsub_of_dvd hn },
   { rcases eq_or_lt_of_le hdn with rfl | hd_lt_n, { simp },
     have h1 : n / d ≠ 0 := λ H, nat.lt_asymm hd_lt_n ((nat.div_eq_zero_iff hd.bot_lt).mp H),
     intros h,

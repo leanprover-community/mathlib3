@@ -5,6 +5,7 @@ Authors: Gabriel Ebner, Sébastien Gouëzel
 -/
 import analysis.calculus.fderiv
 import data.polynomial.derivative
+import linear_algebra.affine_space.slope
 
 /-!
 
@@ -245,8 +246,7 @@ h.has_fderiv_at
 definition with a limit. In this version we have to take the limit along the subset `-{x}`,
 because for `y=x` the slope equals zero due to the convention `0⁻¹=0`. -/
 lemma has_deriv_at_filter_iff_tendsto_slope {x : 𝕜} {L : filter 𝕜} :
-  has_deriv_at_filter f f' x L ↔
-    tendsto (λ y, (y - x)⁻¹ • (f y - f x)) (L ⊓ 𝓟 {x}ᶜ) (𝓝 f') :=
+  has_deriv_at_filter f f' x L ↔ tendsto (slope f x) (L ⊓ 𝓟 {x}ᶜ) (𝓝 f') :=
 begin
   conv_lhs { simp only [has_deriv_at_filter_iff_tendsto, (normed_field.norm_inv _).symm,
     (norm_smul _ _).symm, tendsto_zero_iff_norm_tendsto_zero.symm] },
@@ -254,28 +254,25 @@ begin
   refine (tendsto_inf_principal_nhds_iff_of_forall_eq $ by simp).symm.trans (tendsto_congr' _),
   refine (eventually_principal.2 $ λ z hz, _).filter_mono inf_le_right,
   simp only [(∘)],
-  rw [smul_sub, ← mul_smul, inv_mul_cancel (sub_ne_zero.2 hz), one_smul]
+  rw [smul_sub, ← mul_smul, inv_mul_cancel (sub_ne_zero.2 hz), one_smul, slope_def_module]
 end
 
 lemma has_deriv_within_at_iff_tendsto_slope :
-  has_deriv_within_at f f' s x ↔
-    tendsto (λ y, (y - x)⁻¹ • (f y - f x)) (𝓝[s \ {x}] x) (𝓝 f') :=
+  has_deriv_within_at f f' s x ↔ tendsto (slope f x) (𝓝[s \ {x}] x) (𝓝 f') :=
 begin
   simp only [has_deriv_within_at, nhds_within, diff_eq, inf_assoc.symm, inf_principal.symm],
   exact has_deriv_at_filter_iff_tendsto_slope
 end
 
 lemma has_deriv_within_at_iff_tendsto_slope' (hs : x ∉ s) :
-  has_deriv_within_at f f' s x ↔
-    tendsto (λ y, (y - x)⁻¹ • (f y - f x)) (𝓝[s] x) (𝓝 f') :=
+  has_deriv_within_at f f' s x ↔ tendsto (slope f x) (𝓝[s] x) (𝓝 f') :=
 begin
   convert ← has_deriv_within_at_iff_tendsto_slope,
   exact diff_singleton_eq_self hs
 end
 
 lemma has_deriv_at_iff_tendsto_slope :
-  has_deriv_at f f' x ↔
-    tendsto (λ y, (y - x)⁻¹ • (f y - f x)) (𝓝[≠] x) (𝓝 f') :=
+  has_deriv_at f f' x ↔ tendsto (slope f x) (𝓝[≠] x) (𝓝 f') :=
 has_deriv_at_filter_iff_tendsto_slope
 
 theorem has_deriv_within_at_congr_set {s t u : set 𝕜}
@@ -991,7 +988,8 @@ lemma deriv_within_const_sub (hxs : unique_diff_within_at 𝕜 s x) (c : F) :
 by simp [deriv_within, fderiv_within_const_sub hxs]
 
 lemma deriv_const_sub (c : F) : deriv (λ y, c - f y) x = -deriv f x :=
-by simp only [← deriv_within_univ, deriv_within_const_sub unique_diff_within_at_univ]
+by simp only [← deriv_within_univ,
+  deriv_within_const_sub (unique_diff_within_at_univ : unique_diff_within_at 𝕜 _ _)]
 
 end sub
 
@@ -2028,17 +2026,17 @@ section real
 variables {f : ℝ → ℝ} {f' : ℝ} {s : set ℝ} {x : ℝ} {r : ℝ}
 
 lemma has_deriv_within_at.limsup_slope_le (hf : has_deriv_within_at f f' s x) (hr : f' < r) :
-  ∀ᶠ z in 𝓝[s \ {x}] x, (z - x)⁻¹ * (f z - f x) < r :=
+  ∀ᶠ z in 𝓝[s \ {x}] x, slope f x z < r :=
 has_deriv_within_at_iff_tendsto_slope.1 hf (is_open.mem_nhds is_open_Iio hr)
 
 lemma has_deriv_within_at.limsup_slope_le' (hf : has_deriv_within_at f f' s x)
   (hs : x ∉ s) (hr : f' < r) :
-  ∀ᶠ z in 𝓝[s] x, (z - x)⁻¹ * (f z - f x) < r :=
+  ∀ᶠ z in 𝓝[s] x, slope f x z < r :=
 (has_deriv_within_at_iff_tendsto_slope' hs).1 hf (is_open.mem_nhds is_open_Iio hr)
 
 lemma has_deriv_within_at.liminf_right_slope_le
   (hf : has_deriv_within_at f f' (Ici x) x) (hr : f' < r) :
-  ∃ᶠ z in 𝓝[>] x, (z - x)⁻¹ * (f z - f x) < r :=
+  ∃ᶠ z in 𝓝[>] x, slope f x z < r :=
 (hf.Ioi_of_Ici.limsup_slope_le' (lt_irrefl x) hr).frequently
 
 end real

@@ -62,7 +62,7 @@ variables (R) (Γ₀ : Type*) [linear_ordered_comm_monoid_with_zero Γ₀] [ring
 
 /-- The type of `Γ₀`-valued valuations on `R`. -/
 @[nolint has_inhabited_instance]
-structure valuation extends monoid_with_zero_hom R Γ₀ :=
+structure valuation extends R →*₀ Γ₀ :=
 (map_add' : ∀ x y, to_fun (x + y) ≤ max (to_fun x) (to_fun y))
 
 /-- The `monoid_with_zero_hom` underlying a valuation. -/
@@ -88,12 +88,12 @@ instance : has_coe_to_fun (valuation R Γ₀) (λ _, R → Γ₀) :=
 { coe := λ v, v.to_monoid_with_zero_hom.to_fun }
 
 /-- A valuation is coerced to a monoid morphism R → Γ₀. -/
-instance : has_coe (valuation R Γ₀) (monoid_with_zero_hom R Γ₀) :=
+instance : has_coe (valuation R Γ₀) (R →*₀ Γ₀) :=
 ⟨valuation.to_monoid_with_zero_hom⟩
 
 variables {R} {Γ₀} (v : valuation R Γ₀) {x y z : R}
 
-@[simp, norm_cast] lemma coe_coe : ((v : monoid_with_zero_hom R Γ₀) : R → Γ₀) = v := rfl
+@[simp, norm_cast] lemma coe_coe : ((v : R →*₀ Γ₀) : R → Γ₀) = v := rfl
 
 @[simp] lemma map_zero : v 0 = 0 := v.map_zero'
 @[simp] lemma map_one  : v 1 = 1 := v.map_one'
@@ -170,7 +170,7 @@ ext $ λ r, rfl
 
 /-- A `≤`-preserving group homomorphism `Γ₀ → Γ'₀` induces a map `valuation R Γ₀ → valuation R Γ'₀`.
 -/
-def map (f : monoid_with_zero_hom Γ₀ Γ'₀) (hf : monotone f) (v : valuation R Γ₀) :
+def map (f : Γ₀ →*₀ Γ'₀) (hf : monotone f) (v : valuation R Γ₀) :
   valuation R Γ'₀ :=
 { to_fun := f ∘ v,
   map_add' := λ r s,
@@ -266,7 +266,7 @@ variables {v₁ : valuation R Γ₀} {v₂ : valuation R Γ'₀} {v₃ : valuati
 lemma of_eq {v' : valuation R Γ₀} (h : v = v') : v.is_equiv v' :=
 by { subst h }
 
-lemma map {v' : valuation R Γ₀} (f : monoid_with_zero_hom Γ₀ Γ'₀) (hf : monotone f)
+lemma map {v' : valuation R Γ₀} (f : Γ₀ →*₀ Γ'₀) (hf : monotone f)
   (inf : injective f) (h : v.is_equiv v') :
   (v.map f hf).is_equiv (v'.map f hf) :=
 let H : strict_mono f := hf.strict_mono_of_injective inf in
@@ -296,9 +296,8 @@ end is_equiv -- end of namespace
 section
 
 lemma is_equiv_of_map_strict_mono [linear_ordered_comm_monoid_with_zero Γ₀]
-  [linear_ordered_comm_monoid_with_zero Γ'₀]
-  [ring R] {v : valuation R Γ₀}
-  (f : monoid_with_zero_hom Γ₀ Γ'₀) (H : strict_mono f) :
+  [linear_ordered_comm_monoid_with_zero Γ'₀] [ring R] {v : valuation R Γ₀} (f : Γ₀ →*₀ Γ'₀)
+  (H : strict_mono f) :
   is_equiv (v.map f (H.monotone)) v :=
 λ x y, ⟨H.le_iff_le.mp, λ h, H.monotone h⟩
 

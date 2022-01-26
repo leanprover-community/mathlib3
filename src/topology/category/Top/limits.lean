@@ -638,6 +638,32 @@ begin
   refl
 end
 
+lemma pullback_snd_image_fst_preimage (f : X ⟶ Z) (g : Y ⟶ Z) (U : set X) :
+  (pullback.snd : pullback f g ⟶ _) '' ((pullback.fst : pullback f g ⟶ _) ⁻¹' U) =
+    g ⁻¹' (f '' U) :=
+begin
+  ext x,
+  split,
+  { rintros ⟨y, hy, rfl⟩,
+    exact ⟨(pullback.fst : pullback f g ⟶ _) y, hy,
+    concrete_category.congr_hom pullback.condition y⟩ },
+  { rintros ⟨y, hy, eq⟩,
+    exact ⟨(Top.pullback_iso_prod_subtype f g).inv ⟨⟨_,_⟩, eq⟩, by simpa, by simp⟩ },
+end
+
+lemma pullback_fst_image_snd_preimage (f : X ⟶ Z) (g : Y ⟶ Z) (U : set Y) :
+  (pullback.fst : pullback f g ⟶ _) '' ((pullback.snd : pullback f g ⟶ _) ⁻¹' U) =
+    f ⁻¹' (g '' U) :=
+begin
+  ext x,
+  split,
+  { rintros ⟨y, hy, rfl⟩,
+    exact ⟨(pullback.snd : pullback f g ⟶ _) y, hy,
+    (concrete_category.congr_hom pullback.condition y).symm⟩ },
+  { rintros ⟨y, hy, eq⟩,
+    exact ⟨(Top.pullback_iso_prod_subtype f g).inv ⟨⟨_,_⟩,eq.symm⟩, by simpa, by simp⟩ },
+end
+
 end pullback
 
 --TODO: Add analogous constructions for `coprod` and `pushout`.
@@ -961,11 +987,10 @@ theorem nonempty_sections_of_fintype_inverse_system
   [Π (j : Jᵒᵖ), fintype (F.obj j)] [Π (j : Jᵒᵖ), nonempty (F.obj j)] :
   F.sections.nonempty :=
 begin
-  tactic.unfreeze_local_instances,
-  by_cases h : nonempty J,
-  { apply nonempty_sections_of_fintype_cofiltered_system, },
-  { rw not_nonempty_iff_imp_false at h,
-    exact ⟨λ j, false.elim (h j.unop), λ j, false.elim (h j.unop)⟩, },
+  casesI is_empty_or_nonempty J,
+  { haveI : is_empty Jᵒᵖ := ⟨λ j, is_empty_elim j.unop⟩,  -- TODO: this should be a global instance
+    exact ⟨is_empty_elim, is_empty_elim⟩, },
+  { exact nonempty_sections_of_fintype_cofiltered_system _, },
 end
 
 end fintype_konig

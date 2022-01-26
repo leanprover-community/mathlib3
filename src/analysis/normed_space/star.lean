@@ -7,6 +7,7 @@ Authors: Frédéric Dupuis
 import analysis.normed.group.hom
 import analysis.normed_space.basic
 import analysis.normed_space.linear_isometry
+import algebra.star.unitary
 
 /-!
 # Normed star rings and algebras
@@ -95,8 +96,8 @@ lemma continuous_within_at.star {f : α → E} {s : set α} {x : α}
 
 end normed_star_monoid
 
-instance ring_hom_isometric.star_ring_aut [normed_comm_ring E] [star_ring E]
-   [normed_star_monoid E] : ring_hom_isometric ((star_ring_aut : ring_aut E) : E →+* E) :=
+instance ring_hom_isometric.star_ring_end [normed_comm_ring E] [star_ring E]
+   [normed_star_monoid E] : ring_hom_isometric (star_ring_end E) :=
 ⟨λ _, norm_star⟩
 
 namespace cstar_ring
@@ -129,14 +130,47 @@ by rw [norm_star_mul_self, norm_star]
 
 @[simp] lemma norm_one [nontrivial E] : ∥(1 : E)∥ = 1 :=
 begin
-  cases mul_eq_mul_right_iff.mp
-    (calc 1 * ∥(1 : E)∥ = ∥(1 : E)∥              : one_mul _
-                   ...  = ∥(1 : E)⋆ * 1∥         : by rw [mul_one, star_one]
-                   ...  = ∥(1 : E)∥ * ∥(1 : E)∥  : norm_star_mul_self) with h,
-  { exact h.symm },
-  { exfalso,
-    exact one_ne_zero (norm_eq_zero.mp h) }
+  have : 0 < ∥(1 : E)∥ := norm_pos_iff.mpr one_ne_zero,
+  rw [←mul_left_inj' this.ne', ←norm_star_mul_self, mul_one, star_one, one_mul],
 end
+
+@[priority 100] -- see Note [lower instance priority]
+instance [nontrivial E] : norm_one_class E := ⟨norm_one⟩
+
+lemma norm_coe_unitary [nontrivial E] (U : unitary E) : ∥(U : E)∥ = 1 :=
+begin
+  rw [←sq_eq_sq (norm_nonneg _) zero_le_one, one_pow 2, sq, ←cstar_ring.norm_star_mul_self,
+    unitary.coe_star_mul_self, cstar_ring.norm_one],
+end
+
+@[simp] lemma norm_of_mem_unitary [nontrivial E] {U : E} (hU : U ∈ unitary E) : ∥U∥ = 1 :=
+norm_coe_unitary ⟨U, hU⟩
+
+@[simp] lemma norm_coe_unitary_mul (U : unitary E) (A : E) : ∥(U : E) * A∥ = ∥A∥ :=
+begin
+  nontriviality E,
+  refine le_antisymm _ _,
+  { calc _  ≤ ∥(U : E)∥ * ∥A∥     : norm_mul_le _ _
+        ... = ∥A∥                 : by rw [norm_coe_unitary, one_mul] },
+  { calc _ = ∥(U : E)⋆ * U * A∥         : by rw [unitary.coe_star_mul_self U, one_mul]
+       ... ≤ ∥(U : E)⋆∥ * ∥(U : E) * A∥ : by { rw [mul_assoc], exact norm_mul_le _ _ }
+       ... = ∥(U : E) * A∥              : by rw [norm_star, norm_coe_unitary, one_mul] },
+end
+
+@[simp] lemma norm_unitary_smul (U : unitary E) (A : E) : ∥U • A∥ = ∥A∥ :=
+norm_coe_unitary_mul U A
+
+lemma norm_mem_unitary_mul {U : E} (A : E) (hU : U ∈ unitary E) : ∥U * A∥ = ∥A∥ :=
+norm_coe_unitary_mul ⟨U, hU⟩ A
+
+@[simp] lemma norm_mul_coe_unitary (A : E) (U : unitary E) : ∥A * U∥ = ∥A∥ :=
+calc _ = ∥((U : E)⋆ * A⋆)⋆∥ : by simp only [star_star, star_mul]
+  ...  = ∥(U : E)⋆ * A⋆∥    : by rw [norm_star]
+  ...  = ∥A⋆∥               : norm_mem_unitary_mul (star A) (unitary.star_mem U.prop)
+  ...  = ∥A∥                : norm_star
+
+lemma norm_mul_mem_unitary (A : E) {U : E} (hU : U ∈ unitary E) : ∥A * U∥ = ∥A∥ :=
+norm_mul_coe_unitary A ⟨U, hU⟩
 
 end cstar_ring
 

@@ -963,6 +963,19 @@ lemma rpow_le_rpow_of_exponent_ge {x : ℝ≥0} {y z : ℝ} (hx0 : 0 < x) (hx1 :
   x^y ≤ x^z :=
 real.rpow_le_rpow_of_exponent_ge hx0 hx1 hyz
 
+lemma rpow_pos {p : ℝ} {x : ℝ≥0} (hx_pos : 0 < x) : 0 < x^p :=
+begin
+  have rpow_pos_of_nonneg : ∀ {p : ℝ}, 0 < p → 0 < x^p,
+  { intros p hp_pos,
+    rw ←zero_rpow hp_pos.ne',
+    exact rpow_lt_rpow hx_pos hp_pos },
+  rcases lt_trichotomy 0 p with hp_pos|rfl|hp_neg,
+  { exact rpow_pos_of_nonneg hp_pos },
+  { simp only [zero_lt_one, rpow_zero] },
+  { rw [←neg_neg p, rpow_neg, inv_pos],
+    exact rpow_pos_of_nonneg (neg_pos.mpr hp_neg) },
+end
+
 lemma rpow_lt_one {x : ℝ≥0} {z : ℝ} (hx : 0 ≤ x) (hx1 : x < 1) (hz : 0 < z) : x^z < 1 :=
 real.rpow_lt_one hx hx1 hz
 
@@ -1556,7 +1569,7 @@ begin
 end
 
 private lemma continuous_at_rpow_const_of_pos {x : ℝ≥0∞} {y : ℝ} (h : 0 < y) :
-  continuous_at (λ a : ennreal, a ^ y) x :=
+  continuous_at (λ a : ℝ≥0∞, a ^ y) x :=
 begin
   by_cases hx : x = ⊤,
   { rw [hx, continuous_at],
@@ -1571,7 +1584,7 @@ begin
 end
 
 @[continuity]
-lemma continuous_rpow_const {y : ℝ} : continuous (λ a : ennreal, a ^ y) :=
+lemma continuous_rpow_const {y : ℝ} : continuous (λ a : ℝ≥0∞, a ^ y) :=
 begin
   apply continuous_iff_continuous_at.2 (λ x, _),
   rcases lt_trichotomy 0 y with hy|rfl|hy,
@@ -1592,6 +1605,11 @@ begin
 end
 
 end ennreal
+
+lemma filter.tendsto.ennrpow_const {α : Type*} {f : filter α} {m : α → ℝ≥0∞} {a : ℝ≥0∞} (r : ℝ)
+  (hm : tendsto m f (𝓝 a)) :
+  tendsto (λ x, (m x) ^ r) f (𝓝 (a ^ r)) :=
+(ennreal.continuous_rpow_const.tendsto a).comp hm
 
 namespace norm_num
 open tactic

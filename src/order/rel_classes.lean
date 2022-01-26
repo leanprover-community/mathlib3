@@ -251,16 +251,20 @@ instance prod.lex.is_well_order [is_well_order α r] [is_well_order β s] :
   end,
   wf := prod.lex_wf is_well_order.wf is_well_order.wf }
 
-/-- An unbounded or cofinal set -/
+namespace set
+
+/-- An unbounded or cofinal set. -/
 def unbounded (r : α → α → Prop) (s : set α) : Prop := ∀ a, ∃ b ∈ s, ¬ r b a
-/-- A bounded or final set -/
-def bounded (r : α → α → Prop) (s : set α) : Prop := ∃a, ∀ b ∈ s, r b a
+/-- A bounded or final set. Not to be confused with `metric.bounded`. -/
+def bounded (r : α → α → Prop) (s : set α) : Prop := ∃ a, ∀ b ∈ s, r b a
 
 @[simp] lemma not_bounded_iff {r : α → α → Prop} (s : set α) : ¬bounded r s ↔ unbounded r s :=
 by simp only [bounded, unbounded, not_forall, not_exists, exists_prop, not_and, not_not]
 
 @[simp] lemma not_unbounded_iff {r : α → α → Prop} (s : set α) : ¬unbounded r s ↔ bounded r s :=
 by rw [not_iff_comm, not_bounded_iff]
+
+end set
 
 namespace prod
 

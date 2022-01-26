@@ -173,7 +173,7 @@ begin
   ext G,
   split,
   { intro hG,
-    split; filter_upwards [hG]; intro x,
+    split; filter_upwards [hG] with _,
     exacts [and.left, and.right] },
   { rintros ⟨h1, h2⟩,
     exact inter_mem h1 h2 }

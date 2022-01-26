@@ -122,14 +122,23 @@ begin
   all_goals { simpa only [height] }
 end
 
+theorem left_height_lt_add_height {v : ℕ} (a b : buchholz_exp' v) : a.height < (add a b).height :=
+by { unfold height, exact nat.lt_succ_iff.2 (le_max_left _ _) }
+
+theorem right_height_lt_add_height {v : ℕ} (a b : buchholz_exp' v) : b.height < (add a b).height :=
+by { unfold height, exact nat.lt_succ_iff.2 (le_max_right _ _) }
+
+theorem psi_height {v : ℕ} (u : ℕ) (a : buchholz_exp' v) : (psi u a).height = a.height + 1 :=
+by unfold height
+
 theorem add_or_psi_of_height {v : ℕ} {e : buchholz_exp' v} (he : 0 < height e) :
   (∃ a b, e = add a b) ∨ (∃ u a, e = psi u a) :=
 begin
-  induction e with _ a b _ u a,
+  induction e with _ a b _ _ u a,
   { rw lt_Omega'_height at he,
     exact (lt_irrefl 0 he).elim },
   { use [a, b] },
-  { use [u, a] },
+  { right, use [u, a] },
 end
 
 /-- An auxiliary definition which gives a denumerable family of well-formed Buchholz expressions. -/
@@ -148,7 +157,7 @@ begin
   rw hm (add.inj h).right
 end
 
-private theorem card_of_height (v : ℕ) : Π h, mk {e : buchholz_exp' v | e.height = h} ≤ aleph v
+private theorem card_of_height (v : ℕ) : Π h, mk {e : buchholz_exp' v | e.height ≤ h} ≤ aleph v
 | 0 := begin
   refine le_trans _ (Omega_le_aleph v),
   let f : ↥{e : buchholz_exp' v | e.height = 0} → (Omega v).ord.out.α :=
@@ -161,28 +170,44 @@ private theorem card_of_height (v : ℕ) : Π h, mk {e : buchholz_exp' v | e.hei
     rwa [←H, ←H, ←subtype.ext_iff] at h
   end,
   convert mk_le_of_injective hf,
+  simp,
   exact (mk_ord_out _).symm
 end
 | (h + 1) := begin
-  let α : Type := {e : buchholz_exp' v | e.height = h},
+  let α : Type := {e : buchholz_exp' v | e.height ≤ h},
   have hα : mk α ≤ aleph v := card_of_height h,
-  let f : ↥{e : buchholz_exp' v | e.height = h + 1} → (α × α) ⊕ α :=
-    λ e, begin
-      cases e.val,
-      sorry
-    end,
-  have hf : function.injective f := sorry,
+  let f : ↥{e : buchholz_exp' v | e.height ≤ h + 1} → (Omega v).ord.out.α ⊕ (α × α) ⊕ (ℕ × α) :=
+  begin
+    rintro ⟨a | ⟨a, b⟩ | ⟨u, a⟩, he⟩;
+    dsimp at he,
+    { exact sum.inl a },
+    { exact sum.inr (sum.inl ⟨
+      ⟨a, nat.lt_succ_iff.1 ((left_height_lt_add_height a b).trans_le he)⟩,
+      ⟨b, nat.lt_succ_iff.1 ((right_height_lt_add_height a b).trans_le he)⟩⟩) },
+    { refine sum.inr (sum.inr ⟨u, a, _⟩),
+      rw psi_height at he,
+      exact nat.le_of_add_le_add_right he }
+  end,
+  have hf : function.injective f := begin
+    rintro ⟨a | ⟨a, b⟩ | ⟨u, a⟩, he₁⟩;
+    rintro ⟨c | ⟨c, d⟩ | ⟨w, c⟩, he₂⟩;
+    intro h;
+    simp [f] at *;
+    assumption
+  end,
   apply le_trans (mk_le_of_injective hf),
-  simp,
-  convert cardinal.add_le_add (mul_le_mul' hα hα) hα,
-  rw [cardinal.mul_eq_self (omega_le_aleph v), cardinal.add_eq_self (omega_le_aleph v)]
+  simp only [mk_prod, mk_sum, lift_uzero, mk_denumerable],
+  convert cardinal.add_le_add (Omega_le_aleph v)
+    (cardinal.add_le_add (mul_le_mul' hα hα) (mul_le_mul' (omega_le_aleph v) hα)),
+  { exact cardinal.mk_ord_out _ },
+  { simp only [cardinal.mul_eq_self (omega_le_aleph v), cardinal.add_eq_self (omega_le_aleph v)] }
 end
 
 private theorem card_eq_Union_height (v : ℕ) :
-  mk (buchholz_exp' v) = mk (⋃ h, {e : buchholz_exp' v | e.height = h}) :=
+  mk (buchholz_exp' v) = mk (⋃ h, {e : buchholz_exp' v | e.height ≤ h}) :=
 begin
-  let f : buchholz_exp' v → ⋃ h, {e : buchholz_exp' v | e.height = h} :=
-    λ e', ⟨e', by { rw set.mem_Union, exact ⟨e'.height, rfl⟩ }⟩,
+  let f : buchholz_exp' v → ⋃ h, {e : buchholz_exp' v | e.height ≤ h} :=
+    λ e', ⟨e', by { rw set.mem_Union, exact ⟨_, le_refl e'.height⟩ }⟩,
   refine le_antisymm
     (@mk_le_of_injective _ _ f (λ e₁ e₂ h, _))
     (@mk_le_of_surjective _ _ f (λ a, ⟨a, _⟩)),
@@ -198,7 +223,7 @@ begin
     rw [mk_nat],
     refine le_trans (mul_le_max _ _) (max_le (max_le (omega_le_aleph v) _) (omega_le_aleph v)),
     { rw cardinal.sup_le,
-      exact λ h, le_trans (card_of_height v h) (Omega_le_aleph v) } },
+      exact card_of_height v } },
   { induction v with v hv,
     { convert cardinal.mk_le_of_injective add_iterate.inj, simp },
     { convert cardinal.mk_le_of_injective (@lt_Omega'.inj (v + 1)),

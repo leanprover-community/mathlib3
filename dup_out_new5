@@ -1,0 +1,203 @@
+/home/alex/mathlib/scripts/dup_lemmas.lean:20:6: error: invalid definition, a declaration named 'lem1' has already been declared
+/home/alex/mathlib/scripts/dup_lemmas.lean:21:6: error: invalid definition, a declaration named 'lem2' has already been declared
+list_local_consts' : expr → expr_set
+list_local_consts : expr → list expr
+[2, 0]
+[2, 0]
+[1, 0]
+[1, 0]
+([a, b, c], c + b = b + c)
+λ (e t : expr), (kdepends_on e t) : expr → expr → tactic bool
+abstract_locals : expr → list name → expr
+865206541
+865206541
+865206541
+alpha_eqv : expr → expr → bool
+pis : list expr → expr → expr
+ff
+0
+1
+782904703
+657326207
+tt
+ff
+1
+ff
+tt
+tt
+ff
+list.map binder.info ?M_1.pi_binders.fst : list binder_info
+([smooth_within_at_fst, smooth_within_at_snd], [/home/alex/mathlib/src/geometry/manifold/times_cont_mdiff.lean])
+([pell.n_lt_a_pow, nat.lt_pow_self],
+ [/home/alex/mathlib/src/number_theory/pell.lean, /home/alex/mathlib/src/data/nat/pow.lean])
+([set.subset.rfl, set.subset.refl], [/home/alex/mathlib/src/data/set/basic.lean])
+([filter.mem_prod_same_iff, filter.mem_prod_self_iff],
+ [/home/alex/mathlib/src/order/filter/lift.lean, /home/alex/mathlib/src/order/filter/bases.lean])
+([polynomial.support_C_mul_X_pow_nonzero, polynomial.support_mul_X_pow],
+ [/home/alex/mathlib/src/data/polynomial/degree/definitions.lean, /home/alex/mathlib/src/data/polynomial/coeff.lean])
+([implicit_function_data.left_map_implicit_function, implicit_function_data.right_map_implicit_function],
+ [/home/alex/mathlib/src/analysis/calculus/implicit.lean])
+([btw_rfl_left_right, btw_refl_left_right], [/home/alex/mathlib/src/order/circular.lean])
+([div_neg, div_neg_eq_neg_div], [/home/alex/mathlib/src/algebra/field/basic.lean])
+([set.sUnion_mono, set.sUnion_subset_sUnion], [/home/alex/mathlib/src/data/set/lattice.lean])
+([filter.eventually_le.rfl, filter.eventually_le.refl], [/home/alex/mathlib/src/order/filter/basic.lean])
+([pSet.equiv.rfl, pSet.equiv.refl], [/home/alex/mathlib/src/set_theory/zfc.lean])
+([formal_multilinear_series.le_radius_of_summable_norm, formal_multilinear_series.le_radius_of_summable],
+ [/home/alex/mathlib/src/analysis/analytic/basic.lean])
+([int.modeq.refl, int.modeq.rfl], [/home/alex/mathlib/src/data/int/modeq.lean])
+([set.image_equiv_eq_preimage_symm, equiv.image_eq_preimage], [/home/alex/mathlib/src/data/equiv/set.lean])
+([smooth_on_univ, mdifferentiable_on_univ, mdifferentiable.mdifferentiable_on],
+ [/home/alex/mathlib/src/geometry/manifold/times_cont_mdiff.lean,
+  /home/alex/mathlib/src/geometry/manifold/mfderiv.lean])
+([set.eq_on.congr_strict_mono_on, set.eq_on.congr_monotone_on], [/home/alex/mathlib/src/data/set/function.lean])
+([set.set_compr_eq_eq_singleton, set.set_of_eq_eq_singleton], [/home/alex/mathlib/src/data/set/basic.lean])
+([convex_on.translate_left, convex_on.translate_right], [/home/alex/mathlib/src/analysis/convex/function.lean])
+([times_cont_mdiff_const, smooth_on_const], [/home/alex/mathlib/src/geometry/manifold/times_cont_mdiff.lean])
+([le_self_add, self_le_add_right], [/home/alex/mathlib/src/algebra/order/monoid.lean])
+([has_mfderiv_at.has_mfderiv_within_at, has_mfderiv_within_at_univ],
+ [/home/alex/mathlib/src/geometry/manifold/mfderiv.lean])
+([times_cont_mdiff_within_at.smooth_within_at, smooth_within_at.times_cont_mdiff_within_at],
+ [/home/alex/mathlib/src/geometry/manifold/times_cont_mdiff.lean])
+([linear_isometry_equiv.lipschitz, linear_isometry_equiv.antilipschitz],
+ [/home/alex/mathlib/src/analysis/normed_space/linear_isometry.lean])
+([mul_right_inj, mul_left_cancel_iff], [/home/alex/mathlib/src/algebra/group/defs.lean])
+([comm_of, comm], [/home/alex/mathlib/src/order/rel_classes.lean])
+([le_self_mul, self_le_mul_right], [/home/alex/mathlib/src/algebra/order/monoid.lean])
+([fin.lt_succ, fin.cast_succ_lt_succ], [/home/alex/mathlib/src/data/fin/basic.lean])
+([add_left_inj, add_right_cancel_iff], [/home/alex/mathlib/src/algebra/group/defs.lean])
+([finset.subset.rfl, finset.subset.refl], [/home/alex/mathlib/src/data/finset/basic.lean])
+([decidable.not_imp_symm, not.decidable_imp_symm], [/home/alex/mathlib/src/logic/basic.lean])
+([has_fderiv_within_at.sinh, has_fderiv_within_at.cosh],
+ [/home/alex/mathlib/src/analysis/special_functions/trigonometric/deriv.lean])
+([self_le_add_left, le_add_self], [/home/alex/mathlib/src/algebra/order/monoid.lean])
+([set.inter_distrib_left, set.inter_union_distrib_left], [/home/alex/mathlib/src/data/set/basic.lean])
+([dvd_refl, dvd_rfl], [/home/alex/mathlib/src/algebra/divisibility.lean])
+([intermediate_value_Ioo, intermediate_value_Icc'],
+ [/home/alex/mathlib/src/topology/algebra/ordered/intermediate_value.lean])
+([category_theory.bicategory.triangle, category_theory.bicategory.triangle_assoc_comp_left],
+ [/home/alex/mathlib/src/category_theory/bicategory/basic.lean])
+([has_fderiv_within_at.ccosh, has_fderiv_within_at.csinh],
+ [/home/alex/mathlib/src/analysis/special_functions/trigonometric/deriv.lean])
+([exists_comm, exists_swap], [/home/alex/mathlib/src/logic/basic.lean])
+([forall_imp, forall_of_ball], [/home/alex/mathlib/src/logic/basic.lean])
+([list.prefix_rfl, list.prefix_refl], [/home/alex/mathlib/src/data/list/infix.lean])
+([filter.eventually_eq.refl, filter.eventually_eq.rfl], [/home/alex/mathlib/src/order/filter/basic.lean])
+([complex.abs_zpow, normed_group_hom.norm_noninc.zero],
+ [/home/alex/mathlib/src/data/complex/basic.lean, /home/alex/mathlib/src/analysis/normed/group/hom.lean])
+([strict_mono_on.congr, monotone_on.congr], [/home/alex/mathlib/src/data/set/function.lean])
+([category_theory.functor.map_injective, category_theory.faithful.map_injective],
+ [/home/alex/mathlib/src/category_theory/fully_faithful.lean])
+([trunc.ind, trunc.induction_on], [/home/alex/mathlib/src/data/quot.lean])
+([specializes_rfl, specializes_refl], [/home/alex/mathlib/src/topology/sober.lean])
+([is_extreme.refl, is_extreme.rfl], [/home/alex/mathlib/src/analysis/convex/extreme.lean])
+([smooth_within_at_one, times_cont_mdiff_at_zero, times_cont_mdiff_at_one],
+ [/home/alex/mathlib/src/geometry/manifold/times_cont_mdiff.lean])
+([mul_inv_le_one_iff_le, mul_inv_le_one_iff], [/home/alex/mathlib/src/algebra/order/group.lean])
+([mul_right_cancel_iff, mul_left_inj], [/home/alex/mathlib/src/algebra/group/defs.lean])
+([multiset.prod_le_of_forall_le, multiset.prod_le_pow_card],
+ [/home/alex/mathlib/src/algebra/big_operators/multiset.lean])
+([smooth_on_snd, smooth_on_fst], [/home/alex/mathlib/src/geometry/manifold/times_cont_mdiff.lean])
+([btw_refl_right, btw_rfl_right], [/home/alex/mathlib/src/order/circular.lean])
+([nnreal.zero_le_coe, nnreal.coe_nonneg], [/home/alex/mathlib/src/data/real/nnreal.lean])
+([category_theory.limits.has_zero_morphisms.comp_zero, category_theory.limits.comp_zero],
+ [/home/alex/mathlib/src/category_theory/limits/shapes/zero.lean])
+([continuous_linear_map.comp_zero, continuous_linear_map.zero_comp],
+ [/home/alex/mathlib/src/topology/algebra/module/basic.lean])
+([finset.sup'_id_eq_cSup, finset.nonempty.sup'_id_eq_cSup],
+ [/home/alex/mathlib/src/order/conditionally_complete_lattice.lean])
+([set.union_distrib_right, set.inter_union_distrib_right], [/home/alex/mathlib/src/data/set/basic.lean])
+([smooth.sub, smooth.div], [/home/alex/mathlib/src/geometry/manifold/algebra/lie_group.lean])
+([smooth_map.add_comp, smooth_map.mul_comp], [/home/alex/mathlib/src/geometry/manifold/algebra/smooth_functions.lean])
+([inv_mul_lt_one_iff_lt, mul_inv_lt_one_iff], [/home/alex/mathlib/src/algebra/order/group.lean])
+([list.kerase_comm, list.kerase_kerase], [/home/alex/mathlib/src/data/list/sigma.lean])
+([linear_map.coprod_map_prod, linear_map.map_coprod_prod], [/home/alex/mathlib/src/linear_algebra/prod.lean])
+([enat.to_with_top_coe', enat.to_with_top_coe], [/home/alex/mathlib/src/data/nat/enat.lean])
+([bool.of_to_bool_iff, bool.coe_to_bool], [/home/alex/mathlib/src/data/bool/basic.lean])
+([smooth.mul, smooth.add], [/home/alex/mathlib/src/geometry/manifold/algebra/monoid.lean])
+([half_lt_self, div_two_lt_of_pos], [/home/alex/mathlib/src/algebra/order/field.lean])
+([smooth_at_snd, smooth_at_fst], [/home/alex/mathlib/src/geometry/manifold/times_cont_mdiff.lean])
+([or_not, em], [/home/alex/mathlib/src/logic/basic.lean])
+([filter.ne_bot_of_le, filter.ne_bot.mono], [/home/alex/mathlib/src/order/filter/basic.lean])
+([smooth_at.times_cont_mdiff_at, times_cont_mdiff_at.smooth_at],
+ [/home/alex/mathlib/src/geometry/manifold/times_cont_mdiff.lean])
+([hahn_series.coeff_to_power_series_symm, hahn_series.to_power_series_symm_apply_coeff],
+ [/home/alex/mathlib/src/ring_theory/hahn_series.lean])
+([tactic.ring.unfold_div, tactic.ring_exp.div_pf],
+ [/home/alex/mathlib/src/tactic/ring.lean, /home/alex/mathlib/src/tactic/ring_exp.lean])
+([alg_hom.restrict_scalars_apply, alg_equiv.restrict_scalars_apply],
+ [/home/alex/mathlib/src/algebra/algebra/tower.lean])
+([homology.congr_hom, homology.congr_inv], [/home/alex/mathlib/src/algebra/homology/image_to_kernel.lean])
+([cardinal.add_one_of_omega_le, cardinal.add_one_eq],
+ [/home/alex/mathlib/src/set_theory/ordinal_arithmetic.lean, /home/alex/mathlib/src/set_theory/cardinal_ordinal.lean])
+([list.suffix_rfl, list.suffix_refl], [/home/alex/mathlib/src/data/list/infix.lean])
+([times_cont_mdiff_on_snd, times_cont_mdiff_on_fst], [/home/alex/mathlib/src/geometry/manifold/times_cont_mdiff.lean])
+([times_cont_mdiff_within_at_univ, times_cont_mdiff_at.times_cont_mdiff_within_at],
+ [/home/alex/mathlib/src/geometry/manifold/times_cont_mdiff.lean])
+([list.infix_refl, list.infix_rfl], [/home/alex/mathlib/src/data/list/infix.lean])
+([multiset.sum_le_of_forall_le, multiset.sum_le_card_nsmul],
+ [/home/alex/mathlib/src/algebra/big_operators/multiset.lean])
+([smooth_on_one, times_cont_mdiff_zero, times_cont_mdiff_one, smooth_on_zero],
+ [/home/alex/mathlib/src/geometry/manifold/times_cont_mdiff.lean])
+([auto.classical.implies_iff_not_or, push_neg.classical.implies_iff_not_or, imp_iff_not_or],
+ [/home/alex/mathlib/src/tactic/finish.lean,
+  /home/alex/mathlib/src/tactic/push_neg.lean,
+  /home/alex/mathlib/src/logic/basic.lean])
+([category_theory.limits.has_zero_morphisms.zero_comp, category_theory.limits.zero_comp],
+ [/home/alex/mathlib/src/category_theory/limits/shapes/zero.lean])
+([ennreal.coe_nat_ne_top, ennreal.nat_ne_top], [/home/alex/mathlib/src/data/real/ennreal.lean])
+([add_neg_nonpos_iff_le, add_neg_nonpos_iff], [/home/alex/mathlib/src/algebra/order/group.lean])
+([algebraic_independent.to_subtype_range, algebraic_independent.coe_range],
+ [/home/alex/mathlib/src/ring_theory/algebraic_independent.lean])
+([linear_isometry_equiv.edist_map, linear_isometry_equiv.dist_map],
+ [/home/alex/mathlib/src/analysis/normed_space/linear_isometry.lean])
+([fintype.prod_finset_coe, finset.prod_finset_coe], [/home/alex/mathlib/src/algebra/big_operators/basic.lean])
+([nat.modeq.refl, nat.modeq.rfl], [/home/alex/mathlib/src/data/nat/modeq.lean])
+([zpow_ne_zero_of_ne_zero, zpow_ne_zero], [/home/alex/mathlib/src/algebra/group_with_zero/power.lean])
+([interval_integral.smul_integral_comp_mul_add, interval_integral.smul_integral_comp_add_mul],
+ [/home/alex/mathlib/src/measure_theory/integral/interval_integral.lean])
+([set.eq_of_subset_of_subset, set.subset.antisymm], [/home/alex/mathlib/src/data/set/basic.lean])
+([simple_graph.mem_incidence_set, simple_graph.mk_mem_incidence_set_left_iff],
+ [/home/alex/mathlib/src/combinatorics/simple_graph/basic.lean])
+([times_cont_mdiff.times_cont_mdiff_at, mdifferentiable_within_at_univ],
+ [/home/alex/mathlib/src/geometry/manifold/times_cont_mdiff.lean,
+  /home/alex/mathlib/src/geometry/manifold/mfderiv.lean])
+([category_theory.functor.coe_map_add_hom, category_theory.functor.map_add_hom_apply],
+ [/home/alex/mathlib/src/category_theory/preadditive/additive_functor.lean])
+([fintype.sum_finset_coe, finset.sum_finset_coe], [/home/alex/mathlib/src/algebra/big_operators/basic.lean])
+([nnreal.coe_eq, nnreal.eq_iff], [/home/alex/mathlib/src/data/real/nnreal.lean])
+([polynomial.support_C_mul_X_pow', polynomial.support_C_mul_X_pow],
+ [/home/alex/mathlib/src/data/polynomial/coeff.lean, /home/alex/mathlib/src/data/polynomial/degree/definitions.lean])
+([btw_refl_left, btw_rfl_left], [/home/alex/mathlib/src/order/circular.lean])
+([smooth_one, smooth_zero], [/home/alex/mathlib/src/geometry/manifold/times_cont_mdiff.lean])
+([mul_nonneg_iff_right_nonneg_of_pos, zero_le_mul_left], [/home/alex/mathlib/src/algebra/order/ring.lean])
+([times_cont_mdiff.smooth, smooth.times_cont_mdiff], [/home/alex/mathlib/src/geometry/manifold/times_cont_mdiff.lean])
+([smooth_on.sub, smooth_on.div], [/home/alex/mathlib/src/geometry/manifold/algebra/lie_group.lean])
+([category_theory.monoidal_category.triangle, category_theory.monoidal_category.triangle_assoc_comp_left],
+ [/home/alex/mathlib/src/category_theory/monoidal/category.lean])
+([sym2.ind, sym2.induction_on], [/home/alex/mathlib/src/data/sym/sym2.lean])
+([set.union_distrib_left, set.union_inter_distrib_left], [/home/alex/mathlib/src/data/set/basic.lean])
+([intermediate_value_Ico', intermediate_value_Ioc'],
+ [/home/alex/mathlib/src/topology/algebra/ordered/intermediate_value.lean])
+([zmod.nat_coe_eq_nat_coe_iff, zmod.eq_iff_modeq_nat], [/home/alex/mathlib/src/data/zmod/basic.lean])
+([cancel_factors.neg_subst, norm_num.mul_pos_neg],
+ [/home/alex/mathlib/src/tactic/cancel_denoms.lean, /home/alex/mathlib/src/tactic/norm_num.lean])
+([measure_theory.measure.absolutely_continuous.rfl, measure_theory.measure.absolutely_continuous.refl],
+ [/home/alex/mathlib/src/measure_theory/measure/measure_space.lean])
+([add_left_cancel_iff, add_right_inj], [/home/alex/mathlib/src/algebra/group/defs.lean])
+([smooth.inv, smooth.neg], [/home/alex/mathlib/src/geometry/manifold/algebra/lie_group.lean])
+([times_cont_mdiff.times_cont_mdiff_on, times_cont_mdiff_on_univ],
+ [/home/alex/mathlib/src/geometry/manifold/times_cont_mdiff.lean])
+([mul_comm_div', div_mul_eq_mul_div_comm], [/home/alex/mathlib/src/algebra/group_with_zero/basic.lean])
+([times_cont_mdiff_at_fst, times_cont_mdiff_at_snd], [/home/alex/mathlib/src/geometry/manifold/times_cont_mdiff.lean])
+([neg_add_neg_iff_lt, add_neg_neg_iff], [/home/alex/mathlib/src/algebra/order/group.lean])
+([finset.bUnion_subset, finset.bUnion_subset_iff_forall_subset], [/home/alex/mathlib/src/data/finset/basic.lean])
+([diffeomorph.refl_trans, diffeomorph.trans_refl], [/home/alex/mathlib/src/geometry/manifold/diffeomorph.lean])
+([mdifferentiable_at.mdifferentiable_within_at, smooth_at.smooth_within_at],
+ [/home/alex/mathlib/src/geometry/manifold/mfderiv.lean,
+  /home/alex/mathlib/src/geometry/manifold/times_cont_mdiff.lean])
+([has_fderiv_at.const_smul, has_strict_fderiv_at.const_smul], [/home/alex/mathlib/src/analysis/calculus/fderiv.lean])
+([dfinsupp.mem_support_iff, dfinsupp.mem_support_to_fun], [/home/alex/mathlib/src/data/dfinsupp/basic.lean])
+([fintype.false, not_fintype], [/home/alex/mathlib/src/data/fintype/basic.lean])
+([le_mul_self, self_le_mul_left], [/home/alex/mathlib/src/algebra/order/monoid.lean])
+([simple_graph.ne_of_adj, simple_graph.adj.ne], [/home/alex/mathlib/src/combinatorics/simple_graph/basic.lean])
+([set.inter_distrib_right, set.union_inter_distrib_right], [/home/alex/mathlib/src/data/set/basic.lean])

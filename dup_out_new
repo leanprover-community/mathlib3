@@ -1,0 +1,168 @@
+/home/alex/mathlib/scripts/dup_lemmas.lean:20:6: error: invalid definition, a declaration named 'lem1' has already been declared
+/home/alex/mathlib/scripts/dup_lemmas.lean:21:6: error: invalid definition, a declaration named 'lem2' has already been declared
+list_local_consts' : expr → expr_set
+list_local_consts : expr → list expr
+[2, 0]
+[2, 0]
+[1, 0]
+[1, 0]
+([a, b, c], c + b = b + c)
+λ (e t : expr), (kdepends_on e t) : expr → expr → tactic bool
+abstract_locals : expr → list name → expr
+1386562541
+1386562541
+1386562541
+alpha_eqv : expr → expr → bool
+ff
+0
+1
+782904703
+657326207
+tt
+ff
+1
+ff
+tt
+tt
+ff
+([exists_comm, exists_swap], [/home/alex/mathlib/src/logic/basic.lean])
+([auto.not_implies_eq, push_neg.not_implies_eq],
+ [/home/alex/mathlib/src/tactic/finish.lean, /home/alex/mathlib/src/tactic/push_neg.lean])
+([tactic.ring_exp.mul_pp_pf_prod_lt, tactic.ring_exp.mul_pf_prod_c], [/home/alex/mathlib/src/tactic/ring_exp.lean])
+([ereal.neg_def, ereal.coe_neg], [/home/alex/mathlib/src/data/real/ereal.lean])
+([add_inf, lattice_ordered_comm_group.add_inf_eq_add_inf_add],
+ [/home/alex/mathlib/src/algebra/order/lattice_group.lean])
+([classical.not_ball, not_ball], [/home/alex/mathlib/src/logic/basic.lean])
+([tactic.abel.unfold_sub, tactic.ring.unfold_sub],
+ [/home/alex/mathlib/src/tactic/abel.lean, /home/alex/mathlib/src/tactic/ring.lean])
+([filter.mem_prod_same_iff, filter.mem_prod_self_iff],
+ [/home/alex/mathlib/src/order/filter/lift.lean, /home/alex/mathlib/src/order/filter/bases.lean])
+([half_lt_self, div_two_lt_of_pos], [/home/alex/mathlib/src/algebra/order/field.lean])
+([tactic.ring_exp.mul_pp_pf_prod_gt, tactic.ring_exp.mul_pf_c_prod], [/home/alex/mathlib/src/tactic/ring_exp.lean])
+([tactic.ring_exp.exp_congr, tactic.ring_exp.pow_e_pf_exp, tactic.ring_exp.pow_p_pf_cons],
+ [/home/alex/mathlib/src/tactic/ring_exp.lean])
+([zsmul_right_inj, zsmul_eq_zsmul_iff'], [/home/alex/mathlib/src/algebra/group_power/lemmas.lean])
+([metric.eball_top_eq_univ, metric.emetric_ball_top], [/home/alex/mathlib/src/topology/metric_space/basic.lean])
+([polynomial.degree_map', polynomial.degree_map_eq_of_injective], [/home/alex/mathlib/src/data/polynomial/monic.lean])
+([complex.abs_cast_nat, complex.abs_of_nat], [/home/alex/mathlib/src/data/complex/basic.lean])
+([order_hom_class.monotone, order_hom_class.mono], [/home/alex/mathlib/src/order/hom/basic.lean])
+([category_theory.functor.map_injective, category_theory.faithful.map_injective],
+ [/home/alex/mathlib/src/category_theory/fully_faithful.lean])
+([category_theory.monoidal_category.triangle, category_theory.monoidal_category.triangle_assoc_comp_left],
+ [/home/alex/mathlib/src/category_theory/monoidal/category.lean])
+([ring_hom.closure_preimage_le, subring.closure_preimage_le], [/home/alex/mathlib/src/ring_theory/subring/basic.lean])
+([prod.eq_iff_fst_eq_snd_eq, prod.ext_iff], [/home/alex/mathlib/src/data/prod.lean])
+([tropical.injective_trop, tropical.trop_injective], [/home/alex/mathlib/src/algebra/tropical/basic.lean])
+([category_theory.nat_iso.app_hom, category_theory.iso.app_hom],
+ [/home/alex/mathlib/src/category_theory/natural_isomorphism.lean])
+([decidable.one_lt_mul_of_lt_of_le, decidable.one_lt_mul_of_le_of_lt, decidable.one_lt_mul],
+ [/home/alex/mathlib/src/algebra/order/ring.lean])
+([measure_theory.content.inner_content_mono, measure_theory.content.inner_content_mono'],
+ [/home/alex/mathlib/src/measure_theory/measure/content.lean])
+([linear_map.coprod_map_prod, linear_map.map_coprod_prod], [/home/alex/mathlib/src/linear_algebra/prod.lean])
+([with_one.some_eq_coe, with_zero.some_eq_coe], [/home/alex/mathlib/src/algebra/group/with_one.lean])
+([lattice_ordered_comm_group.mul_inf_eq_mul_inf_mul, mul_inf],
+ [/home/alex/mathlib/src/algebra/order/lattice_group.lean])
+([associates.eq_of_prod_eq_prod, associates.factor_set.unique],
+ [/home/alex/mathlib/src/ring_theory/unique_factorization_domain.lean])
+([basis.to_dual_apply_left, basis.to_dual_eq_repr], [/home/alex/mathlib/src/linear_algebra/dual.lean])
+([linear_map.to_matrix_alg_equiv_transpose_apply, linear_map.to_matrix_alg_equiv_transpose_apply'],
+ [/home/alex/mathlib/src/linear_algebra/matrix/to_lin.lean])
+([sub_sub_cancel, sub_sub_self], [/home/alex/mathlib/src/algebra/group/basic.lean])
+([set.not_nonempty_empty, set.empty_not_nonempty], [/home/alex/mathlib/src/data/set/basic.lean])
+([ordinal.nat_lt_limit, ordinal.is_limit.nat_lt], [/home/alex/mathlib/src/set_theory/ordinal_arithmetic.lean])
+([finset.union_idempotent, finset.union_self], [/home/alex/mathlib/src/data/finset/basic.lean])
+([category_theory.functor.coe_map_add_hom, category_theory.functor.map_add_hom_apply],
+ [/home/alex/mathlib/src/category_theory/preadditive/additive_functor.lean])
+([ext_chart_continuous_on_symm, ext_chart_at_continuous_on_symm],
+ [/home/alex/mathlib/src/geometry/manifold/smooth_manifold_with_corners.lean])
+([linarith.int.coe_nat_bit0, int.coe_nat_bit0],
+ [/home/alex/mathlib/src/tactic/linarith/lemmas.lean, /home/alex/mathlib/src/data/int/cast.lean])
+([set.set_compr_eq_eq_singleton, set.set_of_eq_eq_singleton], [/home/alex/mathlib/src/data/set/basic.lean])
+([category_theory.nat_trans.vcomp_app', category_theory.nat_trans.comp_app],
+ [/home/alex/mathlib/src/category_theory/functor_category.lean])
+([mv_polynomial.eval₂_hom_C_eq_bind₁, mv_polynomial.eval₂_hom_C_left],
+ [/home/alex/mathlib/src/data/mv_polynomial/monad.lean])
+([eventually_eq_nhds_within_of_eq_on, set.eq_on.eventually_eq_nhds_within],
+ [/home/alex/mathlib/src/topology/continuous_on.lean])
+([composition_series.of_list_to_list', composition_series.of_list_to_list],
+ [/home/alex/mathlib/src/order/jordan_holder.lean])
+([inner_self_im_zero, inner_self_nonneg_im], [/home/alex/mathlib/src/analysis/inner_product_space/basic.lean])
+([is_R_or_C.abs_cast_nat, is_R_or_C.abs_of_nat], [/home/alex/mathlib/src/data/complex/is_R_or_C.lean])
+([imp_true_iff, forall_true_iff], [/home/alex/mathlib/src/logic/basic.lean])
+([inv_mul_self, mul_left_inv], [/home/alex/mathlib/src/algebra/group/defs.lean])
+([set.insert_nonempty, set.nonempty_insert], [/home/alex/mathlib/src/data/set/basic.lean])
+([add_neg_self, add_right_neg], [/home/alex/mathlib/src/algebra/group/defs.lean])
+([one_lt_mul, one_lt_mul_of_lt_of_le, one_lt_mul_of_le_of_lt], [/home/alex/mathlib/src/algebra/order/ring.lean])
+([fin.zero_lt_one, fin.one_pos], [/home/alex/mathlib/src/data/fin/basic.lean])
+([linarith.int.coe_nat_bit1, int.coe_nat_bit1],
+ [/home/alex/mathlib/src/tactic/linarith/lemmas.lean, /home/alex/mathlib/src/data/int/cast.lean])
+([set.eq_of_subset_of_subset, set.subset.antisymm], [/home/alex/mathlib/src/data/set/basic.lean])
+([omega.nat.le_and_le_iff_eq, omega.int.le_and_le_iff_eq],
+ [/home/alex/mathlib/src/tactic/omega/nat/neg_elim.lean, /home/alex/mathlib/src/tactic/omega/int/dnf.lean])
+([pell.n_lt_a_pow, nat.lt_pow_self],
+ [/home/alex/mathlib/src/number_theory/pell.lean, /home/alex/mathlib/src/data/nat/pow.lean])
+([nnreal.coe_eq, nnreal.eq_iff], [/home/alex/mathlib/src/data/real/nnreal.lean])
+([push_neg.not_or_eq, auto.not_or_eq],
+ [/home/alex/mathlib/src/tactic/push_neg.lean, /home/alex/mathlib/src/tactic/finish.lean])
+([pfunctor.M.bisim_equiv, pfunctor.M.bisim], [/home/alex/mathlib/src/data/pfunctor/univariate/M.lean])
+([nnreal.le_div_iff_mul_le, nnreal.le_div_iff], [/home/alex/mathlib/src/data/real/nnreal.lean])
+([cardinal.add_one_of_omega_le, cardinal.add_one_eq],
+ [/home/alex/mathlib/src/set_theory/ordinal_arithmetic.lean, /home/alex/mathlib/src/set_theory/cardinal_ordinal.lean])
+([encodable.decode₂_encode, encodable.encodek₂], [/home/alex/mathlib/src/data/equiv/encodable/basic.lean])
+([mul_right_inv, mul_inv_self], [/home/alex/mathlib/src/algebra/group/defs.lean])
+([subtype.dist_eq, subtype.pseudo_dist_eq], [/home/alex/mathlib/src/topology/metric_space/basic.lean])
+([finset.range_add_eq_union, finset.range_add],
+ [/home/alex/mathlib/src/data/nat/interval.lean, /home/alex/mathlib/src/data/finset/basic.lean])
+([first_order.language.substructure.closure_induction',
+  relation.trans_gen.head_induction_on,
+  euclidean_domain.gcd.induction,
+  dense_range.induction_on₂,
+  submodule.mul_induction_on',
+  category_theory.equiv_relation,
+  relation.refl_trans_gen.head_induction_on,
+  set.finite.dinduction_on,
+  finset.nonempty.cons_induction,
+  uniform_space.completion.induction_on₂,
+  is_closed_property2],
+ [/home/alex/mathlib/src/model_theory/basic.lean,
+  /home/alex/mathlib/src/algebra/euclidean_domain.lean,
+  /home/alex/mathlib/src/algebra/algebra/operations.lean,
+  /home/alex/mathlib/src/category_theory/is_connected.lean,
+  /home/alex/mathlib/src/logic/relation.lean,
+  /home/alex/mathlib/src/data/set/finite.lean,
+  /home/alex/mathlib/src/data/finset/basic.lean,
+  /home/alex/mathlib/src/topology/uniform_space/completion.lean,
+  /home/alex/mathlib/src/topology/dense_embedding.lean])
+([linear_map.to_matrix_transpose_apply, linear_map.to_matrix_transpose_apply'],
+ [/home/alex/mathlib/src/linear_algebra/matrix/to_lin.lean])
+([order_hom.mono, order_hom.monotone], [/home/alex/mathlib/src/order/hom/basic.lean])
+([tropical.untrop_injective, tropical.injective_untrop], [/home/alex/mathlib/src/algebra/tropical/basic.lean])
+([subfield.closure_preimage_le, ring_hom.field_closure_preimage_le],
+ [/home/alex/mathlib/src/field_theory/subfield.lean])
+([div_div_cancel, div_div_self'], [/home/alex/mathlib/src/algebra/group/basic.lean])
+([finset.card_union_eq, finset.card_disjoint_union], [/home/alex/mathlib/src/data/finset/card.lean])
+([polynomial.degree_nonneg_iff_ne_zero, polynomial.zero_le_degree_iff],
+ [/home/alex/mathlib/src/data/polynomial/degree/definitions.lean])
+([antitone.convex_le, monotone.convex_gt, monotone.convex_le, monotone.convex_lt],
+ [/home/alex/mathlib/src/analysis/convex/basic.lean])
+([set.sUnion_mono, set.sUnion_subset_sUnion], [/home/alex/mathlib/src/data/set/lattice.lean])
+([auto.not_not_eq, push_neg.not_not_eq],
+ [/home/alex/mathlib/src/tactic/finish.lean, /home/alex/mathlib/src/tactic/push_neg.lean])
+([imp_or_distrib', imp_or_distrib], [/home/alex/mathlib/src/logic/basic.lean])
+([linear_map.to_matrix_apply, linear_map.to_matrix_apply'], [/home/alex/mathlib/src/linear_algebra/matrix/to_lin.lean])
+([polynomial.leading_coeff_of_injective, polynomial.leading_coeff_map'],
+ [/home/alex/mathlib/src/data/polynomial/monic.lean])
+([enat.to_with_top_coe', enat.to_with_top_coe], [/home/alex/mathlib/src/data/nat/enat.lean])
+([inner_product_space.of_core.inner_self_nonneg_im, inner_product_space.of_core.inner_self_im_zero],
+ [/home/alex/mathlib/src/analysis/inner_product_space/basic.lean])
+([category_theory.concrete_category.congr_hom, category_theory.congr_hom],
+ [/home/alex/mathlib/src/category_theory/concrete_category/basic.lean])
+([category_theory.iso.app_inv, category_theory.nat_iso.app_inv],
+ [/home/alex/mathlib/src/category_theory/natural_isomorphism.lean])
+([mul_nonneg_iff_left_nonneg_of_pos, zero_le_mul_right], [/home/alex/mathlib/src/algebra/order/ring.lean])
+([linear_map.to_matrix_alg_equiv_apply, linear_map.to_matrix_alg_equiv_apply'],
+ [/home/alex/mathlib/src/linear_algebra/matrix/to_lin.lean])
+([category_theory.bicategory.triangle, category_theory.bicategory.triangle_assoc_comp_left],
+ [/home/alex/mathlib/src/category_theory/bicategory/basic.lean])
+([neg_add_self, add_left_neg], [/home/alex/mathlib/src/algebra/group/defs.lean])

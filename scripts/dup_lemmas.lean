@@ -75,24 +75,27 @@ do
   else li.index_of m < li.index_of n)
 
 #check expr.abstract_locals
-meta
-def dup_hash : expr → tactic ℕ :=
+meta def normalize_expr : expr → tactic expr :=
 λ e,
 do
   (los, d) ← tactic.open_pis e,
-  l ← o_sort los.reverse d,
+  l ← o_sort los d,
   -- trace l,
-  let o := d.abstract_locals (l.map expr.local_uniq_name),
+  return $ (d.abstract_locals (l.map expr.local_uniq_name)).pis l
+meta
+def dup_hash : expr → tactic ℕ :=
+λ e,
   -- trace o,
   -- trace $ tactic.kdepends_on los.head los.tail.head,
   -- trace $ tactic.kdepends_on los.tail.head los.head,
-  return o.hash
+  expr.hash <$> normalize_expr e
 run_cmd dup_hash `(∀ (a : nat) (b : fin a) (c : nat), c + b = b + c) >>=trace
 run_cmd dup_hash `(∀ (a : nat) (c : nat) (b : fin a), c + b = b + c) >>=trace
 run_cmd dup_hash `(∀ (c : nat) (a : nat) (b : fin a), c + b = b + c) >>=trace
 end hash
 
 #check expr.alpha_eqv
+#check expr.pis
 
 #eval to_bool $ `(∀ (n : nat) (m : rat), 1 = 1) =ₐ
       `(∀ (n : rat) (m : nat), 1 = 1)
@@ -105,7 +108,11 @@ end hash
 -- #check expr.has_decidable_eq.eq
 #eval to_bool $ (`(∀ n t : nat, n + t = t + n) : expr)= `(∀ m t : nat, m + t = t + m)
 open tactic
+
 #eval expr.hash (var 1)
+-- meta def have_same_binder_types' : expr → expr → bool :=
+-- λ e₁ e₂, (((expr.pi_binders e₁).1.map (binder.info)) : multiset _) =
+--          (((expr.pi_binders e₂).1.map (binder.info)) : multiset _)
 meta def have_same_binder_types : expr → expr → bool
 | (pi e_var_name e_bi e_var_type e_body) (pi f_var_name f_bi f_var_type f_body) :=
   (e_bi = f_bi) && have_same_binder_types e_body f_body
@@ -115,6 +122,8 @@ meta def have_same_binder_types : expr → expr → bool
 #eval have_same_binder_types `(∀ (n : nat) (m : rat), 1 = 1) `(∀ (n : nat) (m : rat), 1 = 1)
 #eval have_same_binder_types `(∀ (n : rat) (m : rat), 1 = 1) `(∀ (n : rat) (m : rat), 1 = 1)
 #eval to_bool $(`(∀ (t : rat) (m : rat), 1 = 1) :expr) = `(∀ (n : rat) (m : rat), 1 = 1)
+
+#check ((expr.pi_binders _).1.map (binder.info))
 -- alias one_mul ← cat
 -- #print cat
 -- attribute [to_additive cat_add] cat
@@ -131,8 +140,12 @@ run_cmd do
     else return ohashes) ,
   ohashes.mfold () (λ h l _, do if (l.length > 1) then (do
       ds ← l.mmap get_decl,
-      (guard (1 < ((ds.map declaration.type).pw_filter
-        (λ e₁ e₂, e₁ =ₐ e₂ ∧ have_same_binder_types e₁ e₂)).length) >>
+      -- let pw_fil := ((ds.map declaration.type).pw_filter
+      --   (λ e₁ e₂, (true ∨ e₁ =ₐ e₂) ∧ have_same_binder_types e₁ e₂)),
+      pw_fil ← ds.mfoldl (λ ol cur, do
+        n ← normalize_expr cur.type,
+        if n ∈ ol then return ol else return $ n :: ol) [],
+      (guard (1 < pw_fil.length) >>
         trace ((ds.map declaration.to_name)
         , (l.map (λ na, (e.decl_olean na).get_or_else "")).erase_dup
         )) <|>

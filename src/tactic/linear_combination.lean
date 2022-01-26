@@ -5,16 +5,18 @@ Authors: Abby J. Goldberg
 -/
 
 import tactic.ring
+open tactic
 
 /-!
 
 # linear_combination Tactic
 
-In this file, the `linear_combination` tactic is created.  This tactic attempts
-to prove the target by creating and applying a linear combination of a list of
-equalities.  This file also includes a definition for
-`linear_combination_config`.  A `linear_combination_config` object can be
-passed into the tactic, allowing the user to specify a normalization tactic.
+In this file, the `linear_combination` tactic is created.  This tactic, which
+works over `ring`s, attempts to prove the target by creating and applying a
+linear combination of a list of equalities.  This file also includes a
+definition for `linear_combination_config`.  A `linear_combination_config`
+object can be passed into the tactic, allowing the user to specify a
+normalization tactic.
 
 ## Implementation Notes
 
@@ -77,170 +79,164 @@ meta structure linear_combination_config : Type :=
 
 
 /--
-Given that lhs = rhs, this tactic returns an expr stating that
+Given that lhs = rhs, this tactic returns an expr proving that
   coeff * lhs = coeff * rhs.
 
 * Input:
-  * `heq` : an expr, which should be an equality with some type α on each side,
-      where `has_mul α` is true
+  * `h_equality` : an expr, whose type should be an equality between terms of
+      type α, where there is an instance of `has_mul α`
   * `coeff` : a pexpr, which should be a value of type α
 
-* Output: a tactic expr that is the result of multiplying both sides of `heq` by
-    the `coeff`
+* Output: a tactic expr, which proves that the result of multiplying both sides
+    of `h_equality` by the `coeff` holds
 -/
-meta def mul_equality_expr (heq : expr) (coeff : pexpr) : tactic expr :=
+meta def mul_equality_expr (h_equality : expr) (coeff : pexpr) : tactic expr :=
 do
-  `(%%lhs = %%rhs) ← tactic.infer_type heq,
-  -- Explicitly mark the coefficient as having the same type as the sides of
-  --   heq - this is necessary in order to use the left_mul_both_sides lemma
-  left_type ← tactic.infer_type lhs,
-  coeff_expr ← tactic.to_expr ``(%%coeff : %%left_type),
-  tactic.mk_app ``left_mul_both_sides [coeff_expr, heq]
-  <|> tactic.fail ("The type of the left and right sides of each equality " ++
-    "must fulfill the 'has_mul' condition in order to multiply the " ++
-    "equalities by the given factors.")
+  `(%%lhs = %%rhs) ← infer_type h_equality,
+  -- Mark the coefficient as having the same type as the sides of `h_equality` -
+  --   this is necessary in order to use the left_mul_both_sides lemma
+  left_type ← infer_type lhs,
+  coeff_expr ← to_expr ``(%%coeff : %%left_type),
+  mk_app ``left_mul_both_sides [coeff_expr, h_equality]
 
 /--
-Given two hypotheses stating that a = b and c = d, this tactic returns an
-  expr stating that a + c = b + d.
+Given two hypotheses that a = b and c = d, this tactic returns an expr proving
+  that a + c = b + d.
 
 * Input:
-  * `heq1` : an expr, which should be an equality with some type α on each side,
-      where `has_add α` is true
-  * `heq2` : an expr, which should be an equality with type α on each side
+  * `h_equality1` : an expr, whose type should be an equality between terms of
+      type α, where there is an instance of `has_add α`
+  * `h_equality2` : an expr, whose type should be an equality between terms of
+      type α
 
-* Output: a tactic expr that is the result of adding the two equalities
+* Output: a tactic expr, which proves that the result of adding the two
+    equalities holds
 -/
-meta def sum_equalities (heq1 heq2 : expr) : tactic expr :=
-do
-  tactic.mk_app ``sum_two_equations [heq1, heq2]
-  <|> tactic.fail ("The type of the left and right sides of each equality " ++
-    "must fulfill the 'has_add' condition in order to add the " ++
-    "equalities together.")
+meta def sum_equalities (h_equality1 h_equality2 : expr) : tactic expr :=
+mk_app ``sum_two_equations [h_equality1, h_equality2]
 
 /--
 Given that a = b and c = d, along with a coefficient, this tactic returns an
-  expr stating that a + coeff * c = b + coeff * d.
+  expr proving that a + coeff * c = b + coeff * d.
 
 * Input:
-  * `heq1` : an expr, which should be an equality with some type α on each side,
-    where `has_add α` and `has_mul α` are true
-  * `heq2` : an expr, which should be an equality with type α on each side
+  * `h_equality1` : an expr, whose type should be an equality between terms of
+      type α, where there are instances of `has_add α` and `has_mul α`
+  * `h_equality2` : an expr, whose type should be an equality between terms of
+      type α
   * `coeff_for_eq2` : a pexpr, which should be a value of type α
 
-* Output: a tactic expr that is the result of adding the first equality to the
-  result of multiplying `coeff_for_eq2` by the second equality
+* Output: a tactic expr, which proves that the result of adding the first
+  equality to the result of multiplying `coeff_for_eq2` by the second equality
+  holds
 -/
-meta def sum_two_hyps_one_mul_helper (heq1 heq2 : expr) (coeff_for_eq2 : pexpr) :
-  tactic expr :=
-do
-  -- Multiply the second equation by the coefficient
-  hmul2 ← mul_equality_expr heq2 coeff_for_eq2,
-  -- Add the first equation and the newly computed equation together
-  sum_equalities heq1 hmul2
+meta def sum_two_hyps_one_mul_helper (h_equality1 h_equality2 : expr)
+  (coeff_for_eq2 : pexpr) : tactic expr :=
+mul_equality_expr h_equality2 coeff_for_eq2 >>= sum_equalities h_equality1
 
 /--
-This tactic builds on the given summed equation by multiplying each equation in
-  the given list by its associated coefficient and summing the equations
-  together
+Given that l_sum1 = r_sum1, l_h1 = r_h1, ..., l_hn = r_hn, and given
+  coefficients c_1, ..., c_n, this tactic returns an expr proving that
+    l_sum1 + (c_1 * l_h1) + ... + (c_n * l_hn)
+  = r_sum1 + (c_1 * r_h1) + ... + (c_n * r_hn)
 
 * Input:
   * an option (tactic expr) : `none`, if there is no sum to add to yet, or
       `some` containing the base summation equation
-  * a list name : a list of names, referring to equations in the local context
+  * a list name : a list of names, referring to equalities in the local context
   * a list pexpr : a list of coefficients to be multiplied with the
-      corresponding equations in the list of names
+      corresponding equalities in the list of names
 
-* Output: a tactic expr expressing the weighted sum of the given equations
-    added to the base equation
+* Output: a tactic expr, which proves that the weighted sum of the given
+    equalities added to the base equation holds
 -/
 meta def make_sum_of_hyps_helper :
   option (tactic expr) → list name → list pexpr → tactic expr
-| none [] []                                               :=
-  do tactic.fail "There are no hypotheses to add"
-| (some tactic_hcombo) [] []                               :=
+| none [] []                                                             :=
+  do fail "There are no hypotheses to add"
+| (some tactic_hcombo) [] []                                             :=
   do tactic_hcombo
-| none (heq_nam :: heqs) (coeff :: coeffs)                 :=
+| none (h_equality_nam :: h_eqs_names) (coeff :: coeffs)                 :=
  do
-    -- This is the first equation, and we do not have anything to add to it
-    heq ← tactic.get_local heq_nam,
-    let eq1_times_coeff1 := mul_equality_expr heq coeff,
-    make_sum_of_hyps_helper (some eq1_times_coeff1) heqs coeffs
-| (some tactic_hcombo) (heq_nam :: heqs) (coeff :: coeffs) :=
+    -- This is the first equality, and we do not have anything to add to it
+    h_equality ← get_local h_equality_nam,
+    make_sum_of_hyps_helper
+      (some (mul_equality_expr h_equality coeff))
+      h_eqs_names
+      coeffs
+| (some tactic_hcombo) (h_equality_nam :: h_eqs_names) (coeff :: coeffs) :=
   do
-    heq ← tactic.get_local heq_nam,
+    h_equality ← get_local h_equality_nam,
     hcombo ← tactic_hcombo,
-    -- We want to add this weighted equation to
-    --   the current equation in the hypothesis
-    let hcombo_updated := sum_two_hyps_one_mul_helper hcombo heq coeff,
-    make_sum_of_hyps_helper (some hcombo_updated) heqs coeffs
-| _ _ _                                             :=
-  do tactic.fail ("The length of the input list of equalities should be the " ++
+    -- We want to add this weighted equality to the current equality in
+    --   the hypothesis
+    make_sum_of_hyps_helper
+      (some (sum_two_hyps_one_mul_helper hcombo h_equality coeff))
+      h_eqs_names
+      coeffs
+| _ _ _                                                                  :=
+  do fail ("The length of the input list of equalities should be the " ++
     "same as the length of the input list of coefficients")
 
 /--
 Given a list of names referencing equalities and a list of pexprs representing
-  coefficients, this tactic creates a weighted sum of the equalities, where each
-  equation is multiplied by the corresponding coefficient.
+  coefficients, this tactic proves that a weighted sum of the equalities
+  (where each equation is multiplied by the corresponding coefficient) holds.
 
 * Input:
-  * `heqs` : a list of names, referring to equations in the local context
+  * `h_eqs_names` : a list of names, referring to equalities in the local
+      context
   * `coeffs` : a list of coefficients to be multiplied with the corresponding
-      equations in the list of names
+      equalities in the list of names
 
-* Output: a `tactic expr` that is the weighted sum of the equations
+* Output: a `tactic expr`, which proves that the weighted sum of the equalities
+    holds
 -/
-meta def make_sum_of_hyps (heqs : list name) (coeffs : list pexpr) :
+meta def make_sum_of_hyps (h_eqs_names : list name) (coeffs : list pexpr) :
   tactic expr :=
-make_sum_of_hyps_helper none heqs coeffs
+make_sum_of_hyps_helper none h_eqs_names coeffs
 
 
 /-! ### Part 2: Simplifying -/
 
 
 /--
-This tactic moves all the terms in an equality to the left side of the equals
-  sign by subtracting the right side of the equation from the left side.  In
-  other words, given lhs = rhs, this tactic returns lhs - rhs = 0.
+This tactic proves that the result of moving all the terms in an equality to
+  the left side of the equals sign by subtracting the right side of the
+  equation from the left side holds.  In other words, given lhs = rhs,
+  this tactic proves that lhs - rhs = 0.
 
 * Input:
-  * `heq` : an expr, which should be an equality with some type α on each side,
-      where `add_group α` is true
+  * `h_equality` : an expr, whose type should be an equality between terms of
+      type α, where there is an instance of `add_group α`
 
-* Output: tactic expr that is lhs - rhs = 0, where lhs and rhs are the left and
-  right sides of heq respectively
+* Output: tactic expr, which proves that lhs - rhs = 0, where lhs and rhs are
+   the left and right sides of `h_equality` respectively
 -/
-meta def move_to_left_side (heq : expr) : tactic expr :=
-do
-  tactic.mk_app ``left_minus_right [heq]
-  <|> tactic.fail ("The type of the left and right sides of each equality " ++
-    "must fulfill the 'add_group' condition in order to match the linear " ++
-    "combination to the target.")
+meta def move_to_left_side (h_equality : expr) : tactic expr :=
+mk_app ``left_minus_right [h_equality]
 
 /--
-Moves all the terms in the target to the left side of the equals sign by
-  subtracting the right side of the equation from the left side.  In other
-  words, given a target of lhs = rhs, this tactic returns lhs - rhs = 0.
+This tactic replaces the target with the result of moving all the terms in the
+  target to the left side of the equals sign by subtracting the right side of
+  the equation from the left side.  In other words, when the target is
+  lhs = rhs, this tactic proves that lhs - rhs = 0 and replaces the target
+  with this new equality.
 Note: The target must be an equality when this tactic is called, and the
-  equality must have some type α on each side, where `add_group α` is true.
+  equality must have some type α on each side, where there is an instance of
+  `add_group α`.
 
 * Input: N/A
 
-* Output: tactic unit
+* Output: N/A
 -/
 meta def move_target_to_left_side : tactic unit :=
 do
   -- Move all the terms in the target equality to the left side
-  target ← tactic.target,
-  (targ_lhs, targ_rhs) ← tactic.match_eq target,
-  target_left_eq ← tactic.to_expr ``(%%targ_lhs - %%targ_rhs = 0),
-  do
-    { can_replace_proof ← tactic.mk_app ``all_on_left_equiv [targ_lhs, targ_rhs],
-      tactic.replace_target target_left_eq can_replace_proof }
-  <|> tactic.fail ("The type of the left and right sides of the goal " ++
-    "must fulfill the 'add_group' condition in order to match the linear " ++
-    "combination to the target.")
-
+  target ← target,
+  (targ_lhs, targ_rhs) ← match_eq target,
+  target_left_eq ← to_expr ``(%%targ_lhs - %%targ_rhs = 0),
+  mk_app ``all_on_left_equiv [targ_lhs, targ_rhs] >>= replace_target target_left_eq
 
 
 /-! ### Part 3: Matching the Linear Combination to the Target -/
@@ -252,21 +248,17 @@ This tactic changes the goal to be that the lefthand side of the target is
   if `hsum_on_left` is 5*x - 5*y = 0, and the target is -5*y + 5*x = 0, this
   tactic will change the target to be -5*y + 5*x = 5*x - 5*y.
 
-This tactic only should be used when the target is an equality whose right side
-  is 0.
+This tactic only should be used when the target's type an equality whose
+  right side is 0.
 
 * Input:
-  * `hsum_on_left` : expr, which should be an equality whose right side is 0
+  * `hsum_on_left` : expr, whose type should be an equality with 0 on the right
+      side of the equals sign
 
-* Output: tactic unit
+* Output: N/A
 -/
 meta def set_goal_to_hleft_eq_tleft (hsum_on_left : expr) : tactic unit :=
-do
-  { change_goal ← tactic.to_expr ``(replace_eq_expr %%hsum_on_left),
-    tactic.apply change_goal,
-    pure () }
-  <|> tactic.fail ("The type of the left and right sides of each equality " ++
-    "must fulfill the 'has_zero' condition.")
+do to_expr ``(replace_eq_expr %%hsum_on_left) >>= apply, skip
 
 /--
 This tactic attempts to prove the goal by normalizing the target if the
@@ -276,7 +268,7 @@ This tactic attempts to prove the goal by normalizing the target if the
   * `config` : a linear_combination_config, which determines the tactic used
       for normalization if normalization is done
 
-* Outout: tactic unit
+* Output: N/A
 -/
 meta def prove_equal_if_desired (config : linear_combination_config) :
   tactic unit :=
@@ -292,25 +284,26 @@ This is a tactic that attempts to prove the target by creating and applying a
   prove their target using the linear combination instead of attempting to
   finish the proof.)
 
-Note: The left and right sides of all the equations should have the same
-  ring type, and the coefficients should also have this type.  This type must
-  have the has_mul and add_group properties.  Also note that the target must
-  involve at least one variable.
+Note: The left and right sides of all the equalities should have the same
+  ring type, and the coefficients should also have this type.  There must be
+  instances of `has_mul` and `add_group` for this type.  Also note that the
+  target must involve at least one variable.
 
 * Input:
-  * `heqs` : a list of names, referring to equations in the local context
+  * `h_eqs_names` : a list of names, referring to equations in the local
+      context
   * `coeffs` : a list of coefficients to be multiplied with the corresponding
     equations in the list of names
   * `config` : a linear_combination_config, which determines the tactic used
       for normalization; by default, this value is the standard configuration
       for a linear_combination_config
 
-* Output: tactic unit
+* Output: N/A
 -/
-meta def linear_combination (heqs : list name) (coeffs : list pexpr)
+meta def linear_combination (h_eqs_names : list name) (coeffs : list pexpr)
   (config : linear_combination_config := {}) : tactic unit :=
 do
-  hsum ← make_sum_of_hyps heqs coeffs,
+  hsum ← make_sum_of_hyps h_eqs_names coeffs,
   hsum_on_left ← move_to_left_side hsum,
   move_target_to_left_side,
   set_goal_to_hleft_eq_tleft hsum_on_left,
@@ -342,39 +335,42 @@ do
   linear combination of a list of equalities.  The tactic will create a linear
   combination by adding the equalities together from left to right, so the order
   of the input hypotheses does matter.  If the `normalize` field of the
-  configuration is set to ff, then the tactic will simply set the user up to
+  configuration is set to false, then the tactic will simply set the user up to
   prove their target using the linear combination instead of attempting to
   finish the proof.
 
-Note: The left and right sides of all the equations should have the same
-  type, and the coefficients should also have this type.  This type must
-  have the has_mul and add_group properties.  Also note that the target must
-  involve at least one variable.
+Note: The left and right sides of all the equalities should have the same
+  type, and the coefficients should also have this type.  There must be
+  instances of `has_mul` and `add_group` for this type.  Also note that the
+  target must involve at least one variable.
 
 * Input:
-  * `heqs` : a list of identifiers, referring to equations in the local context
-  * `coeffs` : a list of coefficients to be multiplied with the corresponding
-      equations in the list of names
-
-  * `input` : a sequence of name and pexpr pairs, which represents the pairs
-      of hypotheses and their corresponding coefficients
+  * `input` : the pairs of hypotheses and their corresponding coefficients
   * `config` : a linear_combination_config, which determines the tactic used
       for normalization; by default, this value is the standard configuration
-      for a linear_combination_config
+      for a linear_combination_config.  In the standard configuration,
+      `normalize` is set to tt (meaning this tactic is set to use
+      normalization), and `normalization_tactic` is set to  `ring1`.
 
-* Output: tactic unit
+* Output: N/A
 
 Example Usage:
-  Given that `h1` and `h2` are equalities in the local context,
-  `linear_combination (h1, 2) (h2, -3)`
-  will attempt to solve the goal by computing `2 * h1 + -3 * h2`
-  and matching that to the goal.
+```
+example (x y : ℤ) (h1 : x*y + 2*x = 1) (h2 : x = y) :
+  x*y = -2*y + 1 :=
+by linear_combination (h1, 1) (h2, -2)
+
+example (x y z : ℝ) (ha : x + 2*y - z = 4) (hb : 2*x + y + z = -2)
+    (hc : x + 2*y + z = 2) :
+  -3*x - 3*y - 4*z = 2 :=
+by linear_combination (ha, 1) (hb, -1) (hc, -2)
+```
 -/
 meta def _root_.tactic.interactive.linear_combination
   (input : parse parse_name_pexpr_pair*)
   (config : linear_combination_config := {}) : tactic unit :=
-let (heqs, coeffs) := list.unzip input in
-linear_combination heqs coeffs config
+let (h_eqs_names, coeffs) := list.unzip input in
+linear_combination h_eqs_names coeffs config
 
 add_tactic_doc
 { name := "linear_combination",

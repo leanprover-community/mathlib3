@@ -1064,7 +1064,7 @@ end nat
 
 namespace nat
 
-lemma mem_factors_mul_of_ne_zero {a b : ℕ} (ha : a ≠ 0) (hb : b ≠ 0) (p : ℕ) :
+lemma mem_factors_mul {a b : ℕ} (ha : a ≠ 0) (hb : b ≠ 0) (p : ℕ) :
   p ∈ (a * b).factors ↔ p ∈ a.factors ∨ p ∈ b.factors :=
 begin
   rw [mem_factors (mul_ne_zero ha hb), mem_factors ha, mem_factors hb, ←and_or_distrib_left],
@@ -1074,7 +1074,7 @@ end
 /-- If `a`, `b` are positive, the prime divisors of `a * b` are the union of those of `a` and `b` -/
 lemma factors_mul_to_finset {a b : ℕ} (ha : a ≠ 0) (hb : b ≠ 0) :
   (a * b).factors.to_finset = a.factors.to_finset ∪ b.factors.to_finset :=
-by { ext p, simp [mem_factors_mul_of_ne_zero ha hb] }
+by { ext p, simp [mem_factors_mul ha hb] }
 
 lemma pow_succ_factors_to_finset (n k : ℕ) :
   (n^(k+1)).factors.to_finset = n.factors.to_finset :=
@@ -1115,7 +1115,7 @@ begin
   { simp [(coprime_zero_left _).mp hab] },
   rcases b.eq_zero_or_pos with rfl | hb,
   { simp [(coprime_zero_right _).mp hab] },
-  rw [mem_factors_mul_of_ne_zero ha.ne' hb.ne', list.mem_union],
+  rw [mem_factors_mul ha.ne' hb.ne', list.mem_union],
 end
 
 lemma factors_mul_to_finset_of_coprime {a b : ℕ} (hab : coprime a b) :
@@ -1143,7 +1143,7 @@ lemma mem_factors_mul_left {p a b : ℕ} (hpa : p ∈ a.factors) (hb : b ≠ 0) 
 begin
   rcases eq_or_ne a 0 with rfl | ha,
   { simpa using hpa },
-  apply (mem_factors_mul_of_ne_zero ha hb _).2 (or.inl hpa),
+  apply (mem_factors_mul ha hb _).2 (or.inl hpa),
 end
 
 /-- If `p` is a prime factor of `b` then `p` is also a prime factor of `a * b` for any `a > 0` -/

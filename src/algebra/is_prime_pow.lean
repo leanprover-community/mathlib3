@@ -53,33 +53,25 @@ lemma is_prime_pow.pow {n : R} (hn : is_prime_pow n)
   {k : ℕ} (hk : k ≠ 0) : is_prime_pow (n ^ k) :=
 let ⟨p, k', hp, hk', hn⟩ := hn in ⟨p, k * k', hp, mul_pos hk.bot_lt hk', by rw [pow_mul', hn]⟩
 
-lemma unique_is_prime_pow {R : Type*} [cancel_comm_monoid_with_zero R] {p₁ p₂ : R} {k₁ k₂ : ℕ}
-  (hp₁ : prime p₁) (hp₂ : prime p₂) (hk₁ : 0 < k₁) (h : associated (p₁ ^ k₁) (p₂ ^ k₂)):
-  associated p₁ p₂ :=
-begin
-  have : p₁ ∣ p₂ ^ k₂,
-  { rw ←h.dvd_iff_dvd_right,
-    apply dvd_pow_self _ hk₁.ne' },
-  rw ←hp₁.dvd_prime_iff_associated hp₂,
-  exact hp₁.dvd_of_dvd_pow this,
-end
-
--- lemma unique_is_prime_pow {p₁ p₂ k₁ k₂ : ℕ}
---   (hp₁ : p₁.prime) (hp₂ : p₂.prime) (hk₁ : 0 < k₁) (h : p₁ ^ k₁ = p₂ ^ k₂):
---   p₁ = p₂ :=
--- begin
---   have : p₁ ∣ p₂ ^ k₂,
---   { rw ←h,
---     apply dvd_pow_self _ hk₁.ne' },
---   rw ←nat.prime_dvd_prime_iff_eq hp₁ hp₂,
---   exact hp₁.dvd_of_dvd_pow this,
--- end
-
 theorem is_prime_pow.ne_zero [no_zero_divisors R] {n : R} (h : is_prime_pow n) : n ≠ 0 :=
 λ t, eq.rec not_is_prime_pow_zero t.symm h
 
 lemma is_prime_pow.ne_one {n : R} (h : is_prime_pow n) : n ≠ 1 :=
 λ t, eq.rec not_is_prime_pow_one t.symm h
+
+section unique_units
+
+lemma eq_of_prime_pow_eq {R : Type*} [cancel_comm_monoid_with_zero R] [unique Rˣ] {p₁ p₂ : R}
+  {k₁ k₂ : ℕ} (hp₁ : prime p₁) (hp₂ : prime p₂) (hk₁ : 0 < k₁) (h : p₁ ^ k₁ = p₂ ^ k₂) :
+  p₁ = p₂ :=
+by { rw [←associated_iff_eq] at h ⊢, apply h.of_pow_associated_of_prime hp₁ hp₂ hk₁ }
+
+lemma eq_of_prime_pow_eq' {R : Type*} [cancel_comm_monoid_with_zero R] [unique Rˣ] {p₁ p₂ : R}
+  {k₁ k₂ : ℕ} (hp₁ : prime p₁) (hp₂ : prime p₂) (hk₁ : 0 < k₂) (h : p₁ ^ k₁ = p₂ ^ k₂) :
+  p₁ = p₂ :=
+by { rw [←associated_iff_eq] at h ⊢, apply h.of_pow_associated_of_prime' hp₁ hp₂ hk₁ }
+
+end unique_units
 
 section nat
 

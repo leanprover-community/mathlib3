@@ -1562,7 +1562,7 @@ theorem sdiff_eq_self (s₁ s₂ : finset α) :
   s₁ \ s₂ = s₁ ↔ s₁ ∩ s₂ ⊆ ∅ :=
 by { simp [subset.antisymm_iff],
      split; intro h,
-     { transitivity ((s₁ \ s₂) ∩ s₂), mono, simp },
+     { transitivity' ((s₁ \ s₂) ∩ s₂), mono, simp },
      { calc  s₁ \ s₂
            ⊇ s₁ \ (s₁ ∩ s₂) : by simp [(⊇)]
        ... ⊇ s₁ \ ∅         : by mono using [(⊇)]

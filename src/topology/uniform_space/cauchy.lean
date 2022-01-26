@@ -634,8 +634,7 @@ begin
     rcases h_basis.to_has_basis.mem_iff.1 hU' with ⟨k, -, hk⟩,
     rcases hsd.inter_open_nonempty (ball x $ t k) (is_open_ball x (hto k))
       ⟨x, uniform_space.mem_ball_self _ (ht_mem k)⟩ with ⟨y, hxy, hys⟩,
-    have : ∀ x, x ∈ _ → x ∈ _ := (hts k).subset,
-    refine ⟨_, ⟨y, hys, k, rfl⟩, this _ (by exact hxy), λ z hz, _⟩,
+    refine ⟨_, ⟨y, hys, k, rfl⟩, (hts k).subset hxy, λ z hz, _⟩,
     exact hUV (ball_subset_of_comp_subset (hk hxy) hUU' (hk hz)) }
 end
 

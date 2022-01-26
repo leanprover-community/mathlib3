@@ -321,7 +321,7 @@ antisymm h h'
 lemma superset_antisymm [is_antisymm α (⊆)] (h : a ⊆ b) (h' : b ⊆ a) : b = a :=
 antisymm' h h'
 
-alias subset_of_eq ← eq.subset
+alias subset_of_eq ← eq.subset' --TODO: Fix it and kill `eq.subset`
 alias superset_of_eq ← eq.superset
 alias subset_trans      ← has_subset.subset.trans
 alias subset_antisymm   ← has_subset.subset.antisymm

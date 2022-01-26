@@ -160,6 +160,10 @@ end set_coe
 /-- See also `subtype.prop` -/
 lemma subtype.mem {α : Type*} {s : set α} (p : s) : (p : α) ∈ s := p.prop
 
+/-- Duplicate of `eq.subset'`, which currently has elaboration problems. -/
+lemma eq.subset {α} {s t : set α} : s = t → s ⊆ t :=
+by { rintro rfl x hx, exact hx }
+
 namespace set
 
 variables {α : Type u} {β : Type v} {γ : Type w} {ι : Sort x} {a : α} {s t : set α}

@@ -163,8 +163,7 @@ by { rw [degree, ← monomial_zero_left, support_monomial 0 _ ha, sup_singleton]
 lemma degree_C_le : degree (C a) ≤ 0 :=
 by by_cases h : a = 0; [rw [h, C_0], rw [degree_C h]]; [exact bot_le, exact le_refl _]
 
-lemma degree_C_lt : degree (C a) < 1 :=
-lt_of_le_of_lt degree_C_le $ with_bot.coe_lt_coe.mpr zero_lt_one
+lemma degree_C_lt : degree (C a) < 1 := degree_C_le.trans_lt $ with_bot.coe_lt_coe.mpr zero_lt_one
 
 lemma degree_one_le : degree (1 : polynomial R) ≤ (0 : with_bot ℕ) :=
 by rw [← C_1]; exact degree_C_le
@@ -456,8 +455,7 @@ calc degree (p + q) = ((p + q).support).sup some : rfl
   ... = p.support.sup some ⊔ q.support.sup some : sup_union
 
 lemma degree_add_le_of_degree_le {p q : polynomial R} {n : ℕ} (hp : degree p ≤ n)
-  (hq : degree q ≤ n) :
-  degree (p + q) ≤ n :=
+  (hq : degree q ≤ n) : degree (p + q) ≤ n :=
 (degree_add_le p q).trans $ max_le hp hq
 
 lemma nat_degree_add_le (p q : polynomial R) :
@@ -468,8 +466,7 @@ begin
 end
 
 lemma nat_degree_add_le_of_degree_le {p q : polynomial R} {n : ℕ} (hp : nat_degree p ≤ n)
-  (hq : nat_degree q ≤ n) :
-  nat_degree (p + q) ≤ n :=
+  (hq : nat_degree q ≤ n) : nat_degree (p + q) ≤ n :=
 (nat_degree_add_le p q).trans $ max_le hp hq
 
 @[simp] lemma leading_coeff_zero : leading_coeff (0 : polynomial R) = 0 := rfl
@@ -897,14 +894,13 @@ lemma degree_linear_le : degree (C a * X + C b) ≤ 1 :=
 degree_add_le_of_degree_le (degree_C_mul_X_le _) $ le_trans degree_C_le nat.with_bot.coe_nonneg
 
 lemma degree_linear_lt : degree (C a * X + C b) < 2 :=
-lt_of_le_of_lt degree_linear_le $ with_bot.coe_lt_coe.mpr one_lt_two
+degree_linear_le.trans_lt $ with_bot.coe_lt_coe.mpr one_lt_two
+
+lemma degree_C_lt_degree_C_mul_X (ha : a ≠ 0) : degree (C b) < degree (C a * X) :=
+by simpa only [degree_C_mul_X ha] using degree_C_lt
 
 @[simp] lemma degree_linear (ha : a ≠ 0) : degree (C a * X + C b) = 1 :=
-begin
-  rw [degree_add_eq_left_of_degree_lt],
-  all_goals { rw [degree_C_mul_X ha] },
-  exact degree_C_lt
-end
+by rw [degree_add_eq_left_of_degree_lt $ degree_C_lt_degree_C_mul_X ha, degree_C_mul_X ha]
 
 lemma nat_degree_linear_le : nat_degree (C a * X + C b) ≤ 1 :=
 nat_degree_le_of_degree_le degree_linear_le
@@ -913,28 +909,25 @@ nat_degree_le_of_degree_le degree_linear_le
 nat_degree_eq_of_degree_eq_some $ degree_linear ha
 
 @[simp] lemma leading_coeff_linear (ha : a ≠ 0): leading_coeff (C a * X + C b) = a :=
-begin
-  rw [add_comm, leading_coeff_add_of_degree_lt, leading_coeff_C_mul_X],
-  rw [degree_C_mul_X ha],
-  exact degree_C_lt
-end
+by rw [add_comm, leading_coeff_add_of_degree_lt (degree_C_lt_degree_C_mul_X ha),
+       leading_coeff_C_mul_X]
 
 lemma degree_quadratic_le : degree (C a * X ^ 2 + C b * X + C c) ≤ 2 :=
-begin
-  rw [add_assoc],
-  exact (degree_add_le_of_degree_le (degree_C_mul_X_pow_le 2 a) $ le_trans degree_linear_le $
-           with_bot.coe_le_coe.mpr one_le_two)
-end
+by simpa only [add_assoc] using degree_add_le_of_degree_le (degree_C_mul_X_pow_le 2 a)
+  (le_trans degree_linear_le $ with_bot.coe_le_coe.mpr one_le_two)
 
 lemma degree_quadratic_lt : degree (C a * X ^ 2 + C b * X + C c) < 3 :=
-lt_of_le_of_lt degree_quadratic_le $ with_bot.coe_lt_coe.mpr $ lt_add_one 2
+degree_quadratic_le.trans_lt $ with_bot.coe_lt_coe.mpr $ lt_add_one 2
+
+lemma degree_linear_lt_degree_C_mul_X_sq (ha : a ≠ 0) :
+  degree (C b * X + C c) < degree (C a * X ^ 2) :=
+by simpa only [degree_C_mul_X_pow 2 ha] using degree_linear_lt
 
 @[simp] lemma degree_quadratic (ha : a ≠ 0) : degree (C a * X ^ 2 + C b * X + C c) = 2 :=
 begin
-  rw [add_assoc, degree_add_eq_left_of_degree_lt],
-  all_goals { rw [degree_C_mul_X_pow 2 ha] },
-  refl,
-  exact degree_linear_lt
+  rw [add_assoc, degree_add_eq_left_of_degree_lt $ degree_linear_lt_degree_C_mul_X_sq ha,
+      degree_C_mul_X_pow 2 ha],
+  refl
 end
 
 lemma nat_degree_quadratic_le : nat_degree (C a * X ^ 2 + C b * X + C c) ≤ 2 :=
@@ -943,30 +936,27 @@ nat_degree_le_of_degree_le degree_quadratic_le
 @[simp] lemma nat_degree_quadratic (ha : a ≠ 0) : nat_degree (C a * X ^ 2 + C b * X + C c) = 2 :=
 nat_degree_eq_of_degree_eq_some $ degree_quadratic ha
 
-@[simp] lemma leading_coeff_quadratic (ha : a ≠ 0):
+@[simp] lemma leading_coeff_quadratic (ha : a ≠ 0) :
   leading_coeff (C a * X ^ 2 + C b * X + C c) = a :=
-begin
-  rw [add_assoc, add_comm, leading_coeff_add_of_degree_lt, leading_coeff_C_mul_X_pow],
-  rw [degree_C_mul_X_pow 2 ha],
-  exact degree_linear_lt
-end
+by rw [add_assoc, add_comm, leading_coeff_add_of_degree_lt $
+         degree_linear_lt_degree_C_mul_X_sq ha, leading_coeff_C_mul_X_pow]
 
 lemma degree_cubic_le : degree (C a * X ^ 3 + C b * X ^ 2 + C c * X + C d) ≤ 3 :=
-begin
-  rw [add_assoc, add_assoc, ← add_assoc (C b * X ^ 2)],
-  exact (degree_add_le_of_degree_le (degree_C_mul_X_pow_le 3 a) $ le_trans degree_quadratic_le $
-           with_bot.coe_le_coe.mpr $ nat.le_succ 2)
-end
+by simpa only [add_assoc] using degree_add_le_of_degree_le (degree_C_mul_X_pow_le 3 a)
+  (le_trans degree_quadratic_le $ with_bot.coe_le_coe.mpr $ nat.le_succ 2)
 
 lemma degree_cubic_lt : degree (C a * X ^ 3 + C b * X ^ 2 + C c * X + C d) < 4 :=
-lt_of_le_of_lt degree_cubic_le $ with_bot.coe_lt_coe.mpr $ lt_add_one 3
+degree_cubic_le.trans_lt $ with_bot.coe_lt_coe.mpr $ lt_add_one 3
+
+lemma degree_quadratic_lt_degree_C_mul_X_cb (ha : a ≠ 0) :
+  degree (C b * X ^ 2 + C c * X + C d) < degree (C a * X ^ 3) :=
+by simpa only [degree_C_mul_X_pow 3 ha] using degree_quadratic_lt
 
 @[simp] lemma degree_cubic (ha : a ≠ 0) : degree (C a * X ^ 3 + C b * X ^ 2 + C c * X + C d) = 3 :=
 begin
-  rw [add_assoc, add_assoc, ← add_assoc (C b * X ^ 2), degree_add_eq_left_of_degree_lt],
-  all_goals { rw [degree_C_mul_X_pow 3 ha] },
-  refl,
-  exact degree_quadratic_lt
+  rw [add_assoc, add_assoc, ← add_assoc (C b * X ^ 2), degree_add_eq_left_of_degree_lt $
+        degree_quadratic_lt_degree_C_mul_X_cb ha, degree_C_mul_X_pow 3 ha],
+  refl
 end
 
 lemma nat_degree_cubic_le : nat_degree (C a * X ^ 3 + C b * X ^ 2 + C c * X + C d) ≤ 3 :=
@@ -978,12 +968,8 @@ nat_degree_eq_of_degree_eq_some $ degree_cubic ha
 
 @[simp] lemma leading_coeff_cubic (ha : a ≠ 0):
   leading_coeff (C a * X ^ 3 + C b * X ^ 2 + C c * X + C d) = a :=
-begin
-  rw [add_assoc, add_assoc, ← add_assoc (C b * X ^ 2), add_comm, leading_coeff_add_of_degree_lt,
-      leading_coeff_C_mul_X_pow],
-  rw [degree_C_mul_X_pow 3 ha],
-  exact degree_quadratic_lt
-end
+by rw [add_assoc, add_assoc, ← add_assoc (C b * X ^ 2), add_comm, leading_coeff_add_of_degree_lt $
+         degree_quadratic_lt_degree_C_mul_X_cb ha, leading_coeff_C_mul_X_pow]
 
 end semiring
 

@@ -42,9 +42,8 @@ begin
   have ha : a ∈ Ici a := left_mem_Ici,
   have has : a ∈ s := mem_of_mem_nhds_within ha hs,
   refine tendsto_order.2 ⟨λ b hb, _, λ b hb, _⟩,
-  { filter_upwards [hs, self_mem_nhds_within],
-    intros x hxs hxa,
-    exact hb.trans_le ((h_mono.le_iff_le has hxs).2 hxa) },
+  { filter_upwards [hs, self_mem_nhds_within] with _ hxs hxa
+      using hb.trans_le ((h_mono.le_iff_le has hxs).2 hxa) },
   { rcases hfs b hb with ⟨c, hcs, hac, hcb⟩,
     rw [h_mono.lt_iff_lt has hcs] at hac,
     filter_upwards [hs, Ico_mem_nhds_within_Ici (left_mem_Ico.2 hac)],
@@ -66,9 +65,8 @@ begin
   have ha : a ∈ Ici a := left_mem_Ici,
   have has : a ∈ s := mem_of_mem_nhds_within ha hs,
   refine tendsto_order.2 ⟨λ b hb, _, λ b hb, _⟩,
-  { filter_upwards [hs, self_mem_nhds_within],
-    intros x hxs hxa,
-    exact hb.trans_le (h_mono has hxs hxa) },
+  { filter_upwards [hs, self_mem_nhds_within] with _ hxs hxa
+      using hb.trans_le (h_mono has hxs hxa) },
   { rcases hfs b hb with ⟨c, hcs, hac, hcb⟩,
     have : a < c, from not_le.1 (λ h, hac.not_le $ h_mono hcs has h),
     filter_upwards [hs, Ico_mem_nhds_within_Ici (left_mem_Ico.2 this)],

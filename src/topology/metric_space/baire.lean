@@ -239,7 +239,7 @@ instance : countable_Inter_filter (residual α) :=
   choose T hTs hT using hS,
   refine ⟨⋂ s ∈ S, T s ‹_›, _, _, _⟩,
   { rw [sInter_eq_bInter],
-    exact Inter_subset_Inter (λ s, Inter_subset_Inter $ hTs s) },
+    exact Inter₂_mono hTs },
   { exact is_Gδ_bInter hSc (λ s hs, (hT s hs).1) },
   { exact dense_bInter_of_Gδ (λ s hs, (hT s hs).1) hSc (λ s hs, (hT s hs).2) }
 end⟩

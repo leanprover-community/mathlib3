@@ -6,6 +6,8 @@ Authors: Aaron Anderson, Jesse Michael Han, Floris van Doorn
 import data.nat.basic
 import data.set_like.basic
 import data.set.lattice
+import data.fin.tuple.basic
+import data.fintype.basic
 import order.closure
 
 /-!
@@ -28,6 +30,14 @@ This file defines first-order languages and structures in the style of the
 * A `first_order.language.equiv`, denoted `M ≃[L] N`, is an equivalence from the `L`-structure `M`
   to the `L`-structure `N` that commutes with the interpretations of functions, and which preserves
   the interpretations of relations in both directions.
+* A `first_order.language.term` is defined so that `L.term α` is the type of `L`-terms with free
+  variables indexed by `α`.
+* A `first_order.language.formula` is defined so that `L.formula α` is the type of `L`-formulas with
+  free variables indexed by `α`.
+* A `first_order.language.sentence` is a formula with no free variables.
+* A `first_order.language.theory` is a set of sentences.
+* A `first_order.language.definable_set` is defined so that `L.definable_set M α` is the boolean
+  algebra of subsets of `α → M` defined by formulas.
 
 ## References
 For the Flypitch project:
@@ -57,7 +67,7 @@ instance : inhabited language := ⟨empty⟩
 /-- The type of constants in a given language. -/
 @[nolint has_inhabited_instance] def const (L : language) := L.functions 0
 
-variable (L : language)
+variable (L : language.{u v})
 
 /-- A language is relational when it has no function symbols. -/
 class is_relational : Prop :=
@@ -457,8 +467,7 @@ instance : has_Inf (L.substructure M) :=
 lemma coe_Inf (S : set (L.substructure M)) :
   ((Inf S : L.substructure M) : set M) = ⋂ s ∈ S, ↑s := rfl
 
-lemma mem_Inf {S : set (L.substructure M)} {x : M} : x ∈ Inf S ↔ ∀ p ∈ S, x ∈ p :=
-  set.mem_bInter_iff
+lemma mem_Inf {S : set (L.substructure M)} {x : M} : x ∈ Inf S ↔ ∀ p ∈ S, x ∈ p := set.mem_Inter₂
 
 lemma mem_infi {ι : Sort*} {S : ι → L.substructure M} {x : M} : (x ∈ ⨅ i, S i) ↔ ∀ i, x ∈ S i :=
 by simp only [infi, mem_Inf, set.forall_range_iff]
@@ -765,21 +774,15 @@ def subtype (S : L.substructure M) : S ↪[L] M :=
 
 @[simp] theorem coe_subtype : ⇑S.subtype = coe := rfl
 
-/-- An induction principle on elements of the type `substructure.closure L s`.
-If `p` holds for `1` and all elements of `s`, and is preserved under multiplication, then `p`
-holds for all elements of the closure of `s`.
-The difference with `substructure.closure_induction` is that this acts on the subtype.
--/
-@[elab_as_eliminator] lemma closure_induction' (s : set M) {p : closure L s → Prop}
-  (Hs : ∀ x (h : x ∈ s), p ⟨x, subset_closure h⟩)
-  (Hfun : ∀ {n : ℕ} (f : L.functions n), closed_under f (set_of p))
-  (x : closure L s) :
-  p x :=
-subtype.rec_on x $ λ x hx, begin
-  refine exists.elim _ (λ (hx : x ∈ closure L s) (hc : p ⟨x, hx⟩), hc),
-  exact closure_induction hx (λ x hx, ⟨subset_closure hx, Hs x hx⟩) (λ n f x hx,
-    ⟨(closure L s).fun_mem f _ (λ i, classical.some (hx i)),
-    Hfun f (λ i, ⟨x i, classical.some (hx i)⟩) (λ i, classical.some_spec (hx i))⟩),
+/-- A dependent version of `substructure.closure_induction`. -/
+@[elab_as_eliminator] lemma closure_induction' (s : set M) {p : Π x, x ∈ closure L s → Prop}
+  (Hs : ∀ x (h : x ∈ s), p x (subset_closure h))
+  (Hfun : ∀ {n : ℕ} (f : L.functions n), closed_under f {x | ∃ hx, p x hx})
+  {x} (hx : x ∈ closure L s) :
+  p x hx :=
+begin
+  refine exists.elim _ (λ (hx : x ∈ closure L s) (hc : p x hx), hc),
+  exact closure_induction hx (λ x hx, ⟨subset_closure hx, Hs x hx⟩) @Hfun
 end
 
 end substructure
@@ -811,6 +814,268 @@ lemma eq_of_eq_on_dense (hs : closure L s = ⊤) {f g : M →[L] N} (h : s.eq_on
 eq_of_eq_on_top $ hs ▸ eq_on_closure h
 
 end hom
+
+variable (L)
+/-- A term on `α` is either a variable indexed by an element of `α`
+  or a function symbol applied to simpler terms. -/
+inductive term (α : Type) : Type u
+| var {} : ∀ (a : α), term
+| func {} : ∀ {l : ℕ} (f : L.functions l) (ts : fin l → term), term
+export term
+
+variable {L}
+
+instance {α : Type} [inhabited α] : inhabited (L.term α) :=
+⟨var default⟩
+
+instance {α} : has_coe L.const (L.term α) :=
+⟨λ c, func c fin_zero_elim⟩
+
+/-- A term `t` with variables indexed by `α` can be evaluated by giving a value to each variable. -/
+@[simp] def realize_term {α : Type} (v : α → M) :
+  ∀ (t : L.term α), M
+| (var k)         := v k
+| (func f ts)     := fun_map f (λ i, realize_term (ts i))
+
+variable (L)
+/-- `bounded_formula α n` is the type of formulas with free variables indexed by `α` and up to `n`
+  additional free variables. -/
+inductive bounded_formula (α : Type) : ℕ → Type (max u v)
+| bd_falsum {} {n} : bounded_formula n
+| bd_equal {n} (t₁ t₂ : L.term (α ⊕ fin n)) : bounded_formula n
+| bd_rel {n l : ℕ} (R : L.relations l) (ts : fin l → L.term (α ⊕ fin n)) : bounded_formula n
+| bd_imp {n} (f₁ f₂ : bounded_formula n) : bounded_formula n
+| bd_all {n} (f : bounded_formula (n+1)) : bounded_formula n
+
+export bounded_formula
+
+instance {α : Type} {n : ℕ} : inhabited (L.bounded_formula α n) :=
+⟨bd_falsum⟩
+
+/-- `formula α` is the type of formulas with all free variables indexed by `α`. -/
+@[reducible] def formula (α : Type) := L.bounded_formula α 0
+
+/-- A sentence is a formula with no free variables. -/
+@[reducible] def sentence           := L.formula pempty
+
+/-- A theory is a set of sentences. -/
+@[reducible] def theory := set L.sentence
+
+variables {L} {α : Type}
+
+section formula
+variable {n : ℕ}
+
+@[simps] instance : has_bot (L.bounded_formula α n) := ⟨bd_falsum⟩
+
+/-- The negation of a bounded formula is also a bounded formula. -/
+@[reducible] def bd_not (φ : L.bounded_formula α n) : L.bounded_formula α n :=
+  bd_imp φ ⊥
+
+@[simps] instance : has_top (L.bounded_formula α n) := ⟨bd_not bd_falsum⟩
+
+@[simps] instance : has_inf (L.bounded_formula α n) := ⟨λ f g, bd_not (bd_imp f (bd_not g))⟩
+
+@[simps] instance : has_sup (L.bounded_formula α n) := ⟨λ f g, bd_imp (bd_not f) g⟩
+
+end formula
+
+variable {L}
+
+instance nonempty_bounded_formula {α : Type} (n : ℕ) : nonempty $ L.bounded_formula α n :=
+  nonempty.intro (by constructor)
+
+variables (M)
+
+/-- A bounded formula can be evaluated as true or false by giving values to each free variable. -/
+@[simp] def realize_bounded_formula :
+  ∀ {l} (f : L.bounded_formula α l) (v : α → M) (xs : fin l → M), Prop
+| _ bd_falsum  v     xs := false
+| _ (bd_equal t₁ t₂) v xs := realize_term (sum.elim v xs) t₁ = realize_term (sum.elim v xs) t₂
+| _ (bd_rel R ts)   v   xs := rel_map R (λ i, realize_term (sum.elim v xs) (ts i))
+| _ (bd_imp f₁ f₂)  v xs := realize_bounded_formula f₁ v xs → realize_bounded_formula f₂ v xs
+| _ (bd_all f)     v   xs := ∀(x : M), realize_bounded_formula f v (fin.cons x xs)
+
+@[simp] lemma realize_not {l} (f : L.bounded_formula α l) (v : α → M) (xs : fin l → M) :
+  realize_bounded_formula M (bd_not f) v xs = ¬ realize_bounded_formula M f v xs :=
+rfl
+
+/-- A bounded formula can be evaluated as true or false by giving values to each free variable. -/
+@[reducible] def realize_formula (f : L.formula α) (v : α → M) : Prop :=
+realize_bounded_formula M f v fin_zero_elim
+
+/-- A sentence can be evaluated as true or false in a structure. -/
+@[reducible] def realize_sentence (φ : L.sentence) : Prop :=
+realize_formula M φ pempty.elim
+
+variable {M}
+
+section definability
+
+variables (L) [fintype α]
+
+/-- A subset of a finite Cartesian product of a structure is definable when membership in
+  the set is given by a first-order formula. -/
+structure is_definable (s : set (α → M)) : Prop :=
+(exists_formula : ∃ (φ : L.formula α), s = set_of (realize_formula M φ))
+
+variables {L}
+
+@[simp]
+lemma is_definable_empty : L.is_definable (∅ : set (α → M)) :=
+⟨⟨⊥, by {ext, simp} ⟩⟩
+
+@[simp]
+lemma is_definable_univ : L.is_definable (set.univ : set (α → M)) :=
+⟨⟨⊤, by {ext, simp} ⟩⟩
+
+@[simp]
+lemma is_definable.inter {f g : set (α → M)} (hf : L.is_definable f) (hg : L.is_definable g) :
+  L.is_definable (f ∩ g) :=
+⟨begin
+  rcases hf.exists_formula with ⟨φ, hφ⟩,
+  rcases hg.exists_formula with ⟨θ, hθ⟩,
+  refine ⟨φ ⊓ θ, _⟩,
+  ext,
+  simp [hφ, hθ],
+end⟩
+
+@[simp]
+lemma is_definable.union {f g : set (α → M)} (hf : L.is_definable f) (hg : L.is_definable g) :
+  L.is_definable (f ∪ g) :=
+⟨begin
+  rcases hf.exists_formula with ⟨φ, hφ⟩,
+  rcases hg.exists_formula with ⟨θ, hθ⟩,
+  refine ⟨φ ⊔ θ, _⟩,
+  ext,
+  simp only [hφ, hθ, set.sup_eq_union, realize_not, realize_bounded_formula,
+    bounded_formula.has_sup_sup, set.mem_union_eq, set.mem_set_of_eq],
+  tauto,
+end⟩
+
+@[simp]
+lemma is_definable.compl {s : set (α → M)} (hf : L.is_definable s) :
+  L.is_definable sᶜ :=
+⟨begin
+  rcases hf.exists_formula with ⟨φ, hφ⟩,
+  refine ⟨bd_not φ, _⟩,
+  rw hφ,
+  refl,
+end⟩
+
+@[simp]
+lemma is_definable.sdiff {s t : set (α → M)} (hs : L.is_definable s)
+  (ht : L.is_definable t) :
+  L.is_definable (s \ t) :=
+hs.inter ht.compl
+
+variables (L) (M) (α)
+
+/-- Definable sets are subsets of finite Cartesian products of a structure such that membership is
+  given by a first-order formula. -/
+def definable_set := subtype (λ s : set (α → M), is_definable L s)
+
+namespace definable_set
+variables {M} {α}
+
+instance : has_top (L.definable_set M α) := ⟨⟨⊤, is_definable_univ⟩⟩
+
+instance : has_bot (L.definable_set M α) := ⟨⟨⊥, is_definable_empty⟩⟩
+
+instance : inhabited (L.definable_set M α) := ⟨⊥⟩
+
+instance : set_like (L.definable_set M α) (α → M) :=
+{ coe := subtype.val,
+  coe_injective' := subtype.val_injective }
+
+@[simp]
+lemma mem_top {x : α → M} : x ∈ (⊤ : L.definable_set M α) := set.mem_univ x
+
+@[simp]
+lemma coe_top : ((⊤ : L.definable_set M α) : set (α → M)) = ⊤ := rfl
+
+@[simp]
+lemma not_mem_bot {x : α → M} : ¬ x ∈ (⊥ : L.definable_set M α) := set.not_mem_empty x
+
+@[simp]
+lemma coe_bot : ((⊥ : L.definable_set M α) : set (α → M)) = ⊥ := rfl
+
+instance : lattice (L.definable_set M α) :=
+subtype.lattice (λ _ _, is_definable.union) (λ _ _, is_definable.inter)
+
+lemma le_iff {s t : L.definable_set M α} : s ≤ t ↔ (s : set (α → M)) ≤ (t : set (α → M)) := iff.rfl
+
+@[simp]
+lemma coe_sup {s t : L.definable_set M α} : ((s ⊔ t : L.definable_set M α) : set (α → M)) = s ∪ t :=
+rfl
+
+@[simp]
+lemma mem_sup {s t : L.definable_set M α} {x : α → M} : x ∈ s ⊔ t ↔ x ∈ s ∨ x ∈ t := iff.rfl
+
+@[simp]
+lemma coe_inf {s t : L.definable_set M α} : ((s ⊓ t : L.definable_set M α) : set (α → M)) = s ∩ t :=
+rfl
+
+@[simp]
+lemma mem_inf {s t : L.definable_set M α} {x : α → M} : x ∈ s ⊓ t ↔ x ∈ s ∧ x ∈ t := iff.rfl
+
+instance : bounded_order (L.definable_set M α) :=
+{ bot_le := λ s x hx, false.elim hx,
+  le_top := λ s x hx, set.mem_univ x,
+  .. definable_set.has_top L,
+  .. definable_set.has_bot L }
+
+instance : distrib_lattice (L.definable_set M α) :=
+{ le_sup_inf := begin
+    intros s t u x,
+    simp only [and_imp, set.mem_inter_eq, set_like.mem_coe, coe_sup, coe_inf, set.mem_union_eq,
+      subtype.val_eq_coe],
+    tauto,
+  end,
+  .. definable_set.lattice L }
+
+/-- The complement of a definable set is also definable. -/
+@[reducible] instance : has_compl (L.definable_set M α) :=
+⟨λ ⟨s, hs⟩, ⟨sᶜ, hs.compl⟩⟩
+
+@[simp]
+lemma mem_compl {s : L.definable_set M α} {x : α → M} : x ∈ sᶜ ↔ ¬ x ∈ s :=
+begin
+  cases s with s hs,
+  refl,
+end
+
+@[simp]
+lemma coe_compl {s : L.definable_set M α} : ((sᶜ : L.definable_set M α) : set (α → M)) = sᶜ :=
+begin
+  ext,
+  simp,
+end
+
+instance : boolean_algebra (L.definable_set M α) :=
+{ sdiff := λ s t, s ⊓ tᶜ,
+  sdiff_eq := λ s t, rfl,
+  sup_inf_sdiff := λ ⟨s, hs⟩ ⟨t, ht⟩,
+  begin
+    apply le_antisymm;
+    simp [le_iff],
+  end,
+  inf_inf_sdiff := λ ⟨s, hs⟩ ⟨t, ht⟩, begin
+    rw eq_bot_iff,
+    simp only [coe_compl, le_iff, coe_bot, coe_inf, subtype.coe_mk,
+      set.le_eq_subset],
+    intros x hx,
+    simp only [set.mem_inter_eq, set.mem_compl_eq] at hx,
+    tauto,
+  end,
+  inf_compl_le_bot := λ ⟨s, hs⟩, by simp [le_iff],
+  top_le_sup_compl := λ ⟨s, hs⟩, by simp [le_iff],
+  .. definable_set.has_compl L,
+  .. definable_set.bounded_order L,
+  .. definable_set.distrib_lattice L }
+
+end definable_set
+end definability
 
 end language
 end first_order

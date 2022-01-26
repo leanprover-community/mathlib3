@@ -58,6 +58,15 @@ lemma mem_upper_bounds : a ∈ upper_bounds s ↔ ∀ x ∈ s, x ≤ a := iff.rf
 
 lemma mem_lower_bounds : a ∈ lower_bounds s ↔ ∀ x ∈ s, a ≤ x := iff.rfl
 
+lemma bot_mem_lower_bounds [order_bot α] (s : set α) : ⊥ ∈ lower_bounds s := λ _ _, bot_le
+lemma top_mem_upper_bounds [order_top α] (s : set α) : ⊤ ∈ upper_bounds s := λ _ _, le_top
+
+@[simp] lemma is_least_bot_iff [order_bot α] : is_least s ⊥ ↔ ⊥ ∈ s :=
+and_iff_left $ bot_mem_lower_bounds _
+
+@[simp] lemma is_greatest_top_iff [order_top α] : is_greatest s ⊤ ↔ ⊤ ∈ s :=
+and_iff_left $ top_mem_upper_bounds _
+
 /-- A set `s` is not bounded above if and only if for each `x` there exists `y ∈ s` such that `x`
 is not greater than or equal to `y`. This version only assumes `preorder` structure and uses
 `¬(y ≤ x)`. A version for linear orders is called `not_bdd_above_iff`. -/
@@ -93,6 +102,16 @@ lemma is_greatest.dual (h : is_greatest s a) : is_least (of_dual ⁻¹' s) (to_d
 lemma is_lub.dual (h : is_lub s a) : is_glb (of_dual ⁻¹' s) (to_dual a) := h
 
 lemma is_glb.dual (h : is_glb s a) : is_lub (of_dual ⁻¹' s) (to_dual a) := h
+
+/-- If `a` is the least element of a set `s`, then subtype `s` is an order with bottom element. -/
+@[reducible] def is_least.order_bot (h : is_least s a) : order_bot s :=
+{ bot := ⟨a, h.1⟩,
+  bot_le := subtype.forall.2 h.2 }
+
+/-- If `a` is the greatest element of a set `s`, then subtype `s` is an order with top element. -/
+@[reducible] def is_greatest.order_top (h : is_greatest s a) : order_top s :=
+{ top := ⟨a, h.1⟩,
+  le_top := subtype.forall.2 h.2 }
 
 /-!
 ### Monotonicity

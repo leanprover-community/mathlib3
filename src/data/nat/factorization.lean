@@ -93,7 +93,7 @@ by rw [perm_iff_count.mp (perm_factors_mul ha hb) p, count_append]
 by { ext p, simp only [add_apply, ←factors_count_eq, count_factors_mul ha hb] }
 
 /-- For any `p`, the power of `p` in `n^k` is `k` times the power in `n` -/
-lemma factorization_pow (n k : ℕ) :
+@[simp] lemma factorization_pow (n k : ℕ) :
   factorization (n^k) = k • n.factorization :=
 begin
   induction k with k ih,

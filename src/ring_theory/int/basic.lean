@@ -276,7 +276,7 @@ begin
   cases n, { simp },
   rw [← multiset.rel_eq, ← associated_eq_eq],
   apply factors_unique (irreducible_of_normalized_factor) _,
-  { rw [multiset.coe_prod, nat.prod_factors (nat.succ_pos _)],
+  { rw [multiset.coe_prod, nat.prod_factors $ n.succ_ne_zero],
     apply normalized_factors_prod (nat.succ_ne_zero _) },
   { apply_instance },
   { intros x hx,

@@ -60,13 +60,7 @@ section coeff
 private lemma coeffs :
   P.to_poly.coeff 3 = P.a ∧ P.to_poly.coeff 2 = P.b ∧ P.to_poly.coeff 1 = P.c
     ∧ P.to_poly.coeff 0 = P.d :=
-begin
-  rw [to_poly],
-  simp only [coeff_add, coeff_C, coeff_C_mul_X, coeff_C_mul_X_pow],
-  change P.a + 0 + 0 + 0 = _ ∧ 0 + P.b + 0 + 0 = _ ∧ 0 + 0 + P.c + 0 = _ ∧ 0 + 0 + 0 + P.d = _,
-  simp only [zero_add, add_zero],
-  exact ⟨rfl, rfl, rfl, rfl⟩
-end
+by simp [to_poly, coeff_add, coeff_C, coeff_C_mul_X, coeff_C_mul_X_pow]
 
 @[simp] lemma coeff_three : P.to_poly.coeff 3 = P.a := coeffs.1
 
@@ -200,13 +194,10 @@ end
 
 theorem card_roots_le [is_domain R] [decidable_eq R] : P.roots.to_finset.card ≤ 3 :=
 begin
-  apply le_trans (to_finset_card_le P.to_poly.roots),
+  apply (to_finset_card_le P.to_poly.roots).trans,
   by_cases hP : P.to_poly = 0,
-  { apply le_trans (card_roots' P.to_poly),
-    rw [hP],
-    exact zero_le 3 },
-  { rw [← with_bot.coe_le_coe],
-    exact le_trans (card_roots hP) (le_trans degree_cubic_le $ le_refl 3) }
+  { exact (card_roots' P.to_poly).trans (by { rw [hP, nat_degree_zero], exact zero_le 3 }) },
+  { simpa only [← @with_bot.coe_le_coe _ _ _ 3] using (card_roots hP).trans degree_cubic_le }
 end
 
 end extension
@@ -220,8 +211,8 @@ section split
 theorem splits_iff_card_roots (ha : P.a ≠ 0) : splits φ P.to_poly ↔ (map φ P).roots.card = 3 :=
 begin
   replace ha : (map φ P).a ≠ 0 := (ring_hom.map_ne_zero φ).mpr ha,
-  change splits ((ring_hom.id K).comp φ) P.to_poly ↔ card (map φ P).to_poly.roots = 3,
-  rw [← splits_map_iff, ← map_to_poly, splits_iff_card_roots,
+  nth_rewrite_lhs 0 [← ring_hom.id_comp φ],
+  rw [roots, ← splits_map_iff, ← map_to_poly, splits_iff_card_roots,
       ← ((degree_eq_iff_nat_degree_eq $ ne_zero_of_a_ne_zero ha).mp $ degree ha : _ = 3)]
 end
 
@@ -242,10 +233,10 @@ theorem eq_sum_three_roots (ha : P.a ≠ 0) (h3 : (map φ P).roots = {x, y, z}) 
   map φ P = ⟨φ P.a, φ P.a * -(x + y + z), φ P.a * (x * y + x * z + y * z), φ P.a * -(x * y * z)⟩ :=
 begin
   apply_fun to_poly,
+  any_goals { exact λ P Q, (to_poly_injective P Q).mp },
   rw [eq_prod_three_roots ha h3, to_poly],
   simp only [C_neg, C_add, C_mul],
-  ring1,
-  exact λ P Q, (to_poly_injective P Q).mp
+  ring1
 end
 
 theorem b_eq_three_roots (ha : P.a ≠ 0) (h3 : (map φ P).roots = {x, y, z}) :
@@ -300,13 +291,11 @@ begin
 end
 
 theorem card_roots_of_disc_ne_zero [decidable_eq K] (ha : P.a ≠ 0)
-  (h3 : (map φ P).roots = {x, y, z}) (hd : P.disc ≠ 0) :
-  (map φ P).roots.to_finset.card = 3 :=
+  (h3 : (map φ P).roots = {x, y, z}) (hd : P.disc ≠ 0) : (map φ P).roots.to_finset.card = 3 :=
 begin
   rw [to_finset_card_of_nodup $ (disc_ne_zero_iff_roots_nodup ha h3).mp hd,
       ← splits_iff_card_roots ha, splits_iff_roots_eq_three ha],
-  existsi [x, y, z],
-  exact h3
+  exact ⟨x, ⟨y, ⟨z, h3⟩⟩⟩
 end
 
 end discriminant

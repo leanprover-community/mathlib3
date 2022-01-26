@@ -177,7 +177,7 @@ begin
         = (x - s) * (x^2 + x*s + s^2) : by ring
     ... = (x - s) * (x^2 - (ω+ω^2)*x*s + (1+ω+ω^2)*x*s + s^2) : by ring
     ... = (x - s) * (x^2 - (ω+ω^2)*x*s + ω^3*s^2)
-        : by { rw [is_primitive_root.pow_eq_one hω, cube_root_of_unity_sum hω], simp, }
+        : by { rw [hω.pow_eq_one, cube_root_of_unity_sum hω], simp, }
     ... = (x - s) * (x - s * ω) * (x - s * ω^2) : by ring },
   rw [h₁, h₂, h₃, h₄ (x + b/(3*a))],
   ring_nf,

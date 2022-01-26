@@ -54,9 +54,7 @@ because the more bundled version usually does not work with dot notation.
   `order_dual α →o order_dual β`;
 * `order_hom.dual_iso`: order isomorphism between `α →o β` and
   `order_dual (order_dual α →o order_dual β)`;
-* `order_hom.compl`: order homomorphism `α →o order_dual α` given by taking complements in a
-  boolean algebra;
-* `order_hom.compl_iso`: order isomorphism `α ≃o order_dual α` given by taking complements in a
+* `order_iso.compl`: order isomorphism `α ≃o order_dual α` given by taking complements in a
   boolean algebra;
 
 We also define two functions to convert other bundled maps to `α →o β`:
@@ -689,17 +687,11 @@ end bounded_order
 end lattice_isos
 
 section boolean_algebra
-variables (α) [boolean_algebra.core α]
-
-/-- Taking complements as an order homomorphism to the order dual. -/
-@[simps]
-def order_hom.compl : α →o order_dual α :=
-{ to_fun := order_dual.to_dual ∘ compl,
-  monotone' := λ x y, compl_le_compl }
+variables (α) [boolean_algebra α]
 
 /-- Taking complements as an order isomorphism to the order dual. -/
 @[simps]
-def order_hom.compl_iso : α ≃o order_dual α :=
+def order_iso.compl : α ≃o order_dual α :=
 { to_fun := order_dual.to_dual ∘ compl,
   inv_fun := compl ∘ order_dual.of_dual,
   left_inv := compl_compl,
@@ -707,9 +699,9 @@ def order_hom.compl_iso : α ≃o order_dual α :=
   map_rel_iff' := λ x y, compl_le_compl_iff_le }
 
 theorem compl_strict_anti : strict_anti (compl : α → α) :=
-(order_hom.compl_iso α).strict_mono
+(order_iso.compl α).strict_mono
 
 theorem compl_antitone : antitone (compl : α → α) :=
-(order_hom.compl_iso α).monotone
+(order_iso.compl α).monotone
 
 end boolean_algebra

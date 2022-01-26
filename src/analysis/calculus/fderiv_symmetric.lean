@@ -87,10 +87,9 @@ begin
   have E2 : ∀ᶠ h in 𝓝[>] (0:ℝ), (h : ℝ) < 1 :=
     mem_nhds_within_Ioi_iff_exists_Ioo_subset.2
       ⟨(1 : ℝ), by simp only [mem_Ioi, zero_lt_one], λ x hx, hx.2⟩,
-  filter_upwards [E1, E2, self_mem_nhds_within],
+  filter_upwards [E1, E2, self_mem_nhds_within] with h hδ h_lt_1 hpos,
   -- we consider `h` small enough that all points under consideration belong to this ball,
   -- and also with `0 < h < 1`.
-  assume h hδ h_lt_1 hpos,
   replace hpos : 0 < h := hpos,
   have xt_mem : ∀ t ∈ Icc (0 : ℝ) 1, x + h • v + (t * h) • w ∈ interior s,
   { assume t ht,
@@ -264,9 +263,8 @@ begin
       rw [← one_smul ℝ (f'' w v - f'' v w), smul_smul, smul_smul],
       congr' 1,
       field_simp [has_lt.lt.ne' hpos] },
-    { filter_upwards [self_mem_nhds_within],
-      assume h hpos,
-      field_simp [has_lt.lt.ne' hpos, has_scalar.smul] } },
+    { filter_upwards [self_mem_nhds_within] with _ hpos,
+      field_simp [has_lt.lt.ne' hpos, has_scalar.smul], }, },
   simpa only [sub_eq_zero] using (is_o_const_const_iff (@one_ne_zero ℝ _ _)).1 B,
 end
 

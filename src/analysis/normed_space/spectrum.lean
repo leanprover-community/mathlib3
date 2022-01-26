@@ -67,7 +67,7 @@ lemma mem_resolvent_of_norm_lt {a : A} {k : 𝕜} (h : ∥a∥ < ∥k∥) :
   k ∈ ρ a :=
 begin
   rw [resolvent_set, set.mem_set_of_eq, algebra.algebra_map_eq_smul_one],
-  have hk : k ≠ 0 := ne_zero_of_norm_pos (by linarith [norm_nonneg a]),
+  have hk : k ≠ 0 := ne_zero_of_norm_ne_zero (by linarith [norm_nonneg a]),
   let ku := units.map (↑ₐ).to_monoid_hom (units.mk0 k hk),
   have hku : ∥-a∥ < ∥(↑ku⁻¹:A)∥⁻¹ := by simpa [ku, algebra_map_isometry] using h,
   simpa [ku, sub_eq_add_neg, algebra.algebra_map_eq_smul_one] using (ku.add (-a) hku).is_unit,

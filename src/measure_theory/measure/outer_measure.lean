@@ -769,7 +769,7 @@ is_caratheodory_iff_le'.2 $ λ t, begin
   refine supr_le (λ n, le_trans (add_le_add_left _ _)
     (ge_of_eq (is_caratheodory_Union_lt m (λ i _, h i) _))),
   refine m.mono (diff_subset_diff_right _),
-  exact bUnion_subset (λ i _, subset_Union _ i),
+  exact Union₂_subset (λ i _, subset_Union _ i),
 end
 
 lemma f_Union {s : ℕ → set α} (h : ∀i, is_caratheodory (s i))
@@ -780,7 +780,7 @@ begin
   refine supr_le (λ n, _),
   have := @is_caratheodory_sum _ m _ h hd univ n,
   simp at this, simp [this],
-  exact m.mono (bUnion_subset (λ i _, subset_Union _ i)),
+  exact m.mono (Union₂_subset (λ i _, subset_Union _ i)),
 end
 
 /-- The Carathéodory-measurable sets for an outer measure `m` form a Dynkin system.  -/

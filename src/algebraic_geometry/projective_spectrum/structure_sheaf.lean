@@ -47,8 +47,6 @@ and the localization of `R` at the submonoid of powers of `f`.
 
 -/
 
--- set_option profiler true
-
 noncomputable theory
 
 namespace algebraic_geometry
@@ -167,8 +165,7 @@ end
 
 lemma hartshorne_localisation.ext (x : projective_spectrum.Top 𝒜)
   (a b : A) (i : ℕ) (a_hom : a ∈ 𝒜 i) (b_hom : b ∈ 𝒜 i)
-  (b_nin b_nin' : b ∉ x.as_homogeneous_ideal)
-       :
+  (b_nin b_nin' : b ∉ x.as_homogeneous_ideal) :
   (⟨localization.mk a ⟨b, b_nin⟩, ⟨hl.condition.mk a b b_nin i a_hom b_hom, rfl⟩⟩ :
     hartshorne_localisation 𝒜 x) =
   (⟨localization.mk a ⟨b, b_nin'⟩, ⟨hl.condition.mk a b b_nin' i a_hom b_hom, rfl⟩⟩ :

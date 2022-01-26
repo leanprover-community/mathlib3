@@ -60,7 +60,13 @@ section coeff
 private lemma coeffs :
   P.to_poly.coeff 3 = P.a ∧ P.to_poly.coeff 2 = P.b ∧ P.to_poly.coeff 1 = P.c
     ∧ P.to_poly.coeff 0 = P.d :=
-by { simp only [to_poly, coeff_add, coeff_C, coeff_C_mul, coeff_X, coeff_C_mul_X], norm_num }
+begin
+  rw [to_poly],
+  simp only [coeff_add, coeff_C, coeff_C_mul_X, coeff_C_mul_X_pow],
+  change P.a + 0 + 0 + 0 = _ ∧ 0 + P.b + 0 + 0 = _ ∧ 0 + 0 + P.c + 0 = _ ∧ 0 + 0 + 0 + P.d = _,
+  simp only [zero_add, add_zero],
+  exact ⟨rfl, rfl, rfl, rfl⟩
+end
 
 @[simp] lemma coeff_three : P.to_poly.coeff 3 = P.a := coeffs.1
 
@@ -156,12 +162,12 @@ end degree
 
 section map
 
-variables [semiring S]
+variables [semiring S] {φ : R →+* S}
 
 /-- Map a cubic polynomial across a semiring homomorphism. -/
 def map (φ : R →+* S) (P : cubic R) : cubic S := ⟨φ P.a, φ P.b, φ P.c, φ P.d⟩
 
-lemma map_to_poly {φ : R →+* S} : (map φ P).to_poly = polynomial.map φ P.to_poly :=
+lemma map_to_poly : (map φ P).to_poly = polynomial.map φ P.to_poly :=
 by simp only [map, to_poly, map_C, map_X, polynomial.map_add, polynomial.map_mul,
               polynomial.map_pow]
 
@@ -197,10 +203,10 @@ begin
   apply le_trans (to_finset_card_le P.to_poly.roots),
   by_cases hP : P.to_poly = 0,
   { apply le_trans (card_roots' P.to_poly),
-    rw [hP, nat_degree_zero],
-    exact dec_trivial },
+    rw [hP],
+    exact zero_le 3 },
   { rw [← with_bot.coe_le_coe],
-    exact le_trans (card_roots hP) (le_trans degree_cubic_le dec_trivial) }
+    exact le_trans (card_roots hP) (le_trans degree_cubic_le $ le_refl 3) }
 end
 
 end extension

@@ -26,7 +26,7 @@ open_locale big_operators classical
 
 namespace polynomial
 universes u v
-variables {R : Type u} {S : Type v} {a b : R} {n m : ℕ}
+variables {R : Type u} {S : Type v} {a b c d : R} {n m : ℕ}
 
 section semiring
 variables [semiring R] {p q r : polynomial R}
@@ -162,6 +162,9 @@ by { rw [degree, ← monomial_zero_left, support_monomial 0 _ ha, sup_singleton]
 
 lemma degree_C_le : degree (C a) ≤ 0 :=
 by by_cases h : a = 0; [rw [h, C_0], rw [degree_C h]]; [exact bot_le, exact le_refl _]
+
+lemma degree_C_lt : degree (C a) < 1 :=
+lt_of_le_of_lt degree_C_le $ with_bot.coe_lt_coe.mpr zero_lt_one
 
 lemma degree_one_le : degree (1 : polynomial R) ≤ (0 : with_bot ℕ) :=
 by rw [← C_1]; exact degree_C_le
@@ -890,16 +893,17 @@ begin
   ... < n : with_bot.some_lt_some.mpr hi,
 end
 
-variables {c d : R}
-
 lemma degree_linear_le : degree (C a * X + C b) ≤ 1 :=
-degree_add_le_of_degree_le (degree_C_mul_X_le _) $ le_trans degree_C_le dec_trivial
+degree_add_le_of_degree_le (degree_C_mul_X_le _) $ le_trans degree_C_le nat.with_bot.coe_nonneg
+
+lemma degree_linear_lt : degree (C a * X + C b) < 2 :=
+lt_of_le_of_lt degree_linear_le $ with_bot.coe_lt_coe.mpr one_lt_two
 
 @[simp] lemma degree_linear (ha : a ≠ 0) : degree (C a * X + C b) = 1 :=
 begin
   rw [degree_add_eq_left_of_degree_lt],
   all_goals { rw [degree_C_mul_X ha] },
-  exact lt_of_le_of_lt degree_C_le dec_trivial
+  exact degree_C_lt
 end
 
 lemma nat_degree_linear_le : nat_degree (C a * X + C b) ≤ 1 :=
@@ -912,22 +916,25 @@ nat_degree_eq_of_degree_eq_some $ degree_linear ha
 begin
   rw [add_comm, leading_coeff_add_of_degree_lt, leading_coeff_C_mul_X],
   rw [degree_C_mul_X ha],
-  exact lt_of_le_of_lt degree_C_le dec_trivial
+  exact degree_C_lt
 end
 
 lemma degree_quadratic_le : degree (C a * X ^ 2 + C b * X + C c) ≤ 2 :=
 begin
   rw [add_assoc],
-  exact degree_add_le_of_degree_le (degree_C_mul_X_pow_le 2 a)
-    (le_trans degree_linear_le dec_trivial)
+  exact (degree_add_le_of_degree_le (degree_C_mul_X_pow_le 2 a) $ le_trans degree_linear_le $
+           with_bot.coe_le_coe.mpr one_le_two)
 end
+
+lemma degree_quadratic_lt : degree (C a * X ^ 2 + C b * X + C c) < 3 :=
+lt_of_le_of_lt degree_quadratic_le $ with_bot.coe_lt_coe.mpr $ lt_add_one 2
 
 @[simp] lemma degree_quadratic (ha : a ≠ 0) : degree (C a * X ^ 2 + C b * X + C c) = 2 :=
 begin
   rw [add_assoc, degree_add_eq_left_of_degree_lt],
   all_goals { rw [degree_C_mul_X_pow 2 ha] },
   refl,
-  exact lt_of_le_of_lt degree_linear_le dec_trivial
+  exact degree_linear_lt
 end
 
 lemma nat_degree_quadratic_le : nat_degree (C a * X ^ 2 + C b * X + C c) ≤ 2 :=
@@ -941,22 +948,25 @@ nat_degree_eq_of_degree_eq_some $ degree_quadratic ha
 begin
   rw [add_assoc, add_comm, leading_coeff_add_of_degree_lt, leading_coeff_C_mul_X_pow],
   rw [degree_C_mul_X_pow 2 ha],
-  exact lt_of_le_of_lt degree_linear_le dec_trivial
+  exact degree_linear_lt
 end
 
 lemma degree_cubic_le : degree (C a * X ^ 3 + C b * X ^ 2 + C c * X + C d) ≤ 3 :=
 begin
   rw [add_assoc, add_assoc, ← add_assoc (C b * X ^ 2)],
-  exact degree_add_le_of_degree_le (degree_C_mul_X_pow_le 3 a)
-    (le_trans degree_quadratic_le dec_trivial)
+  exact (degree_add_le_of_degree_le (degree_C_mul_X_pow_le 3 a) $ le_trans degree_quadratic_le $
+           with_bot.coe_le_coe.mpr $ nat.le_succ 2)
 end
+
+lemma degree_cubic_lt : degree (C a * X ^ 3 + C b * X ^ 2 + C c * X + C d) < 4 :=
+lt_of_le_of_lt degree_cubic_le $ with_bot.coe_lt_coe.mpr $ lt_add_one 3
 
 @[simp] lemma degree_cubic (ha : a ≠ 0) : degree (C a * X ^ 3 + C b * X ^ 2 + C c * X + C d) = 3 :=
 begin
   rw [add_assoc, add_assoc, ← add_assoc (C b * X ^ 2), degree_add_eq_left_of_degree_lt],
   all_goals { rw [degree_C_mul_X_pow 3 ha] },
   refl,
-  exact lt_of_le_of_lt degree_quadratic_le dec_trivial
+  exact degree_quadratic_lt
 end
 
 lemma nat_degree_cubic_le : nat_degree (C a * X ^ 3 + C b * X ^ 2 + C c * X + C d) ≤ 3 :=
@@ -972,7 +982,7 @@ begin
   rw [add_assoc, add_assoc, ← add_assoc (C b * X ^ 2), add_comm, leading_coeff_add_of_degree_lt,
       leading_coeff_C_mul_X_pow],
   rw [degree_C_mul_X_pow 3 ha],
-  exact lt_of_le_of_lt degree_quadratic_le dec_trivial
+  exact degree_quadratic_lt
 end
 
 end semiring

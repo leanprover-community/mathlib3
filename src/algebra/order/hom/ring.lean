@@ -3,8 +3,8 @@ Copyright (c) 2022 Alex J. Best, Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alex J. Best, Yaël Dillies
 -/
+import algebra.order.hom.monoid
 import algebra.order.ring
-import order.hom.basic
 
 /-!
 # Ordered ring homomorphisms
@@ -13,8 +13,7 @@ Homomorphisms between ordered (semi)rings that respect the ordering.
 
 ## Main definitions
 
-* `order_ring_hom` : A homomorphism `f` between two `ordered_semiring`s that has the property that
-  `x ≤ y → f x ≤ f y`.
+* `order_ring_hom` : A monotone homomorphism `f` between two `ordered_semiring`s.
 
 ## Notation
 
@@ -27,14 +26,24 @@ ordered ring homomorphism, order homomorphism
 
 variables {F α β : Type*}
 
+/-- Copy of a `ring_hom` with a new `to_fun` equal to the old one. Useful to fix definitional
+equalities. -/
+def ring_hom.copy [non_assoc_semiring α] [non_assoc_semiring β] (f : α →+* β) (f' : α → β)
+  (h : f' = f) : α →+* β :=
+{ ..f.to_monoid_with_zero_hom.copy f' h, ..f.to_add_monoid_hom.copy f' h }
+
+instance [non_assoc_semiring α] [non_assoc_semiring β] [ring_hom_class F α β] :
+  has_coe_t F (α →+* β) :=
+⟨λ f, { to_fun := f, map_zero' := map_zero f, map_one' := map_one f, map_mul' := map_mul f,
+  map_add' := map_add f }⟩
+
 /-- `order_ring_hom α β` is the type of monotone semiring homomorphisms from `α` to `β`.
 
 When possible, instead of parametrizing results over `(f : order_ring_hom α β)`,
 you should parametrize over `(F : Type*) [order_ring_hom_class F α β] (f : F)`.
 When you extend this structure, make sure to extend `order_ring_hom_class`.
 -/
-structure order_ring_hom (α β : Type*) [ordered_semiring α] [ordered_semiring β]
-  extends α →+* β :=
+structure order_ring_hom (α β : Type*) [ordered_semiring α] [ordered_semiring β] extends α →+* β :=
 (monotone' : monotone to_fun)
 
 /-- Reinterpret an ordered ring homomorphism as a ring homomorphism. -/
@@ -59,10 +68,14 @@ instance [ordered_semiring α] [ordered_semiring β] [order_ring_hom_class F α 
   map_zero' := map_zero f, monotone' := order_hom_class.mono f }⟩
 
 namespace order_ring_hom
+section ordered_semiring
 variables [ordered_semiring α] [ordered_semiring β] {f g : α →+*o β}
 
+/-- Reinterpret an ordered ring homomorphism as an ordered additive monoid homomorphism. -/
+def to_order_add_monoid_hom (f : α →+*o β) : α →+o β := { ..f }
+
 /-- Reinterpret an ordered ring homomorphism as an order homomorphism. -/
-def to_order_hom (f : α →+*o β) : α →o β := { ..f }
+def to_order_monoid_with_zero_hom (f : α →+*o β) : α →*₀o β := { ..f }
 
 instance : order_ring_hom_class (α →+*o β) α β :=
 { coe := λ f, f.to_fun,
@@ -85,7 +98,7 @@ equalities. -/
 protected def copy (f : α →+*o β) (f' : α → β) (h : f' = f) : α →+*o β :=
 { to_fun := f',
   .. f.to_ring_hom.copy f' $ by { ext, exact congr_fun h _ },
-  .. f.to_order_hom.copy f' $ by { ext, exact congr_fun h _ } }
+  .. f.to_order_add_monoid_hom.copy f' $ by { ext, exact congr_fun h _ } }
 
 variable (α)
 
@@ -98,8 +111,8 @@ variable {α}
 
 @[simp] lemma id_apply (x : α) : order_ring_hom.id α x = x := rfl
 
-@[simp] lemma to_ring_hom_id : (order_ring_hom.id α).to_ring_hom = ring_hom.id α := rfl
-@[simp] lemma to_order_hom_id : (order_ring_hom.id α).to_order_hom = order_hom.id := rfl
+@[simp] lemma coe_ring_hom_id : (order_ring_hom.id α : α →+* α) = ring_hom.id α := rfl
+@[simp] lemma coe_order_monoid_with_zero_hom_id : (order_ring_hom.id α : α →*₀o α) = order_monoid_with_zero_hom.id α := rfl
 
 instance : inhabited (α →+*o α) := ⟨order_ring_hom.id α⟩
 
@@ -151,5 +164,9 @@ lemma coe_comp {T : Type*} [ordered_semiring T] (f₁ : α →+*o β) (f₂ : β
 @[simp] lemma comp_id (f : α →+*o β) : f.comp (order_ring_hom.id α) = f := ext $ λ x, rfl
 
 @[simp] lemma id_comp (f : α →+*o β) : (order_ring_hom.id β).comp f = f := ext $ λ x, rfl
+
+end ordered_semiring
+
+variables [linear_ordered]
 
 end order_ring_hom

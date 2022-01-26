@@ -64,8 +64,8 @@ When possible, instead of parametrizing results over `(f : α →+o β)`,
 you should parametrize over `(F : Type*) [order_add_monoid_hom_class F α β] (f : F)`.
 
 When you extend this structure, make sure to extend `order_add_monoid_hom_class`. -/
-structure order_add_monoid_hom (α β : Type*) [ordered_add_comm_monoid α] [ordered_add_comm_monoid β]
-  extends α →+ β :=
+structure order_add_monoid_hom (α β : Type*) [preorder α] [preorder β] [add_zero_class α]
+  [add_zero_class β] extends α →+ β :=
 (monotone' : monotone to_fun)
 
 infixr ` →+o `:25 := order_add_monoid_hom
@@ -73,8 +73,8 @@ infixr ` →+o `:25 := order_add_monoid_hom
 /-- `order_add_monoid_hom_class F α β` states that `F` is a type of ordered monoid homomorphisms.
 
 You should also extend this typeclass when you extend `order_add_monoid_hom`. -/
-class order_add_monoid_hom_class (F : Type*) (α β : out_param $ Type*)
-  [ordered_add_comm_monoid α] [ordered_add_comm_monoid β]
+class order_add_monoid_hom_class (F : Type*) (α β : out_param $ Type*) [preorder α] [preorder β]
+  [add_zero_class α] [add_zero_class β]
   extends add_monoid_hom_class F α β :=
 (monotone (f : F) : monotone f)
 
@@ -83,7 +83,7 @@ class order_add_monoid_hom_class (F : Type*) (α β : out_param $ Type*)
 end add_monoid
 
 section monoid
-variables [ordered_comm_monoid α] [ordered_comm_monoid β]
+variables [preorder α] [preorder β] [mul_one_class α] [mul_one_class β]
 
 /-- `α →*o β` is the type of functions `α → β` that preserve the `ordered_comm_monoid` structure.
 
@@ -94,7 +94,8 @@ you should parametrize over `(F : Type*) [order_monoid_hom_class F α β] (f : F
 
 When you extend this structure, make sure to extend `order_monoid_hom_class`. -/
 @[to_additive]
-structure order_monoid_hom (α β : Type*) [ordered_comm_monoid α] [ordered_comm_monoid β]
+structure order_monoid_hom (α β : Type*) [preorder α] [preorder β] [mul_one_class α]
+  [mul_one_class β]
   extends α →* β :=
 (monotone' : monotone to_fun)
 
@@ -105,7 +106,7 @@ infixr ` →*o `:25 := order_monoid_hom
 You should also extend this typeclass when you extend `order_monoid_hom`. -/
 @[to_additive]
 class order_monoid_hom_class (F : Type*) (α β : out_param $ Type*)
-  [ordered_comm_monoid α] [ordered_comm_monoid β]
+  [preorder α] [preorder β] [mul_one_class α] [mul_one_class β]
   extends monoid_hom_class F α β :=
 (monotone (f : F) : monotone f)
 
@@ -122,7 +123,7 @@ instance [order_monoid_hom_class F α β] : has_coe_t F (α →*o β) :=
 end monoid
 
 section monoid_with_zero
-variables [linear_ordered_comm_monoid_with_zero α] [linear_ordered_comm_monoid_with_zero β]
+variables [preorder α] [preorder β] [mul_zero_one_class α] [mul_zero_one_class β]
 
 /-- `order_monoid_with_zero_hom α β` is the type of functions `α → β` that preserve
 the `monoid_with_zero` structure.
@@ -133,8 +134,8 @@ When possible, instead of parametrizing results over `(f : α →+ β)`,
 you should parametrize over `(F : Type*) [order_monoid_with_zero_hom_class F α β] (f : F)`.
 
 When you extend this structure, make sure to extend `order_monoid_with_zero_hom_class`. -/
-structure order_monoid_with_zero_hom (α β : Type*)
-  [linear_ordered_comm_monoid_with_zero α] [linear_ordered_comm_monoid_with_zero β]
+structure order_monoid_with_zero_hom (α β : Type*) [preorder α] [preorder β]
+  [mul_zero_one_class α] [mul_zero_one_class β]
   extends α →*₀ β :=
 (monotone' : monotone to_fun)
 
@@ -145,7 +146,7 @@ ordered monoid with zero homomorphisms.
 
 You should also extend this typeclass when you extend `order_monoid_with_zero_hom`. -/
 class order_monoid_with_zero_hom_class (F : Type*) (α β : out_param $ Type*)
-  [linear_ordered_comm_monoid_with_zero α] [linear_ordered_comm_monoid_with_zero β]
+  [preorder α] [preorder β] [mul_zero_one_class α] [mul_zero_one_class β]
   extends monoid_with_zero_hom_class F α β :=
 (monotone (f : F) : monotone f)
 
@@ -307,8 +308,8 @@ end order_monoid_hom
 
 namespace order_monoid_with_zero_hom
 section
-variables [linear_ordered_comm_monoid_with_zero α] [linear_ordered_comm_monoid_with_zero β]
-  [linear_ordered_comm_monoid_with_zero γ] [linear_ordered_comm_monoid_with_zero δ] {f g : α →*₀o β}
+variables [preorder α] [preorder β] [preorder γ] [preorder δ] [mul_zero_one_class α]
+  [mul_zero_one_class β] [mul_zero_one_class γ] [mul_zero_one_class δ] {f g : α →*₀o β}
 
 instance : order_monoid_with_zero_hom_class (α →*₀o β) α β :=
 { coe := λ f, f.to_fun,

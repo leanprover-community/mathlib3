@@ -53,7 +53,10 @@ end
 end
 
 section
-private abbreviation π := fundamental_groupoid_functor
+
+
+open_locale fundamental_groupoid
+
 variables {X₁ X₂ Y : Top.{u}} {f : C(X₁, Y)} {g : C(X₂, Y)}
   {x₀ x₁ : X₁} {x₂ x₃ : X₂} {p : path x₀ x₁} {q : path x₂ x₃} (hfg : ∀ t, f (p t) = g (q t))
 
@@ -64,7 +67,7 @@ private lemma end_path : f x₁ = g x₃ := by { convert hfg 1; simp only [path.
 /- If `f(p(t) = g(q(t))` for two paths `p` and `q`, then the induced path homotopy classes
 `f(p)` and `g(p)` are the same as well, up to casts. -/
 lemma eq_path_of_eq_image :
-  (π.map f).map ⟦p⟧ = hcast (start_path hfg) ≫ (π.map g).map ⟦q⟧ ≫ hcast (end_path hfg).symm :=
+  (πₘ f).map ⟦p⟧ = hcast (start_path hfg) ≫ (πₘ g).map ⟦q⟧ ≫ hcast (end_path hfg).symm :=
 begin
   simp only [map_eq, ← path.homotopic.map_lift, path_cast_right],
   rw path_cast_left _ (start_path hfg).symm,

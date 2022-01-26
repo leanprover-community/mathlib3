@@ -1,6 +1,7 @@
 import data.nat.basic
 import tactic.squeeze
 import data.list.perm
+import data.pnat.basic
 
 namespace tactic
 namespace interactive
@@ -33,6 +34,15 @@ by { squeeze_simp_test [←h, two_mul] = [←h, two_mul, add_zero] }
 example {a b : ℕ} (h : a + a = b) : b + 0 = 2 * a :=
 by { squeeze_simp_test [←h, two_mul] = [←h, add_zero, two_mul] }
 
-section current_bug
+section namespacing
 
-end current_bug
+@[simp] lemma asda {a : ℕ} : 0 ≤ a := nat.zero_le _
+
+@[simp] lemma pnat.asda {a : ℕ+} : 1 ≤ a := pnat.one_le _
+
+open pnat
+
+example {a : ℕ} {b : ℕ+} : 0 ≤ a ∧ 1 ≤ b :=
+by { squeeze_simp_test = [_root_.asda, int.asda, and_self] }
+
+end namespacing

@@ -288,7 +288,7 @@ def stereographic' (n : ℕ) [fact (finrank ℝ E = n + 1)] (v : sphere (0:E) 1)
   local_homeomorph (sphere (0:E) 1) (euclidean_space ℝ (fin n)) :=
 (stereographic (norm_eq_of_mem_sphere v)) ≫ₕ
 (linear_isometry_equiv.from_orthogonal_span_singleton n
-  (nonzero_of_mem_unit_sphere v)).to_homeomorph.to_local_homeomorph
+  (ne_zero_of_mem_unit_sphere v)).to_homeomorph.to_local_homeomorph
 
 @[simp] lemma stereographic'_source {n : ℕ} [fact (finrank ℝ E = n + 1)] (v : sphere (0:E) 1) :
   (stereographic' n v).source = {v}ᶜ :=
@@ -322,10 +322,10 @@ begin
   rintros _ _ ⟨v, rfl⟩ ⟨v', rfl⟩,
   let U : (ℝ ∙ (v:E))ᗮ ≃ₗᵢ[ℝ] euclidean_space ℝ (fin n) :=
     linear_isometry_equiv.from_orthogonal_span_singleton n
-      (nonzero_of_mem_unit_sphere v),
+      (ne_zero_of_mem_unit_sphere v),
   let U' : (ℝ ∙ (v':E))ᗮ ≃ₗᵢ[ℝ] euclidean_space ℝ (fin n) :=
     linear_isometry_equiv.from_orthogonal_span_singleton n
-      (nonzero_of_mem_unit_sphere v'),
+      (ne_zero_of_mem_unit_sphere v'),
   have hUv : stereographic' n v = (stereographic (norm_eq_of_mem_sphere v)) ≫ₕ
     U.to_homeomorph.to_local_homeomorph := rfl,
   have hU'v' : stereographic' n v' = (stereographic (norm_eq_of_mem_sphere v')).trans
@@ -349,7 +349,7 @@ begin
   { exact continuous_subtype_coe },
   { intros v _,
     let U : (ℝ ∙ ((-v):E))ᗮ ≃ₗᵢ[ℝ] euclidean_space ℝ (fin n) :=
-      linear_isometry_equiv.from_orthogonal_span_singleton n (nonzero_of_mem_unit_sphere (-v)),
+      linear_isometry_equiv.from_orthogonal_span_singleton n (ne_zero_of_mem_unit_sphere (-v)),
     exact ((times_cont_diff_stereo_inv_fun_aux.comp
       (ℝ ∙ ((-v):E))ᗮ.subtypeL.times_cont_diff).comp U.symm.times_cont_diff).times_cont_diff_on }
 end
@@ -369,7 +369,7 @@ begin
   refine ⟨continuous_induced_rng hf.continuous, _⟩,
   intros v,
   let U : (ℝ ∙ ((-v):E))ᗮ ≃ₗᵢ[ℝ] euclidean_space ℝ (fin n) :=
-    (linear_isometry_equiv.from_orthogonal_span_singleton n (nonzero_of_mem_unit_sphere (-v))),
+    (linear_isometry_equiv.from_orthogonal_span_singleton n (ne_zero_of_mem_unit_sphere (-v))),
   have h : times_cont_diff_on ℝ ⊤ U set.univ :=
     U.times_cont_diff.times_cont_diff_on,
   have H₁ := (h.comp' times_cont_diff_on_stereo_to_fun).times_cont_mdiff_on,

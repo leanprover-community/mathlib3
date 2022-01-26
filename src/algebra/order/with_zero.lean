@@ -103,10 +103,12 @@ lemma pow_le_pow_of_le [covariant_class α α (*) (≤)] [covariant_class α α 
 lemma left.pow_lt_one_of_lt [covariant_class α α (*) (<)] {n : ℕ} {x : α} (n0 : 0 < n) (H : x < 1) :
   x^n < 1 :=
 begin
-  refine nat.induction_from_zero_lt n0 ((pow_one _).le.trans_lt H) (λ n n0 hn, lt_trans _ H),
-  convert mul_lt_mul_left' hn x,
-  { exact pow_succ x n },
-  { exact (mul_one _).symm }
+  refine nat.le_induction ((pow_one _).le.trans_lt H) _ _ (nat.succ_le_iff.mpr n0),
+  refine λ n n1 hn, calc
+    x ^ (n + 1) = x * x ^ n : pow_succ x n
+            ... < x * 1     : mul_lt_mul_left' hn x
+            ... = x         : mul_one x
+            ... < 1         : H
 end
 
 lemma left.pow_lt_one_iff {α: Type*} [monoid α] [linear_order α]
@@ -120,10 +122,12 @@ lemma right.pow_lt_one_of_lt [covariant_class α α (function.swap (*)) (<)] {n 
   (n0 : 0 < n) (H : x < 1) :
   x^n < 1 :=
 begin
-  refine nat.induction_from_zero_lt n0 ((pow_one _).le.trans_lt H) (λ n n0 hn, lt_trans _ H),
-  convert mul_lt_mul_right' hn x,
-  { exact pow_succ' x n },
-  { exact (one_mul _).symm }
+  refine nat.le_induction ((pow_one _).le.trans_lt H) _ _ (nat.succ_le_iff.mpr n0),
+  refine λ n n1 hn, calc
+    x ^ (n + 1) = x ^ n * x : pow_succ' x n
+            ... < 1 * x     : mul_lt_mul_right' hn x
+            ... = x         : one_mul x
+            ... < 1         : H
 end
 
 lemma right.pow_lt_one_iff {α: Type*} [monoid α] [linear_order α]

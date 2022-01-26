@@ -354,6 +354,18 @@ lemma upper_central_series_nilpotency_class :
   upper_central_series G (group.nilpotency_class G) = ⊤ :=
 nat.find_spec (is_nilpotent.nilpotent G)
 
+lemma upper_central_series_eq_top_iff_nilpotency_class_le {n : ℕ} :
+  (upper_central_series G n = ⊤) ↔ (group.nilpotency_class G ≤ n) :=
+begin
+  split,
+  { intro h,
+    exact (nat.find_le h), },
+  { intro h,
+    apply eq_top_iff.mpr,
+    rw ← upper_central_series_nilpotency_class,
+    exact (upper_central_series_mono _ h), }
+end
+
 /-- The nilpotency class of a nilpotent `G` is equal to the smallest `n` for which an ascending
 central series reaches `G` in its `n`'th term. -/
 lemma least_ascending_central_series_length_eq_nilpotency_class :
@@ -403,6 +415,19 @@ lemma lower_central_series_nilpotency_class :
 begin
   rw ← lower_central_series_length_eq_nilpotency_class,
   exact (nat.find_spec (nilpotent_iff_lower_central_series.mp _))
+end
+
+lemma lower_central_series_eq_bot_iff_nilpotency_class_le {n : ℕ} :
+  (lower_central_series G n = ⊥) ↔ (group.nilpotency_class G ≤ n) :=
+begin
+  split,
+  { intro h,
+    rw ← lower_central_series_length_eq_nilpotency_class,
+    exact (nat.find_le h),
+  { intro h,
+    apply eq_bot_iff.mpr,
+    rw ← lower_central_series_nilpotency_class,
+    exact (lower_central_series_antitone h), }
 end
 
 end classical

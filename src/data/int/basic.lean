@@ -218,7 +218,7 @@ le_sub_iff_add_le
 ⟨λ a0, let ⟨hn, hp⟩ := abs_lt.mp a0 in (le_of_lt_add_one (by exact hp)).antisymm hn,
   λ a0, (abs_eq_zero.mpr a0).le.trans_lt zero_lt_one⟩
 
-lemma ne_zero_ge_one {z : ℤ} (h₀: ¬ z = 0) : 1 ≤ |z| :=
+lemma one_le_abs {z : ℤ} (h₀: ¬ z = 0) : 1 ≤ |z| :=
 begin
   by_contra h,
   push_neg at h,

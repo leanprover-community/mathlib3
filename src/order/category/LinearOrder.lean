@@ -28,4 +28,7 @@ instance : inhabited LinearOrder := ⟨of punit⟩
 
 instance (α : LinearOrder) : linear_order α := α.str
 
+instance has_forget_to_PartialOrder : has_forget₂ LinearOrder PartialOrder :=
+bundled_hom.forget₂ _ _
+
 end LinearOrder

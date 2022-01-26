@@ -28,4 +28,6 @@ instance : inhabited PartialOrder := ⟨of punit⟩
 
 instance (α : PartialOrder) : partial_order α := α.str
 
+instance has_forget_to_Preorder : has_forget₂ PartialOrder Preorder := bundled_hom.forget₂ _ _
+
 end PartialOrder

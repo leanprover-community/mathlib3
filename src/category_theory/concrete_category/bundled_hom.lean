@@ -63,7 +63,7 @@ intros; apply 𝒞.hom_ext;
 
 This instance generates the type-class problem `bundled_hom ?m` (which is why this is marked as
 `[nolint]`). Currently that is not a problem, as there are almost no instances of `bundled_hom`. -/
-@[nolint dangerous_instance] instance : concrete_category.{u} (bundled c) :=
+@[nolint dangerous_instance] instance concrete_category : concrete_category.{u} (bundled c) :=
 { forget := { obj := λ X, X,
               map := λ X Y f, 𝒞.to_fun X.str Y.str f,
               map_id' := λ X, 𝒞.id_to_fun X.str,

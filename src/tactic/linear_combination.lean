@@ -5,7 +5,6 @@ Authors: Abby J. Goldberg
 -/
 
 import tactic.ring
-open tactic
 
 /-!
 
@@ -35,6 +34,7 @@ to the target.
 -/
 
 namespace linear_combo
+open tactic
 
 /-! ### Lemmas -/
 

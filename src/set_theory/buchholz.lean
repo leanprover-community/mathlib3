@@ -7,19 +7,15 @@ noncomputable theory
 
 namespace ordinal
 
-/-- The minimum excluded ordinal in a set. -/
-def omex (S : set ordinal) (hS : ∃ a, a ∉ S) : ordinal :=
-omin S.compl hS
-
-theorem omex_le_of_nmem {S : set ordinal} {a} (ha : a ∉ S) : omex S ⟨a, ha⟩ ≤ a :=
-by { apply omin_le, simp [ha] }
-
-theorem mem_of_lt_omex {S : set ordinal} (hS : ∃ a, a ∉ S) {a} (ha : a < omex S hS) : a ∈ S :=
-by { by_contra ha', exact not_le_of_lt ha (omex_le_of_nmem ha') }
-
 /-- The minimum excluded ordinal in a family of ordinals. -/
 def mex {ι} (f : ι → ordinal) : ordinal :=
-omex (set.range f) ⟨_, lsub_nmem_range f⟩
+omin (set.range f)ᶜ ⟨_, lsub_nmem_range f⟩
+
+theorem mex_le_of_nmem {ι} {f : ι → ordinal} {a} (ha : ∀ i, f i ≠ a) : mex f ≤ a :=
+by { apply omin_le, simp [ha] }
+
+theorem mem_of_lt_mex {ι} {f : ι → ordinal} {a} (ha : a < mex f) : ∃ i, f i = a :=
+by { by_contra' ha', exact not_le_of_lt ha (mex_le_of_nmem ha') }
 
 theorem mex_le_lsub {ι} (f : ι → ordinal) : mex f ≤ lsub f :=
 omin_le (lsub_nmem_range f)
@@ -29,12 +25,12 @@ begin
   by_contra' h,
   apply not_le_of_lt (cardinal.lt_succ_self (cardinal.mk ι)),
   let g : (cardinal.mk ι).succ.ord.out.α → ι :=
-    λ a, classical.some (mem_of_lt_omex _ ((typein_lt_self a).trans_le h)),
+    λ a, classical.some (mem_of_lt_mex ((typein_lt_self a).trans_le h)),
   have hg : function.injective g := begin
     intros a b h',
     have H : ∀ x, f (g x) = typein _ x :=
-      λ x, classical.some_spec (mem_of_lt_omex _ ((typein_lt_self x).trans_le h)),
-    have h' := congr_arg f h',
+      λ x, classical.some_spec (mem_of_lt_mex ((typein_lt_self x).trans_le h)),
+    apply_fun f at h',
     rwa [H, H, typein_inj] at h'
   end,
   convert cardinal.mk_le_of_injective hg,
@@ -43,21 +39,18 @@ end
 
 end ordinal
 
+open cardinal
 namespace ordinal
 
 /-- The `Ωᵥ` function as defined by Buchholz. -/
 -- Todo: generalize
-def Omega : ℕ → ordinal.{0}
+def Omega : ℕ → cardinal.{0}
 | 0       := 1
-| (v + 1) := (cardinal.aleph (v + 1)).ord
+| (v + 1) := aleph (v + 1)
 
 theorem Omega_pos : Π v, 0 < Omega v
-| 0 := zero_lt_one
-| (v + 1) := begin
-  unfold Omega,
-  rw [←cardinal.ord_zero, cardinal.ord_lt_ord],
-  exact cardinal.aleph_pos _
-end
+| 0       := cardinal.zero_lt_one
+| (v + 1) := aleph_pos _
 
 -- Omega is principal additive
 
@@ -66,29 +59,32 @@ end
 * sums of two other Buchholz expressions
 * some function `Ψᵤ` applied to a Buchholz expression -/
 inductive buchholz_exp' (v : ℕ) : Type 0
-| lt_Omega' (a : (Omega v).out.α) : buchholz_exp'
+| lt_Omega' (a : (Omega v).ord.out.α) : buchholz_exp'
 | add       (a b : buchholz_exp') : buchholz_exp'
 | psi       (u : ℕ) (a : buchholz_exp') : buchholz_exp'
 
 namespace buchholz_exp'
 
 /-- A Buchholz expression from an ordinal less than `Ωᵥ`. -/
-def lt_Omega {v : ℕ} {a : ordinal} (ha : a < Omega v) : buchholz_exp' v :=
-buchholz_exp'.lt_Omega' (enum (Omega v).out.r a (by rwa type_out))
+def lt_Omega {v : ℕ} {a : ordinal} (ha : a < (Omega v).ord) : buchholz_exp' v :=
+buchholz_exp'.lt_Omega' (enum (Omega v).ord.out.r a (by rwa type_out))
+
+instance (v : ℕ) : has_zero (buchholz_exp' v) :=
+⟨lt_Omega (ord_lt_ord.2 (Omega_pos v))⟩
 
 /-- The value of a well-formed Buchholz expression when interpreted as an ordinal. -/
 noncomputable def value {o : ordinal} {v : ℕ} (Ψ : Π a, a < o → ℕ → ordinal) :
   buchholz_exp' v → ordinal
-| (lt_Omega' a)  := typein (Omega v).out.r a
+| (lt_Omega' a)  := typein (Omega v).ord.out.r a
 | (add a b)      := a.value + b.value
 | (psi u a)      := if ha : a.value < o then Ψ _ ha u else 0
 
-theorem lt_Omega_value {o : ordinal} {v : ℕ} {a : ordinal} (ha : a < Omega v)
+theorem lt_Omega_value {o : ordinal} {v : ℕ} {a : ordinal} (ha : a < (Omega v).ord)
   (Ψ : Π a, a < o → ℕ → ordinal) : (lt_Omega ha).value Ψ = a :=
 typein_enum _ _
 
 theorem zero_value {o : ordinal} (ho : o = 0) {v : ℕ} (Ψ : Π a, a < o → ℕ → ordinal) :
-  Π (e : buchholz_exp' v), e.value Ψ < Omega v
+  Π (e : buchholz_exp' v), e.value Ψ < (Omega v).ord
 | (lt_Omega' a)  := typein_lt_self _
 | (add a b)      := sorry
 | (psi u a)      := begin
@@ -97,7 +93,83 @@ theorem zero_value {o : ordinal} (ho : o = 0) {v : ℕ} (Ψ : Π a, a < o → �
   { simp_rw ho at h,
     -- exfalso, ordinal.not_zero_lt,
     sorry },
-  exact Omega_pos _
+  rw ←ord_zero,
+  exact ord_lt_ord.2 (Omega_pos v)
+end
+
+/-- The height of a Buchholz expression, thought of as a syntax tree. -/
+noncomputable def height {v : ℕ} : buchholz_exp' v → ℕ
+| (lt_Omega' a) := 0
+| (add a b)     := max (height a) (height b) + 1
+| (psi u a)     := height a + 1
+
+theorem lt_Omega'_of_height {v : ℕ} {e : buchholz_exp' v} (he : height e = 0) :
+  ∃ a, e = lt_Omega' a :=
+begin
+  induction e with a,
+  use a,
+  all_goals { simpa only [height] }
+end
+
+/-- A denumerable family of Buchholz expressions. -/
+private def add_iterate (n : ℕ) : buchholz_exp' 0 :=
+(add (psi 0 0))^[n] 0
+
+private theorem add_iterate.inj : function.injective add_iterate :=
+begin
+  intros m n h,
+  induction m with m hm generalizing n; cases n,
+  all_goals { simp only [add_iterate, function.iterate_succ'] at h },
+  any_goals { cases h },
+  rw hm (add.inj h).right
+end
+
+theorem aleph_le_card (v : ℕ) : aleph v ≤ mk (buchholz_exp' v) :=
+begin
+  induction v with v hv,
+  { convert cardinal.mk_le_of_injective add_iterate.inj, simp },
+  { convert cardinal.mk_le_of_injective (@lt_Omega'.inj (v + 1)),
+    exact (cardinal.mk_ord_out _).symm }
+end
+
+private theorem card_of_height (v : ℕ) : Π h, mk {e : buchholz_exp' v | e.height = h} ≤ Omega v
+| 0 := begin
+  let f : ↥{e : buchholz_exp' v | e.height = 0} → (Omega v).ord.out.α :=
+    λ e, classical.some (lt_Omega'_of_height e.prop),
+  have hf : function.injective f := begin
+    intros e₁ e₂ h,
+    apply_fun lt_Omega' at h,
+    have H := λ e : ↥{e : buchholz_exp' v | e.height = 0},
+      classical.some_spec (lt_Omega'_of_height e.prop),
+    rwa [←H, ←H, ←subtype.ext_iff] at h
+  end,
+  convert cardinal.mk_le_of_injective hf,
+  exact (cardinal.mk_ord_out _).symm
+end
+| (h + 1) := begin
+  sorry
+end
+
+private theorem card_eq_Union_height (v : ℕ) :
+  mk (buchholz_exp' v) = mk (⋃ h, {e : buchholz_exp' v | e.height = h}) :=
+begin
+  let f : buchholz_exp' v → ⋃ h, {e : buchholz_exp' v | e.height = h} :=
+    λ e', ⟨e', by { rw set.mem_Union, exact ⟨e'.height, rfl⟩ }⟩,
+  refine le_antisymm
+    (@mk_le_of_injective _ _ f (λ e₁ e₂ h, _))
+    (@mk_le_of_surjective _ _ f (λ a, ⟨a, _⟩)),
+  { simp only [subtype.mk_eq_mk] at h, exact h },
+  { simp only [f, subtype.coe_eta] }
+end
+
+theorem card_eq_aleph (v : ℕ) : mk (buchholz_exp' v) = cardinal.aleph v :=
+begin
+  apply le_antisymm,
+  { sorry },
+  { induction v with v hv,
+    { convert cardinal.mk_le_of_injective add_iterate.inj, simp },
+    { convert cardinal.mk_le_of_injective (@lt_Omega'.inj (v + 1)),
+      exact (cardinal.mk_ord_out _).symm } }
 end
 
 /-- A well-formed Buchholz expression is one where `Ψ` is only ever called with arguments with value

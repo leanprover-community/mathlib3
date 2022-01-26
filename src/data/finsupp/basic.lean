@@ -38,10 +38,27 @@ Many constructions based on `α →₀ M` use `semireducible` type tags to avoid
 instances. E.g., `monoid_algebra`, `add_monoid_algebra`, and types based on these two have
 non-pointwise multiplication.
 
+## Main declarations
+
+* `finsupp`: The type of finitely supported functions from `α` to `β`.
+* `finsupp.single`: The `finsupp` which is nonzero in exactly one point.
+* `finsupp.update`: Changes one value of a `finsupp`.
+* `finsupp.erase`: Replaces one value of a `finsupp` by `0`.
+* `finsupp.on_finset`: The restriction of a function to a `finset` as a `finsupp`.
+* `finsupp.map_range`: Composition of a `zero_hom` with a`finsupp`.
+* `finsupp.emb_domain`: Maps the domain of a `finsupp` by an embedding.
+* `finsupp.map_domain`: Maps the domain of a `finsupp` by a function and by summing.
+* `finsupp.comap_domain`: Postcomposition of a `finsupp` with a function injective on the preimage
+  of its support.
+* `finsupp.zip_with`: Postcomposition of two `finsupp`s with a function `f` such that `f 0 0 = 0`.
+* `finsupp.sum`: Sum of the values of a `finsupp`.
+* `finsupp.prod`: Product of the nonzero values of a `finsupp`.
+
 ## Notations
 
-This file adds `α →₀ M` as a global notation for `finsupp α M`. We also use the following convention
-for `Type*` variables in this file
+This file adds `α →₀ M` as a global notation for `finsupp α M`.
+
+We also use the following convention for `Type*` variables in this file
 
 * `α`, `β`, `γ`: types with no additional structure that appear as the first argument to `finsupp`
   somewhere in the statement;
@@ -55,26 +72,24 @@ for `Type*` variables in this file
 
 * `R`, `S`: (semi)rings.
 
-## TODO
-
-* This file is currently ~2K lines long, so possibly it should be splitted into smaller chunks;
-
-* Add the list of definitions and important lemmas to the module docstring.
-
 ## Implementation notes
 
 This file is a `noncomputable theory` and uses classical logic throughout.
 
-## Notation
+## TODO
 
-This file defines `α →₀ β` as notation for `finsupp α β`.
+* This file is currently ~2.7K lines long, so it should be splitted into smaller chunks.
+  One option would be to move all the sum and product stuff to `algebra.big_operators.finsupp` and
+  move the definitions that depend on it to new files under `data.finsupp.`.
+
+* Expand the list of definitions and important lemmas to the module docstring.
 
 -/
 
 noncomputable theory
-open_locale classical big_operators
 
-open finset
+open finset function
+open_locale classical big_operators
 
 variables {α β γ ι M M' N P G H R S : Type*}
 
@@ -624,7 +639,7 @@ variables [has_zero M] [has_zero N] [has_zero P]
 
 /-- `zip_with f hf g₁ g₂` is the finitely supported function satisfying
   `zip_with f hf g₁ g₂ a = f (g₁ a) (g₂ a)`, and it is well-defined when `f 0 0 = 0`. -/
-def zip_with (f : M → N → P) (hf : f 0 0 = 0) (g₁ : α →₀ M) (g₂ : α →₀ N) : (α →₀ P) :=
+def zip_with (f : M → N → P) (hf : f 0 0 = 0) (g₁ : α →₀ M) (g₂ : α →₀ N) : α →₀ P :=
 on_finset (g₁.support ∪ g₂.support) (λa, f (g₁ a) (g₂ a)) $ λ a H,
 begin
   simp only [mem_union, mem_support_iff, ne], rw [← not_and_distrib],
@@ -995,7 +1010,7 @@ lemma map_range_add [add_zero_class N]
 ext $ λ a, by simp only [hf', add_apply, map_range_apply]
 
 /-- Bundle `emb_domain f` as an additive map from `α →₀ M` to `β →₀ M`. -/
-@[simps] def emb_domain.add_monoid_hom (f : α ↪ β) : (α →₀ M) →+ (β →₀ M) :=
+@[simps] def emb_domain.add_monoid_hom (f : α ↪ β) : (α →₀ M) →+ β →₀ M :=
 { to_fun := λ v, emb_domain f v,
   map_zero' := by simp,
   map_add' := λ v w,
@@ -1674,7 +1689,7 @@ begin
 end
 
 /-- When `f` is an embedding we have an embedding `(α →₀ ℕ)  ↪ (β →₀ ℕ)` given by `map_domain`. -/
-@[simps] def map_domain_embedding {α β : Type*} (f : α ↪ β) : (α →₀ ℕ) ↪ (β →₀ ℕ) :=
+@[simps] def map_domain_embedding {α β : Type*} (f : α ↪ β) : (α →₀ ℕ) ↪ β →₀ ℕ :=
 ⟨finsupp.map_domain f, finsupp.map_domain_injective f.injective⟩
 
 lemma map_domain.add_monoid_hom_comp_map_range [add_comm_monoid N] (f : α → β) (g : M →+ N) :

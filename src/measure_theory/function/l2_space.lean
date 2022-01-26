@@ -209,8 +209,7 @@ begin
   apply integral_congr_ae,
   have hf_ae := f.coe_fn_to_Lp μ,
   have hg_ae := g.coe_fn_to_Lp μ,
-  filter_upwards [hf_ae, hg_ae],
-  intros x hf hg,
+  filter_upwards [hf_ae, hg_ae] with _ hf hg,
   rw [hf, hg],
   simp
 end
@@ -226,8 +225,7 @@ begin
   apply integral_congr_ae,
   have hf_ae := f.coe_fn_to_Lp μ,
   have hg_ae := g.coe_fn_to_Lp μ,
-  filter_upwards [hf_ae, hg_ae],
-  intros x hf hg,
+  filter_upwards [hf_ae, hg_ae] with _ hf hg,
   rw [hf, hg],
   simp
 end

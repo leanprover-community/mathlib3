@@ -65,7 +65,8 @@ variables {𝕜 x s} {t : set E}
 lemma convex_iff_forall_star_convex : convex 𝕜 s ↔ ∀ x ∈ s, star_convex 𝕜 x s :=
 forall_congr $ λ x, forall_swap
 
-alias convex_iff_forall_star_convex ↔ convex.star_convex _
+lemma convex.star_convex (h : convex 𝕜 s) (hx : x ∈ s) : star_convex 𝕜 x s :=
+convex_iff_forall_star_convex.1 h _ hx
 
 lemma star_convex_iff_segment_subset : star_convex 𝕜 x s ↔ ∀ ⦃y⦄, y ∈ s → [x -[𝕜] y] ⊆ s :=
 begin
@@ -87,13 +88,10 @@ lemma star_convex.open_segment_subset (h : star_convex 𝕜 x s) {y : E} (hy : y
 lemma star_convex_iff_pointwise_add_subset :
   star_convex 𝕜 x s ↔ ∀ ⦃a b : 𝕜⦄, 0 ≤ a → 0 ≤ b → a + b = 1 → a • {x} + b • s ⊆ s :=
 begin
-  split,
-  { rintro hA a b ha hb hab w ⟨au, bv, ⟨u, (rfl : u = x), rfl⟩, ⟨v, hv, rfl⟩, rfl⟩,
-    exact hA hv ha hb hab },
-  { rintro h y hy a b ha hb hab,
-    refine h ha hb hab (add_mem_add _ ⟨_, hy, rfl⟩),
-    rw smul_singleton,
-    exact mem_singleton _ }
+  refine ⟨_, λ h y hy a b ha hb hab,
+    h ha hb hab (add_mem_add (smul_mem_smul_set $ mem_singleton _) ⟨_, hy, rfl⟩)⟩,
+  rintro hA a b ha hb hab w ⟨au, bv, ⟨u, (rfl : u = x), rfl⟩, ⟨v, hv, rfl⟩, rfl⟩,
+  exact hA hv ha hb hab,
 end
 
 lemma star_convex_empty (x : E) : star_convex 𝕜 x ∅ := λ y hy, hy.elim
@@ -160,7 +158,7 @@ begin
 end
 
 lemma convex.star_convex_iff (hs : convex 𝕜 s) (h : s.nonempty) : star_convex 𝕜 x s ↔ x ∈ s :=
-⟨λ hxs, hxs.mem h, hs.star_convex _⟩
+⟨λ hxs, hxs.mem h, hs.star_convex⟩
 
 lemma star_convex_iff_forall_pos (hx : x ∈ s) :
   star_convex 𝕜 x s ↔ ∀ ⦃y⦄, y ∈ s → ∀ ⦃a b : 𝕜⦄, 0 < a → 0 < b → a + b = 1 → a • x + b • y ∈ s :=
@@ -193,7 +191,7 @@ end
 
 lemma star_convex_iff_open_segment_subset (hx : x ∈ s) :
   star_convex 𝕜 x s ↔ ∀ ⦃y⦄, y ∈ s → open_segment 𝕜 x y ⊆ s :=
-star_convex_iff_segment_subset.trans $ forall_congr $ λ y, forall_congr $ λ hy,
+star_convex_iff_segment_subset.trans $ forall₂_congr $ λ y hy,
   (open_segment_subset_iff_segment_subset hx hy).symm
 
 lemma star_convex_singleton (x : E) : star_convex 𝕜 x {x} :=
@@ -304,6 +302,21 @@ end ordered_comm_semiring
 
 section ordered_ring
 variables [ordered_ring 𝕜]
+
+section add_comm_monoid
+variables [add_comm_monoid E] [smul_with_zero 𝕜 E]{s : set E}
+
+lemma star_convex_zero_iff :
+  star_convex 𝕜 0 s ↔ ∀ ⦃x : E⦄, x ∈ s → ∀ ⦃a : 𝕜⦄, 0 ≤ a → a ≤ 1 → a • x ∈ s :=
+begin
+  refine forall_congr (λ x, forall_congr $ λ hx, ⟨λ h a ha₀ ha₁, _, λ h a b ha hb hab, _⟩),
+  { simpa only [sub_add_cancel, eq_self_iff_true, forall_true_left, zero_add, smul_zero'] using
+      h (sub_nonneg_of_le ha₁) ha₀ },
+  { rw [smul_zero', zero_add],
+    exact h hb (by { rw ←hab, exact le_add_of_nonneg_left ha }) }
+end
+
+end add_comm_monoid
 
 section add_comm_group
 variables [add_comm_group E] [add_comm_group F] [module 𝕜 E] [module 𝕜 F] {x y : E} {s : set E}
@@ -444,11 +457,11 @@ open submodule
 lemma submodule.star_convex [ordered_semiring 𝕜] [add_comm_monoid E] [module 𝕜 E]
   (K : submodule 𝕜 E) :
   star_convex 𝕜 (0 : E) K :=
- K.convex.star_convex _ K.zero_mem
+K.convex.star_convex K.zero_mem
 
 lemma subspace.star_convex [linear_ordered_field 𝕜] [add_comm_group E] [module 𝕜 E]
   (K : subspace 𝕜 E) :
   star_convex 𝕜 (0 : E) K :=
- K.convex.star_convex _ K.zero_mem
+K.convex.star_convex K.zero_mem
 
 end submodule

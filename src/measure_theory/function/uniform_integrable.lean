@@ -53,7 +53,7 @@ by { simp_rw [not_convergent_seq, mem_Union], refl }
 
 lemma not_convergent_seq_antitone :
   antitone (not_convergent_seq f g i) :=
-λ j k hjk, bUnion_subset_bUnion (λ l hl, ⟨l, le_trans hjk hl, subset.refl _⟩)
+λ j k hjk, Union₂_mono' $ λ l hl, ⟨l, le_trans hjk hl, subset.rfl⟩
 
 lemma measure_inter_not_convergent_seq_eq_zero
   (hfg : ∀ᵐ x ∂μ, x ∈ s → tendsto (λ n, f n x) at_top (𝓝 (g x))) (i : ℕ) :
@@ -211,11 +211,9 @@ lemma tendsto_uniformly_on_of_ae_tendsto' [is_finite_measure μ]
 begin
   obtain ⟨t, _, ht, htendsto⟩ :=
     tendsto_uniformly_on_of_ae_tendsto hf hg measurable_set.univ (measure_ne_top μ univ) _ hε,
-  { refine ⟨t, ht, _⟩,
+  { refine ⟨_, ht, _⟩,
     rwa compl_eq_univ_diff },
-  { filter_upwards [hfg],
-    intros,
-    assumption }
+  { filter_upwards [hfg] with _ htendsto _ using htendsto, },
 end
 
 end

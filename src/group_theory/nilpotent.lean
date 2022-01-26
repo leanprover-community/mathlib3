@@ -361,8 +361,7 @@ lemma upper_central_series_eq_top_iff_nilpotency_class_le {n : ℕ} :
 begin
   split,
   { intro h,
-    apply nat.find_le,
-    exact h, },
+    exact (nat.find_le h), },
   { intro h,
     apply eq_top_iff.mpr,
     rw ← upper_central_series_nilpotency_class,
@@ -418,6 +417,19 @@ lemma lower_central_series_nilpotency_class :
 begin
   rw ← lower_central_series_length_eq_nilpotency_class,
   exact (nat.find_spec (nilpotent_iff_lower_central_series.mp _))
+end
+
+lemma lower_central_series_eq_bot_iff_nilpotency_class_le {n : ℕ} :
+  (lower_central_series G n = ⊥) ↔ (group.nilpotency_class G ≤ n) :=
+begin
+  split,
+  { intro h,
+    rw ← lower_central_series_length_eq_nilpotency_class,
+    exact (nat.find_le h),
+  { intro h,
+    apply eq_bot_iff.mpr,
+    rw ← lower_central_series_nilpotency_class,
+    exact (lower_central_series_antitone h), }
 end
 
 end classical

@@ -1006,10 +1006,10 @@ by rw [succ_div, if_neg hba, add_zero]
 lemma dvd_iff_div_mul_eq (n d : ℕ) : d ∣ n ↔ n / d * d = n :=
 ⟨λ h, nat.div_mul_cancel h, λ h, dvd.intro_left (n / d) h⟩
 
-lemma dvd_iff_le_div_mul (n d : ℕ) : (d ∣ n) ↔ n ≤ n / d * d :=
+lemma dvd_iff_le_div_mul (n d : ℕ) : d ∣ n ↔ n ≤ n / d * d :=
 ((dvd_iff_div_mul_eq _ _).trans le_antisymm_iff).trans (and_iff_right (div_mul_le_self n d))
 
-lemma dvd_iff_dvd_dvd {n d : ℕ} : d ∣ n ↔ ∀ k : ℕ, k ∣ d → k ∣ n :=
+lemma dvd_iff_dvd_dvd (n d : ℕ) : d ∣ n ↔ ∀ k : ℕ, k ∣ d → k ∣ n :=
 ⟨λ h k hkd, dvd_trans hkd h, λ h, h _ dvd_rfl⟩
 
 @[simp] theorem mod_mod_of_dvd (n : nat) {m k : nat} (h : m ∣ k) : n % k % m = n % m :=

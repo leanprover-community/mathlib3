@@ -323,7 +323,7 @@ def sections_subring (U : (opens (projective_spectrum.Top 𝒜))ᵒᵖ) :
       convert congr_arg2 (*) hy1 hy2,
       rw [localization.mk_mul], refl, }
   end, }
-#exit
+
 /--
 The structure sheaf (valued in `Type`, not yet `CommRing`) is the subsheaf consisting of
 functions satisfying `is_locally_fraction`.

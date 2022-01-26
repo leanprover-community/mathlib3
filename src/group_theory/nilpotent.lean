@@ -363,12 +363,10 @@ begin
   { intro h,
     apply nat.find_le,
     exact h, },
-  {
-    intro h,
+  { intro h,
     apply eq_top_iff.mpr,
     rw ← upper_central_series_nilpotency_class,
-    exact (upper_central_series_mono _ h),
-  }
+    exact (upper_central_series_mono _ h), }
 end
 
 /-- The nilpotency class of a nilpotent `G` is equal to the smallest `n` for which an ascending

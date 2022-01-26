@@ -514,7 +514,7 @@ begin
   rw [map, eval₂, coeff_sum, sum],
   conv_rhs { rw [← sum_C_mul_X_eq p, coeff_sum, sum, ring_hom.map_sum], },
   refine finset.sum_congr rfl (λ x hx, _),
-  simp [function.comp, coeff_C_mul_X, f.map_mul],
+  simp [function.comp, coeff_C_mul_X_pow, f.map_mul],
   split_ifs; simp [f.map_zero],
 end
 

@@ -1080,7 +1080,7 @@ lemma coeff_zero_X_mul (φ : power_series R) : coeff R 0 (X * φ) = 0 := by simp
 -- The following section duplicates the api of `data.polynomial.coeff` and should attempt to keep
 -- up to date with that
 section
-lemma coeff_C_mul_X (x : R) (k n : ℕ) :
+lemma coeff_C_mul_X_pow (x : R) (k n : ℕ) :
   coeff R n (C R x * X ^ k : power_series R) = if n = k then x else 0 :=
 by simp [X_pow_eq, coeff_monomial]
 

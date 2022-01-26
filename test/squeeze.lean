@@ -43,6 +43,6 @@ section namespacing
 open pnat
 
 example {a : ℕ} {b : ℕ+} : 0 ≤ a ∧ 1 ≤ b :=
-by { squeeze_simp_test = [_root_.asda, int.asda, and_self] }
+by { squeeze_simp_test = [_root_.asda, pnat.asda, and_self] }
 
 end namespacing

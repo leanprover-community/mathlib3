@@ -172,9 +172,7 @@ begin
     set_of_forall, id],
   refine is_Gδ_Inter (λ k, is_open.is_Gδ $ is_open_iff_mem_nhds.2 $ λ x, _),
   rintros ⟨s, ⟨hsx, hso⟩, hsU⟩,
-  filter_upwards [is_open.mem_nhds hso hsx],
-  intros y hy,
-  exact ⟨s, ⟨hy, hso⟩, hsU⟩
+  filter_upwards [is_open.mem_nhds hso hsx] with _ hy using ⟨s, ⟨hy, hso⟩, hsU⟩,
 end
 
 end continuous_at

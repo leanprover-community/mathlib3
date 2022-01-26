@@ -209,11 +209,9 @@ lemma tendsto_uniformly_on_of_ae_tendsto' [is_finite_measure μ]
 begin
   obtain ⟨t, _, ht, htendsto⟩ :=
     tendsto_uniformly_on_of_ae_tendsto hf hg measurable_set.univ (measure_ne_top μ univ) _ hε,
-  { refine ⟨t, ht, _⟩,
+  { refine ⟨_, ht, _⟩,
     rwa compl_eq_univ_diff },
-  { filter_upwards [hfg],
-    intros,
-    assumption }
+  { filter_upwards [hfg] with _ htendsto _ using htendsto, },
 end
 
 end

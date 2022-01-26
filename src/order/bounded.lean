@@ -15,6 +15,7 @@ the same ideas, or similar results with a few minor differences. The file is div
 different general ideas.
 -/
 
+namespace set
 variables {α : Type*} {r : α → α → Prop} {s t : set α}
 
 /-! ### Subsets of bounded and unbounded sets -/
@@ -328,3 +329,5 @@ theorem bounded_gt_inter_gt [linear_order α] [no_min_order α] (a : α) :
 theorem unbounded_gt_inter_gt [linear_order α] [no_min_order α] (a : α) :
   unbounded (>) (s ∩ {b | b < a}) ↔ unbounded (>) s :=
 @unbounded_lt_inter_lt (order_dual α) s _ _ a
+
+end set

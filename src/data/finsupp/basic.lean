@@ -109,7 +109,22 @@ namespace finsupp
 section basic
 variable [has_zero M]
 
-instance : has_coe_to_fun (α →₀ M) (λ _, α → M) := ⟨to_fun⟩
+instance fun_like : fun_like (α →₀ M) α (λ _, M) := ⟨to_fun, begin
+  rintro ⟨s, f, hf⟩ ⟨t, g, hg⟩ (rfl : f = g),
+  congr',
+  ext a,
+  exact (hf _).trans (hg _).symm,
+end⟩
+
+/-- Helper instance for when there are too many metavariables to apply `fun_like.has_coe_to_fun`
+directly. -/
+instance : has_coe_to_fun (α →₀ M) (λ _, α → M) := fun_like.has_coe_to_fun
+
+@[ext] lemma ext {f g : α →₀ M} (h : ∀ a, f a = g a) : f = g := fun_like.ext _ _ h
+lemma ext_iff {f g : α →₀ M} : f = g ↔ ∀ a, f a = g a := fun_like.ext_iff
+@[simp, norm_cast] lemma coe_fn_inj {f g : α →₀ M} : (f : α → M) = g ↔ f = g := fun_like.coe_fn_eq
+lemma coe_fn_injective : @function.injective (α →₀ M) (α → M) coe_fn := fun_like.coe_injective
+lemma congr_fun {f g : α →₀ M} (h : f = g) (a : α) : f a = g a := fun_like.congr_fun h _
 
 @[simp] lemma coe_mk (f : α → M) (s : finset α) (h : ∀ a, a ∈ s ↔ f a ≠ 0) :
   ⇑(⟨s, f, h⟩ : α →₀ M) = f := rfl
@@ -131,24 +146,8 @@ set.ext $ λ x, mem_support_iff.symm
 lemma not_mem_support_iff {f : α →₀ M} {a} : a ∉ f.support ↔ f a = 0 :=
 not_iff_comm.1 mem_support_iff.symm
 
-lemma coe_fn_injective : @function.injective (α →₀ M) (α → M) coe_fn
-| ⟨s, f, hf⟩ ⟨t, g, hg⟩ h :=
-  begin
-    change f = g at h, subst h,
-    have : s = t, { ext a, exact (hf a).trans (hg a).symm },
-    subst this
-  end
-
-@[simp, norm_cast] lemma coe_fn_inj {f g : α →₀ M} : (f : α → M) = g ↔ f = g :=
-coe_fn_injective.eq_iff
-
 @[simp, norm_cast] lemma coe_eq_zero {f : α →₀ M} : (f : α → M) = 0 ↔ f = 0 :=
 by rw [← coe_zero, coe_fn_inj]
-
-@[ext] lemma ext {f g : α →₀ M} (h : ∀a, f a = g a) : f = g := coe_fn_injective (funext h)
-
-lemma ext_iff {f g : α →₀ M} : f = g ↔ (∀a:α, f a = g a) :=
-⟨by rintros rfl a; refl, ext⟩
 
 lemma ext_iff' {f g : α →₀ M} : f = g ↔ f.support = g.support ∧ ∀ x ∈ f.support, f x = g x :=
 ⟨λ h, h ▸ ⟨rfl, λ _ _, rfl⟩, λ ⟨h₁, h₂⟩, ext $ λ a,
@@ -156,9 +155,6 @@ lemma ext_iff' {f g : α →₀ M} : f = g ↔ f.support = g.support ∧ ∀ x �
     have hf : f a = 0, from not_mem_support_iff.1 h,
     have hg : g a = 0, by rwa [h₁, not_mem_support_iff] at h,
     by rw [hf, hg]⟩
-
-lemma congr_fun {f g : α →₀ M} (h : f = g) (a : α) : f a = g a :=
-congr_fun (congr_arg finsupp.to_fun h) a
 
 @[simp] lemma support_eq_empty {f : α →₀ M} : f.support = ∅ ↔ f = 0 :=
 by exact_mod_cast @function.support_eq_empty_iff _ _ _ f

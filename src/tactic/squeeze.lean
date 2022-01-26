@@ -159,8 +159,9 @@ do some s ← get_proof_state_after (tac ff (user_args ++ simp_args)),
    pure (user_args' ++ simp_args')
 
 /-- make a `simp_arg_type` that references the name given as an argument -/
+-- this is currently very badly written - using an `expr` constructor raw is not a good idea
 meta def name.to_simp_args (n : name) : tactic simp_arg_type :=
-do e ← resolve_name' n, pure $ simp_arg_type.expr e
+pure $ simp_arg_type.expr (@expr.const ff n [])
 
 -- `macro`s can be other things but this is a good first order approximation
 meta def prepend_root_if_needed (n : name) : tactic name :=
@@ -374,12 +375,4 @@ add_tactic_doc
   tags       := ["simplification", "Try this"],
   inherit_description_from := ``squeeze_simp }
 
-@[simp] lemma asda {a : ℕ} : 0 ≤ a := sorry
-
-@[simp] lemma int.asda {a : ℤ} : 0 ≤ a := sorry
-
 open int
-
---example : false := by do x ← tactic.prepend_root_if_needed `asda, trace x
-
-lemma tes {a : ℕ} {b : ℤ} : 0 ≤ a ∧ 0 ≤ b := by squeeze_simp

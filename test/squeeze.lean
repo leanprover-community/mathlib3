@@ -35,13 +35,4 @@ by { squeeze_simp_test [←h, two_mul] = [←h, add_zero, two_mul] }
 
 section current_bug
 
-@[simp] lemma asda {a : ℕ} : 0 ≤ a := nat.zero_le
-
-@[simp] lemma pnat.asda {a : ℕ+} : 1 ≤ a := pnat.one_le
-
-open pnat
-
--- as we currently return `[]` for the errored queries, this _should_ work
-lemma tes {a : ℕ} {b : ℕ+} : 0 ≤ a ∧ 1 ≤ b := by { squeeze_simp_test = [] }
-
 end current_bug

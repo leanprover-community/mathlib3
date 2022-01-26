@@ -124,7 +124,7 @@ instance : has_coe_to_fun (α →₀ M) (λ _, α → M) := fun_like.has_coe_to_
 /-- Deprecated. Use `fun_like.ext_iff` instead. -/
 lemma ext_iff {f g : α →₀ M} : f = g ↔ ∀ a, f a = g a := fun_like.ext_iff
 /-- Deprecated. Use `fun_like.coe_fn_eq` instead. -/
-@[simp, norm_cast] lemma coe_fn_inj {f g : α →₀ M} : (f : α → M) = g ↔ f = g := fun_like.coe_fn_eq
+lemma coe_fn_inj {f g : α →₀ M} : (f : α → M) = g ↔ f = g := fun_like.coe_fn_eq
 /-- Deprecated. Use `fun_like.coe_injective` instead. -/
 lemma coe_fn_injective : @function.injective (α →₀ M) (α → M) coe_fn := fun_like.coe_injective
 /-- Deprecated. Use `fun_like.congr_fun` instead. -/

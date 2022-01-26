@@ -25,6 +25,17 @@ meta def pos.move_left (p : pos) (n : ℕ) : pos :=
 
 namespace tactic
 
+attribute [derive decidable_eq] simp_arg_type
+
+/-- Turn a `simp_arg_type` into a string. -/
+meta instance simp_arg_type.has_to_string : has_to_string simp_arg_type :=
+⟨λ a, match a with
+| simp_arg_type.all_hyps := "*"
+| (simp_arg_type.except n) := "-" ++ to_string n
+| (simp_arg_type.expr e) := to_string e
+| (simp_arg_type.symm_expr e) := "←" ++ to_string e
+end⟩
+
 open list
 
 /-- parse structure instance of the shape `{ field1 := value1, .. , field2 := value2 }` -/
@@ -140,21 +151,24 @@ element of `args'` changes the resulting proof.
 meta def filter_simp_set
   (tac : bool → list simp_arg_type → tactic unit)
   (user_args simp_args : list simp_arg_type) : tactic (list simp_arg_type) :=
-do s ← get_proof_state_after (tac ff (user_args ++ simp_args)),
-match s with
-| none := do trace!("There is a namespace clash in your simp lemmas. This currently prevents " ++
-"`squeeze_simp` from working properly; please try remove all `open` statements, or try " ++
-"exclude lemmas that could be clashing with the `-lemma` syntax."), pure []
-| some s := do (simp_args', _)  ← filter_simp_set_aux tac user_args s simp_args [] [],
+do some s ← get_proof_state_after (tac ff (user_args ++ simp_args)),
+   (simp_args', _)  ← filter_simp_set_aux tac user_args s simp_args [] [],
    (user_args', ds) ← filter_simp_set_aux tac simp_args' s user_args [] [],
    when (is_trace_enabled_for `squeeze.deleted = tt ∧ ¬ ds.empty)
      trace!"deleting provided arguments {ds}",
    pure (user_args' ++ simp_args')
-end
 
 /-- make a `simp_arg_type` that references the name given as an argument -/
 meta def name.to_simp_args (n : name) : tactic simp_arg_type :=
 do e ← resolve_name' n, pure $ simp_arg_type.expr e
+
+-- `macro`s can be other things but this is a good first order approximation
+meta def prepend_root_if_needed (n : name) : tactic name :=
+do x ← resolve_name' n,
+return $ match x with
+| expr.macro _ _ := `_root_ ++ n
+| _ := n
+end
 
 /-- tactic combinator to create a `simp`-like tactic that minimizes its
 argument list.
@@ -190,17 +204,6 @@ do v ← target >>= mk_meta_var,
    tac no_dflt args
 
 namespace interactive
-
-attribute [derive decidable_eq] simp_arg_type
-
-/-- Turn a `simp_arg_type` into a string. -/
-meta instance simp_arg_type.has_to_string : has_to_string simp_arg_type :=
-⟨λ a, match a with
-| simp_arg_type.all_hyps := "*"
-| (simp_arg_type.except n) := "-" ++ to_string n
-| (simp_arg_type.expr e) := to_string e
-| (simp_arg_type.symm_expr e) := "←" ++ to_string e
-end⟩
 
 /-- combinator meant to aggregate the suggestions issued by multiple calls
 of `squeeze_simp` (due, for instance, to `;`).
@@ -370,3 +373,13 @@ add_tactic_doc
     ``squeeze_scope],
   tags       := ["simplification", "Try this"],
   inherit_description_from := ``squeeze_simp }
+
+@[simp] lemma asda {a : ℕ} : 0 ≤ a := sorry
+
+@[simp] lemma int.asda {a : ℤ} : 0 ≤ a := sorry
+
+open int
+
+--example : false := by do x ← tactic.prepend_root_if_needed `asda, trace x
+
+lemma tes {a : ℕ} {b : ℤ} : 0 ≤ a ∧ 0 ≤ b := by squeeze_simp

@@ -222,7 +222,7 @@ end
 lemma dvd_iff_div_factorization_eq_tsub (d n : ℕ) (hd : d ≠ 0) (hdn : d ≤ n) :
   d ∣ n ↔ (n/d).factorization = n.factorization - d.factorization :=
 begin
-  have hn : n ≠ 0 := (hd.bot_lt.trans hdn).ne',
+  have hn : n ≠ 0 := (lt_of_lt_of_le hd.bot_lt hdn).ne.symm,
   split,
   { exact div_factorization_eq_tsub_of_dvd hd hn },
   { rcases eq_or_lt_of_le hdn with rfl | hd_lt_n, { simp },
@@ -230,7 +230,7 @@ begin
     intros h,
     rw dvd_iff_le_div_mul n d,
     by_contra h2,
-    cases (exists_factorization_lt_of_lt (mul_ne_zero h1 hd) hn (not_le.mp h2)) with p hp,
+    cases (exists_factorization_lt_of_lt (mul_ne_zero h1 hd) (not_le.mp h2)) with p hp,
     rwa [factorization_mul h1 hd, add_apply, ←lt_tsub_iff_right, h, tsub_apply,
       lt_self_iff_false] at hp },
 end

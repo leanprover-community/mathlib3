@@ -106,14 +106,14 @@ begin
   /- This is a specialization of `has_fderiv_at_boundary_of_tendsto_fderiv`. To be in the setting of
   this theorem, we need to work on an open interval with closure contained in `s ∪ {a}`, that we
   call `t = (a, b)`. Then, we check all the assumptions of this theorem and we apply it. -/
-  obtain ⟨b, ab, sab⟩ : ∃ b ∈ Ioi a, Ioc a b ⊆ s :=
+  obtain ⟨b, ab : a < b, sab : Ioc a b ⊆ s⟩ :=
     mem_nhds_within_Ioi_iff_exists_Ioc_subset.1 hs,
   let t := Ioo a b,
   have ts : t ⊆ s := subset.trans Ioo_subset_Ioc_self sab,
   have t_diff : differentiable_on ℝ f t := f_diff.mono ts,
   have t_conv : convex ℝ t := convex_Ioo a b,
   have t_open : is_open t := is_open_Ioo,
-  have t_closure : closure t = Icc a b := closure_Ioo ab,
+  have t_closure : closure t = Icc a b := closure_Ioo ab.ne,
   have t_cont : ∀y ∈ closure t, continuous_within_at f t y,
   { rw t_closure,
     assume y hy,
@@ -150,7 +150,7 @@ begin
   have t_diff : differentiable_on ℝ f t := f_diff.mono ts,
   have t_conv : convex ℝ t := convex_Ioo b a,
   have t_open : is_open t := is_open_Ioo,
-  have t_closure : closure t = Icc b a := closure_Ioo ba,
+  have t_closure : closure t = Icc b a := closure_Ioo (ne_of_lt ba),
   have t_cont : ∀y ∈ closure t, continuous_within_at f t y,
   { rw t_closure,
     assume y hy,

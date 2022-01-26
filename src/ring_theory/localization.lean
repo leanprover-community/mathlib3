@@ -1010,6 +1010,9 @@ lemma mk_zero (b) : (mk 0 b : localization M) = 0 :=
 calc mk 0 b = mk 0 1 : mk_eq_mk_iff.mpr (r_of_eq (by simp))
 ... = 0 : by  unfold has_zero.zero localization.zero
 
+lemma lift_on_zero {p : Type*} (f : ∀ (a : R) (b : M), p) (H) : lift_on 0 f H = f 0 1 :=
+by rw [← mk_zero 1, lift_on_mk]
+
 private meta def tac := `[
 { intros,
   simp only [add_mk, localization.mk_mul, neg_mk, ← mk_zero 1],
@@ -2403,7 +2406,7 @@ variable (M)
 lemma is_fraction_ring_of_is_localization (S T : Type*) [comm_ring S] [comm_ring T]
   [algebra R S] [algebra R T] [algebra S T] [is_scalar_tower R S T]
   [is_localization M S] [is_fraction_ring R T] (hM : M ≤ non_zero_divisors R) :
-    is_fraction_ring S T :=
+  is_fraction_ring S T :=
 begin
   have := is_localization_of_submonoid_le S T M (non_zero_divisors R) _,
   refine @@is_localization_of_is_exists_mul_mem _ _ _ _ _ _ this _ _,
@@ -2421,10 +2424,23 @@ begin
   { exact hM }
 end
 
+protected
+lemma nontrivial (R S : Type*) [comm_ring R] [nontrivial R] [comm_ring S] [algebra R S]
+  [is_fraction_ring R S] : nontrivial S :=
+begin
+  apply nontrivial_of_ne,
+  intro h,
+  apply @zero_ne_one R,
+  exact is_localization.injective S (le_of_eq rfl)
+    (((algebra_map R S).map_zero.trans h).trans (algebra_map R S).map_one.symm),
+end
+
 lemma is_fraction_ring_of_is_domain_of_is_localization [is_domain R] (S T : Type*)
-  [comm_ring S] [nontrivial S] [comm_ring T] [algebra R S] [algebra R T] [algebra S T]
+  [comm_ring S] [comm_ring T] [algebra R S] [algebra R T] [algebra S T]
   [is_scalar_tower R S T] [is_localization M S] [is_fraction_ring R T] : is_fraction_ring S T :=
 begin
+  haveI := is_fraction_ring.nontrivial R T,
+  haveI := (algebra_map S T).domain_nontrivial,
   apply is_fraction_ring_of_is_localization M S T,
   intros x hx,
   rw mem_non_zero_divisors_iff_ne_zero,

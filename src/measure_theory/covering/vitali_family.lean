@@ -205,11 +205,7 @@ end
 
 lemma eventually_filter_at_measurable_set (x : α) :
   ∀ᶠ a in v.filter_at x, measurable_set a :=
-begin
-  filter_upwards [v.eventually_filter_at_mem_sets x],
-  assume a ha,
-  exact v.measurable_set' _ _ ha,
-end
+by { filter_upwards [v.eventually_filter_at_mem_sets x] with _ ha using v.measurable_set' _ _ ha }
 
 lemma frequently_filter_at_iff {x : α} {P : set α → Prop} :
   (∃ᶠ a in v.filter_at x, P a) ↔ ∀ (ε > (0 : ℝ)), ∃ a ∈ v.sets_at x, a ⊆ closed_ball x ε ∧ P a :=

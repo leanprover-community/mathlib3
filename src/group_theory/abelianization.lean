@@ -170,3 +170,12 @@ lemma abelianization_congr_trans {I : Type v} [group I] (e₂ : H ≃* I) :
 mul_equiv.to_monoid_hom_injective (abelianization.hom_ext _ _ rfl)
 
 end abelianization_congr
+
+/-- An Abelian group is equivalent to its own abelianization. -/
+@[simps] def abelianization.equiv_of_comm {H : Type*} [comm_group H] :
+  H ≃* abelianization H :=
+{ to_fun    := abelianization.of,
+  inv_fun   := abelianization.lift (monoid_hom.id H),
+  left_inv  := λ a, rfl,
+  right_inv := by { rintros ⟨a⟩, refl, },
+  .. abelianization.of }

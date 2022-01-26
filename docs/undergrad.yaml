@@ -439,7 +439,7 @@ Topology:
     its orthonormality: 'orthonormal_fourier'
     its completeness: 'span_fourier_Lp_closure_eq_top'
     example, classical Hilbert bases of orthogonal polynomials, their orthonormality and completeness: ''
-    Lax-Milgram theorem: 'lax_milgram.lax_milgram_equiv'
+    Lax-Milgram theorem: 'lax_milgram.continuous_linear_equiv_of_bilin'
     $H^1_0([0,1])$ and its application to the one-dimensional Dirichlet problem: ''
 
 # 9.

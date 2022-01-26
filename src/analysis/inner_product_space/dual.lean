@@ -21,13 +21,8 @@ the dual of a Hilbert space `E` has the form `λ u, ⟪x, u⟫` for some `x : E`
 
 For a bilinear form `B : E →L⋆[𝕜] E →L[𝕜] 𝕜`,
 we define a map `continuous_linear_map_of_bilin B :  E →L[𝕜] E`,
-given by substitution `E →L[𝕜] 𝕜` with `E` using to_dual.is
-We also write th
+given by substituting `E →L[𝕜] 𝕜` with `E` using `to_dual`.
 
-## Notation
-
-We define the notation `B♯` for `continuous_linear_map_of_bilin B`:
-import the locale `inner_product_space.sharp` if you want to use it.
 
 ## References
 
@@ -187,7 +182,7 @@ def continuous_linear_map_of_bilin (B : E →L⋆[𝕜] E →L[𝕜] 𝕜) : E �
 comp (to_dual 𝕜 E).symm.to_continuous_linear_equiv.to_continuous_linear_map B
 --((to_dual 𝕜 E).symm.to_continuous_linear_equiv.to_continuous_linear_map) ∘L E
 
-localized "postfix `♯`:1025 := inner_product_space.continuous_linear_map_of_bilin" in sharp
+local postfix `♯`:1025 := continuous_linear_map_of_bilin
 
 variables (B : E →L⋆[𝕜] E →L[𝕜] 𝕜)
 @[simp]

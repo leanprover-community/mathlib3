@@ -418,14 +418,10 @@ end
 /-- Knowing that `3/4<4/(3c^4)` from `ineq_1`, and `c≠0`, we conclude that `c=1` or `c=-1`. -/
 lemma ineq_2 (c : ℤ) (hc₁ : (3 : ℝ)/4 < 4/ (3* c^4)) (hc₂ : c ≠ 0) : c = 1 ∨ c = -1 :=
 begin
-  rcases (le_or_gt (|c|) 1) with h | (h : 2 ≤ |c|),
+  rcases le_or_gt (|c|) 1 with h | (h : 2 ≤ |c|),
   { -- case |c| ≤ 1
-     cases int.is_zero_or_pm_one_of_le_one h with h₁ h₁, -- either c = 1 or c = 0 or c = -1
-    { right, assumption, },
-    { cases h₁,
-      { exfalso,
-        exact hc₂ h₁, },
-      left, assumption, }, },
+    obtain ⟨h1c, hc1⟩ : -1 ≤ c ∧ c ≤ 1 := abs_le.mp h,
+    interval_cases c; tauto },
   { -- case 2 ≤ |c|
     exfalso,
     have : 2^4 ≤ c^4,

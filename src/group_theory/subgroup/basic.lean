@@ -1287,13 +1287,13 @@ end
 variable (G)
 
 /-- Every proper subgroup `H` of `G` is a proper normal subgroup of the normalizer of `H` in `G`. -/
-def normalizer_condition := ∀ (H : subgroup G), H < ⊤ → H < normalizer H
+def _root_.normalizer_condition := ∀ (H : subgroup G), H < ⊤ → H < normalizer H
 
 variable {G}
 
 /-- Alternative phrasing of the normalizer condition: Only the full group is self-normalizing.
 This may be easier to work with, as it avoids inequalities and negations.  -/
-lemma normalizer_condition_iff_only_full_group_self_normalizing :
+lemma _root_.normalizer_condition_iff_only_full_group_self_normalizing :
   normalizer_condition G ↔ ∀ (H : subgroup G), H.normalizer = H → H = ⊤ :=
 begin
   apply forall_congr, intro H,

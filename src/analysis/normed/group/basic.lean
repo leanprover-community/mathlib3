@@ -188,7 +188,7 @@ by { rw[←dist_zero_right], exact dist_nonneg }
 
 @[simp] lemma norm_zero : ∥(0 : E)∥ = 0 :=  by rw [← dist_zero_right, dist_self]
 
-lemma norm_ne_zero {g : E} : ∥g∥ ≠ 0 → g ≠ 0 := mt $ by { rintro rfl, exact norm_zero }
+lemma ne_zero_of_norm_ne_zero {g : E} : ∥g∥ ≠ 0 → g ≠ 0 := mt $ by { rintro rfl, exact norm_zero }
 
 @[nontriviality] lemma norm_of_subsingleton [subsingleton E] (x : E) : ∥x∥ = 0 :=
 by rw [subsingleton.elim x 0, norm_zero]
@@ -334,21 +334,11 @@ begin
   abel
 end
 
-lemma ne_zero_of_norm_pos {g : E} : 0 < ∥ g ∥ → g ≠ 0 :=
-begin
-  intros hpos hzero,
-  rw [hzero, norm_zero] at hpos,
-  exact lt_irrefl 0 hpos,
-end
-
-lemma nonzero_of_mem_sphere {r : ℝ} (hr : 0 < r) (x : sphere (0:E) r) : (x:E) ≠ 0 :=
-begin
-  refine ne_zero_of_norm_pos _,
-  rwa norm_eq_of_mem_sphere x,
-end
+lemma nonzero_of_mem_sphere {r : ℝ} (hr : r ≠ 0) (x : sphere (0 : E) r) : (x : E) ≠ 0 :=
+ne_zero_of_norm_ne_zero $ by rwa norm_eq_of_mem_sphere x
 
 lemma nonzero_of_mem_unit_sphere (x : sphere (0:E) 1) : (x:E) ≠ 0 :=
-by { apply nonzero_of_mem_sphere, norm_num }
+nonzero_of_mem_sphere one_ne_zero _
 
 /-- We equip the sphere, in a seminormed group, with a formal operation of negation, namely the
 antipodal map. -/
@@ -560,6 +550,9 @@ lemma nndist_eq_nnnorm (a b : E) : nndist a b = ∥a - b∥₊ := nnreal.eq $ di
 
 @[simp] lemma nnnorm_zero : ∥(0 : E)∥₊ = 0 :=
 nnreal.eq norm_zero
+
+lemma ne_zero_of_nnnorm_ne_zero {g : E} : ∥g∥₊ ≠ 0 → g ≠ 0 :=
+mt $ by { rintro rfl, exact nnnorm_zero }
 
 lemma nnnorm_add_le (g h : E) : ∥g + h∥₊ ≤ ∥g∥₊ + ∥h∥₊ :=
 nnreal.coe_le_coe.1 $ norm_add_le g h

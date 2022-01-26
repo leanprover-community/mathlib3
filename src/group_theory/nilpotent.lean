@@ -356,6 +356,21 @@ lemma upper_central_series_nilpotency_class :
   upper_central_series G (group.nilpotency_class G) = ⊤ :=
 nat.find_spec (is_nilpotent.nilpotent G)
 
+lemma upper_central_series_eq_top_iff_nilpotency_class_le {n : ℕ} :
+  (upper_central_series G n = ⊤) ↔ (group.nilpotency_class G ≤ n) :=
+begin
+  split,
+  { intro h,
+    apply nat.find_le,
+    exact h, },
+  {
+    intro h,
+    apply eq_top_iff.mpr,
+    rw ← upper_central_series_nilpotency_class,
+    exact (upper_central_series_mono _ h),
+  }
+end
+
 /-- The nilpotency class of a nilpotent `G` is equal to the smallest `n` for which an ascending
 central series reaches `G` in its `n`'th term. -/
 lemma least_ascending_central_series_length_eq_nilpotency_class :
@@ -564,7 +579,7 @@ begin
   simp,
 end
 
--- This lemma is just because `rw h` doesn’t work below.
+-- This lemma helps with rewriting the subgroup, which occurs in
 lemma comap_center_subst {H₁ H₂ : subgroup G} [normal H₁] [normal H₂] (h : H₁ = H₂) :
   comap (mk' H₁) (center (G ⧸ H₁)) = comap (mk' H₂) (center (G ⧸ H₂)) :=
   by { unfreezingI { subst h, } }
@@ -616,20 +631,14 @@ begin
   rcases n with rfl | n,
   { simp [nilpotency_class_zero_iff_subsingleton] at *,
     haveI := hn,
-    apply subsingleton_quotient_of_subsingleton, },
-  { apply le_antisymm,
-    { apply nat.find_min',
+    exact subsingleton_quotient_of_subsingleton, },
+  { suffices : group.nilpotency_class (G ⧸ center G) = n, by simpa,
+    apply le_antisymm,
+    { apply upper_central_series_eq_top_iff_nilpotency_class_le.mp,
       apply (@comap_injective G _ _ _ (mk' (center G)) (surjective_quot_mk _)),
-      rw comap_upper_central_series_quotient_center,
-      simp,
-      rw ← hn,
-      have : (∃ n : ℕ, upper_central_series G n = ⊤) := begin
-          unfreezingI { obtain ⟨n, h⟩ := hH, },
-          refine ⟨n,h⟩
-      end,
-      apply (nat.find_spec this) , },
-    { simp,
-      apply le_of_add_le_add_right,
+      rw [ comap_upper_central_series_quotient_center, comap_top, ← hn],
+      exact upper_central_series_nilpotency_class, },
+    { apply le_of_add_le_add_right,
       calc n + 1 = n.succ : rfl
         ... = group.nilpotency_class G : symm hn
         ... ≤ group.nilpotency_class (G ⧸ center G) + 1

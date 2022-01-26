@@ -517,6 +517,20 @@ begin
   { rw [finset.sup'_cons hs, finset.inf'_cons hs, ball_sup, inf_eq_inter, ih] },
 end
 
+lemma ball_mono {p : seminorm 𝕜 E} {r₁ r₂ : ℝ} (h : r₁ ≤ r₂) : p.ball x r₁ ⊆ p.ball x r₂ :=
+λ _ (hx : _ < _), hx.trans_le h
+
+lemma ball_antitone {p q : seminorm 𝕜 E} (h : q ≤ p) : p.ball x r ⊆ q.ball x r :=
+λ _, (h _).trans_lt
+
+lemma ball_add_ball_subset (p : seminorm 𝕜 E) (r₁ r₂ : ℝ) (x₁ x₂ : E):
+  p.ball (x₁ : E) r₁ + p.ball (x₂ : E) r₂ ⊆ p.ball (x₁ + x₂) (r₁ + r₂) :=
+begin
+  rintros x ⟨y₁, y₂, hy₁, hy₂, rfl⟩,
+  rw [mem_ball, add_sub_comm],
+  exact (p.triangle _ _).trans_lt (add_lt_add hy₁ hy₂),
+end
+
 end has_scalar
 
 section module
@@ -561,6 +575,17 @@ begin
   exact ball_finset_sup_eq_Inter _ _ _ hr,
 end
 
+lemma ball_smul_ball (p : seminorm 𝕜 E) (r₁ r₂ : ℝ) :
+  metric.ball (0 : 𝕜) r₁ • p.ball 0 r₂ ⊆ p.ball 0 (r₁ * r₂) :=
+begin
+  rw set.subset_def,
+  intros x hx,
+  rw set.mem_smul at hx,
+  rcases hx with ⟨a, y, ha, hy, hx⟩,
+  rw [←hx, mem_ball_zero, seminorm.smul],
+  exact mul_lt_mul'' (mem_ball_zero_iff.mp ha) (p.mem_ball_zero.mp hy) (norm_nonneg a) (p.nonneg y),
+end
+
 end norm_one_class
 end module
 end add_comm_group
@@ -592,6 +617,17 @@ end
 
 lemma symmetric_ball_zero (r : ℝ) (hx : x ∈ ball p 0 r) : -x ∈ ball p 0 r :=
 balanced_ball_zero p r (-1) (by rw [norm_neg, norm_one]) ⟨x, hx, by rw [neg_smul, one_smul]⟩
+
+@[simp]
+lemma neg_ball (p : seminorm 𝕜 E) (r : ℝ) (x : E) :
+  -ball p x r = ball p (-x) r :=
+by { ext, rw [mem_neg, mem_ball, mem_ball, ←neg_add', sub_neg_eq_add, p.neg], }
+
+@[simp]
+lemma smul_ball_preimage (p : seminorm 𝕜 E) (y : E) (r : ℝ) (a : 𝕜) (ha : a ≠ 0) :
+  ((•) a) ⁻¹' p.ball y r = p.ball (a⁻¹ • y) (r / ∥a∥) :=
+set.ext $ λ _, by rw [mem_preimage, mem_ball, mem_ball,
+  lt_div_iff (norm_pos_iff.mpr ha), mul_comm, ←p.smul, smul_sub, smul_inv_smul₀ ha]
 
 end normed_field
 

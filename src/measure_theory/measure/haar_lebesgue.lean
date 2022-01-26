@@ -29,7 +29,7 @@ We deduce basic properties of any Haar measure on a finite dimensional real vect
 * `add_haar_closed_ball`: the measure of `closed_ball x r` is `r ^ dim * μ (ball 0 1)`.
 * `add_haar_sphere`: spheres have zero measure.
 
-We also show that a Lebesgue density point `x` of a set `s` (with respect to closed balls) has also
+We also show that a Lebesgue density point `x` of a set `s` (with respect to closed balls) has
 density one for the rescaled copies `{x} + r • t` of a given set `t` with positive measure, in
 `tendsto_add_haar_inter_smul_one_of_density_one`. In particular, `s` intersects `{x} + r • t` for
 small `r`, see `eventually_nonempty_inter_smul_of_density_one`.

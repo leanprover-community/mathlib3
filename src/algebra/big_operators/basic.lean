@@ -1220,6 +1220,40 @@ lemma prod_pow_boole [decidable_eq α] (s : finset α) (f : α → β) (a : α) 
   (∏ x in s, (f x)^(ite (a = x) 1 0)) = ite (a ∈ s) (f a) 1 :=
 by simp
 
+lemma multiset.map_insert (S : multiset α) (a : α) (g : α → β) :
+  multiset.map g (insert a S) = insert (g a) (multiset.map g S) :=
+begin
+  -- library_search,
+  induction S using multiset.induction_on',
+   { simp },
+  -- simp only [multiset.map_cons],
+
+
+  -- induction S using multiset.induction with x S IH, { simp },
+  -- simp only [multiset.map_cons],
+
+  -- apply multiset.induction_on' S, { simp },
+  -- intros x T hxS hTS IH,
+  sorry,
+end
+#exit
+lemma multiset.prod_insert [comm_monoid α] (S : multiset α) (a : α) :
+  (insert a S).prod = a * S.prod :=
+begin
+  -- library_search,
+  sorry,
+end
+
+lemma multiset.prod_dvd_prod {S : multiset α} (g1 g2 : α → β) (h : ∀ a ∈ S, g1 a ∣ g2 a) :
+  (multiset.map g1 S).prod ∣ (multiset.map g2 S).prod :=
+begin
+  apply multiset.induction_on' S, { simp },
+  intros a T haS _ IH,
+  simp only [multiset.map_insert, multiset.prod_insert],
+  exact mul_dvd_mul (h a haS) IH,
+end
+#exit
+
 lemma prod_dvd_prod {S : finset α} (g1 g2 : α → β) (h : ∀ a ∈ S, g1 a ∣ g2 a) :
   S.prod g1 ∣ S.prod g2 :=
 begin

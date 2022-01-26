@@ -1320,6 +1320,14 @@ begin
   rw [hU, hV, ball_finset_sup_eq_Inter _ _ _ (lt_min_iff.mpr ⟨hr₁, hr₂⟩),
     ball_finset_sup_eq_Inter _ _ _ hr₁, ball_finset_sup_eq_Inter _ _ _ hr₂,
     ←set.Inter_inter_distrib],
+
+  refine set.Inter_mono (λ i, (set.subset_inter _ _)),
+  { refine set.Inter_mono' (λ hi, _),
+    use finset.mem_of_subset (finset.subset_union_left ι'₁ ι'₂) hi,
+    exact ball_mono (min_le_of_left_le (le_refl _)) },
+  refine set.Inter_mono' (λ hi, _),
+  use finset.mem_of_subset (finset.subset_union_right ι'₁ ι'₂) hi,
+  exact ball_mono (min_le_of_right_le (le_refl _)),
   /-refine set.Inter_subset_Inter (λ i, _),
   have hI₁ : (⋂ (H : i ∈ ι'₁ ∪ ι'₂), (p i).ball 0 r₁) ⊆ (⋂ (H : i ∈ ι'₁), (p i).ball 0 r₁) :=
     Inter_subset_Inter2 (λ hi, ⟨finset.mem_union_left ι'₂ hi, subset.rfl⟩),
@@ -1329,13 +1337,6 @@ begin
   rw [←set.Inter_inter_distrib],
   exact Inter_subset_Inter (λ i, subset_inter
     (ball_mono (min_le_of_left_le (le_refl _))) (ball_mono (min_le_of_right_le (le_refl _)))),-/
-  refine set.Inter_subset_Inter (λ i, (set.subset_inter _ _)),
-  { refine set.Inter_subset_Inter2 (λ hi, _),
-    use finset.mem_of_subset (finset.subset_union_left ι'₁ ι'₂) hi,
-    exact ball_mono (min_le_of_left_le (le_refl _)) },
-  refine set.Inter_subset_Inter2 (λ hi, _),
-  use finset.mem_of_subset (finset.subset_union_right ι'₁ ι'₂) hi,
-  exact ball_mono (min_le_of_right_le (le_refl _)),
 end
 
 lemma seminorm_basis_zero_zero (p : ι → seminorm 𝕜 E) (U) (hU : U ∈ seminorm_basis_zero p) :
@@ -1352,15 +1353,15 @@ begin
   rcases (seminorm_basis_zero_iff p U).mp hU with ⟨ι', r, hr, hU⟩,
   use (ι'.sup p).ball 0 (r/2),
   refine ⟨seminorm_basis_zero_mem p ι' (div_pos hr zero_lt_two), _⟩,
-  refine set.subset.trans (add_ball_zero (ι'.sup p) (r/2)) _,
-  rw [hU, mul_comm, div_mul_cancel_of_invertible r 2],
+  refine set.subset.trans (ball_add_ball_subset (ι'.sup p) (r/2) (r/2) 0 0) _,
+  rw [hU, add_zero, add_halves'],
 end
 
 lemma seminorm_basis_zero_neg (p : ι → seminorm 𝕜 E) (U) (hU' : U ∈ seminorm_basis_zero p) :
   ∃ (V : set E) (H : V ∈ (seminorm_basis_zero p)), V ⊆ (λ (x : E), -x) ⁻¹' U :=
 begin
   rcases (seminorm_basis_zero_iff p U).mp hU' with ⟨ι', r, hr, hU⟩,
-  rw [hU, preim_sub_ball (ι'.sup p)],
+  rw [hU, neg_preimage, neg_ball (ι'.sup p), neg_zero],
   exact ⟨U, hU', eq.subset hU⟩,
 end
 
@@ -1393,7 +1394,7 @@ begin
   rcases (seminorm_basis_zero_iff p U).mp hU with ⟨ι', r, hr, hU⟩,
   rw hU,
   by_cases h : x ≠ 0,
-  { rw (ι'.sup p).preim_smul_ball r x h,
+  { rw [(ι'.sup p).smul_ball_preimage 0 r x h, smul_zero],
     use (ι'.sup p).ball 0 (r / ∥x∥),
     exact ⟨seminorm_basis_zero_mem p ι' (div_pos hr (norm_pos_iff.mpr h)), subset.rfl⟩ },
   use (ι'.sup p).ball 0 r,
@@ -1537,7 +1538,7 @@ begin
     seminorm_basis_zero_mem p _ (div_pos hr (nnreal.coe_pos.mpr hC)), _⟩,
   refine subset.trans _ (preimage_mono hU),
   simp_rw [←linear_map.map_zero f, ←ball_comp],
-  refine subset.trans _ (ball_antimono hf),
+  refine subset.trans _ (ball_antitone hf),
   rw ball_smul (s₁.sup p) hC,
 end
 

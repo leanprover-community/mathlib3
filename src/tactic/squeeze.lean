@@ -164,6 +164,7 @@ meta def name.to_simp_args (n : name) : tactic simp_arg_type :=
 return $ simp_arg_type.expr $ @expr.local_const ff n n (default) (expr.var 0)
 
 -- `macro`s can be other things but this is a good first order approximation
+/-- If the `expr` is (likely) to be overloaded, then prepend a `_root_` on it. -/
 meta def prepend_root_if_needed (n : name) : tactic name :=
 do x ← resolve_name' n,
 return $ match x with

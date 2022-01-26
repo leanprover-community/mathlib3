@@ -206,6 +206,7 @@ lemma exists_factorization_lt_of_lt {a b : ℕ} (ha : a ≠ 0) (hab : a < b) :
   ∃ p : ℕ, a.factorization p < b.factorization p :=
 begin
   have hb : b ≠ 0 := (ha.bot_lt.trans hab).ne',
+  contrapose! hab,
   rw [←finsupp.le_def, factorization_le_iff_dvd hb ha] at hab,
   exact le_of_dvd ha.bot_lt hab,
 end

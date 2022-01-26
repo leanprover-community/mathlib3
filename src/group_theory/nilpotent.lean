@@ -555,27 +555,16 @@ lemma comap_comap_center {H₁ : subgroup G} [H₁.normal] {H₂ : subgroup (G �
   comap (mk' H₁) (comap (mk' H₂) (center ((G ⧸ H₁) ⧸ H₂))) =
     comap (mk' (comap (mk' H₁) H₂)) (center (G ⧸ comap (mk' H₁) H₂)) :=
 begin
-  ext,
-  simp,
-  repeat { rw mem_center_iff },
-  split; intros hx,
-  { intro y,
-    obtain ⟨y,rfl⟩ := quotient.surjective_quotient_mk' y,
-    specialize hx (quotient.mk' (quotient.mk' y)),
+  ext x,
+  simp only [mk'_apply, mem_comap, mem_center_iff, forall_coe],
+  apply forall_congr,
+  intro y,
+  split;
+  { intro h,
     apply eq_iff_div_mem.mpr,
-    simp,
-    have hx' := eq_iff_div_mem.mp hx, clear hx,
-    apply hx',
+    have h' := eq_iff_div_mem.mp h, clear h,
+    apply h',
     apply_instance, },
-  { intro y,
-    obtain ⟨y,rfl⟩ := quotient.surjective_quotient_mk' y,
-    obtain ⟨y,rfl⟩ := quotient.surjective_quotient_mk' y,
-    specialize hx (quotient.mk' y),
-    apply eq_iff_div_mem.mpr,
-    have hx' := eq_iff_div_mem.mp hx, clear hx,
-    simp at hx',
-    apply hx',
-    apply_instance, }
 end
 
 -- This lemma is just because `rw h` doesn’t work below.

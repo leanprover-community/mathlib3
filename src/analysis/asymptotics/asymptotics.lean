@@ -187,9 +187,8 @@ begin
   unfold is_O_with,
   subst c₂,
   apply filter.eventually_congr,
-  filter_upwards [hf, hg],
-  assume x e₁ e₂,
-  rw [e₁, e₂]
+  filter_upwards [hf, hg] with _ e₁ e₂,
+  rw [e₁, e₂],
 end
 
 theorem is_O_with.congr' {c₁ c₂} {f₁ f₂ : α → E} {g₁ g₂ : α → F} {l : filter α}
@@ -300,8 +299,7 @@ theorem is_O_with.trans (hfg : is_O_with c f g l) (hgk : is_O_with c' g k l) (hc
   is_O_with (c * c') f k l :=
 begin
   unfold is_O_with at *,
-  filter_upwards [hfg, hgk],
-  assume x hx hx',
+  filter_upwards [hfg, hgk] with x hx hx',
   calc ∥f x∥ ≤ c * ∥g x∥ : hx
   ... ≤ c * (c' * ∥k x∥) : mul_le_mul_of_nonneg_left hx' hc
   ... = c * c' * ∥k x∥ : (mul_assoc _ _ _).symm
@@ -535,7 +533,7 @@ end
 
 lemma is_O_with.prod_left_same (hf : is_O_with c f' k' l) (hg : is_O_with c g' k' l) :
   is_O_with c (λ x, (f' x, g' x)) k' l :=
-by rw is_O_with_iff at *; filter_upwards [hf, hg] λ x, max_le
+by rw is_O_with_iff at *; filter_upwards [hf, hg] with x using max_le
 
 lemma is_O_with.prod_left (hf : is_O_with c f' k' l) (hg : is_O_with c' g' k' l) :
   is_O_with (max c c') (λ x, (f' x, g' x)) k' l :=
@@ -594,7 +592,7 @@ variables {c₁ c₂ : ℝ} {f₁ f₂ : α → E'}
 
 theorem is_O_with.add (h₁ : is_O_with c₁ f₁ g l) (h₂ : is_O_with c₂ f₂ g l) :
   is_O_with (c₁ + c₂) (λ x, f₁ x + f₂ x) g l :=
-by rw is_O_with at *; filter_upwards [h₁, h₂] λ x hx₁ hx₂,
+by rw is_O_with at *; filter_upwards [h₁, h₂] with x hx₁ hx₂ using
 calc ∥f₁ x + f₂ x∥ ≤ c₁ * ∥g x∥ + c₂ * ∥g x∥ : norm_add_le_of_le hx₁ hx₂
                ... = (c₁ + c₂) * ∥g x∥       : (add_mul _ _ _).symm
 
@@ -970,8 +968,7 @@ theorem is_O_with.mul {f₁ f₂ : α → R} {g₁ g₂ : α → 𝕜} {c₁ c�
   is_O_with (c₁ * c₂) (λ x, f₁ x * f₂ x) (λ x, g₁ x * g₂ x) l :=
 begin
   unfold is_O_with at *,
-  filter_upwards [h₁, h₂],
-  intros x hx₁ hx₂,
+  filter_upwards [h₁, h₂] with _ hx₁ hx₂,
   apply le_trans (norm_mul_le _ _),
   convert mul_le_mul hx₁ hx₂ (norm_nonneg _) (le_trans (norm_nonneg _) hx₁) using 1,
   rw normed_field.norm_mul,

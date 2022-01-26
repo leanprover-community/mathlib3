@@ -1014,7 +1014,7 @@ lemma cthickening_eq_Inter_cthickening' {δ : ℝ}
   cthickening δ E = ⋂ ε ∈ s, cthickening ε E :=
 begin
   apply subset.antisymm,
-  { exact subset_bInter (λ _ hε, cthickening_mono (le_of_lt (hsδ hε)) E), },
+  { exact subset_Inter₂ (λ _ hε, cthickening_mono (le_of_lt (hsδ hε)) E), },
   { unfold thickening cthickening,
     intros x hx,
     simp only [mem_Inter, mem_set_of_eq] at *,
@@ -1038,15 +1038,12 @@ lemma cthickening_eq_Inter_thickening' {δ : ℝ} (δ_nn : 0 ≤ δ)
   (s : set ℝ) (hsδ : s ⊆ Ioi δ) (hs : ∀ ε, δ < ε → (s ∩ (Ioc δ ε)).nonempty) (E : set α) :
   cthickening δ E = ⋂ ε ∈ s, thickening ε E :=
 begin
-  apply subset.antisymm,
-  { apply subset_bInter,
-    intros ε hε,
-    rcases hs ε (mem_Ioi.mp (hsδ hε)) with ⟨ε', ⟨hsε', hε'⟩⟩,
+  refine (subset_Inter₂ $ λ ε hε, _).antisymm _,
+  { obtain ⟨ε', hsε', hε'⟩ := hs ε (hsδ hε),
     have ss := cthickening_subset_thickening' (lt_of_le_of_lt δ_nn hε'.1) hε'.1 E,
     exact ss.trans (thickening_mono hε'.2 E), },
   { rw cthickening_eq_Inter_cthickening' s hsδ hs E,
-    apply bInter_mono,
-    exact λ ε hε, thickening_subset_cthickening ε E, },
+    exact Inter₂_mono (λ ε hε, thickening_subset_cthickening ε E) }
 end
 
 lemma cthickening_eq_Inter_thickening {δ : ℝ} (δ_nn : 0 ≤ δ) (E : set α) :
@@ -1068,7 +1065,7 @@ begin
   obtain ⟨δ, hδs, δ_nonpos⟩ := not_subset.mp hs₀,
   rw [set.mem_Ioi, not_lt] at δ_nonpos,
   apply subset.antisymm,
-  { exact subset_bInter (λ ε _, closure_subset_cthickening ε E), },
+  { exact subset_Inter₂ (λ ε _, closure_subset_cthickening ε E), },
   { rw ← cthickening_of_nonpos δ_nonpos E,
     exact bInter_subset_of_mem hδs, },
 end
@@ -1132,7 +1129,7 @@ lemma _root_.is_compact.cthickening_eq_bUnion_closed_ball
 begin
   rcases eq_empty_or_nonempty E with rfl|hne,
   { simp only [cthickening_empty, Union_false, Union_empty] },
-  refine subset.antisymm (λ x hx, _) (bUnion_subset (λ x hx, closed_ball_subset_cthickening hx _)),
+  refine subset.antisymm (λ x hx, _) (Union₂_subset $ λ x hx, closed_ball_subset_cthickening hx _),
   obtain ⟨y, yE, hy⟩ : ∃ y ∈ E, emetric.inf_edist x E = edist x y :=
     hE.exists_inf_edist_eq_edist hne _,
   have D1 : edist x y ≤ ennreal.of_real δ := (le_of_eq hy.symm).trans hx,

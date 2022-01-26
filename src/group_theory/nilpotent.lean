@@ -599,11 +599,9 @@ lemma subsingleton_quotient_of_subsingleton
   subsingleton (G ⧸ H) :=
 begin
   apply subsingleton.intro,
-  intros x y,
-  obtain ⟨x,rfl⟩ := quotient.surjective_quotient_mk' x,
-  obtain ⟨y,rfl⟩ := quotient.surjective_quotient_mk' y,
-  have := subsingleton.elim x y,
-  subst this,
+  rw forall_coe, intro x,
+  rw forall_coe, intro y,
+  rw (subsingleton.elim x y),
 end
 
 section classical

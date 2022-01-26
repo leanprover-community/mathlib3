@@ -431,7 +431,6 @@ begin
   { exact or.inr hp }
 end
 
-
 lemma squarefree_helper_1 (n k k' : ℕ) (e : k + 1 = k')
   (hk : nat.prime (bit1 k) → ¬ bit1 k ∣ bit1 n)
   (H : squarefree_helper n k') : squarefree_helper n k :=

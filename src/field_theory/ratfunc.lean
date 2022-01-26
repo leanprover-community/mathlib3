@@ -370,11 +370,13 @@ variables (K)
 
 omit hdomain
 
+instance [subsingleton K] : subsingleton (ratfunc K) :=
+to_fraction_ring_injective.subsingleton
+
 instance : inhabited (ratfunc K) :=
 ⟨0⟩
-instance [is_domain K] : nontrivial (ratfunc K) :=
-⟨⟨0, 1, mt (congr_arg to_fraction_ring) $
-  by simpa only [← of_fraction_ring_zero, ← of_fraction_ring_one] using zero_ne_one⟩⟩
+instance [nontrivial K] : nontrivial (ratfunc K) :=
+of_fraction_ring_injective.nontrivial
 
 /-- `ratfunc K` is isomorphic to the field of fractions of `polynomial K`, as rings.
 
@@ -441,6 +443,89 @@ instance : comm_ring (ratfunc K) :=
   zsmul_neg' := λ _, by smul_tac,
   npow := npow_rec }
 
+variables {K}
+
+section lift_hom
+
+variables {G₀ L : Type*} [comm_group_with_zero G₀] [field L]
+
+/-- Lift a `monoid_with_zero_hom (polynomial K) G₀` to a `monoid_with_zero_hom (ratfunc K) G₀`
+by mapping both the numerator and denominator and quotienting them. --/
+def lift_monoid_with_zero_hom (φ : monoid_with_zero_hom (polynomial K) G₀)
+  (hφ : function.injective φ) : monoid_with_zero_hom (ratfunc K) G₀ :=
+{ to_fun := λ f, ratfunc.lift_on f (λ p q, φ p / (φ q)) $ λ p q p' q' hq hq' h, begin
+    casesI subsingleton_or_nontrivial K,
+    { rw [subsingleton.elim p q, subsingleton.elim p' q, subsingleton.elim q' q] },
+    rw [div_eq_div_iff (φ.map_ne_zero_of_mem_non_zero_divisors hφ hq)
+        (φ.map_ne_zero_of_mem_non_zero_divisors hφ hq'), ←map_mul, h, map_mul]
+  end,
+  map_one' := by { rw [←of_fraction_ring_one, ←localization.mk_one, lift_on_of_fraction_ring_mk],
+                   simp only [map_one, submonoid.coe_one, div_one] },
+  map_mul' := λ x y, by {
+    cases x, cases y, induction x with p q, induction y with p' q',
+    { rw [←of_fraction_ring_mul, localization.mk_mul],
+      simp only [lift_on_of_fraction_ring_mk, div_mul_div, map_mul, submonoid.coe_mul] },
+    { refl },
+    { refl } },
+  map_zero' := by { rw [←of_fraction_ring_zero, ←localization.mk_zero (1 : (polynomial K)⁰),
+                         lift_on_of_fraction_ring_mk],
+                    simp only [map_zero, zero_div] } }
+
+lemma lift_monoid_with_zero_hom_apply_of_fraction_ring_mk
+  (φ : monoid_with_zero_hom (polynomial K) G₀) (hφ : function.injective φ)
+  (n : polynomial K) (d : (polynomial K)⁰) :
+  lift_monoid_with_zero_hom φ hφ (of_fraction_ring (localization.mk n d)) = φ n / φ d :=
+lift_on_of_fraction_ring_mk _ _ _ _
+
+lemma lift_monoid_with_zero_hom_injective (φ : monoid_with_zero_hom (polynomial K) G₀)
+  (hφ : function.injective φ) : function.injective (lift_monoid_with_zero_hom φ hφ) :=
+begin
+  intros x y,
+  casesI subsingleton_or_nontrivial K,
+  { simp only [implies_true_iff, eq_iff_true_of_subsingleton] },
+  cases x, cases y, induction x, induction y,
+  { simp_rw [lift_monoid_with_zero_hom_apply_of_fraction_ring_mk, localization.mk_eq_mk_iff],
+    intro h,
+    refine localization.r_of_eq _,
+    simpa only [←hφ.eq_iff, map_mul] using mul_eq_mul_of_div_eq_div _ _ _ _ h.symm;
+    exact (φ.map_ne_zero_of_mem_non_zero_divisors hφ (set_like.coe_mem _)) },
+  { exact λ _, rfl },
+  { exact λ _, rfl }
+end
+
+/-- Lift a `polynomial K →+* L` to a `ratfunc K →+* L` by mapping both the numerator and
+denominator and quotienting them. --/
+def lift_ring_hom (φ : polynomial K →+* L) (hφ : function.injective φ) : ratfunc K →+* L :=
+{ map_add' := λ x y, by {
+    simp only [monoid_with_zero_hom.to_fun_eq_coe],
+    casesI subsingleton_or_nontrivial K,
+    { rw [subsingleton.elim (x + y) y, subsingleton.elim x 0, map_zero, zero_add] },
+    cases x, cases y, induction x with p q, induction y with p' q',
+    { rw [←of_fraction_ring_add, localization.add_mk],
+      simp only [ring_hom.to_monoid_with_zero_hom_eq_coe,
+                 lift_monoid_with_zero_hom_apply_of_fraction_ring_mk],
+      rw [div_add_div, div_eq_div_iff],
+      { rw [mul_comm _ p, mul_comm _ p', mul_comm _ (φ p'), add_comm],
+        simp only [map_add, map_mul, submonoid.coe_mul] },
+      all_goals {
+        try { simp only [←map_mul, ←submonoid.coe_mul] },
+        exact ring_hom.map_ne_zero_of_mem_non_zero_divisors _ hφ (set_like.coe_mem _) } },
+    { refl },
+    { refl } },
+  ..lift_monoid_with_zero_hom φ.to_monoid_with_zero_hom hφ }
+
+lemma lift_ring_hom_apply_of_fraction_ring_mk (φ : polynomial K →+* L) (hφ : function.injective φ)
+  (n : polynomial K) (d : (polynomial K)⁰) :
+  lift_ring_hom φ hφ (of_fraction_ring (localization.mk n d)) = φ n / φ d :=
+lift_monoid_with_zero_hom_apply_of_fraction_ring_mk _ _ _ _
+
+lemma lift_ring_hom_injective (φ : polynomial K →+* L) (hφ : function.injective φ) :
+  function.injective (lift_ring_hom φ hφ) :=
+lift_monoid_with_zero_hom_injective _ _
+
+end lift_hom
+
+variables (K)
 include hdomain
 
 instance : field (ratfunc K) :=
@@ -490,6 +575,25 @@ by simp only [mk_eq_div', of_fraction_ring_div, of_fraction_ring_algebra_map]
   (algebra_map (polynomial K) (ratfunc K) (r • p) / algebra_map _ _ q) =
     r • (algebra_map _ _ p / algebra_map _ _ q):=
 by rw [←mk_eq_div, mk_smul, mk_eq_div]
+
+lemma algebra_map_apply {R : Type*} [comm_semiring R] [algebra R (polynomial K)] (x : R) :
+  algebra_map R (ratfunc K) x = (algebra_map _ _ (algebra_map R (polynomial K) x)) / 1 :=
+by { rw [←map_one (algebra_map (polynomial K) (ratfunc K)), ←mk_eq_div], refl }
+
+@[simp] lemma lift_monoid_with_zero_hom_apply_div {L : Type*} [comm_group_with_zero L]
+  (φ : monoid_with_zero_hom (polynomial K) L) (hφ : function.injective φ) (p q : polynomial K) :
+  lift_monoid_with_zero_hom φ hφ (algebra_map _ _ p / algebra_map _ _ q) = φ p / φ q :=
+begin
+  rcases eq_or_ne q 0 with rfl|hq,
+  { simp only [div_zero, map_zero] },
+  simpa only [←mk_eq_div, mk_eq_localization_mk _ hq,
+               lift_monoid_with_zero_hom_apply_of_fraction_ring_mk],
+end
+
+@[simp] lemma lift_ring_hom_apply_div {L : Type*} [field L]
+  (φ : polynomial K →+* L) (hφ : function.injective φ) (p q : polynomial K) :
+  lift_ring_hom φ hφ (algebra_map _ _ p / algebra_map _ _ q) = φ p / φ q :=
+lift_monoid_with_zero_hom_apply_div _ _ _ _
 
 variables (K)
 
@@ -810,6 +914,20 @@ begin
   { exact algebra_map_ne_zero (denom_ne_zero y) },
 end
 
+lemma map_denom_ne_zero {L F : Type*} [has_zero L] [zero_hom_class F (polynomial K) L]
+  (φ : F) (hφ : function.injective φ) (f : ratfunc K) : φ f.denom ≠ 0 :=
+λ H, (denom_ne_zero f) ((map_eq_zero_iff φ hφ).mp H)
+
+lemma lift_monoid_with_zero_hom_apply {L : Type*} [comm_group_with_zero L]
+  (φ : monoid_with_zero_hom (polynomial K) L) (hφ : function.injective φ) (f : ratfunc K) :
+  lift_monoid_with_zero_hom φ hφ f = φ f.num / φ f.denom :=
+by rw [←num_div_denom f, lift_monoid_with_zero_hom_apply_div, num_div_denom]
+
+lemma lift_ring_hom_apply {L : Type*} [field L]
+  (φ : polynomial K →+* L) (hφ : function.injective φ) (f : ratfunc K) :
+  lift_ring_hom φ hφ f = φ f.num / φ f.denom :=
+lift_monoid_with_zero_hom_apply _ _ _
+
 end num_denom
 
 section eval
@@ -937,85 +1055,52 @@ open power_series laurent_series hahn_series
 omit hring
 variables {F : Type u} [field F] (p q : polynomial F) (f g : ratfunc F)
 
+/-- The coercion `ratfunc F → laurent_series F` as bundled ring hom. -/
+def coe_ring_hom (F : Type u) [field F] : ratfunc F →+* laurent_series F :=
+lift_ring_hom (algebra_map (polynomial F) _) (polynomial.algebra_map_hahn_series_injective _)
+
+-- lemma coe_alg_hom (F : Type u) [field F] : ratfunc F →ₐ[polynomial F] laurent_series F :=
+-- alg_hom.mk' (coe_ring_hom F) _
+-- sorry
+-- lift_ring_hom (algebra_map (polynomial F) _) (polynomial.algebra_map_hahn_series_injective _)
+
+-- #exit
 instance coe_to_laurent_series : has_coe (ratfunc F) (laurent_series F) :=
-⟨λ f, (f.num : power_series F) / f.denom⟩
+⟨coe_ring_hom F⟩
 
-lemma coe_def : (f : laurent_series F) = f.num / f.denom := rfl
+lemma coe_def : (f : laurent_series F) = f.num / f.denom :=
+lift_ring_hom_apply _ _ f
 
-@[simp] lemma coe_div : (((algebra_map (polynomial F) (ratfunc F) p /
-  algebra_map (polynomial F) (ratfunc F) q) : ratfunc F) : laurent_series F) =
-  (p : laurent_series F) / (q : laurent_series F) :=
-begin
-  classical,
-  rw [coe_def],
-  by_cases hp : p = 0,
-  { simp [hp] },
-  by_cases hq : q = 0,
-  { simp [hq] },
-  have : ¬ q / gcd p q = 0,
-  { rw [polynomial.div_eq_zero_iff],
-    { rw [not_lt], convert polynomial.degree_gcd_le_right p hq },
-    { simp [gcd_eq_zero_iff, hp, hq] } },
-  rw [num_div _ hq, denom_div _ hq, coe_coe, polynomial.coe_mul, coe_mul, coe_coe,
-      polynomial.coe_mul, coe_mul, coe_coe, coe_coe, mul_div_mul_left, div_eq_div_iff, ←coe_mul,
-      ←coe_mul, ←polynomial.coe_mul, ←polynomial.coe_mul,
-      ←euclidean_domain.mul_div_assoc, mul_comm, ←euclidean_domain.mul_div_assoc, mul_comm],
-  { apply gcd_dvd_left },
-  { apply gcd_dvd_right },
-  { rw [ne.def, coe_power_series,
-        map_eq_zero_iff (of_power_series ℤ F) of_power_series_injective,
-        polynomial.coe_eq_zero_iff],
-    convert this },
-  { rwa [ne.def, coe_power_series,
-         map_eq_zero_iff (of_power_series ℤ F) of_power_series_injective,
-         polynomial.coe_eq_zero_iff] },
-  { rw [ne.def, coe_power_series,
-        map_eq_zero_iff (of_power_series ℤ F) of_power_series_injective,
-        polynomial.coe_eq_zero_iff, polynomial.C_eq_zero,
-        _root_.inv_eq_zero, polynomial.leading_coeff_eq_zero],
-    convert this }
-end
+lemma coe_injective : function.injective (coe : ratfunc F → laurent_series F) :=
+lift_ring_hom_injective _ _
 
-@[simp] lemma coe_zero : ((0 : ratfunc F) : laurent_series F) = 0 :=
-by rw [coe_def, num_zero, denom_zero, coe_coe, polynomial.coe_zero, coe_zero, coe_coe,
-       polynomial.coe_one, coe_one, div_one]
+@[simp, norm_cast] lemma coe_apply : coe_ring_hom F f = f := rfl
 
-@[simp] lemma coe_one : ((1 : ratfunc F) : laurent_series F) = 1 :=
-by rw [coe_def, num_one, denom_one, coe_coe, polynomial.coe_one, coe_one, div_one]
+@[simp, norm_cast] lemma coe_zero : ((0 : ratfunc F) : laurent_series F) = 0 :=
+(coe_ring_hom F).map_zero
 
-@[simp] lemma coe_mul : ((f * g : ratfunc F) : laurent_series F) = f * g :=
-begin
-  rw [←num_div_denom f, ←num_div_denom g],
-  simp only [div_mul_div, ←_root_.map_mul, coe_div, coe_coe, polynomial.coe_mul, coe_mul]
-end
+@[simp, norm_cast] lemma coe_one : ((1 : ratfunc F) : laurent_series F) = 1 :=
+(coe_ring_hom F).map_one
 
-@[simp] lemma coe_add : ((f + g : ratfunc F) : laurent_series F) = f + g :=
-begin
-  rw [←num_div_denom f, ←num_div_denom g, div_add_div],
-  simp only [coe_div, ←_root_.map_mul, ←_root_.map_add],
-  rw div_add_div,
-  simp_rw [coe_coe, polynomial.coe_add, coe_add, polynomial.coe_mul, power_series.coe_mul],
-  { rw [coe_coe, ne.def, coe_power_series,
-        map_eq_zero_iff (of_power_series ℤ F) (of_power_series_injective),
-        polynomial.coe_eq_zero_iff],
-    exact denom_ne_zero f },
-  { rw [coe_coe, ne.def, coe_power_series,
-        map_eq_zero_iff (of_power_series ℤ F) (of_power_series_injective),
-        polynomial.coe_eq_zero_iff],
-    exact denom_ne_zero g },
-  { simpa using denom_ne_zero f },
-  { simpa using denom_ne_zero g }
-end
+@[simp, norm_cast] lemma coe_add : ((f + g : ratfunc F) : laurent_series F) = f + g :=
+(coe_ring_hom F).map_add _ _
 
-@[simp] lemma coe_C (r : F) : ((C r : ratfunc F) : laurent_series F) = hahn_series.C r :=
+@[simp, norm_cast] lemma coe_mul : ((f * g : ratfunc F) : laurent_series F) = f * g :=
+(coe_ring_hom F).map_mul _ _
+
+@[simp, norm_cast] lemma coe_div : ((f / g : ratfunc F) : laurent_series F) =
+  (f : laurent_series F) / (g : laurent_series F) :=
+(coe_ring_hom F).map_div _ _
+
+@[simp, norm_cast] lemma coe_C (r : F) : ((C r : ratfunc F) : laurent_series F) = hahn_series.C r :=
 by rw [coe_def, num_C, denom_C, coe_coe, polynomial.coe_C, coe_C, coe_coe, polynomial.coe_one,
        power_series.coe_one, div_one]
 
 -- TODO: generalize over other modules
-@[simp] lemma coe_smul (r : F) : ((r • f : ratfunc F) : laurent_series F) = r • f :=
+@[simp, norm_cast] lemma coe_smul (r : F) : ((r • f : ratfunc F) : laurent_series F) = r • f :=
 by rw [smul_eq_C_mul, ←C_mul_eq_smul, coe_mul, coe_C]
 
-@[simp] lemma coe_X : ((X : ratfunc F) : laurent_series F) = single 1 1 :=
+@[simp, norm_cast] lemma coe_X : ((X : ratfunc F) : laurent_series F) = single 1 1 :=
 by rw [coe_def, num_X, denom_X, coe_coe, polynomial.coe_X, coe_X, coe_coe, polynomial.coe_one,
        power_series.coe_one, div_one]
 

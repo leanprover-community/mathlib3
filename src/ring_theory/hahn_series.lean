@@ -1090,6 +1090,18 @@ variables (Γ) (R) [ordered_semiring Γ] [nontrivial Γ]
   (λ _ _, nat.cast_le)).comp
   (alg_equiv.to_alg_hom (to_power_series_alg R).symm)
 
+instance polynomial_algebra : algebra (polynomial R) (hahn_series Γ R) :=
+ring_hom.to_algebra $ (of_power_series Γ R).comp polynomial.coe_to_power_series.ring_hom
+
+variables {R}
+
+@[simp] lemma _root_.polynomial.algebra_map_hahn_series_apply (f : polynomial R) :
+  algebra_map (polynomial R) (hahn_series Γ R) f = of_power_series Γ R f := rfl
+
+lemma _root_.polynomial.algebra_map_hahn_series_injective :
+  function.injective (algebra_map (polynomial R) (hahn_series Γ R)) :=
+of_power_series_injective.comp (polynomial.coe_injective R)
+
 end algebra
 
 section valuation

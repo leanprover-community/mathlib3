@@ -21,6 +21,13 @@ open_locale big_operators -- this lets me use ∑ and ∏ notation
 open filter real
 open nat (coprime)
 
+
+lemma card_le_card_bUnion {ι α : Type*} [decidable_eq α]
+  {s : finset ι} {f : ι → finset α} (hs : (s : set ι).pairwise_disjoint f)
+  (hf : ∀ i ∈ s, (f i).nonempty) :
+  s.card ≤ (s.bUnion f).card :=
+by { rw [finset.card_bUnion hs, finset.card_eq_sum_ones], exact finset.sum_le_sum (λ i hi, (hf i hi).card_pos) }
+
 open_locale arithmetic_function
 open_locale classical
 noncomputable theory
@@ -64,6 +71,23 @@ lemma rec_sum_bUnion_disjoint {A : finset (finset ℕ)}
   (hA : (A : set (finset ℕ)).pairwise_disjoint id) : rec_sum (A.bUnion id) = ∑ s in A, rec_sum s :=
 by simp only [rec_sum, finset.sum_bUnion hA, id.def]
 
+lemma rec_sum_disjoint {A B : finset ℕ} (h : disjoint A B) :
+   rec_sum (A ∪ B) = rec_sum A + rec_sum B :=
+by simp only [rec_sum, finset.sum_union h]
+
+@[simp] lemma rec_sum_empty : rec_sum ∅ = 0 := by simp [rec_sum]
+
+lemma nonempty_of_rec_sum_recip {A : finset ℕ} {d : ℕ} (hd : 1 ≤ d) :
+  rec_sum A = 1 / d → A.nonempty :=
+begin -- should be able to simplify this
+  intro h,
+  rw [finset.nonempty_iff_ne_empty],
+  rintro rfl,
+  simp only [one_div, zero_eq_inv, rec_sum_empty] at h,
+  have : 0 < d := hd,
+  exact this.ne (by exact_mod_cast h),
+end
+
 -- This is A_q in the paper.
 def local_part (A : finset ℕ) (q : ℕ) : finset ℕ := A.filter (λ n, q ∣ n ∧ coprime q (n/q) )
 
@@ -85,6 +109,13 @@ def ppower_rec_sum (A : finset ℕ) : ℚ :=
 -- Replace nat.prime here with prime_power
 def is_smooth (y : ℝ) (n : ℕ) : Prop := ∀ q : ℕ, nat.prime q → q ∣ n → (q : ℝ) ≤ y
 
+def arith_regular (N : ℕ) (A : finset ℕ) : Prop :=
+∀ n ∈ A, (((99:ℝ)/100)*log(log N) ≤ ω n) ∧ ((ω n : ℝ) ≤ 2*(log (log N)))
+
+lemma arith_regular.subset {N : ℕ} {A A' : finset ℕ} (hA : arith_regular N A) (hA' : A' ⊆ A) :
+  arith_regular N A' :=
+λ n hn, hA n (hA' hn)
+
 -- Prop 1
 theorem technical_prop :
   ∀ᶠ (N : ℕ) in at_top, ∀ (A ⊆ finset.range (N+1)) (y z : ℝ),
@@ -93,7 +124,7 @@ theorem technical_prop :
   → 2 / y + (log N)^(-(1/200 : ℝ)) ≤ (rec_sum A : ℝ)
   → (∀ n ∈ A, ∃ d₁ d₂ : ℕ, (d₁ ∣ n) ∧ (d₂ ∣ n) ∧ (y ≤ d₁) ∧ (4*d₁ ≤ d₂) ∧ ((d₂ : ℝ) ≤ z) )
   → (∀ n ∈ A, is_smooth ((N:ℝ)^(1-(6:ℝ)/(log(log N)))) n)
-  → (∀ n ∈ A, (((99:ℝ)/100)*log(log N) ≤ ω n ) ∧ ( (ω n : ℝ) ≤ 2*(log (log N))))
+  → arith_regular N A
   → ∃ S ⊆ A, ∃ d : ℕ, (y ≤ d) ∧ ((d:ℝ) ≤ z) ∧
     rec_sum S = 1/d
   :=
@@ -111,17 +142,60 @@ sorry
 -- in the first place
 -- also `finset.exists_smaller_set` and `finset.exists_intermediate_set` are good to know about
 
+-- This shows up often enough here that it's worth having separately
+lemma tendsto_coe_log_pow_at_top (c : ℝ) (hc : 0 < c) :
+  tendsto (λ (x : ℕ), (log x)^c) at_top at_top :=
+(tendsto_rpow_at_top hc).comp (tendsto_log_at_top.comp tendsto_coe_nat_at_top_at_top)
+
+lemma prop_one_specialise :
+  ∀ᶠ (N : ℕ) in at_top, ∀ (A ⊆ finset.range (N+1)),
+    (∀ n ∈ A, ( (N:ℝ)^(1-(1:ℝ)/(log(log N))) ≤ n ))
+  → (log N)^((1/500 : ℝ)) ≤ (rec_sum A : ℝ)
+  → (∀ n ∈ A, ∃ d₂ : ℕ, (d₂ ∣ n) ∧ 4 ≤ d₂ ∧ ((d₂ : ℝ) ≤ (log N)^(1/500 : ℝ)))
+  → (∀ n ∈ A, is_smooth ((N:ℝ)^(1-(6:ℝ)/(log(log N)))) n)
+  → arith_regular N A
+  → ∃ S ⊆ A, ∃ d : ℕ, (1 ≤ d) ∧ ((d:ℝ) ≤ (log N)^(1/500 : ℝ)) ∧
+    rec_sum S = 1/d :=
+begin
+  have hf : tendsto (λ (x : ℕ), (log x)^(1/500 : ℝ)) at_top at_top :=
+    tendsto_coe_log_pow_at_top _ (by norm_num1),
+  have hf' : tendsto (λ (x : ℕ), (log x)^(1/200 : ℝ)) at_top at_top :=
+    tendsto_coe_log_pow_at_top _ (by norm_num1),
+  filter_upwards [technical_prop, hf (eventually_ge_at_top 3), hf' (eventually_ge_at_top 1),
+    (tendsto_log_at_top.comp tendsto_coe_nat_at_top_at_top) (eventually_ge_at_top 0)],
+  intros N hN hN' hN'' hN''' A A_upper_bound A_lower_bound hA₁ hA₂ hA₃ hA₄,
+  simp only [set.mem_set_of_eq, set.preimage_set_of_eq] at hN' hN'' hN''',
+  exact_mod_cast hN A A_upper_bound 1 _ le_rfl _ le_rfl A_lower_bound _ _ hA₃ hA₄,
+  { exact le_trans (by norm_num1) hN' },
+  { apply le_trans _ hA₁,
+    apply le_trans _ hN',
+    rw ←le_sub_iff_add_le',
+    norm_num1,
+    rw rpow_neg,
+    apply inv_le_one hN'',
+    apply hN''' },
+  intros n hn,
+  obtain ⟨d₂, hd₂, hd₂', hd₂''⟩ := hA₂ n hn,
+  exact ⟨1, d₂, one_dvd _, hd₂, by simp, by simpa, hd₂''⟩,
+end
+
+@[simp, norm_cast] lemma rat.cast_sum {α β : Type*} [division_ring β] [char_zero β] (s : finset α)
+  (f : α → ℚ) :
+  ↑(∑ x in s, f x : ℚ) = (∑ x in s, (f x : β)) :=
+(rat.cast_hom β).map_sum f s
+
+
 -- Corollary 1
 theorem corollary_one :
   ∀ᶠ (N : ℕ) in at_top, ∀ (A ⊆ finset.range (N+1)),
   (∀ n ∈ A, ( (N:ℝ)^(1-(1:ℝ)/(log(log N))) ≤ n ))
-  → (log N)^((1/200 : ℝ)) ≤ (rec_sum A : ℝ)
-  → (∀ n ∈ A, ∃ p : ℕ, ((p ∣ n) ∧ (5 ≤ p) ∧ ((p:ℝ) ≤ (log N)^((1/500 : ℝ))) ))
+  → 2*(log N)^((1/500 : ℝ)) ≤ (rec_sum A : ℝ)
+  → (∀ n ∈ A, ∃ p : ℕ, ((p ∣ n) ∧ (4 ≤ p) ∧ ((p:ℝ) ≤ (log N)^((1/500 : ℝ))) ))
   → (∀ n ∈ A, is_smooth ((N:ℝ)^(1-(6:ℝ)/(log(log N)))) n)
-  → (∀ n ∈ A, (((99:ℝ)/100)*log(log N) ≤ ω n ) ∧ ( (ω n : ℝ) ≤ 2*(log (log N))))
+  → arith_regular N A
   → ∃ S ⊆ A, rec_sum S = 1 :=
 begin
-  filter_upwards [technical_prop, eventually_ge_at_top 1],
+  filter_upwards [prop_one_specialise, eventually_ge_at_top 1],
   intros N p1 hN₁ A A_upper_bound A_lower_bound hA₁ hA₂ hA₃ hA₄,
   -- `good_set` expresses the families of subsets that we like
   -- instead of saying we have S_1, ..., S_k, I'll say we have k-many subsets (+ same conditions)
@@ -131,7 +205,7 @@ begin
     -- the last condition involving `d` is chosen weirdly so that `choose` later gives a more
     -- convenient function
   let P : ℕ → Prop := λ k, ∃ S : finset (finset ℕ), S.card = k ∧ good_set S,
-  let k : ℕ := nat.find_greatest P A.card, -- A.card is a trivial upper bound
+  let k : ℕ := nat.find_greatest P (A.card + 1), -- A.card is a trivial upper bound
   have P0 : P 0 := ⟨∅, by simp [good_set]⟩, -- we clearly have that 0 satisfies p by using ∅
   have Pk : P k := nat.find_greatest_spec (nat.zero_le _) P0,
   obtain ⟨S, hk, hS₁, hS₂, hS₃⟩ := Pk,
@@ -152,9 +226,10 @@ begin
     intros i hi,
     rw [hd'₃ _ (hT'S hi), (finset.mem_filter.1 (hT' hi)).2] },
   push_neg at h,
+  exfalso,
   -- otherwise make A' as in the paper
   let A' := A \ S.bUnion id,
-  have : (∑ s in S, rec_sum s : ℝ) ≤ (log N)^(1/500 : ℝ),
+  have hS : (∑ s in S, rec_sum s : ℝ) ≤ (log N)^(1/500 : ℝ),
   { transitivity (∑ d in finset.Icc 1 ⌊(log N)^(1/500 : ℝ)⌋₊, t d / d : ℝ),
     { have : ∀ s ∈ S, d' s ∈ finset.Icc 1 ⌊(log N)^(1/500 : ℝ)⌋₊,
       { intros s hs,
@@ -173,11 +248,68 @@ begin
       exact div_le_one_of_le (nat.cast_le.2 ((h d hd).le)) (nat.cast_nonneg _) },
     { simp only [nat.add_succ_sub_one, add_zero, nat.card_Icc, nat.smul_one_eq_coe],
       exact nat.floor_le (rpow_nonneg_of_nonneg (log_nonneg (nat.one_le_cast.2 hN₁)) _) } },
-  sorry
+  have hAS : disjoint A' (S.bUnion id) := finset.sdiff_disjoint,
+  have RA'_ineq : (log N)^(1/500 : ℝ) ≤ rec_sum A',
+  { have : rec_sum A = rec_sum A' + rec_sum (S.bUnion id),
+    { rw [←rec_sum_disjoint hAS, finset.sdiff_union_of_subset],
+      rwa finset.bUnion_subset },
+    rw [this] at hA₁,
+    simp only [rat.cast_add] at hA₁,
+    rw ←sub_le_iff_le_add at hA₁,
+    apply le_trans _ hA₁,
+    rw [rec_sum_bUnion_disjoint hS₂, rat.cast_sum],
+    linarith [hS] },
+  have hA' : A' ⊆ A := finset.sdiff_subset _ _,
+  obtain ⟨S', hS', d, hd, hd', hS'₂⟩ :=
+    p1 A' (hA'.trans A_upper_bound) (λ n hn, A_lower_bound n (hA' hn))
+      RA'_ineq (λ n hn, hA₂ n (hA' hn)) (λ n hn, hA₃ n (hA' hn)) (hA₄.subset hA'),
+  have hS'' : ∀ s ∈ S, disjoint S' s :=
+    λ s hs, disjoint.mono hS' (finset.subset_bUnion_of_mem id hs) hAS,
+  have hS''' : S' ∉ S,
+  { intro t,
+    exact (nonempty_of_rec_sum_recip hd hS'₂).ne_empty (disjoint_self.1 (hS'' _ t)) },
+  have : P (k+1),
+  { refine ⟨insert S' S, _, _⟩,
+    { rw [finset.card_insert_of_not_mem hS''', hk] },
+    refine ⟨_, _, _⟩,
+    { simpa [hS'.trans hA'] using hS₁ },
+    { simpa [set.pairwise_disjoint_insert, hS₂] using λ s hs _, hS'' _ hs },
+    intros s,
+    rcases eq_or_ne s S' with rfl | hs,
+    { exact ⟨d, λ _, ⟨hd, hd', hS'₂⟩⟩ },
+    refine ⟨d' s, λ i, _⟩,
+    have : s ∈ S := finset.mem_of_mem_insert_of_ne i hs,
+    exact ⟨hd'₁ _ this, hd'₂ _ this, hd'₃ _ this⟩ },
+  have hk_bound : k + 1 ≤ A.card + 1,
+  { rw [←hk, add_le_add_iff_right],
+    apply le_trans _ (finset.card_le_of_subset (finset.bUnion_subset.2 hS₁)),
+    apply card_le_card_bUnion hS₂,
+    intros s hs,
+    exact nonempty_of_rec_sum_recip (hd'₁ s hs) (hd'₃ s hs) },
+  have : k + 1 ≤ k := nat.le_find_greatest hk_bound this,
+  simpa using this,
 end
 
 -- define the X in Lemma 1 as a separate definition?
 def X (y z : ℝ) : set ℕ := sorry
+
+#exit
+
+-- Sieve of Eratosthenes-Legendre, again belongs in basic_estimates
+-- Bhavik, this is clumsily expressed, condensed form?
+lemma sieve_eratosthenes (x y u v : ℝ) (hx : 0 ≤ x) (hy : 0 ≤ y) (hu: 2 ≤ u)
+(huv : u ≤ v) :
+|(((finset.Icc ⌈x⌉₊ ⌊x+y⌋₊).filter (λ n : ℕ, (∀ p : ℕ, (p ∣ n)
+   → (prime p) → ( (p:ℝ) < u ∨ v < p ) ))).card : ℝ)-
+   (∏ p in (finset.range(⌊v⌋₊+1)).filter (λ n, (prime n) ∧ (u ≤ n)), (1-(1/p:ℝ)))
+   * y|
+   ≤ (2:ℝ)^(v+1)
+:=
+sorry
+-- (Proof: write the filtered cardinality as a sum, using the Mobius function
+-- to detect the divisibility constraint, then rearrange. Uses the trivial bound
+-- of v for number of primes in [u,v])
+
 
 -- Lemma 1
 lemma sieve_lemma_one  : ∃ C : ℝ,

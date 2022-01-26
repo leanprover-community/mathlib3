@@ -102,8 +102,6 @@ do xs ← squeeze_loc_attr.get_param ``squeeze_loc_attr_carrier,
      squeeze_loc_attr.set ``squeeze_loc_attr_carrier ((p,pre,args,post) :: xs) ff
    end
 
-local postfix `?`:9001 := optional
-
 /-- translate a `pexpr` into a `simp` configuration -/
 meta def parse_config : option pexpr → tactic (simp_config_ext × format)
 | none := pure ({}, "")

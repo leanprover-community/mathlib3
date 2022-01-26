@@ -1314,6 +1314,23 @@ lemma le_normalizer_map (f : G →* N) :
     simp [hy, hyH, mul_assoc] }
 end
 
+variable (G)
+
+/-- Every proper subgroup `H` of `G` is a proper normal subgroup of the normalizer of `H` in `G`. -/
+def _root_.normalizer_condition := ∀ (H : subgroup G), H < ⊤ → H < normalizer H
+
+variable {G}
+
+/-- Alternative phrasing of the normalizer condition: Only the full group is self-normalizing.
+This may be easier to work with, as it avoids inequalities and negations.  -/
+lemma _root_.normalizer_condition_iff_only_full_group_self_normalizing :
+  normalizer_condition G ↔ ∀ (H : subgroup G), H.normalizer = H → H = ⊤ :=
+begin
+  apply forall_congr, intro H,
+  simp only [lt_iff_le_and_ne, le_normalizer, true_and, le_top, ne.def],
+  tauto!,
+end
+
 variable (H)
 
 /-- Commutivity of a subgroup -/

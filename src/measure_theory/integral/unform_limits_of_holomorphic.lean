@@ -737,8 +737,8 @@ begin
 end
 
 lemma int_uniform_lim_eq_lim_of_int (R : ℝ) (hR: 0 < R) (F : ℕ → ℂ → ℂ) (f : ℂ → ℂ) (z : ℂ)
-  (F_cts : ∀ n, continuous_on (F n) (closed_ball z R))
-  (hlim : tendsto_uniformly_on F f filter.at_top (closed_ball z R) ) (w : ball z R) :
+  (w : ball z R) (F_cts : ∀ n, continuous_on (F n) (closed_ball z R))
+  (hlim : tendsto_uniformly_on F f filter.at_top (closed_ball z R) )  :
   tendsto (λn, ∫ (θ : ℝ) in 0..2 * π, (cauchy_disk_function R z (F n) w) θ)
   at_top (𝓝 $  ∫ (θ : ℝ) in 0..2 * π, (cauchy_disk_function R z f w) θ) :=
 begin
@@ -1113,7 +1113,7 @@ begin
   by {intro n, apply (hdiff n).continuous_on,},
   rw differentiable_on,
   intros x hx,
-  have keyb := int_uniform_lim_eq_lim_of_int R hR F f z F_cts hlim ,
+  have keyb :=λ ww, int_uniform_lim_eq_lim_of_int R hR F f z ww F_cts hlim ,
   rw differentiable_within_at,
   have hf := unif_lim_of_diff_is_cts F f z R  hdiff hlim,
   have HF := cauchy_disk_form_differentiable_on R r hR hr hr' z f hf,

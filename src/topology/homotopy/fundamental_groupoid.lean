@@ -323,9 +323,12 @@ def fundamental_groupoid_functor : Top ⥤ category_theory.Groupoid :=
     refl,
   end }
 
-localized "notation `π` := fundamental_groupoid.fundamental_groupoid_functor" in fundamental_groupoid
-localized "notation `πₓ` := fundamental_groupoid.fundamental_groupoid_functor.obj" in fundamental_groupoid
-localized "notation `πₘ` := fundamental_groupoid.fundamental_groupoid_functor.map" in fundamental_groupoid
+localized "notation `π` := fundamental_groupoid.fundamental_groupoid_functor"
+  in fundamental_groupoid
+localized "notation `πₓ` := fundamental_groupoid.fundamental_groupoid_functor.obj"
+  in fundamental_groupoid
+localized "notation `πₘ` := fundamental_groupoid.fundamental_groupoid_functor.map"
+  in fundamental_groupoid
 
 /-- Help the typechecker by converting a point in a groupoid back to a point in
 the underlying topological space. -/

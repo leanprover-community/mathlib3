@@ -609,16 +609,6 @@ lemma nilpotency_class_zero_iff_subsingleton [is_nilpotent G] :
   group.nilpotency_class G = 0 ↔ subsingleton G :=
 by simp [group.nilpotency_class, nat.find_eq_zero, subsingleton_iff_bot_eq_top]
 
-lemma subsingleton_quotient_of_subsingleton
-  {H : subgroup G} [subsingleton G] :
-  subsingleton (G ⧸ H) :=
-begin
-  apply subsingleton.intro,
-  rw forall_coe, intro x,
-  rw forall_coe, intro y,
-  rw (subsingleton.elim x y),
-end
-
 section classical
 
 open_locale classical

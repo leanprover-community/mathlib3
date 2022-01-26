@@ -9,6 +9,7 @@ import analysis.special_functions.pow
 import number_theory.arithmetic_function
 import measure_theory.function.floor
 import measure_theory.integral.integral_eq_improper
+import data.complex.exponential_bounds
 
 noncomputable theory
 
@@ -688,15 +689,157 @@ lemma hyperbola :
     sqrt at_top :=
 sorry
 
--- BM: This might need a lower bound on `n`, maybe just `1 ≤ n` is good enough?
-lemma divisor_bound :
-  ∃ (g : ℝ → ℝ), is_O g (λ i, 1 / log (log i)) at_top ∧
-    ∀ (n : ℕ), (σ 0 n : ℝ) ≤ n ^ g n :=
-sorry
+-- This lemma and proof is from Bhavik
+lemma exp_sub_mul {x c : ℝ} {hc : 0 ≤ c} : c - c * log c ≤ exp x - c * x :=
+begin
+  rcases eq_or_lt_of_le hc with rfl | hc,
+  { simp [(exp_pos _).le] },
+  suffices : exp (log c) - c * log c ≤ exp x - c * x,
+  { rwa exp_log hc at this },
+  have h₁ : differentiable ℝ (λ x, exp x - c * x) :=
+    differentiable_exp.sub (differentiable_id.const_mul _),
+  have h₂ : ∀ t, deriv (λ y, exp y - c * y) t = exp t - c := by simp,
+  cases le_total (log c) x with hx hx,
+  { refine (convex_Icc (log c) x).monotone_on_of_deriv_nonneg h₁.continuous.continuous_on
+      h₁.differentiable_on _ (left_mem_Icc.2 hx) (right_mem_Icc.2 hx) hx,
+    intros y hy,
+    rw interior_Icc at hy,
+    rw [h₂, sub_nonneg, ←log_le_iff_le_exp hc],
+    apply hy.1.le },
+  { refine (convex_Icc x (log c)).antitone_on_of_deriv_nonpos h₁.continuous.continuous_on
+      h₁.differentiable_on _ (left_mem_Icc.2 hx) (right_mem_Icc.2 hx) hx,
+    intros y hy,
+    rw interior_Icc at hy,
+    rw [h₂, sub_nonpos, ←le_log_iff_exp_le hc],
+    apply hy.2.le },
+end
 
--- BM: Might also need a lower bound on `n`?
+lemma div_bound_aux1 (n : ℝ) (r : ℕ) (K : ℝ) (h1 : 2^K < n) (h2 : 0 < K) (hr : 1 ≤ r) :
+  (r:ℝ) + 1 ≤ n ^ ((r:ℝ)/K) :=
+begin
+  transitivity (2 : ℝ) ^ (r : ℝ),
+  { rw add_comm, simpa using one_add_mul_le_pow (show (-2 : ℝ) ≤ 1, by norm_num) r },
+  { refine le_trans _ (rpow_le_rpow _ h1.le _),
+    { rw [←rpow_mul (zero_le_two : (0 : ℝ) ≤ 2), mul_div_cancel' _ h2.ne'] },
+    { refine rpow_nonneg_of_nonneg zero_le_two _ },
+    { exact div_nonneg (nat.cast_nonneg _) h2.le } }
+end
+
+lemma log_pow {n : ℕ} (x : ℝ) (hx : 0 < x) : log (x ^ n) = n * log x :=
+by rw [←log_rpow hx, rpow_nat_cast]
+
+lemma rpow_two (x : ℝ) : x^(2 : ℝ) = x^2 :=
+by rw [←rpow_nat_cast, nat.cast_two]
+
+lemma bernoulli_aux (x : ℝ) (hx : 0 ≤ x) : x + 1/2 ≤ 2^x :=
+begin
+  have h : 0 < log 2 := log_pos one_lt_two,
+  have h₁ : 1 / log 2 - 1 / log 2 * log (1 / log 2) ≤ exp (log 2 * x) - 1 / log 2 * (log 2 * x),
+  { apply exp_sub_mul,
+    simp only [one_div, inv_nonneg],
+    apply h.le },
+  rw [rpow_def_of_pos zero_lt_two, ←le_sub_iff_add_le'],
+  rw [←mul_assoc, div_mul_cancel _ h.ne', one_mul] at h₁,
+  apply le_trans _ h₁,
+  rw [one_div (log 2), log_inv],
+  simp only [one_div, mul_neg_eq_neg_mul_symm, sub_neg_eq_add],
+  suffices : log 2 / 2 - 1 ≤ log (log 2),
+  { field_simp [h],
+    rw le_div_iff h,
+    linarith },
+  transitivity' (-1/2),
+  { linarith [log_two_lt_d9] },
+  rw [div_le_iff' (@zero_lt_two ℝ _ _), ←log_rpow h, le_log_iff_exp_le (rpow_pos_of_pos h _)],
+  apply exp_neg_one_lt_d9.le.trans _,
+  apply le_trans _ (rpow_le_rpow _ log_two_gt_d9.le zero_le_two),
+  { rw [rpow_two],
+    norm_num },
+  { norm_num }
+end
+
+lemma div_bound_aux2 (n : ℝ) (r : ℕ) (K : ℝ) (h1 : 2 ≤ n) (h2 : 2 ≤ K) (h3 : 1 ≤ r) :
+  (r:ℝ) + 1 ≤ n ^ ((r:ℝ)/K) * K :=
+begin
+  have h4 : ((r:ℝ)+1)/K ≤ 2^((r:ℝ)/K),
+  { transitivity (r:ℝ)/K + (1/2),
+  rw add_div,
+  simp only [one_div, add_le_add_iff_left],
+  apply inv_le_inv_of_le, norm_num, exact h2,
+  apply bernoulli_aux,
+  apply div_nonneg,
+  norm_cast,
+  linarith, linarith,
+  },
+  transitivity (2:ℝ)^((r:ℝ)/K)*K,
+  {rwa ← div_le_iff, linarith,},
+  apply mul_le_mul_of_nonneg_right,
+  rwa rpow_le_rpow_iff,
+  norm_num, linarith, apply div_pos,
+  norm_cast, linarith, linarith, linarith,
+end
+
+lemma divisor_function_exact_prime_power (r : ℕ) (p : ℕ) (h : p.prime) : σ 0 (p^r) = r + 1 :=
+begin
+  rw [sigma_zero_apply_eq_card_divisors, nat.divisors_prime_pow h],
+  rw [finset.card_map, finset.card_range],
+end
+
+variables {R : Type*}
+
+-- This lemma is hopefully already proved somewhere? Yes
+lemma is_multiplicative_eq_prod_prime_powers
+  {n : ℕ} [comm_monoid_with_zero R] {f : nat.arithmetic_function R} (hf : f.is_multiplicative) :
+  n ≠ 0 → f n = ∏ p in n.factors.to_finset, f (p ^ n.factors.count p) :=
+begin
+  sorry
+end
+
+lemma divisor_function_exact {n : ℕ} :
+  n ≠ 0 → σ 0 n = ∏ p in n.factors.to_finset, (n.factors.count p + 1) :=
+begin
+  intro hn,
+  have h1 : σ 0 n = ∏ p in n.factors.to_finset, (σ 0 (p ^ n.factors.count p)),
+  { refine is_multiplicative_eq_prod_prime_powers is_multiplicative_sigma hn },
+  have h2 : ∏ p in n.factors.to_finset, σ 0 (p ^ n.factors.count p) =
+    ∏ p in n.factors.to_finset, (n.factors.count p + 1),
+  { rw finset.prod_congr rfl,
+    intros x hx,
+    have hxp : x.prime,
+    { rwa list.mem_to_finset at hx, exact nat.prime_of_mem_factors hx },
+    rwa [divisor_function_exact_prime_power] },
+  rwa ← h2,
+end
+
+-- INCOMPLETE PROOF
+lemma anyk_divisor_bound (n : ℕ) (K : ℝ) (hK : 2 < K) :
+  (σ 0 n : ℝ) ≤ ((n : ℝ) ^ (1/K)) * K ^ ((2 : ℝ) ^ K) :=
+begin
+  rcases eq_or_ne n 0 with rfl | hn,
+  { simp only [one_div, finset.card_empty, algebra.id.smul_eq_mul, nat.divisors_zero,
+      nat.cast_zero, zero_mul, finset.sum_const, pow_zero, sigma_apply],
+    rw zero_rpow, { simp },
+    simp only [inv_eq_zero, ne.def],
+    linarith },
+  rw divisor_function_exact hn,
+  -- by_cases n = 0,
+  -- rw h, simp,
+  -- have h1 : (0 : ℝ) ^ K⁻¹ = 0,
+  -- { apply zero_rpow, simp, linarith,},
+  -- rw h1, linarith,
+  -- have : (σ 0 n) = ∏ p in n.factors.to_finset, (n.factors.count p + 1),
+  -- { apply divisor_function_exact, exact h,},
+  -- rw this, clear this,
+  -- sorry
+end
+
+lemma divisor_bound (ε : ℝ) (hε1 : 0 < ε) (hε2 : ε ≤ 1) :
+  ∀ᶠ (n : ℕ) in filter.at_top, (σ 0 n : ℝ) ≤ n ^ (log(2) * (1 / log (log n)) * (1 + ε)) :=
+begin
+  sorry
+end
+
 lemma weak_divisor_bound (ε : ℝ) (hε : 0 < ε) :
-  ∃ C, 0 < C ∧ ∀ n, (σ 0 n : ℝ) ≤ C * (n : ℝ)^ε :=
+  ∀ᶠ (n : ℕ) in filter.at_top, (σ 0 n : ℝ) ≤ (n : ℝ)^ε :=
 sorry
 
 lemma big_O_divisor_bound (ε : ℝ) (hε : 0 < ε) :

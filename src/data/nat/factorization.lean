@@ -78,6 +78,7 @@ lemma pos_of_mem_factorization {n p : ℕ} : p ∈ n.factorization.support → 0
 
 lemma factorization_eq_zero_of_non_prime (n p : ℕ) (hp : ¬p.prime) : n.factorization p = 0 :=
 not_mem_support_iff.1 (mt prime_of_mem_factorization hp)
+
 /-- The only numbers with empty prime factorization are `0` and `1` -/
 lemma factorization_eq_zero_iff (n : ℕ) : n.factorization = 0 ↔ n = 0 ∨ n = 1 :=
 by simp [factorization, add_equiv.map_eq_zero_iff, multiset.coe_eq_zero]
@@ -198,7 +199,7 @@ begin
   { rintro ⟨c, rfl⟩, rw factorization_mul hd (right_ne_zero_of_mul hn), simp },
 end
 
-lemma prime_pow_dvd_iff_factorization_ge (p k n : ℕ) (pp : prime p) (hn : n ≠ 0) :
+lemma prime_pow_dvd_iff_le_factorization (p k n : ℕ) (pp : prime p) (hn : n ≠ 0) :
   p ^ k ∣ n ↔ k ≤ n.factorization p :=
 by rw [←factorization_le_iff_dvd (pow_pos pp.pos k).ne' hn, pp.factorization_pow, single_le_iff]
 
@@ -213,7 +214,7 @@ end
 
 @[simp]
 lemma div_factorization_eq_tsub_of_dvd {d n : ℕ} (hd : d ≠ 0) (hn : n ≠ 0) (h : d ∣ n) :
-  (n/d).factorization = n.factorization - d.factorization :=
+  (n / d).factorization = n.factorization - d.factorization :=
 begin
   cases dvd_iff_exists_eq_mul_left.mp h with c hc,
   have hc_pos : c ≠ 0, { subst hc, exact left_ne_zero_of_mul hn },
@@ -221,7 +222,7 @@ begin
 end
 
 lemma dvd_iff_div_factorization_eq_tsub (d n : ℕ) (hd : d ≠ 0) (hdn : d ≤ n) :
-  d ∣ n ↔ (n/d).factorization = n.factorization - d.factorization :=
+  d ∣ n ↔ (n / d).factorization = n.factorization - d.factorization :=
 begin
   have hn : n ≠ 0 := (lt_of_lt_of_le hd.bot_lt hdn).ne.symm,
   split,
@@ -236,11 +237,11 @@ begin
       lt_self_iff_false] at hp },
 end
 
-lemma pow_factorization_dvd (p d : ℕ) : p ^ (d.factorization) p ∣ d :=
+lemma pow_factorization_dvd (p d : ℕ) : p ^ d.factorization p ∣ d :=
 begin
   rcases eq_or_ne d 0 with rfl | hd, { simp },
   by_cases pp : prime p,
-  { rw prime_pow_dvd_iff_factorization_ge p _ d pp hd },
+  { rw prime_pow_dvd_iff_le_factorization p _ d pp hd },
   { rw factorization_eq_zero_of_non_prime d p pp, simp },
 end
 
@@ -254,7 +255,7 @@ begin
     intros p,
     by_cases pp : prime p, swap,
     { rw factorization_eq_zero_of_non_prime d p pp, exact zero_le' },
-    rw ←prime_pow_dvd_iff_factorization_ge p _ n pp hn,
+    rw ←prime_pow_dvd_iff_le_factorization p _ n pp hn,
     exact h p _ pp (pow_factorization_dvd p _) },
 end
 

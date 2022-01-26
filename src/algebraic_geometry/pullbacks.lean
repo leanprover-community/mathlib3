@@ -333,7 +333,7 @@ end
 The canonical map `(W ×[X] Uᵢ) ×[W] (Uⱼ ×[Z] Y) ⟶ (Uⱼ ×[Z] Y) ×[X] Uᵢ = V j i` where `W` is
 the glued fibred product.
 
-This is used in `lift_p1_ι_ι_eq`. -/
+This is used in `lift_comp_ι`. -/
 def lift_comp_ι_pullback_map (i j : 𝒰.J) :
   pullback (pullback.fst : pullback (p1 𝒰 f g) (𝒰.map i) ⟶ _) ((gluing 𝒰 f g).ι j) ⟶
     V 𝒰 f g j i :=

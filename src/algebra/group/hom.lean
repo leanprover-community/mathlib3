@@ -580,8 +580,8 @@ protected def monoid_hom.copy {hM : mul_one_class M} {hN : mul_one_class N} (f :
 
 /-- Copy of a `monoid_hom` with a new `to_fun` equal to the old one. Useful to fix
 definitional equalities. -/
-protected def _root_.monoid_with_zero_hom.copy {hM : mul_zero_one_class M}
-  {hN : mul_zero_one_class N} (f : M →*₀ N) (f' : M → N) (h : f' = f) : M →* N :=
+protected def monoid_with_zero_hom.copy {hM : mul_zero_one_class M} {hN : mul_zero_one_class N}
+  (f : M →*₀ N) (f' : M → N) (h : f' = f) : M →* N :=
 { ..f.to_zero_hom.copy f' h, ..f.to_monoid_hom.copy f' h }
 
 @[to_additive]

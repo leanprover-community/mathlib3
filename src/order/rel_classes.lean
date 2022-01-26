@@ -332,10 +332,10 @@ alias subset_antisymm   ← has_subset.subset.antisymm
 alias superset_antisymm ← has_subset.subset.antisymm'
 
 lemma subset_antisymm_iff [is_refl α (⊆)] [is_antisymm α (⊆)] : a = b ↔ a ⊆ b ∧ b ⊆ a :=
-⟨λ h, ⟨h.subset, h.superset⟩, λ h, h.1.antisymm h.2⟩
+⟨λ h, ⟨h.subset', h.superset⟩, λ h, h.1.antisymm h.2⟩
 
 lemma superset_antisymm_iff [is_refl α (⊆)] [is_antisymm α (⊆)] : a = b ↔ b ⊆ a ∧ a ⊆ b :=
-⟨λ h, ⟨h.superset, h.subset⟩, λ h, h.1.antisymm' h.2⟩
+⟨λ h, ⟨h.superset, h.subset'⟩, λ h, h.1.antisymm' h.2⟩
 
 end subset
 

@@ -1834,10 +1834,10 @@ For simplicity, we break usual convention and regard 0 as principal. -/
 def principal (op : ordinal → ordinal → ordinal) (o : ordinal) : Prop :=
 ∀ a b, a < o → b < o → op a b < o
 
-theorem zero_principal {op : ordinal → ordinal → ordinal} : principal op 0 :=
+theorem principal_zero {op : ordinal → ordinal → ordinal} : principal op 0 :=
 λ a _ h, (ordinal.not_lt_zero a h).elim
 
-theorem one_principal_iff {op : ordinal → ordinal → ordinal} :
+theorem principal_one_iff {op : ordinal → ordinal → ordinal} :
   principal op 1 ↔ op 0 0 = 0 :=
 begin
   refine ⟨λ h, _, λ h a b ha hb, _⟩,

@@ -356,6 +356,19 @@ end
 theorem abs_le_of_sq_le_sq' (h : x^2 ≤ y^2) (hy : 0 ≤ y) : -y ≤ x ∧ x ≤ y :=
 abs_le.mp $ abs_le_of_sq_le_sq h hy
 
+lemma sq_eq_sq_iff_abs_eq_abs (x y : R) : x^2 = y^2 ↔ |x| = |y| :=
+⟨λ h, (abs_le_abs_of_sq_le_sq h.le).antisymm (abs_le_abs_of_sq_le_sq h.ge),
+ λ h, by rw [←sq_abs, h, sq_abs]⟩
+
+@[simp] lemma sq_eq_one_iff (x : R) : x^2 = 1 ↔ x = 1 ∨ x = -1 :=
+by rw [←abs_eq_abs, ←sq_eq_sq_iff_abs_eq_abs, one_pow]
+
+lemma sq_ne_one_iff (x : R) : x^2 ≠ 1 ↔ x ≠ 1 ∧ x ≠ -1 :=
+(not_iff_not.2 (sq_eq_one_iff _)).trans not_or_distrib
+
+@[simp] lemma sq_lt_one_iff_abs_lt (x : R) : x^2 < 1 ↔ |x| < 1 :=
+⟨λ h, abs_lt_of_sq_lt_sq (by simp [h]) zero_le_one, λ h, by simpa using sq_lt_sq h⟩
+
 end linear_ordered_ring
 
 section linear_ordered_comm_ring

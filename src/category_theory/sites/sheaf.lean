@@ -125,7 +125,8 @@ begin
 end
 
 /-- Since separatedness isn't defined in mathlib, I didn't add `is_separated_iff_subsingleton`.
-    But it would be easy to add when we need it, e.g. in sheafification. -/
+    But it would be easy to add when we need it, e.g. in sheafification with non-concrete
+    value categories. -/
 lemma is_sheaf_iff_is_limit : is_sheaf J P ↔
   ∀ ⦃X : C⦄ (S : sieve X), S ∈ J X → nonempty (is_limit (P.map_cone S.arrows.cocone.op)) :=
 ⟨λ h X S hS, (is_limit_iff_is_sheaf_for P S).2 (λ E, h E.unop S hS),

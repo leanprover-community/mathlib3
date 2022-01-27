@@ -270,6 +270,8 @@ def is_limit_opens_le_equiv_generate₁ :
 (is_limit.whisker_equivalence_equiv (generate_equivalence_opens_le U hY).op).trans
   (is_limit.equiv_iso_limit (whisker_iso_map_generate_cocone F U hY))
 
+/-- Since only the existence of an isomorphism will be used, the exact definition does
+    not matter, so tactics are used liberally. -/
 def is_limit_opens_le_equiv_generate₂ (R : presieve Y)
   (hR : sieve.generate R ∈ opens.grothendieck_topology X Y) :
   is_limit (F.map_cone (opens_le_cover_cocone (covering_of_presieve Y R)).op) ≃

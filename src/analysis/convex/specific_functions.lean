@@ -4,32 +4,51 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov, Sébastien Gouëzel
 -/
 import analysis.calculus.mean_value
-import analysis.special_functions.pow
+import analysis.special_functions.pow_deriv
 
 /-!
 # Collection of convex functions
 
 In this file we prove that the following functions are convex:
 
-* `convex_on_exp` : the exponential function is convex on $(-∞, +∞)$;
-* `convex_on_pow_of_even` : given an even natural number $n$, the function $f(x)=x^n$
-  is convex on $(-∞, +∞)$;
-* `convex_on_pow` : for a natural $n$, the function $f(x)=x^n$ is convex on $[0, +∞)$;
-* `convex_on_fpow` : for an integer $m$, the function $f(x)=x^m$ is convex on $(0, +∞)$.
-* `convex_on_rpow : ∀ p : ℝ, 1 ≤ p → convex_on ℝ (Ici 0) (λ x, x ^ p)`
-* `concave_on_log_Ioi` and `concave_on_log_Iio`: log is concave on `Ioi 0` and `Iio 0` respectively.
+* `strict_convex_on_exp` : The exponential function is strictly convex.
+* `even.convex_on_pow`, `even.strict_convex_on_pow` : For an even `n : ℕ`, `λ x, x ^ n` is convex
+  and strictly convex when `2 ≤ n`.
+* `convex_on_pow`, `strict_convex_on_pow` : For `n : ℕ`, `λ x, x ^ n` is convex on $[0, +∞)$ and
+  strictly convex when `2 ≤ n`.
+* `convex_on_zpow`, `strict_convex_on_zpow` : For `m : ℤ`, `λ x, x ^ m` is convex on $[0, +∞)$ and
+  strictly convex when `m ≠ 0, 1`.
+* `convex_on_rpow`, `strict_convex_on_rpow` : For `p : ℝ`, `λ x, x ^ p` is convex on $[0, +∞)$ when
+  `1 ≤ p` and strictly convex when `1 < p`.
+* `strict_concave_on_log_Ioi`, `strict_concave_on_log_Iio`: `real.log` is strictly concave on
+  $(0, +∞)$ and $(-∞, 0)$ respectively.
+
+## TODO
+
+For `p : ℝ`, prove that `λ x, x ^ p` is concave when `0 ≤ p ≤ 1` and strictly concave when
+`0 < p < 1`.
 -/
 
 open real set
 open_locale big_operators
 
-/-- `exp` is convex on the whole real line -/
-lemma convex_on_exp : convex_on ℝ univ exp :=
-convex_on_univ_of_deriv2_nonneg differentiable_exp (by simp)
-  (assume x, (iter_deriv_exp 2).symm ▸ le_of_lt (exp_pos x))
+/-- The norm of a real normed space is convex. Also see `seminorm.convex_on`. -/
+lemma convex_on_norm {E : Type*} [normed_group E] [normed_space ℝ E] :
+  convex_on ℝ univ (norm : E → ℝ) :=
+⟨convex_univ, λ x y hx hy a b ha hb hab,
+  calc ∥a • x + b • y∥ ≤ ∥a • x∥ + ∥b • y∥ : norm_add_le _ _
+    ... = a * ∥x∥ + b * ∥y∥
+        : by rw [norm_smul, norm_smul, real.norm_of_nonneg ha, real.norm_of_nonneg hb]⟩
+
+/-- `exp` is strictly convex on the whole real line. -/
+lemma strict_convex_on_exp : strict_convex_on ℝ univ exp :=
+strict_convex_on_univ_of_deriv2_pos differentiable_exp (λ x, (iter_deriv_exp 2).symm ▸ exp_pos x)
+
+/-- `exp` is convex on the whole real line. -/
+lemma convex_on_exp : convex_on ℝ univ exp := strict_convex_on_exp.convex_on
 
 /-- `x^n`, `n : ℕ` is convex on the whole real line whenever `n` is even -/
-lemma convex_on_pow_of_even {n : ℕ} (hn : even n) : convex_on ℝ set.univ (λ x : ℝ, x^n) :=
+lemma even.convex_on_pow {n : ℕ} (hn : even n) : convex_on ℝ set.univ (λ x : ℝ, x^n) :=
 begin
   apply convex_on_univ_of_deriv2_nonneg differentiable_pow,
   { simp only [deriv_pow', differentiable.mul, differentiable_const, differentiable_pow] },
@@ -37,6 +56,17 @@ begin
     rcases nat.even.sub_even hn (nat.even_bit0 1) with ⟨k, hk⟩,
     rw [iter_deriv_pow, finset.prod_range_cast_nat_sub, hk, pow_mul'],
     exact mul_nonneg (nat.cast_nonneg _) (pow_two_nonneg _) }
+end
+
+/-- `x^n`, `n : ℕ` is strictly convex on the whole real line whenever `n ≠ 0` is even. -/
+lemma even.strict_convex_on_pow {n : ℕ} (hn : even n) (h : n ≠ 0) :
+  strict_convex_on ℝ set.univ (λ x : ℝ, x^n) :=
+begin
+  apply strict_mono.strict_convex_on_univ_of_deriv differentiable_pow,
+  rw deriv_pow',
+  replace h := nat.pos_of_ne_zero h,
+  exact strict_mono.const_mul (odd.strict_mono_pow $ nat.even.sub_odd h hn $ nat.odd_iff.2 rfl)
+    (nat.cast_pos.2 h),
 end
 
 /-- `x^n`, `n : ℕ` is convex on `[0, +∞)` for all `n` -/
@@ -48,6 +78,16 @@ begin
   { intros x hx,
     rw [iter_deriv_pow, finset.prod_range_cast_nat_sub],
     exact mul_nonneg (nat.cast_nonneg _) (pow_nonneg (interior_subset hx) _) }
+end
+
+/-- `x^n`, `n : ℕ` is strictly convex on `[0, +∞)` for all `n` greater than `2`. -/
+lemma strict_convex_on_pow {n : ℕ} (hn : 2 ≤ n) : strict_convex_on ℝ (Ici 0) (λ x : ℝ, x^n) :=
+begin
+  apply strict_mono_on.strict_convex_on_of_deriv (convex_Ici _) (continuous_on_pow _)
+    differentiable_on_pow,
+  rw [deriv_pow', interior_Ici],
+  exact λ x (hx : 0 < x) y hy hxy, mul_lt_mul_of_pos_left (pow_lt_pow_of_lt_left hxy hx.le $
+    nat.sub_pos_of_lt hn) (nat.cast_pos.2 $ zero_lt_two.trans_le hn),
 end
 
 lemma finset.prod_nonneg_of_card_nonpos_even
@@ -71,24 +111,55 @@ begin
   refine mul_nonneg ihn _, generalize : (1 + 1) * n = k,
   cases le_or_lt m k with hmk hmk,
   { have : m ≤ k + 1, from hmk.trans (lt_add_one ↑k).le,
-    exact mul_nonneg_of_nonpos_of_nonpos (sub_nonpos.2 hmk) (sub_nonpos.2 this) },
-  { exact mul_nonneg (sub_nonneg.2 hmk.le) (sub_nonneg.2 hmk) }
+    exact mul_nonneg_of_nonpos_of_nonpos (sub_nonpos_of_le hmk) (sub_nonpos_of_le this) },
+  { exact mul_nonneg (sub_nonneg_of_le hmk.le) (sub_nonneg_of_le hmk) }
+end
+
+lemma int_prod_range_pos {m : ℤ} {n : ℕ} (hn : even n) (hm : m ∉ Ico (0 : ℤ) n) :
+  0 < ∏ k in finset.range n, (m - k) :=
+begin
+  refine (int_prod_range_nonneg m n hn).lt_of_ne (λ h, hm _),
+  rw [eq_comm, finset.prod_eq_zero_iff] at h,
+  obtain ⟨a, ha, h⟩ := h,
+  rw sub_eq_zero.1 h,
+  exact ⟨int.coe_zero_le _, int.coe_nat_lt.2 $ finset.mem_range.1 ha⟩,
 end
 
 /-- `x^m`, `m : ℤ` is convex on `(0, +∞)` for all `m` -/
-lemma convex_on_fpow (m : ℤ) : convex_on ℝ (Ioi 0) (λ x : ℝ, x^m) :=
+lemma convex_on_zpow (m : ℤ) : convex_on ℝ (Ioi 0) (λ x : ℝ, x^m) :=
 begin
   have : ∀ n : ℤ, differentiable_on ℝ (λ x, x ^ n) (Ioi (0 : ℝ)),
-    from λ n, differentiable_on_fpow _ _ (or.inl $ lt_irrefl _),
+    from λ n, differentiable_on_zpow _ _ (or.inl $ lt_irrefl _),
   apply convex_on_of_deriv2_nonneg (convex_Ioi 0);
-    try { simp only [interior_Ioi, deriv_fpow'] },
+    try { simp only [interior_Ioi, deriv_zpow'] },
   { exact (this _).continuous_on },
   { exact this _ },
   { exact (this _).const_mul _ },
   { intros x hx,
-    simp only [iter_deriv_fpow, ← int.cast_coe_nat, ← int.cast_sub, ← int.cast_prod],
-    refine mul_nonneg (int.cast_nonneg.2 _) (fpow_nonneg (le_of_lt hx) _),
+    simp only [iter_deriv_zpow, ← int.cast_coe_nat, ← int.cast_sub, ← int.cast_prod],
+    refine mul_nonneg (int.cast_nonneg.2 _) (zpow_nonneg (le_of_lt hx) _),
     exact int_prod_range_nonneg _ _ (nat.even_bit0 1) }
+end
+
+/-- `x^m`, `m : ℤ` is convex on `(0, +∞)` for all `m` except `0` and `1`. -/
+lemma strict_convex_on_zpow {m : ℤ} (hm₀ : m ≠ 0) (hm₁ : m ≠ 1) :
+  strict_convex_on ℝ (Ioi 0) (λ x : ℝ, x^m) :=
+begin
+  have : ∀ n : ℤ, differentiable_on ℝ (λ x, x ^ n) (Ioi (0 : ℝ)),
+    from λ n, differentiable_on_zpow _ _ (or.inl $ lt_irrefl _),
+  apply strict_convex_on_of_deriv2_pos (convex_Ioi 0),
+  { exact (this _).continuous_on },
+   all_goals { rw interior_Ioi },
+  { exact this _ },
+  intros x hx,
+  simp only [iter_deriv_zpow, ← int.cast_coe_nat, ← int.cast_sub, ← int.cast_prod],
+  refine mul_pos (int.cast_pos.2 _) (zpow_pos_of_pos hx _),
+  refine int_prod_range_pos (nat.even_bit0 1) (λ hm, _),
+  norm_cast at hm,
+  rw ←finset.coe_Ico at hm,
+  fin_cases hm,
+  { exact hm₀ rfl },
+  { exact hm₁ rfl }
 end
 
 lemma convex_on_rpow {p : ℝ} (hp : 1 ≤ p) : convex_on ℝ (Ici 0) (λ x : ℝ, x^p) :=
@@ -105,41 +176,41 @@ begin
     replace hx : 0 < x, by simpa using hx,
     suffices : 0 ≤ p * ((p - 1) * x ^ (p - 1 - 1)), by simpa [ne_of_gt hx, A],
     apply mul_nonneg (le_trans zero_le_one hp),
-    exact mul_nonneg (sub_nonneg_of_le hp) (rpow_nonneg_of_nonneg (le_of_lt hx) _) }
+    exact mul_nonneg (sub_nonneg_of_le hp) (rpow_nonneg_of_nonneg hx.le _) }
 end
 
-lemma concave_on_log_Ioi : concave_on ℝ (Ioi 0) log :=
+lemma strict_convex_on_rpow {p : ℝ} (hp : 1 < p) : strict_convex_on ℝ (Ici 0) (λ x : ℝ, x^p) :=
+begin
+  have A : deriv (λ (x : ℝ), x ^ p) = λ x, p * x^(p-1), by { ext x, simp [hp.le] },
+  apply strict_convex_on_of_deriv2_pos (convex_Ici 0),
+  { exact continuous_on_id.rpow_const (λ x _, or.inr (zero_le_one.trans hp.le)) },
+  { exact (differentiable_rpow_const hp.le).differentiable_on },
+  rw interior_Ici,
+  rintro x (hx : 0 < x),
+  suffices : 0 < p * ((p - 1) * x ^ (p - 1 - 1)), by simpa [ne_of_gt hx, A],
+  exact mul_pos (zero_lt_one.trans hp) (mul_pos (sub_pos_of_lt hp) (rpow_pos_of_pos hx _)),
+end
+
+lemma strict_concave_on_log_Ioi : strict_concave_on ℝ (Ioi 0) log :=
 begin
   have h₁ : Ioi 0 ⊆ ({0} : set ℝ)ᶜ,
-  { intros x hx hx',
-    rw [mem_singleton_iff] at hx',
-    rw [hx'] at hx,
-    exact lt_irrefl 0 hx },
-  refine concave_on_open_of_deriv2_nonpos (convex_Ioi 0) is_open_Ioi _ _ _,
-  { exact differentiable_on_log.mono h₁ },
-  { refine ((times_cont_diff_on_log.deriv_of_open _ le_top).differentiable_on le_top).mono h₁,
-    exact is_open_compl_singleton },
-  { intros x hx,
-    rw [function.iterate_succ, function.iterate_one],
-    change (deriv (deriv log)) x ≤ 0,
-    rw [deriv_log', deriv_inv],
-    exact neg_nonpos.mpr (inv_nonneg.mpr (sq_nonneg x)) }
+  { exact λ x (hx : 0 < x) (hx' : x = 0), hx.ne' hx' },
+  refine strict_concave_on_open_of_deriv2_neg (convex_Ioi 0) is_open_Ioi
+    (differentiable_on_log.mono h₁) (λ x (hx : 0 < x), _),
+  rw [function.iterate_succ, function.iterate_one],
+  change (deriv (deriv log)) x < 0,
+  rw [deriv_log', deriv_inv],
+  exact neg_neg_of_pos (inv_pos.2 $ sq_pos_of_ne_zero _ hx.ne'),
 end
 
-lemma concave_on_log_Iio : concave_on ℝ (Iio 0) log :=
+lemma strict_concave_on_log_Iio : strict_concave_on ℝ (Iio 0) log :=
 begin
   have h₁ : Iio 0 ⊆ ({0} : set ℝ)ᶜ,
-  { intros x hx hx',
-    rw [mem_singleton_iff] at hx',
-    rw [hx'] at hx,
-    exact lt_irrefl 0 hx },
-  refine concave_on_open_of_deriv2_nonpos (convex_Iio 0) is_open_Iio _ _ _,
-  { exact differentiable_on_log.mono h₁ },
-  { refine ((times_cont_diff_on_log.deriv_of_open _ le_top).differentiable_on le_top).mono h₁,
-    exact is_open_compl_singleton },
-  { intros x hx,
-    rw [function.iterate_succ, function.iterate_one],
-    change (deriv (deriv log)) x ≤ 0,
-    rw [deriv_log', deriv_inv],
-    exact neg_nonpos.mpr (inv_nonneg.mpr (sq_nonneg x)) }
+  { exact λ x (hx : x < 0) (hx' : x = 0), hx.ne hx' },
+  refine strict_concave_on_open_of_deriv2_neg (convex_Iio 0) is_open_Iio
+    (differentiable_on_log.mono h₁) (λ x (hx : x < 0), _),
+  rw [function.iterate_succ, function.iterate_one],
+  change (deriv (deriv log)) x < 0,
+  rw [deriv_log', deriv_inv],
+  exact neg_neg_of_pos (inv_pos.2 $ sq_pos_of_ne_zero _ hx.ne),
 end

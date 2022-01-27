@@ -24,7 +24,7 @@ namespace cfilter
 section
 variables [partial_order α] (F : cfilter α σ)
 
-instance : has_coe_to_fun (cfilter α σ) := ⟨_, cfilter.f⟩
+instance : has_coe_to_fun (cfilter α σ) (λ _, σ → α) := ⟨cfilter.f⟩
 
 @[simp] theorem coe_mk (f pt inf h₁ h₂ a) : (@cfilter.mk α σ _ f pt inf h₁ h₂) a = f a := rfl
 

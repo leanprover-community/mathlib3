@@ -3,9 +3,7 @@ Copyright (c) 2020 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
-
-import data.fintype.sort
-import data.fin
+import data.fin.basic
 import order.category.LinearOrder
 
 /-! # Nonempty finite linear orders
@@ -13,43 +11,37 @@ import order.category.LinearOrder
 Nonempty finite linear orders form the index category for simplicial objects.
 -/
 
-universe variables u v
+universes u v
 
 open category_theory
 
-set_option old_structure_cmd true
-
 /-- A typeclass for nonempty finite linear orders. -/
-class nonempty_fin_lin_ord (α : Type*) extends fintype α, linear_order α, order_bot α, order_top α.
+class nonempty_fin_lin_ord (α : Type*) extends fintype α, linear_order α :=
+(nonempty : nonempty α . tactic.apply_instance)
+
+attribute [instance] nonempty_fin_lin_ord.nonempty
+
+@[priority 100]
+instance nonempty_fin_lin_ord.order_bot (α : Type*) [nonempty_fin_lin_ord α] : order_bot α :=
+{ bot := finset.min' finset.univ ⟨classical.arbitrary α, by simp⟩,
+  bot_le := λ a, finset.min'_le _ a (by simp) }
+
+@[priority 100]
+instance nonempty_fin_lin_ord.order_top (α : Type*) [nonempty_fin_lin_ord α] : order_top α :=
+{ top := finset.max' finset.univ ⟨classical.arbitrary α, by simp⟩,
+  le_top := λ a, finset.le_max' _ a (by simp) }
 
 instance punit.nonempty_fin_lin_ord : nonempty_fin_lin_ord punit :=
-begin
-  refine_struct
-  { .. punit.linear_ordered_cancel_add_comm_monoid,
-    .. punit.fintype };
-  { intros, exact punit.star <|> exact dec_trivial }
-end
+{ .. punit.linear_ordered_cancel_add_comm_monoid,
+  .. punit.fintype }
 
-section
-open_locale classical
-
-instance fin.nonempty_fin_lin_ord (n : ℕ) :
-  nonempty_fin_lin_ord (fin (n+1)) :=
-{ top := fin.last n,
-  le_top := fin.le_last,
-  bot := 0,
-  bot_le := fin.zero_le,
-  .. fin.fintype _,
+instance fin.nonempty_fin_lin_ord (n : ℕ) : nonempty_fin_lin_ord (fin (n+1)) :=
+{ .. fin.fintype _,
   .. fin.linear_order }
-
-end
 
 instance ulift.nonempty_fin_lin_ord (α : Type u) [nonempty_fin_lin_ord α] :
   nonempty_fin_lin_ord (ulift.{v} α) :=
-{ top := ulift.up ⊤,
-  bot := ulift.up ⊥,
-  le_top := λ ⟨a⟩, show a ≤ ⊤, from le_top,
-  bot_le := λ ⟨a⟩, show ⊥ ≤ a, from bot_le,
+{ nonempty := ⟨ulift.up ⊥⟩,
   .. linear_order.lift equiv.ulift (equiv.injective _),
   .. ulift.fintype _ }
 
@@ -60,7 +52,9 @@ namespace NonemptyFinLinOrd
 
 instance : bundled_hom.parent_projection @nonempty_fin_lin_ord.to_linear_order := ⟨⟩
 
-attribute [derive [has_coe_to_sort, large_category, concrete_category]] NonemptyFinLinOrd
+attribute [derive [large_category, concrete_category]] NonemptyFinLinOrd
+
+instance : has_coe_to_sort NonemptyFinLinOrd Type* := bundled.has_coe_to_sort
 
 /-- Construct a bundled NonemptyFinLinOrd from the underlying type and typeclass. -/
 def of (α : Type*) [nonempty_fin_lin_ord α] : NonemptyFinLinOrd := bundled.of α

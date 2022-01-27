@@ -4,13 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta, Edward Ayers, Thomas Read
 -/
 
-import category_theory.limits.shapes.finite_products
-import category_theory.limits.preserves.shapes.binary_products
-import category_theory.closed.monoidal
-import category_theory.monoidal.of_has_finite_products
-import category_theory.adjunction
-import category_theory.adjunction.mates
 import category_theory.epi_mono
+import category_theory.limits.shapes.finite_products
+import category_theory.monoidal.of_has_finite_products
+import category_theory.limits.preserves.shapes.binary_products
+import category_theory.adjunction.limits
+import category_theory.adjunction.mates
+import category_theory.closed.monoidal
 
 /-!
 # Cartesian closed categories
@@ -111,7 +111,7 @@ lemma coev_naturality {X Y : C} (f : X ⟶ Y) :
   f ≫ (coev A).app Y = (coev A).app X ≫ (exp A).map (limits.prod.map (𝟙 A) f) :=
 (coev A).naturality f
 
-notation A ` ⟹ `:20 B:20 := (exp A).obj B
+notation A ` ⟹ `:20 B:19 := (exp A).obj B
 notation B ` ^^ `:30 A:30 := (exp A).obj B
 
 @[simp, reassoc] lemma ev_coev :
@@ -144,12 +144,6 @@ def uncurry : (Y ⟶ A ⟹ X) → (A ⨯ Y ⟶ X) :=
   (exp.adjunction A).hom_equiv _ _ f = curry f := rfl
 @[simp] lemma hom_equiv_symm_apply_eq (f : Y ⟶ A ⟹ X) :
   ((exp.adjunction A).hom_equiv _ _).symm f = uncurry f := rfl
-
-end cartesian_closed
-
-open cartesian_closed
-
-variables [has_finite_products C] [exponentiable A]
 
 @[reassoc]
 lemma curry_natural_left (f : X ⟶ X') (g : A ⨯ X' ⟶ Y) :
@@ -206,6 +200,11 @@ lemma curry_injective : function.injective (curry : (A ⨯ Y ⟶ X) → (Y ⟶ A
 lemma uncurry_injective : function.injective (uncurry : (Y ⟶ A ⟹ X) → (A ⨯ Y ⟶ X)) :=
 (closed.is_adj.adj.hom_equiv _ _).symm.injective
 
+end cartesian_closed
+
+open cartesian_closed
+variables [has_finite_products C] [exponentiable A]
+
 /--
 Show that the exponential of the terminal object is isomorphic to itself, i.e. `X^1 ≅ X`.
 
@@ -213,15 +212,15 @@ The typeclass argument is explicit: any instance can be used.
 -/
 def exp_terminal_iso_self [exponentiable ⊤_ C] : (⊤_ C ⟹ X) ≅ X :=
 yoneda.ext (⊤_ C ⟹ X) X
-  (λ Y f, (prod.left_unitor Y).inv ≫ uncurry f)
-  (λ Y f, curry ((prod.left_unitor Y).hom ≫ f))
+  (λ Y f, (prod.left_unitor Y).inv ≫ cartesian_closed.uncurry f)
+  (λ Y f, cartesian_closed.curry ((prod.left_unitor Y).hom ≫ f))
   (λ Z g, by rw [curry_eq_iff, iso.hom_inv_id_assoc] )
   (λ Z g, by simp)
   (λ Z W f g, by rw [uncurry_natural_left, prod.left_unitor_inv_naturality_assoc f] )
 
 /-- The internal element which points at the given morphism. -/
 def internalize_hom (f : A ⟶ Y) : ⊤_ C ⟶ (A ⟹ Y) :=
-curry (limits.prod.fst ≫ f)
+cartesian_closed.curry (limits.prod.fst ≫ f)
 
 section pre
 
@@ -237,7 +236,7 @@ lemma prod_map_pre_app_comp_ev (f : B ⟶ A) [exponentiable B] (X : C) :
 transfer_nat_trans_self_counit _ _ (prod.functor.map f) X
 
 lemma uncurry_pre (f : B ⟶ A) [exponentiable B] (X : C) :
-  uncurry ((pre f).app X) = limits.prod.map f (𝟙 _) ≫ (ev A).app X :=
+  cartesian_closed.uncurry ((pre f).app X) = limits.prod.map f (𝟙 _) ≫ (ev A).app X :=
 begin
   rw [uncurry_eq, prod_map_pre_app_comp_ev]
 end
@@ -270,7 +269,7 @@ def zero_mul {I : C} (t : is_initial I) : A ⨯ I ≅ I :=
   inv := t.to _,
   hom_inv_id' :=
   begin
-    have: (limits.prod.snd : A ⨯ I ⟶ I) = uncurry (t.to _),
+    have: (limits.prod.snd : A ⨯ I ⟶ I) = cartesian_closed.uncurry (t.to _),
       rw ← curry_eq_iff,
       apply t.hom_ext,
     rw [this, ← uncurry_natural_right, ← eq_curry_iff],
@@ -284,8 +283,8 @@ limits.prod.braiding _ _ ≪≫ zero_mul t
 
 /-- If an initial object `0` exists in a CCC then `0^B ≅ 1` for any `B`. -/
 def pow_zero {I : C} (t : is_initial I) [cartesian_closed C] : I ⟹ B ≅ ⊤_ C :=
-{ hom := default _,
-  inv := curry ((mul_zero t).hom ≫ t.to _),
+{ hom := default,
+  inv := cartesian_closed.curry ((mul_zero t).hom ≫ t.to _),
   hom_inv_id' :=
   begin
     rw [← curry_natural_left, curry_eq_iff, ← cancel_epi (mul_zero t).inv],
@@ -300,7 +299,8 @@ def pow_zero {I : C} (t : is_initial I) [cartesian_closed C] : I ⟹ B ≅ ⊤_ 
 def prod_coprod_distrib [has_binary_coproducts C] [cartesian_closed C] (X Y Z : C) :
   (Z ⨯ X) ⨿ (Z ⨯ Y) ≅ Z ⨯ (X ⨿ Y) :=
 { hom := coprod.desc (limits.prod.map (𝟙 _) coprod.inl) (limits.prod.map (𝟙 _) coprod.inr),
-  inv := uncurry (coprod.desc (curry coprod.inl) (curry coprod.inr)),
+  inv := cartesian_closed.uncurry
+    (coprod.desc (cartesian_closed.curry coprod.inl) (cartesian_closed.curry coprod.inr)),
   hom_inv_id' :=
   begin
     apply coprod.hom_ext,

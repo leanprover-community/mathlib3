@@ -23,7 +23,7 @@ infixr `::ᵥ`:67  := vector.cons
 attribute [simp] head_cons tail_cons
 
 instance [inhabited α] : inhabited (vector α n) :=
-⟨of_fn (λ _, default α)⟩
+⟨of_fn (λ _, default)⟩
 
 theorem to_list_injective : function.injective (@to_list α n) :=
 subtype.val_injective
@@ -88,8 +88,12 @@ begin
   simpa only [to_list_of_fn] using list.of_fn_nth_le _
 end
 
+/-- The natural equivalence between length-`n` vectors and functions from `fin n`. -/
+def _root_.equiv.vector_equiv_fin (α : Type*) (n : ℕ) : vector α n ≃ (fin n → α) :=
+⟨vector.nth, vector.of_fn, vector.of_fn_nth, λ f, funext $ vector.nth_of_fn f⟩
+
 theorem nth_tail (x : vector α n) (i) :
-  x.tail.nth i = x.nth ⟨i.1 + 1, lt_sub_iff_right.mp i.2⟩ :=
+  x.tail.nth i = x.nth ⟨i.1 + 1, lt_tsub_iff_right.mp i.2⟩ :=
 by { rcases x with ⟨_|_, h⟩; refl, }
 
 @[simp]
@@ -191,8 +195,8 @@ lemma last_def {v : vector α (n + 1)} : v.last = v.nth (fin.last n) := rfl
 lemma reverse_nth_zero {v : vector α (n + 1)} : v.reverse.head = v.last :=
 begin
   have : 0 = v.to_list.length - 1 - n,
-    { simp only [nat.add_succ_sub_one, add_zero, to_list_length, nat.sub_self,
-                 list.length_reverse] },
+  { simp only [nat.add_succ_sub_one, add_zero, to_list_length, tsub_self,
+               list.length_reverse] },
   rw [←nth_zero, last_def, nth_eq_nth_le, nth_eq_nth_le],
   simp_rw [to_list_reverse, fin.val_eq_coe, fin.coe_last, fin.coe_zero, this],
   rw list.nth_le_reverse,
@@ -441,6 +445,10 @@ section update_nth
 def update_nth (v : vector α n) (i : fin n) (a : α) : vector α n :=
 ⟨v.1.update_nth i.1 a, by rw [list.update_nth_length, v.2]⟩
 
+@[simp] lemma to_list_update_nth (v : vector α n) (i : fin n) (a : α) :
+  (v.update_nth i a).to_list = v.to_list.update_nth i a :=
+rfl
+
 @[simp] lemma nth_update_nth_same (v : vector α n) (i : fin n) (a : α) :
   (v.update_nth i a).nth i = a :=
 by cases v; cases i; simp [vector.update_nth, vector.nth_eq_nth_le]
@@ -453,6 +461,26 @@ by cases v; cases i; cases j; simp [vector.update_nth, vector.nth_eq_nth_le,
 lemma nth_update_nth_eq_if {v : vector α n} {i j : fin n} (a : α) :
   (v.update_nth i a).nth j = if i = j then a else v.nth j :=
 by split_ifs; try {simp *}; try {rw nth_update_nth_of_ne}; assumption
+
+@[to_additive]
+lemma prod_update_nth [monoid α] (v : vector α n) (i : fin n) (a : α) :
+  (v.update_nth i a).to_list.prod =
+    (v.take i).to_list.prod * a * (v.drop (i + 1)).to_list.prod :=
+begin
+  refine (list.prod_update_nth v.to_list i a).trans _,
+  have : ↑i < v.to_list.length := lt_of_lt_of_le i.2 (le_of_eq v.2.symm),
+  simp * at *
+end
+
+@[to_additive]
+lemma prod_update_nth' [comm_group α] (v : vector α n) (i : fin n) (a : α) :
+  (v.update_nth i a).to_list.prod =
+    v.to_list.prod * (v.nth i)⁻¹ * a :=
+begin
+  refine (list.prod_update_nth' v.to_list i a).trans _,
+  have : ↑i < v.to_list.length := lt_of_lt_of_le i.2 (le_of_eq v.2.symm),
+  simp [this, nth_eq_nth_le, mul_assoc],
+end
 
 end update_nth
 

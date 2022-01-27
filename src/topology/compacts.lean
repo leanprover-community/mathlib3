@@ -41,7 +41,7 @@ def nonempty_compacts := {s : set α // s.nonempty ∧ is_compact s}
 /-- In an inhabited space, the type of nonempty compact subsets is also inhabited, with
 default element the singleton set containing the default element. -/
 instance nonempty_compacts_inhabited [inhabited α] : inhabited (nonempty_compacts α) :=
-⟨⟨{default α}, singleton_nonempty (default α), is_compact_singleton ⟩⟩
+⟨⟨{default}, singleton_nonempty default, is_compact_singleton ⟩⟩
 
 /-- The compact sets with nonempty interior of a topological space. See also `compacts` and
   `nonempty_compacts`. -/
@@ -54,15 +54,21 @@ def positive_compacts_univ {α : Type*} [topological_space α] [compact_space α
   positive_compacts α :=
 ⟨set.univ, compact_univ, by simp⟩
 
+@[simp] lemma positive_compacts_univ_val (α : Type*) [topological_space α] [compact_space α]
+  [nonempty α] : (positive_compacts_univ : positive_compacts α).val = univ := rfl
+
 variables {α}
 
 namespace compacts
 
-instance : semilattice_sup_bot (compacts α) :=
-subtype.semilattice_sup_bot is_compact_empty (λ K₁ K₂, is_compact.union)
+instance : semilattice_sup (compacts α) :=
+subtype.semilattice_sup (λ K₁ K₂, is_compact.union)
 
-instance [t2_space α]: semilattice_inf_bot (compacts α) :=
-subtype.semilattice_inf_bot is_compact_empty (λ K₁ K₂, is_compact.inter)
+instance : order_bot (compacts α) :=
+subtype.order_bot is_compact_empty
+
+instance [t2_space α]: semilattice_inf (compacts α) :=
+subtype.semilattice_inf (λ K₁ K₂, is_compact.inter)
 
 instance [t2_space α] : lattice (compacts α) :=
 subtype.lattice (λ K₁ K₂, is_compact.union) (λ K₁ K₂, is_compact.inter)
@@ -122,13 +128,9 @@ section positive_compacts
 
 variable (α)
 /-- In a nonempty locally compact space, there exists a compact set with nonempty interior. -/
-instance nonempty_positive_compacts [locally_compact_space α] [nonempty α] :
+instance nonempty_positive_compacts [locally_compact_space α] [h : nonempty α] :
   nonempty (positive_compacts α) :=
-begin
-  inhabit α,
-  rcases exists_compact_subset is_open_univ (mem_univ (default α)) with ⟨K, hK⟩,
-  exact ⟨⟨K, hK.1, ⟨_, hK.2.1⟩⟩⟩
-end
+let ⟨K, hK⟩ := exists_compact_subset is_open_univ $ mem_univ h.some in ⟨⟨K, hK.1, ⟨_, hK.2.1⟩⟩⟩
 
 end positive_compacts
 

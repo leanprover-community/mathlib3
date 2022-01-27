@@ -156,22 +156,24 @@ lemma is_extr_on_const {b : β} : is_extr_on (λ _, b) s a := is_extr_filter_con
 
 /-! ### Order dual -/
 
-lemma is_min_filter_dual_iff : @is_min_filter α (order_dual β) _ f l a ↔ is_max_filter f l a :=
+open order_dual (to_dual)
+
+lemma is_min_filter_dual_iff : is_min_filter (to_dual ∘ f) l a ↔ is_max_filter f l a :=
 iff.rfl
 
-lemma is_max_filter_dual_iff : @is_max_filter α (order_dual β) _ f l a ↔ is_min_filter f l a :=
+lemma is_max_filter_dual_iff : is_max_filter (to_dual ∘ f) l a ↔ is_min_filter f l a :=
 iff.rfl
 
-lemma is_extr_filter_dual_iff : @is_extr_filter α (order_dual β) _ f l a ↔ is_extr_filter f l a :=
+lemma is_extr_filter_dual_iff : is_extr_filter (to_dual ∘ f) l a ↔ is_extr_filter f l a :=
 or_comm _ _
 
 alias is_min_filter_dual_iff ↔ is_min_filter.undual is_max_filter.dual
 alias is_max_filter_dual_iff ↔ is_max_filter.undual is_min_filter.dual
 alias is_extr_filter_dual_iff ↔ is_extr_filter.undual is_extr_filter.dual
 
-lemma is_min_on_dual_iff : @is_min_on α (order_dual β) _ f s a ↔ is_max_on f s a := iff.rfl
-lemma is_max_on_dual_iff : @is_max_on α (order_dual β) _ f s a ↔ is_min_on f s a := iff.rfl
-lemma is_extr_on_dual_iff : @is_extr_on α (order_dual β) _ f s a ↔ is_extr_on f s a := or_comm _ _
+lemma is_min_on_dual_iff : is_min_on (to_dual ∘ f) s a ↔ is_max_on f s a := iff.rfl
+lemma is_max_on_dual_iff : is_max_on (to_dual ∘ f) s a ↔ is_min_on f s a := iff.rfl
+lemma is_extr_on_dual_iff : is_extr_on (to_dual ∘ f) s a ↔ is_extr_on f s a := or_comm _ _
 
 alias is_min_on_dual_iff ↔ is_min_on.undual is_max_on.dual
 alias is_max_on_dual_iff ↔ is_max_on.undual is_min_on.dual
@@ -538,3 +540,21 @@ lemma filter.eventually_eq.is_extr_filter_iff {α β : Type*} [preorder β] {f g
 ⟨λ h, h.congr heq hfga, λ h, h.congr heq.symm hfga.symm⟩
 
 end eventually
+
+/-! ### `is_max_on`/`is_min_on` imply `csupr`/`cinfi` -/
+
+section conditionally_complete_linear_order
+variables [conditionally_complete_linear_order α] {f : β → α} {s : set β} {x₀ : β}
+
+lemma is_max_on.supr_eq (hx₀ : x₀ ∈ s) (h : is_max_on f s x₀) :
+  (⨆ x : s, f x) = f x₀ :=
+begin
+  haveI : nonempty s := ⟨⟨x₀, hx₀⟩⟩,
+  exact csupr_eq_of_forall_le_of_forall_lt_exists_gt (λ x, h x.prop) (λ w hw, ⟨⟨x₀, hx₀⟩, hw⟩),
+end
+
+lemma is_min_on.infi_eq (hx₀ : x₀ ∈ s) (h : is_min_on f s x₀) :
+  (⨅ x : s, f x) = f x₀ :=
+@is_max_on.supr_eq (order_dual α) β _ _ _ _ hx₀ h
+
+end conditionally_complete_linear_order

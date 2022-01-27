@@ -142,7 +142,7 @@ def inf_Icc_order_iso_Icc_sup (a b : α) : set.Icc (a ⊓ b) a ≃o set.Icc b (a
 end is_modular_lattice
 
 namespace is_compl
-variables [bounded_lattice α] [is_modular_lattice α]
+variables [lattice α] [bounded_order α] [is_modular_lattice α]
 
 /-- The diamond isomorphism between the intervals `set.Iic a` and `set.Ici b`. -/
 def Iic_order_iso_Ici {a b : α} (h : is_compl a b) : set.Iic a ≃o set.Ici b :=
@@ -165,7 +165,7 @@ instance [distrib_lattice α] : is_modular_lattice α :=
 end distrib_lattice
 
 theorem disjoint.disjoint_sup_right_of_disjoint_sup_left
-  [bounded_lattice α] [is_modular_lattice α] {a b c : α}
+  [lattice α] [bounded_order α] [is_modular_lattice α] {a b c : α}
   (h : disjoint a b) (hsup : disjoint (a ⊔ b) c) :
   disjoint a (b ⊔ c) :=
 begin
@@ -176,7 +176,7 @@ begin
 end
 
 theorem disjoint.disjoint_sup_left_of_disjoint_sup_right
-  [bounded_lattice α] [is_modular_lattice α] {a b c : α}
+  [lattice α] [bounded_order α] [is_modular_lattice α] {a b c : α}
   (h : disjoint b c) (hsup : disjoint a (b ⊔ c)) :
   disjoint (a ⊔ b) c :=
 begin
@@ -187,7 +187,7 @@ end
 
 namespace is_modular_lattice
 
-variables [bounded_lattice α] [is_modular_lattice α] {a : α}
+variables [lattice α] [is_modular_lattice α] {a : α}
 
 instance is_modular_lattice_Iic : is_modular_lattice (set.Iic a) :=
 ⟨λ x y z xz, (sup_inf_le_assoc_of_le (y : α) xz : (↑x ⊔ ↑y) ⊓ ↑z ≤ ↑x ⊔ ↑y ⊓ ↑z)⟩
@@ -196,7 +196,7 @@ instance is_modular_lattice_Ici : is_modular_lattice (set.Ici a) :=
 ⟨λ x y z xz, (sup_inf_le_assoc_of_le (y : α) xz : (↑x ⊔ ↑y) ⊓ ↑z ≤ ↑x ⊔ ↑y ⊓ ↑z)⟩
 
 section is_complemented
-variables [is_complemented α]
+variables [bounded_order α] [is_complemented α]
 
 instance is_complemented_Iic : is_complemented (set.Iic a) :=
 ⟨λ ⟨x, hx⟩, let ⟨y, hy⟩ := exists_is_compl x in

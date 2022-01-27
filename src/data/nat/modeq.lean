@@ -145,6 +145,17 @@ by rw [nat.modeq, nat.add_mod_left]
 @[simp] lemma add_modeq_right {a n : ℕ} : a + n ≡ a [MOD n] :=
 by rw [nat.modeq, nat.add_mod_right]
 
+namespace modeq
+
+lemma le_of_lt_add (h1 : a ≡ b [MOD m]) (h2 : a < b + m) : a ≤ b :=
+(le_total a b).elim id (λ h3, nat.le_of_sub_eq_zero
+  (eq_zero_of_dvd_of_lt ((modeq_iff_dvd' h3).mp h1.symm) ((tsub_lt_iff_left h3).mpr h2)))
+
+lemma add_le_of_lt (h1 : a ≡ b [MOD m]) (h2 : a < b) : a + m ≤ b :=
+le_of_lt_add (add_modeq_right.trans h1) (add_lt_add_right h2 m)
+
+end modeq
+
 local attribute [semireducible] int.nonneg
 
 /-- The natural number less than `lcm n m` congruent to `a` mod `n` and `b` mod `m` -/
@@ -182,6 +193,19 @@ end⟩
 /-- The natural number less than `n*m` congruent to `a` mod `n` and `b` mod `m` -/
 def chinese_remainder (co : coprime n m) (a b : ℕ) : {k // k ≡ a [MOD n] ∧ k ≡ b [MOD m]} :=
 chinese_remainder' (by convert modeq_one)
+
+lemma chinese_remainder'_lt_lcm (h : a ≡ b [MOD gcd n m]) (hn : n ≠ 0) (hm : m ≠ 0) :
+  ↑(chinese_remainder' h) < lcm n m :=
+begin
+  dsimp only [chinese_remainder'],
+  rw [dif_neg hn, dif_neg hm, subtype.coe_mk, xgcd_val, ←int.to_nat_coe_nat (lcm n m)],
+  have lcm_pos := int.coe_nat_pos.mpr (nat.pos_of_ne_zero (lcm_ne_zero hn hm)),
+  exact (int.to_nat_lt_to_nat lcm_pos).mpr (int.mod_lt_of_pos _ lcm_pos),
+end
+
+lemma chinese_remainder_lt_mul (co : coprime n m) (a b : ℕ) (hn : n ≠ 0) (hm : m ≠ 0) :
+  ↑(chinese_remainder co a b) < n * m :=
+lt_of_lt_of_le (chinese_remainder'_lt_lcm _ hn hm) (le_of_eq co.lcm_eq_mul)
 
 lemma modeq_and_modeq_iff_modeq_mul {a b m n : ℕ} (hmn : coprime m n) :
   a ≡ b [MOD m] ∧ a ≡ b [MOD n] ↔ (a ≡ b [MOD m * n]) :=
@@ -294,8 +318,9 @@ have hm0 : 0 < m := nat.pos_of_ne_zero (λ h, by simp * at *),
 have hn0 : 0 < n := nat.pos_of_ne_zero (λ h, by simp * at *),
 (nat.mul_right_inj (show 0 < 2, from dec_trivial)).1 $
 by rw [mul_add, two_mul_odd_div_two hm1, mul_left_comm, two_mul_odd_div_two hn1,
-  two_mul_odd_div_two (nat.odd_mul_odd hm1 hn1), nat.mul_sub_left_distrib, mul_one,
-  ← nat.add_sub_assoc hm0, nat.sub_add_cancel (le_mul_of_one_le_right (nat.zero_le _) hn0)]
+  two_mul_odd_div_two (nat.odd_mul_odd hm1 hn1), mul_tsub, mul_one,
+  ← add_tsub_assoc_of_le (succ_le_of_lt hm0),
+  tsub_add_cancel_of_le (le_mul_of_one_le_right (nat.zero_le _) hn0)]
 
 lemma odd_of_mod_four_eq_one {n : ℕ} : n % 4 = 1 → n % 2 = 1 :=
 by simpa [modeq, show 2 * 2 = 4, by norm_num] using @modeq.of_modeq_mul_left 2 n 1 2
@@ -343,7 +368,7 @@ lemma rotate_eq_self_iff_eq_repeat [hα : nonempty α] : ∀ {l : list α},
   begin
     rw [← option.some_inj, ← list.nth_le_nth],
     conv {to_lhs, rw ← h ((list.length (a :: l)) - n)},
-    rw [nth_rotate hn, nat.add_sub_cancel' (le_of_lt hn),
+    rw [nth_rotate hn, add_tsub_cancel_of_le (le_of_lt hn),
       nat.mod_self, nth_le_repeat], refl
   end⟩,
   λ ⟨a, ha⟩ n, ha.symm ▸ list.ext_le (by simp)

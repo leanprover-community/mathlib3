@@ -61,7 +61,7 @@ begin
 end
 
 @[simp]
-lemma prime.squarefree [comm_cancel_monoid_with_zero R] {x : R} (h : prime x) :
+lemma prime.squarefree [cancel_comm_monoid_with_zero R] {x : R} (h : prime x) :
   squarefree x :=
 h.irreducible.squarefree
 
@@ -86,7 +86,7 @@ end
 end multiplicity
 
 namespace unique_factorization_monoid
-variables [comm_cancel_monoid_with_zero R] [nontrivial R] [unique_factorization_monoid R]
+variables [cancel_comm_monoid_with_zero R] [nontrivial R] [unique_factorization_monoid R]
 variables [normalization_monoid R]
 
 lemma squarefree_iff_nodup_normalized_factors [decidable_eq R] {x : R} (x0 : x ≠ 0) :
@@ -164,8 +164,8 @@ begin
       rcases an with ⟨b, rfl⟩,
       rw mul_ne_zero_iff at h0,
       rw unique_factorization_monoid.squarefree_iff_nodup_normalized_factors h0.1 at hsq,
-      rw [multiset.to_finset_subset, multiset.to_finset_val, multiset.erase_dup_eq_self.2 hsq,
-        ← associated_iff_eq, normalized_factors_mul h0.1 h0.2],
+      rw [multiset.to_finset_subset, multiset.to_finset_val, hsq.erase_dup, ← associated_iff_eq,
+        normalized_factors_mul h0.1 h0.2],
       exact ⟨multiset.subset_of_le (multiset.le_add_right _ _), normalized_factors_prod h0.1⟩ },
     { rintro ⟨s, hs, rfl⟩,
       rw [finset.mem_powerset, ← finset.val_le_iff, multiset.to_finset_val] at hs,

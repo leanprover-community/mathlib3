@@ -3,8 +3,10 @@ Copyright (c) 2021 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
-import order.bounded_lattice
-import order.galois_connection
+import order.bounded_order
+import order.complete_lattice
+import order.cover
+import order.iterate
 import tactic.monotonicity
 
 /-!
@@ -19,6 +21,10 @@ order...
 
 * `succ_order`: Order equipped with a sensible successor function.
 * `pred_order`: Order equipped with a sensible predecessor function.
+* `is_succ_archimedean`: `succ_order` where `succ` iterated to an element gives all the greater
+  ones.
+* `is_pred_archimedean`: `pred_order` where `pred` iterated to an element gives all the greater
+  ones.
 
 ## Implementation notes
 
@@ -35,7 +41,7 @@ The solution taken here is to remove the implications `≤ → <` and instead re
 for all non maximal elements (enforced by the combination of `le_succ` and the contrapositive of
 `maximal_of_succ_le`).
 The stricter condition of every element having a sensible successor can be obtained through the
-combination of `succ_order α` and `no_top_order α`.
+combination of `succ_order α` and `no_max_order α`.
 
 ## TODO
 
@@ -44,8 +50,7 @@ Is `galois_connection pred succ` always true? If not, we should introduce
 class succ_pred_order (α : Type*) [preorder α] extends succ_order α, pred_order α :=
 (pred_succ_gc : galois_connection (pred : α → α) succ)
 ```
-This gives `succ (pred n) = n` and `pred (succ n)` for free when `no_bot_order α` and
-`no_top_order α` respectively.
+`covers` should help here.
 -/
 
 open function
@@ -67,7 +72,7 @@ section preorder
 variables [preorder α]
 
 /-- A constructor for `succ_order α` usable when `α` has no maximal element. -/
-def succ_order_of_succ_le_iff_of_le_lt_succ (succ : α → α)
+def of_succ_le_iff_of_le_lt_succ (succ : α → α)
   (hsucc_le_iff : ∀ {a b}, succ a ≤ b ↔ a < b)
   (hle_of_lt_succ : ∀ {a b}, a < succ b → a ≤ b) :
   succ_order α :=
@@ -98,11 +103,19 @@ lemma succ_mono : monotone (succ : α → α) := λ a b, succ_le_succ
 lemma lt_succ_of_not_maximal {a b : α} (h : a < b) : a < succ a :=
 (le_succ a).lt_of_not_le (λ ha, maximal_of_succ_le ha h)
 
-section no_top_order
-variables [no_top_order α] {a b : α}
+alias lt_succ_of_not_maximal ← has_lt.lt.lt_succ
+
+protected lemma _root_.has_lt.lt.covers_succ {a b : α} (h : a < b) : a ⋖ succ a :=
+⟨h.lt_succ, λ c hc, (succ_le_of_lt hc).not_lt⟩
+
+@[simp] lemma covers_succ_of_nonempty_Ioi {a : α} (h : (set.Ioi a).nonempty) : a ⋖ succ a :=
+has_lt.lt.covers_succ h.some_mem
+
+section no_max_order
+variables [no_max_order α] {a b : α}
 
 lemma lt_succ (a : α) : a < succ a :=
-(le_succ a).lt_of_not_le (λ h, not_exists.2 (maximal_of_succ_le h) (no_top a))
+(le_succ a).lt_of_not_le $ λ h, not_exists.2 (maximal_of_succ_le h) (exists_gt a)
 
 lemma lt_succ_iff : a < succ b ↔ a ≤ b :=
 ⟨le_of_lt_succ, λ h, h.trans_lt $ lt_succ b⟩
@@ -115,14 +128,16 @@ lemma succ_le_iff : succ a ≤ b ↔ a < b :=
 
 alias succ_le_succ_iff ↔ le_of_succ_le_succ _
 
-@[simp] lemma succ_lt_succ_iff : succ a < succ b ↔ a < b :=
+lemma succ_lt_succ_iff : succ a < succ b ↔ a < b :=
 by simp_rw [lt_iff_le_not_le, succ_le_succ_iff]
 
 alias succ_lt_succ_iff ↔ lt_of_succ_lt_succ succ_lt_succ
 
 lemma succ_strict_mono : strict_mono (succ : α → α) := λ a b, succ_lt_succ
 
-end no_top_order
+lemma covers_succ (a : α) : a ⋖ succ a := ⟨lt_succ a, λ c hc, (succ_le_of_lt hc).not_lt⟩
+
+end no_max_order
 
 end preorder
 
@@ -157,8 +172,11 @@ begin
   { exact ⟨le_succ a, le_rfl⟩ }
 end
 
-section no_top_order
-variables [no_top_order α] {a b : α}
+lemma _root_.covers.succ_eq {a b : α} (h : a ⋖ b) : succ a = b :=
+(succ_le_of_lt h.lt).eq_of_not_lt $ λ h', h.2 (lt_succ_of_not_maximal h.lt) h'
+
+section no_max_order
+variables [no_max_order α] {a b : α}
 
 lemma succ_injective : injective (succ : α → α) :=
 begin
@@ -181,12 +199,15 @@ lt_succ_iff.trans le_iff_lt_or_eq
 lemma le_succ_iff_lt_or_eq : a ≤ succ b ↔ (a ≤ b ∨ a = succ b) :=
 by rw [←lt_succ_iff, ←lt_succ_iff, lt_succ_iff_lt_or_eq]
 
-end no_top_order
+lemma _root_.covers_iff_succ_eq : a ⋖ b ↔ succ a = b :=
+⟨covers.succ_eq, by { rintro rfl, exact covers_succ _ }⟩
+
+end no_max_order
 
 end partial_order
 
 section order_top
-variables [order_top α] [succ_order α]
+variables [partial_order α] [order_top α] [succ_order α]
 
 @[simp] lemma succ_top : succ (⊤ : α) = ⊤ :=
 le_top.antisymm (le_succ _)
@@ -203,7 +224,7 @@ end
 end order_top
 
 section order_bot
-variables [order_bot α] [succ_order α] [nontrivial α]
+variables [partial_order α] [order_bot α] [succ_order α] [nontrivial α]
 
 lemma bot_lt_succ (a : α) : ⊥ < succ a :=
 begin
@@ -223,7 +244,7 @@ section linear_order
 variables [linear_order α]
 
 /-- A constructor for `succ_order α` usable when `α` is a linear order with no maximal element. -/
-def succ_order_of_succ_le_iff (succ : α → α) (hsucc_le_iff : ∀ {a b}, succ a ≤ b ↔ a < b) :
+def of_succ_le_iff (succ : α → α) (hsucc_le_iff : ∀ {a b}, succ a ≤ b ↔ a < b) :
   succ_order α :=
 { succ := succ,
   le_succ := λ a, (hsucc_le_iff.1 le_rfl).le,
@@ -263,7 +284,7 @@ section preorder
 variables [preorder α]
 
 /-- A constructor for `pred_order α` usable when `α` has no minimal element. -/
-def pred_order_of_le_pred_iff_of_pred_le_pred (pred : α → α)
+def of_le_pred_iff_of_pred_le_pred (pred : α → α)
   (hle_pred_iff : ∀ {a b}, a ≤ pred b ↔ a < b)
   (hle_of_pred_lt : ∀ {a b}, pred a < b → a ≤ b) :
   pred_order α :=
@@ -294,11 +315,19 @@ lemma pred_mono : monotone (pred : α → α) := λ a b, pred_le_pred
 lemma pred_lt_of_not_minimal {a b : α} (h : b < a) : pred a < a :=
 (pred_le a).lt_of_not_le (λ ha, minimal_of_le_pred ha h)
 
-section no_bot_order
-variables [no_bot_order α] {a b : α}
+alias pred_lt_of_not_minimal ← has_lt.lt.pred_lt
+
+protected lemma _root_.has_lt.lt.pred_covers {a b : α} (h : b < a) : pred a ⋖ a :=
+⟨h.pred_lt, λ c hc, (le_of_pred_lt hc).not_lt⟩
+
+@[simp] lemma pred_covers_of_nonempty_Iio {a : α} (h : (set.Iio a).nonempty) : pred a ⋖ a :=
+has_lt.lt.pred_covers h.some_mem
+
+section no_min_order
+variables [no_min_order α] {a b : α}
 
 lemma pred_lt (a : α) : pred a < a :=
-(pred_le a).lt_of_not_le (λ h, not_exists.2 (minimal_of_le_pred h) (no_bot a))
+(pred_le a).lt_of_not_le $ λ h, not_exists.2 (minimal_of_le_pred h) (exists_lt a)
 
 lemma pred_lt_iff : pred a < b ↔ a ≤ b :=
 ⟨le_of_pred_lt, (pred_lt a).trans_le⟩
@@ -318,7 +347,9 @@ alias pred_lt_pred_iff ↔ lt_of_pred_lt_pred pred_lt_pred
 
 lemma pred_strict_mono : strict_mono (pred : α → α) := λ a b, pred_lt_pred
 
-end no_bot_order
+lemma pred_covers (a : α) : pred a ⋖ a := ⟨pred_lt a, λ c hc, (le_of_pred_lt hc).not_lt⟩
+
+end no_min_order
 
 end preorder
 
@@ -353,8 +384,11 @@ begin
   { exact ⟨le_rfl, pred_le a⟩ }
 end
 
-section no_bot_order
-variables [no_bot_order α] {a b : α}
+lemma _root_.covers.pred_eq {a b : α} (h : a ⋖ b) : pred b = a :=
+(le_pred_of_lt h.lt).eq_of_not_gt $ λ h', h.2 h' $ pred_lt_of_not_minimal h.lt
+
+section no_min_order
+variables [no_min_order α] {a b : α}
 
 lemma pred_injective : injective (pred : α → α) :=
 begin
@@ -375,12 +409,15 @@ pred_lt_iff.trans le_iff_lt_or_eq
 lemma le_pred_iff_lt_or_eq : pred a ≤ b ↔ (a ≤ b ∨ pred a = b) :=
 by rw [←pred_lt_iff, ←pred_lt_iff, pred_lt_iff_lt_or_eq]
 
-end no_bot_order
+lemma _root_.covers_iff_pred_eq : a ⋖ b ↔ pred b = a :=
+⟨covers.pred_eq, by { rintro rfl, exact pred_covers _ }⟩
+
+end no_min_order
 
 end partial_order
 
 section order_bot
-variables [order_bot α] [pred_order α]
+variables [partial_order α] [order_bot α] [pred_order α]
 
 @[simp] lemma pred_bot : pred (⊥ : α) = ⊥ :=
 (pred_le _).antisymm bot_le
@@ -397,7 +434,7 @@ end
 end order_bot
 
 section order_top
-variables [order_top α] [pred_order α]
+variables [partial_order α] [order_top α] [pred_order α]
 
 lemma pred_lt_top [nontrivial α] (a : α) : pred a < ⊤ :=
 begin
@@ -414,10 +451,10 @@ lemma pred_ne_top [nontrivial α] (a : α) : pred a ≠ ⊤ :=
 end order_top
 
 section linear_order
-variables [linear_order α]
+variables [linear_order α] {a b : α}
 
 /-- A constructor for `pred_order α` usable when `α` is a linear order with no maximal element. -/
-def pred_order_of_le_pred_iff (pred : α → α) (hle_pred_iff : ∀ {a b}, a ≤ pred b ↔ a < b) :
+def of_le_pred_iff (pred : α → α) (hle_pred_iff : ∀ {a b}, a ≤ pred b ↔ a < b) :
   pred_order α :=
 { pred := pred,
   pred_le := λ a, (hle_pred_iff.1 le_rfl).le,
@@ -443,6 +480,25 @@ end complete_lattice
 end pred_order
 
 open succ_order pred_order
+
+/-! ### Successor-predecessor orders -/
+
+section succ_pred_order
+variables [partial_order α] [succ_order α] [pred_order α] {a b : α}
+
+protected lemma _root_.has_lt.lt.succ_pred (h : b < a) : succ (pred a) = a := h.pred_covers.succ_eq
+protected lemma _root_.has_lt.lt.pred_succ (h : a < b) : pred (succ a) = a := h.covers_succ.pred_eq
+
+@[simp] lemma succ_pred_of_nonempty_Iio {a : α} (h : (set.Iio a).nonempty) : succ (pred a) = a :=
+has_lt.lt.succ_pred h.some_mem
+
+@[simp] lemma pred_succ_of_nonempty_Ioi {a : α} (h : (set.Ioi a).nonempty) : pred (succ a) = a :=
+has_lt.lt.pred_succ h.some_mem
+
+@[simp] lemma succ_pred [no_min_order α] (a : α) : succ (pred a) = a := (pred_covers _).succ_eq
+@[simp] lemma pred_succ [no_max_order α] (a : α) : pred (succ a) = a := (covers_succ _).pred_eq
+
+end succ_pred_order
 
 /-! ### Dual order -/
 
@@ -471,9 +527,9 @@ Adding a greatest/least element to a `succ_order` or to a `pred_order`.
 As far as successors and predecessors are concerned, there are four ways to add a bottom or top
 element to an order:
 * Adding a `⊤` to an `order_top`: Preserves `succ` and `pred`.
-* Adding a `⊤` to a `no_top_order`: Preserves `succ`. Never preserves `pred`.
+* Adding a `⊤` to a `no_max_order`: Preserves `succ`. Never preserves `pred`.
 * Adding a `⊥` to an `order_bot`: Preserves `succ` and `pred`.
-* Adding a `⊥` to a `no_bot_order`: Preserves `pred`. Never preserves `succ`.
+* Adding a `⊥` to a `no_min_order`: Preserves `pred`. Never preserves `succ`.
 where "preserves `(succ/pred)`" means
 `(succ/pred)_order α → (succ/pred)_order ((with_top/with_bot) α)`.
 -/
@@ -483,7 +539,8 @@ open with_top
 
 /-! #### Adding a `⊤` to an `order_top` -/
 
-instance [decidable_eq α] [order_top α] [succ_order α] : succ_order (with_top α) :=
+instance [decidable_eq α] [partial_order α] [order_top α] [succ_order α] :
+  succ_order (with_top α) :=
 { succ := λ a, match a with
     | ⊤        := ⊤
     | (some a) := ite (a = ⊤) ⊤ (some (succ a))
@@ -530,7 +587,7 @@ instance [decidable_eq α] [order_top α] [succ_order α] : succ_order (with_top
     { exact le_of_lt_succ (some_lt_some.1 h) }
   end }
 
-instance [order_top α] [pred_order α] : pred_order (with_top α) :=
+instance [partial_order α] [order_top α] [pred_order α] : pred_order (with_top α) :=
 { pred := λ a, match a with
     | ⊤        := some ⊤
     | (some a) := some (pred a)
@@ -561,9 +618,9 @@ instance [order_top α] [pred_order α] : pred_order (with_top α) :=
     { exact some_le_some.2 (le_of_pred_lt $ some_lt_some.1 h) }
   end }
 
-/-! #### Adding a `⊤` to a `no_top_order` -/
+/-! #### Adding a `⊤` to a `no_max_order` -/
 
-instance succ_order_of_no_top [partial_order α] [no_top_order α] [succ_order α] :
+instance with_top.succ_order_of_no_max_order [partial_order α] [no_max_order α] [succ_order α] :
   succ_order (with_top α) :=
 { succ := λ a, match a with
     | ⊤        := ⊤
@@ -577,7 +634,7 @@ instance succ_order_of_no_top [partial_order α] [no_top_order α] [succ_order �
   maximal_of_succ_le := λ a ha b h, begin
     cases a,
     { exact not_top_lt h },
-    { exact not_exists.2 (maximal_of_succ_le (some_le_some.1 ha)) (no_top a) }
+    { exact not_exists.2 (maximal_of_succ_le (some_le_some.1 ha)) (exists_gt a) }
   end,
   succ_le_of_lt := λ a b h, begin
     cases a,
@@ -594,14 +651,14 @@ instance succ_order_of_no_top [partial_order α] [no_top_order α] [succ_order �
     { exact some_le_some.2 (le_of_lt_succ $ some_lt_some.1 h) }
   end }
 
-instance [partial_order α] [no_top_order α] [hα : nonempty α] :
+instance [partial_order α] [no_max_order α] [hα : nonempty α] :
   is_empty (pred_order (with_top α)) :=
 ⟨begin
   introI,
   set b := pred (⊤ : with_top α) with h,
   cases pred (⊤ : with_top α) with a ha; change b with pred ⊤ at h,
   { exact hα.elim (λ a, minimal_of_le_pred h.ge (coe_lt_top a)) },
-  { obtain ⟨c, hc⟩ := no_top a,
+  { obtain ⟨c, hc⟩ := exists_gt a,
     rw [←some_lt_some, ←h] at hc,
     exact (le_of_pred_lt hc).not_lt (some_lt_none _) }
 end⟩
@@ -613,7 +670,7 @@ open with_bot
 
 /-! #### Adding a `⊥` to a `bot_order` -/
 
-instance [order_bot α] [succ_order α] : succ_order (with_bot α) :=
+instance [preorder α] [order_bot α] [succ_order α] : succ_order (with_bot α) :=
 { succ := λ a, match a with
     | ⊥        := some ⊥
     | (some a) := some (succ a)
@@ -644,7 +701,8 @@ instance [order_bot α] [succ_order α] : succ_order (with_bot α) :=
     { exact some_le_some.2 (le_of_lt_succ $ some_lt_some.1 h) }
   end }
 
-instance [decidable_eq α] [order_bot α] [pred_order α] : pred_order (with_bot α) :=
+instance [decidable_eq α] [partial_order α] [order_bot α] [pred_order α] :
+  pred_order (with_bot α) :=
 { pred := λ a, match a with
     | ⊥        := ⊥
     | (some a) := ite (a = ⊥) ⊥ (some (pred a))
@@ -691,21 +749,21 @@ instance [decidable_eq α] [order_bot α] [pred_order α] : pred_order (with_bot
     { exact le_of_pred_lt (some_lt_some.1 h) }
   end }
 
-/-! #### Adding a `⊥` to a `no_bot_order` -/
+/-! #### Adding a `⊥` to a `no_min_order` -/
 
-instance [partial_order α] [no_bot_order α] [hα : nonempty α] :
+instance [partial_order α] [no_min_order α] [hα : nonempty α] :
   is_empty (succ_order (with_bot α)) :=
 ⟨begin
   introI,
   set b : with_bot α := succ ⊥ with h,
   cases succ (⊥ : with_bot α) with a ha; change b with succ ⊥ at h,
   { exact hα.elim (λ a, maximal_of_succ_le h.le (bot_lt_coe a)) },
-  { obtain ⟨c, hc⟩ := no_bot a,
+  { obtain ⟨c, hc⟩ := exists_lt a,
     rw [←some_lt_some, ←h] at hc,
     exact (le_of_lt_succ hc).not_lt (none_lt_some _) }
 end⟩
 
-instance pred_order_of_no_bot [partial_order α] [no_bot_order α] [pred_order α] :
+instance with_bot.pred_order_of_no_min_order [partial_order α] [no_min_order α] [pred_order α] :
   pred_order (with_bot α) :=
 { pred := λ a, match a with
     | ⊥        := ⊥
@@ -719,7 +777,7 @@ instance pred_order_of_no_bot [partial_order α] [no_bot_order α] [pred_order �
   minimal_of_le_pred := λ a ha b h, begin
     cases a,
     { exact not_lt_bot h },
-    { exact not_exists.2 (minimal_of_le_pred (some_le_some.1 ha)) (no_bot a) }
+    { exact not_exists.2 (minimal_of_le_pred (some_le_some.1 ha)) (exists_lt a) }
   end,
   le_pred_of_lt := λ a b h, begin
     cases b,
@@ -737,3 +795,118 @@ instance pred_order_of_no_bot [partial_order α] [no_bot_order α] [pred_order �
   end }
 
 end with_bot
+
+/-! ### Archimedeanness -/
+
+/-- A `succ_order` is succ-archimedean if one can go from any two comparable elements by iterating
+`succ` -/
+class is_succ_archimedean (α : Type*) [preorder α] [succ_order α] : Prop :=
+(exists_succ_iterate_of_le {a b : α} (h : a ≤ b) : ∃ n, succ^[n] a = b)
+
+/-- A `pred_order` is pred-archimedean if one can go from any two comparable elements by iterating
+`pred` -/
+class is_pred_archimedean (α : Type*) [preorder α] [pred_order α] : Prop :=
+(exists_pred_iterate_of_le {a b : α} (h : a ≤ b) : ∃ n, pred^[n] b = a)
+
+export is_succ_archimedean (exists_succ_iterate_of_le)
+export is_pred_archimedean (exists_pred_iterate_of_le)
+
+section preorder
+variables [preorder α]
+
+section succ_order
+variables [succ_order α] [is_succ_archimedean α] {a b : α}
+
+instance : is_pred_archimedean (order_dual α) :=
+{ exists_pred_iterate_of_le := λ a b h, by convert @exists_succ_iterate_of_le α _ _ _ _ _ h }
+
+lemma has_le.le.exists_succ_iterate (h : a ≤ b) : ∃ n, succ^[n] a = b :=
+exists_succ_iterate_of_le h
+
+lemma exists_succ_iterate_iff_le : (∃ n, succ^[n] a = b) ↔ a ≤ b :=
+begin
+  refine ⟨_, exists_succ_iterate_of_le⟩,
+  rintro ⟨n, rfl⟩,
+  exact id_le_iterate_of_id_le le_succ n a,
+end
+
+lemma succ.rec {p : α → Prop} (hsucc : ∀ a, p a → p (succ a)) {a b : α} (h : a ≤ b) (ha : p a) :
+  p b :=
+begin
+  obtain ⟨n, rfl⟩ := h.exists_succ_iterate,
+  exact iterate.rec _ hsucc ha n,
+end
+
+lemma succ.rec_iff {p : α → Prop} (hsucc : ∀ a, p a ↔ p (succ a)) {a b : α} (h : a ≤ b) :
+  p a ↔ p b :=
+begin
+  obtain ⟨n, rfl⟩ := h.exists_succ_iterate,
+  exact iterate.rec (λ b, p a ↔ p b) (λ c hc, hc.trans (hsucc _)) iff.rfl n,
+end
+
+end succ_order
+
+section pred_order
+variables [pred_order α] [is_pred_archimedean α] {a b : α}
+
+instance : is_succ_archimedean (order_dual α) :=
+{ exists_succ_iterate_of_le := λ a b h, by convert @exists_pred_iterate_of_le α _ _ _ _ _ h }
+
+lemma has_le.le.exists_pred_iterate (h : a ≤ b) : ∃ n, pred^[n] b = a :=
+exists_pred_iterate_of_le h
+
+lemma exists_pred_iterate_iff_le : (∃ n, pred^[n] b = a) ↔ a ≤ b :=
+@exists_succ_iterate_iff_le (order_dual α) _ _ _ _ _
+
+lemma pred.rec {p : α → Prop} (hsucc : ∀ a, p a → p (pred a)) {a b : α} (h : b ≤ a) (ha : p a) :
+  p b :=
+@succ.rec (order_dual α) _ _ _ _ hsucc _ _ h ha
+
+lemma pred.rec_iff {p : α → Prop} (hsucc : ∀ a, p a ↔ p (pred a)) {a b : α} (h : a ≤ b) :
+  p a ↔ p b :=
+(@succ.rec_iff (order_dual α) _ _ _ _ hsucc _ _ h).symm
+
+end pred_order
+end preorder
+
+section linear_order
+variables [linear_order α]
+
+section succ_order
+variables [succ_order α] [is_succ_archimedean α] {a b : α}
+
+lemma exists_succ_iterate_or : (∃ n, succ^[n] a = b) ∨ ∃ n, succ^[n] b = a :=
+(le_total a b).imp exists_succ_iterate_of_le exists_succ_iterate_of_le
+
+lemma succ.rec_linear {p : α → Prop} (hsucc : ∀ a, p a ↔ p (succ a)) (a b : α) : p a ↔ p b :=
+(le_total a b).elim (succ.rec_iff hsucc) (λ h, (succ.rec_iff hsucc h).symm)
+
+end succ_order
+
+section pred_order
+variables [pred_order α] [is_pred_archimedean α] {a b : α}
+
+lemma exists_pred_iterate_or : (∃ n, pred^[n] b = a) ∨ ∃ n, pred^[n] a = b :=
+(le_total a b).imp exists_pred_iterate_of_le exists_pred_iterate_of_le
+
+lemma pred.rec_linear {p : α → Prop} (hsucc : ∀ a, p a ↔ p (pred a)) (a b : α) : p a ↔ p b :=
+(le_total a b).elim (pred.rec_iff hsucc) (λ h, (pred.rec_iff hsucc h).symm)
+
+end pred_order
+end linear_order
+
+section order_bot
+variables [preorder α] [order_bot α] [succ_order α] [is_succ_archimedean α]
+
+lemma succ.rec_bot (p : α → Prop) (hbot : p ⊥) (hsucc : ∀ a, p a → p (succ a)) (a : α) : p a :=
+succ.rec hsucc bot_le hbot
+
+end order_bot
+
+section order_top
+variables [preorder α] [order_top α] [pred_order α] [is_pred_archimedean α]
+
+lemma pred.rec_top (p : α → Prop) (htop : p ⊤) (hpred : ∀ a, p a → p (pred a)) (a : α) : p a :=
+pred.rec hpred le_top htop
+
+end order_top

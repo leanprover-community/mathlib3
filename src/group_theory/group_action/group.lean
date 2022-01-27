@@ -89,7 +89,7 @@ lemma smul_inv [group β] [smul_comm_class α β β] [is_scalar_tower α β β] 
   (c • x)⁻¹ = c⁻¹ • x⁻¹  :=
 by rw [inv_eq_iff_mul_eq_one, smul_mul_smul, mul_right_inv, mul_right_inv, one_smul]
 
-lemma smul_gpow [group β] [smul_comm_class α β β] [is_scalar_tower α β β]
+lemma smul_zpow [group β] [smul_comm_class α β β] [is_scalar_tower α β β]
   (c : α) (x : β) (p : ℤ) :
   (c • x) ^ p = c ^ p • x ^ p :=
 by { cases p; simp [smul_pow, smul_inv] }
@@ -261,3 +261,8 @@ exists.elim hu $ λ u hu, hu ▸ smul_eq_zero_iff_eq u
 end distrib_mul_action
 
 end is_unit
+
+@[simp] lemma is_unit_smul_iff [group α] [monoid β] [mul_action α β]
+  [smul_comm_class α β β] [is_scalar_tower α β β] {g : α} {m : β} :
+  is_unit (g • m) ↔ is_unit m :=
+⟨λ h, inv_smul_smul g m ▸ h.smul g⁻¹, is_unit.smul g⟩

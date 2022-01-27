@@ -49,11 +49,11 @@ lemma finite_def {a b : α} : finite a b ↔ ∃ n : ℕ, ¬a ^ (n + 1) ∣ b :=
 theorem int.coe_nat_multiplicity (a b : ℕ) :
     multiplicity (a : ℤ) (b : ℤ) = multiplicity a b :=
 begin
-    apply part.ext',
-    { repeat {rw [← finite_iff_dom, finite_def]},
-      norm_cast },
-    { intros h1 h2,
-      apply _root_.le_antisymm; { apply nat.find_le, norm_cast, simp }}
+  apply part.ext',
+  { repeat { rw [← finite_iff_dom, finite_def] },
+    norm_cast },
+  { intros h1 h2,
+    apply _root_.le_antisymm; { apply nat.find_mono, norm_cast, simp } }
 end
 
 lemma not_finite_iff_forall {a b : α} : (¬ finite a b) ↔ ∀ n : ℕ, a ^ n ∣ b :=
@@ -86,6 +86,12 @@ lemma is_greatest  {a b : α} {m : ℕ} (hm : multiplicity a b < m) : ¬a ^ m �
 lemma is_greatest' {a b : α} {m : ℕ} (h : finite a b) (hm : get (multiplicity a b) h < m) :
   ¬a ^ m ∣ b :=
 is_greatest (by rwa [← enat.coe_lt_coe, enat.coe_get] at hm)
+
+lemma pos_of_dvd {a b : α} (hfin : finite a b) (hdiv : a ∣ b) : 0 < (multiplicity a b).get hfin :=
+begin
+  refine zero_lt_iff.2 (λ h, _),
+  simpa [hdiv] using (is_greatest' hfin (lt_one_iff.mpr h)),
+end
 
 lemma unique {a b : α} {k : ℕ} (hk : a ^ k ∣ b) (hsucc : ¬a ^ (k + 1) ∣ b) :
   (k : enat) = multiplicity a b :=
@@ -143,10 +149,10 @@ begin
   simpa [is_unit_iff_dvd_one.symm] using not_unit_of_finite ha,
 end
 
-@[simp] lemma unit_left (a : α) (u : units α) : multiplicity (u : α) a = ⊤ :=
+@[simp] lemma unit_left (a : α) (u : αˣ) : multiplicity (u : α) a = ⊤ :=
 is_unit_left a u.is_unit
 
-lemma unit_right {a : α} (ha : ¬is_unit a) (u : units α) : multiplicity a u = 0 :=
+lemma unit_right {a : α} (ha : ¬is_unit a) (u : αˣ) : multiplicity a u = 0 :=
 is_unit_right ha u.is_unit
 
 lemma multiplicity_eq_zero_of_not_dvd {a b : α} (ha : ¬a ∣ b) : multiplicity a b = 0 :=
@@ -160,6 +166,17 @@ by rw [ne.def, eq_top_iff_not_finite, not_not]
 
 lemma lt_top_iff_finite {a b : α} : multiplicity a b < ⊤ ↔ finite a b :=
 by rw [lt_top_iff_ne_top, ne_top_iff_finite]
+
+lemma exists_eq_pow_mul_and_not_dvd {a b : α} (hfin : finite a b) :
+  ∃ (c : α), b = a ^ ((multiplicity a b).get hfin) * c ∧ ¬ a ∣ c :=
+begin
+  obtain ⟨c, hc⟩ := multiplicity.pow_multiplicity_dvd hfin,
+  refine ⟨c, hc, _⟩,
+  rintro ⟨k, hk⟩,
+  rw [hk, ← mul_assoc, ← pow_succ'] at hc,
+  have h₁ : a ^ ((multiplicity a b).get hfin + 1) ∣ b := ⟨k, hc⟩,
+  exact (multiplicity.eq_coe_iff.1 (by simp)).2 h₁,
+end
 
 open_locale classical
 
@@ -298,9 +315,9 @@ end
 
 end comm_ring
 
-section comm_cancel_monoid_with_zero
+section cancel_comm_monoid_with_zero
 
-variables [comm_cancel_monoid_with_zero α]
+variables [cancel_comm_monoid_with_zero α]
 
 lemma finite_mul_aux {p : α} (hp : prime p) : ∀ {n m : ℕ} {a b : α},
   ¬p ^ (n + 1) ∣ a → ¬p ^ (m + 1) ∣ b → ¬p ^ (n + m + 1) ∣ a * b
@@ -310,26 +327,26 @@ lemma finite_mul_aux {p : α} (hp : prime p) : ∀ {n m : ℕ} {a b : α},
   (hp.2.2 a b this).elim
     (λ ⟨x, hx⟩, have hn0 : 0 < n,
         from nat.pos_of_ne_zero (λ hn0, by clear _fun_match _fun_match; simpa [hx, hn0] using ha),
-      have wf : (n - 1) < n, from nat.sub_lt_self hn0 dec_trivial,
+      have wf : (n - 1) < n, from tsub_lt_self hn0 dec_trivial,
       have hpx : ¬ p ^ (n - 1 + 1) ∣ x,
         from λ ⟨y, hy⟩, ha (hx.symm ▸ ⟨y, mul_right_cancel₀ hp.1
-          $ by rw [nat.sub_add_cancel hn0] at hy;
+          $ by rw [tsub_add_cancel_of_le (succ_le_of_lt hn0)] at hy;
             simp [hy, pow_add, mul_comm, mul_assoc, mul_left_comm]⟩),
       have 1 ≤ n + m, from le_trans hn0 (nat.le_add_right n m),
       finite_mul_aux hpx hb ⟨s, mul_right_cancel₀ hp.1 begin
-          rw [← nat.sub_add_comm hn0, nat.sub_add_cancel this],
+          rw [tsub_add_eq_add_tsub (succ_le_of_lt hn0), tsub_add_cancel_of_le this],
           clear _fun_match _fun_match finite_mul_aux,
           simp [*, mul_comm, mul_assoc, mul_left_comm, pow_add] at *
         end⟩)
     (λ ⟨x, hx⟩, have hm0 : 0 < m,
         from nat.pos_of_ne_zero (λ hm0, by clear _fun_match _fun_match; simpa [hx, hm0] using hb),
-      have wf : (m - 1) < m, from nat.sub_lt_self hm0 dec_trivial,
+      have wf : (m - 1) < m, from tsub_lt_self hm0 dec_trivial,
       have hpx : ¬ p ^ (m - 1 + 1) ∣ x,
         from λ ⟨y, hy⟩, hb (hx.symm ▸ ⟨y, mul_right_cancel₀ hp.1
-          $ by rw [nat.sub_add_cancel hm0] at hy;
+          $ by rw [tsub_add_cancel_of_le (succ_le_of_lt hm0)] at hy;
             simp [hy, pow_add, mul_comm, mul_assoc, mul_left_comm]⟩),
       finite_mul_aux ha hpx ⟨s, mul_right_cancel₀ hp.1 begin
-          rw [add_assoc, nat.sub_add_cancel hm0],
+          rw [add_assoc, tsub_add_cancel_of_le (succ_le_of_lt hm0)],
           clear _fun_match _fun_match finite_mul_aux,
           simp [*, mul_comm, mul_assoc, mul_left_comm, pow_add] at *
         end⟩)
@@ -382,8 +399,9 @@ have hdiv : p ^ (get (multiplicity p a) ((finite_mul_iff hp).1 h).1 +
   by rw [hpoweq]; apply mul_dvd_mul; assumption,
 have hsucc : ¬p ^ ((get (multiplicity p a) ((finite_mul_iff hp).1 h).1 +
     get (multiplicity p b) ((finite_mul_iff hp).1 h).2) + 1) ∣ a * b,
-  from λ h, not_or (is_greatest' _ (lt_succ_self _)) (is_greatest' _ (lt_succ_self _))
-    (by exact succ_dvd_or_succ_dvd_of_succ_sum_dvd_mul hp hdiva hdivb h),
+  from λ h, by exact
+    not_or (is_greatest' _ (lt_succ_self _)) (is_greatest' _ (lt_succ_self _))
+      (_root_.succ_dvd_or_succ_dvd_of_succ_sum_dvd_mul hp hdiva hdivb h),
 by rw [← enat.coe_inj, enat.coe_get, eq_coe_iff];
   exact ⟨hdiv, hsucc⟩
 
@@ -432,11 +450,12 @@ lemma multiplicity_pow_self_of_prime {p : α} (hp : prime p) (n : ℕ) :
 multiplicity_pow_self hp.ne_zero hp.not_unit n
 
 
-end comm_cancel_monoid_with_zero
+end cancel_comm_monoid_with_zero
 
 section valuation
 
-variables {R : Type*} [integral_domain R] {p : R} [decidable_rel (has_dvd.dvd : R → R → Prop)]
+variables {R : Type*} [comm_ring R] [is_domain R] {p : R}
+  [decidable_rel (has_dvd.dvd : R → R → Prop)]
 
 /-- `multiplicity` of a prime inan integral domain as an additive valuation to `enat`. -/
 noncomputable def add_valuation (hp : prime p) : add_valuation R enat :=

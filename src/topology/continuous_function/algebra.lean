@@ -3,7 +3,7 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Nicolò Cavalleri
 -/
-import topology.algebra.module
+import topology.algebra.module.basic
 import topology.continuous_function.basic
 import algebra.algebra.subalgebra
 import tactic.field_simp
@@ -31,7 +31,7 @@ namespace continuous_functions
 variables {α : Type*} {β : Type*} [topological_space α] [topological_space β]
 variables {f g : {f : α → β | continuous f }}
 
-instance : has_coe_to_fun {f : α → β | continuous f} :=  ⟨_, subtype.val⟩
+instance : has_coe_to_fun {f : α → β | continuous f} (λ _, α → β) :=  ⟨subtype.val⟩
 
 end continuous_functions
 
@@ -500,7 +500,7 @@ begin
     use ((v x) • 1 : C(α, 𝕜)),
     { apply s.smul_mem,
       apply s.one_mem, },
-    { simp, }, },
+    { simp [coe_fn_coe_base'] }, },
   obtain ⟨f, ⟨f, ⟨m, rfl⟩⟩, w⟩ := h n,
   replace w : f x - f y ≠ 0 := sub_ne_zero_of_ne w,
   let a := v x,
@@ -514,8 +514,8 @@ begin
     solve_by_elim
       [subalgebra.add_mem, subalgebra.smul_mem, subalgebra.sub_mem, subalgebra.algebra_map_mem]
       { max_depth := 6 }, },
-  { simp [f'], },
-  { simp [f', inv_mul_cancel_right₀ w], },
+  { simp [f', coe_fn_coe_base'], },
+  { simp [f', coe_fn_coe_base', inv_mul_cancel_right₀ w], },
 end
 
 end continuous_map

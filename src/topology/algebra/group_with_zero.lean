@@ -5,7 +5,6 @@ Authors: Yury G. Kudryashov
 -/
 import topology.algebra.monoid
 import algebra.group.pi
-import algebra.group_with_zero.power
 import topology.homeomorph
 
 /-!
@@ -30,8 +29,8 @@ On a `group_with_zero` with continuous multiplication, we also define left and r
 as homeomorphisms.
 -/
 
-open_locale topological_space
-open filter
+open_locale topological_space filter
+open filter function
 
 /-!
 ### A group with zero with continuous multiplication
@@ -42,7 +41,7 @@ operations on `filter.tendsto`, `continuous_at`, `continuous_within_at`, `contin
 `continuous`.
 -/
 
-variables {α G₀ : Type*}
+variables {α β G₀ : Type*}
 
 section div_const
 
@@ -143,7 +142,7 @@ lemma filter.tendsto.div {l : filter α} {a b : G₀} (hf : tendsto f l (𝓝 a)
   tendsto (f / g) l (𝓝 (a / b)) :=
 by simpa only [div_eq_mul_inv] using hf.mul (hg.inv₀ hy)
 
-variables [topological_space α] {s : set α} {a : α}
+variables [topological_space α] [topological_space β] {s : set α} {a : α}
 
 lemma continuous_within_at.div (hf : continuous_within_at f s a) (hg : continuous_within_at g s a)
   (h₀ : g a ≠ 0) :
@@ -166,6 +165,35 @@ by simpa only [div_eq_mul_inv] using hf.mul (hg.inv₀ h₀)
 
 lemma continuous_on_div : continuous_on (λ p : G₀ × G₀, p.1 / p.2) {p | p.2 ≠ 0} :=
 continuous_on_fst.div continuous_on_snd $ λ _, id
+
+/-- The function `f x / g x` is discontinuous when `g x = 0`.
+However, under appropriate conditions, `h x (f x / g x)` is still continuous.
+The condition is that if `g a = 0` then `h x y` must tend to `h a 0` when `x` tends to `a`,
+with no information about `y`. This is represented by the `⊤` filter.
+Note: `filter.tendsto_prod_top_iff` characterizes this convergence in uniform spaces.
+See also `filter.prod_top` and `filter.mem_prod_top`. -/
+lemma continuous_at.comp_div_cases {f g : α → G₀} (h : α → G₀ → β)
+  (hf : continuous_at f a) (hg : continuous_at g a)
+  (hh : g a ≠ 0 → continuous_at ↿h (a, f a / g a))
+  (h2h : g a = 0 → tendsto ↿h (𝓝 a ×ᶠ ⊤) (𝓝 (h a 0))) :
+  continuous_at (λ x, h x (f x / g x)) a :=
+begin
+  show continuous_at (↿h ∘ (λ x, (x, f x / g x))) a,
+  by_cases hga : g a = 0,
+  { rw [continuous_at], simp_rw [comp_app, hga, div_zero],
+    exact (h2h hga).comp (continuous_at_id.prod_mk tendsto_top) },
+  { exact continuous_at.comp (hh hga) (continuous_at_id.prod (hf.div hg hga)) }
+end
+
+/-- `h x (f x / g x)` is continuous under certain conditions, even if the denominator is sometimes
+  `0`. See docstring of `continuous_at.comp_div_cases`. -/
+lemma continuous.comp_div_cases {f g : α → G₀} (h : α → G₀ → β)
+  (hf : continuous f) (hg : continuous g)
+  (hh : ∀ a, g a ≠ 0 → continuous_at ↿h (a, f a / g a))
+  (h2h : ∀ a, g a = 0 → tendsto ↿h (𝓝 a ×ᶠ ⊤) (𝓝 (h a 0))) :
+  continuous (λ x, h x (f x / g x)) :=
+continuous_iff_continuous_at.mpr $
+  λ a, hf.continuous_at.comp_div_cases _ hg.continuous_at (hh a) (h2h a)
 
 end div
 
@@ -202,44 +230,44 @@ protected def mul_right₀ (c : α) (hc : c ≠ 0) : α ≃ₜ α :=
 
 end homeomorph
 
-section fpow
+section zpow
 
 variables [group_with_zero G₀] [topological_space G₀] [has_continuous_inv₀ G₀]
   [has_continuous_mul G₀]
 
-lemma continuous_at_fpow (x : G₀) (m : ℤ) (h : x ≠ 0 ∨ 0 ≤ m) : continuous_at (λ x, x ^ m) x :=
+lemma continuous_at_zpow (x : G₀) (m : ℤ) (h : x ≠ 0 ∨ 0 ≤ m) : continuous_at (λ x, x ^ m) x :=
 begin
   cases m,
-  { simpa only [gpow_of_nat] using continuous_at_pow x m },
-  { simp only [gpow_neg_succ_of_nat],
+  { simpa only [zpow_of_nat] using continuous_at_pow x m },
+  { simp only [zpow_neg_succ_of_nat],
     have hx : x ≠ 0, from h.resolve_right (int.neg_succ_of_nat_lt_zero m).not_le,
     exact (continuous_at_pow x (m + 1)).inv₀ (pow_ne_zero _ hx) }
 end
 
-lemma continuous_on_fpow (m : ℤ) : continuous_on (λ x : G₀, x ^ m) {0}ᶜ :=
-λ x hx, (continuous_at_fpow _ _ (or.inl hx)).continuous_within_at
+lemma continuous_on_zpow (m : ℤ) : continuous_on (λ x : G₀, x ^ m) {0}ᶜ :=
+λ x hx, (continuous_at_zpow _ _ (or.inl hx)).continuous_within_at
 
-lemma filter.tendsto.fpow {f : α → G₀} {l : filter α} {a : G₀} (hf : tendsto f l (𝓝 a)) (m : ℤ)
+lemma filter.tendsto.zpow {f : α → G₀} {l : filter α} {a : G₀} (hf : tendsto f l (𝓝 a)) (m : ℤ)
   (h : a ≠ 0 ∨ 0 ≤ m) :
   tendsto (λ x, (f x) ^ m) l (𝓝 (a ^ m)) :=
-(continuous_at_fpow _ m h).tendsto.comp hf
+(continuous_at_zpow _ m h).tendsto.comp hf
 
 variables {X : Type*} [topological_space X] {a : X} {s : set X} {f : X → G₀}
 
-lemma continuous_at.fpow (hf : continuous_at f a) (m : ℤ) (h : f a ≠ 0 ∨ 0 ≤ m) :
+lemma continuous_at.zpow (hf : continuous_at f a) (m : ℤ) (h : f a ≠ 0 ∨ 0 ≤ m) :
   continuous_at (λ x, (f x) ^ m) a :=
-hf.fpow m h
+hf.zpow m h
 
-lemma continuous_within_at.fpow (hf : continuous_within_at f s a) (m : ℤ) (h : f a ≠ 0 ∨ 0 ≤ m) :
+lemma continuous_within_at.zpow (hf : continuous_within_at f s a) (m : ℤ) (h : f a ≠ 0 ∨ 0 ≤ m) :
   continuous_within_at (λ x, f x ^ m) s a :=
-hf.fpow m h
+hf.zpow m h
 
-lemma continuous_on.fpow (hf : continuous_on f s) (m : ℤ) (h : ∀ a ∈ s, f a ≠ 0 ∨ 0 ≤ m) :
+lemma continuous_on.zpow (hf : continuous_on f s) (m : ℤ) (h : ∀ a ∈ s, f a ≠ 0 ∨ 0 ≤ m) :
   continuous_on (λ x, f x ^ m) s :=
-λ a ha, (hf a ha).fpow m (h a ha)
+λ a ha, (hf a ha).zpow m (h a ha)
 
-@[continuity] lemma continuous.fpow (hf : continuous f) (m : ℤ) (h0 : ∀ a, f a ≠ 0 ∨ 0 ≤ m) :
+@[continuity] lemma continuous.zpow (hf : continuous f) (m : ℤ) (h0 : ∀ a, f a ≠ 0 ∨ 0 ≤ m) :
   continuous (λ x, (f x) ^ m) :=
-continuous_iff_continuous_at.2 $ λ x, (hf.tendsto x).fpow m (h0 x)
+continuous_iff_continuous_at.2 $ λ x, (hf.tendsto x).zpow m (h0 x)
 
-end fpow
+end zpow

@@ -3,7 +3,8 @@ Copyright (c) 2018 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import category_theory.natural_isomorphism
+import category_theory.isomorphism
+import category_theory.functor_category
 
 /-!
 # Whiskering
@@ -13,8 +14,8 @@ we can construct a new natural transformation `F ⋙ G ⟶ F ⋙ H`,
 called `whisker_left F α`. This is the same as the horizontal composition of `𝟙 F` with `α`.
 
 This operation is functorial in `F`, and we package this as `whiskering_left`. Here
-`(whiskering_lift.obj F).obj G` is `F ⋙ G`, and
-`(whiskering_lift.obj F).map α` is `whisker_left F α`.
+`(whiskering_left.obj F).obj G` is `F ⋙ G`, and
+`(whiskering_left.obj F).map α` is `whisker_left F α`.
 (That is, we might have alternatively named this as the "left composition functor".)
 
 We also provide analogues for composition on the right, and for these operations on isomorphisms.
@@ -57,8 +58,8 @@ variables (C D E)
 /--
 Left-composition gives a functor `(C ⥤ D) ⥤ ((D ⥤ E) ⥤ (C ⥤ E))`.
 
-`(whiskering_lift.obj F).obj G` is `F ⋙ G`, and
-`(whiskering_lift.obj F).map α` is `whisker_left F α`.
+`(whiskering_left.obj F).obj G` is `F ⋙ G`, and
+`(whiskering_left.obj F).map α` is `whisker_left F α`.
 -/
 @[simps] def whiskering_left : (C ⥤ D) ⥤ ((D ⥤ E) ⥤ (C ⥤ E)) :=
 { obj := λ F,

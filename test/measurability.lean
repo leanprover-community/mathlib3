@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
 import measure_theory.tactic
-import measure_theory.function.lp_space
+import measure_theory.function.special_functions
 
 open_locale big_operators ennreal
 
@@ -73,4 +73,7 @@ example [topological_space α] [borel_space α] [normed_group β] [borel_space �
   [has_measurable_add₂ β] [has_measurable_sub₂ β] {s : finset ℕ} {F : ℕ → α → β}
   (hF : ∀ i, measurable (F i)) :
   ae_measurable (∑ i in s, (λ x, F (i+1) x - F i x)) μ :=
+by measurability
+
+example : measurable (λ x : ℝ, real.exp (2 * inner x 3)) :=
 by measurability

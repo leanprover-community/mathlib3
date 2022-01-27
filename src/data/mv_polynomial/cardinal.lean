@@ -80,7 +80,7 @@ end
 
 private lemma cardinal_mv_polynomial_fun_le : #(mv_polynomial_fun σ R) ≤ max (max (#R) (#σ)) ω :=
 calc #(mv_polynomial_fun σ R) = #R + #σ + #(ulift bool) :
-  by dsimp [mv_polynomial_fun]; simp only [← add_def, add_assoc]
+  by dsimp [mv_polynomial_fun]; simp only [← add_def, add_assoc, cardinal.mk_ulift]
 ... ≤ max (max (#R + #σ) (#(ulift bool))) ω : add_le_max _ _
 ... ≤ max (max (max (max (#R) (#σ)) ω) (#(ulift bool))) ω :
   max_le_max (max_le_max (add_le_max _ _) (le_refl _)) (le_refl _)

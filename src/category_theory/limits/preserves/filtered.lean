@@ -5,7 +5,6 @@ Authors: Scott Morrison, Justus Springer
 -/
 import category_theory.limits.preserves.basic
 import category_theory.filtered
-import category_theory.limits.types
 
 /-!
 # Preservation of filtered colimits and cofiltered limits.

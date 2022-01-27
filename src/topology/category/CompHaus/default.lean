@@ -42,7 +42,7 @@ namespace CompHaus
 
 instance : inhabited CompHaus := ⟨{to_Top := { α := pempty }}⟩
 
-instance : has_coe_to_sort CompHaus := ⟨Type*, λ X, X.to_Top⟩
+instance : has_coe_to_sort CompHaus Type* := ⟨λ X, X.to_Top⟩
 instance {X : CompHaus} : compact_space X := X.is_compact
 instance {X : CompHaus} : t2_space X := X.is_hausdorff
 
@@ -100,7 +100,7 @@ end CompHaus
 def CompHaus_to_Top : CompHaus.{u} ⥤ Top.{u} := induced_functor _
 
 instance CompHaus.forget_reflects_isomorphisms : reflects_isomorphisms (forget CompHaus.{u}) :=
-⟨by introsI A B f hf; exact CompHaus.is_iso_of_bijective _ ((is_iso_iff_bijective ⇑f).mp hf)⟩
+⟨by introsI A B f hf; exact CompHaus.is_iso_of_bijective _ ((is_iso_iff_bijective f).mp hf)⟩
 
 /--
 (Implementation) The object part of the compactification functor from topological spaces to
@@ -132,7 +132,7 @@ noncomputable def stone_cech_equivalence (X : Top.{u}) (Y : CompHaus.{u}) :
   end,
   right_inv :=
   begin
-    rintro ⟨f : ↥X ⟶ Y, hf : continuous f⟩,
+    rintro ⟨f : (X : Type*) ⟶ Y, hf : continuous f⟩,
     ext,
     exact congr_fun (stone_cech_extend_extends hf) x,
   end }

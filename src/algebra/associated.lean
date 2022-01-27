@@ -3,8 +3,8 @@ Copyright (c) 2018 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Jens Wagemaker
 -/
-import algebra.big_operators.basic
 import algebra.divisibility
+import algebra.group_power.basic
 import algebra.invertible
 
 /-!
@@ -28,14 +28,18 @@ is_unit_iff_dvd_one.2 $ xy.trans $ is_unit_iff_dvd_one.1 hu
 lemma is_unit_of_dvd_one [comm_monoid α] : ∀a ∣ 1, is_unit (a:α)
 | a ⟨b, eq⟩ := ⟨units.mk_of_mul_eq_one a b eq.symm, rfl⟩
 
-lemma dvd_and_not_dvd_iff [comm_cancel_monoid_with_zero α] {x y : α} :
+lemma not_is_unit_of_not_is_unit_dvd [comm_monoid α] {a b : α} (ha : ¬is_unit a) (hb : a ∣ b) :
+  ¬ is_unit b :=
+mt (is_unit_of_dvd_unit hb) ha
+
+lemma dvd_and_not_dvd_iff [cancel_comm_monoid_with_zero α] {x y : α} :
   x ∣ y ∧ ¬y ∣ x ↔ dvd_not_unit x y :=
 ⟨λ ⟨⟨d, hd⟩, hyx⟩, ⟨λ hx0, by simpa [hx0] using hyx, ⟨d,
     mt is_unit_iff_dvd_one.1 (λ ⟨e, he⟩, hyx ⟨e, by rw [hd, mul_assoc, ← he, mul_one]⟩), hd⟩⟩,
   λ ⟨hx0, d, hdu, hdx⟩, ⟨⟨d, hdx⟩, λ ⟨e, he⟩, hdu (is_unit_of_dvd_one _
     ⟨e, mul_left_cancel₀ hx0 $ by conv {to_lhs, rw [he, hdx]};simp [mul_assoc]⟩)⟩⟩
 
-lemma pow_dvd_pow_iff [comm_cancel_monoid_with_zero α]
+lemma pow_dvd_pow_iff [cancel_comm_monoid_with_zero α]
   {x : α} {n m : ℕ} (h0 : x ≠ 0) (h1 : ¬ is_unit x) :
   x ^ n ∣ x ^ m ↔ n ≤ m :=
 begin
@@ -88,25 +92,6 @@ begin
   exact ih dvd_pow
 end
 
-lemma exists_mem_multiset_dvd {s : multiset α} :
-  p ∣ s.prod → ∃ a ∈ s, p ∣ a :=
-multiset.induction_on s (λ h, (hp.not_dvd_one h).elim) $
-λ a s ih h,
-  have p ∣ a * s.prod, by simpa using h,
-  match hp.dvd_or_dvd this with
-  | or.inl h := ⟨a, multiset.mem_cons_self a s, h⟩
-  | or.inr h := let ⟨a, has, h⟩ := ih h in ⟨a, multiset.mem_cons_of_mem has, h⟩
-  end
-
-lemma exists_mem_multiset_map_dvd {s : multiset β} {f : β → α} :
-  p ∣ (s.map f).prod → ∃ a ∈ s, p ∣ f a :=
-λ h, by simpa only [exists_prop, multiset.mem_map, exists_exists_and_eq_and]
-  using hp.exists_mem_multiset_dvd h
-
-lemma exists_mem_finset_dvd {s : finset β} {f : β → α} :
-  p ∣ s.prod f → ∃ i ∈ s, p ∣ f i :=
-hp.exists_mem_multiset_map_dvd
-
 end prime
 
 @[simp] lemma not_prime_zero : ¬ prime (0 : α) :=
@@ -117,7 +102,7 @@ end prime
 
 end prime
 
-lemma prime.left_dvd_or_dvd_right_of_dvd_mul [comm_cancel_monoid_with_zero α] {p : α}
+lemma prime.left_dvd_or_dvd_right_of_dvd_mul [cancel_comm_monoid_with_zero α] {p : α}
   (hp : prime p) {a b : α} : a ∣ p * b → p ∣ a ∨ a ∣ b :=
 begin
   rintro ⟨c, hc⟩,
@@ -126,6 +111,23 @@ begin
   { rw [mul_left_comm, mul_right_inj' hp.ne_zero] at hc,
     exact or.inr (hc.symm ▸ dvd_mul_right _ _) }
 end
+
+lemma prime.pow_dvd_of_dvd_mul_left
+  [cancel_comm_monoid_with_zero α]
+  {p a b : α} (hp : prime p) (n : ℕ) (h : ¬p ∣ a) (h' : p ^ n ∣ a * b) : p ^ n ∣ b :=
+begin
+  induction n with n ih,
+  { rw pow_zero, exact one_dvd b },
+  { obtain ⟨c, rfl⟩ := ih (dvd_trans (pow_dvd_pow p n.le_succ) h'),
+    rw pow_succ',
+    apply mul_dvd_mul_left _ ((hp.dvd_or_dvd _).resolve_left h),
+    rwa [←mul_dvd_mul_iff_left (pow_ne_zero n hp.ne_zero), ←pow_succ', mul_left_comm] }
+end
+
+lemma prime.pow_dvd_of_dvd_mul_right
+  [cancel_comm_monoid_with_zero α]
+  {p a b : α} (hp : prime p) (n : ℕ) (h : ¬p ∣ b) (h' : p ^ n ∣ a * b) : p ^ n ∣ a :=
+by { rw [mul_comm] at h', exact hp.pow_dvd_of_dvd_mul_left n h h' }
 
 /-- `irreducible p` states that `p` is non-unit and only factors into units.
 
@@ -154,6 +156,9 @@ lemma irreducible_iff [monoid α] {p : α} :
 @[simp] theorem not_irreducible_one [monoid α] : ¬ irreducible (1 : α) :=
 by simp [irreducible_iff]
 
+theorem irreducible.ne_one [monoid α] : ∀ {p:α}, irreducible p → p ≠ 1
+| _ hp rfl := not_irreducible_one hp
+
 @[simp] theorem not_irreducible_zero [monoid_with_zero α] : ¬ irreducible (0 : α)
 | ⟨hn0, h⟩ := have is_unit (0:α) ∨ is_unit (0:α), from h 0 0 ((mul_zero 0).symm),
   this.elim hn0 hn0
@@ -176,7 +181,7 @@ begin
   exact H _ o.1 _ o.2 h.symm
 end
 
-protected lemma prime.irreducible [comm_cancel_monoid_with_zero α] {p : α} (hp : prime p) :
+protected lemma prime.irreducible [cancel_comm_monoid_with_zero α] {p : α} (hp : prime p) :
   irreducible p :=
 ⟨hp.not_unit, λ a b hab,
   (show a * b ∣ a ∨ a * b ∣ b, from hab ▸ hp.dvd_or_dvd (hab ▸ dvd_rfl)).elim
@@ -187,7 +192,7 @@ protected lemma prime.irreducible [comm_cancel_monoid_with_zero α] {p : α} (hp
       ⟨x, mul_right_cancel₀ (show b ≠ 0, from λ h, by simp [*, prime] at *)
         $ by conv {to_lhs, rw hx}; simp [mul_comm, mul_assoc, mul_left_comm]⟩))⟩
 
-lemma succ_dvd_or_succ_dvd_of_succ_sum_dvd_mul [comm_cancel_monoid_with_zero α]
+lemma succ_dvd_or_succ_dvd_of_succ_sum_dvd_mul [cancel_comm_monoid_with_zero α]
   {p : α} (hp : prime p) {a b : α} {k l : ℕ} :
   p ^ k ∣ a → p ^ l ∣ b → p ^ ((k + l) + 1) ∣ a * b → p ^ (k + 1) ∣ a ∨ p ^ (l + 1) ∣ b :=
 λ ⟨x, hx⟩ ⟨y, hy⟩ ⟨z, hz⟩,
@@ -203,8 +208,7 @@ have hpd : p ∣ x * y, from ⟨z, by rwa [mul_right_inj' hp0] at h⟩,
 lemma irreducible.dvd_symm [monoid α] {p q : α}
   (hp : irreducible p) (hq : irreducible q) : p ∣ q → q ∣ p :=
 begin
-  tactic.unfreeze_local_instances,
-  rintros ⟨q', rfl⟩,
+  unfreezingI { rintros ⟨q', rfl⟩ },
   rw is_unit.mul_right_dvd (or.resolve_left (of_irreducible_mul hq) hp.not_unit),
 end
 
@@ -214,7 +218,7 @@ lemma irreducible.dvd_comm [monoid α] {p q : α}
 
 /-- Two elements of a `monoid` are `associated` if one of them is another one
 multiplied by a unit on the right. -/
-def associated [monoid α] (x y : α) : Prop := ∃u:units α, x * u = y
+def associated [monoid α] (x y : α) : Prop := ∃u:αˣ, x * u = y
 
 local infix ` ~ᵤ ` : 50 := associated
 
@@ -236,7 +240,7 @@ end associated
 
 local attribute [instance] associated.setoid
 
-theorem unit_associated_one [monoid α] {u : units α} : (u : α) ~ᵤ 1 := ⟨u⁻¹, units.mul_inv u⟩
+theorem unit_associated_one [monoid α] {u : αˣ} : (u : α) ~ᵤ 1 := ⟨u⁻¹, units.mul_inv u⟩
 
 theorem associated_one_iff_is_unit [monoid α] {a : α} : (a : α) ~ᵤ 1 ↔ is_unit a :=
 iff.intro
@@ -254,6 +258,25 @@ show (units.mk_of_mul_eq_one a b hab : α) ~ᵤ 1, from unit_associated_one
 theorem associated_one_of_associated_mul_one [comm_monoid α] {a b : α} :
   a * b ~ᵤ 1 → a ~ᵤ 1
 | ⟨u, h⟩ := associated_one_of_mul_eq_one (b * u) $ by simpa [mul_assoc] using h
+
+lemma associated_mul_unit_left {β : Type*} [monoid β] (a u : β) (hu : is_unit u) :
+  associated (a * u) a :=
+let ⟨u', hu⟩ := hu in ⟨u'⁻¹, hu ▸ units.mul_inv_cancel_right _ _⟩
+
+lemma associated_unit_mul_left {β : Type*} [comm_monoid β] (a u : β) (hu : is_unit u) :
+  associated (u * a) a :=
+begin
+  rw mul_comm,
+  exact associated_mul_unit_left _ _ hu
+end
+
+lemma associated_mul_unit_right {β : Type*} [monoid β] (a u : β) (hu : is_unit u) :
+  associated a (a * u) :=
+(associated_mul_unit_left a u hu).symm
+
+lemma associated_unit_mul_right {β : Type*} [comm_monoid β] (a u : β) (hu : is_unit u) :
+  associated a (u * a) :=
+(associated_unit_mul_left a u hu).symm
 
 lemma associated.mul_mul [comm_monoid α] {a₁ a₂ b₁ b₂ : α} :
   a₁ ~ᵤ b₁ → a₂ ~ᵤ b₂ → (a₁ * a₂) ~ᵤ (b₁ * b₂)
@@ -299,21 +322,6 @@ end
 theorem dvd_dvd_iff_associated [cancel_monoid_with_zero α] {a b : α} : a ∣ b ∧ b ∣ a ↔ a ~ᵤ b :=
 ⟨λ ⟨h1, h2⟩, associated_of_dvd_dvd h1 h2, associated.dvd_dvd⟩
 
-lemma exists_associated_mem_of_dvd_prod [comm_cancel_monoid_with_zero α] {p : α}
-  (hp : prime p) {s : multiset α} : (∀ r ∈ s, prime r) → p ∣ s.prod → ∃ q ∈ s, p ~ᵤ q :=
-multiset.induction_on s (by simp [mt is_unit_iff_dvd_one.2 hp.not_unit])
-  (λ a s ih hs hps, begin
-    rw [multiset.prod_cons] at hps,
-    cases hp.dvd_or_dvd hps with h h,
-    { use [a, by simp],
-      cases h with u hu,
-      cases (((hs a (multiset.mem_cons.2 (or.inl rfl))).irreducible)
-        .is_unit_or_is_unit hu).resolve_left hp.not_unit with v hv,
-      exact ⟨v, by simp [hu, hv]⟩ },
-    { rcases ih (λ r hr, hs _ (multiset.mem_cons.2 (or.inr hr))) h with ⟨q, hq₁, hq₂⟩,
-      exact ⟨q, multiset.mem_cons.2 (or.inr hq₁), hq₂⟩ }
-  end)
-
 lemma associated.dvd_iff_dvd_left [monoid α] {a b c : α} (h : a ~ᵤ b) : a ∣ c ↔ b ∣ c :=
 let ⟨u, hu⟩ := h in hu ▸ units.mul_right_dvd.symm
 
@@ -338,10 +346,19 @@ lemma irreducible.associated_of_dvd [cancel_monoid_with_zero α] {p q : α}
   (p_irr : irreducible p) (q_irr : irreducible q) (dvd : p ∣ q) : associated p q :=
 associated_of_dvd_dvd dvd (p_irr.dvd_symm q_irr dvd)
 
-lemma prime.associated_of_dvd [comm_cancel_monoid_with_zero α] {p q : α}
+lemma irreducible.dvd_irreducible_iff_associated [cancel_monoid_with_zero α]
+  {p q : α} (pp : irreducible p) (qp : irreducible q) :
+  p ∣ q ↔ associated p q :=
+⟨irreducible.associated_of_dvd pp qp, associated.dvd⟩
+
+lemma prime.associated_of_dvd [cancel_comm_monoid_with_zero α] {p q : α}
   (p_prime : prime p) (q_prime : prime q) (dvd : p ∣ q) : associated p q :=
 p_prime.irreducible.associated_of_dvd q_prime.irreducible dvd
 
+theorem prime.dvd_prime_iff_associated [cancel_comm_monoid_with_zero α]
+  {p q : α} (pp : prime p) (qp : prime q) :
+  p ∣ q ↔ associated p q :=
+pp.irreducible.dvd_irreducible_iff_associated qp.irreducible
 lemma associated.prime_iff [comm_monoid_with_zero α] {p q : α}
   (h : p ~ᵤ q) : prime p ↔ prime q :=
 ⟨h.prime, h.symm.prime⟩
@@ -356,8 +373,8 @@ protected lemma associated.irreducible [monoid α] {p q : α} (h : p ~ᵤ q)
   (hp : irreducible p) : irreducible q :=
 ⟨mt h.symm.is_unit hp.1,
   let ⟨u, hu⟩ := h in λ a b hab,
-  have hpab : p = a * (b * (u⁻¹ : units α)),
-    from calc p = (p * u) * (u ⁻¹ : units α) : by simp
+  have hpab : p = a * (b * (u⁻¹ : αˣ)),
+    from calc p = (p * u) * (u ⁻¹ : αˣ) : by simp
       ... = _ : by rw hu; simp [hab, mul_assoc],
   (hp.is_unit_or_is_unit hpab).elim or.inl (λ ⟨v, hv⟩, or.inr ⟨v * u, by simp [hv]⟩)⟩
 
@@ -365,26 +382,28 @@ protected lemma associated.irreducible_iff [monoid α] {p q : α} (h : p ~ᵤ q)
   irreducible p ↔ irreducible q :=
 ⟨h.irreducible, h.symm.irreducible⟩
 
-lemma associated.of_mul_left [comm_cancel_monoid_with_zero α] {a b c d : α}
+lemma associated.of_mul_left [cancel_comm_monoid_with_zero α] {a b c d : α}
   (h : a * b ~ᵤ c * d) (h₁ : a ~ᵤ c) (ha : a ≠ 0) : b ~ᵤ d :=
 let ⟨u, hu⟩ := h in let ⟨v, hv⟩ := associated.symm h₁ in
-⟨u * (v : units α), mul_left_cancel₀ ha
+⟨u * (v : αˣ), mul_left_cancel₀ ha
   begin
     rw [← hv, mul_assoc c (v : α) d, mul_left_comm c, ← hu],
     simp [hv.symm, mul_assoc, mul_comm, mul_left_comm]
   end⟩
 
-lemma associated.of_mul_right [comm_cancel_monoid_with_zero α] {a b c d : α} :
+lemma associated.of_mul_right [cancel_comm_monoid_with_zero α] {a b c d : α} :
   a * b ~ᵤ c * d → b ~ᵤ d → b ≠ 0 → a ~ᵤ c :=
 by rw [mul_comm a, mul_comm c]; exact associated.of_mul_left
 
 section unique_units
-variables [monoid α] [unique (units α)]
+variables [monoid α] [unique αˣ]
+
+lemma units_eq_one (u : αˣ) : u = 1 := subsingleton.elim u 1
 
 theorem associated_iff_eq {x y : α} : x ~ᵤ y ↔ x = y :=
 begin
   split,
-  { rintro ⟨c, rfl⟩, simp [subsingleton.elim c 1] },
+  { rintro ⟨c, rfl⟩, rw [units_eq_one c, units.coe_one, mul_one] },
   { rintro rfl, refl },
 end
 
@@ -434,6 +453,10 @@ instance [monoid α] : has_bot (associates α) := ⟨1⟩
 lemma exists_rep [monoid α] (a : associates α) : ∃ a0 : α, associates.mk a0 = a :=
 quot.exists_rep a
 
+instance [monoid α] [subsingleton α] : unique (associates α) :=
+{ default := 1,
+  uniq := λ a, by { apply quotient.rec_on_subsingleton₂, intros a b, congr } }
+
 section comm_monoid
 variable [comm_monoid α]
 
@@ -462,6 +485,8 @@ instance : preorder (associates α) :=
   le_refl := dvd_refl,
   le_trans := λ a b c, dvd_trans}
 
+lemma bot_eq_one : (⊥ : associates α) = 1 := rfl
+
 @[simp] lemma mk_one : associates.mk (1 : α) = 1 := rfl
 
 /-- `associates.mk` as a `monoid_hom`. -/
@@ -479,13 +504,6 @@ by induction n; simp [*, pow_succ, associates.mk_mul_mk.symm]
 
 lemma dvd_eq_le : ((∣) : associates α → associates α → Prop) = (≤) := rfl
 
-theorem prod_mk {p : multiset α} : (p.map associates.mk).prod = associates.mk p.prod :=
-multiset.induction_on p (by simp; refl) $ assume a s ih, by simp [ih]; refl
-
-theorem rel_associated_iff_map_eq_map {p q : multiset α} :
-  multiset.rel associated p q ↔ p.map associates.mk = q.map associates.mk :=
-by { rw [← multiset.rel_eq, multiset.rel_map], simp only [mk_eq_mk_iff_associated] }
-
 theorem mul_eq_one_iff {x y : associates α} : x * y = 1 ↔ (x = 1 ∧ y = 1) :=
 iff.intro
   (quotient.induction_on₂ x y $ assume a b h,
@@ -494,19 +512,13 @@ iff.intro
       quotient.sound $ associated_one_of_associated_mul_one $ by rwa [mul_comm] at this⟩)
   (by simp {contextual := tt})
 
-theorem prod_eq_one_iff {p : multiset (associates α)} :
-  p.prod = 1 ↔ (∀a ∈ p, (a:associates α) = 1) :=
-multiset.induction_on p
-  (by simp)
-  (by simp [mul_eq_one_iff, or_imp_distrib, forall_and_distrib] {contextual := tt})
-
-theorem units_eq_one (u : units (associates α)) : u = 1 :=
+theorem units_eq_one (u : (associates α)ˣ) : u = 1 :=
 units.ext (mul_eq_one_iff.1 u.val_inv).1
 
-instance unique_units : unique (units (associates α)) :=
+instance unique_units : unique ((associates α)ˣ) :=
 { default := 1, uniq := associates.units_eq_one }
 
-theorem coe_unit_eq_one (u : units (associates α)): (u : associates α) = 1 :=
+theorem coe_unit_eq_one (u : (associates α)ˣ): (u : associates α) = 1 :=
 by simp
 
 theorem is_unit_iff_eq_one (a : associates α) : is_unit a ↔ a = 1 :=
@@ -519,6 +531,9 @@ calc is_unit (associates.mk a) ↔ a ~ᵤ 1 :
     by rw [is_unit_iff_eq_one, one_eq_mk_one, mk_eq_mk_iff_associated]
   ... ↔ is_unit a : associated_one_iff_is_unit
 
+lemma mk_injective [unique (units α)] : function.injective (@associates.mk α _) :=
+λ a b h, associated_iff_eq.mp (associates.mk_eq_mk_iff_associated.mp h)
+
 section order
 
 theorem mul_mono {a b c d : associates α} (h₁ : a ≤ b) (h₂ : c ≤ d) :
@@ -529,19 +544,14 @@ let ⟨x, hx⟩ := h₁, ⟨y, hy⟩ := h₂ in
 theorem one_le {a : associates α} : 1 ≤ a :=
 dvd.intro _ (one_mul a)
 
-theorem prod_le_prod {p q : multiset (associates α)} (h : p ≤ q) : p.prod ≤ q.prod :=
-begin
-  haveI := classical.dec_eq (associates α),
-  haveI := classical.dec_eq α,
-  suffices : p.prod ≤ (p + (q - p)).prod, { rwa [multiset.add_sub_of_le h] at this },
-  suffices : p.prod * 1 ≤ p.prod * (q - p).prod, { simpa },
-  exact mul_mono (le_refl p.prod) one_le
-end
-
 theorem le_mul_right {a b : associates α} : a ≤ a * b := ⟨b, rfl⟩
 
 theorem le_mul_left {a b : associates α} : a ≤ b * a :=
 by rw [mul_comm]; exact le_mul_right
+
+instance : order_bot (associates α) :=
+{ bot := 1,
+  bot_le := assume a, one_le }
 
 end order
 
@@ -557,10 +567,21 @@ variables [comm_monoid_with_zero α]
 @[simp] theorem mk_eq_zero {a : α} : associates.mk a = 0 ↔ a = 0 :=
 ⟨assume h, (associated_zero_iff_eq_zero a).1 $ quotient.exact h, assume h, h.symm ▸ rfl⟩
 
+theorem mk_ne_zero {a : α} : associates.mk a ≠ 0 ↔ a ≠ 0 :=
+not_congr mk_eq_zero
+
 instance : comm_monoid_with_zero (associates α) :=
 { zero_mul := by { rintro ⟨a⟩, show associates.mk (0 * a) = associates.mk 0, rw [zero_mul] },
   mul_zero := by { rintro ⟨a⟩, show associates.mk (a * 0) = associates.mk 0, rw [mul_zero] },
   .. associates.comm_monoid, .. associates.has_zero }
+
+instance : order_top (associates α) :=
+{ top := 0,
+  le_top := assume a, ⟨0, (mul_zero a).symm⟩ }
+
+instance : bounded_order (associates α) :=
+{ .. associates.order_top,
+  .. associates.order_bot }
 
 instance [nontrivial α] : nontrivial (associates α) :=
 ⟨⟨0, 1,
@@ -592,17 +613,6 @@ lemma prime.le_or_le {p : associates α} (hp : prime p) {a b : associates α} (h
   p ≤ a ∨ p ≤ b :=
 hp.2.2 a b h
 
-lemma exists_mem_multiset_le_of_prime {s : multiset (associates α)} {p : associates α}
-  (hp : prime p) :
-  p ≤ s.prod → ∃a∈s, p ≤ a :=
-multiset.induction_on s (assume ⟨d, eq⟩, (hp.ne_one (mul_eq_one_iff.1 eq.symm).1).elim) $
-assume a s ih h,
-  have p ≤ a * s.prod, by simpa using h,
-  match prime.le_or_le hp this with
-  | or.inl h := ⟨a, multiset.mem_cons_self a s, h⟩
-  | or.inr h := let ⟨a, has, h⟩ := ih h in ⟨a, multiset.mem_cons_of_mem has, h⟩
-  end
-
 lemma prime_mk (p : α) : prime (associates.mk p) ↔ _root_.prime p :=
 begin
   rw [prime, _root_.prime, forall_associated],
@@ -611,12 +621,10 @@ begin
     apply and_congr, refl,
     apply forall_congr, assume a,
     exact forall_associated },
-  apply and_congr,
-  { rw [(≠), mk_eq_zero] },
+  apply and_congr mk_ne_zero,
   apply and_congr,
   { rw [is_unit_mk], },
-  apply forall_congr, assume a,
-  apply forall_congr, assume b,
+  refine forall₂_congr (λ a b, _),
   rw [mk_mul_mk, mk_dvd_mk, mk_dvd_mk, mk_dvd_mk],
 end
 
@@ -639,7 +647,7 @@ theorem mk_dvd_not_unit_mk_iff {a b : α} :
   dvd_not_unit (associates.mk a) (associates.mk b) ↔
   dvd_not_unit a b :=
 begin
-  rw [dvd_not_unit, dvd_not_unit, ne, ne, mk_eq_zero],
+  rw [dvd_not_unit, dvd_not_unit, mk_ne_zero],
   apply and_congr_right, intro ane0,
   split,
   { contrapose!, rw forall_associated,
@@ -671,23 +679,13 @@ end
 
 end comm_monoid_with_zero
 
-section comm_cancel_monoid_with_zero
-variable [comm_cancel_monoid_with_zero α]
+section cancel_comm_monoid_with_zero
+variable [cancel_comm_monoid_with_zero α]
 
 instance : partial_order (associates α) :=
 { le_antisymm := λ a' b', quotient.induction_on₂ a' b' (λ a b hab hba,
   quot.sound $ associated_of_dvd_dvd (dvd_of_mk_le_mk hab) (dvd_of_mk_le_mk hba))
   .. associates.preorder }
-
-instance : order_bot (associates α) :=
-{ bot := 1,
-  bot_le := assume a, one_le,
-  .. associates.partial_order }
-
-instance : order_top (associates α) :=
-{ top := 0,
-  le_top := assume a, ⟨0, (mul_zero a).symm⟩,
-  .. associates.partial_order }
 
 instance : no_zero_divisors (associates α) :=
 ⟨λ x y,
@@ -709,7 +707,7 @@ begin
   rintros ⟨a⟩ ⟨b⟩ ⟨c⟩ ha h,
   rcases quotient.exact' h with ⟨u, hu⟩,
   have hu : a * (b * ↑u) = a * c, { rwa [← mul_assoc] },
-  exact quotient.sound' ⟨u, mul_left_cancel₀ (mt mk_eq_zero.2 ha) hu⟩
+  exact quotient.sound' ⟨u, mul_left_cancel₀ (mk_ne_zero.1 ha) hu⟩
 end
 
 lemma eq_of_mul_eq_mul_right :
@@ -736,7 +734,7 @@ match h m d dvd_rfl with
   or.inl $ bot_unique $ associates.le_of_mul_le_mul_left d m 1 ‹d ≠ 0› this
 end
 
-instance : comm_cancel_monoid_with_zero (associates α) :=
+instance : cancel_comm_monoid_with_zero (associates α) :=
 { mul_left_cancel_of_ne_zero := eq_of_mul_eq_mul_left,
   mul_right_cancel_of_ne_zero := eq_of_mul_eq_mul_right,
   .. (infer_instance : comm_monoid_with_zero (associates α)) }
@@ -745,14 +743,75 @@ theorem dvd_not_unit_iff_lt {a b : associates α} :
   dvd_not_unit a b ↔ a < b :=
 dvd_and_not_dvd_iff.symm
 
-end comm_cancel_monoid_with_zero
+lemma le_one_iff {p : associates α} : p ≤ 1 ↔ p = 1 :=
+by rw [← associates.bot_eq_one, le_bot_iff]
+
+end cancel_comm_monoid_with_zero
 
 end associates
 
-namespace multiset
+section cancel_comm_monoid_with_zero
 
-lemma prod_ne_zero_of_prime [comm_cancel_monoid_with_zero α] [nontrivial α]
- (s : multiset α) (h : ∀ x ∈ s, prime x) : s.prod ≠ 0 :=
-multiset.prod_ne_zero (λ h0, prime.ne_zero (h 0 h0) rfl)
+lemma dvd_not_unit.is_unit_of_irreducible_right [cancel_comm_monoid_with_zero α] {p q : α}
+  (h : dvd_not_unit p q) (hq : irreducible q) : is_unit p :=
+begin
+  obtain ⟨hp', x, hx, hx'⟩ := h,
+  exact or.resolve_right ((irreducible_iff.1 hq).right p x hx') hx
+end
 
-end multiset
+lemma not_irreducible_of_not_unit_dvd_not_unit [cancel_comm_monoid_with_zero α] {p q : α}
+  (hp : ¬is_unit p) (h : dvd_not_unit p q) : ¬ irreducible q :=
+mt h.is_unit_of_irreducible_right hp
+
+lemma dvd_not_unit.not_unit [cancel_comm_monoid_with_zero α] {p q : α}
+  (hp : dvd_not_unit p q) : ¬ is_unit q :=
+begin
+  obtain ⟨-, x, hx, rfl⟩ := hp,
+  exact λ hc, hx (is_unit_iff_dvd_one.mpr (dvd_of_mul_left_dvd (is_unit_iff_dvd_one.mp hc))),
+end
+
+lemma is_unit_of_associated_mul [cancel_comm_monoid_with_zero α]
+  {p b : α} (h : associated (p * b) p) (hp : p ≠ 0) : is_unit b :=
+begin
+  cases h with a ha,
+  refine is_unit_of_mul_eq_one b a ((mul_right_inj' hp).mp _),
+  rwa [← mul_assoc, mul_one],
+end
+
+lemma dvd_not_unit.not_associated [cancel_comm_monoid_with_zero α] {p q : α}
+  (h : dvd_not_unit p q) : ¬ associated p q :=
+begin
+  rintro ⟨a, rfl⟩,
+  obtain ⟨hp, x, hx, hx'⟩ := h,
+  rcases (mul_right_inj' hp).mp hx' with rfl,
+  exact hx a.is_unit,
+end
+
+lemma dvd_not_unit_of_dvd_not_unit_associated [cancel_comm_monoid_with_zero α]
+[nontrivial α] {p q r : α} (h : dvd_not_unit p q) (h' : associated q r) : dvd_not_unit p r :=
+begin
+  obtain ⟨u, rfl⟩ := associated.symm h',
+  obtain ⟨hp, x, hx⟩ := h,
+  refine ⟨hp, x * ↑(u⁻¹), dvd_not_unit.not_unit ⟨u⁻¹.ne_zero, x, hx.left, mul_comm _ _⟩, _⟩,
+  rw [← mul_assoc, ← hx.right, mul_assoc, units.mul_inv, mul_one]
+end
+
+lemma dvd_not_unit.ne [cancel_comm_monoid_with_zero α] {p q : α}
+  (h : dvd_not_unit p q) : p ≠ q :=
+begin
+  by_contra hcontra,
+  obtain ⟨hp, x, hx', hx''⟩ := h,
+  conv_lhs at hx'' {rw [← hcontra, ← mul_one p]},
+  rw (mul_left_cancel₀ hp hx'').symm at hx',
+  exact hx' is_unit_one,
+end
+
+lemma pow_injective_of_not_unit [cancel_comm_monoid_with_zero α] {q : α}
+  (hq : ¬ is_unit q) (hq' : q ≠ 0): function.injective (λ (n : ℕ), q^n) :=
+begin
+  refine injective_of_lt_imp_ne (λ n m h, dvd_not_unit.ne ⟨pow_ne_zero n hq', q^(m - n), _, _⟩),
+  { exact not_is_unit_of_not_is_unit_dvd hq (dvd_pow (dvd_refl _) (nat.sub_pos_of_lt h).ne') },
+  { exact (pow_mul_pow_sub q h.le).symm  }
+end
+
+end cancel_comm_monoid_with_zero

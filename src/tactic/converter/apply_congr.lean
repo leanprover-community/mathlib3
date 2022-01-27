@@ -54,8 +54,8 @@ For example:
 example (f g : ℤ → ℤ) (S : finset ℤ) (h : ∀ m ∈ S, f m = g m) :
   finset.sum S f = finset.sum S g :=
 begin
-  conv_lhs {
-    -- If we just call `congr` here, in the second goal we're helpless,
+  conv_lhs
+  { -- If we just call `congr` here, in the second goal we're helpless,
     -- because we are only given the opportunity to rewrite `f`.
     -- However `apply_congr` uses the appropriate `@[congr]` lemma,
     -- so we get to rewrite `f x`, in the presence of the crucial `H : x ∈ S` hypothesis.
@@ -89,11 +89,10 @@ do
     -- and then call `intros` on each resulting goal, and require that afterwards it's an equation.
         (tactic.intros >> (do `(_ = _) ← target, tactic.skip)))
 
-add_tactic_doc {
-  name := "apply_congr",
+add_tactic_doc
+{ name := "apply_congr",
   category := doc_category.tactic,
   decl_names := [`conv.interactive.apply_congr],
-  tags := ["conv", "congruence", "rewriting"]
-}
+  tags := ["conv", "congruence", "rewriting"] }
 
 end conv.interactive

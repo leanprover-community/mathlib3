@@ -3,7 +3,7 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import data.list.basic
+import order.rel_classes
 
 /-!
 # Lexicographic ordering of lists.
@@ -13,7 +13,13 @@ The lexicographic order on `list α` is defined by `L < M` iff
 * `(a :: L) < (b :: M)` where `a < b`, or
 * `(a :: L) < (a :: M)` where `L < M`.
 
-See also `order.lexicographic` for the lexicographic order on pairs.
+## See also
+
+Related files are:
+* `data.finset.colex`: Colexicographic order on finite sets.
+* `data.psigma.order`: Lexicographic order on `Σ' i, α i`.
+* `data.sigma.order`: Lexicographic order on `Σ i, α i`.
+* `order.lexicographic`: Lexicographic order on `α × β`.
 -/
 
 namespace list

@@ -70,6 +70,33 @@ variables {k}
 theorem exists_root [is_alg_closed k] (p : polynomial k) (hp : p.degree ≠ 0) : ∃ x, is_root p x :=
 exists_root_of_splits _ (is_alg_closed.splits p) hp
 
+lemma exists_pow_nat_eq [is_alg_closed k] (x : k) {n : ℕ} (hn : 0 < n) : ∃ z, z ^ n = x :=
+begin
+  rcases exists_root (X ^ n - C x) _ with ⟨z, hz⟩, swap,
+  { rw degree_X_pow_sub_C hn x,
+    exact ne_of_gt (with_bot.coe_lt_coe.2 hn) },
+  use z,
+  simp only [eval_C, eval_X, eval_pow, eval_sub, is_root.def] at hz,
+  exact sub_eq_zero.1 hz
+end
+
+lemma exists_eq_mul_self [is_alg_closed k] (x : k) : ∃ z, x = z * z :=
+begin
+  rcases exists_pow_nat_eq x zero_lt_two with ⟨z, rfl⟩,
+  exact ⟨z, sq z⟩
+end
+
+lemma roots_eq_zero_iff [is_alg_closed k] {p : polynomial k} :
+  p.roots = 0 ↔ p = polynomial.C (p.coeff 0) :=
+begin
+  refine ⟨λ h, _, λ hp, by rw [hp, roots_C]⟩,
+  cases (le_or_lt (degree p) 0) with hd hd,
+  { exact eq_C_of_degree_le_zero hd },
+  { obtain ⟨z, hz⟩ := is_alg_closed.exists_root p hd.ne',
+    rw [←mem_roots (ne_zero_of_degree_gt hd), h] at hz,
+    simpa using hz }
+end
+
 theorem exists_eval₂_eq_zero_of_injective {R : Type*} [ring R] [is_alg_closed k] (f : R →+* k)
   (hf : function.injective f) (p : polynomial R) (hp : p.degree ≠ 0) : ∃ x, p.eval₂ f x = 0 :=
 let ⟨x, hx⟩ := exists_root (p.map f) (by rwa [degree_map_eq_of_injective hf]) in
@@ -99,30 +126,31 @@ theorem of_exists_root (H : ∀ p : polynomial k, p.monic → irreducible p → 
  let ⟨x, hx⟩ := H (q * C (leading_coeff q)⁻¹) (monic_mul_leading_coeff_inv hq.ne_zero) this in
  degree_mul_leading_coeff_inv q hq.ne_zero ▸ degree_eq_one_of_irreducible_of_root this hx⟩
 
-lemma degree_eq_one_of_irreducible [is_alg_closed k] {p : polynomial k} (h_nz : p ≠ 0)
+lemma degree_eq_one_of_irreducible [is_alg_closed k] {p : polynomial k}
   (hp : irreducible p) :
   p.degree = 1 :=
-degree_eq_one_of_irreducible_of_splits h_nz hp (is_alg_closed.splits_codomain _)
+degree_eq_one_of_irreducible_of_splits hp (is_alg_closed.splits_codomain _)
 
-lemma algebra_map_surjective_of_is_integral {k K : Type*} [field k] [domain K]
+lemma algebra_map_surjective_of_is_integral {k K : Type*} [field k] [ring K] [is_domain K]
   [hk : is_alg_closed k] [algebra k K] (hf : algebra.is_integral k K) :
   function.surjective (algebra_map k K) :=
 begin
   refine λ x, ⟨-((minpoly k x).coeff 0), _⟩,
   have hq : (minpoly k x).leading_coeff = 1 := minpoly.monic (hf x),
   have h : (minpoly k x).degree = 1 := degree_eq_one_of_irreducible k
-    (minpoly.ne_zero (hf x)) (minpoly.irreducible (hf x)),
+    (minpoly.irreducible (hf x)),
   have : (aeval x (minpoly k x)) = 0 := minpoly.aeval k x,
   rw [eq_X_add_C_of_degree_eq_one h, hq, C_1, one_mul,
     aeval_add, aeval_X, aeval_C, add_eq_zero_iff_eq_neg] at this,
   exact (ring_hom.map_neg (algebra_map k K) ((minpoly k x).coeff 0)).symm ▸ this.symm,
 end
 
-lemma algebra_map_surjective_of_is_integral' {k K : Type*} [field k] [integral_domain K]
+lemma algebra_map_surjective_of_is_integral'
+  {k K : Type*} [field k] [comm_ring K] [is_domain K]
   [hk : is_alg_closed k] (f : k →+* K) (hf : f.is_integral) : function.surjective f :=
-@algebra_map_surjective_of_is_integral k K _ _ _ f.to_algebra hf
+@algebra_map_surjective_of_is_integral k K _ _ _ _ f.to_algebra hf
 
-lemma algebra_map_surjective_of_is_algebraic {k K : Type*} [field k] [domain K]
+lemma algebra_map_surjective_of_is_algebraic {k K : Type*} [field k] [ring K] [is_domain K]
   [hk : is_alg_closed k] [algebra k K] (hf : algebra.is_algebraic k K) :
   function.surjective (algebra_map k K) :=
 algebra_map_surjective_of_is_integral ((is_algebraic_iff_is_integral' k).mp hf)
@@ -138,27 +166,6 @@ class is_alg_closure (R : Type u) (K : Type v) [comm_ring R] [field K] [algebra 
 theorem is_alg_closure_iff (K : Type v) [field K] [algebra k K] :
   is_alg_closure k K ↔ is_alg_closed K ∧ algebra.is_algebraic k K :=
 ⟨λ h, ⟨h.1, h.2⟩, λ h, ⟨h.1, h.2, ring_hom.injective _⟩⟩
-
-/--
-Every element `f` in a nontrivial finite-dimensional algebra `A`
-over an algebraically closed field `K`
-has non-empty spectrum:
-that is, there is some `c : K` so `f - c • 1` is not invertible.
--/
--- We will use this both to show eigenvalues exist, and to prove Schur's lemma.
-lemma exists_spectrum_of_is_alg_closed_of_finite_dimensional (𝕜 : Type*) [field 𝕜] [is_alg_closed 𝕜]
-  {A : Type*} [nontrivial A] [ring A] [algebra 𝕜 A] [I : finite_dimensional 𝕜 A] (f : A) :
-  ∃ c : 𝕜, ¬ is_unit (f - algebra_map 𝕜 A c) :=
-begin
-  obtain ⟨p, ⟨h_mon, h_eval_p⟩⟩ := is_integral_of_noetherian I f,
-  have nu : ¬ is_unit (aeval f p), { rw [←aeval_def] at h_eval_p, rw h_eval_p, simp, },
-  rw [eq_prod_roots_of_monic_of_splits_id h_mon (is_alg_closed.splits p),
-    ←multiset.prod_to_list, alg_hom.map_list_prod] at nu,
-  replace nu := mt list.prod_is_unit nu,
-  simp only [not_forall, exists_prop, aeval_C, multiset.mem_to_list,
-    list.mem_map, aeval_X, exists_exists_and_eq_and, multiset.mem_map, alg_hom.map_sub] at nu,
-  exact ⟨nu.some, nu.some_spec.2⟩,
-end
 
 namespace lift
 /- In this section, the homomorphism from any algebraic extension into an algebraically
@@ -205,8 +212,9 @@ instance : preorder (subfield_with_hom K L M hL) :=
 open lattice
 
 lemma maximal_subfield_with_hom_chain_bounded (c : set (subfield_with_hom K L M hL))
-  (hc : chain (≤) c) (hcn  : c.nonempty) :
+  (hc : chain (≤) c) :
   ∃ ub : subfield_with_hom K L M hL, ∀ N, N ∈ c → N ≤ ub :=
+if hcn : c.nonempty then
 let ub : subfield_with_hom K L M hL :=
 by haveI : nonempty c := set.nonempty.to_subtype hcn; exact
 { carrier := ⨆ i : c, (i : subfield_with_hom K L M hL).carrier,
@@ -229,12 +237,13 @@ by haveI : nonempty c := set.nonempty.to_subtype hcn; exact
     simp [ub],
     refl
   end⟩⟩
+else by { rw [set.not_nonempty_iff_eq_empty] at hcn, simp [hcn], }
 
 variables (hL M)
 
 lemma exists_maximal_subfield_with_hom : ∃ E : subfield_with_hom K L M hL,
   ∀ N, E ≤ N → N ≤ E :=
-zorn.exists_maximal_of_nonempty_chains_bounded
+zorn.exists_maximal_of_chains_bounded
   maximal_subfield_with_hom_chain_bounded (λ _ _ _, le_trans)
 
 /-- The maximal `subfield_with_hom`. We later prove that this is equal to `⊤`. -/
@@ -262,12 +271,12 @@ begin
   let O : subalgebra N L := algebra.adjoin N {(x : L)},
   let larger_emb := ((adjoin_root.lift_hom (minpoly N x) y hy).comp
      (alg_equiv.adjoin_singleton_equiv_adjoin_root_minpoly N x).to_alg_hom),
-  have hNO : N ≤ N.under O,
+  have hNO : N ≤ O.restrict_scalars K,
   { intros z hz,
     show algebra_map N L ⟨z, hz⟩ ∈ O,
     exact O.algebra_map_mem _ },
   let O' : subfield_with_hom K L M hL :=
-  { carrier := N.under O,
+  { carrier := O.restrict_scalars K,
     emb := larger_emb.restrict_scalars K },
   have hO' : maximal_subfield_with_hom M hL ≤ O',
   { refine ⟨hNO, _⟩,

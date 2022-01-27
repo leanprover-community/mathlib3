@@ -3,9 +3,8 @@ Copyright (c) 2016 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro, Johannes Hölzl, Damiano Testa
 -/
-
 import algebra.covariant_and_contravariant
-import order.basic
+import order.monotone
 
 /-!
 # Ordered monoids
@@ -158,6 +157,20 @@ lemma mul_le_iff_le_one_left'
 iff.trans (by rw one_mul) (mul_le_mul_iff_right b)
 
 end has_le
+
+lemma exists_square_le {α : Type*} [mul_one_class α] [linear_order α] [covariant_class α α (*) (<)]
+  (a : α) : ∃ (b : α), b * b ≤ a :=
+begin
+  by_cases h : a < 1,
+  { use a,
+    have : a*a < a*1,
+    exact mul_lt_mul_left' h a,
+    rw mul_one at this,
+    exact le_of_lt this },
+  { use 1,
+    push_neg at h,
+    rwa mul_one }
+end
 
 section has_lt
 variable [has_lt α]
@@ -429,6 +442,19 @@ lemma mul_lt_mul''' (h₁ : a < b) (h₂ : c < d) : a * c < b * d :=
 mul_lt_mul_of_le_of_lt h₁.le h₂
 
 end contravariant_mul_lt_left_le_right
+
+@[to_additive] lemma mul_eq_mul_iff_eq_and_eq {α : Type*} [semigroup α] [partial_order α]
+  [contravariant_class α α (*) (≤)] [covariant_class α α (swap (*)) (≤)]
+  [covariant_class α α (*) (<)] [contravariant_class α α (swap (*)) (≤)]
+  {a b c d : α} (hac : a ≤ c) (hbd : b ≤ d) : a * b = c * d ↔ a = c ∧ b = d :=
+begin
+  refine ⟨λ h, _, λ h, congr_arg2 (*) h.1 h.2⟩,
+  rcases hac.eq_or_lt with rfl | hac,
+  { exact ⟨rfl, mul_left_cancel'' h⟩ },
+  rcases eq_or_lt_of_le hbd with rfl | hbd,
+  { exact ⟨mul_right_cancel'' h, rfl⟩ },
+  exact ((mul_lt_mul''' hac hbd).ne h).elim,
+end
 
 variable [covariant_class α α (*) (≤)]
 

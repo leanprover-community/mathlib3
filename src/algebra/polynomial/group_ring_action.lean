@@ -81,7 +81,7 @@ open_locale classical
 
 /-- the product of `(X - g • x)` over distinct `g • x`. -/
 noncomputable def prod_X_sub_smul (x : R) : polynomial R :=
-(finset.univ : finset (quotient_group.quotient $ mul_action.stabilizer G x)).prod $
+(finset.univ : finset (G ⧸ mul_action.stabilizer G x)).prod $
 λ g, polynomial.X - polynomial.C (of_quotient_stabilizer G x g)
 
 theorem prod_X_sub_smul.monic (x : R) : (prod_X_sub_smul G R x).monic :=

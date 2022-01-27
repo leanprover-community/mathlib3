@@ -5,18 +5,16 @@ Authors: Mario Carneiro, Joseph Myers
 -/
 
 import data.complex.exponential
-import analysis.special_functions.exp_log
-import algebra.continued_fractions.computation.approximation_corollaries
+import analysis.special_functions.log_deriv
 
 /-!
 # Bounds on specific values of the exponential
 -/
 namespace real
 
-local notation `abs'` := has_abs.abs
 open is_absolute_value finset cau_seq complex
 
-lemma exp_one_near_10 : abs' (exp 1 - 2244083/825552) ≤ 1/10^10 :=
+lemma exp_one_near_10 : |exp 1 - 2244083/825552| ≤ 1/10^10 :=
 begin
   apply exp_approx_start,
   iterate 13 { refine exp_1_approx_succ_eq (by norm_num1; refl) (by norm_cast; refl) _ },
@@ -25,7 +23,7 @@ begin
   rw [_root_.abs_one, abs_of_pos]; norm_num1,
 end
 
-lemma exp_one_near_20 : abs' (exp 1 - 363916618873/133877442384) ≤ 1/10^20 :=
+lemma exp_one_near_20 : |exp 1 - 363916618873/133877442384| ≤ 1/10^20 :=
 begin
   apply exp_approx_start,
   iterate 21 { refine exp_1_approx_succ_eq (by norm_num1; refl) (by norm_cast; refl) _ },
@@ -54,14 +52,14 @@ begin
   all_goals {norm_num},
 end
 
-lemma log_two_near_10 : abs' (log 2 - 287209 / 414355) ≤ 1/10^10 :=
+lemma log_two_near_10 : |log 2 - 287209 / 414355| ≤ 1/10^10 :=
 begin
-  suffices : abs' (log 2 - 287209 / 414355) ≤ 1/17179869184 + (1/10^10 - 1/2^34),
+  suffices : |log 2 - 287209 / 414355| ≤ 1/17179869184 + (1/10^10 - 1/2^34),
   { norm_num1 at *,
     assumption },
-  have t : abs' (2⁻¹ : ℝ) = 2⁻¹,
+  have t : |(2⁻¹ : ℝ)| = 2⁻¹,
   { rw abs_of_pos, norm_num },
-  have z := real.abs_log_sub_add_sum_range_le (show abs' (2⁻¹ : ℝ) < 1, by { rw t, norm_num }) 34,
+  have z := real.abs_log_sub_add_sum_range_le (show |(2⁻¹ : ℝ)| < 1, by { rw t, norm_num }) 34,
   rw t at z,
   norm_num1 at z,
   rw [one_div (2:ℝ), log_inv, ←sub_eq_add_neg, _root_.abs_sub_comm] at z,

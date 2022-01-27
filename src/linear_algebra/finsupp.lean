@@ -303,8 +303,8 @@ variables (S) [module S N] [smul_comm_class R S N]
 See note [bundled maps over different rings] for why separate `R` and `S` semirings are used.
 -/
 def lsum : (α → M →ₗ[R] N) ≃ₗ[S] ((α →₀ M) →ₗ[R] N) :=
-{ to_fun := λ F, {
-    to_fun := λ d, d.sum (λ i, F i),
+{ to_fun := λ F,
+  { to_fun := λ d, d.sum (λ i, F i),
     map_add' := (lift_add_hom (λ x, (F x).to_add_monoid_hom)).map_add,
     map_smul' := λ c f, by simp [sum_smul_index', smul_sum] },
   inv_fun := λ F x, F.comp (lsingle x),
@@ -336,7 +336,7 @@ A slight rearrangement from `lsum` gives us
 the bijection underlying the free-forgetful adjunction for R-modules.
 -/
 noncomputable def lift : (X → M) ≃+ ((X →₀ R) →ₗ[R] M) :=
-(add_equiv.arrow_congr (equiv.refl X) (ring_lmap_equiv_self R M ℕ).to_add_equiv.symm).trans
+(add_equiv.arrow_congr (equiv.refl X) (ring_lmap_equiv_self R ℕ M).to_add_equiv.symm).trans
   (lsum _ : _ ≃ₗ[ℕ] _).to_add_equiv
 
 @[simp]
@@ -402,7 +402,7 @@ begin
   { have : finsupp.sum l (λ a, finsupp.single (f a)) (f x) = 0, {rw h₂, refl},
     rw [finsupp.sum_apply, finsupp.sum, finset.sum_eq_single x] at this,
     { simpa [finsupp.single_apply] },
-    { intros y hy xy, simp [mt (H _ _ (h₁ hy) xs) xy] },
+    { intros y hy xy, simp [mt (H _ (h₁ hy) _ xs) xy] },
     { simp {contextual := tt} } },
   { by_contra h, exact xs (h₁ $ finsupp.mem_support_iff.2 h) }
 end
@@ -437,7 +437,7 @@ theorem apply_total (f : M →ₗ[R] M') (v) (l : α →₀ R) :
 by apply finsupp.induction_linear l; simp { contextual := tt, }
 
 theorem total_unique [unique α] (l : α →₀ R) (v) :
-  finsupp.total α M R v l = l (default α) • v (default α) :=
+  finsupp.total α M R v l = l default • v default :=
 by rw [← total_single, ← unique_single l]
 
 lemma total_surjective (h : function.surjective v) : function.surjective (finsupp.total α M R v) :=

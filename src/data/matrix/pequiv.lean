@@ -20,7 +20,7 @@ The following important properties of this function are proved
 `to_matrix_bot : ⊥.to_matrix = 0`
 
 This theory gives the matrix representation of projection linear maps, and their right inverses.
-For example, the matrix `(single (0 : fin 1) (i : fin n)).to_matrix` corresponds to the the ith
+For example, the matrix `(single (0 : fin 1) (i : fin n)).to_matrix` corresponds to the ith
 projection map from R^n to R.
 
 Any injective function `fin m → fin n` gives rise to a `pequiv`, whose matrix is the projection

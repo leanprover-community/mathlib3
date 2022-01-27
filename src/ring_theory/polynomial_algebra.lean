@@ -6,6 +6,7 @@ Authors: Scott Morrison
 import ring_theory.matrix_algebra
 import data.polynomial.algebra_map
 import data.matrix.basis
+import data.matrix.dmatrix
 
 /-!
 # Algebra isomorphism between matrices of polynomials and polynomials of matrices
@@ -94,6 +95,7 @@ lemma to_fun_linear_mul_tmul_mul (a₁ a₂ : A) (p₁ p₂ : polynomial R) :
   (to_fun_linear R A) ((a₁ * a₂) ⊗ₜ[R] (p₁ * p₂)) =
     (to_fun_linear R A) (a₁ ⊗ₜ[R] p₁) * (to_fun_linear R A) (a₂ ⊗ₜ[R] p₂) :=
 begin
+  classical,
   simp only [to_fun_linear_tmul_apply, to_fun_bilinear_apply_eq_sum],
   ext k,
   simp_rw [coeff_sum, coeff_monomial, sum_def, finset.sum_ite_eq', mem_support_iff, ne.def],
@@ -156,9 +158,9 @@ begin
     rw [to_fun_alg_hom_apply_tmul, eval₂_sum],
     simp_rw [eval₂_monomial, alg_hom.coe_to_ring_hom, algebra.tensor_product.tmul_pow, one_pow,
       algebra.tensor_product.include_left_apply, algebra.tensor_product.tmul_mul_tmul,
-      mul_one, one_mul, ←algebra.commutes, ←algebra.smul_def'', smul_tmul, sum_def, ←tmul_sum],
+      mul_one, one_mul, ←algebra.commutes, ←algebra.smul_def, smul_tmul, sum_def, ←tmul_sum],
     conv_rhs { rw [←sum_C_mul_X_eq p], },
-    simp only [algebra.smul_def''],
+    simp only [algebra.smul_def],
     refl, },
   { intros p q hp hq,
     simp only [alg_hom.map_add, inv_fun_add, hp, hq], },

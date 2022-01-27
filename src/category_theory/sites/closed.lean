@@ -48,9 +48,8 @@ universes v u
 
 namespace category_theory
 
-variables {C : Type u} [small_category C]
+variables {C : Type u} [category.{v} C]
 
-variables {P : Cᵒᵖ ⥤ Type u}
 variables (J₁ J₂ : grothendieck_topology C)
 
 namespace grothendieck_topology
@@ -184,7 +183,7 @@ The presheaf sending each object to the set of `J`-closed sieves on it. This pre
 (and will turn out to be a subobject classifier for the category of `J`-sheaves).
 -/
 @[simps]
-def functor.closed_sieves : Cᵒᵖ ⥤ Type u :=
+def functor.closed_sieves : Cᵒᵖ ⥤ Type (max v u) :=
 { obj := λ X, {S : sieve X.unop // J₁.is_closed S},
   map := λ X Y f S, ⟨S.1.pullback f.unop, J₁.is_closed_pullback f.unop _ S.2⟩ }
 
@@ -269,7 +268,7 @@ end
 
 /-- If being a sheaf for `J₁` is equivalent to being a sheaf for `J₂`, then `J₁ = J₂`. -/
 lemma topology_eq_iff_same_sheaves {J₁ J₂ : grothendieck_topology C} :
-  J₁ = J₂ ↔ (∀ P, presieve.is_sheaf J₁ P ↔ presieve.is_sheaf J₂ P) :=
+  J₁ = J₂ ↔ (∀ (P : Cᵒᵖ ⥤ Type (max v u)), presieve.is_sheaf J₁ P ↔ presieve.is_sheaf J₂ P) :=
 begin
   split,
   { rintro rfl,

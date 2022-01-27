@@ -200,7 +200,7 @@ begin
     bind₁_X_right, bind₁_C_right],
   rw [sub_mul, one_mul],
   rw [finset.sum_eq_single 0],
-  { simp only [inv_of_eq_inv, one_mul, inv_pow₀, nat.sub_zero, ring_hom.map_one, pow_zero],
+  { simp only [inv_of_eq_inv, one_mul, inv_pow₀, tsub_zero, ring_hom.map_one, pow_zero],
     simp only [one_pow, one_mul, X_in_terms_of_W_zero, sub_self, bind₁_X_right] },
   { intros i hin hi0,
     rw [finset.mem_range] at hin,
@@ -310,6 +310,12 @@ by simp [(*), eval]
 lemma neg_coeff (x : 𝕎 R) (n : ℕ) :
   (-x).coeff n = peval (witt_neg p n) ![x.coeff] :=
 by simp [has_neg.neg, eval, matrix.cons_fin_one]
+
+lemma add_coeff_zero (x y : 𝕎 R) : (x + y).coeff 0 = x.coeff 0 + y.coeff 0 :=
+by simp [add_coeff, peval]
+
+lemma mul_coeff_zero (x y : 𝕎 R) : (x * y).coeff 0 = x.coeff 0 * y.coeff 0 :=
+by simp [mul_coeff, peval]
 
 end coeff
 

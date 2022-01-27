@@ -104,7 +104,7 @@ structure basic_smooth_bundle_core {𝕜 : Type*} [nondiscrete_normed_field 𝕜
   (coord_change j k ((i.1.symm.trans j.1) x)) (coord_change i j x v) = coord_change i k x v)
 (coord_change_smooth : ∀ i j : atlas H M,
   times_cont_diff_on 𝕜 ∞ (λp : E × F, coord_change i j (I.symm p.1) p.2)
-  ((I '' (i.1.symm.trans j.1).source).prod (univ : set F)))
+  ((I '' (i.1.symm.trans j.1).source) ×ˢ (univ : set F)))
 
 /-- The trivial basic smooth bundle core, in which all the changes of coordinates are the
 identity. -/
@@ -146,19 +146,19 @@ def to_topological_fiber_bundle_core : topological_fiber_bundle_core (atlas H M)
   end,
   coord_change_continuous := λi j, begin
     have A : continuous_on (λp : E × F, Z.coord_change i j (I.symm p.1) p.2)
-      ((I '' (i.1.symm.trans j.1).source).prod (univ : set F)) :=
+      ((I '' (i.1.symm.trans j.1).source) ×ˢ (univ : set F)) :=
       (Z.coord_change_smooth i j).continuous_on,
     have B : continuous_on (λx : M, I (i.1 x)) i.1.source :=
       I.continuous.comp_continuous_on i.1.continuous_on,
     have C : continuous_on (λp : M × F, (⟨I (i.1 p.1), p.2⟩ : E × F))
-             (i.1.source.prod univ),
+             (i.1.source ×ˢ (univ : set F)),
     { apply continuous_on.prod _ continuous_snd.continuous_on,
       exact B.comp continuous_fst.continuous_on (prod_subset_preimage_fst _ _) },
     have C' : continuous_on (λp : M × F, (⟨I (i.1 p.1), p.2⟩ : E × F))
-              ((i.1.source ∩ j.1.source).prod univ) :=
+              ((i.1.source ∩ j.1.source) ×ˢ (univ : set F)) :=
       continuous_on.mono C (prod_mono (inter_subset_left _ _) (subset.refl _)),
-    have D : (i.1.source ∩ j.1.source).prod univ ⊆ (λ (p : M × F),
-      (I (i.1 p.1), p.2)) ⁻¹' ((I '' (i.1.symm.trans j.1).source).prod univ),
+    have D : (i.1.source ∩ j.1.source) ×ˢ (univ : set F) ⊆ (λ (p : M × F),
+      (I (i.1 p.1), p.2)) ⁻¹' ((I '' (i.1.symm.trans j.1).source) ×ˢ (univ : set F)),
     { rintros ⟨x, v⟩ hx,
       simp only with mfld_simps at hx,
       simp only [hx] with mfld_simps },
@@ -181,7 +181,7 @@ def chart {e : local_homeomorph M H} (he : e ∈ atlas H M) :
 by { simp only [chart, mem_prod], mfld_set_tac }
 
 @[simp, mfld_simps] lemma chart_target (e : local_homeomorph M H) (he : e ∈ atlas H M) :
-  (Z.chart he).target = e.target.prod univ :=
+  (Z.chart he).target = e.target ×ˢ (univ : set F) :=
 by { simp only [chart], mfld_set_tac }
 
 /-- The total space of a basic smooth bundle is endowed with a charted space structure, where the
@@ -233,20 +233,20 @@ begin
     (J.symm ⁻¹' ((Z.chart he).symm.trans (Z.chart he')).source ∩ range J),
   { assume e e' he he',
     have : J.symm ⁻¹' ((chart Z he).symm.trans (chart Z he')).source ∩ range J =
-      (I.symm ⁻¹' (e.symm.trans e').source ∩ range I).prod univ,
+      (I.symm ⁻¹' (e.symm.trans e').source ∩ range I) ×ˢ (univ : set F),
       by { simp only [J, chart, model_with_corners.prod], mfld_set_tac },
     rw this,
     -- check separately that the two components of the coordinate change are smooth
     apply times_cont_diff_on.prod,
     show times_cont_diff_on 𝕜 ∞ (λ (p : E × F), (I ∘ e' ∘ e.symm ∘ I.symm) p.1)
-         ((I.symm ⁻¹' (e.symm.trans e').source ∩ range I).prod (univ : set F)),
+         ((I.symm ⁻¹' (e.symm.trans e').source ∩ range I) ×ˢ (univ : set F)),
     { -- the coordinate change on the base is just a coordinate change for `M`, smooth since
       -- `M` is smooth
       have A : times_cont_diff_on 𝕜 ∞ (I ∘ (e.symm.trans e') ∘ I.symm)
         (I.symm ⁻¹' (e.symm.trans e').source ∩ range I) :=
       (has_groupoid.compatible (times_cont_diff_groupoid ∞ I) he he').1,
       have B : times_cont_diff_on 𝕜 ∞ (λp : E × F, p.1)
-        ((I.symm ⁻¹' (e.symm.trans e').source ∩ range I).prod univ) :=
+        ((I.symm ⁻¹' (e.symm.trans e').source ∩ range I) ×ˢ (univ : set F)) :=
       times_cont_diff_fst.times_cont_diff_on,
       exact times_cont_diff_on.comp A B (prod_subset_preimage_fst _ _) },
     show times_cont_diff_on 𝕜 ∞ (λ (p : E × F),
@@ -254,7 +254,7 @@ begin
          ((chart_at H (e.symm (I.symm p.1)) : M → H) (e.symm (I.symm p.1)))
       (Z.coord_change ⟨e, he⟩ ⟨chart_at H (e.symm (I.symm p.1)), _⟩
         (e (e.symm (I.symm p.1))) p.2))
-      ((I.symm ⁻¹' (e.symm.trans e').source ∩ range I).prod (univ : set F)),
+      ((I.symm ⁻¹' (e.symm.trans e').source ∩ range I) ×ˢ (univ : set F)),
     { /- The coordinate change in the fiber is more complicated as its definition involves the
       reference chart chosen at each point. However, it appears with its inverse, so using the
       cocycle property one can get rid of it, and then conclude using the smoothness of the
@@ -270,7 +270,7 @@ begin
       rw e.right_inv hx.1.1,
       have := Z.coord_change_comp ⟨e, he⟩ ⟨f, chart_mem_atlas _ _⟩ ⟨e', he'⟩ (I.symm x) A v,
       simpa only [] using this } },
-  constructor,
+  refine @smooth_manifold_with_corners.mk _ _ _ _ _ _ _ _ _ _ _ ⟨_⟩,
   assume e₀ e₀' he₀ he₀',
   rcases (Z.mem_atlas_iff _).1 he₀ with ⟨e, he, rfl⟩,
   rcases (Z.mem_atlas_iff _).1 he₀' with ⟨e', he', rfl⟩,
@@ -306,7 +306,7 @@ def tangent_bundle_core : basic_smooth_bundle_core I M E :=
     have C : times_cont_diff_on 𝕜 ∞
       (λ (p : E × E), (fderiv_within 𝕜 (I ∘ j.1 ∘ i.1.symm ∘ I.symm)
             (I.symm ⁻¹' (i.1.symm.trans j.1).source ∩ range I) p.1 : E → E) p.2)
-      ((I.symm ⁻¹' (i.1.symm.trans j.1).source ∩ range I).prod univ) :=
+      ((I.symm ⁻¹' (i.1.symm.trans j.1).source ∩ range I) ×ˢ (univ : set E)) :=
       times_cont_diff_on_fderiv_within_apply A B le_top,
     have D : ∀ x ∈ (I.symm ⁻¹' (i.1.symm.trans j.1).source ∩ range I),
       fderiv_within 𝕜 (I ∘ j.1 ∘ i.1.symm ∘ I.symm)
@@ -342,12 +342,11 @@ def tangent_bundle_core : basic_smooth_bundle_core I M E :=
       simp only [hx, i.1.map_target] with mfld_simps },
     have B : ∀ᶠ y in 𝓝[range I] (I x),
       (I ∘ i.1 ∘ i.1.symm ∘ I.symm) y = (id : E → E) y,
-    { filter_upwards [A],
-      assume y hy,
+    { filter_upwards [A] with _ hy,
       rw ← I.image_eq at hy,
       rcases hy with ⟨z, hz⟩,
       simp only with mfld_simps at hz,
-      simp only [hz.2.symm, hz.1] with mfld_simps },
+      simp only [hz.2.symm, hz.1] with mfld_simps, },
     have C : fderiv_within 𝕜 (I ∘ i.1 ∘ i.1.symm ∘ I.symm) (range I) (I x) =
              fderiv_within 𝕜 (id : E → E) (range I) (I x) :=
       filter.eventually_eq.fderiv_within_eq I.unique_diff_at_image B

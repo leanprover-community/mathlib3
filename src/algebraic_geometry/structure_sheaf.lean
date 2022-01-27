@@ -694,7 +694,7 @@ begin
   refine ⟨(λ i, a i * (h i) ^ N), (λ i, (h i) ^ (N + 1)),
     (λ i, eq_to_hom (basic_opens_eq i) ≫ iDh i), _, _, _⟩,
   { simpa only [basic_opens_eq] using h_cover },
-  { intros i j hi hj,
+  { intros i hi j hj,
     -- Here we need to show that our new fractions `a i / h i` satisfy the normalization condition
     -- Of course, the power `N` we used to expand the fractions might be bigger than the power
     -- `n (i, j)` which was originally chosen. We denote their difference by `k`
@@ -776,7 +776,7 @@ begin
     intros x hx,
     erw topological_space.opens.mem_supr,
     have := ht_cover hx,
-    rw [← finset.set_bUnion_coe, set.mem_bUnion_iff] at this,
+    rw [← finset.set_bUnion_coe, set.mem_Union₂] at this,
     rcases this with ⟨i, i_mem, x_mem⟩,
     use [i, i_mem] },
 
@@ -795,7 +795,7 @@ begin
   rw [← hb, finset.sum_mul, finset.mul_sum],
   apply finset.sum_congr rfl,
   intros j hj,
-  rw [mul_assoc, ah_ha j i hj hi],
+  rw [mul_assoc, ah_ha j hj i hi],
   ring
 end
 

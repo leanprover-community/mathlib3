@@ -673,7 +673,7 @@ def subgroup_of_idempotent {G : Type*} [group G] [fintype G] (S : set G)
 
 /-- If `S` is a nonempty subset of a finite group `G`, then `S ^ |G|` is a subgroup -/
 @[to_additive smul_card_add_subgroup "If `S` is a nonempty subset of a finite add group `G`,
-  then `|G| • S` is a subgroup -/", simps]
+  then `|G| • S` is a subgroup", simps]
 def pow_card_subgroup {G : Type*} [group G] [fintype G] (S : set G) (hS : S.nonempty) :
   subgroup G :=
 have one_mem : (1 : G) ∈ (S ^ fintype.card G) := by

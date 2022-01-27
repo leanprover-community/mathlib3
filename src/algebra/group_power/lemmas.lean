@@ -3,6 +3,7 @@ Copyright (c) 2015 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Robert Y. Lewis
 -/
+import algebra.invertible
 import data.int.cast
 
 /-!
@@ -24,9 +25,12 @@ section monoid
 variables [monoid M] [monoid N] [add_monoid A] [add_monoid B]
 
 @[simp] theorem nsmul_one [has_one A] : ∀ n : ℕ, n • (1 : A) = n :=
-add_monoid_hom.eq_nat_cast
-  ⟨λ n, n • (1 : A), zero_nsmul _, λ _ _, add_nsmul _ _ _⟩
-  (one_nsmul _)
+begin
+  refine eq_nat_cast' (⟨_, _, _⟩ : ℕ →+ A) _,
+  { simp [zero_nsmul] },
+  { simp [add_nsmul] },
+  { simp }
+end
 
 @[simp, norm_cast, to_additive]
 lemma units.coe_pow (u : Mˣ) (n : ℕ) : ((u ^ n : Mˣ) : M) = u ^ n :=

@@ -1334,7 +1334,7 @@ end
 variable (H)
 
 /-- A subgroup is maximal if it is a proper subgroup that is not contained in
-anyother proper subgroup -/
+any other proper subgroup -/
 def is_maximal := H < ⊤ ∧ (∀ H' : subgroup G, H < H' → H' = ⊤)
 
 /-- In a group that satisifes the normalizer condition, every maximal subgroup is normal -/

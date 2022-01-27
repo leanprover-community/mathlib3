@@ -618,9 +618,6 @@ by { convert mul_le_mul_left' (one_le_iff_pos.2 hb) a, rw mul_one a }
 theorem le_mul_right (a : ordinal) {b : ordinal} (hb : 0 < b) : a ≤ b * a :=
 by { convert mul_le_mul_right' (one_le_iff_pos.2 hb) a, rw one_mul a }
 
-theorem mul_le_mul {a b c d : ordinal} (h₁ : a ≤ c) (h₂ : b ≤ d) : a * b ≤ c * d :=
-(mul_le_mul_left' h₂ _).trans (mul_le_mul_right' h₁ _)
-
 private lemma mul_le_of_limit_aux {α β r s} [is_well_order α r] [is_well_order β s]
   {c} (h : is_limit (type s)) (H : ∀ b' < type s, type r * b' ≤ c)
   (l : c < type r * type s) : false :=
@@ -2180,7 +2177,6 @@ end
 theorem principal_add_omega : principal (+) omega :=
 principal_add_iff_add_left_eq_self.2 (λ a, add_omega)
 
--- rename to principal_add_omega_pow
 theorem add_omega_opow {a b : ordinal} (h : a < omega ^ b) : a + omega ^ b = omega ^ b :=
 begin
   refine le_antisymm _ (le_add_left _ _),

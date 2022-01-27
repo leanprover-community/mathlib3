@@ -348,98 +348,119 @@ end is_alg_closed
 
 namespace is_alg_closure
 
-variables (J : Type*) (K : Type u) [field J] [field K] (L : Type v) (M : Type w) [field L]
-  [field M] [algebra K M] [is_alg_closure K M]
+variables (K : Type*) (J : Type*) (R : Type u) (S : Type*) [field K] [field J] [comm_ring R]
+  (L : Type v) (M : Type w) [field L] [field M] [algebra R M] [is_alg_closure R M]
+  [algebra K M] [is_alg_closure K M]
+  [comm_ring S] [algebra S L] [is_alg_closure S L]
 
 local attribute [instance] is_alg_closure.alg_closed
 
 section
-variables [algebra K L] [is_alg_closure K L]
+variables [algebra R L] [is_alg_closure R L]
 
-/-- A (random) isomorphism between two algebraic closures of `K`. -/
-noncomputable def equiv : L ≃ₐ[K] M :=
-let f : L →ₐ[K] M := is_alg_closed.lift K L M is_alg_closure.algebraic in
+/-- A (random) isomorphism between two algebraic closures of `R`. -/
+noncomputable def equiv : L ≃ₐ[R] M :=
+let f : L →ₐ[R] M := is_alg_closed.lift'
+  is_alg_closure.injective is_alg_closure.injective is_alg_closure.algebraic in
 alg_equiv.of_bijective f
   ⟨ring_hom.injective f.to_ring_hom,
     begin
       letI : algebra L M := ring_hom.to_algebra f,
-      letI : is_scalar_tower K L M :=
+      letI : is_scalar_tower R L M :=
         is_scalar_tower.of_algebra_map_eq (by simp [ring_hom.algebra_map_to_algebra]),
       show function.surjective (algebra_map L M),
       exact is_alg_closed.algebra_map_surjective_of_is_algebraic
-        (algebra.is_algebraic_of_larger_base K L is_alg_closure.algebraic),
+        (algebra.is_algebraic_of_larger_base_of_injective
+          (@is_alg_closure.injective R _ _ _ _ _) is_alg_closure.algebraic),
     end⟩
 
 end
 
 section equiv_of_algebraic
 
+variables [algebra R S] [algebra S L] [is_alg_closure S L] [algebra R L] [is_scalar_tower R S L]
 variables [algebra K J] [algebra J L] [is_alg_closure J L] [algebra K L]
   [is_scalar_tower K J L]
+
+
+/-- An equiv between an algebraic closure of `R` and an algebraic closure of an algebraic
+  extension of `R` -/
+noncomputable def equiv_of_algebraic' (hRL : algebra.is_algebraic R L)
+  (hRS : function.injective (algebra_map R S)): L ≃ₐ[R] M :=
+begin
+  letI : is_alg_closure R L :=
+  { alg_closed := by apply_instance,
+    algebraic := hRL,
+    injective := begin
+      rw [is_scalar_tower.algebra_map_eq R S L],
+      exact function.injective.comp is_alg_closure.injective hRS
+    end  },
+  exact is_alg_closure.equiv _ _ _
+end
 
 /-- An equiv between an algebraic closure of `K` and an algebraic closure of an algebraic
   extension of `K` -/
 noncomputable def equiv_of_algebraic (hKJ : algebra.is_algebraic K J) : L ≃ₐ[K] M :=
-begin
-  letI : is_alg_closure K L :=
-  { alg_closed := by apply_instance,
-    algebraic := algebra.is_algebraic_trans hKJ is_alg_closure.algebraic  },
-  exact is_alg_closure.equiv _ _ _
-end
+equiv_of_algebraic' K J _ _ (algebra.is_algebraic_trans hKJ is_alg_closure.algebraic)
+  (ring_hom.injective  _)
 
 end equiv_of_algebraic
 
 section equiv_of_equiv
 
-variables [algebra J L] [is_alg_closure J L]
-
-variables {J K}
+variables {R S}
 
 /-- Used in the definition of `equiv_of_equiv` -/
-noncomputable def equiv_of_equiv_aux (hJK : J ≃+* K) :
-  { e : L ≃+* M // e.to_ring_hom.comp (algebra_map J L) =
-    (algebra_map K M).comp hJK.to_ring_hom }:=
+noncomputable def equiv_of_equiv_aux (hSR : S ≃+* R) :
+  { e : L ≃+* M // e.to_ring_hom.comp (algebra_map S L) =
+    (algebra_map R M).comp hSR.to_ring_hom }:=
 begin
-  letI : algebra K J := ring_hom.to_algebra hJK.symm.to_ring_hom,
-  have : algebra.is_algebraic K J,
+  letI : algebra R S := ring_hom.to_algebra hSR.symm.to_ring_hom,
+  letI : algebra S R := ring_hom.to_algebra hSR.to_ring_hom,
+  letI : is_domain R := (@is_alg_closure.injective R M _ _ _ _).is_domain _,
+  have : algebra.is_algebraic R S,
     from λ x, begin
-      rw [← ring_equiv.symm_apply_apply hJK x],
+      rw [← ring_equiv.symm_apply_apply hSR x],
       exact is_algebraic_algebra_map _
     end,
-  letI : algebra K L := ring_hom.to_algebra ((algebra_map J L).comp (algebra_map K J)),
-  letI : is_scalar_tower K J L := is_scalar_tower.of_algebra_map_eq (λ _, rfl),
-  refine ⟨equiv_of_algebraic J K L M this, _⟩,
+  letI : algebra R L := ring_hom.to_algebra ((algebra_map S L).comp (algebra_map R S)),
+  haveI : is_scalar_tower R S L := is_scalar_tower.of_algebra_map_eq (λ _, rfl),
+  haveI : is_scalar_tower S R L := is_scalar_tower.of_algebra_map_eq
+    (by simp [ring_hom.algebra_map_to_algebra]),
+  refine ⟨equiv_of_algebraic' R S L M (algebra.is_algebraic_of_larger_base_of_injective
+      (show function.injective (algebra_map S R), from hSR.injective)
+      is_alg_closure.algebraic) hSR.symm.injective, _⟩,
   ext,
   simp only [ring_equiv.to_ring_hom_eq_coe, function.comp_app, ring_hom.coe_comp,
     alg_equiv.coe_ring_equiv, ring_equiv.coe_to_ring_hom],
-  conv_lhs { rw [← hJK.symm_apply_apply x] },
-  show equiv_of_algebraic J K L M this (algebra_map K L (hJK x)) = _,
+  conv_lhs { rw [← hSR.symm_apply_apply x] },
+  show equiv_of_algebraic' R S L M _ _ (algebra_map R L (hSR x)) = _,
   rw [alg_equiv.commutes]
 end
 
 /-- Algebraic closure of isomorphic fields are isomorphic -/
-noncomputable def equiv_of_equiv (hJK : J ≃+* K) : L ≃+* M :=
-equiv_of_equiv_aux L M hJK
+noncomputable def equiv_of_equiv (hSR : S ≃+* R) : L ≃+* M :=
+equiv_of_equiv_aux L M hSR
 
-@[simp] lemma equiv_of_equiv_comp_algebra_map (hJK : J ≃+* K) :
-  (↑(equiv_of_equiv L M hJK) : L →+* M).comp (algebra_map J L) =
-  (algebra_map K M).comp hJK :=
-(equiv_of_equiv_aux L M hJK).2
+@[simp] lemma equiv_of_equiv_comp_algebra_map (hSR : S ≃+* R) :
+  (↑(equiv_of_equiv L M hSR) : L →+* M).comp (algebra_map S L) =
+  (algebra_map R M).comp hSR :=
+(equiv_of_equiv_aux L M hSR).2
 
-@[simp] lemma equiv_of_equiv_algebra_map (hJK : J ≃+* K) (j : J):
-  equiv_of_equiv L M hJK (algebra_map J L j) =
-  algebra_map K M (hJK j) :=
-ring_hom.ext_iff.1 (equiv_of_equiv_comp_algebra_map L M hJK) j
+@[simp] lemma equiv_of_equiv_algebra_map (hSR : S ≃+* R) (s : S):
+  equiv_of_equiv L M hSR (algebra_map S L s) =
+  algebra_map R M (hSR s) :=
+ring_hom.ext_iff.1 (equiv_of_equiv_comp_algebra_map L M hSR) s
 
-@[simp] lemma equiv_of_equiv_symm_algebra_map (hJK : J ≃+* K) (k : K):
-  (equiv_of_equiv L M hJK).symm (algebra_map K M k) =
-  algebra_map J L (hJK.symm k) :=
-(equiv_of_equiv L M hJK).injective (by simp)
+@[simp] lemma equiv_of_equiv_symm_algebra_map (hSR : S ≃+* R) (r : R):
+  (equiv_of_equiv L M hSR).symm (algebra_map R M r) =
+  algebra_map S L (hSR.symm r) :=
+(equiv_of_equiv L M hSR).injective (by simp)
 
-@[simp] lemma equiv_of_equiv_symm_comp_algebra_map (hJK : J ≃+* K) :
-  ((equiv_of_equiv L M hJK).symm : M →+* L).comp (algebra_map K M) =
-  (algebra_map J L).comp hJK.symm :=
-ring_hom.ext_iff.2 (equiv_of_equiv_symm_algebra_map L M hJK)
+@[simp] lemma equiv_of_equiv_symm_comp_algebra_map (hSR : S ≃+* R) :
+  ((equiv_of_equiv L M hSR).symm : M →+* L).comp (algebra_map R M) =
+  (algebra_map S L).comp hSR.symm :=
+ring_hom.ext_iff.2 (equiv_of_equiv_symm_algebra_map L M hSR)
 
 end equiv_of_equiv
 

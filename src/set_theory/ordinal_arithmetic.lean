@@ -1827,8 +1827,6 @@ by simp only [type_fin, lift_nat_cast]
 theorem type_fintype (r : α → α → Prop) [is_well_order α r] [fintype α] : type r = fintype.card α :=
 by rw [← card_eq_nat, card_type, mk_fintype]
 
-
-
 /-! ### Fixed points of normal functions -/
 
 /-- The next fixed point function, the least fixed point of the
@@ -2071,8 +2069,7 @@ theorem iterate_lt_of_principal {op : ordinal → ordinal → ordinal}
 begin
   induction n with n hn,
   { rwa function.iterate_zero },
-  { have := ho hao hn,
-    rwa function.iterate_succ' }
+  { have := ho hao hn, rwa function.iterate_succ' }
 end
 
 theorem op_eq_self_of_principal {op : ordinal → ordinal → ordinal} {a o : ordinal.{u}}
@@ -2220,8 +2217,8 @@ begin
     rcases lt_or_eq_of_le ho with ho | rfl,
     { rw lt_one_iff_zero.1 ho,
       exact principal_zero },
-    exact principal_mul_one },
-  exact principal_mul_two
+    { exact principal_mul_one } },
+  { exact principal_mul_two }
 end
 
 theorem add_principal_of_mul_principal {o : ordinal.{u}} (ho : principal (*) o) (ho₂ : o ≠ 2) :
@@ -2231,9 +2228,9 @@ begin
   { change o < succ 1 at ho₁,
     rw lt_succ at ho₁,
     exact principal_add_of_le_one ho₁ },
-  refine λ a b hao hbo, lt_of_le_of_lt _ (ho (max_lt hao hbo) ho₂),
-  rw mul_two,
-  exact add_le_add (le_max_left a b) (le_max_right a b)
+  { refine λ a b hao hbo, lt_of_le_of_lt _ (ho (max_lt hao hbo) ho₂),
+    rw mul_two,
+    exact add_le_add (le_max_left a b) (le_max_right a b) }
 end
 
 theorem mul_principal_is_limit {o : ordinal.{u}} (ho₂ : 2 < o) (ho : principal (*) o) :
@@ -2251,12 +2248,12 @@ begin
       apply le_antisymm,
       { have : a < succ 1 := hao.trans_le ho,
         rwa lt_succ at this },
-      rwa [←succ_le, succ_zero] at ha₀ },
-    exact op_eq_self_of_principal hao (mul_is_normal ha₀) h (mul_principal_is_limit ho h) },
-  rcases eq_or_ne a 0 with rfl | ha, { rwa zero_mul },
-  rw ←ordinal.pos_iff_ne_zero at ha,
-  rw ←h a ha hao,
-  exact (mul_is_normal ha).strict_mono hbo
+      { rwa [←succ_le, succ_zero] at ha₀ } },
+    { exact op_eq_self_of_principal hao (mul_is_normal ha₀) h (mul_principal_is_limit ho h) } },
+  { rcases eq_or_ne a 0 with rfl | ha, { rwa zero_mul },
+    rw ←ordinal.pos_iff_ne_zero at ha,
+    rw ←h a ha hao,
+    exact (mul_is_normal ha).strict_mono hbo }
 end
 
 theorem principal_mul_omega : principal (*) omega.{u} :=
@@ -2269,7 +2266,7 @@ begin
   cases eq_zero_or_pos o with ho ho,
   { rw [ho, zero_opow omega_ne_zero] at h,
     exact (ordinal.not_lt_zero a h).elim },
-  rwa [opow_omega_eq_sup_power_nat ho, lt_sup] at h
+  { rwa [opow_omega_eq_sup_power_nat ho, lt_sup] at h }
 end
 
 theorem power_omega_mul_principal (o : ordinal.{u}) : principal (*) (o ^ omega.{u}) :=
@@ -2278,14 +2275,14 @@ begin
   { rcases le_one_iff.1 ho with rfl | rfl,
     { rw ordinal.zero_opow omega_ne_zero,
       exact principal_zero },
-    rw one_opow,
-    exact principal_mul_one },
-  intros a b hao hbo,
-  cases lt_power_omega hao with m hm,
-  cases lt_power_omega hbo with n hn,
-  apply lt_of_le_of_lt (mul_le_mul (le_of_lt hm) (le_of_lt hn)),
-  rw [←power_add, power_lt_power_iff_right ho, lt_omega],
-  exact ⟨_, (nat.cast_add m n).symm⟩
+    { rw one_opow,
+      exact principal_mul_one } },
+  { intros a b hao hbo,
+    cases lt_power_omega hao with m hm,
+    cases lt_power_omega hbo with n hn,
+    apply lt_of_le_of_lt (mul_le_mul (le_of_lt hm) (le_of_lt hn)),
+    rw [←opow_add, opow_lt_opow_iff_right ho, lt_omega],
+    exact ⟨_, (nat.cast_add m n).symm⟩ }
 end
 
 -- golf

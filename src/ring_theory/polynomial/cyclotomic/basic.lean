@@ -522,11 +522,15 @@ begin
       cyclotomic'_eq_X_pow_sub_one_div hpos hz, finset.prod_congr (refl k.proper_divisors) h]
 end
 
+section roots
+
+variables {R : Type*} {n : ℕ} [comm_ring R] [is_domain R]
+
 /-- Any `n`-th primitive root of unity is a root of `cyclotomic n K`.-/
-lemma is_root_cyclotomic {n : ℕ} {K : Type*} [comm_ring K] [is_domain K] (hpos : 0 < n) {μ : K}
-  (h : is_primitive_root μ n) : is_root (cyclotomic n K) μ :=
+lemma is_root_cyclotomic (hpos : 0 < n) {μ : R} (h : is_primitive_root μ n) :
+  is_root (cyclotomic n R) μ :=
 begin
-  rw [← mem_roots (cyclotomic_ne_zero n K),
+  rw [← mem_roots (cyclotomic_ne_zero n R),
       cyclotomic_eq_prod_X_sub_primitive_roots h, roots_prod_X_sub_C, ← finset.mem_def],
   rwa [← mem_primitive_roots hpos] at h,
 end
@@ -567,8 +571,8 @@ begin
   simp [polynomial.is_unit_iff_degree_eq_zero]
 end
 
-lemma is_root_cyclotomic_iff {n : ℕ} {R : Type*} [comm_ring R] [is_domain R] [ne_zero (n : R)]
-  {μ : R} : is_root (cyclotomic n R) μ ↔ is_primitive_root μ n :=
+lemma is_root_cyclotomic_iff [ne_zero (n : R)] {μ : R} :
+  is_root (cyclotomic n R) μ ↔ is_primitive_root μ n :=
 begin
   have hf : function.injective _ := is_fraction_ring.injective R (fraction_ring R),
   haveI : ne_zero (n : fraction_ring R) := ne_zero.nat_of_injective hf,
@@ -576,8 +580,7 @@ begin
       ←is_root_cyclotomic_iff']
 end
 
-lemma roots_cyclotomic_nodup {n : ℕ} {R : Type*} [comm_ring R] [is_domain R] [ne_zero (n : R)] :
-  (cyclotomic n R).roots.nodup :=
+lemma roots_cyclotomic_nodup [ne_zero (n : R)] : (cyclotomic n R).roots.nodup :=
 begin
   obtain h | ⟨ζ, hζ⟩ := (cyclotomic n R).roots.empty_or_exists_mem,
   { exact h.symm ▸ multiset.nodup_zero },
@@ -586,10 +589,16 @@ begin
     (ne_zero.pos_of_ne_zero_coe R) 1) $ cyclotomic.dvd_X_pow_sub_one n R) hζ.nth_roots_nodup,
 end
 
-lemma _root_.primitive_roots_eq_roots_cyclotomic {n : ℕ} {R : Type*} [comm_ring R] [is_domain R]
-  [h : ne_zero (n : R)] : primitive_roots n R = ⟨(cyclotomic n R).roots, roots_cyclotomic_nodup⟩ :=
+lemma cyclotomic.roots_to_finset_eq_primitive_roots [ne_zero (n : R)] :
+    (⟨(cyclotomic n R).roots, roots_cyclotomic_nodup⟩ : finset _) = primitive_roots n R :=
 by { ext, simp [cyclotomic_ne_zero n R, is_root_cyclotomic_iff,
                 mem_primitive_roots, ne_zero.pos_of_ne_zero_coe R] }
+
+lemma cyclotomic.roots_eq_primitive_roots_val [ne_zero (n : R)] :
+  (cyclotomic n R).roots = (primitive_roots n R).val :=
+by rw ←cyclotomic.roots_to_finset_eq_primitive_roots
+
+end roots
 
 /-- If `R` is of characteristic zero, then `ζ` is a root of `cyclotomic n R` if and only if it is a
 primitive `n`-th root of unity. -/

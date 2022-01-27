@@ -866,11 +866,7 @@ lemma map_strict_mono (f : α → β) : strict_mono (map f) := λ _ _, map_lt_ma
 
 lemma map_insert (S : multiset α) (a : α) (g : α → β) :
   multiset.map g (insert a S) = insert (g a) (multiset.map g S) :=
-begin
-  apply multiset.strong_induction_on S,
-  apply multiset.induction_on' S, { simp },
-  exact λ _ _ _ _, id,
-end
+by { apply multiset.strong_induction_on S, apply multiset.induction_on' S; simp }
 
 lemma map_erase [decidable_eq α] [decidable_eq β]
   (f : α → β) (hf : function.injective f) (x : α) (s : multiset α) :

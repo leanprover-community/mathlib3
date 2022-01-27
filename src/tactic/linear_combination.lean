@@ -352,8 +352,6 @@ Note: The left and right sides of all the equalities should have the same
       `normalize` is set to tt (meaning this tactic is set to use
       normalization), and `normalization_tactic` is set to  `ring1`.
 
-* Output: N/A
-
 Example Usage:
 ```
 example (x y : ℤ) (h1 : x*y + 2*x = 1) (h2 : x = y) :
@@ -364,6 +362,18 @@ example (x y z : ℝ) (ha : x + 2*y - z = 4) (hb : 2*x + y + z = -2)
     (hc : x + 2*y + z = 2) :
   -3*x - 3*y - 4*z = 2 :=
 by linear_combination (ha, 1) (hb, -1) (hc, -2)
+
+example (x y : ℚ) (h1 : x + y = 3) (h2 : 3*x = 7) :
+  x*x*y + y*x*y + 6*x = 3*x*y + 14 :=
+by linear_combination (h1, x*y) (h2, 2)
+
+example (x y : ℤ) (h1 : x = -3) (h2 : y = 10) :
+  2*x = -6 :=
+begin
+  linear_combination (h1, 2) {normalize := ff},
+  simp,
+  norm_cast
+end
 ```
 -/
 meta def _root_.tactic.interactive.linear_combination

@@ -454,6 +454,7 @@ begin
     (X.presheaf.map (hom_of_le hf₁ : _ ⟶ V).op g),
   replace hf' := (hf'.trans (RingedSpace.basic_open_res _ _ _)).trans (inf_eq_right.mpr hg₁),
   exact ⟨f', g, hf', hf'.symm ▸ hg₂⟩
+end
 
 /-- The prime ideal of `𝒪ₓ(U)` corresponding to a point `x : U`. -/
 noncomputable

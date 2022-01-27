@@ -161,8 +161,8 @@ do some s ← get_proof_state_after (tac ff (user_args ++ simp_args)),
 
 /-- make a `simp_arg_type` that references the name given as an argument -/
 -- this is currently very badly written - using an `expr` constructor raw is not a good idea
-meta def name.to_simp_args (n : name) : tactic simp_arg_type :=
-return $ simp_arg_type.expr $ @expr.local_const ff n n (default) (expr.var 0)
+meta def name.to_simp_args (n : name) : simp_arg_type :=
+simp_arg_type.expr $ @expr.local_const ff n n (default) pexpr.mk_placeholder
 
 -- `macro`s can be other things but this is a good first order approximation
 /-- If the `expr` is (likely) to be overloaded, then prepend a `_root_` on it. -/
@@ -201,8 +201,7 @@ do v ← target >>= mk_meta_var,
    let vs := g.list_constant,
    vs ← vs.mfilter is_simp_lemma,
    vs ← vs.mmap prepend_root_if_needed,
-   vs ← vs.to_list.mmap name.to_simp_args,
-   with_local_goals' [v] (filter_simp_set tac args vs)
+   with_local_goals' [v] (filter_simp_set tac args $ vs.to_list.map name.to_simp_args)
      >>= mk_suggestion,
    tac no_dflt args
 

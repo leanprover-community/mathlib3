@@ -156,7 +156,7 @@ begin
   apply nat.dvd_of_factors_subperm hn₀.ne',
   rw [hp.factors_pow, list.subperm_ext_iff],
   intros q hq',
-  rw nat.mem_factors hn₀ at hq',
+  rw nat.mem_factors hn₀.ne' at hq',
   cases hq _ hq'.1 hq'.2,
   simp,
 end

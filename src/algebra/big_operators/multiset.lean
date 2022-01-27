@@ -113,10 +113,6 @@ lemma prod_map_prod_map (m : multiset β) (n : multiset γ) {f : β → γ → �
   prod (m.map $ λ a, prod $ n.map $ λ b, f a b) = prod (n.map $ λ b, prod $ m.map $ λ a, f a b) :=
 multiset.induction_on m (by simp) (λ a m ih, by simp [ih])
 
-@[simp] lemma prod_insert [comm_monoid α] (S : multiset α) (a : α) :
-  (insert a S).prod = a * S.prod :=
-by { apply multiset.strong_induction_on S, apply multiset.induction_on' S; simp }
-
 @[to_additive]
 lemma prod_induction (p : α → Prop) (s : multiset α) (p_mul : ∀ a b, p a → p b → p (a * b))
   (p_one : p 1) (p_s : ∀ a ∈ s, p a) :

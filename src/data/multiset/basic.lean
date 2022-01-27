@@ -2128,4 +2128,3 @@ lemma coe_subsingleton_equiv [subsingleton α] :
 rfl
 
 end multiset
--- #lint

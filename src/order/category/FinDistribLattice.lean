@@ -40,7 +40,7 @@ def of (α : Type*) [distrib_lattice α] [bounded_order α] [fintype α] : FinDi
 def of' (α : Type*) [distrib_lattice α] [fintype α] [nonempty α] : FinDistribLattice :=
 by { haveI := fintype.to_bounded_order α, exact ⟨⟨⟨α⟩⟩⟩ }
 
-instance : inhabited FinDistribLattice := ⟨of bool⟩
+instance : inhabited FinDistribLattice := ⟨of punit⟩
 
 instance : large_category.{u} FinDistribLattice :=
 { hom := λ X Y, bounded_lattice_hom X Y,

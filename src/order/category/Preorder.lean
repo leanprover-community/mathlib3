@@ -33,4 +33,27 @@ instance : inhabited Preorder := ⟨of punit⟩
 
 instance (α : Preorder) : preorder α := α.str
 
+def order_iso.dual_dual (α : Type*) [preorder α] : α ≃o order_dual (order_dual α) :=
+order_iso.refl α
+
+def order_hom.dual_dual (α : Type*) [preorder α] : α →o order_dual (order_dual α) :=
+⟨id, monotone_id⟩
+
+def order_hom.of_dual_dual (α : Type*) [preorder α] : order_dual (order_dual α) →o α :=
+⟨id, monotone_id⟩
+
+/-- The equivalence between `Preorder` and itself induced by `order_dual` both ways. -/
+def dual_equiv : Preorder ≌ Preorder :=
+{ functor := { obj := λ X, of (order_dual X), map := λ X Y, order_hom.dual },
+  inverse := { obj := λ X, of (order_dual X), map := λ X Y, order_hom.dual },
+  unit_iso := { hom := { app := λ X, order_iso.dual_dual X, naturality' := λ X Y f, rfl },
+                inv := { app := λ X,
+                           ((order_iso.dual_dual X).symm : order_dual (order_dual X) →o X),
+                         naturality' := λ X Y f, rfl } },
+  counit_iso := { hom := { app := λ X,
+                             ((order_iso.dual_dual X).symm : order_dual (order_dual X) →o X),
+                           naturality' := λ X Y f, rfl },
+                  inv := { app := λ X, (order_iso.dual_dual X : X →o order_dual (order_dual X)),
+                           naturality' := λ X Y f, rfl } } }
+
 end Preorder

@@ -29,7 +29,7 @@ attribute [instance] BoundedDistribLattice.is_bounded_order
 /-- Construct a bundled `BoundedDistribLattice` from a `bounded_order` `distrib_lattice`. -/
 def of (α : Type*) [distrib_lattice α] [bounded_order α] : BoundedDistribLattice := ⟨⟨α⟩⟩
 
-instance : inhabited BoundedDistribLattice := ⟨of bool⟩
+instance : inhabited BoundedDistribLattice := ⟨of punit⟩
 
 instance : large_category.{u} BoundedDistribLattice :=
 { hom := λ X Y, bounded_lattice_hom X Y,

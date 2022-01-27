@@ -32,7 +32,7 @@ attribute [instance]  FinPartialOrder.is_fintype
 /-- Construct a bundled `FinPartialOrder` from a `fintype` `partial_order`. -/
 def of (α : Type*) [partial_order α] [fintype α] : FinPartialOrder := ⟨⟨α⟩⟩
 
-instance : inhabited FinPartialOrder := ⟨of bool⟩
+instance : inhabited FinPartialOrder := ⟨of punit⟩
 
 instance : large_category.{u} FinPartialOrder :=
 { hom := λ X Y, order_hom X Y,

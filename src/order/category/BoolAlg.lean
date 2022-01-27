@@ -27,7 +27,13 @@ instance (X : BoolAlg) : boolean_algebra X := X.str
 /-- Construct a bundled `BoolAlg` from a `boolean_algebra`. -/
 def of (α : Type*) [boolean_algebra α] : BoolAlg := bundled.of α
 
-instance : inhabited BoolAlg := ⟨of bool⟩
+instance : inhabited BoolAlg := ⟨of punit⟩
+
+-- instance boolean_algebra.to_distrib_lattice.bundled_hom.parent_projection :
+--   bundled_hom.parent_projection (λ α _,by exactI boolean_algebra.core.to_distrib_lattice _ :
+--     Π α, boolean_algebra α → distrib_lattice α) := ⟨⟩
+
+-- attribute [derive [large_category, concrete_category]] BoolAlg
 
 instance : large_category.{u} BoolAlg :=
 { hom := λ X Y, bounded_lattice_hom X Y,

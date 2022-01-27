@@ -68,7 +68,7 @@ A configuration object for `linear_combination`.
 `normalize` describes whether or not the normalization step should be used.
 
 `normalization_tactic` describes the tactic used for normalization when
-checking if the weighted sum is equivalent to the goal (when `normalize` is tt).
+checking if the weighted sum is equivalent to the goal (when `normalize` is `tt`).
 -/
 meta structure linear_combination_config : Type :=
 (normalize : bool := tt)
@@ -79,15 +79,15 @@ meta structure linear_combination_config : Type :=
 
 
 /--
-Given that lhs = rhs, this tactic returns an expr proving that
-  coeff * lhs = coeff * rhs.
+Given that `lhs = rhs`, this tactic returns an `expr` proving that
+  `coeff * lhs = coeff * rhs`.
 
 * Input:
-  * `h_equality` : an expr, whose type should be an equality between terms of
-      type α, where there is an instance of `has_mul α`
-  * `coeff` : a pexpr, which should be a value of type α
+  * `h_equality` : an `expr`, whose type should be an equality between terms of
+      type `α`, where there is an instance of `has_mul α`
+  * `coeff` : a `pexpr`, which should be a value of type `α`
 
-* Output: a tactic expr, which proves that the result of multiplying both sides
+* Output: an `expr`, which proves that the result of multiplying both sides
     of `h_equality` by the `coeff` holds
 -/
 meta def mul_equality_expr (h_equality : expr) (coeff : pexpr) : tactic expr :=
@@ -100,33 +100,33 @@ do
   mk_app ``left_mul_both_sides [coeff_expr, h_equality]
 
 /--
-Given two hypotheses that a = b and c = d, this tactic returns an expr proving
-  that a + c = b + d.
+Given two hypotheses that `a = b` and `c = d`, this tactic returns an `expr` proving
+  that `a + c = b + d`.
 
 * Input:
-  * `h_equality1` : an expr, whose type should be an equality between terms of
-      type α, where there is an instance of `has_add α`
-  * `h_equality2` : an expr, whose type should be an equality between terms of
-      type α
+  * `h_equality1` : an `expr`, whose type should be an equality between terms of
+      type `α`, where there is an instance of `has_add α`
+  * `h_equality2` : an `expr`, whose type should be an equality between terms of
+      type `α`
 
-* Output: a tactic expr, which proves that the result of adding the two
+* Output: an `expr`, which proves that the result of adding the two
     equalities holds
 -/
 meta def sum_equalities (h_equality1 h_equality2 : expr) : tactic expr :=
 mk_app ``sum_two_equations [h_equality1, h_equality2]
 
 /--
-Given that a = b and c = d, along with a coefficient, this tactic returns an
-  expr proving that a + coeff * c = b + coeff * d.
+Given that `a = b` and `c = d`, along with a coefficient, this tactic returns an
+  `expr` proving that `a + coeff * c = b + coeff * d`.
 
 * Input:
-  * `h_equality1` : an expr, whose type should be an equality between terms of
-      type α, where there are instances of `has_add α` and `has_mul α`
-  * `h_equality2` : an expr, whose type should be an equality between terms of
-      type α
-  * `coeff_for_eq2` : a pexpr, which should be a value of type α
+  * `h_equality1` : an `expr`, whose type should be an equality between terms of
+      type `α`, where there are instances of `has_add α` and `has_mul α`
+  * `h_equality2` : an `expr`, whose type should be an equality between terms of
+      type `α`
+  * `coeff_for_eq2` : a `pexpr`, which should be a value of type `α`
 
-* Output: a tactic expr, which proves that the result of adding the first
+* Output: an `expr`, which proves that the result of adding the first
   equality to the result of multiplying `coeff_for_eq2` by the second equality
   holds
 -/
@@ -135,19 +135,19 @@ meta def sum_two_hyps_one_mul_helper (h_equality1 h_equality2 : expr)
 mul_equality_expr h_equality2 coeff_for_eq2 >>= sum_equalities h_equality1
 
 /--
-Given that l_sum1 = r_sum1, l_h1 = r_h1, ..., l_hn = r_hn, and given
-  coefficients c_1, ..., c_n, this tactic returns an expr proving that
-    l_sum1 + (c_1 * l_h1) + ... + (c_n * l_hn)
-  = r_sum1 + (c_1 * r_h1) + ... + (c_n * r_hn)
+Given that `l_sum1 = r_sum1`, `l_h1 = r_h1`, ..., `l_hn = r_hn`, and given
+  coefficients `c_1`, ..., `c_n`, this tactic returns an `expr` proving that
+    `l_sum1 + (c_1 * l_h1) + ... + (c_n * l_hn)`
+  `= r_sum1 + (c_1 * r_h1) + ... + (c_n * r_hn)`
 
 * Input:
-  * an option (tactic expr) : `none`, if there is no sum to add to yet, or
+  * an `option (tactic expr)` : `none`, if there is no sum to add to yet, or
       `some` containing the base summation equation
-  * a list name : a list of names, referring to equalities in the local context
-  * a list pexpr : a list of coefficients to be multiplied with the
+  * a `list name` : a list of names, referring to equalities in the local context
+  * a `list pexpr` : a list of coefficients to be multiplied with the
       corresponding equalities in the list of names
 
-* Output: a tactic expr, which proves that the weighted sum of the given
+* Output: an `expr`, which proves that the weighted sum of the given
     equalities added to the base equation holds
 -/
 meta def make_sum_of_hyps_helper :
@@ -189,7 +189,7 @@ Given a list of names referencing equalities and a list of pexprs representing
   * `coeffs` : a list of coefficients to be multiplied with the corresponding
       equalities in the list of names
 
-* Output: a `tactic expr`, which proves that the weighted sum of the equalities
+* Output: an `expr`, which proves that the weighted sum of the equalities
     holds
 -/
 meta def make_sum_of_hyps (h_eqs_names : list name) (coeffs : list pexpr) :
@@ -203,14 +203,14 @@ make_sum_of_hyps_helper none h_eqs_names coeffs
 /--
 This tactic proves that the result of moving all the terms in an equality to
   the left side of the equals sign by subtracting the right side of the
-  equation from the left side holds.  In other words, given lhs = rhs,
-  this tactic proves that lhs - rhs = 0.
+  equation from the left side holds.  In other words, given `lhs = rhs`,
+  this tactic proves that `lhs - rhs = 0`.
 
 * Input:
-  * `h_equality` : an expr, whose type should be an equality between terms of
-      type α, where there is an instance of `add_group α`
+  * `h_equality` : an `expr`, whose type should be an equality between terms of
+      type `α`, where there is an instance of `add_group α`
 
-* Output: tactic expr, which proves that lhs - rhs = 0, where lhs and rhs are
+* Output: an `expr`, which proves that `lhs - rhs = 0`, where `lhs` and `rhs` are
    the left and right sides of `h_equality` respectively
 -/
 meta def move_to_left_side (h_equality : expr) : tactic expr :=
@@ -220,10 +220,10 @@ mk_app ``left_minus_right [h_equality]
 This tactic replaces the target with the result of moving all the terms in the
   target to the left side of the equals sign by subtracting the right side of
   the equation from the left side.  In other words, when the target is
-  lhs = rhs, this tactic proves that lhs - rhs = 0 and replaces the target
+  lhs = rhs, this tactic proves that `lhs - rhs = 0` and replaces the target
   with this new equality.
 Note: The target must be an equality when this tactic is called, and the
-  equality must have some type α on each side, where there is an instance of
+  equality must have some type `α` on each side, where there is an instance of
   `add_group α`.
 
 * Input: N/A
@@ -245,8 +245,8 @@ do
 /--
 This tactic changes the goal to be that the lefthand side of the target is
   equal to the lefthand side of the given expression.  For example,
-  if `hsum_on_left` is 5*x - 5*y = 0, and the target is -5*y + 5*x = 0, this
-  tactic will change the target to be -5*y + 5*x = 5*x - 5*y.
+  if `hsum_on_left` is `5*x - 5*y = 0`, and the target is `-5*y + 5*x = 0`, this
+  tactic will change the target to be `-5*y + 5*x = 5*x - 5*y`.
 
 This tactic only should be used when the target's type an equality whose
   right side is 0.
@@ -265,7 +265,7 @@ This tactic attempts to prove the goal by normalizing the target if the
 `normalize` field of the given configuration is true.
 
 * Input:
-  * `config` : a linear_combination_config, which determines the tactic used
+  * `config` : a `linear_combination_config`, which determines the tactic used
       for normalization if normalization is done
 
 * Output: N/A
@@ -294,9 +294,9 @@ Note: The left and right sides of all the equalities should have the same
       context
   * `coeffs` : a list of coefficients to be multiplied with the corresponding
     equations in the list of names
-  * `config` : a linear_combination_config, which determines the tactic used
+  * `config` : a `linear_combination_config`, which determines the tactic used
       for normalization; by default, this value is the standard configuration
-      for a linear_combination_config
+      for a `linear_combination_config`
 
 * Output: N/A
 -/
@@ -315,11 +315,11 @@ setup_tactic_parser
 
 /--
 A parser that matches a pair in parentheses, where the first item in the pair
-is an identifier and the second item in the pair is a pexpr.
+is an identifier and the second item in the pair is a `pexpr`.
 
 * Input: None
 
-* Output: a lean.parser (name × pexpr)
+* Output: a `lean.parser (name × pexpr)`
 -/
 meta def parse_name_pexpr_pair : lean.parser (name × pexpr) :=
 do

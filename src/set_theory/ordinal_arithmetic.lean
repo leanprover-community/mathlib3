@@ -2383,7 +2383,7 @@ begin
     intros c hcb,
     have hb₁ : 1 < b := (lt_succ_self 1).trans hb₂,
     have hbo₀ : b ^ b.log a ≠ 0 := ordinal.pos_iff_ne_zero.1 (opow_pos _ (zero_lt_one.trans hb₁)),
-    refine le_trans (mul_le_mul_right' (le_of_lt (lt_mul_succ_div a hbo₀)) c) _,
+    apply le_trans (mul_le_mul_right' (le_of_lt (lt_mul_succ_div a hbo₀)) c),
     rw [mul_assoc, opow_succ],
     refine mul_le_mul_left' (le_of_lt (hb (hbl.2 _ _) hcb)) _,
     rw [div_lt hbo₀, ←opow_succ],

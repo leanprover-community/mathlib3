@@ -172,7 +172,7 @@ begin
   { rintro (rfl|rfl|rfl); simp only [log_one, log_zero, log_neg_eq_log], }
 end
 
-lemma log_pow (x : ℝ) (n : ℕ) : log (x ^ n) = n * log x :=
+@[simp] lemma log_pow (x : ℝ) (n : ℕ) : log (x ^ n) = n * log x :=
 begin
   induction n with n ih,
   { simp },
@@ -181,7 +181,7 @@ begin
   rw [pow_succ', log_mul (pow_ne_zero _ hx) hx, ih, nat.cast_succ, add_mul, one_mul],
 end
 
-lemma log_zpow (x : ℝ) (n : ℤ) : log (x ^ n) = n * log x :=
+@[simp] lemma log_zpow (x : ℝ) (n : ℤ) : log (x ^ n) = n * log x :=
 begin
   induction n,
   { rw [int.of_nat_eq_coe, zpow_coe_nat, log_pow, int.cast_coe_nat] },

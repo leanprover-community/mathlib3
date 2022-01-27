@@ -148,13 +148,7 @@ variables {φ : quotient sa → quotient sb → Sort*}
 instance [inhabited α] : inhabited (quotient sa) := ⟨⟦default⟧⟩
 
 instance (s : setoid α) [subsingleton α] : subsingleton (quotient s) :=
-begin
-  apply subsingleton.intro,
-  intros x y,
-  apply x.induction_on, intro x,
-  apply y.induction_on, intro y,
-  congr,
-end
+quot.subsingleton
 
 /-- Induction on two `quotient` arguments `a` and `b`, result type depends on `⟦a⟧` and `⟦b⟧`. -/
 protected def hrec_on₂ (qa : quotient sa) (qb : quotient sb) (f : Π a b, φ ⟦a⟧ ⟦b⟧)

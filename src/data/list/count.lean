@@ -131,6 +131,9 @@ lemma le_count_iff_repeat_sublist {a : α} {l : list α} {n : ℕ} :
   by rw ← this; apply filter_sublist,
  λ h, by simpa only [count_repeat] using h.count_le a⟩
 
+@[simp] lemma one_le_count_iff_mem {a : α} {l : list α} : 1 ≤ count a l ↔ a ∈ l :=
+by { convert list.le_count_iff_repeat_sublist, simp }
+
 lemma repeat_count_eq_of_count_eq_length  {a : α} {l : list α} (h : count a l = length l)  :
   repeat a (count a l) = l :=
 eq_of_sublist_of_length_eq (le_count_iff_repeat_sublist.mp (le_refl (count a l)))

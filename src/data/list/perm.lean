@@ -738,6 +738,9 @@ begin
   convert (subperm_append_right _).mpr nil_subperm using 1
 end
 
+lemma subperm_singleton_iff {l : list α} {a : α} : [a] <+~ l ↔ a ∈ l :=
+by simp [subperm_ext_iff]
+
 lemma subperm.cons_left {l₁ l₂ : list α} (h : l₁ <+~ l₂)
   (x : α) (hx : count x l₁ < count x l₂) :
   x :: l₁ <+~ l₂  :=

@@ -966,22 +966,25 @@ instance : add_monoid ordinal.{u} :=
       simp only [sum_assoc_apply_inl_inl, sum_assoc_apply_inl_inr, sum_assoc_apply_inr,
         sum.lex_inl_inl, sum.lex_inr_inr, sum.lex.sep, sum.lex_inr_inl] end⟩⟩ }
 
-theorem add_le_add_left {a b : ordinal} : a ≤ b → ∀ c, c + a ≤ c + b :=
-induction_on a $ λ α₁ r₁ _, induction_on b $ λ α₂ r₂ _ ⟨⟨⟨f, fo⟩, fi⟩⟩ c,
-induction_on c $ λ β s _,
-⟨⟨⟨(embedding.refl _).sum_map f,
-  λ a b, match a, b with
-    | sum.inl a, sum.inl b := sum.lex_inl_inl.trans sum.lex_inl_inl.symm
-    | sum.inl a, sum.inr b := by apply iff_of_true; apply sum.lex.sep
-    | sum.inr a, sum.inl b := by apply iff_of_false; exact sum.lex_inr_inl
-    | sum.inr a, sum.inr b := sum.lex_inr_inr.trans $ fo.trans sum.lex_inr_inr.symm
-    end⟩,
-  λ a b H, match a, b, H with
-    | _,         sum.inl b, _ := ⟨sum.inl b, rfl⟩
-    | sum.inl a, sum.inr b, H := (sum.lex_inr_inl H).elim
-    | sum.inr a, sum.inr b, H := let ⟨w, h⟩ := fi _ _ (sum.lex_inr_inr.1 H) in
-        ⟨sum.inr w, congr_arg sum.inr h⟩
-  end⟩⟩
+instance : covariant_class ordinal.{u} ordinal.{u} (+) (≤) :=
+⟨λ c a b h, begin
+  revert h c, exact (
+  induction_on a $ λ α₁ r₁ _, induction_on b $ λ α₂ r₂ _ ⟨⟨⟨f, fo⟩, fi⟩⟩ c,
+  induction_on c $ λ β s _,
+  ⟨⟨⟨(embedding.refl _).sum_map f,
+    λ a b, match a, b with
+      | sum.inl a, sum.inl b := sum.lex_inl_inl.trans sum.lex_inl_inl.symm
+      | sum.inl a, sum.inr b := by apply iff_of_true; apply sum.lex.sep
+      | sum.inr a, sum.inl b := by apply iff_of_false; exact sum.lex_inr_inl
+      | sum.inr a, sum.inr b := sum.lex_inr_inr.trans $ fo.trans sum.lex_inr_inr.symm
+      end⟩,
+    λ a b H, match a, b, H with
+      | _,         sum.inl b, _ := ⟨sum.inl b, rfl⟩
+      | sum.inl a, sum.inr b, H := (sum.lex_inr_inl H).elim
+      | sum.inr a, sum.inr b, H := let ⟨w, h⟩ := fi _ _ (sum.lex_inr_inr.1 H) in
+          ⟨sum.inr w, congr_arg sum.inr h⟩
+    end⟩⟩)
+end⟩
 
 theorem le_add_right (a b : ordinal) : a ≤ a + b :=
 by simpa only [add_zero] using add_le_add_left (ordinal.zero_le b) a

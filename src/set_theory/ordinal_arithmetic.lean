@@ -2288,7 +2288,7 @@ begin
   intros a b hao hbo,
   cases lt_mul_omega hao with m hm,
   cases lt_mul_omega hbo with n hn,
-  apply lt_of_le_of_lt (add_le_add (le_of_lt hm) (le_of_lt hn)),
+  apply (add_le_add (le_of_lt hm) (le_of_lt hn)).trans_lt,
   rw [←mul_add, mul_lt_mul_iff_left (ordinal.pos_iff_ne_zero.2 ho), lt_omega],
   exact ⟨_, (nat.cast_add m n).symm⟩
 end

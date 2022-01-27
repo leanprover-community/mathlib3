@@ -880,7 +880,7 @@ eq_top_iff.2 $ λ x, subtype.rec_on x $ λ x hx _, begin
   refine span_induction' (λ x hx, _) _ (λ x y _ _, _) (λ r x _, _) hx,
   { exact subset_span hx },
   { exact zero_mem _ },
-  { exact add_mem _ },
+  { exact add_mem },
   { exact smul_mem _ _ }
 end
 
@@ -1243,7 +1243,7 @@ end
 lemma supr_induction' {ι : Sort*} (p : ι → submodule R M) {C : Π x, (x ∈ ⨆ i, p i) → Prop}
   (hp : ∀ i (x ∈ p i), C x (mem_supr_of_mem i ‹_›))
   (h0 : C 0 (zero_mem _))
-  (hadd : ∀ x y hx hy, C x hx → C y hy → C (x + y) (add_mem _ ‹_› ‹_›))
+  (hadd : ∀ x y hx hy, C x hx → C y hy → C (x + y) (add_mem ‹_› ‹_›))
   {x : M} (hx : x ∈ ⨆ i, p i) : C x hx :=
 begin
   refine exists.elim _ (λ (hx : x ∈ ⨆ i, p i) (hc : C x hx), hc),

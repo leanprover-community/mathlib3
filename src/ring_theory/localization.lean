@@ -928,7 +928,8 @@ begin
   rw [← @mk'_one R _ M, ← mk'_mul, ← (algebra_map R S).map_zero, ← @mk'_one R _ M,
     is_localization.eq] at e,
   obtain ⟨c, e⟩ := e,
-  rw [zero_mul, zero_mul, submonoid.coe_one, mul_one, mul_comm x a, mul_assoc, mul_comm] at e,
+  rw [zero_mul, zero_mul, submonoid_class.coe_one, mul_one, mul_comm x a, mul_assoc, mul_comm]
+    at e,
   rw mk'_eq_zero_iff,
   exact ⟨c, ha _ e⟩
 end

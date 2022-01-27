@@ -207,6 +207,9 @@ by rw [← aleph'_omega, aleph'_le]
 theorem omega_le_aleph (o : ordinal) : ω ≤ aleph o :=
 by rw [aleph, omega_le_aleph']; apply ordinal.le_add_right
 
+theorem aleph'_pos {o : ordinal} (ho : 0 < o) : 0 < aleph' o :=
+by rwa [←aleph'_zero, aleph'_lt]
+
 theorem aleph_pos (o : ordinal) : 0 < aleph o :=
 omega_pos.trans_le (omega_le_aleph o)
 

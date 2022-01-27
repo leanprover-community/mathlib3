@@ -151,7 +151,7 @@ begin
   rw [← h2s, ← h2t, mul_comm],
   refine le_trans _ finset.mul_card_le,
   apply nat.Inf_le, refine ⟨_, _, rfl⟩, rw [mem_set_of_eq], refine subset.trans h1s _,
-  apply bUnion_subset, intros g₁ hg₁, rw preimage_subset_iff, intros g₂ hg₂,
+  apply Union₂_subset, intros g₁ hg₁, rw preimage_subset_iff, intros g₂ hg₂,
   have := h1t hg₂,
   rcases this with ⟨_, ⟨g₃, rfl⟩, A, ⟨hg₃, rfl⟩, h2V⟩, rw [mem_preimage, ← mul_assoc] at h2V,
   exact mem_bUnion (finset.mul_mem_mul hg₃ hg₁) h2V
@@ -622,6 +622,18 @@ begin
     ... = (μ K.1 / ν K.1) • ν : by rw ← haar_measure_unique (is_mul_left_invariant_haar ν) K }
 end
 
+@[priority 90, to_additive] -- see Note [lower instance priority]]
+instance regular_of_is_haar_measure
+  [locally_compact_space G] [second_countable_topology G] (μ : measure G) [is_haar_measure μ] :
+  regular μ :=
+begin
+  have K : positive_compacts G := classical.choice (topological_space.nonempty_positive_compacts G),
+  obtain ⟨c, c0, ctop, hμ⟩ : ∃ (c : ℝ≥0∞), (c ≠ 0) ∧ (c ≠ ∞) ∧ (μ = c • haar_measure K) :=
+    is_haar_measure_eq_smul_is_haar_measure μ _,
+  rw hμ,
+  exact regular.smul ctop,
+end
+
 /-- Any Haar measure is invariant under inversion in a commutative group. -/
 @[to_additive]
 lemma map_haar_inv
@@ -646,9 +658,7 @@ begin
   have K : positive_compacts G := classical.choice (topological_space.nonempty_positive_compacts G),
   have : c^2 * μ K.1 = 1^2 * μ K.1,
     by { conv_rhs { rw μeq },
-         -- use `change` instead of `simp` to avoid `to_additive` issues
-         change c ^ 2 * μ K.1 = 1 ^ 2 * (c ^ 2 * μ K.1),
-         rw [one_pow, one_mul] },
+         simp, },
   have : c^2 = 1^2 :=
     (ennreal.mul_eq_mul_right (haar_pos_of_nonempty_interior _ K.2.2).ne'
       (is_compact.measure_lt_top K.2.1).ne).1 this,

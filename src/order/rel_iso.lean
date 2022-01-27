@@ -5,7 +5,7 @@ Authors: Mario Carneiro
 -/
 import algebra.group.defs
 import data.equiv.set
-import data.fun_like
+import data.fun_like.basic
 import logic.embedding
 import order.rel_classes
 
@@ -408,7 +408,7 @@ initialize_simps_projections rel_iso
 
 instance (r : α → α → Prop) : inhabited (r ≃r r) := ⟨rel_iso.refl _⟩
 
-@[simp] lemma default_def (r : α → α → Prop) : default (r ≃r r) = rel_iso.refl r := rfl
+@[simp] lemma default_def (r : α → α → Prop) : default = rel_iso.refl r := rfl
 
 /-- a relation isomorphism is also a relation isomorphism between dual relations. -/
 protected def swap (f : r ≃r s) : (swap r) ≃r (swap s) :=

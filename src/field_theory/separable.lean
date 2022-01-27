@@ -396,7 +396,7 @@ begin
 end
 
 /--If `is_unit n` in a `comm_ring R`, then `X ^ n - u` is separable for any unit `u`. -/
-lemma separable_X_pow_sub_C_unit {n : ℕ} (u : units R) (hn : is_unit (n : R)) :
+lemma separable_X_pow_sub_C_unit {n : ℕ} (u : Rˣ) (hn : is_unit (n : R)) :
   separable (X ^ n - C (u : R)) :=
 begin
   nontriviality R,

@@ -199,19 +199,13 @@ h.quotient_map.is_open_preimage
 @[simp] lemma is_open_image (h : α ≃ₜ β) {s : set α} : is_open (h '' s) ↔ is_open s :=
 by rw [← preimage_symm, is_open_preimage]
 
+protected lemma is_open_map (h : α ≃ₜ β) : is_open_map h := λ s, h.is_open_image.2
+
 @[simp] lemma is_closed_preimage (h : α ≃ₜ β) {s : set β} : is_closed (h ⁻¹' s) ↔ is_closed s :=
 by simp only [← is_open_compl_iff, ← preimage_compl, is_open_preimage]
 
 @[simp] lemma is_closed_image (h : α ≃ₜ β) {s : set α} : is_closed (h '' s) ↔ is_closed s :=
 by rw [← preimage_symm, is_closed_preimage]
-
-lemma preimage_closure (h : α ≃ₜ β) (s : set β) : h ⁻¹' (closure s) = closure (h ⁻¹' s) :=
-by rw [h.embedding.closure_eq_preimage_closure_image, h.image_preimage]
-
-lemma image_closure (h : α ≃ₜ β) (s : set α) : h '' (closure s) = closure (h '' s) :=
-by rw [← preimage_symm, preimage_closure]
-
-protected lemma is_open_map (h : α ≃ₜ β) : is_open_map h := λ s, h.is_open_image.2
 
 protected lemma is_closed_map (h : α ≃ₜ β) : is_closed_map h := λ s, h.is_closed_image.2
 
@@ -220,6 +214,21 @@ open_embedding_of_embedding_open h.embedding h.is_open_map
 
 protected lemma closed_embedding (h : α ≃ₜ β) : closed_embedding h :=
 closed_embedding_of_embedding_closed h.embedding h.is_closed_map
+
+lemma preimage_closure (h : α ≃ₜ β) (s : set β) : h ⁻¹' (closure s) = closure (h ⁻¹' s) :=
+h.is_open_map.preimage_closure_eq_closure_preimage h.continuous _
+
+lemma image_closure (h : α ≃ₜ β) (s : set α) : h '' (closure s) = closure (h '' s) :=
+by rw [← preimage_symm, preimage_closure]
+
+lemma preimage_interior (h : α ≃ₜ β) (s : set β) : h⁻¹' (interior s) = interior (h ⁻¹' s) :=
+h.is_open_map.preimage_interior_eq_interior_preimage h.continuous _
+
+lemma image_interior (h : α ≃ₜ β) (s : set α) : h '' (interior s) = interior (h '' s) :=
+by rw [← preimage_symm, preimage_interior]
+
+lemma preimage_frontier (h : α ≃ₜ β) (s : set β) : h ⁻¹' (frontier s) = frontier (h ⁻¹' s) :=
+h.is_open_map.preimage_frontier_eq_frontier_preimage h.continuous _
 
 @[simp] lemma map_nhds_eq (h : α ≃ₜ β) (x : α) : map h (𝓝 x) = 𝓝 (h x) :=
 h.embedding.map_nhds_of_mem _ (by simp)

@@ -98,11 +98,15 @@ variables {F : Type*} [preorder α] [preorder β] [order_hom_class F α β]
 protected lemma monotone (f : F) : monotone (f : α → β) := λ _ _, map_rel f
 protected lemma mono (f : F) : monotone (f : α → β) := λ _ _, map_rel f
 
+instance : has_coe_t F (α →o β) := ⟨λ f, { to_fun := f, monotone' := order_hom_class.mono _ }⟩
+
 end order_hom_class
 
 namespace order_hom
 variables [preorder α] [preorder β] [preorder γ] [preorder δ]
 
+/-- Helper instance for when there's too many metavariables to apply `fun_like.has_coe_to_fun`
+directly. -/
 instance : has_coe_to_fun (α →o β) (λ _, α → β) := ⟨order_hom.to_fun⟩
 
 initialize_simps_projections order_hom (to_fun → coe)

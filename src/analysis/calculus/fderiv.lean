@@ -299,7 +299,7 @@ begin
   refine le_of_forall_pos_le_add (λ ε ε0, op_norm_le_of_nhds_zero _ _),
   exact add_nonneg hC₀ ε0.le,
   rw [← map_add_left_nhds_zero x₀, eventually_map] at hlip,
-  filter_upwards [is_o_iff.1 (has_fderiv_at_iff_is_o_nhds_zero.1 hf) ε0, hlip], intros y hy hyC,
+  filter_upwards [is_o_iff.1 (has_fderiv_at_iff_is_o_nhds_zero.1 hf) ε0, hlip] with y hy hyC,
   rw add_sub_cancel' at hyC,
   calc ∥f' y∥ ≤ ∥f (x₀ + y) - f x₀∥ + ∥f (x₀ + y) - f x₀ - f' y∥ : norm_le_insert _ _
           ... ≤ C * ∥y∥ + ε * ∥y∥                                : add_le_add hyC hy
@@ -312,8 +312,7 @@ lemma has_fderiv_at.le_of_lip {f : E → F} {f' : E →L[𝕜] F} {x₀ : E} (hf
   {s : set E} (hs : s ∈ 𝓝 x₀) {C : ℝ≥0} (hlip : lipschitz_on_with C f s) : ∥f'∥ ≤ C :=
 begin
   refine hf.le_of_lip' C.coe_nonneg _,
-  filter_upwards [hs],
-  exact λ x hx, hlip.norm_sub_le hx (mem_of_mem_nhds hs)
+  filter_upwards [hs] with x hx using hlip.norm_sub_le hx (mem_of_mem_nhds hs),
 end
 
 theorem has_fderiv_at_filter.mono (h : has_fderiv_at_filter f f' x L₂) (hst : L₁ ≤ L₂) :
@@ -379,7 +378,7 @@ neighborhood of `x`. See also `has_strict_fderiv_at.exists_lipschitz_on_with_of_
 more precise statement. -/
 lemma has_strict_fderiv_at.exists_lipschitz_on_with (hf : has_strict_fderiv_at f f' x) :
   ∃ K (s ∈ 𝓝 x), lipschitz_on_with K f s :=
-(no_top _).imp hf.exists_lipschitz_on_with_of_nnnorm_lt
+(exists_gt _).imp hf.exists_lipschitz_on_with_of_nnnorm_lt
 
 /-- Directional derivative agrees with `has_fderiv`. -/
 lemma has_fderiv_at.lim (hf : has_fderiv_at f f' x) (v : E) {α : Type*} {c : α → 𝕜}
@@ -685,6 +684,32 @@ lemma has_fderiv_at_filter.congr_of_eventually_eq (h : has_fderiv_at_filter f f'
   (hL : f₁ =ᶠ[L] f) (hx : f₁ x = f x) : has_fderiv_at_filter f₁ f' x L :=
 (hL.has_fderiv_at_filter_iff hx $ λ _, rfl).2 h
 
+theorem filter.eventually_eq.has_fderiv_at_iff (h : f₀ =ᶠ[𝓝 x] f₁) :
+  has_fderiv_at f₀ f' x ↔ has_fderiv_at f₁ f' x :=
+h.has_fderiv_at_filter_iff h.eq_of_nhds (λ _, rfl)
+
+theorem filter.eventually_eq.differentiable_at_iff (h : f₀ =ᶠ[𝓝 x] f₁) :
+  differentiable_at 𝕜 f₀ x ↔ differentiable_at 𝕜 f₁ x :=
+exists_congr $ λ f', h.has_fderiv_at_iff
+
+theorem filter.eventually_eq.has_fderiv_within_at_iff (h : f₀ =ᶠ[𝓝[s] x] f₁) (hx : f₀ x = f₁ x) :
+  has_fderiv_within_at f₀ f' s x ↔ has_fderiv_within_at f₁ f' s x :=
+h.has_fderiv_at_filter_iff hx (λ _, rfl)
+
+theorem filter.eventually_eq.has_fderiv_within_at_iff_of_mem (h : f₀ =ᶠ[𝓝[s] x] f₁) (hx : x ∈ s) :
+  has_fderiv_within_at f₀ f' s x ↔ has_fderiv_within_at f₁ f' s x :=
+h.has_fderiv_within_at_iff (h.eq_of_nhds_within hx)
+
+theorem filter.eventually_eq.differentiable_within_at_iff (h : f₀ =ᶠ[𝓝[s] x] f₁)
+  (hx : f₀ x = f₁ x) :
+  differentiable_within_at 𝕜 f₀ s x ↔ differentiable_within_at 𝕜 f₁ s x :=
+exists_congr $ λ f', h.has_fderiv_within_at_iff hx
+
+theorem filter.eventually_eq.differentiable_within_at_iff_of_mem (h : f₀ =ᶠ[𝓝[s] x] f₁)
+  (hx : x ∈ s) :
+  differentiable_within_at 𝕜 f₀ s x ↔ differentiable_within_at 𝕜 f₁ s x :=
+h.differentiable_within_at_iff (h.eq_of_nhds_within hx)
+
 lemma has_fderiv_within_at.congr_mono (h : has_fderiv_within_at f f' s x) (ht : ∀x ∈ t, f₁ x = f x)
   (hx : f₁ x = f x) (h₁ : t ⊆ s) : has_fderiv_within_at f₁ f' t x :=
 has_fderiv_at_filter.congr_of_eventually_eq (h.mono h₁) (filter.mem_inf_of_right ht) hx
@@ -733,8 +758,7 @@ lemma differentiable_on_congr (h' : ∀x ∈ s, f₁ x = f x) :
 
 lemma differentiable_at.congr_of_eventually_eq (h : differentiable_at 𝕜 f x) (hL : f₁ =ᶠ[𝓝 x] f) :
   differentiable_at 𝕜 f₁ x :=
-has_fderiv_at.differentiable_at
-  (has_fderiv_at_filter.congr_of_eventually_eq h.has_fderiv_at hL (mem_of_mem_nhds hL : _))
+hL.differentiable_at_iff.2 h
 
 lemma differentiable_within_at.fderiv_within_congr_mono (h : differentiable_within_at 𝕜 f s x)
   (hs : ∀x ∈ t, f₁ x = f x) (hx : f₁ x = f x) (hxt : unique_diff_within_at 𝕜 t x) (h₁ : t ⊆ s) :
@@ -2471,7 +2495,7 @@ open normed_ring continuous_linear_map ring
 
 /-- At an invertible element `x` of a normed algebra `R`, the Fréchet derivative of the inversion
 operation is the linear map `λ t, - x⁻¹ * t * x⁻¹`. -/
-lemma has_fderiv_at_ring_inverse (x : units R) :
+lemma has_fderiv_at_ring_inverse (x : Rˣ) :
   has_fderiv_at ring.inverse (-lmul_left_right 𝕜 R ↑x⁻¹ ↑x⁻¹) x :=
 begin
   have h_is_o : is_o (λ (t : R), inverse (↑x + t) - ↑x⁻¹ + ↑x⁻¹ * t * ↑x⁻¹)
@@ -2491,10 +2515,10 @@ begin
     units.inv_mul, add_sub_cancel'_right, mul_sub, sub_mul, one_mul, sub_neg_eq_add]
 end
 
-lemma differentiable_at_inverse (x : units R) : differentiable_at 𝕜 (@ring.inverse R _) x :=
+lemma differentiable_at_inverse (x : Rˣ) : differentiable_at 𝕜 (@ring.inverse R _) x :=
 (has_fderiv_at_ring_inverse x).differentiable_at
 
-lemma fderiv_inverse (x : units R) :
+lemma fderiv_inverse (x : Rˣ) :
   fderiv 𝕜 (@ring.inverse R _) x = - lmul_left_right 𝕜 R ↑x⁻¹ ↑x⁻¹ :=
 (has_fderiv_at_ring_inverse x).fderiv
 

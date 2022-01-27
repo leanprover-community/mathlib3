@@ -20,7 +20,8 @@ This is based on the [Cardano's Formula](https://en.wikipedia.org/wiki/Cubic_equ
 
 ## Main statements
 
-- `cubic_eq_zero_iff` : gives the roots of the qubic equation
+- `cubic_eq_zero_iff` : gives the roots of the cubic equation
+- ```
 where the discriminant `p = 3 * a * c - b^2` is nonzero.
 - `cubic_eq_zero_iff_of_p_eq_zero` : gives the roots of the cubic equation 
 where the discriminant equals zero.

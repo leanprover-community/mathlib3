@@ -3444,7 +3444,6 @@ def isos.sheaf_component.forward.to_fun :
     apply isos.sheaf_component.forward.mk_is_locally_quotient,
   end⟩
 
-omit U
 def isos.sheaf_component.forward :
   (isos.top_component 𝒜 f m hm f_deg).hom _*
     (Proj .restrict (@opens.open_embedding (projective_spectrum.Top 𝒜)

@@ -733,7 +733,7 @@ begin
       refine mul_lt_omega_opow rr0 this (nat_lt_omega _),
       simpa using (add_lt_add_iff_left (repr a0)).2 e0 },
     { refine lt_of_lt_of_le Rl (opow_le_opow_right omega_pos $
-        mul_le_mul_left _ $ succ_le_succ.2 $ nat_cast_le.2 $ le_of_lt k.lt_succ_self) } },
+        mul_le_mul_left' (succ_le_succ.2 (nat_cast_le.2 (le_of_lt k.lt_succ_self))) _) } },
   calc
         ω0 ^ k.succ * α' + R'
       = ω0 ^ succ k * α' + (ω0 ^ k * α' * m + R) : by rw [nat_cast_succ, RR, ← mul_assoc]
@@ -749,14 +749,14 @@ begin
     { refine add_lt_omega_opow _ Rl,
       rw [opow_mul, opow_succ, mul_lt_mul_iff_left ω00],
       exact No.snd'.repr_lt },
-    { have := mul_le_mul_left (ω0 ^ succ k) (one_le_iff_pos.2 $ nat_cast_pos.2 n.pos),
+    { have := mul_le_mul_left' (one_le_iff_pos.2 $ nat_cast_pos.2 n.pos) (ω0 ^ succ k),
       rw opow_mul, simpa [-opow_succ] } },
   { cases m,
     { have : R = 0, {cases k; simp [R, opow_aux]}, simp [this] },
     { rw [← nat_cast_succ, add_mul_succ],
       apply add_absorp Rl,
       rw [opow_mul, opow_succ],
-      apply ordinal.mul_le_mul_left,
+      apply mul_le_mul_left',
       simpa [α', repr] using omega_le_oadd a0 n a' } }
 end
 

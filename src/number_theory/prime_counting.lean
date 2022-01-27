@@ -64,7 +64,7 @@ begin
     rw ←nat.mod_add_div n a,
   end,
   induction n / a with i ih,
-  { simp [le_of_lt (mod_lt n a_pos)],
+  { simp only [zero_add, mul_one, mul_zero, le_of_lt (mod_lt n a_pos)],
     transitivity (filter a.coprime (Ico k (k + a))).card,
     { mono,
       refine monotone_filter_left a.coprime _,

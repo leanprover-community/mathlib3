@@ -47,6 +47,7 @@ Some properties of the operations are also used to discuss general tools on ordi
 
 * `sup`: the supremum of an indexed family of ordinals in `Type u`, as an ordinal in `Type u`.
 * `bsup`: the supremum of a set of ordinals indexed by ordinals less than a given ordinal `o`.
+* `principal`: principal or indecomposable ordinals under some operation.
 -/
 
 noncomputable theory
@@ -176,6 +177,17 @@ instance : nontrivial ordinal.{u} :=
 
 theorem zero_lt_one : (0 : ordinal) < 1 :=
 lt_iff_le_and_ne.2 ⟨ordinal.zero_le _, ne.symm $ ordinal.one_ne_zero⟩
+
+theorem le_one_iff {a : ordinal} : a ≤ 1 ↔ a = 0 ∨ a = 1 :=
+begin
+  refine ⟨λ ha, _, _⟩,
+  { rcases eq_or_lt_of_le ha with rfl | ha,
+    { exact or.inr rfl },
+    { exact or.inl (lt_one_iff_zero.1 ha) } },
+  { rintro (rfl | rfl),
+    { exact le_of_lt (zero_lt_one) },
+    { refl } }
+end
 
 /-! ### The predecessor of an ordinal -/
 
@@ -1877,11 +1889,6 @@ begin
   { rw [nat.cast_succ, add_assoc, one_add_of_omega_le (le_refl _), IH] }
 end
 
-theorem add_lt_omega {a b : ordinal} (ha : a < omega) (hb : b < omega) : a + b < omega :=
-match a, b, lt_omega.1 ha, lt_omega.1 hb with
-| _, _, ⟨m, rfl⟩, ⟨n, rfl⟩ := by rw [← nat.cast_add]; apply nat_lt_omega
-end
-
 theorem mul_lt_omega {a b : ordinal} (ha : a < omega) (hb : b < omega) : a * b < omega :=
 match a, b, lt_omega.1 ha, lt_omega.1 hb with
 | _, _, ⟨m, rfl⟩, ⟨n, rfl⟩ := by rw [← nat_cast_mul]; apply nat_lt_omega
@@ -1929,10 +1936,6 @@ begin
     exact le_trans (add_le_add_left (opow_le_opow_right omega_pos (le_max_right _ _)) _)
       (le_trans this (opow_le_opow_right omega_pos $ le_of_lt $ max_lt xb yb)) }
 end
-
-theorem add_lt_omega_opow {a b c : ordinal} (h₁ : a < omega ^ c) (h₂ : b < omega ^ c) :
-  a + b < omega ^ c :=
-by rwa [← add_omega_opow h₁, add_lt_add_iff_left]
 
 theorem add_absorp {a b c : ordinal} (h₁ : a < omega ^ b) (h₂ : omega ^ b ≤ c) : a + c = c :=
 by rw [← ordinal.add_sub_cancel_of_le h₂, ← add_assoc, add_omega_opow h₁]
@@ -2042,6 +2045,9 @@ begin
   exact (mul_is_normal ho).apply_omega
 end
 
+lemma lt_mul_omega {a o : ordinal.{u}} (h : a < o * omega.{u}) : ∃ n : ℕ, a < o * n :=
+by rwa [mul_omega_eq_sup_mul_nat o, lt_sup] at h
+
 section
 variable {f : ordinal.{u} → ordinal.{u}}
 
@@ -2052,7 +2058,7 @@ variable {f : ordinal.{u} → ordinal.{u}}
 def nfp (f : ordinal → ordinal) (a : ordinal) :=
 sup (λ n : ℕ, f^[n] a)
 
-theorem nfp_le {f a b} : nfp f a ≤ b ↔ ∀ n, f^[n] a ≤ b :=
+theorem nfp_le {a b} : nfp f a ≤ b ↔ ∀ n, f^[n] a ≤ b :=
 sup_le
 
 theorem iterate_le_nfp (f a n) : f^[n] a ≤ nfp f a :=
@@ -2060,9 +2066,6 @@ le_sup _ n
 
 theorem le_nfp_self (f a) : a ≤ nfp f a :=
 iterate_le_nfp f a 0
-
-theorem nfp_le {a b} : nfp f a ≤ b ↔ ∀ n, f^[n] a ≤ b :=
-sup_le
 
 theorem is_normal.lt_nfp (H : is_normal f) {a b} :
   f b < nfp f a ↔ b < nfp f a :=
@@ -2184,6 +2187,9 @@ begin
   rw [←mul_one_add, one_add_omega]
 end
 
+theorem mul_omega_eq_nfp_add_self (a) : a * omega = nfp ((+) a) a :=
+mul_omega_eq_nfp_add_of_le_mul_omega (le_mul_left _ omega_pos)
+
 theorem add_eq_right_iff_mul_omega_le {a b : ordinal} : a + b = b ↔ a * omega ≤ b :=
 begin
   refine ⟨λ h, _, λ h, _⟩,
@@ -2256,5 +2262,97 @@ end
 theorem nfp_le_of_principal {op : ordinal → ordinal → ordinal}
   {a o : ordinal} (hao : a < o) (ho : principal op o) : nfp (op a) a ≤ o :=
 nfp_le.2 $ λ n, le_of_lt (iterate_lt_of_principal hao ho n)
+
+/-! ### Additive principal ordinals -/
+
+theorem one_add_principal : principal (+) 1 :=
+one_principal_iff.2 $ zero_add 0
+
+theorem add_principal_of_le_one {o : ordinal.{u}} (ho : o ≤ 1) : principal (+) o :=
+begin
+  rcases le_one_iff.1 ho with rfl | rfl,
+  { exact zero_principal },
+  { exact one_add_principal }
+end
+
+theorem omega_add_principal : principal (+) omega.{u} :=
+λ a b ha hb, match a, b, lt_omega.1 ha, lt_omega.1 hb with
+| _, _, ⟨m, rfl⟩, ⟨n, rfl⟩ := by rw [← nat.cast_add]; apply nat_lt_omega
+end
+
+theorem mul_omega_add_principal (o : ordinal.{u}) : principal (+) (o * omega.{u}) :=
+begin
+  rcases eq_or_ne o 0 with rfl | ho,
+  { rw zero_mul,
+    exact zero_principal },
+  intros a b hao hbo,
+  cases lt_mul_omega hao with m hm,
+  cases lt_mul_omega hbo with n hn,
+  apply lt_of_le_of_lt (add_le_add (le_of_lt hm) (le_of_lt hn)),
+  rw [←mul_add, mul_lt_mul_iff_left (ordinal.pos_iff_ne_zero.2 ho), lt_omega],
+  exact ⟨_, (nat.cast_add m n).symm⟩
+end
+
+theorem mul_omega_le_add_principal {a o : ordinal.{u}} (hao : a < o) (ho : principal (+) o) :
+  a * omega.{u} ≤ o :=
+by { convert nfp_le_of_principal hao ho, exact mul_omega_eq_nfp_add_self a }
+
+theorem omega_le_add_principal {o : ordinal.{u}} (ho : principal (+) o) (ho₁ : 1 < o) :
+  omega.{u} ≤ o :=
+by { rw ←one_mul omega.{u}, exact mul_omega_le_add_principal ho₁ ho }
+
+theorem omega_power_add_principal (o : ordinal.{u}) : principal (+) (omega.{u} ^ o) :=
+λ a b ha hb, ((ordinal.add_lt_add_iff_left a).2 hb).trans_le begin
+  revert ha, refine limit_rec_on o (λ h, _) (λ b _ h, _) (λ b l IH h, _),
+  { rw [opow_zero, ← succ_zero, lt_succ, ordinal.le_zero] at h,
+    rw [h, zero_add] },
+  { rw [opow_succ] at h,
+    rcases (lt_mul_of_limit omega_is_limit).1 h with ⟨x, xo, ax⟩,
+    refine le_trans (add_le_add_right (le_of_lt ax) _) _,
+    rw [opow_succ, ← mul_add, add_omega xo] },
+  { rcases (lt_opow_of_limit omega_ne_zero l).1 h with ⟨x, xb, ax⟩,
+    refine (((add_is_normal a).trans (opow_is_normal one_lt_omega))
+      .limit_le l).2 (λ y yb, _),
+    have := IH (max x y) (max_lt xb yb)
+      (lt_of_lt_of_le ax $ opow_le_opow_right omega_pos (le_max_left _ _)),
+    exact le_trans (add_le_add_left (opow_le_opow_right omega_pos (le_max_right _ _)) _)
+      (le_trans this (opow_le_opow_right omega_pos $ le_of_lt $ max_lt xb yb)) }
+end
+
+theorem add_principal_is_limit {o : ordinal.{u}} (ho₁ : 1 < o) (ho : principal (+) o) :
+  o.is_limit :=
+begin
+  refine ⟨λ ho₀, _, λ a hao, _⟩,
+  { rw ho₀ at ho₁,
+    exact not_lt_of_gt ordinal.zero_lt_one ho₁ },
+  cases eq_or_ne a 0 with ha ha,
+  { rw [ha, succ_zero],
+    exact ho₁ },
+  refine lt_of_le_of_lt _ (ho a a hao hao),
+  rwa [succ_eq_add_one, add_le_add_iff_left, one_le_iff_ne_zero]
+end
+
+theorem add_principal_iff_add_left_eq_self (o : ordinal.{u}) :
+  principal (+) o ↔ ∀ a < o, a + o = o :=
+begin
+  refine ⟨λ ho a hao, _, λ h a b hao hbo, _⟩,
+  { cases lt_or_le 1 o with ho₁ ho₁,
+    { exact op_eq_self_of_principal hao (add_is_normal a) ho (add_principal_is_limit ho₁ ho) },
+    rcases le_one_iff.1 ho₁ with rfl | rfl,
+    { exact (ordinal.not_lt_zero a hao).elim },
+    rw lt_one_iff_zero at hao,
+    rw [hao, zero_add] },
+  rw ←h a hao,
+  exact (add_is_normal a).strict_mono hbo
+end
+
+theorem add_principal_iff_zero_or_omega_power (o : ordinal.{u}) :
+  principal (+) o ↔ o = 0 ∨ ∃ a : ordinal.{u}, o = omega.{u} ^ a :=
+begin
+  cases eq_or_ne o 0 with ho ho,
+  { rw ho, simp only [zero_principal, or.inl] },
+  rw [add_principal_iff_add_left_eq_self, add_absorp_iff (ordinal.pos_iff_ne_zero.2 ho)],
+  exact ⟨or.inr, λ h, h.elim (λ ho', (ho ho').elim) id⟩
+end
 
 end ordinal

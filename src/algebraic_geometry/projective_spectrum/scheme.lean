@@ -3465,7 +3465,6 @@ begin
     a_hom b_hom eq1,
 end
 
-#exit
 def isos.sheaf_component.forward.to_fun :
   (((isos.top_component 𝒜 f m hm f_deg).hom _*
       ((Proj.to_LocallyRingedSpace 𝒜).restrict (@opens.open_embedding (projective_spectrum.Top 𝒜)

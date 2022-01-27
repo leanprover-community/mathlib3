@@ -1000,9 +1000,6 @@ induction_on c $ λ β s hs, (@type_le' _ _ _ _
   { cases H; constructor; [rwa fo, assumption] }
 end⟩⟩
 
-protected theorem add_le_add {a b c d : ordinal} (hab : a ≤ b) (hcd : c ≤ d) : a + c ≤ b + d :=
-(add_le_add_right hab c).trans (add_le_add_left hcd b)
-
 theorem le_add_left (a b : ordinal) : a ≤ b + a :=
 by simpa only [zero_add] using add_le_add_right (ordinal.zero_le b) a
 

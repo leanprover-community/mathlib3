@@ -17,12 +17,15 @@ universes u v
 
 open category_theory
 
+instance : distrib_lattice bool := linear_order.to_distrib_lattice
+
 /-- The category of finite distributive lattices with bounded lattice morphisms. -/
 structure FinDistribLattice :=
 (to_BoundedDistribLattice : BoundedDistribLattice)
 [is_fintype : fintype to_BoundedDistribLattice]
 
 namespace FinDistribLattice
+
 instance : has_coe_to_sort FinDistribLattice Type* := ⟨λ X, X.to_BoundedDistribLattice⟩
 instance (X : FinDistribLattice) : distrib_lattice X :=
 X.to_BoundedDistribLattice.to_DistribLattice.str
@@ -30,8 +33,12 @@ instance (X : FinDistribLattice) : bounded_order X := X.to_BoundedDistribLattice
 
 attribute [instance]  FinDistribLattice.is_fintype
 
-/-- Construct a bundled `FinDistribLattice` from a `bounded_order` `distrib_lattice`. -/
+/-- Construct a bundled `FinDistribLattice` from a `fintype` `bounded_order` `distrib_lattice`. -/
 def of (α : Type*) [distrib_lattice α] [bounded_order α] [fintype α] : FinDistribLattice := ⟨⟨⟨α⟩⟩⟩
+
+/-- Construct a bundled `FinDistribLattice` from a `nonempty` `bounded_order` `distrib_lattice`. -/
+def of' (α : Type*) [distrib_lattice α] [fintype α] [nonempty α] : FinDistribLattice :=
+by { haveI := fintype.to_bounded_order α, exact ⟨⟨⟨α⟩⟩⟩ }
 
 instance : inhabited FinDistribLattice := ⟨of bool⟩
 

@@ -3,7 +3,7 @@ Copyright (c) 2020 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
-import data.fin.basic
+import data.fintype.order
 import order.category.LinearOrder
 
 /-! # Nonempty finite linear orders
@@ -25,14 +25,10 @@ class nonempty_fin_lin_ord (α : Type*) extends fintype α, linear_order α :=
 
 attribute [instance] nonempty_fin_lin_ord.nonempty
 
---TODO: Migrate this instance to `data.fintype.order`
 @[priority 100]
 instance nonempty_fin_lin_ord.to_bounded_order (α : Type*) [nonempty_fin_lin_ord α] :
   bounded_order α :=
-{ top := finset.max' finset.univ ⟨classical.arbitrary α, by simp⟩,
-  le_top := λ a, finset.le_max' _ a (by simp),
-  bot := finset.min' finset.univ ⟨classical.arbitrary α, by simp⟩,
-  bot_le := λ a, finset.min'_le _ a (by simp) }
+fintype.to_bounded_order α
 
 instance punit.nonempty_fin_lin_ord : nonempty_fin_lin_ord punit :=
 { .. punit.linear_ordered_cancel_add_comm_monoid,

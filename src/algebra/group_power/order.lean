@@ -366,6 +366,9 @@ by rw [←abs_eq_abs, ←sq_eq_sq_iff_abs_eq_abs, one_pow]
 lemma sq_ne_one_iff (x : R) : x^2 ≠ 1 ↔ x ≠ 1 ∧ x ≠ -1 :=
 (not_iff_not.2 (sq_eq_one_iff _)).trans not_or_distrib
 
+@[simp] lemma sq_le_one_iff_abs_le (x : R) : x^2 ≤ 1 ↔ |x| ≤ 1 :=
+⟨λ h, abs_le_of_sq_le_sq (by simp [h]) zero_le_one, λ h, by simpa using sq_le_sq h⟩
+
 @[simp] lemma sq_lt_one_iff_abs_lt (x : R) : x^2 < 1 ↔ |x| < 1 :=
 ⟨λ h, abs_lt_of_sq_lt_sq (by simp [h]) zero_le_one, λ h, by simpa using sq_lt_sq h⟩
 

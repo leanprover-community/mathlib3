@@ -464,9 +464,9 @@ begin
       --have h₁' : (set.range rayleigh_quotient).nonempty := ⟨0, ⟨0, by simp⟩⟩,
       -- First use filter.comap applied to nhds (supr) to get a filter f₁ on vectors
       set f₁ : filter (sphere (0:E) 1) :=
-        filter.comap (λ x, rayleigh_quotient x) (𝓝[set.range rayleigh_quotient_sphere] a),
+        filter.comap (λ x, rayleigh_quotient x) (𝓝 a),
       set f₂ : filter E := filter.map (λ x : sphere (0:E) 1, T x) f₁,
-      set f₃ : filter E := filter.map (λ x : sphere (0:E) 1, (a : 𝕜) • x) f₁,
+      --set f₃ : filter E := filter.map (λ x : sphere (0:E) 1, (a : 𝕜) • x) f₁,
       have h_bdd_range : bdd_above (set.range rayleigh_quotient_sphere),
       { sorry },
       have h_range_nonempty : (set.range rayleigh_quotient_sphere).nonempty,
@@ -477,32 +477,42 @@ begin
       { rw [filter.le_principal_iff, filter.mem_map, filter.mem_comap],
         sorry },
       haveI f₁_ne_bot : f₁.ne_bot :=
-        filter.ne_bot.comap_of_range_mem h_ne_bot self_mem_nhds_within,
+        sorry,
+        --filter.ne_bot.comap_of_range_mem h_ne_bot self_mem
       haveI f₂_ne_bot : f₂.ne_bot := by apply_instance,
-      haveI f₃_ne_bot : f₃.ne_bot := by apply_instance,
       -- The image of T on the sphere is compact since T is a compact operator
       have h_img_cpct : is_compact (set.range (λ x : sphere (0:E) 1, T x)),
       { sorry },
       -- f₂ is guaranteed to have a cluster point z for some vector z by compactness of T
       have hf₂' := h_img_cpct hf₂,
       rcases hf₂' with ⟨z, ⟨hz₁, hz₂⟩⟩,
-      set f₄ : filter (sphere (0:E) 1) := filter.comap (λ x, T x) (𝓝 z),
-      -- show that z is also a cluster point of f₃
-      have hz' : cluster_pt z f₃,
-      { sorry },
-      refine has_eigenvalue_of_has_eigenvector ⟨_, show (a⁻¹ : 𝕜) • z ≠ 0, from _⟩,
-      { rw [mem_eigenspace_iff],
-        simp only [smul_smul, continuous_linear_map.to_linear_map_eq_coe, continuous_linear_map.coe_coe, continuous_linear_map.map_smul],
-        rw [mul_comm, ←smul_smul],
-        congr,
-        refine eq_of_nhds_ne_bot _,
+      set f₁sub : filter (sphere (0:E) 1) := f₁ ⊓ filter.comap (λ x, T x) (𝓝 z),
+
+      let zs : sphere (0:E) 1 := ⟨(∥z∥⁻¹ : 𝕜) • z, sorry⟩,
+      have h₃ : (zs : E) ≠ 0,
+      { -- exact ne_zero_of_mem_unit_sphere _,   -- need to merge mathlib to get this
         sorry },
+      have h_premain : filter.tendsto (λ y : sphere (0:E) 1, T y) f₁sub (𝓝 z),
       { sorry },
-      -- Use tendsto_iff_dist_tendsto_zero to show f₁ also converges to nhds z
-      -- Declare z as the eigenvector
-      },
-    { sorry }
-  }
+      --have h_premain₂ : filter.tendsto (λ y, T y - (a : 𝕜) • y) (𝓝 (zs : E)) (𝓝 0),
+      --{ sorry },
+      have h_main : filter.tendsto (λ y : sphere (0:E) 1, (a : 𝕜) • (y : E)) f₁sub (𝓝 z),
+      { refine tendsto_of_tendsto_of_dist h_premain _,
+        simp only [dist_eq_norm],
+        have h12 : (λ x : sphere (0:E) 1, ∥T x - (a : 𝕜) • x∥) = (λ x : sphere (0:E) 1, real.sqrt (∥T x - (a : 𝕜) • x∥ ^ 2)),
+        { sorry },
+        rw [h12, ←real.sqrt_zero],
+        refine filter.tendsto.sqrt _,
+        -- argument from Einsiedler-Ward
+        sorry },
+      have h₂ : (a : 𝕜) • (zs : E) = z,
+      { sorry },
+      refine has_eigenvalue_of_has_eigenvector ⟨_, h₃⟩,
+      rw [mem_eigenspace_iff, h₂],
+      --exact eq_of_tendsto_nhds h_premain,
+  },
+
+  sorry }
   -- is_lub_csupr   ι 𝕜 E
 end
 

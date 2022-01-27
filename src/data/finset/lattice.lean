@@ -13,7 +13,7 @@ import order.lexicographic
 # Lattice operations on finsets
 -/
 
-variables {α β γ : Type*}
+variables {ι α β γ : Type*}
 
 namespace finset
 open multiset order_dual
@@ -991,7 +991,7 @@ end max_min
 
 section max_min_induction_value
 
-variables {ι : Type*} [linear_order α] [linear_order β]
+variables [linear_order α] [linear_order β]
 
 /-- Induction principle for `finset`s in any type from which a given function `f` maps to a linearly
 ordered type : a predicate is true on all `s : finset α` provided that:
@@ -1027,7 +1027,7 @@ ordered type : a predicate is true on all `s : finset α` provided that:
 lemma induction_on_min_value [decidable_eq ι] (f : ι → α)
   {p : finset ι → Prop} (s : finset ι) (h0 : p ∅)
   (step : ∀ a s, a ∉ s → (∀ x ∈ s, f a ≤ f x) → p s → p (insert a s)) : p s :=
-@induction_on_max_value (order_dual α) ι _ _ _ _ s h0 step
+@induction_on_max_value _ (order_dual α) _ _ _ _ s h0 step
 
 end max_min_induction_value
 
@@ -1116,7 +1116,7 @@ by { ext a, rw [mem_sup, mem_image], simp only [mem_singleton, eq_comm] }
 end finset
 
 section lattice
-variables {ι : Type*} {ι' : Sort*} [complete_lattice α]
+variables {ι' : Sort*} [complete_lattice α]
 
 /-- Supremum of `s i`, `i : ι`, is equal to the supremum over `t : finset ι` of suprema
 `⨆ i ∈ t, s i`. This version assumes `ι` is a `Type*`. See `supr_eq_supr_finset'` for a version
@@ -1143,7 +1143,7 @@ by rw [← supr_eq_supr_finset, ← equiv.plift.surjective.supr_comp]; refl
 that works for `ι : Sort*`. -/
 lemma infi_eq_infi_finset (s : ι → α) :
   (⨅i, s i) = (⨅t:finset ι, ⨅i∈t, s i) :=
-@supr_eq_supr_finset (order_dual α) _ _ _
+@supr_eq_supr_finset _ (order_dual α) _ _
 
 /-- Infimum of `s i`, `i : ι`, is equal to the infimum over `t : finset ι` of infima
 `⨅ i ∈ t, s i`. This version works for `ι : Sort*`. See `infi_eq_infi_finset` for a version
@@ -1155,7 +1155,7 @@ lemma infi_eq_infi_finset' (s : ι' → α) :
 end lattice
 
 namespace set
-variables {ι : Type*} {ι' : Sort*}
+variables {ι' : Sort*}
 
 /-- Union of an indexed family of sets `s : ι → set α` is equal to the union of the unions
 of finite subfamilies. This version assumes `ι : Type*`. See also `Union_eq_Union_finset'` for

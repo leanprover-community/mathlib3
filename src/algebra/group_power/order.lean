@@ -320,17 +320,17 @@ by simpa only [sq] using abs_mul_abs_self x
 theorem abs_sq (x : R) : |x ^ 2| = x ^ 2 :=
 by simpa only [sq] using abs_mul_self x
 
-theorem sq_lt_sq (h : |x| < y) : x ^ 2 < y ^ 2 :=
+theorem sq_lt_sq (h : |x| < |y|) : x ^ 2 < y ^ 2 :=
 by simpa only [sq_abs] using pow_lt_pow_of_lt_left h (abs_nonneg x) (1:ℕ).succ_pos
 
 theorem sq_lt_sq' (h1 : -y < x) (h2 : x < y) : x ^ 2 < y ^ 2 :=
-sq_lt_sq (abs_lt.mpr ⟨h1, h2⟩)
+sq_lt_sq (lt_of_lt_of_le (abs_lt.2 ⟨h1, h2⟩) (le_abs_self _))
 
-theorem sq_le_sq (h : |x| ≤ y) : x ^ 2 ≤ y ^ 2 :=
+theorem sq_le_sq (h : |x| ≤ |y|) : x ^ 2 ≤ y ^ 2 :=
 by simpa only [sq_abs] using pow_le_pow_of_le_left (abs_nonneg x) h 2
 
 theorem sq_le_sq' (h1 : -y ≤ x) (h2 : x ≤ y) : x ^ 2 ≤ y ^ 2 :=
-sq_le_sq (abs_le.2 ⟨h1, h2⟩)
+sq_le_sq (le_trans (abs_le.mpr ⟨h1, h2⟩) (le_abs_self _))
 
 theorem abs_lt_abs_of_sq_lt_sq (h : x^2 < y^2) : |x| < |y| :=
 lt_of_pow_lt_pow 2 (abs_nonneg y) $ by rwa [← sq_abs x, ← sq_abs y] at h
@@ -367,10 +367,10 @@ lemma sq_ne_one_iff (x : R) : x^2 ≠ 1 ↔ x ≠ 1 ∧ x ≠ -1 :=
 (not_iff_not.2 (sq_eq_one_iff _)).trans not_or_distrib
 
 @[simp] lemma sq_le_one_iff_abs_le (x : R) : x^2 ≤ 1 ↔ |x| ≤ 1 :=
-⟨λ h, abs_le_of_sq_le_sq (by simp [h]) zero_le_one, λ h, by simpa using sq_le_sq h⟩
+have t : x^2 ≤ 1^2 ↔ |x| ≤ |1| := ⟨abs_le_abs_of_sq_le_sq, sq_le_sq⟩, by simpa using t
 
 @[simp] lemma sq_lt_one_iff_abs_lt (x : R) : x^2 < 1 ↔ |x| < 1 :=
-⟨λ h, abs_lt_of_sq_lt_sq (by simp [h]) zero_le_one, λ h, by simpa using sq_lt_sq h⟩
+have t : x^2 < 1^2 ↔ |x| < |1| := ⟨abs_lt_abs_of_sq_lt_sq, sq_lt_sq⟩, by simpa using t
 
 end linear_ordered_ring
 

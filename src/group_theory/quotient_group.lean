@@ -403,14 +403,6 @@ top_unique $ λ x _,
   have this : 1⁻¹ * x ∈ H := quotient_group.eq.1 (subsingleton.elim _ _),
   by rwa [one_inv, one_mul] at this
 
-/-- If the whole group is a singleton, then every quotient as well -/
-@[to_additive] lemma subsingleton_quotient_of_subsingleton
-  {H : subgroup G} [subsingleton G] :
-  subsingleton (G ⧸ H) :=
-begin
-  apply_instance,
-end
-
 end trivial
 
 end quotient_group

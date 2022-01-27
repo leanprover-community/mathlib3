@@ -90,13 +90,13 @@ noncomputable def to_complete_distrib_lattice [distrib_lattice α] [bounded_orde
   complete_distrib_lattice α :=
 { infi_sup_le_sup_Inf := λ a s, begin
     convert (finset.inf_sup_distrib_left _ _ _).ge,
-    convert (inf_eq_infi _ _).symm,
+    convert (finset.inf_eq_infi _ _).symm,
     simp_rw set.mem_to_finset,
     refl,
   end,
   inf_Sup_le_supr_inf := λ a s, begin
     convert (finset.sup_inf_distrib_left _ _ _).le,
-    convert (sup_eq_supr _ _).symm,
+    convert (finset.sup_eq_supr _ _).symm,
     simp_rw set.mem_to_finset,
     refl,
   end,

@@ -1288,7 +1288,7 @@ begin
       apply exists.intro s,
       exact small_step.seq_skip },
     case inr {
-      simp [h, auto.not_forall_eq, auto.not_not_eq] at ihS,
+      simp [h, not_forall, not_not] at ihS,
       cases' ihS s with S' hS',
       cases' hS' with s' hs',
       apply exists.intro (S' ;; T),

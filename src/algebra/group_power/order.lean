@@ -326,11 +326,11 @@ by simpa only [sq_abs] using pow_lt_pow_of_lt_left h (abs_nonneg x) (1:ℕ).succ
 theorem sq_lt_sq' (h1 : -y < x) (h2 : x < y) : x ^ 2 < y ^ 2 :=
 sq_lt_sq (abs_lt.mpr ⟨h1, h2⟩)
 
-theorem sq_le_sq (h : |x| ≤ |y|) : x ^ 2 ≤ y ^ 2 :=
+theorem sq_le_sq (h : |x| ≤ y) : x ^ 2 ≤ y ^ 2 :=
 by simpa only [sq_abs] using pow_le_pow_of_le_left (abs_nonneg x) h 2
 
 theorem sq_le_sq' (h1 : -y ≤ x) (h2 : x ≤ y) : x ^ 2 ≤ y ^ 2 :=
-sq_le_sq (le_trans (abs_le.mpr ⟨h1, h2⟩) (le_abs_self _))
+sq_le_sq (abs_le.2 ⟨h1, h2⟩)
 
 theorem abs_lt_abs_of_sq_lt_sq (h : x^2 < y^2) : |x| < |y| :=
 lt_of_pow_lt_pow 2 (abs_nonneg y) $ by rwa [← sq_abs x, ← sq_abs y] at h

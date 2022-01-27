@@ -2797,6 +2797,57 @@ begin
   exact INEQ,
 end
 
+omit U
+def isos.sheaf_component.forward.mk_is_locally_quotient.open_set (V : opens (projective_spectrum.Top 𝒜)) :
+  opens (Spec (degree_zero_part 𝒜 f m f_deg)).to_SheafedSpace.to_PresheafedSpace.carrier :=
+⟨homeo_of_iso (isos.top_component 𝒜 f m hm f_deg) '' {z | z.1 ∈ V.1}, begin
+  rw [homeomorph.is_open_image, is_open_induced_iff],
+  refine ⟨V.1, V.2, _⟩,
+  ext z, split; intro hz,
+  { rw set.mem_preimage at hz,
+    exact hz, },
+  { rw set.mem_preimage,
+    exact hz, }
+end⟩
+#check isos.sheaf_component.forward.mk_is_locally_quotient.open_set 𝒜 f m hm f_deg
+
+lemma isos.sheaf_component.forward.mk_is_locally_quotient.open_set_is_subset
+  (V : opens (projective_spectrum.Top 𝒜)) (y : unop U)
+  (subset1 : V ⟶ ((@opens.open_embedding (projective_spectrum.Top 𝒜) (projective_spectrum.basic_open 𝒜 f)).is_open_map.functor.op.obj
+            ((opens.map (isos.top_component 𝒜 f m hm f_deg).hom).op.obj U)).unop) :
+  (isos.sheaf_component.forward.mk_is_locally_quotient.open_set 𝒜 f m hm f_deg V) ⟶ unop U :=
+begin
+  apply hom_of_le,
+  have subset2 := le_of_hom subset1,
+  rintros z z_mem,
+  rw [←subtype.val_eq_coe] at z_mem,
+  erw set.mem_image at z_mem,
+  obtain ⟨z, z_mem, rfl⟩ := z_mem,
+  change z.1 ∈ _ at z_mem,
+  specialize subset2 z_mem,
+  erw set.mem_preimage at subset2,
+  obtain ⟨a, a_mem, eq2⟩ := subset2,
+  erw set.mem_preimage at a_mem,
+  rw homeo_of_iso_apply,
+  change _ ∈ (unop U).val,
+  convert a_mem,
+  rw subtype.ext_iff_val,
+  rw ←eq2,
+  refl,
+end
+
+lemma isos.sheaf_component.forward.mk_is_locally_quotient.mem_open_subset
+  (V : opens (projective_spectrum.Top 𝒜)) (y : unop U)
+  (mem1 : (((isos.top_component 𝒜 f m hm f_deg).inv) y.val).val ∈ V) :
+  y.1 ∈ isos.sheaf_component.forward.mk_is_locally_quotient.open_set 𝒜 f m hm f_deg V :=
+begin
+  erw [set.mem_image],
+  refine ⟨(isos.top_component 𝒜 f m hm f_deg).inv y.1, mem1, _⟩,
+  rw [homeo_of_iso_apply],
+  change (isos.top_component.forward.to_fun 𝒜 f m f_deg (isos.top_component.backward.to_fun 𝒜 f m hm f_deg _)) = _,
+  rw isos.top_component.forward_backward,
+end
+
 -- set_option profiler true
 lemma isos.sheaf_component.forward.mk_is_locally_quotient (y : unop U) :
   ∃ (V : opens (prime_spectrum.Top (degree_zero_part 𝒜 f m f_deg))) (m_1 : y.val ∈ V) (i : V ⟶ unop U)
@@ -2843,29 +2894,10 @@ begin
   },
 
   set VVo : opens (Spec (degree_zero_part 𝒜 f m f_deg)).to_SheafedSpace.to_PresheafedSpace.carrier :=
-    ⟨VV, VV_open⟩ with VVo_eq,
-  have subset2 : VVo ⟶ unop U,
-  {
-    apply hom_of_le,
-    have subset2 := le_of_hom subset1,
-    rintros z z_mem,
-    rw [←subtype.val_eq_coe] at z_mem,
-    dsimp only at z_mem,
-    rw set.mem_image at z_mem,
-    obtain ⟨z, z_mem, rfl⟩ := z_mem,
-    specialize subset2 z_mem,
-    erw set.mem_preimage at subset2,
-    obtain ⟨a, a_mem, eq2⟩ := subset2,
-    erw set.mem_preimage at a_mem,
-    rw homeo_of_iso_apply,
-    change _ ∈ (unop U).val,
-    convert a_mem,
-    rw subtype.ext_iff_val,
-    rw ←eq2,
-    refl,
-  },
+    isos.sheaf_component.forward.mk_is_locally_quotient.open_set 𝒜 f m hm f_deg V with VVo_eq,
+  have subset2 : VVo ⟶ unop U := isos.sheaf_component.forward.mk_is_locally_quotient.open_set_is_subset 𝒜 f m hm f_deg U V y subset1,
 
-  refine ⟨VVo, _, subset2,
+  refine ⟨VVo, isos.sheaf_component.forward.mk_is_locally_quotient.mem_open_subset 𝒜 f m hm f_deg U V y mem1, subset2,
     ⟨localization.mk (a * b^m.pred) ⟨f^degree, ⟨_, rfl⟩⟩, ⟨degree, _, begin
       have mem1 : b^m.pred ∈ 𝒜 (m.pred * degree),
       apply set_like.graded_monoid.pow_deg,
@@ -2884,13 +2916,6 @@ begin
           ... = degree + m.pred * degree : by rw add_comm,
     end, rfl⟩⟩,
     ⟨localization.mk (b^m) ⟨f^degree, ⟨_, rfl⟩⟩, ⟨degree, _, set_like.graded_monoid.pow_deg 𝒜 b_hom _, rfl⟩⟩, _⟩,
-
-  { erw [set.mem_image],
-    refine ⟨(isos.top_component 𝒜 f m hm f_deg).inv y.1, mem1, _⟩,
-    rw [homeo_of_iso_apply],
-    change (isos.top_component.forward.to_fun 𝒜 f m f_deg (isos.top_component.backward.to_fun 𝒜 f m hm f_deg _)) = _,
-    rw isos.top_component.forward_backward,
-     },
 
   rintros ⟨z, z_mem⟩,
   obtain ⟨z, z_mem, rfl⟩ := z_mem,

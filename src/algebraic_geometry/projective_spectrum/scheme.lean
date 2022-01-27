@@ -4331,6 +4331,53 @@ begin
   rw show (opens.inclusion _ γ = γ.1), from rfl,
 end
 
+lemma isos.sheaf_component.backward.mk_is_locally_quotient.z_mem_bo
+  (VV : opens _) (z : projective_spectrum.Top 𝒜)
+  (z_mem_U : z ∈ isos.sheaf_component.backward.mk_is_locally_quotient.Uo 𝒜 f m hm f_deg VV) :
+  z ∈ projective_spectrum.basic_open 𝒜 f :=
+begin
+  obtain ⟨⟨z, hz⟩, rfl⟩ := z_mem_U,
+  rw set.mem_preimage at hz,
+  apply z.2,
+end
+
+lemma isos.sheaf_component.backward.mk_is_locally_quotient.hom_z_mem_VV
+  (VV : opens _) (z : projective_spectrum.Top 𝒜)
+  (z_mem_U : z ∈ isos.sheaf_component.backward.mk_is_locally_quotient.Uo 𝒜 f m hm f_deg VV) :
+  ((isos.top_component 𝒜 f m hm f_deg).hom) ⟨z,
+    isos.sheaf_component.backward.mk_is_locally_quotient.z_mem_bo 𝒜 f m hm f_deg VV z z_mem_U⟩ ∈ VV :=
+begin
+  obtain ⟨γ, h1, h2⟩ := z_mem_U,
+  have mem1 := γ.2,
+  erw set.mem_preimage at mem1,
+  exact mem1,
+end
+
+lemma isos.sheaf_component.backward.mk_is_locally_quotient.not_mem2 (VV : opens _)
+  (z : projective_spectrum.Top 𝒜) (z_mem_U : z ∈ isos.sheaf_component.backward.mk_is_locally_quotient.Uo 𝒜 f m hm f_deg VV)
+  (β' : A) (l1 l2 : ℕ) (β'_mem : β' ∈ 𝒜 (m * l2))
+  (not_mem1 : (⟨localization.mk β' ⟨f^l2, ⟨_, rfl⟩⟩, ⟨l2, β', β'_mem, rfl⟩⟩ :
+    degree_zero_part 𝒜 f m f_deg) ∉
+    (((isos.top_component 𝒜 f m hm f_deg).hom) ⟨z,
+      isos.sheaf_component.backward.mk_is_locally_quotient.z_mem_bo 𝒜 f m hm f_deg VV z z_mem_U⟩).as_ideal) :
+  β' * f ^ l1 ∉ projective_spectrum.as_homogeneous_ideal z :=
+begin
+  intro rid,
+  rcases z.is_prime.mem_or_mem rid with H1 | H2,
+  { apply not_mem1,
+    have eq2 : (localization.mk β' ⟨f^l2, ⟨_, rfl⟩⟩ : localization.away f) =
+      localization.mk 1 ⟨f^l2, ⟨_, rfl⟩⟩ * localization.mk β' 1,
+    { rw [localization.mk_mul, one_mul, mul_one], },
+    simp only [eq2],
+    apply ideal.mem_span.smul_mem,
+    use β',
+    exact ⟨H1, rfl⟩, },
+  { replace H2 := z.is_prime.mem_of_pow_mem _ H2,
+    apply isos.sheaf_component.backward.mk_is_locally_quotient.z_mem_bo 𝒜 f m hm f_deg VV z z_mem_U,
+    exact H2, }
+
+end
+
 -- set_option profiler true
 lemma isos.sheaf_component.backward.mk_is_locally_quotient :
   ∃ (U : opens _) (mem : y.val ∈ U)
@@ -4361,51 +4408,23 @@ begin
     exact hom_y_mem_VV, },
 
   set subset2 : U ⟶ _ := isos.sheaf_component.backward.mk_is_locally_quotient.subset2 𝒜 f m hm f_deg V VV subset1,
-  refine ⟨U, y_mem_U, subset2, α' * f^l2, β' * f^l1, m * (l1 + l2), _, _, _⟩,
+  refine ⟨U, y_mem_U, subset2, α' * f^l2, β' * f^l1, m * l1 + l2 * m,
+    set_like.graded_monoid.mul_mem α'_mem (set_like.graded_monoid.pow_deg 𝒜 f_deg _),
+    by { convert set_like.graded_monoid.mul_mem β'_mem (set_like.graded_monoid.pow_deg 𝒜 f_deg l1) using 2, ring, }, _⟩,
 
-  { rw mul_add,
-    apply set_like.graded_monoid.mul_mem,
-    exact α'_mem,
-    rw nat.mul_comm,
-    apply set_like.graded_monoid.pow_deg 𝒜 f_deg, },
-
-  { rw [nat.add_comm, mul_add],
-    apply set_like.graded_monoid.mul_mem,
-    exact β'_mem,
-    rw nat.mul_comm,
-    apply set_like.graded_monoid.pow_deg 𝒜 f_deg,},
 
   rintros ⟨z, z_mem_U⟩,
   have z_mem_bo : z ∈ projective_spectrum.basic_open 𝒜 f,
-  { obtain ⟨⟨z, hz⟩, rfl⟩ := z_mem_U,
-    rw set.mem_preimage at hz,
-    apply z.2, },
+  { apply isos.sheaf_component.backward.mk_is_locally_quotient.z_mem_bo 𝒜 f m hm f_deg VV z z_mem_U, },
 
   have hom_z_mem_VV : ((isos.top_component 𝒜 f m hm f_deg).hom) ⟨z, z_mem_bo⟩ ∈ VV,
-  { obtain ⟨γ, h1, h2⟩ := z_mem_U,
-    have mem1 := γ.2,
-    erw set.mem_preimage at mem1,
-    exact mem1, },
+  { apply isos.sheaf_component.backward.mk_is_locally_quotient.hom_z_mem_VV 𝒜 f m hm f_deg VV z z_mem_U, },
 
   specialize is_local ⟨((isos.top_component 𝒜 f m hm f_deg).hom ⟨z, z_mem_bo⟩), hom_z_mem_VV⟩,
   obtain ⟨not_mem1, eq1⟩ := is_local,
-  dsimp only at not_mem1,
 
-  have not_mem1 : β' * f ^ l1 ∉ projective_spectrum.as_homogeneous_ideal z,
-  { intro rid,
-    rcases z.is_prime.mem_or_mem rid with H1 | H2,
-    { apply not_mem1,
-      have eq2 : (localization.mk β' ⟨f^l2, ⟨_, rfl⟩⟩ : localization.away f) =
-        localization.mk 1 ⟨f^l2, ⟨_, rfl⟩⟩ * localization.mk β' 1,
-      { rw [localization.mk_mul, one_mul, mul_one], },
-      simp only [eq2],
-      apply ideal.mem_span.smul_mem,
-      use β',
-      exact ⟨H1, rfl⟩, },
-    { replace H2 := z.is_prime.mem_of_pow_mem _ H2,
-      apply z_mem_bo,
-      exact H2, } },
-  refine ⟨not_mem1, _⟩,
+  refine ⟨isos.sheaf_component.backward.mk_is_locally_quotient.not_mem2 𝒜 f m hm f_deg VV z
+    z_mem_U β' l1 l2 β'_mem not_mem1, _⟩,
   have data_eq : isos.sheaf_component.backward.data 𝒜 f m hm f_deg V hh (subset2 ⟨z, z_mem_U⟩) =
     hh.val (subset1 ⟨((isos.top_component 𝒜 f m hm f_deg).hom) ⟨z, z_mem_bo⟩, hom_z_mem_VV⟩),
   { congr', },
@@ -4422,8 +4441,10 @@ begin
   have data_eq2 : isos.sheaf_component.backward.data 𝒜 f m hm f_deg V hh (subset2 ⟨z, z_mem_U⟩) =
     isos.sheaf_component.backward.data 𝒜 f m hm f_deg V hh ⟨z, z_mem2⟩,
   { congr', },
-  erw [data_eq2, isos.sheaf_component.backward.data_eq_num_div_denom,
-    localization.mk_eq_mk', is_localization.eq] at eq1,
+  rw [data_eq2, isos.sheaf_component.backward.data_eq_num_div_denom,
+    localization.mk_eq_mk'] at eq1,
+  erw is_localization.eq at eq1,
+
   obtain ⟨⟨⟨_, ⟨L, C, C_mem, rfl⟩⟩, hC⟩, eq1⟩ := eq1,
   simp only [←subtype.val_eq_coe, subtype.ext_iff_val,
     show ∀ (α β : degree_zero_part 𝒜 f m f_deg), (α * β).1 = α.1 * β.1, from λ _ _, rfl] at eq1,
@@ -4433,11 +4454,8 @@ begin
   simp only [←subtype.val_eq_coe,
     show ∀ (α β : submonoid.powers f), (α * β).1 = α.1 * β.1, from λ _ _, rfl, ←pow_add] at eq1,
 
-  unfold isos.sheaf_component.backward.mk,
-  unfold isos.sheaf_component.backward.hartshorne,
-  unfold isos.sheaf_component.backward.hartshorne_num,
-  unfold isos.sheaf_component.backward.hartshorne_denom,
-  -- dsimp only,
+  unfold isos.sheaf_component.backward.mk isos.sheaf_component.backward.hartshorne
+    isos.sheaf_component.backward.hartshorne_num isos.sheaf_component.backward.hartshorne_denom,
 
   set p := degree_zero_part.num (isos.sheaf_component.backward.data_num 𝒜 f m hm f_deg V hh ⟨z, z_mem2⟩) with p_eq,
   set q := degree_zero_part.num (isos.sheaf_component.backward.data_denom 𝒜 f m hm f_deg V hh ⟨z, z_mem2⟩).1 with q_eq,
@@ -4466,7 +4484,6 @@ begin
     exact H2,
   end⟩, _⟩,
 
-  simp only [←p_eq, ←q_eq, ←ii_eq, ←jj_eq] at eq1,
   simp only [←subtype.val_eq_coe,
     show ∀ (α β : submonoid.powers f), (α * β).1 = α.1 * β.1, from λ _ _, rfl],
 
@@ -4484,8 +4501,7 @@ end
 
 end is_locally_quotient
 
-#exit
-
+-- #exit
 def isos.sheaf_component.backward
   (f : A) [decidable_eq (localization.away f)] (m : ℕ) (hm : 0 < m) (f_deg : f ∈ 𝒜 m) :
   (Spec degree_zero_part 𝒜 f m f_deg).to_SheafedSpace.to_PresheafedSpace.presheaf ⟶

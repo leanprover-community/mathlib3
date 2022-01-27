@@ -115,11 +115,7 @@ multiset.induction_on m (by simp) (λ a m ih, by simp [ih])
 
 lemma prod_insert [comm_monoid α] (S : multiset α) (a : α) :
   (insert a S).prod = a * S.prod :=
-begin
-  apply multiset.strong_induction_on S,
-  apply multiset.induction_on' S, { simp },
-  exact λ _ _ _ _, id,
-end
+by { apply multiset.strong_induction_on S, apply multiset.induction_on' S; simp }
 
 @[to_additive]
 lemma prod_induction (p : α → Prop) (s : multiset α) (p_mul : ∀ a b, p a → p b → p (a * b))

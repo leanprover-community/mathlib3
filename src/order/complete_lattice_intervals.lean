@@ -19,9 +19,10 @@ Add appropriate instances for all `set.Ixx`. This requires a refactor that will 
 default values for `Sup` and `Inf`.
 -/
 
-variables {α : Type*} (s : set α)
-
 open_locale classical
+open set
+
+variables {α : Type*} (s : set α)
 
 section has_Sup
 variables [has_Sup α]

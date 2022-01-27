@@ -2024,13 +2024,13 @@ theorem add_mul_limit_aux {a b c : ordinal} (ba : b + a = a)
   (a + b) * c = a * c :=
 le_antisymm
   ((mul_le_of_limit l).2 $ λ c' h, begin
-    apply le_trans (mul_le_mul_left _ (le_of_lt $ lt_succ_self _)),
+    apply le_trans (mul_le_mul_left' (le_of_lt $ lt_succ_self _) _),
     rw IH _ h,
     apply le_trans (add_le_add_left _ _),
-    { rw ← mul_succ, exact mul_le_mul_left _ (succ_le.2 $ l.2 _ h) },
+    { rw ← mul_succ, exact mul_le_mul_left' (succ_le.2 $ l.2 _ h) _ },
     { rw ← ba, exact le_add_right _ _ }
   end)
-  (mul_le_mul_right _ (le_add_right _ _))
+  (mul_le_mul_right' (le_add_right _ _) _)
 
 theorem add_mul_succ {a b : ordinal} (c) (ba : b + a = a) :
   (a + b) * succ c = a * succ c + b :=
@@ -2332,7 +2332,7 @@ end
 -- golf
 theorem mul_omega {a : ordinal} (a0 : 0 < a) (ha : a < omega) : a * omega = omega :=
 le_antisymm
-  ((mul_le_of_limit omega_is_limit).2 $ λ b hb, le_of_lt (mul_lt_omega ha hb))
+  ((mul_le_of_limit omega_is_limit).2 $ λ b hb, le_of_lt (principal_mul_omega ha hb))
   (by simpa only [one_mul] using mul_le_mul_right' (one_le_iff_pos.2 a0) omega)
 
 theorem mul_lt_omega_opow {a b c : ordinal}

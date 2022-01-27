@@ -298,59 +298,51 @@ variables {K : Type u} [field K] {L : Type v} {M : Type w} [field L] [algebra K 
 variables (K L M)
 include hL
 
-/-- A (random) hom from an algebraic extension of K into an algebraically closed extension of K -/
-@[irreducible] noncomputable def lift : L →ₐ[K] M :=
+@[irreducible] private noncomputable def lift_aux : L →ₐ[K] M :=
 (lift.subfield_with_hom.maximal_subfield_with_hom M hL).emb.comp $
   eq.rec_on (lift.subfield_with_hom.maximal_subfield_with_hom_eq_top M hL).symm algebra.to_top
 
 omit hL
 
-variables {R : Type u} [comm_ring R] [is_domain R]
+variables {R : Type u} [comm_ring R]
 variables {S : Type v} [comm_ring S] [is_domain S] [algebra R S]
   [algebra R M] [is_alg_closed M] (hRS : function.injective (algebra_map R S))
   (hRM : function.injective (algebra_map R M))
   (hS : algebra.is_algebraic R S)
-
--- lemma is_integral_domain.of_injective {R : Type u} {S : Type v} [ring R] [ring S]
---   (hS: is_integral_domain S) (f : R →+* S) (hf : function.injective f) : is_integral_domain R :=
--- { mul_comm := λ x y, hf $ by rw [f.map_mul, hS.mul_comm, f.map_mul],
---   eq_zero_or_eq_zero_of_mul_eq_zero :=
---     λ x y hxy, (hS.eq_zero_or_eq_zero_of_mul_eq_zero (f x) (f y)
---         (by rw [← f.map_mul, hxy, f.map_zero])).elim
---       (λ h, or.inl $ f.injective_iff.1 hf _ h)
---       (λ h, or.inr $ f.injective_iff.1 hf _ h),
---   exists_pair_ne := by letI := hS.to_integral_domain S;
---     exact ⟨0, 1, λ h, @zero_ne_one S _ _ $ by rw [← f.map_zero, h, f.map_one]⟩ }
+variables {M}
 
 include hS hRS hRM
 
+/-- A (random) hom from an algebraic extension of R into an algebraically closed extension of R. -/
+
 @[irreducible] noncomputable def lift' : S →ₐ[R] M :=
 begin
+  letI : is_domain R := hRS.is_domain _,
   letI : algebra (fraction_ring R) M :=
     ring_hom.to_algebra (is_fraction_ring.lift hRM : fraction_ring R →+* M),
-  let i : R →+* fraction_ring S := (algebra_map S (fraction_ring S)).comp (algebra_map R S),
-  letI : algebra R (fraction_ring S) := ring_hom.to_algebra i,
-  have hinj : function.injective (algebra_map R (fraction_ring S)), from sorry,
+  have hinj : function.injective (algebra_map R (fraction_ring S)),
+    from sorry,
   let j : fraction_ring R →+* fraction_ring S := is_fraction_ring.lift hinj,
   letI : algebra (fraction_ring R) (fraction_ring S) := ring_hom.to_algebra j,
-  letI : is_scalar_tower R (fraction_ring R) (fraction_ring S) :=
-    @is_scalar_tower.of_algebra_map_eq R (fraction_ring R) (fraction_ring S)
-      _ _ _ _ _ _
-      (λ x, begin admit,
-        -- rw [ring_hom.algebra_map_to_algebra i, ring_hom.algebra_map_to_algebra j],
-        -- dsimp only [i, j],
-        -- convert (is_fraction_ring.lift_algebra_map hinj x).symm,
-      end),
+  haveI : is_scalar_tower R (fraction_ring R) (fraction_ring S) :=
+    is_scalar_tower.of_algebra_map_eq
+      (λ x, (is_fraction_ring.lift_algebra_map hinj x).symm),
   have hfRfS : algebra.is_algebraic (fraction_ring R) (fraction_ring S),
-    from λ x,
-      begin
-        have : algebra.is_algebraic S (fraction_ring S), from sorry,
-        refine algebra.is_algebraic_trans _ this x,
-      end,
+    from sorry,
+  haveI : is_scalar_tower R (fraction_ring R) M :=
+    is_scalar_tower.of_algebra_map_eq
+      (λ x, (is_fraction_ring.lift_algebra_map hRM x).symm),
   let f : fraction_ring S →ₐ[fraction_ring R] M :=
-    is_alg_closed.lift (fraction_ring R) (fraction_ring S) M _,
-
+    lift_aux (fraction_ring R) (fraction_ring S) M hfRfS,
+  exact (f.restrict_scalars R).comp ((algebra.of_id S (fraction_ring S)).restrict_scalars R),
 end
+
+omit hS hRS hRM
+include hL
+variables (M)
+
+@[irreducible]  noncomputable def lift : L →ₐ[K] M :=
+lift' (ring_hom.injective _) (ring_hom.injective _) hL
 
 end is_alg_closed
 

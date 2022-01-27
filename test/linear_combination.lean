@@ -8,6 +8,10 @@ example (x y : ℤ) (h1 : 3*x + 2*y = 10):
   3*x + 2*y = 10 :=
 by linear_combination (h1, 1)
 
+example (x y : ℤ) (h1 : 3*x + 2*y = 10):
+  3*x + 2*y = 10 :=
+by linear_combination h1
+
 example (x y : ℤ) (h1 : x + 2 = -3) (h2 : y = 10) :
   2*x + 4 = -6 :=
 by linear_combination (h1, 2)
@@ -15,6 +19,10 @@ by linear_combination (h1, 2)
 example (x y : ℤ) (h1 : x*y + 2*x = 1) (h2 : x = y) :
   x*y = -2*y + 1 :=
 by linear_combination (h1, 1) (h2, -2)
+
+example (x y : ℤ) (h1 : x*y + 2*x = 1) (h2 : x = y) :
+  x*y = -2*y + 1 :=
+by linear_combination (h2, -2) h1
 
 example (x y : ℤ) (h1 : x + 2 = -3) (h2 : y = 10) :
   2*x + 4 - y = -16 :=
@@ -81,6 +89,11 @@ example (w x y z : ℝ) (h1 : x + 2.1*y + 2*z = 2) (h2 : x + 8*z + 5*w = -6.5)
     (h3 : x + y + 5*z + 5*w = 3) :
   x + 2.2*y + 2*z - 5*w = -8.5 :=
 by linear_combination (h1, 2) (h2, 1) (h3, -2)
+
+example (w x y z : ℝ) (h1 : x + 2.1*y + 2*z = 2) (h2 : x + 8*z + 5*w = -6.5)
+    (h3 : x + y + 5*z + 5*w = 3) :
+  x + 2.2*y + 2*z - 5*w = -8.5 :=
+by linear_combination (h1, 2) h2 (h3, -2)
 
 example (a b c d : ℚ) (h1 : a = 4) (h2 : 3 = b) (h3 : c*3 = d) (h4 : -d = a) :
   2*a - 3 + 9*c + 3*d = 8 - b + 3*d - 3*a :=

@@ -314,21 +314,26 @@ section interactive_mode
 setup_tactic_parser
 
 /--
-A parser that matches a pair in parentheses, where the first item in the pair
-is an identifier and the second item in the pair is a `pexpr`.
+A parser that matches a pair in parentheses (where the first item in the pair
+is an identifier and the second item in the pair is a `pexpr`) or an identifier
+by itself.  If the identifier is by itself, this parser behaves as though it
+was given a `pexpr ` of ``(1) along with the identifier.
 
 * Input: None
 
 * Output: a `lean.parser (name × pexpr)`
 -/
 meta def parse_name_pexpr_pair : lean.parser (name × pexpr) :=
-do
+(do
   tk "(",
   id ← ident,
   tk ",",
   coeff ← parser.pexpr 0,
   tk ")",
-  pure (id, coeff)
+  pure (id, coeff)) <|>
+(do
+  id ← ident,
+  pure (id, ``(1)))
 
 /--
 `linear_combination` attempts to prove the target by creating and applying a
@@ -346,6 +351,8 @@ Note: The left and right sides of all the equalities should have the same
 
 * Input:
   * `input` : the pairs of hypotheses and their corresponding coefficients
+      if no coefficient is given with a hypothesis, then the coefficient for
+      that hypothesis will be set to 1
   * `config` : a linear_combination_config, which determines the tactic used
       for normalization; by default, this value is the standard configuration
       for a linear_combination_config.  In the standard configuration,
@@ -357,6 +364,10 @@ Example Usage:
 example (x y : ℤ) (h1 : x*y + 2*x = 1) (h2 : x = y) :
   x*y = -2*y + 1 :=
 by linear_combination (h1, 1) (h2, -2)
+
+example (x y : ℤ) (h1 : x*y + 2*x = 1) (h2 : x = y) :
+  x*y = -2*y + 1 :=
+by linear_combination h1 (h2, -2)
 
 example (x y z : ℝ) (ha : x + 2*y - z = 4) (hb : 2*x + y + z = -2)
     (hc : x + 2*y + z = 2) :

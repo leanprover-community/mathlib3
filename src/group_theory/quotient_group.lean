@@ -408,10 +408,7 @@ top_unique $ λ x _,
   {H : subgroup G} [subsingleton G] :
   subsingleton (G ⧸ H) :=
 begin
-  apply subsingleton.intro,
-  rw forall_coe, intro x,
-  rw forall_coe, intro y,
-  rw (subsingleton.elim x y),
+  apply_instance,
 end
 
 end trivial

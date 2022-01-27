@@ -139,7 +139,7 @@ begin
 end
 
 lemma vertices_subset_space : K.vertices ⊆ K.space :=
-vertices_eq.subset.trans $ set.bUnion_mono $ λ x hx, subset_convex_hull 𝕜 x
+vertices_eq.subset.trans $ Union₂_mono $ λ x hx, subset_convex_hull 𝕜 x
 
 lemma vertex_mem_convex_hull_iff (hx : x ∈ K.vertices) (hs : s ∈ K.faces) :
   x ∈ convex_hull 𝕜 (s : set E) ↔ x ∈ s :=

@@ -214,7 +214,7 @@ begin
   obtain ⟨m, n, hmn, h⟩ := hp (λ n, hi.nat_embedding _ n) (range_subset_iff.2 $
     λ n, (hi.nat_embedding _ n).2),
   exact hmn.ne ((hi.nat_embedding _).injective $ subtype.val_injective $
-    ha.eq_of_related (hi.nat_embedding _ m).2 (hi.nat_embedding _ n).2 h),
+    ha.eq (hi.nat_embedding _ m).2 (hi.nat_embedding _ n).2 h),
 end
 
 lemma finite.partially_well_ordered_on {s : set α} {r : α → α → Prop} [is_refl α r]

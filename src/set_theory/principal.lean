@@ -11,9 +11,14 @@ import set_theory.ordinal_arithmetic
 
 We define principal or indecomposable ordinals, and we prove the standard properties about them.
 
+### Main definitions and results
+* `principal`: A principal or indecomposable ordinal under some binary operation. We include 0 and
+any other typically excluded edge cases for simplicity.
+* `principal_add_iff_zero_or_omega_power`: the characterization theorem for additive principal
+ordinals.
+
 ### Todo
-* Prove the characterization of additive indecomposable ordinals.
-* Prove the characterization of multiplicative indecomposable ordinals.
+* Prove the characterization of multiplicative principal ordinals.
 * Refactor any related theorems from `ordinal_arithmetic` into this file.
 -/
 
@@ -70,14 +75,14 @@ nfp_le.2 $ λ n, le_of_lt (iterate_lt_of_principal hao ho n)
 theorem principal_add_one : principal (+) 1 :=
 principal_one_iff.2 $ zero_add 0
 
-theorem principal_add_of_le_one {o : ordinal.{u}} (ho : o ≤ 1) : principal (+) o :=
+theorem principal_add_of_le_one {o : ordinal} (ho : o ≤ 1) : principal (+) o :=
 begin
   rcases le_one_iff.1 ho with rfl | rfl,
   { exact principal_zero },
   { exact principal_add_one }
 end
 
-theorem principal_add_is_limit {o : ordinal.{u}} (ho₁ : 1 < o) (ho : principal (+) o) :
+theorem principal_add_is_limit {o : ordinal} (ho₁ : 1 < o) (ho : principal (+) o) :
   o.is_limit :=
 begin
   refine ⟨λ ho₀, _, λ a hao, _⟩,
@@ -138,8 +143,8 @@ end
 theorem principal_add_omega_opow (o : ordinal) : principal (+) (omega ^ o) :=
 principal_add_iff_add_left_eq_self.2 (λ a, add_omega_opow)
 
-theorem principal_add_iff_zero_or_omega_power {o : ordinal.{u}} :
-  principal (+) o ↔ o = 0 ∨ ∃ a : ordinal.{u}, o = omega.{u} ^ a :=
+theorem principal_add_iff_zero_or_omega_power {o : ordinal} :
+  principal (+) o ↔ o = 0 ∨ ∃ a : ordinal, o = omega ^ a :=
 begin
   rcases eq_or_ne o 0 with rfl | ho,
   { simp only [principal_zero, or.inl] },

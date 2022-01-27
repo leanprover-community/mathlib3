@@ -74,7 +74,7 @@ variables (P : Cᵒᵖ ⥤ A) {X : C} (S : sieve X) (R : presieve X) (E : Aᵒ�
 -- def category_theory.limits.cocones.equivalence_of_reindexing
 -- ! def category_theory.limits.is_colimit.whisker_equivalence_equiv
 
-@[simps] def cones_equiv_sieve_compatible_family (E : Aᵒᵖ) :
+@[simps] def cones_equiv_sieve_compatible_family :
   (functor.cones (S.arrows.diagram.op ⋙ P)).obj E ≃
   {x : family_of_elements (P ⋙ coyoneda.obj E) S // x.sieve_compatible} :=
 { to_fun := λ π, ⟨λ Y f h, π.app (op ⟨over.mk f, h⟩), λ _, by
@@ -109,9 +109,8 @@ lemma is_limit_iff_is_sheaf_for :
 begin
   dsimp [is_sheaf_for], simp_rw compatible_iff_sieve_compatible,
   rw ((cone.is_limit_equiv_is_terminal _).trans (is_terminal_equiv_unique _ _)).nonempty_congr,
-  rw classical.nonempty_pi,
-  split,
-  { rintro hu E x hx, specialize hu hx.cone,
+  rw classical.nonempty_pi, split,
+  { intros hu E x hx, specialize hu hx.cone,
     erw (hom_equiv_amalgamation hx).unique_congr.nonempty_congr at hu,
     exact (unique_subtype_iff_exists_unique _).1 hu },
   { rintros h ⟨E,π⟩, let eqv := cones_equiv_sieve_compatible_family P S (op E),
@@ -119,15 +118,31 @@ begin
     rw unique_subtype_iff_exists_unique, exact h _ _ (eqv π).2 },
 end
 
-lemma is_limit_iff_is_sheaf_for_presieve :
-  nonempty (is_limit (P.map_cone (generate R).arrows.cocone.op)) ↔
-  ∀ E : Aᵒᵖ, is_sheaf_for (P ⋙ coyoneda.obj E) R :=
-(is_limit_iff_is_sheaf_for P _).trans (forall_congr (λ _, (is_sheaf_for_iff_generate _).symm))
+lemma subsingleton_iff_is_separated_for :
+  (∀ c, subsingleton (c ⟶ P.map_cone S.arrows.cocone.op)) ↔
+  ∀ E : Aᵒᵖ, is_separated_for (P ⋙ coyoneda.obj E) S :=
+begin
+  split,
+  { intros hs E x t₁ t₂ h₁ h₂, have hx := is_compatible_of_exists_amalgamation x ⟨t₁,h₁⟩,
+    rw compatible_iff_sieve_compatible at hx, specialize hs hx.cone, cases hs,
+    have := (hom_equiv_amalgamation hx).symm.injective,
+    exact congr_arg subtype.val (@this ⟨t₁,h₁⟩ ⟨t₂,h₂⟩ (hs _ _)) },
+  { rintros h ⟨E,π⟩, let eqv := cones_equiv_sieve_compatible_family P S (op E), split,
+    rw ← eqv.left_inv π, intros f₁ f₂, let eqv' := hom_equiv_amalgamation (eqv π).2,
+    apply eqv'.injective, ext, apply h _ (eqv π).1; exact (eqv' _).2 },
+end
 
+/-- Since separatedness isn't defined in mathlib, I didn't add `is_separated_iff_subsingleton`.
+    But it would be easy to add when we need it, e.g. in sheafification. -/
 lemma is_sheaf_iff_is_limit : is_sheaf J P ↔
   ∀ ⦃X : C⦄ (S : sieve X), S ∈ J X → nonempty (is_limit (P.map_cone S.arrows.cocone.op)) :=
 ⟨λ h X S hS, (is_limit_iff_is_sheaf_for P S).2 (λ E, h E.unop S hS),
  λ h E X S hS, (is_limit_iff_is_sheaf_for P S).1 (h S hS) (op E)⟩
+
+lemma is_limit_iff_is_sheaf_for_presieve :
+  nonempty (is_limit (P.map_cone (generate R).arrows.cocone.op)) ↔
+  ∀ E : Aᵒᵖ, is_sheaf_for (P ⋙ coyoneda.obj E) R :=
+(is_limit_iff_is_sheaf_for P _).trans (forall_congr (λ _, (is_sheaf_for_iff_generate _).symm))
 
 lemma is_sheaf_iff_is_limit_pretopology [has_pullbacks C] (K : pretopology C) :
   is_sheaf (K.to_grothendieck C) P ↔ ∀ ⦃X : C⦄ (R : presieve X), R ∈ K X →
@@ -135,9 +150,6 @@ lemma is_sheaf_iff_is_limit_pretopology [has_pullbacks C] (K : pretopology C) :
 by { dsimp [is_sheaf], simp_rw is_sheaf_pretopology, exact
   ⟨λ h X R hR, (is_limit_iff_is_sheaf_for_presieve P R).2 (λ E, h E.unop R hR),
    λ h E X R hR, (is_limit_iff_is_sheaf_for_presieve P R).1 (h R hR) (op E)⟩ }
-
---lemma subsingleton_iff_is_separated_for :
---  subsingleton
 
 end limit_sheaf_condition
 

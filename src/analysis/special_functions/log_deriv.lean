@@ -286,6 +286,76 @@ lemma sq_ne_one_iff {R : Type*} [linear_ordered_ring R] (x : R) : x^2 ≠ 1 ↔ 
 @[simp] lemma sq_lt_one_iff {R : Type*} [linear_ordered_ring R] (x : R) : x^2 < 1 ↔ |x| < 1 :=
 ⟨λ h, abs_lt_of_sq_lt_sq (by simp [h]) zero_le_one, λ h, by simpa using sq_lt_sq h⟩
 
+@[simp] lemma sq_le_one_iff {R : Type*} [linear_ordered_ring R] (x : R) : x^2 ≤ 1 ↔ |x| ≤ 1 :=
+⟨λ h, abs_le_of_sq_le_sq (by simp [h]) zero_le_one, λ h, by simpa using sq_le_sq h⟩
+-- ⟨λ h, abs_lt_of_sq_lt_sq (by simp [h]) zero_le_one, λ h, by simpa using sq_lt_sq h⟩
+
+lemma artanh_partial_series_bound_aux {y : ℝ} (n : ℕ) (hy₁ : -1 < y) (hy₂ : y < 1) :
+  deriv (λ (x : ℝ), (∑ i in range n, x^(2*i+1)/(2*i+1)) - 1/2 * log ((1+x)/(1-x))) y =
+    - (y^2)^n / (1 - y^2) :=
+begin
+  have : (∑ i in range n, (2*↑i+1) * y ^ (2*i) / (2*i+1)) = (∑ i in range n, (y^2) ^ i),
+  { congr' with i,
+    have : 2 * (i : ℝ) + 1 ≠ 0 := by exact_mod_cast (nat.succ_ne_zero (2 * i)),
+    field_simp [this, mul_comm, ←pow_mul] },
+  have hy' : 0 < 1 + y, simpa [add_comm] using sub_pos_of_lt hy₁,
+  have hy'' : y^2 ≠ 1 := by simp [hy₁.ne', hy₂.ne],
+  field_simp [this, hy'.ne', hy'.ne, hy₂.ne, hy₂.ne', ←geom_sum_def, hy'', geom_sum_eq,
+    sub_ne_zero_of_ne, hy''.symm],
+  ring
+end
+
+lemma artanh_partial_series_upper_bound {x : ℝ} (h : |x| < 1) (n : ℕ) :
+  |((∑ i in range n, x^(2*i+1)/(2*i+1)) - 1/2 * log ((1+x)/(1-x)))| ≤ (|x|)^(2*n+1) / (1 - x^2) :=
+begin
+  let F : ℝ → ℝ := λ x, (∑ i in range n, x^(2*i+1)/(2*i+1)) - 1/2 * log ((1+x)/(1-x)),
+  have B : ∀ y ∈ Icc (-|x|) (|x|), |deriv F y| ≤ |x|^(2*n) / (1 - x^2),
+  { intros y hy,
+    have : y ∈ Ioo (-(1 : ℝ)) 1 := ⟨(neg_lt_neg h).trans_le hy.1, hy.2.trans_lt h⟩,
+    rw [artanh_partial_series_bound_aux _ this.1 this.2, abs_div, abs_neg, ←pow_abs, ←pow_abs,
+      pow_mul, abs_of_pos (show 0 < 1 - y^2, by simpa [abs_lt] using this)],
+    simp only [pow_bit0_abs],
+    have yx : y^2 ≤ x^2 := sq_le_sq (abs_le.2 hy),
+    exact div_le_div (pow_nonneg (sq_nonneg _) _) (pow_le_pow_of_le_left (sq_nonneg _) yx _)
+      (by simpa using h) (sub_le_sub_left yx _) },
+  have C : ∥F x - F 0∥ ≤ (|x|^(2*n) / (1 - x^2)) * ∥x - 0∥,
+  { have : ∀ y ∈ Icc (- |x|) (|x|), differentiable_at ℝ F y,
+    { intros y hy,
+      have hy' : 0 < 1 + y := neg_lt_iff_pos_add'.1 ((neg_lt_neg h).trans_le hy.1),
+      simp [F, sub_ne_zero_of_ne (hy.2.trans_lt h).ne', hy'.ne'] },
+    apply convex.norm_image_sub_le_of_norm_deriv_le this B (convex_Icc _ _) _ _,
+    { simpa using abs_nonneg x },
+    { simp [le_abs_self x, neg_le.mp (neg_le_abs_self x)] } },
+  simpa [F, norm_eq_abs, pow_succ', div_mul_eq_mul_div, mul_assoc] using C,
+end
+
+lemma artanh_partial_series_le_of_nonneg {x : ℝ} (h₀ : 0 ≤ x) (h₁ : x < 1) (n : ℕ) :
+  (∑ i in range n, x^(2*i+1)/(2*i+1)) ≤ 1/2 * log ((1+x)/(1-x)) :=
+begin
+  let F : ℝ → ℝ := λ x, (∑ i in range n, x^(2*i+1)/(2*i+1)) - 1/2 * log ((1+x)/(1-x)),
+  have : F 0 = 0,
+  { simp only [F, pow_succ, zero_mul, zero_div, sum_const_zero, sub_zero, add_zero, div_one,
+      log_one, mul_zero] },
+  have hF : ∀ y ∈ set.Ico (0 : ℝ) 1, differentiable_at ℝ F y,
+  { intros y hy,
+    have hy' : 0 < 1 + y := add_pos_of_pos_of_nonneg zero_lt_one hy.1,
+    simp [F, sub_ne_zero_of_ne hy.2.ne', hy'.ne'] },
+  have Fc : continuous_on F (Ico 0 1) := λ x hx, (hF x hx).continuous_at.continuous_within_at,
+  have Fd : differentiable_on ℝ F _ := λ x hx, (hF x (interior_subset hx)).differentiable_within_at,
+  have hF' : ∀ (x : ℝ), x ∈ interior (Ico (0 : ℝ) 1) → deriv F x ≤ 0,
+  { intros y hy,
+    rw interior_Ico at hy,
+    rw [artanh_partial_series_bound_aux _ (by linarith [hy.1]) hy.2, neg_div, neg_nonpos],
+    refine div_nonneg (pow_nonneg (sq_nonneg _) _) _,
+    simp,
+
+  },
+  rw ←sub_nonpos,
+  have := (convex_Ico 0 1).image_sub_le_mul_sub_of_deriv_le Fc Fd _ _ ⟨le_rfl, zero_lt_one⟩ x ⟨h₀, h₁⟩ h₀,
+end
+
+#exit
+
 lemma newbound {x : ℝ} (h : |x| < 1) (n : ℕ) :
   |(2*(∑ i in range n, x^(2*i+1)/(2*i+1)) - log ((1+x)/(1-x)))| ≤ 2 * (|x|)^(2*n+1) / (1 - x^2) :=
 begin
@@ -329,6 +399,8 @@ begin
     { simp [le_abs_self x, neg_le.mp (neg_le_abs_self x)] } },
   simpa [F, norm_eq_abs, pow_succ', div_mul_eq_mul_div, mul_assoc] using C,
 end
+
+#exit
 
 lemma log_two_near_10 : |log 2 - 836158 / 1206321| ≤ 1/10^10 :=
 begin

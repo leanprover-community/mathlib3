@@ -864,6 +864,14 @@ lemma map_strict_mono (f : α → β) : strict_mono (map f) := λ _ _, map_lt_ma
 @[simp] theorem map_subset_map {f : α → β} {s t : multiset α} (H : s ⊆ t) : map f s ⊆ map f t :=
 λ b m, let ⟨a, h, e⟩ := mem_map.1 m in mem_map.2 ⟨a, H h, e⟩
 
+lemma map_insert (S : multiset α) (a : α) (g : α → β) :
+  multiset.map g (insert a S) = insert (g a) (multiset.map g S) :=
+begin
+  apply multiset.strong_induction_on S,
+  apply multiset.induction_on' S, { simp },
+  exact λ _ _ _ _, id,
+end
+
 lemma map_erase [decidable_eq α] [decidable_eq β]
   (f : α → β) (hf : function.injective f) (x : α) (s : multiset α) :
   (s.erase x).map f = (s.map f).erase (f x) :=

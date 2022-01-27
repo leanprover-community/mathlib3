@@ -113,6 +113,14 @@ lemma prod_map_prod_map (m : multiset β) (n : multiset γ) {f : β → γ → �
   prod (m.map $ λ a, prod $ n.map $ λ b, f a b) = prod (n.map $ λ b, prod $ m.map $ λ a, f a b) :=
 multiset.induction_on m (by simp) (λ a m ih, by simp [ih])
 
+lemma prod_insert [comm_monoid α] (S : multiset α) (a : α) :
+  (insert a S).prod = a * S.prod :=
+begin
+  apply multiset.strong_induction_on S,
+  apply multiset.induction_on' S, { simp },
+  exact λ _ _ _ _, id,
+end
+
 @[to_additive]
 lemma prod_induction (p : α → Prop) (s : multiset α) (p_mul : ∀ a b, p a → p b → p (a * b))
   (p_one : p 1) (p_s : ∀ a ∈ s, p a) :
@@ -147,6 +155,16 @@ lemma prod_dvd_prod (h : s ≤ t) : s.prod ∣ t.prod :=
 begin
   obtain ⟨z, rfl⟩ := multiset.le_iff_exists_add.1 h,
   simp only [prod_add, dvd_mul_right],
+end
+
+lemma prod_dvd_prod' [comm_monoid β] {S : multiset α} (g1 g2 : α → β)
+  (h : ∀ a ∈ S, g1 a ∣ g2 a) :
+  (multiset.map g1 S).prod ∣ (multiset.map g2 S).prod :=
+begin
+  apply multiset.induction_on' S, { simp },
+  intros a T haS _ IH,
+  simp only [multiset.map_insert, multiset.prod_insert],
+  exact mul_dvd_mul (h a haS) IH,
 end
 
 end comm_monoid

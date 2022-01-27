@@ -273,8 +273,8 @@ instance decidable_eq_monoid_hom_fintype [decidable_eq β] [fintype α]
 λ a b, decidable_of_iff ((a : α → β) = b) (injective.eq_iff monoid_hom.coe_inj)
 
 instance decidable_eq_monoid_with_zero_hom_fintype [decidable_eq β] [fintype α]
-  [mul_zero_one_class α] [mul_zero_one_class β]:
-  decidable_eq (monoid_with_zero_hom α β) :=
+  [mul_zero_one_class α] [mul_zero_one_class β] :
+  decidable_eq (α →*₀ β) :=
 λ a b, decidable_of_iff ((a : α → β) = b) (injective.eq_iff monoid_with_zero_hom.coe_inj)
 
 instance decidable_eq_ring_hom_fintype [decidable_eq β] [fintype α]

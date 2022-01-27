@@ -88,7 +88,7 @@ variables {P S E} {x : family_of_elements (P ⋙ coyoneda.obj E) S} (hx : x.siev
 { X := E.unop, π := (cones_equiv_sieve_compatible_family P S E).inv_fun ⟨x,hx⟩ }
 
 def hom_equiv_amalgamation :
-  cone_morphism hx.cone (P.map_cone S.arrows.cocone.op) ≃ {t // x.is_amalgamation t} :=
+  (hx.cone ⟶ P.map_cone S.arrows.cocone.op) ≃ {t // x.is_amalgamation t} :=
 { to_fun := λ l, ⟨l.hom, λ Y f hf, l.w (op ⟨over.mk f, hf⟩)⟩,
   inv_fun := λ t, ⟨t.1, λ f, t.2 f.unop.1.hom f.unop.2⟩,
   left_inv := λ l, by { ext, refl },
@@ -118,19 +118,22 @@ begin
   { intros hs E x t₁ t₂ h₁ h₂, have hx := is_compatible_of_exists_amalgamation x ⟨t₁,h₁⟩,
     rw compatible_iff_sieve_compatible at hx, specialize hs hx.cone, cases hs,
     have := (hom_equiv_amalgamation hx).symm.injective,
-    exact congr_arg subtype.val (@this ⟨t₁,h₁⟩ ⟨t₂,h₂⟩ (hs _ _)) },
+    exact subtype.ext_iff.1 (@this ⟨t₁,h₁⟩ ⟨t₂,h₂⟩ (hs _ _)) },
   { rintros h ⟨E,π⟩, let eqv := cones_equiv_sieve_compatible_family P S (op E), split,
     rw ← eqv.left_inv π, intros f₁ f₂, let eqv' := hom_equiv_amalgamation (eqv π).2,
     apply eqv'.injective, ext, apply h _ (eqv π).1; exact (eqv' _).2 },
 end
 
-/-- Since separatedness isn't defined in mathlib, I didn't add `is_separated_iff_subsingleton`.
-    But it would be easy to add when we need it, e.g. in sheafification with non-concrete
-    value categories. -/
 lemma is_sheaf_iff_is_limit : is_sheaf J P ↔
   ∀ ⦃X : C⦄ (S : sieve X), S ∈ J X → nonempty (is_limit (P.map_cone S.arrows.cocone.op)) :=
 ⟨λ h X S hS, (is_limit_iff_is_sheaf_for P S).2 (λ E, h E.unop S hS),
  λ h E X S hS, (is_limit_iff_is_sheaf_for P S).1 (h S hS) (op E)⟩
+
+lemma is_separated_iff_subsingleton :
+  (∀ E : A, is_separated J (P ⋙ coyoneda.obj (op E))) ↔
+  ∀ ⦃X : C⦄ (S : sieve X), S ∈ J X → ∀ c, subsingleton (c ⟶ P.map_cone S.arrows.cocone.op) :=
+⟨λ h X S hS, (subsingleton_iff_is_separated_for P S).2 (λ E, h E.unop S hS),
+ λ h E X S hS, (subsingleton_iff_is_separated_for P S).1 (h S hS) (op E)⟩
 
 lemma is_limit_iff_is_sheaf_for_presieve :
   nonempty (is_limit (P.map_cone (generate R).arrows.cocone.op)) ↔

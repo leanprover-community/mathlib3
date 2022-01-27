@@ -34,12 +34,8 @@ dual, Lax-Milgram
 -/
 
 noncomputable theory
-
-
-
-
-open is_R_or_C continuous_linear_map linear_map linear_equiv inner_product_space
-open_locale classical complex_conjugate
+open is_R_or_C linear_map continuous_linear_map inner_product_space
+open_locale real_inner_product_space nnreal
 
 universe u
 
@@ -66,9 +62,9 @@ begin
   by_cases h : 0 < ∥v∥,
   { refine (mul_le_mul_right h).mp _,
     exact calc C * ∥v∥ * ∥v∥
-               ≤ B v v                         : coercivity v
-    ...        = ⟪B♯ v, v⟫_ℝ : by simp
-    ...        ≤ ∥B♯ v∥ * ∥v∥     : real_inner_le_norm (B♯ v) v, },
+        ≤ B v v : coercivity v
+    ... = ⟪B♯ v, v⟫_ℝ : by simp
+    ... ≤ ∥B♯ v∥ * ∥v∥ : real_inner_le_norm (B♯ v) v, },
   { have : v = 0 := by simpa using h,
     simp [this], }
 end
@@ -76,7 +72,7 @@ end
 lemma antilipschitz_of_lax_milgram (coercive : is_coercive B) :
   ∃ C : ℝ≥0, 0 < C ∧ antilipschitz_with C B♯ :=
 begin
-  rcases bounded_below coercive with ⟨C, C_pos, below_bound⟩,
+  rcases coercive.bounded_below with ⟨C, C_pos, below_bound⟩,
   refine ⟨(C⁻¹).to_nnreal, real.to_nnreal_pos.mpr (inv_pos.mpr C_pos), _⟩,
   refine linear_map.antilipschitz_of_bound B♯ _,
   simp_rw [real.coe_to_nnreal',
@@ -88,28 +84,28 @@ end
 lemma ker_eq_bot (coercive : is_coercive B) : B♯.ker = ⊥ :=
 begin
   rw [←ker_coe, linear_map.ker_eq_bot],
-  rcases antilipschitz_of_lax_milgram coercive with ⟨_, _, antilipschitz⟩,
-  exact antilipschitz_with.injective antilipschitz,
+  rcases coercive.antilipschitz_of_lax_milgram with ⟨_, _, antilipschitz⟩,
+  exact antilipschitz.injective,
 end
 
 lemma closed_range (coercive : is_coercive B) : is_closed (B♯.range : set V) :=
 begin
-  rcases antilipschitz_of_lax_milgram coercive with ⟨_, _, antilipschitz⟩,
+  rcases  coercive.antilipschitz_of_lax_milgram with ⟨_, _, antilipschitz⟩,
   exact antilipschitz.is_closed_range B♯.uniform_continuous,
 end
 
 lemma range_eq_top (coercive : is_coercive B) : B♯.range = ⊤ :=
 begin
-  haveI := (closed_range coercive).complete_space_coe,
+  haveI := coercive.closed_range.complete_space_coe,
   rw ← B♯.range.orthogonal_orthogonal,
   rw submodule.eq_top_iff',
   intros v w mem_w_orthogonal,
   rcases coercive with ⟨C, C_ge_0, coercivity⟩,
   have : C * ∥w∥ * ∥w∥ ≤ 0 :=
   calc C * ∥w∥ * ∥w∥
-        ≤ B w w                         : coercivity w
+       ≤ B w w : coercivity w
   ...  = ⟪B♯ w, w⟫_ℝ : by simp
-  ...  = 0                              : mem_w_orthogonal _ ⟨w, rfl⟩,
+  ...  = 0 : mem_w_orthogonal _ ⟨w, rfl⟩,
   have : ∥w∥ * ∥w∥ ≤ 0 := by nlinarith,
   have h : ∥w∥ = 0 := by nlinarith [norm_nonneg w],
   have w_eq_zero : w = 0 := by simpa using h,
@@ -124,9 +120,9 @@ The Lax-Milgram theorem states that this is a continuous equivalence.
 -/
 def continuous_linear_equiv_of_bilin (coercive : is_coercive B) : V ≃L[ℝ] V :=
 continuous_linear_equiv.of_bijective
-  (B♯)
-  (ker_eq_bot coercive)
-  (range_eq_top coercive)
+  B♯
+  coercive.ker_eq_bot
+  coercive.range_eq_top
 
 
 @[simp]
@@ -134,9 +130,9 @@ lemma continuous_linear_equiv_of_bilin_apply (coercive : is_coercive B) (v w : V
   inner (continuous_linear_equiv_of_bilin coercive v) w = B v w :=
 continuous_linear_map_of_bilin_apply B v w
 
-lemma continuous_linear_equiv_of_bilin_equiv (coercive : is_coercive B) {v f : V}
-  (is_lax_milgram : (∀ w, inner f w = B v w)) :
+lemma unique_continuous_linear_equiv_of_bilin (coercive : is_coercive B) {v f : V}
+  (is_lax_milgram : (∀ w, ⟪f, w⟫_ℝ = B v w)) :
   f = continuous_linear_equiv_of_bilin coercive v :=
 unique_continuous_linear_map_of_bilin ℝ B is_lax_milgram
 
-end lax_milgram
+end is_coercive

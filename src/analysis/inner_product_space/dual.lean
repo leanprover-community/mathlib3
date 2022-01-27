@@ -57,7 +57,6 @@ def to_dual_map : E →ₗᵢ⋆[𝕜] normed_space.dual 𝕜 E :=
 { norm_map' := λ _, innerSL_apply_norm,
  ..innerSL }
 
-
 variables {E}
 
 @[simp] lemma to_dual_map_apply {x y : E} : to_dual_map 𝕜 E x y = ⟪x, y⟫ := rfl
@@ -180,7 +179,6 @@ and dualizing the result using `to_dual`.
 -/
 def continuous_linear_map_of_bilin (B : E →L⋆[𝕜] E →L[𝕜] 𝕜) : E →L[𝕜] E :=
 comp (to_dual 𝕜 E).symm.to_continuous_linear_equiv.to_continuous_linear_map B
---((to_dual 𝕜 E).symm.to_continuous_linear_equiv.to_continuous_linear_map) ∘L E
 
 local postfix `♯`:1025 := continuous_linear_map_of_bilin
 

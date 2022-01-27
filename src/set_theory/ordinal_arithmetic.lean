@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Mario Carneiro, Floris van Doorn
+Authors: Mario Carneiro, Floris van Doorn, Violeta Hernández Palacios
 -/
 import set_theory.ordinal
 import tactic.by_contra
@@ -36,17 +36,17 @@ Some properties of the operations are also used to discuss general tools on ordi
 * `is_limit o`: an ordinal is a limit ordinal if it is neither `0` nor a successor.
 * `limit_rec_on` is the main induction principle of ordinals: if one can prove a property by
   induction at successor ordinals and at limit ordinals, then it holds for all ordinals.
-
 * `is_normal`: a function `f : ordinal → ordinal` satisfies `is_normal` if it is strictly increasing
   and order-continuous, i.e., the image `f o` of a limit ordinal `o` is the sup of `f a` for
   `a < o`.
+* `enum_ord`: enumerates an unbounded set of ordinals by the ordinals themselves.
 * `nfp f a`: the next fixed point of a function `f` on ordinals, above `a`. It behaves well
   for normal functions.
-
 * `CNF b o` is the Cantor normal form of the ordinal `o` in base `b`.
-
-* `sup`: the supremum of an indexed family of ordinals in `Type u`, as an ordinal in `Type u`.
-* `bsup`: the supremum of a set of ordinals indexed by ordinals less than a given ordinal `o`.
+* `sup`, `lsub`: the supremum / least strict upper bound of an indexed family of ordinals in
+  `Type u`, as an ordinal in `Type u`.
+* `bsup`, `blsub`: the supremum / least strict upper bound of a set of ordinals indexed by ordinals
+  less than a given ordinal `o`.
 -/
 
 noncomputable theory

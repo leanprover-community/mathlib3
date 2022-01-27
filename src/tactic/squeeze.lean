@@ -164,8 +164,8 @@ do some s ← get_proof_state_after (tac ff (user_args ++ simp_args)),
 meta def name.to_simp_args (n : name) : simp_arg_type :=
 simp_arg_type.expr $ @expr.local_const ff n n (default) pexpr.mk_placeholder
 
--- `macro`s can be other things but this is a good first order approximation
-/-- If the `expr` is (likely) to be overloaded, then prepend a `_root_` on it. -/
+/-- If the `name` is (likely) to be overloaded, then prepend a `_root_` on it. The `expr` of an
+overloaded name is constructed using `expr.macro`; this is how we guess whether it's overloaded. -/
 meta def prepend_root_if_needed (n : name) : tactic name :=
 do x ← resolve_name' n,
 return $ match x with

@@ -348,6 +348,9 @@ instance to_ring : ring s :=
   .. s.to_submonoid.to_monoid, .. s.to_add_subgroup.to_add_comm_group }
 
 protected lemma zsmul_mem {x : R} (hx : x ∈ s) (n : ℤ) : n • x ∈ s := zsmul_mem hx n
+
+protected lemma pow_mem {x : R} (hx : x ∈ s) (n : ℕ) : x^n ∈ s := pow_mem hx n
+
 @[simp, norm_cast] lemma coe_add (x y : s) : (↑(x + y) : R) = ↑x + ↑y := rfl
 @[simp, norm_cast] lemma coe_neg (x : s) : (↑(-x) : R) = -↑x := rfl
 @[simp, norm_cast] lemma coe_mul (x y : s) : (↑(x * y) : R) = ↑x * ↑y := rfl
@@ -1079,14 +1082,6 @@ end subring
 lemma add_subgroup.int_mul_mem {G : add_subgroup R} (k : ℤ) {g : R} (h : g ∈ G) :
   (k : R) * g ∈ G :=
 by { convert add_subgroup.zsmul_mem G h k, simp }
-
-protected lemma pow_mem {x : R} (hx : x ∈ s) (n : ℕ) : x^n ∈ s := pow_mem hx n
-
-/-- A subring of a ring inherits a ring structure -/
-instance to_ring : ring s :=
-{ right_distrib := λ x y z, subtype.eq $ right_distrib x y z,
-  left_distrib := λ x y z, subtype.eq $ left_distrib x y z,
-  .. s.to_submonoid.to_monoid, .. s.to_add_subgroup.to_add_comm_group }
 
 /-! ## Actions by `subring`s
 

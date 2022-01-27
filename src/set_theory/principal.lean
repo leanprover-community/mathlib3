@@ -29,7 +29,7 @@ almost exclusively used for additive and multiplicative principal ordinals.
 
 For simplicity, we break usual convention and regard 0 as principal. -/
 def principal (op : ordinal → ordinal → ordinal) (o : ordinal) : Prop :=
-∀ a b, a < o → b < o → op a b < o
+∀ ⦃a b⦄, a < o → b < o → op a b < o
 
 theorem principal_zero {op : ordinal → ordinal → ordinal} : principal op 0 :=
 λ a _ h, (ordinal.not_lt_zero a h).elim

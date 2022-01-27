@@ -688,7 +688,7 @@ theorem mul_is_limit_left {a b : ordinal}
   (l : is_limit a) (b0 : 0 < b) : is_limit (a * b) :=
 begin
   rcases zero_or_succ_or_limit b with rfl|⟨b,rfl⟩|lb,
-  { exact (lt_irrefl _).elim b0 },
+  { exact b0.false.elim },
   { rw mul_succ, exact add_is_limit _ l },
   { exact mul_is_limit l.pos lb }
 end
@@ -1087,16 +1087,14 @@ end
 theorem sup_eq_lsub_iff_succ {ι} (f : ι → ordinal) :
   sup f = lsub f ↔ ∀ a < lsub f, succ a < lsub f :=
 begin
-  refine ⟨λ h, _, λ hf, le_antisymm (sup_le_lsub f) _⟩,
+  refine ⟨λ h, _, λ hf, le_antisymm (sup_le_lsub f) (lsub_le.2 (λ i, _))⟩,
   { rw ←h,
     exact λ a, sup_not_succ_of_ne_sup (λ i, ne_of_lt (lsub_le.1 (le_of_eq h.symm) i)) },
-  rw lsub_le,
-  intros i,
   by_contra' hle,
   have heq := (sup_succ_eq_lsub f).2 ⟨i, le_antisymm (le_sup _ _) hle⟩,
   have := hf (sup f) ( by { rw ←heq, exact lt_succ_self _ } ),
   rw heq at this,
-  exact lt_irrefl _ this
+  exact this.false
 end
 
 theorem sup_eq_lsub_iff_lt_sup {ι} (f : ι → ordinal) : sup f = lsub f ↔ ∀ i, f i < sup f :=
@@ -1113,7 +1111,7 @@ begin
   refine ⟨λ h, ⟨λ i, _⟩, λ h, @lsub_eq_zero _ h _⟩,
   have := @lsub_pos _ ⟨i⟩ f,
   rw h at this,
-  exact lt_irrefl 0 this
+  exact this.false
 end
 
 /-- The bounded least strict upper bound of a family of ordinals. -/
@@ -1203,7 +1201,7 @@ begin
   { rw blsub_le,
     exact λ _, id },
   by_contra' h,
-  exact lt_irrefl _ (lt_blsub.{u u} (λ x _, x) _ h)
+  exact (lt_blsub.{u u} (λ x _, x) _ h).false
 end
 
 /-! ### Enumerating unbounded sets of ordinals with ordinals -/

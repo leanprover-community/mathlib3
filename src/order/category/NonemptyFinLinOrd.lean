@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 import data.fintype.order
+import order.category.FinPartialOrder
 import order.category.LinearOrder
 
 /-! # Nonempty finite linear orders
@@ -44,6 +45,9 @@ instance ulift.nonempty_fin_lin_ord (α : Type u) [nonempty_fin_lin_ord α] :
   .. linear_order.lift equiv.ulift (equiv.injective _),
   .. ulift.fintype _ }
 
+instance (α : Type*) [nonempty_fin_lin_ord α] : nonempty_fin_lin_ord (order_dual α) :=
+{ ..order_dual.fintype α }
+
 /-- The category of nonempty finite linear orders. -/
 def NonemptyFinLinOrd := bundled nonempty_fin_lin_ord
 
@@ -65,4 +69,30 @@ instance (α : NonemptyFinLinOrd) : nonempty_fin_lin_ord α := α.str
 instance has_forget_to_LinearOrder : has_forget₂ NonemptyFinLinOrd LinearOrder :=
 bundled_hom.forget₂ _ _
 
+instance has_forget_to_FinPartialOrder : has_forget₂ NonemptyFinLinOrd FinPartialOrder :=
+{ forget₂ := { obj := λ X, FinPartialOrder.of X, map := λ X Y, id },
+  forget_comp := rfl }
+
+/-- `order_dual` as a functor. -/
+@[simps] def to_dual : NonemptyFinLinOrd ⥤ NonemptyFinLinOrd :=
+{ obj := λ X, of (order_dual X), map := λ X Y, order_hom.dual }
+
+/-- Constructs an equivalence between nonempty finite linear orders from an order isomorphism
+between them. -/
+@[simps] def iso_of_order_iso {α β : NonemptyFinLinOrd} (e : α ≃o β) : α ≅ β :=
+{ hom := e,
+  inv := e.symm,
+  hom_inv_id' := by { ext, exact e.symm_apply_apply x },
+  inv_hom_id' := by { ext, exact e.apply_symm_apply x } }
+
+/-- The equivalence between `FinPartialOrder` and itself induced by `order_dual` both ways. -/
+@[simps] def dual_equiv : NonemptyFinLinOrd ≌ NonemptyFinLinOrd :=
+equivalence.mk to_dual to_dual
+  (nat_iso.of_components (λ X, iso_of_order_iso $ order_iso.dual_dual X) $ λ X Y f, rfl)
+  (nat_iso.of_components (λ X, iso_of_order_iso $ order_iso.dual_dual X) $ λ X Y f, rfl)
+
 end NonemptyFinLinOrd
+
+lemma NonemptyFinLinOrd_dual_equiv_comp_forget_to_LinearOrder :
+  NonemptyFinLinOrd.dual_equiv.functor ⋙ forget₂ NonemptyFinLinOrd LinearOrder
+  = forget₂ NonemptyFinLinOrd LinearOrder ⋙ LinearOrder.dual_equiv.functor := rfl

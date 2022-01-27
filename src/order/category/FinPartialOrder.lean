@@ -13,6 +13,8 @@ import order.category.PartialOrder
 This defines `FinPartialOrder`, the category of finite partial orders.
 -/
 
+instance (α : Type*) [fintype α] : fintype (order_dual α) := ‹fintype α›
+
 universes u v
 
 open category_theory
@@ -34,24 +36,39 @@ def of (α : Type*) [partial_order α] [fintype α] : FinPartialOrder := ⟨⟨�
 
 instance : inhabited FinPartialOrder := ⟨of punit⟩
 
-instance : large_category.{u} FinPartialOrder :=
-{ hom := λ X Y, order_hom X Y,
-  id := λ X, order_hom.id,
-  comp := λ X Y Z f g, g.comp f,
-  id_comp' := λ X Y, order_hom.comp_id,
-  comp_id' := λ X Y, order_hom.id_comp }
---TODO: Missing `order_hom.comp_assoc`
+instance large_category : large_category FinPartialOrder :=
+induced_category.category FinPartialOrder.to_PartialOrder
 
-instance : concrete_category FinPartialOrder :=
-{ forget := ⟨coe_sort, λ X Y, coe_fn, λ X, rfl, λ X Y Z f g, rfl⟩,
-  forget_faithful := ⟨λ X Y, by convert fun_like.coe_injective⟩ }
+instance concrete_category : concrete_category FinPartialOrder :=
+induced_category.concrete_category FinPartialOrder.to_PartialOrder
 
 instance has_forget_to_PartialOrder : has_forget₂ FinPartialOrder PartialOrder :=
-{ forget₂ := { obj := λ X, ⟨X⟩, map := λ X Y, id },
-  forget_comp := rfl }
+induced_category.has_forget₂ FinPartialOrder.to_PartialOrder
 
 instance has_forget_to_Fintype : has_forget₂ FinPartialOrder Fintype :=
 { forget₂ := { obj := λ X, ⟨X⟩, map := λ X Y, coe_fn },
   forget_comp := rfl }
 
+/-- `order_dual` as a functor. -/
+@[simps] def to_dual : FinPartialOrder ⥤ FinPartialOrder :=
+{ obj := λ X, of (order_dual X), map := λ X Y, order_hom.dual }
+
+/-- Constructs an equivalence between finite partial orders from an order isomorphism between them.
+-/
+@[simps] def iso_of_order_iso {α β : FinPartialOrder} (e : α ≃o β) : α ≅ β :=
+{ hom := e,
+  inv := e.symm,
+  hom_inv_id' := by { ext, exact e.symm_apply_apply x },
+  inv_hom_id' := by { ext, exact e.apply_symm_apply x } }
+
+/-- The equivalence between `FinPartialOrder` and itself induced by `order_dual` both ways. -/
+@[simps] def dual_equiv : FinPartialOrder ≌ FinPartialOrder :=
+equivalence.mk to_dual to_dual
+  (nat_iso.of_components (λ X, iso_of_order_iso $ order_iso.dual_dual X) $ λ X Y f, rfl)
+  (nat_iso.of_components (λ X, iso_of_order_iso $ order_iso.dual_dual X) $ λ X Y f, rfl)
+
 end FinPartialOrder
+
+lemma FinPartialOrder_dual_equiv_comp_forget_to_PartialOrder :
+  FinPartialOrder.dual_equiv.functor ⋙ forget₂ FinPartialOrder PartialOrder
+  = forget₂ FinPartialOrder PartialOrder ⋙ PartialOrder.dual_equiv.functor := rfl

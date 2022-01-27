@@ -32,21 +32,14 @@ def of (α : Type*) [boolean_algebra α] [fintype α] : FinBoolAlg := ⟨⟨α�
 
 instance : inhabited FinBoolAlg := ⟨of bool⟩
 
-instance : large_category.{u} FinBoolAlg :=
-{ hom := λ X Y, bounded_lattice_hom X Y,
-  id := λ X, bounded_lattice_hom.id X,
-  comp := λ X Y Z f g, g.comp f,
-  id_comp' := λ X Y, bounded_lattice_hom.comp_id,
-  comp_id' := λ X Y, bounded_lattice_hom.id_comp,
-  assoc' := λ W X Y Z _ _ _, bounded_lattice_hom.comp_assoc _ _ _ }
+instance large_category : large_category FinBoolAlg :=
+induced_category.category FinBoolAlg.to_BoolAlg
 
-instance : concrete_category FinBoolAlg :=
-{ forget := ⟨coe_sort, λ X Y, coe_fn, λ X, rfl, λ X Y Z f g, rfl⟩,
-  forget_faithful := ⟨λ X Y, by convert fun_like.coe_injective⟩ }
+instance concrete_category : concrete_category FinBoolAlg :=
+induced_category.concrete_category FinBoolAlg.to_BoolAlg
 
-instance has_forget_to_BoundedDistribLattice : has_forget₂ FinBoolAlg BoundedDistribLattice :=
-{ forget₂ := { obj := λ X, ⟨⟨X⟩⟩, map := λ X Y, id },
-  forget_comp := rfl }
+instance has_forget_to_BoolAlg : has_forget₂ FinBoolAlg BoolAlg :=
+induced_category.has_forget₂ FinBoolAlg.to_BoolAlg
 
 instance has_forget_to_FinPartialOrder : has_forget₂ FinBoolAlg FinPartialOrder :=
 { forget₂ := { obj := λ X, ⟨⟨X⟩⟩, map := λ X Y f, f },

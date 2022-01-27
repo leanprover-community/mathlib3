@@ -2091,10 +2091,11 @@ variable (hh : (((isos.top_component 𝒜 f m hm f_deg).hom _*
     (@opens.open_embedding (projective_spectrum.Top 𝒜)
       (projective_spectrum.basic_open 𝒜 f))).to_SheafedSpace.sheaf.val).obj U))
 
-include f m hm f_deg U hh
+include f m hm f_deg U
 lemma isos.sheaf_component.forward.hartshorne.inv_mem (y : unop U) :
-  ((isos.top_component 𝒜 f m hm f_deg).inv y.1).1 ∈ ((@opens.open_embedding (projective_spectrum.Top 𝒜) (projective_spectrum.basic_open 𝒜 f)).is_open_map.functor.op.obj
-            ((opens.map (isos.top_component 𝒜 f m hm f_deg).hom).op.obj U)).unop :=
+  ((isos.top_component 𝒜 f m hm f_deg).inv y.1).1 ∈
+    ((@opens.open_embedding (projective_spectrum.Top 𝒜) (projective_spectrum.basic_open 𝒜 f)).is_open_map.functor.op.obj
+      ((opens.map (isos.top_component 𝒜 f m hm f_deg).hom).op.obj U)).unop :=
 begin
   erw set.mem_preimage,
   refine ⟨⟨((isos.top_component 𝒜 f m hm f_deg).inv y.1).1, ((isos.top_component 𝒜 f m hm f_deg).inv y.1).2⟩, _, rfl⟩,
@@ -2105,8 +2106,9 @@ begin
   exact y.2,
 end
 
+include hh
 def isos.sheaf_component.forward.hartshorne (y : unop U) :=
-hh.1 ⟨((isos.top_component 𝒜 f m hm f_deg).inv y.1).1, isos.sheaf_component.forward.hartshorne.inv_mem 𝒜 f m hm f_deg U hh y⟩
+hh.1 ⟨((isos.top_component 𝒜 f m hm f_deg).inv y.1).1, isos.sheaf_component.forward.hartshorne.inv_mem 𝒜 f m hm f_deg U y⟩
 
 omit hh
 lemma isos.sheaf_component.forward.hartshorne_one (y : unop U) :
@@ -3473,7 +3475,7 @@ def isos.sheaf_component.forward.to_fun :
 ⟨isos.sheaf_component.forward.mk 𝒜 f m hm f_deg U hh,
   begin
     rw structure_sheaf.is_locally_fraction_pred',
-    apply isos.sheaf_component.forward.mk_is_locally_quotient,
+    apply isos.sheaf_component.forward.mk_is_locally_quotient 𝒜 f m hm f_deg,
   end⟩
 
 def isos.sheaf_component.forward :
@@ -4540,7 +4542,8 @@ begin
   have hartshorne_eq := isos.sheaf_component.forward.hartshorne.eq_num_div_denom 𝒜 f m hm f_deg V hh ⟨hom_z, hom_z_mem_V⟩,
   simp only [←α_eq, ←β_eq] at hartshorne_eq,
   have hartshorne_eq2 : (isos.sheaf_component.forward.hartshorne 𝒜 f m hm f_deg V hh ⟨hom_z, hom_z_mem_V⟩).val
-    = (hh.1 ⟨((isos.top_component 𝒜 f m hm f_deg).inv hom_z).1, isos.sheaf_component.forward.hartshorne.inv_mem 𝒜 f m hm f_deg V hh ⟨hom_z, hom_z_mem_V⟩⟩).1 := rfl, -- `rfl` works but slow
+    = (hh.1 ⟨((isos.top_component 𝒜 f m hm f_deg).inv hom_z).1, isos.sheaf_component.forward.hartshorne.inv_mem 𝒜 f m hm f_deg V ⟨hom_z, hom_z_mem_V⟩⟩).1, -- `rfl` works but slow
+  { refl, },
   erw hartshorne_eq2 at hartshorne_eq,
 
   have inv_hom_z_eq : (((isos.top_component 𝒜 f m hm f_deg).inv) hom_z).1 = z.1,

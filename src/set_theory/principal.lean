@@ -39,7 +39,7 @@ theorem principal_one_iff {op : ordinal → ordinal → ordinal} :
 begin
   refine ⟨λ h, _, λ h a b ha hb, _⟩,
   { rwa ←lt_one_iff_zero,
-    exact h 0 0 zero_lt_one zero_lt_one },
+    exact h zero_lt_one zero_lt_one },
   { rwa [lt_one_iff_zero, ha, hb] at * }
 end
 
@@ -48,8 +48,7 @@ theorem iterate_lt_of_principal {op : ordinal → ordinal → ordinal}
 begin
   induction n with n hn,
   { rwa function.iterate_zero },
-  { have := ho a _ hao hn,
-    rwa function.iterate_succ' }
+  { rw function.iterate_succ', exact ho hao hn }
 end
 
 theorem op_eq_self_of_principal {op : ordinal → ordinal → ordinal} {a o : ordinal.{u}}
@@ -57,7 +56,7 @@ theorem op_eq_self_of_principal {op : ordinal → ordinal → ordinal} {a o : or
 begin
   refine le_antisymm _ (H.le_self _),
   rw [←is_normal.bsup_eq.{u u} H ho', bsup_le],
-  exact λ b hbo, le_of_lt (ho a b hao hbo)
+  exact λ b hbo, le_of_lt (ho hao hbo)
 end
 
 theorem nfp_le_of_principal {op : ordinal → ordinal → ordinal}

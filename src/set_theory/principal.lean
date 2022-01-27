@@ -1,4 +1,21 @@
+/-
+Copyright (c) 2022 Violeta Hernández Palacios. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Violeta Hernández Palacios
+-/
+
 import set_theory.ordinal_arithmetic
+
+/-!
+### Principal ordinals
+
+We define principal or indecomposable ordinals, and we prove the standard properties about them.
+
+### Todo
+* Prove the characterization of additive indecomposable ordinals.
+* Prove the characterization of multiplicative indecomposable ordinals.
+* Refactor any related theorems from `ordinal_arithmetic` into this file.
+-/
 
 universe u
 
@@ -42,5 +59,9 @@ begin
   rw [←is_normal.bsup_eq.{u u} H ho', bsup_le],
   exact λ b hbo, le_of_lt (ho a b hao hbo)
 end
+
+theorem nfp_le_of_principal {op : ordinal → ordinal → ordinal}
+  {a o : ordinal} (hao : a < o) (ho : principal op o) : nfp (op a) a ≤ o :=
+nfp_le.2 $ λ n, le_of_lt (iterate_lt_of_principal hao ho n)
 
 end ordinal

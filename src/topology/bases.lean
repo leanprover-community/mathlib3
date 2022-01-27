@@ -107,9 +107,9 @@ end
 /-- A set `s` is in the neighbourhood of `a` iff there is some basis set `t`, which
 contains `a` and is itself contained in `s`. -/
 lemma is_topological_basis.mem_nhds_iff {a : α} {s : set α} {b : set (set α)}
-  (hb : is_topological_basis b) : s ∈ 𝓝 a ↔ ∃t∈b, a ∈ t ∧ t ⊆ s :=
+  (hb : is_topological_basis b) : s ∈ 𝓝 a ↔ ∃ t ∈ b, a ∈ t ∧ t ⊆ s :=
 begin
-  change s ∈ (𝓝 a).sets ↔ ∃t∈b, a ∈ t ∧ t ⊆ s,
+  change s ∈ (𝓝 a).sets ↔ ∃ t ∈ b, a ∈ t ∧ t ⊆ s,
   rw [hb.eq_generate_from, nhds_generate_from, binfi_sets_eq],
   { simp [and_assoc, and.left_comm] },
   { exact assume s ⟨hs₁, hs₂⟩ t ⟨ht₁, ht₂⟩,
@@ -120,6 +120,10 @@ begin
   { rcases eq_univ_iff_forall.1 hb.sUnion_eq a with ⟨i, h1, h2⟩,
     exact ⟨i, h2, h1⟩ }
 end
+
+lemma is_topological_basis.is_open_iff {s : set α} {b : set (set α)} (hb : is_topological_basis b) :
+  is_open s ↔ ∀ a ∈ s, ∃ t ∈ b, a ∈ t ∧ t ⊆ s :=
+by simp [is_open_iff_mem_nhds, hb.mem_nhds_iff]
 
 lemma is_topological_basis.nhds_has_basis {b : set (set α)} (hb : is_topological_basis b) {a : α} :
   (𝓝 a).has_basis (λ t : set α, t ∈ b ∧ a ∈ t) (λ t, t) :=

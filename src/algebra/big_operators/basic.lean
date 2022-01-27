@@ -1574,6 +1574,13 @@ begin
   rw [← finset.sum_nsmul, h₂, to_finset_sum_count_nsmul_eq]
 end
 
+lemma to_finset_prod_dvd_prod [comm_monoid α] {S : multiset α} : S.to_finset.prod id ∣ S.prod :=
+begin
+  rw finset.prod_eq_multiset_prod,
+  refine multiset.prod_dvd_prod _,
+  simp [multiset.erase_dup_le S],
+end
+
 end multiset
 
 @[simp, norm_cast] lemma nat.cast_sum [add_comm_monoid β] [has_one β] (s : finset α) (f : α → ℕ) :

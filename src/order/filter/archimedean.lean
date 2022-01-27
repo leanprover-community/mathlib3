@@ -112,8 +112,7 @@ begin
   apply tendsto_at_top.2 (λb, _),
   obtain ⟨n : ℕ, hn : 1 ≤ n • r⟩ := archimedean.arch 1 hr,
   rw nsmul_eq_mul' at hn,
-  filter_upwards [tendsto_at_top.1 hf (n * max b 0)],
-  assume x hx,
+  filter_upwards [tendsto_at_top.1 hf (n * max b 0)] with x hx,
   calc b ≤ 1 * max b 0 : by { rw [one_mul], exact le_max_left _ _ }
   ... ≤ (r * n) * max b 0 : mul_le_mul_of_nonneg_right hn (le_max_right _ _)
   ... = r * (n * max b 0) : by rw [mul_assoc]
@@ -130,8 +129,7 @@ begin
   apply tendsto_at_top.2 (λb, _),
   obtain ⟨n : ℕ, hn : 1 ≤ n • r⟩ := archimedean.arch 1 hr,
   have hn' : 1 ≤ (n : R) * r, by rwa nsmul_eq_mul at hn,
-  filter_upwards [tendsto_at_top.1 hf (max b 0 * n)],
-  assume x hx,
+  filter_upwards [tendsto_at_top.1 hf (max b 0 * n)] with x hx,
   calc b ≤ max b 0 * 1 : by { rw [mul_one], exact le_max_left _ _ }
   ... ≤ max b 0 * (n * r) : mul_le_mul_of_nonneg_left hn' (le_max_right _ _)
   ... = (max b 0 * n) * r : by rw [mul_assoc]

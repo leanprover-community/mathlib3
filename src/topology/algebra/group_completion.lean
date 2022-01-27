@@ -130,7 +130,7 @@ open uniform_space uniform_space.completion
 /-- Extension to the completion of a continuous group hom. -/
 def add_monoid_hom.extension [complete_space β] [separated_space β] (f : α →+ β)
   (hf : continuous f) : completion α →+ β :=
-have hf : uniform_continuous f, from uniform_continuous_of_continuous hf,
+have hf : uniform_continuous f, from uniform_continuous_add_monoid_hom_of_continuous hf,
 { to_fun := completion.extension f,
   map_zero' := by rw [← coe_zero, extension_coe hf, f.map_zero],
   map_add' := assume a b, completion.induction_on₂ a b
@@ -142,7 +142,7 @@ have hf : uniform_continuous f, from uniform_continuous_of_continuous hf,
 
 lemma add_monoid_hom.extension_coe [complete_space β] [separated_space β] (f : α →+ β)
   (hf : continuous f) (a : α) : f.extension hf a = f a :=
-extension_coe (uniform_continuous_of_continuous hf) a
+extension_coe (uniform_continuous_add_monoid_hom_of_continuous hf) a
 
 @[continuity]
 lemma add_monoid_hom.continuous_extension [complete_space β] [separated_space β] (f : α →+ β)
@@ -160,7 +160,7 @@ continuous_map
 
 lemma add_monoid_hom.completion_coe (f : α →+ β)
   (hf : continuous f) (a : α) : f.completion hf a = f a :=
-map_coe (uniform_continuous_of_continuous hf) a
+map_coe (uniform_continuous_add_monoid_hom_of_continuous hf) a
 
 lemma add_monoid_hom.completion_zero : (0 : α →+ β).completion continuous_const = 0 :=
 begin

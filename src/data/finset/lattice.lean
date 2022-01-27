@@ -432,11 +432,11 @@ by { rw [_root_.inf_comm, s.sup_inf_distrib_left], simp_rw _root_.inf_comm }
 
 lemma inf_sup_distrib_left [order_top α] (s : finset ι) (f : ι → α) (a : α) :
   a ⊔ s.inf f = s.inf (λ i, a ⊔ f i) :=
-@sup_inf_distrib_left _ (order_dual α) _ _ _ _ _
+@sup_inf_distrib_left (order_dual α) _ _ _ _ _ _
 
 lemma inf_sup_distrib_right [order_top α] (s : finset ι) (f : ι → α) (a : α) :
   s.inf f ⊔ a = s.inf (λ i, f i ⊔ a) :=
-@sup_inf_distrib_right _ (order_dual α) _ _ _ _ _
+@sup_inf_distrib_right (order_dual α) _ _ _ _ _ _
 
 end distrib_lattice
 

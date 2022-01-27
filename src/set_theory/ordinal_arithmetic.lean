@@ -2025,6 +2025,7 @@ le_antisymm
     rw IH _ h,
     apply le_trans (add_le_add_left _ _),
     { rw ← mul_succ, exact mul_le_mul_left' (succ_le.2 $ l.2 _ h) _ },
+    { apply_instance },
     { rw ← ba, exact le_add_right _ _ }
   end)
   (mul_le_mul_right' (le_add_right _ _) _)
@@ -2245,7 +2246,7 @@ begin
   intros a b ha hb,
   have h₂ : (1 : ordinal).succ = 2 := rfl,
   rw [←h₂, ordinal.lt_succ] at *,
-  convert mul_le_mul ha hb,
+  convert mul_le_mul' ha hb,
   exact (mul_one 1).symm
 end
 
@@ -2301,13 +2302,8 @@ theorem principal_mul_omega : principal (*) omega.{u} :=
 | _, _, ⟨m, rfl⟩, ⟨n, rfl⟩ := by rw [← nat_cast_mul]; apply nat_lt_omega
 end
 
-lemma lt_power_omega {a o : ordinal.{u}} (h : a < o ^ omega.{u}) : ∃ n : ℕ, a < o ^ n :=
-begin
-  cases eq_zero_or_pos o with ho ho,
-  { rw [ho, zero_opow omega_ne_zero] at h,
-    exact (ordinal.not_lt_zero a h).elim },
-  { rwa [opow_omega_eq_sup_power_nat ho, lt_sup] at h }
-end
+theorem mul_omega {a : ordinal} (a0 : 0 < a) (ha : a < omega) : a * omega = omega :=
+mul_principal_iff_mul_left_eq.1 (principal_mul_omega) a a0 ha
 
 theorem power_omega_mul_principal (o : ordinal.{u}) : principal (*) (o ^ omega.{u}) :=
 begin
@@ -2318,18 +2314,12 @@ begin
     { rw one_opow,
       exact principal_mul_one } },
   { intros a b hao hbo,
-    cases lt_power_omega hao with m hm,
-    cases lt_power_omega hbo with n hn,
-    apply lt_of_le_of_lt (mul_le_mul (le_of_lt hm) (le_of_lt hn)),
+    cases lt_opow_omega hao with m hm,
+    cases lt_opow_omega hbo with n hn,
+    apply lt_of_le_of_lt (mul_le_mul' (le_of_lt hm) (le_of_lt hn)),
     rw [←opow_add, opow_lt_opow_iff_right ho, lt_omega],
     exact ⟨_, (nat.cast_add m n).symm⟩ }
 end
-
--- golf
-theorem mul_omega {a : ordinal} (a0 : 0 < a) (ha : a < omega) : a * omega = omega :=
-le_antisymm
-  ((mul_le_of_limit omega_is_limit).2 $ λ b hb, le_of_lt (principal_mul_omega ha hb))
-  (by simpa only [one_mul] using mul_le_mul_right' (one_le_iff_pos.2 a0) omega)
 
 theorem mul_lt_omega_opow {a b c : ordinal}
   (c0 : 0 < c) (ha : a < omega ^ c) (hb : b < omega) : a * b < omega ^ c :=

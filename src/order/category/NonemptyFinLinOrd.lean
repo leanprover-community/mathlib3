@@ -8,10 +8,11 @@ import order.category.LinearOrder
 
 /-! # Nonempty finite linear orders
 
-Nonempty finite linear orders form the index category for simplicial objects.
+This defines `NonemptyFinLinOrd`, the category of nonempty finite linear orders. This is the index
+category for simplicial objects.
 
-Note: `FinDistribLattice` is NOT a subcategory of `NonemptyFinLinOrd` because its morphisms preserve
-`⊥` and `⊤`.
+Note: `NonemptyFinLinOrd` is NOT a subcategory of `FinDistribLattice` because its morphisms do not
+preserve `⊥` and `⊤`.
 -/
 
 universes u v
@@ -24,7 +25,7 @@ class nonempty_fin_lin_ord (α : Type*) extends fintype α, linear_order α :=
 
 attribute [instance] nonempty_fin_lin_ord.nonempty
 
---TODO: Migrate those two instances to `data.fintype.order`
+--TODO: Migrate this instance to `data.fintype.order`
 @[priority 100]
 instance nonempty_fin_lin_ord.to_bounded_order (α : Type*) [nonempty_fin_lin_ord α] :
   bounded_order α :=
@@ -58,11 +59,14 @@ attribute [derive [large_category, concrete_category]] NonemptyFinLinOrd
 
 instance : has_coe_to_sort NonemptyFinLinOrd Type* := bundled.has_coe_to_sort
 
-/-- Construct a bundled NonemptyFinLinOrd from the underlying type and typeclass. -/
+/-- Construct a bundled `NonemptyFinLinOrd` from the underlying type and typeclass. -/
 def of (α : Type*) [nonempty_fin_lin_ord α] : NonemptyFinLinOrd := bundled.of α
 
 instance : inhabited NonemptyFinLinOrd := ⟨of punit⟩
 
 instance (α : NonemptyFinLinOrd) : nonempty_fin_lin_ord α := α.str
+
+instance has_forget_to_LinearOrder : has_forget₂ NonemptyFinLinOrd LinearOrder :=
+bundled_hom.forget₂ _ _
 
 end NonemptyFinLinOrd

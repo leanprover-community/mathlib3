@@ -18,20 +18,22 @@ universes u v
 open category_theory
 
 /-- The category of finite distributive lattices with bounded lattice morphisms. -/
-structure FinDistribLattice extends BoundedDistribLattice :=
-[is_fintype : fintype X]
+structure FinDistribLattice :=
+(to_BoundedDistribLattice : BoundedDistribLattice)
+[is_fintype : fintype to_BoundedDistribLattice]
 
 namespace FinDistribLattice
-
-instance : inhabited FinDistribLattice := ⟨⟨⟨bool⟩⟩⟩
-instance : has_coe_to_sort FinDistribLattice Type* := ⟨λ X, X.X⟩
-instance (X : FinDistribLattice) : distrib_lattice X := X.is_distrib_lattice
-instance (X : FinDistribLattice) : bounded_order X := X.is_bounded_order
+instance : has_coe_to_sort FinDistribLattice Type* := ⟨λ X, X.to_BoundedDistribLattice⟩
+instance (X : FinDistribLattice) : distrib_lattice X :=
+X.to_BoundedDistribLattice.to_DistribLattice.str
+instance (X : FinDistribLattice) : bounded_order X := X.to_BoundedDistribLattice.is_bounded_order
 
 attribute [instance]  FinDistribLattice.is_fintype
 
 /-- Construct a bundled `FinDistribLattice` from a `bounded_order` `distrib_lattice`. -/
-def of (α : Type*) [distrib_lattice α] [bounded_order α] [fintype α] : FinDistribLattice := ⟨⟨α⟩⟩
+def of (α : Type*) [distrib_lattice α] [bounded_order α] [fintype α] : FinDistribLattice := ⟨⟨⟨α⟩⟩⟩
+
+instance : inhabited FinDistribLattice := ⟨of bool⟩
 
 instance : large_category.{u} FinDistribLattice :=
 { hom := λ X Y, bounded_lattice_hom X Y,
@@ -47,7 +49,7 @@ instance : concrete_category FinDistribLattice :=
 
 instance has_forget_to_BoundedDistribLattice :
   has_forget₂ FinDistribLattice BoundedDistribLattice :=
-{ forget₂ := { obj := λ X, ⟨X⟩, map := λ X Y, id },
+{ forget₂ := { obj := λ X, BoundedDistribLattice.of X, map := λ X Y, id },
   forget_comp := rfl }
 
 instance has_forget_to_FinPartialOrder : has_forget₂ FinDistribLattice FinPartialOrder :=

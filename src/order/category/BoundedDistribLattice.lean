@@ -17,19 +17,19 @@ open category_theory
 
 /-- The category of bounded distributive lattices with bounded lattice morphisms. -/
 structure BoundedDistribLattice :=
-(X : Type u)
-[is_distrib_lattice : distrib_lattice X]
-[is_bounded_order : bounded_order X]
+(to_DistribLattice : DistribLattice)
+[is_bounded_order : bounded_order to_DistribLattice]
 
 namespace BoundedDistribLattice
+instance : has_coe_to_sort BoundedDistribLattice Type* := ⟨λ X, X.to_DistribLattice⟩
+instance (X : BoundedDistribLattice) : distrib_lattice X := X.to_DistribLattice.str
 
-instance : inhabited BoundedDistribLattice := ⟨⟨bool⟩⟩
-instance : has_coe_to_sort BoundedDistribLattice Type* := ⟨BoundedDistribLattice.X⟩
-
-attribute [instance] BoundedDistribLattice.is_distrib_lattice BoundedDistribLattice.is_bounded_order
+attribute [instance] BoundedDistribLattice.is_bounded_order
 
 /-- Construct a bundled `BoundedDistribLattice` from a `bounded_order` `distrib_lattice`. -/
-def of (α : Type*) [distrib_lattice α] [bounded_order α] : BoundedDistribLattice := ⟨α⟩
+def of (α : Type*) [distrib_lattice α] [bounded_order α] : BoundedDistribLattice := ⟨⟨α⟩⟩
+
+instance : inhabited BoundedDistribLattice := ⟨of bool⟩
 
 instance : large_category.{u} BoundedDistribLattice :=
 { hom := λ X Y, bounded_lattice_hom X Y,

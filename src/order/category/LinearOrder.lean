@@ -21,7 +21,7 @@ attribute [derive [large_category, concrete_category]] LinearOrder
 
 instance : has_coe_to_sort LinearOrder Type* := bundled.has_coe_to_sort
 
-/-- Construct a bundled LinearOrder from the underlying type and typeclass. -/
+/-- Construct a bundled `LinearOrder` from the underlying type and typeclass. -/
 def of (α : Type*) [linear_order α] : LinearOrder := bundled.of α
 
 instance : inhabited LinearOrder := ⟨of punit⟩

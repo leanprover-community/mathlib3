@@ -2028,18 +2028,15 @@ le_antisymm
     (λ b hb, le_of_lt (opow_lt_omega h hb)))
   (le_opow_self _ a1)
 
-protected theorem is_normal.apply_omega {f : ordinal.{u} → ordinal.{u}} (hf : is_normal f) :
+theorem is_normal.apply_omega {f : ordinal.{u} → ordinal.{u}} (hf : is_normal f) :
   f omega = sup.{0 u} (f ∘ nat.cast) :=
 by rw [omega_eq_sup_nat_cast, is_normal.sup.{0 u u} hf ⟨0⟩]
 
 theorem mul_omega_eq_sup_mul_nat (o : ordinal) : o * omega = sup (λ n : ℕ, o * n) :=
 begin
-  cases eq_zero_or_pos o with ho ho,
-  { rw [ho, zero_mul],
-    apply eq.symm,
-    rw sup_eq_zero_iff,
-    exact λ n, zero_mul _ },
-  exact (mul_is_normal ho).apply_omega
+  rcases eq_zero_or_pos o with rfl | ho,
+  { rw zero_mul, exact eq.symm (sup_eq_zero_iff.2 $ λ n, zero_mul _) },
+  { exact (mul_is_normal ho).apply_omega }
 end
 
 section

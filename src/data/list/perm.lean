@@ -738,8 +738,9 @@ begin
   convert (subperm_append_right _).mpr nil_subperm using 1
 end
 
-@[simp] lemma subperm_singleton_iff {l : list α} {a : α} : [a] <+~ l ↔ a ∈ l :=
-by simp [subperm_ext_iff]
+@[simp] lemma subperm_singleton_iff {α} {l : list α} {a : α} : [a] <+~ l ↔ a ∈ l :=
+⟨λ ⟨s, hla, h⟩, by rwa [perm_singleton.mp hla, singleton_sublist] at h,
+ λ h, ⟨[a], perm.refl _, singleton_sublist.mpr h⟩⟩
 
 lemma subperm.cons_left {l₁ l₂ : list α} (h : l₁ <+~ l₂)
   (x : α) (hx : count x l₁ < count x l₂) :

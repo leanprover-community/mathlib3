@@ -95,9 +95,7 @@ lemma set_integral_eq (hf : martingale f ℱ μ) {i j : ι} (hij : i ≤ j) {s :
 begin
   rw ← @set_integral_condexp _ _ _ _ _ _ _ _ (ℱ i) m0 _ (ℱ.le i) _ _ _ (hf.integrable j) hs,
   refine set_integral_congr_ae (ℱ.le i s hs) _,
-  filter_upwards [hf.2 i j hij],
-  intros _ heq _,
-  exact heq.symm,
+  filter_upwards [hf.2 i j hij] with _ heq _ using heq.symm,
 end
 
 lemma add (hf : martingale f ℱ μ) (hg : martingale g ℱ μ) : martingale (f + g) ℱ μ :=
@@ -160,9 +158,7 @@ lemma set_integral_le {f : ι → α → ℝ} (hf : supermartingale f ℱ μ)
 begin
   rw ← set_integral_condexp (ℱ.le i) (hf.integrable j) hs,
   refine set_integral_mono_ae integrable_condexp.integrable_on (hf.integrable i).integrable_on _,
-  filter_upwards [hf.2.1 i j hij],
-  intros _ heq,
-  exact heq,
+  filter_upwards [hf.2.1 i j hij] with _ heq using heq,
 end
 
 lemma add [preorder E] [covariant_class E E (+) (≤)]
@@ -184,8 +180,7 @@ lemma neg [preorder E] [covariant_class E E (+) (≤)]
 begin
   refine ⟨hf.1.neg, λ i j hij, _, λ i, (hf.2.2 i).neg⟩,
   refine eventually_le.trans _ (condexp_neg (f j)).symm.le,
-  filter_upwards [hf.2.1 i j hij],
-  intros _ hle,
+  filter_upwards [hf.2.1 i j hij] with _ _,
   simpa,
 end
 
@@ -225,8 +220,7 @@ lemma neg [preorder E] [covariant_class E E (+) (≤)]
   (hf : submartingale f ℱ μ) : supermartingale (-f) ℱ μ :=
 begin
   refine ⟨hf.1.neg, λ i j hij, (condexp_neg (f j)).le.trans _, λ i, (hf.2.2 i).neg⟩,
-  filter_upwards [hf.2.1 i j hij],
-  intros _ hle,
+  filter_upwards [hf.2.1 i j hij] with _ _,
   simpa,
 end
 
@@ -270,8 +264,7 @@ lemma smul_nonneg {f : ι → α → F}
 begin
   refine ⟨hf.1.smul c, λ i j hij, _, λ i, (hf.2.2 i).smul c⟩,
   refine (condexp_smul c (f j)).le.trans _,
-  filter_upwards [hf.2.1 i j hij],
-  intros _ hle,
+  filter_upwards [hf.2.1 i j hij] with _ hle,
   simp,
   exact smul_le_smul_of_nonneg hle hc,
 end

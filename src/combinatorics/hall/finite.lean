@@ -254,13 +254,12 @@ theorem hall_hard_inductive {n : ℕ} (hn : fintype.card ι = n)
   (ht : ∀ (s : finset ι), s.card ≤ (s.bUnion t).card) :
   ∃ (f : ι → α), function.injective f ∧ ∀ x, f x ∈ t x :=
 begin
-  tactic.unfreeze_local_instances,
-  revert ι,
+  unfreezingI { revert ι },
   refine nat.strong_induction_on n (λ n' ih, _),
   intros _ _ t hn ht,
   rcases n' with (_|_),
-  { exact hall_hard_inductive_zero t hn },
-  { apply hall_hard_inductive_step hn ht,
+  { exactI hall_hard_inductive_zero t hn },
+  { resetI, apply hall_hard_inductive_step hn ht,
     introsI ι' _ _ hι',
     exact ih (fintype.card ι') (nat.lt_succ_of_le hι') rfl, },
 end

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Kenny Lau, Yury Kudryashov
 -/
 import dynamics.fixed_points.basic
-import order.hom.lattice
+import order.hom.order
 
 /-!
 # Fixed point construction on complete lattices

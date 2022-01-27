@@ -395,7 +395,7 @@ begin
     simp only [nat_degree_mul (ne_zero_of_monic hprodmonic) qzero] },
   have degq : q.nat_degree = 0,
   { rw hdegree at degp,
-    exact (add_right_inj p.nat_degree).mp (tactic.ring_exp.add_pf_sum_z degp rfl).symm },
+    rw [← add_right_inj p.nat_degree, ← degp, add_zero], },
   obtain ⟨u, hu⟩ := is_unit_iff_degree_eq_zero.2 ((degree_eq_iff_nat_degree_eq qzero).2 degq),
   have hassoc : associated (multiset.map (λ (a : K), X - C a) p.roots).prod p,
   { rw associated, use u, rw [hu, ← hq] },

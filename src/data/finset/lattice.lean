@@ -415,6 +415,31 @@ lemma inf_eq_top_iff (f : β → α)
 
 end inf
 
+section distrib_lattice
+variables [distrib_lattice α]
+
+lemma sup_inf_distrib_left [order_bot α] (s : finset ι) (f : ι → α) (a : α) :
+  a ⊓ s.sup f = s.sup (λ i, a ⊓ f i) :=
+begin
+  induction s using finset.cons_induction with i s hi h,
+  { simp_rw [finset.sup_empty, inf_bot_eq] },
+  { rw [sup_cons, sup_cons, inf_sup_left, h] }
+end
+
+lemma sup_inf_distrib_right [order_bot α] (s : finset ι) (f : ι → α) (a : α) :
+  s.sup f ⊓ a = s.sup (λ i, f i ⊓ a) :=
+by { rw [_root_.inf_comm, s.sup_inf_distrib_left], simp_rw _root_.inf_comm }
+
+lemma inf_sup_distrib_left [order_top α] (s : finset ι) (f : ι → α) (a : α) :
+  a ⊔ s.inf f = s.inf (λ i, a ⊔ f i) :=
+@sup_inf_distrib_left _ (order_dual α) _ _ _ _ _
+
+lemma inf_sup_distrib_right [order_top α] (s : finset ι) (f : ι → α) (a : α) :
+  s.inf f ⊔ a = s.inf (λ i, f i ⊔ a) :=
+@sup_inf_distrib_right _ (order_dual α) _ _ _ _ _
+
+end distrib_lattice
+
 lemma inf_eq_infi [complete_lattice β] (s : finset α) (f : α → β) : s.inf f = (⨅a∈s, f a) :=
 @sup_eq_supr _ (order_dual β) _ _ _
 

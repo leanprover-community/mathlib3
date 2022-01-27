@@ -1,27 +1,49 @@
 /-
 Copyright (c) 2021 Peter Nelson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Peter Nelson
+Authors: Peter Nelson, Yaël Dillies
 -/
 import data.fintype.basic
+import order.conditionally_complete_lattice
 
 /-!
 # Order structures on finite types
 
-This file provides order instances on fintypes:
-* A `semilattice_inf` instance on a `fintype` allows constructing an `order_bot`.
-* A `semilattice_sup` instance on a `fintype` allows constructing an `order_top`.
-* A `lattice` instance on a `fintype` allows constructing a `bounded_order`.
-* A `lattice` instance on a `fintype` can be promoted to a `complete_lattice`.
-* A `linear_order` instance on a `fintype` can be promoted to a `complete_linear_order`.
+This file provides order instances on fintypes.
 
-Getting to a `bounded_order` from a `lattice` is computable, but the
-subsequent definitions are not, since the definitions of `Sup` and `Inf` use `set.to_finset`, which
-implicitly requires a `decidable_pred` instance for every `s : set α`.
+## Computable instances
 
-The `complete_linear_order` instance for `fin (n + 1)` is the only proper instance in this file. The
-rest are `def`s to avoid loops in typeclass inference.
+On a `fintype`, we can construct
+* an `order_bot` from `semilattice_inf`.
+* an `order_top` from `semilattice_sup`.
+* a `bounded_order` from `lattice`.
+
+Those are marked as `def` to avoid defeqness issues.
+
+## Completion instances
+
+Those instances are noncomputable because the definitions of `Sup` and `Inf` use `set.to_finset` and
+set membership is undecidable in general.
+
+On a `fintype`, we can promote:
+* a `lattice` to a `complete_lattice`.
+* a `distrib_lattice` to a `complete_distrib_lattice`.
+* a `linear_order`  to a `complete_linear_order`.
+* a `boolean_algebra` to a `complete_boolean_algebra`.
+
+Those are marked as `def` to avoid typeclass loops.
+
+## Concrete instances
+
+We provide a few instances for concrete types:
+* `fin.complete_linear_order`
+* `bool.complete_linear_order`
+* `bool.complete_boolean_algebra`
 -/
+
+namespace finset
+
+end finset
 
 variables {ι α : Type*} [fintype ι] [fintype α]
 
@@ -67,11 +89,35 @@ noncomputable def fintype.to_complete_lattice [hl : lattice α] [hb : bounded_or
   le_Inf := λ s _ ha, finset.le_inf (λ b hb, ha _ $ set.mem_to_finset.mp hb),
   .. hl, .. hb }
 
+/-- A finite bounded distributive lattice is completely distributive. -/
+@[reducible] -- See note [reducible non-instances]
+noncomputable def fintype.to_complete_distrib_lattice [distrib_lattice α] [bounded_order α] :
+  complete_distrib_lattice α :=
+{ infi_sup_le_sup_Inf := λ a s, begin
+    convert (finset.inf_sup_distrib_left _ _ _).ge,
+    convert (finset.inf_eq_infi _ _).symm,
+    simp_rw set.mem_to_finset,
+    refl,
+  end,
+  inf_Sup_le_supr_inf := λ a s, begin
+    convert (finset.sup_inf_distrib_left _ _ _).le,
+    convert (finset.sup_eq_supr _ _).symm,
+    simp_rw set.mem_to_finset,
+    refl,
+  end,
+  ..fintype.to_complete_lattice α }
+
 /-- A finite bounded linear order is complete. -/
 @[reducible] -- See note [reducible non-instances]
 noncomputable def fintype.to_complete_linear_order [h : linear_order α] [bounded_order α] :
   complete_linear_order α :=
 { .. fintype.to_complete_lattice α, .. h }
+
+/-- A finite boolean algebra is complete. -/
+@[reducible] -- See note [reducible non-instances]
+noncomputable def fintype.to_complete_boolean_algebra [boolean_algebra α] :
+  complete_boolean_algebra α :=
+{ ..fintype.to_complete_distrib_lattice α, ..‹boolean_algebra α› }
 
 end bounded_order
 
@@ -95,7 +141,10 @@ noncomputable def fintype.to_complete_linear_order_of_linear_order [h : linear_o
 
 end nonempty
 
-/-! ### `fin` -/
+/-! ### Concrete instances -/
 
-noncomputable instance fin.complete_linear_order {n : ℕ} : complete_linear_order (fin (n + 1)) :=
+noncomputable instance {n : ℕ} : complete_linear_order (fin (n + 1)) :=
 fintype.to_complete_linear_order _
+
+noncomputable instance : complete_linear_order bool := fintype.to_complete_linear_order _
+noncomputable instance : complete_boolean_algebra bool := fintype.to_complete_boolean_algebra _

@@ -111,7 +111,7 @@ instance conditionally_complete_linear_order_bot.to_order_bot
 /-- A complete lattice is a conditionally complete lattice, as there are no restrictions
 on the properties of Inf and Sup in a complete lattice.-/
 @[priority 100] -- see Note [lower instance priority]
-instance conditionally_complete_lattice_of_complete_lattice [complete_lattice α]:
+instance complete_lattice.to_conditionally_complete_lattice [complete_lattice α]:
   conditionally_complete_lattice α :=
 { le_cSup := by intros; apply le_Sup; assumption,
   cSup_le := by intros; apply Sup_le; assumption,
@@ -120,9 +120,11 @@ instance conditionally_complete_lattice_of_complete_lattice [complete_lattice α
   ..‹complete_lattice α› }
 
 @[priority 100] -- see Note [lower instance priority]
-instance conditionally_complete_linear_order_of_complete_linear_order [complete_linear_order α]:
-  conditionally_complete_linear_order α :=
-{ ..conditionally_complete_lattice_of_complete_lattice, .. ‹complete_linear_order α› }
+instance complete_linear_order.to_conditionally_complete_linear_order_bot {α : Type*}
+  [complete_linear_order α] :
+  conditionally_complete_linear_order_bot α :=
+{ cSup_empty := Sup_empty,
+  ..complete_lattice.to_conditionally_complete_lattice, .. ‹complete_linear_order α› }
 
 section
 open_locale classical

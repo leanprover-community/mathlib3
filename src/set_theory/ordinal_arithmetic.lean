@@ -1824,6 +1824,104 @@ by simp only [type_fin, lift_nat_cast]
 theorem type_fintype (r : α → α → Prop) [is_well_order α r] [fintype α] : type r = fintype.card α :=
 by rw [← card_eq_nat, card_type, mk_fintype]
 
+/-! ### Principal ordinals -/
+
+/-- An ordinal `o` is said to be principal or indecomposable under an operation when the set of
+ordinals less than it is closed under that operation. In standard mathematical usage, this term is
+almost exclusively used for additive and multiplicative principal ordinals.
+
+For simplicity, we break usual convention and regard 0 as principal. -/
+def principal (op : ordinal → ordinal → ordinal) (o : ordinal) : Prop :=
+∀ a b, a < o → b < o → op a b < o
+
+theorem zero_principal {op : ordinal → ordinal → ordinal} : principal op 0 :=
+λ a _ h, (ordinal.not_lt_zero a h).elim
+
+theorem one_principal_iff {op : ordinal → ordinal → ordinal} :
+  principal op 1 ↔ op 0 0 = 0 :=
+begin
+  refine ⟨λ h, _, λ h a b ha hb, _⟩,
+  { rwa ←lt_one_iff_zero,
+    exact h 0 0 zero_lt_one zero_lt_one },
+  { rwa [lt_one_iff_zero, ha, hb] at * }
+end
+
+theorem iterate_lt_of_principal {op : ordinal → ordinal → ordinal}
+  {a o : ordinal} (hao : a < o) (ho : principal op o) (n : ℕ) : (op a)^[n] a < o :=
+begin
+  induction n with n hn,
+  { rwa function.iterate_zero },
+  { have := ho a _ hao hn,
+    rwa function.iterate_succ' }
+end
+
+theorem op_eq_self_of_principal {op : ordinal → ordinal → ordinal} {a o : ordinal.{u}}
+  (hao : a < o) (H : is_normal (op a)) (ho : principal op o) (ho' : is_limit o) : op a o = o :=
+begin
+  refine le_antisymm _ (H.le_self _),
+  rw [←is_normal.bsup_eq.{u u} H ho', bsup_le],
+  exact λ b hbo, le_of_lt (ho a b hao hbo)
+end
+
+/-! ### Additive principal ordinals -/
+
+theorem one_principal_add : principal (+) 1 :=
+one_principal_iff.2 $ zero_add 0
+
+theorem principal_add_is_limit {o : ordinal.{u}} (ho₁ : 1 < o) (ho : principal (+) o) :
+  o.is_limit :=
+begin
+  refine ⟨λ ho₀, _, λ a hao, _⟩,
+  { rw ho₀ at ho₁,
+    exact not_lt_of_gt ordinal.zero_lt_one ho₁ },
+  cases eq_or_ne a 0 with ha ha,
+  { rw [ha, succ_zero],
+    exact ho₁ },
+  refine lt_of_le_of_lt _ (ho a a hao hao),
+  rwa [succ_eq_add_one, add_le_add_iff_left, one_le_iff_ne_zero]
+end
+
+theorem principal_add_iff_add_left_eq_self (o : ordinal.{u}) :
+  principal (+) o ↔ ∀ a < o, a + o = o :=
+begin
+  refine ⟨λ ho a hao, _, λ h a b hao hbo, _⟩,
+  { cases lt_or_le 1 o with ho₁ ho₁,
+    { exact op_eq_self_of_principal hao (add_is_normal a) ho (principal_add_is_limit ho₁ ho) },
+    rcases le_one_iff.1 ho₁ with rfl | rfl,
+    { exact (ordinal.not_lt_zero a hao).elim },
+    rw lt_one_iff_zero at hao,
+    rw [hao, zero_add] },
+  rw ←h a hao,
+  exact (add_is_normal a).strict_mono hbo
+end
+
+theorem principal_add_iff_zero_or_omega_power {o : ordinal.{u}} :
+  principal (+) o ↔ o = 0 ∨ ∃ a : ordinal.{u}, o = omega.{u} ^ a :=
+begin
+  rcases eq_or_ne o 0 with rfl | ho,
+  { simp only [zero_principal, or.inl] },
+  { rw [principal_add_iff_add_left_eq_self],
+    simp only [ho, false_or],
+    refine ⟨λ H, ⟨_, ((lt_or_eq_of_le (opow_log_le _ (ordinal.pos_iff_ne_zero.2 ho)))
+        .resolve_left $ λ h, _).symm⟩, λ ⟨b, e⟩, e.symm ▸ λ a, add_omega_opow⟩,
+    have := H _ h,
+    have := lt_opow_succ_log one_lt_omega o,
+    rw [opow_succ, lt_mul_of_limit omega_is_limit] at this,
+    rcases this with ⟨a, ao, h'⟩,
+    rcases lt_omega.1 ao with ⟨n, rfl⟩, clear ao,
+    revert h', apply not_lt_of_le,
+    suffices e : omega ^ log omega o * ↑n + o = o,
+    { simpa only [e] using le_add_right (omega ^ log omega o * ↑n) o },
+    induction n with n IH, {simp only [nat.cast_zero, mul_zero, zero_add]},
+    simp only [nat.cast_succ, mul_add_one, add_assoc, this, IH] }
+end
+
+theorem principal_add_omega_power (o : ordinal.{u}) : principal (+) (omega.{u} ^ o) :=
+principal_add_iff_zero_or_omega_power.2 (or.inr ⟨o, rfl⟩)
+
+theorem principal_add_omega : principal (+) omega.{u} :=
+by { convert principal_add_omega_power 1, rw opow_one }
+
 end ordinal
 
 /-! ### Properties of `omega` -/
@@ -2074,6 +2172,10 @@ theorem is_normal.le_nfp {f} (H : is_normal f) {a b} :
 theorem nfp_eq_self {f : ordinal → ordinal} {a} (h : f a = a) : nfp f a = a :=
 le_antisymm (sup_le.mpr $ λ i, by rw [iterate_fixed h]) (le_nfp_self f a)
 
+theorem nfp_le_of_principal {op : ordinal → ordinal → ordinal}
+  {a o : ordinal} (hao : a < o) (ho : principal op o) : nfp (op a) a ≤ o :=
+nfp_le.2 $ λ n, le_of_lt (iterate_lt_of_principal hao ho n)
+
 /-- The derivative of a normal function `f` is
   the sequence of fixed points of `f`. -/
 def deriv (f : ordinal → ordinal) (o : ordinal) : ordinal :=
@@ -2125,107 +2227,5 @@ theorem is_normal.fp_iff_deriv {f} (H : is_normal f)
     rw [deriv_limit _ l, ← not_le, bsup_le, not_ball] at h,
     exact let ⟨o', h, hl⟩ := h in IH o' h (le_of_not_le hl) }
 end, λ ⟨o, e⟩, e.symm ▸ le_of_eq (H.deriv_fp _)⟩
-
-/-! ### Principal ordinals -/
-
-/-- An ordinal `o` is said to be principal or indecomposable under an operation when the set of
-ordinals less than it is closed under that operation. In standard mathematical usage, this term is
-almost exclusively used for additive and multiplicative principal ordinals.
-
-For simplicity, we break usual convention and regard 0 as principal. -/
-def principal (op : ordinal → ordinal → ordinal) (o : ordinal) : Prop :=
-∀ a b, a < o → b < o → op a b < o
-
-theorem zero_principal {op : ordinal → ordinal → ordinal} : principal op 0 :=
-λ a _ h, (ordinal.not_lt_zero a h).elim
-
-theorem one_principal_iff {op : ordinal → ordinal → ordinal} :
-  principal op 1 ↔ op 0 0 = 0 :=
-begin
-  refine ⟨λ h, _, λ h a b ha hb, _⟩,
-  { rwa ←lt_one_iff_zero,
-    exact h 0 0 zero_lt_one zero_lt_one },
-  { rwa [lt_one_iff_zero, ha, hb] at * }
-end
-
-theorem iterate_lt_of_principal {op : ordinal → ordinal → ordinal}
-  {a o : ordinal} (hao : a < o) (ho : principal op o) (n : ℕ) : (op a)^[n] a < o :=
-begin
-  induction n with n hn,
-  { rwa function.iterate_zero },
-  { have := ho a _ hao hn,
-    rwa function.iterate_succ' }
-end
-
-theorem op_eq_self_of_principal {op : ordinal → ordinal → ordinal} {a o : ordinal.{u}}
-  (hao : a < o) (H : is_normal (op a)) (ho : principal op o) (ho' : is_limit o) : op a o = o :=
-begin
-  refine le_antisymm _ (H.le_self _),
-  rw [←is_normal.bsup_eq.{u u} H ho', bsup_le],
-  exact λ b hbo, le_of_lt (ho a b hao hbo)
-end
-
-theorem nfp_le_of_principal {op : ordinal → ordinal → ordinal}
-  {a o : ordinal} (hao : a < o) (ho : principal op o) : nfp (op a) a ≤ o :=
-nfp_le.2 $ λ n, le_of_lt (iterate_lt_of_principal hao ho n)
-
-/-! ### Additive principal ordinals -/
-
-theorem one_principal_add : principal (+) 1 :=
-one_principal_iff.2 $ zero_add 0
-
-theorem principal_add_is_limit {o : ordinal.{u}} (ho₁ : 1 < o) (ho : principal (+) o) :
-  o.is_limit :=
-begin
-  refine ⟨λ ho₀, _, λ a hao, _⟩,
-  { rw ho₀ at ho₁,
-    exact not_lt_of_gt ordinal.zero_lt_one ho₁ },
-  cases eq_or_ne a 0 with ha ha,
-  { rw [ha, succ_zero],
-    exact ho₁ },
-  refine lt_of_le_of_lt _ (ho a a hao hao),
-  rwa [succ_eq_add_one, add_le_add_iff_left, one_le_iff_ne_zero]
-end
-
-theorem principal_add_iff_add_left_eq_self (o : ordinal.{u}) :
-  principal (+) o ↔ ∀ a < o, a + o = o :=
-begin
-  refine ⟨λ ho a hao, _, λ h a b hao hbo, _⟩,
-  { cases lt_or_le 1 o with ho₁ ho₁,
-    { exact op_eq_self_of_principal hao (add_is_normal a) ho (principal_add_is_limit ho₁ ho) },
-    rcases le_one_iff.1 ho₁ with rfl | rfl,
-    { exact (ordinal.not_lt_zero a hao).elim },
-    rw lt_one_iff_zero at hao,
-    rw [hao, zero_add] },
-  rw ←h a hao,
-  exact (add_is_normal a).strict_mono hbo
-end
-
-theorem principal_add_iff_zero_or_omega_power {o : ordinal.{u}} :
-  principal (+) o ↔ o = 0 ∨ ∃ a : ordinal.{u}, o = omega.{u} ^ a :=
-begin
-  rcases eq_or_ne o 0 with rfl | ho,
-  { simp only [zero_principal, or.inl] },
-  { rw [principal_add_iff_add_left_eq_self],
-    simp only [ho, false_or],
-    refine ⟨λ H, ⟨_, ((lt_or_eq_of_le (opow_log_le _ (ordinal.pos_iff_ne_zero.2 ho)))
-        .resolve_left $ λ h, _).symm⟩, λ ⟨b, e⟩, e.symm ▸ λ a, add_omega_opow⟩,
-    have := H _ h,
-    have := lt_opow_succ_log one_lt_omega o,
-    rw [opow_succ, lt_mul_of_limit omega_is_limit] at this,
-    rcases this with ⟨a, ao, h'⟩,
-    rcases lt_omega.1 ao with ⟨n, rfl⟩, clear ao,
-    revert h', apply not_lt_of_le,
-    suffices e : omega ^ log omega o * ↑n + o = o,
-    { simpa only [e] using le_add_right (omega ^ log omega o * ↑n) o },
-    induction n with n IH, {simp only [nat.cast_zero, mul_zero, zero_add]},
-    simp only [nat.cast_succ, mul_add_one, add_assoc, this, IH] }
-end
-
-theorem principal_add_omega_power (o : ordinal.{u}) : principal (+) (omega.{u} ^ o) :=
-principal_add_iff_zero_or_omega_power.2 (or.inr ⟨o, rfl⟩)
-
-theorem principal_add_omega : principal (+) omega.{u} :=
-by { convert principal_add_omega_power 1, rw opow_one }
 
 end ordinal

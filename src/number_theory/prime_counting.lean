@@ -38,8 +38,6 @@ the reindexed version).
 namespace nat
 open finset
 
--- TODO: Unify the following definitions with those provided in PR #9457
-
 /--
 A variant of the traditional prime counting function which gives the number of primes
 *strictly* less than the input. More convenient for avoiding off-by-one errors.

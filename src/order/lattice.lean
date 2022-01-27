@@ -940,3 +940,6 @@ See note [reducible non-instances]. -/
   ..hf_inj.lattice f map_sup map_inf, }
 
 end lift
+
+--To avoid noncomputability poisoning from `bool.complete_boolean_algebra`
+instance : distrib_lattice bool := linear_order.to_distrib_lattice

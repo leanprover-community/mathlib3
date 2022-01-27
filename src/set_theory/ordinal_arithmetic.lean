@@ -983,11 +983,9 @@ end
 private theorem sup_le_sup {ι ι' : Type u} (r : ι → ι → Prop) (r' : ι' → ι' → Prop)
   [is_well_order ι r] [is_well_order ι' r'] {o} (ho : type r = o) (ho' : type r' = o)
   (f : Π a < o, ordinal) : sup (family_of_bfamily' r ho f) ≤ sup (family_of_bfamily' r' ho' f) :=
-begin
-  refine sup_le.2 (λ i, _),
+sup_le.2 $ λ i, begin
   cases typein_surj r' (by { rw [ho', ←ho], exact typein_lt_type r i }) with j hj,
-  unfold family_of_bfamily',
-  simp_rw ←hj,
+  simp_rw [family_of_bfamily', ←hj],
   apply le_sup
 end
 
@@ -996,11 +994,9 @@ theorem sup_eq_sup {ι ι' : Type u} (r : ι → ι → Prop) (r' : ι' → ι' 
   (f : Π a < o, ordinal) : sup (family_of_bfamily' r ho f) = sup (family_of_bfamily' r' ho' f) :=
 le_antisymm (sup_le_sup r r' ho ho' f) (sup_le_sup r' r ho' ho f)
 
-/-- The supremum of a family of ordinals indexed by the set
-  of ordinals less than some `o : ordinal.{u}`.
-  (This is not a special case of `sup` over the subtype,
-  because `{a // a < o} : Type (u+1)` and `sup` only works over
-  families in `Type u`.) -/
+/-- The supremum of a family of ordinals indexed by the set of ordinals less than some
+  `o : ordinal.{u}`. This is a special case of `sup` over the family provided by
+  `family_of_bfamily`. -/
 def bsup (o : ordinal.{u}) (f : Π a < o, ordinal.{max u v}) : ordinal.{max u v} :=
 sup (family_of_bfamily o f)
 

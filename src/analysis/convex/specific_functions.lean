@@ -214,3 +214,41 @@ begin
   rw [deriv_log', deriv_inv],
   exact neg_neg_of_pos (inv_pos.2 $ sq_pos_of_ne_zero _ hx.ne),
 end
+
+open_locale real
+
+lemma concave_on_sin_Icc : concave_on ℝ (Icc 0 π) sin :=
+begin
+  apply concave_on_of_deriv2_nonpos (convex_Icc 0 π) continuous_on_sin
+    differentiable_sin.differentiable_on,
+  { rw real.deriv_sin,
+    apply differentiable_cos.differentiable_on },
+  intros x hx,
+  simp [sin_nonneg_of_mem_Icc, interior_subset hx],
+end
+
+lemma strict_concave_on_sin_Ioo : strict_concave_on ℝ (Ioo 0 π) sin :=
+begin
+  apply strict_concave_on_open_of_deriv2_neg (convex_Ioo _ _) is_open_Ioo
+    differentiable_sin.differentiable_on,
+  intros x hx,
+  simp [sin_pos_of_mem_Ioo hx],
+end
+
+lemma concave_on_cos_Icc : concave_on ℝ (Icc (-(π/2)) (π/2)) cos :=
+begin
+  apply concave_on_of_deriv2_nonpos (convex_Icc _ _) continuous_on_cos
+    differentiable_cos.differentiable_on,
+  { rw real.deriv_cos',
+    apply differentiable_sin.differentiable_on.neg },
+  intros x hx,
+  simp [cos_nonneg_of_mem_Icc, interior_subset hx],
+end
+
+lemma strict_concave_on_cos_Ioo : strict_concave_on ℝ (Ioo (-(π/2)) (π/2)) cos :=
+begin
+  apply strict_concave_on_open_of_deriv2_neg (convex_Ioo _ _) is_open_Ioo
+    differentiable_cos.differentiable_on,
+  intros x hx,
+  simp [cos_pos_of_mem_Ioo hx],
+end

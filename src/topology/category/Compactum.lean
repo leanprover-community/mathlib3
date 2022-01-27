@@ -449,26 +449,24 @@ end
 
 end Compactum_to_CompHaus
 
-namespace Compactum
-
-def forget_factors_through_CompHaus_forget : forget ≅
-  Compactum_to_CompHaus ⋙ category_theory.forget CompHaus :=
+/-- The forgetful functors of `Compactum` and `CompHaus` are compatible via
+`Compactum_to_CompHaus`. -/
+def Compactum_to_CompHaus_comp_forget :
+  Compactum_to_CompHaus ⋙ category_theory.forget CompHaus ≅ Compactum.forget :=
 nat_iso.of_components (λ X, eq_to_iso rfl) $
 by { intros X Y f, dsimp, simpa }
-
-end Compactum
 
 noncomputable
 instance CompHaus.forget_creates_limits : creates_limits (forget CompHaus) :=
 begin
   let e : forget CompHaus ≅ Compactum_to_CompHaus.inv ⋙ Compactum.forget :=
-    _ ≪≫ iso_whisker_left _ (Compactum.forget_factors_through_CompHaus_forget).symm,
+    _ ≪≫ iso_whisker_left _ Compactum_to_CompHaus_comp_forget,
   swap,
   refine _ ≪≫ functor.associator _ _ _,
   refine (functor.left_unitor _).symm ≪≫ _,
   refine iso_whisker_right _ _,
   exact Compactum_to_CompHaus.as_equivalence.symm.unit_iso,
-  exact creates_limits_of_nat_iso e.symm
+  exact creates_limits_of_nat_iso e.symm,
 end
 
 noncomputable

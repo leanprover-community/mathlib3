@@ -54,7 +54,6 @@ open cardinal
 namespace ordinal
 
 /-- The `Ωᵥ` function as defined by Buchholz. -/
--- Todo: generalize
 def Omega : ℕ → cardinal.{0}
 | 0       := 1
 | (v + 1) := aleph (v + 1)

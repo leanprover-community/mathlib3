@@ -21,19 +21,19 @@ conditions are equivalent in this case).
 
 ## Main definitions
 
-* `is_topological_basis s`: The topological space `t` has basis `s`.
-* `separable_space α`: The topological space `t` has a countable, dense subset.
-* `first_countable_topology α`: A topology in which `𝓝 x` is countably generated for every `x`.
-* `second_countable_topology α`: A topology which has a topological basis which is countable.
+* `topological_space.is_topological_basis s`: The topological space `t` has basis `s`.
+* `topological_space.separable_space α`: The topological space `t` has a countable, dense subset.
+* `topological_space.first_countable_topology α`: A topology in which `𝓝 x` is countably generated
+  for every `x`.
+* `topological_space.second_countable_topology α`: A topology which has a topological basis which
+  is countable.
 
 ## Main results
 
-* `first_countable_topology.tendsto_subseq`: In a first-countable space,
+* `topological_space.first_countable_topology.tendsto_subseq`: In a first-countable space,
   cluster points are limits of subsequences.
-* `second_countable_topology.is_open_Union_countable`: In a second-countable space, the union of
+* `topological_space.is_open_Union_countable`: In a second-countable space, the union of
   arbitrarily-many open sets is equal to a sub-union of only countably many of these sets.
-* `second_countable_topology.countable_cover_nhds`: Consider `f : α → set α` with the property that
-  `f x ∈ 𝓝 x` for all `x`. Then there is some countable set `s` whose image covers the space.
 
 ## Implementation Notes
 For our applications we are interested that there exists a countable basis, but we do not need the
@@ -614,29 +614,6 @@ let ⟨T, cT, hT⟩ := is_open_Union_countable (λ s:S, s.1) (λ s, H s.1 s.2) i
 ⟨subtype.val '' T, cT.image _,
   image_subset_iff.2 $ λ ⟨x, xs⟩ xt, xs,
   by rwa [sUnion_image, sUnion_eq_Union]⟩
-
-/-- In a topological space with second countable topology, if `f` is a function that sends each
-point `x` to a neighborhood of `x`, then for some countable set `s`, the neighborhoods `f x`,
-`x ∈ s`, cover the whole space. -/
-lemma countable_cover_nhds [second_countable_topology α] {f : α → set α}
-  (hf : ∀ x, f x ∈ 𝓝 x) : ∃ s : set α, countable s ∧ (⋃ x ∈ s, f x) = univ :=
-begin
-  rcases is_open_Union_countable (λ x, interior (f x)) (λ x, is_open_interior) with ⟨s, hsc, hsU⟩,
-  suffices : (⋃ x ∈ s, interior (f x)) = univ,
-    from ⟨s, hsc, flip eq_univ_of_subset this $ Union₂_mono $ λ _ _, interior_subset⟩,
-  simp only [hsU, eq_univ_iff_forall, mem_Union],
-  exact λ x, ⟨x, mem_interior_iff_mem_nhds.2 (hf x)⟩
-end
-
-lemma countable_cover_nhds_within [second_countable_topology α] {f : α → set α} {s : set α}
-  (hf : ∀ x ∈ s, f x ∈ 𝓝[s] x) : ∃ t ⊆ s, countable t ∧ s ⊆ (⋃ x ∈ t, f x) :=
-begin
-  have : ∀ x : s, coe ⁻¹' (f x) ∈ 𝓝 x, from λ x, preimage_coe_mem_nhds_subtype.2 (hf x x.2),
-  rcases countable_cover_nhds this with ⟨t, htc, htU⟩,
-  refine ⟨coe '' t, subtype.coe_image_subset _ _, htc.image _, λ x hx, _⟩,
-  simp only [bUnion_image, eq_univ_iff_forall, ← preimage_Union, mem_preimage] at htU ⊢,
-  exact htU ⟨x, hx⟩
-end
 
 end topological_space
 

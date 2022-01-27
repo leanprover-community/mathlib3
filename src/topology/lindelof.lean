@@ -250,6 +250,18 @@ lemma embedding.is_lindelof_image {e : X → Y} (he : embedding e) :
   is_lindelof (e '' s) ↔ is_lindelof s :=
 he.to_inducing.is_lindelof_image
 
+lemma locally_finite.countable_nonempty_inter_lindelof {f : ι → set X} (hf : locally_finite f)
+  (hs : is_lindelof s) :
+  countable {i : ι | (f i ∩ s).nonempty} :=
+begin
+  choose U hxU hUf using hf,
+  rcases hs.countable_cover_nhds (λ x _, hxU x) with ⟨I, hIs, hIc, hsI⟩,
+  refine (hIc.bUnion $ λ x _, (hUf x).countable).mono _,
+  rintro i ⟨x, hi, hxs⟩,
+  rcases mem_Union₂.1 (hsI hxs) with ⟨y, hyI, hxy⟩,
+  exact mem_Union₂.2 ⟨y, hyI, ⟨x, hi, hxy⟩⟩
+end
+
 class lindelof_space (X : Type*) [topological_space X] : Prop :=
 (is_lindelof_univ [] : is_lindelof (univ : set X))
 
@@ -267,6 +279,26 @@ by rw [← is_lindelof_univ_iff, ← embedding_subtype_coe.is_lindelof_image, im
 
 alias is_lindelof_iff_lindelof_space ↔ is_lindelof.to_subtype _
 
+/-- In a Lindelöf topological space, if `f` is a function that sends each point `x` to a
+neighborhood of `x`, then for some countable set `s`, the neighborhoods `f x`, `x ∈ s`, cover the
+whole space. -/
+lemma countable_cover_nhds [lindelof_space X] {f : X → set X}
+  (hf : ∀ x, f x ∈ 𝓝 x) : ∃ s : set X, countable s ∧ (⋃ x ∈ s, f x) = univ :=
+by simpa [univ_subset_iff] using (is_lindelof_univ X).countable_cover_nhds (λ x _, hf x)
+
+/-- If `α` is a `σ`-compact space, then a locally finite family of nonempty sets of `α` can have
+only countably many elements, `set.countable` version. -/
+protected lemma locally_finite.countable_univ [lindelof_space X] {f : ι → set X}
+  (hf : locally_finite f) (hne : ∀ i, (f i).nonempty) :
+  countable (univ : set ι) :=
+by simpa only [inter_univ, hne] using hf.countable_nonempty_inter_lindelof (is_lindelof_univ X)
+
+/-- If `f : ι → set α` is a locally finite covering of a Lindelöf topological space by nonempty
+sets, then the index type `ι` is encodable. -/
+protected noncomputable def locally_finite.encodable [lindelof_space X] {f : ι → set X}
+  (hf : locally_finite f) (hne : ∀ i, (f i).nonempty) : encodable ι :=
+@encodable.of_equiv _ _ (hf.countable_univ hne).to_encodable (equiv.set.univ _).symm
+
 @[protect_proj]
 class strongly_lindelof_space (X : Type*) [topological_space X] : Prop :=
 (is_lindelof : ∀ s : set X, is_lindelof s)
@@ -281,3 +313,11 @@ begin
   rcases is_open_sUnion_countable U hUo with ⟨S, hSc, hSU, hS⟩,
   exact ⟨S, hSU, hSc, hS.symm ▸ hU⟩
 end
+
+lemma countable_cover_nhds_within [strongly_lindelof_space X] {f : X → set X} {s : set X}
+  (hf : ∀ x ∈ s, f x ∈ 𝓝[s] x) : ∃ t ⊆ s, countable t ∧ s ⊆ (⋃ x ∈ t, f x) :=
+s.is_lindelof.countable_cover_nhds_within hf
+
+@[priority 100]
+instance strongly_lindelof_space.lindelof_space [strongly_lindelof_space X] : lindelof_space X :=
+⟨set.is_lindelof univ⟩

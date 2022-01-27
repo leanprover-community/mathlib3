@@ -17,7 +17,7 @@ variables {R : Type*} [comm_monoid_with_zero R] (n p : R) (k : ℕ)
 /-- `n` is a prime power if there is a prime `p` and a positive natural `k` such that `n` can be
 written as `p^k`. -/
 def is_prime_pow : Prop :=
-  ∃ (p : R) (k : ℕ), prime p ∧ 0 < k ∧ p ^ k = n
+∃ (p : R) (k : ℕ), prime p ∧ 0 &lt; k ∧ p ^ k = n
 
 lemma is_prime_pow_def :
   is_prime_pow n ↔ ∃ (p : R) (k : ℕ), prime p ∧ 0 < k ∧ p ^ k = n := iff.rfl

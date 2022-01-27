@@ -14,13 +14,13 @@ import topology.metric_space.antilipschitz
 
 We consider an Hilbert space `V` over `ℝ`
 equipped with a bounded bilinear form `B : V →L[ℝ] V →L[ℝ] ℝ`.
-we also define a property `is_coercive` for `B : V →L[ℝ] V →L[ℝ] ℝ`,
+We define a property `is_coercive` for `B : V →L[ℝ] V →L[ℝ] ℝ`,
 such that `is_coercive B` iff
 `∃ C, (0 < C) ∧ ∀ u, C * ∥u∥ * ∥u∥ ≤ B u u`.
 
 Under the hypothesis that `B` is coercive
 we prove the Lax-Milgram theorem:
-that is, the map `continuous_linear_map_of_bilin` from `analysis.inner_product_space.dual
+that is, the map `continuous_linear_map_of_bilin` from `analysis.inner_product_space.dual`
 can be upgraded to a continuous equivalence `lax_milgram_equiv : V ≃L[ℝ] V`.
 
 ## References
@@ -44,14 +44,14 @@ open_locale classical complex_conjugate
 universe u
 
 /--
-A bounded bilinear form in an inner product space is coercive
+A bounded bilinear form in an inner product space is *coercive*
 if there is some positive constant C such that `C * ∥u∥ * ∥u∥ ≤ B u u`.
 -/
 def is_coercive
   {V : Type u} [inner_product_space ℝ V] (B : V →L[ℝ] V →L[ℝ] ℝ) : Prop :=
 ∃ C, (0 < C) ∧ ∀ u, C * ∥u∥ * ∥u∥ ≤ B u u
 
-namespace lax_milgram
+namespace is_coercive
 variables {V : Type u} [inner_product_space ℝ V] [complete_space V]
 variables {B : V →L[ℝ] V →L[ℝ] ℝ}
 
@@ -67,14 +67,14 @@ begin
   { refine (mul_le_mul_right h).mp _,
     exact calc C * ∥v∥ * ∥v∥
                ≤ B v v                         : coercivity v
-    ...        = inner (B♯ v) v : by simp
+    ...        = ⟪B♯ v, v⟫_ℝ : by simp
     ...        ≤ ∥B♯ v∥ * ∥v∥     : real_inner_le_norm (B♯ v) v, },
   { have : v = 0 := by simpa using h,
     simp [this], }
 end
 
 lemma antilipschitz_of_lax_milgram (coercive : is_coercive B) :
-  ∃ C : nnreal, 0 < C ∧ antilipschitz_with C B♯ :=
+  ∃ C : ℝ≥0, 0 < C ∧ antilipschitz_with C B♯ :=
 begin
   rcases bounded_below coercive with ⟨C, C_pos, below_bound⟩,
   refine ⟨(C⁻¹).to_nnreal, real.to_nnreal_pos.mpr (inv_pos.mpr C_pos), _⟩,
@@ -98,7 +98,7 @@ begin
   exact antilipschitz.is_closed_range B♯.uniform_continuous,
 end
 
-lemma range_eq_top (coercive : is_coercive B): B♯.range = ⊤ :=
+lemma range_eq_top (coercive : is_coercive B) : B♯.range = ⊤ :=
 begin
   haveI := (closed_range coercive).complete_space_coe,
   rw ← B♯.range.orthogonal_orthogonal,
@@ -108,7 +108,7 @@ begin
   have : C * ∥w∥ * ∥w∥ ≤ 0 :=
   calc C * ∥w∥ * ∥w∥
         ≤ B w w                         : coercivity w
-  ...  = inner (B♯ w) w   : by simp
+  ...  = ⟪B♯ w, w⟫_ℝ : by simp
   ...  = 0                              : mem_w_orthogonal _ ⟨w, rfl⟩,
   have : ∥w∥ * ∥w∥ ≤ 0 := by nlinarith,
   have h : ∥w∥ = 0 := by nlinarith [norm_nonneg w],

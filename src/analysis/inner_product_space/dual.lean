@@ -20,7 +20,7 @@ surjectivity of `to_dual_map`.  This is the Fréchet-Riesz representation theore
 the dual of a Hilbert space `E` has the form `λ u, ⟪x, u⟫` for some `x : E`.
 
 For a bilinear form `B : E →L⋆[𝕜] E →L[𝕜] 𝕜`,
-we define a map `continuous_linear_map_of_bilin B :  E →L[𝕜] E`,
+we define a map `continuous_linear_map_of_bilin B : E →L[𝕜] E`,
 given by substituting `E →L[𝕜] 𝕜` with `E` using `to_dual`.
 
 
@@ -185,6 +185,7 @@ comp (to_dual 𝕜 E).symm.to_continuous_linear_equiv.to_continuous_linear_map B
 local postfix `♯`:1025 := continuous_linear_map_of_bilin
 
 variables (B : E →L⋆[𝕜] E →L[𝕜] 𝕜)
+
 @[simp]
 lemma continuous_linear_map_of_bilin_apply (v w : E) : inner (B♯ v) w = B v w :=
 by simp [continuous_linear_map_of_bilin]

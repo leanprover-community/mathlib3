@@ -12,7 +12,7 @@ import ring_theory.adjoin.power_basis
 If `is_cyclotomic_extension {n} A B`, we define an element `zeta n A B : B` that is (under certain
 assumptions) a primitive `n`-root of unity in `B` and we study its properties.
 
-## Main definition
+## Main definitions
 * `is_cyclotomic_extension.zeta n A B` : if `is_cyclotomic_extension {n} A B`, than `zeta n A B`
   is an element of `B` that plays the role of a primitive `n`-th root of unity.
 * `is_cyclotomic_extension.zeta.power_basis` : if `K` and `L` are fields such that

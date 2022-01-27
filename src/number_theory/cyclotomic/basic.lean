@@ -15,7 +15,7 @@ Let `A` and `B` be commutative rings with `algebra A B`. For `S : set ℕ+`, we 
 `is_cyclotomic_extension S A B` expressing the fact that `B` is obtained from `A` by adding `n`-th
 primitive roots of unity, for all `n ∈ S`.
 
-## Main definition
+## Main definitions
 
 * `is_cyclotomic_extension S A B` : means that `B` is obtained from `A` by adding `n`-th primitive
   roots of unity, for all `n ∈ S`.

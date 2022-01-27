@@ -3318,7 +3318,7 @@ begin
   apply isos.top_component.backward_forward 𝒜 f m hm f_deg z,
 end
 
-set_option profiler true
+-- set_option profiler true
 lemma isos.sheaf_component.forward.mk_is_locally_quotient (y : unop U) :
   ∃ (V : opens (prime_spectrum.Top (degree_zero_part 𝒜 f m f_deg))) (m_1 : y.val ∈ V) (i : V ⟶ unop U)
     (r s : (degree_zero_part 𝒜 f m f_deg)),
@@ -3328,12 +3328,12 @@ lemma isos.sheaf_component.forward.mk_is_locally_quotient (y : unop U) :
 begin
   obtain ⟨V, mem1, subset1, a, b, degree, a_hom, b_hom, eq1⟩ := hh.2
     ⟨((isos.top_component 𝒜 f m hm f_deg).inv y.1).1, isos.sheaf_component.forward.mk_is_locally_quotient.inv_y_mem 𝒜 f m hm f_deg U y⟩,
-
   set VVo : opens (Spec (degree_zero_part 𝒜 f m f_deg)).to_SheafedSpace.to_PresheafedSpace.carrier :=
     isos.sheaf_component.forward.mk_is_locally_quotient.open_set 𝒜 f m hm f_deg V with VVo_eq,
   have subset2 : VVo ⟶ unop U := isos.sheaf_component.forward.mk_is_locally_quotient.open_set_is_subset 𝒜 f m hm f_deg U V y subset1,
-
-  refine ⟨VVo, isos.sheaf_component.forward.mk_is_locally_quotient.mem_open_subset 𝒜 f m hm f_deg U V y mem1, subset2,
+  have y_mem1 : y.1 ∈ VVo,
+  { convert isos.sheaf_component.forward.mk_is_locally_quotient.mem_open_subset 𝒜 f m hm f_deg U V y mem1 },
+  refine ⟨VVo, y_mem1, subset2,
     ⟨localization.mk (a * b^m.pred) ⟨f^degree, ⟨_, rfl⟩⟩, ⟨degree, _, begin
       have mem1 : b^m.pred ∈ 𝒜 (m.pred * degree),
       apply set_like.graded_monoid.pow_deg,
@@ -3416,7 +3416,7 @@ begin
   set d_hh := (hh.val ⟨z', z'_mem⟩).denom with d_hh_eq,
   set n_hh := (hh.val ⟨z', z'_mem⟩).num with n_hh_eq,
   set i_hh := (hh.val ⟨z', z'_mem⟩).i with i_hh_eq,
-  simp only [←d_hh_eq, ←n_hh_eq] at eq1,
+  simp only [←d_hh_eq, ←n_hh_eq, ←i_hh_eq] at eq1,
 
   suffices : n_hh * d_hh ^ m.pred * b ^ m * (graded_algebra.proj 𝒜 j) C ^ m * f ^ (degree + i_hh + j)
     = a * b ^ m.pred * d_hh ^ m * (graded_algebra.proj 𝒜 j) C ^ m * f ^ (i_hh + degree + j),

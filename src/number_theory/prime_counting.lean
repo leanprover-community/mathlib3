@@ -110,32 +110,30 @@ end
 /-- A linear upper bound on the size of the `prime_counting'` function -/
 lemma linear_prime_counting_bound (n k a : ℕ) (h0 : 0 < a) (h1 : a < k) :
   π' (k + n) ≤ π' k + nat.totient a * (n / a + 1) :=
-begin
-  -- cases lt_or_le k n with k_lt_n n_le_k,
-  calc π' (k + n)
-      ≤ ((range k).filter (prime)).card + ((Ico k (k + n)).filter (prime)).card :
-          begin
-            rw [prime_counting', count_eq_card_filter_range, range_eq_Ico,
-                ←Ico_union_Ico_eq_Ico (zero_le k) (le_self_add), filter_union],
-            apply card_union_le,
-          end
-  ... ≤ π' k + ((Ico k (k + n)).filter (prime)).card :
-          by rw [prime_counting', count_eq_card_filter_range]
-  ... ≤ π' k + ((Ico k (k + n)).filter (coprime a)).card :
-          begin
-            refine add_le_add_left (card_le_of_subset _) k.prime_counting',
-            simp only [subset_iff, and_imp, mem_filter, mem_Ico],
-            intros p succ_k_le_p p_lt_n p_prime,
-            split,
-            { exact ⟨succ_k_le_p, p_lt_n⟩, },
-            { rw coprime_comm,
-              exact coprime_of_lt_prime h0 (gt_of_ge_of_gt succ_k_le_p h1) p_prime, },
-          end
-  ... ≤ π' k + totient a * (n / a + 1) :
-          begin
-            rw [add_le_add_iff_left],
-            exact filter_coprime_bound a k n h0,
-          end,
-end
+calc π' (k + n)
+    ≤ ((range k).filter (prime)).card + ((Ico k (k + n)).filter (prime)).card :
+        begin
+          rw [prime_counting', count_eq_card_filter_range, range_eq_Ico,
+              ←Ico_union_Ico_eq_Ico (zero_le k) (le_self_add), filter_union],
+          apply card_union_le,
+        end
+... ≤ π' k + ((Ico k (k + n)).filter (prime)).card :
+        by rw [prime_counting', count_eq_card_filter_range]
+... ≤ π' k + ((Ico k (k + n)).filter (coprime a)).card :
+        begin
+          refine add_le_add_left (card_le_of_subset _) k.prime_counting',
+          simp only [subset_iff, and_imp, mem_filter, mem_Ico],
+          intros p succ_k_le_p p_lt_n p_prime,
+          split,
+          { exact ⟨succ_k_le_p, p_lt_n⟩, },
+          { rw coprime_comm,
+            exact coprime_of_lt_prime h0 (gt_of_ge_of_gt succ_k_le_p h1) p_prime, },
+        end
+... ≤ π' k + totient a * (n / a + 1) :
+        begin
+          rw [add_le_add_iff_left],
+          exact filter_coprime_bound a k n h0,
+        end,
+
 
 end nat

@@ -405,7 +405,7 @@ begin
     refine linear_independent_of_finite (⋃ i, s i) (λ t ht ft, _),
     rcases finite_subset_Union ft ht with ⟨I, fi, hI⟩,
     rcases hs.finset_le fi.to_finset with ⟨i, hi⟩,
-    exact (h i).mono (subset.trans hI $ bUnion_subset $
+    exact (h i).mono (subset.trans hI $ Union₂_subset $
       λ j hj, hi j (fi.mem_to_finset.2 hj)) },
   { refine (linear_independent_empty _ _).mono _,
     rintro _ ⟨_, ⟨i, _⟩, _⟩, exact hη ⟨i⟩ }
@@ -655,7 +655,7 @@ begin
   rw [Union_eq_Union_finset f],
   apply linear_independent_Union_of_directed,
   { apply directed_of_sup,
-    exact (λ t₁ t₂ ht, Union_subset_Union $ λ i, Union_subset_Union_const $ λ h, ht h) },
+    exact (λ t₁ t₂ ht, Union_mono $ λ i, Union_subset_Union_const $ λ h, ht h) },
   assume t,
   induction t using finset.induction_on with i s his ih,
   { refine (linear_independent_empty _ _).mono _,

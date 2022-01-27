@@ -30,7 +30,7 @@ proves Noether's first and second isomorphism theorems.
   isomorphism between `H/(H ∩ N)` and `(HN)/N` given a subgroup `H` and a normal subgroup `N` of a
   group `G`.
 * `quotient_group.quotient_quotient_equiv_quotient`: Noether's third isomorphism theorem,
-  the canonical isomorphism between `(G / M) / (M / N)` and `G / N`, where `N ≤ M`.
+  the canonical isomorphism between `(G / N) / (M / N)` and `G / M`, where `N ≤ M`.
 
 ## Tags
 

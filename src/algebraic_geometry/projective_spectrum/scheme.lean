@@ -4232,13 +4232,85 @@ begin
   rw mul_eq,
 end
 
--- set_option profiler true
-lemma isos.sheaf_component.backward.mk_is_locally_quotient
-  (f : A) [decidable_eq (localization.away f)] (m : ℕ) (hm : 0 < m) (f_deg : f ∈ 𝒜 m)
+section is_locally_quotient
+
+variables (f : A) [decidable_eq (localization.away f)] (m : ℕ) (hm : 0 < m) (f_deg : f ∈ 𝒜 m)
   (V : (opens ((Spec (degree_zero_part 𝒜 f m f_deg)).to_SheafedSpace.to_PresheafedSpace.carrier))ᵒᵖ)
-  (hh : ((Spec (degree_zero_part (λ (m : ℕ), 𝒜 m) f m f_deg)).to_SheafedSpace.to_PresheafedSpace.presheaf.obj V)) :
-  ∀ (y : ((@opens.open_embedding (projective_spectrum.Top 𝒜) (projective_spectrum.basic_open 𝒜 f)).is_open_map.functor.op.obj
-            ((opens.map (isos.top_component 𝒜 f m hm f_deg).hom).op.obj V)).unop),
+  (hh : ((Spec (degree_zero_part (λ (m : ℕ), 𝒜 m) f m f_deg)).to_SheafedSpace.to_PresheafedSpace.presheaf.obj V))
+  (y : ((@opens.open_embedding (projective_spectrum.Top 𝒜) (projective_spectrum.basic_open 𝒜 f)).is_open_map.functor.op.obj
+            ((opens.map (isos.top_component 𝒜 f m hm f_deg).hom).op.obj V)).unop)
+
+lemma isos.sheaf_component.backward.mk_is_locally_quotient.y_mem_bo :
+  y.1 ∈ projective_spectrum.basic_open 𝒜 f :=
+begin
+  rw projective_spectrum.mem_basic_open,
+  intro rid,
+  have mem1 := y.2,
+  erw set.mem_preimage at mem1,
+  obtain ⟨⟨a, ha1⟩, ha, ha2⟩ := mem1,
+  -- change a = y.1 at ha2,
+  erw set.mem_preimage at ha,
+  erw ←ha2 at rid,
+  apply ha1,
+  exact rid,
+end
+
+lemma isos.sheaf_component.backward.mk_is_locally_quotient.hom_y_mem :
+  (isos.top_component 𝒜 f m hm f_deg).hom ⟨y.1,
+    isos.sheaf_component.backward.mk_is_locally_quotient.y_mem_bo 𝒜 f m hm f_deg V y⟩ ∈ unop V :=
+begin
+  obtain ⟨a, ha1, ha2⟩ := y.2,
+  -- change a.1 = _ at ha2,
+  erw set.mem_preimage at ha1,
+  change ((isos.top_component 𝒜 f m hm f_deg).hom ⟨y.1, _⟩) ∈ (unop V).1,
+  convert ha1,
+  rw subtype.ext_iff_val,
+  exact ha2.symm,
+end
+
+def isos.sheaf_component.backward.mk_is_locally_quotient.Uo (VV : opens _) :
+  opens (projective_spectrum.Top 𝒜) :=
+⟨{x | ∃ x' : homeo_of_iso (isos.top_component 𝒜 f m hm f_deg) ⁻¹' VV.1, x = x'.1.1}, begin
+  have O1 := (homeomorph.is_open_preimage (homeo_of_iso (isos.top_component 𝒜 f m hm f_deg))).2 VV.2,
+  rw is_open_induced_iff at O1,
+  obtain ⟨s, Os, set_eq1⟩ := O1,
+  have O2 : is_open (s ∩ (projective_spectrum.basic_open 𝒜 f).1),
+  apply is_open.inter Os (projective_spectrum.basic_open 𝒜 f).2,
+  convert O2,
+  ext γ, split; intros hγ,
+  { obtain ⟨x', rfl⟩ := hγ,
+    have mem1 := x'.2,
+    simp only [←set_eq1] at mem1,
+    erw set.mem_preimage at mem1,
+    refine ⟨mem1, _⟩,
+    have mem2 := x'.2,
+    rw set.mem_preimage at mem2,
+    intro rid,
+    have mem3 : (⟨localization.mk f ⟨f^1, ⟨_, rfl⟩⟩, ⟨1, _, begin  rw mul_one, exact f_deg end, rfl⟩⟩ : degree_zero_part 𝒜 f m f_deg) ∈ ((isos.top_component 𝒜 f m hm f_deg).hom x'.1).as_ideal,
+    { change (localization.mk f ⟨f^1, ⟨_, rfl⟩⟩ : localization.away f) ∈ ideal.span _,
+      convert ideal.mem_span.smul_mem _ _ (localization.mk 1 ⟨f^1, ⟨_, rfl⟩⟩ : localization.away f) (localization.mk f 1) _,
+      simp only [smul_eq_mul, localization.mk_mul, pow_one, mul_one, one_mul],
+      refine ⟨f, rid, rfl⟩, },
+    have mem4 : (1 : degree_zero_part 𝒜 f m f_deg) ∈ ((isos.top_component 𝒜 f m hm f_deg).hom x'.1).as_ideal,
+    { convert mem3,
+      rw [subtype.ext_iff_val, show (1 : degree_zero_part 𝒜 f m f_deg).1 = 1, from rfl],
+      dsimp only,
+      symmetry,
+      convert localization.mk_self _,
+      erw [←subtype.val_eq_coe],
+      dsimp only,
+      rw pow_one, },
+    apply ((isos.top_component 𝒜 f m hm f_deg).hom x'.1).is_prime.1,
+    rw ideal.eq_top_iff_one,
+    exact mem4, },
+
+  { rcases hγ with ⟨hγ1, hγ2⟩,
+    use ⟨γ, hγ2⟩,
+    rw [←set_eq1, set.mem_preimage],
+    convert hγ1, }
+end⟩
+
+lemma isos.sheaf_component.backward.mk_is_locally_quotient :
   ∃ (U : opens _) (mem : y.val ∈ U)
     (subset1 : U ⟶
       (((@opens.open_embedding (projective_spectrum.Top 𝒜) (projective_spectrum.basic_open 𝒜 f)).is_open_map.functor.op.obj
@@ -4249,28 +4321,11 @@ lemma isos.sheaf_component.backward.mk_is_locally_quotient
         (isos.sheaf_component.backward.mk 𝒜 f m hm f_deg V hh ⟨x.1, (subset1 x).2⟩).val =
           localization.mk a ⟨b, s_nin⟩ :=
 begin
-  intros y,
-  have y_mem : y.val ∈ (projective_spectrum.basic_open 𝒜 f).val,
-  { erw projective_spectrum.mem_basic_open,
-    intro rid,
-    have mem1 := y.2,
-    erw set.mem_preimage at mem1,
-    obtain ⟨⟨a, ha1⟩, ha, ha2⟩ := mem1,
-    -- change a = y.1 at ha2,
-    erw set.mem_preimage at ha,
-    erw ←ha2 at rid,
-    apply ha1,
-    exact rid, },
+  have y_mem : y.val ∈ projective_spectrum.basic_open 𝒜 f,
+  { convert isos.sheaf_component.backward.mk_is_locally_quotient.y_mem_bo 𝒜 f m hm f_deg V y, },
 
   have hom_y_mem : (isos.top_component 𝒜 f m hm f_deg).hom ⟨y.1, y_mem⟩ ∈ unop V,
-  { obtain ⟨a, ha1, ha2⟩ := y.2,
-    -- change a.1 = _ at ha2,
-    erw set.mem_preimage at ha1,
-    change ((isos.top_component 𝒜 f m hm f_deg).hom ⟨y.1, y_mem⟩) ∈ (unop V).1,
-    convert ha1,
-    rw subtype.ext_iff_val,
-    exact ha2.symm,
-  },
+  { convert isos.sheaf_component.backward.mk_is_locally_quotient.hom_y_mem 𝒜 f m hm f_deg V y, },
   have is_local := hh.2,
   rw structure_sheaf.is_locally_fraction_pred' at is_local,
   specialize is_local ⟨(isos.top_component 𝒜 f m hm f_deg).hom ⟨y.1, y_mem⟩, hom_y_mem⟩,
@@ -4279,52 +4334,14 @@ begin
   -- dsimp only at β_degree_zero,
   -- dsimp only at is_local,
 
-  set U := {x | ∃ x' : homeo_of_iso (isos.top_component 𝒜 f m hm f_deg) ⁻¹' VV.1, x = x'.1.1} with U_eq,
-  have oU : is_open U,
-  { have O1 := (homeomorph.is_open_preimage (homeo_of_iso (isos.top_component 𝒜 f m hm f_deg))).2 VV.2,
-    rw is_open_induced_iff at O1,
-    obtain ⟨s, Os, set_eq1⟩ := O1,
-    have O2 : is_open (s ∩ (projective_spectrum.basic_open 𝒜 f).1),
-    apply is_open.inter Os (projective_spectrum.basic_open 𝒜 f).2,
-    convert O2,
-    ext γ, split; intros hγ,
-    { obtain ⟨x', rfl⟩ := hγ,
-      have mem1 := x'.2,
-      simp only [←set_eq1] at mem1,
-      erw set.mem_preimage at mem1,
-      refine ⟨mem1, _⟩,
-      have mem2 := x'.2,
-      rw set.mem_preimage at mem2,
-      intro rid,
-      have mem3 : (⟨localization.mk f ⟨f^1, ⟨_, rfl⟩⟩, ⟨1, _, begin  rw mul_one, exact f_deg end, rfl⟩⟩ : degree_zero_part 𝒜 f m f_deg) ∈ ((isos.top_component 𝒜 f m hm f_deg).hom x'.1).as_ideal,
-      { change (localization.mk f ⟨f^1, ⟨_, rfl⟩⟩ : localization.away f) ∈ ideal.span _,
-        convert ideal.mem_span.smul_mem _ _ (localization.mk 1 ⟨f^1, ⟨_, rfl⟩⟩ : localization.away f) (localization.mk f 1) _,
-        simp only [smul_eq_mul, localization.mk_mul, pow_one, mul_one, one_mul],
-        refine ⟨f, rid, rfl⟩, },
-      have mem4 : (1 : degree_zero_part 𝒜 f m f_deg) ∈ ((isos.top_component 𝒜 f m hm f_deg).hom x'.1).as_ideal,
-      { convert mem3,
-        rw [subtype.ext_iff_val, show (1 : degree_zero_part 𝒜 f m f_deg).1 = 1, from rfl],
-        dsimp only,
-        symmetry,
-        convert localization.mk_self _,
-        erw [←subtype.val_eq_coe],
-        dsimp only,
-        rw pow_one, },
-      apply ((isos.top_component 𝒜 f m hm f_deg).hom x'.1).is_prime.1,
-      rw ideal.eq_top_iff_one,
-      exact mem4, },
-
-    { rcases hγ with ⟨hγ1, hγ2⟩,
-      use ⟨γ, hγ2⟩,
-      rw [←set_eq1, set.mem_preimage],
-      convert hγ1, } },
+  set U := isos.sheaf_component.backward.mk_is_locally_quotient.Uo 𝒜 f m hm f_deg VV with U_eq,
 
   have y_mem_U : y.1 ∈ U,
   { use ⟨y.1, y_mem⟩,
     rw set.mem_preimage,
     exact hom_y_mem_VV, },
 
-  have subset2 : (⟨U, oU⟩ : opens (projective_spectrum.Top 𝒜)) ⟶
+  have subset2 : (U : opens (projective_spectrum.Top 𝒜)) ⟶
       (((@opens.open_embedding (projective_spectrum.Top 𝒜) (projective_spectrum.basic_open 𝒜 f)).is_open_map.functor.op.obj
         ((opens.map (isos.top_component 𝒜 f m hm f_deg).hom).op.obj V)).unop),
   { apply hom_of_le,
@@ -4343,7 +4360,7 @@ begin
     rw show (opens.inclusion _ γ = γ.1), from rfl,
   },
 
-  refine ⟨⟨U, oU⟩, y_mem_U, subset2, α' * f^l2, β' * f^l1, m * (l1 + l2), _, _, _⟩,
+  refine ⟨U, y_mem_U, subset2, α' * f^l2, β' * f^l1, m * (l1 + l2), _, _, _⟩,
 
   { rw mul_add,
     apply set_like.graded_monoid.mul_mem,
@@ -4468,6 +4485,8 @@ begin
   simp only [pow_add],
   ring,
 end
+
+end is_locally_quotient
 
 def isos.sheaf_component.backward
   (f : A) [decidable_eq (localization.away f)] (m : ℕ) (hm : 0 < m) (f_deg : f ∈ 𝒜 m) :

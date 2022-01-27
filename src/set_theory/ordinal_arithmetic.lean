@@ -1102,7 +1102,8 @@ begin
   exact sup_succ_le_lsub f
 end
 
-theorem sup_eq_lsub {ι} (f : ι → ordinal) : sup f = lsub f ↔ ∀ a < lsub f, succ a < lsub f :=
+theorem sup_eq_lsub_iff_succ {ι} (f : ι → ordinal) :
+  sup f = lsub f ↔ ∀ a < lsub f, succ a < lsub f :=
 begin
   refine ⟨λ h, _, λ hf, le_antisymm (sup_le_lsub f) _⟩,
   { rw ←h,
@@ -1115,6 +1116,9 @@ begin
   rw heq at this,
   exact lt_irrefl _ this
 end
+
+theorem sup_eq_lsub_iff_lt_sup {ι} (f : ι → ordinal) : sup f = lsub f ↔ ∀ i, f i < sup f :=
+⟨λ h i, (by { rw h, apply lt_lsub }), λ h, le_antisymm (sup_le_lsub f) (lsub_le.2 h)⟩
 
 lemma lsub_eq_zero {ι} [h : is_empty ι] (f : ι → ordinal) : lsub f = 0 :=
 by { rw [←ordinal.le_zero, lsub_le], exact h.elim }
@@ -1188,9 +1192,13 @@ begin
   exact bsup_succ_le_blsub f
 end
 
-theorem bsup_eq_blsub {o} (f : Π a < o, ordinal) :
+theorem bsup_eq_blsub_iff_succ {o} (f : Π a < o, ordinal) :
   bsup o f = blsub o f ↔ ∀ a < blsub o f, succ a < blsub o f :=
-by { rw [bsup_eq_sup, blsub_eq_lsub], exact sup_eq_lsub _ }
+by { rw [bsup_eq_sup, blsub_eq_lsub], apply sup_eq_lsub_iff_succ }
+
+theorem bsup_eq_blsub_iff_lt_bsup {o} (f : Π a < o, ordinal) :
+  bsup o f = blsub o f ↔ ∀ i hi, f i hi < bsup o f :=
+⟨λ h i, (by { rw h, apply lt_blsub }), λ h, le_antisymm (bsup_le_blsub f) (blsub_le.2 h)⟩
 
 @[simp] theorem blsub_eq_zero_iff {o} {f : Π a < o, ordinal} : blsub o f = 0 ↔ o = 0 :=
 by { rw [blsub_eq_lsub, lsub_eq_zero_iff], exact out_empty_iff_eq_zero }

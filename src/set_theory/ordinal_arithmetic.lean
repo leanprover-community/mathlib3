@@ -1861,6 +1861,9 @@ theorem omega_le {o : ordinal.{u}} : omega ≤ o ↔ ∀ n : ℕ, (n : ordinal) 
    let ⟨n, e⟩ := lt_omega.1 h in
    by rw [e, ← succ_le]; exact H (n+1)⟩
 
+theorem omega_eq_sup_nat_cast : omega = sup nat.cast :=
+(omega_le.2 $ le_sup _).antisymm $ sup_le.2 $ λ n, (nat_lt_omega n).le
+
 theorem nat_lt_limit {o} (h : is_limit o) : ∀ n : ℕ, (n : ordinal) < o
 | 0     := lt_of_le_of_ne (ordinal.zero_le o) h.1.symm
 | (n+1) := h.2 _ (nat_lt_limit n)
@@ -2026,6 +2029,53 @@ le_antisymm
   ((opow_le_of_limit (one_le_iff_ne_zero.1 $ le_of_lt a1) omega_is_limit).2
     (λ b hb, le_of_lt (opow_lt_omega h hb)))
   (le_opow_self _ a1)
+
+theorem is_normal.apply_omega {f : ordinal.{u} → ordinal.{u}} (hf : is_normal f) :
+  f omega = sup.{0 u} (f ∘ nat.cast) :=
+by rw [omega_eq_sup_nat_cast, is_normal.sup.{0 u u} hf ⟨0⟩]
+
+theorem add_omega_eq_sup_add_nat (o : ordinal.{u}) : o + omega = sup (λ n : ℕ, o + n) :=
+(add_is_normal o).apply_omega
+
+lemma lt_add_omega {a o : ordinal.{u}} (h : a < o + omega) : ∃ n : ℕ, a < o + n :=
+by rwa [add_omega_eq_sup_add_nat o, lt_sup] at h
+
+theorem mul_omega_eq_sup_mul_nat (o : ordinal) : o * omega = sup (λ n : ℕ, o * n) :=
+begin
+  cases eq_zero_or_pos o with ho ho,
+  { rw [ho, zero_mul],
+    apply eq.symm,
+    rw sup_eq_zero_iff,
+    exact λ n, zero_mul _ },
+  exact (mul_is_normal ho).apply_omega
+end
+
+lemma lt_mul_omega {a o : ordinal} (h : a < o * omega) : ∃ n : ℕ, a < o * n :=
+by rwa [mul_omega_eq_sup_mul_nat o, lt_sup] at h
+
+theorem opow_omega_eq_sup_power_nat {o : ordinal.{u}} (ho : 0 < o) :
+  o ^ omega = sup (λ n : ℕ, o ^ n) :=
+begin
+  rw ←one_le_iff_pos at ho,
+  cases lt_or_eq_of_le ho with ho₁ ho₁,
+  { exact (opow_is_normal ho₁).apply_omega },
+  rw [←ho₁, one_opow],
+  apply le_antisymm,
+  { nth_rewrite 0 ←opow_zero 1,
+    rw ←nat.cast_zero,
+    exact le_sup _ 0 },
+  rw sup_le,
+  intro n,
+  rw one_opow
+end
+
+lemma lt_opow_omega {a o : ordinal.{u}} (h : a < o ^ omega.{u}) : ∃ n : ℕ, a < o ^ n :=
+begin
+  cases eq_zero_or_pos o with ho ho,
+  { rw [ho, zero_opow omega_ne_zero] at h,
+    exact (ordinal.not_lt_zero a h).elim },
+  rwa [opow_omega_eq_sup_power_nat ho, lt_sup] at h
+end
 
 /-! ### Fixed points of normal functions -/
 

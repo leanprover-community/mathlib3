@@ -81,9 +81,9 @@ list entirely if it is empty.
 
 Patch: `pp` was changed to `to_string` because it was getting rid of prefixes
 that would be necessary for some disambiguations. -/
-meta def render_simp_arg_list : list simp_arg_type → tactic format
-| [] := pure ""
-| args := (++) " " <$> to_line_wrap_format <$> pure (args.map to_string)
+meta def render_simp_arg_list : list simp_arg_type → format
+| [] := ""
+| args := (++) " " $ to_line_wrap_format $ args.map to_string
 
 /-- Emit a suggestion to the user. If inside a `squeeze_scope` block,
 the suggestions emitted through `mk_suggestion` will be aggregated so that
@@ -95,7 +95,7 @@ meta def mk_suggestion (p : pos) (pre post : string) (args : list simp_arg_type)
 do xs ← squeeze_loc_attr.get_param ``squeeze_loc_attr_carrier,
    match xs with
    | none := do
-     args ← render_simp_arg_list args,
+     let args := render_simp_arg_list args,
      if at_pos then
        @scope_trace _ p.line p.column $
          λ _, _root_.trace sformat!"{pre}{args}{post}" (pure () : tactic unit)

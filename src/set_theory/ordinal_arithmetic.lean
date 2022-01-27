@@ -1940,23 +1940,6 @@ end
 theorem add_absorp {a b c : ordinal} (h₁ : a < omega ^ b) (h₂ : omega ^ b ≤ c) : a + c = c :=
 by rw [← ordinal.add_sub_cancel_of_le h₂, ← add_assoc, add_omega_opow h₁]
 
-theorem add_absorp_iff {o : ordinal} (o0 : 0 < o) : (∀ a < o, a + o = o) ↔ ∃ a, o = omega ^ a :=
-⟨λ H, ⟨log omega o, begin
-  refine ((lt_or_eq_of_le (opow_log_le _ o0))
-    .resolve_left $ λ h, _).symm,
-  have := H _ h,
-  have := lt_opow_succ_log one_lt_omega o,
-  rw [opow_succ, lt_mul_of_limit omega_is_limit] at this,
-  rcases this with ⟨a, ao, h'⟩,
-  rcases lt_omega.1 ao with ⟨n, rfl⟩, clear ao,
-  revert h', apply not_lt_of_le,
-  suffices e : omega ^ log omega o * ↑n + o = o,
-  { simpa only [e] using le_add_right (omega ^ log omega o * ↑n) o },
-  induction n with n IH, {simp only [nat.cast_zero, mul_zero, zero_add]},
-  simp only [nat.cast_succ, mul_add_one, add_assoc, this, IH]
-end⟩,
-λ ⟨b, e⟩, e.symm ▸ λ a, add_omega_opow⟩
-
 theorem add_mul_limit_aux {a b c : ordinal} (ba : b + a = a)
   (l : is_limit c)
   (IH : ∀ c' < c, (a + b) * succ c' = a * succ c' + b) :
@@ -2265,61 +2248,10 @@ nfp_le.2 $ λ n, le_of_lt (iterate_lt_of_principal hao ho n)
 
 /-! ### Additive principal ordinals -/
 
-theorem one_add_principal : principal (+) 1 :=
+theorem one_principal_add : principal (+) 1 :=
 one_principal_iff.2 $ zero_add 0
 
-theorem add_principal_of_le_one {o : ordinal.{u}} (ho : o ≤ 1) : principal (+) o :=
-begin
-  rcases le_one_iff.1 ho with rfl | rfl,
-  { exact zero_principal },
-  { exact one_add_principal }
-end
-
-theorem omega_add_principal : principal (+) omega.{u} :=
-λ a b ha hb, match a, b, lt_omega.1 ha, lt_omega.1 hb with
-| _, _, ⟨m, rfl⟩, ⟨n, rfl⟩ := by rw [← nat.cast_add]; apply nat_lt_omega
-end
-
-theorem mul_omega_add_principal (o : ordinal.{u}) : principal (+) (o * omega.{u}) :=
-begin
-  rcases eq_or_ne o 0 with rfl | ho,
-  { rw zero_mul,
-    exact zero_principal },
-  intros a b hao hbo,
-  cases lt_mul_omega hao with m hm,
-  cases lt_mul_omega hbo with n hn,
-  apply (add_le_add (le_of_lt hm) (le_of_lt hn)).trans_lt,
-  rw [←mul_add, mul_lt_mul_iff_left (ordinal.pos_iff_ne_zero.2 ho), lt_omega],
-  exact ⟨_, (nat.cast_add m n).symm⟩
-end
-
-theorem mul_omega_le_add_principal {a o : ordinal.{u}} (hao : a < o) (ho : principal (+) o) :
-  a * omega.{u} ≤ o :=
-by { convert nfp_le_of_principal hao ho, exact mul_omega_eq_nfp_add_self a }
-
-theorem omega_le_add_principal {o : ordinal.{u}} (ho : principal (+) o) (ho₁ : 1 < o) :
-  omega.{u} ≤ o :=
-by { rw ←one_mul omega.{u}, exact mul_omega_le_add_principal ho₁ ho }
-
-theorem omega_power_add_principal (o : ordinal.{u}) : principal (+) (omega.{u} ^ o) :=
-λ a b ha hb, ((ordinal.add_lt_add_iff_left a).2 hb).trans_le begin
-  revert ha, refine limit_rec_on o (λ h, _) (λ b _ h, _) (λ b l IH h, _),
-  { rw [opow_zero, ← succ_zero, lt_succ, ordinal.le_zero] at h,
-    rw [h, zero_add] },
-  { rw [opow_succ] at h,
-    rcases (lt_mul_of_limit omega_is_limit).1 h with ⟨x, xo, ax⟩,
-    refine le_trans (add_le_add_right (le_of_lt ax) _) _,
-    rw [opow_succ, ← mul_add, add_omega xo] },
-  { rcases (lt_opow_of_limit omega_ne_zero l).1 h with ⟨x, xb, ax⟩,
-    refine (((add_is_normal a).trans (opow_is_normal one_lt_omega))
-      .limit_le l).2 (λ y yb, _),
-    have := IH (max x y) (max_lt xb yb)
-      (lt_of_lt_of_le ax $ opow_le_opow_right omega_pos (le_max_left _ _)),
-    exact le_trans (add_le_add_left (opow_le_opow_right omega_pos (le_max_right _ _)) _)
-      (le_trans this (opow_le_opow_right omega_pos $ le_of_lt $ max_lt xb yb)) }
-end
-
-theorem add_principal_is_limit {o : ordinal.{u}} (ho₁ : 1 < o) (ho : principal (+) o) :
+theorem principal_add_is_limit {o : ordinal.{u}} (ho₁ : 1 < o) (ho : principal (+) o) :
   o.is_limit :=
 begin
   refine ⟨λ ho₀, _, λ a hao, _⟩,
@@ -2332,12 +2264,12 @@ begin
   rwa [succ_eq_add_one, add_le_add_iff_left, one_le_iff_ne_zero]
 end
 
-theorem add_principal_iff_add_left_eq_self (o : ordinal.{u}) :
+theorem principal_add_iff_add_left_eq_self (o : ordinal.{u}) :
   principal (+) o ↔ ∀ a < o, a + o = o :=
 begin
   refine ⟨λ ho a hao, _, λ h a b hao hbo, _⟩,
   { cases lt_or_le 1 o with ho₁ ho₁,
-    { exact op_eq_self_of_principal hao (add_is_normal a) ho (add_principal_is_limit ho₁ ho) },
+    { exact op_eq_self_of_principal hao (add_is_normal a) ho (principal_add_is_limit ho₁ ho) },
     rcases le_one_iff.1 ho₁ with rfl | rfl,
     { exact (ordinal.not_lt_zero a hao).elim },
     rw lt_one_iff_zero at hao,
@@ -2346,13 +2278,31 @@ begin
   exact (add_is_normal a).strict_mono hbo
 end
 
-theorem add_principal_iff_zero_or_omega_power (o : ordinal.{u}) :
+theorem principal_add_iff_zero_or_omega_power {o : ordinal.{u}} :
   principal (+) o ↔ o = 0 ∨ ∃ a : ordinal.{u}, o = omega.{u} ^ a :=
 begin
-  cases eq_or_ne o 0 with ho ho,
-  { rw ho, simp only [zero_principal, or.inl] },
-  rw [add_principal_iff_add_left_eq_self, add_absorp_iff (ordinal.pos_iff_ne_zero.2 ho)],
-  exact ⟨or.inr, λ h, h.elim (λ ho', (ho ho').elim) id⟩
+  rcases eq_or_ne o 0 with rfl | ho,
+  { simp only [zero_principal, or.inl] },
+  { rw [principal_add_iff_add_left_eq_self],
+    simp only [ho, false_or],
+    refine ⟨λ H, ⟨_, ((lt_or_eq_of_le (opow_log_le _ (ordinal.pos_iff_ne_zero.2 ho)))
+        .resolve_left $ λ h, _).symm⟩, λ ⟨b, e⟩, e.symm ▸ λ a, add_omega_opow⟩,
+    have := H _ h,
+    have := lt_opow_succ_log one_lt_omega o,
+    rw [opow_succ, lt_mul_of_limit omega_is_limit] at this,
+    rcases this with ⟨a, ao, h'⟩,
+    rcases lt_omega.1 ao with ⟨n, rfl⟩, clear ao,
+    revert h', apply not_lt_of_le,
+    suffices e : omega ^ log omega o * ↑n + o = o,
+    { simpa only [e] using le_add_right (omega ^ log omega o * ↑n) o },
+    induction n with n IH, {simp only [nat.cast_zero, mul_zero, zero_add]},
+    simp only [nat.cast_succ, mul_add_one, add_assoc, this, IH] }
 end
+
+theorem principal_add_omega_power (o : ordinal.{u}) : principal (+) (omega.{u} ^ o) :=
+principal_add_iff_zero_or_omega_power.2 (or.inr ⟨o, rfl⟩)
+
+theorem principal_add_omega : principal (+) omega.{u} :=
+by { convert principal_add_omega_power 1, rw opow_one }
 
 end ordinal

@@ -247,8 +247,15 @@ Given a family of opens `U : ι → opens X`, we obtain a presieve on `supr U` b
 morphism `f : V ⟶ supr U` is a member of the presieve if and only if there exists an index `i : ι`
 such that `V = U i`.
 -/
-def presieve_of_covering {ι : Type v} (U : ι → opens X) : presieve (supr U) :=
+def presieve_of_covering_aux {ι : Type v} (U : ι → opens X) (Y : opens X) : presieve Y :=
 λ V f, ∃ i, V = U i
+
+def presieve_of_covering {ι : Type v} (U : ι → opens X) : presieve (supr U) :=
+presieve_of_covering_aux U (supr U)
+
+def self_eq_covering_presieve {Y : opens X} (R : presieve Y) :
+  R = presieve_of_covering_aux (covering_of_presieve Y R) Y :=
+by { ext Z f, exact ⟨λ h, ⟨⟨Z,f,h⟩,rfl⟩, λ ⟨⟨_,_,h⟩,rfl⟩, by convert h⟩ }
 
 namespace presieve_of_covering
 

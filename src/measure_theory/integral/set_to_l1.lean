@@ -227,7 +227,7 @@ begin
   exact (norm_add_le _ _).trans (add_le_add (hT.2 s hs hμs) (hT'.2 s hs hμs)),
 end
 
-lemma smul [normed_field 𝕜] [semi_normed_space 𝕜 β] (hT : dominated_fin_meas_additive μ T C)
+lemma smul [normed_field 𝕜] [normed_space 𝕜 β] (hT : dominated_fin_meas_additive μ T C)
   (c : 𝕜) :
   dominated_fin_meas_additive μ (λ s, c • (T s)) (∥c∥ * C) :=
 begin
@@ -443,12 +443,12 @@ begin
   exact hx.2,
 end
 
-lemma set_to_simple_func_smul_left [has_continuous_smul ℝ F'] {m : measurable_space α}
+lemma set_to_simple_func_smul_left {m : measurable_space α}
   (T : set α → F →L[ℝ] F') (c : ℝ) (f : α →ₛ F) :
   set_to_simple_func (λ s, c • (T s)) f = c • set_to_simple_func T f :=
 by simp_rw [set_to_simple_func, continuous_linear_map.smul_apply, smul_sum]
 
-lemma set_to_simple_func_smul_left' [has_continuous_smul ℝ F']
+lemma set_to_simple_func_smul_left'
   (T T' : set α → E →L[ℝ] F') (c : ℝ) (h_smul : ∀ s, measurable_set s → μ s < ∞ → T' s = c • (T s))
   {f : α →ₛ E} (hf : integrable f μ) :
   set_to_simple_func T' f = c • set_to_simple_func T f :=
@@ -1562,8 +1562,7 @@ begin
     rw ← Lp.coe_fn_le,
     have h0 := Lp.coe_fn_zero G' 1 μ,
     have h := integrable.coe_fn_to_L1 hfi,
-    filter_upwards [h0, h, hf],
-    intros a h0a ha hfa,
+    filter_upwards [h0, h, hf] with _ h0a ha hfa,
     rw [h0a, ha],
     exact hfa, },
   { simp_rw set_to_fun_undef _ hfi, },
@@ -1705,7 +1704,7 @@ begin
   refine set_to_fun_measure_zero' hT (λ s hs hμs, _),
   rw lt_top_iff_ne_top at hμs,
   simp only [true_and, measure.smul_apply, with_top.mul_eq_top_iff, eq_self_iff_true, top_ne_zero,
-    ne.def, not_false_iff, auto.not_or_eq, not_not] at hμs,
+    ne.def, not_false_iff, not_or_distrib, not_not] at hμs,
   simp only [hμs.right, measure.smul_apply, mul_zero],
 end
 

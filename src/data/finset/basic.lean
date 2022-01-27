@@ -836,7 +836,7 @@ begin
     obtain ⟨i : ι , hic : i ∈ c, hti : (t : set α) ⊆ f i⟩ :=
       htc (set.subset.trans (t.subset_insert b) hbtc),
     obtain ⟨j, hjc, hbj⟩ : ∃ j ∈ c, b ∈ f j,
-      by simpa [set.mem_bUnion_iff] using hbtc (t.mem_insert_self b),
+      by simpa [set.mem_Union₂] using hbtc (t.mem_insert_self b),
     rcases hc j hjc i hic with ⟨k, hkc, hk, hk'⟩,
     use [k, hkc],
     rw [coe_insert, set.insert_subset],
@@ -1815,18 +1815,20 @@ rfl
 finset.eq_of_veq $ by by_cases h : a ∈ l; simp [finset.insert_val', multiset.erase_dup_cons, h]
 
 lemma to_finset_surj_on : set.surj_on to_finset {l : list α | l.nodup} set.univ :=
-begin
-  rintro s -,
-  cases s with t hl, induction t using quot.ind with l,
-  refine ⟨l, hl, (to_finset_eq hl).symm⟩
-end
+by { rintro ⟨⟨l⟩, hl⟩ _, exact ⟨l, hl, (to_finset_eq hl).symm⟩ }
 
 theorem to_finset_surjective : surjective (to_finset : list α → finset α) :=
-by { intro s, rcases to_finset_surj_on (set.mem_univ s) with ⟨l, -, hls⟩, exact ⟨l, hls⟩ }
+λ s, let ⟨l, _, hls⟩ := to_finset_surj_on (set.mem_univ s) in ⟨l, hls⟩
 
 lemma to_finset_eq_iff_perm_erase_dup {l l' : list α} :
   l.to_finset = l'.to_finset ↔ l.erase_dup ~ l'.erase_dup :=
 by simp [finset.ext_iff, perm_ext (nodup_erase_dup _) (nodup_erase_dup _)]
+
+lemma to_finset.ext_iff {a b : list α} : a.to_finset = b.to_finset ↔ ∀ x, x ∈ a ↔ x ∈ b :=
+by simp only [finset.ext_iff, mem_to_finset]
+
+lemma to_finset.ext {a b : list α} : (∀ x, x ∈ a ↔ x ∈ b) → a.to_finset = b.to_finset :=
+to_finset.ext_iff.mpr
 
 lemma to_finset_eq_of_perm (l l' : list α) (h : l ~ l') :
   l.to_finset = l'.to_finset :=
@@ -1889,6 +1891,20 @@ mem_map.trans $ by simp only [exists_prop]; refl
 @[simp] theorem mem_map_equiv {f : α ≃ β} {b : β} :
   b ∈ s.map f.to_embedding ↔ f.symm b ∈ s :=
 by { rw mem_map, exact ⟨by { rintro ⟨a, H, rfl⟩, simpa }, λ h, ⟨_, h, by simp⟩⟩ }
+
+/-- If the only elements outside `s` are those left fixed by `σ`, then mapping by `σ` has no effect.
+-/
+lemma map_perm {σ : equiv.perm α} (hs : {a | σ a ≠ a} ⊆ s) : s.map (σ : α ↪ α) = s :=
+begin
+  ext i,
+  rw mem_map,
+  obtain hi | hi := eq_or_ne (σ i) i,
+  { refine ⟨_, λ h, ⟨i, h, hi⟩⟩,
+    rintro ⟨j, hj, h⟩,
+    rwa σ.injective (hi.trans h.symm) },
+  { refine iff_of_true ⟨σ.symm i, hs $ λ h, hi _, σ.apply_symm_apply _⟩ (hs hi),
+    convert congr_arg σ h; exact (σ.apply_symm_apply _).symm }
+end
 
 theorem mem_map' (f : α ↪ β) {a} {s : finset α} : f a ∈ s.map f ↔ a ∈ s :=
 mem_map_of_injective f.2
@@ -2315,6 +2331,9 @@ protected def bUnion (s : finset α) (t : α → finset β) : finset β :=
 
 @[simp] theorem mem_bUnion {b : β} : b ∈ s.bUnion t ↔ ∃a∈s, b ∈ t a :=
 by simp only [mem_def, bUnion_val, mem_erase_dup, mem_bind, exists_prop]
+
+@[simp] lemma coe_bUnion : (s.bUnion t : set β) = ⋃ x ∈ (s : set α), t x :=
+by simp only [set.ext_iff, mem_bUnion, set.mem_Union, iff_self, mem_coe, implies_true_iff]
 
 @[simp] theorem bUnion_insert [decidable_eq α] {a : α} : (insert a s).bUnion t = t a ∪ s.bUnion t :=
 ext $ λ x, by simp only [mem_bUnion, exists_prop, mem_union, mem_insert,

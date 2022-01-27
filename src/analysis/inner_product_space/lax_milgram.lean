@@ -124,7 +124,6 @@ continuous_linear_equiv.of_bijective
   coercive.ker_eq_bot
   coercive.range_eq_top
 
-
 @[simp]
 lemma continuous_linear_equiv_of_bilin_apply (coercive : is_coercive B) (v w : V) :
   inner (continuous_linear_equiv_of_bilin coercive v) w = B v w :=

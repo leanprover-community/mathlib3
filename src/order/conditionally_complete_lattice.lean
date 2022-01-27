@@ -3,7 +3,10 @@ Copyright (c) 2018 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-import data.set.intervals.ord_connected
+import order.bounds
+import data.set.intervals.basic
+import data.set.finite
+import data.set.lattice
 
 /-!
 # Theory of conditionally complete lattices.

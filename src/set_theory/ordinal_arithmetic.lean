@@ -1019,11 +1019,7 @@ theorem sup_eq_bsup {ι} (f : ι → ordinal) : sup f = bsup _ (bfamily_of_famil
 sup_eq_bsup' _ f
 
 theorem bsup_le {o f a} : bsup.{u v} o f ≤ a ↔ ∀ i h, f i h ≤ a :=
-begin
-  refine sup_le.trans ⟨λ h i hi, _, λ h i, h _ _⟩,
-  rw ←family_of_bfamily_enum o f,
-  exact h _
-end
+sup_le.trans ⟨λ h i hi, by { rw ←family_of_bfamily_enum o f, exact h _ }, λ h i, h _ _⟩
 
 theorem le_bsup {o} (f : Π a < o, ordinal) (i h) : f i h ≤ bsup o f :=
 bsup_le.1 (le_refl _) _ _
@@ -1077,10 +1073,10 @@ theorem lt_lsub {ι} (f : ι → ordinal) (i) : f i < lsub f :=
 succ_le.1 (le_sup _ i)
 
 theorem sup_le_lsub {ι} (f : ι → ordinal) : sup f ≤ lsub f :=
-sup_le.2 (λ i, le_of_lt (lt_lsub f i))
+sup_le.2 $ λ i, le_of_lt (lt_lsub f i)
 
 theorem lsub_le_sup_succ {ι} (f : ι → ordinal) : lsub f ≤ succ (sup f) :=
-lsub_le.2 (λ i, lt_succ.2 (le_sup f i))
+lsub_le.2 $ λ i, lt_succ.2 (le_sup f i)
 
 theorem sup_succ_le_lsub {ι} (f : ι → ordinal) : (sup f).succ ≤ lsub f ↔ ∃ i, f i = sup f :=
 begin

@@ -2042,11 +2042,8 @@ by rwa [add_omega_eq_sup_add_nat o, lt_sup] at h
 
 theorem mul_omega_eq_sup_mul_nat (o : ordinal) : o * omega = sup (λ n : ℕ, o * n) :=
 begin
-  cases eq_zero_or_pos o with ho ho,
-  { rw [ho, zero_mul],
-    apply eq.symm,
-    rw sup_eq_zero_iff,
-    exact λ n, zero_mul _ },
+  rcases eq_zero_or_pos o with rfl | ho,
+  { rw zero_mul, exact eq.symm (sup_eq_zero_iff.2 $ λ n, zero_mul _) },
   { exact (mul_is_normal ho).apply_omega }
 end
 
@@ -2056,9 +2053,9 @@ by rwa [mul_omega_eq_sup_mul_nat o, lt_sup] at h
 theorem opow_omega_eq_sup_power_nat {o : ordinal.{u}} (ho : 0 < o) :
   o ^ omega = sup (λ n : ℕ, o ^ n) :=
 begin
-  cases lt_or_eq_of_le (one_le_iff_pos.2 ho) with ho₁ ho₁,
+  rcases lt_or_eq_of_le (one_le_iff_pos.2 ho) with ho₁ | rfl,
   { exact (opow_is_normal ho₁).apply_omega },
-  { rw [←ho₁, one_opow],
+  { rw one_opow,
     refine le_antisymm _ (sup_le.2 (λ n, by rw one_opow)),
     convert le_sup _ 0,
     rw [nat.cast_zero, opow_zero] }
@@ -2066,8 +2063,8 @@ end
 
 lemma lt_opow_omega {a o : ordinal.{u}} (h : a < o ^ omega.{u}) : ∃ n : ℕ, a < o ^ n :=
 begin
-  cases eq_zero_or_pos o with ho ho,
-  { rw [ho, zero_opow omega_ne_zero] at h,
+  rcases eq_zero_or_pos o with rfl | ho,
+  { rw zero_opow omega_ne_zero at h,
     exact (ordinal.not_lt_zero a h).elim },
   { rwa [opow_omega_eq_sup_power_nat ho, lt_sup] at h }
 end

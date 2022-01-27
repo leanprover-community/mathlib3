@@ -3,6 +3,7 @@ Copyright (c) 2022 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
+import data.fintype.order
 import order.category.BoundedDistribLattice
 
 /-!
@@ -17,29 +18,6 @@ open category_theory
 
 /-- The category of boolean algebras. -/
 def BoolAlg := bundled boolean_algebra
-
-@[simp] lemma bool.band_bnot_self : ∀ x, x && !x = ff := dec_trivial
-@[simp] lemma bool.bnot_band_self : ∀ x, !x && x = ff := dec_trivial
-@[simp] lemma bool.bor_bnot_self : ∀ x, x || !x = tt := dec_trivial
-@[simp] lemma bool.bnot_bor_self : ∀ x, !x || x = tt := dec_trivial
-
-instance : boolean_algebra bool := boolean_algebra.of_core
-{ sup := bor,
-  le_sup_left := bool.left_le_bor,
-  le_sup_right := bool.right_le_bor,
-  sup_le := λ _ _ _, bool.bor_le,
-  inf := band,
-  inf_le_left := bool.band_le_left,
-  inf_le_right := bool.band_le_right,
-  le_inf := λ _ _ _, bool.le_band,
-  le_sup_inf := dec_trivial,
-  compl := bnot,
-  inf_compl_le_bot := λ a, a.band_bnot_self.le,
-  top_le_sup_compl := λ a, a.bor_bnot_self.ge,
-  ..bool.linear_order,
-  ..bool.bounded_order }
-
-instance : complete_boolean_algebra bool := sorry
 
 namespace BoolAlg
 

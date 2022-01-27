@@ -305,7 +305,8 @@ include hL
 
 omit hL
 
-variables {R : Type u} [integral_domain R] {S : Type v} [integral_domain S] [algebra R S]
+variables {R : Type u} [comm_ring R] [is_domain R]
+variables {S : Type v} [comm_ring S] [is_domain S] [algebra R S]
   [algebra R M] [is_alg_closed M] (hRS : function.injective (algebra_map R S))
   (hRM : function.injective (algebra_map R M))
   (hS : algebra.is_algebraic R S)
@@ -322,20 +323,24 @@ variables {R : Type u} [integral_domain R] {S : Type v} [integral_domain S] [alg
 --     exact ⟨0, 1, λ h, @zero_ne_one S _ _ $ by rw [← f.map_zero, h, f.map_one]⟩ }
 
 include hS hRS hRM
-#print is_fraction_ring.lift_algebra_map
+
 @[irreducible] noncomputable def lift' : S →ₐ[R] M :=
 begin
   letI : algebra (fraction_ring R) M :=
     ring_hom.to_algebra (is_fraction_ring.lift hRM : fraction_ring R →+* M),
-  letI : algebra R (fraction_ring S) :=
-    ring_hom.to_algebra ((algebra_map S (fraction_ring S)).comp (algebra_map R S)),
-  letI : algebra (fraction_ring R) (fraction_ring S) :=
-    ring_hom.to_algebra (is_fraction_ring.lift
-      (show function.injective ((algebra_map S (fraction_ring S)).comp
-        (algebra_map R S)), from sorry)),
+  let i : R →+* fraction_ring S := (algebra_map S (fraction_ring S)).comp (algebra_map R S),
+  letI : algebra R (fraction_ring S) := ring_hom.to_algebra i,
+  have hinj : function.injective (algebra_map R (fraction_ring S)), from sorry,
+  let j : fraction_ring R →+* fraction_ring S := is_fraction_ring.lift hinj,
+  letI : algebra (fraction_ring R) (fraction_ring S) := ring_hom.to_algebra j,
   letI : is_scalar_tower R (fraction_ring R) (fraction_ring S) :=
-    is_scalar_tower.of_algebra_map_eq
-      (λ x, (is_fraction_ring.lift_algebra_map _ x).symm),
+    @is_scalar_tower.of_algebra_map_eq R (fraction_ring R) (fraction_ring S)
+      _ _ _ _ _ _
+      (λ x, begin admit,
+        -- rw [ring_hom.algebra_map_to_algebra i, ring_hom.algebra_map_to_algebra j],
+        -- dsimp only [i, j],
+        -- convert (is_fraction_ring.lift_algebra_map hinj x).symm,
+      end),
   have hfRfS : algebra.is_algebraic (fraction_ring R) (fraction_ring S),
     from λ x,
       begin

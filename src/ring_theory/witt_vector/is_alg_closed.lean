@@ -147,63 +147,38 @@ end heathers_approach
 
 section base_case
 
-def pow_p_poly (a₁ : 𝕎 k) : polynomial k :=
-witt_vector.peval (witt_vector.witt_mul p 0) ![λ n, if n = 0 then X^p else 0, λ n, C (a₁.coeff n)]
-
-lemma pow_p_poly_degree {a₁ : 𝕎 k} (ha₁ : a₁.coeff 0 ≠ 0) : (pow_p_poly p a₁).degree = p :=
-by simp only [matrix.head_cons, nat.cast_with_bot, add_zero, mv_polynomial.aeval_X, if_true,
-    witt_vector.peval, polynomial.degree_mul, function.uncurry_apply_pair, eq_self_iff_true,
-    witt_vector.witt_mul_zero, pow_p_poly, matrix.cons_val_one, _root_.map_mul, degree_C ha₁,
-    polynomial.degree_pow, polynomial.degree_X, matrix.cons_val_zero, nat.smul_one_eq_coe]
-
-def pow_one_poly (a₂ : 𝕎 k) : polynomial k :=
-witt_vector.peval (witt_vector.witt_mul p 0) ![λ n, if n = 0 then X else 0, λ n, C (a₂.coeff n)]
-
-lemma pow_one_poly_degree {a₂ : 𝕎 k} (ha₂ : a₂.coeff 0 ≠ 0) : (pow_one_poly p a₂).degree = 1 :=
-by simp only [matrix.head_cons, add_zero, mv_polynomial.aeval_X, if_true, witt_vector.peval,
-    polynomial.degree_mul, function.uncurry_apply_pair, eq_self_iff_true, witt_vector.witt_mul_zero,
-    pow_one_poly, matrix.cons_val_one, _root_.map_mul, polynomial.degree_X, matrix.cons_val_zero,
-    degree_C ha₂]
-
-lemma pow_one_poly_degree_lt {a₁ a₂ : 𝕎 k} (ha₁ : a₁.coeff 0 ≠ 0) (ha₂ : a₂.coeff 0 ≠ 0) :
-  (pow_one_poly p a₂).degree < (pow_p_poly p a₁).degree :=
-begin
-  rw [pow_p_poly_degree p ha₁, pow_one_poly_degree p ha₂],
-  exact_mod_cast hp.out.one_lt
-end
-
-def base_poly (a₁ a₂ : 𝕎 k) : polynomial k :=
-pow_p_poly p a₁ - pow_one_poly p a₂
-
-lemma base_poly_degree {a₁ a₂ : 𝕎 k} (ha₁ : a₁.coeff 0 ≠ 0) (ha₂ : a₂.coeff 0 ≠ 0) :
-  (base_poly p a₁ a₂).degree ≠ 0 :=
-begin
-  rw [base_poly, degree_sub_eq_left_of_degree_lt, pow_p_poly_degree p ha₁],
-  { exact_mod_cast hp.out.ne_zero },
-  { exact pow_one_poly_degree_lt p ha₁ ha₂ }
-end
-
-lemma solution_exists {a₁ a₂ : 𝕎 k} (ha₁ : a₁.coeff 0 ≠ 0) (ha₂ : a₂.coeff 0 ≠ 0) :
-  ∃ (x : k), (pow_p_poly p a₁ - pow_one_poly p a₂).is_root x :=
-is_alg_closed.exists_root (pow_p_poly p a₁ - pow_one_poly p a₂) (base_poly_degree p ha₁ ha₂)
+def solution_pow {a₁ a₂ : 𝕎 k} (ha₁ : a₁.coeff 0 ≠ 0) (ha₂ : a₂.coeff 0 ≠ 0) :
+  ∃ x : k, x^(p-1) = a₂.coeff 0 / a₁.coeff 0 :=
+is_alg_closed.exists_pow_nat_eq _ $ by linarith [hp.out.one_lt, le_of_lt hp.out.one_lt]
 
 def solution {a₁ a₂ : 𝕎 k} (ha₁ : a₁.coeff 0 ≠ 0) (ha₂ : a₂.coeff 0 ≠ 0) : k :=
-classical.some (solution_exists p ha₁ ha₂)
+classical.some $ solution_pow p ha₁ ha₂
 
 lemma solution_spec {a₁ a₂ : 𝕎 k} (ha₁ : a₁.coeff 0 ≠ 0) (ha₂ : a₂.coeff 0 ≠ 0) :
-  (pow_p_poly p a₁ - pow_one_poly p a₂).is_root (solution p ha₁ ha₂) :=
-classical.some_spec (solution_exists p ha₁ ha₂)
+  (solution p ha₁ ha₂)^(p-1) = a₂.coeff 0 / a₁.coeff 0 :=
+classical.some_spec $ solution_pow p ha₁ ha₂
+
+lemma solution_nonzero {a₁ a₂ : 𝕎 k} (ha₁ : a₁.coeff 0 ≠ 0) (ha₂ : a₂.coeff 0 ≠ 0) :
+  solution p ha₁ ha₂ ≠ 0 :=
+begin
+  intro h,
+  have := solution_spec p ha₁ ha₂,
+  rw [h, zero_pow] at this,
+  { simpa [ha₁, ha₂] using _root_.div_eq_zero_iff.mp this.symm },
+  { linarith [hp.out.one_lt, le_of_lt hp.out.one_lt] }
+end
 
 lemma solution_spec' {a₁ a₂ : 𝕎 k} (ha₁ : a₁.coeff 0 ≠ 0) (ha₂ : a₂.coeff 0 ≠ 0) :
   (solution p ha₁ ha₂)^p * a₁.coeff 0 = (solution p ha₁ ha₂) * a₂.coeff 0 :=
 begin
-  rw ← sub_eq_zero,
-  simpa only [matrix.head_cons, polynomial.eval_X, polynomial.eval_C, mv_polynomial.aeval_X,
-    if_true, witt_vector.peval, polynomial.eval_pow, function.uncurry_apply_pair, eq_self_iff_true,
-    polynomial.eval_mul, witt_vector.witt_mul_zero, pow_p_poly, pow_one_poly, polynomial.eval_sub,
-    matrix.cons_val_one, _root_.map_mul, matrix.cons_val_zero, polynomial.is_root.def]
-    using solution_spec p ha₁ ha₂,
+  have := solution_spec p ha₁ ha₂,
+  cases nat.exists_eq_succ_of_ne_zero hp.out.ne_zero with q hq,
+  have hq' : q = p - 1 := by simp only [hq, tsub_zero, nat.succ_sub_succ_eq_sub],
+  conv_lhs {congr, congr, skip, rw hq},
+  rw [pow_succ', hq', this],
+  field_simp [ha₁, mul_comm],
 end
+
 
 end base_case
 
@@ -221,7 +196,11 @@ using_well_founded { dec_tac := `[apply fin.is_lt] }
 
 lemma find_important_nonzero {a₁ a₂ : 𝕎 k} (ha₁ : a₁.coeff 0 ≠ 0) (ha₂ : a₂.coeff 0 ≠ 0) :
   witt_vector.mk p (find_important p ha₁ ha₂) ≠ 0 :=
-sorry
+begin
+  intro h,
+  apply solution_nonzero p ha₁ ha₂,
+  simpa [← h, find_important] using witt_vector.zero_coeff p k 0
+end
 
 variable (k)
 

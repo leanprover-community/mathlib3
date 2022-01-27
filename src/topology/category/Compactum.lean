@@ -8,6 +8,7 @@ import category_theory.monad.types
 import category_theory.monad.limits
 import category_theory.equivalence
 import topology.category.CompHaus
+import topology.category.Profinite
 import data.set.constructions
 
 /-!
@@ -438,7 +439,7 @@ lemma ess_surj : ess_surj Compactum_to_CompHaus :=
 { mem_ess_image := λ X, ⟨Compactum.of_topological_space X, ⟨iso_of_topological_space⟩⟩ }
 
 /-- The functor Compactum_to_CompHaus is an equivalence of categories. -/
-noncomputable def is_equivalence : is_equivalence Compactum_to_CompHaus :=
+noncomputable instance is_equivalence : is_equivalence Compactum_to_CompHaus :=
 begin
   apply equivalence.of_fully_faithfully_ess_surj _,
   exact Compactum_to_CompHaus.full,
@@ -447,3 +448,32 @@ begin
 end
 
 end Compactum_to_CompHaus
+
+namespace Compactum
+
+def forget_factors_through_CompHaus_forget : forget ≅
+  Compactum_to_CompHaus ⋙ category_theory.forget CompHaus :=
+nat_iso.of_components (λ X, eq_to_iso rfl) $
+by { intros X Y f, dsimp, simpa }
+
+end Compactum
+
+noncomputable
+instance CompHaus.forget_creates_limits : creates_limits (forget CompHaus) :=
+begin
+  let e : forget CompHaus ≅ Compactum_to_CompHaus.inv ⋙ Compactum.forget :=
+    _ ≪≫ iso_whisker_left _ (Compactum.forget_factors_through_CompHaus_forget).symm,
+  swap,
+  refine _ ≪≫ functor.associator _ _ _,
+  refine (functor.left_unitor _).symm ≪≫ _,
+  refine iso_whisker_right _ _,
+  exact Compactum_to_CompHaus.as_equivalence.symm.unit_iso,
+  exact creates_limits_of_nat_iso e.symm
+end
+
+noncomputable
+instance Profinite.forget_creates_limits : creates_limits (forget Profinite) :=
+begin
+  change creates_limits (Profinite_to_CompHaus ⋙ forget _),
+  apply_instance,
+end

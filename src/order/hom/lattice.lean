@@ -641,24 +641,31 @@ lemma cancel_left {g : lattice_hom β γ} {f₁ f₂ : lattice_hom α β} (hg : 
 
 end lattice_hom
 
-namespace order_hom
-variables [linear_order α] [lattice β]
+namespace order_hom_class
+variables (α β) [linear_order α] [lattice β] [order_hom_class F α β]
 
-/-- Reinterpret an `order_hom` to a linear order as a `lattice_hom`. -/
-def to_lattice_hom (f : α →o β) : lattice_hom α β :=
-{ to_fun := f,
-  map_sup' := λ a b, begin
+/-- An order homomorphism from a linear order is a lattice homomorphism. -/
+@[reducible] def to_lattice_hom_class : lattice_hom_class F α β :=
+{ map_sup := λ f a b, begin
     obtain h | h := le_total a b,
-    { rw [sup_eq_right.2 h, sup_eq_right.2 (f.mono h)] },
-    { rw [sup_eq_left.2 h, sup_eq_left.2 (f.mono h)] }
+    { rw [sup_eq_right.2 h, sup_eq_right.2 (order_hom_class.mono f h : f a ≤ f b)] },
+    { rw [sup_eq_left.2 h, sup_eq_left.2 (order_hom_class.mono f h : f b ≤ f a)] }
   end,
-  map_inf' := λ a b, begin
+  map_inf := λ f a b, begin
     obtain h | h := le_total a b,
-    { rw [inf_eq_left.2 h, inf_eq_left.2 (f.mono h)] },
-    { rw [inf_eq_right.2 h, inf_eq_right.2 (f.mono h)] }
-  end }
+    { rw [inf_eq_left.2 h, inf_eq_left.2 (order_hom_class.mono f h : f a ≤ f b)] },
+    { rw [inf_eq_right.2 h, inf_eq_right.2 (order_hom_class.mono f h : f b ≤ f a)] }
+  end,
+  .. ‹order_hom_class F α β› }
 
-end order_hom
+/-- Reinterpret an order homomorphism to a linear order as a `lattice_hom`. -/
+def to_lattice_hom (f : F) : lattice_hom α β :=
+by { haveI : lattice_hom_class F α β := order_hom_class.to_lattice_hom_class α β, exact f }
+
+@[simp] lemma coe_to_lattice_hom (f : F) : ⇑(to_lattice_hom α β f) = f := rfl
+@[simp] lemma to_lattice_hom_apply (f : F) (a : α) : to_lattice_hom α β f a = f a := rfl
+
+end order_hom_class
 
 /-! ### Bounded lattice homomorphisms -/
 

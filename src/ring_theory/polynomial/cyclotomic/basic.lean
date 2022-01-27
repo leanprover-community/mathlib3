@@ -428,7 +428,7 @@ lemma _root_.is_root_of_unity_iff {n : ℕ} (h : 0 < n) (R : Type*) [comm_ring R
 by rw [←mem_nth_roots h, nth_roots, mem_roots $ X_pow_sub_C_ne_zero h _,
        C_1, ←prod_cyclotomic_eq_X_pow_sub_one h, is_root_prod]; apply_instance
 
-lemma is_root_of_unity_of {n : ℕ} {R} [comm_ring R] {ζ : R} {i : ℕ}
+lemma is_root_of_unity_of_root_cyclotomic {n : ℕ} {R} [comm_ring R] {ζ : R} {i : ℕ}
   (hi : i ∈ n.divisors) (h : (cyclotomic i R).is_root ζ) : ζ ^ n = 1 :=
 begin
   rcases n.eq_zero_or_pos with rfl | hn,

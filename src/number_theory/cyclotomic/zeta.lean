@@ -41,7 +41,6 @@ universes u v w z
 variables (n : ℕ+) (A : Type w) (B : Type z)
 variables [comm_ring A] [comm_ring B] [algebra A B] [is_cyclotomic_extension {n} A B]
 
-
 namespace is_cyclotomic_extension
 
 /-- If `B` is a `n`-th cyclotomic extension of `A`, then `zeta n A B` is any root of
@@ -100,8 +99,7 @@ variables (K) (n)
 /-- `zeta.embeddings_equiv_primitive_roots` is the equiv between `L →ₐ[K] A` and
   `primitive_roots n A` given by the choice of `zeta`. -/
 @[simps]
-def zeta.embeddings_equiv_primitive_roots [is_domain A] [ne_zero ((n : ℕ) : K)]
-  (hirr : irreducible (cyclotomic n K)) :
+def zeta.embeddings_equiv_primitive_roots [is_domain A] (hirr : irreducible (cyclotomic n K)) :
   (L →ₐ[K] A) ≃ primitive_roots n A :=
 ((zeta.power_basis n K L).lift_equiv).trans
 { to_fun    := λ x,

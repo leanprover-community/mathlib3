@@ -576,16 +576,16 @@ def subtype : H →* G := ⟨coe, rfl, λ _ _, rfl⟩
 
 @[simp, norm_cast, to_additive] theorem coe_list_prod (l : list H) :
   (l.prod : G) = (l.map coe).prod :=
-H.to_submonoid.coe_list_prod l
+submonoid_class.coe_list_prod l
 
 @[simp, norm_cast, to_additive] theorem coe_multiset_prod {G} [comm_group G] (H : subgroup G)
   (m : multiset H) : (m.prod : G) = (m.map coe).prod :=
-H.to_submonoid.coe_multiset_prod m
+submonoid_class.coe_multiset_prod m
 
 @[simp, norm_cast, to_additive] theorem coe_finset_prod {ι G} [comm_group G] (H : subgroup G)
   (f : ι → H) (s : finset ι) :
   ↑(∏ i in s, f i) = (∏ i in s, f i : G) :=
-H.to_submonoid.coe_finset_prod f s
+submonoid_class.coe_finset_prod f s
 
 /-- The inclusion homomorphism from a subgroup `H` contained in `K` to `K`. -/
 @[to_additive "The inclusion homomorphism from a additive subgroup `H` contained in `K` to `K`."]

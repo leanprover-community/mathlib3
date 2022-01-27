@@ -133,7 +133,7 @@ begin
 end
 
 lemma pow_nat_degree_le_of_aeval_zero_of_monic_mem_map {x : S} (hx : aeval x f = 0)
-  (hmo : f.monic) (hmem : ∀ n < f.nat_degree, f.coeff n ∈ 𝓟) :
+  (hmo : f.monic) :
   ∀ i, (f.map (algebra_map R S)).nat_degree ≤ i → x ^ i ∈ 𝓟.map (algebra_map R S) :=
 begin
   suffices : x ^ (f.map (algebra_map R S)).nat_degree ∈ 𝓟.map (algebra_map R S),

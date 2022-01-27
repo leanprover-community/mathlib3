@@ -1978,6 +1978,8 @@ theorem omega_ne_zero : omega ≠ 0 := ne_of_gt omega_pos
 
 theorem one_lt_omega : 1 < omega := by simpa only [nat.cast_one] using nat_lt_omega 1
 
+theorem two_lt_omega : 2 < omega := by simpa only [nat.cast_two] using nat_lt_omega 2
+
 theorem omega_is_limit : is_limit omega :=
 ⟨omega_ne_zero, λ o h,
   let ⟨n, e⟩ := lt_omega.1 h in
@@ -2146,11 +2148,11 @@ begin
   refine ⟨λ ho₀, _, λ a hao, _⟩,
   { rw ho₀ at ho₁,
     exact not_lt_of_gt ordinal.zero_lt_one ho₁ },
-  cases eq_or_ne a 0 with ha ha,
-  { rw [ha, succ_zero],
-    exact ho₁ },
-  refine lt_of_le_of_lt _ (ho hao hao),
-  rwa [succ_eq_add_one, add_le_add_iff_left, one_le_iff_ne_zero]
+  { cases eq_or_ne a 0 with ha ha,
+    { rw [ha, succ_zero],
+      exact ho₁ },
+    { refine lt_of_le_of_lt _ (ho hao hao),
+      rwa [succ_eq_add_one, add_le_add_iff_left, one_le_iff_ne_zero] } }
 end
 
 theorem principal_add_iff_add_left_eq_self {o : ordinal} :
@@ -2159,12 +2161,12 @@ begin
   refine ⟨λ ho a hao, _, λ h a b hao hbo, _⟩,
   { cases lt_or_le 1 o with ho₁ ho₁,
     { exact op_eq_self_of_principal hao (add_is_normal a) ho (principal_add_is_limit ho₁ ho) },
-    rcases le_one_iff.1 ho₁ with rfl | rfl,
-    { exact (ordinal.not_lt_zero a hao).elim },
-    rw lt_one_iff_zero at hao,
-    rw [hao, zero_add] },
-  rw ←h a hao,
-  exact (add_is_normal a).strict_mono hbo
+    { rcases le_one_iff.1 ho₁ with rfl | rfl,
+      { exact (ordinal.not_lt_zero a hao).elim },
+      { rw lt_one_iff_zero at hao,
+        rw [hao, zero_add] }}},
+  { rw ←h a hao,
+    exact (add_is_normal a).strict_mono hbo }
 end
 
 theorem add_omega {a : ordinal} (h : a < omega) : a + omega = omega :=
@@ -2225,15 +2227,14 @@ end
 theorem add_absorp {a b c : ordinal} (h₁ : a < omega ^ b) (h₂ : omega ^ b ≤ c) : a + c = c :=
 by rw [← ordinal.add_sub_cancel_of_le h₂, ← add_assoc, add_omega_opow h₁]
 
-theorem add_principal_is_limit {o : ordinal.{u}} (ho₁ : 1 < o) (ho : principal (+) o) :
-  o.is_limit :=
+theorem opow_principal_add_is_principal_add {a} (ha : principal (+) a) (b : ordinal) :
+  principal (+) (a ^ b) :=
 begin
-  rw principal_add_iff_zero_or_omega_power at ho,
-  rcases ho with rfl | ⟨a, rfl⟩,
-  { exact (ordinal.not_lt_zero 1 ho₁).elim },
-  { refine opow_is_limit_left omega_is_limit (λ ha, _),
-    rw [ha, opow_zero] at ho₁,
-    exact lt_irrefl 1 ho₁ }
+  rcases principal_add_iff_zero_or_omega_power.1 ha with rfl | ⟨c, rfl⟩,
+  { rcases eq_or_ne b 0 with rfl | hb,
+    { rw opow_zero, exact principal_add_one },
+    { rw zero_opow hb, exact ha } },
+  { rw ←opow_mul, exact principal_add_omega_opow _ }
 end
 
 /-! #### Multiplicative principal ordinals -/
@@ -2262,7 +2263,7 @@ begin
   { exact principal_mul_two }
 end
 
-theorem add_principal_of_mul_principal {o : ordinal.{u}} (ho : principal (*) o) (ho₂ : o ≠ 2) :
+theorem principal_add_of_principal_mul {o : ordinal} (ho : principal (*) o) (ho₂ : o ≠ 2) :
   principal (+) o :=
 begin
   cases lt_or_gt_of_ne ho₂ with ho₁ ho₂,
@@ -2274,13 +2275,13 @@ begin
     exact add_le_add (le_max_left a b) (le_max_right a b) }
 end
 
-theorem mul_principal_is_limit {o : ordinal.{u}} (ho₂ : 2 < o) (ho : principal (*) o) :
+theorem principal_mul_is_limit {o : ordinal.{u}} (ho₂ : 2 < o) (ho : principal (*) o) :
   o.is_limit :=
-add_principal_is_limit
+principal_add_is_limit
   ((ordinal.lt_succ_self 1).trans ho₂)
-  (add_principal_of_mul_principal ho (ne_of_gt ho₂))
+  (principal_add_of_principal_mul ho (ne_of_gt ho₂))
 
-theorem mul_principal_iff_mul_left_eq {o : ordinal} :
+theorem principal_mul_iff_mul_left_eq {o : ordinal} :
   principal (*) o ↔ ∀ a, 0 < a → a < o → a * o = o :=
 begin
   refine ⟨λ h a ha₀ hao, _, λ h a b hao hbo, _⟩,
@@ -2290,22 +2291,22 @@ begin
       { have : a < succ 1 := hao.trans_le ho,
         rwa lt_succ at this },
       { rwa [←succ_le, succ_zero] at ha₀ } },
-    { exact op_eq_self_of_principal hao (mul_is_normal ha₀) h (mul_principal_is_limit ho h) } },
+    { exact op_eq_self_of_principal hao (mul_is_normal ha₀) h (principal_mul_is_limit ho h) } },
   { rcases eq_or_ne a 0 with rfl | ha, { rwa zero_mul },
     rw ←ordinal.pos_iff_ne_zero at ha,
     rw ←h a ha hao,
     exact (mul_is_normal ha).strict_mono hbo }
 end
 
-theorem principal_mul_omega : principal (*) omega.{u} :=
+theorem principal_mul_omega : principal (*) omega :=
 λ a b ha hb, match a, b, lt_omega.1 ha, lt_omega.1 hb with
 | _, _, ⟨m, rfl⟩, ⟨n, rfl⟩ := by rw [← nat_cast_mul]; apply nat_lt_omega
 end
 
 theorem mul_omega {a : ordinal} (a0 : 0 < a) (ha : a < omega) : a * omega = omega :=
-mul_principal_iff_mul_left_eq.1 (principal_mul_omega) a a0 ha
+principal_mul_iff_mul_left_eq.1 (principal_mul_omega) a a0 ha
 
-theorem power_omega_mul_principal (o : ordinal.{u}) : principal (*) (o ^ omega.{u}) :=
+theorem power_omega_mul_principal (o : ordinal) : principal (*) (o ^ omega) :=
 begin
   cases le_or_gt o 1 with ho ho,
   { rcases le_one_iff.1 ho with rfl | rfl,
@@ -2351,11 +2352,54 @@ begin
 end
 
 theorem principal_mul_omega_opow_opow (o : ordinal) : principal (*) (omega ^ omega ^ o) :=
-mul_principal_iff_mul_left_eq.2 (λ a, mul_omega_opow_opow)
+principal_mul_iff_mul_left_eq.2 (λ a, mul_omega_opow_opow)
+
+theorem opow_omega_mul_principal (o : ordinal.{u}) : principal (*) (o ^ omega.{u}) :=
+begin
+  cases le_or_gt o 1 with ho ho,
+  { rcases le_one_iff.1 ho with rfl | rfl,
+    { rw zero_opow omega_ne_zero,
+      exact principal_zero },
+    rw one_opow,
+    exact principal_mul_one },
+  intros a b hao hbo,
+  cases lt_opow_omega hao with m hm,
+  cases lt_opow_omega hbo with n hn,
+  apply lt_of_le_of_lt (mul_le_mul' (le_of_lt hm) (le_of_lt hn)),
+  rw [←opow_add, opow_lt_opow_iff_right ho, lt_omega],
+  exact ⟨_, (nat.cast_add m n).symm⟩
+end
 
 theorem mul_omega_dvd {a : ordinal}
   (a0 : 0 < a) (ha : a < omega) : ∀ {b}, omega ∣ b → a * b = b
 | _ ⟨b, rfl⟩ := by rw [← mul_assoc, mul_omega a0 ha]
+
+theorem mul_eq_opow_log_succ {a b : ordinal.{u}} (ha : 0 < a) (hb : principal (*) b) (hb₂ : 2 < b) :
+  a * b = b ^ (log b a).succ :=
+begin
+  apply le_antisymm,
+  { have hbl := principal_mul_is_limit hb₂ hb,
+    rw [←is_normal.bsup_eq.{u u} (mul_is_normal ha) hbl, bsup_le],
+    intros c hcb,
+    have hb₁ : 1 < b := (lt_succ_self 1).trans hb₂,
+    have hbo₀ : b ^ b.log a ≠ 0 := ordinal.pos_iff_ne_zero.1 (opow_pos _ (zero_lt_one.trans hb₁)),
+    refine le_trans (mul_le_mul_right' (le_of_lt (lt_mul_succ_div a hbo₀)) c) _,
+    rw [mul_assoc, opow_succ],
+    refine mul_le_mul_left' (le_of_lt (hb (hbl.2 _ _) hcb)) _,
+    rw [div_lt hbo₀, ←opow_succ],
+    exact lt_opow_succ_log hb₁ _ },
+  { rw opow_succ,
+    exact mul_le_mul_right' (opow_log_le b ha) b }
+end
+
+theorem principal_add_mul_principal_mul (a : ordinal) {b} (hb : principal (*) b) (hb₂ : 2 < b) :
+  principal (+) (a * b) :=
+begin
+  rcases eq_zero_or_pos a with rfl | ho,
+  { rw zero_mul, exact principal_zero },
+  { rw mul_eq_opow_log_succ ho hb hb₂,
+    exact opow_principal_add_is_principal_add (principal_add_of_principal_mul hb hb₂.ne') _ }
+end
 
 /-! #### Exponential principal ordinals -/
 

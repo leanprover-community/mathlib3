@@ -604,9 +604,6 @@ by { convert mul_le_mul_left' (one_le_iff_pos.2 hb) a, rw mul_one a }
 theorem le_mul_right (a : ordinal) {b : ordinal} (hb : 0 < b) : a ≤ b * a :=
 by { convert mul_le_mul_right' (one_le_iff_pos.2 hb) a, rw one_mul a }
 
-theorem mul_le_mul {a b c d : ordinal} (h₁ : a ≤ c) (h₂ : b ≤ d) : a * b ≤ c * d :=
-(mul_le_mul_left' h₂ _).trans (mul_le_mul_right' h₁ _)
-
 private lemma mul_le_of_limit_aux {α β r s} [is_well_order α r] [is_well_order β s]
   {c} (h : is_limit (type s)) (H : ∀ b' < type s, type r * b' ≤ c)
   (l : c < type r * type s) : false :=
@@ -1425,7 +1422,7 @@ begin
     { simp only [zero_opow c0, ordinal.zero_le] } },
   { apply limit_rec_on c,
     { simp only [opow_zero] },
-    { intros c IH, simpa only [opow_succ] using mul_le_mul IH ab },
+    { intros c IH, simpa only [opow_succ] using mul_le_mul' IH ab },
     { exact λ c l IH, (opow_le_of_limit a0 l).2
         (λ b' h, le_trans (IH _ h) (opow_le_opow_right
           (lt_of_lt_of_le (ordinal.pos_iff_ne_zero.2 a0) ab) (le_of_lt h))) } }
@@ -1620,7 +1617,7 @@ theorem add_log_le_log_mul {x y : ordinal} (b : ordinal) (x0 : 0 < x) (y0 : 0 < 
 begin
   by_cases hb : 1 < b,
   { rw [le_log hb (mul_pos x0 y0), opow_add],
-    exact mul_le_mul (opow_log_le b x0) (opow_log_le b y0) },
+    exact mul_le_mul' (opow_log_le b x0) (opow_log_le b y0) },
   simp only [log_not_one_lt hb, zero_add]
 end
 
@@ -1996,7 +1993,7 @@ begin
     rw [opow_succ, mul_assoc, mul_lt_mul_iff_left (opow_pos _ omega_pos)],
     exact mul_lt_omega hn hb },
   { rcases ((opow_is_normal one_lt_omega).limit_lt l).1 ha with ⟨x, hx, ax⟩,
-    refine (mul_le_mul (le_of_lt ax) (le_of_lt hb)).trans_lt _,
+    refine (mul_le_mul' (le_of_lt ax) (le_of_lt hb)).trans_lt _,
     rw [← opow_succ, opow_lt_opow_iff_right one_lt_omega],
     exact l.2 _ hx }
 end

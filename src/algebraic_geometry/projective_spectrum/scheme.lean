@@ -4636,7 +4636,7 @@ begin
   exact H3,
 end
 
-set_option profiler true
+-- set_option profiler true
 lemma isos.sheaf_component.backward_forward :
   isos.sheaf_component.backward.hartshorne 𝒜 f m hm f_deg V
     (((isos.sheaf_component.forward 𝒜 f m hm f_deg).app V) hh) z = hh.1 z :=
@@ -4730,7 +4730,7 @@ end
 
 end sheaf_component_backward_forward
 
-#exit
+-- #exit
 lemma isos.sheaf_component.forward_backward
   (f : A) [decidable_eq (localization.away f)] (m : ℕ) (hm : 0 < m) (f_deg : f ∈ 𝒜 m)
   (V) (hh) (z) :

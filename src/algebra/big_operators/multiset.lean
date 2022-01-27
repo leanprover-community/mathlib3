@@ -153,14 +153,12 @@ begin
   simp only [prod_add, dvd_mul_right],
 end
 
-lemma prod_dvd_prod' [comm_monoid β] {S : multiset α} (g1 g2 : α → β)
-  (h : ∀ a ∈ S, g1 a ∣ g2 a) :
+lemma prod_dvd_prod' [comm_monoid β] {S : multiset α} (g1 g2 : α → β) (h : ∀ a ∈ S, g1 a ∣ g2 a) :
   (multiset.map g1 S).prod ∣ (multiset.map g2 S).prod :=
 begin
   apply multiset.induction_on' S, { simp },
   intros a T haS _ IH,
-  simp only [multiset.map_insert, multiset.prod_insert],
-  exact mul_dvd_mul (h a haS) IH,
+  simp only [multiset.map_insert, multiset.prod_insert, mul_dvd_mul (h a haS) IH]
 end
 
 end comm_monoid

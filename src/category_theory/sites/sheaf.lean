@@ -66,14 +66,6 @@ section limit_sheaf_condition
 open presieve presieve.family_of_elements limits
 variables (P : Cᵒᵖ ⥤ A) {X : C} (S : sieve X) (R : presieve X) (E : Aᵒᵖ)
 
--- TODO: separated iff subsingleton (at most one morphism)
--- TODO: refactor topology/sheaves/sheaf_condition/sites
--- def category_theory.limits.is_limit.of_iso_limit
--- ! def category_theory.limits.is_limit.equiv_iso_limit
--- def category_theory.limits.is_limit.of_cone_equiv
--- def category_theory.limits.cocones.equivalence_of_reindexing
--- ! def category_theory.limits.is_colimit.whisker_equivalence_equiv
-
 @[simps] def cones_equiv_sieve_compatible_family :
   (functor.cones (S.arrows.diagram.op ⋙ P)).obj E ≃
   {x : family_of_elements (P ⋙ coyoneda.obj E) S // x.sieve_compatible} :=

@@ -63,7 +63,7 @@ begin
     to_lhs,
     rw ←nat.mod_add_div n a,
   end,
-  induction n / a with j ih,
+  induction n / a with i ih,
   { simp [le_of_lt (mod_lt n a_pos)],
     transitivity (filter a.coprime (Ico k (k + a))).card,
     { mono,
@@ -81,9 +81,9 @@ begin
   simp only [mul_succ],
   simp_rw ←add_assoc,
   simp_rw ←add_assoc at ih,
-  calc (filter a.coprime (Ico k (k + n % a + a * j + a))).card
-      ≤ (filter a.coprime (Ico k (k + n % a + a * j)
-                            ∪ Ico (k + n % a + a * j) (k + n % a + a * j + a))).card :
+  calc (filter a.coprime (Ico k (k + n % a + a * i + a))).card
+      ≤ (filter a.coprime (Ico k (k + n % a + a * i)
+                            ∪ Ico (k + n % a + a * i) (k + n % a + a * i + a))).card :
         begin
           apply card_le_of_subset,
           apply filter_subset_filter,
@@ -91,18 +91,18 @@ begin
           intro x,
           simp only [mem_Ico, and_imp, mem_union],
           intros h1 h2,
-          by_cases x < k + n % a + a * j,
+          by_cases x < k + n % a + a * i,
           { left,
             exact ⟨h1, h⟩, },
           { right,
             exact ⟨le_of_not_lt h, h2⟩, },
         end
-  ... ≤ (filter a.coprime (Ico k (k + n % a + a * j))).card + a.totient :
+  ... ≤ (filter a.coprime (Ico k (k + n % a + a * i))).card + a.totient :
         begin
-          rw [filter_union, ←filter_coprime_Ico_eq_totient a (k + n % a + a * j)],
+          rw [filter_union, ←filter_coprime_Ico_eq_totient a (k + n % a + a * i)],
           apply card_union_le,
         end
-  ... ≤ a.totient * j + a.totient + a.totient : add_le_add_right ih (totient a),
+  ... ≤ a.totient * i + a.totient + a.totient : add_le_add_right ih (totient a),
 end
 
 /-- A linear upper bound on the size of the `prime_counting'` function -/

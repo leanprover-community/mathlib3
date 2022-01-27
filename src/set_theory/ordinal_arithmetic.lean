@@ -177,6 +177,17 @@ instance : nontrivial ordinal.{u} :=
 theorem zero_lt_one : (0 : ordinal) < 1 :=
 lt_iff_le_and_ne.2 ⟨ordinal.zero_le _, ne.symm $ ordinal.one_ne_zero⟩
 
+theorem le_one_iff {a : ordinal} : a ≤ 1 ↔ a = 0 ∨ a = 1 :=
+begin
+  refine ⟨λ ha, _, _⟩,
+  { rcases eq_or_lt_of_le ha with rfl | ha,
+    { exact or.inr rfl },
+    { exact or.inl (lt_one_iff_zero.1 ha) } },
+  { rintro (rfl | rfl),
+    { exact le_of_lt zero_lt_one },
+    { refl } }
+end
+
 /-! ### The predecessor of an ordinal -/
 
 /-- The ordinal predecessor of `o` is `o'` if `o = succ o'`,

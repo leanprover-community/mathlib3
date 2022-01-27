@@ -1549,8 +1549,7 @@ begin
   rw [← finset.sum_nsmul, h₂, to_finset_sum_count_nsmul_eq]
 end
 
-lemma to_finset_prod_dvd_prod [comm_monoid α] [decidable_eq α] {S : multiset α} :
-  S.to_finset.prod id ∣ S.prod :=
+lemma to_finset_prod_dvd_prod [comm_monoid α] {S : multiset α} : S.to_finset.prod id ∣ S.prod :=
 begin
   rw finset.prod_eq_multiset_prod,
   refine multiset.prod_dvd_prod _,

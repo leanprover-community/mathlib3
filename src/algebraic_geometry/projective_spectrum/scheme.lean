@@ -3467,6 +3467,8 @@ begin
     a_hom b_hom eq1,
 end
 
+-- set_option profiler false
+
 def isos.sheaf_component.forward.to_fun :
   (((isos.top_component 𝒜 f m hm f_deg).hom _*
       ((Proj.to_LocallyRingedSpace 𝒜).restrict (@opens.open_embedding (projective_spectrum.Top 𝒜)
@@ -4660,7 +4662,7 @@ begin
 end
 omit hm
 
--- set_option profiler true
+set_option profiler true
 lemma isos.sheaf_component.backward_forward :
   isos.sheaf_component.backward.hartshorne 𝒜 f m hm f_deg V
     (((isos.sheaf_component.forward 𝒜 f m hm f_deg).app V) hh) z = hh.1 z :=
@@ -4701,14 +4703,12 @@ begin
     = (hh.1 ⟨((isos.top_component 𝒜 f m hm f_deg).inv hom_z).1, isos.sheaf_component.forward.hartshorne.inv_mem 𝒜 f m hm f_deg V ⟨hom_z, hom_z_mem_V⟩⟩).1,
   { congr' 1, },
   rw hartshorne_eq2 at hartshorne_eq,
-
-  have pt_eq := isos.sheaf_component.backward_forward.pt_eq 𝒜 f m hm f_deg V hh z,
-
   have eq0 : (hh.1 z).1 = localization.mk α ⟨β, begin
     rw isos.sheaf_component.backward_forward.inv_hom_z_eq at β_not_in,
     convert β_not_in,
   end⟩,
-  { apply projective_spectrum.section_congr_arg 𝒜 _ _ _ pt_eq.symm hh _ _ hartshorne_eq, },
+  { apply projective_spectrum.section_congr_arg 𝒜 _ _ _
+    (isos.sheaf_component.backward_forward.pt_eq 𝒜 f m hm f_deg V hh z).symm hh _ _ hartshorne_eq, },
   rw eq0,
 
   simp only [←α_eq, ←β_eq, ←ι_eq] at data_eq2,

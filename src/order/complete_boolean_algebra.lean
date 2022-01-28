@@ -54,12 +54,6 @@ by simp only [supr_inf_eq]
 lemma inf_bsupr_eq {f : Π i, κ i → α} (a : α) : a ⊓ (⨆ i j, f i j) = ⨆ i j, a ⊓ f i j :=
 by simp only [inf_supr_eq]
 
-instance pi.frame {ι : Type*} {π : ι → Type*} [Π i, frame (π i)] : frame (Π i, π i) :=
-{ inf_Sup_le_supr_inf := λ a s i,
-    by simp only [complete_lattice.Sup, Sup_apply, supr_apply, pi.inf_apply, inf_supr_eq,
-      ← supr_subtype''],
-  .. pi.complete_lattice }
-
 lemma Sup_inf_Sup : Sup s ⊓ Sup t = ⨆ p ∈ s ×ˢ t, (p : α × α).1 ⊓ p.2 :=
 begin
   refine le_antisymm _ _,
@@ -77,6 +71,12 @@ by simp only [disjoint_iff, supr_inf_eq, supr_eq_bot]
 
 lemma disjoint_supr_iff {f : ι → α} : disjoint a (⨆ i, f i) ↔ ∀ i, disjoint a (f i) :=
 by simpa only [disjoint.comm] using @supr_disjoint_iff _ _ _ a f
+
+instance pi.frame {ι : Type*} {π : ι → Type*} [Π i, frame (π i)] : frame (Π i, π i) :=
+{ inf_Sup_le_supr_inf := λ a s i,
+    by simp only [complete_lattice.Sup, Sup_apply, supr_apply, pi.inf_apply, inf_supr_eq,
+      ← supr_subtype''],
+  .. pi.complete_lattice }
 
 end frame
 

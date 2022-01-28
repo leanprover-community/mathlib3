@@ -358,9 +358,10 @@ begin
 end
 
 lemma inter_cylinder_longest_prefix_nonempty
-  {s : set (Π n, E n)} (hs : is_closed s) (hne : s.nonempty) {x : (Π n, E n)} (hx : x ∉ s) :
+  {s : set (Π n, E n)} (hs : is_closed s) (hne : s.nonempty) (x : (Π n, E n)) :
   (s ∩ cylinder x (longest_prefix x s)).nonempty :=
 begin
+  by_cases hx : x ∈ s, { exact ⟨x, hx, self_mem_cylinder _ _⟩ },
   have A := exists_disjoint_cylinder hs hx,
   have B : longest_prefix x s < shortest_prefix_diff x s :=
     nat.pred_lt (shortest_prefix_diff_pos hs hne hx).ne',
@@ -399,14 +400,14 @@ begin
   have l_eq : longest_prefix y s = longest_prefix x s,
   { rcases lt_trichotomy (longest_prefix y s) (longest_prefix x s) with L|L|L,
     { have Ax : (s ∩ cylinder x (longest_prefix x s)).nonempty :=
-        inter_cylinder_longest_prefix_nonempty hs hne xs,
+        inter_cylinder_longest_prefix_nonempty hs hne x,
       have Z := disjoint_cylinder_of_longest_prefix_lt hs ys L,
       rw first_diff_comm at H,
       rw [cylinder_eq_cylinder_of_le_first_diff _ _ H.le] at Z,
       exact (Ax.not_disjoint Z).elim },
     { exact L },
     { have Ay : (s ∩ cylinder y (longest_prefix y s)).nonempty :=
-        inter_cylinder_longest_prefix_nonempty hs hne ys,
+        inter_cylinder_longest_prefix_nonempty hs hne y,
       have A'y : (s ∩ cylinder y (longest_prefix x s).succ).nonempty :=
         Ay.mono (inter_subset_inter_right s (cylinder_anti _ L)),
       have Z := disjoint_cylinder_of_longest_prefix_lt hs xs (nat.lt_succ_self _),
@@ -435,16 +436,14 @@ begin
   length is `< n`, then it is also the longest prefix of `y`, and we get `f x = f y = z_w`.
   Otherwise, `f x` remains in the same `n`-cylinder as `x`. Similarly for `y`. Finally, `f x` and
   `f y` are again in the same `n`-cylinder, as desired. -/
-  set f := λ x, if h : x ∈ s then x
-    else (inter_cylinder_longest_prefix_nonempty hs hne h).some with hf,
+  set f := λ x, if x ∈ s then x else (inter_cylinder_longest_prefix_nonempty hs hne x).some with hf,
   have fs : ∀ x ∈ s, f x = x := λ x xs, by simp [xs],
   refine ⟨f, fs, _, _⟩,
   -- check that the range of `f` is `s`.
   { apply subset.antisymm,
     { rintros x ⟨y, rfl⟩,
       by_cases hy : y ∈ s, { rwa fs y hy },
-      simpa [hf, dif_neg hy]
-        using (inter_cylinder_longest_prefix_nonempty hs hne hy).some_spec.1 },
+      simpa [hf, if_neg hy] using (inter_cylinder_longest_prefix_nonempty hs hne y).some_spec.1 },
     { assume x hx,
       rw ← fs x hx,
       exact mem_range_self _ } },
@@ -465,8 +464,8 @@ begin
       by_cases ys : y ∈ s, { rw [fs y ys] },
       -- case where `y ∉ s`
       have A : (s ∩ cylinder y (longest_prefix y s)).nonempty :=
-        inter_cylinder_longest_prefix_nonempty hs hne ys,
-      have fy : f y = A.some, by simp_rw [hf, dif_neg ys],
+        inter_cylinder_longest_prefix_nonempty hs hne y,
+      have fy : f y = A.some, by simp_rw [hf, if_neg ys],
       have I : cylinder A.some (first_diff x y) = cylinder y (first_diff x y),
         { rw [← mem_cylinder_iff_eq, first_diff_comm],
           apply cylinder_anti y _ A.some_spec.2,
@@ -477,8 +476,8 @@ begin
     { by_cases ys : y ∈ s,
       -- case where `y ∈ s` (similar to the above)
       { have A : (s ∩ cylinder x (longest_prefix x s)).nonempty :=
-          inter_cylinder_longest_prefix_nonempty hs hne xs,
-        have fx : f x = A.some, by simp_rw [hf, dif_neg xs],
+          inter_cylinder_longest_prefix_nonempty hs hne x,
+        have fx : f x = A.some, by simp_rw [hf, if_neg xs],
         have I : cylinder A.some (first_diff x y) = cylinder x (first_diff x y),
         { rw ← mem_cylinder_iff_eq,
           apply cylinder_anti x _ A.some_spec.2,
@@ -487,11 +486,11 @@ begin
         rwa [← fx, I2, ← mem_cylinder_iff_eq, mem_cylinder_iff_le_first_diff hfxfy] at I },
       -- case where `y ∉ s`
       { have Ax : (s ∩ cylinder x (longest_prefix x s)).nonempty :=
-          inter_cylinder_longest_prefix_nonempty hs hne xs,
-        have fx : f x = Ax.some, by simp_rw [hf, dif_neg xs],
+          inter_cylinder_longest_prefix_nonempty hs hne x,
+        have fx : f x = Ax.some, by simp_rw [hf, if_neg xs],
         have Ay : (s ∩ cylinder y (longest_prefix y s)).nonempty :=
-          inter_cylinder_longest_prefix_nonempty hs hne ys,
-        have fy : f y = Ay.some, by simp_rw [hf, dif_neg ys],
+          inter_cylinder_longest_prefix_nonempty hs hne y,
+        have fy : f y = Ay.some, by simp_rw [hf, if_neg ys],
         -- case where the common prefix to `x` and `s`, or `y` and `s`, is shorter than the
         -- common part to `x` and `y` -- then `f x = f y`.
         by_cases H : longest_prefix x s < first_diff x y ∨ longest_prefix y s < first_diff x y,

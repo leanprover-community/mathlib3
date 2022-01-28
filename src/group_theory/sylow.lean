@@ -524,13 +524,12 @@ begin
   let N := (↑P : subgroup G).normalizer,
   let P' : sylow p N := P.subtype N le_normalizer,
 
+  have hlr : (↑P : subgroup G) ≤ N.subtype.range,
+  by { simp only [subtype_range], apply le_normalizer, },
+
   have := normalizer_sup_eq_top P',
-  simp [N, P'] at this,
-  rewrite map_comap_eq_self at this,
-  show (_ ≤ _), { simp only [subtype_range], apply le_normalizer, },
-  apply normalizer_eq_top.mp,
-  rw sup_idem at this,
-  apply this,
+  simp only [N, coe_subtype, map_comap_eq_self hlr, sup_idem] at this,
+  exact (normalizer_eq_top.mp this),
 end
 
 lemma normalizer_self_normalizing {p : ℕ} {hp : fact p.prime} [fintype (sylow p G)]
@@ -541,23 +540,25 @@ begin
   show (H = (↑P : subgroup G).normalizer),
   let P' : sylow p H := P.subtype H (le_trans le_normalizer le_normalizer),
 
-  have h1 : (P' : subgroup H).normalizer = ⊤,
-  { apply normalizer_eq_top.mpr,
-    apply normal_of_normalizer_normal hp P',
-    apply normalizer_eq_top.mp,
-    simp [P'],
-    rewrite ← comap_subtype_normalizer_eq le_normalizer,
-    rewrite ← comap_subtype_normalizer_eq (le_refl _),
-    rewrite subgroup.comap_subtype_self_eq_top, },
-  have h2 := congr_arg (subgroup.map H.subtype) h1 ,
-  simp [P'] at h2,
-  rw ← comap_subtype_normalizer_eq le_normalizer at h2,
-  rewrite map_comap_eq_self at h2,
-  rw ← monoid_hom.range_eq_map at h2,
-  rw [subtype_range] at h2,
-  symmetry,
-  apply h2,
-  simp, apply le_normalizer,
+  have hlr : (P : subgroup G).normalizer ≤ H.subtype.range, by { simp, apply le_normalizer },
+
+  have hnn : (P' : subgroup H).normalizer.normalizer = ⊤,
+  by rw [ coe_subtype,
+      ← comap_subtype_normalizer_eq le_normalizer,
+      ← comap_subtype_normalizer_eq (le_refl _),
+      subgroup.comap_subtype_self_eq_top ],
+
+  have hn : (P' : subgroup H).normalizer = ⊤ :=
+    normalizer_eq_top.mpr (normal_of_normalizer_normal hp P' (normalizer_eq_top.mp hnn)),
+
+  have h2 := congr_arg (subgroup.map H.subtype) hn,
+  rw [ coe_subtype,
+       ← comap_subtype_normalizer_eq le_normalizer,
+       map_comap_eq_self hlr,
+       ← monoid_hom.range_eq_map,
+       subtype_range
+  ] at h2,
+  exact (symm h2),
 end
 
 end sylow

@@ -897,7 +897,7 @@ instance set_semiring.covariant_class_mul_left :
 
 instance set_semiring.covariant_class_mul_right :
   covariant_class (set_semiring α) (set_semiring α) (swap (*)) (≤) :=
-{ elim := λ a b c ab x xa, mem_of_mem_of_subset xa (mul_subset_mul ab subset.rfl) }
+{ elim := λ a b c, mul_subset_mul_right }
 
 end mul_hom
 

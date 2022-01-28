@@ -2280,12 +2280,13 @@ begin
     exact to_map_eq_zero_iff.mp h }
 end
 
-variables (A K)
+variables (A K B)
+variables [comm_ring B] [algebra K B] [algebra A B] [is_scalar_tower A K B]
 
 /-- An element of a field is algebraic over the ring `A` iff it is algebraic
 over the field of fractions of `A`.
 -/
-lemma is_algebraic_iff [algebra A L] [algebra K L] [is_scalar_tower A K L] {x : L} :
+lemma is_algebraic_iff [algebra A B] [algebra K B] [is_scalar_tower A K B] {x : B} :
   is_algebraic A x ↔ is_algebraic K x :=
 begin
   split; rintros ⟨p, hp, px⟩,
@@ -2298,28 +2299,13 @@ begin
            integer_normalization_aeval_eq_zero _ p px⟩ },
 end
 
-lemma is_algebraic_iff' [is_domain S] [algebra R K] [algebra S K]
-  [is_fraction_ring S K] [is_scalar_tower R S K] :
-  algebra.is_algebraic R S ↔ algebra.is_algebraic R K :=
-begin
-  split,
-  { intros h x,
-    obtain ⟨(a : S), b, ha, rfl⟩ := @div_surjective S _ _ _ _ _ _ x,
-    obtain ⟨f, hf⟩ := h a,
-    obtain ⟨g, hg⟩ := h b,
-    have := is_algebraic_smul
-     }
-
-
-end
-
-variables {A K}
+variables {A K B} [is_domain B]
 
 /-- A field is algebraic over the ring `A` iff it is algebraic over the field of fractions of `A`.
 -/
-lemma comap_is_algebraic_iff [algebra A L] [algebra K L] [is_scalar_tower A K L] :
-  algebra.is_algebraic A L ↔ algebra.is_algebraic K L :=
-⟨λ h x, (is_algebraic_iff A K).mp (h x), λ h x, (is_algebraic_iff A K).mpr (h x)⟩
+lemma comap_is_algebraic_iff [algebra A B] [algebra K B] [is_scalar_tower A K B] :
+  algebra.is_algebraic A B ↔ algebra.is_algebraic K B :=
+⟨λ h x, (is_algebraic_iff A K B).mp (h x), λ h x, (is_algebraic_iff A K B).mpr (h x)⟩
 
 section num_denom
 
@@ -2672,3 +2658,42 @@ noncomputable def alg_equiv (K : Type*) [field K] [algebra A K] [is_fraction_rin
 localization.alg_equiv (non_zero_divisors A) K
 
 end fraction_ring
+
+namespace is_fraction_ring
+
+lemma is_algebraic_iff' [field K] [is_domain R] [is_domain S] [algebra R K] [algebra S K]
+  [no_zero_smul_divisors R K] [no_zero_smul_divisors R S]
+    [is_fraction_ring S K] [is_scalar_tower R S K] :
+  algebra.is_algebraic R S ↔ algebra.is_algebraic R K :=
+begin
+  simp only [algebra.is_algebraic],
+  split,
+  { intros h x,
+    letI : algebra (fraction_ring R) K :=
+      ring_hom.to_algebra (is_fraction_ring.lift
+        (no_zero_smul_divisors.algebra_map_injective R K)),
+    haveI : is_scalar_tower R (fraction_ring R) K,
+    { sorry },
+    rw [is_fraction_ring.is_algebraic_iff R (fraction_ring R) K, is_algebraic_iff_is_integral],
+    obtain ⟨(a : S), b, ha, rfl⟩ := @div_surjective S _ _ _ _ _ _ x,
+    obtain ⟨f, hf₁, hf₂⟩ := h b,
+    rw [div_eq_mul_inv],
+    refine is_integral_mul _ _,
+    { rw [← is_algebraic_iff_is_integral],
+      refine _root_.is_algebraic_of_larger_base_of_injective
+        (no_zero_smul_divisors.algebra_map_injective R (fraction_ring R)) _,
+      exact is_algebraic_algebra_map_of_is_algebraic (h a) },
+    { rw [← is_algebraic_iff_is_integral],
+      use (f.map (algebra_map R (fraction_ring R))).reverse,
+      split,
+      { rwa [ne.def, polynomial.reverse_eq_zero, ← polynomial.degree_eq_bot,
+          polynomial.degree_map_eq_of_injective
+            (no_zero_smul_divisors.algebra_map_injective R (fraction_ring R)),
+          polynomial.degree_eq_bot]},
+      { haveI : invertible (algebra_map S K b), { sorry },
+        rw [polynomial.aeval_def, ← inv_of_eq_inv, polynomial.eval₂_reverse_eq_zero_iff,
+          polynomial.eval₂_map, ← is_scalar_tower.algebra_map_eq, ← polynomial.aeval_def,
+          ← is_scalar_tower.algebra_map_aeval, hf₂, ring_hom.map_zero] } } }
+end
+
+end is_fraction_ring

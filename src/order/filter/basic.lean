@@ -173,23 +173,37 @@ lemma monotone_mem {f : filter α} : monotone (λ s, s ∈ f) :=
 end filter
 
 namespace tactic.interactive
-open tactic interactive
 
-/-- `filter_upwards [h1, ⋯, hn]` replaces a goal of the form `s ∈ f`
-and terms `h1 : t1 ∈ f, ⋯, hn : tn ∈ f` with `∀ x, x ∈ t1 → ⋯ → x ∈ tn → x ∈ s`.
+open tactic
+setup_tactic_parser
 
-`filter_upwards [h1, ⋯, hn] e` is a short form for `{ filter_upwards [h1, ⋯, hn], exact e }`.
+/--
+`filter_upwards [h₁, ⋯, hₙ]` replaces a goal of the form `s ∈ f` and terms
+`h₁ : t₁ ∈ f, ⋯, hₙ : tₙ ∈ f` with `∀ x, x ∈ t₁ → ⋯ → x ∈ tₙ → x ∈ s`.
+The list is an optional parameter, `[]` being its default value.
+
+`filter_upwards [h₁, ⋯, hₙ] with a₁ a₂ ⋯ aₖ` is a short form for
+`{ filter_upwards [h₁, ⋯, hₙ], intros a₁ a₂ ⋯ aₖ }`.
+
+`filter_upwards [h₁, ⋯, hₙ] using e` is a short form for
+`{ filter_upwards [h1, ⋯, hn], exact e }`.
+
+Combining both shortcuts is done by writing `filter_upwards [h₁, ⋯, hₙ] with a₁ a₂ ⋯ aₖ using e`.
+Note that in this case, the `aᵢ` terms can be used in `e`.
 -/
 meta def filter_upwards
-  (s : parse types.pexpr_list)
-  (e' : parse $ optional types.texpr) : tactic unit :=
+  (s : parse types.pexpr_list?)
+  (wth : parse with_ident_list?)
+  (tgt : parse (tk "using" *> texpr)?) : tactic unit :=
 do
-  s.reverse.mmap (λ e, eapplyc `filter.mp_mem >> eapply e),
+  (s.get_or_else []).reverse.mmap (λ e, eapplyc `filter.mp_mem >> eapply e),
   eapplyc `filter.univ_mem',
   `[dsimp only [set.mem_set_of_eq]],
-  match e' with
-  | some e := interactive.exact e
-  | none := skip
+  let wth := wth.get_or_else [],
+  if ¬wth.empty then intros wth else skip,
+  match tgt with
+  | some e := exact e
+  | none   := skip
   end
 
 add_tactic_doc
@@ -825,14 +839,14 @@ lemma is_compl_principal (s : set α) : is_compl (𝓟 s) (𝓟 sᶜ) :=
 ⟨by simp only [inf_principal, inter_compl_self, principal_empty, le_refl],
   by simp only [sup_principal, union_compl_self, principal_univ, le_refl]⟩
 
+theorem mem_inf_principal' {f : filter α} {s t : set α} :
+  s ∈ f ⊓ 𝓟 t ↔ tᶜ ∪ s ∈ f :=
+by simp only [← le_principal_iff, (is_compl_principal s).le_left_iff, disjoint_assoc, inf_principal,
+  ← (is_compl_principal (t ∩ sᶜ)).le_right_iff, compl_inter, compl_compl]
+
 theorem mem_inf_principal {f : filter α} {s t : set α} :
   s ∈ f ⊓ 𝓟 t ↔ {x | x ∈ t → x ∈ s} ∈ f :=
-begin
-  simp only [← le_principal_iff, (is_compl_principal s).le_left_iff, disjoint, inf_assoc,
-    inf_principal, imp_iff_not_or],
-  rw [← disjoint, ← (is_compl_principal (t ∩ sᶜ)).le_right_iff, compl_inter, compl_compl],
-  refl
-end
+by { simp only [mem_inf_principal', imp_iff_not_or], refl }
 
 lemma supr_inf_principal (f : ι → filter α) (s : set α) :
   (⨆ i, f i ⊓ 𝓟 s) = (⨆ i, f i) ⊓ 𝓟 s :=
@@ -1753,8 +1767,7 @@ lemma le_of_map_le_map_inj' {f g : filter α} {m : α → β} {s : set α}
   (hsf : s ∈ f) (hsg : s ∈ g) (hm : ∀ x ∈ s, ∀ y ∈ s, m x = m y → x = y)
   (h : map m f ≤ map m g) : f ≤ g :=
 λ t ht, by filter_upwards [hsf, h $ image_mem_map (inter_mem hsg ht)]
-λ a has ⟨b, ⟨hbs, hb⟩, h⟩,
-hm _ hbs _ has h ▸ hb
+using λ _ has ⟨_, ⟨hbs, hb⟩, h⟩, hm _ hbs _ has h ▸ hb
 
 lemma le_of_map_le_map_inj_iff {f g : filter α} {m : α → β} {s : set α}
   (hsf : s ∈ f) (hsg : s ∈ g) (hm : ∀ x ∈ s, ∀ y ∈ s, m x = m y → x = y) :
@@ -2117,8 +2130,7 @@ join_le $ eventually_map.2 h
 begin
   refine le_trans (λ s hs, _) (join_mono $ map_mono hf),
   simp only [mem_join, mem_bind', mem_map] at hs ⊢,
-  filter_upwards [hg, hs],
-  exact λ x hx hs, hx hs
+  filter_upwards [hg, hs] with _ hx hs using hx hs,
 end
 
 lemma bind_inf_principal {f : filter α} {g : α → filter β} {s : set β} :
@@ -2398,9 +2410,10 @@ begin
   simp only [tendsto_def, mem_inf_principal] at *,
   intros s hs,
   filter_upwards [h₀ s hs, h₁ s hs],
-  simp only [mem_preimage], intros x hp₀ hp₁,
+  simp only [mem_preimage],
+  intros x hp₀ hp₁,
   split_ifs,
-  exacts [hp₀ h, hp₁ h]
+  exacts [hp₀ h, hp₁ h],
 end
 
 lemma tendsto.piecewise {l₁ : filter α} {l₂ : filter β} {f g : α → β}

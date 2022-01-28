@@ -17,11 +17,6 @@ open topological_space set metric
 
 local attribute [simp] pow_le_pow_iff one_lt_two inv_le_inv
 
-lemma is_topological_basis_singletons (α : Type*) [topological_space α] [discrete_topology α] :
-  is_topological_basis {s | ∃ (x : α), (s : set α) = {x}} :=
-is_topological_basis_of_open_of_nhds (λ u hu, is_open_discrete _) $
-  λ x u hx u_open, ⟨{x}, ⟨x, rfl⟩, mem_singleton x, singleton_subset_iff.2 hx⟩
-
 variable {E : ℕ → Type*}
 
 namespace pi_nat
@@ -368,7 +363,7 @@ begin
 end
 
 lemma inter_cylinder_last_index_in_nonempty
-  (s : set (Π n, E n)) (hs : is_closed s) (hne : s.nonempty)
+  {s : set (Π n, E n)} (hs : is_closed s) (hne : s.nonempty)
   {x : (Π n, E n)} (hx : x ∉ s) :
   (s ∩ cylinder x (last_index_in x s)).nonempty :=
 begin
@@ -407,14 +402,14 @@ begin
   have l_eq : last_index_in y s = last_index_in x s,
   { rcases lt_trichotomy (last_index_in y s) (last_index_in x s) with L|L|L,
     { have Ax : (s ∩ cylinder x (last_index_in x s)).nonempty :=
-        inter_cylinder_last_index_in_nonempty s hs hne xs,
+        inter_cylinder_last_index_in_nonempty hs hne xs,
       have Z := disjoint_cylinder_of_last_index_in_lt hs ys L,
       rw first_diff_comm at H,
       rw [cylinder_eq_cylinder_of_le_first_diff _ _ H.le] at Z,
       exact (Ax.not_disjoint Z).elim },
     { exact L },
     { have Ay : (s ∩ cylinder y (last_index_in y s)).nonempty :=
-        inter_cylinder_last_index_in_nonempty s hs hne ys,
+        inter_cylinder_last_index_in_nonempty hs hne ys,
       have A'y : (s ∩ cylinder y (last_index_in x s).succ).nonempty :=
         Ay.mono (inter_subset_inter_right s (cylinder_anti _ L)),
       have Z := disjoint_cylinder_of_last_index_in_lt hs xs (nat.lt_succ_self _),
@@ -423,9 +418,6 @@ begin
   rw [l_eq, ← mem_cylinder_iff_eq],
   exact cylinder_anti y H.le (mem_cylinder_first_diff x y)
 end
-
-def some_extension (s : set (Π n, E n)) (x : Π n, E n) (i : ℕ) : Π n, E n :=
-if h : (s ∩ cylinder x i).nonempty then h.some else x
 
 /-- Given a closed nonempty subset `s` of `Π n, E n`, there exists a retraction onto this set, i.e.,
 a continuous map with range equal to `s`, equal to the identity on `s`. -/
@@ -445,18 +437,15 @@ begin
   length is `< n`, then it is also the longest prefix of `y`, and we get `f x = f y = z_w`.
   Otherwise, `f x` remains in the same `n`-cylinder as `x`. Similarly for `y`. Finally, `f x` and
   `f y` are again in the same `n`-cylinder, as desired. -/
-  set f := λ x, if x ∈ s then x else some_extension s x (last_index_in x s) with hf,
+  set f := λ x, if h : x ∈ s then x else (inter_cylinder_last_index_in_nonempty hs hne h).some
+    with hf,
   have fs : ∀ x ∈ s, f x = x := λ x xs, by simp [xs],
   refine ⟨f, fs, _, _⟩,
   -- check that the range of `f` is `s`.
   { apply subset.antisymm,
     { rintros x ⟨y, rfl⟩,
       by_cases hy : y ∈ s, { rwa fs y hy },
-      suffices : some_extension s y (last_index_in y s) ∈ s, by simpa [hf, if_neg hy],
-      have A : (s ∩ cylinder y (last_index_in y s)).nonempty :=
-        inter_cylinder_last_index_in_nonempty s hs hne hy,
-      rw [some_extension, dif_pos A],
-      exact A.some_mem.1 },
+      simpa [hf, dif_neg hy] using (inter_cylinder_last_index_in_nonempty hs hne hy).some_spec.1 },
     { assume x hx,
       rw ← fs x hx,
       exact mem_range_self _ } },
@@ -477,8 +466,8 @@ begin
       by_cases ys : y ∈ s, { rw [fs y ys] },
       -- case where `y ∉ s`
       have A : (s ∩ cylinder y (last_index_in y s)).nonempty :=
-        inter_cylinder_last_index_in_nonempty s hs hne ys,
-      have fy : f y = A.some, by simp_rw [hf, if_neg ys, some_extension, dif_pos A],
+        inter_cylinder_last_index_in_nonempty hs hne ys,
+      have fy : f y = A.some, by simp_rw [hf, dif_neg ys],
       have I : cylinder A.some (first_diff x y) = cylinder y (first_diff x y),
         { rw [← mem_cylinder_iff_eq, first_diff_comm],
           apply cylinder_anti y _ A.some_spec.2,
@@ -489,8 +478,8 @@ begin
     { by_cases ys : y ∈ s,
       -- case where `y ∈ s` (similar to the above)
       { have A : (s ∩ cylinder x (last_index_in x s)).nonempty :=
-          inter_cylinder_last_index_in_nonempty s hs hne xs,
-        have fx : f x = A.some, by simp_rw [hf, if_neg xs, some_extension, dif_pos A],
+          inter_cylinder_last_index_in_nonempty hs hne xs,
+        have fx : f x = A.some, by simp_rw [hf, dif_neg xs],
         have I : cylinder A.some (first_diff x y) = cylinder x (first_diff x y),
         { rw ← mem_cylinder_iff_eq,
           apply cylinder_anti x _ A.some_spec.2,
@@ -499,11 +488,11 @@ begin
         rwa [← fx, I2, ← mem_cylinder_iff_eq, mem_cylinder_iff_le_first_diff hfxfy] at I },
       -- case where `y ∉ s`
       { have Ax : (s ∩ cylinder x (last_index_in x s)).nonempty :=
-          inter_cylinder_last_index_in_nonempty s hs hne xs,
-        have fx : f x = Ax.some, by simp_rw [hf, if_neg xs, some_extension, dif_pos Ax],
+          inter_cylinder_last_index_in_nonempty hs hne xs,
+        have fx : f x = Ax.some, by simp_rw [hf, dif_neg xs],
         have Ay : (s ∩ cylinder y (last_index_in y s)).nonempty :=
-          inter_cylinder_last_index_in_nonempty s hs hne ys,
-        have fy : f y = Ay.some, by simp_rw [hf, if_neg ys, some_extension, dif_pos Ay],
+          inter_cylinder_last_index_in_nonempty hs hne ys,
+        have fy : f y = Ay.some, by simp_rw [hf, dif_neg ys],
         -- case where the common prefix to `x` and `s`, or `y` and `s`, is shorter than the
         -- common part to `x` and `y` -- then `f x = f y`.
         by_cases H : last_index_in x s < first_diff x y ∨ last_index_in y s < first_diff x y,
@@ -530,7 +519,5 @@ begin
           rw [← fx, ← fy, ← mem_cylinder_iff_eq, mem_cylinder_iff_le_first_diff hfxfy] at this,
           exact this } } } }
 end
-
-
 
 end pi_nat

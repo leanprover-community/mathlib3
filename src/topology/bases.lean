@@ -379,6 +379,11 @@ begin
     refl }
 end
 
+lemma is_topological_basis_singletons (α : Type*) [topological_space α] [discrete_topology α] :
+  is_topological_basis {s | ∃ (x : α), (s : set α) = {x}} :=
+is_topological_basis_of_open_of_nhds (λ u hu, is_open_discrete _) $
+  λ x u hx u_open, ⟨{x}, ⟨x, rfl⟩, mem_singleton x, singleton_subset_iff.2 hx⟩
+
 /-- If `α` is a separable space and `f : α → β` is a continuous map with dense range, then `β` is
 a separable space as well. E.g., the completion of a separable uniform space is separable. -/
 protected lemma dense_range.separable_space {α β : Type*} [topological_space α] [separable_space α]

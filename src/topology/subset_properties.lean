@@ -936,6 +936,10 @@ lemma compact_basis_nhds [locally_compact_space α] (x : α) :
   (𝓝 x).has_basis (λ s, s ∈ 𝓝 x ∧ is_compact s) (λ s, s) :=
 has_basis_self.2 $ by simpa only [and_comm] using locally_compact_space.local_compact_nhds x
 
+lemma local_compact_nhds [locally_compact_space α] {x : α} {n : set α} (h : n ∈ 𝓝 x) :
+  ∃ s ∈ 𝓝 x, s ⊆ n ∧ is_compact s :=
+locally_compact_space.local_compact_nhds _ _ h
+
 lemma locally_compact_space_of_has_basis {ι : α → Type*} {p : Π x, ι x → Prop}
   {s : Π x, ι x → set α} (h : ∀ x, (𝓝 x).has_basis (p x) (s x))
   (hc : ∀ x i, p x i → is_compact (s x i)) :

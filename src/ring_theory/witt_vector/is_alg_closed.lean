@@ -81,14 +81,15 @@ begin
   have := witt_structure_prop p ((mv_polynomial.X 0 * mv_polynomial.X 1) : mv_polynomial (fin 2) ℤ) n,
   replace this := congr_arg (λ z, witt_vector.peval z ![λ i, x.coeff i, λ i, y.coeff i]) this,
   have mvp : (p : mv_polynomial ℕ ℤ) = mv_polynomial.C ↑p := by rw [ring_hom.eq_int_cast, int.cast_coe_nat ],
+
   simp only [int.cast_coe_nat,
  ring_hom.eq_int_cast,
  mv_polynomial.eval₂_mul,
- witt_vector.peval.equations._eqn_1,
+ witt_vector.peval,
  ring_hom.to_fun_eq_coe,
  mv_polynomial.coe_eval₂_hom,
  mv_polynomial.C_pow,
- mv_polynomial.aeval.equations._eqn_1,
+ mv_polynomial.aeval,
  mv_polynomial.eval₂_map,
  witt_polynomial_eq_sum_C_mul_X_pow,
  int.nat_cast_eq_coe_nat,
@@ -100,9 +101,14 @@ begin
 rw [mvp, mv_polynomial.eval₂_C, ring_hom.eq_int_cast, int.cast_coe_nat] at this,
 have mvp : (p : mv_polynomial (fin 2 × ℕ) ℤ) = mv_polynomial.C ↑p := by rw [ring_hom.eq_int_cast, int.cast_coe_nat ],
 rw [mvp, mv_polynomial.eval₂_C, ring_hom.eq_int_cast, int.cast_coe_nat] at this,
+simp [witt_vector.mul_coeff],
+convert this using 2,
+ext z,
+rw mul_comm,
+congr' 1,
+simp [peval, mv_polynomial.aeval],
 sorry
 end
-
 
 -- this is the version we think is true in char p
 lemma nth_mul_coeff (n : ℕ) : ∃ f : ((fin (n+1) → k) → (fin (n+1) → k) → k), ∀ (x y : 𝕎 k),

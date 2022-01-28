@@ -233,32 +233,32 @@ theorem is_connected.Union_nat_of_chain {s : ℕ → set α}
 is_connected.Union_of_refl_trans_gen H $
   λ i j, refl_trans_gen_of_succ _ (λ i _, K i) $ λ i _, by { rw inter_comm, exact K i }
 
-/-- The Union of preconnected sets indexed by a subset of `ℤ` such that any two neighboring sets
-meet is preconnected. -/
-theorem is_preconnected.Union_int_of_chain {s : ℤ → set α}
-  {t : set ℤ} (ht : ord_connected t)
+open succ_order
+/-- The Union of preconnected sets indexed by a subset of a type with an archimedian successor
+  (like `ℤ`) such that any two neighboring sets meet is preconnected. -/
+theorem is_preconnected.Union_int_of_chain [linear_order β] [succ_order β] [is_succ_archimedean β]
+  {s : β → set α} {t : set β} (ht : ord_connected t)
   (H : ∀ n ∈ t, is_preconnected (s n))
-  (K : ∀ n : ℤ, n ∈ t → n.succ ∈ t → (s n ∩ s n.succ).nonempty) :
+  (K : ∀ n : β, n ∈ t → succ n ∈ t → (s n ∩ s (succ n)).nonempty) :
   is_preconnected (⋃ n ∈ t, s n) :=
 begin
-  have h1 : ∀ {i j k : ℤ}, i ∈ t → j ∈ t → k ∈ Ico i j → k ∈ t :=
+  have h1 : ∀ {i j k : β}, i ∈ t → j ∈ t → k ∈ Ico i j → k ∈ t :=
     λ i j k hi hj hk, ht.out hi hj (Ico_subset_Icc_self hk),
-  have h2 : ∀ {i j k : ℤ}, i ∈ t → j ∈ t → k ∈ Ico i j → k.succ ∈ t := λ i j k hi hj hk,
-    ht.out hi hj ⟨hk.1.trans $ le_add_of_nonneg_right zero_le_one, int.add_one_le_iff.mpr hk.2⟩,
-  have h3 : ∀ {i j k : ℤ}, i ∈ t → j ∈ t → k ∈ Ico i j → (s k ∩ s k.succ).nonempty :=
+  have h2 : ∀ {i j k : β}, i ∈ t → j ∈ t → k ∈ Ico i j → succ k ∈ t := λ i j k hi hj hk,
+    ht.out hi hj ⟨hk.1.trans $ le_succ k, succ_le_of_lt hk.2⟩,
+  have h3 : ∀ {i j k : β}, i ∈ t → j ∈ t → k ∈ Ico i j → (s k ∩ s (succ k)).nonempty :=
     λ i j k hi hj hk, K _ (h1 hi hj hk) (h2 hi hj hk),
   refine is_preconnected.bUnion_of_refl_trans_gen H (λ i hi j hj, _),
   exact refl_trans_gen_of_succ _ (λ k hk, ⟨h3 hi hj hk, h1 hi hj hk⟩)
     (λ k hk, ⟨by { rw [inter_comm], exact h3 hj hi hk }, h2 hj hi hk⟩),
 end
 
-
-/-- The Union of connected sets indexed by a subset of `ℤ` such that any two neighboring sets meet
-is preconnected. -/
-theorem is_connected.Union_int_of_chain {s : ℤ → set α}
-  {t : set ℤ} (hnt : t.nonempty) (ht : ord_connected t)
+/-- The Union of connected sets indexed by a subset of a type with an archimedian successor
+  (like `ℤ`) such that any two neighboring sets meet is preconnected. -/
+theorem is_connected.Union_int_of_chain [linear_order β] [succ_order β] [is_succ_archimedean β]
+  {s : β → set α} {t : set β} (hnt : t.nonempty) (ht : ord_connected t)
   (H : ∀ n ∈ t, is_connected (s n))
-  (K : ∀ n : ℤ, n ∈ t → n.succ ∈ t → (s n ∩ s n.succ).nonempty) :
+  (K : ∀ n : β, n ∈ t → succ n ∈ t → (s n ∩ s (succ n)).nonempty) :
   is_connected (⋃ n ∈ t, s n) :=
 ⟨nonempty_bUnion.2 $ ⟨hnt.some, hnt.some_mem, (H _ hnt.some_mem).nonempty⟩,
   is_preconnected.Union_int_of_chain ht (λ i hi, (H i hi).is_preconnected) K⟩

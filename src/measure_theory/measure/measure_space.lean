@@ -450,9 +450,8 @@ lemma tendsto_measure_bInter_gt {ι : Type*} [linear_order ι] [topological_spac
   tendsto (μ ∘ s) (𝓝[Ioi a] a) (𝓝 (μ (⋂ r > a, s r))) :=
 begin
   refine tendsto_order.2 ⟨λ l hl, _, λ L hL, _⟩,
-  { filter_upwards [self_mem_nhds_within],
-    assume r hr,
-    exact hl.trans_le (measure_mono (bInter_subset_of_mem hr)) },
+  { filter_upwards [self_mem_nhds_within] with r hr
+      using hl.trans_le (measure_mono (bInter_subset_of_mem hr)), },
   obtain ⟨u, u_anti, u_pos, u_lim⟩ : ∃ (u : ℕ → ι), strict_anti u ∧ (∀ (n : ℕ), a < u n)
     ∧ tendsto u at_top (𝓝 a),
   { rcases hf with ⟨r, ar, hr⟩,
@@ -479,9 +478,7 @@ begin
   rw B at A,
   obtain ⟨n, hn⟩ : ∃ n, μ (s (u n)) < L := ((tendsto_order.1 A).2 _ hL).exists,
   have : Ioc a (u n) ∈ 𝓝[>] a := Ioc_mem_nhds_within_Ioi ⟨le_rfl, u_pos n⟩,
-  filter_upwards [this],
-  assume r hr,
-  exact lt_of_le_of_lt (measure_mono (hm _ _ hr.1 hr.2)) hn,
+  filter_upwards [this] with r hr using lt_of_le_of_lt (measure_mono (hm _ _ hr.1 hr.2)) hn,
 end
 
 /-- One direction of the **Borel-Cantelli lemma**: if (sᵢ) is a sequence of sets such
@@ -1119,6 +1116,10 @@ restrict_mono' h (le_refl μ)
 lemma restrict_congr_set (h : s =ᵐ[μ] t) : μ.restrict s = μ.restrict t :=
 le_antisymm (restrict_mono_ae h.le) (restrict_mono_ae h.symm.le)
 
+lemma restrict_to_measurable (h : μ s ≠ ∞) : μ.restrict (to_measurable μ s) = μ.restrict s :=
+ext $ λ t ht, by rw [restrict_apply ht, restrict_apply ht, inter_comm,
+  measure_to_measurable_inter ht h, inter_comm]
+
 lemma restrict_eq_self_of_ae_mem {m0 : measurable_space α} ⦃s : set α⦄ ⦃μ : measure α⦄
   (hs : ∀ᵐ x ∂μ, x ∈ s) :
   μ.restrict s = μ :=
@@ -1696,16 +1697,23 @@ begin
   simpa [set_of_and, inter_comm] using measure_inter_eq_zero_of_restrict h
 end
 
-lemma ae_restrict_iff' {s : set α} {p : α → Prop} (hs : measurable_set s) :
+lemma ae_restrict_iff' {p : α → Prop} (hs : measurable_set s) :
   (∀ᵐ x ∂(μ.restrict s), p x) ↔ ∀ᵐ x ∂μ, x ∈ s → p x :=
 begin
   simp only [ae_iff, ← compl_set_of, restrict_apply_eq_zero' hs],
   congr' with x, simp [and_comm]
 end
 
-lemma ae_restrict_mem {s : set α} (hs : measurable_set s) :
+lemma ae_restrict_mem (hs : measurable_set s) :
   ∀ᵐ x ∂(μ.restrict s), x ∈ s :=
 (ae_restrict_iff' hs).2 (filter.eventually_of_forall (λ x, id))
+
+lemma ae_restrict_mem₀ (hs : null_measurable_set s μ) : ∀ᵐ x ∂(μ.restrict s), x ∈ s :=
+begin
+  rcases hs.exists_measurable_subset_ae_eq with ⟨t, hts, htm, ht_eq⟩,
+  rw ← restrict_congr_set ht_eq,
+  exact (ae_restrict_mem htm).mono hts
+end
 
 lemma ae_restrict_of_ae {s : set α} {p : α → Prop} (h : ∀ᵐ x ∂μ, p x) :
   (∀ᵐ x ∂(μ.restrict s), p x) :=
@@ -2142,7 +2150,7 @@ def measure.to_finite_spanning_sets_in (μ : measure α) [h : sigma_finite μ] :
 { set := λ n, to_measurable μ (h.out.some.set n),
   set_mem := λ n, measurable_set_to_measurable _ _,
   finite := λ n, by { rw measure_to_measurable, exact h.out.some.finite n },
-  spanning := eq_univ_of_subset (Union_subset_Union $ λ n, subset_to_measurable _ _)
+  spanning := eq_univ_of_subset (Union_mono $ λ n, subset_to_measurable _ _)
     h.out.some.spanning }
 
 /-- A noncomputable way to get a monotone collection of sets that span `univ` and have finite
@@ -2213,9 +2221,7 @@ begin
   { assume n,
     have := h (spanning_sets μ n) (measurable_spanning_sets _ _) (measure_spanning_sets_lt_top _ _),
     rwa ae_restrict_iff' (measurable_spanning_sets _ _) at this },
-  filter_upwards [ae_all_iff.2 this],
-  assume x hx,
-  exact hx _ (mem_spanning_sets_index _ _),
+  filter_upwards [ae_all_iff.2 this] with _ hx using hx _ (mem_spanning_sets_index _ _),
 end
 
 omit m0
@@ -2261,7 +2267,7 @@ begin
       t ⊆ ⋃ n, t ∩ disjointed (spanning_sets μ) n :
         by rw [← inter_Union, Union_disjointed, Union_spanning_sets, inter_univ]
       ... ⊆ ⋃ n, to_measurable μ (t ∩ disjointed (spanning_sets μ) n) :
-        Union_subset_Union (λ n, subset_to_measurable _ _),
+        Union_mono (λ n, subset_to_measurable _ _),
     refine ⟨t', tt', measurable_set.Union (λ n, measurable_set_to_measurable μ _), λ u hu, _⟩,
     apply le_antisymm _ (measure_mono (inter_subset_inter tt' subset.rfl)),
     calc μ (t' ∩ u) ≤ ∑' n, μ (to_measurable μ (t ∩ disjointed (spanning_sets μ) n) ∩ u) :
@@ -2301,6 +2307,11 @@ begin
     exact ae_eq_set_inter ht.some_spec.snd.2 (ae_eq_refl _) },
   { exact A.some_spec.snd.2 s hs },
 end
+
+@[simp] lemma restrict_to_measurable_of_sigma_finite [sigma_finite μ] (s : set α) :
+  μ.restrict (to_measurable μ s) = μ.restrict s :=
+ext $ λ t ht, by simp only [restrict_apply ht, inter_comm t,
+  measure_to_measurable_inter_of_sigma_finite ht]
 
 namespace finite_spanning_sets_in
 
@@ -3218,7 +3229,7 @@ def measure_theory.measure.finite_spanning_sets_in_open [topological_space α]
     ((is_compact_compact_covering α n).exists_open_superset_measure_lt_top μ).some_spec.snd.1,
   finite := λ n,
     ((is_compact_compact_covering α n).exists_open_superset_measure_lt_top μ).some_spec.snd.2,
-  spanning := eq_univ_of_subset (Union_subset_Union $ λ n,
+  spanning := eq_univ_of_subset (Union_mono $ λ n,
     ((is_compact_compact_covering α n).exists_open_superset_measure_lt_top μ).some_spec.fst)
     (Union_compact_covering α) }
 

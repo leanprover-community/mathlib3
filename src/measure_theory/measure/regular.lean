@@ -328,7 +328,7 @@ begin
     rw [H₁, H₁, inter_eq_self_of_subset_left (hAs _)] at hU,
     exact ⟨U ∩ s.set n, subset_inter hAU (hAs _), hUo.inter (s.set_mem n).1, hU⟩ },
   choose U hAU hUo hU,
-  refine ⟨⋃ n, U n, Union_subset_Union hAU, is_open_Union hUo, _⟩,
+  refine ⟨⋃ n, U n, Union_mono hAU, is_open_Union hUo, _⟩,
   calc μ (⋃ n, U n) ≤ ∑' n, μ (U n)             : measure_Union_le _
                 ... ≤ ∑' n, (μ (A n) + δ n)     : ennreal.tsum_le_tsum (λ n, (hU n).le)
                 ... = ∑' n, μ (A n) + ∑' n, δ n : ennreal.tsum_add
@@ -404,8 +404,8 @@ begin
     rcases (this.eventually $ lt_mem_nhds $ ennreal.lt_add_right hfin ε0').exists with ⟨t, ht⟩,
     -- the approximating open set is constructed by taking for each `s n` an approximating open set
     -- `U n` with measure at most `μ (s n) + δ n` for a summable `δ`, and taking the union of these.
-    refine ⟨⋃ k ∈ t, F k, Union_subset_Union $ λ k, Union_subset $ λ _, hFs _,
-      ⋃ n, U n, Union_subset_Union hsU, is_closed_bUnion t.finite_to_set $ λ k _, hFc k,
+    refine ⟨⋃ k ∈ t, F k, Union_mono $ λ k, Union_subset $ λ _, hFs _,
+      ⋃ n, U n, Union_mono hsU, is_closed_bUnion t.finite_to_set $ λ k _, hFc k,
       is_open_Union hUo, ht.le.trans _, _⟩,
     { calc ∑ k in t, μ (s k) + ε / 2 ≤ ∑ k in t, μ (F k) + ∑ k in t, δ k + ε / 2 :
         by { rw ← sum_add_distrib, exact add_le_add_right (sum_le_sum $ λ k hk, hF k) _ }

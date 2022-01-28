@@ -375,7 +375,7 @@ begin
   set Td : ℕ → set α := disjointed T,
   have hm : ∀ n, measurable_set (Td n),
     from measurable_set.disjointed (λ n, measurable_set_to_measurable _ _),
-  calc μ (⋃ n, t n) ≤ μ (⋃ n, T n) : 
+  calc μ (⋃ n, t n) ≤ μ (⋃ n, T n) :
     measure_mono (Union_subset_Union $ λ i, subset_to_measurable _ _)
   ... = μ (⋃ n, Td n) : by rw [Union_disjointed]
   ... ≤ ∑' n, μ (Td n) : measure_Union_le _
@@ -1805,7 +1805,7 @@ lemma bsupr_measure_Iic [preorder α] {s : set α} (hsc : countable s)
   (hst : ∀ x : α, ∃ y ∈ s, x ≤ y) (hdir : directed_on (≤) s) :
   (⨆ x ∈ s, μ (Iic x)) = μ univ :=
 begin
-  rw ← measure_bUnion_eq_supr hsc,
+  rw ← measure_Union₂_eq_supr hsc,
   { congr, exact bUnion_eq_univ_iff.2 hst },
   { exact directed_on_iff_directed.2 (hdir.directed_coe.mono_comp _ $ λ x y, Iic_subset_Iic.2) }
 end

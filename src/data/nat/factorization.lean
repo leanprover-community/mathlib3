@@ -343,7 +343,7 @@ begin
   exact le_of_dvd ha.bot_lt hab,
 end
 
-@[simp] lemma factorization_div {d n : ℕ} (hn : n ≠ 0) (h : d ∣ n) :
+@[simp] lemma factorization_div {d n : ℕ} (h : d ∣ n) :
   (n / d).factorization = n.factorization - d.factorization :=
 begin
   rcases eq_or_ne d 0 with rfl | hd,
@@ -363,16 +363,15 @@ end
 lemma dvd_iff_div_factorization_eq_tsub (d n : ℕ) (hd : d ≠ 0) (hdn : d ≤ n) :
   d ∣ n ↔ (n / d).factorization = n.factorization - d.factorization :=
 begin
-  have hn : n ≠ 0 := (lt_of_lt_of_le hd.bot_lt hdn).ne.symm,
-  refine ⟨factorization_div hn, _⟩,
-  { rcases eq_or_lt_of_le hdn with rfl | hd_lt_n, { simp },
-    have h1 : n / d ≠ 0 := λ H, nat.lt_asymm hd_lt_n ((nat.div_eq_zero_iff hd.bot_lt).mp H),
-    intros h,
-    rw dvd_iff_le_div_mul n d,
-    by_contra h2,
-    cases (exists_factorization_lt_of_lt (mul_ne_zero h1 hd) (not_le.mp h2)) with p hp,
-    rwa [factorization_mul h1 hd, add_apply, ←lt_tsub_iff_right, h, tsub_apply,
-      lt_self_iff_false] at hp },
+  refine ⟨factorization_div, _⟩,
+  rcases eq_or_lt_of_le hdn with rfl | hd_lt_n, { simp },
+  have h1 : n / d ≠ 0 := λ H, nat.lt_asymm hd_lt_n ((nat.div_eq_zero_iff hd.bot_lt).mp H),
+  intros h,
+  rw dvd_iff_le_div_mul n d,
+  by_contra h2,
+  cases (exists_factorization_lt_of_lt (mul_ne_zero h1 hd) (not_le.mp h2)) with p hp,
+  rwa [factorization_mul h1 hd, add_apply, ←lt_tsub_iff_right, h, tsub_apply,
+    lt_self_iff_false] at hp
 end
 
 lemma dvd_iff_prime_pow_dvd_dvd {n d : ℕ} (hd : d ≠ 0) (hn : n ≠ 0) :

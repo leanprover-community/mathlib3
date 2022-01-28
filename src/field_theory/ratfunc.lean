@@ -461,8 +461,7 @@ def lift_monoid_with_zero_hom (φ : polynomial K →*₀ G₀) (hφ : function.i
   end,
   map_one' := by { rw [←of_fraction_ring_one, ←localization.mk_one, lift_on_of_fraction_ring_mk],
                    simp only [map_one, submonoid.coe_one, div_one] },
-  map_mul' := λ x y, by {
-    cases x, cases y, induction x with p q, induction y with p' q',
+  map_mul' := λ x y, by { cases x, cases y, induction x with p q, induction y with p' q',
     { rw [←of_fraction_ring_mul, localization.mk_mul],
       simp only [lift_on_of_fraction_ring_mk, div_mul_div, map_mul, submonoid.coe_mul] },
     { refl },
@@ -495,8 +494,7 @@ end
 /-- Lift a `polynomial K →+* L` to a `ratfunc K →+* L` by mapping both the numerator and
 denominator and quotienting them. --/
 def lift_ring_hom (φ : polynomial K →+* L) (hφ : function.injective φ) : ratfunc K →+* L :=
-{ map_add' := λ x y, by {
-    simp only [monoid_with_zero_hom.to_fun_eq_coe],
+{ map_add' := λ x y, by { simp only [monoid_with_zero_hom.to_fun_eq_coe],
     casesI subsingleton_or_nontrivial K,
     { rw [subsingleton.elim (x + y) y, subsingleton.elim x 0, map_zero, zero_add] },
     cases x, cases y, induction x with p q, induction y with p' q',

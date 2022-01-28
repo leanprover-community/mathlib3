@@ -20,7 +20,7 @@ iff `∃ C, (0 < C) ∧ ∀ u, C * ∥u∥ * ∥u∥ ≤ B u u`.
 Under the hypothesis that `B` is coercive
 we prove the Lax-Milgram theorem:
 that is, the map `continuous_linear_map_of_bilin` from `analysis.inner_product_space.dual`
-can be upgraded to a continuous equivalence `continuous_linear_map_of_bilin : V ≃L[ℝ] V`.
+can be upgraded to a continuous equivalence `continuous_linear_equiv_of_bilin : V ≃L[ℝ] V`.
 
 ## References
 

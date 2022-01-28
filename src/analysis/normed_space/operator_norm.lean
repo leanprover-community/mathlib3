@@ -1621,7 +1621,7 @@ omit σ₂₁
 end normed
 
 /--
-A bounded bilinear form in an inner product space is *coercive*
+A bounded bilinear form `B` in a real normed space is *coercive*
 if there is some positive constant C such that `C * ∥u∥ * ∥u∥ ≤ B u u`.
 -/
 def is_coercive

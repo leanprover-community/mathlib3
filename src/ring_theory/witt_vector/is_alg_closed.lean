@@ -22,6 +22,24 @@ by rw [finset.sum_range_succ, finset.sum_range_succ]; ring
 
 end
 
+section
+open finset
+open_locale big_operators
+
+lemma monoid_hom.map_sum (M N : Type*) [semiring M] --[add_comm_monoid M] [add_comm_monoid N]
+  [semiring N] {T : Type*} [add_monoid_hom_class T M N] (f : T)
+  {ι : Type} (s : finset ι) (g : ι → M) :
+  f (∑ i in s, g i) = ∑ i in s, f (g i) :=
+begin
+  classical,
+  apply finset.induction_on s,
+  { simp },
+  { intros a s has hf,
+    simp [has, hf, map_add] }
+end
+
+end
+
 variables (p : ℕ) [hp : fact p.prime]
 variables (k : Type*) [field k] [char_p k p] [is_alg_closed k]
 include hp
@@ -89,6 +107,52 @@ open_locale big_operators
 --     y.coeff n * (∑ i in range n, p^i*(x.coeff i)^(p^n-i)) +
 --     p^n * x.coeff n * y.coeff n + f (truncate_fun n x) (truncate_fun n y) :=
 -- sorry
+
+
+#check @witt_mul
+-- mₙ(X, Y) = witt_mul p n
+
+example (n : ℕ) : mv_polynomial (fin 2 × ℕ) ℤ :=
+∑ i in range (n+1), p^i * (witt_mul p i)^(p^n-i)
+
+open mv_polynomial
+example (n : ℕ) : mv_polynomial (fin 2 × ℕ) ℤ :=
+∑ i in range (n+1), p^i * X (0, i)^(p^(n-i)) -- this is almost witt_polynomial p n, but renamed
+
+
+example (n : ℕ) : mv_polynomial (fin 2 × ℕ) ℤ :=
+rename (prod.mk (0 : fin 2)) (witt_polynomial p ℤ n)
+
+example (n : ℕ) :
+  (∑ i in range (n+1), p^i * (witt_mul p i)^(p^(n-i)) : mv_polynomial (fin 2 × ℕ) ℤ) =
+    rename (prod.mk (0 : fin 2)) (witt_polynomial p ℤ n) *
+    rename (prod.mk (1 : fin 2)) (witt_polynomial p ℤ n) :=
+begin
+  convert witt_structure_int_prop p (X (0 : fin 2) * X 1) n using 1,
+  { simp [witt_polynomial, witt_mul],
+    rw monoid_hom.map_sum,
+    congr' 1 with i,
+    congr' 1,
+    have hsupp : (finsupp.single i (p ^ (n - i))).support = {i},
+    { simp,
+       },
+    simp [bind₁_monomial, hsupp], },
+  { simp only [map_mul, bind₁_X_right] }
+
+end
+
+example (f g) : bind₁ (witt_structure_int p (X 0 * X 1)) (f + g) = bind₁ (witt_structure_int p (X 0 * X 1)) f +
+bind₁ (witt_structure_int p (X 0 * X 1)) g :=
+begin
+  simp?
+end
+variable (n : ℕ)
+
+#check witt_structure_int_prop p (witt_mul p n) n
+
+#check witt_polynomial
+
+#exit
 
 lemma nth_mul_coeff_aux1 (n : ℕ) (x y : 𝕎 k) :
   ∑ i in range (n+1), ((x * y).coeff i)^(p^(n-i)) * p^i =

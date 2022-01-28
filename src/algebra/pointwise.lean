@@ -920,7 +920,7 @@ instance : canonically_ordered_comm_semiring (set_semiring α) :=
 { add_le_add_left := λ a b ab c, add_le_add_left ab _,
   le_iff_exists_add := λ a b,
     ⟨λ (ab : ∀ y, y ∈ a.down → y ∈ b.down), ⟨b, le_antisymm (subset_union_right _ _)
-      (λ x xab, by { classical, exact xab.by_cases (ab _) (λ f, f)})⟩,
+      (λ x xab, by { classical, exact xab.by_cases (ab _) (λ f, f) })⟩,
       by { rintro ⟨c, rfl⟩,
         exact subset_union_left _ _ }⟩,
   ..(infer_instance : comm_semiring (set_semiring α)),

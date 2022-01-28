@@ -456,6 +456,14 @@ def Compactum_to_CompHaus_comp_forget :
 nat_iso.of_components (λ X, eq_to_iso rfl) $
 by { intros X Y f, dsimp, simpa }
 
+/-
+TODO: `forget CompHaus` is monadic, as it is isomorphic to the composition
+of an equivalence with the monadic functor `forget Compactum`.
+Once we have the API to transfer monadicity of functors along such isomorphisms,
+the instance `creates_limits (forget CompHaus)` can be deduced from this
+monadicity.
+-/
+
 noncomputable
 instance CompHaus.forget_creates_limits : creates_limits (forget CompHaus) :=
 begin

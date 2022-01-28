@@ -79,13 +79,11 @@ begin
   simp only [mul_succ],
   simp_rw ←add_assoc at ih ⊢,
   calc (filter a.coprime (Ico k (k + n % a + a * i + a))).card
-      ≤ (filter a.coprime (Ico k (k + n % a + a * i)
+      = (filter a.coprime (Ico k (k + n % a + a * i)
                             ∪ Ico (k + n % a + a * i) (k + n % a + a * i + a))).card :
         begin
-          apply card_le_of_subset,
-          apply filter_subset_filter,
+          congr,
           rw Ico_union_Ico_eq_Ico,
-          exact subset.rfl,
           rw add_assoc,
           exact le_self_add,
           exact le_self_add,

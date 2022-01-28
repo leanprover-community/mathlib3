@@ -465,7 +465,7 @@ begin
       --have h₁' : (set.range rayleigh_quotient).nonempty := ⟨0, ⟨0, by simp⟩⟩,
       -- First use filter.comap applied to nhds (supr) to get a filter f₁ on vectors
       set f₁ : filter u_sph :=
-        filter.comap (λ x, rayleigh_quotient x) (𝓝 a),
+        filter.comap (λ x, rayleigh_quotient x) (𝓝[set.range rayleigh_quotient_sphere] a),
       set f₂ : filter E := f₁.map (λ x : u_sph, T x),
       --set f₃ : filter E := filter.map (λ x : sphere (0:E) 1, (a : 𝕜) • x) f₁,
       have h_bdd_range : bdd_above (set.range rayleigh_quotient_sphere),
@@ -474,20 +474,27 @@ begin
       { sorry },
       have h_ne_bot : (𝓝[set.range rayleigh_quotient_sphere] a).ne_bot :=
         is_lub.nhds_within_ne_bot (is_lub_csupr h_bdd_range) h_range_nonempty,
-      have hf₂ : f₂ ≤ 𝓟 (closure (set.range (λ x : u_sph, T x))) := by
-      { rw [filter.le_principal_iff, filter.mem_map, filter.mem_comap],
-        sorry },
-      haveI f₁_ne_bot : f₁.ne_bot :=
-        sorry,
+      have hf₂ : f₂ ≤ 𝓟 (closure (T '' u_sph)) := by
+      { refine le_trans _ (filter.monotone_principal subset_closure),
+        have : T '' u_sph = set.range (λ x : u_sph, T x),
+        { ext, simp only [exists_prop, set.mem_range, set.mem_image, set_coe.exists, subtype.coe_mk]},
+        rw [this, filter.map_le_iff_le_comap, filter.comap_principal],
+        simp only [le_top, filter.principal_univ, set.preimage_range] },
+      haveI : f₁.ne_bot := filter.ne_bot.comap_of_range_mem h_ne_bot self_mem_nhds_within,
         --filter.ne_bot.comap_of_range_mem h_ne_bot self_mem   -- need new version of mathlib for this
-      haveI f₂_ne_bot : f₂.ne_bot := by apply_instance,
+      --haveI f₂_ne_bot : f₂.ne_bot := by apply_instance,
       -- The image of T on the sphere is compact since T is a compact operator
-      have h_img_cpct : is_compact (closure (set.range (λ x : sphere (0:E) 1, T x))),
-      { sorry },
+      have h_img_cpct : is_compact (closure (T '' u_sph)),
+      { refine hT_cpct _ _,
+        -- FIXME split this off: sphere is bounded
+        refine ⟨2, (λ x hx y hy, _)⟩,
+        calc dist x y ≤ dist x 0 + dist 0 y     : dist_triangle _ _ _
+                ...   ≤ 1 + 1  : by rw [mem_sphere.mp hx, dist_comm, mem_sphere.mp hy]
+                ...   = 2      : by norm_num },
       -- f₂ is guaranteed to have a cluster point z for some vector z by compactness of T
       have hf₂' := h_img_cpct hf₂,
       rcases hf₂' with ⟨z, ⟨hz₁, hz₂⟩⟩,
-      have hz₂' := hz₂.ne_bot,
+      --have hz₂' := hz₂.ne_bot,
       set f₁sub : filter u_sph := f₁ ⊓ (𝓝 z ⊓ f₂).comap (λ x, T x),
       --have h_f₁sub : f₁sub ≤ f₁ := inf_le_left,
       haveI : f₁sub.ne_bot,
@@ -500,10 +507,9 @@ begin
       have h_premain : f₁sub.tendsto (λ y, T y) (𝓝 z),
       { refine filter.tendsto.mono_left _ inf_le_right,
         simp only [filter.tendsto, filter.map_comap, inf_assoc, inf_le_left] },
-      --have h_premain₂ : filter.tendsto (λ y, T y - (a : 𝕜) • y) (𝓝 (zs : E)) (𝓝 0),
-      --{ sorry },
       have h_main : f₁sub.tendsto (λ y : u_sph, (a : 𝕜) • (y : E)) (𝓝 z),
-      { refine tendsto_of_tendsto_of_dist h_premain _,
+      { -- FIXME split off this normsq stuff as lemma
+        refine tendsto_of_tendsto_of_dist h_premain _,
         simp only [dist_eq_norm],
         have h₁₂ : (λ x : u_sph, ∥T x - (a : 𝕜) • x∥) = (λ x : u_sph, real.sqrt (∥T x - (a : 𝕜) • x∥ ^ 2)),
         { simp_rw [real.sqrt_sq (norm_nonneg _)] },
@@ -520,14 +526,20 @@ begin
         simp only [←hz_norm, smul_smul, mul_inv_cancel this, one_smul, subtype.coe_mk] },
       have h₃ : (zs : E) ≠ 0,
       { sorry },
-      have h₄ : f₁sub ≤ 𝓝 zs,
+      have hzs : (a⁻¹ : 𝕜) • z = zs,
       { sorry },
+      have h₄ : f₁sub ≤ 𝓝 zs,
+      { have h_main' := filter.tendsto.const_smul h_main (a⁻¹ : 𝕜),
+        have a_ne_zero' : (a : 𝕜) ≠ 0 := by simp [a_ne_zero],
+        simp only [smul_smul, inv_mul_cancel a_ne_zero', filter.tendsto_iff_comap, hzs, one_smul] at h_main',
+        convert h_main',
+        exact nhds_subtype_eq_comap },
       refine has_eigenvalue_of_has_eigenvector ⟨_, h₃⟩,
       rw [mem_eigenspace_iff, h₂],
       refine tendsto_nhds_unique _ h_premain,
       refine filter.tendsto.mono_left _ h₄,
-      have Tsph_cont : continuous (λ x : u_sph, T x),
-      { sorry },
+      have Tsph_cont : continuous (λ x : u_sph, T x) :=
+        continuous.comp T.continuous continuous_subtype_coe,
       exact Tsph_cont.tendsto _,
   },
 

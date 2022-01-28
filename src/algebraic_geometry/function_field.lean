@@ -106,7 +106,6 @@ instance function_field_is_scalar_tower [irreducible_space X.carrier] (U : opens
   [nonempty U] :
   is_scalar_tower (X.presheaf.obj $ op U) (X.presheaf.stalk x) X.function_field :=
 begin
-  haveI : nonempty U := ⟨x⟩,
   apply is_scalar_tower.of_algebra_map_eq',
   simp_rw [ring_hom.algebra_map_to_algebra],
   change _ = X.presheaf.germ x ≫ _,

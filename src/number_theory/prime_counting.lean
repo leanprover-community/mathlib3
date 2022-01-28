@@ -58,11 +58,7 @@ lemma monotone_prime_counting : monotone prime_counting :=
 private lemma filter_coprime_bound (a k n : ℕ) (a_pos : 0 < a) :
   ((Ico k (k + n)).filter (coprime a)).card ≤ totient a * (n / a + 1) :=
 begin
-  conv
-  begin
-    to_lhs,
-    rw ←nat.mod_add_div n a,
-  end,
+  conv_lhs { rw ←nat.mod_add_div n a },
   induction n / a with i ih,
   { simp only [zero_add, mul_one, mul_zero, le_of_lt (mod_lt n a_pos)],
     transitivity (filter a.coprime (Ico k (k + a))).card,

@@ -239,8 +239,7 @@ lemma trace_gen_eq_sum_roots (x : L)
   algebra_map K F (trace K K⟮x⟯ (adjoin_simple.gen K x)) =
     ((minpoly K x).map (algebra_map K F)).roots.sum :=
 begin
-  have injKKx : function.injective (algebra_map K K⟮x⟯) := ring_hom.injective _,
-  have injKxL : function.injective (algebra_map K⟮x⟯ L) := ring_hom.injective _,
+  have injKxL := (algebra_map K⟮x⟯ L).injective,
   by_cases hx : is_integral K x, swap,
   { simp [minpoly.eq_zero hx, trace_gen_eq_zero hx], },
   have hx' : is_integral K (adjoin_simple.gen K x),

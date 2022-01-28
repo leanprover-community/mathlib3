@@ -7,6 +7,7 @@ import topology.algebra.monoid
 import group_theory.group_action.prod
 import group_theory.group_action.basic
 import topology.homeomorph
+import topology.algebra.mul_action2
 
 /-!
 # Continuous monoid action
@@ -61,6 +62,10 @@ variables {M α β : Type*} [topological_space M] [topological_space α]
 section has_scalar
 
 variables [has_scalar M α] [has_continuous_smul M α]
+
+@[priority 100, to_additive] instance has_continuous_smul.has_continuous_smul₂ :
+  has_continuous_smul₂ M α :=
+{ continuous_smul₂ := λ _, continuous_smul.comp (continuous_const.prod_mk continuous_id) }
 
 @[to_additive]
 lemma filter.tendsto.smul {f : β → M} {g : β → α} {l : filter β} {c : M} {a : α}
@@ -184,23 +189,6 @@ lemma continuous_const_smul_iff (c : G) :
   continuous (λ x, c • f x) ↔ continuous f :=
 by simp only [continuous_iff_continuous_at, continuous_at_const_smul_iff]
 
-/-- Scalar multiplication by an element of a group `G` acting on `α` is a homeomorphism from `α`
-to itself. -/
-protected def homeomorph.smul (c : G) : α ≃ₜ α :=
-{ to_equiv := mul_action.to_perm_hom G α c,
-  continuous_to_fun  := continuous_id.const_smul _,
-  continuous_inv_fun := continuous_id.const_smul _ }
-
-/-- Affine-addition of an element of an additive group `G` acting on `α` is a homeomorphism
-from `α` to itself. -/
-protected def homeomorph.vadd {G : Type*} [topological_space G] [add_group G] [add_action G α]
-  [has_continuous_vadd G α] (c : G) : α ≃ₜ α :=
-{ to_equiv := add_action.to_perm_hom α G c,
-  continuous_to_fun  := continuous_id.const_vadd _,
-  continuous_inv_fun := continuous_id.const_vadd _ }
-
-attribute [to_additive] homeomorph.smul
-
 @[to_additive]
 lemma is_open_map_smul (c : G) : is_open_map (λ x : α, c • x) :=
 (homeomorph.smul c).is_open_map
@@ -251,6 +239,12 @@ homeomorph.smul (units.mk0 c hc)
 
 lemma is_open_map_smul₀ {c : G₀} (hc : c ≠ 0) : is_open_map (λ x : α, c • x) :=
 (homeomorph.smul_of_ne_zero c hc).is_open_map
+
+lemma is_open.smul₀ {c : G₀} {s : set α} (hs : is_open s) (hc : c ≠ 0) : is_open (c • s) :=
+is_open_map_smul₀ hc s hs
+
+lemma interior_smul₀ {c : G₀} (hc : c ≠ 0) (s : set α) : interior (c • s) = c • interior s :=
+((homeomorph.smul_of_ne_zero c hc).image_interior s).symm
 
 /-- `smul` is a closed map in the second argument.
 

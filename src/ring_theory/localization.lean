@@ -2298,6 +2298,21 @@ begin
            integer_normalization_aeval_eq_zero _ p px⟩ },
 end
 
+lemma is_algebraic_iff' [is_domain S] [algebra R K] [algebra S K]
+  [is_fraction_ring S K] [is_scalar_tower R S K] :
+  algebra.is_algebraic R S ↔ algebra.is_algebraic R K :=
+begin
+  split,
+  { intros h x,
+    obtain ⟨(a : S), b, ha, rfl⟩ := @div_surjective S _ _ _ _ _ _ x,
+    obtain ⟨f, hf⟩ := h a,
+    obtain ⟨g, hg⟩ := h b,
+    have := is_algebraic_smul
+     }
+
+
+end
+
 variables {A K}
 
 /-- A field is algebraic over the ring `A` iff it is algebraic over the field of fractions of `A`.

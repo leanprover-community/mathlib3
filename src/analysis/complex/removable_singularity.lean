@@ -26,7 +26,7 @@ variables {E : Type u} [normed_group E] [normed_space ℂ E] [measurable_space E
 namespace complex
 
 /-- **Removable singularity** theorem, weak version. If `f : ℂ → E` is differentiable in a punctured
-neighborhood of a point and is continuous at a point, then it is analytic at this point. -/
+neighborhood of a point and is continuous at this point, then it is analytic at this point. -/
 lemma analytic_at_of_differentiable_on_punctured_nhds_of_continuous_at {f : ℂ → E} {c : ℂ}
   (hd : ∀ᶠ z in 𝓝[≠] c, differentiable_at ℂ f z) (hc : continuous_at f c) :
   analytic_at ℂ f c :=

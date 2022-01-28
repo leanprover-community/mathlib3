@@ -1125,20 +1125,6 @@ lemma factors_mul_to_finset_of_coprime {a b : ℕ} (hab : coprime a b) :
 
 open list
 
-/-- For `0 < b`, the power of `p` in `a * b` is at least that in `a` -/
-lemma le_factors_count_mul_left {p a b : ℕ} (hb : b ≠ 0) :
-  list.count p a.factors ≤ list.count p (a * b).factors :=
-begin
-  rcases a.eq_zero_or_pos with rfl | ha,
-  { simp },
-  { rw [perm.count_eq (perm_factors_mul ha.ne' hb) p, count_append p], simp },
-end
-
-/-- For `a > 0`, the power of `p` in `a * b` is at least that in `b` -/
-lemma le_factors_count_mul_right {p a b : ℕ} (ha : a ≠ 0) :
-  list.count p b.factors ≤ list.count p (a * b).factors :=
-by { rw mul_comm, apply le_factors_count_mul_left ha }
-
 /-- If `p` is a prime factor of `a` then `p` is also a prime factor of `a * b` for any `b > 0` -/
 lemma mem_factors_mul_left {p a b : ℕ} (hpa : p ∈ a.factors) (hb : b ≠ 0) : p ∈ (a*b).factors :=
 begin

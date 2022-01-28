@@ -1347,9 +1347,10 @@ begin
 end
 
 
-/-- Change of variable formula for differentiable functions: if a function `f` is
+/- Change of variable formula for differentiable functions: if a function `f` is
 injective and differentiable on a measurable set `s`, then the integral of a function
 `g` on `f '' s` coincides with the integral of `|(f' x).det| * g ∘ f` on `s`. -/
+/-
 theorem lintegral_image_eq_lintegral_abs_det_fderiv_mul' {f : E → E} {s : set E}
   (hs : measurable_set s) {f' : E → (E →L[ℝ] E)}
   (hf' : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x) (hf : inj_on f s) (g : E → ℝ≥0∞) :
@@ -1383,13 +1384,12 @@ begin
   { simp only [eventually_true, ennreal.of_real_lt_top] },
   { apply ae_measurable_of_real_abs_det_fderiv_within μ hs hf' }
 end
+-/
 
-#exit
-
-/-- Change of variable formula for differentiable functions: if a function `f` is
+/- Change of variable formula for differentiable functions: if a function `f` is
 injective and differentiable on a measurable set `s`, then the integral of a measurable function
 `g` on `f '' s` coincides with the integral of `|(f' x).det| * g ∘ f` on `s`. -/
-theorem integral_image_eq_integral_abs_det_fderiv_mul {f : E → E} {s : set E}
+/- theorem integral_image_eq_integral_abs_det_fderiv_mul {f : E → E} {s : set E}
   (hs : measurable_set s)
   {f' : E → (E →L[ℝ] E)} (hf' : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x) (hf : inj_on f s)
   {g : E → ℝ} (hg : measurable g) :
@@ -1423,6 +1423,6 @@ begin
       assume x hx,
       rw Ff hx,
     end
-end
+end -/
 
 end measure_theory

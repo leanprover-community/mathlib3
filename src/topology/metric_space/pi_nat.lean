@@ -325,15 +325,18 @@ begin
   ... < inf_dist x s : hn
 end
 
-def first_index_out (x : (Π n, E n)) (s : set (Π n, E n)) : ℕ :=
+/-- Given a point `x` in a product space `Π (n : ℕ), E n`, and `s` a subset of this space, then
+`shortest_prefix_diff x s` if the smallest `n` for which there is no element of `s` having the same
+prefix of length `n` as `x`. If there is no such `n`, then use `0` by convention. -/
+def shortest_prefix_diff {E : ℕ → Type*} (x : (Π n, E n)) (s : set (Π n, E n)) : ℕ :=
 if h : ∃ n, disjoint s (cylinder x n) then nat.find h else 0
 
-lemma first_diff_lt_first_index_out {s : set (Π n, E n)} (hs : is_closed s)
+lemma first_diff_lt_shortest_prefix_diff {s : set (Π n, E n)} (hs : is_closed s)
   {x y : (Π n, E n)} (hx : x ∉ s) (hy : y ∈ s) :
-  first_diff x y < first_index_out x s :=
+  first_diff x y < shortest_prefix_diff x s :=
 begin
   have A := exists_disjoint_cylinder hs ⟨y, hy⟩ hx,
-  rw [first_index_out, dif_pos A],
+  rw [shortest_prefix_diff, dif_pos A],
   have B := nat.find_spec A,
   contrapose! B,
   rw not_disjoint_iff_nonempty_inter,
@@ -342,35 +345,38 @@ begin
   exact cylinder_anti y B (mem_cylinder_first_diff x y)
 end
 
-lemma first_index_out_pos {s : set (Π n, E n)} (hs : is_closed s) (hne : s.nonempty)
+lemma shortest_prefix_diff_pos {s : set (Π n, E n)} (hs : is_closed s) (hne : s.nonempty)
   {x : (Π n, E n)} (hx : x ∉ s) :
-  0 < first_index_out x s :=
+  0 < shortest_prefix_diff x s :=
 begin
   rcases hne with ⟨y, hy⟩,
-  exact (zero_le _).trans_lt (first_diff_lt_first_index_out hs hx hy)
+  exact (zero_le _).trans_lt (first_diff_lt_shortest_prefix_diff hs hx hy)
 end
 
-def last_index_in (x : (Π n, E n)) (s : set (Π n, E n)) : ℕ :=
-first_index_out x s - 1
+/-- Given a point `x` in a product space `Π (n : ℕ), E n`, and `s` a subset of this space, then
+`longest_common_prefix x s` if the largest `n` for which there is an element of `s` having the same
+prefix of length `n` as `x`. -/
+def longest_common_prefix {E : ℕ → Type*} (x : (Π n, E n)) (s : set (Π n, E n)) : ℕ :=
+shortest_prefix_diff x s - 1
 
-lemma first_diff_le_last_index_in {s : set (Π n, E n)} (hs : is_closed s)
+lemma first_diff_le_longest_common_prefix {s : set (Π n, E n)} (hs : is_closed s)
   {x y : (Π n, E n)} (hx : x ∉ s) (hy : y ∈ s) :
-  first_diff x y ≤ last_index_in x s :=
+  first_diff x y ≤ longest_common_prefix x s :=
 begin
-  rw [last_index_in, le_tsub_iff_right],
-  { exact first_diff_lt_first_index_out hs hx hy },
-  { exact first_index_out_pos hs ⟨y, hy⟩ hx }
+  rw [longest_common_prefix, le_tsub_iff_right],
+  { exact first_diff_lt_shortest_prefix_diff hs hx hy },
+  { exact shortest_prefix_diff_pos hs ⟨y, hy⟩ hx }
 end
 
-lemma inter_cylinder_last_index_in_nonempty
+lemma inter_cylinder_longest_common_prefix_nonempty
   {s : set (Π n, E n)} (hs : is_closed s) (hne : s.nonempty)
   {x : (Π n, E n)} (hx : x ∉ s) :
-  (s ∩ cylinder x (last_index_in x s)).nonempty :=
+  (s ∩ cylinder x (longest_common_prefix x s)).nonempty :=
 begin
   have A := exists_disjoint_cylinder hs hne hx,
-  have B : last_index_in x s < first_index_out x s :=
-    nat.pred_lt (first_index_out_pos hs hne hx).ne',
-  rw [last_index_in, first_index_out, dif_pos A] at B ⊢,
+  have B : longest_common_prefix x s < shortest_prefix_diff x s :=
+    nat.pred_lt (shortest_prefix_diff_pos hs hne hx).ne',
+  rw [longest_common_prefix, shortest_prefix_diff, dif_pos A] at B ⊢,
   obtain ⟨y, ys, hy⟩ : ∃ (y : Π (n : ℕ), E n), y ∈ s ∧ x ∈ cylinder y (nat.find A - 1),
   { have := nat.find_min A B,
     push_neg at this,
@@ -381,38 +387,38 @@ begin
   rw hy
 end
 
-lemma disjoint_cylinder_of_last_index_in_lt
+lemma disjoint_cylinder_of_longest_common_prefix_lt
   {s : set (Π n, E n)} (hs : is_closed s)
-  {x : (Π n, E n)} (hx : x ∉ s) {n : ℕ} (hn : last_index_in x s < n) :
+  {x : (Π n, E n)} (hx : x ∉ s) {n : ℕ} (hn : longest_common_prefix x s < n) :
   disjoint s (cylinder x n) :=
 begin
   rcases eq_empty_or_nonempty s with h's|hne, { simp [h's] },
   contrapose! hn,
   rcases not_disjoint_iff_nonempty_inter.1 hn with ⟨y, ys, hy⟩,
-  apply le_trans _ (first_diff_le_last_index_in hs hx ys),
+  apply le_trans _ (first_diff_le_longest_common_prefix hs hx ys),
   apply (mem_cylinder_iff_le_first_diff (ne_of_mem_of_not_mem ys hx).symm _).1,
   rwa mem_cylinder_comm,
 end
 
-lemma cylinder_last_index_in_eq_of_last_index_in_lt_first_diff
+lemma cylinder_longest_common_prefix_eq_of_longest_common_prefix_lt_first_diff
   {x y : Π n, E n} {s : set (Π n, E n)} (hs : is_closed s) (hne : s.nonempty)
-  (H : last_index_in x s < first_diff x y) (xs : x ∉ s) (ys : y ∉ s) :
-  cylinder x (last_index_in x s) = cylinder y (last_index_in y s) :=
+  (H : longest_common_prefix x s < first_diff x y) (xs : x ∉ s) (ys : y ∉ s) :
+  cylinder x (longest_common_prefix x s) = cylinder y (longest_common_prefix y s) :=
 begin
-  have l_eq : last_index_in y s = last_index_in x s,
-  { rcases lt_trichotomy (last_index_in y s) (last_index_in x s) with L|L|L,
-    { have Ax : (s ∩ cylinder x (last_index_in x s)).nonempty :=
-        inter_cylinder_last_index_in_nonempty hs hne xs,
-      have Z := disjoint_cylinder_of_last_index_in_lt hs ys L,
+  have l_eq : longest_common_prefix y s = longest_common_prefix x s,
+  { rcases lt_trichotomy (longest_common_prefix y s) (longest_common_prefix x s) with L|L|L,
+    { have Ax : (s ∩ cylinder x (longest_common_prefix x s)).nonempty :=
+        inter_cylinder_longest_common_prefix_nonempty hs hne xs,
+      have Z := disjoint_cylinder_of_longest_common_prefix_lt hs ys L,
       rw first_diff_comm at H,
       rw [cylinder_eq_cylinder_of_le_first_diff _ _ H.le] at Z,
       exact (Ax.not_disjoint Z).elim },
     { exact L },
-    { have Ay : (s ∩ cylinder y (last_index_in y s)).nonempty :=
-        inter_cylinder_last_index_in_nonempty hs hne ys,
-      have A'y : (s ∩ cylinder y (last_index_in x s).succ).nonempty :=
+    { have Ay : (s ∩ cylinder y (longest_common_prefix y s)).nonempty :=
+        inter_cylinder_longest_common_prefix_nonempty hs hne ys,
+      have A'y : (s ∩ cylinder y (longest_common_prefix x s).succ).nonempty :=
         Ay.mono (inter_subset_inter_right s (cylinder_anti _ L)),
-      have Z := disjoint_cylinder_of_last_index_in_lt hs xs (nat.lt_succ_self _),
+      have Z := disjoint_cylinder_of_longest_common_prefix_lt hs xs (nat.lt_succ_self _),
       rw cylinder_eq_cylinder_of_le_first_diff _ _ H at Z,
       exact (A'y.not_disjoint Z).elim } },
   rw [l_eq, ← mem_cylinder_iff_eq],
@@ -437,7 +443,7 @@ begin
   length is `< n`, then it is also the longest prefix of `y`, and we get `f x = f y = z_w`.
   Otherwise, `f x` remains in the same `n`-cylinder as `x`. Similarly for `y`. Finally, `f x` and
   `f y` are again in the same `n`-cylinder, as desired. -/
-  set f := λ x, if h : x ∈ s then x else (inter_cylinder_last_index_in_nonempty hs hne h).some
+  set f := λ x, if h : x ∈ s then x else (inter_cylinder_longest_common_prefix_nonempty hs hne h).some
     with hf,
   have fs : ∀ x ∈ s, f x = x := λ x xs, by simp [xs],
   refine ⟨f, fs, _, _⟩,
@@ -445,7 +451,7 @@ begin
   { apply subset.antisymm,
     { rintros x ⟨y, rfl⟩,
       by_cases hy : y ∈ s, { rwa fs y hy },
-      simpa [hf, dif_neg hy] using (inter_cylinder_last_index_in_nonempty hs hne hy).some_spec.1 },
+      simpa [hf, dif_neg hy] using (inter_cylinder_longest_common_prefix_nonempty hs hne hy).some_spec.1 },
     { assume x hx,
       rw ← fs x hx,
       exact mem_range_self _ } },
@@ -465,43 +471,43 @@ begin
       -- case where `y ∈ s`, trivial
       by_cases ys : y ∈ s, { rw [fs y ys] },
       -- case where `y ∉ s`
-      have A : (s ∩ cylinder y (last_index_in y s)).nonempty :=
-        inter_cylinder_last_index_in_nonempty hs hne ys,
+      have A : (s ∩ cylinder y (longest_common_prefix y s)).nonempty :=
+        inter_cylinder_longest_common_prefix_nonempty hs hne ys,
       have fy : f y = A.some, by simp_rw [hf, dif_neg ys],
       have I : cylinder A.some (first_diff x y) = cylinder y (first_diff x y),
         { rw [← mem_cylinder_iff_eq, first_diff_comm],
           apply cylinder_anti y _ A.some_spec.2,
-          exact first_diff_le_last_index_in hs ys xs },
+          exact first_diff_le_longest_common_prefix hs ys xs },
         rwa [← fy, ← I2, ← mem_cylinder_iff_eq, mem_cylinder_iff_le_first_diff hfxfy.symm,
              first_diff_comm _ x] at I },
     -- case where `x ∉ s`
     { by_cases ys : y ∈ s,
       -- case where `y ∈ s` (similar to the above)
-      { have A : (s ∩ cylinder x (last_index_in x s)).nonempty :=
-          inter_cylinder_last_index_in_nonempty hs hne xs,
+      { have A : (s ∩ cylinder x (longest_common_prefix x s)).nonempty :=
+          inter_cylinder_longest_common_prefix_nonempty hs hne xs,
         have fx : f x = A.some, by simp_rw [hf, dif_neg xs],
         have I : cylinder A.some (first_diff x y) = cylinder x (first_diff x y),
         { rw ← mem_cylinder_iff_eq,
           apply cylinder_anti x _ A.some_spec.2,
-          apply first_diff_le_last_index_in hs xs ys },
+          apply first_diff_le_longest_common_prefix hs xs ys },
         rw fs y ys at ⊢ hfxfy,
         rwa [← fx, I2, ← mem_cylinder_iff_eq, mem_cylinder_iff_le_first_diff hfxfy] at I },
       -- case where `y ∉ s`
-      { have Ax : (s ∩ cylinder x (last_index_in x s)).nonempty :=
-          inter_cylinder_last_index_in_nonempty hs hne xs,
+      { have Ax : (s ∩ cylinder x (longest_common_prefix x s)).nonempty :=
+          inter_cylinder_longest_common_prefix_nonempty hs hne xs,
         have fx : f x = Ax.some, by simp_rw [hf, dif_neg xs],
-        have Ay : (s ∩ cylinder y (last_index_in y s)).nonempty :=
-          inter_cylinder_last_index_in_nonempty hs hne ys,
+        have Ay : (s ∩ cylinder y (longest_common_prefix y s)).nonempty :=
+          inter_cylinder_longest_common_prefix_nonempty hs hne ys,
         have fy : f y = Ay.some, by simp_rw [hf, dif_neg ys],
         -- case where the common prefix to `x` and `s`, or `y` and `s`, is shorter than the
         -- common part to `x` and `y` -- then `f x = f y`.
-        by_cases H : last_index_in x s < first_diff x y ∨ last_index_in y s < first_diff x y,
-        { have : cylinder x (last_index_in x s) = cylinder y (last_index_in y s),
+        by_cases H : longest_common_prefix x s < first_diff x y ∨ longest_common_prefix y s < first_diff x y,
+        { have : cylinder x (longest_common_prefix x s) = cylinder y (longest_common_prefix y s),
           { cases H,
-            { exact cylinder_last_index_in_eq_of_last_index_in_lt_first_diff hs hne H xs ys },
+            { exact cylinder_longest_common_prefix_eq_of_longest_common_prefix_lt_first_diff hs hne H xs ys },
             { symmetry,
               rw first_diff_comm at H,
-              exact cylinder_last_index_in_eq_of_last_index_in_lt_first_diff hs hne H ys xs } },
+              exact cylinder_longest_common_prefix_eq_of_longest_common_prefix_lt_first_diff hs hne H ys xs } },
           rw [fx, fy] at hfxfy,
           apply (hfxfy _).elim,
           congr' },

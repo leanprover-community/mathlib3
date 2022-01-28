@@ -68,8 +68,7 @@ meta def choose1 (nondep : bool) (h : expr) (data : name) (spec : name) :
           b ← is_proof e,
           monad.unlessb b $
             (mk_app ``nonempty.intro [e] >>= note_anon none) $> ()),
-        unfreeze_local_instances >> apply_instance,
-        instantiate_mvars m)),
+        unfreezing $ apply_instance >> instantiate_mvars m)),
       pure (some (option.guard (λ _, nonemp.is_none) ne), nonemp)
     else pure (none, none),
     ctxt' ← if nonemp.is_some then ctxt.mfilter (λ e, bnot <$> is_proof e) else pure ctxt,

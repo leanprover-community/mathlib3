@@ -422,7 +422,8 @@ end
 
 /-- In a metric space (or even a pseudo emetric space), an open set can be approximated from inside
 by closed sets. -/
-lemma of_pseudo_emetric_space {X : Type*} [pseudo_emetric_space X] [measurable_space X] (μ : measure X) :
+lemma of_pseudo_emetric_space {X : Type*} [pseudo_emetric_space X]
+  [measurable_space X] (μ : measure X) :
   inner_regular μ is_closed is_open :=
 begin
   intros U hU r hr,

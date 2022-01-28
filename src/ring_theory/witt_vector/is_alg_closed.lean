@@ -225,21 +225,35 @@ end
 lemma important {a : fraction_ring (𝕎 k)} (ha : a ≠ 0) :
   ∃ (b : fraction_ring (𝕎 k)) (hb : b ≠ 0) (m : ℤ), φ b * a = p ^ m * b :=
 begin
+  revert ha,
   refine localization.induction_on a _,
-  rintros ⟨r, q, hq⟩,
+  rintros ⟨r, q, hq⟩ hrq,
   rw mem_non_zero_divisors_iff_ne_zero at hq,
-  have : r ≠ 0 := sorry,
+  have : r ≠ 0 := λ h, hrq (by simp [h]),
   obtain ⟨m, r', hr', rfl⟩ := split p k r this,
   obtain ⟨n, q', hq', rfl⟩ := split p k q hq,
-  obtain ⟨b, hb, hb⟩ := important_aux p k hr' hq',
+  obtain ⟨b, hb, hbrq⟩ := important_aux p k hr' hq',
   refine ⟨algebra_map (𝕎 k) _ b, _, m - n, _⟩,
-  { sorry },
+  { simpa using (is_fraction_ring.injective (𝕎 k) (fraction_ring (𝕎 k))).ne hb },
+  have key : witt_vector.frobenius b * p ^ m * r' * p ^ n = p ^ m * b * (p ^ n * q'),
+  { have H := congr_arg (λ x : 𝕎 k, x * p ^ m * p ^ n) hbrq,
+    dsimp at H,
+    refine (eq.trans _ H).trans _; ring },
+  have hp : (p : 𝕎 k) ≠ 0,
+  -- a better way here would be that the Witt vectors have characteristic 0, does mathlib know it?
+  { have : (p : 𝕎 k).coeff 1 = 1 := by simpa using witt_vector.coeff_p_pow 1,
+    intros h,
+    simpa [h] using this },
+  have hp' : (p : fraction_ring (𝕎 k)) ≠ 0,
+  { simpa using (is_fraction_ring.injective (𝕎 k) (fraction_ring (𝕎 k))).ne hp },
+  have hq'' : algebra_map (𝕎 k) (fraction_ring (𝕎 k)) q' ≠ 0,
+  { have hq''' : q' ≠ 0 := λ h, hq' (by simp [h]),
+    simpa using (is_fraction_ring.injective (𝕎 k) (fraction_ring (𝕎 k))).ne hq''' },
+  rw zpow_sub₀ hp',
+  field_simp,
   simp [is_fraction_ring.field_equiv_of_ring_equiv],
-  suffices :
-  witt_vector.frobenius b * p ^ m * r' * p ^ n = p ^ m * b * (p ^ n * q') ,
-  { -- apply `algebra_map` to both sides and divide
-    sorry },
-  have H := congr_arg (λ x : 𝕎 k, x * p ^ m * p ^ n) hb,
-  dsimp at H,
-  refine (eq.trans _ H).trans _; ring
+  convert congr_arg (λ x, algebra_map (𝕎 k) (fraction_ring (𝕎 k)) x) key using 1,
+  { simp only [ring_hom.map_mul, ring_hom.map_pow, map_nat_cast],
+    ring },
+  { simp only [ring_hom.map_mul, ring_hom.map_pow, map_nat_cast] }
 end

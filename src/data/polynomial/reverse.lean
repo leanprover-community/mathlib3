@@ -185,16 +185,16 @@ section eval₂
 
 variables {S : Type*} [comm_semiring S]
 
-lemma eval₂_reflect_mul_pow (i : R →+* S) {x x' : S} (h : x * x' = 1) (N : ℕ) (f : polynomial R)
-  (hf : f.nat_degree ≤ N) : eval₂ i x' (reflect N f) * x ^ N = eval₂ i x f :=
+lemma eval₂_reflect_mul_pow (i : R →+* S) (x : S) [invertible x] (N : ℕ) (f : polynomial R)
+  (hf : f.nat_degree ≤ N) : eval₂ i (⅟x) (reflect N f) * x ^ N = eval₂ i x f :=
 begin
-  refine induction_with_nat_degree_le (λ f, eval₂ i x' (reflect N f) * x ^ N = eval₂ i x f)
+  refine induction_with_nat_degree_le (λ f, eval₂ i (⅟x) (reflect N f) * x ^ N = eval₂ i x f)
     _ _ _ _ f hf,
   { simp },
   { intros n r hr0 hnN,
     simp only [rev_at_le hnN, reflect_C_mul_X_pow, eval₂_X_pow, eval₂_C, eval₂_mul],
     conv in (x ^ N) { rw [← nat.sub_add_cancel hnN] },
-    rw [pow_add, ← mul_assoc, mul_assoc (i r), ← mul_pow, mul_comm x', h, one_pow, mul_one] },
+    rw [pow_add, ← mul_assoc, mul_assoc (i r), ← mul_pow, inv_of_mul_self, one_pow, mul_one] },
   { intros,
     simp [*, add_mul] }
 end
@@ -298,9 +298,9 @@ end
 section eval₂
 variables {S : Type*} [comm_semiring S]
 
-lemma eval₂_reverse_mul_pow (i : R →+* S) {x x' : S} (h : x * x' = 1) (f : polynomial R) :
-  eval₂ i x' (reverse f) * x ^ f.nat_degree = eval₂ i x f :=
-eval₂_reflect_mul_pow i h _ f (le_refl _)
+lemma eval₂_reverse_mul_pow (i : R →+* S) (x : S) [invertible x] (f : polynomial R) :
+  eval₂ i (⅟x) (reverse f) * x ^ f.nat_degree = eval₂ i x f :=
+eval₂_reflect_mul_pow i _ _ f (le_refl _)
 
 end eval₂
 

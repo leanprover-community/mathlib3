@@ -34,6 +34,17 @@ Working with rational functions as fractions:
  - `ratfunc.num` and `ratfunc.denom` give the numerator and denominator.
    These values are chosen to be coprime and such that `ratfunc.denom` is monic.
 
+Embedding of rational functions into Laurent series, provided as a coercion, utilizing
+the underlying `ratfunc.coe_alg_hom`.
+
+Lifting injective homomorphisms of polynomials to other types, by mapping and dividing:
+  - `ratfunc.lift_monoid_with_zero_hom` lifts an injective `polynomial K →*₀ G₀` to
+      a `ratfunc K →*₀ G₀`, where `[comm_ring K] [comm_group_with_zero G₀]`
+  - `ratfunc.lift_ring_hom` lifts an injective `polynomial K →+* L` to a `ratfunc K →+* L`,
+      where `[comm_ring K] [field L]`
+  - `ratfunc.lift_alg_hom` lifts an injective `polynomial K →ₐ[S] L` to a `ratfunc K →ₐ[S] L`,
+      where `[comm_ring K] [field L] [comm_semiring S] [algebra S (polynomial K)] [algebra S L]`
+
 We also have a set of recursion and induction principles:
  - `ratfunc.lift_on`: define a function by mapping a fraction of polynomials `p/q` to `f p q`,
    if `f` is well-defined in the sense that `p/q = p'/q' → f p q = f p' q'`.
@@ -449,7 +460,7 @@ section lift_hom
 
 variables {G₀ L : Type*} [comm_group_with_zero G₀] [field L]
 
-/-- Lift a `polynomial K →*₀ G₀` to a `ratfunc K →*₀ G₀`
+/-- Lift an injective monoid with zero homomorphism `polynomial K →*₀ G₀` to a `ratfunc K →*₀ G₀`
 by mapping both the numerator and denominator and quotienting them. --/
 def lift_monoid_with_zero_hom (φ : polynomial K →*₀ G₀) (hφ : function.injective φ) :
   ratfunc K →*₀ G₀ :=
@@ -491,8 +502,8 @@ begin
   { exact λ _, rfl }
 end
 
-/-- Lift a `polynomial K →+* L` to a `ratfunc K →+* L` by mapping both the numerator and
-denominator and quotienting them. --/
+/-- Lift an injective ring homomorphism `polynomial K →+* L` to a `ratfunc K →+* L`
+by mapping both the numerator and denominator and quotienting them. --/
 def lift_ring_hom (φ : polynomial K →+* L) (hφ : function.injective φ) : ratfunc K →+* L :=
 { map_add' := λ x y, by { simp only [monoid_with_zero_hom.to_fun_eq_coe],
     casesI subsingleton_or_nontrivial K,
@@ -620,8 +631,8 @@ section lift_alg_hom
 variables {L S : Type*} [field L] [comm_semiring S] [algebra S (polynomial K)] [algebra S L]
   (φ : polynomial K →ₐ[S] L) (hφ : function.injective φ)
 
-/-- Lift a `polynomial K →ₐ[S] L` to a `ratfunc K →ₐ[S] L` by mapping both the numerator and
-denominator and quotienting them. --/
+/-- Lift an injective algebra homomorphism `polynomial K →ₐ[S] L` to a `ratfunc K →ₐ[S] L`
+by mapping both the numerator and denominator and quotienting them. --/
 def lift_alg_hom : ratfunc K →ₐ[S] L :=
 { commutes' := λ r, by simp_rw [ring_hom.to_fun_eq_coe, alg_hom.to_ring_hom_eq_coe,
     algebra_map_apply r, lift_ring_hom_apply_div, alg_hom.coe_to_ring_hom, map_one,
@@ -1082,8 +1093,7 @@ section laurent_series
 open power_series laurent_series hahn_series
 
 omit hring
-variables {F : Type u} {S : Type v} [field F] [comm_semiring S] [algebra S (polynomial F)]
-  (p q : polynomial F) (f g : ratfunc F)
+variables {F : Type u} [field F] (p q : polynomial F) (f g : ratfunc F)
 
 /-- The coercion `ratfunc F → laurent_series F` as bundled alg hom. -/
 def coe_alg_hom (F : Type u) [field F] : ratfunc F →ₐ[polynomial F] laurent_series F :=
@@ -1129,6 +1139,21 @@ by rw [smul_eq_C_mul, ←C_mul_eq_smul, coe_mul, coe_C]
 @[simp, norm_cast] lemma coe_X : ((X : ratfunc F) : laurent_series F) = single 1 1 :=
 by rw [coe_num_denom, num_X, denom_X, coe_coe, polynomial.coe_X, coe_X, coe_coe, polynomial.coe_one,
        power_series.coe_one, div_one]
+
+instance : algebra (ratfunc F) (laurent_series F) :=
+ring_hom.to_algebra (coe_alg_hom F).to_ring_hom
+
+lemma algebra_map_apply_div :
+  algebra_map (ratfunc F) (laurent_series F) (algebra_map _ _ p / algebra_map _ _ q) =
+    algebra_map (polynomial F) (laurent_series F) p / algebra_map _ _ q :=
+begin
+  convert coe_div _ _;
+  rw [←mk_one, coe_def, coe_alg_hom, mk_eq_div, lift_alg_hom_apply_div, map_one, div_one,
+      algebra.of_id_apply]
+end
+
+instance : is_scalar_tower (polynomial F) (ratfunc F) (laurent_series F) :=
+⟨λ x y z, by { ext, simp }⟩
 
 end laurent_series
 

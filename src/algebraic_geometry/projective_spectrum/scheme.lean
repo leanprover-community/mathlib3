@@ -4658,10 +4658,9 @@ begin
   simp only [pow_add, pow_one],
   ring,
 end
--- #check isos.sheaf_component.backward_forward.final_eq f m hm
 omit hm
 
--- set_option profiler true
+set_option profiler true
 lemma isos.sheaf_component.backward_forward :
   isos.sheaf_component.backward.hartshorne 𝒜 f m hm f_deg V
     (((isos.sheaf_component.forward 𝒜 f m hm f_deg).app V) hh) z = hh.1 z :=
@@ -4714,7 +4713,7 @@ begin
   { apply projective_spectrum.section_congr_arg 𝒜 _ _ _ pt_eq.symm hh _ _ hartshorne_eq, },
   erw eq0,
 
-  -- simp only [←α_eq, ←β_eq, ←ι_eq] at data_eq2,
+  simp only [←α_eq, ←β_eq, ←ι_eq] at data_eq2,
   erw [localization.mk_eq_mk', is_localization.eq] at data_eq2,
   obtain ⟨⟨⟨_, ⟨L1, C, C_mem, rfl⟩⟩, hC⟩, data_eq2⟩ := data_eq2,
   simp only [←subtype.val_eq_coe, subtype.ext_iff_val,
@@ -4728,16 +4727,16 @@ begin
     (((isos.sheaf_component.forward 𝒜 f m hm f_deg).app V) hh) z) with ii_eq,
   set jj := degree_zero_part.degree (isos.sheaf_component.backward.data_denom 𝒜 f m hm f_deg V
     (((isos.sheaf_component.forward 𝒜 f m hm f_deg).app V) hh) z).1 with jj_eq,
-  simp only [localization.mk_mul] at data_eq2,
+  simp only [←a_eq, ←b_eq, ←ii_eq, ←jj_eq, localization.mk_mul] at data_eq2,
   -- simp only [localization.mk_mul] at data_eq2,
   rw [localization.mk_eq_mk', is_localization.eq] at data_eq2,
   obtain ⟨⟨_, ⟨L2, rfl⟩⟩, data_eq2⟩ := data_eq2,
   simp only [←subtype.val_eq_coe, show ∀ (p q : submonoid.powers f), (p * q).1 = p.1 * q.1, from λ _ _, rfl,
     ←pow_add] at data_eq2,
   unfold isos.sheaf_component.backward.hartshorne_num isos.sheaf_component.backward.hartshorne_denom,
-  -- simp only [←ii_eq, ←jj_eq, ←b_eq, ←a_eq],
-  simp only [localization.mk_eq_mk'],
-  erw [is_localization.eq],
+  simp only [←ii_eq, ←jj_eq, ←b_eq, ←a_eq],
+  -- simp only [localization.mk_eq_mk'],
+  rw [localization.mk_eq_mk', is_localization.eq],
 
   refine ⟨⟨C * β^m.pred * f^(ι+L1+L2), isos.sheaf_component.backward_forward.C_not_mem2 𝒜 f m hm
     f_deg V hh z C ι L1 L2 C_mem hC β β_not_in⟩, _⟩,
@@ -4747,40 +4746,51 @@ end
 
 end sheaf_component_backward_forward
 
-#exit
-
 section sheaf_component_forward_backward
 
 variables (f : A) [decidable_eq (localization.away f)] (m : ℕ) (hm : 0 < m) (f_deg : f ∈ 𝒜 m)
+  (V : (opens ((Spec (degree_zero_part 𝒜 f m f_deg)).to_SheafedSpace.to_PresheafedSpace.carrier))ᵒᵖ)
+  (hh : ((Spec (degree_zero_part 𝒜 f m f_deg)).to_SheafedSpace.to_PresheafedSpace.presheaf.obj V))
+  (z : V.unop)
 
--- set_option profiler true
-lemma isos.sheaf_component.forward_backward
-  (V) (hh) (z) :
+lemma isos.sheaf_component.forward_backward.inv_z_mem :
+  ((isos.top_component 𝒜 f m hm f_deg).inv z).1 ∈
+  ((@opens.open_embedding (projective_spectrum.Top 𝒜) (projective_spectrum.basic_open 𝒜 f)).is_open_map.functor.op.obj
+    ((opens.map (isos.top_component 𝒜 f m hm f_deg).hom).op.obj V)).unop :=
+begin
+  have mem1 := ((isos.top_component 𝒜 f m hm f_deg).inv z).2,
+  refine ⟨((isos.top_component 𝒜 f m hm f_deg).inv z), _, rfl⟩,
+  erw set.mem_preimage,
+  convert z.2,
+  convert isos.top_component.forward_backward 𝒜 f m hm f_deg z.1,
+end
+
+lemma isos.sheaf_component.forward_backward.inv_z_mem_bo :
+  ((isos.top_component 𝒜 f m hm f_deg).inv z).1 ∈ projective_spectrum.basic_open 𝒜 f :=
+begin
+  intro rid,
+  obtain ⟨⟨a, ha1⟩, ha2, ha3⟩ := isos.sheaf_component.forward_backward.inv_z_mem 𝒜 f m hm f_deg V z,
+  change a = ((isos.top_component 𝒜 f m hm f_deg).inv z).1 at ha3,
+  erw ←ha3 at rid,
+  apply ha1,
+  exact rid,
+end
+
+set_option profiler true
+lemma isos.sheaf_component.forward_backward :
   isos.sheaf_component.forward.mk 𝒜 f m hm f_deg V (((isos.sheaf_component.backward 𝒜 f m hm f_deg).app V) hh) z =
   hh.val z :=
 begin
   set b_hh := ((isos.sheaf_component.backward 𝒜 f m hm f_deg).app V hh) with b_hh_eq,
-  unfold isos.sheaf_component.forward.mk,
-  unfold isos.sheaf_component.forward.hartshorne.mk_num,
-  unfold isos.sheaf_component.forward.hartshorne.mk_denom,
+  unfold isos.sheaf_component.forward.mk isos.sheaf_component.forward.hartshorne.mk_num isos.sheaf_component.forward.hartshorne.mk_denom,
   set inv_z := ((isos.top_component 𝒜 f m hm f_deg).inv z) with inv_z_eq,
   have inv_z_mem : inv_z.1 ∈
     ((@opens.open_embedding (projective_spectrum.Top 𝒜) (projective_spectrum.basic_open 𝒜 f)).is_open_map.functor.op.obj
     ((opens.map (isos.top_component 𝒜 f m hm f_deg).hom).op.obj V)).unop,
-  { have mem1 := inv_z.2,
-    refine ⟨inv_z, _, rfl⟩,
-    erw set.mem_preimage,
-    convert z.2,
-    convert isos.top_component.forward_backward 𝒜 f m hm f_deg z.1,
-   },
+  { convert isos.sheaf_component.forward_backward.inv_z_mem 𝒜 f m hm f_deg V z, },
 
   have inv_z_mem_bo : inv_z.1 ∈ projective_spectrum.basic_open 𝒜 f,
-  { intro rid,
-    obtain ⟨⟨a, ha1⟩, ha2, ha3⟩ := inv_z_mem,
-    change a = inv_z.1 at ha3,
-    erw ←ha3 at rid,
-    apply ha1,
-    exact rid, },
+  { convert isos.sheaf_component.forward_backward.inv_z_mem_bo 𝒜 f m hm f_deg V z, },
 
   set hart := b_hh.1 ⟨inv_z.1, inv_z_mem⟩ with hart_eq,
   rw subtype.ext_iff_val at hart_eq,
@@ -4788,7 +4798,8 @@ begin
   rw hart_eq at hart_eq1,
 
   rw b_hh_eq at hart_eq,
-  change hart.val = (isos.sheaf_component.backward.mk 𝒜 f m hm f_deg V hh _).1 at hart_eq,
+  replace hart_eq : hart.val = (isos.sheaf_component.backward.mk 𝒜 f m hm f_deg V hh ⟨inv_z.val, inv_z_mem⟩).1,
+  { convert hart_eq },
   unfold isos.sheaf_component.backward.mk isos.sheaf_component.backward.hartshorne
     isos.sheaf_component.backward.hartshorne_num  isos.sheaf_component.backward.hartshorne_denom at hart_eq,
 

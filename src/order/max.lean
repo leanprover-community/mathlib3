@@ -187,6 +187,7 @@ end partial_order
 section linear_order
 variables [linear_order α]
 
+--TODO: Delete in favor of the directed version
 lemma is_top_or_exists_gt (a : α) : is_top a ∨ ∃ b, a < b :=
 by simpa only [or_iff_not_imp_left, is_top, not_forall, not_le] using id
 

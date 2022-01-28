@@ -123,6 +123,14 @@ begin
     ((as_iso $ to_Spec_Γ R).CommRing_iso_to_ring_equiv.injective)
 end
 
+lemma is_reduced_of_is_affine_is_reduced [is_affine X]
+  [h : _root_.is_reduced (X.presheaf.obj (op ⊤))] : is_reduced X :=
+begin
+  haveI : is_reduced (Scheme.Spec.obj (op (Scheme.Γ.obj (op X)))),
+  { rw affine_is_reduced_iff, exact h },
+  exact is_reduced_of_open_immersion X.iso_Spec.hom,
+end
+
 /-- To show that a statement `P` holds for all open subsets of all schemes, it suffices to show that
 1. In any scheme `X`, if `P` holds for an open cover of `U`, then `P` holds for `U`.
 2. For an open immerison `f : X ⟶ Y`, if `P` holds for the entire space of `X`, then `P` holds for
@@ -149,6 +157,18 @@ begin
   obtain ⟨_,_,rfl,rfl,h₂'⟩ := h₂ (X.affine_basis_cover.map j),
   apply h₂',
   apply h₃
+end
+.
+lemma reduce_to_affine_nbhd (P : ∀ (X : Scheme) (x : X.carrier), Prop)
+  (h₁ : ∀ (R : CommRing) (x : prime_spectrum R), P (Scheme.Spec.obj $ op R) x)
+  (h₂ : ∀ {X Y} (f : X ⟶ Y) [is_open_immersion f] (x : X.carrier), P X x → P Y (f.1.base x)) :
+  ∀ (X : Scheme) (x : X.carrier), P X x :=
+begin
+  intros X x,
+  obtain ⟨y, e⟩ := X.affine_cover.covers x,
+  convert h₂ (X.affine_cover.map (X.affine_cover.f x)) y _,
+  { rw e },
+  apply h₁,
 end
 
 lemma eq_zero_of_basic_open_empty {X : Scheme} [hX : is_reduced X] {U : opens X.carrier}
@@ -309,6 +329,14 @@ lemma affine_is_integral_iff (R : CommRing) :
   is_integral (Scheme.Spec.obj $ op R) ↔ is_domain R :=
 ⟨λ h, by exactI ring_equiv.is_domain ((Scheme.Spec.obj $ op R).presheaf.obj _)
   (as_iso $ to_Spec_Γ R).CommRing_iso_to_ring_equiv, λ h, by exactI infer_instance⟩
+
+lemma is_integral_of_is_affine_is_domain [is_affine X] [nonempty X.carrier]
+  [h : is_domain (X.presheaf.obj (op ⊤))] : is_integral X :=
+begin
+  haveI : is_integral (Scheme.Spec.obj (op (Scheme.Γ.obj (op X)))),
+  { rw affine_is_integral_iff, exact h },
+  exact is_integral_of_open_immersion X.iso_Spec.hom,
+end
 
 lemma map_injective_of_is_integral [is_integral X] {U V : opens X.carrier} (i : U ⟶ V)
   [H : nonempty U] :

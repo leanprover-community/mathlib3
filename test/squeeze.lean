@@ -60,3 +60,13 @@ example (n m : ℕ) : n * m.succ = n*m + n :=
 by { squeeze_simp_test = [mul_succ] }
 
 end namespacing2
+
+def a := 0
+def b := 0
+def c := 0
+def f : ℕ → ℕ := default
+@[simp] lemma k (x) : f x = b := rfl
+@[simp] lemma l : f b = c := rfl
+
+-- Test the fix for #3097
+example : f (f a) = c := by { squeeze_simp_test = [k, l] }

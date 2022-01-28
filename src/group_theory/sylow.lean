@@ -524,8 +524,7 @@ begin
   let N := (↑P : subgroup G).normalizer,
   let P' : sylow p N := P.subtype N le_normalizer,
 
-  have hlr : (↑P : subgroup G) ≤ N.subtype.range,
-  by { simp only [subtype_range], apply le_normalizer, },
+  have hlr : (↑P : subgroup G) ≤ N.subtype.range, by { rw subtype_range, apply le_normalizer, },
 
   have := normalizer_sup_eq_top P',
   simp only [N, coe_subtype, map_comap_eq_self hlr, sup_idem] at this,

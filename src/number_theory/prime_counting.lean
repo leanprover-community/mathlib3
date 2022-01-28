@@ -73,8 +73,7 @@ begin
       linarith only [h2, mod_lt n a_pos], },
     { rw filter_coprime_Ico_eq_totient, }, },
   simp only [mul_succ],
-  simp_rw ←add_assoc,
-  simp_rw ←add_assoc at ih,
+  simp_rw ←add_assoc at ih ⊢,
   calc (filter a.coprime (Ico k (k + n % a + a * i + a))).card
       ≤ (filter a.coprime (Ico k (k + n % a + a * i)
                             ∪ Ico (k + n % a + a * i) (k + n % a + a * i + a))).card :

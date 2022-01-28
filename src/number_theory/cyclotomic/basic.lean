@@ -15,7 +15,7 @@ Let `A` and `B` be commutative rings with `algebra A B`. For `S : set ℕ+`, we 
 `is_cyclotomic_extension S A B` expressing the fact that `B` is obtained from `A` by adding `n`-th
 primitive roots of unity, for all `n ∈ S`.
 
-## Main definition
+## Main definitions
 
 * `is_cyclotomic_extension S A B` : means that `B` is obtained from `A` by adding `n`-th primitive
   roots of unity, for all `n ∈ S`.
@@ -167,8 +167,7 @@ begin
       exact hb.dvd (cyclotomic.dvd_X_pow_sub_one _ _) },
       rwa [← subalgebra.coe_eq_zero, aeval_subalgebra_coe, subtype.coe_mk] },
   { convert mem_top,
-    rw ← adjoin_adjoin_coe_preimage,
-    simp,
+    rw [← adjoin_adjoin_coe_preimage, preimage_set_of_eq],
     norm_cast, }
 end
 

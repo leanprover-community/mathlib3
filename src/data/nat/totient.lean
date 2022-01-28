@@ -65,6 +65,48 @@ begin
   exact periodic_coprime a,
 end
 
+lemma Ico_filter_coprime_le (a k n : ℕ) (a_pos : 0 < a) :
+  ((Ico k (k + n)).filter (coprime a)).card ≤ totient a * (n / a + 1) :=
+begin
+  conv_lhs { rw ←nat.mod_add_div n a },
+  induction n / a with i ih,
+  { simp only [zero_add, mul_one, mul_zero, le_of_lt (mod_lt n a_pos)],
+    transitivity (filter a.coprime (Ico k (k + a))).card,
+    { mono,
+      refine monotone_filter_left a.coprime _,
+      simp only [add_zero, finset.le_eq_subset],
+      rw finset.subset_iff,
+      intro x,
+      simp only [and_imp, mem_Ico],
+      intros h1 h2,
+      refine ⟨h1, _⟩,
+      linarith only [h2, mod_lt n a_pos], },
+    { rw filter_coprime_Ico_eq_totient, }, },
+  simp only [mul_succ],
+  simp_rw ←add_assoc at ih ⊢,
+  calc (filter a.coprime (Ico k (k + n % a + a * i + a))).card
+      ≤ (filter a.coprime (Ico k (k + n % a + a * i)
+                            ∪ Ico (k + n % a + a * i) (k + n % a + a * i + a))).card :
+        begin
+          apply card_le_of_subset,
+          apply filter_subset_filter,
+          rw [subset_iff],
+          simp only [mem_Ico, and_imp, mem_union],
+          intros x h1 h2,
+          by_cases h : x < k + n % a + a * i,
+          { left,
+            exact ⟨h1, h⟩, },
+          { right,
+            exact ⟨le_of_not_lt h, h2⟩, },
+        end
+  ... ≤ (filter a.coprime (Ico k (k + n % a + a * i))).card + a.totient :
+        begin
+          rw [filter_union, ←filter_coprime_Ico_eq_totient a (k + n % a + a * i)],
+          apply card_union_le,
+        end
+  ... ≤ a.totient * i + a.totient + a.totient : add_le_add_right ih (totient a),
+end
+
 open zmod
 
 /-- Note this takes an explicit `fintype ((zmod n)ˣ)` argument to avoid trouble with instance

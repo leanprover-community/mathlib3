@@ -6,18 +6,17 @@ Authors: Daniel Roca González
 import analysis.inner_product_space.projection
 import analysis.inner_product_space.dual
 import analysis.normed_space.banach
+import analysis.normed_space.operator_norm
 import topology.metric_space.antilipschitz
 
 /-!
 # The Lax-Milgram Theorem
 
-
 We consider an Hilbert space `V` over `ℝ`
 equipped with a bounded bilinear form `B : V →L[ℝ] V →L[ℝ] ℝ`.
-We define a property `is_coercive` for `B : V →L[ℝ] V →L[ℝ] ℝ`,
-such that `is_coercive B` iff
-`∃ C, (0 < C) ∧ ∀ u, C * ∥u∥ * ∥u∥ ≤ B u u`.
 
+Recall that a bilinear form `B : V →L[ℝ] V →L[ℝ] ℝ` is *coercive*
+iff `∃ C, (0 < C) ∧ ∀ u, C * ∥u∥ * ∥u∥ ≤ B u u`.
 Under the hypothesis that `B` is coercive
 we prove the Lax-Milgram theorem:
 that is, the map `continuous_linear_map_of_bilin` from `analysis.inner_product_space.dual`
@@ -38,14 +37,6 @@ open is_R_or_C linear_map continuous_linear_map inner_product_space
 open_locale real_inner_product_space nnreal
 
 universe u
-
-/--
-A bounded bilinear form in an inner product space is *coercive*
-if there is some positive constant C such that `C * ∥u∥ * ∥u∥ ≤ B u u`.
--/
-def is_coercive
-  {V : Type u} [inner_product_space ℝ V] (B : V →L[ℝ] V →L[ℝ] ℝ) : Prop :=
-∃ C, (0 < C) ∧ ∀ u, C * ∥u∥ * ∥u∥ ≤ B u u
 
 namespace is_coercive
 variables {V : Type u} [inner_product_space ℝ V] [complete_space V]

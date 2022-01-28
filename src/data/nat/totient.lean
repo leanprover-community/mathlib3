@@ -75,7 +75,7 @@ begin
     mono,
     refine monotone_filter_left a.coprime _,
     simp only [finset.le_eq_subset],
-    exact Ico_subset_Ico rfl.ge (add_le_add_left (le_of_lt (mod_lt n a_pos)) k), },
+    exact Ico_subset_Ico rfl.le (add_le_add_left (le_of_lt (mod_lt n a_pos)) k), },
   simp only [mul_succ],
   simp_rw ←add_assoc at ih ⊢,
   calc (filter a.coprime (Ico k (k + n % a + a * i + a))).card

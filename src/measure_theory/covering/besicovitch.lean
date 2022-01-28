@@ -1096,8 +1096,7 @@ begin
     a ∈ (besicovitch.vitali_family μ).sets_at x → a ⊆ closed_ball x ε → a ∈ s :=
       (vitali_family.mem_filter_at_iff _).1 hs,
   have : Ioc (0 : ℝ) ε ∈ 𝓝[>] (0 : ℝ) := Ioc_mem_nhds_within_Ioi ⟨le_rfl, εpos⟩,
-  filter_upwards [this],
-  assume r hr,
+  filter_upwards [this] with _ hr,
   apply hε,
   { exact mem_image_of_mem _ hr.1 },
   { exact closed_ball_subset_closed_ball hr.2 }
@@ -1114,8 +1113,7 @@ lemma ae_tendsto_rn_deriv
     (𝓝[>] 0) (𝓝 (ρ.rn_deriv μ x)) :=
 begin
   haveI : second_countable_topology β := emetric.second_countable_of_sigma_compact β,
-  filter_upwards [vitali_family.ae_tendsto_rn_deriv (besicovitch.vitali_family μ) ρ],
-  assume x hx,
+  filter_upwards [vitali_family.ae_tendsto_rn_deriv (besicovitch.vitali_family μ) ρ] with x hx,
   exact hx.comp (tendsto_filter_at μ x)
 end
 
@@ -1146,9 +1144,8 @@ lemma ae_tendsto_measure_inter_div (μ : measure β) [is_locally_finite_measure 
     (𝓝[>] 0) (𝓝 1) :=
 begin
   haveI : second_countable_topology β := emetric.second_countable_of_sigma_compact β,
-  filter_upwards [vitali_family.ae_tendsto_measure_inter_div (besicovitch.vitali_family μ)],
-  assume x hx,
-  exact hx.comp (tendsto_filter_at μ x)
+  filter_upwards [vitali_family.ae_tendsto_measure_inter_div (besicovitch.vitali_family μ)]
+    with x hx using hx.comp (tendsto_filter_at μ x),
 end
 
 end besicovitch

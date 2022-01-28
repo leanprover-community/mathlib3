@@ -302,7 +302,7 @@ variables {M : Type*} [group_with_zero M]
 
 See note [partially-applied ext lemmas] for why `comp` is used here. -/
 @[ext]
-theorem ext_rat {f g : monoid_with_zero_hom ℚ M}
+theorem ext_rat {f g : ℚ →*₀ M}
   (same_on_int : f.comp (int.cast_ring_hom ℚ).to_monoid_with_zero_hom =
     g.comp (int.cast_ring_hom ℚ).to_monoid_with_zero_hom) : f = g :=
 begin
@@ -313,7 +313,7 @@ begin
 end
 
 /-- Positive integer values of a morphism `φ` and its value on `-1` completely determine `φ`. -/
-theorem ext_rat_on_pnat {f g : monoid_with_zero_hom ℚ M}
+theorem ext_rat_on_pnat {f g : ℚ →*₀ M}
   (same_on_neg_one : f (-1) = g (-1)) (same_on_pnat : ∀ n : ℕ, 0 < n → f n = g n) : f = g :=
 ext_rat $ ext_int' (by simpa) ‹_›
 

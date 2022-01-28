@@ -560,4 +560,14 @@ begin
   exact (symm h2),
 end
 
+lemma normal_of_normalizer_condition (hnc : normalizer_condition G)
+ {p : ℕ} {hp : fact p.prime} [fintype (sylow p G)] (P : sylow p G) :
+ (↑P : subgroup G).normal :=
+begin
+  apply normalizer_eq_top.mp,
+  apply (normalizer_condition_iff_only_full_group_self_normalizing.mp hnc),
+  apply normalizer_self_normalizing,
+  apply hp,
+end
+
 end sylow

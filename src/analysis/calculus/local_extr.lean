@@ -327,7 +327,7 @@ lemma exists_has_deriv_at_eq_zero' (hab : a < b)
   ∃ c ∈ Ioo a b, f' c = 0 :=
 begin
   have : continuous_on f (Ioo a b) := λ x hx, (hff' x hx).continuous_at.continuous_within_at,
-  have hcont := continuous_on_Icc_extend_from_Ioo hab this hfa hfb,
+  have hcont := continuous_on_Icc_extend_from_Ioo hab.ne this hfa hfb,
   obtain ⟨c, hc, hcextr⟩ : ∃ c ∈ Ioo a b, is_local_extr (extend_from (Ioo a b) f) c,
   { apply exists_local_extr_Ioo _ hab hcont,
     rw eq_lim_at_right_extend_from_Ioo hab hfb,

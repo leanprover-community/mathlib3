@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Mario Carneiro, Floris van Doorn
+Authors: Mario Carneiro, Floris van Doorn, Violeta Hernández Palacios
 -/
 import set_theory.ordinal
 import tactic.by_contra
@@ -36,17 +36,17 @@ Some properties of the operations are also used to discuss general tools on ordi
 * `is_limit o`: an ordinal is a limit ordinal if it is neither `0` nor a successor.
 * `limit_rec_on` is the main induction principle of ordinals: if one can prove a property by
   induction at successor ordinals and at limit ordinals, then it holds for all ordinals.
-
 * `is_normal`: a function `f : ordinal → ordinal` satisfies `is_normal` if it is strictly increasing
   and order-continuous, i.e., the image `f o` of a limit ordinal `o` is the sup of `f a` for
   `a < o`.
+* `enum_ord`: enumerates an unbounded set of ordinals by the ordinals themselves.
 * `nfp f a`: the next fixed point of a function `f` on ordinals, above `a`. It behaves well
   for normal functions.
-
 * `CNF b o` is the Cantor normal form of the ordinal `o` in base `b`.
-
-* `sup`: the supremum of an indexed family of ordinals in `Type u`, as an ordinal in `Type u`.
-* `bsup`: the supremum of a set of ordinals indexed by ordinals less than a given ordinal `o`.
+* `sup`, `lsub`: the supremum / least strict upper bound of an indexed family of ordinals in
+  `Type u`, as an ordinal in `Type u`.
+* `bsup`, `blsub`: the supremum / least strict upper bound of a set of ordinals indexed by ordinals
+  less than a given ordinal `o`.
 -/
 
 noncomputable theory
@@ -957,11 +957,9 @@ eq_of_forall_ge_iff $ λ a, by simp only [sup_le, cardinal.ord_le, cardinal.sup_
 
 lemma unbounded_range_of_sup_ge {α β : Type u} (r : α → α → Prop) [is_well_order α r] (f : β → α)
   (h : type r ≤ sup.{u u} (typein r ∘ f)) : unbounded r (range f) :=
-begin
-  apply (not_bounded_iff _).mp, rintro ⟨x, hx⟩, apply not_lt_of_ge h,
-  refine lt_of_le_of_lt _ (typein_lt_type r x), rw [sup_le], intro y,
-  apply le_of_lt, rw typein_lt_typein, apply hx, apply mem_range_self
-end
+(not_bounded_iff _).1 $ λ ⟨x, hx⟩, not_lt_of_le h $ lt_of_le_of_lt
+  (sup_le.2 $ λ y, le_of_lt $ (typein_lt_typein r).2 $ hx _ $ mem_range_self y)
+  (typein_lt_type r x)
 
 /-- The supremum of a family of ordinals indexed by the set
   of ordinals less than some `o : ordinal.{u}`.
@@ -1084,7 +1082,8 @@ begin
   exact sup_succ_le_lsub f
 end
 
-theorem sup_eq_lsub {ι} (f : ι → ordinal) : sup f = lsub f ↔ ∀ a < lsub f, succ a < lsub f :=
+theorem sup_eq_lsub_iff_succ {ι} (f : ι → ordinal) :
+  sup f = lsub f ↔ ∀ a < lsub f, succ a < lsub f :=
 begin
   refine ⟨λ h, _, λ hf, le_antisymm (sup_le_lsub f) _⟩,
   { rw ←h,
@@ -1097,6 +1096,9 @@ begin
   rw heq at this,
   exact lt_irrefl _ this
 end
+
+theorem sup_eq_lsub_iff_lt_sup {ι} (f : ι → ordinal) : sup f = lsub f ↔ ∀ i, f i < sup f :=
+⟨λ h i, (by { rw h, apply lt_lsub }), λ h, le_antisymm (sup_le_lsub f) (lsub_le.2 h)⟩
 
 lemma lsub_eq_zero {ι} [h : is_empty ι] (f : ι → ordinal) : lsub f = 0 :=
 by { rw [←ordinal.le_zero, lsub_le], exact h.elim }
@@ -1170,9 +1172,13 @@ begin
   exact bsup_succ_le_blsub f
 end
 
-theorem bsup_eq_blsub {o} (f : Π a < o, ordinal) :
+theorem bsup_eq_blsub_iff_succ {o} (f : Π a < o, ordinal) :
   bsup o f = blsub o f ↔ ∀ a < blsub o f, succ a < blsub o f :=
-by { rw [bsup_eq_sup, blsub_eq_lsub], exact sup_eq_lsub _ }
+by { rw [bsup_eq_sup, blsub_eq_lsub], apply sup_eq_lsub_iff_succ }
+
+theorem bsup_eq_blsub_iff_lt_bsup {o} (f : Π a < o, ordinal) :
+  bsup o f = blsub o f ↔ ∀ i hi, f i hi < bsup o f :=
+⟨λ h i, (by { rw h, apply lt_blsub }), λ h, le_antisymm (bsup_le_blsub f) (blsub_le.2 h)⟩
 
 @[simp] theorem blsub_eq_zero_iff {o} {f : Π a < o, ordinal} : blsub o f = 0 ↔ o = 0 :=
 by { rw [blsub_eq_lsub, lsub_eq_zero_iff], exact out_empty_iff_eq_zero }

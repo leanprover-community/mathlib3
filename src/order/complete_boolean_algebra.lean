@@ -36,10 +36,10 @@ class frame (α : Type*) extends complete_lattice α :=
 section frame
 variables [frame α] {s t : set α} {a b : α}
 
-lemma inf_Sup_eq : a ⊓ Sup s = (⨆ b ∈ s, a ⊓ b) :=
+lemma inf_Sup_eq : a ⊓ Sup s = ⨆ b ∈ s, a ⊓ b :=
 (frame.inf_Sup_le_supr_inf _ _).antisymm supr_inf_le_inf_Sup
 
-lemma Sup_inf_eq : Sup s ⊓ b = (⨆ a ∈ s, a ⊓ b) :=
+lemma Sup_inf_eq : Sup s ⊓ b = ⨆ a ∈ s, a ⊓ b :=
 by simpa only [inf_comm] using @inf_Sup_eq α _ s b
 
 lemma supr_inf_eq (f : ι → α) (a : α) : (⨆ i, f i) ⊓ a = ⨆ i, f i ⊓ a :=

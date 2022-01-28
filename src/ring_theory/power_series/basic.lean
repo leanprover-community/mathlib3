@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Kenny Lau
 -/
 import algebra.big_operators.nat_antidiagonal
+import data.finsupp.interval
 import data.mv_polynomial.basic
 import data.polynomial.algebra_map
 import data.polynomial.coeff
@@ -481,7 +482,7 @@ variables [comm_semiring R] (n : σ →₀ ℕ)
 
 /-- Auxiliary definition for the truncation function. -/
 def trunc_fun (φ : mv_power_series σ R) : mv_polynomial σ R :=
-∑ m in Iic_finset n, mv_polynomial.monomial m (coeff R m φ)
+∑ m in finset.Iic n, mv_polynomial.monomial m (coeff R m φ)
 
 lemma coeff_trunc_fun (m : σ →₀ ℕ) (φ : mv_power_series σ R) :
   (trunc_fun n φ).coeff m = if m ≤ n then coeff R m φ else 0 :=

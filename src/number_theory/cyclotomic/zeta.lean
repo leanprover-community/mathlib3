@@ -79,7 +79,7 @@ variable (K)
 begin
   haveI : ne_zero ((n : ℕ) : L) := ne_zero.of_no_zero_smul_divisors K L,
   refine power_basis.map
-  (algebra.adjoin.power_basis $ integral {n} K L $ zeta n K L) _,
+    (algebra.adjoin.power_basis $ integral {n} K L $ zeta n K L) _,
   exact (subalgebra.equiv_of_eq _ _
       (is_cyclotomic_extension.adjoin_primitive_root_eq_top n _ $ zeta_primitive_root n K L)).trans
       algebra.top_equiv

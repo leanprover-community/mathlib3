@@ -4636,6 +4636,31 @@ begin
   exact H3,
 end
 
+include hm
+lemma isos.sheaf_component.backward_forward.final_eq
+  (a α β b C : A) (ι ii jj L1 L2 : ℕ)
+  (data_eq2 : α * β ^ m.pred * b * C * f ^ (ii + ι + L1) * f ^ L2 = a * β ^ m * C * f ^ (ι + jj + L1) * f ^ L2) :
+  a * f ^ jj * β * (C * β ^ m.pred * f ^ (ι + L1 + L2)) = α * (b * f ^ ii) * (C * β ^ m.pred * f ^ (ι + L1 + L2)) :=
+begin
+  symmetry,
+  rw calc α * (b * f ^ ii) * (C * β ^ m.pred * f ^ (ι + L1 + L2))
+        = α * β ^ m.pred * b * C * (f^ii * f^(ι + L1 + L2)) : by ring
+    ... = α * β ^ m.pred * b * C * (f^ii * (f^ι * f^L1 * f^L2)) : by simp only [pow_add]
+    ... = α * β ^ m.pred * b * C * (f ^ ii * f^ι * f^L1) * f ^ L2 : by ring
+    ... = α * β ^ m.pred * b * C * (f ^ (ii + ι + L1)) * f ^ L2 : by simp only [pow_add]
+    ... = a * β ^ m * C * f ^ (ι + jj + L1) * f ^ L2 : by rw data_eq2
+    ... = a * β ^ (m.pred + 1) * C * f ^ (ι + jj + L1) * f ^ L2
+        : begin
+          congr',
+          symmetry,
+          apply nat.succ_pred_eq_of_pos hm,
+        end,
+  simp only [pow_add, pow_one],
+  ring,
+end
+-- #check isos.sheaf_component.backward_forward.final_eq f m hm
+omit hm
+
 -- set_option profiler true
 lemma isos.sheaf_component.backward_forward :
   isos.sheaf_component.backward.hartshorne 𝒜 f m hm f_deg V
@@ -4643,33 +4668,38 @@ lemma isos.sheaf_component.backward_forward :
 begin
   unfold isos.sheaf_component.backward.hartshorne,
   rw subtype.ext_iff_val,
-  -- dsimp only,
-  set f_hh := (((isos.sheaf_component.forward 𝒜 f m hm f_deg).app V) hh) with f_hh_eq,
-  simp only [←f_hh_eq],
 
   set hom_z := (isos.top_component 𝒜 f m hm f_deg).hom
-    ⟨z.1, isos.sheaf_component.backward.data_prop1 𝒜 f m hm f_deg V f_hh z⟩ with hom_z_eq,
-  have hom_z_mem_V : hom_z ∈ unop V := isos.sheaf_component.backward.data_prop2 𝒜 f m hm f_deg V f_hh z,
+    ⟨z.1, isos.sheaf_component.backward.data_prop1 𝒜 f m hm f_deg V
+    (((isos.sheaf_component.forward 𝒜 f m hm f_deg).app V) hh) z⟩ with hom_z_eq,
+  have hom_z_mem_V : hom_z ∈ unop V,
+  { convert isos.sheaf_component.backward.data_prop2 𝒜 f m hm f_deg V
+    (((isos.sheaf_component.forward 𝒜 f m hm f_deg).app V) hh) z, },
 
-  set data := isos.sheaf_component.backward.data 𝒜 f m hm f_deg V f_hh z with data_eq,
+  set data := isos.sheaf_component.backward.data 𝒜 f m hm f_deg V
+    (((isos.sheaf_component.forward 𝒜 f m hm f_deg).app V) hh) z with data_eq,
   have data_eq1 := data_eq,
-
-  -- -- change data = f_hh.1 ⟨hom_z, hom_z_mem_V⟩ at data_eq1,
   replace data_eq1 : data = isos.sheaf_component.forward.mk 𝒜 f m hm f_deg V hh ⟨hom_z, hom_z_mem_V⟩,
   { convert data_eq1, },
   unfold isos.sheaf_component.forward.mk isos.sheaf_component.forward.hartshorne.mk_num
     isos.sheaf_component.forward.hartshorne.mk_denom at data_eq1,
 
-  have data_eq2 := isos.sheaf_component.backward.data_eq_num_div_denom 𝒜 f m hm f_deg V f_hh z,
+  have data_eq2 := isos.sheaf_component.backward.data_eq_num_div_denom 𝒜 f m hm f_deg V
+    (((isos.sheaf_component.forward 𝒜 f m hm f_deg).app V) hh) z,
   rw [←data_eq, data_eq1] at data_eq2,
-  -- -- erw data_eq1 at data_eq2,
   set α := isos.sheaf_component.forward.hartshorne.num 𝒜 f m hm f_deg V hh ⟨hom_z, hom_z_mem_V⟩ with α_eq,
   set β := isos.sheaf_component.forward.hartshorne.denom 𝒜 f m hm f_deg V hh ⟨hom_z, hom_z_mem_V⟩ with β_eq,
   set ι := isos.sheaf_component.forward.hartshorne.i 𝒜 f m hm f_deg V hh ⟨hom_z, hom_z_mem_V⟩ with ι_eq,
-  have β_not_in := isos.sheaf_component.forward.hartshorne.denom_not_mem 𝒜 f m hm f_deg V hh ⟨hom_z, hom_z_mem_V⟩,
-  rw ←β_eq at β_not_in,
-  have hartshorne_eq := isos.sheaf_component.forward.hartshorne.eq_num_div_denom 𝒜 f m hm f_deg V hh ⟨hom_z, hom_z_mem_V⟩,
-  simp only [←α_eq, ←β_eq] at hartshorne_eq,
+  have β_not_in : β ∉ (((isos.top_component 𝒜 f m hm f_deg).inv)
+      ((isos.top_component 𝒜 f m hm f_deg).hom
+      ⟨z.1, isos.sheaf_component.backward.data_prop1 𝒜 f m hm
+        f_deg V (((isos.sheaf_component.forward 𝒜 f m hm f_deg).app V) hh) z⟩)).1.as_homogeneous_ideal,
+  { convert isos.sheaf_component.forward.hartshorne.denom_not_mem 𝒜 f m hm f_deg V hh ⟨hom_z, hom_z_mem_V⟩ },
+  -- rw ←β_eq at β_not_in,
+  have hartshorne_eq : (isos.sheaf_component.forward.hartshorne 𝒜 f m hm f_deg V hh ⟨hom_z, hom_z_mem_V⟩).val
+    = localization.mk α ⟨β, β_not_in⟩,
+  { convert isos.sheaf_component.forward.hartshorne.eq_num_div_denom 𝒜 f m hm f_deg V hh ⟨hom_z, hom_z_mem_V⟩ },
+  -- simp only [←α_eq, ←β_eq] at hartshorne_eq,
   have hartshorne_eq2 : (isos.sheaf_component.forward.hartshorne 𝒜 f m hm f_deg V hh ⟨hom_z, hom_z_mem_V⟩).val
     = (hh.1 ⟨((isos.top_component 𝒜 f m hm f_deg).inv hom_z).1, isos.sheaf_component.forward.hartshorne.inv_mem 𝒜 f m hm f_deg V ⟨hom_z, hom_z_mem_V⟩⟩).1, -- `rfl` works but slow
   { congr' 1, },
@@ -4690,10 +4720,14 @@ begin
   simp only [←subtype.val_eq_coe, subtype.ext_iff_val,
     show ∀ (p q : degree_zero_part 𝒜 f m f_deg), (p * q).1 = p.1 * q.1, from λ _ _, rfl] at data_eq2,
   rw [degree_zero_part.eq_num_div, degree_zero_part.eq_num_div] at data_eq2,
-  set a := degree_zero_part.num (isos.sheaf_component.backward.data_num 𝒜 f m hm f_deg V f_hh z) with a_eq,
-  set b := degree_zero_part.num (isos.sheaf_component.backward.data_denom 𝒜 f m hm f_deg V f_hh z).1 with b_eq,
-  set ii := degree_zero_part.degree (isos.sheaf_component.backward.data_num 𝒜 f m hm f_deg V f_hh z) with ii_eq,
-  set jj := degree_zero_part.degree (isos.sheaf_component.backward.data_denom 𝒜 f m hm f_deg V f_hh z).1 with jj_eq,
+  set a := degree_zero_part.num (isos.sheaf_component.backward.data_num 𝒜 f m hm f_deg V
+    (((isos.sheaf_component.forward 𝒜 f m hm f_deg).app V) hh) z) with a_eq,
+  set b := degree_zero_part.num (isos.sheaf_component.backward.data_denom 𝒜 f m hm f_deg V
+    (((isos.sheaf_component.forward 𝒜 f m hm f_deg).app V) hh) z).1 with b_eq,
+  set ii := degree_zero_part.degree (isos.sheaf_component.backward.data_num 𝒜 f m hm f_deg V
+    (((isos.sheaf_component.forward 𝒜 f m hm f_deg).app V) hh) z) with ii_eq,
+  set jj := degree_zero_part.degree (isos.sheaf_component.backward.data_denom 𝒜 f m hm f_deg V
+    (((isos.sheaf_component.forward 𝒜 f m hm f_deg).app V) hh) z).1 with jj_eq,
   simp only [←ii_eq, ←jj_eq, ←b_eq, ←a_eq, localization.mk_mul] at data_eq2,
   -- simp only [localization.mk_mul] at data_eq2,
   rw [localization.mk_eq_mk', is_localization.eq] at data_eq2,
@@ -4710,29 +4744,19 @@ begin
   refine ⟨⟨C * β^m.pred * f^(ι+L1+L2), isos.sheaf_component.backward_forward.C_not_mem2 𝒜 f m hm
     f_deg V hh z C ι L1 L2 C_mem hC β β_not_in⟩, _⟩,
   { simp only [←subtype.val_eq_coe],
-    symmetry,
-    rw calc α * (b * f ^ ii) * (C * β ^ m.pred * f ^ (ι + L1 + L2))
-          = α * β ^ m.pred * b * C * (f^ii * f^(ι + L1 + L2)) : by ring
-      ... = α * β ^ m.pred * b * C * (f^ii * (f^ι * f^L1 * f^L2)) : by simp only [pow_add]
-      ... = α * β ^ m.pred * b * C * (f ^ ii * f^ι * f^L1) * f ^ L2 : by ring
-      ... = α * β ^ m.pred * b * C * (f ^ (ii + ι + L1)) * f ^ L2 : by simp only [pow_add]
-      ... = a * β ^ m * C * f ^ (ι + jj + L1) * f ^ L2 : by rw data_eq2
-      ... = a * β ^ (m.pred + 1) * C * f ^ (ι + jj + L1) * f ^ L2
-          : begin
-            congr',
-            symmetry,
-            apply nat.succ_pred_eq_of_pos hm,
-          end,
-    simp only [pow_add, pow_one],
-    ring, },
-  -- sorry,
+    apply isos.sheaf_component.backward_forward.final_eq f m hm a α β b C ι ii jj L1 L2 data_eq2, },
 end
 
 end sheaf_component_backward_forward
 
--- #exit
+#exit
+
+section sheaf_component_forward_backward
+
+variables (f : A) [decidable_eq (localization.away f)] (m : ℕ) (hm : 0 < m) (f_deg : f ∈ 𝒜 m)
+
+-- set_option profiler true
 lemma isos.sheaf_component.forward_backward
-  (f : A) [decidable_eq (localization.away f)] (m : ℕ) (hm : 0 < m) (f_deg : f ∈ 𝒜 m)
   (V) (hh) (z) :
   isos.sheaf_component.forward.mk 𝒜 f m hm f_deg V (((isos.sheaf_component.backward 𝒜 f m hm f_deg).app V) hh) z =
   hh.val z :=
@@ -4767,16 +4791,11 @@ begin
 
   rw b_hh_eq at hart_eq,
   change hart.val = (isos.sheaf_component.backward.mk 𝒜 f m hm f_deg V hh _).1 at hart_eq,
-  unfold isos.sheaf_component.backward.mk at hart_eq,
-  unfold isos.sheaf_component.backward.hartshorne at hart_eq,
-  dsimp only at hart_eq,
-  unfold isos.sheaf_component.backward.hartshorne_num at hart_eq,
-  unfold isos.sheaf_component.backward.hartshorne_denom at hart_eq,
+  unfold isos.sheaf_component.backward.mk isos.sheaf_component.backward.hartshorne
+    isos.sheaf_component.backward.hartshorne_num  isos.sheaf_component.backward.hartshorne_denom at hart_eq,
 
-
-  unfold isos.sheaf_component.forward.hartshorne.num,
-  unfold isos.sheaf_component.forward.hartshorne.denom,
-  unfold isos.sheaf_component.forward.hartshorne.i,
+  unfold isos.sheaf_component.forward.hartshorne.num isos.sheaf_component.forward.hartshorne.denom
+    isos.sheaf_component.forward.hartshorne.i,
 
   have hart_eq2 : hart = isos.sheaf_component.forward.hartshorne 𝒜 f m hm f_deg V b_hh z := rfl,
   simp only [←hart_eq2],
@@ -4941,6 +4960,10 @@ begin
     exact proj_C_ne_zero,
      }
 end
+
+end sheaf_component_forward_backward
+
+#exit
 
 def isos.sheaf_component (f : A) [decidable_eq (localization.away f)] (m : ℕ) (hm : 0 < m) (f_deg : f ∈ 𝒜 m) :
   (isos.top_component 𝒜 f m hm f_deg).hom _*

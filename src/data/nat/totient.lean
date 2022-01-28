@@ -84,14 +84,11 @@ begin
         begin
           apply card_le_of_subset,
           apply filter_subset_filter,
-          rw [subset_iff],
-          simp only [mem_Ico, and_imp, mem_union],
-          intros x h1 h2,
-          by_cases h : x < k + n % a + a * i,
-          { left,
-            exact ⟨h1, h⟩, },
-          { right,
-            exact ⟨le_of_not_lt h, h2⟩, },
+          rw Ico_union_Ico_eq_Ico,
+          exact subset.rfl,
+          rw add_assoc,
+          exact le_self_add,
+          exact le_self_add,
         end
   ... ≤ (filter a.coprime (Ico k (k + n % a + a * i))).card + a.totient :
         begin

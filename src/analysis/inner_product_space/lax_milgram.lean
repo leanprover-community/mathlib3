@@ -20,7 +20,7 @@ iff `∃ C, (0 < C) ∧ ∀ u, C * ∥u∥ * ∥u∥ ≤ B u u`.
 Under the hypothesis that `B` is coercive
 we prove the Lax-Milgram theorem:
 that is, the map `continuous_linear_map_of_bilin` from `analysis.inner_product_space.dual`
-can be upgraded to a continuous equivalence `lax_milgram_equiv : V ≃L[ℝ] V`.
+can be upgraded to a continuous equivalence `continuous_linear_map_of_bilin : V ≃L[ℝ] V`.
 
 ## References
 
@@ -60,7 +60,7 @@ begin
     simp [this], }
 end
 
-lemma antilipschitz_of_lax_milgram (coercive : is_coercive B) :
+lemma antilipschitz (coercive : is_coercive B) :
   ∃ C : ℝ≥0, 0 < C ∧ antilipschitz_with C B♯ :=
 begin
   rcases coercive.bounded_below with ⟨C, C_pos, below_bound⟩,
@@ -75,13 +75,13 @@ end
 lemma ker_eq_bot (coercive : is_coercive B) : B♯.ker = ⊥ :=
 begin
   rw [←ker_coe, linear_map.ker_eq_bot],
-  rcases coercive.antilipschitz_of_lax_milgram with ⟨_, _, antilipschitz⟩,
+  rcases coercive.antilipschitz with ⟨_, _, antilipschitz⟩,
   exact antilipschitz.injective,
 end
 
 lemma closed_range (coercive : is_coercive B) : is_closed (B♯.range : set V) :=
 begin
-  rcases  coercive.antilipschitz_of_lax_milgram with ⟨_, _, antilipschitz⟩,
+  rcases  coercive.antilipschitz with ⟨_, _, antilipschitz⟩,
   exact antilipschitz.is_closed_range B♯.uniform_continuous,
 end
 
@@ -116,13 +116,13 @@ continuous_linear_equiv.of_bijective
   coercive.range_eq_top
 
 @[simp]
-lemma continuous_linear_equiv_of_bilin_apply (coercive : is_coercive B) (v w : V) :
-  inner (continuous_linear_equiv_of_bilin coercive v) w = B v w :=
+lemma continuous_linear_equiv_of_bilin_apply (v w : V) :
+  ⟪coercive.continuous_linear_equiv_of_bilin v, w⟫_ℝ = B v w :=
 continuous_linear_map_of_bilin_apply B v w
 
-lemma unique_continuous_linear_equiv_of_bilin (coercive : is_coercive B) {v f : V}
+lemma unique_continuous_linear_equiv_of_bilin {v f : V}
   (is_lax_milgram : (∀ w, ⟪f, w⟫_ℝ = B v w)) :
-  f = continuous_linear_equiv_of_bilin coercive v :=
+  f = coercive.continuous_linear_equiv_of_bilin v :=
 unique_continuous_linear_map_of_bilin ℝ B is_lax_milgram
 
 end is_coercive

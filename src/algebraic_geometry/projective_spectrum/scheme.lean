@@ -4714,7 +4714,7 @@ begin
   { apply projective_spectrum.section_congr_arg 𝒜 _ _ _ pt_eq.symm hh _ _ hartshorne_eq, },
   erw eq0,
 
-  simp only [←α_eq, ←β_eq, ←ι_eq] at data_eq2,
+  -- simp only [←α_eq, ←β_eq, ←ι_eq] at data_eq2,
   erw [localization.mk_eq_mk', is_localization.eq] at data_eq2,
   obtain ⟨⟨⟨_, ⟨L1, C, C_mem, rfl⟩⟩, hC⟩, data_eq2⟩ := data_eq2,
   simp only [←subtype.val_eq_coe, subtype.ext_iff_val,
@@ -4728,18 +4728,16 @@ begin
     (((isos.sheaf_component.forward 𝒜 f m hm f_deg).app V) hh) z) with ii_eq,
   set jj := degree_zero_part.degree (isos.sheaf_component.backward.data_denom 𝒜 f m hm f_deg V
     (((isos.sheaf_component.forward 𝒜 f m hm f_deg).app V) hh) z).1 with jj_eq,
-  simp only [←ii_eq, ←jj_eq, ←b_eq, ←a_eq, localization.mk_mul] at data_eq2,
+  simp only [localization.mk_mul] at data_eq2,
   -- simp only [localization.mk_mul] at data_eq2,
   rw [localization.mk_eq_mk', is_localization.eq] at data_eq2,
   obtain ⟨⟨_, ⟨L2, rfl⟩⟩, data_eq2⟩ := data_eq2,
   simp only [←subtype.val_eq_coe, show ∀ (p q : submonoid.powers f), (p * q).1 = p.1 * q.1, from λ _ _, rfl,
     ←pow_add] at data_eq2,
   unfold isos.sheaf_component.backward.hartshorne_num isos.sheaf_component.backward.hartshorne_denom,
-  simp only [←ii_eq, ←jj_eq, ←b_eq, ←a_eq],
-  rw [localization.mk_eq_mk', is_localization.eq],
-
-  have C_not_mem : C ∉ z.1.as_homogeneous_ideal := isos.sheaf_component.backward_forward.C_not_mem
-    𝒜 f m hm f_deg V hh z C L1 C_mem hC,
+  -- simp only [←ii_eq, ←jj_eq, ←b_eq, ←a_eq],
+  simp only [localization.mk_eq_mk'],
+  erw [is_localization.eq],
 
   refine ⟨⟨C * β^m.pred * f^(ι+L1+L2), isos.sheaf_component.backward_forward.C_not_mem2 𝒜 f m hm
     f_deg V hh z C ι L1 L2 C_mem hC β β_not_in⟩, _⟩,

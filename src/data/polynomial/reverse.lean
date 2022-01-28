@@ -199,6 +199,17 @@ begin
     simp [*, add_mul] }
 end
 
+lemma eval₂_reflect_eq_zero_iff (i : R →+* S) (x : S) [invertible x] (N : ℕ) (f : polynomial R)
+  (hf : f.nat_degree ≤ N) : eval₂ i x (reflect N f) = 0 ↔ eval₂ i (⅟x) f = 0 :=
+begin
+  conv_rhs { rw [← eval₂_reflect_mul_pow i (⅟x) N f hf] },
+  rw [inv_of_inv_of],
+  split,
+  { intro h, rw [h, zero_mul] },
+  { intro h, rw [← mul_one (eval₂ i x _), ← one_pow N, ← inv_of_mul_self x,
+      mul_pow, ← mul_assoc, h, zero_mul] }
+end
+
 end eval₂
 
 /-- The reverse of a polynomial f is the polynomial obtained by "reading f backwards".
@@ -301,6 +312,10 @@ variables {S : Type*} [comm_semiring S]
 lemma eval₂_reverse_mul_pow (i : R →+* S) (x : S) [invertible x] (f : polynomial R) :
   eval₂ i (⅟x) (reverse f) * x ^ f.nat_degree = eval₂ i x f :=
 eval₂_reflect_mul_pow i _ _ f (le_refl _)
+
+lemma eval₂_reverse_eq_zero_iff (i : R →+* S) (x : S) [invertible x] (f : polynomial R) :
+  eval₂ i x (reverse f) = 0 ↔ eval₂ i (⅟x) f = 0 :=
+eval₂_reflect_eq_zero_iff i x _ _ (le_refl _)
 
 end eval₂
 

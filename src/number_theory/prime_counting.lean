@@ -55,7 +55,7 @@ lemma monotone_prime_counting' : monotone prime_counting' := count_monotone prim
 lemma monotone_prime_counting : monotone prime_counting :=
 λ a b a_le_b, monotone_prime_counting' (add_le_add_right a_le_b 1)
 
-private lemma filter_coprime_bound (a k n : ℕ) (a_pos : 0 < a) :
+private lemma Ico_filter_coprime_le (a k n : ℕ) (a_pos : 0 < a) :
   ((Ico k (k + n)).filter (coprime a)).card ≤ totient a * (n / a + 1) :=
 begin
   conv_lhs { rw ←nat.mod_add_div n a },

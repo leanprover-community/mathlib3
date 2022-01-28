@@ -346,13 +346,12 @@ meta def parse_name_pexpr_pair : lean.parser (name × pexpr) :=
 
 Note: The left and right sides of all the equalities should have the same
   type, and the coefficients should also have this type.  There must be
-  instances of `has_mul` and `add_group` for this type.  Also note that the
-  target must involve at least one variable.
+  instances of `has_mul` and `add_group` for this type.
 
 * Input:
-  * `input` : the pairs of hypotheses and their corresponding coefficients
-      if no coefficient is given with a hypothesis, then the coefficient for
-      that hypothesis will be set to 1
+  * `input` : the pairs of hypotheses and their corresponding coefficients.
+      If no coefficient is given with a hypothesis, then the coefficient for
+      that hypothesis will be set to 1.
   * `config` : a linear_combination_config, which determines the tactic used
       for normalization; by default, this value is the standard configuration
       for a linear_combination_config.  In the standard configuration,

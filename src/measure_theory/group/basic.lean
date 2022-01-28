@@ -44,12 +44,12 @@ class is_add_left_invariant [has_add G] (μ : measure G) : Prop :=
 /-- A measure `μ` on a measurable additive group is right invariant
   if the measure of right translations of a set are equal to the measure of the set itself. -/
 class is_add_right_invariant [has_add G] (μ : measure G) : Prop :=
-( map_add_right_eq_self : ∀ g : G, map (+ g) μ = μ)
+(map_add_right_eq_self : ∀ g : G, map (+ g) μ = μ)
 
 /-- A measure `μ` on a measurable group is right invariant
   if the measure of right translations of a set are equal to the measure of the set itself. -/
 @[to_additive] class is_mul_right_invariant [has_mul G] (μ : measure G) : Prop :=
-( map_mul_right_eq_self : ∀ g : G, map (* g) μ = μ)
+(map_mul_right_eq_self : ∀ g : G, map (* g) μ = μ)
 
 end measure
 open measure

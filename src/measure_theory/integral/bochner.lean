@@ -1314,7 +1314,7 @@ lemma integral_mul_left_eq_self [is_mul_left_invariant μ] (f : G → E) (g : G)
   ∫ x, f (g * x) ∂μ = ∫ x, f x ∂μ :=
 begin
   have h_mul : measurable_embedding (λ x, g * x) :=
-  (measurable_equiv.mul_left g).measurable_embedding,
+    (measurable_equiv.mul_left g).measurable_embedding,
   rw [← h_mul.integral_map, map_mul_left_eq_self]
 end
 
@@ -1325,7 +1325,7 @@ lemma integral_mul_right_eq_self [is_mul_right_invariant μ] (f : G → E) (g : 
   ∫ x, f (x * g) ∂μ = ∫ x, f x ∂μ :=
 begin
   have h_mul : measurable_embedding (λ x, x * g) :=
-  (measurable_equiv.mul_right g).measurable_embedding,
+    (measurable_equiv.mul_right g).measurable_embedding,
   rw [← h_mul.integral_map, map_mul_right_eq_self]
 end
 

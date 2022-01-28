@@ -486,15 +486,12 @@ def subtype {p : ℕ} (P : sylow p G) (N : subgroup G) (h : ↑P ≤ N) : sylow 
 lemma coe_subtype {p : ℕ} {P : sylow p G} {N : subgroup G} {h : P.1 ≤ N} :
   ↑(P.subtype N h) = comap N.subtype ↑P := rfl
 
-lemma normal_of_normalizer_normal [fintype G] {p : ℕ} (hp : fact p.prime) (P : sylow p G)
-  (hn : (↑P : subgroup G).normalizer.normal) :
+lemma normal_of_normalizer_normal {p : ℕ} (hp : fact p.prime) [fintype (sylow p G)]
+  (P : sylow p G) (hn : (↑P : subgroup G).normalizer.normal) :
   (↑P : subgroup G).normal :=
 begin
   let N := (↑P : subgroup G).normalizer,
   let P' : sylow p N := P.subtype N le_normalizer,
-
-  -- NB: This lemma assumes (fintype G), and not merely fintype (sylow p G).
-  -- The latter would suffices if we could deduce (sylow p N) from it.
 
   have := normalizer_sup_eq_top P',
   simp [N, P'] at this,
@@ -505,15 +502,13 @@ begin
   apply this,
 end
 
-lemma normalizer_self_normalizing [fintype G] {p : ℕ} {hp : fact p.prime} (P : sylow p G) :
+lemma normalizer_self_normalizing {p : ℕ} {hp : fact p.prime} [fintype (sylow p G)]
+ (P : sylow p G) :
  (↑P : subgroup G).normalizer.normalizer = (↑P : subgroup G).normalizer :=
 begin
   let H := (↑P : subgroup G).normalizer.normalizer,
   show (H = (↑P : subgroup G).normalizer),
   let P' : sylow p H := P.subtype H (le_trans le_normalizer le_normalizer),
-
-  -- NB: This lemma assumes (fintype G), and not merely fintype (sylow p G).
-  -- The latter would suffices if we could deduce (sylow p H) from it.
 
   have h1 : (P' : subgroup H).normalizer = ⊤,
   { apply normalizer_eq_top.mpr,

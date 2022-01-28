@@ -442,6 +442,10 @@ lemma has_basis.inf_principal (hl : l.has_basis p s) (s' : set α) :
 ⟨λ t, by simp only [mem_inf_principal, hl.mem_iff, subset_def, mem_set_of_eq,
   mem_inter_iff, and_imp]⟩
 
+lemma has_basis.principal_inf (hl : l.has_basis p s) (s' : set α) :
+  (𝓟 s' ⊓ l).has_basis p (λ i, s' ∩ s i) :=
+by simpa only [inf_comm, inter_comm] using hl.inf_principal s'
+
 lemma has_basis.inf_basis_ne_bot_iff (hl : l.has_basis p s) (hl' : l'.has_basis p' s') :
   ne_bot (l ⊓ l') ↔ ∀ ⦃i⦄ (hi : p i) ⦃i'⦄ (hi' : p' i'), (s i ∩ s' i').nonempty :=
 (hl.inf' hl').ne_bot_iff.trans $ by simp [@forall_swap _ ι']

@@ -473,10 +473,9 @@ set.disjoint_left.2 (λ a h1 h2, h
 
 theorem is_closed_connected_component {x : α} :
   is_closed (connected_component x) :=
-closure_eq_iff_is_closed.1 $ subset.antisymm
-  (is_connected_connected_component.closure.subset_connected_component
-    (subset_closure mem_connected_component))
-  subset_closure
+closure_subset_iff_is_closed.1 $
+  is_connected_connected_component.closure.subset_connected_component $
+    subset_closure mem_connected_component
 
 lemma continuous.image_connected_component_subset [topological_space β] {f : α → β}
   (h : continuous f) (a : α) : f '' connected_component a ⊆ connected_component (f a) :=

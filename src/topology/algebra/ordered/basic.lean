@@ -1340,6 +1340,10 @@ lemma mem_nhds_within_Ici_iff_exists_Ico_subset [no_max_order α] {a : α} {s : 
   s ∈ 𝓝[≥] a ↔ ∃u ∈ Ioi a, Ico a u ⊆ s :=
 let ⟨u', hu'⟩ := exists_gt a in mem_nhds_within_Ici_iff_exists_Ico_subset' hu'
 
+lemma nhds_within_Ici_basis_Ico [no_max_order α] (a : α) :
+  (𝓝[≥] a).has_basis (λ u, a < u) (Ico a) :=
+⟨λ s, mem_nhds_within_Ici_iff_exists_Ico_subset⟩
+
 /-- A set is a neighborhood of `a` within `[a, +∞)` if and only if it contains an interval `[a, u]`
 with `a < u`. -/
 lemma mem_nhds_within_Ici_iff_exists_Icc_subset' [no_max_order α] [densely_ordered α]

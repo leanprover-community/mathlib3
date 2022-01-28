@@ -149,37 +149,37 @@ end
 
 We define a distance function on `Π n, E n`, given by `dist x y = (1/2)^n` where `n` is the first
 index at which `x` and `y` differ. When each `E n` has the discrete topology, this distance will
-define the right topology on the product space. We do not record a `has_dist` instance when there is
-no topology on the `E n`s, so we state the lemmas in terms of the `pi_nat.dist` function, and
-use `pi_nat_dist` in the lemma names when there is an ambiguity.
-Then, when there is a topology on the spaces `E n`, we record the metric space instance, and
-we restate the lemmas using just `dist` in their names, for easier use.
+define the right topology on the product space. We do not record a global `has_dist` instance nor
+a `metric_space`instance, as other distances may be used on these spaces, but we register them as
+local instances in this section.
 -/
 
 /-- The distance function on a product space `Π n, E n`, given by `dist x y = (1/2)^n` where `n` is
 the first index at which `x` and `y` differ. -/
-@[pp_nodot] protected def dist (x y : Π n, E n) : ℝ :=
-if h : x ≠ y then (1/2 : ℝ) ^ (first_diff x y) else 0
+protected def has_dist : has_dist (Π n, E n) :=
+⟨λ x y, if h : x ≠ y then (1/2 : ℝ) ^ (first_diff x y) else 0⟩
 
-lemma pi_nat_dist_eq_of_ne {x y : Π n, E n} (h : x ≠ y) :
-  pi_nat.dist x y = (1/2 : ℝ) ^ (first_diff x y) :=
-by simp [pi_nat.dist, h]
+local attribute [instance] pi_nat.has_dist
 
-protected lemma dist_self (x : Π n, E n) : pi_nat.dist x x = 0 :=
-by simp [pi_nat.dist]
+lemma dist_eq_of_ne {x y : Π n, E n} (h : x ≠ y) :
+  dist x y = (1/2 : ℝ) ^ (first_diff x y) :=
+by simp [dist, h]
 
-protected lemma dist_comm (x y : Π n, E n) : pi_nat.dist x y = pi_nat.dist y x :=
-by simp [pi_nat.dist, @eq_comm _ x y, first_diff_comm]
+protected lemma dist_self (x : Π n, E n) : dist x x = 0 :=
+by simp [dist]
 
-protected lemma dist_nonneg (x y : Π n, E n) : 0 ≤ pi_nat.dist x y :=
+protected lemma dist_comm (x y : Π n, E n) : dist x y = dist y x :=
+by simp [dist, @eq_comm _ x y, first_diff_comm]
+
+protected lemma dist_nonneg (x y : Π n, E n) : 0 ≤ dist x y :=
 begin
   rcases eq_or_ne x y with rfl|h,
-  { simp [pi_nat.dist] },
-  { simp [pi_nat.dist, h] }
+  { simp [dist] },
+  { simp [dist, h] }
 end
 
-lemma pi_nat_dist_triangle_nonarch (x y z : Π n, E n) :
-  pi_nat.dist x z ≤ max (pi_nat.dist x y) (pi_nat.dist y z) :=
+lemma dist_triangle_nonarch (x y z : Π n, E n) :
+  dist x z ≤ max (dist x y) (dist y z) :=
 begin
   rcases eq_or_ne x z with rfl|hxz,
   { simp [pi_nat.dist_self x, pi_nat.dist_nonneg] },
@@ -187,17 +187,17 @@ begin
   { simp },
   rcases eq_or_ne y z with rfl|hyz,
   { simp },
-  simp only [pi_nat_dist_eq_of_ne, hxz, hxy, hyz, inv_le_inv, one_div, inv_pow₀, zero_lt_bit0,
+  simp only [dist_eq_of_ne, hxz, hxy, hyz, inv_le_inv, one_div, inv_pow₀, zero_lt_bit0,
     ne.def, not_false_iff, le_max_iff, zero_lt_one, pow_le_pow_iff, one_lt_two, pow_pos,
     min_le_iff.1 (min_first_diff_le x y z hxz)],
 end
 
-lemma mem_cylinder_iff_pi_nat_dist_le {x y : Π n, E n} {n : ℕ} :
-  y ∈ cylinder x n ↔ pi_nat.dist y x ≤ (1/2)^n :=
+lemma mem_cylinder_iff_dist_le {x y : Π n, E n} {n : ℕ} :
+  y ∈ cylinder x n ↔ dist y x ≤ (1/2)^n :=
 begin
   rcases eq_or_ne y x with rfl|hne, { simp [pi_nat.dist_self] },
   suffices : (∀ (i : ℕ), i < n → y i = x i) ↔ n ≤ first_diff y x,
-    by simpa [pi_nat_dist_eq_of_ne hne],
+    by simpa [dist_eq_of_ne hne],
   split,
   { assume hy,
     by_contra' H,
@@ -206,13 +206,13 @@ begin
     exact apply_eq_of_lt_first_diff (hi.trans_le h) }
 end
 
-lemma apply_eq_of_pi_nat_dist_lt {x y : Π n, E n} {n : ℕ} (h : pi_nat.dist x y < (1/2) ^ n) {i : ℕ}
+lemma apply_eq_of_dist_lt {x y : Π n, E n} {n : ℕ} (h : dist x y < (1/2) ^ n) {i : ℕ}
   (hi : i ≤ n) :
   x i = y i :=
 begin
   rcases eq_or_ne x y with rfl|hne, { refl },
   have : n < first_diff x y,
-    by simpa [pi_nat_dist_eq_of_ne hne, inv_lt_inv, pow_lt_pow_iff, one_lt_two] using h,
+    by simpa [dist_eq_of_ne hne, inv_lt_inv, pow_lt_pow_iff, one_lt_two] using h,
   exact apply_eq_of_lt_first_diff (hi.trans_lt this),
 end
 
@@ -245,8 +245,8 @@ end
 
 variable {E}
 
-lemma is_open_iff_pi_nat_dist (s : set (Π n, E n)) :
-  is_open s ↔ ∀ x ∈ s, ∃ ε > 0, ∀ y, pi_nat.dist x y < ε → y ∈ s :=
+lemma is_open_iff_dist (s : set (Π n, E n)) :
+  is_open s ↔ ∀ x ∈ s, ∃ ε > 0, ∀ y, dist x y < ε → y ∈ s :=
 begin
   split,
   { assume hs x hx,
@@ -255,47 +255,35 @@ begin
         (is_topological_basis_cylinders E).exists_subset_of_mem_open hx hs,
     rw ← mem_cylinder_iff_eq.1 h'x at h's,
     exact ⟨(1/2 : ℝ)^n, by simp,
-      λ y hy, h's (λ i hi, (apply_eq_of_pi_nat_dist_lt hy hi.le).symm)⟩ },
+      λ y hy, h's (λ i hi, (apply_eq_of_dist_lt hy hi.le).symm)⟩ },
   { assume h,
     apply (is_topological_basis_cylinders E).is_open_iff.2 (λ x hx, _),
     rcases h x hx with ⟨ε, εpos, hε⟩,
     obtain ⟨n, hn⟩ : ∃ (n : ℕ), (1/2 : ℝ) ^ n < ε := exists_pow_lt_of_lt_one εpos one_half_lt_one,
     refine ⟨cylinder x n, ⟨x, n, rfl⟩, self_mem_cylinder x n, λ y hy, hε y _⟩,
     rw pi_nat.dist_comm,
-    exact (mem_cylinder_iff_pi_nat_dist_le.1 hy).trans_lt hn }
+    exact (mem_cylinder_iff_dist_le.1 hy).trans_lt hn }
 end
 
-instance : metric_space (Π n, E n) :=
+/-- Metric space structure on `Π (n : ℕ), E n` when the spaces `E n` have the discrete topology,
+where the distance is given by `dist x y = (1/2)^n`, where `n` is the smallest index where `x` and
+`y` differ. Not registered as a global instance by default. -/
+protected def metric_space_of_discrete : metric_space (Π n, E n) :=
 begin
-  refine metric_space.of_metrizable pi_nat.dist pi_nat.dist_self pi_nat.dist_comm _
-    is_open_iff_pi_nat_dist _,
+  refine metric_space.of_metrizable dist pi_nat.dist_self pi_nat.dist_comm _
+    is_open_iff_dist _,
   { assume x y z,
-    calc pi_nat.dist x z ≤ max (pi_nat.dist x y) (pi_nat.dist y z) :
-      pi_nat_dist_triangle_nonarch x y z
-    ... ≤ pi_nat.dist x y + pi_nat.dist y z :
+    calc dist x z ≤ max (dist x y) (dist y z) :
+      dist_triangle_nonarch x y z
+    ... ≤ dist x y + dist y z :
       max_le_add_of_nonneg (pi_nat.dist_nonneg _ _) (pi_nat.dist_nonneg _ _) },
   { assume x y hxy,
     rcases eq_or_ne x y with rfl|h, { refl },
-    simp [pi_nat_dist_eq_of_ne h] at hxy,
+    simp [dist_eq_of_ne h] at hxy,
     exact (two_ne_zero (pow_eq_zero hxy)).elim }
 end
 
-lemma dist_eq_of_ne {x y : Π n, E n} (h : x ≠ y) :
-  dist x y = (1/2 : ℝ) ^ (first_diff x y) :=
-pi_nat_dist_eq_of_ne h
-
-lemma dist_triangle_nonarch (x y z : Π n, E n) :
-  dist x z ≤ max (dist x y) (dist y z) :=
-pi_nat_dist_triangle_nonarch x y z
-
-lemma mem_cylinder_iff_dist_le {x y : Π n, E n} {n : ℕ} :
-  y ∈ cylinder x n ↔ dist y x ≤ (1/2)^n :=
-mem_cylinder_iff_pi_nat_dist_le
-
-lemma apply_eq_of_dist_lt {x y : Π n, E n} {n : ℕ}
-  (h : dist x y < (1/2) ^ n) {i : ℕ} (hi : i ≤ n) :
-  x i = y i :=
-apply_eq_of_pi_nat_dist_lt h hi
+local attribute [instance] pi_nat.metric_space_of_discrete
 
 instance : complete_space (Π n, E n) :=
 begin
@@ -311,11 +299,12 @@ end
 ### Retractions inside product spaces
 -/
 
-lemma exists_disjoint_cylinder {s : set (Π n, E n)} (hs : is_closed s) (hne : s.nonempty)
-  {x : Π n, E n} (hy : x ∉ s) :
+lemma exists_disjoint_cylinder {s : set (Π n, E n)} (hs : is_closed s) {x : Π n, E n} (hx : x ∉ s) :
   ∃ n, disjoint s (cylinder x n) :=
 begin
-  have A : 0 < inf_dist x s := (hs.not_mem_iff_inf_dist_pos hne).1 hy,
+  unfreezingI { rcases eq_empty_or_nonempty s with rfl|hne },
+  { exact ⟨0, by simp⟩ },
+  have A : 0 < inf_dist x s := (hs.not_mem_iff_inf_dist_pos hne).1 hx,
   obtain ⟨n, hn⟩ : ∃ n, (1/2 : ℝ)^n < inf_dist x s := exists_pow_lt_of_lt_one A (one_half_lt_one),
   refine ⟨n, _⟩,
   apply disjoint_left.2 (λ y ys hy, _),
@@ -335,7 +324,7 @@ lemma first_diff_lt_shortest_prefix_diff {s : set (Π n, E n)} (hs : is_closed s
   {x y : (Π n, E n)} (hx : x ∉ s) (hy : y ∈ s) :
   first_diff x y < shortest_prefix_diff x s :=
 begin
-  have A := exists_disjoint_cylinder hs ⟨y, hy⟩ hx,
+  have A := exists_disjoint_cylinder hs hx,
   rw [shortest_prefix_diff, dif_pos A],
   have B := nat.find_spec A,
   contrapose! B,
@@ -354,29 +343,28 @@ begin
 end
 
 /-- Given a point `x` in a product space `Π (n : ℕ), E n`, and `s` a subset of this space, then
-`longest_common_prefix x s` if the largest `n` for which there is an element of `s` having the same
-prefix of length `n` as `x`. -/
-def longest_common_prefix {E : ℕ → Type*} (x : (Π n, E n)) (s : set (Π n, E n)) : ℕ :=
+`longest_prefix x s` if the largest `n` for which there is an element of `s` having the same
+prefix of length `n` as `x`. If there is no such `n`, use `0` by convention. -/
+def longest_prefix {E : ℕ → Type*} (x : (Π n, E n)) (s : set (Π n, E n)) : ℕ :=
 shortest_prefix_diff x s - 1
 
-lemma first_diff_le_longest_common_prefix {s : set (Π n, E n)} (hs : is_closed s)
+lemma first_diff_le_longest_prefix {s : set (Π n, E n)} (hs : is_closed s)
   {x y : (Π n, E n)} (hx : x ∉ s) (hy : y ∈ s) :
-  first_diff x y ≤ longest_common_prefix x s :=
+  first_diff x y ≤ longest_prefix x s :=
 begin
-  rw [longest_common_prefix, le_tsub_iff_right],
+  rw [longest_prefix, le_tsub_iff_right],
   { exact first_diff_lt_shortest_prefix_diff hs hx hy },
   { exact shortest_prefix_diff_pos hs ⟨y, hy⟩ hx }
 end
 
-lemma inter_cylinder_longest_common_prefix_nonempty
-  {s : set (Π n, E n)} (hs : is_closed s) (hne : s.nonempty)
-  {x : (Π n, E n)} (hx : x ∉ s) :
-  (s ∩ cylinder x (longest_common_prefix x s)).nonempty :=
+lemma inter_cylinder_longest_prefix_nonempty
+  {s : set (Π n, E n)} (hs : is_closed s) (hne : s.nonempty) {x : (Π n, E n)} (hx : x ∉ s) :
+  (s ∩ cylinder x (longest_prefix x s)).nonempty :=
 begin
-  have A := exists_disjoint_cylinder hs hne hx,
-  have B : longest_common_prefix x s < shortest_prefix_diff x s :=
+  have A := exists_disjoint_cylinder hs hx,
+  have B : longest_prefix x s < shortest_prefix_diff x s :=
     nat.pred_lt (shortest_prefix_diff_pos hs hne hx).ne',
-  rw [longest_common_prefix, shortest_prefix_diff, dif_pos A] at B ⊢,
+  rw [longest_prefix, shortest_prefix_diff, dif_pos A] at B ⊢,
   obtain ⟨y, ys, hy⟩ : ∃ (y : Π (n : ℕ), E n), y ∈ s ∧ x ∈ cylinder y (nat.find A - 1),
   { have := nat.find_min A B,
     push_neg at this,
@@ -387,47 +375,51 @@ begin
   rw hy
 end
 
-lemma disjoint_cylinder_of_longest_common_prefix_lt
+lemma disjoint_cylinder_of_longest_prefix_lt
   {s : set (Π n, E n)} (hs : is_closed s)
-  {x : (Π n, E n)} (hx : x ∉ s) {n : ℕ} (hn : longest_common_prefix x s < n) :
+  {x : (Π n, E n)} (hx : x ∉ s) {n : ℕ} (hn : longest_prefix x s < n) :
   disjoint s (cylinder x n) :=
 begin
   rcases eq_empty_or_nonempty s with h's|hne, { simp [h's] },
   contrapose! hn,
   rcases not_disjoint_iff_nonempty_inter.1 hn with ⟨y, ys, hy⟩,
-  apply le_trans _ (first_diff_le_longest_common_prefix hs hx ys),
+  apply le_trans _ (first_diff_le_longest_prefix hs hx ys),
   apply (mem_cylinder_iff_le_first_diff (ne_of_mem_of_not_mem ys hx).symm _).1,
   rwa mem_cylinder_comm,
 end
 
-lemma cylinder_longest_common_prefix_eq_of_longest_common_prefix_lt_first_diff
+/-- If two points `x, y` coincide up to length `n`, and the longest common prefix of `x` with `s`
+is strictly shorter, then the longest common prefix of `y` with `s` is the same, and both
+cylinders of this length based at `x` and `y` coincide. -/
+lemma cylinder_longest_prefix_eq_of_longest_prefix_lt_first_diff
   {x y : Π n, E n} {s : set (Π n, E n)} (hs : is_closed s) (hne : s.nonempty)
-  (H : longest_common_prefix x s < first_diff x y) (xs : x ∉ s) (ys : y ∉ s) :
-  cylinder x (longest_common_prefix x s) = cylinder y (longest_common_prefix y s) :=
+  (H : longest_prefix x s < first_diff x y) (xs : x ∉ s) (ys : y ∉ s) :
+  cylinder x (longest_prefix x s) = cylinder y (longest_prefix y s) :=
 begin
-  have l_eq : longest_common_prefix y s = longest_common_prefix x s,
-  { rcases lt_trichotomy (longest_common_prefix y s) (longest_common_prefix x s) with L|L|L,
-    { have Ax : (s ∩ cylinder x (longest_common_prefix x s)).nonempty :=
-        inter_cylinder_longest_common_prefix_nonempty hs hne xs,
-      have Z := disjoint_cylinder_of_longest_common_prefix_lt hs ys L,
+  have l_eq : longest_prefix y s = longest_prefix x s,
+  { rcases lt_trichotomy (longest_prefix y s) (longest_prefix x s) with L|L|L,
+    { have Ax : (s ∩ cylinder x (longest_prefix x s)).nonempty :=
+        inter_cylinder_longest_prefix_nonempty hs hne xs,
+      have Z := disjoint_cylinder_of_longest_prefix_lt hs ys L,
       rw first_diff_comm at H,
       rw [cylinder_eq_cylinder_of_le_first_diff _ _ H.le] at Z,
       exact (Ax.not_disjoint Z).elim },
     { exact L },
-    { have Ay : (s ∩ cylinder y (longest_common_prefix y s)).nonempty :=
-        inter_cylinder_longest_common_prefix_nonempty hs hne ys,
-      have A'y : (s ∩ cylinder y (longest_common_prefix x s).succ).nonempty :=
+    { have Ay : (s ∩ cylinder y (longest_prefix y s)).nonempty :=
+        inter_cylinder_longest_prefix_nonempty hs hne ys,
+      have A'y : (s ∩ cylinder y (longest_prefix x s).succ).nonempty :=
         Ay.mono (inter_subset_inter_right s (cylinder_anti _ L)),
-      have Z := disjoint_cylinder_of_longest_common_prefix_lt hs xs (nat.lt_succ_self _),
+      have Z := disjoint_cylinder_of_longest_prefix_lt hs xs (nat.lt_succ_self _),
       rw cylinder_eq_cylinder_of_le_first_diff _ _ H at Z,
       exact (A'y.not_disjoint Z).elim } },
   rw [l_eq, ← mem_cylinder_iff_eq],
   exact cylinder_anti y H.le (mem_cylinder_first_diff x y)
 end
 
-/-- Given a closed nonempty subset `s` of `Π n, E n`, there exists a retraction onto this set, i.e.,
-a continuous map with range equal to `s`, equal to the identity on `s`. -/
-theorem exists_retraction_of_is_closed (s : set (Π n, E n)) (hs : is_closed s) (hne : s.nonempty) :
+/-- Given a closed nonempty subset `s` of `Π n, E n`, there exists a Lipschitz retraction onto this
+set, i.e., a Lipschitz map with range equal to `s`, equal to the identity on `s`. -/
+theorem exists_lipschitz_retraction_of_is_closed
+  {s : set (Π n, E n)} (hs : is_closed s) (hne : s.nonempty) :
   ∃ f : (Π n, E n) → (Π n, E n), (∀ x ∈ s, f x = x) ∧ (range f = s) ∧ lipschitz_with 1 f :=
 begin
   /- The map `f` is defined as follows. For `x ∈ s`, let `f x = x`. Otherwise, consider the longest
@@ -443,15 +435,16 @@ begin
   length is `< n`, then it is also the longest prefix of `y`, and we get `f x = f y = z_w`.
   Otherwise, `f x` remains in the same `n`-cylinder as `x`. Similarly for `y`. Finally, `f x` and
   `f y` are again in the same `n`-cylinder, as desired. -/
-  set f := λ x, if h : x ∈ s then x else (inter_cylinder_longest_common_prefix_nonempty hs hne h).some
-    with hf,
+  set f := λ x, if h : x ∈ s then x
+    else (inter_cylinder_longest_prefix_nonempty hs hne h).some with hf,
   have fs : ∀ x ∈ s, f x = x := λ x xs, by simp [xs],
   refine ⟨f, fs, _, _⟩,
   -- check that the range of `f` is `s`.
   { apply subset.antisymm,
     { rintros x ⟨y, rfl⟩,
       by_cases hy : y ∈ s, { rwa fs y hy },
-      simpa [hf, dif_neg hy] using (inter_cylinder_longest_common_prefix_nonempty hs hne hy).some_spec.1 },
+      simpa [hf, dif_neg hy]
+        using (inter_cylinder_longest_prefix_nonempty hs hne hy).some_spec.1 },
     { assume x hx,
       rw ← fs x hx,
       exact mem_range_self _ } },
@@ -471,43 +464,43 @@ begin
       -- case where `y ∈ s`, trivial
       by_cases ys : y ∈ s, { rw [fs y ys] },
       -- case where `y ∉ s`
-      have A : (s ∩ cylinder y (longest_common_prefix y s)).nonempty :=
-        inter_cylinder_longest_common_prefix_nonempty hs hne ys,
+      have A : (s ∩ cylinder y (longest_prefix y s)).nonempty :=
+        inter_cylinder_longest_prefix_nonempty hs hne ys,
       have fy : f y = A.some, by simp_rw [hf, dif_neg ys],
       have I : cylinder A.some (first_diff x y) = cylinder y (first_diff x y),
         { rw [← mem_cylinder_iff_eq, first_diff_comm],
           apply cylinder_anti y _ A.some_spec.2,
-          exact first_diff_le_longest_common_prefix hs ys xs },
+          exact first_diff_le_longest_prefix hs ys xs },
         rwa [← fy, ← I2, ← mem_cylinder_iff_eq, mem_cylinder_iff_le_first_diff hfxfy.symm,
              first_diff_comm _ x] at I },
     -- case where `x ∉ s`
     { by_cases ys : y ∈ s,
       -- case where `y ∈ s` (similar to the above)
-      { have A : (s ∩ cylinder x (longest_common_prefix x s)).nonempty :=
-          inter_cylinder_longest_common_prefix_nonempty hs hne xs,
+      { have A : (s ∩ cylinder x (longest_prefix x s)).nonempty :=
+          inter_cylinder_longest_prefix_nonempty hs hne xs,
         have fx : f x = A.some, by simp_rw [hf, dif_neg xs],
         have I : cylinder A.some (first_diff x y) = cylinder x (first_diff x y),
         { rw ← mem_cylinder_iff_eq,
           apply cylinder_anti x _ A.some_spec.2,
-          apply first_diff_le_longest_common_prefix hs xs ys },
+          apply first_diff_le_longest_prefix hs xs ys },
         rw fs y ys at ⊢ hfxfy,
         rwa [← fx, I2, ← mem_cylinder_iff_eq, mem_cylinder_iff_le_first_diff hfxfy] at I },
       -- case where `y ∉ s`
-      { have Ax : (s ∩ cylinder x (longest_common_prefix x s)).nonempty :=
-          inter_cylinder_longest_common_prefix_nonempty hs hne xs,
+      { have Ax : (s ∩ cylinder x (longest_prefix x s)).nonempty :=
+          inter_cylinder_longest_prefix_nonempty hs hne xs,
         have fx : f x = Ax.some, by simp_rw [hf, dif_neg xs],
-        have Ay : (s ∩ cylinder y (longest_common_prefix y s)).nonempty :=
-          inter_cylinder_longest_common_prefix_nonempty hs hne ys,
+        have Ay : (s ∩ cylinder y (longest_prefix y s)).nonempty :=
+          inter_cylinder_longest_prefix_nonempty hs hne ys,
         have fy : f y = Ay.some, by simp_rw [hf, dif_neg ys],
         -- case where the common prefix to `x` and `s`, or `y` and `s`, is shorter than the
         -- common part to `x` and `y` -- then `f x = f y`.
-        by_cases H : longest_common_prefix x s < first_diff x y ∨ longest_common_prefix y s < first_diff x y,
-        { have : cylinder x (longest_common_prefix x s) = cylinder y (longest_common_prefix y s),
+        by_cases H : longest_prefix x s < first_diff x y ∨ longest_prefix y s < first_diff x y,
+        { have : cylinder x (longest_prefix x s) = cylinder y (longest_prefix y s),
           { cases H,
-            { exact cylinder_longest_common_prefix_eq_of_longest_common_prefix_lt_first_diff hs hne H xs ys },
+            { exact cylinder_longest_prefix_eq_of_longest_prefix_lt_first_diff hs hne H xs ys },
             { symmetry,
               rw first_diff_comm at H,
-              exact cylinder_longest_common_prefix_eq_of_longest_common_prefix_lt_first_diff hs hne H ys xs } },
+              exact cylinder_longest_prefix_eq_of_longest_prefix_lt_first_diff hs hne H ys xs } },
           rw [fx, fy] at hfxfy,
           apply (hfxfy _).elim,
           congr' },
@@ -524,6 +517,16 @@ begin
             by rw [I1, I2, I3],
           rw [← fx, ← fy, ← mem_cylinder_iff_eq, mem_cylinder_iff_le_first_diff hfxfy] at this,
           exact this } } } }
+end
+
+/-- Given a closed nonempty subset `s` of `Π n, E n`, there exists a retraction onto this
+set, i.e., a continuous map with range equal to `s`, equal to the identity on `s`. -/
+theorem exists_retraction_of_is_closed
+  {s : set (Π n, E n)} (hs : is_closed s) (hne : s.nonempty) :
+  ∃ f : (Π n, E n) → (Π n, E n), (∀ x ∈ s, f x = x) ∧ (range f = s) ∧ continuous f :=
+begin
+  rcases exists_lipschitz_retraction_of_is_closed hs hne with ⟨f, fs, frange, hf⟩,
+  exact ⟨f, fs, frange, hf.continuous⟩
 end
 
 end pi_nat

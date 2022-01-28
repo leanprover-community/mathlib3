@@ -153,7 +153,7 @@ begin
     convert h c hc d hd hcd,
     norm_num },
   have A_subset : A ⊆ ball (0 : E) ρ,
-  { refine bUnion_subset (λ x hx, _),
+  { refine Union₂_subset (λ x hx, _),
     apply ball_subset_ball',
     calc δ + dist x 0 ≤ δ + 2 : by { rw dist_zero_right, exact add_le_add le_rfl (hs x hx) }
     ... = 5 / 2 : by norm_num [δ] },

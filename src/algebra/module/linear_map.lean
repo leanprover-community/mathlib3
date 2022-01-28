@@ -794,6 +794,10 @@ instance apply_smul_comm_class : smul_comm_class R (module.End R M) M :=
 instance apply_smul_comm_class' : smul_comm_class (module.End R M) R M :=
 { smul_comm := linear_map.map_smul }
 
+instance apply_is_scalar_tower {R M : Type*} [comm_semiring R] [add_comm_monoid M] [module R M] :
+  is_scalar_tower R (module.End R M) M :=
+⟨λ t f m, rfl⟩
+
 end endomorphisms
 
 end linear_map

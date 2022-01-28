@@ -18,16 +18,14 @@ saying that there are no such elements.
 * `is_min`: An element is *minimal* if no element is strictly less than it.
 * `is_max`: An element is *maximal* if no element is strictly greater than it.
 
+See also `is_bot_iff_is_min` and `is_top_iff_is_max` for the equivalences in a (co)directed order.
+
 ## Typeclasses
 
 * `no_bot_order`: An order without bottom elements.
 * `no_top_order`: An order without top elements.
 * `no_min_order`: An order without minimal elements.
 * `no_max_order`: An order without maximal elements.
-
-## See also
-
-`is_bot_iff_is_min` and `is_top_iff_is_max` for the equivalences in a (co)directed order.
 -/
 
 open order_dual
@@ -101,11 +99,13 @@ several top elements. When `α` is linear, this is useful to make a case disjunc
 def is_top (a : α) : Prop := ∀ b, b ≤ a
 
 /-- `a` is a minimal element of `α` if no element is strictly less than it. We spell it without `<`
-to avoid having to convert between `≤` and `<`. -/
+to avoid having to convert between `≤` and `<`. Instead, `is_min_iff_forall_not_lt` does the
+conversion. -/
 def is_min (a : α) : Prop := ∀ ⦃b⦄, b ≤ a → a ≤ b
 
 /-- `a` is a maximal element of `α` if no element is strictly greater than it. We spell it without
-`<` to avoid having to convert between `≤` and `<`. -/
+`<` to avoid having to convert between `≤` and `<`. Instead, `is_max_iff_forall_not_lt` does the
+conversion. -/
 def is_max (a : α) : Prop := ∀ ⦃b⦄, a ≤ b → b ≤ a
 
 @[simp] lemma not_is_bot [no_bot_order α] (a : α) : ¬is_bot a :=
@@ -183,3 +183,13 @@ protected lemma is_max.eq_of_le (ha : is_max a) (h : a ≤ b) : a = b := h.antis
 protected lemma is_max.eq_of_ge (ha : is_max a) (h : a ≤ b) : b = a := h.antisymm' $ ha h
 
 end partial_order
+
+section linear_order
+variables [linear_order α]
+
+lemma is_top_or_exists_gt (a : α) : is_top a ∨ ∃ b, a < b :=
+by simpa only [or_iff_not_imp_left, is_top, not_forall, not_le] using id
+
+lemma is_bot_or_exists_lt (a : α) : is_bot a ∨ ∃ b, b < a := @is_top_or_exists_gt (order_dual α) _ a
+
+end linear_order

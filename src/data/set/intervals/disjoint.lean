@@ -92,7 +92,7 @@ variables [linear_order α] {s : set α} {a : α} {f : ι → α}
 
 lemma is_glb.bUnion_Ioi_eq (h : is_glb s a) : (⋃ x ∈ s, Ioi x) = Ioi a :=
 begin
-  refine (bUnion_subset $ λ x hx, _).antisymm (λ x hx, _),
+  refine (Union₂_subset $ λ x hx, _).antisymm (λ x hx, _),
   { exact Ioi_subset_Ioi (h.1 hx) },
   { rcases h.exists_between hx with ⟨y, hys, hay, hyx⟩,
     exact mem_bUnion hys hyx }

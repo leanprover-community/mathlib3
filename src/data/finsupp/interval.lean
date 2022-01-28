@@ -12,6 +12,7 @@ import data.finsupp.order
 
 This file provides the `locally_finite_order` instance for `ι →₀ α` when `α` itself is locally
 finite and calculates the cardinality of its finite intervals.
+
 ## Main declarations
 
 * `finsupp.range_singleton`: Postcomposition with `has_singleton.singleton` on `finset` as a

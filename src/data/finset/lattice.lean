@@ -13,7 +13,7 @@ import order.lexicographic
 # Lattice operations on finsets
 -/
 
-variables {ι α β γ : Type*}
+variables {α β γ ι : Type*}
 
 namespace finset
 open multiset order_dual
@@ -432,11 +432,11 @@ by { rw [_root_.inf_comm, s.sup_inf_distrib_left], simp_rw _root_.inf_comm }
 
 lemma inf_sup_distrib_left [order_top α] (s : finset ι) (f : ι → α) (a : α) :
   a ⊔ s.inf f = s.inf (λ i, a ⊔ f i) :=
-@sup_inf_distrib_left _ (order_dual α) _ _ _ _ _
+@sup_inf_distrib_left (order_dual α) _ _ _ _ _ _
 
 lemma inf_sup_distrib_right [order_top α] (s : finset ι) (f : ι → α) (a : α) :
   s.inf f ⊔ a = s.inf (λ i, f i ⊔ a) :=
-@sup_inf_distrib_right _ (order_dual α) _ _ _ _ _
+@sup_inf_distrib_right (order_dual α) _ _ _ _ _ _
 
 end distrib_lattice
 
@@ -1027,7 +1027,7 @@ ordered type : a predicate is true on all `s : finset α` provided that:
 lemma induction_on_min_value [decidable_eq ι] (f : ι → α)
   {p : finset ι → Prop} (s : finset ι) (h0 : p ∅)
   (step : ∀ a s, a ∉ s → (∀ x ∈ s, f a ≤ f x) → p s → p (insert a s)) : p s :=
-@induction_on_max_value _ (order_dual α) _ _ _ _ s h0 step
+@induction_on_max_value (order_dual α) ι _ _ _ _ s h0 step
 
 end max_min_induction_value
 
@@ -1143,7 +1143,7 @@ by rw [← supr_eq_supr_finset, ← equiv.plift.surjective.supr_comp]; refl
 that works for `ι : Sort*`. -/
 lemma infi_eq_infi_finset (s : ι → α) :
   (⨅i, s i) = (⨅t:finset ι, ⨅i∈t, s i) :=
-@supr_eq_supr_finset _ (order_dual α) _ _
+@supr_eq_supr_finset (order_dual α) _ _ _
 
 /-- Infimum of `s i`, `i : ι`, is equal to the infimum over `t : finset ι` of infima
 `⨅ i ∈ t, s i`. This version works for `ι : Sort*`. See `infi_eq_infi_finset` for a version

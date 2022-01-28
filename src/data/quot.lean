@@ -34,13 +34,7 @@ local notation `⟦`:max a `⟧` := quot.mk _ a
 instance [inhabited α] : inhabited (quot ra) := ⟨⟦default⟧⟩
 
 instance [subsingleton α] : subsingleton (quot ra) :=
-begin
-  apply subsingleton.intro,
-  intros x y,
-  apply x.induction_on, intro x,
-  apply y.induction_on, intro y,
-  congr,
-end
+⟨λ x, quot.induction_on x (λ y, quot.ind (λ b, congr_arg _ (subsingleton.elim _ _)))⟩
 
 /-- Recursion on two `quotient` arguments `a` and `b`, result type depends on `⟦a⟧` and `⟦b⟧`. -/
 protected def hrec_on₂ (qa : quot ra) (qb : quot rb) (f : Π a b, φ ⟦a⟧ ⟦b⟧)

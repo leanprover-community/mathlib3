@@ -4,6 +4,23 @@ import ring_theory.witt_vector.domain
 import ring_theory.witt_vector.truncated
 
 noncomputable theory
+.
+#check @finset.sum
+
+section
+open finset
+open_locale big_operators
+variables {α β : Type*} [comm_semiring β]
+
+lemma finset.prod_sum_succ (n k : ℕ) (f g : ℕ → β) :
+  (∑ i in range (n+1), f i) * (∑ i in range (k+1), g i) =
+    (∑ i in range n, f i) * (∑ i in range k, g i) +
+    f n * (∑ i in range k, g i) +
+    g k * (∑ i in range n, f i) +
+    f n * g k :=
+by rw [finset.sum_range_succ, finset.sum_range_succ]; ring
+
+end
 
 variables (p : ℕ) [hp : fact p.prime]
 variables (k : Type*) [field k] [char_p k p] [is_alg_closed k]
@@ -103,28 +120,60 @@ begin
     refl },
 end
 
-#check finset.sum
-
 def trunc_sub_prod_coeff (n : ℕ) (x y : truncated_witt_vector p n k) : k :=
 ∑ (i : fin n), (x * y).coeff i ^ p ^ (n - i) * ↑p ^ i.val
 
-lemma nth_mul_coeff_aux2 (n : ℕ) : ∃ f : ((fin n → k) → (fin n → k) → k), ∀ (x y : 𝕎 k),
-  (x * y).coeff n * p^n + f (truncate_fun n x) (truncate_fun n y) =
+lemma nth_mul_coeff_aux2 (n : ℕ) (x y : 𝕎 k) :
+  (x * y).coeff n * p^n + trunc_sub_prod_coeff _ _ (truncate_fun n x) (truncate_fun n y) =
   (∑ i in range (n+1), (x.coeff i)^(p^(n-i)) * p^i)*(∑ i in range (n+1), (y.coeff i)^(p^(n-i)) * p^i) :=
 begin
-  refine ⟨trunc_sub_prod_coeff p (n), λ x y, _⟩,
   rw [← nth_mul_coeff_aux1, finset.sum_range_succ, add_comm, nat.sub_self, pow_zero, pow_one],
   congr' 1,
   simp only [trunc_sub_prod_coeff, fin.val_eq_coe, ← truncate_fun_mul, coeff_truncate_fun],
+  sorry -- sum over fin vs sum over range
+end
+
+def trunc_sum_prod (n : ℕ) (x y : truncated_witt_vector p n k) : k :=
+(∑ i : fin n, (y.coeff i)^(p^(n-i)) * p^i.val) * (∑ i : fin n, (y.coeff i)^(p^(n-i)) * p^i.val)
+
+lemma nth_mul_coeff_aux3 (n : ℕ) (x y : 𝕎 k) :
+  (x * y).coeff n * p^n + trunc_sub_prod_coeff _ _ (truncate_fun n x) (truncate_fun n y) =
+    trunc_sum_prod _ _ (truncate_fun n x) (truncate_fun n y) +
+    x.coeff n * p^n * (∑ i in range n, (y.coeff i)^(p^(n-i)) * p^i) +
+    y.coeff n * p^n * (∑ i in range n, (x.coeff i)^(p^(n-i)) * p^i) +
+    x.coeff n * p^n * y.coeff n * p^n :=
+begin
+  simp only [nth_mul_coeff_aux2, finset.prod_sum_succ, pow_one, tsub_self, pow_zero],
+  congr' 1,
+  { simp only [trunc_sum_prod, ← truncate_fun_mul, coeff_truncate_fun],
+    congr' 2,
+    sorry }, -- sum over fin vs sum over range
+  { simp only [mul_assoc] }
+end
+
+lemma nth_mul_coeff_aux4 (n : ℕ) (x y : 𝕎 k) :
+  (x * y).coeff n =
+    (x.coeff n * p^n * (∑ i in range n, (y.coeff i)^(p^(n-i)) * p^i) +
+    y.coeff n * p^n * (∑ i in range n, (x.coeff i)^(p^(n-i)) * p^i) +
+    x.coeff n * p^n * y.coeff n * p^n +
+    (trunc_sum_prod _ _ (truncate_fun n x) (truncate_fun n y) -
+      trunc_sub_prod_coeff _ _ (truncate_fun n x) (truncate_fun n y))) / p^n :=
+begin
+  rw [eq_div_iff, add_sub, eq_sub_iff_add_eq, nth_mul_coeff_aux3],
+  { ring },
+  {  -- uh oh
+    sorry }
+end
+
+-- this is the version we think is true in char p
+lemma nth_mul_coeff (n : ℕ) : ∃ f : (truncated_witt_vector p (n+1) k → truncated_witt_vector p (n+1) k → k), ∀ (x y : 𝕎 k),
+  (x * y).coeff (n+1) = x.coeff (n+1) * y.coeff 0 ^ (p^(n+1)) + y.coeff (n+1) * x.coeff 0 ^ (p^(n+1))
+    + f (truncate_fun (n+1) x) (truncate_fun (n+1) y) :=
+begin
+  refine ⟨λ x y, (trunc_sum_prod _ _ x y - trunc_sub_prod_coeff _ _ x y) / p^(n+1), λ x y, _⟩,
   sorry
 end
 
-#exit
--- this is the version we think is true in char p
-lemma nth_mul_coeff (n : ℕ) : ∃ f : ((fin (n+1) → k) → (fin (n+1) → k) → k), ∀ (x y : 𝕎 k),
-  (x * y).coeff (n+1) = x.coeff (n+1) * y.coeff 0 ^ (p^(n+1)) + y.coeff (n+1) * x.coeff 0 ^ (p^(n+1))
-    + f (truncate_fun (n+1) x) (truncate_fun (n+1) y) :=
-sorry
 
 def nth_remainder (n : ℕ) : (fin (n+1) → k) → (fin (n+1) → k) → k :=
 classical.some (nth_mul_coeff p n)

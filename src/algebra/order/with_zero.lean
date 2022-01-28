@@ -66,8 +66,6 @@ lemma left.one_le_pow_of_le : ∀ {n : ℕ} {x : α}, 1 ≤ x → 1 ≤ x^n
                     ... ≤ x * x ^ n  : mul_le_mul_left' (left.one_le_pow_of_le H) x
                     ... = x ^ n.succ : (pow_succ x n).symm
 
---alias left.one_le_pow_of_le ← one_le_pow_of_one_le'
-
 end left
 
 section right

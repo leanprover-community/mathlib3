@@ -33,7 +33,7 @@ by simp [ne_zero_iff]
 
 namespace ne_zero
 
-variables {R M F : Type*} {r : R} {x y : M} {n p : ℕ} {a : ℕ+}
+variables {R S M F : Type*} {r : R} {x y : M} {n p : ℕ} {a : ℕ+}
 
 instance pnat : ne_zero (a : ℕ) := ⟨a.ne_zero⟩
 instance succ : ne_zero (n + 1) := ⟨n.succ_ne_zero⟩
@@ -46,6 +46,9 @@ instance char_zero [ne_zero n] [add_monoid M] [has_one M] [char_zero M] : ne_zer
 
 @[priority 100] instance invertible [monoid_with_zero M] [nontrivial M] [invertible x] :
   ne_zero x := ⟨nonzero_of_invertible x⟩
+
+instance coe_trans {r : R} [has_zero M] [has_coe R S] [has_coe_t S M] [h : ne_zero (r : M)] :
+  ne_zero ((r : S) : M) := ⟨h.out⟩
 
 lemma of_map [has_zero R] [has_zero M] [zero_hom_class F R M] (f : F) [ne_zero (f r)] :
   ne_zero r := ⟨λ h, ne (f r) $ by convert map_zero f⟩

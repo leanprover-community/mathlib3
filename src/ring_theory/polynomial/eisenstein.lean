@@ -77,7 +77,7 @@ variable {p : R}
 
 local notation `P` := submodule.span R {p}
 
-lemma ex_mem_adjoin_mul_eq_pow_nat_degree {x : S} (hx : aeval x f = 0)
+lemma exists_mem_adjoin_mul_eq_pow_nat_degree {x : S} (hx : aeval x f = 0)
   (hmo : f.monic) (hf : f.is_weakly_eisenstein_at P) : ∃ y ∈ adjoin R ({x} : set S),
   (algebra_map R S) p * y = x ^ (f.map (algebra_map R S)).nat_degree :=
 begin
@@ -100,7 +100,7 @@ begin
     (subalgebra.pow_mem _ (subset_adjoin (set.mem_singleton x)) _)))
 end
 
-lemma ex_mem_adjoin_mul_eq_pow_nat_degree_le {x : S} (hx : aeval x f = 0)
+lemma exists_mem_adjoin_mul_eq_pow_nat_degree_le {x : S} (hx : aeval x f = 0)
   (hmo : f.monic) (hf : f.is_weakly_eisenstein_at P) :
   ∀ i, (f.map (algebra_map R S)).nat_degree ≤ i →
   ∃ y ∈ adjoin R ({x} : set S), (algebra_map R S) p * y = x ^ i :=
@@ -108,7 +108,7 @@ begin
   intros i hi,
   obtain ⟨k, hk⟩ := le_iff_exists_add.1 hi,
   rw [hk, pow_add],
-  obtain ⟨y, hy, H⟩ := ex_mem_adjoin_mul_eq_pow_nat_degree hx hmo hf,
+  obtain ⟨y, hy, H⟩ := exists_mem_adjoin_mul_eq_pow_nat_degree hx hmo hf,
   refine ⟨y * x ^ k, _, _⟩,
   { exact subalgebra.mul_mem _ hy (subalgebra.pow_mem _  (subset_adjoin (set.mem_singleton x)) _) },
   { rw [← mul_assoc _ y, H] }

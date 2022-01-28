@@ -116,11 +116,11 @@ continuous_linear_equiv.of_bijective
   coercive.range_eq_top
 
 @[simp]
-lemma continuous_linear_equiv_of_bilin_apply (v w : V) :
+lemma continuous_linear_equiv_of_bilin_apply (coercive : is_coercive B) (v w : V) :
   ⟪coercive.continuous_linear_equiv_of_bilin v, w⟫_ℝ = B v w :=
 continuous_linear_map_of_bilin_apply B v w
 
-lemma unique_continuous_linear_equiv_of_bilin {v f : V}
+lemma unique_continuous_linear_equiv_of_bilin (coercive : is_coercive B) {v f : V}
   (is_lax_milgram : (∀ w, ⟪f, w⟫_ℝ = B v w)) :
   f = coercive.continuous_linear_equiv_of_bilin v :=
 unique_continuous_linear_map_of_bilin ℝ B is_lax_milgram

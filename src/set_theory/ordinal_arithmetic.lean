@@ -1022,7 +1022,7 @@ theorem bsup_le {o f a} : bsup.{u v} o f ≤ a ↔ ∀ i h, f i h ≤ a :=
 sup_le.trans ⟨λ h i hi, by { rw ←family_of_bfamily_enum o f, exact h _ }, λ h i, h _ _⟩
 
 theorem le_bsup {o} (f : Π a < o, ordinal) (i h) : f i h ≤ bsup o f :=
-bsup_le.1 (le_refl _) _ _
+bsup_le.1 le_rfl _ _
 
 theorem lt_bsup {o} (f : Π a < o, ordinal) {a} : a < bsup o f ↔ ∃ i hi, a < f i hi :=
 by simpa only [not_forall, not_le] using not_congr (@bsup_le _ f a)

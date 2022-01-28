@@ -6,6 +6,8 @@ Authors: Johannes Hölzl, Mario Carneiro, Yury Kudryashov
 import topology.subset_properties
 import order.partial_sups
 import order.succ_pred.relation
+import data.nat.succ_pred
+import data.int.succ_pred
 
 /-!
 # Connected subsets of topological spaces
@@ -180,8 +182,8 @@ begin
       refine inter_subset_inter subset.rfl (subset_bUnion_of_mem hjp) } },
   refine is_preconnected_of_forall_pair _,
   intros x hx y hy,
-  obtain ⟨i: ι, hi : i ∈ t, hxi : x ∈ s i⟩ := mem_bUnion_iff.1 hx,
-  obtain ⟨j: ι, hj : j ∈ t, hyj : y ∈ s j⟩ := mem_bUnion_iff.1 hy,
+  obtain ⟨i: ι, hi : i ∈ t, hxi : x ∈ s i⟩ := mem_Union₂.1 hx,
+  obtain ⟨j: ι, hj : j ∈ t, hyj : y ∈ s j⟩ := mem_Union₂.1 hy,
   obtain ⟨p, hpt, hip, hjp, hp⟩ := P i hi j hj (K i hi j hj),
   exact ⟨⋃ j ∈ p, s j, bUnion_subset_bUnion_left hpt, mem_bUnion hip hxi, mem_bUnion hjp hyj, hp⟩
 end

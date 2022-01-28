@@ -18,6 +18,10 @@ distributive Boolean algebras.
   distribute over `⨆` and `⨅` respectively.
 * `complete_boolean_algebra`: Completely distributive Boolean algebra: A Boolean algebra whose `⊓`
   and `⊔` distribute over `⨆` and `⨅` respectively.
+
+## References
+
+* [Wikipedia, *Complete Heyting algebra*][https://en.wikipedia.org/wiki/Complete_Heyting_algebra]
 -/
 
 set_option old_structure_cmd true

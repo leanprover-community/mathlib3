@@ -5,9 +5,7 @@ Authors: Johannes Hölzl, Mario Carneiro, Yury Kudryashov
 -/
 import topology.subset_properties
 import order.partial_sups
-import logic.relation
-import data.nat.relation
-import data.int.relation
+import order.succ_pred.relation
 
 /-!
 # Connected subsets of topological spaces
@@ -222,7 +220,7 @@ theorem is_preconnected.Union_nat_of_chain {s : ℕ → set α}
   (K : ∀ n : ℕ, (s n ∩ s n.succ).nonempty) :
   is_preconnected (⋃ n, s n) :=
 is_preconnected.Union_of_refl_trans_gen H $
-  λ i j, refl_trans_gen_nat _ (λ i _, K i) $ λ i _, by { rw inter_comm, exact K i }
+  λ i j, refl_trans_gen_of_succ _ (λ i _, K i) $ λ i _, by { rw inter_comm, exact K i }
 
 /-- The Union of connected sets indexed by `ℕ` such that any two neighboring sets meet
 is connected. -/
@@ -231,7 +229,7 @@ theorem is_connected.Union_nat_of_chain {s : ℕ → set α}
   (K : ∀ n : ℕ, (s n ∩ s n.succ).nonempty) :
   is_connected (⋃ n, s n) :=
 is_connected.Union_of_refl_trans_gen H $
-  λ i j, refl_trans_gen_nat _ (λ i _, K i) $ λ i _, by { rw inter_comm, exact K i }
+  λ i j, refl_trans_gen_of_succ _ (λ i _, K i) $ λ i _, by { rw inter_comm, exact K i }
 
 /-- The Union of preconnected sets indexed by a subset of `ℤ` such that any two neighboring sets
 meet is preconnected. -/
@@ -248,7 +246,7 @@ begin
   have h3 : ∀ {i j k : ℤ}, i ∈ t → j ∈ t → k ∈ Ico i j → (s k ∩ s k.succ).nonempty :=
     λ i j k hi hj hk, K _ (h1 hi hj hk) (h2 hi hj hk),
   refine is_preconnected.bUnion_of_refl_trans_gen H (λ i hi j hj, _),
-  exact refl_trans_gen_int _ (λ k hk, ⟨h3 hi hj hk, h1 hi hj hk⟩)
+  exact refl_trans_gen_of_succ _ (λ k hk, ⟨h3 hi hj hk, h1 hi hj hk⟩)
     (λ k hk, ⟨by { rw [inter_comm], exact h3 hj hi hk }, h2 hj hi hk⟩),
 end
 

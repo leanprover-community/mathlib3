@@ -65,14 +65,44 @@ section heathers_approach
 open witt_vector finset
 open_locale big_operators
 
--- maybe it's easier to start here, maybe not?
-lemma nth_mul_coeff_ignoring_charp (x y : 𝕎 k) (n : ℕ) :
-  ∃ f : ((fin n → k) → (fin n → k) → k),
-  (x * y).coeff n =
-    x.coeff n * (∑ i in range n, p^i*(y.coeff i)^(p^n-i)) +
-    y.coeff n * (∑ i in range n, p^i*(x.coeff i)^(p^n-i)) +
-    p^n * x.coeff n * y.coeff n + f (truncate_fun n x) (truncate_fun n y) :=
+-- -- maybe it's easier to start here, maybe not?
+-- lemma nth_mul_coeff_ignoring_charp (x y : 𝕎 k) (n : ℕ) :
+--   ∃ f : ((fin n → k) → (fin n → k) → k),
+--   (x * y).coeff n =
+--     x.coeff n * (∑ i in range n, p^i*(y.coeff i)^(p^n-i)) +
+--     y.coeff n * (∑ i in range n, p^i*(x.coeff i)^(p^n-i)) +
+--     p^n * x.coeff n * y.coeff n + f (truncate_fun n x) (truncate_fun n y) :=
+-- sorry
+
+lemma nth_mul_coeff_aux1 (n : ℕ) (x y : 𝕎 k) :
+  ∑ i in range (n+1), ((x * y).coeff i)^(p^(n-i)) * p^i =
+  (∑ i in range (n+1), (x.coeff i)^(p^n-i) * p^i)*(∑ i in range (n+1), (y.coeff i)^(p^n-i) * p^i) :=
+begin
+  have := witt_structure_prop p ((mv_polynomial.X 0 * mv_polynomial.X 1) : mv_polynomial (fin 2) ℤ) n,
+  replace this := congr_arg (λ z, witt_vector.peval z ![λ i, x.coeff i, λ i, y.coeff i]) this,
+  have mvp : (p : mv_polynomial ℕ ℤ) = mv_polynomial.C ↑p := by rw [ring_hom.eq_int_cast, int.cast_coe_nat ],
+  simp only [int.cast_coe_nat,
+ ring_hom.eq_int_cast,
+ mv_polynomial.eval₂_mul,
+ witt_vector.peval.equations._eqn_1,
+ ring_hom.to_fun_eq_coe,
+ mv_polynomial.coe_eval₂_hom,
+ mv_polynomial.C_pow,
+ mv_polynomial.aeval.equations._eqn_1,
+ mv_polynomial.eval₂_map,
+ witt_polynomial_eq_sum_C_mul_X_pow,
+ int.nat_cast_eq_coe_nat,
+ alg_hom.coe_mk,
+ mv_polynomial.eval₂_sum,
+ mv_polynomial.eval₂_X,
+ finset.sum_congr,
+ mv_polynomial.eval₂_pow] at this,
+rw [mvp, mv_polynomial.eval₂_C, ring_hom.eq_int_cast, int.cast_coe_nat] at this,
+have mvp : (p : mv_polynomial (fin 2 × ℕ) ℤ) = mv_polynomial.C ↑p := by rw [ring_hom.eq_int_cast, int.cast_coe_nat ],
+rw [mvp, mv_polynomial.eval₂_C, ring_hom.eq_int_cast, int.cast_coe_nat] at this,
 sorry
+end
+
 
 -- this is the version we think is true in char p
 lemma nth_mul_coeff (n : ℕ) : ∃ f : ((fin (n+1) → k) → (fin (n+1) → k) → k), ∀ (x y : 𝕎 k),

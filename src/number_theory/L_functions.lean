@@ -46,7 +46,7 @@ locally_constant.to_continuous_map-/
 abbreviation inclusion : locally_constant X A →ₗ[A] C(X, A) :=
 locally_constant.to_continuous_map_linear_map A
 
-variables {X}
+/-variables {X}
 -- TODO Generalise this. Ideally appeal to corresponding result for compact-open topology
 -- (cf #8721) if we can solve the defeq problem on the two topologies: CO and metric.
 lemma continuous_const' [nonempty X] : continuous (continuous_map.const : A → C(X,A)) :=
@@ -71,7 +71,7 @@ instance [nonempty X] : has_continuous_smul A C(X, A) :=
   continuity,
 end⟩
 
-variable (X)
+variable (X)-/
 noncomputable def char_fn (R : Type*) [topological_space R] [ring R] [topological_ring R]
  {U : set X} (hU : is_clopen U) : locally_constant X R :=
 {

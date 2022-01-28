@@ -4,34 +4,85 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
 
+import algebra.is_prime_pow
 import number_theory.arithmetic_function
 import analysis.special_functions.log
 
 namespace nat
 namespace arithmetic_function
 
+open finset
+
 /-- In the case when `n` is a prime power, `min_fac` will give the appropriate prime. -/
 noncomputable def von_mangoldt : arithmetic_function ℝ :=
-⟨λ n, if is_prime_power n then real.log (min_fac n) else 0, if_neg not_is_prime_power_zero⟩
+⟨λ n, if is_prime_pow n then real.log (min_fac n) else 0, if_neg not_is_prime_pow_zero⟩
 
 localized "notation `Λ` := nat.arithmetic_function.von_mangoldt" in arithmetic_function
 
 lemma von_mangoldt_apply {n : ℕ} :
-  Λ n = if is_prime_power n then real.log (min_fac n) else 0 := rfl
+  Λ n = if is_prime_pow n then real.log (min_fac n) else 0 := rfl
+
+example {a b c : ℕ} : a ≤ b + c ↔ a ≤ b ∨ a ≤ c :=
+begin
+  -- split,
+  -- { intro h,
+  --   exact or.inl (le_of_add_le_left h) },
+  -- { rintro (h | h),
+
+
+  -- }
+end
+
+lemma divisors_filter_prime_pow {a b : ℕ} (hab : coprime a b) :
+  (a * b).divisors.filter is_prime_pow = (a.divisors ∪ b.divisors).filter is_prime_pow :=
+begin
+  ext pk,
+  rcases eq_or_ne a 0 with rfl | ha,
+  { simp only [coprime_zero_left] at hab,
+    simp only [hab, divisors_zero, forall_false_left, mem_filter, forall_const, empty_union,
+      false_iff, filter_true_of_mem, not_and, zero_mul, divisors_one, mem_singleton, not_mem_empty],
+    rintro rfl,
+    apply not_is_prime_pow_one },
+  rcases eq_or_ne b 0 with rfl | hb,
+  { simp only [coprime_zero_right] at hab,
+    simp only [hab, divisors_zero, forall_false_left, mem_filter, forall_const, false_iff, not_and,
+      filter_true_of_mem, divisors_one, union_empty, mul_zero, mem_singleton, not_mem_empty],
+    rintro rfl,
+    apply not_is_prime_pow_one },
+  simp only [is_prime_pow_nat_iff, ha, hb, and_imp, mem_union, mem_filter, nat.mul_eq_zero, or_self,
+    forall_exists_index, and_true, and.congr_left_iff, exists_and_distrib_left, ne.def,
+    not_false_iff, mem_divisors],
+  rintro p hp k hk rfl,
+  split,
+  have := eq_one_of_dvd_coprimes,
+
+
+  simp only [prime_pow_dvd_iff_le_factorization _ _ _ hp (mul_ne_zero ha hb),
+    factorization_mul ha hb, prime_pow_dvd_iff_le_factorization _ _ _ hp ha,
+    prime_pow_dvd_iff_le_factorization _ _ _ hp hb, pi.add_apply, finsupp.coe_add],
+  -- split,
+  -- {
+
+  -- },
+end
+
+#exit
 
 lemma divisors_filter_prime_power' {n : ℕ} :
-  n.divisors.filter is_prime_power =
-    n.factors.to_finset.bUnion (λ p, ((range (n.factors.count p)).image (λ k, p ^ (k + 1)))) :=
+  n.divisors.filter is_prime_pow =
+    n.factors.to_finset.bUnion (λ p, ((range (n.factorization p)).image (λ k, p ^ (k + 1)))) :=
 begin
   ext pk,
   simp only [mem_bUnion, mem_image, exists_prop, mem_filter, mem_range, list.mem_to_finset,
-    mem_divisors, and_assoc, is_prime_power_iff_pow_succ],
+    mem_divisors, and_assoc, is_prime_pow_iff_pow_succ, ←nat.prime_iff],
   split,
   { rintro ⟨hdvd, hn, p, k, hp, rfl⟩,
     refine ⟨_, _, _, _, rfl⟩,
     { apply (mem_factors_iff_dvd (nat.pos_of_ne_zero hn) hp).2 (dvd_of_pow_dvd le_add_self hdvd) },
-    apply lt_of_lt_of_le _ (list.sublist.count_le (factors_sublist_of_dvd hdvd hn) p),
-    rw [hp.factors_pow, list.count_repeat, nat.lt_succ_iff] },
+
+    -- apply lt_of_lt_of_le _ (list.sublist.count_le (factors_sublist_of_dvd hdvd hn) p),
+    -- rw [hp.factors_pow, list.count_repeat, nat.lt_succ_iff]
+    },
   rintro ⟨p, hp, k, hk, rfl⟩,
   rcases n.eq_zero_or_pos with rfl | hn,
   { simpa using hp },
@@ -40,7 +91,7 @@ begin
 end
 
 lemma divisors_filter_prime_power {n : ℕ} :
-  n.divisors.filter is_prime_power =
+  n.divisors.filter is_prime_pow =
     n.factors.to_finset.bUnion (λ p, ((Icc 1 (n.factors.count p)).image (λ k, p ^ k))) :=
 begin
   rw divisors_filter_prime_power',

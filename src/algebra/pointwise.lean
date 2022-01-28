@@ -881,9 +881,8 @@ lemma preimage_mul_preimage_subset {s t : set β} : m ⁻¹' s * m ⁻¹' t ⊆ 
 by { rintros _ ⟨_, _, _, _, rfl⟩, exact ⟨_, _, ‹_›, ‹_›, (m.map_mul _ _).symm ⟩ }
 
 instance set_semiring.no_zero_divisors : no_zero_divisors (set_semiring α) :=
-{ eq_zero_or_eq_zero_of_mul_eq_zero := λ a b ab, or.imp_right (λ ha, not_not.mp (λ hb,
-    not_not.mpr ab (ne_empty_iff_nonempty.mpr ⟨_, mul_mem_mul (ne_empty_iff_nonempty.mp ha).some_mem
-    (ne_empty_iff_nonempty.mp hb).some_mem⟩))) (em _) }
+⟨λ a b ab, a.eq_empty_or_nonempty.imp_right $ λ ha, b.eq_empty_or_nonempty.resolve_right $
+  λ hb, nonempty.ne_empty ⟨_, mul_mem_mul ha.some_mem hb.some_mem⟩ ab⟩
 
 /- Since addition on `set_semiring` is commutative (it is set union), there is no need
 to also have the instance `covariant_class (set_semiring α) (set_semiring α) (swap (+)) (≤)`. -/
@@ -917,12 +916,9 @@ section comm_monoid
 variable [comm_monoid α]
 
 instance : canonically_ordered_comm_semiring (set_semiring α) :=
-{ add_le_add_left := λ a b ab c, add_le_add_left ab _,
-  le_iff_exists_add := λ a b,
-    ⟨λ (ab : ∀ y, y ∈ a.down → y ∈ b.down), ⟨b, le_antisymm (subset_union_right _ _)
-      (λ x xab, by { classical, exact xab.by_cases (ab _) (λ f, f) })⟩,
-      by { rintro ⟨c, rfl⟩,
-        exact subset_union_left _ _ }⟩,
+{ add_le_add_left := λ a b, add_le_add_left,
+  le_iff_exists_add := λ a b, ⟨λ ab, ⟨b, (union_eq_right_iff_subset.2 ab).symm⟩,
+      by { rintro ⟨c, rfl⟩, exact subset_union_left _ _ }⟩,
   ..(infer_instance : comm_semiring (set_semiring α)),
   ..(infer_instance : partial_order (set_semiring α)),
   ..(infer_instance : order_bot (set_semiring α)),

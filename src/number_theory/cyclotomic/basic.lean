@@ -282,9 +282,9 @@ end
 
 section field
 
-variable [ne_zero ((n : ℕ) : K)]
+variable [ne_zero (n : K)]
 
-/-- If `ne_zero ((n : ℕ) : K)`, a cyclotomic extension splits `X ^ n - 1` if `n ∈ S`.-/
+/-- A cyclotomic extension splits `X ^ n - 1` if `n ∈ S` and `ne_zero (n : K)`.-/
 lemma splits_X_pow_sub_one [H : is_cyclotomic_extension S K L] (hS : n ∈ S) :
   splits (algebra_map K L) (X ^ (n : ℕ) - 1) :=
 begin
@@ -296,7 +296,7 @@ begin
   exact X_pow_sub_one_splits (is_root_cyclotomic_iff.1 hz),
 end
 
-/-- If `ne_zero ((n : ℕ) : K)`, a cyclotomic extension splits `cyclotomic n K` if `n ∈ S`.-/
+/-- A cyclotomic extension splits `cyclotomic n K` if `n ∈ S` and `ne_zero (n : K)`.-/
 lemma splits_cyclotomic [is_cyclotomic_extension S K L] (hS : n ∈ S) :
   splits (algebra_map K L) (cyclotomic n K) :=
 begin

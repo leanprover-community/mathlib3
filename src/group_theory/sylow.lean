@@ -88,6 +88,37 @@ nonempty_of_exists is_p_group.of_bot.exists_le_sylow
 noncomputable instance sylow.inhabited : inhabited (sylow p G) :=
 classical.inhabited_of_nonempty sylow.nonempty
 
+lemma sylow.exists_comap_eq_of_ker_is_p_group {H : Type*} [group H] (P : sylow p H)
+  {f : H →* G} (hf : is_p_group p f.ker) : ∃ Q : sylow p G, Q.1.comap f = P :=
+exists_imp_exists (λ Q hQ, P.3 (Q.2.comap_of_ker_is_p_group f hf) (map_le_iff_le_comap.mp hQ))
+  (P.2.map f).exists_le_sylow
+
+lemma sylow.exists_comap_eq_of_injective {H : Type*} [group H] (P : sylow p H)
+  {f : H →* G} (hf : function.injective f) : ∃ Q : sylow p G, Q.1.comap f = P :=
+P.exists_comap_eq_of_ker_is_p_group (is_p_group.ker_is_p_group_of_injective hf)
+
+lemma sylow.exists_comap_subtype_eq {H : subgroup G} (P : sylow p H) :
+  ∃ Q : sylow p G, Q.1.comap H.subtype = P :=
+P.exists_comap_eq_of_injective subtype.coe_injective
+
+/-- If the kernel of `f : H →* G` is a `p`-group,
+  then `fintype (sylow p G)` implies `fintype (sylow p H)`. -/
+noncomputable def sylow.fintype_of_ker_is_p_group {H : Type*} [group H]
+  {f : H →* G} (hf : is_p_group p f.ker) [fintype (sylow p G)] : fintype (sylow p H) :=
+let h_exists := λ P : sylow p H, P.exists_comap_eq_of_ker_is_p_group hf,
+  g : sylow p H → sylow p G := λ P, classical.some (h_exists P),
+  hg : ∀ P : sylow p H, (g P).1.comap f = P := λ P, classical.some_spec (h_exists P) in
+fintype.of_injective g (λ P Q h, sylow.ext (by simp only [←hg, h]))
+
+/-- If `f : H →* G` is injective, then `fintype (sylow p G)` implies `fintype (sylow p H)`. -/
+noncomputable def sylow.fintype_of_injective {H : Type*} [group H]
+  {f : H →* G} (hf : function.injective f) [fintype (sylow p G)] : fintype (sylow p H) :=
+sylow.fintype_of_ker_is_p_group (is_p_group.ker_is_p_group_of_injective hf)
+
+/-- If `H` is a subgroup of `G`, then `fintype (sylow p G)` implies `fintype (sylow p H)`. -/
+noncomputable instance (H : subgroup G) [fintype (sylow p G)] : fintype (sylow p H) :=
+sylow.fintype_of_injective (show function.injective H.subtype, from subtype.coe_injective)
+
 open_locale pointwise
 
 /-- `subgroup.pointwise_mul_action` preserves Sylow subgroups. -/

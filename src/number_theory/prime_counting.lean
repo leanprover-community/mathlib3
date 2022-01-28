@@ -103,7 +103,7 @@ begin
 end
 
 /-- A linear upper bound on the size of the `prime_counting'` function -/
-lemma linear_prime_counting_bound (n k a : ℕ) (h0 : 0 < a) (h1 : a < k) :
+lemma prime_counting'_add_le (n k a : ℕ) (h0 : 0 < a) (h1 : a < k) :
   π' (k + n) ≤ π' k + nat.totient a * (n / a + 1) :=
 calc π' (k + n)
     ≤ ((range k).filter (prime)).card + ((Ico k (k + n)).filter (prime)).card :

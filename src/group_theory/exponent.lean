@@ -262,27 +262,6 @@ section comm_monoid
 
 variable [cancel_comm_monoid G]
 
-section to_move
-
-lemma _root_.nat.factorization_div {a b : ℕ} (h : a ∣ b) :
-  (b / a).factorization = b.factorization - a.factorization :=
-begin
-  rcases eq_or_ne a 0 with rfl | ha,
-  { rw zero_dvd_iff at h,
-    subst h,
-    simp },
-  rcases eq_or_ne b 0 with rfl | hb,
-  { simp },
-  apply add_left_injective (nat.factorization a),
-  simp only,
-  symmetry,
-  rw [tsub_add_cancel_of_le $ (nat.factorization_le_iff_dvd ha hb).mpr h],
-  nth_rewrite 0 ←nat.div_mul_cancel h,
-  exact nat.factorization_mul (nat.div_pos (nat.le_of_dvd hb.bot_lt h) ha.bot_lt).ne' ha,
-end
-
-end to_move
-
 @[to_additive] lemma exponent_eq_supr_order_of (h : ∀ g : G, 0 < order_of g) :
   exponent G = ⨆ g : G, order_of g :=
 begin

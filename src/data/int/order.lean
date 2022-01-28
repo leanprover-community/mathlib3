@@ -89,17 +89,4 @@ begin
   exact dif_pos ⟨h1, h2⟩,
 end
 
-/-- Induction principle on `ℤ` for all integers above a given integer `m`. -/
-@[elab_as_eliminator] lemma le_induction {P : ℤ → Prop} {m : ℤ}
-  (h0 : P m) (h1 : ∀ n, m ≤ n → P n → P (n + 1)) :
-  ∀ n : ℤ, m ≤ n → P n :=
-begin
-  intros n hn,
-  rcases le.dest hn with ⟨k, rfl⟩,
-  clear hn,
-  induction k with k ih,
-  { rw [int.coe_nat_zero, add_zero], exact h0 },
-  { rw [int.coe_nat_succ, ← add_assoc], exact h1 _ (le.intro rfl) ih }
-end
-
 end int

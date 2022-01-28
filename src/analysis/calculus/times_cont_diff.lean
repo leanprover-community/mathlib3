@@ -164,7 +164,7 @@ local notation `∞` := (⊤ : with_top ℕ)
 universes u v w
 
 local attribute [instance, priority 1001]
-normed_group.to_add_comm_group normed_space.to_module add_comm_group.to_add_comm_monoid
+normed_group.to_add_comm_group normed_space.to_module' add_comm_group.to_add_comm_monoid
 
 open set fin filter
 open_locale topological_space
@@ -2830,7 +2830,9 @@ begin
       by { ext x, simp [deriv_within] },
     simp only [this],
     apply times_cont_diff.comp_times_cont_diff_on _ h,
-    exact (is_bounded_bilinear_map_smul_right.is_bounded_linear_map_right _).times_cont_diff }
+    have : is_bounded_bilinear_map 𝕜 (λ _ : (𝕜 →L[𝕜] 𝕜) × F, _) :=
+      is_bounded_bilinear_map_smul_right,
+    exact (this.is_bounded_linear_map_right _).times_cont_diff }
 end
 
 /-- A function is `C^(n + 1)` on an open domain if and only if it is

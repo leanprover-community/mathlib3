@@ -432,8 +432,7 @@ variables (R : Type*) [mul_zero_one_class R]
 /-- Characteristic functions are locally constant functions taking `x : X` to `1` if `x ∈ U`,
   where `U` is a clopen set, and `0` otherwise. -/
 noncomputable def char_fn {U : set X} (hU : is_clopen U) : locally_constant X R :=
-{
-  to_fun := λ x, by classical; exact if (x ∈ U) then 1 else 0,
+{ to_fun := λ x, by classical; exact if (x ∈ U) then 1 else 0,
   is_locally_constant :=
     begin
       rw is_locally_constant.iff_exists_open, rintros x,
@@ -442,8 +441,7 @@ noncomputable def char_fn {U : set X} (hU : is_clopen U) : locally_constant X R 
       { rw ←set.mem_compl_iff at h, refine ⟨Uᶜ, (is_clopen.compl hU).1, h, _⟩,
         rintros y hy, rw set.mem_compl_iff at h, rw set.mem_compl_iff at hy,
         simp [h, hy], },
-    end,
-}
+    end, }
 
 lemma char_fn_one [nontrivial R] (x : X) {U : set X} (hU : is_clopen U) :
   x ∈ U ↔ char_fn R hU x = (1 : R) :=

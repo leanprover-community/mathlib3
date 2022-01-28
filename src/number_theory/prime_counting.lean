@@ -14,7 +14,7 @@ import data.nat.count
 /-!
 # The Prime Counting Function
 
-In this file we define the prime counting function - the function on natural numbers that returns
+In this file we define the prime counting function: the function on natural numbers that returns
 the number of primes less than or equal to its input.
 
 ## Main Results

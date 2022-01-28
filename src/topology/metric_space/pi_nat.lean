@@ -7,8 +7,7 @@ import topology.metric_space.baire
 import topology.metric_space.hausdorff_distance
 
 /-!
-# Study of the Baire space
-
+# Study of spaces `Π (n : ℕ), E n`
 -/
 
 noncomputable theory
@@ -255,7 +254,8 @@ begin
       (H : v ∈ {s | ∃ (x : Π (n : ℕ), E n) (n : ℕ), s = cylinder x n}), x ∈ v ∧ v ⊆ s :=
         (is_topological_basis_cylinders E).exists_subset_of_mem_open hx hs,
     rw ← mem_cylinder_iff_eq.1 h'x at h's,
-    exact ⟨(1/2 : ℝ)^n, by simp, λ y hy, h's (λ i hi, (apply_eq_of_pi_nat_dist_lt hy hi.le).symm)⟩ },
+    exact ⟨(1/2 : ℝ)^n, by simp,
+      λ y hy, h's (λ i hi, (apply_eq_of_pi_nat_dist_lt hy hi.le).symm)⟩ },
   { assume h,
     apply (is_topological_basis_cylinders E).is_open_iff.2 (λ x hx, _),
     rcases h x hx with ⟨ε, εpos, hε⟩,

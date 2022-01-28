@@ -881,22 +881,15 @@ lemma preimage_mul_preimage_subset {s t : set β} : m ⁻¹' s * m ⁻¹' t ⊆ 
 by { rintros _ ⟨_, _, _, _, rfl⟩, exact ⟨_, _, ‹_›, ‹_›, (m.map_mul _ _).symm ⟩ }
 
 instance set_semiring.no_zero_divisors : no_zero_divisors (set_semiring α) :=
-{ eq_zero_or_eq_zero_of_mul_eq_zero := λ a b ab, begin
-    by_cases a0 : a = 0,
-    { exact or.inl a0 },
-    { refine or.inr _,
-      by_cases b0 : b = 0,
-      { exact b0 },
-      { cases ne_empty_iff_nonempty.mp a0 with x xa,
-        cases ne_empty_iff_nonempty.mp b0 with y yb,
-        exact (not_not.mpr ab (ne_empty_iff_nonempty.mpr ⟨x * y, mul_mem_mul xa yb⟩)).elim } }
-      end }
+{ eq_zero_or_eq_zero_of_mul_eq_zero := λ a b ab, or.imp_right (λ ha, not_not.mp (λ hb,
+    not_not.mpr ab (ne_empty_iff_nonempty.mpr ⟨_, mul_mem_mul (ne_empty_iff_nonempty.mp ha).some_mem
+    (ne_empty_iff_nonempty.mp hb).some_mem⟩))) (em _) }
 
 /- Since addition on `set_semiring` is commutative (it is set union), there is no need
 to also have the instance `covariant_class (set_semiring α) (set_semiring α) (swap (+)) (≤)`. -/
 instance set_semiring.covariant_class_add :
   covariant_class (set_semiring α) (set_semiring α) (+) (≤) :=
-{ elim := λ a b c, union_subset_union_right }
+{ elim := λ a b c, union_subset_union_right _ }
 
 instance set_semiring.covariant_class_mul_left :
   covariant_class (set_semiring α) (set_semiring α) (*) (≤) :=
@@ -909,7 +902,7 @@ instance set_semiring.covariant_class_mul_right :
 end mul_hom
 
 /-- The image of a set under a multiplicative homomorphism is a ring homomorphism
-with respect to the pointwise operations on subsets. -/
+with respect to the pointwise operations on sets. -/
 def image_hom [monoid α] [monoid β] (f : α →* β) : set_semiring α →+* set_semiring β :=
 { to_fun := image f,
   map_zero' := image_empty _,
@@ -926,8 +919,8 @@ variable [comm_monoid α]
 instance : canonically_ordered_comm_semiring (set_semiring α) :=
 { add_le_add_left := λ a b ab c, add_le_add_left ab _,
   le_iff_exists_add := λ a b,
-    ⟨λ ab, ⟨b, le_antisymm (subset_union_right _ _)
-      (λ x, or.imp_right ab)⟩,
+    ⟨λ (ab : ∀ y, y ∈ a.down → y ∈ b.down), ⟨b, le_antisymm (subset_union_right _ _)
+      (λ x xab, by { classical, exact xab.by_cases (ab _) (λ f, f)})⟩,
       by { rintro ⟨c, rfl⟩,
         exact subset_union_left _ _ }⟩,
   ..(infer_instance : comm_semiring (set_semiring α)),

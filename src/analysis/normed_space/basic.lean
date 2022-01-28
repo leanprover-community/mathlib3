@@ -590,7 +590,7 @@ begin
     ((continuous_id.smul continuous_const).add continuous_const).continuous_within_at,
   convert this.mem_closure _ _,
   { rw [one_smul, sub_add_cancel] },
-  { simp [closure_Ico (@zero_lt_one ℝ _ _), zero_le_one] },
+  { simp [closure_Ico (@zero_ne_one ℝ _ _), zero_le_one] },
   { rintros c ⟨hc0, hc1⟩,
     rw [set.mem_preimage, mem_ball, dist_eq_norm, add_sub_cancel, norm_smul, real.norm_eq_abs,
       abs_of_nonneg hc0, mul_comm, ← mul_one r],
@@ -662,11 +662,11 @@ def homeomorph_unit_ball {E : Type*} [semi_normed_group E] [normed_space ℝ E] 
 
 variables (α)
 
-lemma ne_neg_of_mem_sphere [char_zero α] {r : ℝ} (hr : 0 < r) (x : sphere (0:E) r) : x ≠ - x :=
-λ h, nonzero_of_mem_sphere hr x (eq_zero_of_eq_neg α (by { conv_lhs {rw h}, simp }))
+lemma ne_neg_of_mem_sphere [char_zero α] {r : ℝ} (hr : r ≠ 0) (x : sphere (0:E) r) : x ≠ - x :=
+λ h, ne_zero_of_mem_sphere hr x (eq_zero_of_eq_neg α (by { conv_lhs {rw h}, simp }))
 
 lemma ne_neg_of_mem_unit_sphere [char_zero α] (x : sphere (0:E) 1) : x ≠ - x :=
-ne_neg_of_mem_sphere α  (by norm_num) x
+ne_neg_of_mem_sphere α one_ne_zero x
 
 variables {α}
 
@@ -884,7 +884,7 @@ lemma normed_algebra.norm_one_class : norm_one_class 𝕜' :=
 
 lemma normed_algebra.zero_ne_one : (0:𝕜') ≠ 1 :=
 begin
-  refine (ne_zero_of_norm_pos _).symm,
+  refine (ne_zero_of_norm_ne_zero _).symm,
   rw normed_algebra.norm_one 𝕜 𝕜', norm_num,
 end
 

@@ -301,27 +301,6 @@ def const' : C(β, C(α, β)) := curry ⟨prod.fst, continuous_fst⟩
 
 lemma continuous_const' : continuous (const : β → C(α, β)) := const'.continuous
 
-/-variables [compact_space α] {R : Type*} [normed_ring R] --[topological_space R] [semiring R]
-[has_continuous_mul R]
-
-instance : has_continuous_smul R C(α, R) :=
-⟨begin
-  change continuous ((λ p, p.1 * p.2 : C(α, R) × C(α, R) → C(α, R)) ∘
-    (λ p, ((continuous_map.const p.fst), p.2) : R × C(α, R) → C(α, R) × C(α, R))),
-  have h := @continuous_const' α R _ _,
-  have f2 := @semi_normed_ring_top_monoid C(α, R) _,
-  have f1 : has_continuous_mul C(α, R),
-  { convert f2, rw topological_space_eq_iff,
-    intro s, split, all_goals { rintros h, },
-    {  }, },
-  exact (continuous_fst.comp ((continuous.comp h continuous_fst).prod_mk
-    continuous_snd)).mul continuous_snd,
-
-  continuity,
-  have :   has_continuous_mul C(α, R),
-  apply continuous_mul,
-end⟩-/
-
 end curry
 
 end compact_open

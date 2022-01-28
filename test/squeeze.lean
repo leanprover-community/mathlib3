@@ -1,7 +1,6 @@
 import data.nat.basic
-import tactic.squeeze
-import data.list.perm
 import data.pnat.basic
+import tactic.squeeze
 
 namespace tactic
 namespace interactive
@@ -18,8 +17,7 @@ meta def squeeze_simp_test
 do (cfg',c) ← parse_config cfg,
    squeeze_simp_core slow_and_accurate.is_some no_dflt hs
      (λ l_no_dft l_args, simp use_iota_eqn none l_no_dft l_args attr_names locat cfg')
-     (λ args, guard ((args.map to_string).perm (l.map to_string)) <|>
-              fail!"{args.map to_string} expected.")
+     (λ a, guard (a.map to_string = l.map to_string) <|> fail!"{a.map to_string} expected.")
 end interactive
 end tactic
 
@@ -33,7 +31,7 @@ by { squeeze_simp_test [←h, two_mul] = [←h, two_mul, add_zero] }
 
 -- Test that the order of the given hypotheses do not matter.
 example {a b : ℕ} (h : a + a = b) : b + 0 = 2 * a :=
-by { squeeze_simp_test [←h, two_mul] = [←h, add_zero, two_mul] }
+by { squeeze_simp_test [←h, two_mul] = [←h, two_mul, add_zero] }
 
 section namespacing1
 

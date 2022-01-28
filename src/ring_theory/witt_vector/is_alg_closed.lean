@@ -57,7 +57,6 @@ end
 
 -- lemma witt_vector.is_Hausdorff : is_Hausdorff (𝕎 k)
 
-open polynomial
 
 variable {k}
 
@@ -104,6 +103,23 @@ begin
     refl },
 end
 
+#check finset.sum
+
+def trunc_sub_prod_coeff (n : ℕ) (x y : truncated_witt_vector p n k) : k :=
+∑ (i : fin n), (x * y).coeff i ^ p ^ (n - i) * ↑p ^ i.val
+
+lemma nth_mul_coeff_aux2 (n : ℕ) : ∃ f : ((fin n → k) → (fin n → k) → k), ∀ (x y : 𝕎 k),
+  (x * y).coeff n * p^n + f (truncate_fun n x) (truncate_fun n y) =
+  (∑ i in range (n+1), (x.coeff i)^(p^(n-i)) * p^i)*(∑ i in range (n+1), (y.coeff i)^(p^(n-i)) * p^i) :=
+begin
+  refine ⟨trunc_sub_prod_coeff p (n), λ x y, _⟩,
+  rw [← nth_mul_coeff_aux1, finset.sum_range_succ, add_comm, nat.sub_self, pow_zero, pow_one],
+  congr' 1,
+  simp only [trunc_sub_prod_coeff, fin.val_eq_coe, ← truncate_fun_mul, coeff_truncate_fun],
+  sorry
+end
+
+#exit
 -- this is the version we think is true in char p
 lemma nth_mul_coeff (n : ℕ) : ∃ f : ((fin (n+1) → k) → (fin (n+1) → k) → k), ∀ (x y : 𝕎 k),
   (x * y).coeff (n+1) = x.coeff (n+1) * y.coeff 0 ^ (p^(n+1)) + y.coeff (n+1) * x.coeff 0 ^ (p^(n+1))
@@ -117,6 +133,9 @@ lemma nth_remainder_spec (n : ℕ) (x y : 𝕎 k) :
   (x * y).coeff (n+1) = x.coeff (n+1) * y.coeff 0 ^ (p^(n+1)) + y.coeff (n+1) * x.coeff 0 ^ (p^(n+1))
     + nth_remainder p n (truncate_fun (n+1) x) (truncate_fun (n+1) y) :=
 classical.some_spec (nth_mul_coeff p n) _ _
+
+
+open polynomial
 
 def succ_nth_defining_poly (n : ℕ) (a₁ a₂ : 𝕎 k) (bs : fin (n+1) → k) : polynomial k :=
 X^p * C (a₁.coeff 0 ^ (p^(n+1))) - X * C (a₂.coeff 0 ^ (p^(n+1)))

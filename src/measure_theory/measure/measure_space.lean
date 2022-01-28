@@ -246,7 +246,7 @@ begin
   { calc μ (⋃ b, s b) = ⊤ : top_unique (hb ▸ (h_le b).trans $ measure_mono $ subset_Union _ _)
     ... = μ (⋃ b, t b) : eq.symm $ top_unique $ hb ▸ measure_mono $ subset_Union _ _ },
   push_neg at htop,
-  refine le_antisymm (measure_mono (Union_subset_Union hsub)) _,
+  refine le_antisymm (measure_mono (Union_mono hsub)) _,
   set M := to_measurable μ,
   have H : ∀ b, (M (t b) ∩ M (⋃ b, s b) : set α) =ᵐ[μ] M (t b),
   { refine λ b, ae_eq_of_subset_of_measure_ge (inter_subset_left _ _) _ _ _,
@@ -258,7 +258,7 @@ begin
     { exact (measurable_set_to_measurable _ _).inter (measurable_set_to_measurable _ _) },
     { rw measure_to_measurable, exact htop b } },
   calc μ (⋃ b, t b) ≤ μ (⋃ b, M (t b)) :
-    measure_mono (Union_subset_Union $ λ b, subset_to_measurable _ _)
+    measure_mono (Union_mono $ λ b, subset_to_measurable _ _)
   ... = μ (⋃ b, M (t b) ∩ M (⋃ b, s b)) :
     measure_congr (eventually_eq.countable_Union H).symm
   ... ≤ μ (M (⋃ b, s b)) :
@@ -375,8 +375,7 @@ begin
   set Td : ℕ → set α := disjointed T,
   have hm : ∀ n, measurable_set (Td n),
     from measurable_set.disjointed (λ n, measurable_set_to_measurable _ _),
-  calc μ (⋃ n, t n) ≤ μ (⋃ n, T n) :
-    measure_mono (Union_subset_Union $ λ i, subset_to_measurable _ _)
+  calc μ (⋃ n, t n) ≤ μ (⋃ n, T n) : measure_mono (Union_mono $ λ i, subset_to_measurable _ _)
   ... = μ (⋃ n, Td n) : by rw [Union_disjointed]
   ... ≤ ∑' n, μ (Td n) : measure_Union_le _
   ... = ⨆ I : finset ℕ, ∑ n in I, μ (Td n) : ennreal.tsum_eq_supr_sum
@@ -384,9 +383,9 @@ begin
   rcases hd.finset_le I with ⟨N, hN⟩,
   calc ∑ n in I, μ (Td n) = μ (⋃ n ∈ I, Td n) :
     (measure_bUnion_finset ((disjoint_disjointed T).set_pairwise I) (λ n _, hm n)).symm
-  ... ≤ μ (⋃ n ∈ I, T n) : measure_mono (bUnion_mono $ λ n hn, disjointed_subset _ _)
+  ... ≤ μ (⋃ n ∈ I, T n) : measure_mono (Union₂_mono $ λ n hn, disjointed_subset _ _)
   ... = μ (⋃ n ∈ I, t n) : measure_bUnion_to_measurable I.countable_to_set _
-  ... ≤ μ (t N) : measure_mono (bUnion_subset hN)
+  ... ≤ μ (t N) : measure_mono (Union₂_subset hN)
   ... ≤ ⨆ n, μ (t n) : le_supr (μ ∘ t) N,
 end
 
@@ -1805,8 +1804,8 @@ lemma bsupr_measure_Iic [preorder α] {s : set α} (hsc : countable s)
   (hst : ∀ x : α, ∃ y ∈ s, x ≤ y) (hdir : directed_on (≤) s) :
   (⨆ x ∈ s, μ (Iic x)) = μ univ :=
 begin
-  rw ← measure_Union₂_eq_supr hsc,
-  { congr, exact bUnion_eq_univ_iff.2 hst },
+  rw ← measure_bUnion_eq_supr hsc,
+  { congr, exact Union₂_eq_univ_iff.2 hst },
   { exact directed_on_iff_directed.2 (hdir.directed_coe.mono_comp _ $ λ x y, Iic_subset_Iic.2) }
 end
 

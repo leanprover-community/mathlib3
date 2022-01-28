@@ -980,6 +980,9 @@ end
 @[simp, to_additive] lemma comap_top (f : G →* N) : (⊤ : subgroup N).comap f = ⊤ :=
 (gc_map_comap f).u_top
 
+@[simp, to_additive] lemma comap_subtype_self_eq_top {G : Type*} [group G] {H : subgroup G} :
+  comap H.subtype H = ⊤ := by { ext, simp }
+
 @[simp, to_additive]
 lemma comap_subtype_inf_left {H K : subgroup G} : comap H.subtype (H ⊓ K) = comap H.subtype K :=
 ext $ λ x, and_iff_right_of_imp (λ _, x.prop)
@@ -1908,6 +1911,29 @@ le_antisymm (le_normalizer_comap f)
     rcases hf n with ⟨y, rfl⟩,
     simp [hx y]
   end
+
+@[to_additive]
+lemma comap_normalizer_eq_of_injective_of_le_range {N : Type*} [group N] (H : subgroup G)
+  {f : N →* G} (hf : function.injective f) (h : H.normalizer ≤ f.range) :
+  comap f H.normalizer = (comap f H).normalizer :=
+begin
+  apply (subgroup.map_injective hf),
+  rw map_comap_eq_self h,
+  apply le_antisymm,
+  { refine (le_trans (le_of_eq _) (map_mono (le_normalizer_comap _))),
+    rewrite map_comap_eq_self h, },
+  { refine (le_trans (le_normalizer_map f) (le_of_eq _)),
+    rewrite map_comap_eq_self (le_trans le_normalizer h), }
+end
+
+@[to_additive]
+lemma comap_subtype_normalizer_eq {H N : subgroup G} (h : H.normalizer ≤ N) :
+  comap N.subtype H.normalizer = (comap N.subtype H).normalizer :=
+begin
+  apply comap_normalizer_eq_of_injective_of_le_range,
+  exact subtype.coe_injective,
+  simpa,
+end
 
 /-- The image of the normalizer is equal to the normalizer of the image of an isomorphism. -/
 @[to_additive "The image of the normalizer is equal to the normalizer of the image of an

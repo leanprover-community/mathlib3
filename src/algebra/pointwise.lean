@@ -881,25 +881,26 @@ lemma preimage_mul_preimage_subset {s t : set β} : m ⁻¹' s * m ⁻¹' t ⊆ 
 by { rintros _ ⟨_, _, _, _, rfl⟩, exact ⟨_, _, ‹_›, ‹_›, (m.map_mul _ _).symm ⟩ }
 
 instance set_semiring.no_zero_divisors : no_zero_divisors (set_semiring α) :=
-{ eq_zero_or_eq_zero_of_mul_eq_zero := λ a b ab, by
-  { by_cases a0 : a = 0,
-  { exact or.inl a0 },
-  { refine or.inr _,
-    by_cases b0 : b = 0,
-    { exact b0 },
-    { cases ne_empty_iff_nonempty.mp a0 with x xa,
-      cases ne_empty_iff_nonempty.mp b0 with y yb,
-      exact (not_not.mpr ab (ne_empty_iff_nonempty.mpr ⟨x * y, mul_mem_mul xa yb⟩)).elim } } } }
+{ eq_zero_or_eq_zero_of_mul_eq_zero := λ a b ab, begin
+    by_cases a0 : a = 0,
+    { exact or.inl a0 },
+    { refine or.inr _,
+      by_cases b0 : b = 0,
+      { exact b0 },
+      { cases ne_empty_iff_nonempty.mp a0 with x xa,
+        cases ne_empty_iff_nonempty.mp b0 with y yb,
+        exact (not_not.mpr ab (ne_empty_iff_nonempty.mpr ⟨x * y, mul_mem_mul xa yb⟩)).elim } }
+      end }
 
 /- Since addition on `set_semiring` is commutative (it is set union), there is no need
 to also have the instance `covariant_class (set_semiring α) (set_semiring α) (swap (+)) (≤)`. -/
 instance set_semiring.covariant_class_add :
   covariant_class (set_semiring α) (set_semiring α) (+) (≤) :=
-{ elim := λ a b c ab x xa, mem_of_mem_of_subset xa (union_subset_union_right _ ab) }
+{ elim := λ a b c, union_subset_union_right }
 
 instance set_semiring.covariant_class_mul_left :
   covariant_class (set_semiring α) (set_semiring α) (*) (≤) :=
-{ elim := λ a b c ab x xa, mem_of_mem_of_subset xa (mul_subset_mul subset.rfl ab) }
+{ elim := λ a b c, mul_subset_mul_left }
 
 instance set_semiring.covariant_class_mul_right :
   covariant_class (set_semiring α) (set_semiring α) (swap (*)) (≤) :=
@@ -926,9 +927,7 @@ instance : canonically_ordered_comm_semiring (set_semiring α) :=
 { add_le_add_left := λ a b ab c, add_le_add_left ab _,
   le_iff_exists_add := λ a b,
     ⟨λ ab, ⟨b, le_antisymm (subset_union_right _ _)
-      (λ x xab, by { cases (mem_union _ _ _).mp xab with xa xb,
-      { exact mem_of_mem_of_subset xa ab },
-      { exact xb }})⟩,
+      (λ x, or.imp_right ab)⟩,
       by { rintro ⟨c, rfl⟩,
         exact subset_union_left _ _ }⟩,
   ..(infer_instance : comm_semiring (set_semiring α)),

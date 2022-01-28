@@ -200,6 +200,7 @@ do v ← target >>= mk_meta_var,
      instantiate_mvars g },
    let vs := g.list_constant,
    vs ← vs.mfilter is_simp_lemma,
+   vs ← vs.mmap strip_prefix,
    vs ← vs.mmap prepend_root_if_needed,
    with_local_goals' [v] (filter_simp_set tac args $ vs.to_list.map name.to_simp_args)
      >>= mk_suggestion,

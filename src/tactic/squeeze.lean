@@ -164,7 +164,6 @@ do some s ← get_proof_state_after (tac ff (user_args ++ simp_args)),
    pure (user_args' ++ simp_args')
 
 /-- make a `simp_arg_type` that references the name given as an argument -/
--- this is currently very badly written - using an `expr` constructor raw is not a good idea
 meta def name.to_simp_args (n : name) : simp_arg_type :=
 simp_arg_type.expr $ @expr.local_const ff n n (default) pexpr.mk_placeholder
 

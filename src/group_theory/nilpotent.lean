@@ -631,7 +631,7 @@ begin
   rcases n with rfl | n,
   { simp [nilpotency_class_zero_iff_subsingleton] at *,
     haveI := hn,
-    exact subsingleton_quotient_of_subsingleton, },
+    apply_instance, },
   { suffices : group.nilpotency_class (G ⧸ center G) = n, by simpa,
     apply le_antisymm,
     { apply upper_central_series_eq_top_iff_nilpotency_class_le.mp,

@@ -171,13 +171,9 @@ we prepare some easy lemmas about √2.
 -- defeated me. Thanks for the rescue from Shing Tak Lam!
 lemma tsirelson_inequality_aux : √2 * √2 ^ 3 = √2 * (2 * √2⁻¹ + 4 * (√2⁻¹ * 2⁻¹)) :=
 begin
-  ring_nf,
-  rw [mul_assoc, inv_mul_cancel, real.sqrt_eq_rpow, ←real.rpow_nat_cast, ←real.rpow_mul],
-  { norm_num,
-    rw show (2 : ℝ) ^ (2 : ℝ) = (2 : ℝ) ^ (2 : ℕ), by { rw ←real.rpow_nat_cast, norm_num },
-    norm_num },
-  { norm_num, },
-  { norm_num, },
+  ring_nf, field_simp [(@real.sqrt_pos 2).2 (by norm_num)],
+  convert congr_arg (^2) (@real.sq_sqrt 2 (by norm_num)) using 1;
+    simp only [← pow_mul]; norm_num,
 end
 
 lemma sqrt_two_inv_mul_self : √2⁻¹ * √2⁻¹ = (2⁻¹ : ℝ) :=

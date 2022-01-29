@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Kenny Lau
 -/
 import algebra.big_operators.nat_antidiagonal
+import data.finsupp.interval
 import data.mv_polynomial.basic
 import data.polynomial.algebra_map
 import data.polynomial.coeff
@@ -76,7 +77,7 @@ namespace mv_power_series
 open finsupp
 variables {σ R : Type*}
 
-instance [inhabited R]       : inhabited       (mv_power_series σ R) := ⟨λ _, default _⟩
+instance [inhabited R]       : inhabited       (mv_power_series σ R) := ⟨λ _, default⟩
 instance [has_zero R]        : has_zero        (mv_power_series σ R) := pi.has_zero
 instance [add_monoid R]      : add_monoid      (mv_power_series σ R) := pi.add_monoid
 instance [add_group R]       : add_group       (mv_power_series σ R) := pi.add_group
@@ -308,7 +309,7 @@ coeff_monomial _ _ _
 
 lemma coeff_index_single_X [decidable_eq σ] (s t : σ) :
   coeff R (single t 1) (X s : mv_power_series σ R) = if t = s then 1 else 0 :=
-by { simp only [coeff_X, single_left_inj one_ne_zero], split_ifs; refl }
+by simp only [coeff_X, single_left_inj one_ne_zero]
 
 @[simp] lemma coeff_index_single_self_X (s : σ) :
   coeff R (single s 1) (X s : mv_power_series σ R) = 1 :=
@@ -390,6 +391,10 @@ lemma coeff_smul (f : mv_power_series σ R) (n) (a : R) :
   coeff _ n (a • f) = a * coeff _ n f :=
 rfl
 
+lemma smul_eq_C_mul (f : mv_power_series σ R) (a : R) :
+  a • f = C σ R a * f :=
+by { ext, simp }
+
 lemma X_inj [nontrivial R] {s t : σ} : (X s : mv_power_series σ R) = X t ↔ s = t :=
 ⟨begin
   intro h, replace h := congr_arg (coeff R (single s 1)) h, rw [coeff_X, if_pos rfl, coeff_X] at h,
@@ -466,11 +471,11 @@ instance [nonempty σ] [nontrivial R] : nontrivial (subalgebra R (mv_power_serie
 ⟨⟨⊥, ⊤, begin
   rw [ne.def, set_like.ext_iff, not_forall],
   inhabit σ,
-  refine ⟨X (default σ), _⟩,
+  refine ⟨X default, _⟩,
   simp only [algebra.mem_bot, not_exists, set.mem_range, iff_true, algebra.mem_top],
   intros x,
   rw [ext_iff, not_forall],
-  refine ⟨finsupp.single (default σ) 1, _⟩,
+  refine ⟨finsupp.single default 1, _⟩,
   simp [algebra_map_apply, coeff_C],
 end⟩⟩
 
@@ -481,7 +486,7 @@ variables [comm_semiring R] (n : σ →₀ ℕ)
 
 /-- Auxiliary definition for the truncation function. -/
 def trunc_fun (φ : mv_power_series σ R) : mv_polynomial σ R :=
-∑ m in Iic_finset n, mv_polynomial.monomial m (coeff R m φ)
+∑ m in finset.Iic n, mv_polynomial.monomial m (coeff R m φ)
 
 lemma coeff_trunc_fun (m : σ →₀ ℕ) (φ : mv_power_series σ R) :
   (trunc_fun n φ).coeff m = if m ≤ n then coeff R m φ else 0 :=
@@ -702,7 +707,10 @@ lemma inv_eq_zero {φ : mv_power_series σ k} :
   φ⁻¹ = 0 ↔ constant_coeff σ k φ = 0 :=
 ⟨λ h, by simpa using congr_arg (constant_coeff σ k) h,
  λ h, ext $ λ n, by { rw coeff_inv, split_ifs;
- simp only [h, mv_power_series.coeff_zero, zero_mul, inv_zero, neg_zero] }⟩
+  simp only [h, mv_power_series.coeff_zero, zero_mul, inv_zero, neg_zero] }⟩
+
+@[simp] lemma zero_inv : (0 : mv_power_series σ k)⁻¹ = 0 :=
+by rw [inv_eq_zero, constant_coeff_zero]
 
 @[simp, priority 1100]
 lemma inv_of_unit_eq (φ : mv_power_series σ k) (h : constant_coeff σ k φ ≠ 0) :
@@ -716,19 +724,19 @@ begin
   congr' 1, rw [units.ext_iff], exact h.symm,
 end
 
-@[simp] protected lemma mul_inv (φ : mv_power_series σ k) (h : constant_coeff σ k φ ≠ 0) :
+@[simp] protected lemma mul_inv_cancel (φ : mv_power_series σ k) (h : constant_coeff σ k φ ≠ 0) :
   φ * φ⁻¹ = 1 :=
 by rw [← inv_of_unit_eq φ h, mul_inv_of_unit φ (units.mk0 _ h) rfl]
 
-@[simp] protected lemma inv_mul (φ : mv_power_series σ k) (h : constant_coeff σ k φ ≠ 0) :
+@[simp] protected lemma inv_mul_cancel (φ : mv_power_series σ k) (h : constant_coeff σ k φ ≠ 0) :
   φ⁻¹ * φ = 1 :=
-by rw [mul_comm, φ.mul_inv h]
+by rw [mul_comm, φ.mul_inv_cancel h]
 
 protected lemma eq_mul_inv_iff_mul_eq {φ₁ φ₂ φ₃ : mv_power_series σ k}
   (h : constant_coeff σ k φ₃ ≠ 0) :
   φ₁ = φ₂ * φ₃⁻¹ ↔ φ₁ * φ₃ = φ₂ :=
-⟨λ k, by simp [k, mul_assoc, mv_power_series.inv_mul _ h],
- λ k, by simp [← k, mul_assoc, mv_power_series.mul_inv _ h]⟩
+⟨λ k, by simp [k, mul_assoc, mv_power_series.inv_mul_cancel _ h],
+ λ k, by simp [← k, mul_assoc, mv_power_series.mul_inv_cancel _ h]⟩
 
 protected lemma eq_inv_iff_mul_eq_one {φ ψ : mv_power_series σ k} (h : constant_coeff σ k ψ ≠ 0) :
   φ = ψ⁻¹ ↔ φ * ψ = 1 :=
@@ -737,6 +745,39 @@ by rw [← mv_power_series.eq_mul_inv_iff_mul_eq h, one_mul]
 protected lemma inv_eq_iff_mul_eq_one {φ ψ : mv_power_series σ k} (h : constant_coeff σ k ψ ≠ 0) :
   ψ⁻¹ = φ ↔ φ * ψ = 1 :=
 by rw [eq_comm, mv_power_series.eq_inv_iff_mul_eq_one h]
+
+@[simp] protected lemma mul_inv_rev (φ ψ : mv_power_series σ k) :
+  (φ * ψ)⁻¹ = ψ⁻¹ * φ⁻¹ :=
+begin
+  by_cases h : constant_coeff σ k (φ * ψ) = 0,
+  { rw inv_eq_zero.mpr h,
+    simp only [map_mul, mul_eq_zero] at h,
+    -- we don't have `no_zero_divisors (mw_power_series σ k)` yet,
+    cases h;
+    simp [inv_eq_zero.mpr h] },
+  { rw [mv_power_series.inv_eq_iff_mul_eq_one h],
+    simp only [not_or_distrib, map_mul, mul_eq_zero] at h,
+    rw [←mul_assoc, mul_assoc _⁻¹, mv_power_series.inv_mul_cancel _ h.left, mul_one,
+        mv_power_series.inv_mul_cancel _ h.right] }
+end
+
+@[simp] lemma one_inv : (1 : mv_power_series σ k)⁻¹ = 1 :=
+by { rw [mv_power_series.inv_eq_iff_mul_eq_one, mul_one], simp }
+
+@[simp] lemma C_inv (r : k) : (C σ k r)⁻¹ = C σ k r⁻¹ :=
+begin
+  rcases eq_or_ne r 0 with rfl|hr,
+  { simp },
+  rw [mv_power_series.inv_eq_iff_mul_eq_one, ←map_mul, inv_mul_cancel hr, map_one],
+  simpa using hr
+end
+
+@[simp] lemma X_inv (s : σ) : (X s : mv_power_series σ k)⁻¹ = 0 :=
+by rw [inv_eq_zero, constant_coeff_X]
+
+@[simp] lemma smul_inv (r : k) (φ : mv_power_series σ k) :
+  (r • φ)⁻¹ = r⁻¹ • φ⁻¹ :=
+by simp [smul_eq_C_mul, mul_comm]
 
 end field
 
@@ -938,7 +979,7 @@ lemma coeff_monomial (m n : ℕ) (a : R) :
   coeff R m (monomial R n a) = if m = n then a else 0 :=
 calc coeff R m (monomial R n a) = _ : mv_power_series.coeff_monomial _ _ _
     ... = if m = n then a else 0 :
-by { simp only [finsupp.unique_single_eq_iff], split_ifs; refl }
+by simp only [finsupp.unique_single_eq_iff]
 
 lemma monomial_eq_mk (n : ℕ) (a : R) :
   monomial R n a = mk (λ m, if m = n then a else 0) :=
@@ -1045,9 +1086,13 @@ mv_power_series.coeff_mul_C _ φ a
   coeff R n (C R a * φ) = a * coeff R n φ :=
 mv_power_series.coeff_C_mul _ φ a
 
-@[simp] lemma coeff_smul (n : ℕ) (φ : power_series R) (a : R) :
-  coeff R n (a • φ) = a * coeff R n φ :=
+@[simp] lemma coeff_smul {S : Type*} [semiring S] [module R S]
+  (n : ℕ) (φ : power_series S) (a : R) : coeff S n (a • φ) = a • coeff S n φ :=
 rfl
+
+lemma smul_eq_C_mul (f : power_series R) (a : R) :
+  a • f = C R a * f :=
+by { ext, simp }
 
 @[simp] lemma coeff_succ_mul_X (n : ℕ) (φ : power_series R) :
   coeff R (n+1) (φ * X) = coeff R n φ :=
@@ -1080,7 +1125,7 @@ lemma coeff_zero_X_mul (φ : power_series R) : coeff R 0 (X * φ) = 0 := by simp
 -- The following section duplicates the api of `data.polynomial.coeff` and should attempt to keep
 -- up to date with that
 section
-lemma coeff_C_mul_X (x : R) (k n : ℕ) :
+lemma coeff_C_mul_X_pow (x : R) (k n : ℕ) :
   coeff R n (C R x * X ^ k : power_series R) = if n = k then x else 0 :=
 by simp [X_pow_eq, coeff_monomial]
 
@@ -1503,6 +1548,8 @@ lemma inv_eq_zero {φ : power_series k} :
   φ⁻¹ = 0 ↔ constant_coeff k φ = 0 :=
 mv_power_series.inv_eq_zero
 
+@[simp] lemma zero_inv : (0 : power_series k)⁻¹ = 0 := mv_power_series.zero_inv
+
 @[simp, priority 1100] lemma inv_of_unit_eq (φ : power_series k) (h : constant_coeff k φ ≠ 0) :
   inv_of_unit φ (units.mk0 _ h) = φ⁻¹ :=
 mv_power_series.inv_of_unit_eq _ _
@@ -1511,13 +1558,13 @@ mv_power_series.inv_of_unit_eq _ _
   inv_of_unit φ u = φ⁻¹ :=
 mv_power_series.inv_of_unit_eq' φ _ h
 
-@[simp] protected lemma mul_inv (φ : power_series k) (h : constant_coeff k φ ≠ 0) :
+@[simp] protected lemma mul_inv_cancel (φ : power_series k) (h : constant_coeff k φ ≠ 0) :
   φ * φ⁻¹ = 1 :=
-mv_power_series.mul_inv φ h
+mv_power_series.mul_inv_cancel φ h
 
-@[simp] protected lemma inv_mul (φ : power_series k) (h : constant_coeff k φ ≠ 0) :
+@[simp] protected lemma inv_mul_cancel (φ : power_series k) (h : constant_coeff k φ ≠ 0) :
   φ⁻¹ * φ = 1 :=
-mv_power_series.inv_mul φ h
+mv_power_series.inv_mul_cancel φ h
 
 lemma eq_mul_inv_iff_mul_eq {φ₁ φ₂ φ₃ : power_series k} (h : constant_coeff k φ₃ ≠ 0) :
   φ₁ = φ₂ * φ₃⁻¹ ↔ φ₁ * φ₃ = φ₂ :=
@@ -1530,6 +1577,23 @@ mv_power_series.eq_inv_iff_mul_eq_one h
 lemma inv_eq_iff_mul_eq_one {φ ψ : power_series k} (h : constant_coeff k ψ ≠ 0) :
   ψ⁻¹ = φ ↔ φ * ψ = 1 :=
 mv_power_series.inv_eq_iff_mul_eq_one h
+
+@[simp] protected lemma mul_inv_rev (φ ψ : power_series k) :
+  (φ * ψ)⁻¹ = ψ⁻¹ * φ⁻¹ :=
+mv_power_series.mul_inv_rev _ _
+
+@[simp] lemma one_inv : (1 : power_series k)⁻¹ = 1 :=
+mv_power_series.one_inv
+
+@[simp] lemma C_inv (r : k) : (C k r)⁻¹ = C k r⁻¹ :=
+mv_power_series.C_inv _
+
+@[simp] lemma X_inv : (X : power_series k)⁻¹ = 0 :=
+mv_power_series.X_inv _
+
+@[simp] lemma smul_inv (r : k) (φ : power_series k) :
+  (r • φ)⁻¹ = r⁻¹ • φ⁻¹ :=
+mv_power_series.smul_inv _ _
 
 end field
 
@@ -1834,6 +1898,8 @@ by rw [bit1, bit1, coe_add, coe_one, coe_bit0]
 @[simp, norm_cast] lemma coe_X :
   ((X : polynomial R) : power_series R) = power_series.X :=
 coe_monomial _ _
+
+@[simp] lemma constant_coeff_coe : power_series.constant_coeff R φ = φ.coeff 0 := rfl
 
 variables (R)
 

@@ -13,12 +13,13 @@ This file defines cubic polynomials over a semiring and their discriminants over
 
 ## Main definitions
 
-* `cubic`
-* `disc`
+* `cubic`: the structure representing a cubic polynomial.
+* `disc`: the discriminant of a cubic polynomial.
 
 ## Main statements
 
-* `disc_ne_zero_iff_roots_nodup`
+* `disc_ne_zero_iff_roots_nodup`: the cubic discriminant is not equal to zero if and only if
+  the cubic has no duplicate roots.
 
 ## References
 
@@ -27,281 +28,192 @@ This file defines cubic polynomials over a semiring and their discriminants over
 
 ## Tags
 
-cubic, polynomial, root, discriminant
+cubic, discriminant, polynomial, root
 -/
 
 noncomputable theory
 
 /-- The structure representing a cubic polynomial. -/
-structure cubic (R : Type*) [has_zero R] := (a b c d : R)
-
-instance (R : Type*) [has_zero R] : inhabited (cubic R) := ⟨⟨0, 0, 0, 0⟩⟩
+@[ext] structure cubic (R : Type*) := (a b c d : R)
 
 namespace cubic
 
 open cubic polynomial
 
-/-! ## Coefficients -/
+variables {R S F K : Type*}
+
+instance [inhabited R] : inhabited (cubic R) := ⟨⟨default R, default R, default R, default R⟩⟩
+
+instance [has_zero R] : has_zero (cubic R) := ⟨⟨0, 0, 0, 0⟩⟩
+
+section basic
+
+variables {P : cubic R} [semiring R]
+
+/-- Convert a cubic polynomial to a polynomial. -/
+def to_poly (P : cubic R) : polynomial R := C P.a * X ^ 3 + C P.b * X ^ 2 + C P.c * X + C P.d
+
+/-! ### Coefficients -/
 
 section coeff
 
-variables {R S : Type*} [semiring R] [semiring S] {P Q : cubic R} (φ : R →+* S)
-
-/-- Convert a cubic polynomial to a polynomial. -/
-def to_poly (P : cubic R) : polynomial R := C P.d + C P.c * X + C P.b * X ^ 2 + C P.a * X ^ 3
-
-/-- Map a cubic polynomial across a ring homomorphism. -/
-def map (P : cubic R) : cubic S := ⟨φ P.a, φ P.b, φ P.c, φ P.d⟩
-
-lemma map_eq : (map φ P).to_poly = polynomial.map φ P.to_poly :=
-begin
-  change (map φ P).to_poly = polynomial.map φ (C P.d + C P.c * X + C P.b * X ^ 2 + C P.a * X ^ 3),
-  simp only [map_C, map_X, polynomial.map_add, polynomial.map_mul, polynomial.map_pow],
-  refl
-end
-
-lemma coeffs :
+private lemma coeffs :
   P.to_poly.coeff 3 = P.a ∧ P.to_poly.coeff 2 = P.b ∧ P.to_poly.coeff 1 = P.c
     ∧ P.to_poly.coeff 0 = P.d :=
-by { rw [to_poly], simp only [coeff_add, coeff_C, coeff_C_mul, coeff_X, coeff_C_mul_X], norm_num }
+by simp [to_poly, coeff_add, coeff_C, coeff_C_mul_X, coeff_C_mul_X_pow]
 
-@[simp] theorem coeff_three : P.to_poly.coeff 3 = P.a := coeffs.1
+@[simp] lemma coeff_three : P.to_poly.coeff 3 = P.a := coeffs.1
 
-@[simp] theorem coeff_two : P.to_poly.coeff 2 = P.b := coeffs.2.1
+@[simp] lemma coeff_two : P.to_poly.coeff 2 = P.b := coeffs.2.1
 
-@[simp] theorem coeff_one : P.to_poly.coeff 1 = P.c := coeffs.2.2.1
+@[simp] lemma coeff_one : P.to_poly.coeff 1 = P.c := coeffs.2.2.1
 
-@[simp] theorem coeff_zero : P.to_poly.coeff 0 = P.d := coeffs.2.2.2
+@[simp] lemma coeff_zero : P.to_poly.coeff 0 = P.d := coeffs.2.2.2
 
-lemma to_poly_injective (P Q : cubic R) : P.to_poly = Q.to_poly ↔ P = Q :=
-begin
-  rcases ⟨P, Q⟩ with ⟨⟨_, _, _, _⟩, ⟨_, _, _, _⟩⟩,
-  split,
-  { rintro h,
-    simp only,
-    split,
-    { apply_fun (λ p, coeff p 3) at h,
-      rw [coeff_three, coeff_three] at h,
-      exact h },
-    { split,
-      { apply_fun (λ p, coeff p 2) at h,
-        rw [coeff_two, coeff_two] at h,
-        exact h },
-      { split,
-        { apply_fun (λ p, coeff p 1) at h,
-          rw [coeff_one, coeff_one] at h,
-          exact h },
-        { apply_fun (λ p, coeff p 0) at h,
-          rw [coeff_zero, coeff_zero] at h,
-          exact h } } } },
-  { intro h,
-    injection h with ha hb hc hd,
-    rw [ha, hb, hc, hd] }
-end
+lemma a_of_eq {Q : cubic R} (h : P.to_poly = Q.to_poly) : P.a = Q.a :=
+by rw [← coeff_three, h, coeff_three]
 
-theorem a_of_eq (h : P.to_poly = Q.to_poly) : P.a = Q.a :=
-by { rw [to_poly_injective] at h, rw [h] }
+lemma b_of_eq {Q : cubic R} (h : P.to_poly = Q.to_poly) : P.b = Q.b :=
+by rw [← coeff_two, h, coeff_two]
 
-theorem b_of_eq (h : P.to_poly = Q.to_poly) : P.b = Q.b :=
-by { rw [to_poly_injective] at h, rw [h] }
+lemma c_of_eq {Q : cubic R} (h : P.to_poly = Q.to_poly) : P.c = Q.c :=
+by rw [← coeff_one, h, coeff_one]
 
-theorem c_of_eq (h : P.to_poly = Q.to_poly) : P.c = Q.c :=
-by { rw [to_poly_injective] at h, rw [h] }
+lemma d_of_eq {Q : cubic R} (h : P.to_poly = Q.to_poly) : P.d = Q.d :=
+by rw [← coeff_zero, h, coeff_zero]
 
-theorem d_of_eq (h : P.to_poly = Q.to_poly) : P.d = Q.d :=
-by { rw [to_poly_injective] at h, rw [h] }
+@[simp] lemma to_poly_injective (P Q : cubic R) : P.to_poly = Q.to_poly ↔ P = Q :=
+⟨λ h, cubic.ext _ _ (a_of_eq h) (b_of_eq h) (c_of_eq h) (d_of_eq h), congr_arg _⟩
 
-lemma of_a_eq_zero (ha : P.a = 0) : P.to_poly = C P.d + C P.c * X + C P.b * X ^ 2 :=
-by rw [to_poly, C_eq_zero.mpr ha, zero_mul, add_zero]
+@[simp] lemma of_a_eq_zero (ha : P.a = 0) : P.to_poly = C P.b * X ^ 2 + C P.c * X + C P.d :=
+by rw [to_poly, C_eq_zero.mpr ha, zero_mul, zero_add]
 
-lemma of_b_eq_zero (ha : P.a = 0) (hb : P.b = 0) : P.to_poly = C P.d + C P.c * X :=
-by { rw [to_poly, C_eq_zero.mpr ha, C_eq_zero.mpr hb], simp only [add_zero, zero_mul] }
+@[simp] lemma of_a_b_eq_zero (ha : P.a = 0) (hb : P.b = 0) : P.to_poly = C P.c * X + C P.d :=
+by rw [of_a_eq_zero ha, C_eq_zero.mpr hb, zero_mul, zero_add]
 
-lemma of_c_eq_zero (ha : P.a = 0) (hb : P.b = 0) (hc : P.c = 0) : P.to_poly = C P.d :=
-begin
-  rw [to_poly, C_eq_zero.mpr ha, C_eq_zero.mpr hb, C_eq_zero.mpr hc],
-  simp only [add_zero, zero_mul]
-end
+@[simp] lemma of_a_b_c_eq_zero (ha : P.a = 0) (hb : P.b = 0) (hc : P.c = 0) : P.to_poly = C P.d :=
+by rw [of_a_b_eq_zero ha hb, C_eq_zero.mpr hc, zero_mul, zero_add]
 
-lemma of_zero (ha : P.a = 0) (hb : P.b = 0) (hc : P.c = 0) (hd : P.d = 0) : P.to_poly = 0 :=
-begin
-  rw [to_poly, C_eq_zero.mpr ha, C_eq_zero.mpr hb, C_eq_zero.mpr hc, C_eq_zero.mpr hd],
-  simp only [add_zero, zero_mul]
-end
+@[simp] lemma of_zero (ha : P.a = 0) (hb : P.b = 0) (hc : P.c = 0) (hd : P.d = 0) : P.to_poly = 0 :=
+by rw [of_a_b_c_eq_zero ha hb hc, C_eq_zero.mpr hd]
+
+@[simp] lemma zero : (0 : cubic R).to_poly = 0 := of_zero rfl rfl rfl rfl
+
+@[simp] lemma eq_zero_iff : P.to_poly = 0 ↔ P = 0 := by rw [← zero, to_poly_injective]
+
+lemma ne_zero (h0 : ¬P.a = 0 ∨ ¬P.b = 0 ∨ ¬P.c = 0 ∨ ¬P.d = 0) : P.to_poly ≠ 0 :=
+by { contrapose! h0, rw [eq_zero_iff.mp h0], exact ⟨rfl, rfl, rfl, rfl⟩ }
+
+lemma ne_zero_of_a_ne_zero (ha : P.a ≠ 0) : P.to_poly ≠ 0 := (or_imp_distrib.mp ne_zero).1 ha
+
+lemma ne_zero_of_b_ne_zero (hb : P.b ≠ 0) : P.to_poly ≠ 0 :=
+(or_imp_distrib.mp (or_imp_distrib.mp ne_zero).2).1 hb
+
+lemma ne_zero_of_c_ne_zero (hc : P.c ≠ 0) : P.to_poly ≠ 0 :=
+(or_imp_distrib.mp (or_imp_distrib.mp (or_imp_distrib.mp ne_zero).2).2).1 hc
+
+lemma ne_zero_of_d_ne_zero (hd : P.d ≠ 0) : P.to_poly ≠ 0 :=
+(or_imp_distrib.mp (or_imp_distrib.mp (or_imp_distrib.mp ne_zero).2).2).2 hd
 
 end coeff
 
-/-! ## Degree -/
+/-! ### Degrees -/
 
 section degree
 
-variables {R : Type*} [semiring R] {P : cubic R}
+lemma degree (ha : P.a ≠ 0) : P.to_poly.degree = 3 := degree_cubic ha
 
-lemma degree_of_constant_lt : (C P.d).degree < 1 := lt_of_le_of_lt degree_C_le dec_trivial
+lemma degree_of_a_eq_zero (ha : P.a = 0) (hb : P.b ≠ 0) : P.to_poly.degree = 2 :=
+by rw [of_a_eq_zero ha, degree_quadratic hb]
 
-lemma degree_of_linear_lt : (C P.d + C P.c * X).degree < 2 :=
-begin
-  apply lt_of_le_of_lt (degree_add_le _ _),
-  rw [max_lt_iff],
-  split,
-  { exact lt_of_le_of_lt degree_C_le dec_trivial },
-  { exact lt_of_le_of_lt (degree_C_mul_X_le _) dec_trivial }
-end
+lemma degree_of_a_b_eq_zero (ha : P.a = 0) (hb : P.b = 0) (hc : P.c ≠ 0) : P.to_poly.degree = 1 :=
+by rw [of_a_b_eq_zero ha hb, degree_linear hc]
 
-lemma degree_of_quadratic_lt : (C P.d + C P.c * X + C P.b * X ^ 2).degree < 3 :=
-begin
-  apply lt_of_le_of_lt (degree_add_le _ _),
-  rw [max_lt_iff],
-  split,
-  { exact lt_of_lt_of_le degree_of_linear_lt dec_trivial },
-  { exact lt_of_le_of_lt (degree_C_mul_X_pow_le _ _) dec_trivial }
-end
+lemma degree_of_a_b_c_eq_zero (ha : P.a = 0) (hb : P.b = 0) (hc : P.c = 0) (hd : P.d ≠ 0) :
+  P.to_poly.degree = 0 :=
+by rw [of_a_b_c_eq_zero ha hb hc, degree_C hd]
 
-theorem degree_of_a_ne_zero (ha : P.a ≠ 0) : P.to_poly.degree = ↑3 :=
-begin
-  rw [to_poly, degree_add_eq_right_of_degree_lt],
-  all_goals { rw [degree_C_mul_X_pow _ ha] },
-  exact degree_of_quadratic_lt
-end
-
-theorem degree_of_b_ne_zero (ha : P.a = 0) (hb : P.b ≠ 0) : P.to_poly.degree = ↑2 :=
-begin
-  rw [of_a_eq_zero ha, degree_add_eq_right_of_degree_lt],
-  all_goals { rw [degree_C_mul_X_pow _ hb] },
-  exact degree_of_linear_lt
-end
-
-theorem degree_of_c_ne_zero (ha : P.a = 0) (hb : P.b = 0) (hc : P.c ≠ 0) : P.to_poly.degree = ↑1 :=
-begin
-  rw [of_b_eq_zero ha hb, degree_add_eq_right_of_degree_lt],
-  all_goals { rw [← pow_one X, degree_C_mul_X_pow _ hc] },
-  exact degree_of_constant_lt
-end
-
-theorem degree_of_d_ne_zero (ha : P.a = 0) (hb : P.b = 0) (hc : P.c = 0) (hd : P.d ≠ 0) :
-  P.to_poly.degree = ↑0 :=
-by { rw [of_c_eq_zero ha hb hc, degree_C hd], refl }
-
-theorem degree_of_zero (ha : P.a = 0) (hb : P.b = 0) (hc : P.c = 0) (hd : P.d = 0) :
+lemma degree_of_zero (ha : P.a = 0) (hb : P.b = 0) (hc : P.c = 0) (hd : P.d = 0) :
   P.to_poly.degree = ⊥ :=
-by { rw [of_zero ha hb hc hd], refl }
+by rw [of_zero ha hb hc hd, degree_zero]
 
-theorem degree_le : P.to_poly.degree ≤ 3 :=
-begin
-  by_cases ha : P.a = 0,
-  { by_cases hb : P.b = 0,
-    { by_cases hc : P.c = 0,
-      { by_cases hd : P.d = 0,
-        { rw [degree_of_zero ha hb hc hd],
-          exact dec_trivial },
-        { rw [degree_of_d_ne_zero ha hb hc hd],
-          exact dec_trivial } },
-      { rw [degree_of_c_ne_zero ha hb hc],
-        exact dec_trivial } },
-    { rw [degree_of_b_ne_zero ha hb],
-      exact dec_trivial } },
-  { rw [degree_of_a_ne_zero ha],
-    exact dec_trivial },
-end
+lemma leading_coeff (ha : P.a ≠ 0) : P.to_poly.leading_coeff = P.a := leading_coeff_cubic ha
 
-lemma ne_zero (h : ¬P.a = 0 ∨ ¬P.b = 0 ∨ ¬P.c = 0 ∨ ¬P.d = 0) : P.to_poly ≠ 0 :=
-begin
-  apply @ne_zero_of_degree_gt _ _ _ ⊥,
-  by_cases ha : P.a = 0,
-  { rw [ha, ne_self_iff_false, false_or] at h,
-    by_cases hb : P.b = 0,
-    { rw [hb, ne_self_iff_false, false_or] at h,
-      by_cases hc : P.c = 0,
-      { rw [hc, ne_self_iff_false, false_or] at h,
-        rw [degree_of_d_ne_zero ha hb hc h],
-        exact dec_trivial },
-      { rw [degree_of_c_ne_zero ha hb hc],
-        exact dec_trivial } },
-    { rw [degree_of_b_ne_zero ha hb],
-      exact dec_trivial } },
-  { rw [degree_of_a_ne_zero ha],
-    exact dec_trivial }
-end
+lemma leading_coeff_of_a_eq_zero (ha : P.a = 0) (hb : P.b ≠ 0) : P.to_poly.leading_coeff = P.b :=
+by rw [of_a_eq_zero ha, leading_coeff_quadratic hb]
 
-theorem ne_zero_of_a_ne_zero (ha : P.a ≠ 0) : P.to_poly ≠ 0 := (or_imp_distrib.mp ne_zero).1 ha
-
-theorem ne_zero_of_b_ne_zero (hb : P.b ≠ 0) : P.to_poly ≠ 0 :=
-(or_imp_distrib.mp (or_imp_distrib.mp ne_zero).2).1 hb
-
-theorem ne_zero_of_c_ne_zero (hc : P.c ≠ 0) : P.to_poly ≠ 0 :=
-(or_imp_distrib.mp (or_imp_distrib.mp (or_imp_distrib.mp ne_zero).2).2).1 hc
-
-theorem ne_zero_of_d_ne_zero (hd : P.d ≠ 0) : P.to_poly ≠ 0 :=
-(or_imp_distrib.mp (or_imp_distrib.mp (or_imp_distrib.mp ne_zero).2).2).2 hd
-
-theorem leading_coeff_of_a_ne_zero (ha : P.a ≠ 0) : P.to_poly.leading_coeff = P.a :=
-begin
-  rw [to_poly, leading_coeff_add_of_degree_lt, leading_coeff_C_mul_X_pow],
-  rw [degree_C_mul_X_pow _ ha],
-  exact degree_of_quadratic_lt
-end
-
-theorem leading_coeff_of_b_ne_zero (ha : P.a = 0) (hb : P.b ≠ 0) : P.to_poly.leading_coeff = P.b :=
-begin
-  rw [of_a_eq_zero ha, leading_coeff_add_of_degree_lt, leading_coeff_C_mul_X_pow],
-  rw [degree_C_mul_X_pow _ hb],
-  exact degree_of_linear_lt
-end
-
-theorem leading_coeff_of_c_ne_zero (ha : P.a = 0) (hb : P.b = 0) (hc : P.c ≠ 0) :
+lemma leading_coeff_of_a_b_eq_zero (ha : P.a = 0) (hb : P.b = 0) (hc : P.c ≠ 0) :
   P.to_poly.leading_coeff = P.c :=
-begin
-  rw [of_b_eq_zero ha hb, leading_coeff_add_of_degree_lt, ← pow_one X, leading_coeff_C_mul_X_pow],
-  rw [← pow_one X, degree_C_mul_X_pow _ hc],
-  exact degree_of_constant_lt
-end
+by rw [of_a_b_eq_zero ha hb, leading_coeff_linear hc]
 
-theorem leading_coeff_of_constant (ha : P.a = 0) (hb : P.b = 0) (hc : P.c = 0) :
+lemma leading_coeff_of_a_b_c_eq_zero (ha : P.a = 0) (hb : P.b = 0) (hc : P.c = 0) :
   P.to_poly.leading_coeff = P.d :=
-by rw [of_c_eq_zero ha hb hc, leading_coeff_C]
+by rw [of_a_b_c_eq_zero ha hb hc, leading_coeff_C]
 
 end degree
 
-/-! ## Roots -/
+/-! ### Map across a homomorphism -/
+
+section map
+
+variables [semiring S] {φ : R →+* S}
+
+/-- Map a cubic polynomial across a semiring homomorphism. -/
+def map (φ : R →+* S) (P : cubic R) : cubic S := ⟨φ P.a, φ P.b, φ P.c, φ P.d⟩
+
+lemma map_to_poly : (map φ P).to_poly = polynomial.map φ P.to_poly :=
+by simp only [map, to_poly, map_C, map_X, polynomial.map_add, polynomial.map_mul,
+              polynomial.map_pow]
+
+end map
+
+end basic
 
 section roots
 
 open multiset
 
-variables {R S : Type*} [comm_ring R] [comm_ring S] [is_domain S]
+/-! ### Roots over an extension -/
+
+section extension
+
+variables {P : cubic R} [comm_ring R] [comm_ring S] {φ : R →+* S}
 
 /-- The roots of a cubic polynomial. -/
 def roots [is_domain R] (P : cubic R) : multiset R := P.to_poly.roots
 
-lemma roots_eq {φ : R →+* S} {P : cubic R} : (map φ P).roots = (polynomial.map φ P.to_poly).roots :=
-by rw [roots, map_eq]
+lemma map_roots [is_domain S] : (map φ P).roots = (polynomial.map φ P.to_poly).roots :=
+by rw [roots, map_to_poly]
 
-theorem mem_roots_iff [is_domain R] {P : cubic R} (h0 : P.to_poly ≠ 0) (x : R) :
-  x ∈ P.roots ↔ P.d + P.c * x + P.b * x ^ 2 + P.a * x ^ 3 = 0 :=
+theorem mem_roots_iff [is_domain R] (h0 : P.to_poly ≠ 0) (x : R) :
+  x ∈ P.roots ↔ P.a * x ^ 3 + P.b * x ^ 2 + P.c * x + P.d = 0 :=
 begin
   rw [roots, mem_roots h0, is_root, to_poly],
   simp only [eval_C, eval_X, eval_add, eval_mul, eval_pow]
 end
 
-theorem card_roots_le [is_domain R] [decidable_eq R] {P : cubic R} : P.roots.to_finset.card ≤ 3 :=
+theorem card_roots_le [is_domain R] [decidable_eq R] : P.roots.to_finset.card ≤ 3 :=
 begin
-  apply le_trans (multiset.to_finset_card_le P.to_poly.roots),
+  apply (to_finset_card_le P.to_poly.roots).trans,
   by_cases hP : P.to_poly = 0,
-  { apply le_trans (card_roots' P.to_poly),
-    rw [hP, nat_degree_zero],
-    exact dec_trivial },
-  { rw [← with_bot.coe_le_coe],
-    exact le_trans (card_roots hP) (le_trans degree_le dec_trivial) }
+  { exact (card_roots' P.to_poly).trans (by { rw [hP, nat_degree_zero], exact zero_le 3 }) },
+  { simpa only [← @with_bot.coe_le_coe _ _ _ 3] using (card_roots hP).trans degree_cubic_le }
 end
 
-variables {F K : Type*} [field F] [field K] [is_domain K] {φ : F →+* K} {P : cubic F} {x y z : K}
+end extension
+
+variables {P : cubic F} [field F] [field K] {φ : F →+* K} {x y z : K}
+
+/-! ### Roots over a splitting field -/
+
+section split
 
 theorem splits_iff_card_roots (ha : P.a ≠ 0) : splits φ P.to_poly ↔ (map φ P).roots.card = 3 :=
 begin
   replace ha : (map φ P).a ≠ 0 := (ring_hom.map_ne_zero φ).mpr ha,
-  change splits ((ring_hom.id K).comp φ) P.to_poly ↔ card (map φ P).to_poly.roots = 3,
-  rw [← splits_map_iff, ← map_eq, splits_iff_card_roots,
-      ← (degree_eq_iff_nat_degree_eq $ ne_zero_of_a_ne_zero ha).mp $ degree_of_a_ne_zero ha]
+  nth_rewrite_lhs 0 [← ring_hom.id_comp φ],
+  rw [roots, ← splits_map_iff, ← map_to_poly, splits_iff_card_roots,
+      ← ((degree_eq_iff_nat_degree_eq $ ne_zero_of_a_ne_zero ha).mp $ degree ha : _ = 3)]
 end
 
 theorem splits_iff_roots_eq_three (ha : P.a ≠ 0) :
@@ -311,8 +223,8 @@ by rw [splits_iff_card_roots ha, card_eq_three]
 theorem eq_prod_three_roots (ha : P.a ≠ 0) (h3 : (map φ P).roots = {x, y, z}) :
   (map φ P).to_poly = C (φ P.a) * (X - C x) * (X - C y) * (X - C z) :=
 begin
-  rw [map_eq, eq_prod_roots_of_splits $ (splits_iff_roots_eq_three ha).mpr $ exists.intro x $
-        exists.intro y $ exists.intro z h3, leading_coeff_of_a_ne_zero ha, ← roots_eq, h3],
+  rw [map_to_poly, eq_prod_roots_of_splits $ (splits_iff_roots_eq_three ha).mpr $ exists.intro x $
+        exists.intro y $ exists.intro z h3, leading_coeff ha, ← map_roots, h3],
   change C (φ P.a) * ((X - C x) ::ₘ (X - C y) ::ₘ {X - C z}).prod = _,
   rw [prod_cons, prod_cons, prod_singleton, mul_assoc, mul_assoc]
 end
@@ -320,7 +232,8 @@ end
 theorem eq_sum_three_roots (ha : P.a ≠ 0) (h3 : (map φ P).roots = {x, y, z}) :
   map φ P = ⟨φ P.a, φ P.a * -(x + y + z), φ P.a * (x * y + x * z + y * z), φ P.a * -(x * y * z)⟩ :=
 begin
-  apply_fun to_poly using λ P Q, (to_poly_injective P Q).mp,
+  apply_fun to_poly,
+  any_goals { exact λ P Q, (to_poly_injective P Q).mp },
   rw [eq_prod_three_roots ha h3, to_poly],
   simp only [C_neg, C_add, C_mul],
   ring1
@@ -338,20 +251,16 @@ theorem d_eq_three_roots (ha : P.a ≠ 0) (h3 : (map φ P).roots = {x, y, z}) :
   φ P.d = φ P.a * -(x * y * z) :=
 by injection eq_sum_three_roots ha h3
 
-end roots
+end split
 
-/-! ## Discriminant -/
+/-! ### Discriminant over a splitting field -/
 
 section discriminant
-
-open multiset
 
 /-- The discriminant of a cubic polynomial. -/
 def disc {R : Type*} [ring R] (P : cubic R) : R :=
 P.b ^ 2 * P.c ^ 2 - 4 * P.a * P.c ^ 3 - 4 * P.b ^ 3 * P.d - 27 * P.a ^ 2 * P.d ^ 2
   + 18 * P.a * P.b * P.c * P.d
-
-variables {F K : Type*} [field F] [field K] {φ : F →+* K} {P : cubic F} {x y z : K}
 
 theorem disc_eq_prod_three_roots (ha : P.a ≠ 0) (h3 : (map φ P).roots = {x, y, z}) :
   φ P.disc = (φ P.a * φ P.a * (x - y) * (x - z) * (y - z)) ^ 2 :=
@@ -381,11 +290,16 @@ begin
   tautology
 end
 
-theorem card_roots_of_roots_nodup [decidable_eq K] (ha : P.a ≠ 0) (hs : splits φ P.to_poly)
-  (hd : (map φ P).roots.nodup) :
-  (map φ P).roots.to_finset.card = 3 :=
-by rw [multiset.to_finset_card_of_nodup hd, (splits_iff_card_roots ha).mp hs]
+theorem card_roots_of_disc_ne_zero [decidable_eq K] (ha : P.a ≠ 0)
+  (h3 : (map φ P).roots = {x, y, z}) (hd : P.disc ≠ 0) : (map φ P).roots.to_finset.card = 3 :=
+begin
+  rw [to_finset_card_of_nodup $ (disc_ne_zero_iff_roots_nodup ha h3).mp hd,
+      ← splits_iff_card_roots ha, splits_iff_roots_eq_three ha],
+  exact ⟨x, ⟨y, ⟨z, h3⟩⟩⟩
+end
 
 end discriminant
+
+end roots
 
 end cubic

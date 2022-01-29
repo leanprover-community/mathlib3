@@ -494,8 +494,13 @@ by { rw [map, eval₂_mul_noncomm], exact λ k, (commute_X _).symm }
 @[simp] lemma map_smul (r : R) : (r • p).map f = f r • p.map f :=
 by rw [map, eval₂_smul, ring_hom.comp_apply, C_mul']
 
-/-- `polynomial.map` as a `ring_hom` -/
--- TODO: can't we make this the main definition of `polynomial.map`?
+/-- `polynomial.map` as a `ring_hom`. -/
+-- `map` is a ring-hom unconditionally, and theoretically the definition could be replaced,
+-- but this turns out not to be easy because `p.map f` does not resolve to `polynomial.map`
+-- if `map` is a `ring_hom` instead of a plain function; the elaborator does not try to coerce
+-- to a function before trying field (dot) notation (this may be technically infeasible);
+-- the relevant code is (both lines): https://github.com/leanprover-community/
+-- lean/blob/487ac5d7e9b34800502e1ddf3c7c806c01cf9d51/src/frontends/lean/elaborator.cpp#L1876-L1913
 def map_ring_hom (f : R →+* S) : polynomial R →+* polynomial S :=
 { to_fun := polynomial.map f,
   map_add' := λ _ _, map_add f,
@@ -505,8 +510,9 @@ def map_ring_hom (f : R →+* S) : polynomial R →+* polynomial S :=
 
 @[simp] lemma coe_map_ring_hom (f : R →+* S) : ⇑(map_ring_hom f) = map f := rfl
 
-@[simp] theorem map_nat_cast (n : ℕ) : (n : polynomial R).map f = n :=
-(map_ring_hom f).map_nat_cast n
+-- This is protected to not clash with the global `map_nat_cast`.
+@[simp] protected theorem map_nat_cast (n : ℕ) : (n : polynomial R).map f = n :=
+map_nat_cast (map_ring_hom f) n
 
 @[simp]
 lemma coeff_map (n : ℕ) : coeff (p.map f) n = f (coeff p n) :=
@@ -514,7 +520,7 @@ begin
   rw [map, eval₂, coeff_sum, sum],
   conv_rhs { rw [← sum_C_mul_X_eq p, coeff_sum, sum, ring_hom.map_sum], },
   refine finset.sum_congr rfl (λ x hx, _),
-  simp [function.comp, coeff_C_mul_X, f.map_mul],
+  simp [function.comp, coeff_C_mul_X_pow, f.map_mul],
   split_ifs; simp [f.map_zero],
 end
 
@@ -668,7 +674,7 @@ lemma eval_nat_cast_map (f : R →+* S) (p : polynomial R) (n : ℕ) :
 begin
   apply polynomial.induction_on' p,
   { intros p q hp hq, simp only [hp, hq, map_add, ring_hom.map_add, eval_add] },
-  { intros n r, simp only [f.map_nat_cast, eval_monomial, map_monomial, f.map_pow, f.map_mul] }
+  { intros n r, simp only [map_nat_cast f, eval_monomial, map_monomial, f.map_pow, f.map_mul] }
 end
 
 @[simp]

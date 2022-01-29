@@ -7,7 +7,7 @@ import algebra.order.archimedean
 import algebra.order.sub
 import algebra.order.with_zero
 import order.lattice_intervals
-import order.conditionally_complete_lattice
+import order.complete_lattice_intervals
 
 /-!
 # The type of nonnegative elements
@@ -49,8 +49,8 @@ instance order_bot [preorder α] {a : α} : order_bot {x : α // a ≤ x} :=
 
 lemma bot_eq [preorder α] {a : α} : (⊥ : {x : α // a ≤ x}) = ⟨a, le_rfl⟩ := rfl
 
-instance no_top_order [partial_order α] [no_top_order α] {a : α} : no_top_order {x : α // a ≤ x} :=
-set.Ici.no_top_order
+instance no_max_order [partial_order α] [no_max_order α] {a : α} : no_max_order {x : α // a ≤ x} :=
+set.Ici.no_max_order
 
 instance semilattice_inf [semilattice_inf α] {a : α} : semilattice_inf {x : α // a ≤ x} :=
 set.Ici.semilattice_inf

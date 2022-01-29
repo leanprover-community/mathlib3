@@ -265,3 +265,16 @@ begin
 end
 
 end comm_monoid_with_zero
+
+section monoid_with_zero
+
+variable [monoid_with_zero α]
+
+theorem ne_zero_of_dvd_ne_zero {p q : α} (h₁ : q ≠ 0)
+  (h₂ : p ∣ q) : p ≠ 0 :=
+begin
+  rcases h₂ with ⟨u, rfl⟩,
+  exact left_ne_zero_of_mul h₁,
+end
+
+end monoid_with_zero

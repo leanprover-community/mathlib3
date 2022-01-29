@@ -99,7 +99,7 @@ begin
     have hσ := (tsub_eq_iff_eq_add_of_le h).mp (mem_singleton.mp ha).symm,
     rwa add_comm,
   end,
-  simp only [prod_X_add_C_eval, ← esymm_to_sum, finset_sum_coeff, coeff_C_mul_X, sum_ite, hk,
+  simp only [prod_X_add_C_eval, ← esymm_to_sum, finset_sum_coeff, coeff_C_mul_X_pow, sum_ite, hk,
     sum_singleton, esymm, eval_sum, eval_prod, eval_X, add_zero, sum_const_zero],
 end
 

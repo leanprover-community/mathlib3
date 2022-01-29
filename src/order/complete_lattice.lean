@@ -32,7 +32,7 @@ also use `bsupr`/`binfi` for "bounded" supremum or infimum, i.e. one of `⨆ i �
 -/
 
 set_option old_structure_cmd true
-open set
+open set function
 
 variables {α β β₂ : Type*} {ι ι₂ : Sort*}
 
@@ -262,7 +262,8 @@ def complete_lattice_of_complete_semilattice_Sup (α : Type*) [complete_semilatt
 complete_lattice_of_Sup α (λ s, is_lub_Sup s)
 
 /-- A complete linear order is a linear order whose lattice structure is complete. -/
-class complete_linear_order (α : Type*) extends complete_lattice α, linear_order α
+class complete_linear_order (α : Type*) extends complete_lattice α,
+  linear_order α renaming max → sup min → inf
 
 namespace order_dual
 variable (α)
@@ -529,12 +530,12 @@ lemma monotone.supr_comp_eq [preorder β] {f : β → α} (hf : monotone f)
 le_antisymm (supr_comp_le _ _) (supr_le_supr2 $ λ x, (hs x).imp $ λ i hi, hf hi)
 
 lemma function.surjective.supr_comp {α : Type*} [has_Sup α] {f : ι → ι₂}
-  (hf : function.surjective f) (g : ι₂ → α) :
+  (hf : surjective f) (g : ι₂ → α) :
   (⨆ x, g (f x)) = ⨆ y, g y :=
 by simp only [supr, hf.range_comp]
 
 lemma supr_congr {α : Type*} [has_Sup α] {f : ι → α} {g : ι₂ → α} (h : ι → ι₂)
-  (h1 : function.surjective h) (h2 : ∀ x, g (h x) = f x) : (⨆ x, f x) = ⨆ y, g y :=
+  (h1 : surjective h) (h2 : ∀ x, g (h x) = f x) : (⨆ x, f x) = ⨆ y, g y :=
 by { convert h1.supr_comp g, exact (funext h2).symm }
 
 -- TODO: finish doesn't do well here.
@@ -626,12 +627,12 @@ lemma monotone.infi_comp_eq [preorder β] {f : β → α} (hf : monotone f)
 le_antisymm (infi_le_infi2 $ λ x, (hs x).imp $ λ i hi, hf hi) (le_infi_comp _ _)
 
 lemma function.surjective.infi_comp {α : Type*} [has_Inf α] {f : ι → ι₂}
-  (hf : function.surjective f) (g : ι₂ → α) :
+  (hf : surjective f) (g : ι₂ → α) :
   (⨅ x, g (f x)) = ⨅ y, g y :=
 @function.surjective.supr_comp _ _ (order_dual α) _ f hf g
 
 lemma infi_congr {α : Type*} [has_Inf α] {f : ι → α} {g : ι₂ → α} (h : ι → ι₂)
-  (h1 : function.surjective h) (h2 : ∀ x, g (h x) = f x) : (⨅ x, f x) = ⨅ y, g y :=
+  (h1 : surjective h) (h2 : ∀ x, g (h x) = f x) : (⨅ x, f x) = ⨅ y, g y :=
 @supr_congr _ _ (order_dual α) _ _ _ h h1 h2
 
 @[congr] theorem infi_congr_Prop {α : Type*} [has_Inf α] {p q : Prop} {f₁ : p → α} {f₂ : q → α}
@@ -998,6 +999,14 @@ lemma supr_image {γ} {f : β → γ} {g : γ → α} {t : set β} :
   (⨆ c ∈ f '' t, g c) = (⨆ b ∈ t, g (f b)) :=
 @infi_image (order_dual α) _ _ _ _ _ _
 
+theorem supr_extend_bot {e : ι → β} (he : injective e) (f : ι → α) :
+  (⨆ j, extend e f ⊥ j) = ⨆ i, f i :=
+begin
+  rw supr_split _ (λ j, ∃ i, e i = j),
+  simp [extend_apply he, extend_apply', @supr_comm _ β ι] { contextual := tt }
+end
+
+
 /-!
 ### `supr` and `infi` under `Type`
 -/
@@ -1343,7 +1352,7 @@ lemma set_independent_iff {α : Type*} [complete_lattice α] (s : set α) :
   set_independent s ↔ independent (coe : s → α) :=
 begin
   simp_rw [independent, set_independent, set_coe.forall, Sup_eq_supr],
-  apply forall_congr, intro a, apply forall_congr, intro ha,
+  refine forall₂_congr (λ a ha, _),
   congr' 2,
   convert supr_subtype.symm,
   simp [supr_and],

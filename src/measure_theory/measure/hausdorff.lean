@@ -488,8 +488,7 @@ begin
   by_cases htr : ∀ n, diam (t n) ≤ r,
   { rw [infi_eq_if, if_pos htr],
     congr' 1 with n : 1,
-    simp only [infi_eq_if, htr n, id, if_true, supr_and'],
-    refl },
+    simp only [infi_eq_if, htr n, id, if_true, supr_and'] },
   { rw [infi_eq_if, if_neg htr],
     push_neg at htr, rcases htr with ⟨n, hn⟩,
     refine ennreal.tsum_eq_top_of_eq_top ⟨n, _⟩,
@@ -760,8 +759,7 @@ begin
   ... ≤ liminf at_top (λ (n : ℕ), ∑ (i : γ n), (1/n) ^ (fintype.card ι)) :
     begin
       refine liminf_le_liminf _ (by is_bounded_default),
-      filter_upwards [B],
-      assume n hn,
+      filter_upwards [B] with _ hn,
       apply finset.sum_le_sum (λ i _, _),
       rw ennreal.rpow_nat_cast,
       exact pow_le_pow_of_le_left' (hn i) _,

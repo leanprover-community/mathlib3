@@ -62,6 +62,6 @@ def wide_subquiver_equiv_set_total {V} [quiver V] :
 def labelling (V : Type u) [quiver V] (L : Sort*) := Π ⦃a b : V⦄, (a ⟶ b) → L
 
 instance {V : Type u} [quiver V] (L) [inhabited L] : inhabited (labelling V L) :=
-⟨λ a b e, default L⟩
+⟨λ a b e, default⟩
 
 end quiver

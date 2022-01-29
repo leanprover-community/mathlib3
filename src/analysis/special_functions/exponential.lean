@@ -92,8 +92,7 @@ begin
     exact has_fderiv_at_exp_zero_of_radius_pos hpos },
   have : ∀ᶠ h in 𝓝 (0 : 𝔸), h ∈ emetric.ball (0 : 𝔸) (exp_series 𝕂 𝔸).radius :=
     emetric.ball_mem_nhds _ hpos,
-  filter_upwards [this],
-  intros h hh,
+  filter_upwards [this] with _ hh,
   rw [exp_add_of_mem_ball hx hh, exp_zero, zero_add, continuous_linear_map.id_apply, smul_eq_mul],
   ring
 end

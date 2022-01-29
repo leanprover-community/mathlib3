@@ -2,6 +2,7 @@ import field_theory.is_alg_closed.basic
 import field_theory.perfect_closure
 import ring_theory.witt_vector.domain
 import ring_theory.witt_vector.truncated
+import data.mv_polynomial.supported
 
 noncomputable theory
 
@@ -282,13 +283,8 @@ begin
   rw peval_poly_of_interest,
   have : (p : k) = 0 := char_p.cast_eq_zero (k) p,
   simp [this],
-  congr,
+  congr; -- same proof both times, factor it out
   { rw finset.sum_eq_single_of_mem 0,
-    { simp },
-    { simp },
-    { intros j _ hj,
-      simp [zero_pow (zero_lt_iff.mpr hj)] } },
-  { rw finset.sum_eq_single_of_mem 0, -- same proof both times, factor it out
     { simp },
     { simp },
     { intros j _ hj,
@@ -296,12 +292,19 @@ begin
 end
 
 omit hp
-lemma restrict_to_vars {σ : Type*} {s : finset σ} (R : Type*) [comm_ring R] {F : mv_polynomial σ ℤ}
-  (hF : F.vars ⊆ s) :
+
+lemma restrict_to_vars {σ : Type*} {s : set σ} (R : Type*) [comm_ring R] {F : mv_polynomial σ ℤ}
+  (hF : ↑F.vars ⊆ s) :
   ∃ f : (s → R) → R, ∀ x : σ → R, f (x ∘ coe : s → R) = aeval x F :=
 begin
-  sorry
+  classical,
+  rw [← mem_supported, supported_eq_range_rename, alg_hom.mem_range] at hF,
+  cases hF with F' hF',
+  use λ z, aeval z F',
+  intro x,
+  simp only [←hF', aeval_rename],
 end
+
 include hp
 
 lemma nth_mul_coeff' (n : ℕ) :
@@ -318,9 +321,10 @@ begin
     apply f₀,
     rintros ⟨a, ha⟩,
     apply function.uncurry (![x, y]),
-    rw mem_product at ha,
+    simp only [true_and, multiset.mem_cons, range_coe, product_val, multiset.mem_range,
+       multiset.mem_product, multiset.range_succ, mem_univ_val] at ha,
     refine ⟨a.fst, ⟨a.snd, _⟩⟩,
-    simpa only [mem_range] using ha.right },
+    cases ha with ha ha; linarith only [ha] },
   use f,
   intros x y,
   dsimp [peval],
@@ -330,7 +334,9 @@ begin
   ext a,
   cases a with a ha,
   cases a with i m,
-  have ha' : m < n + 1 := by simpa [mem_product, mem_range] using ha,
+  simp only [true_and, multiset.mem_cons, range_coe, product_val, multiset.mem_range,
+    multiset.mem_product, multiset.range_succ, mem_univ_val] at ha,
+  have ha' : m < n + 1 := by cases ha with ha ha; linarith only [ha],
   fin_cases i, -- surely this case split is not necessary
   { simpa using coeff_truncate_fun x ⟨m, ha'⟩ },
   { simpa using coeff_truncate_fun x ⟨m, ha'⟩ }

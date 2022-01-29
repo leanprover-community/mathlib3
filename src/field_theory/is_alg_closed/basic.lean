@@ -303,6 +303,7 @@ variables {K : Type u} [field K] {L : Type v} {M : Type w} [field L] [algebra K 
 variables (K L M)
 include hL
 
+/-- Less general version of `lift`. -/
 @[irreducible] private noncomputable def lift_aux : L →ₐ[K] M :=
 (lift.subfield_with_hom.maximal_subfield_with_hom M hL).emb.comp $
   eq.rec_on (lift.subfield_with_hom.maximal_subfield_with_hom_eq_top M hL).symm algebra.to_top

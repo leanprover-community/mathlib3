@@ -99,16 +99,6 @@ section heathers_approach
 open witt_vector finset
 open_locale big_operators
 
--- -- maybe it's easier to start here, maybe not?
--- lemma nth_mul_coeff_ignoring_charp (x y : 𝕎 k) (n : ℕ) :
---   ∃ f : ((fin n → k) → (fin n → k) → k),
---   (x * y).coeff n =
---     x.coeff n * (∑ i in range n, p^i*(y.coeff i)^(p^n-i)) +
---     y.coeff n * (∑ i in range n, p^i*(x.coeff i)^(p^n-i)) +
---     p^n * x.coeff n * y.coeff n + f (truncate_fun n x) (truncate_fun n y) :=
--- sorry
-
-
 #check @witt_mul
 -- mₙ(X, Y) = witt_mul p n
 
@@ -123,36 +113,187 @@ example (n : ℕ) : mv_polynomial (fin 2 × ℕ) ℤ :=
 example (n : ℕ) : mv_polynomial (fin 2 × ℕ) ℤ :=
 rename (prod.mk (0 : fin 2)) (witt_polynomial p ℤ n)
 
-example (n : ℕ) :
-  (∑ i in range (n+1), p^i * (witt_mul p i)^(p^(n-i)) : mv_polynomial (fin 2 × ℕ) ℤ) =
-    rename (prod.mk (0 : fin 2)) (witt_polynomial p ℤ n) *
-    rename (prod.mk (1 : fin 2)) (witt_polynomial p ℤ n) :=
+
+/--
+(∑ i : fin n, (y.coeff i)^(p^(n-i)) * p^i.val) * (∑ i : fin n, (y.coeff i)^(p^(n-i)) * p^i.val)
+-/
+def witt_poly_prod (n : ℕ) : mv_polynomial (fin 2 × ℕ) ℤ :=
+rename (prod.mk (0 : fin 2)) (witt_polynomial p ℤ n) *
+  rename (prod.mk (1 : fin 2)) (witt_polynomial p ℤ n)
+
+lemma witt_poly_prod_vars (n : ℕ) :
+  (witt_poly_prod p n).vars ⊆ finset.univ.product (finset.range (n + 1)) :=
 begin
+  rw [witt_poly_prod],
+  apply subset.trans (vars_mul _ _),
+  apply union_subset;
+  { apply subset.trans (vars_rename _ _),
+    simp [witt_polynomial_vars,image_subset_iff] }
+end
+
+lemma sum_ident_1 (n : ℕ) :
+  (∑ i in range (n+1), p^i * (witt_mul p i)^(p^(n-i)) : mv_polynomial (fin 2 × ℕ) ℤ) =
+    witt_poly_prod p n :=
+begin
+  simp only [witt_poly_prod],
   convert witt_structure_int_prop p (X (0 : fin 2) * X 1) n using 1,
-  { simp [witt_polynomial, witt_mul],
+  { simp only [witt_polynomial, witt_mul, int.nat_cast_eq_coe_nat],
     rw monoid_hom.map_sum,
     congr' 1 with i,
     congr' 1,
     have hsupp : (finsupp.single i (p ^ (n - i))).support = {i},
-    { simp,
+    { rw finsupp.support_eq_singleton,
+      simp only [and_true, finsupp.single_eq_same, eq_self_iff_true, ne.def],
+      exact pow_ne_zero _ hp.out.ne_zero,
        },
-    simp [bind₁_monomial, hsupp], },
+    simp only [bind₁_monomial, hsupp, int.cast_coe_nat, prod_singleton, ring_hom.eq_int_cast,
+      finsupp.single_eq_same, C_pow, mul_eq_mul_left_iff, true_or, eq_self_iff_true], },
   { simp only [map_mul, bind₁_X_right] }
-
 end
 
-example (f g) : bind₁ (witt_structure_int p (X 0 * X 1)) (f + g) = bind₁ (witt_structure_int p (X 0 * X 1)) f +
-bind₁ (witt_structure_int p (X 0 * X 1)) g :=
+def extra_poly (n : ℕ) : mv_polynomial (fin 2 × ℕ) ℤ :=
+∑ i in range n, p^i * (witt_mul p i)^(p^(n-i))
+
+lemma extra_poly_vars (n : ℕ) : (extra_poly p n).vars ⊆ finset.univ.product (finset.range n) :=
 begin
-  simp?
+  rw [extra_poly],
+  apply subset.trans (vars_sum_subset _ _),
+  rw bUnion_subset,
+  intros x hx,
+  apply subset.trans (vars_mul _ _),
+  apply union_subset,
+  { apply subset.trans (vars_pow _ _),
+    have : (p : mv_polynomial (fin 2 × ℕ) ℤ) = (C (p : ℤ)),
+    { simp only [int.cast_coe_nat, ring_hom.eq_int_cast] },
+    rw [this, vars_C],
+    apply empty_subset },
+  { apply subset.trans (vars_pow _ _),
+    apply subset.trans (witt_mul_vars _ _),
+    apply product_subset_product (subset.refl _),
+    simp only [mem_range, range_subset] at hx ⊢,
+    exact hx }
 end
+
+lemma sum_ident_2 (n : ℕ) :
+  (p ^ n * witt_mul p n : mv_polynomial (fin 2 × ℕ) ℤ) + extra_poly p n = witt_poly_prod p n :=
+begin
+  convert sum_ident_1 p n,
+  rw [sum_range_succ, add_comm, nat.sub_self, pow_zero, pow_one],
+  refl
+end
+
+
+-- this is the remainder from sum_ident_3
+def diff (n : ℕ) : mv_polynomial (fin 2 × ℕ) ℤ :=
+sorry
+
+lemma diff_vars (n : ℕ) : (diff p n).vars ⊆ univ.product (range (n+1)) :=
+sorry
+
+#check witt_poly_prod_vars
+
+lemma sum_ident_3 (n : ℕ) :
+  witt_poly_prod p (n+1) =
+  (p^(n+1) * X (0, n+1)) * (p^(n+1) * X (1, n+1)) +
+  (p^(n+1) * X (0, n+1)) * rename (prod.mk (1 : fin 2)) (witt_polynomial p ℤ n) +
+  (p^(n+1) * X (1, n+1)) * rename (prod.mk (0 : fin 2)) (witt_polynomial p ℤ n) +
+  diff p n :=
+begin
+  sorry
+end
+
+lemma sum_ident_4 (n : ℕ) :
+  (p ^ (n + 1) * witt_mul p (n + 1) : mv_polynomial (fin 2 × ℕ) ℤ) =
+  (p^(n+1) * X (0, n+1)) * (p^(n+1) * X (1, n+1)) +
+  (p^(n+1) * X (0, n+1)) * rename (prod.mk (1 : fin 2)) (witt_polynomial p ℤ n) +
+  (p^(n+1) * X (1, n+1)) * rename (prod.mk (0 : fin 2)) (witt_polynomial p ℤ n) +
+  (diff p n - extra_poly p (n + 1)) :=
+begin
+  rw [← add_sub_assoc, eq_sub_iff_add_eq, sum_ident_2],
+  exact sum_ident_3 _ _
+end
+
+lemma sum_ident_5 (n : ℕ) :
+  (p ^ (n + 1) : mv_polynomial (fin 2 × ℕ) ℤ) *
+    (witt_mul p (n + 1) - p^(n+1) * X (0, n+1) * X (1, n+1) -
+    (X (0, n+1)) * rename (prod.mk (1 : fin 2)) (witt_polynomial p ℤ n) -
+    (X (1, n+1)) * rename (prod.mk (0 : fin 2)) (witt_polynomial p ℤ n)) =
+  (diff p n - extra_poly p (n + 1)) :=
+begin
+  simp only [mul_sub, mul_add, sub_eq_iff_eq_add'],
+  rw sum_ident_4 p n,
+  ring,
+end
+
+lemma prod_vars_subset (n : ℕ) :
+  ((p ^ (n + 1) : mv_polynomial (fin 2 × ℕ) ℤ) * (witt_mul p (n + 1) - p^(n+1) * X (0, n+1) * X (1, n+1) -
+    (X (0, n+1)) * rename (prod.mk (1 : fin 2)) (witt_polynomial p ℤ n) -
+    (X (1, n+1)) * rename (prod.mk (0 : fin 2)) (witt_polynomial p ℤ n))).vars ⊆
+  univ.product (range (n+1)) :=
+begin
+  rw sum_ident_5,
+  apply subset.trans (vars_sub_subset _ _),
+  apply union_subset,
+  { apply diff_vars },
+  { apply extra_poly_vars }
+end
+
+lemma vars_eq (n : ℕ) :
+  ((p ^ (n + 1) : mv_polynomial (fin 2 × ℕ) ℤ) * (witt_mul p (n + 1) - p^(n+1) * X (0, n+1) * X (1, n+1) -
+    (X (0, n+1)) * rename (prod.mk (1 : fin 2)) (witt_polynomial p ℤ n) -
+    (X (1, n+1)) * rename (prod.mk (0 : fin 2)) (witt_polynomial p ℤ n))).vars =
+  (witt_mul p (n + 1) - p^(n+1) * X (0, n+1) * X (1, n+1) -
+    (X (0, n+1)) * rename (prod.mk (1 : fin 2)) (witt_polynomial p ℤ n) -
+    (X (1, n+1)) * rename (prod.mk (0 : fin 2)) (witt_polynomial p ℤ n)).vars :=
+begin
+  have : (p ^ (n + 1) : mv_polynomial (fin 2 × ℕ) ℤ) = C (p ^ (n + 1) : ℤ),
+  { simp only [int.cast_coe_nat, ring_hom.eq_int_cast, C_pow, eq_self_iff_true] },
+  rw [this, vars_C_mul],
+  apply pow_ne_zero,
+  exact_mod_cast hp.out.ne_zero
+end
+
+lemma vars_subset (n : ℕ) :
+  (witt_mul p (n + 1) - p^(n+1) * X (0, n+1) * X (1, n+1) -
+    (X (0, n+1)) * rename (prod.mk (1 : fin 2)) (witt_polynomial p ℤ n) -
+    (X (1, n+1)) * rename (prod.mk (0 : fin 2)) (witt_polynomial p ℤ n)).vars ⊆
+  univ.product (range (n+1)) :=
+by rw ← vars_eq; apply prod_vars_subset
+
+/-- this is the guy from above -/
+def poly_of_interest (n : ℕ) : mv_polynomial (fin 2 × ℕ) ℤ :=
+witt_mul p (n + 1) - p^(n+1) * X (0, n+1) * X (1, n+1) -
+  (X (0, n+1)) * rename (prod.mk (1 : fin 2)) (witt_polynomial p ℤ n) -
+  (X (1, n+1)) * rename (prod.mk (0 : fin 2)) (witt_polynomial p ℤ n)
+
+lemma peval_poly_of_interest (n : ℕ) (x y : 𝕎 k) :
+  peval (poly_of_interest p n) ![λ i, x.coeff i, λ i, y.coeff i] =
+  (x * y).coeff (n + 1) - p^(n+1) * x.coeff (n+1) * y.coeff (n+1)
+    - y.coeff (n+1) * ∑ i in range (n+1), p^i * x.coeff i ^ (p^(n-i))
+    - x.coeff (n+1) * ∑ i in range (n+1), p^i * y.coeff i ^ (p^(n-i)) :=
+begin
+  simp only [poly_of_interest, peval, map_nat_cast, matrix.head_cons, map_pow, function.uncurry_apply_pair, aeval_X,
+  matrix.cons_val_one, map_mul, matrix.cons_val_zero, map_sub],
+  rw [sub_sub, add_comm (_ * _), ← sub_sub],
+  have mvpz : (p : mv_polynomial ℕ ℤ) = mv_polynomial.C ↑p := by rw [ring_hom.eq_int_cast, int.cast_coe_nat ],
+  congr' 3,
+  { simp only [mul_coeff, peval] },
+  all_goals
+  { simp only [witt_polynomial_eq_sum_C_mul_X_pow, aeval, eval₂_rename, int.cast_coe_nat, ring_hom.eq_int_cast, eval₂_mul,
+  function.uncurry_apply_pair, function.comp_app, eval₂_sum, eval₂_X, matrix.cons_val_zero, eval₂_pow,
+  int.cast_pow, ring_hom.to_fun_eq_coe, coe_eval₂_hom, int.nat_cast_eq_coe_nat, alg_hom.coe_mk],
+  congr' 1 with z,
+  rw [mvpz, mv_polynomial.eval₂_C],
+  refl }
+end
+
+
 variable (n : ℕ)
 
 #check witt_structure_int_prop p (witt_mul p n) n
 
 #check witt_polynomial
 
-#exit
 
 lemma nth_mul_coeff_aux1 (n : ℕ) (x y : 𝕎 k) :
   ∑ i in range (n+1), ((x * y).coeff i)^(p^(n-i)) * p^i =
@@ -184,6 +325,7 @@ begin
     refl },
 end
 
+#exit
 def trunc_sub_prod_coeff (n : ℕ) (x y : truncated_witt_vector p n k) : k :=
 ∑ (i : fin n), (x * y).coeff i ^ p ^ (n - i) * ↑p ^ i.val
 

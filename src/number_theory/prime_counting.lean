@@ -21,12 +21,13 @@ the number of primes less than or equal to its input.
 
 The main definitions for this file are
 
-- `prime_counting`: The prime counting function π
-- `prime_counting'`: π(n - 1)
+- `nat.prime_counting`: The prime counting function π
+- `nat.prime_counting'`: π(n - 1)
 
-We then prove that these are monotone. The last main theorem is an upper bound on `π'` which arises
-by observing that all numbers greater than `k` and not coprime to `k` are not prime, and so only at
-most `φ(k)/k` fraction of the numbers from `k` to `n` are prime.
+We then prove that these are monotone in `nat.monotone_prime_counting` and
+`nat.monotone_prime_counting'`. The last main theorem `nat.prime_counting'_add_le` is an upper
+bound on `π'` which arises by observing that all numbers greater than `k` and not coprime to `k`
+are not prime, and so only at most `φ(k)/k` fraction of the numbers from `k` to `n` are prime.
 
 ## Notation
 

@@ -51,10 +51,10 @@ instance subsingleton.prod {α β : Type*} [subsingleton α] [subsingleton β] :
 instance : decidable_eq empty := λa, a.elim
 
 instance sort.inhabited : inhabited (Sort*) := ⟨punit⟩
-instance sort.inhabited' : inhabited (default (Sort*)) := ⟨punit.star⟩
+instance sort.inhabited' : inhabited (default) := ⟨punit.star⟩
 
-instance psum.inhabited_left {α β} [inhabited α] : inhabited (psum α β) := ⟨psum.inl (default _)⟩
-instance psum.inhabited_right {α β} [inhabited β] : inhabited (psum α β) := ⟨psum.inr (default _)⟩
+instance psum.inhabited_left {α β} [inhabited α] : inhabited (psum α β) := ⟨psum.inl default⟩
+instance psum.inhabited_right {α β} [inhabited β] : inhabited (psum α β) := ⟨psum.inr default⟩
 
 @[priority 10] instance decidable_eq_of_subsingleton
   {α} [subsingleton α] : decidable_eq α
@@ -224,6 +224,9 @@ theorem iff_iff_eq : (a ↔ b) ↔ a = b := ⟨propext, iff_of_eq⟩
 @[simp] lemma eq_iff_iff {p q : Prop} : (p = q) ↔ (p ↔ q) := iff_iff_eq.symm
 
 @[simp] theorem imp_self : (a → a) ↔ true := iff_true_intro id
+
+@[simp] lemma eq_true_eq_id : eq true = id :=
+by { funext, simp only [true_iff, id.def, iff_self, eq_iff_iff], }
 
 theorem imp_intro {α β : Prop} (h : α) : β → α := λ _, h
 
@@ -503,6 +506,9 @@ theorem not_imp_not : (¬ a → ¬ b) ↔ (b → a) := decidable.not_imp_not
 
 @[simp] theorem or_iff_right_iff_imp : (a ∨ b ↔ b) ↔ (a → b) :=
 by rw [or_comm, or_iff_left_iff_imp]
+
+lemma or_iff_left (hb : ¬ b) : a ∨ b ↔ a := ⟨λ h, h.resolve_right hb, or.inl⟩
+lemma or_iff_right (ha : ¬ a) : a ∨ b ↔ b := ⟨λ h, h.resolve_left ha, or.inr⟩
 
 /-! ### Declarations about distributivity -/
 
@@ -811,44 +817,58 @@ end equality
 /-! ### Declarations about quantifiers -/
 
 section quantifiers
-variables {α : Sort*} {β : Sort*} {p q : α → Prop} {b : Prop}
+variables {α : Sort*}
+
+section congr
+variables {β : α → Sort*} {γ : Π a, β a → Sort*} {δ : Π a b, γ a b → Sort*}
+  {ε : Π a b c, δ a b c → Sort*}
+
+lemma forall₂_congr {p q : Π a, β a → Prop} (h : ∀ a b, p a b ↔ q a b) :
+  (∀ a b, p a b) ↔ ∀ a b, q a b :=
+forall_congr $ λ a, forall_congr $ h a
+
+lemma forall₃_congr {p q : Π a b, γ a b → Prop} (h : ∀ a b c, p a b c ↔ q a b c) :
+  (∀ a b c, p a b c) ↔ ∀ a b c, q a b c :=
+forall_congr $ λ a, forall₂_congr $ h a
+
+lemma forall₄_congr {p q : Π a b c, δ a b c → Prop} (h : ∀ a b c d, p a b c d ↔ q a b c d) :
+  (∀ a b c d, p a b c d) ↔ ∀ a b c d, q a b c d :=
+forall_congr $ λ a, forall₃_congr $ h a
+
+lemma forall₅_congr {p q : Π a b c d, ε a b c d → Prop}
+  (h : ∀ a b c d e, p a b c d e ↔ q a b c d e) :
+  (∀ a b c d e, p a b c d e) ↔ ∀ a b c d e, q a b c d e :=
+forall_congr $ λ a, forall₄_congr $ h a
+
+lemma exists₂_congr {p q : Π a, β a → Prop}  (h : ∀ a b, p a b ↔ q a b) :
+  (∃ a b, p a b) ↔ ∃ a b, q a b :=
+exists_congr $ λ a, exists_congr $ h a
+
+lemma exists₃_congr {p q : Π a b, γ a b → Prop} (h : ∀ a b c, p a b c ↔ q a b c) :
+  (∃ a b c, p a b c) ↔ ∃ a b c, q a b c :=
+exists_congr $ λ a, exists₂_congr $ h a
+
+lemma exists₄_congr {p q : Π a b c, δ a b c → Prop} (h : ∀ a b c d, p a b c d ↔ q a b c d) :
+  (∃ a b c d, p a b c d) ↔ ∃ a b c d, q a b c d :=
+exists_congr $ λ a, exists₃_congr $ h a
+
+lemma exists₅_congr {p q : Π a b c d, ε a b c d → Prop}
+  (h : ∀ a b c d e, p a b c d e ↔ q a b c d e) :
+  (∃ a b c d e, p a b c d e) ↔ ∃ a b c d e, q a b c d e :=
+exists_congr $ λ a, exists₄_congr $ h a
+
+end congr
+
+variables {β : Sort*} {p q : α → Prop} {b : Prop}
 
 lemma forall_imp (h : ∀ a, p a → q a) : (∀ a, p a) → ∀ a, q a :=
 λ h' a, h a (h' a)
-
-lemma forall₂_congr {p q : α → β → Prop} (h : ∀ a b, p a b ↔ q a b) :
-  (∀ a b, p a b) ↔ (∀ a b, q a b) :=
-forall_congr (λ a, forall_congr (h a))
-
-lemma forall₃_congr {γ : Sort*} {p q : α → β → γ → Prop}
-  (h : ∀ a b c, p a b c ↔ q a b c) :
-  (∀ a b c, p a b c) ↔ (∀ a b c, q a b c) :=
-forall_congr (λ a, forall₂_congr (h a))
-
-lemma forall₄_congr {γ δ : Sort*} {p q : α → β → γ → δ → Prop}
-  (h : ∀ a b c d, p a b c d ↔ q a b c d) :
-  (∀ a b c d, p a b c d) ↔ (∀ a b c d, q a b c d) :=
-forall_congr (λ a, forall₃_congr (h a))
 
 lemma Exists.imp (h : ∀ a, (p a → q a)) (p : ∃ a, p a) : ∃ a, q a := exists_imp_exists h p
 
 lemma exists_imp_exists' {p : α → Prop} {q : β → Prop} (f : α → β) (hpq : ∀ a, p a → q (f a))
   (hp : ∃ a, p a) : ∃ b, q b :=
 exists.elim hp (λ a hp', ⟨_, hpq _ hp'⟩)
-
-lemma exists₂_congr {p q : α → β → Prop} (h : ∀ a b, p a b ↔ q a b) :
-  (∃ a b, p a b) ↔ (∃ a b, q a b) :=
-exists_congr (λ a, exists_congr (h a))
-
-lemma exists₃_congr {γ : Sort*} {p q : α → β → γ → Prop}
-  (h : ∀ a b c, p a b c ↔ q a b c) :
-  (∃ a b c, p a b c) ↔ (∃ a b c, q a b c) :=
-exists_congr (λ a, exists₂_congr (h a))
-
-lemma exists₄_congr {γ δ : Sort*} {p q : α → β → γ → δ → Prop}
-  (h : ∀ a b c d, p a b c d ↔ q a b c d) :
-  (∃ a b c d, p a b c d) ↔ (∃ a b c d, q a b c d) :=
-exists_congr (λ a, exists₃_congr (h a))
 
 theorem forall_swap {p : α → β → Prop} : (∀ x y, p x y) ↔ ∀ y x, p x y :=
 ⟨swap, swap⟩

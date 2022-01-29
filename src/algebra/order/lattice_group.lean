@@ -144,10 +144,10 @@ instance has_one_lattice_has_neg_part : has_neg_part (α) := ⟨λ a, a⁻¹ ⊔
 @[to_additive neg_part_def]
 lemma m_neg_part_def (a : α) : a⁻ = a⁻¹ ⊔ 1 := rfl
 
-@[to_additive, simp]
+@[simp, to_additive]
 lemma pos_one : (1 : α)⁺ = 1 := sup_idem
 
-@[to_additive, simp]
+@[simp, to_additive]
 lemma neg_one : (1 : α)⁻ = 1 := by rw [m_neg_part_def, one_inv, sup_idem]
 
 -- a⁻ = -(a ⊓ 0)
@@ -219,7 +219,7 @@ end
 
 -- Bourbaki A.VI.12  Prop 9 a)
 -- a = a⁺ - a⁻
-@[to_additive, simp]
+@[simp, to_additive]
 lemma pos_div_neg [covariant_class α α (*) (≤)] (a : α) : a⁺ / a⁻ = a :=
 begin
   symmetry,
@@ -433,7 +433,7 @@ end
 /--
 The unary operation of taking the absolute value is idempotent.
 -/
-@[to_additive abs_abs, simp]
+@[simp, to_additive abs_abs]
 lemma m_abs_abs [covariant_class α α (*) (≤)] (a : α) : | |a| | = |a| :=
 mabs_of_one_le _ (one_le_abs _)
 

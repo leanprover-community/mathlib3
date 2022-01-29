@@ -250,7 +250,7 @@ theorem powerset_len_map {β : Type*} (f : α → β) (n : ℕ) (s : multiset α
 begin
   induction s using multiset.induction with t s ih generalizing n,
   { cases n; simp [powerset_len_zero_left, powerset_len_zero_right], },
-  { cases n; simp [ih], },
+  { cases n; simp [ih, map_comp_cons], },
 end
 
 end multiset

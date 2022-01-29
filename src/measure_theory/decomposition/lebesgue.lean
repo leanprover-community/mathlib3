@@ -210,9 +210,7 @@ theorem rn_deriv_lt_top (μ ν : measure α) [sigma_finite μ] :
   ∀ᵐ x ∂ν, μ.rn_deriv ν x < ∞ :=
 begin
   suffices : ∀ n, ∀ᵐ x ∂ν, x ∈ spanning_sets μ n → μ.rn_deriv ν x < ∞,
-  { filter_upwards [ae_all_iff.2 this],
-    assume x hx,
-    exact hx _ (mem_spanning_sets_index _ _) },
+  { filter_upwards [ae_all_iff.2 this] with _ hx using hx _ (mem_spanning_sets_index _ _), },
   assume n,
   rw ← ae_restrict_iff' (measurable_spanning_sets _ _),
   apply ae_lt_top (measurable_rn_deriv _ _),
@@ -383,6 +381,15 @@ theorem rn_deriv_with_density (ν : measure α) [sigma_finite ν] {f : α → �
 begin
   have : ν.with_density f = 0 + ν.with_density f, by rw zero_add,
   exact (eq_rn_deriv hf mutually_singular.zero_left this).symm,
+end
+
+/-- The Radon-Nikodym derivative of the restriction of a measure to a measurable set is the
+indicator function of this set. -/
+theorem rn_deriv_restrict (ν : measure α) [sigma_finite ν] {s : set α} (hs : measurable_set s) :
+  (ν.restrict s).rn_deriv ν =ᵐ[ν] s.indicator 1 :=
+begin
+  rw ← with_density_indicator_one hs,
+  exact rn_deriv_with_density _ (measurable_one.indicator hs)
 end
 
 open vector_measure signed_measure

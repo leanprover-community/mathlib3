@@ -225,7 +225,7 @@ lemma eq_conj_iff_im {z : ℂ} : conj z = z ↔ z.im = 0 :=
 /-! ### Norm squared -/
 
 /-- The norm squared function. -/
-@[pp_nodot] def norm_sq : monoid_with_zero_hom ℂ ℝ :=
+@[pp_nodot] def norm_sq : ℂ →*₀ ℝ :=
 { to_fun := λ z, z.re * z.re + z.im * z.im,
   map_zero' := by simp,
   map_one' := by simp,

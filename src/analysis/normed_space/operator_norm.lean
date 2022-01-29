@@ -278,6 +278,14 @@ le_antisymm (φ.op_norm_le_bound M_nonneg h_above)
 
 lemma op_norm_neg (f : E →SL[σ₁₂] F) : ∥-f∥ = ∥f∥ := by simp only [norm_def, neg_apply, norm_neg]
 
+theorem antilipschitz_of_bound (f : E →SL[σ₁₂] F) {K : ℝ≥0} (h : ∀ x, ∥x∥ ≤ K * ∥f x∥) :
+  antilipschitz_with K f :=
+linear_map.antilipschitz_of_bound _ h
+
+lemma bound_of_antilipschitz (f : E →SL[σ₁₂] F) {K : ℝ≥0} (h : antilipschitz_with K f) (x) :
+  ∥x∥ ≤ K * ∥f x∥ :=
+linear_map.bound_of_antilipschitz _ h x
+
 section
 
 variables [ring_hom_isometric σ₁₂] [ring_hom_isometric σ₂₃]
@@ -1611,3 +1619,12 @@ continuous_linear_equiv.uniform_embedding
 omit σ₂₁
 
 end normed
+
+/--
+A bounded bilinear form `B` in a real normed space is *coercive*
+if there is some positive constant C such that `C * ∥u∥ * ∥u∥ ≤ B u u`.
+-/
+def is_coercive
+  [normed_group E] [normed_space ℝ E]
+  (B : E →L[ℝ] E →L[ℝ] ℝ) : Prop :=
+∃ C, (0 < C) ∧ ∀ u, C * ∥u∥ * ∥u∥ ≤ B u u

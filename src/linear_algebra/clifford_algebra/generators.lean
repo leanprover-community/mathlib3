@@ -27,7 +27,6 @@ variables (Q)
 `(ι Q).range`. -/
 def even_odd (i : zmod 2) : submodule R (clifford_algebra Q) :=
 ⨆ (j : {n : ℕ // ↑n = i}), (ι Q).range ^ (j : ℕ)
--- Sup ((^) (ι Q).range '' ((coe : ℕ → zmod 2)  ⁻¹' {i}))
 
 lemma one_le_even_odd_zero : 1 ≤ even_odd Q 0 :=
 begin
@@ -74,67 +73,6 @@ lemma graded_algebra.ι_sq_scalar (m : M) :
 begin
   rw [graded_algebra.ι_apply, direct_sum.of_mul_of, direct_sum.algebra_map_apply],
   refine direct_sum.of_eq_of_graded_monoid_eq (sigma.subtype_ext rfl $ ι_sq_scalar _ _),
-end
-
-#check submodule.mul_induction_on'
-
-@[elab_as_eliminator, to_additive]
-lemma _root_.submonoid.supr_induction {M : Type*} {ι : Sort*} [monoid M]
-  (p : ι → submonoid M) {C : M → Prop} {x : M} (hx : x ∈ ⨆ i, p i)
-  (hp : ∀ i (x ∈ p i), C x)
-  (h1 : C 1)
-  (hmul : ∀ x y, C x → C y → C (x * y)) : C x :=
-begin
-  rw submonoid.supr_eq_closure at hx,
-  refine submonoid.closure_induction hx (λ x hx, _) h1 hmul,
-  obtain ⟨i, hi⟩ := set.mem_Union.mp hx,
-  exact hp _ _ hi,
-end
-
-@[elab_as_eliminator, to_additive]
-lemma _root_.submonoid.supr_induction' {M : Type*} {ι : Sort*} [monoid M]
-  (p : ι → submonoid M) {C : Π x, (x ∈ ⨆ i, p i) → Prop}
-  (hp : ∀ i (x ∈ p i), C x (submonoid.mem_supr_of_mem i ‹_›))
-  (h1 : C 1 (submonoid.one_mem _))
-  (hmul : ∀ x y hx hy, C x hx → C y hy → C (x * y) (submonoid.mul_mem _ ‹_› ‹_›))
-  {x : M} (hx : x ∈ ⨆ i, p i) : C x hx :=
-begin
-  refine exists.elim _ (λ (hx : x ∈ ⨆ i, p i) (hc : C x hx), hc),
-  refine submonoid.supr_induction p hx (λ i x hx, _) _ (λ x y, _),
-  { exact ⟨_, hp _ _ hx⟩ },
-  { exact ⟨_, h1⟩ },
-  { rintro ⟨_, Cx⟩ ⟨_, Cy⟩,
-    refine ⟨_, hmul _ _ _ _ Cx Cy⟩ },
-end
-
-
-@[elab_as_eliminator]
-lemma _root_.submodule.supr_induction {R M : Type*} {ι : Sort*}
-  [semiring R] [add_comm_monoid M] [module R M]
-  (p : ι → submodule R M) {C : M → Prop} {x : M} (hx : x ∈ ⨆ i, p i)
-  (hp : ∀ i (x ∈ p i), C x)
-  (h0 : C 0)
-  (hadd : ∀ x y, C x → C y → C (x + y)) : C x :=
-begin
-  rw [←submodule.mem_to_add_submonoid, submodule.supr_to_add_submonoid] at hx,
-  exact add_submonoid.supr_induction _ hx hp h0 hadd,
-end
-
-@[elab_as_eliminator]
-lemma _root_.submodule.supr_induction' {R M : Type*} {ι : Sort*}
-  [semiring R] [add_comm_monoid M] [module R M]
-  (p : ι → submodule R M) {C : Π x, (x ∈ ⨆ i, p i) → Prop}
-  (hp : ∀ i (x ∈ p i), C x (submodule.mem_supr_of_mem i ‹_›))
-  (h0 : C 0 (submodule.zero_mem _))
-  (hadd : ∀ x y hx hy, C x hx → C y hy → C (x + y) (submodule.add_mem _ ‹_› ‹_›))
-  {x : M} (hx : x ∈ ⨆ i, p i) : C x hx :=
-begin
-  refine exists.elim _ (λ (hx : x ∈ ⨆ i, p i) (hc : C x hx), hc),
-  refine submodule.supr_induction p hx (λ i x hx, _) _ (λ x y, _),
-  { exact ⟨_, hp _ _ hx⟩ },
-  { exact ⟨_, h0⟩ },
-  { rintro ⟨_, Cx⟩ ⟨_, Cy⟩,
-    refine ⟨_, hadd _ _ _ _ Cx Cy⟩ },
 end
 
 /-- The clifford algebra is graded by the even and odd parts. -/

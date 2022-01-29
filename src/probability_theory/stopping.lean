@@ -20,10 +20,10 @@ at a specific time and is the first step in formalizing stochastic processes.
   filtration `f` if at each point in time `i`, `u i` is `f i`-measurable
 * `measure_theory.filtration.natural`: the natural filtration with respect to a sequence of
   measurable functions is the smallest filtration to which it is adapted to
-* `measure_theory.stopping_time`: a stopping time with respect to some filtration `f` is a
+* `measure_theory.is_stopping_time`: a stopping time with respect to some filtration `f` is a
   function `τ` such that for all `i`, the preimage of `{j | j ≤ i}` along `τ` is
   `f i`-measurable
-* `measure_theory.stopping_time.measurable_space`: the σ-algebra associated with a stopping time
+* `measure_theory.is_stopping_time.measurable_space`: the σ-algebra associated with a stopping time
 
 ## Tags
 

@@ -178,8 +178,19 @@ lemma supr_abs_rayleigh_eq_sup_supr :
         (⨆ x : sphere (0:E) 1, -rayleigh_quotient x) :=
 sorry
 
-lemma supr_abs_rayleigh_bdd_above : bdd_above (set.range (λ x, |rayleigh_quotient x|)) :=
+lemma supr_abs_rayleigh_sphere_bdd_above {r : ℝ} (hr : 0 ≤ r) :
+  bdd_above (set.range (λ x : sphere (0:E) r, |rayleigh_quotient x|)) :=
 sorry
+
+lemma supr_abs_rayleigh_sphere_nonneg [nontrivial E] {r : ℝ} (hr : 0 ≤ r) :
+  (0 : ℝ) ≤ (⨆ x : sphere (0:E) r, |rayleigh_quotient x|) :=
+begin
+  haveI : nonempty (sphere (0:E) r) := sphere_nonempty hr,
+  let xs : (sphere (0:E) r) := nonempty.some (by apply_instance),
+  calc (0 : ℝ) ≤ |rayleigh_quotient xs|     : abs_nonneg (rayleigh_quotient xs)
+           ... ≤ (⨆ x : sphere (0:E) r, |rayleigh_quotient x|)   :
+             le_csupr_of_le (T.supr_abs_rayleigh_sphere_bdd_above hr) xs (le_refl _),
+end
 
 lemma re_apply_inner_self_eq_rayleigh_mul_norm_sq (x : E) :
   T.re_apply_inner_self x = (rayleigh_quotient x) * ∥x∥ ^ 2 :=
@@ -214,6 +225,18 @@ begin
   exact le_csupr (neg_rayleigh_bdd_above T) _,
 end
 
+lemma re_apply_inner_self_le_supr_abs_rayleigh_mul_norm_sq (x : E) :
+  T.re_apply_inner_self x ≤ (⨆ z : sphere (0:E) 1, |rayleigh_quotient z|) * ∥x∥ ^ 2 :=
+begin
+  simp only [supr_abs_rayleigh_eq_sup_supr],
+  --refine T.re_apply_inner_self_le_max_supr_rayleigh_mul_norm_sq x,
+  sorry,
+end
+
+lemma neg_re_apply_inner_self_le_supr_abs_rayleigh_mul_norm_sq (x : E) :
+  -T.re_apply_inner_self x ≤ (⨆ z : sphere (0:E) 1, |rayleigh_quotient z|) * ∥x∥ ^ 2 :=
+sorry
+
 lemma neg_re_apply_inner_self_le_max_supr_rayleigh_mul_norm_sq (x : E) :
   -T.re_apply_inner_self x ≤
     max (⨆ z, rayleigh_quotient z) (⨆ z, (-rayleigh_quotient) z) * ∥x∥ ^ 2 :=
@@ -246,31 +269,23 @@ open continuous_linear_map
 variables {T : E →L[𝕜] E}
 local notation `rayleigh_quotient` := λ x : E, T.re_apply_inner_self x / ∥(x:E)∥ ^ 2
 
---lemma norm_eq_max_supr_rayleigh_sphere (hT : is_self_adjoint T.to_linear_map) :
---  ∥T∥ = max (⨆ x : sphere (0:E) 1, T.re_apply_inner_self x)
---            (⨆ x : sphere (0:E) 1, -T.re_apply_inner_self x) :=
 lemma norm_eq_supr_abs_rayleigh_sphere (hT : is_self_adjoint T.to_linear_map) :
   ∥T∥ = (⨆ x : sphere (0:E) 1, |rayleigh_quotient x|) :=
 begin
-  by_cases h_nontrivE : ∀ (x y : E), x = y,
+  rcases subsingleton_or_nontrivial E with h_trivE|h_nontrivE,
   { haveI : is_empty (sphere (0:E) 1),
     { sorry },
-    rw [real.csupr_empty],
-    sorry },
-  push_neg at h_nontrivE,
-  haveI : nontrivial E := ⟨h_nontrivE⟩,
+    rw [real.csupr_empty, op_norm_subsingleton] },
+  haveI := h_nontrivE,
+  haveI : nonempty (sphere (0:E) 1) := sphere_nonempty zero_le_one,
   refine op_norm_eq_of_bounds _ (λ x, _) _,
-  { sorry },
+  { exact T.supr_abs_rayleigh_sphere_nonneg zero_le_one },
   { by_cases h_ntriv : T x = 0,
     { simp only [h_ntriv, norm_zero],
-      haveI : nonempty (sphere (0:E) 1) := sphere_nonempty zero_le_one,
-
-      --exact mul_nonneg (le_max_iff.mpr (or.inl (supr_rayleigh_nonneg T))) (norm_nonneg _),
-      sorry },
-
+      refine mul_nonneg _ (norm_nonneg _),
+      exact T.supr_abs_rayleigh_sphere_nonneg zero_le_one },
     set L := real.sqrt (∥T x∥ / ∥x∥) with hL,
-    set rT := max (⨆ z : sphere (0:E) 1, T.re_apply_inner_self z)
-                  (⨆ z : sphere (0:E) 1, -T.re_apply_inner_self z) with hrT,
+    set rT := ⨆ z : sphere (0:E) 1, |rayleigh_quotient z|,
     set x₁ := (L : 𝕜) • x + (L⁻¹ : 𝕜) • (T x) with hx₁,
     set x₂ := (L : 𝕜) • x - (L⁻¹ : 𝕜) • (T x) with hx₂,
     change T x ≠ 0 at h_ntriv,
@@ -303,10 +318,10 @@ begin
             continuous_linear_map.map_smul, is_R_or_C.of_real_mul_conj_re, is_R_or_C.of_real_mul_conj_inv_re, gizmo],
       ring_nf,
       field_simp },
-    have h₄ : T.re_apply_inner_self x₁ ≤ rT * ∥x₁∥^2 := sorry,
-      --re_apply_inner_self_le_max_supr_rayleigh_mul_norm_sq _ _,
-    have h₅ : -T.re_apply_inner_self x₂ ≤ rT * ∥x₂∥^2 := sorry,
-      --neg_re_apply_inner_self_le_max_supr_rayleigh_mul_norm_sq _ _,
+    have h₄ : T.re_apply_inner_self x₁ ≤ rT * ∥x₁∥^2 :=
+      re_apply_inner_self_le_supr_abs_rayleigh_mul_norm_sq _ _,
+    have h₅ : -T.re_apply_inner_self x₂ ≤ rT * ∥x₂∥^2 :=
+      neg_re_apply_inner_self_le_supr_abs_rayleigh_mul_norm_sq _ _,
     have h₆ := calc
       4 * ∥T x∥^2 ≤ rT * ∥x₁∥^2 + rT * ∥x₂∥^2          : by { rw [←h₁, sub_eq_add_neg], exact add_le_add h₄ h₅ }
              ...  = rT * (∥x₁∥ * ∥x₁∥) + rT * (∥x₂∥ * ∥x₂∥)      : by simp only [pow_two]
@@ -324,46 +339,20 @@ begin
                 field_simp,
                 ring
               end,
-    sorry,
-    --have h₇ : 0 < 4 * ∥T x∥ := mul_pos (by norm_num) (norm_pos_iff.mpr h_ntriv),
-    --rw [←mul_le_mul_left h₇],
-    --calc 4 * ∥T x∥ * ∥T x∥ = 4 * ∥T x∥ ^ 2          : by rw [mul_assoc, ←pow_two]
-    --                  ... ≤ 4 * rT * ∥T x∥ * ∥x∥   : h₆
-    --                  ... = _                      : by ring,
-  },
-  { sorry },
-  --{ intros N hN h,
-  --  refine max_le _ _,
-  --  { refine csupr_le (λ x, _),
-  --    by_cases h_ntriv : x = 0,
-  --    { have : (0 : ℝ)^2 = 0 := by rw [pow_two, mul_zero],
-  --      simp only [h_ntriv, norm_zero, this, div_zero _],
-  --      exact hN },
-  --    change x ≠ 0 at h_ntriv,
-  --    refine (div_le_iff _).mpr _,
-  --    { rw pow_two,
-  --      rw [←norm_pos_iff] at h_ntriv,
-  --      exact mul_pos h_ntriv h_ntriv },
-  --    simp only [T.re_apply_inner_self_apply],
-  --    refine le_trans (re_inner_le_norm (T x) x) _,
-  --    rw [pow_two, ←mul_assoc],
-  --    refine mul_le_mul_of_nonneg_right (h x) (norm_nonneg _) },
-  --  { refine csupr_le (λ x, _),
-  --    by_cases h_ntriv : x = 0,
-  --    { have : (0 : ℝ)^2 = 0 := by rw [pow_two, mul_zero],
-  --      simp only [h_ntriv, norm_zero, this, div_zero, pi.neg_apply, neg_zero],
-  --      exact hN },
-  --    change x ≠ 0 at h_ntriv,
-  --    dsimp,
-  --    rw [←neg_div],
-  --    refine (div_le_iff _).mpr _,
-  --    { rw pow_two,
-  --      rw [←norm_pos_iff] at h_ntriv,
-  --      exact mul_pos h_ntriv h_ntriv },
-  --    simp only [T.re_apply_inner_self_apply, ←map_neg, ←inner_neg_right],
-  --    refine le_trans (re_inner_le_norm (T x) (-x)) _,
-  --    rw [norm_neg, pow_two, ←mul_assoc],
-  --    refine mul_le_mul_of_nonneg_right (h x) (norm_nonneg _) } }
+    have h₇ : 0 < 4 * ∥T x∥ := mul_pos (by norm_num) (norm_pos_iff.mpr h_ntriv),
+    rw [←mul_le_mul_left h₇],
+    calc 4 * ∥T x∥ * ∥T x∥ = 4 * ∥T x∥ ^ 2          : by rw [mul_assoc, ←pow_two]
+                      ... ≤ 4 * rT * ∥T x∥ * ∥x∥   : h₆
+                      ... = _                      : by ring },
+  { intros N hN h,
+    refine csupr_le (λ x, _),
+    have hx : ∥(x : E)∥ = 1 := norm_eq_of_mem_sphere x,
+    simp [hx, re_apply_inner_self],
+    calc _ ≤ is_R_or_C.abs (⟪T x, x⟫)       : is_R_or_C.abs_re_le_abs _
+       ... ≤ ∥T x∥ * ∥(x:E)∥      : abs_inner_le_norm _ _
+       ... = ∥T x∥            : by simp [hx]
+       ... ≤ N * ∥(x:E)∥     : h x
+       ... = N               : by simp [hx] }
 end
 
 end general
@@ -508,32 +497,28 @@ lemma exists_eigenvalue_of_compact [nontrivial E] (hT : is_self_adjoint T.to_lin
   (hT_cpct : compact_map T) :
   ∃ c, has_eigenvalue T.to_linear_map c :=
 begin
-  haveI : nonempty (sphere (0:E) 1) := sorry,
+  haveI : nonempty (sphere (0:E) 1) := continuous_linear_map.sphere_nonempty zero_le_one,
   by_cases h_triv : T = 0,
   { rcases exists_ne (0 : E) with ⟨w, hw⟩,
     refine ⟨0, has_eigenvalue_of_has_eigenvector ⟨_, hw⟩⟩,
     simp only [mem_eigenspace_iff, h_triv, zero_smul, continuous_linear_map.to_linear_map_eq_coe, continuous_linear_map.coe_zero,
               linear_map.zero_apply] },
   { change T ≠ 0 at h_triv,
-    --rcases max_eq_iff.mp (norm_eq_max_supr_rayleigh_sphere hT).symm with ⟨h_supr,-⟩|⟨h_infi,-⟩,
-    { set a := (⨆ x, |rayleigh_quotient_sphere| x),
+    { set a := ∥T∥ with a_def,   -- need to case-split on pos vs neg eigenvalue somehow
       have a_ne_zero : a ≠ 0,
-      { sorry },
+      { rw [a_def],
+        exact ne_of_gt (norm_pos_iff.mpr h_triv) },
       refine ⟨a, _⟩,
-      --have h₁' : (set.range rayleigh_quotient).nonempty := ⟨0, ⟨0, by simp⟩⟩,
-      -- First use filter.comap applied to nhds (supr) to get a filter f₁ on vectors
       set f₁ : filter u_sph :=
         filter.comap (λ x, |rayleigh_quotient x|) (𝓝[set.range rayleigh_quotient_sphere] a),
       set f₂ : filter E := f₁.map (λ x : u_sph, T x),
-      --set f₃ : filter E := filter.map (λ x : sphere (0:E) 1, (a : 𝕜) • x) f₁,
-      have h_bdd_range : bdd_above (set.range rayleigh_quotient_sphere),
-      { --exact T.rayleigh_bdd_above_sphere
-      sorry
-      },
+      have h_bdd_range : bdd_above (set.range rayleigh_quotient_sphere) :=
+        T.supr_abs_rayleigh_sphere_bdd_above zero_le_one,
       have h_range_nonempty : (set.range rayleigh_quotient_sphere).nonempty,
       { exact set.range_nonempty _ },
-      have h_ne_bot : (𝓝[set.range rayleigh_quotient_sphere] a).ne_bot := sorry,
-      --  is_lub.nhds_within_ne_bot (is_lub_csupr h_bdd_range) h_range_nonempty,
+      have h_ne_bot : (𝓝[set.range rayleigh_quotient_sphere] a).ne_bot,
+      { rw [a_def, hT.norm_eq_supr_abs_rayleigh_sphere],
+        exact is_lub.nhds_within_ne_bot (is_lub_csupr h_bdd_range) h_range_nonempty },
       have hf₂ : f₂ ≤ 𝓟 (closure (T '' u_sph)) := by
       { refine le_trans _ (filter.monotone_principal subset_closure),
         have : T '' u_sph = set.range (λ x : u_sph, T x),
@@ -541,8 +526,6 @@ begin
         rw [this, filter.map_le_iff_le_comap, filter.comap_principal],
         simp only [le_top, filter.principal_univ, set.preimage_range] },
       haveI : f₁.ne_bot := filter.ne_bot.comap_of_range_mem h_ne_bot self_mem_nhds_within,
-        --filter.ne_bot.comap_of_range_mem h_ne_bot self_mem   -- need new version of mathlib for this
-      --haveI f₂_ne_bot : f₂.ne_bot := by apply_instance,
       -- The image of T on the sphere is compact since T is a compact operator
       have h_img_cpct : is_compact (closure (T '' u_sph)),
       { refine hT_cpct _ _,
@@ -554,18 +537,12 @@ begin
       -- f₂ is guaranteed to have a cluster point z for some vector z by compactness of T
       have hf₂' := h_img_cpct hf₂,
       rcases hf₂' with ⟨z, ⟨hz₁, hz₂⟩⟩,
-      --have hz₂' := hz₂.ne_bot,
       set f₁sub : filter u_sph := f₁ ⊓ (𝓝 z ⊓ f₂).comap (λ x, T x),
-      --have h_f₁sub : f₁sub ≤ f₁ := inf_le_left,
       haveI : f₁sub.ne_bot,
       { simp only [←filter.map_ne_bot_iff (λ x : u_sph, T x), f₁sub, filter.push_pull, ←f₂, inf_comm],
         simp_rw [←inf_assoc, inf_idem],
         rw [inf_comm],
         exact hz₂.ne_bot },
-      have z_ne_zero : z ≠ 0 := sorry,
-      let zs : u_sph := ⟨(∥z∥⁻¹ : 𝕜) • z, by rw [mem_sphere, dist_eq_norm, sub_zero,
-                                                norm_smul_inv_norm z_ne_zero]⟩,
-
       have h_premain : f₁sub.tendsto (λ y, T y) (𝓝 z),
       { refine filter.tendsto.mono_left _ inf_le_right,
         simp only [filter.tendsto, filter.map_comap, inf_assoc, inf_le_left] },
@@ -578,19 +555,32 @@ begin
         rw [h₁₂, ←real.sqrt_zero],
         refine filter.tendsto.sqrt _,
         -- argument from Einsiedler-Ward
+        -- We have to use squeeze_zero here
         simp_rw [norm_sub_sq, norm_smul, inner_smul_right, is_R_or_C.of_real_mul_re],
         sorry },
-      have hz_norm : ∥z∥ = a := sorry,
+      have hz_norm : ∥z∥ = a,
+      { have := h_main.norm,
+        have h_smul : (λ y : u_sph, ∥(a : 𝕜) • (y : E)∥) = λ y, a,
+        { ext, simp [norm_smul] },
+        simp [h_smul] at this,
+        refine eq.symm _,
+        refine tendsto_nhds_unique tendsto_const_nhds this },
+      have z_ne_zero : z ≠ 0,
+      { rintro hz_zero,
+        rw [hz_zero, norm_zero] at hz_norm,
+        exact a_ne_zero hz_norm.symm },
+      let zs : u_sph := ⟨(∥z∥⁻¹ : 𝕜) • z, by rw [mem_sphere, dist_eq_norm, sub_zero,
+                                                norm_smul_inv_norm z_ne_zero]⟩,
       have h₂ : (a : 𝕜) • (zs : E) = z,
       { have : (∥z∥ : 𝕜) ≠ 0,
         { rw [hz_norm],
           norm_cast,
           exact a_ne_zero },
         simp only [←hz_norm, smul_smul, mul_inv_cancel this, one_smul, subtype.coe_mk] },
-      have h₃ : (zs : E) ≠ 0,
-      { sorry },
+      have h₃ : (zs : E) ≠ 0 := nonzero_of_mem_unit_sphere zs,
+        -- ne_zero_of_mem_unit_sphere zs,     -- new name in latest mathlib
       have hzs : (a⁻¹ : 𝕜) • z = zs,
-      { sorry },
+      { simp only [hz_norm, subtype.coe_mk]},
       have h₄ : f₁sub ≤ 𝓝 zs,
       { have h_main' := filter.tendsto.const_smul h_main (a⁻¹ : 𝕜),
         have a_ne_zero' : (a : 𝕜) ≠ 0 := by simp [a_ne_zero],

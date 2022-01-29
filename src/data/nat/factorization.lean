@@ -5,6 +5,7 @@ Authors: Stuart Presnell
 -/
 import data.nat.prime
 import data.nat.mul_ind
+import algebra.big_operators.finsupp
 
 /-!
 # Prime factorizations
@@ -131,9 +132,6 @@ begin
   nth_rewrite_rhs 0 (sum_single f).symm,
   exact sum_congr rfl (λ p hp, prime.factorization_pow (hf p hp)),
 end
-
-lemma prod_pow_pos_of_ne_zero {f : ℕ →₀ ℕ} (hf : 0 ∉ f.support) : 0 < f.prod pow :=
-finset.prod_pos (λ a ha, zero_lt_iff.mpr (pow_ne_zero _ (λ H, by {subst H, exact hf ha})))
 
 lemma eq_factorization_iff {n : ℕ} {f : ℕ →₀ ℕ} (hn : n ≠ 0) (hf : ∀ p ∈ f.support, prime p) :
   f.prod pow = n ↔ f = n.factorization :=

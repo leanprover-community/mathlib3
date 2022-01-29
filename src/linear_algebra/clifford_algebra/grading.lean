@@ -4,12 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser
 -/
 import linear_algebra.clifford_algebra.basic
-import linear_algebra.direct_sum.basic
 import data.zmod.basic
 import ring_theory.graded_algebra.basic
 
 /-!
-# Results about the generators and grading structure of the clifford algebra
+# Results about the grading structure of the clifford algebra
 
 The main result is `clifford_algebra.graded_algebra`, which says that the clifford algebra is a
 ℤ₂-graded algebra (or "superalgebra").

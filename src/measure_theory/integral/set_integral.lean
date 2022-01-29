@@ -328,14 +328,12 @@ lemma norm_set_integral_le_of_norm_le_const_ae' {C : ℝ} (hs : μ s < ∞)
 begin
   apply norm_set_integral_le_of_norm_le_const_ae hs,
   have A : ∀ᵐ (x : α) ∂μ, x ∈ s → ∥ae_measurable.mk f hfm x∥ ≤ C,
-  { filter_upwards [hC, hfm.ae_mem_imp_eq_mk],
-    assume a h1 h2 h3,
+  { filter_upwards [hC, hfm.ae_mem_imp_eq_mk] with _ h1 h2 h3,
     rw [← h2 h3],
     exact h1 h3 },
   have B : measurable_set {x | ∥(hfm.mk f) x∥ ≤ C} := hfm.measurable_mk.norm measurable_set_Iic,
-  filter_upwards [hfm.ae_eq_mk, (ae_restrict_iff B).2 A],
-  assume a h1 h2,
-  rwa h1
+  filter_upwards [hfm.ae_eq_mk, (ae_restrict_iff B).2 A] with _ h1 _,
+  rwa h1,
 end
 
 lemma norm_set_integral_le_of_norm_le_const_ae'' {C : ℝ} (hs : μ s < ∞) (hsm : measurable_set s)
@@ -503,7 +501,7 @@ begin
   { simp_rw norm_indicator_eq_indicator_norm,
     refine λ n, eventually_of_forall (λ x, _),
     exact indicator_le_indicator_of_subset (h_anti (zero_le n)) (λ a, norm_nonneg _) _ },
-  { filter_upwards [] λ a, le_trans (h_anti.tendsto_indicator _ _ _) (pure_le_nhds _) }
+  { filter_upwards with a using le_trans (h_anti.tendsto_indicator _ _ _) (pure_le_nhds _), },
 end
 
 end tendsto_mono

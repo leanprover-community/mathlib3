@@ -125,6 +125,10 @@ instance [monoid R] [comm_semiring S₁] [distrib_mul_action R S₁] [distrib_mu
 add_monoid_algebra.is_central_scalar
 instance [comm_semiring R] [comm_semiring S₁] [algebra R S₁] : algebra R (mv_polynomial σ S₁) :=
 add_monoid_algebra.algebra
+-- Register with high priority to avoid timeout in `data.mv_polynomial.pderiv`
+instance is_scalar_tower' [comm_semiring R] [comm_semiring S₁] [algebra R S₁] :
+  is_scalar_tower R (mv_polynomial σ S₁) (mv_polynomial σ S₁) :=
+is_scalar_tower.right
 -- TODO[gh-6025]: make this an instance once safe to do so
 /-- If `R` is a subsingleton, then `mv_polynomial σ R` has a unique element -/
 protected def unique [comm_semiring R] [subsingleton R] : unique (mv_polynomial σ R) :=

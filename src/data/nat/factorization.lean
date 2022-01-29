@@ -145,8 +145,8 @@ noncomputable
 def factorization_equiv : ℕ+ ≃ {f : ℕ →₀ ℕ | ∀ p ∈ f.support, prime p} :=
 { to_fun    := λ ⟨n, hn⟩, ⟨n.factorization, λ _, prime_of_mem_factorization⟩,
   inv_fun   := λ ⟨f, hf⟩, ⟨f.prod pow, prime_finsupp_prod_pow_pos hf⟩,
-  left_inv  := λ ⟨x, hx⟩, subtype.mk_eq_mk.mpr (factorization_prod_pow_eq_self hx.ne.symm),
-  right_inv := λ ⟨f, hf⟩, subtype.mk_eq_mk.mpr (factorization_prod_pow_inv hf) }
+  left_inv  := λ ⟨x, hx⟩, subtype.ext $ factorization_prod_pow_eq_self hx.ne.symm,
+  right_inv := λ ⟨f, hf⟩, subtype.ext $ factorization_prod_pow_inv hf }
 
 /-! ### Factorizations of pairs of coprime numbers -/
 

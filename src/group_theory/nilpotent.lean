@@ -583,11 +583,12 @@ lemma _root_.comm_group.center_eq_top {G : Type*} [comm_group G] : center G = �
   exact λ y, mul_comm y x
 end
 
-lemma _root_.group.comm_group_of_center_eq_top (h : center G = ⊤) : comm_group G :=
-begin
-  have h' : ∀ x, x ∈ center G, by simp [h],
-  exact { mul_comm := λ x y, h' y x, .. (_ : group G) }
-end
+/-- A group is commutative if the center is the whole group -/
+def _root_.group.comm_group_of_center_eq_top (h : center G = ⊤) : comm_group G :=
+{ mul_comm :=
+    let h' : ∀ x, x ∈ center G := by simp [h] in
+    λ x y, h' y x, .. (_ : group G),
+  .. (_ : group G) }
 
 /-- Abelian groups are nilpotent -/
 instance comm_group.is_nilpotent {G : Type*} [comm_group G] : is_nilpotent G :=

@@ -586,7 +586,7 @@ end
 
 lemma _root_.group.comm_group_of_center_eq_top (h : center G = ⊤) : comm_group G :=
 begin
-  have h' : ∀ x, x ∈ center G, by {rw h, simp,},
+  have h' : ∀ x, x ∈ center G, by simp [h],
   exact { mul_comm := λ x y, h' y x, .. (_ : group G) }
 end
 

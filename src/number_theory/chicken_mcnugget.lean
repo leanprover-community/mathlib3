@@ -57,7 +57,7 @@ lemma chicken_mcnugget_upper_bound {m n : ℕ} (cop : coprime m n) (hm : 1 < m) 
   a * m + b * n ≠ m * n - m - n :=
 begin
   intro h,
-  apply chicken_mcnugget_upper_bound_aux (a+1) (b+1) m n (add_one_ne_zero a) (add_one_ne_zero b) cop,
+  apply chicken_mcnugget_upper_bound_aux _ _ m n (add_one_ne_zero a) (add_one_ne_zero b) cop,
   rw [add_mul, add_mul, one_mul, one_mul, add_assoc, ←add_assoc m, add_comm m, add_assoc,
       ←add_assoc, h, nat.sub_sub, nat.sub_add_cancel (add_le_mul hm hn)],
 end

@@ -23,8 +23,8 @@ open_locale direct_sum
 
 variables (Q)
 
-/-- The even and odd submodule, defined as the supremum of the even or odd powers of
-`(ι Q).range`. -/
+/-- The even or odd submodule, defined as the supremum of the even or odd powers of
+`(ι Q).range`. `even_odd 0` is the even submodule, and `even_odd 1` is the odd submodule. -/
 def even_odd (i : zmod 2) : submodule R (clifford_algebra Q) :=
 ⨆ (j : {n : ℕ // ↑n = i}), (ι Q).range ^ (j : ℕ)
 

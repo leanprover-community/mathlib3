@@ -1,4 +1,4 @@
-import algebraic_geometry.AffineScheme
+import algebraic_geometry.morphisms.basic
 
 
 noncomputable theory
@@ -16,8 +16,11 @@ A morphism is `quasi-compact` if the underlying map of topological spaces is, i.
 of quasi-compact open sets are quasi-compact.
 -/
 @[mk_iff]
-class quasi_compact : Prop :=
+class quasi_compact (f : X ⟶ Y) : Prop :=
 (is_compact_primage : ∀ U : set Y.carrier, is_open U → is_compact U → is_compact (f.1.base ⁻¹' U))
+
+def quasi_compact.affine_property : affine_target_morphism_property :=
+λ X Y f hf, compact_space X.carrier
 
 lemma is_compact_open_iff_eq_finset_affine_union {X : Scheme} (U : set X.carrier) :
   is_compact U ∧ is_open U ↔
@@ -61,56 +64,28 @@ begin
   convert S.compact_bUnion (λ i _, H i i.prop) using 1,
   exact set.Union_subtype _ _
 end
-.
 
-def Scheme.affine_opens (X : Scheme) : set (opens X.carrier) :=
-{ U : opens X.carrier | is_affine_open U }
-
-lemma of_affine_open_cover (P : opens X.carrier → Prop)
-  (hP₁ : ∀ U (f : X.presheaf.obj $ op U), is_affine_open U → P U → P (X.basic_open f))
-  (hP₂ : ∀ (s : finset X.affine_opens), (∀ (U : s), P U) →
-    P (supr $ λ (i : s), (i : opens X.carrier)))
-  (S : set X.affine_opens)
-  (hS : (⋃ (i : S), i : set X.carrier) = set.univ)
-  (hS' : ∀ (U : S), P (U : opens X.carrier)) (V : opens X.carrier) (hV : is_affine_open V) : P V :=
+lemma quasi_compact_iff_affine_property :
+  quasi_compact f ↔ target_affine_locally quasi_compact.affine_property f :=
 begin
-  classical,
-  have : ∀ (x : V), ∃ (W : X.affine_opens), ↑W ⊆ V ∧ ↑x ∈ (W : set X.carrier) ∧ P ↑W,
-  { intro x,
-    have : ↑x ∈ (set.univ : set X.carrier) := trivial,
-    rw ← hS at this,
-    obtain ⟨i, hi⟩ := set.mem_Union.mp this,
-    obtain ⟨f, hf, hf'⟩ := i.1.prop.exists_basic_open_subset x hi,
-    exact ⟨⟨_, i.1.prop.basic_open_is_affine f⟩, hf, hf', hP₁ _ _ i.1.prop (hS' i)⟩ },
-  choose W hW₁ hW₂ hW₃ using this,
-  obtain ⟨t, ht⟩ := is_compact.elim_finite_subcover hV.is_compact (λ x, W x) (λ x, (W x).1.prop) _,
-  convert hP₂ (t.image W) _,
-  { apply le_antisymm,
-    { change (V : set X.carrier) ⊆ _,
-      convert ht,
-      apply le_antisymm,
-      { simp only [set.Union_subset_iff, opens.supr_s, set.le_eq_subset],
-        rintro ⟨x, hx⟩,
-        obtain ⟨i, hi, rfl⟩ := finset.mem_image.mp hx,
-        refine set.subset.trans _ (set.subset_Union _ i),
-        exact set.subset_Union _ hi,
-         },
-      { simp only [set.Union_subset_iff, opens.supr_s, set.le_eq_subset],
-        intros i hi,
-        refine set.subset.trans _
-          (set.subset_Union _ (⟨W i, finset.mem_image_of_mem _ hi⟩ : t.image W)),
-        exact λ x h, h } },
-    { apply supr_le _,
-      rintro ⟨x, hx⟩,
-      obtain ⟨i, hi, rfl⟩ := finset.mem_image.mp hx,
-      exact hW₁ i } },
-  { rintro ⟨x, hx⟩,
-    obtain ⟨i, hi, rfl⟩ := finset.mem_image.mp hx,
-    exact hW₃ i },
-  { intros x hx,
-    refine set.subset_Union _ (⟨x, hx⟩ : V) (hW₂ ⟨x, hx⟩) }
+  rw quasi_compact_iff_forall_affine,
+  transitivity (∀ U : Y.affine_opens, is_compact (f.1.base ⁻¹' (U : set Y.carrier))),
+  { exact ⟨λ h U, h U U.prop, λ h U hU, h ⟨U, hU⟩⟩ },
+  apply forall_congr,
+  exact λ _, is_compact_iff_compact_space,
 end
-.
+
+lemma quasi_compact_iff_forall_affine : quasi_compact f ↔
+  ∀ U : opens Y.carrier, is_affine_open U → is_compact (f.1.base ⁻¹' (U : set Y.carrier)) :=
+begin
+  rw quasi_compact_iff,
+  refine ⟨λ H U hU, H U U.prop hU.is_compact, _⟩,
+  intros H U hU hU',
+  obtain ⟨S, rfl⟩ := (is_compact_open_iff_eq_finset_affine_union U).mp ⟨hU', hU⟩,
+  simp only [set.preimage_Union, subtype.val_eq_coe],
+  convert S.compact_bUnion (λ i _, H i i.prop) using 1,
+  exact set.Union_subtype _ _
+end
 
 lemma is_compact_basic_open (X : Scheme) {U : opens X.carrier} (hU : is_compact (U : set X.carrier))
   (f : X.presheaf.obj (op U)) : is_compact (X.basic_open f : set X.carrier) :=
@@ -148,7 +123,7 @@ begin
   apply of_affine_open_cover (λ (U : opens Y.carrier), is_compact (f.val.base ⁻¹' U.1)),
   { intros U r hr hU,
     change is_compact ↑((opens.map f.val.base).obj (Y.basic_open r)),
-    rw LocallyRingedSpace.preimage_basic_open f r,
+    rw Scheme.preimage_basic_open f r,
     exact is_compact_basic_open X hU _ },
   { intros S hS,
     simp only [opens.supr_s, set.preimage_Union, subtype.val_eq_coe],

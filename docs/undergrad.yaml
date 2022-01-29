@@ -437,7 +437,7 @@ Topology:
     Hilbert bases: 'hilbert_basis' # the document specifies "in the separable case" but we don't require this
     example, the Hilbert basis of trigonometric polynomials: 'fourier_series'
     example, classical Hilbert bases of orthogonal polynomials: ''
-    Lax-Milgram theorem: ''
+    Lax-Milgram theorem: 'is_coercive.continuous_linear_equiv_of_bilin'
     $H^1_0([0,1])$ and its application to the one-dimensional Dirichlet problem: ''
 
 # 9.

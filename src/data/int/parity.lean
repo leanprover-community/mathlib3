@@ -220,8 +220,7 @@ begin
     norm_num },
 end
 
-lemma two_mul_div_two_of_even : even n → 2 * (n / 2) = n :=
-by { rintro ⟨c, rfl⟩, simp }
+lemma two_mul_div_two_of_even : even n → 2 * (n / 2) = n := int.mul_div_cancel'
 
 lemma div_two_mul_two_of_even : even n → n / 2 * 2 = n := int.div_mul_cancel
 

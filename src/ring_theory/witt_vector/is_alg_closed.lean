@@ -4,8 +4,6 @@ import ring_theory.witt_vector.domain
 import ring_theory.witt_vector.truncated
 
 noncomputable theory
-.
-#check @finset.sum
 
 section
 open finset
@@ -93,25 +91,19 @@ end
 -- lemma witt_vector.is_Hausdorff : is_Hausdorff (𝕎 k)
 
 
+
+
+
 variable {k}
 
-section heathers_approach
-open witt_vector finset
+section recursive_case_poly
+
+-- this section is the attempt to define a `polynomial k` with positive degree.
+-- the solution to this poly will be the `n+1`st entry of our desired Witt vector.
+
+open witt_vector finset mv_polynomial
 open_locale big_operators
 
-#check @witt_mul
--- mₙ(X, Y) = witt_mul p n
-
-example (n : ℕ) : mv_polynomial (fin 2 × ℕ) ℤ :=
-∑ i in range (n+1), p^i * (witt_mul p i)^(p^n-i)
-
-open mv_polynomial
-example (n : ℕ) : mv_polynomial (fin 2 × ℕ) ℤ :=
-∑ i in range (n+1), p^i * X (0, i)^(p^(n-i)) -- this is almost witt_polynomial p n, but renamed
-
-
-example (n : ℕ) : mv_polynomial (fin 2 × ℕ) ℤ :=
-rename (prod.mk (0 : fin 2)) (witt_polynomial p ℤ n)
 
 
 /--
@@ -120,6 +112,7 @@ rename (prod.mk (0 : fin 2)) (witt_polynomial p ℤ n)
 def witt_poly_prod (n : ℕ) : mv_polynomial (fin 2 × ℕ) ℤ :=
 rename (prod.mk (0 : fin 2)) (witt_polynomial p ℤ n) *
   rename (prod.mk (1 : fin 2)) (witt_polynomial p ℤ n)
+
 
 lemma witt_poly_prod_vars (n : ℕ) :
   (witt_poly_prod p n).vars ⊆ finset.univ.product (finset.range (n + 1)) :=
@@ -190,7 +183,6 @@ sorry
 lemma diff_vars (n : ℕ) : (diff p n).vars ⊆ univ.product (range (n+1)) :=
 sorry
 
-#check witt_poly_prod_vars
 
 lemma sum_ident_3 (n : ℕ) :
   witt_poly_prod p (n+1) =
@@ -213,22 +205,25 @@ begin
   exact sum_ident_3 _ _
 end
 
+
+/-- this is the guy from above -/
+def poly_of_interest (n : ℕ) : mv_polynomial (fin 2 × ℕ) ℤ :=
+witt_mul p (n + 1) - p^(n+1) * X (0, n+1) * X (1, n+1) -
+  (X (0, n+1)) * rename (prod.mk (1 : fin 2)) (witt_polynomial p ℤ n) -
+  (X (1, n+1)) * rename (prod.mk (0 : fin 2)) (witt_polynomial p ℤ n)
+
 lemma sum_ident_5 (n : ℕ) :
   (p ^ (n + 1) : mv_polynomial (fin 2 × ℕ) ℤ) *
-    (witt_mul p (n + 1) - p^(n+1) * X (0, n+1) * X (1, n+1) -
-    (X (0, n+1)) * rename (prod.mk (1 : fin 2)) (witt_polynomial p ℤ n) -
-    (X (1, n+1)) * rename (prod.mk (0 : fin 2)) (witt_polynomial p ℤ n)) =
+    poly_of_interest p n =
   (diff p n - extra_poly p (n + 1)) :=
 begin
-  simp only [mul_sub, mul_add, sub_eq_iff_eq_add'],
+  simp only [poly_of_interest, mul_sub, mul_add, sub_eq_iff_eq_add'],
   rw sum_ident_4 p n,
   ring,
 end
 
 lemma prod_vars_subset (n : ℕ) :
-  ((p ^ (n + 1) : mv_polynomial (fin 2 × ℕ) ℤ) * (witt_mul p (n + 1) - p^(n+1) * X (0, n+1) * X (1, n+1) -
-    (X (0, n+1)) * rename (prod.mk (1 : fin 2)) (witt_polynomial p ℤ n) -
-    (X (1, n+1)) * rename (prod.mk (0 : fin 2)) (witt_polynomial p ℤ n))).vars ⊆
+  ((p ^ (n + 1) : mv_polynomial (fin 2 × ℕ) ℤ) * poly_of_interest p n).vars ⊆
   univ.product (range (n+1)) :=
 begin
   rw sum_ident_5,
@@ -238,33 +233,22 @@ begin
   { apply extra_poly_vars }
 end
 
-lemma vars_eq (n : ℕ) :
+lemma poly_of_interest_vars_eq (n : ℕ) :
   ((p ^ (n + 1) : mv_polynomial (fin 2 × ℕ) ℤ) * (witt_mul p (n + 1) - p^(n+1) * X (0, n+1) * X (1, n+1) -
     (X (0, n+1)) * rename (prod.mk (1 : fin 2)) (witt_polynomial p ℤ n) -
     (X (1, n+1)) * rename (prod.mk (0 : fin 2)) (witt_polynomial p ℤ n))).vars =
-  (witt_mul p (n + 1) - p^(n+1) * X (0, n+1) * X (1, n+1) -
-    (X (0, n+1)) * rename (prod.mk (1 : fin 2)) (witt_polynomial p ℤ n) -
-    (X (1, n+1)) * rename (prod.mk (0 : fin 2)) (witt_polynomial p ℤ n)).vars :=
+  (poly_of_interest p n).vars :=
 begin
   have : (p ^ (n + 1) : mv_polynomial (fin 2 × ℕ) ℤ) = C (p ^ (n + 1) : ℤ),
   { simp only [int.cast_coe_nat, ring_hom.eq_int_cast, C_pow, eq_self_iff_true] },
-  rw [this, vars_C_mul],
+  rw [poly_of_interest, this, vars_C_mul],
   apply pow_ne_zero,
   exact_mod_cast hp.out.ne_zero
 end
 
-lemma vars_subset (n : ℕ) :
-  (witt_mul p (n + 1) - p^(n+1) * X (0, n+1) * X (1, n+1) -
-    (X (0, n+1)) * rename (prod.mk (1 : fin 2)) (witt_polynomial p ℤ n) -
-    (X (1, n+1)) * rename (prod.mk (0 : fin 2)) (witt_polynomial p ℤ n)).vars ⊆
-  univ.product (range (n+1)) :=
-by rw ← vars_eq; apply prod_vars_subset
+lemma poly_of_interest_vars (n : ℕ) : (poly_of_interest p n).vars ⊆ univ.product (range (n+1)) :=
+by rw ← poly_of_interest_vars_eq; apply prod_vars_subset
 
-/-- this is the guy from above -/
-def poly_of_interest (n : ℕ) : mv_polynomial (fin 2 × ℕ) ℤ :=
-witt_mul p (n + 1) - p^(n+1) * X (0, n+1) * X (1, n+1) -
-  (X (0, n+1)) * rename (prod.mk (1 : fin 2)) (witt_polynomial p ℤ n) -
-  (X (1, n+1)) * rename (prod.mk (0 : fin 2)) (witt_polynomial p ℤ n)
 
 lemma peval_poly_of_interest (n : ℕ) (x y : 𝕎 k) :
   peval (poly_of_interest p n) ![λ i, x.coeff i, λ i, y.coeff i] =
@@ -287,6 +271,9 @@ begin
   refl }
 end
 
+
+-- what follows below is the previous attempt to do this directly in k.
+-- a bit of the code may still be salvageable.
 
 variable (n : ℕ)
 
@@ -447,7 +434,7 @@ begin
   ring
 end
 
-end heathers_approach
+end recursive_case_poly
 
 section base_case
 

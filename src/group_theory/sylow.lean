@@ -514,7 +514,7 @@ lemma coe_comap_of_ker_is_p_group {p : ℕ} {P : sylow p G}
 def comap_of_injective {p : ℕ} (P : sylow p G)
   {K : Type*} [group K] (ϕ : K →* G) (hϕ : function.injective ϕ) (h : P.1 ≤ ϕ.range) :
   sylow p K :=
-  P.comap_of_ker_is_p_group ϕ (by { rw ϕ.ker_eq_bot_iff.mpr hϕ, exact is_p_group.of_bot }) h
+P.comap_of_ker_is_p_group ϕ (by { rw ϕ.ker_eq_bot_iff.mpr hϕ, exact is_p_group.of_bot }) h
 
 @[simp]
 lemma code_comap_of_injective {p : ℕ} {P : sylow p G}
@@ -523,7 +523,7 @@ lemma code_comap_of_injective {p : ℕ} {P : sylow p G}
 
 /-- A sylow subgroup in G is also a sylow subgroup in a subgroup of G. -/
 def subtype {p : ℕ} (P : sylow p G) (N : subgroup G) (h : ↑P ≤ N) : sylow p N :=
-  P.comap_of_injective N.subtype subtype.coe_injective (by simp [h])
+P.comap_of_injective N.subtype subtype.coe_injective (by simp [h])
 
 @[simp]
 lemma coe_subtype {p : ℕ} {P : sylow p G} {N : subgroup G} {h : P.1 ≤ N} :

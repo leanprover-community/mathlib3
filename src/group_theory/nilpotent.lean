@@ -7,6 +7,7 @@ Authors: Kevin Buzzard, Ines Wright, Joachim Breitner
 import group_theory.general_commutator
 import group_theory.quotient_group
 import group_theory.solvable
+import group_theory.p_group
 
 /-!
 
@@ -631,7 +632,7 @@ begin
   rcases n with rfl | n,
   { simp [nilpotency_class_zero_iff_subsingleton] at *,
     haveI := hn,
-    exact subsingleton_quotient_of_subsingleton, },
+    apply_instance, },
   { suffices : group.nilpotency_class (G ⧸ center G) = n, by simpa,
     apply le_antisymm,
     { apply upper_central_series_eq_top_iff_nilpotency_class_le.mp,
@@ -643,6 +644,15 @@ begin
         ... = group.nilpotency_class G : symm hn
         ... ≤ group.nilpotency_class (G ⧸ center G) + 1
             : nilpotency_class_le_of_ker_le_center _ (le_of_eq (ker_mk _)) _, } }
+end
+
+/-- If the quotient by `center G` is nilpotent, then so is G: -/
+lemma of_quotient_center_nilpotent
+  (h : is_nilpotent (G ⧸ center G)) : is_nilpotent G :=
+begin
+  obtain ⟨n, hn⟩ := h.nilpotent,
+  use n.succ,
+  simp [← comap_upper_central_series_quotient_center, hn],
 end
 
 end classical
@@ -683,3 +693,28 @@ begin
   rw [eq_bot_iff, ←hn],
   exact derived_le_lower_central n,
 end
+
+section classical
+
+open_locale classical
+
+/-- A p-group is nilpotent -/
+lemma is_nilpotent.of_p_group [fintype G] {p : ℕ} (hp : fact (nat.prime p)) (h : is_p_group p G) :
+  is_nilpotent G :=
+begin
+  obtain ⟨ n, hn ⟩ : ∃ n, fintype.card G = n := ⟨fintype.card G, rfl⟩,
+  unfreezingI { induction n using nat.strong_induction_on with n ih generalizing G },
+  casesI (subsingleton_or_nontrivial G) with hsing hnontriv,
+  { apply_instance, },
+  { rw ← hn at ih, clear hn,
+    have hc: center G > ⊥ := gt_iff_lt.mp h.bot_lt_center,
+    have hcq: fintype.card (G ⧸ center G) < fintype.card G,
+    { rw card_eq_card_quotient_mul_card_subgroup (center G),
+      apply lt_mul_of_one_lt_right,
+      exact (fintype.card_pos_iff.mpr has_one.nonempty),
+      exact ((subgroup.one_lt_card_iff_ne_bot _).mpr (ne_of_gt hc)), },
+    have hnq: is_nilpotent (G ⧸ center G) := ih _ hcq (h.to_quotient (center G)) rfl,
+    exact (of_quotient_center_nilpotent hnq), }
+end
+
+end classical

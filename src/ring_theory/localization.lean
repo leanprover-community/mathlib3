@@ -2309,6 +2309,8 @@ lemma comap_is_algebraic_iff [algebra A C] [algebra K C] [is_scalar_tower A K C]
   algebra.is_algebraic A C ↔ algebra.is_algebraic K C :=
 ⟨λ h x, (is_algebraic_iff A K C).mp (h x), λ h x, (is_algebraic_iff A K C).mpr (h x)⟩
 
+end
+
 section num_denom
 
 variables (A) [unique_factorization_monoid A]

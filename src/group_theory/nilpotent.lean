@@ -591,6 +591,7 @@ def _root_.group.comm_group_of_center_eq_top (h : center G = ⊤) : comm_group G
   .. (_ : group G) }
 
 /-- Abelian groups are nilpotent -/
+@[priority 100]
 instance comm_group.is_nilpotent {G : Type*} [comm_group G] : is_nilpotent G :=
 begin
   use 1,

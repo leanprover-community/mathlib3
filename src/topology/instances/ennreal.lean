@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 import topology.instances.nnreal
-import topology.algebra.ordered.liminf_limsup
+import order.liminf_limsup
+import topology.metric_space.lipschitz
 /-!
 # Extended non-negative reals
 -/
@@ -125,8 +126,7 @@ lemma eventually_eq_of_to_real_eventually_eq {l : filter α} {f g : α → ℝ�
   (hfg : (λ x, (f x).to_real) =ᶠ[l] (λ x, (g x).to_real)) :
   f =ᶠ[l] g :=
 begin
-  filter_upwards [hfi, hgi, hfg],
-  intros x hfx hgx hfgx,
+  filter_upwards [hfi, hgi, hfg] with _ hfx hgx _,
   rwa ← ennreal.to_real_eq_to_real hfx hgx,
 end
 
@@ -185,10 +185,10 @@ lemma nhds_zero_basis : (𝓝 (0 : ℝ≥0∞)).has_basis (λ a : ℝ≥0∞, 0 
 
 lemma nhds_zero_basis_Iic : (𝓝 (0 : ℝ≥0∞)).has_basis (λ a : ℝ≥0∞, 0 < a) Iic := nhds_bot_basis_Iic
 
-@[instance] lemma nhds_within_Ioi_coe_ne_bot {r : ℝ≥0} : (𝓝[Ioi r] (r : ℝ≥0∞)).ne_bot :=
-nhds_within_Ioi_self_ne_bot' ennreal.coe_lt_top
+@[instance] lemma nhds_within_Ioi_coe_ne_bot {r : ℝ≥0} : (𝓝[>] (r : ℝ≥0∞)).ne_bot :=
+nhds_within_Ioi_self_ne_bot' ⟨⊤, ennreal.coe_lt_top⟩
 
-@[instance] lemma nhds_within_Ioi_zero_ne_bot : (𝓝[Ioi 0] (0 : ℝ≥0∞)).ne_bot :=
+@[instance] lemma nhds_within_Ioi_zero_ne_bot : (𝓝[>] (0 : ℝ≥0∞)).ne_bot :=
 nhds_within_Ioi_coe_ne_bot
 
 -- using Icc because
@@ -214,14 +214,14 @@ begin
   rw nhds_generate_from, refine le_infi (assume s, le_infi $ assume hs, _),
   rcases hs with ⟨xs, ⟨a, (rfl : s = Ioi a)|(rfl : s = Iio a)⟩⟩,
   { rcases exists_between xs with ⟨b, ab, bx⟩,
-    have xb_pos : 0 < x - b := ennreal.sub_pos.2 bx,
+    have xb_pos : 0 < x - b := tsub_pos_iff_lt.2 bx,
     have xxb : x - (x - b) = b := sub_sub_cancel xt bx.le,
     refine infi_le_of_le (x - b) (infi_le_of_le xb_pos _),
     simp only [mem_principal, le_principal_iff],
     assume y, rintros ⟨h₁, h₂⟩, rw xxb at h₁, calc a < b : ab ... ≤ y : h₁ },
   { rcases exists_between xs with ⟨b, xb, ba⟩,
-    have bx_pos : 0 < b - x := ennreal.sub_pos.2 xb,
-    have xbx : x + (b - x) = b := add_sub_cancel_of_le xb.le,
+    have bx_pos : 0 < b - x := tsub_pos_iff_lt.2 xb,
+    have xbx : x + (b - x) = b := add_tsub_cancel_of_le xb.le,
     refine infi_le_of_le (b - x) (infi_le_of_le bx_pos _),
     simp only [mem_principal, le_principal_iff],
     assume y, rintros ⟨h₁, h₂⟩, rw xbx at h₂, calc y ≤ b : h₂ ... < a : ba },
@@ -252,9 +252,48 @@ protected lemma tendsto_at_top_zero [hβ : nonempty β] [semilattice_sup β] {f 
   filter.at_top.tendsto f (𝓝 0) ↔ ∀ ε > 0, ∃ N, ∀ n ≥ N, f n ≤ ε :=
 begin
   rw ennreal.tendsto_at_top zero_ne_top,
-  { simp_rw [set.mem_Icc, zero_add, zero_sub, zero_le _, true_and], },
+  { simp_rw [set.mem_Icc, zero_add, zero_tsub, zero_le _, true_and], },
   { exact hβ, },
 end
+
+lemma tendsto_sub {a b : ℝ≥0∞} (h : a ≠ ∞ ∨ b ≠ ∞) :
+  tendsto (λ p : ℝ≥0∞ × ℝ≥0∞, p.1 - p.2) (𝓝 (a, b)) (𝓝 (a - b)) :=
+begin
+  cases a; cases b,
+  { simp only [eq_self_iff_true, not_true, ne.def, none_eq_top, or_self] at h, contradiction },
+  { simp only [some_eq_coe, with_top.top_sub_coe, none_eq_top],
+    apply tendsto_nhds_top_iff_nnreal.2 (λ n, _),
+    rw [nhds_prod_eq, eventually_prod_iff],
+    refine ⟨λ z, ((n + (b + 1)) : ℝ≥0∞) < z,
+            Ioi_mem_nhds (by simp only [one_lt_top, add_lt_top, coe_lt_top, and_self]),
+            λ z, z < b + 1, Iio_mem_nhds ((ennreal.lt_add_right coe_ne_top one_ne_zero)),
+            λ x hx y hy, _⟩,
+    dsimp,
+    rw lt_tsub_iff_right,
+    have : ((n : ℝ≥0∞) + y) + (b + 1) < x + (b + 1) := calc
+      ((n : ℝ≥0∞) + y) + (b + 1) = ((n : ℝ≥0∞) + (b + 1)) + y : by abel
+      ... < x + (b + 1) : ennreal.add_lt_add hx hy,
+    exact lt_of_add_lt_add_right this },
+  { simp only [some_eq_coe, with_top.sub_top, none_eq_top],
+    suffices H : ∀ᶠ (p : ℝ≥0∞ × ℝ≥0∞) in 𝓝 (a, ∞), 0 = p.1 - p.2,
+      from tendsto_const_nhds.congr' H,
+    rw [nhds_prod_eq, eventually_prod_iff],
+    refine ⟨λ z, z < a + 1, Iio_mem_nhds (ennreal.lt_add_right coe_ne_top one_ne_zero),
+            λ z, (a : ℝ≥0∞) + 1 < z,
+            Ioi_mem_nhds (by simp only [one_lt_top, add_lt_top, coe_lt_top, and_self]),
+            λ x hx y hy, _⟩,
+    rw eq_comm,
+    simp only [tsub_eq_zero_iff_le, (has_lt.lt.trans hx hy).le], },
+  { simp only [some_eq_coe, nhds_coe_coe, tendsto_map'_iff, function.comp, ← ennreal.coe_sub,
+               tendsto_coe],
+    exact continuous.tendsto (by continuity) _ }
+end
+
+protected lemma tendsto.sub {f : filter α} {ma : α → ℝ≥0∞} {mb : α → ℝ≥0∞} {a b : ℝ≥0∞}
+  (hma : tendsto ma f (𝓝 a)) (hmb : tendsto mb f (𝓝 b)) (h : a ≠ ∞ ∨ b ≠ ∞) :
+  tendsto (λ a, ma a - mb a) f (𝓝 (a - b)) :=
+show tendsto ((λ p : ℝ≥0∞ × ℝ≥0∞, p.1 - p.2) ∘ (λa, (ma a, mb a))) f (𝓝 (a - b)), from
+tendsto.comp (ennreal.tendsto_sub h) (hma.prod_mk_nhds hmb)
 
 protected lemma tendsto_mul (ha : a ≠ 0 ∨ b ≠ ⊤) (hb : b ≠ 0 ∨ a ≠ ⊤) :
   tendsto (λp:ℝ≥0∞×ℝ≥0∞, p.1 * p.2) (𝓝 (a, b)) (𝓝 (a * b)) :=
@@ -271,8 +310,8 @@ begin
 end,
 begin
   cases a, {simp [none_eq_top] at hb, simp [none_eq_top, ht b hb, top_mul, hb] },
-  cases b, {
-    simp [none_eq_top] at ha,
+  cases b,
+  { simp [none_eq_top] at ha,
     simp [*, nhds_swap (a : ℝ≥0∞) ⊤, none_eq_top, some_eq_coe, top_mul, tendsto_map'_iff, (∘),
       mul_comm] },
   simp [some_eq_coe, nhds_coe_coe, tendsto_map'_iff, (∘)],
@@ -323,12 +362,33 @@ continuous_iff_continuous_at.2 $ λ x, ennreal.continuous_at_const_mul (or.inl h
 protected lemma continuous_mul_const {a : ℝ≥0∞} (ha : a ≠ ⊤) : continuous (λ x, x * a) :=
 continuous_iff_continuous_at.2 $ λ x, ennreal.continuous_at_mul_const (or.inl ha)
 
+@[continuity]
+lemma continuous_pow (n : ℕ) : continuous (λ a : ℝ≥0∞, a ^ n) :=
+begin
+  induction n with n IH,
+  { simp [continuous_const] },
+  simp_rw [nat.succ_eq_add_one, pow_add, pow_one, continuous_iff_continuous_at],
+  assume x,
+  refine ennreal.tendsto.mul (IH.tendsto _) _ tendsto_id _;
+  by_cases H : x = 0,
+  { simp only [H, zero_ne_top, ne.def, or_true, not_false_iff]},
+  { exact or.inl (λ h, H (pow_eq_zero h)) },
+  { simp only [H, pow_eq_top_iff, zero_ne_top, false_or, eq_self_iff_true,
+               not_true, ne.def, not_false_iff, false_and], },
+  { simp only [H, true_or, ne.def, not_false_iff] }
+end
+
+protected lemma tendsto.pow {f : filter α} {m : α → ℝ≥0∞} {a : ℝ≥0∞} {n : ℕ}
+  (hm : tendsto m f (𝓝 a)) :
+  tendsto (λ x, (m x) ^ n) f (𝓝 (a ^ n)) :=
+((continuous_pow n).tendsto a).comp hm
+
 lemma le_of_forall_lt_one_mul_le {x y : ℝ≥0∞} (h : ∀ a < 1, a * x ≤ y) : x ≤ y :=
 begin
-  have : tendsto (* x) (𝓝[Iio 1] 1) (𝓝 (1 * x)) :=
+  have : tendsto (* x) (𝓝[<] 1) (𝓝 (1 * x)) :=
     (ennreal.continuous_at_mul_const (or.inr one_ne_zero)).mono_left inf_le_left,
   rw one_mul at this,
-  haveI : (𝓝[Iio 1] (1 : ℝ≥0∞)).ne_bot := nhds_within_Iio_self_ne_bot' ennreal.zero_lt_one,
+  haveI : (𝓝[<] (1 : ℝ≥0∞)).ne_bot := nhds_within_Iio_self_ne_bot' ⟨0, ennreal.zero_lt_one⟩,
   exact le_of_tendsto this (eventually_nhds_within_iff.2 $ eventually_of_forall h)
 end
 
@@ -481,8 +541,8 @@ supr_mul
 
 protected lemma tendsto_coe_sub : ∀{b:ℝ≥0∞}, tendsto (λb:ℝ≥0∞, ↑r - b) (𝓝 b) (𝓝 (↑r - b)) :=
 begin
-  refine (forall_ennreal.2 $ and.intro (assume a, _) _),
-  { simp [@nhds_coe a, tendsto_map'_iff, (∘), tendsto_coe, coe_sub.symm],
+  refine forall_ennreal.2 ⟨λ a, _, _⟩,
+  { simp [@nhds_coe a, tendsto_map'_iff, (∘), tendsto_coe, ← with_top.coe_sub],
     exact tendsto_const_nhds.sub tendsto_id },
   simp,
   exact (tendsto.congr' (mem_of_superset (lt_mem_nhds $ @coe_lt_top r) $
@@ -494,10 +554,18 @@ lemma sub_supr {ι : Sort*} [nonempty ι] {b : ι → ℝ≥0∞} (hr : a < ⊤)
 let ⟨r, eq, _⟩ := lt_iff_exists_coe.mp hr in
 have Inf ((λb, ↑r - b) '' range b) = ↑r - (⨆i, b i),
   from is_glb.Inf_eq $ is_lub_supr.is_glb_of_tendsto
-    (assume x _ y _, sub_le_sub (le_refl _))
+    (assume x _ y _, tsub_le_tsub (le_refl (r : ℝ≥0∞)))
     (range_nonempty _)
     (ennreal.tendsto_coe_sub.comp (tendsto_id' inf_le_left)),
-by rw [eq, ←this]; simp [Inf_image, infi_range, -mem_range]; exact le_refl _
+by rw [eq, ←this]; simp [Inf_image, infi_range, -mem_range]; exact le_rfl
+
+lemma exists_countable_dense_no_zero_top :
+  ∃ (s : set ℝ≥0∞), countable s ∧ dense s ∧ 0 ∉ s ∧ ∞ ∉ s :=
+begin
+  obtain ⟨s, s_count, s_dense, hs⟩ : ∃ s : set ℝ≥0∞, countable s ∧ dense s ∧
+    (∀ x, is_bot x → x ∉ s) ∧ (∀ x, is_top x → x ∉ s) := exists_countable_dense_no_bot_top ℝ≥0∞,
+  exact ⟨s, s_count, s_dense, λ h, hs.1 0 (by simp) h, λ h, hs.2 ∞ (by simp) h⟩,
+end
 
 end topological_space
 
@@ -593,6 +661,9 @@ end
 protected lemma le_tsum (a : α) : f a ≤ ∑'a, f a :=
 le_tsum' ennreal.summable a
 
+@[simp] protected lemma tsum_eq_zero : ∑' i, f i = 0 ↔ ∀ i, f i = 0 :=
+⟨λ h i, nonpos_iff_eq_zero.1 $ h ▸ ennreal.le_tsum i, λ h, by simp [h]⟩
+
 protected lemma tsum_eq_top_of_eq_top : (∃ a, f a = ∞) → ∑' a, f a = ∞
 | ⟨a, ha⟩ := top_unique $ ha ▸ ennreal.le_tsum a
 
@@ -678,6 +749,18 @@ lemma tendsto_at_top_zero_of_tsum_ne_top {f : ℕ → ℝ≥0∞} (hf : ∑' x, 
   tendsto f at_top (𝓝 0) :=
 by { rw ←nat.cofinite_eq_at_top, exact tendsto_cofinite_zero_of_tsum_ne_top hf }
 
+/-- The sum over the complement of a finset tends to `0` when the finset grows to cover the whole
+space. This does not need a summability assumption, as otherwise all sums are zero. -/
+lemma tendsto_tsum_compl_at_top_zero {α : Type*} {f : α → ℝ≥0∞} (hf : ∑' x, f x ≠ ∞) :
+  tendsto (λ (s : finset α), ∑' b : {x // x ∉ s}, f b) at_top (𝓝 0) :=
+begin
+  lift f to α → ℝ≥0 using ennreal.ne_top_of_tsum_ne_top hf,
+  convert ennreal.tendsto_coe.2 (nnreal.tendsto_tsum_compl_at_top_zero f),
+  ext1 s,
+  rw ennreal.coe_tsum,
+  exact nnreal.summable_comp_injective (tsum_coe_ne_top_iff_summable.1 hf) subtype.coe_injective
+end
+
 protected lemma tsum_apply {ι α : Type*} {f : ι → α → ℝ≥0∞} {x : α} :
   (∑' i, f i) x = ∑' i, f i x :=
 tsum_apply $ pi.summable.mpr $ λ _, ennreal.summable
@@ -688,8 +771,52 @@ begin
   have h₃: ∑' i, (f i - g i) = ∑' i, (f i - g i + g i) - ∑' i, g i,
   { rw [ennreal.tsum_add, add_sub_self h₁]},
   have h₄:(λ i, (f i - g i) + (g i)) = f,
-  { ext n, rw ennreal.sub_add_cancel_of_le (h₂ n)},
+  { ext n, rw tsub_add_cancel_of_le (h₂ n)},
   rw h₄ at h₃, apply h₃,
+end
+
+lemma tsum_mono_subtype (f : α → ℝ≥0∞) {s t : set α} (h : s ⊆ t) :
+  ∑' (x : s), f x ≤ ∑' (x : t), f x :=
+begin
+  simp only [tsum_subtype],
+  apply ennreal.tsum_le_tsum,
+  assume x,
+  split_ifs,
+  { exact le_rfl },
+  { exact (h_2 (h h_1)).elim },
+  { exact zero_le _ },
+  { exact le_rfl }
+end
+
+lemma tsum_union_le (f : α → ℝ≥0∞) (s t : set α) :
+  ∑' (x : s ∪ t), f x ≤ ∑' (x : s), f x + ∑' (x : t), f x :=
+calc ∑' (x : s ∪ t), f x = ∑' (x : s ∪ (t \ s)), f x :
+  by { apply tsum_congr_subtype, rw union_diff_self }
+... = ∑' (x : s), f x + ∑' (x : t \ s), f x :
+  tsum_union_disjoint disjoint_diff ennreal.summable ennreal.summable
+... ≤ ∑' (x : s), f x + ∑' (x : t), f x :
+  add_le_add le_rfl (tsum_mono_subtype _ (diff_subset _ _))
+
+lemma tsum_bUnion_le {ι : Type*} (f : α → ℝ≥0∞) (s : finset ι) (t : ι → set α) :
+  ∑' (x : ⋃ (i ∈ s), t i), f x ≤ ∑ i in s, ∑' (x : t i), f x :=
+begin
+  classical,
+  induction s using finset.induction_on with i s hi ihs h, { simp },
+  have : (⋃ (j ∈ insert i s), t j) = t i ∪ (⋃ (j ∈ s), t j), by simp,
+  rw tsum_congr_subtype f this,
+  calc ∑' (x : (t i ∪ (⋃ (j ∈ s), t j))), f x ≤
+  ∑' (x : t i), f x + ∑' (x : ⋃ (j ∈ s), t j), f x : tsum_union_le _ _ _
+  ... ≤ ∑' (x : t i), f x + ∑ i in s, ∑' (x : t i), f x : add_le_add le_rfl ihs
+  ... = ∑ j in insert i s, ∑' (x : t j), f x : (finset.sum_insert hi).symm
+end
+
+lemma tsum_Union_le {ι : Type*} [fintype ι] (f : α → ℝ≥0∞) (t : ι → set α) :
+  ∑' (x : ⋃ i, t i), f x ≤ ∑ i, ∑' (x : t i), f x :=
+begin
+  classical,
+  have : (⋃ i, t i) = (⋃ (i ∈ (finset.univ : finset ι)), t i), by simp,
+  rw tsum_congr_subtype f this,
+  exact tsum_bUnion_le _ _ _
 end
 
 end tsum
@@ -1020,7 +1147,7 @@ lemma emetric.cauchy_seq_iff_le_tendsto_0 [nonempty β] [semilattice_sup β] {s 
       simp only [and_imp, set.mem_image, set.mem_set_of_eq, exists_imp_distrib, prod.exists],
       intros d p q hp hq hd,
       rw ← hd,
-      exact le_of_lt (hN p q (le_trans hn hp) (le_trans hn hq))
+      exact le_of_lt (hN p (le_trans hn hp) q (le_trans hn hq))
     end,
     simpa using lt_of_le_of_lt this δlt },
   -- Conclude
@@ -1033,7 +1160,7 @@ begin
   refine emetric.cauchy_seq_iff.2 (λε εpos, _),
   have : ∀ᶠ n in at_top, b n < ε := (tendsto_order.1 b_lim ).2 _ εpos,
   rcases filter.mem_at_top_sets.1 this with ⟨N, hN⟩,
-  exact ⟨N, λm n hm hn, calc
+  exact ⟨N, λ m hm n hn, calc
     edist (s m) (s n) ≤ b N : b_bound m n N hm hn
     ... < ε : (hN _ (le_refl N)) ⟩
 end⟩
@@ -1041,57 +1168,27 @@ end⟩
 lemma continuous_of_le_add_edist {f : α → ℝ≥0∞} (C : ℝ≥0∞)
   (hC : C ≠ ⊤) (h : ∀x y, f x ≤ f y + C * edist x y) : continuous f :=
 begin
-  refine continuous_iff_continuous_at.2 (λx, tendsto_order.2 ⟨_, _⟩),
-  show ∀e, e < f x → ∀ᶠ y in 𝓝 x, e < f y,
-  { assume e he,
-    let ε := min (f x - e) 1,
-    have : ε ≠ ⊤ := ne_top_of_le_ne_top ennreal.coe_ne_top (min_le_right _ _),
-    have : 0 < ε := by simp [ε, hC, he, ennreal.zero_lt_one],
-    have : 0 < C⁻¹ * (ε/2) := bot_lt_iff_ne_bot.2 (by simp [hC, (ne_of_lt this).symm, mul_eq_zero]),
-    have I : C * (C⁻¹ * (ε/2)) < ε,
-    { by_cases C_zero : C = 0,
-      { simp [C_zero, ‹0 < ε›] },
-      { calc C * (C⁻¹ * (ε/2)) = (C * C⁻¹) * (ε/2) : by simp [mul_assoc]
-        ... = ε/2 : by simp [ennreal.mul_inv_cancel C_zero hC]
-        ... < ε : ennreal.half_lt_self (‹0 < ε›.ne') (‹ε ≠ ⊤›) }},
-    have : ball x (C⁻¹ * (ε/2)) ⊆ {y : α | e < f y},
-    { rintros y hy,
-      by_cases htop : f y = ⊤,
-      { simp [htop, lt_top_iff_ne_top, ne_top_of_lt he] },
-      { rw [emetric.mem_ball] at hy,
-        have : e + ε < f y + ε := calc
-          e + ε ≤ e + (f x - e) : add_le_add_left (min_le_left _ _) _
-          ... = f x : ennreal.add_sub_cancel_of_le he.le
-          ... ≤ f y + C * edist x y : h x y
-          ... = f y + C * edist y x : by simp [edist_comm]
-          ... ≤ f y + C * (C⁻¹ * (ε/2)) :
-            add_le_add_left (mul_le_mul_left' (le_of_lt hy) _) _
-          ... < f y + ε : ennreal.add_lt_add_left htop I,
-        show e < f y, from lt_of_add_lt_add_right this } },
-    apply filter.mem_of_superset (ball_mem_nhds _ (‹0 < C⁻¹ * (ε/2)›)) this },
-  show ∀e, f x < e → ∀ᶠ y in 𝓝 x, f y < e,
-  { assume e he,
-    let ε := min (e - f x) 1,
-    have : ε < ⊤ := lt_of_le_of_lt (min_le_right _ _) (by simp [lt_top_iff_ne_top]),
-    have : 0 < ε := by simp [ε, he, ennreal.zero_lt_one],
-    have : 0 < C⁻¹ * (ε/2) := bot_lt_iff_ne_bot.2 (by simp [hC, (ne_of_lt this).symm, mul_eq_zero]),
-    have I : C * (C⁻¹ * (ε/2)) < ε,
-    { by_cases C_zero : C = 0,
-      simp [C_zero, ‹0 < ε›],
-      calc C * (C⁻¹ * (ε/2)) = (C * C⁻¹) * (ε/2) : by simp [mul_assoc]
-        ... = ε/2 : by simp [ennreal.mul_inv_cancel C_zero hC]
-        ... < ε : ennreal.half_lt_self (‹0 < ε›.ne') (‹ε < ⊤›.ne) },
-    have : ball x (C⁻¹ * (ε/2)) ⊆ {y : α | f y < e},
-    { rintros y hy,
-      have htop : f x ≠ ⊤ := ne_top_of_lt he,
-      show f y < e, from calc
-        f y ≤ f x + C * edist y x : h y x
-        ... ≤ f x + C * (C⁻¹ * (ε/2)) :
-            add_le_add_left (mul_le_mul_left' (le_of_lt hy) _) _
-        ... < f x + ε : ennreal.add_lt_add_left htop I
-        ... ≤ f x + (e - f x) : add_le_add_left (min_le_left _ _) _
-        ... = e : by simp [le_of_lt he] },
-    apply filter.mem_of_superset (ball_mem_nhds _ (‹0 < C⁻¹ * (ε/2)›)) this },
+  rcases eq_or_ne C 0 with (rfl|C0),
+  { simp only [zero_mul, add_zero] at h,
+    exact continuous_of_const (λ x y, le_antisymm (h _ _) (h _ _)) },
+  { refine continuous_iff_continuous_at.2 (λ x, _),
+    by_cases hx : f x = ∞,
+    { have : f =ᶠ[𝓝 x] (λ _, ∞),
+      { filter_upwards [emetric.ball_mem_nhds x ennreal.coe_lt_top],
+        refine λ y (hy : edist y x < ⊤), _, rw edist_comm at hy,
+        simpa [hx, hC, hy.ne] using h x y },
+      exact this.continuous_at },
+    { refine (ennreal.tendsto_nhds hx).2 (λ ε (ε0 : 0 < ε), _),
+      filter_upwards [emetric.closed_ball_mem_nhds x (ennreal.div_pos_iff.2 ⟨ε0.ne', hC⟩)],
+      have hεC : C * (ε / C) = ε := ennreal.mul_div_cancel' C0 hC,
+      refine λ y (hy : edist y x ≤ ε / C), ⟨tsub_le_iff_right.2 _, _⟩,
+      { rw edist_comm at hy,
+        calc f x ≤ f y + C * edist x y : h x y
+        ... ≤ f y + C * (ε / C) : add_le_add_left (mul_le_mul_left' hy C) (f y)
+        ... = f y + ε : by rw hεC },
+      { calc f y ≤ f x + C * edist y x : h y x
+        ... ≤ f x + C * (ε / C) : add_le_add_left (mul_le_mul_left' hy C) (f x)
+        ... = f x + ε : by rw hεC } } }
 end
 
 theorem continuous_edist : continuous (λp:α×α, edist p.1 p.2) :=
@@ -1105,7 +1202,7 @@ begin
     ... = edist x' y' + 2 * edist (x, y) (x', y') : by rw [← mul_two, mul_comm]
 end
 
-theorem continuous.edist [topological_space β] {f g : β → α}
+@[continuity] theorem continuous.edist [topological_space β] {f g : β → α}
   (hf : continuous f) (hg : continuous g) : continuous (λb, edist (f b) (g b)) :=
 continuous_edist.comp (hf.prod_mk hg : _)
 
@@ -1137,6 +1234,20 @@ end
 @[simp] lemma metric.diam_closure {α : Type*} [pseudo_metric_space α] (s : set α) :
   metric.diam (closure s) = diam s :=
 by simp only [metric.diam, emetric.diam_closure]
+
+lemma is_closed_set_of_lipschitz_on_with {α β} [pseudo_emetric_space α] [pseudo_emetric_space β]
+  (K : ℝ≥0) (s : set α) :
+  is_closed {f : α → β | lipschitz_on_with K f s} :=
+begin
+  simp only [lipschitz_on_with, set_of_forall],
+  refine is_closed_bInter (λ x hx, is_closed_bInter $ λ y hy, is_closed_le _ _),
+  exacts [continuous.edist (continuous_apply x) (continuous_apply y), continuous_const]
+end
+
+lemma is_closed_set_of_lipschitz_with {α β} [pseudo_emetric_space α] [pseudo_emetric_space β]
+  (K : ℝ≥0) :
+  is_closed {f : α → β | lipschitz_with K f} :=
+by simp only [← lipschitz_on_univ, is_closed_set_of_lipschitz_on_with]
 
 namespace real
 

@@ -3,8 +3,9 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Nicolò Cavalleri
 -/
-import topology.algebra.module
-import topology.continuous_function.basic
+import topology.algebra.module.basic
+import topology.algebra.uniform_group
+import topology.uniform_space.compact_convergence
 import algebra.algebra.subalgebra
 import tactic.field_simp
 
@@ -31,7 +32,7 @@ namespace continuous_functions
 variables {α : Type*} {β : Type*} [topological_space α] [topological_space β]
 variables {f g : {f : α → β | continuous f }}
 
-instance : has_coe_to_fun {f : α → β | continuous f} :=  ⟨_, subtype.val⟩
+instance : has_coe_to_fun {f : α → β | continuous f} (λ _, α → β) :=  ⟨subtype.val⟩
 
 end continuous_functions
 
@@ -209,6 +210,26 @@ instance {α : Type*} {β : Type*} [topological_space α]
   [topological_space β] [comm_group β] [topological_group β] : comm_group C(α, β) :=
 { ..continuous_map.group,
   ..continuous_map.comm_monoid }
+
+@[to_additive] instance {α : Type*} {β : Type*} [topological_space α]
+  [topological_space β] [comm_group β] [topological_group β] : topological_group C(α, β) :=
+{ continuous_mul := by
+  { letI : uniform_space β := topological_group.to_uniform_space β,
+    have : uniform_group β := topological_group_is_uniform,
+    rw continuous_iff_continuous_at,
+    rintros ⟨f, g⟩,
+    rw [continuous_at, tendsto_iff_forall_compact_tendsto_uniformly_on, nhds_prod_eq],
+    exactI λ K hK, ((tendsto_iff_forall_compact_tendsto_uniformly_on.mp filter.tendsto_id K hK).prod
+      (tendsto_iff_forall_compact_tendsto_uniformly_on.mp filter.tendsto_id K hK)).comp'
+      uniform_continuous_mul },
+  continuous_inv := by
+  { letI : uniform_space β := topological_group.to_uniform_space β,
+    have : uniform_group β := topological_group_is_uniform,
+    rw continuous_iff_continuous_at,
+    intro f,
+    rw [continuous_at, tendsto_iff_forall_compact_tendsto_uniformly_on],
+    exactI λ K hK, (tendsto_iff_forall_compact_tendsto_uniformly_on.mp filter.tendsto_id K hK).comp'
+      uniform_continuous_inv } }
 
 end continuous_map
 
@@ -500,7 +521,7 @@ begin
     use ((v x) • 1 : C(α, 𝕜)),
     { apply s.smul_mem,
       apply s.one_mem, },
-    { simp, }, },
+    { simp [coe_fn_coe_base'] }, },
   obtain ⟨f, ⟨f, ⟨m, rfl⟩⟩, w⟩ := h n,
   replace w : f x - f y ≠ 0 := sub_ne_zero_of_ne w,
   let a := v x,
@@ -514,8 +535,8 @@ begin
     solve_by_elim
       [subalgebra.add_mem, subalgebra.smul_mem, subalgebra.sub_mem, subalgebra.algebra_map_mem]
       { max_depth := 6 }, },
-  { simp [f'], },
-  { simp [f', inv_mul_cancel_right₀ w], },
+  { simp [f', coe_fn_coe_base'], },
+  { simp [f', coe_fn_coe_base', inv_mul_cancel_right₀ w], },
 end
 
 end continuous_map

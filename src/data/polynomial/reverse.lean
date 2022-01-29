@@ -3,6 +3,7 @@ Copyright (c) 2020 Damiano Testa. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Damiano Testa
 -/
+import data.polynomial.degree.trailing_degree
 import data.polynomial.erase_lead
 import data.polynomial.eval
 
@@ -34,7 +35,7 @@ lemma rev_at_fun_invol {N i : ℕ} : rev_at_fun N (rev_at_fun N i) = i :=
 begin
   unfold rev_at_fun,
   split_ifs with h j,
-  { exact nat.sub_sub_self h, },
+  { exact tsub_tsub_cancel_of_le h, },
   { exfalso,
     apply j,
     exact nat.sub_le N i, },
@@ -71,8 +72,11 @@ begin
   rcases nat.le.dest ho with ⟨o', rfl⟩,
   repeat { rw rev_at_le (le_add_right rfl.le) },
   rw [add_assoc, add_left_comm n' o, ← add_assoc, rev_at_le (le_add_right rfl.le)],
-  repeat {rw nat.add_sub_cancel_left},
+  repeat {rw add_tsub_cancel_left},
 end
+
+@[simp] lemma rev_at_zero (N : ℕ) : rev_at N 0 = N :=
+by simp [rev_at]
 
 /-- `reflect N f` is the polynomial such that `(reflect N f).coeff i = f.coeff (rev_at N i)`.
 In other words, the terms with exponent `[0, ..., N]` now have exponent `[N, ..., 0]`.
@@ -129,6 +133,9 @@ begin
     rw [← (mem_support_C_mul_X_pow a), rev_at_invol], },
 end
 
+@[simp] lemma reflect_C (r : R) (N : ℕ) : reflect N (C r) = C r * X ^ N :=
+by conv_lhs { rw [← mul_one (C r), ← pow_zero X, reflect_C_mul_X_pow, rev_at_zero] }
+
 @[simp] lemma reflect_monomial (N n : ℕ) : reflect N ((X : polynomial R) ^ n) = X ^ (rev_at N n) :=
 by rw [← one_mul (X ^ n), ← one_mul (X ^ (rev_at N n)), ← C_1, reflect_C_mul_X_pow]
 
@@ -174,6 +181,36 @@ end
   reflect (F + G) (f * g) = reflect F f * reflect G g :=
 reflect_mul_induction _ _ F G f g f.support.card.le_succ g.support.card.le_succ Ff Gg
 
+section eval₂
+
+variables {S : Type*} [comm_semiring S]
+
+lemma eval₂_reflect_mul_pow (i : R →+* S) (x : S) [invertible x] (N : ℕ) (f : polynomial R)
+  (hf : f.nat_degree ≤ N) : eval₂ i (⅟x) (reflect N f) * x ^ N = eval₂ i x f :=
+begin
+  refine induction_with_nat_degree_le (λ f, eval₂ i (⅟x) (reflect N f) * x ^ N = eval₂ i x f)
+    _ _ _ _ f hf,
+  { simp },
+  { intros n r hr0 hnN,
+    simp only [rev_at_le hnN, reflect_C_mul_X_pow, eval₂_X_pow, eval₂_C, eval₂_mul],
+    conv in (x ^ N) { rw [← nat.sub_add_cancel hnN] },
+    rw [pow_add, ← mul_assoc, mul_assoc (i r), ← mul_pow, inv_of_mul_self, one_pow, mul_one] },
+  { intros,
+    simp [*, add_mul] }
+end
+
+lemma eval₂_reflect_eq_zero_iff (i : R →+* S) (x : S) [invertible x] (N : ℕ) (f : polynomial R)
+  (hf : f.nat_degree ≤ N) : eval₂ i (⅟x) (reflect N f) = 0 ↔ eval₂ i x f = 0 :=
+begin
+  conv_rhs { rw [← eval₂_reflect_mul_pow i x N f hf] },
+  split,
+  { intro h, rw [h, zero_mul] },
+  { intro h, rw [← mul_one (eval₂ i (⅟x) _), ← one_pow N, ← mul_inv_of_self x,
+      mul_pow, ← mul_assoc, h, zero_mul] }
+end
+
+end eval₂
+
 /-- The reverse of a polynomial f is the polynomial obtained by "reading f backwards".
 Even though this is not the actual definition, reverse f = f (1/X) * X ^ f.nat_degree. -/
 noncomputable def reverse (f : polynomial R) : polynomial R := reflect f.nat_degree f
@@ -183,7 +220,7 @@ lemma coeff_reverse (f : polynomial R) (n : ℕ) :
 by rw [reverse, coeff_reflect]
 
 @[simp] lemma coeff_zero_reverse (f : polynomial R) : coeff (reverse f) 0 = leading_coeff f :=
-by rw [coeff_reverse, rev_at_le (zero_le f.nat_degree), nat.sub_zero, leading_coeff]
+by rw [coeff_reverse, rev_at_le (zero_le f.nat_degree), tsub_zero, leading_coeff]
 
 @[simp] lemma reverse_zero : reverse (0 : polynomial R) = 0 := rfl
 
@@ -205,11 +242,11 @@ begin
   by_cases hf : f = 0,
   { rw [hf, reverse_zero, nat_degree_zero, nat_trailing_degree_zero] },
   apply le_antisymm,
-  { apply nat.le_add_of_sub_le_right,
+  { refine tsub_le_iff_right.mp _,
     apply le_nat_degree_of_ne_zero,
     rw [reverse, coeff_reflect, ←rev_at_le f.nat_trailing_degree_le_nat_degree, rev_at_invol],
     exact trailing_coeff_nonzero_iff_nonzero.mpr hf },
-  { rw ← nat.le_sub_left_iff_add_le f.reverse_nat_degree_le,
+  { rw ← le_tsub_iff_left f.reverse_nat_degree_le,
     apply nat_trailing_degree_le_of_ne_zero,
     have key := mt leading_coeff_eq_zero.mp (mt reverse_eq_zero.mp hf),
     rwa [leading_coeff, coeff_reverse, rev_at_le f.reverse_nat_degree_le] at key },
@@ -217,7 +254,7 @@ end
 
 lemma reverse_nat_degree (f : polynomial R) :
   f.reverse.nat_degree = f.nat_degree - f.nat_trailing_degree :=
-by rw [f.nat_degree_eq_reverse_nat_degree_add_nat_trailing_degree, nat.add_sub_cancel]
+by rw [f.nat_degree_eq_reverse_nat_degree_add_nat_trailing_degree, add_tsub_cancel_right]
 
 lemma reverse_leading_coeff (f : polynomial R) : f.reverse.leading_coeff = f.trailing_coeff :=
 by rw [leading_coeff, reverse_nat_degree, ←rev_at_le f.nat_trailing_degree_le_nat_degree,
@@ -243,7 +280,7 @@ begin
   rw [nat_degree_mul' fg, reflect_mul  f g rfl.le rfl.le],
 end
 
-@[simp] lemma reverse_mul_of_domain {R : Type*} [domain R] (f g : polynomial R) :
+@[simp] lemma reverse_mul_of_domain {R : Type*} [ring R] [is_domain R] (f g : polynomial R) :
   reverse (f * g) = reverse f * reverse g :=
 begin
   by_cases f0 : f=0,
@@ -253,7 +290,7 @@ begin
   simp [reverse_mul, *],
 end
 
-lemma trailing_coeff_mul {R : Type*} [integral_domain R] (p q : polynomial R) :
+lemma trailing_coeff_mul {R : Type*} [ring R] [is_domain R] (p q : polynomial R) :
   (p * q).trailing_coeff = p.trailing_coeff * q.trailing_coeff :=
 by rw [←reverse_leading_coeff, reverse_mul_of_domain, leading_coeff_mul,
   reverse_leading_coeff, reverse_leading_coeff]
@@ -267,6 +304,19 @@ begin
   { rw rev_at_le,
     exact nat.succ_le_iff.2 (pos_iff_ne_zero.2 hf) }
 end
+
+section eval₂
+variables {S : Type*} [comm_semiring S]
+
+lemma eval₂_reverse_mul_pow (i : R →+* S) (x : S) [invertible x] (f : polynomial R) :
+  eval₂ i (⅟x) (reverse f) * x ^ f.nat_degree = eval₂ i x f :=
+eval₂_reflect_mul_pow i _ _ f (le_refl _)
+
+@[simp] lemma eval₂_reverse_eq_zero_iff (i : R →+* S) (x : S) [invertible x] (f : polynomial R) :
+  eval₂ i (⅟x) (reverse f) = 0 ↔ eval₂ i x f = 0 :=
+eval₂_reflect_eq_zero_iff i x _ _ (le_refl _)
+
+end eval₂
 
 end semiring
 

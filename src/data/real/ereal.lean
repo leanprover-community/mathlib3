@@ -52,7 +52,7 @@ See https://isabelle.in.tum.de/dist/library/HOL/HOL-Library/Extended_Real.html
 open_locale ennreal nnreal
 
 /-- ereal : The type `[-∞, ∞]` -/
-@[derive [order_bot, order_top, comm_monoid_with_zero,
+@[derive [has_top, comm_monoid_with_zero,
   has_Sup, has_Inf, complete_linear_order, linear_ordered_add_comm_monoid_with_top]]
 def ereal := with_top (with_bot ℝ)
 
@@ -61,6 +61,9 @@ a coercion, use the coercion instead. -/
 def real.to_ereal : ℝ → ereal := some ∘ some
 
 namespace ereal
+
+-- TODO: Provide explicitly, otherwise it is inferred noncomputably from `complete_linear_order`
+instance : has_bot ereal := ⟨some ⊥⟩
 
 @[simp] lemma bot_lt_top : (⊥ : ereal) < ⊤ := with_top.coe_lt_top _
 @[simp] lemma bot_ne_top : (⊥ : ereal) ≠ ⊤ := bot_lt_top.ne
@@ -404,7 +407,7 @@ protected theorem neg_le_of_neg_le : ∀ {a b : ereal} (h : -a ≤ b), -b ≤ a
 | ⊤ l h := le_top
 | (a : ℝ) ⊥ h := by cases (le_bot_iff.1 h)
 | l ⊤ h := bot_le
-| (a : ℝ) (b : ℝ) h := by { norm_cast at h ⊢, exact _root_.neg_le_of_neg_le h }
+| (a : ℝ) (b : ℝ) h := by { norm_cast at h ⊢, exact neg_le.mp h }
 
 /-- `-a ≤ b ↔ -b ≤ a` on `ereal`. -/
 protected theorem neg_le {a b : ereal} : -a ≤ b ↔ -b ≤ a :=

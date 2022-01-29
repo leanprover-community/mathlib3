@@ -3,7 +3,7 @@ Copyright (c) 2019 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon
 -/
-import order.bounded_lattice
+import order.bounded_order
 
 namespace tactic.interactive
 open tactic list
@@ -79,6 +79,9 @@ do guard (same_operator l r) <|>
 
 @[reducible]
 def mono_key := (with_bot name × with_bot name)
+
+meta instance mono_key.has_lt : has_lt mono_key :=
+{ lt := prod.lex (<) (<) }
 
 open nat
 

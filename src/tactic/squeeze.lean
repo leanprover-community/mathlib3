@@ -6,7 +6,7 @@ Authors: Simon Hudon
 import control.traversable.basic
 import tactic.simpa
 
-open interactive interactive.types lean.parser
+setup_tactic_parser
 
 private meta def loc.to_string_aux : option name → string
 | none := "⊢"
@@ -50,7 +50,7 @@ do r ← e.get_structure_instance_info,
      r.field_names r.field_values,
    let ss := r.sources.map (λ s, format!" .. {s}"),
    let x : format := format.join $ list.intersperse ", " (fs ++ ss),
-   pure format!" {{{x}}"
+   pure format!" {{{x}}}"
 
 /-- Attribute containing a table that accumulates multiple `squeeze_simp` suggestions -/
 @[user_attribute]
@@ -117,17 +117,21 @@ meta def same_result (pr : proof_state) (tac : tactic unit) : tactic bool :=
 do s ← get_proof_state_after tac,
    pure $ some pr = s
 
+/--
+Consumes the first list of `simp` arguments, accumulating required arguments
+on the second one and unnecessary arguments on the third one.
+-/
 private meta def filter_simp_set_aux
   (tac : bool → list simp_arg_type → tactic unit)
   (args : list simp_arg_type) (pr : proof_state) :
   list simp_arg_type → list simp_arg_type →
   list simp_arg_type → tactic (list simp_arg_type × list simp_arg_type)
-| [] ys ds := pure (ys.reverse, ds.reverse)
+| [] ys ds := pure (ys, ds)
 | (x :: xs) ys ds :=
   do b ← same_result pr (tac tt (args ++ xs ++ ys)),
      if b
-       then filter_simp_set_aux xs ys (x:: ds)
-       else filter_simp_set_aux xs (x :: ys) ds
+       then filter_simp_set_aux xs ys (ds.concat x)
+       else filter_simp_set_aux xs (ys.concat x) ds
 
 declare_trace squeeze.deleted
 
@@ -159,7 +163,6 @@ argument list.
  * `no_dflt`: did the user use the `only` keyword?
  * `args`:    list of `simp` arguments
  * `tac`:     how to invoke the underlying `simp` tactic
-
 -/
 meta def squeeze_simp_core
   (slow no_dflt : bool) (args : list simp_arg_type)
@@ -176,10 +179,10 @@ do v ← target >>= mk_meta_var,
    { g ← main_goal,
      tac no_dflt args,
      instantiate_mvars g },
-   let vs := g.list_constant,
+   let vs := g.list_constant',
    vs ← vs.mfilter is_simp_lemma,
    vs ← vs.mmap strip_prefix,
-   vs ← vs.to_list.mmap name.to_simp_args,
+   vs ← vs.mmap name.to_simp_args,
    with_local_goals' [v] (filter_simp_set tac args vs)
      >>= mk_suggestion,
    tac no_dflt args
@@ -217,8 +220,7 @@ begin
     squeeze_simp [this]
     -- `squeeze_simp` is run only once
     -- prints:
-    -- > Try this: simp only [this]
-  },
+    -- > Try this: simp only [this] },
 end
 ```
 

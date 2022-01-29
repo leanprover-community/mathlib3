@@ -3,11 +3,13 @@ Copyright (c) 2020 Joseph Myers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joseph Myers
 -/
-import linear_algebra.affine_space.basic
-import linear_algebra.tensor_product
-import linear_algebra.prod
-import linear_algebra.pi
+import algebra.add_torsor
 import data.set.intervals.unordered_interval
+import linear_algebra.affine_space.basic
+import linear_algebra.bilinear_map
+import linear_algebra.pi
+import linear_algebra.prod
+import tactic.abel
 
 /-!
 # Affine maps
@@ -60,7 +62,7 @@ instance (k : Type*) {V1 : Type*} (P1 : Type*) {V2 : Type*} (P2 : Type*)
     [ring k]
     [add_comm_group V1] [module k V1] [affine_space V1 P1]
     [add_comm_group V2] [module k V2] [affine_space V2 P2]:
-    has_coe_to_fun (P1 →ᵃ[k] P2) := ⟨_, affine_map.to_fun⟩
+    has_coe_to_fun (P1 →ᵃ[k] P2) (λ _, P1 → P2) := ⟨affine_map.to_fun⟩
 
 namespace linear_map
 
@@ -148,6 +150,18 @@ def const (p : P2) : P1 →ᵃ[k] P2 :=
 
 variables {k P1}
 
+lemma linear_eq_zero_iff_exists_const (f : P1 →ᵃ[k] P2) :
+  f.linear = 0 ↔ ∃ q, f = const k P1 q :=
+begin
+  refine ⟨λ h, _, λ h, _⟩,
+  { use f (classical.arbitrary P1),
+    ext,
+    rw [coe_const, function.const_apply, ← @vsub_eq_zero_iff_eq V2, ← f.linear_map_vsub, h,
+      linear_map.zero_apply], },
+  { rcases h with ⟨q, rfl⟩,
+    exact const_linear k P1 q, },
+end
+
 instance nonempty : nonempty (P1 →ᵃ[k] P2) :=
 (add_torsor.nonempty : nonempty P2).elim $ λ p, ⟨const k P1 p⟩
 
@@ -168,6 +182,8 @@ def mk' (f : P1 → P2) (f' : V1 →ₗ[k] V2) (p : P1) (h : ∀ p' : P1, f p' =
 instance : add_comm_group (P1 →ᵃ[k] V2) :=
 { zero := ⟨0, 0, λ p v, (zero_vadd _ _).symm⟩,
   add := λ f g, ⟨f + g, f.linear + g.linear, λ p v, by simp [add_add_add_comm]⟩,
+  sub := λ f g, ⟨f - g, f.linear - g.linear, λ p v, by simp [sub_add_comm]⟩,
+  sub_eq_add_neg := λ f g, ext $ λ p, sub_eq_add_neg _ _,
   neg := λ f, ⟨-f, -f.linear, λ p v, by simp [add_comm]⟩,
   add_assoc := λ f₁ f₂ f₃, ext $ λ p, add_assoc _ _ _,
   zero_add := λ f, ext $ λ p, zero_add (f p),
@@ -179,9 +195,10 @@ instance : add_comm_group (P1 →ᵃ[k] V2) :=
 @[simp] lemma zero_linear : (0 : P1 →ᵃ[k] V2).linear = 0 := rfl
 @[simp, norm_cast] lemma coe_add (f g : P1 →ᵃ[k] V2) : ⇑(f + g) = f + g := rfl
 @[simp, norm_cast] lemma coe_neg (f : P1 →ᵃ[k] V2) : ⇑(-f) = -f := rfl
-@[simp, norm_cast] lemma coe_sub (f g : P1 →ᵃ[k] V2) : ⇑(f - g) = f - g := by simp [sub_eq_add_neg]
-@[simp]
-lemma add_linear (f g : P1 →ᵃ[k] V2) : (f + g).linear = f.linear + g.linear := rfl
+@[simp, norm_cast] lemma coe_sub (f g : P1 →ᵃ[k] V2) : ⇑(f - g) = f - g := rfl
+@[simp] lemma add_linear (f g : P1 →ᵃ[k] V2) : (f + g).linear = f.linear + g.linear := rfl
+@[simp] lemma sub_linear (f g : P1 →ᵃ[k] V2) : (f - g).linear = f.linear - g.linear := rfl
+@[simp] lemma neg_linear (f : P1 →ᵃ[k] V2) : (-f).linear = -f.linear := rfl
 
 /-- The space of affine maps from `P1` to `P2` is an affine space over the space of affine maps
 from `P1` to the vector space `V2` corresponding to `P2`. -/
@@ -288,18 +305,43 @@ instance : monoid (P1 →ᵃ[k] P1) :=
 @[simp] lemma coe_mul (f g : P1 →ᵃ[k] P1) : ⇑(f * g) = f ∘ g := rfl
 @[simp] lemma coe_one : ⇑(1 : P1 →ᵃ[k] P1) = _root_.id := rfl
 
+/-- `affine_map.linear` on endomorphisms is a `monoid_hom`. -/
+@[simps] def linear_hom : (P1 →ᵃ[k] P1) →* (V1 →ₗ[k] V1) :=
+{ to_fun := linear,
+  map_one' := rfl,
+  map_mul' := λ _ _, rfl }
+
 include V2
 
 @[simp] lemma injective_iff_linear_injective (f : P1 →ᵃ[k] P2) :
   function.injective f.linear ↔ function.injective f :=
 begin
-  split; intros hf x y hxy,
-  { rw [← @vsub_eq_zero_iff_eq V1, ← @submodule.mem_bot k V1, ← linear_map.ker_eq_bot.mpr hf,
-      linear_map.mem_ker, affine_map.linear_map_vsub, hxy, vsub_self], },
-  { obtain ⟨p⟩ := (by apply_instance : nonempty P1),
-    have hxy' : (f.linear x) +ᵥ f p = (f.linear y) +ᵥ f p, { rw hxy, },
-    rw [← f.map_vadd, ← f.map_vadd] at hxy',
-    exact (vadd_right_cancel_iff _).mp (hf hxy'), },
+  obtain ⟨p⟩ := (infer_instance : nonempty P1),
+  have h : ⇑f.linear = (equiv.vadd_const (f p)).symm ∘ f ∘ (equiv.vadd_const p),
+  { ext v, simp [f.map_vadd, vadd_vsub_assoc], },
+  rw [h, equiv.comp_injective, equiv.injective_comp],
+end
+
+@[simp] lemma surjective_iff_linear_surjective (f : P1 →ᵃ[k] P2) :
+  function.surjective f.linear ↔ function.surjective f :=
+begin
+  obtain ⟨p⟩ := (infer_instance : nonempty P1),
+  have h : ⇑f.linear = (equiv.vadd_const (f p)).symm ∘ f ∘ (equiv.vadd_const p),
+  { ext v, simp [f.map_vadd, vadd_vsub_assoc], },
+  rw [h, equiv.comp_surjective, equiv.surjective_comp],
+end
+
+lemma image_vsub_image {s t : set P1} (f : P1 →ᵃ[k] P2) :
+  (f '' s) -ᵥ (f '' t) = f.linear '' (s -ᵥ t) :=
+begin
+  ext v,
+  simp only [set.mem_vsub, set.mem_image, exists_exists_and_eq_and, exists_and_distrib_left,
+    ← f.linear_map_vsub],
+  split,
+  { rintros ⟨x, hx, y, hy, hv⟩,
+    exact ⟨x -ᵥ y, ⟨x, hx, y, hy, rfl⟩, hv⟩, },
+  { rintros ⟨-, ⟨x, hx, y, hy, rfl⟩, rfl⟩,
+    exact ⟨x, hx, y, hy, rfl⟩, },
 end
 
 omit V2
@@ -476,6 +518,19 @@ instance : module k (P1 →ᵃ[k] V2) :=
   zero_smul := λ f, ext $ λ p, zero_smul _ _ }
 
 @[simp] lemma coe_smul (c : k) (f : P1 →ᵃ[k] V2) : ⇑(c • f) = c • f := rfl
+
+@[simp] lemma smul_linear (t : k) (f : P1 →ᵃ[k] V2) : (t • f).linear = t • f.linear := rfl
+
+/-- The space of affine maps between two modules is linearly equivalent to the product of the
+domain with the space of linear maps, by taking the value of the affine map at `(0 : V1)` and the
+linear part. -/
+@[simps] def to_const_prod_linear_map : (V1 →ᵃ[k] V2) ≃ₗ[k] V2 × (V1 →ₗ[k] V2) :=
+{ to_fun    := λ f, ⟨f 0, f.linear⟩,
+  inv_fun   := λ p, p.2.to_affine_map + const k V1 p.1,
+  left_inv  := λ f, by { ext, rw f.decomp, simp, },
+  right_inv := by { rintros ⟨v, f⟩, ext; simp, },
+  map_add'  := by simp,
+  map_smul' := by simp, }
 
 /-- `homothety c r` is the homothety (also known as dilation) about `c` with scale factor `r`. -/
 def homothety (c : P1) (r : k) : P1 →ᵃ[k] P1 :=

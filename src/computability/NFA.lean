@@ -3,8 +3,8 @@ Copyright (c) 2020 Fox Thomson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fox Thomson
 -/
-
 import computability.DFA
+import data.set.functor
 
 /-!
 # Nondeterministic Finite Automata
@@ -68,12 +68,12 @@ begin
   ext x,
   rw [accepts, DFA.accepts, eval, DFA.eval],
   change list.foldl _ _ _ ∈ {S | _} ↔ _,
-  finish
+  split; { exact λ ⟨w, h2, h3⟩, ⟨w, h3, h2⟩ },
 end
 
 lemma pumping_lemma [fintype σ] {x : list α} (hx : x ∈ M.accepts)
-  (hlen : fintype.card (set σ) + 1 ≤ list.length x) :
-  ∃ a b c, x = a ++ b ++ c ∧ a.length + b.length ≤ fintype.card (set σ) + 1 ∧ b ≠ [] ∧
+  (hlen : fintype.card (set σ) ≤ list.length x) :
+  ∃ a b c, x = a ++ b ++ c ∧ a.length + b.length ≤ fintype.card (set σ) ∧ b ≠ [] ∧
   {a} * language.star {b} * {c} ≤ M.accepts :=
 begin
   rw ←to_DFA_correct at hx ⊢,
@@ -97,11 +97,8 @@ begin
   change list.foldl M.to_NFA.step_set {start} s = {list.foldl M.step start s},
   induction s with a s ih generalizing start,
   { tauto },
-  { rw [list.foldl, list.foldl],
-    have h : M.to_NFA.step_set {start} a = {M.step start a},
-    { rw NFA.step_set,
-      finish },
-    rw h,
+  { rw [list.foldl, list.foldl,
+        show M.to_NFA.step_set {start} a = {M.step start a}, by simpa [NFA.step_set]],
     tauto }
 end
 
@@ -113,12 +110,8 @@ begin
   rw to_NFA_eval_from_match,
   split,
   { rintro ⟨ S, hS₁, hS₂ ⟩,
-    rw set.mem_singleton_iff at hS₂,
-    rw hS₂ at hS₁,
-    assumption },
-  { intro h,
-    use M.eval x,
-    finish }
+    rwa set.mem_singleton_iff.mp hS₂ at hS₁ },
+  { exact λ h, ⟨M.eval x, h, rfl⟩ }
 end
 
 end DFA

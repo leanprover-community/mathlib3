@@ -17,7 +17,7 @@ This is recorded in this file as an inner product space instance on `pi_Lp 2`.
 
 ## Main definitions
 
-- `euclidean_space 𝕜 n`: defined to be `pi_Lp 2 _ (n → 𝕜)` for any `fintype n`, i.e., the space
+- `euclidean_space 𝕜 n`: defined to be `pi_Lp 2 (n → 𝕜)` for any `fintype n`, i.e., the space
   from functions to `n` to `𝕜` with the `L²` norm. We register several instances on it (notably
   that it is a finite-dimensional inner product space).
 
@@ -32,7 +32,11 @@ This is recorded in this file as an inner product space instance on `pi_Lp 2`.
 -/
 
 open real set filter is_R_or_C
-open_locale big_operators uniformity topological_space nnreal ennreal
+open_locale big_operators uniformity topological_space nnreal ennreal complex_conjugate direct_sum
+
+local attribute [instance] fact_one_le_two_real
+
+local attribute [instance] fact_one_le_two_real
 
 noncomputable theory
 
@@ -43,10 +47,10 @@ local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
 /-
  If `ι` is a finite type and each space `f i`, `i : ι`, is an inner product space,
 then `Π i, f i` is an inner product space as well. Since `Π i, f i` is endowed with the sup norm,
-we use instead `pi_Lp 2 one_le_two f` for the product space, which is endowed with the `L^2` norm.
+we use instead `pi_Lp 2 f` for the product space, which is endowed with the `L^2` norm.
 -/
 instance pi_Lp.inner_product_space {ι : Type*} [fintype ι] (f : ι → Type*)
-  [Π i, inner_product_space 𝕜 (f i)] : inner_product_space 𝕜 (pi_Lp 2 one_le_two f) :=
+  [Π i, inner_product_space 𝕜 (f i)] : inner_product_space 𝕜 (pi_Lp 2 f) :=
 { inner := λ x y, ∑ i, inner (x i) (y i),
   norm_sq_eq_inner :=
   begin
@@ -67,7 +71,7 @@ instance pi_Lp.inner_product_space {ι : Type*} [fintype ι] (f : ι → Type*)
   begin
     intros x y,
     unfold inner,
-    rw conj.map_sum,
+    rw ring_hom.map_sum,
     apply finset.sum_congr rfl,
     rintros z -,
     apply inner_conj_sym,
@@ -80,12 +84,12 @@ instance pi_Lp.inner_product_space {ι : Type*} [fintype ι] (f : ι → Type*)
     by simp only [finset.mul_sum, inner_smul_left] }
 
 @[simp] lemma pi_Lp.inner_apply {ι : Type*} [fintype ι] {f : ι → Type*}
-  [Π i, inner_product_space 𝕜 (f i)] (x y : pi_Lp 2 one_le_two f) :
+  [Π i, inner_product_space 𝕜 (f i)] (x y : pi_Lp 2 f) :
   ⟪x, y⟫ = ∑ i, ⟪x i, y i⟫ :=
 rfl
 
 lemma pi_Lp.norm_eq_of_L2 {ι : Type*} [fintype ι] {f : ι → Type*}
-  [Π i, inner_product_space 𝕜 (f i)] (x : pi_Lp 2 one_le_two f) :
+  [Π i, inner_product_space 𝕜 (f i)] (x : pi_Lp 2 f) :
   ∥x∥ = sqrt (∑ (i : ι), ∥x i∥ ^ 2) :=
 by { rw [pi_Lp.norm_eq_of_nat 2]; simp [sqrt_eq_rpow] }
 
@@ -94,7 +98,7 @@ by { rw [pi_Lp.norm_eq_of_nat 2]; simp [sqrt_eq_rpow] }
 space use `euclidean_space 𝕜 (fin n)`. -/
 @[reducible, nolint unused_arguments]
 def euclidean_space (𝕜 : Type*) [is_R_or_C 𝕜]
-  (n : Type*) [fintype n] : Type* := pi_Lp 2 one_le_two (λ (i : n), 𝕜)
+  (n : Type*) [fintype n] : Type* := pi_Lp 2 (λ (i : n), 𝕜)
 
 lemma euclidean_space.norm_eq {𝕜 : Type*} [is_R_or_C 𝕜] {n : Type*} [fintype n]
   (x : euclidean_space 𝕜 n) : ∥x∥ = real.sqrt (∑ (i : n), ∥x i∥ ^ 2) :=
@@ -114,11 +118,46 @@ instance : inner_product_space 𝕜 (euclidean_space 𝕜 ι) := by apply_instan
 lemma finrank_euclidean_space_fin {n : ℕ} :
   finite_dimensional.finrank 𝕜 (euclidean_space 𝕜 (fin n)) = n := by simp
 
+/-- A finite, mutually orthogonal family of subspaces of `E`, which span `E`, induce an isometry
+from `E` to `pi_Lp 2` of the subspaces equipped with the `L2` inner product. -/
+def direct_sum.submodule_is_internal.isometry_L2_of_orthogonal_family
+  [decidable_eq ι] {V : ι → submodule 𝕜 E} (hV : direct_sum.submodule_is_internal V)
+  (hV' : @orthogonal_family 𝕜 _ _ _ _ (λ i, V i) _ (λ i, (V i).subtypeₗᵢ)) :
+  E ≃ₗᵢ[𝕜] pi_Lp 2 (λ i, V i) :=
+begin
+  let e₁ := direct_sum.linear_equiv_fun_on_fintype 𝕜 ι (λ i, V i),
+  let e₂ := linear_equiv.of_bijective _ hV.injective hV.surjective,
+  refine (e₂.symm.trans e₁).isometry_of_inner _,
+  suffices : ∀ v w, ⟪v, w⟫ = ⟪e₂ (e₁.symm v), e₂ (e₁.symm w)⟫,
+  { intros v₀ w₀,
+    convert this (e₁ (e₂.symm v₀)) (e₁ (e₂.symm w₀));
+    simp only [linear_equiv.symm_apply_apply, linear_equiv.apply_symm_apply] },
+  intros v w,
+  transitivity ⟪(∑ i, (V i).subtypeₗᵢ (v i)), ∑ i, (V i).subtypeₗᵢ (w i)⟫,
+  { simp only [sum_inner, hV'.inner_right_fintype, pi_Lp.inner_apply] },
+  { congr; simp }
+end
+
+@[simp] lemma direct_sum.submodule_is_internal.isometry_L2_of_orthogonal_family_symm_apply
+  [decidable_eq ι] {V : ι → submodule 𝕜 E} (hV : direct_sum.submodule_is_internal V)
+  (hV' : @orthogonal_family 𝕜 _ _ _ _ (λ i, V i) _ (λ i, (V i).subtypeₗᵢ))
+  (w : pi_Lp 2 (λ i, V i)) :
+  (hV.isometry_L2_of_orthogonal_family hV').symm w = ∑ i, (w i : E) :=
+begin
+  classical,
+  let e₁ := direct_sum.linear_equiv_fun_on_fintype 𝕜 ι (λ i, V i),
+  let e₂ := linear_equiv.of_bijective _ hV.injective hV.surjective,
+  suffices : ∀ v : ⨁ i, V i, e₂ v = ∑ i, e₁ v i,
+  { exact this (e₁.symm w) },
+  intros v,
+  simp [e₂, direct_sum.submodule_coe, direct_sum.to_module, dfinsupp.sum_add_hom_apply]
+end
+
 /-- An orthonormal basis on a fintype `ι` for an inner product space induces an isometry with
 `euclidean_space 𝕜 ι`. -/
 def basis.isometry_euclidean_of_orthonormal
   (v : basis ι 𝕜 E) (hv : orthonormal 𝕜 v) :
-  E ≃ₗᵢ[𝕜] (euclidean_space 𝕜 ι) :=
+  E ≃ₗᵢ[𝕜] euclidean_space 𝕜 ι :=
 v.equiv_fun.isometry_of_inner
 begin
   intros x y,
@@ -130,6 +169,16 @@ begin
   { rw [← v.equiv_fun.symm_apply_apply x, v.equiv_fun_symm_apply] },
   { rw [← v.equiv_fun.symm_apply_apply y, v.equiv_fun_symm_apply] }
 end
+
+@[simp] lemma basis.coe_isometry_euclidean_of_orthonormal
+  (v : basis ι 𝕜 E) (hv : orthonormal 𝕜 v) :
+  (v.isometry_euclidean_of_orthonormal hv : E → euclidean_space 𝕜 ι) = v.equiv_fun :=
+rfl
+
+@[simp] lemma basis.coe_isometry_euclidean_of_orthonormal_symm
+  (v : basis ι 𝕜 E) (hv : orthonormal 𝕜 v) :
+  ((v.isometry_euclidean_of_orthonormal hv).symm : euclidean_space 𝕜 ι → E) = v.equiv_fun.symm :=
+rfl
 
 end
 

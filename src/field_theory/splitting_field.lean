@@ -3,14 +3,13 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import ring_theory.adjoin_root
-import ring_theory.algebra_tower
-import ring_theory.algebraic
-import ring_theory.polynomial
 import field_theory.minpoly
+import ring_theory.adjoin_root
 import linear_algebra.finite_dimensional
-import tactic.field_simp
 import algebra.polynomial.big_operators
+import ring_theory.algebraic
+import ring_theory.algebra_tower
+import tactic.field_simp
 
 /-!
 # Splitting fields
@@ -39,7 +38,7 @@ if it is the smallest field extension of `K` such that `f` splits.
   `L`, then `algebra.adjoin F S` embeds into `L`.
 * `polynomial.is_splitting_field.lift`: An embedding of a splitting field of the polynomial `f` into
   another field such that `f` splits.
-* `polynomial.is_splitting_field.alg_equiv`: Every splitting field of a polynomial `f` is isomorpic
+* `polynomial.is_splitting_field.alg_equiv`: Every splitting field of a polynomial `f` is isomorphic
   to `splitting_field f` and thus, being a splitting field is unique up to isomorphism.
 
 -/
@@ -177,9 +176,11 @@ begin
 end
 
 lemma degree_eq_one_of_irreducible_of_splits {p : polynomial L}
-  (h_nz : p ≠ 0) (hp : irreducible p) (hp_splits : splits (ring_hom.id L) p) :
+  (hp : irreducible p) (hp_splits : splits (ring_hom.id L) p) :
   p.degree = 1 :=
 begin
+  by_cases h_nz : p = 0,
+  { exfalso, simp [*] at *, },
   rcases hp_splits,
   { contradiction },
   { apply hp_splits hp, simp }
@@ -335,7 +336,7 @@ else
           exact irreducible_of_degree_eq_one (degree_X_sub_C _),
         end)
       (associated.symm $ calc _ ~ᵤ f.map i :
-        ⟨(units.map C.to_monoid_hom : units L →* units (polynomial L))
+        ⟨(units.map C.to_monoid_hom : Lˣ →* (polynomial L)ˣ)
           (units.mk0 (f.map i).leading_coeff
             (mt leading_coeff_eq_zero.1 (map_ne_zero hf0))),
           by conv_rhs { rw [hs, ← leading_coeff_map i, mul_comm] }; refl⟩
@@ -374,12 +375,12 @@ end
 
 /-- A monic polynomial `p` that has as many roots as its degree
 can be written `p = ∏(X - a)`, for `a` in `p.roots`. -/
-lemma prod_multiset_X_sub_C_of_monic_of_roots_card_eq {p : polynomial K}
+private lemma prod_multiset_X_sub_C_of_monic_of_roots_card_eq_of_field {p : polynomial K}
   (hmonic : p.monic) (hroots : p.roots.card = p.nat_degree) :
   (multiset.map (λ (a : K), X - C a) p.roots).prod = p :=
 begin
   have hprodmonic : (multiset.map (λ (a : K), X - C a) p.roots).prod.monic,
-  { simp only [prod_multiset_root_eq_finset_root (ne_zero_of_monic hmonic),
+  { simp only [prod_multiset_root_eq_finset_root,
       monic_prod_of_monic, monic_X_sub_C, monic_pow, forall_true_iff] },
   have hdegree : (multiset.map (λ (a : K), X - C a) p.roots).prod.nat_degree = p.nat_degree,
   { rw [← hroots, nat_degree_multiset_prod _ (zero_nmem_multiset_map_X_sub_C _ (λ a : K, a))],
@@ -394,18 +395,40 @@ begin
     simp only [nat_degree_mul (ne_zero_of_monic hprodmonic) qzero] },
   have degq : q.nat_degree = 0,
   { rw hdegree at degp,
-    exact (add_right_inj p.nat_degree).mp (tactic.ring_exp.add_pf_sum_z degp rfl).symm },
+    rw [← add_right_inj p.nat_degree, ← degp, add_zero], },
   obtain ⟨u, hu⟩ := is_unit_iff_degree_eq_zero.2 ((degree_eq_iff_nat_degree_eq qzero).2 degq),
   have hassoc : associated (multiset.map (λ (a : K), X - C a) p.roots).prod p,
   { rw associated, use u, rw [hu, ← hq] },
   exact eq_of_monic_of_associated hprodmonic hmonic hassoc
 end
 
+lemma prod_multiset_X_sub_C_of_monic_of_roots_card_eq {K : Type*} [comm_ring K] [is_domain K]
+  {p : polynomial K} (hmonic : p.monic) (hroots : p.roots.card = p.nat_degree) :
+  (multiset.map (λ (a : K), X - C a) p.roots).prod = p :=
+begin
+  apply map_injective _ (is_fraction_ring.injective K (fraction_ring K)),
+  rw map_multiset_prod,
+  simp only [map_C, function.comp_app, map_X, multiset.map_map, map_sub],
+  have : p.roots.map (algebra_map K (fraction_ring K)) =
+    (map (algebra_map K (fraction_ring K)) p).roots :=
+    roots_map_of_injective_card_eq_total_degree
+      (is_fraction_ring.injective K (fraction_ring K)) hroots,
+  rw ← prod_multiset_X_sub_C_of_monic_of_roots_card_eq_of_field
+    (monic_map (algebra_map K (fraction_ring K)) hmonic),
+  { simp only [map_C, function.comp_app, map_X, map_sub],
+    congr' 1,
+    rw ← this,
+    simp, },
+  { rw [nat_degree_map' (is_fraction_ring.injective K (fraction_ring K)), ← this],
+    simp only [←hroots, multiset.card_map], },
+end
+
 /-- A polynomial `p` that has as many roots as its degree
-can be written `p = p.leading_coeff * ∏(X - a)`, for `a` in `p.roots`. -/
-lemma C_leading_coeff_mul_prod_multiset_X_sub_C {p : polynomial K}
+can be written `p = p.leading_coeff * ∏(X - a)`, for `a` in `p.roots`.
+Used to prove the more general `C_leading_coeff_mul_prod_multiset_X_sub_C` below. -/
+private lemma C_leading_coeff_mul_prod_multiset_X_sub_C_of_field {p : polynomial K}
   (hroots : p.roots.card = p.nat_degree) :
-  (C p.leading_coeff) * (multiset.map (λ (a : K), X - C a) p.roots).prod = p :=
+  C p.leading_coeff * (multiset.map (λ (a : K), X - C a) p.roots).prod = p :=
 begin
   by_cases hzero : p = 0,
   { rw [hzero, leading_coeff_zero, ring_hom.map_zero, zero_mul], },
@@ -424,6 +447,39 @@ begin
     ... = p : by simp only [mul_one, ring_hom.map_one], },
 end
 
+/-- A polynomial `p` that has as many roots as its degree
+can be written `p = p.leading_coeff * ∏(X - a)`, for `a` in `p.roots`. -/
+lemma C_leading_coeff_mul_prod_multiset_X_sub_C {K : Type*} [comm_ring K] [is_domain K]
+  {p : polynomial K} (hroots : p.roots.card = p.nat_degree) :
+  C p.leading_coeff * (multiset.map (λ (a : K), X - C a) p.roots).prod = p :=
+begin
+  by_cases hzero : p = 0,
+  { rw [hzero, leading_coeff_zero, ring_hom.map_zero, zero_mul], },
+  have hcoeff : p.leading_coeff ≠ 0,
+  { intro h, exact hzero (leading_coeff_eq_zero.1 h) },
+  apply map_injective _ (is_fraction_ring.injective K (fraction_ring K)),
+  rw [map_mul, map_multiset_prod],
+  simp only [map_C, function.comp_app, map_X, multiset.map_map, map_sub],
+  have h : p.roots.map (algebra_map K (fraction_ring K)) =
+    (map (algebra_map K (fraction_ring K)) p).roots :=
+    roots_map_of_injective_card_eq_total_degree
+      (is_fraction_ring.injective K (fraction_ring K)) hroots,
+  have : multiset.card (map (algebra_map K (fraction_ring K)) p).roots =
+    (map (algebra_map K (fraction_ring K)) p).nat_degree,
+  { rw [nat_degree_map' (is_fraction_ring.injective K (fraction_ring K)), ← h],
+    simp only [←hroots, multiset.card_map], },
+  rw [← C_leading_coeff_mul_prod_multiset_X_sub_C_of_field this],
+  simp only [map_C, function.comp_app, map_X, map_sub],
+  congr' 2,
+  { rw leading_coeff_map_of_leading_coeff_ne_zero,
+    intro hn,
+    apply hcoeff,
+    apply is_fraction_ring.injective K (fraction_ring K),
+    simp [hn], },
+  rw ← h,
+  simp,
+end
+
 /-- A polynomial splits if and only if it has as many roots as its degree. -/
 lemma splits_iff_card_roots {p : polynomial K} :
   splits (ring_hom.id K) p ↔ p.roots.card = p.nat_degree :=
@@ -435,6 +491,41 @@ begin
     use p.roots,
     simp only [ring_hom.id_apply, map_id],
     exact (C_leading_coeff_mul_prod_multiset_X_sub_C hroots).symm },
+end
+
+lemma aeval_root_derivative_of_splits [algebra K L] {P : polynomial K} (hmo : P.monic)
+  (hP : P.splits (algebra_map K L)) {r : L} (hr : r ∈ (P.map (algebra_map K L)).roots) :
+  aeval r P.derivative =
+  (multiset.map (λ a, r - a) ((P.map (algebra_map K L)).roots.erase r)).prod :=
+begin
+  replace hmo := monic_map (algebra_map K L) hmo,
+  replace hP := (splits_id_iff_splits (algebra_map K L)).2 hP,
+  rw [aeval_def, ← eval_map, ← derivative_map],
+  nth_rewrite 0 [eq_prod_roots_of_monic_of_splits_id hmo hP],
+  rw [eval_multiset_prod_X_sub_C_derivative hr]
+end
+
+/-- If `P` is a monic polynomial that splits, then `coeff P 0` equals the product of the roots. -/
+lemma prod_roots_eq_coeff_zero_of_monic_of_split {P : polynomial K} (hmo : P.monic)
+  (hP : P.splits (ring_hom.id K)) : coeff P 0 = (-1) ^ P.nat_degree * P.roots.prod :=
+begin
+  nth_rewrite 0 [eq_prod_roots_of_monic_of_splits_id hmo hP],
+  rw [coeff_zero_eq_eval_zero, eval_multiset_prod, multiset.map_map],
+  simp_rw [function.comp_app, eval_sub, eval_X, zero_sub, eval_C],
+  conv_lhs { congr, congr, funext,
+    rw [neg_eq_neg_one_mul] },
+  rw [multiset.prod_map_mul, multiset.map_const, multiset.prod_repeat, multiset.map_id',
+    splits_iff_card_roots.1 hP]
+end
+
+/-- If `P` is a monic polynomial that splits, then `P.next_coeff` equals the sum of the roots. -/
+lemma sum_roots_eq_next_coeff_of_monic_of_split {P : polynomial K} (hmo : P.monic)
+  (hP : P.splits (ring_hom.id K)) : P.next_coeff = - P.roots.sum :=
+begin
+  nth_rewrite 0 [eq_prod_roots_of_monic_of_splits_id hmo hP],
+  rw [monic.next_coeff_multiset_prod _ _ (λ a ha, _)],
+  { simp_rw [next_coeff_X_sub_C, multiset.sum_map_neg] },
+  { exact monic_X_sub_C a }
 end
 
 end splits
@@ -483,7 +574,7 @@ begin
     exact ⟨(algebra.of_id F L).comp (algebra.bot_equiv F K)⟩ },
   rw forall_mem_insert at H, rcases H with ⟨⟨H1, H2⟩, H3⟩, cases ih H3 with f,
   choose H3 H4 using H3,
-  rw [coe_insert, set.insert_eq, set.union_comm, algebra.adjoin_union_eq_under],
+  rw [coe_insert, set.insert_eq, set.union_comm, algebra.adjoin_union_eq_adjoin_adjoin],
   letI := (f : algebra.adjoin F (↑s : set K) →+* L).to_algebra,
   haveI : finite_dimensional F (algebra.adjoin F (↑s : set K)) := (
     (submodule.fg_iff_finite_dimensional _).1
@@ -500,7 +591,7 @@ begin
     { rw ← is_scalar_tower.algebra_map_eq, exact H2 },
     { rw [← is_scalar_tower.aeval_apply, minpoly.aeval] } },
   obtain ⟨y, hy⟩ := polynomial.exists_root_of_splits _ H6 (ne_of_lt (minpoly.degree_pos H5)).symm,
-  refine ⟨subalgebra.of_under _ _ _⟩,
+  refine ⟨subalgebra.of_restrict_scalars _ _ _⟩,
   refine (adjoin_root.lift_hom (minpoly (algebra.adjoin F (↑s : set K)) a) y hy).comp _,
   exact alg_equiv.adjoin_singleton_equiv_adjoin_root_minpoly (algebra.adjoin F (↑s : set K)) a
 end
@@ -576,39 +667,74 @@ nat.rec_on n (λ K _ _ _, ‹field K›) $ λ n ih K _ f hf, ih _
 instance inhabited {n : ℕ} {f : polynomial K} (hfn : f.nat_degree = n) :
   inhabited (splitting_field_aux n f hfn) := ⟨37⟩
 
-instance algebra (n : ℕ) : Π {K : Type u} [field K], by exactI
-  Π {f : polynomial K} (hfn : f.nat_degree = n), algebra K (splitting_field_aux n f hfn) :=
-nat.rec_on n (λ K _ _ _, by exactI algebra.id K) $ λ n ih K _ f hfn,
-by exactI @@restrict_scalars.algebra _ _ _ _ _ (ih _) _ _
+/-
+Note that the recursive nature of this definition and `splitting_field_aux.field` creates
+non-definitionally-equal diamonds in the `ℕ`- and `ℤ`- actions.
+```lean
+example (n : ℕ) {K : Type u} [field K] {f : polynomial K} (hfn : f.nat_degree = n) :
+    (add_comm_monoid.nat_module : module ℕ (splitting_field_aux n f hfn)) =
+  @algebra.to_module _ _ _ _ (splitting_field_aux.algebra n _ hfn) :=
+rfl  -- fails
+```
+It's not immediately clear whether this _can_ be fixed; the failure is much the same as the reason
+that the following fails:
+```lean
+def cases_twice {α} (a₀ aₙ : α) : ℕ → α × α
+| 0 := (a₀, a₀)
+| (n + 1) := (aₙ, aₙ)
 
-instance algebra' {n : ℕ} {f : polynomial K} (hfn : f.nat_degree = n + 1) :
-  algebra (adjoin_root f.factor) (splitting_field_aux _ _ hfn) :=
-splitting_field_aux.algebra n _
+example (x : ℕ) {α} (a₀ aₙ : α) : (cases_twice a₀ aₙ x).1 = (cases_twice a₀ aₙ x).2 := rfl  -- fails
+```
+We don't really care at this point because this is an implementation detail (which is why this is
+not a docstring), but we do in `splitting_field.algebra'` below. -/
+instance algebra (n : ℕ) : Π (R : Type*) {K : Type u} [comm_semiring R] [field K],
+  by exactI Π [algebra R K] {f : polynomial K} (hfn : f.nat_degree = n),
+    algebra R (splitting_field_aux n f hfn) :=
+nat.rec_on n (λ R K _ _ _ _ _, by exactI ‹algebra R K›) $
+         λ n ih R K _ _ _ f hfn, by exactI ih R (nat_degree_remove_factor' hfn)
 
-instance algebra'' {n : ℕ} {f : polynomial K} (hfn : f.nat_degree = n + 1) :
-  algebra K (splitting_field_aux n f.remove_factor (nat_degree_remove_factor' hfn)) :=
-splitting_field_aux.algebra (n+1) hfn
+instance is_scalar_tower (n : ℕ) : Π (R₁ R₂ : Type*) {K : Type u}
+  [comm_semiring R₁] [comm_semiring R₂] [has_scalar R₁ R₂] [field K],
+  by exactI Π [algebra R₁ K] [algebra R₂ K],
+  by exactI Π [is_scalar_tower R₁ R₂ K] {f : polynomial K} (hfn : f.nat_degree = n),
+    is_scalar_tower R₁ R₂ (splitting_field_aux n f hfn) :=
+nat.rec_on n (λ R₁ R₂ K _ _ _ _ _ _ _ _ _, by exactI ‹is_scalar_tower R₁ R₂ K›) $
+         λ n ih R₁ R₂ K _ _ _ _ _ _ _ f hfn, by exactI ih R₁ R₂ (nat_degree_remove_factor' hfn)
 
 instance algebra''' {n : ℕ} {f : polynomial K} (hfn : f.nat_degree = n + 1) :
   algebra (adjoin_root f.factor)
     (splitting_field_aux n f.remove_factor (nat_degree_remove_factor' hfn)) :=
-splitting_field_aux.algebra n _
+splitting_field_aux.algebra n _ _
 
-instance scalar_tower {n : ℕ} {f : polynomial K} (hfn : f.nat_degree = n + 1) :
-  is_scalar_tower K (adjoin_root f.factor) (splitting_field_aux _ _ hfn) :=
-is_scalar_tower.of_algebra_map_eq $ λ x, rfl
+instance algebra' {n : ℕ} {f : polynomial K} (hfn : f.nat_degree = n + 1) :
+  algebra (adjoin_root f.factor) (splitting_field_aux n.succ f hfn) :=
+splitting_field_aux.algebra''' _
+
+instance algebra'' {n : ℕ} {f : polynomial K} (hfn : f.nat_degree = n + 1) :
+  algebra K (splitting_field_aux n f.remove_factor (nat_degree_remove_factor' hfn)) :=
+splitting_field_aux.algebra n K _
 
 instance scalar_tower' {n : ℕ} {f : polynomial K} (hfn : f.nat_degree = n + 1) :
   is_scalar_tower K (adjoin_root f.factor)
     (splitting_field_aux n f.remove_factor (nat_degree_remove_factor' hfn)) :=
-is_scalar_tower.of_algebra_map_eq $ λ x, rfl
+begin
+  -- finding this instance ourselves makes things faster
+  haveI : is_scalar_tower K (adjoin_root f.factor) (adjoin_root f.factor) :=
+    is_scalar_tower.right,
+  exact
+    splitting_field_aux.is_scalar_tower n K (adjoin_root f.factor) (nat_degree_remove_factor' hfn),
+end
+
+instance scalar_tower {n : ℕ} {f : polynomial K} (hfn : f.nat_degree = n + 1) :
+  is_scalar_tower K (adjoin_root f.factor) (splitting_field_aux _ f hfn) :=
+splitting_field_aux.scalar_tower' _
 
 theorem algebra_map_succ (n : ℕ) (f : polynomial K) (hfn : f.nat_degree = n + 1) :
   by exact algebra_map K (splitting_field_aux _ _ hfn) =
     (algebra_map (adjoin_root f.factor)
         (splitting_field_aux n f.remove_factor (nat_degree_remove_factor' hfn))).comp
       (adjoin_root.of f.factor) :=
-rfl
+is_scalar_tower.algebra_map_eq _ _ _
 
 protected theorem splits (n : ℕ) : ∀ {K : Type u} [field K], by exactI
   ∀ (f : polynomial K) (hfn : f.nat_degree = n),
@@ -649,11 +775,11 @@ have hmf0 : map (algebra_map K (splitting_field_aux n.succ f hfn)) f ≠ 0 := ma
 by { rw [algebra_map_succ, ← map_map, ← X_sub_C_mul_remove_factor _ hndf, map_mul] at hmf0 ⊢,
 rw [roots_mul hmf0, map_sub, map_X, map_C, roots_X_sub_C, multiset.to_finset_add, finset.coe_union,
     multiset.to_finset_singleton, finset.coe_singleton,
-    algebra.adjoin_union_eq_under, ← set.image_singleton,
+    algebra.adjoin_union_eq_adjoin_adjoin, ← set.image_singleton,
     algebra.adjoin_algebra_map K (adjoin_root f.factor)
       (splitting_field_aux n f.remove_factor (nat_degree_remove_factor' hfn)),
     adjoin_root.adjoin_root_eq_top, algebra.map_top,
-    is_scalar_tower.range_under_adjoin K (adjoin_root f.factor)
+    is_scalar_tower.adjoin_range_to_alg_hom K (adjoin_root f.factor)
       (splitting_field_aux n f.remove_factor (nat_degree_remove_factor' hfn)),
     ih, subalgebra.restrict_scalars_top] }
 
@@ -672,8 +798,33 @@ splitting_field_aux.field _ _
 
 instance inhabited : inhabited (splitting_field f) := ⟨37⟩
 
+/-- This should be an instance globally, but it creates diamonds with the `ℕ` and `ℤ` actions:
+
+```lean
+example :
+  (add_comm_monoid.nat_module : module ℕ (splitting_field f)) =
+    @algebra.to_module _ _ _ _ (splitting_field.algebra' f) :=
+rfl  -- fails
+
+example :
+  (add_comm_group.int_module _ : module ℤ (splitting_field f)) =
+    @algebra.to_module _ _ _ _ (splitting_field.algebra' f) :=
+rfl  -- fails
+```
+
+Until we resolve these diamonds, it's more convenient to only turn this instance on with
+`local attribute [instance]` in places where the benefit of having the instance outweighs the cost.
+
+In the meantime, the `splitting_field.algebra` instance below is immune to these particular diamonds
+since `K = ℕ` and `K = ℤ` are not possible due to the `field K` assumption. Diamonds in
+`algebra ℚ (splitting_field f)` instances are still possible, but this is a problem throughout the
+library and not unique to this `algebra` instance.
+-/
+instance algebra' {R} [comm_semiring R] [algebra R K] : algebra R (splitting_field f) :=
+splitting_field_aux.algebra _ _ _
+
 instance : algebra K (splitting_field f) :=
-splitting_field_aux.algebra _ _
+splitting_field_aux.algebra _ _ _
 
 protected theorem splits : splits (algebra_map K (splitting_field f)) f :=
 splitting_field_aux.splits _ _ _
@@ -728,7 +879,7 @@ theorem splits_iff (f : polynomial K) [is_splitting_field K L f] :
     let ⟨x, hxs, hxy⟩ := finset.mem_image.1 (by rwa multiset.to_finset_map at hy) in
     hxy ▸ set_like.mem_coe.2 $ subalgebra.algebra_map_mem _ _),
  λ h, @ring_equiv.to_ring_hom_refl K _ ▸
-  ring_equiv.trans_symm (ring_equiv.of_bijective _ $ algebra.bijective_algebra_map_iff.2 h) ▸
+  ring_equiv.self_trans_symm (ring_equiv.of_bijective _ $ algebra.bijective_algebra_map_iff.2 h) ▸
   by { rw ring_equiv.to_ring_hom_trans, exact splits_comp_of_splits _ _ (splits L f) }⟩
 
 theorem mul (f g : polynomial F) (hf : f ≠ 0) (hg : g ≠ 0) [is_splitting_field F K f]
@@ -738,11 +889,12 @@ theorem mul (f g : polynomial F) (hf : f ≠ 0) (hg : g ≠ 0) [is_splitting_fie
   (splits_comp_of_splits _ _ (splits K f))
   ((splits_map_iff _ _).1 (splits L $ g.map $ algebra_map F K)),
  by rw [map_mul, roots_mul (mul_ne_zero (map_ne_zero hf : f.map (algebra_map F L) ≠ 0)
-        (map_ne_zero hg)), multiset.to_finset_add, finset.coe_union, algebra.adjoin_union_eq_under,
+        (map_ne_zero hg)), multiset.to_finset_add, finset.coe_union,
+      algebra.adjoin_union_eq_adjoin_adjoin,
       is_scalar_tower.algebra_map_eq F K L, ← map_map,
       roots_map (algebra_map K L) ((splits_id_iff_splits $ algebra_map F K).2 $ splits K f),
       multiset.to_finset_map, finset.coe_image, algebra.adjoin_algebra_map, adjoin_roots,
-      algebra.map_top, is_scalar_tower.range_under_adjoin, ← map_map, adjoin_roots,
+      algebra.map_top, is_scalar_tower.adjoin_range_to_alg_hom, ← map_map, adjoin_roots,
       subalgebra.restrict_scalars_top]⟩
 
 end scalar_tower
@@ -762,7 +914,7 @@ alg_hom.comp (by { rw ← adjoin_roots L f, exact classical.choice (lift_of_spli
   algebra.to_top
 
 theorem finite_dimensional (f : polynomial K) [is_splitting_field K L f] : finite_dimensional K L :=
-is_noetherian.iff_fg.2 ⟨@algebra.top_to_submodule K L _ _ _ ▸ adjoin_roots L f ▸
+⟨@algebra.top_to_submodule K L _ _ _ ▸ adjoin_roots L f ▸
   fg_adjoin_of_finite (set.finite_mem_finset _) (λ y hy,
   if hf : f = 0
   then by { rw [hf, map_zero, roots_zero] at hy, cases hy }

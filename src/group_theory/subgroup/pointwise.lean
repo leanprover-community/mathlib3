@@ -42,6 +42,9 @@ protected def pointwise_mul_action : mul_action α (subgroup G) :=
 localized "attribute [instance] subgroup.pointwise_mul_action" in pointwise
 open_locale pointwise
 
+lemma pointwise_smul_def {a : α} (S : subgroup G) :
+  a • S = S.map (mul_distrib_mul_action.to_monoid_End _ _ a) := rfl
+
 @[simp] lemma coe_pointwise_smul (a : α) (S : subgroup G) : ↑(a • S) = a • (S : set G) := rfl
 
 @[simp] lemma pointwise_smul_to_submonoid (a : α) (S : subgroup G) :
@@ -49,6 +52,14 @@ open_locale pointwise
 
 lemma smul_mem_pointwise_smul (m : G) (a : α) (S : subgroup G) : m ∈ S → a • m ∈ a • S :=
 (set.smul_mem_smul_set : _ → _ ∈ a • (S : set G))
+
+lemma mem_smul_pointwise_iff_exists (m : G) (a : α) (S : subgroup G) :
+  m ∈ a • S ↔ ∃ (s : G), s ∈ S ∧ a • s = m :=
+(set.mem_smul_set : m ∈ a • (S : set G) ↔ _)
+
+instance pointwise_central_scalar [mul_distrib_mul_action αᵐᵒᵖ G] [is_central_scalar α G] :
+  is_central_scalar α (subgroup G) :=
+⟨λ a S, congr_arg (λ f, S.map f) $ monoid_hom.ext $ by exact op_smul_eq_smul _⟩
 
 end monoid
 
@@ -77,6 +88,10 @@ set_smul_subset_iff
 
 lemma subset_pointwise_smul_iff {a : α} {S T : subgroup G} : S ≤ a • T ↔ a⁻¹ • S ≤ T :=
 subset_set_smul_iff
+
+/-- Applying a `mul_distrib_mul_action` results in an isomorphic subgroup -/
+@[simps] def equiv_smul (a : α) (H : subgroup G) : H ≃* (a • H : subgroup G) :=
+(mul_distrib_mul_action.to_mul_equiv G a).subgroup_map H
 
 end group
 
@@ -135,6 +150,14 @@ open_locale pointwise
 
 lemma smul_mem_pointwise_smul (m : A) (a : α) (S : add_subgroup A) : m ∈ S → a • m ∈ a • S :=
 (set.smul_mem_smul_set : _ → _ ∈ a • (S : set A))
+
+lemma mem_smul_pointwise_iff_exists (m : A) (a : α) (S : add_subgroup A) :
+  m ∈ a • S ↔ ∃ (s : A), s ∈ S ∧ a • s = m :=
+(set.mem_smul_set : m ∈ a • (S : set A) ↔ _)
+
+instance pointwise_central_scalar [distrib_mul_action αᵐᵒᵖ A] [is_central_scalar α A] :
+  is_central_scalar α (add_subgroup A) :=
+⟨λ a S, congr_arg (λ f, S.map f) $ add_monoid_hom.ext $ by exact op_smul_eq_smul _⟩
 
 end monoid
 

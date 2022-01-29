@@ -125,6 +125,7 @@ lemma coeff_X_pow_self (n : ℕ) :
   coeff (X^n : polynomial R) n = 1 :=
 by simp [coeff_X_pow]
 
+@[simp]
 theorem coeff_mul_X_pow (p : polynomial R) (n d : ℕ) :
   coeff (p * polynomial.X ^ n) (d + n) = coeff p d :=
 begin
@@ -134,20 +135,32 @@ begin
   { exact λ h1, (h1 (nat.mem_antidiagonal.2 rfl)).elim }
 end
 
+@[simp]
+theorem coeff_X_pow_mul (p : polynomial R) (n d : ℕ) :
+  coeff (polynomial.X ^ n * p) (d + n) = coeff p d :=
+by rw [(commute_X_pow p n).eq, coeff_mul_X_pow]
+
 lemma coeff_mul_X_pow' (p : polynomial R) (n d : ℕ) :
   (p * X ^ n).coeff d = ite (n ≤ d) (p.coeff (d - n)) 0 :=
 begin
   split_ifs,
-  { rw [←@nat.sub_add_cancel d n h, coeff_mul_X_pow, nat.add_sub_cancel] },
+  { rw [← tsub_add_cancel_of_le h, coeff_mul_X_pow, add_tsub_cancel_right] },
   { refine (coeff_mul _ _ _).trans (finset.sum_eq_zero (λ x hx, _)),
     rw [coeff_X_pow, if_neg, mul_zero],
     exact ne_of_lt (lt_of_le_of_lt (nat.le_of_add_le_right
       (le_of_eq (finset.nat.mem_antidiagonal.mp hx))) (not_le.mp h)) },
 end
 
+lemma coeff_X_pow_mul' (p : polynomial R) (n d : ℕ) :
+  (X ^ n * p).coeff d = ite (n ≤ d) (p.coeff (d - n)) 0 :=
+by rw [(commute_X_pow p n).eq, coeff_mul_X_pow']
+
 @[simp] theorem coeff_mul_X (p : polynomial R) (n : ℕ) :
   coeff (p * X) (n + 1) = coeff p n :=
 by simpa only [pow_one] using coeff_mul_X_pow p 1 n
+
+@[simp] theorem coeff_X_mul (p : polynomial R) (n : ℕ) :
+  coeff (X * p) (n + 1) = coeff p n := by rw [(commute_X p).eq, coeff_mul_X]
 
 theorem mul_X_pow_eq_zero {p : polynomial R} {n : ℕ}
   (H : p * X ^ n = 0) : p = 0 :=
@@ -162,18 +175,21 @@ by rw [C_mul_X_pow_eq_monomial, support_monomial n c H]
 lemma support_C_mul_X_pow' {c : R} {n : ℕ} : (C c * X^n).support ⊆ singleton n :=
 by { rw [C_mul_X_pow_eq_monomial], exact support_monomial' n c }
 
+lemma coeff_X_add_C_pow (r : R) (n k : ℕ) :
+  ((X + C r) ^ n).coeff k = r ^ (n - k) * (n.choose k : R) :=
+begin
+  rw [(commute_X (C r : polynomial R)).add_pow, ← lcoeff_apply, linear_map.map_sum],
+  simp only [one_pow, mul_one, lcoeff_apply, ← C_eq_nat_cast, ←C_pow, coeff_mul_C, nat.cast_id],
+  rw [finset.sum_eq_single k, coeff_X_pow_self, one_mul],
+  { intros _ _ h,
+    simp [coeff_X_pow, h.symm] },
+  { simp only [coeff_X_pow_self, one_mul, not_lt, finset.mem_range],
+    intro h, rw [nat.choose_eq_zero_of_lt h, nat.cast_zero, mul_zero] }
+end
+
 lemma coeff_X_add_one_pow (R : Type*) [semiring R] (n k : ℕ) :
   ((X + 1) ^ n).coeff k = (n.choose k : R) :=
-begin
-  rw [(commute_X (1 : polynomial R)).add_pow, ← lcoeff_apply, linear_map.map_sum],
-  simp only [one_pow, mul_one, lcoeff_apply, ← C_eq_nat_cast, coeff_mul_C, nat.cast_id],
-  rw [finset.sum_eq_single k, coeff_X_pow_self, one_mul],
-  { intros _ _,
-    simp only [coeff_X_pow, boole_mul, ite_eq_right_iff, ne.def] {contextual := tt},
-    rintro h rfl, contradiction },
-  { simp only [coeff_X_pow_self, one_mul, not_lt, finset.mem_range],
-    intro h, rw [nat.choose_eq_zero_of_lt h, nat.cast_zero], }
-end
+by rw [←C_1, coeff_X_add_C_pow, one_pow, one_mul]
 
 lemma coeff_one_add_X_pow (R : Type*) [semiring R] (n k : ℕ) :
   ((1 + X) ^ n).coeff k = (n.choose k : R) :=

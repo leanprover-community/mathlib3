@@ -6,7 +6,6 @@ Authors: Kenny Lau, Ken Lee, Chris Hughes
 import algebra.big_operators.basic
 import data.fintype.basic
 import data.int.gcd
-import data.set.pairwise
 import ring_theory.coprime.basic
 
 /-!
@@ -55,22 +54,22 @@ theorem is_coprime.of_prod_right (H1 : is_coprime x (∏ i in t, s i)) (i : I) (
 is_coprime.prod_right_iff.1 H1 i hit
 
 theorem finset.prod_dvd_of_coprime :
-  ∀ (Hs : set.pairwise_on (↑t : set I) (is_coprime on s)) (Hs1 : ∀ i ∈ t, s i ∣ z),
+  ∀ (Hs : (t : set I).pairwise (is_coprime on s)) (Hs1 : ∀ i ∈ t, s i ∣ z),
   ∏ x in t, s x ∣ z :=
 finset.induction_on t (λ _ _, one_dvd z)
 begin
   intros a r har ih Hs Hs1,
   rw finset.prod_insert har,
   have aux1 : a ∈ (↑(insert a r) : set I) := finset.mem_insert_self a r,
-  refine (is_coprime.prod_right $ λ i hir, Hs a aux1 i _ (by { rintro rfl, exact har hir })).mul_dvd
-    (Hs1 a aux1) (ih (Hs.mono _) $ λ i hi, Hs1 i (finset.mem_insert_of_mem hi)),
-  { exact finset.mem_insert_of_mem hir },
-  { simp only [finset.coe_insert, set.subset_insert] }
+  refine (is_coprime.prod_right $ λ i hir, Hs aux1 (finset.mem_insert_of_mem hir)
+    $ by { rintro rfl, exact har hir }).mul_dvd
+    (Hs1 a aux1) (ih (Hs.mono _) $ λ i hi, Hs1 i $ finset.mem_insert_of_mem hi),
+  simp only [finset.coe_insert, set.subset_insert],
 end
 
 theorem fintype.prod_dvd_of_coprime [fintype I] (Hs : pairwise (is_coprime on s))
   (Hs1 : ∀ i, s i ∣ z) : ∏ x, s x ∣ z :=
-finset.prod_dvd_of_coprime (Hs.pairwise_on _) (λ i _, Hs1 i)
+finset.prod_dvd_of_coprime (Hs.set_pairwise _) (λ i _, Hs1 i)
 
 variables {m n : ℕ}
 

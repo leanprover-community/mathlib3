@@ -32,6 +32,8 @@ def support [has_zero A] (f : α → A) : set α := {x | f x ≠ 0}
 /-- `mul_support` of a function is the set of points `x` such that `f x ≠ 1`. -/
 @[to_additive] def mul_support (f : α → M) : set α := {x | f x ≠ 1}
 
+@[to_additive] lemma mul_support_eq_preimage (f : α → M) : mul_support f = f ⁻¹' {1}ᶜ := rfl
+
 @[to_additive] lemma nmem_mul_support {f : α → M} {x : α} :
   x ∉ mul_support f ↔ f x = 1 :=
 not_not
@@ -55,6 +57,10 @@ forall_congr $ λ x, not_imp_comm
 @[simp, to_additive] lemma mul_support_eq_empty_iff {f : α → M} :
   mul_support f = ∅ ↔ f = 1 :=
 by { simp_rw [← subset_empty_iff, mul_support_subset_iff', funext_iff], simp }
+
+@[simp, to_additive] lemma mul_support_nonempty_iff {f : α → M} :
+  (mul_support f).nonempty ↔ f ≠ 1 :=
+by rw [← ne_empty_iff_nonempty, ne.def, mul_support_eq_empty_iff]
 
 @[simp, to_additive] lemma mul_support_one' : mul_support (1 : α → M) = ∅ :=
 mul_support_eq_empty_iff.2 rfl
@@ -150,7 +156,7 @@ mul_support_binop_subset (*) (one_mul _) f g
   mul_support (λ x, (f x)⁻¹) = mul_support f :=
 set.ext $ λ x, not_congr inv_eq_one
 
-@[simp, to_additive support_neg'] lemma mul_support_inv'' [group G] (f : α → G) :
+@[simp, to_additive] lemma mul_support_inv' [group G] (f : α → G) :
   mul_support (f⁻¹) = mul_support f :=
 mul_support_inv f
 
@@ -207,7 +213,7 @@ end
 
 lemma support_prod_subset [comm_monoid_with_zero A] (s : finset α) (f : α → β → A) :
   support (λ x, ∏ i in s, f i x) ⊆ ⋂ i ∈ s, support (f i) :=
-λ x hx, mem_bInter_iff.2 $ λ i hi H, hx $ finset.prod_eq_zero hi H
+λ x hx, mem_Inter₂.2 $ λ i hi H, hx $ finset.prod_eq_zero hi H
 
 lemma support_prod [comm_monoid_with_zero A] [no_zero_divisors A] [nontrivial A]
   (s : finset α) (f : α → β → A) :
@@ -283,6 +289,6 @@ end
 
 lemma support_single_disjoint {b' : B} (hb : b ≠ 0) (hb' : b' ≠ 0) {i j : A} :
   disjoint (function.support (single i b)) (function.support (single j b')) ↔ i ≠ j :=
-by simpa [support_single, hb, hb'] using ne_comm
+by rw [support_single_of_ne hb, support_single_of_ne hb', disjoint_singleton]
 
 end pi

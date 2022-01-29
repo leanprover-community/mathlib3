@@ -83,7 +83,7 @@ def discrete_copy (α : Type u) : Type u := α
 
 instance : topological_space (discrete_copy α) := ⊥
 instance : discrete_topology (discrete_copy α) := ⟨rfl⟩
-instance [inhabited α] : inhabited (discrete_copy α) := ⟨id default α⟩
+instance [inhabited α] : inhabited (discrete_copy α) := ⟨show α, from default⟩
 
 namespace phillips_1940
 
@@ -163,7 +163,7 @@ instance : inhabited (bounded_additive_measure α) :=
   additive' := λ s t hst, by simp,
   exists_bound := ⟨0, λ s, by simp⟩ }⟩
 
-instance : has_coe_to_fun (bounded_additive_measure α) := ⟨_, λ f, f.to_fun⟩
+instance : has_coe_to_fun (bounded_additive_measure α) (λ _, set α → ℝ) := ⟨λ f, f.to_fun⟩
 
 namespace bounded_additive_measure
 

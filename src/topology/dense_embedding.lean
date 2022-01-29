@@ -121,13 +121,29 @@ lemma extend_eq_of_tendsto [t2_space γ] {b : β} {c : γ} {f : α → γ}
   di.extend f b = c :=
 by haveI := di.comap_nhds_ne_bot; exact hf.lim_eq
 
-lemma extend_eq_at [t2_space γ] {f : α → γ} (a : α) (hf : continuous_at f a) :
+lemma extend_eq_at [t2_space γ] {f : α → γ} {a : α} (hf : continuous_at f a) :
   di.extend f (i a) = f a :=
 extend_eq_of_tendsto _ $ di.nhds_eq_comap a ▸ hf
 
+lemma extend_eq_at' [t2_space γ] {f : α → γ} {a : α} (c : γ) (hf : tendsto f (𝓝 a) (𝓝 c)) :
+  di.extend f (i a) = f a :=
+di.extend_eq_at (continuous_at_of_tendsto_nhds hf)
+
 lemma extend_eq [t2_space γ] {f : α → γ} (hf : continuous f) (a : α) :
   di.extend f (i a) = f a :=
-di.extend_eq_at a hf.continuous_at
+di.extend_eq_at hf.continuous_at
+
+/-- Variation of `extend_eq` where we ask that `f` has a limit along `comap i (𝓝 b)` for each
+`b : β`. This is a strictly stronger assumption than continuity of `f`, but in a lot of cases
+you'd have to prove it anyway to use `continuous_extend`, so this avoids doing the work twice. -/
+lemma extend_eq' [t2_space γ] {f : α → γ}
+  (di : dense_inducing i) (hf : ∀ b, ∃ c, tendsto f (comap i (𝓝 b)) (𝓝 c)) (a : α) :
+  di.extend f (i a) = f a :=
+begin
+  rcases hf (i a) with ⟨b, hb⟩,
+  refine di.extend_eq_at' b _,
+  rwa ← di.to_inducing.nhds_eq_comap at hb,
+end
 
 lemma extend_unique_at [t2_space γ] {b : β} {f : α → γ} {g : β → γ} (di : dense_inducing i)
   (hf : ∀ᶠ x in comap i (𝓝 b), g (i x) = f x) (hg : continuous_at g b) :
@@ -166,7 +182,7 @@ begin
   { simpa [and_assoc] using ((nhds_basis_opens' b).comap i).tendsto_left_iff.mp
                             (mem_of_mem_nhds V₁_in : b ∈ V₁) V' V'_in },
   suffices : ∀ x ∈ V₁ ∩ V₂, φ x ∈ V',
-  { filter_upwards [inter_mem V₁_in V₂_in], exact this },
+  { filter_upwards [inter_mem V₁_in V₂_in] using this, },
   rintros x ⟨x_in₁, x_in₂⟩,
   have hV₂x : V₂ ∈ 𝓝 x := is_open.mem_nhds V₂_op x_in₂,
   apply V'_closed.mem_of_tendsto x_in₁,
@@ -186,7 +202,7 @@ lemma mk'
     ∃t ∈ 𝓝 (i a), ∀ b, i b ∈ t → b ∈ s) :
   dense_inducing i :=
 { induced := (induced_iff_nhds_eq i).2 $
-    λ a, le_antisymm (tendsto_iff_comap.1 $ c.tendsto _) (by simpa [le_def] using H a),
+    λ a, le_antisymm (tendsto_iff_comap.1 $ c.tendsto _) (by simpa [filter.le_def] using H a),
   dense := dense }
 end dense_inducing
 

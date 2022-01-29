@@ -7,6 +7,7 @@ import algebra.big_operators.ring
 import number_theory.divisors
 import algebra.squarefree
 import algebra.invertible
+import data.nat.factorization
 
 /-!
 # Arithmetic Functions and Dirichlet Convolution
@@ -54,7 +55,7 @@ variable (R : Type*)
 /-- An arithmetic function is a function from `ℕ` that maps 0 to 0. In the literature, they are
   often instead defined as functions from `ℕ+`. Multiplication on `arithmetic_functions` is by
   Dirichlet convolution. -/
-@[derive [has_coe_to_fun, has_zero, inhabited]]
+@[derive [has_zero, inhabited]]
 def arithmetic_function [has_zero R] := zero_hom ℕ R
 
 variable {R}
@@ -63,6 +64,8 @@ namespace arithmetic_function
 
 section has_zero
 variable [has_zero R]
+
+instance : has_coe_to_fun (arithmetic_function R) (λ _, ℕ → R) := zero_hom.has_coe_to_fun
 
 @[simp] lemma to_fun_eq (f : arithmetic_function R) : f.to_fun = f := rfl
 
@@ -206,14 +209,14 @@ begin
     rintros rfl h2 rfl rfl,
     exact ⟨⟨eq.trans H₁.2.1.symm H₂.2.1, rfl⟩, rfl, rfl⟩ },
   { rintros ⟨⟨i,j⟩, ⟨k,l⟩⟩ H, refine ⟨⟨(i*k, l), (i, k)⟩, _, _⟩,
-  { simp only [finset.mem_sigma, mem_divisors_antidiagonal] at H ⊢,
-    rcases H with ⟨⟨rfl, n0⟩, rfl, j0⟩,
-    refine ⟨⟨mul_assoc _ _ _, n0⟩, rfl, _⟩,
-    rw mul_ne_zero_iff at *,
-    exact ⟨n0.1, j0.1⟩ },
-  { simp only [true_and, mem_divisors_antidiagonal, and_true, prod.mk.inj_iff, eq_self_iff_true,
-      ne.def, mem_sigma, heq_iff_eq] at H ⊢,
-    rw H.2.1 } }
+    { simp only [finset.mem_sigma, mem_divisors_antidiagonal] at H ⊢,
+      rcases H with ⟨⟨rfl, n0⟩, rfl, j0⟩,
+      refine ⟨⟨mul_assoc _ _ _, n0⟩, rfl, _⟩,
+      rw mul_ne_zero_iff at *,
+      exact ⟨n0.1, j0.1⟩ },
+    { simp only [true_and, mem_divisors_antidiagonal, and_true, prod.mk.inj_iff, eq_self_iff_true,
+        ne.def, mem_sigma, heq_iff_eq] at H ⊢,
+      rw H.2.1 } }
 end
 
 lemma one_smul' (b : arithmetic_function M) :
@@ -297,7 +300,7 @@ section zeta
 def zeta : arithmetic_function ℕ :=
 ⟨λ x, ite (x = 0) 0 1, rfl⟩
 
-localized "notation `ζ` := zeta" in arithmetic_function
+localized "notation `ζ` := nat.arithmetic_function.zeta" in arithmetic_function
 
 @[simp]
 lemma zeta_apply {x : ℕ} : ζ x = if (x = 0) then 0 else 1 := rfl
@@ -364,9 +367,9 @@ end
 theorem coe_mul_zeta_apply [semiring R] {f : arithmetic_function R} {x : ℕ} :
   (f * ζ) x = ∑ i in divisors x, f i :=
 begin
-  apply opposite.op_injective,
+  apply mul_opposite.op_injective,
   rw [op_sum],
-  convert @coe_zeta_mul_apply Rᵒᵖ _ { to_fun := opposite.op ∘ f, map_zero' := by simp} x,
+  convert @coe_zeta_mul_apply Rᵐᵒᵖ _ { to_fun := mul_opposite.op ∘ f, map_zero' := by simp} x,
   rw [mul_apply, mul_apply, op_sum],
   conv_lhs { rw ← map_swap_divisors_antidiagonal, },
   rw sum_map,
@@ -554,6 +557,13 @@ lemma pmul [comm_semiring R] {f g : arithmetic_function R}
   ring,
 end⟩
 
+/-- For any multiplicative function `f` and any `n > 0`,
+we can evaluate `f n` by evaluating `f` at `p ^ k` over the factorization of `n` -/
+lemma multiplicative_factorization [comm_monoid_with_zero R] (f : arithmetic_function R)
+  (hf : f.is_multiplicative) :
+  ∀ {n : ℕ}, n ≠ 0 → f n = n.factorization.prod (λ p k, f (p ^ k)) :=
+λ n hn, multiplicative_factorization f hf.2 hf.1 hn
+
 end is_multiplicative
 
 section special_functions
@@ -579,7 +589,7 @@ end
 def sigma (k : ℕ) : arithmetic_function ℕ :=
 ⟨λ n, ∑ d in divisors n, d ^ k, by simp⟩
 
-localized "notation `σ` := sigma" in arithmetic_function
+localized "notation `σ` := nat.arithmetic_function.sigma" in arithmetic_function
 
 @[simp]
 lemma sigma_apply {k n : ℕ} : σ k n = ∑ d in divisors n, d ^ k := rfl
@@ -631,7 +641,7 @@ end
 def card_factors : arithmetic_function ℕ :=
 ⟨λ n, n.factors.length, by simp⟩
 
-localized "notation `Ω` := card_factors" in arithmetic_function
+localized "notation `Ω` := nat.arithmetic_function.card_factors" in arithmetic_function
 
 lemma card_factors_apply {n : ℕ} :
   Ω n = n.factors.length := rfl
@@ -672,7 +682,7 @@ end
 def card_distinct_factors : arithmetic_function ℕ :=
 ⟨λ n, n.factors.erase_dup.length, by simp⟩
 
-localized "notation `ω` := card_distinct_factors" in arithmetic_function
+localized "notation `ω` := nat.arithmetic_function.card_distinct_factors" in arithmetic_function
 
 lemma card_distinct_factors_zero : ω 0 = 0 := by simp
 
@@ -686,7 +696,7 @@ begin
   split; intro h,
   { rw ← list.eq_of_sublist_of_length_eq n.factors.erase_dup_sublist h,
     apply list.nodup_erase_dup },
-  { rw list.erase_dup_eq_self.2 h,
+  { rw h.erase_dup,
     refl }
 end
 
@@ -696,7 +706,7 @@ end
 def moebius : arithmetic_function ℤ :=
 ⟨λ n, if squarefree n then (-1) ^ (card_factors n) else 0, by simp⟩
 
-localized "notation `μ` := moebius" in arithmetic_function
+localized "notation `μ` := nat.arithmetic_function.moebius" in arithmetic_function
 
 @[simp]
 lemma moebius_apply_of_squarefree {n : ℕ} (h : squarefree n): μ n = (-1) ^ (card_factors n) :=
@@ -788,16 +798,16 @@ instance : invertible (ζ : arithmetic_function R) :=
   mul_inv_of_self := coe_zeta_mul_coe_moebius}
 
 /-- A unit in `arithmetic_function R` that evaluates to `ζ`, with inverse `μ`. -/
-def zeta_unit : units (arithmetic_function R) :=
+def zeta_unit : (arithmetic_function R)ˣ :=
 ⟨ζ, μ, coe_zeta_mul_coe_moebius, coe_moebius_mul_coe_zeta⟩
 
 @[simp]
 lemma coe_zeta_unit :
-  ((zeta_unit : units (arithmetic_function R)) : arithmetic_function R) = ζ := rfl
+  ((zeta_unit : (arithmetic_function R)ˣ) : arithmetic_function R) = ζ := rfl
 
 @[simp]
 lemma inv_zeta_unit :
-  ((zeta_unit⁻¹ : units (arithmetic_function R)) : arithmetic_function R) = μ := rfl
+  ((zeta_unit⁻¹ : (arithmetic_function R)ˣ) : arithmetic_function R) = μ := rfl
 
 end comm_ring
 
@@ -841,7 +851,7 @@ begin
   apply forall_congr,
   intro a,
   apply imp_congr (iff.refl _) (eq.congr_left (sum_congr rfl (λ x hx, _))),
-  rw [gsmul_eq_mul],
+  rw [zsmul_eq_mul],
 end
 
 /-- Möbius inversion for functions to a `comm_group`. -/
@@ -856,7 +866,7 @@ theorem prod_eq_iff_prod_pow_moebius_eq_of_nonzero [comm_group_with_zero R] {f g
   (∀ (n : ℕ), 0 < n → ∏ i in (n.divisors), f i = g n) ↔
     ∀ (n : ℕ), 0 < n → ∏ (x : ℕ × ℕ) in n.divisors_antidiagonal, g x.snd ^ (μ x.fst) = f n :=
 begin
-  refine iff.trans (iff.trans (forall_congr (λ n, _)) (@prod_eq_iff_prod_pow_moebius_eq (units R) _
+  refine iff.trans (iff.trans (forall_congr (λ n, _)) (@prod_eq_iff_prod_pow_moebius_eq Rˣ _
     (λ n, if h : 0 < n then units.mk0 (f n) (hf n h) else 1)
     (λ n, if h : 0 < n then units.mk0 (g n) (hg n h) else 1))) (forall_congr (λ n, _));
   refine imp_congr_right (λ hn, _),
@@ -870,7 +880,7 @@ begin
       prod_congr rfl _],
     intros x hx,
     rw [dif_pos (nat.pos_of_mem_divisors (nat.snd_mem_divisors_of_mem_antidiagonal hx)),
-      units.coe_hom_apply, units.coe_gpow₀, units.coe_mk0] }
+      units.coe_hom_apply, units.coe_zpow₀, units.coe_mk0] }
 end
 
 end special_functions

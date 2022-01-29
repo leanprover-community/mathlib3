@@ -19,9 +19,9 @@ TODO: `linear_yoneda R C` is `R`-linear.
 TODO: In fact, `linear_yoneda` itself is additive and `R`-linear.
 -/
 
-namespace category_theory
-
 open opposite
+
+namespace category_theory
 
 variables (R : Type*) [ring R] (C : Type*) [category C] [preadditive C] [linear R C]
 

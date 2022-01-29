@@ -74,7 +74,7 @@ theorem rel_iso.cof.aux {α : Type u} {β : Type v} {r s}
   cardinal.lift.{(max u v)} (order.cof s) :=
 begin
   rw [order.cof, order.cof, lift_min, lift_min, cardinal.le_min],
-  intro S, cases S with S H, simp [(∘)],
+  intro S, cases S with S H, simp only [comp, coe_sort_coe_base, subtype.coe_mk],
   refine le_trans (min_le _ _) _,
   { exact ⟨f ⁻¹' S, λ a,
     let ⟨b, bS, h⟩ := H (f a) in ⟨f.symm b, by simp [bS, ← f.map_rel_iff, h,
@@ -197,7 +197,7 @@ le_antisymm (by simpa using cof_le_card 0) (cardinal.zero_le _)
 ⟨induction_on o $ λ α r _ z, by exactI
   let ⟨S, hl, e⟩ := cof_eq r in type_eq_zero_iff_is_empty.2 $
   ⟨λ a, let ⟨b, h, _⟩ := hl a in
-    (eq_zero_iff_is_empty.1 (e.trans z)).elim' ⟨_, h⟩⟩,
+    (mk_eq_zero_iff.1 (e.trans z)).elim' ⟨_, h⟩⟩,
 λ e, by simp [e]⟩
 
 @[simp] theorem cof_succ (o) : cof (succ o) = 1 :=
@@ -208,7 +208,7 @@ begin
     rw [← (_ : #_ = 1)], apply cof_type_le,
     { refine λ a, ⟨sum.inr punit.star, set.mem_singleton _, _⟩,
       rcases a with a|⟨⟨⟨⟩⟩⟩; simp [empty_relation] },
-    { rw [cardinal.fintype_card, set.card_singleton], simp } },
+    { rw [cardinal.mk_fintype, set.card_singleton], simp } },
   { rw [← cardinal.succ_zero, cardinal.succ_le],
     simpa [lt_iff_le_and_ne, cardinal.zero_le] using
       λ h, succ_ne_zero o (cof_eq_zero.1 (eq.symm h)) }
@@ -218,7 +218,7 @@ end
 ⟨induction_on o $ λ α r _ z, begin
   resetI,
   rcases cof_eq r with ⟨S, hl, e⟩, rw z at e,
-  cases ne_zero_iff_nonempty.1 (by rw e; exact one_ne_zero) with a,
+  cases mk_ne_zero_iff.1 (by rw e; exact one_ne_zero) with a,
   refine ⟨typein r a, eq.symm $ quotient.sound
     ⟨rel_iso.of_surjective (rel_embedding.of_monotone _
       (λ x y, _)) (λ x, _)⟩⟩,
@@ -335,8 +335,13 @@ by simpa using cof_sup_le_lift.{u u} f H
 theorem cof_bsup_le_lift {o : ordinal} : ∀ (f : Π a < o, ordinal), (∀ i h, f i h < bsup o f) →
   cof (bsup o f) ≤ o.card.lift :=
 induction_on o $ λ α r _ f H,
-by rw bsup_type; refine cof_sup_le_lift _ _;
-   rw ← bsup_type; intro a; apply H
+begin
+  resetI,
+  rw bsup_eq_sup' r rfl,
+  refine cof_sup_le_lift _ _,
+  rw ← bsup_eq_sup',
+  exact λ a, H _ _
+end
 
 theorem cof_bsup_le {o : ordinal} : ∀ (f : Π a < o, ordinal), (∀ i h, f i h < bsup.{u u} o f) →
   cof (bsup.{u u} o f) ≤ o.card :=
@@ -467,6 +472,12 @@ theorem is_strong_limit.is_limit {c} (H : is_strong_limit c) : is_limit c :=
 def is_regular (c : cardinal) : Prop :=
 ω ≤ c ∧ c.ord.cof = c
 
+lemma is_regular.pos {c : cardinal} (H : c.is_regular) : 0 < c :=
+omega_pos.trans_le H.left
+
+lemma is_regular.ord_pos {c : cardinal} (H : c.is_regular) : 0 < c.ord :=
+by { rw cardinal.lt_ord, exact H.pos }
+
 theorem cof_is_regular {o : ordinal} (h : o.is_limit) : is_regular o.cof :=
 ⟨omega_le_cof.2 h, cof_cof _⟩
 
@@ -484,9 +495,9 @@ theorem succ_is_regular {c : cardinal.{u}} (h : ω ≤ c) : is_regular (succ c) 
   rw [← Se],
   apply lt_imp_lt_of_le_imp_le
     (λ (h : #S ≤ c), mul_le_mul_right' h c),
-  rw [mul_eq_self h, ← succ_le, ← αe, ← sum_const],
+  rw [mul_eq_self h, ← succ_le, ← αe, ← sum_const'],
   refine le_trans _ (sum_le_sum (λ x:S, card (typein r x)) _ _),
-  { simp [typein, sum_mk (λ x:S, {a//r a x})],
+  { simp only [← card_typein, ← mk_sigma],
     refine ⟨embedding.of_surjective _ _⟩,
     { exact λ x, x.2.1 },
     { exact λ a, let ⟨b, h, ab⟩ := H a in ⟨⟨⟨_, h⟩, _, ab⟩, rfl⟩ } },
@@ -593,7 +604,7 @@ quotient.induction_on c $ λ α h, begin
   rw [mk_def, re] at this ⊢,
   rcases cof_eq' r this with ⟨S, H, Se⟩,
   have := sum_lt_prod (λ a:S, #{x // r x a}) (λ _, #α) (λ i, _),
-  { simp [Se.symm] at this ⊢,
+  { simp only [cardinal.prod_const, cardinal.lift_id, ← Se, ← mk_sigma, power_def] at this ⊢,
     refine lt_of_le_of_lt _ this,
     refine ⟨embedding.of_surjective _ _⟩,
     { exact λ x, x.2.1 },

@@ -46,7 +46,7 @@ is_unit_one.squarefree
 lemma not_squarefree_zero [monoid_with_zero R] [nontrivial R] : ¬ squarefree (0 : R) :=
 begin
   erw [not_forall],
-  exact ⟨0, (by simp)⟩,
+  exact ⟨0, by simp⟩,
 end
 
 @[simp]
@@ -61,7 +61,7 @@ begin
 end
 
 @[simp]
-lemma prime.squarefree [comm_cancel_monoid_with_zero R] {x : R} (h : prime x) :
+lemma prime.squarefree [cancel_comm_monoid_with_zero R] {x : R} (h : prime x) :
   squarefree x :=
 h.irreducible.squarefree
 
@@ -85,8 +85,48 @@ end
 
 end multiplicity
 
+section irreducible
+variables [comm_monoid_with_zero R] [wf_dvd_monoid R]
+
+lemma irreducible_sq_not_dvd_iff_eq_zero_and_no_irreducibles_or_squarefree (r : R) :
+  (∀ x : R, irreducible x → ¬ x * x ∣ r) ↔ ((r = 0 ∧ ∀ x : R, ¬irreducible x) ∨ squarefree r) :=
+begin
+  symmetry,
+  split,
+  { rintro (⟨rfl, h⟩ | h),
+    { simpa using h },
+    intros x hx t,
+    exact hx.not_unit (h x t) },
+  intro h,
+  rcases eq_or_ne r 0 with rfl | hr,
+  { exact or.inl (by simpa using h) },
+  right,
+  intros x hx,
+  by_contra i,
+  have : x ≠ 0,
+  { rintro rfl,
+    apply hr,
+    simpa only [zero_dvd_iff, mul_zero] using hx},
+  obtain ⟨j, hj₁, hj₂⟩ := wf_dvd_monoid.exists_irreducible_factor i this,
+  exact h _ hj₁ ((mul_dvd_mul hj₂ hj₂).trans hx),
+end
+
+lemma squarefree_iff_irreducible_sq_not_dvd_of_ne_zero {r : R} (hr : r ≠ 0) :
+  squarefree r ↔ ∀ x : R, irreducible x → ¬ x * x ∣ r :=
+by simpa [hr] using (irreducible_sq_not_dvd_iff_eq_zero_and_no_irreducibles_or_squarefree r).symm
+
+lemma squarefree_iff_irreducible_sq_not_dvd_of_exists_irreducible
+  {r : R} (hr : ∃ (x : R), irreducible x) :
+  squarefree r ↔ ∀ x : R, irreducible x → ¬ x * x ∣ r :=
+begin
+  rw [irreducible_sq_not_dvd_iff_eq_zero_and_no_irreducibles_or_squarefree, ←not_exists],
+  simp only [hr, not_true, false_or, and_false],
+end
+
+end irreducible
+
 namespace unique_factorization_monoid
-variables [comm_cancel_monoid_with_zero R] [nontrivial R] [unique_factorization_monoid R]
+variables [cancel_comm_monoid_with_zero R] [nontrivial R] [unique_factorization_monoid R]
 variables [normalization_monoid R]
 
 lemma squarefree_iff_nodup_normalized_factors [decidable_eq R] {x : R} (x0 : x ≠ 0) :
@@ -164,8 +204,8 @@ begin
       rcases an with ⟨b, rfl⟩,
       rw mul_ne_zero_iff at h0,
       rw unique_factorization_monoid.squarefree_iff_nodup_normalized_factors h0.1 at hsq,
-      rw [multiset.to_finset_subset, multiset.to_finset_val, multiset.erase_dup_eq_self.2 hsq,
-        ← associated_iff_eq, normalized_factors_mul h0.1 h0.2],
+      rw [multiset.to_finset_subset, multiset.to_finset_val, hsq.erase_dup, ← associated_iff_eq,
+        normalized_factors_mul h0.1 h0.2],
       exact ⟨multiset.subset_of_le (multiset.le_add_right _ _), normalized_factors_prod h0.1⟩ },
     { rintro ⟨s, hs, rfl⟩,
       rw [finset.mem_powerset, ← finset.val_le_iff, multiset.to_finset_val] at hs,
@@ -248,5 +288,10 @@ begin
   { obtain ⟨a, b, -, -, h₁, h₂⟩ := sq_mul_squarefree_of_pos (succ_pos n),
     exact ⟨a, b, h₁, h₂⟩ },
 end
+
+lemma squarefree_iff_prime_sq_not_dvd (n : ℕ) :
+  squarefree n ↔ ∀ x : ℕ, x.prime → ¬ x * x ∣ n :=
+squarefree_iff_irreducible_sq_not_dvd_of_exists_irreducible
+  ⟨2, (irreducible_iff_nat_prime _).2 prime_two⟩
 
 end nat

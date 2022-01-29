@@ -155,7 +155,12 @@ begin
 end
 
 lemma dimH_subsingleton {s : set X} (h : s.subsingleton) : dimH s = 0 :=
-by simp [dimH, h.measure_zero]
+begin
+  letI := borel X, haveI : borel_space X := ⟨rfl⟩,
+  apply le_antisymm _ (zero_le _),
+  refine dimH_le_of_hausdorff_measure_ne_top _,
+  exact ((hausdorff_measure_le_one_of_subsingleton h le_rfl).trans_lt ennreal.one_lt_top).ne,
+end
 
 alias dimH_subsingleton ← set.subsingleton.dimH_zero
 
@@ -179,7 +184,7 @@ end
   dimH (⋃ i ∈ s, t i) = ⨆ i ∈ s, dimH (t i) :=
 begin
   haveI := hs.to_encodable,
-  rw [← Union_subtype, dimH_Union, ← supr_subtype'']
+  rw [bUnion_eq_Union, dimH_Union, ← supr_subtype'']
 end
 
 @[simp] lemma dimH_sUnion {S : set (set X)} (hS : countable S) : dimH (⋃₀ S) = ⨆ s ∈ S, dimH s :=
@@ -200,6 +205,55 @@ alias dimH_finite ← set.finite.dimH_zero
 @[simp] lemma dimH_coe_finset (s : finset X) : dimH (s : set X) = 0 := s.finite_to_set.dimH_zero
 
 alias dimH_coe_finset ← finset.dimH_zero
+
+/-!
+### Hausdorff dimension as the supremum of local Hausdorff dimensions
+-/
+
+section
+
+variables [second_countable_topology X]
+
+/-- If `r` is less than the Hausdorff dimension of a set `s` in an (extended) metric space with
+second countable topology, then there exists a point `x ∈ s` such that every neighborhood
+`t` of `x` within `s` has Hausdorff dimension greater than `r`. -/
+lemma exists_mem_nhds_within_lt_dimH_of_lt_dimH {s : set X} {r : ℝ≥0∞} (h : r < dimH s) :
+  ∃ x ∈ s, ∀ t ∈ 𝓝[s] x, r < dimH t :=
+begin
+  contrapose! h, choose! t htx htr using h,
+  rcases countable_cover_nhds_within htx with ⟨S, hSs, hSc, hSU⟩,
+  calc dimH s ≤ dimH (⋃ x ∈ S, t x) : dimH_mono hSU
+  ... = ⨆ x ∈ S, dimH (t x) : dimH_bUnion hSc _
+  ... ≤ r : bsupr_le (λ x hx, htr x (hSs hx))
+end
+
+/-- In an (extended) metric space with second countable topology, the Hausdorff dimension
+of a set `s` is the supremum over `x ∈ s` of the limit superiors of `dimH t` along
+`(𝓝[s] x).lift' powerset`. -/
+lemma bsupr_limsup_dimH (s : set X) : (⨆ x ∈ s, limsup ((𝓝[s] x).lift' powerset) dimH) = dimH s :=
+begin
+  refine le_antisymm (bsupr_le $ λ x hx, _) _,
+  { refine Limsup_le_of_le (by apply_auto_param) (eventually_map.2 _),
+    exact eventually_lift'_powerset.2 ⟨s, self_mem_nhds_within, λ t, dimH_mono⟩ },
+  { refine le_of_forall_ge_of_dense (λ r hr, _),
+    rcases exists_mem_nhds_within_lt_dimH_of_lt_dimH hr with ⟨x, hxs, hxr⟩,
+    refine le_bsupr_of_le x hxs _, rw limsup_eq, refine le_Inf (λ b hb, _),
+    rcases eventually_lift'_powerset.1 hb with ⟨t, htx, ht⟩,
+    exact (hxr t htx).le.trans (ht t subset.rfl) }
+end
+
+/-- In an (extended) metric space with second countable topology, the Hausdorff dimension
+of a set `s` is the supremum over all `x` of the limit superiors of `dimH t` along
+`(𝓝[s] x).lift' powerset`. -/
+lemma supr_limsup_dimH (s : set X) : (⨆ x, limsup ((𝓝[s] x).lift' powerset) dimH) = dimH s :=
+begin
+  refine le_antisymm (supr_le $ λ x, _) _,
+  { refine Limsup_le_of_le (by apply_auto_param) (eventually_map.2 _),
+    exact eventually_lift'_powerset.2 ⟨s, self_mem_nhds_within, λ t, dimH_mono⟩ },
+  { rw ← bsupr_limsup_dimH, exact bsupr_le_supr _ _ }
+end
+
+end
 
 /-!
 ### Hausdorff dimension and Hölder continuity
@@ -249,8 +303,8 @@ lemma dimH_image_le_of_locally_holder_on [second_countable_topology X] {r : ℝ�
 begin
   choose! C t htn hC using hf,
   rcases countable_cover_nhds_within htn with ⟨u, hus, huc, huU⟩,
-  replace huU := inter_eq_self_of_subset_left huU, rw inter_bUnion at huU,
-  rw [← huU, image_bUnion, dimH_bUnion huc, dimH_bUnion huc], simp only [ennreal.supr_div],
+  replace huU := inter_eq_self_of_subset_left huU, rw inter_Union₂ at huU,
+  rw [← huU, image_Union₂, dimH_bUnion huc, dimH_bUnion huc], simp only [ennreal.supr_div],
   exact bsupr_le_bsupr (λ x hx, ((hC x (hus hx)).mono (inter_subset_right _ _)).dimH_image_le hr)
 end
 
@@ -405,7 +459,6 @@ by rw [dimH_univ_pi, fintype.card_fin]
 theorem dimH_of_mem_nhds {x : E} {s : set E} (h : s ∈ 𝓝 x) :
   dimH s = finrank ℝ E :=
 begin
-  haveI : finite_dimensional ℝ (fin (finrank ℝ E) → ℝ), from is_noetherian_pi',
   have e : E ≃L[ℝ] (fin (finrank ℝ E) → ℝ),
     from continuous_linear_equiv.of_finrank_eq (finite_dimensional.finrank_fin_fun ℝ).symm,
   rw ← e.dimH_image,

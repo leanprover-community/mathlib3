@@ -698,7 +698,7 @@ add_tactic_doc
 
 /--
 Navigate to the left-hand-side of a relation.
-A goal of `| a = b` will turn into the the goal `| a`.
+A goal of `| a = b` will turn into the goal `| a`.
 -/
 add_tactic_doc
 { name       := "conv: to_lhs",
@@ -708,7 +708,7 @@ add_tactic_doc
 
 /--
 Navigate to the right-hand-side of a relation.
-A goal of `| a = b` will turn into the the goal `| b`.
+A goal of `| a = b` will turn into the goal `| b`.
 -/
 add_tactic_doc
 { name       := "conv: to_rhs",

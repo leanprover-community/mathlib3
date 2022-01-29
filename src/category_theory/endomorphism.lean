@@ -90,7 +90,7 @@ by refine_struct
   mul := flip iso.trans,
   div := _,
   npow := @npow_rec (Aut X) ⟨iso.refl X⟩ ⟨flip iso.trans⟩,
-  gpow := @gpow_rec (Aut X) ⟨iso.refl X⟩ ⟨flip iso.trans⟩ ⟨iso.symm⟩ };
+  zpow := @zpow_rec (Aut X) ⟨iso.refl X⟩ ⟨flip iso.trans⟩ ⟨iso.symm⟩ };
 intros; try { refl }; ext;
 simp [flip, (*), monoid.mul, mul_one_class.mul, mul_one_class.one, has_one.one, monoid.one,
   has_inv.inv]
@@ -99,7 +99,7 @@ simp [flip, (*), monoid.mul, mul_one_class.mul, mul_one_class.one, has_one.one, 
 Units in the monoid of endomorphisms of an object
 are (multiplicatively) equivalent to automorphisms of that object.
 -/
-def units_End_equiv_Aut : units (End X) ≃* Aut X :=
+def units_End_equiv_Aut : (End X)ˣ ≃* Aut X :=
 { to_fun := λ f, ⟨f.1, f.2, f.4, f.3⟩,
   inv_fun := λ f, ⟨f.1, f.2, f.4, f.3⟩,
   left_inv := λ ⟨f₁, f₂, f₃, f₄⟩, rfl,

@@ -19,7 +19,6 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {H : Type*} [topological_space H]
 {E : Type*} [normed_group E] [normed_space 𝕜 E]
 
-set_option old_structure_cmd true
 set_option default_priority 100 -- see Note [default priority]
 
 /-- A smooth (semi)ring is a (semi)ring `R` where addition and multiplication are smooth.
@@ -27,7 +26,12 @@ If `R` is a ring, then negation is automatically smooth, as it is multiplication
 -- See note [Design choices about smooth algebraic structures]
 class smooth_ring (I : model_with_corners 𝕜 E H)
   (R : Type*) [semiring R] [topological_space R] [charted_space H R]
-  extends has_smooth_add I R, has_smooth_mul I R : Prop
+  extends has_smooth_add I R : Prop :=
+(smooth_mul : smooth (I.prod I) I (λ p : R×R, p.1 * p.2))
+
+instance smooth_ring.to_has_smooth_mul (I : model_with_corners 𝕜 E H)
+  (R : Type*) [semiring R] [topological_space R] [charted_space H R] [h : smooth_ring I R] :
+  has_smooth_mul I R := { ..h }
 
 instance smooth_ring.to_lie_add_group (I : model_with_corners 𝕜 E H)
   (R : Type*) [ring R] [topological_space R] [charted_space H R] [smooth_ring I R] :

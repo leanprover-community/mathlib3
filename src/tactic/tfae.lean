@@ -13,10 +13,7 @@ This file provides the tactics `tfae_have` and `tfae_finish` for proving the pai
 propositions in a set using various implications between them.
 -/
 
-open expr tactic lean lean.parser
-
 namespace tactic
-open interactive interactive.types expr
 
 export list (tfae)
 
@@ -42,6 +39,7 @@ end tfae
 
 namespace interactive
 
+setup_tactic_parser
 open tactic.tfae list
 
 meta def parse_list : expr → option (list expr)

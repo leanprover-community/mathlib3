@@ -3,9 +3,8 @@ Copyright (c) 2021 Yaël Dillies, Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Bhavik Mehta
 -/
-import analysis.convex.caratheodory
+import analysis.convex.combination
 import analysis.convex.extreme
-import linear_algebra.affine_space.independent
 
 /-!
 # Convex independence
@@ -181,19 +180,16 @@ begin
     refine h {b} a _,
     rw [hab, image_singleton, coe_singleton, convex_hull_singleton],
     exact set.mem_singleton _ },
-  let s' : finset ι :=
-    (caratheodory.min_card_finset_of_mem_convex_hull hx).preimage p (hp.inj_on _),
-  suffices hs' : x ∈ s',
-  { rw ←hp.mem_set_image,
-    rw [finset.mem_preimage, ←mem_coe] at hs',
-    exact caratheodory.min_card_finset_of_mem_convex_hull_subseteq hx hs' },
-  refine h s' x _,
-  have : s'.image p = caratheodory.min_card_finset_of_mem_convex_hull hx,
-  { rw [image_preimage, filter_true_of_mem],
-    exact λ y hy, set.image_subset_range _ s
-      (caratheodory.min_card_finset_of_mem_convex_hull_subseteq hx $ mem_coe.2 hy) },
-  rw this,
-  exact caratheodory.mem_min_card_finset_of_mem_convex_hull hx,
+  rw convex_hull_eq_union_convex_hull_finite_subsets at hx,
+  simp_rw set.mem_Union at hx,
+  obtain ⟨t, ht, hx⟩ := hx,
+  rw ←hp.mem_set_image,
+  refine ht _,
+  suffices : x ∈ t.preimage p (hp.inj_on _),
+  { rwa [mem_preimage, ←mem_coe] at this },
+  refine h _ x _,
+  rwa [t.image_preimage p (hp.inj_on _), filter_true_of_mem],
+  { exact λ y hy, s.image_subset_range p (ht $ mem_coe.2 hy) }
 end
 
 /-! ### Extreme points -/

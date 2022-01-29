@@ -15,7 +15,8 @@ variables {α : Type*}
 
 /-! ### sup -/
 section sup
-variables [semilattice_sup_bot α]
+-- can be defined with just `[has_bot α]` where some lemmas hold without requiring `[order_bot α]`
+variables [semilattice_sup α] [order_bot α]
 
 /-- Supremum of a multiset: `sup {a, b, c} = a ⊔ b ⊔ c` -/
 def sup (s : multiset α) : α := s.fold (⊔) ⊥
@@ -73,7 +74,8 @@ end sup
 
 /-! ### inf -/
 section inf
-variables [semilattice_inf_top α]
+-- can be defined with just `[has_top α]` where some lemmas hold without requiring `[order_top α]`
+variables [semilattice_inf α] [order_top α]
 
 /-- Infimum of a multiset: `inf {a, b, c} = a ⊓ b ⊓ c` -/
 def inf (s : multiset α) : α := s.fold (⊓) ⊤

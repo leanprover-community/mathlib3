@@ -48,6 +48,12 @@ protected def copy (p : my_subobject X) (s : set X) (hs : s = ↑p) : my_subobje
 { carrier := s,
   op_mem' := hs.symm ▸ p.op_mem' }
 
+@[simp] lemma coe_copy (p : my_subobject X) (s : set X) (hs : s = ↑p) :
+  (p.copy s hs : set X) = s := rfl
+
+lemma copy_eq (p : my_subobject X) (s : set X) (hs : s = ↑p) : p.copy s hs = p :=
+set_like.coe_injective hs
+
 end my_subobject
 ```
 
@@ -62,7 +68,6 @@ While this is equivalent, `set_like` conveniently uses a carrier set projection 
 
 subobjects
 -/
-set_option old_structure_cmd true
 
 /-- A class to indicate that there is a canonical injection between `A` and `set B`.
 
@@ -93,11 +98,11 @@ instance : has_mem B A := ⟨λ x p, x ∈ (p : set B)⟩
 
 -- `dangerous_instance` does not know that `B` is used only as an `out_param`
 @[nolint dangerous_instance, priority 100]
-instance : has_coe_to_sort A := ⟨_, λ p, {x : B // x ∈ p}⟩
+instance : has_coe_to_sort A Type* := ⟨λ p, {x : B // x ∈ p}⟩
 
 variables (p q : A)
 
-@[simp, norm_cast] theorem coe_sort_coe : ↥(p : set B) = p := rfl
+@[simp, norm_cast] theorem coe_sort_coe : ((p : set B) : Type*) = p := rfl
 
 variables {p q}
 

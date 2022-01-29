@@ -27,7 +27,7 @@ sense). We do not define that quantity here, which is simply the supremum of a m
 -/
 
 open measure_theory filter
-open_locale ennreal
+open_locale ennreal measure_theory
 
 variables {α β : Type*} {m : measurable_space α} {μ ν : measure α}
 

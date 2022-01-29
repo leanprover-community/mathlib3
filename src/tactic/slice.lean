@@ -72,8 +72,7 @@ do t ← target,
    try tactic.triv, try (tactic.reflexivity reducible)
 
 namespace interactive
-open interactive
-open lean.parser
+setup_tactic_parser
 
 /--
 `slice_lhs a b { tac }` zooms to the left hand side, uses associativity for categorical

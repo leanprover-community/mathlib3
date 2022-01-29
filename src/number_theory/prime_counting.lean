@@ -56,7 +56,7 @@ lemma monotone_prime_counting : monotone prime_counting :=
 λ a b a_le_b, monotone_prime_counting' (add_le_add_right a_le_b 1)
 
 /-- A linear upper bound on the size of the `prime_counting'` function -/
-lemma prime_counting'_add_le (n k a : ℕ) (h0 : 0 < a) (h1 : a < k) :
+lemma prime_counting'_add_le {a k : ℕ} (h0 : 0 < a) (h1 : a < k) (n : ℕ) :
   π' (k + n) ≤ π' k + nat.totient a * (n / a + 1) :=
 calc π' (k + n)
     ≤ ((range k).filter (prime)).card + ((Ico k (k + n)).filter (prime)).card :

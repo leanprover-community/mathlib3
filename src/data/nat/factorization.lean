@@ -132,8 +132,8 @@ begin
   exact sum_congr rfl (λ p hp, prime.factorization_pow (hf p hp)),
 end
 
-lemma prime_finsupp_prod_pow_pos {f : ℕ →₀ ℕ} (hf : ∀ p ∈ f.support, prime p) : 0 < f.prod pow :=
-prod_pos (λ p hp, (pow_ne_zero _ (hf p hp).ne_zero).bot_lt)
+lemma prod_pow_pos_of_ne_zero {f : ℕ →₀ ℕ} (hf : 0 ∉ f.support) : 0 < f.prod pow :=
+finset.prod_pos (λ a ha, zero_lt_iff.mpr (pow_ne_zero _ (λ H, by {subst H, exact hf ha})))
 
 lemma eq_factorization_iff {n : ℕ} {f : ℕ →₀ ℕ} (hn : n ≠ 0) (hf : ∀ p ∈ f.support, prime p) :
   f.prod pow = n ↔ f = n.factorization :=
@@ -144,7 +144,7 @@ lemma eq_factorization_iff {n : ℕ} {f : ℕ →₀ ℕ} (hn : n ≠ 0) (hf : �
 noncomputable
 def factorization_equiv : ℕ+ ≃ {f : ℕ →₀ ℕ | ∀ p ∈ f.support, prime p} :=
 { to_fun    := λ ⟨n, hn⟩, ⟨n.factorization, λ _, prime_of_mem_factorization⟩,
-  inv_fun   := λ ⟨f, hf⟩, ⟨f.prod pow, prime_finsupp_prod_pow_pos hf⟩,
+  inv_fun   := λ ⟨f, hf⟩, ⟨f.prod pow, prod_pow_pos_of_ne_zero (λ H, not_prime_zero (hf 0 H))⟩,
   left_inv  := λ ⟨x, hx⟩, subtype.ext $ factorization_prod_pow_eq_self hx.ne.symm,
   right_inv := λ ⟨f, hf⟩, subtype.ext $ factorization_prod_pow_inv hf }
 

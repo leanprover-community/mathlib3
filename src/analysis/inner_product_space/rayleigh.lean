@@ -174,8 +174,18 @@ le_csupr_of_le (neg_rayleigh_bdd_above T) 0 (by simp)
 
 lemma supr_abs_rayleigh_eq_sup_supr :
   (⨆ x : sphere (0:E) 1, |rayleigh_quotient x|) =
-    max (⨆ x : sphere (0:E) 1, rayleigh_quotient x)
-        (⨆ x : sphere (0:E) 1, -rayleigh_quotient x) :=
+    (⨆ x : sphere (0:E) 1, rayleigh_quotient x) ⊔
+    (⨆ x : sphere (0:E) 1, -rayleigh_quotient x) :=
+sorry
+
+noncomputable def signed_supr_rayleigh : ℝ :=
+  if (⨆ x : sphere (0:E) 1, |rayleigh_quotient x|) =
+      (⨆ x : sphere (0:E) 1, rayleigh_quotient x)
+  then (⨆ x : sphere (0:E) 1, rayleigh_quotient x)
+  else (⨆ x : sphere (0:E) 1, -rayleigh_quotient x)
+
+lemma abs_signed_supr_rayleigh :
+  |T.signed_supr_rayleigh| = (⨆ x : sphere (0:E) 1, |rayleigh_quotient x|) :=
 sorry
 
 lemma supr_abs_rayleigh_sphere_bdd_above {r : ℝ} (hr : 0 ≤ r) :
@@ -274,7 +284,7 @@ lemma norm_eq_supr_abs_rayleigh_sphere (hT : is_self_adjoint T.to_linear_map) :
 begin
   rcases subsingleton_or_nontrivial E with h_trivE|h_nontrivE,
   { haveI := h_trivE,
-    haveI : is_empty (sphere (0:E) 1) := sphere_is_empty_of_subsingleton zero_lt_one,
+    haveI : is_empty (sphere (0:E) 1) := sphere_is_empty_of_subsingleton one_ne_zero,
     rw [real.csupr_empty, op_norm_subsingleton] },
   haveI := h_nontrivE,
   haveI : nonempty (sphere (0:E) 1) := sphere_nonempty zero_le_one,
@@ -504,91 +514,91 @@ begin
     simp only [mem_eigenspace_iff, h_triv, zero_smul, continuous_linear_map.to_linear_map_eq_coe, continuous_linear_map.coe_zero,
               linear_map.zero_apply] },
   { change T ≠ 0 at h_triv,
-    { set a := ∥T∥ with a_def,   -- need to case-split on pos vs neg eigenvalue somehow
-      have a_ne_zero : a ≠ 0,
-      { rw [a_def],
-        exact ne_of_gt (norm_pos_iff.mpr h_triv) },
-      refine ⟨a, _⟩,
-      set l₁ : filter u_sph :=
-        filter.comap (λ x, |rayleigh_quotient x|) (𝓝[set.range rayleigh_quotient_sphere] a),
-      set l₂ : filter E := l₁.map (λ x : u_sph, T x),
-      have h_bdd_range : bdd_above (set.range rayleigh_quotient_sphere) :=
-        T.supr_abs_rayleigh_sphere_bdd_above zero_le_one,
-      have h_range_nonempty : (set.range rayleigh_quotient_sphere).nonempty,
-      { exact set.range_nonempty _ },
-      have h_ne_bot : (𝓝[set.range rayleigh_quotient_sphere] a).ne_bot,
-      { rw [a_def, hT.norm_eq_supr_abs_rayleigh_sphere],
-        exact is_lub.nhds_within_ne_bot (is_lub_csupr h_bdd_range) h_range_nonempty },
-      have hl₂ : l₂ ≤ 𝓟 (closure (T '' u_sph)) := by
-      { refine le_trans _ (filter.monotone_principal subset_closure),
-        have : T '' u_sph = set.range (λ x : u_sph, T x),
-        { ext, simp only [exists_prop, set.mem_range, set.mem_image, set_coe.exists, subtype.coe_mk]},
-        rw [this, filter.map_le_iff_le_comap, filter.comap_principal],
-        simp only [le_top, filter.principal_univ, set.preimage_range] },
-      haveI : l₁.ne_bot := filter.ne_bot.comap_of_range_mem h_ne_bot self_mem_nhds_within,
-      -- The image of T on the sphere is compact since T is a compact operator
-      have h_img_cpct : is_compact (closure (T '' u_sph)) := hT_cpct _ bounded_sphere,
-      -- f₂ is guaranteed to have a cluster point z for some vector z by compactness of T
-      have hl₂' := h_img_cpct hl₂,
-      rcases hl₂' with ⟨z, ⟨hz₁, hz₂⟩⟩,
-      set l₁sub : filter u_sph := l₁ ⊓ (𝓝 z ⊓ l₂).comap (λ x, T x),
-      haveI : l₁sub.ne_bot,
-      { simp only [←filter.map_ne_bot_iff (λ x : u_sph, T x), l₁sub, filter.push_pull, ←l₂, inf_comm],
-        simp_rw [←inf_assoc, inf_idem],
-        rw [inf_comm],
-        exact hz₂.ne_bot },
-      have h_premain : l₁sub.tendsto (λ y, T y) (𝓝 z),
-      { refine filter.tendsto.mono_left _ inf_le_right,
-        simp only [filter.tendsto, filter.map_comap, inf_assoc, inf_le_left] },
-      have h_main : l₁sub.tendsto (λ y : u_sph, (a : 𝕜) • (y : E)) (𝓝 z),
-      { -- FIXME split off this normsq stuff as lemma
-        refine tendsto_of_tendsto_of_dist h_premain _,
-        simp only [dist_eq_norm],
-        have h₁₂ : (λ x : u_sph, ∥T x - (a : 𝕜) • x∥) = (λ x : u_sph, real.sqrt (∥T x - (a : 𝕜) • x∥ ^ 2)),
-        { simp_rw [real.sqrt_sq (norm_nonneg _)] },
-        rw [h₁₂, ←real.sqrt_zero],
-        refine filter.tendsto.sqrt _,
-        -- argument from Einsiedler-Ward
-        -- We have to use squeeze_zero here
-        simp_rw [norm_sub_sq, norm_smul, inner_smul_right, is_R_or_C.of_real_mul_re],
-        sorry },
-      have hz_norm : ∥z∥ = a,
-      { have := h_main.norm,
-        have h_smul : (λ y : u_sph, ∥(a : 𝕜) • (y : E)∥) = λ y, a,
-        { ext, simp [norm_smul] },
-        simp [h_smul] at this,
-        refine eq.symm _,
-        refine tendsto_nhds_unique tendsto_const_nhds this },
-      have z_ne_zero : z ≠ 0,
-      { rintro hz_zero,
-        rw [hz_zero, norm_zero] at hz_norm,
-        exact a_ne_zero hz_norm.symm },
-      let zs : u_sph := ⟨(∥z∥⁻¹ : 𝕜) • z, by rw [mem_sphere, dist_eq_norm, sub_zero,
-                                                norm_smul_inv_norm z_ne_zero]⟩,
-      have h₂ : (a : 𝕜) • (zs : E) = z,
-      { have : (∥z∥ : 𝕜) ≠ 0,
-        { rw [hz_norm],
-          norm_cast,
-          exact a_ne_zero },
-        simp only [←hz_norm, smul_smul, mul_inv_cancel this, one_smul, subtype.coe_mk] },
-      have h₃ : (zs : E) ≠ 0 := nonzero_of_mem_unit_sphere zs,
-        -- ne_zero_of_mem_unit_sphere zs,     -- new name in latest mathlib
-      have hzs : (a⁻¹ : 𝕜) • z = zs,
-      { simp only [hz_norm, subtype.coe_mk]},
-      have h₄ : l₁sub ≤ 𝓝 zs,
-      { have h_main' := filter.tendsto.const_smul h_main (a⁻¹ : 𝕜),
-        have a_ne_zero' : (a : 𝕜) ≠ 0 := by simp [a_ne_zero],
-        simp only [smul_smul, inv_mul_cancel a_ne_zero', filter.tendsto_iff_comap, hzs, one_smul] at h_main',
-        convert h_main',
-        exact nhds_subtype_eq_comap },
-      refine has_eigenvalue_of_has_eigenvector ⟨_, h₃⟩,
-      rw [mem_eigenspace_iff, h₂],
-      refine tendsto_nhds_unique _ h_premain,
-      refine filter.tendsto.mono_left _ h₄,
-      have Tsph_cont : continuous (λ x : u_sph, T x) :=
-        continuous.comp T.continuous continuous_subtype_coe,
-      exact Tsph_cont.tendsto _,
-  } }
+    --set a := ∥T∥ with a_def,   -- need to case-split on pos vs neg eigenvalue somehow
+    set a := T.signed_supr_rayleigh with a_def,
+    have a_ne_zero : a ≠ 0,
+    { rw [a_def],
+      exact ne_of_gt (norm_pos_iff.mpr h_triv) },
+    refine ⟨a, _⟩,
+    set l₁ : filter u_sph :=
+      filter.comap (λ x, |rayleigh_quotient x|) (𝓝[set.range rayleigh_quotient_sphere] a),
+    set l₂ : filter E := l₁.map (λ x : u_sph, T x),
+    have h_bdd_range : bdd_above (set.range rayleigh_quotient_sphere) :=
+      T.supr_abs_rayleigh_sphere_bdd_above zero_le_one,
+    have h_range_nonempty : (set.range rayleigh_quotient_sphere).nonempty,
+    { exact set.range_nonempty _ },
+    have h_ne_bot : (𝓝[set.range rayleigh_quotient_sphere] a).ne_bot,
+    { rw [a_def, hT.norm_eq_supr_abs_rayleigh_sphere],
+      exact is_lub.nhds_within_ne_bot (is_lub_csupr h_bdd_range) h_range_nonempty },
+    have hl₂ : l₂ ≤ 𝓟 (closure (T '' u_sph)) := by
+    { refine le_trans _ (filter.monotone_principal subset_closure),
+      have : T '' u_sph = set.range (λ x : u_sph, T x),
+      { ext, simp only [exists_prop, set.mem_range, set.mem_image, set_coe.exists, subtype.coe_mk]},
+      rw [this, filter.map_le_iff_le_comap, filter.comap_principal],
+      simp only [le_top, filter.principal_univ, set.preimage_range] },
+    haveI : l₁.ne_bot := filter.ne_bot.comap_of_range_mem h_ne_bot self_mem_nhds_within,
+    -- The image of T on the sphere is compact since T is a compact operator
+    have h_img_cpct : is_compact (closure (T '' u_sph)) := hT_cpct _ bounded_sphere,
+    -- l₂ is guaranteed to have a cluster point z for some vector z by compactness of T
+    have hl₂' := h_img_cpct hl₂,
+    rcases hl₂' with ⟨z, ⟨hz₁, hz₂⟩⟩,
+    set l₁sub : filter u_sph := l₁ ⊓ (𝓝 z ⊓ l₂).comap (λ x, T x),
+    haveI : l₁sub.ne_bot,
+    { simp only [←filter.map_ne_bot_iff (λ x : u_sph, T x), l₁sub, filter.push_pull, ←l₂, inf_comm],
+      simp_rw [←inf_assoc, inf_idem],
+      rw [inf_comm],
+      exact hz₂.ne_bot },
+    have h_premain : l₁sub.tendsto (λ y, T y) (𝓝 z),
+    { refine filter.tendsto.mono_left _ inf_le_right,
+      simp only [filter.tendsto, filter.map_comap, inf_assoc, inf_le_left] },
+    have h_main : l₁sub.tendsto (λ y : u_sph, (a : 𝕜) • (y : E)) (𝓝 z),
+    { -- FIXME split off this normsq stuff as lemma
+      refine tendsto_of_tendsto_of_dist h_premain _,
+      simp only [dist_eq_norm],
+      have h₁₂ : (λ x : u_sph, ∥T x - (a : 𝕜) • x∥) = (λ x : u_sph, real.sqrt (∥T x - (a : 𝕜) • x∥ ^ 2)),
+      { simp_rw [real.sqrt_sq (norm_nonneg _)] },
+      rw [h₁₂, ←real.sqrt_zero],
+      refine filter.tendsto.sqrt _,
+      -- argument from Einsiedler-Ward
+      -- We have to use squeeze_zero here
+      simp_rw [norm_sub_sq, norm_smul, inner_smul_right, is_R_or_C.of_real_mul_re],
+      sorry },
+    have hz_norm : ∥z∥ = a,
+    { have := h_main.norm,
+      have h_smul : (λ y : u_sph, ∥(a : 𝕜) • (y : E)∥) = λ y, a,
+      { ext, simp [norm_smul] },
+      simp [h_smul] at this,
+      refine eq.symm _,
+      refine tendsto_nhds_unique tendsto_const_nhds this },
+    have z_ne_zero : z ≠ 0,
+    { rintro hz_zero,
+      rw [hz_zero, norm_zero] at hz_norm,
+      exact a_ne_zero hz_norm.symm },
+    let zs : u_sph := ⟨(∥z∥⁻¹ : 𝕜) • z, by rw [mem_sphere, dist_eq_norm, sub_zero,
+                                              norm_smul_inv_norm z_ne_zero]⟩,
+    have h₂ : (a : 𝕜) • (zs : E) = z,
+    { have : (∥z∥ : 𝕜) ≠ 0,
+      { rw [hz_norm],
+        norm_cast,
+        exact a_ne_zero },
+      simp only [←hz_norm, smul_smul, mul_inv_cancel this, one_smul, subtype.coe_mk] },
+    have h₃ : (zs : E) ≠ 0 := nonzero_of_mem_unit_sphere zs,
+      -- ne_zero_of_mem_unit_sphere zs,     -- new name in latest mathlib
+    have hzs : (a⁻¹ : 𝕜) • z = zs,
+    { simp only [hz_norm, subtype.coe_mk]},
+    have h₄ : l₁sub ≤ 𝓝 zs,
+    { have h_main' := filter.tendsto.const_smul h_main (a⁻¹ : 𝕜),
+      have a_ne_zero' : (a : 𝕜) ≠ 0 := by simp [a_ne_zero],
+      simp only [smul_smul, inv_mul_cancel a_ne_zero', filter.tendsto_iff_comap, hzs, one_smul] at h_main',
+      convert h_main',
+      exact nhds_subtype_eq_comap },
+    refine has_eigenvalue_of_has_eigenvector ⟨_, h₃⟩,
+    rw [mem_eigenspace_iff, h₂],
+    refine tendsto_nhds_unique _ h_premain,
+    refine filter.tendsto.mono_left _ h₄,
+    have Tsph_cont : continuous (λ x : u_sph, T x) :=
+      continuous.comp T.continuous continuous_subtype_coe,
+    exact Tsph_cont.tendsto _ }
 end
 
 lemma subsingleton_of_no_eigenvalue_of_compact (hT : is_self_adjoint T.to_linear_map)

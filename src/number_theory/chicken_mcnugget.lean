@@ -56,7 +56,8 @@ lemma chicken_mcnugget_upper_bound {m n : ℕ} (cop : coprime m n) (hm : 1 < m) 
   (a b : ℕ) :
   a * m + b * n ≠ m * n - m - n :=
 begin
-  refine λ h, chicken_mcnugget_upper_bound_aux _ _ m n (add_one_ne_zero a) (add_one_ne_zero b) cop,
+  intro h,
+  apply chicken_mcnugget_upper_bound_aux (a+1) (b+1) m n (add_one_ne_zero a) (add_one_ne_zero b) cop,
   rw [add_mul, add_mul, one_mul, one_mul, add_assoc, ←add_assoc m, add_comm m, add_assoc,
       ←add_assoc, h, nat.sub_sub, nat.sub_add_cancel (add_le_mul hm hn)],
 end
@@ -80,8 +81,10 @@ end
 /-- Combines both sublemmas in a single claim. -/
 theorem chicken_mcnugget_split (m n : ℕ) (cop : coprime m n) (hm : 1 < m) (hn : 1 < n) :
   (¬ ∃ a b, a * m + b * n = m * n - m - n) ∧ ∀ k, m * n - m - n < k → ∃ a b, a * m + b * n = k :=
-⟨chicken_mcnugget_upper_bound m n cop hm hn, chicken_mcnugget_construction m n cop hm hn⟩
-
+begin
+  push_neg,
+  exact ⟨chicken_mcnugget_upper_bound cop hm hn, chicken_mcnugget_construction m n cop hm hn⟩,
+end
 /-- Rewrites the above with `is_greatest`. -/
 theorem chicken_mcnugget (m n : ℕ) (cop: coprime m n) (hm : 1 < m) (hn : 1 < n) :
   is_greatest {k | ∀ a b, a * m + b * n ≠ k} (m * n - m - n) :=

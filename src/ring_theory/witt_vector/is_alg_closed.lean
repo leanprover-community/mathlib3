@@ -101,10 +101,12 @@ section recursive_case_poly
 -- this section is the attempt to define a `polynomial k` with positive degree.
 -- the solution to this poly will be the `n+1`st entry of our desired Witt vector.
 
-open witt_vector finset mv_polynomial
+open witt_vector finset
 open_locale big_operators
 
 
+section
+open mv_polynomial
 
 /--
 (∑ i : fin n, (y.coeff i)^(p^(n-i)) * p^i.val) * (∑ i : fin n, (y.coeff i)^(p^(n-i)) * p^i.val)
@@ -334,108 +336,30 @@ begin
   { simpa using coeff_truncate_fun x ⟨m, ha'⟩ }
 end
 
-
--- what follows below is the previous attempt to do this directly in k.
--- a bit of the code may still be salvageable.
+end
 
 variable (n : ℕ)
 
-#check witt_structure_int_prop p (witt_mul p n) n
-
-#check witt_polynomial
-
-
-lemma nth_mul_coeff_aux1 (n : ℕ) (x y : 𝕎 k) :
-  ∑ i in range (n+1), ((x * y).coeff i)^(p^(n-i)) * p^i =
-  (∑ i in range (n+1), (x.coeff i)^(p^(n-i)) * p^i)*(∑ i in range (n+1), (y.coeff i)^(p^(n-i)) * p^i) :=
-begin
-  have := witt_structure_prop p ((mv_polynomial.X 0 * mv_polynomial.X 1) : mv_polynomial (fin 2) ℤ) n,
-  replace this := congr_arg (λ z, witt_vector.peval z ![λ i, x.coeff i, λ i, y.coeff i]) this,
-  have mvpz : (p : mv_polynomial ℕ ℤ) = mv_polynomial.C ↑p := by rw [ring_hom.eq_int_cast, int.cast_coe_nat ],
-  have mvp : (p : mv_polynomial (fin 2 × ℕ) ℤ) = mv_polynomial.C ↑p := by rw [ring_hom.eq_int_cast, int.cast_coe_nat ],
-  simp only [int.cast_coe_nat, ring_hom.eq_int_cast, mv_polynomial.eval₂_mul, witt_vector.peval,
-    ring_hom.to_fun_eq_coe, mv_polynomial.coe_eval₂_hom, mv_polynomial.C_pow, mv_polynomial.aeval,
-    mv_polynomial.eval₂_map, witt_polynomial_eq_sum_C_mul_X_pow, int.nat_cast_eq_coe_nat,
-    alg_hom.coe_mk, mv_polynomial.eval₂_sum, mv_polynomial.eval₂_X, finset.sum_congr,
-    mv_polynomial.eval₂_pow] at this,
-  rw [mvpz, mv_polynomial.eval₂_C, ring_hom.eq_int_cast, int.cast_coe_nat,
-      mvp, mv_polynomial.eval₂_C, ring_hom.eq_int_cast, int.cast_coe_nat] at this,
-  simp only [mul_coeff],
-  convert this using 2; clear this,
-  { ext,
-    rw mul_comm,
-    simp only [peval, mv_polynomial.aeval, ring_hom.to_fun_eq_coe, mv_polynomial.coe_eval₂_hom, alg_hom.coe_mk],
-    congr },
-  all_goals
-  { simp only [mv_polynomial.eval₂_rename, int.cast_coe_nat, ring_hom.eq_int_cast, mv_polynomial.eval₂_mul,
-    function.uncurry_apply_pair, function.comp_app, mv_polynomial.eval₂_sum, mv_polynomial.eval₂_X,
-    matrix.cons_val_zero, mv_polynomial.eval₂_pow],
-    congr' 1 with z,
-    rw [mvpz, mv_polynomial.eval₂_C, mul_comm],
-    refl },
-end
-
-#exit
-def trunc_sub_prod_coeff (n : ℕ) (x y : truncated_witt_vector p n k) : k :=
-∑ (i : fin n), (x * y).coeff i ^ p ^ (n - i) * ↑p ^ i.val
-
-lemma nth_mul_coeff_aux2 (n : ℕ) (x y : 𝕎 k) :
-  (x * y).coeff n * p^n + trunc_sub_prod_coeff _ _ (truncate_fun n x) (truncate_fun n y) =
-  (∑ i in range (n+1), (x.coeff i)^(p^(n-i)) * p^i)*(∑ i in range (n+1), (y.coeff i)^(p^(n-i)) * p^i) :=
-begin
-  rw [← nth_mul_coeff_aux1, finset.sum_range_succ, add_comm, nat.sub_self, pow_zero, pow_one],
-  congr' 1,
-  simp only [trunc_sub_prod_coeff, fin.val_eq_coe, ← truncate_fun_mul, coeff_truncate_fun],
-  sorry -- sum over fin vs sum over range
-end
-
-def trunc_sum_prod (n : ℕ) (x y : truncated_witt_vector p n k) : k :=
-(∑ i : fin n, (y.coeff i)^(p^(n-i)) * p^i.val) * (∑ i : fin n, (y.coeff i)^(p^(n-i)) * p^i.val)
-
-lemma nth_mul_coeff_aux3 (n : ℕ) (x y : 𝕎 k) :
-  (x * y).coeff n * p^n + trunc_sub_prod_coeff _ _ (truncate_fun n x) (truncate_fun n y) =
-    trunc_sum_prod _ _ (truncate_fun n x) (truncate_fun n y) +
-    x.coeff n * p^n * (∑ i in range n, (y.coeff i)^(p^(n-i)) * p^i) +
-    y.coeff n * p^n * (∑ i in range n, (x.coeff i)^(p^(n-i)) * p^i) +
-    x.coeff n * p^n * y.coeff n * p^n :=
-begin
-  simp only [nth_mul_coeff_aux2, finset.prod_sum_succ, pow_one, tsub_self, pow_zero],
-  congr' 1,
-  { simp only [trunc_sum_prod, ← truncate_fun_mul, coeff_truncate_fun],
-    congr' 2,
-    sorry }, -- sum over fin vs sum over range
-  { simp only [mul_assoc] }
-end
-
-lemma nth_mul_coeff_aux4 (n : ℕ) (x y : 𝕎 k) :
-  (x * y).coeff n =
-    (x.coeff n * p^n * (∑ i in range n, (y.coeff i)^(p^(n-i)) * p^i) +
-    y.coeff n * p^n * (∑ i in range n, (x.coeff i)^(p^(n-i)) * p^i) +
-    x.coeff n * p^n * y.coeff n * p^n +
-    (trunc_sum_prod _ _ (truncate_fun n x) (truncate_fun n y) -
-      trunc_sub_prod_coeff _ _ (truncate_fun n x) (truncate_fun n y))) / p^n :=
-begin
-  rw [eq_div_iff, add_sub, eq_sub_iff_add_eq, nth_mul_coeff_aux3],
-  { ring },
-  {  -- uh oh
-    sorry }
-end
-
 -- this is the version we think is true in char p
 lemma nth_mul_coeff (n : ℕ) : ∃ f : (truncated_witt_vector p (n+1) k → truncated_witt_vector p (n+1) k → k), ∀ (x y : 𝕎 k),
-  (x * y).coeff (n+1) = x.coeff (n+1) * y.coeff 0 ^ (p^(n+1)) + y.coeff (n+1) * x.coeff 0 ^ (p^(n+1))
+  (x * y).coeff (n+1) = x.coeff (n+1) * y.coeff 0 ^ (p^n) + y.coeff (n+1) * x.coeff 0 ^ (p^n)
     + f (truncate_fun (n+1) x) (truncate_fun (n+1) y) :=
 begin
-  refine ⟨λ x y, (trunc_sum_prod _ _ x y - trunc_sub_prod_coeff _ _ x y) / p^(n+1), λ x y, _⟩,
-  sorry
+  obtain ⟨f, hf⟩ := nth_mul_coeff' p n,
+  { use f,
+    intros x y,
+    rw hf x y,
+    ring },
+  { apply_instance },
+  { apply_instance },
+  { apply_instance },
 end
-
 
 def nth_remainder (n : ℕ) : (fin (n+1) → k) → (fin (n+1) → k) → k :=
 classical.some (nth_mul_coeff p n)
 
 lemma nth_remainder_spec (n : ℕ) (x y : 𝕎 k) :
-  (x * y).coeff (n+1) = x.coeff (n+1) * y.coeff 0 ^ (p^(n+1)) + y.coeff (n+1) * x.coeff 0 ^ (p^(n+1))
+  (x * y).coeff (n+1) = x.coeff (n+1) * y.coeff 0 ^ (p^n) + y.coeff (n+1) * x.coeff 0 ^ (p^n)
     + nth_remainder p n (truncate_fun (n+1) x) (truncate_fun (n+1) y) :=
 classical.some_spec (nth_mul_coeff p n) _ _
 
@@ -443,19 +367,19 @@ classical.some_spec (nth_mul_coeff p n) _ _
 open polynomial
 
 def succ_nth_defining_poly (n : ℕ) (a₁ a₂ : 𝕎 k) (bs : fin (n+1) → k) : polynomial k :=
-X^p * C (a₁.coeff 0 ^ (p^(n+1))) - X * C (a₂.coeff 0 ^ (p^(n+1)))
-  + C (a₁.coeff (n+1) * ((bs 0)^p)^(p^(n+1)) + nth_remainder p n (λ v, (bs v)^p) (truncate_fun (n+1) a₁)
-       - a₂.coeff (n+1) * (bs 0)^p^(n+1) - nth_remainder p n bs (truncate_fun (n+1) a₂))
+X^p * C (a₁.coeff 0 ^ (p^n)) - X * C (a₂.coeff 0 ^ (p^n))
+  + C (a₁.coeff (n+1) * ((bs 0)^p)^(p^n) + nth_remainder p n (λ v, (bs v)^p) (truncate_fun (n+1) a₁)
+       - a₂.coeff (n+1) * (bs 0)^p^n - nth_remainder p n bs (truncate_fun (n+1) a₂))
 
 lemma succ_nth_defining_poly_degree (n : ℕ) (a₁ a₂ : 𝕎 k) (bs : fin (n+1) → k)
   (ha₁ : a₁.coeff 0 ≠ 0) (ha₂ : a₂.coeff 0 ≠ 0) :
   (succ_nth_defining_poly p n a₁ a₂ bs).degree = p :=
 begin
-  have : (X ^ p * C (a₁.coeff 0 ^ p ^ (n + 1))).degree = p,
+  have : (X ^ p * C (a₁.coeff 0 ^ p ^ n)).degree = p,
   { rw [degree_mul, degree_C],
     { simp only [nat.cast_with_bot, add_zero, degree_X, degree_pow, nat.smul_one_eq_coe] },
     { exact pow_ne_zero _ ha₁ } },
-  have : (X ^ p * C (a₁.coeff 0 ^ p ^ (n + 1)) - X * C (a₂.coeff 0 ^ p ^ (n + 1))).degree = p,
+  have : (X ^ p * C (a₁.coeff 0 ^ p ^ n) - X * C (a₂.coeff 0 ^ p ^ n)).degree = p,
   { rw [degree_sub_eq_left_of_degree_lt, this],
     rw [this, degree_mul, degree_C, degree_X, add_zero],
     { exact_mod_cast hp.out.one_lt },
@@ -483,10 +407,10 @@ classical.some_spec (root_exists p n a₁ a₂ bs ha₁ ha₂)
 
 lemma succ_nth_val_spec' (n : ℕ) (a₁ a₂ : 𝕎 k) (bs : fin (n+1) → k)
   (ha₁ : a₁.coeff 0 ≠ 0) (ha₂ : a₂.coeff 0 ≠ 0) :
-  (succ_nth_val p n a₁ a₂ bs ha₁ ha₂)^p * a₁.coeff 0 ^ (p^(n+1))
-  + a₁.coeff (n+1) * ((bs 0)^p)^(p^(n+1)) + nth_remainder p n (λ v, (bs v)^p) (truncate_fun (n+1) a₁)
-   = (succ_nth_val p n a₁ a₂ bs ha₁ ha₂) * a₂.coeff 0 ^ (p^(n+1))
-     + a₂.coeff (n+1) * (bs 0)^p^(n+1) + nth_remainder p n bs (truncate_fun (n+1) a₂) :=
+  (succ_nth_val p n a₁ a₂ bs ha₁ ha₂)^p * a₁.coeff 0 ^ (p^n)
+  + a₁.coeff (n+1) * ((bs 0)^p)^(p^n) + nth_remainder p n (λ v, (bs v)^p) (truncate_fun (n+1) a₁)
+   = (succ_nth_val p n a₁ a₂ bs ha₁ ha₂) * a₂.coeff 0 ^ (p^n)
+     + a₂.coeff (n+1) * (bs 0)^(p^n) + nth_remainder p n bs (truncate_fun (n+1) a₂) :=
 begin
   rw ← sub_eq_zero,
   have := succ_nth_val_spec p n a₁ a₂ bs ha₁ ha₂,
@@ -611,3 +535,88 @@ begin
     ring },
   { simp only [ring_hom.map_mul, ring_hom.map_pow, map_nat_cast] }
 end
+
+
+-- what follows below is the previous attempt to do this directly in k.
+-- a bit of the code may still be salvageable.
+
+-- #check witt_structure_int_prop p (witt_mul p n) n
+
+-- #check witt_polynomial
+
+
+-- lemma nth_mul_coeff_aux1 (n : ℕ) (x y : 𝕎 k) :
+--   ∑ i in range (n+1), ((x * y).coeff i)^(p^(n-i)) * p^i =
+--   (∑ i in range (n+1), (x.coeff i)^(p^(n-i)) * p^i)*(∑ i in range (n+1), (y.coeff i)^(p^(n-i)) * p^i) :=
+-- begin
+--   have := witt_structure_prop p ((mv_polynomial.X 0 * mv_polynomial.X 1) : mv_polynomial (fin 2) ℤ) n,
+--   replace this := congr_arg (λ z, witt_vector.peval z ![λ i, x.coeff i, λ i, y.coeff i]) this,
+--   have mvpz : (p : mv_polynomial ℕ ℤ) = mv_polynomial.C ↑p := by rw [ring_hom.eq_int_cast, int.cast_coe_nat ],
+--   have mvp : (p : mv_polynomial (fin 2 × ℕ) ℤ) = mv_polynomial.C ↑p := by rw [ring_hom.eq_int_cast, int.cast_coe_nat ],
+--   simp only [int.cast_coe_nat, ring_hom.eq_int_cast, mv_polynomial.eval₂_mul, witt_vector.peval,
+--     ring_hom.to_fun_eq_coe, mv_polynomial.coe_eval₂_hom, mv_polynomial.C_pow, mv_polynomial.aeval,
+--     mv_polynomial.eval₂_map, witt_polynomial_eq_sum_C_mul_X_pow, int.nat_cast_eq_coe_nat,
+--     alg_hom.coe_mk, mv_polynomial.eval₂_sum, mv_polynomial.eval₂_X, finset.sum_congr,
+--     mv_polynomial.eval₂_pow] at this,
+--   rw [mvpz, mv_polynomial.eval₂_C, ring_hom.eq_int_cast, int.cast_coe_nat,
+--       mvp, mv_polynomial.eval₂_C, ring_hom.eq_int_cast, int.cast_coe_nat] at this,
+--   simp only [mul_coeff],
+--   convert this using 2; clear this,
+--   { ext,
+--     rw mul_comm,
+--     simp only [peval, mv_polynomial.aeval, ring_hom.to_fun_eq_coe, mv_polynomial.coe_eval₂_hom, alg_hom.coe_mk],
+--     congr },
+--   all_goals
+--   { simp only [mv_polynomial.eval₂_rename, int.cast_coe_nat, ring_hom.eq_int_cast, mv_polynomial.eval₂_mul,
+--     function.uncurry_apply_pair, function.comp_app, mv_polynomial.eval₂_sum, mv_polynomial.eval₂_X,
+--     matrix.cons_val_zero, mv_polynomial.eval₂_pow],
+--     congr' 1 with z,
+--     rw [mvpz, mv_polynomial.eval₂_C, mul_comm],
+--     refl },
+-- end
+
+-- #exit
+-- def trunc_sub_prod_coeff (n : ℕ) (x y : truncated_witt_vector p n k) : k :=
+-- ∑ (i : fin n), (x * y).coeff i ^ p ^ (n - i) * ↑p ^ i.val
+
+-- lemma nth_mul_coeff_aux2 (n : ℕ) (x y : 𝕎 k) :
+--   (x * y).coeff n * p^n + trunc_sub_prod_coeff _ _ (truncate_fun n x) (truncate_fun n y) =
+--   (∑ i in range (n+1), (x.coeff i)^(p^(n-i)) * p^i)*(∑ i in range (n+1), (y.coeff i)^(p^(n-i)) * p^i) :=
+-- begin
+--   rw [← nth_mul_coeff_aux1, finset.sum_range_succ, add_comm, nat.sub_self, pow_zero, pow_one],
+--   congr' 1,
+--   simp only [trunc_sub_prod_coeff, fin.val_eq_coe, ← truncate_fun_mul, coeff_truncate_fun],
+--   sorry -- sum over fin vs sum over range
+-- end
+
+-- def trunc_sum_prod (n : ℕ) (x y : truncated_witt_vector p n k) : k :=
+-- (∑ i : fin n, (y.coeff i)^(p^(n-i)) * p^i.val) * (∑ i : fin n, (y.coeff i)^(p^(n-i)) * p^i.val)
+
+-- lemma nth_mul_coeff_aux3 (n : ℕ) (x y : 𝕎 k) :
+--   (x * y).coeff n * p^n + trunc_sub_prod_coeff _ _ (truncate_fun n x) (truncate_fun n y) =
+--     trunc_sum_prod _ _ (truncate_fun n x) (truncate_fun n y) +
+--     x.coeff n * p^n * (∑ i in range n, (y.coeff i)^(p^(n-i)) * p^i) +
+--     y.coeff n * p^n * (∑ i in range n, (x.coeff i)^(p^(n-i)) * p^i) +
+--     x.coeff n * p^n * y.coeff n * p^n :=
+-- begin
+--   simp only [nth_mul_coeff_aux2, finset.prod_sum_succ, pow_one, tsub_self, pow_zero],
+--   congr' 1,
+--   { simp only [trunc_sum_prod, ← truncate_fun_mul, coeff_truncate_fun],
+--     congr' 2,
+--     sorry }, -- sum over fin vs sum over range
+--   { simp only [mul_assoc] }
+-- end
+
+-- lemma nth_mul_coeff_aux4 (n : ℕ) (x y : 𝕎 k) :
+--   (x * y).coeff n =
+--     (x.coeff n * p^n * (∑ i in range n, (y.coeff i)^(p^(n-i)) * p^i) +
+--     y.coeff n * p^n * (∑ i in range n, (x.coeff i)^(p^(n-i)) * p^i) +
+--     x.coeff n * p^n * y.coeff n * p^n +
+--     (trunc_sum_prod _ _ (truncate_fun n x) (truncate_fun n y) -
+--       trunc_sub_prod_coeff _ _ (truncate_fun n x) (truncate_fun n y))) / p^n :=
+-- begin
+--   rw [eq_div_iff, add_sub, eq_sub_iff_add_eq, nth_mul_coeff_aux3],
+--   { ring },
+--   {  -- uh oh
+--     sorry }
+-- end

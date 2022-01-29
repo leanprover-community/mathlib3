@@ -580,8 +580,7 @@ by { induction n with i ih, { simp }, { apply general_commutator_mono ih, simp }
 lemma _root_.comm_group.center_eq_top {G : Type*} [comm_group G] : center G = ⊤ := begin
   ext x,
   suffices : x ∈ center G, by simpa,
-  intro y,
-  group,
+  exact λ y, mul_comm y x
 end
 
 lemma _root_.group.comm_group_of_center_eq_top (h : center G = ⊤) : comm_group G :=

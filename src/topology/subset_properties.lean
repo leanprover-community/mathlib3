@@ -1079,8 +1079,12 @@ lemma sigma_compact_space.of_countable (S : set (set α)) (Hc : countable S)
   (Hcomp : ∀ s ∈ S, is_compact s) (HU : ⋃₀ S = univ) : sigma_compact_space α :=
 ⟨(exists_seq_cover_iff_countable ⟨_, is_compact_empty⟩).2 ⟨S, Hc, Hcomp, HU⟩⟩
 
-@[priority 100] -- see Note [lower instance priority]
-instance sigma_compact_space_of_locally_compact_lindelof [locally_compact_space α]
+variable (α)
+
+/-- A locally compact Lindelöf space is a σ-compact space. This is not an instance to avoid a loop
+with `sigma_compact_space.lindelof_space`. A corollary of this lemma,
+`sigma_compact_space_of_locally_compact_second_countable`, is registered as an instance. -/
+lemma sigma_compact_space_of_locally_compact_lindelof [locally_compact_space α]
   [lindelof_space α] : sigma_compact_space α :=
 begin
   choose K hKc hxK using λ x : α, exists_compact_mem_nhds x,
@@ -1089,7 +1093,12 @@ begin
   rwa sUnion_image
 end
 
-variables (α) [sigma_compact_space α]
+@[priority 100] -- see Note [lower instance priority]
+instance sigma_compact_space_of_locally_compact_second_countable [locally_compact_space α]
+  [second_countable_topology α] : sigma_compact_space α :=
+sigma_compact_space_of_locally_compact_lindelof α
+
+variables [sigma_compact_space α]
 open sigma_compact_space
 
 /-- A choice of compact covering for a `σ`-compact space, chosen to be monotone. -/
@@ -1109,9 +1118,8 @@ end
   compact_covering α m ⊆ compact_covering α n :=
 monotone_accumulate h
 
-/-- A `σ`-compact topological space is a Lindelöf space. This is not an instance to avoid a loop
-with `sigma_compact_space_of_locally_compact_lindelof`. -/
-lemma sigma_compact_space.lindelof_space [sigma_compact_space α] : lindelof_space α :=
+/-- A `σ`-compact topological space is a Lindelöf space. -/
+instance sigma_compact_space.lindelof_space [sigma_compact_space α] : lindelof_space α :=
 ⟨Union_compact_covering α ▸ is_lindelof_Union $ λ k, (is_compact_compact_covering α k).is_lindelof⟩
 
 variable {α}

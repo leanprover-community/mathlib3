@@ -592,29 +592,6 @@ begin
     (countable_Union $ λ i, (countable_countable_basis _).image _)
 end
 
-/-- In a second-countable space, an open set, given as a union of open sets, is equal to the union
-of countably many of those sets. -/
-lemma is_open_Union_countable [second_countable_topology α]
-  {ι} (s : ι → set α) (H : ∀ i, is_open (s i)) :
-  ∃ T : set ι, countable T ∧ (⋃ i ∈ T, s i) = ⋃ i, s i :=
-begin
-  let B := {b ∈ countable_basis α | ∃ i, b ⊆ s i},
-  choose f hf using λ b : B, b.2.2,
-  haveI : encodable B := ((countable_countable_basis α).mono (sep_subset _ _)).to_encodable,
-  refine ⟨_, countable_range f, (Union₂_subset_Union _ _).antisymm (sUnion_subset _)⟩,
-  rintro _ ⟨i, rfl⟩ x xs,
-  rcases (is_basis_countable_basis α).exists_subset_of_mem_open xs (H _) with ⟨b, hb, xb, bs⟩,
-  exact ⟨_, ⟨_, rfl⟩, _, ⟨⟨⟨_, hb, _, bs⟩, rfl⟩, rfl⟩, hf _ (by exact xb)⟩
-end
-
-lemma is_open_sUnion_countable [second_countable_topology α]
-  (S : set (set α)) (H : ∀ s ∈ S, is_open s) :
-  ∃ T : set (set α), countable T ∧ T ⊆ S ∧ ⋃₀ T = ⋃₀ S :=
-let ⟨T, cT, hT⟩ := is_open_Union_countable (λ s:S, s.1) (λ s, H s.1 s.2) in
-⟨subtype.val '' T, cT.image _,
-  image_subset_iff.2 $ λ ⟨x, xs⟩ xt, xs,
-  by rwa [sUnion_image, sUnion_eq_Union]⟩
-
 end topological_space
 
 open topological_space

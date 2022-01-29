@@ -29,7 +29,7 @@ begin
   simpa only [bUnion_range, hi, ← sUnion_eq_Union]
 end
 
-lemma is_lindelof.countable_open_subcover₂ (h : is_lindelof s) {t : set ι} (U : Π i ∈ t, set X)
+lemma is_lindelof.countable_open_subcover₂ (h : is_lindelof s) {t : set ι} {U : Π i ∈ t, set X}
   (hU : ∀ i ∈ t, is_open (U i ‹_›)) (hsU : s ⊆ ⋃ i ∈ t, U i ‹i ∈ t›) :
   ∃ I ⊆ t, countable I ∧ s ⊆ ⋃ i ∈ I, U i (‹I ⊆ t› ‹i ∈ I›) :=
 begin
@@ -89,7 +89,7 @@ begin
   { intros H t ht,
     simp only [mem_nhds_within] at ht,
     choose u huo hxu hut using ht,
-    rcases H.countable_open_subcover₂ _ huo (λ x hx, mem_Union₂.2 ⟨x, hx, hxu x hx⟩)
+    rcases H.countable_open_subcover₂ huo (λ x hx, mem_Union₂.2 ⟨x, hx, hxu x hx⟩)
       with ⟨I, hIs, hIc, hsI⟩,
     replace hsI := subset_inter hsI subset.rfl, rw Union₂_inter at hsI,
     exact ⟨I, hIs, hIc, hsI.trans $ Union₂_mono $ λ x hx, hut x _⟩ },
@@ -243,7 +243,7 @@ begin
   choose v hvo hv using huo, obtain rfl : (λ x, e ⁻¹' (v x)) = u := funext hv,
   have : e '' s ⊆ ⋃ x ∈ s, v x,
     from image_subset_iff.2 (λ x hx, mem_Union₂.2 ⟨x, hx, hxu x⟩),
-  simpa using h.countable_open_subcover₂ _ (λ x _, hvo x) this
+  simpa using h.countable_open_subcover₂ (λ x _, hvo x) this
 end
 
 lemma embedding.is_lindelof_image {e : X → Y} (he : embedding e) :
@@ -273,11 +273,22 @@ protected lemma is_closed.is_lindelof [lindelof_space X] {s : set X} (hs : is_cl
   is_lindelof s :=
 (is_lindelof_univ X).subset (subset_univ s) hs
 
+lemma inducing.lindelof_space_iff {e : X → Y} (he : inducing e) :
+  lindelof_space X ↔ is_lindelof (range e) :=
+by rw [← is_lindelof_univ_iff, ← he.is_lindelof_image, image_univ]
+
+lemma embedding.lindelof_space_iff {e : X → Y} (he : embedding e) :
+  lindelof_space X ↔ is_lindelof (range e) :=
+he.to_inducing.lindelof_space_iff
+
 lemma is_lindelof_iff_lindelof_space : is_lindelof s ↔ lindelof_space s :=
-by rw [← is_lindelof_univ_iff, ← embedding_subtype_coe.is_lindelof_image, image_univ,
-  subtype.range_coe]
+by erw [embedding_subtype_coe.lindelof_space_iff, subtype.range_coe]
 
 alias is_lindelof_iff_lindelof_space ↔ is_lindelof.to_subtype _
+
+protected lemma closed_embedding.lindelof_space [lindelof_space Y] {e : X → Y}
+  (he : closed_embedding e) : lindelof_space X :=
+he.to_embedding.lindelof_space_iff.2 he.closed_range.is_lindelof
 
 /-- In a Lindelöf topological space, if `f` is a function that sends each point `x` to a
 neighborhood of `x`, then for some countable set `s`, the neighborhoods `f x`, `x ∈ s`, cover the
@@ -299,20 +310,56 @@ protected noncomputable def locally_finite.encodable [lindelof_space X] {f : ι 
   (hf : locally_finite f) (hne : ∀ i, (f i).nonempty) : encodable ι :=
 @encodable.of_equiv _ _ (hf.countable_univ hne).to_encodable (equiv.set.univ _).symm
 
-@[protect_proj]
+/-!
+### Strongly (hereditarily) Lindelöf spaces
+
+A topological space is called *strongly (hereditarily) Lindelöf* if any set in this space is a
+Lindelöf set. Any topological space with second countable topology is a strongly Lindelöf space. The
+converse is not true.
+-/
+
 class strongly_lindelof_space (X : Type*) [topological_space X] : Prop :=
-(is_lindelof : ∀ s : set X, is_lindelof s)
+(is_lindelof_open : ∀ {s : set X}, is_open s → is_lindelof s)
 
-protected lemma set.is_lindelof [strongly_lindelof_space X] (s : set X) : is_lindelof s :=
-strongly_lindelof_space.is_lindelof s
-
+@[priority 100]
 instance second_countable_topology.to_strongly_lindelof_space
   [second_countable_topology X] : strongly_lindelof_space X :=
 begin
-  refine ⟨λ s U hUo hU, _⟩,
-  rcases is_open_sUnion_countable U hUo with ⟨S, hSc, hSU, hS⟩,
-  exact ⟨S, hSU, hSc, hS.symm ▸ hU⟩
+  refine ⟨λ s hs U hU hsU, _⟩, clear hs,
+  set B := {b ∈ countable_basis X | ∃ u ∈ U, b ⊆ u},
+  choose! u huU hbu using (show ∀ b ∈ B, ∃ u ∈ U, b ⊆ u, from λ b, and.right),
+  refine ⟨u '' B, image_subset_iff.2 huU,
+    ((countable_countable_basis X).mono (sep_subset _ _)).image u, hsU.trans  _⟩,
+  rintro x ⟨v, hvU, hxv⟩,
+  rcases (is_basis_countable_basis X).mem_nhds_iff.1 ((hU v hvU).mem_nhds hxv)
+    with ⟨b, hb, hxb, hbv⟩,
+  exact ⟨u b, mem_image_of_mem _ ⟨hb, v, hvU, hbv⟩, hbu _ ⟨hb, v, hvU, hbv⟩ hxb⟩
 end
+
+protected lemma set.is_lindelof [strongly_lindelof_space X] (s : set X) : is_lindelof s :=
+begin
+  intros U hU hsU,
+  have := strongly_lindelof_space.is_lindelof_open (is_open_sUnion hU),
+  rcases this.countable_open_subcover₂ hU sUnion_eq_bUnion.subset with ⟨V, hVU, hVc, hUV⟩,
+  simp only [← sUnion_eq_bUnion] at hUV,
+  exact ⟨V, hVU, hVc, hsU.trans hUV⟩
+end
+
+/-- In a strongly Lindelöf space (e.g., in a space with second countable topology), an open set,
+given as a union of open sets, is equal to the union of countably many of those sets. -/
+lemma is_open_Union_countable [strongly_lindelof_space X]
+  (s : ι → set X) (H : ∀ i, is_open (s i)) :
+  ∃ T : set ι, countable T ∧ (⋃ i ∈ T, s i) = ⋃ i, s i :=
+let ⟨T, hTc, hT⟩ := (⋃ i, s i).is_lindelof.countable_open_subcover H subset.rfl
+in ⟨T, hTc, (Union₂_subset_Union _ _).antisymm hT⟩
+
+/-- In a strongly Lindelöf space (e.g., in a space with second countable topology), an open set,
+given as a union of open sets, is equal to the union of countably many of those sets. -/
+lemma is_open_sUnion_countable [strongly_lindelof_space X]
+  (S : set (set X)) (H : ∀ s ∈ S, is_open s) :
+  ∃ T : set (set X), countable T ∧ T ⊆ S ∧ ⋃₀ T = ⋃₀ S :=
+let ⟨T, hTS, hTc, hST⟩ := (⋃₀ S).is_lindelof.countable_open_subcover₂ H sUnion_eq_bUnion.subset
+in ⟨T, hTc, hTS, (sUnion_mono hTS).antisymm (hST.trans sUnion_eq_bUnion.symm.subset)⟩
 
 lemma countable_cover_nhds_within [strongly_lindelof_space X] {f : X → set X} {s : set X}
   (hf : ∀ x ∈ s, f x ∈ 𝓝[s] x) : ∃ t ⊆ s, countable t ∧ s ⊆ (⋃ x ∈ t, f x) :=

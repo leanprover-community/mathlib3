@@ -2431,9 +2431,14 @@ lemma is_locally_finite_measure_of_is_finite_measure_on_compacts [topological_sp
   exact ⟨K, K_mem, K_compact.measure_lt_top⟩,
 end⟩
 
+lemma _root_.is_lindelof.measure_null_of_locally_null [topological_space α]
+  {s : set α} (hs : is_lindelof s) (hsμ : ∀ x ∈ s, ∃ u ∈ 𝓝[s] x, μ u = 0) :
+  μ s = 0 :=
+hs.outer_measure_null_of_locally_null μ.to_outer_measure hsμ
+
 /-- If a set has zero measure in a neighborhood of each of its points, then it has zero measure
 in a second-countable space. -/
-lemma null_of_locally_null [topological_space α] [second_countable_topology α]
+lemma null_of_locally_null [topological_space α] [strongly_lindelof_space α]
   (s : set α) (hs : ∀ x ∈ s, ∃ u ∈ 𝓝[s] x, μ u = 0) :
   μ s = 0 :=
 μ.to_outer_measure.null_of_locally_null s hs

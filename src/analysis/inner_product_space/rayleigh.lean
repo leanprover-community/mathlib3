@@ -10,6 +10,7 @@ import analysis.calculus.lagrange_multipliers
 import analysis.normed_space.compact_map
 import linear_algebra.eigenspace
 import algebra.star.self_adjoint
+import analysis.normed_space.pointwise
 
 /-!
 # The Rayleigh quotient
@@ -47,6 +48,7 @@ open module.End metric
 namespace continuous_linear_map
 variables (T : E →L[𝕜] E)
 local notation `rayleigh_quotient` := λ x : E, T.re_apply_inner_self x / ∥(x:E)∥ ^ 2
+local notation `rayleigh_quotient_sphere` := λ x : sphere (0:E) 1, T.re_apply_inner_self x / ∥(x:E)∥ ^ 2
 
 lemma rayleigh_smul (x : E) {c : 𝕜} (hc : c ≠ 0) :
   rayleigh_quotient (c • x) = rayleigh_quotient x :=
@@ -113,7 +115,40 @@ csupr_le (λ x, rayleigh_le_norm T x)
 lemma supr_neg_rayleigh_le_norm : (⨆ x, -rayleigh_quotient x) ≤ ∥T∥ :=
 csupr_le (λ x, neg_rayleigh_le_norm T x)
 
+-- moveme
+include 𝕜
+lemma sphere_nonempty [nontrivial E] {r : ℝ} (hr : 0 ≤ r) : nonempty (sphere (0:E) r) :=
+begin
+  letI : inner_product_space ℝ E := inner_product_space.is_R_or_C_to_real 𝕜 E,
+  exact (sphere (0:E) r).nonempty_coe_sort.mpr (normed_space.sphere_nonempty.mpr hr),
+end
+omit 𝕜
+
+lemma supr_rayleigh_sphere_le_norm [nontrivial E] {r : ℝ} (hr : 0 ≤ r) :
+  (⨆ x : sphere (0:E) r, rayleigh_quotient x) ≤ ∥T∥ :=
+begin
+  haveI : nonempty (sphere (0:E) r) := sphere_nonempty hr,
+  exact csupr_le (λ x, rayleigh_le_norm T x),
+end
+
+lemma supr_neg_rayleigh_sphere_le_norm [nontrivial E] {r : ℝ} (hr : 0 ≤ r) :
+  (⨆ x : sphere (0:E) r, -rayleigh_quotient x) ≤ ∥T∥ :=
+begin
+  haveI : nonempty (sphere (0:E) r) := sphere_nonempty hr,
+  exact csupr_le (λ x, neg_rayleigh_le_norm T x),
+end
+
+
 lemma rayleigh_bdd_above : bdd_above (set.range rayleigh_quotient) :=
+begin
+  refine set.nonempty_def.mpr ⟨∥T∥, mem_upper_bounds.mpr (λ x hx, _)⟩,
+  rw [set.mem_range] at hx,
+  rcases hx with ⟨y, hy⟩,
+  rw [←hy],
+  exact rayleigh_le_norm T y
+end
+
+lemma rayleigh_bdd_above_sphere : bdd_above (set.range rayleigh_quotient_sphere) :=
 begin
   refine set.nonempty_def.mpr ⟨∥T∥, mem_upper_bounds.mpr (λ x hx, _)⟩,
   rw [set.mem_range] at hx,
@@ -136,6 +171,15 @@ le_csupr_of_le (rayleigh_bdd_above T) 0 (by simp)
 
 lemma supr_neg_rayleigh_nonneg : (0 : ℝ) ≤ (⨆ x, (-rayleigh_quotient) x) :=
 le_csupr_of_le (neg_rayleigh_bdd_above T) 0 (by simp)
+
+lemma supr_abs_rayleigh_eq_sup_supr :
+  (⨆ x : sphere (0:E) 1, |rayleigh_quotient x|) =
+    max (⨆ x : sphere (0:E) 1, rayleigh_quotient x)
+        (⨆ x : sphere (0:E) 1, -rayleigh_quotient x) :=
+sorry
+
+lemma supr_abs_rayleigh_bdd_above : bdd_above (set.range (λ x, |rayleigh_quotient x|)) :=
+sorry
 
 lemma re_apply_inner_self_eq_rayleigh_mul_norm_sq (x : E) :
   T.re_apply_inner_self x = (rayleigh_quotient x) * ∥x∥ ^ 2 :=
@@ -202,21 +246,33 @@ open continuous_linear_map
 variables {T : E →L[𝕜] E}
 local notation `rayleigh_quotient` := λ x : E, T.re_apply_inner_self x / ∥(x:E)∥ ^ 2
 
-lemma norm_eq_max_supr_rayleigh_sphere (hT : is_self_adjoint T.to_linear_map) :
-  ∥T∥ = max (⨆ x : sphere (0:E) 1, T.re_apply_inner_self x)
-            (⨆ x : sphere (0:E) 1, -T.re_apply_inner_self x) :=
+--lemma norm_eq_max_supr_rayleigh_sphere (hT : is_self_adjoint T.to_linear_map) :
+--  ∥T∥ = max (⨆ x : sphere (0:E) 1, T.re_apply_inner_self x)
+--            (⨆ x : sphere (0:E) 1, -T.re_apply_inner_self x) :=
+lemma norm_eq_supr_abs_rayleigh_sphere (hT : is_self_adjoint T.to_linear_map) :
+  ∥T∥ = (⨆ x : sphere (0:E) 1, |rayleigh_quotient x|) :=
 begin
+  by_cases h_nontrivE : ∀ (x y : E), x = y,
+  { haveI : is_empty (sphere (0:E) 1),
+    { sorry },
+    rw [real.csupr_empty],
+    sorry },
+  push_neg at h_nontrivE,
+  haveI : nontrivial E := ⟨h_nontrivE⟩,
   refine op_norm_eq_of_bounds _ (λ x, _) _,
   { sorry },
-  { set L := real.sqrt (∥T x∥ / ∥x∥) with hL,
+  { by_cases h_ntriv : T x = 0,
+    { simp only [h_ntriv, norm_zero],
+      haveI : nonempty (sphere (0:E) 1) := sphere_nonempty zero_le_one,
+
+      --exact mul_nonneg (le_max_iff.mpr (or.inl (supr_rayleigh_nonneg T))) (norm_nonneg _),
+      sorry },
+
+    set L := real.sqrt (∥T x∥ / ∥x∥) with hL,
     set rT := max (⨆ z : sphere (0:E) 1, T.re_apply_inner_self z)
                   (⨆ z : sphere (0:E) 1, -T.re_apply_inner_self z) with hrT,
     set x₁ := (L : 𝕜) • x + (L⁻¹ : 𝕜) • (T x) with hx₁,
     set x₂ := (L : 𝕜) • x - (L⁻¹ : 𝕜) • (T x) with hx₂,
-    by_cases h_ntriv : T x = 0,
-    { simp only [h_ntriv, norm_zero],
-      --exact mul_nonneg (le_max_iff.mpr (or.inl (supr_rayleigh_nonneg T))) (norm_nonneg _),
-      sorry },
     change T x ≠ 0 at h_ntriv,
     have hTx_ntriv : ∥T x∥ ≠ 0 := λ H, by { rw [norm_eq_zero] at H, exact h_ntriv H },
     have hx_ntriv : ∥x∥ ≠ 0,
@@ -268,11 +324,13 @@ begin
                 field_simp,
                 ring
               end,
-    have h₇ : 0 < 4 * ∥T x∥ := mul_pos (by norm_num) (norm_pos_iff.mpr h_ntriv),
-    rw [←mul_le_mul_left h₇],
-    calc 4 * ∥T x∥ * ∥T x∥ = 4 * ∥T x∥ ^ 2          : by rw [mul_assoc, ←pow_two]
-                      ... ≤ 4 * rT * ∥T x∥ * ∥x∥   : h₆
-                      ... = _                      : by ring },
+    sorry,
+    --have h₇ : 0 < 4 * ∥T x∥ := mul_pos (by norm_num) (norm_pos_iff.mpr h_ntriv),
+    --rw [←mul_le_mul_left h₇],
+    --calc 4 * ∥T x∥ * ∥T x∥ = 4 * ∥T x∥ ^ 2          : by rw [mul_assoc, ←pow_two]
+    --                  ... ≤ 4 * rT * ∥T x∥ * ∥x∥   : h₆
+    --                  ... = _                      : by ring,
+  },
   { sorry },
   --{ intros N hN h,
   --  refine max_le _ _,
@@ -444,7 +502,7 @@ section compact
 variables [complete_space E] {T : E →L[𝕜] E}
 
 local notation `rayleigh_quotient` := λ x : E, T.re_apply_inner_self x / ∥(x:E)∥ ^ 2
-local notation `rayleigh_quotient_sphere` := λ x : sphere (0:E) 1, T.re_apply_inner_self x / ∥(x:E)∥ ^ 2
+local notation `rayleigh_quotient_sphere` := λ x : sphere (0:E) 1, |T.re_apply_inner_self x / ∥(x:E)∥ ^ 2|
 local notation `u_sph` := sphere (0:E) 1
 lemma exists_eigenvalue_of_compact [nontrivial E] (hT : is_self_adjoint T.to_linear_map)
   (hT_cpct : compact_map T) :
@@ -457,23 +515,25 @@ begin
     simp only [mem_eigenspace_iff, h_triv, zero_smul, continuous_linear_map.to_linear_map_eq_coe, continuous_linear_map.coe_zero,
               linear_map.zero_apply] },
   { change T ≠ 0 at h_triv,
-    rcases max_eq_iff.mp (norm_eq_max_supr_rayleigh_sphere hT).symm with ⟨h_supr,-⟩|⟨h_infi,-⟩,
-    { set a := (⨆ x, rayleigh_quotient_sphere x),
+    --rcases max_eq_iff.mp (norm_eq_max_supr_rayleigh_sphere hT).symm with ⟨h_supr,-⟩|⟨h_infi,-⟩,
+    { set a := (⨆ x, |rayleigh_quotient_sphere| x),
       have a_ne_zero : a ≠ 0,
       { sorry },
       refine ⟨a, _⟩,
       --have h₁' : (set.range rayleigh_quotient).nonempty := ⟨0, ⟨0, by simp⟩⟩,
       -- First use filter.comap applied to nhds (supr) to get a filter f₁ on vectors
       set f₁ : filter u_sph :=
-        filter.comap (λ x, rayleigh_quotient x) (𝓝[set.range rayleigh_quotient_sphere] a),
+        filter.comap (λ x, |rayleigh_quotient x|) (𝓝[set.range rayleigh_quotient_sphere] a),
       set f₂ : filter E := f₁.map (λ x : u_sph, T x),
       --set f₃ : filter E := filter.map (λ x : sphere (0:E) 1, (a : 𝕜) • x) f₁,
       have h_bdd_range : bdd_above (set.range rayleigh_quotient_sphere),
-      { sorry },
+      { --exact T.rayleigh_bdd_above_sphere
+      sorry
+      },
       have h_range_nonempty : (set.range rayleigh_quotient_sphere).nonempty,
-      { sorry },
-      have h_ne_bot : (𝓝[set.range rayleigh_quotient_sphere] a).ne_bot :=
-        is_lub.nhds_within_ne_bot (is_lub_csupr h_bdd_range) h_range_nonempty,
+      { exact set.range_nonempty _ },
+      have h_ne_bot : (𝓝[set.range rayleigh_quotient_sphere] a).ne_bot := sorry,
+      --  is_lub.nhds_within_ne_bot (is_lub_csupr h_bdd_range) h_range_nonempty,
       have hf₂ : f₂ ≤ 𝓟 (closure (T '' u_sph)) := by
       { refine le_trans _ (filter.monotone_principal subset_closure),
         have : T '' u_sph = set.range (λ x : u_sph, T x),
@@ -502,7 +562,9 @@ begin
         simp_rw [←inf_assoc, inf_idem],
         rw [inf_comm],
         exact hz₂.ne_bot },
-      let zs : u_sph := ⟨(∥z∥⁻¹ : 𝕜) • z, sorry⟩,
+      have z_ne_zero : z ≠ 0 := sorry,
+      let zs : u_sph := ⟨(∥z∥⁻¹ : 𝕜) • z, by rw [mem_sphere, dist_eq_norm, sub_zero,
+                                                norm_smul_inv_norm z_ne_zero]⟩,
 
       have h_premain : f₁sub.tendsto (λ y, T y) (𝓝 z),
       { refine filter.tendsto.mono_left _ inf_le_right,
@@ -516,6 +578,7 @@ begin
         rw [h₁₂, ←real.sqrt_zero],
         refine filter.tendsto.sqrt _,
         -- argument from Einsiedler-Ward
+        simp_rw [norm_sub_sq, norm_smul, inner_smul_right, is_R_or_C.of_real_mul_re],
         sorry },
       have hz_norm : ∥z∥ = a := sorry,
       have h₂ : (a : 𝕜) • (zs : E) = z,
@@ -541,10 +604,7 @@ begin
       have Tsph_cont : continuous (λ x : u_sph, T x) :=
         continuous.comp T.continuous continuous_subtype_coe,
       exact Tsph_cont.tendsto _,
-  },
-
-  sorry }
-  -- is_lub_csupr   ι 𝕜 E
+  } }
 end
 
 lemma subsingleton_of_no_eigenvalue_of_compact (hT : is_self_adjoint T.to_linear_map)

@@ -42,7 +42,7 @@ open cubic polynomial
 
 variables {R S F K : Type*}
 
-instance [inhabited R] : inhabited (cubic R) := ⟨⟨default R, default R, default R, default R⟩⟩
+instance [inhabited R] : inhabited (cubic R) := ⟨⟨default, default, default, default⟩⟩
 
 instance [has_zero R] : has_zero (cubic R) := ⟨⟨0, 0, 0, 0⟩⟩
 

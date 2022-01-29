@@ -27,7 +27,6 @@ open filter set
 variables {α : Type*} {β : Type*}
 
 /-- A uniform group is a group in which multiplication and inversion are uniformly continuous. -/
-
 class uniform_group (α : Type*) [uniform_space α] [group α] : Prop :=
 (uniform_continuous_div : uniform_continuous (λp:α×α, p.1 / p.2))
 

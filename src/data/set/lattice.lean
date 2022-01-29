@@ -52,7 +52,7 @@ In lemma names,
 * `⋂₀`: `set.sInter`
 -/
 
-open function tactic set auto
+open function tactic set
 
 universes u
 variables {α β γ : Type*} {ι ι' ι₂ : Sort*} {κ κ₁ κ₂ : ι → Sort*} {κ' : ι' → Sort*}

@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 import data.set.basic
+import order.lattice
+import order.max
 
 /-!
 # Directed indexed families and sets
@@ -127,6 +129,22 @@ by assumption
 instance order_dual.is_directed_le [has_le α] [is_directed α (swap (≤))] :
   is_directed (order_dual α) (≤) :=
 by assumption
+
+section preorder
+variables [preorder α] {a : α}
+
+protected lemma is_min.is_bot [is_directed α (swap (≤))] (h : is_min a) : is_bot a :=
+λ b, let ⟨c, hca, hcb⟩ := exists_le_le a b in (h hca).trans hcb
+
+protected lemma is_max.is_top [is_directed α (≤)] (h : is_max a) : is_top a :=
+λ b, let ⟨c, hac, hbc⟩ := exists_ge_ge a b in hbc.trans $ h hac
+
+lemma is_bot_iff_is_min [is_directed α (swap (≤))] : is_bot a ↔ is_min a :=
+⟨is_bot.is_min, is_min.is_bot⟩
+
+lemma is_top_iff_is_max [is_directed α (≤)] : is_top a ↔ is_max a := ⟨is_top.is_max, is_max.is_top⟩
+
+end preorder
 
 @[priority 100]  -- see Note [lower instance priority]
 instance semilattice_sup.to_is_directed_le [semilattice_sup α] : is_directed α (≤) :=

@@ -17,6 +17,8 @@ namespace is_alg_closure
 
 variables (R L : Type u) [comm_ring R] [field L] [algebra R L] [is_alg_closure R L]
 
+/--The cardinality of an algebraic closure is at most the maximum of the cardinality
+of the base ring or `ω` -/
 lemma cardinal_mk_le_max : #L ≤ max (#R) ω :=
 calc #L ≤ #(Σ p : polynomial R, { x : L // x ∈ (p.map (algebra_map R L)).roots }) :
   @mk_le_of_injective L (Σ p : polynomial R, { x : L | x ∈ (p.map (algebra_map R L)).roots })

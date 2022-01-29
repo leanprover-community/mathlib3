@@ -814,7 +814,8 @@ variables {ι : Type*} [group G] [group H] {ts : set (topological_space G)}
   [h : Π t ∈ ts, @topological_group G t _] {ts' : ι → topological_space G}
   [h' : Π i, @topological_group G (ts' i) _] {t₁ t₂ : topological_space G}
   [h₁ : @topological_group G t₁ _] [h₂ : @topological_group G t₂ _]
-  {t : topological_space H} [topological_group H] (f : G →* H)
+  {t : topological_space H} [topological_group H] {F : Type*}
+  [monoid_hom_class F G H] (f : F)
 
 @[to_additive, priority 100] instance topological_group_Inf :
   @topological_group G (Inf ts) _ :=
@@ -846,7 +847,7 @@ omit h₁ h₂
     begin
       letI : topological_space G := t.induced f,
       refine continuous_induced_rng _,
-      simp_rw [function.comp, f.map_inv],
+      simp_rw [function.comp, map_inv],
       exact continuous_inv.comp (continuous_induced_dom : continuous f)
     end,
   continuous_mul := @has_continuous_mul.continuous_mul G (t.induced f) _

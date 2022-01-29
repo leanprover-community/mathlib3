@@ -529,7 +529,7 @@ omit h₁ h₂
     begin
       letI : topological_space M := t.induced f,
       refine continuous_induced_rng _,
-      simp_rw [function.comp, mul_hom_class.map_mul],
+      simp_rw [function.comp, map_mul],
       change continuous ((λ p : N × N, p.1 * p.2) ∘ (prod.map f f)),
       exact continuous_mul.comp (continuous_induced_dom.prod_map continuous_induced_dom),
     end }

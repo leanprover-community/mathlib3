@@ -608,7 +608,7 @@ begin
 end
 
 /-- Groups with nilpotency class at most one are abelian -/
-lemma comm_group_of_nilpotency_class [is_nilpotent G] (h : group.nilpotency_class G ≤ 1) :
+def comm_group_of_nilpotency_class [is_nilpotent G] (h : group.nilpotency_class G ≤ 1) :
   comm_group G :=
 group.comm_group_of_center_eq_top $
 begin

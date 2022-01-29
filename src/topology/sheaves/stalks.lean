@@ -11,6 +11,7 @@ import category_theory.limits.preserves.filtered
 import category_theory.limits.final
 import topology.sober
 import tactic.elementwise
+import algebra.category.CommRing
 
 /-!
 # Stalks
@@ -539,5 +540,13 @@ begin
 end
 
 end concrete
+
+instance (F : X.presheaf CommRing) {U : opens X} (x : U) :
+  algebra (F.obj $ op U) (F.stalk x) :=
+(F.germ x).to_algebra
+
+@[simp]
+lemma stalk_open_algebra_map {X : Top} (F : X.presheaf CommRing) {U : opens X} (x : U) :
+  algebra_map (F.obj $ op U) (F.stalk x) = F.germ x := rfl
 
 end Top.presheaf

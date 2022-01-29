@@ -698,22 +698,48 @@ section classical
 
 open_locale classical
 
+/-- A custom induction principle fintypes. The base case is a subsingleton type,
+and the induction step is for non-trivial types, and one can assume the hypothesis for
+smaller groups (via `fintype.card`).
+-/
+@[elab_as_eliminator]
+lemma fintype.induction_subsingleton_or_nontrivial
+  {P : Π α [fintype α], Prop}
+  (α : Type*)
+  [fintype α]
+  (hbase : ∀ α [fintype α] [subsingleton α], by exactI P α)
+  (hstep : ∀ α [fintype α] [nontrivial α],
+    by exactI ∀ (ih : ∀ β [fintype β], by exactI ∀ (h : fintype.card β < fintype.card α), P β),
+    P α) :
+  P α :=
+begin
+  obtain ⟨ n, hn ⟩ : ∃ n, fintype.card α = n := ⟨fintype.card α, rfl⟩,
+  unfreezingI { induction n using nat.strong_induction_on with n ih generalizing α },
+  casesI (subsingleton_or_nontrivial α) with hsing hnontriv,
+  { apply hbase, },
+  { apply hstep,
+    introsI β _ hlt,
+    rw hn at hlt,
+    exact (ih (fintype.card β) hlt _ rfl), }
+end
+
 /-- A p-group is nilpotent -/
 lemma is_nilpotent.of_p_group [fintype G] {p : ℕ} (hp : fact (nat.prime p)) (h : is_p_group p G) :
   is_nilpotent G :=
 begin
-  obtain ⟨ n, hn ⟩ : ∃ n, fintype.card G = n := ⟨fintype.card G, rfl⟩,
-  unfreezingI { induction n using nat.strong_induction_on with n ih generalizing G },
-  casesI (subsingleton_or_nontrivial G) with hsing hnontriv,
+  unfreezingI {
+    revert _inst_1,
+    induction _inst_3 using fintype.induction_subsingleton_or_nontrivial with G _ _ G
+  }; resetI,
   { apply_instance, },
-  { rw ← hn at ih, clear hn,
+  { introI _, intro h,
     have hc: center G > ⊥ := gt_iff_lt.mp h.bot_lt_center,
     have hcq: fintype.card (G ⧸ center G) < fintype.card G,
     { rw card_eq_card_quotient_mul_card_subgroup (center G),
       apply lt_mul_of_one_lt_right,
       exact (fintype.card_pos_iff.mpr has_one.nonempty),
       exact ((subgroup.one_lt_card_iff_ne_bot _).mpr (ne_of_gt hc)), },
-    have hnq: is_nilpotent (G ⧸ center G) := ih _ hcq (h.to_quotient (center G)) rfl,
+    have hnq: is_nilpotent (G ⧸ center G) := ih _ hcq (h.to_quotient (center G)),
     exact (of_quotient_center_nilpotent hnq), }
 end
 

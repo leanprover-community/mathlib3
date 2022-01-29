@@ -167,6 +167,11 @@ theorem is_alg_closure_iff (K : Type v) [field K] [algebra k K] :
   is_alg_closure k K ↔ is_alg_closed K ∧ algebra.is_algebraic k K :=
 ⟨λ h, ⟨h.1, h.2⟩, λ h, ⟨h.1, h.2, ring_hom.injective _⟩⟩
 
+instance is_alg_closure.no_zero_smul_divisors
+  (R : Type u) (K : Type v) [comm_ring R] [field K] [algebra R K] [is_alg_closure R K] :
+  no_zero_smul_divisors R K :=
+no_zero_smul_divisors.of_algebra_map_injective is_alg_closure.injective
+
 namespace lift
 /- In this section, the homomorphism from any algebraic extension into an algebraically
   closed extension is proven to exist. The assumption that M is algebraically closed could probably
@@ -306,43 +311,25 @@ omit hL
 
 variables {R : Type u} [comm_ring R]
 variables {S : Type v} [comm_ring S] [is_domain S] [algebra R S]
-  [algebra R M] [is_alg_closed M] (hRS : function.injective (algebra_map R S))
-  (hRM : function.injective (algebra_map R M))
+  [algebra R M] [is_alg_closed M] [no_zero_smul_divisors R S]
+  [no_zero_smul_divisors R M]
   (hS : algebra.is_algebraic R S)
 variables {M}
 
-include hS hRS hRM
+include hS
 
 /-- A (random) hom from an algebraic extension of R into an algebraically closed extension of R. -/
 
-@[irreducible] noncomputable def lift' : S →ₐ[R] M :=
+@[irreducible] noncomputable def lift : S →ₐ[R] M :=
 begin
-  letI : is_domain R := hRS.is_domain _,
-  letI : algebra (fraction_ring R) M :=
-    ring_hom.to_algebra (is_fraction_ring.lift hRM : fraction_ring R →+* M),
-  have hinj : function.injective (algebra_map R (fraction_ring S)),
-    from sorry,
-  let j : fraction_ring R →+* fraction_ring S := is_fraction_ring.lift hinj,
-  letI : algebra (fraction_ring R) (fraction_ring S) := ring_hom.to_algebra j,
-  haveI : is_scalar_tower R (fraction_ring R) (fraction_ring S) :=
-    is_scalar_tower.of_algebra_map_eq
-      (λ x, (is_fraction_ring.lift_algebra_map hinj x).symm),
+  letI : is_domain R := (no_zero_smul_divisors.algebra_map_injective R S).is_domain _,
   have hfRfS : algebra.is_algebraic (fraction_ring R) (fraction_ring S),
-    from sorry,
-  haveI : is_scalar_tower R (fraction_ring R) M :=
-    is_scalar_tower.of_algebra_map_eq
-      (λ x, (is_fraction_ring.lift_algebra_map hRM x).symm),
+    from λ x, (is_fraction_ring.is_algebraic_iff R (fraction_ring R) (fraction_ring S)).1
+      ((is_fraction_ring.is_algebraic_iff' R S (fraction_ring S)).1 hS x),
   let f : fraction_ring S →ₐ[fraction_ring R] M :=
     lift_aux (fraction_ring R) (fraction_ring S) M hfRfS,
   exact (f.restrict_scalars R).comp ((algebra.of_id S (fraction_ring S)).restrict_scalars R),
 end
-
-omit hS hRS hRM
-include hL
-variables (M)
-
-@[irreducible]  noncomputable def lift : L →ₐ[K] M :=
-lift' (ring_hom.injective _) (ring_hom.injective _) hL
 
 end is_alg_closed
 
@@ -360,8 +347,7 @@ variables [algebra R L] [is_alg_closure R L]
 
 /-- A (random) isomorphism between two algebraic closures of `R`. -/
 noncomputable def equiv : L ≃ₐ[R] M :=
-let f : L →ₐ[R] M := is_alg_closed.lift'
-  is_alg_closure.injective is_alg_closure.injective is_alg_closure.algebraic in
+let f : L →ₐ[R] M := is_alg_closed.lift is_alg_closure.algebraic in
 alg_equiv.of_bijective f
   ⟨ring_hom.injective f.to_ring_hom,
     begin
@@ -385,15 +371,16 @@ variables [algebra K J] [algebra J L] [is_alg_closure J L] [algebra K L]
 
 /-- An equiv between an algebraic closure of `R` and an algebraic closure of an algebraic
   extension of `R` -/
-noncomputable def equiv_of_algebraic' (hRL : algebra.is_algebraic R L)
-  (hRS : function.injective (algebra_map R S)): L ≃ₐ[R] M :=
+noncomputable def equiv_of_algebraic' [nontrivial S] [no_zero_smul_divisors R S]
+  (hRL : algebra.is_algebraic R L) : L ≃ₐ[R] M :=
 begin
   letI : is_alg_closure R L :=
   { alg_closed := by apply_instance,
     algebraic := hRL,
     injective := begin
       rw [is_scalar_tower.algebra_map_eq R S L],
-      exact function.injective.comp is_alg_closure.injective hRS
+      exact function.injective.comp is_alg_closure.injective
+        (no_zero_smul_divisors.algebra_map_injective _ _)
     end  },
   exact is_alg_closure.equiv _ _ _
 end
@@ -402,7 +389,6 @@ end
   extension of `K` -/
 noncomputable def equiv_of_algebraic (hKJ : algebra.is_algebraic K J) : L ≃ₐ[K] M :=
 equiv_of_algebraic' K J _ _ (algebra.is_algebraic_trans hKJ is_alg_closure.algebraic)
-  (ring_hom.injective  _)
 
 end equiv_of_algebraic
 
@@ -418,6 +404,7 @@ begin
   letI : algebra R S := ring_hom.to_algebra hSR.symm.to_ring_hom,
   letI : algebra S R := ring_hom.to_algebra hSR.to_ring_hom,
   letI : is_domain R := (@is_alg_closure.injective R M _ _ _ _).is_domain _,
+  letI : is_domain S := (@is_alg_closure.injective S L _ _ _ _).is_domain _,
   have : algebra.is_algebraic R S,
     from λ x, begin
       rw [← ring_equiv.symm_apply_apply hSR x],
@@ -427,14 +414,16 @@ begin
   haveI : is_scalar_tower R S L := is_scalar_tower.of_algebra_map_eq (λ _, rfl),
   haveI : is_scalar_tower S R L := is_scalar_tower.of_algebra_map_eq
     (by simp [ring_hom.algebra_map_to_algebra]),
+  haveI : no_zero_smul_divisors R S :=
+    no_zero_smul_divisors.of_algebra_map_injective hSR.symm.injective,
   refine ⟨equiv_of_algebraic' R S L M (algebra.is_algebraic_of_larger_base_of_injective
       (show function.injective (algebra_map S R), from hSR.injective)
-      is_alg_closure.algebraic) hSR.symm.injective, _⟩,
+      is_alg_closure.algebraic) , _⟩,
   ext,
   simp only [ring_equiv.to_ring_hom_eq_coe, function.comp_app, ring_hom.coe_comp,
     alg_equiv.coe_ring_equiv, ring_equiv.coe_to_ring_hom],
   conv_lhs { rw [← hSR.symm_apply_apply x] },
-  show equiv_of_algebraic' R S L M _ _ (algebra_map R L (hSR x)) = _,
+  show equiv_of_algebraic' R S L M _ (algebra_map R L (hSR x)) = _,
   rw [alg_equiv.commutes]
 end
 

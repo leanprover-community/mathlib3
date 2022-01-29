@@ -271,6 +271,27 @@ begin
   refl }
 end
 
+/- characteristic `p` version -/
+lemma peval_poly_of_interest' (n : ℕ) (x y : 𝕎 k) :
+  peval (poly_of_interest p n) ![λ i, x.coeff i, λ i, y.coeff i] =
+  (x * y).coeff (n + 1) - y.coeff (n+1) * x.coeff 0 ^ (p^n)
+    - x.coeff (n+1) * y.coeff 0 ^ (p^n) :=
+begin
+  rw peval_poly_of_interest,
+  have : (p : k) = 0 := char_p.cast_eq_zero (k) p,
+  simp [this],
+  congr,
+  { rw finset.sum_eq_single_of_mem 0,
+    { simp },
+    { simp },
+    { intros j _ hj,
+      simp [zero_pow (zero_lt_iff.mpr hj)] } },
+  { rw finset.sum_eq_single_of_mem 0, -- same proof both times, factor it out
+    { simp },
+    { simp },
+    { intros j _ hj,
+      simp [zero_pow (zero_lt_iff.mpr hj)] } },
+end
 
 -- what follows below is the previous attempt to do this directly in k.
 -- a bit of the code may still be salvageable.

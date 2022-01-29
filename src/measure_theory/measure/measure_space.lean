@@ -2411,11 +2411,11 @@ omit m0
 
 @[priority 100] -- see Note [lower instance priority]
 instance sigma_finite_of_locally_finite [topological_space α]
-  [second_countable_topology α] [is_locally_finite_measure μ] :
+  [lindelof_space α] [is_locally_finite_measure μ] :
   sigma_finite μ :=
 begin
   choose s hsx hsμ using μ.finite_at_nhds,
-  rcases topological_space.countable_cover_nhds hsx with ⟨t, htc, htU⟩,
+  rcases countable_cover_nhds hsx with ⟨t, htc, htU⟩,
   refine measure.sigma_finite_of_countable (htc.image s) (ball_image_iff.2 $ λ x hx, hsμ x) _,
   rwa sUnion_image
 end

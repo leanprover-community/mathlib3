@@ -858,6 +858,10 @@ begin
   simp_rw [mem_thickening_iff_exists_edist_lt, key_iff],
 end
 
+@[simp] lemma thickening_singleton (δ : ℝ) (x : X) :
+  thickening δ ({x} : set X) = ball x δ :=
+by { ext, simp [mem_thickening_iff] }
+
 /-- The (open) `δ`-thickening `thickening δ E` of a subset `E` in a metric space equals the
 union of balls of radius `δ` centered at points of `E`. -/
 lemma thickening_eq_bUnion_ball {δ : ℝ} {E : set X} :
@@ -926,6 +930,20 @@ the thickening radius `δ`. -/
 lemma cthickening_mono {δ₁ δ₂ : ℝ} (hle : δ₁ ≤ δ₂) (E : set α) :
   cthickening δ₁ E ⊆ cthickening δ₂ E :=
 preimage_mono (Iic_subset_Iic.mpr (ennreal.of_real_le_of_real hle))
+
+@[simp] lemma cthickening_singleton {α : Type*} [pseudo_metric_space α]
+  (x : α) {δ : ℝ} (hδ : 0 ≤ δ) :
+  cthickening δ ({x} : set α) = closed_ball x δ :=
+by { ext y, simp [cthickening, edist_dist, ennreal.of_real_le_of_real_iff hδ] }
+
+lemma closed_ball_subset_cthickening_singleton {α : Type*} [pseudo_metric_space α]
+  (x : α) (δ : ℝ) :
+  closed_ball x δ ⊆ cthickening δ ({x} : set α) :=
+begin
+  rcases lt_or_le δ 0 with hδ|hδ,
+  { simp only [closed_ball_eq_empty.mpr hδ, empty_subset] },
+  { simp only [cthickening_singleton x hδ] }
+end
 
 /-- The closed thickening `cthickening δ E` with a fixed thickening radius `δ` is
 an increasing function of the subset `E`. -/
@@ -996,7 +1014,7 @@ lemma cthickening_eq_Inter_cthickening' {δ : ℝ}
   cthickening δ E = ⋂ ε ∈ s, cthickening ε E :=
 begin
   apply subset.antisymm,
-  { exact subset_bInter (λ _ hε, cthickening_mono (le_of_lt (hsδ hε)) E), },
+  { exact subset_Inter₂ (λ _ hε, cthickening_mono (le_of_lt (hsδ hε)) E), },
   { unfold thickening cthickening,
     intros x hx,
     simp only [mem_Inter, mem_set_of_eq] at *,
@@ -1020,15 +1038,12 @@ lemma cthickening_eq_Inter_thickening' {δ : ℝ} (δ_nn : 0 ≤ δ)
   (s : set ℝ) (hsδ : s ⊆ Ioi δ) (hs : ∀ ε, δ < ε → (s ∩ (Ioc δ ε)).nonempty) (E : set α) :
   cthickening δ E = ⋂ ε ∈ s, thickening ε E :=
 begin
-  apply subset.antisymm,
-  { apply subset_bInter,
-    intros ε hε,
-    rcases hs ε (mem_Ioi.mp (hsδ hε)) with ⟨ε', ⟨hsε', hε'⟩⟩,
+  refine (subset_Inter₂ $ λ ε hε, _).antisymm _,
+  { obtain ⟨ε', hsε', hε'⟩ := hs ε (hsδ hε),
     have ss := cthickening_subset_thickening' (lt_of_le_of_lt δ_nn hε'.1) hε'.1 E,
     exact ss.trans (thickening_mono hε'.2 E), },
   { rw cthickening_eq_Inter_cthickening' s hsδ hs E,
-    apply bInter_mono,
-    exact λ ε hε, thickening_subset_cthickening ε E, },
+    exact Inter₂_mono (λ ε hε, thickening_subset_cthickening ε E) }
 end
 
 lemma cthickening_eq_Inter_thickening {δ : ℝ} (δ_nn : 0 ≤ δ) (E : set α) :
@@ -1050,7 +1065,7 @@ begin
   obtain ⟨δ, hδs, δ_nonpos⟩ := not_subset.mp hs₀,
   rw [set.mem_Ioi, not_lt] at δ_nonpos,
   apply subset.antisymm,
-  { exact subset_bInter (λ ε _, closure_subset_cthickening ε E), },
+  { exact subset_Inter₂ (λ ε _, closure_subset_cthickening ε E), },
   { rw ← cthickening_of_nonpos δ_nonpos E,
     exact bInter_subset_of_mem hδs, },
 end
@@ -1094,6 +1109,34 @@ begin
   rw [cthickening_eq_preimage_inf_edist, singleton_preim,
       ← frontier_Iic' ⟨∞, ennreal.of_real_lt_top⟩],
   exact continuous_inf_edist.frontier_preimage_subset (Iic (ennreal.of_real δ)),
+end
+
+/-- The closed ball of radius `δ` centered at a point of `E` is included in the closed
+thickening of `E`. -/
+lemma closed_ball_subset_cthickening {α : Type*} [pseudo_metric_space α]
+  {x : α} {E : set α} (hx : x ∈ E) (δ : ℝ) :
+  closed_ball x δ ⊆ cthickening δ E :=
+begin
+  refine (closed_ball_subset_cthickening_singleton _ _).trans (cthickening_subset_of_subset _ _),
+  simpa using hx,
+end
+
+/-- The closed thickening of a compact set `E` is the union of the balls `closed_ball x δ` over
+`x ∈ E`. -/
+lemma _root_.is_compact.cthickening_eq_bUnion_closed_ball
+  {α : Type*} [pseudo_metric_space α] {δ : ℝ} {E : set α} (hE : is_compact E) (hδ : 0 ≤ δ) :
+  cthickening δ E = ⋃ x ∈ E, closed_ball x δ :=
+begin
+  rcases eq_empty_or_nonempty E with rfl|hne,
+  { simp only [cthickening_empty, Union_false, Union_empty] },
+  refine subset.antisymm (λ x hx, _) (Union₂_subset $ λ x hx, closed_ball_subset_cthickening hx _),
+  obtain ⟨y, yE, hy⟩ : ∃ y ∈ E, emetric.inf_edist x E = edist x y :=
+    hE.exists_inf_edist_eq_edist hne _,
+  have D1 : edist x y ≤ ennreal.of_real δ := (le_of_eq hy.symm).trans hx,
+  have D2 : dist x y ≤ δ,
+  { rw edist_dist at D1,
+    exact (ennreal.of_real_le_of_real_iff hδ).1 D1 },
+  exact mem_bUnion yE D2,
 end
 
 end cthickening --section

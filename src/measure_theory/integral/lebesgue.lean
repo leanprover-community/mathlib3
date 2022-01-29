@@ -1246,8 +1246,8 @@ begin
     exact tendsto_at_top_supr this },
   rw ← lintegral_supr' hf h_mono,
   refine lintegral_congr_ae _,
-  filter_upwards [h_mono, h_tendsto],
-  exact λ x hx_mono hx_tendsto, tendsto_nhds_unique hx_tendsto (tendsto_at_top_supr hx_mono),
+  filter_upwards [h_mono, h_tendsto]
+    with _ hx_mono hx_tendsto using tendsto_nhds_unique hx_tendsto (tendsto_at_top_supr hx_mono),
 end
 
 lemma lintegral_eq_supr_eapprox_lintegral {f : α → ℝ≥0∞} (hf : measurable f) :
@@ -1756,14 +1756,12 @@ begin
   { have : ∀ n, ∀ᵐ a ∂μ, (hF_meas n).mk (F n) a = F n a :=
       λ n, (hF_meas n).ae_eq_mk.symm,
     have : ∀ᵐ a ∂μ, ∀ n, (hF_meas n).mk (F n) a = F n a := ae_all_iff.mpr this,
-    filter_upwards [this, h_lim],
-    assume a H H',
+    filter_upwards [this, h_lim] with a H H',
     simp_rw H,
-    exact H' },
+    exact H', },
   { assume n,
-    filter_upwards [h_bound n, (hF_meas n).ae_eq_mk],
-    assume a H H',
-    rwa H' at H }
+    filter_upwards [h_bound n, (hF_meas n).ae_eq_mk] with a H H',
+    rwa H' at H, },
 end
 
 /-- Dominated convergence theorem for filters with a countable basis -/
@@ -2108,6 +2106,10 @@ begin
   rw [with_density_apply _ ht, lintegral_indicator _ hs,
       restrict_comm hs, ← with_density_apply _ ht]
 end
+
+lemma with_density_indicator_one {s : set α} (hs : measurable_set s) :
+  μ.with_density (s.indicator 1) = μ.restrict s :=
+by rw [with_density_indicator hs, with_density_one]
 
 lemma with_density_of_real_mutually_singular {f : α → ℝ} (hf : measurable f) :
   μ.with_density (λ x, ennreal.of_real $ f x) ⊥ₘ μ.with_density (λ x, ennreal.of_real $ -f x) :=

@@ -46,7 +46,7 @@ is_unit_one.squarefree
 lemma not_squarefree_zero [monoid_with_zero R] [nontrivial R] : ¬ squarefree (0 : R) :=
 begin
   erw [not_forall],
-  exact ⟨0, (by simp)⟩,
+  exact ⟨0, by simp⟩,
 end
 
 @[simp]
@@ -70,19 +70,6 @@ lemma squarefree_of_dvd_of_squarefree [comm_monoid R]
   squarefree x :=
 λ a h, hsq _ (h.trans hdvd)
 
-lemma squarefree_iff_irreducible_squarefree [comm_monoid_with_zero R] [wf_dvd_monoid R]
-  {x : R} (x0 : x ≠ 0) : squarefree x ↔ ∀ p, irreducible p → ¬ p * p ∣ x :=
-begin
-  refine ⟨λ H p hp h, hp.not_unit (H p h), λ H m hm, by_contra $ λ hu, _⟩,
-  -- have := is_unit_of_subsingleton
-  casesI subsingleton_or_nontrivial R with inst inst,
-  { exact hu (is_unit_of_subsingleton _) },
-  by_cases m0 : m = 0,
-  { subst m0, simp at hm, exact x0 hm },
-  obtain ⟨p, pp, hp⟩ := wf_dvd_monoid.exists_irreducible_factor hu m0,
-  exact H _ pp (dvd_trans (mul_dvd_mul hp hp) hm),
-end
-
 namespace multiplicity
 variables [comm_monoid R] [decidable_rel (has_dvd.dvd : R → R → Prop)]
 
@@ -97,6 +84,46 @@ begin
 end
 
 end multiplicity
+
+section irreducible
+variables [comm_monoid_with_zero R] [wf_dvd_monoid R]
+
+lemma irreducible_sq_not_dvd_iff_eq_zero_and_no_irreducibles_or_squarefree (r : R) :
+  (∀ x : R, irreducible x → ¬ x * x ∣ r) ↔ ((r = 0 ∧ ∀ x : R, ¬irreducible x) ∨ squarefree r) :=
+begin
+  symmetry,
+  split,
+  { rintro (⟨rfl, h⟩ | h),
+    { simpa using h },
+    intros x hx t,
+    exact hx.not_unit (h x t) },
+  intro h,
+  rcases eq_or_ne r 0 with rfl | hr,
+  { exact or.inl (by simpa using h) },
+  right,
+  intros x hx,
+  by_contra i,
+  have : x ≠ 0,
+  { rintro rfl,
+    apply hr,
+    simpa only [zero_dvd_iff, mul_zero] using hx},
+  obtain ⟨j, hj₁, hj₂⟩ := wf_dvd_monoid.exists_irreducible_factor i this,
+  exact h _ hj₁ ((mul_dvd_mul hj₂ hj₂).trans hx),
+end
+
+lemma squarefree_iff_irreducible_sq_not_dvd_of_ne_zero {r : R} (hr : r ≠ 0) :
+  squarefree r ↔ ∀ x : R, irreducible x → ¬ x * x ∣ r :=
+by simpa [hr] using (irreducible_sq_not_dvd_iff_eq_zero_and_no_irreducibles_or_squarefree r).symm
+
+lemma squarefree_iff_irreducible_sq_not_dvd_of_exists_irreducible
+  {r : R} (hr : ∃ (x : R), irreducible x) :
+  squarefree r ↔ ∀ x : R, irreducible x → ¬ x * x ∣ r :=
+begin
+  rw [irreducible_sq_not_dvd_iff_eq_zero_and_no_irreducibles_or_squarefree, ←not_exists],
+  simp only [hr, not_true, false_or, and_false],
+end
+
+end irreducible
 
 namespace unique_factorization_monoid
 variables [cancel_comm_monoid_with_zero R] [nontrivial R] [unique_factorization_monoid R]
@@ -156,8 +183,7 @@ begin
 end
 
 theorem squarefree_iff_prime_squarefree {n : ℕ} : squarefree n ↔ ∀ x, prime x → ¬ x * x ∣ n :=
-if n0 : n = 0 then by simp [n0, (⟨_, prime_two⟩ : ∃ p, prime p)]
-else squarefree_iff_irreducible_squarefree n0
+squarefree_iff_irreducible_sq_not_dvd_of_exists_irreducible ⟨_, prime_two⟩
 
 /-- Assuming that `n` has no factors less than `k`, returns the smallest prime `p` such that
   `p^2 ∣ n`. -/
@@ -388,6 +414,11 @@ begin
   { obtain ⟨a, b, -, -, h₁, h₂⟩ := sq_mul_squarefree_of_pos (succ_pos n),
     exact ⟨a, b, h₁, h₂⟩ },
 end
+
+lemma squarefree_iff_prime_sq_not_dvd (n : ℕ) :
+  squarefree n ↔ ∀ x : ℕ, x.prime → ¬ x * x ∣ n :=
+squarefree_iff_irreducible_sq_not_dvd_of_exists_irreducible
+  ⟨2, (irreducible_iff_nat_prime _).2 prime_two⟩
 
 end nat
 

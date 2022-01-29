@@ -476,8 +476,8 @@ lemma add_haar_singleton_add_smul_div_singleton_add_smul
 calc
 μ ({x} + r • s) / μ ({y} + r • t)
     = ennreal.of_real (|r| ^ finrank ℝ E) * μ s * (ennreal.of_real (|r| ^ finrank ℝ E) * μ t)⁻¹ :
-  by simp only [div_eq_mul_inv, add_haar_smul, image_add_left, add_haar_preimage_add, abs_pow,
-                singleton_add]
+  by simp only [div_eq_mul_inv, add_haar_smul, image_add_left, measure_preimage_add, abs_pow,
+    singleton_add]
 ... = ennreal.of_real (|r| ^ finrank ℝ E) * (ennreal.of_real (|r| ^ finrank ℝ E))⁻¹ *
         (μ s * (μ t)⁻¹) :
   begin
@@ -544,13 +544,13 @@ begin
       by simp only [smul_closed_ball, real.norm_of_nonneg rpos.le, zero_le_one, add_zero, mul_one,
         singleton_add_closed_ball, smul_zero],
     simp only [this, add_haar_singleton_add_smul_div_singleton_add_smul μ rpos.ne'],
-    simp only [add_haar_closed_ball_center, image_add_left, add_haar_preimage_add, singleton_add] },
+    simp only [add_haar_closed_ball_center, image_add_left, measure_preimage_add, singleton_add] },
   have C : tendsto (λ (r : ℝ),
     (μ (s ∩ ({x} + r • t)) / μ (closed_ball x r)) * (μ (closed_ball x r) / μ ({x} + r • u)))
     (𝓝[>] 0) (𝓝 (0 * (μ (closed_ball x 1) / μ ({x} + u)))),
   { apply ennreal.tendsto.mul A _ B (or.inr ennreal.zero_ne_top),
     simp only [ennreal.div_eq_top, h'u, measure_closed_ball_lt_top.ne, false_or, image_add_left,
-      eq_self_iff_true, not_true, ne.def, not_false_iff, add_haar_preimage_add, singleton_add,
+      eq_self_iff_true, not_true, ne.def, not_false_iff, measure_preimage_add, singleton_add,
       and_false, false_and] },
   simp only [zero_mul] at C,
   apply C.congr' _,
@@ -616,7 +616,7 @@ begin
       by { rw H, simpa only [ennreal.zero_div] using εpos },
     apply le_antisymm _ (zero_le _),
     calc μ (s ∩ ({x} + r • t)) ≤ μ ({x} + r • t) : measure_mono (inter_subset_right _ _)
-    ... = 0 : by simp only [h't, add_haar_smul, image_add_left, add_haar_preimage_add,
+    ... = 0 : by simp only [h't, add_haar_smul, image_add_left, measure_preimage_add,
       singleton_add, mul_zero] },
   obtain ⟨n, npos, hn⟩ : ∃ (n : ℕ), 0 < n ∧ μ (t \ closed_ball 0 n) < (ε / 2) * μ t,
   { have A : tendsto (λ (n : ℕ), μ (t \ closed_ball 0 n)) at_top
@@ -706,10 +706,10 @@ begin
   rintros r (rpos : 0 < r),
   refine I ({x} + r • t) s _ _ hs,
   { simp only [h't, abs_of_nonneg rpos.le, pow_pos rpos, add_haar_smul, image_add_left,
-      ennreal.of_real_eq_zero, not_le, or_false, ne.def, add_haar_preimage_add, abs_pow,
+      ennreal.of_real_eq_zero, not_le, or_false, ne.def, measure_preimage_add, abs_pow,
       singleton_add, mul_eq_zero] },
   { simp only [h''t, ennreal.of_real_ne_top, add_haar_smul, image_add_left, with_top.mul_eq_top_iff,
-      ne.def, not_false_iff, add_haar_preimage_add, singleton_add, and_false, false_and, or_self] }
+      ne.def, not_false_iff, measure_preimage_add, singleton_add, and_false, false_and, or_self] }
 end
 
 /-- Consider a point `x` at which a set `s` has density one, with respect to closed balls (i.e.,

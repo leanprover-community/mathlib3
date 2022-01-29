@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2022 Chris Hughes. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Chris Hughes
+-/
 import data.W.cardinal
 import ring_theory.algebraic_independent
 import field_theory.is_alg_closed.basic
@@ -5,7 +10,18 @@ import field_theory.intermediate_field
 import data.polynomial.cardinal
 import data.mv_polynomial.cardinal
 import data.zmod.algebra
+/-!
+# Classification of Algebraically closed fields
 
+This file contains results related to classifying algebraically closed fields.
+
+## Main statements
+
+* `is_alg_closed.equiv_of_transcendence_basis` Two fields with the same characteristic and the same
+  cardinality of transcendence basis are isomorphic.
+* `is_alg_closed.ring_equiv_of_cardinal_eq_of_char_eq` Two uncountable algebraically closed fields
+  are isomorphic if they have the same characteristic and the same cardinality.
+-/
 universe u
 
 open_locale cardinal
@@ -65,7 +81,7 @@ section classification
 
 noncomputable theory
 
-variables {R L K : Type*} [comm_ring R] [nontrivial R]
+variables {R L K : Type*} [comm_ring R]
 variables [field K] [algebra R K]
 variables [field L] [algebra R L]
 variables {ι : Type*} (v : ι → K)
@@ -75,6 +91,7 @@ variables (hv : algebraic_independent R v)
 
 lemma is_alg_closure_of_transcendence_basis [is_alg_closed K] (hv : is_transcendence_basis R v) :
   is_alg_closure (algebra.adjoin R (set.range v)) K :=
+by letI := ring_hom.domain_nontrivial (algebra_map R K); exact
 { alg_closed := by apply_instance,
   algebraic := hv.is_algebraic,
   injective := subtype.val_injective }
@@ -84,13 +101,8 @@ variables (hw : algebraic_independent R w)
 /-- setting `R` to be `zmod (ring_char R)` this result shows that if two algebraically
 closed fields have the same size transcendence basis and the same characteristic then they are
 isomorphic. -/
-def equiv_of_transcendence_basis
-  [is_alg_closed K]
-  [is_alg_closed L]
-  (e : ι ≃ κ)
-  (hv : is_transcendence_basis R v)
-  (hw : is_transcendence_basis R w) :
-  K ≃+* L :=
+def equiv_of_transcendence_basis [is_alg_closed K] [is_alg_closed L] (e : ι ≃ κ)
+  (hv : is_transcendence_basis R v) (hw : is_transcendence_basis R w) : K ≃+* L :=
 begin
   letI := is_alg_closure_of_transcendence_basis v hv;
   letI := is_alg_closure_of_transcendence_basis w hw;

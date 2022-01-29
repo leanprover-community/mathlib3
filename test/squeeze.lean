@@ -32,3 +32,13 @@ by { squeeze_simp_test [←h, two_mul] = [←h, two_mul, add_zero] }
 -- Test that the order of the given hypotheses do not matter.
 example {a b : ℕ} (h : a + a = b) : b + 0 = 2 * a :=
 by { squeeze_simp_test [←h, two_mul] = [←h, add_zero, two_mul] }
+
+-- Test fix for #3097
+def a := 0
+def b := 0
+def c := 0
+def f : ℕ → ℕ := default
+@[simp] lemma k (x) : f x = b := rfl
+@[simp] lemma l : f b = c := rfl
+example : f (f a) = c := by { squeeze_simp_test = [k, l] }
+

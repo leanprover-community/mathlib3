@@ -216,8 +216,7 @@ lemma convex.average_mem [is_finite_measure μ] {s : set E} (hs : convex ℝ s) 
   ⨍ x, f x ∂μ ∈ s :=
 begin
   have : ∀ᵐ (x : α) ∂μ, hfi.ae_measurable.mk f x ∈ s,
-  { filter_upwards [hfs, hfi.ae_measurable.ae_eq_mk],
-    assume a ha h,
+  { filter_upwards [hfs, hfi.ae_measurable.ae_eq_mk] with a ha h,
     rwa ← h },
   rw average_congr hfi.ae_measurable.ae_eq_mk,
   exact convex.average_mem_of_measurable hs hsc hμ this

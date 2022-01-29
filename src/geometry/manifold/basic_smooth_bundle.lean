@@ -342,12 +342,11 @@ def tangent_bundle_core : basic_smooth_bundle_core I M E :=
       simp only [hx, i.1.map_target] with mfld_simps },
     have B : ∀ᶠ y in 𝓝[range I] (I x),
       (I ∘ i.1 ∘ i.1.symm ∘ I.symm) y = (id : E → E) y,
-    { filter_upwards [A],
-      assume y hy,
+    { filter_upwards [A] with _ hy,
       rw ← I.image_eq at hy,
       rcases hy with ⟨z, hz⟩,
       simp only with mfld_simps at hz,
-      simp only [hz.2.symm, hz.1] with mfld_simps },
+      simp only [hz.2.symm, hz.1] with mfld_simps, },
     have C : fderiv_within 𝕜 (I ∘ i.1 ∘ i.1.symm ∘ I.symm) (range I) (I x) =
              fderiv_within 𝕜 (id : E → E) (range I) (I x) :=
       filter.eventually_eq.fderiv_within_eq I.unique_diff_at_image B

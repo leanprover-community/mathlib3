@@ -92,6 +92,7 @@ begin
   exact λ z hz, h z hz,
 end
 
+variables (𝕜)
 include 𝕜
 lemma normed_space.sphere_nonempty_is_R_or_C [nontrivial E] {r : ℝ} (hr : 0 ≤ r) :
   nonempty (sphere (0:E) r) :=
@@ -99,4 +100,3 @@ begin
   letI : normed_space ℝ E := normed_space.restrict_scalars ℝ 𝕜 E,
   exact (sphere (0:E) r).nonempty_coe_sort.mpr (normed_space.sphere_nonempty.mpr hr),
 end
-omit 𝕜

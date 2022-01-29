@@ -72,7 +72,9 @@ by simp only [is_algebraic, alg_hom.injective_iff, not_forall, and.comm, exists_
 end
 
 section zero_ne_one
-variables (R : Type u) {A : Type v} [comm_ring R] [nontrivial R] [ring A] [algebra R A]
+variables (R : Type u) {S : Type*} {A : Type v} [comm_ring R] [nontrivial R]
+variables [comm_ring S] [ring A] [algebra R A] [algebra R S] [algebra S A]
+variables [is_scalar_tower R S A]
 
 /-- An integral element of an algebra is algebraic.-/
 lemma is_integral.is_algebraic {x : A} (h : is_integral R x) : is_algebraic R x :=
@@ -83,6 +85,14 @@ variables {R}
 /-- An element of `R` is algebraic, when viewed as an element of the `R`-algebra `A`. -/
 lemma is_algebraic_algebra_map (a : R) : is_algebraic R (algebra_map R A a) :=
 ⟨X - C a, X_sub_C_ne_zero a, by simp only [aeval_C, aeval_X, alg_hom.map_sub, sub_self]⟩
+
+lemma is_algebraic_algebra_map_of_is_algebraic {a : S} (h : is_algebraic R a) :
+  is_algebraic R (algebra_map S A a) :=
+begin
+  obtain ⟨f, hf₁, hf₂⟩ := h,
+  use [f, hf₁],
+  rw [← is_scalar_tower.algebra_map_aeval R S A, hf₂, ring_hom.map_zero]
+end
 
 end zero_ne_one
 
@@ -123,14 +133,25 @@ end
 
 variables (K L)
 
-/-- If A is an algebraic algebra over R, then A is algebraic over A when S is an extension of R,
+/-- If x is algebraic over R, then x is algebraic over S when S is an extension of R,
   and the map from `R` to `S` is injective. -/
-lemma is_algebraic_of_larger_base_of_injective (hinj : function.injective (algebra_map R S))
-  (A_alg : is_algebraic R A) : is_algebraic S A :=
-λ x, let ⟨p, hp₁, hp₂⟩ := A_alg x in
+lemma _root_.is_algebraic_of_larger_base_of_injective (hinj : function.injective (algebra_map R S))
+  {x : A} (A_alg : _root_.is_algebraic R x) : _root_.is_algebraic S x :=
+let ⟨p, hp₁, hp₂⟩ := A_alg in
 ⟨p.map (algebra_map _ _),
   by rwa [ne.def, ← degree_eq_bot, degree_map' hinj, degree_eq_bot],
   by simpa⟩
+
+/-- If A is an algebraic algebra over R, then A is algebraic over S when S is an extension of R,
+  and the map from `R` to `S` is injective. -/
+lemma is_algebraic_of_larger_base_of_injective (hinj : function.injective (algebra_map R S))
+  (A_alg : is_algebraic R A) : is_algebraic S A :=
+λ x, is_algebraic_of_larger_base_of_injective hinj (A_alg x)
+
+/-- If x is a algebraic over K, then x is algebraic over L when L is an extension of K -/
+lemma _root_.is_algebraic_of_larger_base {x : A} (A_alg : _root_.is_algebraic K x) :
+  _root_.is_algebraic L x :=
+_root_.is_algebraic_of_larger_base_of_injective (algebra_map K L).injective A_alg
 
 /-- If A is an algebraic algebra over K, then A is algebraic over L when L is an extension of K -/
 lemma is_algebraic_of_larger_base (A_alg : is_algebraic K A) : is_algebraic L A :=

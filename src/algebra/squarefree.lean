@@ -224,7 +224,7 @@ begin
   { rw [min_sq_fac_prop, squarefree_iff_prime_squarefree] at H ⊢,
     exact λ p pp dp, H p pp ((dvd_div_iff dk).2 (this _ pp dp)) },
   { obtain ⟨H1, H2, H3⟩ := H,
-    simp [dvd_div_iff dk] at H2 H3,
+    simp only [dvd_div_iff dk] at H2 H3,
     exact ⟨H1, dvd_trans (dvd_mul_left _ _) H2, λ p pp dp, H3 _ pp (this _ pp dp)⟩ }
 end
 
@@ -253,14 +253,13 @@ theorem min_sq_fac_aux_has_prop : ∀ {n : ℕ} k, 0 < n → ∀ i, k = 2*i+3 �
     rw [← me, e] at d, change 2 * (i + 2) ∣ n' at d,
     have := ih _ prime_two (dvd_trans (dvd_of_mul_right_dvd d) nd'),
     rw e at this, exact absurd this dec_trivial },
-  by_cases dk : k ∣ n; simp [dk],
-  { have pk : prime k,
-    { refine prime_def_min_fac.2 ⟨k2, le_antisymm (min_fac_le k0) _⟩,
-      exact ih _ (min_fac_prime (ne_of_gt k2)) (dvd_trans (min_fac_dvd _) dk) },
-    by_cases dkk : k * k ∣ n; simp [dkk],
-    { exact ⟨pk, dkk, λ p pp d, ih p pp (dvd_trans ⟨_, rfl⟩ d)⟩ },
-    specialize IH (n/k) (div_dvd_of_dvd dk) (mt (dvd_div_iff dk).1 dkk),
-    exact min_sq_fac_prop_div _ pk dk dkk IH },
+  have pk : k ∣ n → prime k,
+  { refine λ dk, prime_def_min_fac.2 ⟨k2, le_antisymm (min_fac_le k0) _⟩,
+    exact ih _ (min_fac_prime (ne_of_gt k2)) (dvd_trans (min_fac_dvd _) dk) },
+  split_ifs with dk dkk,
+  { exact ⟨pk dk, (nat.dvd_div_iff dk).1 dkk, λ p pp d, ih p pp (dvd_trans ⟨_, rfl⟩ d)⟩ },
+  { specialize IH (n/k) (div_dvd_of_dvd dk) dkk,
+    exact min_sq_fac_prop_div _ (pk dk) dk (mt (nat.dvd_div_iff dk).2 dkk) IH },
   { exact IH n (dvd_refl _) dk }
 end
 using_well_founded {rel_tac :=
@@ -268,7 +267,7 @@ using_well_founded {rel_tac :=
 
 theorem min_sq_fac_has_prop (n : ℕ) : min_sq_fac_prop n (min_sq_fac n) :=
 begin
-  simp [min_sq_fac], split_ifs with d2 d4,
+  dunfold min_sq_fac, split_ifs with d2 d4,
   { exact ⟨prime_two, (dvd_div_iff d2).1 d4, λ p pp _, pp.two_le⟩ },
   { cases nat.eq_zero_or_pos n with n0 n0, { subst n0, cases d4 dec_trivial },
     refine min_sq_fac_prop_div _ prime_two d2 (mt (dvd_div_iff d2).2 d4) _,

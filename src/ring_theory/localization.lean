@@ -2280,13 +2280,15 @@ begin
     exact to_map_eq_zero_iff.mp h }
 end
 
-variables (A K B)
-variables [comm_ring B] [algebra K B] [algebra A B] [is_scalar_tower A K B]
+section
+
+variables (A K) (C : Type*)
+variables [comm_ring C]
 
 /-- An element of a field is algebraic over the ring `A` iff it is algebraic
 over the field of fractions of `A`.
 -/
-lemma is_algebraic_iff [algebra A B] [algebra K B] [is_scalar_tower A K B] {x : B} :
+lemma is_algebraic_iff [algebra A C] [algebra K C] [is_scalar_tower A K C] {x : C} :
   is_algebraic A x ↔ is_algebraic K x :=
 begin
   split; rintros ⟨p, hp, px⟩,
@@ -2299,13 +2301,13 @@ begin
            integer_normalization_aeval_eq_zero _ p px⟩ },
 end
 
-variables {A K B} [is_domain B]
+variables {A K C}
 
 /-- A field is algebraic over the ring `A` iff it is algebraic over the field of fractions of `A`.
 -/
-lemma comap_is_algebraic_iff [algebra A B] [algebra K B] [is_scalar_tower A K B] :
-  algebra.is_algebraic A B ↔ algebra.is_algebraic K B :=
-⟨λ h x, (is_algebraic_iff A K B).mp (h x), λ h x, (is_algebraic_iff A K B).mpr (h x)⟩
+lemma comap_is_algebraic_iff [algebra A C] [algebra K C] [is_scalar_tower A K C] :
+  algebra.is_algebraic A C ↔ algebra.is_algebraic K C :=
+⟨λ h x, (is_algebraic_iff A K C).mp (h x), λ h x, (is_algebraic_iff A K C).mpr (h x)⟩
 
 section num_denom
 

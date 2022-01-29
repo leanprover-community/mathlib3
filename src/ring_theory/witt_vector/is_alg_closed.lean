@@ -293,6 +293,48 @@ begin
       simp [zero_pow (zero_lt_iff.mpr hj)] } },
 end
 
+omit hp
+lemma restrict_to_vars {σ : Type*} {s : finset σ} (R : Type*) [comm_ring R] {F : mv_polynomial σ ℤ}
+  (hF : F.vars ⊆ s) :
+  ∃ f : (s → R) → R, ∀ x : σ → R, f (x ∘ coe : s → R) = aeval x F :=
+begin
+  sorry
+end
+include hp
+
+lemma nth_mul_coeff' (n : ℕ) :
+  ∃ f : (truncated_witt_vector p (n+1) k → truncated_witt_vector p (n+1) k → k),
+  ∀ (x y : 𝕎 k),
+  f (truncate_fun (n+1) x) (truncate_fun (n+1) y)
+  = (x * y).coeff (n+1) - y.coeff (n+1) * x.coeff 0 ^ (p^n)
+    - x.coeff (n+1) * y.coeff 0 ^ (p^n) :=
+begin
+  simp [← peval_poly_of_interest'],
+  obtain ⟨f₀, hf₀⟩ := restrict_to_vars k (poly_of_interest_vars p n),
+  let f : truncated_witt_vector p (n+1) k → truncated_witt_vector p (n+1) k → k,
+  { intros x y,
+    apply f₀,
+    rintros ⟨a, ha⟩,
+    apply function.uncurry (![x, y]),
+    rw mem_product at ha,
+    refine ⟨a.fst, ⟨a.snd, _⟩⟩,
+    simpa only [mem_range] using ha.right },
+  use f,
+  intros x y,
+  dsimp [peval],
+  rw ← hf₀,
+  simp [f],
+  congr,
+  ext a,
+  cases a with a ha,
+  cases a with i m,
+  have ha' : m < n + 1 := by simpa [mem_product, mem_range] using ha,
+  fin_cases i, -- surely this case split is not necessary
+  { simpa using coeff_truncate_fun x ⟨m, ha'⟩ },
+  { simpa using coeff_truncate_fun x ⟨m, ha'⟩ }
+end
+
+
 -- what follows below is the previous attempt to do this directly in k.
 -- a bit of the code may still be salvageable.
 

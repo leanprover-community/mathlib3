@@ -59,34 +59,28 @@ open measure topological_space.positive_compacts finite_dimensional
 ### The Lebesgue measure is a Haar measure on `ℝ` and on `ℝ^ι`.
 -/
 
-lemma is_add_left_invariant_real_volume : is_add_left_invariant ⇑(volume : measure ℝ) :=
-by simp [← map_add_left_eq_self, real.map_volume_add_left]
+instance is_add_left_invariant_real_volume :
+  is_add_left_invariant (volume : measure ℝ) :=
+⟨by simp [real.map_volume_add_left]⟩
 
 /-- The Haar measure equals the Lebesgue measure on `ℝ`. -/
 lemma add_haar_measure_eq_volume : add_haar_measure Icc01 = volume :=
-begin
-  convert (add_haar_measure_unique _ Icc01).symm,
-  { simp [Icc01] },
-  { apply_instance },
-  { exact is_add_left_invariant_real_volume }
-end
+by { convert (add_haar_measure_unique volume Icc01).symm, simp [Icc01] }
 
 instance : is_add_haar_measure (volume : measure ℝ) :=
 by { rw ← add_haar_measure_eq_volume, apply_instance }
 
-lemma is_add_left_invariant_real_volume_pi (ι : Type*) [fintype ι] :
-  is_add_left_invariant ⇑(volume : measure (ι → ℝ)) :=
-by simp [← map_add_left_eq_self, real.map_volume_pi_add_left]
+instance is_add_left_invariant_real_volume_pi (ι : Type*) [fintype ι] :
+  is_add_left_invariant (volume : measure (ι → ℝ)) :=
+⟨by simp [real.map_volume_pi_add_left]⟩
 
 /-- The Haar measure equals the Lebesgue measure on `ℝ^ι`. -/
 lemma add_haar_measure_eq_volume_pi (ι : Type*) [fintype ι] :
   add_haar_measure (pi_Icc01 ι) = volume :=
 begin
-  convert (add_haar_measure_unique _ (pi_Icc01 ι)).symm,
-  { simp only [pi_Icc01, volume_pi_pi (λ i, Icc (0 : ℝ) 1),
-      finset.prod_const_one, ennreal.of_real_one, real.volume_Icc, one_smul, sub_zero] },
-  { apply_instance },
-  { exact is_add_left_invariant_real_volume_pi ι }
+  convert (add_haar_measure_unique volume (pi_Icc01 ι)).symm,
+  simp only [pi_Icc01, volume_pi_pi (λ i, Icc (0 : ℝ) 1),
+    finset.prod_const_one, ennreal.of_real_one, real.volume_Icc, one_smul, sub_zero]
 end
 
 instance is_add_haar_measure_volume_pi (ι : Type*) [fintype ι] :
@@ -113,7 +107,7 @@ begin
   calc
   ∞ = ∑' (n : ℕ), μ s : (ennreal.tsum_const_eq_top_of_ne_zero h).symm
   ... = ∑' (n : ℕ), μ ({u n} + s) :
-    by { congr' 1, ext1 n, simp only [image_add_left, add_haar_preimage_add, singleton_add] }
+    by { congr' 1, ext1 n, simp only [image_add_left, measure_preimage_add, singleton_add] }
   ... = μ (⋃ n, {u n} + s) :
     by rw measure_Union hs
       (λ n, by simpa only [image_add_left, singleton_add] using measurable_id.const_add _ h's)
@@ -189,7 +183,7 @@ lemma map_linear_map_add_haar_pi_eq_smul_add_haar
 begin
   /- We have already proved the result for the Lebesgue product measure, using matrices.
   We deduce it for any Haar measure by uniqueness (up to scalar multiplication). -/
-  have := add_haar_measure_unique (is_add_left_invariant_add_haar μ) (pi_Icc01 ι),
+  have := add_haar_measure_unique μ (pi_Icc01 ι),
   rw this,
   simp [add_haar_measure_eq_volume_pi, real.map_linear_map_volume_pi_eq_smul_volume_pi hf,
     smul_smul, mul_comm],
@@ -367,7 +361,7 @@ lemma add_haar_ball_center
   μ (ball x r) = μ (ball (0 : E) r) :=
 begin
   have : ball (0 : E) r = ((+) x) ⁻¹' (ball x r), by simp [preimage_add_ball],
-  rw [this, add_haar_preimage_add]
+  rw [this, measure_preimage_add]
 end
 
 lemma add_haar_closed_ball_center
@@ -376,7 +370,7 @@ lemma add_haar_closed_ball_center
   μ (closed_ball x r) = μ (closed_ball (0 : E) r) :=
 begin
   have : closed_ball (0 : E) r = ((+) x) ⁻¹' (closed_ball x r), by simp [preimage_add_closed_ball],
-  rw [this, add_haar_preimage_add]
+  rw [this, measure_preimage_add]
 end
 
 lemma add_haar_ball_mul_of_pos (x : E) {r : ℝ} (hr : 0 < r) (s : ℝ) :

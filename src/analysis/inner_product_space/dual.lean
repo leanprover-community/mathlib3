@@ -173,7 +173,7 @@ end
 variables {E 𝕜}
 
 /--
-Maps a bilinear form to its continuous linear map,
+Maps a bounded sesquilinear form to its continuous linear map,
 given by interpreting the form as a map `B : E →L⋆[𝕜] normed_space.dual 𝕜 E`
 and dualizing the result using `to_dual`.
 -/

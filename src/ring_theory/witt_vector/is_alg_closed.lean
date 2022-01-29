@@ -116,7 +116,6 @@ def witt_poly_prod (n : ℕ) : mv_polynomial (fin 2 × ℕ) ℤ :=
 rename (prod.mk (0 : fin 2)) (witt_polynomial p ℤ n) *
   rename (prod.mk (1 : fin 2)) (witt_polynomial p ℤ n)
 
-
 lemma witt_poly_prod_vars (n : ℕ) :
   (witt_poly_prod p n).vars ⊆ finset.univ.product (finset.range (n + 1)) :=
 begin
@@ -181,10 +180,28 @@ end
 
 -- this is the remainder from sum_ident_3
 def diff (n : ℕ) : mv_polynomial (fin 2 × ℕ) ℤ :=
-sorry
+(∑ i in range (n + 1), p^i * X (0, i)^(p ^ (n+1-i)))
+  * (∑ i in range (n + 1), p^i * X (1, i)^(p ^ (n+1-i)))
 
 lemma diff_vars (n : ℕ) : (diff p n).vars ⊆ univ.product (range (n+1)) :=
-sorry
+begin
+  rw [diff],
+  apply subset.trans (vars_mul _ _),
+  apply union_subset;
+  { apply subset.trans (vars_sum_subset _ _),
+    rw bUnion_subset,
+    intros x hx,
+    apply subset.trans (vars_mul _ _),
+    apply union_subset,
+    { apply subset.trans (vars_pow _ _),
+      have : (p : mv_polynomial (fin 2 × ℕ) ℤ) = (C (p : ℤ)),
+      { simp only [int.cast_coe_nat, ring_hom.eq_int_cast] },
+      rw [this, vars_C],
+      apply empty_subset },
+    { apply subset.trans (vars_pow _ _),
+      rw vars_X,
+      simp only [hx, mem_univ, singleton_subset_iff, and_self, mem_product] } }
+end
 
 
 lemma sum_ident_3 (n : ℕ) :
@@ -194,8 +211,10 @@ lemma sum_ident_3 (n : ℕ) :
   (p^(n+1) * X (1, n+1)) * rename (prod.mk (0 : fin 2)) (witt_polynomial p ℤ n) +
   diff p n :=
 begin
-  sorry
+  rw [witt_poly_prod, diff, witt_polynomial, alg_hom.map_sum, alg_hom.map_sum,
+      sum_range_succ, sum_range_succ],
 end
+
 
 lemma sum_ident_4 (n : ℕ) :
   (p ^ (n + 1) * witt_mul p (n + 1) : mv_polynomial (fin 2 × ℕ) ℤ) =

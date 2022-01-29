@@ -212,13 +212,13 @@ begin
   exact ⟨j + k, by rwa [subtype.ext_iff, (H.comap ϕ).coe_pow]⟩,
 end
 
+lemma ker_is_p_group_of_injective {K : Type*} [group K] {ϕ : K →* G} (hϕ : function.injective ϕ) :
+  is_p_group p ϕ.ker :=
+(congr_arg (λ Q : subgroup K, is_p_group p Q) (ϕ.ker_eq_bot_iff.mpr hϕ)).mpr is_p_group.of_bot
+
 lemma comap_of_injective {H : subgroup G} (hH : is_p_group p H) {K : Type*} [group K]
   (ϕ : K →* G) (hϕ : function.injective ϕ) : is_p_group p (H.comap ϕ) :=
-begin
-  apply hH.comap_of_ker_is_p_group ϕ,
-  rw ϕ.ker_eq_bot_iff.mpr hϕ,
-  exact is_p_group.of_bot,
-end
+hH.comap_of_ker_is_p_group ϕ (ker_is_p_group_of_injective hϕ)
 
 lemma comap_subtype {H : subgroup G} (hH : is_p_group p H) {K : subgroup G} :
   is_p_group p (H.comap K.subtype) :=

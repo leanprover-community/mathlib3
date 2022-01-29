@@ -503,12 +503,19 @@ lemma squarefree_helper_3 (n n' k k' c : ℕ) (e : k + 1 = k')
   subst e, contradiction
 end
 
-lemma squarefree_helper_4 (n : ℕ) : squarefree_helper n n :=
+lemma squarefree_helper_4 (n k k' : ℕ) (e : bit1 k * bit1 k = k')
+  (hd : bit1 n < k') : squarefree_helper n k :=
 begin
   cases nat.eq_zero_or_pos n,
   { subst n, exact λ _ _, squarefree_one },
-  exact squarefree_helper_3 _ 0 _ _ _ rfl (one_mul _)
-    (nat.mod_eq_of_lt $ bit1_lt_bit1.2 h) zero_lt_one (λ _ _, squarefree_one),
+  subst e,
+  refine λ k0 ih, irreducible.squarefree (nat.prime_def_le_sqrt.2 ⟨bit1_lt_bit1.2 h, _⟩),
+  intros m m2 hm md,
+  obtain ⟨p, pp, hp⟩ := nat.exists_prime_and_dvd m2,
+  have := (ih p pp (dvd_trans hp md)).trans
+    (le_trans (nat.le_of_dvd (lt_of_lt_of_le dec_trivial m2) hp) hm),
+  rw nat.le_sqrt at this,
+  exact not_le_of_lt hd this
 end
 
 lemma not_squarefree_mul (a aa b n : ℕ) (ha : a * a = aa) (hb : aa * b = n)
@@ -533,10 +540,12 @@ meta def prove_squarefree_aux : ∀ (ic : instance_cache) (en en1 : expr) (n1 : 
   (ek : expr) (k : ℕ), tactic expr
 | ic en en1 n1 ek k := do
   let k1 := bit1 k,
-  if n1 = k1 then
-    pure $ `(squarefree_helper_4).mk_app [en]
+  let ek1 := `(bit1:ℕ→ℕ).mk_app [ek],
+  if n1 < k1*k1 then do
+    (ic, ek', p₁) ← prove_mul_nat ic ek1 ek1,
+    (ic, p₂) ← prove_lt_nat ic en1 ek',
+    pure $ `(squarefree_helper_4).mk_app [en, ek, ek', p₁, p₂]
   else do
-    let ek1 := `(bit1:ℕ→ℕ).mk_app [ek],
     let c := n1 % k1,
     let k' := k+1, let ek' := reflect k',
     (ic, p₁) ← prove_succ ic ek ek',

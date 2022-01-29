@@ -226,3 +226,4 @@ example : ¬ squarefree 9 := by norm_num
 example : squarefree 10 := by norm_num
 example : squarefree (2*3*5*17) := by norm_num
 example : ¬ squarefree (2*3*5*5*17) := by norm_num
+example : squarefree 251 := by norm_num

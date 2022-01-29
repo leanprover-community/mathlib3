@@ -72,18 +72,19 @@ by simp only [is_algebraic, alg_hom.injective_iff, not_forall, and.comm, exists_
 end
 
 section zero_ne_one
-variables (R : Type u) {S : Type*} {A : Type v} [comm_ring R] [nontrivial R]
+variables (R : Type u) {S : Type*} {A : Type v} [comm_ring R]
 variables [comm_ring S] [ring A] [algebra R A] [algebra R S] [algebra S A]
 variables [is_scalar_tower R S A]
 
 /-- An integral element of an algebra is algebraic.-/
-lemma is_integral.is_algebraic {x : A} (h : is_integral R x) : is_algebraic R x :=
+lemma is_integral.is_algebraic [nontrivial R] {x : A} (h : is_integral R x) :
+  is_algebraic R x :=
 by { rcases h with ⟨p, hp, hpx⟩, exact ⟨p, hp.ne_zero, hpx⟩ }
 
 variables {R}
 
 /-- An element of `R` is algebraic, when viewed as an element of the `R`-algebra `A`. -/
-lemma is_algebraic_algebra_map (a : R) : is_algebraic R (algebra_map R A a) :=
+lemma is_algebraic_algebra_map [nontrivial R] (a : R) : is_algebraic R (algebra_map R A a) :=
 ⟨X - C a, X_sub_C_ne_zero a, by simp only [aeval_C, aeval_X, alg_hom.map_sub, sub_self]⟩
 
 lemma is_algebraic_algebra_map_of_is_algebraic {a : S} (h : is_algebraic R a) :

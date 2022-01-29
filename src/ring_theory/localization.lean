@@ -2686,8 +2686,7 @@ variables (R S K)
 
 /-- `S` is algebraic over `R` iff a fraction ring of `S` is algebraic over `R` -/
 lemma is_algebraic_iff' [field K] [is_domain R] [is_domain S] [algebra R K] [algebra S K]
-  [no_zero_smul_divisors R K] [no_zero_smul_divisors R S]
-  [is_fraction_ring S K] [is_scalar_tower R S K] :
+  [no_zero_smul_divisors R K] [is_fraction_ring S K] [is_scalar_tower R S K] :
   algebra.is_algebraic R S ↔ algebra.is_algebraic R K :=
 begin
   simp only [algebra.is_algebraic],

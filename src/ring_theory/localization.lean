@@ -2663,7 +2663,7 @@ namespace is_fraction_ring
 
 lemma is_algebraic_iff' [field K] [is_domain R] [is_domain S] [algebra R K] [algebra S K]
   [no_zero_smul_divisors R K] [no_zero_smul_divisors R S]
-    [is_fraction_ring S K] [is_scalar_tower R S K] :
+  [is_fraction_ring S K] [is_scalar_tower R S K] :
   algebra.is_algebraic R S ↔ algebra.is_algebraic R K :=
 begin
   simp only [algebra.is_algebraic],
@@ -2693,7 +2693,7 @@ begin
       { haveI : invertible (algebra_map S K b), { sorry },
         rw [polynomial.aeval_def, ← inv_of_eq_inv, polynomial.eval₂_reverse_eq_zero_iff,
           polynomial.eval₂_map, ← is_scalar_tower.algebra_map_eq, ← polynomial.aeval_def,
-          ← is_scalar_tower.algebra_map_aeval, hf₂, ring_hom.map_zero] } } }
+          ← is_scalar_tower.algebra_map_aeval, hf₂, ring_hom.map_zero] } } },
 end
 
 end is_fraction_ring

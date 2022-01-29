@@ -2285,7 +2285,7 @@ section
 variables (A K) (C : Type*)
 variables [comm_ring C]
 
-/-- An element of a field is algebraic over the ring `A` iff it is algebraic
+/-- An element of a ring is algebraic over the ring `A` iff it is algebraic
 over the field of fractions of `A`.
 -/
 lemma is_algebraic_iff [algebra A C] [algebra K C] [is_scalar_tower A K C] {x : C} :
@@ -2303,7 +2303,7 @@ end
 
 variables {A K C}
 
-/-- A field is algebraic over the ring `A` iff it is algebraic over the field of fractions of `A`.
+/-- A ring is algebraic over the ring `A` iff it is algebraic over the field of fractions of `A`.
 -/
 lemma comap_is_algebraic_iff [algebra A C] [algebra K C] [is_scalar_tower A K C] :
   algebra.is_algebraic A C ↔ algebra.is_algebraic K C :=

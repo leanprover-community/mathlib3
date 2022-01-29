@@ -235,18 +235,18 @@ by { rintro ⟨c, rfl⟩, simp [pow_mul] }
 theorem neg_one_pow_of_odd : odd n → (-1 : R) ^ n = -1 :=
 by { rintro ⟨c, rfl⟩, simp [pow_add, pow_mul] }
 
-lemma even_two_mul_div_two : even n → 2 * (n / 2) = n := nat.mul_div_cancel_left'
+lemma two_mul_div_two_of_even : even n → 2 * (n / 2) = n := nat.mul_div_cancel_left'
 
-lemma even_div_two_mul_two : even n → n / 2 * 2 = n :=
+lemma div_two_mul_two_of_even : even n → n / 2 * 2 = n :=
 by { rintro ⟨c, rfl⟩, simp [mul_comm] }
 
-lemma odd_two_mul_div_two_add_one (h : odd n) : 2 * (n / 2) + 1 = n :=
+lemma two_mul_div_two_add_one_of_odd (h : odd n) : 2 * (n / 2) + 1 = n :=
 by { rw mul_comm, convert nat.div_add_mod' n 2, rw odd_iff.mp h }
 
-lemma odd_div_two_mul_two_add_one (h : odd n) : n / 2 * 2 + 1 = n :=
+lemma div_two_mul_two_add_one_of_odd (h : odd n) : n / 2 * 2 + 1 = n :=
 by { convert nat.div_add_mod' n 2, rw odd_iff.mp h }
 
-lemma odd_one_add_div_two_mul_two (h : odd n) : 1 + n / 2 * 2 = n :=
+lemma one_add_div_two_mul_two_of_odd (h : odd n) : 1 + n / 2 * 2 = n :=
 by { rw add_comm, convert nat.div_add_mod' n 2, rw odd_iff.mp h }
 
 -- Here are examples of how `parity_simps` can be used with `nat`.

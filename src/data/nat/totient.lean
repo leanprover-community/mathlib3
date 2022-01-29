@@ -36,7 +36,7 @@ localized "notation `φ` := nat.totient" in nat
 @[simp] theorem totient_one : φ 1 = 1 :=
 by simp [totient]
 
-lemma totient_eq_card_coprime (n : ℕ) : φ n = ((range n).filter (coprime n)).card := rfl
+lemma totient_eq_card_coprime (n : ℕ) : φ n = ((range n).filter n.coprime).card := rfl
 
 lemma totient_le (n : ℕ) : φ n ≤ n :=
 calc totient n ≤ (range n).card : card_filter_le _ _

@@ -133,21 +133,21 @@ variable (s : set β)
 lemma to_outer_measure_bind_apply :
   (p.bind f).to_outer_measure s = ∑' (a : α), (p a : ℝ≥0∞) * (f a).to_outer_measure s :=
 calc (p.bind f).to_outer_measure s
-      = ∑' (b : β), if b ∈ s then (↑(∑' (a : α), p a * f a b) : ℝ≥0∞) else 0
-    : by simp [to_outer_measure_apply, set.indicator_apply]
-  ... = ∑' (b : β), ↑(∑' (a : α), p a * (if b ∈ s then f a b else 0))
-    : tsum_congr (λ b, by split_ifs; simp)
-  ... = ∑' (b : β) (a : α), ↑(p a * (if b ∈ s then f a b else 0))
-    : tsum_congr (λ b, ennreal.coe_tsum $
-        nnreal.summable_of_le (by split_ifs; simp) (bind.summable p f b))
-  ... = ∑' (a : α) (b : β), ↑(p a) * ↑(if b ∈ s then f a b else 0)
-    : ennreal.tsum_comm.trans (tsum_congr $ λ a, tsum_congr $ λ b, ennreal.coe_mul)
-  ... = ∑' (a : α), ↑(p a) * ∑' (b : β), ↑(if b ∈ s then f a b else 0)
-    : tsum_congr (λ a, ennreal.tsum_mul_left)
-  ... = ∑' (a : α), ↑(p a) * ∑' (b : β), if b ∈ s then ↑(f a b) else (0 : ℝ≥0∞)
-    : tsum_congr (λ a, congr_arg (λ x, ↑(p a) * x) $ tsum_congr (λ b, by split_ifs; refl))
-  ... = ∑' (a : α), ↑(p a) * (f a).to_outer_measure s
-    : tsum_congr (λ a, by rw [to_outer_measure_apply, set.indicator])
+  = ∑' (b : β), if b ∈ s then (↑(∑' (a : α), p a * f a b) : ℝ≥0∞) else 0 :
+    by simp [to_outer_measure_apply, set.indicator_apply]
+  ... = ∑' (b : β), ↑(∑' (a : α), p a * (if b ∈ s then f a b else 0)) :
+    tsum_congr (λ b, by split_ifs; simp)
+  ... = ∑' (b : β) (a : α), ↑(p a * (if b ∈ s then f a b else 0)) :
+    tsum_congr (λ b, ennreal.coe_tsum $
+      nnreal.summable_of_le (by split_ifs; simp) (bind.summable p f b))
+  ... = ∑' (a : α) (b : β), ↑(p a) * ↑(if b ∈ s then f a b else 0) :
+    ennreal.tsum_comm.trans (tsum_congr $ λ a, tsum_congr $ λ b, ennreal.coe_mul)
+  ... = ∑' (a : α), ↑(p a) * ∑' (b : β), ↑(if b ∈ s then f a b else 0) :
+    tsum_congr (λ a, ennreal.tsum_mul_left)
+  ... = ∑' (a : α), ↑(p a) * ∑' (b : β), if b ∈ s then ↑(f a b) else (0 : ℝ≥0∞) :
+    tsum_congr (λ a, congr_arg (λ x, ↑(p a) * x) $ tsum_congr (λ b, by split_ifs; refl))
+  ... = ∑' (a : α), ↑(p a) * (f a).to_outer_measure s :
+    tsum_congr (λ a, by rw [to_outer_measure_apply, set.indicator])
 
 /-- The measure of a set under `p.bind f` is the sum over `a : α`
   of the probability of `a` under `p` times the measure of the set under `f a` -/
@@ -291,26 +291,26 @@ lemma to_outer_measure_bind_on_support_apply :
     ∑' (a : α), (p a : ℝ≥0) * if h : p a = 0 then 0 else (f a h).to_outer_measure s :=
 let g : α → β → ℝ≥0 := λ a b, if h : p a = 0 then 0 else f a h b in
 calc (p.bind_on_support f).to_outer_measure s
-      = ∑' (b : β), if b ∈ s then ↑(∑' (a : α), p a * g a b) else 0
-    : by simp [to_outer_measure_apply, set.indicator_apply]
-  ... = ∑' (b : β), ↑(∑' (a : α), p a * (if b ∈ s then g a b else 0))
-    : tsum_congr (λ b, by split_ifs; simp)
-  ... = ∑' (b : β) (a : α), ↑(p a * (if b ∈ s then g a b else 0))
-    : tsum_congr (λ b, ennreal.coe_tsum $
-        nnreal.summable_of_le (by split_ifs; simp) (bind_on_support.summable p f b))
-  ... = ∑' (a : α) (b : β), ↑(p a) * ↑(if b ∈ s then g a b else 0)
-    : ennreal.tsum_comm.trans (tsum_congr $ λ a, tsum_congr $ λ b, ennreal.coe_mul)
-  ... = ∑' (a : α), ↑(p a) * ∑' (b : β), ↑(if b ∈ s then g a b else 0)
-    : tsum_congr (λ a, ennreal.tsum_mul_left)
-  ... = ∑' (a : α), ↑(p a) * ∑' (b : β), if b ∈ s then ↑(g a b) else (0 : ℝ≥0∞)
-    : tsum_congr (λ a, congr_arg (λ x, ↑(p a) * x) $ tsum_congr (λ b, by split_ifs; refl))
-  ... = ∑' (a : α), ↑(p a) * if h : p a = 0 then 0 else (f a h).to_outer_measure s
-    : tsum_congr (λ a, congr_arg (has_mul.mul ↑(p a)) begin
-        split_ifs with h h,
-        { exact ennreal.tsum_eq_zero.mpr (λ x,
-            (by simp [g, h] : (0 : ℝ≥0∞) = ↑(g a x)) ▸ (if_t_t (x ∈ s) 0)) },
-        { simp [to_outer_measure_apply, g, h, set.indicator_apply] }
-      end)
+  = ∑' (b : β), if b ∈ s then ↑(∑' (a : α), p a * g a b) else 0 :
+    by simp [to_outer_measure_apply, set.indicator_apply]
+  ... = ∑' (b : β), ↑(∑' (a : α), p a * (if b ∈ s then g a b else 0)) :
+    tsum_congr (λ b, by split_ifs; simp)
+  ... = ∑' (b : β) (a : α), ↑(p a * (if b ∈ s then g a b else 0)) :
+    tsum_congr (λ b, ennreal.coe_tsum $
+      nnreal.summable_of_le (by split_ifs; simp) (bind_on_support.summable p f b))
+  ... = ∑' (a : α) (b : β), ↑(p a) * ↑(if b ∈ s then g a b else 0) :
+    ennreal.tsum_comm.trans (tsum_congr $ λ a, tsum_congr $ λ b, ennreal.coe_mul)
+  ... = ∑' (a : α), ↑(p a) * ∑' (b : β), ↑(if b ∈ s then g a b else 0) :
+    tsum_congr (λ a, ennreal.tsum_mul_left)
+  ... = ∑' (a : α), ↑(p a) * ∑' (b : β), if b ∈ s then ↑(g a b) else (0 : ℝ≥0∞) :
+    tsum_congr (λ a, congr_arg (λ x, ↑(p a) * x) $ tsum_congr (λ b, by split_ifs; refl))
+  ... = ∑' (a : α), ↑(p a) * if h : p a = 0 then 0 else (f a h).to_outer_measure s :
+    tsum_congr (λ a, congr_arg (has_mul.mul ↑(p a)) begin
+      split_ifs with h h,
+      { exact ennreal.tsum_eq_zero.mpr (λ x,
+          (by simp [g, h] : (0 : ℝ≥0∞) = ↑(g a x)) ▸ (if_t_t (x ∈ s) 0)) },
+      { simp [to_outer_measure_apply, g, h, set.indicator_apply] }
+    end)
 
 /-- The measure of a set under `p.bind_on_support f` is the sum over `a : α`
   of the probability of `a` under `p` times the measure of the set under `f a _`.

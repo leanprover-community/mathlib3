@@ -495,4 +495,38 @@ end
 
 end pointwise
 
+/-- The preimage of a Sylow subgroup under a homomorphism with p-group-kernel is a Sylow subgroup -/
+def comap_of_ker_is_p_group {p : ℕ} (P : sylow p G)
+  {K : Type*} [group K] (ϕ : K →* G) (hϕ : is_p_group p ϕ.ker) (h : P.1 ≤ ϕ.range) :
+  sylow p K :=
+{ P.1.comap ϕ with
+  is_p_group' := P.2.comap_of_ker_is_p_group ϕ hϕ,
+  is_maximal' := λ Q hQ hle, by
+  { rw ← P.3 (hQ.map ϕ) (le_trans (ge_of_eq (map_comap_eq_self h)) (map_mono hle)),
+    exact (comap_map_eq_self ((P.1.ker_le_comap ϕ).trans hle)).symm }, }
+
+@[simp]
+lemma coe_comap_of_ker_is_p_group {p : ℕ} {P : sylow p G}
+  {K : Type*} [group K] (ϕ : K →* G) (hϕ : is_p_group p ϕ.ker) (h : P.1 ≤ ϕ.range) :
+  ↑(P.comap_of_ker_is_p_group ϕ hϕ h) = subgroup.comap ϕ ↑P := rfl
+
+/-- The preimage of a Sylow subgroup under an injective homomorphism is a Sylow subgroup -/
+def comap_of_injective {p : ℕ} (P : sylow p G)
+  {K : Type*} [group K] (ϕ : K →* G) (hϕ : function.injective ϕ) (h : P.1 ≤ ϕ.range) :
+  sylow p K :=
+  P.comap_of_ker_is_p_group ϕ (by { rw ϕ.ker_eq_bot_iff.mpr hϕ, exact is_p_group.of_bot }) h
+
+@[simp]
+lemma code_comap_of_injective {p : ℕ} {P : sylow p G}
+  {K : Type*} [group K] (ϕ : K →* G) (hϕ : function.injective ϕ) (h : P.1 ≤ ϕ.range)  :
+  ↑(P.comap_of_injective ϕ hϕ h) = subgroup.comap ϕ ↑P := rfl
+
+/-- A sylow subgroup in G is also a sylow subgroup in a subgroup of G. -/
+def subtype {p : ℕ} (P : sylow p G) (N : subgroup G) (h : ↑P ≤ N) : sylow p N :=
+  P.comap_of_injective N.subtype subtype.coe_injective (by simp [h])
+
+@[simp]
+lemma coe_subtype {p : ℕ} {P : sylow p G} {N : subgroup G} {h : P.1 ≤ N} :
+  ↑(P.subtype N h) = subgroup.comap N.subtype ↑P := rfl
+
 end sylow

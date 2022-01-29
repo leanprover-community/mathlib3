@@ -245,7 +245,7 @@ lemma eq_conj_iff_re {z : K} : conj z = z ↔ ((re z) : K) = z :=
 eq_conj_iff_real.trans ⟨by rintro ⟨r, rfl⟩; simp, λ h, ⟨_, h.symm⟩⟩
 
 /-- The norm squared function. -/
-def norm_sq : monoid_with_zero_hom K ℝ :=
+def norm_sq : K →*₀ ℝ :=
 { to_fun := λ z, re z * re z + im z * im z,
   map_zero' := by simp only [add_zero, mul_zero, map_zero],
   map_one' := by simp only [one_im, add_zero, mul_one, one_re, mul_zero],

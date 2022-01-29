@@ -328,7 +328,7 @@ sets and positive mass to open sets. -/
 @[to_additive]
 class is_haar_measure {G : Type*} [group G] [topological_space G] [measurable_space G]
   (μ : measure G)
-  extends is_finite_measure_on_compacts μ, is_mul_left_invariant μ, is_open_pos_measure μ
+  extends is_finite_measure_on_compacts μ, is_mul_left_invariant μ, is_open_pos_measure μ : Prop
 
 section
 

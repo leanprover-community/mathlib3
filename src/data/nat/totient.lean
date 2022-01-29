@@ -65,7 +65,7 @@ begin
   exact periodic_coprime a,
 end
 
-lemma Ico_filter_coprime_le (a k n : ℕ) (a_pos : 0 < a) :
+lemma Ico_filter_coprime_le {a : ℕ} (k n : ℕ) (a_pos : 0 < a) :
   ((Ico k (k + n)).filter (coprime a)).card ≤ totient a * (n / a + 1) :=
 begin
   conv_lhs { rw ←nat.mod_add_div n a },

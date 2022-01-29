@@ -80,7 +80,7 @@ calc π' (k + n)
 ... ≤ π' k + totient a * (n / a + 1) :
         begin
           rw [add_le_add_iff_left],
-          exact Ico_filter_coprime_le a k n h0,
+          exact Ico_filter_coprime_le k n h0,
         end
 
 end nat

@@ -727,10 +727,9 @@ end
 lemma is_nilpotent.of_p_group [fintype G] {p : ℕ} (hp : fact (nat.prime p)) (h : is_p_group p G) :
   is_nilpotent G :=
 begin
-  unfreezingI {
-    revert _inst_1,
-    induction _inst_3 using fintype.induction_subsingleton_or_nontrivial with G _ _ G
-  }; resetI,
+  unfreezingI
+  { revert _inst_1,
+    induction _inst_3 using fintype.induction_subsingleton_or_nontrivial with G _ _ G }; resetI,
   { apply_instance, },
   { introI _, intro h,
     have hc: center G > ⊥ := gt_iff_lt.mp h.bot_lt_center,

@@ -16,9 +16,6 @@ noncomputable theory
 open_locale classical
 
 variables {F : Type*} [field F]
-variables (E : EllipticCurve F)
-variables (K : Type*) [field K] [algebra F K]
-variables (L : Type*) [field L] [algebra F L] [algebra K L] [is_scalar_tower F K L]
 
 notation K↑L := algebra_map K L
 notation K`⟶[`F]L := (algebra.of_id K L).restrict_scalars F
@@ -26,6 +23,10 @@ notation K`⟶[`F]L := (algebra.of_id K L).restrict_scalars F
 ----------------------------------------------------------------------------------------------------
 
 namespace EllipticCurve
+
+section point
+
+variables (E : EllipticCurve F) (K : Type*) [field K] [algebra F K]
 
 /-- The group of `K`-rational points `E(K)` on an elliptic curve `E` over `F`, consisting of
     the point at infinity and the affine points satisfying a Weierstrass equation `w`. -/
@@ -36,6 +37,12 @@ inductive point
 
 notation E⟮K⟯ := point E K
 
+end point
+
+variables {E : EllipticCurve F}
+variables {K : Type*} [field K] [algebra F K]
+variables {L : Type*} [field L] [algebra F L] [algebra K L] [is_scalar_tower F K L]
+
 open point
 
 ----------------------------------------------------------------------------------------------------
@@ -43,18 +50,14 @@ open point
 
 section zero
 
-/-- Zero in `E(K)`. -/
-def zero' : E⟮K⟯ := zero
-
 /-- `E(K)` has zero. -/
-instance point.has_zero : has_zero E⟮K⟯ := ⟨zero' E K⟩
+instance : has_zero E⟮K⟯ := ⟨zero⟩
 
 /-- Zero in `E(K)` is zero. -/
-@[simp]
-lemma zero.def : (zero : E⟮K⟯) = 0 := rfl
+@[simp] lemma zero_def : zero = (0 : E⟮K⟯) := rfl
 
 /-- `E(K)` is inhabited. -/
-instance point.inhabited : inhabited E⟮K⟯ := ⟨zero' E K⟩
+instance : inhabited E⟮K⟯ := ⟨0⟩
 
 end zero
 
@@ -64,40 +67,34 @@ end zero
 section negation
 
 variables {x y : K}
+variables (w : y ^ 2 + (F↑K)E.a₁ * x * y + (F↑K)E.a₃ * y
+             = x ^ 3 + (F↑K)E.a₂ * x ^ 2 + (F↑K)E.a₄ * x + (F↑K)E.a₆)
+
+include w
 
 /-- Negation of an affine point in `E(K)` is in `E(K)`. -/
-lemma neg_some.weierstrass
-  (w : y ^ 2 + (F↑K)E.a₁ * x * y + (F↑K)E.a₃ * y
-     = x ^ 3 + (F↑K)E.a₂ * x ^ 2 + (F↑K)E.a₄ * x + (F↑K)E.a₆) :
+lemma neg_weierstrass :
   (-y - (F↑K)E.a₁ * x - (F↑K)E.a₃) ^ 2 + (F↑K)E.a₁ * x * (-y - (F↑K)E.a₁ * x - (F↑K)E.a₃)
     + (F↑K)E.a₃ * (-y - (F↑K)E.a₁ * x - (F↑K)E.a₃)
     = x ^ 3 + (F↑K)E.a₂ * x ^ 2 + (F↑K)E.a₄ * x + (F↑K)E.a₆ :=
 by { rw [← w], ring1 }
 
-/-- Negate an affine point in `E(K)`. -/
-def neg_some.def
-  (w : y ^ 2 + (F↑K)E.a₁ * x * y + (F↑K)E.a₃ * y
-     = x ^ 3 + (F↑K)E.a₂ * x ^ 2 + (F↑K)E.a₄ * x + (F↑K)E.a₆) : E⟮K⟯ :=
-some x (-y - (F↑K)E.a₁ * x - (F↑K)E.a₃) $ neg_some.weierstrass E K w
+omit w
 
 /-- Negation in `E(K)`. -/
 def neg : E⟮K⟯ → E⟮K⟯
 | 0            := 0
-| (some _ _ w) := neg_some.def E K w
+| (some x y w) := some x (-y - (F↑K)E.a₁ * x - (F↑K)E.a₃) $ neg_weierstrass w
 
 /-- `E(K)` has negation. -/
-instance point.has_neg : has_neg E⟮K⟯ := ⟨neg E K⟩
+instance : has_neg E⟮K⟯ := ⟨neg⟩
 
 /-- Negation of zero in `E(K)` is zero. -/
-@[simp]
-lemma neg_zero : -(0 : E⟮K⟯) = 0 := rfl
+@[simp] lemma neg_zero : -0 = (0 : E⟮K⟯) := rfl
 
 /-- Negation of an affine point in `E(K)` is an affine point. -/
-@[simp]
-lemma neg_some
-  (w : y ^ 2 + (F↑K)E.a₁ * x * y + (F↑K)E.a₃ * y
-     = x ^ 3 + (F↑K)E.a₂ * x ^ 2 + (F↑K)E.a₄ * x + (F↑K)E.a₆) :
-  -some x y w = some x (-y - (F↑K)E.a₁ * x - (F↑K)E.a₃) (neg_some.weierstrass E K w) :=
+@[simp] lemma neg_some :
+  -some x y w = some x (-y - (F↑K)E.a₁ * x - (F↑K)E.a₃) (neg_weierstrass w) :=
 rfl
 
 end negation
@@ -108,11 +105,13 @@ end negation
 section doubling
 
 variables {x y l x' y' : K}
+variables (w : y ^ 2 + (F↑K)E.a₁ * x * y + (F↑K)E.a₃ * y
+             = x ^ 3 + (F↑K)E.a₂ * x ^ 2 + (F↑K)E.a₄ * x + (F↑K)E.a₆)
+
+include w
 
 /-- Doubling of an affine point in `E(K)` is in `E(K)`. -/
-lemma dbl_some.weierstrass
-  (w : y ^ 2 + (F↑K)E.a₁ * x * y + (F↑K)E.a₃ * y
-     = x ^ 3 + (F↑K)E.a₂ * x ^ 2 + (F↑K)E.a₄ * x + (F↑K)E.a₆)
+lemma dbl_weierstrass
   (y_ne : 2 * y + (F↑K)E.a₁ * x + (F↑K)E.a₃ ≠ 0)
   (l_def : l  = (3 * x ^ 2 + 2 * (F↑K)E.a₂ * x + (F↑K)E.a₄ - (F↑K)E.a₁ * y)
                 * (2 * y + (F↑K)E.a₁ * x + (F↑K)E.a₃)⁻¹)
@@ -172,43 +171,38 @@ begin
   rw [← sub_eq_zero, y_rw, x_rw, l_rw_1, l_rw_2, l_rw_3]
 end
 
-/-- Double an affine point `(x, y) ∈ E(K)` with `2y + a₁x + a₃ ≠ 0`. -/
-def dbl_some.def
-  (w : y ^ 2 + (F↑K)E.a₁ * x * y + (F↑K)E.a₃ * y
-     = x ^ 3 + (F↑K)E.a₂ * x ^ 2 + (F↑K)E.a₄ * x + (F↑K)E.a₆)
-  (y_ne : 2 * y + (F↑K)E.a₁ * x + (F↑K)E.a₃ ≠ 0) : E⟮K⟯ :=
-let l  := (3 * x ^ 2 + 2 * (F↑K)E.a₂ * x + (F↑K)E.a₄ - (F↑K)E.a₁ * y)
-          * (2 * y + (F↑K)E.a₁ * x + (F↑K)E.a₃)⁻¹,
-    x' := l ^ 2 + (F↑K)E.a₁ * l - (F↑K)E.a₂ - 2 * x,
-    y' := -l * x' - (F↑K)E.a₁ * x' - y + l * x - (F↑K)E.a₃
-in  some x' y' $ dbl_some.weierstrass E K w y_ne rfl rfl rfl
+omit w
 
 /-- Doubling in `E(K)`. -/
 def dbl : E⟮K⟯ → E⟮K⟯
 | 0            := 0
 | (some x y w) :=
-if y_ne : 2 * y + (F↑K)E.a₁ * x + (F↑K)E.a₃ ≠ 0 then dbl_some.def E K w y_ne else 0
+if y_ne : 2 * y + (F↑K)E.a₁ * x + (F↑K)E.a₃ ≠ 0 then
+  let l  := (3 * x ^ 2 + 2 * (F↑K)E.a₂ * x + (F↑K)E.a₄ - (F↑K)E.a₁ * y)
+            * (2 * y + (F↑K)E.a₁ * x + (F↑K)E.a₃)⁻¹,
+      x' := l ^ 2 + (F↑K)E.a₁ * l - (F↑K)E.a₂ - 2 * x,
+      y' := -l * x' - (F↑K)E.a₁ * x' - y + l * x - (F↑K)E.a₃
+  in  some x' y' $ dbl_weierstrass w y_ne rfl rfl rfl
+else
+  0
 
 /-- Doubling of zero in `E(K)` is zero. -/
-@[simp]
-lemma dbl_zero : dbl E K 0 = 0 := rfl
+@[simp] lemma dbl_zero : dbl 0 = (0 : E⟮K⟯) := rfl
 
 /-- Doubling of an affine point `(x, y) ∈ E(K)` with `2y + a₁x + a₃ ≠ 0` is an affine point. -/
-lemma dbl_some
-  (w : y ^ 2 + (F↑K)E.a₁ * x * y + (F↑K)E.a₃ * y
-     = x ^ 3 + (F↑K)E.a₂ * x ^ 2 + (F↑K)E.a₄ * x + (F↑K)E.a₆)
-  (y_ne : 2 * y + (F↑K)E.a₁ * x + (F↑K)E.a₃ ≠ 0) :
-  dbl E K (some x y w) = dbl_some.def E K w y_ne :=
+@[simp] lemma dbl_some_of_y_ne (y_ne : 2 * y + (F↑K)E.a₁ * x + (F↑K)E.a₃ ≠ 0) :
+  dbl (some x y w)
+    = let l  := (3 * x ^ 2 + 2 * (F↑K)E.a₂ * x + (F↑K)E.a₄ - (F↑K)E.a₁ * y)
+                * (2 * y + (F↑K)E.a₁ * x + (F↑K)E.a₃)⁻¹,
+          x' := l ^ 2 + (F↑K)E.a₁ * l - (F↑K)E.a₂ - 2 * x,
+          y' := -l * x' - (F↑K)E.a₁ * x' - y + l * x - (F↑K)E.a₃
+      in  some x' y' $ dbl_weierstrass w y_ne rfl rfl rfl :=
 by rw [dbl, dif_pos y_ne]
 
 /-- Doubling of an affine point `(x, y) ∈ E(K)` with `2y + a₁x + a₃ = 0` is zero. -/
-@[simp]
-lemma dbl_some'
-  (w : y ^ 2 + (F↑K)E.a₁ * x * y + (F↑K)E.a₃ * y
-     = x ^ 3 + (F↑K)E.a₂ * x ^ 2 + (F↑K)E.a₄ * x + (F↑K)E.a₆)
-  (y_eq : 2 * y + (F↑K)E.a₁ * x + (F↑K)E.a₃ = 0) :
-  dbl E K (some x y w) = 0 :=
-by rw [dbl, dif_neg (by { rw [not_not], exact y_eq })]
+@[simp] lemma dbl_some_of_y_eq (y_eq : 2 * y + (F↑K)E.a₁ * x + (F↑K)E.a₃ = 0) :
+  dbl (some x y w) = 0 :=
+by rw [dbl, dif_neg $ not_not.mpr y_eq]
 
 end doubling
 
@@ -218,14 +212,16 @@ end doubling
 section addition
 
 variables {x₁ y₁ x₂ y₂ l x₃ y₃ : K}
+variables (w₁ : y₁ ^ 2 + (F↑K)E.a₁ * x₁ * y₁ + (F↑K)E.a₃ * y₁
+              = x₁ ^ 3 + (F↑K)E.a₂ * x₁ ^ 2 + (F↑K)E.a₄ * x₁ + (F↑K)E.a₆)
+variables (w₂ : y₂ ^ 2 + (F↑K)E.a₁ * x₂ * y₂ + (F↑K)E.a₃ * y₂
+              = x₂ ^ 3 + (F↑K)E.a₂ * x₂ ^ 2 + (F↑K)E.a₄ * x₂ + (F↑K)E.a₆)
+
+include w₁ w₂
 
 /-- Addition of affine points in `E(K)` is in `E(K)`. -/
-lemma add_some_some.weierstrass
-  (w₁ : y₁ ^ 2 + (F↑K)E.a₁ * x₁ * y₁ + (F↑K)E.a₃ * y₁
-      = x₁ ^ 3 + (F↑K)E.a₂ * x₁ ^ 2 + (F↑K)E.a₄ * x₁ + (F↑K)E.a₆)
-  (w₂ : y₂ ^ 2 + (F↑K)E.a₁ * x₂ * y₂ + (F↑K)E.a₃ * y₂
-      = x₂ ^ 3 + (F↑K)E.a₂ * x₂ ^ 2 + (F↑K)E.a₄ * x₂ + (F↑K)E.a₆)
-  (x_ne : x₁ - x₂ ≠ 0)
+lemma add_weierstrass
+  (x_ne : x₁ ≠ x₂)
   (l_def : l  = (y₁ - y₂) * (x₁ - x₂)⁻¹)
   (x_def : x₃ = l ^ 2 + (F↑K)E.a₁ * l - (F↑K)E.a₂ - x₁ - x₂)
   (y_def : y₃ = -l * x₃ - (F↑K)E.a₁ * x₃ - y₁ + l * x₁ - (F↑K)E.a₃) :
@@ -263,13 +259,14 @@ begin
   by { rw [x_def], ring1 },
   -- rewrite l auxiliary tactic
   have l_rw : ∀ a b c : K, l * a + b = c ↔ (y₁ - y₂) * a + (x₁ - x₂) * b + 0 = (x₁ - x₂) * c + 0 :=
-  by { intros a b c, rw [← mul_right_inj' x_ne, mul_add (x₁ - x₂), ← mul_assoc (x₁ - x₂) l],
-       rw [mul_comm (x₁ - x₂) l, l_def, inv_mul_cancel_right₀ x_ne, ← add_left_inj (0 : K)] },
+  by { intros, rw [← mul_right_inj' $ sub_ne_zero.mpr x_ne, mul_add (x₁ - x₂),
+                   ← mul_assoc (x₁ - x₂) l, mul_comm (x₁ - x₂) l, l_def,
+                   inv_mul_cancel_right₀ $ sub_ne_zero.mpr x_ne, ← add_left_inj (0 : K)] },
   -- rewrite l step 1
   have l_rw_1 :
     l * (x₁ - x₂) * (-1) + (-(F↑K)E.a₁ * x₁ + 2 * (F↑K)E.a₁ * x₂ + 2 * y₁ + (F↑K)E.a₃)
       = -(F↑K)E.a₁ * x₁ + 2 * (F↑K)E.a₁ * x₂ + 2 * y₁ + (F↑K)E.a₃ - y₁ + y₂ :=
-  by { rw [l_def, inv_mul_cancel_right₀ x_ne], ring1 },
+  by { rw [l_def, inv_mul_cancel_right₀ $ sub_ne_zero.mpr x_ne], ring1 },
   -- rewrite l step 2
   have l_rw_2 :
     l * (-(F↑K)E.a₁ * x₁ + 2 * (F↑K)E.a₁ * x₂ + 2 * y₁ + (F↑K)E.a₃ - y₁ + y₂)
@@ -309,98 +306,76 @@ begin
   rw [← sub_eq_zero, y_rw, x_rw, l_rw_1, l_rw_2, l_rw_3, l_rw_4]
 end
 
-/-- Add affine points in `E(K)`. -/
-def add_some_some.def
-  (w₁ : y₁ ^ 2 + (F↑K)E.a₁ * x₁ * y₁ + (F↑K)E.a₃ * y₁
-      = x₁ ^ 3 + (F↑K)E.a₂ * x₁ ^ 2 + (F↑K)E.a₄ * x₁ + (F↑K)E.a₆)
-  (w₂ : y₂ ^ 2 + (F↑K)E.a₁ * x₂ * y₂ + (F↑K)E.a₃ * y₂
-      = x₂ ^ 3 + (F↑K)E.a₂ * x₂ ^ 2 + (F↑K)E.a₄ * x₂ + (F↑K)E.a₆)
-  (x_ne : x₁ - x₂ ≠ 0) : E⟮K⟯ :=
-let l  := (y₁ - y₂) * (x₁ - x₂)⁻¹,
-    x₃ := l ^ 2 + (F↑K)E.a₁ * l - (F↑K)E.a₂ - x₁ - x₂,
-    y₃ := -l * x₃ - (F↑K)E.a₁ * x₃ - y₁ + l * x₁ - (F↑K)E.a₃
-in  some x₃ y₃ $ add_some_some.weierstrass E K w₁ w₂ x_ne rfl rfl rfl
-
 /-- For all affine points `(x₁, y₁), (x₂, y₂) ∈ E(K)`,
-    if `x₁ = x₂` and `y₁ + y₂ + a₁x₂ + a₃ ≠ 0` then `y₁ = y₂`. -/
-private lemma add_some_some_rw
-  (w₁ : y₁ ^ 2 + (F↑K)E.a₁ * x₁ * y₁ + (F↑K)E.a₃ * y₁
-      = x₁ ^ 3 + (F↑K)E.a₂ * x₁ ^ 2 + (F↑K)E.a₄ * x₁ + (F↑K)E.a₆)
-  (w₂ : y₂ ^ 2 + (F↑K)E.a₁ * x₂ * y₂ + (F↑K)E.a₃ * y₂
-      = x₂ ^ 3 + (F↑K)E.a₂ * x₂ ^ 2 + (F↑K)E.a₄ * x₂ + (F↑K)E.a₆)
-  (x_eq : x₁ - x₂ = 0) (y_ne : y₁ + y₂ + (F↑K)E.a₁ * x₂ + (F↑K)E.a₃ ≠ 0) :
+    if `x₁ = x₂` and `y₁ + y₂ + a₁x₂ + a₃ ≠ 0` then `2y₁ + a₁x₁ + a₃ ≠ 0`. -/
+private lemma y_ne_of_y_ne (x_eq : x₁ = x₂) (y_ne : y₁ + y₂ + (F↑K)E.a₁ * x₂ + (F↑K)E.a₃ ≠ 0) :
   2 * y₁ + (F↑K)E.a₁ * x₁ + (F↑K)E.a₃ ≠ 0 :=
 begin
-  rw [sub_eq_zero] at x_eq,
+  have y_rw : ∀ a₁ a₃ : K,
+    y₁ ^ 2 + a₁ * x₁ * y₁ + a₃ * y₁ - (y₂ ^ 2 + a₁ * x₁ * y₂ + a₃ * y₂)
+      = (y₁ - y₂) * (y₁ + y₂ + a₁ * x₁ + a₃) :=
+  by { intros, ring1 },
   subst x_eq,
-  have y_rw :
-    y₁ ^ 2 + (F↑K)E.a₁ * x₁ * y₁ + (F↑K)E.a₃ * y₁ - (y₂ ^ 2 + (F↑K)E.a₁ * x₁ * y₂ + (F↑K)E.a₃ * y₂)
-      = (y₁ - y₂) * (y₁ + y₂ + (F↑K)E.a₁ * x₁ + (F↑K)E.a₃) :=
-  by ring1,
   rw [← w₂, ← sub_eq_zero, y_rw, mul_eq_zero, sub_eq_zero] at w₁,
   cases w₁,
   { subst w₁,
-    rw [two_mul],
-    exact y_ne },
-  { contradiction },
+    simpa only [two_mul] },
+  { contradiction }
 end
+
+omit w₁ w₂
 
 /-- Addition in `E(K)`. -/
 def add : E⟮K⟯ → E⟮K⟯ → E⟮K⟯
 | 0               P               := P
 | P               0               := P
 | (some x₁ y₁ w₁) (some x₂ y₂ w₂) :=
-if x_ne : x₁ - x₂ ≠ 0 then
-  add_some_some.def E K w₁ w₂ x_ne
-else if y_ne : y₁ + y₂ + (F↑K)E.a₁ * x₂ + (F↑K)E.a₃ ≠ 0 then
-  dbl_some.def E K w₁ $ add_some_some_rw E K w₁ w₂ (by { rw [not_not] at x_ne, exact x_ne }) y_ne
+if x_ne : x₁ ≠ x₂ then
+  let l  := (y₁ - y₂) * (x₁ - x₂)⁻¹,
+      x₃ := l ^ 2 + (F↑K)E.a₁ * l - (F↑K)E.a₂ - x₁ - x₂,
+      y₃ := -l * x₃ - (F↑K)E.a₁ * x₃ - y₁ + l * x₁ - (F↑K)E.a₃
+  in  some x₃ y₃ $ add_weierstrass w₁ w₂ x_ne rfl rfl rfl
 else
-  0
+  if y_ne : y₁ + y₂ + (F↑K)E.a₁ * x₂ + (F↑K)E.a₃ ≠ 0 then dbl $ some x₁ y₁ w₁ else 0
 
 /-- `E(K)` has addition. -/
-instance point.has_add : has_add E⟮K⟯ := ⟨add E K⟩
+instance : has_add E⟮K⟯ := ⟨add⟩
 
 /-- Addition of zero and `P ∈ E(K)` is `P`. -/
-@[simp]
-lemma zero_add (P : E⟮K⟯) : 0 + P = P := by cases P; refl
+@[simp] lemma zero_add (P : E⟮K⟯) : 0 + P = P := by cases P; refl
 
 /-- Addition of `P ∈ E(K)` and zero is `P`. -/
-@[simp]
-lemma add_zero (P : E⟮K⟯) : P + 0 = P := by cases P; refl
+@[simp] lemma add_zero (P : E⟮K⟯) : P + 0 = P := by cases P; refl
 
-/-- Addition of affine points `(x₁, y₁), (x₂, y₂) ∈ E(K)` with `x₁ - x₂ ≠ 0` is an affine point. -/
-lemma add_some_some
-  (w₁ : y₁ ^ 2 + (F↑K)E.a₁ * x₁ * y₁ + (F↑K)E.a₃ * y₁
-      = x₁ ^ 3 + (F↑K)E.a₂ * x₁ ^ 2 + (F↑K)E.a₄ * x₁ + (F↑K)E.a₆)
-  (w₂ : y₂ ^ 2 + (F↑K)E.a₁ * x₂ * y₂ + (F↑K)E.a₃ * y₂
-      = x₂ ^ 3 + (F↑K)E.a₂ * x₂ ^ 2 + (F↑K)E.a₄ * x₂ + (F↑K)E.a₆)
-  (x_ne : x₁ - x₂ ≠ 0) :
-  some x₁ y₁ w₁ + some x₂ y₂ w₂ = add_some_some.def E K w₁ w₂ x_ne :=
-by simp only [has_add.add, add, dif_pos x_ne]
+/-- Addition of affine points `(x₁, y₁), (x₂, y₂) ∈ E(K)` with `x₁ ≠ x₂` is an affine point. -/
+@[simp] lemma some_add_some_of_x_ne (x_ne : x₁ ≠ x₂) :
+  some x₁ y₁ w₁ + some x₂ y₂ w₂
+    = let l  := (y₁ - y₂) * (x₁ - x₂)⁻¹,
+          x₃ := l ^ 2 + (F↑K)E.a₁ * l - (F↑K)E.a₂ - x₁ - x₂,
+          y₃ := -l * x₃ - (F↑K)E.a₁ * x₃ - y₁ + l * x₁ - (F↑K)E.a₃
+      in  some x₃ y₃ $ add_weierstrass w₁ w₂ x_ne rfl rfl rfl :=
+by { unfold has_add.add, rw [add, dif_pos x_ne] }
 
-/-- Addition of affine points `(x₁, y₁), (x₂, y₂) ∈ E(K)` with `x₁ - x₂ = 0`
+/-- Addition of affine points `(x₁, y₁), (x₂, y₂) ∈ E(K)` with `x₁ = x₂`
     and `y₁ + y₂ + a₁x₂ + a₃ ≠ 0` is doubling of `(x₁, y₁)`. -/
-lemma add_some_some'
-  (w₁ : y₁ ^ 2 + (F↑K)E.a₁ * x₁ * y₁ + (F↑K)E.a₃ * y₁
-      = x₁ ^ 3 + (F↑K)E.a₂ * x₁ ^ 2 + (F↑K)E.a₄ * x₁ + (F↑K)E.a₆)
-  (w₂ : y₂ ^ 2 + (F↑K)E.a₁ * x₂ * y₂ + (F↑K)E.a₃ * y₂
-      = x₂ ^ 3 + (F↑K)E.a₂ * x₂ ^ 2 + (F↑K)E.a₄ * x₂ + (F↑K)E.a₆)
-  (x_eq : x₁ - x₂ = 0) (y_ne : y₁ + y₂ + (F↑K)E.a₁ * x₂ + (F↑K)E.a₃ ≠ 0) :
-  some x₁ y₁ w₁ + some x₂ y₂ w₂ = dbl_some.def E K w₁ (add_some_some_rw E K w₁ w₂ x_eq y_ne) :=
-by simp only [has_add.add, add, dif_neg (by { rw [not_not], exact x_eq }), dif_pos y_ne]
+@[simp] lemma some_add_some_of_y_ne (x_eq : x₁ = x₂)
+  (y_ne : y₁ + y₂ + (F↑K)E.a₁ * x₂ + (F↑K)E.a₃ ≠ 0) :
+  some x₁ y₁ w₁ + some x₂ y₂ w₂
+    = let l  := (3 * x₁ ^ 2 + 2 * (F↑K)E.a₂ * x₁ + (F↑K)E.a₄ - (F↑K)E.a₁ * y₁)
+                * (2 * y₁ + (F↑K)E.a₁ * x₁ + (F↑K)E.a₃)⁻¹,
+          x' := l ^ 2 + (F↑K)E.a₁ * l - (F↑K)E.a₂ - 2 * x₁,
+          y' := -l * x' - (F↑K)E.a₁ * x' - y₁ + l * x₁ - (F↑K)E.a₃
+      in  some x' y' $ dbl_weierstrass w₁ (y_ne_of_y_ne w₁ w₂ x_eq y_ne) rfl rfl rfl :=
+begin
+  unfold has_add.add,
+  rw [add, dif_neg $ not_not.mpr x_eq, if_pos y_ne, dbl, dif_pos $ y_ne_of_y_ne w₁ w₂ x_eq y_ne]
+end
 
-/-- Addition of affine points `(x₁, y₁), (x₂, y₂) ∈ E(K)` with `x₁ - x₂ = 0`
+/-- Addition of affine points `(x₁, y₁), (x₂, y₂) ∈ E(K)` with `x₁ = x₂`
     and `y₁ + y₂ + a₁x₂ + a₃ = 0` is zero. -/
-@[simp]
-lemma add_some_some''
-  (w₁ : y₁ ^ 2 + (F↑K)E.a₁ * x₁ * y₁ + (F↑K)E.a₃ * y₁
-      = x₁ ^ 3 + (F↑K)E.a₂ * x₁ ^ 2 + (F↑K)E.a₄ * x₁ + (F↑K)E.a₆)
-  (w₂ : y₂ ^ 2 + (F↑K)E.a₁ * x₂ * y₂ + (F↑K)E.a₃ * y₂
-      = x₂ ^ 3 + (F↑K)E.a₂ * x₂ ^ 2 + (F↑K)E.a₄ * x₂ + (F↑K)E.a₆)
-  (x_eq : x₁ - x₂ = 0) (y_eq : y₁ + y₂ + (F↑K)E.a₁ * x₂ + (F↑K)E.a₃ = 0) :
-  some x₁ y₁ w₁ + some x₂ y₂ w₂ = 0 :=
-by simp only [has_add.add, add, dif_neg (by { rw [not_not], exact x_eq }),
-              dif_neg (by { rw [not_not], exact y_eq })]
+@[simp] lemma some_add_some_of_y_eq (x_eq : x₁ = x₂)
+  (y_eq : y₁ + y₂ + (F↑K)E.a₁ * x₂ + (F↑K)E.a₃ = 0) : some x₁ y₁ w₁ + some x₂ y₂ w₂ = 0 :=
+by { unfold has_add.add, rw [add, dif_neg $ not_not.mpr x_eq, if_neg $ not_not.mpr y_eq] }
 
 end addition
 
@@ -410,9 +385,8 @@ end addition
 section add_comm_group
 
 /-- Left negation in `E(K)`. -/
-@[simp]
-lemma add_left_neg (P : E⟮K⟯) : -P + P = 0 :=
-by { cases P, { refl }, { rw [neg_some, add_some_some'']; ring1 } }
+@[simp] lemma add_left_neg (P : E⟮K⟯) : -P + P = 0 :=
+by { cases P, { refl }, { rw [neg_some, some_add_some_of_y_eq]; ring1 } }
 
 /-- Commutativity in `E(K)`. -/
 lemma add_comm (P Q : E⟮K⟯) : P + Q = Q + P :=
@@ -427,21 +401,21 @@ lemma add_assoc (P Q R : E⟮K⟯) : (P + Q) + R = P + (Q + R) :=
 begin
   rcases ⟨P, Q, R⟩ with ⟨⟨_, _⟩, ⟨_, _⟩, ⟨_, _⟩⟩,
   any_goals { refl },
-  { rw [zero.def, zero_add, zero_add] },
-  { rw [zero.def, add_zero, add_zero] },
+  { rw [zero_def, zero_add, zero_add] },
+  { rw [zero_def, add_zero, add_zero] },
   { sorry }
 end
 
 /-- `E(K)` is an additive commutative group. -/
-instance point.add_comm_group : add_comm_group E⟮K⟯ :=
+instance : add_comm_group E⟮K⟯ :=
 { zero         := 0,
-  neg          := neg E K,
-  add          := add E K,
-  zero_add     := zero_add E K,
-  add_zero     := add_zero E K,
-  add_left_neg := add_left_neg E K,
-  add_comm     := add_comm E K,
-  add_assoc    := add_assoc E K }
+  neg          := neg,
+  add          := add,
+  zero_add     := zero_add,
+  add_zero     := add_zero,
+  add_left_neg := add_left_neg,
+  add_comm     := add_comm,
+  add_assoc    := add_assoc }
 
 end add_comm_group
 
@@ -463,11 +437,11 @@ begin
 end
 
 /-- `E(K) → E(L)` respects zero. -/
-lemma point_hom.map_zero : point_hom.to_fun E K L φ 0 = 0 := rfl
+lemma point_hom.map_zero : point_hom.to_fun φ 0 = (0 : E⟮L⟯) := rfl
 
 /-- `E(K) → E(L)` respects addition. -/
 lemma point_hom.map_add (P Q : E⟮K⟯) :
-  point_hom.to_fun E K L φ (P + Q) = point_hom.to_fun E K L φ P + point_hom.to_fun E K L φ Q :=
+  point_hom.to_fun φ (P + Q) = point_hom.to_fun φ P + point_hom.to_fun φ Q :=
 begin
   rcases ⟨P, Q⟩ with ⟨⟨_, _⟩, ⟨_, _⟩⟩,
   any_goals { refl },
@@ -475,23 +449,19 @@ begin
 end
 
 /-- Group homomorphism `E(K) → E(L)`. -/
-def point_hom : E⟮K⟯ →+ E⟮L⟯ :=
-{ to_fun    := point_hom.to_fun E K L φ,
-  map_zero' := point_hom.map_zero E K L φ,
-  map_add'  := point_hom.map_add E K L φ }
+def point_hom : E⟮K⟯ →+ E⟮L⟯ := ⟨point_hom.to_fun φ, point_hom.map_zero φ, point_hom.map_add φ⟩
 
 /-- `K ↦ E(K)` respects identity. -/
-lemma point_hom.id (P : E⟮K⟯) : point_hom E K K (K⟶[F]K) P = P := by cases P; refl
+lemma point_hom.id (P : E⟮K⟯) : point_hom (K⟶[F]K) P = P := by cases P; refl
 
 /-- `K ↦ E(K)` respects composition. -/
-lemma point_hom.comp (P : E⟮K⟯) (M : Type*) [field M] [algebra F M] [algebra K M] [algebra L M]
-  [is_scalar_tower F L M] [is_scalar_tower F K M] :
-  point_hom E L M (L⟶[F]M) (point_hom E K L (K⟶[F]L) P)
-    = point_hom E K M ((L⟶[F]M).comp (K⟶[F]L)) P :=
+lemma point_hom.comp {M : Type*} [field M] [algebra F M] [algebra K M] [algebra L M]
+  [is_scalar_tower F L M] [is_scalar_tower F K M] (P : E⟮K⟯) :
+  point_hom (L⟶[F]M) (point_hom (K⟶[F]L) P) = point_hom ((L⟶[F]M).comp (K⟶[F]L)) P :=
 by cases P; refl
 
 /-- `E(K) → E(L)` is injective. -/
-lemma point_hom.injective : function.injective $ point_hom E K L φ :=
+lemma point_hom.injective : function.injective $ @point_hom _ _ E _ _ _ _ _ _ _ _ φ :=
 begin
   intros P Q hPQ,
   rcases ⟨P, Q⟩ with ⟨⟨_, _⟩, ⟨_, _⟩⟩,
@@ -499,15 +469,11 @@ begin
   { refl },
   { injection hPQ with hx hy,
     simp only,
-    split,
-    { apply_fun φ using (φ : K →+* L).injective,
-      exact hx },
-    { apply_fun φ using (φ : K →+* L).injective,
-      exact hy } }
+    exact ⟨φ.to_ring_hom.injective hx, φ.to_ring_hom.injective hy⟩ }
 end
 
 /-- Canonical inclusion map `E(K) ↪ E(L)`. -/
-def ιₚ : E⟮K⟯ →+ E⟮L⟯ := point_hom E K L $ K⟶[F]L
+def ιₚ : E⟮K⟯ →+ E⟮L⟯ := point_hom $ K⟶[F]L
 
 end functoriality
 
@@ -530,7 +496,7 @@ begin
 end
 
 /-- `Gal(L/K) ↷ E(L)` is a scalar action. -/
-instance : has_scalar (L ≃ₐ[K] L) E⟮L⟯ := ⟨point_gal E K L⟩
+instance : has_scalar (L ≃ₐ[K] L) E⟮L⟯ := ⟨point_gal⟩
 
 /-- `Gal(L/K) ↷ E(L)` respects scalar one. -/
 lemma point_gal.one_smul (P : E⟮L⟯) : (1 : L ≃ₐ[K] L) • P = P :=
@@ -541,7 +507,7 @@ lemma point_gal.mul_smul (P : E⟮L⟯) : (σ * τ) • P = σ • τ • P :=
 by { cases P, { refl }, { simp only [has_scalar.smul, point_gal], exact ⟨rfl, rfl⟩ } }
 
 /-- `Gal(L/K) ↷ E(L)` is a multiplicative action. -/
-instance : mul_action (L ≃ₐ[K] L) E⟮L⟯ := ⟨point_gal.one_smul E K L, point_gal.mul_smul E K L⟩
+instance : mul_action (L ≃ₐ[K] L) E⟮L⟯ := ⟨point_gal.one_smul, point_gal.mul_smul⟩
 
 /-- `Gal(L/K) ↷ E(L)` respects scaling on addition. -/
 lemma point_gal.smul_add (P Q : E⟮L⟯) : σ • (P + Q) = σ • P + σ • Q :=
@@ -552,11 +518,10 @@ begin
 end
 
 /-- `Gal(L/K) ↷ E(L)` respects scaling on zero. -/
-lemma point_gal.smul_zero : σ • (0 : E⟮L⟯) = 0 := rfl
+lemma point_gal.smul_zero : σ • 0 = (0 : E⟮L⟯) := rfl
 
 /-- `Gal(L/K) ↷ E(L)` is a distributive multiplicative action. -/
-instance : distrib_mul_action (L ≃ₐ[K] L) E⟮L⟯ :=
-⟨point_gal.smul_add E K L, point_gal.smul_zero E K L⟩
+instance : distrib_mul_action (L ≃ₐ[K] L) E⟮L⟯ := ⟨point_gal.smul_add, point_gal.smul_zero⟩
 
 local notation E⟮L⟯^K := mul_action.fixed_points (L ≃ₐ[K] L) E⟮L⟯
 
@@ -569,42 +534,39 @@ lemma point_gal.fixed.add_mem (P Q : E⟮L⟯) : P ∈ (E⟮L⟯^K) → Q ∈ (E
 
 /-- Negation is closed in `E(L)ᴷ`. -/
 lemma point_gal.fixed.neg_mem (P : E⟮L⟯) : P ∈ (E⟮L⟯^K) → -P ∈ E⟮L⟯^K :=
-λ hP σ, by { rw [← neg_inj, ← smul_neg, neg_neg], exact hP σ }
+λ hP σ, by simpa only [neg_inj, smul_neg] using hP σ
 
 /-- The Galois invariant subgroup `E(L)ᴷ` of `E(L)` fixed by `Gal(L/K)`. -/
 def point_gal.fixed : add_subgroup E⟮L⟯ :=
-{ carrier   := E⟮L⟯^K,
-  zero_mem' := point_gal.fixed.zero_mem E K L,
-  add_mem'  := point_gal.fixed.add_mem E K L,
-  neg_mem'  := point_gal.fixed.neg_mem E K L }
+⟨E⟮L⟯^K, point_gal.fixed.zero_mem, point_gal.fixed.add_mem, point_gal.fixed.neg_mem⟩
 
-notation E⟮L`⟯^`K := point_gal.fixed E K L
+notation E⟮L`⟯^`K := @point_gal.fixed _ _ E K _ _ L _ _ _ _
+
+variables [finite_dimensional K L] [is_galois K L]
 
 /-- `E(L)ᴷ = ιₚ(E(K))`. -/
-lemma point_gal.fixed.eq [finite_dimensional K L] [h : is_galois K L] :
-  (E⟮L⟯^K) = (ιₚ E K L).range :=
+lemma point_gal.fixed.eq : (E⟮L⟯^K) = (ιₚ : E⟮K⟯ →+ E⟮L⟯).range :=
 begin
   ext P,
   split,
   { intro hP,
     cases P with x y w,
-    { existsi [(0 : E⟮K⟯)],
-      refl },
+    { apply add_subgroup.zero_mem },
     { change ∀ σ : L ≃ₐ[K] L, σ • some x y w = some x y w at hP,
       simp only [has_scalar.smul, point_gal, forall_and_distrib] at hP,
       have hx : x ∈ intermediate_field.fixed_field (⊤ : subgroup (L ≃ₐ[K] L)) := λ σ, hP.left σ,
       have hy : y ∈ intermediate_field.fixed_field (⊤ : subgroup (L ≃ₐ[K] L)) := λ σ, hP.right σ,
-      rw [((@is_galois.tfae K _ L _ _ _).out 0 1).mp h, intermediate_field.mem_bot] at hx hy,
+      rw [((@is_galois.tfae K _ L _ _ _).out 0 1).mp _inst_9, intermediate_field.mem_bot] at hx hy,
       change ∃ x' : K, (K⟶[F]L)x' = x at hx,
       change ∃ y' : K, (K⟶[F]L)y' = y at hy,
       rw [add_monoid_hom.mem_range],
       existsi [some hx.some hy.some _],
-      change some ((K⟶[F]L)hx.some) ((K⟶[F]L)hy.some) _ = some x y w,
-      simp only [hx.some_spec, hy.some_spec],
-      exact ⟨rfl, rfl⟩,
-      apply_fun (K⟶[F]L) using (K⟶[F]L : K →+* L).injective,
-      simp only [alg_hom.map_add, alg_hom.map_mul, alg_hom.map_pow, alg_hom.commutes],
-      rw [hx.some_spec, hy.some_spec, w] } },
+      { change some ((K⟶[F]L)hx.some) ((K⟶[F]L)hy.some) _ = some x y w,
+        simp only [hx.some_spec, hy.some_spec],
+        exact ⟨rfl, rfl⟩ },
+      { apply_fun (K⟶[F]L) using (K⟶[F]L : K →+* L).injective,
+        simp only [alg_hom.map_add, alg_hom.map_mul, alg_hom.map_pow, alg_hom.commutes],
+        rw [hx.some_spec, hy.some_spec, w] } } },
   { intros hP σ,
     cases P with x y w,
     { refl },
@@ -614,15 +576,15 @@ begin
         simp only at hQ,
         have hx : x ∈ set.range (K↑L) := exists.intro x' hQ.left,
         have hy : y ∈ set.range (K↑L) := exists.intro y' hQ.right,
-        rw [← intermediate_field.mem_bot, ← ((@is_galois.tfae K _ L _ _ _).out 0 1).mp h] at hx hy,
+        rw [← intermediate_field.mem_bot,
+            ← ((@is_galois.tfae K _ L _ _ _).out 0 1).mp _inst_9] at hx hy,
         simp only [has_scalar.smul, point_gal],
         exact ⟨hx ⟨σ, subgroup.mem_top σ⟩, hy ⟨σ, subgroup.mem_top σ⟩⟩ } } }
 end
 
 /-- `Gal(L/K)` fixes `ιₚ(E(K))`. -/
-lemma point_gal.fixed.smul (P : E⟮K⟯) [finite_dimensional K L] [is_galois K L] :
-  σ • ιₚ E K L P = ιₚ E K L P :=
-by { revert σ, change ιₚ E K L P ∈ E⟮L⟯^K, rw [point_gal.fixed.eq], use P }
+lemma point_gal.fixed.smul (P : E⟮K⟯) : σ • ιₚ P = (ιₚ P : E⟮L⟯) :=
+by { revert σ, change ιₚ P ∈ E⟮L⟯^K, rw [point_gal.fixed.eq], exact ⟨P, rfl⟩ }
 
 end galois
 
@@ -673,8 +635,7 @@ end
 
 /-- `(x, y) ↦ ((u⁻¹)²(x - r), (u⁻¹)³(y - sx + rs - t))` is a left inverse of
   `(x, y) ↦ (u²x + r, u³y + u²sx + t)` on `E(K)`. -/
-lemma cov.left_inv (P : (E.cov u r s t)⟮K⟯) :
-  cov.inv_fun E K u r s t (cov.to_fun E K u r s t P) = P :=
+lemma cov.left_inv (P : (E.cov u r s t)⟮K⟯) : cov.inv_fun u r s t (cov.to_fun u r s t P) = P :=
 begin
   cases P with x y,
   { refl },
@@ -690,7 +651,7 @@ end
 
 /-- `(x, y) ↦ ((u⁻¹)²(x - r), (u⁻¹)³(y - sx + rs - t))` is a right inverse of
   `(x, y) ↦ (u²x + r, u³y + u²sx + t)` on `E(K)`. -/
-lemma cov.right_inv (P : E⟮K⟯) : cov.to_fun E K u r s t (cov.inv_fun E K u r s t P) = P :=
+lemma cov.right_inv (P : E⟮K⟯) : cov.to_fun u r s t (cov.inv_fun u r s t P) = P :=
 begin
   cases P with x y,
   { refl },
@@ -708,7 +669,7 @@ end
 
 /-- `(x, y) ↦ (u²x + r, u³y + u²sx + t)` is a group homomorphism on `E(K)`. -/
 lemma cov.map_add (P Q : (E.cov u r s t)⟮K⟯) :
-  cov.to_fun E K u r s t (P + Q) = cov.to_fun E K u r s t P + cov.to_fun E K u r s t Q :=
+  cov.to_fun u r s t (P + Q) = cov.to_fun u r s t P + cov.to_fun u r s t Q :=
 begin
   rcases ⟨P, Q⟩ with ⟨⟨_ | _⟩, ⟨_ | _⟩⟩,
   any_goals { refl },
@@ -717,15 +678,15 @@ end
 
 /-- `(x, y) ↦ (u²x + r, u³y + u²sx + t)` is a group isomorphism on `E(K)`. -/
 def cov.equiv_add : (E.cov u r s t)⟮K⟯ ≃+ E⟮K⟯ :=
-{ to_fun    := cov.to_fun E K u r s t,
-  inv_fun   := cov.inv_fun E K u r s t,
-  left_inv  := cov.left_inv E K u r s t,
-  right_inv := cov.right_inv E K u r s t,
-  map_add'  := cov.map_add E K u r s t }
+{ to_fun    := cov.to_fun u r s t,
+  inv_fun   := cov.inv_fun u r s t,
+  left_inv  := cov.left_inv u r s t,
+  right_inv := cov.right_inv u r s t,
+  map_add'  := cov.map_add u r s t }
 
 /-- Completing a square is a group isomorphism on `E(K)`. -/
 def covₘ.equiv_add [invertible (2 : F)] : E.covₘ⟮K⟯ ≃+ E⟮K⟯ :=
-cov.equiv_add E K 1 0 (-⅟2 * E.a₁) (-⅟2 * E.a₃)
+cov.equiv_add 1 0 (-⅟2 * E.a₁) (-⅟2 * E.a₃)
 
 end change_of_variables
 

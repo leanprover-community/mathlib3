@@ -567,7 +567,7 @@ begin
   change _ = _ ≫ _ ≫ _,
   refine eq.trans _ (category.id_comp _).symm,
   apply pullback.hom_ext; simp only [category.comp_id, open_cover_of_left_map,
-    open_cover.pullback_cover_map, pullback_cone.mk_π_app_left, open_cover.of_is_iso_map,
+    open_cover.pullback_cover_map, pullback_cone.mk_π_app_left, open_cover_of_is_iso_map,
     limit.iso_limit_cone_inv_π_assoc, category.assoc, pullback.lift_fst_assoc,
     pullback_symmetry_hom_comp_snd_assoc, pullback.lift_fst, limit.iso_limit_cone_inv_π,
     pullback_cone.mk_π_app_right, pullback_symmetry_hom_comp_fst_assoc, pullback.lift_snd],

@@ -66,10 +66,6 @@ instance (α : NonemptyFinLinOrd) : nonempty_fin_lin_ord α := α.str
 instance has_forget_to_LinearOrder : has_forget₂ NonemptyFinLinOrd LinearOrder :=
 bundled_hom.forget₂ _ _
 
-/-- `order_dual` as a functor. -/
-@[simps] def to_dual : NonemptyFinLinOrd ⥤ NonemptyFinLinOrd :=
-{ obj := λ X, of (order_dual X), map := λ X Y, order_hom.dual }
-
 /-- Constructs an equivalence between nonempty finite linear orders from an order isomorphism
 between them. -/
 @[simps] def iso_of_order_iso {α β : NonemptyFinLinOrd.{u}} (e : α ≃o β) : α ≅ β :=
@@ -77,6 +73,10 @@ between them. -/
   inv := e.symm,
   hom_inv_id' := by { ext, exact e.symm_apply_apply x },
   inv_hom_id' := by { ext, exact e.apply_symm_apply x } }
+
+/-- `order_dual` as a functor. -/
+@[simps] def to_dual : NonemptyFinLinOrd ⥤ NonemptyFinLinOrd :=
+{ obj := λ X, of (order_dual X), map := λ X Y, order_hom.dual }
 
 /-- The equivalence between `FinPartialOrder` and itself induced by `order_dual` both ways. -/
 def dual_equiv : NonemptyFinLinOrd ≌ NonemptyFinLinOrd :=

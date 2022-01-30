@@ -39,16 +39,16 @@ instance : inhabited Preorder := ⟨of punit⟩
 
 instance (α : Preorder) : preorder α := α.str
 
-/-- `order_dual` as a functor. -/
-@[simps] def to_dual : Preorder ⥤ Preorder :=
-{ obj := λ X, of (order_dual X), map := λ X Y, order_hom.dual }
-
 /-- Constructs an equivalence between preorders from an order isomorphism between them. -/
 @[simps] def iso_of_order_iso {α β : Preorder.{u}} (e : α ≃o β) : α ≅ β :=
 { hom := e,
   inv := e.symm,
   hom_inv_id' := by { ext, exact e.symm_apply_apply x },
   inv_hom_id' := by { ext, exact e.apply_symm_apply x } }
+
+/-- `order_dual` as a functor. -/
+@[simps] def to_dual : Preorder ⥤ Preorder :=
+{ obj := λ X, of (order_dual X), map := λ X Y, order_hom.dual }
 
 /-- The equivalence between `Preorder` and itself induced by `order_dual` both ways. -/
 def dual_equiv : Preorder ≌ Preorder :=

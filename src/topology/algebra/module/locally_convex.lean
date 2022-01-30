@@ -14,8 +14,7 @@ open_locale topological_space
 section semimodule
 
 class locally_convex_space (𝕂 E : Type*) [ordered_semiring 𝕂] [add_comm_monoid E] [module 𝕂 E]
-  [topological_space 𝕂] [topological_space E] [topological_ring 𝕂] [has_continuous_add E]
-  [has_continuous_smul 𝕂 E] :=
+  [topological_space E] : Prop :=
 (convex_basis : ∀ x : E, (𝓝 x).has_basis (λ (s : set E), s ∈ 𝓝 x ∧ convex 𝕂 s) id)
 
 variables (𝕂 E : Type*) [ordered_semiring 𝕂] [add_comm_monoid E] [module 𝕂 E]
@@ -93,12 +92,20 @@ end normed_space
 section lattice_ops
 
 variables {ι 𝕂 E : Type*} [ordered_semiring 𝕂] [add_comm_monoid E] [module 𝕂 E]
-  [topological_space 𝕂] [topological_ring 𝕂]
-  {t : topological_space E} [@has_continuous_add E t _] [@has_continuous_smul 𝕂 E _ _ t]
-  {ts : ι → topological_space E} [Π i, @has_continuous_add E (ts i) _]
-  [Π i, @has_continuous_smul 𝕂 E _ _ (ts i)]
+  [topological_space 𝕂] [h₁ : topological_ring 𝕂]
+  [ts : set (topological_space E)] [h₂ : ∀ t ∈ ts, @has_continuous_add E t _]
+  [h₃ : ∀ t ∈ ts, @has_continuous_smul 𝕂 E _ _ t]
 
---instance locally_convex_infi : @locally_convex_space 𝕂 E _ _ _ _ (⨅ i, ts i) _ _ _ :=
+include h₁ h₂ h₃
+
+#check has_continuous_add_Inf
+
+instance locally_convex_infi : @locally_convex_space 𝕂 E _ _ _ (Inf ts) :=
+begin
+  letI : topological_space E := Inf ts,
+  letI : has_continuous_add E := infer_instance,
+  refine locally_convex_of_bases 𝕂 E _ _ _ _,
+end
 --@locally_convex_space_of_convex_nhds_basis 𝕂  E _ _ _ _ (⨅ i, ts i) _ _ _ (set E)
 
 end lattice_ops

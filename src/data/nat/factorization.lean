@@ -164,7 +164,7 @@ begin
   { intros p k hp hk hpk, simp [prime.factorization_pow hp, finsupp.prod_single_index _, hf] },
   { simp },
   { rintros -, rw [factorization_one, hf], simp },
-  { intros a b hab ha hb hab_pos,
+  { intros a b _ _ hab ha hb hab_pos,
     rw [h_mult a b hab, ha (left_ne_zero_of_mul hab_pos), hb (right_ne_zero_of_mul hab_pos),
         factorization_mul_of_coprime hab, ←prod_add_index_of_disjoint],
     convert (factorization_disjoint_of_coprime hab) },
@@ -180,7 +180,7 @@ begin
   { intros p k hp hk, simp only [hp.factorization_pow], rw prod_single_index _, simp [hf1] },
   { simp [hf0] },
   { rw [factorization_one, hf1], simp },
-  { intros a b hab ha hb,
+  { intros a b _ _ hab ha hb,
     rw [h_mult a b hab, ha, hb, factorization_mul_of_coprime hab, ←prod_add_index_of_disjoint],
     convert (factorization_disjoint_of_coprime hab) },
 end

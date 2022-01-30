@@ -949,6 +949,9 @@ variables {M}
 
 section
 
+instance [subsingleton R] : subsingleton (localization M) :=
+⟨λ a b, by { induction a, induction b, congr, refl, refl }⟩
+
 /-- Addition in a ring localization is defined as `⟨a, b⟩ + ⟨c, d⟩ = ⟨b * c + d * a, b * d⟩`.
 
 Should not be confused with `add_localization.add`, which is defined as
@@ -2627,6 +2630,13 @@ commutative ring `R` is an integral domain only when this is needed for proving.
 @[reducible] def fraction_ring := localization (non_zero_divisors R)
 
 namespace fraction_ring
+
+instance [subsingleton R] : subsingleton (fraction_ring R) :=
+localization.subsingleton
+
+instance [nontrivial R] : nontrivial (fraction_ring R) :=
+⟨⟨(algebra_map R _) 0, (algebra_map _ _) 1,
+  λ H, zero_ne_one (is_localization.injective _ le_rfl H)⟩⟩
 
 variables {A}
 

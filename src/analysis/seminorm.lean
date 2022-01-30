@@ -787,35 +787,6 @@ end normed_linear_ordered_field
 
 -- TODO: convexity and absorbent/balanced sets in vector spaces over ℝ
 
-/-! ### Topology induced by a seminorm -/
-
-section topology
-
-variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E]
-
-/-- Type alias for the domain of a seminorm that is equipped with the structure of a
-`normed_space`. -/
-@[derive [add_comm_group, module 𝕜]] def domain (p : seminorm 𝕜 E) : Type* := E
-
-instance (p : seminorm 𝕜 E) : has_norm p.domain := ⟨p.to_fun⟩
-
-lemma is_core (p : seminorm 𝕜 E) : semi_normed_group.core p.domain :=
-⟨p.zero, p.triangle, p.neg⟩
-
-instance (p : seminorm 𝕜 E) : semi_normed_group p.domain :=
-semi_normed_group.of_core p.domain p.is_core
-
-instance (p : seminorm 𝕜 E) : normed_space 𝕜 p.domain :=
-⟨λ _ _, le_of_eq (p.smul _ _)⟩
-
-instance (p : seminorm 𝕜 E) : topological_space p.domain :=
-(by apply_instance : topological_space p.domain)
-
-instance (p : seminorm 𝕜 E) : topological_add_group p.domain :=
-(by apply_instance : topological_add_group p.domain)
-
-end topology
-
 end seminorm
 
 /-! ### The norm as a seminorm -/
@@ -1282,11 +1253,9 @@ end gauge
 
 namespace seminorm
 
-section topology
+section filter_basis
 
-variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E] [normed_space ℝ 𝕜]
-variables [module ℝ E] [is_scalar_tower ℝ 𝕜 E]
-variables [decidable_eq ι] [inhabited ι]
+variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E] [decidable_eq ι] [inhabited ι]
 
 def seminorm_basis_zero (p : ι → seminorm 𝕜 E) : set (set E) :=
   ⋃ (s : finset ι) r (hr : 0 < r), singleton $ ball (s.sup p) (0 : E) r
@@ -1320,7 +1289,7 @@ begin
   rw [hU, hV, ball_finset_sup_eq_Inter _ _ _ (lt_min_iff.mpr ⟨hr₁, hr₂⟩),
     ball_finset_sup_eq_Inter _ _ _ hr₁, ball_finset_sup_eq_Inter _ _ _ hr₂,
     ←set.Inter_inter_distrib],
-
+  -- Yael probably knows how to make this look nicer
   refine set.Inter_mono (λ i, (set.subset_inter _ _)),
   { refine set.Inter_mono' (λ hi, _),
     use finset.mem_of_subset (finset.subset_union_left ι'₁ ι'₂) hi,
@@ -1378,11 +1347,8 @@ lemma seminorm_basis_zero_smul (p : ι → seminorm 𝕜 E) (U) (hU : U ∈ semi
   (H : W ∈ (seminorm_add_group_filter_basis p).sets), V • W ⊆ U) :=
 begin
   rcases (seminorm_basis_zero_iff p U).mp hU with ⟨ι', r, hr, hU⟩,
-  use { y : 𝕜 | ∥y∥ < r.sqrt },
-  rw ←_root_.ball_zero_eq,
-  refine ⟨metric.ball_mem_nhds 0 (real.sqrt_pos.mpr hr), _⟩,
-  use (ι'.sup p).ball 0 (r.sqrt),
-  refine ⟨seminorm_basis_zero_mem p ι' (real.sqrt_pos.mpr hr), _⟩,
+  refine ⟨metric.ball 0 r.sqrt, metric.ball_mem_nhds 0 (real.sqrt_pos.mpr hr), _⟩,
+  refine ⟨(ι'.sup p).ball 0 r.sqrt, seminorm_basis_zero_mem p ι' (real.sqrt_pos.mpr hr), _⟩,
   refine set.subset.trans (ball_smul_ball (ι'.sup p) r.sqrt r.sqrt) _,
   rw [hU, real.mul_self_sqrt (le_of_lt hr)],
 end
@@ -1397,8 +1363,7 @@ begin
   { rw [(ι'.sup p).smul_ball_preimage 0 r x h, smul_zero],
     use (ι'.sup p).ball 0 (r / ∥x∥),
     exact ⟨seminorm_basis_zero_mem p ι' (div_pos hr (norm_pos_iff.mpr h)), subset.rfl⟩ },
-  use (ι'.sup p).ball 0 r,
-  refine ⟨seminorm_basis_zero_mem p ι' hr, _⟩,
+  refine ⟨(ι'.sup p).ball 0 r, seminorm_basis_zero_mem p ι' hr, _⟩,
   simp only [not_ne_iff.mp h, subset_def, mem_ball_zero, hr, mem_univ, seminorm.zero,
     implies_true_iff, preimage_const_of_mem, zero_smul],
 end
@@ -1423,64 +1388,22 @@ def seminorm_module_filter_basis (p : ι → seminorm 𝕜 E) : module_filter_ba
   smul_left' := seminorm_basis_zero_smul_left p,
   smul_right' := seminorm_basis_zero_smul_right p }
 
-@[derive [add_comm_group, module 𝕜, module ℝ, is_scalar_tower ℝ 𝕜]]
-def with_seminorms (p : ι → seminorm 𝕜 E) : Type* := E
-
-instance (p : ι → seminorm 𝕜 E) : topological_space (with_seminorms p) :=
-(seminorm_module_filter_basis p).topology'
-
-instance (p : ι → seminorm 𝕜 E) : topological_add_group (with_seminorms p) :=
-add_group_filter_basis.is_topological_add_group (seminorm_add_group_filter_basis p)
-
-instance (p : ι → seminorm 𝕜 E) : has_continuous_smul 𝕜 (with_seminorms p) :=
-module_filter_basis.has_continuous_smul (seminorm_module_filter_basis p)
-
-instance (p : ι → seminorm 𝕜 E) : uniform_space (with_seminorms p) :=
-(seminorm_add_group_filter_basis p).uniform_space
-
-instance (p : ι → seminorm 𝕜 E) : uniform_add_group (with_seminorms p) :=
-add_group_filter_basis.uniform_add_group (seminorm_add_group_filter_basis p)
-
-lemma with_singleton_has_basis (p : seminorm 𝕜 E) :
-  (𝓝 (0 : with_seminorms (λ _ : ι, p))).has_basis (λ (r : ℝ), (0 < r)) (p.ball 0) :=
-begin
-  have h := (seminorm_add_group_filter_basis (λ _ : ι, p)).nhds_zero_has_basis,
-  refine filter.has_basis.to_has_basis h _
-    (λ r hr, ⟨p.ball 0 r, seminorm_basis_zero_singleton_mem (λ _ : ι, p) (arbitrary ι) hr,
-    rfl.subset⟩),
-  rintros U (hU : U ∈ seminorm_basis_zero (λ (_x : ι), p)),
-  rcases (seminorm_basis_zero_iff (λ _, p) U).mp hU with ⟨ι', r, hr, hU⟩,
-  use [r, hr],
-  rw [hU, id.def],
-  by_cases h : ι'.nonempty,
-  { rw finset.sup_const h },
-  rw [finset.not_nonempty_iff_eq_empty.mp h, finset.sup_empty, ball_bot _ hr],
-  exact set.subset_univ _,
-end
-
-@[simp] lemma equal_topologies (p : seminorm 𝕜 E) :
-  with_seminorms.topological_space (λ _ : ι, p) = domain.topological_space p :=
-topological_add_group.ext (with_seminorms.topological_add_group _) (domain.topological_add_group _)
-  $ filter.has_basis.eq_of_same_basis (p.with_singleton_has_basis) metric.nhds_basis_ball
-
-end topology
+end filter_basis
 
 section bounded
 
-variables [normed_field 𝕜] [normed_space ℝ 𝕜]
-variables [add_comm_group E] [module 𝕜 E] [module ℝ E] [is_scalar_tower ℝ 𝕜 E]
-variables [decidable_eq ι] [inhabited ι]
-variables [add_comm_group F] [module 𝕜 F] [module ℝ F] [is_scalar_tower ℝ 𝕜 F]
-variables [decidable_eq ι'] [inhabited ι']
+variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E] [add_comm_group F] [module 𝕜 F]
 
 def is_bounded (p : ι → seminorm 𝕜 E) (q : ι' → seminorm 𝕜 F) (f : E →ₗ[𝕜] F) : Prop :=
   ∀ i : ι', ∃ s : finset ι, ∃ C : ℝ≥0, C ≠ 0 ∧ (q i).comp f ≤ C • s.sup p
 
-lemma is_bounded_singleton {p : ι → seminorm 𝕜 E} {q : seminorm 𝕜 F} (f : E →ₗ[𝕜] F) :
+lemma is_bounded_singleton (ι' : Type*) [inhabited ι']
+  {p : ι → seminorm 𝕜 E} {q : seminorm 𝕜 F} (f : E →ₗ[𝕜] F) :
   is_bounded p (λ _ : ι', q) f ↔ ∃ (s : finset ι) C : ℝ≥0, C ≠ 0 ∧ q.comp f ≤ C • s.sup p :=
 by simp only [is_bounded, forall_const]
 
-lemma singleton_is_bounded {p : seminorm 𝕜 E} {q : ι' → seminorm 𝕜 F} (f : E →ₗ[𝕜] F) :
+lemma singleton_is_bounded (ι : Type*) [inhabited ι]
+  {p : seminorm 𝕜 E} {q : ι' → seminorm 𝕜 F} (f : E →ₗ[𝕜] F) :
   is_bounded (λ _ : ι, p) q f ↔ ∀ i : ι', ∃ C : ℝ≥0, C ≠ 0 ∧ (q i).comp f ≤ C • p :=
 begin
   dunfold is_bounded,
@@ -1493,7 +1416,8 @@ begin
   simp only [h, finset.sup_singleton],
 end
 
-lemma is_bounded_sup {p : ι → seminorm 𝕜 E} {q : ι' → seminorm 𝕜 F}
+lemma is_bounded_sup [decidable_eq ι] [decidable_eq ι']
+  {p : ι → seminorm 𝕜 E} {q : ι' → seminorm 𝕜 F}
   {f : E →ₗ[𝕜] F} (hf : is_bounded p q f) (s' : finset ι') :
   ∃ (C : ℝ≥0) (s : finset ι), 0 < C ∧ (s'.sup q).comp f ≤ C • (s.sup p) :=
 begin
@@ -1521,14 +1445,49 @@ begin
   exact le_rfl,
 end
 
-lemma continuous_from_bounded {p : ι → seminorm 𝕜 E} {q : ι' → seminorm 𝕜 F}
-  (f : with_seminorms p →ₗ[𝕜] with_seminorms q) (hf : is_bounded p q f) : continuous f :=
+end bounded
+
+section topology
+
+variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E] [add_comm_group F] [module 𝕜 F]
+variables [decidable_eq ι] [inhabited ι] [decidable_eq ι'] [inhabited ι']
+
+class with_seminorms (p : ι → seminorm 𝕜 E) [t : topological_space E] : Prop :=
+  (topology_eq_with_seminorms : t = (seminorm_module_filter_basis p).topology)
+
+lemma with_seminorms_eq (p : ι → seminorm 𝕜 E) [t : topological_space E] [with_seminorms p] :
+  t = ((seminorm_module_filter_basis p).topology) := with_seminorms.topology_eq_with_seminorms
+
+instance norm_with_seminorms (𝕜 E) [normed_field 𝕜] [semi_normed_group E] [normed_space 𝕜 E] :
+  with_seminorms (λ (_ : fin 1), norm_seminorm 𝕜 E) :=
+begin
+  let p := λ _ : fin 1, norm_seminorm 𝕜 E,
+  refine ⟨topological_add_group.ext normed_top_group
+    ((seminorm_add_group_filter_basis _).is_topological_add_group) _⟩,
+  refine filter.has_basis.eq_of_same_basis metric.nhds_basis_ball _,
+  rw ←ball_norm_seminorm 𝕜 E,
+  refine filter.has_basis.to_has_basis (seminorm_add_group_filter_basis p).nhds_zero_has_basis _
+    (λ r hr, ⟨(norm_seminorm 𝕜 E).ball 0 r, seminorm_basis_zero_singleton_mem p 0 hr, rfl.subset⟩),
+  rintros U (hU : U ∈ seminorm_basis_zero p),
+  rcases (seminorm_basis_zero_iff p U).mp hU with ⟨s, r, hr, hU⟩,
+  use [r, hr],
+  rw [hU, id.def],
+  by_cases h : s.nonempty,
+  { rw finset.sup_const h },
+  rw [finset.not_nonempty_iff_eq_empty.mp h, finset.sup_empty, ball_bot _ hr],
+  exact set.subset_univ _,
+end
+
+lemma continuous_from_bounded [uniform_space E] [uniform_add_group E] [topological_add_group E]
+  [uniform_space F] [uniform_add_group F] [topological_add_group F]
+  (p : ι → seminorm 𝕜 E) (q : ι' → seminorm 𝕜 F) [with_seminorms p] [with_seminorms q]
+  (f : E →ₗ[𝕜] F) (hf : is_bounded p q f) : continuous f :=
 begin
   refine uniform_continuous.continuous _,
   refine add_monoid_hom.uniform_continuous_of_continuous_at_zero f.to_add_monoid_hom _,
-  rw [f.to_add_monoid_hom_coe, continuous_at_def, f.map_zero],
+  rw [f.to_add_monoid_hom_coe, continuous_at_def, f.map_zero, with_seminorms_eq p],
   intros U hU,
-  rw [add_group_filter_basis.nhds_zero_eq, filter_basis.mem_filter_iff] at hU,
+  rw [with_seminorms_eq q, add_group_filter_basis.nhds_zero_eq, filter_basis.mem_filter_iff] at hU,
   rcases hU with ⟨V, hV : V ∈ seminorm_basis_zero q, hU⟩,
   rcases (seminorm_basis_zero_iff q V).mp hV with ⟨s₂, r, hr, hV⟩,
   rw hV at hU,
@@ -1542,30 +1501,29 @@ begin
   rw ball_smul (s₁.sup p) hC,
 end
 
-lemma cont_with_seminorms_to_domain (p : ι → seminorm 𝕜 E) (q : seminorm 𝕜 F)
-  (f : with_seminorms p →ₗ[𝕜] q.domain)
-  (hf : ∃ (s : finset ι) C : ℝ≥0, C ≠ 0 ∧ q.comp f ≤ C • s.sup p) : continuous f :=
+lemma cont_with_seminorms_normed_space (F) [semi_normed_group F] [normed_space 𝕜 F]
+  [uniform_space E] [uniform_add_group E] [topological_add_group E]
+  (p : ι → seminorm 𝕜 E) [with_seminorms p] (f : E →ₗ[𝕜] F)
+  (hf : ∃ (s : finset ι) C : ℝ≥0, C ≠ 0 ∧ (norm_seminorm 𝕜 F).comp f ≤ C • s.sup p) :
+  continuous f :=
 begin
-  have hf' : @continuous _ _ (with_seminorms.topological_space p)
-    (with_seminorms.topological_space (λ _ : fin 1, q)) f :=
-    continuous_from_bounded f ((is_bounded_singleton f).mpr hf),
-  rw equal_topologies q at hf',
-  exact hf',
+  rw ←is_bounded_singleton (fin 1) at hf,
+  exact continuous_from_bounded p (λ _ : fin 1, norm_seminorm 𝕜 F) f hf,
 end
 
-lemma cont_domain_to_with_seminorms (p : seminorm 𝕜 E) (q : ι' → seminorm 𝕜 F)
-  (f : p.domain →ₗ[𝕜] with_seminorms q)
-  (hf : ∀ i : ι', ∃ C : ℝ≥0, C ≠ 0 ∧ (q i).comp f ≤ C • p) : continuous f :=
+lemma cont_normed_space_to_with_seminorms (E) [semi_normed_group E] [normed_space 𝕜 E]
+  [uniform_space F] [uniform_add_group F] [topological_add_group F]
+  (q : ι → seminorm 𝕜 F) [with_seminorms q] (f : E →ₗ[𝕜] F)
+  (hf : ∀ i : ι, ∃ C : ℝ≥0, C ≠ 0 ∧ (q i).comp f ≤ C • (norm_seminorm 𝕜 E)) : continuous f :=
 begin
-  have hf₂ : @continuous _ _ (with_seminorms.topological_space (λ _ : fin 1, p))
-    (with_seminorms.topological_space q) f :=
-    continuous_from_bounded f ((singleton_is_bounded f).mpr hf),
-  rw equal_topologies p at hf₂,
-  exact hf₂,
+  rw ←singleton_is_bounded (fin 1) at hf,
+  exact continuous_from_bounded (λ _ : fin 1, norm_seminorm 𝕜 E) q f hf,
 end
 
-end bounded
+end topology
 
 end seminorm
+
+
 
 -- TODO: local convexity.

@@ -192,7 +192,7 @@ Combining both shortcuts is done by writing `filter_upwards [h₁, ⋯, hₙ] wi
 Note that in this case, the `aᵢ` terms can be used in `e`.
 -/
 meta def filter_upwards
-  (s : parse types.pexpr_list?)
+  (s : parse pexpr_list?)
   (wth : parse with_ident_list?)
   (tgt : parse (tk "using" *> texpr)?) : tactic unit :=
 do

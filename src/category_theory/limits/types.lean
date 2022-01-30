@@ -60,7 +60,7 @@ lemma is_limit_equiv_sections_symm_apply
   c.π.app j ((is_limit_equiv_sections t).symm x) = (x : Π j, F.obj j) j :=
 begin
   equiv_rw (is_limit_equiv_sections t).symm at x,
-  simp,
+  rw is_limit_equiv_sections_apply,
 end
 
 /--
@@ -95,7 +95,7 @@ def limit.mk (F : J ⥤ Type u) (x : Π j, F.obj j) (h : ∀ (j j') (f : j ⟶ j
 lemma limit.π_mk
   (F : J ⥤ Type u) (x : Π j, F.obj j) (h : ∀ (j j') (f : j ⟶ j'), F.map f (x j) = x j') (j) :
   limit.π F j (limit.mk F x h) = x j :=
-by { dsimp [limit.mk], simp, }
+by { rw [limit.mk, limit_equiv_sections_symm_apply, subtype.coe_mk], }
 
 -- PROJECT: prove this for concrete categories where the forgetful functor preserves limits
 @[ext]
@@ -104,7 +104,8 @@ lemma limit_ext (F : J ⥤ Type u) (x y : limit F) (w : ∀ j, limit.π F j x = 
 begin
   apply (limit_equiv_sections F).injective,
   ext j,
-  simp [w j],
+  iterate 2 { rw limit_equiv_sections_apply },
+  simp only [w j],
 end
 
 lemma limit_ext_iff (F : J ⥤ Type u) (x y : limit F) :
@@ -193,7 +194,7 @@ lemma colimit_equiv_quot_apply (F : J ⥤ Type u) (j : J) (x : F.obj j) :
   (colimit_equiv_quot F) (colimit.ι F j x) = quot.mk _ ⟨j, x⟩ :=
 begin
   apply (colimit_equiv_quot F).symm.injective,
-  simp,
+  rw [equiv.symm_apply_apply, colimit_equiv_quot_symm_apply],
 end
 
 @[simp]
@@ -213,11 +214,7 @@ congr_fun (colimit.ι_map α j) x
 
 lemma colimit_sound
   {F : J ⥤ Type u} {j j' : J} {x : F.obj j} {x' : F.obj j'} (f : j ⟶ j') (w : F.map f x = x') :
-  colimit.ι F j x = colimit.ι F j' x' :=
-begin
-  rw [←w],
-  simp,
-end
+  colimit.ι F j x = colimit.ι F j' x' := by { rw [←w, colimit.w_apply], }
 
 lemma colimit_sound'
   {F : J ⥤ Type u} {j j' : J} {x : F.obj j} {x' : F.obj j'} {j'' : J} (f : j ⟶ j'') (f' : j' ⟶ j'')
@@ -308,7 +305,7 @@ begin
       intro x,
       rcases hsurj x with ⟨i, xi, rfl⟩,
       use colimit.ι F i xi,
-      simp } },
+      rw colimit.ι_desc_apply, }, },
   { intro j, apply colimit.ι_desc }
 end
 

@@ -241,11 +241,25 @@ do
 end tactic
 
 namespace tactic.interactive
-open lean.parser
-open interactive interactive.types
-open tactic
 
-local postfix `?`:9001 := optional
+open tactic
+setup_tactic_parser
+
+/-- Auxiliary function to call `equiv_rw_hyp` on a `list pexpr` recursively. -/
+meta def equiv_rw_hyp_aux (hyp : name) (cfg : equiv_rw_cfg) : list pexpr → itactic
+| []       := skip
+| (e :: t) := do
+  e ← to_expr e,
+  equiv_rw_hyp hyp e cfg,
+  equiv_rw_hyp_aux t
+
+/-- Auxiliary function to call `equiv_rw_target` on a `list pexpr` recursively. -/
+meta def equiv_rw_target_aux (cfg : equiv_rw_cfg) : list pexpr → itactic
+| []       := skip
+| (e :: t) := do
+  e ← to_expr e,
+  equiv_rw_target e cfg,
+  equiv_rw_target_aux t
 
 /--
 `equiv_rw e at h`, where `h : α` is a hypothesis, and `e : α ≃ β`,
@@ -255,20 +269,24 @@ with all occurrences of `h` in other hypotheses and the goal replaced with `e.sy
 `equiv_rw e` will attempt to transport the goal along an equivalence `e : α ≃ β`.
 In its minimal form it replaces the goal `⊢ α` with `⊢ β` by calling `apply e.inv_fun`.
 
-`equiv_rw` will also try rewriting under (equiv_)functors, so can turn
+`equiv_rw` will also try rewriting under (equiv_)functors, so it can turn
 a hypothesis `h : list α` into `h : list β` or
 a goal `⊢ unique α` into `⊢ unique β`.
 
 The maximum search depth for rewriting in subexpressions is controlled by
 `equiv_rw e {max_depth := n}`.
+
+`equiv_rw [e₁, e₂, ⋯]` is equivalent to `{ equiv_rw e₁, equiv_rw e₂, ⋯ }` and can target a
+hypothesis `h` if used as `equiv_rw [e₁, e₂, ⋯] at h`.
 -/
-meta def equiv_rw (e : parse texpr) (loc : parse $ (tk "at" *> ident)?) (cfg : equiv_rw_cfg := {}) :
-  itactic :=
-do e ← to_expr e,
-   match loc with
-   | (some hyp) := equiv_rw_hyp hyp e cfg
-   | none := equiv_rw_target e cfg
-   end
+meta def equiv_rw
+  (l : parse pexpr_list_or_texpr)
+  (loc : parse $ (tk "at" *> ident)?)
+  (cfg : equiv_rw_cfg := {}) : itactic :=
+match loc with
+| some hyp := equiv_rw_hyp_aux hyp cfg l
+| none     := equiv_rw_target_aux cfg l
+end
 
 add_tactic_doc
 { name        := "equiv_rw",

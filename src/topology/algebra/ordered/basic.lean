@@ -209,6 +209,16 @@ lemma is_closed.is_closed_le [topological_space β] {f g : β → α} {s : set �
   is_closed {x ∈ s | f x ≤ g x} :=
 (hf.prod hg).preimage_closed_of_closed hs order_closed_topology.is_closed_le'
 
+lemma is_closed.epigraph [topological_space β] {f : β → α} {s : set β}
+  (hs : is_closed s) (hf : continuous_on f s) :
+  is_closed {p : β × α | p.1 ∈ s ∧ f p.1 ≤ p.2} :=
+(hs.preimage continuous_fst).is_closed_le (hf.comp continuous_on_fst subset.rfl) continuous_on_snd
+
+lemma is_closed.hypograph [topological_space β] {f : β → α} {s : set β}
+  (hs : is_closed s) (hf : continuous_on f s) :
+  is_closed {p : β × α | p.1 ∈ s ∧ p.2 ≤ f p.1} :=
+(hs.preimage continuous_fst).is_closed_le continuous_on_snd (hf.comp continuous_on_fst subset.rfl)
+
 omit t
 
 lemma nhds_within_Ici_ne_bot {a b : α} (H₂ : a ≤ b) :
@@ -706,10 +716,10 @@ lemma tendsto_of_tendsto_of_tendsto_of_le_of_le' {f g h : β → α} {b : filter
 tendsto_order.2
   ⟨assume a' h',
     have ∀ᶠ b in b, a' < g b, from (tendsto_order.1 hg).left a' h',
-    by filter_upwards [this, hgf] assume a, lt_of_lt_of_le,
+    by filter_upwards [this, hgf] with _ using lt_of_lt_of_le,
     assume a' h',
     have ∀ᶠ b in b, h b < a', from (tendsto_order.1 hh).right a' h',
-    by filter_upwards [this, hfh] assume a h₁ h₂, lt_of_le_of_lt h₂ h₁⟩
+    by filter_upwards [this, hfh] with a h₁ h₂ using lt_of_le_of_lt h₂ h₁⟩
 
 /-- Also known as squeeze or sandwich theorem. This version assumes that inequalities hold
 everywhere. -/
@@ -886,8 +896,7 @@ lemma tendsto_nhds_top_mono [topological_space β] [partial_order β] [order_top
 begin
   simp only [nhds_top_order, tendsto_infi, tendsto_principal] at hf ⊢,
   intros x hx,
-  filter_upwards [hf x hx, hg],
-  exact λ x, lt_of_lt_of_le
+  filter_upwards [hf x hx, hg] with _ using lt_of_lt_of_le,
 end
 
 lemma tendsto_nhds_bot_mono [topological_space β] [partial_order β] [order_bot β] [order_topology β]
@@ -1731,8 +1740,7 @@ lemma filter.tendsto.at_top_mul {C : α} (hC : 0 < C) (hf : tendsto f l at_top)
 begin
   refine tendsto_at_top_mono' _ _ (hf.at_top_mul_const (half_pos hC)),
   filter_upwards [hg.eventually (lt_mem_nhds (half_lt_self hC)),
-    hf.eventually (eventually_ge_at_top 0)],
-  exact λ x hg hf, mul_le_mul_of_nonneg_left hg.le hf
+    hf.eventually (eventually_ge_at_top 0)] with x hg hf using mul_le_mul_of_nonneg_left hg.le hf,
 end
 
 /-- In a linearly ordered field with the order topology, if `f` tends to a positive constant `C` and
@@ -1792,8 +1800,8 @@ lemma tendsto_inv_zero_at_top : tendsto (λx:α, x⁻¹) (𝓝[>] (0:α)) at_top
 begin
   refine (at_top_basis' 1).tendsto_right_iff.2 (λ b hb, _),
   have hb' : 0 < b := zero_lt_one.trans_le hb,
-  filter_upwards [Ioc_mem_nhds_within_Ioi ⟨le_rfl, inv_pos.2 hb'⟩],
-  exact λ x hx, (le_inv hx.1 hb').1 hx.2
+  filter_upwards [Ioc_mem_nhds_within_Ioi ⟨le_rfl, inv_pos.2 hb'⟩]
+    with x hx using (le_inv hx.1 hb').1 hx.2,
 end
 
 /-- The function `r ↦ r⁻¹` tends to `0` on the right as `r → +∞`. -/
@@ -2203,19 +2211,21 @@ lemma closure_Iio' {a : α} (h : (Iio a).nonempty) :
 closure_Iio' nonempty_Iio
 
 /-- The closure of the open interval `(a, b)` is the closed interval `[a, b]`. -/
-@[simp] lemma closure_Ioo {a b : α} (hab : a < b) :
+@[simp] lemma closure_Ioo {a b : α} (hab : a ≠ b) :
   closure (Ioo a b) = Icc a b :=
 begin
   apply subset.antisymm,
   { exact closure_minimal Ioo_subset_Icc_self is_closed_Icc },
-  { rw [← diff_subset_closure_iff, Icc_diff_Ioo_same hab.le],
-    have hab' : (Ioo a b).nonempty, from nonempty_Ioo.2 hab,
-    simp only [insert_subset, singleton_subset_iff],
-    exact ⟨(is_glb_Ioo hab).mem_closure hab', (is_lub_Ioo hab).mem_closure hab'⟩ }
+  { cases hab.lt_or_lt with hab hab,
+    { rw [← diff_subset_closure_iff, Icc_diff_Ioo_same hab.le],
+      have hab' : (Ioo a b).nonempty, from nonempty_Ioo.2 hab,
+      simp only [insert_subset, singleton_subset_iff],
+      exact ⟨(is_glb_Ioo hab).mem_closure hab', (is_lub_Ioo hab).mem_closure hab'⟩ },
+    { rw Icc_eq_empty_of_lt hab, exact empty_subset _ } }
 end
 
 /-- The closure of the interval `(a, b]` is the closed interval `[a, b]`. -/
-@[simp] lemma closure_Ioc {a b : α} (hab : a < b) :
+@[simp] lemma closure_Ioc {a b : α} (hab : a ≠ b) :
   closure (Ioc a b) = Icc a b :=
 begin
   apply subset.antisymm,
@@ -2225,7 +2235,7 @@ begin
 end
 
 /-- The closure of the interval `[a, b)` is the closed interval `[a, b]`. -/
-@[simp] lemma closure_Ico {a b : α} (hab : a < b) :
+@[simp] lemma closure_Ico {a b : α} (hab : a ≠ b) :
   closure (Ico a b) = Icc a b :=
 begin
   apply subset.antisymm,
@@ -2285,13 +2295,13 @@ frontier_Iio' nonempty_Iio
 by simp [frontier, le_of_lt h, Icc_diff_Ioo_same]
 
 @[simp] lemma frontier_Ioo {a b : α} (h : a < b) : frontier (Ioo a b) = {a, b} :=
-by simp [frontier, h, le_of_lt h, Icc_diff_Ioo_same]
+by rw [frontier, closure_Ioo h.ne, interior_Ioo, Icc_diff_Ioo_same h.le]
 
 @[simp] lemma frontier_Ico [no_min_order α] {a b : α} (h : a < b) : frontier (Ico a b) = {a, b} :=
-by simp [frontier, h, le_of_lt h, Icc_diff_Ioo_same]
+by rw [frontier, closure_Ico h.ne, interior_Ico, Icc_diff_Ioo_same h.le]
 
 @[simp] lemma frontier_Ioc [no_max_order α] {a b : α} (h : a < b) : frontier (Ioc a b) = {a, b} :=
-by simp [frontier, h, le_of_lt h, Icc_diff_Ioo_same]
+by rw [frontier, closure_Ioc h.ne, interior_Ioc, Icc_diff_Ioo_same h.le]
 
 lemma nhds_within_Ioi_ne_bot' {a b : α} (H₁ : (Ioi a).nonempty) (H₂ : a ≤ b) :
   ne_bot (𝓝[Ioi a] b) :=
@@ -2683,10 +2693,9 @@ begin
         using exists_lt_of_lt_cSup (nonempty_image_iff.2 h) hl,
     exact (mem_nhds_within_Iio_iff_exists_Ioo_subset' zx).2
       ⟨z, zx, λ y hy, lz.trans_le (Mf (hy.1.le))⟩ },
-  { filter_upwards [self_mem_nhds_within],
-    assume y hy,
+  { filter_upwards [self_mem_nhds_within] with _ hy,
     apply lt_of_le_of_lt _ hm,
-    exact le_cSup (Mf.map_bdd_above bdd_above_Iio) (mem_image_of_mem _ hy) }
+    exact le_cSup (Mf.map_bdd_above bdd_above_Iio) (mem_image_of_mem _ hy), },
 end
 
 /-- A monotone map has a limit to the right of any point `x`, equal to `Inf (f '' (Ioi x))`. -/

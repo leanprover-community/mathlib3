@@ -1129,7 +1129,7 @@ variables [group_with_zero G₀] [group_with_zero G₀'] [monoid_with_zero M₀]
 
 section monoid_with_zero
 
-variables (f : monoid_with_zero_hom G₀ M₀) {a : G₀}
+variables (f : G₀ →*₀ M₀) {a : G₀}
 
 lemma map_ne_zero : f a ≠ 0 ↔ a ≠ 0 :=
 ⟨λ hfa ha, hfa $ ha.symm ▸ f.map_zero, λ ha, ((is_unit.mk0 a ha).map f.to_monoid_hom).ne_zero⟩
@@ -1141,7 +1141,7 @@ end monoid_with_zero
 
 section group_with_zero
 
-variables (f : monoid_with_zero_hom G₀ G₀') (a b : G₀)
+variables (f : G₀ →*₀ G₀') (a b : G₀)
 
 /-- A monoid homomorphism between groups with zeros sending `0` to `0` sends `a⁻¹` to `(f a)⁻¹`. -/
 @[simp] lemma map_inv : f a⁻¹ = (f a)⁻¹ :=
@@ -1159,7 +1159,7 @@ end group_with_zero
 end monoid_with_zero_hom
 
 /-- Inversion on a commutative group with zero, considered as a monoid with zero homomorphism. -/
-def inv_monoid_with_zero_hom {G₀ : Type*} [comm_group_with_zero G₀] : monoid_with_zero_hom G₀ G₀ :=
+def inv_monoid_with_zero_hom {G₀ : Type*} [comm_group_with_zero G₀] : G₀ →*₀ G₀ :=
 { to_fun := has_inv.inv,
   map_zero' := inv_zero,
   map_one' := inv_one,
@@ -1170,7 +1170,7 @@ def inv_monoid_with_zero_hom {G₀ : Type*} [comm_group_with_zero G₀] : monoid
 by rw [← units.coe_map, ← units.coe_map, ← units.coe_inv', monoid_hom.map_inv]
 
 @[simp] lemma monoid_with_zero_hom.map_units_inv {M G₀ : Type*} [monoid_with_zero M]
-  [group_with_zero G₀] (f : monoid_with_zero_hom M G₀) (u : Mˣ) : f ↑u⁻¹ = (f u)⁻¹ :=
+  [group_with_zero G₀] (f : M →*₀ G₀) (u : Mˣ) : f ↑u⁻¹ = (f u)⁻¹ :=
 f.to_monoid_hom.map_units_inv u
 
 section noncomputable_defs

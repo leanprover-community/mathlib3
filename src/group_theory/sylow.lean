@@ -88,6 +88,37 @@ nonempty_of_exists is_p_group.of_bot.exists_le_sylow
 noncomputable instance sylow.inhabited : inhabited (sylow p G) :=
 classical.inhabited_of_nonempty sylow.nonempty
 
+lemma sylow.exists_comap_eq_of_ker_is_p_group {H : Type*} [group H] (P : sylow p H)
+  {f : H →* G} (hf : is_p_group p f.ker) : ∃ Q : sylow p G, Q.1.comap f = P :=
+exists_imp_exists (λ Q hQ, P.3 (Q.2.comap_of_ker_is_p_group f hf) (map_le_iff_le_comap.mp hQ))
+  (P.2.map f).exists_le_sylow
+
+lemma sylow.exists_comap_eq_of_injective {H : Type*} [group H] (P : sylow p H)
+  {f : H →* G} (hf : function.injective f) : ∃ Q : sylow p G, Q.1.comap f = P :=
+P.exists_comap_eq_of_ker_is_p_group (is_p_group.ker_is_p_group_of_injective hf)
+
+lemma sylow.exists_comap_subtype_eq {H : subgroup G} (P : sylow p H) :
+  ∃ Q : sylow p G, Q.1.comap H.subtype = P :=
+P.exists_comap_eq_of_injective subtype.coe_injective
+
+/-- If the kernel of `f : H →* G` is a `p`-group,
+  then `fintype (sylow p G)` implies `fintype (sylow p H)`. -/
+noncomputable def sylow.fintype_of_ker_is_p_group {H : Type*} [group H]
+  {f : H →* G} (hf : is_p_group p f.ker) [fintype (sylow p G)] : fintype (sylow p H) :=
+let h_exists := λ P : sylow p H, P.exists_comap_eq_of_ker_is_p_group hf,
+  g : sylow p H → sylow p G := λ P, classical.some (h_exists P),
+  hg : ∀ P : sylow p H, (g P).1.comap f = P := λ P, classical.some_spec (h_exists P) in
+fintype.of_injective g (λ P Q h, sylow.ext (by simp only [←hg, h]))
+
+/-- If `f : H →* G` is injective, then `fintype (sylow p G)` implies `fintype (sylow p H)`. -/
+noncomputable def sylow.fintype_of_injective {H : Type*} [group H]
+  {f : H →* G} (hf : function.injective f) [fintype (sylow p G)] : fintype (sylow p H) :=
+sylow.fintype_of_ker_is_p_group (is_p_group.ker_is_p_group_of_injective hf)
+
+/-- If `H` is a subgroup of `G`, then `fintype (sylow p G)` implies `fintype (sylow p H)`. -/
+noncomputable instance (H : subgroup G) [fintype (sylow p G)] : fintype (sylow p H) :=
+sylow.fintype_of_injective (show function.injective H.subtype, from subtype.coe_injective)
+
 open_locale pointwise
 
 /-- `subgroup.pointwise_mul_action` preserves Sylow subgroups. -/
@@ -114,7 +145,7 @@ lemma sylow.coe_smul {g : G} {P : sylow p G} :
   ↑(g • P) = mul_aut.conj g • (P : set G) := rfl
 
 lemma sylow.smul_eq_iff_mem_normalizer {g : G} {P : sylow p G} :
-  g • P = P ↔ g ∈ P.1.normalizer :=
+  g • P = P ↔ g ∈ (P : subgroup G).normalizer :=
 begin
   rw [eq_comm, set_like.ext_iff, ←inv_mem_iff, mem_normalizer_iff, inv_inv],
   exact forall_congr (λ h, iff_congr iff.rfl ⟨λ ⟨a, b, c⟩, (congr_arg _ c).mp
@@ -122,12 +153,16 @@ begin
     λ hh, ⟨(mul_aut.conj g)⁻¹ h, hh, mul_aut.apply_inv_self G (mul_aut.conj g) h⟩⟩),
 end
 
+lemma sylow.smul_eq_of_normal {g : G} {P : sylow p G} [h : (P : subgroup G).normal] :
+  g • P = P :=
+by simp only [sylow.smul_eq_iff_mem_normalizer, normalizer_eq_top.mpr h, mem_top]
+
 lemma subgroup.sylow_mem_fixed_points_iff (H : subgroup G) {P : sylow p G} :
-  P ∈ fixed_points H (sylow p G) ↔ H ≤ P.1.normalizer :=
+  P ∈ fixed_points H (sylow p G) ↔ H ≤ (P : subgroup G).normalizer :=
 by simp_rw [set_like.le_def, ←sylow.smul_eq_iff_mem_normalizer]; exact subtype.forall
 
 lemma is_p_group.inf_normalizer_sylow {P : subgroup G} (hP : is_p_group p P) (Q : sylow p G) :
-  P ⊓ Q.1.normalizer = P ⊓ Q :=
+  P ⊓ (Q : subgroup G).normalizer = P ⊓ Q :=
 le_antisymm (le_inf inf_le_left (sup_eq_right.mp (Q.3 (hP.to_inf_left.to_sup_of_normal_right'
   Q.2 inf_le_right) le_sup_right))) (inf_le_inf_left P le_normalizer)
 
@@ -431,5 +466,67 @@ begin
   have key : p ∣ card (P : subgroup G) := P.dvd_card_of_dvd_card hdvd,
   rwa [h, card_bot] at key,
 end
+
+lemma subsingleton_of_normal {p : ℕ} [fact p.prime] [fintype (sylow p G)] (P : sylow p G)
+  (h : (P : subgroup G).normal) : subsingleton (sylow p G) :=
+begin
+  apply subsingleton.intro,
+  intros Q R,
+  obtain ⟨x, h1⟩ := exists_smul_eq G P Q,
+  obtain ⟨x, h2⟩ := exists_smul_eq G P R,
+  rw sylow.smul_eq_of_normal at h1 h2,
+  rw [← h1, ← h2],
+end
+
+section pointwise
+
+open_locale pointwise
+
+lemma characteristic_of_normal {p : ℕ} [fact p.prime] [fintype (sylow p G)] (P : sylow p G)
+  (h : (P : subgroup G).normal) :
+  (P : subgroup G).characteristic :=
+begin
+  haveI := sylow.subsingleton_of_normal P h,
+  rw characteristic_iff_map_eq,
+  intros Φ,
+  show (Φ • P).to_subgroup = P.to_subgroup,
+  congr,
+end
+
+end pointwise
+
+/-- The preimage of a Sylow subgroup under a homomorphism with p-group-kernel is a Sylow subgroup -/
+def comap_of_ker_is_p_group {p : ℕ} (P : sylow p G)
+  {K : Type*} [group K] (ϕ : K →* G) (hϕ : is_p_group p ϕ.ker) (h : P.1 ≤ ϕ.range) :
+  sylow p K :=
+{ P.1.comap ϕ with
+  is_p_group' := P.2.comap_of_ker_is_p_group ϕ hϕ,
+  is_maximal' := λ Q hQ hle, by
+  { rw ← P.3 (hQ.map ϕ) (le_trans (ge_of_eq (map_comap_eq_self h)) (map_mono hle)),
+    exact (comap_map_eq_self ((P.1.ker_le_comap ϕ).trans hle)).symm }, }
+
+@[simp]
+lemma coe_comap_of_ker_is_p_group {p : ℕ} {P : sylow p G}
+  {K : Type*} [group K] (ϕ : K →* G) (hϕ : is_p_group p ϕ.ker) (h : P.1 ≤ ϕ.range) :
+  ↑(P.comap_of_ker_is_p_group ϕ hϕ h) = subgroup.comap ϕ ↑P := rfl
+
+/-- The preimage of a Sylow subgroup under an injective homomorphism is a Sylow subgroup -/
+def comap_of_injective {p : ℕ} (P : sylow p G)
+  {K : Type*} [group K] (ϕ : K →* G) (hϕ : function.injective ϕ) (h : P.1 ≤ ϕ.range) :
+  sylow p K :=
+P.comap_of_ker_is_p_group ϕ (is_p_group.ker_is_p_group_of_injective hϕ) h
+
+@[simp]
+lemma coe_comap_of_injective {p : ℕ} {P : sylow p G}
+  {K : Type*} [group K] (ϕ : K →* G) (hϕ : function.injective ϕ) (h : P.1 ≤ ϕ.range)  :
+  ↑(P.comap_of_injective ϕ hϕ h) = subgroup.comap ϕ ↑P := rfl
+
+/-- A sylow subgroup in G is also a sylow subgroup in a subgroup of G. -/
+def subtype {p : ℕ} (P : sylow p G) (N : subgroup G) (h : ↑P ≤ N) : sylow p N :=
+P.comap_of_injective N.subtype subtype.coe_injective (by simp [h])
+
+@[simp]
+lemma coe_subtype {p : ℕ} {P : sylow p G} {N : subgroup G} {h : P.1 ≤ N} :
+  ↑(P.subtype N h) = subgroup.comap N.subtype ↑P := rfl
 
 end sylow

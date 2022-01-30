@@ -332,28 +332,26 @@ end
 /-- (Implementation)
 The canonical map `(W ×[X] Uᵢ) ×[W] (Uⱼ ×[Z] Y) ⟶ (Uⱼ ×[Z] Y) ×[X] Uᵢ = V j i` where `W` is
 the glued fibred product.
-
-This is used in `lift_p1_ι_ι_eq`. -/
-def lift_comp_ι_pullback_map (i j : 𝒰.J) :
+This is used in `lift_comp_ι`. -/
+def pullback_fst_ι_to_V (i j : 𝒰.J) :
   pullback (pullback.fst : pullback (p1 𝒰 f g) (𝒰.map i) ⟶ _) ((gluing 𝒰 f g).ι j) ⟶
     V 𝒰 f g j i :=
 (pullback_symmetry _ _ ≪≫
   (pullback_right_pullback_fst_iso (p1 𝒰 f g) (𝒰.map i) _)).hom ≫
     (pullback.congr_hom (multicoequalizer.π_desc _ _ _ _ _) rfl).hom
 
-@[simp, reassoc] lemma lift_comp_ι_pullback_map_fst (i j : 𝒰.J) :
-  lift_comp_ι_pullback_map 𝒰 f g i j ≫ pullback.fst = pullback.snd :=
-by { delta lift_comp_ι_pullback_map, simp }
+@[simp, reassoc] lemma pullback_fst_ι_to_V_fst (i j : 𝒰.J) :
+  pullback_fst_ι_to_V 𝒰 f g i j ≫ pullback.fst = pullback.snd :=
+by { delta pullback_fst_ι_to_V, simp }
 
-@[simp, reassoc] lemma lift_comp_ι_pullback_map_snd (i j : 𝒰.J) :
-  lift_comp_ι_pullback_map 𝒰 f g i j ≫ pullback.snd = pullback.fst ≫ pullback.snd :=
-by { delta lift_comp_ι_pullback_map, simp }
+@[simp, reassoc] lemma pullback_fst_ι_to_V_snd (i j : 𝒰.J) :
+  pullback_fst_ι_to_V 𝒰 f g i j ≫ pullback.snd = pullback.fst ≫ pullback.snd :=
+by { delta pullback_fst_ι_to_V, simp }
 
 /-- We show that the map `W ×[X] Uᵢ ⟶ Uᵢ ×[Z] Y ⟶ W` is the first projection, where the
 first map is given by the lift of `W ×[X] Uᵢ ⟶ Uᵢ` and `W ×[X] Uᵢ ⟶ W ⟶ Y`.
 
-It suffices to show that the two map agrees when restricted onto `Uⱼ ×[Z] Y`. In this case,
-both maps factor through `V j i` via `lift_comp_ι_pullback_map` -/
+both maps factor through `V j i` via `pullback_fst_ι_to_V` -/
 lemma lift_comp_ι (i : 𝒰.J) : pullback.lift pullback.snd (pullback.fst ≫ p2 𝒰 f g)
   (by rw [← pullback.condition_assoc, category.assoc, p_comm]) ≫
   (gluing 𝒰 f g).ι i = (pullback.fst : pullback (p1 𝒰 f g) (𝒰.map i) ⟶ _) :=
@@ -361,14 +359,14 @@ begin
   apply ((gluing 𝒰 f g).open_cover.pullback_cover pullback.fst).hom_ext,
   intro j,
   dsimp only [open_cover.pullback_cover],
-  transitivity lift_comp_ι_pullback_map 𝒰 f g i j ≫ fV 𝒰 f g j i ≫ (gluing 𝒰 f g).ι _,
+  transitivity pullback_fst_ι_to_V 𝒰 f g i j ≫ fV 𝒰 f g j i ≫ (gluing 𝒰 f g).ι _,
   { rw ← (show _ = fV 𝒰 f g j i ≫ _, from (gluing 𝒰 f g).glue_condition j i),
     simp_rw ← category.assoc,
     congr' 1,
     rw [gluing_to_glue_data_f, gluing_to_glue_data_t],
     apply pullback.hom_ext; simp_rw category.assoc,
-    { rw [t_fst_fst, pullback.lift_fst, lift_comp_ι_pullback_map_snd] },
-    { rw [t_fst_snd, pullback.lift_snd, lift_comp_ι_pullback_map_fst_assoc,
+    { rw [t_fst_fst, pullback.lift_fst, pullback_fst_ι_to_V_snd] },
+    { rw [t_fst_snd, pullback.lift_snd, pullback_fst_ι_to_V_fst_assoc,
         pullback.condition_assoc], erw multicoequalizer.π_desc } },
   { rw [pullback.condition, ← category.assoc],
     congr' 1,

@@ -227,8 +227,7 @@ begin
       (f.continuous_v_comp.measurable_at_filter _ _) f.continuous_v_comp.continuous_within_at,
   rw v_comp_apply_coe at this,
   refine this.congr_of_eventually_eq_of_mem _ t.coe_prop,
-  filter_upwards [self_mem_nhds_within],
-  intros t' ht',
+  filter_upwards [self_mem_nhds_within] with _ ht',
   rw v.proj_of_mem ht'
 end
 

@@ -1562,8 +1562,7 @@ begin
     rw ← Lp.coe_fn_le,
     have h0 := Lp.coe_fn_zero G' 1 μ,
     have h := integrable.coe_fn_to_L1 hfi,
-    filter_upwards [h0, h, hf],
-    intros a h0a ha hfa,
+    filter_upwards [h0, h, hf] with _ h0a ha hfa,
     rw [h0a, ha],
     exact hfa, },
   { simp_rw set_to_fun_undef _ hfi, },
@@ -1705,7 +1704,7 @@ begin
   refine set_to_fun_measure_zero' hT (λ s hs hμs, _),
   rw lt_top_iff_ne_top at hμs,
   simp only [true_and, measure.smul_apply, with_top.mul_eq_top_iff, eq_self_iff_true, top_ne_zero,
-    ne.def, not_false_iff, auto.not_or_eq, not_not] at hμs,
+    ne.def, not_false_iff, not_or_distrib, not_not] at hμs,
   simp only [hμs.right, measure.smul_apply, mul_zero],
 end
 

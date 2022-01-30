@@ -129,7 +129,7 @@ begin
   simp only [frequently_at_top, @forall_swap (_ ∈ s), ae_all_iff],
   intro n,
   filter_upwards [measure_zero_iff_ae_nmem.1 (hf.measure_mem_forall_ge_image_not_mem_eq_zero hs n)],
-  simp
+  simp,
 end
 
 lemma inter_frequently_image_mem_ae_eq (hf : conservative f μ) (hs : measurable_set s) :

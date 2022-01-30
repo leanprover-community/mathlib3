@@ -456,4 +456,3 @@ ring_hom.ext_iff.2 (equiv_of_equiv_symm_algebra_map L M hSR)
 end equiv_of_equiv
 
 end is_alg_closure
-#lint

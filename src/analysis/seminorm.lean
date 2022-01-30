@@ -1279,24 +1279,16 @@ lemma seminorm_basis_zero_intersect (p : ι → seminorm 𝕜 E) [decidable_eq �
   (U V : set E) (hU : U ∈ seminorm_basis_zero p) (hV : V ∈ seminorm_basis_zero p) :
   ∃ (z : set E) (H : z ∈ (seminorm_basis_zero p)), z ⊆ U ∩ V :=
 begin
-  rcases (seminorm_basis_zero_iff p U).mp hU with ⟨ι'₁, r₁, hr₁, hU⟩,
-  rcases (seminorm_basis_zero_iff p V).mp hV with ⟨ι'₂, r₂, hr₂, hV⟩,
-  use ((ι'₁ ∪ ι'₂).sup p).ball 0 (min r₁ r₂),
-  refine ⟨seminorm_basis_zero_mem p (ι'₁ ∪ ι'₂) (lt_min_iff.mpr ⟨hr₁, hr₂⟩), _⟩,
+  rcases (seminorm_basis_zero_iff p U).mp hU with ⟨s, r₁, hr₁, hU⟩,
+  rcases (seminorm_basis_zero_iff p V).mp hV with ⟨t, r₂, hr₂, hV⟩,
+  use ((s ∪ t).sup p).ball 0 (min r₁ r₂),
+  refine ⟨seminorm_basis_zero_mem p (s ∪ t) (lt_min_iff.mpr ⟨hr₁, hr₂⟩), _⟩,
   rw [hU, hV, ball_finset_sup_eq_Inter _ _ _ (lt_min_iff.mpr ⟨hr₁, hr₂⟩),
     ball_finset_sup_eq_Inter _ _ _ hr₁, ball_finset_sup_eq_Inter _ _ _ hr₂],
   exact set.subset_inter
     (set.Inter₂_mono' $ λ i hi, ⟨i, finset.subset_union_left _ _ hi, ball_mono $ min_le_left _ _⟩)
-    (set.Inter₂_mono' $ λ i hi, ⟨i, finset.subset_union_right _ _ hi, ball_mono $ min_le_right _ _⟩),
-  /-refine set.Inter_subset_Inter (λ i, _),
-  have hI₁ : (⋂ (H : i ∈ ι'₁ ∪ ι'₂), (p i).ball 0 r₁) ⊆ (⋂ (H : i ∈ ι'₁), (p i).ball 0 r₁) :=
-    Inter_subset_Inter2 (λ hi, ⟨finset.mem_union_left ι'₂ hi, subset.rfl⟩),
-  have hI₂ : (⋂ (H : i ∈ ι'₁ ∪ ι'₂), (p i).ball 0 r₂) ⊆ (⋂ (H : i ∈ ι'₂), (p i).ball 0 r₂) :=
-    Inter_subset_Inter2 (λ hi, ⟨finset.mem_union_right ι'₁ hi, subset.rfl⟩),
-  refine subset.trans _ (inter_subset_inter hI₁ hI₂),
-  rw [←set.Inter_inter_distrib],
-  exact Inter_subset_Inter (λ i, subset_inter
-    (ball_mono (min_le_of_left_le (le_refl _))) (ball_mono (min_le_of_right_le (le_refl _)))),-/
+    (set.Inter₂_mono' $ λ i hi, ⟨i, finset.subset_union_right _ _ hi, ball_mono $
+    min_le_right _ _⟩),
 end
 
 lemma seminorm_basis_zero_zero (p : ι → seminorm 𝕜 E) (U) (hU : U ∈ seminorm_basis_zero p) :
@@ -1391,7 +1383,7 @@ variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E] [add_comm_group
 
 /-- The proposition that a linear map is bounded between spaces with families of seminorms. -/
 def is_bounded (p : ι → seminorm 𝕜 E) (q : ι' → seminorm 𝕜 F) (f : E →ₗ[𝕜] F) : Prop :=
-  ∀ i : ι', ∃ s : finset ι, ∃ C : ℝ≥0, C ≠ 0 ∧ (q i).comp f ≤ C • s.sup p
+  ∀ i, ∃ s : finset ι, ∃ C : ℝ≥0, C ≠ 0 ∧ (q i).comp f ≤ C • s.sup p
 
 lemma is_bounded_const (ι' : Type*) [nonempty ι']
   {p : ι → seminorm 𝕜 E} {q : seminorm 𝕜 F} (f : E →ₗ[𝕜] F) :
@@ -1400,7 +1392,7 @@ by simp only [is_bounded, forall_const]
 
 lemma const_is_bounded (ι : Type*) [nonempty ι]
   {p : seminorm 𝕜 E} {q : ι' → seminorm 𝕜 F} (f : E →ₗ[𝕜] F) :
-  is_bounded (λ _ : ι, p) q f ↔ ∀ i : ι', ∃ C : ℝ≥0, C ≠ 0 ∧ (q i).comp f ≤ C • p :=
+  is_bounded (λ _ : ι, p) q f ↔ ∀ i, ∃ C : ℝ≥0, C ≠ 0 ∧ (q i).comp f ≤ C • p :=
 begin
   dunfold is_bounded,
   split,

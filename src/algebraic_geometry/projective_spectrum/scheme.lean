@@ -4939,7 +4939,7 @@ begin
   exact proj_C_ne_zero,
 end
 
-set_option profiler true
+-- set_option profiler true
 lemma isos.sheaf_component.forward_backward :
   isos.sheaf_component.forward.mk 𝒜 f m hm f_deg V (((isos.sheaf_component.backward 𝒜 f m hm f_deg).app V) hh) z =
   hh.val z :=
@@ -4950,10 +4950,10 @@ begin
   have inv_z_mem : inv_z.1 ∈
     ((@opens.open_embedding (projective_spectrum.Top 𝒜) (projective_spectrum.basic_open 𝒜 f)).is_open_map.functor.op.obj
     ((opens.map (isos.top_component 𝒜 f m hm f_deg).hom).op.obj V)).unop,
-  { convert isos.sheaf_component.forward_backward.inv_z_mem 𝒜 f m hm f_deg V z, },
+  { apply isos.sheaf_component.forward_backward.inv_z_mem 𝒜 f m hm f_deg V z, },
 
   have inv_z_mem_bo : inv_z.1 ∈ projective_spectrum.basic_open 𝒜 f,
-  { convert isos.sheaf_component.forward_backward.inv_z_mem_bo 𝒜 f m hm f_deg V z, },
+  { apply isos.sheaf_component.forward_backward.inv_z_mem_bo 𝒜 f m hm f_deg V z, },
 
   set hart := b_hh.1 ⟨inv_z.1, inv_z_mem⟩ with hart_eq,
   rw subtype.ext_iff_val at hart_eq,

@@ -102,24 +102,6 @@ noncomputable def to_complete_distrib_lattice [distrib_lattice α] [bounded_orde
   end,
   ..to_complete_lattice α }
 
-/-- A finite bounded distributive lattice is completely distributive. -/
-@[reducible] -- See note [reducible non-instances]
-noncomputable def fintype.to_complete_distrib_lattice [distrib_lattice α] [bounded_order α] :
-  complete_distrib_lattice α :=
-{ infi_sup_le_sup_Inf := λ a s, begin
-    convert (finset.inf_sup_distrib_left _ _ _).ge,
-    convert (finset.inf_eq_infi _ _).symm,
-    simp_rw set.mem_to_finset,
-    refl,
-  end,
-  inf_Sup_le_supr_inf := λ a s, begin
-    convert (finset.sup_inf_distrib_left _ _ _).le,
-    convert (finset.sup_eq_supr _ _).symm,
-    simp_rw set.mem_to_finset,
-    refl,
-  end,
-  ..fintype.to_complete_lattice α }
-
 /-- A finite bounded linear order is complete. -/
 @[reducible] -- See note [reducible non-instances]
 noncomputable def to_complete_linear_order [linear_order α] [bounded_order α] :
@@ -131,12 +113,6 @@ noncomputable def to_complete_linear_order [linear_order α] [bounded_order α] 
 noncomputable def to_complete_boolean_algebra [boolean_algebra α] :
   complete_boolean_algebra α :=
 { ..fintype.to_complete_distrib_lattice α, .. ‹boolean_algebra α› }
-
-/-- A finite boolean algebra is complete. -/
-@[reducible] -- See note [reducible non-instances]
-noncomputable def fintype.to_complete_boolean_algebra [boolean_algebra α] :
-  complete_boolean_algebra α :=
-{ ..fintype.to_complete_distrib_lattice α, ..‹boolean_algebra α› }
 
 end bounded_order
 

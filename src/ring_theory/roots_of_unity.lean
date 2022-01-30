@@ -65,7 +65,7 @@ noncomputable theory
 open polynomial
 open finset
 
-variables {M N G G₀ R S : Type*}
+variables {M N G G₀ R S F : Type*}
 variables [comm_monoid M] [comm_monoid N] [comm_group G] [comm_group_with_zero G₀]
 
 section roots_of_unity
@@ -119,29 +119,29 @@ end
 variables [comm_ring S]
 
 /-- Restrict a ring homomorphism between integral domains to the nth roots of unity -/
-def ring_hom.restrict_roots_of_unity (σ : R →+* S) (n : ℕ+) :
+def restrict_roots_of_unity [ring_hom_class F R S] (σ : F) (n : ℕ+) :
   roots_of_unity n R →* roots_of_unity n S :=
 let h : ∀ ξ : roots_of_unity n R, (σ ξ) ^ (n : ℕ) = 1 := λ ξ, by
 { change (σ (ξ : Rˣ)) ^ (n : ℕ) = 1,
-  rw [←σ.map_pow, ←units.coe_pow, show ((ξ : Rˣ) ^ (n : ℕ) = 1), from ξ.2,
-      units.coe_one, σ.map_one] } in
+  rw [←map_pow, ←units.coe_pow, show ((ξ : Rˣ) ^ (n : ℕ) = 1), from ξ.2,
+      units.coe_one, map_one σ] } in
 { to_fun := λ ξ, ⟨@unit_of_invertible _ _ _ (invertible_of_pow_eq_one _ _ (h ξ) n.2),
     by { ext, rw units.coe_pow, exact h ξ }⟩,
-  map_one' := by { ext, exact σ.map_one },
-  map_mul' := λ ξ₁ ξ₂, by { ext, rw [subgroup.coe_mul, units.coe_mul], exact σ.map_mul _ _ } }
+  map_one' := by { ext, exact map_one σ },
+  map_mul' := λ ξ₁ ξ₂, by { ext, rw [subgroup.coe_mul, units.coe_mul], exact map_mul σ _ _ } }
 
-@[simp] lemma ring_hom.restrict_roots_of_unity_coe_apply (σ : R →+* S) (ζ : roots_of_unity k R) :
-  ↑(σ.restrict_roots_of_unity k ζ) = σ ↑ζ :=
+@[simp] lemma restrict_roots_of_unity_coe_apply [ring_hom_class F R S] (σ : F)
+  (ζ : roots_of_unity k R) : ↑(restrict_roots_of_unity σ k ζ) = σ ↑ζ :=
 rfl
 
 /-- Restrict a ring isomorphism between integral domains to the nth roots of unity -/
 def ring_equiv.restrict_roots_of_unity (σ : R ≃+* S) (n : ℕ+) :
   roots_of_unity n R ≃* roots_of_unity n S :=
-{ to_fun := σ.to_ring_hom.restrict_roots_of_unity n,
-  inv_fun := σ.symm.to_ring_hom.restrict_roots_of_unity n,
+{ to_fun := restrict_roots_of_unity σ.to_ring_hom n,
+  inv_fun :=restrict_roots_of_unity σ.symm.to_ring_hom n,
   left_inv := λ ξ, by { ext, exact σ.symm_apply_apply ξ },
   right_inv := λ ξ, by { ext, exact σ.apply_symm_apply ξ },
-  map_mul' := (σ.to_ring_hom.restrict_roots_of_unity n).map_mul }
+  map_mul' := (restrict_roots_of_unity _ n).map_mul }
 
 @[simp] lemma ring_equiv.restrict_roots_of_unity_coe_apply (σ : R ≃+* S) (ζ : roots_of_unity k R) :
   ↑(σ.restrict_roots_of_unity k ζ) = σ ↑ζ :=
@@ -211,11 +211,11 @@ calc  fintype.card (roots_of_unity k R)
 
 variables {k R}
 
-lemma ring_hom.map_root_of_unity_eq_pow_self (σ : R →+* R) (ζ : roots_of_unity k R) :
+lemma map_root_of_unity_eq_pow_self [ring_hom_class F R R] (σ : F) (ζ : roots_of_unity k R) :
   ∃ m : ℕ, σ ζ = ζ ^ m :=
 begin
-  obtain ⟨m, hm⟩ := (σ.restrict_roots_of_unity k).map_cyclic,
-  rw [←σ.restrict_roots_of_unity_coe_apply, hm, zpow_eq_mod_order_of, ←int.to_nat_of_nonneg
+  obtain ⟨m, hm⟩ := (restrict_roots_of_unity σ k).map_cyclic,
+  rw [←restrict_roots_of_unity_coe_apply, hm, zpow_eq_mod_order_of, ←int.to_nat_of_nonneg
       (m.mod_nonneg (int.coe_nat_ne_zero.mpr (pos_iff_ne_zero.mp (order_of_pos ζ)))),
       zpow_coe_nat, roots_of_unity.coe_pow],
   exact ⟨(m % (order_of ζ)).to_nat, rfl⟩,

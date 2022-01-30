@@ -20,21 +20,19 @@ open finite_dimensional
 def baz {R : Type*} [semiring R] (σ : R →+* R) {τ : out_param (R →+* R)}
   [ring_hom_inv_pair σ τ] [ring_hom_inv_pair τ σ] :
   R ≃ₛₗ[σ] R :=
-{ map_smul' := _,
-  inv_fun := _,
-  left_inv := _,
-  right_inv := _,
+{ map_smul' := λ a b, by simp,
+  inv_fun := τ,
+  left_inv := λ x, ring_hom_inv_pair.comp_apply_eq,
+  right_inv := λ x, ring_hom_inv_pair.comp_apply_eq,
   .. ring_hom.to_add_monoid_hom σ }
 
 -- do we have the linear equivalence "scalar-multiply by an invertible scalar" ?
 def bop {R : Type*} [field R] {M : Type*} [add_comm_monoid M] [module R M] {c : R} (hc : c ≠ 0) :
   M ≃ₗ[R] M :=
-{ to_fun := λ x, c • x,
-  map_add' := _,
-  map_smul' := _,
-  inv_fun := λ x, c⁻¹ • x,
-  left_inv := _,
-  right_inv := _ }
+{ inv_fun := λ x, c⁻¹ • x,
+  left_inv := λ x, by simp [hc],
+  right_inv := λ x, by simp [hc],
+  .. c • linear_map.id }
 
 variables (p : ℕ) [fact p.prime]
 variables (k : Type*) [comm_ring k] [is_domain k] [char_p k p] [perfect_ring k p]
@@ -96,7 +94,7 @@ instance : module K(p, k) K(p, k) := semiring.to_module
 K(p, k)
 
 instance (m : ℤ) : isocrystal p k (standard_one_dim_isocrystal p k m) :=
-{ frob := (baz (foo p k)).trans (bop (sorry : (p : K(p, k)) ^ m ≠ 0)) }
+{ frob := (baz (foo p k)).trans (bop (zpow_ne_zero m (p_nonzero' p k) : (p : K(p, k)) ^ m ≠ 0)) }
 
 @[simp] lemma frobenius_standard_one_dim_isocrystal_apply (m : ℤ)
   (x : standard_one_dim_isocrystal p k m) :
@@ -111,19 +109,30 @@ lemma classification
   (h_dim : finrank K(p, k) V = 1) :
   ∃ (m : ℤ), nonempty (standard_one_dim_isocrystal p k m ≃ᶠⁱ[p, k] V) :=
 begin
-  haveI : nontrivial V := sorry, -- one-dimensional is nontrivial
+  haveI : nontrivial V := finite_dimensional.nontrivial_of_finrank_eq_succ h_dim,
   obtain ⟨x, hx⟩ : ∃ x : V, x ≠ 0 := exists_ne 0,
   have : Φ(p, k) x ≠ 0 := by simpa using Φ(p, k).injective.ne hx,
-  obtain ⟨a, ha, hax⟩ : ∃ a : K(p, k), a ≠ 0 ∧ Φ(p, k) x = a • x := sorry, -- single vector spans
+  obtain ⟨a, ha, hax⟩ : ∃ a : K(p, k), a ≠ 0 ∧ Φ(p, k) x = a • x,
+  { rw finrank_eq_one_iff_of_nonzero' x hx at h_dim,
+    obtain ⟨a, ha⟩ := h_dim (Φ(p, k) x),
+    refine ⟨a, _, ha.symm⟩,
+    intros ha',
+    apply this,
+    simp [← ha, ha'] },
   obtain ⟨b, hb, m, (hmb : φ(p, k) b * a = p ^ m * b)⟩ := important p k ha,
   use m,
   let F₀ : standard_one_dim_isocrystal p k m →ₗ[K(p,k)] V :=
-    b • linear_map.to_span_singleton K(p, k) V x,
-  let F : standard_one_dim_isocrystal p k m ≃ₗ[K(p,k)] V :=
-    linear_equiv.of_bijective F₀ sorry sorry, -- by upgrading `F₀`
-  refine ⟨⟨F, _⟩⟩,
+    linear_map.to_span_singleton K(p, k) V x,
+  let F : standard_one_dim_isocrystal p k m ≃ₗ[K(p,k)] V,
+  { refine linear_equiv.of_bijective F₀ _ _,
+    { rw ← linear_map.ker_eq_bot,
+      exact linear_equiv.ker_to_span_singleton K(p, k) V hx },
+    { rw ← linear_map.range_eq_top,
+      rw ← (finrank_eq_one_iff_of_nonzero x hx).mp h_dim,
+      rw linear_map.span_singleton_eq_range } },
+  refine ⟨⟨(bop hb).trans F, _⟩⟩,
   intros c,
-  simp [F, F₀, foo, hax, ← mul_smul],
+  simp [F, F₀, foo, bop, hax, ← mul_smul],
   congr' 1,
   transitivity (φ(p,k) b * a) * φ(p,k) c,
   { ring },

@@ -549,6 +549,18 @@ begin
     refl }
 end
 
+-- a better way here would be that the Witt vectors have characteristic 0, does mathlib know it?
+lemma p_nonzero (k : Type*) [comm_ring k] [char_p k p] [nontrivial k] : (p : 𝕎 k) ≠ 0 :=
+begin
+  have : (p : 𝕎 k).coeff 1 = 1 := by simpa using witt_vector.coeff_p_pow 1,
+  intros h,
+  simpa [h] using this
+end
+
+lemma p_nonzero' (k : Type*) [comm_ring k] [char_p k p] [nontrivial k] :
+  (p : fraction_ring (𝕎 k)) ≠ 0 :=
+by simpa using (is_fraction_ring.injective (𝕎 k) (fraction_ring (𝕎 k))).ne (p_nonzero p k)
+
 lemma important {a : fraction_ring (𝕎 k)} (ha : a ≠ 0) :
   ∃ (b : fraction_ring (𝕎 k)) (hb : b ≠ 0) (m : ℤ), φ b * a = p ^ m * b :=
 begin
@@ -566,18 +578,11 @@ begin
   { have H := congr_arg (λ x : 𝕎 k, x * p ^ m * p ^ n) hbrq,
     dsimp at H,
     refine (eq.trans _ H).trans _; ring },
-  have hp : (p : 𝕎 k) ≠ 0,
-  -- a better way here would be that the Witt vectors have characteristic 0, does mathlib know it?
-  { have : (p : 𝕎 k).coeff 1 = 1 := by simpa using witt_vector.coeff_p_pow 1,
-    intros h,
-    simpa [h] using this },
-  have hp' : (p : fraction_ring (𝕎 k)) ≠ 0,
-  { simpa using (is_fraction_ring.injective (𝕎 k) (fraction_ring (𝕎 k))).ne hp },
   have hq'' : algebra_map (𝕎 k) (fraction_ring (𝕎 k)) q' ≠ 0,
   { have hq''' : q' ≠ 0 := λ h, hq' (by simp [h]),
     simpa using (is_fraction_ring.injective (𝕎 k) (fraction_ring (𝕎 k))).ne hq''' },
-  rw zpow_sub₀ hp',
-  field_simp,
+  rw zpow_sub₀ (p_nonzero' p k),
+  field_simp [p_nonzero' p k],
   simp [is_fraction_ring.field_equiv_of_ring_equiv],
   convert congr_arg (λ x, algebra_map (𝕎 k) (fraction_ring (𝕎 k)) x) key using 1,
   { simp only [ring_hom.map_mul, ring_hom.map_pow, map_nat_cast],

@@ -1,5 +1,22 @@
+/-
+Copyright (c) 2022 Andrew Yang. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Andrew Yang
+-/
 import algebraic_geometry.morphisms.basic
 
+/-!
+# Quasi-compact morphisms
+
+A morphism of schemes is quasi-compact if the preimages of quasi-compact open sets are
+quasi-compact.
+
+It suffices to check that preimages of affine open sets are compact
+(`quasi_compact_iff_forall_affine`).
+
+We show that this property is local, and is stable under compositions and base-changes.
+
+-/
 
 noncomputable theory
 
@@ -17,7 +34,7 @@ of quasi-compact open sets are quasi-compact.
 -/
 @[mk_iff]
 class quasi_compact (f : X ⟶ Y) : Prop :=
-(is_compact_primage : ∀ U : set Y.carrier, is_open U → is_compact U → is_compact (f.1.base ⁻¹' U))
+(is_compact_preimage : ∀ U : set Y.carrier, is_open U → is_compact U → is_compact (f.1.base ⁻¹' U))
 
 def quasi_compact.affine_property : affine_target_morphism_property :=
 λ X Y f hf, compact_space X.carrier
@@ -26,6 +43,28 @@ def quasi_compact.affine_property : affine_target_morphism_property :=
   affine_target_morphism_property.to_property quasi_compact.affine_property f ↔
     is_affine Y ∧ compact_space X.carrier :=
 by { delta affine_target_morphism_property.to_property quasi_compact.affine_property, simp }
+
+@[priority 900]
+instance quasi_compact_of_is_iso {X Y : Scheme} (f : X ⟶ Y) [is_iso f] : quasi_compact f :=
+begin
+  constructor,
+  intros U hU hU',
+  convert hU'.image (inv f.1.base).continuous_to_fun using 1,
+  rw set.image_eq_preimage_of_inverse,
+  delta function.left_inverse,
+  exacts [is_iso.inv_hom_id_apply f.1.base, is_iso.hom_inv_id_apply f.1.base]
+end
+
+instance quasi_compact_comp {X Y Z : Scheme} (f : X ⟶ Y) (g : Y ⟶ Z)
+  [quasi_compact f] [quasi_compact g] : quasi_compact (f ≫ g) :=
+begin
+  constructor,
+  intros U hU hU',
+  rw [Scheme.comp_val_base, coe_comp, set.preimage_comp],
+  apply quasi_compact.is_compact_preimage,
+  { exact continuous.is_open_preimage (by continuity) _ hU },
+  apply quasi_compact.is_compact_preimage; assumption
+end
 
 lemma is_compact_open_iff_eq_finset_affine_union {X : Scheme} (U : set X.carrier) :
   is_compact U ∧ is_open U ↔
@@ -79,6 +118,10 @@ begin
   apply forall_congr,
   exact λ _, is_compact_iff_compact_space,
 end
+
+lemma quasi_compact_eq_affine_property :
+  @quasi_compact = target_affine_locally quasi_compact.affine_property :=
+by { ext, exact quasi_compact_iff_affine_property _ }
 
 lemma is_compact_basic_open (X : Scheme) {U : opens X.carrier} (hU : is_compact (U : set X.carrier))
   (f : X.presheaf.obj (op U)) : is_compact (X.basic_open f : set X.carrier) :=
@@ -139,6 +182,15 @@ begin
     exacts [compact_Union (λ i, is_compact_iff_compact_space.mpr (hS' i)), top_is_affine_open _] }
 end
 
+lemma quasi_compact_affine_property_stable_under_base_change :
+  affine_target_morphism_property.stable_under_base_change quasi_compact.affine_property :=
+begin
+  introv X H,
+  delta quasi_compact.affine_property at H ⊢,
+  resetI,
+  sorry
+end
+
 lemma quasi_compact.affine_open_cover_tfae {X Y : Scheme.{u}} (f : X ⟶ Y) :
   tfae [quasi_compact f,
     ∃ (𝒰 : Scheme.open_cover.{u} Y) [∀ i, is_affine (𝒰.obj i)],
@@ -147,10 +199,8 @@ lemma quasi_compact.affine_open_cover_tfae {X Y : Scheme.{u}} (f : X ⟶ Y) :
       compact_space (pullback f (𝒰.map i)).carrier,
     ∀ {U : Scheme} (g : U ⟶ Y) [is_affine U] [is_open_immersion g],
       compact_space (pullback f g).carrier] :=
-begin
-  rw quasi_compact_iff_affine_property,
-  exact quasi_compact_affine_property_is_local.affine_open_cover_tfae f
-end
+quasi_compact_eq_affine_property.symm ▸
+  quasi_compact_affine_property_is_local.affine_open_cover_tfae f
 
 lemma quasi_compact.open_cover_tfae {X Y : Scheme.{u}} (f : X ⟶ Y) :
   tfae [quasi_compact f,
@@ -161,21 +211,47 @@ lemma quasi_compact.open_cover_tfae {X Y : Scheme.{u}} (f : X ⟶ Y) :
     ∀ (U : opens Y.carrier), quasi_compact (f ∣_ U),
     ∀ {U : Scheme} (g : U ⟶ Y) [is_open_immersion g],
       quasi_compact (pullback.snd : pullback f g ⟶ _)] :=
-begin
-  simp_rw quasi_compact_iff_affine_property,
-  exact quasi_compact_affine_property_is_local.open_cover_tfae f
-end
+quasi_compact_eq_affine_property.symm ▸
+  quasi_compact_affine_property_is_local.open_cover_tfae f
 
-instance {X Y S : Scheme} (f : X ⟶ S) (g : Y ⟶ S) [hf : quasi_compact g] :
+lemma quasi_compact_over_affine_iff {X Y : Scheme} (f : X ⟶ Y) [is_affine Y] :
+  quasi_compact f ↔ compact_space X.carrier :=
+quasi_compact_eq_affine_property.symm ▸
+  quasi_compact_affine_property_is_local.affine_target_iff f
+
+lemma compact_space_iff_quasi_compact (X : Scheme) :
+  compact_space X.carrier ↔ quasi_compact (terminal.from X) :=
+(quasi_compact_over_affine_iff _).symm
+
+lemma quasi_compact.affine_open_cover_iff {X Y : Scheme.{u}} (𝒰 : Scheme.open_cover.{u} Y)
+  [∀ i, is_affine (𝒰.obj i)] (f : X ⟶ Y) :
+  quasi_compact f ↔ ∀ i, compact_space (pullback f (𝒰.map i)).carrier :=
+quasi_compact_eq_affine_property.symm ▸
+  quasi_compact_affine_property_is_local.affine_open_cover_iff f 𝒰
+
+lemma quasi_compact.open_cover_iff {X Y : Scheme.{u}} (𝒰 : Scheme.open_cover.{u} Y)
+  [∀ i, is_affine (𝒰.obj i)] (f : X ⟶ Y) :
+  quasi_compact f ↔ ∀ i, quasi_compact (pullback.snd : pullback f (𝒰.map i) ⟶ _) :=
+quasi_compact_eq_affine_property.symm ▸
+  quasi_compact_affine_property_is_local.open_cover_iff f 𝒰
+
+lemma quasi_compact_stable_under_base_change :
+  stable_under_base_change @quasi_compact :=
+quasi_compact_eq_affine_property.symm ▸
+  quasi_compact_affine_property_is_local.stable_under_base_change
+    quasi_compact_affine_property_stable_under_base_change
+
+lemma quasi_compact_respects_iso : respects_iso @quasi_compact :=
+quasi_compact_eq_affine_property.symm ▸
+  target_affine_locally_respects_iso quasi_compact_affine_property_is_local.1
+
+instance {X Y S : Scheme} (f : X ⟶ S) (g : Y ⟶ S) [quasi_compact g] :
   quasi_compact (pullback.fst : pullback f g ⟶ X) :=
-begin
-  rw (quasi_compact.affine_open_cover_tfae (pullback.snd : pullback f g ⟶ Y)).out 0 3,
-  rw (quasi_compact.open_cover_tfae f).out 0 4 at hf,
-  intros U i h₁ h₂,
-  let : pullback (pullback.snd : pullback f g ⟶ _) i ≅ pullback (i ≫ g) f,
-  { refine as_iso _ ≪≫ pullback_symmetry _ _ ≪≫ pullback_right_pullback_fst_iso g f i,
-    { refine pullback.map _ _ _ _ (pullback_symmetry _ _).hom (𝟙 _) (𝟙 _) _ _; simp },
-    apply_instance },
-end
+quasi_compact_stable_under_base_change f g infer_instance
+
+instance {X Y S : Scheme} (f : X ⟶ S) (g : Y ⟶ S) [quasi_compact f] :
+  quasi_compact (pullback.snd : pullback f g ⟶ Y) :=
+quasi_compact_stable_under_base_change.symmetry quasi_compact_respects_iso f g infer_instance
+
 
 end algebraic_geometry

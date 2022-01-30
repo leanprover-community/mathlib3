@@ -6,6 +6,7 @@ Authors: Andrew Yang
 import algebraic_geometry.AffineScheme
 import algebraic_geometry.pullbacks
 import category_theory.adjunction.over
+import algebraic_geometry.limits
 
 /-!
 # Properties of morphisms
@@ -419,8 +420,6 @@ begin
     ← pullback.condition, hP.1.cancel_left_is_iso],
 end
 
-
-
 -- @[simps]
 -- def Scheme.open_cover.add {X : Scheme} (𝒰 : X.open_cover) {Y : Scheme} (f : Y ⟶ X)
 --   [is_open_immersion f] : X.open_cover :=
@@ -474,6 +473,5 @@ begin
     hP.1.cancel_left_is_iso, P.to_property_apply],
   apply H
 end
-
 
 end algebraic_geometry

@@ -1257,6 +1257,7 @@ section filter_basis
 
 variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E] [decidable_eq ι] [inhabited ι]
 
+/-- A filter basis for the neighborhood filter of 0. -/
 def seminorm_basis_zero (p : ι → seminorm 𝕜 E) : set (set E) :=
   ⋃ (s : finset ι) r (hr : 0 < r), singleton $ ball (s.sup p) (0 : E) r
 
@@ -1334,6 +1335,7 @@ begin
   exact ⟨U, hU', eq.subset hU⟩,
 end
 
+/-- The `add_group_filter_basis` induced by the filter basis `seminorm_basis_zero`. -/
 def seminorm_add_group_filter_basis (p : ι → seminorm 𝕜 E) : add_group_filter_basis E :=
   add_group_filter_basis_of_comm (seminorm_basis_zero p)
   (seminorm_basis_zero_nonempty p)
@@ -1382,6 +1384,7 @@ begin
   exact is_open.mem_nhds is_open_univ (mem_univ 0),
 end
 
+/-- The `module_filter_basis` induced by the filter basis `seminorm_basis_zero`. -/
 def seminorm_module_filter_basis (p : ι → seminorm 𝕜 E) : module_filter_basis 𝕜 E :=
 { to_add_group_filter_basis := seminorm_add_group_filter_basis p,
   smul' := seminorm_basis_zero_smul p,
@@ -1394,6 +1397,7 @@ section bounded
 
 variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E] [add_comm_group F] [module 𝕜 F]
 
+/-- The proposition that a linear map is bounded between spaces with families of seminorms. -/
 def is_bounded (p : ι → seminorm 𝕜 E) (q : ι' → seminorm 𝕜 F) (f : E →ₗ[𝕜] F) : Prop :=
   ∀ i : ι', ∃ s : finset ι, ∃ C : ℝ≥0, C ≠ 0 ∧ (q i).comp f ≤ C • s.sup p
 
@@ -1452,12 +1456,14 @@ section topology
 variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E] [add_comm_group F] [module 𝕜 F]
 variables [decidable_eq ι] [inhabited ι] [decidable_eq ι'] [inhabited ι']
 
+/-- The proposition that the topology of `E` is induced by a family of seminorms `p`. -/
 class with_seminorms (p : ι → seminorm 𝕜 E) [t : topological_space E] : Prop :=
   (topology_eq_with_seminorms : t = (seminorm_module_filter_basis p).topology)
 
 lemma with_seminorms_eq (p : ι → seminorm 𝕜 E) [t : topological_space E] [with_seminorms p] :
   t = ((seminorm_module_filter_basis p).topology) := with_seminorms.topology_eq_with_seminorms
 
+/-- The topology of a `normed_space 𝕜 E` is induced by the seminorm `norm_seminorm 𝕜 E`. -/
 instance norm_with_seminorms (𝕜 E) [normed_field 𝕜] [semi_normed_group E] [normed_space 𝕜 E] :
   with_seminorms (λ (_ : fin 1), norm_seminorm 𝕜 E) :=
 begin

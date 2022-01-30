@@ -294,6 +294,21 @@ begin
   simpa [div_eq_mul_inv] using tendsto_pow_const_div_const_pow_of_one_lt k hr'
 end
 
+/-- If `0 ≤ r < 1`, then `n ^ k r ^ n` tends to zero for any natural `k`. -/
+lemma tendsto_pow_const_mul_const_pow_of_lt_one (k : ℕ) {r : ℝ} (hr : 0 ≤ r) (h'r : r < 1) :
+  tendsto (λ n, n ^ k * r ^ n : ℕ → ℝ) at_top (𝓝 0) :=
+tendsto_pow_const_mul_const_pow_of_abs_lt_one k (abs_lt.2 ⟨neg_one_lt_zero.trans_le hr, h'r⟩)
+
+/-- If `|r| < 1`, then `n * r ^ n` tends to zero. -/
+lemma tendsto_self_mul_const_pow_of_abs_lt_one {r : ℝ} (hr : |r| < 1) :
+  tendsto (λ n, n * r ^ n : ℕ → ℝ) at_top (𝓝 0) :=
+by simpa only [pow_one] using tendsto_pow_const_mul_const_pow_of_abs_lt_one 1 hr
+
+/-- If `0 ≤ r < 1`, then `n * r ^ n` tends to zero. -/
+lemma tendsto_self_mul_const_pow_of_lt_one {r : ℝ} (hr : 0 ≤ r) (h'r : r < 1) :
+  tendsto (λ n, n * r ^ n : ℕ → ℝ) at_top (𝓝 0) :=
+by simpa only [pow_one] using tendsto_pow_const_mul_const_pow_of_lt_one 1 hr h'r
+
 /-- If a sequence `v` of real numbers satisfies `k * v n ≤ v (n+1)` with `1 < k`,
 then it goes to +∞. -/
 lemma tendsto_at_top_of_geom_le {v : ℕ → ℝ} {c : ℝ} (h₀ : 0 < v 0) (hc : 1 < c)

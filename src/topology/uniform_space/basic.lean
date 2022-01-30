@@ -274,8 +274,8 @@ uniform_space_eq rfl
 
 /-- Replace topology in a `uniform_space` instance with a propositionally (but possibly not
 definitionally) equal one. -/
-def uniform_space.replace_topology {α : Type*} [i : topological_space α] (u : uniform_space α)
-  (h : i = u.to_topological_space) : uniform_space α :=
+@[reducible] def uniform_space.replace_topology {α : Type*} [i : topological_space α]
+  (u : uniform_space α) (h : i = u.to_topological_space) : uniform_space α :=
 uniform_space.of_core_eq u.to_core i $ h.trans u.to_core_to_topological_space.symm
 
 lemma uniform_space.replace_topology_eq {α : Type*} [i : topological_space α] (u : uniform_space α)

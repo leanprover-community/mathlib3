@@ -85,7 +85,7 @@ uniform_space.of_core (uniform_space.core_of_dist dist dist_self dist_comm dist_
 
 /-- The distance function (given an ambient metric space on `α`), which returns
   a nonnegative real number `dist x y` given `x y : α`. -/
-class has_dist (α : Type*) := (dist : α → α → ℝ)
+@[ext] class has_dist (α : Type*) := (dist : α → α → ℝ)
 
 export has_dist (dist)
 
@@ -125,6 +125,22 @@ class pseudo_metric_space (α : Type u) extends has_dist α : Type u :=
   edist x y = ennreal.of_real (dist x y) . pseudo_metric_space.edist_dist_tac)
 (to_uniform_space : uniform_space α := uniform_space_of_dist dist dist_self dist_comm dist_triangle)
 (uniformity_dist : 𝓤 α = ⨅ ε>0, 𝓟 {p:α×α | dist p.1 p.2 < ε} . control_laws_tac)
+
+/-- Two pseudo metric space structures with the same distance function coincide. -/
+@[ext] lemma pseudo_metric_space_eq {α : Type*} {m m' : pseudo_metric_space α}
+  (h : m.to_has_dist = m'.to_has_dist) : m = m' :=
+begin
+  unfreezingI { rcases m, rcases m' },
+  dsimp at h,
+  unfreezingI { subst h },
+  congr,
+  { ext x y : 2,
+    dsimp at m_edist_dist m'_edist_dist,
+    simp [m_edist_dist, m'_edist_dist] },
+  { dsimp at m_uniformity_dist m'_uniformity_dist,
+    rw ← m'_uniformity_dist at m_uniformity_dist,
+    exact uniform_space_eq m_uniformity_dist }
+end
 
 variables [pseudo_metric_space α]
 
@@ -954,6 +970,12 @@ def pseudo_metric_space.replace_uniformity {α} [U : uniform_space α] (m : pseu
   edist_dist         := edist_dist,
   to_uniform_space   := U,
   uniformity_dist    := H.trans pseudo_metric_space.uniformity_dist }
+
+lemma pseudo_metric_space.replace_uniformity_eq {α} [U : uniform_space α]
+  (m : pseudo_metric_space α)
+  (H : @uniformity _ U = @uniformity _ pseudo_emetric_space.to_uniform_space') :
+  m.replace_uniformity H = m :=
+by { ext, refl }
 
 /-- One gets a pseudometric space from an emetric space if the edistance
 is everywhere finite, by pushing the edistance to reals. We set it up so that the edist and the
@@ -2114,6 +2136,16 @@ end int
 class metric_space (α : Type u) extends pseudo_metric_space α : Type u :=
 (eq_of_dist_eq_zero : ∀ {x y : α}, dist x y = 0 → x = y)
 
+/-- Two metric space structures with the same distance coincide. -/
+@[ext] lemma metric_space_eq {α : Type*} {m m' : metric_space α}
+  (h : m.to_has_dist = m'.to_has_dist) : m = m' :=
+begin
+  have h' : m.to_pseudo_metric_space = m'.to_pseudo_metric_space := pseudo_metric_space_eq h,
+  unfreezingI { rcases m, rcases m' },
+  dsimp at h',
+  unfreezingI { subst h' },
+end
+
 /-- Construct a metric space structure whose underlying topological space structure
 (definitionally) agrees which a pre-existing topology which is compatible with a given distance
 function. -/
@@ -2240,6 +2272,30 @@ def metric_space.replace_uniformity {γ} [U : uniform_space γ] (m : metric_spac
   metric_space γ :=
 { eq_of_dist_eq_zero := @eq_of_dist_eq_zero _ _,
   ..pseudo_metric_space.replace_uniformity m.to_pseudo_metric_space H, }
+
+lemma metric_space.replace_uniformity_eq {γ} [U : uniform_space γ] (m : metric_space γ)
+  (H : @uniformity _ U = @uniformity _ emetric_space.to_uniform_space') :
+  m.replace_uniformity H = m :=
+by { ext, refl }
+
+/-- Build a new metric space from an old one where the bundled topological structure is provably
+(but typically non-definitionaly) equal to some given topological structure.
+See Note [forgetful inheritance].
+-/
+@[reducible] def metric_space.replace_topology {γ} [U : topological_space γ] (m : metric_space γ)
+  (H : U = m.to_pseudo_metric_space.to_uniform_space.to_topological_space) :
+  metric_space γ :=
+begin
+  let t := m.to_pseudo_metric_space.to_uniform_space.replace_topology H,
+  letI : uniform_space γ := t,
+  have : @uniformity _ t = @uniformity _ m.to_pseudo_metric_space.to_uniform_space := rfl,
+  exact m.replace_uniformity this
+end
+
+lemma metric_space.replace_topology_eq {γ} [U : topological_space γ] (m : metric_space γ)
+  (H : U = m.to_pseudo_metric_space.to_uniform_space.to_topological_space) :
+  m.replace_topology H = m :=
+by { ext, refl }
 
   /-- One gets a metric space from an emetric space if the edistance
 is everywhere finite, by pushing the edistance to reals. We set it up so that the edist and the

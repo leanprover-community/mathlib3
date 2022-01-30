@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Bhavik Mehta, Aaron Anderson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Bhavik Mehta, Aaron Anderson.
+Authors: Bhavik Mehta, Aaron Anderson
 -/
 import ring_theory.power_series.basic
 import combinatorics.partition
@@ -509,23 +509,25 @@ begin
   rw [partial_odd_gf, partial_distinct_gf],
   induction n with n ih,
   { simp },
-  let Z : power_series α := ∏ (x : ℕ) in range n, (1 - X^(2*x+1))⁻¹,
+  set Z : power_series α := ∏ (x : ℕ) in range n, (1 - X^(2*x+1))⁻¹ with hZ,
   rw [prod_range_succ _ n, prod_range_succ _ n, prod_range_succ _ n, ← ih],
   clear ih,
   erw ← two_mul (n+1),
   have : 1 - (X : power_series α) ^ (2 * (n+1)) = (1 + X^(n+1)) * (1 - X^(n+1)),
     rw [← sq_sub_sq, one_pow, ← pow_mul, mul_comm],
   rw this, clear this,
-  rw [mul_assoc, mul_assoc, ← mul_assoc Z, mul_left_comm _ (Z * _), mul_left_comm _ Z,
-      ← mul_assoc Z],
+  rw ←hZ,
+  rw [mul_assoc, mul_assoc],
   congr' 1,
   have := prod_range_succ' (λ x, 1 - (X : power_series α)^(n.succ + x)) n,
   dsimp at this,
   simp_rw [← add_assoc, add_zero, mul_comm _ (1 - X ^ n.succ)] at this,
+  rw [mul_comm _ (1 - X ^ (n + 1)), ←mul_assoc _  (1 - X ^ (n + 1)), mul_comm _ (1 - X ^ (n + 1))],
   erw [← this],
   rw [prod_range_succ],
   simp_rw [nat.succ_eq_add_one, add_right_comm _ 1, ← two_mul, ← mul_assoc],
-  rw [power_series.inv_mul, one_mul],
+  rw [mul_comm _ (1 - X ^ (2 * n + 1)), ←mul_assoc],
+  rw [power_series.mul_inv, one_mul],
   simp [zero_pow],
 end
 

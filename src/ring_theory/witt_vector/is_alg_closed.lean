@@ -217,7 +217,7 @@ sorry
 
 lemma sum_ident_3 (n : ℕ) :
   witt_poly_prod p (n+1) =
-  (p^(n+1) * X (0, n+1)) * (p^(n+1) * X (1, n+1)) +
+  - (p^(n+1) * X (0, n+1)) * (p^(n+1) * X (1, n+1)) +
   (p^(n+1) * X (0, n+1)) * rename (prod.mk (1 : fin 2)) (witt_polynomial p ℤ (n + 1)) +
   (p^(n+1) * X (1, n+1)) * rename (prod.mk (0 : fin 2)) (witt_polynomial p ℤ (n + 1)) +
   diff p n :=
@@ -243,52 +243,14 @@ begin
   conv_rhs {rw [add_comm, add_assoc]},
   refine congr (congr_arg has_add.add _) _,
   { rw mul_comm },
-  { sorry } -- this doesn't look right...
-
-  -- refine congr (congr_arg has_add.add _) _,
-  -- { refine congr (congr_arg has_mul.mul _) _,
-  --   { simp only [rename_monomial, monomial_eq_C_mul_X],
-  --     rw [map_mul, rename_C, pow_one, rename_X] } }
-
-
-
-  -- rw [witt_poly_prod, witt_polynomial, alg_hom.map_sum, alg_hom.map_sum,
-  --     sum_range_succ],
-  -- conv_lhs {congr, skip, rw sum_range_succ},
-  -- simp only [add_mul, mul_add],
-  -- simp only [tsub_self, int.nat_cast_eq_coe_nat, pow_zero],
-  -- conv_rhs { rw add_comm },
-  -- simp only [add_assoc],
-  -- apply congr_arg (has_add.add _),
-  -- conv_lhs { rw [← add_assoc, add_comm] },
-  -- -- conv_lhs { congr, skip, rw add_comm },
-  -- have mvpz : (p ^ (n + 1) : mv_polynomial (fin 2 × ℕ) ℤ) = mv_polynomial.C (↑p ^ (n + 1)),
-  -- { simp only [int.cast_coe_nat, ring_hom.eq_int_cast, C_pow, eq_self_iff_true] },
-  -- refine congr (congr_arg has_add.add _) _,
-  -- { simp only [rename_monomial, monomial_eq_C_mul_X, map_mul, rename_C, mvpz, pow_one, rename_X], },
-  -- { refine congr (congr_arg has_add.add _) _,
-  --   { simp only [rename_monomial, monomial_eq_C_mul_X, map_mul, rename_C, mvpz, pow_one, rename_X],
-  --   congr' 1,
-  --   { simp only [witt_polynomial, alg_hom.map_sum, rename_monomial, monomial_eq_C_mul_X, map_nat_cast, int.cast_coe_nat, map_pow,
-  -- ring_hom.eq_int_cast, rename_X, C_pow, map_mul, int.nat_cast_eq_coe_nat], },
-  --    sorry -- OFF BY ONE???
-  --     },
-  -- {
-
-
-  -- }}
-
-
-  -- simp only [add_mul, mul_add, rename_monomial, monomial_mul, finsupp.map_domain_single,
-  --   tsub_self, int.nat_cast_eq_coe_nat, pow_zero],
-  -- simp only [witt_polynomial, monomial_single_add],
+  { ring }
 end
-#exit
+
 lemma sum_ident_4 (n : ℕ) :
   (p ^ (n + 1) * witt_mul p (n + 1) : mv_polynomial (fin 2 × ℕ) ℤ) =
-  (p^(n+1) * X (0, n+1)) * (p^(n+1) * X (1, n+1)) +
-  (p^(n+1) * X (0, n+1)) * rename (prod.mk (1 : fin 2)) (witt_polynomial p ℤ n) +
-  (p^(n+1) * X (1, n+1)) * rename (prod.mk (0 : fin 2)) (witt_polynomial p ℤ n) +
+  - (p^(n+1) * X (0, n+1)) * (p^(n+1) * X (1, n+1)) +
+  (p^(n+1) * X (0, n+1)) * rename (prod.mk (1 : fin 2)) (witt_polynomial p ℤ (n + 1)) +
+  (p^(n+1) * X (1, n+1)) * rename (prod.mk (0 : fin 2)) (witt_polynomial p ℤ (n + 1)) +
   (diff p n - extra_poly p (n + 1)) :=
 begin
   rw [← add_sub_assoc, eq_sub_iff_add_eq, sum_ident_2],
@@ -298,9 +260,9 @@ end
 
 /-- this is the guy from above -/
 def poly_of_interest (n : ℕ) : mv_polynomial (fin 2 × ℕ) ℤ :=
-witt_mul p (n + 1) - p^(n+1) * X (0, n+1) * X (1, n+1) -
-  (X (0, n+1)) * rename (prod.mk (1 : fin 2)) (witt_polynomial p ℤ n) -
-  (X (1, n+1)) * rename (prod.mk (0 : fin 2)) (witt_polynomial p ℤ n)
+witt_mul p (n + 1) + p^(n+1) * X (0, n+1) * X (1, n+1) -
+  (X (0, n+1)) * rename (prod.mk (1 : fin 2)) (witt_polynomial p ℤ (n + 1)) -
+  (X (1, n+1)) * rename (prod.mk (0 : fin 2)) (witt_polynomial p ℤ (n + 1))
 
 lemma sum_ident_5 (n : ℕ) :
   (p ^ (n + 1) : mv_polynomial (fin 2 × ℕ) ℤ) *
@@ -324,9 +286,9 @@ begin
 end
 
 lemma poly_of_interest_vars_eq (n : ℕ) :
-  ((p ^ (n + 1) : mv_polynomial (fin 2 × ℕ) ℤ) * (witt_mul p (n + 1) - p^(n+1) * X (0, n+1) * X (1, n+1) -
-    (X (0, n+1)) * rename (prod.mk (1 : fin 2)) (witt_polynomial p ℤ n) -
-    (X (1, n+1)) * rename (prod.mk (0 : fin 2)) (witt_polynomial p ℤ n))).vars =
+  ((p ^ (n + 1) : mv_polynomial (fin 2 × ℕ) ℤ) * (witt_mul p (n + 1) + p^(n+1) * X (0, n+1) * X (1, n+1) -
+    (X (0, n+1)) * rename (prod.mk (1 : fin 2)) (witt_polynomial p ℤ (n + 1)) -
+    (X (1, n+1)) * rename (prod.mk (0 : fin 2)) (witt_polynomial p ℤ (n + 1)))).vars =
   (poly_of_interest p n).vars :=
 begin
   have : (p ^ (n + 1) : mv_polynomial (fin 2 × ℕ) ℤ) = C (p ^ (n + 1) : ℤ),
@@ -342,16 +304,17 @@ by rw ← poly_of_interest_vars_eq; apply prod_vars_subset
 
 lemma peval_poly_of_interest (n : ℕ) (x y : 𝕎 k) :
   peval (poly_of_interest p n) ![λ i, x.coeff i, λ i, y.coeff i] =
-  (x * y).coeff (n + 1) - p^(n+1) * x.coeff (n+1) * y.coeff (n+1)
-    - y.coeff (n+1) * ∑ i in range (n+1), p^i * x.coeff i ^ (p^(n-i))
-    - x.coeff (n+1) * ∑ i in range (n+1), p^i * y.coeff i ^ (p^(n-i)) :=
+  (x * y).coeff (n + 1) + p^(n+1) * x.coeff (n+1) * y.coeff (n+1)
+    - y.coeff (n+1) * ∑ i in range (n+1+1), p^i * x.coeff i ^ (p^(n+1-i))
+    - x.coeff (n+1) * ∑ i in range (n+1+1), p^i * y.coeff i ^ (p^(n+1-i)) :=
 begin
   simp only [poly_of_interest, peval, map_nat_cast, matrix.head_cons, map_pow, function.uncurry_apply_pair, aeval_X,
   matrix.cons_val_one, map_mul, matrix.cons_val_zero, map_sub],
   rw [sub_sub, add_comm (_ * _), ← sub_sub],
   have mvpz : (p : mv_polynomial ℕ ℤ) = mv_polynomial.C ↑p := by rw [ring_hom.eq_int_cast, int.cast_coe_nat ],
   congr' 3,
-  { simp only [mul_coeff, peval] },
+  { simp only [mul_coeff, peval, map_nat_cast, map_add, matrix.head_cons, map_pow,
+      function.uncurry_apply_pair, aeval_X, matrix.cons_val_one, map_mul, matrix.cons_val_zero],  },
   all_goals
   { simp only [witt_polynomial_eq_sum_C_mul_X_pow, aeval, eval₂_rename, int.cast_coe_nat, ring_hom.eq_int_cast, eval₂_mul,
   function.uncurry_apply_pair, function.comp_app, eval₂_sum, eval₂_X, matrix.cons_val_zero, eval₂_pow,
@@ -361,11 +324,12 @@ begin
   refl }
 end
 
+
 /- characteristic `p` version -/
 lemma peval_poly_of_interest' (n : ℕ) (x y : 𝕎 k) :
   peval (poly_of_interest p n) ![λ i, x.coeff i, λ i, y.coeff i] =
-  (x * y).coeff (n + 1) - y.coeff (n+1) * x.coeff 0 ^ (p^n)
-    - x.coeff (n+1) * y.coeff 0 ^ (p^n) :=
+  (x * y).coeff (n + 1) - y.coeff (n+1) * x.coeff 0 ^ (p^(n+1))
+    - x.coeff (n+1) * y.coeff 0 ^ (p^(n+1)) :=
 begin
   rw peval_poly_of_interest,
   have : (p : k) = 0 := char_p.cast_eq_zero (k) p,
@@ -398,8 +362,8 @@ lemma nth_mul_coeff' (n : ℕ) :
   ∃ f : (truncated_witt_vector p (n+1) k → truncated_witt_vector p (n+1) k → k),
   ∀ (x y : 𝕎 k),
   f (truncate_fun (n+1) x) (truncate_fun (n+1) y)
-  = (x * y).coeff (n+1) - y.coeff (n+1) * x.coeff 0 ^ (p^n)
-    - x.coeff (n+1) * y.coeff 0 ^ (p^n) :=
+  = (x * y).coeff (n+1) - y.coeff (n+1) * x.coeff 0 ^ (p^(n+1))
+    - x.coeff (n+1) * y.coeff 0 ^ (p^(n+1)) :=
 begin
   simp [← peval_poly_of_interest'],
   obtain ⟨f₀, hf₀⟩ := restrict_to_vars k (poly_of_interest_vars p n),
@@ -435,7 +399,7 @@ variable (n : ℕ)
 
 -- this is the version we think is true in char p
 lemma nth_mul_coeff (n : ℕ) : ∃ f : (truncated_witt_vector p (n+1) k → truncated_witt_vector p (n+1) k → k), ∀ (x y : 𝕎 k),
-  (x * y).coeff (n+1) = x.coeff (n+1) * y.coeff 0 ^ (p^n) + y.coeff (n+1) * x.coeff 0 ^ (p^n)
+  (x * y).coeff (n+1) = x.coeff (n+1) * y.coeff 0 ^ (p^(n+1)) + y.coeff (n+1) * x.coeff 0 ^ (p^(n+1))
     + f (truncate_fun (n+1) x) (truncate_fun (n+1) y) :=
 begin
   obtain ⟨f, hf⟩ := nth_mul_coeff' p n,
@@ -452,7 +416,7 @@ def nth_remainder (n : ℕ) : (fin (n+1) → k) → (fin (n+1) → k) → k :=
 classical.some (nth_mul_coeff p n)
 
 lemma nth_remainder_spec (n : ℕ) (x y : 𝕎 k) :
-  (x * y).coeff (n+1) = x.coeff (n+1) * y.coeff 0 ^ (p^n) + y.coeff (n+1) * x.coeff 0 ^ (p^n)
+  (x * y).coeff (n+1) = x.coeff (n+1) * y.coeff 0 ^ (p^(n+1)) + y.coeff (n+1) * x.coeff 0 ^ (p^(n+1))
     + nth_remainder p n (truncate_fun (n+1) x) (truncate_fun (n+1) y) :=
 classical.some_spec (nth_mul_coeff p n) _ _
 
@@ -583,10 +547,10 @@ begin
   induction n with n ih,
   { simp only [witt_vector.mul_coeff_zero, witt_vector.coeff_frobenius_char_p, find_important],
     apply solution_spec' },
-  { simp only [nth_remainder_spec, witt_vector.coeff_frobenius_char_p, ih, find_important],
+  { simp only [nth_remainder_spec, witt_vector.coeff_frobenius_char_p, find_important, fin.val_eq_coe],
     have := succ_nth_val_spec' p (n) a₁ a₂ (λ (i : fin (n + 1)), find_important p ha₁ ha₂ i.val) ha₁ ha₂,
-    simp only [find_important, fin.val_zero] at this,
-    convert this using 3,
+    simp only [find_important, fin.val_eq_coe, fin.val_zero] at this,
+    convert this using 4,
     apply truncated_witt_vector.ext,
     intro i,
     simp only [fin.val_eq_coe, witt_vector.coeff_truncate_fun, witt_vector.coeff_frobenius_char_p],

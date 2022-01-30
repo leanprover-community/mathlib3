@@ -382,3 +382,13 @@ begin
   equiv_rw [e₁, e₂] at m,
   exact m,
 end
+
+example
+  {α β χ δ : Type}
+  (m : β → β → β)
+  (e : α ≃ β) :
+  α → α → α :=
+begin
+  equiv_rw e at *,
+  exact m,
+end

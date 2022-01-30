@@ -558,8 +558,7 @@ begin
         nnreal.coe_max, subtype.coe_mk, ih] }
 end
 
-lemma finset_sup_le_sum (p : ι → seminorm 𝕜 E) (s : finset ι) :
-  s.sup p ≤ ∑ i in s, p i :=
+lemma finset_sup_le_sum (p : ι → seminorm 𝕜 E) (s : finset ι) : s.sup p ≤ ∑ i in s, p i :=
 begin
   classical,
   refine finset.sup_le_iff.mpr _,
@@ -616,12 +615,8 @@ end
 
 lemma ball_smul (p : seminorm 𝕜 E) {c : nnreal} (hc : 0 < c) (r : ℝ) (x : E) :
   (c • p).ball x r = p.ball x (r / c) :=
-begin
-  ext,
-  simp_rw mem_ball,
-  rw ←nnreal.coe_pos at hc,
-  rw [smul_apply, nnreal.smul_def, smul_eq_mul, mul_comm, lt_div_iff hc],
-end
+by { ext, rw [mem_ball, mem_ball, smul_apply, nnreal.smul_def, smul_eq_mul, mul_comm,
+  lt_div_iff (nnreal.coe_pos.mpr hc)] }
 
 lemma ball_sup (p : seminorm 𝕜 E) (q : seminorm 𝕜 E) (e : E) (r : ℝ) :
   ball (p ⊔ q) e r = ball p e r ∩ ball q e r :=

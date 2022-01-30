@@ -514,7 +514,7 @@ lemma coe_comap_of_ker_is_p_group {p : ℕ} {P : sylow p G}
 def comap_of_injective {p : ℕ} (P : sylow p G)
   {K : Type*} [group K] (ϕ : K →* G) (hϕ : function.injective ϕ) (h : P.1 ≤ ϕ.range) :
   sylow p K :=
-P.comap_of_ker_is_p_group ϕ (by { rw ϕ.ker_eq_bot_iff.mpr hϕ, exact is_p_group.of_bot }) h
+P.comap_of_ker_is_p_group ϕ (is_p_group.ker_is_p_group_of_injective hϕ) h
 
 @[simp]
 lemma coe_comap_of_injective {p : ℕ} {P : sylow p G}

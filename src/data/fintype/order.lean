@@ -38,6 +38,7 @@ Those are marked as `def` to avoid typeclass loops.
 We provide a few instances for concrete types:
 * `fin.complete_linear_order`
 * `bool.complete_linear_order`
+* `bool.complete_boolean_algebra`
 -/
 
 open finset
@@ -141,3 +142,4 @@ noncomputable instance {n : ℕ} : complete_linear_order (fin (n + 1)) :=
 fintype.to_complete_linear_order _
 
 noncomputable instance : complete_linear_order bool := fintype.to_complete_linear_order _
+noncomputable instance : complete_boolean_algebra bool := fintype.to_complete_boolean_algebra _

@@ -19,10 +19,12 @@ open finite_dimensional
 -- do we have the linear equivalence "scalar-multiply by an invertible scalar" ?
 def bop {R : Type*} [field R] {M : Type*} [add_comm_monoid M] [module R M] {c : R} (hc : c ≠ 0) :
   M ≃ₗ[R] M :=
-{ inv_fun := λ x, c⁻¹ • x,
-  left_inv := λ x, by simp [hc],
-  right_inv := λ x, by simp [hc],
-  .. c • linear_map.id }
+distrib_mul_action.to_linear_equiv R M (units.mk0 c hc)
+
+@[simp] lemma coe_bop {R : Type*} [field R] {M : Type*} [add_comm_monoid M] [module R M] {c : R}
+  (hc : c ≠ 0) (x : M) :
+  bop hc x = c • x :=
+rfl
 
 variables (p : ℕ) [fact p.prime]
 variables (k : Type*) [comm_ring k] [is_domain k] [char_p k p] [perfect_ring k p]
@@ -122,7 +124,7 @@ begin
       rw linear_map.span_singleton_eq_range } },
   refine ⟨⟨(bop hb).trans F, _⟩⟩,
   intros c,
-  simp [F, F₀, foo, bop, hax, ← mul_smul],
+  simp [F, F₀, foo, hax, ← mul_smul],
   congr' 1,
   transitivity (φ(p,k) b * a) * φ(p,k) c,
   { ring },

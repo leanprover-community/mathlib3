@@ -2149,7 +2149,7 @@ begin
   rw [finsupp.curry],
   transitivity,
   { exact sum_sum_index (assume a, sum_zero_index)
-      (assume a b₀ b₁, sum_add_index (assume a _, hg₀ _ _) (assume c d₀ d₁, hg₁ _ _ _ _)) },
+      (assume a b₀ b₁, sum_add_index' (assume a, hg₀ _ _) (assume c d₀ d₁, hg₁ _ _ _ _)) },
   congr, funext p c,
   transitivity,
   { exact sum_single_index sum_zero_index },

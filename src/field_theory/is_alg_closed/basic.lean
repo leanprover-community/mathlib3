@@ -167,12 +167,13 @@ theorem is_alg_closure_iff (K : Type v) [field K] [algebra k K] :
   is_alg_closure k K ↔ is_alg_closed K ∧ algebra.is_algebraic k K :=
 ⟨λ h, ⟨h.1, h.2⟩, λ h, ⟨h.1, h.2, ring_hom.injective _⟩⟩
 
-instance is_alg_closure.no_zero_smul_divisors
+@[priority 90] instance is_alg_closure.no_zero_smul_divisors
   (R : Type u) (K : Type v) [comm_ring R] [field K] [algebra R K] [is_alg_closure R K] :
   no_zero_smul_divisors R K :=
 no_zero_smul_divisors.of_algebra_map_injective is_alg_closure.injective
 
 namespace lift
+
 /- In this section, the homomorphism from any algebraic extension into an algebraically
   closed extension is proven to exist. The assumption that M is algebraically closed could probably
   easily be switched to an assumption that M contains all the roots of polynomials in K -/
@@ -312,7 +313,7 @@ omit hL
 
 variables {R : Type u} [comm_ring R]
 variables {S : Type v} [comm_ring S] [is_domain S] [algebra R S]
-  [algebra R M] [is_alg_closed M] [no_zero_smul_divisors R S]
+  [algebra R M] [no_zero_smul_divisors R S]
   [no_zero_smul_divisors R M]
   (hS : algebra.is_algebraic R S)
 variables {M}
@@ -365,7 +366,7 @@ end
 
 section equiv_of_algebraic
 
-variables [algebra R S] [algebra S L] [is_alg_closure S L] [algebra R L] [is_scalar_tower R S L]
+variables [algebra R S] [algebra R L] [is_scalar_tower R S L]
 variables [algebra K J] [algebra J L] [is_alg_closure J L] [algebra K L]
   [is_scalar_tower K J L]
 
@@ -455,3 +456,4 @@ ring_hom.ext_iff.2 (equiv_of_equiv_symm_algebra_map L M hSR)
 end equiv_of_equiv
 
 end is_alg_closure
+#lint

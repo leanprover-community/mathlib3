@@ -92,10 +92,7 @@ variables {ι 𝕂 E : Type*} [ordered_semiring 𝕂] [add_comm_monoid E] [modul
   {ts : ι → topological_space E} [Π i, @has_continuous_add E (ts i) _]
   [Π i, @has_continuous_smul 𝕂 E _ _ (ts i)]
 
-#check nhds_infi
-#check has_basis_supr
-
-instance locally_convex_infi : @locally_convex_space 𝕂 E _ _ _ _ (⨅ i, ts i) _ _ _ :=
-@locally_convex_space_of_convex_nhds_basis 𝕂  E _ _ _ _ (⨅ i, ts i) _ _ _ (set E)
+--instance locally_convex_infi : @locally_convex_space 𝕂 E _ _ _ _ (⨅ i, ts i) _ _ _ :=
+--@locally_convex_space_of_convex_nhds_basis 𝕂  E _ _ _ _ (⨅ i, ts i) _ _ _ (set E)
 
 end lattice_ops

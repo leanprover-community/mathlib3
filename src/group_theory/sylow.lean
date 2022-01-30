@@ -529,7 +529,7 @@ P.comap_of_injective N.subtype subtype.coe_injective (by simp [h])
 lemma coe_subtype {p : ℕ} {P : sylow p G} {N : subgroup G} {h : P.1 ≤ N} :
   ↑(P.subtype N h) = subgroup.comap N.subtype ↑P := rfl
 
-lemma normal_of_normalizer_normal {p : ℕ} (hp : fact p.prime) [fintype (sylow p G)]
+lemma normal_of_normalizer_normal {p : ℕ} [fact p.prime] [fintype (sylow p G)]
   (P : sylow p G) (hn : (↑P : subgroup G).normalizer.normal) :
   (↑P : subgroup G).normal :=
 begin
@@ -543,7 +543,7 @@ begin
   exact (normalizer_eq_top.mp this),
 end
 
-lemma normalizer_self_normalizing {p : ℕ} {hp : fact p.prime} [fintype (sylow p G)]
+lemma normalizer_self_normalizing {p : ℕ} [fact p.prime] [fintype (sylow p G)]
  (P : sylow p G) :
  (↑P : subgroup G).normalizer.normalizer = (↑P : subgroup G).normalizer :=
 begin
@@ -560,7 +560,7 @@ begin
       subgroup.comap_subtype_self_eq_top ],
 
   have hn : (P' : subgroup H).normalizer = ⊤ :=
-    normalizer_eq_top.mpr (normal_of_normalizer_normal hp P' (normalizer_eq_top.mp hnn)),
+    normalizer_eq_top.mpr (normal_of_normalizer_normal P' (normalizer_eq_top.mp hnn)),
 
   have h2 := congr_arg (subgroup.map H.subtype) hn,
   rw [ coe_subtype,
@@ -573,13 +573,9 @@ begin
 end
 
 lemma normal_of_normalizer_condition (hnc : normalizer_condition G)
- {p : ℕ} {hp : fact p.prime} [fintype (sylow p G)] (P : sylow p G) :
+ {p : ℕ} [fact p.prime] [fintype (sylow p G)] (P : sylow p G) :
  (↑P : subgroup G).normal :=
-begin
-  apply normalizer_eq_top.mp,
-  apply (normalizer_condition_iff_only_full_group_self_normalizing.mp hnc),
-  apply normalizer_self_normalizing,
-  apply hp,
-end
+normalizer_eq_top.mp $ normalizer_condition_iff_only_full_group_self_normalizing.mp hnc _ $
+  normalizer_self_normalizing _
 
 end sylow

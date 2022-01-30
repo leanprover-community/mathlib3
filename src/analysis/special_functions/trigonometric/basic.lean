@@ -827,7 +827,7 @@ begin
   apply tendsto_nhds_within_of_tendsto_nhds_of_eventually_within,
   { convert continuous_cos.continuous_within_at, simp },
   { filter_upwards [Ioo_mem_nhds_within_Iio (right_mem_Ioc.mpr (norm_num.lt_neg_pos
-      _ _ pi_div_two_pos pi_div_two_pos))] λ x hx, cos_pos_of_mem_Ioo hx },
+      _ _ pi_div_two_pos pi_div_two_pos))] with x hx using cos_pos_of_mem_Ioo hx },
 end
 
 lemma tendsto_tan_pi_div_two : tendsto tan (𝓝[<] (π/2)) at_top :=
@@ -845,7 +845,7 @@ begin
   apply tendsto_nhds_within_of_tendsto_nhds_of_eventually_within,
   { convert continuous_cos.continuous_within_at, simp },
   { filter_upwards [Ioo_mem_nhds_within_Ioi (left_mem_Ico.mpr (norm_num.lt_neg_pos
-      _ _ pi_div_two_pos pi_div_two_pos))] λ x hx, cos_pos_of_mem_Ioo hx },
+      _ _ pi_div_two_pos pi_div_two_pos))] with x hx using cos_pos_of_mem_Ioo hx },
 end
 
 lemma tendsto_tan_neg_pi_div_two : tendsto tan (𝓝[>] (-(π/2))) at_bot :=

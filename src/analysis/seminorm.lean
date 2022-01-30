@@ -753,7 +753,7 @@ lemma gauge_lt_one_subset_self (hs : convex ℝ s) (h₀ : (0 : E) ∈ s) (absor
   {x | gauge s x < 1} ⊆ s :=
 begin
   rw gauge_lt_one_eq absorbs,
-  apply set.bUnion_subset,
+  apply set.Union₂_subset,
   rintro r hr _ ⟨y, hy, rfl⟩,
   exact hs.smul_mem_of_zero_mem h₀ hy (Ioo_subset_Icc_self hr),
 end

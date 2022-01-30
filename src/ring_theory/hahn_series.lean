@@ -1100,6 +1100,22 @@ variables (Γ) (R) [ordered_semiring Γ] [nontrivial Γ]
   (λ _ _, nat.cast_le)).comp
   (alg_equiv.to_alg_hom (to_power_series_alg R).symm)
 
+instance power_series_algebra {S : Type*} [comm_semiring S] [algebra S (power_series R)] :
+  algebra S (hahn_series Γ R) :=
+ring_hom.to_algebra $ (of_power_series Γ R).comp (algebra_map S (power_series R))
+
+variables {R} {S : Type*} [comm_semiring S] [algebra S (power_series R)]
+
+lemma algebra_map_apply' (x : S) :
+  algebra_map S (hahn_series Γ R) x = of_power_series Γ R (algebra_map S (power_series R) x) := rfl
+
+@[simp] lemma _root_.polynomial.algebra_map_hahn_series_apply (f : polynomial R) :
+  algebra_map (polynomial R) (hahn_series Γ R) f = of_power_series Γ R f := rfl
+
+lemma _root_.polynomial.algebra_map_hahn_series_injective :
+  function.injective (algebra_map (polynomial R) (hahn_series Γ R)) :=
+of_power_series_injective.comp (polynomial.coe_injective R)
+
 end algebra
 
 section valuation
@@ -1226,7 +1242,7 @@ instance : has_add (summable_family Γ R α) :=
 ⟨λ x y, { to_fun := x + y,
     is_pwo_Union_support' := (x.is_pwo_Union_support.union y.is_pwo_Union_support).mono (begin
       rw ← set.Union_union_distrib,
-      exact set.Union_subset_Union (λ a, support_add_subset)
+      exact set.Union_mono (λ a, support_add_subset)
     end),
     finite_co_support' := λ g, ((x.finite_co_support g).union (y.finite_co_support g)).subset begin
       intros a ha,
@@ -1325,7 +1341,7 @@ instance : has_scalar (hahn_series Γ R) (summable_family Γ R α) :=
 { smul := λ x s, { to_fun := λ a, x * (s a),
     is_pwo_Union_support' := begin
       apply (x.is_pwo_support.add s.is_pwo_Union_support).mono,
-      refine set.subset.trans (set.Union_subset_Union (λ a, support_mul_subset_add_support)) _,
+      refine set.subset.trans (set.Union_mono (λ a, support_mul_subset_add_support)) _,
       intro g,
       simp only [set.mem_Union, exists_imp_distrib],
       exact λ a ha, (set.add_subset_add (set.subset.refl _) (set.subset_Union _ a)) ha,

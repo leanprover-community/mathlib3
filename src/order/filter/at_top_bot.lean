@@ -38,6 +38,8 @@ def at_bot [preorder α] : filter α := ⨅ a, 𝓟 (Iic a)
 lemma mem_at_top [preorder α] (a : α) : {b : α | a ≤ b} ∈ @at_top α _ :=
 mem_infi_of_mem a $ subset.refl _
 
+lemma Ici_mem_at_top [preorder α] (a : α) : Ici a ∈ (at_top : filter α) := mem_at_top a
+
 lemma Ioi_mem_at_top [preorder α] [no_max_order α] (x : α) : Ioi x ∈ (at_top : filter α) :=
 let ⟨z, hz⟩ := exists_gt x in mem_of_superset (mem_at_top z) $ λ y h,  lt_of_lt_of_le hz h
 
@@ -574,8 +576,8 @@ lemma tendsto.at_top_mul_at_top (hf : tendsto f l at_top) (hg : tendsto g l at_t
   tendsto (λ x, f x * g x) l at_top :=
 begin
   refine tendsto_at_top_mono' _ _ hg,
-  filter_upwards [hg.eventually (eventually_ge_at_top 0), hf.eventually (eventually_ge_at_top 1)],
-  exact λ x, le_mul_of_one_le_left
+  filter_upwards [hg.eventually (eventually_ge_at_top 0), hf.eventually (eventually_ge_at_top 1)]
+    with _ using le_mul_of_one_le_left,
 end
 
 lemma tendsto_mul_self_at_top : tendsto (λ x : α, x * x) at_top at_top :=
@@ -1034,9 +1036,8 @@ begin
     rintro _ ⟨y, hy, rfl⟩,
     exact le_trans le_sup_left (subtype.coe_le_coe.2 hy) },
   { intro x,
-    filter_upwards [mem_at_top (↑x ⊔ a)],
-    intros b hb,
-    exact ⟨⟨b, h $ le_sup_right.trans hb⟩, subtype.coe_le_coe.1 (le_sup_left.trans hb), rfl⟩ }
+    filter_upwards [mem_at_top (↑x ⊔ a)] with b hb,
+    exact ⟨⟨b, h $ le_sup_right.trans hb⟩, subtype.coe_le_coe.1 (le_sup_left.trans hb), rfl⟩, },
 end
 
 /-- The image of the filter `at_top` on `Ici a` under the coercion equals `at_top`. -/

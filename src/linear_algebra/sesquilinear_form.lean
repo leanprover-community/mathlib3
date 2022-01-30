@@ -11,8 +11,7 @@ import linear_algebra.matrix.basis
 # Sesquilinear form
 
 This file defines a sesquilinear form over a module. The definition requires a ring antiautomorphism
-on the scalar ring. Basic ideas such as
-orthogonality are also introduced.
+on the scalar ring. Basic ideas such as orthogonality are also introduced.
 
 A sesquilinear form on an `R`-module `M`, is a function from `M × M` to `R`, that is linear in the
 first argument and antilinear in the second, with respect to an antiautomorphism on `R` (an
@@ -34,9 +33,11 @@ Sesquilinear form,
 
 open_locale big_operators
 
-variables {R R₁ R₂ R₃ M M₁ M₂ K K₁ K₂ V V₁ V₂: Type*}
+variables {R R₁ R₂ R₃ M M₁ M₂ K K₁ K₂ V V₁ V₂ n: Type*}
 
 namespace linear_map
+
+/-! ### Orthogonal vectors -/
 
 section comm_ring
 
@@ -106,10 +107,8 @@ end
 
 /-- A set of orthogonal vectors `v` with respect to some sesquilinear form `B` is linearly
   independent if for all `i`, `B (v i) (v i) ≠ 0`. -/
-lemma linear_independent_of_is_Ortho
-  {n : Type*} {B : V₁ →ₛₗ[I₁] V₁ →ₛₗ[I₁'] K} {v : n → V₁}
-  (hv₁ : B.is_Ortho v) (hv₂ : ∀ i, ¬ B.is_ortho (v i) (v i)) :
-  linear_independent K₁ v :=
+lemma linear_independent_of_is_Ortho {B : V₁ →ₛₗ[I₁] V₁ →ₛₗ[I₁'] K} {v : n → V₁}
+  (hv₁ : B.is_Ortho v) (hv₂ : ∀ i, ¬ B.is_ortho (v i) (v i)) : linear_independent K₁ v :=
 begin
   classical,
   rw linear_independent_iff',
@@ -133,6 +132,8 @@ variables [comm_ring R] [add_comm_group M] [module R M]
   {B : M₁ →ₛₗ[I₁] M₁ →ₛₗ[I₂] R}
   {B' : M →ₗ[R] M →ₛₗ[I] R}
 
+/-! ### Reflexive bilinear forms -/
+
 /-- The proposition that a sesquilinear form is reflexive -/
 def is_refl (B : M₁ →ₛₗ[I₁] M₁ →ₛₗ[I₂] R) : Prop :=
   ∀ (x y), B x y = 0 → B y x = 0
@@ -146,6 +147,8 @@ lemma eq_zero : ∀ {x y}, B x y = 0 → B y x = 0 := λ x y, H x y
 lemma ortho_comm {x y} : is_ortho B x y ↔ is_ortho B y x := ⟨eq_zero H, eq_zero H⟩
 
 end is_refl
+
+/-! ### Symmetric bilinear forms -/
 
 /-- The proposition that a sesquilinear form is symmetric -/
 def is_symm (B : M →ₗ[R] M →ₛₗ[I] R) : Prop :=
@@ -163,6 +166,8 @@ lemma is_refl : B'.is_refl := λ x y H1, by { rw [←H], simp [H1] }
 lemma ortho_comm {x y} : is_ortho B' x y ↔ is_ortho B' y x := H.is_refl.ortho_comm
 
 end is_symm
+
+/-! ### Alternating bilinear forms -/
 
 /-- The proposition that a sesquilinear form is alternating -/
 def is_alt (B : M₁ →ₛₗ[I₁] M₁ →ₛₗ[I₂] R) : Prop := ∀ x, B x x = 0
@@ -186,15 +191,24 @@ end
 lemma is_refl : B.is_refl :=
 begin
   intros x y h,
-  rw [← neg H, h, neg_zero],
+  rw [←neg H, h, neg_zero],
 end
 
 lemma ortho_comm {x y} : is_ortho B x y ↔ is_ortho B y x := H.is_refl.ortho_comm
 
 end is_alt
 
+end linear_map
 
-section orthogonal
+namespace submodule
+
+/-! ### The orthogonal complement -/
+
+variables [comm_ring R] [add_comm_group M] [module R M]
+  [comm_ring R₁] [add_comm_group M₁] [module R₁ M₁]
+  {I : R →+* R} {I₁ : R₁ →+* R} {I₂ : R₁ →+* R}
+  {B : M₁ →ₛₗ[I₁] M₁ →ₛₗ[I₂] R}
+  {B' : M →ₗ[R] M →ₛₗ[I] R}
 
 /-- The orthogonal complement of a submodule `N` with respect to some bilinear form is the set of
 elements `x` which are orthogonal to all elements of `N`; i.e., for all `y` in `N`, `B x y = 0`.
@@ -203,26 +217,33 @@ Note that for general (neither symmetric nor antisymmetric) bilinear forms this 
 chirality; in addition to this "left" orthogonal complement one could define a "right" orthogonal
 complement for which, for all `y` in `N`, `B y x = 0`.  This variant definition is not currently
 provided in mathlib. -/
-def orthogonal (B : M₁ →ₛₗ[I₁] M₁ →ₛₗ[I₂] R) (N : submodule R₁ M₁) : submodule R₁ M₁ :=
-{ carrier := { m | ∀ n ∈ N, is_ortho B n m },
+def orthogonal_bilin (N : submodule R₁ M₁) (B : M₁ →ₛₗ[I₁] M₁ →ₛₗ[I₂] R) : submodule R₁ M₁ :=
+{ carrier := { m | ∀ n ∈ N, B.is_ortho n m },
   zero_mem' := λ x _, B.is_ortho_zero_right x,
   add_mem' := λ x y hx hy n hn,
-    by rw [is_ortho, map_add, show B n x = 0, by exact hx n hn,
+    by rw [linear_map.is_ortho, map_add, show B n x = 0, by exact hx n hn,
         show B n y = 0, by exact hy n hn, zero_add],
   smul_mem' := λ c x hx n hn,
-    by rw [is_ortho, map_smulₛₗ, show B n x = 0, by exact hx n hn, smul_zero] }
+    by rw [linear_map.is_ortho, linear_map.map_smulₛₗ, show B n x = 0, by exact hx n hn,
+        smul_zero] }
 
 variables {N L : submodule R₁ M₁}
 
-@[simp] lemma mem_orthogonal_iff {m : M₁} :
-  m ∈ B.orthogonal N ↔ ∀ n ∈ N, is_ortho B n m := iff.rfl
+@[simp] lemma mem_orthogonal_bilin_iff {m : M₁} :
+  m ∈ N.orthogonal_bilin B ↔ ∀ n ∈ N, B.is_ortho n m := iff.rfl
 
-lemma orthogonal_le (h : N ≤ L) : B.orthogonal L ≤ B.orthogonal N :=
+lemma orthogonal_bilin_le (h : N ≤ L) : L.orthogonal_bilin B ≤ N.orthogonal_bilin B :=
 λ _ hn l hl, hn l (h hl)
 
-lemma le_orthogonal_orthogonal (b : B.is_refl) :
-  N ≤ B.orthogonal (B.orthogonal N) :=
+lemma le_orthogonal_bilin_orthogonal_bilin (b : B.is_refl) :
+  N ≤ (N.orthogonal_bilin B).orthogonal_bilin B :=
 λ n hn m hm, b _ _ (hm n hn)
+
+end submodule
+
+namespace linear_map
+
+section orthogonal
 
 variables [field K] [add_comm_group V] [module K V]
   [field K₁] [add_comm_group V₁] [module K₁ V₁]
@@ -232,7 +253,7 @@ variables [field K] [add_comm_group V] [module K V]
 -- ↓ This lemma only applies in fields as we require `a * b = 0 → a = 0 ∨ b = 0`
 lemma span_singleton_inf_orthogonal_eq_bot
   (B : V₁ →ₛₗ[J₁] V₁ →ₛₗ[J₁'] K) (x : V₁) (hx : ¬ B.is_ortho x x) :
-  (K₁ ∙ x) ⊓ B.orthogonal (K₁ ∙ x) = ⊥ :=
+  (K₁ ∙ x) ⊓ submodule.orthogonal_bilin (K₁ ∙ x) B = ⊥ :=
 begin
   rw ← finset.coe_singleton,
   refine eq_bot_iff.2 (λ y h, _),
@@ -250,10 +271,10 @@ end
 
 -- ↓ This lemma only applies in fields since we use the `mul_eq_zero`
 lemma orthogonal_span_singleton_eq_to_lin_ker {B : V →ₗ[K] V →ₛₗ[J] K} (x : V) :
-  B.orthogonal (K ∙ x) = (B x).ker :=
+  submodule.orthogonal_bilin (K ∙ x) B = (B x).ker :=
 begin
   ext y,
-  simp_rw [mem_orthogonal_iff, linear_map.mem_ker,
+  simp_rw [submodule.mem_orthogonal_bilin_iff, linear_map.mem_ker,
            submodule.mem_span_singleton ],
   split,
   { exact λ h, h x ⟨1, one_smul _ _⟩ },
@@ -266,7 +287,7 @@ end
 -- todo: Generalize this to sesquilinear maps
 lemma span_singleton_sup_orthogonal_eq_top {B : V →ₗ[K] V →ₗ[K] K}
   {x : V} (hx : ¬ B.is_ortho x x) :
-  (K ∙ x) ⊔ B.orthogonal (K ∙ x) = ⊤ :=
+  (K ∙ x) ⊔ submodule.orthogonal_bilin (K ∙ x) B = ⊤ :=
 begin
   rw orthogonal_span_singleton_eq_to_lin_ker,
   exact (B x).span_singleton_sup_ker_eq_top hx,
@@ -277,7 +298,7 @@ end
 /-- Given a bilinear form `B` and some `x` such that `B x x ≠ 0`, the span of the singleton of `x`
   is complement to its orthogonal complement. -/
 lemma is_compl_span_singleton_orthogonal {B : V →ₗ[K] V →ₗ[K] K}
-  {x : V} (hx : ¬ B.is_ortho x x) : is_compl (K ∙ x) (B.orthogonal $ K ∙ x) :=
+  {x : V} (hx : ¬ B.is_ortho x x) : is_compl (K ∙ x) (submodule.orthogonal_bilin (K ∙ x) B) :=
 { inf_le_bot := eq_bot_iff.1 $
     (span_singleton_inf_orthogonal_eq_bot B x hx),
   top_le_sup := eq_top_iff.1 $ span_singleton_sup_orthogonal_eq_top hx }

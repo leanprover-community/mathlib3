@@ -506,10 +506,8 @@ lemma comp_mono {p : seminorm 𝕜 F} {q : seminorm 𝕜 F} (f : E →ₗ[𝕜] 
   p.comp f ≤ q.comp f := λ _, hp _
 
 /-- The composition as an `add_monoid_hom`. -/
-def pullback (f : E →ₗ[𝕜] F) : add_monoid_hom (seminorm 𝕜 F) (seminorm 𝕜 E) :=
+@[simps] def pullback (f : E →ₗ[𝕜] F) : add_monoid_hom (seminorm 𝕜 F) (seminorm 𝕜 E) :=
 ⟨λ p, p.comp f, zero_comp f, λ p q, add_comp p q f⟩
-
-@[simp] lemma pullback_apply (f : E →ₗ[𝕜] F) (p : seminorm 𝕜 F) : pullback f p = p.comp f := rfl
 
 section norm_one_class
 variables [norm_one_class 𝕜] (p : seminorm 𝕜 E) (x y : E) (r : ℝ)
@@ -561,7 +559,7 @@ begin
 end
 
 lemma finset_sup_le_sum (p : ι → seminorm 𝕜 E) (s : finset ι) :
-  s.sup p ≤ ∑ (i : ι) in s, p i :=
+  s.sup p ≤ ∑ i in s, p i :=
 begin
   classical,
   refine finset.sup_le_iff.mpr _,
@@ -1260,7 +1258,7 @@ variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E]
 
 /-- A filter basis for the neighborhood filter of 0. -/
 def seminorm_basis_zero (p : ι → seminorm 𝕜 E) : set (set E) :=
-  ⋃ (s : finset ι) r (hr : 0 < r), singleton $ ball (s.sup p) (0 : E) r
+⋃ (s : finset ι) r (hr : 0 < r), singleton $ ball (s.sup p) (0 : E) r
 
 lemma seminorm_basis_zero_iff (p : ι → seminorm 𝕜 E) (U : set E) :
   U ∈ seminorm_basis_zero p ↔ ∃ (i : finset ι) r (hr : 0 < r), U = ball (i.sup p) 0 r :=
@@ -1284,7 +1282,7 @@ end
 
 lemma seminorm_basis_zero_intersect (p : ι → seminorm 𝕜 E) [decidable_eq ι]
   (U V : set E) (hU : U ∈ seminorm_basis_zero p) (hV : V ∈ seminorm_basis_zero p) :
-  (∃ (z : set E) (H : z ∈ (seminorm_basis_zero p)), z ⊆ U ∩ V) :=
+  ∃ (z : set E) (H : z ∈ (seminorm_basis_zero p)), z ⊆ U ∩ V :=
 begin
   rcases (seminorm_basis_zero_iff p U).mp hU with ⟨ι'₁, r₁, hr₁, hU⟩,
   rcases (seminorm_basis_zero_iff p V).mp hV with ⟨ι'₂, r₂, hr₂, hV⟩,
@@ -1350,8 +1348,8 @@ add_group_filter_basis_of_comm (seminorm_basis_zero p)
   (seminorm_basis_zero_neg p)
 
 lemma seminorm_basis_zero_smul (p : ι → seminorm 𝕜 E) (U) (hU : U ∈ seminorm_basis_zero p) :
-  (∃ (V : set 𝕜) (H : V ∈ 𝓝 (0 : 𝕜)) (W : set E)
-  (H : W ∈ (seminorm_add_group_filter_basis p).sets), V • W ⊆ U) :=
+  ∃ (V : set 𝕜) (H : V ∈ 𝓝 (0 : 𝕜)) (W : set E)
+  (H : W ∈ (seminorm_add_group_filter_basis p).sets), V • W ⊆ U :=
 begin
   rcases (seminorm_basis_zero_iff p U).mp hU with ⟨ι', r, hr, hU⟩,
   refine ⟨metric.ball 0 r.sqrt, metric.ball_mem_nhds 0 (real.sqrt_pos.mpr hr), _⟩,
@@ -1361,8 +1359,8 @@ begin
 end
 
 lemma seminorm_basis_zero_smul_left (p : ι → seminorm 𝕜 E) (x : 𝕜) (U : set E)
-  (hU : U ∈ seminorm_basis_zero p) : (∃ (V : set E)
-  (H : V ∈ (seminorm_add_group_filter_basis p).sets), V ⊆ (λ (y : E), x • y) ⁻¹' U) :=
+  (hU : U ∈ seminorm_basis_zero p) : ∃ (V : set E)
+  (H : V ∈ (seminorm_add_group_filter_basis p).sets), V ⊆ (λ (y : E), x • y) ⁻¹' U :=
 begin
   rcases (seminorm_basis_zero_iff p U).mp hU with ⟨ι', r, hr, hU⟩,
   rw hU,
@@ -1376,7 +1374,7 @@ begin
 end
 
 lemma seminorm_basis_zero_smul_right (p : ι → seminorm 𝕜 E) (v : E) (U : set E)
-  (hU : U ∈ seminorm_basis_zero p) : (∀ᶠ (x : 𝕜) in 𝓝 0, x • v ∈ U) :=
+  (hU : U ∈ seminorm_basis_zero p) : ∀ᶠ (x : 𝕜) in 𝓝 0, x • v ∈ U :=
 begin
   rcases (seminorm_basis_zero_iff p U).mp hU with ⟨ι', r, hr, hU⟩,
   rw [hU, filter.eventually_iff],
@@ -1406,12 +1404,12 @@ variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E] [add_comm_group
 def is_bounded (p : ι → seminorm 𝕜 E) (q : ι' → seminorm 𝕜 F) (f : E →ₗ[𝕜] F) : Prop :=
   ∀ i : ι', ∃ s : finset ι, ∃ C : ℝ≥0, C ≠ 0 ∧ (q i).comp f ≤ C • s.sup p
 
-lemma is_bounded_singleton (ι' : Type*) [nonempty ι']
+lemma is_bounded_const (ι' : Type*) [nonempty ι']
   {p : ι → seminorm 𝕜 E} {q : seminorm 𝕜 F} (f : E →ₗ[𝕜] F) :
   is_bounded p (λ _ : ι', q) f ↔ ∃ (s : finset ι) C : ℝ≥0, C ≠ 0 ∧ q.comp f ≤ C • s.sup p :=
 by simp only [is_bounded, forall_const]
 
-lemma singleton_is_bounded (ι : Type*) [nonempty ι]
+lemma const_is_bounded (ι : Type*) [nonempty ι]
   {p : seminorm 𝕜 E} {q : ι' → seminorm 𝕜 F} (f : E →ₗ[𝕜] F) :
   is_bounded (λ _ : ι, p) q f ↔ ∀ i : ι', ∃ C : ℝ≥0, C ≠ 0 ∧ (q i).comp f ≤ C • p :=
 begin
@@ -1463,7 +1461,7 @@ variables [decidable_eq ι] [nonempty ι] [decidable_eq ι'] [nonempty ι']
 
 /-- The proposition that the topology of `E` is induced by a family of seminorms `p`. -/
 class with_seminorms (p : ι → seminorm 𝕜 E) [t : topological_space E] : Prop :=
-  (topology_eq_with_seminorms : t = (seminorm_module_filter_basis p).topology)
+(topology_eq_with_seminorms : t = (seminorm_module_filter_basis p).topology)
 
 lemma with_seminorms_eq (p : ι → seminorm 𝕜 E) [t : topological_space E] [with_seminorms p] :
   t = ((seminorm_module_filter_basis p).topology) := with_seminorms.topology_eq_with_seminorms
@@ -1518,7 +1516,7 @@ lemma cont_with_seminorms_normed_space (F) [semi_normed_group F] [normed_space �
   (hf : ∃ (s : finset ι) C : ℝ≥0, C ≠ 0 ∧ (norm_seminorm 𝕜 F).comp f ≤ C • s.sup p) :
   continuous f :=
 begin
-  rw ←is_bounded_singleton (fin 1) at hf,
+  rw ←is_bounded_const (fin 1) at hf,
   exact continuous_from_bounded p (λ _ : fin 1, norm_seminorm 𝕜 F) f hf,
 end
 
@@ -1527,7 +1525,7 @@ lemma cont_normed_space_to_with_seminorms (E) [semi_normed_group E] [normed_spac
   (q : ι → seminorm 𝕜 F) [with_seminorms q] (f : E →ₗ[𝕜] F)
   (hf : ∀ i : ι, ∃ C : ℝ≥0, C ≠ 0 ∧ (q i).comp f ≤ C • (norm_seminorm 𝕜 E)) : continuous f :=
 begin
-  rw ←singleton_is_bounded (fin 1) at hf,
+  rw ←const_is_bounded (fin 1) at hf,
   exact continuous_from_bounded (λ _ : fin 1, norm_seminorm 𝕜 E) q f hf,
 end
 

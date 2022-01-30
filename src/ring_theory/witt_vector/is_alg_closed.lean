@@ -179,29 +179,40 @@ end
 
 
 -- this is the remainder from sum_ident_3
+-- def diff (n : ℕ) : mv_polynomial (fin 2 × ℕ) ℤ :=
+-- (∑ i in range (n + 1), p^i * X (0, i)^(p ^ (n+1-i)))
+--   * (∑ i in range (n + 1), p^i * X (1, i)^(p ^ (n+1-i)))
+
 def diff (n : ℕ) : mv_polynomial (fin 2 × ℕ) ℤ :=
-(∑ i in range (n + 1), p^i * X (0, i)^(p ^ (n+1-i)))
-  * (∑ i in range (n + 1), p^i * X (1, i)^(p ^ (n+1-i)))
+(∑ (x : ℕ) in
+     range (n + 1),
+     (rename (prod.mk 0)) ((monomial (finsupp.single x (p ^ (n + 1 - x)))) (↑p ^ x))) *
+  ∑ (x : ℕ) in
+    range (n + 1),
+    (rename (prod.mk 1)) ((monomial (finsupp.single x (p ^ (n + 1 - x)))) (↑p ^ x))
 
 lemma diff_vars (n : ℕ) : (diff p n).vars ⊆ univ.product (range (n+1)) :=
-begin
-  rw [diff],
-  apply subset.trans (vars_mul _ _),
-  apply union_subset;
-  { apply subset.trans (vars_sum_subset _ _),
-    rw bUnion_subset,
-    intros x hx,
-    apply subset.trans (vars_mul _ _),
-    apply union_subset,
-    { apply subset.trans (vars_pow _ _),
-      have : (p : mv_polynomial (fin 2 × ℕ) ℤ) = (C (p : ℤ)),
-      { simp only [int.cast_coe_nat, ring_hom.eq_int_cast] },
-      rw [this, vars_C],
-      apply empty_subset },
-    { apply subset.trans (vars_pow _ _),
-      rw vars_X,
-      simp only [hx, mem_univ, singleton_subset_iff, and_self, mem_product] } }
-end
+sorry
+
+-- lemma diff_vars (n : ℕ) : (diff p n).vars ⊆ univ.product (range (n+1)) :=
+-- begin
+--   rw [diff],
+--   apply subset.trans (vars_mul _ _),
+--   apply union_subset;
+--   { apply subset.trans (vars_sum_subset _ _),
+--     rw bUnion_subset,
+--     intros x hx,
+--     apply subset.trans (vars_mul _ _),
+--     apply union_subset,
+--     { apply subset.trans (vars_pow _ _),
+--       have : (p : mv_polynomial (fin 2 × ℕ) ℤ) = (C (p : ℤ)),
+--       { simp only [int.cast_coe_nat, ring_hom.eq_int_cast] },
+--       rw [this, vars_C],
+--       apply empty_subset },
+--     { apply subset.trans (vars_pow _ _),
+--       rw vars_X,
+--       simp only [hx, mem_univ, singleton_subset_iff, and_self, mem_product] } }
+-- end
 
 
 lemma sum_ident_3 (n : ℕ) :
@@ -211,10 +222,34 @@ lemma sum_ident_3 (n : ℕ) :
   (p^(n+1) * X (1, n+1)) * rename (prod.mk (0 : fin 2)) (witt_polynomial p ℤ n) +
   diff p n :=
 begin
-  rw [witt_poly_prod, diff, witt_polynomial, alg_hom.map_sum, alg_hom.map_sum,
-      sum_range_succ, sum_range_succ],
-end
+  rw [witt_poly_prod, witt_polynomial, alg_hom.map_sum, alg_hom.map_sum,
+      sum_range_succ],
+  conv_lhs {congr, skip, rw sum_range_succ},
+  simp only [add_mul, mul_add],
+  simp only [tsub_self, int.nat_cast_eq_coe_nat, pow_zero],
+  conv_rhs { rw add_comm },
+  simp only [add_assoc],
+  apply congr_arg (has_add.add _),
+  conv_lhs { rw [← add_assoc, add_comm] },
+  -- conv_lhs { congr, skip, rw add_comm },
+  have mvpz : (p ^ (n + 1) : mv_polynomial (fin 2 × ℕ) ℤ) = mv_polynomial.C (↑p ^ (n + 1)),
+  { simp only [int.cast_coe_nat, ring_hom.eq_int_cast, C_pow, eq_self_iff_true] },
+  refine congr (congr_arg has_add.add _) _,
+  { simp only [rename_monomial, monomial_eq_C_mul_X, map_mul, rename_C, mvpz, pow_one, rename_X], },
+  { refine congr (congr_arg has_add.add _) _,
+    simp only [rename_monomial, monomial_eq_C_mul_X, map_mul, rename_C, mvpz, pow_one, rename_X],
+    congr' 1,
+    { simp [witt_polynomial, alg_hom.map_sum, rename_monomial, monomial_eq_C_mul_X],
+     sorry -- OFF BY ONE???
+      },
 
+    sorry }
+
+
+  -- simp only [add_mul, mul_add, rename_monomial, monomial_mul, finsupp.map_domain_single,
+  --   tsub_self, int.nat_cast_eq_coe_nat, pow_zero],
+  -- simp only [witt_polynomial, monomial_single_add],
+end
 
 lemma sum_ident_4 (n : ℕ) :
   (p ^ (n + 1) * witt_mul p (n + 1) : mv_polynomial (fin 2 × ℕ) ℤ) =

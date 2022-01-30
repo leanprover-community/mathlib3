@@ -539,7 +539,7 @@ instance : order_bot (seminorm 𝕜 E) := ⟨0, nonneg⟩
 
 lemma bot_eq_zero : (⊥ : seminorm 𝕜 E) = 0 := rfl
 
-lemma smul_le_smul {p q : seminorm 𝕜 E} {a b : nnreal} (hpq : p ≤ q) (hab : a ≤ b) :
+lemma smul_le_smul {p q : seminorm 𝕜 E} {a b : ℝ≥0} (hpq : p ≤ q) (hab : a ≤ b) :
   a • p ≤ b • q :=
 begin
   simp_rw [le_def, pi.le_def, coe_smul],
@@ -549,7 +549,7 @@ begin
 end
 
 lemma finset_sup_apply (p : ι → seminorm 𝕜 E) (s : finset ι) (x : E) :
-  s.sup p x = ↑(s.sup (λ i, ⟨p i x, nonneg (p i) x⟩) : nnreal) :=
+  s.sup p x = ↑(s.sup (λ i, ⟨p i x, nonneg (p i) x⟩) : ℝ≥0) :=
 begin
   induction s using finset.cons_induction_on with a s ha ih,
   { rw [finset.sup_empty, finset.sup_empty, coe_bot, _root_.bot_eq_zero, pi.zero_apply,
@@ -1275,10 +1275,11 @@ begin
   exact seminorm_basis_zero_singleton_mem _ i zero_lt_one,
 end
 
-lemma seminorm_basis_zero_intersect (p : ι → seminorm 𝕜 E) [decidable_eq ι]
+lemma seminorm_basis_zero_intersect (p : ι → seminorm 𝕜 E)
   (U V : set E) (hU : U ∈ seminorm_basis_zero p) (hV : V ∈ seminorm_basis_zero p) :
   ∃ (z : set E) (H : z ∈ (seminorm_basis_zero p)), z ⊆ U ∩ V :=
 begin
+  classical,
   rcases (seminorm_basis_zero_iff p U).mp hU with ⟨s, r₁, hr₁, hU⟩,
   rcases (seminorm_basis_zero_iff p V).mp hV with ⟨t, r₂, hr₂, hV⟩,
   use ((s ∪ t).sup p).ball 0 (min r₁ r₂),
@@ -1317,16 +1318,31 @@ begin
   exact ⟨U, hU', eq.subset hU⟩,
 end
 
-variables [decidable_eq ι] [nonempty ι]
-
 /-- The `add_group_filter_basis` induced by the filter basis `seminorm_basis_zero`. -/
-def seminorm_add_group_filter_basis (p : ι → seminorm 𝕜 E) : add_group_filter_basis E :=
+def seminorm_add_group_filter_basis [nonempty ι]
+  (p : ι → seminorm 𝕜 E) : add_group_filter_basis E :=
 add_group_filter_basis_of_comm (seminorm_basis_zero p)
   (seminorm_basis_zero_nonempty p)
   (seminorm_basis_zero_intersect p)
   (seminorm_basis_zero_zero p)
   (seminorm_basis_zero_add p)
   (seminorm_basis_zero_neg p)
+
+lemma seminorm_basis_zero_smul_right (p : ι → seminorm 𝕜 E) (v : E) (U : set E)
+  (hU : U ∈ seminorm_basis_zero p) : ∀ᶠ (x : 𝕜) in 𝓝 0, x • v ∈ U :=
+begin
+  rcases (seminorm_basis_zero_iff p U).mp hU with ⟨s, r, hr, hU⟩,
+  rw [hU, filter.eventually_iff],
+  simp_rw [(s.sup p).mem_ball_zero, (s.sup p).smul],
+  by_cases h : 0 < (s.sup p) v,
+  { simp_rw (lt_div_iff h).symm,
+    rw ←_root_.ball_zero_eq,
+    exact metric.ball_mem_nhds 0 (div_pos hr h) },
+  simp_rw [le_antisymm (not_lt.mp h) ((s.sup p).nonneg v), mul_zero, hr],
+  exact is_open.mem_nhds is_open_univ (mem_univ 0),
+end
+
+variables [nonempty ι]
 
 lemma seminorm_basis_zero_smul (p : ι → seminorm 𝕜 E) (U) (hU : U ∈ seminorm_basis_zero p) :
   ∃ (V : set 𝕜) (H : V ∈ 𝓝 (0 : 𝕜)) (W : set E)
@@ -1352,20 +1368,6 @@ begin
   refine ⟨(s.sup p).ball 0 r, seminorm_basis_zero_mem p s hr, _⟩,
   simp only [not_ne_iff.mp h, subset_def, mem_ball_zero, hr, mem_univ, seminorm.zero,
     implies_true_iff, preimage_const_of_mem, zero_smul],
-end
-
-lemma seminorm_basis_zero_smul_right (p : ι → seminorm 𝕜 E) (v : E) (U : set E)
-  (hU : U ∈ seminorm_basis_zero p) : ∀ᶠ (x : 𝕜) in 𝓝 0, x • v ∈ U :=
-begin
-  rcases (seminorm_basis_zero_iff p U).mp hU with ⟨s, r, hr, hU⟩,
-  rw [hU, filter.eventually_iff],
-  simp_rw [(s.sup p).mem_ball_zero, (s.sup p).smul],
-  by_cases h : 0 < (s.sup p) v,
-  { simp_rw (lt_div_iff h).symm,
-    rw ←_root_.ball_zero_eq,
-    exact metric.ball_mem_nhds 0 (div_pos hr h) },
-  simp_rw [le_antisymm (not_lt.mp h) ((s.sup p).nonneg v), mul_zero, hr],
-  exact is_open.mem_nhds is_open_univ (mem_univ 0),
 end
 
 /-- The `module_filter_basis` induced by the filter basis `seminorm_basis_zero`. -/
@@ -1438,7 +1440,7 @@ end bounded
 section topology
 
 variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E] [add_comm_group F] [module 𝕜 F]
-variables [decidable_eq ι] [nonempty ι] [decidable_eq ι'] [nonempty ι']
+variables [nonempty ι] [nonempty ι']
 
 /-- The proposition that the topology of `E` is induced by a family of seminorms `p`. -/
 class with_seminorms (p : ι → seminorm 𝕜 E) [t : topological_space E] : Prop :=
@@ -1492,7 +1494,7 @@ begin
 end
 
 lemma cont_with_seminorms_normed_space (F) [semi_normed_group F] [normed_space 𝕜 F]
-  [uniform_space E] [uniform_add_group E] [topological_add_group E]
+  [uniform_space E] [uniform_add_group E]
   (p : ι → seminorm 𝕜 E) [with_seminorms p] (f : E →ₗ[𝕜] F)
   (hf : ∃ (s : finset ι) C : ℝ≥0, C ≠ 0 ∧ (norm_seminorm 𝕜 F).comp f ≤ C • s.sup p) :
   continuous f :=
@@ -1502,7 +1504,7 @@ begin
 end
 
 lemma cont_normed_space_to_with_seminorms (E) [semi_normed_group E] [normed_space 𝕜 E]
-  [uniform_space F] [uniform_add_group F] [topological_add_group F]
+  [uniform_space F] [uniform_add_group F]
   (q : ι → seminorm 𝕜 F) [with_seminorms q] (f : E →ₗ[𝕜] F)
   (hf : ∀ i : ι, ∃ C : ℝ≥0, C ≠ 0 ∧ (q i).comp f ≤ C • (norm_seminorm 𝕜 E)) : continuous f :=
 begin

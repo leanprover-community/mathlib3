@@ -468,7 +468,7 @@ match d.to_name with
 | _ := return none
 end
 
-/-- A linter for checking that declarations aren't syntactic tautologies. -/
+/-- A linter for checking that interactive tactics have parser documentation. -/
 @[linter]
 meta def linter.unprintable_interactive : linter :=
 { test := unprintable_interactive,

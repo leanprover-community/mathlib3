@@ -492,3 +492,46 @@ instance additive.has_continuous_add {M} [h : topological_space M] [has_mul M]
 instance multiplicative.has_continuous_mul {M} [h : topological_space M] [has_add M]
   [has_continuous_add M] : @has_continuous_mul (multiplicative M) h _ :=
 { continuous_mul := @continuous_add M _ _ _ }
+
+section lattice_ops
+
+variables [has_mul M] [has_mul N] {ts : set (topological_space M)}
+  [h : Π t ∈ ts, @has_continuous_mul M t _] {ts' : ι → topological_space M}
+  [h' : Π i, @has_continuous_mul M (ts' i) _] {t₁ t₂ : topological_space M}
+  [h₁ : @has_continuous_mul M t₁ _] [h₂ : @has_continuous_mul M t₂ _]
+  {t : topological_space N} [has_continuous_mul N] {F : Type*}
+  [mul_hom_class F M N] (f : F)
+
+@[to_additive, priority 100] instance has_continuous_mul_Inf :
+  @has_continuous_mul M (Inf ts) _ :=
+{ continuous_mul := continuous_Inf_rng (λ t ht, continuous_Inf_dom₂ ht ht
+  (@has_continuous_mul.continuous_mul M t _ (h t ht))) }
+
+include h'
+
+@[to_additive, priority 100] instance has_continuous_mul_infi :
+  @has_continuous_mul M (⨅ i, ts' i) _ :=
+by {rw ← Inf_range, exact @has_continuous_mul_Inf _ _ _ (set.forall_range_iff.mpr h')}
+
+omit h'
+
+include h₁ h₂
+
+@[to_additive, priority 100] instance has_continuous_mul_inf :
+  @has_continuous_mul M (t₁ ⊓ t₂) _ :=
+by {rw inf_eq_infi, refine @has_continuous_mul_infi _ _ _ _ (λ b, _), cases b; assumption}
+
+omit h₁ h₂
+
+@[to_additive, priority 100] instance has_continuous_mul_induced :
+  @has_continuous_mul M (t.induced f) _ :=
+{ continuous_mul :=
+    begin
+      letI : topological_space M := t.induced f,
+      refine continuous_induced_rng _,
+      simp_rw [function.comp, map_mul],
+      change continuous ((λ p : N × N, p.1 * p.2) ∘ (prod.map f f)),
+      exact continuous_mul.comp (continuous_induced_dom.prod_map continuous_induced_dom),
+    end }
+
+end lattice_ops

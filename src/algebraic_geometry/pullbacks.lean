@@ -495,6 +495,8 @@ end
 instance {X Y Z : Scheme} (f : X ⟶ Z) (g : Y ⟶ Z) : has_pullback f g :=
 has_pullback_of_cover (Z.affine_cover.pullback_cover f) f g
 
+instance : has_pullbacks Scheme := has_pullbacks_of_has_limit_cospan _
+
 @[simps J obj map]
 def open_cover_of_left (𝒰 : open_cover X) (f : X ⟶ Z) (g : Y ⟶ Z) : open_cover (pullback f g) :=
 begin

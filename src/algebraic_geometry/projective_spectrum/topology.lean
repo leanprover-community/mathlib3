@@ -48,7 +48,7 @@ noncomputable theory
 open_locale direct_sum big_operators pointwise
 open direct_sum set_like
 
-variables {R A: Type}
+variables {R A: Type*}
 variables [comm_ring R] [comm_ring A] [algebra R A]
 variables (𝒜 : ℕ → submodule R A) [graded_algebra 𝒜]
 

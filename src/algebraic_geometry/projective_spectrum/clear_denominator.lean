@@ -69,9 +69,7 @@ end clear_denominator
 
 section homogeneous_induction
 
-universe u
-
-variables {ι R A: Type.{u}} [linear_ordered_cancel_add_comm_monoid ι]
+variables {ι R A: Type*} [linear_ordered_cancel_add_comm_monoid ι]
 variables [comm_ring R] [comm_ring A] [algebra R A]
 variables (𝒜 : ι → submodule R A) [graded_algebra 𝒜]
 variable [Π (i : ι) (x : 𝒜 i), decidable (x ≠ 0)]
@@ -117,7 +115,7 @@ end mem_span
 
 section
 
-variables {R A: Type}
+variables {R A: Type*}
 variables [comm_ring R] [comm_ring A] [algebra R A] [nontrivial A]
 
 variables (𝒜 : ℕ → submodule R A)

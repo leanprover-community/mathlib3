@@ -10,6 +10,8 @@ import order.category.Preorder
 
 open category_theory
 
+universe u
+
 /-- The category of partially ordered types. -/
 def PartialOrder := bundled partial_order
 
@@ -34,7 +36,7 @@ local attribute [instance] le_equiv.setoid
 
 --TODO@Yaël: I'm pretty sure this is the free functor. Prove the adjunction.
 /-- `antisymmetrization` as a functor. -/
-def Preorder_to_PartialOrder : Preorder ⥤ PartialOrder :=
+def Preorder_to_PartialOrder : Preorder.{u} ⥤ PartialOrder :=
 { obj := λ X, PartialOrder.of (antisymmetrization X),
   map := λ X Y f, f.antisymmetrization,
   map_id' := λ X, by { ext, exact quotient.induction_on x (λ x, quotient.map_mk _ (λ a b, id) _) },

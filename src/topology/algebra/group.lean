@@ -130,7 +130,7 @@ section pointwise
 variables [topological_space α] [group α] [has_continuous_mul α] {s t : set α}
 
 @[to_additive]
-lemma is_open.mul_left (ht : is_open t) :  is_open (s * t) :=
+lemma is_open.mul_left (ht : is_open t) : is_open (s * t) :=
 begin
   rw ←Union_mul_left_image,
   exact is_open_Union (λ a, is_open_Union $ λ ha, is_open_map_mul_left a t ht),

@@ -250,7 +250,7 @@ lemma monotone.le_of_tendsto [topological_space α] [preorder α] [order_closed_
   [semilattice_inf β] {f : β → α} {a : α} (hf : monotone f)
   (ha : tendsto f at_bot (𝓝 a)) (b : β) :
   a ≤ f b :=
-@monotone.ge_of_tendsto (order_dual α) (order_dual β) _ _ _ _ f _ hf.dual ha b
+monotone.ge_of_tendsto hf.dual ha b
 
 lemma antitone.le_of_tendsto [topological_space α] [preorder α] [order_closed_topology α]
   [semilattice_sup β] {f : β → α} {a : α} (hf : antitone f)

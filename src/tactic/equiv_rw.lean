@@ -289,7 +289,7 @@ match locat with
 | loc.wildcard := do
   equiv_rw_target_aux cfg es <|> skip,
   ctx ← local_context,
-  ctx.mmap (λ e, if e ∈ es then skip else do equiv_rw_hyp_aux e.local_pp_name cfg es <|> skip),
+  ctx.mmap (λ e, if e ∈ es then skip else equiv_rw_hyp_aux e.local_pp_name cfg es <|> skip),
   skip
 | loc.ns names := do
   names.mmap

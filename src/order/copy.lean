@@ -72,6 +72,25 @@ begin
   all_goals { abstract { subst_vars, casesI c, assumption } }
 end
 
+/-- A function to create a provable equal copy of a frame with possibly different definitional
+equalities. -/
+def frame.copy (c : frame α)
+  (le : α → α → Prop) (eq_le : le = @frame.le α c)
+  (top : α) (eq_top : top = @frame.top α c)
+  (bot : α) (eq_bot : bot = @frame.bot α c)
+  (sup : α → α → α) (eq_sup : sup = @frame.sup α c)
+  (inf : α → α → α) (eq_inf : inf = @frame.inf α c)
+  (Sup : set α → α) (eq_Sup : Sup = @frame.Sup α c)
+  (Inf : set α → α) (eq_Inf : Inf = @frame.Inf α c) :
+  frame α :=
+begin
+  refine { le := le, top := top, bot := bot, sup := sup, inf := inf, Sup := Sup, Inf := Inf,
+    .. complete_lattice.copy (@frame.to_complete_lattice α c)
+      le eq_le top eq_top bot eq_bot sup eq_sup inf eq_inf Sup eq_Sup Inf eq_Inf,
+    .. },
+  all_goals { abstract { subst_vars, casesI c, assumption } }
+end
+
 /-- A function to create a provable equal copy of a complete distributive lattice
 with possibly different definitional equalities. -/
 def complete_distrib_lattice.copy (c : complete_distrib_lattice α)
@@ -85,7 +104,7 @@ def complete_distrib_lattice.copy (c : complete_distrib_lattice α)
   complete_distrib_lattice α :=
 begin
   refine { le := le, top := top, bot := bot, sup := sup, inf := inf, Sup := Sup, Inf := Inf,
-    .. complete_lattice.copy (@complete_distrib_lattice.to_complete_lattice α c)
+    .. frame.copy (@complete_distrib_lattice.to_frame α c)
       le eq_le top eq_top bot eq_bot sup eq_sup inf eq_inf Sup eq_Sup Inf eq_Inf,
     .. },
   all_goals { abstract { subst_vars, casesI c, assumption } }

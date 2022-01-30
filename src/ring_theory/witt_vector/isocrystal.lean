@@ -16,14 +16,10 @@ https://www.math.ias.edu/~lurie/205notes/Lecture26-Isocrystals.pdf
 noncomputable theory
 open finite_dimensional
 
--- do we have the linear equivalence "scalar-multiply by an invertible scalar" ?
-def bop {R : Type*} [field R] {M : Type*} [add_comm_monoid M] [module R M] {c : R} (hc : c ≠ 0) :
-  M ≃ₗ[R] M :=
-distrib_mul_action.to_linear_equiv R M (units.mk0 c hc)
-
-@[simp] lemma coe_bop {R : Type*} [field R] {M : Type*} [add_comm_monoid M] [module R M] {c : R}
-  (hc : c ≠ 0) (x : M) :
-  bop hc x = c • x :=
+-- move to `linear_algebra.basic`
+@[simp] lemma linear_equiv.smul_of_ne_zero_apply (K : Type*) (M : Type*) [field K]
+  [add_comm_group M] [module K M] (a : K) (ha : a ≠ 0) (x : M) :
+  linear_equiv.smul_of_ne_zero K M a ha x = a • x :=
 rfl
 
 variables (p : ℕ) [fact p.prime]
@@ -86,7 +82,8 @@ instance : module K(p, k) K(p, k) := semiring.to_module
 K(p, k)
 
 instance (m : ℤ) : isocrystal p k (standard_one_dim_isocrystal p k m) :=
-{ frob := (foo₀ p k).to_semilinear_equiv.trans (bop (zpow_ne_zero m (p_nonzero' p k) : (p : K(p, k)) ^ m ≠ 0)) }
+{ frob := (foo₀ p k).to_semilinear_equiv.trans
+            (linear_equiv.smul_of_ne_zero _ _ _ (zpow_ne_zero m (p_nonzero' p k))) }
 
 @[simp] lemma frobenius_standard_one_dim_isocrystal_apply (m : ℤ)
   (x : standard_one_dim_isocrystal p k m) :
@@ -122,7 +119,7 @@ begin
     { rw ← linear_map.range_eq_top,
       rw ← (finrank_eq_one_iff_of_nonzero x hx).mp h_dim,
       rw linear_map.span_singleton_eq_range } },
-  refine ⟨⟨(bop hb).trans F, _⟩⟩,
+  refine ⟨⟨(linear_equiv.smul_of_ne_zero K(p, k) _ _ hb).trans F, _⟩⟩,
   intros c,
   simp [F, F₀, foo, hax, ← mul_smul],
   congr' 1,

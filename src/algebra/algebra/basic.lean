@@ -582,9 +582,6 @@ lemma map_finsupp_sum {α : Type*} [has_zero α] {ι : Type*} (f : ι →₀ α)
   φ (f.sum g) = f.sum (λ i a, φ (g i a)) :=
 φ.map_sum _ _
 
-@[simp] lemma map_nat_cast (n : ℕ) : φ n = n :=
-φ.to_ring_hom.map_nat_cast n
-
 lemma map_bit0 (x) : φ (bit0 x) = bit0 (φ x) := map_bit0 _ _
 lemma map_bit1 (x) : φ (bit1 x) = bit1 (φ x) := map_bit1 _ _
 
@@ -1309,6 +1306,9 @@ variables (R : Type*) [ring R]
 { commutes' := int.cast_commute,
   smul_def' := λ _ _, zsmul_eq_mul _ _,
   to_ring_hom := int.cast_ring_hom R }
+
+/-- A special case of `ring_hom.eq_int_cast'` that happens to be true definitionally -/
+@[simp] lemma algebra_map_int_eq : algebra_map ℤ R = int.cast_ring_hom R := rfl
 
 variables {R}
 

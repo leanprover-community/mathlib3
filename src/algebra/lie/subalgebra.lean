@@ -97,6 +97,8 @@ lemma add_mem {x y : L} (hx : x ∈ L') (hy : y ∈ L') : (x + y : L) ∈ L' :=
 lemma sub_mem {x y : L} (hx : x ∈ L') (hy : y ∈ L') : (x - y : L) ∈ L' :=
 (L' : submodule R L).sub_mem hx hy
 
+@[simp] lemma neg_mem_iff {x : L} : -x ∈ L' ↔ x ∈ L' := L'.to_submodule.neg_mem_iff
+
 lemma lie_mem {x y : L} (hx : x ∈ L') (hy : y ∈ L') : (⁅x, y⁆ : L) ∈ L' := L'.lie_mem' hx hy
 
 @[simp] lemma mem_carrier {x : L} : x ∈ L'.carrier ↔ x ∈ (L' : set L) := iff.rfl
@@ -446,7 +448,7 @@ def lie_span : lie_subalgebra R L := Inf {N | s ⊆ N}
 variables {R L s}
 
 lemma mem_lie_span {x : L} : x ∈ lie_span R L s ↔ ∀ K : lie_subalgebra R L, s ⊆ K → x ∈ K :=
-by { change x ∈ (lie_span R L s : set L) ↔ _, erw Inf_coe, exact set.mem_bInter_iff, }
+by { change x ∈ (lie_span R L s : set L) ↔ _, erw Inf_coe, exact set.mem_Inter₂, }
 
 lemma subset_lie_span : s ⊆ lie_span R L s :=
 by { intros m hm, erw mem_lie_span, intros K hK, exact hK hm, }

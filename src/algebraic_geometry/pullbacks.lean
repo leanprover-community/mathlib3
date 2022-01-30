@@ -542,7 +542,7 @@ begin
     pullback.condition.symm pullback.condition.symm
       (pullback_cone.flip_is_limit $ pullback_is_pullback _ _)
       (pullback_cone.flip_is_limit $ pullback_is_pullback _ _),
-  refine open_cover.of_is_iso
+  refine open_cover_of_is_iso
     ((pullback_symmetry _ _).hom ≫ (limit.iso_limit_cone ⟨_, this⟩).inv ≫
       pullback.map _ _ _ _ (𝟙 _) (𝟙 _) (𝟙 _) _ _),
   { simpa only [category.comp_id, category.id_comp, ← pullback.condition] },

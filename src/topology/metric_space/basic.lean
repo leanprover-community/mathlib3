@@ -371,15 +371,17 @@ def sphere (x : α) (ε : ℝ) := {y | dist y x = ε}
 
 @[simp] theorem mem_sphere : y ∈ sphere x ε ↔ dist y x = ε := iff.rfl
 
+theorem sphere_eq_empty_of_subsingleton [subsingleton α] (hε : ε ≠ 0) :
+  sphere x ε = ∅ :=
+begin
+  refine set.eq_empty_iff_forall_not_mem.mpr (λ y hy, _),
+  rw [mem_sphere, ←subsingleton.elim x y, dist_self x] at hy,
+  exact hε.symm hy,
+end
+
 theorem sphere_is_empty_of_subsingleton [subsingleton α] (hε : ε ≠ 0) :
   is_empty (sphere x ε) :=
-begin
-  refine ⟨λ y, _⟩,
-  have h₁ : x = y := subsingleton.elim x y,
-  have h₂ := y.prop,
-  rw [mem_sphere, ←h₁, dist_self x] at h₂,
-  exact hε.symm h₂,
-end
+by simp only [sphere_eq_empty_of_subsingleton hε, set.has_emptyc.emptyc.is_empty α]
 
 theorem mem_closed_ball' : y ∈ closed_ball x ε ↔ dist x y ≤ ε :=
 by { rw dist_comm, refl }

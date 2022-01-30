@@ -532,16 +532,8 @@ lemma coe_subtype {p : ℕ} {P : sylow p G} {N : subgroup G} {h : P.1 ≤ N} :
 lemma normal_of_normalizer_normal {p : ℕ} [fact p.prime] [fintype (sylow p G)]
   (P : sylow p G) (hn : (↑P : subgroup G).normalizer.normal) :
   (↑P : subgroup G).normal :=
-begin
-  let N := (↑P : subgroup G).normalizer,
-  let P' : sylow p N := P.subtype N le_normalizer,
-
-  have hlr : (↑P : subgroup G) ≤ N.subtype.range, by { rw subtype_range, apply le_normalizer, },
-
-  have := normalizer_sup_eq_top P',
-  simp only [N, coe_subtype, map_comap_eq_self hlr, sup_idem] at this,
-  exact (normalizer_eq_top.mp this),
-end
+by rw [←normalizer_eq_top, ←normalizer_sup_eq_top (P.subtype _ le_normalizer), coe_subtype,
+  map_comap_eq_self (le_normalizer.trans (ge_of_eq (subtype_range _))), sup_idem]
 
 lemma normalizer_self_normalizing {p : ℕ} [fact p.prime] [fintype (sylow p G)]
  (P : sylow p G) :

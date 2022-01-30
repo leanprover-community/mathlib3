@@ -774,10 +774,7 @@ add_tactic_doc
   inherit_description_from := `tactic.interactive.change' }
 
 private meta def opt_dir_with : parser (option (bool × name)) :=
-(do tk "with",
-   arrow ← (tk "<-")?,
-   h ← ident,
-   return (arrow.is_some, h)) <|> return none
+(tk "with" *> ((λ arrow h, (option.is_some arrow, h)) <$> (tk "<-")? <*> ident))?
 
 /--
 `set a := t with h` is a variant of `let a := t`. It adds the hypothesis `h : a = t` to

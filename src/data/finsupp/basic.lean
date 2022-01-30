@@ -1233,14 +1233,14 @@ prod_add_index (λ a ha, h_zero a) h_add
 @[simp]
 lemma sum_add_index2 [add_zero_class M] [add_comm_monoid N] {f g : α →₀ M} (h : α → M →+ N) :
   (f + g).sum (λ x, h x) = f.sum (λ x, h x) + g.sum (λ x, h x) :=
-sum_add_index (λ a _, (h a).map_zero) (λ a, (h a).map_add)
+sum_add_index' (λ a, (h a).map_zero) (λ a, (h a).map_add)
 
 @[simp]
 lemma prod_add_index2 [add_zero_class M] [comm_monoid N] {f g : α →₀ M}
   (h : α → multiplicative M →* N) :
   (f + g).prod (λ a b, h a (multiplicative.of_add b)) =
     f.prod (λ a b, h a (multiplicative.of_add b)) * g.prod (λ a b, h a (multiplicative.of_add b)) :=
-prod_add_index (λ a _, (h a).map_one) (λ a, (h a).map_mul)
+prod_add_index' (λ a, (h a).map_one) (λ a, (h a).map_mul)
 
 
 /-- The canonical isomorphism between families of additive monoid homomorphisms `α → (M →+ N)`
@@ -1249,7 +1249,7 @@ def lift_add_hom [add_zero_class M] [add_comm_monoid N] : (α → M →+ N) ≃+
 { to_fun := λ F,
   { to_fun := λ f, f.sum (λ x, F x),
     map_zero' := finset.sum_empty,
-    map_add' := λ _ _, sum_add_index (λ x _, (F x).map_zero) (λ x, (F x).map_add) },
+    map_add' := λ _ _, sum_add_index' (λ x, (F x).map_zero) (λ x, (F x).map_add) },
   inv_fun := λ F x, F.comp $ single_add_hom x,
   left_inv := λ F, by { ext, simp },
   right_inv := λ F, by { ext, simp },
@@ -1313,7 +1313,7 @@ lemma prod_finset_sum_index [add_comm_monoid M] [comm_monoid N]
   {h : α → M → N} (h_zero : ∀a, h a 0 = 1) (h_add : ∀a b₁ b₂, h a (b₁ + b₂) = h a b₁ * h a b₂) :
   ∏ i in s, (g i).prod h = (∑ i in s, g i).prod h :=
 finset.induction_on s rfl $ λ a s has ih,
-by rw [prod_insert has, ih, sum_insert has, prod_add_index (λ a _, h_zero a) h_add]
+by rw [prod_insert has, ih, sum_insert has, prod_add_index' h_zero h_add]
 
 @[to_additive]
 lemma prod_sum_index
@@ -1329,7 +1329,7 @@ lemma multiset_sum_sum_index
   (h₀ : ∀a, h a 0 = 0) (h₁ : ∀ (a : α) (b₁ b₂ : M), h a (b₁ + b₂) = h a b₁ + h a b₂) :
   (f.sum.sum h) = (f.map $ λg:α →₀ M, g.sum h).sum :=
 multiset.induction_on f rfl $ assume a s ih,
-by rw [multiset.sum_cons, multiset.map_cons, multiset.sum_cons, sum_add_index (λ a _, h₀ a) h₁, ih]
+by rw [multiset.sum_cons, multiset.map_cons, multiset.sum_cons, sum_add_index' h₀ h₁, ih]
 
 lemma support_sum_eq_bUnion {α : Type*} {ι : Type*} {M : Type*} [add_comm_monoid M]
   {g : ι → α →₀ M} (s : finset ι) (h : ∀ i₁ i₂, i₁ ≠ i₂ → disjoint (g i₁).support (g i₂).support) :
@@ -1568,7 +1568,7 @@ lemma map_domain_congr {f g : α → β} (h : ∀x∈v.support, f x = g x) :
 finset.sum_congr rfl $ λ _ H, by simp only [h _ H]
 
 lemma map_domain_add {f : α → β} : map_domain f (v₁ + v₂) = map_domain f v₁ + map_domain f v₂ :=
-sum_add_index (λ _ _, single_zero) (λ _ _ _, single_add)
+sum_add_index' (λ _, single_zero) (λ _ _ _, single_add)
 
 @[simp] lemma map_domain_equiv_apply {f : α ≃ β} (x : α →₀ M) (a : β) :
   map_domain f x a = x (f.symm a) :=
@@ -1717,9 +1717,9 @@ lemma sum_update_add [add_comm_monoid α] [add_comm_monoid β]
   (hgg : ∀ (j : ι) (a₁ a₂ : α), g j (a₁ + a₂) = g j a₁ + g j a₂) :
   (f.update i a).sum g + g i (f i) = f.sum g + g i a :=
 begin
-  rw [update_eq_erase_add_single, sum_add_index (λ a _, hg a) hgg],
+  rw [update_eq_erase_add_single, sum_add_index' hg hgg],
   conv_rhs { rw ← finsupp.update_self f i },
-  rw [update_eq_erase_add_single, sum_add_index (λ a _, hg a) hgg, add_assoc, add_assoc],
+  rw [update_eq_erase_add_single, sum_add_index' hg hgg, add_assoc, add_assoc],
   congr' 1,
   rw [add_comm, sum_single_index (hg _), sum_single_index (hg _)],
 end

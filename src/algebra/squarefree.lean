@@ -216,7 +216,7 @@ begin
         apply not_irreducible_zero (irreducible_of_normalized_factor 0
             (multiset.mem_erase_dup.1 (multiset.mem_of_le hs con))) },
       rw (normalized_factors_prod h0).symm.dvd_iff_dvd_right,
-      refine ⟨⟨multiset.prod_dvd_prod (le_trans hs (multiset.erase_dup_le _)), h0⟩, _⟩,
+      refine ⟨⟨multiset.prod_dvd_prod_of_le (le_trans hs (multiset.erase_dup_le _)), h0⟩, _⟩,
       have h := unique_factorization_monoid.factors_unique irreducible_of_normalized_factor
         (λ x hx, irreducible_of_normalized_factor x (multiset.mem_of_le
           (le_trans hs (multiset.erase_dup_le _)) hx)) (normalized_factors_prod hs0),

@@ -64,6 +64,8 @@ meta def allowed_head_symbols : expr → list name
 
 -- And then the generic cases:
 | (expr.pi _ _ _ t) := allowed_head_symbols t
+| `(_ ≠ _) := [`false]
+| `(¬ _ = _) := [`ne]
 | (expr.app f _) := allowed_head_symbols f
 | (expr.const n _) := [normalize_synonym n]
 | _ := [`_]

@@ -204,6 +204,8 @@ begin
   rcases (decidable.eq_or_ne n 0) with rfl | hn0, { simp },
   convert multiset.to_finset_prod_dvd_prod,
   simp [prod_factors hn0.bot_lt],
+  recover,
+  exact classical.dec_eq ℕ,
 end
 
 lemma prime_pow_dvd_iff_le_factorization (p k n : ℕ) (pp : prime p) (hn : n ≠ 0) :

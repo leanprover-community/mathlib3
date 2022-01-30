@@ -517,7 +517,7 @@ def comap_of_injective {p : ℕ} (P : sylow p G)
 P.comap_of_ker_is_p_group ϕ (by { rw ϕ.ker_eq_bot_iff.mpr hϕ, exact is_p_group.of_bot }) h
 
 @[simp]
-lemma code_comap_of_injective {p : ℕ} {P : sylow p G}
+lemma coe_comap_of_injective {p : ℕ} {P : sylow p G}
   {K : Type*} [group K] (ϕ : K →* G) (hϕ : function.injective ϕ) (h : P.1 ≤ ϕ.range)  :
   ↑(P.comap_of_injective ϕ hϕ h) = subgroup.comap ϕ ↑P := rfl
 

@@ -197,8 +197,9 @@ variables [number_field F] [algebra F⟮E[2]⟯ K] [is_scalar_tower F F⟮E[2]�
 instance number_field.invertible_two : invertible (2 : F) := invertible_of_nonzero two_ne_zero'
 
 variables (ha₁ : E.a₁ = 0) (ha₃ : E.a₃ = 0)
+variables {a b c : K} (h3 : (cubic.map (F↑K) $ ψ₂_x E F).roots = {a, b, c})
 
-include ha₁ ha₃
+include ha₁ ha₃ h3
 
 local notation n`⬝`K := (zpow_group_hom n : Kˣ →* Kˣ).range
 
@@ -206,61 +207,76 @@ local notation n`⬝`K := (zpow_group_hom n : Kˣ →* Kˣ).range
 def δ.to_fun : E⟮K⟯ → (Kˣ ⧸ (2⬝K)) × (Kˣ ⧸ (2⬝K))
 | 0            := 1
 | (some x y w) :=
-let h  := (cubic.splits_iff_roots_eq_three $ ψ₂_x.a_ne_zero E F).mp $ ψ₂_x.splits K,
-    a  := h.some,
-    b  := h.some_spec.some,
-    c  := h.some_spec.some_spec.some,
-    h3 := h.some_spec.some_spec.some_spec in
 if ha : x = a then
-  (quot.mk _ $ units.mk0 ((a - c) * (a - b)⁻¹) $
-    mul_ne_zero (by simpa only [sub_ne_zero] using (ψ₂_x.roots_ne h3).2.1) $
-      inv_ne_zero $ by simpa only [sub_ne_zero] using (ψ₂_x.roots_ne h3).1,
-    quot.mk _ $ units.mk0 (a - b) $ by simpa only [sub_ne_zero] using (ψ₂_x.roots_ne h3).1)
+  (units.mk0 ((a - c) * (a - b)⁻¹) $ mul_ne_zero (sub_ne_zero.mpr (ψ₂_x.roots_ne h3).2.1) $
+    inv_ne_zero $ sub_ne_zero.mpr (ψ₂_x.roots_ne h3).1,
+  units.mk0 (a - b) $ sub_ne_zero.mpr (ψ₂_x.roots_ne h3).1)
 else if hb : x = b then
-  (quot.mk _ $ units.mk0 (b - a) $ by simpa only [sub_ne_zero] using (ψ₂_x.roots_ne h3).1.symm,
-    quot.mk _ $ units.mk0 ((b - c) * (b - a)⁻¹) $
-      mul_ne_zero (by simpa only [sub_ne_zero] using (ψ₂_x.roots_ne h3).2.2) $
-        inv_ne_zero $ by simpa only [sub_ne_zero] using (ψ₂_x.roots_ne h3).1.symm)
+  (units.mk0 (b - a) $ sub_ne_zero.mpr (ψ₂_x.roots_ne h3).1.symm,
+  units.mk0 ((b - c) * (b - a)⁻¹) $ mul_ne_zero (sub_ne_zero.mpr (ψ₂_x.roots_ne h3).2.2) $
+    inv_ne_zero $ sub_ne_zero.mpr (ψ₂_x.roots_ne h3).1.symm)
 else
-  (quot.mk _ $ units.mk0 (x - a) $ by simpa only [sub_ne_zero],
-    quot.mk _ $ units.mk0 (x - b) $ by simpa only [sub_ne_zero])
+  (units.mk0 (x - a) $ sub_ne_zero.mpr ha, units.mk0 (x - b) $ sub_ne_zero.mpr hb)
+
+omit ha₁ ha₃ h3
 
 /-- `δ` respects zero. -/
-lemma δ.map_zero : δ.to_fun ha₁ ha₃ (0 : E⟮K⟯) = 1 := rfl
+lemma δ.map_zero : δ.to_fun ha₁ ha₃ h3 (0 : E⟮K⟯) = 1 := rfl
 
 -- Input: explicit computation
 /-- `δ` respects addition. -/
-lemma δ.map_add (P Q : E⟮K⟯) : δ.to_fun ha₁ ha₃ (P + Q) = δ.to_fun ha₁ ha₃ P * δ.to_fun ha₁ ha₃ Q :=
+lemma δ.map_add (P Q : E⟮K⟯) :
+  δ.to_fun ha₁ ha₃ h3 (P + Q) = δ.to_fun ha₁ ha₃ h3 P * δ.to_fun ha₁ ha₃ h3 Q :=
 begin
   sorry
 end
 
 /-- The complete 2-descent homomorphism `δ : E(K) → Kˣ/(Kˣ)² × Kˣ/(Kˣ)²`. -/
 def δ : E⟮K⟯ →+ additive ((Kˣ ⧸ (2⬝K)) × (Kˣ ⧸ (2⬝K))) :=
-⟨δ.to_fun ha₁ ha₃, δ.map_zero ha₁ ha₃, δ.map_add ha₁ ha₃⟩
+⟨δ.to_fun ha₁ ha₃ h3, δ.map_zero ha₁ ha₃ h3, δ.map_add ha₁ ha₃ h3⟩
 
 -- Input: constructive proof
 /-- `ker δ = 2E(K)`. -/
-lemma δ.ker : (δ ha₁ ha₃).ker = E⟮K⟯⬝2 :=
+lemma δ.ker : (δ ha₁ ha₃ h3).ker = E⟮K⟯⬝2 :=
 begin
-  sorry
+  ext P,
+  split,
+  { intro hP,
+    cases P with x y w,
+    { exact ⟨0, rfl⟩ },
+    { change δ.to_fun ha₁ ha₃ h3 _ = 1 at hP,
+      simp only [δ.to_fun] at hP,
+      split_ifs at hP,
+      { sorry },
+      { sorry },
+      { sorry } } },
+  { rintro ⟨Q, hQ⟩,
+    rw [← hQ],
+    change δ ha₁ ha₃ h3 (2 • Q) = 0,
+    rw [map_nsmul],
+    change ((δ ha₁ ha₃ h3 Q).1 ^ 2, (δ ha₁ ha₃ h3 Q).2 ^ 2) = 1,
+    apply prod.ext,
+    all_goals { rw [← quotient_group.out_eq' (δ ha₁ ha₃ h3 Q).1,
+                    ← quotient_group.out_eq' (δ ha₁ ha₃ h3 Q).2],
+                exact (quotient_group.eq_one_iff _).mpr ⟨quot.out _, rfl⟩ }
+  }
 end
 
 -- Input: local analysis
 /-- `im δ ≤ K(E; 2) × K(E; 2)`. -/
-lemma δ.range_le : (quotient_add_group.ker_lift (δ ha₁ ha₃ : E⟮K⟯ →+ _)).range ≤ K⟮E; 2⟯² :=
+lemma δ.range_le : (quotient_add_group.ker_lift (δ ha₁ ha₃ h3 : E⟮K⟯ →+ _)).range ≤ K⟮E; 2⟯² :=
 begin
   sorry
 end
 
 /-- The lift `δ' : E(K)/2E(K) → K(E; 2) × K(E; 2)` of `δ`. -/
 def δ.lift : (E⟮K⟯/2) →+ K⟮E; 2⟯² :=
-(add_subgroup.inclusion $ δ.range_le ha₁ ha₃).comp $
-  (quotient_add_group.ker_lift (δ ha₁ ha₃ : E⟮K⟯ →+ _)).range_restrict.comp
-  (quotient_add_group.equiv_quotient_of_eq $ δ.ker ha₁ ha₃).symm.to_add_monoid_hom
+(add_subgroup.inclusion $ δ.range_le ha₁ ha₃ h3).comp $
+  (quotient_add_group.ker_lift (δ ha₁ ha₃ h3 : E⟮K⟯ →+ _)).range_restrict.comp
+  (quotient_add_group.equiv_quotient_of_eq $ δ.ker ha₁ ha₃ h3).symm.to_add_monoid_hom
 
 /-- `δ'` is injective. -/
-lemma δ.lift.injective : function.injective $ @δ.lift _ _ _ K _ _ _ _ _ ha₁ ha₃ :=
+lemma δ.lift.injective : function.injective $ @δ.lift _ _ _ K _ _ _ _ _ ha₁ ha₃ _ _ _ h3 :=
 begin
   apply function.injective.comp,
   { intros x y hxy,
@@ -273,7 +289,7 @@ begin
     rw [← set_like.coe_eq_coe, add_monoid_hom.coe_range_restrict,
         add_monoid_hom.coe_range_restrict] at hxy,
     revert x y hxy,
-    exact quotient_add_group.ker_lift_injective (δ ha₁ ha₃) },
+    exact quotient_add_group.ker_lift_injective (δ ha₁ ha₃ h3) },
   simp only,
   { intros x y hxy,
     rw [add_equiv.coe_to_add_monoid_hom, add_equiv.apply_eq_iff_eq] at hxy,
@@ -303,7 +319,9 @@ instance : is_galois F F⟮E[2]⟯ := ⟨⟩
 /-- The weak Mordell-Weil theorem for `n = 2` assuming `E[2] ⊂ E(F)`: `E(F)/2E(F)` is finite. -/
 def coker_2_of_rat_E₂.fintype (ha₁ : E.a₁ = 0) (ha₃ : E.a₃ = 0) : fintype E⟮F⟮E[2]⟯⟯/2 :=
 @fintype.of_injective _ _ (@K_S_n.fintype' F⟮E[2]⟯ _ (@bad_primes _ _ E F⟮E[2]⟯ _ _ 2) 2 _) _ $
-  @δ.lift.injective _ _ E F⟮E[2]⟯ _ _ _ _ _ ha₁ ha₃
+  @δ.lift.injective _ _ E F⟮E[2]⟯ _ _ _ _ _ ha₁ ha₃ _ _ _ $
+  ((cubic.splits_iff_roots_eq_three $ ψ₂_x.a_ne_zero E F).mp $ ψ₂_x.splits F⟮E[2]⟯)
+    .some_spec.some_spec.some_spec
 
 /-- The weak Mordell-Weil theorem for `n = 2`: `E(F)/2E(F)` is finite. -/
 instance : fintype E⟮F⟯/2 :=

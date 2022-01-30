@@ -120,55 +120,54 @@ lemma dbl_weierstrass
   y' ^ 2 + (F↑K)E.a₁ * x' * y' + (F↑K)E.a₃ * y'
     = x' ^ 3 + (F↑K)E.a₂ * x' ^ 2 + (F↑K)E.a₄ * x' + (F↑K)E.a₆ :=
 begin
-  -- rewrite Weierstrass equation as w(x, y) = 0
-  rw [← sub_eq_zero] at w,
   -- rewrite y
-  have y_rw :
-    y' ^ 2 + (F↑K)E.a₁ * x' * y' + (F↑K)E.a₃ * y'
-      = x' ^ 2 * (l ^ 2 + (F↑K)E.a₁ * l)
-      + x' * (-2 * x * l ^ 2 - (F↑K)E.a₁ * x * l + 2 * y * l + (F↑K)E.a₃ * l + (F↑K)E.a₁ * y)
-      + (x ^ 2 * l ^ 2 - 2 * x * y * l - (F↑K)E.a₃ * x * l + y ^ 2 + (F↑K)E.a₃ * y) :=
-  by { rw [y_def], ring1 },
+  have y_rw : ∀ a₁ a₃ x' l : K,
+    (-l * x' - a₁ * x' - y + l * x - a₃) ^ 2
+      + a₁ * x' * (-l * x' - a₁ * x' - y + l * x - a₃)
+      + a₃ * (-l * x' - a₁ * x' - y + l * x - a₃)
+      = x' ^ 2 * (l ^ 2 + a₁ * l)
+      + x' * (-2 * x * l ^ 2 - a₁ * x * l + 2 * y * l + a₃ * l + a₁ * y)
+      + (x ^ 2 * l ^ 2 - 2 * x * y * l - a₃ * x * l + y ^ 2 + a₃ * y) :=
+  by { intros, ring1 },
   -- rewrite x
-  have x_rw :
-    x' ^ 2 * (l ^ 2 + (F↑K)E.a₁ * l)
-      + x' * (-2 * x * l ^ 2 - (F↑K)E.a₁ * x * l + 2 * y * l + (F↑K)E.a₃ * l + (F↑K)E.a₁ * y)
-      + (x ^ 2 * l ^ 2 - 2 * x * y * l - (F↑K)E.a₃ * x * l + y ^ 2 + (F↑K)E.a₃ * y)
-      - (x' ^ 3 + (F↑K)E.a₂ * x' ^ 2 + (F↑K)E.a₄ * x' + (F↑K)E.a₆)
-      = l * (l * (l * (2 * y + (F↑K)E.a₁ * x + (F↑K)E.a₃)
-                  + (-3 * x ^ 2 + (F↑K)E.a₁ ^ 2 * x - 2 * (F↑K)E.a₂ * x + 3 * (F↑K)E.a₁ * y
-                     + (F↑K)E.a₁ * (F↑K)E.a₃ - (F↑K)E.a₄))
-             + (-6 * (F↑K)E.a₁ * x ^ 2 - 6 * x * y - 3 * (F↑K)E.a₁ * (F↑K)E.a₂ * x
-                - 3 * (F↑K)E.a₃ * x + (F↑K)E.a₁ ^ 2 * y - 2 * (F↑K)E.a₂ * y - (F↑K)E.a₁ * (F↑K)E.a₄
-                - (F↑K)E.a₂ * (F↑K)E.a₃))
-        + (8 * x ^ 3 + 8 * (F↑K)E.a₂ * x ^ 2 - 2 * (F↑K)E.a₁ * x * y + y ^ 2 + 2 * (F↑K)E.a₂ ^ 2 * x
-           + 2 * (F↑K)E.a₄ * x - (F↑K)E.a₁ * (F↑K)E.a₂ * y + (F↑K)E.a₃ * y + (F↑K)E.a₂ * (F↑K)E.a₄
-           - (F↑K)E.a₆) :=
-  by { rw [x_def], ring1 },
+  have x_rw : ∀ a₁ a₂ a₃ a₄ a₆ l : K,
+    (l ^ 2 + a₁ * l - a₂ - 2 * x) ^ 2 * (l ^ 2 + a₁ * l)
+      + (l ^ 2 + a₁ * l - a₂ - 2 * x) * (-2 * x * l ^ 2 - a₁ * x * l + 2 * y * l + a₃ * l + a₁ * y)
+      + (x ^ 2 * l ^ 2 - 2 * x * y * l - a₃ * x * l + y ^ 2 + a₃ * y)
+      - ((l ^ 2 + a₁ * l - a₂ - 2 * x) ^ 3 + a₂ * (l ^ 2 + a₁ * l - a₂ - 2 * x) ^ 2
+         + a₄ * (l ^ 2 + a₁ * l - a₂ - 2 * x) + a₆)
+      = l * (l * (l * (2 * y + a₁ * x + a₃)
+                  + (-3 * x ^ 2 + a₁ ^ 2 * x - 2 * a₂ * x + 3 * a₁ * y + a₁ * a₃ - a₄))
+             + (-6 * a₁ * x ^ 2 - 6 * x * y - 3 * a₁ * a₂ * x - 3 * a₃ * x + a₁ ^ 2 * y - 2 * a₂ * y
+                - a₁ * a₄ - a₂ * a₃))
+        + (8 * x ^ 3 + 8 * a₂ * x ^ 2 - 2 * a₁ * x * y + y ^ 2 + 2 * a₂ ^ 2 * x + 2 * a₄ * x
+           - a₁ * a₂ * y + a₃ * y + a₂ * a₄ - a₆) :=
+  by { intros, ring1 },
   -- rewrite l step 1
-  have l_rw_1 :
-    l * (2 * y + (F↑K)E.a₁ * x + (F↑K)E.a₃)
-      + (-3 * x ^ 2 + (F↑K)E.a₁ ^ 2 * x - 2 * (F↑K)E.a₂ * x + 3 * (F↑K)E.a₁ * y
-         + (F↑K)E.a₁ * (F↑K)E.a₃ - (F↑K)E.a₄)
-      = (2 * y + (F↑K)E.a₁ * x + (F↑K)E.a₃) * (F↑K)E.a₁ :=
-  by { rw [l_def, inv_mul_cancel_right₀ y_ne], ring1 },
+  have l_rw_1 : ∀ {a₁ a₂ a₃ a₄ : K} (h_ne : 2 * y + a₁ * x + a₃ ≠ 0),
+    (3 * x ^ 2 + 2 * a₂ * x + a₄ - a₁ * y) * (2 * y + a₁ * x + a₃)⁻¹ * (2 * y + a₁ * x + a₃)
+      + (-3 * x ^ 2 + a₁ ^ 2 * x - 2 * a₂ * x + 3 * a₁ * y + a₁ * a₃ - a₄)
+      = (2 * y + a₁ * x + a₃) * a₁ :=
+  by { intros, rw [inv_mul_cancel_right₀ h_ne], ring1 },
   -- rewrite l step 2
-  have l_rw_2 :
-    l * ((2 * y + (F↑K)E.a₁ * x + (F↑K)E.a₃) * (F↑K)E.a₁)
-      + (-6 * (F↑K)E.a₁ * x ^ 2 - 6 * x * y - 3 * (F↑K)E.a₁ * (F↑K)E.a₂ * x - 3 * (F↑K)E.a₃ * x
-         + (F↑K)E.a₁ ^ 2 * y - 2 * (F↑K)E.a₂ * y - (F↑K)E.a₁ * (F↑K)E.a₄ - (F↑K)E.a₂ * (F↑K)E.a₃)
-      = (2 * y + (F↑K)E.a₁ * x + (F↑K)E.a₃) * (-3 * x - (F↑K)E.a₂) :=
-  by { rw [← mul_assoc l, l_def, inv_mul_cancel_right₀ y_ne], ring1 },
+  have l_rw_2 : ∀ {a₁ a₂ a₃ a₄ : K} (h_ne : 2 * y + a₁ * x + a₃ ≠ 0),
+    (3 * x ^ 2 + 2 * a₂ * x + a₄ - a₁ * y) * (2 * y + a₁ * x + a₃)⁻¹ * ((2 * y + a₁ * x + a₃) * a₁)
+      + (-6 * a₁ * x ^ 2 - 6 * x * y - 3 * a₁ * a₂ * x - 3 * a₃ * x + a₁ ^ 2 * y - 2 * a₂ * y
+         - a₁ * a₄ - a₂ * a₃)
+      = (2 * y + a₁ * x + a₃) * (-3 * x - a₂) :=
+  by { intros, rw [← mul_assoc, inv_mul_cancel_right₀ h_ne], ring1 },
   -- rewrite l step 3
-  have l_rw_3 :
-    l * ((2 * y + (F↑K)E.a₁ * x + (F↑K)E.a₃) * (-3 * x - (F↑K)E.a₂))
-      + (8 * x ^ 3 + 8 * (F↑K)E.a₂ * x ^ 2 - 2 * (F↑K)E.a₁ * x * y + y ^ 2 + 2 * (F↑K)E.a₂ ^ 2 * x
-         + 2 * (F↑K)E.a₄ * x - (F↑K)E.a₁ * (F↑K)E.a₂ * y + (F↑K)E.a₃ * y + (F↑K)E.a₂ * (F↑K)E.a₄
-         - (F↑K)E.a₆)
+  have l_rw_3 : ∀ {a₁ a₂ a₃ a₄ a₆ : K} (h_ne : 2 * y + a₁ * x + a₃ ≠ 0)
+    (h : y ^ 2 + a₁ * x * y + a₃ * y = x ^ 3 + a₂ * x ^ 2 + a₄ * x + a₆),
+    (3 * x ^ 2 + 2 * a₂ * x + a₄ - a₁ * y) * (2 * y + a₁ * x + a₃)⁻¹
+      * ((2 * y + a₁ * x + a₃) * (-3 * x - a₂))
+      + (8 * x ^ 3 + 8 * a₂ * x ^ 2 - 2 * a₁ * x * y + y ^ 2 + 2 * a₂ ^ 2 * x + 2 * a₄ * x
+         - a₁ * a₂ * y + a₃ * y + a₂ * a₄ - a₆)
       = 0 :=
-  by { rw [← mul_assoc l, l_def, inv_mul_cancel_right₀ y_ne, ← w], ring1 },
-  -- rewrite Weierstrass equation as w'(x', y') = 0 and sequence steps
-  rw [← sub_eq_zero, y_rw, x_rw, l_rw_1, l_rw_2, l_rw_3]
+  by { intros, rw [← mul_assoc, inv_mul_cancel_right₀ h_ne, ← sub_eq_zero.mpr h], ring1 },
+  -- sequence steps
+  rw [y_def, x_def, l_def, ← sub_eq_zero, y_rw, x_rw, l_rw_1, l_rw_2, l_rw_3],
+  all_goals { assumption }
 end
 
 omit w
@@ -228,82 +227,84 @@ lemma add_weierstrass
   y₃ ^ 2 + (F↑K)E.a₁ * x₃ * y₃ + (F↑K)E.a₃ * y₃
     = x₃ ^ 3 + (F↑K)E.a₂ * x₃ ^ 2 + (F↑K)E.a₄ * x₃ + (F↑K)E.a₆ :=
 begin
-  -- rewrite Weierstrass equations as w₁(x₁, y₁) = 0 and w₂(x₂, y₂) = 0
-  rw [← sub_eq_zero] at w₁ w₂,
   -- rewrite y
-  have y_rw :
-    y₃ ^ 2 + (F↑K)E.a₁ * x₃ * y₃ + (F↑K)E.a₃ * y₃
-      = x₃ ^ 2 * (l ^ 2 + (F↑K)E.a₁ * l)
-      + x₃ * (-2 * x₁ * l ^ 2 - (F↑K)E.a₁ * x₁ * l + 2 * y₁ * l + (F↑K)E.a₃ * l + (F↑K)E.a₁ * y₁)
-      + (x₁ ^ 2 * l ^ 2 - 2 * x₁ * y₁ * l - (F↑K)E.a₃ * x₁ * l + y₁ ^ 2 + (F↑K)E.a₃ * y₁) :=
-  by { rw [y_def], ring1 },
+  have y_rw : ∀ a₁ a₃ x₃ l : K,
+    (-l * x₃ - a₁ * x₃ - y₁ + l * x₁ - a₃) ^ 2
+      + a₁ * x₃ * (-l * x₃ - a₁ * x₃ - y₁ + l * x₁ - a₃)
+      + a₃ * (-l * x₃ - a₁ * x₃ - y₁ + l * x₁ - a₃)
+      = x₃ ^ 2 * (l ^ 2 + a₁ * l)
+      + x₃ * (-2 * x₁ * l ^ 2 - a₁ * x₁ * l + 2 * y₁ * l + a₃ * l + a₁ * y₁)
+      + (x₁ ^ 2 * l ^ 2 - 2 * x₁ * y₁ * l - a₃ * x₁ * l + y₁ ^ 2 + a₃ * y₁) :=
+  by { intros, ring1 },
   -- rewrite x
-  have x_rw :
-    x₃ ^ 2 * (l ^ 2 + (F↑K)E.a₁ * l)
-      + x₃ * (-2 * x₁ * l ^ 2 - (F↑K)E.a₁ * x₁ * l + 2 * y₁ * l + (F↑K)E.a₃ * l + (F↑K)E.a₁ * y₁)
-      + (x₁ ^ 2 * l ^ 2 - 2 * x₁ * y₁ * l - (F↑K)E.a₃ * x₁ * l + y₁ ^ 2 + (F↑K)E.a₃ * y₁)
-      - (x₃ ^ 3 + (F↑K)E.a₂ * x₃ ^ 2 + (F↑K)E.a₄ * x₃ + (F↑K)E.a₆)
-      = l * (l * (l * (l * (x₁ - x₂) * (-1)
-                       + (-(F↑K)E.a₁ * x₁ + 2 * (F↑K)E.a₁ * x₂ + 2 * y₁ + (F↑K)E.a₃))
-                  + (x₁ ^ 2 - 2 * x₁ * x₂ - 2 * x₂ ^ 2 + (F↑K)E.a₁ ^ 2 * x₂ - 2 * (F↑K)E.a₂ * x₂
-                     + 3 * (F↑K)E.a₁ * y₁ + (F↑K)E.a₁ * (F↑K)E.a₃ - (F↑K)E.a₄))
-             + (-(F↑K)E.a₁ * x₁ ^ 2 - 3 * (F↑K)E.a₁ * x₁ * x₂ - 4 * x₁ * y₁ - 2 * (F↑K)E.a₁ * x₂ ^ 2
-                - 2 * x₂ * y₁ - (F↑K)E.a₁ * (F↑K)E.a₂ * x₁ - 2 * (F↑K)E.a₃ * x₁
-                - 2 * (F↑K)E.a₁ * (F↑K)E.a₂ * x₂ - (F↑K)E.a₃ * x₂ + (F↑K)E.a₁ ^ 2 * y₁
-                - 2 * (F↑K)E.a₂ * y₁ - (F↑K)E.a₁ * (F↑K)E.a₄ - (F↑K)E.a₂ * (F↑K)E.a₃))
-        + (x₁ ^ 3 + 3 * x₁ ^ 2 * x₂ + 3 * x₁ * x₂ ^ 2 + x₂ ^ 3 + 2 * (F↑K)E.a₂ * x₁ ^ 2
-           + 4 * (F↑K)E.a₂ * x₁ * x₂ - (F↑K)E.a₁ * x₁ * y₁ + 2 * (F↑K)E.a₂ * x₂ ^ 2
-           - (F↑K)E.a₁ * x₂ * y₁ + y₁ ^ 2 + (F↑K)E.a₂ ^ 2 * x₁ + (F↑K)E.a₄ * x₁ + (F↑K)E.a₂ ^ 2 * x₂
-           + (F↑K)E.a₄ * x₂ - (F↑K)E.a₁ * (F↑K)E.a₂ * y₁ + (F↑K)E.a₃ * y₁ + (F↑K)E.a₂ * (F↑K)E.a₄
-           - (F↑K)E.a₆) :=
-  by { rw [x_def], ring1 },
+  have x_rw : ∀ a₁ a₂ a₃ a₄ a₆ l : K,
+    (l ^ 2 + a₁ * l - a₂ - x₁ - x₂) ^ 2 * (l ^ 2 + a₁ * l)
+      + (l ^ 2 + a₁ * l - a₂ - x₁ - x₂)
+      * (-2 * x₁ * l ^ 2 - a₁ * x₁ * l + 2 * y₁ * l + a₃ * l + a₁ * y₁)
+      + (x₁ ^ 2 * l ^ 2 - 2 * x₁ * y₁ * l - a₃ * x₁ * l + y₁ ^ 2 + a₃ * y₁)
+      - ((l ^ 2 + a₁ * l - a₂ - x₁ - x₂) ^ 3 + a₂ * (l ^ 2 + a₁ * l - a₂ - x₁ - x₂) ^ 2
+         + a₄ * (l ^ 2 + a₁ * l - a₂ - x₁ - x₂) + a₆)
+      = l * (l * (l * (l * (x₁ - x₂) * -1
+                       + (-a₁ * x₁ + 2 * a₁ * x₂ + 2 * y₁ + a₃))
+                  + (x₁ ^ 2 - 2 * x₁ * x₂ - 2 * x₂ ^ 2 + a₁ ^ 2 * x₂ - 2 * a₂ * x₂ + 3 * a₁ * y₁
+                     + a₁ * a₃ - a₄))
+             + (-a₁ * x₁ ^ 2 - 3 * a₁ * x₁ * x₂ - 4 * x₁ * y₁ - 2 * a₁ * x₂ ^ 2 - 2 * x₂ * y₁
+                - a₁ * a₂ * x₁ - 2 * a₃ * x₁ - 2 * a₁ * a₂ * x₂ - a₃ * x₂ + a₁ ^ 2 * y₁
+                - 2 * a₂ * y₁ - a₁ * a₄ - a₂ * a₃))
+        + (x₁ ^ 3 + 3 * x₁ ^ 2 * x₂ + 3 * x₁ * x₂ ^ 2 + x₂ ^ 3 + 2 * a₂ * x₁ ^ 2 + 4 * a₂ * x₁ * x₂
+           - a₁ * x₁ * y₁ + 2 * a₂ * x₂ ^ 2 - a₁ * x₂ * y₁ + y₁ ^ 2 + a₂ ^ 2 * x₁ + a₄ * x₁
+           + a₂ ^ 2 * x₂ + a₄ * x₂ - a₁ * a₂ * y₁ + a₃ * y₁ + a₂ * a₄ - a₆) :=
+  by { intros, ring1 },
   -- rewrite l auxiliary tactic
-  have l_rw : ∀ a b c : K, l * a + b = c ↔ (y₁ - y₂) * a + (x₁ - x₂) * b + 0 = (x₁ - x₂) * c + 0 :=
-  by { intros, rw [← mul_right_inj' $ sub_ne_zero.mpr x_ne, mul_add (x₁ - x₂),
-                   ← mul_assoc (x₁ - x₂) l, mul_comm (x₁ - x₂) l, l_def,
-                   inv_mul_cancel_right₀ $ sub_ne_zero.mpr x_ne, ← add_left_inj (0 : K)] },
+  have l_rw : ∀ {a b c : K} (h : x₁ ≠ x₂),
+    (y₁ - y₂) * (x₁ - x₂)⁻¹ * a + b = c ↔ (y₁ - y₂) * a + (x₁ - x₂) * b + 0 = (x₁ - x₂) * c + 0 :=
+  by { intros, rw [← mul_right_inj' $ sub_ne_zero.mpr h, mul_add, ← mul_assoc, mul_comm (x₁ - x₂),
+                   inv_mul_cancel_right₀ $ sub_ne_zero.mpr h, ← add_left_inj] },
   -- rewrite l step 1
-  have l_rw_1 :
-    l * (x₁ - x₂) * (-1) + (-(F↑K)E.a₁ * x₁ + 2 * (F↑K)E.a₁ * x₂ + 2 * y₁ + (F↑K)E.a₃)
-      = -(F↑K)E.a₁ * x₁ + 2 * (F↑K)E.a₁ * x₂ + 2 * y₁ + (F↑K)E.a₃ - y₁ + y₂ :=
-  by { rw [l_def, inv_mul_cancel_right₀ $ sub_ne_zero.mpr x_ne], ring1 },
+  have l_rw_1 : ∀ {a₁ a₃ : K} (h : x₁ ≠ x₂),
+    (y₁ - y₂) * (x₁ - x₂)⁻¹ * (x₁ - x₂) * -1 + (-a₁ * x₁ + 2 * a₁ * x₂ + 2 * y₁ + a₃)
+      = -a₁ * x₁ + 2 * a₁ * x₂ + 2 * y₁ + a₃ - y₁ + y₂ :=
+  by { intros, rw [inv_mul_cancel_right₀ $ sub_ne_zero.mpr h], ring1 },
   -- rewrite l step 2
-  have l_rw_2 :
-    l * (-(F↑K)E.a₁ * x₁ + 2 * (F↑K)E.a₁ * x₂ + 2 * y₁ + (F↑K)E.a₃ - y₁ + y₂)
-      + (x₁ ^ 2 - 2 * x₁ * x₂ - 2 * x₂ ^ 2 + (F↑K)E.a₁ ^ 2 * x₂ - 2 * (F↑K)E.a₂ * x₂
-         + 3 * (F↑K)E.a₁ * y₁ + (F↑K)E.a₁ * (F↑K)E.a₃ - (F↑K)E.a₄)
-      = 2 * x₁ ^ 2 - x₁ * x₂ - x₂ ^ 2 + (F↑K)E.a₂ * x₁ + (F↑K)E.a₁ ^ 2 * x₂ + (F↑K)E.a₂ * x₂
-      - 2 * (F↑K)E.a₂ * x₂ + (F↑K)E.a₁ * y₁ + (F↑K)E.a₁ * y₂ + (F↑K)E.a₁ * (F↑K)E.a₃ :=
-  by { rw [l_rw], nth_rewrite_rhs 0 [← w₁], nth_rewrite_lhs 0 [← w₂], ring1 },
+  have l_rw_2 : ∀ {a₁ a₂ a₃ a₄ a₆ : K} (h_ne : x₁ ≠ x₂)
+    (h₁ : y₁ ^ 2 + a₁ * x₁ * y₁ + a₃ * y₁ = x₁ ^ 3 + a₂ * x₁ ^ 2 + a₄ * x₁ + a₆)
+    (h₂ : y₂ ^ 2 + a₁ * x₂ * y₂ + a₃ * y₂ = x₂ ^ 3 + a₂ * x₂ ^ 2 + a₄ * x₂ + a₆),
+    (y₁ - y₂) * (x₁ - x₂)⁻¹ * (-a₁ * x₁ + 2 * a₁ * x₂ + 2 * y₁ + a₃ - y₁ + y₂)
+      + (x₁ ^ 2 - 2 * x₁ * x₂ - 2 * x₂ ^ 2 + a₁ ^ 2 * x₂ - 2 * a₂ * x₂ + 3 * a₁ * y₁ + a₁ * a₃ - a₄)
+      = 2 * x₁ ^ 2 - x₁ * x₂ - x₂ ^ 2 + a₂ * x₁ + a₁ ^ 2 * x₂ + a₂ * x₂ - 2 * a₂ * x₂ + a₁ * y₁
+        + a₁ * y₂ + a₁ * a₃ :=
+  by { intros, rw [l_rw h_ne], nth_rewrite_rhs 0 [← sub_eq_zero.mpr h₁],
+       nth_rewrite_lhs 0 [← sub_eq_zero.mpr h₂], ring1 },
   -- rewrite l step 3
-  have l_rw_3 :
-    l * (2 * x₁ ^ 2 - x₁ * x₂ - x₂ ^ 2 + (F↑K)E.a₂ * x₁ + (F↑K)E.a₁ ^ 2 * x₂ + (F↑K)E.a₂ * x₂
-         - 2 * (F↑K)E.a₂ * x₂ + (F↑K)E.a₁ * y₁ + (F↑K)E.a₁ * y₂ + (F↑K)E.a₁ * (F↑K)E.a₃)
-      + (-(F↑K)E.a₁ * x₁ ^ 2 - 3 * (F↑K)E.a₁ * x₁ * x₂ - 4 * x₁ * y₁ - 2 * (F↑K)E.a₁ * x₂ ^ 2
-         - 2 * x₂ * y₁ - (F↑K)E.a₁ * (F↑K)E.a₂ * x₁ - 2 * (F↑K)E.a₃ * x₁
-         - 2 * (F↑K)E.a₁ * (F↑K)E.a₂ * x₂ - (F↑K)E.a₃ * x₂ + (F↑K)E.a₁ ^ 2 * y₁ - 2 * (F↑K)E.a₂ * y₁
-         - (F↑K)E.a₁ * (F↑K)E.a₄ - (F↑K)E.a₂ * (F↑K)E.a₃)
-      = -2 * (F↑K)E.a₁ * x₁ * x₂ - 2 * x₁ * y₁ - 2 * x₁ * y₂ - (F↑K)E.a₁ * x₂ ^ 2 - x₂ * y₁
-        - x₂ * y₂ - 2 * (F↑K)E.a₃ * x₁ - (F↑K)E.a₁ * (F↑K)E.a₂ * x₂ - (F↑K)E.a₃ * x₂
-        - (F↑K)E.a₂ * y₁ - (F↑K)E.a₂ * y₂ - (F↑K)E.a₂ * (F↑K)E.a₃ :=
-  by { apply_fun ((*) ((F↑K)E.a₁)) at w₁ w₂, rw [mul_zero] at w₁ w₂, rw [l_rw],
-       nth_rewrite_rhs 0 [← w₁], nth_rewrite_lhs 0 [← w₂], ring1 },
+  have l_rw_3 : ∀ {a₁ a₂ a₃ a₄ a₆ : K} (h_ne : x₁ ≠ x₂)
+    (h₁ : y₁ ^ 2 + a₁ * x₁ * y₁ + a₃ * y₁ = x₁ ^ 3 + a₂ * x₁ ^ 2 + a₄ * x₁ + a₆)
+    (h₂ : y₂ ^ 2 + a₁ * x₂ * y₂ + a₃ * y₂ = x₂ ^ 3 + a₂ * x₂ ^ 2 + a₄ * x₂ + a₆),
+    (y₁ - y₂) * (x₁ - x₂)⁻¹ * (2 * x₁ ^ 2 - x₁ * x₂ - x₂ ^ 2 + a₂ * x₁ + a₁ ^ 2 * x₂ + a₂ * x₂
+                               - 2 * a₂ * x₂ + a₁ * y₁ + a₁ * y₂ + a₁ * a₃)
+      + (-a₁ * x₁ ^ 2 - 3 * a₁ * x₁ * x₂ - 4 * x₁ * y₁ - 2 * a₁ * x₂ ^ 2 - 2 * x₂ * y₁
+         - a₁ * a₂ * x₁ - 2 * a₃ * x₁ - 2 * a₁ * a₂ * x₂ - a₃ * x₂ + a₁ ^ 2 * y₁ - 2 * a₂ * y₁
+         - a₁ * a₄ - a₂ * a₃)
+      = -2 * a₁ * x₁ * x₂ - 2 * x₁ * y₁ - 2 * x₁ * y₂ - a₁ * x₂ ^ 2 - x₂ * y₁ - x₂ * y₂
+        - 2 * a₃ * x₁ - a₁ * a₂ * x₂ - a₃ * x₂ - a₂ * y₁ - a₂ * y₂ - a₂ * a₃ :=
+  by { intros, rw [l_rw h_ne], apply_fun ((*) a₁) at h₁ h₂,
+       nth_rewrite_rhs 0 [← sub_eq_zero.mpr h₁], nth_rewrite_lhs 0 [← sub_eq_zero.mpr h₂], ring1 },
   -- rewrite l step 4
-  have l_rw_4 :
-    l * (-2 * (F↑K)E.a₁ * x₁ * x₂ - 2 * x₁ * y₁ - 2 * x₁ * y₂ - (F↑K)E.a₁ * x₂ ^ 2 - x₂ * y₁
-         - x₂ * y₂ - 2 * (F↑K)E.a₃ * x₁ - (F↑K)E.a₁ * (F↑K)E.a₂ * x₂ - (F↑K)E.a₃ * x₂
-         - (F↑K)E.a₂ * y₁ - (F↑K)E.a₂ * y₂ - (F↑K)E.a₂ * (F↑K)E.a₃)
-      + (x₁ ^ 3 + 3 * x₁ ^ 2 * x₂ + 3 * x₁ * x₂ ^ 2 + x₂ ^ 3 + 2 * (F↑K)E.a₂ * x₁ ^ 2
-         + 4 * (F↑K)E.a₂ * x₁ * x₂ - (F↑K)E.a₁ * x₁ * y₁ + 2 * (F↑K)E.a₂ * x₂ ^ 2
-         - (F↑K)E.a₁ * x₂ * y₁ + y₁ ^ 2 + (F↑K)E.a₂ ^ 2 * x₁ + (F↑K)E.a₄ * x₁ + (F↑K)E.a₂ ^ 2 * x₂
-         + (F↑K)E.a₄ * x₂ - (F↑K)E.a₁ * (F↑K)E.a₂ * y₁ + (F↑K)E.a₃ * y₁ + (F↑K)E.a₂ * (F↑K)E.a₄
-         - (F↑K)E.a₆)
+  have l_rw_4 : ∀ {a₁ a₂ a₃ a₄ a₆ : K} (h_ne : x₁ ≠ x₂)
+    (h₁ : y₁ ^ 2 + a₁ * x₁ * y₁ + a₃ * y₁ = x₁ ^ 3 + a₂ * x₁ ^ 2 + a₄ * x₁ + a₆)
+    (h₂ : y₂ ^ 2 + a₁ * x₂ * y₂ + a₃ * y₂ = x₂ ^ 3 + a₂ * x₂ ^ 2 + a₄ * x₂ + a₆),
+    (y₁ - y₂) * (x₁ - x₂)⁻¹ * (-2 * a₁ * x₁ * x₂ - 2 * x₁ * y₁ - 2 * x₁ * y₂ - a₁ * x₂ ^ 2 - x₂ * y₁
+                               - x₂ * y₂ - 2 * a₃ * x₁ - a₁ * a₂ * x₂ - a₃ * x₂ - a₂ * y₁ - a₂ * y₂
+                               - a₂ * a₃)
+      + (x₁ ^ 3 + 3 * x₁ ^ 2 * x₂ + 3 * x₁ * x₂ ^ 2 + x₂ ^ 3 + 2 * a₂ * x₁ ^ 2 + 4 * a₂ * x₁ * x₂
+         - a₁ * x₁ * y₁ + 2 * a₂ * x₂ ^ 2 - a₁ * x₂ * y₁ + y₁ ^ 2 + a₂ ^ 2 * x₁ + a₄ * x₁
+         + a₂ ^ 2 * x₂ + a₄ * x₂ - a₁ * a₂ * y₁ + a₃ * y₁ + a₂ * a₄ - a₆)
       = 0 :=
-  by { apply_fun ((*) (x₁ + 2 * x₂ + (F↑K)E.a₂)) at w₁,
-       apply_fun ((*) (2 * x₁ + x₂ + (F↑K)E.a₂)) at w₂, rw [mul_zero] at w₁ w₂, rw [l_rw],
-       nth_rewrite_lhs 0 [← w₁], nth_rewrite_rhs 1 [← w₂], ring1 },
+  by { intros, rw [l_rw h_ne], apply_fun ((*) (x₁ + 2 * x₂ + a₂)) at h₁,
+       apply_fun ((*) (2 * x₁ + x₂ + a₂)) at h₂, nth_rewrite_lhs 0 [← sub_eq_zero.mpr h₁],
+       nth_rewrite_rhs 1 [← sub_eq_zero.mpr h₂], ring1 },
   -- rewrite Weierstrass equation as w₃(x₃, y₃) = 0 and sequence steps
-  rw [← sub_eq_zero, y_rw, x_rw, l_rw_1, l_rw_2, l_rw_3, l_rw_4]
+  rw [y_def, x_def, l_def, ← sub_eq_zero, y_rw, x_rw, l_rw_1, l_rw_2, l_rw_3, l_rw_4],
+  all_goals { assumption }
 end
 
 /-- For all affine points `(x₁, y₁), (x₂, y₂) ∈ E(K)`,

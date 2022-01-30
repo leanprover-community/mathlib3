@@ -62,10 +62,13 @@ meta def allowed_head_symbols : expr → list name
 | `(@has_le.le ℕ _ 1 _) := [`has_le.le, `has_lt.lt]
 | `(@ge ℕ _ _ 1) := [`has_le.le, `has_lt.lt]
 
--- And then the generic cases:
-| (expr.pi _ _ _ t) := allowed_head_symbols t
+-- These allow `library_search` to search for lemmas of type `¬ a = b` when proving `a ≠ b`
+--   and vice-versa.
 | `(_ ≠ _) := [`false]
 | `(¬ _ = _) := [`ne]
+
+-- And then the generic cases:
+| (expr.pi _ _ _ t) := allowed_head_symbols t
 | (expr.app f _) := allowed_head_symbols f
 | (expr.const n _) := [normalize_synonym n]
 | _ := [`_]

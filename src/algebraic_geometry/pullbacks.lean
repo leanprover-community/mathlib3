@@ -529,8 +529,6 @@ begin
   apply pullback.hom_ext; simp,
 end
 
-omit 𝒰
-
 /-- (Implementation). Use `open_cover_of_base` instead. -/
 def open_cover_of_base' (𝒰 : open_cover Z) (f : X ⟶ Z) (g : Y ⟶ Z) : open_cover (pullback f g) :=
 begin

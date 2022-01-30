@@ -560,9 +560,10 @@ begin
         nnreal.coe_max, subtype.coe_mk, ih] }
 end
 
-lemma finset_sup_le_sum [decidable_eq ι] (p : ι → seminorm 𝕜 E) (s : finset ι) :
+lemma finset_sup_le_sum (p : ι → seminorm 𝕜 E) (s : finset ι) :
   s.sup p ≤ ∑ (i : ι) in s, p i :=
 begin
+  classical,
   refine finset.sup_le_iff.mpr _,
   intros i hi,
   rw [finset.sum_eq_sum_diff_singleton_add hi, le_add_iff_nonneg_left],
@@ -1255,7 +1256,7 @@ namespace seminorm
 
 section filter_basis
 
-variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E] [decidable_eq ι] [inhabited ι]
+variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E]
 
 /-- A filter basis for the neighborhood filter of 0. -/
 def seminorm_basis_zero (p : ι → seminorm 𝕜 E) : set (set E) :=
@@ -1273,13 +1274,15 @@ lemma seminorm_basis_zero_singleton_mem (p : ι → seminorm 𝕜 E) (i : ι) {r
   (p i).ball 0 r ∈ seminorm_basis_zero p :=
 (seminorm_basis_zero_iff _ _).mpr ⟨{i},_,hr, by rw finset.sup_singleton⟩
 
-lemma seminorm_basis_zero_nonempty (p : ι → seminorm 𝕜 E) : (seminorm_basis_zero p).nonempty :=
+lemma seminorm_basis_zero_nonempty (p : ι → seminorm 𝕜 E) [nonempty ι] :
+  (seminorm_basis_zero p).nonempty :=
 begin
-  refine set.nonempty_def.mpr ⟨ball (p (arbitrary ι)) 0 1, _⟩,
-  exact seminorm_basis_zero_singleton_mem _ (arbitrary ι) zero_lt_one,
+  let i := classical.arbitrary ι,
+  refine set.nonempty_def.mpr ⟨ball (p i) 0 1, _⟩,
+  exact seminorm_basis_zero_singleton_mem _ i zero_lt_one,
 end
 
-lemma seminorm_basis_zero_intersect (p : ι → seminorm 𝕜 E)
+lemma seminorm_basis_zero_intersect (p : ι → seminorm 𝕜 E) [decidable_eq ι]
   (U V : set E) (hU : U ∈ seminorm_basis_zero p) (hV : V ∈ seminorm_basis_zero p) :
   (∃ (z : set E) (H : z ∈ (seminorm_basis_zero p)), z ⊆ U ∩ V) :=
 begin
@@ -1335,9 +1338,11 @@ begin
   exact ⟨U, hU', eq.subset hU⟩,
 end
 
+variables [decidable_eq ι] [nonempty ι]
+
 /-- The `add_group_filter_basis` induced by the filter basis `seminorm_basis_zero`. -/
 def seminorm_add_group_filter_basis (p : ι → seminorm 𝕜 E) : add_group_filter_basis E :=
-  add_group_filter_basis_of_comm (seminorm_basis_zero p)
+add_group_filter_basis_of_comm (seminorm_basis_zero p)
   (seminorm_basis_zero_nonempty p)
   (seminorm_basis_zero_intersect p)
   (seminorm_basis_zero_zero p)
@@ -1401,12 +1406,12 @@ variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E] [add_comm_group
 def is_bounded (p : ι → seminorm 𝕜 E) (q : ι' → seminorm 𝕜 F) (f : E →ₗ[𝕜] F) : Prop :=
   ∀ i : ι', ∃ s : finset ι, ∃ C : ℝ≥0, C ≠ 0 ∧ (q i).comp f ≤ C • s.sup p
 
-lemma is_bounded_singleton (ι' : Type*) [inhabited ι']
+lemma is_bounded_singleton (ι' : Type*) [nonempty ι']
   {p : ι → seminorm 𝕜 E} {q : seminorm 𝕜 F} (f : E →ₗ[𝕜] F) :
   is_bounded p (λ _ : ι', q) f ↔ ∃ (s : finset ι) C : ℝ≥0, C ≠ 0 ∧ q.comp f ≤ C • s.sup p :=
 by simp only [is_bounded, forall_const]
 
-lemma singleton_is_bounded (ι : Type*) [inhabited ι]
+lemma singleton_is_bounded (ι : Type*) [nonempty ι]
   {p : seminorm 𝕜 E} {q : ι' → seminorm 𝕜 F} (f : E →ₗ[𝕜] F) :
   is_bounded (λ _ : ι, p) q f ↔ ∀ i : ι', ∃ C : ℝ≥0, C ≠ 0 ∧ (q i).comp f ≤ C • p :=
 begin
@@ -1416,15 +1421,15 @@ begin
     rcases h i with ⟨s, C, hC, h⟩,
     exact ⟨C, hC, le_trans h (smul_le_smul (finset.sup_le (λ _ _, le_rfl)) le_rfl)⟩ },
   intros h i,
-  use [{arbitrary ι}],
+  use [{classical.arbitrary ι}],
   simp only [h, finset.sup_singleton],
 end
 
-lemma is_bounded_sup [decidable_eq ι] [decidable_eq ι']
-  {p : ι → seminorm 𝕜 E} {q : ι' → seminorm 𝕜 F}
+lemma is_bounded_sup {p : ι → seminorm 𝕜 E} {q : ι' → seminorm 𝕜 F}
   {f : E →ₗ[𝕜] F} (hf : is_bounded p q f) (s' : finset ι') :
   ∃ (C : ℝ≥0) (s : finset ι), 0 < C ∧ (s'.sup q).comp f ≤ C • (s.sup p) :=
 begin
+  classical,
   by_cases hs' : ¬s'.nonempty,
   { refine ⟨1, ∅, zero_lt_one, _⟩,
     rw [finset.not_nonempty_iff_eq_empty.mp hs', finset.sup_empty, bot_eq_zero, zero_comp],
@@ -1454,7 +1459,7 @@ end bounded
 section topology
 
 variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E] [add_comm_group F] [module 𝕜 F]
-variables [decidable_eq ι] [inhabited ι] [decidable_eq ι'] [inhabited ι']
+variables [decidable_eq ι] [nonempty ι] [decidable_eq ι'] [nonempty ι']
 
 /-- The proposition that the topology of `E` is induced by a family of seminorms `p`. -/
 class with_seminorms (p : ι → seminorm 𝕜 E) [t : topological_space E] : Prop :=
@@ -1484,9 +1489,9 @@ begin
   exact set.subset_univ _,
 end
 
-lemma continuous_from_bounded [uniform_space E] [uniform_add_group E] [topological_add_group E]
-  [uniform_space F] [uniform_add_group F] [topological_add_group F]
-  (p : ι → seminorm 𝕜 E) (q : ι' → seminorm 𝕜 F) [with_seminorms p] [with_seminorms q]
+lemma continuous_from_bounded (p : ι → seminorm 𝕜 E) (q : ι' → seminorm 𝕜 F)
+  [uniform_space E] [uniform_add_group E] [with_seminorms p]
+  [uniform_space F] [uniform_add_group F] [with_seminorms q]
   (f : E →ₗ[𝕜] F) (hf : is_bounded p q f) : continuous f :=
 begin
   refine uniform_continuous.continuous _,

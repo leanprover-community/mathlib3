@@ -332,6 +332,7 @@ end
 /-- (Implementation)
 The canonical map `(W ×[X] Uᵢ) ×[W] (Uⱼ ×[Z] Y) ⟶ (Uⱼ ×[Z] Y) ×[X] Uᵢ = V j i` where `W` is
 the glued fibred product.
+
 This is used in `lift_comp_ι`. -/
 def pullback_fst_ι_to_V (i j : 𝒰.J) :
   pullback (pullback.fst : pullback (p1 𝒰 f g) (𝒰.map i) ⟶ _) ((gluing 𝒰 f g).ι j) ⟶
@@ -351,6 +352,7 @@ by { delta pullback_fst_ι_to_V, simp }
 /-- We show that the map `W ×[X] Uᵢ ⟶ Uᵢ ×[Z] Y ⟶ W` is the first projection, where the
 first map is given by the lift of `W ×[X] Uᵢ ⟶ Uᵢ` and `W ×[X] Uᵢ ⟶ W ⟶ Y`.
 
+It suffices to show that the two map agrees when restricted onto `Uⱼ ×[Z] Y`. In this case,
 both maps factor through `V j i` via `pullback_fst_ι_to_V` -/
 lemma lift_comp_ι (i : 𝒰.J) : pullback.lift pullback.snd (pullback.fst ≫ p2 𝒰 f g)
   (by rw [← pullback.condition_assoc, category.assoc, p_comm]) ≫

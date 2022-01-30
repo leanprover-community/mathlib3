@@ -673,16 +673,16 @@ begin
   ...    < r   : by rwa mem_ball_zero at hy,
 end
 
-lemma ball_finset_sup_eq_Inter (p : ι → seminorm 𝕜 E) (s : finset ι) (e : E) {r : ℝ} (hr : 0 < r) :
-  ball (s.sup p) e r = ⋂ (i ∈ s), ball (p i) e r :=
+lemma ball_finset_sup_eq_Inter (p : ι → seminorm 𝕜 E) (s : finset ι) (x : E) {r : ℝ} (hr : 0 < r) :
+  ball (s.sup p) x r = ⋂ (i ∈ s), ball (p i) x r :=
 begin
   lift r to nnreal using hr.le,
   simp_rw [ball, Inter_set_of, finset_sup_apply, nnreal.coe_lt_coe,
     finset.sup_lt_iff (show ⊥ < r, from hr), ←nnreal.coe_lt_coe, subtype.coe_mk],
 end
 
-lemma ball_finset_sup (p : ι → seminorm 𝕜 E) (s : finset ι) (e : E) {r : ℝ}
-  (hr : 0 < r) : ball (s.sup p) e r = s.inf (λ i, ball (p i) e r) :=
+lemma ball_finset_sup (p : ι → seminorm 𝕜 E) (s : finset ι) (x : E) {r : ℝ}
+  (hr : 0 < r) : ball (s.sup p) x r = s.inf (λ i, ball (p i) x r) :=
 begin
   rw finset.inf_eq_infi,
   exact ball_finset_sup_eq_Inter _ _ _ hr,
@@ -1316,18 +1316,18 @@ end
 lemma seminorm_basis_zero_add (p : ι → seminorm 𝕜 E) (U) (hU : U ∈ seminorm_basis_zero p) :
   ∃ (V : set E) (H : V ∈ (seminorm_basis_zero p)), V + V ⊆ U :=
 begin
-  rcases (seminorm_basis_zero_iff p U).mp hU with ⟨ι', r, hr, hU⟩,
-  use (ι'.sup p).ball 0 (r/2),
-  refine ⟨seminorm_basis_zero_mem p ι' (div_pos hr zero_lt_two), _⟩,
-  refine set.subset.trans (ball_add_ball_subset (ι'.sup p) (r/2) (r/2) 0 0) _,
+  rcases (seminorm_basis_zero_iff p U).mp hU with ⟨s, r, hr, hU⟩,
+  use (s.sup p).ball 0 (r/2),
+  refine ⟨seminorm_basis_zero_mem p s (div_pos hr zero_lt_two), _⟩,
+  refine set.subset.trans (ball_add_ball_subset (s.sup p) (r/2) (r/2) 0 0) _,
   rw [hU, add_zero, add_halves'],
 end
 
 lemma seminorm_basis_zero_neg (p : ι → seminorm 𝕜 E) (U) (hU' : U ∈ seminorm_basis_zero p) :
   ∃ (V : set E) (H : V ∈ (seminorm_basis_zero p)), V ⊆ (λ (x : E), -x) ⁻¹' U :=
 begin
-  rcases (seminorm_basis_zero_iff p U).mp hU' with ⟨ι', r, hr, hU⟩,
-  rw [hU, neg_preimage, neg_ball (ι'.sup p), neg_zero],
+  rcases (seminorm_basis_zero_iff p U).mp hU' with ⟨s, r, hr, hU⟩,
+  rw [hU, neg_preimage, neg_ball (s.sup p), neg_zero],
   exact ⟨U, hU', eq.subset hU⟩,
 end
 
@@ -1346,10 +1346,10 @@ lemma seminorm_basis_zero_smul (p : ι → seminorm 𝕜 E) (U) (hU : U ∈ semi
   ∃ (V : set 𝕜) (H : V ∈ 𝓝 (0 : 𝕜)) (W : set E)
   (H : W ∈ (seminorm_add_group_filter_basis p).sets), V • W ⊆ U :=
 begin
-  rcases (seminorm_basis_zero_iff p U).mp hU with ⟨ι', r, hr, hU⟩,
+  rcases (seminorm_basis_zero_iff p U).mp hU with ⟨s, r, hr, hU⟩,
   refine ⟨metric.ball 0 r.sqrt, metric.ball_mem_nhds 0 (real.sqrt_pos.mpr hr), _⟩,
-  refine ⟨(ι'.sup p).ball 0 r.sqrt, seminorm_basis_zero_mem p ι' (real.sqrt_pos.mpr hr), _⟩,
-  refine set.subset.trans (ball_smul_ball (ι'.sup p) r.sqrt r.sqrt) _,
+  refine ⟨(s.sup p).ball 0 r.sqrt, seminorm_basis_zero_mem p s (real.sqrt_pos.mpr hr), _⟩,
+  refine set.subset.trans (ball_smul_ball (s.sup p) r.sqrt r.sqrt) _,
   rw [hU, real.mul_self_sqrt (le_of_lt hr)],
 end
 
@@ -1357,13 +1357,13 @@ lemma seminorm_basis_zero_smul_left (p : ι → seminorm 𝕜 E) (x : 𝕜) (U :
   (hU : U ∈ seminorm_basis_zero p) : ∃ (V : set E)
   (H : V ∈ (seminorm_add_group_filter_basis p).sets), V ⊆ (λ (y : E), x • y) ⁻¹' U :=
 begin
-  rcases (seminorm_basis_zero_iff p U).mp hU with ⟨ι', r, hr, hU⟩,
+  rcases (seminorm_basis_zero_iff p U).mp hU with ⟨s, r, hr, hU⟩,
   rw hU,
   by_cases h : x ≠ 0,
-  { rw [(ι'.sup p).smul_ball_preimage 0 r x h, smul_zero],
-    use (ι'.sup p).ball 0 (r / ∥x∥),
-    exact ⟨seminorm_basis_zero_mem p ι' (div_pos hr (norm_pos_iff.mpr h)), subset.rfl⟩ },
-  refine ⟨(ι'.sup p).ball 0 r, seminorm_basis_zero_mem p ι' hr, _⟩,
+  { rw [(s.sup p).smul_ball_preimage 0 r x h, smul_zero],
+    use (s.sup p).ball 0 (r / ∥x∥),
+    exact ⟨seminorm_basis_zero_mem p s (div_pos hr (norm_pos_iff.mpr h)), subset.rfl⟩ },
+  refine ⟨(s.sup p).ball 0 r, seminorm_basis_zero_mem p s hr, _⟩,
   simp only [not_ne_iff.mp h, subset_def, mem_ball_zero, hr, mem_univ, seminorm.zero,
     implies_true_iff, preimage_const_of_mem, zero_smul],
 end
@@ -1371,14 +1371,14 @@ end
 lemma seminorm_basis_zero_smul_right (p : ι → seminorm 𝕜 E) (v : E) (U : set E)
   (hU : U ∈ seminorm_basis_zero p) : ∀ᶠ (x : 𝕜) in 𝓝 0, x • v ∈ U :=
 begin
-  rcases (seminorm_basis_zero_iff p U).mp hU with ⟨ι', r, hr, hU⟩,
+  rcases (seminorm_basis_zero_iff p U).mp hU with ⟨s, r, hr, hU⟩,
   rw [hU, filter.eventually_iff],
-  simp_rw [(ι'.sup p).mem_ball_zero, (ι'.sup p).smul],
-  by_cases h : 0 < (ι'.sup p) v,
+  simp_rw [(s.sup p).mem_ball_zero, (s.sup p).smul],
+  by_cases h : 0 < (s.sup p) v,
   { simp_rw (lt_div_iff h).symm,
     rw ←_root_.ball_zero_eq,
     exact metric.ball_mem_nhds 0 (div_pos hr h) },
-  simp_rw [le_antisymm (not_lt.mp h) ((ι'.sup p).nonneg v), mul_zero, hr],
+  simp_rw [le_antisymm (not_lt.mp h) ((s.sup p).nonneg v), mul_zero, hr],
   exact is_open.mem_nhds is_open_univ (mem_univ 0),
 end
 

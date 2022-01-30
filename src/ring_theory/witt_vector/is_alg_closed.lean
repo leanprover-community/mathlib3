@@ -218,39 +218,72 @@ sorry
 lemma sum_ident_3 (n : ℕ) :
   witt_poly_prod p (n+1) =
   (p^(n+1) * X (0, n+1)) * (p^(n+1) * X (1, n+1)) +
-  (p^(n+1) * X (0, n+1)) * rename (prod.mk (1 : fin 2)) (witt_polynomial p ℤ n) +
-  (p^(n+1) * X (1, n+1)) * rename (prod.mk (0 : fin 2)) (witt_polynomial p ℤ n) +
+  (p^(n+1) * X (0, n+1)) * rename (prod.mk (1 : fin 2)) (witt_polynomial p ℤ (n + 1)) +
+  (p^(n+1) * X (1, n+1)) * rename (prod.mk (0 : fin 2)) (witt_polynomial p ℤ (n + 1)) +
   diff p n :=
 begin
   rw [witt_poly_prod, witt_polynomial, alg_hom.map_sum, alg_hom.map_sum,
       sum_range_succ],
-  conv_lhs {congr, skip, rw sum_range_succ},
-  simp only [add_mul, mul_add],
-  simp only [tsub_self, int.nat_cast_eq_coe_nat, pow_zero],
+  conv_lhs {congr, skip, rw [sum_range_succ] },
+  -- simp only [add_mul, mul_add],
+  simp only [add_mul, mul_add, tsub_self, int.nat_cast_eq_coe_nat, pow_zero, alg_hom.map_sum],
+
   conv_rhs { rw add_comm },
   simp only [add_assoc],
   apply congr_arg (has_add.add _),
-  conv_lhs { rw [← add_assoc, add_comm] },
-  -- conv_lhs { congr, skip, rw add_comm },
+  conv_rhs { congr, skip, congr, rw sum_range_succ },
+  simp only [add_mul, mul_add],
+  conv_rhs { rw [add_comm] },
   have mvpz : (p ^ (n + 1) : mv_polynomial (fin 2 × ℕ) ℤ) = mv_polynomial.C (↑p ^ (n + 1)),
   { simp only [int.cast_coe_nat, ring_hom.eq_int_cast, C_pow, eq_self_iff_true] },
+  simp only [rename_monomial, monomial_eq_C_mul_X, map_mul, rename_C, pow_one, rename_X, mvpz],
+  simp only [int.cast_coe_nat, map_pow, ring_hom.eq_int_cast, rename_X, pow_one, tsub_self, pow_zero],
+  simp only [add_assoc],
+  apply congr_arg (has_add.add _),
+  conv_rhs {rw [add_comm, add_assoc]},
   refine congr (congr_arg has_add.add _) _,
-  { simp only [rename_monomial, monomial_eq_C_mul_X, map_mul, rename_C, mvpz, pow_one, rename_X], },
-  { refine congr (congr_arg has_add.add _) _,
-    simp only [rename_monomial, monomial_eq_C_mul_X, map_mul, rename_C, mvpz, pow_one, rename_X],
-    congr' 1,
-    { simp [witt_polynomial, alg_hom.map_sum, rename_monomial, monomial_eq_C_mul_X],
-     sorry -- OFF BY ONE???
-      },
+  { rw mul_comm },
+  { sorry } -- this doesn't look right...
 
-    sorry }
+  -- refine congr (congr_arg has_add.add _) _,
+  -- { refine congr (congr_arg has_mul.mul _) _,
+  --   { simp only [rename_monomial, monomial_eq_C_mul_X],
+  --     rw [map_mul, rename_C, pow_one, rename_X] } }
+
+
+
+  -- rw [witt_poly_prod, witt_polynomial, alg_hom.map_sum, alg_hom.map_sum,
+  --     sum_range_succ],
+  -- conv_lhs {congr, skip, rw sum_range_succ},
+  -- simp only [add_mul, mul_add],
+  -- simp only [tsub_self, int.nat_cast_eq_coe_nat, pow_zero],
+  -- conv_rhs { rw add_comm },
+  -- simp only [add_assoc],
+  -- apply congr_arg (has_add.add _),
+  -- conv_lhs { rw [← add_assoc, add_comm] },
+  -- -- conv_lhs { congr, skip, rw add_comm },
+  -- have mvpz : (p ^ (n + 1) : mv_polynomial (fin 2 × ℕ) ℤ) = mv_polynomial.C (↑p ^ (n + 1)),
+  -- { simp only [int.cast_coe_nat, ring_hom.eq_int_cast, C_pow, eq_self_iff_true] },
+  -- refine congr (congr_arg has_add.add _) _,
+  -- { simp only [rename_monomial, monomial_eq_C_mul_X, map_mul, rename_C, mvpz, pow_one, rename_X], },
+  -- { refine congr (congr_arg has_add.add _) _,
+  --   { simp only [rename_monomial, monomial_eq_C_mul_X, map_mul, rename_C, mvpz, pow_one, rename_X],
+  --   congr' 1,
+  --   { simp only [witt_polynomial, alg_hom.map_sum, rename_monomial, monomial_eq_C_mul_X, map_nat_cast, int.cast_coe_nat, map_pow,
+  -- ring_hom.eq_int_cast, rename_X, C_pow, map_mul, int.nat_cast_eq_coe_nat], },
+  --    sorry -- OFF BY ONE???
+  --     },
+  -- {
+
+
+  -- }}
 
 
   -- simp only [add_mul, mul_add, rename_monomial, monomial_mul, finsupp.map_domain_single,
   --   tsub_self, int.nat_cast_eq_coe_nat, pow_zero],
   -- simp only [witt_polynomial, monomial_single_add],
 end
-
+#exit
 lemma sum_ident_4 (n : ℕ) :
   (p ^ (n + 1) * witt_mul p (n + 1) : mv_polynomial (fin 2 × ℕ) ℤ) =
   (p^(n+1) * X (0, n+1)) * (p^(n+1) * X (1, n+1)) +

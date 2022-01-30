@@ -57,7 +57,8 @@ end
 --  (𝓝 0 : filter E).has_basis (λ c : set E, c ∈ (𝓝 0 : filter E) ∧ convex 𝕂 c) id :=
 --⟨ λ t,
 --  ⟨ λ ht,
---    let ⟨c, c_mem_nhds, c_sub_t, c_convex⟩ := locally_convex_space.exists_convex_nhds_zero 𝕂 E ht in
+--    let ⟨c, c_mem_nhds, c_sub_t, c_convex⟩ := locally_convex_space.exists_convex_nhds_zero 𝕂 E
+--ht in
 --    ⟨c, ⟨c_mem_nhds, c_convex⟩, c_sub_t⟩,
 --    λ ⟨c, ⟨c_mem_nhds, _⟩, c_sub_t⟩, filter.mem_of_superset c_mem_nhds c_sub_t ⟩ ⟩
 

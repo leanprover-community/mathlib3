@@ -229,6 +229,9 @@ structure is_primitive_root (ζ : M) (k : ℕ) : Prop :=
 (pow_eq_one : ζ ^ (k : ℕ) = 1)
 (dvd_of_pow_eq_one : ∀ l : ℕ, ζ ^ l = 1 → k ∣ l)
 
+@[simps] def is_primitive_root.to_roots_of_unity {μ : M} {n : ℕ+} (h : is_primitive_root μ n) :
+  roots_of_unity n M := roots_of_unity.mk_of_pow_eq μ h.pow_eq_one
+
 section primitive_roots
 variables {k : ℕ}
 

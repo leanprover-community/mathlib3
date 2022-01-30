@@ -9,7 +9,7 @@ open algebraic_geometry
 
 local notation `Spec` ring := Spec.LocallyRingedSpace_obj (CommRing.of ring)
 
-variables (R : Type) [comm_ring R] (U : opens (Spec R)) (x y : U) (h1 : y = x)
+variables (R : Type*) [comm_ring R] (U : opens (Spec R)) (x y : U) (h1 : y = x)
 
 variable (hh : (algebraic_geometry.structure_sheaf R).1.obj (op U))
 

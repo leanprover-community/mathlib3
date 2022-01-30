@@ -70,8 +70,9 @@ end
 
 mk_simp_attribute is_R_or_C_simps "Simp attribute for lemmas about `is_R_or_C`"
 
-namespace is_R_or_C
 variables {K : Type*} [is_R_or_C K]
+
+namespace is_R_or_C
 
 open_locale complex_conjugate
 
@@ -672,7 +673,6 @@ ring_hom.map_finsupp_prod _ f g
 end is_R_or_C
 
 namespace finite_dimensional
-variables {K : Type*} [is_R_or_C K]
 
 open_locale classical
 open is_R_or_C
@@ -768,8 +768,6 @@ by simp [is_R_or_C.abs, abs, real.sqrt_mul_self_eq_abs]
 end cleanup_lemmas
 
 section linear_maps
-
-variables {K : Type*} [is_R_or_C K]
 
 /-- The real part in a `is_R_or_C` field, as a linear map. -/
 noncomputable def re_lm : K →ₗ[ℝ] ℝ :=
@@ -871,3 +869,17 @@ linear_isometry.norm_to_continuous_linear_map of_real_li
 end linear_maps
 
 end is_R_or_C
+
+namespace star_ring
+open is_R_or_C
+
+variables {E : Type*} [semi_normed_ring E] [normed_algebra K E] [star_ring E]
+
+/-- The real part of an element of star algebra. -/
+def re (x : E) : E := (2⁻¹ : K) • (x + star x)
+
+/-- The imaginary part of an element of star algebra. -/
+def im (x : E) : E := (-I * 2⁻¹ : K) • (x - star x)
+
+
+end star_ring

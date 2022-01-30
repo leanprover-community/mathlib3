@@ -192,27 +192,19 @@ def diff (n : ℕ) : mv_polynomial (fin 2 × ℕ) ℤ :=
     (rename (prod.mk 1)) ((monomial (finsupp.single x (p ^ (n + 1 - x)))) (↑p ^ x))
 
 lemma diff_vars (n : ℕ) : (diff p n).vars ⊆ univ.product (range (n+1)) :=
-sorry
-
--- lemma diff_vars (n : ℕ) : (diff p n).vars ⊆ univ.product (range (n+1)) :=
--- begin
---   rw [diff],
---   apply subset.trans (vars_mul _ _),
---   apply union_subset;
---   { apply subset.trans (vars_sum_subset _ _),
---     rw bUnion_subset,
---     intros x hx,
---     apply subset.trans (vars_mul _ _),
---     apply union_subset,
---     { apply subset.trans (vars_pow _ _),
---       have : (p : mv_polynomial (fin 2 × ℕ) ℤ) = (C (p : ℤ)),
---       { simp only [int.cast_coe_nat, ring_hom.eq_int_cast] },
---       rw [this, vars_C],
---       apply empty_subset },
---     { apply subset.trans (vars_pow _ _),
---       rw vars_X,
---       simp only [hx, mem_univ, singleton_subset_iff, and_self, mem_product] } }
--- end
+begin
+  rw [diff],
+  apply subset.trans (vars_mul _ _),
+  apply union_subset;
+  { apply subset.trans (vars_sum_subset _ _),
+    rw bUnion_subset,
+    intros x hx,
+    rw [rename_monomial, vars_monomial, finsupp.map_domain_single],
+    { apply subset.trans (finsupp.support_single_subset),
+      simp [hx], },
+    { apply pow_ne_zero,
+      exact_mod_cast hp.out.ne_zero } }
+end
 
 
 lemma sum_ident_3 (n : ℕ) :
@@ -424,19 +416,19 @@ classical.some_spec (nth_mul_coeff p n) _ _
 open polynomial
 
 def succ_nth_defining_poly (n : ℕ) (a₁ a₂ : 𝕎 k) (bs : fin (n+1) → k) : polynomial k :=
-X^p * C (a₁.coeff 0 ^ (p^n)) - X * C (a₂.coeff 0 ^ (p^n))
-  + C (a₁.coeff (n+1) * ((bs 0)^p)^(p^n) + nth_remainder p n (λ v, (bs v)^p) (truncate_fun (n+1) a₁)
-       - a₂.coeff (n+1) * (bs 0)^p^n - nth_remainder p n bs (truncate_fun (n+1) a₂))
+X^p * C (a₁.coeff 0 ^ (p^(n+1))) - X * C (a₂.coeff 0 ^ (p^(n+1)))
+  + C (a₁.coeff (n+1) * ((bs 0)^p)^(p^(n+1)) + nth_remainder p n (λ v, (bs v)^p) (truncate_fun (n+1) a₁)
+       - a₂.coeff (n+1) * (bs 0)^p^(n+1) - nth_remainder p n bs (truncate_fun (n+1) a₂))
 
 lemma succ_nth_defining_poly_degree (n : ℕ) (a₁ a₂ : 𝕎 k) (bs : fin (n+1) → k)
   (ha₁ : a₁.coeff 0 ≠ 0) (ha₂ : a₂.coeff 0 ≠ 0) :
   (succ_nth_defining_poly p n a₁ a₂ bs).degree = p :=
 begin
-  have : (X ^ p * C (a₁.coeff 0 ^ p ^ n)).degree = p,
+  have : (X ^ p * C (a₁.coeff 0 ^ p ^ (n+1))).degree = p,
   { rw [degree_mul, degree_C],
     { simp only [nat.cast_with_bot, add_zero, degree_X, degree_pow, nat.smul_one_eq_coe] },
     { exact pow_ne_zero _ ha₁ } },
-  have : (X ^ p * C (a₁.coeff 0 ^ p ^ n) - X * C (a₂.coeff 0 ^ p ^ n)).degree = p,
+  have : (X ^ p * C (a₁.coeff 0 ^ p ^ (n+1)) - X * C (a₂.coeff 0 ^ p ^ (n+1))).degree = p,
   { rw [degree_sub_eq_left_of_degree_lt, this],
     rw [this, degree_mul, degree_C, degree_X, add_zero],
     { exact_mod_cast hp.out.one_lt },
@@ -464,10 +456,10 @@ classical.some_spec (root_exists p n a₁ a₂ bs ha₁ ha₂)
 
 lemma succ_nth_val_spec' (n : ℕ) (a₁ a₂ : 𝕎 k) (bs : fin (n+1) → k)
   (ha₁ : a₁.coeff 0 ≠ 0) (ha₂ : a₂.coeff 0 ≠ 0) :
-  (succ_nth_val p n a₁ a₂ bs ha₁ ha₂)^p * a₁.coeff 0 ^ (p^n)
-  + a₁.coeff (n+1) * ((bs 0)^p)^(p^n) + nth_remainder p n (λ v, (bs v)^p) (truncate_fun (n+1) a₁)
-   = (succ_nth_val p n a₁ a₂ bs ha₁ ha₂) * a₂.coeff 0 ^ (p^n)
-     + a₂.coeff (n+1) * (bs 0)^(p^n) + nth_remainder p n bs (truncate_fun (n+1) a₂) :=
+  (succ_nth_val p n a₁ a₂ bs ha₁ ha₂)^p * a₁.coeff 0 ^ (p^(n+1))
+  + a₁.coeff (n+1) * ((bs 0)^p)^(p^(n+1)) + nth_remainder p n (λ v, (bs v)^p) (truncate_fun (n+1) a₁)
+   = (succ_nth_val p n a₁ a₂ bs ha₁ ha₂) * a₂.coeff 0 ^ (p^(n+1))
+     + a₂.coeff (n+1) * (bs 0)^(p^(n+1)) + nth_remainder p n bs (truncate_fun (n+1) a₂) :=
 begin
   rw ← sub_eq_zero,
   have := succ_nth_val_spec p n a₁ a₂ bs ha₁ ha₂,

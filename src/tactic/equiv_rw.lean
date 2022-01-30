@@ -279,13 +279,45 @@ The maximum search depth for rewriting in subexpressions is controlled by
 `equiv_rw [e₁, e₂, ⋯]` is equivalent to `{ equiv_rw e₁, equiv_rw e₂, ⋯ }` and can target a
 hypothesis `h` if used as `equiv_rw [e₁, e₂, ⋯] at h`.
 -/
-meta def equiv_rw
+meta def equiv_rw'
   (l : parse pexpr_list_or_texpr)
   (loc : parse $ (tk "at" *> ident)?)
   (cfg : equiv_rw_cfg := {}) : itactic :=
 match loc with
 | some hyp := equiv_rw_hyp_aux hyp cfg l
 | none     := equiv_rw_target_aux cfg l
+end
+
+meta def equiv_rw''
+  (l : parse pexpr_list_or_texpr)
+  (loc : parse $ (tk "at" *> ident)?)
+  (cfg : equiv_rw_cfg := {}) : itactic :=
+match loc with
+| some hyp := equiv_rw_hyp_aux hyp cfg l
+| none     := equiv_rw_target_aux cfg l
+end
+
+/-- -/
+meta def equiv_rw
+  (l : parse pexpr_list_or_texpr)
+  (locat' : parse location?)
+  (cfg : equiv_rw_cfg := {}) : itactic :=
+match locat' with
+| none     := equiv_rw_target_aux cfg l
+| some locat :=
+  match locat with
+  | loc.wildcard := do
+    equiv_rw_target_aux cfg l,
+    ctx ← local_context,
+    ctx.mmap (λ e, equiv_rw_hyp_aux e.local_uniq_name cfg l),
+    skip
+  | loc.ns ns    := do
+    ns.mmap (λ n', match n' with
+    | some hyp := equiv_rw_hyp_aux hyp cfg l
+    | none     := equiv_rw_target_aux cfg l
+    end),
+    skip
+  end
 end
 
 add_tactic_doc

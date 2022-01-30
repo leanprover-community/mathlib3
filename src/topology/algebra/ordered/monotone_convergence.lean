@@ -252,6 +252,18 @@ lemma monotone.le_of_tendsto [topological_space α] [preorder α] [order_closed_
   a ≤ f b :=
 @monotone.ge_of_tendsto (order_dual α) (order_dual β) _ _ _ _ f _ hf.dual ha b
 
+lemma antitone.le_of_tendsto [topological_space α] [preorder α] [order_closed_topology α]
+  [semilattice_sup β] {f : β → α} {a : α} (hf : antitone f)
+  (ha : tendsto f at_top (𝓝 a)) (b : β) :
+  a ≤ f b :=
+monotone.ge_of_tendsto hf.dual_right ha b
+
+lemma antitone.ge_of_tendsto [topological_space α] [preorder α] [order_closed_topology α]
+  [semilattice_inf β] {f : β → α} {a : α} (hf : antitone f)
+  (ha : tendsto f at_bot (𝓝 a)) (b : β) :
+  f b ≤ a :=
+monotone.le_of_tendsto hf.dual_right ha b
+
 lemma is_lub_of_tendsto_at_top [topological_space α] [preorder α] [order_closed_topology α]
   [nonempty β] [semilattice_sup β] {f : β → α} {a : α} (hf : monotone f)
   (ha : tendsto f at_top (𝓝 a)) :

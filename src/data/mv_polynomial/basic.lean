@@ -698,7 +698,7 @@ finsupp.sum_zero_index
 section
 
 @[simp] lemma eval₂_add : (p + q).eval₂ f g = p.eval₂ f g + q.eval₂ f g :=
-finsupp.sum_add_index''
+finsupp.sum_add_index
   (by simp [f.map_zero])
   (by simp [add_mul, f.map_add])
 
@@ -725,7 +725,7 @@ begin
     from calc (p * X n * monomial s a).eval₂ f g = (p * monomial (single n 1 + s) a).eval₂ f g :
         by rw [monomial_single_add, pow_one, mul_assoc]
       ... = (p * monomial (single n 1) 1).eval₂ f g * f a * s.prod (λn e, g n ^ e) :
-        by simp [ih, prod_single_index, prod_add_index'', pow_one, pow_add, mul_assoc,
+        by simp [ih, prod_single_index, prod_add_index, pow_one, pow_add, mul_assoc,
           mul_left_comm, f.map_one, -add_comm] }
 end
 

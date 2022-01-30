@@ -1212,7 +1212,7 @@ lemma prod_inv [has_zero M] [comm_group G] {f : α →₀ M}
 finset.sum_sub_distrib
 
 @[to_additive]
-lemma prod_add_index'' [add_zero_class M] [comm_monoid N] {f g : α →₀ M}
+lemma prod_add_index [add_zero_class M] [comm_monoid N] {f g : α →₀ M}
   {h : α → M → N} (h_zero : ∀ a ∈ f.support ∪ g.support, h a 0 = 1)
   (h_add : ∀ a b₁ b₂, h a (b₁ + b₂) = h a b₁ * h a b₂) :
   (f + g).prod h = f.prod h * g.prod h :=
@@ -1225,22 +1225,22 @@ begin
 end
 
 @[to_additive]
-lemma prod_add_index [add_zero_class M] [comm_monoid N] {f g : α →₀ M}
+lemma prod_add_index_original [add_zero_class M] [comm_monoid N] {f g : α →₀ M}
   {h : α → M → N} (h_zero : ∀a, h a 0 = 1) (h_add : ∀a b₁ b₂, h a (b₁ + b₂) = h a b₁ * h a b₂) :
   (f + g).prod h = f.prod h * g.prod h :=
-prod_add_index'' (λ a ha, h_zero a) h_add
+prod_add_index (λ a ha, h_zero a) h_add
 
 @[simp]
 lemma sum_add_index' [add_zero_class M] [add_comm_monoid N] {f g : α →₀ M} (h : α → M →+ N) :
   (f + g).sum (λ x, h x) = f.sum (λ x, h x) + g.sum (λ x, h x) :=
-sum_add_index'' (λ a _, (h a).map_zero) (λ a, (h a).map_add)
+sum_add_index (λ a _, (h a).map_zero) (λ a, (h a).map_add)
 
 @[simp]
 lemma prod_add_index' [add_zero_class M] [comm_monoid N] {f g : α →₀ M}
   (h : α → multiplicative M →* N) :
   (f + g).prod (λ a b, h a (multiplicative.of_add b)) =
     f.prod (λ a b, h a (multiplicative.of_add b)) * g.prod (λ a b, h a (multiplicative.of_add b)) :=
-prod_add_index'' (λ a _, (h a).map_one) (λ a, (h a).map_mul)
+prod_add_index (λ a _, (h a).map_one) (λ a, (h a).map_mul)
 
 /-- The canonical isomorphism between families of additive monoid homomorphisms `α → (M →+ N)`
 and monoid homomorphisms `(α →₀ M) →+ N`. -/
@@ -1248,7 +1248,7 @@ def lift_add_hom [add_zero_class M] [add_comm_monoid N] : (α → M →+ N) ≃+
 { to_fun := λ F,
   { to_fun := λ f, f.sum (λ x, F x),
     map_zero' := finset.sum_empty,
-    map_add' := λ _ _, sum_add_index'' (λ x _, (F x).map_zero) (λ x, (F x).map_add) },
+    map_add' := λ _ _, sum_add_index (λ x _, (F x).map_zero) (λ x, (F x).map_add) },
   inv_fun := λ F x, F.comp $ single_add_hom x,
   left_inv := λ F, by { ext, simp },
   right_inv := λ F, by { ext, simp },
@@ -1312,7 +1312,7 @@ lemma prod_finset_sum_index [add_comm_monoid M] [comm_monoid N]
   {h : α → M → N} (h_zero : ∀a, h a 0 = 1) (h_add : ∀a b₁ b₂, h a (b₁ + b₂) = h a b₁ * h a b₂) :
   ∏ i in s, (g i).prod h = (∑ i in s, g i).prod h :=
 finset.induction_on s rfl $ λ a s has ih,
-by rw [prod_insert has, ih, sum_insert has, prod_add_index'' (λ a _, h_zero a) h_add]
+by rw [prod_insert has, ih, sum_insert has, prod_add_index (λ a _, h_zero a) h_add]
 
 @[to_additive]
 lemma prod_sum_index
@@ -1329,7 +1329,7 @@ lemma multiset_sum_sum_index
   (f.sum.sum h) = (f.map $ λg:α →₀ M, g.sum h).sum :=
 multiset.induction_on f rfl $ assume a s ih,
 by rw [multiset.sum_cons, multiset.map_cons, multiset.sum_cons,
-  sum_add_index'' (λ a _, h₀ a) h₁, ih]
+  sum_add_index (λ a _, h₀ a) h₁, ih]
 
 lemma support_sum_eq_bUnion {α : Type*} {ι : Type*} {M : Type*} [add_comm_monoid M]
   {g : ι → α →₀ M} (s : finset ι) (h : ∀ i₁ i₂, i₁ ≠ i₂ → disjoint (g i₁).support (g i₂).support) :
@@ -1568,7 +1568,7 @@ lemma map_domain_congr {f g : α → β} (h : ∀x∈v.support, f x = g x) :
 finset.sum_congr rfl $ λ _ H, by simp only [h _ H]
 
 lemma map_domain_add {f : α → β} : map_domain f (v₁ + v₂) = map_domain f v₁ + map_domain f v₂ :=
-sum_add_index'' (λ _ _, single_zero) (λ _ _ _, single_add)
+sum_add_index (λ _ _, single_zero) (λ _ _ _, single_add)
 
 @[simp] lemma map_domain_equiv_apply {f : α ≃ β} (x : α →₀ M) (a : β) :
   map_domain f x a = x (f.symm a) :=
@@ -1831,7 +1831,7 @@ begin
   apply induction_linear f,
   { simp [h_zero], },
   { intros f₁ f₂ h₁ h₂,
-    rw [finsupp.prod_add_index'', h₁, h₂, some_add, finsupp.prod_add_index''],
+    rw [finsupp.prod_add_index, h₁, h₂, some_add, finsupp.prod_add_index],
     simp only [h_add, pi.add_apply, finsupp.coe_add],
     rw mul_mul_mul_comm,
     all_goals { simp [h_zero, h_add], }, },
@@ -2149,7 +2149,7 @@ begin
   rw [finsupp.curry],
   transitivity,
   { exact sum_sum_index (assume a, sum_zero_index)
-      (assume a b₀ b₁, sum_add_index'' (assume a _, hg₀ _ _) (assume c d₀ d₁, hg₁ _ _ _ _)) },
+      (assume a b₀ b₁, sum_add_index (assume a _, hg₀ _ _) (assume c d₀ d₁, hg₁ _ _ _ _)) },
   congr, funext p c,
   transitivity,
   { exact sum_single_index sum_zero_index },
@@ -2166,7 +2166,7 @@ f.sum $ λa g, g.sum $ λb c, single (a, b) c
 currying and uncurrying. -/
 def finsupp_prod_equiv : ((α × β) →₀ M) ≃ (α →₀ (β →₀ M)) :=
 by refine ⟨finsupp.curry, finsupp.uncurry, λ f, _, λ f, _⟩; simp only [
-  finsupp.curry, finsupp.uncurry, sum_sum_index, sum_zero_index, sum_add_index'',
+  finsupp.curry, finsupp.uncurry, sum_sum_index, sum_zero_index, sum_add_index,
   sum_single_index, single_zero, single_add, eq_self_iff_true, forall_true_iff,
   forall_3_true_iff, prod.mk.eta, (single_sum _ _ _).symm, sum_single]
 

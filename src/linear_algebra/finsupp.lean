@@ -543,7 +543,7 @@ begin
   apply induction_linear f,
   { simp only [sum_zero_index], },
   { intros f₁ f₂ h₁ h₂,
-    simp [sum_add_index'', h₁, h₂, add_smul], },
+    simp [sum_add_index, h₁, h₂, add_smul], },
   { simp [sum_single_index, sum_smul_index, smul_sum, mul_smul], }
 end
 

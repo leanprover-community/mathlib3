@@ -1224,12 +1224,6 @@ begin
   exact finset.prod_congr rfl (λ x hx, (by apply h_add)),
 end
 
-@[to_additive]
-lemma prod_add_index_original [add_zero_class M] [comm_monoid N] {f g : α →₀ M}
-  {h : α → M → N} (h_zero : ∀a, h a 0 = 1) (h_add : ∀a b₁ b₂, h a (b₁ + b₂) = h a b₁ * h a b₂) :
-  (f + g).prod h = f.prod h * g.prod h :=
-prod_add_index (λ a ha, h_zero a) h_add
-
 @[simp]
 lemma sum_add_index' [add_zero_class M] [add_comm_monoid N] {f g : α →₀ M} (h : α → M →+ N) :
   (f + g).sum (λ x, h x) = f.sum (λ x, h x) + g.sum (λ x, h x) :=

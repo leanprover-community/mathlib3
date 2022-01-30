@@ -1284,16 +1284,10 @@ begin
   use ((ι'₁ ∪ ι'₂).sup p).ball 0 (min r₁ r₂),
   refine ⟨seminorm_basis_zero_mem p (ι'₁ ∪ ι'₂) (lt_min_iff.mpr ⟨hr₁, hr₂⟩), _⟩,
   rw [hU, hV, ball_finset_sup_eq_Inter _ _ _ (lt_min_iff.mpr ⟨hr₁, hr₂⟩),
-    ball_finset_sup_eq_Inter _ _ _ hr₁, ball_finset_sup_eq_Inter _ _ _ hr₂,
-    ←set.Inter_inter_distrib],
-  -- Yael probably knows how to make this look nicer
-  refine set.Inter_mono (λ i, (set.subset_inter _ _)),
-  { refine set.Inter_mono' (λ hi, _),
-    use finset.mem_of_subset (finset.subset_union_left ι'₁ ι'₂) hi,
-    exact ball_mono (min_le_of_left_le (le_refl _)) },
-  refine set.Inter_mono' (λ hi, _),
-  use finset.mem_of_subset (finset.subset_union_right ι'₁ ι'₂) hi,
-  exact ball_mono (min_le_of_right_le (le_refl _)),
+    ball_finset_sup_eq_Inter _ _ _ hr₁, ball_finset_sup_eq_Inter _ _ _ hr₂],
+  exact set.subset_inter
+    (set.Inter₂_mono' $ λ i hi, ⟨i, finset.subset_union_left _ _ hi, ball_mono $ min_le_left _ _⟩)
+    (set.Inter₂_mono' $ λ i hi, ⟨i, finset.subset_union_right _ _ hi, ball_mono $ min_le_right _ _⟩),
   /-refine set.Inter_subset_Inter (λ i, _),
   have hI₁ : (⋂ (H : i ∈ ι'₁ ∪ ι'₂), (p i).ball 0 r₁) ⊆ (⋂ (H : i ∈ ι'₁), (p i).ball 0 r₁) :=
     Inter_subset_Inter2 (λ hi, ⟨finset.mem_union_left ι'₂ hi, subset.rfl⟩),

@@ -122,7 +122,7 @@ end classification
 
 section cardinal
 
-variables {R L K : Type u} [comm_ring R] [nontrivial R]
+variables {R L K : Type u} [comm_ring R]
 variables [field K] [algebra R K] [is_alg_closed K]
 variables {ι : Type u} (v : ι → K)
 variable (hv : is_transcendence_basis R v)
@@ -138,11 +138,8 @@ calc #(K) ≤ max (#(algebra.adjoin R (set.range v))) ω :
 
 /-- If `K` is an uncountable algebraically closed field, then its
 cardinality is the same as that of a transcendence basis. -/
-lemma cardinal_eq_cardinal_transcendence_basis_of_omega_lt
-  (hv : is_transcendence_basis R v)
-  (hR : #R ≤ ω)
-  (hK : ω < #K) :
-  #K = #ι :=
+lemma cardinal_eq_cardinal_transcendence_basis_of_omega_lt [nontrivial R]
+  (hv : is_transcendence_basis R v) (hR : #R ≤ ω) (hK : ω < #K) : #K = #ι :=
 have ω ≤ #ι,
   from le_of_not_lt (λ h,
     not_le_of_gt hK $ calc
@@ -163,7 +160,7 @@ variables {K L : Type} [field K] [field L] [is_alg_closed K] [is_alg_closed L]
 
 /-- Two uncountable algebraically closed fields of characteristic zero are isomorphic
 if they have the same cardinality. -/
-lemma ring_equiv_of_cardinal_eq_char_zero [char_zero K] [char_zero L]
+@[nolint def_lemma] lemma ring_equiv_of_cardinal_eq_char_zero [char_zero K] [char_zero L]
   (hK : ω < #K) (hKL : #K = #L) : K ≃+* L :=
 begin
   apply classical.choice,
@@ -203,7 +200,7 @@ end
 
 /-- Two uncountable algebraically closed fields are isomorphic
 if they have the same cardinality and the same characteristic. -/
-lemma ring_equiv_of_cardinal_eq_of_char_eq (p : ℕ) [char_p K p] [char_p L p]
+@[nolint def_lemma] lemma ring_equiv_of_cardinal_eq_of_char_eq (p : ℕ) [char_p K p] [char_p L p]
   (hK : ω < #K) (hKL : #K = #L) : K ≃+* L :=
 begin
   apply classical.choice,

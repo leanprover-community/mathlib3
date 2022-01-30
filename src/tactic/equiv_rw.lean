@@ -246,17 +246,21 @@ open tactic
 setup_tactic_parser
 
 /-- Auxiliary function to call `equiv_rw_hyp` on a `list pexpr` recursively. -/
-meta def equiv_rw_hyp_aux (hyp : name) (cfg : equiv_rw_cfg) : list expr → itactic
+meta def equiv_rw_hyp_aux (hyp : name) (cfg : equiv_rw_cfg) (permissive : bool := ff) :
+  list expr → itactic
 | []       := skip
 | (e :: t) := do
-  equiv_rw_hyp hyp e cfg,
+  if permissive then equiv_rw_hyp hyp e cfg <|> skip
+  else equiv_rw_hyp hyp e cfg,
   equiv_rw_hyp_aux t
 
 /-- Auxiliary function to call `equiv_rw_target` on a `list pexpr` recursively. -/
-meta def equiv_rw_target_aux (cfg : equiv_rw_cfg) : list expr → itactic
+meta def equiv_rw_target_aux (cfg : equiv_rw_cfg) (permissive : bool) :
+  list expr → itactic
 | []       := skip
 | (e :: t) := do
-  equiv_rw_target e cfg,
+  if permissive then equiv_rw_target e cfg <|> skip
+  else equiv_rw_target e cfg,
   equiv_rw_target_aux t
 
 /--
@@ -287,15 +291,15 @@ meta def equiv_rw
 es ← l.mmap (λ e, to_expr e),
 match locat with
 | loc.wildcard := do
-  equiv_rw_target_aux cfg es <|> skip,
+  equiv_rw_target_aux cfg tt es,
   ctx ← local_context,
-  ctx.mmap (λ e, if e ∈ es then skip else equiv_rw_hyp_aux e.local_pp_name cfg es <|> skip),
+  ctx.mmap (λ e, if e ∈ es then skip else equiv_rw_hyp_aux e.local_pp_name cfg tt es),
   skip
 | loc.ns names := do
   names.mmap
     (λ hyp', match hyp' with
-    | some hyp := equiv_rw_hyp_aux hyp cfg es
-    | none     := equiv_rw_target_aux cfg es
+    | some hyp := equiv_rw_hyp_aux hyp cfg ff es
+    | none     := equiv_rw_target_aux cfg ff es
     end),
   skip
 end

@@ -614,6 +614,14 @@ begin
     ... = (n+1) * a.total_degree : by rw [add_mul, one_mul, add_comm]
 end
 
+@[simp] lemma total_degree_monomial (s : σ →₀ ℕ) {c : R} (hc : c ≠ 0) :
+  (monomial s c : mv_polynomial σ R).total_degree = s.sum (λ _ e, e) :=
+by simp [total_degree, support_monomial, if_neg hc]
+
+@[simp] lemma total_degree_X_pow [nontrivial R] (s : σ) (n : ℕ) :
+  (X s ^ n : mv_polynomial σ R).total_degree = n :=
+by simp [X_pow_eq_monomial, one_ne_zero]
+
 lemma total_degree_list_prod :
   ∀(s : list (mv_polynomial σ R)), s.prod.total_degree ≤ (s.map mv_polynomial.total_degree).sum
 | []        := by rw [@list.prod_nil (mv_polynomial σ R) _, total_degree_one]; refl
@@ -638,6 +646,15 @@ begin
   refine le_trans (total_degree_multiset_prod _) _,
   rw [multiset.map_map],
   refl
+end
+
+lemma total_degree_finset_sum {ι : Type*} (s : finset ι) (f : ι → mv_polynomial σ R) :
+  (s.sum f).total_degree ≤ finset.sup s (λ i, (f i).total_degree) :=
+begin
+  induction s using finset.cons_induction with a s has hind,
+  { exact zero_le _ },
+  { rw [finset.sum_cons, finset.sup_cons, sup_eq_max],
+    exact (mv_polynomial.total_degree_add _ _).trans (max_le_max le_rfl hind), }
 end
 
 lemma exists_degree_lt [fintype σ] (f : mv_polynomial σ R) (n : ℕ)

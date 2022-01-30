@@ -14,7 +14,7 @@ Define the operator norm on the space of continuous (semi)linear maps between no
 prove its basic properties. In particular, show that this space is itself a normed space.
 
 Since a lot of elementary properties don't require `∥x∥ = 0 → x = 0` we start setting up the
-theory for `semi_normed_space` and we specialize to `normed_space` at the end.
+theory for `semi_normed_group` and we specialize to `normed_group` at the end.
 
 Note that most of statements that apply to semilinear maps only hold when the ring homomorphism
 is isometric, as expressed by the typeclass `[ring_hom_isometric σ]`.
@@ -42,8 +42,8 @@ However, the other direction always holds.
 In this section, we just assume that `𝕜` is a normed field.
 In the remainder of the file, it will be non-discrete. -/
 
-variables [normed_field 𝕜] [normed_field 𝕜₂] [semi_normed_space 𝕜 E] [semi_normed_space 𝕜₂ F]
-variables [semi_normed_space 𝕜 G] {σ : 𝕜 →+* 𝕜₂} (f : E →ₛₗ[σ] F)
+variables [normed_field 𝕜] [normed_field 𝕜₂] [normed_space 𝕜 E] [normed_space 𝕜₂ F]
+variables [normed_space 𝕜 G] {σ : 𝕜 →+* 𝕜₂} (f : E →ₛₗ[σ] F)
 
 lemma linear_map.lipschitz_of_bound (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) :
   lipschitz_with (real.to_nnreal C) f :=
@@ -125,8 +125,8 @@ rfl
 end normed_field
 
 variables [nondiscrete_normed_field 𝕜] [nondiscrete_normed_field 𝕜₂] [nondiscrete_normed_field 𝕜₃]
-  [semi_normed_space 𝕜 E] [semi_normed_space 𝕜₂ F] [semi_normed_space 𝕜 Fₗ]
-  [semi_normed_space 𝕜₃ G] [semi_normed_space 𝕜 Gₗ]
+  [normed_space 𝕜 E] [normed_space 𝕜₂ F] [normed_space 𝕜 Fₗ]
+  [normed_space 𝕜₃ G] [normed_space 𝕜 Gₗ]
   {σ₁₂ : 𝕜 →+* 𝕜₂} {σ₂₃ : 𝕜₂ →+* 𝕜₃} {σ₁₃ : 𝕜 →+* 𝕜₃}
   [ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃]
 
@@ -203,7 +203,7 @@ lemma to_span_singleton_homothety (x : E) (c : 𝕜) :
 by {rw mul_comm, exact norm_smul _ _}
 
 /-- Given an element `x` of a normed space `E` over a field `𝕜`, the natural continuous
-    linear map from `E` to the span of `x`.-/
+    linear map from `𝕜` to `E` by taking multiples of `x`.-/
 def to_span_singleton (x : E) : 𝕜 →L[𝕜] E :=
 of_homothety (linear_map.to_span_singleton 𝕜 E x) ∥x∥ (to_span_singleton_homothety 𝕜 x)
 
@@ -214,7 +214,7 @@ lemma to_span_singleton_add (x y : E) :
   to_span_singleton 𝕜 (x + y) = to_span_singleton 𝕜 x + to_span_singleton 𝕜 y :=
 by { ext1, simp [to_span_singleton_apply], }
 
-lemma to_span_singleton_smul' (𝕜') [nondiscrete_normed_field 𝕜'] [semi_normed_space 𝕜' E]
+lemma to_span_singleton_smul' (𝕜') [nondiscrete_normed_field 𝕜'] [normed_space 𝕜' E]
   [smul_comm_class 𝕜 𝕜' E] (c : 𝕜') (x : E) :
   to_span_singleton 𝕜 (c • x) = c • to_span_singleton 𝕜 x :=
 by { ext1, rw [to_span_singleton_apply, smul_apply, to_span_singleton_apply, smul_comm], }
@@ -222,6 +222,22 @@ by { ext1, rw [to_span_singleton_apply, smul_apply, to_span_singleton_apply, smu
 lemma to_span_singleton_smul (c : 𝕜) (x : E) :
   to_span_singleton 𝕜 (c • x) = c • to_span_singleton 𝕜 x :=
 to_span_singleton_smul' 𝕜 𝕜 c x
+
+variables (𝕜 E)
+/-- Given a unit-length element `x` of a normed space `E` over a field `𝕜`, the natural linear
+    isometry map from `𝕜` to `E` by taking multiples of `x`.-/
+def _root_.linear_isometry.to_span_singleton {v : E} (hv : ∥v∥ = 1) : 𝕜 →ₗᵢ[𝕜] E :=
+{ norm_map' := λ x, by simp [norm_smul, hv],
+  .. linear_map.to_span_singleton 𝕜 E v }
+variables {𝕜 E}
+
+@[simp] lemma _root_.linear_isometry.to_span_singleton_apply {v : E} (hv : ∥v∥ = 1) (a : 𝕜) :
+  linear_isometry.to_span_singleton 𝕜 E hv a = a • v :=
+rfl
+
+@[simp] lemma _root_.linear_isometry.coe_to_span_singleton {v : E} (hv : ∥v∥ = 1) :
+  (linear_isometry.to_span_singleton 𝕜 E hv).to_linear_map = linear_map.to_span_singleton 𝕜 E v :=
+rfl
 
 end
 
@@ -261,6 +277,14 @@ le_antisymm (φ.op_norm_le_bound M_nonneg h_above)
    λ N ⟨N_nonneg, hN⟩, h_below N N_nonneg hN)
 
 lemma op_norm_neg (f : E →SL[σ₁₂] F) : ∥-f∥ = ∥f∥ := by simp only [norm_def, neg_apply, norm_neg]
+
+theorem antilipschitz_of_bound (f : E →SL[σ₁₂] F) {K : ℝ≥0} (h : ∀ x, ∥x∥ ≤ K * ∥f x∥) :
+  antilipschitz_with K f :=
+linear_map.antilipschitz_of_bound _ h
+
+lemma bound_of_antilipschitz (f : E →SL[σ₁₂] F) {K : ℝ≥0} (h : antilipschitz_with K f) (x) :
+  ∥x∥ ≤ K * ∥f x∥ :=
+linear_map.bound_of_antilipschitz _ h x
 
 section
 
@@ -355,7 +379,7 @@ le_antisymm norm_id_le $ let ⟨x, hx⟩ := h in
 have _ := (id 𝕜 E).ratio_le_op_norm x,
 by rwa [id_apply, div_self hx] at this
 
-lemma op_norm_smul_le {𝕜' : Type*} [normed_field 𝕜'] [semi_normed_space 𝕜' F]
+lemma op_norm_smul_le {𝕜' : Type*} [normed_field 𝕜'] [normed_space 𝕜' F]
   [smul_comm_class 𝕜₂ 𝕜' F] (c : 𝕜') (f : E →SL[σ₁₂] F) : ∥c • f∥ ≤ ∥c∥ * ∥f∥ :=
 ((c • f).op_norm_le_bound
   (mul_nonneg (norm_nonneg _) (op_norm_nonneg _)) (λ _,
@@ -369,8 +393,8 @@ lemma op_norm_smul_le {𝕜' : Type*} [normed_field 𝕜'] [semi_normed_space �
 instance to_semi_normed_group : semi_normed_group (E →SL[σ₁₂] F) :=
 semi_normed_group.of_core _ ⟨op_norm_zero, λ x y, op_norm_add_le x y, op_norm_neg⟩
 
-instance to_semi_normed_space {𝕜' : Type*} [normed_field 𝕜'] [semi_normed_space 𝕜' F]
-  [smul_comm_class 𝕜₂ 𝕜' F] : semi_normed_space 𝕜' (E →SL[σ₁₂] F) :=
+instance to_normed_space {𝕜' : Type*} [normed_field 𝕜'] [normed_space 𝕜' F]
+  [smul_comm_class 𝕜₂ 𝕜' F] : normed_space 𝕜' (E →SL[σ₁₂] F) :=
 ⟨op_norm_smul_le⟩
 
 include σ₁₃
@@ -422,7 +446,7 @@ end
 @[simp] lemma op_norm_prod (f : E →L[𝕜] Fₗ) (g : E →L[𝕜] Gₗ) : ∥f.prod g∥ = ∥(f, g)∥ :=
 le_antisymm
   (op_norm_le_bound _ (norm_nonneg _) $ λ x,
-    by simpa only [prod_apply, prod.semi_norm_def, max_mul_of_nonneg, norm_nonneg]
+    by simpa only [prod_apply, prod.norm_def, max_mul_of_nonneg, norm_nonneg]
       using max_le_max (le_op_norm f x) (le_op_norm g x)) $
   max_le
     (op_norm_le_bound _ (norm_nonneg _) $ λ x, (le_max_left _ _).trans ((f.prod g).le_op_norm x))
@@ -746,7 +770,7 @@ end multiplication_linear
 section smul_linear
 
 variables (𝕜) (𝕜' : Type*) [normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
-  [semi_normed_space 𝕜' E] [is_scalar_tower 𝕜 𝕜' E]
+  [normed_space 𝕜' E] [is_scalar_tower 𝕜 𝕜' E]
 
 /-- Scalar multiplication as a continuous bilinear map. -/
 def lsmul : 𝕜' →L[𝕜] E →L[𝕜] E :=
@@ -771,8 +795,8 @@ end smul_linear
 section restrict_scalars
 
 variables {𝕜' : Type*} [nondiscrete_normed_field 𝕜'] [normed_algebra 𝕜' 𝕜]
-variables [semi_normed_space 𝕜' E] [is_scalar_tower 𝕜' 𝕜 E]
-variables [semi_normed_space 𝕜' Fₗ] [is_scalar_tower 𝕜' 𝕜 Fₗ]
+variables [normed_space 𝕜' E] [is_scalar_tower 𝕜' 𝕜 E]
+variables [normed_space 𝕜' Fₗ] [is_scalar_tower 𝕜' 𝕜 Fₗ]
 
 @[simp] lemma norm_restrict_scalars (f : E →L[𝕜] Fₗ) : ∥f.restrict_scalars 𝕜'∥ = ∥f∥ :=
 le_antisymm (op_norm_le_bound _ (norm_nonneg _) $ λ x, f.le_op_norm x)
@@ -960,7 +984,7 @@ namespace continuous_linear_map
 variables {E' F' : Type*} [semi_normed_group E'] [semi_normed_group F']
 
 variables {𝕜₁' : Type*} {𝕜₂' : Type*} [nondiscrete_normed_field 𝕜₁'] [nondiscrete_normed_field 𝕜₂']
-  [semi_normed_space 𝕜₁' E'] [semi_normed_space 𝕜₂' F']
+  [normed_space 𝕜₁' E'] [normed_space 𝕜₂' F']
   {σ₁' : 𝕜₁' →+* 𝕜} {σ₁₃' : 𝕜₁' →+* 𝕜₃} {σ₂' : 𝕜₂' →+* 𝕜₂} {σ₂₃' : 𝕜₂' →+* 𝕜₃}
   [ring_hom_comp_triple σ₁' σ₁₃ σ₁₃'] [ring_hom_comp_triple σ₂' σ₂₃ σ₂₃']
   [ring_hom_isometric σ₂₃] [ring_hom_isometric σ₁₃'] [ring_hom_isometric σ₂₃']
@@ -1127,10 +1151,6 @@ instance norm_one_class [nontrivial E] : norm_one_class (E →L[𝕜] E) := ⟨n
 instance to_normed_group : normed_group (E →SL[σ₁₂] F) :=
 normed_group.of_core _ ⟨op_norm_zero_iff, op_norm_add_le, op_norm_neg⟩
 
-instance to_normed_space {𝕜' : Type*} [normed_field 𝕜'] [normed_space 𝕜' F]
-  [smul_comm_class 𝕜₂ 𝕜' F] : normed_space 𝕜' (E →SL[σ₁₂] F) :=
-⟨op_norm_smul_le⟩
-
 /-- Continuous linear maps form a normed ring with respect to the operator norm. -/
 instance to_normed_ring : normed_ring (E →L[𝕜] E) :=
 { norm_mul := op_norm_comp_le,
@@ -1203,7 +1223,7 @@ section completeness
 open_locale topological_space
 open filter
 
-variables {E' : Type*} [semi_normed_group E'] [semi_normed_space 𝕜 E']
+variables {E' : Type*} [semi_normed_group E'] [normed_space 𝕜 E']
 
 /-- Construct a bundled continuous (semi)linear map from a map `f : E → F` and a proof of the fact
 that it belongs to the closure of the image of a bounded set `s : set (E →SL[σ₁₂] F)` under coercion
@@ -1599,3 +1619,12 @@ continuous_linear_equiv.uniform_embedding
 omit σ₂₁
 
 end normed
+
+/--
+A bounded bilinear form `B` in a real normed space is *coercive*
+if there is some positive constant C such that `C * ∥u∥ * ∥u∥ ≤ B u u`.
+-/
+def is_coercive
+  [normed_group E] [normed_space ℝ E]
+  (B : E →L[ℝ] E →L[ℝ] ℝ) : Prop :=
+∃ C, (0 < C) ∧ ∀ u, C * ∥u∥ * ∥u∥ ≤ B u u

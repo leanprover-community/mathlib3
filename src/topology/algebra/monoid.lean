@@ -182,9 +182,9 @@ variables {M₁ M₂} [mul_one_class M₁] [mul_one_class M₂] [has_continuous_
 /-- Construct a bundled monoid homomorphism `M₁ →* M₂` from a function `f` and a proof that it
 belongs to the closure of the range of the coercion from `M₁ →* M₂` (or another type of bundled
 homomorphisms that has a `monoid_hom_class` instance) to `M₁ → M₂`. -/
-@[to_additive "/-- Construct a bundled additive monoid homomorphism `M₁ →+ M₂` from a function `f`
+@[to_additive "Construct a bundled additive monoid homomorphism `M₁ →+ M₂` from a function `f`
 and a proof that it belongs to the closure of the range of the coercion from `M₁ →+ M₂` (or another
-type of bundled homomorphisms that has a `add_monoid_hom_class` instance) to `M₁ → M₂`. -/",
+type of bundled homomorphisms that has a `add_monoid_hom_class` instance) to `M₁ → M₂`.",
   simps { fully_applied := ff }]
 def monoid_hom_of_mem_closure_range_coe (f : M₁ → M₂)
   (hf : f ∈ closure (range (λ (f : F) (x : M₁), f x))) : M₁ →* M₂ :=
@@ -231,8 +231,8 @@ lemma submonoid.top_closure_mul_self_subset (s : submonoid M) :
   (closure (s : set M)) * closure (s : set M) ⊆ closure (s : set M) :=
 calc
 (closure (s : set M)) * closure (s : set M)
-    = (λ p : M × M, p.1 * p.2) '' (closure ((s : set M).prod s)) : by simp [closure_prod_eq]
-... ⊆ closure ((λ p : M × M, p.1 * p.2) '' ((s : set M).prod s)) :
+    = (λ p : M × M, p.1 * p.2) '' (closure ((s : set M) ×ˢ (s : set M))) : by simp [closure_prod_eq]
+... ⊆ closure ((λ p : M × M, p.1 * p.2) '' ((s : set M) ×ˢ (s : set M))) :
   image_closure_subset_closure_image continuous_mul
 ... = closure s : by simp [s.coe_mul_self_eq]
 

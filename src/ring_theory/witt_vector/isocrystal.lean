@@ -16,16 +16,6 @@ https://www.math.ias.edu/~lurie/205notes/Lecture26-Isocrystals.pdf
 noncomputable theory
 open finite_dimensional
 
--- move this
-def baz {R : Type*} [semiring R] (σ : R →+* R) {τ : out_param (R →+* R)}
-  [ring_hom_inv_pair σ τ] [ring_hom_inv_pair τ σ] :
-  R ≃ₛₗ[σ] R :=
-{ map_smul' := λ a b, by simp,
-  inv_fun := τ,
-  left_inv := λ x, ring_hom_inv_pair.comp_apply_eq,
-  right_inv := λ x, ring_hom_inv_pair.comp_apply_eq,
-  .. ring_hom.to_add_monoid_hom σ }
-
 -- do we have the linear equivalence "scalar-multiply by an invertible scalar" ?
 def bop {R : Type*} [field R] {M : Type*} [add_comm_monoid M] [module R M] {c : R} (hc : c ≠ 0) :
   M ≃ₗ[R] M :=
@@ -94,7 +84,7 @@ instance : module K(p, k) K(p, k) := semiring.to_module
 K(p, k)
 
 instance (m : ℤ) : isocrystal p k (standard_one_dim_isocrystal p k m) :=
-{ frob := (baz (foo p k)).trans (bop (zpow_ne_zero m (p_nonzero' p k) : (p : K(p, k)) ^ m ≠ 0)) }
+{ frob := (foo₀ p k).to_semilinear_equiv.trans (bop (zpow_ne_zero m (p_nonzero' p k) : (p : K(p, k)) ^ m ≠ 0)) }
 
 @[simp] lemma frobenius_standard_one_dim_isocrystal_apply (m : ℤ)
   (x : standard_one_dim_isocrystal p k m) :

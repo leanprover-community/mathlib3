@@ -7,7 +7,13 @@ import category_theory.concrete_category.bundled_hom
 import algebra.punit_instances
 import order.hom.basic
 
-/-! # Category of preorders -/
+/-!
+# Category of preorders
+
+This defines `Preorder`, the category of preorders with monotone maps.
+-/
+
+universe u
 
 open category_theory
 
@@ -32,5 +38,25 @@ def of (α : Type*) [preorder α] : Preorder := bundled.of α
 instance : inhabited Preorder := ⟨of punit⟩
 
 instance (α : Preorder) : preorder α := α.str
+
+/-- `order_dual` as a functor. -/
+@[simps] def to_dual : Preorder ⥤ Preorder :=
+{ obj := λ X, of (order_dual X), map := λ X Y, order_hom.dual }
+
+/-- Constructs an equivalence between preorders from an order isomorphism between them. -/
+@[simps] def iso_of_order_iso {α β : Preorder.{u}} (e : α ≃o β) : α ≅ β :=
+{ hom := e,
+  inv := e.symm,
+  hom_inv_id' := by { ext, exact e.symm_apply_apply x },
+  inv_hom_id' := by { ext, exact e.apply_symm_apply x } }
+
+/-- The equivalence between `Preorder` and itself induced by `order_dual` both ways. -/
+def dual_equiv : Preorder ≌ Preorder :=
+equivalence.mk to_dual to_dual
+  (nat_iso.of_components (λ X, iso_of_order_iso $ order_iso.dual_dual X) $ λ X Y f, rfl)
+  (nat_iso.of_components (λ X, iso_of_order_iso $ order_iso.dual_dual X) $ λ X Y f, rfl)
+
+@[simp] lemma dual_equiv_functor : dual_equiv.functor = to_dual := rfl
+@[simp] lemma dual_equiv_inverse : dual_equiv.inverse = to_dual := rfl
 
 end Preorder

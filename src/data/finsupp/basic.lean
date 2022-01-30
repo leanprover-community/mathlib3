@@ -1710,9 +1710,9 @@ lemma sum_update_add [add_comm_monoid α] [add_comm_monoid β]
   (hgg : ∀ (j : ι) (a₁ a₂ : α), g j (a₁ + a₂) = g j a₁ + g j a₂) :
   (f.update i a).sum g + g i (f i) = f.sum g + g i a :=
 begin
-  rw [update_eq_erase_add_single, sum_add_index hg hgg],
+  rw [update_eq_erase_add_single, sum_add_index (λ a _, hg a) hgg],
   conv_rhs { rw ← finsupp.update_self f i },
-  rw [update_eq_erase_add_single, sum_add_index hg hgg, add_assoc, add_assoc],
+  rw [update_eq_erase_add_single, sum_add_index (λ a _, hg a) hgg, add_assoc, add_assoc],
   congr' 1,
   rw [add_comm, sum_single_index (hg _), sum_single_index (hg _)],
 end

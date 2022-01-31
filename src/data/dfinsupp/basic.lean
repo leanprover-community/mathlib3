@@ -1161,10 +1161,10 @@ calc ∏ i in (f + g).support, h i ((f + g) i) =
   ... = _ : by rw [f_eq, g_eq]
 
 @[to_additive]
-lemma _root_.submonoid.dfinsupp_prod_mem [Π i, has_zero (β i)] [Π i (x : β i), decidable (x ≠ 0)]
-  [comm_monoid γ] (S : submonoid γ)
-  (f : Π₀ i, β i) (g : Π i, β i → γ) (h : ∀ c, f c ≠ 0 → g c (f c) ∈ S) : f.prod g ∈ S :=
-S.prod_mem $ λ i hi, h _ $ mem_support_iff.1 hi
+lemma _root_.dfinsupp_prod_mem [Π i, has_zero (β i)] [Π i (x : β i), decidable (x ≠ 0)]
+  [comm_monoid γ] {S : Type*} [set_like S γ] [submonoid_class S γ] (s : S)
+  (f : Π₀ i, β i) (g : Π i, β i → γ) (h : ∀ c, f c ≠ 0 → g c (f c) ∈ s) : f.prod g ∈ s :=
+prod_mem $ λ i hi, h _ $ mem_support_iff.1 hi
 
 @[simp, to_additive] lemma prod_eq_prod_fintype [fintype ι] [Π i, has_zero (β i)]
   [Π (i : ι) (x : β i), decidable (x ≠ 0)] [comm_monoid γ] (v : Π₀ i, β i) [f : Π i, β i → γ]

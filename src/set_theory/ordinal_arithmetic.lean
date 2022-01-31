@@ -1958,7 +1958,6 @@ le_antisymm
     rw IH _ h,
     apply le_trans (add_le_add_left _ _),
     { rw ← mul_succ, exact mul_le_mul_left' (succ_le.2 $ l.2 _ h) _ },
-    { apply_instance },
     { rw ← ba, exact le_add_right _ _ }
   end)
   (mul_le_mul_right' (le_add_right _ _) _)

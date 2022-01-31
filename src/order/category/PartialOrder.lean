@@ -37,7 +37,7 @@ instance (α : PartialOrder) : partial_order α := α.str
 instance has_forget_to_Preorder : has_forget₂ PartialOrder Preorder := bundled_hom.forget₂ _ _
 
 /-- Constructs an equivalence between partial orders from an order isomorphism between them. -/
-@[simps] def iso_of_order_iso {α β : PartialOrder.{u}} (e : α ≃o β) : α ≅ β :=
+@[simps] def iso.mk {α β : PartialOrder.{u}} (e : α ≃o β) : α ≅ β :=
 { hom := e,
   inv := e.symm,
   hom_inv_id' := by { ext, exact e.symm_apply_apply x },
@@ -50,8 +50,8 @@ instance has_forget_to_Preorder : has_forget₂ PartialOrder Preorder := bundled
 /-- The equivalence between `PartialOrder` and itself induced by `order_dual` both ways. -/
 def dual_equiv : PartialOrder ≌ PartialOrder :=
 equivalence.mk to_dual to_dual
-  (nat_iso.of_components (λ X, iso_of_order_iso $ order_iso.dual_dual X) $ λ X Y f, rfl)
-  (nat_iso.of_components (λ X, iso_of_order_iso $ order_iso.dual_dual X) $ λ X Y f, rfl)
+  (nat_iso.of_components (λ X, iso.mk $ order_iso.dual_dual X) $ λ X Y f, rfl)
+  (nat_iso.of_components (λ X, iso.mk $ order_iso.dual_dual X) $ λ X Y f, rfl)
 
 @[simp] lemma dual_equiv_functor : dual_equiv.functor = to_dual := rfl
 @[simp] lemma dual_equiv_inverse : dual_equiv.inverse = to_dual := rfl

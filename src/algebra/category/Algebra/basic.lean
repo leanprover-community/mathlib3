@@ -133,11 +133,11 @@ namespace category_theory.iso
 def to_alg_equiv {X Y : Algebra R} (i : X ≅ Y) : X ≃ₐ[R] Y :=
 { to_fun    := i.hom,
   inv_fun   := i.inv,
-  left_inv  := by tidy,
-  right_inv := by tidy,
-  map_add'  := by tidy,
-  map_mul'  := by tidy,
-  commutes' := by tidy, }.
+  left_inv  := by { intros _, rw coe_hom_inv_id },
+  right_inv := by { intros _, rw coe_inv_hom_id },
+  map_add'  := by { intros _ _, rw map_add },
+  map_mul'  := by { intros _ _, rw map_mul },
+  commutes' := by { intros _, rw alg_hom.commutes }, }.
 
 end category_theory.iso
 

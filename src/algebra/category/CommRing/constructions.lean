@@ -106,7 +106,18 @@ section terminal
 def punit_is_terminal : is_terminal (CommRing.of.{u} punit) :=
 begin
   apply_with is_terminal.of_unique { instances := ff },
-  tidy
+  intros _,
+  fsplit,
+  { fsplit,
+    fsplit,
+    { intros _, rw coe_of, exact punit.star, },
+    { refl, },
+    { intros _ _, refl, },
+    { refl, },
+  intros _ _, refl, },
+  intros _,
+  ext1,
+  exact dec_trivial,
 end
 
 instance CommRing_has_strict_terminal_objects : has_strict_terminal_objects CommRing.{u} :=

@@ -88,7 +88,7 @@ def preimage_iso (f : (F.obj X) ≅ (F.obj Y)) : X ≅ Y :=
 @[simp] lemma preimage_iso_inv (f : (F.obj X) ≅ (F.obj Y)) :
   (preimage_iso f).inv = F.preimage (f.inv) := rfl
 @[simp] lemma preimage_iso_map_iso (f : X ≅ Y) : preimage_iso (F.map_iso f) = f :=
-by tidy
+by { ext1, rw [preimage_iso_hom, functor.map_iso_hom, preimage_map] }
 
 variables (F)
 

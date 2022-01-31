@@ -166,7 +166,7 @@ def of_components (app : ∀ X : C, F.obj X ≅ G.obj X)
 
 @[simp] lemma of_components.app (app' : ∀ X : C, F.obj X ≅ G.obj X) (naturality) (X) :
   (of_components app' naturality).app X = app' X :=
-by tidy
+by { ext1, refl }
 @[simp] lemma of_components.hom_app (app : ∀ X : C, F.obj X ≅ G.obj X) (naturality) (X) :
   (of_components app naturality).hom.app X = (app X).hom := rfl
 @[simp] lemma of_components.inv_app (app : ∀ X : C, F.obj X ≅ G.obj X) (naturality) (X) :

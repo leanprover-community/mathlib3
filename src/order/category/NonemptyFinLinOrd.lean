@@ -79,13 +79,10 @@ between them. -/
 { obj := λ X, of (order_dual X), map := λ X Y, order_hom.dual }
 
 /-- The equivalence between `FinPartialOrder` and itself induced by `order_dual` both ways. -/
-def dual_equiv : NonemptyFinLinOrd ≌ NonemptyFinLinOrd :=
+@[simps functor inverse] def dual_equiv : NonemptyFinLinOrd ≌ NonemptyFinLinOrd :=
 equivalence.mk to_dual to_dual
   (nat_iso.of_components (λ X, iso.mk $ order_iso.dual_dual X) $ λ X Y f, rfl)
   (nat_iso.of_components (λ X, iso.mk $ order_iso.dual_dual X) $ λ X Y f, rfl)
-
-@[simp] lemma dual_equiv_functor : dual_equiv.functor = to_dual := rfl
-@[simp] lemma dual_equiv_inverse : dual_equiv.inverse = to_dual := rfl
 
 end NonemptyFinLinOrd
 

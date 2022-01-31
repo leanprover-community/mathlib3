@@ -48,13 +48,10 @@ instance has_forget_to_Preorder : has_forget₂ PartialOrder Preorder := bundled
 { obj := λ X, of (order_dual X), map := λ X Y, order_hom.dual }
 
 /-- The equivalence between `PartialOrder` and itself induced by `order_dual` both ways. -/
-def dual_equiv : PartialOrder ≌ PartialOrder :=
+@[simps functor inverse] def dual_equiv : PartialOrder ≌ PartialOrder :=
 equivalence.mk to_dual to_dual
   (nat_iso.of_components (λ X, iso.mk $ order_iso.dual_dual X) $ λ X Y f, rfl)
   (nat_iso.of_components (λ X, iso.mk $ order_iso.dual_dual X) $ λ X Y f, rfl)
-
-@[simp] lemma dual_equiv_functor : dual_equiv.functor = to_dual := rfl
-@[simp] lemma dual_equiv_inverse : dual_equiv.inverse = to_dual := rfl
 
 end PartialOrder
 

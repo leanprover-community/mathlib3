@@ -16,7 +16,7 @@ open category_theory
 
 universe u
 
-/-- The category of linearly ordered types. -/
+/-- The category of linear orders. -/
 def LinearOrder := bundled linear_order
 
 namespace LinearOrder
@@ -49,13 +49,10 @@ bundled_hom.forget₂ _ _
 { obj := λ X, of (order_dual X), map := λ X Y, order_hom.dual }
 
 /-- The equivalence between `PartialOrder` and itself induced by `order_dual` both ways. -/
-def dual_equiv : LinearOrder ≌ LinearOrder :=
+@[simps functor inverse] def dual_equiv : LinearOrder ≌ LinearOrder :=
 equivalence.mk to_dual to_dual
   (nat_iso.of_components (λ X, iso.mk $ order_iso.dual_dual X) $ λ X Y f, rfl)
   (nat_iso.of_components (λ X, iso.mk $ order_iso.dual_dual X) $ λ X Y f, rfl)
-
-@[simp] lemma dual_equiv_functor : dual_equiv.functor = to_dual := rfl
-@[simp] lemma dual_equiv_inverse : dual_equiv.inverse = to_dual := rfl
 
 end LinearOrder
 

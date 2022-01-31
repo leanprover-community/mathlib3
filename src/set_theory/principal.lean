@@ -175,19 +175,24 @@ begin
   { rw ←opow_mul, exact principal_add_omega_opow _ }
 end
 
-theorem mul_principal_add_is_principal_add (a : ordinal.{u}) {b : ordinal.{u}} (hb₁ : 1 < b)
+theorem mul_principal_add_is_principal_add (a : ordinal.{u}) {b : ordinal.{u}} (hb₁ : b ≠ 1)
   (hb : principal (+) b) : principal (+) (a * b) :=
 begin
   rcases eq_zero_or_pos a with rfl | ha,
   { rw zero_mul,
     exact principal_zero },
-  { intros c d hc hd,
-    rw [←is_normal.bsup_eq.{u u} (mul_is_normal ha) (principal_add_is_limit hb₁ hb), lt_bsup] at *,
-    rcases hc with ⟨x, hx, hx'⟩,
-    rcases hd with ⟨y, hy, hy'⟩,
-    use [x + y, hb hx hy],
-    rw mul_add,
-    exact add_lt_add hx' hy' }
+  { rcases eq_zero_or_pos b with rfl | hb₁',
+    { rw mul_zero,
+      exact principal_zero },
+    { rw [← succ_le,succ_zero] at hb₁',
+      intros c d hc hd,
+      rw [←is_normal.bsup_eq.{u u} (mul_is_normal ha)
+        (principal_add_is_limit (lt_of_le_of_ne hb₁' hb₁.symm) hb), lt_bsup] at *,
+      rcases hc with ⟨x, hx, hx'⟩,
+      rcases hd with ⟨y, hy, hy'⟩,
+      use [x + y, hb hx hy],
+      rw mul_add,
+      exact add_lt_add hx' hy' } }
 end
 
 end ordinal

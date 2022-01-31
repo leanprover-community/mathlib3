@@ -541,9 +541,14 @@ meta def list_local_const_unique_names (e : expr) : name_set :=
 e.fold mk_name_set
   (λ e' _ es, if e'.is_local_constant then es.insert e'.local_uniq_name else es)
 
-/-- Returns a name_set of all constants in an expression. -/
+/-- Returns a `name_set` of all constants in an expression. -/
 meta def list_constant (e : expr) : name_set :=
 e.fold mk_name_set (λ e' _ es, if e'.is_constant then es.insert e'.const_name else es)
+
+/-- Returns a `list name` containing the constant names of an `expr` in the same order
+  that `expr.fold` traverses it. -/
+meta def list_constant' (e : expr) : list name :=
+(e.fold [] (λ e' _ es, if e'.is_constant then es.insert e'.const_name else es)).reverse
 
 /-- Returns a list of all meta-variables in an expression (without duplicates). -/
 meta def list_meta_vars (e : expr) : list expr :=
@@ -571,7 +576,7 @@ meta def contains_expr_or_mvar (t : expr) (e : expr) : bool :=
 -- We can't use `t.has_meta_var` here, as that detects universe metavariables, too.
 ¬ t.list_meta_vars.empty ∨ e.occurs t
 
-/-- Returns a name_set of all constants in an expression starting with a certain prefix. -/
+/-- Returns a `name_set` of all constants in an expression starting with a certain prefix. -/
 meta def list_names_with_prefix (pre : name) (e : expr) : name_set :=
 e.fold mk_name_set $ λ e' _ l,
   match e' with
@@ -759,7 +764,7 @@ e.has_local_in $ mk_name_set.insert l.local_uniq_name
 /-- Turns a local constant into a binder -/
 meta def to_binder : expr → binder
 | (local_const _ nm bi t) := ⟨nm, bi, t⟩
-| _                       := default binder
+| _                       := default
 
 /-- Strip-away the context-dependent unique id for the given local const and return: its friendly
 `name`, its `binder_info`, and its `type : expr`. -/

@@ -130,7 +130,7 @@ section pointwise
 variables [topological_space α] [group α] [has_continuous_mul α] {s t : set α}
 
 @[to_additive]
-lemma is_open.mul_left (ht : is_open t) :  is_open (s * t) :=
+lemma is_open.mul_left (ht : is_open t) : is_open (s * t) :=
 begin
   rw ←Union_mul_left_image,
   exact is_open_Union (λ a, is_open_Union $ λ ha, is_open_map_mul_left a t ht),
@@ -685,7 +685,7 @@ begin
     refine λ g hg, mem_Union.2 ⟨g₀ * g⁻¹, _⟩,
     refine preimage_interior_subset_interior_preimage (continuous_const.mul continuous_id) _,
     rwa [mem_preimage, inv_mul_cancel_right] },
-  exact ⟨t, subset.trans ht $ bUnion_mono $ λ g hg, interior_subset⟩
+  exact ⟨t, subset.trans ht $ Union₂_mono $ λ g hg, interior_subset⟩
 end
 
 /-- Every locally compact separable topological group is σ-compact.
@@ -774,13 +774,13 @@ namespace units
 variables [monoid α] [topological_space α] [has_continuous_mul α] [monoid β] [topological_space β]
   [has_continuous_mul β]
 
-instance : topological_group (units α) :=
+instance : topological_group αˣ :=
 { continuous_inv := continuous_induced_rng ((continuous_unop.comp (continuous_snd.comp
     (@continuous_embed_product α _ _))).prod_mk (continuous_op.comp continuous_coe)) }
 
 /-- The topological group isomorphism between the units of a product of two monoids, and the product
     of the units of each monoid. -/
-def homeomorph.prod_units : homeomorph (units (α × β)) (units α × units β) :=
+def homeomorph.prod_units : homeomorph (α × β)ˣ (αˣ × βˣ) :=
 { continuous_to_fun  :=
   begin
     apply continuous.prod_mk,

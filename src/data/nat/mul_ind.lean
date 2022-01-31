@@ -68,16 +68,18 @@ def rec_on_prime_pow {P : ℕ → Sort*} (h0 : P 0) (h1 : P 1)
 `P b` to `P (a * b)` when `a, b` are coprime, you can define `P` for all natural numbers. -/
 @[elab_as_eliminator]
 def rec_on_pos_prime_coprime {P : ℕ → Sort*} (hp : ∀ p n : ℕ, prime p → 0 < n → P (p ^ n))
-  (h0 : P 0) (h1 : P 1) (h : ∀ a b, coprime a b → P a → P b → P (a * b)) : ∀ a, P a :=
+  (h0 : P 0) (h1 : P 1) (h : ∀ a b, 0 < a → 0 < b → coprime a b → P a → P b → P (a * b)) :
+  ∀ a, P a :=
 rec_on_prime_pow h0 h1 $ λ a p n hp' hpa ha,
-  h (p ^ n) a ((prime.coprime_pow_of_not_dvd hp' hpa).symm)
-  (if h : n = 0 then eq.rec h1 h.symm else hp p n hp' $ nat.pos_of_ne_zero h) ha
+  (h (p ^ n) a (pow_pos hp'.pos _) (nat.pos_of_ne_zero (λ t, by simpa [t] using hpa))
+  (prime.coprime_pow_of_not_dvd hp' hpa).symm
+  (if h : n = 0 then eq.rec h1 h.symm else hp p n hp' $ nat.pos_of_ne_zero h) ha)
 
 /-- Given `P 0`, `P (p ^ k)` for all prime powers, and a way to extend `P a` and `P b` to
 `P (a * b)` when `a, b` are coprime, you can define `P` for all natural numbers. -/
 @[elab_as_eliminator]
 def rec_on_prime_coprime {P : ℕ → Sort*} (h0 : P 0) (hp : ∀ p n : ℕ, prime p → P (p ^ n))
-  (h : ∀ a b, coprime a b → P a → P b → P (a * b)) : ∀ a, P a :=
+  (h : ∀ a b, 0 < a → 0 < b → coprime a b → P a → P b → P (a * b)) : ∀ a, P a :=
 rec_on_pos_prime_coprime (λ p n h _, hp p n h) h0 (hp 2 0 prime_two) h
 
 /-- Given `P 0`, `P 1`, `P p` for all primes, and a proof that you can extend
@@ -90,6 +92,6 @@ let hp : ∀ p n : ℕ, prime p → P (p ^ n) :=
   | 0     := h1
   | (n+1) := by exact h _ _ (hp p hp') (_match _)
   end in
-rec_on_prime_coprime h0 hp $ λ a b _, h a b
+rec_on_prime_coprime h0 hp $ λ a b _ _ _, h a b
 
 end nat

@@ -174,21 +174,21 @@ lemma mul_apply (x) : (f * g) x = f (g x) := rfl
 
 @[simp] lemma coe_one : ⇑(1 : circle_deg1_lift) = id := rfl
 
-instance units_has_coe_to_fun : has_coe_to_fun (units circle_deg1_lift) (λ _, ℝ → ℝ) :=
+instance units_has_coe_to_fun : has_coe_to_fun (circle_deg1_liftˣ) (λ _, ℝ → ℝ) :=
 ⟨λ f, ⇑(f : circle_deg1_lift)⟩
 
-@[simp, norm_cast] lemma units_coe (f : units circle_deg1_lift) : ⇑(f : circle_deg1_lift) = f := rfl
+@[simp, norm_cast] lemma units_coe (f : circle_deg1_liftˣ) : ⇑(f : circle_deg1_lift) = f := rfl
 
-@[simp] lemma units_inv_apply_apply (f : units circle_deg1_lift) (x : ℝ) :
-  (f⁻¹ : units circle_deg1_lift) (f x) = x :=
+@[simp] lemma units_inv_apply_apply (f : circle_deg1_liftˣ) (x : ℝ) :
+  (f⁻¹ : circle_deg1_liftˣ) (f x) = x :=
 by simp only [← units_coe, ← mul_apply, f.inv_mul, coe_one, id]
 
-@[simp] lemma units_apply_inv_apply (f : units circle_deg1_lift) (x : ℝ) :
-  f ((f⁻¹ : units circle_deg1_lift) x) = x :=
+@[simp] lemma units_apply_inv_apply (f : circle_deg1_liftˣ) (x : ℝ) :
+  f ((f⁻¹ : circle_deg1_liftˣ) x) = x :=
 by simp only [← units_coe, ← mul_apply, f.mul_inv, coe_one, id]
 
 /-- If a lift of a circle map is bijective, then it is an order automorphism of the line. -/
-def to_order_iso : units circle_deg1_lift →* ℝ ≃o ℝ :=
+def to_order_iso : circle_deg1_liftˣ →* ℝ ≃o ℝ :=
 { to_fun := λ f,
     { to_fun := f,
       inv_fun := ⇑(f⁻¹),
@@ -198,13 +198,13 @@ def to_order_iso : units circle_deg1_lift →* ℝ ≃o ℝ :=
   map_one' := rfl,
   map_mul' := λ f g, rfl }
 
-@[simp] lemma coe_to_order_iso (f : units circle_deg1_lift) : ⇑(to_order_iso f) = f := rfl
+@[simp] lemma coe_to_order_iso (f : circle_deg1_liftˣ) : ⇑(to_order_iso f) = f := rfl
 
-@[simp] lemma coe_to_order_iso_symm (f : units circle_deg1_lift) :
-  ⇑(to_order_iso f).symm = (f⁻¹ : units circle_deg1_lift) := rfl
+@[simp] lemma coe_to_order_iso_symm (f : circle_deg1_liftˣ) :
+  ⇑(to_order_iso f).symm = (f⁻¹ : circle_deg1_liftˣ) := rfl
 
-@[simp] lemma coe_to_order_iso_inv (f : units circle_deg1_lift) :
-  ⇑(to_order_iso f)⁻¹ = (f⁻¹ : units circle_deg1_lift) := rfl
+@[simp] lemma coe_to_order_iso_inv (f : circle_deg1_liftˣ) :
+  ⇑(to_order_iso f)⁻¹ = (f⁻¹ : circle_deg1_liftˣ) := rfl
 
 lemma is_unit_iff_bijective {f : circle_deg1_lift} : is_unit f ↔ bijective f :=
 ⟨λ ⟨u, h⟩, h ▸ (to_order_iso u).bijective, λ h, units.is_unit
@@ -234,9 +234,9 @@ ext_iff
 -/
 
 /-- The map `y ↦ x + y` as a `circle_deg1_lift`. More precisely, we define a homomorphism from
-`multiplicative ℝ` to `units circle_deg1_lift`, so the translation by `x` is
+`multiplicative ℝ` to `circle_deg1_liftˣ`, so the translation by `x` is
 `translation (multiplicative.of_add x)`. -/
-def translate : multiplicative ℝ →* units circle_deg1_lift :=
+def translate : multiplicative ℝ →* circle_deg1_liftˣ :=
 by refine (units.map _).comp to_units.to_monoid_hom; exact
 { to_fun := λ x, ⟨λ y, x.to_add + y, λ y₁ y₂ h, add_le_add_left h _, λ y, (add_assoc _ _ _).symm⟩,
   map_one' := ext $ zero_add,
@@ -597,7 +597,7 @@ begin
   exact le_of_lt ((f^n).dist_map_map_zero_lt (g^n))
 end
 
-@[simp] lemma translation_number_units_inv (f : units circle_deg1_lift) :
+@[simp] lemma translation_number_units_inv (f : circle_deg1_liftˣ) :
   τ ↑(f⁻¹) = -τ f :=
 eq_neg_iff_add_eq_zero.2 $
   by simp [← translation_number_mul_of_commute (commute.refl _).units_inv_left]
@@ -608,16 +608,16 @@ eq_neg_iff_add_eq_zero.2 $
 | (n+1) := by rw [pow_succ', translation_number_mul_of_commute (commute.pow_self f n),
   translation_number_pow n, nat.cast_add_one, add_mul, one_mul]
 
-@[simp] lemma translation_number_zpow (f : units circle_deg1_lift) :
+@[simp] lemma translation_number_zpow (f : circle_deg1_liftˣ) :
   ∀ n : ℤ, τ (f ^ n : units _) = n * τ f
 | (n : ℕ) := by simp [translation_number_pow f n]
 | -[1+n] := by { simp,  ring }
 
-@[simp] lemma translation_number_conj_eq (f : units circle_deg1_lift) (g : circle_deg1_lift) :
+@[simp] lemma translation_number_conj_eq (f : circle_deg1_liftˣ) (g : circle_deg1_lift) :
   τ (↑f * g * ↑(f⁻¹)) = τ g :=
 (translation_number_eq_of_semiconj_by (f.mk_semiconj_by g)).symm
 
-@[simp] lemma translation_number_conj_eq' (f : units circle_deg1_lift) (g : circle_deg1_lift) :
+@[simp] lemma translation_number_conj_eq' (f : circle_deg1_liftˣ) (g : circle_deg1_lift) :
   τ (↑(f⁻¹) * g * f) = τ g :=
 translation_number_conj_eq f⁻¹ g
 
@@ -850,9 +850,9 @@ begin
 end
 
 /-- If two lifts of circle homeomorphisms have the same translation number, then they are
-semiconjugate by a `circle_deg1_lift`. This version uses arguments `f₁ f₂ : units circle_deg1_lift`
+semiconjugate by a `circle_deg1_lift`. This version uses arguments `f₁ f₂ : circle_deg1_liftˣ`
 to assume that `f₁` and `f₂` are homeomorphisms. -/
-lemma units_semiconj_of_translation_number_eq {f₁ f₂ : units circle_deg1_lift}
+lemma units_semiconj_of_translation_number_eq {f₁ f₂ : circle_deg1_liftˣ}
   (h : τ f₁ = τ f₂) :
   ∃ F : circle_deg1_lift, semiconj F f₁ f₂ :=
 begin

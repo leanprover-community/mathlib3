@@ -69,13 +69,14 @@ by { rw ←is_root_cyclotomic_iff, exact zeta_spec' n A B }
 
 section field
 
-variables {K : Type u} (L : Type v) [field K] [field L] [algebra K L] [algebra K A]
+variables {K : Type u} (L : Type v) (C : Type w)
+variables [field K] [field L] [comm_ring C] [algebra K L] [algebra K C]
 variables [is_cyclotomic_extension {n} K L] [ne_zero (n : K)]
 
 /-- If `irreducible (cyclotomic n K)`, then the minimal polynomial of `zeta n K A` is
 `cyclotomic n K`. -/
-lemma zeta_minpoly {n : ℕ+} (hirr : irreducible (cyclotomic n K)) [is_cyclotomic_extension {n} K A]
-  [nontrivial A] : minpoly K (zeta n K A) = cyclotomic n K :=
+lemma zeta_minpoly {n : ℕ+} (hirr : irreducible (cyclotomic n K)) [is_cyclotomic_extension {n} K C]
+  [nontrivial C] : minpoly K (zeta n K C) = cyclotomic n K :=
 (minpoly.eq_of_irreducible_of_monic hirr (zeta_spec _ _ _) (cyclotomic.monic n K)).symm
 
 include n
@@ -112,21 +113,21 @@ end
 /-- `zeta.embeddings_equiv_primitive_roots` is the equiv between `L →ₐ[K] A` and
   `primitive_roots n A` given by the choice of `zeta`. -/
 @[simps]
-def zeta.embeddings_equiv_primitive_roots [is_domain A] (hirr : irreducible (cyclotomic n K)) :
-  (L →ₐ[K] A) ≃ primitive_roots n A :=
+def zeta.embeddings_equiv_primitive_roots [is_domain C] (hirr : irreducible (cyclotomic n K)) :
+  (L →ₐ[K] C) ≃ primitive_roots n C :=
 ((zeta.power_basis n K L).lift_equiv).trans
 { to_fun    := λ x,
   begin
-    haveI hn := (ne_zero.of_no_zero_smul_divisors K A n).trans,
+    haveI hn := (ne_zero.of_no_zero_smul_divisors K C n).trans,
     refine ⟨x.1, _⟩,
     cases x,
     rwa [mem_primitive_roots n.pos, ←is_root_cyclotomic_iff, is_root.def,
-      ← map_cyclotomic _ (algebra_map K A), ← zeta.power_basis_gen_minpoly L hirr,
+      ← map_cyclotomic _ (algebra_map K C), ← zeta.power_basis_gen_minpoly L hirr,
       ← eval₂_eq_eval_map, ← aeval_def]
   end,
   inv_fun   := λ x,
   begin
-    haveI hn := (ne_zero.of_no_zero_smul_divisors K A n).trans,
+    haveI hn := (ne_zero.of_no_zero_smul_divisors K C n).trans,
     refine ⟨x.1, _⟩,
     cases x,
     rwa [aeval_def, eval₂_eq_eval_map, zeta.power_basis_gen_minpoly L hirr, map_cyclotomic,
@@ -165,7 +166,7 @@ begin
     nat.neg_one_pow_of_even (nat.totient_even h), one_mul],
   have : univ.prod (λ (σ : L →ₐ[K] E), 1 - σ (zeta n K L)) = eval 1 (cyclotomic' n E),
   { rw [cyclotomic', eval_prod, ← @finset.prod_attach E E, ← univ_eq_attach],
-    refine fintype.prod_equiv (zeta.embeddings_equiv_primitive_roots E L hirr) _ _ (λ σ, _),
+    refine fintype.prod_equiv (zeta.embeddings_equiv_primitive_roots L E hirr) _ _ (λ σ, _),
     simp },
   haveI : ne_zero ((n : ℕ) : E) := (ne_zero.of_no_zero_smul_divisors K _ (n : ℕ)),
   rw [this, cyclotomic', ← cyclotomic_eq_prod_X_sub_primitive_roots (is_root_cyclotomic_iff.1 hz),

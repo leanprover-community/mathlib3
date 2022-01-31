@@ -123,7 +123,7 @@ principal_add_iff_add_left_eq_self.2 (λ a, add_omega)
 theorem add_omega_opow {a b : ordinal} (h : a < omega ^ b) : a + omega ^ b = omega ^ b :=
 begin
   refine le_antisymm _ (le_add_left _ _),
-  revert h, refine limit_rec_on b (λ h, _) (λ b _ h, _) (λ b l Ih h, _),
+  revert h, refine limit_rec_on b (λ h, _) (λ b _ h, _) (λ b l IH h, _),
   { rw [opow_zero, ← succ_zero, lt_succ, ordinal.le_zero] at h,
     rw [h, zero_add] },
   { rw opow_succ at h,
@@ -131,13 +131,10 @@ begin
     refine le_trans (add_le_add_right (le_of_lt ax) _) _,
     rw [opow_succ, ← mul_add, add_omega xo] },
   { rcases (lt_opow_of_limit omega_ne_zero l).1 h with ⟨x, xb, ax⟩,
-    refine (((add_is_normal a).trans (opow_is_normal one_lt_omega))
-      .limit_le l).2 (λ y yb, _),
-    let z := max x y,
-    have := IH z (max_lt xb yb)
-      (lt_of_lt_of_le ax $ opow_le_opow_right omega_pos (le_max_left _ _)),
-    exact le_trans (add_le_add_left (opow_le_opow_right omega_pos (le_max_right _ _)) _)
-      (le_trans this (opow_le_opow_right omega_pos $ le_of_lt $ max_lt xb yb)) }
+    exact (((add_is_normal a).trans (opow_is_normal one_lt_omega)).limit_le l).2 (λ y yb,
+      (add_le_add_left (opow_le_opow_right omega_pos (le_max_right _ _)) _).trans
+      (le_trans (IH _ (max_lt xb yb) (ax.trans_le $ opow_le_opow_right omega_pos (le_max_left _ _)))
+      (opow_le_opow_right omega_pos $ le_of_lt $ max_lt xb yb))) }
 end
 
 theorem principal_add_omega_opow (o : ordinal) : principal (+) (omega ^ o) :=
@@ -185,13 +182,12 @@ begin
   { rw zero_mul,
     exact principal_zero },
   { intros c d hc hd,
-    have hbl := principal_add_is_limit hb₁ hb,
-    rw [←is_normal.bsup_eq.{u u} (mul_is_normal ha) hbl, lt_bsup] at *,
+    rw [←is_normal.bsup_eq.{u u} (mul_is_normal ha) (principal_add_is_limit hb₁ hb), lt_bsup] at *,
     rcases hc with ⟨x, hx, hx'⟩,
     rcases hd with ⟨y, hy, hy'⟩,
     use [x + y, hb hx hy],
-    convert add_lt_add hx hy,
-  }
+    rw mul_add,
+    exact add_lt_add hx' hy' }
 end
 
 end ordinal

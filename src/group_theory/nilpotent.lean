@@ -753,24 +753,3 @@ begin
 end
 
 end normalizer_condition
-
-
-section finite
-
-/-- A subgroup is maximal if it is a proper subgroup that is not contained in
-anyother proper subgroup -/
-def subgroup.is_maximal (H : subgroup G) :=
-  H < ⊤  ∧ (∀ H' : subgroup G, H < H' → H < ⊤ → H' = H)
-
-variable (G)
-
-/-- Every Sylow group is normal --/
-def sylow_group_normal :=
-  ∀ p, ∀ H : subgroup G, sylow p G → H.normal
-
-/-- All maximal subgroups are normal --/
-def all_maximal_subgroups_normal :=
-  ∀ p, ∀ H : subgroup G, sylow p G → H.is_maximal
-
-
-end finite

@@ -19,12 +19,6 @@ such that `a ≤ b` and `b ≤ a`.
   each other.
 * `antisymmetrization α`: The quotient of `α` by `le_equiv`. Even when `α` is just a preorder,
   `antisymmetrization α` is a partial order.
-
-## TODO
-
-The quotient boilerplate is here because the quotient API requires a `setoid` instance while
-`le_equiv.setoid` definitely can't be a global instance. Quotients should work better in Lean 4 with
-that regard.
 -/
 
 open order_dual
@@ -60,10 +54,8 @@ lemma le_equiv.image {f : α → β} (hf : monotone f) {a b : α} (h : le_equiv 
 variables (α)
 
 /-- The antisymmetrization relation as an equivalence relation. -/
-@[simps, reducible] def le_equiv.setoid : setoid α :=
+@[simps] def le_equiv.setoid : setoid α :=
 ⟨le_equiv, le_equiv_refl, λ _ _, le_equiv.symm, λ _ _ _, le_equiv.trans⟩
-
-local attribute [instance] le_equiv.setoid
 
 /-- The partial order derived from a preorder by making pairwise comparable elements equal. This is
 the quotient by `λ a b, a ≤ b ∧ b ≤ a`. -/
@@ -72,48 +64,41 @@ def antisymmetrization : Type* := quotient $ le_equiv.setoid α
 variables {α}
 
 /-- Turn an element into its antisymmetrization. -/
-def to_antisymmetrization : α → antisymmetrization α := quotient.mk
+def to_antisymmetrization : α → antisymmetrization α := quotient.mk'
 
 /-- Get a representative from the antisymmetrization. -/
-noncomputable def of_antisymmetrization : antisymmetrization α → α := quotient.out
+noncomputable def of_antisymmetrization : antisymmetrization α → α := quotient.out'
 
-instance [inhabited α] : inhabited (antisymmetrization α) := quotient.inhabited
+instance [inhabited α] : inhabited (antisymmetrization α) := quotient.inhabited _
 
 @[elab_as_eliminator]
 protected lemma antisymmetrization.ind {p : antisymmetrization α → Prop} :
-  (∀ a, p ⟦a⟧) → ∀ q, p q :=
+  (∀ a, p $ to_antisymmetrization a) → ∀ q, p q :=
 quot.ind
 
-/-- Lifts a map from `α` to a map from `antisymmetrization α`. -/
-@[reducible, elab_as_eliminator]
-protected def antisymmetrization.lift_on {β : Sort*} (q : antisymmetrization α) (f : α → β)
-  (c : ∀ a b, a ≈ b → f a = f b) : β :=
-quot.lift_on q f c
-
 @[elab_as_eliminator]
-protected lemma antisymmetrization.induction_on {p : antisymmetrization α → Prop} (a : antisymmetrization α)
-  (h : ∀ a, p ⟦a⟧) : p a :=
-quot.induction_on a h
+protected lemma antisymmetrization.induction_on {p : antisymmetrization α → Prop}
+  (a : antisymmetrization α) (h : ∀ a, p $ to_antisymmetrization a) : p a :=
+quotient.induction_on' a h
 
 @[simp] lemma to_antisymmetrization_of_antisymmetrization (a : antisymmetrization α) :
-  to_antisymmetrization (of_antisymmetrization a) = a := quotient.out_eq _
+  to_antisymmetrization (of_antisymmetrization a) = a := quotient.out_eq' _
 
 instance : partial_order (antisymmetrization α) :=
-{ le := quotient.lift₂ (≤) $ λ (a₁ a₂ b₁ b₂ : α) h₁ h₂,
+{ le := λ a b, quotient.lift_on₂' a b (≤) $ λ (a₁ a₂ b₁ b₂ : α) h₁ h₂,
     propext ⟨λ h, h₁.2.trans $ h.trans h₂.1, λ h, h₁.1.trans $ h.trans h₂.2⟩,
-  lt := quotient.lift₂ (<) $ λ (a₁ a₂ b₁ b₂ : α) h₁ h₂,
+  lt := λ a b, quotient.lift_on₂' a b (<) $ λ (a₁ a₂ b₁ b₂ : α) h₁ h₂,
     propext ⟨λ h, h₁.2.trans_lt $ h.trans_le h₂.1, λ h, h₁.1.trans_lt $ h.trans_le h₂.2⟩,
-  le_refl := λ a, quot.induction_on a $ le_refl,
-  le_trans := λ a b c, quot.induction_on₃ a b c $ λ a b c, le_trans,
-  lt_iff_le_not_le := λ a b, quot.induction_on₂ a b $ λ a b, lt_iff_le_not_le,
-  le_antisymm := λ a b, quot.induction_on₂ a b $ λ a b hab hba, quotient.sound ⟨hab, hba⟩ }
+  le_refl := λ a, quotient.induction_on' a $ le_refl,
+  le_trans := λ a b c, quotient.induction_on₃' a b c $ λ a b c, le_trans,
+  lt_iff_le_not_le := λ a b, quotient.induction_on₂' a b $ λ a b, lt_iff_le_not_le,
+  le_antisymm := λ a b, quotient.induction_on₂' a b $ λ a b hab hba, quotient.sound' ⟨hab, hba⟩ }
 
 -- TODO@Yaël: Make computable by adding the missing decidability instances for `quotient.lift` and
 -- `quotient.lift₂`
-noncomputable instance [is_total α (≤)] [@decidable_rel α (≤)] :
-  linear_order (antisymmetrization α) :=
-{ le_total := λ a b, quotient.induction_on₂ a b $ total_of (≤),
-  decidable_eq := quotient.decidable_eq,
+noncomputable instance [is_total α (≤)] : linear_order (antisymmetrization α) :=
+{ le_total := λ a b, quotient.induction_on₂' a b $ total_of (≤),
+  decidable_eq := classical.dec_rel _,
   decidable_le := classical.dec_rel _,
   decidable_lt := classical.dec_rel _,
   ..antisymmetrization.partial_order }
@@ -138,22 +123,26 @@ by convert to_antisymmetrization_lt_to_antisymmetrization_iff.symm;
 @[simps] def order_hom.to_antisymmetrization : α →o antisymmetrization α :=
 ⟨to_antisymmetrization, λ a b, id⟩
 
+private lemma lift_fun_le_equiv (f : α →o β) :
+  ((le_equiv.setoid α).r ⇒ (le_equiv.setoid β).r) f f :=
+λ a b h, ⟨f.mono h.1, f.mono h.2⟩
+
 /-- Turns an order homomorphism from `α` to `β` into one from `antisymmetrization α` to
 `antisymmetrization β`. `antisymmetrization` is actually a functor. See `Preorder_to_PartialOrder`.
 -/
 protected def order_hom.antisymmetrization (f : α →o β) :
   antisymmetrization α →o antisymmetrization β :=
-⟨quotient.map f $ λ a b h, ⟨f.mono h.1, f.mono h.2⟩, λ a b, quotient.induction_on₂ a b $ f.mono⟩
+⟨quotient.map' f $ lift_fun_le_equiv f, λ a b, quotient.induction_on₂' a b $ f.mono⟩
 
 @[simp] lemma order_hom.coe_antisymmetrization (f : α →o β) :
-  ⇑f.antisymmetrization = quotient.map f (λ _ _, le_equiv.image f.mono) := rfl
+  ⇑f.antisymmetrization = quotient.map' f (lift_fun_le_equiv f) := rfl
 
 @[simp] lemma order_hom.antisymmetrization_apply (f : α →o β) (a : antisymmetrization α) :
-  f.antisymmetrization a = quotient.map f (λ _ _, le_equiv.image f.mono) a := rfl
+  f.antisymmetrization a = quotient.map' f (lift_fun_le_equiv f) a := rfl
 
 @[simp] lemma order_hom.antisymmetrization_apply_mk (f : α →o β) (a : α) :
-  f.antisymmetrization ⟦a⟧ = ⟦f a⟧ :=
-quotient.map_mk _ (λ _ _, le_equiv.image f.mono) _
+  f.antisymmetrization (to_antisymmetrization a) = (to_antisymmetrization (f a)) :=
+quotient.map'_mk' f (lift_fun_le_equiv f) _
 
 variables (α)
 
@@ -166,10 +155,11 @@ variables (α)
 /-- `antisymmetrization` and `order_dual` commute. -/
 def order_iso.dual_antisymmetrization :
   order_dual (antisymmetrization α) ≃o antisymmetrization (order_dual α) :=
-{ to_fun := quotient.map id $ λ _ _, and.symm,
-  inv_fun := quotient.map id $ λ _ _, and.symm,
-  left_inv := λ a, quotient.induction_on a $ λ a, by simp_rw [quotient.map_mk, id],
-  right_inv := λ a, quotient.induction_on a $ λ a, by simp_rw [quotient.map_mk, id],
-  map_rel_iff' := λ a b, quotient.induction_on₂ a b $ λ a b, iff.rfl }
+{ to_fun := quotient.map' id $ λ _ _, and.symm,
+  inv_fun := quotient.map' id $ λ _ _, and.symm,
+  left_inv := λ a, quotient.induction_on' a $ λ a, by simp_rw [quotient.map'_mk', id],
+  right_inv := λ a, quotient.induction_on' a $ λ a, by simp_rw [quotient.map'_mk', id],
+  map_rel_iff' := λ a b, quotient.induction_on₂' a b $ λ a b, iff.rfl }
 
 end preorder
+#lint

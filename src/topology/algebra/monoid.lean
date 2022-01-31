@@ -523,7 +523,7 @@ by {rw inf_eq_infi, refine has_continuous_mul_infi (λ b, _), cases b; assumptio
 
 omit h₁ h₂
 
-@[to_additive, priority 100] instance has_continuous_mul_induced :
+@[to_additive] lemma has_continuous_mul_induced :
   @has_continuous_mul M (t.induced f) _ :=
 { continuous_mul :=
     begin

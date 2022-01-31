@@ -841,7 +841,7 @@ by {rw inf_eq_infi, refine topological_group_infi (λ b, _), cases b; assumption
 
 omit h₁ h₂
 
-@[to_additive, priority 100] instance topological_group_induced :
+@[to_additive] lemma topological_group_induced :
   @topological_group G (t.induced f) _ :=
 { continuous_inv :=
     begin

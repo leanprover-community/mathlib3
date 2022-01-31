@@ -704,8 +704,6 @@ begin
   exact derived_le_lower_central n,
 end
 
-section normalizer_condition
-
 lemma normalizer_condition_of_is_nilpotent [h : is_nilpotent G] : normalizer_condition G :=
 begin
   -- roughly based on https://groupprops.subwiki.org/wiki/Nilpotent_implies_normalizer_condition
@@ -748,5 +746,3 @@ begin
       calc center G ≤ H.normalizer : subgroup.center_le_normalizer
                 ... = H : hH, } },
 end
-
-end normalizer_condition

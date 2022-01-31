@@ -190,7 +190,7 @@ end
 def aleph (o : ordinal) : cardinal := aleph' (ordinal.omega + o)
 
 @[simp] theorem aleph_lt {o₁ o₂ : ordinal.{u}} : aleph o₁ < aleph o₂ ↔ o₁ < o₂ :=
-aleph'_lt.trans (ordinal.add_lt_add_iff_left _)
+aleph'_lt.trans (add_lt_add_iff_left _)
 
 @[simp] theorem aleph_le {o₁ o₂ : ordinal.{u}} : aleph o₁ ≤ aleph o₂ ↔ o₁ ≤ o₂ :=
 le_iff_le_iff_lt_iff_lt.2 aleph_lt

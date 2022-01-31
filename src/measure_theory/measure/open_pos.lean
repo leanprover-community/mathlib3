@@ -144,7 +144,7 @@ eq_on_of_ae_eq hfg hf hg (Ico_subset_closure_interior _ _)
 lemma eq_on_Icc_of_ae_eq [densely_ordered X] {a b : X} (hne : a ≠ b) {f g : X → Y}
   (hfg : f =ᵐ[μ.restrict (Icc a b)] g) (hf : continuous_on f (Icc a b))
   (hg : continuous_on g (Icc a b)) : eq_on f g (Icc a b) :=
-eq_on_of_ae_eq hfg hf hg (Icc_subset_closure_interior hne)
+eq_on_of_ae_eq hfg hf hg (closure_interior_Icc hne).symm.subset
 
 end linear_order
 

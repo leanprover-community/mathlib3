@@ -925,7 +925,8 @@ lemma is_closed_eq [t2_space α] {f g : β → α}
   (hf : continuous f) (hg : continuous g) : is_closed {x:β | f x = g x} :=
 continuous_iff_is_closed.mp (hf.prod_mk hg) _ is_closed_diagonal
 
-/-- If two continuous maps are equal on `s`, then they are equal on the closure of `s`. -/
+/-- If two continuous maps are equal on `s`, then they are equal on the closure of `s`. See also
+`set.eq_on.of_subset_closure` for a more general version. -/
 lemma set.eq_on.closure [t2_space α] {s : set β} {f g : β → α} (h : eq_on f g s)
   (hf : continuous f) (hg : continuous g) :
   eq_on f g (closure s) :=
@@ -938,7 +939,7 @@ lemma continuous.ext_on [t2_space α] {s : set β} (hs : dense s) {f g : β → 
 funext $ λ x, h.closure hf hg (hs x)
 
 /-- If `f x = g x` for all `x ∈ s` and `f`, `g` are continuous on `t`, `s ⊆ t ⊆ closure s`, then
-`f x = g x` for all `x ∈ t`. -/
+`f x = g x` for all `x ∈ t`. See also `set.eq_on.closure`. -/
 lemma set.eq_on.of_subset_closure [t2_space α] {s t : set β} {f g : β → α} (h : eq_on f g s)
   (hf : continuous_on f t) (hg : continuous_on g t) (hst : s ⊆ t) (hts : t ⊆ closure s) :
   eq_on f g t :=

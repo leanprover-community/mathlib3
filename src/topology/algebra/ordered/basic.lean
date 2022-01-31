@@ -2259,7 +2259,8 @@ by rw [← Ici_inter_Iio, interior_inter, interior_Ici, interior_Iio, Ioi_inter_
 @[simp] lemma interior_Ioc [no_max_order α] {a b : α} : interior (Ioc a b) = Ioo a b :=
 by rw [← Ioi_inter_Iic, interior_inter, interior_Ioi, interior_Iic, Ioi_inter_Iio]
 
-lemma Icc_subset_closure_interior {a b : α} (h : a ≠ b) : Icc a b ⊆ closure (interior (Icc a b)) :=
+lemma closure_interior_Icc {a b : α} (h : a ≠ b) : closure (interior (Icc a b)) = Icc a b :=
+(closure_minimal interior_subset is_closed_Icc).antisymm $
 calc Icc a b = closure (Ioo a b) : (closure_Ioo h).symm
 ... ⊆ closure (interior (Icc a b)) : closure_mono (interior_maximal Ioo_subset_Icc_self is_open_Ioo)
 

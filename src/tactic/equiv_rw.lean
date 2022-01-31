@@ -271,11 +271,12 @@ with all occurrences of `hᵢ` in other hypotheses and the goal replaced with `e
 `equiv_rw e` will attempt to transport the goal along an equivalence `e : α ≃ β`.
 In its minimal form it replaces the goal `⊢ α` with `⊢ β` by calling `apply e.inv_fun`.
 
-`equiv_rw e at *` will attempt to apply `equiv_rw e` on the goal and on each expression
-available in the local context (except on `e` itself), failing silently where it can't.
-
 `equiv_rw [e₁, e₂, ⋯] at h₁ h₂ ⋯` is equivalent to
-`{ equiv_rw e₁ at h₁ h₂ ⋯, equiv_rw e₂ at h₁ h₂ ⋯, ⋯ }`.
+`{ equiv_rw [e₁, e₂, ⋯] at h₁, equiv_rw [e₁, e₂, ⋯] at h₂, ⋯ }`.
+
+`equiv_rw [e₁, e₂, ⋯] at *` will attempt to apply `equiv_rw [e₁, e₂, ⋯]` on the goal
+and on each expression available in the local context (except on the `eᵢ`s themselves),
+failing silently where it can't.
 
 `equiv_rw` will also try rewriting under (equiv_)functors, so it can turn
 a hypothesis `h : list α` into `h : list β` or

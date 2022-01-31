@@ -207,26 +207,13 @@ namespace intermediate_field
 instance to_field : field S :=
 S.to_subfield.to_field
 
-@[simp, norm_cast] lemma coe_add (x y : S) : (↑(x + y) : L) = ↑x + ↑y := rfl
-@[simp, norm_cast] lemma coe_neg (x : S) : (↑(-x) : L) = -↑x := rfl
-@[simp, norm_cast] lemma coe_mul (x y : S) : (↑(x * y) : L) = ↑x * ↑y := rfl
-@[simp, norm_cast] lemma coe_inv (x : S) : (↑(x⁻¹) : L) = (↑x)⁻¹ := rfl
-@[simp, norm_cast] lemma coe_zero : ((0 : S) : L) = 0 := rfl
-@[simp, norm_cast] lemma coe_one : ((1 : S) : L) = 1 := rfl
-@[simp, norm_cast] lemma coe_pow (x : S) (n : ℕ) : (↑(x ^ n) : L) = ↑x ^ n :=
-begin
-  induction n with n ih,
-  { simp },
-  { simp [pow_succ, ih] }
-end
-
 @[simp, norm_cast]
 lemma coe_sum {ι : Type*} [fintype ι] (f : ι → S) : (↑∑ i, f i : L) = ∑ i, (f i : L) :=
 begin
   classical,
   induction finset.univ using finset.induction_on with i s hi H,
   { simp },
-  { rw [finset.sum_insert hi, coe_add, H, finset.sum_insert hi] }
+  { rw [finset.sum_insert hi, add_submonoid_class.coe_add, H, finset.sum_insert hi] }
 end
 
 @[simp, norm_cast]
@@ -235,7 +222,7 @@ begin
   classical,
   induction finset.univ using finset.induction_on with i s hi H,
   { simp },
-  { rw [finset.prod_insert hi, coe_mul, H, finset.prod_insert hi] }
+  { rw [finset.prod_insert hi, submonoid_class.coe_mul, H, finset.prod_insert hi] }
 end
 
 /-! `intermediate_field`s inherit structure from their `subalgebra` coercions. -/
@@ -312,8 +299,9 @@ lemma aeval_coe {R : Type*} [comm_ring R] [algebra R K] [algebra R L]
   [is_scalar_tower R K L] (x : S) (P : R[X]) : aeval (x : L) P = aeval x P :=
 begin
   refine polynomial.induction_on' P (λ f g hf hg, _) (λ n r, _),
-  { rw [aeval_add, aeval_add, coe_add, hf, hg] },
-  { simp only [coe_mul, aeval_monomial, coe_pow, mul_eq_mul_right_iff],
+  { rw [aeval_add, aeval_add, add_submonoid_class.coe_add, hf, hg] },
+  { simp only [submonoid_class.coe_mul, aeval_monomial, submonoid_class.coe_pow,
+               mul_eq_mul_right_iff],
     left, refl }
 end
 
@@ -328,7 +316,7 @@ begin
       ← is_scalar_tower.algebra_map_eq, ← eval₂_eq_eval_map] },
   { obtain ⟨P, hPmo, hProot⟩ := h,
     refine ⟨P, hPmo, _⟩,
-    rw [← aeval_def, aeval_coe, aeval_def, hProot, coe_zero] },
+    rw [← aeval_def, aeval_coe, aeval_def, hProot, add_submonoid_class.coe_zero] },
 end
 
 variables {S}

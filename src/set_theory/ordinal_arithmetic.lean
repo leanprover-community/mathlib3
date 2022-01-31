@@ -1861,8 +1861,8 @@ theorem omega_le {o : ordinal.{u}} : omega ≤ o ↔ ∀ n : ℕ, (n : ordinal) 
    let ⟨n, e⟩ := lt_omega.1 h in
    by rw [e, ← succ_le]; exact H (n+1)⟩
 
-theorem omega_eq_sup_nat_cast : omega = sup nat.cast :=
-(omega_le.2 $ le_sup _).antisymm $ sup_le.2 $ λ n, (nat_lt_omega n).le
+theorem sup_nat_cast : sup nat.cast = omega :=
+(sup_le.2 $ λ n, (nat_lt_omega n).le).antisymm $ omega_le.2 $ le_sup _
 
 theorem nat_lt_limit {o} (h : is_limit o) : ∀ n : ℕ, (n : ordinal) < o
 | 0     := lt_of_le_of_ne (ordinal.zero_le o) h.1.symm
@@ -2031,26 +2031,26 @@ le_antisymm
   (le_opow_self _ a1)
 
 theorem is_normal.apply_omega {f : ordinal.{u} → ordinal.{u}} (hf : is_normal f) :
-  f omega = sup.{0 u} (f ∘ nat.cast) :=
-by rw [omega_eq_sup_nat_cast, is_normal.sup.{0 u u} hf ⟨0⟩]
+  sup.{0 u} (f ∘ nat.cast) = f omega :=
+by rw [←sup_nat_cast, is_normal.sup.{0 u u} hf ⟨0⟩]
 
-theorem add_omega_eq_sup_add_nat (o : ordinal.{u}) : o + omega = sup (λ n : ℕ, o + n) :=
+theorem sup_add_nat (o : ordinal.{u}) : sup (λ n : ℕ, o + n) = o + omega :=
 (add_is_normal o).apply_omega
 
-theorem mul_omega_eq_sup_mul_nat (o : ordinal) : o * omega = sup (λ n : ℕ, o * n) :=
+theorem sup_mul_nat (o : ordinal) : sup (λ n : ℕ, o * n) = o * omega :=
 begin
   rcases eq_zero_or_pos o with rfl | ho,
-  { rw zero_mul, exact eq.symm (sup_eq_zero_iff.2 $ λ n, zero_mul _) },
+  { rw zero_mul, exact sup_eq_zero_iff.2 (λ n, zero_mul n) },
   { exact (mul_is_normal ho).apply_omega }
 end
 
-theorem opow_omega_eq_sup_power_nat {o : ordinal.{u}} (ho : 0 < o) :
-  o ^ omega = sup (λ n : ℕ, o ^ n) :=
+theorem sup_opow_nat {o : ordinal.{u}} (ho : 0 < o) :
+  sup (λ n : ℕ, o ^ n) = o ^ omega :=
 begin
   rcases lt_or_eq_of_le (one_le_iff_pos.2 ho) with ho₁ | rfl,
   { exact (opow_is_normal ho₁).apply_omega },
   { rw one_opow,
-    refine le_antisymm _ (sup_le.2 (λ n, by rw one_opow)),
+    refine le_antisymm (sup_le.2 (λ n, by rw one_opow)) _,
     convert le_sup _ 0,
     rw [nat.cast_zero, opow_zero] }
 end

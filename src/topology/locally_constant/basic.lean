@@ -426,55 +426,43 @@ lemma coe_desc {X α β : Type*} [topological_space X] (f : X → α) (g : α �
 
 end desc
 
-section char_fn
-variables (R : Type*) [mul_zero_one_class R]
+section indicator
+variables {R : Type*} [has_zero R] {U : set X} (f : locally_constant X R)
 
-/-- Characteristic functions are locally constant functions taking `x : X` to `1` if `x ∈ U`,
-  where `U` is a clopen set, and `0` otherwise. -/
-noncomputable def char_fn {U : set X} (hU : is_clopen U) : locally_constant X R :=
-{ to_fun := λ x, by classical; exact if (x ∈ U) then 1 else 0,
+/-- Given a clopen set `U` and a locally constant function `f`, `locally_constant.indicator`
+  returns the locally constant function that is `f` on `U` and `0` otherwise. -/
+@[simps]
+noncomputable def indicator (hU : is_clopen U) :
+  locally_constant X R :=
+{
+  to_fun := set.indicator U f,
   is_locally_constant :=
     begin
       rw is_locally_constant.iff_exists_open, rintros x,
+      obtain ⟨V, hV, hx, h'⟩ := (is_locally_constant.iff_exists_open _).1 f.is_locally_constant x,
       by_cases x ∈ U,
-      { refine ⟨U, hU.1, h, _⟩, rintros y hy, simp [h, hy], },
+      { refine ⟨U ∩ V, is_open.inter hU.1 hV, set.mem_inter h hx, _⟩, rintros y hy,
+        rw set.mem_inter_iff at hy, rw [set.indicator_of_mem hy.1, set.indicator_of_mem h],
+        apply h' y hy.2, },
       { rw ←set.mem_compl_iff at h, refine ⟨Uᶜ, (is_clopen.compl hU).1, h, _⟩,
         rintros y hy, rw set.mem_compl_iff at h, rw set.mem_compl_iff at hy,
         simp [h, hy], },
-    end, }
+    end,
+}
 
-lemma char_fn_one [nontrivial R] (x : X) {U : set X} (hU : is_clopen U) :
-  x ∈ U ↔ char_fn R hU x = (1 : R) :=
-begin
-  rw char_fn, simp only [locally_constant.coe_mk, ite_eq_left_iff],
-  split, any_goals { intro h, },
-  { intro h',
-    exfalso, apply h', exact h, },
-  { by_contra h', apply @one_ne_zero _ _ _,
-    swap, exact R,
-    any_goals { apply_instance, },
-    { symmetry, apply h, apply h', }, },
-end
+variables (a : X)
 
-lemma char_fn_zero [nontrivial R] (x : X) {U : set X} (hU : is_clopen U) :
-  x ∈ U → false ↔ char_fn R hU x = (0 : R) :=
-begin
-  rw char_fn,
-  simp only [ite_eq_right_iff, one_ne_zero, locally_constant.coe_mk],
-end
+@[simp] theorem apply_indicator (hU : is_clopen U) :
+  indicator f hU a = @ite _ (a ∈ U) (classical.dec (a ∈ U)) (f a) 0 :=
+by {rw [indicator_apply, set.indicator_apply]}
 
-lemma char_fn_inj [nontrivial R] {U V : set X} (hU : is_clopen U) (hV : is_clopen V)
-  (h : char_fn R hU = char_fn R hV) : U = V :=
-begin
-  ext,
-  rw locally_constant.ext_iff at h, specialize h x,
-  split,
-  { intros h', apply (char_fn_one R _ _).2,
-    { rw (char_fn_one R _ _).1 h' at h, rw h.symm, }, },
-  { intros h', apply (char_fn_one R _ _).2,
-    { rw (char_fn_one R _ _).1 h' at h, rw h, }, },
-end
+variables {a}
 
-end char_fn
+@[simp] theorem indicator_of_mem (hU : is_clopen U) (h : a ∈ U) : f.indicator hU a = f a :=
+by{ rw indicator_apply, apply set.indicator_of_mem h, }
 
+@[simp] theorem indicator_of_not_mem (hU : is_clopen U) (h : a ∉ U) : f.indicator hU a = 0 :=
+by{ rw indicator_apply, apply set.indicator_of_not_mem h, }
+
+end indicator
 end locally_constant

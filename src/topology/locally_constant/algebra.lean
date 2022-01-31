@@ -72,6 +72,45 @@ instance [mul_zero_class Y] : mul_zero_class (locally_constant X Y) :=
 instance [mul_zero_one_class Y] : mul_zero_one_class (locally_constant X Y) :=
 { .. locally_constant.mul_zero_class, .. locally_constant.mul_one_class }
 
+section char_fn
+
+variables (Y) [mul_zero_one_class Y] {U V : set X}
+
+/-- Characteristic functions are locally constant functions taking `x : X` to `1` if `x ∈ U`,
+  where `U` is a clopen set, and `0` otherwise. -/
+noncomputable def char_fn (hU : is_clopen U) : locally_constant X Y :=
+  indicator 1 hU
+
+lemma char_fn_one [nontrivial Y] (x : X) (hU : is_clopen U) :
+  x ∈ U ↔ char_fn Y hU x = (1 : Y) :=
+begin
+  rw char_fn,
+  split, any_goals { intro h, },
+  { apply indicator_of_mem _ _ h, },
+  { by_contra h', apply @one_ne_zero _ _ _,
+    swap, exact Y,
+    any_goals { apply_instance, },
+    { rw ←h, apply indicator_of_not_mem _ _ h', }, },
+end
+
+lemma char_fn_zero [nontrivial Y] (x : X) (hU : is_clopen U) :
+  x ∈ U → false ↔ char_fn Y hU x = (0 : Y) :=
+by { rw char_fn, simp, }
+
+lemma char_fn_inj [nontrivial Y] (hU : is_clopen U) (hV : is_clopen V)
+  (h : char_fn Y hU = char_fn Y hV) : U = V :=
+begin
+  ext,
+  rw locally_constant.ext_iff at h, specialize h x,
+  split,
+  { intros h', apply (char_fn_one Y _ _).2,
+    { rw (char_fn_one Y _ _).1 h' at h, rw h.symm, }, },
+  { intros h', apply (char_fn_one Y _ _).2,
+    { rw (char_fn_one Y _ _).1 h' at h, rw h, }, },
+end
+
+end char_fn
+
 @[to_additive] instance [has_div Y] : has_div (locally_constant X Y) :=
 { div := λ f g, ⟨f / g, f.is_locally_constant.div g.is_locally_constant⟩ }
 

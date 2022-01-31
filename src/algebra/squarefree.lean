@@ -210,7 +210,7 @@ if 2 ∣ n then
   if 2 ∣ n' then some 2 else min_sq_fac_aux n' 3
 else min_sq_fac_aux n 3
 
-private def min_sq_fac_prop (n : ℕ) : option ℕ → Prop
+def min_sq_fac_prop (n : ℕ) : option ℕ → Prop
 | none := squarefree n
 | (some d) := prime d ∧ d * d ∣ n ∧ ∀ p, prime p → p * p ∣ n → d ≤ p
 
@@ -506,7 +506,7 @@ end
 lemma squarefree_helper_4 (n k k' : ℕ) (e : bit1 k * bit1 k = k')
   (hd : bit1 n < k') : squarefree_helper n k :=
 begin
-  cases nat.eq_zero_or_pos n,
+  cases nat.eq_zero_or_pos n with h h,
   { subst n, exact λ _ _, squarefree_one },
   subst e,
   refine λ k0 ih, irreducible.squarefree (nat.prime_def_le_sqrt.2 ⟨bit1_lt_bit1.2 h, _⟩),

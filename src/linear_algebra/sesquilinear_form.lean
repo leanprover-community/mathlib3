@@ -10,17 +10,20 @@ import linear_algebra.matrix.basis
 /-!
 # Sesquilinear form
 
-This file defines a sesquilinear form over a module. The definition requires a ring antiautomorphism
-on the scalar ring. Basic ideas such as orthogonality are also introduced.
+This files provides properties about sesquilinear forms. The maps considered are of the form
+`M₁ →ₛₗ[I₁] M₂ →ₛₗ[I₂] R`, where `I₁ : R₁ →+* R` and `I₂ : R₂ →+* R` are ring homomorphisms and
+`M₁` is a module over `R₁` and `M₂` is a module over `R₂`.
+Sesquilinear forms are the special case that `M₁ = M₂`, `R₁ = R₂ = R`, and `I₁ = ring_hom.id R`.
+Taking additionally `I₂ = ring_hom.id R`, then one obtains bilinear forms.
 
-A sesquilinear form on an `R`-module `M`, is a function from `M × M` to `R`, that is linear in the
-first argument and antilinear in the second, with respect to an antiautomorphism on `R` (an
-antiisomorphism from `R` to `R`).
+These forms are a special case of the bilinear maps defined in `bilinear_map.lean` and all basic
+lemmas about construction and elementary calculations are found there.
 
-## Notations
+## Main declarations
 
-Given any term `S` of type `sesq_form`, due to a coercion, can use the notation `S x y` to
-refer to the function field, ie. `S x y = S.sesq x y`.
+* `is_ortho`: states that two vectors are orthogonal with respect to a sesquilinear form
+* `is_symm`, `is_alt`: states that a sesquilinear form is symmetric and alternating, respectively
+* `orthogonal_bilin`: provides the orthogonal complement with respect to sesquilinear form
 
 ## References
 

@@ -9,6 +9,11 @@ import group_theory.general_commutator
 import group_theory.order_of_element
 import data.finset.noncomm_prod
 
+/-!
+# TODO
+
+-/
+
 variables {G : Type*} [group G]
 
 lemma mul_eq_one_of_disjoint
@@ -31,9 +36,12 @@ variables {I : Type*} [fintype I] {H : I → Type*} [∀ i, group (H i)] (ϕ : �
 variables (f g : Π (i : I), H i)
 
 -- A bit like `finset.noncomm_prodi`, but without the dependent Prop arg that makes things tricky
+
+/-- TODO -/
 noncomputable
 def fun_on (S : finset I) : G := (list.map (λ i, ϕ i (f i)) S.to_list).prod
 
+/-- TODO -/
 noncomputable
 def to_fun : G := fun_on ϕ f finset.univ
 
@@ -90,8 +98,7 @@ begin
     ... = (ϕ j (f j) * ϕ i (g i)) * fun_on ϕ f S : by {congr' 1, apply (fact.elim hcomm _ _ hij)}
     ... = ϕ j (f j) * (ϕ i (g i) * fun_on ϕ f S) : by rw mul_assoc
     ... = ϕ j (f j) * (fun_on ϕ f S * ϕ i (g i)) : by { congr' 1, apply (ih hiS) }
-    ... = (ϕ j (f j) * fun_on ϕ f S) * ϕ i (g i) : by rw ← mul_assoc
-  }
+    ... = (ϕ j (f j) * fun_on ϕ f S) * ϕ i (g i) : by rw ← mul_assoc }
 end
 
 @[simp]
@@ -120,9 +127,7 @@ begin
       have : (⨆ (i_1 : I) (H_1 : i_1 ∈ S), (ϕ i_1).range) ≤
         (⨆ (i_1 : I) (H_1 : i_1 ∈ finset.cons i S hnmem), (ϕ i_1).range) :=
         @bsupr_le_bsupr' _ _ _ (λ j, j ∈ S) (λ j, j ∈ finset.cons i S hnmem) this _,
-      exact (this ih),
-    }
-  }
+      exact (this ih), } }
 end
 
 lemma to_fun_in_sup_range : to_fun ϕ f ∈ ⨆ (i : I), (ϕ i).range :=
@@ -159,13 +164,11 @@ begin
   { simp, },
   { repeat { rw fun_on_cons },
     by_cases (i = j),
-    {
-      subst h,
+    { subst h,
       rw ih,
       simp only [just_one_eq, mul_ite, mul_one, finset.cons_eq_insert, finset.mem_insert,
         eq_self_iff_true, true_or, if_true, ite_eq_right_iff, mul_left_eq_self],
-      intro i, contradiction,
-    },
+      intro i, contradiction, },
     { change i ≠ j at h,
       simp [h],
       exact ih, } }
@@ -210,7 +213,7 @@ begin
     rw fun_on_cons at heq1,
     have hnmem' : i ∉ (S : set I), by simpa,
     have heq1' : ϕ i (f i) = 1 ∧ fun_on ϕ f S = 1,
-    { apply mul_eq_one_of_disjoint (complete_lattice.independent.disjoint_bsupr hind hnmem') _ _ heq1,
+    { apply mul_eq_one_of_disjoint (hind.disjoint_bsupr hnmem') _ _ heq1,
       { simp, },
       { apply fun_on_in_sup_range, }, },
     rcases heq1' with ⟨ heq1i, heq1S ⟩,

@@ -126,7 +126,7 @@ by rw [← map_one h, equiv_like.apply_eq_iff_eq h]
 lemma map_ne_one_iff {M N} [mul_one_class M] [mul_one_class N] [mul_equiv_class F M N]
   (h : F) {x : M} :
   h x ≠ 1 ↔ x ≠ 1 :=
-⟨mt (map_eq_one_iff h).2, mt (map_eq_one_iff h).1⟩
+not_congr (map_eq_one_iff h)
 
 end mul_equiv_class
 

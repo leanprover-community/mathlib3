@@ -19,6 +19,9 @@ distributive Boolean algebras.
 * `complete_boolean_algebra`: Completely distributive Boolean algebra: A Boolean algebra whose `⊓`
   and `⊔` distribute over `⨆` and `⨅` respectively.
 
+A set of opens gives rise to a topological space precisely if it forms a frame. Such a frame is also
+completely distributive, but not all frames are.
+
 ## TODO
 
 Add instances for `prod`
@@ -26,6 +29,7 @@ Add instances for `prod`
 ## References
 
 * [Wikipedia, *Complete Heyting algebra*][https://en.wikipedia.org/wiki/Complete_Heyting_algebra]
+* [Francis Borceux, *Handbook of Categorical Algebra III*][borceux-vol3]
 -/
 
 set_option old_structure_cmd true

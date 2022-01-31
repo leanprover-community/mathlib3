@@ -1199,4 +1199,16 @@ lemma factors_count_eq_of_coprime_right {p a b : ℕ} (hab : coprime a b) (hpb :
   list.count p (a * b).factors = list.count p b.factors :=
 by { rw mul_comm, exact factors_count_eq_of_coprime_left (coprime_comm.mp hab) hpb }
 
+/-- If prime powers of different primes can only coincide if the power is 0 -/
+lemma prim_pow_eq_of_ne
+  {p₁ p₂ n₁ n₂ : ℕ} [hp₁ : fact p₁.prime] [hp₂ : fact p₂.prime]
+  (hne : p₁ ≠ p₂) (heq : p₁ ^ n₁ = p₂ ^ n₂) : n₁ = 0 :=
+begin
+  have := calc p₁ ^ n₁ = gcd (p₁ ^ n₁) (p₁ ^ n₁) : symm (gcd_self _)
+    ... = gcd (p₁ ^ n₁) (p₂ ^ n₂) : by rw [← heq]
+    ... = 1 : coprime_pow_primes _ _ hp₁.elim hp₂.elim hne,
+  by_contradiction hpos,
+  exact (fact.elim hp₁).ne_one ((pow_eq_one_iff hpos).mp this),
+end
+
 end nat

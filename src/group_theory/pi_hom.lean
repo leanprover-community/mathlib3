@@ -226,7 +226,7 @@ begin
 end
 
 noncomputable
-def mul_equiv [decidable_eq I ]:
+def mul_equiv [decidable_eq I] :
   (Π (i : I), H i) ≃* (⨆ (i : I), (ϕ i).range : subgroup G) :=
 begin
   rw ← range_eq,

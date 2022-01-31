@@ -665,7 +665,7 @@ the group quotiented by its center. -/
 lemma nilpotent_center_quotient_ind
   {P : Π G [group G], by exactI ∀ [is_nilpotent G], Prop}
   (G : Type*) [group G] [is_nilpotent G]
-  (hbase : ∀ G [group G], by exactI ∀ [is_nilpotent G], by exactI ∀ [subsingleton G], P G)
+  (hbase : ∀ G [group G] [subsingleton G], by exactI P G)
   (hstep : ∀ G [group G], by exactI ∀ [is_nilpotent G], by exactI ∀ (ih : P (G ⧸ center G)), P G) :
   P G :=
 begin

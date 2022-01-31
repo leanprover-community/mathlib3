@@ -1084,7 +1084,7 @@ lemma linear_independent.insert (hs : linear_independent K (λ b, b : s → V)) 
   linear_independent K (λ b, b : insert x s → V) :=
 begin
   rw ← union_singleton,
-  have x0 : x ≠ 0 := mt (by rintro rfl; apply zero_mem _) hx,
+  have x0 : x ≠ 0 := mt (by rintro rfl; apply zero_mem (span K s)) hx,
   apply hs.union (linear_independent_singleton x0),
   rwa [disjoint_span_singleton' x0]
 end

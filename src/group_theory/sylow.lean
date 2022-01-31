@@ -535,7 +535,7 @@ lemma normal_of_normalizer_normal {p : ℕ} [fact p.prime] [fintype (sylow p G)]
 by rw [←normalizer_eq_top, ←normalizer_sup_eq_top (P.subtype _ le_normalizer), coe_subtype,
   map_comap_eq_self (le_normalizer.trans (ge_of_eq (subtype_range _))), sup_idem]
 
-lemma normalizer_self_normalizing {p : ℕ} [fact p.prime] [fintype (sylow p G)]
+@[simp] lemma normalizer_normalizer {p : ℕ} [fact p.prime] [fintype (sylow p G)]
  (P : sylow p G) :
  (↑P : subgroup G).normalizer.normalizer = (↑P : subgroup G).normalizer :=
 begin

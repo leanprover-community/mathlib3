@@ -601,10 +601,9 @@ begin
   { simp, },
   { let Hn := upper_central_series (G ⧸ center G) n,
     calc comap (mk' (center G)) (upper_central_series (G ⧸ center G) n.succ)
-        = comap (mk' (center G)) (upper_central_series_step Hn)
-        : rfl
-    ... = comap (mk' (center G)) (comap (mk' Hn) (center ((G ⧸ center G) ⧸ Hn)))
-        : by rw upper_central_series_step_eq_comap_center
+        = comap (mk' (center G)) (upper_central_series_step Hn) : rfl
+    ... = comap (mk' (center G)) (comap (mk' Hn) (center ((G ⧸ center G) ⧸ Hn))) :
+        by rw upper_central_series_step_eq_comap_center
     ... = comap (mk' (comap (mk' (center G)) Hn)) (center (G ⧸ (comap (mk' (center G)) Hn)))
         : comap_comap_center
     ... = comap (mk' (upper_central_series G n.succ)) (center (G ⧸ upper_central_series G n.succ))

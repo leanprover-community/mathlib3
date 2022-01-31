@@ -6,7 +6,7 @@ Authors: Frédéric Dupuis
 import data.real.sqrt
 import field_theory.tower
 import analysis.normed_space.finite_dimension
-import analysis.normed_space.star
+import analysis.normed_space.star.basic
 
 /-!
 # `is_R_or_C`: a typeclass for ℝ or ℂ

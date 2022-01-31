@@ -83,7 +83,8 @@ instance : order_ring_hom_class (α →+*o β) α β :=
   map_zero := λ f, f.map_zero',
   monotone := λ f, f.monotone' }
 
-/-- Helper instance for when there's too many metavariables to apply `to_fun.to_coe_fn` directly. -/
+/-- Helper instance for when there's too many metavariables to apply `fun_like.has_coe_to_fun`
+directly. -/
 instance : has_coe_to_fun (α →+*o β) (λ _, α → β) := ⟨λ f, f.to_fun⟩
 
 @[simp] lemma to_fun_eq_coe : f.to_fun = (f : α → β) := rfl

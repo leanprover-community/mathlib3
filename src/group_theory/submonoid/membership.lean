@@ -79,7 +79,7 @@ end submonoid_class
 
 namespace submonoid
 
-variables [monoid M] (s : submonoid M)
+variables (s : submonoid M)
 
 @[simp, norm_cast, to_additive] theorem coe_list_prod (l : list s) :
   (l.prod : M) = (l.map coe).prod :=

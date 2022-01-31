@@ -579,7 +579,7 @@ lemma nilpotency_class_quotient_le (H : subgroup G) [H.normal] [h : is_nilpotent
 -- This technical lemma helps with rewriting the subgroup, which occurs in indices
 private lemma comap_center_subst {H₁ H₂ : subgroup G} [normal H₁] [normal H₂] (h : H₁ = H₂) :
   comap (mk' H₁) (center (G ⧸ H₁)) = comap (mk' H₂) (center (G ⧸ H₂)) :=
-  by unfreezingI { subst h }
+by unfreezingI { subst h }
 
 lemma comap_upper_central_series_quotient_center (n : ℕ) :
   comap (mk' (center G)) (upper_central_series (G ⧸ center G) n) = upper_central_series G n.succ :=

@@ -18,16 +18,18 @@ universe u
 variable {α : Type u}
 
 section cov_con
-variables [semiring α] [partial_order α]
-instance semiring_has_scalar_pos : has_scalar {x : α // 0 < x} α :=
+instance semiring_has_scalar_pos [has_mul α] [has_zero α] [has_lt α] :
+  has_scalar {x : α // 0 < x} α :=
 { smul := λ x y, x * y }
 
-instance semiring_has_scalar_opp_pos : has_scalar {x : α // 0 < x} αᵐᵒᵖ :=
+instance semiring_has_scalar_opp_pos [has_mul α] [has_zero α] [has_lt α] :
+  has_scalar {x : α // 0 < x} αᵐᵒᵖ :=
 { smul := λ x y, (op x) * y }
 
 instance [has_lt α] : has_lt αᵐᵒᵖ :=
 { lt := λ a b, unop a < unop b }
 
+variables [mul_zero_class α] [partial_order α]
 variables [covariant_class {x : α // 0 < x} α (•) (≤)] {a b c : α}
 
 lemma pre (ab : a ≤ b) (c0 : 0 ≤ c) : c * a ≤ c * b :=
@@ -53,13 +55,11 @@ instance ordered_semiring.to_covariant_class_scalar_opp :
   covariant_class {x : α // 0 < x} αᵐᵒᵖ (•) (<) :=
 { elim := λ c a b ab, ordered_semiring.mul_lt_mul_of_pos_right _ _ _ ab c.2 }
 
-def cov_lt_to_le {α β : Type*} {μ : α → β → β} [partial_order β] [covariant_class α β μ (<)] :
+lemma cov_lt_to_le {α β : Type*} {μ : α → β → β} [partial_order β] [covariant_class α β μ (<)] :
   covariant_class α β μ (≤) :=
-{ elim := λ c a b ab, by { rcases eq_or_ne a b with rfl | ab0, { exact rfl.le },
-    exact (covariant_class.elim c ((ne.le_iff_lt ab0).mp ab)).le } }
+{ elim := λ c a b, covariant_le_of_covariant_lt α β μ covariant_class.elim _ }
 
 end ordered_semiring
-
 
 lemma add_one_le_two_mul [has_le α] [semiring α] [covariant_class α α (+) (≤)]
   {a : α} (a1 : 1 ≤ a) :
@@ -67,44 +67,20 @@ lemma add_one_le_two_mul [has_le α] [semiring α] [covariant_class α α (+) (�
 calc  a + 1 ≤ a + a : add_le_add_left a1 a
         ... = 2 * a : (two_mul _).symm
 
-section ordered_semiring
-variables [ordered_semiring α] {a b c d : α}
+section no_ordered_semiring
+variables [mul_zero_class α] [preorder α] [covariant_class {x : α // 0 < x} α (•) (<)] {a b c d : α}
 
-@[simp] lemma zero_le_one : 0 ≤ (1:α) :=
-ordered_semiring.zero_le_one
-
-lemma zero_le_two : 0 ≤ (2:α) :=
-add_nonneg zero_le_one zero_le_one
-
-lemma one_le_two : 1 ≤ (2:α) :=
-calc (1:α) = 0 + 1 : (zero_add _).symm
-       ... ≤ 1 + 1 : add_le_add_right zero_le_one _
-
-section nontrivial
-
-variables [nontrivial α]
-
-@[simp] lemma zero_lt_one : 0 < (1 : α) :=
-lt_of_le_of_ne zero_le_one zero_ne_one
-
-lemma zero_lt_two : 0 < (2:α) := add_pos zero_lt_one zero_lt_one
-
-@[field_simps] lemma two_ne_zero : (2:α) ≠ 0 :=
-ne.symm (ne_of_lt zero_lt_two)
-
-lemma one_lt_two : 1 < (2:α) :=
-calc (2:α) = 1+1 : one_add_one_eq_two
-     ...   > 1+0 : add_lt_add_left zero_lt_one _
-     ...   = 1   : add_zero 1
-
-lemma zero_lt_three : 0 < (3:α) := add_pos zero_lt_two zero_lt_one
-
-lemma zero_lt_four : 0 < (4:α) := add_pos zero_lt_two zero_lt_two
-
-end nontrivial
+-- remove inequalities involving 0, 1, 2, 3, 4 before and after `nontrivial`
 
 lemma mul_lt_mul_of_pos_left (h₁ : a < b) (h₂ : 0 < c) : c * a < c * b :=
-ordered_semiring.mul_lt_mul_of_pos_left a b c h₁ h₂
+let c₀ : {x : α // 0 < x} := ⟨c, h₂⟩ in
+show c₀ • a < c₀ • b, from covariant_class.elim c₀ h₁
+
+end no_ordered_semiring
+
+end new
+
+#exit
 
 lemma mul_lt_mul_of_pos_right (h₁ : a < b) (h₂ : 0 < c) : a * c < b * c :=
 ordered_semiring.mul_lt_mul_of_pos_right a b c h₁ h₂
@@ -424,7 +400,7 @@ calc a * b ≤ b : decidable.mul_le_of_le_one_left hb0 ha
 lemma mul_lt_one_of_nonneg_of_lt_one_right : a ≤ 1 → 0 ≤ b → b < 1 → a * b < 1 :=
 by classical; exact decidable.mul_lt_one_of_nonneg_of_lt_one_right
 
-end ordered_semiring
+end no_ordered_semiring
 
 section ordered_comm_semiring
 

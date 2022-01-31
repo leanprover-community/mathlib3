@@ -576,8 +576,8 @@ instance nilpotent_quotient_of_nilpotent (H : subgroup G) [H.normal] [h : is_nil
 lemma nilpotency_class_quotient_le (H : subgroup G) [H.normal] [h : is_nilpotent G] :
   group.nilpotency_class (G ⧸ H) ≤ group.nilpotency_class G := nilpotency_class_le_of_surjective _ _
 
--- This lemma helps with rewriting the subgroup, which occurs in indices
-lemma comap_center_subst {H₁ H₂ : subgroup G} [normal H₁] [normal H₂] (h : H₁ = H₂) :
+-- This technical lemma helps with rewriting the subgroup, which occurs in indices
+private lemma comap_center_subst {H₁ H₂ : subgroup G} [normal H₁] [normal H₂] (h : H₁ = H₂) :
   comap (mk' H₁) (center (G ⧸ H₁)) = comap (mk' H₂) (center (G ⧸ H₂)) :=
   by unfreezingI { subst h }
 
@@ -592,7 +592,7 @@ begin
     ... = comap (mk' (center G)) (comap (mk' Hn) (center ((G ⧸ center G) ⧸ Hn))) :
         by rw upper_central_series_step_eq_comap_center
     ... = comap (mk' (comap (mk' (center G)) Hn)) (center (G ⧸ (comap (mk' (center G)) Hn))) :
-        comap_comap_center
+        quotient_group.comap_comap_center
     ... = comap (mk' (upper_central_series G n.succ)) (center (G ⧸ upper_central_series G n.succ)) :
         comap_center_subst ih
     ... = upper_central_series_step (upper_central_series G n.succ) :

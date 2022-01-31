@@ -276,7 +276,9 @@ In its minimal form it replaces the goal `⊢ α` with `⊢ β` by calling `appl
 
 `equiv_rw [e₁, e₂, ⋯] at *` will attempt to apply `equiv_rw [e₁, e₂, ⋯]` on the goal
 and on each expression available in the local context (except on the `eᵢ`s themselves),
-failing silently where it can't.
+failing silently when it can't. Failing on a rewrite for a certain `eᵢ` at a certain
+hypothesis `h` doesn't stop `equiv_rw` from trying the other equivalences on the list
+at `h`. This only happens for the wildcard location.
 
 `equiv_rw` will also try rewriting under (equiv_)functors, so it can turn
 a hypothesis `h : list α` into `h : list β` or

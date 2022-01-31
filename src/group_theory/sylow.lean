@@ -550,6 +550,6 @@ lemma normal_of_normalizer_condition (hnc : normalizer_condition G)
  {p : ℕ} [fact p.prime] [fintype (sylow p G)] (P : sylow p G) :
  (↑P : subgroup G).normal :=
 normalizer_eq_top.mp $ normalizer_condition_iff_only_full_group_self_normalizing.mp hnc _ $
-  normalizer_self_normalizing _
+  normalizer_normalizer _
 
 end sylow

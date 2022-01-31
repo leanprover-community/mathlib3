@@ -131,6 +131,14 @@ instance pi.complete_distrib_lattice {ι : Type*} {π : ι → Type*}
     by simp only [Sup_apply, supr_apply, pi.inf_apply, inf_supr_eq, ←supr_subtype''],
   .. pi.frame }
 
+lemma infi_sup_infi {ι ι' : Type*} {f : ι → α} {g : ι' → α} :
+  (⨅ i, f i) ⊔ (⨅ i, g i) = ⨅ i : ι × ι', f i.1 ⊔ g i.2 :=
+@supr_inf_supr (order_dual α) _ _ _ _ _
+
+lemma binfi_sup_binfi {ι ι' : Type*} {f : ι → α} {g : ι' → α} {s : set ι} {t : set ι'} :
+  (⨅ i ∈ s, f i) ⊔ (⨅ j ∈ t, g j) = ⨅ p ∈ s ×ˢ t, f (p : ι × ι').1 ⊔ g p.2 :=
+@bsupr_inf_bsupr (order_dual α) _ _ _ _ _ _ _
+
 theorem Inf_sup_Inf : Inf s ⊔ Inf t = (⨅ p ∈ s ×ˢ t, (p : α × α).1 ⊔ p.2) :=
 @Sup_inf_Sup (order_dual α) _ _ _
 

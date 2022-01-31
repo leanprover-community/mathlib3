@@ -68,24 +68,23 @@ end
 
 
 def is_congruence_subgroup (Γ : subgroup SL(2, ℤ)) : Prop :=
-∃ (N : ℕ), (1 < N ) ∧ (Gamma_N N) ≤ Γ
+∃ (N : ℕ),  (Gamma_N N) ≤ Γ
 
 lemma is_congruence_subgroup_trans (H K : subgroup SL(2, ℤ)) (h: H ≤ K) (h2 : is_congruence_subgroup H) :
 is_congruence_subgroup K :=
 begin
   simp_rw is_congruence_subgroup at *,
   let N := classical.some_spec h2,
-  have := le_trans N.2 h,
+  have := le_trans N h,
   use classical.some h2,
-  simp  [N.1,this],
+  simp  [N,this],
 end
 
-lemma Gamma_N_is_cong_sub (N : ℕ) (hN : 1 < N) : is_congruence_subgroup (Gamma_N N):=
+lemma Gamma_N_is_cong_sub (N : ℕ)  : is_congruence_subgroup (Gamma_N N):=
 begin
 rw is_congruence_subgroup,
 use N,
 simp only [le_refl],
-simp [hN],
 end
 
 def Gamma0_N (N : ℕ) : subgroup SL(2, ℤ) :={
@@ -213,20 +212,19 @@ begin
   exact HA.2.2,
 end
 
-lemma Gamma1_N_is_congruence (N : ℕ) (hN : 1 < N) : is_congruence_subgroup (Gamma1_N N) :=
+lemma Gamma1_N_is_congruence (N : ℕ)  : is_congruence_subgroup (Gamma1_N N) :=
 begin
   simp_rw is_congruence_subgroup,
   use N,
-  simp [hN],
   intros A hA,
   simp only [Gamma1_N_mem, integral_matrices_with_determinant.mat_m_vals,
     subtype.val_eq_coe, Gamma_N_mem] at *,
   simp only [hA, eq_self_iff_true, and_self],
 end
 
-lemma Gamma0_N_is_congruence (N : ℕ) (hN : 1 < N):  is_congruence_subgroup (Gamma0_N N) :=
+lemma Gamma0_N_is_congruence (N : ℕ) :  is_congruence_subgroup (Gamma0_N N) :=
 begin
-apply is_congruence_subgroup_trans _ _  (Gamma1_in_Gamma0 N) (Gamma1_N_is_congruence N hN),
+apply is_congruence_subgroup_trans _ _  (Gamma1_in_Gamma0 N) (Gamma1_N_is_congruence N),
 end
 
 def conj_cong_subgroup (g : SL(2, ℤ))  (Γ : subgroup SL(2, ℤ)) : subgroup SL(2, ℤ) :={
@@ -291,10 +289,9 @@ lemma conj_cong_is_cong (g : SL(2, ℤ))  (Γ : subgroup SL(2, ℤ)) (h : is_con
   is_congruence_subgroup  (conj_cong_subgroup g Γ) :=
 begin
 simp_rw is_congruence_subgroup at *,
-obtain⟨ N, hN, HN⟩:= h,
+obtain⟨ N, HN⟩:= h,
 use N,
 rw ←  Gamma_N_cong_eq_self N g,
-simp [hN],
 apply subgroup_conj_covariant ,
 exact HN,
 end

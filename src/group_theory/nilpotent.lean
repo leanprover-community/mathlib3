@@ -647,15 +647,12 @@ end
 end classical
 
 /-- A custom induction principle for nilpotent groups. The base case is a trivial group
-(`subsingleton G`), and in the inductoin step, one can assume the hypothesis for
-the group quotiented by its center.
--/
+(`subsingleton G`), and in the induction step, one can assume the hypothesis for
+the group quotiented by its center. -/
 @[elab_as_eliminator]
 lemma nilpotent_center_quotient_ind
   {P : Π G [group G], by exactI ∀ [is_nilpotent G], Prop}
-  (G : Type*)
-  [group G]
-  [is_nilpotent G]
+  (G : Type*) [group G] [is_nilpotent G]
   (hbase : ∀ G [group G], by exactI ∀ [is_nilpotent G], by exactI ∀ [subsingleton G], P G)
   (hstep : ∀ G [group G], by exactI ∀ [is_nilpotent G], by exactI ∀ (ih : P (G ⧸ center G)), P G) :
   P G :=

@@ -162,4 +162,3 @@ def order_iso.dual_antisymmetrization :
   map_rel_iff' := λ a b, quotient.induction_on₂' a b $ λ a b, iff.rfl }
 
 end preorder
-#lint

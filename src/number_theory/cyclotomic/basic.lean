@@ -53,8 +53,8 @@ for integral domains).
 All results are in the `is_cyclotomic_extension` namespace.
 Note that some results, for example `is_cyclotomic_extension.trans`,
 `is_cyclotomic_extension.finite`, `is_cyclotomic_extension.number_field`,
-`is_cyclotomic_extension.finite_dimensional` and `cyclotomic_field.algebra_base` are lemmas,
-but they can be made local instances.
+`is_cyclotomic_extension.finite_dimensional`, `is_cyclotomic_extension.is_galois` and
+`cyclotomic_field.algebra_base` are lemmas, but they can be made local instances.
 
 -/
 
@@ -325,7 +325,7 @@ lemma splitting_field_X_pow_sub_one : is_splitting_field K L (X ^ (n : ℕ) - 1)
       n.pos _), is_root.def, eval_sub, eval_pow, eval_C, eval_X, sub_eq_zero]
   end }
 
-lemma [ne_zero (n : K)] : is_galois K L :=
+lemma is_galois [ne_zero (n : K)] : is_galois K L :=
 begin
   letI := splitting_field_X_pow_sub_one n K L,
   exact is_galois.of_separable_splitting_field (X_pow_sub_one_separable_iff.2

@@ -159,6 +159,7 @@ begin
   obtain ⟨z, hz⟩ := is_alg_closed.exists_root _ (degree_cyclotomic_pos n E n.pos).ne.symm,
   apply (algebra_map K E).injective,
   letI := finite_dimensional {n} K L,
+  letI := is_galois n K L,
   rw [norm_eq_prod_embeddings],
   conv_lhs { congr, skip, funext,
     rw [← neg_sub, alg_hom.map_neg, alg_hom.map_sub, alg_hom.map_one, neg_eq_neg_one_mul] },

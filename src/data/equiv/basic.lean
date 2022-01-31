@@ -3,6 +3,7 @@ Copyright (c) 2015 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Mario Carneiro
 -/
+import data.fun_like.equiv
 import data.option.basic
 import data.prod
 import data.quot
@@ -86,31 +87,23 @@ namespace equiv
 /-- `perm α` is the type of bijections from `α` to itself. -/
 @[reducible] def perm (α : Sort*) := equiv α α
 
+instance : equiv_like (α ≃ β) α β :=
+{ coe := to_fun, inv := inv_fun, left_inv := left_inv, right_inv := right_inv,
+  coe_injective' := λ e₁ e₂ h₁ h₂, by { cases e₁, cases e₂, congr' } }
+
 instance : has_coe_to_fun (α ≃ β) (λ _, α → β) := ⟨to_fun⟩
 
 @[simp] theorem coe_fn_mk (f : α → β) (g l r) : (equiv.mk f g l r : α → β) = f :=
 rfl
 
 /-- The map `coe_fn : (r ≃ s) → (r → s)` is injective. -/
-theorem coe_fn_injective : @function.injective (α ≃ β) (α → β) coe_fn
-| ⟨f₁, g₁, l₁, r₁⟩ ⟨f₂, g₂, l₂, r₂⟩ h :=
-  have f₁ = f₂, from h,
-  have g₁ = g₂, from l₁.eq_right_inverse (this.symm ▸ r₂),
-  by simp *
-
-@[simp, norm_cast] protected lemma coe_inj {e₁ e₂ : α ≃ β} : (e₁ : α → β) = e₂ ↔ e₁ = e₂ :=
-coe_fn_injective.eq_iff
-
-@[ext] lemma ext {f g : equiv α β} (H : ∀ x, f x = g x) : f = g :=
-coe_fn_injective (funext H)
-
-protected lemma congr_arg {f : equiv α β} : Π {x x' : α}, x = x' → f x = f x'
-| _ _ rfl := rfl
-
-protected lemma congr_fun {f g : equiv α β} (h : f = g) (x : α) : f x = g x := h ▸ rfl
-
-lemma ext_iff {f g : equiv α β} : f = g ↔ ∀ x, f x = g x :=
-⟨λ h x, h ▸ rfl, ext⟩
+theorem coe_fn_injective : @function.injective (α ≃ β) (α → β) coe_fn := fun_like.coe_injective
+protected lemma coe_inj {e₁ e₂ : α ≃ β} : (e₁ : α → β) = e₂ ↔ e₁ = e₂ := fun_like.coe_fn_eq
+@[ext] lemma ext {f g : equiv α β} (H : ∀ x, f x = g x) : f = g := fun_like.ext f g H
+protected lemma congr_arg {f : equiv α β} {x x' : α} : x = x' → f x = f x' := fun_like.congr_arg f
+protected lemma congr_fun {f g : equiv α β} (h : f = g) (x : α) : f x = g x :=
+fun_like.congr_fun h x
+lemma ext_iff {f g : equiv α β} : f = g ↔ ∀ x, f x = g x := fun_like.ext_iff
 
 @[ext] lemma perm.ext {σ τ : equiv.perm α} (H : ∀ x, σ x = τ x) : σ = τ :=
 equiv.ext H
@@ -151,14 +144,9 @@ lemma to_fun_as_coe (e : α ≃ β) : e.to_fun = e := rfl
 @[simp]
 lemma inv_fun_as_coe (e : α ≃ β) : e.inv_fun = e.symm := rfl
 
-protected theorem injective (e : α ≃ β) : injective e :=
-e.left_inv.injective
-
-protected theorem surjective (e : α ≃ β) : surjective e :=
-e.right_inv.surjective
-
-protected theorem bijective (f : α ≃ β) : bijective f :=
-⟨f.injective, f.surjective⟩
+protected theorem injective (e : α ≃ β) : injective e := equiv_like.injective e
+protected theorem surjective (e : α ≃ β) : surjective e := equiv_like.surjective e
+protected theorem bijective (e : α ≃ β) : bijective e := equiv_like.bijective e
 
 protected theorem subsingleton (e : α ≃ β) [subsingleton β] : subsingleton α :=
 e.injective.subsingleton
@@ -236,8 +224,7 @@ e.left_inv x
 -- `simp` will always rewrite with `equiv.symm_symm` before this has a chance to fire.
 @[simp, nolint simp_nf] theorem symm_symm_apply (f : α ≃ β) (b : α) : f.symm.symm b = f b := rfl
 
-@[simp] theorem apply_eq_iff_eq (f : α ≃ β) {x y : α} : f x = f y ↔ x = y :=
-f.injective.eq_iff
+theorem apply_eq_iff_eq (f : α ≃ β) {x y : α} : f x = f y ↔ x = y := equiv_like.apply_eq_iff_eq f
 
 theorem apply_eq_iff_eq_symm_apply {α β : Sort*} (f : α ≃ β) {x : α} {y : β} :
   f x = y ↔ x = f.symm y :=
@@ -285,23 +272,23 @@ theorem left_inverse_symm (f : equiv α β) : left_inverse f.symm f := f.left_in
 
 theorem right_inverse_symm (f : equiv α β) : function.right_inverse f.symm f := f.right_inv
 
-@[simp] lemma injective_comp (e : α ≃ β) (f : β → γ) : injective (f ∘ e) ↔ injective f :=
-injective.of_comp_iff' f e.bijective
+lemma injective_comp (e : α ≃ β) (f : β → γ) : injective (f ∘ e) ↔ injective f :=
+equiv_like.injective_comp e f
 
-@[simp] lemma comp_injective (f : α → β) (e : β ≃ γ) : injective (e ∘ f) ↔ injective f :=
-e.injective.of_comp_iff f
+lemma comp_injective (f : α → β) (e : β ≃ γ) : injective (e ∘ f) ↔ injective f :=
+equiv_like.comp_injective f e
 
-@[simp] lemma surjective_comp (e : α ≃ β) (f : β → γ) : surjective (f ∘ e) ↔ surjective f :=
-e.surjective.of_comp_iff f
+lemma surjective_comp (e : α ≃ β) (f : β → γ) : surjective (f ∘ e) ↔ surjective f :=
+equiv_like.surjective_comp e f
 
-@[simp] lemma comp_surjective (f : α → β) (e : β ≃ γ) : surjective (e ∘ f) ↔ surjective f :=
-surjective.of_comp_iff' e.bijective f
+lemma comp_surjective (f : α → β) (e : β ≃ γ) : surjective (e ∘ f) ↔ surjective f :=
+equiv_like.comp_surjective f e
 
-@[simp] lemma bijective_comp (e : α ≃ β) (f : β → γ) : bijective (f ∘ e) ↔ bijective f :=
-e.bijective.of_comp_iff f
+lemma bijective_comp (e : α ≃ β) (f : β → γ) : bijective (f ∘ e) ↔ bijective f :=
+equiv_like.bijective_comp e f
 
-@[simp] lemma comp_bijective (f : α → β) (e : β ≃ γ) : bijective (e ∘ f) ↔ bijective f :=
-bijective.of_comp_iff' e.bijective f
+lemma comp_bijective (f : α → β) (e : β ≃ γ) : bijective (e ∘ f) ↔ bijective f :=
+equiv_like.comp_bijective f e
 
 /-- If `α` is equivalent to `β` and `γ` is equivalent to `δ`, then the type of equivalences `α ≃ γ`
 is equivalent to the type of equivalences `β ≃ δ`. -/

@@ -327,12 +327,12 @@ end add_monoid_hom
 This extends from both `monoid_hom` and `monoid_with_zero_hom` in order to put the fields in a
 sensible order, even though `monoid_with_zero_hom` already extends `monoid_hom`. -/
 structure ring_hom (α : Type*) (β : Type*) [non_assoc_semiring α] [non_assoc_semiring β]
-  extends monoid_hom α β, add_monoid_hom α β, monoid_with_zero_hom α β
+  extends α →* β, α →+ β, α →*₀ β
 
 infixr ` →+* `:25 := ring_hom
 
-/-- Reinterpret a ring homomorphism `f : R →+* S` as a `monoid_with_zero_hom R S`.
-The `simp`-normal form is `(f : monoid_with_zero_hom R S)`. -/
+/-- Reinterpret a ring homomorphism `f : R →+* S` as a monoid with zero homomorphism `R →*₀ S`.
+The `simp`-normal form is `(f : R →*₀ S)`. -/
 add_decl_doc ring_hom.to_monoid_with_zero_hom
 
 /-- Reinterpret a ring homomorphism `f : R →+* S` as a monoid homomorphism `R →* S`.

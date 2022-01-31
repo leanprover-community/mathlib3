@@ -125,7 +125,7 @@ instance has_forget_to_SemiRing : has_forget₂ CommSemiRing SemiRing := bundled
 instance has_forget_to_CommMon : has_forget₂ CommSemiRing CommMon :=
 has_forget₂.mk'
   (λ R : CommSemiRing, CommMon.of R) (λ R, rfl)
-  (λ R₁ R₂ f, f.to_monoid_hom) (by tidy)
+  (λ R₁ R₂ f, f.to_monoid_hom) (by { intros _ _ _, refl })
 
 end CommSemiRing
 
@@ -156,7 +156,8 @@ instance has_forget_to_Ring : has_forget₂ CommRing Ring := bundled_hom.forget�
 
 /-- The forgetful functor from commutative rings to (multiplicative) commutative monoids. -/
 instance has_forget_to_CommSemiRing : has_forget₂ CommRing CommSemiRing :=
-has_forget₂.mk' (λ R : CommRing, CommSemiRing.of R) (λ R, rfl) (λ R₁ R₂ f, f) (by tidy)
+has_forget₂.mk' (λ R : CommRing, CommSemiRing.of R) (λ R, rfl) (λ R₁ R₂ f, f)
+  (by { intros _ _ _, refl })
 
 instance : full (forget₂ CommRing CommSemiRing) :=
 { preimage := λ X Y f, f, }
@@ -193,19 +194,19 @@ namespace category_theory.iso
 def Ring_iso_to_ring_equiv {X Y : Ring} (i : X ≅ Y) : X ≃+* Y :=
 { to_fun    := i.hom,
   inv_fun   := i.inv,
-  left_inv  := by tidy,
-  right_inv := by tidy,
-  map_add'  := by tidy,
-  map_mul'  := by tidy }.
+  left_inv  := by { intros _, rw coe_hom_inv_id },
+  right_inv := by { intros _, rw coe_inv_hom_id },
+  map_add'  := by { intros _, simp only [map_add, eq_self_iff_true, forall_const] },
+  map_mul'  := by { intros _ _, rw map_mul } }.
 
 /-- Build a `ring_equiv` from an isomorphism in the category `CommRing`. -/
 def CommRing_iso_to_ring_equiv {X Y : CommRing} (i : X ≅ Y) : X ≃+* Y :=
 { to_fun    := i.hom,
   inv_fun   := i.inv,
-  left_inv  := by tidy,
-  right_inv := by tidy,
-  map_add'  := by tidy,
-  map_mul'  := by tidy }.
+  left_inv  := by { intros _, rw coe_hom_inv_id },
+  right_inv := by { intros _, rw coe_inv_hom_id },
+  map_add'  := by { intros _ _, rw map_add },
+  map_mul'  := by { intros _ _, rw map_mul } }.
 
 @[simp]
 lemma CommRing_iso_to_ring_equiv_to_ring_hom {X Y : CommRing} (i : X ≅ Y) :

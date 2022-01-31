@@ -139,7 +139,13 @@ by simp only [← mul_support_prod_mk, prod.mk.eta]
 
 @[to_additive] lemma mul_support_along_fiber_subset (f : α × β → M) (a : α) :
   mul_support (λ b, f (a, b)) ⊆ (mul_support f).image prod.snd :=
-by tidy
+begin
+  intros _ h,
+  rw [mem_image, prod.exists],
+  fsplit,
+  { exact a, },
+  { simpa only [exists_eq_right] using h, },
+end
 
 @[simp, to_additive] lemma mul_support_along_fiber_finite_of_finite
   (f : α × β → M) (a : α) (h : (mul_support f).finite) :

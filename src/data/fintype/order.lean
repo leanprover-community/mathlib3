@@ -138,6 +138,7 @@ end fintype
 
 /-! ### Concrete instances -/
 
+@[priority 900] -- to avoid noncomputability poisoning
 noncomputable instance {n : ℕ} : complete_linear_order (fin (n + 1)) :=
 fintype.to_complete_linear_order _
 

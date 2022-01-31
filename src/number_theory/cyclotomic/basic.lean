@@ -40,9 +40,9 @@ primitive roots of unity, for all `n ∈ S`.
 * `is_cyclotomic_extension.number_field` : a finite cyclotomic extension of a number field is a
   number field.
 * `is_cyclotomic_extension.splitting_field_X_pow_sub_one` : if `is_cyclotomic_extension {n} K L`
-  and `ne_zero ((n : ℕ) : K)`, then `L` is the splitting field of `X ^ n - 1`.
+  and `ne_zero (n : K)`, then `L` is the splitting field of `X ^ n - 1`.
 * `is_cyclotomic_extension.splitting_field_cyclotomic` : if `is_cyclotomic_extension {n} K L`
-  and `ne_zero ((n : ℕ) : K)`, then `L` is the splitting field of `cyclotomic n K`.
+  and `ne_zero (n : K)`, then `L` is the splitting field of `cyclotomic n K`.
 
 ## Implementation details
 
@@ -291,7 +291,7 @@ begin
       polynomial.map_pow, polynomial.map_X],
   obtain ⟨z, hz⟩ := ((is_cyclotomic_extension_iff _ _ _).1 H).1 hS,
   rw [aeval_def, eval₂_eq_eval_map, map_cyclotomic] at hz,
-  haveI : ne_zero ((n : ℕ) : L) := ne_zero.of_no_zero_smul_divisors K L,
+  haveI := ne_zero.of_no_zero_smul_divisors K L n,
   exact X_pow_sub_one_splits (is_root_cyclotomic_iff.1 hz),
 end
 
@@ -309,7 +309,7 @@ section singleton
 
 variables [is_cyclotomic_extension {n} K L]
 
-/-- If `is_cyclotomic_extension {n} K L` and `ne_zero ((n : ℕ) : K)`, then `L` is the splitting
+/-- If `is_cyclotomic_extension {n} K L` and `ne_zero (n : K)`, then `L` is the splitting
 field of `X ^ n - 1`. -/
 lemma splitting_field_X_pow_sub_one : is_splitting_field K L (X ^ (n : ℕ) - 1) :=
 { splits := splits_X_pow_sub_one n {n} K L (mem_singleton n),
@@ -324,7 +324,7 @@ lemma splitting_field_X_pow_sub_one : is_splitting_field K L (X ^ (n : ℕ) - 1)
       n.pos _), is_root.def, eval_sub, eval_pow, eval_C, eval_X, sub_eq_zero]
   end }
 
-/-- If `is_cyclotomic_extension {n} K L` and `ne_zero ((n : ℕ) : K)`, then `L` is the splitting
+/-- If `is_cyclotomic_extension {n} K L` and `ne_zero (n : K)`, then `L` is the splitting
 field of `cyclotomic n K`. -/
 lemma splitting_field_cyclotomic : is_splitting_field K L (cyclotomic n K) :=
 { splits := splits_cyclotomic n {n} K L (mem_singleton n),
@@ -354,7 +354,7 @@ def cyclotomic_field : Type w := (cyclotomic n K).splitting_field
 
 namespace cyclotomic_field
 
-instance is_cyclotomic_extension [ne_zero ((n : ℕ) : K)] :
+instance is_cyclotomic_extension [ne_zero (n : K)] :
   is_cyclotomic_extension {n} K (cyclotomic_field n K) :=
 { exists_root := λ a han,
   begin
@@ -368,7 +368,7 @@ instance is_cyclotomic_extension [ne_zero ((n : ℕ) : K)] :
     letI := classical.dec_eq (cyclotomic_field n K),
     obtain ⟨ζ, hζ⟩ := exists_root_of_splits _ (splitting_field.splits (cyclotomic n K))
       (degree_cyclotomic_pos n _ n.pos).ne',
-    haveI : ne_zero ((n : ℕ) : (cyclotomic_field n K)) :=
+    haveI : ne_zero ((n : ℕ) : cyclotomic_field n K) :=
       ne_zero.nat_of_injective (algebra_map K _).injective,
     rw [eval₂_eq_eval_map, map_cyclotomic, ← is_root.def, is_root_cyclotomic_iff] at hζ,
     exact is_cyclotomic_extension.adjoin_roots_cyclotomic_eq_adjoin_nth_roots n hζ,
@@ -428,15 +428,15 @@ no_zero_smul_divisors.of_algebra_map_injective (adjoin_algebra_injective n A K)
 instance : is_scalar_tower A (cyclotomic_ring n A K) (cyclotomic_field n K) :=
 is_scalar_tower.subalgebra' _ _ _ _
 
-instance is_cyclotomic_extension [ne_zero ((n : ℕ) : A)] :
+instance is_cyclotomic_extension [ne_zero (n : A)] :
   is_cyclotomic_extension {n} A (cyclotomic_ring n A K) :=
 { exists_root := λ a han,
   begin
     rw mem_singleton_iff at han,
     subst a,
-    haveI : ne_zero ((n : ℕ) : K) := ne_zero.of_no_zero_smul_divisors A K,
-    haveI : ne_zero ((n : ℕ) : cyclotomic_ring n A K) := ne_zero.of_no_zero_smul_divisors A _,
-    haveI : ne_zero ((n : ℕ) : cyclotomic_field n K) := ne_zero.of_no_zero_smul_divisors A _,
+    haveI := (ne_zero.of_no_zero_smul_divisors A K n).trans,
+    haveI := (ne_zero.of_no_zero_smul_divisors A (cyclotomic_ring n A K) n).trans,
+    haveI := (ne_zero.of_no_zero_smul_divisors A (cyclotomic_field n K) n).trans,
     obtain ⟨μ, hμ⟩ := let h := (cyclotomic_field.is_cyclotomic_extension n K).exists_root
                       in h $ mem_singleton n,
     refine ⟨⟨μ, subset_adjoin _⟩, _⟩,
@@ -458,8 +458,7 @@ instance is_cyclotomic_extension [ne_zero ((n : ℕ) : A)] :
     { exact subalgebra.mul_mem _ hy hz },
   end }
 
-instance [ne_zero ((n : ℕ) : A)] :
-  is_fraction_ring (cyclotomic_ring n A K) (cyclotomic_field n K) :=
+instance [ne_zero (n : A)] : is_fraction_ring (cyclotomic_ring n A K) (cyclotomic_field n K) :=
 { map_units := λ ⟨x, hx⟩, begin
     rw is_unit_iff_ne_zero,
     apply ring_hom.map_ne_zero_of_mem_non_zero_divisors,
@@ -468,7 +467,7 @@ instance [ne_zero ((n : ℕ) : A)] :
   end,
   surj := λ x,
   begin
-    letI : ne_zero ((n : ℕ) : K) := ne_zero.nat_of_injective (is_fraction_ring.injective A K),
+    letI : ne_zero (n : K) := (ne_zero.nat_of_injective (is_fraction_ring.injective A K)).trans,
     refine algebra.adjoin_induction (((is_cyclotomic_extension.iff_singleton n K _).1
       (cyclotomic_field.is_cyclotomic_extension n K)).2 x) (λ y hy, _) (λ k, _) _ _,
     { exact ⟨⟨⟨y, subset_adjoin hy⟩, 1⟩, by simpa⟩ },

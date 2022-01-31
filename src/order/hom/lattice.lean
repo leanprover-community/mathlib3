@@ -170,6 +170,8 @@ instance [lattice α] [lattice β] [bounded_order α] [bounded_order β]
   [bounded_lattice_hom_class F α β] : has_coe_t F (bounded_lattice_hom α β) :=
 ⟨λ f, { to_fun := f, map_top' := map_top f, map_bot' := map_bot f, ..(f : lattice_hom α β) }⟩
 
+/-! ### Top homomorphisms -/
+
 namespace top_hom
 variables [has_top α]
 
@@ -281,6 +283,8 @@ instance [distrib_lattice β] [order_top β] : distrib_lattice (top_hom α β) :
 fun_like.coe_injective.distrib_lattice _ (λ _ _, rfl) (λ _ _, rfl)
 
 end top_hom
+
+/-! ### Bot homomorphisms -/
 
 namespace bot_hom
 variables [has_bot α]
@@ -394,6 +398,8 @@ fun_like.coe_injective.distrib_lattice _ (λ _ _, rfl) (λ _ _, rfl)
 
 end bot_hom
 
+/-! ### Supremum homomorphisms -/
+
 namespace sup_hom
 variables [has_sup α]
 
@@ -468,13 +474,15 @@ instance : semilattice_sup (sup_hom α β) := fun_like.coe_injective.semilattice
 
 variables (α)
 
-/-- The constant function as an `sup_hom`. -/
+/-- The constant function as a `sup_hom`. -/
 def const (b : β) : sup_hom α β := ⟨λ _, b, λ _ _, sup_idem.symm⟩
 
 @[simp] lemma coe_const (b : β) : ⇑(const α b) = function.const α b := rfl
 @[simp] lemma const_apply (b : β) (a : α) : const α b a = b := rfl
 
 end sup_hom
+
+/-! ### Infimum homomorphisms -/
 
 namespace inf_hom
 variables [has_inf α]
@@ -558,6 +566,8 @@ def const (b : β) : inf_hom α β := ⟨λ _, b, λ _ _, inf_idem.symm⟩
 
 end inf_hom
 
+/-! ### Lattice homomorphisms -/
+
 namespace lattice_hom
 variables [lattice α] [lattice β] [lattice γ] [lattice δ]
 
@@ -631,24 +641,31 @@ lemma cancel_left {g : lattice_hom β γ} {f₁ f₂ : lattice_hom α β} (hg : 
 
 end lattice_hom
 
-namespace order_hom
-variables [linear_order α] [lattice β]
+namespace order_hom_class
+variables (α β) [linear_order α] [lattice β] [order_hom_class F α β]
 
-/-- Reinterpret an `order_hom` to a linear order as a `lattice_hom`. -/
-def to_lattice_hom (f : α →o β) : lattice_hom α β :=
-{ to_fun := f,
-  map_sup' := λ a b, begin
+/-- An order homomorphism from a linear order is a lattice homomorphism. -/
+@[reducible] def to_lattice_hom_class : lattice_hom_class F α β :=
+{ map_sup := λ f a b, begin
     obtain h | h := le_total a b,
-    { rw [sup_eq_right.2 h, sup_eq_right.2 (f.mono h)] },
-    { rw [sup_eq_left.2 h, sup_eq_left.2 (f.mono h)] }
+    { rw [sup_eq_right.2 h, sup_eq_right.2 (order_hom_class.mono f h : f a ≤ f b)] },
+    { rw [sup_eq_left.2 h, sup_eq_left.2 (order_hom_class.mono f h : f b ≤ f a)] }
   end,
-  map_inf' := λ a b, begin
+  map_inf := λ f a b, begin
     obtain h | h := le_total a b,
-    { rw [inf_eq_left.2 h, inf_eq_left.2 (f.mono h)] },
-    { rw [inf_eq_right.2 h, inf_eq_right.2 (f.mono h)] }
-  end }
+    { rw [inf_eq_left.2 h, inf_eq_left.2 (order_hom_class.mono f h : f a ≤ f b)] },
+    { rw [inf_eq_right.2 h, inf_eq_right.2 (order_hom_class.mono f h : f b ≤ f a)] }
+  end,
+  .. ‹order_hom_class F α β› }
 
-end order_hom
+/-- Reinterpret an order homomorphism to a linear order as a `lattice_hom`. -/
+def to_lattice_hom (f : F) : lattice_hom α β :=
+by { haveI : lattice_hom_class F α β := order_hom_class.to_lattice_hom_class α β, exact f }
+
+@[simp] lemma coe_to_lattice_hom (f : F) : ⇑(to_lattice_hom α β f) = f := rfl
+@[simp] lemma to_lattice_hom_apply (f : F) (a : α) : to_lattice_hom α β f a = f a := rfl
+
+end order_hom_class
 
 /-! ### Bounded lattice homomorphisms -/
 
@@ -689,7 +706,7 @@ protected def copy (f : bounded_lattice_hom α β) (f' : α → β) (h : f' = f)
 
 variables (α)
 
-/-- `id` as an `bounded_lattice_hom`. -/
+/-- `id` as a `bounded_lattice_hom`. -/
 protected def id : bounded_lattice_hom α α :=
 { to_fun := id,
   map_sup' := λ _ _, rfl,

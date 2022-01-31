@@ -216,11 +216,45 @@ begin
 end
 
 noncomputable
-def mul_equiv [decidable_eq I] :
-  (Π (i : I), H i) ≃* (⨆ (i : I), (ϕ i).range : subgroup G) :=
+def mul_equiv : (Π (i : I), H i) ≃* (⨆ (i : I), (ϕ i).range : subgroup G) :=
 begin
   rw ← range_eq,
   exact (monoid_hom.of_injective (injective_of_independent _ hind hinj)),
 end
 
 end pi_hom
+
+lemma pairwise_elements_commute_of_normal_of_independent
+  {I : Type*} {H : I → subgroup G}
+  (hnorm : ∀ i, (H i).normal) (hind : complete_lattice.independent H) :
+  (∀ i j : I, i ≠ j → ∀ (x y : G),  x ∈ H i → y ∈ H j → commute x y) :=
+begin
+  intros i j hne x y hx hy,
+  have : H i ⊓ H j ≤ ⊥ := complete_lattice.independent.disjoint hind hne,
+  have : ⁅H i, H j⁆ ≤ ⊥ := le_trans (general_commutator_le_inf _ _) this,
+  have : x * y * x ⁻¹ * y ⁻¹ = 1,
+    by { rw [← subgroup.mem_bot], exact this (general_commutator_containment _ _ hx hy), },
+  have : (x * y * x ⁻¹ * y ⁻¹) * (y * x) = y * x, by { simp [this] },
+  show x * y = y * x, by simpa [mul_assoc] using this,
+end
+
+noncomputable
+def internal_product
+  {I : Type*} [fintype I] [decidable_eq I] {H : I → subgroup G}
+  (hnorm : ∀ i, (H i).normal) (hind : complete_lattice.independent H) :
+  (Π (i : I), H i) ≃* (⨆ (i : I), H i : subgroup G) :=
+begin
+  haveI : fact (∀ (i j : I), i ≠ j → ∀ (x : H i) (y : H j),
+    commute ((H i).subtype x) ((H j).subtype y)) := fact.mk
+  begin
+    intros i j hne x y,
+    induction x with x hx,
+    induction y with y hy,
+    exact pairwise_elements_commute_of_normal_of_independent hnorm hind i j hne x y hx hy,
+  end,
+  have : (⨆ (i : I), H i: subgroup G) = (⨆ (i : I), (H i).subtype.range : subgroup G), by simp,
+  rw this, clear this,
+  refine (pi_hom.mul_equiv _ _ _),
+  { simpa using hind, },
+  { exact λ _, subtype.val_injective, }
+end

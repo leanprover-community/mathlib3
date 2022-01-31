@@ -96,8 +96,8 @@ variables [partial_order α] [order_top α] {a b : α}
 @[simp] lemma is_top_iff_eq_top : is_top a ↔ a = ⊤ :=
 ⟨λ h, h.is_max.eq_of_le le_top, λ h b, h.symm ▸ le_top⟩
 
-alias is_max_iff_eq_top ↔ _ is_max.eq_top
-alias is_top_iff_eq_top ↔ _ is_top.eq_top
+alias is_max_iff_eq_top ↔ is_max.eq_top _
+alias is_top_iff_eq_top ↔ is_top.eq_top _
 
 @[simp] lemma top_le_iff : ⊤ ≤ a ↔ a = ⊤ := le_top.le_iff_eq.trans eq_comm
 lemma top_unique (h : ⊤ ≤ a) : a = ⊤ := le_top.antisymm h

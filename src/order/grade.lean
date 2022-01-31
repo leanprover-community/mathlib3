@@ -43,116 +43,6 @@ open finset nat order_dual
 
 variables {α β : Type*}
 
-lemma ge_antisymm [partial_order α] {a b : α} (hab : a ≤ b) (hba : b ≤ a) : b = a :=
-le_antisymm hba hab
-
-alias ge_antisymm     ← has_le.le.antisymm'
-
-section
-variables {a b : α}
-
-lemma has_le.le.to_dual [has_le α] (h : a ≤ b) : to_dual b ≤ to_dual a := h
-lemma has_lt.lt.to_dual [has_lt α] (h : a < b) : to_dual b < to_dual a := h
-
-end
-
-section order_dual
-variables {a b : order_dual α}
-
-lemma has_le.le.of_dual [has_le α] (h : a ≤ b) : of_dual b ≤ of_dual a := h
-lemma has_lt.lt.of_dual [has_lt α] (h : a < b) : of_dual b < of_dual a := h
-
-end order_dual
-
-lemma bot_is_bot [has_le α] [order_bot α] : is_bot (⊥ : α) := λ _, bot_le
-lemma top_is_top [has_le α] [order_top α] : is_top (⊤ : α) := λ _, le_top
-
-section has_le
-variables [has_le α] {a b : α}
-
-def is_min (a : α) : Prop := ∀ ⦃b⦄, b ≤ a → a ≤ b
-
-def is_max (a : α) : Prop := ∀ ⦃b⦄, a ≤ b → b ≤ a
-
-@[simp] lemma is_min_to_dual_iff : is_min (to_dual a) ↔ is_max a := iff.rfl
-@[simp] lemma is_max_to_dual_iff : is_max (to_dual a) ↔ is_min a := iff.rfl
-@[simp] lemma is_min_of_dual_iff {a : order_dual α} : is_min (of_dual a) ↔ is_max a := iff.rfl
-@[simp] lemma is_max_of_dual_iff {a : order_dual α} : is_max (of_dual a) ↔ is_min a := iff.rfl
-
-alias is_min_to_dual_iff ↔ _ is_max.to_dual
-alias is_max_to_dual_iff ↔ _ is_min.to_dual
-alias is_min_of_dual_iff ↔ _ is_max.of_dual
-alias is_max_of_dual_iff ↔ _ is_min.of_dual
-
-protected lemma is_bot.is_min [has_le α] {a : α} (h : is_bot a) : is_min a := λ b _, h b
-protected lemma is_top.is_max [has_le α] {a : α} (h : is_top a) : is_max a := λ b _, h b
-
-lemma bot_is_min [has_le α] [order_bot α] : is_min (⊥ : α) := bot_is_bot.is_min
-lemma top_is_max [has_le α] [order_top α] : is_max (⊤ : α) := top_is_top.is_max
-
-end has_le
-
-section preorder
-variables [preorder α] {a b : α}
-
-lemma is_bot.mono (ha : is_bot a) (h : b ≤ a) : is_bot b := λ c, h.trans $ ha _
-lemma is_top.mono (ha : is_top a) (h : a ≤ b) : is_top b := λ c, (ha _).trans h
-lemma is_min.mono (ha : is_min a) (h : b ≤ a) : is_min b := λ c hc, h.trans $ ha $ hc.trans h
-lemma is_max.mono (ha : is_max a) (h : a ≤ b) : is_max b := λ c hc, (ha $ h.trans hc).trans h
-
-lemma is_min.not_lt (h : is_min a) : ¬ b < a := λ hb, hb.not_le $ h hb.le
-lemma is_max.not_lt (h : is_max a) : ¬ a < b := λ hb, hb.not_le $ h hb.le
-
-lemma is_min_iff_forall_not_lt : is_min a ↔ ∀ b, ¬ b < a :=
-⟨λ h _, h.not_lt, λ h b hba, of_not_not $ λ hab, h _ $ hba.lt_of_not_le hab⟩
-
-lemma is_max_iff_forall_not_lt : is_max a ↔ ∀ b, ¬ a < b :=
-⟨λ h _, h.not_lt, λ h b hba, of_not_not $ λ hab, h _ $ hba.lt_of_not_le hab⟩
-
-@[simp] lemma not_is_min [no_min_order α] (a : α) : ¬ is_min a := λ h, let ⟨b, hb⟩ :=
-no_bot a in h.not_lt hb
-
-@[simp] lemma not_is_max [no_max_order α] (a : α) : ¬ is_max a := λ h, let ⟨b, hb⟩ :=
-no_top a in h.not_lt hb
-
-protected lemma subsingleton.is_bot [subsingleton α] (a : α) : is_bot a :=
-λ _, (subsingleton.elim _ _).le
-
-protected lemma subsingleton.is_top [subsingleton α] (a : α) : is_top a :=
-λ _, (subsingleton.elim _ _).le
-
-protected lemma subsingleton.is_min [subsingleton α] (a : α) : is_min a :=
-(subsingleton.is_bot _).is_min
-
-protected lemma subsingleton.is_max [subsingleton α] (a : α) : is_max a :=
-(subsingleton.is_top _).is_max
-
-end preorder
-
-section partial_order
-variables [partial_order α] {a b : α}
-
-protected lemma is_min.eq_of_le (ha : is_min a) (h : b ≤ a) : b = a := h.antisymm $ ha h
-protected lemma is_min.eq_of_ge (ha : is_min a) (h : b ≤ a) : a = b := h.antisymm' $ ha h
-protected lemma is_max.eq_of_le (ha : is_max a) (h : a ≤ b) : a = b := h.antisymm $ ha h
-protected lemma is_max.eq_of_ge (ha : is_max a) (h : a ≤ b) : b = a := h.antisymm' $ ha h
-
-lemma is_min.eq_bot [order_bot α] (h : is_min a) : a = ⊥ := h.eq_of_ge bot_le
-lemma is_max.eq_top [order_top α] (h : is_max a) : a = ⊤ := h.eq_of_le le_top
-
-end partial_order
-
-section linear_order
-variables [linear_order α] {a b : α}
-
-protected lemma is_min.is_bot (h : is_min a) : is_bot a := λ b, (le_total a b).elim id $ @h _
-protected lemma is_max.is_top (h : is_max a) : is_top a := λ b, (le_total b a).elim id $ @h _
-
-@[simp] lemma is_bot_iff_is_min : is_bot a ↔ is_min a := ⟨is_bot.is_min, is_min.is_bot⟩
-@[simp] lemma is_top_iff_is_max : is_top a ↔ is_max a := ⟨is_top.is_max, is_max.is_top⟩
-
-end linear_order
-
 /-- A graded order is an order equipped with a grade function which tells how far a given element is
 away from the minimal elements. Precisely, `grade a` is the height of `a` in the Hasse diagram of
 `α`. -/
@@ -198,7 +88,7 @@ end
 section order_bot
 variables [order_bot α]
 
-@[simp] lemma grade_bot : grade (⊥ : α) = 0 := bot_is_min.grade
+@[simp] lemma grade_bot : grade (⊥ : α) = 0 := is_min_bot.grade
 
 end order_bot
 
@@ -438,11 +328,11 @@ section lift
 variables [preorder α] [preorder β] [grade_order β] {a b : α} {f : α ↪o β}
 
 /-- Lifts a graded order along an order embedding. -/
-def grade_order.lift (hbot : ∀ a, is_bot a → is_bot (f a)) (h : (set.range f).ord_connected) :
+def grade_order.lift (hmin : ∀ a, is_min a → is_min (f a)) (hf : (set.range f).ord_connected) :
   grade_order α :=
 { grade := λ a, grade (f a),
-  grade_of_is_min := by rw [hbot, grade_bot],
-  strict_mono := grade_strict_mono.comp f.strict_mono,
-  grade_of_covers := λ a b hab, ((image_covers_iff h).2 hab).grade }
+  grade_of_is_min := λ a h, (hmin _ h).grade,
+  grade_strict_mono := grade_strict_mono.comp f.strict_mono,
+  grade_of_covers := λ a b hab, (hf.image_covers_image_iff.2 hab).grade }
 
 end lift

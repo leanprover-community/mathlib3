@@ -99,16 +99,16 @@ instance additive_coyoneda_obj' (X : Cᵒᵖ) : functor.additive (preadditive_co
 Composing the preadditive yoneda embedding with the forgetful functor yields the regular
 Yoneda embedding.
 -/
-lemma whiskering_preadditive_yoneda : ((whiskering_right C _ _).obj ((whiskering_right Cᵒᵖ _ _).obj
-  (forget AddCommGroup.{v}))).obj preadditive_yoneda = yoneda :=
+@[simp] lemma whiskering_preadditive_yoneda : preadditive_yoneda ⋙
+  (whiskering_right Cᵒᵖ AddCommGroup (Type v)).obj (forget AddCommGroup) = yoneda :=
 rfl
 
 /--
 Composing the preadditive yoneda embedding with the forgetful functor yields the regular
 Yoneda embedding.
 -/
-lemma whiskering_preadditive_coyoneda : ((whiskering_right Cᵒᵖ _ _).obj
-  ((whiskering_right C _ _).obj (forget AddCommGroup.{v}))).obj preadditive_coyoneda = coyoneda :=
+@[simp] lemma whiskering_preadditive_coyoneda : preadditive_coyoneda ⋙
+  (whiskering_right C AddCommGroup (Type v)).obj (forget AddCommGroup) = coyoneda :=
 rfl
 
 end category_theory

@@ -210,6 +210,9 @@ if 2 ∣ n then
   if 2 ∣ n' then some 2 else min_sq_fac_aux n' 3
 else min_sq_fac_aux n 3
 
+/-- The correctness property of the return value of `min_sq_fac`.
+  * If `none`, then `n` is squarefree;
+  * If `some d`, then `d` is a minimal square factor of `n` -/
 def min_sq_fac_prop (n : ℕ) : option ℕ → Prop
 | none := squarefree n
 | (some d) := prime d ∧ d * d ∣ n ∧ ∀ p, prime p → p * p ∣ n → d ≤ p

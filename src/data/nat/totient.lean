@@ -309,7 +309,7 @@ begin
   nth_rewrite_rhs 0 ←(factorization_prod_pow_eq_self hn0),
   simp only [←finsupp.prod_mul],
   refine prod_congr rfl (λ p hp, _),
-  have hk : 0 < n.factorization p := zero_lt_iff.mpr (finsupp.mem_support_iff.mp hp),
+  have hk : 0 < n.factorization p, { rwa [zero_lt_iff, ←finsupp.mem_support_iff] },
   simp only [totient_prime_pow (prime_of_mem_factorization hp) hk],
   simp only [mul_right_comm, ←(pow_sub_mul_pow p hk), pow_one],
 end

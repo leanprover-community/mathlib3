@@ -1991,45 +1991,6 @@ le_antisymm
     (λ b hb, le_of_lt (opow_lt_omega h hb)))
   (le_opow_self _ a1)
 
-theorem is_normal.apply_omega {f : ordinal.{u} → ordinal.{u}} (hf : is_normal f) :
-  f omega = sup.{0 u} (f ∘ nat.cast) :=
-by rw [omega_eq_sup_nat_cast, is_normal.sup.{0 u u} hf ⟨0⟩]
-
-theorem add_omega_eq_sup_add_nat (o : ordinal.{u}) : o + omega = sup (λ n : ℕ, o + n) :=
-(add_is_normal o).apply_omega
-
-lemma lt_add_omega {a o : ordinal.{u}} (h : a < o + omega) : ∃ n : ℕ, a < o + n :=
-by rwa [add_omega_eq_sup_add_nat o, lt_sup] at h
-
-theorem mul_omega_eq_sup_mul_nat (o : ordinal) : o * omega = sup (λ n : ℕ, o * n) :=
-begin
-  rcases eq_zero_or_pos o with rfl | ho,
-  { rw zero_mul, exact eq.symm (sup_eq_zero_iff.2 $ λ n, zero_mul _) },
-  { exact (mul_is_normal ho).apply_omega }
-end
-
-lemma lt_mul_omega {a o : ordinal} (h : a < o * omega) : ∃ n : ℕ, a < o * n :=
-by rwa [mul_omega_eq_sup_mul_nat o, lt_sup] at h
-
-theorem opow_omega_eq_sup_power_nat {o : ordinal.{u}} (ho : 0 < o) :
-  o ^ omega = sup (λ n : ℕ, o ^ n) :=
-begin
-  rcases lt_or_eq_of_le (one_le_iff_pos.2 ho) with ho₁ | rfl,
-  { exact (opow_is_normal ho₁).apply_omega },
-  { rw one_opow,
-    refine le_antisymm _ (sup_le.2 (λ n, by rw one_opow)),
-    convert le_sup _ 0,
-    rw [nat.cast_zero, opow_zero] }
-end
-
-lemma lt_opow_omega {a o : ordinal.{u}} (h : a < o ^ omega.{u}) : ∃ n : ℕ, a < o ^ n :=
-begin
-  rcases eq_zero_or_pos o with rfl | ho,
-  { rw zero_opow omega_ne_zero at h,
-    exact (ordinal.not_lt_zero a h).elim },
-  { rwa [opow_omega_eq_sup_power_nat ho, lt_sup] at h }
-end
-
 /-! ### Fixed points of normal functions -/
 
 /-- The next fixed point function, the least fixed point of the

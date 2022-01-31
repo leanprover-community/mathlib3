@@ -24,18 +24,7 @@ Homomorphisms between ordered (semi)rings that respect the ordering.
 ordered ring homomorphism, order homomorphism
 -/
 
-variables {F α β : Type*}
-
-/-- Copy of a `ring_hom` with a new `to_fun` equal to the old one. Useful to fix definitional
-equalities. -/
-def ring_hom.copy [non_assoc_semiring α] [non_assoc_semiring β] (f : α →+* β) (f' : α → β)
-  (h : f' = f) : α →+* β :=
-{ ..f.to_monoid_with_zero_hom.copy f' h, ..f.to_add_monoid_hom.copy f' h }
-
-instance [non_assoc_semiring α] [non_assoc_semiring β] [ring_hom_class F α β] :
-  has_coe_t F (α →+* β) :=
-⟨λ f, { to_fun := f, map_zero' := map_zero f, map_one' := map_one f, map_mul' := map_mul f,
-  map_add' := map_add f }⟩
+variables {F α β γ δ : Type*}
 
 /-- `order_ring_hom α β` is the type of monotone semiring homomorphisms from `α` to `β`.
 
@@ -57,19 +46,27 @@ class order_ring_hom_class (F : Type*) (α β : out_param $ Type*)
   [ordered_semiring α] [ordered_semiring β] extends ring_hom_class F α β :=
 (monotone (f : F) : monotone f)
 
-instance order_ring_hom_class.to_order_hom_class [ordered_semiring α] [ordered_semiring β]
-  [order_ring_hom_class F α β] :
-  order_hom_class F α β :=
-{ map_rel := order_ring_hom_class.monotone }
+@[priority 100] -- See note [lower priority instance]
+instance order_ring_hom_class.to_order_add_monoid_hom_class [ordered_semiring α]
+  [ordered_semiring β] [order_ring_hom_class F α β] :
+  order_add_monoid_hom_class F α β :=
+{ .. ‹order_ring_hom_class F α β› }
+
+@[priority 100] -- See note [lower priority instance]
+instance order_ring_hom_class.to_order_monoid_with_zero_hom_class [ordered_semiring α]
+  [ordered_semiring β] [order_ring_hom_class F α β] :
+  order_monoid_with_zero_hom_class F α β :=
+{ .. ‹order_ring_hom_class F α β› }
 
 instance [ordered_semiring α] [ordered_semiring β] [order_ring_hom_class F α β] :
   has_coe_t F (α →+*o β) :=
 ⟨λ f, { to_fun := f, map_one' := map_one f, map_mul' := map_mul f, map_add' := map_add f,
   map_zero' := map_zero f, monotone' := order_hom_class.mono f }⟩
 
+/-! ### Ordered ring homomorphisms -/
+
 namespace order_ring_hom
-section ordered_semiring
-variables [ordered_semiring α] [ordered_semiring β] {f g : α →+*o β}
+variables [ordered_semiring α] [ordered_semiring β] [ordered_semiring γ] [ordered_semiring δ]
 
 /-- Reinterpret an ordered ring homomorphism as an ordered additive monoid homomorphism. -/
 def to_order_add_monoid_hom (f : α →+*o β) : α →+o β := { ..f }
@@ -93,80 +90,64 @@ instance : has_coe_to_fun (α →+*o β) (λ _, α → β) := ⟨λ f, f.to_fun�
 
 @[ext] lemma ext (h : ∀ a, f a = g a) : f = g := fun_like.ext f g h
 
+@[simp] lemma to_ring_hom_eq_coe (f : α →+*o β) : f.to_ring_hom = f := rfl
+@[simp] lemma to_order_add_monoid_hom_eq_coe (f : α →+*o β) : f.to_order_add_monoid_hom = f := rfl
+@[simp] lemma to_order_monoid_with_zero_hom_eq_coe (f : α →+*o β) :
+  f.to_order_monoid_with_zero_hom = f := rfl
+
+@[simp] lemma coe_coe_ring_hom (f : α →+*o β) : ⇑(f : α →+* β) = f := rfl
+@[simp] lemma coe_coe_order_add_monoid_hom (f : α →+*o β) : ⇑(f : α →+o β) = f := rfl
+@[simp] lemma coe_coe_order_monoid_with_zero_hom (f : α →+*o β) : ⇑(f : α →*₀o β) = f := rfl
+
+@[norm_cast] lemma coe_ring_hom_apply (f : α →+*o β) (a : α) : (f : α →+* β) a = f a := rfl
+@[norm_cast] lemma coe_order_add_monoid_hom_apply (f : α →+*o β) (a : α) : (f : α →+o β) a = f a :=
+rfl
+@[norm_cast] lemma coe_order_monoid_with_zero_hom_apply (f : α →+*o β) (a : α) :
+  (f : α →*₀o β) a = f a := rfl
+
 /-- Copy of a `order_ring_hom` with a new `to_fun` equal to the old one. Useful to fix definitional
 equalities. -/
 protected def copy (f : α →+*o β) (f' : α → β) (h : f' = f) : α →+*o β :=
-{ to_fun := f',
-  .. f.to_ring_hom.copy f' $ by { ext, exact congr_fun h _ },
-  .. f.to_order_add_monoid_hom.copy f' $ by { ext, exact congr_fun h _ } }
+{ .. f.to_ring_hom.copy f' h, .. f.to_order_add_monoid_hom.copy f' h }
 
 variable (α)
 
 /-- The identity as an ordered ring homomorphism. -/
-protected def id : α →+*o α :=
-{ monotone' := monotone_id,
-  ..ring_hom.id _ }
-
-variable {α}
-
-@[simp] lemma id_apply (x : α) : order_ring_hom.id α x = x := rfl
-
-@[simp] lemma coe_ring_hom_id : (order_ring_hom.id α : α →+* α) = ring_hom.id α := rfl
-@[simp] lemma coe_order_monoid_with_zero_hom_id : (order_ring_hom.id α : α →*₀o α) = order_monoid_with_zero_hom.id α := rfl
+protected def id : α →+*o α := { ..ring_hom.id _, ..order_hom.id }
 
 instance : inhabited (α →+*o α) := ⟨order_ring_hom.id α⟩
 
-@[simp] lemma to_ring_hom_eq_coe {f : α →+*o β} : f.to_ring_hom = f := rfl
-@[simp] lemma to_order_hom_eq_coe {f : α →+*o β} : f.to_order_hom = f := rfl
-@[simp] lemma coe_ring_hom_to_fun_eq_coe_fun {f : α →+*o β} : (f : α →+* β).to_fun = f := rfl
-@[simp] lemma coe_ring_hom_coe_fun_eq_coe_fun {f : α →+*o β} : ((f : α →+* β) : α → β) = f := rfl
-@[simp] lemma coe_rel_hom_to_fun_eq_coe_fun {f : α →+*o β} :
-  (f : ((≤) : α → α → Prop) →r ((≤) : β → β → Prop)).to_fun = f := rfl
-@[simp] lemma coe_rel_hom_coe_fun_eq_coe_fun {f : α →+*o β} :
-  ((f : ((≤) : α → α → Prop) →r ((≤) : β → β → Prop)) : α → β) = f := rfl
-@[simp]
-lemma coe_mul_hom_to_fun_eq_coe_fun {f : α →+*o β} : ((f : α →+* β) : α →* β).to_fun = f := rfl
-@[simp]
-lemma coe_mul_hom_coe_fun_eq_coe_fun {f : α →+*o β} : (((f : α →+* β) : α →* β) : α → β) = f :=
-rfl
-@[simp]
-lemma coe_add_hom_to_fun_eq_coe_fun {f : α →+*o β} : ((f : α →+* β) : α →+ β).to_fun = f := rfl
-@[simp]
-lemma coe_add_hom_coe_fun_eq_coe_fun {f : α →+*o β} : (((f : α →+* β) : α →+ β) : α → β) = f :=
-rfl
+@[simp] lemma coe_id : ⇑(order_ring_hom.id α) = id := rfl
 
-protected lemma congr_arg {f : α →+*o β} : Π {x x' : α}, x = x' → f x = f x'
-| _ _ rfl := rfl
+variable {α}
 
-protected lemma congr_fun {f g : α →+*o β} (h : f = g) (x : α) : f x = g x := h ▸ rfl
+@[simp] lemma id_apply (a : α) : order_ring_hom.id α a = a := rfl
 
-lemma ext_iff {f g : α →+*o β} : f = g ↔ ∀ x, f x = g x := ⟨λ h x, h ▸ rfl, ext⟩
+@[simp] lemma coe_ring_hom_id : (order_ring_hom.id α : α →+* α) = ring_hom.id α := rfl
+@[simp] lemma coe_order_add_monoid_hom_id :
+  (order_ring_hom.id α : α →+o α) = order_add_monoid_hom.id α := rfl
+@[simp] lemma coe_order_monoid_with_zero_hom_id :
+  (order_ring_hom.id α : α →*₀o α) = order_monoid_with_zero_hom.id α := rfl
 
-@[norm_cast] lemma coe_ring_hom (f : α →+*o β) (a : α) : (f : α →+* β) a = f a := rfl
-@[norm_cast] lemma coe_mul_hom (f : α →+*o β) (a : α) : (f : α →* β) a = f a := rfl
-@[norm_cast] lemma coe_add_hom (f : α →+*o β) (a : α) : (f : α →+ β) a = f a := rfl
+/-- Composition of two `order_ring_hom`s as an `order_ring_hom`. -/
+protected def comp (f : β →+*o γ) (g : α →+*o β) : α →+*o γ :=
+{ ..f.to_ring_hom.comp g.to_ring_hom, ..f.to_order_add_monoid_hom.comp g.to_order_add_monoid_hom }
 
-/-- Composition of two ordered ring homomorphisms is an ordered ring homomorphism. -/
-protected def comp {T : Type*} [ordered_semiring T] (f₂ : β →+*o T) (f₁ : α →+*o β) : α →+*o T :=
-{ ..f₂.to_ring_hom.comp f₁.to_ring_hom,
-  ..f₂.to_rel_hom.comp f₁.to_rel_hom, }
-
--- @[simp] lemma comp_apply {T : Type*} [ordered_semiring T]
---     (f₁ : α →+*o β) (f₂ : β →+*o T) (a : α) : f₂.comp f₁ a = f₂ (f₁ a) := rfl
-
-lemma comp_assoc {T U : Type*} [ordered_semiring T] [ordered_semiring U] (f₁ : α →+*o β)
-  (f₂ : β →+*o T) (f₃ : T →+*o U) : (f₃.comp f₂).comp f₁ = f₃.comp (f₂.comp f₁) := rfl
-
-@[simp]
-lemma coe_comp {T : Type*} [ordered_semiring T] (f₁ : α →+*o β) (f₂ : β →+*o T) :
-  (f₂.comp f₁ : α → T) = f₂ ∘ f₁ := rfl
-
+@[simp] lemma coe_comp (f : β →+*o γ) (g : α →+*o β) : ⇑(f.comp g) = f ∘ g := rfl
+@[simp] lemma comp_apply (f : β →+*o γ) (g : α →+*o β) (a : α) : f.comp g a = f (g a) := rfl
+lemma comp_assoc (f : γ →+*o δ) (g : β →+*o γ) (h : α →+*o β) :
+  (f.comp g).comp h = f.comp (g.comp h) := rfl
 @[simp] lemma comp_id (f : α →+*o β) : f.comp (order_ring_hom.id α) = f := ext $ λ x, rfl
-
 @[simp] lemma id_comp (f : α →+*o β) : (order_ring_hom.id β).comp f = f := ext $ λ x, rfl
 
-end ordered_semiring
+lemma cancel_right {g₁ g₂ : β →+*o γ} {f : α →+*o β} (hf : surjective f) :
+  g₁.comp f = g₂.comp f ↔ g₁ = g₂ :=
+⟨λ h, ext $ hf.forall.2 $ fun_like.ext_iff.1 h, congr_arg _⟩
 
-variables [linear_ordered]
+lemma cancel_left {g : β →+*o γ} {f₁ f₂ : α →+*o β} (hg : injective g) :
+  g.comp f₁ = g.comp f₂ ↔ f₁ = f₂ :=
+⟨λ h, ext $ λ a, hg $ by rw [←comp_apply, h, comp_apply], congr_arg _⟩
+
+instance : partial_order (order_ring_hom α β) := partial_order.lift _ fun_like.coe_injective
 
 end order_ring_hom

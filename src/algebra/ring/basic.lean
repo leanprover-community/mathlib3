@@ -365,6 +365,10 @@ map_add _ _ _
 @[simp] lemma map_bit1 (f : F) (a : α) : (f (bit1 a) : β) = bit1 (f a) :=
 by simp [bit1]
 
+instance : has_coe_t F (α →+* β) :=
+⟨λ f, { to_fun := f, map_zero' := map_zero f, map_one' := map_one f, map_mul' := map_mul f,
+  map_add' := map_add f }⟩
+
 end ring_hom_class
 
 namespace ring_hom
@@ -409,8 +413,6 @@ instance has_coe_monoid_hom : has_coe (α →+* β) (α →* β) := ⟨ring_hom.
   ((⟨f, h₁, h₂, h₃, h₄⟩ : α →+* β) : α →* β) = ⟨f, h₁, h₂⟩ :=
 rfl
 
-instance has_coe_add_monoid_hom : has_coe (α →+* β) (α →+ β) := ⟨ring_hom.to_add_monoid_hom⟩
-
 @[simp, norm_cast] lemma coe_add_monoid_hom (f : α →+* β) : ⇑(f : α →+ β) = f := rfl
 
 @[simp] lemma to_add_monoid_hom_eq_coe (f : α →+* β) : f.to_add_monoid_hom = f := rfl
@@ -418,6 +420,11 @@ instance has_coe_add_monoid_hom : has_coe (α →+* β) (α →+ β) := ⟨ring_
 @[simp] lemma coe_add_monoid_hom_mk (f : α → β) (h₁ h₂ h₃ h₄) :
   ((⟨f, h₁, h₂, h₃, h₄⟩ : α →+* β) : α →+ β) = ⟨f, h₃, h₄⟩ :=
 rfl
+
+/-- Copy of a `ring_hom` with a new `to_fun` equal to the old one. Useful to fix definitional
+equalities. -/
+def ring_hom.copy (f : α →+* β) (f' : α → β) (h : f' = f) : α →+* β :=
+{ ..f.to_monoid_with_zero_hom.copy f' h, ..f.to_add_monoid_hom.copy f' h }
 
 end coe
 

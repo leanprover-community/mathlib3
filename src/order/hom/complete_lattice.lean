@@ -149,16 +149,13 @@ instance [has_Sup α] [has_Sup β] [Sup_hom_class F α β] : has_coe_t F (Sup_ho
 instance [has_Inf α] [has_Inf β] [Inf_hom_class F α β] : has_coe_t F (Inf_hom α β) :=
 ⟨λ f, ⟨f, map_Inf f⟩⟩
 
-instance [complete_lattice α] [complete_lattice β] [complete_lattice_hom_class F α β] :
-  has_coe_t F (complete_lattice_hom α β) :=
-⟨λ f, { to_fun := f, map_Sup' := map_Sup f, map_Inf' := map_Inf f }⟩
-
 instance [complete_lattice α] [complete_lattice β] [frame_hom_class F α β] :
   has_coe_t F (frame_hom α β) :=
 ⟨λ f, { to_fun := f, map_Sup' := map_Sup f, map_inf' := map_inf f }⟩
 
-instance [has_bot α] [has_bot β] [bot_hom_class F α β] : has_coe_t F (bot_hom α β) :=
-⟨λ f, ⟨f, map_bot f⟩⟩
+instance [complete_lattice α] [complete_lattice β] [complete_lattice_hom_class F α β] :
+  has_coe_t F (complete_lattice_hom α β) :=
+⟨λ f, { to_fun := f, map_Sup' := map_Sup f, map_Inf' := map_Inf f }⟩
 
 /-! ### Supremum homomorphisms -/
 
@@ -210,17 +207,16 @@ def comp (f : Sup_hom β γ) (g : Sup_hom α β) : Sup_hom α γ :=
   (f.comp g) a = f (g a) := rfl
 @[simp] lemma comp_assoc (f : Sup_hom γ δ) (g : Sup_hom β γ) (h : Sup_hom α β) :
   (f.comp g).comp h = f.comp (g.comp h) := rfl
-@[simp] lemma comp_id (f : Sup_hom α β) : f.comp (Sup_hom.id α) = f := Sup_hom.ext $ λ a, rfl
-@[simp] lemma id_comp (f : Sup_hom α β) : (Sup_hom.id β).comp f = f := Sup_hom.ext $ λ a, rfl
+@[simp] lemma comp_id (f : Sup_hom α β) : f.comp (Sup_hom.id α) = f := ext $ λ a, rfl
+@[simp] lemma id_comp (f : Sup_hom α β) : (Sup_hom.id β).comp f = f := ext $ λ a, rfl
 
 lemma cancel_right {g₁ g₂ : Sup_hom β γ} {f : Sup_hom α β} (hf : surjective f) :
   g₁.comp f = g₂.comp f ↔ g₁ = g₂ :=
-⟨λ h, Sup_hom.ext $ hf.forall.2 $ fun_like.ext_iff.1 h, congr_arg _⟩
+⟨λ h, ext $ hf.forall.2 $ fun_like.ext_iff.1 h, congr_arg _⟩
 
 lemma cancel_left {g : Sup_hom β γ} {f₁ f₂ : Sup_hom α β} (hg : injective g) :
   g.comp f₁ = g.comp f₂ ↔ f₁ = f₂ :=
-⟨λ h, Sup_hom.ext $ λ a, hg $
-  by rw [←Sup_hom.comp_apply, h, Sup_hom.comp_apply], congr_arg _⟩
+⟨λ h, ext $ λ a, hg $ by rw [←comp_apply, h, comp_apply], congr_arg _⟩
 
 end has_Sup
 
@@ -292,17 +288,16 @@ def comp (f : Inf_hom β γ) (g : Inf_hom α β) : Inf_hom α γ :=
   (f.comp g) a = f (g a) := rfl
 @[simp] lemma comp_assoc (f : Inf_hom γ δ) (g : Inf_hom β γ) (h : Inf_hom α β) :
   (f.comp g).comp h = f.comp (g.comp h) := rfl
-@[simp] lemma comp_id (f : Inf_hom α β) : f.comp (Inf_hom.id α) = f := Inf_hom.ext $ λ a, rfl
-@[simp] lemma id_comp (f : Inf_hom α β) : (Inf_hom.id β).comp f = f := Inf_hom.ext $ λ a, rfl
+@[simp] lemma comp_id (f : Inf_hom α β) : f.comp (Inf_hom.id α) = f := ext $ λ a, rfl
+@[simp] lemma id_comp (f : Inf_hom α β) : (Inf_hom.id β).comp f = f := ext $ λ a, rfl
 
 lemma cancel_right {g₁ g₂ : Inf_hom β γ} {f : Inf_hom α β} (hf : surjective f) :
   g₁.comp f = g₂.comp f ↔ g₁ = g₂ :=
-⟨λ h, Inf_hom.ext $ hf.forall.2 $ fun_like.ext_iff.1 h, congr_arg _⟩
+⟨λ h, ext $ hf.forall.2 $ fun_like.ext_iff.1 h, congr_arg _⟩
 
 lemma cancel_left {g : Inf_hom β γ} {f₁ f₂ : Inf_hom α β} (hg : injective g) :
   g.comp f₁ = g.comp f₂ ↔ f₁ = f₂ :=
-⟨λ h, Inf_hom.ext $ λ a, hg $
-  by rw [←Inf_hom.comp_apply, h, Inf_hom.comp_apply], congr_arg _⟩
+⟨λ h, ext $ λ a, hg $ by rw [←comp_apply, h, comp_apply], congr_arg _⟩
 
 end has_Inf
 
@@ -329,9 +324,6 @@ end Inf_hom
 namespace frame_hom
 variables [complete_lattice α] [complete_lattice β] [complete_lattice γ] [complete_lattice δ]
 
-/-- Reinterpret a `frame_hom` as a `lattice_hom`. -/
-def to_lattice_hom (f : frame_hom α β) : inf_hom α β := { ..f }
-
 instance : frame_hom_class (frame_hom α β) α β :=
 { coe := λ f, f.to_fun,
   coe_injective' := λ f g h, by obtain ⟨⟨_, _⟩, _⟩ := f; obtain ⟨⟨_, _⟩, _⟩ := g; congr',
@@ -341,6 +333,11 @@ instance : frame_hom_class (frame_hom α β) α β :=
 /-- Helper instance for when there's too many metavariables to apply `fun_like.has_coe_to_fun`
 directly. -/
 instance : has_coe_to_fun (frame_hom α β) (λ _, α → β) := ⟨λ f, f.to_fun⟩
+
+/-- Reinterpret a `frame_hom` as a `lattice_hom`. -/
+def to_lattice_hom (f : frame_hom α β) : lattice_hom α β :=
+{ to_fun := f,
+  map_sup' := λ a b, by rw [←Sup_pair, map_Sup, set.image_pair, Sup_pair], ..f }
 
 @[simp] lemma to_fun_eq_coe {f : frame_hom α β} : f.to_fun = (f : α → β) := rfl
 
@@ -364,7 +361,25 @@ variables {α}
 
 @[simp] lemma id_apply (a : α) : frame_hom.id α a = a := rfl
 
---TODO: Composition of `frame_hom`s
+/-- Composition of `frame_hom`s as a `frame_hom`. -/
+def comp (f : frame_hom β γ) (g : frame_hom α β) : frame_hom α γ :=
+{ ..f.to_Sup_hom.comp g.to_Sup_hom, ..f.to_lattice_hom.comp g.to_lattice_hom }
+
+@[simp] lemma coe_comp (f : frame_hom β γ) (g : frame_hom α β) : ⇑(f.comp g) = f ∘ g := rfl
+@[simp] lemma comp_apply (f : frame_hom β γ) (g : frame_hom α β) (a : α) : (f.comp g) a = f (g a) :=
+rfl
+@[simp] lemma comp_assoc (f : frame_hom γ δ) (g : frame_hom β γ) (h : frame_hom α β) :
+  (f.comp g).comp h = f.comp (g.comp h) := rfl
+@[simp] lemma comp_id (f : frame_hom α β) : f.comp (frame_hom.id α) = f := ext $ λ a, rfl
+@[simp] lemma id_comp (f : frame_hom α β) : (frame_hom.id β).comp f = f := ext $ λ a, rfl
+
+lemma cancel_right {g₁ g₂ : frame_hom β γ} {f : frame_hom α β} (hf : surjective f) :
+  g₁.comp f = g₂.comp f ↔ g₁ = g₂ :=
+⟨λ h, ext $ hf.forall.2 $ fun_like.ext_iff.1 h, congr_arg _⟩
+
+lemma cancel_left {g : frame_hom β γ} {f₁ f₂ : frame_hom α β} (hg : injective g) :
+  g.comp f₁ = g.comp f₂ ↔ f₁ = f₂ :=
+⟨λ h, ext $ λ a, hg $ by rw [←comp_apply, h, comp_apply], congr_arg _⟩
 
 instance : partial_order (frame_hom α β) := partial_order.lift _ fun_like.coe_injective
 
@@ -431,19 +446,18 @@ def comp (f : complete_lattice_hom β γ) (g : complete_lattice_hom α β) : com
   (h : complete_lattice_hom α β) :
   (f.comp g).comp h = f.comp (g.comp h) := rfl
 @[simp] lemma comp_id (f : complete_lattice_hom α β) : f.comp (complete_lattice_hom.id α) = f :=
-complete_lattice_hom.ext $ λ a, rfl
+ext $ λ a, rfl
 @[simp] lemma id_comp (f : complete_lattice_hom α β) : (complete_lattice_hom.id β).comp f = f :=
-complete_lattice_hom.ext $ λ a, rfl
+ext $ λ a, rfl
 
 lemma cancel_right {g₁ g₂ : complete_lattice_hom β γ} {f : complete_lattice_hom α β}
   (hf : surjective f) :
   g₁.comp f = g₂.comp f ↔ g₁ = g₂ :=
-⟨λ h, complete_lattice_hom.ext $ hf.forall.2 $ fun_like.ext_iff.1 h, congr_arg _⟩
+⟨λ h, ext $ hf.forall.2 $ fun_like.ext_iff.1 h, congr_arg _⟩
 
 lemma cancel_left {g : complete_lattice_hom β γ} {f₁ f₂ : complete_lattice_hom α β}
   (hg : injective g) :
   g.comp f₁ = g.comp f₂ ↔ f₁ = f₂ :=
-⟨λ h, complete_lattice_hom.ext $ λ a, hg $
-  by rw [←complete_lattice_hom.comp_apply, h, complete_lattice_hom.comp_apply], congr_arg _⟩
+⟨λ h, ext $ λ a, hg $ by rw [←comp_apply, h, comp_apply], congr_arg _⟩
 
 end complete_lattice_hom

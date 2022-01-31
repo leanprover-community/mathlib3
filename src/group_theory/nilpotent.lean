@@ -592,7 +592,7 @@ end
 -- This lemma helps with rewriting the subgroup, which occurs in indices
 lemma comap_center_subst {H₁ H₂ : subgroup G} [normal H₁] [normal H₂] (h : H₁ = H₂) :
   comap (mk' H₁) (center (G ⧸ H₁)) = comap (mk' H₂) (center (G ⧸ H₂)) :=
-  by { unfreezingI { subst h, } }
+  by unfreezingI { subst h }
 
 lemma comap_upper_central_series_quotient_center (n : ℕ) :
   comap (mk' (center G)) (upper_central_series (G ⧸ center G) n) = upper_central_series G n.succ :=
@@ -642,6 +642,18 @@ begin
         ... = group.nilpotency_class G : symm hn
         ... ≤ group.nilpotency_class (G ⧸ center G) + 1
             : nilpotency_class_le_of_ker_le_center _ (le_of_eq (ker_mk _)) _, } }
+end
+
+/-- Quotienting the `center G` reduces the nilpotency class by 1 -/
+lemma nilpotency_class_eq_quotient_center_plus_one [hH : is_nilpotent G] [nontrivial G] :
+  group.nilpotency_class G = group.nilpotency_class (G ⧸ center G) + 1 :=
+begin
+  rw nilpotency_class_quotient_center,
+  rcases h : group.nilpotency_class G,
+  { exfalso,
+    rw nilpotency_class_zero_iff_subsingleton at h, resetI,
+    apply (false_of_nontrivial_of_subsingleton G), },
+  { simp }
 end
 
 end classical

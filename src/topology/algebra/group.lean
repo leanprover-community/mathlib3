@@ -811,13 +811,13 @@ end units
 section lattice_ops
 
 variables {ι : Type*} [group G] [group H] {ts : set (topological_space G)}
-  [h : Π t ∈ ts, @topological_group G t _] {ts' : ι → topological_space G}
-  [h' : Π i, @topological_group G (ts' i) _] {t₁ t₂ : topological_space G}
-  [h₁ : @topological_group G t₁ _] [h₂ : @topological_group G t₂ _]
+  (h : ∀ t ∈ ts, @topological_group G t _) {ts' : ι → topological_space G}
+  (h' : ∀ i, @topological_group G (ts' i) _) {t₁ t₂ : topological_space G}
+  (h₁ : @topological_group G t₁ _) (h₂ : @topological_group G t₂ _)
   {t : topological_space H} [topological_group H] {F : Type*}
   [monoid_hom_class F G H] (f : F)
 
-@[to_additive, priority 100] instance topological_group_Inf :
+@[to_additive] lemma topological_group_Inf :
   @topological_group G (Inf ts) _ :=
 { continuous_inv := continuous_Inf_rng (λ t ht, continuous_Inf_dom ht
     (@topological_group.continuous_inv G t _ (h t ht))),
@@ -827,21 +827,21 @@ variables {ι : Type*} [group G] [group H] {ts : set (topological_space G)}
 
 include h'
 
-@[to_additive, priority 100] instance topological_group_infi :
+@[to_additive] lemma topological_group_infi :
   @topological_group G (⨅ i, ts' i) _ :=
-by {rw ← Inf_range, exact @topological_group_Inf G _ (set.range ts') (set.forall_range_iff.mpr h')}
+by {rw ← Inf_range, exact topological_group_Inf (set.forall_range_iff.mpr h')}
 
 omit h'
 
 include h₁ h₂
 
-@[to_additive, priority 100] instance topological_group_inf :
+@[to_additive] lemma topological_group_inf :
   @topological_group G (t₁ ⊓ t₂) _ :=
-by {rw inf_eq_infi, refine @topological_group_infi _ _ _ _ (λ b, _), cases b; assumption}
+by {rw inf_eq_infi, refine topological_group_infi (λ b, _), cases b; assumption}
 
 omit h₁ h₂
 
-@[to_additive, priority 100] instance topological_group_induced :
+@[to_additive] lemma topological_group_induced :
   @topological_group G (t.induced f) _ :=
 { continuous_inv :=
     begin

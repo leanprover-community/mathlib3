@@ -359,6 +359,7 @@ begin
   show x * y = y * x, by simpa [mul_assoc] using this,
 end
 
+/-- Subgroups of a finite group form an internal product if they are normal, and independent -/
 noncomputable
 def internal_product
   {I : Type*} [fintype I] [decidable_eq I] {H : I → subgroup G}
@@ -381,20 +382,26 @@ begin
 end
 
 
-open_locale classical -- so that we know that subgroups are fintype
+open_locale classical -- so that we know that subgroups of fintypes are fintype
 
+/-- Subgroups of a finite group form an internal product if they are normal, pairwise disjoint,
+and have pairwise coprime orders -/
 noncomputable
 def internal_product_of_coprime
   [fintype G]
   {I : Type*} [fintype I] {H : I → subgroup G}
   (hnorm : ∀ i, (H i).normal)
-  (hcoprime : ∀ i j, i ≠ j → nat.coprime (fintype.card (H i)) (fintype.card (H j))) :
+  (hcoprime : ∀ i j, i ≠ j → nat.coprime (fintype.card (H i)) (fintype.card (H j)))
+  (hdisjoint : ∀ i j, i ≠ j → disjoint (H i) (H j)) :
   (Π (i : I), H i) ≃* (⨆ (i : I), H i : subgroup G) :=
 begin
   haveI : fact (∀ (i j : I), i ≠ j → ∀ (x : H i) (y : H j),
     commute ((H i).subtype x) ((H j).subtype y)) := fact.mk
   begin
-    sorry,
+    simp,
+    rintros i j hne ⟨x, hx⟩ ⟨y, hy⟩,
+    refine subgroup.commute_of_normal_of_disjoint _ _ (hnorm _) (hnorm _) _ x y hx hy,
+    exact (hdisjoint i j hne)
   end,
 
   have : (⨆ (i : I), H i: subgroup G) = (⨆ (i : I), (H i).subtype.range : subgroup G), by simp,

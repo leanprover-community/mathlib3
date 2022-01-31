@@ -77,7 +77,7 @@ variable (K)
 /-- The `power_basis` given by `zeta n K L`. -/
 @[simps] def zeta.power_basis : power_basis K L :=
 begin
-  haveI : ne_zero ((n : ℕ) : L) := ne_zero.of_no_zero_smul_divisors K L,
+  haveI := (ne_zero.of_no_zero_smul_divisors K L n).trans,
   refine power_basis.map
     (algebra.adjoin.power_basis $ integral {n} K L $ zeta n K L) _,
   exact (subalgebra.equiv_of_eq _ _
@@ -104,7 +104,7 @@ def zeta.embeddings_equiv_primitive_roots [is_domain A] (hirr : irreducible (cyc
 ((zeta.power_basis n K L).lift_equiv).trans
 { to_fun    := λ x,
   begin
-    haveI hn : ne_zero ((n : ℕ) : A) := ne_zero.of_no_zero_smul_divisors K A,
+    haveI hn := (ne_zero.of_no_zero_smul_divisors K A n).trans,
     refine ⟨x.1, _⟩,
     cases x,
     rwa [mem_primitive_roots n.pos, ←is_root_cyclotomic_iff, is_root.def,
@@ -113,7 +113,7 @@ def zeta.embeddings_equiv_primitive_roots [is_domain A] (hirr : irreducible (cyc
   end,
   inv_fun   := λ x,
   begin
-    haveI hn : ne_zero ((n : ℕ) : A) := ne_zero.of_no_zero_smul_divisors K A,
+    haveI hn := (ne_zero.of_no_zero_smul_divisors K A n).trans,
     refine ⟨x.1, _⟩,
     cases x,
     rwa [aeval_def, eval₂_eq_eval_map, zeta.power_basis_gen_minpoly L hirr, map_cyclotomic,

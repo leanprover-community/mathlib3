@@ -497,6 +497,84 @@ has_pullback_of_cover (Z.affine_cover.pullback_cover f) f g
 
 instance : has_pullbacks Scheme := has_pullbacks_of_has_limit_cospan _
 
+/-- Given an open cover `{ Xᵢ }` of `X`, then `X ×[Z] Y` is covered by `Xᵢ ×[Z] Y`. -/
+@[simps J obj map]
+def open_cover_of_left (𝒰 : open_cover X) (f : X ⟶ Z) (g : Y ⟶ Z) : open_cover (pullback f g) :=
+begin
+  fapply ((gluing 𝒰 f g).open_cover.pushforward_iso
+    (limit.iso_limit_cone ⟨_, glued_is_limit 𝒰 f g⟩).inv).copy 𝒰.J
+    (λ i, pullback (𝒰.map i ≫ f) g)
+    (λ i, pullback.map _ _ _ _ (𝒰.map i) (𝟙 _) (𝟙 _) (category.comp_id _) (by simp))
+    (equiv.refl 𝒰.J) (λ _, iso.refl _),
+  rintro (i : 𝒰.J),
+  change pullback.map _ _ _ _ _ _ _ _ _ = 𝟙 _ ≫ (gluing 𝒰 f g).ι i ≫ _,
+  refine eq.trans _ (category.id_comp _).symm,
+  apply pullback.hom_ext,
+  all_goals
+  { dsimp,
+    simp only [limit.iso_limit_cone_inv_π, pullback_cone.mk_π_app_left, category.comp_id,
+      pullback_cone.mk_π_app_right, category.assoc, pullback.lift_fst, pullback.lift_snd],
+    symmetry,
+    exact multicoequalizer.π_desc _ _ _ _ _ },
+end
+
+/-- Given an open cover `{ Yᵢ }` of `Y`, then `X ×[Z] Y` is covered by `X ×[Z] Yᵢ`. -/
+@[simps J obj map]
+def open_cover_of_right (𝒰 : open_cover Y) (f : X ⟶ Z) (g : Y ⟶ Z) : open_cover (pullback f g) :=
+begin
+  fapply ((open_cover_of_left 𝒰 g f).pushforward_iso (pullback_symmetry _ _).hom).copy 𝒰.J
+    (λ i, pullback f (𝒰.map i ≫ g))
+    (λ i, pullback.map _ _ _ _ (𝟙 _) (𝒰.map i) (𝟙 _) (by simp) (category.comp_id _))
+    (equiv.refl _) (λ i, pullback_symmetry _ _),
+  intro i,
+  dsimp [open_cover.bind],
+  apply pullback.hom_ext; simp,
+end
+
+/-- (Implementation). Use `open_cover_of_base` instead. -/
+def open_cover_of_base' (𝒰 : open_cover Z) (f : X ⟶ Z) (g : Y ⟶ Z) : open_cover (pullback f g) :=
+begin
+  apply (open_cover_of_left (𝒰.pullback_cover f) f g).bind,
+  intro i,
+  let Xᵢ := pullback f (𝒰.map i),
+  let Yᵢ := pullback g (𝒰.map i),
+  let W := pullback (pullback.snd : Yᵢ ⟶ _) (pullback.snd : Xᵢ ⟶ _),
+  have := big_square_is_pullback (pullback.fst : W ⟶ _) (pullback.fst : Yᵢ ⟶ _)
+    (pullback.snd : Xᵢ ⟶ _) (𝒰.map i) pullback.snd pullback.snd g
+    pullback.condition.symm pullback.condition.symm
+      (pullback_cone.flip_is_limit $ pullback_is_pullback _ _)
+      (pullback_cone.flip_is_limit $ pullback_is_pullback _ _),
+  refine open_cover_of_is_iso
+    ((pullback_symmetry _ _).hom ≫ (limit.iso_limit_cone ⟨_, this⟩).inv ≫
+      pullback.map _ _ _ _ (𝟙 _) (𝟙 _) (𝟙 _) _ _),
+  { simpa only [category.comp_id, category.id_comp, ← pullback.condition] },
+  { simp only [category.comp_id, category.id_comp] },
+  apply_instance
+end
+
+/-- Given an open cover `{ Zᵢ }` of `Z`, then `X ×[Z] Y` is covered by `Xᵢ ×[Zᵢ] Yᵢ`, where
+  `Xᵢ = X ×[Z] Zᵢ` and `Yᵢ = Y ×[Z] Zᵢ` is the preimage of `Zᵢ` in `X` and `Y`. -/
+@[simps J obj map]
+def open_cover_of_base (𝒰 : open_cover Z) (f : X ⟶ Z) (g : Y ⟶ Z) : open_cover (pullback f g) :=
+begin
+  apply (open_cover_of_base' 𝒰 f g).copy
+    𝒰.J
+    (λ i, pullback (pullback.snd : pullback f (𝒰.map i) ⟶ _)
+      (pullback.snd : pullback g (𝒰.map i) ⟶ _))
+    (λ i, pullback.map _ _ _ _ pullback.fst pullback.fst (𝒰.map i)
+      pullback.condition.symm pullback.condition.symm)
+    ((equiv.prod_punit 𝒰.J).symm.trans (equiv.sigma_equiv_prod 𝒰.J punit).symm)
+    (λ _, iso.refl _),
+  intro i,
+  change _ = _ ≫ _ ≫ _,
+  refine eq.trans _ (category.id_comp _).symm,
+  apply pullback.hom_ext; simp only [category.comp_id, open_cover_of_left_map,
+    open_cover.pullback_cover_map, pullback_cone.mk_π_app_left, open_cover_of_is_iso_map,
+    limit.iso_limit_cone_inv_π_assoc, category.assoc, pullback.lift_fst_assoc,
+    pullback_symmetry_hom_comp_snd_assoc, pullback.lift_fst, limit.iso_limit_cone_inv_π,
+    pullback_cone.mk_π_app_right, pullback_symmetry_hom_comp_fst_assoc, pullback.lift_snd],
+end
+
 end pullback
 
 end algebraic_geometry.Scheme

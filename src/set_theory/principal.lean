@@ -114,7 +114,7 @@ begin
   rcases lt_omega.1 h with ⟨n, rfl⟩,
   clear h, induction n with n IH,
   { rw [nat.cast_zero, zero_add] },
-  { rw [nat.cast_succ, add_assoc, one_add_of_omega_le (le_refl _), IH] }
+  { rwa [nat.cast_succ, add_assoc, one_add_of_omega_le (le_refl _)] }
 end
 
 theorem principal_add_omega : principal (+) omega :=
@@ -123,14 +123,14 @@ principal_add_iff_add_left_eq_self.2 (λ a, add_omega)
 theorem add_omega_opow {a b : ordinal} (h : a < omega ^ b) : a + omega ^ b = omega ^ b :=
 begin
   refine le_antisymm _ (le_add_left _ _),
-  revert h, apply limit_rec_on b,
-  { intro h, rw [opow_zero, ← succ_zero, lt_succ, ordinal.le_zero] at h,
+  revert h, refine limit_rec_on b (λ h, _) (λ b _ h, _) (λ b l Ih h, _),
+  { rw [opow_zero, ← succ_zero, lt_succ, ordinal.le_zero] at h,
     rw [h, zero_add] },
-  { intros b _ h, rw [opow_succ] at h,
+  { rw opow_succ at h,
     rcases (lt_mul_of_limit omega_is_limit).1 h with ⟨x, xo, ax⟩,
     refine le_trans (add_le_add_right (le_of_lt ax) _) _,
     rw [opow_succ, ← mul_add, add_omega xo] },
-  { intros b l IH h, rcases (lt_opow_of_limit omega_ne_zero l).1 h with ⟨x, xb, ax⟩,
+  { rcases (lt_opow_of_limit omega_ne_zero l).1 h with ⟨x, xb, ax⟩,
     refine (((add_is_normal a).trans (opow_is_normal one_lt_omega))
       .limit_le l).2 (λ y yb, _),
     let z := max x y,
@@ -143,6 +143,7 @@ end
 theorem principal_add_omega_opow (o : ordinal) : principal (+) (omega ^ o) :=
 principal_add_iff_add_left_eq_self.2 (λ a, add_omega_opow)
 
+/-- The main characterization theorem for additive principal ordinals. -/
 theorem principal_add_iff_zero_or_omega_power {o : ordinal} :
   principal (+) o ↔ o = 0 ∨ ∃ a : ordinal, o = omega ^ a :=
 begin
@@ -175,6 +176,22 @@ begin
     { rw opow_zero, exact principal_add_one },
     { rw zero_opow hb, exact ha } },
   { rw ←opow_mul, exact principal_add_omega_opow _ }
+end
+
+theorem mul_principal_add_is_principal_add (a : ordinal.{u}) {b : ordinal.{u}} (hb₁ : 1 < b)
+  (hb : principal (+) b) : principal (+) (a * b) :=
+begin
+  rcases eq_zero_or_pos a with rfl | ha,
+  { rw zero_mul,
+    exact principal_zero },
+  { intros c d hc hd,
+    have hbl := principal_add_is_limit hb₁ hb,
+    rw [←is_normal.bsup_eq.{u u} (mul_is_normal ha) hbl, lt_bsup] at *,
+    rcases hc with ⟨x, hx, hx'⟩,
+    rcases hd with ⟨y, hy, hy'⟩,
+    use [x + y, hb hx hy],
+    convert add_lt_add hx hy,
+  }
 end
 
 end ordinal

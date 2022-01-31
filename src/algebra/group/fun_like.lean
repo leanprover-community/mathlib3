@@ -163,31 +163,32 @@ fun_like.coe_injective.monoid_pow _ (coe_fn_one F) coe_fn_mul coe_fn_pow
 instance [Π i, comm_monoid (α i)] [fun_like F ι α] [has_pointwise_one F] [has_pointwise_mul F]
   [has_pointwise_pow F ℕ] :
   comm_monoid F :=
-{ .. fun_like.monoid F, .. fun_like.comm_semigroup F }
+{ .. fun_like.monoid F, .. @@fun_like.comm_semigroup F _ _ ‹_› }
 
 @[to_additive]
 instance [Π i, left_cancel_monoid (α i)] [fun_like F ι α] [has_pointwise_one F] [has_pointwise_mul F]
   [has_pointwise_pow F ℕ] :
   left_cancel_monoid F :=
-{ .. fun_like.monoid F, .. fun_like.left_cancel_semigroup F }
+{ .. fun_like.monoid F, .. @@fun_like.left_cancel_semigroup F _ _ ‹_› }
 
 @[to_additive]
 instance [Π i, right_cancel_monoid (α i)] [fun_like F ι α] [has_pointwise_one F] [has_pointwise_mul F]
   [has_pointwise_pow F ℕ] :
   right_cancel_monoid F :=
-{ .. fun_like.monoid F, .. fun_like.right_cancel_semigroup F }
+{ .. fun_like.monoid F, .. @@fun_like.right_cancel_semigroup F _ _ ‹_› }
 
 @[to_additive]
 instance [Π i, cancel_monoid (α i)] [fun_like F ι α] [has_pointwise_one F] [has_pointwise_mul F]
   [has_pointwise_pow F ℕ] :
   cancel_monoid F :=
-{ .. fun_like.left_cancel_monoid F, .. fun_like.right_cancel_semigroup F }
+{ .. @@fun_like.left_cancel_monoid F _ _ ‹_› ‹_› _,
+  .. @@fun_like.right_cancel_semigroup F _ _ ‹_› }
 
 @[to_additive]
 instance [Π i, cancel_comm_monoid (α i)] [fun_like F ι α] [has_pointwise_one F] [has_pointwise_mul F]
   [has_pointwise_pow F ℕ] :
   cancel_comm_monoid F :=
-{ .. fun_like.cancel_monoid F, .. fun_like.comm_semigroup F }
+{ .. fun_like.cancel_monoid F, .. @@fun_like.comm_semigroup F _ _ ‹_› }
 
 @[to_additive]
 instance [Π i, div_inv_monoid (α i)] [fun_like F ι α] [has_pointwise_one F] [has_pointwise_mul F] [has_pointwise_inv F] [has_pointwise_div F]
@@ -205,6 +206,6 @@ fun_like.coe_injective.group_pow _ (coe_fn_one F) coe_fn_mul coe_fn_inv coe_fn_d
 instance [Π i, comm_group (α i)] [fun_like F ι α] [has_pointwise_one F] [has_pointwise_mul F] [has_pointwise_inv F] [has_pointwise_div F]
   [has_pointwise_pow F ℕ] [has_pointwise_pow F ℤ] :
   comm_group F :=
-{ .. fun_like.group F, .. fun_like.comm_semigroup F }
+{ .. fun_like.group F, .. @fun_like.comm_semigroup F _ _ _ _ ‹_› }
 
 end fun_like

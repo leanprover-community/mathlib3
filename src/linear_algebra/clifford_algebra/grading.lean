@@ -75,8 +75,7 @@ begin
 end
 
 /-- The clifford algebra is graded by the even and odd parts. -/
-instance graded_algebra :
-  graded_algebra (even_odd Q) :=
+instance graded_algebra : graded_algebra (even_odd Q) :=
 graded_algebra.of_alg_hom _
   (lift _ $ ⟨graded_algebra.ι Q, graded_algebra.ι_sq_scalar Q⟩)
   -- the proof from here onward is mostly similar to the `tensor_algebra` case, with some extra
@@ -108,7 +107,6 @@ graded_algebra.of_alg_hom _
       apply dfinsupp.single_eq_zero.mpr, refl, },
     { rw [alg_hom.map_add, ihx, ihy, ←map_add], refl },
   end)
-
 
 lemma supr_ι_range_eq_top : (⨆ i : ℕ, (ι Q).range ^ i) = ⊤ :=
 begin

@@ -5,7 +5,7 @@ Authors: Frédéric Dupuis
 -/
 import analysis.inner_product_space.projection
 import analysis.normed_space.dual
-import analysis.normed_space.star
+import analysis.normed_space.star.basic
 
 /-!
 # The Fréchet-Riesz representation theorem

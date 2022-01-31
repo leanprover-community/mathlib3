@@ -1117,7 +1117,7 @@ end condexp_L2
 
 section condexp_ind
 
-/-! ## Conditional expectation of an indicator as a condinuous linear map.
+/-! ## Conditional expectation of an indicator as a continuous linear map.
 
 The goal of this section is to build
 `condexp_ind (hm : m ≤ m0) (μ : measure α) (s : set s) : G →L[ℝ] α →₁[μ] G`, which

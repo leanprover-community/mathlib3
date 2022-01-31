@@ -14,7 +14,8 @@ The Yoneda embedding for preadditive categories sends an object `Y` to the presh
 object `X` to the group of morphisms `X ⟶ Y`. At each point, we get an additional `End Y`-module
 structure.
 
-We also show that this presheaf is additive.
+We also show that this presheaf is additive and that it is compatible with the normal Yoneda
+embedding in the expected way.
 
 ## TODO
 * The Yoneda embedding is additive itself
@@ -33,7 +34,7 @@ variables {C : Type u} [category.{v} C] [preadditive C]
 
 /--
 The Yoneda embedding for preadditive categories sends an object `Y` to the presheaf sending an
-object `X` to `End Y`-module of morphisms `X ⟶ Y`.
+object `X` to the `End Y`-module of morphisms `X ⟶ Y`.
 -/
 @[simps]
 def preadditive_yoneda_obj (Y : C) : Cᵒᵖ ⥤ Module.{v} (End Y) :=
@@ -62,7 +63,7 @@ def preadditive_yoneda : C ⥤ (Cᵒᵖ ⥤ AddCommGroup.{v}) :=
 
 /--
 The Yoneda embedding for preadditive categories sends an object `X` to the copresheaf sending an
-object `Y` to `End X`-module of morphisms `X ⟶ Y`.
+object `Y` to the `End X`-module of morphisms `X ⟶ Y`.
 -/
 @[simps]
 def preadditive_coyoneda_obj (X : Cᵒᵖ) : C ⥤ Module.{v} (End X) :=
@@ -93,5 +94,21 @@ instance additive_yoneda_obj (X : C) : functor.additive (preadditive_yoneda_obj 
 instance additive_yoneda_obj' (X : C) : functor.additive (preadditive_yoneda.obj X) := {}
 instance additive_coyoneda_obj (X : Cᵒᵖ) : functor.additive (preadditive_coyoneda_obj X) := {}
 instance additive_coyoneda_obj' (X : Cᵒᵖ) : functor.additive (preadditive_coyoneda.obj X) := {}
+
+/--
+Composing the preadditive yoneda embedding with the forgetful functor yields the regular
+Yoneda embedding.
+-/
+lemma whiskering_preadditive_yoneda : ((whiskering_right C _ _).obj ((whiskering_right Cᵒᵖ _ _).obj
+  (forget AddCommGroup.{v}))).obj preadditive_yoneda = yoneda :=
+rfl
+
+/--
+Composing the preadditive yoneda embedding with the forgetful functor yields the regular
+Yoneda embedding.
+-/
+lemma whiskering_preadditive_coyoneda : ((whiskering_right Cᵒᵖ _ _).obj
+  ((whiskering_right C _ _).obj (forget AddCommGroup.{v}))).obj preadditive_coyoneda = coyoneda :=
+rfl
 
 end category_theory

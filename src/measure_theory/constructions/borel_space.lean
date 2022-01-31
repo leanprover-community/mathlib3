@@ -8,6 +8,7 @@ import analysis.complex.basic
 import analysis.normed_space.finite_dimension
 import measure_theory.group.arithmetic
 import measure_theory.lattice
+import measure_theory.measure.open_pos
 import topology.algebra.ordered.liminf_limsup
 import topology.continuous_function.basic
 import topology.instances.ereal
@@ -693,6 +694,15 @@ h.measurable.ae_measurable
 lemma closed_embedding.measurable {f : α → γ} (hf : closed_embedding f) :
   measurable f :=
 hf.continuous.measurable
+
+lemma continuous.is_open_pos_measure_map {f : β → γ} (hf : continuous f)
+  (hf_surj : function.surjective f) {μ : measure β} [μ.is_open_pos_measure] :
+  (measure.map f μ).is_open_pos_measure :=
+begin
+  refine ⟨λ U hUo hUne, _⟩,
+  rw [measure.map_apply hf.measurable hUo.measurable_set],
+  exact (hUo.preimage hf).measure_ne_zero μ (hf_surj.nonempty_preimage.mpr hUne)
+end
 
 @[priority 100, to_additive]
 instance has_continuous_mul.has_measurable_mul [has_mul γ] [has_continuous_mul γ] :

@@ -1834,6 +1834,10 @@ end cardinal
 
 namespace ordinal
 
+theorem lt_add_of_limit {a b c : ordinal.{u}}
+  (h : is_limit c) : a < b + c ↔ ∃ c' < c, a < b + c' :=
+by rw [←is_normal.bsup_eq.{u u} (add_is_normal b) h, lt_bsup]
+
 theorem lt_omega {o : ordinal.{u}} : o < omega ↔ ∃ n : ℕ, o = n :=
 by rw [← cardinal.ord_omega, cardinal.lt_ord, lt_omega]; simp only [card_eq_nat]
 

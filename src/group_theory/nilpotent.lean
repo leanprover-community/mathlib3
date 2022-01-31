@@ -666,6 +666,34 @@ end
 lemma derived_le_lower_central (n : ℕ) : derived_series G n ≤ lower_central_series G n :=
 by { induction n with i ih, { simp }, { apply general_commutator_mono ih, simp } }
 
+/-- Abelian groups are nilpotent -/
+@[priority 100]
+instance comm_group.is_nilpotent {G : Type*} [comm_group G] : is_nilpotent G :=
+begin
+  use 1,
+  rw upper_central_series_one,
+  apply comm_group.center_eq_top,
+end
+
+/-- Abelian groups have nilpotency class at most one -/
+lemma comm_group.nilpotency_class_le_one {G : Type*} [comm_group G] :
+  group.nilpotency_class G ≤ 1 :=
+begin
+  apply upper_central_series_eq_top_iff_nilpotency_class_le.mp,
+  rw upper_central_series_one,
+  apply comm_group.center_eq_top,
+end
+
+/-- Groups with nilpotency class at most one are abelian -/
+def comm_group_of_nilpotency_class [is_nilpotent G] (h : group.nilpotency_class G ≤ 1) :
+  comm_group G :=
+group.comm_group_of_center_eq_top $
+begin
+  rw ← upper_central_series_one,
+  exact upper_central_series_eq_top_iff_nilpotency_class_le.mpr h,
+end
+
+
 /-- A nilpotent subgroup is solvable -/
 @[priority 100]
 instance is_nilpotent.to_is_solvable [h : is_nilpotent G]: is_solvable G :=

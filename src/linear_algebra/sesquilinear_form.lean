@@ -42,8 +42,7 @@ namespace linear_map
 section comm_ring
 
 -- the `ₗ` subscript variables are for special cases about linear (as opposed to semilinear) maps
-variables [comm_semiring R]
-  [comm_semiring R₁] [add_comm_monoid M₁] [module R₁ M₁]
+variables [comm_semiring R] [comm_semiring R₁] [add_comm_monoid M₁] [module R₁ M₁]
   [comm_semiring R₂] [add_comm_monoid M₂] [module R₂ M₂]
   {I₁ : R₁ →+* R} {I₂ : R₂ →+* R} {I₁' : R₁ →+* R}
 
@@ -71,8 +70,7 @@ lemma is_Ortho_def {n : Type*} {B : M₁ →ₛₗ[I₁] M₁ →ₛₗ[I₁'] R
 end comm_ring
 section field
 
-variables [field K] [add_comm_group V] [module K V]
-  [field K₁] [add_comm_group V₁] [module K₁ V₁]
+variables [field K] [field K₁] [add_comm_group V₁] [module K₁ V₁]
   [field K₂] [add_comm_group V₂] [module K₂ V₂]
   {I₁ : K₁ →+* K} {I₂ : K₂ →+* K} {I₁' : K₁ →+* K}
   {J₁ : K →+* K} {J₂ : K →+* K}
@@ -204,11 +202,9 @@ namespace submodule
 
 /-! ### The orthogonal complement -/
 
-variables [comm_ring R] [add_comm_group M] [module R M]
-  [comm_ring R₁] [add_comm_group M₁] [module R₁ M₁]
-  {I : R →+* R} {I₁ : R₁ →+* R} {I₂ : R₁ →+* R}
+variables [comm_ring R] [comm_ring R₁] [add_comm_group M₁] [module R₁ M₁]
+  {I₁ : R₁ →+* R} {I₂ : R₁ →+* R}
   {B : M₁ →ₛₗ[I₁] M₁ →ₛₗ[I₂] R}
-  {B' : M →ₗ[R] M →ₛₗ[I] R}
 
 /-- The orthogonal complement of a submodule `N` with respect to some bilinear form is the set of
 elements `x` which are orthogonal to all elements of `N`; i.e., for all `y` in `N`, `B x y = 0`.
@@ -247,8 +243,7 @@ section orthogonal
 
 variables [field K] [add_comm_group V] [module K V]
   [field K₁] [add_comm_group V₁] [module K₁ V₁]
-  {J : K →+* K}
-  {J₁ : K₁ →+* K} {J₁' : K₁ →+* K}
+  {J : K →+* K} {J₁ : K₁ →+* K} {J₁' : K₁ →+* K}
 
 -- ↓ This lemma only applies in fields as we require `a * b = 0 → a = 0 ∨ b = 0`
 lemma span_singleton_inf_orthogonal_eq_bot

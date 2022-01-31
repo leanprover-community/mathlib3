@@ -98,26 +98,6 @@ protected lemma set.ord_connected.image_covers_image_iff (h : (set.range f).ord_
   exact hab.2 ha hb,
 end⟩
 
-lemma covers.of_image (h : f a ⋖ f b) : a ⋖ b :=
-begin
-  refine ⟨_, λ c hac hcb, _⟩,
-  { rw ←order_embedding.lt_iff_lt f,
-    exact h.1 },
-  rw ←order_embedding.lt_iff_lt f at hac hcb,
-  exact h.2 hac hcb,
-end
-
-lemma covers.image (hab : a ⋖ b) (h : (set.range f).ord_connected) : f a ⋖ f b :=
-begin
-  refine ⟨f.strict_mono hab.1, λ c ha hb, _⟩,
-  obtain ⟨c, rfl⟩ := h.out (mem_range_self _) (mem_range_self _) ⟨ha.le, hb.le⟩,
-  rw f.lt_iff_lt at ha hb,
-  exact hab.2 ha hb,
-end
-
-lemma image_covers_iff (h : (set.range f).ord_connected) : f a ⋖ f b ↔ a ⋖ b :=
-⟨covers.of_image, λ hab, hab.image h⟩
-
 end preorder
 
 section partial_order

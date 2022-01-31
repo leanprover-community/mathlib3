@@ -329,6 +329,174 @@ begin
   refl
 end
 
+/-- (Implementation)
+The canonical map `(W ×[X] Uᵢ) ×[W] (Uⱼ ×[Z] Y) ⟶ (Uⱼ ×[Z] Y) ×[X] Uᵢ = V j i` where `W` is
+the glued fibred product.
+
+This is used in `lift_comp_ι`. -/
+def pullback_fst_ι_to_V (i j : 𝒰.J) :
+  pullback (pullback.fst : pullback (p1 𝒰 f g) (𝒰.map i) ⟶ _) ((gluing 𝒰 f g).ι j) ⟶
+    V 𝒰 f g j i :=
+(pullback_symmetry _ _ ≪≫
+  (pullback_right_pullback_fst_iso (p1 𝒰 f g) (𝒰.map i) _)).hom ≫
+    (pullback.congr_hom (multicoequalizer.π_desc _ _ _ _ _) rfl).hom
+
+@[simp, reassoc] lemma pullback_fst_ι_to_V_fst (i j : 𝒰.J) :
+  pullback_fst_ι_to_V 𝒰 f g i j ≫ pullback.fst = pullback.snd :=
+by { delta pullback_fst_ι_to_V, simp }
+
+@[simp, reassoc] lemma pullback_fst_ι_to_V_snd (i j : 𝒰.J) :
+  pullback_fst_ι_to_V 𝒰 f g i j ≫ pullback.snd = pullback.fst ≫ pullback.snd :=
+by { delta pullback_fst_ι_to_V, simp }
+
+/-- We show that the map `W ×[X] Uᵢ ⟶ Uᵢ ×[Z] Y ⟶ W` is the first projection, where the
+first map is given by the lift of `W ×[X] Uᵢ ⟶ Uᵢ` and `W ×[X] Uᵢ ⟶ W ⟶ Y`.
+
+It suffices to show that the two map agrees when restricted onto `Uⱼ ×[Z] Y`. In this case,
+both maps factor through `V j i` via `pullback_fst_ι_to_V` -/
+lemma lift_comp_ι (i : 𝒰.J) : pullback.lift pullback.snd (pullback.fst ≫ p2 𝒰 f g)
+  (by rw [← pullback.condition_assoc, category.assoc, p_comm]) ≫
+  (gluing 𝒰 f g).ι i = (pullback.fst : pullback (p1 𝒰 f g) (𝒰.map i) ⟶ _) :=
+begin
+  apply ((gluing 𝒰 f g).open_cover.pullback_cover pullback.fst).hom_ext,
+  intro j,
+  dsimp only [open_cover.pullback_cover],
+  transitivity pullback_fst_ι_to_V 𝒰 f g i j ≫ fV 𝒰 f g j i ≫ (gluing 𝒰 f g).ι _,
+  { rw ← (show _ = fV 𝒰 f g j i ≫ _, from (gluing 𝒰 f g).glue_condition j i),
+    simp_rw ← category.assoc,
+    congr' 1,
+    rw [gluing_to_glue_data_f, gluing_to_glue_data_t],
+    apply pullback.hom_ext; simp_rw category.assoc,
+    { rw [t_fst_fst, pullback.lift_fst, pullback_fst_ι_to_V_snd] },
+    { rw [t_fst_snd, pullback.lift_snd, pullback_fst_ι_to_V_fst_assoc,
+        pullback.condition_assoc], erw multicoequalizer.π_desc } },
+  { rw [pullback.condition, ← category.assoc],
+    congr' 1,
+    apply pullback.hom_ext,
+    { simp },
+    { simp } }
+end
+
+/-- The canonical isomorphism between `W ×[X] Uᵢ` and `Uᵢ ×[X] Y`. That is, the preimage of `Uᵢ` in
+`W` along `p1` is indeed `Uᵢ ×[X] Y`. -/
+def pullback_p1_iso (i : 𝒰.J) :
+  pullback (p1 𝒰 f g) (𝒰.map i) ≅ pullback (𝒰.map i ≫ f) g :=
+begin
+  fsplit,
+  exact pullback.lift pullback.snd (pullback.fst ≫ p2 𝒰 f g)
+    (by rw [← pullback.condition_assoc, category.assoc, p_comm]),
+  refine pullback.lift ((gluing 𝒰 f g).ι i) pullback.fst
+    (by erw multicoequalizer.π_desc),
+  { apply pullback.hom_ext,
+    { simpa using lift_comp_ι 𝒰 f g i },
+    { simp } },
+  { apply pullback.hom_ext,
+    { simp },
+    { simp, erw multicoequalizer.π_desc } },
+end
+
+@[simp, reassoc] lemma pullback_p1_iso_hom_fst (i : 𝒰.J) :
+  (pullback_p1_iso 𝒰 f g i).hom ≫ pullback.fst = pullback.snd :=
+by { delta pullback_p1_iso, simp }
+
+@[simp, reassoc] lemma pullback_p1_iso_hom_snd (i : 𝒰.J) :
+  (pullback_p1_iso 𝒰 f g i).hom ≫ pullback.snd = pullback.fst ≫ p2 𝒰 f g :=
+by { delta pullback_p1_iso, simp }
+
+@[simp, reassoc] lemma pullback_p1_iso_inv_fst (i : 𝒰.J) :
+  (pullback_p1_iso 𝒰 f g i).inv ≫ pullback.fst = (gluing 𝒰 f g).ι i :=
+by { delta pullback_p1_iso, simp }
+
+@[simp, reassoc] lemma pullback_p1_iso_inv_snd (i : 𝒰.J) :
+  (pullback_p1_iso 𝒰 f g i).inv ≫ pullback.snd = pullback.fst :=
+by { delta pullback_p1_iso, simp }
+
+@[simp, reassoc]
+lemma pullback_p1_iso_hom_ι (i : 𝒰.J) :
+  (pullback_p1_iso 𝒰 f g i).hom ≫ (gluing 𝒰 f g).ι i = pullback.fst :=
+by rw [← pullback_p1_iso_inv_fst, iso.hom_inv_id_assoc]
+
+/-- The glued scheme (`(gluing 𝒰 f g).glued`) is indeed the pullback of `f` and `g`. -/
+def glued_is_limit : is_limit (pullback_cone.mk _ _ (p_comm 𝒰 f g)) :=
+begin
+  apply pullback_cone.is_limit_aux',
+  intro s,
+  refine ⟨glued_lift 𝒰 f g s, glued_lift_p1 𝒰 f g s, glued_lift_p2 𝒰 f g s, _⟩,
+  intros m h₁ h₂,
+  change m ≫ p1 𝒰 f g = _ at h₁,
+  change m ≫ p2 𝒰 f g = _ at h₂,
+  apply (𝒰.pullback_cover s.fst).hom_ext,
+  intro i,
+  rw open_cover.pullback_cover_map,
+  have := pullback_right_pullback_fst_iso (p1 𝒰 f g) (𝒰.map i) m
+    ≪≫ pullback.congr_hom h₁ rfl,
+  erw (𝒰.pullback_cover s.fst).ι_glue_morphisms,
+  rw [← cancel_epi (pullback_right_pullback_fst_iso (p1 𝒰 f g) (𝒰.map i) m
+    ≪≫ pullback.congr_hom h₁ rfl).hom, iso.trans_hom, category.assoc, pullback.congr_hom_hom,
+    pullback.lift_fst_assoc, category.comp_id, pullback_right_pullback_fst_iso_hom_fst_assoc,
+    pullback.condition],
+  transitivity pullback.snd ≫ (pullback_p1_iso 𝒰 f g _).hom ≫ (gluing 𝒰 f g).ι _,
+  { congr' 1, rw ← pullback_p1_iso_hom_ι },
+  simp_rw ← category.assoc,
+  congr' 1,
+  apply pullback.hom_ext,
+  { simp only [category.comp_id, pullback_right_pullback_fst_iso_hom_snd, category.assoc,
+      pullback_p1_iso_hom_fst, pullback.lift_snd, pullback.lift_fst,
+      pullback_symmetry_hom_comp_fst] },
+  { simp only [category.comp_id, pullback_right_pullback_fst_iso_hom_fst_assoc,
+    pullback_p1_iso_hom_snd, category.assoc, pullback.lift_fst_assoc,
+    pullback_symmetry_hom_comp_snd_assoc, pullback.lift_snd],
+    rw [← pullback.condition_assoc, h₂] }
+end
+
+lemma has_pullback_of_cover : has_pullback f g := ⟨⟨⟨_, glued_is_limit 𝒰 f g⟩⟩⟩
+
+instance : has_limits CommRingᵒᵖ := has_limits_op_of_has_colimits
+
+instance affine_has_pullback {A B C : CommRing}
+  (f : Spec.obj (opposite.op A) ⟶ Spec.obj (opposite.op C))
+  (g : Spec.obj (opposite.op B) ⟶ Spec.obj (opposite.op C)) : has_pullback f g :=
+begin
+  rw [← Spec.image_preimage f, ← Spec.image_preimage g],
+  exact ⟨⟨⟨_,is_limit_of_has_pullback_of_preserves_limit
+    Spec (Spec.preimage f) (Spec.preimage g)⟩⟩⟩
+end
+
+lemma affine_affine_has_pullback {B C : CommRing} {X : Scheme}
+  (f : X ⟶ Spec.obj (opposite.op C))
+  (g : Spec.obj (opposite.op B) ⟶ Spec.obj (opposite.op C)) : has_pullback f g :=
+has_pullback_of_cover X.affine_cover f g
+
+instance base_affine_has_pullback {C : CommRing} {X Y : Scheme}
+  (f : X ⟶ Spec.obj (opposite.op C))
+  (g : Y ⟶ Spec.obj (opposite.op C)) : has_pullback f g :=
+@@has_pullback_symmetry _ _ _
+  (@@has_pullback_of_cover Y.affine_cover g f
+    (λ i, @@has_pullback_symmetry _ _ _ $ affine_affine_has_pullback _ _))
+
+instance left_affine_comp_pullback_has_pullback {X Y Z : Scheme}
+  (f : X ⟶ Z) (g : Y ⟶ Z) (i : Z.affine_cover.J) :
+    has_pullback ((Z.affine_cover.pullback_cover f).map i ≫ f) g :=
+begin
+  let Xᵢ := pullback f (Z.affine_cover.map i),
+  let Yᵢ := pullback g (Z.affine_cover.map i),
+  let W := pullback (pullback.snd : Yᵢ ⟶ _) (pullback.snd : Xᵢ ⟶ _),
+  have := big_square_is_pullback (pullback.fst : W ⟶ _) (pullback.fst : Yᵢ ⟶ _)
+    (pullback.snd : Xᵢ ⟶ _) (Z.affine_cover.map i) pullback.snd pullback.snd g
+    pullback.condition.symm pullback.condition.symm
+      (pullback_cone.flip_is_limit $ pullback_is_pullback _ _)
+      (pullback_cone.flip_is_limit $ pullback_is_pullback _ _),
+  have : has_pullback (pullback.snd ≫ Z.affine_cover.map i : Xᵢ ⟶ _) g :=
+    ⟨⟨⟨_,this⟩⟩⟩,
+  rw ← pullback.condition at this,
+  exact this,
+end
+
+instance {X Y Z : Scheme} (f : X ⟶ Z) (g : Y ⟶ Z) : has_pullback f g :=
+has_pullback_of_cover (Z.affine_cover.pullback_cover f) f g
+
+instance : has_pullbacks Scheme := has_pullbacks_of_has_limit_cospan _
+
 end pullback
 
 end algebraic_geometry.Scheme

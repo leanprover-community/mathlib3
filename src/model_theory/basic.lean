@@ -1081,6 +1081,8 @@ section quotients
 
 variables (L) {M' : Type*}
 
+/-- A prestructure is a first-order structure with a `setoid` equivalence relation on it,
+  such that quotienting by that equivalence relation is still a structure. -/
 class prestructure (s : setoid M') :=
 (to_structure : L.Structure M')
 (fun_equiv : ∀{n} {f : L.functions n} (x y : fin n → M'),

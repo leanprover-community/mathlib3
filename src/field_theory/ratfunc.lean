@@ -37,13 +37,21 @@ Working with rational functions as fractions:
 Embedding of rational functions into Laurent series, provided as a coercion, utilizing
 the underlying `ratfunc.coe_alg_hom`.
 
-Lifting injective homomorphisms of polynomials to other types, by mapping and dividing:
-  - `ratfunc.lift_monoid_with_zero_hom` lifts an injective `polynomial K →*₀ G₀` to
+Lifting homomorphisms of polynomials to other types, by mapping and dividing, as long
+as the homomorphism retains the non-zero-divisor property:
+  - `ratfunc.lift_monoid_with_zero_hom` lifts a `polynomial K →*₀ G₀` to
       a `ratfunc K →*₀ G₀`, where `[comm_ring K] [comm_group_with_zero G₀]`
-  - `ratfunc.lift_ring_hom` lifts an injective `polynomial K →+* L` to a `ratfunc K →+* L`,
+  - `ratfunc.lift_ring_hom` lifts a `polynomial K →+* L` to a `ratfunc K →+* L`,
       where `[comm_ring K] [field L]`
-  - `ratfunc.lift_alg_hom` lifts an injective `polynomial K →ₐ[S] L` to a `ratfunc K →ₐ[S] L`,
+  - `ratfunc.lift_alg_hom` lifts a `polynomial K →ₐ[S] L` to a `ratfunc K →ₐ[S] L`,
       where `[comm_ring K] [field L] [comm_semiring S] [algebra S (polynomial K)] [algebra S L]`
+This is satisfied by injective homs.
+We also have lifting homomorphisms of polynomials to other polynomials,
+with the same condition on retaining the non-zero-divisor property across the map:
+  - `ratfunc.map` lifts `polynomial K →* polynomial R` when `[comm_ring K] [comm_ring R]`
+  - `ratfunc.map_ring_hom` lifts `polynomial K →+* polynomial R` when `[comm_ring K] [comm_ring R]`
+  - `ratfunc.map_alg_hom` lifts `polynomial K →ₐ[S] polynomial R` when
+    `[comm_ring K] [is_domain K] [comm_ring R] [is_domain R]`
 
 We also have a set of recursion and induction principles:
  - `ratfunc.lift_on`: define a function by mapping a fraction of polynomials `p/q` to `f p q`,
@@ -63,6 +71,9 @@ namely `ratfunc.of_fraction_ring`, `ratfunc.to_fraction_ring`, `ratfunc.mk` and
 `ratfunc.to_fraction_ring_ring_equiv`.
 All these maps get `simp`ed to bundled morphisms like `algebra_map (polynomial K) (ratfunc K)`
 and `is_localization.alg_equiv`.
+
+There are separate lifts and maps of homomorphisms, to provide routes of lifting even when
+the codomain is not a field or even an integral domain.
 
 ## References
 

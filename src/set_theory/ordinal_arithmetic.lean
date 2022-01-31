@@ -2158,36 +2158,36 @@ end
 
 /-! ### Fixed points of addition -/
 
-theorem mul_omega_eq_nfp_add_zero (a) : a * omega = nfp ((+) a) 0 :=
+theorem nfp_add_zero (a) : nfp ((+) a) 0 = a * omega :=
 begin
   unfold nfp,
   rw mul_omega_eq_sup_mul_nat,
   congr, funext,
   induction n with n hn,
   { rw [nat.cast_zero, mul_zero, iterate_zero_apply] },
-  nth_rewrite 0 nat.succ_eq_one_add,
-  rw [nat.cast_add, nat.cast_one, mul_one_add, iterate_succ_apply', hn]
+  { nth_rewrite 1 nat.succ_eq_one_add,
+    rw [nat.cast_add, nat.cast_one, mul_one_add, iterate_succ_apply', hn] }
 end
 
-theorem mul_omega_eq_nfp_add_of_le_mul_omega {a b} (hba : b ≤ a * omega) :
-  a * omega = nfp ((+) a) b :=
+theorem nfp_add_eq_mul_omega {a b} (hba : b ≤ a * omega) :
+  nfp ((+) a) b = a * omega :=
 begin
-  refine le_antisymm _ ((add_is_normal a).nfp_le_fp hba _),
-  { rw mul_omega_eq_nfp_add_zero,
+  apply le_antisymm ((add_is_normal a).nfp_le_fp hba _),
+  { rw ←nfp_add_zero,
     exact monotone.nfp (add_is_normal a).strict_mono.monotone (ordinal.zero_le b) },
-  rw [←mul_one_add, one_add_omega]
+  { rw [←mul_one_add, one_add_omega] }
 end
 
 theorem add_eq_right_iff_mul_omega_le {a b : ordinal} : a + b = b ↔ a * omega ≤ b :=
 begin
   refine ⟨λ h, _, λ h, _⟩,
-  { rw [mul_omega_eq_nfp_add_zero a, ←deriv_zero],
+  { rw [←nfp_add_zero a, ←deriv_zero],
     cases (add_is_normal a).apply_eq_self_iff_deriv.1 h with c hc,
     rw ←hc,
     exact (deriv_is_normal _).strict_mono.monotone (ordinal.zero_le _) },
-  have := ordinal.add_sub_cancel_of_le h,
-  nth_rewrite 0 ←this,
-  rwa [←add_assoc, ←mul_one_add, one_add_omega]
+  { have := ordinal.add_sub_cancel_of_le h,
+    nth_rewrite 0 ←this,
+    rwa [←add_assoc, ←mul_one_add, one_add_omega] }
 end
 
 theorem add_le_right_iff_mul_omega_le {a b : ordinal} : a + b ≤ b ↔ a * omega ≤ b :=
@@ -2197,7 +2197,7 @@ theorem deriv_add_eq_mul_omega_add (a b : ordinal.{u}) : deriv ((+) a) b = a * o
 begin
   refine b.limit_rec_on _ (λ o h, _) (λ o ho h, _),
   { rw [deriv_zero, add_zero],
-    exact (mul_omega_eq_nfp_add_zero a).symm },
+    exact nfp_add_zero a },
   { rw [deriv_succ, h, add_succ],
     exact nfp_eq_self (add_eq_right_iff_mul_omega_le.2 ((le_add_right _ _).trans
       (lt_succ_self _).le)) },

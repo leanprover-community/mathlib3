@@ -130,6 +130,9 @@ by rw [←succ_zero, lt_succ, ordinal.le_zero]
 theorem add_lt_add_iff_left (a) {b c : ordinal} : a + b < a + c ↔ b < c :=
 by rw [← not_le, ← not_le, add_le_add_iff_left]
 
+instance : covariant_class ordinal.{u} ordinal.{u} (+) (<) :=
+⟨λ a b c, (add_lt_add_iff_left a).2⟩
+
 instance : contravariant_class ordinal.{u} ordinal.{u} (+) (<) :=
 ⟨λ a b c, (add_lt_add_iff_left a).1⟩
 

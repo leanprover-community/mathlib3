@@ -122,12 +122,8 @@ begin
   { repeat { rw fun_on_cons },
     refine (subgroup.mul_mem _ _ _),
     { apply (subgroup.mem_Sup_of_mem), { use i }, { simp, }, },
-    { have : (∀ j : I, j ∈ S → j ∈ finset.cons i S hnmem),
-      by { intro, simp, intro h, right, exact h},
-      have : (⨆ (i_1 : I) (H_1 : i_1 ∈ S), (ϕ i_1).range) ≤
-        (⨆ (i_1 : I) (H_1 : i_1 ∈ finset.cons i S hnmem), (ϕ i_1).range) :=
-        @bsupr_le_bsupr' _ _ _ (λ j, j ∈ S) (λ j, j ∈ finset.cons i S hnmem) this _,
-      exact (this ih), } }
+    { refine (@bsupr_le_bsupr' _ _ _ _ _ _ (λ i, (ϕ i).range) _ ih),
+      by { intro, simp, intro h, right, exact h}, } }
 end
 
 lemma to_fun_in_sup_range : to_fun ϕ f ∈ ⨆ (i : I), (ϕ i).range :=

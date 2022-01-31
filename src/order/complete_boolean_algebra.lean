@@ -19,6 +19,10 @@ distributive Boolean algebras.
 * `complete_boolean_algebra`: Completely distributive Boolean algebra: A Boolean algebra whose `⊓`
   and `⊔` distribute over `⨆` and `⨅` respectively.
 
+## TODO
+
+Add instances for `prod`
+
 ## References
 
 * [Wikipedia, *Complete Heyting algebra*][https://en.wikipedia.org/wiki/Complete_Heyting_algebra]
@@ -54,17 +58,19 @@ by simp only [supr_inf_eq]
 lemma inf_bsupr_eq {f : Π i, κ i → α} (a : α) : a ⊓ (⨆ i j, f i j) = ⨆ i j, a ⊓ f i j :=
 by simp only [inf_supr_eq]
 
-lemma Sup_inf_Sup : Sup s ⊓ Sup t = ⨆ p ∈ s ×ˢ t, (p : α × α).1 ⊓ p.2 :=
+lemma supr_inf_supr {ι ι' : Type*} {f : ι → α} {g : ι' → α} :
+  (⨆ i, f i) ⊓ (⨆ j, g j) = ⨆ i : ι × ι', f i.1 ⊓ g i.2 :=
+by simp only [inf_supr_eq, supr_inf_eq, supr_prod]
+
+lemma bsupr_inf_bsupr {ι ι' : Type*} {f : ι → α} {g : ι' → α} {s : set ι} {t : set ι'} :
+  (⨆ i ∈ s, f i) ⊓ (⨆ j ∈ t, g j) = ⨆ p ∈ s ×ˢ t, f (p : ι × ι').1 ⊓ g p.2 :=
 begin
-  refine le_antisymm _ _,
-  { simp_rw [Sup_inf_eq, supr_le_iff, inf_Sup_eq],
-    rintro a ha,
-    have : (⨆ p ∈ prod.mk a '' t, (p : α × α).1 ⊓ p.2) ≤ ⨆ p ∈ s ×ˢ t, ((p : α × α).1 : α) ⊓ p.2,
-    { exact supr_le_supr_of_subset (set.image_prod_mk_subset_prod_right ha) },
-    rwa supr_image at this },
-  { simp_rw [supr_le_iff, set.mem_prod],
-    exact λ a ha, inf_le_inf (le_Sup ha.1) (le_Sup ha.2) }
+  simp only [supr_subtype', supr_inf_supr],
+  exact supr_congr (equiv.set.prod s t).symm (equiv.surjective _) (λ x, rfl)
 end
+
+lemma Sup_inf_Sup : Sup s ⊓ Sup t = ⨆ p ∈ s ×ˢ t, (p : α × α).1 ⊓ p.2 :=
+by simp only [Sup_eq_supr, bsupr_inf_bsupr]
 
 lemma supr_disjoint_iff {f : ι → α} : disjoint (⨆ i, f i) a ↔ ∀ i, disjoint (f i) a :=
 by simp only [disjoint_iff, supr_inf_eq, supr_eq_bot]

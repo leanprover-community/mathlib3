@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2022 Stuart Presnell. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Stuart Presnell
+Authors: Stuart Presnell
 -/
 import data.nat.prime
 import data.set.intervals.basic

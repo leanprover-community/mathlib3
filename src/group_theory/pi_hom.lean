@@ -31,55 +31,49 @@ end
 
 namespace pi_hom
 
-variables {I : Type*} [fintype I] {H : I → Type*} [∀ i, group (H i)] (ϕ : Π (i : I), H i →* G)
+-- We have an family of group
+variables {I : Type*} [fintype I] [decidable_eq I] {H : I → Type*} [∀ i, group (H i)]
 
+-- And morphism ϕ into G
+variables (ϕ : Π (i : I), H i →* G)
+
+-- We assume that the elements of different morphism commute
+-- Since we need this all over the place we wrap it up in `fact`
+variables [hcomm : fact (∀ (i j : I), i ≠ j → ∀ (x : H i) (y : H j), commute (ϕ i x) (ϕ j y)) ]
+include hcomm
+
+-- Elements of `Π (i : I), H i` are called `f` and `g` here
 variables (f g : Π (i : I), H i)
 
--- A bit like `finset.noncomm_prodi`, but without the dependent Prop arg that makes things tricky
+/-- A wrapper around `finset.noncomm_prod` that discharges the commutativiy requirement using
+`hcomm` -/
+def fun_on (S : finset I) : G := finset.noncomm_prod S (λ i, ϕ i (f i)) $
+  by { rintros i - j -, by_cases (i = j), { subst h }, { exact hcomm.elim _ _ h _ _} }
 
-/-- TODO -/
-noncomputable
-def fun_on (S : finset I) : G := (list.map (λ i, ϕ i (f i)) S.to_list).prod
-
-/-- TODO -/
-noncomputable
+/-- The product of `ϕ i (f i)` for all `i : I` -/
 def to_fun : G := fun_on ϕ f finset.univ
 
 @[simp]
 lemma fun_on_empty : fun_on ϕ f ∅ = 1 := by simp [fun_on]
 
-variables [hcomm : fact (∀ (i j : I), i ≠ j → ∀ (x : H i) (y : H j), commute (ϕ i x) (ϕ j y)) ]
-include hcomm
+@[simp]
+lemma fun_on_insert_of_not_mem (S : finset I) (i : I) (h : i ∉ S) :
+  fun_on ϕ f (insert i S) = ϕ i (f i) * fun_on ϕ f S :=
+finset.noncomm_prod_insert_of_not_mem _ _ _ _ h
 
-lemma fun_on_perm {S : finset I} {l : list I} (h : S.to_list ~ l) :
-  fun_on ϕ f S = (list.map (λ i, ϕ i (f i)) l).prod :=
-begin
-  unfold fun_on,
-  have hnd : l.nodup := h.nodup_iff.mp (finset.nodup_to_list S),
-  induction h with x l₁ l₂ hl₁l₂ ih x y l₁ l₁ l₂ l₃ hl₁l₂ hl₂l₃ ih12 ih23,
-  { reflexivity },
-  { specialize ih (list.nodup_cons.mp hnd).2, simpa },
-  { simp only [list.map, list.prod_cons, ← mul_assoc],
-    congr' 1,
-    apply fact.elim hcomm,
-    simp only [list.nodup_cons, list.mem_cons_iff] at hnd,
-    cc, },
-  { specialize ih12 (hl₂l₃.nodup_iff.mpr hnd),
-    specialize ih23 hnd,
-    rw [ih12, ih23], }
-end
-
+/-
 @[simp]
 lemma fun_on_cons (S : finset I) (i : I) (h : i ∉ S) :
   fun_on ϕ f (finset.cons i S h) = ϕ i (f i) * fun_on ϕ f S :=
-by { rw fun_on_perm ϕ f (finset.to_list_cons h), simp [fun_on] }
+by { rw finset.cons_eq_insert i S h, exact (fun_on_insert_of_not_mem _ _ _ _ h) }
+-/
 
 @[simp]
 lemma fun_on_one (S : finset I) : fun_on ϕ 1 S = 1 :=
 begin
    induction S using finset.cons_induction_on with i S hnmem ih,
    { simp },
-   { simp [ih] }
+   { simp [ih, hnmem], }
 end
 
 @[simp]
@@ -88,11 +82,12 @@ lemma to_fun_one : to_fun ϕ 1 = 1 := fun_on_one _ _
 lemma fun_on_commutes (S : finset I) (i : I) (hnmem : i ∉ S) :
   ϕ i (g i) * fun_on ϕ f S = fun_on ϕ f S * ϕ i (g i) :=
 begin
-  induction S using finset.cons_induction_on with j S hnmem ih,
+  induction S using finset.induction_on with j S hnmem' ih,
   { simp, },
-  { repeat { rw fun_on_cons },
-    have hij : i ≠ j, by {simp at hnmem, cc},
-    have hiS : i ∉ S, by {simp at hnmem, cc},
+  { simp only [fun_on_insert_of_not_mem _ _ _ _ hnmem'],
+
+    have hij : i ≠ j, by {simp at hnmem, tauto},
+    have hiS : i ∉ S, by {simp at hnmem, tauto},
     calc ϕ i (g i) * (ϕ j (f j) * fun_on ϕ f S)
         = (ϕ i (g i) * ϕ j (f j)) * fun_on ϕ f S : by rw ← mul_assoc
     ... = (ϕ j (f j) * ϕ i (g i)) * fun_on ϕ f S : by {congr' 1, apply (fact.elim hcomm _ _ hij)}
@@ -104,9 +99,9 @@ end
 @[simp]
 lemma fun_on_mul (S : finset I) : fun_on ϕ (f * g) S = fun_on ϕ f S * fun_on ϕ g S :=
 begin
-  induction S using finset.cons_induction_on with i S hnmem ih,
+  induction S using finset.induction_on with i S hnmem ih,
   { simp, },
-  { repeat { rw [fun_on_cons] },
+  { simp only [ fun_on_insert_of_not_mem _ _ _ _ hnmem],
     rw ih, clear ih,
     simp only [pi.mul_apply, map_mul],
     repeat { rw mul_assoc }, congr' 1,
@@ -117,9 +112,9 @@ end
 lemma fun_on_in_sup_range (S : finset I) :
   fun_on ϕ f S ∈ ⨆ (i : I) (H_1 : i ∈ S), (ϕ i).range :=
 begin
-  induction S using finset.cons_induction_on with i S hnmem ih,
+  induction S using finset.induction_on with i S hnmem ih,
   { simp, },
-  { repeat { rw fun_on_cons },
+  { simp only [ fun_on_insert_of_not_mem _ _ _ _ hnmem],
     refine (subgroup.mul_mem _ _ _),
     { apply (subgroup.mem_Sup_of_mem), { use i }, { simp, }, },
     { refine (@bsupr_le_bsupr' _ _ _ _ _ _ (λ i, (ϕ i).range) _ ih),
@@ -132,7 +127,6 @@ bsupr_le_supr _ (λ i, (ϕ i).range) (fun_on_in_sup_range ϕ f finset.univ)
 @[simp]
 lemma to_fun_mul : to_fun ϕ (f * g) = to_fun ϕ f * to_fun ϕ g := fun_on_mul _ _ _ _
 
-noncomputable
 def hom : (Π (i : I), H i) →* G :=
 { to_fun := to_fun ϕ,
   map_one' := to_fun_one _,
@@ -156,9 +150,9 @@ include hcomm
 lemma fun_on_just_one [decidable_eq I] (i : I) (y : H i) (S : finset I) :
   fun_on ϕ (just_one i y) S = if i ∈ S then ϕ i y else 1 :=
 begin
-  induction S using finset.cons_induction_on with j S hnmem ih,
+  induction S using finset.induction_on with j S hnmem ih,
   { simp, },
-  { repeat { rw fun_on_cons },
+  { simp only [ fun_on_insert_of_not_mem _ _ _ _ hnmem],
     by_cases (i = j),
     { subst h,
       rw ih,
@@ -203,10 +197,10 @@ begin
   show fun_on ϕ f finset.univ = 1 → f = 1,
   suffices : fun_on ϕ f finset.univ = 1 → (∀ (i : I), i ∈ finset.univ → f i = 1),
   by exact (λ h, funext (λ (i : I), this h i (finset.mem_univ i))),
-  induction (finset.univ : finset I) using finset.cons_induction_on with i S hnmem ih,
+  induction (finset.univ : finset I) using finset.induction_on with i S hnmem ih,
   { simp },
   { intro heq1,
-    rw fun_on_cons at heq1,
+    simp only [ fun_on_insert_of_not_mem _ _ _ _ hnmem] at heq1,
     have hnmem' : i ∉ (S : set I), by simpa,
     have heq1' : ϕ i (f i) = 1 ∧ fun_on ϕ f S = 1,
     { apply mul_eq_one_of_disjoint (hind.disjoint_bsupr hnmem') _ _ heq1,
@@ -215,7 +209,7 @@ begin
     rcases heq1' with ⟨ heq1i, heq1S ⟩,
     specialize ih heq1S,
     intros i h,
-    simp only [finset.mem_cons] at h,
+    simp only [finset.mem_insert] at h,
     rcases h with ⟨rfl | _⟩,
     { apply hinj i, simpa, },
     { exact (ih _ h), } }

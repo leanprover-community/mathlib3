@@ -4,6 +4,25 @@ import ring_theory.witt_vector.domain
 import ring_theory.witt_vector.truncated
 import data.mv_polynomial.supported
 
+.
+
+/-!
+# "Eigenvectors" of the Frobenius map
+
+The goal of this file is to prove `witt_vector.exists_frobenius_solution_fraction_ring`,
+which says that for an algebraically closed field `k` of characteristic `p` and `a, b` in the
+field of fractions of Witt vectors over `k`,
+there is a solution `b` to the equation `φ b * a = p ^ m * b`, where `φ` is the Frobenius map.
+
+Most of this file builds up the equivalent theorem over `𝕎 k` directly,
+moving to the field of fractions at the end.
+See `witt_vector.frobenius_eigenvector` and its specification.
+
+The construction proceeds by recursively defining a sequence of coefficients as solutions to a
+polynomial equation in `k`. We must define these as generic polynomials using Witt vector API
+(`witt_vector.witt_mul`, `witt_polynomial`) to show that they satisfy the desired equation.
+-/
+
 noncomputable theory
 
 section move_elsewhere
@@ -64,30 +83,23 @@ end
 
 end move_elsewhere
 
-
+namespace witt_vector
 
 variables (p : ℕ) [hp : fact p.prime]
-variables (k : Type*) [field k]
+variables {k : Type*} [field k]
 include hp
-
-
 local notation `𝕎` := witt_vector p
-local notation `K` := fraction_ring (𝕎 k)
-
-lemma witt_vector.frobenius_bijective (R : Type*) [comm_ring R] [char_p R p] [perfect_ring R p] :
-  function.bijective (@witt_vector.frobenius p R _ _) :=
-begin
-  rw witt_vector.frobenius_eq_map_frobenius,
-  exact ⟨witt_vector.map_injective _ (frobenius_equiv R p).injective,
-    witt_vector.map_surjective _ (frobenius_equiv R p).surjective⟩,
-end
-
-variable {k}
 
 section recursive_case_poly
 
--- this section is the attempt to define a `polynomial k` with positive degree.
--- the solution to this poly will be the `n+1`st entry of our desired Witt vector.
+/-!
+
+## The recursive case of the vector coefficients
+
+The first coefficient of our solution vector is easy to define below.
+In this section we focus on the recursive case.
+
+-/
 
 open witt_vector finset
 open_locale big_operators
@@ -99,7 +111,7 @@ open mv_polynomial
 omit hp
 
 /--
-(∑ i : fin n, (y.coeff i)^(p^(n-i)) * p^i.val) * (∑ i : fin n, (y.coeff i)^(p^(n-i)) * p^i.val)
+(∑ i in range n, (y.coeff i)^(p^(n-i)) * p^i.val)*(∑ i in range n, (y.coeff i)^(p^(n-i)) * p^i.val)
 -/
 def witt_poly_prod (n : ℕ) : mv_polynomial (fin 2 × ℕ) ℤ :=
 rename (prod.mk (0 : fin 2)) (witt_polynomial p ℤ n) *
@@ -116,7 +128,6 @@ begin
   { apply subset.trans (vars_rename _ _),
     simp [witt_polynomial_vars,image_subset_iff] }
 end
-
 
 lemma sum_ident_1 (n : ℕ) :
   (∑ i in range (n+1), p^i * (witt_mul p i)^(p^(n-i)) : mv_polynomial (fin 2 × ℕ) ℤ) =
@@ -170,7 +181,12 @@ begin
 end
 
 omit hp
--- this is the remainder from sum_ident_3
+
+/--
+`diff p n` represents the remainder term from `sum_ident_3`.
+`witt_poly_prod p (n+1)` will have variables up to `n+1`,
+but `diff` will only have variables up to `n`.
+-/
 def diff (n : ℕ) : mv_polynomial (fin 2 × ℕ) ℤ :=
 (∑ (x : ℕ) in
      range (n + 1),
@@ -178,8 +194,6 @@ def diff (n : ℕ) : mv_polynomial (fin 2 × ℕ) ℤ :=
   ∑ (x : ℕ) in
     range (n + 1),
     (rename (prod.mk 1)) ((monomial (finsupp.single x (p ^ (n + 1 - x)))) (↑p ^ x))
-
-
 
 lemma sum_ident_3 (n : ℕ) :
   witt_poly_prod p (n+1) =
@@ -211,7 +225,6 @@ begin
   ring,
 end
 
-
 include hp
 
 lemma diff_vars (n : ℕ) : (diff p n).vars ⊆ univ.product (range (n+1)) :=
@@ -239,7 +252,6 @@ begin
   rw [← add_sub_assoc, eq_sub_iff_add_eq, sum_ident_2],
   exact sum_ident_3 _ _
 end
-
 
 /-- this is the guy from above -/
 def poly_of_interest (n : ℕ) : mv_polynomial (fin 2 × ℕ) ℤ :=
@@ -284,7 +296,6 @@ end
 lemma poly_of_interest_vars (n : ℕ) : (poly_of_interest p n).vars ⊆ univ.product (range (n+1)) :=
 by rw ← poly_of_interest_vars_eq; apply prod_vars_subset
 
-
 lemma peval_poly_of_interest (n : ℕ) (x y : 𝕎 k) :
   peval (poly_of_interest p n) ![λ i, x.coeff i, λ i, y.coeff i] =
   (x * y).coeff (n + 1) + p^(n+1) * x.coeff (n+1) * y.coeff (n+1)
@@ -307,7 +318,6 @@ begin
   refl }
 end
 
-
 /- characteristic `p` version -/
 lemma peval_poly_of_interest' [char_p k p] (n : ℕ) (x y : 𝕎 k) :
   peval (poly_of_interest p n) ![λ i, x.coeff i, λ i, y.coeff i] =
@@ -316,7 +326,7 @@ lemma peval_poly_of_interest' [char_p k p] (n : ℕ) (x y : 𝕎 k) :
 begin
   rw peval_poly_of_interest,
   have : (p : k) = 0 := char_p.cast_eq_zero (k) p,
-  simp [this],
+  simp only [this, add_zero, zero_mul, nat.succ_ne_zero, ne.def, not_false_iff, zero_pow'],
   congr; -- same proof both times, factor it out
   { rw finset.sum_eq_single_of_mem 0,
     { simp },
@@ -350,7 +360,7 @@ lemma nth_mul_coeff' (n : ℕ) :
   = (x * y).coeff (n+1) - y.coeff (n+1) * x.coeff 0 ^ (p^(n+1))
     - x.coeff (n+1) * y.coeff 0 ^ (p^(n+1)) :=
 begin
-  simp [← peval_poly_of_interest'],
+  simp only [←peval_poly_of_interest'],
   obtain ⟨f₀, hf₀⟩ := restrict_to_vars k (poly_of_interest_vars p n),
   let f : truncated_witt_vector p (n+1) k → truncated_witt_vector p (n+1) k → k,
   { intros x y,
@@ -365,7 +375,7 @@ begin
   intros x y,
   dsimp [peval],
   rw ← hf₀,
-  simp [f],
+  simp only [f, function.uncurry_apply_pair],
   congr,
   ext a,
   cases a with a ha,
@@ -373,9 +383,8 @@ begin
   simp only [true_and, multiset.mem_cons, range_coe, product_val, multiset.mem_range,
     multiset.mem_product, multiset.range_succ, mem_univ_val] at ha,
   have ha' : m < n + 1 := by cases ha with ha ha; linarith only [ha],
-  fin_cases i, -- surely this case split is not necessary
-  { simpa using coeff_truncate_fun x ⟨m, ha'⟩ },
-  { simpa using coeff_truncate_fun x ⟨m, ha'⟩ }
+  fin_cases i;  -- surely this case split is not necessary
+  { simpa only using x.coeff_truncate_fun ⟨m, ha'⟩ }
 end
 
 end
@@ -503,41 +512,47 @@ end
 
 end base_case
 
+section frobenius_eigenvector
+
 variables [is_alg_closed k] [char_p k p]
 
-noncomputable def find_important {a₁ a₂ : 𝕎 k} (ha₁ : a₁.coeff 0 ≠ 0) (ha₂ : a₂.coeff 0 ≠ 0) : ℕ → k
-| 0       := solution p a₁ a₂ -- solve for `x` in
-                   --  `(witt_vector.witt_mul 0).eval (![x ^ p, 0, ...], a₁)`
-                   --        `= (witt_vector.witt_mul 0).eval (![x, 0, ...], a₂)`
-| (n + 1) := succ_nth_val p n a₁ a₂ (λ i, find_important i.val) ha₁ ha₂
+/--
+recursively defines the sequence of coefficients for `witt_vector.frobenius_eigenvector`.
+-/
+noncomputable def frobenius_eigenvector_coeff {a₁ a₂ : 𝕎 k}
+  (ha₁ : a₁.coeff 0 ≠ 0) (ha₂ : a₂.coeff 0 ≠ 0) : ℕ → k
+| 0       := solution p a₁ a₂
+| (n + 1) := succ_nth_val p n a₁ a₂ (λ i, frobenius_eigenvector_coeff i.val) ha₁ ha₂
 using_well_founded { dec_tac := `[apply fin.is_lt] }
 
--- solve for `x` in
-                   --  `(witt_vector.witt_mul (n + 1)).eval (![(b 0) ^ p, ..., (b n) ^ p, x ^ p, 0, ...], a₁)`
-                   --        `= (witt_vector.witt_mul (n + 1)) (![b 0, ... b n, x, 0, ...], a₂)`
+/--
+For nonzero `a₁` and `a₂`, `frobenius_eigenvector a₁ a₂` is a Witt vector that satisfies the
+equation `frobenius (frobenius_eigenvector a₁ a₂) * a₁ = (frobenius_eigenvector a₁ a₂) * a₂`.
+-/
+def frobenius_eigenvector {a₁ a₂ : 𝕎 k} (ha₁ : a₁.coeff 0 ≠ 0) (ha₂ : a₂.coeff 0 ≠ 0) : 𝕎 k :=
+witt_vector.mk p (frobenius_eigenvector_coeff p ha₁ ha₂)
 
-
-lemma find_important_nonzero {a₁ a₂ : 𝕎 k} (ha₁ : a₁.coeff 0 ≠ 0) (ha₂ : a₂.coeff 0 ≠ 0) :
-  witt_vector.mk p (find_important p ha₁ ha₂) ≠ 0 :=
+lemma frobenius_eigenvector_nonzero {a₁ a₂ : 𝕎 k} (ha₁ : a₁.coeff 0 ≠ 0) (ha₂ : a₂.coeff 0 ≠ 0) :
+  frobenius_eigenvector p ha₁ ha₂ ≠ 0 :=
 begin
   intro h,
   apply solution_nonzero p ha₁ ha₂,
-  simpa [← h, find_important] using witt_vector.zero_coeff p k 0
+  simpa [← h, frobenius_eigenvector, frobenius_eigenvector_coeff] using witt_vector.zero_coeff p k 0
 end
 
-variable (k)
-
-lemma important_aux {a₁ a₂ : 𝕎 k} (ha₁ : a₁.coeff 0 ≠ 0) (ha₂ : a₂.coeff 0 ≠ 0) :
-  ∃ (b : 𝕎 k) (hb : b ≠ 0), witt_vector.frobenius b * a₁ = b * a₂ :=
+lemma frobenius_frobenius_eigenvector {a₁ a₂ : 𝕎 k} (ha₁ : a₁.coeff 0 ≠ 0) (ha₂ : a₂.coeff 0 ≠ 0) :
+  frobenius (frobenius_eigenvector p ha₁ ha₂) * a₁ = (frobenius_eigenvector p ha₁ ha₂) * a₂ :=
 begin
-  refine ⟨witt_vector.mk p (find_important p ha₁ ha₂), find_important_nonzero p ha₁ ha₂, _⟩,
   ext n,
   induction n with n ih,
-  { simp only [witt_vector.mul_coeff_zero, witt_vector.coeff_frobenius_char_p, find_important],
+  { simp only [witt_vector.mul_coeff_zero, witt_vector.coeff_frobenius_char_p,
+      frobenius_eigenvector, frobenius_eigenvector_coeff],
     apply solution_spec' _ ha₁ },
-  { simp only [nth_remainder_spec, witt_vector.coeff_frobenius_char_p, find_important, fin.val_eq_coe],
-    have := succ_nth_val_spec' p (n) a₁ a₂ (λ (i : fin (n + 1)), find_important p ha₁ ha₂ i.val) ha₁ ha₂,
-    simp only [find_important, fin.val_eq_coe, fin.val_zero] at this,
+  { simp only [nth_remainder_spec, witt_vector.coeff_frobenius_char_p, frobenius_eigenvector_coeff,
+      frobenius_eigenvector, fin.val_eq_coe],
+    have := succ_nth_val_spec' p n a₁ a₂
+      (λ (i : fin (n + 1)), frobenius_eigenvector_coeff p ha₁ ha₂ i.val) ha₁ ha₂,
+    simp only [frobenius_eigenvector_coeff, fin.val_eq_coe, fin.val_zero] at this,
     convert this using 4,
     apply truncated_witt_vector.ext,
     intro i,
@@ -556,6 +571,16 @@ end
 lemma p_nonzero' (k : Type*) [comm_ring k] [char_p k p] [nontrivial k] :
   (p : fraction_ring (𝕎 k)) ≠ 0 :=
 by simpa using (is_fraction_ring.injective (𝕎 k) (fraction_ring (𝕎 k))).ne (p_nonzero p k)
+
+local notation `K` := fraction_ring (𝕎 k)
+
+lemma frobenius_bijective (R : Type*) [comm_ring R] [char_p R p] [perfect_ring R p] :
+  function.bijective (@witt_vector.frobenius p R _ _) :=
+begin
+  rw witt_vector.frobenius_eq_map_frobenius,
+  exact ⟨witt_vector.map_injective _ (frobenius_equiv R p).injective,
+    witt_vector.map_surjective _ (frobenius_equiv R p).surjective⟩,
+end
 
 /-- This is basically the same as `𝕎 k` being a DVR. -/
 lemma split (a : 𝕎 k) (ha : a ≠ 0) :
@@ -577,11 +602,10 @@ begin
     rw [mul_comm, ← witt_vector.verschiebung_frobenius x] },
 end
 
-
 local notation `φ` := is_fraction_ring.field_equiv_of_ring_equiv
   (ring_equiv.of_bijective _ (witt_vector.frobenius_bijective p k))
 
-lemma important {a : fraction_ring (𝕎 k)} (ha : a ≠ 0) :
+lemma exists_frobenius_solution_fraction_ring {a : fraction_ring (𝕎 k)} (ha : a ≠ 0) :
   ∃ (b : fraction_ring (𝕎 k)) (hb : b ≠ 0) (m : ℤ), φ b * a = p ^ m * b :=
 begin
   revert ha,
@@ -589,14 +613,15 @@ begin
   rintros ⟨r, q, hq⟩ hrq,
   rw mem_non_zero_divisors_iff_ne_zero at hq,
   have : r ≠ 0 := λ h, hrq (by simp [h]),
-  obtain ⟨m, r', hr', rfl⟩ := split p k r this,
-  obtain ⟨n, q', hq', rfl⟩ := split p k q hq,
-  obtain ⟨b, hb, hbrq⟩ := important_aux p k hr' hq',
+  obtain ⟨m, r', hr', rfl⟩ := split p r this,
+  obtain ⟨n, q', hq', rfl⟩ := split p q hq,
+  let b := frobenius_eigenvector p hr' hq',
   refine ⟨algebra_map (𝕎 k) _ b, _, m - n, _⟩,
   { simpa only [map_zero] using
-      (is_fraction_ring.injective (witt_vector p k) (fraction_ring (witt_vector p k))).ne hb},
+      (is_fraction_ring.injective (witt_vector p k) (fraction_ring (witt_vector p k))).ne
+        (frobenius_eigenvector_nonzero p hr' hq')},
   have key : witt_vector.frobenius b * p ^ m * r' * p ^ n = p ^ m * b * (p ^ n * q'),
-  { have H := congr_arg (λ x : 𝕎 k, x * p ^ m * p ^ n) hbrq,
+  { have H := congr_arg (λ x : 𝕎 k, x * p ^ m * p ^ n) (frobenius_frobenius_eigenvector p hr' hq'),
     dsimp at H,
     refine (eq.trans _ H).trans _; ring },
   have hq'' : algebra_map (𝕎 k) (fraction_ring (𝕎 k)) q' ≠ 0,
@@ -612,3 +637,7 @@ begin
     ring },
   { simp only [ring_hom.map_mul, ring_hom.map_pow, map_nat_cast] }
 end
+
+end frobenius_eigenvector
+
+end witt_vector

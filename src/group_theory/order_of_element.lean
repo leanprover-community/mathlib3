@@ -295,22 +295,15 @@ lemma mem_powers_iff_mem_range_order_of' [decidable_eq G] (hx : 0 < order_of x) 
   y ∈ submonoid.powers x ↔ y ∈ (finset.range (order_of x)).image ((^) x : ℕ → G) :=
 finset.mem_range_iff_mem_finset_range_of_mod_eq' hx (λ i, pow_eq_mod_order_of.symm)
 
+lemma pow_eq_one_iff_modeq : x ^ n = 1 ↔ n ≡ 0 [MOD (order_of x)] :=
+by rw [modeq_zero_iff_dvd, order_of_dvd_iff_pow_eq_one]
+
 lemma pow_eq_pow_iff_modeq : x ^ n = x ^ m ↔ n ≡ m [MOD (order_of x)] :=
 begin
-  wlog hxy : n ≤ m,
-  obtain ⟨k, rfl⟩ := nat.exists_eq_add_of_le hxy,
-  refine ⟨λ h, _, λ h, _⟩,
-  { rw [←mul_one $ x ^ n, pow_add] at h,
-    replace h := mul_left_cancel h,
-    change n + 0 ≡ n + k [MOD order_of x],
-    apply nat.modeq.add_left,
-    rw [nat.modeq.comm, nat.modeq_zero_iff_dvd],
-    exact order_of_dvd_of_pow_eq_one h.symm },
-  { rw [←add_zero n] at h {occs := occurrences.pos [1]},
-    replace h := nat.modeq.add_left_cancel' n h,
-    rw [nat.modeq.comm, nat.modeq_zero_iff_dvd] at h,
-    obtain ⟨k, rfl⟩ := h,
-    rw [pow_add, pow_mul, pow_order_of_eq_one, one_pow, mul_one] }
+  wlog hmn : m ≤ n,
+  obtain ⟨k, rfl⟩ := nat.exists_eq_add_of_le hmn,
+  rw [← mul_one (x ^ m), pow_add, mul_left_cancel_iff, pow_eq_one_iff_modeq],
+  exact ⟨λ h, nat.modeq.add_left _ h, λ h, nat.modeq.add_left_cancel' _ h⟩,
 end
 
 end cancel_monoid

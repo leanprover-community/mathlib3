@@ -1810,6 +1810,23 @@ begin
   { exact tendsto_const_nhds, },
 end
 
+lemma ae_measurable_of_unif_approx {μ : measure α} {g : α → β}
+  (hf : ∀ ε > (0 : ℝ), ∃ (f : α → β), ae_measurable f μ ∧ ∀ᵐ x ∂μ, dist (f x) (g x) ≤ ε) :
+  ae_measurable g μ :=
+begin
+  obtain ⟨u, u_anti, u_pos, u_lim⟩ :
+    ∃ (u : ℕ → ℝ), strict_anti u ∧ (∀ (n : ℕ), 0 < u n) ∧ tendsto u at_top (𝓝 0) :=
+      exists_seq_strict_anti_tendsto (0 : ℝ),
+  choose f Hf using λ (n : ℕ), hf (u n) (u_pos n),
+  have : ∀ᵐ x ∂μ, tendsto (λ n, f n x) at_top (𝓝 (g x)),
+  { have : ∀ᵐ x ∂ μ, ∀ n, dist (f n x) (g x) ≤ u n := ae_all_iff.2 (λ n, (Hf n).2),
+    filter_upwards [this],
+    assume x hx,
+    rw tendsto_iff_dist_tendsto_zero,
+    exact squeeze_zero (λ n, dist_nonneg) hx u_lim },
+  exact ae_measurable_of_tendsto_metric_ae (λ n, (Hf n).1) this,
+end
+
 lemma measurable_of_tendsto_metric_ae {μ : measure α} [μ.is_complete] {f : ℕ → α → β} {g : α → β}
   (hf : ∀ n, measurable (f n))
   (h_ae_tendsto : ∀ᵐ x ∂μ, filter.at_top.tendsto (λ n, f n x) (𝓝 (g x))) :

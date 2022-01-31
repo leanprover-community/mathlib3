@@ -576,19 +576,6 @@ instance nilpotent_quotient_of_nilpotent (H : subgroup G) [H.normal] [h : is_nil
 lemma nilpotency_class_quotient_le (H : subgroup G) [H.normal] [h : is_nilpotent G] :
   group.nilpotency_class (G ⧸ H) ≤ group.nilpotency_class G := nilpotency_class_le_of_surjective _ _
 
-lemma comap_comap_center {H₁ : subgroup G} [H₁.normal] {H₂ : subgroup (G ⧸ H₁)} [H₂.normal] :
-  comap (mk' H₁) (comap (mk' H₂) (center ((G ⧸ H₁) ⧸ H₂))) =
-    comap (mk' (comap (mk' H₁) H₂)) (center (G ⧸ comap (mk' H₁) H₂)) :=
-begin
-  ext x,
-  simp only [mk'_apply, mem_comap, mem_center_iff, forall_coe],
-  apply forall_congr,
-  change ∀ (y : G), (↑↑(y * x) = ↑↑(x * y) ↔ ↑(y * x) = ↑(x * y)),
-  intro y,
-  repeat { rw [eq_iff_div_mem] },
-  simp,
-end
-
 -- This lemma helps with rewriting the subgroup, which occurs in indices
 lemma comap_center_subst {H₁ H₂ : subgroup G} [normal H₁] [normal H₂] (h : H₁ = H₂) :
   comap (mk' H₁) (center (G ⧸ H₁)) = comap (mk' H₂) (center (G ⧸ H₂)) :=

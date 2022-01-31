@@ -543,16 +543,17 @@ lemma coe_map_ring_hom_eq_coe_map [ring_hom_class F (polynomial K) (polynomial R
   (hφ : (polynomial K)⁰ ≤ (polynomial R)⁰.comap φ) :
   (map_ring_hom φ hφ : ratfunc K → ratfunc R) = map φ hφ := rfl
 
--- TODO: Generalize to `fun_like` classes, weaken `function.injective` hypotheses
-/-- Lift an injective monoid with zero homomorphism `polynomial K →*₀ G₀` to a `ratfunc K →*₀ G₀`
+-- TODO: Generalize to `fun_like` classes,
+/-- Lift an monoid with zero homomorphism `polynomial K →*₀ G₀` to a `ratfunc K →*₀ G₀`
+on the condition that `φ` maps non zero divisors to non zero divisors,
 by mapping both the numerator and denominator and quotienting them. --/
-def lift_monoid_with_zero_hom (φ : polynomial K →*₀ G₀) (hφ : function.injective φ) :
+def lift_monoid_with_zero_hom (φ : polynomial K →*₀ G₀) (hφ : (polynomial K)⁰ ≤ G₀⁰.comap φ) :
   ratfunc K →*₀ G₀ :=
 { to_fun := λ f, ratfunc.lift_on f (λ p q, φ p / (φ q)) $ λ p q p' q' hq hq' h, begin
     casesI subsingleton_or_nontrivial K,
     { rw [subsingleton.elim p q, subsingleton.elim p' q, subsingleton.elim q' q] },
-    rw [div_eq_div_iff (φ.map_ne_zero_of_mem_non_zero_divisors hφ hq)
-        (φ.map_ne_zero_of_mem_non_zero_divisors hφ hq'), ←map_mul, h, map_mul]
+    rw [div_eq_div_iff, ←map_mul, h, map_mul];
+    exact non_zero_divisors.ne_zero (hφ ‹_›),
   end,
   map_one' := by { rw [←of_fraction_ring_one, ←localization.mk_one, lift_on_of_fraction_ring_mk],
                    simp only [map_one, submonoid.coe_one, div_one] },
@@ -566,17 +567,16 @@ def lift_monoid_with_zero_hom (φ : polynomial K →*₀ G₀) (hφ : function.i
                     simp only [map_zero, zero_div] } }
 
 lemma lift_monoid_with_zero_hom_apply_of_fraction_ring_mk (φ : polynomial K →*₀ G₀)
-  (hφ : function.injective φ) (n : polynomial K) (d : (polynomial K)⁰) :
+  (hφ : (polynomial K)⁰ ≤ G₀⁰.comap φ) (n : polynomial K) (d : (polynomial K)⁰) :
   lift_monoid_with_zero_hom φ hφ (of_fraction_ring (localization.mk n d)) = φ n / φ d :=
 lift_on_of_fraction_ring_mk _ _ _ _
 
-lemma lift_monoid_with_zero_hom_injective (φ : polynomial K →*₀ G₀)
-  (hφ : function.injective φ) : function.injective (lift_monoid_with_zero_hom φ hφ) :=
+lemma lift_monoid_with_zero_hom_injective [nontrivial K] (φ : polynomial K →*₀ G₀)
+  (hφ : function.injective φ)
+  (hφ' : (polynomial K)⁰ ≤ G₀⁰.comap φ := λ _ hx, φ.map_mem_non_zero_divisors hφ hx) :
+  function.injective (lift_monoid_with_zero_hom φ hφ') :=
 begin
-  intros x y,
-  casesI subsingleton_or_nontrivial K,
-  { simp only [implies_true_iff, eq_iff_true_of_subsingleton] },
-  cases x, cases y, induction x, induction y,
+  rintro ⟨x⟩ ⟨y⟩, induction x, induction y,
   { simp_rw [lift_monoid_with_zero_hom_apply_of_fraction_ring_mk, localization.mk_eq_mk_iff],
     intro h,
     refine localization.r_of_eq _,
@@ -588,7 +588,7 @@ end
 
 /-- Lift an injective ring homomorphism `polynomial K →+* L` to a `ratfunc K →+* L`
 by mapping both the numerator and denominator and quotienting them. --/
-def lift_ring_hom (φ : polynomial K →+* L) (hφ : function.injective φ) : ratfunc K →+* L :=
+def lift_ring_hom (φ : polynomial K →+* L) (hφ : (polynomial K)⁰ ≤ L⁰.comap φ) : ratfunc K →+* L :=
 { map_add' := λ x y, by { simp only [monoid_with_zero_hom.to_fun_eq_coe],
     casesI subsingleton_or_nontrivial K,
     { rw [subsingleton.elim (x + y) y, subsingleton.elim x 0, map_zero, zero_add] },
@@ -601,19 +601,20 @@ def lift_ring_hom (φ : polynomial K →+* L) (hφ : function.injective φ) : ra
         simp only [map_add, map_mul, submonoid.coe_mul] },
       all_goals {
         try { simp only [←map_mul, ←submonoid.coe_mul] },
-        exact ring_hom.map_ne_zero_of_mem_non_zero_divisors _ hφ (set_like.coe_mem _) } },
+        exact non_zero_divisors.ne_zero (hφ (set_like.coe_mem _)) } },
     { refl },
     { refl } },
   ..lift_monoid_with_zero_hom φ.to_monoid_with_zero_hom hφ }
 
-lemma lift_ring_hom_apply_of_fraction_ring_mk (φ : polynomial K →+* L) (hφ : function.injective φ)
-  (n : polynomial K) (d : (polynomial K)⁰) :
+lemma lift_ring_hom_apply_of_fraction_ring_mk (φ : polynomial K →+* L)
+  (hφ : (polynomial K)⁰ ≤ L⁰.comap φ) (n : polynomial K) (d : (polynomial K)⁰) :
   lift_ring_hom φ hφ (of_fraction_ring (localization.mk n d)) = φ n / φ d :=
 lift_monoid_with_zero_hom_apply_of_fraction_ring_mk _ _ _ _
 
-lemma lift_ring_hom_injective (φ : polynomial K →+* L) (hφ : function.injective φ) :
-  function.injective (lift_ring_hom φ hφ) :=
-lift_monoid_with_zero_hom_injective _ _
+lemma lift_ring_hom_injective [nontrivial K] (φ : polynomial K →+* L) (hφ : function.injective φ)
+  (hφ' : (polynomial K)⁰ ≤ L⁰.comap φ := λ _ hx, φ.map_mem_non_zero_divisors hφ hx) :
+  function.injective (lift_ring_hom φ hφ') :=
+lift_monoid_with_zero_hom_injective _ hφ
 
 end lift_hom
 
@@ -701,7 +702,8 @@ begin
 end
 
 @[simp] lemma lift_monoid_with_zero_hom_apply_div {L : Type*} [comm_group_with_zero L]
-  (φ : monoid_with_zero_hom (polynomial K) L) (hφ : function.injective φ) (p q : polynomial K) :
+  (φ : monoid_with_zero_hom (polynomial K) L)
+  (hφ : (polynomial K)⁰ ≤ L⁰.comap φ) (p q : polynomial K) :
   lift_monoid_with_zero_hom φ hφ (algebra_map _ _ p / algebra_map _ _ q) = φ p / φ q :=
 begin
   rcases eq_or_ne q 0 with rfl|hq,
@@ -711,7 +713,7 @@ begin
 end
 
 @[simp] lemma lift_ring_hom_apply_div {L : Type*} [field L]
-  (φ : polynomial K →+* L) (hφ : function.injective φ) (p q : polynomial K) :
+  (φ : polynomial K →+* L) (hφ : (polynomial K)⁰ ≤ L⁰.comap φ) (p q : polynomial K) :
   lift_ring_hom φ hφ (algebra_map _ _ p / algebra_map _ _ q) = φ p / φ q :=
 lift_monoid_with_zero_hom_apply_div _ _ _ _
 
@@ -741,7 +743,7 @@ section lift_alg_hom
 
 variables {L R S : Type*} [field L] [comm_ring R] [is_domain R] [comm_semiring S]
   [algebra S (polynomial K)] [algebra S L] [algebra S (polynomial R)]
-  (φ : polynomial K →ₐ[S] L) (hφ : function.injective φ)
+  (φ : polynomial K →ₐ[S] L) (hφ : (polynomial K)⁰ ≤ L⁰.comap φ)
 
 /-- Lift an algebra homomorphism that maps polynomials `φ : polynomial K →ₐ[S] polynomial R`
 to a `ratfunc K →ₐ[S] ratfunc R`,
@@ -769,8 +771,11 @@ lemma lift_alg_hom_apply_of_fraction_ring_mk (n : polynomial K) (d : (polynomial
   lift_alg_hom φ hφ (of_fraction_ring (localization.mk n d)) = φ n / φ d :=
 lift_monoid_with_zero_hom_apply_of_fraction_ring_mk _ _ _ _
 
-lemma lift_alg_hom_injective : function.injective (lift_alg_hom φ hφ) :=
-lift_monoid_with_zero_hom_injective _ _
+lemma lift_alg_hom_injective (φ : polynomial K →ₐ[S] L) (hφ : function.injective φ)
+  (hφ' : (polynomial K)⁰ ≤ L⁰.comap φ := λ _ hx,
+    ring_hom.map_mem_non_zero_divisors φ.to_ring_hom hφ hx) :
+  function.injective (lift_alg_hom φ hφ') :=
+lift_monoid_with_zero_hom_injective _ hφ
 
 @[simp] lemma lift_alg_hom_apply_div (p q : polynomial K) :
   lift_alg_hom φ hφ (algebra_map _ _ p / algebra_map _ _ q) = φ p / φ q :=
@@ -1079,18 +1084,27 @@ lemma map_denom_ne_zero {L F : Type*} [has_zero L] [zero_hom_class F (polynomial
   (φ : F) (hφ : function.injective φ) (f : ratfunc K) : φ f.denom ≠ 0 :=
 λ H, (denom_ne_zero f) ((map_eq_zero_iff φ hφ).mp H)
 
+lemma map_apply {R F : Type*} [comm_ring R] [is_domain R]
+  [monoid_hom_class F (polynomial K) (polynomial R)]
+  (φ : F) (hφ : (polynomial K)⁰ ≤ (polynomial R)⁰.comap φ) (f : ratfunc K) :
+  map φ hφ f = algebra_map _ _ (φ f.num) / algebra_map _ _ (φ f.denom) :=
+begin
+  rw [←num_div_denom f, map_apply_div_ne_zero, num_div_denom f],
+  exact denom_ne_zero _
+end
+
 lemma lift_monoid_with_zero_hom_apply {L : Type*} [comm_group_with_zero L]
-  (φ : polynomial K →*₀ L) (hφ : function.injective φ) (f : ratfunc K) :
+  (φ : polynomial K →*₀ L) (hφ : (polynomial K)⁰ ≤ L⁰.comap φ) (f : ratfunc K) :
   lift_monoid_with_zero_hom φ hφ f = φ f.num / φ f.denom :=
 by rw [←num_div_denom f, lift_monoid_with_zero_hom_apply_div, num_div_denom]
 
 lemma lift_ring_hom_apply {L : Type*} [field L]
-  (φ : polynomial K →+* L) (hφ : function.injective φ) (f : ratfunc K) :
+  (φ : polynomial K →+* L) (hφ : (polynomial K)⁰ ≤ L⁰.comap φ)  (f : ratfunc K) :
   lift_ring_hom φ hφ f = φ f.num / φ f.denom :=
 lift_monoid_with_zero_hom_apply _ _ _
 
 lemma lift_alg_hom_apply {L S : Type*} [field L] [comm_semiring S] [algebra S (polynomial K)]
-  [algebra S L] (φ : polynomial K →ₐ[S] L) (hφ : function.injective φ) (f : ratfunc K) :
+  [algebra S L] (φ : polynomial K →ₐ[S] L) (hφ : (polynomial K)⁰ ≤ L⁰.comap φ) (f : ratfunc K) :
   lift_alg_hom φ hφ f = φ f.num / φ f.denom :=
 lift_monoid_with_zero_hom_apply _ _ _
 
@@ -1223,7 +1237,8 @@ variables {F : Type u} [field F] (p q : polynomial F) (f g : ratfunc F)
 
 /-- The coercion `ratfunc F → laurent_series F` as bundled alg hom. -/
 def coe_alg_hom (F : Type u) [field F] : ratfunc F →ₐ[polynomial F] laurent_series F :=
-lift_alg_hom (algebra.of_id _ _) (polynomial.algebra_map_hahn_series_injective _)
+lift_alg_hom (algebra.of_id _ _) (λ _ hx,
+  ring_hom.map_mem_non_zero_divisors _ (polynomial.algebra_map_hahn_series_injective _) hx)
 
 instance coe_to_laurent_series : has_coe (ratfunc F) (laurent_series F) :=
 ⟨coe_alg_hom F⟩
@@ -1234,7 +1249,7 @@ lemma coe_num_denom : (f : laurent_series F) = f.num / f.denom :=
 lift_alg_hom_apply _ _ f
 
 lemma coe_injective : function.injective (coe : ratfunc F → laurent_series F) :=
-lift_alg_hom_injective _ _
+lift_alg_hom_injective _ (polynomial.algebra_map_hahn_series_injective _)
 
 @[simp, norm_cast] lemma coe_apply : coe_alg_hom F f = f := rfl
 

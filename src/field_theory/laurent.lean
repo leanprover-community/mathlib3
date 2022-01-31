@@ -27,13 +27,12 @@ universe u
 namespace ratfunc
 noncomputable theory
 open polynomial
-open_locale classical
+open_locale classical non_zero_divisors
 
 variables {R : Type u} [comm_ring R] [hdomain : is_domain R]
   (r s : R) (p q : polynomial R) (f : ratfunc R)
 
-lemma taylor_non_zero_divisors (hp : p ∈ non_zero_divisors (polynomial R)) :
-  taylor r p ∈ non_zero_divisors (polynomial R) :=
+lemma taylor_mem_non_zero_divisors (hp : p ∈ (polynomial R)⁰) : taylor r p ∈ (polynomial R)⁰ :=
 begin
   rw mem_non_zero_divisors_iff,
   intros x hx,
@@ -47,48 +46,23 @@ begin
 end
 
 /-- The Laurent expansion of rational functions about a value.
-Auxiliary definition, usage should prefer `ratfunc.laurent`. -/
-def laurent_aux : ratfunc R → ratfunc R :=
-λ f, ratfunc.lift_on f
-  (λ p q, if hq : q ∈ non_zero_divisors (polynomial R) then
-    of_fraction_ring (localization.mk (taylor r p)
-      ⟨(taylor r q), taylor_non_zero_divisors _ _ hq⟩) else 0)
-  begin
-    intros p q p' q' hq hq' h,
-    simp only [hq, hq', dif_pos, localization.mk_eq_mk', is_localization.mk'_eq_iff_eq,
-               subtype.coe_mk, h, ←taylor_mul]
-  end
+Auxiliary definition, usage when over integral domains should prefer `ratfunc.laurent`. -/
+def laurent_aux : ratfunc R →+* ratfunc R :=
+ratfunc.map_ring_hom (ring_hom.mk (taylor r) (taylor_one _) (taylor_mul _)
+  (linear_map.map_zero _) (linear_map.map_add _)) (taylor_mem_non_zero_divisors _)
 
-lemma laurent_aux_of_fraction_ring_mk (q : non_zero_divisors (polynomial R)) :
+lemma laurent_aux_of_fraction_ring_mk (q : (polynomial R)⁰) :
   laurent_aux r (of_fraction_ring (localization.mk p q)) =
     of_fraction_ring (localization.mk (taylor r p)
-      ⟨taylor r q, taylor_non_zero_divisors r q q.prop⟩) :=
-begin
-  dsimp [laurent_aux],
-  rw [lift_on_of_fraction_ring_mk, dif_pos]
-end
+      ⟨taylor r q, taylor_mem_non_zero_divisors r q q.prop⟩) :=
+map_apply_of_fraction_ring_mk _ _ _ _
 
 include hdomain
 
 lemma laurent_aux_div :
   laurent_aux r (algebra_map _ _ p / (algebra_map _ _ q)) =
     algebra_map _ _ (taylor r p) / (algebra_map _ _ (taylor r q)) :=
-begin
-  dsimp [laurent_aux],
-  rw [lift_on_div],
-  { split_ifs with hq hq,
-    { rw [localization.mk_eq_mk', ←mk_coe_def, mk_eq_div, subtype.coe_mk] },
-    { rw [mem_non_zero_divisors_iff_ne_zero, not_not] at hq,
-      simp only [hq, div_zero, _root_.map_zero] } },
-  { simp only [div_zero, if_t_t, dite_eq_ite, is_localization.alg_equiv_apply, _root_.map_zero,
-               is_localization.ring_equiv_of_ring_equiv_apply, set_like.coe_mk, forall_const,
-               ring_equiv.to_fun_eq_coe, zero_div, of_fraction_ring_eq, fraction_ring.mk_eq_div] },
-  { intros p q p' q' hq hq' h,
-    rw ←mem_non_zero_divisors_iff_ne_zero at hq hq',
-    rw [dif_pos hq, dif_pos hq', of_fraction_ring_injective.eq_iff, localization.mk_eq_mk_iff],
-    refine localization.r_of_eq _,
-    simp only [subtype.coe_mk, ←taylor_mul, h] }
-end
+map_apply_div _ _ _ _
 
 @[simp] lemma laurent_aux_algebra_map :
   laurent_aux r (algebra_map _ _ p) = algebra_map _ _ (taylor r p) :=
@@ -96,36 +70,9 @@ by rw [←mk_one, ←mk_one, mk_eq_div, laurent_aux_div, mk_eq_div, taylor_one, 
 
 /-- The Laurent expansion of rational functions about a value. -/
 def laurent : ratfunc R →ₐ[R] ratfunc R :=
-{ to_fun := laurent_aux r,
-  map_add' := begin
-    intros x y,
-    induction x using ratfunc.induction_on with xn xd hx,
-    induction y using ratfunc.induction_on with yn yd hy,
-    rw [laurent_aux_div, laurent_aux_div, div_add_div, ←_root_.map_mul, ←_root_.map_mul,
-        ←_root_.map_mul, ←_root_.map_add, laurent_aux_div, taylor_mul, _root_.map_mul,
-        _root_.map_add, _root_.map_add, _root_.add_div, taylor_mul, _root_.map_mul,
-        mul_div_mul_right, taylor_mul, _root_.map_mul, mul_div_mul_left],
-    { simpa [linear_map.map_eq_zero_iff _ (taylor_injective r)] using hx },
-    { simpa [linear_map.map_eq_zero_iff _ (taylor_injective r)] using hy },
-    { simpa using hx },
-    { simpa using hx }
-  end,
-  map_mul' := begin
-    intros f g,
-    induction f using ratfunc.induction_on,
-    induction g using ratfunc.induction_on,
-    simp only [div_mul_div, ←_root_.map_mul, laurent_aux_div, taylor_mul]
-  end,
-  map_one' := begin
-    have : algebra_map (polynomial R) (ratfunc R) 1 = 1 := _root_.map_one _,
-    rw [←this, laurent_aux_algebra_map, taylor_one, _root_.map_one]
-  end,
-  map_zero' := begin
-    have : algebra_map (polynomial R) (ratfunc R) 0 = 0 := _root_.map_zero _,
-    rw [←this, laurent_aux_algebra_map, linear_map.map_zero, _root_.map_zero]
-  end,
-  commutes' := λ _, by rw [algebra_map_eq_C, ←algebra_map_C,
-                           laurent_aux_algebra_map, taylor_C] }
+ratfunc.map_alg_hom (alg_hom.mk (taylor r) (taylor_one _) (taylor_mul _)
+  (linear_map.map_zero _) (linear_map.map_add _) (by simp [polynomial.algebra_map_apply]))
+  (taylor_mem_non_zero_divisors _)
 
 lemma laurent_div :
   laurent r (algebra_map _ _ p / (algebra_map _ _ q)) =

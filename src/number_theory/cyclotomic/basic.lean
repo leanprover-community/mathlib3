@@ -325,7 +325,7 @@ lemma splitting_field_X_pow_sub_one : is_splitting_field K L (X ^ (n : ℕ) - 1)
       n.pos _), is_root.def, eval_sub, eval_pow, eval_C, eval_X, sub_eq_zero]
   end }
 
-instance [ne_zero (n : K)] : is_galois K L :=
+lemma [ne_zero (n : K)] : is_galois K L :=
 begin
   letI := splitting_field_X_pow_sub_one n K L,
   exact is_galois.of_separable_splitting_field (X_pow_sub_one_separable_iff.2

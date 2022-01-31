@@ -486,6 +486,10 @@ dist_lt_add_of_nonempty_closed_ball_inter_ball $
 @[simp] lemma Union_closed_ball_nat (x : α) : (⋃ n : ℕ, closed_ball x n) = univ :=
 Union_eq_univ_iff.2 $ λ y, exists_nat_ge (dist y x)
 
+lemma Union_inter_closed_ball_nat (s : set α) (x : α) :
+  (⋃ (n : ℕ), s ∩ closed_ball x n) = s :=
+by rw [← inter_Union, Union_closed_ball_nat, inter_univ]
+
 theorem ball_subset (h : dist x y ≤ ε₂ - ε₁) : ball x ε₁ ⊆ ball y ε₂ :=
 λ z zx, by rw ← add_sub_cancel'_right ε₁ ε₂; exact
 lt_of_le_of_lt (dist_triangle z x y) (add_lt_add_of_lt_of_le zx h)

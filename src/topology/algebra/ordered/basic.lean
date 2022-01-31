@@ -209,6 +209,16 @@ lemma is_closed.is_closed_le [topological_space β] {f g : β → α} {s : set �
   is_closed {x ∈ s | f x ≤ g x} :=
 (hf.prod hg).preimage_closed_of_closed hs order_closed_topology.is_closed_le'
 
+lemma is_closed.epigraph [topological_space β] {f : β → α} {s : set β}
+  (hs : is_closed s) (hf : continuous_on f s) :
+  is_closed {p : β × α | p.1 ∈ s ∧ f p.1 ≤ p.2} :=
+(hs.preimage continuous_fst).is_closed_le (hf.comp continuous_on_fst subset.rfl) continuous_on_snd
+
+lemma is_closed.hypograph [topological_space β] {f : β → α} {s : set β}
+  (hs : is_closed s) (hf : continuous_on f s) :
+  is_closed {p : β × α | p.1 ∈ s ∧ p.2 ≤ f p.1} :=
+(hs.preimage continuous_fst).is_closed_le continuous_on_snd (hf.comp continuous_on_fst subset.rfl)
+
 omit t
 
 lemma nhds_within_Ici_ne_bot {a b : α} (H₂ : a ≤ b) :
@@ -2201,19 +2211,21 @@ lemma closure_Iio' {a : α} (h : (Iio a).nonempty) :
 closure_Iio' nonempty_Iio
 
 /-- The closure of the open interval `(a, b)` is the closed interval `[a, b]`. -/
-@[simp] lemma closure_Ioo {a b : α} (hab : a < b) :
+@[simp] lemma closure_Ioo {a b : α} (hab : a ≠ b) :
   closure (Ioo a b) = Icc a b :=
 begin
   apply subset.antisymm,
   { exact closure_minimal Ioo_subset_Icc_self is_closed_Icc },
-  { rw [← diff_subset_closure_iff, Icc_diff_Ioo_same hab.le],
-    have hab' : (Ioo a b).nonempty, from nonempty_Ioo.2 hab,
-    simp only [insert_subset, singleton_subset_iff],
-    exact ⟨(is_glb_Ioo hab).mem_closure hab', (is_lub_Ioo hab).mem_closure hab'⟩ }
+  { cases hab.lt_or_lt with hab hab,
+    { rw [← diff_subset_closure_iff, Icc_diff_Ioo_same hab.le],
+      have hab' : (Ioo a b).nonempty, from nonempty_Ioo.2 hab,
+      simp only [insert_subset, singleton_subset_iff],
+      exact ⟨(is_glb_Ioo hab).mem_closure hab', (is_lub_Ioo hab).mem_closure hab'⟩ },
+    { rw Icc_eq_empty_of_lt hab, exact empty_subset _ } }
 end
 
 /-- The closure of the interval `(a, b]` is the closed interval `[a, b]`. -/
-@[simp] lemma closure_Ioc {a b : α} (hab : a < b) :
+@[simp] lemma closure_Ioc {a b : α} (hab : a ≠ b) :
   closure (Ioc a b) = Icc a b :=
 begin
   apply subset.antisymm,
@@ -2223,7 +2235,7 @@ begin
 end
 
 /-- The closure of the interval `[a, b)` is the closed interval `[a, b]`. -/
-@[simp] lemma closure_Ico {a b : α} (hab : a < b) :
+@[simp] lemma closure_Ico {a b : α} (hab : a ≠ b) :
   closure (Ico a b) = Icc a b :=
 begin
   apply subset.antisymm,
@@ -2283,13 +2295,13 @@ frontier_Iio' nonempty_Iio
 by simp [frontier, le_of_lt h, Icc_diff_Ioo_same]
 
 @[simp] lemma frontier_Ioo {a b : α} (h : a < b) : frontier (Ioo a b) = {a, b} :=
-by simp [frontier, h, le_of_lt h, Icc_diff_Ioo_same]
+by rw [frontier, closure_Ioo h.ne, interior_Ioo, Icc_diff_Ioo_same h.le]
 
 @[simp] lemma frontier_Ico [no_min_order α] {a b : α} (h : a < b) : frontier (Ico a b) = {a, b} :=
-by simp [frontier, h, le_of_lt h, Icc_diff_Ioo_same]
+by rw [frontier, closure_Ico h.ne, interior_Ico, Icc_diff_Ioo_same h.le]
 
 @[simp] lemma frontier_Ioc [no_max_order α] {a b : α} (h : a < b) : frontier (Ioc a b) = {a, b} :=
-by simp [frontier, h, le_of_lt h, Icc_diff_Ioo_same]
+by rw [frontier, closure_Ioc h.ne, interior_Ioc, Icc_diff_Ioo_same h.le]
 
 lemma nhds_within_Ioi_ne_bot' {a b : α} (H₁ : (Ioi a).nonempty) (H₂ : a ≤ b) :
   ne_bot (𝓝[Ioi a] b) :=

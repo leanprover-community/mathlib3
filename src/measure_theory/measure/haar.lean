@@ -519,9 +519,10 @@ begin
 end
 
 @[to_additive]
-lemma is_mul_left_invariant_haar_measure (K₀ : positive_compacts G) :
+instance is_mul_left_invariant_haar_measure (K₀ : positive_compacts G) :
   is_mul_left_invariant (haar_measure K₀) :=
 begin
+  rw [← forall_measure_preimage_mul_iff],
   intros g A hA,
   rw [haar_measure_apply hA, haar_measure_apply (measurable_const_mul g hA)],
   congr' 1,
@@ -562,8 +563,7 @@ sets and positive mass to nonempty open sets. -/
 instance is_haar_measure_haar_measure (K₀ : positive_compacts G) :
   is_haar_measure (haar_measure K₀) :=
 begin
-  apply is_haar_measure_of_is_compact_nonempty_interior _ (is_mul_left_invariant_haar_measure K₀)
-    K₀.1 K₀.2.1 K₀.2.2,
+  apply is_haar_measure_of_is_compact_nonempty_interior (haar_measure K₀) K₀.1 K₀.2.1 K₀.2.2,
   { simp only [haar_measure_self], exact one_ne_zero },
   { simp only [haar_measure_self], exact ennreal.coe_ne_top },
 end
@@ -576,28 +576,25 @@ haar_measure $ classical.choice (topological_space.nonempty_positive_compacts G)
 
 section unique
 
-variables [second_countable_topology G] {μ : measure G} [sigma_finite μ]
+variables [second_countable_topology G]
 
 /-- The Haar measure is unique up to scaling. More precisely: every σ-finite left invariant measure
   is a scalar multiple of the Haar measure. -/
 @[to_additive]
-theorem haar_measure_unique (hμ : is_mul_left_invariant μ)
+theorem haar_measure_unique (μ : measure G) [sigma_finite μ] [is_mul_left_invariant μ]
   (K₀ : positive_compacts G) : μ = μ K₀.1 • haar_measure K₀ :=
 begin
   ext1 s hs,
-  have := measure_mul_measure_eq hμ (is_mul_left_invariant_haar_measure K₀) K₀.2.1 hs,
+  have := measure_mul_measure_eq μ (haar_measure K₀) K₀.2.1 hs,
   rw [haar_measure_self, one_mul] at this,
   rw [← this (by norm_num), smul_apply],
 end
 
 @[to_additive]
-theorem regular_of_is_mul_left_invariant (hμ : is_mul_left_invariant μ) {K} (hK : is_compact K)
-  (h2K : (interior K).nonempty) (hμK : μ K ≠ ∞) :
+theorem regular_of_is_mul_left_invariant {μ : measure G} [sigma_finite μ] [is_mul_left_invariant μ]
+  {K : set G} (hK : is_compact K) (h2K : (interior K).nonempty) (hμK : μ K ≠ ∞) :
   regular μ :=
-begin
-  rw [haar_measure_unique hμ ⟨K, hK, h2K⟩],
-  exact regular.smul hμK
-end
+by { rw [haar_measure_unique μ ⟨K, hK, h2K⟩], exact regular.smul hμK }
 
 end unique
 
@@ -616,10 +613,10 @@ begin
   { simp only [div_eq_mul_inv, νpos.ne', (is_compact.measure_lt_top K.property.left).ne, or_self,
       ennreal.inv_eq_top, with_top.mul_eq_top_iff, ne.def, not_false_iff, and_false, false_and] },
   { calc
-    μ = μ K.1 • haar_measure K : haar_measure_unique (is_mul_left_invariant_haar μ) K
+    μ = μ K.1 • haar_measure K : haar_measure_unique μ K
     ... = (μ K.1 / ν K.1) • (ν K.1 • haar_measure K) :
       by rw [smul_smul, div_eq_mul_inv, mul_assoc, ennreal.inv_mul_cancel νpos.ne' νlt.ne, mul_one]
-    ... = (μ K.1 / ν K.1) • ν : by rw ← haar_measure_unique (is_mul_left_invariant_haar ν) K }
+    ... = (μ K.1 / ν K.1) • ν : by rw ← haar_measure_unique ν K }
 end
 
 @[priority 90, to_additive] -- see Note [lower instance priority]]

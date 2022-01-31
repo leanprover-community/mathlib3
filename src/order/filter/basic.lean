@@ -538,7 +538,8 @@ begin
   refine ⟨I, If, λ i, if hi : i ∈ I then V ⟨i, hi⟩ else univ, λ i, _, λ i hi, _, _⟩,
   { split_ifs, exacts [hV _, univ_mem] },
   { exact dif_neg hi },
-  { simp [Inter_dite, bInter_eq_Inter] }
+  { simp only [Inter_dite, bInter_eq_Inter, dif_pos (subtype.coe_prop _), subtype.coe_eta,
+      Inter_univ, inter_univ, eq_self_iff_true, true_and] }
 end
 
 lemma exists_Inter_of_mem_infi {ι : Type*} {α : Type*} {f : ι → filter α} {s}
@@ -839,14 +840,14 @@ lemma is_compl_principal (s : set α) : is_compl (𝓟 s) (𝓟 sᶜ) :=
 ⟨by simp only [inf_principal, inter_compl_self, principal_empty, le_refl],
   by simp only [sup_principal, union_compl_self, principal_univ, le_refl]⟩
 
+theorem mem_inf_principal' {f : filter α} {s t : set α} :
+  s ∈ f ⊓ 𝓟 t ↔ tᶜ ∪ s ∈ f :=
+by simp only [← le_principal_iff, (is_compl_principal s).le_left_iff, disjoint_assoc, inf_principal,
+  ← (is_compl_principal (t ∩ sᶜ)).le_right_iff, compl_inter, compl_compl]
+
 theorem mem_inf_principal {f : filter α} {s t : set α} :
   s ∈ f ⊓ 𝓟 t ↔ {x | x ∈ t → x ∈ s} ∈ f :=
-begin
-  simp only [← le_principal_iff, (is_compl_principal s).le_left_iff, disjoint, inf_assoc,
-    inf_principal, imp_iff_not_or],
-  rw [← disjoint, ← (is_compl_principal (t ∩ sᶜ)).le_right_iff, compl_inter, compl_compl],
-  refl
-end
+by { simp only [mem_inf_principal', imp_iff_not_or], refl }
 
 lemma supr_inf_principal (f : ι → filter α) (s : set α) :
   (⨆ i, f i ⊓ 𝓟 s) = (⨆ i, f i) ⊓ 𝓟 s :=

@@ -111,8 +111,6 @@ end initial
 
 section coproduct
 
-universe u
-
 -- by showing that the coproducts of schemes in the category of locally ringed spaces is a scheme
 -- (presumably using `LocallyRingedSpace.is_open_immersion.Scheme`),
 -- or by showing that gluing with empty intersection is the coproduct.

@@ -577,17 +577,12 @@ lemma nilpotency_class_quotient_le (H : subgroup G) [H.normal] [h : is_nilpotent
 lemma derived_le_lower_central (n : ℕ) : derived_series G n ≤ lower_central_series G n :=
 by { induction n with i ih, { simp }, { apply general_commutator_mono ih, simp } }
 
-lemma _root_.comm_group.center_eq_top {G : Type*} [comm_group G] : center G = ⊤ := begin
-  ext x,
-  suffices : x ∈ center G, by simpa,
-  exact λ y, mul_comm y x
-end
+lemma _root_.comm_group.center_eq_top {G : Type*} [comm_group G] : center G = ⊤ :=
+by { rw [eq_top_iff'], intros x y, exact mul_comm y x }
 
 /-- A group is commutative if the center is the whole group -/
 def _root_.group.comm_group_of_center_eq_top (h : center G = ⊤) : comm_group G :=
-{ mul_comm :=
-    let h' : ∀ x, x ∈ center G := by simp [h] in
-    λ x y, h' y x, .. (_ : group G),
+{ mul_comm := by { rw eq_top_iff' at h, intros x y, exact h y x },
   .. (_ : group G) }
 
 /-- Abelian groups are nilpotent -/

@@ -7,7 +7,6 @@ Authors: Kevin Buzzard, Ines Wright, Joachim Breitner
 import group_theory.general_commutator
 import group_theory.quotient_group
 import group_theory.solvable
-import group_theory.sylow
 
 /-!
 
@@ -694,20 +693,6 @@ begin
 end
 
 section normalizer_condition
-
-/-- Every proper subgroup `H` of `G` is a proper normal subgroup of the normalizer of `H` in `G`. -/
-def normalizer_condition (G : Type*) [group G] :=
-  ∀ (H : subgroup G), H < ⊤ → H < normalizer H
-
-/-- Alternative phrasing of the normalizer condition: Only the full group is self-normalizing.
-This may be easier to work with, as it avoids inequalities or negations.  -/
-lemma normalizer_condition_iff_only_full_group_self_normalizing :
-  normalizer_condition G ↔ ∀ (H : subgroup G), H.normalizer = H → H = ⊤ :=
-begin
-  apply forall_congr, intro H,
-  simp [normalizer_condition, lt_top_iff_ne_top, lt_iff_le_and_ne, le_normalizer],
-  tauto!,
-end
 
 lemma normalizer_condition_of_is_nilpotent [h : is_nilpotent G] : normalizer_condition G :=
 begin

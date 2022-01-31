@@ -338,8 +338,7 @@ begin
     convert (@cast_pos ℚ _ _ p).mpr (prime.pos (prime_of_mem_factors (list.mem_to_finset.mp hp))) },
 
   rw totient_Euler_product_formula n,
-  unfold finsupp.prod,
-  simp only [nat.cast_prod, nat.support_factorization, nat.cast_mul, finset.prod_congr, h1],
+  simp only [finsupp.prod, cast_prod, support_factorization, cast_mul, prod_congr, h1],
   rw rat.coe_nat_div _ _ (prod_prime_factors_dvd n),
   nth_rewrite_lhs 0 mul_comm,
   nth_rewrite_rhs 0 mul_comm,

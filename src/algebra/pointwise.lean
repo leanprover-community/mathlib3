@@ -880,9 +880,27 @@ by { simp only [← image2_mul, image_image2, image2_image_left, image2_image_ri
 lemma preimage_mul_preimage_subset {s t : set β} : m ⁻¹' s * m ⁻¹' t ⊆ m ⁻¹' (s * t) :=
 by { rintros _ ⟨_, _, _, _, rfl⟩, exact ⟨_, _, ‹_›, ‹_›, (m.map_mul _ _).symm ⟩ }
 
+instance set_semiring.no_zero_divisors : no_zero_divisors (set_semiring α) :=
+⟨λ a b ab, a.eq_empty_or_nonempty.imp_right $ λ ha, b.eq_empty_or_nonempty.resolve_right $
+  λ hb, nonempty.ne_empty ⟨_, mul_mem_mul ha.some_mem hb.some_mem⟩ ab⟩
+
+/- Since addition on `set_semiring` is commutative (it is set union), there is no need
+to also have the instance `covariant_class (set_semiring α) (set_semiring α) (swap (+)) (≤)`. -/
+instance set_semiring.covariant_class_add :
+  covariant_class (set_semiring α) (set_semiring α) (+) (≤) :=
+{ elim := λ a b c, union_subset_union_right _ }
+
+instance set_semiring.covariant_class_mul_left :
+  covariant_class (set_semiring α) (set_semiring α) (*) (≤) :=
+{ elim := λ a b c, mul_subset_mul_left }
+
+instance set_semiring.covariant_class_mul_right :
+  covariant_class (set_semiring α) (set_semiring α) (swap (*)) (≤) :=
+{ elim := λ a b c, mul_subset_mul_right }
+
 end mul_hom
 
-/-- The image of a set under function is a ring homomorphism
+/-- The image of a set under a multiplicative homomorphism is a ring homomorphism
 with respect to the pointwise operations on sets. -/
 def image_hom [monoid α] [monoid β] (f : α →* β) : set_semiring α →+* set_semiring β :=
 { to_fun := image f,
@@ -892,6 +910,21 @@ def image_hom [monoid α] [monoid β] (f : α →* β) : set_semiring α →+* s
   map_mul' := λ _ _, image_mul f.to_mul_hom }
 
 end monoid
+
+section comm_monoid
+
+variable [comm_monoid α]
+
+instance : canonically_ordered_comm_semiring (set_semiring α) :=
+{ add_le_add_left := λ a b, add_le_add_left,
+  le_iff_exists_add := λ a b, ⟨λ ab, ⟨b, (union_eq_right_iff_subset.2 ab).symm⟩,
+    by { rintro ⟨c, rfl⟩, exact subset_union_left _ _ }⟩,
+  ..(infer_instance : comm_semiring (set_semiring α)),
+  ..(infer_instance : partial_order (set_semiring α)),
+  ..(infer_instance : order_bot (set_semiring α)),
+  ..(infer_instance : no_zero_divisors (set_semiring α)) }
+
+end comm_monoid
 
 end set
 

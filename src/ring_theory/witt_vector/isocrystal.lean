@@ -83,7 +83,7 @@ K(p, k)
 
 instance (m : ℤ) : isocrystal p k (standard_one_dim_isocrystal p k m) :=
 { frob := (foo₀ p k).to_semilinear_equiv.trans
-            (linear_equiv.smul_of_ne_zero _ _ _ (zpow_ne_zero m (p_nonzero' p k))) }
+            (linear_equiv.smul_of_ne_zero _ _ _ (zpow_ne_zero m (witt_vector.p_nonzero' p k))) }
 
 @[simp] lemma frobenius_standard_one_dim_isocrystal_apply (m : ℤ)
   (x : standard_one_dim_isocrystal p k m) :
@@ -108,7 +108,8 @@ begin
     intros ha',
     apply this,
     simp [← ha, ha'] },
-  obtain ⟨b, hb, m, (hmb : φ(p, k) b * a = p ^ m * b)⟩ := important p k ha,
+  obtain ⟨b, hb, m, (hmb : φ(p, k) b * a = p ^ m * b)⟩ :=
+    witt_vector.exists_frobenius_solution_fraction_ring p ha,
   use m,
   let F₀ : standard_one_dim_isocrystal p k m →ₗ[K(p,k)] V :=
     linear_map.to_span_singleton K(p, k) V x,

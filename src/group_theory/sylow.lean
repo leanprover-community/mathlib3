@@ -539,29 +539,11 @@ lemma normalizer_self_normalizing {p : ℕ} [fact p.prime] [fintype (sylow p G)]
  (P : sylow p G) :
  (↑P : subgroup G).normalizer.normalizer = (↑P : subgroup G).normalizer :=
 begin
-  let H := (↑P : subgroup G).normalizer.normalizer,
-  show (H = (↑P : subgroup G).normalizer),
-  let P' : sylow p H := P.subtype H (le_trans le_normalizer le_normalizer),
-
-  have hlr : (P : subgroup G).normalizer ≤ H.subtype.range, by { simp, apply le_normalizer },
-
-  have hnn : (P' : subgroup H).normalizer.normalizer = ⊤,
-  by rw [ coe_subtype,
-      ← comap_subtype_normalizer_eq le_normalizer,
-      ← comap_subtype_normalizer_eq (le_refl _),
-      subgroup.comap_subtype_self_eq_top ],
-
-  have hn : (P' : subgroup H).normalizer = ⊤ :=
-    normalizer_eq_top.mpr (normal_of_normalizer_normal P' (normalizer_eq_top.mp hnn)),
-
-  have h2 := congr_arg (subgroup.map H.subtype) hn,
-  rw [ coe_subtype,
-       ← comap_subtype_normalizer_eq le_normalizer,
-       map_comap_eq_self hlr,
-       ← monoid_hom.range_eq_map,
-       subtype_range
-  ] at h2,
-  exact (symm h2),
+have := normal_of_normalizer_normal (P.subtype _ (le_normalizer.trans le_normalizer)),
+  simp_rw [←normalizer_eq_top, coe_subtype, ←comap_subtype_normalizer_eq le_normalizer,
+    ←comap_subtype_normalizer_eq le_rfl, comap_subtype_self_eq_top] at this,
+  rw [←subtype_range (P : subgroup G).normalizer.normalizer, monoid_hom.range_eq_map, ←this rfl],
+  exact map_comap_eq_self (le_normalizer.trans (ge_of_eq (subtype_range _))),
 end
 
 lemma normal_of_normalizer_condition (hnc : normalizer_condition G)

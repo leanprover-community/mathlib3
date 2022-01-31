@@ -604,14 +604,13 @@ begin
         = comap (mk' (center G)) (upper_central_series_step Hn) : rfl
     ... = comap (mk' (center G)) (comap (mk' Hn) (center ((G ⧸ center G) ⧸ Hn))) :
         by rw upper_central_series_step_eq_comap_center
-    ... = comap (mk' (comap (mk' (center G)) Hn)) (center (G ⧸ (comap (mk' (center G)) Hn)))
-        : comap_comap_center
-    ... = comap (mk' (upper_central_series G n.succ)) (center (G ⧸ upper_central_series G n.succ))
-        : comap_center_subst ih
-    ... = upper_central_series_step (upper_central_series G n.succ)
-        : symm (upper_central_series_step_eq_comap_center _)
-    ... = upper_central_series G n.succ.succ
-        : rfl, },
+    ... = comap (mk' (comap (mk' (center G)) Hn)) (center (G ⧸ (comap (mk' (center G)) Hn))) :
+        comap_comap_center
+    ... = comap (mk' (upper_central_series G n.succ)) (center (G ⧸ upper_central_series G n.succ)) :
+        comap_center_subst ih
+    ... = upper_central_series_step (upper_central_series G n.succ) :
+        symm (upper_central_series_step_eq_comap_center _)
+    ... = upper_central_series G n.succ.succ : rfl, },
 end
 
 lemma nilpotency_class_zero_iff_subsingleton [is_nilpotent G] :

@@ -223,9 +223,9 @@ lemma integral [is_domain B] [is_noetherian_ring A] [fintype S] [is_cyclotomic_e
 is_integral_of_noetherian $ is_noetherian_of_fg_of_noetherian' $ (finite S A B).out
 
 /-- If `S` is finite and `is_cyclotomic_extension S K A`, then `finite_dimensional K A`. -/
-lemma finite_dimensional [fintype S] [algebra K A] [is_domain A] [is_cyclotomic_extension S K A] :
-  finite_dimensional K A :=
-finite S K A
+lemma finite_dimensional (C : Type z) [fintype S] [comm_ring C] [algebra K C] [is_domain C]
+  [is_cyclotomic_extension S K C] : finite_dimensional K C :=
+finite S K C
 
 end fintype
 

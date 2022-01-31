@@ -869,17 +869,3 @@ linear_isometry.norm_to_continuous_linear_map of_real_li
 end linear_maps
 
 end is_R_or_C
-
-namespace star_ring
-open is_R_or_C
-
-variables {E : Type*} [semi_normed_ring E] [normed_algebra K E] [star_ring E]
-
-/-- The real part of an element of star algebra. -/
-def re (x : E) : E := (2⁻¹ : K) • (x + star x)
-
-/-- The imaginary part of an element of star algebra. -/
-def im (x : E) : E := (-I * 2⁻¹ : K) • (x - star x)
-
-
-end star_ring

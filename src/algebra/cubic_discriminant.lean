@@ -134,15 +134,13 @@ section degree
 @[simps] def equiv : cubic R ≃ {p : polynomial R // p.degree ≤ 3} :=
 { to_fun    := λ P, ⟨P.to_poly, degree_cubic_le⟩,
   inv_fun   := λ f, ⟨coeff f 3, coeff f 2, coeff f 1, coeff f 0⟩,
-  left_inv  := λ P,
-    by ext; simp only [coeff_zero, coeff_one, coeff_two, coeff_three, subtype.coe_mk],
+  left_inv  := λ P, by ext; simp only [subtype.coe_mk, coeffs],
   right_inv := λ f,
   begin
-    ext (_ | _ | _ | _ | n);
-      simp only [coeff_zero, coeff_one, coeff_two, coeff_three, subtype.coe_mk],
-    have h3 : 3 < n + 4, { linarith },
-    rw (degree_le_iff_coeff_zero (f : polynomial R) 3).mp f.2 _ (with_bot.coe_lt_coe.mpr h3),
-    exact coeff_gt_three _ h3,
+    ext (_ | _ | _ | _ | n); simp only [subtype.coe_mk, coeffs],
+    have h3 : 3 < n + 4 := by linarith only,
+    rw [coeff_gt_three _ h3,
+        (degree_le_iff_coeff_zero (f : polynomial R) 3).mp f.2 _ $ with_bot.coe_lt_coe.mpr h3]
   end }
 
 lemma degree (ha : P.a ≠ 0) : P.to_poly.degree = 3 := degree_cubic ha

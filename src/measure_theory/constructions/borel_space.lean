@@ -363,7 +363,7 @@ lemma bsupr_measure_Iic {μ : measure α} {s : set α} (hsc : countable s)
   (⨆ x ∈ s, μ (Iic x)) = μ univ :=
 begin
   rw ← measure_bUnion_eq_supr hsc,
-  { congr, exact bUnion_eq_univ_iff.2 hst },
+  { congr, exact Union₂_eq_univ_iff.2 hst },
   { exact λ _ _, measurable_set_Iic },
   { exact directed_on_iff_directed.2 (hdir.directed_coe.mono_comp _ $ λ x y, Iic_subset_Iic.2) }
 end
@@ -434,7 +434,7 @@ begin
     exact hy.2 (mem_Union₂.mpr ⟨x, hx.1,
       mem_Union₂.mpr ⟨z, hz.1, lt_of_le_of_ne hxy h.1, lt_of_le_of_ne hyz h.2⟩⟩) },
   have : u ⊆ s :=
-    bUnion_subset (λ x hx, bUnion_subset (λ y hy, Ioo_subset_Icc_self.trans (h.out hx hy))),
+    Union₂_subset (λ x hx, Union₂_subset (λ y hy, Ioo_subset_Icc_self.trans (h.out hx hy))),
   rw ← union_diff_cancel this,
   exact humeas.union hfinite.measurable_set
 end
@@ -1342,9 +1342,8 @@ begin
       (λ i j ipos ij, cthickening_mono ij _) hs },
   have B : tendsto (λ r, μ (cthickening r s)) (𝓝[Iic 0] 0) (𝓝 (μ (closure s))),
   { apply tendsto.congr' _ tendsto_const_nhds,
-    filter_upwards [self_mem_nhds_within],
-    assume r hr,
-    rw cthickening_of_nonpos hr },
+    filter_upwards [self_mem_nhds_within] with _ hr,
+    rw cthickening_of_nonpos hr, },
   convert B.sup A,
   exact (nhds_left_sup_nhds_right' 0).symm,
 end
@@ -1809,6 +1808,23 @@ begin
   { simp_rw ae_seq.mk_eq_fun_of_mem_ae_seq_set hf hx,
     exact @ae_seq.fun_prop_of_mem_ae_seq_set α β _ _ _ _ _ _ hf x hx, },
   { exact tendsto_const_nhds, },
+end
+
+lemma ae_measurable_of_unif_approx {μ : measure α} {g : α → β}
+  (hf : ∀ ε > (0 : ℝ), ∃ (f : α → β), ae_measurable f μ ∧ ∀ᵐ x ∂μ, dist (f x) (g x) ≤ ε) :
+  ae_measurable g μ :=
+begin
+  obtain ⟨u, u_anti, u_pos, u_lim⟩ :
+    ∃ (u : ℕ → ℝ), strict_anti u ∧ (∀ (n : ℕ), 0 < u n) ∧ tendsto u at_top (𝓝 0) :=
+      exists_seq_strict_anti_tendsto (0 : ℝ),
+  choose f Hf using λ (n : ℕ), hf (u n) (u_pos n),
+  have : ∀ᵐ x ∂μ, tendsto (λ n, f n x) at_top (𝓝 (g x)),
+  { have : ∀ᵐ x ∂ μ, ∀ n, dist (f n x) (g x) ≤ u n := ae_all_iff.2 (λ n, (Hf n).2),
+    filter_upwards [this],
+    assume x hx,
+    rw tendsto_iff_dist_tendsto_zero,
+    exact squeeze_zero (λ n, dist_nonneg) hx u_lim },
+  exact ae_measurable_of_tendsto_metric_ae (λ n, (Hf n).1) this,
 end
 
 lemma measurable_of_tendsto_metric_ae {μ : measure α} [μ.is_complete] {f : ℕ → α → β} {g : α → β}

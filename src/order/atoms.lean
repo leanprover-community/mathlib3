@@ -54,11 +54,11 @@ section atoms
 
 section is_atom
 
-variables [partial_order α] [order_bot α] {a b x : α}
-
 /-- An atom of an `order_bot` is an element with no other element between it and `⊥`,
   which is not `⊥`. -/
-def is_atom (a : α) : Prop := a ≠ ⊥ ∧ (∀ b, b < a → b = ⊥)
+def is_atom [preorder α] [order_bot α] (a : α) : Prop := a ≠ ⊥ ∧ (∀ b, b < a → b = ⊥)
+
+variables [partial_order α] [order_bot α] {a b x : α}
 
 lemma eq_bot_or_eq_of_le_atom (ha : is_atom a) (hab : b ≤ a) : b = ⊥ ∨ b = a :=
 hab.lt_or_eq.imp_left (ha.2 b)
@@ -79,11 +79,11 @@ end is_atom
 
 section is_coatom
 
-variables [partial_order α] [order_top α] {a b x : α}
-
 /-- A coatom of an `order_top` is an element with no other element between it and `⊤`,
   which is not `⊤`. -/
-def is_coatom (a : α) : Prop := a ≠ ⊤ ∧ (∀ b, a < b → b = ⊤)
+def is_coatom [preorder α] [order_top α] (a : α) : Prop := a ≠ ⊤ ∧ (∀ b, a < b → b = ⊤)
+
+variables [partial_order α] [order_top α] {a b x : α}
 
 lemma eq_top_or_eq_of_coatom_le (ha : is_coatom a) (hab : a ≤ b) : b = ⊤ ∨ b = a :=
 hab.lt_or_eq.imp (ha.2 b) eq_comm.2
@@ -350,13 +350,13 @@ end is_simple_order
 
 namespace is_simple_order
 section preorder
-variables [preorder α] [bounded_order α] [is_simple_order α] {a b : α}
+variables [preorder α] [bounded_order α] [is_simple_order α] {a b : α} (h : a < b)
 
-lemma eq_bot_of_lt (h : a < b) : a = ⊥ :=
-(is_simple_order.eq_bot_or_eq_top _).resolve_right $ ne_top_of_lt h
+lemma eq_bot_of_lt : a = ⊥ := (is_simple_order.eq_bot_or_eq_top _).resolve_right h.ne_top
+lemma eq_top_of_lt : b = ⊤ := (is_simple_order.eq_bot_or_eq_top _).resolve_left h.ne_bot
 
-lemma eq_top_of_lt (h : a < b) : b = ⊤ :=
-(is_simple_order.eq_bot_or_eq_top _).resolve_left $ ne_bot_of_gt h
+alias eq_bot_of_lt ← has_lt.lt.eq_bot
+alias eq_top_of_lt ← has_lt.lt.eq_top
 
 end preorder
 

@@ -171,17 +171,17 @@ theorem dense_sInter_of_Gδ {S : set (set α)} (ho : ∀s∈S, is_Gδ s) (hS : c
 begin
   -- the result follows from the result for a countable intersection of dense open sets,
   -- by rewriting each set as a countable intersection of open sets, which are of course dense.
-  choose T hT using ho,
-  have : ⋂₀ S = ⋂₀ (⋃s∈S, T s ‹_›) := (sInter_bUnion (λs hs, (hT s hs).2.2)).symm,
+  choose T hTo hTc hsT using ho,
+  have : ⋂₀ S = ⋂₀ (⋃ s ∈ S, T s ‹_›), -- := (sInter_bUnion (λs hs, (hT s hs).2.2)).symm,
+    by simp only [sInter_Union, (hsT _ _).symm, ← sInter_eq_bInter],
   rw this,
-  refine dense_sInter_of_open _ (hS.bUnion (λs hs, (hT s hs).2.1)) _;
-    simp only [set.mem_Union, exists_prop]; rintro t ⟨s, hs, tTs⟩,
-  show is_open t,
-  { exact (hT s hs).1 t tTs },
+  refine dense_sInter_of_open _ (hS.bUnion hTc) _;
+    simp only [mem_Union]; rintro t ⟨s, hs, tTs⟩,
+  show is_open t, from hTo s hs t tTs,
   show dense t,
   { intro x,
     have := hd s hs x,
-    rw (hT s hs).2.2 at this,
+    rw hsT s hs at this,
     exact closure_mono (sInter_subset_of_mem tTs) this }
 end
 
@@ -239,7 +239,7 @@ instance : countable_Inter_filter (residual α) :=
   choose T hTs hT using hS,
   refine ⟨⋂ s ∈ S, T s ‹_›, _, _, _⟩,
   { rw [sInter_eq_bInter],
-    exact Inter_subset_Inter (λ s, Inter_subset_Inter $ hTs s) },
+    exact Inter₂_mono hTs },
   { exact is_Gδ_bInter hSc (λ s hs, (hT s hs).1) },
   { exact dense_bInter_of_Gδ (λ s hs, (hT s hs).1) hSc (λ s hs, (hT s hs).2) }
 end⟩

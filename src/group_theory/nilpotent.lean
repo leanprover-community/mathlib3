@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2021 Kevin Buzzard. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Kevin Buzzard, Ines Wright
+Authors: Kevin Buzzard, Ines Wright, Joachim Breitner
 -/
 
 import group_theory.general_commutator
@@ -53,6 +53,8 @@ subgroup `G` of `G`, and `⊥` denotes the trivial subgroup `{1}`.
   definitions, see `least_ascending_central_series_length_eq_nilpotency_class`,
   `least_descending_central_series_length_eq_nilpotency_class` and
   `lower_central_series_length_eq_nilpotency_class`.
+* If `G` is nilpotent, then so are its subgroups, images, quotients and preimages.
+  Corresponding lemmas about the `nilpotency_class` are provided.
 * `is_nilpotent.to_is_solvable`: If `G` is nilpotent, it is solvable.
 
 
@@ -347,6 +349,23 @@ nat.find (is_nilpotent.nilpotent G)
 
 variable {G}
 
+@[simp]
+lemma upper_central_series_nilpotency_class :
+  upper_central_series G (group.nilpotency_class G) = ⊤ :=
+nat.find_spec (is_nilpotent.nilpotent G)
+
+lemma upper_central_series_eq_top_iff_nilpotency_class_le {n : ℕ} :
+  (upper_central_series G n = ⊤) ↔ (group.nilpotency_class G ≤ n) :=
+begin
+  split,
+  { intro h,
+    exact (nat.find_le h), },
+  { intro h,
+    apply eq_top_iff.mpr,
+    rw ← upper_central_series_nilpotency_class,
+    exact (upper_central_series_mono _ h), }
+end
+
 /-- The nilpotency class of a nilpotent `G` is equal to the smallest `n` for which an ascending
 central series reaches `G` in its `n`'th term. -/
 lemma least_ascending_central_series_length_eq_nilpotency_class :
@@ -390,6 +409,27 @@ begin
     exact ⟨lower_central_series G, ⟨lower_central_series_is_descending_central_series, h⟩⟩ },
 end
 
+@[simp]
+lemma lower_central_series_nilpotency_class :
+  lower_central_series G (group.nilpotency_class G) = ⊥ :=
+begin
+  rw ← lower_central_series_length_eq_nilpotency_class,
+  exact (nat.find_spec (nilpotent_iff_lower_central_series.mp _))
+end
+
+lemma lower_central_series_eq_bot_iff_nilpotency_class_le {n : ℕ} :
+  (lower_central_series G n = ⊥) ↔ (group.nilpotency_class G ≤ n) :=
+begin
+  split,
+  { intro h,
+    rw ← lower_central_series_length_eq_nilpotency_class,
+    exact (nat.find_le h), },
+  { intro h,
+    apply eq_bot_iff.mpr,
+    rw ← lower_central_series_nilpotency_class,
+    exact (lower_central_series_antitone h), }
+end
+
 end classical
 
 lemma lower_central_series_map_subtype_le (H : subgroup G) (n : ℕ) :
@@ -403,12 +443,25 @@ begin
     exact ⟨x3, (hd (mem_map.mpr ⟨x3, hx3, rfl⟩)), x4, by simp⟩ }
 end
 
+/-- A subgroup of a nilpotent group is nilpotent -/
 instance subgroup.is_nilpotent (H : subgroup G) [hG : is_nilpotent G] :
   is_nilpotent H :=
 begin
   rw nilpotent_iff_lower_central_series at *,
   rcases hG with ⟨n, hG⟩,
   use n,
+  have := lower_central_series_map_subtype_le H n,
+  simp only [hG, set_like.le_def, mem_map, forall_apply_eq_imp_iff₂, exists_imp_distrib] at this,
+  exact eq_bot_iff.mpr (λ x hx, subtype.ext (this x hx)),
+end
+
+/-- A the nilpotency class of a subgroup is less or equal the the nilpotency class of the group -/
+lemma subgroup.nilpotency_class_le (H : subgroup G) [hG : is_nilpotent G] :
+  group.nilpotency_class H ≤ group.nilpotency_class G :=
+begin
+  repeat { rw ← lower_central_series_length_eq_nilpotency_class },
+  apply nat.find_mono,
+  intros n hG,
   have := lower_central_series_map_subtype_le H n,
   simp only [hG, set_like.le_def, mem_map, forall_apply_eq_imp_iff₂, exists_imp_distrib] at this,
   exact eq_bot_iff.mpr (λ x hx, subtype.ext (this x hx)),
@@ -451,19 +504,80 @@ begin
   exact mem_center_iff.mp (h hy1) z,
 end
 
-lemma is_nilpotent_of_ker_le_center {H : Type*} [group H] {f : G →* H}
+/-- The preimage of a nilpotent group is nilpotent if the kernel of the homomorphism is contained
+in the center -/
+lemma is_nilpotent_of_ker_le_center {H : Type*} [group H] (f : G →* H)
   (hf1 : f.ker ≤ center G) (hH : is_nilpotent H) : is_nilpotent G :=
 begin
   rw nilpotent_iff_lower_central_series at *,
   rcases hH with ⟨n, hn⟩,
-  refine ⟨n + 1, lower_central_series_succ_eq_bot
-    (le_trans ((map_eq_bot_iff _).mp _) hf1)⟩,
+  use (n + 1),
+  refine lower_central_series_succ_eq_bot (le_trans ((map_eq_bot_iff _).mp _) hf1),
   exact eq_bot_iff.mpr (hn ▸ (lower_central_series.map f n)),
 end
+
+section classical
+
+open_locale classical
+
+lemma nilpotency_class_le_of_ker_le_center {H : Type*} [group H] (f : G →* H)
+  (hf1 : f.ker ≤ center G) (hH : is_nilpotent H) :
+  @group.nilpotency_class G _ (is_nilpotent_of_ker_le_center f hf1 hH) ≤
+    group.nilpotency_class H + 1 :=
+begin
+  rw ← lower_central_series_length_eq_nilpotency_class,
+  apply nat.find_min',
+  refine lower_central_series_succ_eq_bot (le_trans ((map_eq_bot_iff _).mp _) hf1),
+  apply eq_bot_iff.mpr,
+  apply (le_trans (lower_central_series.map f _)),
+  simp only [lower_central_series_nilpotency_class, le_bot_iff],
+end
+
+end classical
+
+/-- The range of a surejctive homomorphism from a nilpotent group is nilpotent -/
+lemma nilpotent_of_surjective {G' : Type*} [group G'] [h : is_nilpotent G]
+  (f : G →* G') (hf : function.surjective f) :
+  is_nilpotent G' :=
+begin
+  unfreezingI { rcases h with ⟨n, hn⟩ },
+  use n,
+  apply eq_top_iff.mpr,
+  calc ⊤ = f.range : symm (f.range_top_of_surjective hf)
+    ... = subgroup.map f ⊤ : monoid_hom.range_eq_map _
+    ... = subgroup.map f (upper_central_series G n) : by rw hn
+    ... ≤ upper_central_series G' n : upper_central_series.map hf n,
+end
+
+/-- The nilpotency class of the range of a surejctive homomorphism from a
+nilpotent group is less or equal the nilpotency class of the domain -/
+lemma nilpotency_class_le_of_surjective
+  {G' : Type*} [group G'] (f : G →* G') (hf : function.surjective f) [h : is_nilpotent G] :
+  @group.nilpotency_class G' _ (nilpotent_of_surjective _ hf) ≤
+    group.nilpotency_class G :=
+begin
+  apply nat.find_mono,
+  intros n hn,
+  apply eq_top_iff.mpr,
+  calc ⊤ = f.range : symm (f.range_top_of_surjective hf)
+    ... = subgroup.map f ⊤ : monoid_hom.range_eq_map _
+    ... = subgroup.map f (upper_central_series G n) : by rw hn
+    ... ≤ upper_central_series G' n : upper_central_series.map hf n,
+end
+
+/-- A quotient of a nilpotent group is nilpotent -/
+instance nilpotent_quotient_of_nilpotent (H : subgroup G) [H.normal] [h : is_nilpotent G] :
+  is_nilpotent (G ⧸ H) :=
+ nilpotent_of_surjective _ (show function.surjective (quotient_group.mk' H), by tidy)
+
+/-- The nilpotency class of a quotient of `G` is less or equal the nilpotency class of `G` -/
+lemma nilpotency_class_quotient_le (H : subgroup G) [H.normal] [h : is_nilpotent G] :
+  group.nilpotency_class (G ⧸ H) ≤ group.nilpotency_class G := nilpotency_class_le_of_surjective _ _
 
 lemma derived_le_lower_central (n : ℕ) : derived_series G n ≤ lower_central_series G n :=
 by { induction n with i ih, { simp }, { apply general_commutator_mono ih, simp } }
 
+/-- A nilpotent subgroup is solvable -/
 @[priority 100]
 instance is_nilpotent.to_is_solvable [h : is_nilpotent G]: is_solvable G :=
 begin

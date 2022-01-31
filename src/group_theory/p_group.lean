@@ -261,7 +261,11 @@ begin
   obtain ⟨n₂, hn₂⟩ := iff_order_of.mp hH₂ ⟨x, hx₂⟩,
   rw [← order_of_subgroup, subgroup.coe_mk] at hn₁ hn₂,
   have : p₁ ^ n₁ = p₂ ^ n₂, by rw [ ← hn₁, ← hn₂ ],
-  have : n₁ = 0 := nat.prim_pow_eq_of_ne hne this,
+  have : n₁ = 0,
+  { by_contra h, apply hne,
+    rw ← associated_iff_eq at this ⊢,
+    exact associated.of_pow_associated_of_prime
+      (nat.prime_iff.mp (hp₁.elim)) (nat.prime_iff.mp (hp₂.elim)) (ne.bot_lt h) this },
   simpa [this] using hn₁,
 end
 

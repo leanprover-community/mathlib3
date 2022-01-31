@@ -7,6 +7,7 @@ Authors: Riccardo Brasca
 import ring_theory.polynomial.cyclotomic.basic
 import number_theory.number_field
 import algebra.char_p.algebra
+import field_theory.galois
 
 /-!
 # Cyclotomic extensions
@@ -323,6 +324,13 @@ lemma splitting_field_X_pow_sub_one : is_splitting_field K L (X ^ (n : ℕ) - 1)
     rwa [← ring_hom.map_one C, mem_roots (@X_pow_sub_C_ne_zero _ (field.to_nontrivial L) _ _
       n.pos _), is_root.def, eval_sub, eval_pow, eval_C, eval_X, sub_eq_zero]
   end }
+
+instance [ne_zero (n : K)] : is_galois K L :=
+begin
+  letI := splitting_field_X_pow_sub_one n K L,
+  exact is_galois.of_separable_splitting_field (X_pow_sub_one_separable_iff.2
+    (ne_zero.ne _ : ((n : ℕ) : K) ≠ 0)),
+end
 
 /-- If `is_cyclotomic_extension {n} K L` and `ne_zero (n : K)`, then `L` is the splitting
 field of `cyclotomic n K`. -/

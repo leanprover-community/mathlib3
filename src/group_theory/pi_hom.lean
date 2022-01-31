@@ -133,21 +133,21 @@ def hom : (Π (i : I), H i) →* G :=
   map_mul' := λ f g, to_fun_mul _ f g, }
 
 omit hcomm
-def just_one [decidable_eq I] (i : I) (y : H i) : Π (i : I), H i :=
+def just_one (i : I) (y : H i) : Π (i : I), H i :=
   λ j, if h : j = i then by { subst h; exact y} else 1
 
 @[simp]
-lemma just_one_eq [decidable_eq I] (i : I) (y : H i) : just_one i y i = y :=
+lemma just_one_eq (i : I) (y : H i) : just_one i y i = y :=
 by { unfold just_one, simp }
 
 @[simp]
-lemma just_one_ne [decidable_eq I] (i : I) (y : H i) (j : I) (h : i ≠ j) :
+lemma just_one_ne (i : I) (y : H i) (j : I) (h : i ≠ j) :
   just_one i y j = (1 : H j) :=
 by { unfold just_one, have : ¬ (j = i), by cc, simp [this], }
 
 include hcomm
 
-lemma fun_on_just_one [decidable_eq I] (i : I) (y : H i) (S : finset I) :
+lemma fun_on_just_one (i : I) (y : H i) (S : finset I) :
   fun_on ϕ (just_one i y) S = if i ∈ S then ϕ i y else 1 :=
 begin
   induction S using finset.induction_on with j S hnmem ih,
@@ -164,7 +164,7 @@ begin
       exact ih, } }
 end
 
-lemma to_fun_just_one [decidable_eq I] (i : I) (y : H i) :
+lemma to_fun_just_one (i : I) (y : H i) :
   to_fun ϕ (just_one i y) = ϕ i y :=
 begin
   unfold to_fun,
@@ -172,7 +172,7 @@ begin
   simp,
 end
 
-lemma range_eq [decidable_eq I] : (hom ϕ).range = (⨆ (i : I), (ϕ i).range) :=
+lemma range_eq : (hom ϕ).range = (⨆ (i : I), (ϕ i).range) :=
 begin
   apply le_antisymm,
   { rintro x ⟨f, rfl⟩,

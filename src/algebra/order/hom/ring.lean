@@ -24,6 +24,8 @@ Homomorphisms between ordered (semi)rings that respect the ordering.
 ordered ring homomorphism, order homomorphism
 -/
 
+open function
+
 variables {F α β γ δ : Type*}
 
 /-- `order_ring_hom α β` is the type of monotone semiring homomorphisms from `α` to `β`.
@@ -87,11 +89,11 @@ instance : order_ring_hom_class (α →+*o β) α β :=
 directly. -/
 instance : has_coe_to_fun (α →+*o β) (λ _, α → β) := ⟨λ f, f.to_fun⟩
 
-@[simp] lemma to_fun_eq_coe : f.to_fun = (f : α → β) := rfl
+@[simp] lemma to_fun_eq_coe (f : α →+*o β) : f.to_fun = ⇑f := rfl
 
-@[ext] lemma ext (h : ∀ a, f a = g a) : f = g := fun_like.ext f g h
+@[ext] lemma ext {f g : α →+*o β} (h : ∀ a, f a = g a) : f = g := fun_like.ext f g h
 
-@[simp] lemma to_ring_hom_eq_coe (f : α →+*o β) : f.to_ring_hom = f := rfl
+@[simp] lemma to_ring_hom_eq_coe (f : α →+*o β) : f.to_ring_hom = f := ring_hom.ext $ λ _, rfl
 @[simp] lemma to_order_add_monoid_hom_eq_coe (f : α →+*o β) : f.to_order_add_monoid_hom = f := rfl
 @[simp] lemma to_order_monoid_with_zero_hom_eq_coe (f : α →+*o β) :
   f.to_order_monoid_with_zero_hom = f := rfl

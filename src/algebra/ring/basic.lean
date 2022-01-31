@@ -423,7 +423,7 @@ rfl
 
 /-- Copy of a `ring_hom` with a new `to_fun` equal to the old one. Useful to fix definitional
 equalities. -/
-def ring_hom.copy (f : α →+* β) (f' : α → β) (h : f' = f) : α →+* β :=
+def copy (f : α →+* β) (f' : α → β) (h : f' = f) : α →+* β :=
 { ..f.to_monoid_with_zero_hom.copy f' h, ..f.to_add_monoid_hom.copy f' h }
 
 end coe

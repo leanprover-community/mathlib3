@@ -143,6 +143,12 @@ instance complete_lattice_hom_class.to_frame_hom_class [complete_lattice α] [co
   frame_hom_class F α β :=
 { .. ‹complete_lattice_hom_class F α β›, ..Inf_hom_class.to_inf_hom_class }
 
+@[priority 100] -- See note [lower instance priority]
+instance complete_lattice_hom_class.to_bounded_lattice_hom_class [complete_lattice α]
+  [complete_lattice β] [complete_lattice_hom_class F α β] :
+  bounded_lattice_hom_class F α β :=
+{ ..Sup_hom_class.to_bot_hom_class, ..Inf_hom_class.to_top_hom_class }
+
 instance [has_Sup α] [has_Sup β] [Sup_hom_class F α β] : has_coe_t F (Sup_hom α β) :=
 ⟨λ f, ⟨f, map_Sup f⟩⟩
 

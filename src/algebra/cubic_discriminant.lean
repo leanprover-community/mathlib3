@@ -131,21 +131,18 @@ end coeff
 section degree
 
 /-- The equivalence between cubic polynomials and polynomials of degree at most three. -/
-def equiv : cubic R ≃ {p : polynomial R // p.degree ≤ 3} :=
+@[simps] def equiv : cubic R ≃ {p : polynomial R // p.degree ≤ 3} :=
 { to_fun    := λ P, ⟨P.to_poly, degree_cubic_le⟩,
-  inv_fun   := λ f, ⟨f.val.coeff 3, f.val.coeff 2, f.val.coeff 1, f.val.coeff 0⟩,
-  left_inv  := λ P, by { ext, all_goals { simp only [coeffs] } },
+  inv_fun   := λ f, ⟨coeff f 3, coeff f 2, coeff f 1, coeff f 0⟩,
+  left_inv  := λ P,
+    by ext; simp only [coeff_zero, coeff_one, coeff_two, coeff_three, subtype.coe_mk],
   right_inv := λ f,
   begin
-    ext,
-    rcases n with _ | _ | _ | _ | n,
-    { exact coeff_zero },
-    { exact coeff_one },
-    { exact coeff_two },
-    { exact coeff_three },
-    { have three_lt := (nat.succ_lt_succ $ nat.succ_lt_succ $ nat.succ_lt_succ n.zero_lt_succ),
-      convert coeff_gt_three _ three_lt,
-      exact (degree_le_iff_coeff_zero f.val 3).mp f.property _ (with_bot.coe_lt_coe.mpr three_lt) }
+    ext (_ | _ | _ | _ | n);
+      simp only [coeff_zero, coeff_one, coeff_two, coeff_three, subtype.coe_mk],
+    have h3 : 3 < n + 4, { linarith },
+    rw (degree_le_iff_coeff_zero (f : polynomial R) 3).mp f.2 _ (with_bot.coe_lt_coe.mpr h3),
+    exact coeff_gt_three _ h3,
   end }
 
 lemma degree (ha : P.a ≠ 0) : P.to_poly.degree = 3 := degree_cubic ha

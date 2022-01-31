@@ -427,7 +427,7 @@ lemma Pi_congr_right_trans {η : Type*}
 protected lemma map_inv [group G] [group H] (h : G ≃* H) (x : G) : h x⁻¹ = (h x)⁻¹ :=
 map_inv h x
 
-/-- A multiplicative equivalence of groups preserves inversion. -/
+/-- A multiplicative equivalence of groups preserves division. -/
 @[to_additive]
 protected lemma map_div [group G] [group H] (h : G ≃* H) (x y : G) : h (x / y) = h x / h y :=
 map_div h x y

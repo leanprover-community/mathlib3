@@ -30,6 +30,37 @@ decreasing for `e ≤ x`.
 
 -- TODO edit 100.yml
 
+## Proof Sketch
+
+Here is a description of how the proof works:
+
+Then:
+4^n ≤ 2nCn * (2 * n + 1) (by choose_halfway_is_big)
+= prod (primes ≤ 2n) p^(α n p) * (2n+1)
+= prod (primes ≤ n) p^(α n p) * prod (primes n < p <= 2n) p^α * (2n+1)
+= prod (primes ≤ 2n/3) p^α * prod (primes 2n/3 to n) p^α * prod (primes n < p ≤ 2n) p^α * (2n+1)
+= prod (primes ≤ 2n/3) p^α * prod (primes 2n/3 to n) 1 * prod (primes n < p ≤ 2n) p^α * (2n+1)
+  (by claim 3)
+= prod (primes ≤ 2n/3) p^α * prod (primes n < p ≤ 2n) p^α * (2n+1)
+= prod (primes ≤ sqrt(2n)) p^α * prod(primes sqrt(2n)..2n/3) p^α
+  * prod (primes n < p ≤ 2n) p^α * (2n+1)
+≤ prod (primes ≤ sqrt(2n)) p^α * prod(primes sqrt(2n)..2n/3) p
+  * prod (primes n < p ≤ 2n) p^α * (2n+1)
+  (by claim 2)
+≤ prod (primes ≤ sqrt(2n)) p^α * 4 ^ (2n / 3) * prod (primes n < p ≤ 2n) p^α * (2n+1)
+  (by a general bound on the primorial)
+≤ prod (primes ≤ sqrt(2n)) (2n) * 4 ^ (2n / 3) * prod (primes n < p ≤ 2n) p^α * (2n+1)
+  (by claim 1)
+= (2n)^π (sqrt 2n) * 4 ^ (2n/3) * prod (primes n < p ≤ 2n) p^α * (2n+1)
+≤ (2n)^(sqrt 2n) * 4 ^ (2n/3) * prod (primes n < p ≤ 2n) p^α * (2n+1)
+  (by "prime count of x is less than x")
+
+For sufficiently large n, that last product term is > 1.
+Indeed, suppose for contradiction it's equal to 1.
+Then 4^n ≤ (2n)^(sqrt 2n) * 4^(2n/3) * (2n+1)
+so 4^(n/3) ≤ (2n)^(sqrt 2n) (2n+1)
+and this is Clearly False for sufficiently large n.
+
 ## References
 
 * [M. Aigner and G. M. Ziegler _Proofs from THE BOOK_][aigner1999proofs]
@@ -108,32 +139,7 @@ begin
 end
 
 /-
-Then:
-4^n ≤ 2nCn * (2 * n + 1) (by choose_halfway_is_big)
-= prod (primes ≤ 2n) p^(α n p) * (2n+1)
-= prod (primes ≤ n) p^(α n p) * prod (primes n < p <= 2n) p^α * (2n+1)
-= prod (primes ≤ 2n/3) p^α * prod (primes 2n/3 to n) p^α * prod (primes n < p ≤ 2n) p^α * (2n+1)
-= prod (primes ≤ 2n/3) p^α * prod (primes 2n/3 to n) 1 * prod (primes n < p ≤ 2n) p^α * (2n+1)
-  (by claim 3)
-= prod (primes ≤ 2n/3) p^α * prod (primes n < p ≤ 2n) p^α * (2n+1)
-= prod (primes ≤ sqrt(2n)) p^α * prod(primes sqrt(2n)..2n/3) p^α
-  * prod (primes n < p ≤ 2n) p^α * (2n+1)
-≤ prod (primes ≤ sqrt(2n)) p^α * prod(primes sqrt(2n)..2n/3) p
-  * prod (primes n < p ≤ 2n) p^α * (2n+1)
-  (by claim 2)
-≤ prod (primes ≤ sqrt(2n)) p^α * 4 ^ (2n / 3) * prod (primes n < p ≤ 2n) p^α * (2n+1)
-  (by a general bound on the primorial)
-≤ prod (primes ≤ sqrt(2n)) (2n) * 4 ^ (2n / 3) * prod (primes n < p ≤ 2n) p^α * (2n+1)
-  (by claim 1)
-= (2n)^π (sqrt 2n) * 4 ^ (2n/3) * prod (primes n < p ≤ 2n) p^α * (2n+1)
-≤ (2n)^(sqrt 2n) * 4 ^ (2n/3) * prod (primes n < p ≤ 2n) p^α * (2n+1)
-  (by "prime count of x is less than x")
 
-For sufficiently large n, that last product term is > 1.
-Indeed, suppose for contradiction it's equal to 1.
-Then 4^n ≤ (2n)^(sqrt 2n) * 4^(2n/3) * (2n+1)
-so 4^(n/3) ≤ (2n)^(sqrt 2n) (2n+1)
-and this is Clearly False for sufficiently large n.
 -/
 
 lemma two_n_div_3_le_central_binom (n : ℕ) : 2 * n / 3 < nat.central_binom n :=

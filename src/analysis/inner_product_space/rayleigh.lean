@@ -247,6 +247,27 @@ begin
   exact le_csupr (neg_rayleigh_bdd_above T) _,
 end
 
+-- the tricky point in general is that for this to be true, the default value taken by the `cSup`
+-- function must be 0
+lemma _root_.real.csupr_neg {ι : Type*} (f : ι → ℝ) : (⨆ i, - f i) = - ⨅ i, f i :=
+begin
+  unfold supr,
+  unfold infi,
+  rw real.Inf_def,
+  rw neg_neg,
+  congr,
+  ext i,
+  split,
+  { rintros ⟨a, rfl⟩,
+    use a,
+    simp },
+  rw set.mem_neg,
+  { rintros ⟨a, ha⟩,
+    apply_fun has_neg.neg at ha,
+    use a,
+    simp [ha] },
+end
+
 lemma re_apply_inner_self_le_supr_abs_rayleigh_mul_norm_sq (x : E) :
   T.re_apply_inner_self x ≤ (⨆ z : sphere (0:E) 1, |rayleigh_quotient z|) * ∥x∥ ^ 2 :=
 begin
@@ -260,8 +281,8 @@ begin
   apply max_le_max,
   { rw ← supr_rayleigh_eq_supr_rayleigh_sphere,
     simp },
-  --refine T.re_apply_inner_self_le_max_supr_rayleigh_mul_norm_sq x,
-  sorry, -- should be the same, but missing a `csupr_neg` lemma
+  { rw [real.csupr_neg, real.csupr_neg, neg_le_neg_iff, ← infi_rayleigh_eq_infi_rayleigh_sphere],
+    simp },
 end
 
 lemma neg_re_apply_inner_self_le_supr_abs_rayleigh_mul_norm_sq (x : E) :

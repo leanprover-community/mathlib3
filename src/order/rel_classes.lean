@@ -299,9 +299,10 @@ lemma right_iff_left_not_left_of (r s : α → α → Prop) [is_nonstrict_strict
   s a b ↔ r a b ∧ ¬ r b a :=
 right_iff_left_not_left
 
--- The free parameter `r`  is `out_param`s so this is not dangerous.
+-- The free parameter `r` is strictly speaking not uniquely determined by `s`, but in practice it
+-- always has a unique instance, so this is not dangerous.
 @[priority 100, nolint dangerous_instance] -- see Note [lower instance priority]
-instance is_nonstrict_strict_order.to_is_irrefl {r : out_param $ α → α → Prop} {s : α → α → Prop}
+instance is_nonstrict_strict_order.to_is_irrefl {r : α → α → Prop} {s : α → α → Prop}
   [is_nonstrict_strict_order α r s] :
   is_irrefl α s :=
 ⟨λ a h, ((right_iff_left_not_left_of r s).1 h).2 ((right_iff_left_not_left_of r s).1 h).1⟩

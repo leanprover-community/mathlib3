@@ -143,13 +143,23 @@ end
 lemma dvd_prod : a ∈ s → a ∣ s.prod :=
 quotient.induction_on s (λ l a h, by simpa using list.dvd_prod h) a
 
-lemma prod_dvd_prod (h : s ≤ t) : s.prod ∣ t.prod :=
+lemma prod_dvd_prod_of_le (h : s ≤ t) : s.prod ∣ t.prod :=
 begin
   obtain ⟨z, rfl⟩ := multiset.le_iff_exists_add.1 h,
   simp only [prod_add, dvd_mul_right],
 end
 
 end comm_monoid
+
+lemma prod_dvd_prod_of_dvd [comm_monoid β] {S : multiset α} (g1 g2 : α → β)
+  (h : ∀ a ∈ S, g1 a ∣ g2 a) :
+  (multiset.map g1 S).prod ∣ (multiset.map g2 S).prod :=
+begin
+  apply multiset.induction_on' S, { simp },
+  intros a T haS _ IH,
+  simp [mul_dvd_mul (h a haS) IH]
+end
+
 
 section add_comm_monoid
 variables [add_comm_monoid α]

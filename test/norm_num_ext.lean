@@ -5,6 +5,7 @@ Authors: Mario Carneiro
 -/
 import data.int.gcd
 import data.nat.prime
+import algebra.squarefree
 
 /-!
 # Tests for `norm_num` extensions
@@ -211,3 +212,18 @@ example : nat.factors 471 = [3, 157] := by norm_num
 example : ¬ nat.prime 851 := by norm_num
 example : nat.min_fac 851 = 23 := by norm_num
 example : nat.factors 851 = [23, 37] := by norm_num
+
+example : ¬ squarefree 0 := by norm_num
+example : squarefree 1 := by norm_num
+example : squarefree 2 := by norm_num
+example : squarefree 3 := by norm_num
+example : ¬ squarefree 4 := by norm_num
+example : squarefree 5 := by norm_num
+example : squarefree 6 := by norm_num
+example : squarefree 7 := by norm_num
+example : ¬ squarefree 8 := by norm_num
+example : ¬ squarefree 9 := by norm_num
+example : squarefree 10 := by norm_num
+example : squarefree (2*3*5*17) := by norm_num
+example : ¬ squarefree (2*3*5*5*17) := by norm_num
+example : squarefree 251 := by norm_num

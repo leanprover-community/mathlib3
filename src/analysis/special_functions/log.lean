@@ -92,7 +92,7 @@ begin
   rw [← exp_eq_exp, exp_log_eq_abs (inv_ne_zero hx), exp_neg, exp_log_eq_abs hx, abs_inv]
 end
 
-lemma log_le_log (h : 0 < x) (h₁ : 0 < y) : real.log x ≤ real.log y ↔ x ≤ y :=
+lemma log_le_log (h : 0 < x) (h₁ : 0 < y) : log x ≤ log y ↔ x ≤ y :=
 by rw [← exp_le_exp, exp_log h, exp_log h₁]
 
 lemma log_lt_log (hx : 0 < x) : x < y → log x < log y :=

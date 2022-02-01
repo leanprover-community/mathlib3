@@ -1228,6 +1228,14 @@ begin
   exact hg (ϕ h),
 end
 
+lemma _root_.comm_group.center_eq_top {G : Type*} [comm_group G] : center G = ⊤ :=
+by { rw [eq_top_iff'], intros x y, exact mul_comm y x }
+
+/-- A group is commutative if the center is the whole group -/
+def _root_.group.comm_group_of_center_eq_top (h : center G = ⊤) : comm_group G :=
+{ mul_comm := by { rw eq_top_iff' at h, intros x y, exact h y x },
+  .. (_ : group G) }
+
 variables {G} (H)
 /-- The `normalizer` of `H` is the largest subgroup of `G` inside which `H` is normal. -/
 @[to_additive "The `normalizer` of `H` is the largest subgroup of `G` inside which `H` is normal."]

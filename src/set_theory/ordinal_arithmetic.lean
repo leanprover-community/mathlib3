@@ -3,6 +3,7 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Floris van Doorn, Violeta Hernández Palacios
 -/
+import logic.small
 import set_theory.ordinal
 import tactic.by_contra
 
@@ -1112,6 +1113,9 @@ begin
   exact this.false
 end
 
+theorem lsub_nmem_range {ι} (f : ι → ordinal) : lsub f ∉ set.range f :=
+λ ⟨i, h⟩, h.not_lt (lt_lsub f i)
+
 /-- The bounded least strict upper bound of a family of ordinals. -/
 def blsub (o : ordinal.{u}) (f : Π a < o, ordinal.{max u v}) : ordinal.{max u v} :=
 o.bsup (λ a ha, (f a ha).succ)
@@ -1201,6 +1205,22 @@ begin
   by_contra' h,
   exact (lt_blsub.{u u} (λ x _, x) _ h).false
 end
+
+/-! ### Lemmas about injectivity and surjectivity -/
+
+lemma not_surjective_of_ordinal {α : Type u} (f : α → ordinal.{u}) : ¬ function.surjective f :=
+λ h, ordinal.lsub_nmem_range.{u u} f (h _)
+
+lemma not_injective_of_ordinal {α : Type u} (f : ordinal.{u} → α) : ¬ function.injective f :=
+λ h, not_surjective_of_ordinal _ (inv_fun_surjective h)
+
+lemma not_surjective_of_ordinal_of_small {α : Type v} [small.{u} α] (f : α → ordinal.{u}) :
+  ¬ function.surjective f :=
+λ h, not_surjective_of_ordinal (f ∘ (equiv_shrink α).symm) (h.comp (equiv_shrink _).symm.surjective)
+
+lemma not_injective_of_ordinal_of_small {α : Type v} [small.{u} α] (f : ordinal.{u} → α) :
+  ¬ function.injective f :=
+λ h, not_injective_of_ordinal (equiv_shrink α ∘ f) ((equiv_shrink _).injective.comp h)
 
 /-! ### Enumerating unbounded sets of ordinals with ordinals -/
 

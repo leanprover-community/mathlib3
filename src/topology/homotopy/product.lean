@@ -335,15 +335,13 @@ def pi_iso : category_theory.Groupoid.of (Π i : I, (πₓ (X i)).α) ≅ (πₓ
 section preserves
 open category_theory
 
-private def discrete_X_eq : discrete.functor X ⋙ π ≅ discrete.functor (λ i, πₓ (X i)) :=
-nat_iso.of_components (λ i, eq_to_iso rfl) (by tidy)
-
-private def discrete_X_eq_cone : limits.cone (discrete.functor X ⋙ π) ≌
+/-- Equivalence between the categories of cones over the objects `π Xᵢ` written in two ways -/
+def cone_discrete_comp : limits.cone (discrete.functor X ⋙ π) ≌
   limits.cone (discrete.functor (λ i, πₓ (X i))) :=
-limits.cones.postcompose_equivalence (discrete_X_eq X)
+limits.cones.postcompose_equivalence (discrete.comp_nat_iso_discrete X π)
 
-@[simp] private lemma discrete_X_eq_cone_pi_map_cone :
-  (discrete_X_eq_cone X).functor.obj ((π).map_cone (Top.pi_fan X))
+lemma cone_discrete_comp_obj_map_cone :
+  (cone_discrete_comp X).functor.obj ((π).map_cone (Top.pi_fan X))
   = limits.fan.mk (πₓ (Top.of (Π i, X i))) (proj X) := rfl
 
 /-- This is `pi_iso.inv` as a cone morphism (in fact, isomorphism) -/
@@ -360,8 +358,8 @@ end
 def preserves_product : limits.preserves_limit (discrete.functor X) π :=
 begin
   apply limits.preserves_limit_of_preserves_limit_cone (Top.pi_fan_is_limit X),
-  apply (limits.is_limit.of_cone_equiv (discrete_X_eq_cone X)).to_fun,
-  simp only [discrete_X_eq_cone_pi_map_cone],
+  apply (limits.is_limit.of_cone_equiv (cone_discrete_comp X)).to_fun,
+  simp only [cone_discrete_comp_obj_map_cone],
   apply limits.is_limit.of_iso_limit _ (as_iso (pi_Top_to_pi_cone X)).symm,
   exact (Groupoid.pi_limit_cone _).is_limit,
 end

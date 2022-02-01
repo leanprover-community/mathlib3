@@ -3,12 +3,11 @@ Copyright (c) 2022 Jocchim Breitner. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joachim Breitner
 -/
-import group_theory.subgroup.basic
-import tactic.group
 import group_theory.general_commutator
 import group_theory.order_of_element
 import data.finset.noncomm_prod
 import ring_theory.coprime.lemmas
+
 /-!
 
 # Canonical homomorphism from a pi group

@@ -467,8 +467,8 @@ def lift_monoid_with_zero_hom (φ : polynomial K →*₀ G₀) (hφ : function.i
 { to_fun := λ f, ratfunc.lift_on f (λ p q, φ p / (φ q)) $ λ p q p' q' hq hq' h, begin
     casesI subsingleton_or_nontrivial K,
     { rw [subsingleton.elim p q, subsingleton.elim p' q, subsingleton.elim q' q] },
-    rw [div_eq_div_iff (φ.map_ne_zero_of_mem_non_zero_divisors hφ hq)
-        (φ.map_ne_zero_of_mem_non_zero_divisors hφ hq'), ←map_mul, h, map_mul]
+    rw [div_eq_div_iff (map_ne_zero_of_mem_non_zero_divisors _ hφ hq)
+        (map_ne_zero_of_mem_non_zero_divisors _ hφ hq'), ←map_mul, h, map_mul]
   end,
   map_one' := by { rw [←of_fraction_ring_one, ←localization.mk_one, lift_on_of_fraction_ring_mk],
                    simp only [map_one, submonoid.coe_one, div_one] },
@@ -497,7 +497,7 @@ begin
     intro h,
     refine localization.r_of_eq _,
     simpa only [←hφ.eq_iff, map_mul] using mul_eq_mul_of_div_eq_div _ _ _ _ h.symm;
-    exact (φ.map_ne_zero_of_mem_non_zero_divisors hφ (set_like.coe_mem _)) },
+    exact (map_ne_zero_of_mem_non_zero_divisors _ hφ (set_like.coe_mem _)) },
   { exact λ _, rfl },
   { exact λ _, rfl }
 end
@@ -517,7 +517,7 @@ def lift_ring_hom (φ : polynomial K →+* L) (hφ : function.injective φ) : ra
         simp only [map_add, map_mul, submonoid.coe_mul] },
       all_goals {
         try { simp only [←map_mul, ←submonoid.coe_mul] },
-        exact ring_hom.map_ne_zero_of_mem_non_zero_divisors _ hφ (set_like.coe_mem _) } },
+        exact map_ne_zero_of_mem_non_zero_divisors _ hφ (set_like.coe_mem _) } },
     { refl },
     { refl } },
   ..lift_monoid_with_zero_hom φ.to_monoid_with_zero_hom hφ }

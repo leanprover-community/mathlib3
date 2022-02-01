@@ -2033,6 +2033,9 @@ le_antisymm
 def nfp (f : ordinal → ordinal) (a : ordinal) :=
 sup (λ n : ℕ, f^[n] a)
 
+theorem nfp_le {f a b} : nfp f a ≤ b ↔ ∀ n, f^[n] a ≤ b :=
+sup_le
+
 theorem iterate_le_nfp (f a n) : f^[n] a ≤ nfp f a :=
 le_sup _ n
 

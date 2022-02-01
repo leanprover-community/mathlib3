@@ -1845,7 +1845,8 @@ begin
   have hn : φ.order.get (order_finite_iff_ne_zero.mpr hφ) = n,
   { simp [ho] },
   rw ←hn,
-  refine le_antisymm (le_multiplicity_of_pow_dvd $ X_pow_order_dvd h) (enat.find_le _ _ _),
+  refine le_antisymm (le_multiplicity_of_pow_dvd $ X_pow_order_dvd
+    (order_finite_iff_ne_zero.mpr hφ)) (enat.find_le _ _ _),
   rintro ⟨ψ, H⟩,
   have := congr_arg (coeff R n) H,
   rw [mul_comm, coeff_mul_of_lt_order, ←hn] at this,

@@ -8,6 +8,29 @@ import algebra.is_prime_pow
 import number_theory.arithmetic_function
 import analysis.special_functions.log
 
+/-!
+# The von Mangoldt Function
+
+In this file we define the von Mangoldt function: the function on natural numbers that returns
+`log p` if the input can be expressed as `p^k` for a prime `p`.
+
+## Main Results
+
+The main definition for this file is
+
+- `nat.arithmetic_function.von_mangoldt`: The von Mangoldt function `Λ`.
+
+We then prove the classical summation property of the von Mangoldt function in
+`nat.arithmetic_function.von_mangoldt_sum`, that `∑ i in n.divisors, Λ i = real.log n`, and use this
+to deduce alternative expressions for the von Mangoldt function via Möbius inversion, see
+`nat.arithmetic_function.sum_moebius_mul_log_eq`.
+
+## Notation
+
+We use the standard notation `Λ` to represent the von Mangoldt function.
+
+-/
+
 namespace nat
 namespace arithmetic_function
 
@@ -34,14 +57,12 @@ lemma von_mangoldt_apply {n : ℕ} :
 
 @[simp] lemma von_mangoldt_apply_one : Λ 1 = 0 := by simp [von_mangoldt_apply]
 
-lemma is_prime_pow_pow_iff {n k : ℕ} (hk : k ≠ 0) :
-  is_prime_pow (n ^ k) ↔ is_prime_pow n :=
+@[simp] lemma von_mangoldt_nonneg {n : ℕ} : 0 ≤ Λ n :=
 begin
-  simp only [is_prime_pow_iff_unique_prime_dvd],
-  apply exists_unique_congr,
-  simp only [and.congr_right_iff],
-  intros p hp,
-  exact ⟨hp.dvd_of_dvd_pow, λ t, t.trans (dvd_pow_self _ hk)⟩,
+  rw [von_mangoldt_apply],
+  split_ifs,
+  { exact real.log_nonneg (one_le_cast.2 (nat.min_fac_pos n)) },
+  refl
 end
 
 lemma von_mangoldt_apply_pow {n k : ℕ} (hk : k ≠ 0) : Λ (n ^ k) = Λ n :=

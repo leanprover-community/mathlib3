@@ -135,10 +135,11 @@ example {f : ℕ → ℚ} {a : ℚ} (hf: summable f) (n : ℕ) :
 (sum_add_tsum_nat_add n hf).symm
 
 
-
-example {f g : ℕ → ℚ} (hfg : ∀ n : ℕ, f n ≤ g n) (hg : summable g) : summable f :=
+-- Comparison test
+example {f g : ℕ → ℝ} (hfg : ∀ n : ℕ, f n ≤ g n) (hf : ∀ n : ℕ, 0 ≤ f n) (hg : summable g) :
+  summable f :=
 begin
-
+  -- library_search,
   sorry,
 end
 

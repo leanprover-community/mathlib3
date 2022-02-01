@@ -5,7 +5,7 @@ Authors: Heather Macbeth
 -/
 import analysis.inner_product_space.rayleigh
 import analysis.inner_product_space.pi_L2
-import analysis.inner_product_space.l2
+import analysis.inner_product_space.l2_space
 
 /-! # Spectral theory of self-adjoint operators
 

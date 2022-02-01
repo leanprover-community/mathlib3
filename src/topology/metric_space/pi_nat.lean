@@ -334,10 +334,7 @@ begin
   haveI : ∀ n, discrete_topology (E n),
   { assume n,
     have Z := h n,
-    library_search
-
-
-  }
+    library_search }
 end
 -/
 

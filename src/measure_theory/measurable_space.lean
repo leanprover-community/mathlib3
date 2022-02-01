@@ -687,7 +687,6 @@ end
 lemma measurable_set_pi {s : set δ} {t : Π i, set (π i)} (hs : countable s) :
   measurable_set (pi s t) ↔ (∀ i ∈ s, measurable_set (t i)) ∨ pi s t = ∅ :=
 begin
-  classical,
   cases (pi s t).eq_empty_or_nonempty with h h,
   { simp [h] },
   { simp [measurable_set_pi_of_nonempty hs, h, ← not_nonempty_iff_eq_empty] }

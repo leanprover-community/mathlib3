@@ -151,6 +151,7 @@ export has_measurable_pow (measurable_pow)
 instance has_measurable_mul.has_measurable_pow (M : Type*) [monoid M] [measurable_space M]
   [has_measurable_mul₂ M] : has_measurable_pow M ℕ :=
 ⟨begin
+  haveI : measurable_singleton_class ℕ := ⟨λ _, trivial⟩,
   refine measurable_from_prod_encodable (λ n, _),
   induction n with n ih,
   { simp [pow_zero, measurable_one] },

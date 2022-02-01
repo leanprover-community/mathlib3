@@ -476,7 +476,7 @@ begin
   -- density point
   have B₁ : ∀ᶠ r in 𝓝[>] (0 : ℝ), (s ∩ ({x} + r • closed_ball z ε)).nonempty :=
     eventually_nonempty_inter_smul_of_density_one μ s x hx
-      _ measurable_set_closed_ball (add_haar_closed_ball_pos μ z εpos).ne',
+      _ measurable_set_closed_ball (measure_closed_ball_pos μ z εpos).ne',
   obtain ⟨ρ, ρpos, hρ⟩ :
     ∃ ρ > 0, ball x ρ ∩ s ⊆ {y : E | ∥f y - f x - (f' x) (y - x)∥ ≤ ε * ∥y - x∥} :=
       mem_nhds_within_iff.1 (is_o.def (hf' x xs) εpos),

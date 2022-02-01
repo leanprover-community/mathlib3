@@ -1149,6 +1149,7 @@ instance : inhabited X.open_cover := ⟨X.affine_cover⟩
 
 /-- Given an open cover `{ Uᵢ }` of `X`, and for each `Uᵢ` an open cover, we may combine these
 open covers to form an open cover of `X`.  -/
+@[simps J obj map]
 def open_cover.bind (f : Π (x : 𝒰.J), open_cover (𝒰.obj x)) : open_cover X :=
 { J := Σ (i : 𝒰.J), (f i).J,
   obj := λ x, (f x.1).obj x.2,
@@ -1164,6 +1165,50 @@ def open_cover.bind (f : Π (x : 𝒰.J), open_cover (𝒰.obj x)) : open_cover 
     erw comp_apply,
     rw [hz, hy],
   end }
+
+/-- An isomorphism `X ⟶ Y` is an open cover of `Y`. -/
+@[simps J obj map]
+def open_cover_of_is_iso {X Y : Scheme.{u}} (f : X ⟶ Y) [is_iso f] :
+  open_cover Y :=
+{ J := punit.{v+1},
+  obj := λ _, X,
+  map := λ _, f,
+  f := λ _, punit.star,
+  covers := λ x, by { rw set.range_iff_surjective.mpr, { trivial }, rw ← Top.epi_iff_surjective,
+    apply_instance } }
+
+/-- We construct an open cover from another, by providing the needed fields and showing that the
+provided fields are isomorphic with the original open cover. -/
+@[simps J obj map]
+def open_cover.copy {X : Scheme} (𝒰 : open_cover X)
+  (J : Type*) (obj : J → Scheme) (map : ∀ i, obj i ⟶ X)
+  (e₁ : J ≃ 𝒰.J) (e₂ : ∀ i, obj i ≅ 𝒰.obj (e₁ i))
+  (e₂ : ∀ i, map i = (e₂ i).hom ≫ 𝒰.map (e₁ i)) : open_cover X :=
+{ J := J,
+  obj := obj,
+  map := map,
+  f := λ x, e₁.symm (𝒰.f x),
+  covers := λ x, begin
+    rw [e₂, Scheme.comp_val_base, coe_comp, set.range_comp, set.range_iff_surjective.mpr,
+      set.image_univ,  e₁.right_inverse_symm],
+    { exact 𝒰.covers x },
+    { rw ← Top.epi_iff_surjective, apply_instance }
+  end,
+  is_open := λ i, by { rw e₂, apply_instance } }
+
+/-- The pushforward of an open cover along an isomorphism. -/
+@[simps J obj map]
+def open_cover.pushforward_iso {X Y : Scheme} (𝒰 : open_cover X)
+  (f : X ⟶ Y) [is_iso f] :
+  open_cover Y :=
+((open_cover_of_is_iso f).bind (λ _, 𝒰)).copy 𝒰.J _ _
+  ((equiv.punit_prod _).symm.trans (equiv.sigma_equiv_prod punit 𝒰.J).symm)
+  (λ _, iso.refl _)
+  (λ _, (category.id_comp _).symm)
+
+-- Related result : `open_cover.pullback_cover`, where we pullback an open cover on `X` along a
+-- morphism `W ⟶ X`. This is provided at the end of the file since it needs some more results
+-- about open immersion (which in turn needs the open cover API).
 
 local attribute [reducible] CommRing.of CommRing.of_hom
 
@@ -1237,6 +1282,34 @@ begin
     { exact ⟨x,hxV,e⟩ },
     { rw set.image_subset_iff, exact hVU } }
 end
+
+/--
+Every open cover of a quasi-compact scheme can be refined into a finite subcover.
+-/
+@[simps obj map]
+def open_cover.finite_subcover {X : Scheme} (𝒰 : open_cover X) [H : compact_space X.carrier] :
+  open_cover X :=
+begin
+  have := @@compact_space.elim_nhds_subcover _ H
+    (λ (x : X.carrier), set.range ((𝒰.map (𝒰.f x)).1.base))
+    (λ x, (is_open_immersion.open_range (𝒰.map (𝒰.f x))).mem_nhds (𝒰.covers x)),
+  let t := this.some,
+  have h : ∀ (x : X.carrier), ∃ (y : t), x ∈ set.range ((𝒰.map (𝒰.f y)).1.base),
+  { intro x,
+    have h' : x ∈ (⊤ : set X.carrier) := trivial,
+    rw [← classical.some_spec this, set.mem_Union] at h',
+    rcases h' with ⟨y,_,⟨hy,rfl⟩,hy'⟩,
+    exact ⟨⟨y,hy⟩,hy'⟩ },
+  exact
+  { J := t,
+    obj := λ x, 𝒰.obj (𝒰.f x.1),
+    map := λ x, 𝒰.map (𝒰.f x.1),
+    f := λ x, (h x).some,
+    covers := λ x, (h x).some_spec }
+end
+
+instance [H : compact_space X.carrier] : fintype 𝒰.finite_subcover.J :=
+by { delta open_cover.finite_subcover, apply_instance }
 
 end Scheme
 
@@ -1452,5 +1525,25 @@ LocallyRingedSpace.is_open_immersion.lift_uniq f g H' l hl
   inv_hom_id' := by { rw ← cancel_mono g, simp } }
 
 end is_open_immersion
+
+/-- Given an open cover on `X`, we may pull them back along a morphism `W ⟶ X` to obtain
+an open cover of `W`. -/
+@[simps]
+def Scheme.open_cover.pullback_cover {X : Scheme} (𝒰 : X.open_cover) {W : Scheme} (f : W ⟶ X) :
+  W.open_cover :=
+{ J := 𝒰.J,
+  obj := λ x, pullback f (𝒰.map x),
+  map := λ x, pullback.fst,
+  f := λ x, 𝒰.f (f.1.base x),
+  covers := λ x, begin
+    rw ← (show _ = (pullback.fst : pullback f (𝒰.map (𝒰.f (f.1.base x))) ⟶ _).1.base,
+      from preserves_pullback.iso_hom_fst Scheme.forget_to_Top f
+      (𝒰.map (𝒰.f (f.1.base x)))),
+    rw [coe_comp, set.range_comp, set.range_iff_surjective.mpr, set.image_univ,
+      Top.pullback_fst_range],
+    obtain ⟨y, h⟩ := 𝒰.covers (f.1.base x),
+    exact ⟨y, h.symm⟩,
+    { rw ← Top.epi_iff_surjective, apply_instance }
+  end }
 
 end algebraic_geometry

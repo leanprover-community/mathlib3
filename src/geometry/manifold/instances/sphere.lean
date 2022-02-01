@@ -288,7 +288,7 @@ def stereographic' (n : ℕ) [fact (finrank ℝ E = n + 1)] (v : sphere (0:E) 1)
   local_homeomorph (sphere (0:E) 1) (euclidean_space ℝ (fin n)) :=
 (stereographic (norm_eq_of_mem_sphere v)) ≫ₕ
 (linear_isometry_equiv.from_orthogonal_span_singleton n
-  (nonzero_of_mem_unit_sphere v)).to_homeomorph.to_local_homeomorph
+  (ne_zero_of_mem_unit_sphere v)).to_homeomorph.to_local_homeomorph
 
 @[simp] lemma stereographic'_source {n : ℕ} [fact (finrank ℝ E = n + 1)] (v : sphere (0:E) 1) :
   (stereographic' n v).source = {v}ᶜ :=
@@ -322,10 +322,10 @@ begin
   rintros _ _ ⟨v, rfl⟩ ⟨v', rfl⟩,
   let U : (ℝ ∙ (v:E))ᗮ ≃ₗᵢ[ℝ] euclidean_space ℝ (fin n) :=
     linear_isometry_equiv.from_orthogonal_span_singleton n
-      (nonzero_of_mem_unit_sphere v),
+      (ne_zero_of_mem_unit_sphere v),
   let U' : (ℝ ∙ (v':E))ᗮ ≃ₗᵢ[ℝ] euclidean_space ℝ (fin n) :=
     linear_isometry_equiv.from_orthogonal_span_singleton n
-      (nonzero_of_mem_unit_sphere v'),
+      (ne_zero_of_mem_unit_sphere v'),
   have hUv : stereographic' n v = (stereographic (norm_eq_of_mem_sphere v)) ≫ₕ
     U.to_homeomorph.to_local_homeomorph := rfl,
   have hU'v' : stereographic' n v' = (stereographic (norm_eq_of_mem_sphere v')).trans
@@ -349,7 +349,7 @@ begin
   { exact continuous_subtype_coe },
   { intros v _,
     let U : (ℝ ∙ ((-v):E))ᗮ ≃ₗᵢ[ℝ] euclidean_space ℝ (fin n) :=
-      linear_isometry_equiv.from_orthogonal_span_singleton n (nonzero_of_mem_unit_sphere (-v)),
+      linear_isometry_equiv.from_orthogonal_span_singleton n (ne_zero_of_mem_unit_sphere (-v)),
     exact ((times_cont_diff_stereo_inv_fun_aux.comp
       (ℝ ∙ ((-v):E))ᗮ.subtypeL.times_cont_diff).comp U.symm.times_cont_diff).times_cont_diff_on }
 end
@@ -369,7 +369,7 @@ begin
   refine ⟨continuous_induced_rng hf.continuous, _⟩,
   intros v,
   let U : (ℝ ∙ ((-v):E))ᗮ ≃ₗᵢ[ℝ] euclidean_space ℝ (fin n) :=
-    (linear_isometry_equiv.from_orthogonal_span_singleton n (nonzero_of_mem_unit_sphere (-v))),
+    (linear_isometry_equiv.from_orthogonal_span_singleton n (ne_zero_of_mem_unit_sphere (-v))),
   have h : times_cont_diff_on ℝ ⊤ U set.univ :=
     U.times_cont_diff.times_cont_diff_on,
   have H₁ := (h.comp' times_cont_diff_on_stereo_to_fun).times_cont_mdiff_on,
@@ -387,7 +387,12 @@ end
 /-- The antipodal map is smooth. -/
 lemma times_cont_mdiff_neg_sphere {n : ℕ} [fact (finrank ℝ E = n + 1)] :
   times_cont_mdiff (𝓡 n) (𝓡 n) ∞ (λ x : sphere (0:E) 1, -x) :=
-(times_cont_diff_neg.times_cont_mdiff.comp times_cont_mdiff_coe_sphere).cod_restrict_sphere _
+begin
+  -- this doesn't elaborate well in term mode
+  apply times_cont_mdiff.cod_restrict_sphere,
+  apply times_cont_diff_neg.times_cont_mdiff.comp _,
+  exact times_cont_mdiff_coe_sphere,
+end
 
 end smooth_manifold
 
@@ -407,17 +412,20 @@ metric.sphere.smooth_manifold_with_corners
 /-- The unit circle in `ℂ` is a Lie group. -/
 instance : lie_group (𝓡 1) circle :=
 { smooth_mul := begin
+    apply times_cont_mdiff.cod_restrict_sphere,
     let c : circle → ℂ := coe,
-    have h₁ : times_cont_mdiff _ _ _ (prod.map c c) :=
-      times_cont_mdiff_coe_sphere.prod_map times_cont_mdiff_coe_sphere,
     have h₂ : times_cont_mdiff (𝓘(ℝ, ℂ).prod 𝓘(ℝ, ℂ)) 𝓘(ℝ, ℂ) ∞ (λ (z : ℂ × ℂ), z.fst * z.snd),
     { rw times_cont_mdiff_iff,
       exact ⟨continuous_mul, λ x y, (times_cont_diff_mul.restrict_scalars ℝ).times_cont_diff_on⟩ },
-    exact (h₂.comp h₁).cod_restrict_sphere _,
+    suffices h₁ : times_cont_mdiff _ _ _ (prod.map c c),
+    { apply h₂.comp h₁ },
+    -- this elaborates much faster with `apply`
+    apply times_cont_mdiff.prod_map; exact times_cont_mdiff_coe_sphere,
   end,
-  smooth_inv := (complex.conj_cle.times_cont_diff.times_cont_mdiff.comp
-    times_cont_mdiff_coe_sphere).cod_restrict_sphere _,
-  .. metric.sphere.smooth_manifold_with_corners }
+  smooth_inv := begin
+    apply times_cont_mdiff.cod_restrict_sphere,
+    exact complex.conj_cle.times_cont_diff.times_cont_mdiff.comp times_cont_mdiff_coe_sphere
+  end }
 
 /-- The map `λ t, exp (t * I)` from `ℝ` to the unit circle in `ℂ` is smooth. -/
 lemma times_cont_mdiff_exp_map_circle : times_cont_mdiff 𝓘(ℝ, ℝ) (𝓡 1) ∞ exp_map_circle :=

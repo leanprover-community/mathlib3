@@ -428,6 +428,19 @@ lemma _root_.is_root_of_unity_iff {n : ℕ} (h : 0 < n) (R : Type*) [comm_ring R
 by rw [←mem_nth_roots h, nth_roots, mem_roots $ X_pow_sub_C_ne_zero h _,
        C_1, ←prod_cyclotomic_eq_X_pow_sub_one h, is_root_prod]; apply_instance
 
+lemma is_root_of_unity_of_root_cyclotomic {n : ℕ} {R} [comm_ring R] {ζ : R} {i : ℕ}
+  (hi : i ∈ n.divisors) (h : (cyclotomic i R).is_root ζ) : ζ ^ n = 1 :=
+begin
+  rcases n.eq_zero_or_pos with rfl | hn,
+  { exact pow_zero _ },
+  have := congr_arg (eval ζ) (prod_cyclotomic_eq_X_pow_sub_one hn R).symm,
+  rw [eval_sub, eval_pow, eval_X, eval_one] at this,
+  convert eq_add_of_sub_eq' this,
+  convert (add_zero _).symm,
+  apply eval_eq_zero_of_dvd_of_eval_eq_zero _ h,
+  exact finset.dvd_prod_of_mem _ hi
+end
+
 section arithmetic_function
 open nat.arithmetic_function
 open_locale arithmetic_function
@@ -509,11 +522,15 @@ begin
       cyclotomic'_eq_X_pow_sub_one_div hpos hz, finset.prod_congr (refl k.proper_divisors) h]
 end
 
+section roots
+
+variables {R : Type*} {n : ℕ} [comm_ring R] [is_domain R]
+
 /-- Any `n`-th primitive root of unity is a root of `cyclotomic n K`.-/
-lemma is_root_cyclotomic {n : ℕ} {K : Type*} [comm_ring K] [is_domain K] (hpos : 0 < n) {μ : K}
-  (h : is_primitive_root μ n) : is_root (cyclotomic n K) μ :=
+lemma is_root_cyclotomic (hpos : 0 < n) {μ : R} (h : is_primitive_root μ n) :
+  is_root (cyclotomic n R) μ :=
 begin
-  rw [← mem_roots (cyclotomic_ne_zero n K),
+  rw [← mem_roots (cyclotomic_ne_zero n R),
       cyclotomic_eq_prod_X_sub_primitive_roots h, roots_prod_X_sub_C, ← finset.mem_def],
   rwa [← mem_primitive_roots hpos] at h,
 end
@@ -554,8 +571,8 @@ begin
   simp [polynomial.is_unit_iff_degree_eq_zero]
 end
 
-lemma is_root_cyclotomic_iff {n : ℕ} {R : Type*} [comm_ring R] [is_domain R] [ne_zero (n : R)]
-  {μ : R} : is_root (cyclotomic n R) μ ↔ is_primitive_root μ n :=
+lemma is_root_cyclotomic_iff [ne_zero (n : R)] {μ : R} :
+  is_root (cyclotomic n R) μ ↔ is_primitive_root μ n :=
 begin
   have hf : function.injective _ := is_fraction_ring.injective R (fraction_ring R),
   haveI : ne_zero (n : fraction_ring R) := ne_zero.nat_of_injective hf,
@@ -563,7 +580,27 @@ begin
       ←is_root_cyclotomic_iff']
 end
 
-/-- If `R` is of characterist zero, then `ζ` is a root of `cyclotomic n R` if and only if it is a
+lemma roots_cyclotomic_nodup [ne_zero (n : R)] : (cyclotomic n R).roots.nodup :=
+begin
+  obtain h | ⟨ζ, hζ⟩ := (cyclotomic n R).roots.empty_or_exists_mem,
+  { exact h.symm ▸ multiset.nodup_zero },
+  rw [mem_roots $ cyclotomic_ne_zero n R, is_root_cyclotomic_iff] at hζ,
+  refine multiset.nodup_of_le (roots.le_of_dvd (X_pow_sub_C_ne_zero
+    (ne_zero.pos_of_ne_zero_coe R) 1) $ cyclotomic.dvd_X_pow_sub_one n R) hζ.nth_roots_nodup,
+end
+
+lemma cyclotomic.roots_to_finset_eq_primitive_roots [ne_zero (n : R)] :
+    (⟨(cyclotomic n R).roots, roots_cyclotomic_nodup⟩ : finset _) = primitive_roots n R :=
+by { ext, simp [cyclotomic_ne_zero n R, is_root_cyclotomic_iff,
+                mem_primitive_roots, ne_zero.pos_of_ne_zero_coe R] }
+
+lemma cyclotomic.roots_eq_primitive_roots_val [ne_zero (n : R)] :
+  (cyclotomic n R).roots = (primitive_roots n R).val :=
+by rw ←cyclotomic.roots_to_finset_eq_primitive_roots
+
+end roots
+
+/-- If `R` is of characteristic zero, then `ζ` is a root of `cyclotomic n R` if and only if it is a
 primitive `n`-th root of unity. -/
 lemma is_root_cyclotomic_iff_char_zero {n : ℕ} {R : Type*} [comm_ring R] [is_domain R]
   [char_zero R] {μ : R} (hn : 0 < n) :
@@ -915,11 +952,11 @@ begin
   rcases k.eq_zero_or_pos with rfl | hk,
   { rw [pow_zero, one_mul, is_root_cyclotomic_iff] },
   refine ⟨λ h, _, λ h, _⟩,
-  { rw [is_root.def, cyclotomic_mul_prime_pow_eq R (ne_zero.not_dvd_char R p m) hk, eval_pow] at h,
+  { rw [is_root.def, cyclotomic_mul_prime_pow_eq R (ne_zero.not_char_dvd R p m) hk, eval_pow] at h,
     replace h := pow_eq_zero h,
     rwa [← is_root.def, is_root_cyclotomic_iff] at h },
   { rw [← is_root_cyclotomic_iff, is_root.def] at h,
-    rw [cyclotomic_mul_prime_pow_eq R (ne_zero.not_dvd_char R p m) hk,
+    rw [cyclotomic_mul_prime_pow_eq R (ne_zero.not_char_dvd R p m) hk,
         is_root.def, eval_pow, h, zero_pow],
     simp only [tsub_pos_iff_lt],
     apply strict_mono_pow hp.out.one_lt (nat.pred_lt hk.ne') }

@@ -21,8 +21,8 @@ image of different morphism commute, we obtain a canoncial morphism
 ## Main definitions
 
 * `pi_hom.hom : (Π (i : I), H i) →* G` is the main homomorphism
-* `pi_hom_restr.hom (S : fintype S): (Π (i : I), H i) →* G` is the homomorphism restricted to the set
-   `S`, and mostly of internal interest in this file, to help with induction
+* `pi_hom_restr.hom (S : fintype S): (Π (i : I), H i) →* G` is the homomorphism restricted to the
+   set `S`, and mostly of internal interest in this file, to allow inductive proofs.
 * `subgroup_pi_hom.hom : (Π (i : I), H i) →* G` is the specialization to `H i : subgroup G` and
    the subgroup embedding.
 
@@ -38,8 +38,6 @@ image of different morphism commute, we obtain a canoncial morphism
    then the ranges are independent.
 * `independent_of_coprime_order`: If commuting, normal `H i` have coprime orders, they are
    independent.
-* `pairwise_elements_commute_of_normal_of_independent`: Normal, independent subgroups have
-   commuting elements.
 
 -/
 
@@ -206,8 +204,7 @@ begin
   { refine (bsupr_le _),
     rintro i hmem x ⟨y, rfl⟩,
     use (function.update 1 i y),
-    simp [hmem],
-  }
+    simp [hmem], }
 end
 
 lemma pow (k : ℕ) : (hom S f) ^ k = hom S (f ^ k) :=
@@ -392,21 +389,7 @@ begin
   simpa using this,
 end
 
-end  commuting_subgroups
-
-lemma pairwise_elements_commute_of_normal_of_independent
-  {I : Type*} {H : I → subgroup G}
-  (hnorm : ∀ i, (H i).normal) (hind : complete_lattice.independent H) :
-  (∀ i j : I, i ≠ j → ∀ (x y : G), x ∈ H i → y ∈ H j → commute x y) :=
-begin
-  intros i j hne x y hx hy,
-  have : H i ⊓ H j ≤ ⊥ := complete_lattice.independent.disjoint hind hne,
-  have : ⁅H i, H j⁆ ≤ ⊥ := le_trans (general_commutator_le_inf _ _) this,
-  have : x * y * x ⁻¹ * y ⁻¹ = 1,
-    by { rw [← subgroup.mem_bot], exact this (general_commutator_containment _ _ hx hy), },
-  have : (x * y * x ⁻¹ * y ⁻¹) * (y * x) = y * x, by { simp [this] },
-  show x * y = y * x, by simpa [mul_assoc] using this,
-end
+end commuting_subgroups
 
 end subgroup_pi_hom
 

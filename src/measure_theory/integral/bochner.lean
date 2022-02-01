@@ -146,8 +146,6 @@ noncomputable theory
 open_locale classical topological_space big_operators nnreal ennreal measure_theory
 open set filter topological_space ennreal emetric
 
-local attribute [instance] fact_one_le_one_ennreal
-
 namespace measure_theory
 
 variables {α E F 𝕜 : Type*}
@@ -659,8 +657,6 @@ lemma continuous_integral : continuous (λ (f : α →₁[μ] E), integral f) :=
 L1.integral_clm.continuous
 
 section pos_part
-
-local attribute [instance] fact_one_le_one_ennreal
 
 lemma integral_eq_norm_pos_part_sub (f : α →₁[μ] ℝ) :
   integral f = ∥Lp.pos_part f∥ - ∥Lp.neg_part f∥ :=

@@ -3,6 +3,7 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Floris van Doorn, Violeta Hernández Palacios
 -/
+import logic.small
 import set_theory.ordinal
 import tactic.by_contra
 
@@ -1126,6 +1127,9 @@ begin
   exact this.false
 end
 
+theorem lsub_nmem_range {ι} (f : ι → ordinal) : lsub f ∉ set.range f :=
+λ ⟨i, h⟩, h.not_lt (lt_lsub f i)
+
 /-- The bounded least strict upper bound of a family of ordinals. -/
 def blsub (o : ordinal.{u}) (f : Π a < o, ordinal.{max u v}) : ordinal.{max u v} :=
 o.bsup (λ a ha, (f a ha).succ)
@@ -1216,13 +1220,38 @@ begin
   exact (lt_blsub.{u u} (λ x _, x) _ h).false
 end
 
+end ordinal
+
+/-! ### Results about injectivity and surjectivity -/
+
+lemma not_surjective_of_ordinal {α : Type u} (f : α → ordinal.{u}) : ¬ function.surjective f :=
+λ h, ordinal.lsub_nmem_range.{u u} f (h _)
+
+lemma not_injective_of_ordinal {α : Type u} (f : ordinal.{u} → α) : ¬ function.injective f :=
+λ h, not_surjective_of_ordinal _ (inv_fun_surjective h)
+
+lemma not_surjective_of_ordinal_of_small {α : Type v} [small.{u} α] (f : α → ordinal.{u}) :
+  ¬ function.surjective f :=
+λ h, not_surjective_of_ordinal _ (h.comp (equiv_shrink _).symm.surjective)
+
+lemma not_injective_of_ordinal_of_small {α : Type v} [small.{u} α] (f : ordinal.{u} → α) :
+  ¬ function.injective f :=
+λ h, not_injective_of_ordinal _ ((equiv_shrink _).injective.comp h)
+
+/-- The type of ordinals in universe `u` is not `small.{u}`. This is the type-theoretic analog of
+the Burali-Forti paradox. -/
+theorem not_small_ordinal : ¬ small.{u} ordinal.{max u v} :=
+λ h, @not_injective_of_ordinal_of_small _ h _ (λ a b, ordinal.lift_inj.1)
+
 /-! ### Enumerating unbounded sets of ordinals with ordinals -/
+
+namespace ordinal
 
 section
 variables {S : set ordinal.{u}} (hS : unbounded (<) S)
 
 -- A characterization of unboundedness that's more convenient to our purposes.
-private lemma unbounded_aux (hS : unbounded (<) S) (a) : ∃ b, b ∈ S ∧ a ≤ b :=
+private lemma unbounded_aux (a) : ∃ b, b ∈ S ∧ a ≤ b :=
 let ⟨b, hb, hb'⟩ := hS a in ⟨b, hb, le_of_not_gt hb'⟩
 
 /-- Enumerator function for an unbounded set of ordinals. -/
@@ -1874,8 +1903,8 @@ theorem omega_le {o : ordinal.{u}} : omega ≤ o ↔ ∀ n : ℕ, (n : ordinal) 
    let ⟨n, e⟩ := lt_omega.1 h in
    by rw [e, ← succ_le]; exact H (n+1)⟩
 
-theorem omega_eq_sup_nat_cast : omega = sup nat.cast :=
-(omega_le.2 $ le_sup _).antisymm $ sup_le.2 $ λ n, (nat_lt_omega n).le
+theorem sup_nat_cast : sup nat.cast = omega :=
+(sup_le.2 $ λ n, (nat_lt_omega n).le).antisymm $ omega_le.2 $ le_sup _
 
 theorem nat_lt_limit {o} (h : is_limit o) : ∀ n : ℕ, (n : ordinal) < o
 | 0     := lt_of_le_of_ne (ordinal.zero_le o) h.1.symm
@@ -1989,6 +2018,31 @@ le_antisymm
   ((opow_le_of_limit (one_le_iff_ne_zero.1 $ le_of_lt a1) omega_is_limit).2
     (λ b hb, le_of_lt (opow_lt_omega h hb)))
   (le_opow_self _ a1)
+
+theorem is_normal.apply_omega {f : ordinal.{u} → ordinal.{u}} (hf : is_normal f) :
+  sup.{0 u} (f ∘ nat.cast) = f omega :=
+by rw [←sup_nat_cast, is_normal.sup.{0 u u} hf ⟨0⟩]
+
+theorem sup_add_nat (o : ordinal.{u}) : sup (λ n : ℕ, o + n) = o + omega :=
+(add_is_normal o).apply_omega
+
+theorem sup_mul_nat (o : ordinal) : sup (λ n : ℕ, o * n) = o * omega :=
+begin
+  rcases eq_zero_or_pos o with rfl | ho,
+  { rw zero_mul, exact sup_eq_zero_iff.2 (λ n, zero_mul n) },
+  { exact (mul_is_normal ho).apply_omega }
+end
+
+theorem sup_opow_nat {o : ordinal.{u}} (ho : 0 < o) :
+  sup (λ n : ℕ, o ^ n) = o ^ omega :=
+begin
+  rcases lt_or_eq_of_le (one_le_iff_pos.2 ho) with ho₁ | rfl,
+  { exact (opow_is_normal ho₁).apply_omega },
+  { rw one_opow,
+    refine le_antisymm (sup_le.2 (λ n, by rw one_opow)) _,
+    convert le_sup _ 0,
+    rw [nat.cast_zero, opow_zero] }
+end
 
 /-! ### Fixed points of normal functions -/
 

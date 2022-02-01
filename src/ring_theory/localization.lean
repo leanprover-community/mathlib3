@@ -2662,6 +2662,14 @@ noncomputable instance : field (fraction_ring A) :=
   (algebra_map _ _ r / algebra_map A _ s : fraction_ring A) :=
 by rw [localization.mk_eq_mk', is_fraction_ring.mk'_eq_div]
 
+noncomputable instance [is_domain R] [field K] [algebra R K] [no_zero_smul_divisors R K] :
+  algebra (fraction_ring R) K :=
+ring_hom.to_algebra (is_fraction_ring.lift (no_zero_smul_divisors.algebra_map_injective R _))
+
+instance [is_domain R] [field K] [algebra R K] [no_zero_smul_divisors R K] :
+  is_scalar_tower R (fraction_ring R) K :=
+is_scalar_tower.of_algebra_map_eq (λ x, (is_fraction_ring.lift_algebra_map _ x).symm)
+
 variables (A)
 
 /-- Given an integral domain `A` and a localization map to a field of fractions
@@ -2672,3 +2680,50 @@ noncomputable def alg_equiv (K : Type*) [field K] [algebra A K] [is_fraction_rin
 localization.alg_equiv (non_zero_divisors A) K
 
 end fraction_ring
+
+namespace is_fraction_ring
+
+variables (R S K)
+
+/-- `S` is algebraic over `R` iff a fraction ring of `S` is algebraic over `R` -/
+lemma is_algebraic_iff' [field K] [is_domain R] [is_domain S] [algebra R K] [algebra S K]
+  [no_zero_smul_divisors R K] [is_fraction_ring S K] [is_scalar_tower R S K] :
+  algebra.is_algebraic R S ↔ algebra.is_algebraic R K :=
+begin
+  simp only [algebra.is_algebraic],
+  split,
+  { intros h x,
+    rw [is_fraction_ring.is_algebraic_iff R (fraction_ring R) K, is_algebraic_iff_is_integral],
+    obtain ⟨(a : S), b, ha, rfl⟩ := @div_surjective S _ _ _ _ _ _ x,
+    obtain ⟨f, hf₁, hf₂⟩ := h b,
+    rw [div_eq_mul_inv],
+    refine is_integral_mul _ _,
+    { rw [← is_algebraic_iff_is_integral],
+      refine _root_.is_algebraic_of_larger_base_of_injective
+        (no_zero_smul_divisors.algebra_map_injective R (fraction_ring R)) _,
+      exact is_algebraic_algebra_map_of_is_algebraic (h a) },
+    { rw [← is_algebraic_iff_is_integral],
+      use (f.map (algebra_map R (fraction_ring R))).reverse,
+      split,
+      { rwa [ne.def, polynomial.reverse_eq_zero, ← polynomial.degree_eq_bot,
+          polynomial.degree_map_eq_of_injective
+            (no_zero_smul_divisors.algebra_map_injective R (fraction_ring R)),
+          polynomial.degree_eq_bot]},
+      { haveI : invertible (algebra_map S K b),
+           from is_unit.invertible (is_unit_of_mem_non_zero_divisors
+              (mem_non_zero_divisors_iff_ne_zero.2
+                (λ h, non_zero_divisors.ne_zero ha
+                    ((ring_hom.injective_iff (algebra_map S K)).1
+                    (no_zero_smul_divisors.algebra_map_injective _ _) b h)))),
+        rw [polynomial.aeval_def, ← inv_of_eq_inv, polynomial.eval₂_reverse_eq_zero_iff,
+          polynomial.eval₂_map, ← is_scalar_tower.algebra_map_eq, ← polynomial.aeval_def,
+          ← is_scalar_tower.algebra_map_aeval, hf₂, ring_hom.map_zero] } } },
+  { intros h x,
+    obtain ⟨f, hf₁, hf₂⟩ := h (algebra_map S K x),
+    use [f, hf₁],
+    rw [← is_scalar_tower.algebra_map_aeval] at hf₂,
+    exact (algebra_map S K).injective_iff.1
+      (no_zero_smul_divisors.algebra_map_injective _ _) _ hf₂ }
+end
+
+end is_fraction_ring

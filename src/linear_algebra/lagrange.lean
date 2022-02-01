@@ -78,7 +78,7 @@ end
 
 variables (f : F → F)
 
-/-- Lagrange interpolation: given a finset `s` and a function `f : s → F`,
+/-- Lagrange interpolation: given a finset `s` and a function `f : F → F`,
 `interpolate s f` is the unique polynomial of degree `< s.card`
 that takes value `f x` on all `x` in `s`. -/
 def interpolate : polynomial F :=
@@ -218,6 +218,5 @@ begin
                    eval_sub, eval_X],
         ring } } }
 end
-
 
 end lagrange

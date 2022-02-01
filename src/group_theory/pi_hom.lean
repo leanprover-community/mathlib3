@@ -10,12 +10,43 @@ import group_theory.order_of_element
 import data.finset.noncomm_prod
 import ring_theory.coprime.lemmas
 /-!
-# TODO
+
+# Canonical homomorphism from a pi group
+
+This file defines the construction of the canoncial homomorphism from a product group.
+
+Given a family of morphisms `ϕ i : H i →* G` for each `i : I` where elements in the
+image of different morphism commute, we obtain a canoncial morphism
+`pi_hom.hom : (Π (i : I), H i) →* G` that coincides with `ϕ``
+
+## Main definitions
+
+* `pi_hom.hom : (Π (i : I), H i) →* G` is the main homomorphism
+* `pi_hom_restr.hom (S : fintype S): (Π (i : I), H i) →* G` is the homomorphism restricted to the set
+   `S`, and mostly of internal interest in this file, to help with induction
+* `subgroup_pi_hom.hom : (Π (i : I), H i) →* G` is the specialization to `H i : subgroup G` and
+   the subgroup embedding.
+
+## Main theorems
+
+* `pi_hom.hom` conicides with each `ϕ`
+* `pi_hom.range`: The range of `pi_hom.hom` is `⨆ (i : I), (ϕ i).range`
+* The range of `subgroup_pi_hom.hom` is `⨆ (i : I), H i`
+* `pi_hom.pow`: `pi_hom.hom` commutes with potentation.
+* `pi_hom.injective_of_independent`: `pi_hom.hom` is injective if the `ϕ` are injective and the
+   ranges of the `ϕ` are independent.
+* `independent_range_of_coprime_order`: If the `ϕ` are injective and the `H i` have coprime orders,
+   then the ranges are independent.
+* `independent_of_coprime_order`: If commuting, normal `H i` have coprime orders, they are
+   independent.
+* `pairwise_elements_commute_of_normal_of_independent`: Normal, independent subgroups have
+   commuting elements.
 
 -/
 
 open_locale big_operators
 
+-- A lot of faff just to transport `is_coprime.prod_left` from ℤ to ℕ
 lemma coprime_prod_left
   {I : Type*}
   {x : ℕ} {s : I → ℕ} {t : finset I} :
@@ -33,8 +64,11 @@ begin
 end
 
 
-variables {G : Type*} [group G]
+section with_group
 
+parameters {G : Type*} [group G]
+
+-- TODO: Move to suitable file
 @[simp]
 lemma order_of_inv (x : G) : order_of x⁻¹ = order_of x :=
 begin
@@ -43,6 +77,7 @@ begin
   { nth_rewrite 0 ← (inv_inv x), rw [inv_pow, pow_order_of_eq_one, one_inv], }
 end
 
+-- TODO: Move to suitable file? Or too specialized?
 lemma mul_eq_one_of_disjoint
   {H₁ H₂ : subgroup G} (hdis : disjoint H₁ H₂) {x y : G} (hx : x ∈ H₁) (hy : y ∈ H₂)
   (heq : x * y = 1) : x = 1 ∧ y = 1 :=
@@ -56,183 +91,151 @@ begin
   simp
 end
 
-namespace pi_hom
+section family_of_groups
 
--- We have an family of group
-variables {I : Type*} [fintype I] [decidable_eq I] {H : I → Type*} [∀ i, group (H i)]
+-- We have an family of groups
+parameters {I : Type*} [fintype I] [decidable_eq I] {H : I → Type*} [∀ i, group (H i)]
 
 -- And morphism ϕ into G
-variables (ϕ : Π (i : I), H i →* G)
+parameters (ϕ : Π (i : I), H i →* G)
 
 -- We assume that the elements of different morphism commute
 -- Since we need this all over the place we wrap it up in `fact`
-variables [hcomm : fact (∀ (i j : I), i ≠ j → ∀ (x : H i) (y : H j), commute (ϕ i x) (ϕ j y)) ]
+-- TODO: Worth making this a real `class` over `ϕ`?
+parameters [hcomm : fact (∀ (i j : I), i ≠ j → ∀ (x : H i) (y : H j), commute (ϕ i x) (ϕ j y))]
 include hcomm
 
 -- Elements of `Π (i : I), H i` are called `f` and `g` here
 variables (f g : Π (i : I), H i)
 
-/-- A wrapper around `finset.noncomm_prod` that discharges the commutativiy requirement using
-`hcomm` -/
-def fun_on (S : finset I) : G := finset.noncomm_prod S (λ i, ϕ i (f i)) $
+
+namespace pi_hom_restr
+
+-- In this section, we restrict the hom to a set S
+variables (S : finset I)
+
+/-- The underlying function of `pi_hom_restr.hom` -/
+def to_fun (S : finset I) : G := finset.noncomm_prod S (λ i, ϕ i (f i)) $
   by { rintros i - j -, by_cases (i = j), { subst h }, { exact hcomm.elim _ _ h _ _} }
 
-/-- The product of `ϕ i (f i)` for all `i : I` -/
-def to_fun : G := fun_on ϕ f finset.univ
+@[simp]
+lemma to_fun_empty : to_fun f ∅ = 1 := by simp [to_fun]
 
 @[simp]
-lemma fun_on_empty : fun_on ϕ f ∅ = 1 := by simp [fun_on]
-
-@[simp]
-lemma fun_on_insert_of_not_mem (S : finset I) (i : I) (h : i ∉ S) :
-  fun_on ϕ f (insert i S) = ϕ i (f i) * fun_on ϕ f S :=
+lemma to_fun_insert_of_not_mem (S : finset I) (i : I) (h : i ∉ S) :
+  to_fun f (insert i S) = ϕ i (f i) * to_fun f S :=
 finset.noncomm_prod_insert_of_not_mem _ _ _ _ h
 
-/-
 @[simp]
-lemma fun_on_cons (S : finset I) (i : I) (h : i ∉ S) :
-  fun_on ϕ f (finset.cons i S h) = ϕ i (f i) * fun_on ϕ f S :=
-by { rw finset.cons_eq_insert i S h, exact (fun_on_insert_of_not_mem _ _ _ _ h) }
--/
-
-@[simp]
-lemma fun_on_one (S : finset I) : fun_on ϕ 1 S = 1 :=
+lemma to_fun_one : to_fun 1 S = 1 :=
 begin
    induction S using finset.cons_induction_on with i S hnmem ih,
-   { simp },
-   { simp [ih, hnmem], }
+   { simp }, { simp [ih, hnmem], }
 end
 
-@[simp]
-lemma to_fun_one : to_fun ϕ 1 = 1 := fun_on_one _ _
-
-lemma fun_on_commutes (S : finset I) (i : I) (hnmem : i ∉ S) :
-  commute (ϕ i (g i)) (fun_on ϕ f S) :=
+lemma to_fun_commutes (i : I) (hnmem : i ∉ S) :
+  commute (ϕ i (g i)) (to_fun f S) :=
 begin
   induction S using finset.induction_on with j S hnmem' ih,
   { simp, },
-  { simp only [fun_on_insert_of_not_mem _ _ _ _ hnmem'],
+  { simp only [to_fun_insert_of_not_mem _ _ _ _ hnmem'],
 
     have hij : i ≠ j, by {simp at hnmem, tauto},
     have hiS : i ∉ S, by {simp at hnmem, tauto},
-    calc ϕ i (g i) * (ϕ j (f j) * fun_on ϕ f S)
-        = (ϕ i (g i) * ϕ j (f j)) * fun_on ϕ f S : by rw ← mul_assoc
-    ... = (ϕ j (f j) * ϕ i (g i)) * fun_on ϕ f S : by {congr' 1, apply (fact.elim hcomm _ _ hij)}
-    ... = ϕ j (f j) * (ϕ i (g i) * fun_on ϕ f S) : by rw mul_assoc
-    ... = ϕ j (f j) * (fun_on ϕ f S * ϕ i (g i)) : by { congr' 1, apply (ih hiS) }
-    ... = (ϕ j (f j) * fun_on ϕ f S) * ϕ i (g i) : by rw ← mul_assoc }
+    calc ϕ i (g i) * (ϕ j (f j) * (to_fun ϕ f S : G)) -- TODO: Why do I have to mention `ϕ`?
+        = (ϕ i (g i) * ϕ j (f j)) * to_fun ϕ f S : by rw ← mul_assoc
+    ... = (ϕ j (f j) * ϕ i (g i)) * to_fun ϕ f S : by {congr' 1, apply (fact.elim hcomm _ _ hij)}
+    ... = ϕ j (f j) * (ϕ i (g i) * to_fun ϕ f S) : by rw mul_assoc
+    ... = ϕ j (f j) * (to_fun ϕ f S * ϕ i (g i)) : by { congr' 1, apply (ih hiS) }
+    ... = (ϕ j (f j) * to_fun ϕ f S) * ϕ i (g i) : by rw ← mul_assoc }
 end
 
 @[simp]
-lemma fun_on_mul (S : finset I) : fun_on ϕ (f * g) S = fun_on ϕ f S * fun_on ϕ g S :=
+lemma to_fun_mul (S : finset I) : to_fun (f * g) S = to_fun f S * to_fun g S :=
 begin
   induction S using finset.induction_on with i S hnmem ih,
   { simp, },
-  { simp only [ fun_on_insert_of_not_mem _ _ _ _ hnmem],
+  { simp only [ to_fun_insert_of_not_mem _ _ _ _ hnmem],
     rw ih, clear ih,
     simp only [pi.mul_apply, map_mul],
     repeat { rw mul_assoc }, congr' 1,
     repeat { rw ← mul_assoc }, congr' 1,
-    exact (fun_on_commutes _ _ _ S i hnmem), }
+    exact (to_fun_commutes _ _ _ S i hnmem), }
 end
 
-lemma fun_on_in_sup_range (S : finset I) :
-  fun_on ϕ f S ∈ ⨆ (i : I) (H_1 : i ∈ S), (ϕ i).range :=
+
+lemma to_fun_in_sup_range (S : finset I) :
+  to_fun f S ∈ ⨆ i ∈ S, (ϕ i).range :=
 begin
   induction S using finset.induction_on with i S hnmem ih,
   { simp, },
-  { simp only [ fun_on_insert_of_not_mem _ _ _ _ hnmem],
+  { simp only [ to_fun_insert_of_not_mem _ _ _ _ hnmem],
     refine (subgroup.mul_mem _ _ _),
     { apply (subgroup.mem_Sup_of_mem), { use i }, { simp, }, },
     { refine (@bsupr_le_bsupr' _ _ _ _ _ _ (λ i, (ϕ i).range) _ ih),
       by { intro, simp, intro h, right, exact h}, } }
 end
 
-lemma to_fun_in_sup_range : to_fun ϕ f ∈ ⨆ (i : I), (ϕ i).range :=
-bsupr_le_supr _ (λ i, (ϕ i).range) (fun_on_in_sup_range ϕ f finset.univ)
-
-@[simp]
-lemma to_fun_mul : to_fun ϕ (f * g) = to_fun ϕ f * to_fun ϕ g := fun_on_mul _ _ _ _
-
+/-- The canonical homomorphism from a pi group, restricted to a subset  -/
 def hom : (Π (i : I), H i) →* G :=
-{ to_fun := to_fun ϕ,
+{ to_fun := λ f, to_fun f S,
   map_one' := to_fun_one _,
-  map_mul' := λ f g, to_fun_mul _ f g, }
+  map_mul' := λ f g, to_fun_mul f g S, }
 
-omit hcomm
-def just_one (i : I) (y : H i) : Π (i : I), H i :=
-  λ j, if h : j = i then by { subst h; exact y} else 1
-
-@[simp]
-lemma just_one_eq (i : I) (y : H i) : just_one i y i = y :=
-by { unfold just_one, simp }
-
-@[simp]
-lemma just_one_ne (i : I) (y : H i) (j : I) (h : i ≠ j) :
-  just_one i y j = (1 : H j) :=
-by { unfold just_one, have : ¬ (j = i), by cc, simp [this], }
-
-include hcomm
-
-lemma fun_on_just_one (i : I) (y : H i) (S : finset I) :
-  fun_on ϕ (just_one i y) S = if i ∈ S then ϕ i y else 1 :=
+lemma to_fun_update_one (i : I) (y : H i) (S : finset I) :
+  to_fun (function.update 1 i y) S = if i ∈ S then ϕ i y else 1 :=
 begin
   induction S using finset.induction_on with j S hnmem ih,
   { simp, },
-  { simp only [ fun_on_insert_of_not_mem _ _ _ _ hnmem],
+  { simp only [ to_fun_insert_of_not_mem _ _ _ _ hnmem],
     by_cases (i = j),
-    { subst h,
-      rw ih,
-      simp only [just_one_eq, mul_ite, mul_one, finset.cons_eq_insert, finset.mem_insert,
-        eq_self_iff_true, true_or, if_true, ite_eq_right_iff, mul_left_eq_self],
-      intro i, contradiction, },
+    { subst h, rw ih, simp [hnmem], },
     { change i ≠ j at h,
-      simp [h],
+      simp [h, hnmem, function.update_noteq (ne_comm.mp h)],
       exact ih, } }
 end
 
-lemma to_fun_just_one (i : I) (y : H i) :
-  to_fun ϕ (just_one i y) = ϕ i y :=
-begin
-  unfold to_fun,
-  rw fun_on_just_one ϕ i y _,
-  simp,
-end
+@[simp]
+lemma hom_update_one (i : I) (y : H i):
+  hom S (function.update 1 i y) = if i ∈ S then ϕ i y else 1 := to_fun_update_one _ _ _
 
-lemma range_eq : (hom ϕ).range = (⨆ (i : I), (ϕ i).range) :=
+lemma range : (hom S).range = ⨆ i ∈ S, (ϕ i).range :=
 begin
   apply le_antisymm,
   { rintro x ⟨f, rfl⟩,
-    exact (to_fun_in_sup_range ϕ f), },
-  { refine (supr_le _),
-    rintro i x ⟨y, rfl⟩,
-    exact ⟨_, to_fun_just_one _ i y⟩, }
+    exact (to_fun_in_sup_range ϕ f S), },
+  { refine (bsupr_le _),
+    rintro i hmem x ⟨y, rfl⟩,
+    use (function.update 1 i y),
+    simp [hmem],
+  }
 end
 
-lemma fun_on_pow (k : ℕ) (S : finset I) : (fun_on ϕ f S) ^ k = fun_on ϕ (f ^ k) S :=
+lemma pow (k : ℕ) : (hom S f) ^ k = hom S (f ^ k) :=
 begin
+  change (to_fun ϕ f S) ^ k = to_fun ϕ (f ^ k) S,
   induction S using finset.induction_on with i S hnmem ih,
   { simp },
-  { simp only [ fun_on_insert_of_not_mem _ _ _ _ hnmem],
-    rw [(fun_on_commutes ϕ f f S i hnmem).mul_pow, ih, pi.pow_apply, map_pow] },
+  { simp only [ to_fun_insert_of_not_mem _ _ _ _ hnmem],
+    rw [(to_fun_commutes ϕ f f S i hnmem).mul_pow, ih, pi.pow_apply, map_pow] },
 end
 
-lemma fun_on_eq_one_of_eq_one (S : finset I) (h : ∀ x ∈ S, f x = 1) : fun_on ϕ f S = 1 :=
+lemma hom_eq_one_of_eq_one (h : ∀ x ∈ S, f x = 1) : hom S f = 1 :=
 begin
+  change to_fun ϕ f S = 1,
   induction S using finset.induction_on with i S hnmem ih,
   { simp },
-  { simp only [ fun_on_insert_of_not_mem _ _ _ _ hnmem],
+  { simp only [ to_fun_insert_of_not_mem _ _ _ _ hnmem],
     rw [h _ (finset.mem_insert_self _ _), ih (λ i h', h i (finset.mem_insert_of_mem h'))],
     simp, },
 end
 
-open_locale big_operators
-lemma order_of_fun_on_div_prod_card (S : finset I) [hfin : ∀ i, fintype (H i)]:
-  order_of (fun_on ϕ f S) ∣ (∏ i in S, fintype.card (H i)) :=
+lemma order_of_hom_dvd_prod_card [hfin : ∀ i, fintype (H i)]:
+  order_of (hom S f) ∣ (∏ i in S, fintype.card (H i)) :=
 begin
   rw order_of_dvd_iff_pow_eq_one,
-  rw fun_on_pow,
-  apply fun_on_eq_one_of_eq_one,
+  rw pow,
+  apply hom_eq_one_of_eq_one,
   intros i hmem,
   simp only [pi.pow_apply, pi.one_apply],
   rw ← order_of_dvd_iff_pow_eq_one,
@@ -240,115 +243,162 @@ begin
     ... ∣ (∏ (i : I) in S, fintype.card (H i)) : finset.dvd_prod_of_mem _ hmem,
 end
 
-/-- The skelleton of a injectivitiy proof -/
-lemma injective_aux
-  (hpred : ∀ (f : Π i : I, H i) i S,
-    i ∉ S → ϕ i (f i) * fun_on ϕ f S = 1 → f i = 1 ∧ fun_on ϕ f S = 1 ) :
-  function.injective (hom ϕ) :=
+end pi_hom_restr
+
+namespace pi_hom
+
+/-- The product of `ϕ i (f i)` for all `i : I` -/
+def to_fun : G := pi_hom_restr.to_fun ϕ f finset.univ
+
+/-- The canonical homomorphism from a pi group -/
+def hom : (Π (i : I), H i) →* G := pi_hom_restr.hom ϕ finset.univ
+
+@[simp]
+lemma hom_update_one (i : I) (y : H i): hom (function.update 1 i y) = ϕ i y :=
+by { change pi_hom_restr.hom ϕ finset.univ (function.update 1 i y) = ϕ i y, simp }
+
+lemma range : hom.range = ⨆ i : I, (ϕ i).range :=
+by { show (pi_hom_restr.hom ϕ finset.univ).range = _, simp [pi_hom_restr.range] }
+
+lemma pow (k : ℕ) : (hom f) ^ k = hom (f ^ k) := pi_hom_restr.pow _ _ _ _
+
+lemma injective_of_independent
+  (hind : complete_lattice.independent (λ i, (ϕ i).range))
+  (hinj : ∀ i, function.injective (ϕ i)) :
+  function.injective hom :=
 begin
   apply (monoid_hom.ker_eq_bot_iff _).mp,
   apply eq_bot_iff.mpr,
   intro f,
-  show fun_on ϕ f finset.univ = 1 → f = 1,
-  suffices : fun_on ϕ f finset.univ = 1 → (∀ (i : I), i ∈ finset.univ → f i = 1),
+  show pi_hom_restr.to_fun ϕ f finset.univ = 1 → f = 1,
+  suffices : pi_hom_restr.to_fun ϕ f finset.univ = 1 → (∀ (i : I), i ∈ finset.univ → f i = 1),
   by exact (λ h, funext (λ (i : I), this h i (finset.mem_univ i))),
   induction (finset.univ : finset I) using finset.induction_on with i S hnmem ih,
   { simp },
   { intro heq1,
-    simp only [ fun_on_insert_of_not_mem _ _ _ _ hnmem] at heq1,
-    have heq1' : f i = 1 ∧ fun_on ϕ f S = 1 := hpred f i S hnmem heq1,
+    simp only [ pi_hom_restr.to_fun_insert_of_not_mem _ _ _ _ hnmem] at heq1,
+    have hnmem' : i ∉ (S : set I), by simpa,
+    have heq1' : ϕ i (f i) = 1 ∧ pi_hom_restr.to_fun ϕ f S = 1,
+    { apply mul_eq_one_of_disjoint (hind.disjoint_bsupr hnmem') _ _ heq1,
+      { simp, },
+      { apply pi_hom_restr.to_fun_in_sup_range, }, },
     rcases heq1' with ⟨ heq1i, heq1S ⟩,
     specialize ih heq1S,
     intros i h,
     simp only [finset.mem_insert] at h,
     rcases h with ⟨rfl | _⟩,
-    { exact heq1i },
+    { apply hinj i, simpa, },
     { exact (ih _ h), } }
 end
 
-section injective_of_coprime_order
+end pi_hom
 
-
-variables [∀ i, fintype (H i)]
-variables (hcoprime : ∀ i j, i ≠ j → nat.coprime (fintype.card (H i)) (fintype.card (H j)))
-variables (hinj : ∀ i, function.injective (ϕ i))
-
-include hcoprime
-include hinj
-
-open_locale big_operators
-lemma injective_of_coprime_order : function.injective (hom ϕ) := injective_aux ϕ
+lemma independent_range_of_coprime_order [∀ i, fintype (H i)]
+  (hcoprime : ∀ i j, i ≠ j → nat.coprime (fintype.card (H i)) (fintype.card (H j)))
+  (hinj : ∀ i, function.injective (ϕ i)) :
+  complete_lattice.independent (λ i, (ϕ i).range) :=
 begin
-  intros f i S hnmem heq1,
-  let x := ϕ i (f i),
-  let y := fun_on ϕ f S,
+  rintros i f ⟨hxi, hxp⟩,
+  simp only [ne.def, subgroup.coe_to_submonoid, set_like.mem_coe,
+    monoid_hom.coe_range, set.mem_range] at hxi hxp,
+  rcases hxi with ⟨ y, rfl ⟩,
+  let S := finset.erase finset.univ i,
+  have hnmem : i ∉ S := finset.not_mem_erase i finset.univ,
+  have : (⨆ (j : I) (x : ¬j = i), (ϕ j).range) = (⨆ j ∈ S, (ϕ j).range) :=
+  begin
+    congr' 1,
+    ext i,
+    congr' 2,
+    apply supr_congr_Prop,
+    { simp [S] },
+    { exact λ _, rfl }
+  end,
+  rw this at hxp, clear this,
+  rw ← @pi_hom_restr.range _ _ _ _ _ _ _ _ hcomm at hxp,
+  cases hxp with f heq1,
+
+  let x := ϕ i y,
+  let z := pi_hom_restr.hom ϕ S f,
+  change z = x at heq1,
   let p := ∏ (i : I) in S, fintype.card (H i),
-  let p' := ∏ (i : I) in S, (↑(fintype.card (H i)) : ℤ),
-  have h1 := calc order_of x = order_of (f i) : order_of_injective _ (hinj i) _
+  have h1 := calc order_of x = order_of y : order_of_injective _ (hinj i) _
     ... ∣ fintype.card (H i) : order_of_dvd_card_univ,
-  have h2 := calc order_of x = order_of (y⁻¹) : congr_arg _ (eq_inv_of_mul_eq_one heq1)
-    ... = order_of y : order_of_inv _
-    ... ∣ p : order_of_fun_on_div_prod_card ϕ f S ,
+  have h2 := calc order_of x = order_of z : by rw [heq1]
+    ... ∣ p : pi_hom_restr.order_of_hom_dvd_prod_card ϕ f S ,
+
   have hcop : p.coprime (fintype.card (H i)),
-  { apply coprime_prod_left,
-      intros j hmem,
-      apply hcoprime,
-      rintro rfl, contradiction, },
-  have hx : ϕ i (f i) = 1,
+  { apply coprime_prod_left, intros j hmem, apply hcoprime, rintro rfl, contradiction, },
+  have hx : ϕ i y = 1,
   { have := nat.dvd_gcd h2 h1,
     unfold nat.coprime at hcop,
     simpa [hcop] using this, },
-  have hf : f i = 1, by { apply hinj i, simpa using hx },
-  have hy : fun_on ϕ f S = 1, by simpa only [hx, one_mul] using heq1,
-  exact ⟨ hf, hy ⟩
+  simpa using hx,
 end
 
-noncomputable
-def mul_equiv_of_coprime_order : (Π (i : I), H i) ≃* (⨆ (i : I), (ϕ i).range : subgroup G) :=
+end family_of_groups
+
+namespace subgroup_pi_hom
+
+section subgroup_pi_hom
+
+-- We have an family of subgroups
+parameters {I : Type*} [fintype I] [decidable_eq I] {H : I → subgroup G}
+
+-- Elements of `Π (i : I), H i` are called `f` and `g` here
+variables (f g : Π (i : I), H i)
+
+section commuting_subgroups
+
+-- We assume that the elements of different subgroups commute
+parameters (hcomm : ∀ (i j : I), i ≠ j → ∀ (x y : G), x ∈ H i → y ∈ H j → commute x y)
+
+include hcomm
+
+lemma hcomm_subtype :
+  fact (∀ (i j : I), i ≠ j → ∀ (x : H i) (y : H j), commute ((H i).subtype x) ((H j).subtype y)) :=
+fact.mk begin
+  rintros i j hne ⟨x, hx⟩ ⟨y, hy⟩,
+  simp only [subgroup.coe_subtype, subgroup.coe_mk],
+  exact hcomm i j hne x y hx hy,
+end
+
+/-- The canonical homomorphism from a pi group of subgroups -/
+def hom : (Π (i : I), H i) →* G := @pi_hom.hom _ _ _ _ _ _ _ (λ i, (H i).subtype) hcomm_subtype
+
+@[simp]
+lemma hom_update_one (i : I) (y : H i): hom (function.update 1 i y) = y :=
+by apply pi_hom.hom_update_one
+
+lemma range : hom.range = ⨆ i : I, H i :=
+by { unfold hom, simp [pi_hom.range] }
+
+lemma pow (k : ℕ) : (hom f) ^ k = hom (f ^ k) :=
+by apply pi_hom_restr.pow
+
+lemma injective_of_independent (hind : complete_lattice.independent H) :
+  function.injective hom :=
 begin
-  rw ← range_eq,
-  exact (monoid_hom.of_injective (injective_of_coprime_order _ hcoprime hinj)),
+  apply pi_hom.injective_of_independent,
+  { simpa using hind },
+  { intro i, exact subtype.coe_injective }
 end
 
-end injective_of_coprime_order
-
-section injective_of_independent
-
-variables (hind : complete_lattice.independent (λ i, (ϕ i).range))
-variables (hinj : ∀ i, function.injective (ϕ i))
-
-include hind
-include hinj
-
-lemma injective_of_independent : function.injective (hom ϕ) := injective_aux ϕ
+lemma _root_.independent_of_coprime_order [∀ i, fintype (H i)]
+  (hcoprime : ∀ i j, i ≠ j → nat.coprime (fintype.card (H i)) (fintype.card (H j))) :
+  complete_lattice.independent H :=
 begin
-  intros f i S hnmem heq1,
-  have hnmem' : i ∉ (S : set I), by simpa,
-  have heq1' : ϕ i (f i) = 1 ∧ fun_on ϕ f S = 1,
-  { apply mul_eq_one_of_disjoint (hind.disjoint_bsupr hnmem') _ _ heq1,
-    { simp, },
-    { apply fun_on_in_sup_range, }, },
-  rcases heq1' with ⟨ heq1i, heq1S ⟩,
-  split,
-  { apply hinj i, simpa, },
-  { exact heq1S } ,
+  haveI := hcomm_subtype hcomm,
+  have := independent_range_of_coprime_order (λ i, (H i).subtype) hcoprime
+    (λ i , subtype.coe_injective),
+  simpa using this,
 end
 
-noncomputable
-def mul_equiv : (Π (i : I), H i) ≃* (⨆ (i : I), (ϕ i).range : subgroup G) :=
-begin
-  rw ← range_eq,
-  exact (monoid_hom.of_injective (injective_of_independent _ hind hinj)),
-end
-
-end injective_of_independent
-
-end pi_hom
+end  commuting_subgroups
 
 lemma pairwise_elements_commute_of_normal_of_independent
   {I : Type*} {H : I → subgroup G}
   (hnorm : ∀ i, (H i).normal) (hind : complete_lattice.independent H) :
-  (∀ i j : I, i ≠ j → ∀ (x y : G),  x ∈ H i → y ∈ H j → commute x y) :=
+  (∀ i j : I, i ≠ j → ∀ (x y : G), x ∈ H i → y ∈ H j → commute x y) :=
 begin
   intros i j hne x y hx hy,
   have : H i ⊓ H j ≤ ⊥ := complete_lattice.independent.disjoint hind hne,
@@ -359,53 +409,8 @@ begin
   show x * y = y * x, by simpa [mul_assoc] using this,
 end
 
-/-- Subgroups of a finite group form an internal product if they are normal, and independent -/
-noncomputable
-def internal_product
-  {I : Type*} [fintype I] [decidable_eq I] {H : I → subgroup G}
-  (hnorm : ∀ i, (H i).normal) (hind : complete_lattice.independent H) :
-  (Π (i : I), H i) ≃* (⨆ (i : I), H i : subgroup G) :=
-begin
-  haveI : fact (∀ (i j : I), i ≠ j → ∀ (x : H i) (y : H j),
-    commute ((H i).subtype x) ((H j).subtype y)) := fact.mk
-  begin
-    intros i j hne x y,
-    induction x with x hx,
-    induction y with y hy,
-    exact pairwise_elements_commute_of_normal_of_independent hnorm hind i j hne x y hx hy,
-  end,
-  have : (⨆ (i : I), H i: subgroup G) = (⨆ (i : I), (H i).subtype.range : subgroup G), by simp,
-  rw this, clear this,
-  refine (pi_hom.mul_equiv _ _ _),
-  { simpa using hind, },
-  { exact λ _, subtype.val_injective, }
-end
+end subgroup_pi_hom
 
+end subgroup_pi_hom
 
-open_locale classical -- so that we know that subgroups of fintypes are fintype
-
-/-- Subgroups of a finite group form an internal product if they are normal, pairwise disjoint,
-and have pairwise coprime orders -/
-noncomputable
-def internal_product_of_coprime
-  [fintype G]
-  {I : Type*} [fintype I] {H : I → subgroup G}
-  (hnorm : ∀ i, (H i).normal)
-  (hcoprime : ∀ i j, i ≠ j → nat.coprime (fintype.card (H i)) (fintype.card (H j)))
-  (hdisjoint : ∀ i j, i ≠ j → disjoint (H i) (H j)) :
-  (Π (i : I), H i) ≃* (⨆ (i : I), H i : subgroup G) :=
-begin
-  haveI : fact (∀ (i j : I), i ≠ j → ∀ (x : H i) (y : H j),
-    commute ((H i).subtype x) ((H j).subtype y)) := fact.mk
-  begin
-    simp,
-    rintros i j hne ⟨x, hx⟩ ⟨y, hy⟩,
-    refine subgroup.commute_of_normal_of_disjoint _ _ (hnorm _) (hnorm _) _ x y hx hy,
-    exact (hdisjoint i j hne)
-  end,
-
-  have : (⨆ (i : I), H i: subgroup G) = (⨆ (i : I), (H i).subtype.range : subgroup G), by simp,
-  rw this, clear this,
-  refine (pi_hom.mul_equiv_of_coprime_order _ hcoprime _),
-  { exact λ _, subtype.val_injective, }
-end
+end with_group

@@ -247,46 +247,52 @@ end
 
 variables {N : Type*} [cancel_comm_monoid_with_zero N] [unique_factorization_monoid N]
 
+lemma image_prime_pow_dvd_of_monotone {m p : associates M} {n : associates N}
+  (hm : m ≠ 0) (hn : n ≠ 0) (hp : p ∈ normalized_factors m)
+  (d : {l : associates M // l ≤ m} ≃ {l : associates N // l ≤ n}) (hd : monotone d)
+  (hd' : monotone d.symm) {s : ℕ} (hs : s ≠ 0) (hs' : p^s ≤ m) :
+  (d ⟨p, dvd_of_mem_normalized_factors hp⟩ : associates N)^s ≤ n :=
+begin
+  suffices : (d ⟨p, dvd_of_mem_normalized_factors hp⟩ : associates N)^s = ↑(d ⟨p^s, hs'⟩),
+  { rw this,
+    apply subtype.prop (d ⟨p^s, hs'⟩) },
+  obtain ⟨c₁, rfl, hc₁', hc₁''⟩ := pow_prime_has_chain s hs (prime_of_normalized_factor p hp),
+
+  set c₂ : fin (s + 1) → associates N := λ t, d ⟨c₁ t, le_trans (hc₁''.2 ⟨t, by simp⟩) hs'⟩,
+  have c₂.def : ∀ (t), c₂ t = d ⟨c₁ t, _⟩ := λ t, rfl,
+  refine (congr_arg (^s) (c₂.def 1).symm).trans _,
+  refine (eq_prime_pow_of_has_chain s hs c₂ (λ t u h, _) (λ r, ⟨λ hr, _, _⟩) _).symm,
+  { rw c₂.def,
+    apply monotone.strict_mono_of_injective hd (equiv.injective d),
+    rw [subtype.mk_lt_mk, strict_mono.lt_iff_lt hc₁'],
+    exact h },
+  { have : r ≤ n := hr.trans (d ⟨c₁ 1 ^ s, _⟩).2,
+    suffices : d.symm ⟨r, this⟩ ≤ ⟨c₁ 1 ^ s, hs'⟩,
+    { obtain ⟨i, hi⟩ := hc₁''.1 this,
+      use i,
+      simp only [c₂.def, ← hi, equiv.apply_symm_apply, subtype.coe_eta, subtype.coe_mk] },
+    conv_rhs { rw ← d.symm_apply_apply ⟨c₁ 1 ^ s, hs'⟩ },
+    apply hd',
+    simpa only [← subtype.coe_le_coe, subtype.coe_mk] using hr },
+  { rintros ⟨i, hr⟩,
+    rw [hr, c₂.def, subtype.coe_le_coe],
+    apply hd,
+    simpa [subtype.mk_le_mk] using hc₁''.2 ⟨i, rfl⟩ },
+  exact ne_zero_of_dvd_ne_zero hn (subtype.prop (d ⟨c₁ 1 ^ s, _⟩))
+end
+
 lemma multiplicity_le_of_monotone {m p : associates M} {n : associates N}
   (hm : m ≠ 0) (hn : n ≠ 0) (hp : p ∈ normalized_factors m)
   (d : {l : associates M // l ≤ m} ≃ {l : associates N // l ≤ n}) (hd : monotone d)
   (hd' : monotone d.symm) :
   multiplicity p m ≤ multiplicity ↑(d ⟨p, dvd_of_mem_normalized_factors hp⟩) n :=
 begin
-  have : ∀ (s ≠ 0), p^s ≤ m → (d ⟨p, dvd_of_mem_normalized_factors hp⟩ : associates N)^s ≤ n,
-  { intros s hs hs',
-    suffices : (d ⟨p, dvd_of_mem_normalized_factors hp⟩ : associates N)^s = ↑(d ⟨p^s, hs'⟩),
-    { rw this,
-      apply subtype.prop (d ⟨p^s, hs'⟩) },
-    obtain ⟨c₁, rfl, hc₁', hc₁''⟩ := pow_prime_has_chain s hs (prime_of_normalized_factor p hp),
-
-    set c₂ : fin (s + 1) → associates N := λ t, d ⟨c₁ t, le_trans (hc₁''.2 ⟨t, by simp⟩) hs'⟩,
-    have c₂.def : ∀ (t), c₂ t = d ⟨c₁ t, _⟩ := λ t, rfl,
-    refine (congr_arg (^s) (c₂.def 1).symm).trans _,
-    refine (eq_prime_pow_of_has_chain s hs c₂ (λ t u h, _) (λ r, ⟨λ hr, _, _⟩) _).symm,
-    { rw c₂.def,
-      apply monotone.strict_mono_of_injective hd (equiv.injective d),
-      rw [subtype.mk_lt_mk, strict_mono.lt_iff_lt hc₁'],
-      exact h },
-    { have : r ≤ n := hr.trans (d ⟨c₁ 1 ^ s, _⟩).2,
-      suffices : d.symm ⟨r, this⟩ ≤ ⟨c₁ 1 ^ s, hs'⟩,
-      { obtain ⟨i, hi⟩ := hc₁''.1 this,
-        use i,
-        simp only [c₂.def, ← hi, equiv.apply_symm_apply, subtype.coe_eta, subtype.coe_mk] },
-      conv_rhs { rw ← d.symm_apply_apply ⟨c₁ 1 ^ s, hs'⟩ },
-      apply hd',
-      simpa only [← subtype.coe_le_coe, subtype.coe_mk] using hr },
-    { rintros ⟨i, hr⟩,
-      rw [hr, c₂.def, subtype.coe_le_coe],
-      apply hd,
-      simpa [subtype.mk_le_mk] using hc₁''.2 ⟨i, rfl⟩ },
-    exact ne_zero_of_dvd_ne_zero hn (subtype.prop (d ⟨c₁ 1 ^ s, _⟩)) },
-
   have H_finite := multiplicity.finite_prime_left (prime_of_normalized_factor p hp) hm,
   have temp : ↑((multiplicity p m).get H_finite) ≤
     (multiplicity ↑(d ⟨p, dvd_of_mem_normalized_factors hp⟩) n),
   { rw ← multiplicity.pow_dvd_iff_le_multiplicity,
-    refine this _ _ (multiplicity.pow_multiplicity_dvd _),
+    refine image_prime_pow_dvd_of_monotone hm hn hp d hd hd' _ _
+      (multiplicity.pow_multiplicity_dvd _),
     intro H,
     apply (multiplicity.dvd_iff_multiplicity_pos.2 (dvd_of_mem_normalized_factors hp)).ne',
     refine part.eq_some_iff.mpr _,

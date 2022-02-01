@@ -2201,9 +2201,17 @@ theorem is_normal.le_iff_deriv (H : is_normal f) {a} : f a ≤ a ↔ ∃ o, deri
     exact let ⟨o', h, hl⟩ := h in IH o' h (le_of_not_le hl) }
 end, λ ⟨o, e⟩, e ▸ le_of_eq (H.deriv_fp _)⟩
 
-theorem is_normal.apply_eq_self_iff_deriv (H : is_normal f) {a} :
-  f a = a ↔ ∃ o, deriv f o = a :=
+theorem is_normal.apply_eq_self_iff_deriv (H : is_normal f) {a} : f a = a ↔ ∃ o, deriv f o = a :=
 by rw [←H.le_iff_deriv, H.le_iff_eq]
+
+/-- `deriv f` is the fixed point enumerator of `f`. -/
+theorem deriv_eq_enum_fp {f} (H : is_normal f) : deriv f = enum_ord _ H.nfp_unbounded :=
+begin
+  rw [←eq_enum_ord, range_eq_iff],
+  use (deriv_is_normal f).strict_mono,
+  refine ⟨λ a, H.deriv_fp a, λ _ _, _⟩,
+  rwa ←H.apply_eq_self_iff_deriv
+end
 
 end
 

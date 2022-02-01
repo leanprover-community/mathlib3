@@ -15,17 +15,15 @@ and prove some of their properties.
 - `is_alg_closed k` is the typeclass saying `k` is an algebraically closed field, i.e. every
 polynomial in `k` splits.
 
-- `is_alg_closure k K` is the typeclass saying `K` is an algebraic closure of `k`.
+- `is_alg_closure R K` is the typeclass saying `K` is an algebraic closure of `R`, where `R` is a
+  commutative ring. This means that the map from `R` to `K` is injective, and `K` is
+  algebraically closed and algebraic over `R`
 
-- `is_alg_closed.lift` is a map from an algebraic extension `L` of `K`, into any algebraically
-  closed extension of `K`.
+- `is_alg_closed.lift` is a map from an algebraic extension `L` of `R`, into any algebraically
+  closed extension of `R`.
 
 - `is_alg_closure.equiv` is a proof that any two algebraic closures of the
   same field are isomorphic.
-
-## TODO
-
-Show that any two algebraic closures are isomorphic
 
 ## Tags
 
@@ -158,19 +156,14 @@ algebra_map_surjective_of_is_integral ((is_algebraic_iff_is_integral' k).mp hf)
 end is_alg_closed
 
 /-- Typeclass for an extension being an algebraic closure. -/
-class is_alg_closure (R : Type u) (K : Type v) [comm_ring R] [field K] [algebra R K] : Prop :=
+class is_alg_closure (R : Type u) (K : Type v) [comm_ring R]
+  [field K] [algebra R K] [no_zero_smul_divisors R K] : Prop :=
 (alg_closed : is_alg_closed K)
 (algebraic : algebra.is_algebraic R K)
-(injective : function.injective (algebra_map R K))
 
 theorem is_alg_closure_iff (K : Type v) [field K] [algebra k K] :
   is_alg_closure k K ↔ is_alg_closed K ∧ algebra.is_algebraic k K :=
-⟨λ h, ⟨h.1, h.2⟩, λ h, ⟨h.1, h.2, ring_hom.injective _⟩⟩
-
-@[priority 90] instance is_alg_closure.no_zero_smul_divisors
-  (R : Type u) (K : Type v) [comm_ring R] [field K] [algebra R K] [is_alg_closure R K] :
-  no_zero_smul_divisors R K :=
-no_zero_smul_divisors.of_algebra_map_injective is_alg_closure.injective
+⟨λ h, ⟨h.1, h.2⟩, λ h, ⟨h.1, h.2⟩⟩
 
 namespace lift
 
@@ -338,14 +331,14 @@ end is_alg_closed
 namespace is_alg_closure
 
 variables (K : Type*) (J : Type*) (R : Type u) (S : Type*) [field K] [field J] [comm_ring R]
-  (L : Type v) (M : Type w) [field L] [field M] [algebra R M] [is_alg_closure R M]
-  [algebra K M] [is_alg_closure K M]
-  [comm_ring S] [algebra S L] [is_alg_closure S L]
+  (L : Type v) (M : Type w) [field L] [field M] [algebra R M] [no_zero_smul_divisors R M]
+  [is_alg_closure R M] [algebra K M] [is_alg_closure K M]
+  [comm_ring S] [algebra S L] [no_zero_smul_divisors S L] [is_alg_closure S L]
 
 local attribute [instance] is_alg_closure.alg_closed
 
 section
-variables [algebra R L] [is_alg_closure R L]
+variables [algebra R L] [no_zero_smul_divisors R L] [is_alg_closure R L]
 
 /-- A (random) isomorphism between two algebraic closures of `R`. -/
 noncomputable def equiv : L ≃ₐ[R] M :=
@@ -359,7 +352,7 @@ alg_equiv.of_bijective f
       show function.surjective (algebra_map L M),
       exact is_alg_closed.algebra_map_surjective_of_is_algebraic
         (algebra.is_algebraic_of_larger_base_of_injective
-          (@is_alg_closure.injective R _ _ _ _ _) is_alg_closure.algebraic),
+          (no_zero_smul_divisors.algebra_map_injective R _) is_alg_closure.algebraic),
     end⟩
 
 end
@@ -376,14 +369,16 @@ variables [algebra K J] [algebra J L] [is_alg_closure J L] [algebra K L]
 noncomputable def equiv_of_algebraic' [nontrivial S] [no_zero_smul_divisors R S]
   (hRL : algebra.is_algebraic R L) : L ≃ₐ[R] M :=
 begin
+  letI : no_zero_smul_divisors R L :=
+    no_zero_smul_divisors.of_algebra_map_injective begin
+      rw [is_scalar_tower.algebra_map_eq R S L],
+      exact function.injective.comp
+        (no_zero_smul_divisors.algebra_map_injective _ _)
+        (no_zero_smul_divisors.algebra_map_injective _ _)
+    end,
   letI : is_alg_closure R L :=
   { alg_closed := by apply_instance,
-    algebraic := hRL,
-    injective := begin
-      rw [is_scalar_tower.algebra_map_eq R S L],
-      exact function.injective.comp is_alg_closure.injective
-        (no_zero_smul_divisors.algebra_map_injective _ _)
-    end  },
+    algebraic := hRL },
   exact is_alg_closure.equiv _ _ _
 end
 
@@ -405,8 +400,8 @@ noncomputable def equiv_of_equiv_aux (hSR : S ≃+* R) :
 begin
   letI : algebra R S := ring_hom.to_algebra hSR.symm.to_ring_hom,
   letI : algebra S R := ring_hom.to_algebra hSR.to_ring_hom,
-  letI : is_domain R := (@is_alg_closure.injective R M _ _ _ _).is_domain _,
-  letI : is_domain S := (@is_alg_closure.injective S L _ _ _ _).is_domain _,
+  letI : is_domain R := (no_zero_smul_divisors.algebra_map_injective R M).is_domain _,
+  letI : is_domain S := (no_zero_smul_divisors.algebra_map_injective S L).is_domain _,
   have : algebra.is_algebraic R S,
     from λ x, begin
       rw [← ring_equiv.symm_apply_apply hSR x],

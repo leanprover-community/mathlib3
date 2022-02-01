@@ -641,9 +641,8 @@ begin
   { simp }
 end
 
-/-- If the quotient by `center G` is nilpotent, then so is G: -/
-lemma of_quotient_center_nilpotent
-  (h : is_nilpotent (G ⧸ center G)) : is_nilpotent G :=
+/-- If the quotient by `center G` is nilpotent, then so is G. -/
+lemma of_quotient_center_nilpotent (h : is_nilpotent (G ⧸ center G)) : is_nilpotent G :=
 begin
   obtain ⟨n, hn⟩ := h.nilpotent,
   use n.succ,
@@ -690,15 +689,13 @@ section classical
 
 open_locale classical
 
-/-- A custom induction principle fintypes. The base case is a subsingleton type,
+/-- A custom induction principle for fintypes. The base case is a subsingleton type,
 and the induction step is for non-trivial types, and one can assume the hypothesis for
-smaller groups (via `fintype.card`).
+smaller types (via `fintype.card`).
 -/
 @[elab_as_eliminator]
 lemma fintype.induction_subsingleton_or_nontrivial
-  {P : Π α [fintype α], Prop}
-  (α : Type*)
-  [fintype α]
+  {P : Π α [fintype α], Prop} (α : Type*) [fintype α]
   (hbase : ∀ α [fintype α] [subsingleton α], by exactI P α)
   (hstep : ∀ α [fintype α] [nontrivial α],
     by exactI ∀ (ih : ∀ β [fintype β], by exactI ∀ (h : fintype.card β < fintype.card α), P β),
@@ -716,7 +713,7 @@ begin
 end
 
 /-- A p-group is nilpotent -/
-lemma is_nilpotent.of_p_group [fintype G] {p : ℕ} (hp : fact (nat.prime p)) (h : is_p_group p G) :
+lemma is_p_group.is_nilpotent [fintype G] {p : ℕ} (hp : fact (nat.prime p)) (h : is_p_group p G) :
   is_nilpotent G :=
 begin
   unfreezingI

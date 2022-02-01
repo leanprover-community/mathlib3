@@ -186,12 +186,13 @@ begin
       exact principal_zero },
     { rw [← succ_le,succ_zero] at hb₁',
       intros c d hc hd,
-      rw [lt_mul_of_limit (principal_add_is_limit (lt_of_le_of_ne hb₁' hb₁.symm) hb)] at *,
-      rcases hc with ⟨x, hx, hx'⟩,
-      rcases hd with ⟨y, hy, hy'⟩,
-      use [x + y, hb hx hy],
-      rw mul_add,
-      exact add_lt_add hx' hy' } }
+      rw lt_mul_of_limit (principal_add_is_limit (lt_of_le_of_ne hb₁' hb₁.symm) hb) at *,
+      { rcases hc with ⟨x, hx, hx'⟩,
+        rcases hd with ⟨y, hy, hy'⟩,
+        use [x + y, hb hx hy],
+        rw mul_add,
+        exact add_lt_add hx' hy' },
+      assumption' } }
 end
 
 end ordinal

@@ -61,4 +61,15 @@ begin
   apply eq_of_separated_of_uniform_continuous (Pi.uniform_continuous_proj α i),
   apply H,
 end
+
+omit U
+
+instance Pi.complete_nondep (β : Type*) [uniform_space β] [complete_space β] :
+  complete_space (ι → β) :=
+Pi.complete _
+
+instance Pi.separated_nondep (β : Type*) [uniform_space β] [separated_space β] :
+  separated_space (ι → β) :=
+Pi.separated _
+
 end

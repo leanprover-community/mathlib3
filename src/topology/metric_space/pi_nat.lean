@@ -11,8 +11,8 @@ import topology.metric_space.hausdorff_distance
 -/
 
 noncomputable theory
-open_locale classical
-open topological_space set metric
+open_locale classical topological_space filter
+open topological_space set metric filter
 
 /-- A Polish space is a topological space with second countable topology, that can be endowed
 with a metric for which it is complete.
@@ -288,7 +288,7 @@ begin
     assume i hi,
     have : y i = x i := mem_cylinder_iff.1 hy i ((hn hi).trans_lt (lt_add_one n)),
     rw this,
-    simp only [mem_pi, finset.mem_coe] at xU,
+    simp only [set.mem_pi, finset.mem_coe] at xU,
     exact xU i hi }
 end
 
@@ -320,23 +320,60 @@ where the distance is given by `dist x y = (1/2)^n`, where `n` is the smallest i
 Warning: this definition makes sure that the topology is defeq to the original product topology,
 but it does not take care of a possible uniformity. If the `E n` have a uniform structure, then
 there will be two non-defeq uniform structures on `Π n, E n`, the product one and the one coming
-from the metric structure. -/
+from the metric structure. In this case, use `metric_space_of_discrete_uniformity` instead. -/
 protected def metric_space : metric_space (Π n, E n) :=
 metric_space.of_metrizable dist pi_nat.dist_self pi_nat.dist_comm pi_nat.dist_triangle
   is_open_iff_dist pi_nat.eq_of_dist_eq_zero
 
-open_locale topological_space filter
-
-/-
-protected def metric_space_of_discrete_uniformity {E : ℕ → Type*} [h : ∀ n, uniform_space (E n)]
-  (h : ∀ n, h n = (⊥ : uniform_space (E n))) : metric_space (Π n, E n) :=
+/-- Metric space structure on `Π (n : ℕ), E n` when the spaces `E n` have the discrete uniformity,
+where the distance is given by `dist x y = (1/2)^n`, where `n` is the smallest index where `x` and
+`y` differ. Not registered as a global instance by default. -/
+protected def metric_space_of_discrete_uniformity {E : ℕ → Type*} [∀ n, uniform_space (E n)]
+  (h : ∀ n, uniformity (E n) = 𝓟 id_rel) : metric_space (Π n, E n) :=
 begin
-  haveI : ∀ n, discrete_topology (E n),
-  { assume n,
-    have Z := h n,
-    library_search }
+  haveI : ∀ n, discrete_topology (E n) := λ n, discrete_topology_of_discrete_uniformity (h n),
+  exact
+  { dist_triangle := pi_nat.dist_triangle,
+    dist_comm := pi_nat.dist_comm,
+    dist_self := pi_nat.dist_self,
+    eq_of_dist_eq_zero := pi_nat.eq_of_dist_eq_zero,
+    to_uniform_space := Pi.uniform_space _,
+    uniformity_dist :=
+    begin
+      simp [Pi.uniformity, comap_infi, gt_iff_lt, preimage_set_of_eq, comap_principal,
+        pseudo_metric_space.uniformity_dist, h, id_rel],
+      apply le_antisymm,
+      { simp only [le_infi_iff, le_principal_iff],
+        assume ε εpos,
+        obtain ⟨n, hn⟩ : ∃ n, (1/2 : ℝ)^n < ε := exists_pow_lt_of_lt_one εpos (by norm_num),
+        apply @mem_infi_of_Inter _ _ _ _ _ (finset.range n).finite_to_set
+          (λ i, {p : (Π (n : ℕ), E n) × Π (n : ℕ), E n | p.fst i = p.snd i}),
+        { simp only [mem_principal, set_of_subset_set_of, imp_self, implies_true_iff] },
+        { rintros ⟨x, y⟩ hxy,
+          simp only [finset.mem_coe, finset.mem_range, Inter_coe_set, mem_Inter, mem_set_of_eq]
+            at hxy,
+          apply lt_of_le_of_lt _ hn,
+          rw [← mem_cylinder_iff_dist_le, mem_cylinder_iff],
+          exact hxy } },
+      { simp only [le_infi_iff, le_principal_iff],
+        assume n,
+        refine mem_infi_of_mem ((1/2)^n) _,
+        refine mem_infi_of_mem (by norm_num) _,
+        simp only [mem_principal, set_of_subset_set_of, prod.forall],
+        assume x y hxy,
+        exact apply_eq_of_dist_lt hxy le_rfl }
+    end }
 end
--/
+
+end pi_nat
+
+def metric_space_nat_nat : metric_space (ℕ → ℕ) :=
+pi_nat.metric_space_of_discrete_uniformity (λ n, rfl)
+
+
+#exit
+
+#print glouk
 
 local attribute [instance] pi_nat.metric_space
 

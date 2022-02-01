@@ -52,6 +52,14 @@ end
 def compact_map (T : E → F) : Prop :=
 ∀ s : set E, metric.bounded s → is_compact (closure (T '' s))
 
+lemma compact_map.neg {T : E → F} (hT : compact_map T) : compact_map (-T) :=
+begin
+  intros s hs,
+  rw [← (homeomorph.neg F).compact_image, (homeomorph.neg F).image_closure, ← set.image_comp],
+  convert hT s hs,
+  ext x,
+  simp [homeomorph.neg]
+end
 
 lemma image_rel_compact_of_rel_compact {f : E → F}  {s : set E} (hc : continuous_on f (closure s))
   (hs : is_compact (closure s)) : is_compact (closure (f '' s)) :=

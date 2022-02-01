@@ -627,7 +627,7 @@ begin
                            ...   = ∥T∥                : by rw [norm_eq_of_mem_sphere y, mul_one]
                     end
            ... ≤ _
-                  : by ring },
+                  : by ring_nf },
       refine squeeze_zero (λ y, pow_two_nonneg _) h_squeeze _,
       have h_bs : 2 * ∥T∥^2 - 2 * ∥T∥^2 = 0 := by ring,
       rw [←h_bs],
@@ -668,8 +668,39 @@ begin
     exact Tsph_cont.tendsto _ }
 end
 
+-- move this
+lemma _root_.inner_product_space.is_self_adjoint.neg {𝕜 : Type u_1} {E : Type u_2} [is_R_or_C 𝕜]
+  [inner_product_space 𝕜 E] {T : E →ₗ[𝕜] E} (hT : is_self_adjoint T) :
+  is_self_adjoint (-T) :=
+begin
+  intros x y,
+  simpa [inner_neg_left, inner_neg_right] using congr_arg (λ a, -a) (hT x y),
+end
+
 lemma exists_eigenvalue_of_compact [nontrivial E] (hT : is_self_adjoint T.to_linear_map)
-  (hT_cpct : compact_map T) : ∃ c, has_eigenvalue T.to_linear_map c := sorry
+  (hT_cpct : compact_map T) : ∃ c, has_eigenvalue T.to_linear_map c :=
+begin
+  have H₁ := hT.norm_eq_supr_abs_rayleigh_sphere,
+  rw T.supr_abs_rayleigh_eq_sup_supr at H₁,
+  rcases max_cases (⨆ (x : ↥(sphere (0:E) 1)), (λ (x : E), T.re_apply_inner_self x / ∥x∥ ^ 2) x)
+                    (⨆ (x : ↥(sphere (0:E) 1)), -(λ (x : E), T.re_apply_inner_self x / ∥x∥ ^ 2) x)
+                    with ⟨h₁, h₂⟩ | ⟨h₁, h₂⟩,
+  { rw h₁ at H₁,
+    exact hT.exists_eigenvalue_of_compact_aux hT_cpct H₁ },
+  { rw h₁ at H₁,
+    have : is_self_adjoint (-T).to_linear_map := hT.neg,
+    obtain ⟨c, hc⟩ := this.exists_eigenvalue_of_compact_aux hT_cpct.neg _,
+    { use -c,
+      rw has_eigenvalue at hc ⊢,
+      convert hc using 1,
+      ext x,
+      simp [mem_eigenspace_iff, neg_eq_iff_add_eq_zero, eq_neg_iff_add_eq_zero] },
+    convert H₁ using 1,
+    { simp },
+    congr,
+    ext x,
+    simp [continuous_linear_map.re_apply_inner_self] },
+end
 
 lemma subsingleton_of_no_eigenvalue_of_compact (hT : is_self_adjoint T.to_linear_map)
   (hT_cpct : compact_map T) (hT' : ∀ μ : 𝕜, module.End.eigenspace (T : E →ₗ[𝕜] E) μ = ⊥) :

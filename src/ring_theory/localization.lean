@@ -2246,7 +2246,9 @@ by simp only [mk'_eq_div, ring_hom.map_div, lift_algebra_map]
 and an injective ring hom `j : A →+* B`, we get a field hom
 sending `z : K` to `g (j x) * (g (j y))⁻¹`, where `(x, y) : A × (non_zero_divisors A)` are
 such that `z = f x * (f y)⁻¹`. -/
-noncomputable def map [algebra B L] [is_fraction_ring B L] {j : A →+* B} (hj : injective j) :
+noncomputable def map {A B K L : Type*} [comm_ring A] [comm_ring B] [is_domain B]
+  [comm_ring K] [algebra A K] [is_fraction_ring A K] [comm_ring L] [algebra B L]
+  [is_fraction_ring B L] {j : A →+* B} (hj : injective j) :
   K →+* L :=
 map L j (show non_zero_divisors A ≤ (non_zero_divisors B).comap j,
          from non_zero_divisors_le_comap_non_zero_divisors_of_injective j hj)

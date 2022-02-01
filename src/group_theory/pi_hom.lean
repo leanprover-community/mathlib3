@@ -9,7 +9,6 @@ import data.finset.noncomm_prod
 import ring_theory.coprime.lemmas
 
 /-!
-
 # Canonical homomorphism from a pi group
 
 This file defines the construction of the canoncial homomorphism from a product group.
@@ -60,7 +59,6 @@ begin
   apply h i hi,
 end
 
-
 section with_group
 
 parameters {G : Type*} [group G]
@@ -104,7 +102,6 @@ include hcomm
 
 -- Elements of `Π (i : I), H i` are called `f` and `g` here
 variables (f g : Π (i : I), H i)
-
 
 namespace pi_hom_restr
 
@@ -159,7 +156,6 @@ begin
     repeat { rw ← mul_assoc }, congr' 1,
     exact (to_fun_commutes _ _ _ S i hnmem), }
 end
-
 
 lemma to_fun_in_sup_range (S : finset I) :
   to_fun f S ∈ ⨆ i ∈ S, (ϕ i).range :=
@@ -310,7 +306,7 @@ begin
     { exact λ _, rfl }
   end,
   rw this at hxp, clear this,
-  rw ← @pi_hom_restr.range _ _ _ _ _ _ _ _ hcomm at hxp,
+  rw ← pi_hom_restr.range at hxp,
   cases hxp with f heq1,
 
   let x := ϕ i y,
@@ -319,9 +315,8 @@ begin
   let p := ∏ (i : I) in S, fintype.card (H i),
   have h1 := calc order_of x = order_of y : order_of_injective _ (hinj i) _
     ... ∣ fintype.card (H i) : order_of_dvd_card_univ,
-  have h2 := calc order_of x = order_of z : by rw [heq1]
+  have h2 := calc order_of x = order_of z : by rw heq1
     ... ∣ p : pi_hom_restr.order_of_hom_dvd_prod_card ϕ f S ,
-
   have hcop : p.coprime (fintype.card (H i)),
   { apply coprime_prod_left, intros j hmem, apply hcoprime, rintro rfl, contradiction, },
   have hx : ϕ i y = 1,
@@ -347,10 +342,9 @@ section commuting_subgroups
 
 -- We assume that the elements of different subgroups commute
 parameters (hcomm : ∀ (i j : I), i ≠ j → ∀ (x y : G), x ∈ H i → y ∈ H j → commute x y)
-
 include hcomm
 
-lemma hcomm_subtype :
+instance hcomm_subtype :
   fact (∀ (i j : I), i ≠ j → ∀ (x : H i) (y : H j), commute ((H i).subtype x) ((H j).subtype y)) :=
 fact.mk begin
   rintros i j hne ⟨x, hx⟩ ⟨y, hy⟩,

@@ -1216,11 +1216,11 @@ lemma not_injective_of_ordinal {α : Type u} (f : ordinal.{u} → α) : ¬ funct
 
 lemma not_surjective_of_ordinal_of_small {α : Type v} [small.{u} α] (f : α → ordinal.{u}) :
   ¬ function.surjective f :=
-λ h, not_surjective_of_ordinal (f ∘ (equiv_shrink α).symm) (h.comp (equiv_shrink _).symm.surjective)
+λ h, not_surjective_of_ordinal _ (h.comp (equiv_shrink _).symm.surjective)
 
 lemma not_injective_of_ordinal_of_small {α : Type v} [small.{u} α] (f : ordinal.{u} → α) :
   ¬ function.injective f :=
-λ h, not_injective_of_ordinal (equiv_shrink α ∘ f) ((equiv_shrink _).injective.comp h)
+λ h, not_injective_of_ordinal _ ((equiv_shrink _).injective.comp h)
 
 /-! ### Enumerating unbounded sets of ordinals with ordinals -/
 

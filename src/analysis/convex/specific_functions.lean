@@ -214,3 +214,21 @@ begin
   rw [deriv_log', deriv_inv],
   exact neg_neg_of_pos (inv_pos.2 $ sq_pos_of_ne_zero _ hx.ne),
 end
+
+open_locale real
+
+lemma strict_concave_on_sin_Icc : strict_concave_on ℝ (Icc 0 π) sin :=
+begin
+  apply strict_concave_on_of_deriv2_neg (convex_Icc _ _) continuous_on_sin
+    differentiable_sin.differentiable_on (λ x hx, _),
+  rw interior_Icc at hx,
+  simp [sin_pos_of_mem_Ioo hx],
+end
+
+lemma strict_concave_on_cos_Icc : strict_concave_on ℝ (Icc (-(π/2)) (π/2)) cos :=
+begin
+  apply strict_concave_on_of_deriv2_neg (convex_Icc _ _) continuous_on_cos
+    differentiable_cos.differentiable_on (λ x hx, _),
+  rw interior_Icc at hx,
+  simp [cos_pos_of_mem_Ioo hx],
+end

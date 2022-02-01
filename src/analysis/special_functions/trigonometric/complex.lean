@@ -13,6 +13,11 @@ import analysis.convex.specific_functions
 # Complex trigonometric functions
 
 Basic facts and derivatives for the complex trigonometric functions.
+
+Several facts about the real trigonometric functions have the proofs deferred here, rather than
+`analysis.special_functions.trigonometric.basic`,
+as they are most easily proved by appealing to the corresponding fact for complex trigonometric
+functions, or require additional imports which are not available in that file.
 -/
 
 noncomputable theory

@@ -361,7 +361,8 @@ end
 include hfin
 
 /-- The canonical homomorphism from a pi group of subgroups -/
-def hom : (Π (i : I), H i) →* G := @pi_hom.hom _ _ _ _ _ _ (λ i, (H i).subtype) hcomm_subtype
+def hom : (Π (i : I), H i) →* G :=
+  let _ := hcomm_subtype in by exactI pi_hom.hom (λ i, (H i).subtype)
 
 @[simp]
 lemma hom_update_one (i : I) (y : H i): hom (function.update 1 i y) = y :=

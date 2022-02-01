@@ -227,6 +227,20 @@ begin
     min_le_iff.1 (min_first_diff_le x y z hxz)],
 end
 
+protected lemma dist_triangle (x y z : Π n, E n) :
+  dist x z ≤ dist x y + dist y z :=
+calc dist x z ≤ max (dist x y) (dist y z) :
+  dist_triangle_nonarch x y z
+... ≤ dist x y + dist y z :
+  max_le_add_of_nonneg (pi_nat.dist_nonneg _ _) (pi_nat.dist_nonneg _ _)
+
+protected lemma eq_of_dist_eq_zero (x y : Π n, E n) (hxy : dist x y = 0) : x = y :=
+begin
+  rcases eq_or_ne x y with rfl|h, { refl },
+  simp [dist_eq_of_ne h] at hxy,
+  exact (two_ne_zero (pow_eq_zero hxy)).elim
+end
+
 lemma mem_cylinder_iff_dist_le {x y : Π n, E n} {n : ℕ} :
   y ∈ cylinder x n ↔ dist y x ≤ (1/2)^n :=
 begin
@@ -302,21 +316,30 @@ end
 
 /-- Metric space structure on `Π (n : ℕ), E n` when the spaces `E n` have the discrete topology,
 where the distance is given by `dist x y = (1/2)^n`, where `n` is the smallest index where `x` and
-`y` differ. Not registered as a global instance by default. -/
+`y` differ. Not registered as a global instance by default.
+Warning: this definition makes sure that the topology is defeq to the original product topology,
+but it does not take care of a possible uniformity. If the `E n` have a uniform structure, then
+there will be two non-defeq uniform structures on `Π n, E n`, the product one and the one coming
+from the metric structure. -/
 protected def metric_space : metric_space (Π n, E n) :=
+metric_space.of_metrizable dist pi_nat.dist_self pi_nat.dist_comm pi_nat.dist_triangle
+  is_open_iff_dist pi_nat.eq_of_dist_eq_zero
+
+open_locale topological_space filter
+
+/-
+protected def metric_space_of_discrete_uniformity {E : ℕ → Type*} [h : ∀ n, uniform_space (E n)]
+  (h : ∀ n, h n = (⊥ : uniform_space (E n))) : metric_space (Π n, E n) :=
 begin
-  refine metric_space.of_metrizable dist pi_nat.dist_self pi_nat.dist_comm _
-    is_open_iff_dist _,
-  { assume x y z,
-    calc dist x z ≤ max (dist x y) (dist y z) :
-      dist_triangle_nonarch x y z
-    ... ≤ dist x y + dist y z :
-      max_le_add_of_nonneg (pi_nat.dist_nonneg _ _) (pi_nat.dist_nonneg _ _) },
-  { assume x y hxy,
-    rcases eq_or_ne x y with rfl|h, { refl },
-    simp [dist_eq_of_ne h] at hxy,
-    exact (two_ne_zero (pow_eq_zero hxy)).elim }
+  haveI : ∀ n, discrete_topology (E n),
+  { assume n,
+    have Z := h n,
+    library_search
+
+
+  }
 end
+-/
 
 local attribute [instance] pi_nat.metric_space
 

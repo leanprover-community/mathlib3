@@ -1129,6 +1129,16 @@ lemma to_topological_space_inf {u v : uniform_space α} :
   (u ⊓ v).to_topological_space = u.to_topological_space ⊓ v.to_topological_space :=
 by rw [to_topological_space_Inf, infi_pair]
 
+/-- A uniform space with the discrete uniformity has the discrete topology. -/
+lemma discrete_topology_of_discrete_uniformity [hα : uniform_space α]
+  (h : uniformity α = 𝓟 id_rel) :
+  discrete_topology α :=
+⟨begin
+  have : hα = ⊥, by { ext1, exact h },
+  rw this,
+  refl
+end⟩
+
 instance : uniform_space empty := ⊥
 instance : uniform_space punit := ⊥
 instance : uniform_space bool := ⊥

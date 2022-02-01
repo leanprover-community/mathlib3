@@ -218,16 +218,23 @@ begin
 end
 
 lemma re_apply_inner_self_le_supr_rayleigh_mul_norm_sq (x : E) :
-  T.re_apply_inner_self x ≤ (⨆ z, rayleigh_quotient z) * ∥x∥ ^ 2 :=
+  T.re_apply_inner_self x ≤ (⨆ z : {x : E // x ≠ 0}, rayleigh_quotient z) * ∥x∥ ^ 2 :=
 begin
+  by_cases hx : x = 0,
+  { simp [hx, re_apply_inner_self] },
   rw [re_apply_inner_self_eq_rayleigh_mul_norm_sq T x],
   refine mul_le_mul_of_nonneg_right _ (pow_nonneg (norm_nonneg _) 2),
-  exact le_csupr (rayleigh_bdd_above T) _,
+  refine @le_csupr _ {x : E // x ≠ 0} _ (λ z, rayleigh_quotient z) _ ⟨x, hx⟩,
+  obtain ⟨C, hC⟩ := rayleigh_bdd_above T,
+  use C,
+  rintros _ ⟨y, rfl⟩,
+  exact hC ⟨y, rfl⟩,
 end
 
 lemma re_apply_inner_self_le_max_supr_rayleigh_mul_norm_sq (x : E) :
   T.re_apply_inner_self x ≤
-    max (⨆ z, rayleigh_quotient z) (⨆ z, (-rayleigh_quotient) z) * ∥x∥ ^ 2 :=
+    max (⨆ z : {x : E // x ≠ 0}, rayleigh_quotient z)
+      (⨆ z : {x : E // x ≠ 0}, (-rayleigh_quotient) z) * ∥x∥ ^ 2 :=
 le_trans (re_apply_inner_self_le_supr_rayleigh_mul_norm_sq T x) $
   mul_le_mul_of_nonneg_right (le_max_left _ _) (sq_nonneg ∥x∥)
 
@@ -243,11 +250,18 @@ end
 lemma re_apply_inner_self_le_supr_abs_rayleigh_mul_norm_sq (x : E) :
   T.re_apply_inner_self x ≤ (⨆ z : sphere (0:E) 1, |rayleigh_quotient z|) * ∥x∥ ^ 2 :=
 begin
+  by_cases hx : x = 0,
+  { simp [hx, re_apply_inner_self], },
   simp only [supr_abs_rayleigh_eq_sup_supr],
   have := T.re_apply_inner_self_le_max_supr_rayleigh_mul_norm_sq x,
   simp at this,
+  refine le_trans this _,
+  refine mul_le_mul_of_nonneg_right _ (sq_nonneg _),
+  apply max_le_max,
+  { rw ← supr_rayleigh_eq_supr_rayleigh_sphere,
+    simp },
   --refine T.re_apply_inner_self_le_max_supr_rayleigh_mul_norm_sq x,
-  sorry,
+  sorry, -- should be the same, but missing a `csupr_neg` lemma
 end
 
 lemma neg_re_apply_inner_self_le_supr_abs_rayleigh_mul_norm_sq (x : E) :

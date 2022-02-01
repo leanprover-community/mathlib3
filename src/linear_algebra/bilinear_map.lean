@@ -37,16 +37,20 @@ section semiring
 variables {R : Type*} [semiring R] {S : Type*} [semiring S]
 variables {R₂ : Type*} [semiring R₂] {S₂ : Type*} [semiring S₂]
 variables {M : Type*} {N : Type*} {P : Type*}
+variables {M₂ : Type*} {N₂ : Type*} {P₂ : Type*}
 variables {Nₗ : Type*} {Pₗ : Type*}
 variables {M' : Type*} {N' : Type*} {P' : Type*}
 
 variables [add_comm_monoid M] [add_comm_monoid N] [add_comm_monoid P]
+variables [add_comm_monoid M₂] [add_comm_monoid N₂] [add_comm_monoid P₂]
 variables [add_comm_monoid Nₗ] [add_comm_monoid Pₗ]
 variables [add_comm_group M'] [add_comm_group N'] [add_comm_group P']
 variables [module R M] [module S N] [module R₂ P] [module S₂ P]
+variables [module R M₂] [module S N₂] [module R P₂] [module S₂ P₂]
 variables [module R Pₗ] [module S Pₗ]
 variables [module R M'] [module S N'] [module R₂ P'] [module S₂ P']
 variables [smul_comm_class S₂ R₂ P] [smul_comm_class S R Pₗ] [smul_comm_class S₂ R₂ P']
+variables [smul_comm_class S₂ R P₂]
 variables {ρ₁₂ : R →+* R₂} {σ₁₂ : S →+* S₂}
 
 variables (ρ₁₂ σ₁₂)
@@ -120,7 +124,7 @@ theorem map_sub₂ (f : M' →ₛₗ[ρ₁₂] N →ₛₗ[σ₁₂] P') (x y z)
 theorem map_add₂ (f : M →ₛₗ[ρ₁₂] N →ₛₗ[σ₁₂] P) (x₁ x₂ y) : f (x₁ + x₂) y = f x₁ y + f x₂ y :=
 (flip f y).map_add _ _
 
-theorem map_smul₂ (f : M →ₗ[R] N →ₗ[S] Pₗ) (r : R) (x y) : f (r • x) y = r • f x y :=
+theorem map_smul₂ (f : M₂ →ₗ[R] N₂ →ₛₗ[σ₁₂] P₂) (r : R) (x y) : f (r • x) y = r • f x y :=
 (flip f y).map_smul _ _
 
 theorem map_smulₛₗ₂ (f : M →ₛₗ[ρ₁₂] N →ₛₗ[σ₁₂] P) (r : R) (x y) : f (r • x) y = (ρ₁₂ r) • f x y :=

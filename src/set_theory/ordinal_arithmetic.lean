@@ -1208,7 +1208,7 @@ section
 variables {S : set ordinal.{u}} (hS : unbounded (<) S)
 
 -- A characterization of unboundedness that's more convenient to our purposes.
-private lemma unbounded_aux (hS : unbounded (<) S) (a) : ∃ b, b ∈ S ∧ a ≤ b :=
+private lemma unbounded_aux (a) : ∃ b, b ∈ S ∧ a ≤ b :=
 let ⟨b, hb, hb'⟩ := hS a in ⟨b, hb, le_of_not_gt hb'⟩
 
 /-- Enumerator function for an unbounded set of ordinals. -/

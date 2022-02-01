@@ -147,9 +147,8 @@ lemma integrable_on.union (hs : integrable_on f s μ) (ht : integrable_on f t μ
   integrable_on f {x} μ ↔ f x = 0 ∨ μ {x} < ∞ :=
 begin
   have : f =ᵐ[μ.restrict {x}] (λ y, f x),
-  { filter_upwards [ae_restrict_mem (measurable_set_singleton x)],
-    assume a ha,
-    simp only [mem_singleton_iff.1 ha] },
+  { filter_upwards [ae_restrict_mem (measurable_set_singleton x)] with _ ha,
+    simp only [mem_singleton_iff.1 ha], },
   rw [integrable_on, integrable_congr this, integrable_const_iff],
   simp,
 end
@@ -446,10 +445,9 @@ begin
   rcases is_compact.exists_bound_of_continuous_on ht hg with ⟨C, hC⟩,
   rw [integrable_on, ← mem_ℒp_one_iff_integrable] at hf ⊢,
   have : ∀ᵐ x ∂(μ.restrict s), ∥f x * g x∥ ≤ C * ∥f x∥,
-  { filter_upwards [ae_restrict_mem hs],
-    assume x hx,
+  { filter_upwards [ae_restrict_mem hs] with x hx,
     rw [real.norm_eq_abs, abs_mul, mul_comm, real.norm_eq_abs],
-    apply mul_le_mul_of_nonneg_right (hC x (hst hx)) (abs_nonneg _) },
+    apply mul_le_mul_of_nonneg_right (hC x (hst hx)) (abs_nonneg _), },
   exact mem_ℒp.of_le_mul hf (hf.ae_measurable.mul ((hg.mono hst).ae_measurable hs)) this,
 end
 

@@ -1223,7 +1223,7 @@ lemma not_injective_of_ordinal_of_small {α : Type v} [small.{u} α] (f : ordina
 λ h, not_injective_of_ordinal _ ((equiv_shrink _).injective.comp h)
 
 theorem not_small_ordinal : ¬ small.{u} ordinal.{max u v} :=
-λ h, @not_injective_of_ordinal_of_small _ h ordinal.lift.{v u} (λ a b h, lift_inj.1 h)
+λ h, @not_injective_of_ordinal_of_small _ h ordinal.lift (λ a b, lift_inj.1)
 
 /-! ### Enumerating unbounded sets of ordinals with ordinals -/
 

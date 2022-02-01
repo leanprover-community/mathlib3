@@ -43,7 +43,6 @@ noncomputable theory
 open_locale classical topological_space ennreal
 
 local notation `ℓ_infty_ℝ`:= lp (λ n : ℕ, ℝ) ∞
-local attribute [instance] fact_one_le_top_ennreal
 
 universes u v w
 

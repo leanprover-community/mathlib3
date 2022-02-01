@@ -48,14 +48,13 @@ def equiv_bounded_of_compact : C(α, β) ≃ (α →ᵇ β) :=
 
 lemma uniform_inducing_equiv_bounded_of_compact :
   uniform_inducing (equiv_bounded_of_compact α β) :=
+uniform_inducing.mk'
 begin
-  refine ⟨(uniformity_basis_dist_le.comap _).ext
-    uniformity_basis_dist_le.compact_convergence_uniformity (λ ε ε₀, _) _⟩,
-  { exact ⟨(univ, ε), ⟨compact_univ, ε₀⟩, λ fg H, (dist_le ε₀.le).2 (λ x, H x trivial)⟩ },
-  { rintro ⟨K, ε⟩ ⟨hK, ε₀⟩,
-    refine ⟨ε, ε₀, λ fg H x hx, _⟩,
-    simp only [mem_preimage, mem_set_of_eq, dist_le ε₀.le] at H,
-    exact H x }
+  simp only [has_basis_compact_convergence_uniformity.mem_iff, uniformity_basis_dist_le.mem_iff],
+  exact λ s, ⟨λ ⟨⟨a, b⟩, ⟨ha, ⟨ε, hε, hb⟩⟩, hs⟩, ⟨{p | ∀ x, (p.1 x, p.2 x) ∈ b},
+    ⟨ε, hε, λ _ h x, hb (by exact (dist_le hε.le).mp h x)⟩, λ f g h, hs (by exact λ x hx, h x)⟩,
+    λ ⟨t, ⟨ε, hε, ht⟩, hs⟩, ⟨⟨set.univ, {p | dist p.1 p.2 ≤ ε}⟩, ⟨compact_univ, ⟨ε, hε, λ _ h, h⟩⟩,
+    λ ⟨f, g⟩ h, hs _ _ (ht (by exact (dist_le hε.le).mpr (λ x, h x (mem_univ x))))⟩⟩,
 end
 
 lemma uniform_embedding_equiv_bounded_of_compact :

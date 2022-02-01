@@ -120,7 +120,7 @@ le_antisymm (sup_le.2 (λ l, (by rw nfp_family_iterate_fixed h))) (le_nfp_family
 /-- A generalization of the fixed point lemma for normal functions: any family of normal functions
 has an unbounded set of common fixed points. -/
 theorem nfp_family_unbounded {f : ι → ordinal.{max u v} → ordinal.{max u v}}
-  (H : ∀ i, is_normal (f i)) : unbounded (<) (⋂ i, function.fixed_points (f i)) :=
+  (H : ∀ i, is_normal (f i)) : set.unbounded (<) (⋂ i, function.fixed_points (f i)) :=
 λ a, ⟨_, λ s ⟨i, hi⟩, begin
   rw ←hi,
   exact nfp_family_fp H i a
@@ -167,18 +167,14 @@ theorem le_iff_deriv_family {f : ι → ordinal → ordinal} (H : ∀ i, is_norm
 ⟨λ ha, begin
   suffices : ∀ o (_ : a ≤ deriv_family f o), ∃ o, deriv_family f o = a,
   from this a ((deriv_family_is_normal _).le_self _),
-  intro o, apply limit_rec_on o,
-  { intros h₁,
-    refine ⟨0, le_antisymm _ h₁⟩,
-    rw deriv_family_zero,
+  refine λ o, limit_rec_on o (λ h₁, ⟨0, le_antisymm _ h₁⟩) (λ o IH h₁, _) (λ o l IH h₁, _),
+  { rw deriv_family_zero,
     exact nfp_family_le_fp H (ordinal.zero_le _) ha },
-  { intros o IH h₁,
-    cases le_or_lt a (deriv_family f o), {exact IH h},
+  { cases le_or_lt a (deriv_family f o), {exact IH h},
     refine ⟨succ o, le_antisymm _ h₁⟩,
     rw deriv_family_succ,
     exact nfp_family_le_fp H (succ_le.2 h) ha },
-  { intros o l IH h₁,
-    cases eq_or_lt_of_le h₁, {exact ⟨_, h.symm⟩},
+  { cases eq_or_lt_of_le h₁, {exact ⟨_, h.symm⟩},
     rw [deriv_family_limit _ l, ← not_le, bsup_le, not_ball] at h,
     exact let ⟨o', h, hl⟩ := h in IH o' h (le_of_not_le hl) }
 end, λ ⟨o, e⟩ i, e ▸ le_of_eq (deriv_family_fp H _ i)⟩
@@ -262,7 +258,7 @@ nfp_family_eq_self (λ _, h _ _)
 /-- A generalization of the fixed point lemma for normal functions: any family of normal functions
 has an unbounded set of common fixed points. -/
 theorem nfp_bfamily_unbounded {o : ordinal.{u}} {f : Π b < o, ordinal.{max u v} → ordinal.{max u v}}
-  (H : ∀ i hi, is_normal (f i hi)) : unbounded (<) (⋂ i hi, function.fixed_points (f i hi)) :=
+  (H : ∀ i hi, is_normal (f i hi)) : set.unbounded (<) (⋂ i hi, function.fixed_points (f i hi)) :=
 λ a, ⟨_, by { rw set.mem_Inter₂, exact λ _ _, nfp_bfamily_fp H _ _ _ },
   not_lt_of_ge (le_nfp_bfamily_self f a)⟩
 
@@ -327,20 +323,20 @@ theorem nfp_family_iterate_eq_iterate {ι : Type u} (f : ordinal → ordinal) (a
   exact function.iterate_succ_apply' f _ a
 end
 
-theorem nfp_eq_sup_nat (f : ordinal.{u} → ordinal.{u}) :
-  nfp f = λ a, sup (λ n : ℕ, f^[n] a) :=
+theorem sup_iterate_eq_nfp (f : ordinal.{u} → ordinal.{u}) :
+  (λ a, sup (λ n : ℕ, f^[n] a)) = nfp f :=
 begin
-  refine funext (λ a, le_antisymm (sup_le.2 (λ l, _)) _),
+  refine funext (λ a, le_antisymm _ (sup_le.2 (λ l, _))),
+  { rw sup_le,
+    intro n,
+    rw [←list.length_repeat unit.star n, ←nfp_family_iterate_eq_iterate.{0 u} f a],
+    exact le_sup _ _ },
   { rw nfp_family_iterate_eq_iterate.{0 u} f a l,
     exact le_sup _ _ },
-  rw sup_le,
-  intro n,
-  rw [←list.length_repeat unit.star n, ←nfp_family_iterate_eq_iterate.{0 u} f a],
-  exact le_sup _ _
 end
 
 theorem iterate_le_nfp (f a n) : f^[n] a ≤ nfp f a :=
-by { rw nfp_eq_sup_nat, exact le_sup _ n }
+by { rw ←sup_iterate_eq_nfp, exact le_sup _ n }
 
 theorem le_nfp_self (f a) : a ≤ nfp f a :=
 iterate_le_nfp f a 0

@@ -20,7 +20,7 @@ image of different morphism commute, we obtain a canoncial morphism
 ## Main definitions
 
 * `pi_hom.hom : (Π (i : I), H i) →* G` is the main homomorphism
-* `pi_hom_restr.hom (S : fintype S): (Π (i : I), H i) →* G` is the homomorphism restricted to the
+* `pi_hom_restr.hom (S : finset S) : (Π (i : I), H i) →* G` is the homomorphism restricted to the
    set `S`, and mostly of internal interest in this file, to allow inductive proofs.
 * `subgroup_pi_hom.hom : (Π (i : I), H i) →* G` is the specialization to `H i : subgroup G` and
    the subgroup embedding.
@@ -41,6 +41,7 @@ image of different morphism commute, we obtain a canoncial morphism
 -/
 
 open_locale big_operators
+open_locale classical
 
 -- A lot of faff just to transport `is_coprime.prod_left` from ℤ to ℕ
 lemma coprime_prod_left
@@ -89,7 +90,8 @@ end
 section family_of_groups
 
 -- We have an family of groups
-parameters {I : Type*} [fintype I] [decidable_eq I] {H : I → Type*} [∀ i, group (H i)]
+parameters {I : Type*} [hfin : fintype I]
+parameters {H : I → Type*} [∀ i, group (H i)]
 
 -- And morphism ϕ into G
 parameters (ϕ : Π (i : I), H i →* G)
@@ -239,6 +241,8 @@ end pi_hom_restr
 
 namespace pi_hom
 
+include hfin
+
 /-- The product of `ϕ i (f i)` for all `i : I` -/
 def to_fun : G := pi_hom_restr.to_fun ϕ f finset.univ
 
@@ -284,6 +288,8 @@ begin
 end
 
 end pi_hom
+
+include hfin
 
 lemma independent_range_of_coprime_order [∀ i, fintype (H i)]
   (hcoprime : ∀ i j, i ≠ j → nat.coprime (fintype.card (H i)) (fintype.card (H j)))
@@ -333,7 +339,7 @@ namespace subgroup_pi_hom
 section subgroup_pi_hom
 
 -- We have an family of subgroups
-parameters {I : Type*} [fintype I] [decidable_eq I] {H : I → subgroup G}
+parameters {I : Type*} [hfin : fintype I] [hdec : decidable_eq I] {H : I → subgroup G}
 
 -- Elements of `Π (i : I), H i` are called `f` and `g` here
 variables (f g : Π (i : I), H i)
@@ -352,8 +358,10 @@ fact.mk begin
   exact hcomm i j hne x y hx hy,
 end
 
+include hfin
+
 /-- The canonical homomorphism from a pi group of subgroups -/
-def hom : (Π (i : I), H i) →* G := @pi_hom.hom _ _ _ _ _ _ _ (λ i, (H i).subtype) hcomm_subtype
+def hom : (Π (i : I), H i) →* G := @pi_hom.hom _ _ _ _ _ _ (λ i, (H i).subtype) hcomm_subtype
 
 @[simp]
 lemma hom_update_one (i : I) (y : H i): hom (function.update 1 i y) = y :=

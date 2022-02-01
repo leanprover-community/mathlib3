@@ -263,13 +263,27 @@ namespace is_self_adjoint
 -- section we use some facts about continuous linear operators, so we represent `T` as `E →L[𝕜] E`.
 -- Is it better to do it this way or to keep `T` of the type `E →ₗ[𝕜] E` and re-prove those facts?
 variables {T : E →L[𝕜] E} (hT : is_self_adjoint (T : E →ₗ[𝕜] E)) (hT_cpct : compact_map T)
+
+-- move this
+def _root_.continuous_linear_map.restrict {R : Type*} {M : Type*} [semiring R] [add_comm_monoid M]
+  [topological_space M]
+  [module R M] (f : M →L[R] M) {p : submodule R M} (hf : ∀ (x : M), x ∈ p → f x ∈ p) :
+  ↥p →L[R] ↥p :=
+{ cont := begin
+    apply continuous_induced_rng,
+    exact f.continuous.comp continuous_induced_dom,
+  end,
+  .. linear_map.restrict (f : M →ₗ[R] M) hf }
+
+
 include cplt hT hT_cpct
 
 /-- The mutual orthogonal complement of the eigenspaces of a compact self-adjoint operator on an
 inner product space is trivial. -/
 lemma orthogonal_supr_eigenspaces_eq_bot_of_compact : (⨆ μ, eigenspace (T : E →ₗ[𝕜] E) μ)ᗮ = ⊥ :=
 begin
-  have hT' : is_self_adjoint _ := hT.restrict_invariant hT.orthogonal_supr_eigenspaces_invariant,
+  have hT' : is_self_adjoint (↑(T.restrict hT.orthogonal_supr_eigenspaces_invariant)),
+  { convert hT.restrict_invariant hT.orthogonal_supr_eigenspaces_invariant },
   have hT_cpct' : compact_map _ :=
     hT_cpct.restrict_invariant' hT.orthogonal_supr_eigenspaces_invariant,
   -- a self-adjoint operator on a nontrivial inner product space has an eigenvalue

@@ -364,7 +364,7 @@ open continuous_linear_map
 variables {T : E →L[𝕜] E}
 local notation `rayleigh_quotient` := λ x : E, T.re_apply_inner_self x / ∥(x:E)∥ ^ 2
 
-lemma norm_eq_supr_abs_rayleigh_sphere (hT : is_self_adjoint T.to_linear_map) :
+lemma norm_eq_supr_abs_rayleigh_sphere (hT : is_self_adjoint (T : E →ₗ[𝕜] E)) :
   ∥T∥ = (⨆ x : sphere (0:E) 1, |rayleigh_quotient x|) :=
 begin
   rcases subsingleton_or_nontrivial E with h_trivE|h_nontrivE,
@@ -588,9 +588,9 @@ variables [complete_space E] {T : E →L[𝕜] E}
 local notation `rayleigh_quotient` := λ x : E, T.re_apply_inner_self x / ∥(x:E)∥ ^ 2
 local notation `rayleigh_quotient_sphere` := λ x : sphere (0:E) 1, T.re_apply_inner_self x / ∥(x:E)∥ ^ 2
 local notation `u_sph` := sphere (0:E) 1
-lemma exists_eigenvalue_of_compact_aux [nontrivial E] (hT : is_self_adjoint T.to_linear_map)
+lemma exists_eigenvalue_of_compact_aux [nontrivial E] (hT : is_self_adjoint (T : E →ₗ[𝕜] E))
   (hT_cpct : compact_map T) (h_pos_case : ∥T∥ = (⨆ x : sphere (0:E) 1, rayleigh_quotient x)) :
-  ∃ c, has_eigenvalue T.to_linear_map c :=
+  ∃ c, has_eigenvalue (T : E →ₗ[𝕜] E) c :=
 begin
   haveI : nonempty (sphere (0:E) 1) := continuous_linear_map.sphere_nonempty zero_le_one,
   by_cases h_triv : T = 0,
@@ -715,8 +715,8 @@ begin
   simpa [inner_neg_left, inner_neg_right] using congr_arg (λ a, -a) (hT x y),
 end
 
-lemma exists_eigenvalue_of_compact [nontrivial E] (hT : is_self_adjoint T.to_linear_map)
-  (hT_cpct : compact_map T) : ∃ c, has_eigenvalue T.to_linear_map c :=
+lemma exists_eigenvalue_of_compact [nontrivial E] (hT : is_self_adjoint (T : E →ₗ[𝕜] E))
+  (hT_cpct : compact_map T) : ∃ c, has_eigenvalue (T : E →ₗ[𝕜] E) c :=
 begin
   have H₁ := hT.norm_eq_supr_abs_rayleigh_sphere,
   rw T.supr_abs_rayleigh_eq_sup_supr at H₁,
@@ -726,7 +726,7 @@ begin
   { rw h₁ at H₁,
     exact hT.exists_eigenvalue_of_compact_aux hT_cpct H₁ },
   { rw h₁ at H₁,
-    have : is_self_adjoint (-T).to_linear_map := hT.neg,
+    have : is_self_adjoint (↑(-T) : E →ₗ[𝕜] E) := hT.neg,
     obtain ⟨c, hc⟩ := this.exists_eigenvalue_of_compact_aux hT_cpct.neg _,
     { use -c,
       rw has_eigenvalue at hc ⊢,
@@ -740,7 +740,7 @@ begin
     simp [continuous_linear_map.re_apply_inner_self] },
 end
 
-lemma subsingleton_of_no_eigenvalue_of_compact (hT : is_self_adjoint T.to_linear_map)
+lemma subsingleton_of_no_eigenvalue_of_compact (hT : is_self_adjoint (T : E →ₗ[𝕜] E))
   (hT_cpct : compact_map T) (hT' : ∀ μ : 𝕜, module.End.eigenspace (T : E →ₗ[𝕜] E) μ = ⊥) :
   subsingleton E :=
 (subsingleton_or_nontrivial E).resolve_right

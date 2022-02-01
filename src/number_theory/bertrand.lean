@@ -76,7 +76,7 @@ open nat
 
 /-- The multiplicity of p in the nth central binomial coefficient-/
 private def α (n p : nat) [hp : fact p.prime] : nat :=
-padic_val_nat p (nat.central_binom n)
+padic_val_nat p (central_binom n)
 
 lemma claim_1
   (p : nat)
@@ -87,9 +87,9 @@ lemma claim_1
   :=
 begin
   unfold α,
-  rw @padic_val_nat_def p hp (nat.central_binom n) (nat.central_binom_ne_zero n),
-  simp only [nat.central_binom_eq_two_mul_choose n,
-    nat.prime.multiplicity_choose hp.out
+  rw @padic_val_nat_def p hp (central_binom n) (central_binom_ne_zero n),
+  simp only [central_binom_eq_two_mul_choose n,
+    prime.multiplicity_choose hp.out
       (le_mul_of_pos_left zero_lt_two) (lt_add_one (p.log (2 * n)))],
   have r : 2 * n - n = n,
     calc
@@ -99,9 +99,9 @@ begin
   simp [r, ←two_mul],
   apply trans (pow_le_pow (trans one_le_two hp.out.two_le) _) (_ : p ^ p.log (2 * n) ≤ 2 * n),
   { calc _
-        ≤ (finset.Ico 1 (nat.log p (2 * n) + 1)).card : finset.card_filter_le _ _
-    ... = (p.log (2 * n) + 1) - 1                     : nat.card_Ico _ _ },
-  { apply nat.pow_log_le_self,
+        ≤ (finset.Ico 1 (log p (2 * n) + 1)).card : finset.card_filter_le _ _
+    ... = (p.log (2 * n) + 1) - 1                     : card_Ico _ _ },
+  { apply pow_log_le_self,
     exact hp.out.one_lt,
     linarith, }
 end
@@ -115,9 +115,9 @@ lemma claim_4
   :=
 begin
   unfold α at multiplicity_pos,
-  rw nat.central_binom_eq_two_mul_choose at multiplicity_pos,
-  rw @padic_val_nat_def p hp ((2 * n).choose n) (nat.central_binom_ne_zero n) at multiplicity_pos,
-  simp only [nat.prime.multiplicity_choose hp.out (nat.le_mul_of_pos_left zero_lt_two)
+  rw central_binom_eq_two_mul_choose at multiplicity_pos,
+  rw @padic_val_nat_def p hp ((2 * n).choose n) (central_binom_ne_zero n) at multiplicity_pos,
+  simp only [prime.multiplicity_choose hp.out (le_mul_of_pos_left zero_lt_two)
               (lt_add_one (p.log (2 * n)))]
     at multiplicity_pos,
   have r : 2 * n - n = n,
@@ -133,65 +133,65 @@ begin
   simp only [finset.mem_Ico, finset.mem_filter] at hm,
   calc
   p   = p ^ 1 : (pow_one _).symm
-  ... ≤ p ^ m : nat.pow_le_pow_of_le_right
+  ... ≤ p ^ m : pow_le_pow_of_le_right
                   (show 0 < p, from trans zero_lt_one hp.out.one_lt) hm.left.left
   ... ≤ 2 * (n % p ^ m) : hm.right
-  ... ≤ 2 * n : nat.mul_le_mul_left _ (nat.mod_le n _),
+  ... ≤ 2 * n : nat.mul_le_mul_left _ (mod_le n _),
 end
 
 /-
 
 -/
 
-lemma two_n_div_3_le_central_binom (n : ℕ) : 2 * n / 3 < nat.central_binom n :=
+lemma two_n_div_3_le_central_binom (n : ℕ) : 2 * n / 3 < central_binom n :=
 begin
   cases n,
-  { simp only [nat.succ_pos', nat.choose_self, nat.zero_div, mul_zero, nat.central_binom_zero], },
+  { simp only [succ_pos', choose_self, nat.zero_div, mul_zero, central_binom_zero], },
   calc
   2 * (n + 1) / 3
       < 2 * (n + 1)                           : nat.div_lt_self (by norm_num) (by norm_num)
   ... = (2 * (n + 1)).choose(1)               : by norm_num
-  ... ≤ (2 * (n + 1)).choose(2 * (n + 1) / 2) : nat.choose_le_middle 1 (2 * (n + 1))
-  ... = (2 * (n + 1)).choose(n + 1)           : by simp only [nat.succ_pos', nat.mul_div_right]
+  ... ≤ (2 * (n + 1)).choose(2 * (n + 1) / 2) : choose_le_middle 1 (2 * (n + 1))
+  ... = (2 * (n + 1)).choose(n + 1)           : by simp only [succ_pos', mul_div_right]
 end
 
 lemma central_binom_factorization (n : ℕ) :
-      ∏ p in finset.filter nat.prime (finset.range (nat.central_binom n + 1)),
-        p ^ (padic_val_nat p (nat.central_binom n))
-      = nat.central_binom n :=
-  prod_pow_prime_padic_val_nat _ (nat.central_binom_ne_zero n) _ (lt_add_one _)
+      ∏ p in finset.filter nat.prime (finset.range (central_binom n + 1)),
+        p ^ (padic_val_nat p (central_binom n))
+      = central_binom n :=
+  prod_pow_prime_padic_val_nat _ (central_binom_ne_zero n) _ (lt_add_one _)
 
-lemma intervening_sqrt {a n : ℕ} (small : (nat.sqrt n) ^ 2 ≤ a ^ 2) (big : a ^ 2 ≤ n)
-  : a = nat.sqrt n :=
+lemma intervening_sqrt {a n : ℕ} (small : (sqrt n) ^ 2 ≤ a ^ 2) (big : a ^ 2 ≤ n)
+  : a = sqrt n :=
 begin
-  rcases lt_trichotomy a (nat.sqrt n) with H|rfl|H,
+  rcases lt_trichotomy a (sqrt n) with H|rfl|H,
   { refine (lt_irrefl (a ^ 2) _).elim,
     calc
     _   = a * a            : sq _
-    ... < n.sqrt * n.sqrt  : nat.mul_self_lt_mul_self H
-    ... = (nat.sqrt n) ^ 2 : (sq _).symm
+    ... < n.sqrt * n.sqrt  : mul_self_lt_mul_self H
+    ... = (sqrt n) ^ 2 : (sq _).symm
     ... ≤ a ^ 2            : small, },
   { refl, },
   { refine (lt_irrefl (a ^ 2) _).elim,
     calc
     _   ≤ n     : big
-    ... < a * a : nat.sqrt_lt.1 H
+    ... < a * a : sqrt_lt.1 H
     ... = a ^ 2 : (sq _).symm, },
 end
 
 
 lemma even_prime_is_two {p : ℕ} (pr: p.prime) (div: 2 ∣ p) : p = 2 :=
-((nat.prime_dvd_prime_iff_eq nat.prime_two pr).mp div).symm
+((prime_dvd_prime_iff_eq prime_two pr).mp div).symm
 
 lemma even_prime_is_small {a n : ℕ} (a_prime : nat.prime a) (n_big : 2 < n)
-(small : a ≤ nat.sqrt(2 * n))
+(small : a ≤ sqrt(2 * n))
 : a ^ 2 < 2 * n :=
 begin
   cases lt_or_ge (a ^ 2) (2 * n),
   { exact h, },
-  { have small' : a^2 ≤ (2 * n), exact nat.le_sqrt'.mp small,
+  { have small' : a^2 ≤ (2 * n), exact le_sqrt'.mp small,
     have t : a * a = 2 * n := (sq _).symm.trans (small'.antisymm h),
-    have a_even : 2 ∣ a := (or_self _).mp ((nat.prime.dvd_mul nat.prime_two).mp ⟨n, t⟩),
+    have a_even : 2 ∣ a := (or_self _).mp ((prime.dvd_mul prime_two).mp ⟨n, t⟩),
     have a_two : a = 2 := even_prime_is_two a_prime a_even,
     rw [a_two, sq],
     exact (mul_lt_mul_left zero_lt_two).mpr n_big },

@@ -55,10 +55,6 @@ begin
   { rw function.iterate_succ', exact ho hao hn }
 end
 
-theorem principal.iterate_lt' {op : ordinal → ordinal → ordinal} {a o : ordinal} (hao : a < o)
-  (ho : principal op o) (n : ℕ) : ((function.swap op) a)^[n] a < o :=
-principal.iterate_lt hao (principal_iff_principal_swap.1 ho) n
-
 theorem op_eq_self_of_principal {op : ordinal → ordinal → ordinal} {a o : ordinal.{u}}
   (hao : a < o) (H : is_normal (op a)) (ho : principal op o) (ho' : is_limit o) : op a o = o :=
 begin

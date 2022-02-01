@@ -48,9 +48,6 @@ lemma nat.self_le_mul {m : ℕ} : ∀ {n : ℕ} (n0 : 0 < n), m ≤ n * m
 | 1     h := (one_mul m).symm.le
 | (n+2) h := trans (nat.self_le_mul n.succ_pos) $ mul_le_mul_right' n.succ.le_succ _
 
-lemma nat.le_two_mul_self (n : ℕ) : n ≤ 2 * n :=
-nat.self_le_mul zero_lt_two
-
 lemma claim_1
   (p : nat)
   [hp : fact p.prime]
@@ -62,7 +59,7 @@ begin
   unfold α,
   rw @padic_val_nat_def p hp (nat.central_binom n) (nat.central_binom_ne_zero n),
   simp only [nat.central_binom_eq_two_mul_choose n,
-    nat.prime.multiplicity_choose hp.out n.le_two_mul_self (lt_add_one (p.log (2 * n)))],
+    nat.prime.multiplicity_choose hp.out (nat.self_le_mul zero_lt_two) (lt_add_one (p.log (2 * n)))],
   have r : 2 * n - n = n,
     calc
     2 * n - n
@@ -78,10 +75,6 @@ begin
     linarith, }
 end
 
-lemma twice_nat_small (n : nat) (h : 2 * n < 2) : n = 0 :=
-nat.le_zero_iff.mp $ nat.le_of_lt_succ $
-  lt_of_mul_lt_mul_left (h.trans_le (mul_one _).symm.le) (nat.zero_le _)
-
 lemma claim_4
   (p : nat)
   [hp : fact p.prime]
@@ -93,7 +86,7 @@ begin
   unfold α at multiplicity_pos,
   rw nat.central_binom_eq_two_mul_choose at multiplicity_pos,
   rw @padic_val_nat_def p hp ((2 * n).choose n) (nat.central_binom_ne_zero n) at multiplicity_pos,
-  simp only [nat.prime.multiplicity_choose hp.out n.le_two_mul_self (lt_add_one (p.log (2 * n)))]
+  simp only [nat.prime.multiplicity_choose hp.out (nat.self_le_mul zero_lt_two) (lt_add_one (p.log (2 * n)))]
     at multiplicity_pos,
   have r : 2 * n - n = n,
     calc

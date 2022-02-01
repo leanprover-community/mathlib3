@@ -288,7 +288,7 @@ sin_pos_of_pos_of_lt_pi hx.1 hx.2
 
 lemma sin_nonneg_of_mem_Icc {x : ℝ} (hx : x ∈ Icc 0 π) : 0 ≤ sin x :=
 begin
-  rw ← closure_Ioo pi_pos at hx,
+  rw ← closure_Ioo pi_ne_zero.symm at hx,
   exact closure_lt_subset_le continuous_const continuous_sin
     (closure_mono (λ y, sin_pos_of_mem_Ioo) hx)
 end
@@ -826,8 +826,8 @@ lemma tendsto_cos_pi_div_two : tendsto cos (𝓝[<] (π/2)) (𝓝[>] 0) :=
 begin
   apply tendsto_nhds_within_of_tendsto_nhds_of_eventually_within,
   { convert continuous_cos.continuous_within_at, simp },
-  { filter_upwards [Ioo_mem_nhds_within_Iio (right_mem_Ioc.mpr (norm_num.lt_neg_pos
-      _ _ pi_div_two_pos pi_div_two_pos))] with x hx using cos_pos_of_mem_Ioo hx },
+  { filter_upwards [Ioo_mem_nhds_within_Iio (right_mem_Ioc.mpr (neg_lt_self pi_div_two_pos))]
+      with x hx using cos_pos_of_mem_Ioo hx },
 end
 
 lemma tendsto_tan_pi_div_two : tendsto tan (𝓝[<] (π/2)) at_top :=
@@ -844,8 +844,8 @@ lemma tendsto_cos_neg_pi_div_two : tendsto cos (𝓝[>] (-(π/2))) (𝓝[>] 0) :
 begin
   apply tendsto_nhds_within_of_tendsto_nhds_of_eventually_within,
   { convert continuous_cos.continuous_within_at, simp },
-  { filter_upwards [Ioo_mem_nhds_within_Ioi (left_mem_Ico.mpr (norm_num.lt_neg_pos
-      _ _ pi_div_two_pos pi_div_two_pos))] with x hx using cos_pos_of_mem_Ioo hx },
+  { filter_upwards [Ioo_mem_nhds_within_Ioi (left_mem_Ico.mpr (neg_lt_self pi_div_two_pos))]
+      with x hx using cos_pos_of_mem_Ioo hx },
 end
 
 lemma tendsto_tan_neg_pi_div_two : tendsto tan (𝓝[>] (-(π/2))) at_bot :=

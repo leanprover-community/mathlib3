@@ -77,8 +77,6 @@ noncomputable theory
 open topological_space measure_theory filter
 open_locale nnreal ennreal big_operators topological_space measure_theory
 
-local attribute [instance] fact_one_le_one_ennreal fact_one_le_two_ennreal fact_one_le_top_ennreal
-
 variables {α E F G : Type*} {m m0 : measurable_space α} {p : ℝ≥0∞} {q : ℝ} {μ ν : measure α}
   [measurable_space E] [normed_group E]
   [normed_group F] [normed_group G]
@@ -278,7 +276,7 @@ begin
     rw ←ennreal.rpow_mul,
     suffices hp_cancel : q * (1/q) = 1, by rw [hp_cancel, ennreal.rpow_one],
     rw [one_div, mul_inv_cancel hq_ne_zero], },
-  { rw [ne.def, ennreal.rpow_eq_top_iff, auto.not_or_eq, auto.not_and_eq, auto.not_and_eq],
+  { rw [ne.def, ennreal.rpow_eq_top_iff, not_or_distrib, not_and_distrib, not_and_distrib],
     split,
     { left,
       rwa [ennreal.coe_eq_zero, nnnorm_eq_zero], },

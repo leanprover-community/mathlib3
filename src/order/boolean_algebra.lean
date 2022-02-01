@@ -78,8 +78,6 @@ Some of the lemmas in this section are from:
 
 -/
 
-export has_sdiff (sdiff)
-
 /-- A generalized Boolean algebra is a distributive lattice with `⊥` and a relative complement
 operation `\` (called `sdiff`, after "set difference") satisfying `(a ⊓ b) ⊔ (a \ b) = a` and
 `(a ⊓ b) ⊓ (a \ b) = b`, i.e. `a \ b` is the complement of `b` in `a`.
@@ -784,28 +782,6 @@ boolean_algebra.of_core
   top_le_sup_compl := λ p H, classical.em p,
   .. Prop.distrib_lattice,
   .. Prop.bounded_order }
-
-instance pi.has_sdiff {ι : Type u} {α : ι → Type v} [∀ i, has_sdiff (α i)] :
-  has_sdiff (Π i, α i) :=
-⟨λ x y i, x i \ y i⟩
-
-lemma pi.sdiff_def {ι : Type u} {α : ι → Type v} [∀ i, has_sdiff (α i)] (x y : Π i, α i) :
-  (x \ y) = λ i, x i \ y i := rfl
-
-@[simp]
-lemma pi.sdiff_apply {ι : Type u} {α : ι → Type v} [∀ i, has_sdiff (α i)] (x y : Π i, α i) (i : ι) :
-  (x \ y) i = x i \ y i := rfl
-
-instance pi.has_compl {ι : Type u} {α : ι → Type v} [∀ i, has_compl (α i)] :
-  has_compl (Π i, α i) :=
-⟨λ x i, (x i)ᶜ⟩
-
-lemma pi.compl_def {ι : Type u} {α : ι → Type v} [∀ i, has_compl (α i)] (x : Π i, α i) :
-  xᶜ = λ i, (x i)ᶜ := rfl
-
-@[simp]
-lemma pi.compl_apply {ι : Type u} {α : ι → Type v} [∀ i, has_compl (α i)] (x : Π i, α i) (i : ι)  :
-  xᶜ i = (x i)ᶜ := rfl
 
 instance pi.boolean_algebra {ι : Type u} {α : ι → Type v} [∀ i, boolean_algebra (α i)] :
   boolean_algebra (Π i, α i) :=

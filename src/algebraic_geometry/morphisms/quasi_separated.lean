@@ -3,18 +3,15 @@ Copyright (c) 2022 Andrew Yang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andrew Yang
 -/
-import algebraic_geometry.morphisms.basic
+import algebraic_geometry.morphisms.quasi_compact
 
 /-!
-# Quasi-compact morphisms
+# Quasi-separated morphisms
 
-A morphism of schemes is quasi-compact if the preimages of quasi-compact open sets are
+A morphism of schemes `f : X ⟶ Y` is quasi-separated if the diagonal morphism `X ⟶ X ×[Y] X` is
 quasi-compact.
 
-It suffices to check that preimages of affine open sets are compact
-(`quasi_compact_iff_forall_affine`).
-
-We show that this property is local, and is stable under compositions and base-changes.
+A scheme is quasi-separated if the intersections of any two affine open sets is quasi-compact.
 
 -/
 
@@ -33,83 +30,109 @@ A morphism is `quasi-compact` if the underlying map of topological spaces is, i.
 of quasi-compact open sets are quasi-compact.
 -/
 @[mk_iff]
-class quasi_compact (f : X ⟶ Y) : Prop :=
-(is_compact_preimage : ∀ U : set Y.carrier, is_open U → is_compact U → is_compact (f.1.base ⁻¹' U))
+class quasi_separated (f : X ⟶ Y) : Prop :=
+(diagonal_quasi_compact : quasi_compact (pullback.diagonal f))
 
-def quasi_compact.affine_property : affine_target_morphism_property :=
-λ X Y f hf, compact_space X.carrier
+@[mk_iff]
+class is_quasi_separated (X : Scheme) : Prop :=
+(inter_is_compact : ∀ (U V : X.affine_opens), is_compact (U ∩ V : set X.carrier) )
 
-@[simp] lemma quasi_compact_affine_property_to_property {X Y : Scheme} (f : X ⟶ Y) :
-  affine_target_morphism_property.to_property quasi_compact.affine_property f ↔
-    is_affine Y ∧ compact_space X.carrier :=
-by { delta affine_target_morphism_property.to_property quasi_compact.affine_property, simp }
+def quasi_separated.affine_property : affine_target_morphism_property :=
+λ X Y f hf, is_quasi_separated X
+
+@[simp] lemma quasi_separated_affine_property_to_property {X Y : Scheme} (f : X ⟶ Y) :
+  affine_target_morphism_property.to_property quasi_separated.affine_property f ↔
+    is_affine Y ∧ is_quasi_separated X :=
+by { delta affine_target_morphism_property.to_property quasi_separated.affine_property, simp }
 
 @[priority 900]
-instance quasi_compact_of_is_iso {X Y : Scheme} (f : X ⟶ Y) [is_iso f] : quasi_compact f :=
+instance quasi_separated_of_mono {X Y : Scheme} (f : X ⟶ Y) [mono f] : quasi_separated f :=
+⟨infer_instance⟩
+.
+lemma quasi_separated_eq_diagonal_is_quasi_compact :
+  @quasi_separated = diagonal_is @quasi_compact :=
+by { ext, exact quasi_separated_iff _ }
+
+lemma quasi_separated_stable_under_composition :
+  stable_under_composition @quasi_separated :=
+quasi_separated_eq_diagonal_is_quasi_compact.symm ▸
+  diagonal_is_stable_under_composition @quasi_compact
+    quasi_compact_stable_under_base_change
+    quasi_compact_respects_iso
+    quasi_compact_stable_under_composition
+
+lemma quasi_separated_stable_under_base_change :
+  stable_under_base_change @quasi_separated :=
+quasi_separated_eq_diagonal_is_quasi_compact.symm ▸
+  diagonal_is_stable_under_base_change @quasi_compact
+    quasi_compact_stable_under_base_change
+    quasi_compact_respects_iso
+
+instance quasi_separated_comp {X Y Z : Scheme} (f : X ⟶ Y) (g : Y ⟶ Z)
+  [quasi_separated f] [quasi_separated g] : quasi_separated (f ≫ g) :=
+quasi_separated_stable_under_composition f g infer_instance infer_instance
+
+/-- Given an open cover `{ Yᵢ }` of `Y`, then `X ×[Z] Y` is covered by `X ×[Z] Yᵢ`. -/
+@[simps J obj map]
+def Scheme.pullback.open_cover_of_left_right {X Y Z : Scheme} (𝒰X : X.open_cover) (𝒰Y : Y.open_cover)
+  (f : X ⟶ Z) (g : Y ⟶ Z) : (pullback f g).open_cover :=
 begin
-  constructor,
-  intros U hU hU',
-  convert hU'.image (inv f.1.base).continuous_to_fun using 1,
-  rw set.image_eq_preimage_of_inverse,
-  delta function.left_inverse,
-  exacts [is_iso.inv_hom_id_apply f.1.base, is_iso.hom_inv_id_apply f.1.base]
+  fapply ((Scheme.pullback.open_cover_of_left 𝒰X f g).bind
+    (λ x, Scheme.pullback.open_cover_of_right 𝒰Y (𝒰X.map x ≫ f) g)).copy
+    (𝒰X.J × 𝒰Y.J)
+    (λ ij, pullback (𝒰X.map ij.1 ≫ f) (𝒰Y.map ij.2 ≫ g))
+    (λ ij, pullback.map _ _ _ _ (𝒰X.map ij.1) (𝒰Y.map ij.2) (𝟙 _)
+      (category.comp_id _) (category.comp_id _))
+    (equiv.sigma_equiv_prod _ _).symm
+    (λ _, iso.refl _),
+  rintro ⟨i, j⟩,
+  apply pullback.hom_ext; simpa,
 end
 
-instance quasi_compact_comp {X Y Z : Scheme} (f : X ⟶ Y) (g : Y ⟶ Z)
-  [quasi_compact f] [quasi_compact g] : quasi_compact (f ≫ g) :=
+def de {X Y U V₁ V₂ : Scheme} (f : X ⟶ Y) (i : U ⟶ Y) (i₁ : V₁ ⟶ pullback f i)
+  (i₂ : V₂ ⟶ pullback f i) [mono i] :
+  pullback i₁ i₂ ≅ pullback (pullback.diagonal f)
+    (pullback.map (i₁ ≫ pullback.snd) (i₂ ≫ pullback.snd) f f (i₁ ≫ pullback.fst)
+      (i₂ ≫ pullback.fst) i (by sorry; simp [pullback.condition]) (by sorry; simp [pullback.condition])) :=
+{ hom := pullback.lift (pullback.fst ≫ i₁ ≫ pullback.fst) (pullback.map _ _ _ _ (𝟙 _) (𝟙 _)
+      pullback.snd (category.id_comp _).symm (category.id_comp _).symm)
+    begin
+      sorry; apply pullback.hom_ext; simp only [pullback.diagonal_snd, category.comp_id, category.assoc,
+        pullback.lift_snd, pullback.lift_snd_assoc, pullback.diagonal_fst, pullback.lift_fst,
+        pullback.lift_fst_assoc, pullback.condition_assoc],
+    end,
+  inv := pullback.lift (pullback.snd ≫ pullback.fst) (pullback.snd ≫ pullback.snd)
+    begin
+      rw ← cancel_mono pullback.fst,
+      transitivity pullback.fst ≫ 𝟙 _,
+      rw [← pullback.diagonal_fst f, pullback.condition_assoc, pullback.lift_fst],
+    end,
+  hom_inv_id' := _,
+  inv_hom_id' := _ }
+
+lemma quasi_separated_of_affine_open_cover {X Y : Scheme.{u}} (f : X ⟶ Y)
+  (𝒰 : Scheme.open_cover.{u} Y)
+  [∀ i, is_affine (𝒰.obj i)] (𝒰' : Π i, Scheme.open_cover.{u} (pullback f (𝒰.map i)))
+    [∀ i j, is_affine ((𝒰' i).obj j)]
+    [∀ i j j', compact_space (pullback ((𝒰' i).map j) ((𝒰' i).map j')).carrier] :
+    quasi_separated f :=
 begin
-  constructor,
-  intros U hU hU',
-  rw [Scheme.comp_val_base, coe_comp, set.preimage_comp],
-  apply quasi_compact.is_compact_preimage,
-  { exact continuous.is_open_preimage (by continuity) _ hU },
-  apply quasi_compact.is_compact_preimage; assumption
+  rw quasi_separated_eq_diagonal_is_quasi_compact,
+  refine (quasi_compact.affine_open_cover_iff _ _).mpr _,
+  { exact ((Scheme.pullback.open_cover_of_base 𝒰 f f).bind (λ i,
+      Scheme.pullback.open_cover_of_left_right.{u u} (𝒰' i) (𝒰' i) pullback.snd pullback.snd)) },
+  { intro i,
+    dsimp at *,
+    apply_instance },
+  { rintro ⟨i, j, k⟩,
+    dsimp,
+    have := pullback.pullback_diagonal_map_iso ((𝒰' i).map j) ((𝒰' i).map k) pullback.snd,
+  }
+
 end
 
-lemma is_compact_open_iff_eq_finset_affine_union {X : Scheme} (U : set X.carrier) :
-  is_compact U ∧ is_open U ↔
-    ∃ (s : finset { U : opens X.carrier | is_affine_open U }), U = ⋃ (i : s), i :=
-begin
-  classical,
-  split,
-  { rintro ⟨h₁, h₂⟩,
-    obtain ⟨β, f, e, hf⟩ := (is_basis_affine_open X).open_eq_Union h₂,
-    let hf' := λ i, (show is_open (f i), from (hf i).some_spec.2 ▸ (hf i).some.prop),
-    obtain ⟨t, ht⟩ := h₁.elim_finite_subcover f hf' (by rw e),
-    let f' : β → { U : opens X.carrier | is_affine_open U } :=
-      λ i, ⟨⟨f i, hf' i⟩, by { convert (hf i).some_spec.1, ext1, exact (hf i).some_spec.2.symm }⟩,
-    use t.image f',
-    apply le_antisymm,
-    { refine set.subset.trans ht _,
-      simp only [set.Union_subset_iff, coe_coe],
-      intros i hi,
-      exact set.subset_Union (coe : t.image f' → set X.carrier) ⟨_, finset.mem_image_of_mem _ hi⟩ },
-    { apply set.Union_subset,
-      rintro ⟨i, hi⟩,
-      obtain ⟨j, hj, rfl⟩ := finset.mem_image.mp hi,
-      rw e,
-      exact set.subset_Union f j } },
-  { rintro ⟨s, rfl⟩,
-    split,
-    { convert @finset.compact_bUnion _ _ _ s.attach coe _,
-      { ext, simpa },
-      { exact λ i _, i.1.prop.is_compact } },
-    { apply is_open_Union, rintro i, exact i.1.1.prop } },
-end
 
-lemma quasi_compact_iff_forall_affine : quasi_compact f ↔
-  ∀ U : opens Y.carrier, is_affine_open U → is_compact (f.1.base ⁻¹' (U : set Y.carrier)) :=
-begin
-  rw quasi_compact_iff,
-  refine ⟨λ H U hU, H U U.prop hU.is_compact, _⟩,
-  intros H U hU hU',
-  obtain ⟨S, rfl⟩ := (is_compact_open_iff_eq_finset_affine_union U).mp ⟨hU', hU⟩,
-  simp only [set.preimage_Union, subtype.val_eq_coe],
-  convert S.compact_bUnion (λ i _, H i i.prop) using 1,
-  exact set.Union_subtype _ _
-end
-
-lemma quasi_compact_iff_affine_property :
+lemma quasi_separated_iff_affine_property :
   quasi_compact f ↔ target_affine_locally quasi_compact.affine_property f :=
 begin
   rw quasi_compact_iff_forall_affine,
@@ -275,10 +298,6 @@ quasi_compact_eq_affine_property.symm ▸
 lemma quasi_compact_respects_iso : respects_iso @quasi_compact :=
 quasi_compact_eq_affine_property.symm ▸
   target_affine_locally_respects_iso quasi_compact_affine_property_is_local.1
-
-lemma quasi_compact_stable_under_composition :
-  stable_under_composition @quasi_compact :=
-λ _ _ _ _ _ _ _, by exactI infer_instance
 
 instance {X Y S : Scheme} (f : X ⟶ S) (g : Y ⟶ S) [quasi_compact g] :
   quasi_compact (pullback.fst : pullback f g ⟶ X) :=

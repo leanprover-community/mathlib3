@@ -475,3 +475,236 @@ begin
 end
 
 end algebraic_geometry
+
+open category_theory category_theory.limits opposite topological_space
+
+namespace category_theory.limits.pullback
+
+variables {C : Type*} [category C]
+
+def pullback.congr {C : Type*} [category C] {X Y Z : C} {f₁ f₂ : X ⟶ Z} {g₁ g₂ : Y ⟶ Z}
+  (e₁ : f₁ = f₂) (e₂ : g₁ = g₂) [has_pullback f₁ g₁] [has_pullback f₂ g₂] :
+    pullback f₁ g₁ ≅ pullback f₂ g₂ :=
+as_iso (pullback.map _ _ _ _ (𝟙 _) (𝟙 _) (𝟙 _) (by simpa using e₁) (by simpa using e₂))
+
+@[simp, reassoc]
+lemma pullback.congr_hom_fst {C : Type*} [category C] {X Y Z : C} {f₁ f₂ : X ⟶ Z} {g₁ g₂ : Y ⟶ Z}
+  (e₁ : f₁ = f₂) (e₂ : g₁ = g₂) [has_pullback f₁ g₁] [has_pullback f₂ g₂] :
+    (pullback.congr e₁ e₂).hom ≫ pullback.fst = pullback.fst :=
+by { delta pullback.congr, simp }
+
+@[simp, reassoc]
+lemma pullback.congr_hom_snd {C : Type*} [category C] {X Y Z : C} {f₁ f₂ : X ⟶ Z} {g₁ g₂ : Y ⟶ Z}
+  (e₁ : f₁ = f₂) (e₂ : g₁ = g₂) [has_pullback f₁ g₁] [has_pullback f₂ g₂] :
+    (pullback.congr e₁ e₂).hom ≫ pullback.snd = pullback.snd :=
+by { delta pullback.congr, simp }
+
+@[simp, reassoc]
+lemma pullback.congr_inv_fst {C : Type*} [category C] {X Y Z : C} {f₁ f₂ : X ⟶ Z} {g₁ g₂ : Y ⟶ Z}
+  (e₁ : f₁ = f₂) (e₂ : g₁ = g₂) [has_pullback f₁ g₁] [has_pullback f₂ g₂] :
+    (pullback.congr e₁ e₂).inv ≫ pullback.fst = pullback.fst :=
+by rw [iso.inv_comp_eq, pullback.congr_hom_fst]
+
+@[simp, reassoc]
+lemma pullback.congr_inv_snd {C : Type*} [category C] {X Y Z : C} {f₁ f₂ : X ⟶ Z} {g₁ g₂ : Y ⟶ Z}
+  (e₁ : f₁ = f₂) (e₂ : g₁ = g₂) [has_pullback f₁ g₁] [has_pullback f₂ g₂] :
+    (pullback.congr e₁ e₂).inv ≫ pullback.snd = pullback.snd :=
+by rw [iso.inv_comp_eq, pullback.congr_hom_snd]
+
+section
+
+variables {X Y : C} (f : X ⟶ Y) [has_pullback f f]
+
+def diagonal : X ⟶ pullback f f :=
+pullback.lift (𝟙 _) (𝟙 _) rfl
+
+@[simp, reassoc] lemma diagonal_fst : diagonal f ≫ pullback.fst = 𝟙 _ :=
+pullback.lift_fst _ _ _
+
+@[simp, reassoc] lemma diagonal_snd : diagonal f ≫ pullback.snd = 𝟙 _ :=
+pullback.lift_snd _ _ _
+
+instance : split_mono (diagonal f) :=
+⟨pullback.fst, diagonal_fst f⟩
+
+instance : split_epi (pullback.fst : pullback f f ⟶ X) :=
+⟨diagonal f, diagonal_fst f⟩
+
+instance : split_epi (pullback.snd : pullback f f ⟶ X) :=
+⟨diagonal f, diagonal_snd f⟩
+
+instance [mono f] : is_iso (diagonal f) :=
+begin
+  rw (is_iso.inv_eq_of_inv_hom_id (diagonal_fst f)).symm,
+  apply_instance
+end
+
+end
+
+variables [has_pullbacks C] {X Y U V₁ V₂ : C} (f : X ⟶ Y) (i : U ⟶ Y)
+variables (i₁ : V₁ ⟶ pullback f i) (i₂ : V₂ ⟶ pullback f i)
+
+@[simp, reassoc]
+lemma pullback_diagonal_map_snd_fst_fst :
+  (pullback.snd : pullback (diagonal f) (map (i₁ ≫ snd) (i₂ ≫ snd) f f (i₁ ≫ fst) (i₂ ≫ fst) i
+    (by simp [condition]) (by simp [condition])) ⟶ _) ≫ fst ≫ i₁ ≫ fst = pullback.fst :=
+begin
+  conv_rhs { rw ← category.comp_id pullback.fst },
+  rw [← diagonal_fst f, pullback.condition_assoc, pullback.lift_fst]
+end
+
+@[simp, reassoc]
+lemma pullback_diagonal_map_snd_snd_fst :
+  (pullback.snd : pullback (diagonal f) (map (i₁ ≫ snd) (i₂ ≫ snd) f f (i₁ ≫ fst) (i₂ ≫ fst) i
+    (by simp [condition]) (by simp [condition])) ⟶ _) ≫ snd ≫ i₂ ≫ fst = pullback.fst :=
+begin
+  conv_rhs { rw ← category.comp_id pullback.fst },
+  rw [← diagonal_snd f, pullback.condition_assoc, pullback.lift_snd]
+end
+
+/--
+This iso witnesses the fact that
+given `f : X ⟶ Y`, `i : U ⟶ Y`, and `i₁ : V₁ ⟶ X ×[Y] U`, `i₂ : V₂ ⟶ X ×[Y] U`, the diagram
+
+V₁ ×[X ×[Y] U] V₂ ⟶ V₁ ×[U] V₂
+        |                 |
+        |                 |
+        ↓                 ↓
+        X         ⟶  X ×[Y] X
+
+is a pullback square.
+-/
+def pullback_diagonal_map_iso :
+  pullback (diagonal f) (map (i₁ ≫ snd) (i₂ ≫ snd) f f (i₁ ≫ fst) (i₂ ≫ fst) i
+    (by simp only [category.assoc, condition]) (by simp only [category.assoc, condition])) ≅ pullback i₁ i₂ :=
+{ hom := pullback.lift (pullback.snd ≫ pullback.fst) (pullback.snd ≫ pullback.snd)
+    begin
+      ext; simp only [category.assoc, pullback.condition, pullback_diagonal_map_snd_fst_fst,
+        pullback_diagonal_map_snd_snd_fst],
+    end,
+  inv := pullback.lift (pullback.fst ≫ i₁ ≫ pullback.fst) (pullback.map _ _ _ _ (𝟙 _) (𝟙 _)
+      pullback.snd (category.id_comp _).symm (category.id_comp _).symm)
+    begin
+      ext; simp only [diagonal_fst, diagonal_snd, category.comp_id, pullback.condition_assoc,
+        category.assoc, lift_fst, lift_fst_assoc, lift_snd, lift_snd_assoc],
+    end,
+  hom_inv_id' := by ext; simp only [category.id_comp, category.assoc, lift_fst_assoc,
+    pullback_diagonal_map_snd_fst_fst, lift_fst, lift_snd, category.comp_id],
+  inv_hom_id' := by ext; simp }
+.
+
+def pullback_diagonal_map_iso {X Y S T : C} (f : X ⟶ T) (g : Y ⟶ T) (i : T ⟶ S) :
+  pullback (diagonal i) (pullback.map (f ≫ i) (g ≫ i) i i f g (𝟙 _)
+    (category.comp_id _) (category.comp_id _)) ≅ pullback f g :=
+by { have := pullback_diagonal_map_iso _ _ f g, }
+
+@[simp, reassoc] lemma pullback_diagonal_map_iso_hom_fst :
+  (pullback_diagonal_map_iso f g i).hom ≫ pullback.fst = pullback.snd ≫ pullback.fst :=
+by { delta pullback_diagonal_map_iso, simp }
+
+@[simp, reassoc] lemma pullback_diagonal_map_iso_hom_snd :
+  (pullback_diagonal_map_iso f g i).hom ≫ pullback.snd = pullback.snd ≫ pullback.snd :=
+by { delta pullback_diagonal_map_iso, simp }
+
+@[simp, reassoc] lemma pullback_diagonal_map_iso_inv_fst :
+  (pullback_diagonal_map_iso f g i).inv ≫ pullback.fst = pullback.fst ≫ f :=
+by { delta pullback_diagonal_map_iso, simp }
+
+@[simp, reassoc] lemma pullback_diagonal_map_iso_inv_snd_fst :
+  (pullback_diagonal_map_iso f g i).inv ≫ pullback.snd ≫ pullback.fst = pullback.fst :=
+by { delta pullback_diagonal_map_iso, simp }
+
+@[simp, reassoc] lemma pullback_diagonal_map_iso_inv_snd_snd :
+  (pullback_diagonal_map_iso f g i).inv ≫ pullback.snd ≫ pullback.snd = pullback.snd :=
+by { delta pullback_diagonal_map_iso, simp }
+
+lemma diagonal_comp {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) :
+  diagonal (f ≫ g) = diagonal f ≫ (pullback_diagonal_map_iso f f g).inv ≫ pullback.snd :=
+by ext; simp
+
+def diagonal_obj_pullback_fst_iso {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z) :
+  pullback (pullback.fst : pullback f g ⟶ _) (pullback.fst : pullback f g ⟶ _) ≅
+    pullback (pullback.snd ≫ g : pullback g g ⟶ _) f :=
+pullback_right_pullback_fst_iso _ _ _ ≪≫ pullback.congr pullback.condition rfl ≪≫
+  pullback_assoc _ _ _ _ ≪≫ pullback_symmetry _ _ ≪≫ pullback.congr pullback.condition rfl
+
+@[simp, reassoc] lemma diagonal_obj_pullback_fst_iso_hom_fst_fst {X Y Z : C} (f : X ⟶ Z)
+  (g : Y ⟶ Z) :
+  (diagonal_obj_pullback_fst_iso f g).hom ≫ pullback.fst ≫ pullback.fst =
+    pullback.fst ≫ pullback.snd :=
+by { delta diagonal_obj_pullback_fst_iso, simp }
+
+@[simp, reassoc] lemma diagonal_obj_pullback_fst_iso_hom_fst_snd {X Y Z : C} (f : X ⟶ Z)
+  (g : Y ⟶ Z) :
+  (diagonal_obj_pullback_fst_iso f g).hom ≫ pullback.fst ≫ pullback.snd =
+    pullback.snd ≫ pullback.snd :=
+by { delta diagonal_obj_pullback_fst_iso, simp }
+
+@[simp, reassoc] lemma diagonal_obj_pullback_fst_iso_hom_snd {X Y Z : C} (f : X ⟶ Z)
+  (g : Y ⟶ Z) :
+  (diagonal_obj_pullback_fst_iso f g).hom ≫ pullback.snd = pullback.fst ≫ pullback.fst :=
+by { delta diagonal_obj_pullback_fst_iso, simp }
+
+@[simp, reassoc] lemma diagonal_obj_pullback_fst_iso_inv_fst_fst {X Y Z : C} (f : X ⟶ Z)
+  (g : Y ⟶ Z) :
+  (diagonal_obj_pullback_fst_iso f g).inv ≫ pullback.fst ≫ pullback.fst =
+    pullback.snd :=
+by { delta diagonal_obj_pullback_fst_iso, simp }
+
+@[simp, reassoc] lemma diagonal_obj_pullback_fst_iso_inv_fst_snd {X Y Z : C} (f : X ⟶ Z)
+  (g : Y ⟶ Z) :
+  (diagonal_obj_pullback_fst_iso f g).inv ≫ pullback.fst ≫ pullback.snd =
+    pullback.fst ≫ pullback.fst :=
+by { delta diagonal_obj_pullback_fst_iso, simp }
+
+@[simp, reassoc] lemma diagonal_obj_pullback_fst_iso_inv_snd_fst {X Y Z : C} (f : X ⟶ Z)
+  (g : Y ⟶ Z) :
+  (diagonal_obj_pullback_fst_iso f g).inv ≫ pullback.snd ≫ pullback.fst = pullback.snd :=
+by { delta diagonal_obj_pullback_fst_iso, simp }
+
+@[simp, reassoc] lemma diagonal_obj_pullback_fst_iso_inv_snd_snd {X Y Z : C} (f : X ⟶ Z)
+  (g : Y ⟶ Z) :
+  (diagonal_obj_pullback_fst_iso f g).inv ≫ pullback.snd ≫ pullback.snd =
+    pullback.fst ≫ pullback.snd :=
+by { delta diagonal_obj_pullback_fst_iso, simp }
+
+lemma diagonal_pullback_fst {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z) :
+  diagonal (pullback.fst : pullback f g ⟶ _) =
+    (pullback_symmetry _ _).hom ≫ ((base_change f).map
+      (over.hom_mk (diagonal g) (by simp) : over.mk g ⟶ over.mk (pullback.snd ≫ g))).left ≫
+    (diagonal_obj_pullback_fst_iso f g).inv :=
+by ext; simp
+
+end category_theory.limits.pullback
+
+open category_theory.limits
+
+namespace algebraic_geometry
+
+def diagonal_is (P : morphism_property) : morphism_property :=
+λ X Y f, P (pullback.diagonal f)
+
+lemma diagonal_is_stable_under_composition  (P : morphism_property)
+  (hP : stable_under_base_change P) (hP' : respects_iso P) (hP'' : stable_under_composition P) :
+  stable_under_composition (diagonal_is P) :=
+begin
+  introv X h₁ h₂,
+  delta diagonal_is at *,
+  rw pullback.diagonal_comp,
+  apply hP'', { assumption },
+  rw hP'.cancel_left_is_iso,
+  apply hP.symmetry hP',
+  assumption
+end
+
+lemma diagonal_is_stable_under_base_change  (P : morphism_property)
+  (hP : stable_under_base_change P) (hP' : respects_iso P) :
+  stable_under_base_change (diagonal_is P) :=
+begin
+  introv X h,
+  delta diagonal_is at *,
+  rw [pullback.diagonal_pullback_fst, hP'.cancel_left_is_iso, hP'.cancel_right_is_iso],
+  convert hP.base_change_map hP' f _ _; simp; assumption
+end
+
+end algebraic_geometry

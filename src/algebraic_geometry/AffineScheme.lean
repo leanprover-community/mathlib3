@@ -263,17 +263,16 @@ lemma is_affine_open.from_Spec_app_eq {X : Scheme} {U : opens X.carrier}
     (Scheme.Spec.obj _).presheaf.map (eq_to_hom hU.from_Spec_base_preimage).op :=
 by rw [← hU.Spec_Γ_identity_hom_app_from_Spec, iso.inv_hom_id_app_assoc]
 
-lemma is_affine_open.basic_open_is_affine {X : Scheme} {U : opens X.carrier}
-  (hU : is_affine_open U) (f : X.presheaf.obj (op U)) : is_affine_open (X.basic_open f) :=
+lemma is_affine_open.basic_open_eq_range {X : Scheme} {U : opens X.carrier}
+  (hU : is_affine_open U) (f : X.presheaf.obj (op U)) :
+  (X.basic_open f : set X.carrier) = set.range ((Scheme.Spec.map (CommRing.of_hom
+    (algebra_map (X.presheaf.obj (op U)) (localization.away f))).op ≫ hU.from_Spec).1.base) :=
 begin
-  convert range_is_affine_open_of_open_immersion (Scheme.Spec.map (CommRing.of_hom
-    (algebra_map (X.presheaf.obj (op U)) (localization.away f))).op ≫ hU.from_Spec),
-  ext1,
   have : hU.from_Spec.val.base '' (hU.from_Spec.val.base ⁻¹' (X.basic_open f : set X.carrier)) =
     (X.basic_open f : set X.carrier),
   { rw [set.image_preimage_eq_inter_range, set.inter_eq_left_iff_subset, hU.from_Spec_range],
     exact Scheme.basic_open_subset _ _ },
-  rw [subtype.coe_mk, Scheme.comp_val_base, ← this, coe_comp, set.range_comp],
+  rw [Scheme.comp_val_base, ← this, coe_comp, set.range_comp],
   congr' 1,
   refine (congr_arg coe $ Scheme.preimage_basic_open hU.from_Spec f).trans _,
   refine eq.trans _ (prime_spectrum.localization_away_comap_range (localization.away f) f).symm,
@@ -293,6 +292,18 @@ begin
   rw iso.eq_inv_comp,
   erw hU.Spec_Γ_identity_hom_app_from_Spec,
 end
+
+def is_affine_open.restrict_basic_open_iso_Spec {X : Scheme} {U : opens X.carrier}
+  (hU : is_affine_open U) (f : X.presheaf.obj (op U)) :
+  X.restrict (X.basic_open f).open_embedding ≅
+    Scheme.Spec.obj (op (CommRing.of (localization.away f))) :=
+is_open_immersion.iso_of_range_eq (X.of_restrict _) (Scheme.Spec.map (CommRing.of_hom
+  (algebra_map (X.presheaf.obj (op U)) (localization.away f))).op ≫ hU.from_Spec)
+  (by { convert hU.basic_open_eq_range f, exact subtype.range_coe })
+
+lemma is_affine_open.basic_open_is_affine {X : Scheme} {U : opens X.carrier}
+  (hU : is_affine_open U) (f : X.presheaf.obj (op U)) : is_affine_open (X.basic_open f) :=
+is_affine_of_iso (hU.restrict_basic_open_iso_Spec f).hom
 
 lemma Scheme.map_prime_spectrum_basic_open_of_affine (X : Scheme) [is_affine X]
   (f : Scheme.Γ.obj (op X)) :

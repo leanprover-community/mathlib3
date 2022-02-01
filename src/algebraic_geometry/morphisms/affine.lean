@@ -92,7 +92,7 @@ begin
   introv X H,
   delta affine.affine_property at H ⊢,
   resetI,
-  sorry
+  apply_instance
 end
 
 lemma affine.affine_open_cover_tfae {X Y : Scheme.{u}} (f : X ⟶ Y) :

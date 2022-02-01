@@ -6,6 +6,7 @@ Authors: Andrew Yang
 import algebraic_geometry.gluing
 import category_theory.limits.opposites
 import algebraic_geometry.Gamma_Spec_adjunction
+import algebraic_geometry.AffineScheme
 
 /-!
 # Fibred products of schemes
@@ -496,6 +497,14 @@ instance {X Y Z : Scheme} (f : X ⟶ Z) (g : Y ⟶ Z) : has_pullback f g :=
 has_pullback_of_cover (Z.affine_cover.pullback_cover f) f g
 
 instance : has_pullbacks Scheme := has_pullbacks_of_has_limit_cospan _
+
+instance {X Y Z : Scheme} (f : X ⟶ Z) (g : Y ⟶ Z) [is_affine X] [is_affine Y] [is_affine Z] :
+  is_affine (pullback f g) :=
+is_affine_of_iso (pullback.map f g (Spec.map (Γ.map f.op).op) (Spec.map (Γ.map g.op).op)
+  (Γ_Spec.adjunction.unit.app X) (Γ_Spec.adjunction.unit.app Y) (Γ_Spec.adjunction.unit.app Z)
+  (Γ_Spec.adjunction.unit.naturality f) (Γ_Spec.adjunction.unit.naturality g) ≫
+    (preserves_pullback.iso Spec _ _).inv)
+
 
 /-- Given an open cover `{ Xᵢ }` of `X`, then `X ×[Z] Y` is covered by `Xᵢ ×[Z] Y`. -/
 @[simps J obj map]

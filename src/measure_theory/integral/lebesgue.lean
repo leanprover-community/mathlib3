@@ -2257,7 +2257,6 @@ begin
     simpa only [nnreal.coe_eq_zero, ne.def] using h'x }
 end
 
-
 lemma ae_measurable_with_density_ennreal_iff {f : α → ℝ≥0} (hf : measurable f) {g : α → ℝ≥0∞} :
   ae_measurable g (μ.with_density (λ x, (f x : ℝ≥0∞))) ↔
     ae_measurable (λ x, (f x : ℝ≥0∞) * g x) μ :=

@@ -387,6 +387,18 @@ def sphere (x : α) (ε : ℝ) := {y | dist y x = ε}
 
 @[simp] theorem mem_sphere : y ∈ sphere x ε ↔ dist y x = ε := iff.rfl
 
+theorem sphere_eq_empty_of_subsingleton [subsingleton α] (hε : ε ≠ 0) :
+  sphere x ε = ∅ :=
+begin
+  refine set.eq_empty_iff_forall_not_mem.mpr (λ y hy, _),
+  rw [mem_sphere, ←subsingleton.elim x y, dist_self x] at hy,
+  exact hε.symm hy,
+end
+
+theorem sphere_is_empty_of_subsingleton [subsingleton α] (hε : ε ≠ 0) :
+  is_empty (sphere x ε) :=
+by simp only [sphere_eq_empty_of_subsingleton hε, set.has_emptyc.emptyc.is_empty α]
+
 theorem mem_closed_ball' : y ∈ closed_ball x ε ↔ dist x y ≤ ε :=
 by { rw dist_comm, refl }
 
@@ -1780,6 +1792,10 @@ end⟩
 /-- Open balls are bounded -/
 lemma bounded_ball : bounded (ball x r) :=
 bounded_closed_ball.mono ball_subset_closed_ball
+
+/-- Spheres are bounded -/
+lemma bounded_sphere : bounded (sphere x r) :=
+bounded_closed_ball.mono sphere_subset_closed_ball
 
 /-- Given a point, a bounded subset is included in some ball around this point -/
 lemma bounded_iff_subset_ball (c : α) : bounded s ↔ ∃r, s ⊆ closed_ball c r :=

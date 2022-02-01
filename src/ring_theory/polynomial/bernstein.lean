@@ -344,7 +344,7 @@ begin
   -- On the right hand side, we'll just simplify.
   conv at h
   { to_rhs,
-    rw [pderiv_pow, (pderiv tt).map_add, pderiv_tt_x, pderiv_tt_y],
+    rw [(pderiv tt).leibniz_pow, (pderiv tt).map_add, pderiv_tt_x, pderiv_tt_y],
     simp [e] },
   simpa using h,
 end
@@ -398,8 +398,8 @@ begin
   -- On the right hand side, we'll just simplify.
   conv at h
   { to_rhs,
-    simp only [pderiv_one, pderiv_mul, pderiv_pow, pderiv_nat_cast, (pderiv tt).map_add,
-      pderiv_tt_x, pderiv_tt_y],
+    simp only [pderiv_one, pderiv_mul, (pderiv _).leibniz_pow, (pderiv _).map_coe_nat,
+      (pderiv tt).map_add, pderiv_tt_x, pderiv_tt_y],
     simp [e, smul_smul] },
   simpa using h,
 end

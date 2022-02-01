@@ -7,6 +7,7 @@ Authors: Riccardo Brasca
 import ring_theory.polynomial.cyclotomic.basic
 import number_theory.number_field
 import algebra.char_p.algebra
+import field_theory.galois
 
 /-!
 # Cyclotomic extensions
@@ -15,7 +16,7 @@ Let `A` and `B` be commutative rings with `algebra A B`. For `S : set ℕ+`, we 
 `is_cyclotomic_extension S A B` expressing the fact that `B` is obtained from `A` by adding `n`-th
 primitive roots of unity, for all `n ∈ S`.
 
-## Main definition
+## Main definitions
 
 * `is_cyclotomic_extension S A B` : means that `B` is obtained from `A` by adding `n`-th primitive
   roots of unity, for all `n ∈ S`.
@@ -40,9 +41,9 @@ primitive roots of unity, for all `n ∈ S`.
 * `is_cyclotomic_extension.number_field` : a finite cyclotomic extension of a number field is a
   number field.
 * `is_cyclotomic_extension.splitting_field_X_pow_sub_one` : if `is_cyclotomic_extension {n} K L`
-  and `ne_zero ((n : ℕ) : K)`, then `L` is the splitting field of `X ^ n - 1`.
+  and `ne_zero (n : K)`, then `L` is the splitting field of `X ^ n - 1`.
 * `is_cyclotomic_extension.splitting_field_cyclotomic` : if `is_cyclotomic_extension {n} K L`
-  and `ne_zero ((n : ℕ) : K)`, then `L` is the splitting field of `cyclotomic n K`.
+  and `ne_zero (n : K)`, then `L` is the splitting field of `cyclotomic n K`.
 
 ## Implementation details
 
@@ -52,8 +53,8 @@ for integral domains).
 All results are in the `is_cyclotomic_extension` namespace.
 Note that some results, for example `is_cyclotomic_extension.trans`,
 `is_cyclotomic_extension.finite`, `is_cyclotomic_extension.number_field`,
-`is_cyclotomic_extension.finite_dimensional` and `cyclotomic_field.algebra_base` are lemmas,
-but they can be made local instances.
+`is_cyclotomic_extension.finite_dimensional`, `is_cyclotomic_extension.is_galois` and
+`cyclotomic_field.algebra_base` are lemmas, but they can be made local instances.
 
 -/
 
@@ -167,8 +168,7 @@ begin
       exact hb.dvd (cyclotomic.dvd_X_pow_sub_one _ _) },
       rwa [← subalgebra.coe_eq_zero, aeval_subalgebra_coe, subtype.coe_mk] },
   { convert mem_top,
-    rw ← adjoin_adjoin_coe_preimage,
-    simp,
+    rw [← adjoin_adjoin_coe_preimage, preimage_set_of_eq],
     norm_cast, }
 end
 
@@ -223,9 +223,9 @@ lemma integral [is_domain B] [is_noetherian_ring A] [fintype S] [is_cyclotomic_e
 is_integral_of_noetherian $ is_noetherian_of_fg_of_noetherian' $ (finite S A B).out
 
 /-- If `S` is finite and `is_cyclotomic_extension S K A`, then `finite_dimensional K A`. -/
-lemma finite_dimensional [fintype S] [algebra K A] [is_domain A] [is_cyclotomic_extension S K A] :
-  finite_dimensional K A :=
-finite S K A
+lemma finite_dimensional (C : Type z) [fintype S] [comm_ring C] [algebra K C] [is_domain C]
+  [is_cyclotomic_extension S K C] : finite_dimensional K C :=
+finite S K C
 
 end fintype
 
@@ -282,9 +282,9 @@ end
 
 section field
 
-variable [ne_zero ((n : ℕ) : K)]
+variable [ne_zero (n : K)]
 
-/-- If `ne_zero ((n : ℕ) : K)`, a cyclotomic extension splits `X ^ n - 1` if `n ∈ S`.-/
+/-- A cyclotomic extension splits `X ^ n - 1` if `n ∈ S` and `ne_zero (n : K)`.-/
 lemma splits_X_pow_sub_one [H : is_cyclotomic_extension S K L] (hS : n ∈ S) :
   splits (algebra_map K L) (X ^ (n : ℕ) - 1) :=
 begin
@@ -292,11 +292,11 @@ begin
       polynomial.map_pow, polynomial.map_X],
   obtain ⟨z, hz⟩ := ((is_cyclotomic_extension_iff _ _ _).1 H).1 hS,
   rw [aeval_def, eval₂_eq_eval_map, map_cyclotomic] at hz,
-  haveI : ne_zero ((n : ℕ) : L) := ne_zero.of_no_zero_smul_divisors K L,
+  haveI := ne_zero.of_no_zero_smul_divisors K L n,
   exact X_pow_sub_one_splits (is_root_cyclotomic_iff.1 hz),
 end
 
-/-- If `ne_zero ((n : ℕ) : K)`, a cyclotomic extension splits `cyclotomic n K` if `n ∈ S`.-/
+/-- A cyclotomic extension splits `cyclotomic n K` if `n ∈ S` and `ne_zero (n : K)`.-/
 lemma splits_cyclotomic [is_cyclotomic_extension S K L] (hS : n ∈ S) :
   splits (algebra_map K L) (cyclotomic n K) :=
 begin
@@ -310,7 +310,7 @@ section singleton
 
 variables [is_cyclotomic_extension {n} K L]
 
-/-- If `is_cyclotomic_extension {n} K L` and `ne_zero ((n : ℕ) : K)`, then `L` is the splitting
+/-- If `is_cyclotomic_extension {n} K L` and `ne_zero (n : K)`, then `L` is the splitting
 field of `X ^ n - 1`. -/
 lemma splitting_field_X_pow_sub_one : is_splitting_field K L (X ^ (n : ℕ) - 1) :=
 { splits := splits_X_pow_sub_one n {n} K L (mem_singleton n),
@@ -325,7 +325,16 @@ lemma splitting_field_X_pow_sub_one : is_splitting_field K L (X ^ (n : ℕ) - 1)
       n.pos _), is_root.def, eval_sub, eval_pow, eval_C, eval_X, sub_eq_zero]
   end }
 
-/-- If `is_cyclotomic_extension {n} K L` and `ne_zero ((n : ℕ) : K)`, then `L` is the splitting
+include n
+
+lemma is_galois : is_galois K L :=
+begin
+  letI := splitting_field_X_pow_sub_one n K L,
+  exact is_galois.of_separable_splitting_field (X_pow_sub_one_separable_iff.2
+    (ne_zero.ne _ : ((n : ℕ) : K) ≠ 0)),
+end
+
+/-- If `is_cyclotomic_extension {n} K L` and `ne_zero (n : K)`, then `L` is the splitting
 field of `cyclotomic n K`. -/
 lemma splitting_field_cyclotomic : is_splitting_field K L (cyclotomic n K) :=
 { splits := splits_cyclotomic n {n} K L (mem_singleton n),
@@ -355,7 +364,7 @@ def cyclotomic_field : Type w := (cyclotomic n K).splitting_field
 
 namespace cyclotomic_field
 
-instance is_cyclotomic_extension [ne_zero ((n : ℕ) : K)] :
+instance is_cyclotomic_extension [ne_zero (n : K)] :
   is_cyclotomic_extension {n} K (cyclotomic_field n K) :=
 { exists_root := λ a han,
   begin
@@ -369,7 +378,7 @@ instance is_cyclotomic_extension [ne_zero ((n : ℕ) : K)] :
     letI := classical.dec_eq (cyclotomic_field n K),
     obtain ⟨ζ, hζ⟩ := exists_root_of_splits _ (splitting_field.splits (cyclotomic n K))
       (degree_cyclotomic_pos n _ n.pos).ne',
-    haveI : ne_zero ((n : ℕ) : (cyclotomic_field n K)) :=
+    haveI : ne_zero ((n : ℕ) : cyclotomic_field n K) :=
       ne_zero.nat_of_injective (algebra_map K _).injective,
     rw [eval₂_eq_eval_map, map_cyclotomic, ← is_root.def, is_root_cyclotomic_iff] at hζ,
     exact is_cyclotomic_extension.adjoin_roots_cyclotomic_eq_adjoin_nth_roots n hζ,
@@ -429,15 +438,15 @@ no_zero_smul_divisors.of_algebra_map_injective (adjoin_algebra_injective n A K)
 instance : is_scalar_tower A (cyclotomic_ring n A K) (cyclotomic_field n K) :=
 is_scalar_tower.subalgebra' _ _ _ _
 
-instance is_cyclotomic_extension [ne_zero ((n : ℕ) : A)] :
+instance is_cyclotomic_extension [ne_zero (n : A)] :
   is_cyclotomic_extension {n} A (cyclotomic_ring n A K) :=
 { exists_root := λ a han,
   begin
     rw mem_singleton_iff at han,
     subst a,
-    haveI : ne_zero ((n : ℕ) : K) := ne_zero.of_no_zero_smul_divisors A K,
-    haveI : ne_zero ((n : ℕ) : cyclotomic_ring n A K) := ne_zero.of_no_zero_smul_divisors A _,
-    haveI : ne_zero ((n : ℕ) : cyclotomic_field n K) := ne_zero.of_no_zero_smul_divisors A _,
+    haveI := (ne_zero.of_no_zero_smul_divisors A K n).trans,
+    haveI := (ne_zero.of_no_zero_smul_divisors A (cyclotomic_ring n A K) n).trans,
+    haveI := (ne_zero.of_no_zero_smul_divisors A (cyclotomic_field n K) n).trans,
     obtain ⟨μ, hμ⟩ := let h := (cyclotomic_field.is_cyclotomic_extension n K).exists_root
                       in h $ mem_singleton n,
     refine ⟨⟨μ, subset_adjoin _⟩, _⟩,
@@ -459,8 +468,7 @@ instance is_cyclotomic_extension [ne_zero ((n : ℕ) : A)] :
     { exact subalgebra.mul_mem _ hy hz },
   end }
 
-instance [ne_zero ((n : ℕ) : A)] :
-  is_fraction_ring (cyclotomic_ring n A K) (cyclotomic_field n K) :=
+instance [ne_zero (n : A)] : is_fraction_ring (cyclotomic_ring n A K) (cyclotomic_field n K) :=
 { map_units := λ ⟨x, hx⟩, begin
     rw is_unit_iff_ne_zero,
     apply ring_hom.map_ne_zero_of_mem_non_zero_divisors,
@@ -469,7 +477,7 @@ instance [ne_zero ((n : ℕ) : A)] :
   end,
   surj := λ x,
   begin
-    letI : ne_zero ((n : ℕ) : K) := ne_zero.nat_of_injective (is_fraction_ring.injective A K),
+    letI : ne_zero (n : K) := (ne_zero.nat_of_injective (is_fraction_ring.injective A K)).trans,
     refine algebra.adjoin_induction (((is_cyclotomic_extension.iff_singleton n K _).1
       (cyclotomic_field.is_cyclotomic_extension n K)).2 x) (λ y hy, _) (λ k, _) _ _,
     { exact ⟨⟨⟨y, subset_adjoin hy⟩, 1⟩, by simpa⟩ },

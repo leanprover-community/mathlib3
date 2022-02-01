@@ -2108,8 +2108,7 @@ le_sup _ n
 theorem le_nfp_self (f a) : a ≤ nfp f a :=
 iterate_le_nfp f a 0
 
-theorem is_normal.lt_nfp (H : is_normal f) {a b} :
-  f b < nfp f a ↔ b < nfp f a :=
+theorem is_normal.lt_nfp (H : is_normal f) {a b} : f b < nfp f a ↔ b < nfp f a :=
 lt_sup.trans $ iff.trans
   (by exact
    ⟨λ ⟨n, h⟩, ⟨n, lt_of_le_of_lt (H.le_self _) h⟩,

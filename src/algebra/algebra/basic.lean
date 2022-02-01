@@ -869,13 +869,10 @@ lemma surjective : function.surjective e := e.to_equiv.surjective
 
 lemma bijective : function.bijective e := e.to_equiv.bijective
 
-instance : has_one (A₁ ≃ₐ[R] A₁) := ⟨{commutes' := λ r, rfl, ..(1 : A₁ ≃+* A₁)}⟩
-
-instance : inhabited (A₁ ≃ₐ[R] A₁) := ⟨1⟩
-
 /-- Algebra equivalences are reflexive. -/
-@[refl]
-def refl : A₁ ≃ₐ[R] A₁ := 1
+@[refl] def refl : A₁ ≃ₐ[R] A₁ := {commutes' := λ r, rfl, ..(1 : A₁ ≃+* A₁)}
+
+instance : inhabited (A₁ ≃ₐ[R] A₁) := ⟨refl⟩
 
 @[simp] lemma refl_to_alg_hom : ↑(refl : A₁ ≃ₐ[R] A₁) = alg_hom.id R A₁ := rfl
 
@@ -1077,14 +1074,16 @@ by { ext, refl }
 
 end of_linear_equiv
 
-instance aut : group (A₁ ≃ₐ[R] A₁) :=
+@[simps mul one {attrs := []}] instance aut : group (A₁ ≃ₐ[R] A₁) :=
 { mul := λ ϕ ψ, ψ.trans ϕ,
   mul_assoc := λ ϕ ψ χ, rfl,
-  one := 1,
-  one_mul := λ ϕ, by { ext, refl },
-  mul_one := λ ϕ, by { ext, refl },
+  one := refl,
+  one_mul := λ ϕ, ext $ λ x, rfl,
+  mul_one := λ ϕ, ext $ λ x, rfl,
   inv := symm,
-  mul_left_inv := λ ϕ, by { ext, exact symm_apply_apply ϕ a } }
+  mul_left_inv := λ ϕ, ext $ symm_apply_apply ϕ }
+
+@[simp] lemma one_apply (x : A₁) : (1 : A₁ ≃ₐ[R] A₁) x = x := rfl
 
 @[simp] lemma mul_apply (e₁ e₂ : A₁ ≃ₐ[R] A₁) (x : A₁) : (e₁ * e₂) x = e₁ (e₂ x) := rfl
 

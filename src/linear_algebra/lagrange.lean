@@ -37,6 +37,11 @@ def basis (x : F) : polynomial F :=
 @[simp] theorem basis_empty (x : F) : basis ∅ x = 1 :=
 rfl
 
+@[simp] theorem basis_singleton_self (x : F) : basis {x} x = 1 :=
+begin
+  rw [basis, finset.erase_singleton, finset.prod_empty]
+end
+
 @[simp] theorem eval_basis_self (x : F) : (basis s x).eval x = 1 :=
 begin
   rw [basis, ← coe_eval_ring_hom, (eval_ring_hom x).map_prod, coe_eval_ring_hom,
@@ -86,6 +91,11 @@ def interpolate : polynomial F :=
 
 @[simp] theorem interpolate_empty (f) : interpolate (∅ : finset F) f = 0 :=
 rfl
+
+@[simp] theorem interpolate_singleton (f) (x : F) : interpolate {x} f = C (f x) :=
+begin
+  rw [interpolate, finset.sum_singleton, basis_singleton_self, mul_one],
+end
 
 @[simp] theorem eval_interpolate (x) (H : x ∈ s) : eval x (interpolate s f) = f x :=
 begin
@@ -172,15 +182,15 @@ def fun_equiv_degree_lt : degree_lt F s.card ≃ₗ[F] (s → F) :=
   map_smul' := λ c f, funext $ by simp,
   inv_fun := λ f, ⟨interpolate s (λ x, if hx : x ∈ s then f ⟨x, hx⟩ else 0),
     mem_degree_lt.2 $ degree_interpolate_lt _ _⟩,
-  left_inv := λ f, by { apply subtype.eq,
+  left_inv := λ f, begin apply subtype.eq,
     simp only [subtype.coe_mk, subtype.val_eq_coe, dite_eq_ite],
     convert eq_interpolate s f (mem_degree_lt.1 f.2) using 1,
     rw interpolate_eq_of_eval_eq,
     intros x hx,
-    rw if_pos hx },
-  right_inv := λ f, funext $ λ ⟨x, hx⟩, by {
+    rw if_pos hx end,
+  right_inv := λ f, funext $ λ ⟨x, hx⟩, begin
     convert eval_interpolate s _ x hx,
-    simp_rw dif_pos hx } }
+    simp_rw dif_pos hx end }
 
 theorem interpolate_eq_interpolate_erase_add {x y : F} (hx : x ∈ s) (hy : y ∈ s) (hxy : x ≠ y) :
   interpolate s f =

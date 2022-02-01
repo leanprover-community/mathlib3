@@ -17,18 +17,18 @@ general Frobenius coin problem
 ## Theorem Statement
 The Chicken McNugget Theorem states, for two relatively prime integers larger than 1,
 the greatest integer not expressible as a sum of nonnegative multiples of these two
-is m * n - m - n. The general problem of finding this greatest integer for any number of (not
-pairwise) relatively prime integers is called the Frobenius coin problem.
+is `m * n - m - n`. The general problem of finding this greatest integer for any number of
+(not pairwise) relatively prime integers is called the Frobenius coin problem.
 
 ## Implementation Notes
 
-For the upper bound, we begin with an auxiliary lemma showing m * n is not attainable, then show
-m * n - m - n is not attainable. Then for the construction, we create a k_1 which is k mod n and
-0 mod m, then show it is at most k. Then k_1 is a multiple of m, and (k-k_1) is a multiple of n,
-and we're done.
+For the upper bound, we begin with an auxiliary lemma showing `m * n` is not attainable, then show
+`m * n - m - n` is not attainable. Then for the construction, we create a `k_1` which is `k mod n`
+and `0 mod m`, then show it is at most `k`. Then `k_1` is a multiple of `m`, so `(k-k_1)`
+is a multiple of n, and we're done.
 
 Afterwards, we rewrite this with add_submonoid.closure and is_greatest,
-using add_submonoid.mem_closure_pair.
+using `add_submonoid.mem_closure_pair`.
 
 ## Tags
 
@@ -85,13 +85,14 @@ begin
   push_neg,
   exact ⟨chicken_mcnugget_upper_bound cop hm hn, chicken_mcnugget_construction m n cop hm hn⟩,
 end
+
 /-- Rewrites the above with `is_greatest`. -/
 theorem chicken_mcnugget (m n : ℕ) (cop: coprime m n) (hm : 1 < m) (hn : 1 < n) :
   is_greatest {k | ∀ a b, a * m + b * n ≠ k} (m * n - m - n) :=
 let h := chicken_mcnugget_split m n cop hm hn in
   ⟨λ a b H, h.1 ⟨a, b, H⟩, λ k hk, not_lt.mp (mt (h.2 k) (λ ⟨a, b, H⟩, hk a b H))⟩
 
-/-- Restates the original theorem with add_submonoid.closure. -/
+/-- Restates the original theorem with `add_submonoid.closure`. -/
 lemma chicken_mcnugget_add_submonoid_aux (m n : ℕ) (cop : coprime m n) (hm : 1 < m) (hn : 1 < n) :
   m * n - m - n ∉ add_submonoid.closure ({m, n} : set ℕ) ∧
   ∀ k, m * n - m - n < k → k ∈ add_submonoid.closure ({m, n} : set ℕ) :=

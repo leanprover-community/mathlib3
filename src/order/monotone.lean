@@ -268,19 +268,35 @@ end preorder
 section partial_order
 variables [partial_order α] [preorder β] {f : α → β} {s : set α}
 
+lemma monotone_iff_forall_lt : monotone f ↔ ∀ ⦃a b⦄, a < b → f a ≤ f b :=
+forall₂_congr $ λ a b, ⟨λ hf h, hf h.le, λ hf h, h.eq_or_lt.elim (λ H, (congr_arg _ H).le) hf⟩
+
+lemma antitone_iff_forall_lt : antitone f ↔ ∀ ⦃a b⦄, a < b → f b ≤ f a :=
+forall₂_congr $ λ a b, ⟨λ hf h, hf h.le, λ hf h, h.eq_or_lt.elim (λ H, (congr_arg _ H).ge) hf⟩
+
+lemma monotone_on_iff_forall_lt :
+  monotone_on f s ↔ ∀ ⦃a⦄ (ha : a ∈ s) ⦃b⦄ (hb : b ∈ s), a < b → f a ≤ f b :=
+⟨λ hf a ha b hb h, hf ha hb h.le,
+  λ hf a ha b hb h, h.eq_or_lt.elim (λ H, (congr_arg _ H).le) (hf ha hb)⟩
+
+lemma antitone_on_iff_forall_lt :
+  antitone_on f s ↔ ∀ ⦃a⦄ (ha : a ∈ s) ⦃b⦄ (hb : b ∈ s), a < b → f b ≤ f a :=
+⟨λ hf a ha b hb h, hf ha hb h.le,
+  λ hf a ha b hb h, h.eq_or_lt.elim (λ H, (congr_arg _ H).ge) (hf ha hb)⟩
+
 -- `preorder α` isn't strong enough: if the preorder on `α` is an equivalence relation,
 -- then `strict_mono f` is vacuously true.
 protected lemma strict_mono_on.monotone_on (hf : strict_mono_on f s) : monotone_on f s :=
-λ a ha b hb h, h.eq_or_lt.elim (λ H, H ▸ le_rfl) (λ H, (hf ha hb H).le)
+monotone_on_iff_forall_lt.2 $ λ a ha b hb h, (hf ha hb h).le
 
 protected lemma strict_anti_on.antitone_on (hf : strict_anti_on f s) : antitone_on f s :=
-hf.dual_right.monotone_on.dual_right
+antitone_on_iff_forall_lt.2 $ λ a ha b hb h, (hf ha hb h).le
 
 protected lemma strict_mono.monotone (hf : strict_mono f) : monotone f :=
-monotone_on_univ.1 (hf.strict_mono_on set.univ).monotone_on
+monotone_iff_forall_lt.2 $ λ a b h, (hf h).le
 
 protected lemma strict_anti.antitone (hf : strict_anti f) : antitone f :=
-hf.dual_right.monotone.dual_right
+antitone_iff_forall_lt.2 $ λ a b h, (hf h).le
 
 end partial_order
 
@@ -463,6 +479,16 @@ lt_of_not_ge (λ h', h.not_le (hf h'))
 
 lemma antitone.reflect_lt (hf : antitone f) {a b : α} (h : f a < f b) : b < a :=
 lt_of_not_ge (λ h', h.not_le (hf h'))
+
+lemma monotone_on.reflect_lt (hf : monotone_on f s) {a b : α} (ha : a ∈ s) (hb : b ∈ s)
+  (h : f a < f b) :
+  a < b :=
+lt_of_not_ge $ λ h', h.not_le $ hf hb ha h'
+
+lemma antitone_on.reflect_lt (hf : antitone_on f s) {a b : α}  (ha : a ∈ s) (hb : b ∈ s)
+  (h : f a < f b) :
+  b < a :=
+lt_of_not_ge $ λ h', h.not_le $ hf ha hb h'
 
 lemma strict_mono_on.le_iff_le (hf : strict_mono_on f s) {a b : α} (ha : a ∈ s) (hb : b ∈ s) :
   f a ≤ f b ↔ a ≤ b :=

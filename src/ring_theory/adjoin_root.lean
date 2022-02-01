@@ -79,11 +79,11 @@ ideal.quotient.algebra S
 instance [comm_semiring S] [comm_semiring K] [has_scalar S K] [algebra S R] [algebra K R]
   [is_scalar_tower S K R] :
   is_scalar_tower S K (adjoin_root f) :=
-submodule.quotient.has_quotient.quotient.is_scalar_tower _ _
+submodule.quotient.is_scalar_tower _ _
 
 instance [comm_semiring S] [comm_semiring K] [algebra S R] [algebra K R] [smul_comm_class S K R] :
   smul_comm_class S K (adjoin_root f) :=
-submodule.quotient.has_quotient.quotient.smul_comm_class _ _
+submodule.quotient.smul_comm_class _ _
 
 @[simp] lemma algebra_map_eq : algebra_map R (adjoin_root f) = of f := rfl
 

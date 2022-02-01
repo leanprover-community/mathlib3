@@ -79,6 +79,16 @@ lemma diagram_nat_trans_comp {P Q R : Cᵒᵖ ⥤ D} (η : P ⟶ Q) (γ : Q ⟶ 
   J.diagram_nat_trans (η ≫ γ) X = J.diagram_nat_trans η X ≫ J.diagram_nat_trans γ X :=
 by { ext, dsimp, simp }
 
+variable (D)
+/-- `J.diagram P`, as a functor in `P`. -/
+@[simps]
+def diagram_functor (X : C) : (Cᵒᵖ ⥤ D) ⥤ (J.cover X)ᵒᵖ ⥤ D :=
+{ obj := λ P, J.diagram P X,
+  map := λ P Q η, J.diagram_nat_trans η X,
+  map_id' := λ P, J.diagram_nat_trans_id _ _,
+  map_comp' := λ P Q R η γ, J.diagram_nat_trans_comp _ _ _ }
+variable {D}
+
 variable [∀ (X : C), has_colimits_of_shape (J.cover X)ᵒᵖ D]
 
 /-- The plus construction, associating a presheaf to any presheaf.

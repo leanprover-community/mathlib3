@@ -202,7 +202,7 @@ begin
   have f := sum_bernoulli' n.succ.succ,
   simp_rw [sum_range_succ', bernoulli'_one, choose_one_right, cast_succ, ← eq_sub_iff_add_eq] at f,
   convert f,
-  { ext x, rw bernoulli_eq_bernoulli'_of_ne_one (succ_ne_zero x ∘ succ.inj) },
+  { funext x, rw bernoulli_eq_bernoulli'_of_ne_one (succ_ne_zero x ∘ succ.inj) },
   { simp only [one_div, mul_one, bernoulli'_zero, cast_one, choose_zero_right, add_sub_cancel],
     ring },
 end
@@ -241,8 +241,8 @@ begin
   cases n, { simp },
   simp only [bernoulli_power_series, coeff_mul, coeff_X, sum_antidiagonal_succ', one_div, coeff_mk,
     coeff_one, coeff_exp, linear_map.map_sub, factorial, if_pos, cast_succ, cast_one, cast_mul,
-    sub_zero, ring_hom.map_one, add_eq_zero_iff, if_false, inv_one, zero_add, one_ne_zero, mul_zero,
-    and_false, sub_self, ← ring_hom.map_mul, ← ring_hom.map_sum],
+    sub_zero, ring_hom.map_one, add_eq_zero_iff, if_false, _root_.inv_one, zero_add, one_ne_zero,
+    mul_zero, and_false, sub_self, ← ring_hom.map_mul, ← ring_hom.map_sum],
   suffices : ∑ x in antidiagonal n, bernoulli x.1 / x.1! * ((x.2 + 1) * x.2!)⁻¹
            = if n.succ = 1 then 1 else 0, { split_ifs; simp [h, this] },
   cases n, { simp },
@@ -275,7 +275,7 @@ begin
   have h_cauchy : mk (λ p, bernoulli p / p!) * mk (λ q, coeff ℚ (q + 1) (exp ℚ ^ n))
                 = mk (λ p, ∑ i in range (p + 1),
                       bernoulli i * (p + 1).choose i * n ^ (p + 1 - i) / (p + 1)!),
-  { ext q,
+  { ext q : 1,
     let f := λ a b, bernoulli a / a! * coeff ℚ (b + 1) (exp ℚ ^ n),
     -- key step: use `power_series.coeff_mul` and then rewrite sums
     simp only [coeff_mul, coeff_mk, cast_mul, sum_antidiagonal_eq_sum_range_succ f],

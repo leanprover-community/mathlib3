@@ -7,6 +7,7 @@ Authors: Riccardo Brasca
 import ring_theory.polynomial.cyclotomic.basic
 import number_theory.number_field
 import algebra.char_p.algebra
+import field_theory.galois
 
 /-!
 # Cyclotomic extensions
@@ -52,8 +53,8 @@ for integral domains).
 All results are in the `is_cyclotomic_extension` namespace.
 Note that some results, for example `is_cyclotomic_extension.trans`,
 `is_cyclotomic_extension.finite`, `is_cyclotomic_extension.number_field`,
-`is_cyclotomic_extension.finite_dimensional` and `cyclotomic_field.algebra_base` are lemmas,
-but they can be made local instances.
+`is_cyclotomic_extension.finite_dimensional`, `is_cyclotomic_extension.is_galois` and
+`cyclotomic_field.algebra_base` are lemmas, but they can be made local instances.
 
 -/
 
@@ -222,9 +223,9 @@ lemma integral [is_domain B] [is_noetherian_ring A] [fintype S] [is_cyclotomic_e
 is_integral_of_noetherian $ is_noetherian_of_fg_of_noetherian' $ (finite S A B).out
 
 /-- If `S` is finite and `is_cyclotomic_extension S K A`, then `finite_dimensional K A`. -/
-lemma finite_dimensional [fintype S] [algebra K A] [is_domain A] [is_cyclotomic_extension S K A] :
-  finite_dimensional K A :=
-finite S K A
+lemma finite_dimensional (C : Type z) [fintype S] [comm_ring C] [algebra K C] [is_domain C]
+  [is_cyclotomic_extension S K C] : finite_dimensional K C :=
+finite S K C
 
 end fintype
 
@@ -323,6 +324,15 @@ lemma splitting_field_X_pow_sub_one : is_splitting_field K L (X ^ (n : ℕ) - 1)
     rwa [← ring_hom.map_one C, mem_roots (@X_pow_sub_C_ne_zero _ (field.to_nontrivial L) _ _
       n.pos _), is_root.def, eval_sub, eval_pow, eval_C, eval_X, sub_eq_zero]
   end }
+
+include n
+
+lemma is_galois : is_galois K L :=
+begin
+  letI := splitting_field_X_pow_sub_one n K L,
+  exact is_galois.of_separable_splitting_field (X_pow_sub_one_separable_iff.2
+    (ne_zero.ne _ : ((n : ℕ) : K) ≠ 0)),
+end
 
 /-- If `is_cyclotomic_extension {n} K L` and `ne_zero (n : K)`, then `L` is the splitting
 field of `cyclotomic n K`. -/

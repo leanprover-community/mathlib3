@@ -5,6 +5,7 @@ Authors: Johannes Hölzl, Mario Carneiro
 -/
 import topology.subset_properties
 import topology.connected
+import topology.nhds_set
 
 /-!
 # Separation properties of topological spaces.
@@ -407,8 +408,11 @@ instance subtype.t1_space {α : Type u} [topological_space α] [t1_space α] {p 
 instance t1_space.t0_space [t1_space α] : t0_space α :=
 ⟨λ x y h, ⟨{z | z ≠ y}, is_open_ne, or.inl ⟨h, not_not_intro rfl⟩⟩⟩
 
+@[simp] lemma compl_singleton_mem_nhds_iff [t1_space α] {x y : α} : {x}ᶜ ∈ 𝓝 y ↔ y ≠ x :=
+is_open_compl_singleton.mem_nhds_iff
+
 lemma compl_singleton_mem_nhds [t1_space α] {x y : α} (h : y ≠ x) : {x}ᶜ ∈ 𝓝 y :=
-is_open_compl_singleton.mem_nhds $ by rwa [mem_compl_eq, mem_singleton_iff]
+compl_singleton_mem_nhds_iff.mpr h
 
 @[simp] lemma closure_singleton [t1_space α] {a : α} :
   closure ({a} : set α) = {a} :=
@@ -448,6 +452,32 @@ end
 
 @[simp] lemma nhds_eq_nhds_iff [t1_space α] {a b : α} : 𝓝 a = 𝓝 b ↔ a = b :=
 ⟨λ h, nhds_le_nhds_iff.mp h.le, λ h, h ▸ rfl⟩
+
+@[simp] lemma compl_singleton_mem_nhds_set_iff [t1_space α] {x : α} {s : set α} :
+  {x}ᶜ ∈ 𝓝ˢ s ↔ x ∉ s :=
+by rwa [is_open_compl_singleton.mem_nhds_set, subset_compl_singleton_iff]
+
+@[simp] lemma nhds_set_le_iff [t1_space α] {s t : set α} : 𝓝ˢ s ≤ 𝓝ˢ t ↔ s ⊆ t :=
+begin
+  refine ⟨_, λ h, monotone_nhds_set h⟩,
+  simp_rw [filter.le_def], intros h x hx,
+  specialize h {x}ᶜ,
+  simp_rw [compl_singleton_mem_nhds_set_iff] at h,
+  by_contra hxt,
+  exact h hxt hx,
+end
+
+@[simp] lemma nhds_set_inj_iff [t1_space α] {s t : set α} : 𝓝ˢ s = 𝓝ˢ t ↔ s = t :=
+by { simp_rw [le_antisymm_iff], exact and_congr nhds_set_le_iff nhds_set_le_iff }
+
+lemma injective_nhds_set [t1_space α] : function.injective (𝓝ˢ : set α → filter α) :=
+λ s t hst, nhds_set_inj_iff.mp hst
+
+lemma strict_mono_nhds_set [t1_space α] : strict_mono (𝓝ˢ : set α → filter α) :=
+monotone_nhds_set.strict_mono_of_injective injective_nhds_set
+
+@[simp] lemma nhds_le_nhds_set [t1_space α] {s : set α} {x : α} : 𝓝 x ≤ 𝓝ˢ s ↔ x ∈ s :=
+by rw [← nhds_set_singleton, nhds_set_le_iff, singleton_subset_iff]
 
 /-- Removing a non-isolated point from a dense set, one still obtains a dense set. -/
 lemma dense.diff_singleton [t1_space α] {s : set α} (hs : dense s) (x : α) [ne_bot (𝓝[≠] x)] :
@@ -925,7 +955,8 @@ lemma is_closed_eq [t2_space α] {f g : β → α}
   (hf : continuous f) (hg : continuous g) : is_closed {x:β | f x = g x} :=
 continuous_iff_is_closed.mp (hf.prod_mk hg) _ is_closed_diagonal
 
-/-- If two continuous maps are equal on `s`, then they are equal on the closure of `s`. -/
+/-- If two continuous maps are equal on `s`, then they are equal on the closure of `s`. See also
+`set.eq_on.of_subset_closure` for a more general version. -/
 lemma set.eq_on.closure [t2_space α] {s : set β} {f g : β → α} (h : eq_on f g s)
   (hf : continuous f) (hg : continuous g) :
   eq_on f g (closure s) :=
@@ -936,6 +967,18 @@ lemma continuous.ext_on [t2_space α] {s : set β} (hs : dense s) {f g : β → 
   (hf : continuous f) (hg : continuous g) (h : eq_on f g s) :
   f = g :=
 funext $ λ x, h.closure hf hg (hs x)
+
+/-- If `f x = g x` for all `x ∈ s` and `f`, `g` are continuous on `t`, `s ⊆ t ⊆ closure s`, then
+`f x = g x` for all `x ∈ t`. See also `set.eq_on.closure`. -/
+lemma set.eq_on.of_subset_closure [t2_space α] {s t : set β} {f g : β → α} (h : eq_on f g s)
+  (hf : continuous_on f t) (hg : continuous_on g t) (hst : s ⊆ t) (hts : t ⊆ closure s) :
+  eq_on f g t :=
+begin
+  intros x hx,
+  haveI : (𝓝[s] x).ne_bot, from mem_closure_iff_cluster_pt.mp (hts hx),
+  exact tendsto_nhds_unique_of_eventually_eq ((hf x hx).mono_left $ nhds_within_mono _ hst)
+    ((hg x hx).mono_left $ nhds_within_mono _ hst) (h.eventually_eq_of_mem self_mem_nhds_within)
+end
 
 lemma function.left_inverse.closed_range [t2_space α] {f : α → β} {g : β → α}
   (h : function.left_inverse f g) (hf : continuous f) (hg : continuous g) :

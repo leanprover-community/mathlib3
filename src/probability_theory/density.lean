@@ -158,7 +158,7 @@ lemma integrable_iff_integrable_mul_pdf [is_finite_measure ℙ] {X : α → E} [
 begin
   rw [← integrable_map_measure hf.ae_measurable (has_pdf.measurable X ℙ μ),
       map_eq_with_density_pdf X ℙ μ,
-      integrable_with_density_iff (measurable_pdf _ _ _) ae_lt_top hf],
+      integrable_with_density_iff (measurable_pdf _ _ _) ae_lt_top],
   apply_instance
 end
 

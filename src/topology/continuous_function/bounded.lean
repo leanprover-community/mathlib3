@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel, Mario Carneiro, Yury Kudryashov, Heather Macbeth
 -/
 import analysis.normed_space.operator_norm
-import analysis.normed_space.star
+import analysis.normed_space.star.basic
 import topology.continuous_function.algebra
 import data.real.sqrt
 import analysis.normed_space.lattice_ordered_group

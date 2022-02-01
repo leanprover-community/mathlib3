@@ -221,5 +221,3 @@ end
 
 
 end lagrange
-
-#lint

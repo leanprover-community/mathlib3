@@ -70,6 +70,10 @@ and this is Clearly False for sufficiently large n.
 
 open_locale big_operators
 
+section nat
+
+open nat
+
 /-- The multiplicity of p in the nth central binomial coefficient-/
 private def α (n p : nat) [hp : fact p.prime] : nat :=
 padic_val_nat p (nat.central_binom n)
@@ -196,6 +200,9 @@ begin
     exact (mul_lt_mul_left zero_lt_two).mpr n_big },
 end
 
+end nat
+
+section real_inequalities
 open real
 
 lemma one_lt_four : (1 : ℝ) < 4 := by linarith
@@ -432,6 +439,8 @@ begin
   norm_num,
 end
 
+end real_inequalities
+
 /--
 The inequality which contradicts Bertrand's postulate, for large enough `n`.
 -/
@@ -446,7 +455,7 @@ begin
   have fact2 : 0 < 2 * (n : ℝ),
   { linarith, },
   simp only [nat.cast_bit0, nat.cast_add, nat.cast_one, nat.cast_mul, nat.cast_pow],
-  simp only [<-rpow_nat_cast],
+  simp only [<-real.rpow_nat_cast],
   apply le_of_lt,
   calc
   (n : ℝ) * (2 * (n : ℝ)) ^ (nat.sqrt (2 * n) : ℝ) * 4 ^ (((2 * n / 3) : ℕ) : ℝ)
@@ -454,11 +463,11 @@ begin
           begin
             rw mul_le_mul_right,
             rw mul_le_mul_left,
-            apply rpow_le_rpow_of_exponent_le,
+            apply real.rpow_le_rpow_of_exponent_le,
             rw <-@nat.cast_lt ℝ at n_large,
             have h : (1024) < (n : ℝ), {convert n_large, simp},
             linarith,
-            rw le_sqrt,
+            rw real.le_sqrt,
             rw <-nat.cast_pow,
             conv
             begin
@@ -473,13 +482,13 @@ begin
             rw <-nat.cast_mul,
             exact (2 * n).cast_nonneg,
             exact fact1,
-            apply rpow_pos_of_pos,
+            apply real.rpow_pos_of_pos,
             norm_num,
           end
   ... ≤ (n : ℝ) * (2 * n : ℝ) ^ (real.sqrt (2 * (n : ℝ))) * 4 ^ (2 * (n : ℝ) / 3) :
           begin
             rw mul_le_mul_left,
-            apply rpow_le_rpow_of_exponent_le,
+            apply real.rpow_le_rpow_of_exponent_le,
             linarith,
             apply trans nat.cast_div_le,
             apply le_of_eq,
@@ -489,7 +498,7 @@ begin
             exact is_trans.swap (λ (x y : ℝ), y ≤ x),
             apply mul_pos,
             exact fact1,
-            apply rpow_pos_of_pos,
+            apply real.rpow_pos_of_pos,
             exact fact2,
           end
   ... < 4 ^ (n : ℝ) :

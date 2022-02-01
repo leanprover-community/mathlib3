@@ -251,7 +251,7 @@ lemma four_eq_two_rpow_two : (4 : ℝ) = 2 ^ (2 : ℝ) :=
 calc
 (4 : ℝ)
     = 2 ^ (2 : ℕ) : by {norm_num,}
-... = 2 ^ (2 : ℝ) : by {rw <-real.rpow_nat_cast, congr, exact nat.cast_two,}
+... = 2 ^ (2 : ℝ) : by {rw <-rpow_nat_cast, congr, exact nat.cast_two,}
 
 
 lemma inequality2 {x : ℝ} (n_large : 1024 < x) : sqrt 2 * sqrt x * log 2 / (x * log 4) ≤ 0.04 :=
@@ -272,7 +272,7 @@ begin
   rw <-div_le_iff,
   rw le_sqrt,
   rw div_pow,
-  rw real.sq_sqrt,
+  rw sq_sqrt,
   field_simp,
   repeat {apply mul_pos},
   repeat {apply log_pos},
@@ -300,7 +300,7 @@ begin
   linarith,
 end
 
-lemma log_div_sqrt_decreasing {x y : ℝ} (hex : real.exp 2 ≤ x) (hxy : x ≤ y) :
+lemma log_div_sqrt_decreasing {x y : ℝ} (hex : exp 2 ≤ x) (hxy : x ≤ y) :
   log y / sqrt y ≤ log x / sqrt x :=
 begin
   have hltx : 0 < x, exact lt_of_lt_of_le ( (exp_pos 2)) hex,
@@ -317,8 +317,8 @@ begin
     congr,
     rw <-sq_sqrt hx,
   end,
-  rw <-real.rpow_nat_cast,
-  rw <-real.rpow_nat_cast,
+  rw <-rpow_nat_cast,
+  rw <-rpow_nat_cast,
   rw log_rpow,
   rw log_rpow,
   rw mul_div_assoc,
@@ -418,7 +418,7 @@ end
 A reified version of the `bertrand_inequality` below.
 -/
 lemma real_bertrand_inequality {x : ℝ} (n_large : (1024 : ℝ) < x)
-  : x * (2 * x) ^ (real.sqrt (2 * x)) * 4 ^ (2 * x / 3) < 4 ^ x :=
+  : x * (2 * x) ^ (sqrt (2 * x)) * 4 ^ (2 * x / 3) < 4 ^ x :=
 begin
   apply (log_lt_log_iff _ _).1,
   rw [log_mul, log_mul, log_rpow, log_rpow, log_rpow, log_mul],

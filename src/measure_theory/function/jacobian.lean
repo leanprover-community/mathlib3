@@ -294,7 +294,7 @@ begin
     { convert L1,
       exact (add_haar_image_continuous_linear_map _ _ _).symm },
     have I : d * μ (closed_ball 0 1) < m * μ (closed_ball 0 1) :=
-      (ennreal.mul_lt_mul_right ((add_haar_closed_ball_pos μ _ zero_lt_one).ne')
+      (ennreal.mul_lt_mul_right ((measure_closed_ball_pos μ _ zero_lt_one).ne')
         measure_closed_ball_lt_top.ne).2 hm,
     have H : ∀ᶠ (b : ℝ) in 𝓝[>] 0,
       μ (closed_ball 0 b + A '' closed_ball 0 1) < m * μ (closed_ball 0 1) :=
@@ -329,8 +329,8 @@ begin
     calc μ (f '' (s ∩ closed_ball x r))
         ≤ μ ({f x} + r • (A '' (closed_ball 0 1) + closed_ball 0 ε)) : measure_mono K
     ... = ennreal.of_real (r ^ finrank ℝ E) * μ (A '' closed_ball 0 1 + closed_ball 0 ε) :
-      by simp only [abs_of_nonneg r0, add_haar_smul, image_add_left, add_haar_preimage_add,
-                    abs_pow, singleton_add]
+      by simp only [abs_of_nonneg r0, add_haar_smul, image_add_left, abs_pow, singleton_add,
+                    measure_preimage_add]
     ... ≤ ennreal.of_real (r ^ finrank ℝ E) * (m * μ (closed_ball 0 1)) :
       by { rw add_comm, exact ennreal.mul_le_mul le_rfl hε.le }
     ... = m * μ (closed_ball x r) :

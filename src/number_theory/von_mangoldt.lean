@@ -52,72 +52,10 @@ by rw [von_mangoldt_apply, prime.min_fac_eq hp, if_pos (nat.prime_iff.1 hp).is_p
 
 open_locale big_operators
 
-lemma is_prime_pow_dvd_coprime {n a b : ℕ} (hab : coprime a b) (hn : is_prime_pow n) :
-  n ∣ a * b ↔ n ∣ a ∨ n ∣ b :=
-begin
-  rcases eq_or_ne a 0 with rfl | ha,
-  { simp only [coprime_zero_left] at hab,
-    simp [hab, filter_singleton, not_is_prime_pow_one] },
-  rcases eq_or_ne b 0 with rfl | hb,
-  { simp only [coprime_zero_right] at hab,
-    simp [hab, filter_singleton, not_is_prime_pow_one] },
-  refine ⟨_, λ h, or.elim h (λ i, i.trans (dvd_mul_right _ _)) (λ i, i.trans (dvd_mul_left _ _))⟩,
-  obtain ⟨p, k, hp, hk, rfl⟩ := (is_prime_pow_nat_iff _).1 hn,
-  simp only [prime_pow_dvd_iff_le_factorization _ _ _ hp (mul_ne_zero ha hb),
-    factorization_mul ha hb, prime_pow_dvd_iff_le_factorization _ _ _ hp ha,
-    prime_pow_dvd_iff_le_factorization _ _ _ hp hb, pi.add_apply, finsupp.coe_add],
-  have : a.factorization p = 0 ∨ b.factorization p = 0,
-  { rw [←finsupp.not_mem_support_iff, ←finsupp.not_mem_support_iff, ←not_and_distrib, ←mem_inter],
-    exact λ t, factorization_disjoint_of_coprime hab t },
-  cases this;
-  simp [this, imp_or_distrib],
-end
-
-lemma disjoint_divisors_filter_prime_pow {a b : ℕ} (hab : coprime a b) :
-  disjoint (a.divisors.filter is_prime_pow) (b.divisors.filter is_prime_pow) :=
-begin
-  simp only [disjoint_left, mem_filter, and_imp, mem_divisors, not_and],
-  rintro n han ha hn hbn hb -,
-  exact hn.ne_one (eq_one_of_dvd_coprimes hab han hbn),
-end
-
-lemma mul_divisors_filter_prime_pow {a b : ℕ} (hab : coprime a b) :
-  (a * b).divisors.filter is_prime_pow = (a.divisors ∪ b.divisors).filter is_prime_pow :=
-begin
-  rcases eq_or_ne a 0 with rfl | ha,
-  { simp only [coprime_zero_left] at hab,
-    simp [hab, filter_singleton, not_is_prime_pow_one] },
-  rcases eq_or_ne b 0 with rfl | hb,
-  { simp only [coprime_zero_right] at hab,
-    simp [hab, filter_singleton, not_is_prime_pow_one] },
-  ext n,
-  simp only [ha, hb, mem_union, mem_filter, nat.mul_eq_zero, and_true, and.congr_left_iff, ne.def,
-    not_false_iff, mem_divisors, or_self],
-  apply is_prime_pow_dvd_coprime hab,
-end
-
-/-- Given `P 0`, `P 1`, and `P (p ^ k)` for positive prime powers, and a way to extend `P a` and
-`P b` to `P (a * b)` when `a, b` are coprime, you can define `P` for all natural numbers. -/
-@[elab_as_eliminator]
-def rec_on_pos_prime_coprime' {P : ℕ → Sort*} (hp : ∀ p n : ℕ, prime p → 0 < n → P (p ^ n))
-  (h0 : P 0) (h1 : P 1) (h : ∀ a b, 0 < a → 0 < b → coprime a b → P a → P b → P (a * b)) :
-  ∀ a, P a :=
-rec_on_prime_pow h0 h1 $ λ a p n hp' hpa ha,
-  (h (p ^ n) a (pow_pos hp'.pos _) (nat.pos_of_ne_zero (λ t, by simpa [t] using hpa))
-  (prime.coprime_pow_of_not_dvd hp' hpa).symm
-  (if h : n = 0 then eq.rec h1 h.symm else hp p n hp' $ nat.pos_of_ne_zero h) ha)
-
-/-- Given `P 0`, `P (p ^ k)` for all prime powers, and a way to extend `P a` and `P b` to
-`P (a * b)` when `a, b` are coprime, you can define `P` for all natural numbers. -/
-@[elab_as_eliminator]
-def rec_on_prime_coprime' {P : ℕ → Sort*} (h0 : P 0) (hp : ∀ p n : ℕ, prime p → P (p ^ n))
-  (h : ∀ a b, 0 < a → 0 < b → coprime a b → P a → P b → P (a * b)) : ∀ a, P a :=
-rec_on_pos_prime_coprime' (λ p n h _, hp p n h) h0 (hp 2 0 prime_two) h
-
 lemma von_mangoldt_sum {n : ℕ} :
   ∑ i in n.divisors, Λ i = real.log n :=
 begin
-  refine rec_on_prime_coprime' _ _ _ n,
+  refine rec_on_prime_coprime _ _ _ n,
   { simp },
   { intros p k hp,
     rw [sum_divisors_prime_pow hp, cast_pow, real.log_pow, finset.sum_range_succ', pow_zero,
@@ -135,39 +73,6 @@ by { ext n, rw [coe_mul_zeta_apply, von_mangoldt_sum], refl }
 
 lemma log_mul_moebius_eq_von_mangoldt : log * μ = Λ :=
 by rw [←von_mangoldt_mul_zeta, mul_assoc, coe_zeta_mul_coe_moebius, mul_one]
-
-@[to_additive]
-lemma prod_divisors_antidiagonal {M : Type*} [comm_monoid M] (f : ℕ → ℕ → M) {n : ℕ} :
-  ∏ i in n.divisors_antidiagonal, f i.1 i.2 = ∏ i in n.divisors, f i (n / i) :=
-begin
-  refine prod_bij (λ i _, i.1) _ _ _ _,
-  { intro i,
-    apply fst_mem_divisors_of_mem_antidiagonal },
-  { rintro ⟨i, j⟩ hij,
-    simp only [mem_divisors_antidiagonal, ne.def] at hij,
-    rw [←hij.1, nat.mul_div_cancel_left],
-    apply nat.pos_of_ne_zero,
-    rintro rfl,
-    simp only [zero_mul] at hij,
-    apply hij.2 hij.1.symm },
-  { simp only [and_imp, prod.forall, mem_divisors_antidiagonal, ne.def],
-    rintro i₁ j₁ ⟨i₂, j₂⟩ h - (rfl : i₂ * j₂ = _) h₁ (rfl : _ = i₂),
-    simp only [nat.mul_eq_zero, not_or_distrib, ←ne.def] at h₁,
-    rw mul_right_inj' h₁.1 at h,
-    simp [h] },
-  simp only [and_imp, exists_prop, mem_divisors_antidiagonal, exists_and_distrib_right, ne.def,
-    exists_eq_right', mem_divisors, prod.exists],
-  rintro _ ⟨k, rfl⟩ hn,
-  exact ⟨⟨k, rfl⟩, hn⟩,
-end
-
-@[to_additive]
-lemma prod_divisors_antidiagonal' {M : Type*} [comm_monoid M] (f : ℕ → ℕ → M) {n : ℕ} :
-  ∏ i in n.divisors_antidiagonal, f i.1 i.2 = ∏ i in n.divisors, f (n / i) i :=
-begin
-  rw [←map_swap_divisors_antidiagonal, finset.prod_map],
-  exact prod_divisors_antidiagonal (λ i j, f j i),
-end
 
 lemma sum_moebius_mul_log_eq {n : ℕ} :
   ∑ d in n.divisors, (μ d : ℝ) * log d = - Λ n :=

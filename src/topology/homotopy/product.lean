@@ -296,8 +296,7 @@ The map taking the pi product of a family of fundamental groupoids to the fundam
 groupoid of the pi product. This is actually an isomorphism (see `pi_iso`)
 -/
 @[simps]
-def pi_to_pi_Top :
-  (Π i, (πₓ (X i)).α) ⥤ (πₓ (Top.of (Π i, X i))).α :=
+def pi_to_pi_Top : (Π i, (πₓ (X i)).α) ⥤ (πₓ (Top.of (Π i, X i))).α :=
 { obj := λ g, g,
   map := λ v₁ v₂ p, path.homotopic.pi p,
   map_id' :=
@@ -314,8 +313,7 @@ Shows `pi_to_pi_Top` is an isomorphism, whose inverse is precisely the pi produc
 of the induced projections. This shows that `fundamental_groupoid_functor` preserves products.
 -/
 @[simps]
-def pi_iso :
-  category_theory.Groupoid.of (Π i : I, (πₓ (X i)).α) ≅ (πₓ (Top.of (Π i, X i))) :=
+def pi_iso : category_theory.Groupoid.of (Π i : I, (πₓ (X i)).α) ≅ (πₓ (Top.of (Π i, X i))) :=
 { hom := pi_to_pi_Top X,
   inv := category_theory.functor.pi' (proj X),
   hom_inv_id' :=
@@ -359,7 +357,7 @@ begin
 end
 
 /-- The fundamental groupoid functor preserves products -/
-def preserves_product : limits.preserves_limit (category_theory.discrete.functor X) π :=
+def preserves_product : limits.preserves_limit (discrete.functor X) π :=
 begin
   apply limits.preserves_limit_of_preserves_limit_cone (Top.pi_fan_is_limit X),
   apply (limits.is_limit.of_cone_equiv (discrete_X_eq_cone X)).to_fun,
@@ -415,8 +413,7 @@ Shows `prod_to_prod_Top` is an isomorphism, whose inverse is precisely the produ
 of the induced left and right projections.
 -/
 @[simps]
-def prod_iso :
-  category_theory.Groupoid.of ((πₓ A).α × (πₓ B).α) ≅ (πₓ (Top.of (A × B))) :=
+def prod_iso : category_theory.Groupoid.of ((πₓ A).α × (πₓ B).α) ≅ (πₓ (Top.of (A × B))) :=
 { hom := prod_to_prod_Top A B,
   inv := (proj_left A B).prod' (proj_right A B),
   hom_inv_id' :=

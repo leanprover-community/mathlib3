@@ -287,7 +287,12 @@ end
 
 lemma neg_re_apply_inner_self_le_supr_abs_rayleigh_mul_norm_sq (x : E) :
   -T.re_apply_inner_self x ≤ (⨆ z : sphere (0:E) 1, |rayleigh_quotient z|) * ∥x∥ ^ 2 :=
-sorry
+begin
+  convert (-T).re_apply_inner_self_le_supr_abs_rayleigh_mul_norm_sq x,
+  { simp [re_apply_inner_self] },
+  ext x,
+  simp [re_apply_inner_self],
+end
 
 lemma neg_re_apply_inner_self_le_max_supr_rayleigh_mul_norm_sq (x : E) :
   -T.re_apply_inner_self x ≤

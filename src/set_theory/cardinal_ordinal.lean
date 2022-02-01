@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Floris van Doorn
 -/
 
-import logic.small
 import set_theory.ordinal_arithmetic
 import tactic.linarith
 import order.bounded
@@ -912,25 +911,3 @@ le_refl _
 end bit
 
 end cardinal
-
-lemma not_injective_of_ordinal {α : Type u} (f : ordinal.{u} → α) :
-  ¬ function.injective f :=
-begin
-  let g : ordinal.{u} → ulift.{u+1} α := λ o, ulift.up (f o),
-  suffices : ¬ function.injective g,
-  { intro hf, exact this (equiv.ulift.symm.injective.comp hf) },
-  intro hg,
-  replace hg := cardinal.mk_le_of_injective hg,
-  rw cardinal.mk_ulift at hg,
-  have := hg.trans_lt (cardinal.lift_lt_univ _),
-  rw cardinal.univ_id at this,
-  exact lt_irrefl _ this
-end
-
-lemma not_injective_of_ordinal_of_small {α : Type v} [small.{u} α] (f : ordinal.{u} → α) :
-  ¬ function.injective f :=
-begin
-  intro hf,
-  apply not_injective_of_ordinal (equiv_shrink α ∘ f),
-  exact (equiv_shrink _).injective.comp hf,
-end

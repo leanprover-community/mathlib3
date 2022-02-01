@@ -55,8 +55,6 @@ noncomputable theory
 open_locale ennreal complex_conjugate classical
 open topological_space continuous_map measure_theory measure_theory.measure algebra submodule set
 
-local attribute [instance] fact_one_le_two_ennreal
-
 /-! ### Choice of measure on the circle -/
 
 section haar_circle

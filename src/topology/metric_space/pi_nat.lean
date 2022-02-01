@@ -303,7 +303,7 @@ end
 /-- Metric space structure on `Π (n : ℕ), E n` when the spaces `E n` have the discrete topology,
 where the distance is given by `dist x y = (1/2)^n`, where `n` is the smallest index where `x` and
 `y` differ. Not registered as a global instance by default. -/
-protected def metric_space_of_discrete : metric_space (Π n, E n) :=
+protected def metric_space : metric_space (Π n, E n) :=
 begin
   refine metric_space.of_metrizable dist pi_nat.dist_self pi_nat.dist_comm _
     is_open_iff_dist _,
@@ -318,9 +318,9 @@ begin
     exact (two_ne_zero (pow_eq_zero hxy)).elim }
 end
 
-local attribute [instance] pi_nat.metric_space_of_discrete
+local attribute [instance] pi_nat.metric_space
 
-instance : complete_space (Π n, E n) :=
+protected lemma complete_space : complete_space (Π n, E n) :=
 begin
   refine metric.complete_of_convergent_controlled_sequences (λ n, (1/2)^n) (by simp) _,
   assume u hu,
@@ -600,107 +600,111 @@ by simpa only [not_le.2 h, false_or] using min_le_iff.1 (min_dist_le_dist_pi x y
 open_locale big_operators topological_space
 open filter
 
-lemma is_open_iff_dist (s : set (Π n, E n)) :
-  is_open s ↔ ∀ x ∈ s, ∃ ε > 0, ∀ y, dist x y < ε → y ∈ s :=
-begin
-  have I0 : (0 : ℝ) ≤ 1/2, by norm_num,
-  have I1 : (1/2 : ℝ) < 1, by norm_num,
-  split,
-  { assume hs x hx,
-    obtain ⟨v, ⟨U, F, hF, rfl⟩, xFU, FUs⟩ : ∃ (v : set (Π (i : ℕ), E i))
-      (H : v ∈ {S : set (Π (i : ℕ), E i) | ∃ (U : Π (i : ℕ), set (E i))
-        (F : finset ℕ), (∀ (i : ℕ), i ∈ F → is_open (U i)) ∧ S = (F : set ℕ).pi U}),
-          x ∈ v ∧ v ⊆ s :=
-      (is_topological_basis_pi (λ (n : ℕ), @is_topological_basis_opens (E n) _))
-        .exists_subset_of_mem_open hx hs,
-    rcases eq_empty_or_nonempty (F : set ℕ) with Fne|Fne,
-    { refine ⟨1, zero_lt_one, λ y hy, FUs (by simp only [Fne, empty_pi])⟩ },
-    simp only [set.mem_pi, finset.mem_coe] at xFU,
-    have : ∀ i, i ∈ F → ∃ δ > 0, ball (x i) δ ⊆ U i :=
-      λ i hi, is_open_iff.1 (hF i hi) (x i) (xFU i hi),
-    choose! δ hδ using this,
-    have Fne' : (finset.image δ F).nonempty := (finset.nonempty.image_iff _).2 Fne,
-    let N := F.max' Fne,
-    let A := (finset.image δ F).min' Fne',
-    have Apos : 0 < A,
-    { have : A ∈ finset.image δ F := finset.min'_mem (finset.image δ F) Fne',
-      obtain ⟨i, iF, Ai⟩ : ∃ (i : ℕ), i ∈ F ∧ δ i = A, by simpa,
-      rw ← Ai,
-      exact (hδ i iF).1 },
-    refine ⟨min ((1/2)^N) A, _, _⟩,
-    { apply lt_min _ Apos,
-      simp only [one_div, zero_lt_bit0, pow_pos, zero_lt_one, inv_pos] },
-    { assume y hy,
-      suffices : ∀ (i : ℕ), i ∈ F → y i ∈ U i,
-      { apply FUs,
-        simpa only [set.mem_pi, finset.mem_coe] },
-      assume i hi,
-      apply (hδ i hi).2,
-      calc dist (y i) (x i) ≤ dist x y :
-        begin
-          rw dist_comm,
-          apply dist_le_dist_pi_of_dist_lt,
-          apply hy.trans_le ((min_le_left _ _).trans _),
-          exact pow_le_pow_of_le_one I0 I1.le (finset.le_max' _ _ hi),
-        end
-      ... < A : hy.trans_le (min_le_right _ _)
-      ... ≤ δ i : finset.min'_le _ _ (finset.mem_image_of_mem _ hi) } },
-  { assume H,
-    apply (is_topological_basis_pi (λ (n : ℕ), @is_topological_basis_opens (E n) _)).is_open_iff.2,
-    assume x hx,
-    obtain ⟨ε, εpos, hε⟩ : ∃ (ε : ℝ) (H : ε > 0), ∀ (y : Π (n : ℕ), E n), dist x y < ε → y ∈ s :=
-      H x hx,
-    obtain ⟨n, hn⟩ : ∃ (n : ℕ), (n : ℝ) * (1/2)^n + 2 * (1/2)^n < ε,
-    { have : tendsto (λ (n : ℕ), (n : ℝ) * (1/2)^n + 2 * (1/2)^n) at_top (𝓝 (0 + 2 * 0)) :=
-        (tendsto_self_mul_const_pow_of_lt_one I0 I1).add
-          (tendsto_const_nhds.mul (tendsto_pow_at_top_nhds_0_of_lt_1 I0 I1)),
-      simp only [zero_add, mul_zero] at this,
-      exact ((tendsto_order.1 this).2 ε εpos).exists },
-    refine ⟨_, ⟨λ i, ball (x i) ((1/2)^n), finset.range n, (λ i hi, is_open_ball), rfl⟩, by simp, _⟩,
-    assume y hy,
-    simp only [mem_ball, finset.mem_range, set.mem_pi, finset.mem_coe] at hy,
-    apply hε,
-    calc dist x y = ∑' (i : ℕ), min ((1/2)^i) (dist (x i) (y i)) : rfl
-    ... = (∑ i in finset.range n, min ((1/2)^i) (dist (x i) (y i)))
-            + (∑' i, min ((1/2)^(i+n)) (dist (x (i+n)) (y (i+n)))) :
-      (sum_add_tsum_nat_add _ (dist_summable _ _)).symm
-    ... ≤ (∑ i in finset.range n, dist (x i) (y i)) + (∑' i, (1/2)^(i+n)) :
-      begin
-        refine add_le_add (finset.sum_le_sum (λ i hi, min_le_right _ _)) _,
-        refine tsum_le_tsum (λ i, min_le_left _ _) _ _,
-        { apply (summable_nat_add_iff n).2 (dist_summable x y) },
-        { exact (summable_nat_add_iff n).2 (summable_geometric_of_lt_1 I0 I1) }
-      end
-    ... ≤ (∑ i in finset.range n, (1/2)^n) + (∑' (i : ℕ), (1/2)^i) * (1/2)^n:
-      begin
-        apply add_le_add,
-        { apply finset.sum_le_sum (λ i hi, _),
-          rw dist_comm,
-          apply (hy i _).le,
-          simpa using hi },
-        { simp_rw [pow_add, tsum_mul_right] },
-      end
-    ... = n * (1/2)^n + 2 * (1/2)^n :
-      by simp only [tsum_geometric_two, finset.sum_const, nsmul_eq_mul, finset.card_range]
-    ... < ε : hn }
-end
+open_locale nnreal
 
+variable (E)
 
-/- Les instances qui suivent doivent être remplacées par le fait qu'un produit dénombrable d'espaces
-polonais est polonais -/
-
-/-
-instance pi_nat_polish_space_dependent
-  [∀ n, second_countable_topology (E n)] : polish_space (Π n, E n) :=
-by apply_instance
-
-Next instance is not found if not registered explicitely
-instance pi_nat_polish_space
-  {F : Type*} [topological_space F] [discrete_topology F] [second_countable_topology F] :
-  polish_space (ℕ → F) :=
-pi_nat.pi_nat_polish_space_dependent
-
-instance : polish_space ℕ := by apply_instance
--/
+protected def metric_space : metric_space (Π n, E n) :=
+{ dist_self := λ x, by simp [dist_eq_tsum],
+  dist_comm := λ x y, by simp [dist_eq_tsum, dist_comm],
+  dist_triangle := λ x y z, begin
+    have I : ∀ n, min ((1/2)^n) (dist (x n) (z n)) ≤
+      min ((1/2)^n) (dist (x n) (y n)) + min ((1/2)^n) (dist (y n) (z n)) := λ n, calc
+        min ((1/2)^n) (dist (x n) (z n))
+            ≤ min ((1/2)^n) (dist (x n) (y n) + dist (y n) (z n)) :
+          min_le_min le_rfl (dist_triangle _ _ _)
+        ... = min ((1/2)^n) (min ((1/2)^n) (dist (x n) (y n)) + min ((1/2)^n) (dist (y n) (z n))) :
+          begin
+            convert congr_arg (coe : ℝ≥0 → ℝ)
+              (min_add_distrib ((1/2 : ℝ≥0)^n) (nndist (x n) (y n)) (nndist (y n) (z n)));
+            simp
+          end
+        ... ≤ min ((1/2)^n) (dist (x n) (y n)) + min ((1/2)^n) (dist (y n) (z n)) :
+          min_le_right _ _,
+    calc dist x z ≤ ∑' n, (min ((1/2)^n) (dist (x n) (y n)) + min ((1/2)^n) (dist (y n) (z n))) :
+      tsum_le_tsum I (dist_summable x z) ((dist_summable x y).add (dist_summable y z))
+    ... = dist x y + dist y z : tsum_add (dist_summable x y) (dist_summable y z)
+  end,
+  eq_of_dist_eq_zero :=
+  begin
+    assume x y hxy,
+    ext1 n,
+    rw [← dist_le_zero, ← hxy],
+    apply dist_le_dist_pi_of_dist_lt,
+    rw hxy,
+    simp
+  end,
+  to_uniform_space := Pi.uniform_space _,
+  uniformity_dist :=
+  begin
+    have I0 : (0 : ℝ) ≤ 1/2, by norm_num,
+    have I1 : (1/2 : ℝ) < 1, by norm_num,
+    simp only [Pi.uniformity, comap_infi, gt_iff_lt, preimage_set_of_eq, comap_principal,
+      pseudo_metric_space.uniformity_dist],
+    apply le_antisymm,
+    { simp only [le_infi_iff, le_principal_iff],
+      assume ε εpos,
+      obtain ⟨n, hn⟩ : ∃ (n : ℕ), (n : ℝ) * (1/2)^n + 2 * (1/2)^n < ε,
+      { have : tendsto (λ (n : ℕ), (n : ℝ) * (1/2)^n + 2 * (1/2)^n) at_top (𝓝 (0 + 2 * 0)) :=
+          (tendsto_self_mul_const_pow_of_lt_one I0 I1).add
+            (tendsto_const_nhds.mul (tendsto_pow_at_top_nhds_0_of_lt_1 I0 I1)),
+        simp only [zero_add, mul_zero] at this,
+        exact ((tendsto_order.1 this).2 ε εpos).exists },
+      apply @mem_infi_of_Inter _ _ _ _ _ (finset.range n).finite_to_set
+        (λ i, {p : (Π (n : ℕ), E n) × Π (n : ℕ), E n | dist (p.fst i) (p.snd i) < (1/2)^n}),
+      { rintros ⟨i, hi⟩,
+        refine mem_infi_of_mem ((1/2)^n) _,
+        refine mem_infi_of_mem (by norm_num) _,
+        simp only [prod.forall, imp_self, mem_principal] },
+      { rintros ⟨x, y⟩ hxy,
+        simp only [mem_Inter, mem_set_of_eq, set_coe.forall, finset.mem_range, finset.mem_coe]
+          at hxy,
+        calc dist x y = ∑' (i : ℕ), min ((1/2)^i) (dist (x i) (y i)) : rfl
+        ... = (∑ i in finset.range n, min ((1/2)^i) (dist (x i) (y i)))
+                + (∑' i, min ((1/2)^(i+n)) (dist (x (i+n)) (y (i+n)))) :
+          (sum_add_tsum_nat_add _ (dist_summable _ _)).symm
+        ... ≤ (∑ i in finset.range n, dist (x i) (y i)) + (∑' i, (1/2)^(i+n)) :
+          begin
+            refine add_le_add (finset.sum_le_sum (λ i hi, min_le_right _ _)) _,
+            refine tsum_le_tsum (λ i, min_le_left _ _) _ _,
+            { apply (summable_nat_add_iff n).2 (dist_summable x y) },
+            { exact (summable_nat_add_iff n).2 (summable_geometric_of_lt_1 I0 I1) }
+          end
+        ... ≤ (∑ i in finset.range n, (1/2)^n) + (∑' (i : ℕ), (1/2)^i) * (1/2)^n:
+          begin
+            apply add_le_add,
+            { apply finset.sum_le_sum (λ i hi, _),
+              apply (hxy i _).le,
+              simpa using hi },
+            { simp_rw [pow_add, tsum_mul_right] },
+          end
+        ... = n * (1/2)^n + 2 * (1/2)^n :
+          by simp only [tsum_geometric_two, finset.sum_const, nsmul_eq_mul, finset.card_range]
+        ... < ε : hn } },
+    { simp only [le_infi_iff, le_principal_iff],
+      assume n ε εpos,
+      refine mem_infi_of_mem (min ((1/2)^n) ε) _,
+      have : 0 < min ((1/2)^n) ε := lt_min (by simp) εpos,
+      refine mem_infi_of_mem this _,
+      simp only [and_imp, prod.forall, set_of_subset_set_of, lt_min_iff, mem_principal],
+      assume x y hn hε,
+      calc dist (x n) (y n) ≤ dist x y : dist_le_dist_pi_of_dist_lt hn
+      ... < ε : hε }
+  end }
 
 end pi_nat_nondiscrete
+
+instance polish_space.pi [∀ n, topological_space (E n)] [∀ n, polish_space (E n)] :
+  polish_space (Π n, E n) :=
+begin
+  letI : ∀ n, metric_space (E n) := λ n, polish_space_metric (E n),
+  haveI : ∀ n, complete_space (E n) := λ n, complete_polish_space_metric (E n),
+  haveI : ∀ n, second_countable_topology (E n) := λ n, polish_space.second_countable (E n),
+  letI m : metric_space (Π n, E n) := pi_nat_nondiscrete.metric_space E,
+  apply_instance,
+end
+
+/-- Without this instance, `polish_space (ℕ → ℕ)` is not found by typeclass inference. -/
+instance polish_space.fun {F : Type*} [topological_space F] [polish_space F] :
+  polish_space (ℕ → F) :=
+by apply_instance

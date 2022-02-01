@@ -300,9 +300,23 @@ begin
   exact hT.orthogonal_supr_eigenspaces_eq_bot_of_compact hT_cpct
 end
 
+omit cplt hT hT_cpct dec_𝕜
+variables (T)
+
+-- hack to help typeclass inference
+noncomputable instance _root_.foo₃ : module 𝕜 (lp (λ μ, eigenspace (T : E →ₗ[𝕜] E) μ) 2) :=
+@normed_space.to_module 𝕜 (lp (λ μ, eigenspace (T : E →ₗ[𝕜] E) μ) 2) _ _
+  (@inner_product_space.to_normed_space 𝕜 (lp (λ μ, eigenspace (T : E →ₗ[𝕜] E) μ) 2) _
+  (@lp.inner_product_space 𝕜 𝕜 _ (λ μ, eigenspace (T : E →ₗ[𝕜] E) μ) _))
+
+variables {T}
+include cplt hT_cpct dec_𝕜
+
 /-- Isometry from a Hilbert space `E` to the Hilbert sum of the eigenspaces of some compact
 self-adjoint operator `T` on `E`. -/
-noncomputable def diagonalization' : E ≃ₗᵢ[𝕜] lp (λ μ, eigenspace (T : E →ₗ[𝕜] E) μ) 2 :=
+noncomputable def diagonalization' :
+  -- should be just `E ≃ₗᵢ[𝕜] (lp (λ μ, eigenspace (T : E →ₗ[𝕜] E) μ) 2)`
+  @linear_isometry_equiv _ _ _ _ (ring_hom.id 𝕜) _ _ _ E _ _ _ _ (_root_.foo₃ T) :=
 hT.orthogonal_family_eigenspaces.linear_isometry_equiv begin
   convert hT.supr_eigenspaces_dense hT_cpct,
   ext i,
@@ -310,7 +324,8 @@ hT.orthogonal_family_eigenspaces.linear_isometry_equiv begin
 end
 
 @[simp] lemma diagonalization_symm_apply' (w : lp (λ μ, eigenspace (T : E →ₗ[𝕜] E) μ) 2) :
-  (hT.diagonalization' hT_cpct).symm w = ∑' μ, w μ :=
+  @linear_isometry_equiv.symm _ _ _ _ _ _ _ _ _ _ _ _ _ (_root_.foo₃ T)
+    (hT.diagonalization' hT_cpct) w = ∑' μ, w μ :=
 orthogonal_family.linear_isometry_equiv_symm_apply _ _ _
 
 lemma has_sum_diagonalization_symm (w : lp (λ μ, eigenspace (T : E →ₗ[𝕜] E) μ) 2) :

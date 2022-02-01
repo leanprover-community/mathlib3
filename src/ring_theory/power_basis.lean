@@ -354,6 +354,7 @@ where "the same" means that `pb` is a root of `pb'`s minimal polynomial and vice
 See also `power_basis.equiv_of_minpoly` which takes the hypothesis that the
 minimal polynomials are identical.
 -/
+@[simps]
 noncomputable def equiv_of_root
   (pb : power_basis A S) (pb' : power_basis A S')
   (h₁ : aeval pb.gen (minpoly A pb'.gen) = 0) (h₂ : aeval pb'.gen (minpoly A pb.gen) = 0) :
@@ -392,6 +393,7 @@ where "the same" means that they have identical minimal polynomials.
 See also `power_basis.equiv_of_root` which takes the hypothesis that each generator is a root of the
 other basis' minimal polynomial; `power_basis.equiv_root` is more general if `A` is not a field.
 -/
+@[simps]
 noncomputable def equiv_of_minpoly
   (pb : power_basis A S) (pb' : power_basis A S')
   (h : minpoly A pb.gen = minpoly A pb'.gen) :

@@ -1206,7 +1206,7 @@ begin
   exact (lt_blsub.{u u} (λ x _, x) _ h).false
 end
 
-/-! ### Lemmas about injectivity and surjectivity -/
+/-! ### Results about injectivity and surjectivity -/
 
 lemma not_surjective_of_ordinal {α : Type u} (f : α → ordinal.{u}) : ¬ function.surjective f :=
 λ h, ordinal.lsub_nmem_range.{u u} f (h _)
@@ -1221,6 +1221,9 @@ lemma not_surjective_of_ordinal_of_small {α : Type v} [small.{u} α] (f : α �
 lemma not_injective_of_ordinal_of_small {α : Type v} [small.{u} α] (f : ordinal.{u} → α) :
   ¬ function.injective f :=
 λ h, not_injective_of_ordinal _ ((equiv_shrink _).injective.comp h)
+
+theorem not_small_ordinal : ¬ small.{u} ordinal.{max u v} :=
+λ h, @not_injective_of_ordinal_of_small _ h ordinal.lift.{v u} (λ a b h, lift_inj.1 h)
 
 /-! ### Enumerating unbounded sets of ordinals with ordinals -/
 

@@ -215,7 +215,7 @@ begin
   rw h,
   rw log_rpow,
   linarith,
-  linarith [log_four_pos],
+  exact log_four_nonzero,
 end
 
 lemma inequality1 {x : ℝ} (n_large : 1024 < x) : log (x) / (x * log 4) ≤ 1/30 :=

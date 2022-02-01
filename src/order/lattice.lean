@@ -143,6 +143,12 @@ le_trans h le_sup_left
 theorem le_sup_of_le_right (h : c ≤ b) : c ≤ a ⊔ b :=
 le_trans h le_sup_right
 
+theorem lt_sup_of_lt_left (h : c < a) : c < a ⊔ b :=
+h.trans_le le_sup_left
+
+theorem lt_sup_of_lt_right (h : c < b) : c < a ⊔ b :=
+h.trans_le le_sup_right
+
 theorem sup_le : a ≤ c → b ≤ c → a ⊔ b ≤ c :=
 semilattice_sup.sup_le a b c
 
@@ -196,7 +202,7 @@ lemma sup_ind [is_total α (≤)] (a b : α) {p : α → Prop} (ha : p a) (hb : 
 ⟨λ h, (total_of (≤) c b).imp
   (λ bc, by rwa sup_eq_left.2 bc at h)
   (λ bc, by rwa sup_eq_right.2 bc at h),
- λ h, h.elim (λ h, h.trans_le le_sup_left) (λ h, h.trans_le le_sup_right)⟩
+ λ h, h.elim lt_sup_of_lt_left lt_sup_of_lt_right⟩
 
 @[simp] theorem sup_idem : a ⊔ a = a :=
 by apply le_antisymm; simp
@@ -329,6 +335,12 @@ le_trans inf_le_left h
 
 theorem inf_le_of_right_le (h : b ≤ c) : a ⊓ b ≤ c :=
 le_trans inf_le_right h
+
+theorem inf_lt_of_left_lt (h : a < c) : a ⊓ b < c :=
+lt_of_le_of_lt inf_le_left h
+
+theorem inf_lt_of_right_lt (h : b < c) : a ⊓ b < c :=
+lt_of_le_of_lt inf_le_right h
 
 @[simp] theorem le_inf_iff : a ≤ b ⊓ c ↔ a ≤ b ∧ a ≤ c :=
 @sup_le_iff (order_dual α) _ _ _ _
@@ -928,3 +940,6 @@ See note [reducible non-instances]. -/
   ..hf_inj.lattice f map_sup map_inf, }
 
 end lift
+
+--To avoid noncomputability poisoning from `bool.complete_boolean_algebra`
+instance : distrib_lattice bool := linear_order.to_distrib_lattice

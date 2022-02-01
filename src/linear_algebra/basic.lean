@@ -860,25 +860,28 @@ preserved under addition and scalar multiplication, then `p` holds for all eleme
   (H2 : ∀ (a:R) x, p x → p (a • x)) : p x :=
 (@span_le _ _ _ _ _ _ ⟨p, H0, H1, H2⟩).2 Hs h
 
-/-- The difference with `submodule.span_induction` is that this acts on the subtype. -/
-lemma span_induction' {p : span R s → Prop} (Hs : ∀ x (h : x ∈ s), p ⟨x, subset_span h⟩) (H0 : p 0)
-  (H1 : ∀ x y, p x → p y → p (x + y)) (H2 : ∀ (a : R) x, p x → p (a • x)) (x : span R s) : p x :=
-subtype.rec_on x $ λ x hx, begin
-  refine exists.elim _ (λ (hx : x ∈ span R s) (hc : p ⟨x, hx⟩), hc),
+/-- A dependent version of `submodule.span_induction`. -/
+lemma span_induction' {p : Π x, x ∈ span R s → Prop}
+  (Hs : ∀ x (h : x ∈ s), p x (subset_span h))
+  (H0 : p 0 (submodule.zero_mem _))
+  (H1 : ∀ x hx y hy, p x hx → p y hy → p (x + y) (submodule.add_mem _ ‹_› ‹_›))
+  (H2 : ∀ (a : R) x hx, p x hx → p (a • x) (submodule.smul_mem _ _ ‹_›)) {x} (hx : x ∈ span R s) :
+  p x hx :=
+begin
+  refine exists.elim _ (λ (hx : x ∈ span R s) (hc : p x hx), hc),
   refine span_induction hx (λ m hm, ⟨subset_span hm, Hs m hm⟩) ⟨zero_mem _, H0⟩
     (λ x y hx hy, exists.elim hx $ λ hx' hx, exists.elim hy $ λ hy' hy,
-    ⟨add_mem _ hx' hy', H1 _ _ hx hy⟩) (λ r x hx, exists.elim hx $ λ hx' hx,
-    ⟨smul_mem _ _ hx', H2 r _ hx⟩)
+    ⟨add_mem _ hx' hy', H1 _ _ _ _ hx hy⟩) (λ r x hx, exists.elim hx $ λ hx' hx,
+    ⟨smul_mem _ _ hx', H2 r _ _ hx⟩)
 end
 
 @[simp] lemma span_span_coe_preimage : span R ((coe : span R s → M) ⁻¹' s) = ⊤ :=
-begin
-  refine eq_top_iff.2 (λ x hx, span_induction' (λ x hx, _) _ _ (λ r x hx, _) x),
+eq_top_iff.2 $ λ x, subtype.rec_on x $ λ x hx _, begin
+  refine span_induction' (λ x hx, _) _ (λ x y _ _, _) (λ r x _, _) hx,
   { exact subset_span hx },
-  { exact submodule.zero_mem _ },
-  { intros x y hx hy,
-    exact submodule.add_mem _ hx hy },
-  { exact submodule.smul_mem _ _ hx }
+  { exact zero_mem _ },
+  { exact add_mem _ },
+  { exact smul_mem _ _ }
 end
 
 lemma span_nat_eq_add_submonoid_closure (s : set M) :
@@ -1220,6 +1223,35 @@ begin
     { intros x y hx hy,
       rw smul_add,
       exact add_submonoid.add_mem _ hx hy, } }
+end
+
+/-- An induction principle for elements of `⨆ i, p i`.
+If `C` holds for `0` and all elements of `p i` for all `i`, and is preserved under addition,
+then it holds for all elements of the supremum of `p`. -/
+@[elab_as_eliminator]
+lemma supr_induction {ι : Sort*} (p : ι → submodule R M) {C : M → Prop} {x : M} (hx : x ∈ ⨆ i, p i)
+  (hp : ∀ i (x ∈ p i), C x)
+  (h0 : C 0)
+  (hadd : ∀ x y, C x → C y → C (x + y)) : C x :=
+begin
+  rw [←mem_to_add_submonoid, supr_to_add_submonoid] at hx,
+  exact add_submonoid.supr_induction _ hx hp h0 hadd,
+end
+
+/-- A dependent version of `submodule.supr_induction`. -/
+@[elab_as_eliminator]
+lemma supr_induction' {ι : Sort*} (p : ι → submodule R M) {C : Π x, (x ∈ ⨆ i, p i) → Prop}
+  (hp : ∀ i (x ∈ p i), C x (mem_supr_of_mem i ‹_›))
+  (h0 : C 0 (zero_mem _))
+  (hadd : ∀ x y hx hy, C x hx → C y hy → C (x + y) (add_mem _ ‹_› ‹_›))
+  {x : M} (hx : x ∈ ⨆ i, p i) : C x hx :=
+begin
+  refine exists.elim _ (λ (hx : x ∈ ⨆ i, p i) (hc : C x hx), hc),
+  refine supr_induction p hx (λ i x hx, _) _ (λ x y, _),
+  { exact ⟨_, hp _ _ hx⟩ },
+  { exact ⟨_, h0⟩ },
+  { rintro ⟨_, Cx⟩ ⟨_, Cy⟩,
+    refine ⟨_, hadd _ _ _ _ Cx Cy⟩ },
 end
 
 lemma span_singleton_le_iff_mem (m : M) (p : submodule R M) : (R ∙ m) ≤ p ↔ m ∈ p :=

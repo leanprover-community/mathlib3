@@ -71,12 +71,11 @@ variables (P : Cᵒᵖ ⥤ A) {X : C} (S : sieve X) (R : presieve X) (E : Aᵒ�
     with cone point `E` are in 1-1 correspondence with sieve_compatible family of elements
     for the sieve `S` and the presheaf of types `Hom (E, P -)`. -/
 @[simps] def cones_equiv_sieve_compatible_family :
-  (functor.cones (S.arrows.diagram.op ⋙ P)).obj E ≃
+  (S.arrows.diagram.op ⋙ P).cones.obj E ≃
   {x : family_of_elements (P ⋙ coyoneda.obj E) S // x.sieve_compatible} :=
 { to_fun := λ π, ⟨λ Y f h, π.app (op ⟨over.mk f, h⟩), λ _, by
     { intros, apply (id_comp _).symm.trans, dsimp,
-      convert π.naturality (quiver.hom.op _),
-      refl, refl, refl, swap, apply over.hom_mk, refl }⟩,
+      convert π.naturality (quiver.hom.op (over.hom_mk _ _)); dsimp; refl }⟩,
   inv_fun := λ x, { app := λ f, x.1 f.unop.1.hom f.unop.2,
     naturality' := λ f f' g, by
     { refine eq.trans _ (x.2 f.unop.1.hom g.unop.left f.unop.2),

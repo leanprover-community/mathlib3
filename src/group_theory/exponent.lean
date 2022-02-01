@@ -161,14 +161,6 @@ end
 
 section to_move
 
-lemma _root_.list.subperm_singleton_iff {α} {l : list α} {a : α} : [a] <+~ l ↔ a ∈ l :=
-begin
-  rw list.subperm_ext_iff,
-  simp, -- these next two lines should be a `simp` lemma too
-  convert list.le_count_iff_repeat_sublist,
-  simp,
-end
-
 lemma _root_.nat.dvd_of_mem_factorization {n p : ℕ} (h : p ∈ n.factorization.support) : p ∣ n :=
 begin
   rcases eq_or_ne p 0 with rfl | hp,

@@ -675,8 +675,8 @@ begin
   ext j,
   by_cases hi : j = i,
   { subst hi,
-    simp [lp.single_apply_pos] },
-  { simp [lp.single_apply_neg p i _ hi] }
+    simp [lp.single_apply_self] },
+  { simp [lp.single_apply_ne p i _ hi] }
 end
 
 @[simp] protected lemma single_add (p) (i : α) (a₁ a₂ : E i) :
@@ -685,8 +685,8 @@ begin
   ext j,
   by_cases hi : j = i,
   { subst hi,
-    simp [lp.single_apply_pos] },
-  { simp [lp.single_apply_neg p i _ hi] }
+    simp [lp.single_apply_self] },
+  { simp [lp.single_apply_ne p i _ hi] }
 end
 
 @[simp] protected lemma single_neg (p) (i : α) (a : E i) :

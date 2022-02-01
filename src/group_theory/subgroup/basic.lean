@@ -1333,14 +1333,10 @@ end
 
 variable (H)
 
-/-- A subgroup is maximal if it is a proper subgroup that is not contained in
-any other proper subgroup -/
-def is_maximal := H < ⊤ ∧ (∀ H' : subgroup G, H < H' → H' = ⊤)
-
 /-- In a group that satisifes the normalizer condition, every maximal subgroup is normal -/
 lemma normal_of_maximal_normalizer_condition
-  (hnc : normalizer_condition G) (hmax : H.is_maximal) : H.normal :=
-normalizer_eq_top.mp (hmax.2 _ (hnc H hmax.1))
+  (hnc : normalizer_condition G) (hmax : is_coatom H) : H.normal :=
+normalizer_eq_top.mp (hmax.2 _ (hnc H (lt_top_iff_ne_top.mpr hmax.1)))
 
 /-- Commutivity of a subgroup -/
 structure is_commutative : Prop :=

@@ -2208,9 +2208,7 @@ by rw [←H.le_iff_deriv, H.le_iff_eq]
 theorem deriv_eq_enum_fp {f} (H : is_normal f) : deriv f = enum_ord _ H.nfp_unbounded :=
 begin
   rw [←eq_enum_ord, range_eq_iff],
-  use (deriv_is_normal f).strict_mono,
-  refine ⟨λ a, H.deriv_fp a, λ _ _, _⟩,
-  rwa ←H.apply_eq_self_iff_deriv
+  exact ⟨(deriv_is_normal f).strict_mono, H.deriv_fp, λ _, H.apply_eq_self_iff_deriv.1⟩
 end
 
 end

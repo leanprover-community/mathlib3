@@ -42,13 +42,13 @@ variables {G : Type*} [group G] [measurable_space G] [topological_space G]
   invariant under the action of `Γ` on `G` by **right** multiplication. -/
 @[to_additive "Given a subgroup `Γ` of an additive group `G` and a right invariant measure `μ` on
   `G`, the measure is also invariant under the action of `Γ` on `G` by **right** addition."]
-lemma subgroup.smul_invariant_measure (hμ : measure_theory.is_mul_right_invariant μ) :
+lemma subgroup.smul_invariant_measure [μ.is_mul_right_invariant] :
   smul_invariant_measure Γ.opposite G μ :=
 { measure_preimage_smul :=
 begin
   rintros ⟨c, hc⟩ s hs,
   dsimp [(•)],
-  refine hμ.measure_preimage_mul (mul_opposite.unop c) s,
+  refine measure_preimage_mul_right μ (mul_opposite.unop c) s,
 end}
 
 /-- Measurability of the action of the topological group `G` on the left-coset space `G/Γ`. -/
@@ -68,8 +68,7 @@ include h𝓕
 @[to_additive "If `𝓕` is a fundamental domain for the action by right addition of a subgroup `Γ`
   of an additive topological group `G`, then its left-translate by an element of `g` is also a
   fundamental domain."]
-lemma measure_theory.is_fundamental_domain.smul (g : G)
-  (hμL : measure_theory.is_mul_left_invariant μ):
+lemma measure_theory.is_fundamental_domain.smul (g : G) [μ.is_mul_left_invariant] :
   is_fundamental_domain ↥Γ.opposite (has_mul.mul g ⁻¹' 𝓕) μ :=
 { measurable_set := measurable_set_preimage (measurable_const_mul g) (h𝓕.measurable_set),
   ae_covers := begin
@@ -79,7 +78,7 @@ lemma measure_theory.is_fundamental_domain.smul (g : G)
     have : {x : G | ¬∃ (γ : ↥(Γ.opposite)), g * γ • x ∈ 𝓕} = has_mul.mul g ⁻¹' s,
     { ext,
       simp [s, subgroup.left_right_mul], },
-    rw [this, hμL.measure_preimage_mul g s, μs_eq_zero],
+    rw [this, measure_preimage_mul μ g s, μs_eq_zero],
   end,
   ae_disjoint := begin
     intros γ γ_ne_one,
@@ -91,7 +90,7 @@ lemma measure_theory.is_fundamental_domain.smul (g : G)
       simp only [mem_inter_eq, image_smul, and.congr_left_iff, mem_preimage],
       intros gx,
       convert subgroup.left_right_mem_preimage x g γ 𝓕, },
-    rw [this, hμL.measure_preimage_mul g _, μs_eq_zero],
+    rw [this, measure_preimage_mul μ g _, μs_eq_zero],
   end }
 
 variables [encodable Γ] [measurable_space (G ⧸ Γ)] [borel_space (G ⧸ Γ)]
@@ -102,7 +101,7 @@ variables [encodable Γ] [measurable_space (G ⧸ Γ)] [borel_space (G ⧸ Γ)]
   right-invariant measure on an additive topological group `G` to a fundamental domain `𝓕` is a
   `G`-invariant measure on `G ⧸ Γ`."]
 lemma measure_theory.is_fundamental_domain.smul_invariant_measure_map
-  (hμL : measure_theory.is_mul_left_invariant μ) (hμR : measure_theory.is_mul_right_invariant μ) :
+  [μ.is_mul_left_invariant] [μ.is_mul_right_invariant] :
   smul_invariant_measure G (G ⧸ Γ) (measure.map (@quotient_group.mk G _ Γ) (μ.restrict 𝓕)) :=
 { measure_preimage_smul :=
   begin
@@ -126,11 +125,11 @@ lemma measure_theory.is_fundamental_domain.smul_invariant_measure_map
         rw [← preimage_comp, comp_mul_left, mul_left_inv],
         ext,
         simp, },
-      rw hμL.measure_preimage_mul, },
+      rw measure_preimage_mul, },
     rw this,
     have h𝓕_translate_fundom : is_fundamental_domain Γ.opposite (has_mul.mul g⁻¹ ⁻¹' 𝓕) μ :=
-      h𝓕.smul (g⁻¹) hμL,
-    haveI : smul_invariant_measure ↥(Γ.opposite) G μ := subgroup.smul_invariant_measure hμR,
+      h𝓕.smul (g⁻¹),
+    haveI : smul_invariant_measure ↥(Γ.opposite) G μ := subgroup.smul_invariant_measure,
     rw h𝓕.measure_set_eq h𝓕_translate_fundom meas_πA,
     rintros ⟨γ, γ_in_Γ⟩,
     ext,
@@ -144,17 +143,19 @@ lemma measure_theory.is_fundamental_domain.smul_invariant_measure_map
 @[to_additive "Assuming `Γ` is a normal subgroup of an additive topological group `G`, the
   pushforward to the quotient group `G ⧸ Γ` of the restriction of a both left- and right-invariant
   measure on `G` to a fundamental domain `𝓕` is a left-invariant measure on `G ⧸ Γ`."]
-lemma measure_theory.is_fundamental_domain.is_mul_left_invariant_map [subgroup.normal Γ]
-  (hμL : measure_theory.is_mul_left_invariant μ) (hμR : measure_theory.is_mul_right_invariant μ) :
-  is_mul_left_invariant (measure.map (quotient_group.mk' Γ) (μ.restrict 𝓕)) :=
-begin
-  intros x A hA,
-  obtain ⟨x₁, _⟩ := @quotient.exists_rep _ (quotient_group.left_rel Γ) x,
-  haveI := h𝓕.smul_invariant_measure_map hμL hμR,
-  convert measure_preimage_smul x₁ ((measure.map quotient_group.mk) (μ.restrict 𝓕)) A,
-  rw ← h,
-  refl,
-end
+def measure_theory.is_fundamental_domain.is_mul_left_invariant_map [subgroup.normal Γ]
+  [μ.is_mul_left_invariant] [μ.is_mul_right_invariant] :
+  (measure.map (quotient_group.mk' Γ) (μ.restrict 𝓕)).is_mul_left_invariant :=
+{ map_mul_left_eq_self := begin
+    intros x,-- A hA,
+    apply measure.ext,
+    intros A hA,
+    obtain ⟨x₁, _⟩ := @quotient.exists_rep _ (quotient_group.left_rel Γ) x,
+    haveI := h𝓕.smul_invariant_measure_map,
+    convert measure_preimage_smul x₁ ((measure.map quotient_group.mk) (μ.restrict 𝓕)) A using 1,
+    rw ← h,
+    refl,
+  end }
 
 variables [t2_space (G ⧸ Γ)] [topological_space.second_countable_topology (G ⧸ Γ)]
   (K : topological_space.positive_compacts (G ⧸ Γ))
@@ -167,7 +168,7 @@ variables [t2_space (G ⧸ Γ)] [topological_space.second_countable_topology (G 
   to the quotient group `G ⧸ Γ` of the restriction of `μ` to `𝓕` is a multiple of Haar measure on
   `G ⧸ Γ`."]
 lemma measure_theory.is_fundamental_domain.map_restrict_quotient [subgroup.normal Γ]
-  [measure_theory.measure.is_haar_measure μ] (hμR : measure_theory.is_mul_right_invariant μ)
+  [measure_theory.measure.is_haar_measure μ] [μ.is_mul_right_invariant]
   (h𝓕_finite : μ 𝓕 < ⊤) : measure.map (quotient_group.mk' Γ) (μ.restrict 𝓕)
   = (μ (𝓕 ∩ (quotient_group.mk' Γ) ⁻¹' K.val)) • (measure_theory.measure.haar_measure K) :=
 begin
@@ -179,8 +180,9 @@ begin
     ⟨by { rw [measure.restrict_apply' 𝓕meas, univ_inter], exact h𝓕_finite }⟩,
   -- the measure is left-invariant, so by the uniqueness of Haar measure it's enough to show that
   -- it has the stated size on the reference compact set `K`.
-  rw [measure.haar_measure_unique (h𝓕.is_mul_left_invariant_map
-    (measure_theory.measure.is_mul_left_invariant_haar μ) hμR) K,
+  haveI : (measure.map (quotient_group.mk' Γ) (μ.restrict 𝓕)).is_mul_left_invariant :=
+    h𝓕.is_mul_left_invariant_map,
+  rw [measure.haar_measure_unique (measure.map (quotient_group.mk' Γ) (μ.restrict 𝓕)) K,
     measure.map_apply meas_π, measure.restrict_apply' 𝓕meas, inter_comm],
   exact K.prop.1.measurable_set,
 end

@@ -1206,6 +1206,8 @@ begin
   exact (lt_blsub.{u u} (λ x _, x) _ h).false
 end
 
+end ordinal
+
 /-! ### Results about injectivity and surjectivity -/
 
 lemma not_surjective_of_ordinal {α : Type u} (f : α → ordinal.{u}) : ¬ function.surjective f :=
@@ -1222,10 +1224,14 @@ lemma not_injective_of_ordinal_of_small {α : Type v} [small.{u} α] (f : ordina
   ¬ function.injective f :=
 λ h, not_injective_of_ordinal _ ((equiv_shrink _).injective.comp h)
 
+/-- The type of ordinals in universe `u` is not `small.{u}`. This is the type-theoretic analog of
+the Burali-Forti paradox. -/
 theorem not_small_ordinal : ¬ small.{u} ordinal.{max u v} :=
-λ h, @not_injective_of_ordinal_of_small _ h _ (λ a b, lift_inj.1)
+λ h, @not_injective_of_ordinal_of_small _ h _ (λ a b, ordinal.lift_inj.1)
 
 /-! ### Enumerating unbounded sets of ordinals with ordinals -/
+
+namespace ordinal
 
 section
 variables {S : set ordinal.{u}} (hS : unbounded (<) S)

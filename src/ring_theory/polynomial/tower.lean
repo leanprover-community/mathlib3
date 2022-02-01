@@ -34,7 +34,7 @@ by rw [polynomial.aeval_def, polynomial.aeval_def, polynomial.eval₂_map, algeb
 end semiring
 
 section comm_semiring
-variables [comm_semiring R] [comm_semiring A] [comm_semiring B]
+variables [comm_semiring R] [comm_semiring A] [semiring B]
 variables [algebra R A] [algebra A B] [algebra R B] [is_scalar_tower R A B]
 
 lemma algebra_map_aeval (x : A) (p : polynomial R) :

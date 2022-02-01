@@ -3,8 +3,7 @@ Copyright (c) 2022 Thomas Browning. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Thomas Browning
 -/
-import topology.algebra.group
-import topology.continuous_function.basic
+import topology.continuous_function.algebra
 
 /-!
 
@@ -145,5 +144,25 @@ def coprod (f : continuous_monoid_hom A E) (g : continuous_monoid_hom B E) :
   mul_one := λ f, ext (λ x, mul_one (f x)),
   inv := λ f, (inv E).comp f,
   mul_left_inv := λ f, ext (λ x, mul_left_inv (f x)) }
+
+instance : topological_space (continuous_monoid_hom A B) :=
+topological_space.induced to_continuous_map continuous_map.compact_open
+
+variables (A B C D E)
+
+lemma is_inducing : inducing (to_continuous_map : continuous_monoid_hom A B → C(A, B)) := ⟨rfl⟩
+
+lemma is_embedding : embedding (to_continuous_map : continuous_monoid_hom A B → C(A, B)) :=
+⟨is_inducing A B, λ _ _, ext ∘ continuous_map.ext_iff.mp⟩
+
+variables {A B C D E}
+
+instance [locally_compact_space A] [t2_space B] : t2_space (continuous_monoid_hom A B) :=
+(is_embedding A B).t2_space
+
+instance : topological_group (continuous_monoid_hom A E) :=
+let hi := is_inducing A E, hc := hi.continuous in
+{ continuous_mul := hi.continuous_iff.mpr (continuous_mul.comp (continuous.prod_map hc hc)),
+  continuous_inv := hi.continuous_iff.mpr (continuous_inv.comp hc) }
 
 end continuous_monoid_hom

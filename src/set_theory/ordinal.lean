@@ -5,7 +5,7 @@ Authors: Mario Carneiro, Floris van Doorn
 -/
 import data.sum.order
 import order.conditionally_complete_lattice
-import order.succ_pred
+import order.succ_pred.basic
 import set_theory.cardinal
 
 /-!

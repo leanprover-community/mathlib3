@@ -344,7 +344,7 @@ section commuting_subgroups
 parameters (hcomm : ∀ (i j : I), i ≠ j → ∀ (x y : G), x ∈ H i → y ∈ H j → commute x y)
 include hcomm
 
-instance hcomm_subtype :
+lemma hcomm_subtype :
   fact (∀ (i j : I), i ≠ j → ∀ (x : H i) (y : H j), commute ((H i).subtype x) ((H j).subtype y)) :=
 fact.mk begin
   rintros i j hne ⟨x, hx⟩ ⟨y, hy⟩,

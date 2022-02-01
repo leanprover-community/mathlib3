@@ -687,38 +687,16 @@ end
 
 section classical
 
-open_locale classical
-
-/-- A custom induction principle for fintypes. The base case is a subsingleton type,
-and the induction step is for non-trivial types, and one can assume the hypothesis for
-smaller types (via `fintype.card`).
--/
-@[elab_as_eliminator]
-lemma fintype.induction_subsingleton_or_nontrivial
-  {P : Π α [fintype α], Prop} (α : Type*) [fintype α]
-  (hbase : ∀ α [fintype α] [subsingleton α], by exactI P α)
-  (hstep : ∀ α [fintype α] [nontrivial α],
-    by exactI ∀ (ih : ∀ β [fintype β], by exactI ∀ (h : fintype.card β < fintype.card α), P β),
-    P α) :
-  P α :=
-begin
-  obtain ⟨ n, hn ⟩ : ∃ n, fintype.card α = n := ⟨fintype.card α, rfl⟩,
-  unfreezingI { induction n using nat.strong_induction_on with n ih generalizing α },
-  casesI (subsingleton_or_nontrivial α) with hsing hnontriv,
-  { apply hbase, },
-  { apply hstep,
-    introsI β _ hlt,
-    rw hn at hlt,
-    exact (ih (fintype.card β) hlt _ rfl), }
-end
+open_locale classical -- to get the fintype instance for quotient groups
 
 /-- A p-group is nilpotent -/
-lemma is_p_group.is_nilpotent [fintype G] {p : ℕ} (hp : fact (nat.prime p)) (h : is_p_group p G) :
+lemma is_p_group.is_nilpotent {G : Type*} [hG : group G] [hf : fintype G]
+  {p : ℕ} (hp : fact (nat.prime p)) (h : is_p_group p G) :
   is_nilpotent G :=
 begin
   unfreezingI
-  { revert _inst_1,
-    induction _inst_3 using fintype.induction_subsingleton_or_nontrivial with G _ _ G }; resetI,
+  { revert hG,
+    induction hf using fintype.induction_subsingleton_or_nontrivial with G hG hS G hG hN ih },
   { apply_instance, },
   { introI _, intro h,
     have hc: center G > ⊥ := gt_iff_lt.mp h.bot_lt_center,

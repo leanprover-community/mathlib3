@@ -175,12 +175,50 @@ le_csupr_of_le (rayleigh_bdd_above T) 0 (by simp)
 lemma supr_neg_rayleigh_nonneg : (0 : ℝ) ≤ (⨆ x, (-rayleigh_quotient) x) :=
 le_csupr_of_le (neg_rayleigh_bdd_above T) 0 (by simp)
 
--- Should be easy with a csupr version of supr_sup_eq
+-- move this
+lemma _root_.is_lub_sup_of_is_lub_is_lub {α : Type*} {ι : Sort*} [semilattice_sup α] {f g : ι → α}
+  {A B : α} (hf : is_lub (set.range f) A) (hg : is_lub (set.range g) B) :
+  is_lub (set.range (λ i, (f i ⊔ g i))) (A ⊔ B) :=
+begin
+  split,
+  { rintros _ ⟨i, rfl⟩,
+    exact sup_le_sup (hf.1 ⟨i, rfl⟩) (hg.1 ⟨i, rfl⟩) },
+  intros C hC,
+  have hfC : C ∈ upper_bounds (set.range f),
+  { rintros _ ⟨i, rfl⟩,
+    exact le_sup_left.trans (hC ⟨i, rfl⟩) },
+  have hgC : C ∈ upper_bounds (set.range g),
+  { rintros _ ⟨i, rfl⟩,
+    exact le_sup_right.trans (hC ⟨i, rfl⟩) },
+  exact sup_le (hf.2 hfC) (hg.2 hgC),
+end
+
+-- move this
+lemma _root_.csupr_sup_eq {α : Type*} {ι : Sort*} [nonempty ι] [conditionally_complete_lattice α]
+  {f g : ι → α} (hf : bdd_above (set.range f)) (hg : bdd_above (set.range g)) :
+  (⨆ (x : ι), f x ⊔ g x) = (⨆ (x : ι), f x) ⊔ ⨆ (x : ι), g x :=
+by rw (is_lub_sup_of_is_lub_is_lub (is_lub_csupr hf) (is_lub_csupr hg)).csupr_eq
+
+-- move this
+lemma _root_.real.csupr_sup_eq {ι : Sort*} {f g : ι → ℝ} (hf : bdd_above (set.range f))
+  (hg : bdd_above (set.range g)) :
+  (⨆ (x : ι), f x ⊔ g x) = (⨆ (x : ι), f x) ⊔ ⨆ (x : ι), g x :=
+begin
+  cases is_empty_or_nonempty ι; resetI,
+  { simp [real.csupr_empty] },
+  exact csupr_sup_eq hf hg,
+end
+
 lemma supr_abs_rayleigh_eq_sup_supr :
   (⨆ x : sphere (0:E) 1, |rayleigh_quotient x|) =
     max (⨆ x : sphere (0:E) 1, rayleigh_quotient x)
         (⨆ x : sphere (0:E) 1, -rayleigh_quotient x) :=
-sorry
+begin
+  refine real.csupr_sup_eq T.rayleigh_bdd_above_sphere _,
+  convert (-T).rayleigh_bdd_above_sphere,
+  ext x,
+  simp [re_apply_inner_self],
+end
 
 lemma abs_rayleigh_sphere_bdd_above :
   bdd_above (set.range (λ x : sphere (0:E) 1, |rayleigh_quotient x|)) :=

@@ -19,6 +19,8 @@ We define principal or indecomposable ordinals, and we prove the standard proper
 
 universe u
 
+noncomputable theory
+
 namespace ordinal
 
 /-! ### Principal ordinals -/
@@ -66,5 +68,38 @@ end
 theorem nfp_le_of_principal {op : ordinal → ordinal → ordinal}
   {a o : ordinal} (hao : a < o) (ho : principal op o) : nfp (op a) a ≤ o :=
 nfp_le.2 $ λ n, le_of_lt (ho.iterate_lt hao n)
+
+/-! ### Principal ordinals are unbounded -/
+
+/-- The least strict upper bound of `op` applied to all pairs of ordinals less than `a`. -/
+def lsub_op_lt (op : ordinal → ordinal → ordinal) (o : ordinal) : ordinal :=
+lsub (λ x : o.out.α × o.out.α, op (typein o.out.r x.1) (typein o.out.r x.2))
+
+theorem lt_lsub_op_lt (op : ordinal → ordinal → ordinal) {o : ordinal} {a b : ordinal} (ha : a < o)
+  (hb : b < o) : op a b < lsub_op_lt op o :=
+begin
+  convert lt_lsub _ (prod.mk (enum o.out.r a (by rwa type_out)) (enum o.out.r b (by rwa type_out))),
+  simp only [typein_enum]
+end
+
+theorem principal_nfp_lsub_op_lt (op : ordinal → ordinal → ordinal) (o : ordinal) :
+  principal op (nfp (lsub_op_lt.{u u} op) o) :=
+begin
+  intros a b ha hb,
+  rw lt_nfp at *,
+  cases ha with m hm,
+  cases hb with n hn,
+  cases le_total ((lsub_op_lt.{u u} op)^[m] o) ((lsub_op_lt.{u u} op)^[n] o) with h h,
+  { use n + 1,
+    rw function.iterate_succ',
+    exact lt_lsub_op_lt op (hm.trans_le h) hn },
+  { use m + 1,
+    rw function.iterate_succ',
+    exact lt_lsub_op_lt op hm (hn.trans_le h) },
+end
+
+theorem unbounded_principal (op : ordinal.{u} → ordinal.{u} → ordinal.{u}) :
+  set.unbounded (<) (principal op) :=
+λ o, ⟨_, principal_nfp_lsub_op_lt op o, (le_nfp_self _ o).not_lt⟩
 
 end ordinal

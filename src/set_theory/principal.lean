@@ -49,13 +49,12 @@ begin
   { rwa [lt_one_iff_zero, ha, hb] at * }
 end
 
-theorem iterate_lt_of_principal {op : ordinal → ordinal → ordinal}
-  {a o : ordinal} (hao : a < o) (ho : principal op o) (n : ℕ) : (op a)^[n] a < o :=
+theorem principal.iterate_lt {op : ordinal → ordinal → ordinal} {a o : ordinal} (hao : a < o)
+  (ho : principal op o) (n : ℕ) : (op a)^[n] a < o :=
 begin
   induction n with n hn,
   { rwa function.iterate_zero },
-  { have := ho hao hn,
-    rwa function.iterate_succ' }
+  { rw function.iterate_succ', exact ho hao hn }
 end
 
 theorem op_eq_self_of_principal {op : ordinal → ordinal → ordinal} {a o : ordinal.{u}}
@@ -68,7 +67,7 @@ end
 
 theorem nfp_le_of_principal {op : ordinal → ordinal → ordinal}
   {a o : ordinal} (hao : a < o) (ho : principal op o) : nfp (op a) a ≤ o :=
-nfp_le.2 $ λ n, le_of_lt (iterate_lt_of_principal hao ho n)
+nfp_le.2 $ λ n, le_of_lt (ho.iterate_lt hao n)
 
 /-! #### Additive principal ordinals -/
 

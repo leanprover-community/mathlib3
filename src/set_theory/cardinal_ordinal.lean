@@ -4,9 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Floris van Doorn
 -/
 
+import logic.small
+import order.bounded
 import set_theory.principal
 import tactic.linarith
-import logic.small
 
 /-!
 # Cardinals and ordinals
@@ -234,6 +235,47 @@ by rw [← aleph_zero, ← aleph_succ, ordinal.succ_zero]
 
 lemma countable_iff_lt_aleph_one {α : Type*} (s : set α) : countable s ↔ #s < aleph 1 :=
 by rw [← succ_omega, lt_succ, mk_set_le_omega]
+
+/-- Ordinals that are cardinals are unbounded. -/
+theorem ord_card_unbounded : unbounded (<) {b : ordinal | b.card.ord = b} :=
+unbounded_lt_iff.2 $ λ a, ⟨_, ⟨(by { dsimp, rw card_ord }), (lt_ord_succ_card a).le⟩⟩
+
+theorem eq_aleph'_of_eq_card_ord {o : ordinal} (ho : o.card.ord = o) : ∃ a, (aleph' a).ord = o :=
+⟨cardinal.aleph_idx.rel_iso o.card, by simpa using ho⟩
+
+/-- `ord ∘ aleph'` enumerates the ordinals that are cardinals. -/
+theorem ord_aleph'_eq_enum_card : ord ∘ aleph' = enum_ord _ ord_card_unbounded :=
+begin
+  rw [←eq_enum_ord, range_eq_iff],
+  exact ⟨aleph'_is_normal.strict_mono, ⟨(λ a, (by { dsimp, rw card_ord })),
+    λ b hb, eq_aleph'_of_eq_card_ord hb⟩⟩
+end
+
+/-- Infinite ordinals that are cardinals are unbounded. -/
+theorem ord_card_unbounded' : unbounded (<) {b : ordinal | b.card.ord = b ∧ ordinal.omega ≤ b} :=
+(unbounded_lt_inter_le ordinal.omega).2 ord_card_unbounded
+
+theorem eq_aleph_of_eq_card_ord {o : ordinal} (ho : o.card.ord = o) (ho' : ordinal.omega ≤ o) :
+  ∃ a, (aleph a).ord = o :=
+begin
+  cases eq_aleph'_of_eq_card_ord ho with a ha,
+  use a - ordinal.omega,
+  unfold aleph,
+  rwa ordinal.add_sub_cancel_of_le,
+  rwa [←omega_le_aleph', ←ord_le_ord, ha, ord_omega]
+end
+
+/-- `ord ∘ aleph` enumerates the infinite ordinals that are cardinals. -/
+theorem ord_aleph_eq_enum_card : ord ∘ aleph = enum_ord _ ord_card_unbounded' :=
+begin
+  rw ←eq_enum_ord,
+  use aleph_is_normal.strict_mono,
+  rw range_eq_iff,
+  refine ⟨(λ a, ⟨_, _⟩), λ b hb, eq_aleph_of_eq_card_ord hb.1 hb.2⟩,
+  { rw card_ord },
+  { rw [←ord_omega, ord_le_ord],
+    exact omega_le_aleph _ }
+end
 
 /-! ### Properties of `mul` -/
 

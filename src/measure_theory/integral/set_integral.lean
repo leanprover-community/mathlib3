@@ -740,8 +740,6 @@ variables {μ : measure α} {𝕜 : Type*} [is_R_or_C 𝕜] [normed_space 𝕜 E
   [normed_group F] [normed_space 𝕜 F]
   {p : ennreal}
 
-local attribute [instance] fact_one_le_one_ennreal
-
 namespace continuous_linear_map
 
 variables [measurable_space F] [borel_space F]

@@ -349,6 +349,16 @@ lemma bot_covers_top : (⊥ : α) ⋖ ⊤ := is_atom_top.bot_covers
 end is_simple_order
 
 namespace is_simple_order
+section preorder
+variables [preorder α] [bounded_order α] [is_simple_order α] {a b : α} (h : a < b)
+
+lemma eq_bot_of_lt : a = ⊥ := (is_simple_order.eq_bot_or_eq_top _).resolve_right h.ne_top
+lemma eq_top_of_lt : b = ⊤ := (is_simple_order.eq_bot_or_eq_top _).resolve_left h.ne_bot
+
+alias eq_bot_of_lt ← has_lt.lt.eq_bot
+alias eq_top_of_lt ← has_lt.lt.eq_top
+
+end preorder
 
 section bounded_order
 

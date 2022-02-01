@@ -182,10 +182,6 @@ protected lemma is_min.eq_of_ge (ha : is_min a) (h : b ≤ a) : a = b := h.antis
 protected lemma is_max.eq_of_le (ha : is_max a) (h : a ≤ b) : a = b := h.antisymm $ ha h
 protected lemma is_max.eq_of_ge (ha : is_max a) (h : a ≤ b) : b = a := h.antisymm' $ ha h
 
---TODO: Delete in favor of the above
-lemma is_bot.unique (ha : is_bot a) (hb : b ≤ a) : a = b := (ha b).antisymm hb
-lemma is_top.unique (ha : is_top a) (hb : a ≤ b) : a = b := hb.antisymm (ha b)
-
 end partial_order
 
 section linear_order

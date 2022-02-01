@@ -884,6 +884,5 @@ begin
 end
 
 end special_functions
-
 end arithmetic_function
 end nat

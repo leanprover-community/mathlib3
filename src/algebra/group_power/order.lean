@@ -366,11 +366,17 @@ by rw [←abs_eq_abs, ←sq_eq_sq_iff_abs_eq_abs, one_pow]
 lemma sq_ne_one_iff (x : R) : x^2 ≠ 1 ↔ x ≠ 1 ∧ x ≠ -1 :=
 (not_iff_not.2 (sq_eq_one_iff _)).trans not_or_distrib
 
-@[simp] lemma sq_le_one_iff_abs_le (x : R) : x^2 ≤ 1 ↔ |x| ≤ 1 :=
+@[simp] lemma sq_le_one_iff_abs_le_one (x : R) : x^2 ≤ 1 ↔ |x| ≤ 1 :=
 have t : x^2 ≤ 1^2 ↔ |x| ≤ |1| := ⟨abs_le_abs_of_sq_le_sq, sq_le_sq⟩, by simpa using t
 
-@[simp] lemma sq_lt_one_iff_abs_lt (x : R) : x^2 < 1 ↔ |x| < 1 :=
+@[simp] lemma sq_lt_one_iff_abs_lt_one (x : R) : x^2 < 1 ↔ |x| < 1 :=
 have t : x^2 < 1^2 ↔ |x| < |1| := ⟨abs_lt_abs_of_sq_lt_sq, sq_lt_sq⟩, by simpa using t
+
+@[simp] lemma one_le_sq_iff_one_le_abs (x : R) : 1 ≤ x^2 ↔ 1 ≤ |x| :=
+have t : 1^2 ≤ x^2 ↔ |1| ≤ |x| := ⟨abs_le_abs_of_sq_le_sq, sq_le_sq⟩, by simpa using t
+
+@[simp] lemma one_lt_sq_iff_one_lt_abs (x : R) : 1 < x^2 ↔ 1 < |x| :=
+have t : 1^2 < x^2 ↔ |1| < |x| := ⟨abs_lt_abs_of_sq_lt_sq, sq_lt_sq⟩, by simpa using t
 
 end linear_ordered_ring
 

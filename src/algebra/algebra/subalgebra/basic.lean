@@ -166,49 +166,6 @@ to_subring_injective.eq_iff
 
 instance : inhabited S := ⟨(0 : S.to_subsemiring)⟩
 
-section
-
-/-! `subalgebra`s inherit structure from their `subsemiring` / `semiring` coercions. -/
-
-instance to_semiring {R A}
-  [comm_semiring R] [semiring A] [algebra R A] (S : subalgebra R A) :
-  semiring S := S.to_subsemiring.to_semiring
-instance to_comm_semiring {R A}
-  [comm_semiring R] [comm_semiring A] [algebra R A] (S : subalgebra R A) :
-  comm_semiring S := S.to_subsemiring.to_comm_semiring
-instance to_ring {R A}
-  [comm_ring R] [ring A] [algebra R A] (S : subalgebra R A) :
-  ring S := S.to_subring.to_ring
-instance to_comm_ring {R A}
-  [comm_ring R] [comm_ring A] [algebra R A] (S : subalgebra R A) :
-  comm_ring S := S.to_subring.to_comm_ring
-
-instance to_ordered_semiring {R A}
-  [comm_semiring R] [ordered_semiring A] [algebra R A] (S : subalgebra R A) :
-  ordered_semiring S := S.to_subsemiring.to_ordered_semiring
-instance to_ordered_comm_semiring {R A}
-  [comm_semiring R] [ordered_comm_semiring A] [algebra R A] (S : subalgebra R A) :
-  ordered_comm_semiring S := S.to_subsemiring.to_ordered_comm_semiring
-instance to_ordered_ring {R A}
-  [comm_ring R] [ordered_ring A] [algebra R A] (S : subalgebra R A) :
-  ordered_ring S := S.to_subring.to_ordered_ring
-instance to_ordered_comm_ring {R A}
-  [comm_ring R] [ordered_comm_ring A] [algebra R A] (S : subalgebra R A) :
-  ordered_comm_ring S := S.to_subring.to_ordered_comm_ring
-
-instance to_linear_ordered_semiring {R A}
-  [comm_semiring R] [linear_ordered_semiring A] [algebra R A] (S : subalgebra R A) :
-  linear_ordered_semiring S := S.to_subsemiring.to_linear_ordered_semiring
-/-! There is no `linear_ordered_comm_semiring`. -/
-instance to_linear_ordered_ring {R A}
-  [comm_ring R] [linear_ordered_ring A] [algebra R A] (S : subalgebra R A) :
-  linear_ordered_ring S := S.to_subring.to_linear_ordered_ring
-instance to_linear_ordered_comm_ring {R A}
-  [comm_ring R] [linear_ordered_comm_ring A] [algebra R A] (S : subalgebra R A) :
-  linear_ordered_comm_ring S := S.to_subring.to_linear_ordered_comm_ring
-
-end
-
 /-- Convert a `subalgebra` to `submodule` -/
 def to_submodule : submodule R A :=
 { carrier := S,
@@ -358,14 +315,6 @@ iff.rfl
 @[simp, norm_cast] lemma coe_comap (S : subalgebra R B) (f : A →ₐ[R] B) :
   (S.comap' f : set A) = f ⁻¹' (S : set B) :=
 rfl
-
-instance no_zero_divisors {R A : Type*} [comm_semiring R] [semiring A] [no_zero_divisors A]
-  [algebra R A] (S : subalgebra R A) : no_zero_divisors S :=
-S.to_subsemiring.no_zero_divisors
-
-instance is_domain {R A : Type*} [comm_ring R] [ring A] [is_domain A] [algebra R A]
-  (S : subalgebra R A) : is_domain S :=
-subring.is_domain S.to_subring
 
 end subalgebra
 
@@ -653,7 +602,7 @@ set_like.coe_injective $
 eq_top_iff.2 $ λ x, mem_top
 
 /-- `alg_hom` to `⊤ : subalgebra R A`. -/
-def to_top : A →ₐ[R] (⊤ : subalgebra R A) :=
+@[simps] def to_top : A →ₐ[R] (⊤ : subalgebra R A) :=
 (alg_hom.id R A).cod_restrict ⊤ (λ _, mem_top)
 
 theorem surjective_algebra_map_iff :
@@ -680,6 +629,14 @@ noncomputable def bot_equiv (F R : Type*) [field F] [semiring R] [nontrivial R] 
   (⊥ : subalgebra F R) ≃ₐ[F] F :=
 bot_equiv_of_injective (ring_hom.injective _)
 
+<<<<<<< HEAD:src/algebra/algebra/subalgebra/basic.lean
+=======
+/-- The top subalgebra is isomorphic to the field. -/
+@[simps apply symm_apply {rhs_md := semireducible}]
+def top_equiv : (⊤ : subalgebra R A) ≃ₐ[R] A :=
+alg_equiv.of_alg_hom (subalgebra.val ⊤) to_top rfl $ alg_hom.ext $ λ x, subtype.ext rfl
+
+>>>>>>> aeb63ac259 (refactor(*): remove duplicate subobject instances):src/algebra/algebra/subalgebra.lean
 end algebra
 
 namespace subalgebra

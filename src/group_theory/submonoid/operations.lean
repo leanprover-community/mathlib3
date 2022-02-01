@@ -495,83 +495,17 @@ end submonoid_class
 
 namespace submonoid
 
-/-- A submonoid of a monoid inherits a multiplication. -/
-@[to_additive "An `add_submonoid` of an `add_monoid` inherits an addition."]
-instance has_mul : has_mul S := ⟨λ a b, ⟨a.1 * b.1, S.mul_mem a.2 b.2⟩⟩
+/-- The natural monoid hom from a submonoid of monoid `M` to `M`.
 
-/-- A submonoid of a monoid inherits a 1. -/
-@[to_additive "An `add_submonoid` of an `add_monoid` inherits a zero."]
-instance has_one : has_one S := ⟨⟨_, S.one_mem⟩⟩
-
-@[simp, norm_cast, to_additive] lemma coe_mul (x y : S) : (↑(x * y) : M) = ↑x * ↑y := rfl
-@[simp, norm_cast, to_additive] lemma coe_one : ((1 : S) : M) = 1 := rfl
-
-@[simp, to_additive] lemma mk_mul_mk (x y : M) (hx : x ∈ S) (hy : y ∈ S) :
-  (⟨x, hx⟩ : S) * ⟨y, hy⟩ = ⟨x * y, S.mul_mem hx hy⟩ := rfl
-
-@[to_additive] lemma mul_def (x y : S) : x * y = ⟨x * y, S.mul_mem x.2 y.2⟩ := rfl
-@[to_additive] lemma one_def : (1 : S) = ⟨1, S.one_mem⟩ := rfl
-
-/-- A submonoid of a unital magma inherits a unital magma structure. -/
-@[to_additive "An `add_submonoid` of an unital additive magma inherits an unital additive magma
-structure."]
-instance to_mul_one_class {M : Type*} [mul_one_class M] (S : submonoid M) : mul_one_class S :=
-subtype.coe_injective.mul_one_class coe rfl (λ _ _, rfl)
-
-@[to_additive] protected lemma pow_mem {M : Type*} [monoid M] (S : submonoid M) {x : M}
-  (hx : x ∈ S) (n : ℕ) : x ^ n ∈ S :=
-pow_mem hx n
-
-@[simp, norm_cast, to_additive] theorem coe_pow  {M : Type*} [monoid M] {S : submonoid M}
-  (x : S) (n : ℕ) : ↑(x ^ n) = (x ^ n : M) :=
-rfl
-
-/-- A submonoid of a monoid inherits a monoid structure. -/
-@[to_additive "An `add_submonoid` of an `add_monoid` inherits an `add_monoid`
-structure."]
-instance to_monoid {M : Type*} [monoid M] (S : submonoid M) : monoid S :=
-subtype.coe_injective.monoid coe rfl (λ _ _, rfl) (λ _ _, rfl)
-
-/-- A submonoid of a `comm_monoid` is a `comm_monoid`. -/
-@[to_additive "An `add_submonoid` of an `add_comm_monoid` is
-an `add_comm_monoid`."]
-instance to_comm_monoid {M} [comm_monoid M] (S : submonoid M) : comm_monoid S :=
-subtype.coe_injective.comm_monoid coe rfl (λ _ _, rfl) (λ _ _, rfl)
-
-/-- A submonoid of an `ordered_comm_monoid` is an `ordered_comm_monoid`. -/
-@[to_additive "An `add_submonoid` of an `ordered_add_comm_monoid` is
-an `ordered_add_comm_monoid`."]
-instance to_ordered_comm_monoid {M} [ordered_comm_monoid M] (S : submonoid M) :
-  ordered_comm_monoid S :=
-subtype.coe_injective.ordered_comm_monoid coe rfl (λ _ _, rfl) (λ _ _, rfl)
-
-/-- A submonoid of a `linear_ordered_comm_monoid` is a `linear_ordered_comm_monoid`. -/
-@[to_additive "An `add_submonoid` of a `linear_ordered_add_comm_monoid` is
-a `linear_ordered_add_comm_monoid`."]
-instance to_linear_ordered_comm_monoid {M} [linear_ordered_comm_monoid M] (S : submonoid M) :
-  linear_ordered_comm_monoid S :=
-subtype.coe_injective.linear_ordered_comm_monoid coe rfl (λ _ _, rfl) (λ _ _, rfl)
-
-/-- A submonoid of an `ordered_cancel_comm_monoid` is an `ordered_cancel_comm_monoid`. -/
-@[to_additive "An `add_submonoid` of an `ordered_cancel_add_comm_monoid` is
-an `ordered_cancel_add_comm_monoid`."]
-instance to_ordered_cancel_comm_monoid {M} [ordered_cancel_comm_monoid M] (S : submonoid M) :
-  ordered_cancel_comm_monoid S :=
-subtype.coe_injective.ordered_cancel_comm_monoid coe rfl (λ _ _, rfl) (λ _ _, rfl)
-
-/-- A submonoid of a `linear_ordered_cancel_comm_monoid` is a `linear_ordered_cancel_comm_monoid`.
+See also `submonoid_class.subtype`, which is more general at the expense of no dot notation.
 -/
-@[to_additive "An `add_submonoid` of a `linear_ordered_cancel_add_comm_monoid` is
-a `linear_ordered_cancel_add_comm_monoid`."]
-instance to_linear_ordered_cancel_comm_monoid {M} [linear_ordered_cancel_comm_monoid M]
-  (S : submonoid M) : linear_ordered_cancel_comm_monoid S :=
-subtype.coe_injective.linear_ordered_cancel_comm_monoid coe rfl (λ _ _, rfl) (λ _ _, rfl)
+@[to_additive "The natural monoid hom from an `add_submonoid` of `add_monoid` `M` to `M`.
 
-/-- The natural monoid hom from a submonoid of monoid `M` to `M`. -/
-@[to_additive "The natural monoid hom from an `add_submonoid` of `add_monoid` `M` to `M`."]
-def subtype : S →* M := ⟨coe, rfl, λ _ _, rfl⟩
+See also `add_submonoid_class.subtype`, which is more general at the expense of no dot notation.
+"]
+abbreviation subtype : S →* M := submonoid_class.subtype S
 
-@[simp, to_additive] theorem coe_subtype : ⇑S.subtype = coe := rfl
+@[simp, to_additive] theorem coe_subtype : (S.subtype : S → M) = coe := rfl
 
 /-- The top submonoid is isomorphic to the monoid. -/
 @[to_additive "The top additive submonoid is isomorphic to the additive monoid.", simps]

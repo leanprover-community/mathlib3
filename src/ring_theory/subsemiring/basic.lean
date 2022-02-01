@@ -258,70 +258,9 @@ protected lemma sum_mem (s : subsemiring R)
   {ι : Type*} {t : finset ι} {f : ι → R} (h : ∀c ∈ t, f c ∈ s) :
   ∑ i in t, f i ∈ s :=
 sum_mem h
-/-- A subsemiring of a `non_assoc_semiring` inherits a `non_assoc_semiring` structure -/
-instance to_non_assoc_semiring : non_assoc_semiring s :=
-{ mul_zero := λ x, subtype.eq $ mul_zero x,
-  zero_mul := λ x, subtype.eq $ zero_mul x,
-  right_distrib := λ x y z, subtype.eq $ right_distrib x y z,
-  left_distrib := λ x y z, subtype.eq $ left_distrib x y z,
-  .. s.to_submonoid.to_mul_one_class, .. s.to_add_submonoid.to_add_comm_monoid }
-
-@[simp, norm_cast] lemma coe_one : ((1 : s) : R) = (1 : R) := rfl
-@[simp, norm_cast] lemma coe_zero : ((0 : s) : R) = (0 : R) := rfl
-@[simp, norm_cast] lemma coe_add (x y : s) : ((x + y : s) : R) = (x + y : R) := rfl
-@[simp, norm_cast] lemma coe_mul (x y : s) : ((x * y : s) : R) = (x * y : R) := rfl
-
-instance nontrivial [nontrivial R] : nontrivial s :=
-nontrivial_of_ne 0 1 $ λ H, zero_ne_one (congr_arg subtype.val H)
 
 protected lemma pow_mem {R : Type*} [semiring R] (s : subsemiring R) {x : R} (hx : x ∈ s) (n : ℕ) :
   x^n ∈ s := pow_mem hx n
-
-instance no_zero_divisors [no_zero_divisors R] : no_zero_divisors s :=
-{ eq_zero_or_eq_zero_of_mul_eq_zero := λ x y h,
-  or.cases_on (eq_zero_or_eq_zero_of_mul_eq_zero $ subtype.ext_iff.mp h)
-    (λ h, or.inl $ subtype.eq h) (λ h, or.inr $ subtype.eq h) }
-
-/-- A subsemiring of a `semiring` is a `semiring`. -/
-instance to_semiring {R} [semiring R] (s : subsemiring R) : semiring s :=
-{ ..s.to_non_assoc_semiring, ..s.to_submonoid.to_monoid }
-
-@[simp, norm_cast] lemma coe_pow {R} [semiring R] (s : subsemiring R) (x : s) (n : ℕ) :
-  ((x^n : s) : R) = (x^n : R) :=
-begin
-  induction n with n ih,
-  { simp, },
-  { simp [pow_succ, ih], },
-end
-
-/-- A subsemiring of a `comm_semiring` is a `comm_semiring`. -/
-instance to_comm_semiring {R} [comm_semiring R] (s : subsemiring R) : comm_semiring s :=
-{ mul_comm := λ _ _, subtype.eq $ mul_comm _ _, ..s.to_semiring}
-
-/-- The natural ring hom from a subsemiring of semiring `R` to `R`. -/
-def subtype : s →+* R :=
-{ to_fun := coe, .. s.to_submonoid.subtype, .. s.to_add_submonoid.subtype }
-
-@[simp] theorem coe_subtype : ⇑s.subtype = coe := rfl
-
-/-- A subsemiring of an `ordered_semiring` is an `ordered_semiring`. -/
-instance to_ordered_semiring {R} [ordered_semiring R] (s : subsemiring R) : ordered_semiring s :=
-subtype.coe_injective.ordered_semiring coe
-  rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
-
-/-- A subsemiring of an `ordered_comm_semiring` is an `ordered_comm_semiring`. -/
-instance to_ordered_comm_semiring {R} [ordered_comm_semiring R] (s : subsemiring R) :
-  ordered_comm_semiring s :=
-subtype.coe_injective.ordered_comm_semiring coe
-  rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
-
-/-- A subsemiring of a `linear_ordered_semiring` is a `linear_ordered_semiring`. -/
-instance to_linear_ordered_semiring {R} [linear_ordered_semiring R] (s : subsemiring R) :
-  linear_ordered_semiring s :=
-subtype.coe_injective.linear_ordered_semiring coe
-  rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
-
-/-! Note: currently, there is no `linear_ordered_comm_semiring`. -/
 
 protected lemma nsmul_mem {x : R} (hx : x ∈ s) (n : ℕ) :
   n • x ∈ s := nsmul_mem hx n
@@ -423,6 +362,14 @@ end ring_hom
 
 namespace subsemiring
 
+/-- The natural ring hom from a subsemiring of `R` to `R`.
+
+See also `subsemiring_class.subtype`, which is more general at the expense of no dot notation.
+-/
+abbreviation subtype (s : subsemiring R) : s →+* R := subsemiring_class.subtype s
+
+@[simp] theorem coe_subtype (s : subsemiring R) : (s.subtype : s → R) = coe := rfl
+
 instance : has_bot (subsemiring R) := ⟨(nat.cast_ring_hom R).srange⟩
 
 instance : inhabited (subsemiring R) := ⟨⊥⟩
@@ -503,8 +450,8 @@ set_like.coe_injective (set.center_eq_univ R)
 
 /-- The center is commutative. -/
 instance {R} [semiring R] : comm_semiring (center R) :=
-{ ..submonoid.center.comm_monoid,
-  ..(center R).to_semiring}
+{ .. submonoid.center.comm_monoid,
+  .. subsemiring_class.to_semiring (center R)}
 
 end center
 

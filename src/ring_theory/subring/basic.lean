@@ -341,77 +341,22 @@ protected lemma sum_mem {R : Type*} [ring R] (s : subring R)
   ∑ i in t, f i ∈ s :=
 sum_mem h
 
-/-- A subring of a ring inherits a ring structure -/
-instance to_ring : ring s :=
-{ right_distrib := λ x y z, subtype.eq $ right_distrib x y z,
-  left_distrib := λ x y z, subtype.eq $ left_distrib x y z,
-  .. s.to_submonoid.to_monoid, .. s.to_add_subgroup.to_add_comm_group }
+protected lemma pow_mem {x : R} (hx : x ∈ s) (n : ℕ) : x^n ∈ s := pow_mem hx n
 
 protected lemma zsmul_mem {x : R} (hx : x ∈ s) (n : ℤ) : n • x ∈ s := zsmul_mem hx n
 
-protected lemma pow_mem {x : R} (hx : x ∈ s) (n : ℕ) : x^n ∈ s := pow_mem hx n
-
-@[simp, norm_cast] lemma coe_add (x y : s) : (↑(x + y) : R) = ↑x + ↑y := rfl
-@[simp, norm_cast] lemma coe_neg (x : s) : (↑(-x) : R) = -↑x := rfl
-@[simp, norm_cast] lemma coe_mul (x y : s) : (↑(x * y) : R) = ↑x * ↑y := rfl
-@[simp, norm_cast] lemma coe_zero : ((0 : s) : R) = 0 := rfl
-@[simp, norm_cast] lemma coe_one : ((1 : s) : R) = 1 := rfl
-@[simp, norm_cast] lemma coe_pow (x : s) (n : ℕ) : (↑(x ^ n) : R) = x ^ n :=
-submonoid_class.coe_pow x n
-
 -- TODO: can be generalized to `add_submonoid_class`
 @[simp] lemma coe_eq_zero_iff {x : s} : (x : R) = 0 ↔ x = 0 :=
-⟨λ h, subtype.ext (trans h s.coe_zero.symm),
- λ h, h.symm ▸ s.coe_zero⟩
+⟨λ h, subtype.ext (trans h (add_submonoid_class.coe_zero s).symm),
+ λ h, h.symm ▸ add_submonoid_class.coe_zero s⟩
 
-/-- A subring of a `comm_ring` is a `comm_ring`. -/
-instance to_comm_ring {R} [comm_ring R] (s : subring R) : comm_ring s :=
-{ mul_comm := λ _ _, subtype.eq $ mul_comm _ _, ..subring.to_ring s}
+/-- The natural ring hom from a subring of ring `R` to `R`.
 
-/-- A subring of a non-trivial ring is non-trivial. -/
-instance {R} [ring R] [nontrivial R] (s : subring R) : nontrivial s :=
-s.to_subsemiring.nontrivial
-
-/-- A subring of a ring with no zero divisors has no zero divisors. -/
-instance {R} [ring R] [no_zero_divisors R] (s : subring R) : no_zero_divisors s :=
-s.to_subsemiring.no_zero_divisors
-
-/-- A subring of a domain is a domain. -/
-instance {R} [ring R] [is_domain R] (s : subring R) : is_domain s :=
-{ .. s.nontrivial, .. s.no_zero_divisors, .. s.to_ring }
-
-/-- A subring of an `ordered_ring` is an `ordered_ring`. -/
-instance to_ordered_ring {R} [ordered_ring R] (s : subring R) : ordered_ring s :=
-subtype.coe_injective.ordered_ring coe
-  rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
-
-/-- A subring of an `ordered_comm_ring` is an `ordered_comm_ring`. -/
-instance to_ordered_comm_ring {R} [ordered_comm_ring R] (s : subring R) : ordered_comm_ring s :=
-subtype.coe_injective.ordered_comm_ring coe
-  rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
-
-/-- A subring of a `linear_ordered_ring` is a `linear_ordered_ring`. -/
-instance to_linear_ordered_ring {R} [linear_ordered_ring R] (s : subring R) :
-  linear_ordered_ring s :=
-subtype.coe_injective.linear_ordered_ring coe
-  rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
-
-/-- A subring of a `linear_ordered_comm_ring` is a `linear_ordered_comm_ring`. -/
-instance to_linear_ordered_comm_ring {R} [linear_ordered_comm_ring R] (s : subring R) :
-  linear_ordered_comm_ring s :=
-subtype.coe_injective.linear_ordered_comm_ring coe
-  rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
-
-/-- The natural ring hom from a subring of ring `R` to `R`. -/
-def subtype (s : subring R) : s →+* R :=
-{ to_fun := coe,
- .. s.to_submonoid.subtype, .. s.to_add_subgroup.subtype }
+See also `subring_class.subtype`, which is more general at the expense of no dot notation.
+-/
+abbreviation subtype (s : subring R) : s →+* R := subring_class.subtype s
 
 @[simp] theorem coe_subtype : ⇑s.subtype = coe := rfl
-@[simp, norm_cast] lemma coe_nat_cast : ∀ (n : ℕ), ((n : s) : R) = n :=
-map_nat_cast s.subtype
-@[simp, norm_cast] lemma coe_int_cast (n : ℤ) : ((n : s) : R) = n :=
-s.subtype.map_int_cast n
 
 /-! ## Partial order -/
 
@@ -620,7 +565,7 @@ set_like.coe_injective (set.center_eq_univ R)
 /-- The center is commutative. -/
 instance : comm_ring (center R) :=
 { ..subsemiring.center.comm_semiring,
-  ..(center R).to_ring}
+  ..subring_class.to_ring (center R) }
 
 end
 
@@ -634,7 +579,7 @@ instance : field (center K) :=
   div := λ a b, ⟨a / b, set.div_mem_center₀ a.prop b.prop⟩,
   div_eq_mul_inv := λ a b, subtype.ext $ div_eq_mul_inv _ _,
   inv_zero := subtype.ext inv_zero,
-  ..(center K).nontrivial,
+  ..show nontrivial (center K), by apply_instance,
   ..center.comm_ring }
 
 @[simp]

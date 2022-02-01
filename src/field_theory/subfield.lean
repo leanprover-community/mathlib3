@@ -220,40 +220,15 @@ sum_mem h
 protected lemma pow_mem {x : K} (hx : x ∈ s) (n : ℕ) : x^n ∈ s := pow_mem hx n
 protected lemma zsmul_mem {x : K} (hx : x ∈ s) (n : ℤ) : n • x ∈ s := zsmul_mem hx n
 protected lemma coe_int_mem (n : ℤ) : (n : K) ∈ s := coe_int_mem s n
-
-lemma zpow_mem {x : K} (hx : x ∈ s) (n : ℤ) : x^n ∈ s :=
-begin
-  cases n,
-  { simpa using s.pow_mem hx n },
-  { simpa [pow_succ] using s.inv_mem (s.mul_mem hx (s.pow_mem hx n)) },
-end
-
-instance : ring s := s.to_subring.to_ring
-instance : has_div s := ⟨λ x y, ⟨x / y, s.div_mem x.2 y.2⟩⟩
-instance : has_inv s := ⟨λ x, ⟨x⁻¹, s.inv_mem x.2⟩⟩
-instance : has_pow s ℤ := ⟨λ x z, ⟨x ^ z, s.zpow_mem x.2 z⟩⟩
-
-/-- A subfield inherits a field structure -/
-instance to_field : field s :=
-subtype.coe_injective.field coe
-  rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
-  (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
-
-/-- A subfield of a `linear_ordered_field` is a `linear_ordered_field`. -/
-instance to_linear_ordered_field {K} [linear_ordered_field K] (s : subfield K) :
-  linear_ordered_field s :=
-subtype.coe_injective.linear_ordered_field coe
-  rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
-  (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
-
-@[simp, norm_cast] lemma coe_add (x y : s) : (↑(x + y) : K) = ↑x + ↑y := rfl
-@[simp, norm_cast] lemma coe_sub (x y : s) : (↑(x - y) : K) = ↑x - ↑y := rfl
-@[simp, norm_cast] lemma coe_neg (x : s) : (↑(-x) : K) = -↑x := rfl
-@[simp, norm_cast] lemma coe_mul (x y : s) : (↑(x * y) : K) = ↑x * ↑y := rfl
-@[simp, norm_cast] lemma coe_div (x y : s) : (↑(x / y) : K) = ↑x / ↑y := rfl
-@[simp, norm_cast] lemma coe_inv (x : s) : (↑(x⁻¹) : K) = (↑x)⁻¹ := rfl
-@[simp, norm_cast] lemma coe_zero : ((0 : s) : K) = 0 := rfl
-@[simp, norm_cast] lemma coe_one : ((1 : s) : K) = 1 := rfl
+protected lemma zpow_mem {x : K} (hx : x ∈ s) (n : ℤ) : x^n ∈ s := zpow_mem hx n
+protected lemma coe_add (x y : s) : (↑(x + y) : K) = ↑x + ↑y := rfl
+protected lemma coe_sub (x y : s) : (↑(x - y) : K) = ↑x - ↑y := rfl
+protected lemma coe_neg (x : s) : (↑(-x) : K) = -↑x := rfl
+protected lemma coe_mul (x y : s) : (↑(x * y) : K) = ↑x * ↑y := rfl
+protected lemma coe_div (x y : s) : (↑(x / y) : K) = ↑x / ↑y := rfl
+protected lemma coe_inv (x : s) : (↑(x⁻¹) : K) = (↑x)⁻¹ := rfl
+protected lemma coe_zero : ((0 : s) : K) = 0 := rfl
+protected lemma coe_one : ((1 : s) : K) = 1 := rfl
 
 end derived_from_subfield_class
 

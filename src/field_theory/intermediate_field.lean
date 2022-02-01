@@ -203,28 +203,6 @@ def subfield.to_intermediate_field (S : subfield L)
 
 namespace intermediate_field
 
-/-- An intermediate field inherits a field structure -/
-instance to_field : field S :=
-S.to_subfield.to_field
-
-@[simp, norm_cast]
-lemma coe_sum {ι : Type*} [fintype ι] (f : ι → S) : (↑∑ i, f i : L) = ∑ i, (f i : L) :=
-begin
-  classical,
-  induction finset.univ using finset.induction_on with i s hi H,
-  { simp },
-  { rw [finset.sum_insert hi, add_mem_class.coe_add, H, finset.sum_insert hi] }
-end
-
-@[simp, norm_cast]
-lemma coe_prod {ι : Type*} [fintype ι] (f : ι → S) : (↑∏ i, f i : L) = ∏ i, (f i : L) :=
-begin
-  classical,
-  induction finset.univ using finset.induction_on with i s hi H,
-  { simp },
-  { rw [finset.prod_insert hi, mul_mem_class.coe_mul, H, finset.prod_insert hi] }
-end
-
 /-! `intermediate_field`s inherit structure from their `subalgebra` coercions. -/
 
 instance module' {R} [semiring R] [has_scalar R K] [module R L] [is_scalar_tower R K L] :

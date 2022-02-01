@@ -158,8 +158,6 @@ sum_mem (λ i hi, smul_mem _ _ (hyp i hi))
   (g : G) : g • x ∈ p ↔ x ∈ p :=
 p.to_sub_mul_action.smul_mem_iff' g
 
-instance : has_add p := ⟨λx y, ⟨x.1 + y.1, add_mem x.2 y.2⟩⟩
-instance : has_zero p := ⟨⟨0, zero_mem _⟩⟩
 instance : inhabited p := ⟨0⟩
 instance [has_scalar S R] [has_scalar S M] [is_scalar_tower S R M] :
   has_scalar S p := ⟨λ c x, ⟨c • x.1, smul_of_tower_mem _ c x.2⟩⟩
@@ -180,22 +178,22 @@ protected lemma nonempty : (p : set M).nonempty := ⟨0, p.zero_mem⟩
 variables {p}
 @[simp, norm_cast] lemma coe_eq_zero {x : p} : (x : M) = 0 ↔ x = 0 :=
 (set_like.coe_eq_coe : (x : M) = (0 : p) ↔ x = 0)
-@[simp, norm_cast] lemma coe_add (x y : p) : (↑(x + y) : M) = ↑x + ↑y := rfl
-@[simp, norm_cast] lemma coe_zero : ((0 : p) : M) = 0 := rfl
+protected lemma coe_add (x y : p) : (↑(x + y) : M) = ↑x + ↑y := add_submonoid_class.coe_add _ _ _
+protected lemma coe_zero : ((0 : p) : M) = 0 := add_submonoid_class.coe_zero _
 @[norm_cast] lemma coe_smul (r : R) (x : p) : ((r • x : p) : M) = r • ↑x := rfl
 @[simp, norm_cast] lemma coe_smul_of_tower [has_scalar S R] [has_scalar S M] [is_scalar_tower S R M]
   (r : S) (x : p) : ((r • x : p) : M) = r • ↑x := rfl
 @[simp, norm_cast] lemma coe_mk (x : M) (hx : x ∈ p) : ((⟨x, hx⟩ : p) : M) = x := rfl
-@[simp] lemma coe_mem (x : p) : (x : M) ∈ p := x.2
+@[simp] lemma coe_mem (x : p) : (x : M) ∈ p := set_like.coe_mem _
 
 variables (p)
 
-instance : add_comm_monoid p :=
-{ add := (+), zero := 0, .. p.to_add_submonoid.to_add_comm_monoid }
-
 instance module' [semiring S] [has_scalar S R] [module S M] [is_scalar_tower S R M] : module S p :=
 by refine {smul := (•), ..p.to_sub_mul_action.mul_action', ..};
-   { intros, apply set_coe.ext, simp [smul_add, add_smul, mul_smul] }
+   { intros, apply set_coe.ext,
+     simp only [smul_add, add_smul, smul_zero, zero_smul, mul_smul, coe_smul_of_tower,
+                add_submonoid_class.coe_add, add_submonoid_class.coe_zero] }
+
 instance : module R p := p.module'
 
 instance no_zero_smul_divisors [no_zero_smul_divisors R M] : no_zero_smul_divisors R p :=
@@ -330,9 +328,6 @@ by rw [sub_eq_add_neg, p.add_mem_iff_left (p.neg_mem hy)]
 
 lemma sub_mem_iff_right (hx : x ∈ p) : (x - y) ∈ p ↔ y ∈ p :=
 by rw [sub_eq_add_neg, p.add_mem_iff_right hx, p.neg_mem_iff]
-
-instance : add_comm_group p :=
-{ add := (+), zero := 0, neg := has_neg.neg, ..p.to_add_subgroup.to_add_comm_group }
 
 end add_comm_group
 

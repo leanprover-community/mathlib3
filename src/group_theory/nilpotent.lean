@@ -602,10 +602,6 @@ lemma nilpotency_class_zero_iff_subsingleton [is_nilpotent G] :
   group.nilpotency_class G = 0 ↔ subsingleton G :=
 by simp [group.nilpotency_class, nat.find_eq_zero, subsingleton_iff_bot_eq_top]
 
-section classical
-
-open_locale classical
-
 /-- Quotienting the `center G` reduces the nilpotency class by 1 -/
 lemma nilpotency_class_quotient_center [hH : is_nilpotent G] :
   group.nilpotency_class (G ⧸ center G) = group.nilpotency_class G - 1 :=
@@ -639,8 +635,6 @@ begin
     apply (false_of_nontrivial_of_subsingleton G), },
   { simp }
 end
-
-end classical
 
 /-- A custom induction principle for nilpotent groups. The base case is a trivial group
 (`subsingleton G`), and in the induction step, one can assume the hypothesis for

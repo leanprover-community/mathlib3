@@ -98,7 +98,7 @@ end
 end zero_ne_one
 
 section field
-variables (K : Type u) {A : Type v} [field K] [ring A] [algebra K A]
+variables {K : Type u} {A : Type v} [field K] [ring A] [algebra K A]
 
 /-- An element of an algebra over a field is algebraic if and only if it is integral.-/
 lemma is_algebraic_iff_is_integral {x : A} :
@@ -110,12 +110,10 @@ begin
   rw [← aeval_def, alg_hom.map_mul, hpx, zero_mul],
 end
 
-variables {K}
-
 protected lemma algebra.is_algebraic_iff_is_integral :
   algebra.is_algebraic K A ↔ algebra.is_integral K A :=
-⟨λ h x, (is_algebraic_iff_is_integral K).mp (h x),
-  λ h x, (is_algebraic_iff_is_integral K).mpr (h x)⟩
+⟨λ h x, is_algebraic_iff_is_integral.mp (h x),
+  λ h x, is_algebraic_iff_is_integral.mpr (h x)⟩
 
 end field
 

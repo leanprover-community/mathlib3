@@ -1896,7 +1896,7 @@ theorem omega_le {o : ordinal.{u}} : omega ≤ o ↔ ∀ n : ℕ, (n : ordinal) 
    let ⟨n, e⟩ := lt_omega.1 h in
    by rw [e, ← succ_le]; exact H (n+1)⟩
 
-theorem sup_nat_cast : sup nat.cast = omega :=
+@[simp] theorem sup_nat_cast : sup nat.cast = omega :=
 (sup_le.2 $ λ n, (nat_lt_omega n).le).antisymm $ omega_le.2 $ le_sup _
 
 theorem nat_lt_limit {o} (h : is_limit o) : ∀ n : ℕ, (n : ordinal) < o
@@ -2069,10 +2069,10 @@ theorem is_normal.apply_omega {f : ordinal.{u} → ordinal.{u}} (hf : is_normal 
   sup.{0 u} (f ∘ nat.cast) = f omega :=
 by rw [←sup_nat_cast, is_normal.sup.{0 u u} hf ⟨0⟩]
 
-theorem sup_add_nat (o : ordinal.{u}) : sup (λ n : ℕ, o + n) = o + omega :=
+@[simp] theorem sup_add_nat (o : ordinal.{u}) : sup (λ n : ℕ, o + n) = o + omega :=
 (add_is_normal o).apply_omega
 
-theorem sup_mul_nat (o : ordinal) : sup (λ n : ℕ, o * n) = o * omega :=
+@[simp] theorem sup_mul_nat (o : ordinal) : sup (λ n : ℕ, o * n) = o * omega :=
 begin
   rcases eq_zero_or_pos o with rfl | ho,
   { rw zero_mul, exact sup_eq_zero_iff.2 (λ n, zero_mul n) },
@@ -2215,7 +2215,7 @@ end
 
 /-! ### Fixed points of addition -/
 
-theorem nfp_add_zero (a) : nfp ((+) a) 0 = a * omega :=
+@[simp] theorem nfp_add_zero (a) : nfp ((+) a) 0 = a * omega :=
 begin
   unfold nfp,
   rw ←sup_mul_nat,
@@ -2250,7 +2250,7 @@ end
 theorem add_le_right_iff_mul_omega_le {a b : ordinal} : a + b ≤ b ↔ a * omega ≤ b :=
 by { rw ←add_eq_right_iff_mul_omega_le, exact (add_is_normal a).le_iff_eq }
 
-theorem deriv_add_eq_mul_omega_add (a b : ordinal.{u}) : deriv ((+) a) b = a * omega + b :=
+@[simp] theorem deriv_add_eq_mul_omega_add (a b : ordinal.{u}) : deriv ((+) a) b = a * omega + b :=
 begin
   refine b.limit_rec_on _ (λ o h, _) (λ o ho h, _),
   { rw [deriv_zero, add_zero],

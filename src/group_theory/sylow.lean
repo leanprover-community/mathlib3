@@ -586,7 +586,7 @@ begin
   set ps := (fintype.card G).factorization.support,
   set sylows := Σ (p : ps), sylow p G,
 
-  -- Dealing with the sigma values is annoying, so we hae this helper
+  -- Dealing with the sigma values is annoying, so we have this helper
   have sigma_helper :
     ∀ (P : Π {p₁ p₂ : ℕ}, sylow p₁ G → sylow p₂ G → Prop),
     (∀ (p₁ p₂ : ℕ) [fact p₁.prime] [fact p₂.prime] (hne : p₁ ≠ p₂)
@@ -598,8 +598,8 @@ begin
     change sylow p₂ G at P₂,
     haveI hp₁' := fact.mk (nat.prime_of_mem_factorization hp₁),
     haveI hp₂' := fact.mk (nat.prime_of_mem_factorization hp₂),
-    have hne' : p₁ ≠ p₂, unfreezingI {
-      rintros rfl, apply hne,
+    have hne' : p₁ ≠ p₂, unfreezingI
+    { rintros rfl, apply hne,
       haveI := subsingleton_of_normal _ (hn P₁),
       rw subsingleton.elim P₁ P₂, },
     exact h p₁ p₂ hne' P₁ P₂, },
@@ -620,15 +620,15 @@ begin
   apply (bijective_iff_injective_and_card _).mpr,
   split,
 
-  show injective _, {
-    apply subgroup_pi_hom.injective_of_independent,
+  show injective _,
+  { apply subgroup_pi_hom.injective_of_independent,
     apply independent_of_coprime_order hcomm,
     apply sigma_helper coprime,
     rintros p₁ p₂ _ _ hne P₁ P₂, resetI,
     apply is_p_group.coprime_card_of_ne p₁ p₂ hne _ _ P₁.is_p_group' P₂.is_p_group', },
 
-  show card (Π (P : sylows), P.2) = card G, {
-    calc card (Π (P : sylows), P.2)
+  show card (Π (P : sylows), P.2) = card G,
+  { calc card (Π (P : sylows), P.2)
         = ∏ (P : sylows), card ↥(P.snd) : fintype.card_pi
     ... = ∏ (P : sylows), P.1 ^ (card G).factorization P.1 :
     begin

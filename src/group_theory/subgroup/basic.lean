@@ -1334,7 +1334,7 @@ end
 variable (H)
 
 /-- In a group that satisifes the normalizer condition, every maximal subgroup is normal -/
-lemma normal_of_maximal_normalizer_condition
+lemma normalizer_condition.normal_of_coatom
   (hnc : normalizer_condition G) (hmax : is_coatom H) : H.normal :=
 normalizer_eq_top.mp (hmax.2 _ (hnc H (lt_top_iff_ne_top.mpr hmax.1)))
 

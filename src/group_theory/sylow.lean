@@ -598,13 +598,8 @@ begin
     convert (mul_equiv.Pi_singleton (λ (P : sylow p G), ((↑P : subgroup G) : Type u))),
   end,
 
-  -- Names for the propositions we instantiate the helper with
-  let commuting_elements := λ (p₁ p₂ : ℕ) (P₁ : sylow p₁ G) (P₂ : sylow p₂ G),
-    ∀ (x y : G), x ∈ (↑P₁ : subgroup G) → y ∈ (↑P₂ : subgroup G) → commute x y,
-  let coprime := λ (p₁ p₂ : ℕ) (P₁ : sylow p₁ G) (P₂ : sylow p₂ G),
-    nat.coprime (fintype.card (↑P₁ : subgroup G)) (fintype.card (↑P₂ : subgroup G)),
-
-  have hcomm : ∀ (p₁ p₂ : ps), p₁ ≠ p₂ → commuting_elements _ _ (P p₁) (P p₂),
+  have hcomm : ∀ (p₁ p₂ : ps), p₁ ≠ p₂ →
+    ∀ (x y : G), x ∈ (↑(P p₁) : subgroup G) → y ∈ (↑(P p₂) : subgroup G) → commute x y,
   { rintros ⟨p₁, hp₁⟩ ⟨p₂, hp₂⟩ hne,
     haveI hp₁' := fact.mk (nat.prime_of_mem_factorization hp₁),
     haveI hp₂' := fact.mk (nat.prime_of_mem_factorization hp₂),

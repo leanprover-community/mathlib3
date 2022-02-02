@@ -2476,11 +2476,8 @@ begin
   suffices : x * y * x⁻¹ * y⁻¹ = 1,
   { show x * y = y * x, by { rw [mul_assoc, mul_eq_one_iff_eq_inv] at this, simpa } },
   apply hdis, split,
-  { show x * y * x⁻¹ * y⁻¹ ∈ H₁,
-    repeat { rw mul_assoc },
-    apply H₁.mul_mem hx,
-    repeat { rw ← mul_assoc },
-    apply (hH₁.conj_mem _ (H₁.inv_mem hx)), },
+  { suffices : x * (y * x⁻¹ * y⁻¹) ∈ H₁, by simpa [mul_assoc],
+    exact H₁.mul_mem hx (hH₁.conj_mem _ (H₁.inv_mem hx) _) },
   { show x * y * x⁻¹ * y⁻¹ ∈ H₂,
     apply H₂.mul_mem _ (H₂.inv_mem hy),
     apply (hH₂.conj_mem _ hy), }

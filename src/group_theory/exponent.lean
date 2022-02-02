@@ -159,20 +159,6 @@ begin
   exact order_dvd_exponent g
 end
 
-section to_move
-
-lemma _root_.nat.dvd_of_mem_factorization {n p : ℕ} (h : p ∈ n.factorization.support) : p ∣ n :=
-begin
-  rcases eq_or_ne p 0 with rfl | hp,
-  { rw [nat.support_factorization, list.mem_to_finset] at h,
-    exact absurd (nat.prime_of_mem_factors h) (nat.not_prime_zero) },
-  apply nat.dvd_of_factors_subperm hp,
-  rw [nat.factors_prime $ nat.prime_of_mem_factorization h, list.subperm_singleton_iff],
-  rwa ←nat.factor_iff_mem_factorization,
-end
-
-end to_move
-
 @[to_additive exists_order_of_eq_pow_padic_val_nat_add_exponent]
 lemma _root_.nat.prime.exists_order_of_eq_pow_factorization_exponent {p : ℕ} (hp : p.prime) :
   ∃ g : G, order_of g = p ^ (exponent G).factorization p :=

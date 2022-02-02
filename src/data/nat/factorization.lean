@@ -316,6 +316,16 @@ begin
   { rintro ⟨c, rfl⟩, rw factorization_mul hd (right_ne_zero_of_mul hn), simp },
 end
 
+lemma dvd_of_mem_factorization {n p : ℕ} (h : p ∈ n.factorization.support) : p ∣ n :=
+begin
+  rcases eq_or_ne p 0 with rfl | hp,
+  { rw [nat.support_factorization, list.mem_to_finset] at h,
+    exact absurd (nat.prime_of_mem_factors h) (nat.not_prime_zero) },
+  apply nat.dvd_of_factors_subperm hp,
+  rw [nat.factors_prime $ nat.prime_of_mem_factorization h, list.subperm_singleton_iff],
+  rwa ←nat.factor_iff_mem_factorization,
+end
+
 lemma factorization_le_factorization_mul_left {a b : ℕ} (hb : b ≠ 0) :
   a.factorization ≤ (a * b).factorization :=
 begin

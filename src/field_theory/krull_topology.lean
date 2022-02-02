@@ -134,8 +134,7 @@ def gal_basis (K L : Type*) [field K] [field L] [algebra K L] : filter_basis (L 
     rw set.subset_inter_iff,
     exact ⟨intermediate_field.fixing_subgroup.antimono le_sup_left,
       intermediate_field.fixing_subgroup.antimono le_sup_right⟩,
-  end
-}
+  end }
 
 /-- A subset of `L ≃ₐ[K] L` is a member of `gal_basis K L` if and only if it is the underlying set
 of `Gal(L/E)` for some finite subextension `E/K`-/
@@ -171,13 +170,11 @@ group_filter_basis (L ≃ₐ[K] L) :=
     have h_in_F : σ⁻¹ x ∈ F := ⟨x, hx, by {dsimp, rw ← alg_equiv.inv_fun_eq_symm, refl }⟩,
     have h_g_fix : g (σ⁻¹ x) = (σ⁻¹ x),
     { rw [subgroup.mem_carrier, mem_fixing_subgroup_iff F g] at hg,
-      exact hg (σ⁻¹ x) h_in_F,
-    },
+      exact hg (σ⁻¹ x) h_in_F },
     rw h_g_fix,
     change σ(σ⁻¹ x) = x,
     exact alg_equiv.apply_symm_apply σ x,
-  end
-}
+  end }
 
 /-- For a field extension `L/K`, `krull_topology K L` is the topological space structure on
 `L ≃ₐ[K] L` induced by the group filter basis `gal_group_basis K L` -/

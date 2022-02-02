@@ -826,7 +826,7 @@ begin
     rintros x ⟨⟩ },
   { rintros x s hx ⟨y, hy, hs⟩,
     obtain ⟨x', y', hy', hx'⟩ := exists_integral_multiple
-      ((is_fraction_ring.is_algebraic_iff A K L).mpr (algebra.is_algebraic_of_finite x))
+      ((is_fraction_ring.is_algebraic_iff A K L).mpr (is_algebraic_of_finite _ _ x))
       ((algebra_map A L).injective_iff.mp _),
     refine ⟨y * y', mul_ne_zero hy hy', λ x'' hx'', _⟩,
     rcases finset.mem_insert.mp hx'' with (rfl | hx''),

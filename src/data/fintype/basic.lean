@@ -2100,3 +2100,29 @@ begin
   { apply symm,
     exact hf' n m h }
 end
+
+/-- A custom induction principle for fintypes. The base case is a subsingleton type,
+and the induction step is for non-trivial types, and one can assume the hypothesis for
+smaller types (via `fintype.card`).
+
+The major premise is `fintype α`, so to use this with the `induction` tactic you have to give a name
+to that instance and use that name.
+-/
+@[elab_as_eliminator]
+lemma fintype.induction_subsingleton_or_nontrivial
+  {P : Π α [fintype α], Prop} (α : Type*) [fintype α]
+  (hbase : ∀ α [fintype α] [subsingleton α], by exactI P α)
+  (hstep : ∀ α [fintype α] [nontrivial α],
+    by exactI ∀ (ih : ∀ β [fintype β], by exactI ∀ (h : fintype.card β < fintype.card α), P β),
+    P α) :
+  P α :=
+begin
+  obtain ⟨ n, hn ⟩ : ∃ n, fintype.card α = n := ⟨fintype.card α, rfl⟩,
+  unfreezingI { induction n using nat.strong_induction_on with n ih generalizing α },
+  casesI (subsingleton_or_nontrivial α) with hsing hnontriv,
+  { apply hbase, },
+  { apply hstep,
+    introsI β _ hlt,
+    rw hn at hlt,
+    exact (ih (fintype.card β) hlt _ rfl), }
+end

@@ -1344,6 +1344,11 @@ end
 
 variable (H)
 
+/-- In a group that satisifes the normalizer condition, every maximal subgroup is normal -/
+lemma normalizer_condition.normal_of_coatom
+  (hnc : normalizer_condition G) (hmax : is_coatom H) : H.normal :=
+normalizer_eq_top.mp (hmax.2 _ (hnc H (lt_top_iff_ne_top.mpr hmax.1)))
+
 /-- Commutivity of a subgroup -/
 structure is_commutative : Prop :=
 (is_comm : _root_.is_commutative H (*))

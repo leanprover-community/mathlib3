@@ -140,9 +140,9 @@ begin
       refine ⟨_, _⟩,
       { rw [sum_ite],
         have : (filter (λ x, x ≠ a) s) = s,
-          apply filter_true_of_mem,
+        { apply filter_true_of_mem,
           rintro i hi rfl,
-          apply h hi,
+          apply h hi },
         simp [this] },
       { intros i hi,
         split_ifs,
@@ -150,8 +150,8 @@ begin
         { apply h₁ ,
           simpa [not_or_distrib, hi] } } },
     { ext,
-      by_cases (x = a),
-      { subst h, simp },
+      obtain rfl|h := eq_or_ne x a,
+      { simp },
       { simp [if_neg h] } } },
   { simp only [mem_insert, function.embedding.coe_fn_mk, mem_map, nat.mem_antidiagonal, prod.exists,
                exists_prop, mem_cut, not_or_distrib],
@@ -168,9 +168,9 @@ lemma coeff_prod_range
 begin
   revert n,
   apply finset.induction_on s,
-    rintro ⟨_ | n⟩,
-      simp,
-    simp [cut_empty_succ, if_neg (nat.succ_ne_zero _)],
+  { rintro ⟨_ | n⟩,
+    { simp },
+    simp [cut_empty_succ, if_neg (nat.succ_ne_zero _)] },
   intros a s hi ih n,
   rw [cut_insert _ _ _ hi, prod_insert hi, coeff_mul, sum_bUnion],
   { apply sum_congr rfl _,
@@ -195,14 +195,11 @@ begin
     rintro p₁ q₁ rfl p₂ q₂ h t p q ⟨hq, rfl⟩ p hp z,
     rw mem_cut at hp hq,
     have := sum_congr (eq.refl s) (λ x _, function.funext_iff.1 z x),
-    have : q₂ = q₁,
-      simpa [sum_add_distrib, hp.1, hq.1, if_neg hi] using this,
-    subst this,
-    have : p₂ = p₁,
-      simpa using h,
-    subst this,
-    apply t,
-    refl }
+    obtain rfl : q₂ = q₁,
+    { simpa [sum_add_distrib, hp.1, hq.1, if_neg hi] using this },
+    obtain rfl : p₂ = p₁,
+    { simpa using h },
+    exact t rfl }
 end
 
 /-- A convience constructor for the power series whose coefficients indicate a subset. -/
@@ -229,8 +226,8 @@ begin
   simp [coeff_indicator, coeff_one, add_monoid_hom.map_add, coeff_X_pow,
         ← @set.mem_def _ _ {0, i.succ}, set.mem_insert_iff, set.mem_singleton_iff],
   cases n with d hd,
-    { simp [(nat.succ_ne_zero i).symm, zero_pow] },
-    { simp [(nat.succ_ne_zero d)], },
+  { simp [(nat.succ_ne_zero i).symm, zero_pow] },
+  { simp [nat.succ_ne_zero d], },
 end
 
 lemma num_series' [field α] (i : ℕ) :
@@ -249,7 +246,7 @@ begin
       split_ifs,
       { suffices :
         ((nat.antidiagonal n.succ).filter (λ (a : ℕ × ℕ), i + 1 ∣ a.fst ∧ a.snd = i + 1)).card = 1,
-          rw this, norm_cast,
+        { rw this, norm_cast },
         rw card_eq_one,
         cases h with p hp,
         refine ⟨((i+1) * (p-1), i+1), _⟩,
@@ -261,12 +258,12 @@ begin
           rw [nat.mul_sub_left_distrib, ← hp, ← a_left, mul_one, nat.add_sub_cancel] },
         { rintro ⟨rfl, rfl⟩,
           cases p,
-            rw mul_zero at hp, cases hp,
+          { rw mul_zero at hp, cases hp },
           rw hp,
           simp [nat.succ_eq_add_one, mul_add] } },
       { suffices :
         (filter (λ (a : ℕ × ℕ), i + 1 ∣ a.fst ∧ a.snd = i + 1) (nat.antidiagonal n.succ)).card = 0,
-          rw this, norm_cast,
+        { rw this, norm_cast },
         rw card_eq_zero,
         apply eq_empty_of_forall_not_mem,
         simp only [prod.forall, mem_filter, not_and, nat.mem_antidiagonal],
@@ -401,9 +398,9 @@ begin
     congr' 1,
     ext k,
     split,
-      rintro ⟨p, rfl⟩,
+    { rintro ⟨p, rfl⟩,
       refine ⟨p, ⟨⟩, _⟩,
-      apply mul_comm,
+      apply mul_comm },
     rintro ⟨a_w, _, rfl⟩,
     apply dvd.intro_left a_w rfl },
   { intro i,
@@ -487,14 +484,11 @@ begin
   apply (and_iff_left _).symm,
   intros i hi,
   have : i ≤ n,
-    simpa [p.parts_sum] using multiset.single_le_sum (λ _ _, nat.zero_le _) _ hi,
+  { simpa [p.parts_sum] using multiset.single_le_sum (λ _ _, nat.zero_le _) _ hi },
   simp only [mk_odd, exists_prop, mem_range, function.embedding.coe_fn_mk, mem_map],
-  refine ⟨i-1, _, _⟩,
-  rw nat.sub_lt_right_iff_lt_add,
-  apply lt_of_le_of_lt ‹i ≤ n› h,
-  apply p.parts_pos hi,
-  apply nat.succ_pred_eq_of_pos,
-  apply p.parts_pos hi,
+  refine ⟨i-1, _, nat.succ_pred_eq_of_pos (p.parts_pos hi)⟩,
+  rw nat.sub_lt_right_iff_lt_add (p.parts_pos hi),
+  apply lt_of_le_of_lt this h,
 end
 
 /--
@@ -549,22 +543,18 @@ end
 lemma same_coeffs [field α] (n m : ℕ) (h : m ≤ n) :
   coeff α m (partial_odd_gf n) = coeff α m (partial_distinct_gf n) :=
 begin
-  rw ← same_gf,
-  rw coeff_mul_prod_one_sub_of_lt_order,
-  simp only [mem_range, order_X_pow],
-  intros i hi,
-  norm_cast,
-  rw nat.lt_succ_iff,
-  apply le_add_right,
-  assumption,
+  rw [← same_gf, coeff_mul_prod_one_sub_of_lt_order],
+  rintros i -,
+  rw order_X_pow,
+  exact_mod_cast nat.lt_succ_of_le (le_add_right h),
 end
 
 theorem freek (n : ℕ) : (partition.odds n).card = (partition.distincts n).card :=
 begin
   -- We need the counts to live in some field (which contains ℕ), so let's just use ℚ
   suffices : ((partition.odds n).card : ℚ) = (partition.distincts n).card,
-    norm_cast at this, assumption,
+  { exact_mod_cast this },
   rw distinct_gf_prop n (n+1) (by linarith),
   rw odd_gf_prop n (n+1) (by linarith),
-  apply same_coeffs (n+1) n (by linarith),
+  apply same_coeffs (n+1) n n.le_succ,
 end

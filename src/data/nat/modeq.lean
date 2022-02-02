@@ -389,3 +389,150 @@ lemma rotate_one_eq_self_iff_eq_repeat [nonempty α] {l : list α} :
     λ h, rotate_eq_self_iff_eq_repeat.mpr h 1⟩
 
 end list
+
+--------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------
+--  PR THIS vvvv  --------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------
+
+namespace nat
+
+variables {a b c d m n : ℕ}
+
+-- Apostol, Theorem 5.3
+lemma mul_left_iff (c : ℕ) (hc : 0 < c) : a ≡ b [MOD m] ↔ c * a ≡ c * b [MOD c * m] :=
+begin
+  have hc' : (c:ℤ) ≠ 0 := by simp [hc.ne.symm],
+  simp only [modeq_iff_dvd, int.coe_nat_mul, ←mul_sub, mul_dvd_mul_iff_left hc'],
+end
+
+lemma mul_right_iff (hc : 0 < c) : a ≡ b [MOD m] ↔ a * c ≡ b * c [MOD m * c] :=
+begin
+  have hc' : (c:ℤ) ≠ 0 := by simp [hc.ne.symm],
+  simp only [modeq_iff_dvd, int.coe_nat_mul, ←mul_sub_right_distrib, mul_dvd_mul_iff_right hc'],
+end
+
+
+
+-- Apostol, Theorem 5.5
+
+lemma Apostol_5_5' (h : a ≡ b [MOD m]) (hdm : d ∣ m) :
+  ∀ c : ℕ, a ≡ c [MOD d] ↔ b ≡ c [MOD d] :=
+begin
+  have habd := modeq.modeq_of_dvd hdm h,
+  exact λ c, ⟨λ h, (modeq.symm habd).trans h, λ h, modeq.trans habd h⟩,
+end
+
+lemma Apostol_5_5'' (h : a ≡ b [MOD m]) (hdm : d ∣ m) :
+  d ∣ a ↔ d ∣ b :=
+by simpa only [←modeq_zero_iff_dvd] using Apostol_5_5' h hdm 0
+
+
+-- Apostol, Theorem 5.6
+lemma gcd_eq_of_modeq (h : a ≡ b [MOD m]) : gcd a m = gcd b m :=
+begin
+  have h1 := gcd_dvd_right a m,
+  have h2 := gcd_dvd_right b m,
+  exact dvd_antisymm
+    (dvd_gcd ((Apostol_5_5'' h h1).mp (gcd_dvd_left a m)) h1)
+    (dvd_gcd ((Apostol_5_5'' h h2).mpr (gcd_dvd_left b m)) h2),
+end
+
+
+lemma Apostol_5_7_aux {m x : ℤ} (h1 : m ∣ x) (h2 : | x | < m) : x = 0 :=
+begin
+  rcases em (m = 0) with rfl | hm,
+  { exact zero_dvd_iff.mp h1 },
+  cases h1 with d hd,
+  subst hd,
+  simp only [mul_eq_zero], right,
+  rw ←int.eq_zero_iff_abs_lt_one,
+  rw ←mul_lt_iff_lt_one_right (abs_pos.mpr hm),
+  rw ←abs_mul,
+  exact lt_of_lt_of_le h2 (le_abs_self m),
+end
+
+-- Apostol, Theorem 5.7
+lemma Apostol_5_7 (h : a ≡ b [MOD m]) (h2 : | (b:ℤ) - a | < m) : a = b :=
+begin
+  refine int.coe_nat_inj _,
+  rw modeq_iff_dvd at h,
+  rw eq_comm,
+  rw ←sub_eq_zero,
+  exact Apostol_5_7_aux h h2,
+end
+
+
+-- Apostol, Theorem 5.4
+/-- To cancel a common factor `c` from a `modeq` we must divide the modulus `m` by `gcd m c` -/
+lemma Apostol_5_4 (hm : 0 < m) (h : c * a ≡ c * b [MOD m]) :
+  a ≡ b [MOD m / gcd m c] :=
+begin
+  set d := (gcd m c),
+  have hmd := gcd_dvd_left m c,
+  have hcd := gcd_dvd_right m c,
+  rw modeq_iff_dvd,
+  have h1 : ((m:ℤ)/↑d) ∣ (↑c/↑d) * (↑b - ↑a),
+  { rw [mul_comm, ←int.mul_div_assoc (↑b - ↑a) (int.coe_nat_dvd.mpr hcd), mul_comm],
+    refine int.div_dvd_div (int.coe_nat_dvd.mpr hmd) _,
+    rw mul_sub,
+    exact modeq_iff_dvd.mp h },
+  have h2 : int.gcd ((m/d):ℤ) (c/d) = 1 :=
+    by simp only [←int.coe_nat_div, int.coe_nat_gcd (m / d) (c / d), gcd_div hmd hcd,
+        nat.div_self (gcd_pos_of_pos_left c hm)],
+  exact int.dvd_of_dvd_mul_right_of_gcd_one h1 h2,
+end
+
+/-- A common factor that's coprime with the modulus can be cancelled from a `modeq` -/
+lemma Apostol_5_4_corr (hmc : gcd m c = 1) (h : c * a ≡ c * b [MOD m]) :
+  a ≡ b [MOD m] :=
+begin
+  rcases m.eq_zero_or_pos with rfl | hm,
+  { simp only [gcd_zero_left] at hmc,
+    simp only [gcd_zero_left, hmc, one_mul, modeq_zero_iff] at h,
+    subst h },
+  simpa [hmc] using Apostol_5_4 hm h
+end
+
+--------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------
+--  PR THIS ^^^^  --------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------
+
+--    ALREADY KNOWN
+example (x y z : ℕ) (h1 : gcd x y = 1) (h2 : x ∣ y * z) : x ∣ z :=
+begin
+  exact (coprime.dvd_mul_left h1).mp h2,
+end
+
+--    ALREADY KNOWN
+example (a b d : ℤ) (h1 : d ∣ a) (h : a ∣ b) : (a/d) ∣ (b/d) :=
+int.div_dvd_div h1 h
+
+-- Apostol, Theorem 5.8   ALREADY KNOWN
+example :  a ≡ b [MOD m] ↔ a % m = b % m :=
+by unfold modeq
+
+-- ALREADY KNOWN
+lemma Apostol_5_9_aux (x : ℕ) (h : gcd m n = 1) (hmx : m ∣ x) (hnx : n ∣ x) : m * n ∣ x :=
+begin
+  exact coprime.mul_dvd_of_dvd_of_dvd h hmx hnx,
+end
+
+-- Apostol, Theorem 5.9   ALREADY KNOWN
+example (h : gcd m n = 1) (hm : a ≡ b [MOD m]) (hn : a ≡ b [MOD n]) :
+  a ≡ b [MOD m * n] :=
+(modeq_and_modeq_iff_modeq_mul h).mp ⟨hm, hn⟩
+
+--------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------
+
+
+end nat

@@ -29,6 +29,10 @@ inductive μ_recursive : ℕ -> Type
 -- A type of codes that works over naturals will not let us compute without exponential slowdowns.
 open turing.to_partrec
 
+/--
+The time that a `turing.to_partrec.code` takes to run on a particular list, as a partial function.
+For the semantics of this definition of code, see `turing.to_partrec.code.eval`.
+-/
 def time : turing.to_partrec.code → list ℕ →. ℕ
 | code.zero'       := pure 1
 | code.succ        := pure 1
